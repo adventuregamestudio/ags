@@ -1,0 +1,241 @@
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{3EBBEDAB-214C-4201-BB5A-5152D56908DD}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>AGS.Types</RootNamespace>
+    <AssemblyName>AGS.Types</AssemblyName>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+    <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>2.0</OldToolsVersion>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <DocumentationFile>bin\Debug\AGS.Types.XML</DocumentationFile>
+    <NoWarn>1591</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\AGS.Types.XML</DocumentationFile>
+    <NoWarn>1591</NoWarn>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Design" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Attributes\AGSNoSerializeAttribute.cs" />
+    <Compile Include="Attributes\AGSSerializeClassAttribute.cs" />
+    <Compile Include="Attributes\ScriptFunctionParametersAttribute.cs" />
+    <Compile Include="AudioClip.cs" />
+    <Compile Include="AudioClipFolder.cs" />
+    <Compile Include="Constants.cs" />
+    <Compile Include="EditorFeatures\AutoComplete\ScriptDefine.cs" />
+    <Compile Include="EditorFeatures\AutoComplete\ScriptEnum.cs" />
+    <Compile Include="EditorFeatures\AutoComplete\ScriptFunction.cs" />
+    <Compile Include="EditorFeatures\AutoComplete\ScriptStruct.cs" />
+    <Compile Include="EditorFeatures\AutoComplete\ScriptToken.cs" />
+    <Compile Include="EditorFeatures\AutoComplete\ScriptVariable.cs" />
+    <Compile Include="Character.cs" />
+    <Compile Include="CustomProperties.cs" />
+    <Compile Include="CustomProperty.cs" />
+    <Compile Include="CustomPropertySchema.cs" />
+    <Compile Include="CustomPropertySchemaItem.cs" />
+    <Compile Include="Dialog.cs" />
+    <Compile Include="DialogOption.cs" />
+    <Compile Include="EditorFeatures\BaseTemplate.cs" />
+    <Compile Include="EditorFeatures\BeforeShowContextMenuEventArgs.cs" />
+    <Compile Include="EditorFeatures\ContentDocument.cs" />
+    <Compile Include="EditorFeatures\EditorContentPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="EditorFeatures\GetAboutDialogTextEventArgs.cs" />
+    <Compile Include="EditorFeatures\GetScriptHeaderListEventArgs.cs" />
+    <Compile Include="EditorFeatures\GetScriptModuleListEventArgs.cs" />
+    <Compile Include="EditorFeatures\MenuCommand.cs" />
+    <Compile Include="EditorFeatures\MenuCommands.cs" />
+    <Compile Include="EditorFeatures\MessageBoxIconType.cs" />
+    <Compile Include="EditorFeatures\RoomTemplate.cs" />
+    <Compile Include="Enums\CrossfadeSpeed.cs" />
+    <Compile Include="Enums\CustomPropertyAppliesTo.cs" />
+    <Compile Include="Enums\CustomPropertyType.cs" />
+    <Compile Include="Enums\FontOutlineStyle.cs" />
+    <Compile Include="Enums\GameColorDepth.cs" />
+    <Compile Include="Enums\GameTextType.cs" />
+    <Compile Include="Enums\GraphicsDriver.cs" />
+    <Compile Include="Enums\GUIAlphaStyle.cs" />
+    <Compile Include="Enums\InterfaceDisabledAction.cs" />
+    <Compile Include="Enums\InventoryHotspotMarkerStyle.cs" />
+    <Compile Include="Enums\LipSyncType.cs" />
+    <Compile Include="Enums\PaletteColourType.cs" />
+    <Compile Include="Enums\RoomAreaMaskType.cs" />
+    <Compile Include="Enums\RoomResolution.cs" />
+    <Compile Include="Enums\RoomTransitionStyle.cs" />
+    <Compile Include="Enums\RoomVolumeAdjustment.cs" />
+    <Compile Include="Enums\SkipSpeechStyle.cs" />
+    <Compile Include="Enums\SourceControlFileStatus.cs" />
+    <Compile Include="Enums\SpeechPortraitSide.cs" />
+    <Compile Include="Enums\SpeechStyle.cs" />
+    <Compile Include="Enums\SpriteImportTransparency.cs" />
+    <Compile Include="Enums\SpriteImportResolution.cs" />
+    <Compile Include="Enums\TextParserWordType.cs" />
+    <Compile Include="Exceptions\CannotDeleteFileException.cs" />
+    <Compile Include="Exceptions\CompileError.cs" />
+    <Compile Include="Exceptions\CompileMessage.cs" />
+    <Compile Include="Exceptions\CompileMessages.cs" />
+    <Compile Include="Exceptions\CompileWarning.cs" />
+    <Compile Include="Exceptions\SourceControlException.cs" />
+    <Compile Include="Exceptions\SpriteInUseException.cs" />
+    <Compile Include="Font.cs" />
+    <Compile Include="EditorFeatures\GameTemplate.cs" />
+    <Compile Include="GlobalVariable.cs" />
+    <Compile Include="GlobalVariables.cs" />
+    <Compile Include="Interfaces\ILoadedRoom.cs" />
+    <Compile Include="InteractionSchema.cs" />
+    <Compile Include="Interfaces\IChangeNotification.cs" />
+    <Compile Include="Interfaces\ICompiledScript.cs" />
+    <Compile Include="Interfaces\IEditorComponent.cs" />
+    <Compile Include="Interfaces\IGame.cs" />
+    <Compile Include="Interfaces\IGUIController.cs" />
+    <Compile Include="Interfaces\IPersistUserData.cs" />
+    <Compile Include="Interfaces\IProjectTree.cs" />
+    <Compile Include="Interfaces\IProjectTreeItem.cs" />
+    <Compile Include="Interfaces\IRoom.cs" />
+    <Compile Include="Interfaces\IRoomController.cs" />
+    <Compile Include="Interfaces\IScriptEditorControl.cs" />
+    <Compile Include="Interfaces\ISourceControlIntegration.cs" />
+    <Compile Include="Interfaces\ISpriteFolder.cs" />
+    <Compile Include="Interfaces\IViewFolder.cs" />
+    <Compile Include="LipSync.cs" />
+    <Compile Include="OldInteractionVariable.cs" />
+    <Compile Include="Plugin.cs" />
+    <Compile Include="Plugins\IAGSEditor.cs" />
+    <Compile Include="Plugins\IAGSEditorPlugin.cs" />
+    <Compile Include="Plugins\RequiredAGSVersionAttribute.cs" />
+    <Compile Include="PropertyGridExtras\CustomPropertiesUIEditor.cs" />
+    <Compile Include="PropertyGridExtras\InteractionPropertyDescriptor.cs" />
+    <Compile Include="PropertyGridExtras\PropertyTabInteractions.cs" />
+    <Compile Include="PropertyGridExtras\RoomMessagesUIEditor.cs" />
+    <Compile Include="PropertyGridExtras\SpriteSelectUIEditor.cs" />
+    <Compile Include="PropertyGridExtras\ViewUIEditor.cs" />
+    <Compile Include="Room.cs" />
+    <Compile Include="RoomHotspot.cs" />
+    <Compile Include="RoomList.cs" />
+    <Compile Include="RoomMessage.cs" />
+    <Compile Include="RoomObject.cs" />
+    <Compile Include="RoomRegion.cs" />
+    <Compile Include="RoomWalkableArea.cs" />
+    <Compile Include="RoomWalkBehind.cs" />
+    <Compile Include="EditorFeatures\AutoComplete\ScriptAutoCompleteData.cs" />
+    <Compile Include="Translation.cs" />
+    <Compile Include="UnloadedRoom.cs" />
+    <Compile Include="EditorFeatures\SourceControlProject.cs" />
+    <Compile Include="TextParser.cs" />
+    <Compile Include="TextParserWord.cs" />
+    <Compile Include="Utilities.cs" />
+    <Compile Include="ViewFrame.cs" />
+    <Compile Include="ViewLoop.cs" />
+    <Compile Include="MouseCursor.cs" />
+    <Compile Include="PropertyGridExtras\AGSEventPropertyAttribute.cs" />
+    <Compile Include="Enums\ListBoxTextAlignment.cs" />
+    <Compile Include="PropertyGridExtras\EnumTypeConverter.cs" />
+    <Compile Include="PropertyGridExtras\ScriptFunctionUIEditor.cs" />
+    <Compile Include="Exceptions\AGSEditorException.cs" />
+    <Compile Include="Game.cs" />
+    <Compile Include="Enums\GameResolutions.cs" />
+    <Compile Include="GUITextWindowEdge.cs" />
+    <Compile Include="Interactions.cs" />
+    <Compile Include="NormalGUI.cs" />
+    <Compile Include="GUI.cs" />
+    <Compile Include="GUIButton.cs" />
+    <Compile Include="Enums\GUIClickAction.cs" />
+    <Compile Include="GUIControl.cs" />
+    <Compile Include="GUIInventory.cs" />
+    <Compile Include="GUILabel.cs" />
+    <Compile Include="GUIListBox.cs" />
+    <Compile Include="GUISlider.cs" />
+    <Compile Include="GUITextBox.cs" />
+    <Compile Include="Enums\GUIVisibility.cs" />
+    <Compile Include="Enums\LabelTextAlignment.cs" />
+    <Compile Include="Exceptions\InvalidDataException.cs" />
+    <Compile Include="InventoryHotspotMarker.cs" />
+    <Compile Include="InventoryItem.cs" />
+    <Compile Include="PaletteEntry.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Enums\TextAlignment.cs" />
+    <Compile Include="PropertyGridExtras\PropertyTabEvents.cs" />
+    <Compile Include="Script.cs" />
+    <Compile Include="Scripts.cs" />
+    <Compile Include="SerializeUtils.cs" />
+    <Compile Include="Settings.cs" />
+    <Compile Include="Sprite.cs" />
+    <Compile Include="SpriteFolder.cs" />
+    <Compile Include="TextWindowGUI.cs" />
+    <Compile Include="View.cs" />
+    <Compile Include="ViewFolder.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="PropertyGridExtras\event.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\roomdef.pal" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{B4F97281-0DBD-4835-9ED8-7DFB966E87FF}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AudioClipType.cs" />
+    <Compile Include="BaseFolderCollection.cs" />
+    <Compile Include="Enums\AudioClipFileType.cs" />
+    <Compile Include="Enums\AudioClipPriority.cs" />
+    <Compile Include="Enums\AudioFileBundlingType.cs" />
+    <Compile Include="Enums\InheritableBool.cs" />
+    <Compile Include="Interfaces\IProjectTreeSingleClickHandler.cs" />
+    <Compile Include="Interfaces\IToXml.cs" />
+    <Compile Include="PropertyGridExtras\AudioClipTypeConverter.cs" />
+    <Compile Include="PropertyGridExtras\AudioClipTypeTypeConverter.cs" />
+    <Compile Include="PropertyGridExtras\BaseListSelectTypeConverter.cs" />
+    <Compile Include="PropertyGridExtras\FontTypeConverter.cs" />
+    <Compile Include="PropertyGridExtras\RoomListTypeConverter.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+</Project>

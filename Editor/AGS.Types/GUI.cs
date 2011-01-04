@@ -1,0 +1,182 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Text;
+using System.Xml;
+
+namespace AGS.Types
+{
+    [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]
+    public abstract class GUI
+    {
+        public const int MAX_CONTROLS_PER_GUI = 30;
+        protected const int MAX_NAME_LENGTH = 15;
+
+        public GUI()
+        {
+            _name = string.Empty;
+            _bgcol = 8;
+        }
+
+        protected string _name;
+        protected int _id;
+        protected int _bgcol;
+        protected int _bgimage;
+        protected List<GUIControl> _controls = new List<GUIControl>();
+
+        [Description("Background color of the GUI (0 for transparent)")]
+        [Category("Appearance")]
+        public int BackgroundColor
+        {
+            get { return _bgcol; }
+            set { _bgcol = value; }
+        }
+
+        [Description("Background image for the GUI (0 for none)")]
+        [Category("Appearance")]
+        [EditorAttribute(typeof(SpriteSelectUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        public int BackgroundImage
+        {
+            get { return _bgimage; }
+            set { _bgimage = value; }
+        }
+
+        [Description("The ID number of the GUI")]
+        [Category("Design")]
+        [ReadOnly(true)]
+        public int ID
+        {
+            get { return _id; }
+            set { _id = value; }
+        }
+
+        [Description("The script name of the GUI")]
+        [Category("Design")]
+        public string Name
+        {
+            get { return _name; }
+            set
+            {
+                _name = Utilities.ValidateScriptName(value, MAX_NAME_LENGTH);
+            }
+        }
+
+        [Browsable(false)]
+        public string WindowTitle
+        {
+            get { return "GUI: " + this.Name; }
+        }
+
+        [Browsable(false)]
+        public string PropertyGridTitle
+        {
+            get { return this.Name + " (" + this.GetType().Name + " " + this.ID + ")"; }
+        }
+
+        [Browsable(false)]
+        [AGSNoSerialize()]
+        public List<GUIControl> Controls
+        {
+            get { return _controls; }
+            set { _controls = value; }
+        }
+
+        public void SendControlToBack(GUIControl controlToSend)
+        {
+            int currentZOrder = controlToSend.ZOrder;
+            foreach (GUIControl control in _controls)
+            {
+                if (control.ZOrder < currentZOrder)
+                {
+                    control.ZOrder++;
+                }
+            }
+
+            controlToSend.ZOrder = 0;
+        }
+
+        public void BringControlToFront(GUIControl controlToSend)
+        {
+            int currentZOrder = controlToSend.ZOrder;
+            foreach (GUIControl control in _controls)
+            {
+                if (control.ZOrder > currentZOrder)
+                {
+                    control.ZOrder--;
+                }
+            }
+
+            controlToSend.ZOrder = _controls.Count - 1;
+        }
+
+        public void DeleteControl(GUIControl controlToDelete)
+        {
+            BringControlToFront(controlToDelete);
+            _controls.Remove(controlToDelete);
+            int currentID = controlToDelete.ID;
+            foreach (GUIControl control in _controls)
+            {
+                if (control.ID > currentID)
+                {
+                    control.ID--;
+                }
+            }
+        }
+
+        public GUI(XmlNode rootGuiNode)
+            : this()
+        {
+            SerializeUtils.DeserializeFromXML(this, rootGuiNode);
+
+            _controls = new List<GUIControl>();
+
+            foreach (XmlNode node in SerializeUtils.GetChildNodes(rootGuiNode, "Controls"))
+            {
+                if (node.Name == "GUIButton")
+                {
+                    _controls.Add(new GUIButton(node));
+                }
+                else if (node.Name == "GUIInventory")
+                {
+                    _controls.Add(new GUIInventory(node));
+                }
+                else if (node.Name == "GUILabel")
+                {
+                    _controls.Add(new GUILabel(node));
+                }
+                else if (node.Name == "GUIListBox")
+                {
+                    _controls.Add(new GUIListBox(node));
+                }
+                else if (node.Name == "GUISlider")
+                {
+                    _controls.Add(new GUISlider(node));
+                }
+                else if (node.Name == "GUITextBox")
+                {
+                    _controls.Add(new GUITextBox(node));
+                }
+                else if (node.Name == "GUITextWindowEdge")
+                {
+                    _controls.Add(new GUITextWindowEdge(node));
+                }
+                else
+                {
+                    throw new InvalidDataException("Unknown control type: " + node.Name);
+                }
+            }
+        }
+
+        public virtual void ToXml(XmlTextWriter writer)
+        {
+            SerializeUtils.SerializeToXML(this, writer);
+
+            writer.WriteStartElement("Controls");
+            foreach (GUIControl control in _controls)
+            {
+                control.ToXml(writer);
+            }
+            writer.WriteEndElement();
+        }
+    }
+}

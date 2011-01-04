@@ -1,0 +1,25 @@
+/* XPM */
+static char *keyword[] = {
+/* columns rows colors chars-per-pixel */
+"16 16 3 1",
+"  c #008000",
+". c #808080",
+"X c None",
+/* pixels */
+"XXXXXXXXXXXXXXXX",
+"XXXXXXXXXXXXXXXX",
+"X       XXXXXXXX",
+"X ..... X......X",
+"X       XXXXXXXX",
+"XXXXXXXXXXXXXXXX",
+"XXX...........XX",
+"XXXXXXXXXXXXXXXX",
+"XXXXXXXXXXXXXXXX",
+"XX.........XXXXX",
+"XXXXXXXXXXXXXXXX",
+"XXXXXXXXXXXXXXXX",
+"XXXX....XX....XX",
+"XXXXXXXXXXXXXXXX",
+"XXXXXXXXXXXXXXXX",
+"XXXXXXXXXXXXXXXX"
+};

@@ -1,0 +1,1279 @@
+// temporarily removed palette functions cos the compiler
+// doesnt support typedefs
+#define function int  // $AUTOCOMPLETEIGNORE$
+// CursorMode isn't actually defined yet, but int will do
+#define CursorMode int
+#define MAX_INV 301
+#define FOLLOW_EXACTLY 32766
+#define NARRATOR -1
+#define OPT_WALKONLOOK       2
+#define OPT_DIALOGOPTIONSGUI 3
+#define OPT_ANTIGLIDE        4
+#define OPT_DIALOGOPTIONSGAP 6
+#define OPT_WHENGUIDISABLED  8
+#define OPT_ALWAYSSPEECH     9
+#define OPT_PIXELPERFECT    11
+#define OPT_NOWALKMODE      12
+#define OPT_FIXEDINVCURSOR  14
+#define OPT_DONTLOSEINV     15
+#define OPT_TURNBEFOREWALK  18
+#define OPT_HANDLEINVCLICKS 20
+#define OPT_MOUSEWHEEL      21
+#define OPT_DIALOGNUMBERED  22
+#define OPT_DIALOGUPWARDS   23
+#define OPT_CROSSFADEMUSIC  24
+#define OPT_ANTIALIASFONTS  25
+#define OPT_THOUGHTGUI      26
+#define OPT_TURNWHENFACING  27
+#define OPT_RIGHTTOLEFT     28
+#define OPT_MULTIPLEINV     29
+#define OPT_SAVEGAMESCREENSHOTS 30
+#define OPT_PORTRAITPOSITION 31
+#define OPT_LIPSYNCTEXT     99
+
+#define SCR_NO_VALUE   31998   // $AUTOCOMPLETEIGNORE$
+
+enum bool {
+  false = 0,   // $AUTOCOMPLETEIGNORE$
+  true = 1  // $AUTOCOMPLETEIGNORE$
+};
+
+enum eOperatingSystem {
+  eOSDOS = 1,
+  eOSWindows,
+  eOSLinux,
+  eOSMacOS
+};
+
+enum TransitionStyle {
+  eTransitionFade=0,
+  eTransitionInstant,
+  eTransitionDissolve,
+  eTransitionBoxout,
+  eTransitionCrossfade
+};
+
+enum MouseButton {
+  eMouseLeft = 1,
+  eMouseRight = 2,
+  eMouseMiddle = 3,
+  eMouseLeftInv = 5,
+  eMouseRightInv = 6,
+  eMouseWheelNorth = 8,
+  eMouseWheelSouth = 9
+};
+
+enum RoundDirection {
+  eRoundDown = 0,
+  eRoundNearest = 1,
+  eRoundUp = 2
+};
+
+enum RepeatStyle {
+  eOnce = 0,
+  eRepeat = 1
+};
+
+enum Alignment {
+  eAlignLeft = 1,
+  eAlignCentre = 2,
+  eAlignRight = 3
+};
+
+enum LocationType {
+  eLocationNothing = 0,
+  eLocationHotspot = 1,
+  eLocationCharacter = 2,
+  eLocationObject = 3
+};
+
+enum CutsceneSkipType {
+  eSkipESCOnly = 1,
+  eSkipAnyKey = 2,
+  eSkipMouseClick = 3,
+  eSkipAnyKeyOrMouseClick = 4,
+  eSkipESCOrRightButton = 5
+};
+
+enum DialogOptionState {
+  eOptionOff = 0,
+  eOptionOn = 1,
+  eOptionOffForever = 2
+};
+
+enum eSpeechStyle {
+  eSpeechLucasarts = 0,
+  eSpeechSierra = 1,
+  eSpeechSierraWithBackground = 2,
+  eSpeechFullScreen = 3
+};
+
+enum eVoiceMode {
+  eSpeechTextOnly = 0,
+  eSpeechVoiceAndText = 1,
+  eSpeechVoiceOnly = 2
+};
+
+enum eFlipDirection {
+  eFlipLeftToRight = 1,
+  eFlipUpsideDown = 2,
+  eFlipBoth = 3
+};
+
+enum eCDAudioFunction {
+  eCDIsDriverPresent = 0,
+  eCDGetPlayingStatus,
+  eCDPlayTrack,
+  eCDPausePlayback,
+  eCDResumePlayback,
+  eCDGetNumTracks,
+  eCDEject,
+  eCDCloseTray,
+  eCDGetCDDriveCount,
+  eCDSelectActiveCDDrive
+};
+
+#define CHARID int  // $AUTOCOMPLETEIGNORE$
+struct ColorType {
+  char r,g,b;
+  char filler;  // $AUTOCOMPLETEIGNORE$
+  };
+
+internalstring autoptr managed struct String {
+  import String  Append(const string appendText);
+  import String  AppendChar(char extraChar);
+  import int     CompareTo(const string otherString, bool caseSensitive = false);
+  import int     Contains(const string needle);
+  import String  Copy();
+  import static String  Format(const string format, ...);    // $AUTOCOMPLETESTATICONLY$
+  import String  LowerCase();
+  import String  ReplaceCharAt(int index, char newChar);
+  import String  Substring(int index, int length);
+  import String  Truncate(int length);
+  import String  UpperCase();
+  readonly import attribute float AsFloat;
+  readonly import attribute int AsInt;
+  readonly import attribute char Chars[];
+  readonly import attribute int Length;
+};
+
+managed struct ViewFrame {
+  readonly import attribute bool Flipped;
+  readonly import attribute int Frame;
+  import attribute int Graphic;
+  readonly import attribute int Loop;
+  import attribute int Sound;
+  readonly import attribute int Speed;
+  readonly import attribute int View;
+};
+
+managed struct Room {
+  import static String GetTextProperty(const string property);
+  readonly import static attribute int BottomEdge;
+  readonly import static attribute int ColorDepth;
+  readonly import static attribute int Height;
+  readonly import static attribute int LeftEdge;
+  readonly import static attribute String Messages[];
+  readonly import static attribute int MusicOnLoad;
+  readonly import static attribute int ObjectCount;
+  readonly import static attribute int RightEdge;
+  readonly import static attribute int TopEdge;
+  readonly import static attribute int Width;
+};
+
+managed struct Game {
+  import static int    GetFrameCountForLoop(int view, int loop);
+  import static String GetLocationName(int x, int y);
+  import static int    GetLoopCountForView(int view);
+  import static int    GetMODPattern();
+  import static bool   GetRunNextSettingForLoop(int view, int loop);
+  import static String GetSaveSlotDescription(int saveSlot);
+  import static ViewFrame* GetViewFrame(int view, int loop, int frame);
+  import static String InputBox(const string prompt);
+  import static bool   SetSaveGameDirectory(const string directory);
+  import static void   StopSound(bool includeAmbientSounds=false);
+  readonly import static attribute int CharacterCount;
+  readonly import static attribute String FileName;
+  readonly import static attribute String GlobalMessages[];
+  import static attribute String GlobalStrings[];
+  readonly import static attribute int GUICount;
+  readonly import static attribute int InventoryItemCount;
+  import static attribute String Name;
+  import static attribute int NormalFont;
+  import static attribute int SpeechFont;
+  readonly import static attribute int SpriteHeight[];
+  readonly import static attribute int SpriteWidth[];
+  readonly import static attribute String TranslationFilename;
+  readonly import static attribute int ViewCount;
+};
+
+managed struct Parser {
+  import static void   ParseText(const string text);
+  import static int    Said(const string text);
+  import static String SaidUnknownWord();
+};
+
+// standard functions
+import void Display(const string message, ...);
+import void DisplayAt(int x, int y, int width, const string message, ...);
+import void DisplayAtY (int y, const string message);
+import void DisplayMessage(int messageNumber);
+import void DisplayMessageAtY(int messageNumber, int y);
+import void DisplayTopBar(int y, int textColor, int backColor, const string title, const string text, ...);
+import void DisplayMessageBar(int y, int textColor, int backColor, const string title, int message);
+import void ResetRoom(int roomNumber);
+import int  HasPlayerBeenInRoom(int roomNumber);
+import void ProcessClick(int x, int y, CursorMode);
+import void AbortGame(const string message, ...);
+import void QuitGame(int promptUser);
+import void SetGameSpeed(int framesPerSecond);
+import int  GetGameSpeed();
+import int  SetGameOption(int option, int value);
+import int  GetGameOption(int option);
+import int  InventoryScreen();
+import void Debug(int command, int data);
+import void CallRoomScript(int value);
+import int  RunAGSGame(const string filename, int mode, int data);
+// changed to string return to work with latest version
+import string GetTranslation (const string originalText);
+import int  IsTranslationAvailable ();
+import void RestoreGameDialog();
+import void SaveGameDialog();
+import void RestartGame();
+import void SaveGameSlot(int slot, const string description);
+import void RestoreGameSlot(int slot);
+import void DeleteSaveSlot(int slot);
+import void SetRestartPoint();
+import LocationType GetLocationType(int x, int y);
+import int  GetWalkableAreaAt(int x, int y);
+import int  GetScalingAt (int x, int y);
+import int  GetRoomProperty(const string property);
+import void SetViewport(int x, int y);
+import void ReleaseViewport();
+import int  GetViewportX();
+import int  GetViewportY();
+import int  IsGamePaused();
+import int  IsChannelPlaying(int channel);
+import int  IsSoundPlaying();
+import int  IsMusicPlaying();
+import int  GetMIDIPosition();
+import void SeekMIDIPosition(int position);
+import int  GetMP3PosMillis();
+import void SeekMP3PosMillis(int offset);
+import void SetChannelVolume(int channel, int volume);
+import void StopChannel(int channel);
+import void StopMusic();
+import int  GetGraphicalVariable (const string variableName);
+import void SetGraphicalVariable (const string variableName, int value);
+import void DisableInterface();
+import void EnableInterface();
+import int  IsInterfaceEnabled();
+import void ChangeCursorGraphic(int mode, int slot);
+import void ChangeCursorHotspot(int mode, int x, int y);
+
+struct Mouse {
+  import static void ChangeModeGraphic(CursorMode, int slot);
+  import static void ChangeModeHotspot(CursorMode, int x, int y);
+  import static void ChangeModeView(CursorMode, int view);
+  import static void DisableMode(CursorMode);
+  import static void EnableMode(CursorMode);
+  import static int  GetModeGraphic(CursorMode);
+  import static bool IsButtonDown(MouseButton);
+  import static void SaveCursorUntilItLeaves();
+  import static void SelectNextMode();
+  import static void SetBounds(int left, int top, int right, int bottom);
+  import static void SetPosition(int x, int y);
+  import static void Update();
+  import static void UseDefaultGraphic();
+  import static void UseModeGraphic(CursorMode);
+  import static attribute CursorMode Mode;
+  import static attribute bool Visible;
+  readonly int  x,y;
+};
+
+#ifndef STRICT_STRINGS
+// OLD STRING BUFFER FUNCTIONS
+import void SetGlobalString(int stringID, const string newValue);
+import void GetGlobalString(int stringID, string buffer);
+import void InputBox(const string prompt, string buffer);
+import int  GetTranslationName (string buffer);
+import int  GetSaveSlotDescription(int slot, string buffer);
+import void GetLocationName(int x, int y, string buffer);
+import void GetRoomPropertyText(const string property, string buffer);
+// string functions
+import void StrCat(string main, const string newbit);
+import int  StrCaseComp(const string str1, const string str2);
+import int  StrComp(const string str1, const string str2);
+import void StrCopy(string dest, const string source);
+import void StrFormat(string dest, const string format, ...);
+import int  StrLen(const string);
+import int  StrGetCharAt (const string, int position);
+import void StrSetCharAt (string, int position, int newChar);
+import void StrToLowerCase (string);
+import void StrToUpperCase (string);
+import int  StrContains (const string haystack, const string needle);
+import void ParseText (const string);
+import int  SaidUnknownWord (string buffer);
+import void GetMessageText (int messageNumber, string buffer);
+import int  StringToInt(const string);
+#define strcmp StrComp
+#define strlen StrLen
+#define strcpy StrCopy
+#define strcat StrCat
+#endif
+
+import int  Said (const string text);
+
+#ifndef STRICT
+// OBSOLETE STUFF
+#define SPEECH_SIERRA 1
+#define SPEECH_SIERRABKGRND 2
+#define SPEECH_LUCASARTS 0
+#define SPEECH_FULLSCREEN 3
+#define MODE_WALK   0
+#define MODE_LOOK   1
+#define MODE_USE    2
+#define MODE_TALK   3
+#define MODE_USEINV 4
+#define MODE_PICKUP 5
+#define TRANSITION_FADE     0
+#define TRANSITION_INSTANT  1
+#define TRANSITION_DISSOLVE 2
+#define TRANSITION_BOXOUT   3
+#define TRANSITION_CROSSFADE 4
+#define ALIGN_LEFT    1
+#define ALIGN_CENTRE  2
+#define ALIGN_CENTER  2
+#define ALIGN_RIGHT   3
+#define CHAR_IGNORESCALING 1
+#define CHAR_NOINTERACTION 4
+#define CHAR_NODIAGONAL    8
+#define CHAR_IGNORELIGHT   32
+#define CHAR_NOTURNING     64
+#define CHAR_IGNOREWALKBEHINDS 128
+#define CHAR_WALKTHROUGH       512
+#define CHAR_SCALEMOVESPEED    1024
+#define LEFT  1
+#define RIGHT 2
+#define MIDDLE 3
+#define LEFTINV  5
+#define RIGHTINV 6
+#define WHEELNORTH  8
+#define WHEELSOUTH  9
+
+import int  GetHotspotAt(int x, int y);
+import int  GetObjectAt(int x,int y);
+import int  GetCharacterAt(int x,int y);
+import int  GetRegionAt (int x, int y);
+import int  GetInvAt(int x,int y);
+
+import int  CreateGraphicOverlay(int x, int y, int slot, bool transparent);
+import int  CreateTextOverlay(int x, int y, int width, int font, int colour, const string text, ...);
+import void SetTextOverlay(int overlayID, int x, int y, int width, int font, int colour, const string text, ...);
+import void RemoveOverlay(int overlayID);
+import int  MoveOverlay(int overlayID, int x, int y);
+import int  IsOverlayValid(int overlayID);
+
+// mouse functions
+import int  GetCursorMode();
+import void SetCursorMode(CursorMode);
+import void SetNextCursorMode();
+import void SetDefaultCursor();
+import void SetMouseCursor(CursorMode);
+import void SetMouseBounds(int left, int top, int right, int bottom);
+import void SetMousePosition(int x, int y);
+import void ShowMouseCursor();
+import void HideMouseCursor();
+import void RefreshMouse();
+import void DisableCursorMode(CursorMode);
+import void EnableCursorMode(CursorMode);
+import void SaveCursorForLocationChange();
+import int  IsButtonDown(MouseButton);
+// Obsolete functions for objects
+import void MergeObject(int object);
+import void SetObjectTint(int object, int red, int green, int blue, int saturation, int luminance);
+import void RemoveObjectTint(int object);
+import void StopObjectMoving(int object);
+import void RunObjectInteraction (int object, CursorMode);
+import int  GetObjectProperty(int object, const string property);
+import void GetObjectPropertyText(int object, const string property, string buffer);
+import void AnimateObject(int object, int loop, int delay, int repeat);
+import void AnimateObjectEx(int object, int loop, int delay, int repeat, int direction, int blocking);
+import void ObjectOff(int object);
+import void ObjectOn(int object);
+import void SetObjectBaseline(int object, int baseline);
+import int  GetObjectBaseline(int object);
+import void SetObjectFrame(int object, int view, int loop, int frame);
+import void SetObjectGraphic(int object, int spriteSlot);
+import void SetObjectView(int object, int view);
+import void SetObjectTransparency(int object, int amount);
+import void MoveObject(int object, int x, int y, int speed);
+import void MoveObjectDirect(int object, int x, int y, int speed);
+import void SetObjectPosition(int object, int x, int y);
+import int  AreObjectsColliding(int object1, int object2);
+import void GetObjectName(int object, string buffer);
+import int  GetObjectX(int object);
+import int  GetObjectY(int object);
+import int  GetObjectGraphic(int object);
+import int  IsObjectAnimating(int object);
+import int  IsObjectMoving(int object);
+import int  IsObjectOn (int object);
+import void SetObjectClickable(int object, int clickable);
+import void SetObjectIgnoreWalkbehinds (int object, int ignore);
+
+// Obsolete Character functions
+import void AddInventory(int item);
+import void LoseInventory(int item);
+import void SetActiveInventory(int item);
+import void NewRoom(int roomNumber);
+import void NewRoomEx(int roomNumber, int x, int y);
+import void NewRoomNPC(CHARID, int roomNumber, int x, int y);
+import int  GetCharacterProperty(CHARID, const string property);
+import void GetCharacterPropertyText(CHARID, const string property, string buffer);
+import void RunCharacterInteraction (CHARID, CursorMode);
+import void DisplaySpeech (CHARID, const string message, ...);
+import int  DisplaySpeechBackground(CHARID, const string message);
+import void DisplaySpeechAt (int x, int y, int width, CHARID, const string message);
+import void DisplayThought (CHARID, const string message, ...);
+import void FollowCharacter(CHARID sheep, CHARID shepherd);
+import void FollowCharacterEx(CHARID sheep, CHARID shepherd, int dist, int eagerness);
+import void SetPlayerCharacter(CHARID);
+import void AddInventoryToCharacter(CHARID, int item);
+import void LoseInventoryFromCharacter(CHARID, int item);
+import void AnimateCharacter (CHARID, int loop, int delay, int repeat);
+import void AnimateCharacterEx (CHARID, int loop, int delay, int repeat, int direction, int blocking);
+import void MoveCharacter(CHARID, int x, int y);
+import void MoveCharacterDirect(CHARID, int x, int y);
+import void MoveCharacterPath(CHARID, int x, int y);
+import void MoveCharacterStraight(CHARID, int x,int y);
+import void MoveCharacterToHotspot(CHARID, int hotspot);
+import void MoveCharacterToObject(CHARID, int object);
+import void MoveCharacterBlocking(CHARID, int x, int y, int direct);
+import void MoveToWalkableArea(CHARID);
+import void FaceCharacter(CHARID, CHARID toFace);
+import void FaceLocation(CHARID, int x, int y);
+import void SetCharacterView(CHARID, int view);
+import void SetCharacterViewEx(CHARID, int view, int loop, int align);
+import void SetCharacterViewOffset(CHARID, int view, int x_offset, int y_offset);
+import void SetCharacterFrame(CHARID, int view, int loop, int frame);
+import void ReleaseCharacterView(CHARID);
+import void ChangeCharacterView(CHARID, int view);
+import void SetCharacterSpeechView(CHARID, int view);
+import void SetCharacterBlinkView(CHARID, int view, int interval);
+import void SetCharacterIdle(CHARID, int idleView, int delay);
+import void StopMoving(CHARID);
+import int  AreCharObjColliding(CHARID, int object);
+import int  AreCharactersColliding(CHARID, CHARID);
+import void SetCharacterSpeed(CHARID, int speed);
+import void SetCharacterSpeedEx(CHARID, int x_speed, int y_speed);
+import void SetTalkingColor(CHARID, int colour);
+import void SetCharacterTransparency(CHARID, int transparency);
+import void SetCharacterClickable(CHARID, int clickable);
+import void SetCharacterBaseline(CHARID, int baseline);
+import void SetCharacterIgnoreLight (CHARID, int ignoreLight);
+import void SetCharacterIgnoreWalkbehinds (CHARID, int ignoreWBs);
+import void SetCharacterProperty (CHARID, int property, int newValue);
+import int  GetPlayerCharacter();
+
+// obsolete file I/O functions
+#define FILE_WRITE "wb"
+#define FILE_APPEND "ab"
+#define FILE_READ  "rb"
+#define WRITE FILE_WRITE
+#define READ  FILE_READ
+import int  FileOpen(const string filename, const string mode);
+import void FileWrite(int fileHandle, const string text);
+import void FileWriteRawLine(int fileHandle, const string text);
+import void FileRead(int fileHandle, string buffer);
+import void FileClose(int fileHandle);
+import void FileWriteInt(int fileHandle, int value);
+import int  FileReadInt(int fileHandle);
+import char FileReadRawChar(int fileHandle);
+import void FileWriteRawChar(int fileHandle, int value);
+import int  FileReadRawInt(int fileHandle);
+import int  FileIsEOF(int fileHandle);
+import int  FileIsError(int fileHandle);
+
+// obsolete hotspot/region funcs
+import void DisableHotspot(int hotspot);
+import void EnableHotspot(int hotspot);
+import void GetHotspotName(int hotspot, string buffer);
+import int  GetHotspotPointX(int hotspot);
+import int  GetHotspotPointY(int hotspot);
+import int  GetHotspotProperty(int hotspot, const string property);
+import void GetHotspotPropertyText(int hotspot, const string property, string buffer);
+import void RunHotspotInteraction (int hotspot, CursorMode);
+import void DisableRegion(int region);
+import void EnableRegion(int region);
+import void RunRegionInteraction (int region, int event);
+import void SetAreaLightLevel(int area, int lightLevel);
+import void SetRegionTint(int area, int red, int green, int blue, int amount);
+
+// obsolete inv functions
+import int  GetInvProperty(int invItem, const string property);
+import void GetInvPropertyText(int invItem, const string property, string buffer);
+import void GetInvName(int item, string buffer);
+import int  GetInvGraphic(int item);
+import void SetInvItemPic(int item, int spriteSlot);
+import void SetInvItemName(int item, const string name);
+import int  IsInventoryInteractionAvailable (int item, CursorMode);
+import void RunInventoryInteraction (int item, CursorMode);
+
+import int  GetTime(int whichValue);
+import int  GetRawTime();
+
+import int  LoadSaveSlotScreenshot(int saveSlot, int width, int height);
+import int  LoadImageFile(const string filename);
+import void DeleteSprite(int spriteSlot);
+
+import void SetSpeechFont(int font);
+import void SetNormalFont(int font);
+
+#define GP_SPRITEWIDTH   1
+#define GP_SPRITEHEIGHT  2
+#define GP_NUMLOOPS      3
+#define GP_NUMFRAMES     4
+#define GP_ISRUNNEXTLOOP 5
+#define GP_FRAMESPEED    6
+#define GP_FRAMEIMAGE    7
+#define GP_FRAMESOUND    8
+#define GP_NUMGUIS       9
+#define GP_NUMOBJECTS    10
+#define GP_NUMCHARACTERS 11
+#define GP_NUMINVITEMS   12
+#define GP_ISFRAMEFLIPPED 13
+
+import int  GetGameParameter(int parameter, int data1=0, int data2=0, int data3=0);
+import void SetDialogOption(int topic, int option, DialogOptionState);
+import DialogOptionState GetDialogOption(int topic, int option);
+import void RunDialog(int topic);
+
+#endif
+
+// screen control functions
+import void RawClearScreen (int colour);
+import void RawDrawCircle (int x, int y, int radius);
+import void RawDrawImage (int x, int y, int spriteSlot);
+import void RawDrawImageOffset(int x, int y, int spriteSlot);
+import void RawDrawImageResized(int x, int y, int spriteSlot, int width, int height);
+import void RawDrawImageTransparent(int x, int y, int spriteSlot, int transparency);
+import void RawDrawLine (int x1, int y1, int x2, int y2);
+import void RawDrawRectangle (int x1, int y1, int x2, int y2);
+import void RawDrawTriangle (int x1, int y1, int x2, int y2, int x3, int y3);
+import void RawPrint (int x, int y, const string message, ...);
+import void RawPrintMessageWrapped (int x, int y, int width, int font, int messageNumber);
+import void RawSetColor(int colour);
+import void RawSetColorRGB(int red, int green, int blue);
+import void RawDrawFrameTransparent (int frame, int transparency);
+import void RawSaveScreen ();
+import void RawRestoreScreen ();
+// obsolete RawRestoreScreenTinted(int red, int green, int blue, int opacity);
+import int  GetTextWidth(const string text, int font);
+import int  GetTextHeight(const string text, int font, int width);
+import void GiveScore(int points);
+import void UpdateInventory();
+
+import void StopDialog();
+import int  AreThingsOverlapping(int thing1, int thing2);
+// miscelaneous
+import void SetVoiceMode(eVoiceMode);
+import void SetSkipSpeech(int skipFlag);
+import void SetSpeechStyle(eSpeechStyle);
+import void SetTimer(int timerID, int timeout);
+import int  IsTimerExpired(int timerID);
+import void SetMultitaskingMode (int mode);
+import int  FloatToInt(float value, RoundDirection=eRoundDown);
+import float IntToFloat(int value);
+// File I/O
+enum FileMode {
+  eFileRead = 1,
+  eFileWrite = 2,
+  eFileAppend = 3
+};
+managed struct File {
+  import static File *Open(const string filename, FileMode);   // $AUTOCOMPLETESTATICONLY$
+  import void Close();
+  import int  ReadInt();
+  import int  ReadRawChar();
+  import int  ReadRawInt();
+#ifndef STRICT_STRINGS
+  import void ReadRawLine(string buffer);
+  import void ReadString(string buffer);
+#endif
+  import String ReadRawLineBack();
+  import String ReadStringBack();
+  import void WriteInt(int value);
+  import void WriteRawChar(int value);
+  import void WriteRawLine(const string text);
+  import void WriteString(const string text);
+  readonly import attribute bool EOF;
+  readonly import attribute bool Error;
+  int reserved[2];   // $AUTOCOMPLETEIGNORE$
+};
+
+managed struct InventoryItem {
+  import static InventoryItem* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
+  import int  GetProperty(const string property);
+  import String GetTextProperty(const string property);
+  import int  IsInteractionAvailable(CursorMode);
+  import void RunInteraction(CursorMode);
+  import attribute int  Graphic;
+  readonly import attribute int ID;
+  import attribute String Name;
+#ifndef STRICT_STRINGS
+  import void GetName(string buffer);
+  import void GetPropertyText(const string property, string buffer);
+  import void SetName(const string newName);
+#endif
+  int reserved[2];   // $AUTOCOMPLETEIGNORE$
+};
+
+managed struct Overlay {
+  import static Overlay* CreateGraphical(int x, int y, int slot, bool transparent);  // $AUTOCOMPLETESTATICONLY$
+  import static Overlay* CreateTextual(int x, int y, int width, int font, int colour, const string text, ...);  // $AUTOCOMPLETESTATICONLY$
+  import void SetText(int width, int font, int colour, const string text, ...);
+  import void Remove();
+  readonly import attribute bool Valid;
+  import attribute int X;
+  import attribute int Y;
+};
+
+managed struct DynamicSprite {
+  import static DynamicSprite* CreateFromBackground(int frame=SCR_NO_VALUE, int x=SCR_NO_VALUE, int y=SCR_NO_VALUE, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE);    // $AUTOCOMPLETESTATICONLY$
+  import static DynamicSprite* CreateFromExistingSprite(int slot);    // $AUTOCOMPLETESTATICONLY$
+  import static DynamicSprite* CreateFromFile(const string filename);              // $AUTOCOMPLETESTATICONLY$
+  import static DynamicSprite* CreateFromSaveGame(int slot, int width, int height);  // $AUTOCOMPLETESTATICONLY$
+  import static DynamicSprite* CreateFromScreenShot(int width=0, int height=0);  // $AUTOCOMPLETESTATICONLY$
+  import void Crop(int x, int y, int width, int height);
+  import void Delete();
+  import void Flip(eFlipDirection);
+  import void Resize(int width, int height);
+  import void Rotate(int angle, int width=SCR_NO_VALUE, int height=SCR_NO_VALUE);
+  import int  SaveToFile(const string filename);
+  readonly import attribute int ColorDepth;
+  readonly import attribute int Graphic;
+  readonly import attribute int Height;
+  readonly import attribute int Width;
+};
+
+// Palette FX
+import void FadeIn(int speed);
+import void FadeOut(int speed);
+import void CyclePalette(int start, int end);
+import void SetPalRGB(int slot, int r, int g, int b);
+import void UpdatePalette();
+import void TintScreen (int red, int green, int blue);
+import void SetAmbientTint(int red, int green, int blue, int saturation, int luminance);
+import int  Random(int max);
+import void SetBackgroundFrame(int frame);
+import int  GetBackgroundFrame();
+import void ShakeScreen(int amount);
+import void ShakeScreenBackground(int delay, int amount, int length);
+import void SetScreenTransition(TransitionStyle);
+import void SetNextScreenTransition(TransitionStyle);
+import void SetFadeColor(int red, int green, int blue);
+import int  IsInteractionAvailable (int x, int y, CursorMode);
+// other effects
+import void RemoveWalkableArea(int area);
+import void RestoreWalkableArea(int area);
+import void SetAreaScaling(int area, int min, int max);
+import void DisableGroundLevelAreas(int disableTints);
+import void EnableGroundLevelAreas();
+import void SetWalkBehindBase(int area, int baseline);
+import int  CDAudio(eCDAudioFunction, int data);
+import void PlayFlic(int flcNumber, int options);
+import void PlayVideo (const string filename, int canSkip, int flags);
+import void PlayMusic(int musicNumber);
+import void PlayMusicQueued(int musicNumber);
+import void PlaySilentMIDI(int musicNumber);
+import void PlayMP3File(const string filename);
+import int  PlaySound(int soundNumber);
+import void PlaySoundEx(int soundNumber, int channel);
+import void PlayAmbientSound (int channel, int sound, int volume, int x, int y);
+import void StopAmbientSound (int channel);
+import int  IsVoxAvailable();
+import int  IsMusicVoxAvailable();
+import int  GetCurrentMusic();
+import void SetMusicRepeat(int repeat);
+import void SetMusicVolume(int volume);
+import void SetSoundVolume(int volume);
+import void SetSpeechVolume(int volume);
+import void SetMusicMasterVolume(int volume);
+import void SetDigitalMasterVolume(int volume);
+import void SeekMODPattern(int pattern);
+import int  SaveScreenShot(const string filename);
+import void PauseGame();
+import void UnPauseGame();
+import void Wait(int waitLoops);
+import int  WaitKey(int waitLoops);
+import int  WaitMouseKey(int waitLoops);
+import int  IsKeyPressed(int keycode);
+import void SetGlobalInt(int globalInt, int value);
+import int  GetGlobalInt(int globalInt);
+import void FlipScreen(int way);
+import void SkipUntilCharacterStops(CHARID);
+import void StartCutscene(CutsceneSkipType);
+import int  EndCutscene();
+import void ClaimEvent();
+// Interface management
+import void SetTextWindowGUI (int gui);
+import int  FindGUIID(const string);  // $AUTOCOMPLETEIGNORE$
+
+#ifndef STRICT
+// Obsolete GUI functions
+import void SetInvDimensions(int width, int height);
+import int  GetGUIAt (int x, int y);
+import int  GetGUIObjectAt (int x, int y);
+import void InterfaceOn(int gui);   // $AUTOCOMPLETEIGNORE$
+import void InterfaceOff(int gui);  // $AUTOCOMPLETEIGNORE$
+//import void GUIOn (int gui);   // this being here makes the autocomplete recognise it
+//import void GUIOff (int gui);
+import void SetGUIPosition(int gui, int x, int y);
+import void SetGUISize(int gui, int width, int height);
+import void CentreGUI(int gui);
+import int  IsGUIOn (int gui);
+import void SetGUIBackgroundPic (int gui, int spriteSlot);
+import void SetGUITransparency(int gui, int amount);
+import void SetGUIClickable(int gui, int clickable);
+import void SetGUIZOrder(int gui, int z);
+#define GUIOn InterfaceOn
+#define GUIOff InterfaceOff
+
+import void SetGUIObjectEnabled(int gui, int object, int enable);
+import void SetGUIObjectPosition(int gui, int object, int x, int y);
+import void SetGUIObjectSize(int gui, int object, int width, int height);
+import void SetLabelColor(int gui, int object, int colour);
+import void SetLabelText(int gui, int object, const string text);
+import void SetLabelFont(int gui, int object, int font);
+import void SetButtonText(int gui, int object, const string text);
+import void SetButtonPic(int gui, int object, int which, int spriteSlot);
+import int  GetButtonPic(int gui, int object, int which);
+import void AnimateButton(int gui, int object, int view, int loop, int delay, int repeat);
+import void SetSliderValue(int gui, int object, int value);
+import int  GetSliderValue(int gui, int object);
+import void SetTextBoxFont(int gui, int object, int font);
+import void GetTextBoxText(int gui, int object, string buffer);
+import void SetTextBoxText(int gui, int object, const string text);
+import void ListBoxClear(int gui, int object);
+import void ListBoxAdd(int gui, int object, const string text);
+import int  ListBoxGetSelected(int gui, int object);
+import void ListBoxGetItemText(int gui, int object, int listIndex, string buffer);
+import void ListBoxSetSelected(int gui, int object, int listIndex);
+import void ListBoxSetTopItem (int gui, int object, int listIndex);
+import void ListBoxDirList (int gui, int object, const string fileMask);
+import int  ListBoxGetNumItems (int gui, int object);
+import int  ListBoxSaveGameList (int gui, int object);
+import void ListBoxRemove (int gui, int object, int listIndex);
+
+#define LEAVE_ROOM 1
+#define ENTER_ROOM 2
+#define EGO_DIES   3
+#define GOT_SCORE  4
+#define GUI_MDOWN  5
+#define GUI_MUP    6
+#define ADD_INVENTORY  7
+#define LOSE_INVENTORY 8
+#define RESTORE_GAME   9
+
+import void SetFrameSound (int view, int loop, int frame, int sound);
+#endif
+
+enum EventType {
+  eEventLeaveRoom = 1,
+  eEventEnterRoomBeforeFadein = 2,
+  eEventGotScore = 4,
+  eEventGUIMouseDown = 5,
+  eEventGUIMouseUp = 6,
+  eEventAddInventory = 7,
+  eEventLoseInventory = 8,
+  eEventRestoreGame = 9
+};
+
+// forward-declare these so that they can be returned by GUIControl class
+managed struct GUI;
+managed struct Label;
+managed struct Button;
+managed struct Slider;
+managed struct TextBox;
+managed struct InvWindow;
+managed struct ListBox;
+managed struct Character;
+
+managed struct GUIControl {
+  import void BringToFront();
+  import static GUIControl* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$  $AUTOCOMPLETENOINHERIT$
+  import void SendToBack();
+  import void SetPosition(int x, int y);
+  import void SetSize(int width, int height);
+  readonly import attribute Button*  AsButton;   // $AUTOCOMPLETENOINHERIT$
+  readonly import attribute InvWindow* AsInvWindow;  // $AUTOCOMPLETENOINHERIT$
+  readonly import attribute Label*   AsLabel;    // $AUTOCOMPLETENOINHERIT$
+  readonly import attribute ListBox* AsListBox;  // $AUTOCOMPLETENOINHERIT$
+  readonly import attribute Slider*  AsSlider;   // $AUTOCOMPLETENOINHERIT$
+  readonly import attribute TextBox* AsTextBox;  // $AUTOCOMPLETENOINHERIT$
+  import attribute bool Clickable;
+  import attribute bool Enabled;
+  import attribute int  Height;
+  readonly import attribute int  ID;
+  readonly import attribute GUI* OwningGUI;
+  import attribute bool Visible;
+  import attribute int  Width;
+  import attribute int  X;
+  import attribute int  Y;
+};
+
+managed struct Label extends GUIControl {
+#ifndef STRICT_STRINGS
+  import void GetText(string buffer);
+  import void SetText(const string text);
+#endif
+  import attribute int  Font;
+  import attribute String Text;
+  import attribute int  TextColor;
+};
+
+managed struct Button extends GUIControl {
+  import void Animate(int view, int loop, int delay, RepeatStyle);
+#ifndef STRICT_STRINGS
+  import void GetText(string buffer);
+  import void SetText(const string text);
+#endif
+  import attribute bool ClipImage;
+  import attribute int  Font;
+  readonly import attribute int  Graphic;
+  import attribute int  MouseOverGraphic;
+  import attribute int  NormalGraphic;
+  import attribute int  PushedGraphic;
+  import attribute int  TextColor;
+  import attribute String Text;
+};
+
+managed struct Slider extends GUIControl {
+  import attribute int  Max;
+  import attribute int  Min;
+  import attribute int  Value;
+};
+
+managed struct TextBox extends GUIControl {
+#ifndef STRICT_STRINGS
+  import void GetText(string buffer);
+  import void SetText(const string text);
+#endif
+  import attribute int  Font;
+  import attribute String Text;
+};
+
+managed struct InvWindow extends GUIControl {
+  import void ScrollDown();
+  import void ScrollUp();
+  import attribute Character* CharacterToUse;
+  readonly import attribute InventoryItem* ItemAtIndex[];
+  readonly import attribute int ItemCount;
+  import attribute int ItemHeight;
+  import attribute int ItemWidth;
+  import attribute int TopItem;
+  readonly import attribute int ItemsPerRow;
+  readonly import attribute int RowCount;
+};
+
+managed struct ListBox extends GUIControl {
+	import bool AddItem(const string text);
+	import void Clear();
+	import void FillDirList(const string fileMask);
+	import int  FillSaveGameList();
+	import int  GetItemAtLocation(int x, int y);
+#ifndef STRICT_STRINGS
+	import void GetItemText(int listIndex, string buffer);
+	import void SetItemText(int listIndex, const string newText);
+#endif
+	import bool InsertItemAt(int listIndex, const string text);
+	import void RemoveItem(int listIndex);
+	import void ScrollDown();
+	import void ScrollUp();
+	import attribute int  Font;
+	import attribute bool HideBorder;
+	import attribute bool HideScrollArrows;
+	readonly import attribute int ItemCount;
+	import attribute String Items[];
+	readonly import attribute int RowCount;
+	readonly import attribute int SaveGameSlots[];
+	import attribute int  SelectedIndex;
+	import attribute int  TopItem;
+};
+
+managed struct GUI {
+  import void Centre();
+  import static GUI* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
+  import void SetPosition(int x, int y);
+  import void SetSize(int width, int height);
+  import attribute int  BackgroundGraphic;
+  import attribute bool Clickable;
+  readonly import attribute GUIControl *Controls[];
+  readonly import attribute int  ControlCount;
+  import attribute int  Height;
+  readonly import attribute int  ID;
+  import attribute int  Transparency;
+  import attribute bool Visible;
+  import attribute int  Width;
+  import attribute int  X;
+  import attribute int  Y;
+  import attribute int  ZOrder;
+  int   reserved[2];   // $AUTOCOMPLETEIGNORE$
+};
+
+managed struct Hotspot {
+  import static Hotspot* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
+#ifndef STRICT_STRINGS
+  import void GetName(string buffer);
+  import void GetPropertyText(const string property, string buffer);
+#endif
+  import int  GetProperty(const string property);
+  import String GetTextProperty(const string property);
+  import void RunInteraction(CursorMode);
+  import attribute bool Enabled;
+  readonly import attribute int ID;
+  readonly import attribute String Name;
+  readonly import attribute int WalkToX;
+  readonly import attribute int WalkToY;
+  int reserved[2];   // $AUTOCOMPLETEIGNORE$
+};
+
+managed struct Region {
+  import static Region* GetAtRoomXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
+  import void RunInteraction(int event);
+  import void Tint(int red, int green, int blue, int amount);
+  import attribute bool Enabled;
+  readonly import attribute int ID;
+  import attribute int  LightLevel;
+  readonly import attribute bool TintEnabled;
+  readonly import attribute int  TintBlue;
+  readonly import attribute int  TintGreen;
+  readonly import attribute int  TintRed;
+  readonly import attribute int  TintSaturation;
+  int reserved[2];   // $AUTOCOMPLETEIGNORE$
+};
+
+managed struct Dialog {
+  import DialogOptionState GetOptionState(int option);
+  import void SetOptionState(int option, DialogOptionState);
+  import void Start();
+  
+  int reserved[2];   // $AUTOCOMPLETEIGNORE$
+};
+
+#define IsSpeechVoxAvailable IsVoxAvailable
+//import int IsSpeechVoxAvailable();  // make autocomplete recognise
+
+managed struct Maths {
+  import static float ArcCos(float value);
+  import static float ArcSin(float value);
+  import static float ArcTan(float value);
+  import static float ArcTan2(float y, float x);
+  import static float Cos(float radians);
+  import static float DegreesToRadians(float degrees);
+  import static float RadiansToDegrees(float radians);
+  import static float RaiseToPower(float base, float exponent);
+  import static float Sin(float radians);
+  import static float Sqrt(float value);
+  import static float Tan(float radians);
+  readonly import static attribute float Pi;
+};
+
+managed struct DateTime {
+  readonly import static attribute DateTime* Now;   // $AUTOCOMPLETESTATICONLY$
+  readonly import attribute int Year;
+  readonly import attribute int Month;
+  readonly import attribute int DayOfMonth;
+  readonly import attribute int Hour;
+  readonly import attribute int Minute;
+  readonly import attribute int Second;
+  readonly import attribute int RawTime;
+};
+
+struct System {
+  readonly int  screen_width,screen_height;
+  readonly int  color_depth;
+  readonly int  os;
+  readonly int  windowed;
+  int  vsync;
+  readonly int  viewport_width, viewport_height;
+#ifndef STRICT_STRINGS
+  readonly char version[10];
+#endif
+  readonly import static attribute int  ColorDepth;
+  import static attribute int  Gamma;
+  readonly import static attribute eOperatingSystem OperatingSystem;
+  readonly import static attribute int  ScreenHeight;
+  readonly import static attribute int  ScreenWidth;
+  readonly import static attribute bool SupportsGammaControl;
+  readonly import static attribute String Version;
+  readonly import static attribute int  ViewportHeight;
+  readonly import static attribute int  ViewportWidth;
+  import static attribute bool VSync;
+  readonly import static attribute bool Windowed;
+};
+
+enum BlockingStyle {
+  eBlock = 919,
+  eNoBlock = 920
+};
+enum Direction {
+  eForwards = 1062,
+  eBackwards = 1063
+};
+enum WalkWhere {
+  eAnywhere = 304,
+  eWalkableAreas = 305
+};
+
+managed struct Object {
+	import function Animate(int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eBlock, Direction=eForwards);
+  import static Object* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
+#ifndef STRICT_STRINGS
+	import void     GetName(string buffer);
+  import function GetPropertyText(const string property, string buffer);
+#endif
+  import function GetProperty(const string property);
+  import String   GetTextProperty(const string property);
+	import function IsCollidingWithObject(Object*);
+	import function MergeIntoBackground();
+	import function Move(int x, int y, int speed, BlockingStyle=eNoBlock, WalkWhere=eWalkableAreas);
+	import function RemoveTint();
+	import function RunInteraction(CursorMode);
+	import function SetPosition(int x, int y);
+	import function SetView(int view, int loop=-1, int frame=-1);
+	import function StopAnimating();
+	import function StopMoving();
+	import function Tint(int red, int green, int blue, int saturation, int luminance);
+	readonly import attribute bool Animating;
+	import attribute int  Baseline;
+	import attribute int  BlockingHeight;
+	import attribute int  BlockingWidth;
+	import attribute bool Clickable;
+	readonly import attribute int  Frame;
+	import attribute int  Graphic;
+	readonly import attribute int ID;
+	import attribute bool IgnoreScaling;
+	import attribute bool IgnoreWalkbehinds;
+	readonly import attribute int  Loop;
+	readonly import attribute bool Moving;
+	readonly import attribute String Name;
+  import attribute bool Solid;
+	import attribute int  Transparency;
+	readonly import attribute int View;
+	import attribute bool Visible;
+	import attribute int  X;
+	import attribute int  Y;
+	
+	int reserved[2];  // $AUTOCOMPLETEIGNORE$
+};
+
+managed struct Character {
+  import function AddInventory(InventoryItem *item, int addAtIndex=SCR_NO_VALUE);
+  import function AddWaypoint(int x, int y);
+  import function Animate(int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eBlock, Direction=eForwards);
+  import function ChangeRoom(int room, int x=SCR_NO_VALUE, int y=SCR_NO_VALUE);
+  import function ChangeView(int view);
+  import function FaceCharacter(Character* , BlockingStyle=eBlock);
+  import function FaceLocation(int x, int y, BlockingStyle=eBlock);
+  import function FaceObject(Object* , BlockingStyle=eBlock);
+  import function FollowCharacter(Character*, int dist=10, int eagerness=97);
+  import static Character* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
+  import function GetProperty(const string property);
+#ifndef STRICT_STRINGS
+  import void     GetPropertyText(const string property, string buffer);
+#endif
+  import String   GetTextProperty(const string property);
+  import function IsCollidingWithChar(Character*);
+  import function IsCollidingWithObject(Object* );
+  import function LockView(int view);
+  import function LockViewAligned(int view, int loop, Alignment);
+  import function LockViewFrame(int view, int loop, int frame);
+  import function LockViewOffset(int view, int xOffset, int yOffset);
+  import function LoseInventory(InventoryItem *item);
+  import function PlaceOnWalkableArea();
+  import void     RemoveTint();
+  import function RunInteraction(CursorMode);
+  import function Say(const string message, ...);
+  import function SayAt(int x, int y, int width, const string message);
+  import Overlay* SayBackground(const string message);
+  import function SetAsPlayer();
+  import function SetIdleView(int view, int delay);
+  import function SetWalkSpeed(int x, int y);
+  import function StopMoving();
+  import function Think(const string message, ...);
+  import void     Tint(int red, int green, int blue, int saturation, int luminance);
+  import function UnlockView();
+  import function Walk(int x, int y, BlockingStyle=eNoBlock, WalkWhere=eWalkableAreas);
+  import function WalkStraight(int x, int y, BlockingStyle=eNoBlock);
+  import attribute InventoryItem* ActiveInventory;
+  readonly import attribute bool Animating;
+  import attribute int  AnimationSpeed;
+  import attribute int  Baseline;
+  import attribute int  BlinkInterval;
+  import attribute int  BlinkView;
+  import attribute bool BlinkWhileThinking;
+  import attribute int  BlockingHeight;
+  import attribute int  BlockingWidth;
+  import attribute bool Clickable;
+  import attribute bool DiagonalLoops;
+  import attribute int  Frame;
+  readonly import attribute int ID;
+  readonly import attribute int IdleView;
+  import attribute bool IgnoreLighting;
+  import attribute bool IgnoreScaling;       // obsolete. $AUTOCOMPLETEIGNORE$
+  import attribute bool IgnoreWalkbehinds; 
+  import attribute int  InventoryQuantity[];
+  import attribute int  Loop;
+  import attribute bool ManualScaling;
+	readonly import attribute bool Moving;
+	import attribute String Name;
+	readonly import attribute int NormalView;
+  readonly import attribute int PreviousRoom;
+  readonly import attribute int Room;
+  import attribute bool ScaleMoveSpeed;
+  import attribute bool ScaleVolume;
+  import attribute int  Scaling;
+  import attribute bool Solid;
+  readonly import attribute bool Speaking;
+  import attribute int  SpeechColor;
+  import attribute int  SpeechView;
+  import attribute int  ThinkView;
+  import attribute int  Transparency;
+  import attribute bool TurnBeforeWalking;
+  readonly import attribute int View;
+  readonly import attribute int WalkSpeedX;
+  readonly import attribute int WalkSpeedY;
+#ifdef STRICT
+  import attribute int  x;
+  import attribute int  y;
+  import attribute int  z;
+  readonly int reserved_a[28];   // $AUTOCOMPLETEIGNORE$
+  readonly short reserved_f[MAX_INV];  // $AUTOCOMPLETEIGNORE$
+  readonly int   reserved_e;   // $AUTOCOMPLETEIGNORE$
+  char  reserved_g[40];   // $AUTOCOMPLETEIGNORE$
+  readonly char  scrname[20];
+  char  on;  // $AUTOCOMPLETEIGNORE$
+#endif
+#ifndef STRICT
+  int   defview;    // $AUTOCOMPLETEIGNORE$
+  int   talkview;  // $AUTOCOMPLETEIGNORE$
+  int   view;      // $AUTOCOMPLETEIGNORE$
+  int   room,prevroom;
+  int   x,y;
+  int   wait;     // $AUTOCOMPLETEIGNORE$
+  readonly int flags;
+  int   reserveda;  // $AUTOCOMPLETEIGNORE$
+  int   idleview;  // $AUTOCOMPLETEIGNORE$
+  int   reservedm[2]; // $AUTOCOMPLETEIGNORE$
+  int   activeinv;
+  int   talkcolor;  // $AUTOCOMPLETEIGNORE$
+  int   thinkview;  // $AUTOCOMPLETEIGNORE$
+  int   reservedex[3];  // $AUTOCOMPLETEIGNORE$
+  int   z;
+  int   reservedexb[5]; // $AUTOCOMPLETEIGNORE$
+  short loop,frame;
+  readonly short walking,animating;
+  readonly short walkspeed;   // $AUTOCOMPLETEIGNORE$
+  short animspeed;
+  short inv[MAX_INV];
+  short actx,acty;  // $AUTOCOMPLETEIGNORE$
+  char  name[40];
+  readonly char  scrname[20];
+  char  on;
+#endif
+  };
+
+struct GameState {
+  int  score;
+  int  used_mode;
+  int  disabled_user_interface;
+  int  gscript_timer;
+  int  debug_mode;
+  int  globalvars[50];
+  int  messagetime;   // for auto-remove messages
+  int  usedinv;
+#ifdef STRICT
+  int  reserved__[4];   // $AUTOCOMPLETEIGNORE$
+#endif
+#ifndef STRICT
+  int  top_inv_item;
+  int  num_inv_displayed;
+  int  num_inv_items;
+  int  items_per_line;
+#endif
+  int  text_speed;
+  int  sierra_inv_color;
+  int  talkanim_speed;
+  int  inv_item_wid;
+  int  inv_item_hit;
+  int  text_shadow_color;
+  int  swap_portrait;
+  int  speech_text_gui;
+  int  following_room_timer;
+  int  total_score;
+  int  skip_display;
+  int  no_multiloop_repeat;
+  int  roomscript_finished;
+  int  inv_activated;
+  int  no_textbg_when_voice;
+  int  max_dialogoption_width;
+  int  no_hicolor_fadein;
+  int  bgspeech_game_speed;
+  int  bgspeech_stay_on_display;
+  int  unfactor_speech_from_textlength;
+  int  mp3_loop_before_end;
+  int  speech_music_drop;
+  readonly int  in_cutscene;
+  readonly int  skipping_cutscene;
+  readonly int  room_width;
+  readonly int  room_height;
+  int  game_speed_modifier;  // $AUTOCOMPLETEIGNORE$
+  int  score_sound;
+  int  previous_game_data;
+  int  replay_hotkey;
+  int  dialog_options_x;
+  int  dialog_options_y;
+  int  narrator_speech;
+  int  ambient_sounds_persist;
+  int  lipsync_speed;
+  int  close_mouth_end_speech_time;
+  int  disable_antialiasing;
+  int  text_speed_modifier;
+  int  text_align;
+  int  speech_bubble_width;
+  int  min_dialogoption_width;
+  int  disable_dialog_parser;
+  int  anim_background_speed;
+  int  top_bar_backcolor;
+  int  top_bar_textcolor;
+  int  top_bar_bordercolor;
+  int  top_bar_borderwidth;
+  int  top_bar_ypos;
+  int  screenshot_width;
+  int  screenshot_height;
+  int  top_bar_font;
+  int  speech_text_align;
+  int  auto_use_walkto_points;
+  int  inventory_greys_out;
+  int  skip_speech_specific_key;
+  int  abort_key;
+  readonly int fade_color_red;
+  readonly int fade_color_green;
+  readonly int fade_color_blue;
+  int  show_single_dialog_option;
+  int  keep_screen_during_instant_transition;
+  int  read_dialog_option_color;
+  };
+
+import readonly Character *player;
+import Object object[20];
+import Mouse mouse;
+import System system;
+import GameState  game;
+import int   gs_globals[50];
+import short savegameindex[20];
+import ColorType palette[256];
+
+#undef CursorMode
+

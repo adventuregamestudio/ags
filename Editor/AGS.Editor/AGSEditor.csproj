@@ -1,0 +1,994 @@
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{6C0D2BF2-2F34-42FF-8356-79254CCF3131}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>AGS.Editor</RootNamespace>
+    <AssemblyName>AGSEditor</AssemblyName>
+    <ApplicationIcon>agsico-1.ico</ApplicationIcon>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+    <RunPostBuildEvent>Always</RunPostBuildEvent>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>2.0</OldToolsVersion>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DebugSymbols>false</DebugSymbols>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="AGS.Native, Version=0.0.0.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\References\AGS.Native.dll</HintPath>
+    </Reference>
+    <Reference Include="irrKlang.NET2.0, Version=1.1.3.0, Culture=neutral, PublicKeyToken=a854741bd80517c7, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\libraries\irrKlang\bin\dotnet-2.0\irrKlang.NET2.0.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AGSEditor.cs" />
+    <Compile Include="Components\CharactersComponent.cs" />
+    <Compile Include="Components\CursorsComponent.cs" />
+    <Compile Include="Components\DialogsComponent.cs" />
+    <Compile Include="Components\FileCommandsComponent.cs" />
+    <Compile Include="Components\FontsComponent.cs" />
+    <Compile Include="Components\LipSyncComponent.cs" />
+    <Compile Include="Components\PaletteComponent.cs" />
+    <Compile Include="Components\PluginsComponent.cs" />
+    <Compile Include="Components\ScriptsComponent.cs" />
+    <Compile Include="Components\SpriteManagerComponent.cs" />
+    <Compile Include="Components\TextParserComponent.cs" />
+    <Compile Include="Components\ViewsComponent.cs" />
+    <Compile Include="GUI\AssignToView.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\AssignToView.Designer.cs">
+      <DependentUpon>AssignToView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\CustomPropertiesEditor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\CustomPropertiesEditor.Designer.cs">
+      <DependentUpon>CustomPropertiesEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\CustomPropertyBag.cs" />
+    <Compile Include="GUI\CustomPropertyDescriptor.cs" />
+    <Compile Include="GUI\CustomPropertySchemaEditor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\CustomPropertySchemaEditor.Designer.cs">
+      <DependentUpon>CustomPropertySchemaEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\CustomPropertySchemaItemEditor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\CustomPropertySchemaItemEditor.Designer.cs">
+      <DependentUpon>CustomPropertySchemaItemEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\SplashScreen.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\SplashScreen.Designer.cs">
+      <DependentUpon>SplashScreen.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\TextEntryDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\TextEntryDialog.Designer.cs">
+      <DependentUpon>TextEntryDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\SpriteChooser.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\SpriteChooser.Designer.cs">
+      <DependentUpon>SpriteChooser.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\ViewChooser.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\ViewChooser.Designer.cs">
+      <DependentUpon>ViewChooser.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Hacks.cs" />
+    <Compile Include="ImportExport.cs" />
+    <Compile Include="GUI\NumberEntryDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\NumberEntryDialog.Designer.cs">
+      <DependentUpon>NumberEntryDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Plugins\IAGSEditor.cs" />
+    <Compile Include="Plugins\NativePlugin.cs" />
+    <Compile Include="Panes\BufferedPanel.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Components\InventoryComponent.cs" />
+    <Compile Include="Components\SourceControlComponent.cs" />
+    <Compile Include="GUI\frmMain.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\frmMain.Designer.cs">
+      <DependentUpon>frmMain.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Components\SettingsComponent.cs" />
+    <Compile Include="Components\GuiComponent.cs" />
+    <Compile Include="Panes\CharacterEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Panes\CharacterEditor.Designer.cs">
+      <DependentUpon>CharacterEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Panes\LipSyncEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Panes\LipSyncEditor.Designer.cs">
+      <DependentUpon>LipSyncEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Panes\ScintillaWrapper.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Panes\ScintillaWrapper.Designer.cs">
+      <DependentUpon>ScintillaWrapper.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Panes\CursorEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Panes\CursorEditor.Designer.cs">
+      <DependentUpon>CursorEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Panes\DialogEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Panes\DialogEditor.Designer.cs">
+      <DependentUpon>DialogEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Panes\DialogOptionEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Panes\DialogOptionEditor.Designer.cs">
+      <DependentUpon>DialogOptionEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Panes\FontEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Panes\FontEditor.Designer.cs">
+      <DependentUpon>FontEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Panes\GeneralSettings.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Panes\GeneralSettings.Designer.cs">
+      <DependentUpon>GeneralSettings.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\GUIController.cs" />
+    <Compile Include="Panes\GUIEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Panes\GUIEditor.Designer.cs">
+      <DependentUpon>GUIEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="NativeProxy.cs" />
+    <Compile Include="Panes\InventoryEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Panes\InventoryEditor.Designer.cs">
+      <DependentUpon>InventoryEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Panes\PaletteEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Panes\PaletteEditor.Designer.cs">
+      <DependentUpon>PaletteEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Components\ComponentIDs.cs" />
+    <Compile Include="Panes\ScriptEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Panes\ScriptEditor.Designer.cs">
+      <DependentUpon>ScriptEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Panes\SpriteImportWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Panes\SpriteImportWindow.Designer.cs">
+      <DependentUpon>SpriteImportWindow.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Panes\SpriteManager.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Panes\SpriteManager.Designer.cs">
+      <DependentUpon>SpriteManager.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Panes\SpriteSelector.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Panes\SpriteSelector.Designer.cs">
+      <DependentUpon>SpriteSelector.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Panes\TextParserEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Panes\TextParserEditor.Designer.cs">
+      <DependentUpon>TextParserEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Panes\ViewEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Panes\ViewEditor.Designer.cs">
+      <DependentUpon>ViewEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Panes\ViewLoopEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Panes\ViewLoopEditor.Designer.cs">
+      <DependentUpon>ViewLoopEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Panes\ViewPreview.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Panes\ViewPreview.Designer.cs">
+      <DependentUpon>ViewPreview.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Program.cs" />
+    <Compile Include="GUI\ProjectTree.cs" />
+    <Compile Include="GUI\ProjectTreeItem.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="GUI\frmMain.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>frmMain.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Panes\GeneralSettings.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>GeneralSettings.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Panes\GUIEditor.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>GUIEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <EmbeddedResource Include="Resources\localvar.xpm" />
+    <EmbeddedResource Include="Resources\methodext.xpm" />
+    <EmbeddedResource Include="Resources\setup.dat" />
+    <EmbeddedResource Include="Resources\define.xpm" />
+    <EmbeddedResource Include="Resources\keyword.xpm" />
+    <EmbeddedResource Include="Resources\enum.xpm" />
+    <EmbeddedResource Include="Resources\gvar.xpm" />
+    <EmbeddedResource Include="Resources\method.xpm" />
+    <EmbeddedResource Include="Resources\prop.xpm" />
+    <EmbeddedResource Include="Resources\roprop.xpm" />
+    <EmbeddedResource Include="Resources\statmeth.xpm" />
+    <EmbeddedResource Include="Resources\statprop.xpm" />
+    <EmbeddedResource Include="Resources\struct.xpm" />
+    <EmbeddedResource Include="Resources\agsdefns.sh" />
+    <EmbeddedResource Include="Resources\blank.crm" />
+    <EmbeddedResource Include="Resources\AGSFNT0.WFN" />
+    <EmbeddedResource Include="Resources\AGSFNT1.WFN" />
+    <EmbeddedResource Include="Resources\AGSFNT2.WFN" />
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <Compile Include="Resources\ResourceManager.cs" />
+    <Compile Include="SourceControlProvider.cs" />
+    <Compile Include="Enums\SpriteImportMethod.cs" />
+    <Compile Include="GUI\TabbedDocumentContainer.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\TabbedDocumentContainer.Designer.cs">
+      <DependentUpon>TabbedDocumentContainer.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Utilities.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AGS.CScript.Compiler\AGS.CScript.Compiler.csproj">
+      <Project>{4771753A-641D-49B1-8096-0B431EAC413E}</Project>
+      <Name>AGS.CScript.Compiler</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\AGS.Types\AGS.Types.csproj">
+      <Project>{3EBBEDAB-214C-4201-BB5A-5152D56908DD}</Project>
+      <Name>AGS.Types</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\AGS.Controls\AGS.Controls.csproj">
+      <Project>{D937E1F4-1B9F-4567-B28E-EED24AA31C9C}</Project>
+      <Name>AGS.Controls</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\iconplug.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\iconsett.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Panes\InventoryEditor.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>InventoryEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Panes\PaletteEditor.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>PaletteEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Panes\SpriteManager.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>SpriteManager.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Panes\SpriteSelector.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>SpriteSelector.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\arrow.ico" />
+    <EmbeddedResource Include="Resources\iconspr.ico" />
+    <EmbeddedResource Include="Resources\iconinv.ico" />
+    <EmbeddedResource Include="Resources\icongui.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="GUI\NumberEntryDialog.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>NumberEntryDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Panes\ScriptEditor.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ScriptEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Panes\SpriteImportWindow.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>SpriteImportWindow.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\folder.ico" />
+    <EmbeddedResource Include="Resources\openfldr.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\script.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\cursor.ico" />
+    <EmbeddedResource Include="Panes\CursorEditor.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>CursorEditor.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\font.ico" />
+    <EmbeddedResource Include="Panes\FontEditor.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>FontEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Panes\ViewEditor.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ViewEditor.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\view.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\iconpal.ico" />
+    <EmbeddedResource Include="GUI\TabbedDocumentContainer.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>TabbedDocumentContainer.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="GUI\AssignToView.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>AssignToView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\SpriteChooser.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>SpriteChooser.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\ViewChooser.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ViewChooser.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Panes\ViewLoopEditor.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ViewLoopEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\CloseButton.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Panes\CharacterEditor.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>CharacterEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Panes\ViewPreview.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ViewPreview.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\charactr.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Panes\ScintillaWrapper.resx">
+      <DependentUpon>ScintillaWrapper.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Panes\DialogEditor.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>DialogEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Panes\DialogOptionEditor.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>DialogOptionEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Panes\TextParserEditor.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>TextParserEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\dialog.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="GUI\TextEntryDialog.resx">
+      <DependentUpon>TextEntryDialog.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\textparser.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="GUI\SplashScreen.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>SplashScreen.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Panes\LipSyncEditor.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>LipSyncEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\lips.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="GUI\CustomPropertiesEditor.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>CustomPropertiesEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\CustomPropertySchemaEditor.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>CustomPropertySchemaEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\CustomPropertySchemaItemEditor.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>CustomPropertySchemaItemEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\splash.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="agsico-1.ico" />
+    <EmbeddedResource Include="GUI\AboutDialog.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>AboutDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\BusyDialog.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>BusyDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\AutoNumberSpeechWizardPage.resx">
+      <DependentUpon>AutoNumberSpeechWizardPage.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\AutoNumberSpeechWizardPage2.resx">
+      <DependentUpon>AutoNumberSpeechWizardPage2.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\CallStackPanel.resx">
+      <DependentUpon>CallStackPanel.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\CreateVoiceActingScriptPage.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>CreateVoiceActingScriptPage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\ErrorPopup.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ErrorPopup.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\ExceptionDialog.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ExceptionDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\GlobalVariableDialog.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>GlobalVariableDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\HelpPopup.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>HelpPopup.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\MakeTemplateWizardPage.resx">
+      <DependentUpon>MakeTemplateWizardPage.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\NewRoomDialog.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>NewRoomDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\PreferencesEditor.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>PreferencesEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\SelectReligion.resx">
+      <DependentUpon>SelectReligion.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\StartNewGameWizardPage2.resx">
+      <DependentUpon>StartNewGameWizardPage2.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\FindReplaceDialog.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>FindReplaceDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\ImportGameWizardPage.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ImportGameWizardPage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\RoomMessagesEditor.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>RoomMessagesEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\StartNewGameWizardPage.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>StartNewGameWizardPage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\WelcomeScreen.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>WelcomeScreen.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\WizardDialog.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>WizardDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\OutputPanel.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>OutputPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\WizardPage.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>WizardPage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Panes\AudioEditor.resx">
+      <DependentUpon>AudioEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Panes\GlobalVariablesEditor.resx">
+      <DependentUpon>GlobalVariablesEditor.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Panes\WelcomePane.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>WelcomePane.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\game.ico" />
+    <EmbeddedResource Include="Resources\wait1.ico" />
+    <EmbeddedResource Include="Resources\wait2.ico" />
+    <EmbeddedResource Include="Resources\build.ico" />
+    <EmbeddedResource Include="Resources\CloseButtonSmall.ico" />
+    <EmbeddedResource Include="Resources\copy.ico" />
+    <EmbeddedResource Include="Resources\cut.ico" />
+    <EmbeddedResource Include="Resources\busy_blue-circle_1.ico" />
+    <EmbeddedResource Include="Resources\busy_blue-circle_2.ico" />
+    <EmbeddedResource Include="Resources\busy_blue-circle_3.ico" />
+    <EmbeddedResource Include="Resources\busy_blue-circle_4.ico" />
+    <EmbeddedResource Include="Resources\busy_blue-circle_5.ico" />
+    <EmbeddedResource Include="Resources\busy_blue-circle_6.ico" />
+    <EmbeddedResource Include="Resources\busy_blue-circle_7.ico" />
+    <EmbeddedResource Include="Resources\busy_blue-circle_8.ico" />
+    <EmbeddedResource Include="Resources\translations.ico" />
+    <EmbeddedResource Include="Resources\importmask.ico" />
+    <EmbeddedResource Include="Resources\run.ico" />
+    <EmbeddedResource Include="Resources\stop.ico" />
+    <EmbeddedResource Include="Resources\step.ico" />
+    <EmbeddedResource Include="Resources\pause.ico" />
+    <EmbeddedResource Include="Resources\find.ico" />
+    <EmbeddedResource Include="Resources\findnext.ico" />
+    <EmbeddedResource Include="Resources\menu_file_stats.ico" />
+    <EmbeddedResource Include="Resources\greymasks.ico" />
+    <EmbeddedResource Include="Resources\cuppit-back.gif" />
+    <EmbeddedResource Include="Resources\cuppit-back2.gif" />
+    <EmbeddedResource Include="Resources\drawrect.ico" />
+    <None Include="Resources\error.ico" />
+    <EmbeddedResource Include="Resources\__DialogScripts.asc" />
+    <EmbeddedResource Include="Resources\eventlogError.ico" />
+    <EmbeddedResource Include="Resources\eventlogWarn.ico" />
+    <EmbeddedResource Include="Resources\globalvars.ico" />
+    <EmbeddedResource Include="Resources\audio-midi.ico" />
+    <EmbeddedResource Include="Resources\audio-mod.ico" />
+    <EmbeddedResource Include="Resources\audio-mp3.ico" />
+    <EmbeddedResource Include="Resources\audio-ogg.ico" />
+    <EmbeddedResource Include="Resources\audio-voc.ico" />
+    <EmbeddedResource Include="Resources\audio-wav.ico" />
+    <EmbeddedResource Include="Resources\audio.ico" />
+    <EmbeddedResource Include="Resources\audio_speech.ico" />
+    <Content Include="ikpMP3.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\audio_player-pause.ico" />
+    <Content Include="Resources\audio_player-play.ico" />
+    <Content Include="Resources\audio_player-stop.ico" />
+    <Content Include="Resources\editor.ico" />
+    <Content Include="Resources\keyword.ico" />
+    <Content Include="Resources\define.ico" />
+    <EmbeddedResource Include="Resources\menu_file_eventsgrid.ico" />
+    <EmbeddedResource Include="Resources\menu_help_showstart.ico" />
+    <EmbeddedResource Include="Resources\tree_audio_generic.ico" />
+    <EmbeddedResource Include="Resources\menu_file_glscript-asc.ico" />
+    <EmbeddedResource Include="Resources\menu_file_glscript-ash.ico" />
+    <EmbeddedResource Include="Resources\menu_file_voicescript.ico" />
+    <EmbeddedResource Include="Resources\roomtemplate_noicon.ico" />
+    <EmbeddedResource Include="Resources\splash-xmas.jpg" />
+    <EmbeddedResource Include="Resources\splash-valentine-2.jpg" />
+    <EmbeddedResource Include="Resources\menu_build_gamesetup.ico" />
+    <EmbeddedResource Include="Resources\menu_build_rebuild-files.ico" />
+    <EmbeddedResource Include="Resources\template_noicon.ico" />
+    <EmbeddedResource Include="Resources\splash-mittens.bmp" />
+    <EmbeddedResource Include="Resources\menu_build_run.ico" />
+    <EmbeddedResource Include="Resources\menu_build_runwithout.ico" />
+    <EmbeddedResource Include="Resources\menu_build_pause.ico" />
+    <EmbeddedResource Include="Resources\menu_build_step-into.ico" />
+    <EmbeddedResource Include="Resources\menu_build_stop.ico" />
+    <EmbeddedResource Include="Resources\menu_edit_copy.ico" />
+    <EmbeddedResource Include="Resources\menu_edit_cut.ico" />
+    <EmbeddedResource Include="Resources\menu_edit_paste.ico" />
+    <EmbeddedResource Include="Resources\menu_edit_redo.ico" />
+    <EmbeddedResource Include="Resources\menu_edit_undo.ico" />
+    <EmbeddedResource Include="Resources\togglebreakpoint.ico" />
+    <EmbeddedResource Include="Resources\showautocomplete.ico" />
+    <EmbeddedResource Include="Resources\menu_file_auto-number.ico" />
+    <EmbeddedResource Include="Resources\menu_file_built-exe.ico" />
+    <EmbeddedResource Include="Resources\menu_file_exit.ico" />
+    <EmbeddedResource Include="Resources\menu_file_make-template.ico" />
+    <EmbeddedResource Include="Resources\menu_file_open.ico" />
+    <EmbeddedResource Include="Resources\menu_file_preferences.ico" />
+    <EmbeddedResource Include="Resources\menu_file_save-room.ico" />
+    <EmbeddedResource Include="Resources\menu_file_save.ico" />
+    <EmbeddedResource Include="Resources\menu_file_test-game.ico" />
+    <EmbeddedResource Include="Resources\menu_help_about-ags.ico" />
+    <EmbeddedResource Include="Resources\menu_help_content.ico" />
+    <EmbeddedResource Include="Resources\menu_help_dynamic-help.ico" />
+    <EmbeddedResource Include="Resources\menu_help_index.ico" />
+    <EmbeddedResource Include="Resources\menu_help_update.ico" />
+    <EmbeddedResource Include="Resources\menu_help_visit-forums.ico" />
+    <EmbeddedResource Include="Resources\menu_help_visit-site.ico" />
+    <EmbeddedResource Include="Resources\paste.ico" />
+    <EmbeddedResource Include="Resources\redo.ico" />
+    <EmbeddedResource Include="Resources\undo.ico" />
+    <EmbeddedResource Include="GUI\CheckinsDialog.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>CheckinsDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\guis_button.ico" />
+    <EmbeddedResource Include="Resources\guis_inventory-window.ico" />
+    <EmbeddedResource Include="Resources\guis_label.ico" />
+    <EmbeddedResource Include="Resources\guis_listbox.ico" />
+    <EmbeddedResource Include="Resources\guis_slider.ico" />
+    <EmbeddedResource Include="Resources\guis_textbox.ico" />
+    <EmbeddedResource Include="Resources\charactr-item.ico" />
+    <EmbeddedResource Include="Resources\cursor-item.ico" />
+    <EmbeddedResource Include="Resources\dialog-item.ico" />
+    <EmbeddedResource Include="Resources\font-item.ico" />
+    <EmbeddedResource Include="Resources\icongui-item.ico" />
+    <EmbeddedResource Include="Resources\iconinv-item.ico" />
+    <EmbeddedResource Include="Resources\room-item.ico" />
+    <EmbeddedResource Include="Resources\scripts.ico" />
+    <EmbeddedResource Include="Resources\view-item.ico" />
+    <EmbeddedResource Include="Resources\findarea.cur" />
+    <EmbeddedResource Include="Resources\findarea.ico" />
+    <EmbeddedResource Include="Resources\copymask.ico" />
+    <EmbeddedResource Include="Resources\drawfill.ico" />
+    <EmbeddedResource Include="Resources\drawfree.ico" />
+    <EmbeddedResource Include="Resources\drawline.ico" />
+    <EmbeddedResource Include="Resources\save.ico" />
+    <EmbeddedResource Include="Resources\open.ico" />
+    <EmbeddedResource Include="Panes\RoomSettingsEditor.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>RoomSettingsEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\room.ico" />
+    <EmbeddedResource Include="Resources\roomsareas.ico" />
+    <EmbeddedResource Include="Resources\pluginDisabled.ico" />
+    <EmbeddedResource Include="Resources\plugin.ico" />
+    <Compile Include="AGSEditorController.cs" />
+    <Compile Include="ApplicationController.cs" />
+    <Compile Include="Audio\IAudioPreviewer.cs" />
+    <Compile Include="Audio\IrrklangPlayer.cs" />
+    <Compile Include="AutoComplete.cs" />
+    <Compile Include="ComponentController.cs" />
+    <Compile Include="Components\AudioComponent.cs" />
+    <Compile Include="Components\BaseComponent.cs" />
+    <Compile Include="Components\BaseComponentWithFolders.cs" />
+    <Compile Include="Components\BaseComponentWithScripts.cs" />
+    <Compile Include="Components\BuildCommandsComponent.cs" />
+    <Compile Include="Components\GlobalVariablesComponent.cs" />
+    <Compile Include="Components\HelpCommandsComponent.cs" />
+    <Compile Include="Components\SpeechComponent.cs" />
+    <Compile Include="Components\RoomsComponent.cs" />
+    <Compile Include="Components\StatisticsSenderComponent.cs" />
+    <Compile Include="Components\TranslationsComponent.cs" />
+    <Compile Include="Components\WelcomeComponent.cs" />
+    <Compile Include="Debugger\DebugController.cs" />
+    <Compile Include="Debugger\IEngineCommunication.cs" />
+    <Compile Include="Debugger\NamedPipesEngineCommunication.cs" />
+    <Compile Include="Debugger\NamedPipeServer.cs" />
+    <Compile Include="DialogScriptConverter.cs" />
+    <Compile Include="EditorEvents.cs" />
+    <Compile Include="Debugger\FileBasedEngineCommunication.cs" />
+    <Compile Include="Entities\AutoCompleteParserState.cs" />
+    <Compile Include="Entities\DebugCallStack.cs" />
+    <Compile Include="Entities\EditorPreferences.cs" />
+    <Compile Include="Entities\PreCompileGameEventArgs.cs" />
+    <Compile Include="Entities\PreDeleteSpriteEventArgs.cs" />
+    <Compile Include="Entities\PreSaveGameEventArgs.cs" />
+    <Compile Include="Entities\SpeechLipSyncLine.cs" />
+    <Compile Include="Entities\ZoomToFileEventArgs.cs" />
+    <Compile Include="Enums\BackgroundAutoCompleteStatus.cs" />
+    <Compile Include="Enums\DebugState.cs" />
+    <Compile Include="Enums\EditorStartupPane.cs" />
+    <Compile Include="Enums\FunctionCallType.cs" />
+    <Compile Include="Entities\RecentlyEditedGame.cs" />
+    <Compile Include="Enums\MessageBoxOnCompile.cs" />
+    <Compile Include="Enums\TestGameWindowStyle.cs" />
+    <Compile Include="Enums\ZoomToFileZoomType.cs" />
+    <Compile Include="Factory.cs" />
+    <Compile Include="GIFLoader\GifDecoder.cs" />
+    <Compile Include="GUI\AboutDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\AboutDialog.Designer.cs">
+      <DependentUpon>AboutDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\AutoNumberSpeechWizardPage2.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\AutoNumberSpeechWizardPage2.Designer.cs">
+      <DependentUpon>AutoNumberSpeechWizardPage2.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\CallStackPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\CallStackPanel.Designer.cs">
+      <DependentUpon>CallStackPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\CreateVoiceActingScriptPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\CreateVoiceActingScriptPage.Designer.cs">
+      <DependentUpon>CreateVoiceActingScriptPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\ErrorPopup.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\ErrorPopup.Designer.cs">
+      <DependentUpon>ErrorPopup.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\ExceptionDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\ExceptionDialog.Designer.cs">
+      <DependentUpon>ExceptionDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\GlobalVariableDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\GlobalVariableDialog.Designer.cs">
+      <DependentUpon>GlobalVariableDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\HelpPopup.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\HelpPopup.Designer.cs">
+      <DependentUpon>HelpPopup.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\NewRoomDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\NewRoomDialog.Designer.cs">
+      <DependentUpon>NewRoomDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\PreferencesEditor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\PreferencesEditor.Designer.cs">
+      <DependentUpon>PreferencesEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\SelectReligion.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\SelectReligion.Designer.cs">
+      <DependentUpon>SelectReligion.cs</DependentUpon>
+    </Compile>
+    <Compile Include="InteractiveTasks.cs" />
+    <Compile Include="Audio\MidiPlayer.cs" />
+    <Compile Include="Panes\AudioEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Panes\AudioEditor.Designer.cs">
+      <DependentUpon>AudioEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Panes\GlobalVariablesEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Panes\GlobalVariablesEditor.Designer.cs">
+      <DependentUpon>GlobalVariablesEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Panes\WelcomePane.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Panes\WelcomePane.Designer.cs">
+      <DependentUpon>WelcomePane.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Plugins\EditorPlugin.cs" />
+    <Compile Include="SpriteUsageChecker.cs" />
+    <Compile Include="Tasks.cs" />
+    <Compile Include="TextProcessing\BaseTextProcess.cs" />
+    <Compile Include="TextProcessing\GameTextLine.cs" />
+    <Compile Include="TextProcessing\GameSpeechProcessor.cs" />
+    <Compile Include="GUI\BusyDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\BusyDialog.Designer.cs">
+      <DependentUpon>BusyDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\AutoNumberSpeechWizardPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\AutoNumberSpeechWizardPage.Designer.cs">
+      <DependentUpon>AutoNumberSpeechWizardPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\MakeTemplateWizardPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\MakeTemplateWizardPage.Designer.cs">
+      <DependentUpon>MakeTemplateWizardPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\StartNewGameWizardPage2.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\StartNewGameWizardPage2.Designer.cs">
+      <DependentUpon>StartNewGameWizardPage2.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\FindReplaceDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\FindReplaceDialog.Designer.cs">
+      <DependentUpon>FindReplaceDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\GUIAddType.cs" />
+    <Compile Include="GUI\CheckinsDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\CheckinsDialog.Designer.cs">
+      <DependentUpon>CheckinsDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\ImportGameWizardPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\ImportGameWizardPage.Designer.cs">
+      <DependentUpon>ImportGameWizardPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\RoomMessagesEditor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\RoomMessagesEditor.Designer.cs">
+      <DependentUpon>RoomMessagesEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\StartNewGameWizardPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\StartNewGameWizardPage.Designer.cs">
+      <DependentUpon>StartNewGameWizardPage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\WelcomeScreen.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\WelcomeScreen.Designer.cs">
+      <DependentUpon>WelcomeScreen.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\WizardDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\WizardDialog.Designer.cs">
+      <DependentUpon>WizardDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\MainMenuManager.cs" />
+    <Compile Include="GUI\OutputPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\OutputPanel.Designer.cs">
+      <DependentUpon>OutputPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\ToolBarManager.cs" />
+    <Compile Include="GUI\WizardPage.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TextProcessing\IGameTextProcessor.cs" />
+    <Compile Include="OldGameImporter.cs" />
+    <Compile Include="Panes\RoomEditFilters\AreaDrawMode.cs" />
+    <Compile Include="Panes\RoomEditFilters\BaseAreasEditorFilter.cs" />
+    <Compile Include="Panes\RoomEditFilters\EdgesEditorFilter.cs" />
+    <Compile Include="Panes\RoomEditFilters\EmptyEditorFilter.cs" />
+    <Compile Include="Panes\RoomEditFilters\HotspotsEditorFilter.cs" />
+    <Compile Include="Panes\RoomEditFilters\IRoomEditorFilter.cs" />
+    <Compile Include="Panes\RoomEditFilters\ObjectsEditorFilter.cs" />
+    <Compile Include="Panes\RoomEditFilters\RegionsEditorFilter.cs" />
+    <Compile Include="Panes\RoomEditFilters\WalkableAreasEditorFilter.cs" />
+    <Compile Include="Panes\RoomEditFilters\WalkBehindsEditorFilter.cs" />
+    <Compile Include="Panes\RoomSettingsEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Panes\RoomSettingsEditor.Designer.cs">
+      <DependentUpon>RoomSettingsEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Plugins\NativePluginCallbacks.cs" />
+    <Compile Include="RecentGamesList.cs" />
+    <Compile Include="TextProcessing\SpeechLineProcessor.cs" />
+    <Compile Include="TextProcessing\SpeechLinesNumbering.cs" />
+    <Compile Include="TextProcessing\SpeechOnlyProcessor.cs" />
+    <Compile Include="TextProcessing\TextImporter.cs" />
+    <Compile Include="TextProcessing\TextImportProcessor.cs" />
+    <Compile Include="TextProcessing\TextProcessingHelper.cs" />
+    <Compile Include="TextProcessing\TranslationGenerator.cs" />
+    <Compile Include="TextProcessing\TranslationSourceProcessor.cs" />
+    <Compile Include="TextProcessing\VoiceActorScriptProcessor.cs" />
+    <Compile Include="TextProcessing\VoiceActorScriptGenerator.cs" />
+    <EmbeddedResource Include="Resources\ListAllButton.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{B4F97281-0DBD-4835-9ED8-7DFB966E87FF}" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+</Project>

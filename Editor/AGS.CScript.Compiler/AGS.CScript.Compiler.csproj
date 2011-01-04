@@ -1,0 +1,116 @@
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{4771753A-641D-49B1-8096-0B431EAC413E}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>AGS.CScript.Compiler</RootNamespace>
+    <AssemblyName>AGS.CScript.Compiler</AssemblyName>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>2.0</OldToolsVersion>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CodeBlockCompiler.cs" />
+    <Compile Include="CompilerUtils.cs" />
+    <Compile Include="Entities\CompiledScript.cs" />
+    <Compile Include="Entities\CompileResults.cs" />
+    <Compile Include="Entities\CompilerMessage.cs" />
+    <Compile Include="Entities\CompilerState.cs" />
+    <Compile Include="Entities\Constants.cs" />
+    <Compile Include="Entities\CScriptOpcodes.cs" />
+    <Compile Include="Entities\DataGroup.cs" />
+    <Compile Include="Entities\DefaultTokenStore.cs" />
+    <Compile Include="Entities\EndOfStreamToken.cs" />
+    <Compile Include="Entities\Expression.cs" />
+    <Compile Include="Entities\FunctionParameter.cs" />
+    <Compile Include="Entities\GlobalData.cs" />
+    <Compile Include="Entities\InternalError.cs" />
+    <Compile Include="Entities\LocalScope.cs" />
+    <Compile Include="Entities\Modifiers.cs" />
+    <Compile Include="Entities\Pair.cs" />
+    <Compile Include="Entities\ScriptEnum.cs" />
+    <Compile Include="Entities\Error.cs" />
+    <Compile Include="Entities\ErrorCode.cs" />
+    <Compile Include="CompilerFactory.cs" />
+    <Compile Include="Entities\FastString.cs" />
+    <Compile Include="Entities\KeywordToken.cs" />
+    <Compile Include="Entities\LineNumberToken.cs" />
+    <Compile Include="Entities\LiteralToken.cs" />
+    <Compile Include="Entities\ModifierTargets.cs" />
+    <Compile Include="Entities\ModifierToken.cs" />
+    <Compile Include="Entities\OperatorToken.cs" />
+    <Compile Include="Entities\PredefinedSymbol.cs" />
+    <Compile Include="ScriptReader.cs" />
+    <Compile Include="Entities\ScriptVariable.cs" />
+    <Compile Include="Entities\SplitExpression.cs" />
+    <Compile Include="Entities\ScriptFunction.cs" />
+    <Compile Include="Entities\ScriptStruct.cs" />
+    <Compile Include="Entities\FixedOffsetVariable.cs" />
+    <Compile Include="Entities\Token.cs" />
+    <Compile Include="Entities\TokenizedScript.cs" />
+    <Compile Include="Entities\ScalarVariableTypeToken.cs" />
+    <Compile Include="Entities\TokenType.cs" />
+    <Compile Include="Entities\Tristate.cs" />
+    <Compile Include="Entities\Warning.cs" />
+    <Compile Include="IPreprocessor.cs" />
+    <Compile Include="Entities\Macro.cs" />
+    <Compile Include="Entities\Macros.cs" />
+    <Compile Include="IScriptCompiler.cs" />
+    <Compile Include="ITokenizer.cs" />
+    <Compile Include="Preprocessor.cs" />
+    <Compile Include="Entities\PreprocessorState.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ScriptCompiler.cs" />
+    <Compile Include="Tokenizer.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{B4F97281-0DBD-4835-9ED8-7DFB966E87FF}" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AGS.Types\AGS.Types.csproj">
+      <Project>{3EBBEDAB-214C-4201-BB5A-5152D56908DD}</Project>
+      <Name>AGS.Types</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

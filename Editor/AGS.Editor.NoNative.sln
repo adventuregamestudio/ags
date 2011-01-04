@@ -10,24 +10,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AGS.CScript.Compiler", "AGS.CScript.Compiler\AGS.CScript.Compiler.csproj", "{4771753A-641D-49B1-8096-0B431EAC413E}"
 EndProject
 Global
-	GlobalSection(SourceCodeControl) = preSolution
-		SccNumberOfProjects = 5
-		SccProjectName0 = \u0022$/ags/netedit\u0022,\u0020WYAAAAAA
-		SccLocalPath0 = .
-		SccProvider0 = MSSCCI:Microsoft\u0020Visual\u0020SourceSafe
-		SccProjectUniqueName1 = AGS.Controls\\AGS.Controls.csproj
-		SccProjectName1 = \u0022$/ags/netedit/AGS.Controls\u0022,\u0020RECAAAAA
-		SccLocalPath1 = AGS.Controls
-		SccProjectUniqueName2 = AGS.Types\\AGS.Types.csproj
-		SccProjectName2 = \u0022$/ags/netedit/AGS.Types\u0022,\u0020PYBAAAAA
-		SccLocalPath2 = AGS.Types
-		SccProjectUniqueName3 = AGS.Editor\\AGSEditor.csproj
-		SccProjectName3 = \u0022$/ags/netedit/AGS.Editor\u0022,\u0020XYAAAAAA
-		SccLocalPath3 = AGS.Editor
-		SccProjectUniqueName4 = AGS.CScript.Compiler\\AGS.CScript.Compiler.csproj
-		SccLocalPath4 = .
-		SccProjectFilePathRelativizedFromConnection4 = AGS.CScript.Compiler\\
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|Mixed Platforms = Debug|Mixed Platforms

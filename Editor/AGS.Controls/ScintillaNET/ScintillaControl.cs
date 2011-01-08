@@ -7,6 +7,9 @@ using System.Text;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using Scintilla.Enums;
+using Scintilla.Lexers;
+using System.Threading;
+
 
 namespace Scintilla
 {
@@ -19,9 +22,326 @@ namespace Scintilla
     {
         public const string DEFAULT_DLL_NAME = "SciLexer.dll";
         private static readonly object _nativeEventKey = new object();
+        private bool _isDialog = false;
+        
+
+        private List<String> _keywords;
+
+        public List<String> Keywords
+        {
+            get { return _keywords; }
+            set { _keywords = value; }
+        }
+
+     
+        public bool IsDialog
+        {
+            get { return _isDialog; }
+            set { _isDialog = value; }
+        }
 
         public ScintillaControl()
         {
+            _keywords = new List<string>();
+        }
+
+        public void SetFolding()
+        {
+            this.SendMessageDirect(Constants.SCI_SETPROPERTY, "fold", "1");
+            this.SendMessageDirect(Constants.SCI_SETPROPERTY, "fold.compact", "0");
+            this.SendMessageDirect(Constants.SCI_SETPROPERTY, "fold.comment", "1");
+            this.SendMessageDirect(Constants.SCI_SETPROPERTY, "fold.preprocessor", "1");
+
+            this.SendMessageDirect(Constants.SCI_SETMARGINWIDTHN, 1, 0);
+
+            this.SendMessageDirect(Constants.SCI_SETMARGINTYPEN, 1, (int)Constants.SC_MARGIN_SYMBOL);
+            this.SendMessageDirect(Constants.SCI_SETMARGINMASKN, 1, (int)Constants.SC_MASK_FOLDERS);
+            this.SendMessageDirect(Constants.SCI_SETMARGINWIDTHN, 1, 20);
+
+            this.SendMessageDirect(Constants.SCI_MARKERDEFINE, Constants.SC_MARKNUM_FOLDER, (int)Constants.SC_MARK_PLUS);
+            this.SendMessageDirect(Constants.SCI_MARKERDEFINE, Constants.SC_MARKNUM_FOLDEROPEN, (int)Constants.SC_MARK_MINUS);
+            this.SendMessageDirect(Constants.SCI_MARKERDEFINE, Constants.SC_MARKNUM_FOLDEREND, (int)Constants.SC_MARK_EMPTY);
+            this.SendMessageDirect(Constants.SCI_MARKERDEFINE, Constants.SC_MARKNUM_FOLDERMIDTAIL, (int)Constants.SC_MARK_EMPTY);
+            this.SendMessageDirect(Constants.SCI_MARKERDEFINE, Constants.SC_MARKNUM_FOLDEROPENMID, (int)Constants.SC_MARK_EMPTY);
+            this.SendMessageDirect(Constants.SCI_MARKERDEFINE, Constants.SC_MARKNUM_FOLDERSUB, (int)Constants.SC_MARK_EMPTY);
+            this.SendMessageDirect(Constants.SCI_MARKERDEFINE, Constants.SC_MARKNUM_FOLDERTAIL, (int)Constants.SC_MARK_EMPTY);
+
+            this.SendMessageDirect(Constants.SCI_SETFOLDFLAGS, 16, 0); // 16  	Draw line below if not expanded
+
+            this.SendMessageDirect(Constants.SCI_SETMARGINSENSITIVEN, 1, 1);
+
+            
+
+        }
+
+        private bool isNumeric(char token)
+        {
+            return (token == '0' ||
+                    token == '1' ||
+                    token == '2' ||
+                    token == '3' ||
+                    token == '4' ||
+                    token == '5' ||
+                    token == '6' ||
+                    token == '7' ||
+                    token == '8' ||
+                    token == '9');
+
+        }
+
+        private bool isOperator(char token)
+        {
+             return (token == '(' ||
+             token == ')' ||
+             token == '{' ||
+             token == '}' ||
+             token == '+' ||
+             token == '=' ||
+             token == '*');
+
+        }
+
+        public string previousWordFrom(int from)
+        {
+            from--;
+            StringBuilder word = new StringBuilder();
+            
+            while (Char.IsLetterOrDigit((char)GetCharAt(from)) && from > 0)
+            {
+                word.Insert(0,(char)GetCharAt(from));
+                from --;
+            }
+
+
+            return word.ToString();
+        }
+
+        private void Style(int linenum, int end)
+        {
+            
+            int line_length = SendMessageDirect(Constants.SCI_LINELENGTH, linenum);
+            int start_pos = SendMessageDirect(Constants.SCI_POSITIONFROMLINE, linenum);
+            int laststyle = start_pos;
+            
+            Cpp stylingMode;
+            if (start_pos > 0) stylingMode = (Cpp)GetStyleAt(start_pos - 1);
+            else stylingMode = Cpp.Default;
+            bool onNewLine = true;
+            bool onScriptLine = false;
+            int i;
+            SendMessageDirect(Constants.SCI_STARTSTYLING, start_pos, 0x1f);
+
+            for (i = start_pos; i <= end; i ++){
+
+                char c = (char)GetCharAt(i);
+
+                if (!Char.IsLetterOrDigit(c) && (stylingMode != Cpp.Comment || stylingMode != Cpp.CommentLine|| stylingMode != Cpp.String))
+                {
+                    string lastword = previousWordFrom(i);
+                    if (lastword.Length != 0)
+                    {
+                        Cpp newMode = stylingMode;
+                        if (onScriptLine && Keywords.Contains(lastword.Trim())) newMode = Cpp.Word;
+                        if (!onScriptLine && stylingMode == Cpp.Word2) // before colon
+                        {
+                            if (lastword.Trim() == "return" || lastword.Trim() == "stop") newMode = Cpp.Word;
+                        }
+
+
+                        if (newMode != stylingMode)
+                        {
+                            SendMessageDirect(Constants.SCI_SETSTYLING, i - laststyle - lastword.Length, (int)stylingMode);
+                            SendMessageDirect(Constants.SCI_SETSTYLING, lastword.Length, (int)newMode);
+                            laststyle = i;
+
+                        }
+                    }
+                }
+
+                if (c == '\n') {
+                    onNewLine = true;
+                    onScriptLine = false;
+                    if (stylingMode != Cpp.Comment && stylingMode != Cpp.String)
+                    {
+                        if (laststyle < i)
+                        {
+                            SendMessageDirect(Constants.SCI_SETSTYLING, i - laststyle, (int)stylingMode);
+                            laststyle = i;
+                        }
+                        stylingMode = Cpp.Default;
+
+                    }
+                    continue;
+                }
+
+                if (onNewLine) {
+                    
+                    if (c == ' ') {
+
+                        onScriptLine = true;
+                        onNewLine = false;
+                        continue;
+
+                    }
+
+
+
+                }
+
+                if (onScriptLine) {
+
+                    if (isOperator(c))
+                    {
+                        if (stylingMode != Cpp.String && stylingMode != Cpp.Comment && stylingMode != Cpp.CommentLine)
+                        {
+                            SendMessageDirect(Constants.SCI_SETSTYLING, i - laststyle, (int)stylingMode);
+                            SendMessageDirect(Constants.SCI_SETSTYLING, 1, (int)Cpp.Operator);
+                            stylingMode = Cpp.Default;
+                            laststyle = i + 1;
+                        }
+                    }
+                    
+                    else if (isNumeric(c))
+                    {
+                        if (stylingMode != Cpp.String && stylingMode != Cpp.Comment && stylingMode != Cpp.CommentLine)
+                        {
+                            SendMessageDirect(Constants.SCI_SETSTYLING, i - laststyle, (int)stylingMode);
+                            SendMessageDirect(Constants.SCI_SETSTYLING, 1, (int)Cpp.Number);
+                            stylingMode = Cpp.Default;
+                            laststyle = i + 1;
+                        }
+                    }
+                    else if (c == '"')
+                    {
+                        if (stylingMode == Cpp.String)
+                        {
+                            SendMessageDirect(Constants.SCI_SETSTYLING, i - laststyle + 1, (int)stylingMode);
+                            laststyle = i + 1;
+                            stylingMode = Cpp.Default;
+                        }
+                        else stylingMode = Cpp.String;
+
+                    }
+
+
+                }
+                else {
+
+                    if (onNewLine && stylingMode != Cpp.Comment)
+                    {
+                        SendMessageDirect(Constants.SCI_SETSTYLING, i - laststyle, (int)stylingMode);
+                        stylingMode = Cpp.Word2;
+                        laststyle = i;
+                    }
+                    if (c == ':' && stylingMode != Cpp.Comment && stylingMode != Cpp.CommentLine) {
+                        
+                        SendMessageDirect(Constants.SCI_SETSTYLING, i - laststyle + 1, (int)stylingMode);
+                        laststyle = i + 1;
+                        stylingMode = Cpp.Number;
+
+                    }
+                    if (c == '@' && stylingMode == Cpp.Word2)
+                    {
+                        SendMessageDirect(Constants.SCI_SETSTYLING, i - laststyle, (int)stylingMode);
+                        stylingMode = Cpp.Number;
+                        laststyle = i;
+                    }
+
+
+
+                }
+
+                if (c == '/')
+                {
+                    if (stylingMode == Cpp.Comment && GetCharAt(i - 1) == '*')
+                    {
+                        SendMessageDirect(Constants.SCI_SETSTYLING, i - laststyle + 1, (int)stylingMode);
+                        stylingMode = Cpp.Default;
+                        laststyle = i + 1;
+                        
+                    }
+                    else if (GetCharAt(i + 1) == '*' && onScriptLine)
+                    {
+                        SendMessageDirect(Constants.SCI_SETSTYLING, i - laststyle, (int)stylingMode);
+                        stylingMode = Cpp.Comment;
+                        laststyle = i;
+                    }
+                    else if (GetCharAt(i + 1) == '/')
+                    {
+                        SendMessageDirect(Constants.SCI_SETSTYLING, i - laststyle, (int)stylingMode);
+                        stylingMode = Cpp.CommentLine;
+                        laststyle = i;
+
+                    }
+
+                }
+
+                onNewLine = false;
+
+
+            }
+
+         
+
+            SendMessageDirect(Constants.SCI_SETSTYLING, i - laststyle, (int)stylingMode);
+          
+            
+        }
+
+        public void StyleDialog(SCNotification notify) //THIS NEED REFACTORING OUT OF THIS CLASS
+        {
+            if (!IsDialog) return;
+
+            int line_number = SendMessageDirect(Constants.SCI_LINEFROMPOSITION, SendMessageDirect(Constants.SCI_GETENDSTYLED));
+            int end_pos = notify.position;
+                             
+            Style(line_number, end_pos);
+
+
+                        
+    
+
+        }
+
+
+
+        public bool InsideString(bool charJustAdded, int position) //need to refactor this out too.
+        {
+            Cpp style = (Cpp)GetStyleAt(position - (charJustAdded ? 2 : 1));
+            if (style == Cpp.String)
+            {
+                return true;
+            }
+
+            int lineNumber = LineFromPosition(position);
+            int lineStart = PositionFromLine(lineNumber);
+            string curLine = GetLine(lineNumber);
+            if (curLine.Length > 0)
+            {
+                int length = position - lineStart;
+                if (length >= curLine.Length)
+                {
+                    length = curLine.Length - 1;
+                }
+                curLine = curLine.Substring(0, length);
+            }
+            if (curLine.IndexOf('"') >= 0)
+            {
+                int curIndex = 0;
+                int numSpeechMarks = 0;
+                while ((curIndex = curLine.IndexOf('"', curIndex)) >= 0)
+                {
+                    numSpeechMarks++;
+                    curIndex++;
+                }
+                if (numSpeechMarks % 2 == 1)
+                {
+                    // in a string literal
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public void SetLineIndentation(int line, int indentation) 
@@ -67,6 +387,22 @@ namespace Scintilla
             return this.SendMessageDirect(2010, position);
         }
 
+        public void SetStyle(Scintilla.Lexers.Cpp style, Color fore, Color back, bool bold, bool italic, string font, int fontSize)
+        {
+            StyleSetFore(style, fore);
+            StyleSetBack(style, back);
+            StyleSetBold(style, bold);
+            StyleSetItalic(style, italic);
+            StyleSetFont((int)style, font);
+            StyleSetFontSize((int)style, fontSize);
+
+        }
+
+        private void StyleSetItalic(Lexers.Cpp style, bool italic)
+        {
+            this.SendMessageDirect(Constants.SCI_STYLESETITALIC, (int)style, italic);
+        }
+
         public void StyleSetFore(Scintilla.Lexers.Cpp syntaxType, Color value)
         {
             this.SendMessageDirect(2051, (int)syntaxType, Utilities.ColorToRgb(value));
@@ -79,6 +415,7 @@ namespace Scintilla
 
         public void StyleSetBold(Scintilla.Lexers.Cpp syntaxType, bool bold)
         {
+
             this.SendMessageDirect(2053, (int)syntaxType, bold);
         }
 
@@ -120,6 +457,14 @@ namespace Scintilla
         public void SetKeyWords(string keywords)
         {
             this.SendMessageDirect(4005, 0, keywords);
+            Keywords.Clear();
+            string[] arr = keywords.Split(' ');
+            foreach (string s in arr)
+            {
+                s.Trim();
+                Keywords.Add(s);
+
+            }
         }
 
 		public void SetClassListHighlightedWords(string keywords)
@@ -179,6 +524,8 @@ namespace Scintilla
                 CreateParams cp = base.CreateParams;
                 cp.ClassName = "Scintilla";
                 return cp;
+                
+
             }
         }
 
@@ -187,6 +534,21 @@ namespace Scintilla
         {
             switch (notification.nmhdr.code)
             {
+
+                case Scintilla.Enums.Events.StyleNeeded:
+
+                        
+                        StyleDialog(notification);
+                       
+
+                    break;
+                    
+                case Scintilla.Enums.Events.MarginClick:
+                                       
+                      int line_number = SendMessageDirect(Constants.SCI_LINEFROMPOSITION, notification.position, 0);
+                      if (notification.margin == 1) SendMessageDirect(Constants.SCI_TOGGLEFOLD, line_number, 0);
+                       
+                    break;
                 case Scintilla.Enums.Events.AutoCSelection:
                     if (Events[Scintilla.Enums.Events.AutoCSelection] != null)
                         ((EventHandler<AutoCSelectionEventArgs>)Events[Scintilla.Enums.Events.AutoCSelection])(this, new AutoCSelectionEventArgs(notification));
@@ -306,6 +668,7 @@ namespace Scintilla
         /// </summary>
         private IntPtr SendMessageDirect(uint msg, IntPtr wParam, IntPtr lParam)
         {
+            if (this.DesignMode) return IntPtr.Zero;
             Message m = new Message();
             m.Msg = (int)msg;
             m.WParam = wParam;

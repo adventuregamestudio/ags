@@ -11,10 +11,12 @@ namespace AGS.Editor
     {
         private const string MENU_ITEM_DELETE = "DeleteObject";
         private const string MENU_ITEM_NEW = "NewObject";
+        private const string MENU_ITEM_COPY_COORDS = "CopyCoordinates";
+        private const string MENU_ITEM_OBJECT_COORDS = "ObjectCoordinates";
+        protected Room _room;
+        protected Panel _panel;
 
         private GUIController.PropertyObjectChangedHandler _propertyObjectChangedDelegate;
-        private Room _room;
-        private Panel _panel;
         private RoomObject _selectedObject;
 		private RoomObject _lastSelectedObject;
         private bool _movingObject;
@@ -54,7 +56,7 @@ namespace AGS.Editor
 		{
 		}
 
-        public void PaintToHDC(IntPtr hDC, RoomEditorState state)
+        public virtual void PaintToHDC(IntPtr hDC, RoomEditorState state)
         {
             _objectBaselines.Clear();
             foreach (RoomObject obj in _room.Objects)
@@ -110,7 +112,7 @@ namespace AGS.Editor
             return width;
         }
 
-        public void Paint(Graphics graphics, RoomEditorState state)
+        public virtual void Paint(Graphics graphics, RoomEditorState state)
         {
             if (_selectedObject != null)
             {
@@ -118,9 +120,22 @@ namespace AGS.Editor
 				int height = GetSpriteHeightForGameResolution(_selectedObject.Image);
 				int xPos = AdjustXCoordinateForWindowScroll(_selectedObject.StartX, state);
 				int yPos = AdjustYCoordinateForWindowScroll(_selectedObject.StartY, state) - (height * state.ScaleFactor);
-                Pen pen = new Pen(Color.Yellow);
+                Pen pen = new Pen(Color.Goldenrod);
                 pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dot;
                 graphics.DrawRectangle(pen, xPos, yPos, width * state.ScaleFactor, height * state.ScaleFactor);
+
+                if (_movingObject)
+                {
+                    System.Drawing.Font font = new System.Drawing.Font("Arial", 10.0f);
+                    string toDraw = String.Format("X:{0}, Y:{1}", _selectedObject.StartX, _selectedObject.StartY);
+
+                    int scaledx = (_selectedObject.StartX * state.ScaleFactor) + (width / 2) - ((int)graphics.MeasureString(toDraw, font).Width / 2);
+                    int scaledy = (_selectedObject.StartY * state.ScaleFactor) - height - (int)graphics.MeasureString(toDraw, font).Height;
+                    if (scaledx < 0) scaledx = 0;
+                    if (scaledy < 0) scaledy = 0;
+
+                    graphics.DrawString(toDraw, font, pen.Brush, (float)scaledx, (float)scaledy);
+                }
             }
         }
 
@@ -134,7 +149,7 @@ namespace AGS.Editor
 			return (y - (state.ScrollOffsetY / state.ScaleFactor)) * state.ScaleFactor;
 		}
 
-        public void MouseDown(MouseEventArgs e, RoomEditorState state)
+        public virtual void MouseDown(MouseEventArgs e, RoomEditorState state)
         {
             int x = (e.X + state.ScrollOffsetX) / state.ScaleFactor;
             int y = (e.Y + state.ScrollOffsetY) / state.ScaleFactor;
@@ -171,6 +186,34 @@ namespace AGS.Editor
                     ShowContextMenu(e, state);
                 }
             }
+        }
+
+        private void CoordMenuEventHandler(object sender, EventArgs e)
+        {
+            int tempx = _menuClickX;
+            int tempy = _menuClickY;
+
+            if ((Factory.AGSEditor.CurrentGame.Settings.UseLowResCoordinatesInScript) &&
+             (_room.Resolution == RoomResolution.HighRes))
+            {
+                tempx /= 2;
+                tempy /= 2;
+            }
+
+            string textToCopy = tempx.ToString() + ", " + tempy.ToString();
+            Utilities.CopyTextToClipboard(textToCopy);
+        }
+
+        private void ShowCoordMenu(MouseEventArgs e, RoomEditorState state)
+        {
+            EventHandler onClick = new EventHandler(CoordMenuEventHandler);
+            ContextMenuStrip menu = new ContextMenuStrip();
+            menu.Items.Add(new ToolStripMenuItem("Copy mouse coordinates to clipboard", null, onClick, MENU_ITEM_COPY_COORDS));
+
+            _menuClickX = (e.X + state.ScrollOffsetX) / state.ScaleFactor;
+            _menuClickY = (e.Y + state.ScrollOffsetY) / state.ScaleFactor;
+
+            menu.Show(_panel, e.X, e.Y);
         }
 
         private void ContextMenuEventHandler(object sender, EventArgs e)
@@ -213,6 +256,21 @@ namespace AGS.Editor
                 _room.Modified = true;
                 _panel.Invalidate();
             }
+            else if (item.Name == MENU_ITEM_OBJECT_COORDS)
+            {
+                int tempx = _selectedObject.StartX;
+                int tempy = _selectedObject.StartY;
+
+                if ((Factory.AGSEditor.CurrentGame.Settings.UseLowResCoordinatesInScript) &&
+                	(_room.Resolution == RoomResolution.HighRes))
+                {
+                    tempx = tempx / 2;
+                    tempy = tempy / 2;
+                }
+
+                string textToCopy = tempx.ToString() + ", " + tempy.ToString();
+                Utilities.CopyTextToClipboard(textToCopy);
+            }
         }
 
         private void ShowContextMenu(MouseEventArgs e, RoomEditorState state)
@@ -224,19 +282,26 @@ namespace AGS.Editor
                 menu.Items.Add(new ToolStripMenuItem("Delete", null, onClick, MENU_ITEM_DELETE));
                 menu.Items.Add(new ToolStripSeparator());
             }
-
-            menu.Items.Add(new ToolStripMenuItem("New object here", null, onClick, MENU_ITEM_NEW));
-
+            menu.Items.Add(new ToolStripMenuItem("Place New Object Here", null, onClick, MENU_ITEM_NEW));
+            if (_selectedObject != null)
+            {
+                menu.Items.Add(new ToolStripMenuItem("Copy Object Coordinates to Clipboard", null, onClick, MENU_ITEM_OBJECT_COORDS));
+            }
             _menuClickX = (e.X + state.ScrollOffsetX) / state.ScaleFactor;
             _menuClickY = (e.Y + state.ScrollOffsetY) / state.ScaleFactor;
 
             menu.Show(_panel, e.X, e.Y);
         }
 
-        public void MouseUp(MouseEventArgs e, RoomEditorState state)
+        public virtual void MouseUp(MouseEventArgs e, RoomEditorState state)
         {
             _movingObject = false;
 			_lastSelectedObject = _selectedObject;
+
+            if (e.Button == MouseButtons.Middle)
+            {
+                ShowCoordMenu(e, state);
+            }
         }
 
 		public void DoubleClick(RoomEditorState state)
@@ -251,7 +316,7 @@ namespace AGS.Editor
 			}
 		}
 
-        public bool MouseMove(int x, int y, RoomEditorState state)
+        public virtual bool MouseMove(int x, int y, RoomEditorState state)
         {
             int realX = (x + state.ScrollOffsetX) / state.ScaleFactor;
             int realY = (y + state.ScrollOffsetY) / state.ScaleFactor;

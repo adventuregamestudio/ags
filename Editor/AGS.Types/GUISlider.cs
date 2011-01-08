@@ -6,6 +6,7 @@ using System.Xml;
 
 namespace AGS.Types
 {
+    [Serializable]
     [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]
     public class GUISlider : GUIControl
     {

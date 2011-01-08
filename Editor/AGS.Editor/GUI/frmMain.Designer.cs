@@ -30,8 +30,9 @@ namespace AGS.Editor
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmMain));
             this.mainContainer = new System.Windows.Forms.SplitContainer();
-            this.pnlCallStack = new AGS.Editor.CallStackPanel();
             this.tabbedDocumentContainer1 = new AGS.Editor.TabbedDocumentContainer();
+            this.pnlCallStack = new AGS.Editor.CallStackPanel();
+            this.pnlFindResults = new AGS.Editor.FindResultsPanel();
             this.pnlOutput = new AGS.Editor.OutputPanel();
             this.leftSplitter = new System.Windows.Forms.SplitContainer();
             this.projectTree = new System.Windows.Forms.TreeView();
@@ -66,26 +67,16 @@ namespace AGS.Editor
             this.mainContainer.Panel1.BackColor = System.Drawing.SystemColors.Control;
             this.mainContainer.Panel1.Controls.Add(this.tabbedDocumentContainer1);
             this.mainContainer.Panel1.Controls.Add(this.pnlCallStack);
+            this.mainContainer.Panel1.Controls.Add(this.pnlFindResults);
             this.mainContainer.Panel1.Controls.Add(this.pnlOutput);
             // 
             // mainContainer.Panel2
             // 
             this.mainContainer.Panel2.Controls.Add(this.leftSplitter);
             this.mainContainer.Size = new System.Drawing.Size(761, 443);
-            this.mainContainer.SplitterDistance = 503;
+            this.mainContainer.SplitterDistance = 499;
             this.mainContainer.SplitterWidth = 6;
             this.mainContainer.TabIndex = 3;
-            // 
-            // pnlCallStack
-            // 
-            this.pnlCallStack.CallStack = null;
-            this.pnlCallStack.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.pnlCallStack.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.pnlCallStack.Location = new System.Drawing.Point(0, 217);
-            this.pnlCallStack.Name = "pnlCallStack";
-            this.pnlCallStack.Size = new System.Drawing.Size(503, 105);
-            this.pnlCallStack.TabIndex = 2;
-            this.pnlCallStack.Visible = false;
             // 
             // tabbedDocumentContainer1
             // 
@@ -93,9 +84,32 @@ namespace AGS.Editor
             this.tabbedDocumentContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabbedDocumentContainer1.Location = new System.Drawing.Point(0, 0);
             this.tabbedDocumentContainer1.Name = "tabbedDocumentContainer1";
-            this.tabbedDocumentContainer1.Size = new System.Drawing.Size(503, 217);
+            this.tabbedDocumentContainer1.Size = new System.Drawing.Size(499, 112);
             this.tabbedDocumentContainer1.TabIndex = 0;
             this.tabbedDocumentContainer1.Enter += new System.EventHandler(this.tabbedDocumentContainer1_Enter);
+            // 
+            // pnlCallStack
+            // 
+            this.pnlCallStack.CallStack = null;
+            this.pnlCallStack.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.pnlCallStack.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.pnlCallStack.Location = new System.Drawing.Point(0, 112);
+            this.pnlCallStack.Name = "pnlCallStack";
+            this.pnlCallStack.Size = new System.Drawing.Size(499, 105);
+            this.pnlCallStack.TabIndex = 2;
+            this.pnlCallStack.Visible = false;
+            // 
+            // pnlFindResults
+            // 
+            this.pnlFindResults.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.pnlFindResults.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.pnlFindResults.Location = new System.Drawing.Point(0, 217);
+            this.pnlFindResults.Name = "pnlFindResults";
+            this.pnlFindResults.Results = null;
+            this.pnlFindResults.Scintilla = null;
+            this.pnlFindResults.Size = new System.Drawing.Size(499, 105);
+            this.pnlFindResults.TabIndex = 2;
+            this.pnlFindResults.Visible = false;
             // 
             // pnlOutput
             // 
@@ -104,7 +118,7 @@ namespace AGS.Editor
             this.pnlOutput.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.pnlOutput.Location = new System.Drawing.Point(0, 322);
             this.pnlOutput.Name = "pnlOutput";
-            this.pnlOutput.Size = new System.Drawing.Size(503, 121);
+            this.pnlOutput.Size = new System.Drawing.Size(499, 121);
             this.pnlOutput.TabIndex = 1;
             this.pnlOutput.Visible = false;
             // 
@@ -124,7 +138,7 @@ namespace AGS.Editor
             // 
             this.leftSplitter.Panel2.Controls.Add(this.propertiesWindowPanel);
             this.leftSplitter.Panel2.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.leftSplitter.Size = new System.Drawing.Size(252, 443);
+            this.leftSplitter.Size = new System.Drawing.Size(256, 443);
             this.leftSplitter.SplitterDistance = 196;
             this.leftSplitter.TabIndex = 3;
             // 
@@ -137,7 +151,7 @@ namespace AGS.Editor
             this.projectTree.LabelEdit = true;
             this.projectTree.Location = new System.Drawing.Point(0, 0);
             this.projectTree.Name = "projectTree";
-            this.projectTree.Size = new System.Drawing.Size(252, 196);
+            this.projectTree.Size = new System.Drawing.Size(256, 196);
             this.projectTree.TabIndex = 2;
             this.projectTree.Enter += new System.EventHandler(this.projectTree_Enter);
             // 
@@ -148,7 +162,7 @@ namespace AGS.Editor
             this.propertiesWindowPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.propertiesWindowPanel.Location = new System.Drawing.Point(0, 0);
             this.propertiesWindowPanel.Name = "propertiesWindowPanel";
-            this.propertiesWindowPanel.Size = new System.Drawing.Size(252, 243);
+            this.propertiesWindowPanel.Size = new System.Drawing.Size(256, 243);
             this.propertiesWindowPanel.TabIndex = 0;
             // 
             // propertiesPanel
@@ -157,7 +171,7 @@ namespace AGS.Editor
             this.propertiesPanel.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.propertiesPanel.Location = new System.Drawing.Point(0, 21);
             this.propertiesPanel.Name = "propertiesPanel";
-            this.propertiesPanel.Size = new System.Drawing.Size(252, 222);
+            this.propertiesPanel.Size = new System.Drawing.Size(256, 222);
             this.propertiesPanel.TabIndex = 10;
             this.propertiesPanel.PropertyValueChanged += new System.Windows.Forms.PropertyValueChangedEventHandler(this.propertiesPanel_PropertyValueChanged);
             // 
@@ -168,7 +182,7 @@ namespace AGS.Editor
             this.propertyObjectCombo.FormattingEnabled = true;
             this.propertyObjectCombo.Location = new System.Drawing.Point(0, 0);
             this.propertyObjectCombo.Name = "propertyObjectCombo";
-            this.propertyObjectCombo.Size = new System.Drawing.Size(252, 21);
+            this.propertyObjectCombo.Size = new System.Drawing.Size(256, 21);
             this.propertyObjectCombo.TabIndex = 0;
             this.propertyObjectCombo.SelectedIndexChanged += new System.EventHandler(this.propertyObjectCombo_SelectedIndexChanged);
             // 
@@ -226,10 +240,10 @@ namespace AGS.Editor
             this.Name = "frmMain";
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "AGS Editor";
-            this.Shown += new System.EventHandler(this.frmMain_Shown);
-            this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.frmMain_KeyUp);
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmMain_FormClosing);
+            this.Shown += new System.EventHandler(this.frmMain_Shown);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.frmMain_KeyDown);
+            this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.frmMain_KeyUp);
             this.mainContainer.Panel1.ResumeLayout(false);
             this.mainContainer.Panel2.ResumeLayout(false);
             this.mainContainer.ResumeLayout(false);
@@ -256,12 +270,13 @@ namespace AGS.Editor
         private System.Windows.Forms.Panel propertiesWindowPanel;
         private System.Windows.Forms.PropertyGrid propertiesPanel;
         private System.Windows.Forms.ComboBox propertyObjectCombo;
-        private TabbedDocumentContainer tabbedDocumentContainer1;
+        private AGS.Editor.TabbedDocumentContainer tabbedDocumentContainer1;
         internal System.Windows.Forms.ToolStrip toolStrip;
         internal OutputPanel pnlOutput;
         private System.Windows.Forms.StatusStrip statusStrip;
         internal System.Windows.Forms.ToolStripStatusLabel statusLabel;
         internal CallStackPanel pnlCallStack;
+        internal FindResultsPanel pnlFindResults;
     }
 }
 

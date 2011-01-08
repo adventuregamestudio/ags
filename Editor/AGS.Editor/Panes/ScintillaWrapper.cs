@@ -9,6 +9,7 @@ using System.Drawing;
 using System.Data;
 using System.Text;
 using System.Windows.Forms;
+using AGS.Types.Interfaces;
 
 namespace AGS.Editor
 {
@@ -77,10 +78,11 @@ namespace AGS.Editor
         private bool _callTipsEnabled = true;
 		private bool _autoSpaceAfterComma = true;
         private bool _autoDedentClosingBrace = true;
-        private Script _autoCompleteForThis = null;
+        private IScript _autoCompleteForThis = null;
         private bool _dwellCalltipVisible = false;
         private ErrorPopup _errorPopup = null;
         private string _fixedTypeForThisKeyword = null;
+        private bool _activated = false;
 
         public ScintillaWrapper()
         {
@@ -195,6 +197,8 @@ namespace AGS.Editor
             this.scintillaControl1.DwellStart += new EventHandler<Scintilla.DwellStartEventArgs>(scintillaControl1_DwellStart);
             this.scintillaControl1.DwellEnd += new EventHandler(scintillaControl1_DwellEnd);
 
+            this.scintillaControl1.SetFolding();
+
             this.scintillaControl1.IsReadOnly = true;
         }
 
@@ -243,8 +247,14 @@ namespace AGS.Editor
 
         public void ActivateTextEditor()
         {
+            _activated = true;
             this.Focus();
             this.scintillaControl1.Focus();
+        }
+
+        public void DeactivateTextEditor()
+        {
+            _activated = false; 
         }
 
         public int CurrentPos
@@ -257,6 +267,11 @@ namespace AGS.Editor
             get { return scintillaControl1.LineFromPosition(scintillaControl1.CurrentPos); }
         }
 
+		public void SetAsDialog()
+        {
+            scintillaControl1.SetLexer(0);
+            scintillaControl1.IsDialog = true;
+        }
         public void GoToPosition(int newPos)
         {
 			int lineNum = scintillaControl1.LineFromPosition(newPos);
@@ -411,7 +426,7 @@ namespace AGS.Editor
             this.scintillaControl1.IsReadOnly = shouldBeReadOnly;
         }
 
-        public void SetAutoCompleteSource(Script script)
+        public void SetAutoCompleteSource(IScript script)
         {
             _autoCompleteForThis = script;
         }
@@ -443,9 +458,14 @@ namespace AGS.Editor
             string currentText = this.scintillaControl1.GetText();
             if (currentText.IndexOf(text) >= 0)
             {
-                return this.scintillaControl1.LineFromPosition(currentText.IndexOf(text)) + 1;
+                return FindLineNumberForCharacterIndex(currentText.IndexOf(text));
             }
             return 0;
+        }
+
+        public int FindLineNumberForCharacterIndex(int pos)
+        {
+            return this.scintillaControl1.LineFromPosition(pos) + 1;
         }
 
         public void GoToLine(int lineNum)
@@ -526,7 +546,13 @@ namespace AGS.Editor
             ShowAutoCompleteIfAppropriate(0);
         }
 
-        public bool FindNextOccurrence(string text, bool caseSensitive)
+        public void SetSelection(int pos, int length)
+        {            
+            scintillaControl1.EnsureVisible(scintillaControl1.LineFromPosition(pos));
+            scintillaControl1.SetSel(pos, pos + length);            
+        }
+
+        public ScriptTokenReference FindNextOccurrence(string text, bool caseSensitive, bool jumpToStart)
         {
             StringComparison comparisonType = StringComparison.CurrentCulture;
             if (!caseSensitive)
@@ -542,15 +568,30 @@ namespace AGS.Editor
             }
             if (nextPos < 0)
             {
+                if (!jumpToStart)
+                {
+                    return null;
+                }
                 nextPos = documentText.IndexOf(text, 0, comparisonType);
                 if (nextPos < 0)
                 {
-                    return false;
+                    return null;
                 }
             }
-            scintillaControl1.EnsureVisible(scintillaControl1.LineFromPosition(nextPos));
-            scintillaControl1.SetSel(nextPos, nextPos + text.Length);
-            return true;
+            
+            SetSelection(nextPos, text.Length);
+                    
+            int lineIndex = scintillaControl1.LineFromPosition(nextPos);
+            int startLine = scintillaControl1.PositionFromLine(lineIndex);
+            string line = documentText.Substring(startLine, scintillaControl1.LineLength(lineIndex));
+            return new ScriptTokenReference
+            {
+                CharacterIndex = nextPos,
+                Line = line,
+                LineIndex = lineIndex,
+                Token = text,
+                Script = _autoCompleteForThis
+            };
         }
 
 		public void ReplaceSelectedText(string withText)
@@ -791,7 +832,9 @@ namespace AGS.Editor
             if ((_callTipsEnabled) && (e.Position > 0) &&
                 (!scintillaControl1.IsCallTipActive) &&
                 (!scintillaControl1.IsAutoCActive) &&
-                (!InsideStringOrComment(false, e.Position)))
+                (!InsideStringOrComment(false, e.Position)) &&
+                _activated && !TabbedDocumentContainer.HoveringTabs
+                && !ScriptEditor.HoveringCombo)
             {
                 ShowCalltip(FindEndOfCurrentWord(e.Position), -1, false);
                 _dwellCalltipVisible = true;
@@ -919,16 +962,23 @@ namespace AGS.Editor
             return lineText.Substring(offset, numChars);
         }
 
-        private ScriptStruct FindGlobalVariableOrType(string type)
+        public ScriptStruct FindGlobalVariableOrType(string type)
         {
             bool dummy = false;
             return FindGlobalVariableOrType(type, ref dummy);
         }
 
-        private IList<Script> GetAutoCompleteScriptList()
+        private IList<IScript> GetAutoCompleteScriptList()
         {
-            IList<Script> scriptList = Factory.AGSEditor.GetAllScriptHeaders();
-            if (_autoCompleteForThis != null)
+            var scriptListConcrete = Factory.AGSEditor.GetAllScriptHeaders();
+            IList<IScript> scriptList = new List<IScript>();
+            foreach (Script script in scriptListConcrete)
+            {
+                scriptList.Add(script);
+            }
+
+            if (_autoCompleteForThis != null && 
+                _autoCompleteForThis.AutoCompleteData != null)
             {
                 scriptList.Add(_autoCompleteForThis);
             }
@@ -937,7 +987,7 @@ namespace AGS.Editor
 
         private ScriptStruct FindGlobalVariableOrType(string type, ref bool staticAccess)
         {
-            foreach (Script script in GetAutoCompleteScriptList())
+            foreach (IScript script in GetAutoCompleteScriptList())
             {
                 foreach (ScriptStruct structDef in script.AutoCompleteData.Structs)
                 {
@@ -1115,7 +1165,7 @@ namespace AGS.Editor
         private List<ScriptStruct> GetAllStructsWithMatchingName(string structName)
         {
             List<ScriptStruct> matchingTypes = new List<ScriptStruct>();
-            foreach (Script script in GetAutoCompleteScriptList())
+            foreach (IScript script in GetAutoCompleteScriptList())
             {
                 foreach (ScriptStruct structDef in script.AutoCompleteData.Structs)
                 {
@@ -1207,7 +1257,16 @@ namespace AGS.Editor
 
 			int lineNumber = this.scintillaControl1.LineFromPosition(position);
 			int lineStart = this.scintillaControl1.PositionFromLine(lineNumber);
-			string curLine = this.scintillaControl1.GetLine(lineNumber).Substring(0, (position - lineStart));
+            string curLine = this.scintillaControl1.GetLine(lineNumber);
+            if (curLine.Length > 0)
+            {
+                int length = position - lineStart;
+                if (length >= curLine.Length)
+                {
+                    length = curLine.Length - 1;
+                }
+                curLine = curLine.Substring(0, length);
+            }
 			if (curLine.IndexOf('"') >= 0)
 			{
 				int curIndex = 0;
@@ -1277,7 +1336,7 @@ namespace AGS.Editor
 
         private ScriptFunction FindGlobalFunction(string name)
         {
-            foreach (Script script in GetAutoCompleteScriptList())
+            foreach (IScript script in GetAutoCompleteScriptList())
             {
                 foreach (ScriptFunction func in script.AutoCompleteData.Functions)
                 {
@@ -1501,7 +1560,7 @@ namespace AGS.Editor
 
         private bool ShowAutoCompleteForEnum(string typeName)
         {
-            foreach (Script script in GetAutoCompleteScriptList())
+            foreach (IScript script in GetAutoCompleteScriptList())
             {
                 foreach (ScriptEnum scEnum in script.AutoCompleteData.Enums)
                 {
@@ -1556,7 +1615,7 @@ namespace AGS.Editor
             }
         }
 
-        private void AddGlobalsFromScript(List<string> globalsList, Script script, Dictionary<string, object> addedNames, int onlyShowIfDefinitionBeforePos)
+        private void AddGlobalsFromScript(List<string> globalsList, IScript script, Dictionary<string, object> addedNames, int onlyShowIfDefinitionBeforePos)
         {
             foreach (ScriptVariable sv in script.AutoCompleteData.Variables)
             {
@@ -1682,7 +1741,7 @@ namespace AGS.Editor
 
         private ScriptVariable FindLocalVariableWithName(int startAtPos, string nameToFind)
         {
-            List<ScriptVariable> localVars = GetListOfLocalVariablesForCurrentPosition(startAtPos);
+            List<ScriptVariable> localVars = GetListOfLocalVariablesForCurrentPosition(false, startAtPos);
             foreach (ScriptVariable var in localVars)
             {
                 if (var.VariableName == nameToFind)
@@ -1693,21 +1752,30 @@ namespace AGS.Editor
             return null;
         }
 
-        public List<ScriptVariable> GetListOfLocalVariablesForCurrentPosition()
+        public ScriptFunction FindFunctionAtCurrentPosition()
         {
-            return GetListOfLocalVariablesForCurrentPosition(this.scintillaControl1.CurrentPos);
+            int currentPos = this.scintillaControl1.CurrentPos;
+            string scriptExtract = scintillaControl1.GetText();
+            ScriptFunction func = _autoCompleteForThis.AutoCompleteData.Functions.Find(
+                c => c.StartsAtCharacterIndex <= currentPos && c.EndsAtCharacterIndex >= currentPos);
+            return func;
         }
 
-        public List<ScriptVariable> GetListOfLocalVariablesForCurrentPosition(int currentPos)
+        public List<ScriptVariable> GetListOfLocalVariablesForCurrentPosition(bool searchWholeFunction)
+        {
+            return GetListOfLocalVariablesForCurrentPosition(searchWholeFunction, this.scintillaControl1.CurrentPos);
+        }
+
+        public List<ScriptVariable> GetListOfLocalVariablesForCurrentPosition(bool searchWholeFunction, int currentPos)
         {
             List<ScriptVariable> toReturn;
 
-            if (_autoCompleteForThis != null)
+            if (_autoCompleteForThis != null && _autoCompleteForThis.AutoCompleteData != null)
             {
                 string scriptExtract = scintillaControl1.GetText();
                 foreach (ScriptFunction func in _autoCompleteForThis.AutoCompleteData.Functions)
                 {
-                    toReturn = CheckFunctionForLocalVariables(currentPos, func, scriptExtract);
+                    toReturn = CheckFunctionForLocalVariables(currentPos, func, scriptExtract, searchWholeFunction);
                     if (toReturn != null)
                     {
                         return toReturn;
@@ -1718,7 +1786,7 @@ namespace AGS.Editor
                 {
                     foreach (ScriptFunction func in struc.Functions)
                     {
-                        toReturn = CheckFunctionForLocalVariables(currentPos, func, scriptExtract);
+                        toReturn = CheckFunctionForLocalVariables(currentPos, func, scriptExtract, searchWholeFunction);
                         if (toReturn != null)
                         {
                             return toReturn;
@@ -1729,7 +1797,7 @@ namespace AGS.Editor
             return new List<ScriptVariable>();
         }
 
-        private List<ScriptVariable> CheckFunctionForLocalVariables(int currentPos, ScriptFunction func, string scriptExtract)
+        private List<ScriptVariable> CheckFunctionForLocalVariables(int currentPos, ScriptFunction func, string scriptExtract, bool searchWholeFunction)
         {
             if ((func.EndsAtCharacterIndex > currentPos) &&
                 (func.StartsAtCharacterIndex >= 0))
@@ -1738,7 +1806,9 @@ namespace AGS.Editor
                     (currentPos > func.StartsAtCharacterIndex))
                 {
                     int startPos = func.StartsAtCharacterIndex;
-                    scriptExtract = scriptExtract.Substring(func.StartsAtCharacterIndex, (currentPos - func.StartsAtCharacterIndex));
+                    int endPos = searchWholeFunction ? func.EndsAtCharacterIndex :
+                        currentPos;
+                    scriptExtract = scriptExtract.Substring(func.StartsAtCharacterIndex, (endPos - func.StartsAtCharacterIndex));
                     int openBracketOffset = scriptExtract.IndexOf("{");
                     if (openBracketOffset > 0)
                     {
@@ -1770,7 +1840,7 @@ namespace AGS.Editor
 
                 Dictionary<string, object> addedNames = new Dictionary<string, object>();
 
-                foreach (Script script in GetAutoCompleteScriptList())
+                foreach (IScript script in GetAutoCompleteScriptList())
                 {
                     int onlyShowIfDefinitionBeforePos = Int32.MaxValue;
                     if (script == _autoCompleteForThis)
@@ -1780,7 +1850,7 @@ namespace AGS.Editor
                     AddGlobalsFromScript(globalsList, script, addedNames, onlyShowIfDefinitionBeforePos);
                 }
 
-                List<ScriptVariable> variables = GetListOfLocalVariablesForCurrentPosition();
+                List<ScriptVariable> variables = GetListOfLocalVariablesForCurrentPosition(false);
                 foreach (ScriptVariable var in variables)
                 {
                     globalsList.Add(var.VariableName + "?" + IMAGE_INDEX_LOCAL_VARIABLE);
@@ -1939,6 +2009,13 @@ namespace AGS.Editor
         string IScriptEditorControl.GetTypeNameAtCursor()
         {
             return GetFullTypeNameAtCursor();
+        }
+
+        public void ResetSelection()
+        {
+            scintillaControl1.SelectionStart = 0;
+            scintillaControl1.SelectionEnd = 0;
+            scintillaControl1.CurrentPos = 0;
         }
     }
 }

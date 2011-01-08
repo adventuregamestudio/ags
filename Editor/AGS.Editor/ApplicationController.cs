@@ -5,6 +5,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.Xml;
 using AGS.Editor.Components;
+using AGS.Types;
 
 namespace AGS.Editor
 {
@@ -38,6 +39,7 @@ namespace AGS.Editor
             _guiController.OnEditorShutdown += new GUIController.EditorShutdownHandler(GUIController_OnEditorShutdown);
             _guiController.Initialize(_agsEditor);
             _agsEditor.DoEditorInitialization();
+            AGSColor.ColorMapper = new ColorMapper(_agsEditor);
 			CreateComponents();
         }
 

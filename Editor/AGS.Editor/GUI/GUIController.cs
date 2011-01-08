@@ -8,6 +8,8 @@ using System.Xml;
 using Microsoft.Win32;
 using AGS.Editor.Components;
 using AGS.Types;
+using AGS.Types.AutoComplete;
+using AGS.Types.Interfaces;
 
 namespace AGS.Editor
 {
@@ -32,6 +34,8 @@ namespace AGS.Editor
         public event ZoomToFileHandler OnZoomToFile;
         public delegate void GetScriptHandler(string fileName, ref Script script);
         public event GetScriptHandler OnGetScript;
+        public delegate void GetScriptEditorControlHandler(GetScriptEditorControlEventArgs evArgs);
+        public event GetScriptEditorControlHandler OnGetScriptEditorControl;
         public delegate void ScriptChangedHandler(Script script);
         public event ScriptChangedHandler OnScriptChanged;
         public delegate void LaunchHelpHandler(string keyword);
@@ -42,6 +46,7 @@ namespace AGS.Editor
         private delegate void ParameterlessDelegate();
         private delegate void ZoomToFileDelegate(string fileName, ZoomToFileZoomType zoomType, int lineNumber, bool isDebugExecutionPoint, bool selectWholeLine, string errorMessage);
         private delegate void ShowCallStackDelegate(DebugCallStack callStack);
+        private delegate void ShowFindSymbolResultsDelegate(List<ScriptTokenReference> results, ScintillaWrapper scintilla);
 
         private frmMain _mainForm;
         private Dictionary<string, IEditorComponent> _menuItems;
@@ -331,6 +336,26 @@ namespace AGS.Editor
             _mainForm.pnlCallStack.Visible = false;
         }
 
+        public void ShowFindSymbolResults(List<ScriptTokenReference> results,
+            ScintillaWrapper scintilla)
+        {            
+            if (_mainForm.pnlFindResults.InvokeRequired)
+            {
+                _mainForm.pnlFindResults.Invoke(new ShowFindSymbolResultsDelegate(ShowFindSymbolResults), results, scintilla);
+                return;
+            }
+
+            _mainForm.pnlFindResults.Results = results;
+            _mainForm.pnlFindResults.Scintilla = scintilla;
+            _mainForm.pnlFindResults.Visible = true;
+            _mainForm.pnlFindResults.Focus();
+        }
+
+        public void HideFindSymbolResults()
+        {
+            _mainForm.pnlFindResults.Visible = false;
+        }
+
         public ContentDocument ActivePane
         {
             get { return _mainForm.ActivePane; }
@@ -400,6 +425,18 @@ namespace AGS.Editor
                 evArgs.ZoomToLineAfterOpeningBrace = true;
                 OnZoomToFile(evArgs);
             }
+        }
+
+        public IScriptEditorControl GetScriptEditorControl(string scriptFileName)
+        {
+            if (OnGetScriptEditorControl != null)
+            {
+                GetScriptEditorControlEventArgs evArgs = new GetScriptEditorControlEventArgs(scriptFileName);
+                OnGetScriptEditorControl(evArgs);
+                return evArgs.ScriptEditor;
+            }
+
+            return null;
         }
 
         public void DocumentTitlesChanged()

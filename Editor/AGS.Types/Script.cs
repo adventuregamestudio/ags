@@ -5,10 +5,11 @@ using System.IO;
 using System.Text;
 using System.Xml;
 using AGS.Types.AutoComplete;
+using AGS.Types.Interfaces;
 
 namespace AGS.Types
 {
-    public class Script
+    public class Script : IScript
     {
         public const string GLOBAL_SCRIPT_FILE_NAME = "GlobalScript.asc";
         public const string GLOBAL_HEADER_FILE_NAME = "GlobalScript.ash";

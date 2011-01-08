@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Data;
 using System.Text;
 using System.Windows.Forms;
+using AGS.Editor.TextProcessing;
 
 namespace AGS.Editor
 {
@@ -13,23 +14,48 @@ namespace AGS.Editor
     {
         private const string dialogKeyWords = "return stop";
 
+        private const string FIND_COMMAND = "ScriptFind";
+        private const string FIND_NEXT_COMMAND = "ScriptFindNext";
+        private const string REPLACE_COMMAND = "ScriptReplace";
+        private const string FIND_ALL_COMMAND = "ScriptFindAll";
+        private const string REPLACE_ALL_COMMAND = "ScriptReplaceAll";
+
         private Dialog _dialog;
         private List<DialogOptionEditor> _optionPanes = new List<DialogOptionEditor>();
+        private MenuCommands _extraMenu = new MenuCommands("&Edit", GUIController.FILE_MENU_ID);
+        
+        private string _lastSearchText = string.Empty;
+        private string _lastReplaceText = string.Empty;
+        private bool _lastCaseSensitive = false;
+        private AGSEditor _agsEditor;
 
-        public DialogEditor(Dialog dialogToEdit)
+        public DialogEditor(Dialog dialogToEdit, AGSEditor agsEditor)
         {
             InitializeComponent();
             _dialog = dialogToEdit;
+            _agsEditor = agsEditor;
 
+            _extraMenu.Commands.Add(new MenuCommand(FIND_COMMAND, "Find...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.F, "FindMenuIcon"));
+            _extraMenu.Commands.Add(new MenuCommand(FIND_NEXT_COMMAND, "Find next", System.Windows.Forms.Keys.F3, "FindNextMenuIcon"));
+            _extraMenu.Commands.Add(new MenuCommand(REPLACE_COMMAND, "Replace...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.E));
+            _extraMenu.Commands.Add(MenuCommand.Separator);
+            _extraMenu.Commands.Add(new MenuCommand(FIND_ALL_COMMAND, "Find All...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.F, "FindMenuIcon"));
+            _extraMenu.Commands.Add(new MenuCommand(REPLACE_ALL_COMMAND, "Replace All...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.E));
+
+            scintillaEditor.SetAsDialog();
             scintillaEditor.AutoCompleteEnabled = true;
             scintillaEditor.IgnoreLinesWithoutIndent = true;
 			scintillaEditor.AutoSpaceAfterComma = false;
             scintillaEditor.CallTipsEnabled = true;
             scintillaEditor.FixedTypeForThisKeyword = "Dialog";
             scintillaEditor.SetFillupKeys(Constants.AUTOCOMPLETE_ACCEPT_KEYS);
-            scintillaEditor.SetKeyWords(dialogKeyWords);
+            //scintillaEditor.SetKeyWords(dialogKeyWords);
+            scintillaEditor.SetKeyWords(Constants.SCRIPT_KEY_WORDS);
+            scintillaEditor.SetClassNamesList(BuildCharacterKeywords());
             scintillaEditor.SetAutoCompleteKeyWords(Constants.SCRIPT_KEY_WORDS);
+            scintillaEditor.SetAutoCompleteSource(_dialog);
             scintillaEditor.SetText(dialogToEdit.Script);
+
 
             flowLayoutPanel1.Controls.Remove(btnNewOption);
             foreach (DialogOption option in dialogToEdit.Options)
@@ -51,9 +77,19 @@ namespace AGS.Editor
             }
         }
 
+        public ScintillaWrapper ScriptEditor
+        {
+            get { return scintillaEditor; }
+        }
+
         public Dialog ItemToEdit
         {
             get { return _dialog; }
+        }
+
+        public MenuCommands ExtraMenu
+        {
+            get { return _extraMenu; }
         }
 
         protected override string OnGetHelpKeyword()
@@ -61,6 +97,39 @@ namespace AGS.Editor
             return "Dialogs";
         }
         
+        protected override void OnCommandClick(string command)
+        {
+            base.OnCommandClick(command);
+            if ((command == FIND_COMMAND) || (command == REPLACE_COMMAND)
+                || (command == FIND_ALL_COMMAND) || (command == REPLACE_ALL_COMMAND))
+            {
+                if (scintillaEditor.IsSomeSelectedText())
+                {
+                    _lastSearchText = scintillaEditor.SelectedText;
+                }
+                ShowFindReplaceDialog(command == REPLACE_COMMAND || command == REPLACE_ALL_COMMAND,
+                    command == FIND_ALL_COMMAND || command == REPLACE_ALL_COMMAND);
+            }
+            else if (command == FIND_NEXT_COMMAND)
+            {
+                if (_lastSearchText.Length > 0)
+                {
+                    scintillaEditor.FindNextOccurrence(_lastSearchText, _lastCaseSensitive, true);
+                }
+            }
+        }
+
+        private String BuildCharacterKeywords()
+        {
+            StringBuilder sb = new StringBuilder(300);
+            foreach(Character c in _agsEditor.CurrentGame.Characters)
+            {
+                sb.Append(c.ScriptName.TrimStart('c') + " ");
+                sb.Append(c.ScriptName.TrimStart('c').ToLower() + " ");
+            }
+            return sb.ToString();
+        }
+
         public void SaveData()
         {
             _dialog.Script = scintillaEditor.GetText();
@@ -68,7 +137,14 @@ namespace AGS.Editor
 
 		public void GoToScriptLine(ZoomToFileEventArgs evArgs)
 		{
+            if (evArgs.ZoomType == ZoomToFileZoomType.ZoomToCharacterPosition)
+            {
+                scintillaEditor.GoToPosition(evArgs.ZoomPosition);
+            }
+            else
+            {
 			scintillaEditor.GoToLine(evArgs.ZoomPosition);
+            }
 			scintillaEditor.Focus();
 
             if (evArgs.IsDebugExecutionPoint)
@@ -85,6 +161,13 @@ namespace AGS.Editor
         {
             scintillaEditor.HideCurrentExecutionPoint();
             scintillaEditor.HideErrorMessagePopup();
+        }
+
+        private void ShowFindReplaceDialog(bool showReplace, bool showAll)
+        {
+            FindReplace findReplace = new FindReplace(_dialog, _agsEditor,
+                _lastSearchText, _lastReplaceText, _lastCaseSensitive);
+            findReplace.ShowFindReplaceDialog(showReplace, showAll);
         }
 
         private void btnDeleteOption_Click(object sender, EventArgs e)

@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
 using System.Xml;
+using System.Drawing;
+using System.Windows.Forms;
 
 namespace AGS.Types
 {
-    public abstract class GUIControl
+    [Serializable]
+    public abstract class GUIControl : ICloneable
     {
         public const int MAX_EVENT_HANDLER_LENGTH = 30;
         protected const int MAX_NAME_LENGTH = 25;
@@ -19,6 +22,7 @@ namespace AGS.Types
             _x = x;
             _y = y;
             _zorder = 0;
+            _locked = false;
         }
 
         protected GUIControl(XmlNode node)
@@ -35,6 +39,18 @@ namespace AGS.Types
         private int _height;
         private int _x;
         private int _y;
+        private bool _locked;
+
+        [AGSNoSerialize]
+        private GUIControlGroup _memberOf;
+        
+        [Browsable(false)]
+        [AGSNoSerialize]
+        public GUIControlGroup MemberOf
+        {
+            get { return _memberOf; }
+            set { _memberOf = value; }
+        }
 
         [Description("The height, in pixels, of the control")]
         [Category("Layout")]
@@ -49,6 +65,14 @@ namespace AGS.Types
                 }
                 _height = value;
             }
+        }
+
+        [Description("A value denoting if the control can be moved in the editor.")]
+        [Category("Layout")]
+        public bool Locked
+        {
+            get { return _locked; }
+            set { _locked = value; }
         }
 
         [Description("The width, in pixels, of the control")]
@@ -143,6 +167,62 @@ namespace AGS.Types
         public virtual void ToXml(XmlTextWriter writer)
         {
             SerializeUtils.SerializeToXML(this, writer);
+        }
+
+        public void SaveToClipboard()
+        {
+            DataFormats.Format format = DataFormats.GetFormat(typeof(GUIControl).FullName);
+
+            IDataObject dataObj = new DataObject();
+            dataObj.SetData(format.Name, false, this);
+            Clipboard.SetDataObject(dataObj, true);
+        }
+
+        public static bool AvailableOnClipboard()
+        {
+            IDataObject dataObj = Clipboard.GetDataObject();
+            string format = typeof(GUIControl).FullName;
+            if (dataObj != null) return dataObj.GetDataPresent(format);
+            else return false;
+
+        }
+
+        public Rectangle GetRectangle()
+        {
+            return new Rectangle(Left, Top, Width, Height);
+        }
+
+        public static GUIControl GetFromClipBoard()
+        {
+            GUIControl toreturn = null;
+            IDataObject dataObj = Clipboard.GetDataObject();
+            string format = typeof(GUIControl).FullName;
+
+            if (dataObj.GetDataPresent(format))
+            {
+                toreturn = dataObj.GetData(format) as GUIControl;
+            }
+
+            return toreturn;
+        }
+
+        public object Clone()
+        {
+            return this.MemberwiseClone();
+        }
+
+        public static int CompareByTop(GUIControl x, GUIControl y)
+        {
+            if (x.Top < y.Top) return 1;
+            else if (x.Top == y.Top) return 0;
+            else return -1;
+        }
+
+        public static int CompareByLeft(GUIControl x, GUIControl y)
+        {
+            if (x.Left < y.Left) return 1;
+            else if (x.Left == y.Left) return 0;
+            else return -1;
         }
     }
 }

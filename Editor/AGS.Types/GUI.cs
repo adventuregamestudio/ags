@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
 using System.Xml;
+using System.Drawing;
 
 namespace AGS.Types
 {
+    [Serializable]
     [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]
     public abstract class GUI
     {
@@ -26,10 +28,29 @@ namespace AGS.Types
 
         [Description("Background color of the GUI (0 for transparent)")]
         [Category("Appearance")]
+        [DisplayName("BackgroundColourNumber")]
+        [RefreshProperties(RefreshProperties.All)]
         public int BackgroundColor
         {
             get { return _bgcol; }
             set { _bgcol = value; }
+        }
+
+        [Description("Background color for the GUI (0,0,0 = transparent)")]
+        [Category("Appearance")]
+        [DisplayName("BackgroundColour")]
+        [RefreshProperties(RefreshProperties.All)]
+        [AGSNoSerialize]
+        public Color BackgroundColorRGB
+        {
+            get
+            {
+                return new AGSColor(_bgcol).ToRgb();
+            }
+            set
+            {
+                _bgcol = new AGSColor(value).ColorNumber;
+            }
         }
 
         [Description("Background image for the GUI (0 for none)")]

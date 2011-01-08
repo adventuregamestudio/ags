@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
 using System.Xml;
+using System.Drawing;
 
 namespace AGS.Types
 {
+    [Serializable]
     [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]
     public class GUITextBox : GUIControl
     {
@@ -55,12 +57,31 @@ namespace AGS.Types
             }
         }
 
-        [Description("Colour of the text")]
+        [Description("AGS Colour Number of the text")]
         [Category("Appearance")]
+        [DisplayName("TextColourNumber")]
+        [RefreshProperties(RefreshProperties.All)]
         public int TextColor
         {
             get { return _textColor; }
             set { _textColor = value; }
+        }
+
+        [Description("Colour of the text")]
+        [Category("Appearance")]
+        [DisplayName("TextColor")]
+        [RefreshProperties(RefreshProperties.All)]
+        [AGSNoSerialize]
+        public Color TextColorRGB
+        {
+            get
+            {
+                return new AGSColor(_textColor).ToRgb();
+            }
+            set
+            {
+                _textColor = new AGSColor(value).ColorNumber;
+            }
         }
 
         [Description("Font to use for the text")]

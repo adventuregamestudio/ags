@@ -55,9 +55,9 @@ namespace AGS.Editor
 
         public void MouseUp(MouseEventArgs e, RoomEditorState state)
         {
-			if (e.Button == MouseButtons.Right)
+			if (e.Button == MouseButtons.Middle)
 			{
-				ShowContextMenu(e, state);
+				ShowCoordMenu(e, state);
 			}
         }
 
@@ -65,17 +65,17 @@ namespace AGS.Editor
 		{
 		}
 
-		private void ContextMenuEventHandler(object sender, EventArgs e)
+		private void CoordMenuEventHandler(object sender, EventArgs e)
 		{
 			string textToCopy = _menuClickX.ToString() + ", " + _menuClickY.ToString();
             Utilities.CopyTextToClipboard(textToCopy);
 		}
 
-		private void ShowContextMenu(MouseEventArgs e, RoomEditorState state)
+		private void ShowCoordMenu(MouseEventArgs e, RoomEditorState state)
 		{
-			EventHandler onClick = new EventHandler(ContextMenuEventHandler);
+			EventHandler onClick = new EventHandler(CoordMenuEventHandler);
 			ContextMenuStrip menu = new ContextMenuStrip();
-			menu.Items.Add(new ToolStripMenuItem("Copy co-ordinates to clipboard", null, onClick, MENU_ITEM_COPY_COORDS));
+			menu.Items.Add(new ToolStripMenuItem("Copy mouse coordinates to clipboard", null, onClick, MENU_ITEM_COPY_COORDS));
 
 			_menuClickX = (e.X + state.ScrollOffsetX) / state.ScaleFactor;
 			_menuClickY = (e.Y + state.ScrollOffsetY) / state.ScaleFactor;

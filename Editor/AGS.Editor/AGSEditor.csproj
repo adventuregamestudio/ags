@@ -10,10 +10,11 @@
     <RootNamespace>AGS.Editor</RootNamespace>
     <AssemblyName>AGSEditor</AssemblyName>
     <ApplicationIcon>agsico-1.ico</ApplicationIcon>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccProvider>SAK</SccProvider>
+    <SccProjectName>"%24/ags/netedit/AGS.Editor", XYAAAAAA</SccProjectName>
+    <SccLocalPath>.</SccLocalPath>
+    <SccAuxPath>
+    </SccAuxPath>
+    <SccProvider>MSSCCI:Microsoft Visual SourceSafe</SccProvider>
     <RunPostBuildEvent>Always</RunPostBuildEvent>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
@@ -131,6 +132,7 @@
     <Compile Include="GUI\NumberEntryDialog.Designer.cs">
       <DependentUpon>NumberEntryDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="Panes\RoomEditFilters\CharactersEditorFilter.cs" />
     <Compile Include="Plugins\IAGSEditor.cs" />
     <Compile Include="Plugins\NativePlugin.cs" />
     <Compile Include="Panes\BufferedPanel.cs">
@@ -317,7 +319,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Compile Include="Resources\ResourceManager.cs" />
-    <Compile Include="SourceControlProvider.cs" />
+    <Compile Include="Utils\SourceControlProvider.cs" />
     <Compile Include="Enums\SpriteImportMethod.cs" />
     <Compile Include="GUI\TabbedDocumentContainer.cs">
       <SubType>UserControl</SubType>
@@ -325,7 +327,7 @@
     <Compile Include="GUI\TabbedDocumentContainer.Designer.cs">
       <DependentUpon>TabbedDocumentContainer.cs</DependentUpon>
     </Compile>
-    <Compile Include="Utilities.cs" />
+    <Compile Include="Utils\Utilities.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AGS.CScript.Compiler\AGS.CScript.Compiler.csproj">
@@ -523,6 +525,10 @@
       <DependentUpon>CallStackPanel.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
+    <EmbeddedResource Include="GUI\FindResultsPanel.resx">
+      <DependentUpon>FindResultsPanel.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
     <EmbeddedResource Include="GUI\CreateVoiceActingScriptPage.resx">
       <SubType>Designer</SubType>
       <DependentUpon>CreateVoiceActingScriptPage.cs</DependentUpon>
@@ -633,6 +639,9 @@
     <EmbeddedResource Include="Resources\cuppit-back.gif" />
     <EmbeddedResource Include="Resources\cuppit-back2.gif" />
     <EmbeddedResource Include="Resources\drawrect.ico" />
+    <None Include="acsprset.spr">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="Resources\error.ico" />
     <EmbeddedResource Include="Resources\__DialogScripts.asc" />
     <EmbeddedResource Include="Resources\eventlogError.ico" />
@@ -756,12 +765,14 @@
     <Compile Include="Debugger\IEngineCommunication.cs" />
     <Compile Include="Debugger\NamedPipesEngineCommunication.cs" />
     <Compile Include="Debugger\NamedPipeServer.cs" />
-    <Compile Include="DialogScriptConverter.cs" />
+    <Compile Include="Utils\ColorMapper.cs" />
+    <Compile Include="Utils\DialogScriptConverter.cs" />
     <Compile Include="EditorEvents.cs" />
     <Compile Include="Debugger\FileBasedEngineCommunication.cs" />
     <Compile Include="Entities\AutoCompleteParserState.cs" />
     <Compile Include="Entities\DebugCallStack.cs" />
     <Compile Include="Entities\EditorPreferences.cs" />
+    <Compile Include="Entities\GetScriptEditorControlEventArgs.cs" />
     <Compile Include="Entities\PreCompileGameEventArgs.cs" />
     <Compile Include="Entities\PreDeleteSpriteEventArgs.cs" />
     <Compile Include="Entities\PreSaveGameEventArgs.cs" />
@@ -794,6 +805,12 @@
     </Compile>
     <Compile Include="GUI\CallStackPanel.Designer.cs">
       <DependentUpon>CallStackPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\FindResultsPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\FindResultsPanel.Designer.cs">
+      <DependentUpon>FindResultsPanel.cs</DependentUpon>
     </Compile>
     <Compile Include="GUI\CreateVoiceActingScriptPage.cs">
       <SubType>UserControl</SubType>
@@ -864,9 +881,11 @@
       <DependentUpon>WelcomePane.cs</DependentUpon>
     </Compile>
     <Compile Include="Plugins\EditorPlugin.cs" />
-    <Compile Include="SpriteUsageChecker.cs" />
+    <Compile Include="Utils\SpriteUsageChecker.cs" />
     <Compile Include="Tasks.cs" />
     <Compile Include="TextProcessing\BaseTextProcess.cs" />
+    <Compile Include="TextProcessing\FindAllUsages.cs" />
+    <Compile Include="TextProcessing\FindReplace.cs" />
     <Compile Include="TextProcessing\GameTextLine.cs" />
     <Compile Include="TextProcessing\GameSpeechProcessor.cs" />
     <Compile Include="GUI\BusyDialog.cs">
@@ -948,7 +967,7 @@
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="TextProcessing\IGameTextProcessor.cs" />
-    <Compile Include="OldGameImporter.cs" />
+    <Compile Include="Utils\OldGameImporter.cs" />
     <Compile Include="Panes\RoomEditFilters\AreaDrawMode.cs" />
     <Compile Include="Panes\RoomEditFilters\BaseAreasEditorFilter.cs" />
     <Compile Include="Panes\RoomEditFilters\EdgesEditorFilter.cs" />

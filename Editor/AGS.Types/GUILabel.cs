@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
 using System.Xml;
+using System.Drawing;
 
 namespace AGS.Types
 {
+    [Serializable]
     public class GUILabel : GUIControl
     {
         public const string CONTROL_DISPLAY_NAME = "Label";
@@ -38,12 +40,31 @@ namespace AGS.Types
             set { _textAlign = value; }
         }
 
-        [Description("Colour of the label text")]
+        [Description("AGS Colour Number of the label text")]
         [Category("Appearance")]
+        [DisplayName("TextColourNumber")]
+        [RefreshProperties(RefreshProperties.All)]
         public int TextColor
         {
             get { return _textColor; }
             set { _textColor = value; }
+        }
+
+        [Description("Colour of the label text")]
+        [Category("Appearance")]
+        [DisplayName("TextColor")]
+        [RefreshProperties(RefreshProperties.All)]
+        [AGSNoSerialize]
+        public Color TextColorRGB
+        {
+            get
+            {
+                return new AGSColor(_textColor).ToRgb();
+            }
+            set
+            {
+                _textColor = new AGSColor(value).ColorNumber;
+            }
         }
 
         [Description("Font to use for the text on this label")]

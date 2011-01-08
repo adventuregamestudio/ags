@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
 using System.Xml;
+using System.Drawing;
 
 namespace AGS.Types
 {
@@ -207,12 +208,31 @@ namespace AGS.Types
             set { _speechAnimationDelay = value; }
         }
 
-        [Description("The colour of speech text from this character")]
+        [Description("The AGS Colour Number of character's speech text")]
         [Category("Appearance")]
+        [DisplayName("SpeechColorNumber")]
+        [RefreshProperties(RefreshProperties.All)]
         public int SpeechColor
         {
             get { return _speechColor; }
             set { _speechColor = value; }
+        }
+
+        [Description("Character's Speech Color in RGB")]
+        [Category("Appearance")]
+        [DisplayName("SpeechColor")]
+        [RefreshProperties(RefreshProperties.All)]
+        [AGSNoSerialize]
+        public Color SpeechColorRGB
+        {
+            get
+            {
+                return new AGSColor(_speechColor).ToRgb();
+            }
+            set
+            {
+                _speechColor = new AGSColor(value).ColorNumber;
+            }
         }
 
         [Description("If true, this character cannot walk through any other characters marked as Solid")]

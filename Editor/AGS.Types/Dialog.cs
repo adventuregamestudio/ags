@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
 using System.Xml;
+using AGS.Types.Interfaces;
 
 namespace AGS.Types
 {
-    public class Dialog
+    public class Dialog : IScript
     {
         public const int MAX_OPTIONS_PER_DIALOG = 30;
 
@@ -43,6 +44,12 @@ namespace AGS.Types
             get { return _name; }
             set { _name = Utilities.ValidateScriptName(value); }
         }
+
+        public string FileName { get { return "Dialog " + ID; } }
+
+        public string Text { get { return _script; } }
+
+        public ScriptAutoCompleteData AutoCompleteData { get { return null; } }
 
         [Description("Whether to show a text box along with the options so that the user can type in custom text")]
         [Category("Appearance")]

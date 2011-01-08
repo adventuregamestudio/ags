@@ -94,5 +94,26 @@ namespace AGS.Types
 
             writer.WriteEndElement();
         }
+
+        public ViewLoop Clone()
+        {
+            return Clone(false);
+        }
+
+        public ViewLoop Clone(bool flipped)
+        {
+            ViewLoop clone = new ViewLoop 
+            {
+                _frames = new List<ViewFrame>(),
+                _runNextLoop = RunNextLoop
+            };
+
+            foreach (ViewFrame frame in _frames)
+            {
+                clone.Frames.Add(frame.Clone(flipped));
+            }
+
+            return clone;
+        }
     }
 }

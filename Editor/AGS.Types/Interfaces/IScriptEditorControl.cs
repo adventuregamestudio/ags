@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Windows.Forms;
+using AGS.Types.AutoComplete;
 
 namespace AGS.Types
 {
@@ -15,6 +16,22 @@ namespace AGS.Types
 		bool CallTipsEnabled { get; set; }
 		Control Control { get; }
 		string Text { get; set; }
+
+        /// <summary>
+        /// Replaces the selected text with the supplied text.
+        /// RequiredAGSVersion: 3.2.1.104
+        /// </summary>
+        void ReplaceSelectedText(string textToReplace);
+        /// <summary>
+        /// Finds the next occurrence of the specified text, and returns a reference to its location
+        /// RequiredAGSVersion: 3.2.1.104
+        /// </summary>
+        ScriptTokenReference FindNextOccurrence(string textToFind, bool caseSensitive, bool jumpToStart);
+        /// <summary>
+        /// Clears any selection and resets the cursor to the start of the script.
+        /// RequiredAGSVersion: 3.2.1.104
+        /// </summary>
+        void ResetSelection();
         /// <summary>
         /// The start offset of the current selection.
         /// RequiredAGSVersion: 3.1.0.48

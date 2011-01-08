@@ -42,8 +42,17 @@ namespace AGS.Editor
 
         public static Sprite ShowSpriteChooser(int currentSprite)
         {
+            return ShowSpriteChooser(currentSprite, null);
+        }
+
+        public static Sprite ShowSpriteChooser(int currentSprite, string text)
+        {
             Sprite selectedSprite = null;
             SpriteChooser chooser = new SpriteChooser(currentSprite);
+            if (text != null)
+            {
+                chooser.Text = text;
+            }
             if (chooser.ShowDialog() == DialogResult.OK)
             {
                 selectedSprite = chooser.SelectedSprite;

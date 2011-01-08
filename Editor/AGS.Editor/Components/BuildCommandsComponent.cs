@@ -125,6 +125,7 @@ namespace AGS.Editor.Components
             {
                 _guiController.SetTitleBarPrefix(string.Empty);
                 _guiController.HideCallStack();
+                _guiController.HideFindSymbolResults();
             }
 
             foreach (MenuCommand command in _debugToolbarCommands)

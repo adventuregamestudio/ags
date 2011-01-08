@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
 using System.Xml;
+using System.Drawing;
 
 namespace AGS.Types
 {
+    [Serializable]
     [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]
     public class GUIListBox : GUIControl
     {
@@ -84,28 +86,85 @@ namespace AGS.Types
             set { _textAlignment = value; }
         }
 
-        [Description("Colour of the text")]
+        [Description("AGS Colour Number of the text")]
         [Category("Appearance")]
+        [DisplayName("TextColourNumber")]
+        [RefreshProperties(RefreshProperties.All)]
         public int TextColor
         {
             get { return _textColor; }
             set { _textColor = value; }
         }
 
-        [Description("Colour of the selected item's text")]
+        [Description("Colour of the text")]
         [Category("Appearance")]
+        [DisplayNameAttribute("TextColor")]
+        [RefreshProperties(RefreshProperties.All)]
+        [AGSNoSerialize]
+        public Color TextColorRGB
+        {
+            get
+            {
+                return new AGSColor(_textColor).ToRgb();
+            }
+            set
+            {
+                _textColor = new AGSColor(value).ColorNumber;
+            }
+        }
+
+        [Description("AGS Colour Number of the selected item's text")]
+        [Category("Appearance")]
+        [DisplayName("SelectedTextColourNumber")]
+        [RefreshProperties(RefreshProperties.All)]
         public int SelectedTextColor
         {
             get { return _selectedTextColor; }
             set { _selectedTextColor = value; }
         }
 
+        [Description("Selected item's text colour")]
+        [Category("Appearance")]
+        [DisplayName("SelectedTextColor")]
+        [RefreshProperties(RefreshProperties.All)]
+        [AGSNoSerialize]
+        public Color SelectedTextColorRGB
+        {
+            get
+            {
+                return new AGSColor(_selectedTextColor).ToRgb();
+            }
+            set
+            {
+                _selectedTextColor = new AGSColor(value).ColorNumber;
+            }
+        }
+
         [Description("Background colour for the selected item")]
         [Category("Appearance")]
+        [DisplayName("SelectedBackgroundColorNumber")]
+        [RefreshProperties(RefreshProperties.All)]
         public int SelectedBackgroundColor
         {
             get { return _selectedBackgroundColor; }
             set { _selectedBackgroundColor = value; }
+        }
+
+        [Description("Selected item's background colour")]
+        [Category("Appearance")]
+        [DisplayName("SelectedBackgroundColor")]
+        [RefreshProperties(RefreshProperties.All)]
+        [AGSNoSerialize]
+        public Color SelectedBackgroundColorRGB
+        {
+            get
+            {
+                return new AGSColor(_selectedBackgroundColor).ToRgb();
+            }
+            set
+            {
+                _selectedBackgroundColor = new AGSColor(value).ColorNumber;
+            }
         }
 
         [Description("Font to use for the text")]

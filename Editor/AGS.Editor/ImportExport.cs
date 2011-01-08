@@ -1183,6 +1183,10 @@ namespace AGS.Editor
             {
                 newGui.BackgroundImage = spriteMapping[newGui.BackgroundImage];
             }
+
+            if (newGui.BackgroundImage < 0)
+                newGui.BackgroundImage = 0;
+
             foreach (GUIControl control in newGui.Controls)
             {
                 control.UpdateSpritesWithMapping(spriteMapping);

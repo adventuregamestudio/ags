@@ -76,5 +76,22 @@ namespace AGS.Types
             SerializeUtils.SerializeToXML(this, writer);
         }
 
+        public ViewFrame Clone()
+        {
+            return Clone(false);
+        }
+
+        public ViewFrame Clone(bool flip)
+        {
+            return new ViewFrame 
+            {
+                ID = ID,
+                Image = Image,
+                Flipped = flip ? !Flipped : Flipped,
+                Delay = Delay,
+                Sound = Sound
+            };
+        }
+
     }
 }

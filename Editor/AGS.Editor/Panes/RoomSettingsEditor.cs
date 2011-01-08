@@ -49,6 +49,7 @@ namespace AGS.Editor
 
             _filters.Add(new EmptyEditorFilter(bufferedPanel1, _room));
             _filters.Add(new EdgesEditorFilter(bufferedPanel1, _room));
+            _filters.Add(new CharactersEditorFilter(bufferedPanel1, _room, Factory.AGSEditor.CurrentGame));
             _filters.Add(new ObjectsEditorFilter(bufferedPanel1, _room));
             _filters.Add(new HotspotsEditorFilter(bufferedPanel1, _room));
             _filters.Add(new WalkableAreasEditorFilter(bufferedPanel1, _room));
@@ -59,11 +60,13 @@ namespace AGS.Editor
 
             cmbViewType.Items.Add("Nothing");
             cmbViewType.Items.Add("Edges");
+            cmbViewType.Items.Add("Characters");
             cmbViewType.Items.Add("Objects");
             cmbViewType.Items.Add("Hotspots");
             cmbViewType.Items.Add("Walkable areas");
             cmbViewType.Items.Add("Walk-behinds");
             cmbViewType.Items.Add("Regions");
+
             cmbViewType.SelectedIndex = 0;
 
             RepopulateBackgroundList(0);
@@ -447,6 +450,7 @@ namespace AGS.Editor
                 Factory.GUIController.SetPropertyGridObject(_room);
 				lblTransparency.Visible = _filter.ShowTransparencySlider;
 				sldTransparency.Visible = _filter.ShowTransparencySlider;
+                chkCharacterOffset.Visible = ((string)cmbViewType.SelectedItem == "Characters");
 
                 _filter.FilterOn();
 
@@ -635,6 +639,11 @@ namespace AGS.Editor
 		{
 			bufferedPanel1.Invalidate();
 		}
+
+		private void chkCharacterOffset_CheckedChanged(object sender, EventArgs e)
+        {
+            _state.DragFromCenter = chkCharacterOffset.Checked;
+        }
     }
 
     public class RoomEditorState
@@ -643,5 +652,6 @@ namespace AGS.Editor
         internal int ScrollOffsetX;
         internal int ScrollOffsetY;
         internal Cursor CurrentCursor;
+        internal bool DragFromCenter;
     }
 }

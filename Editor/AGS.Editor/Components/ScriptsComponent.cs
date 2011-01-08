@@ -71,7 +71,17 @@ namespace AGS.Editor.Components
             _guiController.OnZoomToFile += new GUIController.ZoomToFileHandler(GUIController_OnZoomToFile);
             _guiController.OnGetScript += new GUIController.GetScriptHandler(GUIController_OnGetScript);
             _guiController.OnScriptChanged += new GUIController.ScriptChangedHandler(GUIController_OnScriptChanged);
+            _guiController.OnGetScriptEditorControl += new GUIController.GetScriptEditorControlHandler(_guiController_OnGetScriptEditorControl);
             _guiController.ProjectTree.OnAfterLabelEdit += new ProjectTree.AfterLabelEditHandler(ProjectTree_OnAfterLabelEdit);
+        }
+
+        private void _guiController_OnGetScriptEditorControl(GetScriptEditorControlEventArgs evArgs)
+        {
+            var scriptEditor = GetScriptEditor(evArgs.ScriptFileName, false);
+            if (scriptEditor != null)
+            {
+                evArgs.ScriptEditor = scriptEditor.ScriptEditorControl;
+            }
         }
 
         public override string ComponentID
@@ -234,6 +244,17 @@ namespace AGS.Editor.Components
             }
         }
 
+        private IScriptEditor GetScriptEditor(string fileName, bool showEditor)
+        {
+            Script script;
+            ScriptEditor editor = GetScriptEditor(fileName, out script);
+            if (showEditor)
+            {
+                _guiController.AddOrShowPane(_editors[script]);
+            }
+            return editor;
+        }
+
         private void CreateEditorForScript(Script chosenItem)
         {
             chosenItem.LoadFromDisk();
@@ -249,19 +270,29 @@ namespace AGS.Editor.Components
             }
         }
 
+        private ScriptEditor GetScriptEditor(string fileName, out Script script)
+        {
+            script = _agsEditor.CurrentGame.Scripts.GetScriptByFilename(fileName);
+            if (script == null)
+            {
+                return null;
+            }
+            if (!_editors.ContainsKey(script))
+            {
+                CreateEditorForScript(script);
+            }
+            return (ScriptEditor)_editors[script].Control;
+        }
+        
         private ScriptEditor CreateOrShowEditorForScript(string scriptName)
         {
-            Script chosenItem = _agsEditor.CurrentGame.Scripts.GetScriptByFilename(scriptName);
+            Script chosenItem;
+            _lastActivated = GetScriptEditor(scriptName, out chosenItem);
             if (chosenItem == null)
             {
                 return null;
             }
-            if (!_editors.ContainsKey(chosenItem))
-            {
-                CreateEditorForScript(chosenItem);
-            }
             _guiController.AddOrShowPane(_editors[chosenItem]);
-            _lastActivated = (ScriptEditor)_editors[chosenItem].Control;
             // Hideous hack -- we need to allow the current message to
             // finish processing before setting the focus to the
             // script window, or it will fail

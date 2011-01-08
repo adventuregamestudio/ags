@@ -9,10 +9,15 @@ using System.Drawing;
 using System.Data;
 using System.Text;
 using System.Windows.Forms;
+using AGS.Types.Enums;
+using AGS.Editor.TextProcessing;
+using AGS.Types.Interfaces;
+
+
 
 namespace AGS.Editor
 {
-    public partial class ScriptEditor : EditorContentPanel
+    public partial class ScriptEditor : EditorContentPanel, IScriptEditor
     {
         public event EventHandler IsModifiedChanged;
         public delegate void AttemptToEditScriptHandler(ref bool allowEdit);
@@ -31,7 +36,10 @@ namespace AGS.Editor
         private const string FIND_COMMAND = "ScriptFind";
         private const string FIND_NEXT_COMMAND = "ScriptFindNext";
         private const string REPLACE_COMMAND = "ScriptReplace";
+        private const string FIND_ALL_COMMAND = "ScriptFindAll";
+        private const string REPLACE_ALL_COMMAND = "ScriptReplaceAll";
 		private const string CONTEXT_MENU_GO_TO_DEFINITION = "CtxGoToDefiniton";
+        private const string CONTEXT_MENU_FIND_ALL_USAGES = "CtxFindAllUsages";
         private const string CONTEXT_MENU_GO_TO_SPRITE = "CtxGoToSprite";
 		private const string CONTEXT_MENU_TOGGLE_BREAKPOINT = "CtxToggleBreakpoint";
 
@@ -82,6 +90,9 @@ namespace AGS.Editor
             _extraMenu.Commands.Add(new MenuCommand(FIND_NEXT_COMMAND, "Find next", System.Windows.Forms.Keys.F3, "FindNextMenuIcon"));
             _extraMenu.Commands.Add(new MenuCommand(REPLACE_COMMAND, "Replace...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.E));
             _extraMenu.Commands.Add(MenuCommand.Separator);
+            _extraMenu.Commands.Add(new MenuCommand(FIND_ALL_COMMAND, "Find All...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.F, "FindMenuIcon"));
+            _extraMenu.Commands.Add(new MenuCommand(REPLACE_ALL_COMMAND, "Replace All...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.E));
+            _extraMenu.Commands.Add(MenuCommand.Separator);
             _extraMenu.Commands.Add(new MenuCommand(SHOW_AUTOCOMPLETE_COMMAND, "Show Autocomplete", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Space, "ShowAutocompleteMenuIcon"));
 			_extraMenu.Commands.Add(new MenuCommand(TOGGLE_BREAKPOINT_COMMAND, "Toggle Breakpoint", System.Windows.Forms.Keys.F9, "ToggleBreakpointMenuIcon"));
 			_extraMenu.Commands.Add(new MenuCommand(MATCH_BRACE_COMMAND, "Match Brace", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.B));
@@ -106,6 +117,9 @@ namespace AGS.Editor
             {
                 scintilla.SetAutoCompleteSource(scriptToEdit);
             }
+
+            scintilla.SetKeyWords(Constants.SCRIPT_KEY_WORDS);
+            UpdateStructHighlighting();
 
             this.Script = scriptToEdit;
             _room = null;
@@ -299,6 +313,11 @@ namespace AGS.Editor
             scintilla.ActivateTextEditor();
         }
 
+        public void DeactivateTextEditor()
+        {
+            scintilla.DeactivateTextEditor();
+        }
+
         public List<MenuCommand> ToolbarIcons
         {
             get { return _toolbarIcons; }
@@ -340,6 +359,16 @@ namespace AGS.Editor
         {
             get { return _roomNumber; }
             set { _roomNumber = value; }
+        }
+
+        public static bool HoveringCombo { get; private set; }
+
+        public IScriptEditorControl ScriptEditorControl
+        { 
+            get 
+            { 
+                return scintilla; 
+            } 
         }
 
         public void UpdateScriptObjectWithLatestTextInWindow()
@@ -490,58 +519,31 @@ namespace AGS.Editor
 			{
 				scintilla.ShowMatchingBrace(true);
 			}
-			else if ((command == FIND_COMMAND) || (command == REPLACE_COMMAND))
+			else if ((command == FIND_COMMAND) || (command == REPLACE_COMMAND)
+                || (command == FIND_ALL_COMMAND) || (command == REPLACE_ALL_COMMAND))
 			{
 				if (scintilla.IsSomeSelectedText())
 				{
 					_lastSearchText = scintilla.SelectedText;
 				}
-                ShowFindReplaceDialog(command == REPLACE_COMMAND);
+                ShowFindReplaceDialog(command == REPLACE_COMMAND || command == REPLACE_ALL_COMMAND,
+                    command == FIND_ALL_COMMAND || command == REPLACE_ALL_COMMAND);
 			}
 			else if (command == FIND_NEXT_COMMAND)
 			{
 				if (_lastSearchText.Length > 0)
 				{
-					scintilla.FindNextOccurrence(_lastSearchText, _lastCaseSensitive);
+					scintilla.FindNextOccurrence(_lastSearchText, _lastCaseSensitive, true);
 				}
 			}
             UpdateToolbarButtonsIfNecessary();
         }
 
-        private void ShowFindReplaceDialog(bool showReplace)
+        private void ShowFindReplaceDialog(bool showReplace, bool showAll)
         {
-            FindReplaceDialog dialog = new FindReplaceDialog(_lastSearchText, _lastReplaceText, _agsEditor.Preferences);
-            dialog.ShowingReplaceDialog = showReplace;
-            dialog.CaseSensitive = _lastCaseSensitive;
-            bool showDialog = true;
-            while (showDialog)
-            {
-                DialogResult result = dialog.ShowDialog();
-                _lastReplaceText = dialog.TextToReplaceWith;
-                _lastCaseSensitive = dialog.CaseSensitive;
-
-                if ((result == DialogResult.OK) && (dialog.TextToFind.Length > 0))
-                {
-                    _lastSearchText = dialog.TextToFind;
-
-                    if ((dialog.IsReplace) &&
-                        (scintilla.SelectedText.ToLower() == dialog.TextToFind.ToLower()))
-                    {
-                        scintilla.ReplaceSelectedText(dialog.TextToReplaceWith);
-                    }
-
-                    showDialog = scintilla.FindNextOccurrence(dialog.TextToFind, dialog.CaseSensitive);
-                    if (!showDialog)
-                    {
-                        Factory.GUIController.ShowMessage("No occurrences of '" + _lastSearchText + "' were found.", MessageBoxIcon.Information);
-                    }
-                }
-                else
-                {
-                    showDialog = false;
-                }
-            }
-            dialog.Dispose();
+            FindReplace findReplace = new FindReplace(_script, _agsEditor,
+                _lastSearchText, _lastReplaceText, _lastCaseSensitive);
+            findReplace.ShowFindReplaceDialog(showReplace, showAll);
         }
 
         protected override void OnWindowActivated()
@@ -552,8 +554,14 @@ namespace AGS.Editor
                 UpdateScriptObjectWithLatestTextInWindow();
             }
             AutoComplete.RequestBackgroundCacheUpdate(_script);
+            ActivateTextEditor();
 
 			Factory.GUIController.ShowCuppit("You've opened a script editor. This is where you set up how the game will react to various events like the player clicking on things. Read the Scripting Tutorial in the manual to get started.", "Script editor introduction");
+        }
+
+        protected override void OnWindowDeactivated()
+        {
+            DeactivateTextEditor();
         }
 
         protected override string OnGetHelpKeyword()
@@ -681,6 +689,16 @@ namespace AGS.Editor
             return func;
         }
 
+        void cmbFunctions_MouseLeave(object sender, System.EventArgs e)
+        {
+            HoveringCombo = false;
+        }
+
+        void cmbFunctions_MouseEnter(object sender, System.EventArgs e)
+        {
+            HoveringCombo = true;
+        }
+
         private void cmbFunctions_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (_allowZoomToFunction)
@@ -740,10 +758,15 @@ namespace AGS.Editor
 			return found;
 		}
 
-		private ScriptToken FindTokenAsLocalVariable(string memberName)
+        public ScriptStruct FindGlobalVariableOrType(string type)
+        {
+            return scintilla.FindGlobalVariableOrType(type);
+        }
+
+		public ScriptToken FindTokenAsLocalVariable(string memberName, bool searchWholeFunction)
 		{
 			ScriptToken found = null;
-			List<ScriptVariable> localVars = scintilla.GetListOfLocalVariablesForCurrentPosition();
+            List<ScriptVariable> localVars = scintilla.GetListOfLocalVariablesForCurrentPosition(searchWholeFunction);
 			foreach (ScriptVariable localVar in localVars)
 			{
 				if (localVar.VariableName == memberName)
@@ -753,6 +776,13 @@ namespace AGS.Editor
 			}
 			return found;
 		}
+
+        private void FindAllUsages(string structName, string memberName)
+        {
+            TextProcessing.FindAllUsages findAllUsages = new TextProcessing.FindAllUsages(scintilla,
+                this, _script, _agsEditor);
+            findAllUsages.Find(structName, memberName);
+        }
 
 		private void GoToDefinition(string structName, string memberName)
 		{
@@ -792,7 +822,7 @@ namespace AGS.Editor
 
 			if ((found == null) && (structName == null))
 			{
-				found = FindTokenAsLocalVariable(memberName);
+				found = FindTokenAsLocalVariable(memberName, false);
 			}
 
 			if (found != null)
@@ -819,7 +849,8 @@ namespace AGS.Editor
 			{
 				ToggleBreakpointOnCurrentLine();
 			}
-			else if (item.Name == CONTEXT_MENU_GO_TO_DEFINITION)
+			else if (item.Name == CONTEXT_MENU_GO_TO_DEFINITION ||
+                item.Name == CONTEXT_MENU_FIND_ALL_USAGES)
 			{
 				string[] structAndMember = _goToDefinition.Split('.');
 				string structName = null;
@@ -830,7 +861,14 @@ namespace AGS.Editor
 					memberName = structAndMember[1];
 				}
 
+                if (item.Name == CONTEXT_MENU_GO_TO_DEFINITION)
+                {
 				GoToDefinition(structName, memberName);
+			}
+                else
+                {
+                    FindAllUsages(structName, memberName);
+                }
 			}
             else if (item.Name == CONTEXT_MENU_GO_TO_SPRITE)
             {
@@ -877,6 +915,12 @@ namespace AGS.Editor
 			{
 				menuStrip.Items[menuStrip.Items.Count - 1].Enabled = false;
 			}
+
+            menuStrip.Items.Add(new ToolStripMenuItem("Find All Usages" + clickedOnType, null, onClick, CONTEXT_MENU_FIND_ALL_USAGES));
+            if (clickedOnType == string.Empty)
+            {
+                menuStrip.Items[menuStrip.Items.Count - 1].Enabled = false;
+            }
 
             menuStrip.Items.Add(new ToolStripMenuItem("Go to sprite " + (_goToSprite.HasValue ? _goToSprite.ToString() : ""), null, onClick, CONTEXT_MENU_GO_TO_SPRITE));
             if (_goToSprite == null)

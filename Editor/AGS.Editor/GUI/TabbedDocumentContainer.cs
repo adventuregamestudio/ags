@@ -38,6 +38,8 @@ namespace AGS.Editor
             toolTipManager.SetToolTip(btnListAll, "List active windows");
         }
 
+        public static bool HoveringTabs { get; private set; }
+
         public bool ContainsDocument(ContentDocument pane)
         {
             return _panes.Contains(pane);
@@ -80,6 +82,10 @@ namespace AGS.Editor
                     // if this pane's tab is not visible, move it to the start
                     _panes.Remove(pane);
                     _panes.Insert(0, pane);
+                }
+                if (_currentPane != null && _currentPane.Control != null)
+                {
+                    _currentPane.Control.WindowDeactivated();
                 }
                 _currentPane = pane;
                 UpdateSize(pane);
@@ -143,6 +149,7 @@ namespace AGS.Editor
             }
             if (pane != _currentPane)
             {
+                
                 SetActiveDocument(pane);
             }
             tabsPanel.Invalidate();
@@ -403,6 +410,16 @@ namespace AGS.Editor
                 menu.Items.Add(menuItem);
             }
             menu.Show(tabsPanel, new Point(btnListAll.Left, btnListAll.Bottom));
+        }
+
+        private void tabsPanel_MouseEnter(object sender, EventArgs e)
+        {
+            HoveringTabs = true;
+        }
+
+        private void tabsPanel_MouseLeave(object sender, EventArgs e)
+        {
+            HoveringTabs = false;
         }
     }
 }

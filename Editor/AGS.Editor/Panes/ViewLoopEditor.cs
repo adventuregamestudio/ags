@@ -25,11 +25,13 @@ namespace AGS.Editor
 		public event NewFrameAddedHandler NewFrameAdded;
 
 		private static int _LastSelectedSprite = 0;
+        private static ViewLoop _copiedLoop;
 
         private ViewLoop _loop;
         private bool _isLastLoop;
         private int _loopDisplayY;
         private int _selectedFrame;
+        private int _framelessWidth;
 
         public ViewLoopEditor(ViewLoop loopToEdit, GUIController guiController)
         {
@@ -46,6 +48,7 @@ namespace AGS.Editor
             btnNewFrame.Height = FRAME_DISPLAY_SIZE;
             btnNewFrame.Top = _loopDisplayY;
 
+            _framelessWidth = Math.Max(chkRunNextLoop.Width + 10, Screen.PrimaryScreen.Bounds.Width);
             UpdateControlWidth();
         }
 
@@ -111,7 +114,7 @@ namespace AGS.Editor
 
         private void UpdateControlWidth()
         {
-            this.Width = Math.Max((_loop.Frames.Count + 1) * FRAME_DISPLAY_SIZE, chkRunNextLoop.Width + 10);
+            this.Width = Math.Max((_loop.Frames.Count + 1) * FRAME_DISPLAY_SIZE, _framelessWidth);
             btnNewFrame.Left = _loop.Frames.Count * FRAME_DISPLAY_SIZE;
         }
 
@@ -263,5 +266,89 @@ namespace AGS.Editor
             }
         }
 
+        private void copyLoop()
+        {
+            _copiedLoop = _loop.Clone();            
+        }
+
+        private void onCopyLoopClicked(object sender, EventArgs e)
+        {
+            copyLoop();
+        }
+
+        private void onCutLoopClicked(object sender, EventArgs e)
+        {
+            copyLoop();
+            if (_loop.Frames.Count > 0)
+            {
+                if (_selectedFrame != -1)
+                {
+                    _selectedFrame = -1;
+                }
+                _loop.Frames.Clear();
+
+                btnNewFrame.Visible = true;
+                UpdateControlWidth();
+                this.Invalidate();
+                OnSelectedFrameChanged();
+            }
+        }
+
+        private void pasteLoop(bool flipped)
+        {
+            int loopId = _loop.ID;
+            _loop = _copiedLoop.Clone(flipped);
+            _loop.ID = loopId;
+            UpdateControlWidth();
+            this.Invalidate();
+        }
+
+        private void onPasteLoopClicked(object sender, EventArgs e)
+        {
+            pasteLoop(false);
+        }
+
+        private void onPasteFlippedClicked(object sender, EventArgs e)
+        {
+            pasteLoop(true);
+        }
+
+        private void onFlipAllClicked(object sender, EventArgs e)
+        {            
+            _loop.Frames.ForEach(c => c.Flipped = !c.Flipped);
+            this.Invalidate();
+        }
+
+        private void onContextMenuForLoopOpening(object sender, CancelEventArgs e)
+        {
+            pasteToolStripMenuItem.Enabled = _copiedLoop != null;
+            pasteFlippedToolStripMenuItem.Enabled = _copiedLoop != null;
+        }
+
+        private void onQuickImportFromFolderClicked(object sender, EventArgs e)
+        {
+            Sprite chosen = SpriteChooser.ShowSpriteChooser(_LastSelectedSprite, "Select the first sprite to be imported from the folder");
+            if (chosen != null)
+            {
+                SpriteFolder parent = Factory.AGSEditor.CurrentGame.RootSpriteFolder.FindFolderThatContainsSprite(chosen.Number);
+                if (parent != null)
+                {
+                    for (int i = 0; i < parent.Sprites.Count; i++)
+                    {
+                        if (parent.Sprites[i].Number >= chosen.Number)
+                        {
+                            _loop.Frames.Add(new ViewFrame
+                            {
+                                ID = _loop.Frames.Count,
+                                Image = parent.Sprites[i].Number,                                
+                            });                            
+                        }
+                    }
+
+                    UpdateControlWidth();
+                    this.Invalidate();
+                }
+            }
+        }                
     }
 }

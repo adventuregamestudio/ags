@@ -1,3 +1,8 @@
+/* Adventure Game Studio Editor
+ * Copyright (c) 2006-2010 Chris Jones
+ * Use of this source must be strictly in accordance with the LICENSE.TXT file
+ * that accompanies this source distribution.
+ */
 using System;
 using System.Collections.Generic;
 using System.IO;

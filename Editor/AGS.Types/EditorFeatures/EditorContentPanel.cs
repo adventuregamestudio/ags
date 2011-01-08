@@ -73,6 +73,15 @@ namespace AGS.Types
 		{
 		}
 
+        public void WindowDeactivated()
+        {
+            OnWindowDeactivated();
+        }
+
+        protected virtual void OnWindowDeactivated()
+        {
+        }
+
 		public void PropertyChanged(string propertyName, object oldValue)
 		{
 			OnPropertyChanged(propertyName, oldValue);

@@ -13,5 +13,6 @@ namespace AGS.Types
 		string ScriptFileName { get; }
 		Script Script { get; }
 		void LoadScript();
+        void UnloadScript();
 	}
 }

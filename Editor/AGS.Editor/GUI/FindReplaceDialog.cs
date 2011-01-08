@@ -5,6 +5,8 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using AGS.Types.Enums;
+using AGS.Editor.TextProcessing;
 
 namespace AGS.Editor
 {
@@ -12,10 +14,21 @@ namespace AGS.Editor
     {
 		private bool _pressedReplace = false;
 		private bool _showingReplaceOptions = false;
+        private bool _showingFindReplaceAll = false;
+        private bool _closing = false;
         private EditorPreferences _preferences;
+        private FindReplace _findReplace;
 
-        public FindReplaceDialog(string defaultSearchText, string defaultReplaceText, EditorPreferences preferences)
+        private const string LOOK_IN_CURRENT_DOCUMENT = "Current Document";
+        private const string LOOK_IN_CURRENT_PROJECT = "Current Project";
+
+        private static string _lastSelectedLookIn;
+
+        public FindReplaceDialog(string defaultSearchText, 
+            string defaultReplaceText, EditorPreferences preferences,
+            FindReplace findReplace)
         {
+            _findReplace = findReplace;
             _preferences = preferences;
             InitializeComponent();
             btnOK.Enabled = false;
@@ -23,12 +36,33 @@ namespace AGS.Editor
             foreach (string previousSearch in preferences.RecentSearches)
             {
                 cmbFind.Items.Add(previousSearch);
+                cmbReplace.Items.Add(previousSearch);
             }
+
+            cmbLookIn.Items.Add(LOOK_IN_CURRENT_DOCUMENT);
+            cmbLookIn.Items.Add(LOOK_IN_CURRENT_PROJECT);
+            cmbLookIn.Text = _lastSelectedLookIn ?? LOOK_IN_CURRENT_DOCUMENT;
             
             cmbFind.Text = defaultSearchText;
-			txtReplaceWith.Text = defaultReplaceText;
+			cmbReplace.Text = defaultReplaceText;
 			btnCancel.Left = btnReplace.Left;
 			cmbFind.Focus();
+        }
+
+        public LookInDocumentType LookIn
+        {
+            get
+            { 
+                switch (cmbLookIn.Text)
+                {
+                    case LOOK_IN_CURRENT_DOCUMENT:
+                        return LookInDocumentType.CurrentDocument;
+                    case LOOK_IN_CURRENT_PROJECT:
+                        return LookInDocumentType.CurrentProject;
+                    default:
+                        return LookInDocumentType.CurrentDocument;
+                }
+            }
         }
 
         public string TextToFind
@@ -38,7 +72,7 @@ namespace AGS.Editor
 
 		public string TextToReplaceWith
 		{
-			get { return txtReplaceWith.Text; }
+            get { return cmbReplace.Text; }
 		}
 
         public bool CaseSensitive
@@ -53,11 +87,17 @@ namespace AGS.Editor
 			get { return _showingReplaceOptions; }
 		}
 
+        public bool ShowingAllDialog
+        {
+            get { return _showingFindReplaceAll; }
+            set { ShowOrHideFindReplaceAll(value); }
+        }
+
 		public bool IsReplace
 		{
 			get { return _pressedReplace; }
 		}
-
+        
         private void btnOK_Click(object sender, EventArgs e)
         {
             if ((_preferences.RecentSearches.Count == 0) ||
@@ -71,24 +111,50 @@ namespace AGS.Editor
                 _preferences.SaveToRegistry();
             }
 			_pressedReplace = false;
-            this.Close();
+            FindReplace();
+            //this.Close();
         }
 
         private void btnCancel_Click(object sender, EventArgs e)
         {
+            
             this.Close();
         }
 
 		private void btnReplace_Click(object sender, EventArgs e)
 		{
 			_pressedReplace = true;
-			this.Close();
+            FindReplace();
+            //this.Close();
 		}
+
+        private void FindReplace()
+        {
+            if (!_findReplace.PerformFindReplace(this))
+            {
+                this.Close();
+            }            
+        }
+
+        private void ShowOrHideFindReplaceAll(bool show)
+        {
+            _showingFindReplaceAll = show;            
+            if (show)
+            {
+                btnReplace.Text = "&Replace All...";
+                btnOK.Text = "&Find All...";
+            }
+            else
+            {
+                btnReplace.Text = "&Replace";
+                btnOK.Text = "&Find Next";
+            }
+        }
 
 		private void ShowOrHideReplaceControls(bool show)
 		{
 			_showingReplaceOptions = show;
-			txtReplaceWith.Visible = show;
+            cmbReplace.Visible = show;
 			lblReplaceWith.Visible = show;
 			btnReplace.Visible = show;
 			if (show)
@@ -105,12 +171,33 @@ namespace AGS.Editor
 
 		private void cmdToggleReplace_Click(object sender, EventArgs e)
 		{
-			ShowOrHideReplaceControls(!txtReplaceWith.Visible);
+            ShowOrHideReplaceControls(!cmbReplace.Visible);
 		}
 
         private void cmbFind_TextChanged(object sender, EventArgs e)
         {
             btnOK.Enabled = (cmbFind.Text.Length > 0);
+        }
+
+        private void onFormClosed(object sender, FormClosedEventArgs e)
+        {
+            _lastSelectedLookIn = cmbLookIn.Text;
+        }
+
+        private void onFormDeactivated(object sender, EventArgs e)
+        {
+            
+            if (!_closing) this.Opacity = 0.7;
+        }
+
+        private void onFormActivated(object sender, EventArgs e)
+        {
+            this.Opacity = 1.0;
+        }
+
+        private void FindReplaceDialog_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            _closing = true;
         }
 
     }

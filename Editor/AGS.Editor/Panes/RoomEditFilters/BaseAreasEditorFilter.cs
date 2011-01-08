@@ -23,6 +23,9 @@ namespace AGS.Editor
         protected const int TOOLBAR_INDEX_UNDO = 5;
 		protected const int TOOLBAR_INDEX_GREY_OUT_MASKS = 8;
 
+        private const string MENU_ITEM_COPY_COORDS = "CopyCoordinates";
+        private int _menuClickX, _menuClickY;
+
 		private readonly Brush[] _brushesForAreas = new Brush[]{Brushes.Black, Brushes.DarkBlue,
 			Brushes.DarkGreen, Brushes.DarkCyan, Brushes.DarkRed, Brushes.DarkMagenta, 
 			Brushes.Brown, Brushes.Red, Brushes.Red, Brushes.Blue,
@@ -261,6 +264,11 @@ namespace AGS.Editor
 
         public virtual void MouseUp(MouseEventArgs e, RoomEditorState state)
         {
+            if (e.Button == MouseButtons.Middle)
+            {
+                ShowCoordMenu(e, state);
+
+            }
             _mouseDown = false;
             if (_drawMode == AreaDrawMode.Line)
             {
@@ -281,6 +289,34 @@ namespace AGS.Editor
 		public virtual void DoubleClick(RoomEditorState state)
 		{
 		}
+
+        private void CoordMenuEventHandler(object sender, EventArgs e)
+        {
+            int tempx = _menuClickX;
+            int tempy = _menuClickY;
+
+            if ((Factory.AGSEditor.CurrentGame.Settings.UseLowResCoordinatesInScript) &&
+             (_room.Resolution == RoomResolution.HighRes))
+            {
+                tempx /= 2;
+                tempy /= 2;
+            }
+
+            string textToCopy = tempx.ToString() + ", " + tempy.ToString();
+            Utilities.CopyTextToClipboard(textToCopy);
+        }
+
+        private void ShowCoordMenu(MouseEventArgs e, RoomEditorState state)
+        {
+            EventHandler onClick = new EventHandler(CoordMenuEventHandler);
+            ContextMenuStrip menu = new ContextMenuStrip();
+            menu.Items.Add(new ToolStripMenuItem("Copy mouse coordinates to clipboard", null, onClick, MENU_ITEM_COPY_COORDS));
+
+            _menuClickX = (e.X + state.ScrollOffsetX) / state.ScaleFactor;
+            _menuClickY = (e.Y + state.ScrollOffsetY) / state.ScaleFactor;
+
+            menu.Show(_panel, e.X, e.Y);
+        }
 
         public virtual bool MouseMove(int x, int y, RoomEditorState state)
         {

@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using System.Xml;
 using AGS.CScript.Compiler;
 using AGS.Types;
+using AGS.Types.Interfaces;
 
 namespace AGS.Editor
 {
@@ -330,6 +331,38 @@ namespace AGS.Editor
                 GetScriptModuleList(new GetScriptModuleListEventArgs(scripts));
             }
 
+            return scripts;
+        }
+
+        public List<IScript> GetAllScripts()
+        {
+            return GetAllScripts(true);
+        }
+
+        public List<IScript> GetAllScripts(bool includeDialogs)
+        {
+            List<IScript> scripts = new List<IScript>();
+            foreach (Script script in _game.Scripts)
+            {
+                scripts.Add(script);
+            }
+            foreach (IRoom room in _game.Rooms)
+            {
+                if (room.Script == null)
+                {
+                    room.LoadScript();
+                    scripts.Add(room.Script);
+                    room.UnloadScript();
+                }
+                else scripts.Add(room.Script); 
+            }
+            if (includeDialogs)
+            {
+                foreach (Dialog dialog in _game.Dialogs)
+                {
+                    scripts.Add(dialog);
+                }
+            }
             return scripts;
         }
 

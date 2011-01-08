@@ -47,6 +47,7 @@ namespace AGS.Editor.Components
                 newItem.ID = items.Count;
                 newItem.ScriptName = _agsEditor.GetFirstAvailableScriptName("cChar");
                 newItem.RealName = "New character";
+                newItem.StartingRoom = -1;
                 items.Add(newItem);
                 _guiController.ProjectTree.StartFromNode(this, TOP_LEVEL_COMMAND_ID);
                 _guiController.ProjectTree.AddTreeLeaf(this, "Chr" + newItem.ID, newItem.ID.ToString() + ": " + newItem.ScriptName, "CharacterIcon");

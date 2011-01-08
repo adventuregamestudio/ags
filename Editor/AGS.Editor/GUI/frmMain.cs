@@ -220,6 +220,7 @@ namespace AGS.Editor
 			panelWithMainPane.Controls.Add(this.tabbedDocumentContainer1);
 			panelWithMainPane.Controls.Add(this.pnlOutput);
             panelWithMainPane.Controls.Add(this.pnlCallStack);
+            panelWithMainPane.Controls.Add(this.pnlFindResults);
 			panelWithProjectTree.Controls.Add(this.leftSplitter);
 			this.mainContainer.SplitterDistance = this.mainContainer.ClientSize.Width - this.mainContainer.SplitterDistance;
 		}

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
 using System.Xml;
+using System.Drawing;
 
 namespace AGS.Types
 {
@@ -133,13 +134,32 @@ namespace AGS.Types
             set { _zorder = value; }
         }
 
-		[Description("Colour of the GUI border")]
+		[Description("AGS Colour Number of the GUI border")]
 		[Category("Appearance")]
-		public int BorderColor
+        [DisplayName("BorderColourNumber")]
+        [RefreshProperties(RefreshProperties.All)]
+        public int BorderColor
 		{
 			get { return _bordercol; }
 			set { _bordercol = value; }
 		}
+
+ 		[Description("Colour of the GUI border")]
+		[Category("Appearance")]
+        [DisplayName("BorderColor")]
+        [RefreshProperties(RefreshProperties.All)]
+        [AGSNoSerialize]
+        public Color BorderColorRGB
+        {
+            get
+            {
+                return new AGSColor(_bordercol).ToRgb();
+            }
+            set
+            {
+                _bordercol = new AGSColor(value).ColorNumber;
+            }
+        }
 
         [Description("Transparency of the GUI, from 0% (solid) to 100% (invisible). Does not work with 8-bit colour games.")]
         [Category("Appearance")]

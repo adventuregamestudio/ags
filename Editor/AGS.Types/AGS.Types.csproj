@@ -9,10 +9,11 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>AGS.Types</RootNamespace>
     <AssemblyName>AGS.Types</AssemblyName>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccProvider>SAK</SccProvider>
+    <SccProjectName>"%24/ags/netedit/AGS.Types", PYBAAAAA</SccProjectName>
+    <SccLocalPath>.</SccLocalPath>
+    <SccAuxPath>
+    </SccAuxPath>
+    <SccProvider>MSSCCI:Microsoft Visual SourceSafe</SccProvider>
     <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
@@ -118,6 +119,7 @@
     <Compile Include="EditorFeatures\GameTemplate.cs" />
     <Compile Include="GlobalVariable.cs" />
     <Compile Include="GlobalVariables.cs" />
+    <Compile Include="GUIControlGroup.cs" />
     <Compile Include="Interfaces\ILoadedRoom.cs" />
     <Compile Include="InteractionSchema.cs" />
     <Compile Include="Interfaces\IChangeNotification.cs" />
@@ -212,13 +214,19 @@
     <Service Include="{B4F97281-0DBD-4835-9ED8-7DFB966E87FF}" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AGSColor.cs" />
     <Compile Include="AudioClipType.cs" />
     <Compile Include="BaseFolderCollection.cs" />
+    <Compile Include="EditorFeatures\AutoComplete\ScriptTokenReference.cs" />
     <Compile Include="Enums\AudioClipFileType.cs" />
     <Compile Include="Enums\AudioClipPriority.cs" />
     <Compile Include="Enums\AudioFileBundlingType.cs" />
     <Compile Include="Enums\InheritableBool.cs" />
+    <Compile Include="Enums\LookInDocumentType.cs" />
+    <Compile Include="Interfaces\IColorMapper.cs" />
     <Compile Include="Interfaces\IProjectTreeSingleClickHandler.cs" />
+    <Compile Include="Interfaces\IScript.cs" />
+    <Compile Include="Interfaces\IScriptEditor.cs" />
     <Compile Include="Interfaces\IToXml.cs" />
     <Compile Include="PropertyGridExtras\AudioClipTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\AudioClipTypeTypeConverter.cs" />

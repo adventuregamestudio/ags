@@ -65,6 +65,8 @@ namespace AGS.Editor
 			this.cmbFunctions.Size = new System.Drawing.Size(285, 21);
 			this.cmbFunctions.TabIndex = 0;
 			this.cmbFunctions.SelectedIndexChanged += new System.EventHandler(this.cmbFunctions_SelectedIndexChanged);
+            this.cmbFunctions.MouseEnter += new System.EventHandler(this.cmbFunctions_MouseEnter);
+            this.cmbFunctions.MouseLeave += new System.EventHandler(this.cmbFunctions_MouseLeave);
 			// 
 			// ScriptEditor
 			// 

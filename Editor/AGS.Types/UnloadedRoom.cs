@@ -99,6 +99,11 @@ namespace AGS.Types
             _script.LoadFromDisk();
         }
 
+        public void UnloadScript()
+        {
+            _script = null;
+        }
+
         public UnloadedRoom(XmlNode node)
         {
             SerializeUtils.DeserializeFromXML(this, node);

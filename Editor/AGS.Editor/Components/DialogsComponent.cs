@@ -25,7 +25,19 @@ namespace AGS.Editor.Components
             _guiController.RegisterIcon("DialogIcon", Resources.ResourceManager.GetIcon("dialog-item.ico"));
             _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Dialogs", "DialogsIcon");
 			_guiController.OnZoomToFile += new GUIController.ZoomToFileHandler(GUIController_OnZoomToFile);
+            _guiController.OnGetScriptEditorControl += new GUIController.GetScriptEditorControlHandler(_guiController_OnGetScriptEditorControl);
 			RePopulateTreeView();
+        }
+
+        private void _guiController_OnGetScriptEditorControl(GetScriptEditorControlEventArgs evArgs)
+        {
+            Dialog chosenItem = GetDialog(evArgs.ScriptFileName);
+            if (chosenItem != null)
+            {
+                AddDocumentIfNeeded(false, chosenItem);
+
+                evArgs.ScriptEditor = ((DialogEditor)_documents[chosenItem].Control).ScriptEditor;
+            }
         }
 
         public override string ComponentID
@@ -45,7 +57,7 @@ namespace AGS.Editor.Components
                 _guiController.ProjectTree.StartFromNode(this, TOP_LEVEL_COMMAND_ID);
                 _guiController.ProjectTree.AddTreeLeaf(this, "Dlg" + newItem.ID, newItem.ID.ToString() + ": " + newItem.Name, "DialogIcon");
                 _guiController.ProjectTree.SelectNode(this, "Dlg" + newItem.ID);
-				ShowPaneForDialog(newItem.ID);
+				ShowPaneForDialog(newItem);
             }
             else if (controlID == COMMAND_DELETE_ITEM)
             {
@@ -149,19 +161,52 @@ namespace AGS.Editor.Components
             RePopulateTreeView();
         }
 
+        private void AddDocumentIfNeeded(bool showEditor, Dialog chosenItem)
+        {
+            if (!_documents.ContainsKey(chosenItem))
+            {
+                DialogEditor dialogEditor = new DialogEditor(chosenItem, _agsEditor);
+                _documents.Add(chosenItem, new ContentDocument(dialogEditor, chosenItem.WindowTitle, this, ConstructPropertyObjectList(chosenItem)));
+                _documents[chosenItem].SelectedPropertyGridObject = chosenItem;
+                _documents[chosenItem].MainMenu = dialogEditor.ExtraMenu;
+            }
+            if (showEditor)
+            {
+                _guiController.AddOrShowPane(_documents[chosenItem]);
+            }
+        }
+
 		private DialogEditor ShowPaneForDialog(int dialogNumber)
 		{
 			Dialog chosenItem = _agsEditor.CurrentGame.Dialogs[dialogNumber];
-			if (!_documents.ContainsKey(chosenItem))
-			{
-				_documents.Add(chosenItem, new ContentDocument(new DialogEditor(chosenItem), chosenItem.WindowTitle, this, ConstructPropertyObjectList(chosenItem)));
-				_documents[chosenItem].SelectedPropertyGridObject = chosenItem;
-			}
-			_guiController.AddOrShowPane(_documents[chosenItem]);
-			_guiController.ShowCuppit("The Dialog Editor is where you set up conversations that the player can have with other characters. The possible options for this dialog topic are on the left, and the script that will run when the player chooses one is on the right.", "Dialog introduction");
-
-			return (DialogEditor)_documents[chosenItem].Control;
+            return ShowPaneForDialog(chosenItem);
 		}
+
+        private DialogEditor ShowPaneForDialog(Dialog chosenItem)
+        {
+            AddDocumentIfNeeded(true, chosenItem);
+            _guiController.ShowCuppit("The Dialog Editor is where you set up conversations that the player can have with other characters. The possible options for this dialog topic are on the left, and the script that will run when the player chooses one is on the right.", "Dialog introduction");
+
+            return (DialogEditor)_documents[chosenItem].Control;
+        }
+
+        private int GetDialogNumber(string name)
+        {
+            if (name.StartsWith("Dialog "))
+            {
+                return Convert.ToInt32(name.Substring(7));
+            }
+            return -1;
+        }
+
+        private Dialog GetDialog(string name)
+        {
+            int dialogNumber = GetDialogNumber(name);
+            if (dialogNumber < 0) return null;
+            Dialog dialog = _agsEditor.CurrentGame.Dialogs[dialogNumber];
+            
+            return _agsEditor.CurrentGame.Dialogs[dialogNumber];	
+        }
 
         private void RemoveExecutionPointFromAllScripts()
         {
@@ -178,11 +223,11 @@ namespace AGS.Editor.Components
                 RemoveExecutionPointFromAllScripts();
             }
 
-            if (evArgs.FileName.StartsWith("Dialog "))
-			{
-				int dialogNumber = Convert.ToInt32(evArgs.FileName.Substring(7));
-				ShowPaneForDialog(dialogNumber).GoToScriptLine(evArgs);
-			}
+            Dialog dialog = GetDialog(evArgs.FileName);
+            if (dialog != null)
+            {
+                ShowPaneForDialog(dialog).GoToScriptLine(evArgs);
+            }         
 		}
 
         private void RePopulateTreeView()

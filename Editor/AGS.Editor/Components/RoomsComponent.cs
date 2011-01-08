@@ -54,12 +54,22 @@ namespace AGS.Editor.Components
             _guiController.OnZoomToFile += new GUIController.ZoomToFileHandler(GUIController_OnZoomToFile);
             _guiController.OnGetScript += new GUIController.GetScriptHandler(GUIController_OnGetScript);
             _guiController.OnScriptChanged += new GUIController.ScriptChangedHandler(GUIController_OnScriptChanged);
+            _guiController.OnGetScriptEditorControl += new GUIController.GetScriptEditorControlHandler(_guiController_OnGetScriptEditorControl);
             _agsEditor.PreCompileGame += new AGSEditor.PreCompileGameHandler(AGSEditor_PreCompileGame);
             _agsEditor.PreSaveGame += new AGSEditor.PreSaveGameHandler(AGSEditor_PreSaveGame);
             _agsEditor.ProcessAllGameTexts += new AGSEditor.ProcessAllGameTextsHandler(AGSEditor_ProcessAllGameTexts);
 			_agsEditor.PreDeleteSprite += new AGSEditor.PreDeleteSpriteHandler(AGSEditor_PreDeleteSprite);
             _modifiedChangedHandler = new Room.RoomModifiedChangedHandler(_loadedRoom_RoomModifiedChanged);
             RePopulateTreeView();
+        }
+
+        private void _guiController_OnGetScriptEditorControl(GetScriptEditorControlEventArgs evArgs)
+        {
+            var scriptEditor = GetScriptEditor(evArgs.ScriptFileName, false);
+            if (scriptEditor != null)
+            {
+                evArgs.ScriptEditor = scriptEditor.ScriptEditorControl;
+            }
         }
 
         public override string ComponentID
@@ -534,7 +544,24 @@ namespace AGS.Editor.Components
             return null;
         }
 
-        private ContentDocument CreateOrShowScript(UnloadedRoom selectedRoom)
+        private IScriptEditor GetScriptEditor(string fileName, bool showEditor)
+        {
+            int roomNumberToEdit = GetRoomNumberForFileName(fileName, false);
+
+            if (roomNumberToEdit >= 0)
+            {
+                UnloadedRoom roomToGetScriptFor = GetUnloadedRoom(roomNumberToEdit);
+                ScriptEditor editor = (ScriptEditor)GetScriptEditor(roomToGetScriptFor).Control;
+                if (showEditor && editor != null)
+                {
+                    _guiController.AddOrShowPane(_roomScriptEditors[roomNumberToEdit]);            
+                }
+                return editor;
+            }
+            return null;
+        }        
+
+        private ContentDocument GetScriptEditor(UnloadedRoom selectedRoom)
         {
             if ((_roomScriptEditors.ContainsKey(selectedRoom.Number)) &&
                 (!_roomScriptEditors[selectedRoom.Number].Visible))
@@ -545,10 +572,10 @@ namespace AGS.Editor.Components
 
             if (!_roomScriptEditors.ContainsKey(selectedRoom.Number))
             {
-				if (selectedRoom.Script == null)
-				{
-					selectedRoom.LoadScript();
-				}
+                if (selectedRoom.Script == null)
+                {
+                    selectedRoom.LoadScript();
+                }
                 ScriptEditor scriptEditor = new ScriptEditor(selectedRoom.Script, _agsEditor);
                 scriptEditor.RoomNumber = selectedRoom.Number;
                 scriptEditor.IsModifiedChanged += new EventHandler(ScriptEditor_IsModifiedChanged);
@@ -560,8 +587,15 @@ namespace AGS.Editor.Components
                 _roomScriptEditors[selectedRoom.Number].ToolbarCommands = scriptEditor.ToolbarIcons;
                 _roomScriptEditors[selectedRoom.Number].MainMenu = scriptEditor.ExtraMenu;
             }
-            _guiController.AddOrShowPane(_roomScriptEditors[selectedRoom.Number]);
+
             return _roomScriptEditors[selectedRoom.Number];
+        }
+
+        private ContentDocument CreateOrShowScript(UnloadedRoom selectedRoom)
+        {
+            ContentDocument scriptEditor = GetScriptEditor(selectedRoom);
+            _guiController.AddOrShowPane(_roomScriptEditors[selectedRoom.Number]);
+            return scriptEditor;
         }
 
         private void LoadRoom(string controlID)
@@ -977,60 +1011,72 @@ namespace AGS.Editor.Components
             RoomListTypeConverter.SetRoomList(_agsEditor.CurrentGame.Rooms);
         }
 
-        private void GUIController_OnZoomToFile(ZoomToFileEventArgs evArgs)
+        private int GetRoomNumberForFileName(string fileName, bool isDebugExecutionPoint)
         {
-            if ((evArgs.FileName == Script.CURRENT_ROOM_SCRIPT_FILE_NAME) &&
-                (_loadedRoom != null))
+            if ((fileName == Script.CURRENT_ROOM_SCRIPT_FILE_NAME) &&
+               (_loadedRoom != null))
             {
-                evArgs.FileName = _loadedRoom.ScriptFileName;
+                fileName = _loadedRoom.ScriptFileName;
             }
 
             int roomNumberToEdit = -1;
 
             foreach (ContentDocument doc in _roomScriptEditors.Values)
             {
-                if (evArgs.IsDebugExecutionPoint)
+                if (isDebugExecutionPoint)
                 {
                     ((ScriptEditor)doc.Control).RemoveExecutionPointMarker();
                 }
 
-                if (((ScriptEditor)doc.Control).Script.FileName == evArgs.FileName)
+                if (((ScriptEditor)doc.Control).Script.FileName == fileName)
                 {
                     roomNumberToEdit = ((ScriptEditor)doc.Control).RoomNumber;
                 }
             }
 
             if ((roomNumberToEdit < 0) && (_loadedRoom != null) &&
-                (evArgs.FileName == _loadedRoom.ScriptFileName))
+                (fileName == _loadedRoom.ScriptFileName))
             {
                 roomNumberToEdit = _loadedRoom.Number;
             }
 
-			if (roomNumberToEdit < 0)
-			{
-				Match match = Regex.Match(evArgs.FileName, @"^room(\d+)\.asc$", RegexOptions.IgnoreCase);
-				if ((match.Success) && (match.Groups.Count == 2))
-				{
-					roomNumberToEdit = Convert.ToInt32(match.Groups[1].Captures[0].Value);
-				}
-			}
+            if (roomNumberToEdit < 0)
+            {
+                Match match = Regex.Match(fileName, @"^room(\d+)\.asc$", RegexOptions.IgnoreCase);
+                if ((match.Success) && (match.Groups.Count == 2))
+                {
+                    roomNumberToEdit = Convert.ToInt32(match.Groups[1].Captures[0].Value);
+                }
+            }
 
+            return roomNumberToEdit;
+        }
+
+        private UnloadedRoom GetUnloadedRoom(int roomNumber)
+        {
+            UnloadedRoom roomToGetScriptFor;
+            if ((_loadedRoom != null) && (roomNumber == _loadedRoom.Number))
+            {
+                roomToGetScriptFor = _loadedRoom;
+            }
+            else
+            {
+                roomToGetScriptFor = FindRoomByID(roomNumber);
+            }
+            return roomToGetScriptFor;
+        }
+
+        private void GUIController_OnZoomToFile(ZoomToFileEventArgs evArgs)
+        {
+            int roomNumberToEdit = GetRoomNumberForFileName(evArgs.FileName, evArgs.IsDebugExecutionPoint);
+            
             if (roomNumberToEdit >= 0)
             {
-                UnloadedRoom roomToGetScriptFor;
-                if ((_loadedRoom != null) && (roomNumberToEdit == _loadedRoom.Number))
-                {
-                    roomToGetScriptFor = _loadedRoom;
-                }
-                else
-                {
-                    roomToGetScriptFor = FindRoomByID(roomNumberToEdit);
-                }
-
+                UnloadedRoom roomToGetScriptFor = GetUnloadedRoom(roomNumberToEdit);                
                 ScriptEditor editor = (ScriptEditor)CreateOrShowScript(roomToGetScriptFor).Control;
 				ZoomToCorrectPositionInScript(editor, evArgs);
             }
-        }
+        }        
 
         private void GUIController_OnGetScript(string fileName, ref Script script)
         {

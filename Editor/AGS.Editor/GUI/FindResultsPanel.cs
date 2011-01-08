@@ -58,7 +58,7 @@ namespace AGS.Editor
                 {
                     ListViewItem newItem = lvwResults.Items.Add(scriptTokenReference.Script.FileName);
                     newItem.SubItems.Add((scriptTokenReference.LineIndex + 1).ToString());
-                    newItem.SubItems.Add(scriptTokenReference.Line);
+                    newItem.SubItems.Add(scriptTokenReference.CurrentLine);
                 }
             }
         }

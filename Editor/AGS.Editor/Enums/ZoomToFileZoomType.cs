@@ -8,6 +8,7 @@ namespace AGS.Editor
 	{
 		ZoomToLineNumber,
 		ZoomToCharacterPosition,
-		ZoomToText
+		ZoomToText,
+        DoNotMoveCursor
 	}
 }

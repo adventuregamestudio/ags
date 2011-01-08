@@ -22,7 +22,7 @@ namespace AGS.Editor.Components
             {
                 editor.GoToLineOfCharacterPosition(evArgs.ZoomPosition, evArgs.SelectLine);
             }
-            else
+            else if (evArgs.ZoomType != ZoomToFileZoomType.DoNotMoveCursor)
             {
                 if (evArgs.ZoomToText != null)
                 {

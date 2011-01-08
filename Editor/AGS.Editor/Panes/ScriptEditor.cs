@@ -304,7 +304,10 @@ namespace AGS.Editor
         {
             if (status == BackgroundAutoCompleteStatus.Finished)
             {
-                this.Invoke(new AnonymousDelegate(UpdateFunctionList));
+                if (this.IsHandleCreated)
+                {
+                    this.Invoke(new AnonymousDelegate(UpdateFunctionList));
+                }
             }
         }
 
@@ -932,5 +935,12 @@ namespace AGS.Editor
 			menuStrip.Items.Add(new ToolStripMenuItem("Toggle Breakpoint", Factory.GUIController.ImageList.Images["ToggleBreakpointMenuIcon"], onClick, CONTEXT_MENU_TOGGLE_BREAKPOINT));
 		}
 
-	}
+        void ScriptEditor_HandleCreated(object sender, System.EventArgs e)
+        {
+            if ((_script != null) && (_script.AutoCompleteData != null))
+            {
+                UpdateFunctionList();
+            }
+        }
+    }
 }

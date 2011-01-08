@@ -23,6 +23,11 @@ namespace AGS.Types
         /// </summary>
         void ReplaceSelectedText(string textToReplace);
         /// <summary>
+        /// Gets information on the current selection in the editor
+        /// RequiredAGSVersion: 3.2.1.104
+        /// </summary>
+        ScriptTokenReference GetTokenReferenceForCurrentState();
+        /// <summary>
         /// Finds the next occurrence of the specified text, and returns a reference to its location
         /// RequiredAGSVersion: 3.2.1.104
         /// </summary>

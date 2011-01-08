@@ -70,7 +70,13 @@ namespace AGS.Types
             if (value is int && destinationType == typeof(string))
             {
                 // return name in code for this int
-                return GetValueList()[(int)value];
+                var stringLookupDictionary = GetValueList();
+                int intVal = (int)value;
+                if (stringLookupDictionary.ContainsKey(intVal))
+                {
+                    return stringLookupDictionary[intVal];
+                }
+                return string.Format("{0} [unknown]", intVal);
             }
             if (value is string && destinationType == typeof(string))
             {

@@ -379,12 +379,17 @@ namespace AGS.Editor
 			ZoomToFile(fileName, lineNumber);
 		}
 
+        public void ZoomToFile(string fileName)
+        {
+            ZoomToFile(fileName, ZoomToFileZoomType.DoNotMoveCursor, 0, false);
+        }
+
         public void ZoomToFile(string fileName, int lineNumber)
         {
             ZoomToFile(fileName, ZoomToFileZoomType.ZoomToLineNumber, lineNumber, false);
         }
 
-		public void ZoomToFile(string fileName, ZoomToFileZoomType zoomType, int zoomToPosition)
+        public void ZoomToFile(string fileName, ZoomToFileZoomType zoomType, int zoomToPosition)
 		{
 			ZoomToFile(fileName, zoomType, zoomToPosition, false);
 		}
@@ -427,11 +432,11 @@ namespace AGS.Editor
             }
         }
 
-        public IScriptEditorControl GetScriptEditorControl(string scriptFileName)
+        public IScriptEditorControl GetScriptEditorControl(string scriptFileName, bool showEditor)
         {
             if (OnGetScriptEditorControl != null)
             {
-                GetScriptEditorControlEventArgs evArgs = new GetScriptEditorControlEventArgs(scriptFileName);
+                GetScriptEditorControlEventArgs evArgs = new GetScriptEditorControlEventArgs(scriptFileName, showEditor);
                 OnGetScriptEditorControl(evArgs);
                 return evArgs.ScriptEditor;
             }

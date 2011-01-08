@@ -34,7 +34,7 @@ namespace AGS.Editor.Components
             Dialog chosenItem = GetDialog(evArgs.ScriptFileName);
             if (chosenItem != null)
             {
-                AddDocumentIfNeeded(false, chosenItem);
+                AddDocumentIfNeeded(evArgs.ShowEditor, chosenItem);
 
                 evArgs.ScriptEditor = ((DialogEditor)_documents[chosenItem].Control).ScriptEditor;
             }

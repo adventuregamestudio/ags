@@ -65,7 +65,7 @@ namespace AGS.Editor.Components
 
         private void _guiController_OnGetScriptEditorControl(GetScriptEditorControlEventArgs evArgs)
         {
-            var scriptEditor = GetScriptEditor(evArgs.ScriptFileName, false);
+            var scriptEditor = GetScriptEditor(evArgs.ScriptFileName, evArgs.ShowEditor);
             if (scriptEditor != null)
             {
                 evArgs.ScriptEditor = scriptEditor.ScriptEditorControl;
@@ -106,14 +106,20 @@ namespace AGS.Editor.Components
 			{
 				if (MessageBox.Show("Are you sure you want to remove this room from the game? The file will not be deleted.", "Confirm exclude", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
 				{
-					RemoveRoomFromGame(_rightClickedRoomNumber);
+                    if (EnsureNoCharactersStartInRoom(_rightClickedRoomNumber))
+                    {
+                        RemoveRoomFromGame(_rightClickedRoomNumber);
+                    }
 				}
 			}
 			else if (controlID == COMMAND_DELETE_ITEM)
 			{
 				if (MessageBox.Show("Are you sure you want to delete this room? It cannot be recovered.", "Confirm delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
 				{
-                    DeleteRoom(_rightClickedRoomNumber);
+                    if (EnsureNoCharactersStartInRoom(_rightClickedRoomNumber))
+                    {
+                        DeleteRoom(_rightClickedRoomNumber);
+                    }
 				}
 			}
 			else if (controlID == COMMAND_SORT_BY_NUMBER)
@@ -162,6 +168,34 @@ namespace AGS.Editor.Components
 			{
 				LoadRoom(controlID);
 			}
+        }
+
+        private bool EnsureNoCharactersStartInRoom(int roomNumber)
+        {
+            bool okToContinue = true;
+            List<Character> charactersThatStartInThisRoom = new List<Character>();
+            string characterList = string.Empty;
+            foreach (var character in _agsEditor.CurrentGame.Characters)
+            {
+                if (character.StartingRoom == roomNumber)
+                {
+                    charactersThatStartInThisRoom.Add(character);
+                    characterList += string.Format("{0} ({1}){2}", character.ID, character.ScriptName, Environment.NewLine);
+                }
+            }
+            if (charactersThatStartInThisRoom.Count > 0)
+            {
+                if (_guiController.ShowQuestion("The following characters are set to start in this room. If you remove the room, they will be set to have no starting room. Do you want to continue?" + 
+                    Environment.NewLine + Environment.NewLine + characterList, MessageBoxIcon.Warning) == DialogResult.No)
+                {
+                    okToContinue = false;
+                }
+                else
+                {
+                    charactersThatStartInThisRoom.ForEach(c => c.StartingRoom = -1);
+                }
+            }
+            return okToContinue;
         }
 
         private void DeleteRoom(int roomNumber)

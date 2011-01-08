@@ -141,9 +141,9 @@ namespace AGS.Editor
             {
                 scintillaEditor.GoToPosition(evArgs.ZoomPosition);
             }
-            else
+            else if (evArgs.ZoomType == ZoomToFileZoomType.ZoomToLineNumber)
             {
-			scintillaEditor.GoToLine(evArgs.ZoomPosition);
+			    scintillaEditor.GoToLine(evArgs.ZoomPosition);
             }
 			scintillaEditor.Focus();
 

@@ -74,6 +74,7 @@ namespace AGS.Editor
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.Controls.Add(this.scintilla);
 			this.Controls.Add(this.panel1);
+            this.HandleCreated += new System.EventHandler(ScriptEditor_HandleCreated);
 			this.Name = "ScriptEditor";
 			this.Size = new System.Drawing.Size(574, 316);
 			this.panel1.ResumeLayout(false);

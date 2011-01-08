@@ -152,7 +152,7 @@ namespace AGS.Editor.TextProcessing
         {
             IScript script = scriptsForFindReplace[currentScript];
             
-            IScriptEditorControl scriptEditorControl = Factory.GUIController.GetScriptEditorControl(script.FileName);
+            IScriptEditorControl scriptEditorControl = Factory.GUIController.GetScriptEditorControl(script.FileName, false);
 
             if (scriptEditorControl != null)
             {
@@ -207,13 +207,27 @@ namespace AGS.Editor.TextProcessing
             ref IScriptEditorControl scriptEditorControl)
         {
             ScriptTokenReference scriptTokenReference;
-            while ((scriptTokenReference =
-                 scriptEditorControl.FindNextOccurrence(_dialog.TextToFind,
-                 _dialog.CaseSensitive, jumpToStart)) != null)
+
+            if ((_dialog.IsReplace) && (TextToFindIsCurrentlySelected(scriptEditorControl)))
+            {
+                scriptTokenReference = scriptEditorControl.GetTokenReferenceForCurrentState();
+            }
+            else
+            {
+                scriptTokenReference = scriptEditorControl.FindNextOccurrence(_dialog.TextToFind, _dialog.CaseSensitive, jumpToStart);
+            }
+
+            if ((scriptTokenReference != null) && showAll && _dialog.IsReplace)
+            {
+                // get a visible editor if we need to make changes to the text
+                scriptEditorControl = Factory.GUIController.GetScriptEditorControl(script.FileName, true);
+            }
+
+            while (scriptTokenReference != null)
             {
                 foundOneReference = true;
 
-                ReplaceTextIfNeeded(script, ref scriptEditorControl);
+                ReplaceTextIfNeeded(script, scriptEditorControl);
 
                 if (showAll)
                 {
@@ -222,6 +236,13 @@ namespace AGS.Editor.TextProcessing
                         scriptTokenReference.Script = script;
                     }
                     results.Add(scriptTokenReference);
+
+                    scriptTokenReference = scriptEditorControl.FindNextOccurrence(_dialog.TextToFind, _dialog.CaseSensitive, jumpToStart);
+                }
+                else if (_dialog.IsReplace)
+                {
+                    scriptTokenReference = scriptEditorControl.FindNextOccurrence(_dialog.TextToFind, _dialog.CaseSensitive, jumpToStart);
+                    break;
                 }
                 else
                 {
@@ -231,12 +252,16 @@ namespace AGS.Editor.TextProcessing
             return scriptTokenReference;
         }
 
-        private void ReplaceTextIfNeeded(IScript script, ref IScriptEditorControl scriptEditorControl)
+        private bool TextToFindIsCurrentlySelected(IScriptEditorControl scriptEditorControl)
         {
-            if ((_dialog.IsReplace) &&
-                (scriptEditorControl.SelectedText.ToLower() == _dialog.TextToFind.ToLower()))
+            return (scriptEditorControl.SelectedText.ToLower() == _dialog.TextToFind.ToLower());
+        }
+
+        private void ReplaceTextIfNeeded(IScript script, IScriptEditorControl scriptEditorControl)
+        {
+            if (_dialog.IsReplace && TextToFindIsCurrentlySelected(scriptEditorControl))
             {
-                Factory.GUIController.ZoomToFile(script.FileName, 0);
+                Factory.GUIController.ZoomToFile(script.FileName);
                 scriptEditorControl.ReplaceSelectedText(_dialog.TextToReplaceWith);
             }
         }

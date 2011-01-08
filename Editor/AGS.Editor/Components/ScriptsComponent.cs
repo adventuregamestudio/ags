@@ -77,7 +77,7 @@ namespace AGS.Editor.Components
 
         private void _guiController_OnGetScriptEditorControl(GetScriptEditorControlEventArgs evArgs)
         {
-            var scriptEditor = GetScriptEditor(evArgs.ScriptFileName, false);
+            var scriptEditor = GetScriptEditor(evArgs.ScriptFileName, evArgs.ShowEditor);
             if (scriptEditor != null)
             {
                 evArgs.ScriptEditor = scriptEditor.ScriptEditorControl;
@@ -248,7 +248,7 @@ namespace AGS.Editor.Components
         {
             Script script;
             ScriptEditor editor = GetScriptEditor(fileName, out script);
-            if (showEditor)
+            if ((showEditor) && (editor != null))
             {
                 _guiController.AddOrShowPane(_editors[script]);
             }
@@ -287,11 +287,12 @@ namespace AGS.Editor.Components
         private ScriptEditor CreateOrShowEditorForScript(string scriptName)
         {
             Script chosenItem;
-            _lastActivated = GetScriptEditor(scriptName, out chosenItem);
+            var scriptEditor = GetScriptEditor(scriptName, out chosenItem);
             if (chosenItem == null)
             {
                 return null;
             }
+            _lastActivated = scriptEditor;
             _guiController.AddOrShowPane(_editors[chosenItem]);
             // Hideous hack -- we need to allow the current message to
             // finish processing before setting the focus to the

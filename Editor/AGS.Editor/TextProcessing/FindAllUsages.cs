@@ -52,7 +52,7 @@ namespace AGS.Editor.TextProcessing
             {
                 _results.Add(new ScriptTokenReference
                 {
-                    Line = line,
+                    CurrentLine = line,
                     CharacterIndex = characterIndex,
                     Script = script,
                     LineIndex = lineIndex,

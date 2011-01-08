@@ -580,16 +580,21 @@ namespace AGS.Editor
             }
             
             SetSelection(nextPos, text.Length);
-                    
+
+            return GetTokenReferenceForCurrentState();
+        }
+
+        public ScriptTokenReference GetTokenReferenceForCurrentState()
+        {
+            int nextPos = scintillaControl1.SelectionStart;
             int lineIndex = scintillaControl1.LineFromPosition(nextPos);
-            int startLine = scintillaControl1.PositionFromLine(lineIndex);
-            string line = documentText.Substring(startLine, scintillaControl1.LineLength(lineIndex));
+            string line = scintillaControl1.GetLine(lineIndex);
             return new ScriptTokenReference
             {
                 CharacterIndex = nextPos,
-                Line = line,
+                CurrentLine = line,
                 LineIndex = lineIndex,
-                Token = text,
+                Token = this.SelectedText,
                 Script = _autoCompleteForThis
             };
         }

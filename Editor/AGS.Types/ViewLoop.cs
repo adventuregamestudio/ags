@@ -115,5 +115,15 @@ namespace AGS.Types
 
             return clone;
         }
+
+        public void Clone(ViewLoop target, bool flipped)
+        {
+            target.Frames.Clear();
+            target.RunNextLoop = RunNextLoop;
+            foreach (ViewFrame frame in _frames)
+            {
+                target.Frames.Add(frame.Clone(flipped));
+            } 
+        }
     }
 }

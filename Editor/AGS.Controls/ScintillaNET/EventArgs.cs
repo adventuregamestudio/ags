@@ -514,6 +514,30 @@ namespace Scintilla
 
     }
 
+    public class MarginClickEventArgs : EventArgs
+    {
+        private int _margin;
+        private int _lineNumber;
+
+        public int LineNumber
+        {
+            get { return _lineNumber; }
+            set { _lineNumber = value; }
+        }
+
+        public int Margin
+        {
+            get { return _margin; }
+            set { _margin = value; }
+        }
+
+        public MarginClickEventArgs(SCNotification eventSource, int lineNumber)
+        {
+            _margin = eventSource.margin;
+            _lineNumber = lineNumber;
+        }
+    }
+
     public class DwellStartEventArgs : EventArgs
     {
         private int _x;

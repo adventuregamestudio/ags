@@ -130,7 +130,7 @@ namespace AGS.Editor
 
         private void FindReplace()
         {
-            if (!_findReplace.PerformFindReplace(this))
+            if (!_findReplace.PerformFindReplace())
             {
                 this.Close();
             }            

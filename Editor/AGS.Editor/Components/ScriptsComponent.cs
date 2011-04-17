@@ -286,6 +286,11 @@ namespace AGS.Editor.Components
         
         private ScriptEditor CreateOrShowEditorForScript(string scriptName)
         {
+            return CreateOrShowEditorForScript(scriptName, true);
+        }
+        
+        private ScriptEditor CreateOrShowEditorForScript(string scriptName, bool activateEditor)
+        {
             Script chosenItem;
             var scriptEditor = GetScriptEditor(scriptName, out chosenItem);
             if (chosenItem == null)
@@ -294,11 +299,14 @@ namespace AGS.Editor.Components
             }
             _lastActivated = scriptEditor;
             _guiController.AddOrShowPane(_editors[chosenItem]);
+            if (activateEditor)
+            {
             // Hideous hack -- we need to allow the current message to
             // finish processing before setting the focus to the
             // script window, or it will fail
             _timerActivateWindow = true;
             _timer.Start();
+            }
             return _lastActivated;
         }
 
@@ -323,7 +331,7 @@ namespace AGS.Editor.Components
 				return;
 			}
 
-            ScriptEditor editor = CreateOrShowEditorForScript(evArgs.FileName);
+            ScriptEditor editor = CreateOrShowEditorForScript(evArgs.FileName, evArgs.ActivateEditor);
             ZoomToCorrectPositionInScript(editor, evArgs);
         }
 

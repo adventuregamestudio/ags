@@ -51,13 +51,12 @@ namespace Scintilla
             this.SendMessageDirect(Constants.SCI_SETPROPERTY, "fold.compact", "0");
             this.SendMessageDirect(Constants.SCI_SETPROPERTY, "fold.comment", "1");
             this.SendMessageDirect(Constants.SCI_SETPROPERTY, "fold.preprocessor", "1");
-
-            this.SendMessageDirect(Constants.SCI_SETMARGINWIDTHN, 1, 0);
-
-            this.SendMessageDirect(Constants.SCI_SETMARGINTYPEN, 1, (int)Constants.SC_MARGIN_SYMBOL);
-            this.SendMessageDirect(Constants.SCI_SETMARGINMASKN, 1, (int)Constants.SC_MASK_FOLDERS);
-            this.SendMessageDirect(Constants.SCI_SETMARGINWIDTHN, 1, 20);
-
+     
+            this.SendMessageDirect(Constants.SCI_SETMARGINWIDTHN, 2, 16);
+            this.SendMessageDirect(Constants.SCI_SETMARGINTYPEN, 2, (int)Constants.SC_MARGIN_SYMBOL);
+            this.SendMessageDirect(Constants.SCI_SETMARGINMASKN, 2, (int)Constants.SC_MASK_FOLDERS);
+      
+            
             this.SendMessageDirect(Constants.SCI_MARKERDEFINE, Constants.SC_MARKNUM_FOLDER, (int)Constants.SC_MARK_PLUS);
             this.SendMessageDirect(Constants.SCI_MARKERDEFINE, Constants.SC_MARKNUM_FOLDEROPEN, (int)Constants.SC_MARK_MINUS);
             this.SendMessageDirect(Constants.SCI_MARKERDEFINE, Constants.SC_MARKNUM_FOLDEREND, (int)Constants.SC_MARK_EMPTY);
@@ -68,7 +67,8 @@ namespace Scintilla
 
             this.SendMessageDirect(Constants.SCI_SETFOLDFLAGS, 16, 0); // 16  	Draw line below if not expanded
 
-            this.SendMessageDirect(Constants.SCI_SETMARGINSENSITIVEN, 1, 1);
+            SetMarginSensitivity(2, 1);
+
 
             
 
@@ -114,6 +114,12 @@ namespace Scintilla
 
 
             return word.ToString();
+        }
+
+        public void SetMarginSensitivity(int margin, int flag)
+        {
+            this.SendMessageDirect(Constants.SCI_SETMARGINSENSITIVEN, margin, flag);
+            
         }
 
         private void Style(int linenum, int end)
@@ -454,6 +460,8 @@ namespace Scintilla
             this.SendMessageDirect(4001, (int)lexer);
         }
 
+   
+
         public void SetKeyWords(string keywords)
         {
             this.SendMessageDirect(4005, 0, keywords);
@@ -544,10 +552,9 @@ namespace Scintilla
                     break;
                     
                 case Scintilla.Enums.Events.MarginClick:
-                                       
-                      int line_number = SendMessageDirect(Constants.SCI_LINEFROMPOSITION, notification.position, 0);
-                      if (notification.margin == 1) SendMessageDirect(Constants.SCI_TOGGLEFOLD, line_number, 0);
-                       
+
+                    int lineNumber = SendMessageDirect(Constants.SCI_LINEFROMPOSITION, notification.position, 0);                                   
+                      MarginClick(this, new MarginClickEventArgs(notification, lineNumber));
                     break;
                 case Scintilla.Enums.Events.AutoCSelection:
                     if (Events[Scintilla.Enums.Events.AutoCSelection] != null)
@@ -625,6 +632,7 @@ namespace Scintilla
         public event EventHandler<TextModifiedEventArgs> TextModified;
         public event EventHandler<DwellStartEventArgs> DwellStart;
         public event EventHandler DwellEnd;
+        public event EventHandler<MarginClickEventArgs> MarginClick;
 
         #endregion
 

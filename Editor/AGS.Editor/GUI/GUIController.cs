@@ -44,7 +44,7 @@ namespace AGS.Editor
 
         private delegate void UpdateStatusBarTextDelegate(string text);
         private delegate void ParameterlessDelegate();
-        private delegate void ZoomToFileDelegate(string fileName, ZoomToFileZoomType zoomType, int lineNumber, bool isDebugExecutionPoint, bool selectWholeLine, string errorMessage);
+        private delegate void ZoomToFileDelegate(string fileName, ZoomToFileZoomType zoomType, int lineNumber, bool isDebugExecutionPoint, bool selectWholeLine, string errorMessage, bool activateEditor);
         private delegate void ShowCallStackDelegate(DebugCallStack callStack);
         private delegate void ShowFindSymbolResultsDelegate(List<ScriptTokenReference> results, ScintillaWrapper scintilla);
 
@@ -396,25 +396,25 @@ namespace AGS.Editor
 
 		public void ZoomToFile(string fileName, int lineNumber, bool isDebugExecutionPoint, string errorMessage)
 		{
-			ZoomToFile(fileName, ZoomToFileZoomType.ZoomToLineNumber, lineNumber, isDebugExecutionPoint, false, errorMessage);
+			ZoomToFile(fileName, ZoomToFileZoomType.ZoomToLineNumber, lineNumber, isDebugExecutionPoint, false, errorMessage, true);
 		}
 
 		public void ZoomToFile(string fileName, ZoomToFileZoomType zoomType, int zoomPosition, bool isDebugExecutionPoint)
 		{
-			ZoomToFile(fileName, zoomType, zoomPosition, isDebugExecutionPoint, true, null);
+			ZoomToFile(fileName, zoomType, zoomPosition, isDebugExecutionPoint, true, null, true);
 		}
 
-        public void ZoomToFile(string fileName, ZoomToFileZoomType zoomType, int zoomPosition, bool isDebugExecutionPoint, bool selectWholeLine, string errorMessage)
+        public void ZoomToFile(string fileName, ZoomToFileZoomType zoomType, int zoomPosition, bool isDebugExecutionPoint, bool selectWholeLine, string errorMessage, bool activateEditor)
         {
             if (OnZoomToFile != null)
             {
                 if (this.InvokeRequired)
                 {
-					this.Invoke(new ZoomToFileDelegate(ZoomToFile), fileName, zoomType, zoomPosition, isDebugExecutionPoint, selectWholeLine, errorMessage);
+					this.Invoke(new ZoomToFileDelegate(ZoomToFile), fileName, zoomType, zoomPosition, isDebugExecutionPoint, selectWholeLine, errorMessage, activateEditor);
                 }
                 else
                 {
-					ZoomToFileEventArgs evArgs = new ZoomToFileEventArgs(fileName, zoomType, zoomPosition, null, isDebugExecutionPoint, errorMessage);
+					ZoomToFileEventArgs evArgs = new ZoomToFileEventArgs(fileName, zoomType, zoomPosition, null, isDebugExecutionPoint, errorMessage, activateEditor);
 					evArgs.SelectLine = selectWholeLine;
 					OnZoomToFile(evArgs);
                 }
@@ -425,7 +425,7 @@ namespace AGS.Editor
         {
             if (OnZoomToFile != null)
             {
-				ZoomToFileEventArgs evArgs = new ZoomToFileEventArgs(fileName, ZoomToFileZoomType.ZoomToText, 0, "function " + function + "(", false, null);
+				ZoomToFileEventArgs evArgs = new ZoomToFileEventArgs(fileName, ZoomToFileZoomType.ZoomToText, 0, "function " + function + "(", false, null, true);
 				evArgs.SelectLine = false;
                 evArgs.ZoomToLineAfterOpeningBrace = true;
                 OnZoomToFile(evArgs);
@@ -1281,7 +1281,7 @@ namespace AGS.Editor
         {
             ((Timer)sender).Stop();
             ((Timer)sender).Dispose();
-            ZoomToFileEventArgs evArgs = new ZoomToFileEventArgs(_timerScriptName, ZoomToFileZoomType.ZoomToText, 0, _timerSearchForText, false, null);
+            ZoomToFileEventArgs evArgs = new ZoomToFileEventArgs(_timerScriptName, ZoomToFileZoomType.ZoomToText, 0, _timerSearchForText, false, null, true);
 			evArgs.SelectLine = false;
             evArgs.ZoomToLineAfterOpeningBrace = true;
 			OnZoomToFile(evArgs);

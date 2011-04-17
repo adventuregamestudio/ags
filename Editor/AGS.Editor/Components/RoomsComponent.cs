@@ -947,6 +947,7 @@ namespace AGS.Editor.Components
                 UnloadedRoom room = FindRoomByID(_loadedRoom.Number);
                 room.Description = _loadedRoom.Description;
                 RePopulateTreeView();
+                RoomListTypeConverter.RefreshRoomList();
             }
 
 			if ((propertyName == UnloadedRoom.PROPERTY_NAME_NUMBER) && (_loadedRoom != null))
@@ -957,6 +958,13 @@ namespace AGS.Editor.Components
 				RenameRoom(_loadedRoom.Number, numberRequested);
 			}
 
+            if ((_guiController.ActivePane.SelectedPropertyGridObject is Character) &&
+                (propertyName == Character.PROPERTY_NAME_SCRIPTNAME))
+            {
+                Character character = (Character)_guiController.ActivePane.SelectedPropertyGridObject;
+                character.ScriptName = (string)oldValue;
+                _guiController.ShowMessage("You cannot edit a character's script name from here. Open the Character Editor for the character then try again.", MessageBoxIcon.Information);
+            }
         }
 
 		private void RenameRoom(int currentNumber, int numberRequested)

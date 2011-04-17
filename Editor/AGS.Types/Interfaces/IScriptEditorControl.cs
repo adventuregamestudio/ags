@@ -74,5 +74,11 @@ namespace AGS.Types
         /// RequiredAGSVersion: 3.1.0.48
         /// </summary>
         string GetTypeNameAtCursor();
+        /// <summary>
+        /// Sets the selection, gets the start position of the cursor
+        /// and the length of the selection.
+        /// RequiredAGSVersion: 3.2.1.106
+        /// </summary>        
+        void SetSelection(int pos, int length);
 	}
 }

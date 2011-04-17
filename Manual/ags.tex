@@ -8,7 +8,7 @@
 \parskip=10pt%
 \parindent=0pt%
 \backgroundcolour{255;255;225}\textcolour{0;0;0}% Has an effect in HTML only
-\title{Adventure Game Studio 3.2.0}%
+\title{Adventure Game Studio 3.2.1}%
 \author{by Chris Jones}%
 \makeindex%
 \begin{document}%
@@ -7464,6 +7464,27 @@ will enable option 2 of topic number 4 if the Global Integer 10 is 1.
 
 \it{See Also:} \helprefn{Dialog.GetOptionState}{Dialog.GetOptionState},
 \helprefn{Dialog.Start}{Dialog.Start}, \helprefn{StopDialog}{StopDialog}
+
+
+\subsection{ShowTextParser property (dialog)}\label{Dialog.ShowTextParser}\index{Dialog.ShowTextParser}%
+
+\begin{verbatim}
+readonly bool Dialog.ShowTextParser;
+\end{verbatim}
+Gets whether this dialog shows a text box allowing the player to type in text.
+
+This property is initially set in the Dialog Editor.
+
+\fcol{red}{Example:}
+\begin{verbatim}
+if (dFisherman.ShowTextParser) 
+{
+  Display("dFisherman has a text box!");
+}
+\end{verbatim}
+will display a message if dFisherman has the option enabled
+
+\it{Compatibility:} Supported by \bf{AGS 3.2.1} and later versions.
 
 
 \subsection{Start (dialog)}\label{Dialog.Start}\index{Dialog.Start}\index{RunDialog}%
@@ -20081,7 +20102,7 @@ The AGS forum:   http://www.adventuregamestudio.co.uk/forum/
 \chapter{Credits}\label{Credits}%
 
 \begin{itemize}
-\item Adventure Game Studio was programmed by Chris Jones.
+\item Adventure Game Studio was programmed by Chris Jones, with contributions from Tzach Shabtay, Steven Poulton, Nefasto and ProgZmax.
 \item Linux port by Shawn Walker (drevil@warpcore.org).
 \item Mac port by Steve McCrea.
 \item Demo Quest III updated by RickJ.

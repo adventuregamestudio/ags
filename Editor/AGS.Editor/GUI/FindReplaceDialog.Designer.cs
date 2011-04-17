@@ -117,7 +117,6 @@ namespace AGS.Editor
             // 
             // cmbFind
             // 
-            this.cmbFind.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
             this.cmbFind.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
             this.cmbFind.FormattingEnabled = true;
             this.cmbFind.Location = new System.Drawing.Point(89, 15);
@@ -145,7 +144,6 @@ namespace AGS.Editor
             // 
             // cmbReplace
             // 
-            this.cmbReplace.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
             this.cmbReplace.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
             this.cmbReplace.FormattingEnabled = true;
             this.cmbReplace.Location = new System.Drawing.Point(89, 48);
@@ -179,10 +177,10 @@ namespace AGS.Editor
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Find and Replace";
             this.TopMost = true;
-            this.Activated += new System.EventHandler(this.onFormActivated);
             this.Deactivate += new System.EventHandler(this.onFormDeactivated);
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FindReplaceDialog_FormClosing);
+            this.Activated += new System.EventHandler(this.onFormActivated);
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.onFormClosed);
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FindReplaceDialog_FormClosing);
             this.ResumeLayout(false);
             this.PerformLayout();
 

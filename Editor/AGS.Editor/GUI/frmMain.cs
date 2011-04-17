@@ -7,6 +7,7 @@ using System.IO;
 using System.Text;
 using System.Windows.Forms;
 using AGS.Types;
+using AGS.Editor.TextProcessing;
 
 namespace AGS.Editor
 {
@@ -35,6 +36,7 @@ namespace AGS.Editor
             tabbedDocumentContainer1.ActiveDocumentChanging += new TabbedDocumentContainer.ActiveDocumentChangeHandler(tabbedDocumentContainer1_ActiveDocumentChanging);
 			this.Load += new EventHandler(frmMain_Load);
             this.Activated += new EventHandler(frmMain_Activated);
+            this.Deactivate += new EventHandler(frmMain_Deactivated);
         }
 
         private void frmMain_Activated(object sender, EventArgs e)
@@ -42,6 +44,14 @@ namespace AGS.Editor
             if (OnMainWindowActivated != null)
             {
                 OnMainWindowActivated(this, e);
+            }
+        }
+
+        private void frmMain_Deactivated(object sender, EventArgs e)
+        {
+            if (Form.ActiveForm == null)
+            {
+                FindReplace.CloseDialogIfNeeded();
             }
         }
 
@@ -247,7 +257,10 @@ namespace AGS.Editor
             {
                 if (propertyTab.TabName == tabName)
                 {
-                    Hacks.SetSelectedTabInPropertyGrid(propertiesPanel, tabIndex);
+                    if (propertyTab != propertiesPanel.SelectedTab)
+                    {
+                    	Hacks.SetSelectedTabInPropertyGrid(propertiesPanel, tabIndex);
+                    }
                     return true;
                 }
                 tabIndex++;

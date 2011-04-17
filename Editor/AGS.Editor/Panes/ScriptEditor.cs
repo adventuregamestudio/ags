@@ -50,8 +50,7 @@ namespace AGS.Editor
         private List<MenuCommand> _toolbarIcons = new List<MenuCommand>();
         private MenuCommands _extraMenu = new MenuCommands("&Edit", GUIController.FILE_MENU_ID);
         private string _lastSearchText = string.Empty;
-		private string _lastReplaceText = string.Empty;
-        private bool _lastCaseSensitive = false;
+		private bool _lastCaseSensitive = false;
         private AutoComplete.BackgroundCacheUpdateStatusChangedHandler _autocompleteUpdateHandler;
         private EditorEvents.FileChangedInGameFolderHandler _fileChangedHandler;
         private EventHandler _mainWindowActivatedHandler;
@@ -111,6 +110,7 @@ namespace AGS.Editor
             scintilla.TextModified += new ScintillaWrapper.TextModifiedHandler(scintilla_TextModified);
 			scintilla.ConstructContextMenu += new ScintillaWrapper.ConstructContextMenuHandler(scintilla_ConstructContextMenu);
 			scintilla.ActivateContextMenu += new ScintillaWrapper.ActivateContextMenuHandler(scintilla_ActivateContextMenu);
+            scintilla.ToggleBreakpoint += new EventHandler<Scintilla.MarginClickEventArgs>(scintilla_ToggleBreakpoint);
             this.Resize += new EventHandler(ScriptEditor_Resize);
 
             if (!scriptToEdit.IsHeader)
@@ -124,6 +124,11 @@ namespace AGS.Editor
             this.Script = scriptToEdit;
             _room = null;
             _roomNumber = 0;
+        }
+
+        void scintilla_ToggleBreakpoint(object sender, Scintilla.MarginClickEventArgs e)
+        {
+            ToggleBreakpoint(e.LineNumber);   
         }
 
         private void ScriptEditor_Resize(object sender, EventArgs e)
@@ -466,21 +471,36 @@ namespace AGS.Editor
             scintilla.HideErrorMessagePopup();
         }
 
+        private void ToggleBreakpoint(int line)
+        {
+            if (scintilla.IsBreakpointOnLine(line))
+            {
+                scintilla.RemoveBreakpoint(line);
+                _agsEditor.Debugger.RemovedBreakpoint(this.Script, line + 1);
+            }
+            else
+            {
+                scintilla.AddBreakpoint(line);
+                _agsEditor.Debugger.AddedBreakpoint(this.Script, line + 1);
+            }
+
+            this.Script.BreakpointedLines = scintilla.GetLineNumbersForAllBreakpoints();
+
+        }
+
 		private void ToggleBreakpointOnCurrentLine()
 		{
-			if (scintilla.IsBreakpointOnLine(scintilla.CurrentLine))
-			{
-				scintilla.RemoveBreakpoint(scintilla.CurrentLine);
-                _agsEditor.Debugger.RemovedBreakpoint(this.Script, scintilla.CurrentLine + 1);
-			}
-			else
-			{
-				scintilla.AddBreakpoint(scintilla.CurrentLine);
-                _agsEditor.Debugger.AddedBreakpoint(this.Script, scintilla.CurrentLine + 1);
-			}
-
-			this.Script.BreakpointedLines = scintilla.GetLineNumbersForAllBreakpoints();
+            ToggleBreakpoint(scintilla.CurrentLine);
 		}
+
+        protected override void OnKeyPressed(System.Windows.Forms.Keys keyData)
+        {
+            if (keyData.Equals(
+                System.Windows.Forms.Keys.Escape))
+            {
+                FindReplace.CloseDialogIfNeeded();
+            }
+        }
 
         protected override void OnCommandClick(string command)
         {
@@ -525,10 +545,11 @@ namespace AGS.Editor
 			else if ((command == FIND_COMMAND) || (command == REPLACE_COMMAND)
                 || (command == FIND_ALL_COMMAND) || (command == REPLACE_ALL_COMMAND))
 			{
-				if (scintilla.IsSomeSelectedText())
-				{
-					_lastSearchText = scintilla.SelectedText;
-				}
+                if (scintilla.IsSomeSelectedText())
+                {
+                    _lastSearchText = scintilla.SelectedText;
+                }
+                else _lastSearchText = string.Empty;
                 ShowFindReplaceDialog(command == REPLACE_COMMAND || command == REPLACE_ALL_COMMAND,
                     command == FIND_ALL_COMMAND || command == REPLACE_ALL_COMMAND);
 			}
@@ -545,8 +566,14 @@ namespace AGS.Editor
         private void ShowFindReplaceDialog(bool showReplace, bool showAll)
         {
             FindReplace findReplace = new FindReplace(_script, _agsEditor,
-                _lastSearchText, _lastReplaceText, _lastCaseSensitive);
+                _lastSearchText, _lastCaseSensitive);
+            findReplace.LastSearchTextChanged += new FindReplace.LastSearchTextChangedHandler(findReplace_LastSearchTextChanged);
             findReplace.ShowFindReplaceDialog(showReplace, showAll);
+        }
+
+        private void findReplace_LastSearchTextChanged(string searchText)
+        {
+            _lastSearchText = searchText;
         }
 
         protected override void OnWindowActivated()

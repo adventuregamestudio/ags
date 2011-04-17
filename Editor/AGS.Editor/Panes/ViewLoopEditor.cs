@@ -17,6 +17,12 @@ namespace AGS.Editor
 		private const string MENU_ITEM_FLIP_FRAME = "FlipFrame";
         private const string MENU_ITEM_INSERT_BEFORE = "InsertBefore";
         private const string MENU_ITEM_INSERT_AFTER = "InsertAfter";
+        private const string MENU_ITEM_CUT_LOOP = "CutLoop";
+        private const string MENU_ITEM_COPY_LOOP = "CopyLoop";
+        private const string MENU_ITEM_PASTE_OVER_LOOP = "PasteLoop";
+        private const string MENU_ITEM_PASTE_OVER_LOOP_FLIPPED = "PasteLoopFlipped";
+        private const string MENU_ITEM_FLIP_ALL = "FlipAll";
+        private const string MENU_ITEM_QUICK_IMPORT = "QuickImport";
 
         public delegate void SelectedFrameChangedHandler(ViewLoop loop, int newSelectedFrame);
         public event SelectedFrameChangedHandler SelectedFrameChanged;
@@ -188,13 +194,12 @@ namespace AGS.Editor
             if (clickedOnFrame >= 0) 
             {
 				ChangeSelectedFrame(clickedOnFrame);
-
-                if (e.Button == MouseButtons.Right)
-                {
-                    ShowContextMenu(e.Location);
-                }
             }
 
+            if (e.Button == MouseButtons.Right)
+            {
+                ShowContextMenu(e.Location, (clickedOnFrame >= 0));
+            }
         }
 
         private void OnSelectedFrameChanged()
@@ -226,18 +231,33 @@ namespace AGS.Editor
             }
         }
 
-        private void ShowContextMenu(Point menuPosition)
+        private void ShowContextMenu(Point menuPosition, bool frameIsSelected)
         {
             EventHandler onClick = new EventHandler(ContextMenuEventHandler);
             ContextMenuStrip menu = new ContextMenuStrip();
-			menu.Items.Add(new ToolStripMenuItem("&Flip", null, onClick, MENU_ITEM_FLIP_FRAME));
-			menu.Items.Add(new ToolStripSeparator());
-			ToolStripMenuItem deleteOption = new ToolStripMenuItem("Delete frame", null, onClick, MENU_ITEM_DELETE_FRAME);
-            deleteOption.ShortcutKeys = Keys.Delete;
-            menu.Items.Add(deleteOption);
-			menu.Items.Add(new ToolStripSeparator());
-            menu.Items.Add(new ToolStripMenuItem("Insert frame before this", null, onClick, MENU_ITEM_INSERT_BEFORE));
-            menu.Items.Add(new ToolStripMenuItem("Insert frame after this", null, onClick, MENU_ITEM_INSERT_AFTER));
+            if (frameIsSelected)
+            {
+                menu.Items.Add(new ToolStripMenuItem("&Flip frame", null, onClick, MENU_ITEM_FLIP_FRAME));
+                menu.Items.Add(new ToolStripSeparator());
+                ToolStripMenuItem deleteOption = new ToolStripMenuItem("Delete frame", null, onClick, MENU_ITEM_DELETE_FRAME);
+                deleteOption.ShortcutKeys = Keys.Delete;
+                menu.Items.Add(deleteOption);
+                menu.Items.Add(new ToolStripSeparator());
+                menu.Items.Add(new ToolStripMenuItem("Insert frame before this", null, onClick, MENU_ITEM_INSERT_BEFORE));
+                menu.Items.Add(new ToolStripMenuItem("Insert frame after this", null, onClick, MENU_ITEM_INSERT_AFTER));
+                menu.Items.Add(new ToolStripSeparator());
+            }
+            menu.Items.Add(new ToolStripMenuItem("Cut loop", null, onCutLoopClicked, MENU_ITEM_CUT_LOOP));
+            menu.Items.Add(new ToolStripMenuItem("Copy loop", null, onCopyLoopClicked, MENU_ITEM_COPY_LOOP));
+            menu.Items.Add(new ToolStripMenuItem("Paste over this loop", null, onPasteLoopClicked, MENU_ITEM_PASTE_OVER_LOOP));
+            menu.Items.Add(new ToolStripMenuItem("Paste over this loop flipped", null, onPasteFlippedClicked, MENU_ITEM_PASTE_OVER_LOOP_FLIPPED));
+            if (_copiedLoop == null)
+            {
+                menu.Items[menu.Items.Count - 1].Enabled = false;
+                menu.Items[menu.Items.Count - 2].Enabled = false;
+            }
+            menu.Items.Add(new ToolStripMenuItem("Flip all frames in loop", null, onFlipAllClicked, MENU_ITEM_FLIP_ALL));
+            menu.Items.Add(new ToolStripMenuItem("Add all sprites from folder...", null, onQuickImportFromFolderClicked, MENU_ITEM_QUICK_IMPORT));
 
             menu.Show(this, menuPosition);
         }
@@ -296,9 +316,10 @@ namespace AGS.Editor
 
         private void pasteLoop(bool flipped)
         {
-            int loopId = _loop.ID;
-            _loop = _copiedLoop.Clone(flipped);
-            _loop.ID = loopId;
+            //int loopId = _loop.ID;
+            //_loop = _copiedLoop.Clone(flipped);
+            //_loop.ID = loopId;
+            _copiedLoop.Clone(_loop, flipped);            
             UpdateControlWidth();
             this.Invalidate();
         }
@@ -317,12 +338,6 @@ namespace AGS.Editor
         {            
             _loop.Frames.ForEach(c => c.Flipped = !c.Flipped);
             this.Invalidate();
-        }
-
-        private void onContextMenuForLoopOpening(object sender, CancelEventArgs e)
-        {
-            pasteToolStripMenuItem.Enabled = _copiedLoop != null;
-            pasteFlippedToolStripMenuItem.Enabled = _copiedLoop != null;
         }
 
         private void onQuickImportFromFolderClicked(object sender, EventArgs e)

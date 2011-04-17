@@ -47,6 +47,22 @@ namespace AGS.Editor.Components
                 versionToReturn = "3.5";
                 key.Close();
             }
+
+            key = Registry.LocalMachine.OpenSubKey(NET_FRAMEWORK_KEY_ROOT + @"v4\Full");
+            if (key != null)
+            {
+                versionToReturn = "4.0";
+                key.Close();
+            }
+            else
+            {
+                key = Registry.LocalMachine.OpenSubKey(NET_FRAMEWORK_KEY_ROOT + @"v4\Client");
+                if (key != null)
+                {
+                    versionToReturn = "4.0C";
+                    key.Close();
+                }
+            }
             return versionToReturn;
         }
 

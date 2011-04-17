@@ -220,6 +220,11 @@ namespace AGS.Editor
 
         public virtual void MouseDown(MouseEventArgs e, RoomEditorState state)
         {
+            if (e.Button == MouseButtons.Middle)
+            {
+                return;
+            }
+
             int x = ScreenToGameX(e.X, state);
             int y = ScreenToGameY(e.Y, state);
 
@@ -264,13 +269,12 @@ namespace AGS.Editor
 
         public virtual void MouseUp(MouseEventArgs e, RoomEditorState state)
         {
+            _mouseDown = false;
             if (e.Button == MouseButtons.Middle)
             {
                 ShowCoordMenu(e, state);
-
             }
-            _mouseDown = false;
-            if (_drawMode == AreaDrawMode.Line)
+            else if (_drawMode == AreaDrawMode.Line)
             {
                 Factory.NativeProxy.CreateUndoBuffer(_room, this.MaskToDraw);
                 Factory.NativeProxy.DrawLineOntoMask(_room, this.MaskToDraw, _mouseDownX, _mouseDownY, _currentMouseX, _currentMouseY, _drawingWithArea);

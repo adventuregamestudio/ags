@@ -1592,6 +1592,8 @@ managed struct Dialog {
   readonly import attribute int ID;
   /// Gets the number of options that this dialog has.
   readonly import attribute int OptionCount;
+  /// Gets whether this dialog allows the player to type in text.
+  readonly import attribute bool ShowTextParser;
   
   int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };

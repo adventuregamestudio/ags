@@ -58,6 +58,7 @@ namespace AGS.Editor
 
         public event EventHandler IsModifiedChanged;
         public event EventHandler UpdateUI;
+        public event EventHandler<Scintilla.MarginClickEventArgs> ToggleBreakpoint;
         public delegate void CharAddedHandler(char charAdded);
         public event CharAddedHandler CharAdded;
         public delegate void TextModifiedHandler(int startPos, int length, bool wasAdded);
@@ -167,8 +168,7 @@ namespace AGS.Editor
             // remove the default margins
             this.scintillaControl1.SetMarginWidth(0, 0);
             this.scintillaControl1.SetMarginWidth(1, 16);
-            this.scintillaControl1.SetMarginWidth(2, 0);
-
+            
             this.scintillaControl1.MarkerDefine(MARKER_TYPE_BREAKPOINT, (int)MarkerSymbol.Background);
             this.scintillaControl1.MarkerSetBack(MARKER_TYPE_BREAKPOINT, Color.FromArgb(255, 100, 100));
             this.scintillaControl1.MarkerSetFore(MARKER_TYPE_BREAKPOINT, Color.White);
@@ -176,6 +176,8 @@ namespace AGS.Editor
             this.scintillaControl1.MarkerDefine(MARKER_TYPE_BREAKPOINT2, (int)MarkerSymbol.Circle);
             this.scintillaControl1.MarkerSetBack(MARKER_TYPE_BREAKPOINT2, Color.Red);
             this.scintillaControl1.MarkerSetFore(MARKER_TYPE_BREAKPOINT2, Color.Black);
+
+            this.scintillaControl1.SetMarginSensitivity(1, 1);
 
             this.scintillaControl1.MarkerDefine(MARKER_TYPE_CURRENT_STATEMENT, (int)MarkerSymbol.Arrow);
             this.scintillaControl1.MarkerSetBack(MARKER_TYPE_CURRENT_STATEMENT, Color.Yellow);
@@ -196,10 +198,19 @@ namespace AGS.Editor
 			this.scintillaControl1.MouseUp += new MouseEventHandler(ScintillaWrapper_MouseUp);
             this.scintillaControl1.DwellStart += new EventHandler<Scintilla.DwellStartEventArgs>(scintillaControl1_DwellStart);
             this.scintillaControl1.DwellEnd += new EventHandler(scintillaControl1_DwellEnd);
+            this.scintillaControl1.MarginClick += new EventHandler<Scintilla.MarginClickEventArgs>(scintillaControl1_MarginClick);
 
             this.scintillaControl1.SetFolding();
+            
 
             this.scintillaControl1.IsReadOnly = true;
+        }
+
+        void scintillaControl1_MarginClick(object sender, Scintilla.MarginClickEventArgs e)
+        {
+            if (e.Margin == 1) ToggleBreakpoint(this, e);
+            else if (e.Margin == 2) this.scintillaControl1.ToggleFold(e.LineNumber);
+            this.scintillaControl1.Invalidate();
         }
 
         public bool AutoCompleteEnabled
@@ -470,6 +481,12 @@ namespace AGS.Editor
 
         public void GoToLine(int lineNum)
         {
+            this.scintillaControl1.EnsureVisibleEnforcePolicy(lineNum);
+            if (lineNum > 0)
+            {
+            this.scintillaControl1.EnsureVisibleEnforcePolicy(lineNum - 1);
+            }
+            
 			int bottomLine = lineNum + (scintillaControl1.LinesOnScreen / 2);
 			if (bottomLine > scintillaControl1.LineCount)
 			{

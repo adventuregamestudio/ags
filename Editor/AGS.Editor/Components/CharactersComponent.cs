@@ -113,7 +113,7 @@ namespace AGS.Editor.Components
         {
             Character itemBeingEdited = ((CharacterEditor)_guiController.ActivePane.Control).ItemToEdit;
 
-            if (propertyName == "ScriptName")
+            if (propertyName == Character.PROPERTY_NAME_SCRIPTNAME)
             {
                 bool nameInUse = _agsEditor.CurrentGame.IsScriptNameAlreadyUsed(itemBeingEdited.ScriptName, itemBeingEdited);
                 if (itemBeingEdited.ScriptName.StartsWith("c") && itemBeingEdited.ScriptName.Length > 1)

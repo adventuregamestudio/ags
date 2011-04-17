@@ -4,6 +4,7 @@ using System.Windows.Forms;
 using AGS.Types;
 using AgsView = AGS.Types.View;
 using System.Web;
+using System.Collections.Generic;
 
 namespace AGS.Editor
 {
@@ -12,12 +13,15 @@ namespace AGS.Editor
     /// CharactersEditorFilter is an entirely new file created for displaying characters in rooms.
     /// Most of the methods are adapted from ObjectsEditorFilter as their functionality is similar.
     /// </summary>
-    public class CharactersEditorFilter : ObjectsEditorFilter
+    public class CharactersEditorFilter : IRoomEditorFilter
     {
         private const string MENU_ITEM_COPY_COORDS = "CopyCoordinatesToClipboard";
         private const string MENU_ITEM_COPY_CHAR_COORDS = "CopyCharacterCoordinatesToClipboard";
 
+        private GUIController.PropertyObjectChangedHandler _propertyObjectChangedDelegate;
         private Game _game = null;
+        private Room _room;
+        private Panel _panel;
         private Character _selectedCharacter = null;
         private bool _movingCharacter = false;
         private int _menuClickX = 0;
@@ -25,12 +29,14 @@ namespace AGS.Editor
         private int _offsetX, _offsetY;
 
         public CharactersEditorFilter(Panel displayPanel, Room room, Game game)
-            : base(displayPanel, room)
         {
+            _room = room;
+            _panel = displayPanel;
             _game = game;
+            _propertyObjectChangedDelegate = new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
         }
 
-        public override void MouseDown(MouseEventArgs e, RoomEditorState state)
+        public void MouseDown(MouseEventArgs e, RoomEditorState state)
         {
             int xClick = (e.X + state.ScrollOffsetX) / state.ScaleFactor;
             int yClick = (e.Y + state.ScrollOffsetY) / state.ScaleFactor;
@@ -48,6 +54,15 @@ namespace AGS.Editor
                         SelectCharacter(view, character, xClick, yClick, state);
                     }
                 }
+            }
+
+            if (_selectedCharacter != null)
+            {
+                Factory.GUIController.SetPropertyGridObject(_selectedCharacter);
+            }
+            else
+            {
+                Factory.GUIController.SetPropertyGridObject(_room);
             }
         }
 
@@ -82,7 +97,7 @@ namespace AGS.Editor
             }
         }
 
-        public override bool MouseMove(int x, int y, RoomEditorState state)
+        public bool MouseMove(int x, int y, RoomEditorState state)
         {
             if (_movingCharacter)
             {
@@ -156,7 +171,7 @@ namespace AGS.Editor
             }
         }
 
-        public override void MouseUp(MouseEventArgs e, RoomEditorState state)
+        public void MouseUp(MouseEventArgs e, RoomEditorState state)
         {
             _movingCharacter = false;
 
@@ -170,7 +185,7 @@ namespace AGS.Editor
             }
         }
 
-        public override void PaintToHDC(IntPtr hdc, RoomEditorState state)
+        public void PaintToHDC(IntPtr hdc, RoomEditorState state)
         {
             foreach (Character character in _game.Characters)
             {
@@ -211,7 +226,7 @@ namespace AGS.Editor
             return width;
         }
 
-        public override void Paint(Graphics graphics, RoomEditorState state)
+        public void Paint(Graphics graphics, RoomEditorState state)
         {
             Pen pen = new Pen(Color.Goldenrod);
             pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dot;
@@ -287,5 +302,80 @@ namespace AGS.Editor
             return new Rectangle(xPos - spriteWidth / 2, yPos - spriteHeight, spriteWidth, spriteHeight);
         }
 
+        public void FilterOn()
+        {
+            SetPropertyGridList();
+            Factory.GUIController.OnPropertyObjectChanged += _propertyObjectChangedDelegate;
+        }
+
+        public void FilterOff()
+        {
+            Factory.GUIController.OnPropertyObjectChanged -= _propertyObjectChangedDelegate;
+        }
+
+        private void SetPropertyGridList()
+        {
+            Dictionary<string, object> defaultPropertyObjectList = new Dictionary<string, object>();
+            defaultPropertyObjectList.Add(_room.PropertyGridTitle, _room);
+            foreach (Character character in _game.Characters)
+            {
+                if (character.StartingRoom == _room.Number)
+                {
+                    defaultPropertyObjectList.Add(character.PropertyGridTitle, character);
+                }
+            }
+
+            Factory.GUIController.SetPropertyGridObjectList(defaultPropertyObjectList);
+        }
+
+        private void GUIController_OnPropertyObjectChanged(object newPropertyObject)
+        {
+            if (newPropertyObject is Character)
+            {
+                _selectedCharacter = (Character)newPropertyObject;
+                _panel.Invalidate();
+            }
+            else if (newPropertyObject is Room)
+            {
+                _selectedCharacter = null;
+                _panel.Invalidate();
+            }
+        }
+
+        public RoomAreaMaskType MaskToDraw
+        {
+            get { return RoomAreaMaskType.None; }
+        }
+
+		public int SelectedArea
+		{
+			get { return 0; }
+		}
+
+		public bool ShowTransparencySlider
+		{
+			get { return false; }
+		}
+
+		public string HelpKeyword
+		{
+			get { return string.Empty; }
+		}
+
+        public void DoubleClick(RoomEditorState state)
+        {
+        }
+
+        public void CommandClick(string command)
+        {
+        }
+
+        public void KeyPressed(Keys keyData)
+        {
+        }
+
+        public void Dispose()
+        {
+        }
     }
 }

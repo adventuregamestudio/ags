@@ -12,52 +12,74 @@ namespace AGS.Editor.TextProcessing
     {
         private IScript _script;
         private AGSEditor _agsEditor;
-        private string _lastSearchText, _lastReplaceText;
+        private static string _lastSearchText, _lastReplaceText;
         private bool _lastCaseSensitive;
-        private FindReplaceDialog _dialog;
+        private static bool _creatingDialog;
+        private static FindReplaceDialog _dialog;
+
+        public delegate void LastSearchTextChangedHandler(string searchText);
+        public event LastSearchTextChangedHandler LastSearchTextChanged;
 
         public FindReplace(IScript script, AGSEditor agsEditor,
-            string lastSearchText, string lastReplaceText, 
-            bool lastCaseSensitive)
+            string lastSearchText, bool lastCaseSensitive)
         {
             this._script = script;
             this._agsEditor = agsEditor;
-            this._lastSearchText = lastSearchText;
-            this._lastReplaceText = lastReplaceText;
+            if (!string.IsNullOrEmpty(lastSearchText))
+            {
+                _lastSearchText = lastSearchText;
+            }
             this._lastCaseSensitive = lastCaseSensitive;
         }
-        
-        public bool PerformFindReplace(FindReplaceDialog dialog)
+
+        public static void CloseDialogIfNeeded()
         {
-            _dialog = dialog;
+            if (_dialog != null && !_dialog.IsDisposed
+                && !_creatingDialog)
+            {
+                _dialog.Close();
+            }
+        }
+        
+        public bool PerformFindReplace()
+        {            
             bool showDialog = true;
             int currentScript = 0;
             bool foundOneReference = false;
-            bool showAll = dialog.ShowingAllDialog;
+            bool showAll = _dialog.ShowingAllDialog;
 
-            _lastReplaceText = dialog.TextToReplaceWith;
-            _lastCaseSensitive = dialog.CaseSensitive;
+            _lastReplaceText = _dialog.TextToReplaceWith;
+            _lastCaseSensitive = _dialog.CaseSensitive;
 
-            if (dialog.TextToFind.Length > 0)
+            if (_dialog.TextToFind.Length > 0)
             {
-                if (IsUserRegrets(dialog.IsReplace, showAll))
+                if (IsUserRegrets(_dialog.IsReplace, showAll))
                 {
                     return true;
                 }
-                _lastSearchText = dialog.TextToFind;
+                _lastSearchText = _dialog.TextToFind;
+
+                if (LastSearchTextChanged != null)
+                {
+                    LastSearchTextChanged(_lastSearchText);
+                }
 
                 bool jumpToStart;
-                List<IScript> scriptsForFindReplace = GetScriptsForFindReplace(dialog.LookIn, showAll, out jumpToStart);
+                List<IScript> scriptsForFindReplace = GetScriptsForFindReplace(_dialog.LookIn, showAll, out jumpToStart);
 
                 List<ScriptTokenReference> results = new List<ScriptTokenReference>();
 
                 for (; currentScript < scriptsForFindReplace.Count; currentScript++)
                 {
+                    _script = scriptsForFindReplace[currentScript];
                     if (!FindReplaceInScript(showAll, ref currentScript, 
                         ref foundOneReference, jumpToStart, 
                         scriptsForFindReplace, results))
                     {
-                        break;
+                        if (showAll || foundOneReference)
+                        {
+                            break;
+                        }
                     }
                 }
 
@@ -73,8 +95,11 @@ namespace AGS.Editor.TextProcessing
 
         public void ShowFindReplaceDialog(bool showReplace, bool showAll)
         {
-            FindReplaceDialog dialog = CreateDialog(showReplace, showAll);
-            dialog.Show();
+            _creatingDialog = true;
+            CreateDialog(showReplace, showAll);
+            _dialog.Show();
+            _dialog.Focus();
+            _creatingDialog = false;
         }
 
         private List<IScript> GetScriptsForFindReplace(LookInDocumentType lookIn, bool findAll, out bool jumpToStart)
@@ -86,20 +111,44 @@ namespace AGS.Editor.TextProcessing
                     return new List<IScript> { _script };
                 case LookInDocumentType.CurrentProject:
                     jumpToStart = false;
-                    return _agsEditor.GetAllScripts();
+                    List<IScript> scripts = _agsEditor.GetAllScripts();
+                    if (!findAll)
+                    {
+                        OrderScriptsBySelectedScript(scripts);
+                    }
+                    return scripts;
                 default:
                     throw new NotSupportedException(string.Format("{0} is not supported yet", lookIn));
             }
         }
 
-        private FindReplaceDialog CreateDialog(bool showReplace, bool showAll)
+        private void OrderScriptsBySelectedScript(List<IScript> scripts)
         {
-            FindReplaceDialog dialog = new FindReplaceDialog(_lastSearchText, 
-                _lastReplaceText, _agsEditor.Preferences, this);
-            dialog.ShowingReplaceDialog = showReplace;
-            dialog.ShowingAllDialog = showAll;
-            dialog.CaseSensitive = _lastCaseSensitive;
-            return dialog; 
+            List<IScript> tmpScripts = new List<IScript>(scripts);
+            scripts.Clear();
+            int currentScriptIndex = tmpScripts.FindIndex(c => c.FileName == _script.FileName);
+            
+            for (int i = currentScriptIndex; i < tmpScripts.Count; i++)
+            {
+                scripts.Add(tmpScripts[i]);
+            }
+
+            for (int i = 0; i < currentScriptIndex; i++)
+            {
+                scripts.Add(tmpScripts[i]);
+            }
+        }
+
+        private void CreateDialog(bool showReplace, bool showAll)
+        {
+            if (_dialog == null || _dialog.IsDisposed)
+            {
+                _dialog = new FindReplaceDialog(_lastSearchText,
+                    _lastReplaceText, _agsEditor.Preferences, this);
+                _dialog.ShowingReplaceDialog = showReplace;
+                _dialog.ShowingAllDialog = showAll;
+                _dialog.CaseSensitive = _lastCaseSensitive;
+            }            
         }
 
         private bool IsUserRegrets(bool replace, bool showAll)
@@ -162,7 +211,7 @@ namespace AGS.Editor.TextProcessing
                 }
                 else
                 {
-                    scriptEditorControl.ActivateTextEditor();
+                    //scriptEditorControl.ActivateTextEditor();
                 }
 
                 ScriptTokenReference scriptTokenReference =
@@ -227,6 +276,8 @@ namespace AGS.Editor.TextProcessing
             {
                 foundOneReference = true;
 
+                ZoomToFileIfNeeded(script, ref scriptEditorControl, 
+                    scriptTokenReference, showAll);
                 ReplaceTextIfNeeded(script, scriptEditorControl);
 
                 if (showAll)
@@ -257,13 +308,28 @@ namespace AGS.Editor.TextProcessing
             return (scriptEditorControl.SelectedText.ToLower() == _dialog.TextToFind.ToLower());
         }
 
-        private void ReplaceTextIfNeeded(IScript script, IScriptEditorControl scriptEditorControl)
+        private void ZoomToFileIfNeeded(IScript script, 
+            ref IScriptEditorControl scriptEditorControl,
+            ScriptTokenReference scriptTokenReference, bool showAll)
+        {
+            if (showAll && !_dialog.IsReplace) return;
+            if (TextToFindIsCurrentlySelected(scriptEditorControl))
+            {
+                int startPos = scriptEditorControl.CursorPosition - _dialog.TextToFind.Length;
+                Factory.GUIController.ZoomToFile(script.FileName, ZoomToFileZoomType.ZoomToCharacterPosition,
+                    startPos, false, false, null, false);
+                scriptEditorControl = Factory.GUIController.GetScriptEditorControl(script.FileName, false);
+                scriptEditorControl.SetSelection(startPos, _dialog.TextToFind.Length);                
+                scriptEditorControl.ActivateTextEditor();
+                _dialog.Activate();
+            }
+        }
+
+        private void ReplaceTextIfNeeded(IScript script, 
+            IScriptEditorControl scriptEditorControl)
         {
             if (_dialog.IsReplace && TextToFindIsCurrentlySelected(scriptEditorControl))
-            {
-                Factory.GUIController.ZoomToFile(script.FileName);
-                scriptEditorControl.ReplaceSelectedText(_dialog.TextToReplaceWith);
-            }
+                scriptEditorControl.ReplaceSelectedText(_dialog.TextToReplaceWith);            
         }
     }
 }

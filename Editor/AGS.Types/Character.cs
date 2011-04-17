@@ -10,6 +10,7 @@ namespace AGS.Types
     [PropertyTab(typeof(PropertyTabInteractions), PropertyTabScope.Component)]
     public class Character : ICustomTypeDescriptor
     {
+        public const string PROPERTY_NAME_SCRIPTNAME = "ScriptName";
         public const int NARRATOR_CHARACTER_ID = 999;
 
         private static InteractionSchema _interactionSchema;
@@ -65,6 +66,7 @@ namespace AGS.Types
             set { _id = value; }
         }
 
+        [DisplayName(PROPERTY_NAME_SCRIPTNAME)]
         [Description("The script name of the character")]
         [Category("Design")]
         public string ScriptName
@@ -328,6 +330,12 @@ namespace AGS.Types
         public Interactions Interactions
         {
             get { return _interactions; }
+        }
+
+        [Browsable(false)]
+        public string PropertyGridTitle
+        {
+            get { return _scriptName + " (Character; ID " + _id + ")"; }
         }
 
         public Character(XmlNode node)

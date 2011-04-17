@@ -25,7 +25,6 @@ namespace AGS.Editor
         private MenuCommands _extraMenu = new MenuCommands("&Edit", GUIController.FILE_MENU_ID);
         
         private string _lastSearchText = string.Empty;
-        private string _lastReplaceText = string.Empty;
         private bool _lastCaseSensitive = false;
         private AGSEditor _agsEditor;
 
@@ -92,6 +91,14 @@ namespace AGS.Editor
             get { return _extraMenu; }
         }
 
+        protected override void OnKeyPressed(Keys keyData)
+        {
+            if (keyData.Equals(Keys.Escape))
+            {
+                FindReplace.CloseDialogIfNeeded();
+            }
+        }
+
         protected override string OnGetHelpKeyword()
         {
             return "Dialogs";
@@ -107,6 +114,7 @@ namespace AGS.Editor
                 {
                     _lastSearchText = scintillaEditor.SelectedText;
                 }
+                else _lastSearchText = string.Empty;
                 ShowFindReplaceDialog(command == REPLACE_COMMAND || command == REPLACE_ALL_COMMAND,
                     command == FIND_ALL_COMMAND || command == REPLACE_ALL_COMMAND);
             }
@@ -166,7 +174,7 @@ namespace AGS.Editor
         private void ShowFindReplaceDialog(bool showReplace, bool showAll)
         {
             FindReplace findReplace = new FindReplace(_dialog, _agsEditor,
-                _lastSearchText, _lastReplaceText, _lastCaseSensitive);
+                _lastSearchText, _lastCaseSensitive);
             findReplace.ShowFindReplaceDialog(showReplace, showAll);
         }
 

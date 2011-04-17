@@ -208,8 +208,16 @@ namespace AGS.Editor
 
         void scintillaControl1_MarginClick(object sender, Scintilla.MarginClickEventArgs e)
         {
-            if (e.Margin == 1) ToggleBreakpoint(this, e);
-            else if (e.Margin == 2) this.scintillaControl1.ToggleFold(e.LineNumber);
+            if (e.Margin == 1)
+            {
+                if (ToggleBreakpoint != null)
+                    ToggleBreakpoint(this, e);
+            }
+            else if (e.Margin == 2)
+            {
+                this.scintillaControl1.ToggleFold(e.LineNumber);
+            }
+
             this.scintillaControl1.Invalidate();
         }
 

@@ -1,0 +1,637 @@
+                 ______   _______
+                /\  _  \ /\_  _  \
+                \ \ \L\ \\//\ \L\ \   __     __
+                 \ \  __ \ \ \  ___\/'__`\ /'_ `\
+                  \ \ \/\ \ \_\ \__/\  __//\ \L\ \
+                   \ \_\ \_\/\____\\ \____\ \____ \
+                    \/_/\/_/\/____/ \/____/\/___L\ \
+                                             /\____/
+                                             \_/__/           Version 1.2.1
+
+                An MPEG and Ogg media playing library
+
+                          By Chris Robinson
+
+
+
+#include <disclaimer.h>
+
+   "I do not accept responsibility for any effects, adverse or otherwise,
+    that this code may have on you, your computer, your sanity, your dog,
+    and anything else that you can think of. Use it at your own risk."
+
+
+   #include <license.h>
+
+      "This add-on library is provided as-is for use by the general
+       public. Generally, no fees or acknowledgements are required for
+       its use, except for what's detailed below. Should there be any
+       questions or discrepencies in copyright or license, the
+       disclaimer below shall prevail."
+
+
+=========================================================
+============ Original Disclaimer of Warranty ============
+=========================================================
+
+These software programs are available to the user without any license fee or
+royalty on an "as is" basis. The MPEG Software Simulation Group disclaims any
+and all warranties, whether express, implied, or statuary, including any
+implied warranties or merchantability or of fitness for a particular purpose.
+In no event shall the copyright-holder be liable for any incidental, punitive,
+or consequential damages of any kind whatsoever arising from the use of these
+programs.
+
+This disclaimer of warranty extends to the user of these programs and user's
+customers, employees, agents, transferees, successors, and assigns.
+
+The MPEG Software Simulation Group does not represent or warrant that the
+programs furnished hereunder are free of infringement of any third-party
+patents.
+
+Commercial implementations of MPEG-1 and MPEG-2 video, including shareware, are
+subject to royalty fees to patent holders.  Many of these patents are general
+enough such that they are unavoidable regardless of implementation design.
+
+
+==========================================
+============ Additional Notes ============
+==========================================
+
+As far as I'm aware, freeware implementations of MPEG media are alright, but if
+you wish to release via shareware or other commercial methods, you are supposed
+to pay royalty fees if you don't have anything else worked out with the patent
+holders. This applies to the media files themselves, not the codecs.
+
+That said, Ogg media (Theora and Vorbis) are useable 100% royalty-free. You can
+use them in any program, commercial, shareware, freeware, or whatever, without
+having to pay royalties or ask permission. They are, inherently, free.
+
+
+===============================
+============ About ============
+===============================
+
+APEG (pronounced with a long A) is an add-on library for Allegro. It provides
+MPEG-1 and Ogg media playback using bitmaps, callback, and per-call advancing,
+similar to how Allegro's existing FLIC player works. It has been successfully
+tested with MinGW using gcc 3.4, Unix using gcc 3.4, with reports of successful
+builds under MacOSX.
+
+
+===============================
+============ Video ============
+===============================
+
+The MPEG video decoder is based on a heavilly modified version of mpeg2decode,
+written by the MPEG Software Simulation Group. MPEG-2 video support was removed
+due to speed considerations, though MPEG-1 video is fully supported.
+
+The Theora decoder uses some of the same semantics found in libtheora's example
+player. It's important to note that libtheora and libogg are *required* for
+Theora video support. Go to http://theora.org/ to get the latest sources for
+libtheora. If you do not wish to compile support for Ogg Theora, you need to
+disable Ogg support by using the --disable-ogg switch.
+
+APEG decodes the YCrCb video source into a 15/16/24/32-bit packed-color or 8-
+bit paletted BITMAP structure, suitable for use anywhere that's capable of
+using such a source.
+
+
+===============================
+============ Audio ============
+===============================
+
+The MPEG audio portion of this lib is based on the mpg123 player, created by
+Michael Hipp (it can be found at http://www.mpg123.org/). It supports MPEG-1
+layers 1, 2, and 3.
+
+The Ogg Vorbis player uses the libvorbis and libogg libraries. They are
+required for Ogg support. Most Unix systems should have these already, 
+but if you're using Windows (or don't have them for some other reason), 
+you can get them from http://vorbis.com/. If you do not wish to compile 
+Ogg Vorbis support, use the --disable-ogg switch.
+
+
+====================================
+============ Using APEG ============
+====================================
+
+To build APEG, first run make to compile a CBuild executable. If you have an
+sh-compatible shell, you can also run the cbuild.c source file directly,
+instead of creating the executable. You can check 'cbuild --help' for a list of
+available options. Now, execute cbuild and let it run. After compilation, it'll
+ask if you wish to install it.
+
+To build a program using APEG, just make sure to include <apeg.h> (it'll
+automatically include <allegro.h> for you if you neglected to do so), then when
+linking, add the libs for APEG before Allegro. The math library 'm' is highly
+recommended. It isn't essential, but decoding will crawl without it. You'll
+also need to link against the Vorbis, Theora, and Ogg libs if you compiled with
+Ogg support.
+
+MinGW users:
+The build script uses Pentium-or-better exclusive optimzations by default. If
+this is incompatible with your target system or otherwise undesirable, use the
+--enable-exclopts switch to set what you want passed to -march.
+
+Windows users:
+If you're going to link against the static version of Allegro, you'll need to
+create another lib of APEG. First you should run 'cbuild clean' to rid your
+drive of the object files (so they will rebuild) and the temp lib. Then rebuild
+it with the --enable-static switch. This will create apeg_s for you to use when
+linking with alleg_s.
+
+Unix and OSX users:
+You'll need root access to install the lib and header into the default
+directory tree (/usr/local).
+
+Other platforms may work, but I haven't setup the script to do so. Feel free to
+test and send patches!
+
+** Bonus **
+
+APEG includes an example for using the lib in OpenGL. To build it, you'll need
+AllegroGL installed and working (needed only for setting the video mode and
+flipping buffers). If the example cannot be built, the build process should
+alert you to such and continue without incident. The example is, fundamentally
+enough, in the examples directory called exagl.
+
+
+========================================
+============ External Tools ============
+========================================
+
+APEG comes with a simple tool for demuxing MPEG files, dumping audio 
+or video from a stream, and an ogg encoder. They're in the tools sub 
+directory, called demux, dump_stream, and ogg_encoder.
+
+The demux tool seperates an MPEG system stream into an audio and video file.
+The seperate output files can be played in APEG if the source was also
+playable.
+
+The dump_stream tool can be used to dump a stream's video to a YUV4MPEG2-
+compliant file, or to dump a stream's audio to a unlimited-size RIFF WAV
+file.
+
+The ogg_encoder tool can be used to create Ogg Vorbis and Ogg Theora
+media files. It features a GUI front end for setting encoding
+parameters, and lets you immediately test the produced Ogg file.
+Acceptable input is RIFF WAV files for audio and YUV4MPEG2 files for
+video, or programs that can generate such files to stdout (such as 
+dump_stream). Video input can also accept a .tes script, which defines a 
+stream using Allegro-compatible bitmaps for a video source.
+
+
+========================================
+============ Global Defines ============
+========================================
+
+There are some useful defines in apeg.h that you can use to check, report,
+and replace, various things.
+
+#define APEG_MAJOR_VERSION
+#define APEG_MINOR_VERSION
+#define APEG_REVISION
+    Contains APEG's major and minor version, along with it's revision number,
+    respectively.
+
+#define APEG_VERSION_NUM
+    The absolute version number for this release of APEG, in hexadecimal. This 
+    is useful to do compile-time checks against expected versions (see
+    APEG_MAKE_VERSION).
+
+#define APEG_VERSION_STR
+    A string of APEG's version number, provided for convenience.
+
+#define APEG_MAKE_VERSION(a, b, c)
+    Creates an absolute version number suitable for checking against
+    APEG_VERSION_NUM. This macro, however, is not limited to use with APEG
+    itself.
+
+
+#define FPS_TO_TIMER(x)
+    A more accurate version of BPS_TO_TIMER, given that video streams can run at
+    exponential rates (by default, Allegro's timers would run a 29.97fps stream
+    at 29fps).
+
+
+#define APEG_HAS_VIDEO
+    If this bitmask shows non-zero on a stream's flag parameter, the stream
+    contains valid video. The main stream structure's video related variables
+    may not be reliable if this flag isn't set. Note that this is a mask for
+    testing all video flags!
+
+#define APEG_MPG_VIDEO
+    If this bit is set on a stream's flag parameter, the stream contains valid
+    MPEG-1 video.
+
+#define APEG_THEORA_VIDEO
+    If this bit is set on a stream's flag parameter, the stream contains valid
+    Ogg Theora video.
+
+
+#define APEG_HAS_AUDIO
+    If this bitmask shows non-zero on a stream's flag parameter, the stream
+    contains valid audio. The audio info structure may not contain valid
+    information if this flag isn't set. Note that this is a mask for testing
+    all audio flags!
+
+#define APEG_MPG_AUDIO
+    If this bit is set on a stream's flag parameter, the stream contains valid
+    MPEG-1 (layer 1, 2, or 3) audio.
+
+#define APEG_VORBIS_AUDIO
+    If this bit is set on a strean's flag parameter, the stream contains valid
+    Ogg Vorbis audio. Not all of the audio info stucture's members will be
+    valid, and some structures may have slightly different behavior, but all
+    known data is filled in.
+
+
+====================================
+============ Structures ============
+====================================
+
+typedef struct APEG_STREAM {
+    BITMAP *bitmap;         // The bitmap the video stream decodes to
+    int frame_updated;      // 0 if the frame was skipped, positive if updated,
+                            // and negative if there's no new frame to display
+
+    unsigned int frame;     // Current video frame number
+
+    int w, h;               // The logical width and height of the video
+    double aspect_ratio;    // The absolute aspect ratio value, or 0 if 
+                            // unknown
+
+    int aspect_numerator;   // Aspect ratio numerator and denominator. These
+    int aspect_denominator; // are applied to the logical video size to get the
+                            // absolute aspect_ratio value
+
+    double length;          // The detected length of the stream, in seconds
+    double pos;             // Current decode position, in seconds
+                            // Please read below!
+
+    enum pixel_format;      // The encoded pixel format of the video stream.
+                            // This will be set to APEG_420, APEG_422 (Theora
+                            // only), or APEG_444 (Theora only)
+
+    double frame_rate;      // Number of frames per second
+    int fps_numerator;      // Frame rate numerator and denominator. These are
+    int fps_denominator;    // used to determine the frame_rate
+
+    int bit_rate;           // Video stream's bps (MPEG only)
+
+    volatile int timer;     // Timer variable that's incremented when a frame
+                            // is ready to be displayed
+
+    int flags;              // A bitfield containing some info about the stream
+
+    APEG_AUDIO_INF audio;   // Structure containing audio stream
+                            // information
+} APEG_STREAM;
+
+Please note: The length and pos fields are currently only valid for Ogg files
+             (audio-only, video-only, and audio+video). As well, they are not
+             to be relied on for precise measurements. The pos field in
+             particular isn't very accurate when doing audio-only decoding.
+             They're also currently experimental, and may show bugs. If you
+             find one, please report it.
+
+
+typedef struct APEG_AUDIO_INF {
+    int kbps;         // Number of kbits per second of audio data (MPEG only)
+    int layer;        // Layer version of the current stream (MPEG only)
+    int freq;         // Stream frequency, in Hz
+    int down_sample;  // Down sampling mode (0 = 1:1, 1 = 2:1, 2 = 4:1)
+    int channels;     // Playback channel count
+    int down_channel; // True if playback is down channeled to mono.
+    int flushed;      // Set non-zero if the internal audio buffer was flushed
+                      // on the last update.
+} APEG_AUDIO_INF;
+
+
+==============================================
+============ High-level functions ============
+==============================================
+
+APEG's high level functions have been designed to mirror Allegro's existing
+FLIC playing API.
+
+int apeg_play_mpg(const char *filename, BITMAP *bmp, int loop,
+                  int (*callback)());
+int apeg_play_memory_mpg(void *mpeg_data, BITMAP *bmp, int loop,
+                         int (*callback)());
+    Plays an MPEG or Ogg stream, either from disk (a normal file, or embedded
+    datafile object), or a memory buffer. If you want to use the memory player,
+    please see apeg_set_memory_stream_size() below. Both will blit the frame to
+    the upper-left corner of the bitmap, and call the callback function each
+    frame, if specified. If callback is NULL, the default callback will be
+    used, which cuts playback if keypressed() returns true. These functions
+    return APEG_OK if the video stream played to completion, APEG_ERROR if
+    something went wrong (storing an error message in apeg_error), or whatever
+    the callback function returns, if non-zero.
+
+int apeg_play_mpg_ex(void *ptr, BITMAP *bmp, int loop, int (*callback)());
+    Same as above, except it uses specified callbacks to retrieve the data (see
+    apeg_set_data_reader() below). The ptr argument will be passed to the data
+    reader callbacks for whatever use you may need.
+
+
+SAMPLE *apeg_preload_audio(const char *filename);
+    Loads an MPEG audio or Ogg Vorbis file into a SAMPLE struct. If an error
+    occurs during stream initialization (ie. the file doesn't exist, the stream
+    contains no audio, etc), NULL is returned and apeg_error is set accordingly.
+    The function temporarilly modifies any installed audio callbacks (see
+    set_audio_callbacks below) along with the down-sampling and down-channeling
+    modes, but they are restored before the function exits, so please be
+    cautious when using this in threaded situations. This function will return
+    a valid, but incomplete, sample if an error occurs while decoding.
+
+
+===================================
+============ Functions ============
+===================================
+
+These are APEG's lowest-level functions. For some of you, it may be overkill.
+If you want the most control over playback however, learn these functions then
+read the Behavior Modifying section.
+
+APEG_STREAM *apeg_open_stream(const char *filename);
+    Opens an MPEG or Ogg file from disk (either a normal file or an embedded
+    datafile object). The video decode depth will be set to whatever was last
+    passed to apeg_set_display_depth(), the screen color depth, or 32bit if
+    there's no screen bitmap.
+
+APEG_STREAM *apeg_open_memory_stream(void *mpeg_data, int data_len);
+    Same as above, except it takes a pointer to data stored in memory, and the
+    full length of the data in bytes.
+
+APEG_STREAM *apeg_open_stream_ex(void *ptr);
+    This function opens an MPEG or Ogg stream using specified callbacks to
+    retrieve the data (please see the apeg_set_data_reader() function below).
+    This can be useful for using non-disk and non-memory sources, such as a
+    network or other input device. Be warned, MPEG audio playback is not
+    currently supported with this stream type!
+
+int apeg_advance_stream(APEG_STREAM *stream, int loop);
+    Polls the stream, first decoding the audio stream if present then the
+    video. If the audio is playing, the stream's timer will periodically be
+    auto-adjusted to keep the video in sync. Returns APEG_ERROR if an error
+    occured, storing a description of the error in apeg_error, APEG_EOF if the
+    stream ended, or APEG_OK if things are good.
+
+int apeg_reset_stream(APEG_STREAM *stream);
+    Resets the stream to the beginning. Returns APEG_ERROR on error with a
+    description in apeg_error, or APEG_OK if everything went good.
+
+void apeg_close_stream(APEG_STREAM *stream);
+    Closes an opened APEG_STREAM. The stream pointer will no longer be valid
+    after this function.
+
+int apeg_get_stream_voice(APEG_STREAM *stream);
+    For streams with audio, this returns the voice number for the audio stream.
+    This function does not check if the stream has audio enabled, or if there
+    are any installed callbacks, so take caution!
+
+void apeg_get_video_size(APEG_STREAM *stream, int *w, int *h);
+    Gets the video size and stores them in the provided int pointers (which
+    *must* be valid), extending the width or height as needed for the detected
+    aspect ratio. This assumes a square-pixel display resolution, otherwise
+    they may need to be further adjusted.
+
+void apeg_set_stream_rate(APEG_STREAM *stream, float multiple);
+    Changes the speed of an opened stream. The calculated speed will be
+    multiplied by the given multiple, so passing 2.0 will effectively double
+    the speed of playback, and 0.5 will play the stream at half speed. Passing
+    0 or less will stop playback.
+
+void apeg_reset_colors(APEG_STREAM *stream)
+    Resets the color tables that APEG uses internally for the specified stream.
+    If you set or reset a video mode after opening a stream, you must call this
+    so the internal color tables will use proper color ordering! It will also
+    reset the palette to apeg_palette when using 8-bit decoding.
+
+
+============================================
+============ Behavior Modifying ============
+============================================
+
+If you want a bit more control over how an MPEG or Ogg stream is played, take a
+look at the following functions. Please note, though, that they are not needed
+for general playback. They must be called _before_ opening the stream, except
+where noted.
+
+void apeg_set_memory_stream_size(int size);
+    Sets the size of the memory data stream, used to keep the player from
+    possibly overrunning the buffer. This doesn't affect anything else other
+    than specify how many bytes the memory player is allowed to use for
+    subsequently opened streams.
+
+void apeg_set_display_depth(int depth);
+    Sets the color depth to decode the stream to, overriding the target bitmap
+    and display depth. Set to <= 0 to change it back to normal behavior. Note
+    that you can't open streams in 15-bit and 16-bit depths simultaniously.
+
+void apeg_set_quality(int quality);
+    Sets the playback quality for any subsequently opened or played stream.
+    Legal values are 0 (low), 1 (medium), and 2 (high). Passing any other value
+    will revert it back to the default, high quality. Theora currently ignores
+    this option.
+
+int apeg_downsample_audio(int ds);
+    Sets the downsampling mode for audio streams, and returns the previous mode
+    for reference. If you pass a negative number, the function will only return
+    the current mode without changing it. Please note though that you can only
+    safely open streams in one downsample mode at a time! Valid values are 0
+    (no downsampling), 1 (2:1 downsampling), and 2 (4:1 downsampling). Default
+    is 0.
+
+void apeg_downchannel_audio(int dc);
+    Enables or disables downchanneling (->mono conversion) for streams opened
+    after this is set. Default is no downchanneling.
+
+int apeg_set_audio_bufsize(int size)
+    Sets the buffer size, in bytes, for the audio stream and returns the
+    current buffer size. Smaller values help with syncing, however require more
+    CPU power. Passing zero or a negative number will not modify the buffer
+    size, but will allow the function to return the current buffer size
+    setting. The buffer size will be rounded up to the nearest 256 byte
+    multiple. Default is 8KB.
+
+void apeg_enable_framedrop(int enable);
+    This toggles framedropping. When framedroping is enabled, the video decoder
+    will skip converting the yuv images to rgb when falling behind. It will
+    also completely skip decoding B (bi-directional motion) MPEG frames for the
+    same reason. Default is disabled. Take note that this effects all streams
+    and takes effect immediately upon calling!
+
+void apeg_disable_length_detection(int skipdetect);
+    This prevents APEG from attempting to find the length of the stream, which
+    it does by scanning the data packets until finding the end. This would be
+    useful if you have a slow data source (such as a dial-up connection), or
+    when dealing with live feeds.
+
+int apeg_ignore_video(int ignore);
+    Causes the decoder to completely skip opening and decoding video data.
+
+int apeg_ignore_audio(int ignore);
+    Causes the decoder to completely skip opening and decoding audio data.
+
+void apeg_set_audio_callbacks(int (*init_cb)(APEG_STREAM *stream,
+                                             int *channels, int *frequency,
+                                             void *arg),
+                              int (*cb)(APEG_STREAM *stream, void *buf,
+                                        int length, void *arg),
+                              void *arg)
+    Installs callbacks to process uncompressed audio in place of the audio
+    stream player. Both take a pointer to the APEG stream being processed and a
+    copy of the user-specified argument. The init_callback function also takes
+    pointers to the wanted channel count and frequency. You may change the
+    channel and frequency parameters as needed, however there are some caveats.
+    APEG will only properly rechannel audio if the new channel count is less
+    the old count (it is considered an error if you increase the number of
+    channels), and APEG will *not* resample the audio to match a different
+    frequency. You must do that yourself in the main callback function as
+    needed. The function should return negative on failure, or the requested
+    audio buffer size (return 0 for the default). The main callback function
+    takes a pointer to the uncompressed audio buffer, and the length (in bytes)
+    of the buffer. The audio will be unsigned 16-bit PCM data. The frequency
+    and channel count of the audio is in the stream structure. The callback
+    should return the number of bytes used, 0 if you're waiting, or negative on
+    error.
+
+    Note that these are saved in the stream structure when it is loaded, so you
+    may safely modify them after loading.
+
+void apeg_set_stream_reader(int (*init_func)(void *ptr),
+                            int (*request_func)(void *bfr, int bytes, void *ptr),
+                            void (*skip_func)(int bytes, void *ptr));
+    To use the apeg_*_ex functions you must call this first, and you must
+    supply all three callbacks, or else APEG will fail to initialize. They all
+    take a copy of the pointer you passed to the apeg_*_ex function.
+
+    init_func() is called to initialize reading (possibly destroying previous
+    initializations, so make sure they clean up first). It should return the
+    size you want the buffer to be, or <= 0 indicating an error. request_func()
+    is used to fill the buffer with the specified amount of bytes, and returns
+    the number of bytes read. skip_func() is used to skip an arbitrary amount
+    of bytes.
+
+    Note that these are saved in the stream structure when it is loaded, so you
+    may safely modify them after loading.
+
+void apeg_set_display_callbacks(int (*init)(APEG_STREAM *stream, int coded_w,
+                                            int coded_h, void *arg),
+                                void (*decode)(APEG_STREAM *stream,
+                                               unsigned char **src, void *arg),
+                                void *arg);
+    Allows you to handle the display yourself. Both callbacks take a copy of
+    the argument you pass to the function. Understanding the usage of these
+    functions may be a little tricky, so let me try to explain.
+
+    init() is called when the display needs to initialize. It's only called
+    once when the stream opens. The total width and height of the video is
+    coded_w by coded_h, and are gauranteed to be multiples of 16. Please note
+    it can differ from the logical video size stored in the stream struct.
+    init() should return negative on unrecoverable errors (APEG will error and
+    not finish opening the stream), positive if you want APEG to try using its
+    default decoding (the display callback will be ignored), or 0 on success.
+    You can use the stream's bitmap pointer to test if it's using the callback
+    (if the bitmap is NULL, it is using the specified callback).
+
+    decode() is called for every frame. src can be a planar 4:2:0, 4:2:2, or
+    4:4:4 YCrCb format image. src[0] represents Y, and is coded_w*coded_h in
+    size. src[1] represents Cr, and src[2] represents Cb; both are (coded_w/2)*
+    (coded_h/2) in size for 4:2:0, (coded_w/2)*coded_h for 4:2:2, and coded_w*
+    coded_h for 4:4:4.
+
+    Note that the decode callback is saved in the stream structure when it is
+    loaded (init is only used once and is not needed after initialization), so
+    you can safely modify them after loading.
+
+    Also note that older versions of the API had fewer parameters for this
+    function. For programs that used the old API, all you need to do is change
+    the callbacks to take an extra, unused, void pointer, and pass an extra
+    NULL to this function.
+
+
+===================================
+============ Variables ============
+===================================
+
+extern APEG_STREAM *apeg_stream;
+    A stream object used by APEG's apeg_play_* functions. You generally don't
+    need to use this, but it is provided in case you want access to it in the
+    callback.
+
+extern char apeg_error[256];
+    If an APEG function returns APEG_ERROR, this string will hold the error
+    message. Usually an error will be due to the stream, but there could be
+    cases when the decoder's at fault.
+
+extern PALETTE apeg_palette;
+    For 8-bit mode, the player creates and sets a special 4.2.2 YCrCb palette
+    when it loads a stream, and stores it here. Your palette will _not_ be
+    restored when the stream closes, so take caution.
+
+
+==========================================
+============ Planned features ============
+==========================================
+
+* Keyframe indexing, for faster searching.
+
+* Suggestions?
+
+
+=================================
+============ Credits ============
+=================================
+
+DJ Delorie and the MinGW32 team (http://www.delorie.com/djgpp and
+                                 http://www.mingw.org/)
+    Creators of DOS and Win32 ports of the GNU GCC project, respectively. I
+    can't say how many people (me included) got their start in programming
+    thanks to these free compilers.
+
+The MPEG Software Simulation Group
+    Creating the original code this library is based from. This project would
+    not really exist without it.
+
+Xiph.Org Foundation
+    Providers of the cool Vorbis and Theora media formats. They're also good
+    enough to supply useful libraries and example functions to show how to use
+    these formats. Awesome people.
+
+Stefan Eckart
+    Modified the original MPEG SSG's decoder, adding a bit of speed to it (and
+    it could always use any extra speed it can get!).
+
+Shawn Hargreaves and the Allegro team (http://alleg.sourceforge.net/)
+    These people really deserve a lot of praise for such an excellent, cross
+    platform library. It's, admittedly, not the absolute best in the world, but
+    it's a damn fine library. And it's free! What else could a programmer want?
+
+Matthew Leverton and Allegro.cc (http://allegro.cc/)
+    A great library deserves a great support site. Matthew has done an awesome
+    job putting together this extremely useful site. It has lists of other
+    projects and games built using Allegro, other add-on libraries, and a very
+    helpful forum/community.
+
+Thomas Fjellstrom
+    Reporting a successful build under Unix, along with a performance report,
+    as well as supplying the Xv YV12 overlay code used as a base for for
+    explay's overlay support. Also for giving it a new home! Thanks man! :)
+
+
+=========================================
+============ Conclusion. Not ============
+=========================================
+
+As we all know, documentation is never finished. However, this is the end of
+the readme file. I hope you find APEG useful. :)
+
+Feedback, constructive criticism, suggestions, ect.. e-mail to
+crobin_99(at)yahoo.com or kcat(at)strangesoft.net
+
+Have fun!

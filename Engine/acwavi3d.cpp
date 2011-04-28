@@ -1,7 +1,5 @@
 /* AVI/MPG player for AGS
-  Adapted from MS DirectX Media example program to work with
-  allegro
-  2002 Chris Jones
+  VMR9-based player to work with D3D
 */
 //#define ALLEGRO_STATICLINK  // already defined in project settings
 #include <stdio.h>

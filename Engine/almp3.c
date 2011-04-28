@@ -10,8 +10,8 @@
 #include <string.h>
 #include <allegro.h>
 #include <almp3.h>
-#include "E:\Code\libraries\almp3_205\decoder/mpg123.h"
-#include "E:\Code\libraries\almp3_205\decoder/mpglib.h"
+#include "libsrc/almp3-2.0.5/decoder/mpg123.h"
+#include "libsrc/almp3-2.0.5/decoder/mpglib.h"
 
 
 /* structures */

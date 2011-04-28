@@ -1,23 +1,14 @@
 /* Adventure Creator v2 Run-time engine
-   Started 27-May-99 (c) 1999,2000,2001,2002,2003,2004,2005,2006,2007 Chris Jones
+   Started 27-May-99 (c) 1999-2011 Chris Jones
 
-  Adventure Game Studio source code Copyright 1999-2009 Chris Jones.
+  Adventure Game Studio source code Copyright 1999-2011 Chris Jones.
   All rights reserved.
 
-  You have this source code for the purposes of finding bugs in, and adding
-  new features to, Adventure Game Studio. You may compile the source to
-  get a working version of the engine, however you MUST NOT distribute your
-  engine in ANY WAY, not even privately via e-mail. All changes MUST be
-  submitted to Chris Jones who at his discretion MAY then combine the changes
-  into the official AGS release.
+  The AGS Editor Source Code is provided under the Artistic License 2.0
+  http://www.opensource.org/licenses/artistic-license-2.0.php
 
-  You MAY NOT modify any of the credits in this file.
-  Of course, anyone who submits fixes/additions to the code will be credited
-  in the AGS manual.
-
-  fixme:
-    - transparent objects when behind walk-behind areas
-    - possible bug: walk speed of 1 left =0xffff in do_movelist_move
+  You MAY NOT compile your own builds of the engine without making it EXPLICITLY
+  CLEAR that the code has been altered from the Standard Version.
 
 */
 #ifdef NO_MP3_PLAYER

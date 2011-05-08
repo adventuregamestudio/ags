@@ -4,13 +4,6 @@ Microsoft Visual Studio Solution File, Format Version 10.00
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "acwin", "acwin.vcproj", "{0FAE0543-C09B-43CE-AEE1-D68FA8B33276}"
 EndProject
 Global
-	GlobalSection(SourceCodeControl) = preSolution
-		SccNumberOfProjects = 1
-		SccProjectUniqueName0 = acwin.vcproj
-		SccProjectName0 = \u0022$/ags/acwin\u0022,\u0020PAAAAAAA
-		SccLocalPath0 = .
-		SccProvider0 = MSSCCI:Microsoft\u0020Visual\u0020SourceSafe
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		DebugWorking|Win32 = DebugWorking|Win32
 		Release|Win32 = Release|Win32

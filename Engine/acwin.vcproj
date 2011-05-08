@@ -5,9 +5,6 @@
 	Name="acwin"
 	ProjectGUID="{0FAE0543-C09B-43CE-AEE1-D68FA8B33276}"
 	RootNamespace="acwin"
-	SccProjectName="&quot;$/ags/acwin&quot;, PAAAAAAA"
-	SccLocalPath="."
-	SccProvider="MSSCCI:Microsoft Visual SourceSafe"
 	TargetFrameworkVersion="0"
 	>
 	<Platforms>
@@ -54,7 +51,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="."
+				AdditionalIncludeDirectories=".;..\common;..\common\libinclude"
 				PreprocessorDefinitions="VS2005;WIN32;NDEBUG;_WINDOWS;ALLEGRO_STATICLINK;THIS_IS_THE_ENGINE;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;_CRT_SECURE_NO_WARNINGS;ALLEGRO_NO_ASM;NO_MP3_PLAYER"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -118,7 +115,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="cmd /c copy e:\code\ags\acwin\release\acwin.exe e:\code\ags\agsedit\release&#x0D;&#x0A;cmd /c copy e:\code\ags\acwin\release\acwin.exe E:\Code\ags\netedit\AGS.Editor\bin\Debug&#x0D;&#x0A;"
+				CommandLine=""
 			/>
 		</Configuration>
 		<Configuration
@@ -155,7 +152,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="."
+				AdditionalIncludeDirectories=".;..\common;..\common\libinclude"
 				PreprocessorDefinitions="VS2005;_DEBUG;WIN32;NDEBUG;_WINDOWS;ALLEGRO_STATICLINK;THIS_IS_THE_ENGINE;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;_CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="1"
 				StructMemberAlignment="0"
@@ -260,7 +257,7 @@
 				InlineFunctionExpansion="1"
 				EnableIntrinsicFunctions="true"
 				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories="."
+				AdditionalIncludeDirectories=".;..\common;..\common\libinclude"
 				PreprocessorDefinitions="VS2005;WIN32;NDEBUG;_WINDOWS;ALLEGRO_STATICLINK;THIS_IS_THE_ENGINE;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;_CRT_SECURE_NO_WARNINGS;ALLEGRO_NO_ASM"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -327,7 +324,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="cmd /c copy e:\code\ags\acwin\release\acwin.exe e:\code\ags\agsedit\release&#x0D;&#x0A;cmd /c copy e:\code\ags\acwin\release\acwin.exe E:\Code\ags\netedit\AGS.Editor\bin\Debug&#x0D;&#x0A;"
+				CommandLine=""
 			/>
 		</Configuration>
 	</Configurations>

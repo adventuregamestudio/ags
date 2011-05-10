@@ -9,7 +9,7 @@
  *
  */
 
-#include <Allegro.h>
+#include <allegro.h>
 
 #ifdef ALLEGRO_BIG_ENDIAN
 

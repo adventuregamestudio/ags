@@ -1,0 +1,45 @@
+# almp3 layer2.c, layer3.c, tabinit.c are not included because they're dupes of
+# apeg layer2.c and layer3.c, tabinit.c
+# almp3 decode_i386.c and dct64_i386.c are dupes of apeg dct.c/dct64.c
+set(SOURCES acaudio.cpp acfonts.cpp acchars.cpp acgfx.cpp misc.cpp ac.cpp acgui.cpp routefnd.cpp acplatfm.cpp acsound.cpp ali3dsw.cpp scrptrt.cpp acdialog.cpp bigend.cpp alogg.c almp3.c ${COMMON}/cscommon.cpp ${COMMON}/csrun.cpp ${COMMON}/sprcache.cpp libsrc/hq2x/hq2x3x.cpp ${COMMON}/lzw.cpp ${COMMON}/compress.cpp libsrc/allegro-4.2.2-agspatch/file.c libsrc/aastr-0.1.1/aastr.c libsrc/aastr-0.1.1/aautil.c libsrc/apeg-1.2.1/display.c libsrc/apeg-1.2.1/getbits.c libsrc/apeg-1.2.1/getblk.c libsrc/apeg-1.2.1/gethdr.c libsrc/apeg-1.2.1/getpic.c libsrc/apeg-1.2.1/idct.c libsrc/apeg-1.2.1/motion.c libsrc/apeg-1.2.1/mpeg1dec.c libsrc/apeg-1.2.1/ogg.c libsrc/apeg-1.2.1/recon.c libsrc/apeg-1.2.1/audio/apegcommon.c libsrc/apeg-1.2.1/audio/audio.c libsrc/apeg-1.2.1/audio/dct64.c libsrc/apeg-1.2.1/audio/decode_1to1.c libsrc/apeg-1.2.1/audio/decode_2to1.c libsrc/apeg-1.2.1/audio/decode_4to1.c libsrc/apeg-1.2.1/audio/layer1.c libsrc/apeg-1.2.1/audio/layer2.c libsrc/apeg-1.2.1/audio/layer3.c libsrc/apeg-1.2.1/audio/mpg123.c libsrc/apeg-1.2.1/audio/readers.c libsrc/apeg-1.2.1/audio/tabinit.c libsrc/apeg-1.2.1/audio/vbrhead.c libsrc/almp3-2.0.5/decoder/common.c libsrc/almp3-2.0.5/decoder/interface.c)
+if(APPLE)
+	add_definitions(-DMAC_VERSION)
+	set(SOURCES ${SOURCES} macport.cpp acplmac.cpp ${COMMON}/mousew32.cpp ${COMMON}/Clib32.cpp)
+	file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/../Common/libinclude/allegro/platform/alplatf.h "#define ALLEGRO_MACOSX\n")
+# UNIX is also set for OSX - so it must be checked for
+# after checking for APPLE
+elseif(UNIX)
+	add_definitions(-DLINUX_VERSION)
+	if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+		add_definitions(-DBSD_VERSION)
+	endif()
+	# There's thousands of those - let's not hide the errors
+	# in the warning spewage for now
+	add_definitions(-Wno-write-strings)
+	set(SOURCES ${SOURCES} acpllnx.cpp ${COMMON}/mousew32.cpp ${COMMON}/Clib32.cpp)
+	file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/../Common/libinclude/allegro/platform/alplatf.h "#define ALLEGRO_UNIX\n")
+elseif(WIN32)
+	add_definitions(-DWINDOWS_VERSION)
+	set(SOURCES ${SOURCES} acplwin.cpp acwavi.cpp ali3dd3d.cpp acwavi3d.cpp acdebug.cpp ${COMMON}/mousew32.cpp ${COMMON}/Clib32.cpp)
+	add_executable(acwsetup acwsetup.cpp)
+	if(MSVC)
+		file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/../Common/libinclude/allegro/platform/alplatf.h "#define ALLEGRO_MSVC\n")
+	elseif(BORLAND)
+		file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/../Common/libinclude/allegro/platform/alplatf.h "#define ALLEGRO_BCC32\n")
+	elseif(WATCOM)
+	else()
+		file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/../Common/libinclude/allegro/platform/alplatf.h "#define ALLEGRO_MINGW32\n")
+	endif()
+else()
+	add_definitions(-DDOS_VERSION)
+	set(SOURCES ${SOURCES} acpldos.cpp ${COMMON}/mouse32.cpp ${COMMON}/Clib32.cpp)
+	if(WATCOM)
+		file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/../Common/libinclude/allegro/platform/alplatf.h "#define ALLEGRO_WATCOM\n")
+	else()
+		file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/../Common/libinclude/allegro/platform/alplatf.h "#define ALLEGRO_DJGPP\n")
+	endif()
+endif()
+
+add_executable(ags ${SOURCES})
+target_link_libraries(ags alleg dumb aldmb cda alfont theora ogg vorbis vorbisfile)
+install(TARGETS ags DESTINATION bin)

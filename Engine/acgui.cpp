@@ -16,6 +16,7 @@
 #include "acroom.h"
 #include "acruntim.h"
 #include "acgui.h"
+#include <ctype.h>
 
 #undef CROOM_NOFUNCTIONS
 

@@ -31,7 +31,14 @@ static void read_bytes(APEG_LAYER *layer, byte *buf, int count)
 			if(i > count)
 				i = count;
 			memcpy(buf, rds->filept, i);
+#if defined(__GNUC__) && __GNUC__ >= 4
+			// gcc 4.x must have an lvalue as left operand
+			unsigned char *d=rds->filept;
+			d += i;
+			rds->filept = d;
+#else
 			((unsigned char*)rds->filept) += i;
+#endif
 		}
 
 		if(i < count)
@@ -194,12 +201,12 @@ static int init_reader(APEG_LAYER *layer)
 	}
 
 	rds->eof = FALSE;
-    rds->filepos = 0;
+	rds->filepos = 0;
 	rds->left_in_packet = ~0u;
 	if(layer->system_stream_flag == MPEG_SYSTEM)
 		next_packet(layer);
 
-    return ALMPA_OK;
+	return ALMPA_OK;
 }
 
 void almpa_close(APEG_LAYER *layer)
@@ -267,7 +274,14 @@ void almpa_skip_bytes(APEG_LAYER *layer, int count)
 		int i = (unsigned)layer->buffer_size - (unsigned)rds->filepos;
 		if(i < count)
 			count = i;
+#if defined(__GNUC__) && __GNUC__ >= 4
+		// gcc 4.x must have an lvalue as left operand
+		unsigned char *d=rds->filept;
+		d += count;
+		rds->filept = d;
+#else
 		((unsigned char*)rds->filept) += count;
+#endif
 	}
 
 	rds->filepos += count;

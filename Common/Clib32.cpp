@@ -29,7 +29,7 @@
 #if !defined(LINUX_VERSION) && !defined(MAC_VERSION)
 #include <io.h>
 #else
-#include "djcompat.h"
+//#include "djcompat.h"
 #include "allegro.h"
 #endif
 #include "misc.h"
@@ -49,6 +49,14 @@ char clbuff[20];
 const int RAND_SEED_SALT = 9338638;  // must update editor agsnative.cpp if this changes
 #define MAX_FILES 10000
 #define MAXMULTIFILES 25
+
+#ifdef LINUX_VERSION
+static off_t filelength(int fd) {
+  struct stat st;
+  fstat(fd, &st);
+  return st.st_size;
+}
+#endif
 
 struct MultiFileLib
 {

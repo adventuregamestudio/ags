@@ -18,7 +18,6 @@
 #include <fcntl.h>
 
 #include "mpg123.h"
-#include "E:\Code\libraries\apeg\include\genre.h"
 #include "common.h"
 
 int tabsel_123[2][3][16] = {

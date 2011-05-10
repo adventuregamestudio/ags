@@ -12,6 +12,9 @@
 
 */
 #include "acplatfm.h"
+#if defined(LINUX_VERSION) || defined(MAC_VERSION)
+#define strnicmp strncasecmp
+#endif
 
 AGSPlatformDriver* AGSPlatformDriver::instance = NULL;
 

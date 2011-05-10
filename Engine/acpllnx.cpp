@@ -5,7 +5,8 @@
 // ********* LINUX PLACEHOLDER DRIVER *********
 
 #include "acplatfm.h"
-
+#include <pwd.h>
+#include <sys/stat.h>
 
 struct AGSLinux : AGS32BitOSDriver {
 
@@ -22,6 +23,7 @@ struct AGSLinux : AGS32BitOSDriver {
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
   virtual void WriteConsole(const char*, ...);
+  virtual void ReplaceSpecialPaths(const char*, char*);
 };
 
 
@@ -92,4 +94,37 @@ AGSPlatformDriver* AGSPlatformDriver::GetDriver() {
   if (instance == NULL)
     instance = new AGSLinux();
   return instance;
+}
+
+void AGSLinux::ReplaceSpecialPaths(const char *sourcePath, char *destPath) {
+  // MYDOCS is what is used in acplwin.cpp
+  if(strncasecmp(sourcePath, "$MYDOCS$", 8) == 0) {
+    struct passwd *p = getpwuid(getuid());
+    strcpy(destPath, p->pw_dir);
+    strcpy(destPath, "/.ags");
+    mkdir(destPath, 0755);
+    strcpy(destPath, "/SavedGames");
+    mkdir(destPath, 0755);
+    strcat(destPath, &sourcePath[8]);
+    mkdir(destPath, 0755);
+  // SAVEGAMEDIR is what is actually used in ac.cpp
+  } else if(strncasecmp(sourcePath, "$SAVEGAMEDIR$", 13) == 0) {
+    struct passwd *p = getpwuid(getuid());
+    strcpy(destPath, p->pw_dir);
+    strcpy(destPath, "/.ags");
+    mkdir(destPath, 0755);
+    strcpy(destPath, "/SavedGames");
+    mkdir(destPath, 0755);
+    strcat(destPath, &sourcePath[8]);
+    mkdir(destPath, 0755);
+  } else if(strncasecmp(sourcePath, "$APPDATADIR$", 12) == 0) {
+    struct passwd *p = getpwuid(getuid());
+    strcpy(destPath, p->pw_dir);
+    strcpy(destPath, "/.ags");
+    mkdir(destPath, 0755);
+    strcat(destPath, &sourcePath[12]);
+    mkdir(destPath, 0755);
+  } else {
+    strcpy(destPath, sourcePath);
+  }
 }

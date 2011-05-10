@@ -34,7 +34,9 @@ typedef char BITMAP;
 #endif
 
 // If not using windows.h, define HWND
-#ifndef _WINDOWS_
+// ac.cpp does #define HWND long, so this comes down to typedef int long;
+// need to catch that as well
+#if !defined(_WINDOWS_) && !defined(HWND)
 typedef int HWND;
 #endif
 

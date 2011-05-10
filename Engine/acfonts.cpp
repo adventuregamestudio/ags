@@ -28,6 +28,16 @@
 #define fopen clibfopen
 #endif
 
+#if defined(LINUX_VERSION) || defined(MAC_VERSION)
+#include <sys/stat.h>
+#define _fileno fileno
+off_t _filelength(int fd) {
+	struct stat st;
+	fstat(fd, &st);
+	return st.st_size;
+}
+#endif
+
 typedef unsigned char* wgtfont;
 
 extern "C"

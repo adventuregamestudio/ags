@@ -30,9 +30,7 @@
 #include "allegro.h"
 #endif
 
-#if defined(LINUX_VERSION) || defined(MAC_VERSION)
-#include "djcompat.h"
-#else
+#if !defined(LINUX_VERSION) && !defined(MAC_VERSION)
 #include <dos.h>
 #include <io.h>
 #endif

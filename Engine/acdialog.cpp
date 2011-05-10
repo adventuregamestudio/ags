@@ -14,6 +14,7 @@
 #define WGT2ALLEGRO_NOFUNCTIONS
 #include "wgt2allg.h"
 #include <string.h>
+#include <ctype.h>
 #include "ali3d.h"
 
 #if !defined(LINUX_VERSION) && !defined(MAC_VERSION)

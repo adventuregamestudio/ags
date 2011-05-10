@@ -12,10 +12,10 @@
   CLEAR that the code has been altered from the Standard Version.
 */
 #include <allegro.h>
-#include <winalleg.h>
 #include <ali3d.h>
 
 #ifdef _WIN32
+#include <winalleg.h>
 extern int dxmedia_play_video (const char*, bool, int, int);
 #include <ddraw.h>
 
@@ -30,6 +30,8 @@ typedef struct DDRAW_SURFACE {
 
 extern "C" extern LPDIRECTDRAW2 directdraw;
 extern "C" DDRAW_SURFACE *gfx_directx_primary_surface;
+#else
+#define Sleep(x) usleep(1000*x)
 #endif
 
 #define MAX_DRAW_LIST_SIZE 200
@@ -383,6 +385,7 @@ bool ALSoftwareGraphicsDriver::SupportsGammaControl()
 
 void ALSoftwareGraphicsDriver::SetGamma(int newGamma)
 {
+#ifdef _WIN32
   for (int i = 0; i < 256; i++) {
     int newValue = ((int)defaultGammaRamp.red[i] * newGamma) / 100;
     if (newValue >= 65535)
@@ -393,6 +396,7 @@ void ALSoftwareGraphicsDriver::SetGamma(int newGamma)
   }
 
   dxGammaControl->SetGammaRamp(0, &gammaRamp);
+#endif
 }
 
 BITMAP* ALSoftwareGraphicsDriver::ConvertBitmapToSupportedColourDepth(BITMAP *allegroBitmap)
@@ -767,8 +771,11 @@ bool ALSoftwareGraphicsDriver::PlayVideo(const char *filename, bool useAVISound,
 {
 #ifdef _WIN32
   int result = dxmedia_play_video(filename, useAVISound, skipType, stretchToFullScreen ? 1 : 0);
-#endif
   return (result == 0);
+#else
+#warning ffmpeg implementation needed
+  return 0;
+#endif
 }
 
 // add the alpha values together, used for compositing alpha images

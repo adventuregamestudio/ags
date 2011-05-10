@@ -88,6 +88,7 @@ extern int our_eip;
 
 #define HWND long
 #define _getcwd getcwd
+#define strnicmp strncasecmp
 
 long int filelength(int fhandle)
 {
@@ -1327,7 +1328,9 @@ bool send_message_to_editor(const char *msg, const char *errorMsg)
 
   char messageToSend[STD_BUFFER_SIZE];
   sprintf(messageToSend, "<?xml version=\"1.0\" encoding=\"Windows-1252\"?><Debugger Command=\"%s\">", msg);
+#ifdef WINDOWS_VERSION
   sprintf(&messageToSend[strlen(messageToSend)], "  <EngineWindow>%d</EngineWindow> ", win_get_window());
+#endif
   sprintf(&messageToSend[strlen(messageToSend)], "  <ScriptState><![CDATA[%s]]></ScriptState> ", callStack);
   if (errorMsg != NULL)
   {
@@ -1347,7 +1350,12 @@ bool send_message_to_editor(const char *msg)
 
 bool init_editor_debugging() 
 {
+#ifdef WINDOWS_VERSION
   editor_debugger = GetEditorDebugger(editor_debugger_instance_token);
+#else
+  // Editor isn't ported yet
+  editor_debugger = NULL;
+#endif
 
   if (editor_debugger == NULL)
     quit("editor_debugger is NULL but debugger enabled");
@@ -2118,8 +2126,10 @@ volatile int mvolcounter = 0;
 int update_music_at=0;
 int time_between_timers=25;  // in milliseconds
 // our timer, used to keep game running at same speed on all systems
-#if defined(WINDOWS_VERSION) || defined(LINUX_VERSION) || defined(MAC_VERSION)
+#if defined(WINDOWS_VERSION)
 void __cdecl dj_timer_handler() {
+#elif defined(LINUX_VERSION) || defined(MAC_VERSION)
+extern "C" void dj_timer_handler() {
 #else
 void dj_timer_handler(...) {
 #endif
@@ -15611,8 +15621,10 @@ int check_if_user_input_should_cancel_video()
   return 0;
 }
 
-#if defined(WINDOWS_VERSION) || defined(LINUX_VERSION) || defined(MAC_VERSION)
+#if defined(WINDOWS_VERSION)
 int __cdecl fli_callback() {
+#elif defined(LINUX_VERSION) || defined(MAC_VERSION)
+extern "C" int fli_callback() {
 #else
 int fli_callback(...) {
 #endif
@@ -18304,7 +18316,11 @@ bool validate_user_file_path(const char *fnmm, char *output, bool currentDirOnly
     {
       sprintf(output, "%s/%s", appDataDir, game.saveGameFolderName);
       fix_filename_slashes(output);
-      mkdir(output);
+      mkdir(output
+#if defined(LINUX_VERSION) || defined(MAC_VERSION)
+                  , 0755
+#endif
+      );
     }
     else 
     {
@@ -27021,6 +27037,9 @@ int override_start_room = 0, force_16bit = 0;
 bool justRegisterGame = false;
 bool justUnRegisterGame = false;
 const char *loadSaveGameOnStartup = NULL;
+#ifndef WINDOWS_VERSION
+char **global_argv = 0;
+#endif
 
 void initialise_game_file_name()
 {
@@ -27047,7 +27066,7 @@ void initialise_game_file_name()
   game_file_name = (char*)malloc(MAX_PATH);
   WideCharToMultiByte(CP_ACP, 0, directoryPathBuffer, -1, game_file_name, MAX_PATH, NULL, NULL);
 #else
-  game_file_name = argv[datafile_argv];
+  game_file_name = global_argv[datafile_argv];
 #endif
 }
 
@@ -27068,6 +27087,8 @@ int main(int argc,char*argv[]) {
     platform->DisplayAlert("CommandLineToArgvW failed, unable to start the game.");
     return 9;
   }
+#else
+  global_argv = argv;
 #endif
 
   print_welcome_text(AC_VERSION_TEXT,ACI_VERSION_TEXT);

@@ -22,7 +22,7 @@
 #define JGMOD_MOD_PLAYER
 #endif
 
-#ifdef MAC_VERSION
+#if defined(MAC_VERSION) || defined(LINUX_VERSION)
 // for toupper
 #include <ctype.h>
 #endif

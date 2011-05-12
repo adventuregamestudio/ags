@@ -5781,7 +5781,7 @@ void check_controls() {
 //    if (kgn==2) { Display("Crashing"); strcpy(NULL, NULL); }
 //    if (kgn == 2) FaceLocation (game.playercharacter, playerchar->x + 1, playerchar->y);
     //if (kgn == 2) SetCharacterIdle (game.playercharacter, 5, 0);
-    //if (kgn == 2) Display("Some forËign text");
+    //if (kgn == 2) Display("Some for?ign text");
     //if (kgn == 2) do_conversation(5);
 
     if (kgn == play.replay_hotkey) {
@@ -15158,9 +15158,9 @@ int WaitMouseKey(int nloops) {
 // unfortunately MSVC and GCC automatically push floats as doubles
 // to functions, thus we need to manually access it as 32-bit
 #define SCRIPT_FLOAT(x) long __script_float##x
-#define INIT_SCRIPT_FLOAT(x) float x = *((float*)&__script_float##x)
+#define INIT_SCRIPT_FLOAT(x) float x; memcpy(&x, &__script_float##x, sizeof(float))
 #define FLOAT_RETURN_TYPE long
-#define RETURN_FLOAT(x) return *((long*)&x)
+#define RETURN_FLOAT(x) long __ret##x; memcpy(&__ret##x, &x, sizeof(float))
 
 enum RoundDirections {
   eRoundDown = 0,
@@ -21323,7 +21323,8 @@ void my_sprintf(char *buffer, const char *fmt, va_list ap) {
     // use sprintf to parse the actual %02d type thing
     if (endptr[-1] == 'f') {
       // floats are pushed as 8-bytes, so ensure that it knows this is a float
-      float floatArg = *((float*)&theArg);
+      float floatArg;
+      memcpy(&floatArg, &theArg, sizeof(float));
       sprintf(spfbuffer, fmtstring, floatArg);
     }
     else if ((theArg == (int)buffer) && (endptr[-1] == 's'))
@@ -27573,6 +27574,9 @@ int initialize_engine(int argc,char*argv[])
 #endif
 
   write_log_debug("Initialize sound drivers");
+
+  fprintf(stderr, "install_sound(%d,%d)\n", usetup.digicard, usetup.midicard);
+  usetup.digicard = DIGI_ALSA;
 
   if (install_sound(usetup.digicard,usetup.midicard,NULL)!=0) {
     reserve_voices(-1,-1);

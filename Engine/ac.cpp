@@ -26468,7 +26468,11 @@ char *INIreaditem(const char *sectn, const char *entry) {
         if (feof(fin))
           break;
         // Strip CRLF
-        templine[strlen(templine)-1] = 0;
+        char *lastchar = &templine[strlen(templine) -1];
+        while(*lastchar == '\r' || *lastchar == '\n') {
+          *lastchar = 0;
+          lastchar--;
+        }
         // Have we found the entry?
         if (strnicmp (templine, entry, strlen(entry)) == 0) {
           char *pptr = &templine[strlen(entry)];

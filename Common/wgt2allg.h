@@ -42,8 +42,6 @@
 #include "winalleg.h"
 #elif defined(MAC_VERSION)
 #include <Allegro/osxalleg.h>
-#elif defined(LINUX_VERSION)
-#include "linalleg.h"
 #endif
 
 #include "bigend.h"

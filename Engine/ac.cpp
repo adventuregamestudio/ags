@@ -15160,7 +15160,7 @@ int WaitMouseKey(int nloops) {
 #define SCRIPT_FLOAT(x) long __script_float##x
 #define INIT_SCRIPT_FLOAT(x) float x; memcpy(&x, &__script_float##x, sizeof(float))
 #define FLOAT_RETURN_TYPE long
-#define RETURN_FLOAT(x) long __ret##x; memcpy(&__ret##x, &x, sizeof(float))
+#define RETURN_FLOAT(x) long __ret##x; memcpy(&__ret##x, &x, sizeof(float)); return __ret##x
 
 enum RoundDirections {
   eRoundDown = 0,

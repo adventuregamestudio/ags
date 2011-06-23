@@ -227,6 +227,7 @@
     <Compile Include="Interfaces\IProjectTreeSingleClickHandler.cs" />
     <Compile Include="Interfaces\IScript.cs" />
     <Compile Include="Interfaces\IScriptEditor.cs" />
+    <Compile Include="Interfaces\ISourceControlProvider.cs" />
     <Compile Include="Interfaces\IToXml.cs" />
     <Compile Include="PropertyGridExtras\AudioClipTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\AudioClipTypeTypeConverter.cs" />

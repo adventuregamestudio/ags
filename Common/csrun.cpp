@@ -1294,6 +1294,9 @@ int cc_run_code(ccInstance * inst, long curpc)
     return -1;
   }
 
+  // Needed to avoid unaligned variable access.
+  long temp_variable;
+
   long arg1, arg2;
   char *mptr;
   unsigned char tbyte;
@@ -1358,7 +1361,7 @@ int cc_run_code(ccInstance * inst, long curpc)
 
         inst->registers[SREG_SP] -= 4;
         curnest--;
-        inst->pc = *((long *)inst->registers[SREG_SP]);
+        memcpy(&(inst->pc), (char*)inst->registers[SREG_SP], 4);
         if (inst->pc == 0)
         {
           inst->returnValue = inst->registers[SREG_AX];
@@ -1371,7 +1374,7 @@ int cc_run_code(ccInstance * inst, long curpc)
         inst->registers[arg1] = arg2;
         break;
       case SCMD_MEMREAD:
-        inst->registers[arg1] = *((long *)inst->registers[SREG_MAR]);
+        memcpy(&(inst->registers[arg1]), (char*)inst->registers[SREG_MAR], 4);
 #ifdef AGS_BIG_ENDIAN
         {
           // check if we're reading from the script's global data
@@ -1385,7 +1388,7 @@ int cc_run_code(ccInstance * inst, long curpc)
 #endif
         break;
       case SCMD_MEMWRITE:
-        *((long *)inst->registers[SREG_MAR]) = inst->registers[arg1];
+        memcpy((char*)inst->registers[SREG_MAR], &(inst->registers[arg1]), 4);
 #ifdef AGS_BIG_ENDIAN
         {
           // check if we're writing to the script's global data
@@ -1471,7 +1474,9 @@ int cc_run_code(ccInstance * inst, long curpc)
 
         PUSH_CALL_STACK(inst);
 
-        *((long *)inst->registers[SREG_SP]) = inst->pc + sccmdargs[thisInstruction] + 1;
+        temp_variable = inst->pc + sccmdargs[thisInstruction] + 1;
+        memcpy((char*)inst->registers[SREG_SP], &temp_variable, 4);
+
         inst->registers[SREG_SP] += 4;
 
         if (thisbase[curnest] == 0)
@@ -1540,13 +1545,13 @@ int cc_run_code(ccInstance * inst, long curpc)
           inst->pc += arg1;
         break;
       case SCMD_PUSHREG:
-        *((long *)inst->registers[SREG_SP]) = inst->registers[arg1];
+        memcpy((char*)inst->registers[SREG_SP], &(inst->registers[arg1]), 4);
         inst->registers[SREG_SP] += 4;
         CHECK_STACK
         break;
       case SCMD_POPREG:
         inst->registers[SREG_SP] -= 4;
-        inst->registers[arg1] = *((long *)inst->registers[SREG_SP]);
+        memcpy(&(inst->registers[arg1]), (char*)inst->registers[SREG_SP], 4);
         break;
       case SCMD_JMP:
         inst->pc += arg1;
@@ -1587,52 +1592,65 @@ int cc_run_code(ccInstance * inst, long curpc)
         }
       case SCMD_MEMREADPTR:
         ccError = 0;
-        inst->registers[arg1] = (long)ccGetObjectAddressFromHandle(*((long *)inst->registers[SREG_MAR]));
+
+        long handle;
+        memcpy(&handle, (char*)(inst->registers[SREG_MAR]), 4);
+        inst->registers[arg1] = (long)ccGetObjectAddressFromHandle(handle);
+
         // if error occurred, cc_error will have been set
         if (ccError)
           return -1;
         break;
       case SCMD_MEMWRITEPTR: {
-        long *ptr = ((long *)inst->registers[SREG_MAR]);
+        long ptr;
+        memcpy(&ptr, ((char*)inst->registers[SREG_MAR]), 4);
+
         long newHandle = ccGetObjectHandleFromAddress((char*)inst->registers[arg1]);
         if (newHandle == -1)
           return -1;
 
-        if (*ptr != newHandle) {
+        if (ptr != newHandle) {
  
-          ccReleaseObjectReference(*ptr);
+          ccReleaseObjectReference(ptr);
           ccAddObjectReference(newHandle);
-          *ptr = newHandle;
+          memcpy(((char*)inst->registers[SREG_MAR]), &newHandle, 4);
         }
         break;
       }
       case SCMD_MEMINITPTR: { 
         // like memwriteptr, but doesn't attempt to free the old one
-        long *ptr = ((long *)inst->registers[SREG_MAR]);
+
+        long ptr;
+        memcpy(&ptr, ((char*)inst->registers[SREG_MAR]), 4);
+
         long newHandle = ccGetObjectHandleFromAddress((char*)inst->registers[arg1]);
         if (newHandle == -1)
           return -1;
 
         ccAddObjectReference(newHandle);
-        *ptr = newHandle;
+        memcpy(((char*)inst->registers[SREG_MAR]), &newHandle, 4);
         break;
       }
       case SCMD_MEMZEROPTR: {
-        long *ptr = ((long *)inst->registers[SREG_MAR]);
-        ccReleaseObjectReference(*ptr);
-        *ptr = 0;
+        long ptr;
+        memcpy(&ptr, ((char*)inst->registers[SREG_MAR]), 4);
+        ccReleaseObjectReference(ptr);
+        memset(((char*)inst->registers[SREG_MAR]), 0, 4);
+
         break;
       }
       case SCMD_MEMZEROPTRND: {
-        long *ptr = ((long *)inst->registers[SREG_MAR]);
+        long ptr;
+        memcpy(&ptr, ((char*)inst->registers[SREG_MAR]), 4);
+
         // don't do the Dispose check for the object being returned -- this is
         // for returning a String (or other pointer) from a custom function.
         // Note: we might be freeing a dynamic array which contains the DisableDispose
         // object, that will be handled inside the recursive call to SubRef.
         pool.disableDisposeForObject = (const char*)inst->registers[SREG_AX];
-        ccReleaseObjectReference(*ptr);
+        ccReleaseObjectReference(ptr);
         pool.disableDisposeForObject = NULL;
-        *ptr = 0;
+        memset(((char*)inst->registers[SREG_MAR]), 0, 4);
         break;
       }
       case SCMD_CHECKNULL:
@@ -1662,12 +1680,13 @@ int cc_run_code(ccInstance * inst, long curpc)
           startArg = callstacksize - num_args_to_func;
 
         for (aa = startArg; aa < callstacksize; aa++) {
-          *((long *)inst->registers[SREG_SP]) = callstack[aa];
+          memcpy((char*)inst->registers[SREG_SP], &(callstack[aa]), 4);
           inst->registers[SREG_SP] += 4;
         }
 
         // 0, so that the cc_run_code returns
-        *((long *)inst->registers[SREG_SP]) = 0;
+        memset((char*)inst->registers[SREG_SP], 0, 4);
+
         long oldstack = inst->registers[SREG_SP];
         inst->registers[SREG_SP] += 4;
         CHECK_STACK

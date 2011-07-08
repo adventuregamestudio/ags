@@ -225,10 +225,33 @@ void WFNFontRenderer::EnsureTextValidForFont(char *text, int fontNumber)
   }
 }
 
+
+// Get the position of a character in a bitmap font.
+// Rewritten code to fulfill the alignment restrictions of pointers
+// on the MIPS processor. Can and should be done more efficiently.
+char* psp_get_char(wgtfont foon, int thisCharacter)
+{
+  char* tabaddr_ptr = NULL;
+  short tabaddr_value = 0;
+
+  //tabaddr = (short *)&foon[15];
+  tabaddr_ptr = (char*)&foon[15];
+
+  //tabaddr = (short *)&foon[tabaddr[0]];     // get address table
+  memcpy(&tabaddr_value, tabaddr_ptr, 2);
+  tabaddr_ptr = (char*)&foon[tabaddr_value];
+
+  //tabaddr = (short *)&foon[tabaddr[thisCharacter]];      // use table to find character
+  memcpy(&tabaddr_value, &tabaddr_ptr[thisCharacter*2], 2);
+
+  return (char*)&foon[tabaddr_value];
+}
+
+
 int WFNFontRenderer::GetTextWidth(const char *texx, int fontNumber)
 {
   wgtfont foon = fonts[fontNumber];
-  short *tabaddr;
+
   int totlen = 0;
   unsigned int dd;
 
@@ -238,10 +261,14 @@ int WFNFontRenderer::GetTextWidth(const char *texx, int fontNumber)
     thisCharacter = texx[dd];
     if ((thisCharacter >= 128) || (thisCharacter < 0)) thisCharacter = '?';
 #ifndef ALLEGRO_BIG_ENDIAN
-    tabaddr = (short *)&foon[15];
-    tabaddr = (short *)&foon[tabaddr[0]];     // get address table
-    tabaddr = (short *)&foon[tabaddr[thisCharacter]];      // use table to find character
-    totlen += tabaddr[0];
+
+    char* fontaddr = psp_get_char(foon, thisCharacter);
+
+    short tabaddr_d;
+    memcpy(&tabaddr_d, (char*)((int)fontaddr + 0), 2);
+
+    totlen += tabaddr_d;
+
 #else
     tabaddr = (short *)&foon[15];
     tabaddr = (short *)&foon[__short_swap_endian(tabaddr[0])];     // get address table
@@ -254,7 +281,6 @@ int WFNFontRenderer::GetTextWidth(const char *texx, int fontNumber)
 
 int WFNFontRenderer::GetTextHeight(const char *texx, int fontNumber)
 {
-  short *tabaddr;
   int highest = 0;
   unsigned int dd;
   wgtfont foon = fonts[fontNumber];
@@ -265,10 +291,13 @@ int WFNFontRenderer::GetTextHeight(const char *texx, int fontNumber)
     thisCharacter = texx[dd];
     if ((thisCharacter >= 128) || (thisCharacter < 0)) thisCharacter = '?';
 #ifndef ALLEGRO_BIG_ENDIAN
-    tabaddr = (short *)&foon[15];
-    tabaddr = (short *)&foon[tabaddr[0]];     // get address table
-    tabaddr = (short *)&foon[tabaddr[thisCharacter]];      // use table to find character
-    int charHeight = tabaddr[1];
+
+    char* fontaddr = psp_get_char(foon, thisCharacter);
+    short tabaddr_d;
+    memcpy(&tabaddr_d, (char*)((int)fontaddr + 2), 2);
+
+    int charHeight = tabaddr_d;
+
 #else
     tabaddr = (short *)&foon[15];
     tabaddr = (short *)&foon[__short_swap_endian(tabaddr[0])];     // get address table
@@ -300,7 +329,6 @@ void WFNFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
 
 int WFNFontRenderer::printchar(int xxx, int yyy, wgtfont foo, int charr)
 {
-  short *tabaddr = (short *)&foo[15];
   unsigned char *actdata;
   int tt, ss, bytewid, orixp = xxx;
 
@@ -308,17 +336,24 @@ int WFNFontRenderer::printchar(int xxx, int yyy, wgtfont foo, int charr)
     charr = '?';
 
 #ifndef ALLEGRO_BIG_ENDIAN
-  tabaddr = (short *)&foo[tabaddr[0]];        // get address table
-  tabaddr = (short *)&foo[tabaddr[charr]];    // use table to find character
-  int charWidth = tabaddr[0];
-  int charHeight = tabaddr[1];
+
+  char* tabaddr = psp_get_char(foo, charr);
+
+  short tabaddr_d;
+  memcpy(&tabaddr_d, (char*)((int)tabaddr), 2);
+  int charWidth = tabaddr_d;
+
+  memcpy(&tabaddr_d, (char*)((int)tabaddr + 2), 2);
+  int charHeight = tabaddr_d;
+
 #else
   tabaddr = (short *)&foo[__short_swap_endian(tabaddr[0])];
   tabaddr = (short *)&foo[__short_swap_endian(tabaddr[charr])];
   int charWidth = __short_swap_endian(tabaddr[0]);
   int charHeight = __short_swap_endian(tabaddr[1]);
 #endif
-  actdata = (unsigned char *)&tabaddr[2];
+
+  actdata = (unsigned char *)&tabaddr[2*2];
   bytewid = ((charWidth - 1) / 8) + 1;
 
   // MACPORT FIX: switch now using charWidth and charHeight

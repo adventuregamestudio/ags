@@ -9,10 +9,15 @@
   CLEAR that the code has been altered from the Standard Version.
 
 */
+
+// Omit Windows specific includes.
+#ifdef WINDOWS_VERSION
 #include <windows.h>
+#include <io.h>
+#endif
+
 #include <acdebug.h>
 #include <stdio.h>
-#include <io.h>
 
 extern int exists(const char *filename);
 

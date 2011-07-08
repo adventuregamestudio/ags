@@ -13,7 +13,6 @@
 # undef WIN32
 # define WIN32
 
-# define REAL_IS_FLOAT
 # define NEW_DCT9
 
 # define random rand
@@ -21,6 +20,8 @@
 
 #endif
 
+// The PSP only has hardware support for single precision math.
+# define REAL_IS_FLOAT
 
 #ifndef M_PI
 # define M_PI       3.14159265358979323846

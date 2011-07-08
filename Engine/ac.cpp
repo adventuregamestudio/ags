@@ -27579,9 +27579,6 @@ int initialize_engine(int argc,char*argv[])
 
   write_log_debug("Initialize sound drivers");
 
-  fprintf(stderr, "install_sound(%d,%d)\n", usetup.digicard, usetup.midicard);
-  usetup.digicard = DIGI_ALSA;
-
   if (install_sound(usetup.digicard,usetup.midicard,NULL)!=0) {
     reserve_voices(-1,-1);
     opts.mod_player=0;

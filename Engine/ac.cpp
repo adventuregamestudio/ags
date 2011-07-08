@@ -24269,6 +24269,125 @@ int Game_GetInSkippableCutscene()
 }
 
 
+// Stubs for plugin functions.
+void ScriptStub_ShellExecute()
+{
+}
+void srSetSnowDriftRange(int min_value, int max_value)
+{
+}
+void srSetSnowDriftSpeed(int min_value, int max_value)
+{
+}
+void srSetSnowFallSpeed(int min_value, int max_value)
+{
+}
+void srChangeSnowAmount(int amount)
+{
+}
+void srSetSnowBaseline(int top, int bottom)
+{
+}
+void srSetSnowTransparency(int min_value, int max_value)
+{
+}
+void srSetSnowDefaultView(int view, int loop)
+{
+}
+void srSetSnowWindSpeed(int value)
+{
+}
+void srSetSnowAmount(int amount)
+{
+}
+void srSetSnowView(int kind_id, int event, int view, int loop)
+{
+}
+void srChangeRainAmount(int amount)
+{
+}
+void srSetRainView(int kind_id, int event, int view, int loop)
+{
+}
+void srSetRainDefaultView(int view, int loop)
+{
+}
+void srSetRainTransparency(int min_value, int max_value)
+{
+}
+void srSetRainWindSpeed(int value)
+{
+}
+void srSetRainBaseline(int top, int bottom)
+{
+}
+void srSetRainAmount(int amount)
+{
+}
+void srSetRainFallSpeed(int min_value, int max_value)
+{
+}
+void srSetWindSpeed(int value)
+{
+}
+void srSetBaseline(int top, int bottom)
+{
+}
+int JoystickCount()
+{
+  return 0;
+}
+int Joystick_Open(int a)
+{
+  return 0;
+}
+int Joystick_IsButtonDown(int a)
+{
+  return 0;
+}
+void Joystick_EnableEvents(int a)
+{
+}
+void Joystick_DisableEvents()
+{
+}
+void Joystick_Click(int a)
+{
+}
+int Joystick_Valid()
+{
+  return 0;
+}
+int Joystick_Unplugged()
+{
+  return 0;
+}
+int DrawAlpha(int destination, int sprite, int x, int y, int transparency)
+{
+  return 0;
+}
+int GetAlpha(int sprite, int x, int y)
+{
+  return 0;
+}
+int PutAlpha(int sprite, int x, int y, int alpha)
+{
+  return 0;
+}
+int Blur(int sprite, int radius)
+{
+  return 0;
+}
+int HighPass(int sprite, int threshold)
+{
+  return 0;
+}
+int DrawAdd(int destination, int sprite, int x, int y, float scale)
+{
+  return 0;
+}
+
+
 #define scAdd_External_Symbol ccAddExternalSymbol
 void setup_script_exports() {
   // the ^5 after the function name is the number of params
@@ -25276,6 +25395,52 @@ void setup_script_exports() {
   scAdd_External_Symbol("palette",&palette[0]);
   scAdd_External_Symbol("system",&scsystem);
   scAdd_External_Symbol("savegameindex",&play.filenumbers[0]);
+
+
+  // Stubs for plugin functions.
+
+  // ags_shell.dll
+  scAdd_External_Symbol("ShellExecute", (void*)ScriptStub_ShellExecute);
+
+  // ags_snowrain.dll
+  scAdd_External_Symbol("srSetSnowDriftRange",(void *)srSetSnowDriftRange);
+  scAdd_External_Symbol("srSetSnowDriftSpeed",(void *)srSetSnowDriftSpeed);
+  scAdd_External_Symbol("srSetSnowFallSpeed",(void *)srSetSnowFallSpeed);
+  scAdd_External_Symbol("srChangeSnowAmount",(void *)srChangeSnowAmount);
+  scAdd_External_Symbol("srSetSnowBaseline",(void *)srSetSnowBaseline);
+  scAdd_External_Symbol("srSetSnowTransparency",(void *)srSetSnowTransparency);
+  scAdd_External_Symbol("srSetSnowDefaultView",(void *)srSetSnowDefaultView);
+  scAdd_External_Symbol("srSetSnowWindSpeed",(void *)srSetSnowWindSpeed);
+  scAdd_External_Symbol("srSetSnowAmount",(void *)srSetSnowAmount);
+  scAdd_External_Symbol("srSetSnowView",(void *)srSetSnowView);
+  scAdd_External_Symbol("srChangeRainAmount",(void *)srChangeRainAmount);
+  scAdd_External_Symbol("srSetRainView",(void *)srSetRainView);
+  scAdd_External_Symbol("srSetRainDefaultView",(void *)srSetRainDefaultView);
+  scAdd_External_Symbol("srSetRainTransparency",(void *)srSetRainTransparency);
+  scAdd_External_Symbol("srSetRainWindSpeed",(void *)srSetRainWindSpeed);
+  scAdd_External_Symbol("srSetRainBaseline",(void *)srSetRainBaseline);
+  scAdd_External_Symbol("srSetRainAmount",(void *)srSetRainAmount);
+  scAdd_External_Symbol("srSetRainFallSpeed",(void *)srSetRainFallSpeed);
+  scAdd_External_Symbol("srSetWindSpeed",(void *)srSetWindSpeed);
+  scAdd_External_Symbol("srSetBaseline",(void *)srSetBaseline);
+
+  // agsjoy.dll
+  scAdd_External_Symbol("JoystickCount",(void *)JoystickCount);
+  scAdd_External_Symbol("Joystick::Open^1",(void *)Joystick_Open);
+  scAdd_External_Symbol("Joystick::IsButtonDown^1",(void *)Joystick_IsButtonDown);
+  scAdd_External_Symbol("Joystick::EnableEvents^1",(void *)Joystick_EnableEvents);
+  scAdd_External_Symbol("Joystick::DisableEvents^0",(void *)Joystick_DisableEvents);
+  scAdd_External_Symbol("Joystick::Click^1",(void *)Joystick_Click);
+  scAdd_External_Symbol("Joystick::Valid^0",(void *)Joystick_Valid);
+  scAdd_External_Symbol("Joystick::Unplugged^0",(void *)Joystick_Unplugged);
+
+  // agsblend.dll
+  scAdd_External_Symbol("DrawAlpha",(void *)DrawAlpha);
+  scAdd_External_Symbol("GetAlpha",(void *)GetAlpha);
+  scAdd_External_Symbol("PutAlpha",(void *)PutAlpha);
+  scAdd_External_Symbol("Blur",(void *)Blur);
+  scAdd_External_Symbol("HighPass",(void *)HighPass);
+  scAdd_External_Symbol("DrawAdd",(void *)DrawAdd);
 }
 
 

@@ -29,6 +29,7 @@
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
 
+#define _msize malloc_usable_size
 
 /* structs */
 
@@ -337,6 +338,10 @@ int alfont_set_font_size(ALFONT_FONT *f, int h) {
 
     /* compare real height with asked height */
     real_height = abs(f->face->size->metrics.ascender >> 6) + abs(f->face->size->metrics.descender >> 6);
+
+    // The first test is always right
+    break;
+
     if (real_height == h) {
       /* we found the wanted height */
       break;
@@ -377,8 +382,12 @@ int alfont_set_font_size(ALFONT_FONT *f, int h) {
   if (!error) {
     _alfont_uncache_glyphs(f);
     f->face_h = h;
-    f->real_face_h = test_h;
-    f->face_ascender = f->face->size->metrics.ascender >> 6;
+
+    // The ascender is somehow wrong. Use the font height to produce the same visual
+    // result as on the Windows version.
+    f->real_face_h = h; //test_h;
+    f->face_ascender = h; //f->face->size->metrics.ascender >> 6;
+
     return ALFONT_OK;
   }
   else {

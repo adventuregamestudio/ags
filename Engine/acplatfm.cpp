@@ -921,7 +921,7 @@ void pl_read_plugins_from_disk (FILE *iii) {
 
 // ********** CD Player Functions common to Win and Linux ********
 
-#if !defined(DOS_VERSION) && !defined(BSD_VERSION) && !defined(MAC_VERSION)
+#if !defined(PSP_VERSION) && !defined(DOS_VERSION) && !defined(BSD_VERSION) && !defined(MAC_VERSION)
 
 int cd_player_init() {
   int erro = cd_init();

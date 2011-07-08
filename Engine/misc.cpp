@@ -30,7 +30,8 @@
 #include "allegro.h"
 #include "misc.h"
 
-#if !defined(LINUX_VERSION) && !defined(MAC_VERSION)
+// Filenames are not case-sensitive on the PSP.
+
 #include <string.h>
 /* File Name Concatenator basically on Windows / DOS */
 char *ci_find_file(char *dir_name, char *file_name)
@@ -52,114 +53,18 @@ char *ci_find_file(char *dir_name, char *file_name)
   return diamond;
 }
 
-#else
-/* Case Insensitive File Find */
-char *ci_find_file(char *dir_name, char *file_name)
-{
-  struct stat   statbuf;
-  struct dirent *entry = NULL;
-  DIR           *rough = NULL;
-  DIR           *prevdir = NULL;
-  char          *diamond = NULL;
-  char          *directory = NULL;
-  char          *filename = NULL;
-
-  if (dir_name == NULL && file_name == NULL)
-      return NULL;
-
-  if (!(dir_name == NULL)) {
-    fix_filename_case(dir_name);
-    fix_filename_slashes(dir_name);
-  }
-
-  fix_filename_case(file_name);
-  fix_filename_slashes(file_name);
-
-  if (dir_name == NULL) {
-    char  *match = NULL;
-    int   match_len = NULL;
-    int   dir_len = NULL;
-
-    match = get_filename(file_name);
-    if (match == NULL)
-      return NULL;
-
-    match_len = strlen(match);
-    dir_len = (match - file_name);
-
-    if (dir_len == 0) {
-      directory = (char *)malloc(2);
-      strcpy(directory,".");
-    } else {
-      directory = (char *)malloc(dir_len + 1);
-      strncpy(directory, file_name, dir_len);
-      directory[dir_len] = '\0';
-    }
-
-    filename = (char *)malloc(match_len + 1);
-    strncpy(filename, match, match_len);
-    filename[match_len] = '\0';
-  } else {
-    directory = (char *)malloc(strlen(dir_name) + 1);
-    strcpy(directory, dir_name);
-    
-    filename = (char *)malloc(strlen(file_name) + 1);
-    strcpy(filename, file_name);
-  }
-
-  if ((prevdir = opendir(".")) == NULL) {
-    fprintf(stderr, "ci_find_file: cannot open current working directory\n");
-    return NULL;
-  }
-
-  if (chdir(directory) == -1) {
-    fprintf(stderr, "ci_find_file: cannot change to directory: %s\n", directory);
-    return NULL;
-  }
-  
-  if ((rough = opendir(directory)) == NULL) {
-    fprintf(stderr, "ci_find_file: cannot open directory: %s\n", directory);
-    return NULL;
-  }
-
-  while ((entry = readdir(rough)) != NULL) {
-    lstat(entry->d_name, &statbuf);
-    if (S_ISREG(statbuf.st_mode) || S_ISLNK(statbuf.st_mode)) {
-      if (strcasecmp(filename, entry->d_name) == 0) {
-#ifdef _DEBUG
-        fprintf(stderr, "ci_find_file: Looked for %s in rough %s, found diamond %s.\n", filename, directory, entry->d_name);
-#endif _DEBUG
-        diamond = (char *)malloc(strlen(directory) + strlen(entry->d_name) + 2);
-        append_filename(diamond, directory, entry->d_name, strlen(directory) + strlen(entry->d_name) + 2);
-        break;
-      }
-    }
-  }
-  closedir(rough);
-
-  fchdir(dirfd(prevdir));
-  closedir(prevdir);
-
-  free(directory);
-  free(filename);
-  return diamond;
-}
 
 /* Case Insensitive fopen */
 FILE *ci_fopen(char *file_name, const char *mode)
 {
-  FILE *fd;
-  char *fullpath = ci_find_file(NULL, file_name);
-
-  /* If I didn't find a file, this could be writing a new file,
-      so use whatever file_name they passed */
-  if (fullpath == NULL) {
-    return fopen(file_name, mode);
-  } else {
-    fd = fopen(fullpath, mode);
-    free(fullpath);
+  // Don't pass a NULL pointer to newlib on the PSP.
+  if (file_name == NULL)
+  {
+    return NULL;
   }
-
-  return fd;
+  else
+  {
+    return fopen(file_name, mode);
+  }
 }
-#endif
+

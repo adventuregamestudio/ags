@@ -1,0 +1,6 @@
+Authors
+-------
+
+Javier Gonzalez - Made the main API
+Doug Eleveld - Made many speed improvements to the library
+Chernsha - Added the function for font since v2.0.0

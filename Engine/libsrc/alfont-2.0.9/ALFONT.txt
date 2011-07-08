@@ -1,0 +1,442 @@
+
+                           AllegroFont v2.0.9
+                          ====================
+                  AllegroFont (c) 2001, 2002 Javier Gonzalez
+
+              FreeType project Copyright (c) 1996-2000 by
+            David Turner, Robert Wilhelm, and Werner Lemberg
+              Enhanced by Chernsha since 2004 year
+
+
+
+
+#include <std_disclaimer.h>
+
+
+   "I do not accept responsibility for any effects, adverse or otherwise, 
+    that this code may have on you, your computer, your sanity, your dog, 
+    and anything else that you can think of. Use it at your own risk."
+
+
+
+See README.txt for a general introduction, copyright details, and 
+information about how to install AllegroFont.
+
+
+
+Using AllegroFont
+----------------
+
+   To be able to use AllegroFont with your program, you just need (once
+   compiled the library) to link the generated lib with your program
+   (remember that since this lib relies on allegro, you need to add
+   alfont *before* alleg) and include the header "alfont.h", available in
+   the lib and include directories respectively. 
+
+
+Reference
+---------
+
+   First please note parameters are marked between ' ' markers.
+
+
+   int alfont_init(void);
+      Initializes AllegroFont. Remember to call alfont_exit() when you
+      are done with it! Nobody will do it automatically for you.
+
+     return values:
+      ALFONT_OK on success.
+      Other value ( != 0 ) on error.
+
+
+   void alfont_exit(void);
+      Deinitializes AllegroFont and its resources (fonts included).
+      It is important to call it before you exit.
+
+
+   ALFONT_FONT *alfont_load_font(const char *filepathname);
+      Loads a font from a the following formats (thanks to FreeType 2):
+          TrueType fonts (and collections)
+          Type 1 fonts
+          CID-keyed Type 1 fonts
+          CFF fonts
+          OpenType fonts (both TrueType and CFF variants)
+          SFNT-based bitmap fonts
+          X11 PCF fonts
+          Windows FNT fonts
+     Note the scalable fonts by default get loaded with a size of 8 pixels
+     height.
+     Use alfont_set_font_size() to change the font size.
+
+     return values:
+      NULL if there ocurred an error.
+      Other value ( != NULL ) otherwise.
+
+
+   ALFONT_FONT *alfont_load_font_from_mem(const char *data, int data_len);
+      Same as alfont_load_font only that instead of loading it from a file
+      it loads it directly from memory. The lib will create its own copy
+      of this buffer, so you are free to decallocate it once this function
+      has been called.
+
+
+   void alfont_destroy_font(ALFONT_FONT *f);
+      Destroys the font. Note this function check if the 'f' pointer is
+      pointing to NULL, so for example this:
+         ALFONT_FONT *f = NULL;
+         alfont_destroy_font(f);
+      won't crash the program.
+
+
+   int alfont_set_font_size(ALFONT_FONT *f, int h);
+      Since AllegroFont can use scalable fonts (for example TrueType)
+      this sets the size of the font. This should also work with multiple
+      fixed sized fonts.
+      Note changing the size of a font makes it to "reload" the internal
+      glyphs of it, which is *slow*, so if you want to use many sizes
+      of the same font very regularly, better create several instances
+      of it.
+
+     return values:
+      ALFONT_ERROR if there ocurred an error (for example if the font is not scalable).
+      ALFONT_OK otherwise.
+
+
+   int alfont_get_font_height(ALFONT_FONT *f);
+     Returns the selected font height.
+
+
+   int alfont_is_scalable_font(ALFONT_FONT *f);
+   int alfont_is_fixed_font(ALFONT_FONT *f);
+     Return TRUE or FALSE, dependant on if the font is fixed (there is
+     a range of sizes where to choose from) or scalable (any size can be
+     used, well, or almost)
+
+
+   const ALFONT_FIXED_SIZE *alfont_get_available_fixed_sizes(ALFONT_FONT *f);
+     Returns an array with the available fixed heights, being the last item
+     this array -1.
+     In case of calling this function for a scalable font you will get an
+     array of just one element, being it -1
+     If you have doubts on how to access the information because pointers
+     scare you, you just have to do:
+
+       const int *my_font_sizes;
+       my_font_sizes = alfont_get_available_fixed_sizes(my_font);
+       /* first size */
+       int first_h = my_font_sizes[0];
+       /* second */
+       int second_h = my_font_sizes[1];
+
+     and so until my_font_sizes[x] is -1
+
+
+   int alfont_get_nof_available_fixed_sizes(ALFONT_FONT *f);
+     Returns the number of available fixed sizes, or -1 if a scalable font
+     is passed.
+
+
+   int alfont_get_char_extra_spacing(ALFONT_FONT *f);
+     Returns the character extra spacing, this is, an int number
+     that will be added to the space between characters, being the
+     min of it '0'.
+
+
+   void alfont_set_char_extra_spacing(ALFONT_FONT *f, int spacing);
+     Sets the character extra spacing, this is, an int number
+     that will be added to the space between characters, being the
+     min of it '0'.
+
+
+   void alfont_set_language(ALFONT_FONT *f, const char *language);
+     Sets the language for the selected font.
+     You can visit the language string in the header "alfont.h".
+     
+     
+   char *alfont_get_language(ALFONT_FONT *f);
+     Returns the language of the selected font.
+
+     
+   void alfont_set_convert(ALFONT_FONT *f, int type);
+     Sets the convert type for the selected font.
+     You can set the type as "No Switch",AlFont won't convert the string.
+     Or you can set the type as "TYPE_MULTIBYTE",AlFont will convert the 
+     string as multibyte string(Local Code).
+     Or you can set the type as "TYPE_WIDECHAR",AlFont will convert the 
+     string as widechar string(Unicode Code).
+     
+     
+   int alfont_get_convert(ALFONT_FONT *f);
+     Returns the convert type of the selected font.     
+   
+   
+   void alfont_set_font_style(ALFONT_FONT *f, int style);
+     Sets the selected font style as Standard,Italic,Bold or BoldItalic style font.
+
+
+   int alfont_get_font_style(ALFONT_FONT *f);
+     Returns the style of the selected font.
+
+   
+   void alfont_set_font_underline(ALFONT_FONT *f, int underline);
+     Sets the selected font with underline.
+     
+     
+   int alfont_get_font_underline(ALFONT_FONT *f);
+     Returns if the selected font have been set as underline.
+   
+   
+   void alfont_set_font_underline_right(ALFONT_FONT *f, int underline_right);
+     Extends the right underline for the selected font.
+     
+     
+   int alfont_get_font_underline_right(ALFONT_FONT *f);
+     Returns if the selected font have been set as extend right underline.
+   
+   
+   void alfont_set_font_underline_left(ALFONT_FONT *f, int underline_left);
+     Extends the left underline for the selected font.
+     
+     
+   int alfont_get_font_underline_left(ALFONT_FONT *f);
+     Returns if the selected font have been set as extend left underline.
+   
+     
+   void alfont_set_font_background(ALFONT_FONT *f, int background);
+     Sets the background for the selected font.(TRUE/FALSE)
+     
+     
+   int alfont_get_font_background(ALFONT_FONT *f);
+     Returns if the selected font have been set to show the background color.
+   
+   
+   void alfont_set_font_transparency(ALFONT_FONT *f, int transparency);
+     Sets the transparency for the selected font.(0-255)
+     
+     
+   int alfont_get_font_transparency(ALFONT_FONT *f);
+     Returns the transparency of the selected font.
+     
+     
+   void alfont_set_autofix(ALFONT_FONT *f, int autofix);
+     Autofix the shortcutted character while trying to convert ASCII encoding format to Unicode encoding format.
+     The shortcutted character will be appended to the next string.
+     After the shortcutted chatacter showed with the next string, the shortcutted character value will be set as 0.
+     The function will be useful for double-byte characters.
+     
+     
+   int alfont_get_autofix(ALFONT_FONT *f);
+     Returns if the selected font have been set as autofix.
+     
+     
+   void alfont_set_precedingchar(ALFONT_FONT *f, int precedingchar);
+     Sets the shortcutted character value.
+     The shortcutted characterthe will be showed in the front of the next string.
+
+
+   int alfont_get_precedingchar(ALFONT_FONT *f);
+     Returns the shortcutted character value that will be appended to the next string.
+     If there are not the shortcutted character that will be appended to the next string, 
+     the return value of the alfont_get_precedingchar function will be 0.
+     
+     
+   int alfont_ugetc(ALFONT_FONT *f, const char *s);
+     Returns the character pointed to by `s' in the current encoding format.
+    
+   int alfont_ugetx(ALFONT_FONT *f, char **s);
+     Returns the character pointered by `s' in the current encoding format, 
+     and advances the pointer to the next character after the one just returned.
+     
+   int alfont_ugetxc(ALFONT_FONT *f, const char **s);
+     Returns the character pointered by `s' in the current encoding format, 
+     and advances the pointer to the next character after the one just returned.
+     
+   void alfont_get_string(ALFONT_FONT *f, const char *s , char **out);
+     Gets the converted string pointered by `s' in the current encoding format.
+     
+   void alfont_set_font_outline_top(ALFONT_FONT *f, int w);
+     Adds the outline width of the top for the selected font.
+     The height of the selected font is the max restriction.
+     
+     
+   int alfont_get_font_outline_top(ALFONT_FONT *f);
+     Returns the top outline width of the selected font.
+   
+   
+   void alfont_set_font_outline_bottom(ALFONT_FONT *f, int w);
+     Adds the outline width of the bottom for the selected font.
+     The height of the selected font is the max restriction.
+     
+     
+   int alfont_get_font_outline_bottom(ALFONT_FONT *f);
+     Returns the bottom outline width of the selected font.
+     
+     
+   void alfont_set_font_outline_left(ALFONT_FONT *f, int w);
+     Adds the outline width of the left for the selected font.
+     The width of the selected font is the max restriction.
+     
+     
+   int alfont_get_font_outline_left(ALFONT_FONT *f);
+     Returns the left outline width of the selected font.
+   
+   
+   void alfont_set_font_outline_right(ALFONT_FONT *f, int w);
+     Adds the outline width of the right for the selected font.
+     The width of the selected font is the max restriction.
+     
+     
+   int alfont_get_font_outline_right(ALFONT_FONT *f);
+     Returns the right outline width of the selected font.
+   
+   
+   void alfont_set_font_outline_color(ALFONT_FONT *f, int c);
+     Sets the outline color for the selected font.
+     
+     
+   int alfont_get_font_outline_color(ALFONT_FONT *f);
+     Returns the outline color of the selected font.
+     
+   
+   void alfont_set_font_outline_hollow(ALFONT_FONT *f, int hollow);
+     Sets the selected font as hollow.(TRUE/FALSE)
+     
+     
+   int alfont_get_font_outline_hollow(ALFONT_FONT *f);
+     Returns if the selected font have been set as hollow.
+
+     
+   int alfont_text_count(ALFONT_FONT *f, const char *str);
+     Returns the length of the string.
+     
+     
+   int alfont_need_uconvert(ALFONT_FONT *f, const char *str);
+		 Returns TRUE if unicode conversion is required or FALSE otherwise, 
+		 that is the string contains only character values less than 128.
+     
+    
+   void alfont_set_font_fixed_width(ALFONT_FONT *f, int fixed_width);
+		 Sets the selected font as fixed width.(TRUE/FALSE)
+
+   
+   int alfont_char_length(ALFONT_FONT *f, int character);
+		 Gets the length of char value
+
+
+   For these functions:
+
+     int alfont_text_mode(int mode);
+
+     void alfont_textout_aa(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int y, int color);
+     void alfont_textout(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int y, int color);
+     void alfont_textout_aa_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int y, int color, int backg);
+     void alfont_textout_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int y, int color, int backg);
+
+     void alfont_textout_centre_aa(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int y, int color);
+     void alfont_textout_centre(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int y, int color);
+     void alfont_textout_centre_aa_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int y, int color, int backg);
+     void alfont_textout_centre_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int y, int color, int backg);
+
+     void alfont_textout_right_aa(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int y, int color);
+     void alfont_textout_right(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int y, int color);
+     void alfont_textout_right_aa_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int y, int color, int backg);
+     void alfont_textout_right_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int y, int color, int backg);
+
+     void alfont_textprintf(BITMAP *bmp, ALFONT_FONT *f, int x, int y, int color, const char *format, ...);
+     void alfont_textprintf_aa(BITMAP *bmp, ALFONT_FONT *f, int x, int y, int color, const char *format, ...);
+     void alfont_textprintf_ex(BITMAP *bmp, ALFONT_FONT *f, int x, int y, int color, int backg, const char *format, ...);
+     void alfont_textprintf_aa_ex(BITMAP *bmp, ALFONT_FONT *f, int x, int y, int color, int backg, const char *format, ...);
+
+     void alfont_textprintf_centre(BITMAP *bmp, ALFONT_FONT *f, int x, int y, int color, const char *format, ...);
+     void alfont_textprintf_centre_aa(BITMAP *bmp, ALFONT_FONT *f, int x, int y, int color, const char *format, ...);
+     void alfont_textprintf_centre_ex(BITMAP *bmp, ALFONT_FONT *f, int x, int y, int color, int backg, const char *format, ...);
+     void alfont_textprintf_centre_aa_ex(BITMAP *bmp, ALFONT_FONT *f, int x, int y, int color, int backg, const char *format, ...);
+
+     void alfont_textprintf_right(BITMAP *bmp, ALFONT_FONT *f, int x, int y, int color, const char *format, ...);
+     void alfont_textprintf_right_aa(BITMAP *bmp, ALFONT_FONT *f, int x, int y, int color, const char *format, ...);
+     void alfont_textprintf_right_ex(BITMAP *bmp, ALFONT_FONT *f, int x, int y, int color, int backg, const char *format, ...);
+     void alfont_textprintf_right_aa_ex(BITMAP *bmp, ALFONT_FONT *f, int x, int y, int color, int backg, const char *format, ...);
+
+     int alfont_text_height(ALFONT_FONT *f);
+     int alfont_text_length(ALFONT_FONT *f, const char *str);
+     
+   For added functions since v2.0.0:
+   
+     void alfont_set_language(ALFONT_FONT *f, const char *language);
+     char *alfont_get_language(ALFONT_FONT *f);
+     void alfont_set_convert(ALFONT_FONT *f, int type);
+     int alfont_get_convert(ALFONT_FONT *f);
+     
+     void alfont_set_font_style(ALFONT_FONT *f, int style);
+     int alfont_get_font_style(ALFONT_FONT *f);
+     void alfont_set_font_underline(ALFONT_FONT *f, int underline);
+     int alfont_get_font_underline(ALFONT_FONT *f);
+     void alfont_set_font_underline_right(ALFONT_FONT *f, int underline_right);
+     int alfont_get_font_underline_right(ALFONT_FONT *f);
+     void alfont_set_font_underline_left(ALFONT_FONT *f, int underline_left);
+     int alfont_get_font_underline_left(ALFONT_FONT *f);
+     
+     void alfont_set_font_background(ALFONT_FONT *f, int background);
+     int alfont_get_font_background(ALFONT_FONT *f);
+     void alfont_set_font_transparency(ALFONT_FONT *f, int transparency);
+     int alfont_get_font_transparency(ALFONT_FONT *f);
+     void alfont_set_autofix(ALFONT_FONT *f, int autofix);
+     int alfont_get_autofix(ALFONT_FONT *f);
+     void alfont_set_precedingchar(ALFONT_FONT *f, int precedingchar);
+     int alfont_get_precedingchar(ALFONT_FONT *f);
+     
+     int alfont_ugetc(ALFONT_FONT *f, const char *s);
+     int alfont_ugetx(ALFONT_FONT *f, char **s);
+     int alfont_ugetxc(ALFONT_FONT *f, const char **s);
+     
+     void alfont_get_string(ALFONT_FONT *f, const char *s , char **out);
+     
+     void alfont_set_font_outline_top(ALFONT_FONT *f, int w);
+     int alfont_get_font_outline_top(ALFONT_FONT *f);
+     void alfont_set_font_outline_bottom(ALFONT_FONT *f, int w);
+     int alfont_get_font_outline_bottom(ALFONT_FONT *f);
+     void alfont_set_font_outline_left(ALFONT_FONT *f, int w);
+     int alfont_get_font_outline_left(ALFONT_FONT *f);
+     void alfont_set_font_outline_right(ALFONT_FONT *f, int w);
+     int alfont_get_font_outline_right(ALFONT_FONT *f);
+     void alfont_set_font_outline_color(ALFONT_FONT *f, int c);
+     int alfont_get_font_outline_color(ALFONT_FONT *f);
+     void alfont_set_font_outline_hollow(ALFONT_FONT *f, int hollow);
+     int alfont_get_font_outline_hollow(ALFONT_FONT *f);
+     
+     int alfont_text_count(ALFONT_FONT *f, const char *str);
+     
+     int alfont_need_uconvert(ALFONT_FONT *f, const char *str);
+
+     void alfont_set_font_fixed_width(ALFONT_FONT *f, int fixed_width);
+
+     int alfont_char_length(ALFONT_FONT *f, int character);
+
+
+     See allegro ones. The only difference is the suffix "_aa" that means
+     antialiased. Bear in mind antialiased operations are a lot slower than
+     monochrome ones. Also some old font formats, like PCF do not support
+     antialiasing.
+     Notice also the "_ex" suffix that adds a 'backg' parameter, which is the
+     background color, avoiding that way the use of alfont_textmode().
+
+     In fact, the speed from faster to slower are (being 100% the speed
+     of the fatest one):
+
+     Bliting over screen:
+       Monochrome, transparent textmode   (100%)
+       Monochrome, opaque textmode        (63%)
+       Antialiased, opaque textmode       (53%)
+       Antialiased, transparent textmode  (6%)
+
+     Blitting over memory bitmap:
+       Monochrome, transparent textmode   (91%)
+       Monochrome, opaque textmode        (50%)
+       Antialiased, opaque textmode       (47%)
+       Antialiased, transparent textmode  (20%)
+
+     being the Antialiased opaque mode a lot faster than the Antialiased
+     transparent mode (since this last one uses allegro blenders). That's
+     also the reason of why this last one works A LOT better over memory
+     bitmaps (implies read operations).
+

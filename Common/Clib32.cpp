@@ -298,19 +298,23 @@ extern "C"
       }
       else 
       {
-        MultiFileLib mflibOld;
-        if (read_new_format_clib(&mflibOld, fff, lib_version))
+        // PSP: Allocate struct on the heap to avoid overflowing the stack.
+        MultiFileLib* mflibOld = (MultiFileLib*)malloc(sizeof(MultiFileLib));
+
+        if (read_new_format_clib(mflibOld, fff, lib_version))
           return -5;
         // convert to newer format
-        mflib.num_files = mflibOld.num_files;
-        mflib.num_data_files = mflibOld.num_data_files;
-        memcpy(&mflib.offset[0], &mflibOld.offset[0], sizeof(long) * mflib.num_files);
-        memcpy(&mflib.length[0], &mflibOld.length[0], sizeof(long) * mflib.num_files);
-        memcpy(&mflib.file_datafile[0], &mflibOld.file_datafile[0], sizeof(char) * mflib.num_files);
+        mflib.num_files = mflibOld->num_files;
+        mflib.num_data_files = mflibOld->num_data_files;
+        memcpy(&mflib.offset[0], &mflibOld->offset[0], sizeof(long) * mflib.num_files);
+        memcpy(&mflib.length[0], &mflibOld->length[0], sizeof(long) * mflib.num_files);
+        memcpy(&mflib.file_datafile[0], &mflibOld->file_datafile[0], sizeof(char) * mflib.num_files);
         for (aa = 0; aa < mflib.num_data_files; aa++)
-          strcpy(mflib.data_filenames[aa], mflibOld.data_filenames[aa]);
+          strcpy(mflib.data_filenames[aa], mflibOld->data_filenames[aa]);
         for (aa = 0; aa < mflib.num_files; aa++)
-          strcpy(mflib.filenames[aa], mflibOld.filenames[aa]);
+          strcpy(mflib.filenames[aa], mflibOld->filenames[aa]);
+
+        free(mflibOld);
       }
 
       fclose(fff);

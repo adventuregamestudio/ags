@@ -2256,6 +2256,35 @@ block convert_16_to_16bgr(block tempbl) {
 }
 #endif
 
+
+// PSP: convert 32 bit RGB to BGR.
+block convert_32_to_32bgr(block tempbl) {
+
+  unsigned char* current = tempbl->line[0];
+
+  int i = 0;
+  int j = 0;
+  while (i < tempbl->h)
+  {
+    current = tempbl->line[i];
+    while (j < tempbl->w)
+    {
+      current[0] ^= current[2];
+      current[2] ^= current[0];
+      current[0] ^= current[2];
+      current += 4;
+      j++;
+    }
+    i++;
+    j = 0;
+  }
+
+  return tempbl;
+}
+
+
+
+
 // Begin resolution system functions
 
 // Multiplies up the number of pixels depending on the current 
@@ -4136,6 +4165,10 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
     else if ((bitmap_color_depth (thisroom.ebscene[cc]) == 16) && (convert_16bit_bgr == 1))
       thisroom.ebscene[cc] = convert_16_to_16bgr (thisroom.ebscene[cc]);
   #endif
+
+  // PSP: Convert 32 bit backgrounds.
+  if (bitmap_color_depth(thisroom.ebscene[cc]) == 32)
+    thisroom.ebscene[cc] = convert_32_to_32bgr(thisroom.ebscene[cc]);
 
     thisroom.ebscene[cc] = gfxDriver->ConvertBitmapToSupportedColourDepth(thisroom.ebscene[cc]);
   }
@@ -25986,11 +26019,17 @@ void initialize_sprite (int ee) {
       destroy_bitmap(oldSprite);
       spcoldep = final_col_dep;
     }
-    else if ((spcoldep == 32) && (final_col_dep == 32) &&
-      ((game.spriteflags[ee] & SPF_ALPHACHANNEL) != 0))
+    // PSP: Convert to BGR color order.
+    else if ((spcoldep == 32) && (final_col_dep == 32))
     {
-      set_rgb_mask_using_alpha_channel(spriteset[ee]);
+      spriteset.set(ee, convert_32_to_32bgr(spriteset[ee]));
+
+      if ((game.spriteflags[ee] & SPF_ALPHACHANNEL) != 0)
+      {
+        set_rgb_mask_using_alpha_channel(spriteset[ee]);
+      }
     }
+
 #ifdef USE_15BIT_FIX
     else if ((final_col_dep != game.color_depth*8) && (spcoldep == game.color_depth*8)) {
       // running in 15-bit mode with a 16-bit game, convert sprites
@@ -26687,7 +26726,8 @@ void initialize_start_and_play_game(int override_start_room, const char *loadSav
     // This happens if the user's graphics card does BGR order 16-bit colour
     int oldalways = game.options[OPT_ALWAYSSPCH];
     game.options[OPT_ALWAYSSPCH] = 0;
-    Display ("WARNING: AGS has detected that you have an incompatible graphics card for this game. You may experience colour problems during the game. Try running the game with \"--15bit\" command line parameter and see if that helps.[[Click the mouse to continue.");
+    // PSP: This is normal. Don't show a warning.
+    //Display ("WARNING: AGS has detected that you have an incompatible graphics card for this game. You may experience colour problems during the game. Try running the game with \"--15bit\" command line parameter and see if that helps.[[Click the mouse to continue.");
     game.options[OPT_ALWAYSSPCH] = oldalways;
   }
 
@@ -27738,15 +27778,17 @@ int initialize_engine(int argc,char*argv[])
   write_log_debug("Initializing screen settings");
 
   // default shifts for how we store the sprite data
+
+  // PSP: Switch b<>r for 15/16 bit.
   _rgb_r_shift_32 = 16;
   _rgb_g_shift_32 = 8;
   _rgb_b_shift_32 = 0;
-  _rgb_r_shift_16 = 11;
+  _rgb_b_shift_16 = 11;
   _rgb_g_shift_16 = 5;
-  _rgb_b_shift_16 = 0;
-  _rgb_r_shift_15 = 10;
+  _rgb_r_shift_16 = 0;
+  _rgb_b_shift_15 = 10;
   _rgb_g_shift_15 = 5;
-  _rgb_b_shift_15 = 0;
+  _rgb_r_shift_15 = 0;
 
   usetup.base_width = 320;
   usetup.base_height = 200;
@@ -27951,16 +27993,28 @@ int initialize_engine(int argc,char*argv[])
   if (final_col_dep > 16) {
     // when we're using 32-bit colour, it converts hi-color images
     // the wrong way round - so fix that
-    _rgb_r_shift_16 = 11;
-    _rgb_g_shift_16 = 5;
     _rgb_b_shift_16 = 0;
+    _rgb_g_shift_16 = 5;
+    _rgb_r_shift_16 = 11;
+
+    _rgb_b_shift_15 = 0;
+    _rgb_g_shift_15 = 5;
+    _rgb_r_shift_15 = 10;
+
+    _rgb_r_shift_32 = 0;
+    _rgb_g_shift_32 = 8;
+    _rgb_b_shift_32 = 16;
   }
   else if (final_col_dep <= 16) {
     // ensure that any 32-bit graphics displayed are converted
     // properly to the current depth
-    _rgb_r_shift_32 = 16;
+    _rgb_r_shift_32 = 0;
     _rgb_g_shift_32 = 8;
-    _rgb_b_shift_32 = 0;
+    _rgb_b_shift_32 = 16;
+
+    _rgb_b_shift_15 = 0;
+    _rgb_g_shift_15 = 5;
+    _rgb_r_shift_15 = 10;
   }
 
   platform->PostAllegroInit((usetup.windowed > 0) ? true : false);

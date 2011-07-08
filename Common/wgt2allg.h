@@ -438,6 +438,8 @@ extern "C"
 #endif
     }
     else if (newcol >= 32) {
+// PSP: Swap colors only here.
+#define SWAP_RB_HICOL
 #ifdef SWAP_RB_HICOL
       ctset[0] = makecol16(getb16(newcol), getg16(newcol), getr16(newcol));
 #else

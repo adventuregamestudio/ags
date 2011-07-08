@@ -48,7 +48,8 @@ int spritewidth[MAX_SPRITES + 5], spriteheight[MAX_SPRITES + 5];
 #define SPRITE_LOCKED -1
 #define START_OF_LIST -1
 #define END_OF_LIST   -1
-#define DEFAULTCACHESIZE 20240000        // max size, in bytes (20 MB)
+// PSP: Use smaller sprite cache due to limited total memory.
+#define DEFAULTCACHESIZE 5000000 //20240000        // max size, in bytes (20 MB)
 
 
 SpriteCache::SpriteCache(long maxElements)

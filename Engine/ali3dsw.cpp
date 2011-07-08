@@ -14,6 +14,13 @@
 #include <allegro.h>
 #include <ali3d.h>
 
+#include <stdio.h>
+
+// PSP: Includes for sceKernelDelayThread.
+#include <pspsdk.h>
+#include <pspthreadman.h>
+#include <psputils.h>
+
 #ifdef _WIN32
 #include <winalleg.h>
 extern int dxmedia_play_video (const char*, bool, int, int);
@@ -31,7 +38,7 @@ typedef struct DDRAW_SURFACE {
 extern "C" extern LPDIRECTDRAW2 directdraw;
 extern "C" DDRAW_SURFACE *gfx_directx_primary_surface;
 #else
-#define Sleep(x) usleep(1000*x)
+#define Sleep(x) sceKernelDelayThread(1000*x)
 #endif
 
 #define MAX_DRAW_LIST_SIZE 200

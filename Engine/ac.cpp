@@ -11,6 +11,14 @@
   CLEAR that the code has been altered from the Standard Version.
 
 */
+
+// PSP header.
+#include <pspsdk.h>
+#include <pspdebug.h>
+#include <pspthreadman.h>
+#include <psputils.h>
+#include <pspmath.h>
+
 #ifdef NO_MP3_PLAYER
 #define SPECIAL_VERSION "NMP"
 #else
@@ -15246,7 +15254,7 @@ FLOAT_RETURN_TYPE StringToFloat(const char *theString) {
 FLOAT_RETURN_TYPE Math_Cos(SCRIPT_FLOAT(value)) {
   INIT_SCRIPT_FLOAT(value);
 
-  value = ::cos(value);
+  value = vfpu_cosf(value);
 
   RETURN_FLOAT(value);
 }
@@ -15254,7 +15262,7 @@ FLOAT_RETURN_TYPE Math_Cos(SCRIPT_FLOAT(value)) {
 FLOAT_RETURN_TYPE Math_Sin(SCRIPT_FLOAT(value)) {
   INIT_SCRIPT_FLOAT(value);
 
-  value = ::sin(value);
+  value = vfpu_sinf(value);
 
   RETURN_FLOAT(value);
 }
@@ -15262,7 +15270,7 @@ FLOAT_RETURN_TYPE Math_Sin(SCRIPT_FLOAT(value)) {
 FLOAT_RETURN_TYPE Math_Tan(SCRIPT_FLOAT(value)) {
   INIT_SCRIPT_FLOAT(value);
 
-  value = ::tan(value);
+  value = vfpu_tanf(value);
 
   RETURN_FLOAT(value);
 }
@@ -15270,7 +15278,7 @@ FLOAT_RETURN_TYPE Math_Tan(SCRIPT_FLOAT(value)) {
 FLOAT_RETURN_TYPE Math_ArcCos(SCRIPT_FLOAT(value)) {
   INIT_SCRIPT_FLOAT(value);
 
-  value = ::acos(value);
+  value = vfpu_acosf(value);
 
   RETURN_FLOAT(value);
 }
@@ -15278,7 +15286,7 @@ FLOAT_RETURN_TYPE Math_ArcCos(SCRIPT_FLOAT(value)) {
 FLOAT_RETURN_TYPE Math_ArcSin(SCRIPT_FLOAT(value)) {
   INIT_SCRIPT_FLOAT(value);
 
-  value = ::asin(value);
+  value = vfpu_asinf(value);
 
   RETURN_FLOAT(value);
 }
@@ -15286,7 +15294,7 @@ FLOAT_RETURN_TYPE Math_ArcSin(SCRIPT_FLOAT(value)) {
 FLOAT_RETURN_TYPE Math_ArcTan(SCRIPT_FLOAT(value)) {
   INIT_SCRIPT_FLOAT(value);
 
-  value = ::atan(value);
+  value = vfpu_atanf(value);
 
   RETURN_FLOAT(value);
 }
@@ -15295,7 +15303,7 @@ FLOAT_RETURN_TYPE Math_ArcTan2(SCRIPT_FLOAT(yval), SCRIPT_FLOAT(xval)) {
   INIT_SCRIPT_FLOAT(yval);
   INIT_SCRIPT_FLOAT(xval);
 
-  float value = ::atan2(yval, xval);
+  float value = vfpu_atan2f(yval, xval);
 
   RETURN_FLOAT(value);
 }
@@ -15303,7 +15311,7 @@ FLOAT_RETURN_TYPE Math_ArcTan2(SCRIPT_FLOAT(yval), SCRIPT_FLOAT(xval)) {
 FLOAT_RETURN_TYPE Math_Log(SCRIPT_FLOAT(num)) {
   INIT_SCRIPT_FLOAT(num);
 
-  float value = ::log(num);
+  float value = vfpu_logf(num);
 
   RETURN_FLOAT(value);
 }
@@ -15319,7 +15327,7 @@ FLOAT_RETURN_TYPE Math_Log10(SCRIPT_FLOAT(num)) {
 FLOAT_RETURN_TYPE Math_Exp(SCRIPT_FLOAT(num)) {
   INIT_SCRIPT_FLOAT(num);
 
-  float value = ::exp(num);
+  float value = vfpu_expf(num);
 
   RETURN_FLOAT(value);
 }
@@ -15327,7 +15335,7 @@ FLOAT_RETURN_TYPE Math_Exp(SCRIPT_FLOAT(num)) {
 FLOAT_RETURN_TYPE Math_Cosh(SCRIPT_FLOAT(num)) {
   INIT_SCRIPT_FLOAT(num);
 
-  float value = ::cosh(num);
+  float value = vfpu_coshf(num);
 
   RETURN_FLOAT(value);
 }
@@ -15335,7 +15343,7 @@ FLOAT_RETURN_TYPE Math_Cosh(SCRIPT_FLOAT(num)) {
 FLOAT_RETURN_TYPE Math_Sinh(SCRIPT_FLOAT(num)) {
   INIT_SCRIPT_FLOAT(num);
 
-  float value = ::sinh(num);
+  float value = vfpu_sinhf(num);
 
   RETURN_FLOAT(value);
 }
@@ -15343,7 +15351,7 @@ FLOAT_RETURN_TYPE Math_Sinh(SCRIPT_FLOAT(num)) {
 FLOAT_RETURN_TYPE Math_Tanh(SCRIPT_FLOAT(num)) {
   INIT_SCRIPT_FLOAT(num);
 
-  float value = ::tanh(num);
+  float value = vfpu_tanhf(num);
 
   RETURN_FLOAT(value);
 }

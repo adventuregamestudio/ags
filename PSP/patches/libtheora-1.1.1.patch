@@ -1,0 +1,58 @@
+diff -Naur config.sub config.sub
+--- config.sub	2009-02-23 18:50:50.000000000 +0100
++++ config.sub	2011-05-01 23:56:10.000000000 +0200
+@@ -247,6 +247,7 @@
+ 	| mipsisa64 | mipsisa64el \
+ 	| mipsisa64sb1 | mipsisa64sb1el \
+ 	| mipstx39 | mipstx39el \
++	| mipsallegrex | mipsallegrexel \
+ 	| mn10200 | mn10300 \
+ 	| ns16k | ns32k \
+ 	| openrisc | or32 \
+@@ -315,6 +316,7 @@
+ 	| mipsisa64-* | mipsisa64el-* \
+ 	| mipsisa64sb1-* | mipsisa64sb1el-* \
+ 	| mipstx39 | mipstx39el \
++	| mipsallegrex-* | mipsallegrexel-* \
+ 	| none-* | np1-* | ns16k-* | ns32k-* \
+ 	| orion-* \
+ 	| pdp10-* | pdp11-* | pj-* | pjl-* | pn-* | power-* \
+@@ -794,6 +796,10 @@
+ 	ps2)
+ 		basic_machine=i386-ibm
+ 		;;
++	psp)
++		basic_machine=mipsallegrexel-psp
++		os=-elf
++		;;
+ 	pw32)
+ 		basic_machine=i586-unknown
+ 		os=-pw32
+diff -Naur configure configure
+--- configure	2009-10-01 11:04:08.000000000 +0200
++++ configure	2011-05-09 09:14:01.784737900 +0200
+@@ -11863,8 +11863,8 @@
+         case $host in
+         *)
+                 DEBUG="-g -Wall -Wno-parentheses -DDEBUG -D__NO_MATH_INLINES"
+-                CFLAGS="-Wall -Wno-parentheses -O3 -fforce-addr -fomit-frame-pointer -finline-functions -funroll-loops"
+-                PROFILE="-Wall -Wno-parentheses -pg -g -O3 -fno-inline-functions -DDEBUG";;
++                CFLAGS="-Wall -Wno-parentheses -O2 -G0 -fforce-addr -fomit-frame-pointer -finline-functions"
++                PROFILE="-Wall -Wno-parentheses -pg -g -O2 -G0 -fno-inline-functions -DDEBUG";;
+         esac
+ fi
+ CFLAGS="$CFLAGS $cflags_save"
+diff -Naur configure.ac configure.ac
+--- configure.ac	2009-10-01 11:00:34.000000000 +0200
++++ configure.ac	2011-05-09 09:14:28.996693400 +0200
+@@ -168,8 +168,8 @@
+         case $host in 
+         *)
+                 DEBUG="-g -Wall -Wno-parentheses -DDEBUG -D__NO_MATH_INLINES"
+-                CFLAGS="-Wall -Wno-parentheses -O3 -fforce-addr -fomit-frame-pointer -finline-functions -funroll-loops"
+-                PROFILE="-Wall -Wno-parentheses -pg -g -O3 -fno-inline-functions -DDEBUG";;
++                CFLAGS="-Wall -Wno-parentheses -O2 -G0 -fforce-addr -fomit-frame-pointer -finline-functions"
++                PROFILE="-Wall -Wno-parentheses -pg -g -O2 -G0 -fno-inline-functions -DDEBUG";;
+         esac
+ fi
+ CFLAGS="$CFLAGS $cflags_save"

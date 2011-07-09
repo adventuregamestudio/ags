@@ -1,0 +1,1558 @@
+diff -Naur src/psp/pcommon.h src/psp/pcommon.h
+--- src/psp/pcommon.h	1970-01-01 01:00:00.000000000 +0100
++++ src/psp/pcommon.h	2011-06-03 15:52:09.800530000 +0200
+@@ -0,0 +1,16 @@
++/* Common definitions */
++
++typedef struct {
++   int button;
++   int scancode;
++} psp_button_mapping_t;
++
++typedef struct {
++   int keycode;
++   char* name;
++} psp_osk_key_t;
++
++typedef struct {
++   psp_osk_key_t* keys;
++   unsigned int count;
++} psp_osk_keyset_t;
+\ No newline at end of file
+diff -Naur src/psp/pfile.c src/psp/pfile.c
+--- src/psp/pfile.c	2011-05-09 16:05:11.000000000 +0200
++++ src/psp/pfile.c	2011-06-03 15:34:45.517922900 +0200
+@@ -14,7 +14,7 @@
+  *
+  *      See readme.txt for copyright information.
+  */
+-
++/*
+ 
+ #include "allegro.h"
+ #include "allegro/internal/aintern.h"
+@@ -90,3 +90,538 @@
+ void _al_detect_filename_encoding(void)
+ {
+ }
++*/
++/*         ______   ___    ___ 
++ *        /\  _  \ /\_ \  /\_ \ 
++ *        \ \ \L\ \\//\ \ \//\ \      __     __   _ __   ___ 
++ *         \ \  __ \ \ \ \  \ \ \   /'__`\ /'_ `\/\`'__\/ __`\
++ *          \ \ \/\ \ \_\ \_ \_\ \_/\  __//\ \L\ \ \ \//\ \L\ \
++ *           \ \_\ \_\/\____\/\____\ \____\ \____ \ \_\\ \____/
++ *            \/_/\/_/\/____/\/____/\/____/\/___L\ \/_/ \/___/
++ *                                           /\____/
++ *                                           \_/__/
++ *
++ *      Helper routines to make file.c work on Unix (POSIX) platforms.
++ *
++ *      By Michael Bukin.
++ *
++ *      See readme.txt for copyright information.
++ */
++
++/* libc should use 64-bit for file sizes when possible */
++#define _FILE_OFFSET_BITS 64
++
++#include <stdio.h>
++#include <string.h>
++
++#include "allegro.h"
++#include "allegro/internal/aintern.h"
++
++#ifdef ALLEGRO_HAVE_SYS_STAT_H
++#include <sys/stat.h>
++#endif
++
++#ifdef ALLEGRO_HAVE_DIRENT_H
++   #include <sys/types.h>
++   #include <dirent.h>
++   #define NAMLEN(dirent) (strlen((dirent)->d_name))
++#else
++   /* Apparently all new systems have `dirent.h'. */
++   #error ALLEGRO_HAVE_DIRENT_H not defined
++#endif
++
++#ifdef ALLEGRO_HAVE_SYS_TIME_H
++  #include <sys/time.h>
++#endif
++#ifdef ALLEGRO_HAVE_TIME_H
++  #include <time.h>
++#endif
++
++#define PREFIX_I "al-unix INFO: "
++
++#define PREFIX_I "al-unix INFO: "
++
++
++/* _al_file_isok:
++ *  Helper function to check if it is safe to access a file on a floppy
++ *  drive.
++ */
++int _al_file_isok(AL_CONST char *filename)
++{
++   return TRUE;
++}
++
++
++
++/* _al_file_size_ex:
++ *  Measures the size of the specified file.
++ */
++uint64_t _al_file_size_ex(AL_CONST char *filename)
++{
++   struct stat s;
++   char tmp[1024];
++
++   if (stat(uconvert(filename, U_CURRENT, tmp, U_UTF8, sizeof(tmp)), &s) != 0) {
++      *allegro_errno = errno;
++      return 0;
++   }
++
++   return s.st_size;
++}
++
++
++
++/* _al_file_time:
++ *  Returns the timestamp of the specified file.
++ */
++time_t _al_file_time(AL_CONST char *filename)
++{
++   struct stat s;
++   char tmp[1024];
++
++   if (stat(uconvert(filename, U_CURRENT, tmp, U_UTF8, sizeof(tmp)), &s) != 0) {
++      *allegro_errno = errno;
++      return 0;
++   }
++
++   return s.st_mtime;
++}
++
++
++
++/* ff_get_filename:
++ *  When passed a completely specified file path, this returns a pointer
++ *  to the filename portion.
++ */
++static char *ff_get_filename(AL_CONST char *path)
++{
++   char *p = (char*)path + strlen(path);
++
++   while ((p > path) && (*(p - 1) != '/'))
++      p--;
++
++   return p;
++}
++
++
++
++/* ff_put_backslash:
++ *  If the last character of the filename is not a /, this routine will
++ *  concatenate a / on to it.
++ */
++static void ff_put_backslash(char *filename, int size)
++{
++   int len = strlen(filename);
++
++   if ((len > 0) && (len < (size - 1)) && (filename[len - 1] != '/')) {
++      filename[len] = '/';
++      filename[len + 1] = 0;
++   }
++}
++
++
++
++#define FF_MATCH_TRY 0
++#define FF_MATCH_ONE 1
++#define FF_MATCH_ANY 2
++
++
++struct FF_MATCH_DATA
++{
++   int type;
++   AL_CONST char *s1;
++   AL_CONST char *s2;
++};
++
++
++
++/* ff_match:
++ *  Matches two strings ('*' matches any number of characters,
++ *  '?' matches any character).
++ */
++static int ff_match(AL_CONST char *s1, AL_CONST char *s2)
++{
++   static unsigned int size = 0;
++   static struct FF_MATCH_DATA *data = NULL;
++   AL_CONST char *s1end;
++   int index, c1, c2;
++
++   /* handle NULL arguments */
++   if ((!s1) && (!s2)) {
++      if (data) {
++         _AL_FREE(data);
++         data = NULL;
++      }
++
++      return 0;
++   }
++
++   s1end = s1 + strlen(s1);
++
++   /* allocate larger working area if necessary */
++   if (data && (size < strlen(s2))) {
++      _AL_FREE(data);
++      data = NULL;
++   }
++
++   if (!data) {
++      size = strlen(s2);
++      data = _AL_MALLOC(sizeof(struct FF_MATCH_DATA) * size * 2 + 1);
++      if (!data)
++         return 0;
++   }
++
++   index = 0;
++   data[0].s1 = s1;
++   data[0].s2 = s2;
++   data[0].type = FF_MATCH_TRY;
++
++   while (index >= 0) {
++      s1 = data[index].s1;
++      s2 = data[index].s2;
++      c1 = *s1;
++      c2 = *s2;
++
++      switch (data[index].type) {
++
++      case FF_MATCH_TRY:
++         if (c2 == 0) {
++            /* pattern exhausted */
++            if (c1 == 0)
++               return 1;
++            else
++               index--;
++         }
++         else if (c1 == 0) {
++            /* string exhausted */
++            while (*s2 == '*')
++               s2++;
++            if (*s2 == 0)
++               return 1;
++            else
++               index--;
++         }
++         else if (c2 == '*') {
++            /* try to match the rest of pattern with empty string */
++            data[index++].type = FF_MATCH_ANY;
++            data[index].s1 = s1end;
++            data[index].s2 = s2 + 1;
++            data[index].type = FF_MATCH_TRY;
++         }
++         /* do case insensitive matching */
++         else if ((c2 == '?') || (c1 == c2) 
++           || ((c1 <= 90) && (c1 >= 65) && (c2 == c1 + 32)) 
++           || ((c2 <= 90) && (c2 >= 65) && (c1 == c2 + 32))) {
++            /* try to match the rest */
++            data[index++].type = FF_MATCH_ONE;
++            data[index].s1 = s1 + 1;
++            data[index].s2 = s2 + 1;
++            data[index].type = FF_MATCH_TRY;
++         }
++         else
++            index--;
++         break;
++
++      case FF_MATCH_ONE:
++         /* the rest of string did not match, try earlier */
++         index--;
++         break;
++
++      case FF_MATCH_ANY:
++         /* rest of string did not match, try add more chars to string tail */
++         if (--data[index + 1].s1 >= s1) {
++            data[index + 1].type = FF_MATCH_TRY;
++            index++;
++         }
++         else
++            index--;
++         break;
++
++      default:
++         /* this is a bird? This is a plane? No it's a bug!!! */
++         return 0;
++      }
++   }
++
++   return 0;
++}
++
++
++
++/* ff_get_attrib:
++ *  Builds up the attribute list of the file pointed to by name and s.
++ */
++static int ff_get_attrib(AL_CONST char *name, struct stat *s)
++{
++   int attrib = 0;
++/*
++   uid_t euid = geteuid();
++
++   if (euid != 0) {
++      if (s->st_uid == euid) {
++	 if ((s->st_mode & S_IWUSR) == 0)
++	    attrib |= FA_RDONLY;
++      }
++      else if (s->st_gid == getegid()) {
++	 if ((s->st_mode & S_IWGRP) == 0)
++	    attrib |= FA_RDONLY;
++      }
++      else if ((s->st_mode & S_IWOTH) == 0) {
++	 attrib |= FA_RDONLY;
++      }
++   }
++*/
++   if (S_ISDIR(s->st_mode))
++      attrib |= FA_DIREC;
++
++   if ((name[0] == '.') && ((name[1] != '.') || (name[2] != '\0')))
++      attrib |= FA_HIDDEN;
++
++   return attrib;
++}
++
++
++
++/* structure for use by the directory scanning routines */
++#define FF_MAXPATHLEN 1024
++
++struct FF_DATA
++{
++   DIR *dir;
++   char dirname[FF_MAXPATHLEN];
++   char pattern[FF_MAXPATHLEN];
++   int attrib;
++   uint64_t size;
++};
++
++
++
++/* al_findfirst:
++ *  Initiates a directory search.
++ */
++int al_findfirst(AL_CONST char *pattern, struct al_ffblk *info, int attrib)
++{
++   struct FF_DATA *ff_data;
++   struct stat s;
++   int actual_attrib;
++   char tmp[1024];
++   char *p;
++
++   /* allocate ff_data structure */
++   ff_data = _AL_MALLOC(sizeof(struct FF_DATA));
++   if (!ff_data) {
++      *allegro_errno = ENOMEM;
++      return -1;
++   }
++
++   memset(ff_data, 0, sizeof *ff_data);
++   info->ff_data = (void *) ff_data;
++
++   /* if the pattern contains no wildcard, we use stat() */
++   if (!ustrpbrk(pattern, uconvert("?*", U_ASCII, tmp, U_CURRENT, sizeof(tmp)))) {
++
++      /* start the search */
++      errno = *allegro_errno = 0;
++
++      if (stat(uconvert(pattern, U_CURRENT, tmp, U_UTF8, sizeof(tmp)), &s) == 0) {
++
++         /* get file attributes */
++         actual_attrib = ff_get_attrib(ff_get_filename(uconvert(pattern, U_CURRENT, tmp, U_UTF8, sizeof(tmp))), &s);
++         /* does it match ? */
++         if ((actual_attrib & ~attrib) == 0) {
++            info->attrib = actual_attrib;
++            info->time = s.st_mtime;
++            info->size = s.st_size; /* overflows at 2GB */
++            ff_data->size = s.st_size;
++            ustrzcpy(info->name, sizeof(info->name), get_filename(pattern));
++            return 0;
++         }
++      }
++
++       _AL_FREE(ff_data);
++      info->ff_data = NULL;
++      *allegro_errno = (errno ? errno : ENOENT);
++      return -1;
++   }
++
++   ff_data->attrib = attrib;
++
++   do_uconvert(pattern, U_CURRENT, ff_data->dirname, U_UTF8, sizeof(ff_data->dirname));
++   p = ff_get_filename(ff_data->dirname);
++   _al_sane_strncpy(ff_data->pattern, p, sizeof(ff_data->pattern));
++   if (p == ff_data->dirname)
++      _al_sane_strncpy(ff_data->dirname, "./", FF_MAXPATHLEN);
++   else
++      *p = 0;
++
++   /* nasty bodge, but gives better compatibility with DOS programs */
++   if (strcmp(ff_data->pattern, "*.*") == 0)
++      _al_sane_strncpy(ff_data->pattern, "*", FF_MAXPATHLEN);
++
++   /* start the search */
++   errno = *allegro_errno = 0;
++
++   ff_data->dir = opendir(ff_data->dirname);
++   if (!ff_data->dir) {
++      *allegro_errno = (errno ? errno : ENOENT);
++      _AL_FREE(ff_data);
++      info->ff_data = NULL;
++      return -1;
++   }
++
++   if (al_findnext(info) != 0) {
++      al_findclose(info);
++      return -1;
++   }
++
++   return 0;
++}
++
++
++
++/* al_findnext:
++ *  Retrieves the next file from a directory search.
++ */
++int al_findnext(struct al_ffblk *info)
++{
++   char tempname[FF_MAXPATHLEN];
++   char filename[FF_MAXPATHLEN];
++   int attrib;
++   struct dirent *entry;
++   struct stat s;
++   struct FF_DATA *ff_data = (struct FF_DATA *) info->ff_data;
++
++   ASSERT(ff_data);
++
++   /* if the pattern contained no wildcard */
++   if (!ff_data->dir)
++      return -1;
++
++   while (TRUE) {
++      /* read directory entry */
++      entry = readdir(ff_data->dir);
++      if (!entry) {
++         *allegro_errno = (errno ? errno : ENOENT);
++         return -1;
++      }
++
++      /* try to match file name with pattern */
++      tempname[0] = 0;
++      if (NAMLEN(entry) >= sizeof(tempname))
++         strncat(tempname, entry->d_name, sizeof(tempname) - 1);
++      else
++         strncat(tempname, entry->d_name, NAMLEN(entry));
++
++      if (ff_match(tempname, ff_data->pattern)) {
++         _al_sane_strncpy(filename, ff_data->dirname, FF_MAXPATHLEN);
++         ff_put_backslash(filename, sizeof(filename));
++         strncat(filename, tempname, sizeof(filename) - strlen(filename) - 1);
++
++         /* get file attributes */
++         if (stat(filename, &s) == 0) {
++            attrib = ff_get_attrib(tempname, &s);
++
++            /* does it match ? */
++            if ((attrib & ~ff_data->attrib) == 0)
++               break;
++         }
++         else {
++            /* evil! but no other way to avoid exiting for_each_file() */
++            *allegro_errno = 0;
++         }
++      }
++   }
++
++   info->attrib = attrib;
++   info->time = s.st_mtime;
++   info->size = s.st_size; /* overflows at 2GB */
++   ff_data->size = s.st_size;
++
++   do_uconvert(tempname, U_UTF8, info->name, U_CURRENT, sizeof(info->name));
++
++   return 0;
++}
++
++
++
++/* al_findclose:
++ *  Cleans up after a directory search.
++ */
++void al_findclose(struct al_ffblk *info)
++{
++   struct FF_DATA *ff_data = (struct FF_DATA *) info->ff_data;
++
++   if (ff_data) {
++      if (ff_data->dir) {
++         closedir(ff_data->dir);
++      }
++      _AL_FREE(ff_data);
++      info->ff_data = NULL;
++
++      /* to avoid leaking memory */
++      ff_match(NULL, NULL);
++   }
++}
++
++
++
++/* _al_getdcwd:
++ *  Returns the current directory on the specified drive.
++ */
++void _al_getdcwd(int drive, char *buf, int size)
++{
++   char tmp[1024];
++
++   if (getcwd(tmp, sizeof(tmp)))
++      do_uconvert(tmp, U_UTF8, buf, U_CURRENT, size);
++   else
++      usetc(buf, 0);
++}
++
++
++
++/* _al_ffblk_get_size:
++ *  Returns the size out of an _al_ffblk structure.
++ */
++uint64_t al_ffblk_get_size(struct al_ffblk *info)
++{
++   struct FF_DATA *ff_data;
++   ASSERT(info);
++   ff_data = (struct FF_DATA *) info->ff_data;
++   ASSERT(ff_data);
++   return ff_data->size;
++}
++
++
++
++/* _al_detect_filename_encoding:
++ *  Platform specific function to detect the filename encoding. This is called
++ *  after setting a system driver, and even if this driver is SYSTEM_NONE.
++ */
++void _al_detect_filename_encoding(void)
++{
++   char const *encoding = "unknown";
++   char *locale = getenv("LC_ALL");
++
++   if (!locale || !locale[0]) {
++      locale = getenv("LC_CTYPE");
++      if (!locale || !locale[0])
++         locale = getenv("LANG");
++   }
++
++   if (locale) {
++      if (strstr(locale, "utf8") ||
++          strstr(locale, "UTF-8") ||
++          strstr(locale, "utf-8") ||
++          strstr(locale, "UTF8")) {
++         /* Note: UTF8 is default anyway. */
++         set_filename_encoding(U_UTF8);
++         encoding = "UTF8";
++      }
++      /* TODO: detect other encodings, and support them in Allegro */
++   }
++
++   TRACE(PREFIX_I "Assumed libc encoding is %s.\n", encoding);
++}
++
++
+diff -Naur src/psp/pgfx.c src/psp/pgfx.c
+--- src/psp/pgfx.c	2011-05-09 16:05:11.000000000 +0200
++++ src/psp/pgfx.c	2011-06-03 12:13:16.008750200 +0200
+@@ -15,6 +15,8 @@
+  *      The psp_draw_to_screen() routine is based on the Basilisk II
+  *      PSP refresh routines by J.F.
+  *
++ *      Modified for the Adventure Game Studio runtime port by JJS.
++ *
+  *      See readme.txt for copyright information.
+  */
+ 
+@@ -22,10 +24,12 @@
+ #include "allegro.h"
+ #include "allegro/internal/aintern.h"
+ #include "allegro/platform/aintpsp.h"
++#include "pcommon.h"
+ #include <math.h>
+ #include <pspdisplay.h>
+ #include <pspgu.h>
+ #include <psputils.h>
++#include <pspdebug.h>
+ 
+ #ifndef ALLEGRO_PSP
+    #error something is wrong with the makefile
+@@ -40,6 +44,17 @@
+ #define DISPLAY_SIZE     (MIN_BUF_WIDTH * MAX_SCR_HEIGHT * PALETTE_PIXEL_SIZE)
+ 
+ 
++extern int psp_show_onscreen_keyboard;
++extern int psp_onscreen_keyboard_index;
++extern int psp_onscreen_keyboard_hide;
++
++
++extern psp_osk_keyset_t psp_osk_keysets[];
++extern int psp_current_keyset;
++extern unsigned int psp_keyset_count;
++
++
++
+ /* The width in pixels of the display framebuffer. */
+ static unsigned int framebuf_width;
+ 
+@@ -140,6 +155,9 @@
+    int available_vram, framebuf_height, framebuf_size;
+    int top_margin, left_margin, bytes_per_line;
+ 
++   pspDebugScreenInit();
++   pspDebugScreenEnableBackColor(1);
++
+    switch (color_depth) {
+       case  8:
+          gu_psm_format = GU_PSM_T8;
+@@ -181,7 +199,7 @@
+    /* How many VRAM we need? */
+    available_vram = sceGeEdramGetSize();
+    vram_start =  (uintptr_t)sceGeEdramGetAddr();
+-   if (gu_psm_format == GU_PSM_T8) {
++   if (1){//(gu_psm_format == GU_PSM_T8) {
+       /* To support the 8 bpp mode we have to set the framebuffer as
+        * a palettized texture outside the display area.
+        */
+@@ -247,11 +265,14 @@
+    else {
+       /* Only supported in truecolor modes. */
+       gfx_psp_enable_acceleration(vtable);
+-      gfx_psp_enable_triple_buffering(&gfx_psp);
++      //gfx_psp_enable_triple_buffering(&gfx_psp);
+    }
+ 
+    displayed_video_bitmap = psp_screen;
+ 
++   /* Set the Debug screen color mode */
++   pspDebugScreenSetColorMode((gu_psm_format == GU_PSM_T8) ? GU_PSM_8888 : gu_psm_format);
++
+    return psp_screen;
+ }
+ 
+@@ -314,9 +335,10 @@
+       sceGuDispBuffer(MAX_SCR_WIDTH, MAX_SCR_HEIGHT, 0, MIN_BUF_WIDTH);
+    }
+    else {
+-      sceGuDrawBuffer(gu_psm_format, 0, framebuf_width);
+-      sceGuDispBuffer(MAX_SCR_WIDTH, MAX_SCR_HEIGHT, 0, framebuf_width);
++      sceGuDrawBuffer(gu_psm_format, 0, MIN_BUF_WIDTH);
++      sceGuDispBuffer(MAX_SCR_WIDTH, MAX_SCR_HEIGHT, 0, MIN_BUF_WIDTH);
+    }
++
+    sceGuScissor(0, 0, MAX_SCR_WIDTH, MAX_SCR_HEIGHT);
+    sceGuEnable(GU_SCISSOR_TEST);
+    sceGuEnable(GU_TEXTURE_2D);
+@@ -371,45 +393,43 @@
+ 
+ 
+ 
+-/* psp_hw_blit:
+- *  PSP accelerated blitting routine.
+- */
+-static void psp_hw_blit(BITMAP *source, BITMAP *dest, int source_x, int source_y, int dest_x, int dest_y, int width, int height)
+-{
+-   void *source_ptr, *dest_ptr;
+ 
+-   /* sceGuCopyImage() can transfer blocks of size <=1024x1024.
+-    * Also the pitch of the source and destination buffers is limited
+-    * to 2048 pixels.
+-    */
+-   if (width > 1024 || height > 1024 || BMP_EXTRA(source)->pitch > 2048 || BMP_EXTRA(dest)->pitch > 2048)
+-      return _orig_blit(source, dest, source_x, source_y, dest_x, dest_y, width, height);
++static void psp_draw_osk()
++{
++   int i = 0;
+ 
+-   /* We position the pixel data pointers at the requested coordinates
+-    * and we align it to 16 bytes. The x,y coordinates are modified accordly.
+-    */
+-   source_ptr = source->line[source_y] + source_x * BYTES_PER_PIXEL(bitmap_color_depth(source));
+-   source_x = ((unsigned int)source_ptr & 0xF) / BYTES_PER_PIXEL(bitmap_color_depth(source));
+-   source_y = 0;
+-   source_ptr = (void *)((unsigned int)source_ptr & ~0xF);
++   pspDebugScreenClearLineDisable();
++   pspDebugScreenSetXY(0, 0);
+ 
+-   dest_ptr = dest->line[dest_y] + dest_x * BYTES_PER_PIXEL(bitmap_color_depth(dest));
+-   dest_x = ((unsigned int)dest_ptr & 0xF) / BYTES_PER_PIXEL(bitmap_color_depth(dest));
+-   dest_y = 0;
+-   dest_ptr = (void *)((unsigned int)dest_ptr & ~0xF);
++   for (i = 0; i < 32; i++) {
++      pspDebugScreenSetXY(0, 1 + i);
++
++      if (i < (int)psp_osk_keysets[psp_current_keyset].count) {
++         if (psp_onscreen_keyboard_index == i)
++            pspDebugScreenSetTextColor(0xFFFFFFFF);
++         else
++            pspDebugScreenSetTextColor(0xFF999999);
++         pspDebugScreenPrintf("%-3s", psp_osk_keysets[psp_current_keyset].keys[i].name);
++      }
++      else
++         pspDebugScreenPrintf("   ");
++   }
+ 
+-   /* The interesting part. */
+-   sceKernelDcacheWritebackAll();
+-   sceGuStart(GU_DIRECT,list);
+-   sceGuCopyImage(gu_psm_format, source_x, source_y, width, height, BMP_EXTRA(source)->pitch, source_ptr, dest_x, dest_y, BMP_EXTRA(dest)->pitch, dest_ptr);
+-   sceGuFinish();
+-   sceGuSync(0,0);
++   if (psp_onscreen_keyboard_hide) {
++      pspDebugScreenClearLineDisable();
++      for (i = 0; i < 30; i++) {
++         pspDebugScreenSetXY(0, 0 + i);
++         pspDebugScreenPrintf("   ");
++      }
++      psp_onscreen_keyboard_hide = 0;
++   }
+ }
+ 
+ 
+ 
++
+ /* psp_draw_to_screen:
+- *  ONLY in 8 bpp video mode.
++ *  Always draw stretched while maintaining the ascept ratio.
+  *  Draws the texture representing the screen to the PSP display
+  *  maximizing the use of the texture-cache.
+  */
+@@ -418,10 +438,13 @@
+    unsigned short texture_x;
+    unsigned char *texture_ptr;
+    short dest_x, dest_y;
+-   int slice_w = 64;
+-   int num_slices = ceil(SCREEN_W/(float)(slice_w));
++   /* There are gaps in the output for 240px height, work around this for now. */
++   int slice_w = (SCREEN_H == 240) ? 320 : 64;
++   int num_slices = (SCREEN_H == 240) ? 1 : 5;
+    int i;
+    struct TEX_VERTEX *vertices;
++   float ar = (float)(SCREEN_W) / (float)SCREEN_H;
++   float correction = (ar * 272.0f) / 320.0f;
+ 
+    /* We align the texture data pointer to 16 bytes.
+     * The texture u coordinate is modified accordly.
+@@ -430,15 +453,14 @@
+    texture_ptr = (unsigned char *)((unsigned int)texture_start & ~0xF);
+ 
+    /* Blit the texture at the center of the screen. */
+-   dest_x = (MAX_SCR_WIDTH - SCREEN_W) / 2;
+-   dest_y = (MAX_SCR_HEIGHT - SCREEN_H) / 2;
+-
+-   sceKernelDcacheWritebackAll();
++   dest_x = (480.0f - (ar * 272.0f)) / 2.0f; //(MAX_SCR_WIDTH - SCREEN_W) / 2;
++   dest_y = 0; //(MAX_SCR_HEIGHT - SCREEN_H) / 2;
+ 
+    sceGuStart(GU_DIRECT,list);
+-   sceGuTexMode(GU_PSM_T8,0,0,0);
++   sceGuTexMode(gu_psm_format,0,0,0);
+    sceGuTexImage(0, 512, 512, framebuf_width, texture_ptr);
+-   sceGuTexFunc(GU_TFX_REPLACE, GU_TCC_RGB);
++   sceGuTexFunc(GU_TFX_REPLACE, GU_TCC_RGBA);
++   sceGuTexWrap(GU_CLAMP, GU_CLAMP);
+    sceGuTexFilter(GU_LINEAR, GU_LINEAR);
+ 
+    for (i=0; i < num_slices; i++) {
+@@ -447,17 +469,13 @@
+       vertices[0].u = texture_x + i * slice_w;
+       vertices[0].v = 0;
+       vertices[1].u = vertices[0].u + slice_w;
+-      if (vertices[1].u > texture_x + SCREEN_W)
+-         vertices[1].u = texture_x + SCREEN_W;
+       vertices[1].v = vertices[0].v + SCREEN_H;
+ 
+-      vertices[0].x =  dest_x + i * slice_w;
++      vertices[0].x = dest_x + i * slice_w * correction;
+       vertices[0].y = dest_y;
+       vertices[0].z = 0;
+-      vertices[1].x = vertices[0].x + slice_w;
+-      if (vertices[1].x > dest_x + SCREEN_W)
+-         vertices[1].x = dest_x + SCREEN_W;
+-      vertices[1].y = vertices[0].y + SCREEN_H;
++      vertices[1].x = vertices[0].x + slice_w * correction;
++      vertices[1].y = vertices[0].y + MAX_SCR_HEIGHT;
+       vertices[1].z = 0;
+ 
+       sceGuDrawArray(GU_SPRITES,GU_TEXTURE_16BIT|GU_VERTEX_16BIT|GU_TRANSFORM_2D, 2,0,vertices);
+@@ -465,10 +483,66 @@
+ 
+    sceGuFinish();
+    sceGuSync(0,0);
++
++   /* Draw the onscreen keyboard */
++   if (psp_show_onscreen_keyboard | psp_onscreen_keyboard_hide)
++      psp_draw_osk();
++}
++
++
++
++
++
++/* psp_hw_blit:
++ *  PSP accelerated blitting routine.
++ */
++static void psp_hw_blit(BITMAP *source, BITMAP *dest, int source_x, int source_y, int dest_x, int dest_y, int width, int height)
++{
++   void *source_ptr, *dest_ptr;
++
++   // PSP: Only do the final blit with hardware acceleration. There is a strange bug in which
++   // the hardware blitting will cause the last line of a sprite to be sometimes corrupted.
++   // No idea how to fix this as clearing the cache does nothing even though it looks like
++   // a cache problem.
++   if (dest != displayed_video_bitmap)
++     _orig_blit(source, dest, source_x, source_y, dest_x, dest_y, width, height);
++
++   /* sceGuCopyImage() can transfer blocks of size <=1024x1024.
++    * Also the pitch of the source and destination buffers is limited
++    * to 2048 pixels.
++    */
++   if (width > 1024 || height > 1024 || BMP_EXTRA(source)->pitch > 2048 || BMP_EXTRA(dest)->pitch > 2048)
++      return _orig_blit(source, dest, source_x, source_y, dest_x, dest_y, width, height);
++
++   /* We position the pixel data pointers at the requested coordinates
++    * and we align it to 16 bytes. The x,y coordinates are modified accordly.
++    */
++   source_ptr = source->line[source_y] + source_x * BYTES_PER_PIXEL(bitmap_color_depth(source));
++   source_x = ((unsigned int)source_ptr & 0xF) / BYTES_PER_PIXEL(bitmap_color_depth(source));
++   source_y = 0;
++   source_ptr = (void *)((unsigned int)source_ptr & ~0xF);
++
++   dest_ptr = dest->line[dest_y] + dest_x * BYTES_PER_PIXEL(bitmap_color_depth(dest));
++   dest_x = ((unsigned int)dest_ptr & 0xF) / BYTES_PER_PIXEL(bitmap_color_depth(dest));
++   dest_y = 0;
++   dest_ptr = (void *)((unsigned int)dest_ptr & ~0xF);
++
++   /* The interesting part. */
++   sceGuStart(GU_DIRECT,list);
++   sceKernelDcacheWritebackInvalidateAll();
++   sceGuCopyImage(gu_psm_format, source_x, source_y, width, height, BMP_EXTRA(source)->pitch, source_ptr, dest_x, dest_y, BMP_EXTRA(dest)->pitch, dest_ptr);
++   sceGuFinish();
++   sceGuSync(0,0);
++
++   /* Draw to the screen */
++   if (dest == displayed_video_bitmap)
++      psp_draw_to_screen();
+ }
+ 
+ 
+ 
++
++
+ /* psp_set_palette:
+  *  Sets the hardware palette for the 8 bpp video mode.
+  */
+@@ -480,7 +554,7 @@
+    for (c=from; c<=to; c++) {
+       clut[c] = makecol32(_rgb_scale_6[p[c].r], _rgb_scale_6[p[c].g], _rgb_scale_6[p[c].b]);
+    }
+-   sceKernelDcacheWritebackAll();
++   sceKernelDcacheWritebackInvalidateAll();
+ 
+    if (retracesync)
+       sceDisplayWaitVblankStart();
+@@ -695,3 +769,4 @@
+ 
+    return 0;
+ }
++
+diff -Naur src/psp/pkey.c src/psp/pkey.c
+--- src/psp/pkey.c	2011-05-09 16:05:11.000000000 +0200
++++ src/psp/pkey.c	2011-06-03 15:09:28.998849500 +0200
+@@ -13,6 +13,8 @@
+  *
+  *      By diedel.
+  *
++ *      Modified for the Adventure Game Studio runtime port by JJS.
++ *
+  *      See readme.txt for copyright information.
+  */
+ 
+@@ -20,7 +22,11 @@
+ #include "allegro.h"
+ #include "allegro/internal/aintern.h"
+ #include "allegro/platform/aintpsp.h"
++#include "pcommon.h"
++#include <pspsdk.h>
+ #include <pspctrl.h>
++#include <psprtc.h>
++#include <stdio.h>
+ 
+ #ifndef ALLEGRO_PSP
+ #error Something is wrong with the makefile
+@@ -31,34 +37,124 @@
+ #define PREFIX_E                "al-pkey ERROR: "
+ 
+ 
++int ascii_code;
++int psp_show_onscreen_keyboard = 0;
++int psp_onscreen_keyboard_index = 0;
++int psp_onscreen_keyboard_hide = 0;
++
+ static int psp_keyboard_init(void);
+ static void psp_keyboard_exit(void);
+ static void psp_poll_keyboard(void);
++static int psp_scancode_to_ascii(int scancode);
+ 
+-/*
+- * Lookup table for converting PSP_CTRL_* codes into Allegro KEY_* codes
+- * TODO: Choose an alternative mapping?
+- */
+-static const int psp_to_scancode[][2] = {
+-   { PSP_CTRL_SELECT,     KEY_ESC      },
+-   { PSP_CTRL_START,      KEY_ENTER    },
+-   { PSP_CTRL_UP,         KEY_UP       },
+-   { PSP_CTRL_RIGHT,      KEY_RIGHT    },
+-   { PSP_CTRL_DOWN,       KEY_DOWN     },
+-   { PSP_CTRL_LEFT,       KEY_LEFT     },
+-   { PSP_CTRL_TRIANGLE,   KEY_LCONTROL },
+-   { PSP_CTRL_CIRCLE,     KEY_ALT      },
+-   { PSP_CTRL_CROSS,      KEY_SPACE    },
+-   { PSP_CTRL_SQUARE,     KEY_TAB      },
+-   { PSP_CTRL_LTRIGGER,   KEY_LSHIFT   },
+-   { PSP_CTRL_RTRIGGER,   KEY_RSHIFT    }
++
++static int psp_common_ascii[KEY_MAX] =
++{
++   0,   'a', 'b', 'c', 'd', 'e', 'f', 'g',
++   'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
++   'p', 'q', 'r', 's', 't', 'u', 'v', 'w',
++   'x', 'y', 'z', '0', '1', '2', '3', '4',
++   '5', '6', '7', '8', '9', '0', '1', '2',
++   '3', '4', '5', '6', '7', '8', '9', 0,
++   0,   0,   0,   0,   0,   0,   0,   0,
++   0,   0,   0,   27,  '~', '-', '=', 8,
++   9,   '(', ')', 13,  ':', '�', 92,  92,
++   ',', '.', '/', ' ', 0,   0,   0,   0,
++   0,   0,   0,   0,   0,   0,   '/', '*',
++   '-', '+', 0,   13,  0,   0,   0,   0,
++   0,   0,   0,   0,   '^', ':', 0,   '=',
++   '`', ';', 0,   0,   0,   0,   0,   0,
++   0,   0,   0,   0,   0,   0,   0,   0,
++   0,   0,   0,   0,   0,   0,   0
++};
++
++
++/* Support for custom button mapping and onscreen keyboard */
++
++typedef struct 
++{
++  int toggle;
++  int enter_char;
++  int next_char;
++  int previous_char;
++  int next_keyset;
++  int previous_keyset;
++} psp_keyboard_config_t;
++
++psp_keyboard_config_t psp_keyboard_mapping = {
++  PSP_CTRL_SELECT,
++  PSP_CTRL_TRIANGLE,
++  PSP_CTRL_DOWN,
++  PSP_CTRL_UP,
++  PSP_CTRL_RIGHT,
++  PSP_CTRL_LEFT
++};
++
++psp_button_mapping_t psp_to_scancode[11] = {
++  { PSP_CTRL_START, KEY_ESC }
++};
++
++psp_button_mapping_t psp_to_scancode_osk[11] = {
++  { PSP_CTRL_START, KEY_ESC }
+ };
+ 
+-#define NKEYS (sizeof psp_to_scancode / sizeof psp_to_scancode[0])
++unsigned int psp_to_scancode_count = 1;
++unsigned int psp_to_scancode_osk_count = 1;
++unsigned int psp_current_to_scancode_count = 1;
++
++psp_button_mapping_t* psp_current_to_scancode = psp_to_scancode;
+ 
+ 
+-/* The last polled input. */
+-static SceCtrlData old_pad = {0, 0, 0, 0, {0,0,0,0,0,0}};
++psp_osk_key_t psp_keys_lowercase_1[] = {
++  { KEY_A, "a" }, { KEY_B, "b" }, { KEY_C, "c" }, { KEY_D, "d" }, { KEY_E, "e" }, { KEY_F, "f" }, { KEY_G, "g" },
++  { KEY_H, "h" }, { KEY_I, "i" }
++};
++psp_osk_key_t psp_keys_lowercase_2[] = {
++  { KEY_J, "j" }, { KEY_K, "k" }, { KEY_L, "l" }, { KEY_M, "m" }, { KEY_N, "n" }, { KEY_O, "o" }, { KEY_P, "p" },
++  { KEY_Q, "q" }, { KEY_R, "r" }
++};
++psp_osk_key_t psp_keys_lowercase_3[] = {
++  { KEY_S, "s" }, { KEY_T, "t" }, { KEY_U, "u" }, { KEY_V, "v" }, { KEY_W, "w" }, { KEY_X, "x" }, { KEY_Y, "y" },
++  { KEY_Z, "z" }
++};
++
++psp_osk_key_t psp_keys_numbers[] = {
++  { KEY_0, "0" }, { KEY_1, "1" }, { KEY_2, "2" }, { KEY_3, "3" }, { KEY_4, "4" }, { KEY_5, "5" }, { KEY_6, "6" },
++  { KEY_6, "6" }, { KEY_7, "7" }, { KEY_8, "8" }, { KEY_9, "9" }
++};
++
++psp_osk_key_t psp_keys_special[] = {
++  { KEY_SPACE, "' '" }, { KEY_EQUALS, "=" }, { KEY_MINUS, "-" }, { KEY_PLUS_PAD, "+" }, { KEY_OPENBRACE, "(" }, { KEY_CLOSEBRACE, ")" }, { KEY_COMMA, "," }, { KEY_STOP, "." },
++  { KEY_SEMICOLON, ";" }, { KEY_COLON, ":" }, { KEY_SLASH, "/" }, { KEY_BACKSLASH, "\\" }, { KEY_ASTERISK, "*" }, { KEY_TILDE, "~" }, { KEY_CIRCUMFLEX, "^" }
++};
++
++psp_osk_key_t psp_keys_f[] = {
++  { KEY_F1, "F1" }, { KEY_F2, "F2" }, { KEY_F3, "F3" }, { KEY_F4, "F4" }, { KEY_F5, "F5" }, { KEY_F6, "F6" }, { KEY_F7, "F7" },
++  { KEY_F8, "F8" }, { KEY_F9, "F9" }, { KEY_F10, "F10" }, { KEY_F11, "F11" }, { KEY_F12, "F12" }
++};
++
++psp_osk_key_t psp_keys_command[] = {
++  { KEY_ENTER, "ENT" }, { KEY_ESC, "ESC" }, { KEY_TAB, "TAB" }, { KEY_DEL, "DEL" }, { KEY_INSERT, "INS" }, { KEY_BACKSPACE, "BS" },
++  { KEY_UP, "U" }, { KEY_DOWN, "D" }, { KEY_LEFT, "L" }, { KEY_RIGHT, "R" }, { KEY_PGUP, "PGU" }, { KEY_PGDN, "PGD" }
++};
++
++
++psp_osk_keyset_t psp_osk_keysets[] = {
++  { psp_keys_lowercase_1, sizeof(psp_keys_lowercase_1) / sizeof(psp_osk_keyset_t) },
++  { psp_keys_lowercase_2, sizeof(psp_keys_lowercase_2) / sizeof(psp_osk_keyset_t) },
++  { psp_keys_lowercase_3, sizeof(psp_keys_lowercase_3) / sizeof(psp_osk_keyset_t) },
++  { psp_keys_numbers, sizeof(psp_keys_numbers) / sizeof(psp_osk_keyset_t) },
++  { psp_keys_special, sizeof(psp_keys_special) / sizeof(psp_osk_keyset_t) },
++  { psp_keys_f, sizeof(psp_keys_f) / sizeof(psp_osk_keyset_t) },
++  { psp_keys_command, sizeof(psp_keys_command) / sizeof(psp_osk_keyset_t) }
++};
++
++int psp_current_keyset = 0;
++unsigned int psp_keyset_count = sizeof(psp_osk_keysets) / sizeof(psp_osk_keyset_t);
++
++
++/* The last polled button state. */
++static unsigned int old_buttons = 0;
+ 
+ 
+ KEYBOARD_DRIVER keybd_simulator_psp =
+@@ -67,7 +163,7 @@
+    empty_string,
+    empty_string,
+    "PSP keyboard simulator",
+-   FALSE,  // int autorepeat;
++   TRUE,  // int autorepeat;
+    psp_keyboard_init,
+    psp_keyboard_exit,
+    psp_poll_keyboard,
+@@ -75,12 +171,20 @@
+    NULL,   // AL_METHOD(void, set_rate, (int delay, int rate));
+    NULL,   // AL_METHOD(void, wait_for_input, (void));
+    NULL,   // AL_METHOD(void, stop_waiting_for_input, (void));
+-   NULL,   // AL_METHOD(int,  scancode_to_ascii, (int scancode));
++   psp_scancode_to_ascii,   // AL_METHOD(int,  scancode_to_ascii, (int scancode));
+    NULL    // scancode_to_name
+ };
+ 
+ 
+ 
++
++static int psp_scancode_to_ascii(int scancode)
++{
++   return psp_common_ascii[scancode];
++}
++
++
++
+ /* psp_keyboard_init:
+  *  Installs the keyboard handler.
+  */
+@@ -114,21 +218,105 @@
+    uint8_t i;
+    int changed;
+ 
++   if (psp_show_onscreen_keyboard) {
++      psp_current_to_scancode = psp_to_scancode_osk;
++      psp_current_to_scancode_count = psp_to_scancode_osk_count;
++   }
++   else {
++      psp_current_to_scancode = psp_to_scancode;
++      psp_current_to_scancode_count = psp_to_scancode_count;
++   }
++
+    sceCtrlPeekBufferPositive(&pad, buffers_to_read);
+ 
+-   for (i = 0; i < NKEYS; i++) {
+-      changed = (pad.Buttons ^ old_pad.Buttons) & psp_to_scancode[i][0];
++   for (i = 0; i < psp_current_to_scancode_count; i++) {
++      changed = (pad.Buttons ^ old_buttons) & psp_current_to_scancode[i].button;
+       if (changed) {
+-         if (pad.Buttons & psp_to_scancode[i][0]) {
+-            TRACE(PREFIX_I "PSP Keyboard: [%d] pressed\n", psp_to_scancode[i][1]);
+-            _handle_key_press(scancode_to_ascii(psp_to_scancode[i][1]), psp_to_scancode[i][1]);
++         if (pad.Buttons & psp_current_to_scancode[i].button) {
++            ascii_code = psp_scancode_to_ascii(psp_current_to_scancode[i].scancode);
++
++            /* Shift pressed? */
++            if ((key_shifts & KB_SHIFT_FLAG) && (ascii_code >= 97) && (ascii_code <= 122))
++               ascii_code -= 0x20;
++
++            switch (psp_current_to_scancode[i].scancode) {
++               case KEY_LSHIFT:
++               case KEY_RSHIFT:
++                  _key_shifts |= KB_SHIFT_FLAG;
++                  break;
++               case KEY_LCONTROL:
++               case KEY_RCONTROL:
++                  _key_shifts |= KB_CTRL_FLAG;
++                  break;
++               case KEY_ALT:
++                  _key_shifts |= KB_ALT_FLAG;
++                  break;
++            }
++
++            _handle_key_press(ascii_code, psp_current_to_scancode[i].scancode);
+          }
+          else {
+-            TRACE(PREFIX_I "PSP Keyboard: [%d] released\n", psp_to_scancode[i][1]);
+-            _handle_key_release(psp_to_scancode[i][1]);
++            switch (psp_current_to_scancode[i].scancode) {
++               case KEY_LSHIFT:
++               case KEY_RSHIFT:
++                  _key_shifts &= ~KB_SHIFT_FLAG;
++               case KEY_LCONTROL:
++               case KEY_RCONTROL:
++                  _key_shifts &= ~KB_CTRL_FLAG;
++                  break;
++               case KEY_ALT:
++                  _key_shifts &= ~KB_ALT_FLAG;
++                  break;
++            }
++
++            _handle_key_release(psp_current_to_scancode[i].scancode);
+          }
+       }
+    }
+ 
+-   old_pad = pad;
++   if ((pad.Buttons & psp_keyboard_mapping.toggle) && !(old_buttons & psp_keyboard_mapping.toggle)) {
++     if (psp_show_onscreen_keyboard) {
++        psp_show_onscreen_keyboard = 0;
++        psp_onscreen_keyboard_hide = 1;
++     }
++     else {
++        psp_show_onscreen_keyboard = 1;
++     }
++   }
++
++   if (psp_show_onscreen_keyboard) {
++     if ((pad.Buttons & psp_keyboard_mapping.next_char) && !(old_buttons & psp_keyboard_mapping.next_char))
++       psp_onscreen_keyboard_index++;
++     else if ((pad.Buttons & psp_keyboard_mapping.previous_char) && !(old_buttons & psp_keyboard_mapping.previous_char))
++       psp_onscreen_keyboard_index--;
++     else if ((pad.Buttons & psp_keyboard_mapping.previous_keyset) && !(old_buttons & psp_keyboard_mapping.previous_keyset))
++       psp_current_keyset--;
++     else if ((pad.Buttons & psp_keyboard_mapping.next_keyset) && !(old_buttons & psp_keyboard_mapping.next_keyset))
++       psp_current_keyset++;
++
++     if (psp_current_keyset < 0)
++       psp_current_keyset = psp_keyset_count - 1;
++     else if (psp_current_keyset > (int)psp_keyset_count - 1)
++       psp_current_keyset = 0;
++
++     if (psp_onscreen_keyboard_index < 0)
++       psp_onscreen_keyboard_index = psp_osk_keysets[psp_current_keyset].count - 1;
++     else if (psp_onscreen_keyboard_index > (int)psp_osk_keysets[psp_current_keyset].count - 1)
++       psp_onscreen_keyboard_index = 0;   
++
++     if ((pad.Buttons & psp_keyboard_mapping.enter_char) && !(old_buttons & psp_keyboard_mapping.enter_char)) {
++        ascii_code = psp_scancode_to_ascii(psp_osk_keysets[psp_current_keyset].keys[psp_onscreen_keyboard_index].keycode);
++
++        /* Shift pressed? */
++        if ((key_shifts & KB_SHIFT_FLAG) && (ascii_code >= 97) && (ascii_code <= 122))
++           ascii_code -= 0x20;
++
++       _handle_key_press(ascii_code, psp_osk_keysets[psp_current_keyset].keys[psp_onscreen_keyboard_index].keycode);
++
++       _handle_key_release(psp_osk_keysets[psp_current_keyset].keys[psp_onscreen_keyboard_index].keycode); 
++     }
++   }
++
++
++   old_buttons = pad.Buttons;
+ }
+diff -Naur src/psp/pmain.c src/psp/pmain.c
+--- src/psp/pmain.c	2011-05-09 16:05:11.000000000 +0200
++++ src/psp/pmain.c	2011-06-03 15:44:49.438111100 +0200
+@@ -28,7 +28,7 @@
+ /* Define the module info section */
+ PSP_MODULE_INFO("Allegro Application", PSP_MODULE_USER, 1, 1);
+ PSP_MAIN_THREAD_ATTR(PSP_THREAD_ATTR_USER);
+-PSP_MAIN_THREAD_STACK_SIZE_KB(270);
++PSP_MAIN_THREAD_STACK_SIZE_KB(500);//270);
+ PSP_HEAP_SIZE_KB(-256);
+ 
+ 
+diff -Naur src/psp/pmouse.c src/psp/pmouse.c
+--- src/psp/pmouse.c	2011-05-09 16:05:11.000000000 +0200
++++ src/psp/pmouse.c	2011-06-03 11:33:41.327704000 +0200
+@@ -14,6 +14,8 @@
+  *      By sauron_le_noir some part of psp_mouse_timer_poll based on
+  *                        the sdl code of Nekuz0r
+  *
++ *      Modified for the Adventure Game Studio runtime port by JJS.
++ *
+  *      See readme.txt for copyright information.
+  */
+ 
+@@ -28,12 +30,52 @@
+ #error something is wrong with the makefile
+ #endif
+ 
++/* Defined in pkey.c */
++extern int psp_show_onscreen_keyboard;
++
+ static int  psp_mouse_init(void);
+ static void psp_mouse_exit(void);
+ static void psp_mouse_position(int, int);
+ static void psp_mouse_set_range(int, int, int, int);
+ static void psp_mouse_get_mickeys(int *, int *);
+-static void psp_mouse_timer_poll(void);
++static void psp_mouse_poll(void);
++
++
++/* For custom mouse mapping */
++typedef struct {
++   int move_left;
++   int move_right;
++   int move_up;
++   int move_down;
++   int click_left;
++   int click_right;
++   int click_middle;
++} psp_mouse_config_t;
++
++psp_mouse_config_t psp_mouse_mapping = {
++   PSP_CTRL_LEFT,
++   PSP_CTRL_RIGHT,
++   PSP_CTRL_UP,
++   PSP_CTRL_DOWN,
++   PSP_CTRL_SQUARE,
++   PSP_CTRL_CROSS,
++   0
++};
++
++psp_mouse_config_t psp_mouse_mapping_osk = {
++   0,
++   0,
++   0,
++   0,
++   PSP_CTRL_SQUARE,
++   PSP_CTRL_CROSS,
++   0
++};
++
++psp_mouse_config_t* psp_current_mouse_mapping = &psp_mouse_mapping;
++
++int psp_mouse_analog_deadzone = 20;
++float psp_mouse_analog_sensitivity = 4.0f;
+ 
+ 
+ MOUSE_DRIVER mouse_psp =
+@@ -44,8 +86,8 @@
+    "psp mouse",
+    psp_mouse_init,
+    psp_mouse_exit,
+-   NULL,       // AL_METHOD(void, poll, (void));
+-   psp_mouse_timer_poll,                 // AL_METHOD(void, timer_poll, (void));
++   psp_mouse_poll,       // AL_METHOD(void, poll, (void));
++   NULL,                 // AL_METHOD(void, timer_poll, (void));
+    psp_mouse_position,
+    psp_mouse_set_range,
+    NULL,       // AL_METHOD(void, set_speed, (int xspeed, int yspeed));
+@@ -55,26 +97,36 @@
+    NULL        // AL_METHOD(int,  select_system_cursor, (AL_CONST int cursor));
+ };
+ 
+-static int mouse_minx = 0;
+-static int mouse_miny = 0;
+-static int mouse_maxx = 479;  /* 0 to 479 = 480 */
+-static int mouse_maxy = 271;  /* 0 to 272 = 272 */   /* 480x272 is the resolution of the psp display */
++static float mouse_minx = 0.0f;
++static float mouse_miny = 0.0f;
++static float mouse_maxx = 479.0f;  /* 0 to 479 = 480 */
++static float mouse_maxy = 271.0f;  /* 0 to 272 = 272 */   /* 480x272 is the resolution of the psp display */
+ 
+ static SceCtrlData pad;
+ static int aStickX = 0;
+ static int aStickY = 0;
+-static float aStickR;
+-static float aStickA;
+-static int x,y;
+-static float Precision = 360.0f;
+ 
++static float mouse_x_float = 0.0f;
++static float mouse_y_float = 0.0f;
++static float signX;
++static float signY;
+ 
+ 
+-static int getSqrRadius(int X, int Y) 
++
++static void psp_restrict_mouse(void)
+ {
+-   return sqrt((X * X) + (Y * Y));
+-}
++   if (mouse_x_float < mouse_minx)
++      mouse_x_float = mouse_minx;
+ 
++   if (mouse_x_float > mouse_maxx)
++      mouse_x_float = mouse_maxx;
++
++   if (mouse_y_float < mouse_miny)
++      mouse_y_float = mouse_miny;
++
++   if (mouse_y_float > mouse_maxy)
++      mouse_y_float = mouse_maxy;
++}
+ 
+ 
+ static int psp_mouse_init(void)
+@@ -86,92 +138,95 @@
+ }
+ 
+ 
+-
+-static void psp_mouse_timer_poll(void)
++static void psp_mouse_poll(void)
+ {
++   sceCtrlSetSamplingCycle(0);
++   sceCtrlSetSamplingMode(PSP_CTRL_MODE_ANALOG);
++
+    sceCtrlPeekBufferPositive(&pad, 1);
+ 
+-   if (pad.Buttons != 0)
++   if (psp_show_onscreen_keyboard)
++      psp_current_mouse_mapping = &psp_mouse_mapping_osk;
++   else
++      psp_current_mouse_mapping = &psp_mouse_mapping;
++
++   /* Mouse buttons */
++   _mouse_b = 0;
++   if (pad.Buttons & psp_current_mouse_mapping->click_left) 
++      _mouse_b |= 1;
++   if (pad.Buttons & psp_current_mouse_mapping->click_right) 
++      _mouse_b |= 2;
++   if (pad.Buttons & psp_current_mouse_mapping->click_middle) 
++      _mouse_b |= 4;
++
++
++   /* Mouse movement with keys */
++   if (pad.Buttons & psp_current_mouse_mapping->move_left) 
++      mouse_x_float -= 0.2f;
++   if (pad.Buttons & psp_current_mouse_mapping->move_right) 
++      mouse_x_float += 0.2f;
++   if (pad.Buttons & psp_current_mouse_mapping->move_up) 
++      mouse_y_float -= 0.2f;
++   if (pad.Buttons & psp_current_mouse_mapping->move_down) 
++      mouse_y_float += 0.2f;
++
++   aStickX = (pad.Lx - 128);
++   aStickY = (pad.Ly - 128);
++
++   if (abs(aStickX) < psp_mouse_analog_deadzone)
++      aStickX = 0;
++   else
+    {
+-     sceCtrlReadBufferPositive(&pad, 1);
+-     _mouse_b = 0;
+-     if (pad.Buttons & PSP_CTRL_LTRIGGER) _mouse_b = 1;
+-     if (pad.Buttons & PSP_CTRL_RTRIGGER) _mouse_b = 2;
+-     if ( (pad.Buttons & PSP_CTRL_LTRIGGER) && (pad.Buttons & PSP_CTRL_RTRIGGER)) _mouse_b = 4;
++     if (aStickX >= 0)
++        aStickX -= psp_mouse_analog_deadzone;
++     else
++        aStickX += psp_mouse_analog_deadzone;
+    }
+-   aStickX = pad.Ly - 128;
+-   aStickY = pad.Lx - 128;
+-
+-   aStickR = getSqrRadius(aStickX, aStickY);
+-   if (aStickR > 100) {
+-      if (getSqrRadius(aStickX, aStickY) > 30) {
+-         aStickA = ((atan2f(aStickX, -aStickY) + M_PI) / (M_PI * 2)) * Precision;
+-      } else {
+-         aStickA = -1;     
+-      }
+-
+-      //1° a 89°
+-      if (aStickA >= 1 && aStickA <= (89 * (Precision / 360.0f))) {
+-         x += (10 * (1 - (aStickA / (Precision / 360.0f) / 90)));
+-         y -= (10 * (0 + (aStickA / (Precision / 360.0f) / 90)));
+-      }
+-      else if (aStickA >= (91 * (Precision / 360.0f)) && aStickA <= (179 * (Precision / 360.0f))) {
+-         x -= (10 * (0 + (((aStickA / (Precision / 360.0f)) - 89) / 90)));
+-         y -= (10 * (1 - (((aStickA / (Precision / 360.0f)) - 89) / 90)));
+-      }
+-      else if (aStickA >= (181 * (Precision / 360.0f)) && aStickA <= (269 * (Precision / 360.0f))) {
+-         x -= (10 * (1 - (((aStickA / (Precision / 360.0f)) - 179) / 90)));
+-         y += (10 * (0 + (((aStickA / (Precision / 360.0f)) - 179) / 90)));
+-      }
+-      else if (aStickA >= (271 * (Precision / 360.0f)) && aStickA <= (359 * (Precision / 360.0f))) {
+-         x += (10 * (0 + (((aStickA / (Precision / 360.0f)) - 269) / 90)));
+-         y += (10 * (1 - (((aStickA / (Precision / 360.0f)) - 269) / 90)));
+-      }
+-      else if (aStickA == 0) {
+-         x += 10;
+-      }
+-      else if (aStickA == (90 * (Precision / 360.0f))) {
+-         y -= 10;
+-      }
+-      else if (aStickA == (180 * (Precision / 360.0f))) {
+-         x -= 10;
+-      }
+-      else if (aStickR == (270 * (Precision / 360.0f))) {
+-         y += 10;
+-      }
++     
++   if (abs(aStickY) < psp_mouse_analog_deadzone)
++      aStickY = 0;
++   else
++   {
++      if (aStickY >= 0)
++         aStickY -= psp_mouse_analog_deadzone;
++      else
++         aStickY += psp_mouse_analog_deadzone;
+    }
+-   if (x < 0)
+-      x = 0;
+ 
+-   if (x > 479)
+-      x = 479;
++   signX = (aStickX >= 0) ? 1.0f : -1.0f;
++   signY = (aStickY >= 0) ? 1.0f : -1.0f;
+ 
+-   if (y < 0)
+-      y = 0;
++   mouse_x_float += psp_mouse_analog_sensitivity * signX * ((float)aStickX / (128.0f-(float)psp_mouse_analog_deadzone)) * ((float)aStickX / (128.0f-(float)psp_mouse_analog_deadzone));
++   mouse_y_float += psp_mouse_analog_sensitivity * signY * ((float)aStickY / (128.0f-(float)psp_mouse_analog_deadzone)) * ((float)aStickY / (128.0f-(float)psp_mouse_analog_deadzone));
+ 
+-   if (y > 271)
+-      y = 271;
++   psp_restrict_mouse();
+ 
+-   _mouse_x = x;
+-   _mouse_y = y;
++   _mouse_x = floor(mouse_x_float + 0.5f);
++   _mouse_y = floor(mouse_y_float + 0.5f);
+ }
+ 
+ 
+ 
++
+ static void psp_mouse_position(int x, int y)
+ {
+-   _mouse_x = x;
+-   if (_mouse_x <  mouse_minx) _mouse_x = 0;
+-   if (_mouse_x > mouse_maxx)  _mouse_x = mouse_maxx;
+-   _mouse_y = y;
+-   if (_mouse_y < mouse_miny) _mouse_y = 0;
+-   if (_mouse_y > mouse_maxy) _mouse_y = mouse_maxy;
++   mouse_x_float = (float)x;
++   mouse_y_float = (float)y;
++   
++   psp_restrict_mouse();
++   
++   _mouse_x = floor(mouse_x_float + 0.5f);
++   _mouse_y = floor(mouse_y_float + 0.5f);
+ }
+ 
+ 
+ 
+ static void psp_mouse_set_range(int x1, int y1, int x2, int y2)
+ {
++   mouse_minx = (float)x1;
++   mouse_miny = (float)y1;
++   mouse_maxx = (float)x2;
++   mouse_maxy = (float)y2;
+ }
+ 
+ 
+@@ -187,3 +242,4 @@
+ static void psp_mouse_exit(void)
+ {
+ }
++
+diff -Naur src/psp/psound.c src/psp/psound.c
+--- src/psp/psound.c	2011-05-09 16:05:11.000000000 +0200
++++ src/psp/psound.c	2011-05-29 10:56:20.627942100 +0200
+@@ -38,6 +38,8 @@
+ static int digi_psp_buffer_size();
+ //static int digi_psp_set_mixer_volume(int);
+ 
++/* So that it can be user defined */
++unsigned int psp_audio_samplerate = 44100;
+ 
+ static int psp_audio_on = FALSE;
+ static SceUID audio_thread_UID;
+@@ -45,6 +47,8 @@
+ static short sound_buffer[2][SAMPLES_PER_BUFFER][2];
+ int curr_buffer=0;
+ 
++char temp_buffer[SAMPLES_PER_BUFFER * 4];
++
+ 
+ DIGI_DRIVER digi_psp =
+ {
+@@ -113,9 +117,11 @@
+       void *bufptr = &sound_buffer[curr_buffer];
+       /* Asks to the Allegro mixer to fill the buffer */
+       _mix_some_samples((uintptr_t)bufptr, 0, IS_SIGNED);
++
+       /* Send mixed buffer to sound card */
+-      sceAudioOutputPannedBlocking(hw_channel, PSP_AUDIO_VOLUME_MAX,
+-         PSP_AUDIO_VOLUME_MAX, bufptr);
++//      sceAudioOutputPannedBlocking(hw_channel, PSP_AUDIO_VOLUME_MAX, PSP_AUDIO_VOLUME_MAX, bufptr);
++      sceAudioSRCOutputBlocking(PSP_AUDIO_VOLUME_MAX, bufptr);
++
+       curr_buffer = !curr_buffer;
+    }
+ 
+@@ -156,8 +162,9 @@
+       return -1;
+    }
+ 
+-   hw_channel = sceAudioChReserve(PSP_AUDIO_NEXT_CHANNEL, SAMPLES_PER_BUFFER,
+-      PSP_AUDIO_FORMAT_STEREO);
++//   hw_channel = sceAudioChReserve(PSP_AUDIO_NEXT_CHANNEL, SAMPLES_PER_BUFFER, PSP_AUDIO_FORMAT_STEREO);
++   hw_channel = sceAudioSRCChReserve(SAMPLES_PER_BUFFER, psp_audio_samplerate, 2);
++
+    if (hw_channel < 0) {
+       ustrzcpy(allegro_error, ALLEGRO_ERROR_SIZE,
+          get_config_text("Failed reserving hardware sound channel"));
+@@ -186,7 +193,7 @@
+    /* Allegro sound state variables */
+    _sound_bits = 16;
+    _sound_stereo = TRUE;
+-   _sound_freq = 44100;
++   _sound_freq = psp_audio_samplerate;
+ 
+    digi_psp.voices = voices;
+    if (_mixer_init(SAMPLES_PER_BUFFER * 2, _sound_freq, _sound_stereo,
+@@ -218,7 +225,8 @@
+ 
+    psp_audio_on = FALSE;
+    sceKernelDeleteThread(audio_thread_UID);
+-   sceAudioChRelease(hw_channel);
++//   sceAudioChRelease(hw_channel);
++   sceAudioSRCChRelease();
+ 
+    _mixer_exit();
+ }

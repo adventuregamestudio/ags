@@ -27672,14 +27672,14 @@ int initialize_engine(int argc,char*argv[])
         so that pack functions, etc. will have the right case later */
     speech_file = ci_find_file(usetup.data_files_dir, "speech.vox");
     
-    ppp = fopen(speech_file, "rb");
+    ppp = ci_fopen(speech_file, "rb");
 
     if (ppp == NULL)
     {
       // In case they're running in debug, check Compiled folder
       free(speech_file);
       speech_file = ci_find_file("Compiled", "speech.vox");
-      ppp = fopen(speech_file, "rb");
+      ppp = ci_fopen(speech_file, "rb");
     }
     
     if (ppp!=NULL) {
@@ -27727,14 +27727,15 @@ int initialize_engine(int argc,char*argv[])
 
   /* Don't need to use ci_fopen here, because we've used ci_find_file to get
       the case insensitive matched filename already */
-  ppp = fopen(music_file, "rb");
+  // Use ci_fopen anyway because it can handle NULL filenames.
+  ppp = ci_fopen(music_file, "rb");
   
   if (ppp == NULL)
   {
     // In case they're running in debug, check Compiled folder
     free(music_file);
     music_file = ci_find_file("Compiled", "audio.vox");
-    ppp = fopen(music_file, "rb");
+    ppp = ci_fopen(music_file, "rb");
   }
 
   if (ppp!=NULL) {

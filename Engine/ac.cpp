@@ -15855,7 +15855,8 @@ void play_theora_video(const char *name, int skip, int flags)
   // we must disable length detection, otherwise it takes ages to start
   // playing if the file is large because it seeks through the whole thing
   apeg_disable_length_detection(TRUE);
-  apeg_enable_framedrop(TRUE);
+  // Disable framedrop because it can lead to the PSP not playing the video at all.
+  //apeg_enable_framedrop(TRUE);
   update_polled_stuff();
 
   stretch_flc = (flags % 10);

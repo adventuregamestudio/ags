@@ -60,6 +60,8 @@ extern char filetouse[];
 char *INIreaditem(const char *sectn, const char *entry);
 int INIreadint (const char *sectn, const char *item, int errornosect = 1);
 
+extern void clear_sound_cache();
+
 extern int display_fps;
 
 int psp_return_to_menu = 1;
@@ -385,6 +387,9 @@ void psp_initialize()
 	// Read game configuration.
 	ReadConfiguration(PSP_CONFIG_FILENAME);
   }
+  
+  // Initialize the sound cache.
+  clear_sound_cache();
 }
 
 

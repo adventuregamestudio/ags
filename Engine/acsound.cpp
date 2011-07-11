@@ -16,6 +16,10 @@
 #include "alogg.h"
 #include "almp3.h"
 
+// PSP: Additional header for the sound cache.
+#include <pspsdk.h>
+#include <psprtc.h>
+
 #if (defined(LINUX_VERSION) || defined(WINDOWS_VERSION) || defined(MAC_VERSION))
 #define DUMB_MOD_PLAYER
 #else
@@ -48,6 +52,143 @@ extern void quit(char *);
 extern void write_log(char*msg) ;
 //extern void sample_update_callback(SAMPLE *sample, int voice);
 
+
+// PSP: A simple sound cache. The size can be configured in the config file.
+// The data rate while reading from disk on the PSP is usually between 500 to 900 kiB/s,
+// caching the last used sound files therefore improves game performance.
+
+extern int psp_use_sound_cache;
+extern int psp_sound_cache_max_size;
+extern int psp_audio_cachesize;
+
+int dont_disturb = 0;
+
+typedef struct
+{
+  char file_name[20];
+  int number;
+  int free;
+  u64 last_used;
+  unsigned int size;
+  char* data;
+  int reference;
+} sound_cache_entry_t;
+
+sound_cache_entry_t* sound_cache_entries = NULL;
+
+
+void clear_sound_cache()
+{
+  if (sound_cache_entries)
+    free(sound_cache_entries);
+
+  sound_cache_entries = (sound_cache_entry_t*)malloc(psp_audio_cachesize * sizeof(sound_cache_entry_t));
+
+  int i;
+  for (i = 0; i < psp_audio_cachesize; i++)
+  {
+    if (sound_cache_entries[i].data)
+    {
+        free(sound_cache_entries[i].data);
+        sound_cache_entries[i].data = NULL;
+      sound_cache_entries[i].reference = 0;
+    }
+  }
+}
+
+void sound_cache_free(char* buffer)
+{
+  int i;
+  for (i = 0; i < psp_audio_cachesize; i++)
+  {
+    if (sound_cache_entries[i].data == buffer)
+    {
+      if (sound_cache_entries[i].reference > 0)
+      {
+        sound_cache_entries[i].reference--;
+        return;
+      }
+    }
+  }
+}
+
+
+char* get_cached_sound(const char* filename, long* size)
+{
+  *size = 0;
+
+  int i;
+  for (i = 0; i < psp_audio_cachesize; i++)
+  {
+    if (sound_cache_entries[i].data == NULL)
+      continue;
+
+    if (strcmp(filename, sound_cache_entries[i].file_name) == 0)
+    {
+      sceRtcGetCurrentTick(&sound_cache_entries[i].last_used);
+      *size = sound_cache_entries[i].size;
+      return sound_cache_entries[i].data;
+    }
+  }
+
+  // Not found
+  PACKFILE *mp3in = pack_fopen(filename, "rb");
+  if (mp3in == NULL)
+    return NULL;
+
+  // Find free slot
+  for (i = 0; i < psp_audio_cachesize; i++)
+  {
+    if (sound_cache_entries[i].data == NULL)
+      break;
+  }
+
+  // Not free slot?
+  if (i == psp_audio_cachesize)
+  {
+    u64 oldest;
+    sceRtcGetCurrentTick(&oldest);
+    int index = 0;
+
+    for (i = 0; i < psp_audio_cachesize; i++)
+    {
+      if (sound_cache_entries[i].reference == 0)
+      {
+        if (sound_cache_entries[i].last_used < oldest)
+        {
+          oldest = sound_cache_entries[i].last_used;
+          index = i;
+        }
+      }
+    }
+
+    i = index;
+  }
+
+  sound_cache_entries[i].size = mp3in->todo;
+  sound_cache_entries[i].data = (char *)malloc(sound_cache_entries[i].size);
+
+  if (sound_cache_entries[i].data == NULL)
+  {
+    pack_fclose(mp3in);
+    return NULL;
+  }
+
+  pack_fread(sound_cache_entries[i].data, sound_cache_entries[i].size, mp3in);
+  pack_fclose(mp3in);
+
+  strcpy(sound_cache_entries[i].file_name, filename);
+  *size = sound_cache_entries[i].size;
+  sound_cache_entries[i].reference++;
+  sceRtcGetCurrentTick(&sound_cache_entries[i].last_used);
+
+  return sound_cache_entries[i].data;
+}
+
+
+
+
+
 // My new MP3STREAM wrapper
 struct MYWAVE:public SOUNDCLIP
 {
@@ -63,6 +204,10 @@ struct MYWAVE:public SOUNDCLIP
     if (paused)
       return 0;
 
+    if (dont_disturb)
+      return done;
+    dont_disturb = 1;
+
     if (firstTime) {
       // need to wait until here so that we have been assigned a channel
       //sample_update_callback(wave, voice);
@@ -71,6 +216,9 @@ struct MYWAVE:public SOUNDCLIP
 
     if (voice_get_position(voice) < 0)
       done = 1;
+
+    dont_disturb = 0;
+
     return done;
   }
 
@@ -191,6 +339,10 @@ struct MYMP3:public SOUNDCLIP
     if (paused)
       return 0;
 
+    if (dont_disturb)
+      return done;
+    dont_disturb = 1;
+
     if (!done) {
       // update the buffer
       char *tempbuf = (char *)almp3_get_mp3stream_buffer(stream);
@@ -207,6 +359,8 @@ struct MYMP3:public SOUNDCLIP
 
     if (almp3_poll_mp3stream(stream) == ALMP3_POLL_PLAYJUSTFINISHED)
       done = 1;
+
+    dont_disturb = 0;
 
     return done;
   }
@@ -339,6 +493,10 @@ struct MYSTATICMP3:public SOUNDCLIP
 
   int poll()
   {
+    if (dont_disturb)
+      return done;
+    dont_disturb = 1;
+
     int oldeip = our_eip;
       our_eip = 5997;
     if (tune == NULL) ;
@@ -347,6 +505,8 @@ struct MYSTATICMP3:public SOUNDCLIP
         done = 1;
     }
     our_eip = oldeip;
+
+    dont_disturb = 0;
 
     return done;
   }
@@ -372,8 +532,7 @@ struct MYSTATICMP3:public SOUNDCLIP
       tune = NULL;
     }
     if (mp3buffer != NULL) {
-      free(mp3buffer);
-      mp3buffer = NULL;
+      sound_cache_free(mp3buffer);
     }
 
   }
@@ -440,20 +599,11 @@ struct MYSTATICMP3:public SOUNDCLIP
 MYSTATICMP3 *thismp3;
 SOUNDCLIP *my_load_static_mp3(const char *filname, int voll, bool loop)
 {
-
-  // first, read the mp3 into memory
-  PACKFILE *mp3in = pack_fopen(filname, "rb");
-  if (mp3in == NULL)
-    return NULL;
-
-  long muslen = mp3in->todo;
-
-  char *mp3buffer = (char *)malloc(muslen);
+  // Load via soundcache.
+  long muslen = 0;
+  char* mp3buffer = get_cached_sound(filname, &muslen);
   if (mp3buffer == NULL)
     return NULL;
-
-  pack_fread(mp3buffer, muslen, mp3in);
-  pack_fclose(mp3in);
 
   // now, create an MP3 structure for it
   thismp3 = new MYSTATICMP3();
@@ -502,6 +652,10 @@ struct MYSTATICOGG:public SOUNDCLIP
 
   int poll()
   {
+    if (dont_disturb)
+      return done;
+    dont_disturb = 1;
+
     if (tune == NULL)
       ; // Do nothing
     else if (alogg_poll_ogg(tune) == ALOGG_POLL_PLAYJUSTFINISHED) {
@@ -509,6 +663,8 @@ struct MYSTATICOGG:public SOUNDCLIP
         done = 1;
     }
     else get_pos();  // call this to keep the last_but_one stuff up to date
+
+    dont_disturb = 0;
 
     return done;
   }
@@ -534,8 +690,7 @@ struct MYSTATICOGG:public SOUNDCLIP
     }
  
     if (mp3buffer != NULL) {
-      free(mp3buffer);
-      mp3buffer = NULL;
+      sound_cache_free(mp3buffer);
     }
   }
 
@@ -674,20 +829,11 @@ struct MYSTATICOGG:public SOUNDCLIP
 MYSTATICOGG *thissogg;
 SOUNDCLIP *my_load_static_ogg(const char *filname, int voll, bool loop)
 {
-
-  // first, read the mp3 into memory
-  PACKFILE *mp3in = pack_fopen(filname, "rb");
-  if (mp3in == NULL)
-    return NULL;
-
-  long muslen = mp3in->todo;
-
-  char *mp3buffer = (char *)malloc(muslen);
+  // Load via soundcache.
+  long muslen = 0;
+  char* mp3buffer = get_cached_sound(filname, &muslen);
   if (mp3buffer == NULL)
     return NULL;
-
-  pack_fread(mp3buffer, muslen, mp3in);
-  pack_fclose(mp3in);
 
   // now, create an OGG structure for it
   thissogg = new MYSTATICOGG();
@@ -721,6 +867,10 @@ struct MYOGG:public SOUNDCLIP
     if (paused)
       return 0;
 
+    if (dont_disturb)
+      return done;
+    dont_disturb = 1;
+
     if ((!done) && (in->todo > 0))
     {
       // update the buffer
@@ -741,6 +891,8 @@ struct MYOGG:public SOUNDCLIP
       done = 1;
     }
     else get_pos_ms();  // call this to keep the last_but_one stuff up to date
+    
+    dont_disturb = 0;
 
     return done;
   }

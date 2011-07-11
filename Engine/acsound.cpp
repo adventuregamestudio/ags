@@ -80,19 +80,22 @@ sound_cache_entry_t* sound_cache_entries = NULL;
 void clear_sound_cache()
 {
   if (sound_cache_entries)
-    free(sound_cache_entries);
-
-  sound_cache_entries = (sound_cache_entry_t*)malloc(psp_audio_cachesize * sizeof(sound_cache_entry_t));
-
-  int i;
-  for (i = 0; i < psp_audio_cachesize; i++)
   {
-    if (sound_cache_entries[i].data)
+    int i;
+    for (i = 0; i < psp_audio_cachesize; i++)
     {
+      if (sound_cache_entries[i].data)
+      {
         free(sound_cache_entries[i].data);
         sound_cache_entries[i].data = NULL;
-      sound_cache_entries[i].reference = 0;
+        sound_cache_entries[i].reference = 0;
+      }
     }
+  }
+  else
+  {
+    sound_cache_entries = (sound_cache_entry_t*)malloc(psp_audio_cachesize * sizeof(sound_cache_entry_t));
+	memset(sound_cache_entries, 0, psp_audio_cachesize * sizeof(sound_cache_entry_t));
   }
 }
 

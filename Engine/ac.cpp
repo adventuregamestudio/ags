@@ -437,16 +437,31 @@ short *recordbuffer = NULL;
 int  recbuffersize = 0, recsize = 0;
 volatile int switching_away_from_game = 0;
 
+// PSP: Update in thread if wanted.
+extern int psp_audio_multithreaded;
 int musicPollIterator; // long name so it doesn't interfere with anything else
-#define UPDATE_MP3 \
-   while (switching_away_from_game) { }\
+#define UPDATE_MP3_THREAD \
+   while (switching_away_from_game) { } \
    for (musicPollIterator = 0; musicPollIterator <= MAX_SOUND_CHANNELS; musicPollIterator++) { \
      if ((channels[musicPollIterator] != NULL) && (channels[musicPollIterator]->done == 0)) \
-       channels[musicPollIterator]->poll();\
+       channels[musicPollIterator]->poll(); \
    }
+#define UPDATE_MP3 \
+ if (!psp_audio_multithreaded) \
+  UPDATE_MP3_THREAD
 
 //#define UPDATE_MP3 update_polled_stuff();
 
+// PSP: Workaround for sound stuttering. Do sound updates in its own thread.
+int update_mp3_thread(SceSize args, void *argp)
+{
+  while (1)
+  {
+    UPDATE_MP3_THREAD
+    sceKernelDelayThread(1000 * 50);
+  }
+  return 0;
+}
 
 
 const char* sgnametemplate = "agssave.%03d";
@@ -28268,6 +28283,16 @@ int initialize_engine(int argc,char*argv[])
 
   gfxDriver->SetRenderOffset(get_screen_x_adjustment(virtual_screen), get_screen_y_adjustment(virtual_screen));
 
+  // PSP: Create sound update thread. This is a workaround for sound stuttering.
+  if (psp_audio_multithreaded)
+  {
+    SceUID thid = sceKernelCreateThread("update_mp3_thread", update_mp3_thread, 0x20, 0xFA0, THREAD_ATTR_USER, 0);
+    if (thid > -1)
+      thid = sceKernelStartThread(thid, 0, 0);
+    else
+      psp_audio_multithreaded = 0;
+  }
+  
   initialize_start_and_play_game(override_start_room, loadSaveGameOnStartup);
 
   quit("|bye!");

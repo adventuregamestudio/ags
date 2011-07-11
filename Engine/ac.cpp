@@ -19,6 +19,9 @@
 #include <psputils.h>
 #include <pspmath.h>
 
+// PSP: Audio can be disabled in the config file.
+extern int psp_audio_enabled;
+
 // PSP: Sound cache initialization.
 extern void clear_sound_cache();
 
@@ -27815,6 +27818,13 @@ int initialize_engine(int argc,char*argv[])
 
   write_log_debug("Initialize sound drivers");
 
+  // PSP: Disable sound by config file.
+  if (!psp_audio_enabled)
+  {
+    usetup.digicard = DIGI_NONE;
+    usetup.midicard = MIDI_NONE;
+  }
+  
   if (install_sound(usetup.digicard,usetup.midicard,NULL)!=0) {
     reserve_voices(-1,-1);
     opts.mod_player=0;

@@ -387,9 +387,6 @@ void psp_initialize()
 	// Read game configuration.
 	ReadConfiguration(PSP_CONFIG_FILENAME);
   }
-  
-  // Initialize the sound cache.
-  clear_sound_cache();
 }
 
 

@@ -19,6 +19,9 @@
 #include <psputils.h>
 #include <pspmath.h>
 
+// PSP: Sound cache initialization.
+extern void clear_sound_cache();
+
 // PSP: Game filename from the menu.
 extern char psp_game_file_name[];
 
@@ -28286,6 +28289,9 @@ int initialize_engine(int argc,char*argv[])
 
   gfxDriver->SetRenderOffset(get_screen_x_adjustment(virtual_screen), get_screen_y_adjustment(virtual_screen));
 
+  // PSP: Initialize the sound cache.
+  clear_sound_cache();
+  
   // PSP: Create sound update thread. This is a workaround for sound stuttering.
   if (psp_audio_multithreaded)
   {

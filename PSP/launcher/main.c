@@ -196,12 +196,11 @@ int main(int argc, char *argv[])
   strcpy(file_to_exec, argv[0]);
   strcpy(&file_to_exec[strlen(file_to_exec) - strlen("EBOOT.PBP")], "ags321.prx");
 
-  char* buffer_argv[2];
-  buffer_argv[0] = file_to_exec;
-  buffer_argv[1] = psp_game_file_name;
+  char* buffer_argv[1];
+  buffer_argv[0] = psp_game_file_name;
 
   // Load the prx with the kernel mode function  
-  SceUID result = kernel_loadExec(file_to_exec, 2, buffer_argv);
+  SceUID result = kernel_loadExec(file_to_exec, 1, buffer_argv);
   
   return 0;
 }

@@ -19,6 +19,9 @@
 #include <psputils.h>
 #include <pspmath.h>
 
+// PSP: Game filename from the menu.
+extern char psp_game_file_name[];
+
 #ifdef NO_MP3_PLAYER
 #define SPECIAL_VERSION "NMP"
 #else
@@ -27300,7 +27303,7 @@ void initialise_game_file_name()
   game_file_name = (char*)malloc(MAX_PATH);
   WideCharToMultiByte(CP_ACP, 0, directoryPathBuffer, -1, game_file_name, MAX_PATH, NULL, NULL);
 #else
-  game_file_name = global_argv[datafile_argv];
+  game_file_name = psp_game_file_name;
 #endif
 }
 

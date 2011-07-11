@@ -5,6 +5,11 @@
 #include <stdio.h>
 #include <string.h>
 
+
+// Defined in acplpsp.cpp
+void psp_quit();
+
+
 PspDebugRegBlock exception_regs;
 
 extern SceModule module_info;
@@ -82,8 +87,10 @@ void ExceptionHandler(PspDebugRegBlock * regs)
             break;
         }
 		sceKernelDelayThread(100000);
-    }    
-    sceKernelExitGame();
+    }
+	
+	// Quit to XMB or launcher
+    psp_quit();
 }
 
 void initExceptionHandler()

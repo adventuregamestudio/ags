@@ -28,7 +28,7 @@ int exit_callback(int arg1, int arg2, void *common)
 int CallbackThread(SceSize args, void *argp)
 {
     int cbid;
-    cbid = sceKernelCreateCallback("Exit Callback", exit_callback, NULL);
+    cbid = sceKernelCreateCallback("Launcher Exit Callback", exit_callback, NULL);
     sceKernelRegisterExitCallback(cbid);
     sceKernelSleepThreadCB();
 	return 0;
@@ -191,6 +191,8 @@ int main(int argc, char *argv[])
 
   // Terminate the callback thread
   sceKernelWakeupThread(callback_thid);
+  sceKernelWaitThreadEnd(callback_thid, NULL);
+  sceKernelTerminateDeleteThread(callback_thid);
 
   // Execute the AGS 3.21 engine
   strcpy(file_to_exec, argv[0]);

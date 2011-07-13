@@ -15,6 +15,7 @@ PSP_MODULE_INFO("launcher", 0, 0, 71);
 
 char psp_game_file_name[256];
 char file_to_exec[256];
+int quit_to_menu = 1;
 
 
 int exit_callback(int arg1, int arg2, void *common)
@@ -60,6 +61,7 @@ void ShowMenu()
     getcwd(psp_game_file_name, 256);
     strcat(psp_game_file_name, "/");
     strcat(psp_game_file_name, "ac2game.dat");
+    quit_to_menu = 0;
     return;
   }
 
@@ -198,11 +200,12 @@ int main(int argc, char *argv[])
   strcpy(file_to_exec, argv[0]);
   strcpy(&file_to_exec[strlen(file_to_exec) - strlen("EBOOT.PBP")], "ags321.prx");
 
-  char* buffer_argv[1];
+  char* buffer_argv[2];
   buffer_argv[0] = psp_game_file_name;
-
+  buffer_argv[1] = (quit_to_menu ? "menu" : "quit");
+ 
   // Load the prx with the kernel mode function  
-  SceUID result = kernel_loadExec(file_to_exec, 1, buffer_argv);
+  SceUID result = kernel_loadExec(file_to_exec, 2, buffer_argv);
   
   return 0;
 }

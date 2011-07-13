@@ -123,7 +123,7 @@ Compiling the source:
 
 1. Building the AGS port:
    - You need MinPSPW 0.11 for Windows or Linux.
-   - You also need the M33 SDK from 4.01 M33.
+   - You also need the M33 SDK from 4.01 M33 or from PRO CFW.
    - The sources for the AGS port are available from here:
      "http://gitorious.org/~jjs/ags-for-psp"
    - Typing "make" in the "PSP" folder will build all files necessary and put them

@@ -328,10 +328,7 @@ extern "C" void psp_quit()
   sceKernelExitGame();
 #endif
   
-  // Check the arguments, if it is only 1 the engine is running without the menu.
-  int standalone = (psp_argc == 1);  
-  
-  if (!standalone && psp_return_to_menu)
+  if (psp_return_to_menu)
   {
     char buffer[200];
     strcpy(buffer, psp_argv[0]);
@@ -365,6 +362,9 @@ void psp_initialize()
     getcwd(psp_game_file_name, 256);
     strcat(psp_game_file_name, "/");
     strcat(psp_game_file_name, "ac2game.dat");
+
+    // Exit to the XMB.
+    psp_return_to_menu = 0;
   }
   else
   {
@@ -386,6 +386,10 @@ void psp_initialize()
 	
 	// Read game configuration.
 	ReadConfiguration(PSP_CONFIG_FILENAME);
+
+    // If the game was started directly, don't return to the menu.
+    if (strcmp(psp_argv[2], "quit") == 0)
+      psp_return_to_menu = 0;
   }
 }
 

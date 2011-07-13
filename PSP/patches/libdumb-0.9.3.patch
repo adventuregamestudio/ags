@@ -1,0 +1,101 @@
+diff -Naur make/config.txt make/config.txt
+--- make/config.txt	1970-01-01 01:00:00.000000000 +0100
++++ make/config.txt	2011-07-13 09:15:42.397669800 +0200
+@@ -0,0 +1,4 @@
++include make/psp.inc
++ALL_TARGETS := core core-headers
++ALL_TARGETS += allegro allegro-headers
++PREFIX := $(PSPDEV)/psp
+diff -Naur make/psp.inc make/psp.inc
+--- make/psp.inc	1970-01-01 01:00:00.000000000 +0100
++++ make/psp.inc	2011-07-13 08:42:20.616975900 +0200
+@@ -0,0 +1,21 @@
++# This file contains definitions suitable for PSP systems. It will
++# be included by the main Makefile when you compile on such a system.
++
++PLATFORM := psp
++
++APOST := \'
++
++# Macro that on DOS and Windows would replace / with \. Usage: $(call FIX,path)
++FIX = $(1)
++
++ECHO = @echo $(1)
++DELETE = rm -f $(1)
++COPY = cp $(1) $(2)
++MKDIR = mkdir $(1)
++
++EXE_SUFFIX :=
++
++LINK_MATH := -lm
++LINK_ALLEGRO :=
++
++# PREFIX is set by config.sh.
+diff -Naur Makefile Makefile
+--- Makefile	2005-08-08 02:18:41.000000000 +0200
++++ Makefile	2011-07-13 09:00:59.848100200 +0200
+@@ -41,10 +41,10 @@
+ ifdef USE_SGICC
+ CC := cc
+ else
+-CC := gcc
++CC := psp-gcc
+ endif
+ endif
+-AR := ar
++AR := psp-ar
+ 
+ 
+ # Configuration.
+@@ -226,7 +226,7 @@
+ else
+ WFLAGS := -Wall -W -Wwrite-strings -Wstrict-prototypes -Wmissing-declarations -DDUMB_DECLARE_DEPRECATED
+ WFLAGS_ALLEGRO := -Wno-missing-declarations
+-OFLAGS := -O2 -ffast-math -fomit-frame-pointer
++OFLAGS := -O2 -G0 -ffast-math -fomit-frame-pointer
+ DBGFLAGS := -DDEBUGMODE=1 -g3
+ endif
+ endif
+@@ -234,7 +234,7 @@
+ CFLAGS_RELEASE := -Iinclude $(WFLAGS) $(OFLAGS)
+ CFLAGS_DEBUG := -Iinclude $(WFLAGS) $(DBGFLAGS)
+ 
+-LDFLAGS := -s
++LDFLAGS := -s -L$(psp-config --pspsdk-path)/lib
+ 
+ 
+ CORE_EXAMPLES_OBJ := $(addprefix examples/, $(notdir $(patsubst %.c, %.o, $(CORE_EXAMPLES))))
+diff -Naur Makefile.rdy Makefile.rdy
+--- Makefile.rdy	2005-08-08 02:18:39.000000000 +0200
++++ Makefile.rdy	2011-07-13 09:17:04.080542200 +0200
+@@ -41,10 +41,10 @@
+ ifdef USE_SGICC
+ CC := cc
+ else
+-CC := gcc
++CC := psp-gcc
+ endif
+ endif
+-AR := ar
++AR := psp-ar
+ 
+ 
+ # Configuration.
+@@ -226,7 +226,7 @@
+ else
+ WFLAGS := -Wall -W -Wwrite-strings -Wstrict-prototypes -Wmissing-declarations -DDUMB_DECLARE_DEPRECATED
+ WFLAGS_ALLEGRO := -Wno-missing-declarations
+-OFLAGS := -O2 -ffast-math -fomit-frame-pointer
++OFLAGS := -O2 -G0 -ffast-math -fomit-frame-pointer
+ DBGFLAGS := -DDEBUGMODE=1 -g3
+ endif
+ endif
+@@ -234,7 +234,7 @@
+ CFLAGS_RELEASE := -Iinclude $(WFLAGS) $(OFLAGS)
+ CFLAGS_DEBUG := -Iinclude $(WFLAGS) $(DBGFLAGS)
+ 
+-LDFLAGS := -s
++LDFLAGS := -s -L$(psp-config --pspsdk-path)/lib
+ 
+ 
+ CORE_EXAMPLES_OBJ := $(addprefix examples/, $(notdir $(patsubst %.c, %.o, $(CORE_EXAMPLES))))

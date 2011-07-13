@@ -21,10 +21,9 @@ APEG = libsrc/apeg-1.2.1/display.o libsrc/apeg-1.2.1/getbits.o libsrc/apeg-1.2.1
 
 AASTR = libsrc/aastr-0.1.1/AAROT.o libsrc/aastr-0.1.1/aastr.o libsrc/aastr-0.1.1/aautil.o
 
-DUMB = $(DUMB_CORE) $(DUMB_ALLEGRO) $(DUMB_HELPERS) $(DUMB_IT)
 OBJS = $(LIBSRC) $(ALFONT) $(ALMP3) $(APEG) $(AASTR) $(BASE) $(COMMON) $(PSP_SPECIFIC)
 
-INCDIR = ../Common ../Common/libinclude
+INCDIR = ../Common ../Common/libinclude $(shell psp-config --pspdev-path)/psp/include/freetype2
 LIBDIR = ../PSP/lib
 CFLAGS = -O2 -g -G0 -msingle-float -ffast-math -Wfatal-errors -DALLEGRO_STATICLINK -DTHIS_IS_THE_ENGINE -DLINUX_VERSION -DPSP_VERSION -DDISABLE_MPEG_AUDIO
 CXXFLAGS = $(CFLAGS) -fno-rtti -Wno-write-strings

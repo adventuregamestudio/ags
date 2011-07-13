@@ -27478,7 +27478,8 @@ int main(int argc,char*argv[]) {
 
   if (usetup.disable_exception_handling)
   {
-    return initialize_engine(argc, argv);
+    initialize_engine(argc, argv);
+    platform->PostAllegroExit();
   }
   else
   {

@@ -1,7 +1,7 @@
 Adventure Game Studio runtime PSP port
 --------------------------------------
 
-Licensed under the Artistic License 2.0, see Licens.txt in the Engine folder.
+Licensed under the Artistic License 2.0, see License.txt in the Engine folder.
 
 
 Requirements:
@@ -52,8 +52,8 @@ How to run games:
 
 The configuration file:
 
-You can customize the bahavious of the runtime by placing a file "psp.cfg" in the
-eboot directory or the directory of the game you want to run. A config file in
+You can customize the behaviour of the runtime by placing a file "psp.cfg" in the
+Eboot directory or the directory of the game you want to run. A config file in
 the game directory will overwrite the settings from the global configuration file.
 
 Available settings:
@@ -79,13 +79,13 @@ threaded: If 1, plays and decodes sound in a separate thread. This reduces sound
 cache_size: Determines how many sounds the runtime caches to reduce disk access. Set this to 1
   to disable caching.
 samplerate: The sound playback sample rate, typical values are 44100, 22050, 11025. Lower values
-  mean a slight speedup with the tradeoff of reduced sound quality.
+  mean a slight speedup with the trade-off of reduced sound quality.
 
 [graphics]
 scaling: The game's graphics can either be shown unscaled in their original resolution or stretched
   to the full height of the PSP screen.
 smoothing: If scaling is enabled, this determines whether a linear interpolation filter is used.
-  This reduces scaling artifacts and gives a more uniform appearance but at the same times makes
+  This reduces scaling artefacts and gives a more uniform appearance but at the same times makes
   the crisp pixel art somewhat blurry.
 
 [misc]
@@ -136,7 +136,7 @@ Compiling the source:
 Main source code changes from the PC version (also check the commit log of the git repository):
 - Instances of unaligned variable access that are not allowed on the MIPS processor
   are replaced with equivalent memcpy calls.
-- The PSP framebuffer has a BGR color order. A new function is introduced to convert
+- The PSP framebuffer has a BGR colour order. A new function is introduced to convert
   32 bit graphics to the correct format.
 - Alfont seems to use wrong ascender and descender values for TTF fonts, there is a
   workaround written for it.

@@ -1,3 +1,5 @@
+DISTRIB_NAME = AGS_Runtime_for_PSP_3.21
+
 all:
 	make kernelprx
 	make exceptionprx
@@ -34,8 +36,19 @@ cleanlaunchereboot:
 
 cleanengineprx:
 	@make clean -C "../Engine"
-	@rm -f "bin/ags321.prx"	
-		
+	@rm -f "bin/ags321.prx"
+
+distrib:
+	@mkdir "dist" || true
+	@mkdir "dist/$(DISTRIB_NAME)" || true
+	@cp "bin/EBOOT.PBP" "dist/$(DISTRIB_NAME)/EBOOT.PBP"
+	@cp "bin/ags321.prx" "dist/$(DISTRIB_NAME)/ags321.prx"
+	@cp "bin/kernel.prx" "dist/$(DISTRIB_NAME)/kernel.prx"
+	@cp "bin/exception.prx" "dist/$(DISTRIB_NAME)/exception.prx"
+	@cp "bin/psp.cfg" "dist/$(DISTRIB_NAME)/psp.cfg"
+	@cp "readme.txt" "dist/$(DISTRIB_NAME)/readme.txt"
+	@cp "../Engine/License.txt" "dist/$(DISTRIB_NAME)/License.txt"
+
 clean:
 	make cleankernelprx
 	make cleanexceptionprx

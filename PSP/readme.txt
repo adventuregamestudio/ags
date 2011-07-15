@@ -35,18 +35,16 @@ These glitches can appear, affecting the game experience:
 
 
 How to run games:
-1. Create a new folder in the AGS game directory on the PSP. The name of this folder 
-   will be shown in the games list when you start the PSP game. E.g. create the
-   folder "Demo Quest" inside "x:\PSP\GAME\AGS".
-2. Copy the contents of the original game into this folder. The files you need vary, 
-   but they are mostly the game's main executable, "audio.vox" and "speech.vox".
-   You DON'T need "winsetup.exe" and "acsetup.cfg".
-3. Rename the game's executable (e.g. "demo.exe") to "ac2game.dat".
-   This is very important!
-4. Now if you run the PSP game you should see the new AGS game in the list of
-   available games.
-5. If you only want to run a single game, put the data files directly into the
-   folder with the Eboot. It will then autostart this game.
+1. Copy the original game folder into the Eboot directory.
+   E.g. if you want to run the game "Demo Quest" you put the games files into
+   the folder "x:\PSP\GAME\ags\Demo Quest\" (drive letter and PSP game folder
+   is dependent on your configuration).
+   NOTE: If the game does not show up in the games list it is probably
+   incompatible with this engine version. On Windows, you can check the engine
+   with which the game was compiled in the main games executables properties.
+2. If you only want to run a single game, put the data files directly into the
+   folder with the Eboot and rename the main game executable to "ac2game.dat".
+   It will then autostart this game.
 
 
 
@@ -94,6 +92,7 @@ disable_power_saving: The PSPs power saving features like dimming the backlight 
   standby are deactivated if this is set.
 return_to_menu: If 1, you will reenter the menu instead of going back to the XMB after
   quitting a game. This only works if the AGS game has an option to quit.
+ignore_acsetup_cfg_file: If 1, the engine will not read settings from the AGS configuration file.
 
 
 Available button values for mouse input:
@@ -161,3 +160,4 @@ Adventure Game Studio by Chris Jones (http://www.bigbluecup.com/)
 Linux port by berolinux (http://gitorious.org/ags)
 Additional code by Bernhard Rosenkraenzer and Christian Morales Vega
 Eboot artwork by Paul Wilkinson (subspark)
+PSP port by JJS

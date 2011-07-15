@@ -65,6 +65,7 @@ extern void clear_sound_cache();
 extern int display_fps;
 
 int psp_return_to_menu = 1;
+int psp_ignore_acsetup_cfg_file = 0;
 
 
 
@@ -292,6 +293,8 @@ void ReadConfiguration(char* filename)
     ReadButtonMapping("onscreen_keyboard", psp_to_scancode_osk, psp_to_scancode_osk_count, &psp_mouse_mapping_osk, &psp_keyboard_mapping);
 
     ReadInteger((int*)&psp_disable_powersaving, "misc", "disable_power_saving", 0, 1, 1);
+
+    ReadInteger((int*)&psp_ignore_acsetup_cfg_file, "misc", "ignore_acsetup_cfg_file", 0, 1, 0);
 
     ReadInteger((int*)&psp_return_to_menu, "misc", "return_to_menu", 0, 1, 1);
     ReadInteger((int*)&psp_mouse_analog_deadzone, "analog_stick", "deadzone", 0, 128, 20);

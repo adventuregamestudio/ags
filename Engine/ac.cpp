@@ -22,6 +22,9 @@
 // PSP: Audio can be disabled in the config file.
 extern int psp_audio_enabled;
 
+// PSP: If set, the standard AGS config file is not being read.
+extern int psp_ignore_acsetup_cfg_file;
+
 // PSP: Sound cache initialization.
 extern void clear_sound_cache();
 
@@ -26780,6 +26783,13 @@ void read_config_file(char *argv0) {
   usetup.digicard = DIGI_DIRECTAMX(0);
 #endif
 
+  // PSP: Don't read in the standard config file if disabled.
+  if (psp_ignore_acsetup_cfg_file)
+  {
+    usetup.gfxDriverID = "DX5";
+    return;
+  }
+
   ppp=fopen(ac_config_file,"rt");
   if (ppp!=NULL) {
     strcpy(filetouse,ac_config_file);
@@ -26826,7 +26836,9 @@ void read_config_file(char *argv0) {
     usetup.enable_antialiasing = INIreadint ("misc", "antialias", 0);
     usetup.force_hicolor_mode = INIreadint("misc", "notruecolor", 0);
     usetup.enable_side_borders = INIreadint("misc", "sideborders", 0);
-    force_letterbox = INIreadint ("misc", "forceletterbox", 0);
+
+    // PSP: Letterboxing is not useful on the PSP.
+    force_letterbox = 0; // INIreadint ("misc", "forceletterbox", 0);
 
     if (usetup.enable_antialiasing < 0)
       usetup.enable_antialiasing = 0;
@@ -26860,7 +26872,8 @@ void read_config_file(char *argv0) {
     if (usetup.main_data_filename == NULL)
       usetup.main_data_filename = "ac2game.dat";
 
-    usetup.gfxFilterID = INIreaditem("misc", "gfxfilter");
+    // PSP: No graphic filters are available.
+    usetup.gfxFilterID = NULL; //INIreaditem("misc", "gfxfilter");
 
     usetup.gfxDriverID = INIreaditem("misc", "gfxdriver");
 

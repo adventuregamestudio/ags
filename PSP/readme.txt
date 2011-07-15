@@ -39,9 +39,8 @@ How to run games:
    E.g. if you want to run the game "Demo Quest" you put the games files into
    the folder "x:\PSP\GAME\ags\Demo Quest\" (drive letter and PSP game folder
    is dependent on your configuration).
-   NOTE: If the game does not show up in the games list it is probably
-   incompatible with this engine version. On Windows, you can check the engine
-   with which the game was compiled in the main games executables properties.
+   NOTE: If the game is created with an incompatible engine version, this will
+   be indicated in the games list.
 2. If you only want to run a single game, put the data files directly into the
    folder with the Eboot and rename the main game executable to "ac2game.dat".
    It will then autostart this game.

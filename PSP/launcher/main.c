@@ -23,6 +23,9 @@ typedef struct
 {
   char display_name[100];
   char path[200];
+  version_info_t version_info;
+  int iscompatible;
+  int isdata;
 } games_t;
 
 
@@ -31,8 +34,8 @@ char file_to_exec[256];
 int quit_to_menu = 1;
 
 int count = 0;
-int max_entries = 25;
-games_t entries[25];
+int max_entries = 200;
+games_t entries[200];
 
 
 
@@ -63,11 +66,15 @@ int CompareFunction(const void* a, const void* b)
 
 
 
+int IsDataFile(version_info_t* version_info)
+{
+  return (strcmp(version_info->internal_name, "acwin") == 0);
+}
+
+
+
 int IsCompatibleDatafile(version_info_t* version_info)
 {
-  if (strcmp(version_info->internal_name, "acwin") != 0)
-    return 0;
-
   int major = 0;
   int minor = 0;
   int rev = 0;
@@ -77,6 +84,7 @@ int IsCompatibleDatafile(version_info_t* version_info)
   
   return ((major == 3) && (minor == 2));
 }
+
 
 
 int CreateGameList()
@@ -109,11 +117,16 @@ int CreateGameList()
         if (!getVersionInformation(buffer, &version_info))
           break;
   
-        if (IsCompatibleDatafile(&version_info))
+        if (IsDataFile(&version_info))
         {
-          // Add to games list
           strcpy(entries[count].path, buffer);
           strcpy(entries[count].display_name, entry->d_name);
+          memcpy(&entries[count].version_info, &version_info, sizeof(version_info_t));
+          entries[count].isdata = 1;
+        
+          if (IsCompatibleDatafile(&version_info))
+            entries[count].iscompatible = 1;
+
           count++;
           continue;
         }
@@ -145,13 +158,18 @@ int CreateGameList()
             if (!getVersionInformation(buffer, &version_info))
             continue;
   
-            if (IsCompatibleDatafile(&version_info))
+            if (IsDataFile(&version_info))
             {
-              // Add to games list
               strcpy(entries[count].path, buffer);
               strcpy(entries[count].display_name, entry->d_name);
+              memcpy(&entries[count].version_info, &version_info, sizeof(version_info_t));
+              entries[count].isdata = 1;
+            
+              if (IsCompatibleDatafile(&version_info))
+              entries[count].iscompatible = 1;
+
               count++;
-              break;
+              continue;
             }
           }
         }
@@ -173,7 +191,8 @@ void ShowMenu()
   unsigned int ok_button = swap_buttons ? PSP_CTRL_CROSS : PSP_CTRL_CIRCLE;
 
   pspDebugScreenInit();
-  pspDebugScreenEnableBackColor(0);
+  pspDebugScreenEnableBackColor(1);
+  pspDebugScreenClearLineEnable();
   
   // Check for ac2game.dat in eboot folder and autostart if it exists
   FILE* test = fopen("ac2game.dat", "rb");
@@ -204,38 +223,79 @@ void ShowMenu()
   
   SceCtrlData pad;
   unsigned int old_buttons = 0;
+  int max_entries_to_show = 25;
   int index = 0;
+  int start_index = 0;
   int repeatCount = 0;
+  char tempbuffer[100];  
   
   while (1)
   {
     pspDebugScreenSetXY(0, 6);
   
     int i;
-    for (i = 0; i < count; i++)
+    int end_index;
+  
+    end_index = start_index + max_entries_to_show;
+    if (end_index > count)
+      end_index = count;
+  
+    for (i = start_index; i < end_index; i++)
     {
       if (i == index)
         pspDebugScreenSetTextColor(0xFFFFFFFF);
       else
-        pspDebugScreenSetTextColor(0xFF999999);
+      {
+        if (entries[i].iscompatible)
+          pspDebugScreenSetTextColor(0xFF999999);
+        else
+          pspDebugScreenSetTextColor(0xFF555555);
+      }
 
-      pspDebugScreenPrintf("   %s\n", entries[i].display_name);
+      if (entries[i].iscompatible)
+      sprintf(tempbuffer, "%s", entries[i].display_name);
+      else if (entries[i].isdata)
+      sprintf(tempbuffer, "%s (incompatible version %s)", entries[i].display_name, entries[i].version_info.version);
+
+      strcpy(&tempbuffer[64], "\0");
+      pspDebugScreenPrintf("   %-64s\n", tempbuffer);
     }
 
-    sceCtrlReadBufferPositive(&pad, 1);
+    sceDisplayWaitVblankStart();
+    sceCtrlPeekBufferPositive(&pad, 1);
 
     if ((pad.Buttons & PSP_CTRL_DOWN) && !(old_buttons & PSP_CTRL_DOWN))
     {
       index++;
       if (index >= count)
+      {
         index = 0;
+        start_index = 0;
+      }
+      
+      if (index >= end_index)
+      {
+        start_index++;
+        end_index++;
+      }
     }
 
     if ((pad.Buttons & PSP_CTRL_UP) && !(old_buttons & PSP_CTRL_UP))
     {
       index--;
       if (index < 0)
+      {
         index = count - 1;
+        start_index = count - max_entries_to_show;
+        if (start_index < 0)
+          start_index = 0;
+      }
+    
+      if (index < start_index)
+      {
+        start_index--;
+        end_index--;
+      }  
     }
 
     if ((pad.Buttons & ok_button) && !(old_buttons & ok_button))

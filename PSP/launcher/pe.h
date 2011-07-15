@@ -2,7 +2,7 @@
 #define PE_H
 
 typedef struct {
-  char version[10];
+  char version[15];
   char description[100];
   char internal_name[100];
 } version_info_t;

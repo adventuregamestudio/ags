@@ -626,9 +626,10 @@ namespace AGS.Editor
             SourceControlFileStatus[] fileStatuses = _agsEditor.SourceControlProvider.GetFileStatuses(files);
             for (int i = 0; i < files.Length; i++)
             {
-                if ((fileStatuses[i] == SourceControlFileStatus.NotControlled) ||
+                if (((fileStatuses[i] == SourceControlFileStatus.NotControlled) ||
                     ((fileStatuses[i] & SourceControlFileStatus.Deleted) != 0) ||
-                    ((fileStatuses[i] & SourceControlFileStatus.CheckedOutByMe) != 0))
+                    ((fileStatuses[i] & SourceControlFileStatus.CheckedOutByMe) != 0)) &&
+                    (fileStatuses[i] != SourceControlFileStatus.Invalid))
                 {
                     fileNamesToShow.Add(files[i]);
                 }

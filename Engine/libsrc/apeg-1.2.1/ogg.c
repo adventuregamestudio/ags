@@ -479,7 +479,9 @@ unsigned char **altheora_get_frame(APEG_LAYER *layer)
 static void alvorbis_get_data(APEG_LAYER *layer)
 {
 	ALOGG_INFO *info = layer->ogg_info;
-	float **pcm;
+
+	// libtremor returns int values
+	int **pcm;
 	int ret;
 
 	do {
@@ -499,19 +501,15 @@ static void alvorbis_get_data(APEG_LAYER *layer)
 				// This prevents channel blending or dropping.
 				for(i = 0;i < ret && i < maxsamples;i+=step)
 				{
-					int val = ((pcm[(i/step)&1][i]+1.0f)*32767.5f);
+					int val = (pcm[(i/step)&1][i] >> 9) + 32768;
 
 					// Make sure to mix in the center voice channel
 					if((info->vinfo.channels&1))
 					{
-						val += ((pcm[info->vinfo.channels-1][i]+1.0f)*32767.5f);
+						val += (pcm[info->vinfo.channels-1][i] >> 9) + 32768;
 						val >>= 1;
 					}
 
-					val &= (~val) >> 31;
-					val -= 65535;
-					val &= val >> 31;
-					val += 65535;
 					audiobuf[count++] = val;
 				}
 			}
@@ -526,47 +524,25 @@ static void alvorbis_get_data(APEG_LAYER *layer)
 						if(!(layer->stream.audio.channels&1) &&
 						   (info->vinfo.channels&1))
 						{
-							int cval = (pcm[info->vinfo.channels-1][i]+1.0f) *
-							           32767.5f * 0.70710678f;
+							int cval = ((pcm[info->vinfo.channels-1][i] >> 9) + 32768) * 0.70710678f;
 							for(j = 0;j < 2;++j)
 							{
-								int val = (int)((pcm[j][i]+1.0f)*32767.5f) + cval;
-								val &= (~val) >> 31;
-								val -= 65535;
-								val &= val >> 31;
-								val += 65535;
-								audiobuf[count++] = val;
+								audiobuf[count++] = (pcm[j][i] >> 9) + 32768 + cval;
 							}
 							for(;j < layer->stream.audio.channels;++j)
 							{
-								int val = ((pcm[j][i]+1.0f)*32767.5f);
-								val &= (~val) >> 31;
-								val -= 65535;
-								val &= val >> 31;
-								val += 65535;
-								audiobuf[count++] = val;
+								audiobuf[count++] = (pcm[j][i] >> 9) + 32768;
 							}
 						}
 						else if((layer->stream.audio.channels&1))
 						{
 							for(j = 0;j < layer->stream.audio.channels-1;++j)
 							{
-								int val = (int)((pcm[j][i]+1.0f)*32767.5f);
-								val &= (~val) >> 31;
-								val -= 65535;
-								val &= val >> 31;
-								val += 65535;
-								audiobuf[count++] = val;
+								audiobuf[count++] = (pcm[j][i] >> 9) + 32768;
 							}
 							if((info->vinfo.channels&1))
 							{
-								int cval = (pcm[info->vinfo.channels-1][i] +
-								            1.0f) * 32767.5f;
-								cval &= (~cval) >> 31;
-								cval -= 65535;
-								cval &= cval >> 31;
-								cval += 65535;
-								audiobuf[count++] = cval;
+								audiobuf[count++] = (pcm[info->vinfo.channels-1][i] >> 9) + 32768;
 							}
 							else
 								audiobuf[count++] = 0x8000;
@@ -575,12 +551,7 @@ static void alvorbis_get_data(APEG_LAYER *layer)
 						{
 							for(j = 0;j < layer->stream.audio.channels;++j)
 							{
-								int val = ((pcm[j][i]+1.0f)*32767.5f);
-								val &= (~val) >> 31;
-								val -= 65535;
-								val &= val >> 31;
-								val += 65535;
-								audiobuf[count++] = val;
+								audiobuf[count++] = (pcm[j][i] >> 9) + 32768;
 							}
 						}
 					}
@@ -591,12 +562,8 @@ static void alvorbis_get_data(APEG_LAYER *layer)
 					{
 						for(j = 0;j < layer->stream.audio.channels;++j)
 						{
-							int val = ((pcm[j][i]+1.0f)*32767.5f);
-							val &= (~val) >> 31;
-							val -= 65535;
-							val &= val >> 31;
-							val += 65535;
-							audiobuf[count++] = val;
+							// Only this audio path is tested with libtremor
+							audiobuf[count++] = (pcm[j][i] >> 9) + 32768;
 						}
 					}
 				}

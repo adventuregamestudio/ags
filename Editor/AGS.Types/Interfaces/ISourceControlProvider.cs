@@ -8,7 +8,7 @@ namespace AGS.Types
     {
         bool Initialize(IntPtr mainWindowHandle);
 
-        string ProviderName
+        string ProviderName ///
         {
             get;
         }

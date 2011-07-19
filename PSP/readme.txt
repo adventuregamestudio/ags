@@ -92,6 +92,10 @@ disable_power_saving: The PSPs power saving features like dimming the backlight 
 return_to_menu: If 1, you will reenter the menu instead of going back to the XMB after
   quitting a game. This only works if the AGS game has an option to quit.
 ignore_acsetup_cfg_file: If 1, the engine will not read settings from the AGS configuration file.
+enable_extra_memory: If 1, there are additional 4 MiB of memory available for the game. But this
+  disables suspending the PSP. Also trying to use the pause feature of a Go causes a freeze.
+  While enabling certain games to run (especiall on a PSP 1000), this feature is experimental
+  and might itself cause instability.
 
 
 Available button values for mouse input:

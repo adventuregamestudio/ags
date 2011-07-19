@@ -11,6 +11,8 @@ PSP_EXPORT_END
 
 PSP_EXPORT_START(kernel, 0, 0x4001)
 PSP_EXPORT_FUNC(kernel_loadExec)
+PSP_EXPORT_FUNC(kernel_sceKernelRegisterSysEventHandler)
+PSP_EXPORT_FUNC(kernel_sceKernelUnregisterSysEventHandler)
 PSP_EXPORT_END
 
 PSP_END_EXPORTS

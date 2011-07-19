@@ -60,6 +60,27 @@ int kernel_loadExec(const char *file, int argc, char** argv)
 	return 0;
 }
 
+int kernel_sceKernelRegisterSysEventHandler(PspSysEventHandler *handler)
+{
+	u32 k1;
+	k1 = pspSdkSetK1(0);
+	
+	int result = sceKernelRegisterSysEventHandler(handler);
+	
+	pspSdkSetK1(k1);
+	return result;
+}
+
+int kernel_sceKernelUnregisterSysEventHandler(PspSysEventHandler *handler)
+{
+	u32 k1;
+	k1 = pspSdkSetK1(0);
+	
+	int result = sceKernelUnregisterSysEventHandler(handler);
+	
+	pspSdkSetK1(k1);
+	return result;
+}
 
 int module_start(SceSize args, void *argp)
 {

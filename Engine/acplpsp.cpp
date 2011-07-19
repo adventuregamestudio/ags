@@ -23,6 +23,7 @@ extern "C" {
 #include "../PSP/exception/utility/exception.h"
 #include "../PSP/kernel/kernel.h"
 }
+#include "../PSP/malloc/malloc_p5.h"
 
 
 #ifdef PSP_ENABLE_PROFILING
@@ -66,6 +67,7 @@ extern int display_fps;
 
 int psp_return_to_menu = 1;
 int psp_ignore_acsetup_cfg_file = 0;
+int psp_enable_extra_memory = 0;
 
 
 
@@ -296,6 +298,8 @@ void ReadConfiguration(char* filename)
 
     ReadInteger((int*)&psp_ignore_acsetup_cfg_file, "misc", "ignore_acsetup_cfg_file", 0, 1, 0);
 
+    ReadInteger((int*)&psp_enable_extra_memory, "misc", "enable_extra_memory", 0, 1, 0);
+
     ReadInteger((int*)&psp_return_to_menu, "misc", "return_to_menu", 0, 1, 1);
     ReadInteger((int*)&psp_mouse_analog_deadzone, "analog_stick", "deadzone", 0, 128, 20);
     ReadInteger(&display_fps, "misc", "show_fps", 0, 1, 0);
@@ -326,6 +330,9 @@ void ReadConfiguration(char* filename)
 // We need this as C code so that it can be called from the exception handler.
 extern "C" void psp_quit()
 {
+  if (psp_enable_extra_memory)
+    malloc_p5_shutdown();
+
 #ifdef PSP_ENABLE_PROFILING
   gprof_cleanup();
   sceKernelExitGame();
@@ -394,6 +401,9 @@ void psp_initialize()
     if (strcmp(psp_argv[2], "quit") == 0)
       psp_return_to_menu = 0;
   }
+
+  if (psp_enable_extra_memory)
+    malloc_p5_init();
 }
 
 

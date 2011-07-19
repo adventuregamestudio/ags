@@ -7,7 +7,7 @@ PROFILING = 0
 # The name of the engine prx must be known to the launcher and the engine too
 TARGET = ags321
 
-PSP_SPECIFIC = acplpsp.o ../PSP/kernel/kernel.o ../PSP/exception/utility/exception.o
+PSP_SPECIFIC = acplpsp.o ../PSP/kernel/kernel.o ../PSP/exception/utility/exception.o ../PSP/malloc/malloc.o
 
 BASE = acaudio.o acchars.o acdebug.o acdialog.o acfonts.o acgfx.o acgui.o acplatfm.o acsound.o bigend.o misc.o routefnd.o scrptrt.o ac.o alogg.o almp3.o ali3dsw.o
 COMMON = ../Common/csrun.o ../Common/Clib32.o ../Common/mousew32.o ../Common/sprcache.o ../Common/cscommon.o ../Common/compress.o ../Common/lzw.o

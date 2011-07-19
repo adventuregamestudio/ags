@@ -26881,9 +26881,12 @@ void read_config_file(char *argv0) {
     usetup.gfxDriverID = INIreaditem("misc", "gfxdriver");
 
     usetup.translation = INIreaditem ("language", "translation");
+
+/*  PSP: Don't let the setup determine the cache size as it is always too big.
     int tempint = INIreadint ("misc", "cachemax");
     if (tempint > 0)
       spriteset.maxCacheSize = tempint * 1024;
+*/
 
     char *repfile = INIreaditem ("misc", "replay");
     if (repfile != NULL) {

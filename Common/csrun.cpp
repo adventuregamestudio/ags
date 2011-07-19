@@ -911,11 +911,10 @@ ccInstance *ccCreateInstanceEx(ccScript * scri, ccInstance * joined)
         long *dataPtr = (long *)(&cinst->globaldata[fixup]);
         *dataPtr = __int_swap_endian(*dataPtr);
 #endif
-      long temp1, temp2;
-      memcpy(&(temp1), (char*)&(cinst->globaldata[fixup]), 4);
-      memcpy(&(temp2), (char*)&(cinst->globaldata[0]), 4);
-      temp1 += temp2;
-      memcpy(&(cinst->globaldata[fixup]), &temp1, 4);
+      long temp;
+      memcpy(&temp, (char*)&(cinst->globaldata[fixup]), 4);
+      temp += (long)cinst->globaldata;
+      memcpy(&(cinst->globaldata[fixup]), &temp, 4);
 #ifdef AGS_BIG_ENDIAN
         // leave the address swapped - will be read in and flipped every time
         *dataPtr = __int_swap_endian(*dataPtr);
@@ -994,11 +993,10 @@ void ccFlattenGlobalData(ccInstance * cinst)
       long *dataPtr = (long *)(&cinst->globaldata[fixup]);
       *dataPtr = __int_swap_endian(*dataPtr);
 #endif
-      long temp1, temp2;
-      memcpy(&(temp1), (char*)&(cinst->globaldata[fixup]), 4);
-      memcpy(&(temp2), (char*)&(cinst->globaldata[0]), 4);
-      temp1 -= temp2;
-      memcpy(&(cinst->globaldata[fixup]), &temp1, 4);
+      long temp;
+      memcpy(&temp, (char*)&(cinst->globaldata[fixup]), 4);
+      temp -= (long)cinst->globaldata;
+      memcpy(&(cinst->globaldata[fixup]), &temp, 4);
 #ifdef AGS_BIG_ENDIAN
       // leave the address swapped - will be read in and flipped every time
       *dataPtr = __int_swap_endian(*dataPtr);
@@ -1026,11 +1024,10 @@ void ccUnFlattenGlobalData(ccInstance * cinst)
       long *dataPtr = (long *)(&cinst->globaldata[fixup]);
       *dataPtr = __int_swap_endian(*dataPtr);
 #endif
-      long temp1, temp2;
-      memcpy(&(temp1), (char*)&(cinst->globaldata[fixup]), 4);
-      memcpy(&(temp2), (char*)&(cinst->globaldata[0]), 4);
-      temp1 += temp2;
-      memcpy(&(cinst->globaldata[fixup]), &temp1, 4);
+      long temp;
+      memcpy(&temp, (char*)&(cinst->globaldata[fixup]), 4);
+      temp += (long)cinst->globaldata;
+      memcpy(&(cinst->globaldata[fixup]), &temp, 4);
 #ifdef AGS_BIG_ENDIAN
       // leave the address swapped - will be read in and flipped every time
       *dataPtr = __int_swap_endian(*dataPtr);

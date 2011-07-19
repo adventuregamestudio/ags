@@ -1236,9 +1236,12 @@ void quitprintf(char*texx, ...) {
 }
 
 void write_log(char*msg) {
+/*
   FILE*ooo=fopen("ac.log","at");
   fprintf(ooo,"%s\n",msg);
   fclose(ooo);
+*/
+  platform->WriteDebugString(msg);
 }
 
 // this function is only enabled for special builds if a startup

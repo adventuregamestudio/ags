@@ -1,5 +1,5 @@
-Adventure Game Studio runtime PSP port
---------------------------------------
+Adventure Game Studio runtime PSP port - version 3.21 R1
+--------------------------------------------------------
 
 Licensed under the Artistic License 2.0, see License.txt in the Engine folder.
 
@@ -24,8 +24,9 @@ following restrictions:
   receive an error when trying to launch the game.
 - Resolution must be 320x200 or 320x240. No higher resolution is supported and
   you will receive an error stating that when trying to run such a game.
-- Games using a lot of memory (large rooms especially) will crash. You will
-  most probably not receive an error message, but the PSP just freezes and turns off.
+- Games using a lot of memory (large rooms especially) will crash. You will then
+  see a "blue screen of death" with debug information. Press X to save them
+  to a file. The game will then quit and reopen the menu.
 These glitches can appear, affecting the game experience:
 - Games which make use of advanced scripting might run slow, possibly making
   them unplayable.
@@ -164,3 +165,5 @@ Linux port by berolinux (http://gitorious.org/ags)
 Additional code by Bernhard Rosenkraenzer and Christian Morales Vega
 Eboot artwork by Paul Wilkinson (subspark)
 PSP port by JJS
+
+Thanks to thebudds for testing.

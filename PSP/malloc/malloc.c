@@ -11,6 +11,10 @@
 
 //#define DEBUG_MALLOC_P5
 
+#ifdef DEBUG_MALLOC_P5
+unsigned int malloc_p5_memory_used = 0;
+#endif
+
 struct PspSysEventHandler malloc_p5_sysevent_handler_struct;
 
 // From: http://forums.ps2dev.org/viewtopic.php?p=70854#70854
@@ -92,7 +96,7 @@ void* malloc(size_t size)
 
 #ifdef DEBUG_MALLOC_P5
   struct mallinfo info = _mallinfo_r(NULL);
-  printf("used memory %d, free %d\n", info.usmblks + info.uordblks, info.fordblks);  
+  printf("used memory %d of %d - %d\n", info.usmblks + info.uordblks, info.arena, malloc_p5_memory_used);
 #endif
 
   if (result)
@@ -103,8 +107,8 @@ void* malloc(size_t size)
   {
 #ifdef DEBUG_MALLOC_P5
     printf("getting memory from p5 %d %d\n", size, uid);  
+    malloc_p5_memory_used += size;
 #endif
-
     unsigned int* pointer = (unsigned int*)sceKernelGetBlockHeadAddr(uid);
     *pointer = uid;
     *(pointer + 4) = size;
@@ -151,6 +155,7 @@ void* realloc(void* ptr, size_t size)
 
 #ifdef DEBUG_MALLOC_P5
     printf("realloc p5 memory %d %d\n", oldsize, size);
+    malloc_p5_memory_used += (size - oldsize);
 #endif
 
     void* target = malloc(size);
@@ -182,6 +187,7 @@ void free(void* ptr)
   {
 #ifdef DEBUG_MALLOC_P5
     printf("freeing p5 memory %d\n", (unsigned int)*((SceUID*)ptr - 8));
+    malloc_p5_memory_used -= *((SceUID*)ptr - 4);
 #endif
 
     sceKernelFreePartitionMemory(*((SceUID*)ptr - 8));

@@ -68,6 +68,7 @@ extern int display_fps;
 int psp_return_to_menu = 1;
 int psp_ignore_acsetup_cfg_file = 0;
 int psp_enable_extra_memory = 0;
+int psp_clear_cache_on_room_change = 0;
 
 
 
@@ -296,15 +297,15 @@ void ReadConfiguration(char* filename)
 
     ReadInteger((int*)&psp_disable_powersaving, "misc", "disable_power_saving", 0, 1, 1);
 
-    ReadInteger((int*)&psp_ignore_acsetup_cfg_file, "misc", "ignore_acsetup_cfg_file", 0, 1, 0);
-
-    ReadInteger((int*)&psp_enable_extra_memory, "misc", "enable_extra_memory", 0, 1, 0);
-
     ReadInteger((int*)&psp_return_to_menu, "misc", "return_to_menu", 0, 1, 1);
-    ReadInteger((int*)&psp_mouse_analog_deadzone, "analog_stick", "deadzone", 0, 128, 20);
+
     ReadInteger(&display_fps, "misc", "show_fps", 0, 1, 0);
     if (display_fps == 1)
       display_fps = 2;
+
+    ReadInteger((int*)&psp_ignore_acsetup_cfg_file, "compatibility", "ignore_acsetup_cfg_file", 0, 1, 0);
+    ReadInteger((int*)&psp_enable_extra_memory, "compatibility", "enable_extra_memory", 0, 1, 0);
+    ReadInteger((int*)&psp_clear_cache_on_room_change, "compatibility", "clear_cache_on_room_change", 0, 1, 0);
 
     ReadInteger((int*)&psp_audio_samplerate, "sound", "samplerate", 0, 44100, 44100);
     ReadInteger((int*)&psp_audio_enabled, "sound", "enabled", 0, 1, 1);
@@ -317,6 +318,8 @@ void ReadConfiguration(char* filename)
     int mouse_sensitivity;
     if (ReadInteger((int*)&mouse_sensitivity, "analog_stick", "sensitivity", 0, 500, 50))
       psp_mouse_analog_sensitivity = (float)mouse_sensitivity / 25.0f;
+
+    ReadInteger((int*)&psp_mouse_analog_deadzone, "analog_stick", "deadzone", 0, 128, 20);
 
     ReadInteger((int*)&psp_gfx_smoothing, "graphics", "smoothing", 0, 1, 1);
     ReadInteger((int*)&psp_gfx_scaling, "graphics", "scaling", 0, 1, 1);

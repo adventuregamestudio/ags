@@ -1,4 +1,4 @@
-Adventure Game Studio runtime PSP port - version 3.21 R1
+Adventure Game Studio runtime PSP port - version 3.21 R2
 --------------------------------------------------------
 
 Licensed under the Artistic License 2.0, see License.txt in the Engine folder.
@@ -75,7 +75,7 @@ the onscreen keyboard is active.
 enabled: You can disable sound for a game speed up.
 threaded: If 1, plays and decodes sound in a separate thread. This reduces sound stuttering.
 cache_size: Determines how many sounds the runtime caches to reduce disk access. Set this to 1
-  to disable caching.
+  to effectively disable caching.
 samplerate: The sound playback sample rate, typical values are 44100, 22050, 11025. Lower values
   mean a slight speedup with the trade-off of reduced sound quality.
 
@@ -86,17 +86,21 @@ smoothing: If scaling is enabled, this determines whether a linear interpolation
   This reduces scaling artefacts and gives a more uniform appearance but at the same times makes
   the crisp pixel art somewhat blurry.
 
+[compatibility]
+ignore_acsetup_cfg_file: If 1, the engine will not read settings from the AGS configuration file.
+enable_extra_memory: If 1, there are additional 4 MiB of memory available for the game. But this
+  disables suspending the PSP. Also trying to use the pause feature of a Go causes a freeze.
+  While enabling certain games to run (especiall on a PSP 1000), this feature is experimental
+  and might itself cause instability.
+clear_cache_on_room_change: If 1, all sprite data will be unloaded if the player changes the
+  rooms. This helps saving memory but increases room load times.
+
 [misc]
 show_fps: If 1, shows the framerate.
 disable_power_saving: The PSPs power saving features like dimming the backlight and switching to
   standby are deactivated if this is set.
 return_to_menu: If 1, you will reenter the menu instead of going back to the XMB after
   quitting a game. This only works if the AGS game has an option to quit.
-ignore_acsetup_cfg_file: If 1, the engine will not read settings from the AGS configuration file.
-enable_extra_memory: If 1, there are additional 4 MiB of memory available for the game. But this
-  disables suspending the PSP. Also trying to use the pause feature of a Go causes a freeze.
-  While enabling certain games to run (especiall on a PSP 1000), this feature is experimental
-  and might itself cause instability.
 
 
 Available button values for mouse input:

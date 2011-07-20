@@ -25,6 +25,9 @@ extern int psp_audio_enabled;
 // PSP: If set, the standard AGS config file is not being read.
 extern int psp_ignore_acsetup_cfg_file;
 
+// PSP: Clear the sprite cache on every room change.
+extern int psp_clear_cache_on_room_change;
+
 // PSP: Sound cache initialization.
 extern void clear_sound_cache();
 
@@ -4720,6 +4723,9 @@ void new_room(int newnum,CharacterInfo*forchar) {
 
   // change rooms
   unload_old_room();
+
+  if (psp_clear_cache_on_room_change)
+    spriteset.removeAll();
 
   update_polled_stuff();
 

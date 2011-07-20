@@ -95,7 +95,7 @@ void clear_sound_cache()
   else
   {
     sound_cache_entries = (sound_cache_entry_t*)malloc(psp_audio_cachesize * sizeof(sound_cache_entry_t));
-	memset(sound_cache_entries, 0, psp_audio_cachesize * sizeof(sound_cache_entry_t));
+    memset(sound_cache_entries, 0, psp_audio_cachesize * sizeof(sound_cache_entry_t));
   }
 }
 
@@ -107,12 +107,15 @@ void sound_cache_free(char* buffer)
     if (sound_cache_entries[i].data == buffer)
     {
       if (sound_cache_entries[i].reference > 0)
-      {
         sound_cache_entries[i].reference--;
-        return;
-      }
+
+      return;
     }
   }
+
+  // Sound is uncached
+  if (i == psp_audio_cachesize)
+    free(buffer);
 }
 
 
@@ -128,6 +131,7 @@ char* get_cached_sound(const char* filename, long* size)
 
     if (strcmp(filename, sound_cache_entries[i].file_name) == 0)
     {
+      sound_cache_entries[i].reference++;
       sceRtcGetCurrentTick(&sound_cache_entries[i].last_used);
       *size = sound_cache_entries[i].size;
       return sound_cache_entries[i].data;
@@ -146,12 +150,12 @@ char* get_cached_sound(const char* filename, long* size)
       break;
   }
 
-  // Not free slot?
+  // No free slot?
   if (i == psp_audio_cachesize)
   {
     u64 oldest;
     sceRtcGetCurrentTick(&oldest);
-    int index = 0;
+    int index = -1;
 
     for (i = 0; i < psp_audio_cachesize; i++)
     {
@@ -168,24 +172,39 @@ char* get_cached_sound(const char* filename, long* size)
     i = index;
   }
 
-  sound_cache_entries[i].size = mp3in->todo;
-  sound_cache_entries[i].data = (char *)malloc(sound_cache_entries[i].size);
+  // Load new file  
+  *size = mp3in->todo;
+  char* newdata = (char *)malloc(*size);
 
-  if (sound_cache_entries[i].data == NULL)
+  if (newdata == NULL)
   {
     pack_fclose(mp3in);
     return NULL;
   }
 
-  pack_fread(sound_cache_entries[i].data, sound_cache_entries[i].size, mp3in);
+  pack_fread(newdata, *size, mp3in);
   pack_fclose(mp3in);
 
-  strcpy(sound_cache_entries[i].file_name, filename);
-  *size = sound_cache_entries[i].size;
-  sound_cache_entries[i].reference++;
-  sceRtcGetCurrentTick(&sound_cache_entries[i].last_used);
+  if (i == -1)
+  {
+    // No cache slot empty, return uncached data
+    return newdata;  
+  }
+  else
+  {
+    // Add to cache, free old sound first
+    if (sound_cache_entries[i].data)
+      free(sound_cache_entries[i].data);
 
-  return sound_cache_entries[i].data;
+    sound_cache_entries[i].size = *size;
+    sound_cache_entries[i].data = newdata;
+
+    strcpy(sound_cache_entries[i].file_name, filename);
+    sound_cache_entries[i].reference = 1;
+    sceRtcGetCurrentTick(&sound_cache_entries[i].last_used);
+
+    return sound_cache_entries[i].data;	
+  }
 }
 
 

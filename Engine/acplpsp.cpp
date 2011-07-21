@@ -51,6 +51,12 @@ struct AGSPSP : AGS32BitOSDriver {
   virtual void WriteConsole(const char*, ...);
   virtual void ReplaceSpecialPaths(const char *sourcePath, char *destPath);
   virtual void WriteDebugString(const char* texx, ...);
+  virtual void ReadPluginsFromDisk(FILE *iii);
+  virtual void StartPlugins();
+  virtual void ShutdownPlugins();
+  virtual int RunPluginHooks(int event, int data);
+  virtual void RunPluginInitGfxHooks(const char *driverName, void *data);
+  virtual int RunPluginDebugHooks(const char *scriptfile, int linenum);
 };
 
 
@@ -516,13 +522,42 @@ void AGSPSP::ShutdownCDPlayer() {
   //cd_exit();
 }
 
+
+void AGSPSP::ReadPluginsFromDisk(FILE *iii) {
+  pl_read_plugins_from_disk(iii);
+}
+
+void AGSPSP::StartPlugins() {
+  pl_startup_plugins();
+}
+
+void AGSPSP::ShutdownPlugins() {
+  pl_stop_plugins();
+}
+
+int AGSPSP::RunPluginHooks(int event, int data) {
+  return pl_run_plugin_hooks(event, data);
+}
+
+void AGSPSP::RunPluginInitGfxHooks(const char *driverName, void *data) {
+  pl_run_plugin_init_gfx_hooks(driverName, data);
+}
+
+int AGSPSP::RunPluginDebugHooks(const char *scriptfile, int linenum) {
+  return pl_run_plugin_debug_hooks(scriptfile, linenum);
+}
+
+
 AGSPlatformDriver* AGSPlatformDriver::GetDriver() {
   if (instance == NULL)
     instance = new AGSPSP();
 
   // Setup the exception handler prx.
   initExceptionHandler();
-  
+
+  // Load the kernel module
+  pspSdkLoadStartModule("kernel.prx", PSP_MEMORY_PARTITION_KERNEL);
+
   // Set CPU speed to maximum here.
   scePowerSetClockFrequency(333, 333, 166);
   

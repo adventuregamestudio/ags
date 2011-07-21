@@ -39,10 +39,7 @@ int malloc_p5_init()
   if (result == 0)
   {
     printf("sceKernelVolatileMemLock(%d, %d) =  %d\n", (unsigned int)pointer, returnsize, result);
-    
-    SceUID moduleId = pspSdkLoadStartModule("kernel.prx", PSP_MEMORY_PARTITION_KERNEL);
-    if (moduleId >= 0)
-    {
+
     // Register sysevent handler to prevent suspend mode because p5 memory cannot be resumed
     memset(&malloc_p5_sysevent_handler_struct, 0, sizeof(struct PspSysEventHandler));
     malloc_p5_sysevent_handler_struct.size = sizeof(struct PspSysEventHandler);
@@ -50,11 +47,6 @@ int malloc_p5_init()
     malloc_p5_sysevent_handler_struct.handler = &malloc_p5_sysevent_handler;
     malloc_p5_sysevent_handler_struct.type_mask = 0x0000FF00;
     kernel_sceKernelRegisterSysEventHandler(&malloc_p5_sysevent_handler_struct);
-    
-    int status;
-    sceKernelStopModule(moduleId, 0, NULL, &status, NULL);
-    sceKernelUnloadModule(moduleId);
-    }
 
     malloc_p5_initialized = 1;
   }
@@ -70,16 +62,8 @@ int malloc_p5_shutdown()
   {
     if (sceKernelVolatileMemUnlock(0) == 0)
     {
-      SceUID moduleId = pspSdkLoadStartModule("kernel.prx", PSP_MEMORY_PARTITION_KERNEL);
-      if (moduleId >= 0)
-      {
-        kernel_sceKernelUnregisterSysEventHandler(&malloc_p5_sysevent_handler_struct);
-        
-        int status;
-        sceKernelStopModule(moduleId, 0, NULL, &status, NULL);
-        sceKernelUnloadModule(moduleId);
-      }
-      
+      kernel_sceKernelUnregisterSysEventHandler(&malloc_p5_sysevent_handler_struct);
+
       malloc_p5_initialized = 0;
     }
   }

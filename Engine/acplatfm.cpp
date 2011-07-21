@@ -16,6 +16,14 @@
 #define strnicmp strncasecmp
 #endif
 
+#include <pspsdk.h>
+#include <pspkernel.h>
+extern "C"
+{
+#include <systemctrl.h>
+}
+#include "../PSP/kernel/kernel.h"
+
 AGSPlatformDriver* AGSPlatformDriver::instance = NULL;
 
 int numcddrives=0;
@@ -113,7 +121,7 @@ void AGS32BitOSDriver::YieldCPU() {
 
 // **************** PLUGIN IMPLEMENTATION ****************
 
-#if defined(WINDOWS_VERSION) || defined(MAC_VERSION)
+#if defined(PSP_VERSION) || defined(WINDOWS_VERSION) || defined(MAC_VERSION)
 
 #ifdef MAC_VERSION
 #include <dlfcn.h>
@@ -121,6 +129,12 @@ void AGS32BitOSDriver::YieldCPU() {
 #define FreeLibrary dlclose
 #define GetProcAddress dlsym
 typedef void * HINSTANCE;
+typedef void * LPDIRECTDRAW2;
+typedef void * LPDIRECTDRAWSURFACE2;
+#endif
+
+#ifdef PSP_VERSION
+typedef SceUID HINSTANCE;
 typedef void * LPDIRECTDRAW2;
 typedef void * LPDIRECTDRAWSURFACE2;
 #endif
@@ -765,7 +779,11 @@ void pl_stop_plugins() {
         free(plugins[a].savedata);
         plugins[a].savedata = NULL;
       }
+#ifdef PSP_VERSION
+      sceKernelUnloadModule(plugins[a].dllHandle);
+#else
       FreeLibrary (plugins[a].dllHandle);
+#endif
     }
   }
   numPlugins = 0;
@@ -774,7 +792,8 @@ void pl_stop_plugins() {
 void pl_startup_plugins() {
   int i;
   for (i = 0; i < numPlugins; i++) {
-    plugins[i].engineStartup (&plugins[i].eiface);
+    if (plugins[i].dllHandle != 0)
+      plugins[i].engineStartup (&plugins[i].eiface);
   }
 }
 
@@ -882,12 +901,56 @@ void pl_read_plugins_from_disk (FILE *iii) {
       }
     }
 #else
+#ifdef PSP_VERSION
+    char module_name[50];
+    strcpy(module_name, apl->filename);
+    module_name[strlen(module_name) - 4] = '\0';
+
+    strcpy(&apl->filename[strlen(apl->filename) - 4], ".prx");
+    printf("loading plugin %s, %s\n", apl->filename, module_name);
+
+    if ((apl->dllHandle = pspSdkLoadStartModule(apl->filename, PSP_MEMORY_PARTITION_USER)) < 0)
+    {
+      char file_name[53];
+      strcpy(file_name, "../");
+      strcat(file_name, apl->filename);
+      apl->dllHandle = pspSdkLoadStartModule(file_name, PSP_MEMORY_PARTITION_USER);
+    }
+
+    if (apl->dllHandle < 0)
+    {
+      printf("Unable to load plugin '%s', error code 0x%08lX\n", apl->filename, apl->dllHandle);
+	  apl->dllHandle = 0;
+      continue;
+    }
+
+#else
     apl->dllHandle = LoadLibrary (apl->filename);
     if (apl->dllHandle == NULL) {
       sprintf(buffer, "Unable to load plugin '%s'", apl->filename);
       quit(buffer);
     }
 #endif
+#endif
+
+#ifdef PSP_VERSION
+    if (kernel_sctrlHENFindFunction(module_name, "plugin", 0x960C49BD) == 0) {
+      sprintf(buffer, "Plugin '%s' is an old incompatible version.", apl->filename);
+      quit(buffer);
+    }
+
+    apl->engineStartup = (void(*)(IAGSEngine*))kernel_sctrlHENFindFunction(module_name, "plugin", 0x0F13D9E8); // AGS_EngineStartup
+    apl->engineShutdown = (void(*)())kernel_sctrlHENFindFunction(module_name, "plugin", 0x2F131C76); // AGS_EngineShutdown
+
+    if (apl->engineStartup == NULL) {
+      sprintf(buffer, "Plugin '%s' is not a valid AGS plugin (no engine startup entry point)", apl->filename);
+      quit(buffer);
+    }
+
+    apl->onEvent = (int(*)(int,int))kernel_sctrlHENFindFunction(module_name, "plugin", 0xE3DFFC5A); // AGS_EngineOnEvent
+    apl->debugHook = (int(*)(const char*,int,int))kernel_sctrlHENFindFunction(module_name, "plugin", 0xC37D6879); // AGS_EngineDebugHook
+    apl->initGfxHook = (void(*)(const char*, void*))kernel_sctrlHENFindFunction(module_name, "plugin", 0xA428D254); // AGS_EngineInitGfx
+#else
     if (GetProcAddress (apl->dllHandle, "AGS_PluginV2") == NULL) {
       sprintf(buffer, "Plugin '%s' is an old incompatible version.", apl->filename);
       quit(buffer);
@@ -902,6 +965,7 @@ void pl_read_plugins_from_disk (FILE *iii) {
     apl->onEvent = (int(*)(int,int))GetProcAddress (apl->dllHandle, "AGS_EngineOnEvent");
     apl->debugHook = (int(*)(const char*,int,int))GetProcAddress (apl->dllHandle, "AGS_EngineDebugHook");
     apl->initGfxHook = (void(*)(const char*, void*))GetProcAddress (apl->dllHandle, "AGS_EngineInitGfx");
+#endif
 
     if (datasize > 0) {
       apl->savedata = (char*)malloc(datasize);

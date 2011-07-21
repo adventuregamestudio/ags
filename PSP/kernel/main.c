@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <systemctrl.h>
 #include "kernel.h"
 
 
@@ -78,6 +79,17 @@ int kernel_sceKernelUnregisterSysEventHandler(PspSysEventHandler *handler)
 	
 	int result = sceKernelUnregisterSysEventHandler(handler);
 	
+	pspSdkSetK1(k1);
+	return result;
+}
+
+unsigned int kernel_sctrlHENFindFunction(char* modname, char* libname, unsigned int nid)
+{
+	u32 k1;
+	k1 = pspSdkSetK1(0);
+
+	int result = sctrlHENFindFunction(modname, libname, nid);
+
 	pspSdkSetK1(k1);
 	return result;
 }

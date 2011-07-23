@@ -1,4 +1,4 @@
-DISTRIB_NAME = AGS_Runtime_for_PSP_3.21_R2
+DISTRIB_NAME = AGS_Runtime_for_PSP_3.21_R3
 PSP_AGS_FOLDER = "j:/psp/game/ags"
 
 all:
@@ -6,6 +6,7 @@ all:
 	make exceptionprx
 	make launchereboot
 	make engineprx
+	make allplugins
 
 kernelprx:
 	@make -C "kernel"
@@ -35,6 +36,14 @@ ifeq ($(COPY), 1)
 	@cp "../Engine/ags321.prx" $(PSP_AGS_FOLDER)
 endif
 
+allplugins:
+ifeq ($(COPY), 1)
+	@make -C "plugins" COPY=1
+else
+	@make -C "plugins"
+endif
+	
+
 cleankernelprx:
 	@make clean -C "kernel"
 	@rm -f "bin/kernel.prx"
@@ -51,6 +60,9 @@ cleanengineprx:
 	@make clean -C "../Engine"
 	@rm -f "bin/ags321.prx"
 
+cleanallplugins:
+	@make clean -C "plugins"
+
 distrib:
 	@mkdir "dist" || true
 	@mkdir "dist/$(DISTRIB_NAME)" || true
@@ -61,9 +73,11 @@ distrib:
 	@cp "bin/psp.cfg" "dist/$(DISTRIB_NAME)/psp.cfg"
 	@cp "readme.txt" "dist/$(DISTRIB_NAME)/readme.txt"
 	@cp "../Engine/License.txt" "dist/$(DISTRIB_NAME)/License.txt"
+	@make distrib -C "plugins"
 
 clean:
 	make cleankernelprx
 	make cleanexceptionprx
 	make cleanlaunchereboot
 	make cleanengineprx
+	make cleanallplugins

@@ -1,4 +1,4 @@
-Adventure Game Studio runtime PSP port - version 3.21 R2
+Adventure Game Studio runtime PSP port - version 3.21 R3
 --------------------------------------------------------
 
 Licensed under the Artistic License 2.0, see License.txt in the Engine folder.

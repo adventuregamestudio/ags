@@ -29,6 +29,9 @@ but a workalike plugin created by JJS for the AGS engine PSP port.
 
 #define signum(x) ((x > 0) ? 1 : -1)
 
+const unsigned int Magic = 0xCAFE0000;
+const unsigned int Version = 1;
+const unsigned int SaveMagic = Magic + Version;
 const float PI = 3.14159265f;
 
 long int screen_width = 320;
@@ -70,6 +73,10 @@ class Weather
     
     void Initialize();
     void InitializeParticles();
+
+    void RestoreGame(FILE* file);
+    void SaveGame(FILE* file);
+    void ReinitializeViews();
     
     bool IsActive();
     void Update();
@@ -215,6 +222,112 @@ void Weather::UpdateWithDrift()
   }
   
   engine->MarkRegionDirty(0, 0, screen_width, mBottomBaseline);
+}
+
+
+void Weather::RestoreGame(FILE* file)
+{
+  unsigned int Position = ftell(file);
+  unsigned int DataSize;
+
+  unsigned int SaveVersion = 0;
+  fread(&SaveVersion, 4, 1, file);
+
+  if (SaveVersion == SaveMagic)
+  {
+    fread(&DataSize, 4, 1, file);
+
+    // Current version
+    fread(&mIsSnow, 4, 1, file);
+    fread(&mMinDrift, 4, 1, file);
+    fread(&mMaxDrift, 4, 1, file);
+    fread(&mDeltaDrift, 4, 1, file);
+    fread(&mMinDriftSpeed, 4, 1, file);
+    fread(&mMaxDriftSpeed, 4, 1, file);
+    fread(&mDeltaDriftSpeed, 4, 1, file);
+    fread(&mAmount, 4, 1, file);
+    fread(&mTargetAmount, 4, 1, file);
+    fread(&mMinAlpha, 4, 1, file);
+    fread(&mMaxAlpha, 4, 1, file);
+    fread(&mDeltaAlpha, 4, 1, file);
+    fread(&mWindSpeed, 4, 1, file);
+    fread(&mTopBaseline, 4, 1, file);
+    fread(&mBottomBaseline, 4, 1, file);
+    fread(&mDeltaBaseline, 4, 1, file);
+    fread(&mMinFallSpeed, 4, 1, file);
+    fread(&mMaxFallSpeed, 4, 1, file);
+    fread(&mDeltaFallSpeed, 4, 1, file);
+    fread(mViews, sizeof(view_t) * 5, 1, file);
+
+    ReinitializeViews();
+    InitializeParticles();
+  }
+  else if ((SaveVersion & 0xFFFF0000) == Magic)
+  {
+    // Unsupported version, skip it
+    DataSize = 0;
+    fread(&DataSize, 4, 1, file);
+
+    fseek(file, Position + DataSize - 8, SEEK_SET);
+  }
+  else
+  {
+    // Unknown data, loading might fail but we cannot help it
+    fseek(file, Position, SEEK_SET);
+  }
+}
+
+
+void Weather::SaveGame(FILE* file)
+{
+  unsigned int StartPosition = ftell(file);
+
+  fwrite(&SaveMagic, 4, 1, file);
+  fwrite(&StartPosition, 4, 1, file); // Update later with the correct size
+
+  fwrite(&mIsSnow, 4, 1, file);
+  fwrite(&mMinDrift, 4, 1, file);
+  fwrite(&mMaxDrift, 4, 1, file);
+  fwrite(&mDeltaDrift, 4, 1, file);
+  fwrite(&mMinDriftSpeed, 4, 1, file);
+  fwrite(&mMaxDriftSpeed, 4, 1, file);
+  fwrite(&mDeltaDriftSpeed, 4, 1, file);
+  fwrite(&mAmount, 4, 1, file);
+  fwrite(&mTargetAmount, 4, 1, file);
+  fwrite(&mMinAlpha, 4, 1, file);
+  fwrite(&mMaxAlpha, 4, 1, file);
+  fwrite(&mDeltaAlpha, 4, 1, file);
+  fwrite(&mWindSpeed, 4, 1, file);
+  fwrite(&mTopBaseline, 4, 1, file);
+  fwrite(&mBottomBaseline, 4, 1, file);
+  fwrite(&mDeltaBaseline, 4, 1, file);
+  fwrite(&mMinFallSpeed, 4, 1, file);
+  fwrite(&mMaxFallSpeed, 4, 1, file);
+  fwrite(&mDeltaFallSpeed, 4, 1, file);
+  fwrite(mViews, sizeof(view_t) * 5, 1, file);
+
+  unsigned int EndPosition = ftell(file);
+  unsigned int SaveSize = EndPosition - StartPosition;
+  fseek(file, StartPosition + 4, SEEK_SET);
+  fwrite(&SaveSize, 4, 1, file);
+
+  fseek(file, EndPosition, SEEK_SET);
+}
+
+
+void Weather::ReinitializeViews()
+{
+  AGSViewFrame* view_frame;
+
+  int i;
+  for (i = 0; i < 5; i++)
+  {
+    if (mViews[i].bitmap != NULL)
+    {
+      view_frame = engine->GetViewFrame(mViews[i].view, mViews[i].loop, 0);
+      mViews[i].bitmap = engine->GetSpriteGraphic(view_frame->pic);
+    }
+  }
 }
 
 
@@ -588,7 +701,11 @@ void AGS_EngineStartup(IAGSEngine *lpEngine)
   engine->RequestEventHook(AGSE_PREGUIDRAW);
   engine->RequestEventHook(AGSE_PRESCREENDRAW);
   engine->RequestEventHook(AGSE_ENTERROOM);
-  
+#ifdef PSP_VERSION
+  engine->RequestEventHook(AGSE_SAVEGAME);
+  engine->RequestEventHook(AGSE_RESTOREGAME);
+#endif
+
   rain = new Weather;
   snow = new Weather(true);
 }
@@ -614,6 +731,18 @@ int AGS_EngineOnEvent(int event, int data)
     rain->EnterRoom();
     snow->EnterRoom();
   }
+#ifdef PSP_VERSION
+  else if (event == AGSE_RESTOREGAME)
+  {
+    rain->RestoreGame((FILE*)data);
+    snow->RestoreGame((FILE*)data);
+  }
+  else if (event == AGSE_SAVEGAME)
+  {
+    rain->SaveGame((FILE*)data);
+    snow->SaveGame((FILE*)data);
+  }
+#endif
   else if (event == AGSE_PRESCREENDRAW)
   {
     // Get screen size once here

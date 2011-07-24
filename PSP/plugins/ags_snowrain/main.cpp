@@ -26,6 +26,7 @@ but a workalike plugin created by JJS for the AGS engine PSP port.
 #define sin(x) vfpu_sinf(x)
 #endif
 
+//#define DEBUG
 
 #define signum(x) ((x > 0) ? 1 : -1)
 
@@ -401,6 +402,12 @@ void Weather::InitializeParticles()
 
 void Weather::SetDriftRange(int min_value, int max_value)
 {
+#ifdef DEBUG
+  char buffer[200];
+  sprintf(buffer, "%d %s %d %d\n", (int)mIsSnow, "SetDriftRange", min_value, max_value);
+  engine->PrintDebugConsole(buffer);
+#endif
+
   ClipToRange(min_value, 0, 100);
   ClipToRange(max_value, 0, 100);
 
@@ -418,6 +425,12 @@ void Weather::SetDriftRange(int min_value, int max_value)
 
 void Weather::SetDriftSpeed(int min_value, int max_value)
 {
+#ifdef DEBUG
+  char buffer[200];
+  sprintf(buffer, "%d %s %d %d\n", (int)mIsSnow, "SetDriftSpeed", min_value, max_value);
+  engine->PrintDebugConsole(buffer);
+#endif
+
   ClipToRange(min_value, 0, 200);
   ClipToRange(max_value, 0, 200);
   
@@ -435,6 +448,12 @@ void Weather::SetDriftSpeed(int min_value, int max_value)
 
 void Weather::ChangeAmount(int amount)
 {
+#ifdef DEBUG
+  char buffer[200];
+  sprintf(buffer, "%d %s %d\n", (int)mIsSnow, "ChangeAmount", amount);
+  engine->PrintDebugConsole(buffer);
+#endif
+
   ClipToRange(amount, 0, 1000);
   
   mTargetAmount = amount;
@@ -443,6 +462,12 @@ void Weather::ChangeAmount(int amount)
 
 void Weather::SetView(int kind_id, int event, int view, int loop)
 {
+#ifdef DEBUG
+  char buffer[200];
+  sprintf(buffer, "%d %s %d %d %d %d\n", (int)mIsSnow, "SetView", kind_id, event, view, loop);
+  engine->PrintDebugConsole(buffer);
+#endif
+
   AGSViewFrame* view_frame = engine->GetViewFrame(view, loop, 0);
   mViews[kind_id].bitmap = engine->GetSpriteGraphic(view_frame->pic);
   mViews[kind_id].is_default = false;  
@@ -453,6 +478,12 @@ void Weather::SetView(int kind_id, int event, int view, int loop)
 
 void Weather::SetDefaultView(int view, int loop)
 {
+#ifdef DEBUG
+  char buffer[200];
+  sprintf(buffer, "%d %s %d %d\n", (int)mIsSnow, "SetDefaultView", view, loop);
+  engine->PrintDebugConsole(buffer);
+#endif
+
   AGSViewFrame* view_frame = engine->GetViewFrame(view, loop, 0);
   BITMAP* bitmap = engine->GetSpriteGraphic(view_frame->pic);
   
@@ -471,6 +502,12 @@ void Weather::SetDefaultView(int view, int loop)
 
 void Weather::SetTransparency(int min_value, int max_value)
 {
+#ifdef DEBUG
+  char buffer[200];
+  sprintf(buffer, "%d %s %d %d\n", (int)mIsSnow, "SetTransparency", min_value, max_value);
+  engine->PrintDebugConsole(buffer);
+#endif
+
   ClipToRange(min_value, 0, 100);
   ClipToRange(max_value, 0, 100);
   
@@ -483,11 +520,21 @@ void Weather::SetTransparency(int min_value, int max_value)
   
   if (mDeltaAlpha == 0)
     mDeltaAlpha = 1;
+
+  int i;
+  for (i = 0; i < 2000; i++)
+    mParticles[i].alpha = rand() % mDeltaAlpha + mMinAlpha;
 }
 
 
 void Weather::SetWindSpeed(int value)
 {
+#ifdef DEBUG
+  char buffer[200];
+  sprintf(buffer, "%d %s %d\n", (int)mIsSnow, "SetWindSpeed", value);
+  engine->PrintDebugConsole(buffer);
+#endif
+
   ClipToRange(value, -200, 200);
   
   mWindSpeed = (float)value / 20.0f;
@@ -496,6 +543,12 @@ void Weather::SetWindSpeed(int value)
 
 void Weather::SetBaseline(int top, int bottom)
 {
+#ifdef DEBUG
+  char buffer[200];
+  sprintf(buffer, "%d %s %d %d\n", (int)mIsSnow, "SetBaseline", top, bottom);
+  engine->PrintDebugConsole(buffer);
+#endif
+
   if (screen_height > 0)
   {
     ClipToRange(top, 0, screen_height);
@@ -516,6 +569,12 @@ void Weather::SetBaseline(int top, int bottom)
 
 void Weather::SetAmount(int amount)
 {
+#ifdef DEBUG
+  char buffer[200];
+  sprintf(buffer, "%d %s %d\n", (int)mIsSnow, "SetAmount", amount);
+  engine->PrintDebugConsole(buffer);
+#endif
+
   ClipToRange(amount, 0, 1000);
 
   mAmount = mTargetAmount = amount;
@@ -526,6 +585,12 @@ void Weather::SetAmount(int amount)
 
 void Weather::SetFallSpeed(int min_value, int max_value)
 {
+#ifdef DEBUG
+  char buffer[200];
+  sprintf(buffer, "%d %s %d %d\n", (int)mIsSnow, "SetFallSpeed", min_value, max_value);
+  engine->PrintDebugConsole(buffer);
+#endif
+
   ClipToRange(min_value, 0, 1000);
   ClipToRange(max_value, 0, 1000);
   

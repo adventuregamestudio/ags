@@ -168,6 +168,8 @@ Adventure Game Studio by Chris Jones (http://www.bigbluecup.com/)
 Linux port by berolinux (http://gitorious.org/ags)
 Additional code by Bernhard Rosenkraenzer and Christian Morales Vega
 Eboot artwork by Paul Wilkinson (subspark)
+AGSBlend plugin by Steven Poulton (see License_AGSBlend.txt)
 PSP port by JJS
+
 
 Thanks to thebudds for testing.

@@ -1,3 +1,16 @@
+/*
+
+This is not the AGS SnowRain plugin by Scorpiorus (http://www.bigbluecup.com/yabb/index.php?topic=25665.0),
+but a workalike plugin created by JJS for the AGS engine PSP port.
+
+*/
+
+#ifdef WIN32
+#define WINDOWS_VERSION
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#pragma warning(disable : 4244)
+#endif
 
 #define THIS_IS_THE_PLUGIN
 #include "agsplugin.h"
@@ -61,6 +74,7 @@ class Weather
     bool IsActive();
     void Update();
     void UpdateWithDrift();
+    void EnterRoom();
     
     void SetDriftRange(int min_value, int max_value);
     void SetDriftSpeed(int min_value, int max_value);
@@ -103,7 +117,7 @@ class Weather
     int mMaxFallSpeed;
     int mDeltaFallSpeed;
     
-    drop_t mParticles[1000];
+    drop_t mParticles[2000];
     view_t mViews[5];
 };
 
@@ -135,7 +149,7 @@ void Weather::Update()
     mAmount--;
 
   int i;
-  for (i = 0; i < mAmount; i++)
+  for (i = 0; i < mAmount * 2; i++)
   {
     mParticles[i].y += mParticles[i].speed;
     mParticles[i].x += mWindSpeed;
@@ -148,13 +162,13 @@ void Weather::Update()
     
     if (mParticles[i].y > mParticles[i].max_y)
     {
-      mParticles[i].y = -1 * (rand() % 20) + 1;
+      mParticles[i].y = -1 * (rand() % screen_height);
       mParticles[i].x = rand() % screen_width;
       mParticles[i].alpha = rand() % mDeltaAlpha + mMinAlpha;
-      mParticles[i].speed = (float)(rand() % mDeltaFallSpeed + mMinFallSpeed) / 40.0f;
+      mParticles[i].speed = (float)(rand() % mDeltaFallSpeed + mMinFallSpeed) / 50.0f;
       mParticles[i].max_y = rand() % mDeltaBaseline + mTopBaseline;
     }
-    else
+    else if (mParticles[i].y > 0)
       engine->BlitSpriteTranslucent(mParticles[i].x, mParticles[i].y, mViews[mParticles[i].kind_id].bitmap, mParticles[i].alpha);
   }
   
@@ -170,7 +184,7 @@ void Weather::UpdateWithDrift()
     mAmount--;
 
   int i, drift;
-  for (i = 0; i < mAmount; i++)
+  for (i = 0; i < mAmount * 2; i++)
   {
     mParticles[i].y += mParticles[i].speed;
     drift = mParticles[i].drift * sin((float)(mParticles[i].y + mParticles[i].drift_offset) * mParticles[i].drift_speed * 2.0f * PI / 360.0f);
@@ -188,15 +202,15 @@ void Weather::UpdateWithDrift()
     
     if (mParticles[i].y > mParticles[i].max_y)
     {
-      mParticles[i].y = -1 * (rand() % 20) + 1;
+      mParticles[i].y = -1 * (rand() % screen_height);
       mParticles[i].x = rand() % screen_width;
       mParticles[i].alpha = rand() % mDeltaAlpha + mMinAlpha;
-      mParticles[i].speed = (float)(rand() % mDeltaFallSpeed + mMinFallSpeed) / 40.0f;
+      mParticles[i].speed = (float)(rand() % mDeltaFallSpeed + mMinFallSpeed) / 50.0f;
       mParticles[i].max_y = rand() % mDeltaBaseline + mTopBaseline;
       mParticles[i].drift = rand() % mDeltaDrift + mMinDrift;
-      mParticles[i].drift_speed = (rand() % mDeltaDriftSpeed + mMinDriftSpeed) / 40.0f;
+      mParticles[i].drift_speed = (rand() % mDeltaDriftSpeed + mMinDriftSpeed) / 50.0f;
     }
-    else
+    else if (mParticles[i].y > 0)
       engine->BlitSpriteTranslucent(mParticles[i].x + drift, mParticles[i].y, mViews[mParticles[i].kind_id].bitmap, mParticles[i].alpha);
   }
   
@@ -207,6 +221,12 @@ void Weather::UpdateWithDrift()
 bool Weather::IsActive()
 {
   return (mAmount > 0) || (mTargetAmount != mAmount);
+}
+
+
+void Weather::EnterRoom()
+{
+  mAmount = mTargetAmount;
 }
 
 
@@ -225,7 +245,6 @@ void Weather::Initialize()
   SetDriftRange(10, 100);
   SetDriftSpeed(10, 120);  
     
-  SetAmount(0);
   SetTransparency(0, 0);  
   SetWindSpeed(0);  
   SetBaseline(0, 200);  
@@ -244,24 +263,24 @@ void Weather::Initialize()
     mViews[i].bitmap = NULL;
   }
   
-  InitializeParticles();
+  SetAmount(0);
 }
 
 
 void Weather::InitializeParticles()
 {
-  memset(mParticles, 0, sizeof(drop_t) * 1000);
+  memset(mParticles, 0, sizeof(drop_t) * 2000);
   int i;
-  for (i = 0; i < 1000; i++)
+  for (i = 0; i < 2000; i++)
   {
     mParticles[i].kind_id = rand() % 5;
-    mParticles[i].y = 10000; // outside the screen
+    mParticles[i].y = rand() % (screen_height * 2) - screen_height;
     mParticles[i].x = rand() % screen_width;
     mParticles[i].alpha = rand() % mDeltaAlpha + mMinAlpha;
-    mParticles[i].speed = (float)(rand() % mDeltaFallSpeed + mMinFallSpeed) / 40.0f;
+    mParticles[i].speed = (float)(rand() % mDeltaFallSpeed + mMinFallSpeed) / 50.0f;
     mParticles[i].max_y = rand() % mDeltaBaseline + mTopBaseline;
     mParticles[i].drift = rand() % mDeltaDrift + mMinDrift;
-    mParticles[i].drift_speed = (rand() % mDeltaDriftSpeed + mMinDriftSpeed) / 40.0f;  
+    mParticles[i].drift_speed = (rand() % mDeltaDriftSpeed + mMinDriftSpeed) / 50.0f;  
     mParticles[i].drift_offset = rand() % 100;
   }
 }
@@ -387,6 +406,8 @@ void Weather::SetAmount(int amount)
   ClipToRange(amount, 0, 1000);
 
   mAmount = mTargetAmount = amount;
+
+  InitializeParticles();
 }
 
 
@@ -566,6 +587,7 @@ void AGS_EngineStartup(IAGSEngine *lpEngine)
 
   engine->RequestEventHook(AGSE_PREGUIDRAW);
   engine->RequestEventHook(AGSE_PRESCREENDRAW);
+  engine->RequestEventHook(AGSE_ENTERROOM);
   
   rain = new Weather;
   snow = new Weather(true);
@@ -573,6 +595,8 @@ void AGS_EngineStartup(IAGSEngine *lpEngine)
 
 void AGS_EngineShutdown()
 {
+  delete rain;
+  delete snow;
 }
 
 int AGS_EngineOnEvent(int event, int data)
@@ -584,6 +608,11 @@ int AGS_EngineOnEvent(int event, int data)
     
     if (snow->IsActive())
       snow->UpdateWithDrift();
+  }
+  else if (event == AGSE_ENTERROOM)
+  {
+    rain->EnterRoom();
+    snow->EnterRoom();
   }
   else if (event == AGSE_PRESCREENDRAW)
   {

@@ -434,13 +434,26 @@ namespace AGS.Editor
 
         public void SetText(string newText)
         {
+            SetText(newText, true);
+        }
+
+        public void SetTextModified(string newText)
+        {
+            SetText(newText, false);
+        }
+
+        public void SetText(string newText, bool clearModified)
+        {
             bool shouldBeReadOnly = this.scintillaControl1.IsReadOnly;
             this.scintillaControl1.IsReadOnly = false;
 
             this.scintillaControl1.SetText(newText);
             this.scintillaControl1.ConvertEOLs(EndOfLine.Crlf);
-            this.scintillaControl1.SetSavePoint();
-            this.scintillaControl1.EmptyUndoBuffer();
+            if (clearModified)
+            {
+                this.scintillaControl1.SetSavePoint();
+                this.scintillaControl1.EmptyUndoBuffer();
+            }
 
             this.scintillaControl1.IsReadOnly = shouldBeReadOnly;
         }
@@ -863,7 +876,7 @@ namespace AGS.Editor
                 (!scintillaControl1.IsCallTipActive) &&
                 (!scintillaControl1.IsAutoCActive) &&
                 (!InsideStringOrComment(false, e.Position)) &&
-                _activated && !TabbedDocumentContainer.HoveringTabs
+                _activated && !TabbedDocumentManager.HoveringTabs
                 && !ScriptEditor.HoveringCombo)
             {
                 ShowCalltip(FindEndOfCurrentWord(e.Position), -1, false);

@@ -31,7 +31,6 @@ namespace AGS.Editor
 			txtNewGamePath.Text = _preferences.ExplicitNewGamePath;
 			txtNewGamePath.Enabled = radNewGameSpecificPath.Checked;
 			btnNewGameChooseFolder.Enabled = radNewGameSpecificPath.Checked;
-			cmbProjectTreeSide.SelectedIndex = (_preferences.ProjectTreeOnRight ? 0 : 1);
 			cmbMessageOnCompile.SelectedIndex = (int)_preferences.MessageBoxOnCompileErrors;
 			cmbIndentStyle.SelectedIndex = _preferences.IndentUsingTabs ? 1 : 0;
 			chkAlwaysShowViewPreview.Checked = _preferences.ShowViewPreviewByDefault;
@@ -72,7 +71,6 @@ namespace AGS.Editor
             _preferences.TestGameStyle = (TestGameWindowStyle)cmbTestGameStyle.SelectedIndex;
 			_preferences.StartupPane = (EditorStartupPane)cmbEditorStartup.SelectedIndex;
 			_preferences.DefaultImportPath = (radGamePath.Checked ? string.Empty : txtImportPath.Text);
-			_preferences.ProjectTreeOnRight = (cmbProjectTreeSide.SelectedIndex == 0);
 			_preferences.MessageBoxOnCompileErrors = (MessageBoxOnCompile)cmbMessageOnCompile.SelectedIndex;
 			_preferences.IndentUsingTabs = (cmbIndentStyle.SelectedIndex == 1);
 			_preferences.ShowViewPreviewByDefault = chkAlwaysShowViewPreview.Checked;

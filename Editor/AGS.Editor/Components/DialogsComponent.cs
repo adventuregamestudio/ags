@@ -13,7 +13,8 @@ namespace AGS.Editor.Components
         private const string TOP_LEVEL_COMMAND_ID = "Dialogs";
         private const string COMMAND_NEW_ITEM = "NewDialog";
         private const string COMMAND_DELETE_ITEM = "DeleteDialog";
-
+        private const string ICON_KEY = "DialogsIcon";
+        
         private Dictionary<Dialog, ContentDocument> _documents;
         private Dialog _itemRightClicked = null;
 
@@ -21,9 +22,9 @@ namespace AGS.Editor.Components
             : base(guiController, agsEditor)
         {
             _documents = new Dictionary<Dialog, ContentDocument>();
-            _guiController.RegisterIcon("DialogsIcon", Resources.ResourceManager.GetIcon("dialog.ico"));
+            _guiController.RegisterIcon(ICON_KEY, Resources.ResourceManager.GetIcon("dialog.ico"));
             _guiController.RegisterIcon("DialogIcon", Resources.ResourceManager.GetIcon("dialog-item.ico"));
-            _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Dialogs", "DialogsIcon");
+            _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Dialogs", ICON_KEY);
 			_guiController.OnZoomToFile += new GUIController.ZoomToFileHandler(GUIController_OnZoomToFile);
             _guiController.OnGetScriptEditorControl += new GUIController.GetScriptEditorControlHandler(_guiController_OnGetScriptEditorControl);
 			RePopulateTreeView();
@@ -163,16 +164,20 @@ namespace AGS.Editor.Components
 
         private void AddDocumentIfNeeded(bool showEditor, Dialog chosenItem)
         {
-            if (!_documents.ContainsKey(chosenItem))
+            ContentDocument document;
+            if (!_documents.TryGetValue(chosenItem, out document)
+                || document.Control.IsDisposed)
             {
                 DialogEditor dialogEditor = new DialogEditor(chosenItem, _agsEditor);
-                _documents.Add(chosenItem, new ContentDocument(dialogEditor, chosenItem.WindowTitle, this, ConstructPropertyObjectList(chosenItem)));
-                _documents[chosenItem].SelectedPropertyGridObject = chosenItem;
-                _documents[chosenItem].MainMenu = dialogEditor.ExtraMenu;
+                document = new ContentDocument(dialogEditor, chosenItem.WindowTitle,
+                    this, ICON_KEY, ConstructPropertyObjectList(chosenItem));
+                _documents[chosenItem] = document;
+                document.SelectedPropertyGridObject = chosenItem;
+                document.MainMenu = dialogEditor.ExtraMenu;
             }
             if (showEditor)
             {
-                _guiController.AddOrShowPane(_documents[chosenItem]);
+                _guiController.AddOrShowPane(document);
             }
         }
 

@@ -6,10 +6,11 @@ using System.Drawing;
 using System.Data;
 using System.Text;
 using System.Windows.Forms;
+using WeifenLuo.WinFormsUI.Docking;
 
 namespace AGS.Editor
 {
-    public partial class OutputPanel : UserControl
+    public partial class OutputPanel : DockContent
     {
 		private const string MENU_ITEM_COPY_TO_CLIPBOARD = "CopyToClipboard";
         private CompileMessages _errors;

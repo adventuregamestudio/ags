@@ -7,10 +7,11 @@ using System.Data;
 using System.Text;
 using System.Windows.Forms;
 using AGS.Types.AutoComplete;
+using WeifenLuo.WinFormsUI.Docking;
 
 namespace AGS.Editor
 {
-    public partial class FindResultsPanel : UserControl
+    public partial class FindResultsPanel : DockContent
     {
         private List<ScriptTokenReference> _results;
         

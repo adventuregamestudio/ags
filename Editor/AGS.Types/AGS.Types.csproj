@@ -51,6 +51,10 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
+    <Reference Include="WeifenLuo.WinFormsUI.Docking, Version=2.5.0.15095, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\References\WeifenLuo.WinFormsUI.Docking.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Attributes\AGSNoSerializeAttribute.cs" />
@@ -76,7 +80,7 @@
     <Compile Include="EditorFeatures\BeforeShowContextMenuEventArgs.cs" />
     <Compile Include="EditorFeatures\ContentDocument.cs" />
     <Compile Include="EditorFeatures\EditorContentPanel.cs">
-      <SubType>UserControl</SubType>
+      <SubType>Form</SubType>
     </Compile>
     <Compile Include="EditorFeatures\GetAboutDialogTextEventArgs.cs" />
     <Compile Include="EditorFeatures\GetScriptHeaderListEventArgs.cs" />
@@ -218,6 +222,7 @@
     <Compile Include="AudioClipType.cs" />
     <Compile Include="BaseFolderCollection.cs" />
     <Compile Include="EditorFeatures\AutoComplete\ScriptTokenReference.cs" />
+    <Compile Include="EditorFeatures\DockData.cs" />
     <Compile Include="Enums\AudioClipFileType.cs" />
     <Compile Include="Enums\AudioClipPriority.cs" />
     <Compile Include="Enums\AudioFileBundlingType.cs" />
@@ -234,6 +239,9 @@
     <Compile Include="PropertyGridExtras\BaseListSelectTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\FontTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\RoomListTypeConverter.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="WeifenLuo.WinFormsUI.Docking.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

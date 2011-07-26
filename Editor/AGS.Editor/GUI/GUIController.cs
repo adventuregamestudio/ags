@@ -133,6 +133,11 @@ namespace AGS.Editor
 			get { return FILE_MENU_ID; }
 		}
 
+        public Icon MainIcon
+        {
+            get { return _mainForm.Icon; }
+        }
+
 		public void ShowMessage(string message, MessageBoxIconType icon)
 		{
 			MessageBoxIcon windowsFormsIcon = MessageBoxIcon.Information;
@@ -347,8 +352,9 @@ namespace AGS.Editor
 
             _mainForm.pnlFindResults.Results = results;
             _mainForm.pnlFindResults.Scintilla = scintilla;
-            _mainForm.pnlFindResults.Visible = true;
-            _mainForm.pnlFindResults.Focus();
+            //_mainForm.pnlFindResults.Visible = true;
+            _mainForm.pnlFindResults.Show();
+           // _mainForm.pnlFindResults.Focus();
         }
 
         public void HideFindSymbolResults()
@@ -692,10 +698,11 @@ namespace AGS.Editor
                 _interactiveTasks = new InteractiveTasks(_agsEditor.Tasks);
                 _mainForm = new frmMain();
                 SetEditorWindowSizeFromRegistry();
-                _treeManager = new ProjectTree(_mainForm.projectTree);
+                _treeManager = new ProjectTree(_mainForm.projectPanel.projectTree);
                 _treeManager.OnContextMenuClick += new ProjectTree.MenuClickHandler(_mainForm_OnMenuClick);
                 _toolBarManager = new ToolBarManager(_mainForm.toolStrip);
-                _menuManager = new MainMenuManager(_mainForm.mainMenu);
+                WindowsMenuManager windowsMenuManager = new WindowsMenuManager(_mainForm.windowsToolStripMenuItem, _mainForm.GetStartupPanes());
+                _menuManager = new MainMenuManager(_mainForm.mainMenu, windowsMenuManager);
                 _mainForm.OnEditorShutdown += new frmMain.EditorShutdownHandler(_mainForm_OnEditorShutdown);
                 _mainForm.OnPropertyChanged += new frmMain.PropertyChangedHandler(_mainForm_OnPropertyChanged);
                 _mainForm.OnPropertyObjectChanged += new frmMain.PropertyObjectChangedHandler(_mainForm_OnPropertyObjectChanged);
@@ -711,7 +718,7 @@ namespace AGS.Editor
 				_mainForm.SetTreeImageList(_imageList);
                 _mainForm.mainMenu.ImageList = _imageList;
 				_mainForm.pnlOutput.SetImageList(_imageList);
-				_mainForm.SetProjectTreeLocation(_agsEditor.Preferences.ProjectTreeOnRight);
+				//_mainForm.SetProjectTreeLocation(_agsEditor.Preferences.ProjectTreeOnRight);
 
                 ViewUIEditor.ViewSelectionGUI = new ViewUIEditor.ViewSelectionGUIType(ShowViewChooserFromPropertyGrid);
                 SpriteSelectUIEditor.SpriteSelectionGUI = new SpriteSelectUIEditor.SpriteSelectionGUIType(ShowSpriteChooserFromPropertyGrid);
@@ -1227,7 +1234,7 @@ namespace AGS.Editor
             if (prefsEditor.ShowDialog() == DialogResult.OK)
             {
                 _agsEditor.Preferences.SaveToRegistry();
-				_mainForm.SetProjectTreeLocation(_agsEditor.Preferences.ProjectTreeOnRight);
+				//_mainForm.SetProjectTreeLocation(_agsEditor.Preferences.ProjectTreeOnRight);
             }
             prefsEditor.Dispose();
         }
@@ -1563,12 +1570,12 @@ namespace AGS.Editor
                     _mainForm.Width = Math.Max(formWidth, 300);
                     _mainForm.Height = Math.Max(formHeight, 300);
                     _mainForm.WindowState = (key.GetValue("MainWinMaximize", "0").ToString() == "1") ? FormWindowState.Maximized : FormWindowState.Normal;
-                    int splitterX = Convert.ToInt32(key.GetValue("MainWinSplitter1", 0));
+                    /*int splitterX = Convert.ToInt32(key.GetValue("MainWinSplitter1", 0));
                     int splitterY = Convert.ToInt32(key.GetValue("MainWinSplitter2", 0));
                     if ((splitterX > 0) && (splitterY > 0))
                     {
                         _mainForm.SetSplitterPositions(splitterX, splitterY);
-                    }
+                    }*/
                 }
                 catch (Exception ex)
                 {
@@ -1598,10 +1605,10 @@ namespace AGS.Editor
                     key.SetValue("MainWinX", _mainForm.Left.ToString());
                     key.SetValue("MainWinY", _mainForm.Top.ToString());
                 }
-                int splitterX, splitterY;
+                /*int splitterX, splitterY;
                 _mainForm.GetSplitterPositions(out splitterX, out splitterY);
                 key.SetValue("MainWinSplitter1", splitterX.ToString());
-                key.SetValue("MainWinSplitter2", splitterY.ToString());
+                key.SetValue("MainWinSplitter2", splitterY.ToString());*/
                 key.Close();
             }
         }

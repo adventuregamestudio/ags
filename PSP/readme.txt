@@ -5,6 +5,7 @@ Licensed under the Artistic License 2.0, see License.txt in the Engine folder.
 
 
 Requirements:
+-----------------------------------------------------------------------------------------------
 A PSP 2000/3000/GO with a Custom Firmware or Homebrew Enabler that can access the
 extended memory. Examples are 5.00 M33, 5.50 GEN, 6.xx PRO, 6.20 TN-HEN.
 To run most games you absolutely need the extended memory of the newer PSP models,
@@ -14,7 +15,9 @@ For the same reason, signing the Eboot is not useful as only the standard memory
 is available on official firmwares. It also requires kernel mode if run with the menu.
 
 
+
 AGS game compatibility:
+-----------------------------------------------------------------------------------------------
 This runtime engine port is not compatible with all AGS games. There are the
 following restrictions:
 - The ONLY supported AGS versions right now are 3.2.0 and 3.2.1.
@@ -27,15 +30,33 @@ following restrictions:
 - Games using a lot of memory (large rooms especially) will crash. You will then
   see a "blue screen of death" with debug information. Press X to save them
   to a file. The game will then quit and reopen the menu.
+- Generally savegames are not compatible between the PC and PSP version of
+  the engine.
+- Midi music does not play.
 These glitches can appear, affecting the game experience:
 - Games which make use of advanced scripting might run slow, possibly making
   them unplayable.
 - Sound will stutter in certain instances, e.g. when loading/saving.
 - When skipping cutscenes, the PSP may appear to hang for several seconds.
-- The framerate drops when several sounds are played at once.
+- The frame rate drops when several sounds are played at once.
+
+Compatibility note on specific games:
+
+Playable with restrictions:
+- Quest for Glory II Remake: Very close to the memory limit. You have to set
+  "clear_cache_on_room_change=1" and "enable_extra_memory=1" in the configuration
+  file. The game might still crash later on, this is not fully tested.
+  
+Not playable on the PSP:
+- Eternally Us: Runs out of memory before displaying anything.
+- Dead Hand: Very low frame rate (1 fps).
+- Dacey in the Dark - Prelude: Very low frame rate and corrupted text display.
+- Of the Essence: Runs out of memory for the pathfinder after the intro sequence.
+
 
 
 How to run games:
+-----------------------------------------------------------------------------------------------
 1. Copy the original game folder into the Eboot directory.
    E.g. if you want to run the game "Demo Quest" you put the games files into
    the folder "x:\PSP\GAME\ags\Demo Quest\" (drive letter and PSP game folder
@@ -46,10 +67,10 @@ How to run games:
    folder with the Eboot and rename the main game executable to "ac2game.dat".
    It will then autostart this game.
 
-
+   
 
 The configuration file:
-
+-----------------------------------------------------------------------------------------------
 You can customize the behaviour of the runtime by placing a file "psp.cfg" in the
 Eboot directory or the directory of the game you want to run. A config file in
 the game directory will overwrite the settings from the global configuration file.
@@ -90,13 +111,14 @@ smoothing: If scaling is enabled, this determines whether a linear interpolation
 ignore_acsetup_cfg_file: If 1, the engine will not read settings from the AGS configuration file.
 enable_extra_memory: If 1, there are additional 4 MiB of memory available for the game. But this
   disables suspending the PSP. Also trying to use the pause feature of a Go causes a freeze.
-  While enabling certain games to run (especiall on a PSP 1000), this feature is experimental
+  While enabling certain games to run (especially on a PSP 1000), this feature is experimental
   and might itself cause instability.
+  NOTE: You must not have RemoteJoy (Lite) enabled while using the extra memory!
 clear_cache_on_room_change: If 1, all sprite data will be unloaded if the player changes the
   rooms. This helps saving memory but increases room load times.
 
 [misc]
-show_fps: If 1, shows the framerate.
+show_fps: If 1, shows the frame rate.
 disable_power_saving: The PSPs power saving features like dimming the backlight and switching to
   standby are deactivated if this is set.
 return_to_menu: If 1, you will reenter the menu instead of going back to the XMB after
@@ -127,7 +149,7 @@ keyboard_previous_keyset: Switches to the previous key set.
 
 
 Compiling the source:
-
+-----------------------------------------------------------------------------------------------
 1. Building the AGS port:
    - You need MinPSPW 0.11 for Windows or Linux.
    - You also need the M33 SDK from 4.01 M33 or from PRO CFW.
@@ -140,7 +162,9 @@ Compiling the source:
    - Check the file "readme.txt" in the "patches" folder.
 
 
+
 Main source code changes from the PC version (also check the commit log of the git repository):
+-----------------------------------------------------------------------------------------------
 - Instances of unaligned variable access that are not allowed on the MIPS processor
   are replaced with equivalent memcpy calls.
 - The PSP framebuffer has a BGR colour order. A new function is introduced to convert
@@ -150,12 +174,14 @@ Main source code changes from the PC version (also check the commit log of the g
 - Sound decoding and playing is handled in a separate thread to reduce 
   audio stuttering.
 - Function imports for some plugins are implemented as stubs. Therefore games using
-  them wil load and play but will lack certain visual effects. Stubbed functions
+  them will load and play but will lack certain visual effects. Stubbed functions
   are in place for: ags_shell.dll, ags_snowrain.dll, agsjoy.dll, agsblend.dll.
 - OGG decoding is handled by libvorbisidec (libtremor).
 
 
+
 Future plans:
+-----------------------------------------------------------------------------------------------
 - Running 3.1.x and 2.7x AGS games, preferably with a unified launcher.
 - Ingame menu to change settings/controls.
 - Graphical menus.
@@ -164,12 +190,12 @@ Future plans:
 
 
 Credits:
+-----------------------------------------------------------------------------------------------
 Adventure Game Studio by Chris Jones (http://www.bigbluecup.com/)
 Linux port by berolinux (http://gitorious.org/ags)
 Additional code by Bernhard Rosenkraenzer and Christian Morales Vega
 Eboot artwork by Paul Wilkinson (subspark)
 AGSBlend plugin by Steven Poulton (see License_AGSBlend.txt)
 PSP port by JJS
-
 
 Thanks to thebudds for testing.

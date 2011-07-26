@@ -27,6 +27,7 @@ but a workalike plugin created by JJS for the AGS engine PSP port.
 #endif
 
 //#define DEBUG
+//#define AGS_SNOWRAIN_DLL_SAVEGAME_COMPATIBILITY
 
 #define signum(x) ((x > 0) ? 1 : -1)
 
@@ -766,7 +767,7 @@ void AGS_EngineStartup(IAGSEngine *lpEngine)
   engine->RequestEventHook(AGSE_PREGUIDRAW);
   engine->RequestEventHook(AGSE_PRESCREENDRAW);
   engine->RequestEventHook(AGSE_ENTERROOM);
-#ifdef PSP_VERSION
+#if defined(PSP_VERSION) || defined(AGS_SNOWRAIN_DLL_SAVEGAME_COMPATIBILITY)
   engine->RequestEventHook(AGSE_SAVEGAME);
   engine->RequestEventHook(AGSE_RESTOREGAME);
 #endif
@@ -796,16 +797,35 @@ int AGS_EngineOnEvent(int event, int data)
     rain->EnterRoom();
     snow->EnterRoom();
   }
-#ifdef PSP_VERSION
+#if defined(PSP_VERSION) || defined(AGS_SNOWRAIN_DLL_SAVEGAME_COMPATIBILITY)
   else if (event == AGSE_RESTOREGAME)
   {
+#ifdef AGS_SNOWRAIN_DLL_SAVEGAME_COMPATIBILITY
+    // Advance the file pointer by 176152 byte
+    char buffer[176152 / 8];
+    
+    int i;
+    for (i = 0; i < 8; i++)
+      engine->FRead(buffer, 176152 / 8, data);
+#else
     rain->RestoreGame((FILE*)data);
     snow->RestoreGame((FILE*)data);
+#endif
   }
   else if (event == AGSE_SAVEGAME)
   {
+#ifdef AGS_SNOWRAIN_DLL_SAVEGAME_COMPATIBILITY
+    // Write 176152 byte of zeros
+    char buffer[176152 / 8];
+    memset(buffer, 0, 176152 / 8);
+
+    int i;
+    for (i = 0; i < 8; i++)
+      engine->FWrite(buffer, 176152 / 8, data);
+#else
     rain->SaveGame((FILE*)data);
     snow->SaveGame((FILE*)data);
+#endif
   }
 #endif
   else if (event == AGSE_PRESCREENDRAW)

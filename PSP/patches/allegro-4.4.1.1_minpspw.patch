@@ -1,3 +1,86 @@
+diff -Naur src/digmid.c src/digmid.c
+--- src/digmid.c	2007-08-09 22:48:38.000000000 +0200
++++ src/digmid.c	2011-07-26 15:36:41.493820900 +0200
+@@ -13,6 +13,8 @@
+  *      By Shawn Hargreaves, based on code by Tom Novelli.
+  *      Chris Robinson added some optimizations and the digmid_set_pan method.
+  *
++ *      Modified for the Adventure Game Studio runtime port by JJS.
++ *
+  *      See readme.txt for copyright information.
+  */
+ 
+@@ -520,7 +522,7 @@
+ {
+    PACKFILE *f;
+    char dir[1024], file[1024], buf[1024], filename[1024];
+-   char todo[256][1024];
++   char* todo[256];
+    char *argv[16], *p;
+    char tmp[128];
+    int argc;
+@@ -531,8 +533,11 @@
+    int type, size;
+    int i, j, c;
+ 
++   for (i = 0; i < 256; i++)
++      todo[i] = (char*)malloc(1024);
++
+    if (!_digmid_find_patches(dir, sizeof(dir), file, sizeof(file)))
+-      return -1;
++      goto error_exit;
+ 
+    for (i=0; i<256; i++)
+       usetc(todo[i], 0);
+@@ -542,7 +547,7 @@
+ 
+    f = pack_fopen(buf, F_READ);
+    if (!f)
+-      return -1;
++      goto error_exit;
+ 
+    while (pack_fgets(buf, sizeof(buf), f) != 0) {
+       argc = parse_string(buf, argv);
+@@ -608,13 +613,13 @@
+ 
+       f = pack_fopen(dir, F_READ_PACKED);
+       if (!f)
+-	 return -1;
++	 goto error_exit;
+ 
+       if (((ugetc(dir) == '#') && (ustrlen(dir) == 1)) || (!ustrchr(dir, '#'))) {
+ 	 type = pack_mgetl(f);
+ 	 if (type != DAT_MAGIC) {
+ 	    pack_fclose(f);
+-	    return -1;
++	    goto error_exit;
+ 	 }
+       }
+ 
+@@ -675,6 +680,7 @@
+ 	    pack_fseek(f, size+4);
+ 	 }
+       }
++      pack_fclose(f);
+    }
+    else {
+       /* read from regular disk files */
+@@ -706,7 +712,15 @@
+       }
+    }
+ 
++   for (i = 0; i < 256; i++)
++      free(todo[i]);
++
+    return 0;
++
++error_exit:
++    for (i = 0; i < 256; i++)
++       free(todo[i]);
++   return -1;
+ }
+ 
+ 
 diff -Naur src/file.c src/file.c
 --- src/file.c	2008-10-23 15:38:21.000000000 +0200
 +++ src/file.c	2011-07-10 18:35:58.964479800 +0200
@@ -573,7 +656,7 @@ diff -Naur src/psp/pfile.c src/psp/pfile.c
 +
 diff -Naur src/psp/pgfx.c src/psp/pgfx.c
 --- src/psp/pgfx.c	2011-07-10 18:27:47.205534300 +0200
-+++ src/psp/pgfx.c	2011-06-04 12:55:37.269279600 +0200
++++ src/psp/pgfx.c	2011-07-20 11:36:56.437250400 +0200
 @@ -15,6 +15,8 @@
   *      The psp_draw_to_screen() routine is based on the Basilisk II
   *      PSP refresh routines by J.F.
@@ -1211,7 +1294,7 @@ diff -Naur src/psp/pkey.c src/psp/pkey.c
  }
 diff -Naur src/psp/pmain.c src/psp/pmain.c
 --- src/psp/pmain.c	2011-07-10 18:27:47.266042000 +0200
-+++ src/psp/pmain.c	2011-07-10 17:28:23.691072300 +0200
++++ src/psp/pmain.c	2011-07-26 15:27:41.866796900 +0200
 @@ -14,6 +14,8 @@
   *
   *      By diedel.
@@ -1221,7 +1304,7 @@ diff -Naur src/psp/pmain.c src/psp/pmain.c
   *      See readme.txt for copyright information.
   */
  
-@@ -24,10 +26,13 @@
+@@ -24,12 +26,15 @@
  extern void *_mangled_main_address;
  
  
@@ -1234,7 +1317,10 @@ diff -Naur src/psp/pmain.c src/psp/pmain.c
 -PSP_MAIN_THREAD_ATTR(PSP_THREAD_ATTR_USER);
 +PSP_MAIN_THREAD_ATTR(PSP_THREAD_ATTR_USER | PSP_THREAD_ATTR_VFPU);
  PSP_MAIN_THREAD_STACK_SIZE_KB(270);
- PSP_HEAP_SIZE_KB(-512);
+-PSP_HEAP_SIZE_KB(-256);
++PSP_HEAP_SIZE_KB(-512);
+ 
+ 
  
 @@ -79,6 +84,9 @@
  {

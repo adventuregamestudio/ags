@@ -32,7 +32,6 @@ following restrictions:
   to a file. The game will then quit and reopen the menu.
 - Generally savegames are not compatible between the PC and PSP version of
   the engine.
-- Midi music does not play.
 These glitches can appear, affecting the game experience:
 - Games which make use of advanced scripting might run slow, possibly making
   them unplayable.
@@ -46,6 +45,8 @@ Playable with restrictions:
 - Quest for Glory II Remake: Very close to the memory limit. You have to set
   "clear_cache_on_room_change=1" and "enable_extra_memory=1" in the configuration
   file. The game might still crash later on, this is not fully tested.
+- Fountain of Youth Demo: Unless midi music is disabled ("enable_midi=0"),
+  the game runs with very low frame rate after the intro movie.
   
 Not playable on the PSP:
 - Eternally Us: Runs out of memory before displaying anything.
@@ -66,6 +67,14 @@ How to run games:
 2. If you only want to run a single game, put the data files directly into the
    folder with the Eboot and rename the main game executable to "ac2game.dat".
    It will then autostart this game.
+3. For midi music playback, you have to download GUS patches and place them
+   in the Eboot directory. I recommend going to this address:
+   http://alleg.sourceforge.net/digmid.html
+   and downloading "Richard Sanders's GUS patches". A direct link is here:
+   http://www.eglebbk.dds.nl/program/download/digmid.dat
+   Rename that file to "patches.dat" and place it in the same directory as the Eboot.
+   Advanced users can also download other patchsets. The configuration file
+   must be named "default.cfg" and placed in the Eboot directory.
 
    
 
@@ -99,6 +108,7 @@ cache_size: Determines how many sounds the runtime caches to reduce disk access.
   to effectively disable caching.
 samplerate: The sound playback sample rate, typical values are 44100, 22050, 11025. Lower values
   mean a slight speedup with the trade-off of reduced sound quality.
+enable_midi: If 1, midi music will be played. This requires a set of GUS patches, see above.
 
 [graphics]
 scaling: The game's graphics can either be shown unscaled in their original resolution or stretched

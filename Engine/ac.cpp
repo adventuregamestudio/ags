@@ -22,6 +22,9 @@
 // PSP: Audio can be disabled in the config file.
 extern int psp_audio_enabled;
 
+// PSP: Enable midi playback.
+extern int psp_midi_enabled;
+
 // PSP: If set, the standard AGS config file is not being read.
 extern int psp_ignore_acsetup_cfg_file;
 
@@ -27850,7 +27853,10 @@ int initialize_engine(int argc,char*argv[])
     usetup.digicard = DIGI_NONE;
     usetup.midicard = MIDI_NONE;
   }
-  
+
+  if (!psp_midi_enabled)
+    usetup.midicard = MIDI_NONE;
+
   if (install_sound(usetup.digicard,usetup.midicard,NULL)!=0) {
     reserve_voices(-1,-1);
     opts.mod_player=0;

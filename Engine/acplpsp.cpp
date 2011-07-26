@@ -15,6 +15,8 @@
 #include <dirent.h>
 #include <sys/stat.h> 
 
+#include <allegro.h>
+
 
 extern "C" {
 #include <systemctrl.h>
@@ -96,6 +98,7 @@ extern unsigned int psp_audio_samplerate;
 int psp_audio_enabled = 1;
 int psp_audio_multithreaded = 1;
 int psp_audio_cachesize = 10;
+int psp_midi_enabled = 1;
 
 
 
@@ -316,6 +319,7 @@ void ReadConfiguration(char* filename)
     ReadInteger((int*)&psp_audio_samplerate, "sound", "samplerate", 0, 44100, 44100);
     ReadInteger((int*)&psp_audio_enabled, "sound", "enabled", 0, 1, 1);
     ReadInteger((int*)&psp_audio_multithreaded, "sound", "threaded", 0, 1, 1);
+    ReadInteger((int*)&psp_midi_enabled, "sound", "midi_enabled", 0, 1, 1);
 
     int audio_cachesize;
     if (ReadInteger((int*)&audio_cachesize, "sound", "cache_size", 1, 50, 10));
@@ -405,6 +409,9 @@ void psp_initialize()
 	
 	// Read game configuration.
 	ReadConfiguration(PSP_CONFIG_FILENAME);
+
+    // Set the ULTRADIR environment variable so that the midi patches can be found.
+    setenv("ULTRADIR", "..", 1);
 
     // If the game was started directly, don't return to the menu.
     if (strcmp(psp_argv[2], "quit") == 0)

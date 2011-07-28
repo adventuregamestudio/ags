@@ -57,6 +57,8 @@ extern void write_log(char*msg) ;
 // The data rate while reading from disk on the PSP is usually between 500 to 900 kiB/s,
 // caching the last used sound files therefore improves game performance.
 
+//#define SOUND_CACHE_DEBUG
+
 extern int psp_use_sound_cache;
 extern int psp_sound_cache_max_size;
 extern int psp_audio_cachesize;
@@ -99,8 +101,11 @@ void clear_sound_cache()
   }
 }
 
-void sound_cache_free(char* buffer)
+void sound_cache_free(char* buffer, bool is_wave)
 {
+#ifdef SOUND_CACHE_DEBUG
+  printf("sound_cache_free(%d %d)\n", (unsigned int)buffer, (unsigned int)is_wave);
+#endif
   int i;
   for (i = 0; i < psp_audio_cachesize; i++)
   {
@@ -109,18 +114,34 @@ void sound_cache_free(char* buffer)
       if (sound_cache_entries[i].reference > 0)
         sound_cache_entries[i].reference--;
 
+#ifdef SOUND_CACHE_DEBUG
+        printf("..decreased reference count of slot %d to %d\n", i, sound_cache_entries[i].reference);
+#endif
       return;
     }
   }
 
+#ifdef SOUND_CACHE_DEBUG
+        printf("..freeing uncached sound\n");
+#endif
+  
   // Sound is uncached
   if (i == psp_audio_cachesize)
-    free(buffer);
+  {
+    if (is_wave)
+      destroy_sample((SAMPLE*)buffer);
+    else
+      free(buffer);
+  }
 }
 
 
-char* get_cached_sound(const char* filename, long* size)
+char* get_cached_sound(const char* filename, bool is_wave, long* size)
 {
+#ifdef SOUND_CACHE_DEBUG
+  printf("get_cached_sound(%s %d)\n", filename, (unsigned int)is_wave);
+#endif
+
   *size = 0;
 
   int i;
@@ -131,6 +152,9 @@ char* get_cached_sound(const char* filename, long* size)
 
     if (strcmp(filename, sound_cache_entries[i].file_name) == 0)
     {
+#ifdef SOUND_CACHE_DEBUG
+      printf("..found in slot %d\n", i);
+#endif
       sound_cache_entries[i].reference++;
       sceRtcGetCurrentTick(&sound_cache_entries[i].last_used);
       *size = sound_cache_entries[i].size;
@@ -139,9 +163,19 @@ char* get_cached_sound(const char* filename, long* size)
   }
 
   // Not found
-  PACKFILE *mp3in = pack_fopen(filename, "rb");
-  if (mp3in == NULL)
-    return NULL;
+  PACKFILE *mp3in;
+  SAMPLE* wave;
+  
+  if (is_wave)
+  {
+    wave = load_sample(filename);
+  }  
+  else
+  {
+    mp3in = pack_fopen(filename, "rb");
+    if (mp3in == NULL)
+      return NULL;
+  }
 
   // Find free slot
   for (i = 0; i < psp_audio_cachesize; i++)
@@ -172,27 +206,44 @@ char* get_cached_sound(const char* filename, long* size)
     i = index;
   }
 
-  // Load new file  
-  *size = mp3in->todo;
-  char* newdata = (char *)malloc(*size);
+  // Load new file
+  char* newdata;
 
-  if (newdata == NULL)
+  if (is_wave)
   {
-    pack_fclose(mp3in);
-    return NULL;
+    *size = 0;
+    newdata = (char*)wave;
   }
+  else
+  {
+    *size = mp3in->todo;
+    newdata = (char *)malloc(*size);
 
-  pack_fread(newdata, *size, mp3in);
-  pack_fclose(mp3in);
+    if (newdata == NULL)
+    {
+      pack_fclose(mp3in);
+      return NULL;
+    }
+
+    pack_fread(newdata, *size, mp3in);
+    pack_fclose(mp3in);
+  }
 
   if (i == -1)
   {
     // No cache slot empty, return uncached data
+#ifdef SOUND_CACHE_DEBUG
+    printf("..loading uncached\n");
+#endif
     return newdata;  
   }
   else
   {
     // Add to cache, free old sound first
+#ifdef SOUND_CACHE_DEBUG
+    printf("..loading cached in slot %d\n", i);
+#endif	
+
     if (sound_cache_entries[i].data)
       free(sound_cache_entries[i].data);
 
@@ -258,7 +309,8 @@ struct MYWAVE:public SOUNDCLIP
 
   void destroy()
   {
-    destroy_sample(wave);
+    // Remove from soundcache.
+    sound_cache_free((char*)wave, true);
     wave = NULL;
   }
 
@@ -326,7 +378,9 @@ SOUNDCLIP *my_load_wave(const char *filename, int voll, int loop)
 #ifdef MAC_VERSION
   SAMPLE *new_sample = load_wav(filename);
 #else
-  SAMPLE *new_sample = load_sample(filename);
+  // Load via soundcache.
+  long dummy;
+  SAMPLE *new_sample = (SAMPLE*)get_cached_sound(filename, true, &dummy);
 #endif
 
   if (new_sample == NULL)
@@ -554,7 +608,7 @@ struct MYSTATICMP3:public SOUNDCLIP
       tune = NULL;
     }
     if (mp3buffer != NULL) {
-      sound_cache_free(mp3buffer);
+      sound_cache_free(mp3buffer, false);
     }
 
   }
@@ -623,7 +677,7 @@ SOUNDCLIP *my_load_static_mp3(const char *filname, int voll, bool loop)
 {
   // Load via soundcache.
   long muslen = 0;
-  char* mp3buffer = get_cached_sound(filname, &muslen);
+  char* mp3buffer = get_cached_sound(filname, false, &muslen);
   if (mp3buffer == NULL)
     return NULL;
 
@@ -712,7 +766,7 @@ struct MYSTATICOGG:public SOUNDCLIP
     }
  
     if (mp3buffer != NULL) {
-      sound_cache_free(mp3buffer);
+      sound_cache_free(mp3buffer, false);
     }
   }
 
@@ -853,7 +907,7 @@ SOUNDCLIP *my_load_static_ogg(const char *filname, int voll, bool loop)
 {
   // Load via soundcache.
   long muslen = 0;
-  char* mp3buffer = get_cached_sound(filname, &muslen);
+  char* mp3buffer = get_cached_sound(filname, false, &muslen);
   if (mp3buffer == NULL)
     return NULL;
 

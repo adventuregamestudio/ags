@@ -45,8 +45,8 @@ Playable with restrictions:
 - Quest for Glory II Remake: Very close to the memory limit. You have to set
   "clear_cache_on_room_change=1" and "enable_extra_memory=1" in the configuration
   file. The game might still crash later on, this is not fully tested.
-- Fountain of Youth Demo: Unless midi music is disabled ("enable_midi=0"),
-  the game runs with very low frame rate after the intro movie.
+- Fountain of Youth Demo: The save/load dialog has a very low framerate, but
+  otherwise the game runs fine.
   
 Not playable on the PSP:
 - Eternally Us: Runs out of memory before displaying anything.
@@ -108,7 +108,12 @@ cache_size: Determines how many sounds the runtime caches to reduce disk access.
   to effectively disable caching.
 samplerate: The sound playback sample rate, typical values are 44100, 22050, 11025. Lower values
   mean a slight speedup with the trade-off of reduced sound quality.
-enable_midi: If 1, midi music will be played. This requires a set of GUS patches, see above.
+
+[midi]
+enabled: If 1, midi music will be played. This requires a set of GUS patches, see above.
+preload_patches: Determines whether all GUS patches are loaded the first time a midi files is
+  played. This will take several seconds during which the game is unresponsive, but it will
+  provide faster loading of subsequent midi files.
 
 [graphics]
 scaling: The game's graphics can either be shown unscaled in their original resolution or stretched
@@ -192,7 +197,8 @@ Main source code changes from the PC version (also check the commit log of the g
 
 Future plans:
 -----------------------------------------------------------------------------------------------
-- Running 3.1.x and 2.7x AGS games, preferably with a unified launcher.
+- Running 3.1.x and 2.7x AGS games. When this will happen I cannot say as it depends on
+  if and when these engine versions become open source.
 - Ingame menu to change settings/controls.
 - Graphical menus.
 - Completely fixing the sound stuttering.

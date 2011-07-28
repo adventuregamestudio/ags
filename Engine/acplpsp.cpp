@@ -99,6 +99,7 @@ int psp_audio_enabled = 1;
 int psp_audio_multithreaded = 1;
 int psp_audio_cachesize = 10;
 int psp_midi_enabled = 1;
+int psp_midi_preload_patches = 0;
 
 
 
@@ -319,7 +320,9 @@ void ReadConfiguration(char* filename)
     ReadInteger((int*)&psp_audio_samplerate, "sound", "samplerate", 0, 44100, 44100);
     ReadInteger((int*)&psp_audio_enabled, "sound", "enabled", 0, 1, 1);
     ReadInteger((int*)&psp_audio_multithreaded, "sound", "threaded", 0, 1, 1);
-    ReadInteger((int*)&psp_midi_enabled, "sound", "midi_enabled", 0, 1, 1);
+
+    ReadInteger((int*)&psp_midi_enabled, "midi", "enabled", 0, 1, 1);
+    ReadInteger((int*)&psp_midi_preload_patches, "midi", "preload_patches", 0, 1, 0);
 
     int audio_cachesize;
     if (ReadInteger((int*)&audio_cachesize, "sound", "cache_size", 1, 50, 10));

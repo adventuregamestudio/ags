@@ -62,6 +62,7 @@ extern void write_log(char*msg) ;
 extern int psp_use_sound_cache;
 extern int psp_sound_cache_max_size;
 extern int psp_audio_cachesize;
+extern int psp_midi_preload_patches;
 
 int dont_disturb = 0;
 
@@ -1147,9 +1148,16 @@ struct MYMIDI:public SOUNDCLIP
 {
   MIDI *tune;
   int lengthInSeconds;
+  
+  // The PSP takes a while to play a midi, therefore poll() can be called
+  // before the music is ready and immediately returns done.
+  bool initializing;
 
   int poll()
   {
+    if (initializing)
+      return 0;
+
     if (done)
       return done;
 
@@ -1227,6 +1235,7 @@ struct MYMIDI:public SOUNDCLIP
       delete this;
       return 0;
     }
+    initializing = false;
 
     return 1;
   }
@@ -1239,7 +1248,12 @@ struct MYMIDI:public SOUNDCLIP
 MYMIDI *thismidi;
 SOUNDCLIP *my_load_midi(const char *filname, int repet)
 {
-  MIDI *midiPtr = load_midi(filname);
+  // The first a midi is played, preload all patches.
+  if (!thismidi && psp_midi_preload_patches)
+    load_midi_patches();
+
+  MIDI* midiPtr = load_midi(filname);
+  
   if (midiPtr == NULL)
     return NULL;
 
@@ -1247,6 +1261,7 @@ SOUNDCLIP *my_load_midi(const char *filname, int repet)
   thismidi->done = 0;
   thismidi->tune = midiPtr;
   thismidi->repeat = (repet != 0);
+  thismidi->initializing = true;
 
   return thismidi;
 }

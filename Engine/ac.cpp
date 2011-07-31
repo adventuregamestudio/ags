@@ -28207,6 +28207,10 @@ int initialize_engine(int argc,char*argv[])
   if (force_letterbox > 0)
     game.options[OPT_LETTERBOX] = 1;
 
+  // PSP: Don't letterbox a 320x200 screen.
+  if ((game.default_resolution != 2) && (game.default_resolution != 4))
+    force_letterbox = usetup.want_letterbox = game.options[OPT_LETTERBOX] = 0;		
+
   // don't allow them to force a 256-col game to hi-color
   if (game.color_depth < 2)
     usetup.force_hicolor_mode = 0;

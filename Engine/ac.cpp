@@ -9351,8 +9351,10 @@ void quit(char*quitmsg) {
   our_eip = 9917;
   game.options[OPT_CROSSFADEMUSIC] = 0;
   stopmusic();
+#ifndef PSP_NO_MOD_PLAYBACK
   if (opts.mod_player)
     remove_mod_player();
+#endif
   remove_sound();
   our_eip = 9901;
 
@@ -9607,8 +9609,10 @@ void shutdown_sound()
 {
   stop_all_sound_and_music();
 
+#ifndef PSP_NO_MOD_PLAYBACK
   if (opts.mod_player)
     remove_mod_player();
+#endif
   remove_sound();
 }
 
@@ -28113,6 +28117,7 @@ int initialize_engine(int argc,char*argv[])
 
   our_eip = -179;
 
+#ifndef PSP_NO_MOD_PLAYBACK
   if (game.options[OPT_NOMODMUSIC])
     opts.mod_player = 0;
 
@@ -28124,6 +28129,10 @@ int initialize_engine(int argc,char*argv[])
       opts.mod_player=0;
     }
   }
+#else
+  opts.mod_player = 0;
+  write_log_debug("Compiled without MOD/XM player");
+#endif
 
   write_log_debug("Initializing screen settings");
 

@@ -4,6 +4,9 @@ STANDALONE = 1
 # Enable gprof profiling in the engine, requires a rebuild of all files
 PROFILING = 0
 
+# Disable MOD/XM playback?
+NO_MOD_PLAYBACK = 1
+
 # The name of the engine prx must be known to the launcher and the engine too
 TARGET = ags321
 
@@ -27,7 +30,15 @@ LIBDIR = ../PSP/lib
 CFLAGS = -O2 -g -G0 -msingle-float -ffast-math -Wfatal-errors -DALLEGRO_STATICLINK -DTHIS_IS_THE_ENGINE -DLINUX_VERSION -DPSP_VERSION -DDISABLE_MPEG_AUDIO
 CXXFLAGS = $(CFLAGS) -fno-rtti -Wno-write-strings
 ASFLAGS = $(CFLAGS)
-LIBS = -lalleg -lalleg-main -lfreetype -lz -lvorbisidec -ltheoradec -logg -laldmb -ldumb -lc -lstdc++ -lm
+LIBS = -lalleg -lalleg-main -lfreetype -lz -lvorbisidec -ltheoradec -logg -lc -lstdc++ -lm
+
+ifeq ($(NO_MOD_PLAYBACK), 1)
+CFLAGS += -DPSP_NO_MOD_PLAYBACK 
+CXXFLAGS += -DPSP_NO_MOD_PLAYBACK
+else
+LIBS += -laldmb -ldumb
+endif
+
 LIBS += -lpsppower -lpspdebug -lpspgu -lpspctrl -lpspge -lpspdisplay -lpsprtc -lpspaudio -lpspsystemctrl_user -lpspmath
 LDFLAGS =
 

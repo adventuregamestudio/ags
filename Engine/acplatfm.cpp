@@ -505,10 +505,12 @@ void IAGSEngine::PlaySoundChannel (int32 channel, int32 soundType, int32 volume,
     newcha = my_load_midi (filename, loop);
     newcha->set_volume (volume);
   }
+#ifndef PSP_NO_MOD_PLAYBACK
   else if (soundType == PSND_MOD) {
     newcha = my_load_mod (filename, loop);
     newcha->set_volume (volume);
   }
+#endif
   else
     quit("!IAGSEngine::PlaySoundChannel: unknown sound type");
 

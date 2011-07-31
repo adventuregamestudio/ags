@@ -384,7 +384,9 @@ SOUNDCLIP *load_sound_clip(ScriptAudioClip *audioClip, bool repeat)
     soundClip = my_load_midi(clipFileName, repeat);
     break;
   case eAudioFileMOD:
+#ifndef PSP_NO_MOD_PLAYBACK
     soundClip = my_load_mod(clipFileName, repeat);
+#endif
     break;
   default:
     quitprintf("AudioClip.Play: invalid audio file type encountered: %d", audioClip->fileType);

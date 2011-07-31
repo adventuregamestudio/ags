@@ -15,6 +15,8 @@
 #include "acroom.h"
 #include "acruntim.h"
 
+extern int psp_is_old_datafile;
+
 extern "C" {
  extern FILE*clibfopen(char*,char*);
 }
@@ -280,7 +282,7 @@ const char* get_audio_clip_file_name(ScriptAudioClip *clip)
   }
   else
   {
-    sprintf(acaudio_buffer, "~audio.vox~%s", game.audioClips[clip->id].fileName);
+    sprintf(acaudio_buffer, (psp_is_old_datafile ? "~music.vox~%s" : "~audio.vox~%s"), game.audioClips[clip->id].fileName);
     PACKFILE *iii = pack_fopen(acaudio_buffer, "rb");
     if (iii != NULL)
     {

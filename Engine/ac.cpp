@@ -19,23 +19,15 @@
 #include <psputils.h>
 #include <pspmath.h>
 
-// PSP: Audio can be disabled in the config file.
-extern int psp_audio_enabled;
 
-// PSP: Enable midi playback.
-extern int psp_midi_enabled;
-
-// PSP: If set, the standard AGS config file is not being read.
-extern int psp_ignore_acsetup_cfg_file;
-
-// PSP: Clear the sprite cache on every room change.
-extern int psp_clear_cache_on_room_change;
-
-// PSP: Sound cache initialization.
-extern void clear_sound_cache();
-
-// PSP: Game filename from the menu.
-extern char psp_game_file_name[];
+// PSP specific variables:
+extern int psp_audio_enabled; // Audio can be disabled in the config file.
+extern int psp_midi_enabled; // Enable midi playback.
+extern int psp_ignore_acsetup_cfg_file; // If set, the standard AGS config file is not being read.
+extern int psp_clear_cache_on_room_change; // Clear the sprite cache on every room change.
+extern void clear_sound_cache(); // Sound cache initialization.
+extern char psp_game_file_name[]; // Game filename from the menu.
+int psp_is_old_datafile = 0; // Set for 3.1.1 and 3.1.2 datafiles
 
 #ifdef NO_MP3_PLAYER
 #define SPECIAL_VERSION "NMP"
@@ -6097,9 +6089,24 @@ void SetFrameSound (int vii, int loop, int frame, int sound) {
 // the specified frame has just appeared, see if we need
 // to play a sound or whatever
 void CheckViewFrame (int view, int loop, int frame) {
-  if (views[view].loops[loop].frames[frame].sound >= 0) {
-    // play this sound (eg. footstep)
-    play_audio_clip_by_index(views[view].loops[loop].frames[frame].sound);
+  if (psp_is_old_datafile)
+  {
+    if (views[view].loops[loop].frames[frame].sound > 0)
+    {
+      if (views[view].loops[loop].frames[frame].sound < 0x10000000)
+      {
+        ScriptAudioClip* clip = get_audio_clip_for_old_style_number(false, views[view].loops[loop].frames[frame].sound);
+        views[view].loops[loop].frames[frame].sound = clip->id + 0x10000000;
+      }
+      play_audio_clip_by_index(views[view].loops[loop].frames[frame].sound - 0x10000000);
+    }
+  }
+  else
+  {
+    if (views[view].loops[loop].frames[frame].sound >= 0) {
+      // play this sound (eg. footstep)
+      play_audio_clip_by_index(views[view].loops[loop].frames[frame].sound);
+    }
   }
 }
 
@@ -11660,6 +11667,72 @@ void adjust_sizes_for_resolution(int filever)
 
 }
 
+
+
+// Create the missing game.audioClips data structure for 3.1.x games.
+// This is done by going through the data files and adding all music*.*
+// and sound*.* files to it.
+extern "C" {
+  extern int clibGetNumFiles();
+  extern char *clibGetFileName(int index);
+}
+
+void BuildAudioClipArray()
+{
+  char temp_name[30];
+  int temp_number;
+  char temp_extension[10];
+
+  int number_of_files = clibGetNumFiles();
+  int i;
+  for (i = 0; i < number_of_files; i++)
+  {
+    if (sscanf(clibGetFileName(i), "%5s%d.%3s", temp_name, &temp_number, temp_extension) == 3)
+    {
+      if (stricmp(temp_name, "music") == 0)
+      {
+        sprintf(game.audioClips[game.audioClipCount].scriptName, "aMusic%d", temp_number);
+        sprintf(game.audioClips[game.audioClipCount].fileName, "music%d.%s", temp_number, temp_extension);
+        game.audioClips[game.audioClipCount].bundlingType = (stricmp(temp_extension, "mid") == 0) ? AUCL_BUNDLE_EXE : AUCL_BUNDLE_VOX;
+        game.audioClips[game.audioClipCount].type = 2;
+        game.audioClips[game.audioClipCount].defaultRepeat = 1;
+      }
+      else if (stricmp(temp_name, "sound") == 0)
+      {
+        sprintf(game.audioClips[game.audioClipCount].scriptName, "aSound%d", temp_number);
+        sprintf(game.audioClips[game.audioClipCount].fileName, "sound%d.%s", temp_number, temp_extension);
+        game.audioClips[game.audioClipCount].bundlingType = AUCL_BUNDLE_EXE;
+        game.audioClips[game.audioClipCount].type = 3;
+      }
+      else
+      {
+        continue;
+      }
+
+      game.audioClips[game.audioClipCount].defaultVolume = 100;
+      game.audioClips[game.audioClipCount].defaultPriority = 50;
+
+      if (stricmp(temp_extension, "mp3") == 0)
+        game.audioClips[game.audioClipCount].fileType = eAudioFileMP3;
+      else if (stricmp(temp_extension, "wav") == 0)
+        game.audioClips[game.audioClipCount].fileType = eAudioFileWAV;
+      else if (stricmp(temp_extension, "voc") == 0)
+        game.audioClips[game.audioClipCount].fileType = eAudioFileVOC;
+      else if (stricmp(temp_extension, "mid") == 0)
+        game.audioClips[game.audioClipCount].fileType = eAudioFileMIDI;
+      else if (stricmp(temp_extension, "mod") == 0)
+        game.audioClips[game.audioClipCount].fileType = eAudioFileMOD;
+      else if (stricmp(temp_extension, "ogg") == 0)
+        game.audioClips[game.audioClipCount].fileType = eAudioFileOGG;
+
+      game.audioClipCount++;
+    }
+  }
+}
+
+
+
+
 int load_game_file() {
   int ee, bb;
   char teststr[31];
@@ -11678,10 +11751,18 @@ int load_game_file() {
   teststr[30]=0;
   fread(&teststr[0],30,1,iii);
   int filever=getw(iii);
+
   if (filever < 42) {
-    fclose(iii);
-    return -2; 
+    // Allow loading of 3.1.1 and 3.1.2 datafiles.
+    if (filever < 39)
+    {
+      fclose(iii);
+      return -2;
+    }
+    else
+      psp_is_old_datafile = 1;
   }
+
   int engineverlen = getw(iii);
   char engineneeds[20];
   // MACPORT FIX 13/6/5: switch 'size' and 'nmemb' so it doesn't treat the string as an int
@@ -11911,8 +11992,37 @@ int load_game_file() {
   }
   else
   {
-    game.audioClipCount = 0;
     play.score_sound = -1;
+
+    // Create game.soundClips and game.audioClipTypes structures.
+    game.audioClipCount = 500;
+    game.audioClipTypeCount = 4;
+
+    game.audioClipTypes = (AudioClipType*)malloc(game.audioClipTypeCount * sizeof(AudioClipType));
+    memset(game.audioClipTypes, 0, game.audioClipTypeCount * sizeof(AudioClipType));
+
+    game.audioClips = (ScriptAudioClip*)malloc(game.audioClipCount * sizeof(ScriptAudioClip));
+    memset(game.audioClips, 0, game.audioClipCount * sizeof(ScriptAudioClip));
+
+    int i;
+    for (i = 0; i < 4; i++)
+    {
+      game.audioClipTypes[i].reservedChannels = 1;
+      game.audioClipTypes[i].id = i;
+      game.audioClipTypes[i].volume_reduction_while_speech_playing = 10;
+    }
+    game.audioClipTypes[3].reservedChannels = 0;
+
+
+    game.audioClipCount = 0;
+
+    if (csetlib("music.vox", "") == 0)
+      BuildAudioClipArray();
+
+    csetlib(game_file_name, "");
+    BuildAudioClipArray();
+
+    game.audioClips = (ScriptAudioClip*)realloc(game.audioClips, game.audioClipCount * sizeof(ScriptAudioClip));
   }
 
   if ((filever >= 36) && (game.options[OPT_DEBUGMODE] != 0))
@@ -16958,6 +17068,8 @@ void ViewFrame_SetLinkedAudio(ScriptViewFrame *svf, ScriptAudioClip* clip)
 int ViewFrame_GetSound(ScriptViewFrame *svf) {
   // convert audio clip to old-style sound number
   int soundIndex = views[svf->view].loops[svf->loop].frames[svf->frame].sound;
+  if ((psp_is_old_datafile) && (soundIndex > 0x10000000))
+    soundIndex -= 0x10000000;
   if (soundIndex >= 0)
   {
     if (sscanf(game.audioClips[soundIndex].scriptName, "aSound%d", &soundIndex) == 1)
@@ -16979,7 +17091,7 @@ void ViewFrame_SetSound(ScriptViewFrame *svf, int newSound)
     if (clip == NULL)
       quitprintf("!SetFrameSound: audio clip aSound%d not found", newSound);
 
-    views[svf->view].loops[svf->loop].frames[svf->frame].sound = clip->id;
+    views[svf->view].loops[svf->loop].frames[svf->frame].sound = clip->id + (psp_is_old_datafile ? 0x10000000 : 0);
   }
 }
 

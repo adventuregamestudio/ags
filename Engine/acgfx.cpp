@@ -225,9 +225,9 @@ GFXFilter *filter;
 
 extern "C" int Init_2xSaI(int d);
 extern "C" void Super2xSaI(BITMAP * src, BITMAP * dest, int s_x, int s_y, int d_x, int d_y, int w, int h);
-extern void InitLUTs();
-extern void hq2x_32( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int BpL );
-extern void hq3x_32( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int BpL );
+void InitLUTs(){}
+void hq2x_32( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int BpL ){}
+void hq3x_32( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int BpL ){}
 
 
 // Standard do-nothing filter

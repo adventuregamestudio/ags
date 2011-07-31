@@ -11,7 +11,6 @@ PSP_SPECIFIC = acplpsp.o ../PSP/kernel/kernel.o ../PSP/exception/utility/excepti
 
 BASE = acaudio.o acchars.o acdebug.o acdialog.o acfonts.o acgfx.o acgui.o acplatfm.o acsound.o bigend.o misc.o routefnd.o scrptrt.o ac.o alogg.o almp3.o ali3dsw.o
 COMMON = ../Common/csrun.o ../Common/Clib32.o ../Common/mousew32.o ../Common/sprcache.o ../Common/cscommon.o ../Common/compress.o ../Common/lzw.o
-LIBSRC = libsrc/hq2x/hq2x3x.o
 
 ALFONT = libsrc/alfont-2.0.9/alfont.o
 
@@ -21,7 +20,7 @@ APEG = libsrc/apeg-1.2.1/display.o libsrc/apeg-1.2.1/getbits.o libsrc/apeg-1.2.1
 
 AASTR = libsrc/aastr-0.1.1/AAROT.o libsrc/aastr-0.1.1/aastr.o libsrc/aastr-0.1.1/aautil.o
 
-OBJS = $(LIBSRC) $(ALFONT) $(ALMP3) $(APEG) $(AASTR) $(BASE) $(COMMON) $(PSP_SPECIFIC)
+OBJS = $(ALFONT) $(ALMP3) $(APEG) $(AASTR) $(BASE) $(COMMON) $(PSP_SPECIFIC)
 
 INCDIR = ../Common ../Common/libinclude $(shell psp-config --pspdev-path)/psp/include/freetype2
 LIBDIR = ../PSP/lib

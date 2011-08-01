@@ -157,6 +157,8 @@ void Weather::Update()
   else if (mTargetAmount < mAmount)
     mAmount--;
 
+  ReinitializeViews();
+
   int i;
   for (i = 0; i < mAmount * 2; i++)
   {
@@ -177,7 +179,7 @@ void Weather::Update()
       mParticles[i].speed = (float)(rand() % mDeltaFallSpeed + mMinFallSpeed) / 50.0f;
       mParticles[i].max_y = rand() % mDeltaBaseline + mTopBaseline;
     }
-    else if (mParticles[i].y > 0)
+    else if ((mParticles[i].y > 0) && (mParticles[i].alpha > 0))
       engine->BlitSpriteTranslucent(mParticles[i].x, mParticles[i].y, mViews[mParticles[i].kind_id].bitmap, mParticles[i].alpha);
   }
   
@@ -191,6 +193,8 @@ void Weather::UpdateWithDrift()
     mAmount++;
   else if (mTargetAmount < mAmount)
     mAmount--;
+
+  ReinitializeViews();
 
   int i, drift;
   for (i = 0; i < mAmount * 2; i++)
@@ -219,7 +223,7 @@ void Weather::UpdateWithDrift()
       mParticles[i].drift = rand() % mDeltaDrift + mMinDrift;
       mParticles[i].drift_speed = (rand() % mDeltaDriftSpeed + mMinDriftSpeed) / 50.0f;
     }
-    else if (mParticles[i].y > 0)
+    else if ((mParticles[i].y > 0) && (mParticles[i].alpha > 0))
       engine->BlitSpriteTranslucent(mParticles[i].x + drift, mParticles[i].y, mViews[mParticles[i].kind_id].bitmap, mParticles[i].alpha);
   }
   
@@ -261,7 +265,6 @@ void Weather::RestoreGame(FILE* file)
     fread(&mDeltaFallSpeed, 4, 1, file);
     fread(mViews, sizeof(view_t) * 5, 1, file);
 
-    ReinitializeViews();
     InitializeParticles();
   }
   else if ((SaveVersion & 0xFFFF0000) == Magic)
@@ -319,15 +322,21 @@ void Weather::SaveGame(FILE* file)
 
 void Weather::ReinitializeViews()
 {
-  AGSViewFrame* view_frame;
+  AGSViewFrame* view_frame = engine->GetViewFrame(mViews[4].view, mViews[4].loop, 0);
+  BITMAP* default_bitmap = engine->GetSpriteGraphic(view_frame->pic);
 
   int i;
   for (i = 0; i < 5; i++)
   {
     if (mViews[i].bitmap != NULL)
     {
-      view_frame = engine->GetViewFrame(mViews[i].view, mViews[i].loop, 0);
-      mViews[i].bitmap = engine->GetSpriteGraphic(view_frame->pic);
+      if (mViews[i].is_default)
+        mViews[i].bitmap = default_bitmap;
+      else
+      {
+        view_frame = engine->GetViewFrame(mViews[i].view, mViews[i].loop, 0);
+        mViews[i].bitmap = engine->GetSpriteGraphic(view_frame->pic);
+      }
     }
   }
 }

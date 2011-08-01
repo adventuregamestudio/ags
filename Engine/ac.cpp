@@ -11996,8 +11996,6 @@ int load_game_file() {
   }
   else
   {
-    play.score_sound = -1;
-
     // Create game.soundClips and game.audioClipTypes structures.
     game.audioClipCount = 500;
     game.audioClipTypeCount = 4;
@@ -12027,6 +12025,15 @@ int load_game_file() {
     BuildAudioClipArray();
 
     game.audioClips = (ScriptAudioClip*)realloc(game.audioClips, game.audioClipCount * sizeof(ScriptAudioClip));
+
+
+    play.score_sound = -1;
+    if (game.options[OPT_SCORESOUND] > 0)
+    {
+      ScriptAudioClip* clip = get_audio_clip_for_old_style_number(false, game.options[OPT_SCORESOUND]);
+      if (clip)
+        play.score_sound = clip->id;
+    }
   }
 
   if ((filever >= 36) && (game.options[OPT_DEBUGMODE] != 0))

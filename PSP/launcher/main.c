@@ -4,6 +4,7 @@
 #include <pspctrl.h>
 #include <pspkernel.h>
 #include <psputility.h>
+#include <pspdisplay.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -26,12 +27,15 @@ typedef struct
   version_info_t version_info;
   int iscompatible;
   int isdata;
+  int is31xdata;
 } games_t;
 
 
 char psp_game_file_name[256];
 char file_to_exec[256];
 int quit_to_menu = 1;
+
+int exit_game = 0;
 
 int count = 0;
 int max_entries = 200;
@@ -87,6 +91,38 @@ int IsCompatibleDatafile(version_info_t* version_info)
 
 
 
+int IsCompatible31xDatafile(version_info_t* version_info)
+{
+  int major = 0;
+  int minor = 0;
+  int rev = 0;
+  int build = 0;
+  
+  sscanf(version_info->version, "%d.%d.%d.%d", &major, &minor, &rev, &build);
+  
+  return ((major == 3) && (minor == 1) && (rev > 0));
+}
+
+
+
+void AddGameEntry(char* path, struct dirent* entry, version_info_t* version_info)
+{
+  strcpy(entries[count].path, path);
+  strcpy(entries[count].display_name, entry->d_name);
+  memcpy(&entries[count].version_info, version_info, sizeof(version_info_t));
+  entries[count].isdata = 1;
+
+  if (IsCompatibleDatafile(version_info))
+    entries[count].iscompatible = 1;
+
+  if (IsCompatible31xDatafile(version_info))
+    entries[count].is31xdata = entries[count].iscompatible = 1;
+
+  count++;
+}
+
+
+
 int CreateGameList()
 {
   memset(entries, 0, max_entries * sizeof(games_t));
@@ -119,15 +155,7 @@ int CreateGameList()
   
         if (IsDataFile(&version_info))
         {
-          strcpy(entries[count].path, buffer);
-          strcpy(entries[count].display_name, entry->d_name);
-          memcpy(&entries[count].version_info, &version_info, sizeof(version_info_t));
-          entries[count].isdata = 1;
-        
-          if (IsCompatibleDatafile(&version_info))
-            entries[count].iscompatible = 1;
-
-          count++;
+          AddGameEntry(buffer, entry, &version_info);
           continue;
         }
       }
@@ -156,19 +184,11 @@ int CreateGameList()
             strcat(buffer, entry1->d_name);
 
             if (!getVersionInformation(buffer, &version_info))
-            continue;
+              continue;
   
             if (IsDataFile(&version_info))
             {
-              strcpy(entries[count].path, buffer);
-              strcpy(entries[count].display_name, entry->d_name);
-              memcpy(&entries[count].version_info, &version_info, sizeof(version_info_t));
-              entries[count].isdata = 1;
-            
-              if (IsCompatibleDatafile(&version_info))
-              entries[count].iscompatible = 1;
-
-              count++;
+              AddGameEntry(buffer, entry, &version_info);
               continue;
             }
           }
@@ -184,7 +204,7 @@ int CreateGameList()
 
 
 
-void ShowMenu()
+int ShowMenu()
 {
   int swap_buttons = 0;
   sceUtilityGetSystemParamInt(PSP_SYSTEMPARAM_ID_INT_UNKNOWN, &swap_buttons);
@@ -202,7 +222,7 @@ void ShowMenu()
     getcwd(psp_game_file_name, 256);
     strcat(psp_game_file_name, "/ac2game.dat");
     quit_to_menu = 0;
-    return;
+    return 1;
   }
 
   pspDebugScreenPrintf("Adventure Game Studio 3.21 by Chris Jones. PSP port by JJS.\n\n\n");
@@ -227,9 +247,10 @@ void ShowMenu()
   int index = 0;
   int start_index = 0;
   int repeatCount = 0;
+  int repeatFast = 0;
   char tempbuffer[100];  
   
-  while (1)
+  while (!exit_game)
   {
     pspDebugScreenSetXY(0, 6);
   
@@ -253,16 +274,16 @@ void ShowMenu()
       }
 
       if (entries[i].iscompatible)
-      sprintf(tempbuffer, "%s", entries[i].display_name);
+        sprintf(tempbuffer, "%s", entries[i].display_name);
       else if (entries[i].isdata)
-      sprintf(tempbuffer, "%s (incompatible version %s)", entries[i].display_name, entries[i].version_info.version);
+        sprintf(tempbuffer, "%s (incompatible version %s)", entries[i].display_name, entries[i].version_info.version);
 
       strcpy(&tempbuffer[64], "\0");
       pspDebugScreenPrintf("   %-64s\n", tempbuffer);
     }
 
     sceDisplayWaitVblankStart();
-    sceCtrlPeekBufferPositive(&pad, 1);
+    sceCtrlReadBufferPositive(&pad, 1);
 
     if ((pad.Buttons & PSP_CTRL_DOWN) && !(old_buttons & PSP_CTRL_DOWN))
     {
@@ -304,23 +325,37 @@ void ShowMenu()
       strcat(psp_game_file_name, "/");
       strcat(psp_game_file_name, entries[index].path);
       pspDebugScreenClear();
-      return;
+      return 1;
     }
   
     // Handling of button press repeating
     if (old_buttons == pad.Buttons)
-      repeatCount++;
+    {
+      if (pad.Buttons == 0)
+      {
+        repeatFast = 0;
+        repeatCount = 0;
+      }
+      else
+        repeatCount++;
+    }
     else
-      repeatCount = 0;
+    {
+      repeatCount = repeatFast ? 24 : 0;
+      repeatFast = 0;
+    }
 
-    if (repeatCount > 10)
+    if (repeatCount > 25)
     {
       pad.Buttons = 0;
       repeatCount = 0;
+      repeatFast = 1;
     }
 
     old_buttons = pad.Buttons;
-  }  
+  }
+
+  return 0;
 }
 
 
@@ -365,6 +400,6 @@ int main(int argc, char *argv[])
  
   // Load the prx with the kernel mode function  
   kernel_loadExec(file_to_exec, 2, buffer_argv);
-  
+
   return 0;
 }

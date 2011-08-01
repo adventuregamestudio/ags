@@ -1294,7 +1294,7 @@ diff -Naur src/psp/pkey.c src/psp/pkey.c
  }
 diff -Naur src/psp/pmain.c src/psp/pmain.c
 --- src/psp/pmain.c	2011-07-10 18:27:47.266042000 +0200
-+++ src/psp/pmain.c	2011-07-26 15:27:41.866796900 +0200
++++ src/psp/pmain.c	2011-08-01 15:34:33.788857100 +0200
 @@ -14,6 +14,8 @@
   *
   *      By diedel.
@@ -1304,7 +1304,7 @@ diff -Naur src/psp/pmain.c src/psp/pmain.c
   *      See readme.txt for copyright information.
   */
  
-@@ -24,12 +26,15 @@
+@@ -24,14 +26,15 @@
  extern void *_mangled_main_address;
  
  
@@ -1318,11 +1318,13 @@ diff -Naur src/psp/pmain.c src/psp/pmain.c
 +PSP_MAIN_THREAD_ATTR(PSP_THREAD_ATTR_USER | PSP_THREAD_ATTR_VFPU);
  PSP_MAIN_THREAD_STACK_SIZE_KB(270);
 -PSP_HEAP_SIZE_KB(-256);
+-
+-
 +PSP_HEAP_SIZE_KB(-512);
  
- 
- 
-@@ -79,6 +84,9 @@
+ /* exit_callback:
+  *
+@@ -79,6 +82,9 @@
  {
     int (*real_main) (int, char *[]) = (int (*) (int, char *[])) _mangled_main_address;
  
@@ -1334,7 +1336,7 @@ diff -Naur src/psp/pmain.c src/psp/pmain.c
  }
 diff -Naur src/psp/pmouse.c src/psp/pmouse.c
 --- src/psp/pmouse.c	2011-07-10 18:27:47.285044400 +0200
-+++ src/psp/pmouse.c	2011-06-04 09:38:41.276315800 +0200
++++ src/psp/pmouse.c	2011-08-01 15:32:16.723452000 +0200
 @@ -14,6 +14,8 @@
   *      By sauron_le_noir some part of psp_mouse_timer_poll based on
   *                        the sdl code of Nekuz0r
@@ -1344,7 +1346,7 @@ diff -Naur src/psp/pmouse.c src/psp/pmouse.c
   *      See readme.txt for copyright information.
   */
  
-@@ -28,12 +30,52 @@
+@@ -28,12 +30,55 @@
  #error something is wrong with the makefile
  #endif
  
@@ -1369,6 +1371,7 @@ diff -Naur src/psp/pmouse.c src/psp/pmouse.c
 +   int click_left;
 +   int click_right;
 +   int click_middle;
++   int slow_down;
 +} psp_mouse_config_t;
 +
 +psp_mouse_config_t psp_mouse_mapping = {
@@ -1378,7 +1381,8 @@ diff -Naur src/psp/pmouse.c src/psp/pmouse.c
 +   PSP_CTRL_DOWN,
 +   PSP_CTRL_SQUARE,
 +   PSP_CTRL_CROSS,
-+   0
++   0,
++   PSP_CTRL_RTRIGGER
 +};
 +
 +psp_mouse_config_t psp_mouse_mapping_osk = {
@@ -1388,6 +1392,7 @@ diff -Naur src/psp/pmouse.c src/psp/pmouse.c
 +   0,
 +   PSP_CTRL_SQUARE,
 +   PSP_CTRL_CROSS,
++   0,
 +   0
 +};
 +
@@ -1398,7 +1403,7 @@ diff -Naur src/psp/pmouse.c src/psp/pmouse.c
  
  
  MOUSE_DRIVER mouse_psp =
-@@ -44,8 +86,8 @@
+@@ -44,8 +89,8 @@
     "psp mouse",
     psp_mouse_init,
     psp_mouse_exit,
@@ -1409,7 +1414,7 @@ diff -Naur src/psp/pmouse.c src/psp/pmouse.c
     psp_mouse_position,
     psp_mouse_set_range,
     NULL,       // AL_METHOD(void, set_speed, (int xspeed, int yspeed));
-@@ -55,26 +97,36 @@
+@@ -55,26 +100,36 @@
     NULL        // AL_METHOD(int,  select_system_cursor, (AL_CONST int cursor));
  };
  
@@ -1444,10 +1449,10 @@ diff -Naur src/psp/pmouse.c src/psp/pmouse.c
 -}
 +   if (mouse_x_float < mouse_minx)
 +      mouse_x_float = mouse_minx;
- 
++
 +   if (mouse_x_float > mouse_maxx)
 +      mouse_x_float = mouse_maxx;
-+
+ 
 +   if (mouse_y_float < mouse_miny)
 +      mouse_y_float = mouse_miny;
 +
@@ -1457,7 +1462,7 @@ diff -Naur src/psp/pmouse.c src/psp/pmouse.c
  
  
  static int psp_mouse_init(void)
-@@ -86,92 +138,95 @@
+@@ -86,92 +141,101 @@
  }
  
  
@@ -1570,6 +1575,12 @@ diff -Naur src/psp/pmouse.c src/psp/pmouse.c
 -      x = 479;
 +   signX = (aStickX >= 0) ? 1.0f : -1.0f;
 +   signY = (aStickY >= 0) ? 1.0f : -1.0f;
++   
++   if (pad.Buttons & psp_current_mouse_mapping->slow_down)
++   {
++      signX *= 0.2f;
++      signY *= 0.2f;
++   }
  
 -   if (y < 0)
 -      y = 0;
@@ -1617,7 +1628,7 @@ diff -Naur src/psp/pmouse.c src/psp/pmouse.c
  }
  
  
-@@ -187,3 +242,4 @@
+@@ -187,3 +251,4 @@
  static void psp_mouse_exit(void)
  {
  }

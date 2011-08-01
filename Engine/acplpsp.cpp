@@ -113,6 +113,7 @@ typedef struct
   int click_left;
   int click_right;
   int click_middle;
+  int slow_down;
 } psp_mouse_config_t;
 
 extern psp_mouse_config_t psp_mouse_mapping;
@@ -252,6 +253,8 @@ void ReadButtonMapping(char* section, psp_button_mapping_t* button_mapping, unsi
       mouse_mapping->click_right = psp_buttons_value[i];
     else if (stricmp(value, "mouse_click_middle") == 0)
       mouse_mapping->click_middle = psp_buttons_value[i];
+    else if (stricmp(value, "mouse_slow_down") == 0)
+      mouse_mapping->slow_down = psp_buttons_value[i];
 
     // Check for onscreen keybord command.
     if (keyboard_mapping)

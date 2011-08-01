@@ -13007,7 +13007,8 @@ int user_to_internal_skip_speech(int userval) {
 }
 
 bool ShouldAntiAliasText() {
-  return (game.options[OPT_ANTIALIASFONTS] != 0);
+  // PSP: Never anti-alias fonts.
+  return false; //(game.options[OPT_ANTIALIASFONTS] != 0);
 }
 
 // Pass yy = -1 to find Y co-ord automatically

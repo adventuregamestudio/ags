@@ -1,4 +1,4 @@
-DISTRIB_NAME = AGS_Runtime_for_PSP_3.21_R4
+DISTRIB_NAME = AGS_Runtime_for_PSP_3.21_R5
 PSP_AGS_FOLDER = "j:/psp/game/ags"
 
 all:

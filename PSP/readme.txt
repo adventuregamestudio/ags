@@ -1,4 +1,4 @@
-Adventure Game Studio runtime PSP port - version 3.21 R3
+Adventure Game Studio runtime PSP port - version 3.21 R5
 --------------------------------------------------------
 
 Licensed under the Artistic License 2.0, see License.txt in the Engine folder.
@@ -20,7 +20,7 @@ AGS game compatibility:
 -----------------------------------------------------------------------------------------------
 This runtime engine port is not compatible with all AGS games. There are the
 following restrictions:
-- The ONLY supported AGS versions right now are 3.2.0 and 3.2.1.
+- The ONLY supported AGS versions right now are 3.1.1, 3.1.2, 3.2.0 and 3.2.1.
   You can check the version of AGS a game was made with by examining the properties 
   of the game executable.
   If you try to run a game made with a newer or older version of AGS, you will
@@ -47,13 +47,18 @@ Playable with restrictions:
   file. The game might still crash later on, this is not fully tested.
 - Fountain of Youth Demo: The save/load dialog has a very low framerate, but
   otherwise the game runs fine.
-  
+- The McCarthy Chronicles: In the games option menu, disable reflections to increase
+  the frame rate. It is also recommended to move the "film grain" slider fully
+  to the left.
+- The Journey Down: The outro sequence will run with a very low frame rate.
+- Aeronuts: The plane arcade sections are slow but playable.
+
 Not playable on the PSP:
 - Eternally Us: Runs out of memory before displaying anything.
 - Dead Hand: Very low frame rate (1 fps).
-- Dacey in the Dark - Prelude: Very low frame rate and corrupted text display.
+- Dacey in the Dark - Prelude: Very low frame rate.
 - Of the Essence: Runs out of memory for the pathfinder after the intro sequence.
-
+- Death Wore Endless Feathers: The agstrans plugin is not available on the PSP.
 
 
 How to run games:
@@ -144,6 +149,7 @@ Available button values for mouse input:
 mouse_up, mouse_down, mouse_left, mouse_right: Moves the mouse cursor in the indicated direction.
   Note: The analog stick is always used for mouse movement too.
 mouse_click_left, mouse_click_right, mouse_click middle: Simulates the respective mouse button.
+mouse_slow_down: While this button is pressed, the speed of the mouse cursor will be decreased.
 
 Available button values for keyboard input:
 A ... Z, 0 ... 9, 0_PAD ... 9_PAD, F1 ... F12

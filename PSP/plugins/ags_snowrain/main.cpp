@@ -78,7 +78,7 @@ class Weather
 
     void RestoreGame(FILE* file);
     void SaveGame(FILE* file);
-    void ReinitializeViews();
+    bool ReinitializeViews();
     
     bool IsActive();
     void Update();
@@ -157,7 +157,8 @@ void Weather::Update()
   else if (mTargetAmount < mAmount)
     mAmount--;
 
-  ReinitializeViews();
+  if (!ReinitializeViews())
+    return;
 
   int i;
   for (i = 0; i < mAmount * 2; i++)
@@ -183,7 +184,7 @@ void Weather::Update()
       engine->BlitSpriteTranslucent(mParticles[i].x, mParticles[i].y, mViews[mParticles[i].kind_id].bitmap, mParticles[i].alpha);
   }
   
-  engine->MarkRegionDirty(0, 0, screen_width, mBottomBaseline);
+  engine->MarkRegionDirty(0, 0, screen_width, screen_height);
 }
 
 
@@ -194,7 +195,8 @@ void Weather::UpdateWithDrift()
   else if (mTargetAmount < mAmount)
     mAmount--;
 
-  ReinitializeViews();
+  if (!ReinitializeViews())
+    return;
 
   int i, drift;
   for (i = 0; i < mAmount * 2; i++)
@@ -227,7 +229,7 @@ void Weather::UpdateWithDrift()
       engine->BlitSpriteTranslucent(mParticles[i].x + drift, mParticles[i].y, mViews[mParticles[i].kind_id].bitmap, mParticles[i].alpha);
   }
   
-  engine->MarkRegionDirty(0, 0, screen_width, mBottomBaseline);
+  engine->MarkRegionDirty(0, 0, screen_width, screen_height);
 }
 
 
@@ -320,8 +322,11 @@ void Weather::SaveGame(FILE* file)
 }
 
 
-void Weather::ReinitializeViews()
+bool Weather::ReinitializeViews()
 {
+  if ((mViews[4].view == -1) || (mViews[4].loop == -1))
+    return false;
+
   AGSViewFrame* view_frame = engine->GetViewFrame(mViews[4].view, mViews[4].loop, 0);
   BITMAP* default_bitmap = engine->GetSpriteGraphic(view_frame->pic);
 
@@ -339,6 +344,8 @@ void Weather::ReinitializeViews()
       }
     }
   }
+  
+  return true;
 }
 
 
@@ -382,8 +389,8 @@ void Weather::Initialize()
   for (i = 0; i < 5; i++)
   {
     mViews[i].is_default = true;
-    mViews[i].view = 0;
-    mViews[i].loop = 0;
+    mViews[i].view = -1;
+    mViews[i].loop = -1;
     mViews[i].bitmap = NULL;
   }
   

@@ -5,7 +5,7 @@ STANDALONE = 1
 PROFILING = 0
 
 # Disable MOD/XM playback?
-NO_MOD_PLAYBACK = 1
+NO_MOD_PLAYBACK = 0
 
 # The name of the engine prx must be known to the launcher and the engine too
 TARGET = ags321

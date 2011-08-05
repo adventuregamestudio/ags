@@ -386,6 +386,8 @@ SOUNDCLIP *load_sound_clip(ScriptAudioClip *audioClip, bool repeat)
   case eAudioFileMOD:
 #ifndef PSP_NO_MOD_PLAYBACK
     soundClip = my_load_mod(clipFileName, repeat);
+#else
+    soundClip = NULL;
 #endif
     break;
   default:

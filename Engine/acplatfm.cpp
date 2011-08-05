@@ -906,6 +906,11 @@ void pl_read_plugins_from_disk (FILE *iii) {
 #else
 #ifdef PSP_VERSION
     char module_name[50];
+
+    // Compatibility with the old SnowRain module
+    if (strcmp(apl->filename, "ags_SnowRain20.dll") == 0)
+      strcpy(apl->filename, "ags_snowrain.dll");
+
     strcpy(module_name, apl->filename);
     module_name[strlen(module_name) - 4] = '\0';
 

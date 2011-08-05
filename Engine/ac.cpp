@@ -6096,7 +6096,13 @@ void CheckViewFrame (int view, int loop, int frame) {
       if (views[view].loops[loop].frames[frame].sound < 0x10000000)
       {
         ScriptAudioClip* clip = get_audio_clip_for_old_style_number(false, views[view].loops[loop].frames[frame].sound);
-        views[view].loops[loop].frames[frame].sound = clip->id + 0x10000000;
+        if (clip)
+          views[view].loops[loop].frames[frame].sound = clip->id + 0x10000000;
+        else
+        {
+          views[view].loops[loop].frames[frame].sound = 0;
+          return;
+        }
       }
       play_audio_clip_by_index(views[view].loops[loop].frames[frame].sound - 0x10000000);
     }
@@ -12032,7 +12038,9 @@ int load_game_file() {
     {
       ScriptAudioClip* clip = get_audio_clip_for_old_style_number(false, game.options[OPT_SCORESOUND]);
       if (clip)
-        play.score_sound = clip->id;
+        play.score_sound = clip->id + 0x10000000;
+      else
+        play.score_sound = 0;
     }
   }
 

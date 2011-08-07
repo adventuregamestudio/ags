@@ -6082,7 +6082,7 @@ void SetFrameSound (int vii, int loop, int frame, int sound) {
     if (clip == NULL)
       quitprintf("!SetFrameSound: audio clip aSound%d not found", sound);
 
-    views[vii].loops[loop].frames[frame].sound = clip->id;
+    views[vii].loops[loop].frames[frame].sound = clip->id + 0x10000000;
   }
 }
 
@@ -17087,15 +17087,7 @@ void ViewFrame_SetLinkedAudio(ScriptViewFrame *svf, ScriptAudioClip* clip)
 
 int ViewFrame_GetSound(ScriptViewFrame *svf) {
   // convert audio clip to old-style sound number
-  int soundIndex = views[svf->view].loops[svf->loop].frames[svf->frame].sound;
-  if ((psp_is_old_datafile) && (soundIndex > 0x10000000))
-    soundIndex -= 0x10000000;
-  if (soundIndex >= 0)
-  {
-    if (sscanf(game.audioClips[soundIndex].scriptName, "aSound%d", &soundIndex) == 1)
-      return soundIndex;
-  }
-  return 0;
+  return get_old_style_number_for_sound(views[svf->view].loops[svf->loop].frames[svf->frame].sound);
 }
 
 void ViewFrame_SetSound(ScriptViewFrame *svf, int newSound) 
@@ -17174,7 +17166,7 @@ int GetGameParameter (int parm, int data1, int data2, int data3) {
      else if (parm == GP_FRAMEIMAGE)
        return pvf->pic;
      else if (parm == GP_FRAMESOUND)
-       return pvf->sound;
+       return get_old_style_number_for_sound(pvf->sound);
      else if (parm == GP_ISFRAMEFLIPPED)
        return (pvf->flags & VFLG_FLIPSPRITE) ? 1 : 0;
      else

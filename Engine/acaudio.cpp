@@ -788,6 +788,37 @@ void CCAudioClip::Unserialize(int index, const char *serializedData, int dataSiz
 
 // ***** BACKWARDS COMPATIBILITY WITH OLD AUDIO SYSTEM ***** //
 
+
+int get_old_style_number_for_sound(int sound_number)
+{
+  int audio_clip_id = 0;
+
+  if (psp_is_old_datafile)
+  {
+    // No sound assigned.
+    if (sound_number < 1)
+      return 0;
+
+    // Sound number is not yet updated to audio clip id.
+    if (sound_number <= 0x10000000)
+      return sound_number;
+
+    // Remove audio clip id flag.
+    audio_clip_id = sound_number - 0x10000000;
+  }
+  else
+    audio_clip_id = sound_number;
+
+  if (audio_clip_id >= 0)
+  {
+    int old_style_number = 0;
+    if (sscanf(game.audioClips[audio_clip_id].scriptName, "aSound%d", &old_style_number) == 1)
+      return old_style_number;    
+  }
+  return 0;
+}
+
+
 ScriptAudioClip* get_audio_clip_for_old_style_number(bool isMusic, int indexNumber)
 {
   char audioClipName[200];

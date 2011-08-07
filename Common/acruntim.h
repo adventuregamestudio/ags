@@ -1004,6 +1004,7 @@ extern void register_audio_script_functions();
 extern bool unserialize_audio_script_object(int index, const char *objectType, const char *serializedData, int dataSize);
 extern void audio_update_polled_stuff();
 extern ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *clip, int priority, int repeat, int fromOffset, SOUNDCLIP *cachedClip = NULL);
+extern int get_old_style_number_for_sound(int sound_number);
 extern SOUNDCLIP *load_sound_clip_from_old_style_number(bool isMusic, int indexNumber, bool repeat);
 extern void play_audio_clip_by_index(int audioClipIndex);
 extern ScriptAudioClip* get_audio_clip_for_old_style_number(bool isMusic, int indexNumber);

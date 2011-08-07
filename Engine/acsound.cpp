@@ -312,7 +312,8 @@ struct MYWAVE:public SOUNDCLIP
 
   void destroy()
   {
-    // Remove from soundcache.
+    // Stop sound and decrease reference count.
+    stop_sample(wave);
     sound_cache_free((char*)wave, true);
     wave = NULL;
   }

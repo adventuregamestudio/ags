@@ -1,4 +1,4 @@
-Adventure Game Studio runtime PSP port - version 3.21 R5
+Adventure Game Studio runtime PSP port - version 3.21 R6
 --------------------------------------------------------
 
 Licensed under the Artistic License 2.0, see License.txt in the Engine folder.
@@ -20,7 +20,8 @@ AGS game compatibility:
 -----------------------------------------------------------------------------------------------
 This runtime engine port is not compatible with all AGS games. There are the
 following restrictions:
-- The ONLY supported AGS versions right now are 3.1.1, 3.1.2, 3.2.0 and 3.2.1.
+- Supported AGS versions right now are all starting from 2.60 even though
+  running games below version 3.2x is experimental at the moment.
   You can check the version of AGS a game was made with by examining the properties 
   of the game executable.
   If you try to run a game made with a newer or older version of AGS, you will
@@ -32,12 +33,17 @@ following restrictions:
   to a file. The game will then quit and reopen the menu.
 - Generally savegames are not compatible between the PC and PSP version of
   the engine.
+
 These glitches can appear, affecting the game experience:
 - Games which make use of advanced scripting might run slow, possibly making
   them unplayable.
 - Sound will stutter in certain instances, e.g. when loading/saving.
 - When skipping cutscenes, the PSP may appear to hang for several seconds.
 - The frame rate drops when several sounds are played at once.
+
+Glitches affecting games made with AGS version prior to 3.2x:
+- Objects on screen might overlap in the wrong order.
+
 
 Compatibility note on specific games:
 
@@ -52,6 +58,11 @@ Playable with restrictions:
   to the left.
 - The Journey Down: The outro sequence will run with a very low frame rate.
 - Aeronuts: The plane arcade sections are slow but playable.
+- Ben Jordan series: When entering a room, the character might face the wrong direction.
+- Murder in a Wheel: Characters can have the wrong animation frame set, text display
+  is partially corrupted and the mouse cursor is invisible during the first dialog.
+- 5 days a stranger, 7 days a sceptic, etc.: Only the special editions of these games
+  are playable on the PSP. The original releases use an older incompatible engine version.
 
 Not playable on the PSP:
 - Eternally Us: Runs out of memory before displaying anything.
@@ -59,6 +70,8 @@ Not playable on the PSP:
 - Dacey in the Dark - Prelude: Very low frame rate.
 - Of the Essence: Runs out of memory for the pathfinder after the intro sequence.
 - Death Wore Endless Feathers: The agstrans plugin is not available on the PSP.
+- Two of a Kind: The interface is not usable.
+- Prodigal: Crashes the MP3 player during the intro sequence.
 
 
 How to run games:
@@ -203,8 +216,8 @@ Main source code changes from the PC version (also check the commit log of the g
 
 Future plans:
 -----------------------------------------------------------------------------------------------
-- Running 3.1.x and 2.7x AGS games. When this will happen I cannot say as it depends on
-  if and when these engine versions become open source.
+- Running 3.x and 2.x AGS games without glitches. When this will happen I cannot say as 
+  it depends on if and when these engine versions become open source.
 - Ingame menu to change settings/controls.
 - Graphical menus.
 - Completely fixing the sound stuttering.

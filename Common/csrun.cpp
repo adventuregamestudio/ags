@@ -2139,7 +2139,11 @@ ccScript *fread_script(FILE * ooo)
     }
   }
   else
+  {
     scri->numSections = 0;
+    scri->sectionNames = NULL;
+    scri->sectionOffsets = NULL;
+  }
 
   if (fget_long(ooo) != ENDFILESIG) {
     cc_error("internal error rebuilding script");

@@ -751,8 +751,16 @@ int GUIListBox::MouseDown()
 }
 
 void GUIInv::CalculateNumCells() {
-  itemsPerLine = wid / multiply_up_coordinate(itemWidth);
-  numLines = hit / multiply_up_coordinate(itemHeight);
+  if (loaded_game_file_version >= 31) // 2.70
+  {
+    itemsPerLine = wid / multiply_up_coordinate(itemWidth);
+    numLines = hit / multiply_up_coordinate(itemHeight);
+  }
+  else
+  {
+    itemsPerLine = floor((float)wid / (float)multiply_up_coordinate(itemWidth) + 0.5f);
+    numLines = floor((float)hit / (float)multiply_up_coordinate(itemHeight) + 0.5f);
+  }
 }
 
 void GUIButton::WriteToFile(FILE * ooo)

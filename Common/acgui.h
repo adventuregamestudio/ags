@@ -15,6 +15,9 @@
 
 #include "bigend.h"
 
+#include <math.h>
+extern int loaded_game_file_version;
+
 #ifndef __WGT4_H
 #ifndef CROOM_NOFUNCTIONS
 #error Must include wgt2allg.h first
@@ -495,11 +498,16 @@ struct GUIInv:public GUIObject
       itemHeight = 22;
       topIndex = 0;
     }
-    // ensure that some items are visible
-    if (itemWidth > wid)
-      itemWidth = wid;
-    if (itemHeight > hit)
-      itemHeight = hit;
+
+    if (loaded_game_file_version >= 31) // 2.70
+    {
+      // ensure that some items are visible
+      if (itemWidth > wid)
+        itemWidth = wid;
+      if (itemHeight > hit)
+        itemHeight = hit;
+    }
+
     CalculateNumCells();
   }
 
@@ -711,6 +719,20 @@ struct GUIMain
   void control_positions_changed();
   bool is_alpha();
 
+  void FixupGuiName(char* name)
+  {
+    if ((strlen(name) > 0) && (name[0] != 'g'))
+    {
+      char tempbuffer[200];
+
+      memset(tempbuffer, 0, 200);
+      tempbuffer[0] = 'g';
+      tempbuffer[1] = name[0];
+      strcat(&tempbuffer[2], strlwr(&name[1]));
+      strcpy(name, tempbuffer);
+    }
+  }
+
   void SetTransparencyAsPercentage(int percent)
   {
     // convert from % transparent to Opacity from 0-255
@@ -728,6 +750,8 @@ struct GUIMain
     // it will be regenerated
     fread(vtext, sizeof(char), 40, fp);
     fread(&x, sizeof(int), 27 + 2*MAX_OBJS_ON_GUI, fp);
+
+    FixupGuiName(name);
   }
 
   void WriteToFile(FILE *fp)

@@ -61,6 +61,11 @@ struct DialogTopic;
 void preprocess_dialog_script(DialogTopic *);
 #endif
 
+// Old dialog support
+unsigned char** old_dialog_scripts;
+char** old_speech_lines;
+
+
 #ifdef MAC_VERSION
 char dataDirectory[512];
 char appDirectory[512];
@@ -5067,6 +5072,11 @@ void update_inv_cursor(int invnum) {
 
   if ((game.options[OPT_FIXEDINVCURSOR]==0) && (invnum > 0)) {
     int cursorSprite = game.invinfo[invnum].cursorPic;
+
+    // Fall back to the inventory pic if no cursor pic is defined.
+    if (cursorSprite == 0)
+      cursorSprite = game.invinfo[invnum].pic;
+
     game.mcurs[MODE_USE].pic = cursorSprite;
     // all cursor images must be pre-cached
     spriteset.precache(cursorSprite);
@@ -11741,6 +11751,39 @@ void BuildAudioClipArray()
 }
 
 
+/*
+
+ Game data versions and changes:
+ -------------------------------
+
+ 12 : 2.3 + 2.4
+ 19 : 2.5.1
+ 22 : 2.5.5
+ 24 : 2.5.6
+
+ Versions above are incompatible at the moment.
+
+ Encrypted global messages and dialogs.
+ 26 : 2.6.1
+ 27 : 2.6.2
+
+ Script modules. Fixes bug in the inventory display.
+ 31 : 2.7.0
+ 32 : 2.7.2
+
+ Interactions are now scripts. The number for "not set" changed from 0 to -1 for
+ a lot of variables (views, sounds).
+ 37 : 3.0 + 3.1.0
+
+ Dialogs are now scripts. New character animation speed.
+ 39 : 3.1.1
+ 40 : 3.1.2
+
+ Audio clips
+ 41 : 3.2.0
+ 42 : 3.2.1
+
+*/
 
 
 int load_game_file() {
@@ -11750,8 +11793,12 @@ int load_game_file() {
   game_paused = 0;  // reset the game paused flag
   ifacepopped = -1;
 
-  FILE*iii = clibfopen("game28.dta","rb");
-  if (iii==NULL) return -1;
+  FILE*iii = clibfopen("game28.dta", "rb"); // 3.x data file name
+  if (iii==NULL) {
+    iii = clibfopen("ac2game.dta", "rb"); // 2.x data file name
+    if (iii==NULL)
+      return -1;
+  }
 
   our_eip=-18;
   setup_script_exports();
@@ -11763,8 +11810,8 @@ int load_game_file() {
   int filever=getw(iii);
 
   if (filever < 42) {
-    // Allow loading of 3.1.1 and 3.1.2 datafiles.
-    if (filever < 39)
+    // Allow loading of 2.x+ datafiles
+    if (filever < 25) // < 2.6.0
     {
       fclose(iii);
       return -2;
@@ -11806,18 +11853,27 @@ int load_game_file() {
   GameSetupStructBase *gameBase = (GameSetupStructBase *) &game;
   gameBase->ReadFromFile(iii);
 #endif
-    
+
+  if (filever <= 37) // <= 3.1
+  {
+    // Fix animation speed for old formats
+    game.options[OPT_OLDTALKANIMSPD] = 1;
+  }
+
   if (game.numfonts > MAX_FONTS)
     quit("!This game requires a newer version of AGS. Too many fonts for this version to handle.");
 
-  fread(&game.guid[0], 1, MAX_GUID_LENGTH, iii);
-  fread(&game.saveGameFileExtension[0], 1, MAX_SG_EXT_LENGTH, iii);
-  fread(&game.saveGameFolderName[0], 1, MAX_SG_FOLDER_LEN, iii);
+  if (filever > 32) // only 3.x
+  {
+    fread(&game.guid[0], 1, MAX_GUID_LENGTH, iii);
+    fread(&game.saveGameFileExtension[0], 1, MAX_SG_EXT_LENGTH, iii);
+    fread(&game.saveGameFolderName[0], 1, MAX_SG_FOLDER_LEN, iii);
 
-  if (game.saveGameFileExtension[0] != 0)
-    sprintf(saveGameSuffix, ".%s", game.saveGameFileExtension);
-  else
-    saveGameSuffix[0] = 0;
+    if (game.saveGameFileExtension[0] != 0)
+      sprintf(saveGameSuffix, ".%s", game.saveGameFileExtension);
+    else
+      saveGameSuffix[0] = 0;
+  }
 
   fread(&game.fontflags[0], 1, game.numfonts, iii);
   fread(&game.fontoutline[0], 1, game.numfonts, iii);
@@ -11847,16 +11903,50 @@ int load_game_file() {
   }
 #endif
 
-  numGlobalVars = 0;
-  game.charScripts = new InteractionScripts*[game.numcharacters];
-  game.invScripts = new InteractionScripts*[game.numinvitems];
-  for (bb = 0; bb < game.numcharacters; bb++) {
-    game.charScripts[bb] = new InteractionScripts();
-    deserialize_interaction_scripts(iii, game.charScripts[bb]);
+  if (filever <= 32) // 2.x
+  {
+    // Change cursor.view from 0 to -1 for non-animating cursors.
+    int i;
+    for (i = 0; i < game.numcursors; i++)
+    {
+      if (game.mcurs[i].view == 0)
+        game.mcurs[i].view = -1;
+    }
   }
-  for (bb = 1; bb < game.numinvitems; bb++) {
-    game.invScripts[bb] = new InteractionScripts();
-    deserialize_interaction_scripts(iii, game.invScripts[bb]);
+
+  numGlobalVars = 0;
+
+  if (filever > 32) // 3.x
+  {
+    game.charScripts = new InteractionScripts*[game.numcharacters];
+    game.invScripts = new InteractionScripts*[game.numinvitems];
+    for (bb = 0; bb < game.numcharacters; bb++) {
+      game.charScripts[bb] = new InteractionScripts();
+      deserialize_interaction_scripts(iii, game.charScripts[bb]);
+    }
+    for (bb = 1; bb < game.numinvitems; bb++) {
+      game.invScripts[bb] = new InteractionScripts();
+      deserialize_interaction_scripts(iii, game.invScripts[bb]);
+    }
+  }
+  else // 2.x
+  {
+    game.intrChar = new NewInteraction*[game.numcharacters];
+
+    for (bb = 0; bb < game.numcharacters; bb++) {
+      game.intrChar[bb] = deserialize_new_interaction(iii);
+    }
+    for (bb = 0; bb < game.numinvitems; bb++) {
+      game.intrInv[bb] = deserialize_new_interaction(iii);
+    }
+  }
+
+  if (filever <= 32) // 2.x
+  {
+    // There is unknown text data here, often only "Global 1".
+    // Each of the entries is 28 chars in size. Skip it.
+    int numberofitems = getw(iii);
+    fseek(iii, numberofitems * 28, SEEK_CUR);
   }
 
   if (game.dict != NULL) {
@@ -11871,23 +11961,37 @@ int load_game_file() {
   if (gamescript == NULL)
     quit("Global script load failed; need newer version?");
 
-  dialogScriptsScript = fread_script(iii);
-  if (dialogScriptsScript == NULL)
-    quit("Dialog scripts load failed; need newer version?");
-
-  numScriptModules = getw(iii);
-  if (numScriptModules > MAX_SCRIPT_MODULES)
-    quit("too many script modules; need newer version?");
-
-  for (bb = 0; bb < numScriptModules; bb++) {
-    scriptModules[bb] = fread_script(iii);
-    if (scriptModules[bb] == NULL)
-      quit("Script module load failure; need newer version?");
-    moduleInst[bb] = NULL;
-    moduleInstFork[bb] = NULL;
-    moduleRepExecAddr[bb] = NULL;
+  if (filever > 37) // 3.1.1+ dialog script
+  {
+    dialogScriptsScript = fread_script(iii);
+    if (dialogScriptsScript == NULL)
+      quit("Dialog scripts load failed; need newer version?");
   }
-  
+  else // 2.x and < 3.1.1 dialog
+  {
+    dialogScriptsScript = NULL;
+  }
+
+  if (filever >= 31) // 2.7.0+ script modules
+  {
+    numScriptModules = getw(iii);
+    if (numScriptModules > MAX_SCRIPT_MODULES)
+      quit("too many script modules; need newer version?");
+
+    for (bb = 0; bb < numScriptModules; bb++) {
+      scriptModules[bb] = fread_script(iii);
+      if (scriptModules[bb] == NULL)
+        quit("Script module load failure; need newer version?");
+      moduleInst[bb] = NULL;
+      moduleInstFork[bb] = NULL;
+      moduleRepExecAddr[bb] = NULL;
+    }
+  }
+  else
+  {
+    numScriptModules = 0;
+  }
+
   our_eip=-15;
 
   charextra = (CharacterExtras*)calloc(game.numcharacters, sizeof(CharacterExtras));
@@ -11901,10 +12005,24 @@ int load_game_file() {
   game.charProps = (CustomProperties*)calloc(game.numcharacters, sizeof(CustomProperties));
 
   allocate_memory_for_views(game.numviews);
+  int iteratorCount = 0;
 
-  for (int iteratorCount = 0; iteratorCount < game.numviews; ++iteratorCount)
+  if (filever > 32) // 3.x views
   {
-    views[iteratorCount].ReadFromFile(iii);
+    for (int iteratorCount = 0; iteratorCount < game.numviews; ++iteratorCount)
+    {
+      views[iteratorCount].ReadFromFile(iii);
+    }
+  }
+  else // 2.x views
+  {
+    ViewStruct272* oldv = (ViewStruct272*)calloc(game.numviews, sizeof(ViewStruct272));
+    for (iteratorCount = 0; iteratorCount < game.numviews; ++iteratorCount)
+    {
+      oldv[iteratorCount].ReadFromFile(iii);
+    }
+    Convert272ViewsToNew(game.numviews, oldv, views);
+    free(oldv);
   }
 
   our_eip=-14;
@@ -11919,6 +12037,28 @@ int load_game_file() {
   }
 #endif
   charcache = (CharacterCache*)calloc(1,sizeof(CharacterCache)*game.numcharacters+5);
+
+  if (filever <= 32) // fixup charakter script names for 2.x (EGO -> cEgo)
+  {
+    char tempbuffer[200];
+    for (int i = 0; i < game.numcharacters; i++)
+    {
+      memset(tempbuffer, 0, 200);
+      tempbuffer[0] = 'c';
+      tempbuffer[1] = game.chars[i].scrname[0];
+      strcat(&tempbuffer[2], strlwr(&game.chars[i].scrname[1]));
+      strcpy(game.chars[i].scrname, tempbuffer);
+    }
+  }
+
+  if (filever <= 37) // fix character walk speed for < 3.1.1
+  {
+    for (int i = 0; i < game.numcharacters; i++)
+    {
+      if (game.options[OPT_ANTIGLIDE])
+        game.chars[i].flags |= CHF_ANTIGLIDE;
+    }
+  }
 
   fread(&game.lipSyncFrameLetters[0][0], MAXLIPSYNCFRAMES, 50, iii);
 
@@ -11952,6 +12092,43 @@ int load_game_file() {
     dialog[iteratorCount].ReadFromFile(iii);
   }
 #endif
+
+  if (filever <= 37) // Dialog script
+  {
+    old_dialog_scripts = (unsigned char**)malloc(game.numdialog * sizeof(unsigned char**));
+
+    int i;
+    for (i = 0; i < game.numdialog; i++)
+    {
+      old_dialog_scripts[i] = (unsigned char*)malloc(dialog[i].codesize);
+      fread(old_dialog_scripts[i], dialog[i].codesize, 1, iii);
+      
+      // Skip encrypted text script
+      unsigned int script_size = getw(iii);
+      fseek(iii, script_size, SEEK_CUR);
+    }
+
+    // Read the dialog lines
+    old_speech_lines = (char**)malloc(10000 * sizeof(char**));
+    i = 0;
+    while (1)
+    {
+      unsigned int newlen = getw(iii);
+      if (newlen == 0xCAFEBEEF)  // GUI magic
+      {
+        fseek(iii, -4, SEEK_CUR);
+        break;
+      }
+      
+      old_speech_lines[i] = (char*)malloc(newlen + 1);
+      fread(old_speech_lines[i], newlen, 1, iii);
+      old_speech_lines[i][newlen] = 0;
+      decrypt_text(old_speech_lines[i]);
+
+      i++;
+    }
+    old_speech_lines = (char**)realloc(old_speech_lines, i * sizeof(char**));
+  }
 
   read_gui(iii,guis,&game, &guis);
 
@@ -12003,7 +12180,7 @@ int load_game_file() {
   else
   {
     // Create game.soundClips and game.audioClipTypes structures.
-    game.audioClipCount = 500;
+    game.audioClipCount = 1000;
     game.audioClipTypeCount = 4;
 
     game.audioClipTypes = (AudioClipType*)malloc(game.audioClipTypeCount * sizeof(AudioClipType));
@@ -22025,18 +22202,158 @@ int run_dialog_request (int parmtr) {
   return -1;
 }
 
+#define RUN_DIALOG_STAY          -1
 #define RUN_DIALOG_STOP_DIALOG   -2
 #define RUN_DIALOG_GOTO_PREVIOUS -4
 // dialog manager stuff
 
+void get_dialog_script_parameters(unsigned char* &script, unsigned short* param1, unsigned short* param2)
+{
+  script++;
+  *param1 = *script;
+  script++;
+  *param1 += *script * 256;
+  script++;
+  
+  if (param2)
+  {
+    *param2 = *script;
+    script++;
+    *param2 += *script * 256;
+    script++;
+  }
+}
+
 int run_dialog_script(DialogTopic*dtpp, int dialogID, int offse, int optionIndex) {
   said_speech_line = 0;
-  int result;
+  int result = RUN_DIALOG_STAY;
 
-  char funcName[100];
-  sprintf(funcName, "_run_dialog%d", dialogID);
-  run_text_script_iparam(dialogScriptsInst, funcName, optionIndex);
-  result = dialogScriptsInst->returnValue;
+  if (dialogScriptsInst)
+  {
+    char funcName[100];
+    sprintf(funcName, "_run_dialog%d", dialogID);
+    run_text_script_iparam(dialogScriptsInst, funcName, optionIndex);
+    result = dialogScriptsInst->returnValue;
+  }
+  else
+  {
+    // old dialog format
+    if (offse == -1)
+      return result;	
+	
+    unsigned char* script = (unsigned char*)&old_dialog_scripts[dialogID][offse];
+
+    unsigned short param1 = 0;
+    unsigned short param2 = 0;
+    int new_topic = 0;
+    bool script_running = true;
+
+    while (script_running)
+    {
+      switch (*script)
+      {
+        case DCMD_SAY:
+          get_dialog_script_parameters(script, &param1, &param2);
+          
+          if (param1 == DCHAR_PLAYER)
+            param1 = game.playercharacter;
+
+          if (param1 == DCHAR_NARRATOR)
+            Display(get_translation(old_speech_lines[param2]));
+          else
+            DisplaySpeech(get_translation(old_speech_lines[param2]), param1);
+
+          said_speech_line = 1;
+          break;
+
+        case DCMD_OPTOFF:
+          get_dialog_script_parameters(script, &param1, NULL);
+          SetDialogOption(dialogID, param1 + 1, 0);
+          break;
+
+        case DCMD_OPTON:
+          get_dialog_script_parameters(script, &param1, NULL);
+          SetDialogOption(dialogID, param1 + 1, DFLG_ON);
+          break;
+
+        case DCMD_RETURN:
+          script_running = false;
+          break;
+
+        case DCMD_STOPDIALOG:
+          result = RUN_DIALOG_STOP_DIALOG;
+          script_running = false;
+          break;
+
+        case DCMD_OPTOFFFOREVER:
+          get_dialog_script_parameters(script, &param1, NULL);
+          SetDialogOption(dialogID, param1 + 1, DFLG_OFFPERM);
+          break;
+
+        case DCMD_RUNTEXTSCRIPT:
+          get_dialog_script_parameters(script, &param1, NULL);
+          new_topic = run_dialog_request(param1);
+          if (new_topic > -1)
+          {
+            result = new_topic;
+            script_running = false;
+          }
+          break;
+
+        case DCMD_GOTODIALOG:
+          get_dialog_script_parameters(script, &param1, NULL);
+          result = param1;
+          script_running = false;
+          break;
+
+        case DCMD_PLAYSOUND:
+          get_dialog_script_parameters(script, &param1, NULL);
+          play_sound(param1);
+          break;
+
+        case DCMD_ADDINV:
+          get_dialog_script_parameters(script, &param1, NULL);
+          add_inventory(param1);
+          break;
+
+        case DCMD_SETSPCHVIEW:
+          get_dialog_script_parameters(script, &param1, &param2);
+          SetCharacterSpeechView(param1, param2);
+          break;
+
+        case DCMD_NEWROOM:
+          get_dialog_script_parameters(script, &param1, NULL);
+          NewRoom(param1);
+          in_new_room = 1;
+          break;
+
+        case DCMD_SETGLOBALINT:
+          get_dialog_script_parameters(script, &param1, &param2);
+          SetGlobalInt(param1, param2);
+          break;
+
+        case DCMD_GIVESCORE:
+          get_dialog_script_parameters(script, &param1, NULL);
+          GiveScore(param1);
+          break;
+
+        case DCMD_GOTOPREVIOUS:
+          result = RUN_DIALOG_GOTO_PREVIOUS;
+          script_running = false;
+          break;
+
+        case DCMD_LOSEINV:
+          get_dialog_script_parameters(script, &param1, NULL);
+          lose_inventory(param1);
+          break;
+
+        case DCMD_ENDSCRIPT:
+          result = RUN_DIALOG_STOP_DIALOG;
+          script_running = false;
+          break;
+      }
+    }
+  }
 
   if (in_new_room > 0)
     return RUN_DIALOG_STOP_DIALOG;
@@ -27873,7 +28190,10 @@ int initialize_engine(int argc,char*argv[])
       if (speechsync != NULL) {
         // this game has voice lip sync
         if (getw(speechsync) != 4)
-          platform->DisplayAlert("Unknown speech lip sync format (might be from older or newer version); lip sync disabled");
+        { 
+          // Don't display this warning.
+          // platform->DisplayAlert("Unknown speech lip sync format (might be from older or newer version); lip sync disabled");
+        }
         else {
           numLipLines = getw(speechsync);
           splipsync = (SpeechLipSyncLine*)malloc (sizeof(SpeechLipSyncLine) * numLipLines);
@@ -28056,7 +28376,7 @@ int initialize_engine(int argc,char*argv[])
       platform->DisplayAlert("Main game file not found. This may be from a different AGS version, or the file may have got corrupted.\n");
     else if (ee==-2)
       platform->DisplayAlert("Invalid file format. The file may be corrupt, or from a different\n"
-        "version of AGS.\nThis engine can only run games made with AGS 3.2 or later.\n");
+        "version of AGS.\nThis engine can only run games made with AGS 2.6 or later.\n");
     else if (ee==-3)
       platform->DisplayAlert("Script link failed: %s\n",ccErrorString);
     return EXIT_NORMAL;

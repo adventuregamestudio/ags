@@ -27,7 +27,7 @@ typedef struct
   version_info_t version_info;
   int iscompatible;
   int isdata;
-  int is31xdata;
+  int isolddata;
 } games_t;
 
 
@@ -91,7 +91,7 @@ int IsCompatibleDatafile(version_info_t* version_info)
 
 
 
-int IsCompatible31xDatafile(version_info_t* version_info)
+int IsCompatibleOldDatafile(version_info_t* version_info)
 {
   int major = 0;
   int minor = 0;
@@ -100,7 +100,7 @@ int IsCompatible31xDatafile(version_info_t* version_info)
   
   sscanf(version_info->version, "%d.%d.%d.%d", &major, &minor, &rev, &build);
   
-  return ((major == 3) && (minor == 1) && (rev > 0));
+  return ((major == 3) || ((major == 2) && (minor >= 60)));
 }
 
 
@@ -115,8 +115,8 @@ void AddGameEntry(char* path, struct dirent* entry, version_info_t* version_info
   if (IsCompatibleDatafile(version_info))
     entries[count].iscompatible = 1;
 
-  if (IsCompatible31xDatafile(version_info))
-    entries[count].is31xdata = entries[count].iscompatible = 1;
+  if (IsCompatibleOldDatafile(version_info))
+    entries[count].isolddata = entries[count].iscompatible = 1;
 
   count++;
 }

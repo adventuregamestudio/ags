@@ -19,6 +19,8 @@
 #include "acruntim.h"
 #include <math.h>
 
+extern int loaded_game_file_version;
+
 extern int current_screen_resolution_multiplier;
 // order of loops to turn character in circle from down to down
 int turnlooporder[8] = {0, 6, 1, 7, 3, 5, 2, 4};
@@ -578,10 +580,20 @@ void Character_ChangeRoom(CharacterInfo *chaa, int room, int x, int y) {
 
   if ((x != SCR_NO_VALUE) && (y != SCR_NO_VALUE)) {
     new_room_pos = 0;
-    // don't check X or Y bounds, so that they can do a
-    // walk-in animation if they want
-    new_room_x = x;
-    new_room_y = y;
+
+    if (loaded_game_file_version <= 32)
+    {
+      // Set position immediately on 2.x.
+      chaa->x = x;
+      chaa->y = y;
+    }
+    else
+    {
+      // don't check X or Y bounds, so that they can do a
+      // walk-in animation if they want
+      new_room_x = x;
+      new_room_y = y;
+    }
   }
   
   NewRoom(room);

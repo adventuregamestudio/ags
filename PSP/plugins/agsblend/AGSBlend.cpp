@@ -24,7 +24,7 @@
 #include <math.h>
 
 #define THIS_IS_THE_PLUGIN
-#include "agsplugin.h"
+#include "../../../Common/agsplugin.h"
 
 typedef unsigned char uint8;
 

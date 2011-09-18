@@ -13,7 +13,7 @@ but a workalike plugin created by JJS for the AGS engine PSP port.
 #endif
 
 #define THIS_IS_THE_PLUGIN
-#include "agsplugin.h"
+#include "../../../Common/agsplugin.h"
 
 #include <stdlib.h>
 #include <stdio.h>

@@ -11731,6 +11731,7 @@ void BuildAudioClipArray()
 
       game.audioClips[game.audioClipCount].defaultVolume = 100;
       game.audioClips[game.audioClipCount].defaultPriority = 50;
+      game.audioClips[game.audioClipCount].id = game.audioClipCount;
 
       if (stricmp(temp_extension, "mp3") == 0)
         game.audioClips[game.audioClipCount].fileType = eAudioFileMP3;
@@ -12215,9 +12216,9 @@ int load_game_file() {
     {
       ScriptAudioClip* clip = get_audio_clip_for_old_style_number(false, game.options[OPT_SCORESOUND]);
       if (clip)
-        play.score_sound = clip->id + 0x10000000;
+        play.score_sound = clip->id;
       else
-        play.score_sound = 0;
+        play.score_sound = -1;
     }
   }
 

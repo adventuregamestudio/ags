@@ -24877,6 +24877,22 @@ int DrawAdd(int destination, int sprite, int x, int y, float scale)
   return 0;
 }
 
+int GetFlashlightInt()
+{
+  return 0;
+}
+void SetFlashlightInt1(int Param1)
+{
+}
+void SetFlashlightInt2(int Param1, int Param2)
+{
+}
+void SetFlashlightInt3(int Param1, int Param2, int Param3)
+{
+}
+void SetFlashlightInt5(int Param1, int Param2, int Param3, int Param4, int Param5)
+{
+}
 
 #define scAdd_External_Symbol ccAddExternalSymbol
 void setup_script_exports() {
@@ -25931,6 +25947,35 @@ void setup_script_exports() {
   scAdd_External_Symbol("Blur",(void *)Blur);
   scAdd_External_Symbol("HighPass",(void *)HighPass);
   scAdd_External_Symbol("DrawAdd",(void *)DrawAdd);
+
+  // agsflashlight.dll
+  scAdd_External_Symbol("SetFlashlightTint",(void *)SetFlashlightInt3);
+  scAdd_External_Symbol("GetFlashlightTintRed",(void *)GetFlashlightInt);
+  scAdd_External_Symbol("GetFlashlightTintGreen",(void *)GetFlashlightInt);
+  scAdd_External_Symbol("GetFlashlightTintBlue",(void *)GetFlashlightInt);
+  scAdd_External_Symbol("GetFlashlightMinLightLevel",(void *)GetFlashlightInt);
+  scAdd_External_Symbol("GetFlashlightMaxLightLevel",(void *)GetFlashlightInt);
+  scAdd_External_Symbol("SetFlashlightDarkness",(void *)SetFlashlightInt1);
+  scAdd_External_Symbol("GetFlashlightDarkness",(void *)GetFlashlightInt);
+  scAdd_External_Symbol("SetFlashlightDarknessSize",(void *)SetFlashlightInt1);
+  scAdd_External_Symbol("GetFlashlightDarknessSize",(void *)GetFlashlightInt);
+  scAdd_External_Symbol("SetFlashlightBrightness",(void *)SetFlashlightInt1);
+  scAdd_External_Symbol("GetFlashlightBrightness",(void *)GetFlashlightInt);
+  scAdd_External_Symbol("SetFlashlightBrightnessSize",(void *)SetFlashlightInt1);
+  scAdd_External_Symbol("GetFlashlightBrightnessSize",(void *)GetFlashlightInt);
+  scAdd_External_Symbol("SetFlashlightPosition",(void *)SetFlashlightInt2);
+  scAdd_External_Symbol("GetFlashlightPositionX",(void *)GetFlashlightInt);
+  scAdd_External_Symbol("GetFlashlightPositionY",(void *)GetFlashlightInt);
+  scAdd_External_Symbol("SetFlashlightFollowMouse",(void *)SetFlashlightInt1);
+  scAdd_External_Symbol("GetFlashlightFollowMouse",(void *)GetFlashlightInt);
+  scAdd_External_Symbol("SetFlashlightFollowCharacter",(void *)SetFlashlightInt5);
+  scAdd_External_Symbol("GetFlashlightFollowCharacter",(void *)GetFlashlightInt);
+  scAdd_External_Symbol("GetFlashlightCharacterDX",(void *)GetFlashlightInt);
+  scAdd_External_Symbol("GetFlashlightCharacterDY",(void *)GetFlashlightInt);
+  scAdd_External_Symbol("GetFlashlightCharacterHorz",(void *)GetFlashlightInt);
+  scAdd_External_Symbol("GetFlashlightCharacterVert",(void *)GetFlashlightInt);
+  scAdd_External_Symbol("SetFlashlightMask",(void *)SetFlashlightInt1);
+  scAdd_External_Symbol("GetFlashlightMask",(void *)GetFlashlightInt);
 }
 
 

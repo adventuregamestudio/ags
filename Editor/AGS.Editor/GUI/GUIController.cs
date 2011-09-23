@@ -1391,9 +1391,10 @@ namespace AGS.Editor
         void _mainForm_OnPropertyChanged(string propertyName, object oldValue)
         {
             if (ActivePane != null)
-            {
+            {               
                 ActivePane.Owner.PropertyChanged(propertyName, oldValue);
                 ActivePane.Control.PropertyChanged(propertyName, oldValue);
+                DocumentTitlesChanged();
             }
         }
 

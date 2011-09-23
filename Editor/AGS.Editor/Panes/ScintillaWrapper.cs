@@ -286,6 +286,11 @@ namespace AGS.Editor
             get { return scintillaControl1.LineFromPosition(scintillaControl1.CurrentPos); }
         }
 
+        public int FirstVisibleLine
+        {
+            get { return scintillaControl1.FirstVisibleLine; }
+        }
+
 		public void SetAsDialog()
         {
             scintillaControl1.SetLexer(0);
@@ -293,8 +298,7 @@ namespace AGS.Editor
         }
         public void GoToPosition(int newPos)
         {
-			int lineNum = scintillaControl1.LineFromPosition(newPos);
-
+			int lineNum = scintillaControl1.LineFromPosition(newPos);            
 			if ((lineNum <= scintillaControl1.FirstVisibleLine) ||
 				(lineNum >= scintillaControl1.FirstVisibleLine + scintillaControl1.LinesOnScreen))
 			{

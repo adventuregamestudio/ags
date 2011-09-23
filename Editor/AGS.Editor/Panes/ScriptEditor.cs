@@ -60,6 +60,7 @@ namespace AGS.Editor
         private bool _fileChangedExternally = false;
         // we need this bool because it's not necessarily the same as scintilla.Modified
         private bool _editorTextModifiedSinceLastCopy = false;
+        private int _firstVisibleLine;
 
         public ScriptEditor(Script scriptToEdit, AGSEditor agsEditor)
         {
@@ -121,7 +122,11 @@ namespace AGS.Editor
 
         public string ModifiedText
         {
-            get { return scintilla.GetText(); }
+            get 
+            { 
+                return scintilla.IsDisposed ? 
+                    null : scintilla.GetText(); 
+            }
             set { scintilla.SetTextModified(value); }
         }
 
@@ -142,7 +147,7 @@ namespace AGS.Editor
             scintilla.ConstructContextMenu += new ScintillaWrapper.ConstructContextMenuHandler(scintilla_ConstructContextMenu);
             scintilla.ActivateContextMenu += new ScintillaWrapper.ActivateContextMenuHandler(scintilla_ActivateContextMenu);
             scintilla.ToggleBreakpoint += new EventHandler<Scintilla.MarginClickEventArgs>(scintilla_ToggleBreakpoint);
-
+            
             if (!this.Script.IsHeader)
             {
                 scintilla.SetAutoCompleteSource(this.Script);
@@ -350,6 +355,7 @@ namespace AGS.Editor
         public void ActivateTextEditor()
         {
             scintilla.ActivateTextEditor();
+            scintilla.GoToLine(_firstVisibleLine);
         }
 
         public void DeactivateTextEditor()
@@ -423,7 +429,7 @@ namespace AGS.Editor
                 UpdateScriptObjectWithLatestTextInWindow();
             }
 
-            if (scintilla.IsModified) 
+            if (!scintilla.IsDisposed && scintilla.IsModified) 
             {
                 _script.SaveToDisk();
                 scintilla.SetSavePoint();
@@ -696,6 +702,18 @@ namespace AGS.Editor
             {
                 SelectFunctionInListForCurrentPosition();
             }
+            if (scintilla.FirstVisibleLine != 0)
+            {
+                //This 'hack' is used in order to save the position of the scrollbar
+                //when the docking has changed, in order to recreate the document
+                //with the previous scrollbar position.
+                //When the docking state changes, the first visible line in scintilla
+                //changes to 0, before we have a chance of saving it, and use it
+                //to recreate the scrollbar position.
+                //The only scenario in which this will not work is if the scrollbar position
+                //really was 0, but then the user could simply press Ctrl+Home and fix this easily.
+                _firstVisibleLine = scintilla.FirstVisibleLine;
+            }            
         }
 
         private void scintilla_TextModified(int startPos, int length, bool wasAdded)

@@ -94,6 +94,10 @@ namespace AGS.Editor
                 document.Control.Text = document.Name;
             }
             RefreshWindowsMenu();
+            if (ActiveDocument != null)
+            {
+                ActiveDocument.Control.Refresh();
+            }
         }
 
         private void RefreshWindowsMenu()

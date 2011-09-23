@@ -63,7 +63,7 @@ namespace AGS.Editor.Components
             {
                 editor.MovedFromDocument = false;
                 ReInitializeScriptEditor(editor);
-            }
+            }            
         }
 
         protected void UpdateScriptWindowTitle(ScriptEditor editor)
@@ -82,7 +82,8 @@ namespace AGS.Editor.Components
         {
             Script script = editor.Script;
             string modifiedText = editor.ModifiedText;
-            if (modifiedText.Equals(script.Text))
+            if (modifiedText != null && 
+                modifiedText.Equals(script.Text))
             {
                 modifiedText = null;
             }

@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="agsflashlight"
+	Name="AGSflashlight"
 	ProjectGUID="{0FB87A8E-631A-4E84-B822-1A23755E4393}"
-	RootNamespace="agsflashlight"
+	RootNamespace="AGSflashlight"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>

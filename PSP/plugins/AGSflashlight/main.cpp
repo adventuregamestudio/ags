@@ -258,67 +258,79 @@ void DrawDarkness()
 
   calc_x_n(color);
 
-  // Top.
-  if (g_FlashlightY > -1)
+  if (g_DarknessSize == 0)
   {
-    currentpixel = destpixel;
-    for (y = 0; y < g_FlashlightY; y++)
+    // Whole screen.
+    for (x = 0; x < screen_width * screen_height; x++)
     {
-      for (x = 0; x < screen_width; x++)
-      {
-        *currentpixel = (unsigned short)_blender_alpha16_bgr(*currentpixel);
-        currentpixel++;
-      }
+      *destpixel = (unsigned short)_blender_alpha16_bgr(*destpixel);
+      destpixel++;
     }
   }
-
-  // Bottom.
-  if (g_FlashlightY + g_DarknessDiameter < screen_height)
+  else
   {
-    currentpixel = destpixel + (g_FlashlightY + g_DarknessDiameter) * screen_width;
-    for (y = g_FlashlightY + g_DarknessDiameter; y < screen_height; y++)
+    // Top.
+    if (g_FlashlightY > -1)
     {
-      for (x = 0; x < screen_width; x++)
+      currentpixel = destpixel;
+      for (y = 0; y < g_FlashlightY; y++)
       {
-        *currentpixel = (unsigned short)_blender_alpha16_bgr(*currentpixel);
-        currentpixel++;
+        for (x = 0; x < screen_width; x++)
+        {
+          *currentpixel = (unsigned short)_blender_alpha16_bgr(*currentpixel);
+          currentpixel++;
+        }
       }
     }
-  }
 
-  // Left.
-  if (g_FlashlightX > 0)
-  {
-    currentpixel = destpixel;
-    int startpoint = (g_FlashlightY > 0) ? g_FlashlightY : 0;
-    int endpoint = (g_FlashlightY + g_DarknessDiameter >= screen_height) ? screen_height + 1 : g_FlashlightY + g_DarknessDiameter + 1;
-    for (y = startpoint; y < endpoint; y++)
+    // Bottom.
+    if (g_FlashlightY + g_DarknessDiameter < screen_height)
     {
-      for (x = 0; x < g_FlashlightX; x++)
+      currentpixel = destpixel + (g_FlashlightY + g_DarknessDiameter) * screen_width;
+      for (y = g_FlashlightY + g_DarknessDiameter; y < screen_height; y++)
       {
-        *currentpixel = (unsigned short)_blender_alpha16_bgr(*currentpixel);
-        currentpixel++;
+        for (x = 0; x < screen_width; x++)
+        {
+          *currentpixel = (unsigned short)_blender_alpha16_bgr(*currentpixel);
+          currentpixel++;
+        }
       }
-
-      currentpixel = destpixel + screen_width * y;
     }
-  }
 
-  // Right.
-  if (g_FlashlightX + g_DarknessDiameter < screen_width)
-  {
-    currentpixel = destpixel + (g_FlashlightX + g_DarknessDiameter);
-    int startpoint = (g_FlashlightY > 0) ? g_FlashlightY : 0;
-    int endpoint = (g_FlashlightY + g_DarknessDiameter >= screen_height) ? screen_height + 1 : g_FlashlightY + g_DarknessDiameter + 1;
-    for (y = startpoint; y < endpoint; y++)
+    // Left.
+    if (g_FlashlightX > 0)
     {
-      for (x = g_FlashlightX + g_DarknessDiameter; x < screen_width; x++)
+      currentpixel = destpixel;
+      int startpoint = (g_FlashlightY > 0) ? g_FlashlightY : 0;
+      int endpoint = (g_FlashlightY + g_DarknessDiameter >= screen_height) ? screen_height + 1 : g_FlashlightY + g_DarknessDiameter + 1;
+      for (y = startpoint; y < endpoint; y++)
       {
-        *currentpixel = (unsigned short)_blender_alpha16_bgr(*currentpixel);
-        currentpixel++;
-      }
+        for (x = 0; x < g_FlashlightX; x++)
+        {
+          *currentpixel = (unsigned short)_blender_alpha16_bgr(*currentpixel);
+          currentpixel++;
+        }
 
-      currentpixel = destpixel + screen_width * y + (g_FlashlightX + g_DarknessDiameter);
+        currentpixel = destpixel + screen_width * y;
+      }
+    }
+
+    // Right.
+    if (g_FlashlightX + g_DarknessDiameter < screen_width)
+    {
+      currentpixel = destpixel + (g_FlashlightX + g_DarknessDiameter);
+      int startpoint = (g_FlashlightY > 0) ? g_FlashlightY : 0;
+      int endpoint = (g_FlashlightY + g_DarknessDiameter >= screen_height) ? screen_height + 1 : g_FlashlightY + g_DarknessDiameter + 1;
+      for (y = startpoint; y < endpoint; y++)
+      {
+        for (x = g_FlashlightX + g_DarknessDiameter; x < screen_width; x++)
+        {
+          *currentpixel = (unsigned short)_blender_alpha16_bgr(*currentpixel);
+          currentpixel++;
+        }
+
+        currentpixel = destpixel + screen_width * y + (g_FlashlightX + g_DarknessDiameter);
+      }
     }
   }
 
@@ -328,6 +340,9 @@ void DrawDarkness()
 
 void CreateLightBitmap()
 {
+  if (g_DarknessSize == 0)
+    return;
+
   if (g_LightBitmap)
     engine->FreeBitmap(g_LightBitmap);
 
@@ -442,7 +457,8 @@ void CreateLightBitmap()
    if (g_DarknessSize > 0)
      AlphaBlendBitmap();
 
-   DrawDarkness();
+   if (g_DarknessLightLevel != 100)
+     DrawDarkness();
 
    engine->MarkRegionDirty(0, 0, screen_width, screen_height);
 }
@@ -594,6 +610,9 @@ void SetFlashlightDarkness(int LightLevel)
   {
     g_BitmapMustBeUpdated = true;
     g_DarknessLightLevel = LightLevel;
+
+    if (g_DarknessLightLevel > g_BrightnessLightLevel)
+      g_BrightnessLightLevel = g_DarknessLightLevel;
   }
 }
 
@@ -626,6 +645,9 @@ void SetFlashlightBrightness(int LightLevel)
   {
     g_BitmapMustBeUpdated = true;
     g_BrightnessLightLevel = LightLevel;
+
+    if (g_BrightnessLightLevel < g_DarknessLightLevel)
+      g_DarknessLightLevel = g_BrightnessLightLevel;
   }
 }
 

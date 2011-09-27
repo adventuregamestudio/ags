@@ -1,4 +1,4 @@
-TARGET = agsflashlight
+TARGET = AGSflashlight
 OBJS = psp.o main.o
 
 BUILD_PRX = 1

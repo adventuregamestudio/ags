@@ -1,0 +1,825 @@
+/*
+
+This is not the AGS Flashlight plugin,
+but a workalike plugin created by JJS for the AGS engine PSP port.
+
+*/
+
+#ifdef WIN32
+#define WINDOWS_VERSION
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#pragma warning(disable : 4244)
+#endif
+
+#define THIS_IS_THE_PLUGIN
+#include "../../../Common/agsplugin.h"
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+
+#ifdef PSP_VERSION
+#include <pspsdk.h>
+#include <pspmath.h>
+#include <pspdisplay.h>
+#define sin(x) vfpu_sinf(x)
+inline unsigned long _blender_alpha16_bgr(unsigned long y) __attribute__((always_inline));
+inline void calc_x_n(unsigned long bla) __attribute__((always_inline));
+#endif
+
+const unsigned int Magic = 0xBABE0000;
+const unsigned int Version = 1;
+const unsigned int SaveMagic = Magic + Version;
+const float PI = 3.14159265f;
+
+long int screen_width = 320;
+long int screen_height = 200;
+long int screen_color_depth = 16;
+
+IAGSEngine* engine;
+
+bool g_BitmapMustBeUpdated = true;
+
+int g_RedTint = 0;
+int g_GreenTint = 0;
+int g_BlueTint = 0;
+
+int g_DarknessLightLevel = 0;
+int g_BrightnessLightLevel = 0;
+int g_DarknessSize = 0;
+int g_DarknessDiameter = 0;
+int g_BrightnessSize = 0;
+
+int g_FlashlightX = 0;
+int g_FlashlightY = 0;
+
+bool g_FlashlightFollowMouse = false;
+
+int g_FollowCharacterId = 0;
+int g_FollowCharacterDx = 0;
+int g_FollowCharacterDy = 0;
+int g_FollowCharacterHorz = 0;
+int g_FollowCharacterVert = 0;
+
+AGSCharacter* g_FollowCharacter = NULL;
+
+BITMAP* g_LightBitmap = NULL;
+
+
+// This function is from Allegro, split for more performance.
+
+/* _blender_alpha16_bgr
+ *  Combines a 32 bit RGBA sprite with a 16 bit RGB destination, optimised
+ *  for when one pixel is in an RGB layout and the other is BGR.
+ */
+
+unsigned long x, n;
+
+inline void calc_x_n(unsigned long _x)
+{
+  x = _x;
+
+  n = x >> 24;
+
+  if (n)
+    n = (n + 1) / 8;
+
+  x = ((x>>19)&0x001F) | ((x>>5)&0x07E0) | ((x<<8)&0xF800);
+
+  x = (x | (x << 16)) & 0x7E0F81F;
+}
+
+
+inline unsigned long _blender_alpha16_bgr(unsigned long y)
+{
+   unsigned long result;
+
+   y = ((y & 0xFFFF) | (y << 16)) & 0x7E0F81F;
+
+   result = ((x - y) * n / 32 + y) & 0x7E0F81F;
+
+   return ((result & 0xFFFF) | (result >> 16));
+}
+
+
+
+inline void setPixel(int x, int y, int color, unsigned int* pixel)
+{
+  if ((x >= g_DarknessDiameter) || (y >= g_DarknessDiameter) || (x < 0) || (y < 0))
+    return;
+
+  *(pixel + (y * g_DarknessDiameter) + x) = color;
+}
+
+
+void plotCircle(int xm, int ym, int r, unsigned int color)
+{
+  unsigned int* pixel = *(unsigned int**)engine->GetRawBitmapSurface(g_LightBitmap);
+
+  int x = -r;
+  int y = 0;
+  int err = 2 - 2 * r;
+
+  do 
+  {
+    setPixel(xm - x, ym + y, color, pixel); //   I. Quadrant 
+    setPixel(xm - x - 1, ym + y, color, pixel);
+
+    setPixel(xm - y, ym - x, color, pixel); // II. Quadrant
+    setPixel(xm - y, ym - x - 1, color, pixel);
+
+    setPixel(xm + x, ym - y, color, pixel); // III. Quadrant
+    setPixel(xm + x + 1, ym - y, color, pixel);
+
+    setPixel(xm + y, ym + x, color, pixel); //  IV. Quadrant
+    setPixel(xm + y, ym + x + 1, color, pixel);
+
+    r = err;
+    if (r > x) 
+      err +=  ++x * 2 + 1;
+
+    if (r <= y)
+      err +=  ++y * 2 + 1;
+  }
+  while (x < 0);
+
+  engine->ReleaseBitmapSurface(g_LightBitmap);
+}
+
+
+void ClipToRange(int &variable, int min, int max)
+{
+  if (variable < min)
+    variable = min;
+  
+  if (variable > max)
+    variable = max;
+}
+
+
+void AlphaBlendBitmap()
+{
+  unsigned short* destpixel = *(unsigned short**)engine->GetRawBitmapSurface(engine->GetVirtualScreen());
+  unsigned int* sourcepixel = *(unsigned int**)engine->GetRawBitmapSurface(g_LightBitmap);
+
+  unsigned short* currentdestpixel = destpixel;
+  unsigned int* currentsourcepixel = sourcepixel;
+
+  int x, y;
+
+  int targetX = (g_FlashlightX > -1) ? g_FlashlightX : 0;
+  int targetY = (g_FlashlightY > -1) ? g_FlashlightY : 0;
+
+  int startX = (g_FlashlightX < 0) ? -1 * g_FlashlightX : 0;
+  int endX = (g_FlashlightX + g_DarknessDiameter < screen_width) ? g_DarknessDiameter : g_DarknessDiameter - ((g_FlashlightX + g_DarknessDiameter) - screen_width);
+
+  int startY = (g_FlashlightY < 0) ? -1 * g_FlashlightY : 0;
+  int endY = (g_FlashlightY + g_DarknessDiameter < screen_height) ? g_DarknessDiameter :  g_DarknessDiameter - ((g_FlashlightY + g_DarknessDiameter) - screen_height);
+
+  for (y = 0; y < endY - startY; y++)
+  {
+    currentdestpixel = destpixel + (y + targetY) * screen_width + targetX;
+    currentsourcepixel = sourcepixel + (y + startY) * g_DarknessDiameter + startX;
+
+    for (x = 0; x < endX - startX; x++)
+    {
+      calc_x_n(*currentsourcepixel);
+      *currentdestpixel = (unsigned short)_blender_alpha16_bgr(*currentdestpixel);
+
+      currentdestpixel++;
+      currentsourcepixel++;
+    }
+  }
+  
+  engine->ReleaseBitmapSurface(engine->GetVirtualScreen());
+  engine->ReleaseBitmapSurface(g_LightBitmap);
+}
+
+
+void DrawTint()
+{
+  int x, y;
+  BITMAP* screen = engine->GetVirtualScreen();
+  unsigned short* destpixel = *(unsigned short**)engine->GetRawBitmapSurface(screen);
+
+  long red, blue, green, alpha;
+
+  for (y = 0; y < screen_height; y++)
+  {
+    for (x = 0; x < screen_width; x++)
+    {
+      engine->GetRawColorComponents(16, *destpixel, &red, &green, &blue, &alpha);
+
+      if (g_RedTint != 0)
+      {
+        red += g_RedTint * 8;
+        if (red > 255)
+          red = 255;
+        else if (red < 0)
+          red = 0;
+      }
+
+      if (g_BlueTint != 0)
+      {
+        blue += g_BlueTint * 8;
+        if (blue > 255)
+          blue = 255;
+        else if (blue < 0)
+          blue = 0;
+      }
+
+      if (g_GreenTint != 0)
+      {
+        green += g_GreenTint * 8;
+        if (green > 255)
+          green = 255;
+        else if (green < 0)
+          green = 0;
+      }
+
+      *destpixel = engine->MakeRawColorPixel(16, red, green, blue, alpha);
+      destpixel++;
+    }
+  }
+
+  engine->ReleaseBitmapSurface(screen);
+}
+
+
+void DrawDarkness()
+{
+  int x, y;
+  unsigned int color = (255 - (int)((float)g_DarknessLightLevel * 2.55f)) << 24;
+  BITMAP* screen = engine->GetVirtualScreen();
+  unsigned short* destpixel = *(unsigned short**)engine->GetRawBitmapSurface(screen);
+  unsigned short* currentpixel;
+
+  calc_x_n(color);
+
+  // Top.
+  if (g_FlashlightY > -1)
+  {
+    currentpixel = destpixel;
+    for (y = 0; y < g_FlashlightY; y++)
+    {
+      for (x = 0; x < screen_width; x++)
+      {
+        *currentpixel = (unsigned short)_blender_alpha16_bgr(*currentpixel);
+        currentpixel++;
+      }
+    }
+  }
+
+  // Bottom.
+  if (g_FlashlightY + g_DarknessDiameter < screen_height)
+  {
+    currentpixel = destpixel + (g_FlashlightY + g_DarknessDiameter) * screen_width;
+    for (y = g_FlashlightY + g_DarknessDiameter; y < screen_height; y++)
+    {
+      for (x = 0; x < screen_width; x++)
+      {
+        *currentpixel = (unsigned short)_blender_alpha16_bgr(*currentpixel);
+        currentpixel++;
+      }
+    }
+  }
+
+  // Left.
+  if (g_FlashlightX > 0)
+  {
+    currentpixel = destpixel;
+    int startpoint = (g_FlashlightY > 0) ? g_FlashlightY : 0;
+    int endpoint = (g_FlashlightY + g_DarknessDiameter >= screen_height) ? screen_height + 1 : g_FlashlightY + g_DarknessDiameter + 1;
+    for (y = startpoint; y < endpoint; y++)
+    {
+      for (x = 0; x < g_FlashlightX; x++)
+      {
+        *currentpixel = (unsigned short)_blender_alpha16_bgr(*currentpixel);
+        currentpixel++;
+      }
+
+      currentpixel = destpixel + screen_width * y;
+    }
+  }
+
+  // Right.
+  if (g_FlashlightX + g_DarknessDiameter < screen_width)
+  {
+    currentpixel = destpixel + (g_FlashlightX + g_DarknessDiameter);
+    int startpoint = (g_FlashlightY > 0) ? g_FlashlightY : 0;
+    int endpoint = (g_FlashlightY + g_DarknessDiameter >= screen_height) ? screen_height + 1 : g_FlashlightY + g_DarknessDiameter + 1;
+    for (y = startpoint; y < endpoint; y++)
+    {
+      for (x = g_FlashlightX + g_DarknessDiameter; x < screen_width; x++)
+      {
+        *currentpixel = (unsigned short)_blender_alpha16_bgr(*currentpixel);
+        currentpixel++;
+      }
+
+      currentpixel = destpixel + screen_width * y + (g_FlashlightX + g_DarknessDiameter);
+    }
+  }
+
+  engine->ReleaseBitmapSurface(screen);
+}
+
+
+void CreateLightBitmap()
+{
+  if (g_LightBitmap)
+    engine->FreeBitmap(g_LightBitmap);
+
+  g_LightBitmap = engine->CreateBlankBitmap(g_DarknessDiameter, g_DarknessDiameter, 32);
+
+  // Fill with darkness color.
+  unsigned int color = (255 - (int)((float)g_DarknessLightLevel * 2.55f)) << 24;
+  unsigned int* pixel = *(unsigned int**)engine->GetRawBitmapSurface(g_LightBitmap);
+
+  int i;
+  for (i = 0; i < g_DarknessDiameter * g_DarknessDiameter; i++)
+    *pixel++ = (unsigned int)color;
+
+  // Draw light circle if wanted.
+  if (g_DarknessSize > 0)
+  {
+    int current_value = 0;
+    color = (255 - (int)((float)g_BrightnessLightLevel * 2.55f));
+    unsigned int targetcolor = ((255 - (int)((float)g_DarknessLightLevel * 2.55f)));
+
+    int increment = (targetcolor - color) / (g_DarknessSize - g_BrightnessSize);
+    float perfect_increment = (float)(targetcolor - color) / (float)(g_DarknessSize - g_BrightnessSize);
+
+    float error_term;
+
+    for (i = g_BrightnessSize; i < g_DarknessSize; i++)
+    {
+      error_term = (perfect_increment * (i - g_BrightnessSize)) - current_value;
+
+      if (error_term >= 1.0f)
+        increment++;
+      else if (error_term <= -1.0f)
+        increment--;
+
+      current_value += increment;
+
+      if (current_value > targetcolor)
+        current_value = targetcolor;
+
+      plotCircle(g_DarknessSize, g_DarknessSize, i, (current_value << 24) + color);
+    }
+  }
+  
+  // Draw inner fully lit circle.
+  if (g_BrightnessSize > 0)
+  {
+    color = (255 - (int)((float)g_BrightnessLightLevel * 2.55f)) << 24;
+
+    for (i = 0; i < g_BrightnessSize; i++)
+      plotCircle(g_DarknessSize, g_DarknessSize, i, color);
+  }
+
+  engine->ReleaseBitmapSurface(g_LightBitmap);
+}
+
+
+ void Update()
+ {
+   if (g_BitmapMustBeUpdated)
+   {
+     CreateLightBitmap();
+     g_BitmapMustBeUpdated = false;
+   }
+
+   if (g_FlashlightFollowMouse)
+   {
+	   engine->GetMousePosition((long int*)&g_FlashlightX, (long int*)&g_FlashlightY);
+   }
+   else if (g_FollowCharacter != NULL)
+   {
+     g_FlashlightX = g_FollowCharacter->x + g_FollowCharacterDx;
+     g_FlashlightY = g_FollowCharacter->y + g_FollowCharacterDy;
+
+	   if ((g_FollowCharacterHorz != 0) || (g_FollowCharacterVert != 0))
+	   {
+	     switch (g_FollowCharacter->loop)
+	     {
+	       // Down
+	       case 0:
+		     case 4:
+		     case 6:
+		       g_FlashlightY += g_FollowCharacterVert;
+		       break;
+  		 
+		     // Up
+		     case 3:
+		     case 5:
+		     case 7:
+		       g_FlashlightY -= g_FollowCharacterVert;
+		       break;
+  		 
+		     // Left
+		     case 1:
+		       g_FlashlightX -= g_FollowCharacterHorz;
+		       break;
+
+		     // Right:
+		     case 2:
+		       g_FlashlightX += g_FollowCharacterHorz;
+		       break;
+	     }	   
+	   }
+   }
+
+   g_FlashlightX -= g_DarknessSize;
+   g_FlashlightY -= g_DarknessSize;
+
+
+   if ((g_GreenTint != 0) || (g_RedTint != 0) || (g_BlueTint != 0))
+     DrawTint();
+
+   if (g_DarknessSize > 0)
+     AlphaBlendBitmap();
+
+   DrawDarkness();
+
+   engine->MarkRegionDirty(0, 0, screen_width, screen_height);
+}
+
+
+void RestoreGame(FILE* file)
+{
+  unsigned int Position = ftell(file);
+  unsigned int DataSize;
+
+  unsigned int SaveVersion = 0;
+  fread(&SaveVersion, 4, 1, file);
+
+  if (SaveVersion == SaveMagic)
+  {
+    fread(&DataSize, 4, 1, file);
+
+    // Current version
+    fread(&g_RedTint, 4, 1, file);
+    fread(&g_GreenTint, 4, 1, file);
+    fread(&g_BlueTint, 4, 1, file);
+
+    fread(&g_DarknessLightLevel, 4, 1, file);
+    fread(&g_BrightnessLightLevel, 4, 1, file);
+    fread(&g_DarknessSize, 4, 1, file);
+    fread(&g_DarknessDiameter, 4, 1, file);
+    fread(&g_BrightnessSize, 4, 1, file);
+
+    fread(&g_FlashlightX, 4, 1, file);
+    fread(&g_FlashlightY, 4, 1, file);
+
+    fread(&g_FlashlightFollowMouse, 4, 1, file);
+
+    fread(&g_FollowCharacterId, 4, 1, file);
+    fread(&g_FollowCharacterDx, 4, 1, file);
+    fread(&g_FollowCharacterDy, 4, 1, file);
+    fread(&g_FollowCharacterHorz, 4, 1, file);
+    fread(&g_FollowCharacterVert, 4, 1, file);
+    
+    if (g_FollowCharacterId != 0)
+      g_FollowCharacter = engine->GetCharacter(g_FollowCharacterId);
+
+    g_BitmapMustBeUpdated = true;
+  }
+  else if ((SaveVersion & 0xFFFF0000) == Magic)
+  {
+    // Unsupported version, skip it
+    DataSize = 0;
+    fread(&DataSize, 4, 1, file);
+
+    fseek(file, Position + DataSize - 8, SEEK_SET);
+  }
+  else
+  {
+    // Unknown data, loading might fail but we cannot help it
+    fseek(file, Position, SEEK_SET);
+  }
+}
+
+
+void SaveGame(FILE* file)
+{
+  unsigned int StartPosition = ftell(file);
+
+  fwrite(&SaveMagic, 4, 1, file);
+  fwrite(&StartPosition, 4, 1, file); // Update later with the correct size
+
+  fwrite(&g_RedTint, 4, 1, file);
+  fwrite(&g_GreenTint, 4, 1, file);
+  fwrite(&g_BlueTint, 4, 1, file);
+
+  fwrite(&g_DarknessLightLevel, 4, 1, file);
+  fwrite(&g_BrightnessLightLevel, 4, 1, file);
+  fwrite(&g_DarknessSize, 4, 1, file);
+  fwrite(&g_DarknessDiameter, 4, 1, file);
+  fwrite(&g_BrightnessSize, 4, 1, file);
+
+  fwrite(&g_FlashlightX, 4, 1, file);
+  fwrite(&g_FlashlightY, 4, 1, file);
+
+  fwrite(&g_FlashlightFollowMouse, 4, 1, file);
+
+  fwrite(&g_FollowCharacterId, 4, 1, file);
+  fwrite(&g_FollowCharacterDx, 4, 1, file);
+  fwrite(&g_FollowCharacterDy, 4, 1, file);
+  fwrite(&g_FollowCharacterHorz, 4, 1, file);
+  fwrite(&g_FollowCharacterVert, 4, 1, file);
+
+  unsigned int EndPosition = ftell(file);
+  unsigned int SaveSize = EndPosition - StartPosition;
+  fseek(file, StartPosition + 4, SEEK_SET);
+  fwrite(&SaveSize, 4, 1, file);
+
+  fseek(file, EndPosition, SEEK_SET);
+}
+
+
+// ********************************************
+// ************  AGS Interface  ***************
+// ********************************************
+
+
+
+// tint screen
+void SetFlashlightTint(int RedTint, int GreenTint, int BlueTint)
+{
+  ClipToRange(RedTint, -31, 31);
+  ClipToRange(GreenTint, -31, 31);
+  ClipToRange(BlueTint, -31, 31);
+
+  if ((RedTint != g_RedTint) || (GreenTint != g_GreenTint) || (BlueTint != g_BlueTint))
+    g_BitmapMustBeUpdated = true;
+
+  g_RedTint = RedTint;
+  g_GreenTint = GreenTint;
+  g_BlueTint = BlueTint;
+}
+
+int GetFlashlightTintRed()
+{
+  return g_RedTint;
+}
+
+int GetFlashlightTintGreen()
+{
+  return g_GreenTint;
+}
+
+int GetFlashlightTintBlue()
+{
+  return g_BlueTint;
+}
+
+int GetFlashlightMinLightLevel()
+{
+  return 0;
+}
+
+int GetFlashlightMaxLightLevel()
+{
+  return 100;
+}
+
+void SetFlashlightDarkness(int LightLevel)
+{
+  ClipToRange(LightLevel, 0, 100);
+
+  if (LightLevel != g_DarknessLightLevel)
+  {
+    g_BitmapMustBeUpdated = true;
+    g_DarknessLightLevel = LightLevel;
+  }
+}
+
+int GetFlashlightDarkness()
+{
+  return g_DarknessLightLevel;
+}
+
+void SetFlashlightDarknessSize(int Size)
+{
+  if (Size != g_DarknessSize)
+  {
+    g_BitmapMustBeUpdated = true;
+    g_DarknessSize = Size;
+    g_DarknessDiameter = g_DarknessSize * 2;
+  }
+}
+
+int GetFlashlightDarknessSize()
+{
+  return g_DarknessSize;
+}
+
+
+void SetFlashlightBrightness(int LightLevel)
+{
+  ClipToRange(LightLevel, 0, 100);
+
+  if (LightLevel != g_BrightnessLightLevel)
+  {
+    g_BitmapMustBeUpdated = true;
+    g_BrightnessLightLevel = LightLevel;
+  }
+}
+
+int GetFlashlightBrightness()
+{
+  return g_BrightnessLightLevel;
+}
+
+void SetFlashlightBrightnessSize(int Size)
+{
+  if (Size != g_BrightnessSize)
+    g_BitmapMustBeUpdated = true;
+
+  g_BrightnessSize = Size;
+}
+
+int GetFlashlightBrightnessSize()
+{
+  return g_BrightnessSize;
+}
+
+void SetFlashlightPosition(int X, int Y)
+{
+  g_FlashlightX = X;
+  g_FlashlightY = Y;
+}
+
+int GetFlashlightPositionX()
+{
+  return g_FlashlightX;
+}
+
+int GetFlashlightPositionY()
+{
+  return g_FlashlightY;
+}
+
+void SetFlashlightFollowMouse(int OnOff)
+{
+  g_FlashlightFollowMouse = (OnOff != 0);
+}
+
+int GetFlashlightFollowMouse()
+{
+  return g_FlashlightFollowMouse ? 1 : 0;
+}
+
+void SetFlashlightFollowCharacter(int CharacterId, int dx, int dy, int horz, int vert)
+{
+  g_FollowCharacterId = CharacterId;
+  g_FollowCharacterDx = dx;
+  g_FollowCharacterDy = dy;
+  g_FollowCharacterHorz = horz;
+  g_FollowCharacterVert = vert;
+  
+  g_FollowCharacter = engine->GetCharacter(CharacterId);
+}
+
+int GetFlashlightFollowCharacter()
+{
+  return g_FollowCharacterId;
+}
+
+int GetFlashlightCharacterDX()
+{
+  return g_FollowCharacterDx;
+}
+
+int GetFlashlightCharacterDY()
+{
+  return g_FollowCharacterDy;
+}
+
+int GetFlashlightCharacterHorz()
+{
+  return g_FollowCharacterHorz;
+}
+
+int GetFlashlightCharacterVert()
+{
+  return g_FollowCharacterVert;
+}
+
+void SetFlashlightMask(int SpriteSlot)
+{
+  // Not implemented.
+}
+
+int GetFlashlightMask()
+{
+  return 0;
+}
+
+
+void AGS_EngineStartup(IAGSEngine *lpEngine)
+{
+  engine = lpEngine;
+  
+  if (engine->version < 13) 
+    engine->AbortGame("Engine interface is too old, need newer version of AGS.");
+
+  engine->RegisterScriptFunction("SetFlashlightTint", (void*)&SetFlashlightTint);
+  engine->RegisterScriptFunction("GetFlashlightTintRed", (void*)&GetFlashlightTintRed);
+  engine->RegisterScriptFunction("GetFlashlightTintGreen", (void*)&GetFlashlightTintGreen);
+  engine->RegisterScriptFunction("GetFlashlightTintBlue", (void*)&GetFlashlightTintBlue);
+
+  engine->RegisterScriptFunction("GetFlashlightMinLightLevel", (void*)&GetFlashlightMinLightLevel);
+  engine->RegisterScriptFunction("GetFlashlightMaxLightLevel", (void*)&GetFlashlightMaxLightLevel);
+
+  engine->RegisterScriptFunction("SetFlashlightDarkness", (void*)&SetFlashlightDarkness);
+  engine->RegisterScriptFunction("GetFlashlightDarkness", (void*)&GetFlashlightDarkness);
+  engine->RegisterScriptFunction("SetFlashlightDarknessSize", (void*)&SetFlashlightDarknessSize);
+  engine->RegisterScriptFunction("GetFlashlightDarknessSize", (void*)&GetFlashlightDarknessSize);
+
+  engine->RegisterScriptFunction("SetFlashlightBrightness", (void*)&SetFlashlightBrightness);
+  engine->RegisterScriptFunction("GetFlashlightBrightness", (void*)&GetFlashlightBrightness);
+  engine->RegisterScriptFunction("SetFlashlightBrightnessSize", (void*)&SetFlashlightBrightnessSize);
+  engine->RegisterScriptFunction("GetFlashlightBrightnessSize", (void*)&GetFlashlightBrightnessSize);
+
+  engine->RegisterScriptFunction("SetFlashlightPosition", (void*)&SetFlashlightPosition);
+  engine->RegisterScriptFunction("GetFlashlightPositionX", (void*)&GetFlashlightPositionX);
+  engine->RegisterScriptFunction("GetFlashlightPositionY", (void*)&GetFlashlightPositionY);
+
+
+  engine->RegisterScriptFunction("SetFlashlightFollowMouse", (void*)&SetFlashlightFollowMouse);
+  engine->RegisterScriptFunction("GetFlashlightFollowMouse", (void*)&GetFlashlightFollowMouse);
+
+  engine->RegisterScriptFunction("SetFlashlightFollowCharacter", (void*)&SetFlashlightFollowCharacter);  
+  engine->RegisterScriptFunction("GetFlashlightFollowCharacter", (void*)&GetFlashlightFollowCharacter);
+  engine->RegisterScriptFunction("GetFlashlightCharacterDX", (void*)&GetFlashlightCharacterDX);
+  engine->RegisterScriptFunction("GetFlashlightCharacterDY", (void*)&GetFlashlightCharacterDY);
+  engine->RegisterScriptFunction("GetFlashlightCharacterHorz", (void*)&GetFlashlightCharacterHorz);  
+  engine->RegisterScriptFunction("GetFlashlightCharacterVert", (void*)&GetFlashlightCharacterVert);
+
+  engine->RegisterScriptFunction("SetFlashlightMask", (void*)&SetFlashlightMask);
+  engine->RegisterScriptFunction("GetFlashlightMask", (void*)&GetFlashlightMask);
+  
+  engine->RequestEventHook(AGSE_PREGUIDRAW);
+  engine->RequestEventHook(AGSE_PRESCREENDRAW);
+
+#if defined(PSP_VERSION)
+  engine->RequestEventHook(AGSE_SAVEGAME);
+  engine->RequestEventHook(AGSE_RESTOREGAME);
+#endif
+}
+
+void AGS_EngineShutdown()
+{
+
+}
+
+int AGS_EngineOnEvent(int event, int data)
+{
+  if (event == AGSE_PREGUIDRAW)
+  {
+    Update();
+  }
+#if defined(PSP_VERSION)
+  else if (event == AGSE_RESTOREGAME)
+  {
+    RestoreGame((FILE*)data);
+  }
+  else if (event == AGSE_SAVEGAME)
+  {
+    SaveGame((FILE*)data);
+  }
+#endif
+  else if (event == AGSE_PRESCREENDRAW)
+  {
+    // Get screen size once here.
+    engine->GetScreenDimensions(&screen_width, &screen_height, &screen_color_depth);
+    engine->UnrequestEventHook(AGSE_PRESCREENDRAW);
+
+    // Only 16 bit color depth is supported.
+    if (screen_color_depth != 16)
+    {
+      engine->UnrequestEventHook(AGSE_PREGUIDRAW);
+      engine->UnrequestEventHook(AGSE_PRESCREENDRAW);
+
+#if defined(PSP_VERSION)
+      engine->UnrequestEventHook(AGSE_SAVEGAME);
+      engine->UnrequestEventHook(AGSE_RESTOREGAME);
+#endif
+    }
+  }
+
+  return 0;
+}
+
+int AGS_EngineDebugHook(const char *scriptName, int lineNum, int reserved)
+{
+  return 0;
+}
+
+void AGS_EngineInitGfx(const char *driverID, void *data)
+{
+}

@@ -46,8 +46,8 @@ int g_RedTint = 0;
 int g_GreenTint = 0;
 int g_BlueTint = 0;
 
-int g_DarknessLightLevel = 0;
-int g_BrightnessLightLevel = 0;
+int g_DarknessLightLevel = 100;
+int g_BrightnessLightLevel = 100;
 int g_DarknessSize = 0;
 int g_DarknessDiameter = 0;
 int g_BrightnessSize = 0;

@@ -22293,12 +22293,8 @@ int run_dialog_script(DialogTopic*dtpp, int dialogID, int offse, int optionIndex
 
         case DCMD_RUNTEXTSCRIPT:
           get_dialog_script_parameters(script, &param1, NULL);
-          new_topic = run_dialog_request(param1);
-          if (new_topic > -1)
-          {
-            result = new_topic;
-            script_running = false;
-          }
+          result = run_dialog_request(param1);
+          script_running = (result == RUN_DIALOG_STAY);
           break;
 
         case DCMD_GOTODIALOG:

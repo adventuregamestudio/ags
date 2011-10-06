@@ -13207,6 +13207,10 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
   break_up_text_into_lines(wii-6,usingfont,todis);
   texthit = wgetfontheight(usingfont);
 
+  // AGS 2.x: If the screen is faded out, fade in again when displaying a message box.
+  if (!asspch && (loaded_game_file_version <= 32))
+    play.screen_is_faded_out = 0;
+
   // if it's a normal message box and the game was being skipped,
   // ensure that the screen is up to date before the message box
   // is drawn on top of it

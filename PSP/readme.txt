@@ -1,4 +1,4 @@
-Adventure Game Studio runtime PSP port - version 3.21 R6
+Adventure Game Studio runtime PSP port - version 3.21 R7
 --------------------------------------------------------
 
 Licensed under the Artistic License 2.0, see License.txt in the Engine folder.
@@ -58,9 +58,7 @@ Playable with restrictions:
   to the left.
 - The Journey Down: The outro sequence will run with a very low frame rate.
 - Aeronuts: The plane arcade sections are slow but playable.
-- Ben Jordan series: When entering a room, the character might face the wrong direction.
-- Murder in a Wheel: Characters can have the wrong animation frame set, text display
-  is partially corrupted and the mouse cursor is invisible during the first dialog.
+- Murder in a Wheel: Text display is partially corrupted.
 - 5 days a stranger, 7 days a sceptic, etc.: Only the special editions of these games
   are playable on the PSP. The original releases use an older incompatible engine version.
 

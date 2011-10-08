@@ -670,28 +670,60 @@ void Character_FaceLocation(CharacterInfo *char1, int xx, int yy, int blockingSt
     highestLoopForTurning = 7;
   }
 
-  if (hasUpDownLoops(char1) == 0)
-    wanthoriz = 1;
-  else if (abs(diffry) < abs(diffrx))
-    wanthoriz = 1;
+  // Use a different logic on 2.x. This fixes some edge cases where
+  // FaceLocation() is used to select a specific loop.
+  if (loaded_game_file_version <= 32)
+  {
+    bool can_right = (views[char1->view].loops[2].numFrames > 0);
+    bool can_left = (views[char1->view].loops[0].numFrames > 0);
 
-  if ((wanthoriz==1) && (diffrx > 0)) {
-    useloop=2;
-    CHECK_DIAGONAL(diffry, diffrx, 5, 4)
+    if (abs(diffry) < abs(diffrx))
+    {
+      if (can_right && (diffrx >= 0)) {
+        useloop=2;
+        CHECK_DIAGONAL(diffry, diffrx, 5, 4)
+      }
+      else if (can_left && (diffrx < 0)) {
+        useloop=1;
+        CHECK_DIAGONAL(diffry, diffrx,7,6)
+      }
+    }
+    else
+    {
+      if (diffry>=0) {
+        useloop=0;
+        CHECK_DIAGONAL(diffrx ,diffry ,6,4)
+      }
+      else if (diffry<0) {
+        useloop=3;
+        CHECK_DIAGONAL(diffrx, diffry,7,5)
+      }
+    }
   }
-  else if ((wanthoriz==1) && (diffrx <= 0)) {
-    useloop=1;
-    CHECK_DIAGONAL(diffry, diffrx,7,6)
-  }
-  else if (diffry>0) {
-    useloop=0;
-    CHECK_DIAGONAL(diffrx ,diffry ,6,4)
-  }
-  else if (diffry<0) {
-    useloop=3;
-    CHECK_DIAGONAL(diffrx, diffry,7,5)
-  }
+  else
+  {
+    if (hasUpDownLoops(char1) == 0)
+      wanthoriz = 1;
+    else if (abs(diffry) < abs(diffrx))
+      wanthoriz = 1;
 
+    if ((wanthoriz==1) && (diffrx > 0)) {
+      useloop=2;
+      CHECK_DIAGONAL(diffry, diffrx, 5, 4)
+    }
+    else if ((wanthoriz==1) && (diffrx <= 0)) {
+      useloop=1;
+      CHECK_DIAGONAL(diffry, diffrx,7,6)
+    }
+    else if (diffry>0) {
+      useloop=0;
+      CHECK_DIAGONAL(diffrx ,diffry ,6,4)
+    }
+    else if (diffry<0) {
+      useloop=3;
+      CHECK_DIAGONAL(diffrx, diffry,7,5)
+    }
+  }
 
   if ((game.options[OPT_TURNTOFACELOC] != 0) &&
       (useloop != char1->loop) &&

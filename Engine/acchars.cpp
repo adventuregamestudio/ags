@@ -220,37 +220,69 @@ void fix_player_sprite(MoveList*cmls,CharacterInfo*chinf) {
   if ((xpmove == 0) && (ypmove == 0))
     return;
 
-  if (hasUpDownLoops(chinf) == 0)
-    want_horiz = 1;
-  else if (abs(ypmove) > abs(xpmove))
-    want_horiz = 0;
-
   no_diagonal = useDiagonal (chinf);
 
-  if ((want_horiz==1) && (xpmove > 0)) {
-    // right
-    useloop=2;
-    // diagonal up-right/down-right
-    CHECK_DIAGONAL(ypmove,xpmove,5,4)
+  // Different logic for 2.x.
+  if (loaded_game_file_version <= 32)
+  {
+    bool can_right = (views[chinf->view].loops[2].numFrames > 0);
+    bool can_left = (views[chinf->view].loops[0].numFrames > 0);
+
+    if (abs(ypmove) < abs(xpmove))
+    {
+      if (can_right && (xpmove >= 0)) {
+        useloop=2;
+        CHECK_DIAGONAL(ypmove, xpmove, 5, 4)
+      }
+      else if (can_left && (xpmove < 0)) {
+        useloop=1;
+        CHECK_DIAGONAL(ypmove, xpmove,7,6)
+      }
     }
-  else if ((want_horiz==1) && (xpmove <= 0)) {
-    // left
-    useloop=1;
-    // diagonal up-left/down-left
-    CHECK_DIAGONAL(ypmove,xpmove,7,6)
+    else
+    {
+      if (ypmove>=0) {
+        useloop=0;
+        CHECK_DIAGONAL(xpmove ,ypmove ,6,4)
+      }
+      else if (ypmove<0) {
+        useloop=3;
+        CHECK_DIAGONAL(xpmove, ypmove,7,5)
+      }
     }
-  else if (ypmove < 0) {
-    // up
-    useloop=3;
-    // diagonal up-left/up-right
-    CHECK_DIAGONAL(xpmove,ypmove,7,5)
-    }
-  else {
-    // down
-    useloop=0;
-    // diagonal down-left/down-right
-    CHECK_DIAGONAL(xpmove,ypmove,6,4)
-    }
+  }
+  else
+  {
+    if (hasUpDownLoops(chinf) == 0)
+      want_horiz = 1;
+    else if (abs(ypmove) > abs(xpmove))
+      want_horiz = 0;
+
+    if ((want_horiz==1) && (xpmove > 0)) {
+      // right
+      useloop=2;
+      // diagonal up-right/down-right
+      CHECK_DIAGONAL(ypmove,xpmove,5,4)
+      }
+    else if ((want_horiz==1) && (xpmove <= 0)) {
+      // left
+      useloop=1;
+      // diagonal up-left/down-left
+      CHECK_DIAGONAL(ypmove,xpmove,7,6)
+      }
+    else if (ypmove < 0) {
+      // up
+      useloop=3;
+      // diagonal up-left/up-right
+      CHECK_DIAGONAL(xpmove,ypmove,7,5)
+      }
+    else {
+      // down
+      useloop=0;
+      // diagonal down-left/down-right
+      CHECK_DIAGONAL(xpmove,ypmove,6,4)
+      }
+  }
 
   if ((game.options[OPT_ROTATECHARS] == 0) || ((chinf->flags & CHF_NOTURNING) != 0)) {
     chinf->loop = useloop;

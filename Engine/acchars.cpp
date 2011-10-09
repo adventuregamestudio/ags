@@ -220,10 +220,6 @@ void fix_player_sprite(MoveList*cmls,CharacterInfo*chinf) {
   if ((xpmove == 0) && (ypmove == 0))
     return;
 
-  // On 2.x: if the view is fixed, do nothing.
-  if ((loaded_game_file_version <= 32) && (chinf->flags & CHF_FIXVIEW))
-    return;
-
   if (hasUpDownLoops(chinf) == 0)
     want_horiz = 1;
   else if (abs(ypmove) > abs(xpmove))

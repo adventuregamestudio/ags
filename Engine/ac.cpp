@@ -11940,14 +11940,9 @@ int load_game_file() {
     for (bb = 0; bb < game.numinvitems; bb++) {
       game.intrInv[bb] = deserialize_new_interaction(iii);
     }
-  }
 
-  if (filever <= 32) // 2.x
-  {
-    // There is unknown text data here, often only "Global 1".
-    // Each of the entries is 28 chars in size. Skip it.
-    int numberofitems = getw(iii);
-    fseek(iii, numberofitems * 28, SEEK_CUR);
+    numGlobalVars = getw(iii);
+    fread(globalvars, sizeof(InteractionVariable), numGlobalVars, iii);	
   }
 
   if (game.dict != NULL) {

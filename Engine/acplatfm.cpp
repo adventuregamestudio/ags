@@ -123,9 +123,9 @@ void AGS32BitOSDriver::YieldCPU() {
 
 // **************** PLUGIN IMPLEMENTATION ****************
 
-#if defined(PSP_VERSION) || defined(WINDOWS_VERSION) || defined(MAC_VERSION)
+#if defined(ANDROID_VERSION) || defined(PSP_VERSION) || defined(WINDOWS_VERSION) || defined(MAC_VERSION)
 
-#ifdef MAC_VERSION
+#if defined(MAC_VERSION) || defined(ANDROID_VERSION)
 #include <dlfcn.h>
 #define LoadLibrary(name) dlopen(name, RTLD_LOCAL)
 #define FreeLibrary dlclose
@@ -868,7 +868,7 @@ void pl_read_plugins_from_disk (FILE *iii) {
     // load the actual plugin from disk
     EnginePlugin *apl = &plugins[a];
     strcpy (apl->filename, buffer);
-#ifdef MAC_VERSION
+#if defined(MAC_VERSION)
     // replace .dll with .dylib
     char *extPos = strcasestr(apl->filename, ".dll");
     if (extPos)
@@ -905,8 +905,22 @@ void pl_read_plugins_from_disk (FILE *iii) {
         }
       }
     }
-#else
-#ifdef PSP_VERSION
+#elif defined(ANDROID_VERSION)
+    char library_name[200];
+
+    // Compatibility with the old SnowRain module
+    if (strcmp(apl->filename, "ags_SnowRain20.dll") == 0)
+      strcpy(apl->filename, "ags_snowrain.dll");
+
+    strcpy(library_name, "/data/data/com.bigbluecup.android/lib/lib");
+    strcat(library_name, apl->filename);
+    strcpy(&library_name[strlen(library_name) - 4], ".so");
+
+    apl->dllHandle = dlopen(library_name, RTLD_LAZY);
+
+    if (apl->dllHandle == NULL)
+      continue;
+#elif defined(PSP_VERSION)
     char module_name[50];
 
     // Compatibility with the old SnowRain module
@@ -940,7 +954,6 @@ void pl_read_plugins_from_disk (FILE *iii) {
       sprintf(buffer, "Unable to load plugin '%s'", apl->filename);
       quit(buffer);
     }
-#endif
 #endif
 
 #ifdef PSP_VERSION

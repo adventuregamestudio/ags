@@ -35,6 +35,12 @@ struct AGSAndroid : AGS32BitOSDriver {
   virtual void WriteConsole(const char*, ...);
   virtual void ReplaceSpecialPaths(const char *sourcePath, char *destPath);
   virtual void WriteDebugString(const char* texx, ...);
+  virtual void ReadPluginsFromDisk(FILE *iii);
+  virtual void StartPlugins();
+  virtual void ShutdownPlugins();
+  virtual int RunPluginHooks(int event, int data);
+  virtual void RunPluginInitGfxHooks(const char *driverName, void *data);
+  virtual int RunPluginDebugHooks(const char *scriptfile, int linenum);
 };
 
 
@@ -225,6 +231,30 @@ void AGSAndroid::WriteConsole(const char *text, ...) {
 
 void AGSAndroid::ShutdownCDPlayer() {
   //cd_exit();
+}
+
+void AGSAndroid::ReadPluginsFromDisk(FILE *iii) {
+  pl_read_plugins_from_disk(iii);
+}
+
+void AGSAndroid::StartPlugins() {
+  pl_startup_plugins();
+}
+
+void AGSAndroid::ShutdownPlugins() {
+  pl_stop_plugins();
+}
+
+int AGSAndroid::RunPluginHooks(int event, int data) {
+  return pl_run_plugin_hooks(event, data);
+}
+
+void AGSAndroid::RunPluginInitGfxHooks(const char *driverName, void *data) {
+  pl_run_plugin_init_gfx_hooks(driverName, data);
+}
+
+int AGSAndroid::RunPluginDebugHooks(const char *scriptfile, int linenum) {
+  return pl_run_plugin_debug_hooks(scriptfile, linenum);
 }
 
 AGSPlatformDriver* AGSPlatformDriver::GetDriver() {

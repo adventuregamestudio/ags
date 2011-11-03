@@ -20,11 +20,14 @@ but a workalike plugin created by JJS for the AGS engine PSP port.
 #include <string.h>
 #include <math.h>
 
-#ifdef PSP_VERSION
+#if defined(PSP_VERSION)
 #include <pspsdk.h>
 #include <pspmath.h>
 #include <pspdisplay.h>
 #define sin(x) vfpu_sinf(x)
+#endif
+
+#if defined(PSP_VERSION) || defined(ANDROID_VERSION)
 inline unsigned long _blender_alpha16_bgr(unsigned long y) __attribute__((always_inline));
 inline void calc_x_n(unsigned long bla) __attribute__((always_inline));
 #endif
@@ -791,7 +794,7 @@ void AGS_EngineStartup(IAGSEngine *lpEngine)
   engine->RequestEventHook(AGSE_PREGUIDRAW);
   engine->RequestEventHook(AGSE_PRESCREENDRAW);
 
-#if defined(PSP_VERSION)
+#if defined(PSP_VERSION) || defined(ANDROID_VERSION)
   engine->RequestEventHook(AGSE_SAVEGAME);
   engine->RequestEventHook(AGSE_RESTOREGAME);
 #endif
@@ -808,7 +811,7 @@ int AGS_EngineOnEvent(int event, int data)
   {
     Update();
   }
-#if defined(PSP_VERSION)
+#if defined(PSP_VERSION) || defined(ANDROID_VERSION)
   else if (event == AGSE_RESTOREGAME)
   {
     RestoreGame((FILE*)data);
@@ -830,7 +833,7 @@ int AGS_EngineOnEvent(int event, int data)
       engine->UnrequestEventHook(AGSE_PREGUIDRAW);
       engine->UnrequestEventHook(AGSE_PRESCREENDRAW);
 
-#if defined(PSP_VERSION)
+#if defined(PSP_VERSION) || defined(ANDROID_VERSION)
       engine->UnrequestEventHook(AGSE_SAVEGAME);
       engine->UnrequestEventHook(AGSE_RESTOREGAME);
 #endif

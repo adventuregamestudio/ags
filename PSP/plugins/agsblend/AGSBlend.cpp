@@ -14,7 +14,7 @@
 #define MIN_EDITOR_VERSION 1
 #define MIN_ENGINE_VERSION 3
 
-#ifndef PSP_VERSION
+#if !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #endif
@@ -33,7 +33,7 @@ typedef unsigned char uint8;
 #define DEFAULT_RGB_B_SHIFT_32  0
 #define DEFAULT_RGB_A_SHIFT_32  24
 
-#ifdef PSP_VERSION
+#if defined(PSP_VERSION) || defined(ANDROID_VERSION)
 #define min(x,y) (((x) < (y)) ? (x) : (y))
 #define max(x,y) (((x) > (y)) ? (x) : (y))
 #endif
@@ -70,7 +70,7 @@ typedef unsigned char uint8;
 
 #pragma endregion
 
-#ifndef PSP_VERSION
+#if !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
 // The standard Windows DLL entry point
 
 BOOL APIENTRY DllMain( HANDLE hModule, 
@@ -865,7 +865,7 @@ int DrawAlpha(int destination, int sprite, int x, int y, int trans)
 }
 
 
-#ifndef PSP_VERSION
+#if !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
 
 //==============================================================================
 
@@ -1026,7 +1026,7 @@ int AGS_EngineOnEvent(int event, int data)                    //*** optional ***
 	return (0);
 }
 
-#ifdef PSP_VERSION
+#if defined(PSP_VERSION) || defined(ANDROID_VERSION)
 
 //------------------------------------------------------------------------------
 

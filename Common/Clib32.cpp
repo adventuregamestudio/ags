@@ -16,6 +16,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if defined(ANDROID_VERSION)
+#include <sys/stat.h>
+#endif
+
 #define NATIVESTATIC
 
 #ifdef _MANAGED
@@ -439,7 +443,11 @@ extern "C"
     for (bb = 0; bb < mflib.num_files; bb++) {
       if (stricmp(mflib.filenames[bb], filly) == 0) {
         char actfilename[250];
+#if defined(ANDROID_VERSION)
+        sprintf(actfilename, "%s/%s", base_path, mflib.data_filenames[mflib.file_datafile[bb]]);
+#else
         sprintf(actfilename, "%s\\%s", base_path, mflib.data_filenames[mflib.file_datafile[bb]]);
+#endif
         tfil = ci_fopen(actfilename, readmode);
         if (tfil == NULL)
           return NULL;

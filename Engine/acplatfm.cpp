@@ -16,6 +16,7 @@
 #define strnicmp strncasecmp
 #endif
 
+#if defined(PSP_VERSION)
 #include <pspsdk.h>
 #include <pspkernel.h>
 extern "C"
@@ -23,6 +24,7 @@ extern "C"
 #include <systemctrl.h>
 }
 #include "../PSP/kernel/kernel.h"
+#endif
 
 AGSPlatformDriver* AGSPlatformDriver::instance = NULL;
 
@@ -993,7 +995,7 @@ void pl_read_plugins_from_disk (FILE *iii) {
 
 // ********** CD Player Functions common to Win and Linux ********
 
-#if !defined(PSP_VERSION) && !defined(DOS_VERSION) && !defined(BSD_VERSION) && !defined(MAC_VERSION)
+#if !defined(ANDROID_VERSION) && !defined(PSP_VERSION) && !defined(DOS_VERSION) && !defined(BSD_VERSION) && !defined(MAC_VERSION)
 
 int cd_player_init() {
   int erro = cd_init();

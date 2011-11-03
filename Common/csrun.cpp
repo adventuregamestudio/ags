@@ -28,6 +28,7 @@
 
 #include "cscomp.h"
 #include "misc.h"
+#include "bigend.h"
 
 #ifdef AGS_BIG_ENDIAN
 #include <list>

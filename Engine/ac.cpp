@@ -12,6 +12,8 @@
 
 */
 
+
+#if defined(PSP_VERSION)
 // PSP header.
 #include <pspsdk.h>
 #include <pspdebug.h>
@@ -19,6 +21,27 @@
 #include <psputils.h>
 #include <pspmath.h>
 
+#define cos(a) vfpu_cosf(a)
+#define sin(a) vfpu_sinf(a)
+#define tan(a) vfpu_tanf(a)
+#define cos(a) vfpu_acosf(a)
+#define sin(a) vfpu_asinf(a)
+#define atan(a) vfpu_atanf(a)
+#define atan2(a,b) vfpu_atan2f(a,b)
+#define log(a) vfpu_logf(a)
+#define exp(a) vfpu_expf(a)
+#define cosh(a) vfpu_coshf(a)
+#define sinh(a) vfpu_sinhf(a)
+#define tanh(a) vfpu_tanhf(a)
+#endif
+
+#if defined(ANDROID_VERSION)
+#include <pthread.h>
+#include <sys/stat.h>
+#include <android/log.h>
+
+pthread_t soundthread;
+#endif
 
 // PSP specific variables:
 extern int psp_audio_enabled; // Audio can be disabled in the config file.
@@ -454,6 +477,7 @@ volatile int switching_away_from_game = 0;
 
 // PSP: Update in thread if wanted.
 extern int psp_audio_multithreaded;
+bool update_mp3_thread_running = false;
 int musicPollIterator; // long name so it doesn't interfere with anything else
 #define UPDATE_MP3_THREAD \
    while (switching_away_from_game) { } \
@@ -466,17 +490,28 @@ int musicPollIterator; // long name so it doesn't interfere with anything else
   UPDATE_MP3_THREAD
 
 //#define UPDATE_MP3 update_polled_stuff();
-
+#if defined(PSP_VERSION)
 // PSP: Workaround for sound stuttering. Do sound updates in its own thread.
 int update_mp3_thread(SceSize args, void *argp)
 {
-  while (1)
+  while (update_mp3_thread_running)
   {
     UPDATE_MP3_THREAD
     sceKernelDelayThread(1000 * 50);
   }
   return 0;
 }
+#elif defined(ANDROID_VERSION)
+void* update_mp3_thread(void* arg)
+{
+  while (update_mp3_thread_running)
+  {
+    UPDATE_MP3_THREAD
+    usleep(1000 * 50);
+  }
+  pthread_exit(NULL);
+}
+#endif
 
 
 const char* sgnametemplate = "agssave.%03d";
@@ -4207,9 +4242,11 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
       thisroom.ebscene[cc] = convert_16_to_16bgr (thisroom.ebscene[cc]);
   #endif
 
+#if defined(ANDROID_VERSION) || defined(PSP_VERSION)
   // PSP: Convert 32 bit backgrounds.
   if (bitmap_color_depth(thisroom.ebscene[cc]) == 32)
     thisroom.ebscene[cc] = convert_32_to_32bgr(thisroom.ebscene[cc]);
+#endif
 
     thisroom.ebscene[cc] = gfxDriver->ConvertBitmapToSupportedColourDepth(thisroom.ebscene[cc]);
   }
@@ -11942,7 +11979,7 @@ int load_game_file() {
     }
 
     numGlobalVars = getw(iii);
-    fread(globalvars, sizeof(InteractionVariable), numGlobalVars, iii);	
+    fread(globalvars, sizeof(InteractionVariable), numGlobalVars, iii);
   }
 
   if (game.dict != NULL) {
@@ -15600,7 +15637,7 @@ FLOAT_RETURN_TYPE StringToFloat(const char *theString) {
 FLOAT_RETURN_TYPE Math_Cos(SCRIPT_FLOAT(value)) {
   INIT_SCRIPT_FLOAT(value);
 
-  value = vfpu_cosf(value);
+  value = cos(value);
 
   RETURN_FLOAT(value);
 }
@@ -15608,7 +15645,7 @@ FLOAT_RETURN_TYPE Math_Cos(SCRIPT_FLOAT(value)) {
 FLOAT_RETURN_TYPE Math_Sin(SCRIPT_FLOAT(value)) {
   INIT_SCRIPT_FLOAT(value);
 
-  value = vfpu_sinf(value);
+  value = sin(value);
 
   RETURN_FLOAT(value);
 }
@@ -15616,7 +15653,7 @@ FLOAT_RETURN_TYPE Math_Sin(SCRIPT_FLOAT(value)) {
 FLOAT_RETURN_TYPE Math_Tan(SCRIPT_FLOAT(value)) {
   INIT_SCRIPT_FLOAT(value);
 
-  value = vfpu_tanf(value);
+  value = tan(value);
 
   RETURN_FLOAT(value);
 }
@@ -15624,7 +15661,7 @@ FLOAT_RETURN_TYPE Math_Tan(SCRIPT_FLOAT(value)) {
 FLOAT_RETURN_TYPE Math_ArcCos(SCRIPT_FLOAT(value)) {
   INIT_SCRIPT_FLOAT(value);
 
-  value = vfpu_acosf(value);
+  value = acos(value);
 
   RETURN_FLOAT(value);
 }
@@ -15632,7 +15669,7 @@ FLOAT_RETURN_TYPE Math_ArcCos(SCRIPT_FLOAT(value)) {
 FLOAT_RETURN_TYPE Math_ArcSin(SCRIPT_FLOAT(value)) {
   INIT_SCRIPT_FLOAT(value);
 
-  value = vfpu_asinf(value);
+  value = asin(value);
 
   RETURN_FLOAT(value);
 }
@@ -15640,7 +15677,7 @@ FLOAT_RETURN_TYPE Math_ArcSin(SCRIPT_FLOAT(value)) {
 FLOAT_RETURN_TYPE Math_ArcTan(SCRIPT_FLOAT(value)) {
   INIT_SCRIPT_FLOAT(value);
 
-  value = vfpu_atanf(value);
+  value = atan(value);
 
   RETURN_FLOAT(value);
 }
@@ -15649,7 +15686,7 @@ FLOAT_RETURN_TYPE Math_ArcTan2(SCRIPT_FLOAT(yval), SCRIPT_FLOAT(xval)) {
   INIT_SCRIPT_FLOAT(yval);
   INIT_SCRIPT_FLOAT(xval);
 
-  float value = vfpu_atan2f(yval, xval);
+  float value = atan2(yval, xval);
 
   RETURN_FLOAT(value);
 }
@@ -15657,7 +15694,7 @@ FLOAT_RETURN_TYPE Math_ArcTan2(SCRIPT_FLOAT(yval), SCRIPT_FLOAT(xval)) {
 FLOAT_RETURN_TYPE Math_Log(SCRIPT_FLOAT(num)) {
   INIT_SCRIPT_FLOAT(num);
 
-  float value = vfpu_logf(num);
+  float value = log(num);
 
   RETURN_FLOAT(value);
 }
@@ -15673,7 +15710,7 @@ FLOAT_RETURN_TYPE Math_Log10(SCRIPT_FLOAT(num)) {
 FLOAT_RETURN_TYPE Math_Exp(SCRIPT_FLOAT(num)) {
   INIT_SCRIPT_FLOAT(num);
 
-  float value = vfpu_expf(num);
+  float value = exp(num);
 
   RETURN_FLOAT(value);
 }
@@ -15681,7 +15718,7 @@ FLOAT_RETURN_TYPE Math_Exp(SCRIPT_FLOAT(num)) {
 FLOAT_RETURN_TYPE Math_Cosh(SCRIPT_FLOAT(num)) {
   INIT_SCRIPT_FLOAT(num);
 
-  float value = vfpu_coshf(num);
+  float value = cosh(num);
 
   RETURN_FLOAT(value);
 }
@@ -15689,7 +15726,7 @@ FLOAT_RETURN_TYPE Math_Cosh(SCRIPT_FLOAT(num)) {
 FLOAT_RETURN_TYPE Math_Sinh(SCRIPT_FLOAT(num)) {
   INIT_SCRIPT_FLOAT(num);
 
-  float value = vfpu_sinhf(num);
+  float value = sinh(num);
 
   RETURN_FLOAT(value);
 }
@@ -15697,7 +15734,7 @@ FLOAT_RETURN_TYPE Math_Sinh(SCRIPT_FLOAT(num)) {
 FLOAT_RETURN_TYPE Math_Tanh(SCRIPT_FLOAT(num)) {
   INIT_SCRIPT_FLOAT(num);
 
-  float value = vfpu_tanhf(num);
+  float value = tanh(num);
 
   RETURN_FLOAT(value);
 }
@@ -26718,11 +26755,12 @@ void initialize_sprite (int ee) {
       destroy_bitmap(oldSprite);
       spcoldep = final_col_dep;
     }
-    // PSP: Convert to BGR color order.
     else if ((spcoldep == 32) && (final_col_dep == 32))
     {
+#if defined(ANDROID_VERSION) || defined(PSP_VERSION)
+      // PSP: Convert to BGR color order.
       spriteset.set(ee, convert_32_to_32bgr(spriteset[ee]));
-
+#endif
       if ((game.spriteflags[ee] & SPF_ALPHACHANNEL) != 0)
       {
         set_rgb_mask_using_alpha_channel(spriteset[ee]);
@@ -28034,7 +28072,7 @@ int initialize_engine(int argc,char*argv[])
   if (install_allegro(SYSTEM_AUTODETECT,&myerrno,atexit)) {
     platform->DisplayAlert("Unable to initialize graphics subsystem. Make sure you have DirectX 5 or above installed.");
 #else
-  if (allegro_init()) {
+  if (install_allegro(SYSTEM_AUTODETECT, &myerrno, atexit)) {
     platform->DisplayAlert("Unknown error initializing graphics subsystem.");
 #endif
     return EXIT_NORMAL;
@@ -28511,6 +28549,7 @@ int initialize_engine(int argc,char*argv[])
 
   // default shifts for how we store the sprite data
 
+#if defined(PSP_VERSION)
   // PSP: Switch b<>r for 15/16 bit.
   _rgb_r_shift_32 = 16;
   _rgb_g_shift_32 = 8;
@@ -28521,6 +28560,17 @@ int initialize_engine(int argc,char*argv[])
   _rgb_b_shift_15 = 10;
   _rgb_g_shift_15 = 5;
   _rgb_r_shift_15 = 0;
+#else
+  _rgb_r_shift_32 = 16;
+  _rgb_g_shift_32 = 8;
+  _rgb_b_shift_32 = 0;
+  _rgb_r_shift_16 = 11;
+  _rgb_g_shift_16 = 5;
+  _rgb_b_shift_16 = 0;
+  _rgb_r_shift_15 = 10;
+  _rgb_g_shift_15 = 5;
+  _rgb_b_shift_15 = 0;
+#endif
 
   usetup.base_width = 320;
   usetup.base_height = 200;
@@ -28729,6 +28779,8 @@ int initialize_engine(int argc,char*argv[])
   if (final_col_dep > 16) {
     // when we're using 32-bit colour, it converts hi-color images
     // the wrong way round - so fix that
+
+#if defined(ANDROID_VERSION) || defined(PSP_VERSION)
     _rgb_b_shift_16 = 0;
     _rgb_g_shift_16 = 5;
     _rgb_r_shift_16 = 11;
@@ -28740,10 +28792,16 @@ int initialize_engine(int argc,char*argv[])
     _rgb_r_shift_32 = 0;
     _rgb_g_shift_32 = 8;
     _rgb_b_shift_32 = 16;
+#else
+    _rgb_r_shift_16 = 11;
+    _rgb_g_shift_16 = 5;
+    _rgb_b_shift_16 = 0;
+#endif
   }
-  else if (final_col_dep <= 16) {
+  else if (final_col_dep == 16) {
     // ensure that any 32-bit graphics displayed are converted
     // properly to the current depth
+#if defined(PSP_VERSION)
     _rgb_r_shift_32 = 0;
     _rgb_g_shift_32 = 8;
     _rgb_b_shift_32 = 16;
@@ -28751,6 +28809,28 @@ int initialize_engine(int argc,char*argv[])
     _rgb_b_shift_15 = 0;
     _rgb_g_shift_15 = 5;
     _rgb_r_shift_15 = 10;
+#else
+    _rgb_r_shift_32 = 16;
+    _rgb_g_shift_32 = 8;
+    _rgb_b_shift_32 = 0;
+#endif
+  }
+  else if (final_col_dep < 16) {
+    // ensure that any 32-bit graphics displayed are converted
+    // properly to the current depth
+#if defined(ANDROID_VERSION) || defined(PSP_VERSION)
+    _rgb_r_shift_32 = 0;
+    _rgb_g_shift_32 = 8;
+    _rgb_b_shift_32 = 16;
+
+    _rgb_b_shift_15 = 0;
+    _rgb_g_shift_15 = 5;
+    _rgb_r_shift_15 = 10;
+#else
+    _rgb_r_shift_32 = 16;
+    _rgb_g_shift_32 = 8;
+    _rgb_b_shift_32 = 0;
+#endif
   }
 
   platform->PostAllegroInit((usetup.windowed > 0) ? true : false);
@@ -28831,18 +28911,30 @@ int initialize_engine(int argc,char*argv[])
 
   // PSP: Initialize the sound cache.
   clear_sound_cache();
-  
+
+#if defined(PSP_VERSION)
   // PSP: Create sound update thread. This is a workaround for sound stuttering.
   if (psp_audio_multithreaded)
   {
+    update_mp3_thread_running = true;
     SceUID thid = sceKernelCreateThread("update_mp3_thread", update_mp3_thread, 0x20, 0xFA0, THREAD_ATTR_USER, 0);
     if (thid > -1)
       thid = sceKernelStartThread(thid, 0, 0);
     else
+    {
+      update_mp3_thread_running = false;
       psp_audio_multithreaded = 0;
+    }
   }
+#elif defined(ANDROID_VERSION)
+  pthread_create(&soundthread, NULL, update_mp3_thread, NULL);
+#else
+  psp_audio_multithreaded = 0;
+#endif
   
   initialize_start_and_play_game(override_start_room, loadSaveGameOnStartup);
+
+  update_mp3_thread_running = false;
 
   quit("|bye!");
   return 0;

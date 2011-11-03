@@ -16,10 +16,17 @@
 
 #include <stdio.h>
 
+#if defined(PSP_VERSION)
 // PSP: Includes for sceKernelDelayThread.
 #include <pspsdk.h>
 #include <pspthreadman.h>
 #include <psputils.h>
+#define Sleep(x) sceKernelDelayThread(1000*x)
+#endif
+
+#if defined(ANDROID_VERSION)
+#define Sleep(x) usleep(1000*x)
+#endif
 
 #ifdef _WIN32
 #include <winalleg.h>
@@ -37,8 +44,6 @@ typedef struct DDRAW_SURFACE {
 
 extern "C" extern LPDIRECTDRAW2 directdraw;
 extern "C" DDRAW_SURFACE *gfx_directx_primary_surface;
-#else
-#define Sleep(x) sceKernelDelayThread(1000*x)
 #endif
 
 #define MAX_DRAW_LIST_SIZE 200

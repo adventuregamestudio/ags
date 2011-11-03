@@ -18,6 +18,8 @@
 #include "acgui.h"
 #include <ctype.h>
 
+#include "bigend.h"
+
 #undef CROOM_NOFUNCTIONS
 
 #ifdef THIS_IS_THE_ENGINE

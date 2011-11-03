@@ -17,8 +17,10 @@
 #include "almp3.h"
 
 // PSP: Additional header for the sound cache.
+#if defined(PSP_VERSION)
 #include <pspsdk.h>
 #include <psprtc.h>
+#endif
 
 #ifndef PSP_NO_MOD_PLAYBACK
 #if (defined(LINUX_VERSION) || defined(WINDOWS_VERSION) || defined(MAC_VERSION))
@@ -73,13 +75,14 @@ typedef struct
   char file_name[20];
   int number;
   int free;
-  u64 last_used;
+  unsigned int last_used;
   unsigned int size;
   char* data;
   int reference;
 } sound_cache_entry_t;
 
 sound_cache_entry_t* sound_cache_entries = NULL;
+unsigned int sound_cache_counter = 0;
 
 
 void clear_sound_cache()
@@ -159,7 +162,7 @@ char* get_cached_sound(const char* filename, bool is_wave, long* size)
       printf("..found in slot %d\n", i);
 #endif
       sound_cache_entries[i].reference++;
-      sceRtcGetCurrentTick(&sound_cache_entries[i].last_used);
+      sound_cache_entries[i].last_used = sound_cache_counter++;
       *size = sound_cache_entries[i].size;
       return sound_cache_entries[i].data;
     }
@@ -190,8 +193,7 @@ char* get_cached_sound(const char* filename, bool is_wave, long* size)
   // No free slot?
   if (i == psp_audio_cachesize)
   {
-    u64 oldest;
-    sceRtcGetCurrentTick(&oldest);
+    unsigned int oldest = sound_cache_counter;
     int index = -1;
 
     for (i = 0; i < psp_audio_cachesize; i++)
@@ -255,7 +257,7 @@ char* get_cached_sound(const char* filename, bool is_wave, long* size)
 
     strcpy(sound_cache_entries[i].file_name, filename);
     sound_cache_entries[i].reference = 1;
-    sceRtcGetCurrentTick(&sound_cache_entries[i].last_used);
+    sound_cache_entries[i].last_used = sound_cache_counter++;
 
     return sound_cache_entries[i].data;	
   }

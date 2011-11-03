@@ -1,0 +1,274 @@
+package com.bigbluecup.android;
+
+import com.bigbluecup.android.EngineGlue;
+import com.bigbluecup.android.R;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnCancelListener;
+import android.content.DialogInterface.OnClickListener;
+import android.content.res.Configuration;
+import android.opengl.GLSurfaceView;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.os.PowerManager;
+import android.view.KeyEvent;
+import android.view.MotionEvent;
+import android.view.Window;
+import android.view.WindowManager;
+
+public class AgsEngine extends Activity
+{
+	private boolean isInGame = false;
+	
+	private EngineGlue glue;
+	private PowerManager.WakeLock wakeLock;
+	public Renderer surfaceView;
+	public MessageHandler handler;
+
+	@Override
+	public void onCreate(Bundle savedInstanceState)
+	{
+		super.onCreate(savedInstanceState);
+
+		// Get the game filename from the launcher activity
+		String gameFilename = getIntent().getExtras().getString("filename");        
+		
+		// Set windows options
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+		setDefaultKeyMode(DEFAULT_KEYS_DISABLE);
+				
+		// Stop the device from saving power
+		PowerManager pm = (PowerManager)getSystemService(Context.POWER_SERVICE);
+		wakeLock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK, "fullwakelock"); 
+		wakeLock.acquire();
+		
+		// Set message handler for thread communication
+		handler = new MessageHandler();        
+		
+		// Switch to the loading view and start the game
+		setContentView(R.layout.loading);
+		glue = new EngineGlue(this, gameFilename);
+		glue.start();
+	}
+	
+	@Override
+	public void onDestroy()
+	{
+		surfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+		glue.shutdownEngine();
+		super.onDestroy();
+	}
+	
+	
+	@Override
+	protected void onPause()
+	{
+		super.onPause();
+		wakeLock.release();
+		if (isInGame)
+			glue.pauseGame();
+	}
+
+	@Override
+	protected void onResume()
+	{
+		super.onResume();
+		wakeLock.acquire();
+		if (isInGame)
+			glue.resumeGame();
+	}
+	
+	// Prevent the activity from being destroyed on a configuration change
+	@Override
+	public void onConfigurationChanged(Configuration newConfig)
+	{
+		super.onConfigurationChanged(newConfig);
+	}
+	
+	// Handle messages from the engine thread
+	class MessageHandler extends Handler
+	{  
+		@Override  
+		public void handleMessage(Message msg)
+		{
+			if (msg.what == EngineGlue.MSG_SWITCH_TO_INGAME)
+			{
+				switchToIngame();
+			}
+			else if (msg.what == EngineGlue.MSG_SHOW_MESSAGE)
+			{
+				showMessage(msg.getData().getString("message"));
+			}
+		}
+	}
+	
+	@Override
+	public boolean dispatchTouchEvent(MotionEvent ev)
+	{
+		switch (ev.getAction())
+		{
+			case MotionEvent.ACTION_MOVE:
+			{
+				int history_size = ev.getHistorySize();
+				
+				if (history_size < 2)
+					break;
+				
+				glue.moveMouse(ev.getHistoricalX(history_size - 1) - ev.getHistoricalX(0), ev.getHistoricalY(history_size - 1) - ev.getHistoricalY(0));
+				
+				try
+				{
+					// Delay a bit to not get flooded with events
+					Thread.sleep(100, 0);
+				}
+				catch (InterruptedException e) {}
+				
+				break;
+			}
+
+			case MotionEvent.ACTION_UP:
+			{
+				long down_time = ev.getEventTime() - ev.getDownTime();
+
+				if (down_time < 100)
+				{
+					// Quick tap for clicking the left mouse button
+					glue.clickMouse(EngineGlue.MOUSE_CLICK_LEFT);
+				}
+				else if (down_time < 300)
+				{
+					// Slightly slower tap for clicking the right mouse button					
+					glue.clickMouse(EngineGlue.MOUSE_CLICK_RIGHT);
+				}
+				
+				try
+				{
+					// Delay a bit to not get flooded with events
+					Thread.sleep(100, 0);
+				}
+				catch (InterruptedException e) {}
+			}			
+		}
+		
+		return isInGame;
+	}
+	
+	@Override
+	public boolean dispatchKeyEvent(KeyEvent ev)
+	{
+		// Very simple key processing for now, just one key event per poll
+		switch (ev.getAction())
+		{
+			case KeyEvent.ACTION_DOWN:
+			{
+				if (ev.getKeyCode() == KeyEvent.KEYCODE_BACK)
+					showExitConfirmation();
+				
+				break;
+			}
+
+			case KeyEvent.ACTION_UP:
+			{
+				glue.keyboardEvent(ev.getKeyCode(), ev.getUnicodeChar(ev.getMetaState()), ev.isShiftPressed());
+				break; 	    		
+			}
+		}		
+		
+		return isInGame;
+	}
+	
+	@Override
+	public boolean dispatchTrackballEvent(MotionEvent ev)
+	{ 
+		switch (ev.getAction())
+		{		
+			case MotionEvent.ACTION_MOVE:
+			{
+				glue.mouseMoveX = (short) (ev.getX() * 10);
+				glue.mouseMoveY = (short) (ev.getY() * 10);
+
+			}
+			case MotionEvent.ACTION_DOWN:
+			{
+				glue.mouseClick = 1;
+			}			
+		}
+		return isInGame;
+	}	
+
+	
+	// Exit confirmation dialog displayed when hitting the "back" button
+	private void showExitConfirmation()
+	{
+		onPause();
+		
+		AlertDialog.Builder ad = new AlertDialog.Builder(this);
+		ad.setMessage("Are you sure you want to quit?");
+		
+		ad.setOnCancelListener(new OnCancelListener()
+		{
+			public void onCancel(DialogInterface dialog)
+			{
+				onResume();
+			}
+		});
+
+		ad.setPositiveButton("Yes", new OnClickListener()
+		{
+			public void onClick(DialogInterface dialog, int which)
+			{
+				onResume();
+				onDestroy();
+			}
+		});
+		
+		ad.setNegativeButton("No", new OnClickListener()
+		{
+			public void onClick(DialogInterface dialog, int which)
+			{
+				onResume();
+			}
+		});
+		
+		ad.show();
+	}
+	
+	
+	// Display a game message
+	public void showMessage(String message)
+	{
+		onPause();
+		
+		AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+		dialog.setTitle("Error");
+		dialog.setMessage(message);
+
+		dialog.setPositiveButton("OK", new OnClickListener()
+		{
+			public void onClick(DialogInterface dialog, int which)
+			{
+				onResume();
+			}
+		});
+		
+		dialog.show();
+	}
+	
+
+	// Switch to the game view after loading is done
+	public void switchToIngame()
+	{
+		surfaceView = new Renderer(this, glue);
+
+		surfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+		setContentView(surfaceView);
+
+		isInGame = true;
+	}
+
+}

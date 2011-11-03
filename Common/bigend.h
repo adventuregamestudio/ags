@@ -12,6 +12,19 @@
 #ifndef __BIGEND_H__
 #define __BIGEND_H__
 
+#ifdef ANDROID_VERSION
+// Some Android defines that are needed in multiple files.
+// Not the best place for it, but should do for the moment.
+#include <wchar.h>
+extern "C" {
+char *strupr(char *s);
+char *strlwr(char *s);
+}
+#define stricmp strcasecmp
+#define strnicmp strncasecmp
+#endif
+
+
 #ifndef ROOMEDIT
 
 #ifdef ALLEGRO_BIG_ENDIAN

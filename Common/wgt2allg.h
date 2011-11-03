@@ -96,6 +96,9 @@ extern "C"
 #define GFX_VGA GFX_AUTODETECT
 #endif
 
+/*
+  GCC from the Android NDK doesn't like allegro_init()
+
   void vga256()
   {
     allegro_init();
@@ -104,6 +107,7 @@ extern "C"
     vesa_xres = 320;
     vesa_yres = 200;
   }
+*/
 
 #if (!defined(WINDOWS_VERSION) && !defined(LINUX_VERSION) && !defined(MAC_VERSION))
   union REGS r;
@@ -438,8 +442,10 @@ extern "C"
 #endif
     }
     else if (newcol >= 32) {
+#if defined(PSP_VERSION)
 // PSP: Swap colors only here.
 #define SWAP_RB_HICOL
+#endif
 #ifdef SWAP_RB_HICOL
       ctset[0] = makecol16(getb16(newcol), getg16(newcol), getr16(newcol));
 #else

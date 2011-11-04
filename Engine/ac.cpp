@@ -12098,7 +12098,21 @@ int load_game_file() {
   for (ee=0;ee<MAXGLOBALMES;ee++) {
     if (game.messages[ee]==NULL) continue;
     game.messages[ee]=(char*)malloc(500);
-    read_string_decrypt(iii, game.messages[ee]);
+
+    if (filever < 26) // Global messages are not encrypted on < 2.61
+    {
+      char* nextchar = game.messages[ee];
+      
+      while (1)
+      {
+        *nextchar = fgetc(iii);
+        if (*nextchar == 0)
+          break;
+        nextchar++;
+      }
+    }
+    else
+      read_string_decrypt(iii, game.messages[ee]);
   }
   set_default_glmsg (983, "Sorry, not now.");
   set_default_glmsg (984, "Restore");

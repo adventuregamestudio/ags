@@ -751,7 +751,8 @@ struct GUIMain
     fread(vtext, sizeof(char), 40, fp);
     fread(&x, sizeof(int), 27 + 2*MAX_OBJS_ON_GUI, fp);
 
-    FixupGuiName(name);
+    if (loaded_game_file_version <= 32) // Fix names for 2.x: "GUI" -> "gGui"
+      FixupGuiName(name);
   }
 
   void WriteToFile(FILE *fp)

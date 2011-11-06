@@ -102,9 +102,9 @@ JNIEXPORT jboolean JNICALL
   Java_com_bigbluecup_android_EngineGlue_startEngine(JNIEnv* env, jobject object, jclass stringclass, jstring filename)
 {
   // Get JNI interfaces.
-  java_object = object;
+  java_object = env->NewGlobalRef(object);
   java_environment = env;
-  java_class = (jclass)java_environment->NewGlobalRef(java_environment->GetObjectClass(java_object));
+  java_class = (jclass)java_environment->NewGlobalRef(java_environment->GetObjectClass(object));
   java_messageCallback = java_environment->GetMethodID(java_class, "showMessage", "(Ljava/lang/String;)V");
   java_blockExecution = java_environment->GetMethodID(java_class, "blockExecution", "()V");
 

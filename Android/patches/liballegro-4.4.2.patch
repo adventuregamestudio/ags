@@ -1,6 +1,6 @@
-diffn -Naur cmake/FileList.cmake cmake/FileList.cmake
+diff -Naur cmake/FileList.cmake cmake/FileList.cmake
 --- cmake/FileList.cmake	2011-03-12 01:26:00.000000000 +0100
-+++ cmake/FileList.cmake	2011-11-02 18:46:37.230539900 +0100
++++ cmake/FileList.cmake	2011-11-02 18:57:39.720665500 +0100
 @@ -335,6 +335,19 @@
          src/psp/pvtable8.c
          )
@@ -40,7 +40,7 @@ diffn -Naur cmake/FileList.cmake cmake/FileList.cmake
          include/allegro/platform/alucfg.h
 diff -Naur cmake/Toolchain-android-gcc.cmake cmake/Toolchain-android-gcc.cmake
 --- cmake/Toolchain-android-gcc.cmake	1970-01-01 01:00:00.000000000 +0100
-+++ cmake/Toolchain-android-gcc.cmake	2011-11-02 18:46:37.233540300 +0100
++++ cmake/Toolchain-android-gcc.cmake	2011-11-02 18:57:39.724165900 +0100
 @@ -0,0 +1,37 @@
 +# The name of the target operating system.
 +set(CMAKE_SYSTEM_NAME Generic)
@@ -81,7 +81,7 @@ diff -Naur cmake/Toolchain-android-gcc.cmake cmake/Toolchain-android-gcc.cmake
 +set(ANDROID 1)
 diff -Naur CMakeLists.txt CMakeLists.txt
 --- CMakeLists.txt	2011-03-25 00:18:50.000000000 +0100
-+++ CMakeLists.txt	2011-11-02 18:46:37.237540800 +0100
++++ CMakeLists.txt	2011-11-02 18:57:39.727666400 +0100
 @@ -313,6 +313,18 @@
      set(CMAKE_INSTALL_PREFIX ${PSP_PREFIX})
  endif(PSP)
@@ -118,7 +118,7 @@ diff -Naur CMakeLists.txt CMakeLists.txt
  # Generate and install headers
 diff -Naur include/allegro/internal/alconfig.h include/allegro/internal/alconfig.h
 --- include/allegro/internal/alconfig.h	2008-12-24 02:39:48.000000000 +0100
-+++ include/allegro/internal/alconfig.h	2011-11-02 18:46:37.247542100 +0100
++++ include/allegro/internal/alconfig.h	2011-11-02 18:57:39.738167700 +0100
 @@ -14,7 +14,7 @@
   *
   *      See readme.txt for copyright information.
@@ -139,7 +139,7 @@ diff -Naur include/allegro/internal/alconfig.h include/allegro/internal/alconfig
     #endif
 diff -Naur include/allegro/platform/aintand.h include/allegro/platform/aintand.h
 --- include/allegro/platform/aintand.h	1970-01-01 01:00:00.000000000 +0100
-+++ include/allegro/platform/aintand.h	2011-11-02 18:46:37.252042600 +0100
++++ include/allegro/platform/aintand.h	2011-11-02 18:57:39.748669000 +0100
 @@ -0,0 +1,48 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
@@ -191,7 +191,7 @@ diff -Naur include/allegro/platform/aintand.h include/allegro/platform/aintand.h
 +
 diff -Naur include/allegro/platform/aland.h include/allegro/platform/aland.h
 --- include/allegro/platform/aland.h	1970-01-01 01:00:00.000000000 +0100
-+++ include/allegro/platform/aland.h	2011-11-02 18:46:37.265544300 +0100
++++ include/allegro/platform/aland.h	2011-11-02 18:57:39.756670000 +0100
 @@ -0,0 +1,74 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
@@ -269,7 +269,7 @@ diff -Naur include/allegro/platform/aland.h include/allegro/platform/aland.h
 +#endif
 diff -Naur include/allegro/platform/alandcfg.h include/allegro/platform/alandcfg.h
 --- include/allegro/platform/alandcfg.h	1970-01-01 01:00:00.000000000 +0100
-+++ include/allegro/platform/alandcfg.h	2011-11-02 18:46:37.270545000 +0100
++++ include/allegro/platform/alandcfg.h	2011-11-02 18:57:39.759670400 +0100
 @@ -0,0 +1,68 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
@@ -341,7 +341,7 @@ diff -Naur include/allegro/platform/alandcfg.h include/allegro/platform/alandcfg
 +#endif
 diff -Naur include/allegro/platform/alplatf.h include/allegro/platform/alplatf.h
 --- include/allegro/platform/alplatf.h	1970-01-01 01:00:00.000000000 +0100
-+++ include/allegro/platform/alplatf.h	2011-11-02 18:46:37.279546100 +0100
++++ include/allegro/platform/alplatf.h	2011-11-02 18:57:39.766671300 +0100
 @@ -0,0 +1,17 @@
 +/* #undef ALLEGRO_BCC32 */
 +/* #undef ALLEGRO_BEOS */
@@ -362,7 +362,7 @@ diff -Naur include/allegro/platform/alplatf.h include/allegro/platform/alplatf.h
 +#define ALLEGRO_USE_C
 diff -Naur include/allegro/system.h include/allegro/system.h
 --- include/allegro/system.h	2011-03-19 00:47:45.000000000 +0100
-+++ include/allegro/system.h	2011-11-02 18:46:37.313550400 +0100
++++ include/allegro/system.h	2011-11-02 18:57:39.784673600 +0100
 @@ -66,6 +66,7 @@
  #define OSTYPE_MACOS       AL_ID('M','A','C',' ')
  #define OSTYPE_MACOSX      AL_ID('M','A','C','X')
@@ -373,7 +373,7 @@ diff -Naur include/allegro/system.h include/allegro/system.h
  AL_VAR(int, os_version);
 diff -Naur src/android/adrivers.c src/android/adrivers.c
 --- src/android/adrivers.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/android/adrivers.c	2011-11-02 18:46:37.326552100 +0100
++++ src/android/adrivers.c	2011-11-02 18:57:39.803676000 +0100
 @@ -0,0 +1,75 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
@@ -452,7 +452,7 @@ diff -Naur src/android/adrivers.c src/android/adrivers.c
 +END_JOYSTICK_DRIVER_LIST
 diff -Naur src/android/afile.c src/android/afile.c
 --- src/android/afile.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/android/afile.c	2011-11-02 18:46:37.336553400 +0100
++++ src/android/afile.c	2011-11-02 18:57:39.836180100 +0100
 @@ -0,0 +1,536 @@
 +/*         ______   ___    ___ 
 + *        /\  _  \ /\_ \  /\_ \ 
@@ -992,8 +992,8 @@ diff -Naur src/android/afile.c src/android/afile.c
 +
 diff -Naur src/android/agfx.c src/android/agfx.c
 --- src/android/agfx.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/android/agfx.c	2011-11-02 18:47:41.265171300 +0100
-@@ -0,0 +1,275 @@
++++ src/android/agfx.c	2011-11-06 08:15:15.333032800 +0100
+@@ -0,0 +1,276 @@
 +/*         ______   ___    ___
 +*        /\  _  \ /\_ \  /\_ \
 +*        \ \ \\ \\//\ \ \//\ \      __     __   _ __   ___
@@ -1038,7 +1038,7 @@ diff -Naur src/android/agfx.c src/android/agfx.c
 +
 +int android_screen_changed = 1;
 +
-+GLfixed android_vertices[] =
++GLfloat android_vertices[] =
 +{
 +   0, 0,
 +   320,  0,
@@ -1166,8 +1166,8 @@ diff -Naur src/android/agfx.c src/android/agfx.c
 +   android_screen_texture_width = android_get_next_power_of_2(width);
 +   android_screen_texture_height = android_get_next_power_of_2(height);
 +   
-+   empty = (char*)malloc(android_screen_texture_width * android_screen_texture_height * color_depth);
-+   memset(empty, 0, android_screen_texture_width * android_screen_texture_height * color_depth);
++   empty = (char*)malloc(android_screen_texture_width * android_screen_texture_height * color_depth / 8);
++   memset(empty, 0, android_screen_texture_width * android_screen_texture_height * color_depth / 8);
 +
 +   if (android_screen_texture != 0)
 +      glDeleteTextures(1, &android_screen_texture);
@@ -1176,9 +1176,9 @@ diff -Naur src/android/agfx.c src/android/agfx.c
 +   glBindTexture(GL_TEXTURE_2D, android_screen_texture);
 +   
 +   if (color_depth == 16)
-+      glTexImage2D(GL_TEXTURE_2D, 0, 3, android_screen_texture_width, android_screen_texture_height, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, empty);
++      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, android_screen_texture_width, android_screen_texture_height, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, empty);
 +   else
-+      glTexImage2D(GL_TEXTURE_2D, 0, 4, android_screen_texture_width, android_screen_texture_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, empty);
++      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, android_screen_texture_width, android_screen_texture_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, empty);
 +   
 +   free(empty);
 +}
@@ -1218,7 +1218,8 @@ diff -Naur src/android/agfx.c src/android/agfx.c
 +   
 +   glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 +
-+   glClearColorx(0, 0, 0, 0);
++   glViewport(0, 0, screen_width - 1, screen_height - 1);
++   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 +   glClear(GL_COLOR_BUFFER_BIT);
 +   
 +   glDisableClientState(GL_COLOR_ARRAY);
@@ -1226,7 +1227,7 @@ diff -Naur src/android/agfx.c src/android/agfx.c
 +   glEnableClientState(GL_VERTEX_ARRAY);
 +   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 +   glTexCoordPointer(2, GL_FLOAT, 0, android_texture_coordinates);
-+   glVertexPointer(2, GL_FIXED, 0, android_vertices);      
++   glVertexPointer(2, GL_FLOAT, 0, android_vertices);      
 +
 +   android_create_screen_texture(android_screen_width, android_screen_height, android_screen_color_depth);
 +   android_create_arrays(screen_width, screen_height);   
@@ -1240,15 +1241,15 @@ diff -Naur src/android/agfx.c src/android/agfx.c
 +   glMatrixMode(GL_PROJECTION);
 +   glLoadIdentity();
 +   
-+   glOrthox(0, screen_width - 1, 0, screen_height - 1, 0, 1);
++   glOrthof(0, screen_width - 1, 0, screen_height - 1, 0, 1);
 +   
 +   glMatrixMode(GL_MODELVIEW);
 +   glLoadIdentity();      
 +
 +   if (android_device_ar <= android_screen_ar)
-+      glTranslatex(0, (screen_height - android_vertices[5] - 1) / 2, 0);   
++      glTranslatef(0, (screen_height - android_vertices[5] - 1) / 2, 0);   
 +   else
-+      glTranslatex((screen_width - android_vertices[2] - 1) / 2, 0, 0);   
++      glTranslatef((screen_width - android_vertices[2] - 1) / 2, 0, 0);
 +}
 +
 +
@@ -1271,7 +1272,7 @@ diff -Naur src/android/agfx.c src/android/agfx.c
 +}
 diff -Naur src/android/ajni.c src/android/ajni.c
 --- src/android/ajni.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/android/ajni.c	2011-11-02 18:46:37.355555800 +0100
++++ src/android/ajni.c	2011-11-06 08:15:57.081334100 +0100
 @@ -0,0 +1,138 @@
 +/*         ______   ___    ___
 +*        /\  _  \ /\_ \  /\_ \
@@ -1378,12 +1379,12 @@ diff -Naur src/android/ajni.c src/android/ajni.c
 +void android_update_sound(char* buffer, unsigned int size)
 +{
 +   (*android_jni_env_sound_thread)->SetByteArrayRegion(android_jni_env_sound_thread, android_sound_buffer, 0, size, buffer);
-+   (*android_jni_env_sound_thread)->CallVoidMethod(android_jni_env_sound_thread, android_jni_object, android_jni_updateSound);   
++   (*android_jni_env_sound_thread)->CallVoidMethod(android_jni_env_sound_thread, android_jni_object, android_jni_updateSound);
 +}
 +
 +void android_initialize_sound(int size)
 +{
-+   android_sound_buffer = (*android_jni_env)->NewByteArray(android_jni_env, size);
++   android_sound_buffer = (*android_jni_env)->NewGlobalRef(android_jni_env, (*android_jni_env)->NewByteArray(android_jni_env, size));
 +   (*android_jni_env)->CallVoidMethod(android_jni_env, android_jni_object, android_jni_initializeSound, android_sound_buffer, size);
 +}
 +
@@ -1413,7 +1414,7 @@ diff -Naur src/android/ajni.c src/android/ajni.c
 +}
 diff -Naur src/android/akey.c src/android/akey.c
 --- src/android/akey.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/android/akey.c	2011-11-02 18:48:21.657800500 +0100
++++ src/android/akey.c	2011-11-02 18:57:39.857682900 +0100
 @@ -0,0 +1,239 @@
 +/*         ______   ___    ___
 +*        /\  _  \ /\_ \  /\_ \
@@ -1656,7 +1657,7 @@ diff -Naur src/android/akey.c src/android/akey.c
 +}
 diff -Naur src/android/amouse.c src/android/amouse.c
 --- src/android/amouse.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/android/amouse.c	2011-11-02 18:46:37.364056900 +0100
++++ src/android/amouse.c	2011-11-02 18:57:39.876185200 +0100
 @@ -0,0 +1,144 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
@@ -1804,7 +1805,7 @@ diff -Naur src/android/amouse.c src/android/amouse.c
 +
 diff -Naur src/android/asound.c src/android/asound.c
 --- src/android/asound.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/android/asound.c	2011-11-02 18:48:10.774418500 +0100
++++ src/android/asound.c	2011-11-02 18:57:39.897687900 +0100
 @@ -0,0 +1,160 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
@@ -1968,7 +1969,7 @@ diff -Naur src/android/asound.c src/android/asound.c
 +}
 diff -Naur src/android/asystem.c src/android/asystem.c
 --- src/android/asystem.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/android/asystem.c	2011-11-02 18:46:37.415563400 +0100
++++ src/android/asystem.c	2011-11-02 18:57:39.911689700 +0100
 @@ -0,0 +1,102 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
@@ -2074,7 +2075,7 @@ diff -Naur src/android/asystem.c src/android/asystem.c
 +}
 diff -Naur src/android/atimer.c src/android/atimer.c
 --- src/android/atimer.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/android/atimer.c	2011-11-02 18:46:37.420564000 +0100
++++ src/android/atimer.c	2011-11-02 18:57:39.919690700 +0100
 @@ -0,0 +1,228 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
@@ -2306,7 +2307,7 @@ diff -Naur src/android/atimer.c src/android/atimer.c
 +}
 diff -Naur src/digmid.c src/digmid.c
 --- src/digmid.c	2007-08-09 22:48:38.000000000 +0200
-+++ src/digmid.c	2011-11-02 18:46:37.440566600 +0100
++++ src/digmid.c	2011-11-02 18:57:39.961696100 +0100
 @@ -13,6 +13,8 @@
   *      By Shawn Hargreaves, based on code by Tom Novelli.
   *      Chris Robinson added some optimizations and the digmid_set_pan method.
@@ -2400,7 +2401,7 @@ diff -Naur src/digmid.c src/digmid.c
  
 diff -Naur src/file.c src/file.c
 --- src/file.c	2011-03-25 00:18:25.000000000 +0100
-+++ src/file.c	2011-11-02 18:46:37.484572200 +0100
++++ src/file.c	2011-11-02 18:57:39.986199200 +0100
 @@ -1808,7 +1808,7 @@
   *  it returns NULL and stores an error code in errno. An attempt to read a 
   *  normal file in packed mode will cause errno to be set to EDOM.

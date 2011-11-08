@@ -11778,7 +11778,8 @@ void BuildAudioClipArray()
         game.audioClips[game.audioClipCount].fileType = eAudioFileVOC;
       else if (stricmp(temp_extension, "mid") == 0)
         game.audioClips[game.audioClipCount].fileType = eAudioFileMIDI;
-      else if ((stricmp(temp_extension, "mod") == 0) || (stricmp(temp_extension, "xm") == 0))
+      else if ((stricmp(temp_extension, "mod") == 0) || (stricmp(temp_extension, "xm") == 0)
+        || (stricmp(temp_extension, "s3m") == 0) || (stricmp(temp_extension, "it") == 0))
         game.audioClips[game.audioClipCount].fileType = eAudioFileMOD;
       else if (stricmp(temp_extension, "ogg") == 0)
         game.audioClips[game.audioClipCount].fileType = eAudioFileOGG;

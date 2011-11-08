@@ -53,7 +53,7 @@ int psp_clear_cache_on_room_change = 0;
 // Audio options from the Allegro library.
 unsigned int psp_audio_samplerate;
 int psp_audio_enabled = 1;
-int psp_audio_multithreaded = 1;
+volatile int psp_audio_multithreaded = 1;
 int psp_audio_cachesize = 10;
 int psp_midi_enabled = 1;
 int psp_midi_preload_patches = 0;

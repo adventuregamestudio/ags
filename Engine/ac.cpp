@@ -476,8 +476,8 @@ int  recbuffersize = 0, recsize = 0;
 volatile int switching_away_from_game = 0;
 
 // PSP: Update in thread if wanted.
-extern int psp_audio_multithreaded;
-bool update_mp3_thread_running = false;
+extern volatile int psp_audio_multithreaded;
+volatile bool update_mp3_thread_running = false;
 int musicPollIterator; // long name so it doesn't interfere with anything else
 #define UPDATE_MP3_THREAD \
    while (switching_away_from_game) { } \
@@ -487,7 +487,7 @@ int musicPollIterator; // long name so it doesn't interfere with anything else
    }
 #define UPDATE_MP3 \
  if (!psp_audio_multithreaded) \
-  UPDATE_MP3_THREAD
+  { UPDATE_MP3_THREAD }
 
 //#define UPDATE_MP3 update_polled_stuff();
 #if defined(PSP_VERSION)
@@ -510,6 +510,16 @@ void* update_mp3_thread(void* arg)
     usleep(1000 * 50);
   }
   pthread_exit(NULL);
+}
+#elif defined(WINDOWS_VERSION)
+DWORD WINAPI update_mp3_thread(LPVOID lpParam)
+{
+  while (update_mp3_thread_running)
+  {
+    UPDATE_MP3_THREAD
+    Sleep(50);
+  }
+  return 0;
 }
 #endif
 
@@ -9408,6 +9418,10 @@ void quit(char*quitmsg) {
   if (opts.mod_player)
     remove_mod_player();
 #endif
+
+  // Quit the sound thread.
+  update_mp3_thread_running = false;
+
   remove_sound();
   our_eip = 9901;
 
@@ -28935,10 +28949,10 @@ int initialize_engine(int argc,char*argv[])
   // PSP: Initialize the sound cache.
   clear_sound_cache();
 
-#if defined(PSP_VERSION)
-  // PSP: Create sound update thread. This is a workaround for sound stuttering.
+  // Create sound update thread. This is a workaround for sound stuttering.
   if (psp_audio_multithreaded)
   {
+#if defined(PSP_VERSION)
     update_mp3_thread_running = true;
     SceUID thid = sceKernelCreateThread("update_mp3_thread", update_mp3_thread, 0x20, 0xFA0, THREAD_ATTR_USER, 0);
     if (thid > -1)
@@ -28948,13 +28962,23 @@ int initialize_engine(int argc,char*argv[])
       update_mp3_thread_running = false;
       psp_audio_multithreaded = 0;
     }
-  }
 #elif defined(ANDROID_VERSION)
-  pthread_create(&soundthread, NULL, update_mp3_thread, NULL);
-#else
-  psp_audio_multithreaded = 0;
+    update_mp3_thread_running = true;
+    if (pthread_create(&soundthread, NULL, update_mp3_thread, NULL) != 0)
+    {
+      update_mp3_thread_running = false;
+      psp_audio_multithreaded = 0;
+    }
+#elif defined(WINDOWS_VERSION)
+    update_mp3_thread_running = true;
+    if (CreateThread(NULL, 0, update_mp3_thread, NULL, 0, NULL) == NULL)
+    {
+      update_mp3_thread_running = false;
+      psp_audio_multithreaded = 0;
+    }
 #endif
-  
+  }
+
   initialize_start_and_play_game(override_start_room, loadSaveGameOnStartup);
 
   update_mp3_thread_running = false;

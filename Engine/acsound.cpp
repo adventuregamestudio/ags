@@ -68,7 +68,7 @@ extern int psp_sound_cache_max_size;
 extern int psp_audio_cachesize;
 extern int psp_midi_preload_patches;
 
-int dont_disturb = 0;
+volatile int dont_disturb = 0;
 
 typedef struct
 {
@@ -1156,7 +1156,7 @@ struct MYMIDI:public SOUNDCLIP
   
   // The PSP takes a while to play a midi, therefore poll() can be called
   // before the music is ready and immediately returns done.
-  bool initializing;
+  volatile bool initializing;
 
   int poll()
   {

@@ -16982,6 +16982,14 @@ void move_object(int objj,int tox,int toy,int spee,int ignwal) {
   if (!is_valid_object(objj))
     quit("!MoveObject: invalid object number");
 
+  // AGS <= 2.61 uses MoveObject with spp=-1 internally instead of SetObjectPosition
+  if ((loaded_game_file_version <= 26) && (spee == -1))
+  {
+    objs[objj].x = tox;
+    objs[objj].y = toy;
+    return;
+  }
+
   DEBUG_CONSOLE("Object %d start move to %d,%d", objj, tox, toy);
 
   int objX = convert_to_low_res(objs[objj].x);

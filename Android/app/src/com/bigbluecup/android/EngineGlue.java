@@ -21,11 +21,17 @@ public class EngineGlue extends Thread {
 	public short mouseMoveY = 0;
 	public int mouseClick = 0;
 	
+	private int screenPhysicalWidth = 480;
+	private int screenPhysicalHeight = 320;
+	private int screenVirtualWidth = 320;
+	private int screenVirtualHeight = 200;
+	
 	private boolean paused = false;
 
 	private AudioTrack audioTrack;
 	private byte[] audioBuffer;	
 	private int bufferSize = 0;
+	private float audioVolume = 0.5f;
 	
 	private AgsEngine activity;
 
@@ -67,8 +73,9 @@ public class EngineGlue extends Thread {
 	
 	public void moveMouse(float x, float y)
 	{
-		mouseMoveX = (short)x;
-		mouseMoveY = (short)y;
+		// The mouse movement is scaled to the game screen size
+		mouseMoveX = (short) (x * (float)screenVirtualWidth / (float)screenPhysicalWidth);
+		mouseMoveY = (short) (y * (float)screenVirtualHeight / (float)screenPhysicalHeight);
 	}
 	
 	public void clickMouse(int button)
@@ -99,6 +106,8 @@ public class EngineGlue extends Thread {
 	
 	private void createScreen(int width, int height, int color_depth)
 	{
+		screenVirtualWidth = width;
+		screenVirtualHeight = height;
 		sendMessageToActivity(MSG_SWITCH_TO_INGAME, null);
 	}
 	
@@ -150,10 +159,15 @@ public class EngineGlue extends Thread {
 		audioBuffer = buffer;
 		this.bufferSize = bufferSize;
 		
-		int sampleRate = AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC);
+		int sampleRate = 44100;
 		int minBufferSize = AudioTrack.getMinBufferSize(sampleRate, AudioFormat.CHANNEL_CONFIGURATION_STEREO, AudioFormat.ENCODING_PCM_16BIT);
 		
+		if (minBufferSize < bufferSize * 4)
+			minBufferSize = bufferSize * 4;
+		
 		audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, sampleRate, AudioFormat.CHANNEL_CONFIGURATION_STEREO, AudioFormat.ENCODING_PCM_16BIT, minBufferSize, AudioTrack.MODE_STREAM);
+		audioVolume = (AudioTrack.getMaxVolume() - AudioTrack.getMinVolume()) / 2.0f;
+		audioTrack.setStereoVolume(audioVolume, audioVolume);	
 		audioTrack.play();
 	}
 	
@@ -162,4 +176,31 @@ public class EngineGlue extends Thread {
 		audioTrack.write(audioBuffer, 0, bufferSize);
 	}
 	
+	public void decreaseSoundVolume()
+	{
+		if (audioTrack == null)
+			return;
+		
+		audioVolume -= (AudioTrack.getMaxVolume() - AudioTrack.getMinVolume()) / 20.0f;
+		if (audioVolume < AudioTrack.getMinVolume())
+			audioVolume = AudioTrack.getMinVolume();
+		audioTrack.setStereoVolume(audioVolume, audioVolume);
+	}
+	
+	public void increaseSoundVolume()
+	{
+		if (audioTrack == null)
+			return;
+		
+		audioVolume += (AudioTrack.getMaxVolume() - AudioTrack.getMinVolume()) / 20.0f;
+		if (audioVolume > AudioTrack.getMaxVolume())
+			audioVolume = AudioTrack.getMaxVolume();
+		audioTrack.setStereoVolume(audioVolume, audioVolume);
+	}
+	
+	public void setPhysicalScreenResolution(int width, int height)
+	{
+		screenPhysicalWidth = width;
+		screenPhysicalHeight = height;
+	}
 }

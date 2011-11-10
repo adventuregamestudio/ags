@@ -107,27 +107,45 @@ public class AgsEngine extends Activity
 		}
 	}
 	
+	boolean initialized = false;
+	private float lastX = 0.0f;
+	private float lastY = 0.0f;
+	
 	@Override
 	public boolean dispatchTouchEvent(MotionEvent ev)
 	{
 		switch (ev.getAction())
 		{
+			case MotionEvent.ACTION_DOWN:
+			{
+				initialized = false;
+				break;
+			}
 			case MotionEvent.ACTION_MOVE:
 			{
-				int history_size = ev.getHistorySize();
 				
-				if (history_size < 2)
-					break;
+				if (!initialized)
+				{
+					lastX = ev.getX();
+					lastY = ev.getY();
+					initialized = true;
+				}
+
+				float x = ev.getX() - lastX;
+				float y = ev.getY() - lastY;
+
+				glue.moveMouse(x, y);
 				
-				glue.moveMouse(ev.getHistoricalX(history_size - 1) - ev.getHistoricalX(0), ev.getHistoricalY(history_size - 1) - ev.getHistoricalY(0));
+				lastX = ev.getX();
+				lastY = ev.getY();
 				
 				try
 				{
 					// Delay a bit to not get flooded with events
-					Thread.sleep(100, 0);
+					Thread.sleep(50, 0);
 				}
 				catch (InterruptedException e) {}
-				
+
 				break;
 			}
 
@@ -169,11 +187,22 @@ public class AgsEngine extends Activity
 				if (ev.getKeyCode() == KeyEvent.KEYCODE_BACK)
 					showExitConfirmation();
 				
+				if (ev.getKeyCode() == KeyEvent.KEYCODE_VOLUME_UP)
+					glue.increaseSoundVolume();
+				
+				if (ev.getKeyCode() == KeyEvent.KEYCODE_VOLUME_DOWN)
+					glue.decreaseSoundVolume();
+
 				break;
 			}
 
 			case KeyEvent.ACTION_UP:
 			{
+				if (   (ev.getKeyCode() == KeyEvent.KEYCODE_BACK)
+					|| (ev.getKeyCode() == KeyEvent.KEYCODE_VOLUME_UP)
+					|| (ev.getKeyCode() == KeyEvent.KEYCODE_VOLUME_DOWN))
+					return isInGame;
+
 				glue.keyboardEvent(ev.getKeyCode(), ev.getUnicodeChar(ev.getMetaState()), ev.isShiftPressed());
 				break; 	    		
 			}

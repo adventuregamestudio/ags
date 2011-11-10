@@ -28,6 +28,7 @@ public class Renderer extends GLSurfaceView
 
 		public void onSurfaceChanged(GL10 gl, int width, int height)
 		{
+			glue.setPhysicalScreenResolution(width, height);
 			glue.nativeInitializeRenderer(width, height);
 		}
 

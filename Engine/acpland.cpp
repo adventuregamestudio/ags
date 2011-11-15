@@ -17,6 +17,10 @@
 
 #define ANDROID_CONFIG_FILENAME "android.cfg"
 
+extern char filetouse[];
+char *INIreaditem(const char *sectn, const char *entry);
+int INIreadint (const char *sectn, const char *item, int errornosect = 1);
+void ReadConfiguration(char* filename);
 
 struct AGSAndroid : AGS32BitOSDriver {
 
@@ -44,9 +48,8 @@ struct AGSAndroid : AGS32BitOSDriver {
 };
 
 
-int psp_return_to_menu = 1;
-int psp_ignore_acsetup_cfg_file = 1;
-int psp_enable_extra_memory = 0;
+//int psp_return_to_menu = 1;
+int psp_ignore_acsetup_cfg_file = 0;
 int psp_clear_cache_on_room_change = 0;
 
 
@@ -58,6 +61,7 @@ int psp_audio_cachesize = 10;
 int psp_midi_enabled = 1;
 int psp_midi_preload_patches = 0;
 
+int psp_video_framedrop = 0;
 
 
 extern int display_fps;
@@ -99,7 +103,7 @@ JNIEXPORT void JNICALL
 
 
 JNIEXPORT jboolean JNICALL 
-  Java_com_bigbluecup_android_EngineGlue_startEngine(JNIEnv* env, jobject object, jclass stringclass, jstring filename)
+  Java_com_bigbluecup_android_EngineGlue_startEngine(JNIEnv* env, jobject object, jclass stringclass, jstring filename, jstring directory)
 {
   // Get JNI interfaces.
   java_object = env->NewGlobalRef(object);
@@ -112,9 +116,17 @@ JNIEXPORT jboolean JNICALL
   android_allegro_initialize_jni(java_environment, java_class, java_object);
 
   // Get the file to run from Java.
-  const char *cpath = java_environment->GetStringUTFChars(filename, NULL);
+  const char* cpath = java_environment->GetStringUTFChars(filename, NULL);
   strcpy(psp_game_file_name, cpath);
   java_environment->ReleaseStringUTFChars(filename, cpath);
+
+  // Get the base directory (usually "/sdcard/ags").
+  const char* cdirectory = java_environment->GetStringUTFChars(directory, NULL);
+  chdir(cdirectory);
+  java_environment->ReleaseStringUTFChars(directory, cdirectory);
+
+  // Read general configuration.
+  ReadConfiguration(ANDROID_CONFIG_FILENAME);
 
 	// Get the games path.
 	char path[256];
@@ -126,9 +138,11 @@ JNIEXPORT jboolean JNICALL
 	  lastindex--;
 	}
   chdir(path);
-  display_fps = 2;
   
   setenv("ULTRADIR", "..", 1);
+
+  // Read game specific configuration.
+  ReadConfiguration(ANDROID_CONFIG_FILENAME);
 
   // Start the engine main function.
 	main(1, &psp_game_file_name_pointer);
@@ -136,6 +150,64 @@ JNIEXPORT jboolean JNICALL
   return true;
 }
 
+}
+
+
+
+int ReadInteger(int* variable, char* section, char* name, int minimum, int maximum, int default_value)
+{
+  int temp = INIreadint(section, name);
+
+  if (temp == -1)
+    return 0;
+
+  if ((temp < minimum) || (temp > maximum))
+    temp = default_value;
+
+  *variable = temp;
+
+  return 1;
+}
+
+
+
+void ReadConfiguration(char* filename)
+{
+  FILE* test = fopen(filename, "rb");
+  if (test)
+  {
+    fclose(test);
+    strcpy(filetouse, filename);
+
+//    ReadInteger((int*)&psp_disable_powersaving, "misc", "disable_power_saving", 0, 1, 1);
+
+//    ReadInteger((int*)&psp_return_to_menu, "misc", "return_to_menu", 0, 1, 1);
+
+    ReadInteger(&display_fps, "misc", "show_fps", 0, 1, 0);
+    if (display_fps == 1)
+      display_fps = 2;
+
+    ReadInteger((int*)&psp_ignore_acsetup_cfg_file, "compatibility", "ignore_acsetup_cfg_file", 0, 1, 0);
+    ReadInteger((int*)&psp_clear_cache_on_room_change, "compatibility", "clear_cache_on_room_change", 0, 1, 0);
+
+    ReadInteger((int*)&psp_audio_samplerate, "sound", "samplerate", 0, 44100, 44100);
+    ReadInteger((int*)&psp_audio_enabled, "sound", "enabled", 0, 1, 1);
+    ReadInteger((int*)&psp_audio_multithreaded, "sound", "threaded", 0, 1, 1);
+
+    ReadInteger((int*)&psp_midi_enabled, "midi", "enabled", 0, 1, 1);
+    ReadInteger((int*)&psp_midi_preload_patches, "midi", "preload_patches", 0, 1, 0);
+
+    int audio_cachesize;
+    if (ReadInteger((int*)&audio_cachesize, "sound", "cache_size", 1, 50, 10));
+      psp_audio_cachesize = audio_cachesize;
+
+    ReadInteger((int*)&psp_video_framedrop, "video", "framedrop", 0, 1, 0);
+
+//    ReadInteger((int*)&psp_gfx_smoothing, "graphics", "smoothing", 0, 1, 1);
+//    ReadInteger((int*)&psp_gfx_scaling, "graphics", "scaling", 0, 1, 1);
+
+    strcpy(filetouse, "nofile");
+  }
 }
 
 

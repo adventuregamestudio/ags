@@ -101,6 +101,7 @@ int psp_audio_cachesize = 10;
 int psp_midi_enabled = 1;
 int psp_midi_preload_patches = 0;
 
+int psp_video_framedrop = 0;
 
 
 // Mouse options from the Allegro library.
@@ -336,6 +337,8 @@ void ReadConfiguration(char* filename)
       psp_mouse_analog_sensitivity = (float)mouse_sensitivity / 25.0f;
 
     ReadInteger((int*)&psp_mouse_analog_deadzone, "analog_stick", "deadzone", 0, 128, 20);
+
+    ReadInteger((int*)&psp_video_framedrop, "video", "framedrop", 0, 1, 0);
 
     ReadInteger((int*)&psp_gfx_smoothing, "graphics", "smoothing", 0, 1, 1);
     ReadInteger((int*)&psp_gfx_scaling, "graphics", "scaling", 0, 1, 1);

@@ -36,25 +36,27 @@ public class EngineGlue extends Thread {
 	private AgsEngine activity;
 
 	private String gameFilename = "";
+	private String baseDirectory = "";
 	
 	public native void nativeRender();
 	public native void nativeInitializeRenderer(int width, int height);
 	public native void shutdownEngine();
-	private native boolean startEngine(Object object, String filename);
+	private native boolean startEngine(Object object, String filename, String directory);
 	private native void pauseEngine();
 	private native void resumeEngine();
 	
-	public EngineGlue(AgsEngine activity, String filename)
+	public EngineGlue(AgsEngine activity, String filename, String directory)
 	{
 		this.activity = activity;
 		gameFilename = filename;
+		baseDirectory = directory;
 		
 		System.loadLibrary("agsengine");
 	}	
 	
 	public void run()
 	{
-		startEngine(this, gameFilename);
+		startEngine(this, gameFilename, baseDirectory);
 	}	
 
 	public void pauseGame()

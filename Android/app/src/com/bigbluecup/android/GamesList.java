@@ -20,6 +20,8 @@ public class GamesList extends ListActivity
 	private ArrayList<String> folderList;
 	private ArrayList<String> filenameList;
 	
+	private String baseDirectory;
+	
 	private void showMessage(String message)
 	{
 		Toast.makeText(this, message, Toast.LENGTH_LONG).show();
@@ -31,7 +33,10 @@ public class GamesList extends ListActivity
 		
 		System.loadLibrary("pe");
 		
-		searchForGames();
+		String filename = searchForGames();
+		
+		if (filename != null)
+		  startGame(filename);
 		
 		if ((folderList != null) && (folderList.size() > 0))
 		{
@@ -48,19 +53,33 @@ public class GamesList extends ListActivity
 	{
 		super.onListItemClick(l, v, position, id);
 		
+		startGame(filenameList.get(position));
+	}
+	
+	private void startGame(String filename)
+	{
 		Intent intent = new Intent(this, AgsEngine.class);
 		Bundle b = new Bundle();
-		b.putString("filename", filenameList.get(position));
+		b.putString("filename", filename);
+		b.putString("directory", baseDirectory);
 		intent.putExtras(b);
 		startActivity(intent);
 		finish();
 	}
 	
-	private void searchForGames()
+	private String searchForGames()
 	{
 		String[] tempList = null;
 		
-		File agsDirectory = new File(Environment.getExternalStorageDirectory() + "/ags");
+		baseDirectory = Environment.getExternalStorageDirectory() + "/ags";
+		
+		// Check for ac2game.dat in the base directory
+		File ac2game = new File(baseDirectory + "/ac2game.dat");
+		if (ac2game.isFile())
+			return baseDirectory + "/ac2game.dat";
+		
+		// Check for games in folders
+		File agsDirectory = new File(baseDirectory);
 		if (agsDirectory.isDirectory())
 		{
 			tempList = agsDirectory.list(new FilenameFilter()
@@ -121,6 +140,8 @@ public class GamesList extends ListActivity
 				}
 			}
 		}
+		
+		return null;
 	}
 
 }

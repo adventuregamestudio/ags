@@ -35,7 +35,8 @@ public class AgsEngine extends Activity
 		super.onCreate(savedInstanceState);
 
 		// Get the game filename from the launcher activity
-		String gameFilename = getIntent().getExtras().getString("filename");        
+		String gameFilename = getIntent().getExtras().getString("filename");
+		String baseDirectory = getIntent().getExtras().getString("directory");
 		
 		// Set windows options
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -52,7 +53,7 @@ public class AgsEngine extends Activity
 		
 		// Switch to the loading view and start the game
 		setContentView(R.layout.loading);
-		glue = new EngineGlue(this, gameFilename);
+		glue = new EngineGlue(this, gameFilename, baseDirectory);
 		glue.start();
 	}
 	

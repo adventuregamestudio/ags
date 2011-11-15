@@ -63,12 +63,15 @@ extern void write_log(char*msg) ;
 
 //#define SOUND_CACHE_DEBUG
 
+#if defined(ANDROID_VERSION) && defined(SOUND_CACHE_DEBUG)
+extern "C" void android_debug_printf(char* format, ...);
+#define printf android_debug_printf
+#endif
+
 extern int psp_use_sound_cache;
 extern int psp_sound_cache_max_size;
 extern int psp_audio_cachesize;
 extern int psp_midi_preload_patches;
-
-volatile int dont_disturb = 0;
 
 typedef struct
 {
@@ -277,14 +280,18 @@ struct MYWAVE:public SOUNDCLIP
 
   int poll()
   {
-    if (wave == NULL)
-      return 1;
-    if (paused)
-      return 0;
+    lockMutex();
 
-    if (dont_disturb)
-      return done;
-    dont_disturb = 1;
+    if (wave == NULL)
+    {
+      releaseMutex();
+      return 1;
+    }
+    if (paused)
+    {
+      releaseMutex();
+      return 0;
+    }
 
     if (firstTime) {
       // need to wait until here so that we have been assigned a channel
@@ -295,7 +302,7 @@ struct MYWAVE:public SOUNDCLIP
     if (voice_get_position(voice) < 0)
       done = 1;
 
-    dont_disturb = 0;
+    releaseMutex();
 
     return done;
   }
@@ -314,10 +321,14 @@ struct MYWAVE:public SOUNDCLIP
 
   void destroy()
   {
+    lockMutex();
+
     // Stop sound and decrease reference count.
     stop_sample(wave);
     sound_cache_free((char*)wave, true);
     wave = NULL;
+
+    releaseMutex();
   }
 
   void seek(int pos)
@@ -416,14 +427,18 @@ struct MYMP3:public SOUNDCLIP
 
   int poll()
   {
-    if (done)
-      return done;
-    if (paused)
-      return 0;
+    lockMutex();
 
-    if (dont_disturb)
+    if (done)
+    {
+      releaseMutex();
       return done;
-    dont_disturb = 1;
+    }
+    if (paused)
+    {
+      releaseMutex();
+      return 0;
+    }
 
     if (!done) {
       // update the buffer
@@ -442,7 +457,7 @@ struct MYMP3:public SOUNDCLIP
     if (almp3_poll_mp3stream(stream) == ALMP3_POLL_PLAYJUSTFINISHED)
       done = 1;
 
-    dont_disturb = 0;
+    releaseMutex();
 
     return done;
   }
@@ -462,6 +477,8 @@ struct MYMP3:public SOUNDCLIP
 
   void destroy()
   {
+    lockMutex();
+
     if (!done)
       almp3_stop_mp3stream(stream);
 
@@ -471,8 +488,11 @@ struct MYMP3:public SOUNDCLIP
     if (buffer != NULL)
       free(buffer);
 
+    done = 1;
     buffer = NULL;
     pack_fclose(in);
+
+    releaseMutex();
   }
 
   void seek(int pos)
@@ -575,9 +595,7 @@ struct MYSTATICMP3:public SOUNDCLIP
 
   int poll()
   {
-    if (dont_disturb)
-      return done;
-    dont_disturb = 1;
+    lockMutex();
 
     int oldeip = our_eip;
       our_eip = 5997;
@@ -588,7 +606,7 @@ struct MYSTATICMP3:public SOUNDCLIP
     }
     our_eip = oldeip;
 
-    dont_disturb = 0;
+    releaseMutex();
 
     return done;
   }
@@ -608,6 +626,8 @@ struct MYSTATICMP3:public SOUNDCLIP
 
   void destroy()
   {
+    lockMutex();
+
     if (tune != NULL) {
       almp3_stop_mp3(tune);
       almp3_destroy_mp3(tune);
@@ -617,6 +637,7 @@ struct MYSTATICMP3:public SOUNDCLIP
       sound_cache_free(mp3buffer, false);
     }
 
+    releaseMutex();
   }
 
   void seek(int pos)
@@ -734,9 +755,7 @@ struct MYSTATICOGG:public SOUNDCLIP
 
   int poll()
   {
-    if (dont_disturb)
-      return done;
-    dont_disturb = 1;
+    lockMutex();
 
     if (tune == NULL)
       ; // Do nothing
@@ -746,7 +765,7 @@ struct MYSTATICOGG:public SOUNDCLIP
     }
     else get_pos();  // call this to keep the last_but_one stuff up to date
 
-    dont_disturb = 0;
+    releaseMutex();
 
     return done;
   }
@@ -765,6 +784,8 @@ struct MYSTATICOGG:public SOUNDCLIP
 
   void destroy()
   {
+    lockMutex();
+
     if (tune != NULL) {
       alogg_stop_ogg(tune);
       alogg_destroy_ogg(tune);
@@ -774,6 +795,8 @@ struct MYSTATICOGG:public SOUNDCLIP
     if (mp3buffer != NULL) {
       sound_cache_free(mp3buffer, false);
     }
+
+    releaseMutex();
   }
 
   void seek(int pos)
@@ -944,14 +967,18 @@ struct MYOGG:public SOUNDCLIP
 
   int poll()
   {
-    if (done)
-      return done;
-    if (paused)
-      return 0;
+    lockMutex();
 
-    if (dont_disturb)
+    if (done)
+    {
+      releaseMutex();
       return done;
-    dont_disturb = 1;
+    }
+    if (paused)
+    {
+      releaseMutex();
+      return 0;
+    }
 
     if ((!done) && (in->todo > 0))
     {
@@ -974,7 +1001,7 @@ struct MYOGG:public SOUNDCLIP
     }
     else get_pos_ms();  // call this to keep the last_but_one stuff up to date
     
-    dont_disturb = 0;
+    releaseMutex();
 
     return done;
   }
@@ -993,6 +1020,8 @@ struct MYOGG:public SOUNDCLIP
 
   void destroy()
   {
+    lockMutex();
+
     if (!done)
       alogg_stop_oggstream(stream);
 
@@ -1002,6 +1031,10 @@ struct MYOGG:public SOUNDCLIP
       free(buffer);
     buffer = NULL;
     pack_fclose(in);
+
+    done = 1;
+
+    releaseMutex();
   }
 
   void seek(int pos)

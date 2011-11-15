@@ -13,6 +13,16 @@
 #ifndef __ACSOUND_H
 #define __ACSOUND_H
 
+#if defined(PSP_VERSION)
+#include <pspsdk.h>
+#include <pspkernel.h>
+#include <pspthreadman.h>
+#elif defined(LINUX_VERSION)
+#include <pthread.h>
+#elif defined(WINDOWS_VERSION)
+#include <windows.h>
+#endif
+
 #define MUS_MIDI 1
 #define MUS_MP3  2
 #define MUS_WAVE 3
@@ -36,6 +46,14 @@ struct SOUNDCLIP
   int directionalVolModifier;
   bool repeat;
   void *sourceClip;
+
+#if defined(PSP_VERSION)
+  SceUID mutex;
+#elif defined(LINUX_VERSION)
+  pthread_mutex_t mutex;
+#elif defined(WINDOWS_VERSION)
+  HANDLE mutex;
+#endif
 
   virtual int poll() = 0;
   virtual void destroy() = 0;
@@ -95,6 +113,56 @@ struct SOUNDCLIP
     ySource = -1;
     maximumPossibleDistanceAway = 0;
     directionalVolModifier = 0;
+    createMutex();
+  }
+
+  ~SOUNDCLIP()
+  {
+    destroyMutex();
+  }
+
+  inline void createMutex()
+  {
+#if defined(PSP_VERSION)
+    mutex = sceKernelCreateSema("SoundMutex", 0, 1, 1, 0);
+#elif defined(LINUX_VERSION)
+    pthread_mutex_init(&mutex, NULL);
+#elif defined(WINDOWS_VERSION)
+    CreateMutex(NULL, FALSE, NULL); 
+#endif
+  }
+
+  inline void lockMutex()
+  {
+#if defined(PSP_VERSION)
+    sceKernelWaitSema(mutex, 1, 0);
+#elif defined(LINUX_VERSION)
+    pthread_mutex_lock(&mutex);
+#elif defined(WINDOWS_VERSION)
+    WaitForSingleObject(mutex, INFINITE);
+#endif
+  }
+
+  inline void releaseMutex()
+  {
+#if defined(PSP_VERSION)
+    sceKernelSignalSema(mutex, 1);
+#elif defined(LINUX_VERSION)
+    pthread_mutex_unlock(&mutex);
+#elif defined(WINDOWS_VERSION)
+    ReleaseMutex(mutex);
+#endif
+  }
+
+  inline void destroyMutex()
+  {
+#if defined(PSP_VERSION)
+    sceKernelDeleteSema(mutex);
+#elif defined(LINUX_VERSION)
+    pthread_mutex_destroy(&mutex);
+#elif defined(WINDOWS_VERSION)
+    CloseHandle(mutex); 
+#endif
   }
 };
 

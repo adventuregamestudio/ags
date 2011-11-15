@@ -1,0 +1,2413 @@
+diff -Naur cmake/FileList.cmake cmake/FileList.cmake
+--- cmake/FileList.cmake	2011-03-12 01:26:00.000000000 +0100
++++ cmake/FileList.cmake	2011-11-06 20:59:34.992970000 +0100
+@@ -335,6 +335,19 @@
+         src/psp/pvtable8.c
+         )
+ 
++set(ALLEGRO_SRC_ANDROID_FILES
++        src/android/adrivers.c
++        src/android/asound.c
++        src/android/afile.c
++        src/android/agfx.c
++        src/android/akey.c
++        src/android/asystem.c
++        src/android/amouse.c
++        src/android/ajni.c
++        src/android/atimer.c
++        src/misc/colconv.c
++        )
++
+ set(ALLEGRO_INCLUDE_ALLEGRO_FILES
+         include/allegro/3d.h
+         include/allegro/3dmaths.h
+@@ -400,6 +413,7 @@
+         include/allegro/platform/aintmac.h
+         include/allegro/platform/aintosx.h
+         include/allegro/platform/aintpsp.h
++        include/allegro/platform/aintand.h
+         include/allegro/platform/aintqnx.h
+         include/allegro/platform/aintunix.h
+         include/allegro/platform/aintwin.h
+@@ -421,6 +435,8 @@
+         # include/allegro/platform/alplatf.h.cmake
+         include/allegro/platform/alpsp.h
+         include/allegro/platform/alpspcfg.h
++        include/allegro/platform/aland.h
++        include/allegro/platform/alandcfg.h
+         include/allegro/platform/alqnx.h
+         include/allegro/platform/alqnxcfg.h
+         include/allegro/platform/alucfg.h
+diff -Naur cmake/Toolchain-android-gcc.cmake cmake/Toolchain-android-gcc.cmake
+--- cmake/Toolchain-android-gcc.cmake	1970-01-01 01:00:00.000000000 +0100
++++ cmake/Toolchain-android-gcc.cmake	2011-11-06 20:59:34.997470600 +0100
+@@ -0,0 +1,37 @@
++# The name of the target operating system.
++set(CMAKE_SYSTEM_NAME Generic)
++
++set(NDK_ROOT "$ENV{NDK_ROOT}")
++set(NDK_PLATFORM_ROOT "${NDK_ROOT}/platforms/android-4/arch-arm/usr")
++set(NDK_ADDITIONAL_LIBRARY_PATH "$(pwd)/../../nativelibs/armeabi")
++#set(NDK_BIN_PATH "${NDK_ROOT}/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86/bin")
++set(NDK_PLATFORM_INCLUDE "${NDK_PLATFORM_ROOT}/include")
++set(NDK_PLATFORM_LIB "${NDK_PLATFORM_ROOT}/lib")
++
++# Location of target environment.
++
++set(CMAKE_SYSTEM_INCLUDE_PATH NDK_PLATFORM_INCLUDE "${NDK_ADDITIONAL_LIBRARY_PATH}/include")
++set(CMAKE_SYSTEM_LIBRARY_PATH NDK_PLATFORM_LIB "${NDK_ADDITIONAL_LIBRARY_PATH}/lib")
++#set(CMAKE_SYSTEM_PROGRAM_PATH ${NDK_BIN_PATH})
++
++# Which compilers to use for C and C++.
++set(CMAKE_C_COMPILER "arm-linux-androideabi-gcc")
++set(CMAKE_CXX_COMPILER "arm-linux-androideabi-g++")
++
++# Needed to pass the compiler tests.
++set(LINK_DIRECTORIES ${NDK_PLATFORM_LIB})
++set(LINK_LIBRARIES "-nostdlib -lc -Wl,--entry=main,-rpath-link=${NDK_PLATFORM_LIB}")
++
++set(CMAKE_EXE_LINKER_FLAGS "-Wl,-lc,-nostdlib,--entry=main,-rpath-link=${NDK_PLATFORM_LIB}")
++set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
++set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
++
++# Adjust the default behaviour of the FIND_XXX() commands:
++# search headers and libraries in the target environment, search
++# programs in the host environment.
++set(CMAKE_FIND_ROOT_PATH "/opt/android-ndk-r6/platforms/android-4/arch-arm/usr" "/mnt/e/android/ags/ags-for-psp/Android/nativelibs/armeabi")
++set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
++set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
++set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
++
++set(ANDROID 1)
+diff -Naur CMakeLists.txt CMakeLists.txt
+--- CMakeLists.txt	2011-03-25 00:18:50.000000000 +0100
++++ CMakeLists.txt	2011-11-10 16:04:46.315896100 +0100
+@@ -313,6 +313,18 @@
+     set(CMAKE_INSTALL_PREFIX ${PSP_PREFIX})
+ endif(PSP)
+ 
++if(ANDROID)
++	set(NDK_ROOT "$ENV{NDK_ROOT}")
++	set(NDK_PLATFORM_ROOT "${NDK_ROOT}/platforms/android-4/arch-arm/usr")
++	set(NDK_ADDITIONAL_LIBRARY_PATH "$(pwd)/../../nativelibs/armeabi")
++	set(NDK_PLATFORM_INCLUDE "${NDK_PLATFORM_ROOT}/include")
++	set(NDK_PLATFORM_LIB "${NDK_PLATFORM_ROOT}/lib")
++
++	set(ALLEGRO_ANDROID 1)
++	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=armv6 -marm -fsigned-char -I${NDK_PLATFORM_INCLUDE}")
++	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=armv6 -marm -fsigned-char")
++endif(ANDROID)
++
+ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${WFLAGS} ${WFLAGS_C_ONLY}")
+ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WFLAGS} ${WFLAGS_CXX_ONLY}")
+ 
+@@ -673,6 +685,14 @@
+     m pspaudio pspgu psprtc pspdebug pspdisplay pspge pspctrl pspsdk c pspnet pspnet_inet pspnet_resolver psputility pspuser pspkernel)
+ endif(PSP)
+ 
++# -- Android --
++
++if(ANDROID)
++	include_directories(SYSTEM NDK_PLATFORM_INCLUDE "${NDK_ADDITIONAL_LIBRARY_PATH}/include")
++	link_directories(NDK_PLATFORM_LIB)
++	list(APPEND PLATFORM_SOURCES ${ALLEGRO_SRC_ANDROID_FILES})
++endif(ANDROID)
++
+ #-----------------------------------------------------------------------------#
+ #
+ # Generate and install headers
+diff -Naur include/allegro/internal/alconfig.h include/allegro/internal/alconfig.h
+--- include/allegro/internal/alconfig.h	2008-12-24 02:39:48.000000000 +0100
++++ include/allegro/internal/alconfig.h	2011-11-06 20:59:35.011472300 +0100
+@@ -14,7 +14,7 @@
+  *
+  *      See readme.txt for copyright information.
+  */
+-
++#define ALLEGRO_ANDROID
+ 
+ /* which color depths to include? */
+ #define ALLEGRO_COLOR8
+@@ -62,6 +62,8 @@
+       #include "allegro/platform/alucfg.h"
+    #elif defined ALLEGRO_PSP
+       #include "allegro/platform/alpspcfg.h"
++   #elif defined ALLEGRO_ANDROID
++      #include "allegro/platform/alandcfg.h"
+    #else
+       #error platform not supported
+    #endif
+diff -Naur include/allegro/platform/aintand.h include/allegro/platform/aintand.h
+--- include/allegro/platform/aintand.h	1970-01-01 01:00:00.000000000 +0100
++++ include/allegro/platform/aintand.h	2011-11-06 20:59:35.015972900 +0100
+@@ -0,0 +1,48 @@
++/*         ______   ___    ___
++ *        /\  _  \ /\_ \  /\_ \
++ *        \ \ \L\ \\//\ \ \//\ \      __     __   _ __   ___
++ *         \ \  __ \ \ \ \  \ \ \   /'__`\ /'_ `\/\`'__\/ __`\
++ *          \ \ \/\ \ \_\ \_ \_\ \_/\  __//\ \L\ \ \ \//\ \L\ \
++ *           \ \_\ \_\/\____\/\____\ \____\ \____ \ \_\\ \____/
++ *            \/_/\/_/\/____/\/____/\/____/\/___L\ \/_/ \/___/
++ *                                           /\____/
++ *                                           \_/__/
++ *
++ *      Internal header file for the Android Allegro library port.
++ *
++ *      By JJS for the Adventure Game Studio runtime port.
++ *      Based on the Allegro PSP port.
++ *
++ *      See readme.txt for copyright information.
++ */
++
++
++#ifndef AINTAND_H
++#define AINTAND_H
++
++#include <jni.h>
++
++void android_allegro_initialize_jni(JNIEnv* env, jclass java_class, jobject java_object);
++
++void android_debug_printf(char* format, ...);
++
++void android_attach_current_thread();
++void android_detach_current_thread();
++
++int android_poll_keyboard();
++
++int android_poll_mouse_x();
++int android_poll_mouse_y();
++int android_poll_mouse_buttons();
++
++void android_initialize_sound(int size);
++void android_update_sound(char* buffer, unsigned int size);
++
++void android_initialize_renderer(JNIEnv* env, jobject obj, int screen_width, int screen_height);
++void android_render(JNIEnv* env, jobject obj);
++void android_create_screen(int width, int height, int color_depth);
++
++BITMAP* displayed_video_bitmap;
++
++#endif
++
+diff -Naur include/allegro/platform/aland.h include/allegro/platform/aland.h
+--- include/allegro/platform/aland.h	1970-01-01 01:00:00.000000000 +0100
++++ include/allegro/platform/aland.h	2011-11-06 20:59:35.029474600 +0100
+@@ -0,0 +1,74 @@
++/*         ______   ___    ___
++ *        /\  _  \ /\_ \  /\_ \
++ *        \ \ \L\ \\//\ \ \//\ \      __     __   _ __   ___
++ *         \ \  __ \ \ \ \  \ \ \   /'__`\ /'_ `\/\`'__\/ __`\
++ *          \ \ \/\ \ \_\ \_ \_\ \_/\  __//\ \L\ \ \ \//\ \L\ \
++ *           \ \_\ \_\/\____\/\____\ \____\ \____ \ \_\\ \____/
++ *            \/_/\/_/\/____/\/____/\/____/\/___L\ \/_/ \/___/
++ *                                           /\____/
++ *                                           \_/__/
++ *
++ *      Android specific header defines.
++ *
++ *      By JJS for the Adventure Game Studio runtime port.
++ *      Based on the Allegro PSP port.
++ *
++ *      See readme.txt for copyright information.
++ */
++
++
++#ifndef ALANDA_H
++#define ALANDA_H
++
++#ifndef ALLEGRO_ANDROID
++   #error bad include
++#endif
++
++#include <stdio.h>
++#include <jni.h>
++
++/* The Android C library doesn't include stricmp */
++#define stricmp strcasecmp
++
++/* System driver */
++#define SYSTEM_ANDROID              AL_ID('A','N','D',' ')
++AL_VAR(SYSTEM_DRIVER, system_android);
++
++/* Timer driver */
++#define TIMER_ANDROID               AL_ID('A','N','D','T')
++AL_VAR(TIMER_DRIVER, timer_android);
++
++/* Keyboard driver */
++#define KEYBOARD_ANDROID            AL_ID('A','N','D','K')
++AL_VAR(KEYBOARD_DRIVER, keyboard_android);
++
++/* Mouse drivers */
++#define MOUSE_ANDROID               AL_ID('A','N','D','M')
++AL_VAR(MOUSE_DRIVER, mouse_android);
++
++/* Gfx driver */
++#define GFX_ANDROID                 AL_ID('A','N','D','G')
++AL_VAR(GFX_DRIVER, gfx_android);
++
++/* Digital sound driver */
++#define DIGI_ANDROID                AL_ID('A','N','D','S')
++AL_VAR(DIGI_DRIVER, digi_android);
++
++/* Joystick drivers */
++#define JOYSTICK_ANDROID            AL_ID('A','N','D','J')
++AL_VAR(JOYSTICK_DRIVER, joystick_android);
++
++
++#ifdef __cplusplus
++   extern "C" {
++#endif
++
++AL_FUNC(void, android_allegro_initialize_jni, (JNIEnv* env, jclass java_class, jobject java_object));
++
++#ifdef __cplusplus
++   }
++#endif
++
++
++
++#endif
+diff -Naur include/allegro/platform/alandcfg.h include/allegro/platform/alandcfg.h
+--- include/allegro/platform/alandcfg.h	1970-01-01 01:00:00.000000000 +0100
++++ include/allegro/platform/alandcfg.h	2011-11-06 20:59:35.032975100 +0100
+@@ -0,0 +1,68 @@
++/*         ______   ___    ___
++ *        /\  _  \ /\_ \  /\_ \
++ *        \ \ \L\ \\//\ \ \//\ \      __     __   _ __   ___
++ *         \ \  __ \ \ \ \  \ \ \   /'__`\ /'_ `\/\`'__\/ __`\
++ *          \ \ \/\ \ \_\ \_ \_\ \_/\  __//\ \L\ \ \ \//\ \L\ \
++ *           \ \_\ \_\/\____\/\____\ \____\ \____ \ \_\\ \____/
++ *            \/_/\/_/\/____/\/____/\/____/\/___L\ \/_/ \/___/
++ *                                           /\____/
++ *                                           \_/__/
++ *
++ *      Android specific header defines.
++ *
++ *      By JJS for the Adventure Game Studio runtime port.
++ *      Based on the Allegro PSP port.
++ *
++ *      See readme.txt for copyright information.
++ */
++
++
++#ifndef ALANDCFG_H
++#define ALANDCFG_H
++
++#define ALLEGRO_EXTRA_HEADER "allegro/platform/aland.h"
++
++#ifndef SCAN_DEPEND
++   #include <fcntl.h>
++   #include <unistd.h>
++#endif
++
++
++#ifndef ALLEGRO_NO_MAGIC_MAIN
++   #define ALLEGRO_MAGIC_MAIN
++   #define main _mangled_main
++   #undef END_OF_MAIN
++   #define END_OF_MAIN() void *_mangled_main_address = (void *) _mangled_main;
++#else
++   #undef END_OF_MAIN
++   #define END_OF_MAIN() void *_mangled_main_address;
++#endif
++
++#include <stdio.h>
++
++#define ALLEGRO_HAVE_DIRENT_H   1
++#define ALLEGRO_HAVE_INTTYPES_H 1
++#define ALLEGRO_HAVE_STDINT_H   1
++#define ALLEGRO_HAVE_SYS_TIME_H 1
++#define ALLEGRO_HAVE_SYS_STAT_H 1
++
++/* Describe this platform */
++#define ALLEGRO_PLATFORM_STR  "Android"
++#define ALLEGRO_USE_CONSTRUCTOR
++
++#define ALLEGRO_LITTLE_ENDIAN
++
++/* Provide implementations of missing definitions */
++#ifndef O_BINARY
++   #define O_BINARY     0
++#endif
++#define dup(X)	(fcntl(X, F_DUPFD, 0))
++
++/* Exclude ASM */
++#ifndef ALLEGRO_NO_ASM
++   #define ALLEGRO_NO_ASM
++#endif
++
++
++
++#endif
+diff -Naur include/allegro/platform/alplatf.h include/allegro/platform/alplatf.h
+--- include/allegro/platform/alplatf.h	1970-01-01 01:00:00.000000000 +0100
++++ include/allegro/platform/alplatf.h	2011-11-06 20:59:35.055477900 +0100
+@@ -0,0 +1,17 @@
++/* #undef ALLEGRO_BCC32 */
++/* #undef ALLEGRO_BEOS */
++/* #undef ALLEGRO_DJGPP */
++/* #undef ALLEGRO_DMC */
++/* #undef ALLEGRO_HAIKU */
++/* #undef ALLEGRO_MACOSX */
++/* #undef ALLEGRO_MINGW32 */
++/* #undef ALLEGRO_MPW */
++/* #undef ALLEGRO_MSVC */
++/* #undef ALLEGRO_PSP */
++/* #undef ALLEGRO_QNX */
++/* #undef ALLEGRO_UNIX */
++/* #undef ALLEGRO_WATCOM */
++
++/* These are always defined now. */
++#define ALLEGRO_NO_ASM
++#define ALLEGRO_USE_C
+diff -Naur include/allegro/system.h include/allegro/system.h
+--- include/allegro/system.h	2011-03-19 00:47:45.000000000 +0100
++++ include/allegro/system.h	2011-11-06 20:59:35.060978600 +0100
+@@ -66,6 +66,7 @@
+ #define OSTYPE_MACOS       AL_ID('M','A','C',' ')
+ #define OSTYPE_MACOSX      AL_ID('M','A','C','X')
+ #define OSTYPE_PSP         AL_ID('K','P','S','P')
++#define OSTYPE_ANDROID     AL_ID('A','N','D',' ')
+ 
+ AL_VAR(int, os_type);
+ AL_VAR(int, os_version);
+diff -Naur src/android/adrivers.c src/android/adrivers.c
+--- src/android/adrivers.c	1970-01-01 01:00:00.000000000 +0100
++++ src/android/adrivers.c	2011-11-06 20:59:35.068979600 +0100
+@@ -0,0 +1,75 @@
++/*         ______   ___    ___
++ *        /\  _  \ /\_ \  /\_ \
++ *        \ \ \\ \\//\ \ \//\ \      __     __   _ __   ___
++ *         \ \  __ \ \ \ \  \ \ \   /'__`\ /'_ `\/\`'__\/ __`\
++ *          \ \ \/\ \ \_\ \_ \_\ \_/\  __//\ \L\ \ \ \//\ \L\ \
++ *           \ \_\ \_\/\____\/\____\ \____\ \____ \ \_\\ \____/
++ *            \/_/\/_/\/____/\/____/\/____/\/___L\ \/_/ \/___/
++ *                                           /\____/
++ *                                           \_/__/
++ *
++ *      List of Android drivers.
++ *
++ *      By JJS for the Adventure Game Studio runtime port.
++ *      Based on the Allegro PSP port.
++ *
++ *      See readme.txt for copyright information.
++ */
++
++
++#include "allegro.h"
++
++#ifndef ALLEGRO_ANDROID
++#error Something is wrong with the makefile
++#endif
++
++
++_DRIVER_INFO _system_driver_list[] =
++{
++   { SYSTEM_ANDROID,          &system_android,          TRUE  },
++   { SYSTEM_NONE,             &system_none,             FALSE },
++   { 0,                       NULL,                     0     }
++};
++
++
++_DRIVER_INFO _keyboard_driver_list[] =
++{
++   { KEYBOARD_ANDROID,        &keyboard_android,        TRUE  },
++   { 0,                       NULL,                     0     }
++};
++
++
++_DRIVER_INFO _timer_driver_list[] =
++{
++   { TIMER_ANDROID,           &timer_android,           TRUE  },
++   { 0,                       NULL,                     0     }
++};
++
++
++_DRIVER_INFO _mouse_driver_list[] =
++{
++   { MOUSE_ANDROID,           &mouse_android,           TRUE  },
++   { 0,                       NULL,                     0     }
++};
++
++
++_DRIVER_INFO _gfx_driver_list[] =
++{
++   { GFX_ANDROID,             &gfx_android,             TRUE  },
++   { 0,                       NULL,                     0     }
++};
++
++
++_DRIVER_INFO _digi_driver_list[] =
++{
++   { DIGI_ANDROID,            &digi_android,            TRUE  },
++   { 0,                       NULL,                     0     }
++};
++
++
++BEGIN_MIDI_DRIVER_LIST
++MIDI_DRIVER_DIGMID
++END_MIDI_DRIVER_LIST
++
++BEGIN_JOYSTICK_DRIVER_LIST
++END_JOYSTICK_DRIVER_LIST
+diff -Naur src/android/afile.c src/android/afile.c
+--- src/android/afile.c	1970-01-01 01:00:00.000000000 +0100
++++ src/android/afile.c	2011-11-06 20:59:35.077480700 +0100
+@@ -0,0 +1,536 @@
++/*         ______   ___    ___ 
++ *        /\  _  \ /\_ \  /\_ \ 
++ *        \ \ \L\ \\//\ \ \//\ \      __     __   _ __   ___ 
++ *         \ \  __ \ \ \ \  \ \ \   /'__`\ /'_ `\/\`'__\/ __`\
++ *          \ \ \/\ \ \_\ \_ \_\ \_/\  __//\ \L\ \ \ \//\ \L\ \
++ *           \ \_\ \_\/\____\/\____\ \____\ \____ \ \_\\ \____/
++ *            \/_/\/_/\/____/\/____/\/____/\/___L\ \/_/ \/___/
++ *                                           /\____/
++ *                                           \_/__/
++ *
++ *      Helper routines to make file.c work on the Android platform.
++ *
++ *      By Michael Bukin.
++ *
++ *      Modified for the Adventure Game Studio runtime port by JJS.
++ *
++ *      See readme.txt for copyright information.
++ */
++
++/* libc should use 64-bit for file sizes when possible */
++#define _FILE_OFFSET_BITS 64
++
++#include <stdio.h>
++#include <string.h>
++
++#include "allegro.h"
++#include "allegro/internal/aintern.h"
++
++#ifdef ALLEGRO_HAVE_SYS_STAT_H
++#include <sys/stat.h>
++#endif
++
++#ifdef ALLEGRO_HAVE_DIRENT_H
++   #include <sys/types.h>
++   #include <dirent.h>
++   #define NAMLEN(dirent) (strlen((dirent)->d_name))
++#else
++   /* Apparently all new systems have `dirent.h'. */
++   #error ALLEGRO_HAVE_DIRENT_H not defined
++#endif
++
++#ifdef ALLEGRO_HAVE_SYS_TIME_H
++  #include <sys/time.h>
++#endif
++#ifdef ALLEGRO_HAVE_TIME_H
++  #include <time.h>
++#endif
++
++#define PREFIX_I "al-unix INFO: "
++
++#define PREFIX_I "al-unix INFO: "
++
++
++/* _al_file_isok:
++ *  Helper function to check if it is safe to access a file on a floppy
++ *  drive.
++ */
++int _al_file_isok(AL_CONST char *filename)
++{
++   return TRUE;
++}
++
++
++
++/* _al_file_size_ex:
++ *  Measures the size of the specified file.
++ */
++uint64_t _al_file_size_ex(AL_CONST char *filename)
++{
++   struct stat s;
++   char tmp[1024];
++
++   if (stat(uconvert(filename, U_CURRENT, tmp, U_UTF8, sizeof(tmp)), &s) != 0) {
++      *allegro_errno = errno;
++      return 0;
++   }
++
++   return s.st_size;
++}
++
++
++
++/* _al_file_time:
++ *  Returns the timestamp of the specified file.
++ */
++time_t _al_file_time(AL_CONST char *filename)
++{
++   struct stat s;
++   char tmp[1024];
++
++   if (stat(uconvert(filename, U_CURRENT, tmp, U_UTF8, sizeof(tmp)), &s) != 0) {
++      *allegro_errno = errno;
++      return 0;
++   }
++
++   return s.st_mtime;
++}
++
++
++
++/* ff_get_filename:
++ *  When passed a completely specified file path, this returns a pointer
++ *  to the filename portion.
++ */
++static char *ff_get_filename(AL_CONST char *path)
++{
++   char *p = (char*)path + strlen(path);
++
++   while ((p > path) && (*(p - 1) != '/'))
++      p--;
++
++   return p;
++}
++
++
++
++/* ff_put_backslash:
++ *  If the last character of the filename is not a /, this routine will
++ *  concatenate a / on to it.
++ */
++static void ff_put_backslash(char *filename, int size)
++{
++   int len = strlen(filename);
++
++   if ((len > 0) && (len < (size - 1)) && (filename[len - 1] != '/')) {
++      filename[len] = '/';
++      filename[len + 1] = 0;
++   }
++}
++
++
++
++#define FF_MATCH_TRY 0
++#define FF_MATCH_ONE 1
++#define FF_MATCH_ANY 2
++
++
++struct FF_MATCH_DATA
++{
++   int type;
++   AL_CONST char *s1;
++   AL_CONST char *s2;
++};
++
++
++
++/* ff_match:
++ *  Matches two strings ('*' matches any number of characters,
++ *  '?' matches any character).
++ */
++static int ff_match(AL_CONST char *s1, AL_CONST char *s2)
++{
++   static unsigned int size = 0;
++   static struct FF_MATCH_DATA *data = NULL;
++   AL_CONST char *s1end;
++   int index, c1, c2;
++
++   /* handle NULL arguments */
++   if ((!s1) && (!s2)) {
++      if (data) {
++         _AL_FREE(data);
++         data = NULL;
++      }
++
++      return 0;
++   }
++
++   s1end = s1 + strlen(s1);
++
++   /* allocate larger working area if necessary */
++   if (data && (size < strlen(s2))) {
++      _AL_FREE(data);
++      data = NULL;
++   }
++
++   if (!data) {
++      size = strlen(s2);
++      data = _AL_MALLOC(sizeof(struct FF_MATCH_DATA) * size * 2 + 1);
++      if (!data)
++         return 0;
++   }
++
++   index = 0;
++   data[0].s1 = s1;
++   data[0].s2 = s2;
++   data[0].type = FF_MATCH_TRY;
++
++   while (index >= 0) {
++      s1 = data[index].s1;
++      s2 = data[index].s2;
++      c1 = *s1;
++      c2 = *s2;
++
++      switch (data[index].type) {
++
++      case FF_MATCH_TRY:
++         if (c2 == 0) {
++            /* pattern exhausted */
++            if (c1 == 0)
++               return 1;
++            else
++               index--;
++         }
++         else if (c1 == 0) {
++            /* string exhausted */
++            while (*s2 == '*')
++               s2++;
++            if (*s2 == 0)
++               return 1;
++            else
++               index--;
++         }
++         else if (c2 == '*') {
++            /* try to match the rest of pattern with empty string */
++            data[index++].type = FF_MATCH_ANY;
++            data[index].s1 = s1end;
++            data[index].s2 = s2 + 1;
++            data[index].type = FF_MATCH_TRY;
++         }
++         /* do case insensitive matching */
++         else if ((c2 == '?') || (c1 == c2) 
++           || ((c1 <= 90) && (c1 >= 65) && (c2 == c1 + 32)) 
++           || ((c2 <= 90) && (c2 >= 65) && (c1 == c2 + 32))) {
++            /* try to match the rest */
++            data[index++].type = FF_MATCH_ONE;
++            data[index].s1 = s1 + 1;
++            data[index].s2 = s2 + 1;
++            data[index].type = FF_MATCH_TRY;
++         }
++         else
++            index--;
++         break;
++
++      case FF_MATCH_ONE:
++         /* the rest of string did not match, try earlier */
++         index--;
++         break;
++
++      case FF_MATCH_ANY:
++         /* rest of string did not match, try add more chars to string tail */
++         if (--data[index + 1].s1 >= s1) {
++            data[index + 1].type = FF_MATCH_TRY;
++            index++;
++         }
++         else
++            index--;
++         break;
++
++      default:
++         /* this is a bird? This is a plane? No it's a bug!!! */
++         return 0;
++      }
++   }
++
++   return 0;
++}
++
++
++
++/* ff_get_attrib:
++ *  Builds up the attribute list of the file pointed to by name and s.
++ */
++static int ff_get_attrib(AL_CONST char *name, struct stat *s)
++{
++   int attrib = 0;
++/*
++   uid_t euid = geteuid();
++
++   if (euid != 0) {
++      if (s->st_uid == euid) {
++	 if ((s->st_mode & S_IWUSR) == 0)
++	    attrib |= FA_RDONLY;
++      }
++      else if (s->st_gid == getegid()) {
++	 if ((s->st_mode & S_IWGRP) == 0)
++	    attrib |= FA_RDONLY;
++      }
++      else if ((s->st_mode & S_IWOTH) == 0) {
++	 attrib |= FA_RDONLY;
++      }
++   }
++*/
++   if (S_ISDIR(s->st_mode))
++      attrib |= FA_DIREC;
++
++   if ((name[0] == '.') && ((name[1] != '.') || (name[2] != '\0')))
++      attrib |= FA_HIDDEN;
++
++   return attrib;
++}
++
++
++
++/* structure for use by the directory scanning routines */
++#define FF_MAXPATHLEN 1024
++
++struct FF_DATA
++{
++   DIR *dir;
++   char dirname[FF_MAXPATHLEN];
++   char pattern[FF_MAXPATHLEN];
++   int attrib;
++   uint64_t size;
++};
++
++
++
++/* al_findfirst:
++ *  Initiates a directory search.
++ */
++int al_findfirst(AL_CONST char *pattern, struct al_ffblk *info, int attrib)
++{
++   struct FF_DATA *ff_data;
++   struct stat s;
++   int actual_attrib;
++   char tmp[1024];
++   char *p;
++
++   /* allocate ff_data structure */
++   ff_data = _AL_MALLOC(sizeof(struct FF_DATA));
++   if (!ff_data) {
++      *allegro_errno = ENOMEM;
++      return -1;
++   }
++
++   memset(ff_data, 0, sizeof *ff_data);
++   info->ff_data = (void *) ff_data;
++
++   /* if the pattern contains no wildcard, we use stat() */
++   if (!ustrpbrk(pattern, uconvert("?*", U_ASCII, tmp, U_CURRENT, sizeof(tmp)))) {
++
++      /* start the search */
++      errno = *allegro_errno = 0;
++
++      if (stat(uconvert(pattern, U_CURRENT, tmp, U_UTF8, sizeof(tmp)), &s) == 0) {
++
++         /* get file attributes */
++         actual_attrib = ff_get_attrib(ff_get_filename(uconvert(pattern, U_CURRENT, tmp, U_UTF8, sizeof(tmp))), &s);
++         /* does it match ? */
++         if ((actual_attrib & ~attrib) == 0) {
++            info->attrib = actual_attrib;
++            info->time = s.st_mtime;
++            info->size = s.st_size; /* overflows at 2GB */
++            ff_data->size = s.st_size;
++            ustrzcpy(info->name, sizeof(info->name), get_filename(pattern));
++            return 0;
++         }
++      }
++
++       _AL_FREE(ff_data);
++      info->ff_data = NULL;
++      *allegro_errno = (errno ? errno : ENOENT);
++      return -1;
++   }
++
++   ff_data->attrib = attrib;
++
++   do_uconvert(pattern, U_CURRENT, ff_data->dirname, U_UTF8, sizeof(ff_data->dirname));
++   p = ff_get_filename(ff_data->dirname);
++   _al_sane_strncpy(ff_data->pattern, p, sizeof(ff_data->pattern));
++   if (p == ff_data->dirname)
++      _al_sane_strncpy(ff_data->dirname, "./", FF_MAXPATHLEN);
++   else
++      *p = 0;
++
++   /* nasty bodge, but gives better compatibility with DOS programs */
++   if (strcmp(ff_data->pattern, "*.*") == 0)
++      _al_sane_strncpy(ff_data->pattern, "*", FF_MAXPATHLEN);
++
++   /* start the search */
++   errno = *allegro_errno = 0;
++
++   ff_data->dir = opendir(ff_data->dirname);
++   if (!ff_data->dir) {
++      *allegro_errno = (errno ? errno : ENOENT);
++      _AL_FREE(ff_data);
++      info->ff_data = NULL;
++      return -1;
++   }
++
++   if (al_findnext(info) != 0) {
++      al_findclose(info);
++      return -1;
++   }
++
++   return 0;
++}
++
++
++
++/* al_findnext:
++ *  Retrieves the next file from a directory search.
++ */
++int al_findnext(struct al_ffblk *info)
++{
++   char tempname[FF_MAXPATHLEN];
++   char filename[FF_MAXPATHLEN];
++   int attrib;
++   struct dirent *entry;
++   struct stat s;
++   struct FF_DATA *ff_data = (struct FF_DATA *) info->ff_data;
++
++   ASSERT(ff_data);
++
++   /* if the pattern contained no wildcard */
++   if (!ff_data->dir)
++      return -1;
++
++   while (TRUE) {
++      /* read directory entry */
++      entry = readdir(ff_data->dir);
++      if (!entry) {
++         *allegro_errno = (errno ? errno : ENOENT);
++         return -1;
++      }
++
++      /* try to match file name with pattern */
++      tempname[0] = 0;
++      if (NAMLEN(entry) >= sizeof(tempname))
++         strncat(tempname, entry->d_name, sizeof(tempname) - 1);
++      else
++         strncat(tempname, entry->d_name, NAMLEN(entry));
++
++      if (ff_match(tempname, ff_data->pattern)) {
++         _al_sane_strncpy(filename, ff_data->dirname, FF_MAXPATHLEN);
++         ff_put_backslash(filename, sizeof(filename));
++         strncat(filename, tempname, sizeof(filename) - strlen(filename) - 1);
++
++         /* get file attributes */
++         if (stat(filename, &s) == 0) {
++            attrib = ff_get_attrib(tempname, &s);
++
++            /* does it match ? */
++            if ((attrib & ~ff_data->attrib) == 0)
++               break;
++         }
++         else {
++            /* evil! but no other way to avoid exiting for_each_file() */
++            *allegro_errno = 0;
++         }
++      }
++   }
++
++   info->attrib = attrib;
++   info->time = s.st_mtime;
++   info->size = s.st_size; /* overflows at 2GB */
++   ff_data->size = s.st_size;
++
++   do_uconvert(tempname, U_UTF8, info->name, U_CURRENT, sizeof(info->name));
++
++   return 0;
++}
++
++
++
++/* al_findclose:
++ *  Cleans up after a directory search.
++ */
++void al_findclose(struct al_ffblk *info)
++{
++   struct FF_DATA *ff_data = (struct FF_DATA *) info->ff_data;
++
++   if (ff_data) {
++      if (ff_data->dir) {
++         closedir(ff_data->dir);
++      }
++      _AL_FREE(ff_data);
++      info->ff_data = NULL;
++
++      /* to avoid leaking memory */
++      ff_match(NULL, NULL);
++   }
++}
++
++
++
++/* _al_getdcwd:
++ *  Returns the current directory on the specified drive.
++ */
++void _al_getdcwd(int drive, char *buf, int size)
++{
++   char tmp[1024];
++
++   if (getcwd(tmp, sizeof(tmp)))
++      do_uconvert(tmp, U_UTF8, buf, U_CURRENT, size);
++   else
++      usetc(buf, 0);
++}
++
++
++
++/* _al_ffblk_get_size:
++ *  Returns the size out of an _al_ffblk structure.
++ */
++uint64_t al_ffblk_get_size(struct al_ffblk *info)
++{
++   struct FF_DATA *ff_data;
++   ASSERT(info);
++   ff_data = (struct FF_DATA *) info->ff_data;
++   ASSERT(ff_data);
++   return ff_data->size;
++}
++
++
++
++/* _al_detect_filename_encoding:
++ *  Platform specific function to detect the filename encoding. This is called
++ *  after setting a system driver, and even if this driver is SYSTEM_NONE.
++ */
++void _al_detect_filename_encoding(void)
++{
++   char const *encoding = "unknown";
++   char *locale = getenv("LC_ALL");
++
++   if (!locale || !locale[0]) {
++      locale = getenv("LC_CTYPE");
++      if (!locale || !locale[0])
++         locale = getenv("LANG");
++   }
++
++   if (locale) {
++      if (strstr(locale, "utf8") ||
++          strstr(locale, "UTF-8") ||
++          strstr(locale, "utf-8") ||
++          strstr(locale, "UTF8")) {
++         /* Note: UTF8 is default anyway. */
++         set_filename_encoding(U_UTF8);
++         encoding = "UTF8";
++      }
++      /* TODO: detect other encodings, and support them in Allegro */
++   }
++
++   TRACE(PREFIX_I "Assumed libc encoding is %s.\n", encoding);
++}
++
++
+diff -Naur src/android/agfx.c src/android/agfx.c
+--- src/android/agfx.c	1970-01-01 01:00:00.000000000 +0100
++++ src/android/agfx.c	2011-11-06 20:59:35.084981700 +0100
+@@ -0,0 +1,276 @@
++/*         ______   ___    ___
++*        /\  _  \ /\_ \  /\_ \
++*        \ \ \\ \\//\ \ \//\ \      __     __   _ __   ___
++*         \ \  __ \ \ \ \  \ \ \   /'__`\ /'_ `\/\`'__\/ __`\
++*          \ \ \/\ \ \_\ \_ \_\ \_/\  __//\ \L\ \ \ \//\ \L\ \
++*           \ \_\ \_\/\____\/\____\ \____\ \____ \ \_\\ \____/
++*            \/_/\/_/\/____/\/____/\/____/\/___L\ \/_/ \/___/
++*                                           /\____/
++*                                           \_/__/
++*
++*      Display driver.
++*
++*      By JJS for the Adventure Game Studio runtime port.
++*      Based on the Allegro PSP port.
++*
++*      See readme.txt for copyright information.
++*/
++
++#include <GLES/gl.h>
++
++#include "allegro.h"
++#include "allegro/internal/aintern.h"
++#include "allegro/platform/aintand.h"
++
++
++/* Software version of some blitting methods */
++static void (*_orig_blit) (BITMAP * source, BITMAP * dest, int source_x, int source_y, int dest_x, int dest_y, int width, int height);
++
++static BITMAP *android_display_init(int w, int h, int v_w, int v_h, int color_depth);
++static void gfx_android_enable_acceleration(GFX_VTABLE *vtable);
++static void android_hw_blit(BITMAP *source, BITMAP *dest, int source_x, int source_y, int dest_x, int dest_y, int width, int height);
++
++
++unsigned int android_screen_texture = 0;
++unsigned int android_screen_width = 0;
++unsigned int android_screen_height = 0;
++unsigned int android_screen_color_depth = 0;
++int android_screen_texture_width = 0;
++int android_screen_texture_height = 0;
++float android_screen_ar = 1.0f;
++float android_device_ar = 1.0f;
++
++int android_screen_changed = 1;
++
++GLfloat android_vertices[] =
++{
++   0, 0,
++   320,  0,
++   0,  200,
++   320,  200
++};
++
++GLfloat android_texture_coordinates[] =
++{
++   0, 200.0f / 256.0f,
++   320.0f / 512.0f, 200.0f / 256.0f,
++   0, 0,
++   320.0f / 512.0f, 0
++};      
++
++
++GFX_DRIVER gfx_android =
++{
++   GFX_ANDROID,
++   empty_string,
++   empty_string,
++   "Android gfx driver",
++   android_display_init,         /* AL_METHOD(struct BITMAP *, init, (int w, int h, int v_w, int v_h, int color_depth)); */
++   NULL,                         /* AL_METHOD(void, exit, (struct BITMAP *b)); */
++   NULL,                         /* AL_METHOD(int, scroll, (int x, int y)); */
++   NULL,                         /* AL_METHOD(void, vsync, (void)); */
++   NULL,                         /* AL_METHOD(void, set_palette, (AL_CONST struct RGB *p, int from, int to, int retracesync)); */
++   NULL,                         /* AL_METHOD(int, request_scroll, (int x, int y)); */
++   NULL,                         /* AL_METHOD(int, poll_scroll, (void)); */
++   NULL,                         /* AL_METHOD(void, enable_triple_buffer, (void)); */
++   NULL,                         /* AL_METHOD(struct BITMAP *, create_video_bitmap, (int width, int height)); */
++   NULL,                         /* AL_METHOD(void, destroy_video_bitmap, (struct BITMAP *bitmap)); */
++   NULL,                         /* AL_METHOD(int, show_video_bitmap, (BITMAP *bitmap)); */
++   NULL,                         /* AL_METHOD(int, request_video_bitmap, (BITMAP *bitmap)); */
++   NULL,                         /* AL_METHOD(BITMAP *, create_system_bitmap, (int width, int height)); */
++   NULL,                         /* AL_METHOD(void, destroy_system_bitmap, (BITMAP *bitmap)); */
++   NULL,                         /* AL_METHOD(int, set_mouse_sprite, (BITMAP *sprite, int xfocus, int yfocus)); */
++   NULL,                         /* AL_METHOD(int, show_mouse, (BITMAP *bmp, int x, int y)); */
++   NULL,                         /* AL_METHOD(void, hide_mouse, (void)); */
++   NULL,                         /* AL_METHOD(void, move_mouse, (int x, int y)); */
++   NULL,                         /* AL_METHOD(void, drawing_mode, (void)); */
++   NULL,                         /* AL_METHOD(void, save_video_state, (void)); */
++   NULL,                         /* AL_METHOD(void, restore_video_state, (void)); */
++   NULL,                         /* AL_METHOD(void, set_blender_mode, (int mode, int r, int g, int b, int a)); */
++   NULL,                         /* AL_METHOD(int, fetch_mode_list, (void)); */
++   0, 0,                         /* physical (not virtual!) screen size */
++   TRUE,                         /* true if video memory is linear */
++   0,                            /* bank size, in bytes */
++   0,                            /* bank granularity, in bytes */
++   0,                            /* video memory size, in bytes */
++   0,                            /* physical address of video memory */
++   FALSE                         /* true if driver runs windowed */
++};
++
++
++static BITMAP *android_display_init(int w, int h, int v_w, int v_h, int color_depth)
++{
++   GFX_VTABLE* vtable = _get_vtable(color_depth);
++
++   android_screen_width = w;
++   android_screen_height = h;
++   android_screen_color_depth = color_depth;
++
++   /* Do the final screen blit to a 32 bit bitmap in palette mode */
++   if (color_depth == 8)
++      color_depth = 32;
++   
++   displayed_video_bitmap = create_bitmap_ex(color_depth, w, h);
++   gfx_android_enable_acceleration(vtable);
++   
++   android_create_screen(w, h, color_depth);
++
++   return displayed_video_bitmap;
++}
++
++
++static void gfx_android_enable_acceleration(GFX_VTABLE *vtable)
++{
++   /* Keep the original blitting methods */
++   _orig_blit = vtable->blit_to_self;
++
++   /* Accelerated blits. */
++   vtable->blit_from_memory = android_hw_blit;
++   vtable->blit_to_memory = android_hw_blit;
++   vtable->blit_from_system = android_hw_blit;
++   vtable->blit_to_system = android_hw_blit;
++   vtable->blit_to_self = android_hw_blit;
++
++   _screen_vtable.blit_from_memory = android_hw_blit;
++   _screen_vtable.blit_to_memory = android_hw_blit;
++   _screen_vtable.blit_from_system = android_hw_blit;
++   _screen_vtable.blit_to_system = android_hw_blit;
++   _screen_vtable.blit_to_self = android_hw_blit;
++
++   gfx_capabilities |= (GFX_HW_VRAM_BLIT | GFX_HW_MEM_BLIT);
++}
++
++
++/* All blitting goes through here, signal a screen update if the blit target is the screen bitmap */
++static void android_hw_blit(BITMAP *source, BITMAP *dest, int source_x, int source_y, int dest_x, int dest_y, int width, int height)
++{
++   _orig_blit(source, dest, source_x, source_y, dest_x, dest_y, width, height);
++
++   if (dest == displayed_video_bitmap)
++      android_screen_changed = 1;
++}
++
++
++int android_get_next_power_of_2(int value)
++{
++   int test = 1;
++   
++   while (test < value)
++      test *= 2;
++   
++   return test;
++}
++
++
++/* Create the texture that holds the screen bitmap */
++void android_create_screen_texture(int width, int height, int color_depth)
++{
++   char* empty;
++   
++   android_screen_texture_width = android_get_next_power_of_2(width);
++   android_screen_texture_height = android_get_next_power_of_2(height);
++   
++   empty = (char*)malloc(android_screen_texture_width * android_screen_texture_height * color_depth / 8);
++   memset(empty, 0, android_screen_texture_width * android_screen_texture_height * color_depth / 8);
++
++   if (android_screen_texture != 0)
++      glDeleteTextures(1, &android_screen_texture);
++   
++   glGenTextures(1, &android_screen_texture);
++   glBindTexture(GL_TEXTURE_2D, android_screen_texture);
++   
++   if (color_depth == 16)
++      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, android_screen_texture_width, android_screen_texture_height, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, empty);
++   else
++      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, android_screen_texture_width, android_screen_texture_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, empty);
++   
++   free(empty);
++}
++
++
++/* Set the values for the texture coord. and vertex arrays */
++void android_create_arrays(int screen_width, int screen_height)
++{
++   if (android_device_ar <= android_screen_ar)
++   {
++      android_vertices[2] = android_vertices[6] = screen_width - 1;
++      android_vertices[5] = android_vertices[7] = screen_width * ((float)android_screen_height / (float)android_screen_width);
++   }
++   else
++   {
++      android_vertices[2] = android_vertices[6] = screen_height * ((float)android_screen_width / (float)android_screen_height);
++      android_vertices[5] = android_vertices[7] = screen_height - 1;
++   }
++   
++   android_texture_coordinates[1] = android_texture_coordinates[3] = (float)android_screen_height / (float)android_screen_texture_height;
++   android_texture_coordinates[2] = android_texture_coordinates[6] = (float)android_screen_width / (float)android_screen_texture_width;   
++}
++
++
++/* Called from the Java app to set up the screen */
++void JNICALL android_initialize_renderer(JNIEnv* env, jobject self, jint screen_width, jint screen_height)
++{
++   android_screen_ar = (float)android_screen_width / (float)android_screen_height;
++   android_device_ar = (float)screen_width / (float)screen_height;
++   
++   glEnable(GL_CULL_FACE);
++   glEnable(GL_TEXTURE_2D);
++   glDisable(GL_DEPTH_TEST);
++   glDisable(GL_LIGHTING);
++   glDisable(GL_BLEND);
++   glShadeModel(GL_FLAT);
++   
++   glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
++
++   glViewport(0, 0, screen_width - 1, screen_height - 1);
++   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
++   glClear(GL_COLOR_BUFFER_BIT);
++   
++   glDisableClientState(GL_COLOR_ARRAY);
++   glDisableClientState(GL_NORMAL_ARRAY);
++   glEnableClientState(GL_VERTEX_ARRAY);
++   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
++   glTexCoordPointer(2, GL_FLOAT, 0, android_texture_coordinates);
++   glVertexPointer(2, GL_FLOAT, 0, android_vertices);      
++
++   android_create_screen_texture(android_screen_width, android_screen_height, android_screen_color_depth);
++   android_create_arrays(screen_width, screen_height);   
++   
++   glBindTexture(GL_TEXTURE_2D, android_screen_texture);
++   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
++   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
++
++   glViewport(0, 0, screen_width - 1, screen_height - 1);
++   
++   glMatrixMode(GL_PROJECTION);
++   glLoadIdentity();
++   
++   glOrthof(0, screen_width - 1, 0, screen_height - 1, 0, 1);
++   
++   glMatrixMode(GL_MODELVIEW);
++   glLoadIdentity();      
++
++   if (android_device_ar <= android_screen_ar)
++      glTranslatef(0, (screen_height - android_vertices[5] - 1) / 2, 0);   
++   else
++      glTranslatef((screen_width - android_vertices[2] - 1) / 2, 0, 0);
++}
++
++
++
++/* Called from the Java app to render the screen */
++void JNICALL android_render(JNIEnv* env, jobject self)
++{
++   if ((android_screen_changed) || (android_screen_color_depth == 8))
++   {
++      if (android_screen_color_depth == 16)
++         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, android_screen_width, android_screen_height, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, displayed_video_bitmap->line[0]);
++      else
++         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, android_screen_width, android_screen_height, GL_RGBA, GL_UNSIGNED_BYTE, displayed_video_bitmap->line[0]);
++      
++      android_screen_changed = 0;
++   }
++
++   glClear(GL_COLOR_BUFFER_BIT);
++   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
++}
+diff -Naur src/android/ajni.c src/android/ajni.c
+--- src/android/ajni.c	1970-01-01 01:00:00.000000000 +0100
++++ src/android/ajni.c	2011-11-06 20:59:35.090482400 +0100
+@@ -0,0 +1,138 @@
++/*         ______   ___    ___
++*        /\  _  \ /\_ \  /\_ \
++*        \ \ \\ \\//\ \ \//\ \      __     __   _ __   ___
++*         \ \  __ \ \ \ \  \ \ \   /'__`\ /'_ `\/\`'__\/ __`\
++*          \ \ \/\ \ \_\ \_ \_\ \_/\  __//\ \L\ \ \ \//\ \L\ \
++*           \ \_\ \_\/\____\/\____\ \____\ \____ \ \_\\ \____/
++*            \/_/\/_/\/____/\/____/\/____/\/___L\ \/_/ \/___/
++*                                           /\____/
++*                                           \_/__/
++*
++*      Java glue code.
++*
++*      By JJS for the Adventure Game Studio runtime port.
++*
++*      See readme.txt for copyright information.
++*/
++
++
++#include <allegro.h>
++#include <jni.h>
++#include <android/log.h>
++
++#include "allegro.h"
++#include "allegro/internal/aintern.h"
++#include "allegro/platform/aintand.h"
++
++JavaVM* android_jni_vm;
++JNIEnv* android_jni_env_sound_thread;
++JNIEnv* android_jni_env;
++jclass android_jni_class;
++jobject android_jni_object;
++jbyteArray android_sound_buffer;
++
++jmethodID android_jni_createScreen;
++jmethodID android_jni_pollKeyboard;
++jmethodID android_jni_initializeSound;
++jmethodID android_jni_updateSound;
++jmethodID android_jni_pollMouseButtons;
++jmethodID android_jni_pollMouseX;
++jmethodID android_jni_pollMouseY;
++
++
++/* Native methods exported to the Java glue code */
++const JNINativeMethod android_jni_native_methods[] =
++{
++   { "nativeRender", "()V", (void*)android_render },
++   { "nativeInitializeRenderer", "(II)V", (void*)android_initialize_renderer }
++};
++
++
++/* Called when the library is loaded */
++JNIEXPORT jint JNICALL
++JNI_OnLoad(JavaVM* jvm, void* reserved)
++{
++   android_jni_vm = jvm;
++   
++   return JNI_VERSION_1_6;
++}
++
++
++/*
++Must be called with the Java Environment and calling class before
++any JNI function can be used!
++*/
++void android_allegro_initialize_jni(JNIEnv* env, jclass java_class, jobject java_object)
++{
++   android_jni_env = env;
++   android_jni_class = java_class;
++   android_jni_object = java_object;
++   
++   (*android_jni_env)->RegisterNatives(android_jni_env, android_jni_class, android_jni_native_methods, 2);
++
++   android_jni_createScreen = (*android_jni_env)->GetMethodID(android_jni_env, android_jni_class, "createScreen", "(III)V");
++   android_jni_pollKeyboard = (*android_jni_env)->GetMethodID(android_jni_env, android_jni_class, "pollKeyboard", "()I");
++   android_jni_pollMouseX = (*android_jni_env)->GetMethodID(android_jni_env, android_jni_class, "pollMouseX", "()I");
++   android_jni_pollMouseY = (*android_jni_env)->GetMethodID(android_jni_env, android_jni_class, "pollMouseY", "()I");
++   android_jni_pollMouseButtons = (*android_jni_env)->GetMethodID(android_jni_env, android_jni_class, "pollMouseButtons", "()I");
++   android_jni_initializeSound = (*android_jni_env)->GetMethodID(android_jni_env, android_jni_class, "initializeSound", "([BI)V");
++   android_jni_updateSound = (*android_jni_env)->GetMethodID(android_jni_env, android_jni_class, "updateSound", "()V");   
++}
++
++void android_debug_printf(char* format, ...)
++{
++   char buffer[200];
++   va_list ap;
++   va_start(ap, format);
++   vsprintf(buffer, format, ap);
++   va_end(ap);
++
++   __android_log_print(ANDROID_LOG_DEBUG, "Allegro", buffer);
++}
++
++void android_attach_current_thread()
++{
++   (*android_jni_vm)->AttachCurrentThread(android_jni_vm, &android_jni_env_sound_thread, NULL);
++}
++
++void android_detach_current_thread()
++{
++   (*android_jni_vm)->DetachCurrentThread(android_jni_vm);
++}
++
++void android_update_sound(char* buffer, unsigned int size)
++{
++   (*android_jni_env_sound_thread)->SetByteArrayRegion(android_jni_env_sound_thread, android_sound_buffer, 0, size, buffer);
++   (*android_jni_env_sound_thread)->CallVoidMethod(android_jni_env_sound_thread, android_jni_object, android_jni_updateSound);
++}
++
++void android_initialize_sound(int size)
++{
++   android_sound_buffer = (*android_jni_env)->NewGlobalRef(android_jni_env, (*android_jni_env)->NewByteArray(android_jni_env, size));
++   (*android_jni_env)->CallVoidMethod(android_jni_env, android_jni_object, android_jni_initializeSound, android_sound_buffer, size);
++}
++
++void android_create_screen(int width, int height, int color_depth)
++{
++   (*android_jni_env)->CallVoidMethod(android_jni_env, android_jni_object, android_jni_createScreen, (jint)width, (jint)height, (jint)color_depth);
++}
++
++int android_poll_mouse_x()
++{
++   return (*android_jni_env)->CallIntMethod(android_jni_env, android_jni_object, android_jni_pollMouseX);
++}
++
++int android_poll_mouse_y()
++{
++   return (*android_jni_env)->CallIntMethod(android_jni_env, android_jni_object, android_jni_pollMouseY);
++}
++
++int android_poll_mouse_buttons()
++{
++   return (*android_jni_env)->CallIntMethod(android_jni_env, android_jni_object, android_jni_pollMouseButtons);
++}
++
++int android_poll_keyboard()
++{
++   return (*android_jni_env)->CallIntMethod(android_jni_env, android_jni_object, android_jni_pollKeyboard);
++}
+diff -Naur src/android/akey.c src/android/akey.c
+--- src/android/akey.c	1970-01-01 01:00:00.000000000 +0100
++++ src/android/akey.c	2011-11-06 20:59:35.102483900 +0100
+@@ -0,0 +1,239 @@
++/*         ______   ___    ___
++*        /\  _  \ /\_ \  /\_ \
++*        \ \ \\ \\//\ \ \//\ \      __     __   _ __   ___
++*         \ \  __ \ \ \ \  \ \ \   /'__`\ /'_ `\/\`'__\/ __`\
++*          \ \ \/\ \ \_\ \_ \_\ \_/\  __//\ \L\ \ \ \//\ \L\ \
++*           \ \_\ \_\/\____\/\____\ \____\ \____ \ \_\\ \____/
++*            \/_/\/_/\/____/\/____/\/____/\/___L\ \/_/ \/___/
++*                                           /\____/
++*                                           \_/__/
++*
++*      Keyboard driver.
++*
++*      By JJS for the Adventure Game Studio runtime port.
++*      Based on the Allegro PSP port.
++*
++*      See readme.txt for copyright information.
++*/
++
++
++#include "allegro.h"
++#include "allegro/internal/aintern.h"
++#include "allegro/platform/aintand.h"
++
++#ifndef ALLEGRO_ANDROID
++#error Something is wrong with the makefile
++#endif
++
++
++static int android_keyboard_init(void);
++static void android_keyboard_exit(void);
++static void android_keyboard_poll(void);
++static int android_scancode_to_ascii(int scancode);
++
++
++#define ANDROID_KEYCODE_COUNT 111
++
++static int android_common_ascii[KEY_MAX] =
++{
++   0,   'a', 'b', 'c', 'd', 'e', 'f', 'g',
++   'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
++   'p', 'q', 'r', 's', 't', 'u', 'v', 'w',
++   'x', 'y', 'z', '0', '1', '2', '3', '4',
++   '5', '6', '7', '8', '9', '0', '1', '2',
++   '3', '4', '5', '6', '7', '8', '9', 0,
++   0,   0,   0,   0,   0,   0,   0,   0,
++   0,   0,   0,   27,  '~', '-', '=', 8,
++   9,   '(', ')', 13,  ':', '´', 92,  92,
++   ',', '.', '/', ' ', 0,   0,   0,   0,
++   0,   0,   0,   0,   0,   0,   '/', '*',
++   '-', '+', 0,   13,  0,   0,   0,   0,
++   0,   0,   0,   0,   '^', ':', 0,   '=',
++   '`', ';', 0,   0,   0,   0,   0,   0,
++   0,   0,   0,   0,   0,   0,   0,   0,
++   0,   0,   0,   0,   0,   0,   0
++};
++
++
++typedef struct
++{
++   char scancode;
++   char asciicode;
++} android_keymap_t;
++
++
++static android_keymap_t android_keycode_to_scancode[ANDROID_KEYCODE_COUNT] =
++{
++   {   0,   0  }, // AKEYCODE_UNKNOWN         = 0,
++   {   0,   0  }, // AKEYCODE_SOFT_LEFT       = 1,
++   {   0,   0  }, // AKEYCODE_SOFT_RIGHT      = 2,
++   {   0,   0  }, // AKEYCODE_HOME            = 3,
++   {   0,   0  }, // AKEYCODE_BACK            = 4,
++   {   0,   0  }, // AKEYCODE_CALL            = 5,
++   {   0,   0  }, // AKEYCODE_ENDCALL         = 6,
++   {   11, '0'  }, // AKEYCODE_0               = 7,
++   {   2, '1'  }, // AKEYCODE_1               = 8,
++   {   3, '2'  }, // AKEYCODE_2               = 9,
++   {   4, '3'  }, // AKEYCODE_3               = 10,
++   {   5, '4'  }, // AKEYCODE_4               = 11,
++   {   6, '5'  }, // AKEYCODE_5               = 12,
++   {   7, '6'  }, // AKEYCODE_6               = 13,
++   {   8, '7'  }, // AKEYCODE_7               = 14,
++   {   9, '8'  }, // AKEYCODE_8               = 15,
++   {   10, '9'  }, // AKEYCODE_9               = 16,
++   {   0, '*'  }, // AKEYCODE_STAR            = 17,
++   {   0,   0  }, // AKEYCODE_POUND           = 18,
++   {   0,   0  }, // AKEYCODE_DPAD_UP         = 19,
++   {   0,   0  }, // AKEYCODE_DPAD_DOWN       = 20,
++   {   0,   0  }, // AKEYCODE_DPAD_LEFT       = 21,
++   {   0,   0  }, // AKEYCODE_DPAD_RIGHT      = 22,
++   {   0,   0  }, // AKEYCODE_DPAD_CENTER     = 23,
++   {   0,   0  }, // AKEYCODE_VOLUME_UP       = 24,
++   {   0,   0  }, // AKEYCODE_VOLUME_DOWN     = 25,
++   {   0,   0  }, // AKEYCODE_POWER           = 26,
++   {   0,   0  }, // AKEYCODE_CAMERA          = 27,
++   {   0,   0  }, // AKEYCODE_CLEAR           = 28,
++   {   30, 'a'  }, // AKEYCODE_A               = 29,
++   {   48, 'b'  }, // AKEYCODE_B               = 30,
++   {   46, 'c'  }, // AKEYCODE_C               = 31,
++   {   32, 'd'  }, // AKEYCODE_D               = 32,
++   {   18, 'e'  }, // AKEYCODE_E               = 33,
++   {   33, 'f'  }, // AKEYCODE_F               = 34,
++   {   34, 'g'  }, // AKEYCODE_G               = 35,
++   {   35, 'h'  }, // AKEYCODE_H               = 36,
++   {   23, 'i'  }, // AKEYCODE_I               = 37,
++   {   36, 'j'  }, // AKEYCODE_J               = 38,
++   {   37, 'k'  }, // AKEYCODE_K               = 39,
++   {   38, 'l'  }, // AKEYCODE_L               = 40,
++   {   50, 'm'  }, // AKEYCODE_M               = 41,
++   {   49, 'n'  }, // AKEYCODE_N               = 42,
++   {   24, 'o'  }, // AKEYCODE_O               = 43,
++   {   25, 'p'  }, // AKEYCODE_P               = 44,
++   {   16, 'q'  }, // AKEYCODE_Q               = 45,
++   {   19, 'r'  }, // AKEYCODE_R               = 46,
++   {   31, 's'  }, // AKEYCODE_S               = 47,
++   {   20, 't'  }, // AKEYCODE_T               = 48,
++   {   22, 'u'  }, // AKEYCODE_U               = 49,
++   {   47, 'v'  }, // AKEYCODE_V               = 50,
++   {   17, 'w'  }, // AKEYCODE_W               = 51,
++   {   45, 'x'  }, // AKEYCODE_X               = 52,
++   {   21, 'y'  }, // AKEYCODE_Y               = 53,
++   {   44, 'z'  }, // AKEYCODE_Z               = 54,
++   {   51, ','  }, // AKEYCODE_COMMA           = 55,
++   {   52, '.'  }, // AKEYCODE_PERIOD          = 56,
++   {   56,   0  }, // AKEYCODE_ALT_LEFT        = 57,
++   {   56,   0  }, // AKEYCODE_ALT_RIGHT       = 58,
++   {   42,   0  }, // AKEYCODE_SHIFT_LEFT      = 59,
++   {   54,   0  }, // AKEYCODE_SHIFT_RIGHT     = 60,
++   {   KEY_TAB,   0  }, // AKEYCODE_TAB             = 61,
++   {   57, ' '  }, // AKEYCODE_SPACE           = 62,
++   {   0,   0  }, // AKEYCODE_SYM             = 63,
++   {   0,   0  }, // AKEYCODE_EXPLORER        = 64,
++   {   0,   0  }, // AKEYCODE_ENVELOPE        = 65,
++   {   28,   13  }, // AKEYCODE_ENTER           = 66,
++   {   KEY_BACKSPACE,   0  }, // AKEYCODE_DEL             = 67,
++   {   0, '^'  }, // AKEYCODE_GRAVE           = 68,
++   {   KEY_MINUS, '-'  }, // AKEYCODE_MINUS           = 69,
++   {   KEY_EQUALS, '='  }, // AKEYCODE_EQUALS          = 70,
++   {   26, '('  }, // AKEYCODE_LEFT_BRACKET    = 71,
++   {   27, ')'  }, // AKEYCODE_RIGHT_BRACKET   = 72,
++   {   KEY_BACKSLASH, '\\' }, // AKEYCODE_BACKSLASH       = 73,
++   {   39, ';'  }, // AKEYCODE_SEMICOLON       = 74,
++   {   40, '\'' }, // AKEYCODE_APOSTROPHE      = 75,
++   {   KEY_SLASH, '/'  }, // AKEYCODE_SLASH           = 76,
++   {   KEY_AT, '@'  }, // AKEYCODE_AT              = 77,
++   {   69,   0  }, // AKEYCODE_NUM             = 78,
++   {   0,   0  }, // AKEYCODE_HEADSETHOOK     = 79,
++   {   0,   0  }, // AKEYCODE_FOCUS           = 80,   // *Camera* focus
++   {   KEY_PLUS_PAD, '+'  }, // AKEYCODE_PLUS            = 81,
++   {   0,   0  }, // AKEYCODE_MENU            = 82,
++   {   0,   0  }, // AKEYCODE_NOTIFICATION    = 83,
++   {   0,   0  }, // AKEYCODE_SEARCH          = 84,
++   {   0,   0  }, // AKEYCODE_MEDIA_PLAY_PAUSE= 85,
++   {   0,   0  }, // AKEYCODE_MEDIA_STOP      = 86,
++   {   0,   0  }, // AKEYCODE_MEDIA_NEXT      = 87,
++   {   0,   0  }, // AKEYCODE_MEDIA_PREVIOUS  = 88,
++   {   0,   0  }, // AKEYCODE_MEDIA_REWIND    = 89,
++   {   0,   0  }, // AKEYCODE_MEDIA_FAST_FORWARD = 90,
++   {   0,   0  }, // AKEYCODE_MUTE            = 91,
++   {   73,   0  }, // AKEYCODE_PAGE_UP         = 92,
++   {   81,   0  }, // AKEYCODE_PAGE_DOWN       = 93,
++   {   0,   0  }, // AKEYCODE_PICTSYMBOLS     = 94,
++   {   0,   0  }, // AKEYCODE_SWITCH_CHARSET  = 95,
++   {   0,   0  }, // AKEYCODE_BUTTON_A        = 96,
++   {   0,   0  }, // AKEYCODE_BUTTON_B        = 97,
++   {   0,   0  }, // AKEYCODE_BUTTON_C        = 98,
++   {   0,   0  }, // AKEYCODE_BUTTON_X        = 99,
++   {   0,   0  }, // AKEYCODE_BUTTON_Y        = 100,
++   {   0,   0  }, // AKEYCODE_BUTTON_Z        = 101,
++   {   0,   0  }, // AKEYCODE_BUTTON_L1       = 102,
++   {   0,   0  }, // AKEYCODE_BUTTON_R1       = 103,
++   {   0,   0  }, // AKEYCODE_BUTTON_L2       = 104,
++   {   0,   0  }, // AKEYCODE_BUTTON_R2       = 105,
++   {   0,   0  }, // AKEYCODE_BUTTON_THUMBL   = 106,
++   {   0,   0  }, // AKEYCODE_BUTTON_THUMBR   = 107,
++   {   0,   0  }, // AKEYCODE_BUTTON_START    = 108,
++   {   0,   0  }, // AKEYCODE_BUTTON_SELECT   = 109,
++   {   0,   0  }, // AKEYCODE_BUTTON_MODE     = 110,
++};
++
++
++KEYBOARD_DRIVER keyboard_android =
++{
++   KEYBOARD_ANDROID,
++   empty_string,
++   empty_string,
++   "Android keyboard",
++   FALSE,  // int autorepeat;
++   android_keyboard_init,
++   android_keyboard_exit,
++   android_keyboard_poll,
++   NULL,   // AL_METHOD(void, set_leds, (int leds));
++   NULL,   // AL_METHOD(void, set_rate, (int delay, int rate));
++   NULL,   // AL_METHOD(void, wait_for_input, (void));
++   NULL,   // AL_METHOD(void, stop_waiting_for_input, (void));
++   android_scancode_to_ascii,   // AL_METHOD(int,  scancode_to_ascii, (int scancode));
++   NULL    // scancode_to_name
++};
++
++
++static int android_scancode_to_ascii(int scancode)
++{
++   return android_common_ascii[scancode];
++}
++
++
++static int android_keyboard_init(void)
++{
++   return 0;
++}
++
++
++static void android_keyboard_exit(void)
++{
++}
++
++
++static void android_keyboard_poll(void)
++{
++   int ascii_value;
++   int shift_pressed;
++   int scancode;
++   int polled_value = android_poll_keyboard();
++
++   int keycode = (polled_value & 0x0000FFFF);
++
++   if ((keycode < 1) || (keycode > ANDROID_KEYCODE_COUNT))
++      return;
++
++   ascii_value = (polled_value & 0xFFFF0000) >> 16;
++   shift_pressed = (polled_value & 0xF0000000) >> 30;
++   scancode = android_keycode_to_scancode[keycode].scancode;
++
++   // Replace LF with CR
++   if (ascii_value == 10)
++      ascii_value = 13;
++
++   _handle_key_press(ascii_value, scancode);
++   _handle_key_release(scancode); 
++}
+diff -Naur src/android/amouse.c src/android/amouse.c
+--- src/android/amouse.c	1970-01-01 01:00:00.000000000 +0100
++++ src/android/amouse.c	2011-11-07 19:25:36.219422100 +0100
+@@ -0,0 +1,144 @@
++/*         ______   ___    ___
++ *        /\  _  \ /\_ \  /\_ \
++ *        \ \ \\ \\//\ \ \//\ \      __     __   _ __   ___
++ *         \ \  __ \ \ \ \  \ \ \   /'__`\ /'_ `\/\`'__\/ __`\
++ *          \ \ \/\ \ \_\ \_ \_\ \_/\  __//\ \L\ \ \ \//\ \L\ \
++ *           \ \_\ \_\/\____\/\____\ \____\ \____ \ \_\\ \____/
++ *            \/_/\/_/\/____/\/____/\/____/\/___L\ \/_/ \/___/
++ *                                           /\____/
++ *                                           \_/__/
++ *
++ *      Mouse driver.
++ *
++ *      By JJS for the Adventure Game Studio runtime port.
++ *      Based on the Allegro PSP port.
++ *
++ *      See readme.txt for copyright information.
++ */
++
++#include "allegro.h"
++#include "allegro/internal/aintern.h"
++#include "allegro/platform/aintand.h"
++
++#include "math.h"
++
++#ifndef ALLEGRO_ANDROID
++#error something is wrong with the makefile
++#endif
++
++static int  android_mouse_init(void);
++static void android_mouse_exit(void);
++static void android_mouse_position(int, int);
++static void android_mouse_set_range(int, int, int, int);
++static void android_mouse_get_mickeys(int *, int *);
++static void android_mouse_poll(void);
++
++
++static int mouse_minx = 0;
++static int mouse_miny = 0;
++static int mouse_maxx = 320;
++static int mouse_maxy = 200;
++int android_left_mouse_stay = 0;
++int android_right_mouse_stay = 0;
++
++
++MOUSE_DRIVER mouse_android =
++{
++   MOUSE_ANDROID,
++   empty_string,
++   empty_string,
++   "android mouse",
++   android_mouse_init,
++   android_mouse_exit,
++   android_mouse_poll,       // AL_METHOD(void, poll, (void));
++   NULL,                 // AL_METHOD(void, timer_poll, (void));
++   android_mouse_position,
++   android_mouse_set_range,
++   NULL,       // AL_METHOD(void, set_speed, (int xspeed, int yspeed));
++   android_mouse_get_mickeys,
++   NULL,       // AL_METHOD(int,  analyse_data, (AL_CONST char *buffer, int size));
++   NULL,       // AL_METHOD(void,  enable_hardware_cursor, (AL_CONST int mode));
++   NULL        // AL_METHOD(int,  select_system_cursor, (AL_CONST int cursor));
++};
++
++
++
++static int android_mouse_init(void)
++{
++   return 3; //Num of buttons.
++}
++
++
++static void android_mouse_poll(void)
++{
++  int new_x = android_poll_mouse_x() + _mouse_x;
++  int new_y = android_poll_mouse_y() + _mouse_y;
++  int new_click = android_poll_mouse_buttons();
++  
++  if (new_x < mouse_minx)
++    new_x = mouse_minx;
++	
++  if (new_y < mouse_miny)
++    new_y = mouse_miny;
++	
++  if (new_x > mouse_maxx)
++    new_x = mouse_maxx;
++	
++  if (new_y > mouse_maxy)
++    new_y = mouse_maxy;
++	
++  _mouse_x = new_x;
++  _mouse_y = new_y;
++  
++  /* Keep button pressed for a couple of frames */
++  if (new_click == 1)
++    android_left_mouse_stay = 10;
++  else if (new_click == 2)
++    android_right_mouse_stay = 10;
++  
++  if (android_left_mouse_stay > 0)
++    android_left_mouse_stay--;
++
++  if (android_right_mouse_stay > 0)
++    android_right_mouse_stay--;
++
++  if (android_left_mouse_stay > 0)
++    _mouse_b = 1;
++  else if (android_right_mouse_stay > 0)
++    _mouse_b = 2;
++  else
++    _mouse_b = 0;
++}
++
++
++
++
++static void android_mouse_position(int x, int y)
++{
++  _mouse_x = x;
++  _mouse_y = y;
++}
++
++
++
++static void android_mouse_set_range(int x1, int y1, int x2, int y2)
++{
++  mouse_minx = x1;
++  mouse_miny = y1;
++  mouse_maxx = x2;
++  mouse_maxy = y2;
++}
++
++
++
++static void android_mouse_get_mickeys(int *mickeyx, int *mickeyy)
++{
++
++}
++
++
++
++static void android_mouse_exit(void)
++{
++}
++
+diff -Naur src/android/asound.c src/android/asound.c
+--- src/android/asound.c	1970-01-01 01:00:00.000000000 +0100
++++ src/android/asound.c	2011-11-06 20:59:35.111985100 +0100
+@@ -0,0 +1,160 @@
++/*         ______   ___    ___
++ *        /\  _  \ /\_ \  /\_ \
++ *        \ \ \\ \\//\ \ \//\ \      __     __   _ __   ___
++ *         \ \  __ \ \ \ \  \ \ \   /'__`\ /'_ `\/\`'__\/ __`\
++ *          \ \ \/\ \ \_\ \_ \_\ \_/\  __//\ \L\ \ \ \//\ \L\ \
++ *           \ \_\ \_\/\____\/\____\ \____\ \____ \ \_\\ \____/
++ *            \/_/\/_/\/____/\/____/\/____/\/___L\ \/_/ \/___/
++ *                                           /\____/
++ *                                           \_/__/
++ *
++ *      Audio driver.
++ *
++ *      By JJS for the Adventure Game Studio runtime port.
++ *      Based on the Allegro PSP port.
++ *
++ *      See readme.txt for copyright information.
++ */
++
++#include <pthread.h>
++#include "allegro.h"
++#include "allegro/internal/aintern.h"
++#include "allegro/platform/aintand.h"
++
++#ifndef ALLEGRO_ANDROID
++#error something is wrong with the makefile
++#endif
++
++
++#define SAMPLES_PER_BUFFER 1024
++
++
++static int digi_android_detect(int);
++static int digi_android_init(int, int);
++static void digi_android_exit(int);
++
++static short sound_buffer[2][SAMPLES_PER_BUFFER][2];
++int curr_buffer = 0;
++
++pthread_t soundthread;
++
++int android_audio_playing = 0;
++
++DIGI_DRIVER digi_android =
++{
++   DIGI_ANDROID,
++   empty_string,
++   empty_string,
++   "Android digital sound driver",
++   0,
++   0,
++   MIXER_MAX_SFX,
++   MIXER_DEF_SFX,
++
++   digi_android_detect,
++   digi_android_init,
++   digi_android_exit,
++   NULL,
++   NULL,
++
++   NULL,
++   NULL,
++   NULL,
++   _mixer_init_voice,
++   _mixer_release_voice,
++   _mixer_start_voice,
++   _mixer_stop_voice,
++   _mixer_loop_voice,
++
++   _mixer_get_position,
++   _mixer_set_position,
++
++   _mixer_get_volume,
++   _mixer_set_volume,
++   _mixer_ramp_volume,
++   _mixer_stop_volume_ramp,
++
++   _mixer_get_frequency,
++   _mixer_set_frequency,
++   _mixer_sweep_frequency,
++   _mixer_stop_frequency_sweep,
++
++   _mixer_get_pan,
++   _mixer_set_pan,
++   _mixer_sweep_pan,
++   _mixer_stop_pan_sweep,
++
++   _mixer_set_echo,
++   _mixer_set_tremolo,
++   _mixer_set_vibrato,
++   0, 0,
++   0,
++   0,
++   0,
++   0,
++   0,
++   0
++};
++
++
++
++void* psp_audio_channel_thread()
++{
++  void* bufptr;
++
++  /* Make the thread known to the Java VM */
++  android_attach_current_thread();
++
++  while (android_audio_playing)
++  {
++      bufptr = &sound_buffer[curr_buffer];
++      /* Asks to the Allegro mixer to fill the buffer */
++      _mix_some_samples((uintptr_t)bufptr, 0, TRUE);
++      /* Send mixed buffer to sound card */
++	  android_update_sound(bufptr, SAMPLES_PER_BUFFER * 2 * 2);
++      curr_buffer = !curr_buffer;
++	  usleep(1000 * 15);
++  }
++  
++  android_detach_current_thread();  
++
++  return NULL;
++}
++
++
++
++static int digi_android_detect(int input)
++{
++   return TRUE;
++}
++
++
++
++static int digi_android_init(int input, int voices)
++{
++  _sound_bits = 16;
++  _sound_stereo = TRUE;
++  _sound_freq = 44100;  
++  
++  digi_android.voices = voices;  
++
++  android_initialize_sound(SAMPLES_PER_BUFFER * (_sound_bits / 8) * (_sound_stereo ? 2 : 1));
++  
++  if (_mixer_init(SAMPLES_PER_BUFFER * 2, _sound_freq, _sound_stereo, (_sound_bits == 16), &digi_android.voices))
++      return -1;
++
++  android_audio_playing = 1;
++  pthread_create(&soundthread, NULL, psp_audio_channel_thread, NULL);
++
++   return 0;
++}
++
++
++static void digi_android_exit(int input)
++{
++   if (android_audio_playing)
++   {
++     android_audio_playing = 0;
++     pthread_join(soundthread, NULL);
++   }
++}
+diff -Naur src/android/asystem.c src/android/asystem.c
+--- src/android/asystem.c	1970-01-01 01:00:00.000000000 +0100
++++ src/android/asystem.c	2011-11-06 20:59:35.136488200 +0100
+@@ -0,0 +1,102 @@
++/*         ______   ___    ___
++ *        /\  _  \ /\_ \  /\_ \
++ *        \ \ \\ \\//\ \ \//\ \      __     __   _ __   ___
++ *         \ \  __ \ \ \ \  \ \ \   /'__`\ /'_ `\/\`'__\/ __`\
++ *          \ \ \/\ \ \_\ \_ \_\ \_/\  __//\ \L\ \ \ \//\ \L\ \
++ *           \ \_\ \_\/\____\/\____\ \____\ \____ \ \_\\ \____/
++ *            \/_/\/_/\/____/\/____/\/____/\/___L\ \/_/ \/___/
++ *                                           /\____/
++ *                                           \_/__/
++ *
++ *      System driver.
++ *
++ *      By JJS for the Adventure Game Studio runtime port.
++ *      Based on the Allegro PSP port.
++ *
++ *      See readme.txt for copyright information.
++ */
++
++
++#include "allegro.h"
++#include "allegro/internal/aintern.h"
++#include "allegro/platform/aintand.h"
++
++#ifndef ALLEGRO_ANDROID
++   #error something is wrong with the makefile
++#endif
++
++
++static int android_sys_init(void);
++static void android_sys_exit(void);
++static void android_get_gfx_safe_mode(int *driver, struct GFX_MODE *mode);
++
++
++
++SYSTEM_DRIVER system_android =
++{
++   SYSTEM_ANDROID,
++   empty_string,
++   empty_string,
++   "Android Device",
++   android_sys_init,
++   android_sys_exit,
++   NULL,  /* AL_METHOD(void, get_executable_name, (char *output, int size)); */
++   NULL,  /* AL_METHOD(int, find_resource, (char *dest, AL_CONST char *resource, int size)); */
++   NULL,  /* AL_METHOD(void, set_window_title, (AL_CONST char *name)); */
++   NULL,  /* AL_METHOD(int, set_close_button_callback, (AL_METHOD(void, proc, (void)))); */
++   NULL,  /* AL_METHOD(void, message, (AL_CONST char *msg)); */
++   NULL,  /* AL_METHOD(void, assert, (AL_CONST char *msg)); */
++   NULL,  /* AL_METHOD(void, save_console_state, (void)); */
++   NULL,  /* AL_METHOD(void, restore_console_state, (void)); */
++   NULL,  /* AL_METHOD(struct BITMAP *, create_bitmap, (int color_depth, int width, int height)); */
++   NULL,  /* AL_METHOD(void, created_bitmap, (struct BITMAP *bmp)); */
++   NULL,  /* AL_METHOD(struct BITMAP *, create_sub_bitmap, (struct BITMAP *parent, int x, int y, int width, int height)); */
++   NULL,  /* AL_METHOD(void, created_sub_bitmap, (struct BITMAP *bmp, struct BITMAP *parent)); */
++   NULL,  /* AL_METHOD(int, destroy_bitmap, (struct BITMAP *bitmap)); */
++   NULL,  /* AL_METHOD(void, read_hardware_palette, (void)); */
++   NULL,  /* AL_METHOD(void, set_palette_range, (AL_CONST struct RGB *p, int from, int to, int retracesync)); */
++   NULL,  /* AL_METHOD(struct GFX_VTABLE *, get_vtable, (int color_depth)); */
++   NULL,  /* AL_METHOD(int, set_display_switch_mode, (int mode)); */
++   NULL,  /* AL_METHOD(void, display_switch_lock, (int lock, int foreground)); */
++   NULL,  /* AL_METHOD(int, desktop_color_depth, (void)); */
++   NULL,  /* AL_METHOD(int, get_desktop_resolution, (int *width, int *height)); */
++   android_get_gfx_safe_mode,  /*AL_METHOD(void, get_gfx_safe_mode, (int *driver, struct GFX_MODE *mode));*/
++   NULL,  /* AL_METHOD(void, yield_timeslice, (void)); */
++   NULL,  /* AL_METHOD(void *, create_mutex, (void)); */
++   NULL,  /* AL_METHOD(void, destroy_mutex, (void *handle)); */
++   NULL,  /* AL_METHOD(void, lock_mutex, (void *handle)); */
++   NULL,  /* AL_METHOD(void, unlock_mutex, (void *handle)); */
++   NULL,  /* AL_METHOD(_DRIVER_INFO *, gfx_drivers, (void)); */
++   NULL,  /* AL_METHOD(_DRIVER_INFO *, digi_drivers, (void)); */
++   NULL,  /* AL_METHOD(_DRIVER_INFO *, midi_drivers, (void)); */
++   NULL,  /* AL_METHOD(_DRIVER_INFO *, keyboard_drivers, (void)); */
++   NULL,  /* AL_METHOD(_DRIVER_INFO *, mouse_drivers, (void)); */
++   NULL,  /* AL_METHOD(_DRIVER_INFO *, joystick_drivers, (void)); */
++   NULL   /* AL_METHOD(_DRIVER_INFO *, timer_drivers, (void)); */
++};
++
++
++
++static int android_sys_init(void)
++{
++   os_type = OSTYPE_ANDROID;
++
++   return 0;
++}
++
++
++
++static void android_sys_exit(void)
++{
++   
++}
++
++
++
++static void android_get_gfx_safe_mode(int *driver, struct GFX_MODE *mode)
++{
++   *driver = GFX_ANDROID;
++   mode->width = 320;
++   mode->height = 200;
++   mode->bpp = 16;
++}
+diff -Naur src/android/atimer.c src/android/atimer.c
+--- src/android/atimer.c	1970-01-01 01:00:00.000000000 +0100
++++ src/android/atimer.c	2011-11-06 20:59:35.141988900 +0100
+@@ -0,0 +1,228 @@
++/*         ______   ___    ___
++ *        /\  _  \ /\_ \  /\_ \
++ *        \ \ \\ \\//\ \ \//\ \      __     __   _ __   ___
++ *         \ \  __ \ \ \ \  \ \ \   /'__`\ /'_ `\/\`'__\/ __`\
++ *          \ \ \/\ \ \_\ \_ \_\ \_/\  __//\ \L\ \ \ \//\ \L\ \
++ *           \ \_\ \_\/\____\/\____\ \____\ \____ \ \_\\ \____/
++ *            \/_/\/_/\/____/\/____/\/____/\/___L\ \/_/ \/___/
++ *                                           /\____/
++ *                                           \_/__/
++ *
++ *      Timer driver.
++ *
++ *      By JJS for the Adventure Game Studio runtime port.
++ *      Based on the Unix timer driver by Peter Wang.
++ *
++ *      See readme.txt for copyright information.
++ */
++
++
++#include "allegro.h"
++#include "allegro/internal/aintern.h"
++#include "allegro/platform/aintand.h"
++
++#ifndef ALLEGRO_ANDROID
++   #error something is wrong with the makefile
++#endif
++
++#include <pthread.h>
++#include <signal.h>
++#include <unistd.h>
++#include <sys/time.h>
++
++
++/* See hack later.  */
++#ifdef ALLEGRO_LINUX_VGA
++#ifdef ALLEGRO_HAVE_SYS_IO_H
++/* iopl() exists in here instead of unistd.h in glibc */
++#include <sys/io.h>
++#endif
++#include "allegro/platform/aintlnx.h"
++#endif
++
++
++#define TIMER_TO_USEC(x)  ((long)((x) / 1.193181))
++#define USEC_TO_TIMER(x)  ((long)((x) * (TIMERS_PER_SECOND / 1000000.)))
++
++
++static int ptimer_init(void);
++static void ptimer_exit(void);
++void _unix_rest(unsigned int ms, void (*callback) (void));
++
++
++TIMER_DRIVER timer_android =
++{
++   TIMER_ANDROID,
++   empty_string,
++   empty_string,
++   "Unix pthreads timers",
++   ptimer_init,
++   ptimer_exit,
++   NULL, NULL,		/* install_int, remove_int */
++   NULL, NULL,		/* install_param_int, remove_param_int */
++   NULL, NULL,		/* can_simulate_retrace, simulate_retrace */
++   _unix_rest		/* rest */
++};
++
++
++
++static pthread_t thread;
++static int thread_alive;
++
++
++
++
++
++/* ptimer_thread_func:
++ *  The timer thread.
++ */
++static void *ptimer_thread_func(void *unused)
++{
++   struct timeval old_time;
++   struct timeval new_time;
++   struct timeval delay;
++   long interval = 0x8000;
++
++
++   gettimeofday(&old_time, 0);
++
++   while (thread_alive) {
++      /* `select' is more accurate than `usleep' on my system.  */
++      delay.tv_sec = interval / TIMERS_PER_SECOND;
++      delay.tv_usec = TIMER_TO_USEC(interval) % 1000000L;
++      select(0, NULL, NULL, NULL, &delay);
++
++      /* Calculate actual time elapsed.  */
++      gettimeofday(&new_time, 0);
++      interval = USEC_TO_TIMER((new_time.tv_sec - old_time.tv_sec) * 1000000L
++			       + (new_time.tv_usec - old_time.tv_usec));
++      old_time = new_time;
++
++      /* Handle a tick.  */
++      interval = _handle_timer_tick(interval);
++   }
++
++   return NULL;
++}
++
++
++
++/* ptimer_init:
++ *  Installs the timer thread.
++ */
++static int ptimer_init(void)
++{
++   thread_alive = 1;
++
++   if (pthread_create(&thread, NULL, ptimer_thread_func, NULL) != 0) {
++   thread_alive = 0;
++      return -1;
++   }
++   return 0;
++}
++
++
++
++/* ptimer_exit:
++ *  Shuts down the timer thread.
++ */
++static void ptimer_exit(void)
++{
++   if (thread_alive) {
++      thread_alive = 0;
++      pthread_join(thread, NULL);
++   }
++}
++
++
++
++
++
++
++
++
++/* timeval_subtract:
++ *  Subtract the `struct timeval' values X and Y, storing the result
++ *  in RESULT.  Return 1 if the difference is negative, otherwise 0.
++ *
++ *  This function is from the glibc manual.  It handles weird platforms
++ *  where the tv_sec is unsigned.
++ */
++static int timeval_subtract(struct timeval *result,
++			    struct timeval *x,
++			    struct timeval *y)
++{
++   /* Perform the carry for the later subtraction by updating Y. */
++   if (x->tv_usec < y->tv_usec) {
++      int nsec = (y->tv_usec - x->tv_usec) / 1000000 + 1;
++      y->tv_usec -= 1000000 * nsec;
++      y->tv_sec += nsec;
++   }
++   if (x->tv_usec - y->tv_usec > 1000000) {
++      int nsec = (x->tv_usec - y->tv_usec) / 1000000;
++      y->tv_usec += 1000000 * nsec;
++      y->tv_sec -= nsec;
++   }
++
++   /* Compute the time remaining to wait.
++    * `tv_usec' is certainly positive. */
++   result->tv_sec = x->tv_sec - y->tv_sec;
++   result->tv_usec = x->tv_usec - y->tv_usec;
++   /* Return 1 if result is negative. */
++   return x->tv_sec < y->tv_sec;
++}
++
++
++
++void _unix_rest(unsigned int ms, void (*callback) (void))
++{
++   if (callback) {
++      struct timeval tv, tv_end;
++
++      gettimeofday (&tv_end, NULL);
++      tv_end.tv_usec += ms * 1000;
++      tv_end.tv_sec  += (tv_end.tv_usec / 1000000L);
++      tv_end.tv_usec %= 1000000L;
++
++      while (1)
++      {
++         (*callback)();
++         gettimeofday (&tv, NULL);
++         if (tv.tv_sec > tv_end.tv_sec)
++            break;
++         if (tv.tv_sec == tv_end.tv_sec && tv.tv_usec >= tv_end.tv_usec)
++             break;
++      }
++   }
++   else {
++      struct timeval now;
++      struct timeval end;
++      struct timeval delay;
++      int result;
++
++      gettimeofday(&now, NULL);
++
++      end = now;
++      end.tv_usec += ms * 1000;
++      end.tv_sec  += (end.tv_usec / 1000000L);
++      end.tv_usec %= 1000000L;
++
++      while (1) {
++	 if (timeval_subtract(&delay, &end, &now))
++	    break;
++
++#ifdef ALLEGRO_MACOSX
++	 result = usleep((delay.tv_sec * 1000000L) + delay.tv_usec);
++#else
++	 result = select(0, NULL, NULL, NULL, &delay);
++#endif
++	 if (result == 0)	/* ok */
++	    break;
++	 if ((result != -1) || (errno != EINTR))
++	    break;
++
++	 /* interrupted */
++	 gettimeofday(&now, NULL);
++      }
++   }
++}
+diff -Naur src/digmid.c src/digmid.c
+--- src/digmid.c	2007-08-09 22:48:38.000000000 +0200
++++ src/digmid.c	2011-11-06 20:59:35.148489700 +0100
+@@ -13,6 +13,8 @@
+  *      By Shawn Hargreaves, based on code by Tom Novelli.
+  *      Chris Robinson added some optimizations and the digmid_set_pan method.
+  *
++ *      Modified for the Adventure Game Studio runtime port by JJS.
++ *
+  *      See readme.txt for copyright information.
+  */
+ 
+@@ -520,7 +522,7 @@
+ {
+    PACKFILE *f;
+    char dir[1024], file[1024], buf[1024], filename[1024];
+-   char todo[256][1024];
++   char* todo[256];
+    char *argv[16], *p;
+    char tmp[128];
+    int argc;
+@@ -530,9 +532,12 @@
+    int drum_start = 0;
+    int type, size;
+    int i, j, c;
++   
++   for (i = 0; i < 256; i++)
++      todo[i] = (char*)malloc(1024);
+ 
+    if (!_digmid_find_patches(dir, sizeof(dir), file, sizeof(file)))
+-      return -1;
++      goto error_exit;
+ 
+    for (i=0; i<256; i++)
+       usetc(todo[i], 0);
+@@ -542,7 +547,7 @@
+ 
+    f = pack_fopen(buf, F_READ);
+    if (!f)
+-      return -1;
++      goto error_exit;
+ 
+    while (pack_fgets(buf, sizeof(buf), f) != 0) {
+       argc = parse_string(buf, argv);
+@@ -584,7 +589,7 @@
+ 
+ 		  if (!patch[patchnum]) {
+ 		     /* need to load this sample */
+-		     ustrzcpy(todo[patchnum], sizeof(todo[patchnum]), argv[1]);
++		     ustrzcpy(todo[patchnum], 1024, argv[1]);
+ 		  }
+ 	       }
+ 	    }
+@@ -608,13 +613,13 @@
+ 
+       f = pack_fopen(dir, F_READ_PACKED);
+       if (!f)
+-	 return -1;
++	 goto error_exit;
+ 
+       if (((ugetc(dir) == '#') && (ustrlen(dir) == 1)) || (!ustrchr(dir, '#'))) {
+ 	 type = pack_mgetl(f);
+ 	 if (type != DAT_MAGIC) {
+ 	    pack_fclose(f);
+-	    return -1;
++	    goto error_exit;
+ 	 }
+       }
+ 
+@@ -675,6 +680,7 @@
+ 	    pack_fseek(f, size+4);
+ 	 }
+       }
++      pack_fclose(f);
+    }
+    else {
+       /* read from regular disk files */
+@@ -706,7 +712,16 @@
+       }
+    }
+ 
++   for (i = 0; i < 256; i++)
++      free(todo[i]);
++
+    return 0;
++
++error_exit:
++
++    for (i = 0; i < 256; i++)
++       free(todo[i]);
++   return -1;
+ }
+ 
+ 
+diff -Naur src/file.c src/file.c
+--- src/file.c	2011-03-25 00:18:25.000000000 +0100
++++ src/file.c	2011-11-06 20:59:35.178993600 +0100
+@@ -1808,7 +1808,7 @@
+  *  it returns NULL and stores an error code in errno. An attempt to read a 
+  *  normal file in packed mode will cause errno to be set to EDOM.
+  */
+-PACKFILE *pack_fopen(AL_CONST char *filename, AL_CONST char *mode)
++PACKFILE *__old_pack_fopen(AL_CONST char *filename, AL_CONST char *mode)
+ {
+    char tmp[1024];
+    int fd;

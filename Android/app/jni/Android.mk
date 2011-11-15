@@ -1,6 +1,6 @@
 LOCAL_PATH := $(call my-dir)/../../../Engine
 
-ADDITIONAL_LIBRARY_PATH := $(call my-dir)/../../nativelibs
+ADDITIONAL_LIBRARY_PATH := $(call my-dir)/../../nativelibs/$(TARGET_ARCH_ABI)
 AGS_COMMON_PATH := $(call my-dir)/../../../Common
 
 include $(CLEAR_VARS)
@@ -20,10 +20,11 @@ ANDROID_SPECIFIC = acpland.cpp ../Android/app/jni/libc.c
 
 LOCAL_MODULE    := agsengine
 LOCAL_SRC_FILES := $(ALFONT) $(ALMP3) $(APEG) $(AASTR) $(BASE) $(COMMON) $(ANDROID_SPECIFIC)
-LOCAL_CFLAGS    := -O2 -g -ffast-math -fsigned-char -Wall -Wfatal-errors -Wno-deprecated-declarations -DALLEGRO_STATICLINK -DTHIS_IS_THE_ENGINE -DLINUX_VERSION -DANDROID_VERSION -DDISABLE_MPEG_AUDIO -I$(ADDITIONAL_LIBRARY_PATH)/include -I$(ADDITIONAL_LIBRARY_PATH)/include/freetype2 -I$(AGS_COMMON_PATH) -I$(AGS_COMMON_PATH)/libinclude
+LOCAL_CFLAGS    := -g -ffast-math -fsigned-char -Wall -Wfatal-errors -Wno-deprecated-declarations -DALLEGRO_STATICLINK -DTHIS_IS_THE_ENGINE -DLINUX_VERSION -DANDROID_VERSION -DDISABLE_MPEG_AUDIO -I$(ADDITIONAL_LIBRARY_PATH)/include -I$(ADDITIONAL_LIBRARY_PATH)/include/freetype2 -I$(AGS_COMMON_PATH) -I$(AGS_COMMON_PATH)/libinclude
 LOCAL_CXXFLAGS  := $(LOCAL_CFLAGS) -Wno-write-strings
-LOCAL_LDLIBS    := -static -lalleg -lfreetype -lvorbisidec -ltheoradec -logg -laldmb -ldumb -lstdc++ -Wl,-Bdynamic -lc -ldl -lm -lz -llog -lGLESv1_CM
-LOCAL_LDFLAGS   := -Wl,-L$(ADDITIONAL_LIBRARY_PATH)/lib/
+LOCAL_LDLIBS    := -static -lalleg -lfreetype -lvorbisidec -ltheora -logg -laldmb -ldumb -lstdc++ -Wl,-Bdynamic -lc -ldl -lm -lz -llog -lGLESv1_CM
+LOCAL_LDFLAGS   := -Wl,-L$(ADDITIONAL_LIBRARY_PATH)/lib,--allow-multiple-definition
+LOCAL_ARM_MODE  := arm
 
 include $(BUILD_SHARED_LIBRARY)
 

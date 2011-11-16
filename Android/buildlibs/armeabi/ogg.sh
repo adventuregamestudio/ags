@@ -5,7 +5,7 @@ export NDK_HOST_NAME=arm-linux-androideabi
 FILENAME=libogg-1.3.0
 EXTENSION=tar.gz
 
-wget -c http://downloads.xiph.org/releases/ogg/$FILENAME.$EXTENSION -O $FILENAME.$EXTENSION
+wget -c http://downloads.xiph.org/releases/ogg/$FILENAME.$EXTENSION -O ../$FILENAME.$EXTENSION
 
 tar -zxf ../$FILENAME.$EXTENSION
 

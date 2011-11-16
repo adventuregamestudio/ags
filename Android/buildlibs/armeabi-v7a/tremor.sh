@@ -11,7 +11,12 @@ cd $FILENAME
 # remove call to ./configure from the script
 head --lines=-1 autogen.sh > autogenmod.sh
 
+chmod +x ./autogenmod.sh
+
 ./autogenmod.sh
+
+rm ./config.sub
+rm ./config.guess
 
 wget http://git.savannah.gnu.org/cgit/config.git/plain/config.sub -O config.sub
 wget http://git.savannah.gnu.org/cgit/config.git/plain/config.guess -O config.guess

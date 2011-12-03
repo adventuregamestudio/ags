@@ -5,7 +5,7 @@ AGS_COMMON_PATH := $(call my-dir)/../../../Common
 
 include $(CLEAR_VARS)
 
-BASE = acaudio.cpp acchars.cpp acdebug.cpp acdialog.cpp acfonts.cpp acgfx.cpp acgui.cpp acplatfm.cpp acsound.cpp bigend.cpp misc.cpp routefnd.cpp scrptrt.cpp ac.cpp alogg.c almp3.c ali3dsw.cpp
+BASE = ali3dogl.cpp acaudio.cpp acchars.cpp acdebug.cpp acdialog.cpp acfonts.cpp acgfx.cpp acgui.cpp acplatfm.cpp acsound.cpp bigend.cpp misc.cpp routefnd.cpp scrptrt.cpp ac.cpp alogg.c almp3.c ali3dsw.cpp
 COMMON = ../Common/csrun.cpp ../Common/Clib32.cpp ../Common/mousew32.cpp ../Common/sprcache.cpp ../Common/cscommon.cpp ../Common/compress.cpp ../Common/lzw.cpp
 
 ALFONT = libsrc/alfont-2.0.9/alfont.c

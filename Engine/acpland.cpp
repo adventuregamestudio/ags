@@ -53,6 +53,11 @@ int psp_ignore_acsetup_cfg_file = 0;
 int psp_clear_cache_on_room_change = 0;
 
 
+// Graphic options from the Allegro library.
+extern int psp_gfx_scaling;
+extern int psp_gfx_smoothing;
+
+
 // Audio options from the Allegro library.
 unsigned int psp_audio_samplerate;
 int psp_audio_enabled = 1;
@@ -63,6 +68,7 @@ int psp_midi_preload_patches = 0;
 
 int psp_video_framedrop = 0;
 
+int psp_gfx_hardware_acceleration = 1;
 
 extern int display_fps;
 extern int want_exit;
@@ -78,6 +84,7 @@ jobject java_object;
 jclass java_class;
 jmethodID java_messageCallback;
 jmethodID java_blockExecution;
+jmethodID java_swapBuffers;
 
 extern "C" 
 {
@@ -203,8 +210,9 @@ void ReadConfiguration(char* filename)
 
     ReadInteger((int*)&psp_video_framedrop, "video", "framedrop", 0, 1, 0);
 
-//    ReadInteger((int*)&psp_gfx_smoothing, "graphics", "smoothing", 0, 1, 1);
-//    ReadInteger((int*)&psp_gfx_scaling, "graphics", "scaling", 0, 1, 1);
+    ReadInteger((int*)&psp_gfx_hardware_acceleration, "graphics", "hardware_rendering", 0, 1, 1);
+    ReadInteger((int*)&psp_gfx_smoothing, "graphics", "smoothing", 0, 1, 1);
+    ReadInteger((int*)&psp_gfx_scaling, "graphics", "scaling", 0, 1, 1);
 
     strcpy(filetouse, "nofile");
   }

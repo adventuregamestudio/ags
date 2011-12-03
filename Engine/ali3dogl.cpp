@@ -1,9 +1,41 @@
 #include <stdio.h>
 #include <allegro.h>
+#if defined(WINDOWS_VERSION)
 #include <winalleg.h>
 #include <allegro/platform/aintwin.h>
 #include <ali3d.h>
 #include <GL/gl.h>
+#elif defined(ANDROID_VERSION)
+#include <ali3d.h>
+#include <GLES/gl.h>
+
+#define HDC void*
+#define HGLRC void*
+#define HWND void*
+#define HINSTANCE void*
+
+#define glOrtho glOrthof
+#define GL_CLAMP GL_CLAMP_TO_EDGE
+
+#define Sleep(x) usleep(x * 1000)
+
+// Defined in Allegro
+extern "C" 
+{
+  void android_swap_buffers();
+  void android_create_screen(int width, int height, int color_depth);
+}
+
+#endif
+extern "C" void android_debug_printf(char* format, ...);
+
+extern int psp_gfx_smoothing;
+extern int psp_gfx_scaling;
+
+extern unsigned int android_screen_physical_width;
+extern unsigned int android_screen_physical_height;
+extern int android_screen_initialized;
+
 
 void ogl_dummy_vsync() { }
 
@@ -224,16 +256,16 @@ public:
   D3DGFXFilter *_filter;
 
 private:
-  HDC hDC;
-  HGLRC hRC;
-  HWND hWnd;
-  HINSTANCE hInstance;
+  HDC _hDC;
+  HGLRC _hRC;
+  HWND _hWnd;
+  HINSTANCE _hInstance;
   int _newmode_width, _newmode_height;
   int _newmode_screen_width, _newmode_screen_height;
   int _newmode_depth, _newmode_refresh;
   bool _newmode_windowed;
   int _global_x_offset, _global_y_offset;
-  UINT availableVideoMemory;
+  unsigned int availableVideoMemory;
   ALI3DCLIENTCALLBACK _pollingCallback;
   ALI3DCLIENTCALLBACK _drawScreenCallback;
   ALI3DCLIENTCALLBACKXY _nullSpriteCallback;
@@ -249,6 +281,9 @@ private:
   OGLBitmap* _screenTintLayerDDB;
   SpriteDrawListEntry _screenTintSprite;
 
+  float _scale_width;
+  float _scale_height;
+
   SpriteDrawListEntry drawList[MAX_DRAW_LIST_SIZE];
   int numToDraw;
   SpriteDrawListEntry drawListLastTime[MAX_DRAW_LIST_SIZE];
@@ -256,8 +291,7 @@ private:
   GlobalFlipType flipTypeLastTime;
 
   bool EnsureDirect3D9IsCreated();
-  void initD3DDLL();
-  void InitializeD3DState();
+  void InitOpenGl();
   void set_up_default_vertices();
   void AdjustSizeToNearestSupportedByCard(int *width, int *height);
   void UpdateTextureRegion(TextureTile *tile, BITMAP *bitmap, OGLBitmap *target, bool hasAlpha);
@@ -306,6 +340,8 @@ OGLGraphicsDriver::OGLGraphicsDriver(D3DGFXFilter *filter)
   _screenTintSprite.y = 0;
   previousError[0] = 0;
   _legacyPixelShader = false;
+  _scale_width = 1.0f;
+  _scale_height = 1.0f;
   set_up_default_vertices();
 }
 
@@ -314,22 +350,21 @@ void OGLGraphicsDriver::set_up_default_vertices()
 {
   defaultVertices[0].position.x = 0.0f;
   defaultVertices[0].position.y = 0.0f;
-  //defaultVertices[0].color=0xffffffff;
   defaultVertices[0].tu=0.0;
   defaultVertices[0].tv=0.0;
+
   defaultVertices[1].position.x = 1.0f;
   defaultVertices[1].position.y = 0.0f;
-  //defaultVertices[1].color=0xffffffff;
   defaultVertices[1].tu=1.0;
   defaultVertices[1].tv=0.0;
+
   defaultVertices[2].position.x = 0.0f;
   defaultVertices[2].position.y = -1.0f;
-  //defaultVertices[2].color=0xffffffff;
   defaultVertices[2].tu=0.0;
   defaultVertices[2].tv=1.0;
+
   defaultVertices[3].position.x = 1.0f;
   defaultVertices[3].position.y = -1.0f;
-  //defaultVertices[3].color=0xffffffff;
   defaultVertices[3].tu=1.0;
   defaultVertices[3].tv=1.0;
 }
@@ -373,6 +408,59 @@ void OGLGraphicsDriver::SetTintMethod(TintMethod method)
   _legacyPixelShader = (method == TintReColourise);
 }
 
+void OGLGraphicsDriver::InitOpenGl()
+{
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_LIGHTING);
+    glShadeModel(GL_FLAT);
+
+    glEnable(GL_TEXTURE_2D);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    glViewport(0, 0, android_screen_physical_width, android_screen_physical_height);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0, android_screen_physical_width, 0, android_screen_physical_height, 0, 1);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    glDisableClientState(GL_COLOR_ARRAY);
+    glDisableClientState(GL_NORMAL_ARRAY);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+    if (psp_gfx_scaling)
+    {
+      float android_screen_ar = (float)_newmode_width / (float)_newmode_height;
+      float android_device_ar = (float)android_screen_physical_width / (float)android_screen_physical_height;
+
+      if (android_device_ar <= android_screen_ar)
+      {
+         _scale_width = (float)android_screen_physical_width / (float)_newmode_width;
+         _scale_height = _scale_width;
+      }
+      else
+      {
+         _scale_height = (float)android_screen_physical_height / (float)_newmode_height;
+         _scale_width = _scale_height;
+      }
+    }
+    else
+    {
+      _scale_width = _scale_height = 1.0f;
+    }
+
+    glEnable(GL_SCISSOR_TEST);
+    glScissor((int)(((float)android_screen_physical_width - _scale_width * (float)_newmode_width) / 2.0f), (int)(((float)android_screen_physical_height - _scale_height * (float)_newmode_height) / 2.0f), (int)(_scale_width * (float)_newmode_width), (int)(_scale_height * (float)_newmode_height));
+}
+
 bool OGLGraphicsDriver::Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer) 
 {
   return this->Init(width, height, width, height, colourDepth, windowed, loopTimer);
@@ -380,6 +468,8 @@ bool OGLGraphicsDriver::Init(int width, int height, int colourDepth, bool window
 
 bool OGLGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer)
 {
+  android_create_screen(realWidth, realHeight, colourDepth);
+
   if (colourDepth < 15)
   {
     ustrzcpy(allegro_error, ALLEGRO_ERROR_SIZE, get_config_text("Direct3D driver does not support 256-colour games"));
@@ -401,6 +491,7 @@ bool OGLGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
   {
     int i = 0;
 
+#if defined(WINDOWS_VERSION)
     HWND allegro_wnd = hWnd = win_get_window();
 
     if (!_newmode_windowed)
@@ -410,9 +501,11 @@ bool OGLGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
       LONG windowStyle = WS_POPUP;
       SetWindowLong(allegro_wnd, GWL_STYLE, windowStyle);
     }
+#endif
 
     gfx_driver = &gfx_opengl;
 
+#if defined(WINDOWS_VERSION)
     if (_newmode_windowed)
     {
       if (adjust_window(_newmode_screen_width, _newmode_screen_height) != 0) 
@@ -425,70 +518,48 @@ bool OGLGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
     win_grab_input();
 
 
-	  GLuint PixelFormat;	
+      GLuint PixelFormat;
 
-	  static	PIXELFORMATDESCRIPTOR pfd =
-	  {
-		  sizeof(PIXELFORMATDESCRIPTOR),
-		  1,
-		  PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
-		  PFD_TYPE_RGBA,
-		  colourDepth,
-		  0, 0, 0, 0, 0, 0,
-		  0,
-		  0,
-		  0,
-		  0, 0, 0, 0,
-		  0,
-		  0,
-		  0,
-		  PFD_MAIN_PLANE,
-		  0,
-		  0, 0, 0
-	  };
-	
-	  if (!(hDC = GetDC(hWnd)))
+      static PIXELFORMATDESCRIPTOR pfd =
+      {
+         sizeof(PIXELFORMATDESCRIPTOR),
+         1,
+         PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
+         PFD_TYPE_RGBA,
+         colourDepth,
+         0, 0, 0, 0, 0, 0,
+         0,
+         0,
+         0,
+         0, 0, 0, 0,
+         0,
+         0,
+         0,
+         PFD_MAIN_PLANE,
+         0,
+         0, 0, 0
+      };
+
+      if (!(_hDC = GetDC(_hWnd)))
       return false;
 
-	  if (!(PixelFormat = ChoosePixelFormat(hDC, &pfd)))
+      if (!(PixelFormat = ChoosePixelFormat(_hDC, &pfd)))
       return false;
 
-	  if (!SetPixelFormat(hDC, PixelFormat, &pfd))
+      if (!SetPixelFormat(_hDC, PixelFormat, &pfd))
       return false;
 
-	  if (!(hRC = wglCreateContext(hDC)))
+      if (!(hRC = wglCreateContext(_hDC)))
       return false;
 
-	  if(!wglMakeCurrent(hDC, hRC))
+      if(!wglMakeCurrent(_hDC, _hRC))
       return false;
+#endif
 
-    glDisable(GL_CULL_FACE);
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_LIGHTING);
-    glShadeModel(GL_FLAT);
-
-    glEnable(GL_TEXTURE_2D);
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-
-    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    glViewport(0, 0, _newmode_screen_width, _newmode_screen_height);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(0, _newmode_screen_width, 0, _newmode_screen_height, 0, 1);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-    glDisableClientState(GL_COLOR_ARRAY);
-    glDisableClientState(GL_NORMAL_ARRAY);
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    InitOpenGl();
 
     this->create_screen_tint_bitmap();
+
   }
   catch (Ali3DException exception)
   {
@@ -625,14 +696,14 @@ void OGLGraphicsDriver::_renderSprite(SpriteDrawListEntry *drawListEntry, bool g
     else
       glColor4f(1.0f, 1.0f, 1.0f, ((float)bmpToDraw->_transparency / 255.0f));
 
-    glTranslatef(_newmode_screen_width / 2.0f, _newmode_screen_height / 2.0f, 0.0f);
+    glTranslatef(android_screen_physical_width / 2.0f, android_screen_physical_height / 2.0f, 0.0f);
 
-    glTranslatef((float)thisX , (float)thisY , 0.0f);
-    glScalef(widthToScale, heightToScale, 1.0f);
+    glTranslatef((float)thisX * _scale_width, (float)thisY * _scale_height, 0.0f);
+    glScalef(widthToScale * _scale_width, heightToScale * _scale_height, 1.0f);
 
     glBindTexture(GL_TEXTURE_2D, bmpToDraw->_tiles[ti].texture);
 
-    if ((_smoothScaling) && (bmpToDraw->_stretchToHeight > 0) &&
+    if ((psp_gfx_smoothing) || (_smoothScaling) && (bmpToDraw->_stretchToHeight > 0) &&
         ((bmpToDraw->_stretchToHeight != bmpToDraw->_height) ||
          (bmpToDraw->_stretchToWidth != bmpToDraw->_width)))
     {
@@ -641,10 +712,9 @@ void OGLGraphicsDriver::_renderSprite(SpriteDrawListEntry *drawListEntry, bool g
     }
     else 
     {
-       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     }
-
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
@@ -665,13 +735,29 @@ void OGLGraphicsDriver::_renderSprite(SpriteDrawListEntry *drawListEntry, bool g
 
 void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterwards)
 {
+  if (!android_screen_initialized)
+  {
+    InitOpenGl();
+    android_screen_initialized = 1;
+  }
+
   SpriteDrawListEntry *listToDraw = drawList;
   int listSize = numToDraw;
 
   bool globalLeftRightFlip = (flip == Vertical) || (flip == Both);
   bool globalTopBottomFlip = (flip == Horizontal) || (flip == Both);
 
+  glDisable(GL_SCISSOR_TEST);
   glClear(GL_COLOR_BUFFER_BIT);
+  glEnable(GL_SCISSOR_TEST);
+
+  // Setup virtual screen
+  glViewport(0, 0, android_screen_physical_width, android_screen_physical_height);
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  glOrtho(0, android_screen_physical_width, 0, android_screen_physical_height, 0, 1);
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
 
   for (int i = 0; i < listSize; i++)
   {
@@ -696,7 +782,11 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
     this->_renderSprite(&_screenTintSprite, false, false);
   }
 
-  SwapBuffers(hDC);
+#if defined(WINDOWS_VERSION)
+  SwapBuffers(_hDC);
+#elif defined(ANDROID_VERSION)
+  android_swap_buffers();
+#endif
 
   if (clearDrawListAfterwards)
   {
@@ -1072,9 +1162,12 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(BITMAP *allegroBi
       memset(empty, 0, thisAllocatedWidth * thisAllocatedHeight * 4);
 
       glGenTextures(1, &thisTile->texture);
-
       glBindTexture(GL_TEXTURE_2D, thisTile->texture);
-      glTexImage2D(GL_TEXTURE_2D, 0, 4, thisAllocatedWidth, thisAllocatedHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, empty);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, thisAllocatedWidth, thisAllocatedHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, empty);
 
       free(empty);
     }

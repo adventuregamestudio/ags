@@ -1,6 +1,6 @@
 diff -Naur cmake/FileList.cmake cmake/FileList.cmake
 --- cmake/FileList.cmake	2011-03-12 01:26:00.000000000 +0100
-+++ cmake/FileList.cmake	2011-11-06 20:59:34.992970000 +0100
++++ cmake/FileList.cmake	2011-12-03 17:35:44.909970300 +0100
 @@ -335,6 +335,19 @@
          src/psp/pvtable8.c
          )
@@ -40,7 +40,7 @@ diff -Naur cmake/FileList.cmake cmake/FileList.cmake
          include/allegro/platform/alucfg.h
 diff -Naur cmake/Toolchain-android-gcc.cmake cmake/Toolchain-android-gcc.cmake
 --- cmake/Toolchain-android-gcc.cmake	1970-01-01 01:00:00.000000000 +0100
-+++ cmake/Toolchain-android-gcc.cmake	2011-11-06 20:59:34.997470600 +0100
++++ cmake/Toolchain-android-gcc.cmake	2011-12-03 17:35:44.931971500 +0100
 @@ -0,0 +1,37 @@
 +# The name of the target operating system.
 +set(CMAKE_SYSTEM_NAME Generic)
@@ -81,7 +81,7 @@ diff -Naur cmake/Toolchain-android-gcc.cmake cmake/Toolchain-android-gcc.cmake
 +set(ANDROID 1)
 diff -Naur CMakeLists.txt CMakeLists.txt
 --- CMakeLists.txt	2011-03-25 00:18:50.000000000 +0100
-+++ CMakeLists.txt	2011-11-10 16:04:46.315896100 +0100
++++ CMakeLists.txt	2011-12-03 17:35:45.463001900 +0100
 @@ -313,6 +313,18 @@
      set(CMAKE_INSTALL_PREFIX ${PSP_PREFIX})
  endif(PSP)
@@ -118,7 +118,7 @@ diff -Naur CMakeLists.txt CMakeLists.txt
  # Generate and install headers
 diff -Naur include/allegro/internal/alconfig.h include/allegro/internal/alconfig.h
 --- include/allegro/internal/alconfig.h	2008-12-24 02:39:48.000000000 +0100
-+++ include/allegro/internal/alconfig.h	2011-11-06 20:59:35.011472300 +0100
++++ include/allegro/internal/alconfig.h	2011-12-03 17:35:46.431057300 +0100
 @@ -14,7 +14,7 @@
   *
   *      See readme.txt for copyright information.
@@ -139,8 +139,8 @@ diff -Naur include/allegro/internal/alconfig.h include/allegro/internal/alconfig
     #endif
 diff -Naur include/allegro/platform/aintand.h include/allegro/platform/aintand.h
 --- include/allegro/platform/aintand.h	1970-01-01 01:00:00.000000000 +0100
-+++ include/allegro/platform/aintand.h	2011-11-06 20:59:35.015972900 +0100
-@@ -0,0 +1,48 @@
++++ include/allegro/platform/aintand.h	2011-12-03 17:35:46.441057800 +0100
+@@ -0,0 +1,49 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
 + *        \ \ \L\ \\//\ \ \//\ \      __     __   _ __   ___
@@ -181,9 +181,10 @@ diff -Naur include/allegro/platform/aintand.h include/allegro/platform/aintand.h
 +void android_initialize_sound(int size);
 +void android_update_sound(char* buffer, unsigned int size);
 +
-+void android_initialize_renderer(JNIEnv* env, jobject obj, int screen_width, int screen_height);
-+void android_render(JNIEnv* env, jobject obj);
 +void android_create_screen(int width, int height, int color_depth);
++void android_initialize_renderer(JNIEnv* env, jobject self, jint screen_width, jint screen_height);
++
++void android_swap_buffers();
 +
 +BITMAP* displayed_video_bitmap;
 +
@@ -191,7 +192,7 @@ diff -Naur include/allegro/platform/aintand.h include/allegro/platform/aintand.h
 +
 diff -Naur include/allegro/platform/aland.h include/allegro/platform/aland.h
 --- include/allegro/platform/aland.h	1970-01-01 01:00:00.000000000 +0100
-+++ include/allegro/platform/aland.h	2011-11-06 20:59:35.029474600 +0100
++++ include/allegro/platform/aland.h	2011-12-03 17:35:46.466059300 +0100
 @@ -0,0 +1,74 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
@@ -269,7 +270,7 @@ diff -Naur include/allegro/platform/aland.h include/allegro/platform/aland.h
 +#endif
 diff -Naur include/allegro/platform/alandcfg.h include/allegro/platform/alandcfg.h
 --- include/allegro/platform/alandcfg.h	1970-01-01 01:00:00.000000000 +0100
-+++ include/allegro/platform/alandcfg.h	2011-11-06 20:59:35.032975100 +0100
++++ include/allegro/platform/alandcfg.h	2011-12-03 17:35:46.468059400 +0100
 @@ -0,0 +1,68 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
@@ -341,7 +342,7 @@ diff -Naur include/allegro/platform/alandcfg.h include/allegro/platform/alandcfg
 +#endif
 diff -Naur include/allegro/platform/alplatf.h include/allegro/platform/alplatf.h
 --- include/allegro/platform/alplatf.h	1970-01-01 01:00:00.000000000 +0100
-+++ include/allegro/platform/alplatf.h	2011-11-06 20:59:35.055477900 +0100
++++ include/allegro/platform/alplatf.h	2011-12-03 17:35:46.482060200 +0100
 @@ -0,0 +1,17 @@
 +/* #undef ALLEGRO_BCC32 */
 +/* #undef ALLEGRO_BEOS */
@@ -362,7 +363,7 @@ diff -Naur include/allegro/platform/alplatf.h include/allegro/platform/alplatf.h
 +#define ALLEGRO_USE_C
 diff -Naur include/allegro/system.h include/allegro/system.h
 --- include/allegro/system.h	2011-03-19 00:47:45.000000000 +0100
-+++ include/allegro/system.h	2011-11-06 20:59:35.060978600 +0100
++++ include/allegro/system.h	2011-12-03 17:35:46.507061600 +0100
 @@ -66,6 +66,7 @@
  #define OSTYPE_MACOS       AL_ID('M','A','C',' ')
  #define OSTYPE_MACOSX      AL_ID('M','A','C','X')
@@ -373,7 +374,7 @@ diff -Naur include/allegro/system.h include/allegro/system.h
  AL_VAR(int, os_version);
 diff -Naur src/android/adrivers.c src/android/adrivers.c
 --- src/android/adrivers.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/android/adrivers.c	2011-11-06 20:59:35.068979600 +0100
++++ src/android/adrivers.c	2011-12-03 17:35:46.681071600 +0100
 @@ -0,0 +1,75 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
@@ -452,7 +453,7 @@ diff -Naur src/android/adrivers.c src/android/adrivers.c
 +END_JOYSTICK_DRIVER_LIST
 diff -Naur src/android/afile.c src/android/afile.c
 --- src/android/afile.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/android/afile.c	2011-11-06 20:59:35.077480700 +0100
++++ src/android/afile.c	2011-12-03 17:35:46.683071700 +0100
 @@ -0,0 +1,536 @@
 +/*         ______   ___    ___ 
 + *        /\  _  \ /\_ \  /\_ \ 
@@ -992,8 +993,8 @@ diff -Naur src/android/afile.c src/android/afile.c
 +
 diff -Naur src/android/agfx.c src/android/agfx.c
 --- src/android/agfx.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/android/agfx.c	2011-11-06 20:59:35.084981700 +0100
-@@ -0,0 +1,276 @@
++++ src/android/agfx.c	2011-12-03 17:35:46.685071800 +0100
+@@ -0,0 +1,325 @@
 +/*         ______   ___    ___
 +*        /\  _  \ /\_ \  /\_ \
 +*        \ \ \\ \\//\ \ \//\ \      __     __   _ __   ___
@@ -1026,17 +1027,28 @@ diff -Naur src/android/agfx.c src/android/agfx.c
 +static void gfx_android_enable_acceleration(GFX_VTABLE *vtable);
 +static void android_hw_blit(BITMAP *source, BITMAP *dest, int source_x, int source_y, int dest_x, int dest_y, int width, int height);
 +
++void android_render();
++void android_initialize_opengl();
++
++
++/* Options controlled by the application */
++int psp_gfx_scaling = 1;
++int psp_gfx_smoothing = 1;
++
 +
 +unsigned int android_screen_texture = 0;
-+unsigned int android_screen_width = 0;
-+unsigned int android_screen_height = 0;
-+unsigned int android_screen_color_depth = 0;
++unsigned int android_screen_width = 320;
++unsigned int android_screen_height = 200;
++unsigned int android_screen_physical_width = 320;
++unsigned int android_screen_physical_height = 200;
++unsigned int android_screen_color_depth = 32;
 +int android_screen_texture_width = 0;
 +int android_screen_texture_height = 0;
 +float android_screen_ar = 1.0f;
 +float android_device_ar = 1.0f;
 +
 +int android_screen_changed = 1;
++int android_screen_initialized = 0;
 +
 +GLfloat android_vertices[] =
 +{
@@ -1052,7 +1064,7 @@ diff -Naur src/android/agfx.c src/android/agfx.c
 +   320.0f / 512.0f, 200.0f / 256.0f,
 +   0, 0,
 +   320.0f / 512.0f, 0
-+};      
++};
 +
 +
 +GFX_DRIVER gfx_android =
@@ -1105,10 +1117,10 @@ diff -Naur src/android/agfx.c src/android/agfx.c
 +   /* Do the final screen blit to a 32 bit bitmap in palette mode */
 +   if (color_depth == 8)
 +      color_depth = 32;
-+   
++
 +   displayed_video_bitmap = create_bitmap_ex(color_depth, w, h);
 +   gfx_android_enable_acceleration(vtable);
-+   
++
 +   android_create_screen(w, h, color_depth);
 +
 +   return displayed_video_bitmap;
@@ -1142,18 +1154,18 @@ diff -Naur src/android/agfx.c src/android/agfx.c
 +{
 +   _orig_blit(source, dest, source_x, source_y, dest_x, dest_y, width, height);
 +
-+   if (dest == displayed_video_bitmap)
-+      android_screen_changed = 1;
++   if ((dest == displayed_video_bitmap) || (android_screen_color_depth == 8))
++      android_render();
 +}
 +
 +
 +int android_get_next_power_of_2(int value)
 +{
 +   int test = 1;
-+   
++
 +   while (test < value)
 +      test *= 2;
-+   
++
 +   return test;
 +}
 +
@@ -1162,24 +1174,24 @@ diff -Naur src/android/agfx.c src/android/agfx.c
 +void android_create_screen_texture(int width, int height, int color_depth)
 +{
 +   char* empty;
-+   
++
 +   android_screen_texture_width = android_get_next_power_of_2(width);
 +   android_screen_texture_height = android_get_next_power_of_2(height);
-+   
++
 +   empty = (char*)malloc(android_screen_texture_width * android_screen_texture_height * color_depth / 8);
 +   memset(empty, 0, android_screen_texture_width * android_screen_texture_height * color_depth / 8);
 +
 +   if (android_screen_texture != 0)
 +      glDeleteTextures(1, &android_screen_texture);
-+   
++
 +   glGenTextures(1, &android_screen_texture);
 +   glBindTexture(GL_TEXTURE_2D, android_screen_texture);
-+   
++
 +   if (color_depth == 16)
 +      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, android_screen_texture_width, android_screen_texture_height, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, empty);
 +   else
 +      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, android_screen_texture_width, android_screen_texture_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, empty);
-+   
++
 +   free(empty);
 +}
 +
@@ -1187,93 +1199,131 @@ diff -Naur src/android/agfx.c src/android/agfx.c
 +/* Set the values for the texture coord. and vertex arrays */
 +void android_create_arrays(int screen_width, int screen_height)
 +{
-+   if (android_device_ar <= android_screen_ar)
++   if (psp_gfx_scaling)
 +   {
-+      android_vertices[2] = android_vertices[6] = screen_width - 1;
-+      android_vertices[5] = android_vertices[7] = screen_width * ((float)android_screen_height / (float)android_screen_width);
++      if (android_device_ar <= android_screen_ar)
++      {
++         android_vertices[2] = android_vertices[6] = screen_width - 1;
++         android_vertices[5] = android_vertices[7] = screen_width * ((float)android_screen_height / (float)android_screen_width);
++      }
++      else
++      {
++         android_vertices[2] = android_vertices[6] = screen_height * ((float)android_screen_width / (float)android_screen_height);
++         android_vertices[5] = android_vertices[7] = screen_height - 1;
++      }
 +   }
 +   else
 +   {
-+      android_vertices[2] = android_vertices[6] = screen_height * ((float)android_screen_width / (float)android_screen_height);
-+      android_vertices[5] = android_vertices[7] = screen_height - 1;
++      android_vertices[0] = android_vertices[4] = android_screen_width * (-0.5f);
++      android_vertices[2] = android_vertices[6] = android_screen_width * 0.5f;
++      android_vertices[5] = android_vertices[7] = android_screen_height * 0.5f;
++      android_vertices[1] = android_vertices[3] = android_screen_height * (-0.5f);
 +   }
-+   
++
 +   android_texture_coordinates[1] = android_texture_coordinates[3] = (float)android_screen_height / (float)android_screen_texture_height;
-+   android_texture_coordinates[2] = android_texture_coordinates[6] = (float)android_screen_width / (float)android_screen_texture_width;   
++   android_texture_coordinates[2] = android_texture_coordinates[6] = (float)android_screen_width / (float)android_screen_texture_width;
 +}
 +
 +
 +/* Called from the Java app to set up the screen */
-+void JNICALL android_initialize_renderer(JNIEnv* env, jobject self, jint screen_width, jint screen_height)
++void android_initialize_renderer(JNIEnv* env, jobject self, jint screen_width, jint screen_height)
++{
++   android_screen_physical_width = screen_width;
++   android_screen_physical_height = screen_height;
++   android_screen_initialized = 0;
++}
++
++
++void android_initialize_opengl()
 +{
 +   android_screen_ar = (float)android_screen_width / (float)android_screen_height;
-+   android_device_ar = (float)screen_width / (float)screen_height;
-+   
++   android_device_ar = (float)android_screen_physical_width / (float)android_screen_physical_height;
++
 +   glEnable(GL_CULL_FACE);
 +   glEnable(GL_TEXTURE_2D);
 +   glDisable(GL_DEPTH_TEST);
 +   glDisable(GL_LIGHTING);
 +   glDisable(GL_BLEND);
 +   glShadeModel(GL_FLAT);
-+   
++
 +   glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 +
-+   glViewport(0, 0, screen_width - 1, screen_height - 1);
++   glViewport(0, 0, android_screen_physical_width, android_screen_physical_height);
 +   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 +   glClear(GL_COLOR_BUFFER_BIT);
-+   
++
 +   glDisableClientState(GL_COLOR_ARRAY);
 +   glDisableClientState(GL_NORMAL_ARRAY);
 +   glEnableClientState(GL_VERTEX_ARRAY);
 +   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 +   glTexCoordPointer(2, GL_FLOAT, 0, android_texture_coordinates);
-+   glVertexPointer(2, GL_FLOAT, 0, android_vertices);      
++   glVertexPointer(2, GL_FLOAT, 0, android_vertices);
 +
 +   android_create_screen_texture(android_screen_width, android_screen_height, android_screen_color_depth);
-+   android_create_arrays(screen_width, screen_height);   
-+   
-+   glBindTexture(GL_TEXTURE_2D, android_screen_texture);
-+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
++   android_create_arrays(android_screen_physical_width, android_screen_physical_height);
 +
-+   glViewport(0, 0, screen_width - 1, screen_height - 1);
-+   
++   glBindTexture(GL_TEXTURE_2D, android_screen_texture);
++   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
++   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
++
++   if (psp_gfx_smoothing)
++   {
++      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
++      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
++   }
++   else
++   {
++      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
++      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
++   }
++
++   glViewport(0, 0, android_screen_physical_width, android_screen_physical_height);
++
 +   glMatrixMode(GL_PROJECTION);
 +   glLoadIdentity();
-+   
-+   glOrthof(0, screen_width - 1, 0, screen_height - 1, 0, 1);
-+   
-+   glMatrixMode(GL_MODELVIEW);
-+   glLoadIdentity();      
 +
-+   if (android_device_ar <= android_screen_ar)
-+      glTranslatef(0, (screen_height - android_vertices[5] - 1) / 2, 0);   
++   glOrthof(0, android_screen_physical_width, 0, android_screen_physical_height, 0, 1);
++
++   glMatrixMode(GL_MODELVIEW);
++   glLoadIdentity();
++
++   if (psp_gfx_scaling)
++   {
++      if (android_device_ar <= android_screen_ar)
++         glTranslatef(0, (android_screen_physical_height - android_vertices[5] - 1) / 2, 0);
++      else
++         glTranslatef((android_screen_physical_width - android_vertices[2] - 1) / 2, 0, 0);
++   }
 +   else
-+      glTranslatef((screen_width - android_vertices[2] - 1) / 2, 0, 0);
++   {
++      glTranslatef(android_screen_physical_width / 2.0f, android_screen_physical_height / 2.0f, 0);
++   }
 +}
 +
 +
 +
-+/* Called from the Java app to render the screen */
-+void JNICALL android_render(JNIEnv* env, jobject self)
++void android_render()
 +{
-+   if ((android_screen_changed) || (android_screen_color_depth == 8))
++   if (!android_screen_initialized)
 +   {
-+      if (android_screen_color_depth == 16)
-+         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, android_screen_width, android_screen_height, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, displayed_video_bitmap->line[0]);
-+      else
-+         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, android_screen_width, android_screen_height, GL_RGBA, GL_UNSIGNED_BYTE, displayed_video_bitmap->line[0]);
-+      
-+      android_screen_changed = 0;
++      android_initialize_opengl();
++      android_screen_initialized = 1;
 +   }
++
++   if (android_screen_color_depth == 16)
++      glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, android_screen_width, android_screen_height, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, displayed_video_bitmap->line[0]);
++   else
++      glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, android_screen_width, android_screen_height, GL_RGBA, GL_UNSIGNED_BYTE, displayed_video_bitmap->line[0]);
 +
 +   glClear(GL_COLOR_BUFFER_BIT);
 +   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
++
++   android_swap_buffers();
 +}
 diff -Naur src/android/ajni.c src/android/ajni.c
 --- src/android/ajni.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/android/ajni.c	2011-11-06 20:59:35.090482400 +0100
-@@ -0,0 +1,138 @@
++++ src/android/ajni.c	2011-12-03 17:35:46.685071800 +0100
+@@ -0,0 +1,145 @@
 +/*         ______   ___    ___
 +*        /\  _  \ /\_ \  /\_ \
 +*        \ \ \\ \\//\ \ \//\ \      __     __   _ __   ___
@@ -1314,12 +1364,13 @@ diff -Naur src/android/ajni.c src/android/ajni.c
 +jmethodID android_jni_pollMouseButtons;
 +jmethodID android_jni_pollMouseX;
 +jmethodID android_jni_pollMouseY;
++jmethodID android_jni_swapBuffers;
++
 +
 +
 +/* Native methods exported to the Java glue code */
 +const JNINativeMethod android_jni_native_methods[] =
 +{
-+   { "nativeRender", "()V", (void*)android_render },
 +   { "nativeInitializeRenderer", "(II)V", (void*)android_initialize_renderer }
 +};
 +
@@ -1344,7 +1395,7 @@ diff -Naur src/android/ajni.c src/android/ajni.c
 +   android_jni_class = java_class;
 +   android_jni_object = java_object;
 +   
-+   (*android_jni_env)->RegisterNatives(android_jni_env, android_jni_class, android_jni_native_methods, 2);
++   (*android_jni_env)->RegisterNatives(android_jni_env, android_jni_class, android_jni_native_methods, 3);
 +
 +   android_jni_createScreen = (*android_jni_env)->GetMethodID(android_jni_env, android_jni_class, "createScreen", "(III)V");
 +   android_jni_pollKeyboard = (*android_jni_env)->GetMethodID(android_jni_env, android_jni_class, "pollKeyboard", "()I");
@@ -1352,7 +1403,8 @@ diff -Naur src/android/ajni.c src/android/ajni.c
 +   android_jni_pollMouseY = (*android_jni_env)->GetMethodID(android_jni_env, android_jni_class, "pollMouseY", "()I");
 +   android_jni_pollMouseButtons = (*android_jni_env)->GetMethodID(android_jni_env, android_jni_class, "pollMouseButtons", "()I");
 +   android_jni_initializeSound = (*android_jni_env)->GetMethodID(android_jni_env, android_jni_class, "initializeSound", "([BI)V");
-+   android_jni_updateSound = (*android_jni_env)->GetMethodID(android_jni_env, android_jni_class, "updateSound", "()V");   
++   android_jni_updateSound = (*android_jni_env)->GetMethodID(android_jni_env, android_jni_class, "updateSound", "()V"); 
++   android_jni_swapBuffers = (*android_jni_env)->GetMethodID(android_jni_env, android_jni_class, "swapBuffers", "()V"); 
 +}
 +
 +void android_debug_printf(char* format, ...)
@@ -1393,6 +1445,11 @@ diff -Naur src/android/ajni.c src/android/ajni.c
 +   (*android_jni_env)->CallVoidMethod(android_jni_env, android_jni_object, android_jni_createScreen, (jint)width, (jint)height, (jint)color_depth);
 +}
 +
++void android_swap_buffers()
++{
++   (*android_jni_env)->CallVoidMethod(android_jni_env, android_jni_object, android_jni_swapBuffers);
++}
++
 +int android_poll_mouse_x()
 +{
 +   return (*android_jni_env)->CallIntMethod(android_jni_env, android_jni_object, android_jni_pollMouseX);
@@ -1414,7 +1471,7 @@ diff -Naur src/android/ajni.c src/android/ajni.c
 +}
 diff -Naur src/android/akey.c src/android/akey.c
 --- src/android/akey.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/android/akey.c	2011-11-06 20:59:35.102483900 +0100
++++ src/android/akey.c	2011-12-03 17:35:46.687071900 +0100
 @@ -0,0 +1,239 @@
 +/*         ______   ___    ___
 +*        /\  _  \ /\_ \  /\_ \
@@ -1657,7 +1714,7 @@ diff -Naur src/android/akey.c src/android/akey.c
 +}
 diff -Naur src/android/amouse.c src/android/amouse.c
 --- src/android/amouse.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/android/amouse.c	2011-11-07 19:25:36.219422100 +0100
++++ src/android/amouse.c	2011-12-03 17:35:46.688072000 +0100
 @@ -0,0 +1,144 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
@@ -1805,7 +1862,7 @@ diff -Naur src/android/amouse.c src/android/amouse.c
 +
 diff -Naur src/android/asound.c src/android/asound.c
 --- src/android/asound.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/android/asound.c	2011-11-06 20:59:35.111985100 +0100
++++ src/android/asound.c	2011-12-03 17:35:46.693072200 +0100
 @@ -0,0 +1,160 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
@@ -1969,7 +2026,7 @@ diff -Naur src/android/asound.c src/android/asound.c
 +}
 diff -Naur src/android/asystem.c src/android/asystem.c
 --- src/android/asystem.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/android/asystem.c	2011-11-06 20:59:35.136488200 +0100
++++ src/android/asystem.c	2011-12-03 17:35:46.694072300 +0100
 @@ -0,0 +1,102 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
@@ -2075,7 +2132,7 @@ diff -Naur src/android/asystem.c src/android/asystem.c
 +}
 diff -Naur src/android/atimer.c src/android/atimer.c
 --- src/android/atimer.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/android/atimer.c	2011-11-06 20:59:35.141988900 +0100
++++ src/android/atimer.c	2011-12-03 17:35:46.694072300 +0100
 @@ -0,0 +1,228 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
@@ -2307,7 +2364,7 @@ diff -Naur src/android/atimer.c src/android/atimer.c
 +}
 diff -Naur src/digmid.c src/digmid.c
 --- src/digmid.c	2007-08-09 22:48:38.000000000 +0200
-+++ src/digmid.c	2011-11-06 20:59:35.148489700 +0100
++++ src/digmid.c	2011-12-03 17:35:46.819079500 +0100
 @@ -13,6 +13,8 @@
   *      By Shawn Hargreaves, based on code by Tom Novelli.
   *      Chris Robinson added some optimizations and the digmid_set_pan method.
@@ -2401,7 +2458,7 @@ diff -Naur src/digmid.c src/digmid.c
  
 diff -Naur src/file.c src/file.c
 --- src/file.c	2011-03-25 00:18:25.000000000 +0100
-+++ src/file.c	2011-11-06 20:59:35.178993600 +0100
++++ src/file.c	2011-12-03 17:35:46.924085500 +0100
 @@ -1808,7 +1808,7 @@
   *  it returns NULL and stores an error code in errno. An attempt to read a 
   *  normal file in packed mode will cause errno to be set to EDOM.

@@ -51,6 +51,7 @@ extern int psp_ignore_acsetup_cfg_file; // If set, the standard AGS config file 
 extern int psp_clear_cache_on_room_change; // Clear the sprite cache on every room change.
 extern void clear_sound_cache(); // Sound cache initialization.
 extern char psp_game_file_name[]; // Game filename from the menu.
+extern int psp_gfx_hardware_acceleration; // Use OpenGl?
 int psp_is_old_datafile = 0; // Set for 3.1.1 and 3.1.2 datafiles
 
 #ifdef NO_MP3_PLAYER
@@ -13256,7 +13257,11 @@ int user_to_internal_skip_speech(int userval) {
 
 bool ShouldAntiAliasText() {
   // PSP: Never anti-alias fonts.
-  return false; //(game.options[OPT_ANTIALIASFONTS] != 0);
+#if defined(PSP_VERSION) || defined(ANDROID_VERSION)
+  return false;
+#else
+  return (game.options[OPT_ANTIALIASFONTS] != 0);
+#endif
 }
 
 // Pass yy = -1 to find Y co-ord automatically
@@ -28084,7 +28089,12 @@ void create_gfx_driver()
     gfxDriver = GetD3DGraphicsDriver(filter);
   else
 #endif
-    gfxDriver = GetSoftwareGraphicsDriver(filter);
+  {
+    if (psp_gfx_hardware_acceleration)
+      gfxDriver = GetOGLGraphicsDriver(filter);
+    else
+      gfxDriver = GetSoftwareGraphicsDriver(filter);
+  }
 
   gfxDriver->SetCallbackOnInit(GfxDriverOnInitCallback);
   gfxDriver->SetTintMethod(TintReColourise);

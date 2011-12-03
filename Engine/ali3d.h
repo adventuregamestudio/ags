@@ -117,6 +117,7 @@ public:
   virtual ~IGraphicsDriver() { }
 };
 
+extern IGraphicsDriver* GetOGLGraphicsDriver(GFXFilter *);
 extern IGraphicsDriver* GetD3DGraphicsDriver(GFXFilter *);
 extern IGraphicsDriver* GetSoftwareGraphicsDriver(GFXFilter *);
 

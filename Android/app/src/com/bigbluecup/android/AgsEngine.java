@@ -10,7 +10,6 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnClickListener;
 import android.content.res.Configuration;
-import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -22,11 +21,11 @@ import android.view.WindowManager;
 
 public class AgsEngine extends Activity
 {
-	private boolean isInGame = false;
+	public boolean isInGame = false;
 	
 	private EngineGlue glue;
 	private PowerManager.WakeLock wakeLock;
-	public Renderer surfaceView;
+	public CustomGlSurfaceView surfaceView;
 	public MessageHandler handler;
 
 	@Override
@@ -60,7 +59,6 @@ public class AgsEngine extends Activity
 	@Override
 	public void onDestroy()
 	{
-		surfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
 		glue.shutdownEngine();
 		super.onDestroy();
 	}
@@ -293,9 +291,7 @@ public class AgsEngine extends Activity
 	// Switch to the game view after loading is done
 	public void switchToIngame()
 	{
-		surfaceView = new Renderer(this, glue);
-
-		surfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+		surfaceView = new CustomGlSurfaceView(this);
 		setContentView(surfaceView);
 
 		isInGame = true;

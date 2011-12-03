@@ -1,5 +1,6 @@
 package com.bigbluecup.android;
 
+import javax.microedition.khronos.egl.EGL10;
 import com.bigbluecup.android.AgsEngine;
 
 import android.media.AudioFormat;
@@ -8,8 +9,8 @@ import android.media.AudioTrack;
 import android.os.Bundle;
 import android.os.Message;
 
-public class EngineGlue extends Thread {
-
+public class EngineGlue extends Thread implements CustomGlSurfaceView.Renderer
+{
 	public static int MSG_SWITCH_TO_INGAME = 1;
 	public static int MSG_SHOW_MESSAGE = 2;
 	
@@ -38,7 +39,6 @@ public class EngineGlue extends Thread {
 	private String gameFilename = "";
 	private String baseDirectory = "";
 	
-	public native void nativeRender();
 	public native void nativeInitializeRenderer(int width, int height);
 	public native void shutdownEngine();
 	private native boolean startEngine(Object object, String filename, String directory);
@@ -111,9 +111,36 @@ public class EngineGlue extends Thread {
 		screenVirtualWidth = width;
 		screenVirtualHeight = height;
 		sendMessageToActivity(MSG_SWITCH_TO_INGAME, null);
+		
+		int[] configSpec = 
+		{
+			EGL10.EGL_DEPTH_SIZE, 0,
+			EGL10.EGL_NONE
+		};
+		
+		while (!activity.isInGame)
+		{
+			try
+			{
+				Thread.sleep(100, 0);
+			}
+			catch (InterruptedException e) {}
+		}
+
+		activity.surfaceView.initialize(configSpec, this);
 	}
 	
+	private void swapBuffers()
+	{
+		activity.surfaceView.swapBuffers();
+	}
 	
+	public void onSurfaceChanged(int width, int height)
+	{
+		setPhysicalScreenResolution(width, height);
+		nativeInitializeRenderer(width, height);
+	}
+		
 	// Called from Allegro
 	private int pollKeyboard()
 	{
@@ -147,10 +174,10 @@ public class EngineGlue extends Thread {
 	{
 		while (paused)
 		{
-			try 
+			try
 			{
 				Thread.sleep(100, 0);
-			} 
+			}
 			catch (InterruptedException e) {}
 		}
 	}

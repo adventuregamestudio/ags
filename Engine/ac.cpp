@@ -6141,7 +6141,7 @@ void SetFrameSound (int vii, int loop, int frame, int sound) {
     if (clip == NULL)
       quitprintf("!SetFrameSound: audio clip aSound%d not found", sound);
 
-    views[vii].loops[loop].frames[frame].sound = clip->id + 0x10000000;
+    views[vii].loops[loop].frames[frame].sound = clip->id + (psp_is_old_datafile ? 0x10000000 : 0);
   }
 }
 

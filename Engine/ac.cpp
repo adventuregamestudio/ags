@@ -28090,7 +28090,7 @@ void create_gfx_driver()
   else
 #endif
   {
-    if (psp_gfx_hardware_acceleration)
+    if (psp_gfx_hardware_acceleration && (game.color_depth != 1))
       gfxDriver = GetOGLGraphicsDriver(filter);
     else
       gfxDriver = GetSoftwareGraphicsDriver(filter);

@@ -41,6 +41,7 @@
 #include <android/log.h>
 
 pthread_t soundthread;
+extern "C" void android_render();
 #endif
 
 // PSP specific variables:
@@ -2863,6 +2864,12 @@ void render_to_screen(BITMAP *toRender, int atx, int aty) {
     try
     {
       gfxDriver->Render((GlobalFlipType)play.screen_flipped);
+
+#if defined(ANDROID_VERSION)
+      if (game.color_depth == 1)
+        android_render();
+#endif
+
       succeeded = true;
     }
     catch (Ali3DFullscreenLostException) 

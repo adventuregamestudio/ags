@@ -18,11 +18,13 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 public class AgsEngine extends Activity
 {
 	public boolean isInGame = false;
 	
+	private Toast toast = null;
 	private EngineGlue glue;
 	private PowerManager.WakeLock wakeLock;
 	public CustomGlSurfaceView surfaceView;
@@ -102,6 +104,10 @@ public class AgsEngine extends Activity
 			else if (msg.what == EngineGlue.MSG_SHOW_MESSAGE)
 			{
 				showMessage(msg.getData().getString("message"));
+			}
+			else if (msg.what == EngineGlue.MSG_SHOW_TOAST)
+			{
+				showToast(msg.getData().getString("message"));
 			}
 		}
 	}
@@ -192,6 +198,8 @@ public class AgsEngine extends Activity
 				if (ev.getKeyCode() == KeyEvent.KEYCODE_VOLUME_DOWN)
 					glue.decreaseSoundVolume();
 
+				if (ev.getKeyCode() == 164) // KEYCODE_VOLUME_MUTE
+					glue.muteSound();
 				break;
 			}
 
@@ -287,6 +295,15 @@ public class AgsEngine extends Activity
 		dialog.show();
 	}
 	
+	public void showToast(String message)
+	{
+		if (toast == null)
+			toast = Toast.makeText(this, message, Toast.LENGTH_LONG);
+		else
+			toast.setText(message);
+		
+		toast.show();
+	}
 
 	// Switch to the game view after loading is done
 	public void switchToIngame()

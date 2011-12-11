@@ -8,11 +8,13 @@ import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.os.Bundle;
 import android.os.Message;
+import android.widget.Toast;
 
 public class EngineGlue extends Thread implements CustomGlSurfaceView.Renderer
 {
 	public static int MSG_SWITCH_TO_INGAME = 1;
 	public static int MSG_SHOW_MESSAGE = 2;
+	public static int MSG_SHOW_TOAST = 3;
 	
 	public static int MOUSE_CLICK_LEFT = 1;
 	public static int MOUSE_CLICK_RIGHT = 2;
@@ -32,7 +34,10 @@ public class EngineGlue extends Thread implements CustomGlSurfaceView.Renderer
 	private AudioTrack audioTrack;
 	private byte[] audioBuffer;	
 	private int bufferSize = 0;
-	private float audioVolume = 0.5f;
+	private int audioVolume = 50;
+	private int minAudioVolume = 0;
+	private int maxAudioVolume = 100;
+	private boolean audioMuted = false;
 	
 	private AgsEngine activity;
 
@@ -95,6 +100,13 @@ public class EngineGlue extends Thread implements CustomGlSurfaceView.Renderer
 		Bundle data = new Bundle();
 		data.putString("message", message);
 		sendMessageToActivity(MSG_SHOW_MESSAGE, data);
+	}
+	
+	private void showToast(String message)
+	{
+		Bundle data = new Bundle();
+		data.putString("message", message);
+		sendMessageToActivity(MSG_SHOW_TOAST, data);
 	}
 	
 	private void sendMessageToActivity(int messageId, Bundle data)
@@ -195,8 +207,11 @@ public class EngineGlue extends Thread implements CustomGlSurfaceView.Renderer
 			minBufferSize = bufferSize * 4;
 		
 		audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, sampleRate, AudioFormat.CHANNEL_CONFIGURATION_STEREO, AudioFormat.ENCODING_PCM_16BIT, minBufferSize, AudioTrack.MODE_STREAM);
-		audioVolume = (AudioTrack.getMaxVolume() - AudioTrack.getMinVolume()) / 2.0f;
-		audioTrack.setStereoVolume(audioVolume, audioVolume);	
+		minAudioVolume = (int)(AudioTrack.getMinVolume() * 100);
+		maxAudioVolume = (int)(AudioTrack.getMaxVolume() * 100);
+		
+		audioVolume = (maxAudioVolume - minAudioVolume) / 2;
+		audioTrack.setStereoVolume((float)audioVolume / 100, (float)audioVolume / 100);
 		audioTrack.play();
 	}
 	
@@ -209,11 +224,16 @@ public class EngineGlue extends Thread implements CustomGlSurfaceView.Renderer
 	{
 		if (audioTrack == null)
 			return;
+
+		audioMuted = false;
+
+		audioVolume -= 5;
+		if (audioVolume < minAudioVolume)
+			audioVolume = minAudioVolume;
 		
-		audioVolume -= (AudioTrack.getMaxVolume() - AudioTrack.getMinVolume()) / 20.0f;
-		if (audioVolume < AudioTrack.getMinVolume())
-			audioVolume = AudioTrack.getMinVolume();
-		audioTrack.setStereoVolume(audioVolume, audioVolume);
+		audioTrack.setStereoVolume((float)audioVolume / 100, (float)audioVolume / 100);
+		
+		showToast("Volume: " + audioVolume + " %");
 	}
 	
 	public void increaseSoundVolume()
@@ -221,10 +241,30 @@ public class EngineGlue extends Thread implements CustomGlSurfaceView.Renderer
 		if (audioTrack == null)
 			return;
 		
-		audioVolume += (AudioTrack.getMaxVolume() - AudioTrack.getMinVolume()) / 20.0f;
-		if (audioVolume > AudioTrack.getMaxVolume())
-			audioVolume = AudioTrack.getMaxVolume();
-		audioTrack.setStereoVolume(audioVolume, audioVolume);
+		audioMuted = false;
+		
+		audioVolume += 5;
+		if (audioVolume > maxAudioVolume)
+			audioVolume = maxAudioVolume;
+		
+		audioTrack.setStereoVolume((float)audioVolume / 100, (float)audioVolume / 100);
+		
+		showToast("Volume: " + audioVolume + " %");
+	}
+	
+	public void muteSound()
+	{
+		if (audioMuted)
+		{
+			audioTrack.setStereoVolume((float)audioVolume / 100, (float)audioVolume / 100);
+			showToast("Volume: " + audioVolume + " %");
+		}
+		else
+		{
+			audioTrack.setStereoVolume(0, 0);
+			showToast("Volume: Muted");
+		}
+		audioMuted = !audioMuted;
 	}
 	
 	public void setPhysicalScreenResolution(int width, int height)

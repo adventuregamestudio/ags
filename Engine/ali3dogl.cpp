@@ -858,16 +858,37 @@ __inline void get_pixel_if_not_transparent32(unsigned long *pixel, unsigned long
 
 void OGLGraphicsDriver::UpdateTextureRegion(TextureTile *tile, BITMAP *allegroBitmap, OGLBitmap *target, bool hasAlpha)
 {
+  int textureHeight = tile->height;
+  int textureWidth = tile->width;
+
+  AdjustSizeToNearestSupportedByCard(&textureWidth, &textureHeight);
+
+  int tileWidth = (textureWidth > tile->width) ? tile->width + 1 : tile->width;
+  int tileHeight = (textureHeight > tile->height) ? tile->height + 1 : tile->height;
+
   bool usingLinearFiltering = (psp_gfx_smoothing == 1); //_filter->NeedToColourEdgeLines();
   bool lastPixelWasTransparent = false;
-  char *origPtr = (char*)malloc(4 * tile->width * tile->height);
+  char *origPtr = (char*)malloc(4 * tileWidth * tileHeight);
   char *memPtr = origPtr;
-  for (int y = 0; y < tile->height; y++)
+  for (int y = 0; y < tileHeight; y++)
   {
-    lastPixelWasTransparent = false;
-    for (int x = 0; x < tile->width; x++)
+    // Mimic the behaviour of GL_CLAMP_EDGE for the bottom line
+    if (y == tile->height)
     {
-      if (target->_colDepth == 15)
+      unsigned long* memPtrLong = (unsigned long*)memPtr;
+      unsigned long* memPtrLong_previous = (unsigned long*)(memPtr - tileWidth * 4);
+
+      for (int x = 0; x < tileWidth; x++)
+        memPtrLong[x] = memPtrLong_previous[x] & 0x00FFFFFF;
+
+      continue;
+    }
+
+    lastPixelWasTransparent = false;
+    for (int x = 0; x < tileWidth; x++)
+    {
+
+/*    if (target->_colDepth == 15)
       {
         unsigned short* memPtrShort = (unsigned short*)memPtr;
         unsigned short* srcData = (unsigned short*)&allegroBitmap->line[y + tile->y][(x + tile->x) * 2];
@@ -910,8 +931,16 @@ void OGLGraphicsDriver::UpdateTextureRegion(TextureTile *tile, BITMAP *allegroBi
         }
       }
       else if (target->_colDepth == 32)
+*/
       {
         unsigned long* memPtrLong = (unsigned long*)memPtr;
+
+        if (x == tile->width)
+        {
+          memPtrLong[x] = memPtrLong[x - 1] & 0x00FFFFFF;
+          continue;
+        }
+
         unsigned long* srcData = (unsigned long*)&allegroBitmap->line[y + tile->y][(x + tile->x) * 4];
         if (*srcData == MASK_COLOR_32)
         {
@@ -957,13 +986,13 @@ void OGLGraphicsDriver::UpdateTextureRegion(TextureTile *tile, BITMAP *allegroBi
       }
     }
 
-    memPtr += tile->width * 4;
+    memPtr += tileWidth * 4;
   }
 
   unsigned int newTexture = tile->texture;
 
   glBindTexture(GL_TEXTURE_2D, tile->texture);
-  glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, tile->width, tile->height, GL_RGBA, GL_UNSIGNED_BYTE, origPtr);
+  glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, tileWidth, tileHeight, GL_RGBA, GL_UNSIGNED_BYTE, origPtr);
 
   free(origPtr);
 }

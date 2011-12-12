@@ -18,6 +18,7 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 
 public class AgsEngine extends Activity
@@ -189,31 +190,44 @@ public class AgsEngine extends Activity
 		{
 			case KeyEvent.ACTION_DOWN:
 			{
-				if (ev.getKeyCode() == KeyEvent.KEYCODE_BACK)
+				int key = ev.getKeyCode();
+				
+				if (key == KeyEvent.KEYCODE_BACK)
 					showExitConfirmation();
 				
-				if (ev.getKeyCode() == KeyEvent.KEYCODE_VOLUME_UP)
+				if (key == KeyEvent.KEYCODE_VOLUME_UP)
 					glue.increaseSoundVolume();
 				
-				if (ev.getKeyCode() == KeyEvent.KEYCODE_VOLUME_DOWN)
+				if (key == KeyEvent.KEYCODE_VOLUME_DOWN)
 					glue.decreaseSoundVolume();
 
-				if (ev.getKeyCode() == 164) // KEYCODE_VOLUME_MUTE
+				if (key == 164) // KEYCODE_VOLUME_MUTE
 					glue.muteSound();
+				
+				if (key == KeyEvent.KEYCODE_MENU)
+				{
+					InputMethodManager manager = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+					manager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);					
+				}
+				
 				break;
 			}
 
 			case KeyEvent.ACTION_UP:
 			{
-				if (   (ev.getKeyCode() == KeyEvent.KEYCODE_BACK)
-					|| (ev.getKeyCode() == KeyEvent.KEYCODE_VOLUME_UP)
-					|| (ev.getKeyCode() == KeyEvent.KEYCODE_VOLUME_DOWN))
+				int key = ev.getKeyCode();
+				
+				if (   (key == KeyEvent.KEYCODE_MENU)
+					|| (key == KeyEvent.KEYCODE_BACK)
+					|| (key == KeyEvent.KEYCODE_VOLUME_UP)
+					|| (key == KeyEvent.KEYCODE_VOLUME_DOWN)
+					|| (key == 164)) // KEYCODE_VOLUME_MUTE
 					return isInGame;
 
-				glue.keyboardEvent(ev.getKeyCode(), ev.getUnicodeChar(ev.getMetaState()), ev.isShiftPressed());
-				break; 	    		
+				glue.keyboardEvent(key, ev.getUnicodeChar(ev.getMetaState()), ev.isShiftPressed());
+				break;
 			}
-		}		
+		}
 		
 		return isInGame;
 	}

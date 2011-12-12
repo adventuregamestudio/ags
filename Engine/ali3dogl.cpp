@@ -458,7 +458,7 @@ void OGLGraphicsDriver::InitOpenGl()
     }
 
     glEnable(GL_SCISSOR_TEST);
-    glScissor((int)(((float)android_screen_physical_width - _scale_width * (float)_newmode_width) / 2.0f), (int)(((float)android_screen_physical_height - _scale_height * (float)_newmode_height) / 2.0f), (int)(_scale_width * (float)_newmode_width), (int)(_scale_height * (float)_newmode_height));
+    glScissor((int)(((float)android_screen_physical_width - _scale_width * (float)_newmode_width) / 2.0f + 1.0f), (int)(((float)android_screen_physical_height - _scale_height * (float)_newmode_height) / 2.0f), (int)(_scale_width * (float)_newmode_width), (int)(_scale_height * (float)_newmode_height));
 }
 
 bool OGLGraphicsDriver::Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer) 
@@ -858,7 +858,7 @@ __inline void get_pixel_if_not_transparent32(unsigned long *pixel, unsigned long
 
 void OGLGraphicsDriver::UpdateTextureRegion(TextureTile *tile, BITMAP *allegroBitmap, OGLBitmap *target, bool hasAlpha)
 {
-  bool usingLinearFiltering = _filter->NeedToColourEdgeLines();
+  bool usingLinearFiltering = (psp_gfx_smoothing == 1); //_filter->NeedToColourEdgeLines();
   bool lastPixelWasTransparent = false;
   char *origPtr = (char*)malloc(4 * tile->width * tile->height);
   char *memPtr = origPtr;

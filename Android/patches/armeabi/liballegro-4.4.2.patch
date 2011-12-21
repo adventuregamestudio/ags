@@ -94,8 +94,8 @@ diff -Naur CMakeLists.txt CMakeLists.txt
 +	set(NDK_PLATFORM_LIB "${NDK_PLATFORM_ROOT}/lib")
 +
 +	set(ALLEGRO_ANDROID 1)
-+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=armv6 -marm -fsigned-char -I${NDK_PLATFORM_INCLUDE}")
-+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=armv6 -marm -fsigned-char")
++	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -marm -fsigned-char -I${NDK_PLATFORM_INCLUDE}")
++	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -marm -fsigned-char")
 +endif(ANDROID)
 +
  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${WFLAGS} ${WFLAGS_C_ONLY}")

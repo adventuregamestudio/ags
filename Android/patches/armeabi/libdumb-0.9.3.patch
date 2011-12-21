@@ -61,7 +61,7 @@ diff -Naur Makefile Makefile
  
 -CFLAGS_RELEASE := -Iinclude $(WFLAGS) $(OFLAGS)
 -CFLAGS_DEBUG := -Iinclude $(WFLAGS) $(DBGFLAGS)
-+CFLAGS_ANDROID = -march=armv6 -marm -nostdlib -fsigned-char -I$(NDK_PLATFORM_ROOT)/include -I$(NDK_ADDITIONAL_LIBRARY_PATH)/include
++CFLAGS_ANDROID = -marm -nostdlib -fsigned-char -I$(NDK_PLATFORM_ROOT)/include -I$(NDK_ADDITIONAL_LIBRARY_PATH)/include
 +
 +CFLAGS_RELEASE := -Iinclude $(WFLAGS) $(OFLAGS) $(CFLAGS_ANDROID)
 +CFLAGS_DEBUG := -Iinclude $(WFLAGS) $(DBGFLAGS) $(CFLAGS_ANDROID)
@@ -98,7 +98,7 @@ diff -Naur Makefile.rdy Makefile.rdy
  
 -CFLAGS_RELEASE := -Iinclude $(WFLAGS) $(OFLAGS)
 -CFLAGS_DEBUG := -Iinclude $(WFLAGS) $(DBGFLAGS)
-+CFLAGS_ANDROID = -march=armv6 -marm -nostdlib -fsigned-char -I$(NDK_PLATFORM_ROOT)/include -I$(NDK_ADDITIONAL_LIBRARY_PATH)/include
++CFLAGS_ANDROID = -marm -nostdlib -fsigned-char -I$(NDK_PLATFORM_ROOT)/include -I$(NDK_ADDITIONAL_LIBRARY_PATH)/include
 +
 +CFLAGS_RELEASE := -Iinclude $(WFLAGS) $(OFLAGS) $(CFLAGS_ANDROID)
 +CFLAGS_DEBUG := -Iinclude $(WFLAGS) $(DBGFLAGS) $(CFLAGS_ANDROID)

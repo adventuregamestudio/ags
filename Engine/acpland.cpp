@@ -69,6 +69,7 @@ int psp_midi_preload_patches = 0;
 int psp_video_framedrop = 0;
 
 int psp_gfx_hardware_acceleration = 1;
+int psp_gfx_render_to_texture = 1;
 
 extern int display_fps;
 extern int want_exit;
@@ -213,6 +214,7 @@ void ReadConfiguration(char* filename)
     ReadInteger((int*)&psp_gfx_hardware_acceleration, "graphics", "hardware_rendering", 0, 1, 1);
     ReadInteger((int*)&psp_gfx_smoothing, "graphics", "smoothing", 0, 1, 1);
     ReadInteger((int*)&psp_gfx_scaling, "graphics", "scaling", 0, 1, 1);
+    ReadInteger((int*)&psp_gfx_render_to_texture, "graphics", "render_to_texture", 0, 1, 1);
 
     strcpy(filetouse, "nofile");
   }

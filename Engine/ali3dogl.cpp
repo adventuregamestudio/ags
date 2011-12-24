@@ -975,6 +975,9 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
+    glDisable(GL_BLEND);
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+
     if (psp_gfx_scaling)
        glTranslatef((android_screen_physical_width - backbuffer_vertices[2] - 1) / 2, (android_screen_physical_height - backbuffer_vertices[5] - 1) / 2, 0);
     else
@@ -986,6 +989,8 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
     glVertexPointer(2, GL_FLOAT, 0, backbuffer_vertices);  
     glClear(GL_COLOR_BUFFER_BIT);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    glEnable(GL_BLEND);
   }
 
 #if defined(WINDOWS_VERSION)

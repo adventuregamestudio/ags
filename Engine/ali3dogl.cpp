@@ -11,6 +11,7 @@
 int psp_gfx_smoothing = 1;
 int psp_gfx_scaling = 1;
 int psp_gfx_render_to_texture = 1;
+int psp_gfx_super_sampling = 0;
 
 unsigned int android_screen_physical_width = 1000;
 unsigned int android_screen_physical_height = 500;
@@ -54,6 +55,7 @@ extern "C" void android_debug_printf(char* format, ...);
 extern int psp_gfx_smoothing;
 extern int psp_gfx_scaling;
 extern int psp_gfx_render_to_texture;
+extern int psp_gfx_super_sampling;
 
 extern unsigned int android_screen_physical_width;
 extern unsigned int android_screen_physical_height;
@@ -90,7 +92,7 @@ GLfloat backbuffer_texture_coordinates[] =
    320.0f / 512.0f, 0,
    0, 200.0f / 256.0f,
    320.0f / 512.0f, 200.0f / 256.0f
-};
+};   
 
 
 
@@ -340,6 +342,7 @@ private:
 
   float _scale_width;
   float _scale_height;
+  int _super_sampling;
   unsigned int _backbuffer;
   unsigned int _fbo;
   int _backbuffer_texture_width;
@@ -499,8 +502,8 @@ void OGLGraphicsDriver::create_backbuffer_arrays()
       backbuffer_vertices[1] = backbuffer_vertices[3] = _newmode_height * (-0.5f);
    }
 
-   backbuffer_texture_coordinates[5] = backbuffer_texture_coordinates[7] = (float)_newmode_height / (float)_backbuffer_texture_height;
-   backbuffer_texture_coordinates[2] = backbuffer_texture_coordinates[6] = (float)_newmode_width / (float)_backbuffer_texture_width;
+   backbuffer_texture_coordinates[5] = backbuffer_texture_coordinates[7] = (float)_newmode_height * _super_sampling / (float)_backbuffer_texture_height;
+   backbuffer_texture_coordinates[2] = backbuffer_texture_coordinates[6] = (float)_newmode_width * _super_sampling / (float)_backbuffer_texture_width;
 }
 
 
@@ -575,13 +578,13 @@ void OGLGraphicsDriver::InitOpenGl()
   }
   else
   {
-    _scale_width = _scale_height = 1.0f;
+    _scale_width = _scale_height = 1.0f * _super_sampling;
   }
 
   if (psp_gfx_render_to_texture)
   {
-    _backbuffer_texture_width = _newmode_width;
-    _backbuffer_texture_height = _newmode_height;
+    _backbuffer_texture_width = _newmode_width * _super_sampling;
+    _backbuffer_texture_height = _newmode_height * _super_sampling;
     AdjustSizeToNearestSupportedByCard(&_backbuffer_texture_width, &_backbuffer_texture_height);
 
     glGenTextures(1, &_backbuffer);
@@ -643,6 +646,8 @@ bool OGLGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
   _newmode_refresh = 0;
   _newmode_windowed = windowed;
   _loopTimer = loopTimer;
+
+  _super_sampling = (psp_gfx_super_sampling > 0) ? psp_gfx_super_sampling : 1;
 
   _filter->GetRealResolution(&_newmode_screen_width, &_newmode_screen_height);
 
@@ -856,7 +861,7 @@ void OGLGraphicsDriver::_renderSprite(SpriteDrawListEntry *drawListEntry, bool g
       glColor4f(1.0f, 1.0f, 1.0f, ((float)bmpToDraw->_transparency / 255.0f));
 
     if (psp_gfx_render_to_texture)
-      glTranslatef(_newmode_width / 2.0f, _newmode_height / 2.0f, 0.0f);
+      glTranslatef(_newmode_width * _super_sampling / 2.0f, _newmode_height * _super_sampling / 2.0f, 0.0f);
     else
       glTranslatef(android_screen_physical_width / 2.0f, android_screen_physical_height / 2.0f, 0.0f);
 
@@ -913,10 +918,12 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
   {
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _fbo);
 
-    glViewport(0, 0, _newmode_width, _newmode_height);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    glViewport(0, 0, _newmode_width * _super_sampling, _newmode_height * _super_sampling);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(0, _newmode_width, 0, _newmode_height, 0, 1);
+    glOrtho(0, _newmode_width * _super_sampling, 0, _newmode_height * _super_sampling, 0, 1);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
   }
@@ -1386,18 +1393,13 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(BITMAP *allegroBi
         }
       }
 
-      char* empty = (char*)malloc(thisAllocatedWidth * thisAllocatedHeight * 4);
-      memset(empty, 0, thisAllocatedWidth * thisAllocatedHeight * 4);
-
       glGenTextures(1, &thisTile->texture);
       glBindTexture(GL_TEXTURE_2D, thisTile->texture);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, thisAllocatedWidth, thisAllocatedHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, empty);
-
-      free(empty);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, thisAllocatedWidth, thisAllocatedHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
     }
   }
 

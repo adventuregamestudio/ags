@@ -10,6 +10,7 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnClickListener;
 import android.content.res.Configuration;
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -28,6 +29,7 @@ public class AgsEngine extends Activity
 	private Toast toast = null;
 	private EngineGlue glue;
 	private PowerManager.WakeLock wakeLock;
+	private AudioManager audio;
 	public CustomGlSurfaceView surfaceView;
 	public MessageHandler handler;
 
@@ -51,7 +53,9 @@ public class AgsEngine extends Activity
 		wakeLock.acquire();
 		
 		// Set message handler for thread communication
-		handler = new MessageHandler();        
+		handler = new MessageHandler();
+		
+		audio = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
 		
 		// Switch to the loading view and start the game
 		setContentView(R.layout.loading);
@@ -196,13 +200,10 @@ public class AgsEngine extends Activity
 					showExitConfirmation();
 				
 				if (key == KeyEvent.KEYCODE_VOLUME_UP)
-					glue.increaseSoundVolume();
+					audio.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI);
 				
 				if (key == KeyEvent.KEYCODE_VOLUME_DOWN)
-					glue.decreaseSoundVolume();
-
-				if (key == 164) // KEYCODE_VOLUME_MUTE
-					glue.muteSound();
+					 audio.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI);
 				
 				if (key == KeyEvent.KEYCODE_MENU)
 				{

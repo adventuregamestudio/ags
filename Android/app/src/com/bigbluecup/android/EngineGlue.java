@@ -8,7 +8,6 @@ import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.os.Bundle;
 import android.os.Message;
-import android.widget.Toast;
 
 public class EngineGlue extends Thread implements CustomGlSurfaceView.Renderer
 {
@@ -34,10 +33,6 @@ public class EngineGlue extends Thread implements CustomGlSurfaceView.Renderer
 	private AudioTrack audioTrack;
 	private byte[] audioBuffer;	
 	private int bufferSize = 0;
-	private int audioVolume = 50;
-	private int minAudioVolume = 0;
-	private int maxAudioVolume = 100;
-	private boolean audioMuted = false;
 	
 	private AgsEngine activity;
 
@@ -207,11 +202,10 @@ public class EngineGlue extends Thread implements CustomGlSurfaceView.Renderer
 			minBufferSize = bufferSize * 4;
 		
 		audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, sampleRate, AudioFormat.CHANNEL_CONFIGURATION_STEREO, AudioFormat.ENCODING_PCM_16BIT, minBufferSize, AudioTrack.MODE_STREAM);
-		minAudioVolume = (int)(AudioTrack.getMinVolume() * 100);
-		maxAudioVolume = (int)(AudioTrack.getMaxVolume() * 100);
 		
-		audioVolume = (maxAudioVolume - minAudioVolume) / 2;
-		audioTrack.setStereoVolume((float)audioVolume / 100, (float)audioVolume / 100);
+		float audioVolume = AudioTrack.getMaxVolume();
+		audioTrack.setStereoVolume(audioVolume, audioVolume);
+		
 		audioTrack.play();
 	}
 	
@@ -219,54 +213,7 @@ public class EngineGlue extends Thread implements CustomGlSurfaceView.Renderer
 	{
 		audioTrack.write(audioBuffer, 0, bufferSize);
 	}
-	
-	public void decreaseSoundVolume()
-	{
-		if (audioTrack == null)
-			return;
 
-		audioMuted = false;
-
-		audioVolume -= 5;
-		if (audioVolume < minAudioVolume)
-			audioVolume = minAudioVolume;
-		
-		audioTrack.setStereoVolume((float)audioVolume / 100, (float)audioVolume / 100);
-		
-		showToast("Volume: " + audioVolume + " %");
-	}
-	
-	public void increaseSoundVolume()
-	{
-		if (audioTrack == null)
-			return;
-		
-		audioMuted = false;
-		
-		audioVolume += 5;
-		if (audioVolume > maxAudioVolume)
-			audioVolume = maxAudioVolume;
-		
-		audioTrack.setStereoVolume((float)audioVolume / 100, (float)audioVolume / 100);
-		
-		showToast("Volume: " + audioVolume + " %");
-	}
-	
-	public void muteSound()
-	{
-		if (audioMuted)
-		{
-			audioTrack.setStereoVolume((float)audioVolume / 100, (float)audioVolume / 100);
-			showToast("Volume: " + audioVolume + " %");
-		}
-		else
-		{
-			audioTrack.setStereoVolume(0, 0);
-			showToast("Volume: Muted");
-		}
-		audioMuted = !audioMuted;
-	}
-	
 	public void setPhysicalScreenResolution(int width, int height)
 	{
 		screenPhysicalWidth = width;

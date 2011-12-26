@@ -7635,8 +7635,9 @@ void put_sprite_256(int xxx,int yyy,block piccy) {
   int screen_depth = bitmap_color_depth(abuf);
 
 #ifdef USE_15BIT_FIX
-  if (bitmap_color_depth(piccy) < screen_depth) {
-
+  if ((bitmap_color_depth(piccy) < screen_depth) 
+    || (bmp_bpp(abuf) < screen_depth) // Fix for corrupted speechbox outlines with the OGL driver
+    ) {
     if ((bitmap_color_depth(piccy) == 8) && (screen_depth >= 24)) {
       // 256-col sprite -> truecolor background
       // this is automatically supported by allegro, no twiddling needed

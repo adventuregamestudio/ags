@@ -527,6 +527,15 @@ void OGLGraphicsDriver::InitOpenGl()
       glFramebufferTexture2DEXT = (PFNGLFRAMEBUFFERTEXTURE2DEXTPROC)wglGetProcAddress("glFramebufferTexture2DEXT");
       glFramebufferRenderbufferEXT = (PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC)wglGetProcAddress("glFramebufferRenderbufferEXT");
 #endif
+
+      // Disable super-sampling if it would cause a too large texture size
+      if (_super_sampling > 1)
+      {
+        int max = 1024;
+        glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
+        if ((max < _newmode_width * 2) || (max < _newmode_height * 2))
+          _super_sampling = 1;
+      }
     }
     else
     {
@@ -647,7 +656,7 @@ bool OGLGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
   _newmode_windowed = windowed;
   _loopTimer = loopTimer;
 
-  _super_sampling = (psp_gfx_super_sampling > 0) ? psp_gfx_super_sampling : 1;
+  _super_sampling = (psp_gfx_super_sampling > 0) ? 2 : 1;
 
   _filter->GetRealResolution(&_newmode_screen_width, &_newmode_screen_height);
 

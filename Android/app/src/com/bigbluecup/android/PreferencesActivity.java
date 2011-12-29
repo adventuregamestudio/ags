@@ -307,6 +307,7 @@ public class PreferencesActivity extends ListActivity
 			registerForContextMenu(v);
 			openContextMenu(v);
 			unregisterForContextMenu(v);
+			v.setLongClickable(false);
 		}
 		else if (values.get(position).flags.contains(PreferencesEntry.Flags.MENU_RENDERER))
 		{
@@ -314,6 +315,7 @@ public class PreferencesActivity extends ListActivity
 			registerForContextMenu(v);
 			openContextMenu(v);
 			unregisterForContextMenu(v);
+			v.setLongClickable(false);
 		}
 		else if (values.get(position).flags.contains(PreferencesEntry.Flags.CHECKABLE))
 		{

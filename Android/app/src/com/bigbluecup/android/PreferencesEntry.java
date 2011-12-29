@@ -22,7 +22,7 @@ public class PreferencesEntry
 		this.flags = flags;
 		this.id = id;
 		
-		if (id > 0)
+		if (id > -1)
 			this.value = PreferencesActivity.readIntConfigValue(id);
 	}	
 }

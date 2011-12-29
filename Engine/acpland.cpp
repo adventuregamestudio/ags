@@ -433,13 +433,10 @@ bool ReadConfiguration(char* filename, bool read_everything)
     ReadInteger((int*)&psp_audio_samplerate, "sound", "samplerate", 0, 44100, 44100);
     ReadInteger((int*)&psp_audio_enabled, "sound", "enabled", 0, 1, 1);
     ReadInteger((int*)&psp_audio_multithreaded, "sound", "threaded", 0, 1, 1);
+    ReadInteger((int*)&psp_audio_cachesize, "sound", "cache_size", 1, 50, 10);
 
     ReadInteger((int*)&psp_midi_enabled, "midi", "enabled", 0, 1, 1);
     ReadInteger((int*)&psp_midi_preload_patches, "midi", "preload_patches", 0, 1, 0);
-
-    int audio_cachesize;
-    if (ReadInteger((int*)&audio_cachesize, "sound", "cache_size", 1, 50, 10));
-      psp_audio_cachesize = audio_cachesize;
 
     ReadInteger((int*)&psp_video_framedrop, "video", "framedrop", 0, 1, 0);
 

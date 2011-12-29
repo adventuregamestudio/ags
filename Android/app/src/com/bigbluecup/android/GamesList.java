@@ -5,16 +5,26 @@ import java.io.FilenameFilter;
 import java.util.ArrayList;
 
 import android.app.ListActivity;
+import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Environment;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
 public class GamesList extends ListActivity
 {
+	String filename = null;
+	private ProgressDialog dialog;
 	private native boolean isAgsDatafile(Object object, String filename); 
 
 	private ArrayList<String> folderList;
@@ -33,7 +43,7 @@ public class GamesList extends ListActivity
 		
 		System.loadLibrary("pe");
 		
-		String filename = searchForGames();
+		filename = searchForGames();
 		
 		if (filename != null)
 		  startGame(filename);
@@ -46,14 +56,76 @@ public class GamesList extends ListActivity
 		{
 			showMessage("No games found.");
 		}
+		
+		registerForContextMenu(getListView());
 	}
 
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu)
+	{
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.main, menu);
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId())
+		{
+			case R.id.credits:
+				return true;
+			case R.id.preferences:
+				showPreferences(-1);
+				return true;
+			default:
+				return super.onOptionsItemSelected(item);
+		}
+	}
+	
+	@Override
+	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo)
+	{
+		super.onCreateContextMenu(menu, v, menuInfo);
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.game_context_menu, menu);
+		
+		menu.setHeaderTitle(folderList.get((int)((AdapterContextMenuInfo)menuInfo).id));
+	}	
+	
+	@Override
+	public boolean onContextItemSelected(MenuItem item)
+	{
+		AdapterContextMenuInfo info = (AdapterContextMenuInfo)item.getMenuInfo();
+		switch (item.getItemId())
+		{
+			case R.id.preferences:
+				showPreferences((int)info.id);
+				return true;
+			case R.id.start:
+				startGame(filenameList.get((int)info.id));
+				return true;
+			default:
+				return super.onContextItemSelected(item);
+		}
+	}
+	
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id)
 	{
 		super.onListItemClick(l, v, position, id);
 		
 		startGame(filenameList.get(position));
+	}
+
+	private void showPreferences(int position)
+	{
+		Intent intent = new Intent(this, PreferencesActivity.class);
+		Bundle b = new Bundle();
+		b.putString("name", (position < 0) ? "" : folderList.get(position));
+		b.putString("filename", (position < 0) ? null : filenameList.get(position));
+		b.putString("directory", baseDirectory);
+		intent.putExtras(b);
+		startActivity(intent);
 	}
 	
 	private void startGame(String filename)
@@ -144,4 +216,10 @@ public class GamesList extends ListActivity
 		return null;
 	}
 
+	// Prevent the activity from being destroyed on a configuration change
+	@Override
+	public void onConfigurationChanged(Configuration newConfig)
+	{
+		super.onConfigurationChanged(newConfig);
+	}	
 }

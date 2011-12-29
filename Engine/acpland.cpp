@@ -20,7 +20,8 @@
 extern char filetouse[];
 char *INIreaditem(const char *sectn, const char *entry);
 int INIreadint (const char *sectn, const char *item, int errornosect = 1);
-void ReadConfiguration(char* filename);
+bool ReadConfiguration(char* filename, bool read_everything);
+void ResetConfiguration();
 
 struct AGSAndroid : AGS32BitOSDriver {
 
@@ -51,6 +52,8 @@ struct AGSAndroid : AGS32BitOSDriver {
 //int psp_return_to_menu = 1;
 int psp_ignore_acsetup_cfg_file = 0;
 int psp_clear_cache_on_room_change = 0;
+int psp_rotation = 0;
+int psp_config_enabled = 0;
 
 
 // Graphic options from the Allegro library.
@@ -59,7 +62,7 @@ extern int psp_gfx_smoothing;
 
 
 // Audio options from the Allegro library.
-unsigned int psp_audio_samplerate;
+unsigned int psp_audio_samplerate = 44100;
 int psp_audio_enabled = 1;
 volatile int psp_audio_multithreaded = 1;
 int psp_audio_cachesize = 10;
@@ -68,8 +71,7 @@ int psp_midi_preload_patches = 0;
 
 int psp_video_framedrop = 0;
 
-int psp_gfx_hardware_acceleration = 1;
-int psp_gfx_render_to_texture = 1;
+int psp_gfx_renderer = 0;
 int psp_gfx_super_sampling = 0;
 
 extern int display_fps;
@@ -87,9 +89,208 @@ jclass java_class;
 jmethodID java_messageCallback;
 jmethodID java_blockExecution;
 jmethodID java_swapBuffers;
+jmethodID java_setRotation;
+
+bool reset_configuration = false;
 
 extern "C" 
 {
+
+const int CONFIG_IGNORE_ACSETUP = 0;
+const int CONFIG_CLEAR_CACHE = 1;
+const int CONFIG_AUDIO_RATE = 2;
+const int CONFIG_AUDIO_ENABLED = 3;
+const int CONFIG_AUDIO_THREADED = 4;
+const int CONFIG_AUDIO_CACHESIZE = 5;
+const int CONFIG_MIDI_ENABLED = 6;
+const int CONFIG_MIDI_PRELOAD = 7;
+const int CONFIG_VIDEO_FRAMEDROP = 8;
+const int CONFIG_GFX_RENDERER = 9;
+const int CONFIG_GFX_SMOOTHING = 10;
+const int CONFIG_GFX_SCALING = 11;
+const int CONFIG_GFX_SS = 12;
+const int CONFIG_ROTATION = 13;
+const int CONFIG_ENABLED = 14;
+const int CONFIG_DEBUG_FPS = 15;
+
+extern void android_debug_printf(const char* format, ...);
+
+JNIEXPORT jboolean JNICALL
+  Java_com_bigbluecup_android_PreferencesActivity_readConfigFile(JNIEnv* env, jobject object, jstring directory)
+{
+  const char* cdirectory = env->GetStringUTFChars(directory, NULL);
+  chdir(cdirectory);
+  env->ReleaseStringUTFChars(directory, cdirectory);
+
+  ResetConfiguration();
+
+  return ReadConfiguration(ANDROID_CONFIG_FILENAME, true);
+}
+
+
+JNIEXPORT jboolean JNICALL
+  Java_com_bigbluecup_android_PreferencesActivity_writeConfigFile(JNIEnv* env, jobject object)
+{
+  FILE* config = fopen(ANDROID_CONFIG_FILENAME, "wb");
+  if (config)
+  {
+    fprintf(config, "[misc]\n");
+    fprintf(config, "config_enabled = %d\n", psp_config_enabled);
+    fprintf(config, "rotation = %d\n", psp_rotation);
+
+    fprintf(config, "[compatibility]\n");
+    fprintf(config, "ignore_acsetup_cfg_file = %d\n", psp_ignore_acsetup_cfg_file);
+    fprintf(config, "clear_cache_on_room_change = %d\n", psp_clear_cache_on_room_change);
+
+    fprintf(config, "[sound]\n");
+    fprintf(config, "samplerate = %d\n", psp_audio_samplerate );
+    fprintf(config, "enabled = %d\n", psp_audio_enabled);
+    fprintf(config, "threaded = %d\n", psp_audio_multithreaded);
+    fprintf(config, "cache_size = %d\n", psp_audio_cachesize);
+    
+    fprintf(config, "[midi]\n");
+    fprintf(config, "enabled = %d\n", psp_midi_enabled);
+    fprintf(config, "preload_patches = %d\n", psp_midi_preload_patches);
+
+    fprintf(config, "[video]\n");
+    fprintf(config, "framedrop = %d\n", psp_video_framedrop);
+
+    fprintf(config, "[graphics]\n");
+    fprintf(config, "renderer = %d\n", psp_gfx_renderer);
+    fprintf(config, "smoothing = %d\n", psp_gfx_smoothing);
+    fprintf(config, "scaling = %d\n", psp_gfx_scaling);
+    fprintf(config, "super_sampling = %d\n", psp_gfx_super_sampling);
+
+    fprintf(config, "[debug]\n");
+    fprintf(config, "show_fps = %d\n", (display_fps == 2) ? 1 : 0);
+
+    fclose(config);
+
+    return true;
+  }
+
+  return false;
+}
+
+
+JNIEXPORT jint JNICALL
+  Java_com_bigbluecup_android_PreferencesActivity_readIntConfigValue(JNIEnv* env, jobject object, jint id)
+{
+  switch (id)
+  {
+    case CONFIG_IGNORE_ACSETUP:
+      return psp_ignore_acsetup_cfg_file;
+      break;
+    case CONFIG_CLEAR_CACHE:
+      return psp_clear_cache_on_room_change;
+      break;
+    case CONFIG_AUDIO_RATE:
+      return psp_audio_samplerate;
+      break;
+    case CONFIG_AUDIO_ENABLED:
+      return psp_audio_enabled;
+      break;
+    case CONFIG_AUDIO_THREADED:
+      return psp_audio_multithreaded;
+      break;
+    case CONFIG_AUDIO_CACHESIZE:
+      return psp_audio_cachesize;
+      break;
+    case CONFIG_MIDI_ENABLED:
+      return psp_midi_enabled;
+      break;
+    case CONFIG_MIDI_PRELOAD:
+      return psp_midi_preload_patches;
+      break;
+    case CONFIG_VIDEO_FRAMEDROP:
+      return psp_video_framedrop;
+      break;
+    case CONFIG_GFX_RENDERER:
+      return psp_gfx_renderer;
+      break;
+    case CONFIG_GFX_SMOOTHING:
+      return psp_gfx_smoothing;
+      break;
+    case CONFIG_GFX_SCALING:
+      return psp_gfx_scaling;
+      break;
+    case CONFIG_GFX_SS:
+      return psp_gfx_super_sampling;
+      break;
+    case CONFIG_ROTATION:
+      return psp_rotation;
+      break;
+    case CONFIG_ENABLED:
+      return psp_config_enabled;
+      break;
+    case CONFIG_DEBUG_FPS:
+      return (display_fps == 2) ? 1 : 0;
+      break;
+    default:
+      return 0;
+      break;
+  }
+}
+
+
+JNIEXPORT void JNICALL
+  Java_com_bigbluecup_android_PreferencesActivity_setIntConfigValue(JNIEnv* env, jobject object, jint id, jint value)
+{
+  switch (id)
+  {
+    case CONFIG_IGNORE_ACSETUP:
+      psp_ignore_acsetup_cfg_file = value;
+      break;
+    case CONFIG_CLEAR_CACHE:
+      psp_clear_cache_on_room_change = value;
+      break;
+    case CONFIG_AUDIO_RATE:
+      psp_audio_samplerate = value;
+      break;
+    case CONFIG_AUDIO_ENABLED:
+      psp_audio_enabled = value;
+      break;
+    case CONFIG_AUDIO_THREADED:
+      psp_audio_multithreaded = value;
+      break;
+    case CONFIG_AUDIO_CACHESIZE:
+      psp_audio_cachesize = value;
+      break;
+    case CONFIG_MIDI_ENABLED:
+      psp_midi_enabled = value;
+      break;
+    case CONFIG_MIDI_PRELOAD:
+      psp_midi_preload_patches = value;
+      break;
+    case CONFIG_VIDEO_FRAMEDROP:
+      psp_video_framedrop = value;
+      break;
+    case CONFIG_GFX_RENDERER:
+      psp_gfx_renderer = value;
+      break;
+    case CONFIG_GFX_SMOOTHING:
+      psp_gfx_smoothing = value;
+      break;
+    case CONFIG_GFX_SCALING:
+      psp_gfx_scaling = value;
+      break;
+    case CONFIG_GFX_SS:
+      psp_gfx_super_sampling = value;
+      break;
+    case CONFIG_ROTATION:
+      psp_rotation = value;
+      break;
+    case CONFIG_ENABLED:
+      psp_config_enabled = value;
+      break;
+    case CONFIG_DEBUG_FPS:
+      display_fps = (value == 1) ? 2 : 0;
+      break;
+    default:
+      break;
+  }
+}
+
 
 JNIEXPORT void JNICALL
   Java_com_bigbluecup_android_EngineGlue_pauseEngine(JNIEnv* env, jobject object)
@@ -120,6 +321,7 @@ JNIEXPORT jboolean JNICALL
   java_class = (jclass)java_environment->NewGlobalRef(java_environment->GetObjectClass(object));
   java_messageCallback = java_environment->GetMethodID(java_class, "showMessage", "(Ljava/lang/String;)V");
   java_blockExecution = java_environment->GetMethodID(java_class, "blockExecution", "()V");
+  java_setRotation = java_environment->GetMethodID(java_class, "setRotation", "(I)V");
 
   // Initialize JNI for Allegro.
   android_allegro_initialize_jni(java_environment, java_class, java_object);
@@ -134,8 +336,11 @@ JNIEXPORT jboolean JNICALL
   chdir(cdirectory);
   java_environment->ReleaseStringUTFChars(directory, cdirectory);
 
+  // Reset configuration.
+  ResetConfiguration();
+
   // Read general configuration.
-  ReadConfiguration(ANDROID_CONFIG_FILENAME);
+  ReadConfiguration(ANDROID_CONFIG_FILENAME, true);
 
 	// Get the games path.
 	char path[256];
@@ -151,7 +356,11 @@ JNIEXPORT jboolean JNICALL
   setenv("ULTRADIR", "..", 1);
 
   // Read game specific configuration.
-  ReadConfiguration(ANDROID_CONFIG_FILENAME);
+  ReadConfiguration(ANDROID_CONFIG_FILENAME, false);
+
+  // Set the screen rotation.
+  if (psp_rotation > 0)
+    java_environment->CallVoidMethod(java_object, java_setRotation, psp_rotation);
 
   // Start the engine main function.
 	main(1, &psp_game_file_name_pointer);
@@ -165,6 +374,9 @@ JNIEXPORT jboolean JNICALL
 
 int ReadInteger(int* variable, char* section, char* name, int minimum, int maximum, int default_value)
 {
+  if (reset_configuration)
+    return default_value;
+
   int temp = INIreadint(section, name);
 
   if (temp == -1)
@@ -180,21 +392,40 @@ int ReadInteger(int* variable, char* section, char* name, int minimum, int maxim
 
 
 
-void ReadConfiguration(char* filename)
+void ResetConfiguration()
+{
+  reset_configuration = true;
+
+  ReadConfiguration(ANDROID_CONFIG_FILENAME, true);
+
+  reset_configuration = false;
+}
+
+
+
+bool ReadConfiguration(char* filename, bool read_everything)
 {
   FILE* test = fopen(filename, "rb");
-  if (test)
+  if (test || reset_configuration)
   {
-    fclose(test);
+    if (test)
+      fclose(test);
+
     strcpy(filetouse, filename);
 
 //    ReadInteger((int*)&psp_disable_powersaving, "misc", "disable_power_saving", 0, 1, 1);
 
 //    ReadInteger((int*)&psp_return_to_menu, "misc", "return_to_menu", 0, 1, 1);
 
-    ReadInteger(&display_fps, "misc", "show_fps", 0, 1, 0);
+    ReadInteger((int*)&psp_config_enabled, "misc", "config_enabled", 0, 1, 0);
+    if (!psp_config_enabled && !read_everything)
+      return true;
+
+    ReadInteger(&display_fps, "debug", "show_fps", 0, 1, 0);
     if (display_fps == 1)
       display_fps = 2;
+
+    ReadInteger((int*)&psp_rotation, "misc", "rotation", 0, 2, 0);
 
     ReadInteger((int*)&psp_ignore_acsetup_cfg_file, "compatibility", "ignore_acsetup_cfg_file", 0, 1, 0);
     ReadInteger((int*)&psp_clear_cache_on_room_change, "compatibility", "clear_cache_on_room_change", 0, 1, 0);
@@ -212,14 +443,17 @@ void ReadConfiguration(char* filename)
 
     ReadInteger((int*)&psp_video_framedrop, "video", "framedrop", 0, 1, 0);
 
-    ReadInteger((int*)&psp_gfx_hardware_acceleration, "graphics", "hardware_rendering", 0, 1, 1);
+    ReadInteger((int*)&psp_gfx_renderer, "graphics", "renderer", 0, 2, 0);
     ReadInteger((int*)&psp_gfx_smoothing, "graphics", "smoothing", 0, 1, 1);
     ReadInteger((int*)&psp_gfx_scaling, "graphics", "scaling", 0, 1, 1);
-    ReadInteger((int*)&psp_gfx_render_to_texture, "graphics", "render_to_texture", 0, 1, 1);
-    ReadInteger((int*)&psp_gfx_super_sampling, "graphics", "super_sampling", 0, 8, 0);
+    ReadInteger((int*)&psp_gfx_super_sampling, "graphics", "super_sampling", 0, 1, 0);
 
     strcpy(filetouse, "nofile");
+
+    return true;
   }
+
+  return false;
 }
 
 

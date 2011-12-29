@@ -102,17 +102,23 @@ public class AgsEngine extends Activity
 		@Override  
 		public void handleMessage(Message msg)
 		{
-			if (msg.what == EngineGlue.MSG_SWITCH_TO_INGAME)
+			switch (msg.what)
 			{
-				switchToIngame();
-			}
-			else if (msg.what == EngineGlue.MSG_SHOW_MESSAGE)
-			{
-				showMessage(msg.getData().getString("message"));
-			}
-			else if (msg.what == EngineGlue.MSG_SHOW_TOAST)
-			{
-				showToast(msg.getData().getString("message"));
+				case EngineGlue.MSG_SWITCH_TO_INGAME:
+					switchToIngame();
+					break;
+					
+				case EngineGlue.MSG_SHOW_MESSAGE:
+					showMessage(msg.getData().getString("message"));
+					break;
+					
+				case EngineGlue.MSG_SHOW_TOAST:
+					showToast(msg.getData().getString("message"));
+					break;
+					
+				case EngineGlue.MSG_SET_ORIENTATION:
+					setRequestedOrientation(msg.getData().getInt("orientation"));
+					break;
 			}
 		}
 	}
@@ -197,7 +203,9 @@ public class AgsEngine extends Activity
 				int key = ev.getKeyCode();
 				
 				if (key == KeyEvent.KEYCODE_BACK)
-					showExitConfirmation();
+				{
+//					showExitConfirmation();
+				}
 				
 				if (key == KeyEvent.KEYCODE_VOLUME_UP)
 					audio.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI);
@@ -218,8 +226,13 @@ public class AgsEngine extends Activity
 			{
 				int key = ev.getKeyCode();
 				
+				if (key == KeyEvent.KEYCODE_BACK)
+				{
+					showExitConfirmation();
+				}
+				
 				if (   (key == KeyEvent.KEYCODE_MENU)
-					|| (key == KeyEvent.KEYCODE_BACK)
+//					|| (key == KeyEvent.KEYCODE_BACK)
 					|| (key == KeyEvent.KEYCODE_VOLUME_UP)
 					|| (key == KeyEvent.KEYCODE_VOLUME_DOWN)
 					|| (key == 164)) // KEYCODE_VOLUME_MUTE

@@ -52,7 +52,7 @@ extern int psp_ignore_acsetup_cfg_file; // If set, the standard AGS config file 
 extern int psp_clear_cache_on_room_change; // Clear the sprite cache on every room change.
 extern void clear_sound_cache(); // Sound cache initialization.
 extern char psp_game_file_name[]; // Game filename from the menu.
-extern int psp_gfx_hardware_acceleration; // Use OpenGl?
+extern int psp_gfx_renderer; // Which renderer to use.
 int psp_is_old_datafile = 0; // Set for 3.1.1 and 3.1.2 datafiles
 
 #ifdef NO_MP3_PLAYER
@@ -28098,7 +28098,7 @@ void create_gfx_driver()
   else
 #endif
   {
-    if (psp_gfx_hardware_acceleration && (game.color_depth != 1))
+    if ((psp_gfx_renderer > 0) && (game.color_depth != 1))
       gfxDriver = GetOGLGraphicsDriver(filter);
     else
       gfxDriver = GetSoftwareGraphicsDriver(filter);

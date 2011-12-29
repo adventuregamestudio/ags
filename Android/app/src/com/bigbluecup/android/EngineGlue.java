@@ -3,6 +3,7 @@ package com.bigbluecup.android;
 import javax.microedition.khronos.egl.EGL10;
 import com.bigbluecup.android.AgsEngine;
 
+import android.content.pm.ActivityInfo;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
@@ -11,12 +12,13 @@ import android.os.Message;
 
 public class EngineGlue extends Thread implements CustomGlSurfaceView.Renderer
 {
-	public static int MSG_SWITCH_TO_INGAME = 1;
-	public static int MSG_SHOW_MESSAGE = 2;
-	public static int MSG_SHOW_TOAST = 3;
+	public static final int MSG_SWITCH_TO_INGAME = 1;
+	public static final int MSG_SHOW_MESSAGE = 2;
+	public static final int MSG_SHOW_TOAST = 3;
+	public static final int MSG_SET_ORIENTATION = 4;
 	
-	public static int MOUSE_CLICK_LEFT = 1;
-	public static int MOUSE_CLICK_RIGHT = 2;
+	public static final int MOUSE_CLICK_LEFT = 1;
+	public static final int MOUSE_CLICK_RIGHT = 2;
 	
 	public int keyboardKeycode = 0;
 	public short mouseMoveX = 0;
@@ -187,6 +189,18 @@ public class EngineGlue extends Thread implements CustomGlSurfaceView.Renderer
 			}
 			catch (InterruptedException e) {}
 		}
+	}
+	
+	private void setRotation(int orientation)
+	{
+		Bundle data = new Bundle();
+		
+		if (orientation == 1)
+			data.putInt("orientation", ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+		else if (orientation == 2)
+			data.putInt("orientation", ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+		
+		sendMessageToActivity(MSG_SET_ORIENTATION, data);
 	}
 
 	// Called from Allegro, the buffer is allocated in native code

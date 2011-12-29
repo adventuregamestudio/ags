@@ -10,7 +10,7 @@
 
 int psp_gfx_smoothing = 1;
 int psp_gfx_scaling = 1;
-int psp_gfx_render_to_texture = 1;
+int psp_gfx_renderer = 2;
 int psp_gfx_super_sampling = 0;
 
 unsigned int android_screen_physical_width = 1000;
@@ -54,7 +54,7 @@ extern "C" void android_debug_printf(char* format, ...);
 
 extern int psp_gfx_smoothing;
 extern int psp_gfx_scaling;
-extern int psp_gfx_render_to_texture;
+extern int psp_gfx_renderer;
 extern int psp_gfx_super_sampling;
 
 extern unsigned int android_screen_physical_width;
@@ -347,6 +347,7 @@ private:
   unsigned int _fbo;
   int _backbuffer_texture_width;
   int _backbuffer_texture_height;
+  bool _render_to_texture;
 
   SpriteDrawListEntry drawList[MAX_DRAW_LIST_SIZE];
   int numToDraw;
@@ -511,7 +512,7 @@ void OGLGraphicsDriver::create_backbuffer_arrays()
 
 void OGLGraphicsDriver::InitOpenGl()
 {
-  if (psp_gfx_render_to_texture)
+  if (_render_to_texture)
   {
     char* extensions = (char*)glGetString(GL_EXTENSIONS);
 
@@ -539,7 +540,7 @@ void OGLGraphicsDriver::InitOpenGl()
     }
     else
     {
-      psp_gfx_render_to_texture = 0;
+      _render_to_texture = false;
     }
   }
 
@@ -569,7 +570,7 @@ void OGLGraphicsDriver::InitOpenGl()
   glEnableClientState(GL_VERTEX_ARRAY);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-  if (psp_gfx_scaling && !psp_gfx_render_to_texture)
+  if (psp_gfx_scaling && !_render_to_texture)
   {
     float android_screen_ar = (float)_newmode_width / (float)_newmode_height;
     float android_device_ar = (float)android_screen_physical_width / (float)android_screen_physical_height;
@@ -590,7 +591,7 @@ void OGLGraphicsDriver::InitOpenGl()
     _scale_width = _scale_height = 1.0f * _super_sampling;
   }
 
-  if (psp_gfx_render_to_texture)
+  if (_render_to_texture)
   {
     _backbuffer_texture_width = _newmode_width * _super_sampling;
     _backbuffer_texture_height = _newmode_height * _super_sampling;
@@ -657,6 +658,8 @@ bool OGLGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
   _loopTimer = loopTimer;
 
   _super_sampling = (psp_gfx_super_sampling > 0) ? 2 : 1;
+
+  _render_to_texture = (psp_gfx_renderer == 2);
 
   _filter->GetRealResolution(&_newmode_screen_width, &_newmode_screen_height);
 
@@ -869,7 +872,7 @@ void OGLGraphicsDriver::_renderSprite(SpriteDrawListEntry *drawListEntry, bool g
     else
       glColor4f(1.0f, 1.0f, 1.0f, ((float)bmpToDraw->_transparency / 255.0f));
 
-    if (psp_gfx_render_to_texture)
+    if (_render_to_texture)
       glTranslatef(_newmode_width * _super_sampling / 2.0f, _newmode_height * _super_sampling / 2.0f, 0.0f);
     else
       glTranslatef(android_screen_physical_width / 2.0f, android_screen_physical_height / 2.0f, 0.0f);
@@ -879,7 +882,7 @@ void OGLGraphicsDriver::_renderSprite(SpriteDrawListEntry *drawListEntry, bool g
 
     glBindTexture(GL_TEXTURE_2D, bmpToDraw->_tiles[ti].texture);
 
-    if ((psp_gfx_smoothing  && !psp_gfx_render_to_texture) || (_smoothScaling) && (bmpToDraw->_stretchToHeight > 0) &&
+    if ((psp_gfx_smoothing  && !_render_to_texture) || (_smoothScaling) && (bmpToDraw->_stretchToHeight > 0) &&
         ((bmpToDraw->_stretchToHeight != bmpToDraw->_height) ||
          (bmpToDraw->_stretchToWidth != bmpToDraw->_width)))
     {
@@ -923,7 +926,7 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
   bool globalLeftRightFlip = (flip == Vertical) || (flip == Both);
   bool globalTopBottomFlip = (flip == Horizontal) || (flip == Both);
 
-  if (psp_gfx_render_to_texture)
+  if (_render_to_texture)
   {
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _fbo);
 
@@ -973,7 +976,7 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
     this->_renderSprite(&_screenTintSprite, false, false);
   }
 
-  if (psp_gfx_render_to_texture)
+  if (_render_to_texture)
   {
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 

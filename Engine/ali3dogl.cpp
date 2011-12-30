@@ -657,9 +657,16 @@ bool OGLGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
   _newmode_windowed = windowed;
   _loopTimer = loopTimer;
 
-  _super_sampling = (psp_gfx_super_sampling > 0) ? 2 : 1;
-
-  _render_to_texture = (psp_gfx_renderer == 2);
+  if (psp_gfx_renderer == 2)
+  {
+    _super_sampling = ((psp_gfx_super_sampling > 0) ? 2 : 1;
+    _render_to_texture = true;
+  }
+  else
+  {
+    _super_sampling = 1;
+    _render_to_texture = false;
+  }
 
   _filter->GetRealResolution(&_newmode_screen_width, &_newmode_screen_height);
 

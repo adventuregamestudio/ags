@@ -1394,7 +1394,7 @@ diff -Naur src/android/ajni.c src/android/ajni.c
 +   android_jni_class = java_class;
 +   android_jni_object = java_object;
 +   
-+   (*android_jni_env)->RegisterNatives(android_jni_env, android_jni_class, android_jni_native_methods, 3);
++   (*android_jni_env)->RegisterNatives(android_jni_env, android_jni_class, android_jni_native_methods, 1);
 +
 +   android_jni_createScreen = (*android_jni_env)->GetMethodID(android_jni_env, android_jni_class, "createScreen", "(III)V");
 +   android_jni_pollKeyboard = (*android_jni_env)->GetMethodID(android_jni_env, android_jni_class, "pollKeyboard", "()I");

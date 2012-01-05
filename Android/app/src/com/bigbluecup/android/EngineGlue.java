@@ -136,6 +136,12 @@ public class EngineGlue extends Thread implements CustomGlSurfaceView.Renderer
 			catch (InterruptedException e) {}
 		}
 
+		try
+		{
+			Thread.sleep(300, 0);
+		}
+		catch (InterruptedException e) {}
+		
 		activity.surfaceView.initialize(configSpec, this);
 	}
 	

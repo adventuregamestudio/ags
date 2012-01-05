@@ -57,7 +57,7 @@ public class PreferencesActivity extends ListActivity
 		isGlobalConfig = (gameName.length() == 0);
 		
 		if (isGlobalConfig)
-			setTitle("General preferences");
+			setTitle("Global preferences");
 		else
 			setTitle(gameName);
 		

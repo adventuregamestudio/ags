@@ -28098,9 +28098,11 @@ void create_gfx_driver()
   else
 #endif
   {
+#if defined(ANDROID_VERSION) || defined(WINDOWS_VERSION)
     if ((psp_gfx_renderer > 0) && (game.color_depth != 1))
       gfxDriver = GetOGLGraphicsDriver(filter);
     else
+#endif
       gfxDriver = GetSoftwareGraphicsDriver(filter);
   }
 

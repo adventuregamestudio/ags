@@ -659,7 +659,7 @@ bool OGLGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
 
   if (psp_gfx_renderer == 2)
   {
-    _super_sampling = ((psp_gfx_super_sampling > 0) ? 2 : 1;
+    _super_sampling = ((psp_gfx_super_sampling > 0) ? 2 : 1);
     _render_to_texture = true;
   }
   else

@@ -64,13 +64,15 @@ public class EngineGlue extends Thread implements CustomGlSurfaceView.Renderer
 	public void pauseGame()
 	{
 		paused = true;
-		audioTrack.pause();
+		if (audioTrack != null)
+			audioTrack.pause();
 		pauseEngine();
 	}
 
 	public void resumeGame()
 	{
-		audioTrack.play();
+		if (audioTrack != null)
+			audioTrack.play();
 		resumeEngine();
 		paused = false;
 	}

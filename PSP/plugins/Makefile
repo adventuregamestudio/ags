@@ -22,9 +22,9 @@ endif
 
 flashlight:
 	@make -C "AGSflashlight"
-	@cp "AGSflashlight/AGSflashlight.prx" "../bin"
+	@cp "agsflashlight/agsflashlight.prx" "../bin"
 ifeq ($(COPY), 1)
-	@cp "AGSflashlight/AGSflashlight.prx" $(PSP_AGS_FOLDER)
+	@cp "agsflashlight/agsflashlight.prx" $(PSP_AGS_FOLDER)
 endif
 
 cleanblend:
@@ -44,7 +44,7 @@ distrib:
 	@mkdir "../dist/$(DISTRIB_NAME)" || true
 	@cp "../bin/ags_snowrain.prx" "../dist/$(DISTRIB_NAME)/ags_snowrain.prx"
 	@cp "../bin/agsblend.prx" "../dist/$(DISTRIB_NAME)/agsblend.prx"
-	@cp "../bin/AGSflashlight.prx" "../dist/$(DISTRIB_NAME)/AGSflashlight.prx"
+	@cp "../bin/agsflashlight.prx" "../dist/$(DISTRIB_NAME)/agsflashlight.prx"
 	@cp "agsblend/License.txt" "../dist/$(DISTRIB_NAME)/License_AGSBlend.txt"
 
 clean:

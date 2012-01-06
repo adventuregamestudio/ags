@@ -909,8 +909,10 @@ void pl_read_plugins_from_disk (FILE *iii) {
     char library_name[200];
 
     // Compatibility with the old SnowRain module
-    if (strcmp(apl->filename, "ags_SnowRain20.dll") == 0)
+    if (stricmp(apl->filename, "ags_SnowRain20.dll") == 0)
       strcpy(apl->filename, "ags_snowrain.dll");
+
+    strlwr(apl->filename);
 
     strcpy(library_name, "/data/data/com.bigbluecup.android/lib/lib");
     strcat(library_name, apl->filename);
@@ -924,8 +926,10 @@ void pl_read_plugins_from_disk (FILE *iii) {
     char module_name[50];
 
     // Compatibility with the old SnowRain module
-    if (strcmp(apl->filename, "ags_SnowRain20.dll") == 0)
+    if (stricmp(apl->filename, "ags_SnowRain20.dll") == 0)
       strcpy(apl->filename, "ags_snowrain.dll");
+
+    strlwr(apl->filename);
 
     strcpy(module_name, apl->filename);
     module_name[strlen(module_name) - 4] = '\0';
@@ -957,22 +961,22 @@ void pl_read_plugins_from_disk (FILE *iii) {
 #endif
 
 #ifdef PSP_VERSION
-    if (kernel_sctrlHENFindFunction(module_name, "plugin", 0x960C49BD) == 0) {
+    if (kernel_sctrlHENFindFunction(module_name, module_name, 0x960C49BD) == 0) {
       sprintf(buffer, "Plugin '%s' is an old incompatible version.", apl->filename);
       quit(buffer);
     }
 
-    apl->engineStartup = (void(*)(IAGSEngine*))kernel_sctrlHENFindFunction(module_name, "plugin", 0x0F13D9E8); // AGS_EngineStartup
-    apl->engineShutdown = (void(*)())kernel_sctrlHENFindFunction(module_name, "plugin", 0x2F131C76); // AGS_EngineShutdown
+    apl->engineStartup = (void(*)(IAGSEngine*))kernel_sctrlHENFindFunction(module_name, module_name, 0x0F13D9E8); // AGS_EngineStartup
+    apl->engineShutdown = (void(*)())kernel_sctrlHENFindFunction(module_name, module_name, 0x2F131C76); // AGS_EngineShutdown
 
     if (apl->engineStartup == NULL) {
       sprintf(buffer, "Plugin '%s' is not a valid AGS plugin (no engine startup entry point)", apl->filename);
       quit(buffer);
     }
 
-    apl->onEvent = (int(*)(int,int))kernel_sctrlHENFindFunction(module_name, "plugin", 0xE3DFFC5A); // AGS_EngineOnEvent
-    apl->debugHook = (int(*)(const char*,int,int))kernel_sctrlHENFindFunction(module_name, "plugin", 0xC37D6879); // AGS_EngineDebugHook
-    apl->initGfxHook = (void(*)(const char*, void*))kernel_sctrlHENFindFunction(module_name, "plugin", 0xA428D254); // AGS_EngineInitGfx
+    apl->onEvent = (int(*)(int,int))kernel_sctrlHENFindFunction(module_name, module_name, 0xE3DFFC5A); // AGS_EngineOnEvent
+    apl->debugHook = (int(*)(const char*,int,int))kernel_sctrlHENFindFunction(module_name, module_name, 0xC37D6879); // AGS_EngineDebugHook
+    apl->initGfxHook = (void(*)(const char*, void*))kernel_sctrlHENFindFunction(module_name, module_name, 0xA428D254); // AGS_EngineInitGfx
 #else
     if (GetProcAddress (apl->dllHandle, "AGS_PluginV2") == NULL) {
       sprintf(buffer, "Plugin '%s' is an old incompatible version.", apl->filename);

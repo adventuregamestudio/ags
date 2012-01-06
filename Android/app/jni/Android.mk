@@ -71,7 +71,7 @@ include $(BUILD_SHARED_LIBRARY)
 # AGSflashlight plugin
 include $(CLEAR_VARS)
 
-LOCAL_MODULE    := AGSflashlight
+LOCAL_MODULE    := agsflashlight
 LOCAL_SRC_FILES := ../PSP/plugins/AGSflashlight/main.cpp
 LOCAL_CFLAGS    := -O2 -g -ffast-math -fsigned-char -Wall -Wfatal-errors -DLINUX_VERSION -DANDROID_VERSION
 LOCAL_CXXFLAGS  := $(LOCAL_CFLAGS) -Wno-write-strings

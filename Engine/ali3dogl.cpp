@@ -654,7 +654,7 @@ bool OGLGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
   _newmode_screen_height = realHeight;
   _newmode_depth = colourDepth;
   _newmode_refresh = 0;
-  _newmode_windowed = windowed;
+  _newmode_windowed = true; //windowed;
   _loopTimer = loopTimer;
 
   if (psp_gfx_renderer == 2)

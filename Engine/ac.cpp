@@ -12,6 +12,18 @@
 
 */
 
+#if defined(WINDOWS_VERSION)
+int psp_video_framedrop = 1;
+int psp_audio_enabled = 1;
+int psp_midi_enabled = 1;
+int psp_ignore_acsetup_cfg_file = 0;
+int psp_clear_cache_on_room_change = 0;
+volatile int psp_audio_multithreaded = 1;
+int psp_midi_preload_patches = 1;
+int psp_audio_cachesize = 10;
+char psp_game_file_name[] = "ac2game.dat";
+#endif
+
 
 #if defined(PSP_VERSION)
 // PSP header.

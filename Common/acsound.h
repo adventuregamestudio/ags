@@ -128,7 +128,7 @@ struct SOUNDCLIP
 #elif defined(LINUX_VERSION)
     pthread_mutex_init(&mutex, NULL);
 #elif defined(WINDOWS_VERSION)
-    CreateMutex(NULL, FALSE, NULL); 
+    mutex = CreateMutex(NULL, FALSE, NULL); 
 #endif
   }
 

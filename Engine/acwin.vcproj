@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="acwin"
 	ProjectGUID="{0FAE0543-C09B-43CE-AEE1-D68FA8B33276}"
 	RootNamespace="acwin"
@@ -51,7 +51,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories=".;..\common;..\common\libinclude"
+				AdditionalIncludeDirectories=".;..\common;..\common\libinclude;;..\Windows\include"
 				PreprocessorDefinitions="VS2005;WIN32;NDEBUG;_WINDOWS;ALLEGRO_STATICLINK;THIS_IS_THE_ENGINE;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;_CRT_SECURE_NO_WARNINGS;ALLEGRO_NO_ASM;NO_MP3_PLAYER"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -152,7 +152,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".;..\common;..\common\libinclude"
+				AdditionalIncludeDirectories=".;..\common;..\common\libinclude;..\Windows\include"
 				PreprocessorDefinitions="VS2005;_DEBUG;WIN32;NDEBUG;_WINDOWS;ALLEGRO_STATICLINK;THIS_IS_THE_ENGINE;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;_CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="1"
 				StructMemberAlignment="0"
@@ -179,7 +179,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib libcpmt.lib d3d9.lib quartz.lib strmiids.lib winmm.lib shlwapi.lib amstrmid.lib"
+				AdditionalDependencies="odbc32.lib odbccp32.lib libcpmt.lib d3d9.lib quartz.lib strmiids.lib winmm.lib shlwapi.lib amstrmid.lib opengl32.lib"
 				OutputFile=".\acwin___Win32_DebugWorking/acwin.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -257,7 +257,7 @@
 				InlineFunctionExpansion="1"
 				EnableIntrinsicFunctions="true"
 				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories=".;..\common;..\common\libinclude"
+				AdditionalIncludeDirectories=".;..\common;..\common\libinclude;;..\Windows\include"
 				PreprocessorDefinitions="VS2005;WIN32;NDEBUG;_WINDOWS;ALLEGRO_STATICLINK;THIS_IS_THE_ENGINE;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;_CRT_SECURE_NO_WARNINGS;ALLEGRO_NO_ASM"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -693,6 +693,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\ali3dogl.cpp"
+				>
+			</File>
+			<File
 				RelativePath="ali3dsw.cpp"
 				>
 				<FileConfiguration
@@ -1073,43 +1077,43 @@
 			Name="Libraries"
 			>
 			<File
-				RelativePath="..\NativeLibs\alfont_mt.lib"
+				RelativePath="..\Windows\lib\alfont_mt.lib"
 				>
 			</File>
 			<File
-				RelativePath="..\NativeLibs\alleg_s_crt.lib"
+				RelativePath="..\Windows\lib\alleg_s_crt.lib"
 				>
 			</File>
 			<File
-				RelativePath="..\NativeLibs\ddraw.lib"
+				RelativePath="..\Windows\lib\ddraw.lib"
 				>
 			</File>
 			<File
-				RelativePath="..\NativeLibs\dinput.lib"
+				RelativePath="..\Windows\lib\dinput.lib"
 				>
 			</File>
 			<File
-				RelativePath="..\NativeLibs\dsound.lib"
+				RelativePath="..\Windows\lib\dsound.lib"
 				>
 			</File>
 			<File
-				RelativePath="..\NativeLibs\dxguid.lib"
+				RelativePath="..\Windows\lib\dxguid.lib"
 				>
 			</File>
 			<File
-				RelativePath="..\NativeLibs\ogg_static.lib"
+				RelativePath="..\Windows\lib\ogg_static.lib"
 				>
 			</File>
 			<File
-				RelativePath="..\NativeLibs\theora_static.lib"
+				RelativePath="..\Windows\lib\theora_static.lib"
 				>
 			</File>
 			<File
-				RelativePath="..\NativeLibs\vorbis_static.lib"
+				RelativePath="..\Windows\lib\vorbis_static.lib"
 				>
 			</File>
 			<File
-				RelativePath="..\NativeLibs\vorbisfile_static.lib"
+				RelativePath="..\Windows\lib\vorbisfile_static.lib"
 				>
 			</File>
 		</Filter>

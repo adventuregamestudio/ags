@@ -309,12 +309,24 @@ void alogg_rewind_ogg(ALOGG_OGG *ogg) {
 
 
 void alogg_seek_abs_msecs_ogg(ALOGG_OGG *ogg, int msec) {
+#ifdef USE_TREMOR
   ov_time_seek(&(ogg->vf), msec);
+#else
+  /* convert msec to pcm sample position */
+  double s = msec;
+  s /= 1000;
+
+  ov_time_seek(&(ogg->vf), s);
+#endif
 }
 
 
 void alogg_seek_abs_secs_ogg(ALOGG_OGG *ogg, int sec) {
+#ifdef USE_TREMOR
   ov_time_seek(&(ogg->vf), sec * 1000);
+#else
+  ov_time_seek(&(ogg->vf), sec);
+#endif
 }
 
 
@@ -328,17 +340,31 @@ void alogg_seek_abs_bytes_ogg(ALOGG_OGG *ogg, int bytes) {
 
 
 void alogg_seek_rel_msecs_ogg(ALOGG_OGG *ogg, int msec) {
+#ifdef USE_TREMOR
   ogg_int64_t _msec = msec;
   _msec += ov_time_tell(&(ogg->vf));
 
   ov_time_seek(&(ogg->vf), _msec);
+#else
+  double s = msec;
+  s /= 1000;
+  s += ov_time_tell(&(ogg->vf));
+
+  ov_time_seek(&(ogg->vf), s);
+#endif
 }
 
 
 void alogg_seek_rel_secs_ogg(ALOGG_OGG *ogg, int sec) {
+#ifdef USE_TREMOR
   ogg_int64_t _msec = sec * 1000;
   _msec += ov_time_tell(&(ogg->vf));
   ov_time_seek(&(ogg->vf), _msec);
+#else
+  double s = sec;
+  s += ov_time_tell(&(ogg->vf));
+  ov_time_seek(&(ogg->vf), s);
+#endif
 }
 
 
@@ -360,6 +386,8 @@ int alogg_poll_ogg(ALOGG_OGG *ogg) {
   void *audiobuf;
   char *audiobuf_p;
   int i, size_done;
+  unsigned short* data_array;
+  int x;
 
   /* continue only if we are playing it */
   if (!alogg_is_playing_ogg(ogg))
@@ -399,14 +427,15 @@ int alogg_poll_ogg(ALOGG_OGG *ogg) {
     /* decode */
     size_done = ov_read(&(ogg->vf), audiobuf_p, i, 0, 2, 0, &(ogg->current_section));
 
-    // Add offset to data because we are using libtremor
-    unsigned short* data_array = (unsigned short*)audiobuf_p;
+#ifdef USE_TREMOR
+    /* Add offset to data because we are using libtremor */
+    data_array = (unsigned short*)audiobuf_p;
 
-    int x = 0;
     for (x = 0; x < size_done / 2; x++)
     { 
       data_array[x] += 0x8000;
     }
+#endif
 
     /* check if the decoding was not successful */
     if (size_done < 0) {
@@ -471,12 +500,20 @@ void alogg_stop_autopoll_ogg(ALOGG_OGG *ogg) {
 
 
 int alogg_get_pos_msecs_ogg(ALOGG_OGG *ogg) {
+#ifdef USE_TREMOR
   return (int)(ov_time_tell(&(ogg->vf)));
+#else
+  return (int)(ov_time_tell(&(ogg->vf)) * 1000);
+#endif
 }
 
 
 int alogg_get_pos_secs_ogg(ALOGG_OGG *ogg) {
+#ifdef USE_TREMOR
   return (int)ov_time_tell(&(ogg->vf)) / 1000;
+#else
+  return (int)ov_time_tell(&(ogg->vf));
+#endif
 }
 
 
@@ -486,12 +523,21 @@ int alogg_get_pos_bytes_ogg(ALOGG_OGG *ogg) {
 
 
 int alogg_get_length_msecs_ogg(ALOGG_OGG *ogg) {
+#ifdef USE_TREMOR
   return (int)ov_time_total(&(ogg->vf), -1);
+#else
+  double s = ov_time_total(&(ogg->vf), -1) * 1000;
+  return (int)s;
+#endif
 }
 
 
 int alogg_get_length_secs_ogg(ALOGG_OGG *ogg) {
+#ifdef USE_TREMOR
   return (int)ov_time_total(&(ogg->vf), -1) * 1000;
+#else
+  return (int)ov_time_total(&(ogg->vf), -1);
+#endif
 }
 
 
@@ -524,6 +570,8 @@ SAMPLE *alogg_create_sample_from_ogg(ALOGG_OGG *ogg) {
   SAMPLE *sample;
   char *data;
   int i, sample_len_bytes, sample_len, size_done, done;
+  unsigned short* data_array;
+  int x;
 
   /* first we need to calculate the len of the sample in bytes */
   sample_len = ov_pcm_total(&(ogg->vf), -1);
@@ -558,14 +606,15 @@ SAMPLE *alogg_create_sample_from_ogg(ALOGG_OGG *ogg) {
     /* decode */
     size_done = ov_read(&(ogg->vf), data, i, 0, 2, 0, &(ogg->current_section));
 
-    // Add offset to data because we are using libtremor.
-    unsigned short* data_array = (unsigned short*)data;
+#ifdef USE_TREMOR
+    /* Add offset to data because we are using libtremor. */
+    data_array = (unsigned short*)data;
 
-    int x = 0;
     for (x = 0; x < size_done / 2; x++)
     { 
       data_array[x] += 0x8000;
     }
+#endif
 
     /* check if the decoding was not successful */
     if (size_done < 0) {
@@ -897,6 +946,8 @@ int alogg_poll_oggstream(ALOGG_OGGSTREAM *ogg) {
   char *audiobuf_p;
   int i, size_done;
   int last_block;
+  unsigned short* data_array;
+  int x;
 
   /* continue only if we are playing it */
   if (!alogg_is_playing_oggstream(ogg))
@@ -938,14 +989,15 @@ int alogg_poll_oggstream(ALOGG_OGGSTREAM *ogg) {
   for (i = ogg->audiostream_buffer_len; i > 0; i -= size_done) {
     size_done = ov_read(&(ogg->vf), audiobuf_p, i, 0, 2, 0, &(ogg->current_section));
 
-    // Add offset to data because we are using libtremor.
-    unsigned short* data_array = (unsigned short*)audiobuf_p;
+#ifdef USE_TREMOR
+    /* Add offset to data because we are using libtremor. */
+    data_array = (unsigned short*)audiobuf_p;
 
-    int x = 0;
     for (x = 0; x < size_done / 2; x++)
     { 
       data_array[x] += 0x8000;
     }
+#endif
 
     /* check if the decoding was not successful */
     if (size_done < 0) {
@@ -1044,12 +1096,20 @@ void alogg_free_oggstream_buffer(ALOGG_OGGSTREAM *ogg, int bytes_used) {
 
 
 int alogg_get_pos_msecs_oggstream(ALOGG_OGGSTREAM *ogg) {
+#ifdef USE_TREMOR
   return (int)(ov_time_tell(&(ogg->vf)));
+#else
+  return (int)(ov_time_tell(&(ogg->vf)) * 1000);
+#endif
 }
 
 
 int alogg_get_pos_secs_oggstream(ALOGG_OGGSTREAM *ogg) {
+#ifdef USE_TREMOR
   return (int)ov_time_tell(&(ogg->vf)) * 1000;
+#else
+  return (int)ov_time_tell(&(ogg->vf));
+#endif
 }
 
 

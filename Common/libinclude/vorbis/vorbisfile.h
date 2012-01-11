@@ -144,13 +144,10 @@ extern long ov_serialnumber(OggVorbis_File *vf,int i);
 
 extern ogg_int64_t ov_raw_total(OggVorbis_File *vf,int i);
 extern ogg_int64_t ov_pcm_total(OggVorbis_File *vf,int i);
-extern ogg_int64_t ov_time_total(OggVorbis_File *vf,int i);
 
 extern int ov_raw_seek(OggVorbis_File *vf,ogg_int64_t pos);
 extern int ov_pcm_seek(OggVorbis_File *vf,ogg_int64_t pos);
 extern int ov_pcm_seek_page(OggVorbis_File *vf,ogg_int64_t pos);
-extern int ov_time_seek(OggVorbis_File *vf,ogg_int64_t pos);
-extern int ov_time_seek_page(OggVorbis_File *vf,ogg_int64_t pos);
 
 extern int ov_raw_seek_lap(OggVorbis_File *vf,ogg_int64_t pos);
 extern int ov_pcm_seek_lap(OggVorbis_File *vf,ogg_int64_t pos);
@@ -160,7 +157,18 @@ extern int ov_time_seek_page_lap(OggVorbis_File *vf,double pos);
 
 extern ogg_int64_t ov_raw_tell(OggVorbis_File *vf);
 extern ogg_int64_t ov_pcm_tell(OggVorbis_File *vf);
+
+#ifdef USE_TREMOR
+extern ogg_int64_t ov_time_total(OggVorbis_File *vf,int i);
+extern int ov_time_seek(OggVorbis_File *vf,ogg_int64_t pos);
+extern int ov_time_seek_page(OggVorbis_File *vf,ogg_int64_t pos);
 extern ogg_int64_t ov_time_tell(OggVorbis_File *vf);
+#else
+extern double ov_time_total(OggVorbis_File *vf,int i);
+extern int ov_time_seek(OggVorbis_File *vf,double pos);
+extern int ov_time_seek_page(OggVorbis_File *vf,double pos);
+extern double ov_time_tell(OggVorbis_File *vf);
+#endif
 
 extern vorbis_info *ov_info(OggVorbis_File *vf,int link);
 extern vorbis_comment *ov_comment(OggVorbis_File *vf,int link);

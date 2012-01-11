@@ -27,7 +27,7 @@ OBJS = $(ALFONT) $(ALMP3) $(APEG) $(AASTR) $(BASE) $(COMMON) $(PSP_SPECIFIC)
 
 INCDIR = ../Common ../Common/libinclude $(shell psp-config --pspdev-path)/psp/include/freetype2
 LIBDIR = ../PSP/lib
-CFLAGS = -O2 -g -G0 -msingle-float -ffast-math -Wfatal-errors -DALLEGRO_STATICLINK -DTHIS_IS_THE_ENGINE -DLINUX_VERSION -DPSP_VERSION -DDISABLE_MPEG_AUDIO
+CFLAGS = -O2 -g -G0 -msingle-float -ffast-math -Wfatal-errors -DALLEGRO_STATICLINK -DTHIS_IS_THE_ENGINE -DLINUX_VERSION -DPSP_VERSION -DDISABLE_MPEG_AUDIO -DUSE_TREMOR
 CXXFLAGS = $(CFLAGS) -fno-rtti -Wno-write-strings
 ASFLAGS = $(CFLAGS)
 LIBS = -lalleg -lalleg-main -lfreetype -lz -lvorbisidec -ltheoradec -logg -lc -lstdc++ -lm

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:id="@+id/group1" android:checkableBehavior="single">
+        <item android:id="@+id/software" android:checked="false" android:titleCondensed="Software" android:title="Software"></item>
+        <item android:id="@+id/hardware" android:checked="false" android:titleCondensed="Hardware" android:title="Hardware"></item>
+        <item android:id="@+id/rtt" android:titleCondensed="Hardware (pixel perfect)" android:title="Hardware (pixel perfect)" android:checked="true"></item>
+    </group>
+    
+</menu>

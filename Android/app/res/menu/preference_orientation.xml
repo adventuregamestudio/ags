@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:id="@+id/group1" android:checkableBehavior="single"><item android:id="@+id/auto" android:titleCondensed="Off" android:title="Off" android:checked="true"></item><item android:title="Portrait" android:titleCondensed="Portrait" android:id="@+id/portrait"></item>
+    <item android:title="Landscape" android:titleCondensed="Landscape" android:id="@+id/landscape"></item>
+</group>
+    
+    
+</menu>

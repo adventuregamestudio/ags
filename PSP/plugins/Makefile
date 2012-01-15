@@ -22,9 +22,9 @@ endif
 
 flashlight:
 	@make -C "AGSflashlight"
-	@cp "agsflashlight/agsflashlight.prx" "../bin"
+	@cp "AGSflashlight/agsflashlight.prx" "../bin"
 ifeq ($(COPY), 1)
-	@cp "agsflashlight/agsflashlight.prx" $(PSP_AGS_FOLDER)
+	@cp "AGSflashlight/agsflashlight.prx" $(PSP_AGS_FOLDER)
 endif
 
 cleanblend:

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:enabled="true" android:visible="true" android:id="@+id/start" android:checkable="false" android:title="Start game" android:checked="false"></item>
+    <item android:enabled="true" android:visible="true" android:id="@+id/preferences" android:checkable="false" android:title="Preferences" android:checked="false"></item>
+    
+</menu>

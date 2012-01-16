@@ -78,7 +78,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib libcmt.lib libcpmt.lib d3d9.lib quartz.lib strmiids.lib winmm.lib shlwapi.lib amstrmid.lib"
+				AdditionalDependencies="odbc32.lib odbccp32.lib libcmt.lib libcpmt.lib d3d9.lib quartz.lib strmiids.lib winmm.lib shlwapi.lib amstrmid.lib opengl32.lib"
 				OutputFile=".\acwin___Win32_ReleaseNoMP3/acwin.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -285,7 +285,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib libcmt.lib libcpmt.lib d3d9.lib quartz.lib strmiids.lib winmm.lib shlwapi.lib amstrmid.lib"
+				AdditionalDependencies="odbc32.lib odbccp32.lib libcmt.lib libcpmt.lib d3d9.lib quartz.lib strmiids.lib winmm.lib shlwapi.lib amstrmid.lib opengl32.lib"
 				OutputFile=".\Release/acwin.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"

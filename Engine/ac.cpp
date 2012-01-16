@@ -19,7 +19,7 @@ int psp_midi_enabled = 1;
 int psp_ignore_acsetup_cfg_file = 0;
 int psp_clear_cache_on_room_change = 0;
 volatile int psp_audio_multithreaded = 1;
-int psp_midi_preload_patches = 1;
+int psp_midi_preload_patches = 0;
 int psp_audio_cachesize = 10;
 char psp_game_file_name[] = "ac2game.dat";
 #endif
@@ -27438,8 +27438,12 @@ void read_config_file(char *argv0) {
     usetup.force_hicolor_mode = INIreadint("misc", "notruecolor", 0);
     usetup.enable_side_borders = INIreadint("misc", "sideborders", 0);
 
+#if defined(PSP_VERSION) || defined(ANDROID_VERSION)
     // PSP: Letterboxing is not useful on the PSP.
-    force_letterbox = 0; // INIreadint ("misc", "forceletterbox", 0);
+    force_letterbox = 0;
+#else
+    force_letterbox = INIreadint ("misc", "forceletterbox", 0);
+#endif
 
     if (usetup.enable_antialiasing < 0)
       usetup.enable_antialiasing = 0;
@@ -27473,18 +27477,23 @@ void read_config_file(char *argv0) {
     if (usetup.main_data_filename == NULL)
       usetup.main_data_filename = "ac2game.dat";
 
+#if defined(PSP_VERSION) || defined(ANDROID_VERSION)
     // PSP: No graphic filters are available.
-    usetup.gfxFilterID = NULL; //INIreaditem("misc", "gfxfilter");
+    usetup.gfxFilterID = NULL;
+#else
+    usetup.gfxFilterID = INIreaditem("misc", "gfxfilter");
+#endif
 
     usetup.gfxDriverID = INIreaditem("misc", "gfxdriver");
 
     usetup.translation = INIreaditem ("language", "translation");
 
-/*  PSP: Don't let the setup determine the cache size as it is always too big.
+#if !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
+    // PSP: Don't let the setup determine the cache size as it is always too big.
     int tempint = INIreadint ("misc", "cachemax");
     if (tempint > 0)
       spriteset.maxCacheSize = tempint * 1024;
-*/
+#endif
 
     char *repfile = INIreaditem ("misc", "replay");
     if (repfile != NULL) {

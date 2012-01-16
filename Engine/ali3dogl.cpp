@@ -10,7 +10,7 @@
 
 int psp_gfx_smoothing = 1;
 int psp_gfx_scaling = 1;
-int psp_gfx_renderer = 2;
+int psp_gfx_renderer = 0;
 int psp_gfx_super_sampling = 0;
 
 unsigned int android_screen_physical_width = 1000;

@@ -83,6 +83,7 @@ extern int main(int argc,char*argv[]);
 char psp_game_file_name[256];
 char* psp_game_file_name_pointer = psp_game_file_name;
 
+extern JavaVM* android_jni_vm;
 JNIEnv *java_environment;
 jobject java_object;
 jclass java_class;
@@ -491,11 +492,19 @@ void AGSAndroid::DisplayAlert(const char *text, ...) {
   va_start(ap, text);
   vsprintf(displbuf, text, ap);
   va_end(ap);
+
+  // It is possible that this is called from a thread that is not yet known
+  // to the Java VM. So attach it first before displaying the message.
+  JNIEnv* thread_env;
+  android_jni_vm->AttachCurrentThread(&thread_env, NULL);
+
   __android_log_print(ANDROID_LOG_DEBUG, "AGSNative", displbuf);
 
-  jstring java_string = java_environment->NewStringUTF(displbuf);
-  java_environment->CallVoidMethod(java_object, java_messageCallback, java_string);
-  java_environment->CallVoidMethod(java_object, java_blockExecution);
+  jstring java_string = thread_env->NewStringUTF(displbuf);
+  thread_env->CallVoidMethod(java_object, java_messageCallback, java_string);
+  thread_env->CallVoidMethod(java_object, java_blockExecution);
+
+//  android_jni_vm->DetachCurrentThread();
 }
 
 void AGSAndroid::Delay(int millis) {

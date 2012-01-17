@@ -130,16 +130,17 @@ public class AgsEngine extends Activity
 	@Override
 	public boolean dispatchTouchEvent(MotionEvent ev)
 	{
-		switch (ev.getAction())
+		switch (ev.getAction() & 0xFF)
 		{
 			case MotionEvent.ACTION_DOWN:
 			{
 				initialized = false;
+				
 				break;
 			}
+			
 			case MotionEvent.ACTION_MOVE:
 			{
-				
 				if (!initialized)
 				{
 					lastX = ev.getX();
@@ -169,23 +170,41 @@ public class AgsEngine extends Activity
 			{
 				long down_time = ev.getEventTime() - ev.getDownTime();
 
-				if (down_time < 100)
+				if (down_time < 200)
 				{
 					// Quick tap for clicking the left mouse button
 					glue.clickMouse(EngineGlue.MOUSE_CLICK_LEFT);
 				}
-				else if (down_time < 300)
+/*
+				else if (down_time < 400)
 				{
 					// Slightly slower tap for clicking the right mouse button					
 					glue.clickMouse(EngineGlue.MOUSE_CLICK_RIGHT);
 				}
+*/				
+				try
+				{
+					// Delay a bit to not get flooded with events
+					Thread.sleep(50, 0);
+				}
+				catch (InterruptedException e) {}
+				
+				break;
+			}		
+			
+			// Second finger lifted
+			case 6: //MotionEvent.ACTION_POINTER_UP:
+			{
+				glue.clickMouse(EngineGlue.MOUSE_CLICK_RIGHT);
 				
 				try
 				{
 					// Delay a bit to not get flooded with events
-					Thread.sleep(100, 0);
+					Thread.sleep(50, 0);
 				}
 				catch (InterruptedException e) {}
+				
+				break;
 			}			
 		}
 		

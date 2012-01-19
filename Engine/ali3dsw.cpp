@@ -213,6 +213,11 @@ private:
 
 bool ALSoftwareGraphicsDriver::IsModeSupported(int driver, int width, int height, int colDepth)
 {
+#if defined(ANDROID_VERSION) || defined(PSP_VERSION)
+  // Everything is drawn to a virtual screen, so all resolutions are supported.
+  return true;
+#endif
+
   if (_windowed)
   {
     return true;

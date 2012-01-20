@@ -33,8 +33,6 @@ namespace AGS.Editor
             set { _results = value; RefreshGui(); }
         }
 
-        public ScintillaWrapper Scintilla { get; set; }
-
         private void RefreshGui()
         {
             lvwResults.Items.Clear();

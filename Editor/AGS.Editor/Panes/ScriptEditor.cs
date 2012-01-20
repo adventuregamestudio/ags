@@ -355,7 +355,10 @@ namespace AGS.Editor
         public void ActivateTextEditor()
         {
             scintilla.ActivateTextEditor();
-            scintilla.GoToLine(_firstVisibleLine);
+            if (scintilla.CurrentLine == 0) //If no item was seleced via Find/Replace etc
+            {
+                scintilla.GoToLine(_firstVisibleLine);
+            }
         }
 
         public void DeactivateTextEditor()

@@ -46,7 +46,7 @@ namespace AGS.Editor
         private delegate void ParameterlessDelegate();
         private delegate void ZoomToFileDelegate(string fileName, ZoomToFileZoomType zoomType, int lineNumber, bool isDebugExecutionPoint, bool selectWholeLine, string errorMessage, bool activateEditor);
         private delegate void ShowCallStackDelegate(DebugCallStack callStack);
-        private delegate void ShowFindSymbolResultsDelegate(List<ScriptTokenReference> results, ScintillaWrapper scintilla);
+        private delegate void ShowFindSymbolResultsDelegate(List<ScriptTokenReference> results);
 
         private frmMain _mainForm;
         private Dictionary<string, IEditorComponent> _menuItems;
@@ -302,8 +302,7 @@ namespace AGS.Editor
             _mainForm.pnlOutput.ErrorsToList = errors;
             if (errors.Count > 0)
             {
-                _mainForm.pnlOutput.Visible = true;
-                _mainForm.pnlOutput.Focus();
+                _mainForm.pnlOutput.Show();
             }
         }
 
@@ -320,7 +319,7 @@ namespace AGS.Editor
                 return;
             }
 
-            _mainForm.pnlOutput.Visible = false;
+            _mainForm.pnlOutput.Hide();
         }
 
         public void ShowCallStack(DebugCallStack callStack)
@@ -332,34 +331,29 @@ namespace AGS.Editor
             }
 
             _mainForm.pnlCallStack.CallStack = callStack;
-            _mainForm.pnlCallStack.Visible = true;
-            _mainForm.pnlCallStack.Focus();
+            _mainForm.pnlCallStack.Show();            
         }
 
         public void HideCallStack()
         {
-            _mainForm.pnlCallStack.Visible = false;
+            _mainForm.pnlCallStack.Hide();
         }
 
-        public void ShowFindSymbolResults(List<ScriptTokenReference> results,
-            ScintillaWrapper scintilla)
+        public void ShowFindSymbolResults(List<ScriptTokenReference> results)
         {            
             if (_mainForm.pnlFindResults.InvokeRequired)
             {
-                _mainForm.pnlFindResults.Invoke(new ShowFindSymbolResultsDelegate(ShowFindSymbolResults), results, scintilla);
+                _mainForm.pnlFindResults.Invoke(new ShowFindSymbolResultsDelegate(ShowFindSymbolResults), results);
                 return;
             }
 
             _mainForm.pnlFindResults.Results = results;
-            _mainForm.pnlFindResults.Scintilla = scintilla;
-            //_mainForm.pnlFindResults.Visible = true;
-            _mainForm.pnlFindResults.Show();
-           // _mainForm.pnlFindResults.Focus();
+            _mainForm.pnlFindResults.Show();           
         }
 
         public void HideFindSymbolResults()
         {
-            _mainForm.pnlFindResults.Visible = false;
+            _mainForm.pnlFindResults.Hide();
         }
 
         public ContentDocument ActivePane

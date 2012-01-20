@@ -177,7 +177,6 @@ namespace AGS.Editor
             this.pnlFindResults.Pane = null;
             this.pnlFindResults.PanelPane = null;
             this.pnlFindResults.Results = null;
-            this.pnlFindResults.Scintilla = null;
             this.pnlFindResults.ShowHint = WeifenLuo.WinFormsUI.Docking.DockState.DockBottom;
             this.pnlFindResults.Visible = false;
             this.pnlFindResults.VisibleState = WeifenLuo.WinFormsUI.Docking.DockState.DockBottom;

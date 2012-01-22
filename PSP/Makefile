@@ -30,7 +30,7 @@ ifeq ($(COPY), 1)
 endif
 
 engineprx:
-	@make -C "../Engine"
+	@make -C "../Engine" -f Makefile.psp
 	@cp "../Engine/ags321.prx" "bin"
 ifeq ($(COPY), 1)
 	@cp "../Engine/ags321.prx" $(PSP_AGS_FOLDER)
@@ -57,7 +57,7 @@ cleanlaunchereboot:
 	@rm -f "bin/EBOOT.PBP"
 
 cleanengineprx:
-	@make clean -C "../Engine"
+	@make clean -C "../Engine" -f Makefile.psp
 	@rm -f "bin/ags321.prx"
 
 cleanallplugins:

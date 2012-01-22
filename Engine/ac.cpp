@@ -12,7 +12,7 @@
 
 */
 
-#if defined(WINDOWS_VERSION)
+#if defined(WINDOWS_VERSION) || (defined(LINUX_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION))
 int psp_video_framedrop = 1;
 int psp_audio_enabled = 1;
 int psp_midi_enabled = 1;
@@ -24,6 +24,9 @@ int psp_audio_cachesize = 10;
 char psp_game_file_name[] = "ac2game.dat";
 #endif
 
+#if defined(LINUX_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
+#include <dlfcn.h>
+#endif
 
 #if defined(PSP_VERSION)
 // PSP header.
@@ -150,6 +153,10 @@ extern int our_eip;
 #define HWND long
 #define _getcwd getcwd
 #define strnicmp strncasecmp
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 long int filelength(int fhandle)
 {
@@ -1850,7 +1857,14 @@ void setpal() {
 extern "C" {
 PACKFILE*_my_temppack;
 extern char* clibgetdatafile(char*);
-extern PACKFILE *__old_pack_fopen(char *,char *);
+#if ALLEGRO_DATE > 19991010
+#define PFO_PARAM const char *
+#else
+#define PFO_PARAM char *
+#endif
+#ifndef RTLD_NEXT
+extern PACKFILE *__old_pack_fopen(PFO_PARAM,PFO_PARAM);
+#endif
 
 #if ALLEGRO_DATE > 19991010
 PACKFILE *pack_fopen(const char *filnam1, const char *modd1) {
@@ -1900,6 +1914,23 @@ PACKFILE *pack_fopen(char *filnam1, char *modd1) {
   FILE *testf = fopen(filnam, "rb");
   if (testf != NULL)
     fclose(testf);
+
+#ifdef RTLD_NEXT
+  static PACKFILE * (*__old_pack_fopen)(PFO_PARAM, PFO_PARAM) = NULL;
+  if(!__old_pack_fopen) {
+    __old_pack_fopen = (PACKFILE* (*)(PFO_PARAM, PFO_PARAM))dlsym(RTLD_NEXT, "pack_fopen");
+    if(!__old_pack_fopen) {
+      // Looks like we're linking statically to allegro...
+      // Let's see if it has been patched
+      __old_pack_fopen = (PACKFILE* (*)(PFO_PARAM, PFO_PARAM))dlsym(RTLD_DEFAULT, "__allegro_pack_fopen");
+      if(!__old_pack_fopen) {
+        fprintf(stderr, "If you're linking statically to allegro, you need to apply this patch to allegro:\n"
+        "https://sourceforge.net/tracker/?func=detail&aid=3302567&group_id=5665&atid=355665\n");
+        exit(1);
+      }
+    }
+  }
+#endif
 
   if ((cliboffset(filnam)<1) || (testf != NULL)) {
     if (needsetback) csetlib(game_file_name,"");

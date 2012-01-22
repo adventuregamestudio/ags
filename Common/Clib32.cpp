@@ -20,6 +20,12 @@
 #include <sys/stat.h>
 #endif
 
+#if defined(LINUX_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#endif
+
 #define NATIVESTATIC
 
 #ifdef _MANAGED

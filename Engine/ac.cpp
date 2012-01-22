@@ -11986,6 +11986,16 @@ int load_game_file() {
   fread(&game.fontflags[0], 1, game.numfonts, iii);
   fread(&game.fontoutline[0], 1, game.numfonts, iii);
 
+#if !defined(WINDOWS_VERSION)
+  // Outline fonts are misaligned on platforms other than Windows
+  int i;
+  for (i = 0; i < MAX_FONTS; i++)
+  {
+    if (game.fontoutline[i] >= 0)
+      game.fontoutline[i] = FONT_OUTLINE_AUTO;
+  }
+#endif
+
   int numToRead = getw(iii);
   if (numToRead > MAX_SPRITES) {
     quit("Too many sprites; need newer AGS version");

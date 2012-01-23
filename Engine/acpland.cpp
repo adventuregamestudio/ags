@@ -50,10 +50,12 @@ struct AGSAndroid : AGS32BitOSDriver {
 
 
 //int psp_return_to_menu = 1;
-int psp_ignore_acsetup_cfg_file = 0;
+int psp_ignore_acsetup_cfg_file = 1;
 int psp_clear_cache_on_room_change = 0;
 int psp_rotation = 0;
 int psp_config_enabled = 0;
+char psp_translation[100];
+char* psp_translations[10];
 
 
 // Graphic options from the Allegro library.
@@ -73,6 +75,7 @@ int psp_video_framedrop = 0;
 
 int psp_gfx_renderer = 0;
 int psp_gfx_super_sampling = 0;
+int psp_gfx_smooth_sprites = 0;
 
 extern int display_fps;
 extern int want_exit;
@@ -113,6 +116,8 @@ const int CONFIG_GFX_SS = 12;
 const int CONFIG_ROTATION = 13;
 const int CONFIG_ENABLED = 14;
 const int CONFIG_DEBUG_FPS = 15;
+const int CONFIG_GFX_SMOOTH_SPRITES = 16;
+const int CONFIG_TRANSLATION = 17;
 
 extern void android_debug_printf(const char* format, ...);
 
@@ -138,9 +143,10 @@ JNIEXPORT jboolean JNICALL
     fprintf(config, "[misc]\n");
     fprintf(config, "config_enabled = %d\n", psp_config_enabled);
     fprintf(config, "rotation = %d\n", psp_rotation);
+    fprintf(config, "translation = %s\n", psp_translation);
 
     fprintf(config, "[compatibility]\n");
-    fprintf(config, "ignore_acsetup_cfg_file = %d\n", psp_ignore_acsetup_cfg_file);
+//    fprintf(config, "ignore_acsetup_cfg_file = %d\n", psp_ignore_acsetup_cfg_file);
     fprintf(config, "clear_cache_on_room_change = %d\n", psp_clear_cache_on_room_change);
 
     fprintf(config, "[sound]\n");
@@ -161,6 +167,7 @@ JNIEXPORT jboolean JNICALL
     fprintf(config, "smoothing = %d\n", psp_gfx_smoothing);
     fprintf(config, "scaling = %d\n", psp_gfx_scaling);
     fprintf(config, "super_sampling = %d\n", psp_gfx_super_sampling);
+    fprintf(config, "smooth_sprites = %d\n", psp_gfx_smooth_sprites);
 
     fprintf(config, "[debug]\n");
     fprintf(config, "show_fps = %d\n", (display_fps == 2) ? 1 : 0);
@@ -218,6 +225,9 @@ JNIEXPORT jint JNICALL
     case CONFIG_GFX_SS:
       return psp_gfx_super_sampling;
       break;
+    case CONFIG_GFX_SMOOTH_SPRITES:
+      return psp_gfx_smooth_sprites;
+      break;
     case CONFIG_ROTATION:
       return psp_rotation;
       break;
@@ -229,6 +239,18 @@ JNIEXPORT jint JNICALL
       break;
     default:
       return 0;
+      break;
+  }
+}
+
+
+JNIEXPORT jstring JNICALL
+  Java_com_bigbluecup_android_PreferencesActivity_readStringConfigValue(JNIEnv* env, jobject object, jint id, jstring value)
+{
+  switch (id)
+  {
+    case CONFIG_TRANSLATION:
+      return env->NewStringUTF(&psp_translation[0]);
       break;
   }
 }
@@ -278,6 +300,9 @@ JNIEXPORT void JNICALL
     case CONFIG_GFX_SS:
       psp_gfx_super_sampling = value;
       break;
+    case CONFIG_GFX_SMOOTH_SPRITES:
+      psp_gfx_smooth_sprites = value;
+      break;
     case CONFIG_ROTATION:
       psp_rotation = value;
       break;
@@ -290,6 +315,59 @@ JNIEXPORT void JNICALL
     default:
       break;
   }
+}
+
+
+JNIEXPORT void JNICALL
+  Java_com_bigbluecup_android_PreferencesActivity_setStringConfigValue(JNIEnv* env, jobject object, jint id, jstring value)
+{
+  const char* cstring = env->GetStringUTFChars(value, NULL);
+
+  switch (id)
+  {
+    case CONFIG_TRANSLATION:
+      strcpy(psp_translation, cstring);
+      break;
+    default:
+      break;
+  }
+
+  env->ReleaseStringUTFChars(value, cstring);
+}
+
+
+JNIEXPORT jint JNICALL
+Java_com_bigbluecup_android_PreferencesActivity_getAvailableTranslations(JNIEnv* env, jobject object, jobjectArray translations)
+{
+  int i = 0;
+  int length;
+  DIR* dir;
+  struct dirent* entry;
+  char buffer[200];
+
+  dir = opendir(".");
+  if (dir)
+  {
+    while ((entry = readdir(dir)) != 0)
+    {
+      length = strlen(entry->d_name);
+      if (length > 4)
+      {
+        if (stricmp(&entry->d_name[length - 4], ".tra") == 0)
+        {
+          memset(buffer, 0, 200);
+          strncpy(buffer, entry->d_name, length - 4);
+          psp_translations[i] = (char*)malloc(strlen(buffer) + 1);
+          strcpy(psp_translations[i], buffer);
+          env->SetObjectArrayElement(translations, i, env->NewStringUTF(&buffer[0]));
+          i++;
+        }
+      }
+    }
+    closedir(dir);
+  }
+
+  return i;
 }
 
 
@@ -376,7 +454,10 @@ JNIEXPORT jboolean JNICALL
 int ReadInteger(int* variable, char* section, char* name, int minimum, int maximum, int default_value)
 {
   if (reset_configuration)
-    return default_value;
+  {
+    *variable = default_value;
+    return 0;
+  }
 
   int temp = INIreadint(section, name);
 
@@ -387,6 +468,26 @@ int ReadInteger(int* variable, char* section, char* name, int minimum, int maxim
     temp = default_value;
 
   *variable = temp;
+
+  return 1;
+}
+
+
+
+int ReadString(char* variable, char* section, char* name, char* default_value)
+{
+  if (reset_configuration)
+  {
+    strcpy(variable, default_value);
+    return 0;
+  }
+
+  char* temp = INIreaditem(section, name);
+
+  if (temp == NULL)
+    temp = default_value;
+
+  strcpy(variable, temp);
 
   return 1;
 }
@@ -418,6 +519,8 @@ bool ReadConfiguration(char* filename, bool read_everything)
 
 //    ReadInteger((int*)&psp_return_to_menu, "misc", "return_to_menu", 0, 1, 1);
 
+    ReadString(&psp_translation[0], "misc", "translation", "default");
+
     ReadInteger((int*)&psp_config_enabled, "misc", "config_enabled", 0, 1, 0);
     if (!psp_config_enabled && !read_everything)
       return true;
@@ -428,7 +531,7 @@ bool ReadConfiguration(char* filename, bool read_everything)
 
     ReadInteger((int*)&psp_rotation, "misc", "rotation", 0, 2, 0);
 
-    ReadInteger((int*)&psp_ignore_acsetup_cfg_file, "compatibility", "ignore_acsetup_cfg_file", 0, 1, 0);
+//    ReadInteger((int*)&psp_ignore_acsetup_cfg_file, "compatibility", "ignore_acsetup_cfg_file", 0, 1, 0);
     ReadInteger((int*)&psp_clear_cache_on_room_change, "compatibility", "clear_cache_on_room_change", 0, 1, 0);
 
     ReadInteger((int*)&psp_audio_samplerate, "sound", "samplerate", 0, 44100, 44100);
@@ -445,6 +548,7 @@ bool ReadConfiguration(char* filename, bool read_everything)
     ReadInteger((int*)&psp_gfx_smoothing, "graphics", "smoothing", 0, 1, 1);
     ReadInteger((int*)&psp_gfx_scaling, "graphics", "scaling", 0, 1, 1);
     ReadInteger((int*)&psp_gfx_super_sampling, "graphics", "super_sampling", 0, 1, 0);
+    ReadInteger((int*)&psp_gfx_smooth_sprites, "graphics", "smooth_sprites", 0, 1, 0);
 
     strcpy(filetouse, "nofile");
 

@@ -18,6 +18,8 @@ public class PreferencesActivity extends ListActivity
 	private String gameFilename;
 	private String baseDirectory;
 	private boolean isGlobalConfig;
+	private String translations[];
+	private int translationCount;
 	
 	private ArrayList<PreferencesEntry> values;
 	
@@ -38,11 +40,22 @@ public class PreferencesActivity extends ListActivity
 	static final int CONFIG_ROTATION = 13;
 	static final int CONFIG_ENABLED = 14;
 	static final int CONFIG_DEBUG_FPS = 15;
+	static final int CONFIG_GFX_SMOOTH_SPRITES = 16;
+	static final int CONFIG_TRANSLATION = 17;
+	
+	static final int LANGUAGE_ID_BASE = 0x71000000;
+	
+	private native boolean readConfigFile(String directory);
+	private native boolean writeConfigFile();
 	
 	public static native int readIntConfigValue(int id);
-	private native boolean readConfigFile(String directory);
 	private native void setIntConfigValue(int id, int value);
-	private native boolean writeConfigFile();
+
+	public static native String readStringConfigValue(int id);
+	private native void setStringConfigValue(int id, String value);	
+
+	private native int getAvailableTranslations(String translations[]);
+
 	
 	public void onCreate(Bundle bundle)
 	{
@@ -62,11 +75,21 @@ public class PreferencesActivity extends ListActivity
 			setTitle(gameName);
 		
 		boolean hasCustomConfig = readConfigFile(baseDirectory + '/' + gameName);
+		
+		translations = new String[10];
+		translationCount = getAvailableTranslations(translations);
 
 		values = new ArrayList<PreferencesEntry>();
 		
 		if (!isGlobalConfig)
 		{
+			values.add(new PreferencesEntry(
+					"Game language", 
+					"Select the game language if available",
+					CONFIG_TRANSLATION,
+					EnumSet.of(PreferencesEntry.Flags.MENU_TRANSLATION, PreferencesEntry.Flags.STRING)
+					));
+			
 			values.add(new PreferencesEntry(
 					"Use custom preferences", 
 					"Check to override the global preferences for this game",
@@ -86,14 +109,15 @@ public class PreferencesActivity extends ListActivity
 				"Prevents the screen from automatically rotating",
 				CONFIG_ROTATION,
 				EnumSet.of(PreferencesEntry.Flags.MENU_ORIENTATION)
-				));	
+				));
+/*
 		values.add(new PreferencesEntry(
 				"Ignore acsetup.cfg",
 				"Skip evaluating the standard AGS settings file",
 				CONFIG_IGNORE_ACSETUP,
 				EnumSet.of(PreferencesEntry.Flags.CHECKABLE)
 				));
-		
+*/		
 		values.add(new PreferencesEntry(
 				"Sound", 
 				"", 
@@ -174,7 +198,13 @@ public class PreferencesActivity extends ListActivity
 				CONFIG_GFX_SS, 
 				EnumSet.of(PreferencesEntry.Flags.CHECKABLE)
 				));
-
+		values.add(new PreferencesEntry(
+				"Smooth scaled sprites", 
+				"", 
+				CONFIG_GFX_SMOOTH_SPRITES, 
+				EnumSet.of(PreferencesEntry.Flags.CHECKABLE)
+				));
+		
 		values.add(new PreferencesEntry(
 				"Debug", 
 				"", 
@@ -190,9 +220,12 @@ public class PreferencesActivity extends ListActivity
 		
 		if (isGlobalConfig || (getValueForId(CONFIG_ENABLED) == 1))
 		{
-			for (int i = (isGlobalConfig ? 0 : 1); i < values.size(); i++)
+			for (int i = (isGlobalConfig ? 0 : 2); i < values.size(); i++)
 				values.get(i).flags.add(PreferencesEntry.Flags.ENABLED);
 		}
+		
+		if (translationCount > 0)
+			values.get(0).flags.add(PreferencesEntry.Flags.ENABLED);
 		
 		PreferencesArrayAdapter adapter = new PreferencesArrayAdapter(this, values);
 		setListAdapter(adapter);
@@ -205,7 +238,12 @@ public class PreferencesActivity extends ListActivity
 		for (int i = 0; i < values.size(); i++)
 		{
 			if (values.get(i).id != CONFIG_NONE)
-				setIntConfigValue(values.get(i).id, values.get(i).value);
+			{
+				if (values.get(i).flags.contains(PreferencesEntry.Flags.STRING))
+					setStringConfigValue(values.get(i).id, values.get(i).stringValue);
+				else
+					setIntConfigValue(values.get(i).id, values.get(i).value);
+			}
 		}
 		
 		writeConfigFile();
@@ -235,8 +273,32 @@ public class PreferencesActivity extends ListActivity
 			}
 		}
 		return 0;
-	}	
+	}
 	
+	private String getStringValueForId(int id)
+	{
+		for (int i = 0; i < values.size(); i++)
+		{
+			if (values.get(i).id == id)
+			{
+				return values.get(i).stringValue;
+			}
+		}
+		return "";
+	}
+	
+	private void setStringValueForId(int id, String value)
+	{
+		for (int i = 0; i < values.size(); i++)
+		{
+			if (values.get(i).id == id)
+			{
+				values.get(i).stringValue = value;
+				return;
+			}
+		}
+	}	
+		
 	@Override
 	public boolean onContextItemSelected(MenuItem item)
 	{
@@ -266,7 +328,18 @@ public class PreferencesActivity extends ListActivity
 				setValueForId(CONFIG_ROTATION, 2);
 				return true;
 				
+			case R.id.default_language:
+				setStringValueForId(CONFIG_TRANSLATION, "default");
+				setValueForId(CONFIG_TRANSLATION, 0);
+				return true;
+				
 			default:
+				int id = item.getItemId();
+				if ((id > LANGUAGE_ID_BASE) && (id <= LANGUAGE_ID_BASE + 10))
+				{
+					setStringValueForId(CONFIG_TRANSLATION, item.getTitle().toString());
+					setValueForId(CONFIG_TRANSLATION, id - LANGUAGE_ID_BASE);					
+				}
 				return super.onOptionsItemSelected(item);
 		}
 	}	
@@ -289,7 +362,27 @@ public class PreferencesActivity extends ListActivity
 			menu.setHeaderTitle("Select renderer");
 			menu.getItem(getValueForId(CONFIG_GFX_RENDERER)).setChecked(true);
 		}
-	}	
+		else if (activeMenu == PreferencesEntry.Flags.MENU_TRANSLATION)
+		{
+			inflater.inflate(R.menu.preference_language, menu);
+			menu.setHeaderTitle("Game language");
+			
+			int checkedItemId = 0;
+			String checkedItemString = getStringValueForId(CONFIG_TRANSLATION);
+			
+			for (int i = 0; i < translationCount; i++)
+			{
+				menu.add(R.id.language_group, LANGUAGE_ID_BASE + i + 1, 0, translations[i]);
+				
+				if (!(checkedItemString.equals("default")) && (checkedItemString.equals(translations[i])))
+					checkedItemId = i + 1;
+			}
+			
+			menu.setGroupCheckable(R.id.language_group, true, true);
+			
+			menu.getItem(checkedItemId).setChecked(true);
+		}
+	}
 	
 	
 	@Override
@@ -317,18 +410,29 @@ public class PreferencesActivity extends ListActivity
 			unregisterForContextMenu(v);
 			v.setLongClickable(false);
 		}
+		else if (values.get(position).flags.contains(PreferencesEntry.Flags.MENU_TRANSLATION))
+		{
+			activeMenu = PreferencesEntry.Flags.MENU_TRANSLATION;
+			registerForContextMenu(v);
+			openContextMenu(v);
+			unregisterForContextMenu(v);
+			v.setLongClickable(false);
+		}		
 		else if (values.get(position).flags.contains(PreferencesEntry.Flags.CHECKABLE))
 		{
 			values.get(position).value = (values.get(position).value == 1) ? 0 : 1;
 
-			if (position == 0)
+			if (!isGlobalConfig)
 			{
-				for (int i = 1; i < values.size(); i++)
+				if (position == 1)
 				{
-					if (values.get(0).value == 1)
-						values.get(i).flags.add(PreferencesEntry.Flags.ENABLED);
-					else
-						values.get(i).flags.remove(PreferencesEntry.Flags.ENABLED);						
+					for (int i = 2; i < values.size(); i++)
+					{
+						if (values.get(position).value == 1)
+							values.get(i).flags.add(PreferencesEntry.Flags.ENABLED);
+						else
+							values.get(i).flags.remove(PreferencesEntry.Flags.ENABLED);						
+					}
 				}
 			}
 			

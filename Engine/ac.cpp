@@ -22,6 +22,7 @@ volatile int psp_audio_multithreaded = 1;
 int psp_midi_preload_patches = 0;
 int psp_audio_cachesize = 10;
 char psp_game_file_name[] = "ac2game.dat";
+int psp_gfx_smooth_sprites = 1;
 #endif
 
 #if defined(LINUX_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
@@ -68,6 +69,8 @@ extern int psp_clear_cache_on_room_change; // Clear the sprite cache on every ro
 extern void clear_sound_cache(); // Sound cache initialization.
 extern char psp_game_file_name[]; // Game filename from the menu.
 extern int psp_gfx_renderer; // Which renderer to use.
+extern int psp_gfx_smooth_sprites; // usetup.enable_antialiasing
+extern char psp_translation[]; // Translation file
 int psp_is_old_datafile = 0; // Set for 3.1.1 and 3.1.2 datafiles
 
 #ifdef NO_MP3_PLAYER
@@ -27425,10 +27428,12 @@ void read_config_file(char *argv0) {
   usetup.digicard = DIGI_DIRECTAMX(0);
 #endif
 
-  // PSP: Don't read in the standard config file if disabled.
+  // Don't read in the standard config file if disabled.
   if (psp_ignore_acsetup_cfg_file)
   {
     usetup.gfxDriverID = "DX5";
+    usetup.enable_antialiasing = psp_gfx_smooth_sprites;
+    usetup.translation = psp_translation;
     return;
   }
 

@@ -6,7 +6,7 @@ public class PreferencesEntry
 {
 	public enum Flags
 	{
-		HEADER, CHECKABLE, MENU_RENDERER, MENU_ORIENTATION, ENABLED
+		HEADER, CHECKABLE, STRING, MENU_RENDERER, MENU_ORIENTATION, MENU_TRANSLATION, ENABLED
 	}
 	
 	public String caption;
@@ -14,7 +14,8 @@ public class PreferencesEntry
 	public EnumSet<Flags> flags;
 	public int id;
 	public int value;
-		
+	public String stringValue;
+	
 	public PreferencesEntry(String caption, String description, int id, EnumSet<Flags> flags)
 	{
 		this.caption = caption;
@@ -23,6 +24,11 @@ public class PreferencesEntry
 		this.id = id;
 		
 		if (id > -1)
-			this.value = PreferencesActivity.readIntConfigValue(id);
-	}	
+		{
+			if (flags.contains(PreferencesEntry.Flags.STRING))
+				this.stringValue = PreferencesActivity.readStringConfigValue(id);
+			else
+				this.value = PreferencesActivity.readIntConfigValue(id);
+		}
+	}
 }

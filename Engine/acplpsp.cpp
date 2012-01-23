@@ -102,6 +102,8 @@ int psp_midi_enabled = 1;
 int psp_midi_preload_patches = 0;
 
 int psp_video_framedrop = 0;
+char psp_translation[100];
+int psp_gfx_smooth_sprites = 0;
 
 
 // Mouse options from the Allegro library.
@@ -296,6 +298,21 @@ int ReadInteger(int* variable, char* section, char* name, int minimum, int maxim
 
 
 
+int ReadString(char* variable, char* section, char* name, char* default_value)
+{
+  char* temp = INIreaditem(section, name);
+
+  if (temp == NULL)
+    temp = default_value;
+
+  strcpy(variable, temp);
+
+  return 1;
+}
+
+
+
+
 void ReadConfiguration(char* filename)
 {
   FILE* test = fopen(filename, "rb");
@@ -308,6 +325,8 @@ void ReadConfiguration(char* filename)
 
     ReadButtonMapping("button_mapping", psp_to_scancode, psp_to_scancode_count, &psp_mouse_mapping, NULL);
     ReadButtonMapping("onscreen_keyboard", psp_to_scancode_osk, psp_to_scancode_osk_count, &psp_mouse_mapping_osk, &psp_keyboard_mapping);
+
+    ReadString(&psp_translation[0], "misc", "translation", "default");
 
     ReadInteger((int*)&psp_disable_powersaving, "misc", "disable_power_saving", 0, 1, 1);
 
@@ -342,6 +361,7 @@ void ReadConfiguration(char* filename)
 
     ReadInteger((int*)&psp_gfx_smoothing, "graphics", "smoothing", 0, 1, 1);
     ReadInteger((int*)&psp_gfx_scaling, "graphics", "scaling", 0, 1, 1);
+    ReadInteger((int*)&psp_gfx_smooth_sprites, "graphics", "smooth_sprites", 0, 1, 0);
 
     strcpy(filetouse, "nofile");
   }

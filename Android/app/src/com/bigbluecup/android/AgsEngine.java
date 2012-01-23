@@ -1,5 +1,7 @@
 package com.bigbluecup.android;
 
+import java.util.Date;
+
 import com.bigbluecup.android.EngineGlue;
 import com.bigbluecup.android.R;
 
@@ -32,6 +34,8 @@ public class AgsEngine extends Activity
 	private AudioManager audio;
 	public CustomGlSurfaceView surfaceView;
 	public MessageHandler handler;
+	private Date date;
+	private long returnKeyDownTime;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState)
@@ -54,6 +58,9 @@ public class AgsEngine extends Activity
 		
 		// Set message handler for thread communication
 		handler = new MessageHandler();
+		
+		// Create date object for later use
+		date = new Date();
 		
 		audio = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
 		
@@ -123,6 +130,7 @@ public class AgsEngine extends Activity
 		}
 	}
 	
+	boolean ignoreMovement = false;
 	boolean initialized = false;
 	private float lastX = 0.0f;
 	private float lastY = 0.0f;
@@ -134,6 +142,7 @@ public class AgsEngine extends Activity
 		{
 			case MotionEvent.ACTION_DOWN:
 			{
+				ignoreMovement = false;
 				initialized = false;
 				
 				break;
@@ -147,27 +156,32 @@ public class AgsEngine extends Activity
 					lastY = ev.getY();
 					initialized = true;
 				}
-
-				float x = ev.getX() - lastX;
-				float y = ev.getY() - lastY;
-
-				glue.moveMouse(x, y);
 				
-				lastX = ev.getX();
-				lastY = ev.getY();
-				
-				try
+				if (!ignoreMovement)
 				{
-					// Delay a bit to not get flooded with events
-					Thread.sleep(50, 0);
+					float x = ev.getX() - lastX;
+					float y = ev.getY() - lastY;
+	
+					glue.moveMouse(x, y);
+					
+					lastX = ev.getX();
+					lastY = ev.getY();
+					
+					try
+					{
+						// Delay a bit to not get flooded with events
+						Thread.sleep(50, 0);
+					}
+					catch (InterruptedException e) {}
 				}
-				catch (InterruptedException e) {}
-
+				
 				break;
 			}
 
 			case MotionEvent.ACTION_UP:
 			{
+				ignoreMovement = false;
+
 				long down_time = ev.getEventTime() - ev.getDownTime();
 
 				if (down_time < 200)
@@ -191,6 +205,12 @@ public class AgsEngine extends Activity
 				
 				break;
 			}		
+			
+			// Second finger down
+			case 5: //MotionEvent.ACTION_POINTER_DOWN:
+			{
+				ignoreMovement = true;
+			}
 			
 			// Second finger lifted
 			case 6: //MotionEvent.ACTION_POINTER_UP:
@@ -223,7 +243,11 @@ public class AgsEngine extends Activity
 				
 				if (key == KeyEvent.KEYCODE_BACK)
 				{
-//					showExitConfirmation();
+					if (returnKeyDownTime == 0)
+					{
+						Date date = new Date(); 
+						returnKeyDownTime = date.getTime();
+					}
 				}
 				
 				if (key == KeyEvent.KEYCODE_VOLUME_UP)
@@ -247,7 +271,14 @@ public class AgsEngine extends Activity
 				
 				if (key == KeyEvent.KEYCODE_BACK)
 				{
-					showExitConfirmation();
+					Date date = new Date();
+					long downTime = date.getTime() - returnKeyDownTime;
+					if (downTime > 1000)
+						showExitConfirmation();
+					else
+						glue.keyboardEvent(key, 0, ev.isShiftPressed());
+					
+					returnKeyDownTime = 0;
 				}
 				
 				if (   (key == KeyEvent.KEYCODE_MENU)

@@ -23,6 +23,7 @@ int psp_midi_preload_patches = 0;
 int psp_audio_cachesize = 10;
 char psp_game_file_name[] = "ac2game.dat";
 int psp_gfx_smooth_sprites = 1;
+char psp_translation[] = "default";
 #endif
 
 #if defined(LINUX_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)

@@ -130,6 +130,7 @@ public class AgsEngine extends Activity
 		}
 	}
 	
+	boolean ignoreNextPointerUp = false;
 	boolean ignoreMovement = false;
 	boolean initialized = false;
 	private float lastX = 0.0f;
@@ -210,20 +211,25 @@ public class AgsEngine extends Activity
 			case 5: //MotionEvent.ACTION_POINTER_DOWN:
 			{
 				ignoreMovement = true;
+				ignoreNextPointerUp = true;
 			}
 			
 			// Second finger lifted
 			case 6: //MotionEvent.ACTION_POINTER_UP:
 			{
-				glue.clickMouse(EngineGlue.MOUSE_CLICK_RIGHT);
-				
-				try
+				if (!ignoreNextPointerUp)
 				{
-					// Delay a bit to not get flooded with events
-					Thread.sleep(50, 0);
+					glue.clickMouse(EngineGlue.MOUSE_CLICK_RIGHT);
+					
+					ignoreMovement = false;
+					try
+					{
+						// Delay a bit to not get flooded with events
+						Thread.sleep(50, 0);
+					}
+					catch (InterruptedException e) {}
 				}
-				catch (InterruptedException e) {}
-				
+				ignoreNextPointerUp = false;
 				break;
 			}			
 		}

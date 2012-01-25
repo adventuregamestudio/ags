@@ -75,7 +75,7 @@ extern int psp_midi_preload_patches;
 
 typedef struct
 {
-  char file_name[20];
+  char* file_name;
   int number;
   int free;
   unsigned int last_used;
@@ -99,6 +99,8 @@ void clear_sound_cache()
       {
         free(sound_cache_entries[i].data);
         sound_cache_entries[i].data = NULL;
+        free(sound_cache_entries[i].file_name);
+        sound_cache_entries[i].file_name = NULL;
         sound_cache_entries[i].reference = 0;
       }
     }
@@ -258,6 +260,9 @@ char* get_cached_sound(const char* filename, bool is_wave, long* size)
     sound_cache_entries[i].size = *size;
     sound_cache_entries[i].data = newdata;
 
+    if (sound_cache_entries[i].file_name)
+      free(sound_cache_entries[i].file_name);
+    sound_cache_entries[i].file_name = (char*)malloc(strlen(filename) + 1);
     strcpy(sound_cache_entries[i].file_name, filename);
     sound_cache_entries[i].reference = 1;
     sound_cache_entries[i].last_used = sound_cache_counter++;

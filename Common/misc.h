@@ -30,9 +30,17 @@
 #ifndef __MISC_H
 #define __MISC_H
 
-// The PSP uses a FAT filesystem which is not casesensitive.
 #include <stdio.h>
-char *ci_find_file(char *dir_name, char *file_name);
-FILE *ci_fopen(char *file_name, const char *mode);
 
+#if defined(LINUX_VERSION)
+#include <unistd.h>
+#include <dirent.h>
+#include <string.h>
+#include <sys/stat.h>
 #endif
+
+FILE *ci_fopen(char *file_name, const char *mode);
+char *ci_find_file(char *dir_name, char *file_name);
+
+
+#endif  // __MISC_H

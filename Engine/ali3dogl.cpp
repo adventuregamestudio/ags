@@ -31,6 +31,11 @@ PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC glFramebufferRenderbufferEXT = 0;
 #elif defined(ANDROID_VERSION)
 #include <ali3d.h>
 #include <GLES/gl.h>
+
+#ifndef GL_GLEXT_PROTOTYPES
+#define GL_GLEXT_PROTOTYPES
+#endif
+
 #include <GLES/glext.h>
 
 #define HDC void*

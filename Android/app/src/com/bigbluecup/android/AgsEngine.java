@@ -286,15 +286,18 @@ public class AgsEngine extends Activity
 					
 					returnKeyDownTime = 0;
 				}
-				
-				if (   (key == KeyEvent.KEYCODE_MENU)
-//					|| (key == KeyEvent.KEYCODE_BACK)
+				else if (
+					   (key == KeyEvent.KEYCODE_MENU)
 					|| (key == KeyEvent.KEYCODE_VOLUME_UP)
 					|| (key == KeyEvent.KEYCODE_VOLUME_DOWN)
-					|| (key == 164)) // KEYCODE_VOLUME_MUTE
+					|| (key == 164) // KEYCODE_VOLUME_MUTE
+					|| (key == KeyEvent.KEYCODE_ALT_LEFT)
+					|| (key == KeyEvent.KEYCODE_ALT_RIGHT)
+					|| (key == KeyEvent.KEYCODE_SHIFT_LEFT)
+					|| (key == KeyEvent.KEYCODE_SHIFT_RIGHT))
 					return isInGame;
 
-				glue.keyboardEvent(key, ev.getUnicodeChar(ev.getMetaState()), ev.isShiftPressed());
+				glue.keyboardEvent(key, ev.getUnicodeChar(), ev.isShiftPressed());
 				break;
 			}
 		}

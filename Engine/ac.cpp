@@ -12971,7 +12971,7 @@ void draw_button_background(int xx1,int yy1,int xx2,int yy2,GUIMain*iep) {
         bgoffsy = bgoffsyStart;
         while (bgoffsy <= bgfinishy)
         {
-          wputblock(bgoffsx, bgoffsy, spriteset[iep->bgpic],0);
+          wputblock(bgoffsx, bgoffsy, spriteset[iep->bgpic], (loaded_game_file_version <= 32) ? 1 : 0 );
           bgoffsy += spriteheight[iep->bgpic];
         }
         bgoffsx += spritewidth[iep->bgpic];

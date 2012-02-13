@@ -21,3 +21,15 @@ chmod +x *.sh
 ./dumb.sh
 
 cd ..
+
+cd x86
+chmod +x *.sh
+./png.sh
+./freetype.sh
+./ogg.sh
+./tremor.sh
+./theora-svn.sh
+./allegro.sh
+./dumb.sh
+
+cd ..

@@ -15185,8 +15185,11 @@ void SetObjectFrame(int obn,int viw,int lop,int fra) {
   if (objs[obn].frame >= views[viw].loops[objs[obn].loop].numFrames)
     objs[obn].frame = 0;
 
-  if (views[viw].loops[objs[obn].loop].numFrames == 0) 
-    quit("!SetObjectFrame: specified loop has no frames");
+  if (loaded_game_file_version > 32) // Skip check on 2.x
+  {
+    if (views[viw].loops[objs[obn].loop].numFrames == 0) 
+      quit("!SetObjectFrame: specified loop has no frames");
+  }
 
   objs[obn].cycling=0;
   objs[obn].num = views[viw].loops[objs[obn].loop].frames[objs[obn].frame].pic;

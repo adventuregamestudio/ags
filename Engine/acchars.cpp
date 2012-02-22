@@ -226,11 +226,13 @@ void fix_player_sprite(MoveList*cmls,CharacterInfo*chinf) {
   if (loaded_game_file_version <= 32)
   {
     bool can_right = (views[chinf->view].loops[2].numFrames > 0);
-    bool can_left = (views[chinf->view].loops[0].numFrames > 0);
+    bool can_left = (views[chinf->view].loops[1].numFrames > 0);
 
     if (abs(ypmove) < abs(xpmove))
     {
-      if (can_right && (xpmove >= 0)) {
+      if (!can_left && !can_right)
+        useloop = 0;
+      else if (can_right && (xpmove >= 0)) {
         useloop=2;
         CHECK_DIAGONAL(ypmove, xpmove, 5, 4)
       }
@@ -707,11 +709,13 @@ void Character_FaceLocation(CharacterInfo *char1, int xx, int yy, int blockingSt
   if (loaded_game_file_version <= 32)
   {
     bool can_right = (views[char1->view].loops[2].numFrames > 0);
-    bool can_left = (views[char1->view].loops[0].numFrames > 0);
+    bool can_left = (views[char1->view].loops[1].numFrames > 0);
 
     if (abs(diffry) < abs(diffrx))
     {
-      if (can_right && (diffrx >= 0)) {
+      if (!can_left && !can_right)
+        useloop = 0;
+      else if (can_right && (diffrx >= 0)) {
         useloop=2;
         CHECK_DIAGONAL(diffry, diffrx, 5, 4)
       }

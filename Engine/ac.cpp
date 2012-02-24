@@ -22471,6 +22471,8 @@ int run_dialog_script(DialogTopic*dtpp, int dialogID, int offse, int optionIndex
           get_dialog_script_parameters(script, &param1, NULL);
           NewRoom(param1);
           in_new_room = 1;
+          result = RUN_DIALOG_STOP_DIALOG;
+          script_running = false;
           break;
 
         case DCMD_SETGLOBALINT:

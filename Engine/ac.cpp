@@ -12315,7 +12315,7 @@ int load_game_file() {
 
   play.gui_draw_order = (int*)calloc(game.numgui * sizeof(int), 1);
 
-  if (filever > 25) // > 2.60
+  if (filever >= 25) // >= 2.60
   {
     platform->ReadPluginsFromDisk(iii);
 

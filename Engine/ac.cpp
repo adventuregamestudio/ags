@@ -11869,12 +11869,12 @@ void BuildAudioClipArray()
  -------------------------------
 
  12 : 2.3 + 2.4
- 19 : 2.5.1
- 22 : 2.5.5
- 24 : 2.5.6
 
  Versions above are incompatible at the moment.
 
+ 19 : 2.5.1
+ 22 : 2.5.5
+ 24 : 2.5.6
  25 : 2.6.0
 
  Encrypted global messages and dialogs.
@@ -11925,13 +11925,12 @@ int load_game_file() {
 
   if (filever < 42) {
     // Allow loading of 2.x+ datafiles
-    if (filever < 25) // < 2.6.0
+    if (filever < 18) // < 2.5.0
     {
       fclose(iii);
       return -2;
     }
-    else
-      psp_is_old_datafile = 1;
+    psp_is_old_datafile = 1;
   }
 
   int engineverlen = getw(iii);
@@ -12002,7 +12001,12 @@ int load_game_file() {
   }
 #endif
 
-  int numToRead = getw(iii);
+  int numToRead;
+  if (filever < 25)
+    numToRead = 6000; // Fixed number of sprites on < 2.60
+  else
+    numToRead = getw(iii);
+
   if (numToRead > MAX_SPRITES) {
     quit("Too many sprites; need newer AGS version");
   }
@@ -12311,29 +12315,32 @@ int load_game_file() {
 
   play.gui_draw_order = (int*)calloc(game.numgui * sizeof(int), 1);
 
-  platform->ReadPluginsFromDisk(iii);
+  if (filever > 25) // > 2.60
+  {
+    platform->ReadPluginsFromDisk(iii);
 
-  if (game.propSchema.UnSerialize(iii))
-    quit("load room: unable to deserialize prop schema");
+    if (game.propSchema.UnSerialize(iii))
+      quit("load room: unable to deserialize prop schema");
 
-  int errors = 0;
+    int errors = 0;
 
-  for (bb = 0; bb < game.numcharacters; bb++)
-    errors += game.charProps[bb].UnSerialize (iii);
-  for (bb = 0; bb < game.numinvitems; bb++)
-    errors += game.invProps[bb].UnSerialize (iii);
+    for (bb = 0; bb < game.numcharacters; bb++)
+      errors += game.charProps[bb].UnSerialize (iii);
+    for (bb = 0; bb < game.numinvitems; bb++)
+      errors += game.invProps[bb].UnSerialize (iii);
 
-  if (errors > 0)
-    quit("LoadGame: errors encountered reading custom props");
+    if (errors > 0)
+      quit("LoadGame: errors encountered reading custom props");
 
-  for (bb = 0; bb < game.numviews; bb++)
-    fgetstring_limit(game.viewNames[bb], iii, MAXVIEWNAMELENGTH);
+    for (bb = 0; bb < game.numviews; bb++)
+      fgetstring_limit(game.viewNames[bb], iii, MAXVIEWNAMELENGTH);
 
-  for (bb = 0; bb < game.numinvitems; bb++)
-    fgetstring_limit(game.invScriptNames[bb], iii, MAX_SCRIPT_NAME_LEN);
+    for (bb = 0; bb < game.numinvitems; bb++)
+      fgetstring_limit(game.invScriptNames[bb], iii, MAX_SCRIPT_NAME_LEN);
 
-  for (bb = 0; bb < game.numdialog; bb++)
-    fgetstring_limit(game.dialogScriptNames[bb], iii, MAX_SCRIPT_NAME_LEN);
+    for (bb = 0; bb < game.numdialog; bb++)
+      fgetstring_limit(game.dialogScriptNames[bb], iii, MAX_SCRIPT_NAME_LEN);
+  }
 
   if (filever >= 41)
   {

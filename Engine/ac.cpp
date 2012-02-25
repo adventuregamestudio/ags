@@ -11875,6 +11875,8 @@ void BuildAudioClipArray()
 
  Versions above are incompatible at the moment.
 
+ 25 : 2.6.0
+
  Encrypted global messages and dialogs.
  26 : 2.6.1
  27 : 2.6.2
@@ -12242,21 +12244,60 @@ int load_game_file() {
     // Read the dialog lines
     old_speech_lines = (char**)malloc(10000 * sizeof(char**));
     i = 0;
-    while (1)
-    {
-      unsigned int newlen = getw(iii);
-      if (newlen == 0xCAFEBEEF)  // GUI magic
-      {
-        fseek(iii, -4, SEEK_CUR);
-        break;
-      }
-      
-      old_speech_lines[i] = (char*)malloc(newlen + 1);
-      fread(old_speech_lines[i], newlen, 1, iii);
-      old_speech_lines[i][newlen] = 0;
-      decrypt_text(old_speech_lines[i]);
 
-      i++;
+    if (filever <= 25)
+    {
+      // Plain text on <= 2.60
+      char buffer[1000];
+      bool end_reached = false;
+
+      while (!end_reached)
+      {
+        char* nextchar = buffer;
+        
+        while (1)
+        {
+          *nextchar = fgetc(iii);
+          if (*nextchar == 0)
+            break;
+
+          if ((unsigned char)*nextchar == 0xEF)
+          {
+            end_reached = true;
+            fseek(iii, -1, SEEK_CUR);
+            break;
+          }
+
+          nextchar++;
+        }
+
+        if (end_reached)
+          break;
+
+        old_speech_lines[i] = (char*)malloc(strlen(buffer) + 1);
+        strcpy(old_speech_lines[i], buffer);
+        i++;
+      }
+    }
+    else
+    {
+      // Encrypted text on > 2.60
+      while (1)
+      {
+        unsigned int newlen = getw(iii);
+        if (newlen == 0xCAFEBEEF)  // GUI magic
+        {
+          fseek(iii, -4, SEEK_CUR);
+          break;
+        }
+        
+        old_speech_lines[i] = (char*)malloc(newlen + 1);
+        fread(old_speech_lines[i], newlen, 1, iii);
+        old_speech_lines[i][newlen] = 0;
+        decrypt_text(old_speech_lines[i]);
+
+        i++;
+      }
     }
     old_speech_lines = (char**)realloc(old_speech_lines, i * sizeof(char**));
   }

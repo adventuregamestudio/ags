@@ -557,7 +557,7 @@ bool ReadConfiguration(char* filename, bool read_everything)
 
     ReadInteger((int*)&psp_gfx_renderer, "graphics", "renderer", 0, 2, 0);
     ReadInteger((int*)&psp_gfx_smoothing, "graphics", "smoothing", 0, 1, 1);
-    ReadInteger((int*)&psp_gfx_scaling, "graphics", "scaling", 0, 1, 1);
+    ReadInteger((int*)&psp_gfx_scaling, "graphics", "scaling", 0, 2, 1);
     ReadInteger((int*)&psp_gfx_super_sampling, "graphics", "super_sampling", 0, 1, 0);
     ReadInteger((int*)&psp_gfx_smooth_sprites, "graphics", "smooth_sprites", 0, 1, 0);
 

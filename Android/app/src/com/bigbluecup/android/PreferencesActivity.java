@@ -111,14 +111,7 @@ public class PreferencesActivity extends ListActivity
 				CONFIG_ROTATION,
 				EnumSet.of(PreferencesEntry.Flags.MENU_ORIENTATION)
 				));
-/*
-		values.add(new PreferencesEntry(
-				"Ignore acsetup.cfg",
-				"Skip evaluating the standard AGS settings file",
-				CONFIG_IGNORE_ACSETUP,
-				EnumSet.of(PreferencesEntry.Flags.CHECKABLE)
-				));
-*/		
+
 		values.add(new PreferencesEntry(
 				"Sound", 
 				"", 
@@ -182,10 +175,10 @@ public class PreferencesActivity extends ListActivity
 				EnumSet.of(PreferencesEntry.Flags.MENU_RENDERER)
 				));
 		values.add(new PreferencesEntry(
-				"Stretch to screen", 
+				"Screen scaling", 
 				"",
 				CONFIG_GFX_SCALING, 
-				EnumSet.of(PreferencesEntry.Flags.CHECKABLE)
+				EnumSet.of(PreferencesEntry.Flags.MENU_SCALING)
 				));	
 		values.add(new PreferencesEntry(
 				"Linear filtering",
@@ -335,6 +328,17 @@ public class PreferencesActivity extends ListActivity
 				setValueForId(CONFIG_ROTATION, 2);
 				return true;
 				
+			// Scaling menu
+			case R.id.no_scaling:
+				setValueForId(CONFIG_GFX_SCALING, 0);
+				return true;
+			case R.id.preserve_aspect_ratio:
+				setValueForId(CONFIG_GFX_SCALING, 1);
+				return true;
+			case R.id.ignore_aspect_ratio:
+				setValueForId(CONFIG_GFX_SCALING, 2);
+				return true;
+				
 			case R.id.default_language:
 				setStringValueForId(CONFIG_TRANSLATION, "default");
 				setValueForId(CONFIG_TRANSLATION, 0);
@@ -368,6 +372,12 @@ public class PreferencesActivity extends ListActivity
 			inflater.inflate(R.menu.preference_renderer, menu);
 			menu.setHeaderTitle("Select renderer");
 			menu.getItem(getValueForId(CONFIG_GFX_RENDERER)).setChecked(true);
+		}
+		else if (activeMenu == PreferencesEntry.Flags.MENU_SCALING)
+		{
+			inflater.inflate(R.menu.preference_scaling, menu);
+			menu.setHeaderTitle("Screen scaling");
+			menu.getItem(getValueForId(CONFIG_GFX_SCALING)).setChecked(true);
 		}
 		else if (activeMenu == PreferencesEntry.Flags.MENU_TRANSLATION)
 		{
@@ -425,6 +435,14 @@ public class PreferencesActivity extends ListActivity
 			unregisterForContextMenu(v);
 			v.setLongClickable(false);
 		}		
+		else if (values.get(position).flags.contains(PreferencesEntry.Flags.MENU_SCALING))
+		{
+			activeMenu = PreferencesEntry.Flags.MENU_SCALING;
+			registerForContextMenu(v);
+			openContextMenu(v);
+			unregisterForContextMenu(v);
+			v.setLongClickable(false);
+		}
 		else if (values.get(position).flags.contains(PreferencesEntry.Flags.CHECKABLE))
 		{
 			values.get(position).value = (values.get(position).value == 1) ? 0 : 1;

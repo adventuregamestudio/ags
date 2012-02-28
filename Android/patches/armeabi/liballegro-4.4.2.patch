@@ -993,8 +993,8 @@ diff -Naur src/android/afile.c src/android/afile.c
 +
 diff -Naur src/android/agfx.c src/android/agfx.c
 --- src/android/agfx.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/android/agfx.c	2012-02-11 10:33:00.058442200 +0100
-@@ -0,0 +1,324 @@
++++ src/android/agfx.c	2012-02-28 20:30:21.698549400 +0100
+@@ -0,0 +1,329 @@
 +/*         ______   ___    ___
 +*        /\  _  \ /\_ \  /\_ \
 +*        \ \ \\ \\//\ \ \//\ \      __     __   _ __   ___
@@ -1198,7 +1198,7 @@ diff -Naur src/android/agfx.c src/android/agfx.c
 +/* Set the values for the texture coord. and vertex arrays */
 +void android_create_arrays(int screen_width, int screen_height)
 +{
-+   if (psp_gfx_scaling)
++   if (psp_gfx_scaling == 1)
 +   {
 +      if (android_device_ar <= android_screen_ar)
 +      {
@@ -1211,6 +1211,11 @@ diff -Naur src/android/agfx.c src/android/agfx.c
 +         android_vertices[5] = android_vertices[7] = screen_height - 1;
 +      }
 +   }
++   else if (psp_gfx_scaling == 2)
++   {
++      android_vertices[2] = android_vertices[6] = android_screen_physical_width - 1;
++      android_vertices[5] = android_vertices[7] = android_screen_physical_height - 1;
++   }   
 +   else
 +   {
 +      android_vertices[0] = android_vertices[4] = android_screen_width * (-0.5f);
@@ -1286,14 +1291,14 @@ diff -Naur src/android/agfx.c src/android/agfx.c
 +   glMatrixMode(GL_MODELVIEW);
 +   glLoadIdentity();
 +
-+   if (psp_gfx_scaling)
++   if (psp_gfx_scaling == 1)
 +   {
 +      if (android_device_ar <= android_screen_ar)
 +         glTranslatef(0, (android_screen_physical_height - android_vertices[5] - 1) / 2, 0);
 +      else
 +         glTranslatef((android_screen_physical_width - android_vertices[2] - 1) / 2, 0, 0);
 +   }
-+   else
++   else if (psp_gfx_scaling == 0)
 +   {
 +      glTranslatef(android_screen_physical_width / 2.0f, android_screen_physical_height / 2.0f, 0);
 +   }

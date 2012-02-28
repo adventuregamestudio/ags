@@ -487,26 +487,34 @@ void OGLGraphicsDriver::create_backbuffer_arrays()
   float android_screen_ar = (float)_newmode_width / (float)_newmode_height;
   float android_device_ar = (float)android_screen_physical_width / (float)android_screen_physical_height;
 
-  if (psp_gfx_scaling)
-   {
-      if (android_device_ar <= android_screen_ar)
-      {
-         backbuffer_vertices[2] = backbuffer_vertices[6] = android_screen_physical_width - 1;
-         backbuffer_vertices[5] = backbuffer_vertices[7] = android_screen_physical_width * ((float)_newmode_height / (float)_newmode_width);
-      }
-      else
-      {
-         backbuffer_vertices[2] = backbuffer_vertices[6] = android_screen_physical_height * ((float)_newmode_width / (float)_newmode_height);
-         backbuffer_vertices[5] = backbuffer_vertices[7] = android_screen_physical_height - 1;
-      }
-   }
-   else
-   {
-      backbuffer_vertices[0] = backbuffer_vertices[4] = _newmode_width * (-0.5f);
-      backbuffer_vertices[2] = backbuffer_vertices[6] = _newmode_width * 0.5f;
-      backbuffer_vertices[5] = backbuffer_vertices[7] = _newmode_height * 0.5f;
-      backbuffer_vertices[1] = backbuffer_vertices[3] = _newmode_height * (-0.5f);
-   }
+  if (psp_gfx_scaling == 1)
+  {
+    // Preserve aspect ratio
+    if (android_device_ar <= android_screen_ar)
+    {
+      backbuffer_vertices[2] = backbuffer_vertices[6] = android_screen_physical_width - 1;
+      backbuffer_vertices[5] = backbuffer_vertices[7] = android_screen_physical_width * ((float)_newmode_height / (float)_newmode_width);
+    }
+    else
+    {
+      backbuffer_vertices[2] = backbuffer_vertices[6] = android_screen_physical_height * ((float)_newmode_width / (float)_newmode_height);
+      backbuffer_vertices[5] = backbuffer_vertices[7] = android_screen_physical_height - 1;
+    }
+  }
+  else if (psp_gfx_scaling == 2)
+  {
+    // Stretch to whole screen
+    backbuffer_vertices[2] = backbuffer_vertices[6] = android_screen_physical_width - 1;
+    backbuffer_vertices[5] = backbuffer_vertices[7] = android_screen_physical_height - 1;
+  }
+  else
+  {
+    // No scaling
+    backbuffer_vertices[0] = backbuffer_vertices[4] = _newmode_width * (-0.5f);
+    backbuffer_vertices[2] = backbuffer_vertices[6] = _newmode_width * 0.5f;
+    backbuffer_vertices[5] = backbuffer_vertices[7] = _newmode_height * 0.5f;
+    backbuffer_vertices[1] = backbuffer_vertices[3] = _newmode_height * (-0.5f);
+  }
 
    backbuffer_texture_coordinates[5] = backbuffer_texture_coordinates[7] = (float)_newmode_height * _super_sampling / (float)_backbuffer_texture_height;
    backbuffer_texture_coordinates[2] = backbuffer_texture_coordinates[6] = (float)_newmode_width * _super_sampling / (float)_backbuffer_texture_width;
@@ -577,18 +585,26 @@ void OGLGraphicsDriver::InitOpenGl()
 
   if (psp_gfx_scaling && !_render_to_texture)
   {
-    float android_screen_ar = (float)_newmode_width / (float)_newmode_height;
-    float android_device_ar = (float)android_screen_physical_width / (float)android_screen_physical_height;
-
-    if (android_device_ar <= android_screen_ar)
+    if (psp_gfx_scaling == 1)
     {
-       _scale_width = (float)android_screen_physical_width / (float)_newmode_width;
-       _scale_height = _scale_width;
+      float android_screen_ar = (float)_newmode_width / (float)_newmode_height;
+      float android_device_ar = (float)android_screen_physical_width / (float)android_screen_physical_height;
+
+      if (android_device_ar <= android_screen_ar)
+      {
+         _scale_width = (float)android_screen_physical_width / (float)_newmode_width;
+         _scale_height = _scale_width;
+      }
+      else
+      {
+         _scale_height = (float)android_screen_physical_height / (float)_newmode_height;
+         _scale_width = _scale_height;
+      }
     }
     else
     {
-       _scale_height = (float)android_screen_physical_height / (float)_newmode_height;
-       _scale_width = _scale_height;
+      _scale_width = (float)android_screen_physical_width / (float)_newmode_width;
+      _scale_height = (float)android_screen_physical_height / (float)_newmode_height;
     }
   }
   else

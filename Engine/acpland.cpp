@@ -77,6 +77,8 @@ int psp_gfx_renderer = 0;
 int psp_gfx_super_sampling = 0;
 int psp_gfx_smooth_sprites = 0;
 
+int psp_debug_write_to_logcat = 0;
+
 extern int display_fps;
 extern int want_exit;
 extern void PauseGame();
@@ -118,6 +120,7 @@ const int CONFIG_ENABLED = 14;
 const int CONFIG_DEBUG_FPS = 15;
 const int CONFIG_GFX_SMOOTH_SPRITES = 16;
 const int CONFIG_TRANSLATION = 17;
+const int CONFIG_DEBUG_LOGCAT = 18;
 
 extern void android_debug_printf(const char* format, ...);
 
@@ -171,6 +174,7 @@ JNIEXPORT jboolean JNICALL
 
     fprintf(config, "[debug]\n");
     fprintf(config, "show_fps = %d\n", (display_fps == 2) ? 1 : 0);
+    fprintf(config, "logging = %d\n", psp_debug_write_to_logcat);
 
     fclose(config);
 
@@ -236,6 +240,9 @@ JNIEXPORT jint JNICALL
       break;
     case CONFIG_DEBUG_FPS:
       return (display_fps == 2) ? 1 : 0;
+      break;
+    case CONFIG_DEBUG_LOGCAT:
+      return psp_debug_write_to_logcat;
       break;
     default:
       return 0;
@@ -311,6 +318,9 @@ JNIEXPORT void JNICALL
       break;
     case CONFIG_DEBUG_FPS:
       display_fps = (value == 1) ? 2 : 0;
+      break;
+    case CONFIG_DEBUG_LOGCAT:
+      psp_debug_write_to_logcat = value;
       break;
     default:
       break;
@@ -525,6 +535,7 @@ bool ReadConfiguration(char* filename, bool read_everything)
     if (!psp_config_enabled && !read_everything)
       return true;
 
+    ReadInteger(&psp_debug_write_to_logcat, "debug", "logging", 0, 1, 0);
     ReadInteger(&display_fps, "debug", "show_fps", 0, 1, 0);
     if (display_fps == 1)
       display_fps = 2;
@@ -560,13 +571,17 @@ bool ReadConfiguration(char* filename, bool read_everything)
 
 
 
-void AGSAndroid::WriteDebugString(const char* texx, ...) {
-  char displbuf[STD_BUFFER_SIZE] = "AGS: ";
-  va_list ap;
-  va_start(ap,texx);
-  vsprintf(&displbuf[5],texx,ap);
-  va_end(ap);
-  __android_log_print(ANDROID_LOG_DEBUG, "AGSNative", displbuf);
+void AGSAndroid::WriteDebugString(const char* texx, ...)
+{
+  if (psp_debug_write_to_logcat)
+  {
+    char displbuf[STD_BUFFER_SIZE] = "AGS: ";
+    va_list ap;
+    va_start(ap,texx);
+    vsprintf(&displbuf[5],texx,ap);
+    va_end(ap);
+    __android_log_print(ANDROID_LOG_DEBUG, "AGSNative", displbuf);
+  }
 }
 
 void AGSAndroid::ReplaceSpecialPaths(const char *sourcePath, char *destPath)

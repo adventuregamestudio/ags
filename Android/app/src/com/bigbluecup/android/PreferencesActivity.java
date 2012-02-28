@@ -42,6 +42,7 @@ public class PreferencesActivity extends ListActivity
 	static final int CONFIG_DEBUG_FPS = 15;
 	static final int CONFIG_GFX_SMOOTH_SPRITES = 16;
 	static final int CONFIG_TRANSLATION = 17;
+	static final int CONFIG_DEBUG_LOGCAT = 18;
 	
 	static final int LANGUAGE_ID_BASE = 0x71000000;
 	
@@ -217,7 +218,13 @@ public class PreferencesActivity extends ListActivity
 				CONFIG_DEBUG_FPS,
 				EnumSet.of(PreferencesEntry.Flags.CHECKABLE)
 				));
-		
+		values.add(new PreferencesEntry(
+				"Log debug messages",
+				"", 
+				CONFIG_DEBUG_LOGCAT,
+				EnumSet.of(PreferencesEntry.Flags.CHECKABLE)
+				));
+
 		if (isGlobalConfig || (getValueForId(CONFIG_ENABLED) == 1))
 		{
 			for (int i = (isGlobalConfig ? 0 : 2); i < values.size(); i++)

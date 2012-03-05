@@ -12150,6 +12150,12 @@ int load_game_file() {
 
   our_eip=-14;
 
+  if (filever <= 19) // <= 2.1 skip unknown data
+  {
+    int count = getw(iii);
+    fseek(iii, count * 0x204, SEEK_CUR);
+  }
+
   game.chars=(CharacterInfo*)calloc(1,sizeof(CharacterInfo)*game.numcharacters+5);
 #ifndef ALLEGRO_BIG_ENDIAN
   fread(&game.chars[0],sizeof(CharacterInfo),game.numcharacters,iii);
@@ -12183,7 +12189,8 @@ int load_game_file() {
     }
   }
 
-  fread(&game.lipSyncFrameLetters[0][0], MAXLIPSYNCFRAMES, 50, iii);
+  if (filever > 19) // > 2.1
+    fread(&game.lipSyncFrameLetters[0][0], MAXLIPSYNCFRAMES, 50, iii);
 
   for (ee=0;ee<MAXGLOBALMES;ee++) {
     if (game.messages[ee]==NULL) continue;

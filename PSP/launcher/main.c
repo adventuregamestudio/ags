@@ -100,7 +100,7 @@ int IsCompatibleOldDatafile(version_info_t* version_info)
   
   sscanf(version_info->version, "%d.%d.%d.%d", &major, &minor, &rev, &build);
   
-  return ((major == 3) || ((major == 2) && (minor >= 60)));
+  return ((major == 3) || ((major == 2) && (minor >= 50)));
 }
 
 

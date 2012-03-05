@@ -128,6 +128,8 @@ class Weather
     
     drop_t mParticles[2000];
     view_t mViews[5];
+
+    bool mViewsInitialized;
 };
 
 
@@ -385,6 +387,8 @@ void Weather::Initialize()
   else
     SetFallSpeed(100, 300);
   
+  mViewsInitialized = false;
+
   int i;
   for (i = 0; i < 5; i++)
   {
@@ -489,7 +493,10 @@ void Weather::SetView(int kind_id, int event, int view, int loop)
   mViews[kind_id].bitmap = engine->GetSpriteGraphic(view_frame->pic);
   mViews[kind_id].is_default = false;  
   mViews[kind_id].view = view;
-  mViews[kind_id].loop = loop;  
+  mViews[kind_id].loop = loop;
+
+  if (!mViewsInitialized)
+    SetDefaultView(view, loop);
 }
 
 
@@ -504,6 +511,8 @@ void Weather::SetDefaultView(int view, int loop)
   AGSViewFrame* view_frame = engine->GetViewFrame(view, loop, 0);
   BITMAP* bitmap = engine->GetSpriteGraphic(view_frame->pic);
   
+  mViewsInitialized = true;
+
   int i;
   for (i = 0; i < 5; i++)
   {

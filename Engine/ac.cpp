@@ -12996,6 +12996,13 @@ void draw_button_background(int xx1,int yy1,int xx2,int yy2,GUIMain*iep) {
     wsetcolor(opts.tws.textcol); wrectangle(xx1+1,yy1+1,xx2-1,yy2-1);*/
     }
   else {
+    if (loaded_game_file_version < 25) // < 2.60
+    {
+      // Color 0 wrongly shows as transparent instead of black
+      if (iep->bgcol == 0)
+        iep->bgcol = 16;
+    }
+
     if (iep->bgcol >= 0) wsetcolor(iep->bgcol);
     else wsetcolor(0); // black backrgnd behind picture
 
@@ -13005,27 +13012,37 @@ void draw_button_background(int xx1,int yy1,int xx2,int yy2,GUIMain*iep) {
     int leftRightWidth = spritewidth[get_but_pic(iep,4)];
     int topBottomHeight = spriteheight[get_but_pic(iep,6)];
     if (iep->bgpic>0) {
-      // offset the background image and clip it so that it is drawn
-      // such that the border graphics can have a transparent outside
-      // edge
-      int bgoffsx = xx1 - leftRightWidth / 2;
-      int bgoffsy = yy1 - topBottomHeight / 2;
-      set_clip(abuf, bgoffsx, bgoffsy, xx2 + leftRightWidth / 2, yy2 + topBottomHeight / 2);
-      int bgfinishx = xx2;
-      int bgfinishy = yy2;
-      int bgoffsyStart = bgoffsy;
-      while (bgoffsx <= bgfinishx)
+      if ((loaded_game_file_version <= 32) // 2.xx
+        && (spriteset[iep->bgpic]->w == 1)
+        && (spriteset[iep->bgpic]->h == 1) 
+        && (*((unsigned int*)spriteset[iep->bgpic]->dat) == 0x00FF00FF))
       {
-        bgoffsy = bgoffsyStart;
-        while (bgoffsy <= bgfinishy)
-        {
-          wputblock(bgoffsx, bgoffsy, spriteset[iep->bgpic], (loaded_game_file_version <= 32) ? 1 : 0 );
-          bgoffsy += spriteheight[iep->bgpic];
-        }
-        bgoffsx += spritewidth[iep->bgpic];
+        // Don't draw fully transparent dummy GUI backgrounds
       }
-      // return to normal clipping rectangle
-      set_clip(abuf, 0, 0, abuf->w - 1, abuf->h - 1);
+      else
+      {
+        // offset the background image and clip it so that it is drawn
+        // such that the border graphics can have a transparent outside
+        // edge
+        int bgoffsx = xx1 - leftRightWidth / 2;
+        int bgoffsy = yy1 - topBottomHeight / 2;
+        set_clip(abuf, bgoffsx, bgoffsy, xx2 + leftRightWidth / 2, yy2 + topBottomHeight / 2);
+        int bgfinishx = xx2;
+        int bgfinishy = yy2;
+        int bgoffsyStart = bgoffsy;
+        while (bgoffsx <= bgfinishx)
+        {
+          bgoffsy = bgoffsyStart;
+          while (bgoffsy <= bgfinishy)
+          {
+            wputblock(bgoffsx, bgoffsy, spriteset[iep->bgpic], 0);
+            bgoffsy += spriteheight[iep->bgpic];
+          }
+          bgoffsx += spritewidth[iep->bgpic];
+        }
+        // return to normal clipping rectangle
+        set_clip(abuf, 0, 0, abuf->w - 1, abuf->h - 1);
+      }
     }
     int uu;
     for (uu=yy1;uu <= yy2;uu+=spriteheight[get_but_pic(iep,4)]) {

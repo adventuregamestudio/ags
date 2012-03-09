@@ -452,7 +452,10 @@ JNIEXPORT jboolean JNICALL
     java_environment->CallVoidMethod(java_object, java_setRotation, psp_rotation);
 
   // Start the engine main function.
-	main(1, &psp_game_file_name_pointer);
+  main(1, &psp_game_file_name_pointer);
+  
+  // Explicitly quit here, otherwise the app will hang forever.
+  exit(0);
   
   return true;
 }
@@ -621,6 +624,7 @@ void AGSAndroid::DisplayAlert(const char *text, ...) {
 
   jstring java_string = thread_env->NewStringUTF(displbuf);
   thread_env->CallVoidMethod(java_object, java_messageCallback, java_string);
+  usleep(1000 * 1000);
   thread_env->CallVoidMethod(java_object, java_blockExecution);
 
 //  android_jni_vm->DetachCurrentThread();

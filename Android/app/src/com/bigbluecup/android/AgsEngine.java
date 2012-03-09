@@ -65,6 +65,7 @@ public class AgsEngine extends Activity
 		audio = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
 		
 		// Switch to the loading view and start the game
+		isInGame = true;
 		setContentView(R.layout.loading);
 		glue = new EngineGlue(this, gameFilename, baseDirectory);
 		glue.start();

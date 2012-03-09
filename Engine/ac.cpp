@@ -28668,7 +28668,7 @@ int initialize_engine(int argc,char*argv[])
       platform->DisplayAlert("Main game file not found. This may be from a different AGS version, or the file may have got corrupted.\n");
     else if (ee==-2)
       platform->DisplayAlert("Invalid file format. The file may be corrupt, or from a different\n"
-        "version of AGS.\nThis engine can only run games made with AGS 2.6 or later.\n");
+        "version of AGS.\nThis engine can only run games made with AGS 2.5 or later.\n");
     else if (ee==-3)
       platform->DisplayAlert("Script link failed: %s\n",ccErrorString);
     return EXIT_NORMAL;

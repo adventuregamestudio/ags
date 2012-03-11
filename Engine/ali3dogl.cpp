@@ -1033,6 +1033,8 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
     glEnable(GL_BLEND);
   }
 
+  glFinish();
+
 #if defined(WINDOWS_VERSION)
   SwapBuffers(_hDC);
 #elif defined(ANDROID_VERSION)

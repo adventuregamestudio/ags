@@ -604,7 +604,9 @@ struct MYSTATICMP3:public SOUNDCLIP
 
     int oldeip = our_eip;
       our_eip = 5997;
-    if (tune == NULL) ;
+
+    if ((tune == NULL) || (!ready))
+      ;
     else if (almp3_poll_mp3(tune) == ALMP3_POLL_PLAYJUSTFINISHED) {
       if (!repeat)
         done = 1;
@@ -724,6 +726,7 @@ SOUNDCLIP *my_load_static_mp3(const char *filname, int voll, bool loop)
   thismp3->repeat = loop;
   thismp3->tune = almp3_create_mp3(mp3buffer, muslen);
   thismp3->done = 0;
+  thismp3->ready = true;
 
   if (thismp3->tune == NULL) {
     free(mp3buffer);
@@ -762,7 +765,7 @@ struct MYSTATICOGG:public SOUNDCLIP
   {
     lockMutex();
 
-    if (tune == NULL)
+    if ((tune == NULL) || (!ready))
       ; // Do nothing
     else if (alogg_poll_ogg(tune) == ALOGG_POLL_PLAYJUSTFINISHED) {
       if (!repeat)
@@ -954,6 +957,8 @@ SOUNDCLIP *my_load_static_ogg(const char *filname, int voll, bool loop)
   thissogg->mp3buffersize = muslen;
 
   thissogg->tune = alogg_create_ogg_from_buffer(mp3buffer, muslen);
+  thissogg->ready = true;
+
   if (thissogg->tune == NULL) {
     thissogg->destroy();
     delete thissogg;

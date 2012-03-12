@@ -46,6 +46,7 @@ struct SOUNDCLIP
   int directionalVolModifier;
   bool repeat;
   void *sourceClip;
+  bool ready;
 
 #if defined(PSP_VERSION)
   SceUID mutex;
@@ -100,6 +101,7 @@ struct SOUNDCLIP
   }
 
   SOUNDCLIP() {
+    ready = false;
     done = 0;
     paused = 0;
     priority = 50;

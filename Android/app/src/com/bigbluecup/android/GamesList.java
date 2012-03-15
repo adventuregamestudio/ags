@@ -4,12 +4,16 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
 
+import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Environment;
+import android.text.Editable;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
@@ -18,6 +22,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -43,19 +48,12 @@ public class GamesList extends ListActivity
 		
 		System.loadLibrary("pe");
 		
-		filename = searchForGames();
-		
-		if (filename != null)
-		  startGame(filename);
-		
-		if ((folderList != null) && (folderList.size() > 0))
-		{
-			this.setListAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, folderList));
-		}
-		else
-		{
-			showMessage("No games found.");
-		}
+		// Get base directory from data storage
+		SharedPreferences settings = getSharedPreferences("gameslist", 0);
+		baseDirectory = settings.getString("baseDirectory", Environment.getExternalStorageDirectory() + "/ags");
+
+		// Build game list
+		buildGamesList();
 		
 		registerForContextMenu(getListView());
 	}
@@ -69,7 +67,8 @@ public class GamesList extends ListActivity
 	}
 
 	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
+	public boolean onOptionsItemSelected(MenuItem item)
+	{
 		switch (item.getItemId())
 		{
 			case R.id.credits:
@@ -77,10 +76,52 @@ public class GamesList extends ListActivity
 			case R.id.preferences:
 				showPreferences(-1);
 				return true;
+			case R.id.setfolder:
+			{
+				AlertDialog.Builder alert = new AlertDialog.Builder(this);
+
+				alert.setTitle("Game folder");
+
+				final EditText input = new EditText(this);
+				input.setText(baseDirectory);
+				alert.setView(input);
+
+				alert.setPositiveButton("Ok", new DialogInterface.OnClickListener()
+				{
+					public void onClick(DialogInterface dialog, int whichButton)
+					{
+						Editable value = input.getText();
+						baseDirectory = value.toString();
+						buildGamesList();
+					}
+				});
+					
+				alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener()
+				{
+					public void onClick(DialogInterface dialog, int whichButton)
+					{
+					}
+				});
+
+				alert.show();
+				
+			}
 			default:
 				return super.onOptionsItemSelected(item);
 		}
 	}
+	
+	@Override
+	protected void onStop()
+	{
+		super.onStop();
+
+		SharedPreferences settings = getSharedPreferences("gameslist", 0);
+		SharedPreferences.Editor editor = settings.edit();
+		editor.putString("baseDirectory", baseDirectory);
+		editor.commit();
+	}
+
 	
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo)
@@ -139,11 +180,29 @@ public class GamesList extends ListActivity
 		finish();
 	}
 	
+	private void buildGamesList()
+	{
+		filename = searchForGames();
+		
+		if (filename != null)
+			startGame(filename);
+		
+		if ((folderList != null) && (folderList.size() > 0))
+		{
+			this.setListAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, folderList));
+		}
+		else
+		{
+			this.setListAdapter(null);
+			showMessage("No games found in \"" + baseDirectory + "\"");
+		}
+	}
+	
 	private String searchForGames()
 	{
 		String[] tempList = null;
-		
-		baseDirectory = Environment.getExternalStorageDirectory() + "/ags";
+		folderList = null;
+		filenameList = null;
 		
 		// Check for ac2game.dat in the base directory
 		File ac2game = new File(baseDirectory + "/ac2game.dat");
@@ -221,5 +280,5 @@ public class GamesList extends ListActivity
 	public void onConfigurationChanged(Configuration newConfig)
 	{
 		super.onConfigurationChanged(newConfig);
-	}	
+	}
 }

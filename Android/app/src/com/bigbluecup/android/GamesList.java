@@ -72,6 +72,7 @@ public class GamesList extends ListActivity
 		switch (item.getItemId())
 		{
 			case R.id.credits:
+				showCredits();
 				return true;
 			case R.id.preferences:
 				showPreferences(-1);
@@ -158,6 +159,12 @@ public class GamesList extends ListActivity
 		startGame(filenameList.get(position));
 	}
 
+	private void showCredits()
+	{
+		Intent intent = new Intent(this, CreditsActivity.class);
+		startActivity(intent);
+	}
+	
 	private void showPreferences(int position)
 	{
 		Intent intent = new Intent(this, PreferencesActivity.class);

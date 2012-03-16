@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu
   xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:enabled="true" android:visible="true" android:title="Settings" android:icon="@android:drawable/ic_menu_preferences" android:id="@+id/preferences"></item>
-    <item android:enabled="true" android:visible="true" android:title="Credits" android:icon="@android:drawable/ic_menu_info_details" android:id="@+id/credits"></item>
-    
+    <item android:enabled="true" android:visible="true" android:title="Preferences" android:icon="@android:drawable/ic_menu_preferences" android:id="@+id/preferences"></item>
+    <item android:id="@+id/setfolder" android:title="Select game folder" android:visible="true" android:icon="@android:drawable/ic_menu_search" android:enabled="true"></item><item android:enabled="true" android:visible="true" android:title="Credits" android:icon="@android:drawable/ic_menu_info_details" android:id="@+id/credits"></item>
 </menu>

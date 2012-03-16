@@ -59,6 +59,8 @@ char psp_translation[] = "default";
 
 pthread_t soundthread;
 extern "C" void android_render();
+extern "C" void selectLatestSavegame();
+extern bool psp_load_latest_savegame;
 #endif
 
 // PSP specific variables:
@@ -29150,6 +29152,11 @@ int initialize_engine(int argc,char*argv[])
     }
 #endif
   }
+
+#if defined(ANDROID_VERSION)
+  if (psp_load_latest_savegame)
+    selectLatestSavegame();
+#endif
 
   initialize_start_and_play_game(override_start_room, loadSaveGameOnStartup);
 

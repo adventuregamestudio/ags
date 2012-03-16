@@ -45,6 +45,7 @@ public class AgsEngine extends Activity
 		// Get the game filename from the launcher activity
 		String gameFilename = getIntent().getExtras().getString("filename");
 		String baseDirectory = getIntent().getExtras().getString("directory");
+		boolean loadLastSave = getIntent().getExtras().getBoolean("loadLastSave");
 		
 		// Set windows options
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -67,7 +68,7 @@ public class AgsEngine extends Activity
 		// Switch to the loading view and start the game
 		isInGame = true;
 		setContentView(R.layout.loading);
-		glue = new EngineGlue(this, gameFilename, baseDirectory);
+		glue = new EngineGlue(this, gameFilename, baseDirectory, loadLastSave);
 		glue.start();
 	}
 	

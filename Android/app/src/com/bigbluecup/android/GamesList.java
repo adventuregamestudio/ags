@@ -144,7 +144,10 @@ public class GamesList extends ListActivity
 				showPreferences((int)info.id);
 				return true;
 			case R.id.start:
-				startGame(filenameList.get((int)info.id));
+				startGame(filenameList.get((int)info.id), false);
+				return true;
+			case R.id.continueGame:
+				startGame(filenameList.get((int)info.id), true);
 				return true;
 			default:
 				return super.onContextItemSelected(item);
@@ -156,7 +159,7 @@ public class GamesList extends ListActivity
 	{
 		super.onListItemClick(l, v, position, id);
 		
-		startGame(filenameList.get(position));
+		startGame(filenameList.get(position), false);
 	}
 
 	private void showCredits()
@@ -176,12 +179,13 @@ public class GamesList extends ListActivity
 		startActivity(intent);
 	}
 	
-	private void startGame(String filename)
+	private void startGame(String filename, boolean loadLastSave)
 	{
 		Intent intent = new Intent(this, AgsEngine.class);
 		Bundle b = new Bundle();
 		b.putString("filename", filename);
 		b.putString("directory", baseDirectory);
+		b.putBoolean("loadLastSave", loadLastSave);
 		intent.putExtras(b);
 		startActivity(intent);
 		finish();
@@ -192,7 +196,7 @@ public class GamesList extends ListActivity
 		filename = searchForGames();
 		
 		if (filename != null)
-			startGame(filename);
+			startGame(filename, false);
 		
 		if ((folderList != null) && (folderList.size() > 0))
 		{

@@ -2,6 +2,5 @@
 <menu
   xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:enabled="true" android:visible="true" android:id="@+id/start" android:checkable="false" android:title="Start game" android:checked="false"></item>
-    <item android:enabled="true" android:visible="true" android:id="@+id/preferences" android:checkable="false" android:title="Preferences" android:checked="false"></item>
-    
+    <item android:id="@+id/continueGame" android:titleCondensed="Continue game" android:title="Continue game" android:visible="true" android:checked="false" android:checkable="false" android:enabled="true"></item><item android:enabled="true" android:visible="true" android:id="@+id/preferences" android:checkable="false" android:title="Preferences" android:checked="false"></item>
 </menu>

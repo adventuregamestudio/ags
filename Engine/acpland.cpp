@@ -88,6 +88,12 @@ extern int main(int argc,char*argv[]);
 char psp_game_file_name[256];
 char* psp_game_file_name_pointer = psp_game_file_name;
 
+bool psp_load_latest_savegame = false;
+extern char saveGameDirectory[260];
+extern const char *loadSaveGameOnStartup;
+char lastSaveGameName[200];
+
+
 extern JavaVM* android_jni_vm;
 JNIEnv *java_environment;
 jobject java_object;
@@ -402,7 +408,7 @@ JNIEXPORT void JNICALL
 
 
 JNIEXPORT jboolean JNICALL 
-  Java_com_bigbluecup_android_EngineGlue_startEngine(JNIEnv* env, jobject object, jclass stringclass, jstring filename, jstring directory)
+  Java_com_bigbluecup_android_EngineGlue_startEngine(JNIEnv* env, jobject object, jclass stringclass, jstring filename, jstring directory, jboolean loadLastSave)
 {
   // Get JNI interfaces.
   java_object = env->NewGlobalRef(object);
@@ -431,15 +437,15 @@ JNIEXPORT jboolean JNICALL
   // Read general configuration.
   ReadConfiguration(ANDROID_CONFIG_FILENAME, true);
 
-	// Get the games path.
-	char path[256];
-	strcpy(path, psp_game_file_name);
-	int lastindex = strlen(path) - 1;
-	while (path[lastindex] != '/')
-	{
-	  path[lastindex] = 0;
-	  lastindex--;
-	}
+  // Get the games path.
+  char path[256];
+  strcpy(path, psp_game_file_name);
+  int lastindex = strlen(path) - 1;
+  while (path[lastindex] != '/')
+  {
+    path[lastindex] = 0;
+    lastindex--;
+  }
   chdir(path);
   
   setenv("ULTRADIR", "..", 1);
@@ -451,6 +457,8 @@ JNIEXPORT jboolean JNICALL
   if (psp_rotation > 0)
     java_environment->CallVoidMethod(java_object, java_setRotation, psp_rotation);
 
+  psp_load_latest_savegame = loadLastSave;
+
   // Start the engine main function.
   main(1, &psp_game_file_name_pointer);
   
@@ -460,8 +468,42 @@ JNIEXPORT jboolean JNICALL
   return true;
 }
 
+
+void selectLatestSavegame()
+{
+  DIR* dir;
+  struct dirent* entry;
+  struct stat statBuffer;
+  char buffer[200];
+  time_t lastTime = 0;
+
+  dir = opendir(saveGameDirectory);
+
+  if (dir)
+  {
+    while ((entry = readdir(dir)) != 0)
+    {
+      if (strnicmp(entry->d_name, "agssave", 7) == 0)
+      {
+        if (stricmp(entry->d_name, "agssave.999") != 0)
+        {
+          strcpy(buffer, saveGameDirectory);
+          strcat(buffer, entry->d_name);
+          stat(buffer, &statBuffer);
+          if (statBuffer.st_mtime > lastTime)
+          {
+            strcpy(lastSaveGameName, buffer);
+            loadSaveGameOnStartup = lastSaveGameName;
+            lastTime = statBuffer.st_mtime;
+          }
+        }
+      }
+    }
+    closedir(dir);
+  }
 }
 
+}
 
 
 int ReadInteger(int* variable, char* section, char* name, int minimum, int maximum, int default_value)

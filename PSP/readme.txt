@@ -1,4 +1,4 @@
-Adventure Game Studio runtime PSP port - version 3.21 R7
+Adventure Game Studio runtime PSP port - version 3.21 R8
 --------------------------------------------------------
 
 Licensed under the Artistic License 2.0, see License.txt in the Engine folder.
@@ -20,7 +20,7 @@ AGS game compatibility:
 -----------------------------------------------------------------------------------------------
 This runtime engine port is not compatible with all AGS games. There are the
 following restrictions:
-- Supported AGS versions right now are all starting from 2.60 even though
+- Supported AGS versions right now are all starting from 2.50 even though
   running games below version 3.2x is experimental at the moment.
   You can check the version of AGS a game was made with by examining the properties 
   of the game executable.
@@ -58,9 +58,6 @@ Playable with restrictions:
   to the left.
 - The Journey Down: The outro sequence will run with a very low frame rate.
 - Aeronuts: The plane arcade sections are slow but playable.
-- Murder in a Wheel: Text display is partially corrupted.
-- 5 days a stranger, 7 days a sceptic, etc.: Only the special editions of these games
-  are playable on the PSP. The original releases use an older incompatible engine version.
 
 Not playable on the PSP:
 - Eternally Us: Runs out of memory before displaying anything.

@@ -77,7 +77,7 @@ public class PreferencesActivity extends ListActivity
 		
 		boolean hasCustomConfig = readConfigFile(baseDirectory + '/' + gameName);
 		
-		translations = new String[10];
+		translations = new String[100];
 		translationCount = getAvailableTranslations(translations);
 
 		values = new ArrayList<PreferencesEntry>();
@@ -346,7 +346,7 @@ public class PreferencesActivity extends ListActivity
 				
 			default:
 				int id = item.getItemId();
-				if ((id > LANGUAGE_ID_BASE) && (id <= LANGUAGE_ID_BASE + 10))
+				if ((id > LANGUAGE_ID_BASE) && (id <= LANGUAGE_ID_BASE + 100))
 				{
 					setStringValueForId(CONFIG_TRANSLATION, item.getTitle().toString());
 					setValueForId(CONFIG_TRANSLATION, id - LANGUAGE_ID_BASE);					

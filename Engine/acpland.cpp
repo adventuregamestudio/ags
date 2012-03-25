@@ -55,7 +55,7 @@ int psp_clear_cache_on_room_change = 0;
 int psp_rotation = 0;
 int psp_config_enabled = 0;
 char psp_translation[100];
-char* psp_translations[10];
+char* psp_translations[100];
 
 
 // Graphic options from the Allegro library.

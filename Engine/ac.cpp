@@ -7777,6 +7777,14 @@ extern "C" int compare_listentries(const void *elem1, const void *elem2) {
       return 1;
     if (e2->takesPriorityIfEqual)
       return -1;
+
+    // Trying to make the order of equal elements reproducible across
+    // different libc implementations here
+#if defined WINDOWS_VERSION
+    return -1;
+#else
+    return 1;
+#endif
   }
 
   // returns >0 if e1 is lower down, <0 if higher, =0 if the same

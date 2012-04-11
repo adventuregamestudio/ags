@@ -41,7 +41,7 @@
 #ifdef WINDOWS_VERSION
 #include "winalleg.h"
 #elif defined(MAC_VERSION)
-#include <Allegro/osxalleg.h>
+#include <osxalleg.h>
 #endif
 
 #include "bigend.h"

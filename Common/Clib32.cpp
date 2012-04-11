@@ -46,6 +46,7 @@
 
 #ifdef MAC_VERSION
 #include "macport.h"
+#include <sys/stat.h>
 #endif
 
 #include "bigend.h"
@@ -60,7 +61,7 @@ const int RAND_SEED_SALT = 9338638;  // must update editor agsnative.cpp if this
 #define MAX_FILES 10000
 #define MAXMULTIFILES 25
 
-#ifdef LINUX_VERSION
+#if defined(LINUX_VERSION) || defined(MAC_VERSION)
 static off_t filelength(int fd) {
   struct stat st;
   fstat(fd, &st);
@@ -496,11 +497,7 @@ extern "C"
     }
 
     if ((last_opened_size < 0) && (tfil != NULL))
-#ifdef MAC_VERSION
-      last_opened_size = flength(tfil);
-#else
       last_opened_size = filelength(fileno(tfil));
-#endif
 
     return tfil;
   }

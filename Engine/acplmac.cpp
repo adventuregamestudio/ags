@@ -25,11 +25,15 @@ struct AGSMac : AGS32BitOSDriver {
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
   virtual void WriteConsole(const char*, ...);
+  virtual void ReplaceSpecialPaths(const char*, char*);  
 };
 
+void AGSMac::ReplaceSpecialPaths(const char *sourcePath, char *destPath) {
+  strcpy(destPath, sourcePath);
+}
 
 int AGSMac::CDPlayerCommand(int cmdd, int datt) {
-  return cd_player_control(cmdd, datt);
+  return 0;//cd_player_control(cmdd, datt);
 }
 
 void AGSMac::DisplayAlert(const char *text, ...) {
@@ -59,16 +63,18 @@ eScriptSystemOSID AGSMac::GetSystemOSID() {
 }
 
 int AGSMac::InitializeCDPlayer() {
-  return cd_player_init();
+  //return cd_player_init();
 }
 
 void AGSMac::PlayVideo(const char *name, int skip, int flags) {
+/*
   if (!PlayMovie(name, skip))
   {
     char useloc[512];
     sprintf(useloc, "%s/%s", get_filename(usetup.data_files_dir), name);
     PlayMovie(useloc, skip);
   }
+*/
 }
 
 void AGSMac::PostAllegroExit() {
@@ -93,7 +99,7 @@ void AGSMac::WriteConsole(const char *text, ...) {
 }
 
 void AGSMac::ShutdownCDPlayer() {
-  cd_exit();
+  //cd_exit();
 }
 
 AGSPlatformDriver* AGSPlatformDriver::GetDriver() {

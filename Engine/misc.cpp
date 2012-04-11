@@ -30,7 +30,7 @@
 #include "allegro.h"
 #include "misc.h"
 
-#if defined(WINDOWS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
+#if defined(MAC_VERSION) || defined(WINDOWS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
 #include <string.h>
 /* File Name Concatenator basically on Windows / DOS */
 char *ci_find_file(char *dir_name, char *file_name)

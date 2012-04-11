@@ -27,7 +27,14 @@
 
 #include "bigend.h"
 
-typedef unsigned char *__block;
+#if !defined(MAC_VERSION)
+typedef unsigned char * __block;
+#else
+#ifdef __block
+#undef __block
+#define __block unsigned char*
+#endif
+#endif
 
 extern long cliboffset(char *);
 extern char lib_file_name[13];

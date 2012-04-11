@@ -17,7 +17,7 @@
 #include <pspsdk.h>
 #include <pspkernel.h>
 #include <pspthreadman.h>
-#elif defined(LINUX_VERSION)
+#elif defined(LINUX_VERSION) || defined(MAC_VERSION)
 #include <pthread.h>
 #elif defined(WINDOWS_VERSION)
 #include <windows.h>
@@ -50,7 +50,7 @@ struct SOUNDCLIP
 
 #if defined(PSP_VERSION)
   SceUID mutex;
-#elif defined(LINUX_VERSION)
+#elif defined(LINUX_VERSION) || defined(MAC_VERSION)
   pthread_mutex_t mutex;
 #elif defined(WINDOWS_VERSION)
   HANDLE mutex;
@@ -127,7 +127,7 @@ struct SOUNDCLIP
   {
 #if defined(PSP_VERSION)
     mutex = sceKernelCreateSema("SoundMutex", 0, 1, 1, 0);
-#elif defined(LINUX_VERSION)
+#elif defined(LINUX_VERSION) || defined(MAC_VERSION)
     pthread_mutex_init(&mutex, NULL);
 #elif defined(WINDOWS_VERSION)
     mutex = CreateMutex(NULL, FALSE, NULL); 
@@ -138,7 +138,7 @@ struct SOUNDCLIP
   {
 #if defined(PSP_VERSION)
     sceKernelWaitSema(mutex, 1, 0);
-#elif defined(LINUX_VERSION)
+#elif defined(LINUX_VERSION) || defined(MAC_VERSION)
     pthread_mutex_lock(&mutex);
 #elif defined(WINDOWS_VERSION)
     WaitForSingleObject(mutex, INFINITE);
@@ -149,7 +149,7 @@ struct SOUNDCLIP
   {
 #if defined(PSP_VERSION)
     sceKernelSignalSema(mutex, 1);
-#elif defined(LINUX_VERSION)
+#elif defined(LINUX_VERSION) || defined(MAC_VERSION)
     pthread_mutex_unlock(&mutex);
 #elif defined(WINDOWS_VERSION)
     ReleaseMutex(mutex);
@@ -160,7 +160,7 @@ struct SOUNDCLIP
   {
 #if defined(PSP_VERSION)
     sceKernelDeleteSema(mutex);
-#elif defined(LINUX_VERSION)
+#elif defined(LINUX_VERSION) || defined(MAC_VERSION)
     pthread_mutex_destroy(&mutex);
 #elif defined(WINDOWS_VERSION)
     CloseHandle(mutex); 

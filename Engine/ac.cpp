@@ -12,7 +12,7 @@
 
 */
 
-#if defined(WINDOWS_VERSION) || (defined(LINUX_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION))
+#if defined(WINDOWS_VERSION) || defined(MAC_VERSION) || (defined(LINUX_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION))
 int psp_video_framedrop = 1;
 int psp_audio_enabled = 1;
 int psp_midi_enabled = 1;
@@ -26,7 +26,7 @@ int psp_gfx_smooth_sprites = 1;
 char psp_translation[] = "default";
 #endif
 
-#if defined(LINUX_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
+#if defined(MAC_VERSION) || (defined(LINUX_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION))
 #include <dlfcn.h>
 #endif
 
@@ -52,12 +52,15 @@ char psp_translation[] = "default";
 #define tanh(a) vfpu_tanhf(a)
 #endif
 
-#if defined(ANDROID_VERSION)
+#if defined(MAC_VERSION) || (defined(LINUX_VERSION) && !defined(PSP_VERSION))
 #include <pthread.h>
+pthread_t soundthread;
+#endif
+
+#if defined(ANDROID_VERSION)
 #include <sys/stat.h>
 #include <android/log.h>
 
-pthread_t soundthread;
 extern "C" void android_render();
 extern "C" void selectLatestSavegame();
 extern bool psp_load_latest_savegame;
@@ -118,7 +121,7 @@ char dataDirectory[512];
 char appDirectory[512];
 extern "C"
 {
-   int osx_sys_question(AL_CONST char *msg, AL_CONST char *but1, AL_CONST char *but2);
+   int osx_sys_question(const char *msg, const char *but1, const char *but2);
 }
 #endif
 
@@ -529,7 +532,7 @@ int update_mp3_thread(SceSize args, void *argp)
   }
   return 0;
 }
-#elif defined(ANDROID_VERSION)
+#elif (defined(LINUX_VERSION) && !defined(PSP_VERSION)) || defined(MAC_VERSION)
 void* update_mp3_thread(void* arg)
 {
   while (update_mp3_thread_running)
@@ -3039,7 +3042,7 @@ int Game_SetSaveGameDirectory(const char *newFolder) {
   platform->ReplaceSpecialPaths(newFolder, newSaveGameDir);
   fix_filename_slashes(newSaveGameDir);
 
-#ifdef LINUX_VERSION
+#if defined(LINUX_VERSION) || defined(MAC_VERSION)
   mkdir(newSaveGameDir, 0);
 #else
   mkdir(newSaveGameDir);
@@ -29144,7 +29147,7 @@ int initialize_engine(int argc,char*argv[])
       update_mp3_thread_running = false;
       psp_audio_multithreaded = 0;
     }
-#elif defined(ANDROID_VERSION)
+#elif (defined(LINUX_VERSION) && !defined(PSP_VERSION)) || defined(MAC_VERSION)
     update_mp3_thread_running = true;
     if (pthread_create(&soundthread, NULL, update_mp3_thread, NULL) != 0)
     {

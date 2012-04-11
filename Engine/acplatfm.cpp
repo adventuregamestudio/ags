@@ -16,6 +16,15 @@
 #define strnicmp strncasecmp
 #endif
 
+#if defined(MAC_VERSION)
+extern char dataDirectory[512];
+extern char appDirectory[512];
+extern "C"
+{
+   int osx_sys_question(AL_CONST char *msg, AL_CONST char *but1, AL_CONST char *but2);
+}
+#endif
+
 #if defined(PSP_VERSION)
 #include <pspsdk.h>
 #include <pspkernel.h>
@@ -889,20 +898,10 @@ void pl_read_plugins_from_disk (FILE *iii) {
       apl->dllHandle = LoadLibrary(caDylib);
       if (apl->dllHandle == NULL)
       {
-        // warn and maybe continue anyway
-        char caError[512];
-        sprintf(caError, "Unable to load plugin '%s'\n", buffer);
-        if (osx_sys_question(caError, "Continue anyway", "Quit") == 0)
-        {
-          quit(caError);
-        }
-        else
-        {
-          // forget this plugin
-          numPlugins--;
-          a--;
-          continue;
-        }
+        // forget this plugin
+        numPlugins--;
+        a--;
+        continue;
       }
     }
 #elif defined(ANDROID_VERSION)

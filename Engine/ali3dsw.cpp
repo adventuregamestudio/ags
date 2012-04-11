@@ -24,7 +24,7 @@
 #define Sleep(x) sceKernelDelayThread(1000*x)
 #endif
 
-#if defined(LINUX_VERSION) && !defined(PSP_VERSION)
+#if (defined(LINUX_VERSION) && !defined(PSP_VERSION)) || defined(MAC_VERSION)
 #define Sleep(x) usleep(1000*x)
 #endif
 

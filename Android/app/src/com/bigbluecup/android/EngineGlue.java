@@ -16,13 +16,17 @@ public class EngineGlue extends Thread implements CustomGlSurfaceView.Renderer
 	public static final int MSG_SHOW_MESSAGE = 2;
 	public static final int MSG_SHOW_TOAST = 3;
 	public static final int MSG_SET_ORIENTATION = 4;
+	public static final int MSG_ENABLE_LONGCLICK = 5;
 	
 	public static final int MOUSE_CLICK_LEFT = 1;
 	public static final int MOUSE_CLICK_RIGHT = 2;
+	public static final int MOUSE_HOLD_LEFT = 10;
 	
 	public int keyboardKeycode = 0;
 	public short mouseMoveX = 0;
 	public short mouseMoveY = 0;
+	public short mouseRelativeMoveX = 0;
+	public short mouseRelativeMoveY = 0;
 	public int mouseClick = 0;
 	
 	private int screenPhysicalWidth = 480;
@@ -79,11 +83,12 @@ public class EngineGlue extends Thread implements CustomGlSurfaceView.Renderer
 		paused = false;
 	}
 	
-	public void moveMouse(float x, float y)
+	public void moveMouse(float relativeX, float relativeY, float x, float y)
 	{
-		// The mouse movement is scaled to the game screen size
-		mouseMoveX = (short) (x * (float)screenVirtualWidth / (float)screenPhysicalWidth);
-		mouseMoveY = (short) (y * (float)screenVirtualHeight / (float)screenPhysicalHeight);
+		mouseMoveX = (short)x;
+		mouseMoveY = (short)y;
+		mouseRelativeMoveX = (short)relativeX;
+		mouseRelativeMoveY = (short)relativeY;
 	}
 	
 	public void clickMouse(int button)
@@ -168,20 +173,19 @@ public class EngineGlue extends Thread implements CustomGlSurfaceView.Renderer
 		return result;
 	}
 
-	private int pollMouseX()
+	private int pollMouseAbsolute()
 	{
-		int result = mouseMoveX;
-		mouseMoveX = 0;
+		return mouseMoveX | ((int)(mouseMoveY & 0xFFFF) << 16);
+	}
+
+	private int pollMouseRelative()
+	{
+		int result = (mouseRelativeMoveX & 0xFFFF) | ((int)(mouseRelativeMoveY & 0xFFFF) << 16);
+		mouseRelativeMoveX = 0;
+		mouseRelativeMoveY = 0;
 		return result;
 	}
 	
-	private int pollMouseY()
-	{
-		int result = mouseMoveY;
-		mouseMoveY = 0;
-		return result;
-	}	
-
 	private int pollMouseButtons()
 	{
 		int result = mouseClick;
@@ -211,6 +215,11 @@ public class EngineGlue extends Thread implements CustomGlSurfaceView.Renderer
 			data.putInt("orientation", ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 		
 		sendMessageToActivity(MSG_SET_ORIENTATION, data);
+	}
+	
+	private void enableLongclick()
+	{
+		sendMessageToActivity(MSG_ENABLE_LONGCLICK, null);
 	}
 
 	// Called from Allegro, the buffer is allocated in native code

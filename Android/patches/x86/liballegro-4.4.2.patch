@@ -1,6 +1,6 @@
 diff -Naur cmake/FileList.cmake cmake/FileList.cmake
 --- cmake/FileList.cmake	2011-03-12 01:26:00.000000000 +0100
-+++ cmake/FileList.cmake	2012-02-11 10:32:58.230210000 +0100
++++ cmake/FileList.cmake	2012-04-24 10:47:13.055733500 +0200
 @@ -335,6 +335,19 @@
          src/psp/pvtable8.c
          )
@@ -40,7 +40,7 @@ diff -Naur cmake/FileList.cmake cmake/FileList.cmake
          include/allegro/platform/alucfg.h
 diff -Naur cmake/Toolchain-android-gcc.cmake cmake/Toolchain-android-gcc.cmake
 --- cmake/Toolchain-android-gcc.cmake	1970-01-01 01:00:00.000000000 +0100
-+++ cmake/Toolchain-android-gcc.cmake	2012-02-11 10:32:58.243211700 +0100
++++ cmake/Toolchain-android-gcc.cmake	2012-04-24 10:47:13.063734600 +0200
 @@ -0,0 +1,37 @@
 +# The name of the target operating system.
 +set(CMAKE_SYSTEM_NAME Generic)
@@ -81,7 +81,7 @@ diff -Naur cmake/Toolchain-android-gcc.cmake cmake/Toolchain-android-gcc.cmake
 +set(ANDROID 1)
 diff -Naur CMakeLists.txt CMakeLists.txt
 --- CMakeLists.txt	2011-03-25 00:18:50.000000000 +0100
-+++ CMakeLists.txt	2012-02-11 10:32:58.658264400 +0100
++++ CMakeLists.txt	2012-04-24 10:47:13.407278200 +0200
 @@ -313,6 +313,18 @@
      set(CMAKE_INSTALL_PREFIX ${PSP_PREFIX})
  endif(PSP)
@@ -118,7 +118,7 @@ diff -Naur CMakeLists.txt CMakeLists.txt
  # Generate and install headers
 diff -Naur include/allegro/internal/alconfig.h include/allegro/internal/alconfig.h
 --- include/allegro/internal/alconfig.h	2008-12-24 02:39:48.000000000 +0100
-+++ include/allegro/internal/alconfig.h	2012-02-11 10:32:59.648890200 +0100
++++ include/allegro/internal/alconfig.h	2012-04-24 10:47:14.236883500 +0200
 @@ -14,7 +14,7 @@
   *
   *      See readme.txt for copyright information.
@@ -139,8 +139,8 @@ diff -Naur include/allegro/internal/alconfig.h include/allegro/internal/alconfig
     #endif
 diff -Naur include/allegro/platform/aintand.h include/allegro/platform/aintand.h
 --- include/allegro/platform/aintand.h	1970-01-01 01:00:00.000000000 +0100
-+++ include/allegro/platform/aintand.h	2012-02-11 10:32:59.662391900 +0100
-@@ -0,0 +1,49 @@
++++ include/allegro/platform/aintand.h	2012-04-24 10:47:14.253385600 +0200
+@@ -0,0 +1,50 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
 + *        \ \ \L\ \\//\ \ \//\ \      __     __   _ __   ___
@@ -174,9 +174,10 @@ diff -Naur include/allegro/platform/aintand.h include/allegro/platform/aintand.h
 +
 +int android_poll_keyboard();
 +
-+int android_poll_mouse_x();
-+int android_poll_mouse_y();
++int android_poll_mouse_absolute();
++int android_poll_mouse_relative();
 +int android_poll_mouse_buttons();
++void android_mouse_setup(int left, int right, int top, int bottom, float scaling_x, float scaling_y);
 +
 +void android_initialize_sound(int size);
 +void android_update_sound(char* buffer, unsigned int size);
@@ -192,7 +193,7 @@ diff -Naur include/allegro/platform/aintand.h include/allegro/platform/aintand.h
 +
 diff -Naur include/allegro/platform/aland.h include/allegro/platform/aland.h
 --- include/allegro/platform/aland.h	1970-01-01 01:00:00.000000000 +0100
-+++ include/allegro/platform/aland.h	2012-02-11 10:32:59.699396600 +0100
++++ include/allegro/platform/aland.h	2012-04-24 10:47:14.276388500 +0200
 @@ -0,0 +1,74 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
@@ -270,7 +271,7 @@ diff -Naur include/allegro/platform/aland.h include/allegro/platform/aland.h
 +#endif
 diff -Naur include/allegro/platform/alandcfg.h include/allegro/platform/alandcfg.h
 --- include/allegro/platform/alandcfg.h	1970-01-01 01:00:00.000000000 +0100
-+++ include/allegro/platform/alandcfg.h	2012-02-11 10:32:59.702397000 +0100
++++ include/allegro/platform/alandcfg.h	2012-04-24 10:47:14.278388800 +0200
 @@ -0,0 +1,68 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
@@ -342,7 +343,7 @@ diff -Naur include/allegro/platform/alandcfg.h include/allegro/platform/alandcfg
 +#endif
 diff -Naur include/allegro/platform/alplatf.h include/allegro/platform/alplatf.h
 --- include/allegro/platform/alplatf.h	1970-01-01 01:00:00.000000000 +0100
-+++ include/allegro/platform/alplatf.h	2012-02-11 10:32:59.740401800 +0100
++++ include/allegro/platform/alplatf.h	2012-04-24 10:47:14.293890800 +0200
 @@ -0,0 +1,17 @@
 +/* #undef ALLEGRO_BCC32 */
 +/* #undef ALLEGRO_BEOS */
@@ -363,7 +364,7 @@ diff -Naur include/allegro/platform/alplatf.h include/allegro/platform/alplatf.h
 +#define ALLEGRO_USE_C
 diff -Naur include/allegro/system.h include/allegro/system.h
 --- include/allegro/system.h	2011-03-19 00:47:45.000000000 +0100
-+++ include/allegro/system.h	2012-02-11 10:32:59.777406500 +0100
++++ include/allegro/system.h	2012-04-24 10:47:14.315893600 +0200
 @@ -66,6 +66,7 @@
  #define OSTYPE_MACOS       AL_ID('M','A','C',' ')
  #define OSTYPE_MACOSX      AL_ID('M','A','C','X')
@@ -374,7 +375,7 @@ diff -Naur include/allegro/system.h include/allegro/system.h
  AL_VAR(int, os_version);
 diff -Naur src/android/adrivers.c src/android/adrivers.c
 --- src/android/adrivers.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/android/adrivers.c	2012-02-11 10:33:00.049441000 +0100
++++ src/android/adrivers.c	2012-04-24 10:47:14.495916400 +0200
 @@ -0,0 +1,75 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
@@ -453,7 +454,7 @@ diff -Naur src/android/adrivers.c src/android/adrivers.c
 +END_JOYSTICK_DRIVER_LIST
 diff -Naur src/android/afile.c src/android/afile.c
 --- src/android/afile.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/android/afile.c	2012-02-11 10:33:00.053441500 +0100
++++ src/android/afile.c	2012-04-24 10:47:14.498416700 +0200
 @@ -0,0 +1,536 @@
 +/*         ______   ___    ___ 
 + *        /\  _  \ /\_ \  /\_ \ 
@@ -993,8 +994,8 @@ diff -Naur src/android/afile.c src/android/afile.c
 +
 diff -Naur src/android/agfx.c src/android/agfx.c
 --- src/android/agfx.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/android/agfx.c	2012-02-28 20:30:21.698549400 +0100
-@@ -0,0 +1,329 @@
++++ src/android/agfx.c	2012-04-24 10:47:14.500417000 +0200
+@@ -0,0 +1,362 @@
 +/*         ______   ___    ___
 +*        /\  _  \ /\_ \  /\_ \
 +*        \ \ \\ \\//\ \ \//\ \      __     __   _ __   ___
@@ -1196,25 +1197,49 @@ diff -Naur src/android/agfx.c src/android/agfx.c
 +
 +
 +/* Set the values for the texture coord. and vertex arrays */
-+void android_create_arrays(int screen_width, int screen_height)
++void android_create_arrays()
 +{
 +   if (psp_gfx_scaling == 1)
 +   {
 +      if (android_device_ar <= android_screen_ar)
 +      {
-+         android_vertices[2] = android_vertices[6] = screen_width - 1;
-+         android_vertices[5] = android_vertices[7] = screen_width * ((float)android_screen_height / (float)android_screen_width);
++         android_vertices[2] = android_vertices[6] = android_screen_physical_width - 1;
++         android_vertices[5] = android_vertices[7] = android_screen_physical_width * ((float)android_screen_height / (float)android_screen_width);
++         
++         android_mouse_setup(
++            0, 
++            android_screen_physical_width - 1, 
++            (android_screen_physical_height - android_vertices[5]) / 2, 
++            android_screen_physical_height - ((android_screen_physical_height - android_vertices[5]) / 2), 
++            (float)android_screen_width / (float)android_screen_physical_width, 
++            (float)android_screen_height / android_vertices[5]);
 +      }
 +      else
 +      {
-+         android_vertices[2] = android_vertices[6] = screen_height * ((float)android_screen_width / (float)android_screen_height);
-+         android_vertices[5] = android_vertices[7] = screen_height - 1;
++         android_vertices[2] = android_vertices[6] = android_screen_physical_height * ((float)android_screen_width / (float)android_screen_height);
++         android_vertices[5] = android_vertices[7] = android_screen_physical_height - 1;
++         
++         android_mouse_setup(
++            (android_screen_physical_width - android_vertices[2]) / 2,
++            android_screen_physical_width - ((android_screen_physical_width - android_vertices[2]) / 2),
++            0,
++            android_screen_physical_height - 1,
++            (float)android_screen_width / android_vertices[2], 
++            (float)android_screen_height / (float)android_screen_physical_height);
 +      }
 +   }
 +   else if (psp_gfx_scaling == 2)
 +   {
 +      android_vertices[2] = android_vertices[6] = android_screen_physical_width - 1;
 +      android_vertices[5] = android_vertices[7] = android_screen_physical_height - 1;
++      
++      android_mouse_setup(
++         0, 
++         android_screen_physical_width - 1, 
++         0, 
++         android_screen_physical_width - 1, 
++         (float)android_screen_width / (float)android_screen_physical_width, 
++         (float)android_screen_height / (float)android_screen_physical_height);	  
 +   }   
 +   else
 +   {
@@ -1222,6 +1247,14 @@ diff -Naur src/android/agfx.c src/android/agfx.c
 +      android_vertices[2] = android_vertices[6] = android_screen_width * 0.5f;
 +      android_vertices[5] = android_vertices[7] = android_screen_height * 0.5f;
 +      android_vertices[1] = android_vertices[3] = android_screen_height * (-0.5f);
++      
++      android_mouse_setup(
++         (android_screen_physical_width - android_screen_width) / 2,
++         android_screen_physical_width - ((android_screen_physical_width - android_screen_width) / 2),
++         (android_screen_physical_height - android_screen_height) / 2, 
++         android_screen_physical_height - ((android_screen_physical_height - android_screen_height) / 2), 
++         1.0f,
++         1.0f);
 +   }
 +
 +   android_texture_coordinates[1] = android_texture_coordinates[3] = (float)android_screen_height / (float)android_screen_texture_height;
@@ -1264,7 +1297,7 @@ diff -Naur src/android/agfx.c src/android/agfx.c
 +   glVertexPointer(2, GL_FLOAT, 0, android_vertices);
 +
 +   android_create_screen_texture(android_screen_width, android_screen_height, android_screen_color_depth);
-+   android_create_arrays(android_screen_physical_width, android_screen_physical_height);
++   android_create_arrays();
 +
 +   glBindTexture(GL_TEXTURE_2D, android_screen_texture);
 +   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -1322,12 +1355,13 @@ diff -Naur src/android/agfx.c src/android/agfx.c
 +   glClear(GL_COLOR_BUFFER_BIT);
 +   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 +
++   glFinish();
 +   android_swap_buffers();
 +}
 diff -Naur src/android/ajni.c src/android/ajni.c
 --- src/android/ajni.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/android/ajni.c	2012-02-11 10:33:00.061942600 +0100
-@@ -0,0 +1,145 @@
++++ src/android/ajni.c	2012-04-24 10:47:14.503417400 +0200
+@@ -0,0 +1,146 @@
 +/*         ______   ___    ___
 +*        /\  _  \ /\_ \  /\_ \
 +*        \ \ \\ \\//\ \ \//\ \      __     __   _ __   ___
@@ -1365,9 +1399,10 @@ diff -Naur src/android/ajni.c src/android/ajni.c
 +jmethodID android_jni_pollKeyboard;
 +jmethodID android_jni_initializeSound;
 +jmethodID android_jni_updateSound;
++jmethodID android_jni_pollMouse;
 +jmethodID android_jni_pollMouseButtons;
-+jmethodID android_jni_pollMouseX;
-+jmethodID android_jni_pollMouseY;
++jmethodID android_jni_pollMouseRelative;
++jmethodID android_jni_pollMouseAbsolute;
 +jmethodID android_jni_swapBuffers;
 +
 +
@@ -1403,9 +1438,9 @@ diff -Naur src/android/ajni.c src/android/ajni.c
 +
 +   android_jni_createScreen = (*android_jni_env)->GetMethodID(android_jni_env, android_jni_class, "createScreen", "(III)V");
 +   android_jni_pollKeyboard = (*android_jni_env)->GetMethodID(android_jni_env, android_jni_class, "pollKeyboard", "()I");
-+   android_jni_pollMouseX = (*android_jni_env)->GetMethodID(android_jni_env, android_jni_class, "pollMouseX", "()I");
-+   android_jni_pollMouseY = (*android_jni_env)->GetMethodID(android_jni_env, android_jni_class, "pollMouseY", "()I");
 +   android_jni_pollMouseButtons = (*android_jni_env)->GetMethodID(android_jni_env, android_jni_class, "pollMouseButtons", "()I");
++   android_jni_pollMouseRelative = (*android_jni_env)->GetMethodID(android_jni_env, android_jni_class, "pollMouseRelative", "()I");
++   android_jni_pollMouseAbsolute = (*android_jni_env)->GetMethodID(android_jni_env, android_jni_class, "pollMouseAbsolute", "()I");
 +   android_jni_initializeSound = (*android_jni_env)->GetMethodID(android_jni_env, android_jni_class, "initializeSound", "([BI)V");
 +   android_jni_updateSound = (*android_jni_env)->GetMethodID(android_jni_env, android_jni_class, "updateSound", "()V"); 
 +   android_jni_swapBuffers = (*android_jni_env)->GetMethodID(android_jni_env, android_jni_class, "swapBuffers", "()V"); 
@@ -1454,19 +1489,19 @@ diff -Naur src/android/ajni.c src/android/ajni.c
 +   (*android_jni_env)->CallVoidMethod(android_jni_env, android_jni_object, android_jni_swapBuffers);
 +}
 +
-+int android_poll_mouse_x()
-+{
-+   return (*android_jni_env)->CallIntMethod(android_jni_env, android_jni_object, android_jni_pollMouseX);
-+}
-+
-+int android_poll_mouse_y()
-+{
-+   return (*android_jni_env)->CallIntMethod(android_jni_env, android_jni_object, android_jni_pollMouseY);
-+}
-+
 +int android_poll_mouse_buttons()
 +{
 +   return (*android_jni_env)->CallIntMethod(android_jni_env, android_jni_object, android_jni_pollMouseButtons);
++}
++
++int android_poll_mouse_relative()
++{
++   return (*android_jni_env)->CallIntMethod(android_jni_env, android_jni_object, android_jni_pollMouseRelative);
++}
++
++int android_poll_mouse_absolute()
++{
++   return (*android_jni_env)->CallIntMethod(android_jni_env, android_jni_object, android_jni_pollMouseAbsolute);
 +}
 +
 +int android_poll_keyboard()
@@ -1475,8 +1510,8 @@ diff -Naur src/android/ajni.c src/android/ajni.c
 +}
 diff -Naur src/android/akey.c src/android/akey.c
 --- src/android/akey.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/android/akey.c	2012-02-11 10:33:00.065443100 +0100
-@@ -0,0 +1,235 @@
++++ src/android/akey.c	2012-04-24 10:47:14.506917800 +0200
+@@ -0,0 +1,247 @@
 +/*         ______   ___    ___
 +*        /\  _  \ /\_ \  /\_ \
 +*        \ \ \\ \\//\ \ \//\ \      __     __   _ __   ___
@@ -1661,7 +1696,19 @@ diff -Naur src/android/akey.c src/android/akey.c
 +
 +static int android_scancode_to_ascii(int scancode)
 +{
-+   return android_scancode_to_allegro[scancode].asciicode;
++   if (scancode > ANDROID_KEYCODE_COUNT)
++      return 0;
++   else
++      return android_scancode_to_allegro[scancode].asciicode;
++}
++
++
++static int android_scancode_to_keycode(int scancode)
++{
++   if (scancode > ANDROID_KEYCODE_COUNT)
++      return scancode - 0x1000;
++   else
++      return android_scancode_to_allegro[scancode].allegro_keycode;
 +}
 +
 +
@@ -1692,17 +1739,17 @@ diff -Naur src/android/akey.c src/android/akey.c
 +      android_last_scancode = -1;
 +   }
 +   
-+   if ((scancode < 1) || (scancode > ANDROID_KEYCODE_COUNT))
++   if (scancode < 1)
 +      return;
-+
++   
 +   shift_pressed = (polled_value & 0xF0000000) >> 30;
 +
 +   ascii_code = (polled_value & 0x0FFF0000) >> 16;
 +
-+   allegro_keycode = android_scancode_to_allegro[scancode].allegro_keycode;
++   allegro_keycode = android_scancode_to_keycode(scancode);
 +   
 +   if (ascii_code == 0)
-+      ascii_code = android_scancode_to_allegro[scancode].asciicode;
++      ascii_code = android_scancode_to_ascii(scancode);
 +
 +   // Replace LF with CR
 +   if (ascii_code == 10)
@@ -1714,8 +1761,8 @@ diff -Naur src/android/akey.c src/android/akey.c
 +}
 diff -Naur src/android/amouse.c src/android/amouse.c
 --- src/android/amouse.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/android/amouse.c	2012-02-11 10:33:00.073444100 +0100
-@@ -0,0 +1,144 @@
++++ src/android/amouse.c	2012-04-24 10:47:14.518419300 +0200
+@@ -0,0 +1,214 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
 + *        \ \ \\ \\//\ \ \//\ \      __     __   _ __   ___
@@ -1758,6 +1805,10 @@ diff -Naur src/android/amouse.c src/android/amouse.c
 +static int mouse_maxy = 200;
 +int android_left_mouse_stay = 0;
 +int android_right_mouse_stay = 0;
++int android_mouse_last_x = 0;
++int android_mouse_last_y = 0;
++
++int config_mouse_control_mode = 0; // 0 = direct, 1 = relative
 +
 +
 +MOUSE_DRIVER mouse_android =
@@ -1787,24 +1838,88 @@ diff -Naur src/android/amouse.c src/android/amouse.c
 +}
 +
 +
++int android_mouse_clip_left = 0;
++int android_mouse_clip_right = 799;
++int android_mouse_clip_top = 0;
++int android_mouse_clip_bottom = 479;
++float android_mouse_scaling_x = 1.0f;
++float android_mouse_scaling_y = 1.0f;
++
++
++void android_clip_mouse(int* x, int* y)
++{
++   if (*x < android_mouse_clip_left)
++      *x = android_mouse_clip_left;
++
++   if (*y < android_mouse_clip_top)
++      *y = android_mouse_clip_top;
++
++   if (*x > android_mouse_clip_right)
++      *x = android_mouse_clip_right;
++
++   if (*y > android_mouse_clip_bottom)
++      *y = android_mouse_clip_bottom;
++
++   *x -= android_mouse_clip_left;
++   *y -= android_mouse_clip_top;
++}
++
++void android_scale_mouse(int* x, int* y)
++{
++   *x = (float)*x * android_mouse_scaling_x;
++   *y = (float)*y * android_mouse_scaling_y;
++}
++
++
++void android_mouse_setup(int left, int right, int top, int bottom, float scaling_x, float scaling_y)
++{
++   android_mouse_clip_left = left;
++   android_mouse_clip_right = right;
++   android_mouse_clip_top = top;
++   android_mouse_clip_bottom = bottom;
++   android_mouse_scaling_x = scaling_x;
++   android_mouse_scaling_y = scaling_y;
++}
++
++
 +static void android_mouse_poll(void)
 +{
-+  int new_x = android_poll_mouse_x() + _mouse_x;
-+  int new_y = android_poll_mouse_y() + _mouse_y;
++  int new_x;
++  int new_y;
 +  int new_click = android_poll_mouse_buttons();
++  
++  if (config_mouse_control_mode == 1)
++  {
++    unsigned int new = android_poll_mouse_relative();
++    new_x = (short)(new & 0x0000FFFF);
++    new_y = (short)((new & 0xFFFF0000) >> 16);
++
++    android_scale_mouse(&new_x, &new_y);
++  
++    new_x += _mouse_x;
++    new_y += _mouse_y;
++  }
++  else
++  {
++    unsigned int new = android_poll_mouse_absolute();
++    new_x = (new & 0x0000FFFF);
++    new_y = (new & 0xFFFF0000) >> 16;
++    android_clip_mouse(&new_x, &new_y);	
++    android_scale_mouse(&new_x, &new_y);
++  }
 +  
 +  if (new_x < mouse_minx)
 +    new_x = mouse_minx;
-+	
++
 +  if (new_y < mouse_miny)
 +    new_y = mouse_miny;
-+	
++
 +  if (new_x > mouse_maxx)
 +    new_x = mouse_maxx;
-+	
++
 +  if (new_y > mouse_maxy)
 +    new_y = mouse_maxy;
-+	
++
 +  _mouse_x = new_x;
 +  _mouse_y = new_y;
 +  
@@ -1813,6 +1928,8 @@ diff -Naur src/android/amouse.c src/android/amouse.c
 +    android_left_mouse_stay = 10;
 +  else if (new_click == 2)
 +    android_right_mouse_stay = 10;
++  else if (new_click == 10)
++    android_left_mouse_stay = 10 * 1000 * 1000;
 +  
 +  if (android_left_mouse_stay > 0)
 +    android_left_mouse_stay--;
@@ -1862,7 +1979,7 @@ diff -Naur src/android/amouse.c src/android/amouse.c
 +
 diff -Naur src/android/asound.c src/android/asound.c
 --- src/android/asound.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/android/asound.c	2012-02-11 10:33:00.074444200 +0100
++++ src/android/asound.c	2012-04-24 10:47:14.519919500 +0200
 @@ -0,0 +1,160 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
@@ -2026,7 +2143,7 @@ diff -Naur src/android/asound.c src/android/asound.c
 +}
 diff -Naur src/android/asystem.c src/android/asystem.c
 --- src/android/asystem.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/android/asystem.c	2012-02-11 10:33:00.077444600 +0100
++++ src/android/asystem.c	2012-04-24 10:47:14.522919800 +0200
 @@ -0,0 +1,102 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
@@ -2132,7 +2249,7 @@ diff -Naur src/android/asystem.c src/android/asystem.c
 +}
 diff -Naur src/android/atimer.c src/android/atimer.c
 --- src/android/atimer.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/android/atimer.c	2012-02-11 10:33:00.080445000 +0100
++++ src/android/atimer.c	2012-04-24 10:47:14.524420000 +0200
 @@ -0,0 +1,228 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
@@ -2364,7 +2481,7 @@ diff -Naur src/android/atimer.c src/android/atimer.c
 +}
 diff -Naur src/digmid.c src/digmid.c
 --- src/digmid.c	2007-08-09 22:48:38.000000000 +0200
-+++ src/digmid.c	2012-02-11 10:33:00.323975900 +0100
++++ src/digmid.c	2012-04-24 10:47:14.657436900 +0200
 @@ -13,6 +13,8 @@
   *      By Shawn Hargreaves, based on code by Tom Novelli.
   *      Chris Robinson added some optimizations and the digmid_set_pan method.
@@ -2458,7 +2575,7 @@ diff -Naur src/digmid.c src/digmid.c
  
 diff -Naur src/file.c src/file.c
 --- src/file.c	2011-03-25 00:18:25.000000000 +0100
-+++ src/file.c	2012-02-11 10:33:00.445991400 +0100
++++ src/file.c	2012-04-24 10:47:14.757449600 +0200
 @@ -1808,7 +1808,7 @@
   *  it returns NULL and stores an error code in errno. An attempt to read a 
   *  normal file in packed mode will cause errno to be set to EDOM.

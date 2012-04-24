@@ -1,7 +1,5 @@
 package com.bigbluecup.android;
 
-import java.util.Date;
-
 import com.bigbluecup.android.EngineGlue;
 import com.bigbluecup.android.R;
 
@@ -17,8 +15,14 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
+import android.view.HapticFeedbackConstants;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
+import android.view.View;
+import android.view.View.OnLongClickListener;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
@@ -34,8 +38,21 @@ public class AgsEngine extends Activity
 	private AudioManager audio;
 	public CustomGlSurfaceView surfaceView;
 	public MessageHandler handler;
-	private Date date;
-	private long returnKeyDownTime;
+	
+	boolean ignoreNextPointerUp = false;
+	boolean ignoreMovement = false;
+	boolean initialized = false;
+	boolean stopLongclick = false;
+	boolean enableLongclick = false;
+	private float lastX = 0.0f;
+	private float lastY = 0.0f;
+	private float downX = 0.0f;
+	private float downY = 0.0f;	
+
+	private boolean ignoreNextActionUp_Back = false;
+	private boolean ignoreNextActionUp_Menu = false;
+
+	private boolean draggingMouse = false;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState)
@@ -59,9 +76,6 @@ public class AgsEngine extends Activity
 		
 		// Set message handler for thread communication
 		handler = new MessageHandler();
-		
-		// Create date object for later use
-		date = new Date();
 		
 		audio = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
 		
@@ -128,15 +142,14 @@ public class AgsEngine extends Activity
 				case EngineGlue.MSG_SET_ORIENTATION:
 					setRequestedOrientation(msg.getData().getInt("orientation"));
 					break;
+					
+				case EngineGlue.MSG_ENABLE_LONGCLICK:
+					enableLongclick = true;
+					break;
 			}
 		}
 	}
 	
-	boolean ignoreNextPointerUp = false;
-	boolean ignoreMovement = false;
-	boolean initialized = false;
-	private float lastX = 0.0f;
-	private float lastY = 0.0f;
 	
 	@Override
 	public boolean dispatchTouchEvent(MotionEvent ev)
@@ -145,9 +158,12 @@ public class AgsEngine extends Activity
 		{
 			case MotionEvent.ACTION_DOWN:
 			{
+				downX = ev.getX();
+				downY = ev.getY();
 				ignoreMovement = false;
 				initialized = false;
-				
+				stopLongclick = false;
+				glue.moveMouse(0, 0, downX, downY);				
 				break;
 			}
 			
@@ -164,11 +180,11 @@ public class AgsEngine extends Activity
 				{
 					float x = ev.getX() - lastX;
 					float y = ev.getY() - lastY;
-	
-					glue.moveMouse(x, y);
-					
+
 					lastX = ev.getX();
 					lastY = ev.getY();
+					
+					glue.moveMouse(x, y, lastX, lastY);
 					
 					try
 					{
@@ -191,14 +207,9 @@ public class AgsEngine extends Activity
 				{
 					// Quick tap for clicking the left mouse button
 					glue.clickMouse(EngineGlue.MOUSE_CLICK_LEFT);
+					draggingMouse = false;
 				}
-/*
-				else if (down_time < 400)
-				{
-					// Slightly slower tap for clicking the right mouse button					
-					glue.clickMouse(EngineGlue.MOUSE_CLICK_RIGHT);
-				}
-*/				
+		
 				try
 				{
 					// Delay a bit to not get flooded with events
@@ -212,6 +223,7 @@ public class AgsEngine extends Activity
 			// Second finger down
 			case 5: //MotionEvent.ACTION_POINTER_DOWN:
 			{
+				stopLongclick = true;
 				ignoreMovement = true;
 				ignoreNextPointerUp = true;
 			}
@@ -236,12 +248,74 @@ public class AgsEngine extends Activity
 			}			
 		}
 		
-		return isInGame;
+		return super.dispatchTouchEvent(ev);
 	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item)
+	{
+		switch (item.getItemId())
+		{
+			case R.id.key_f1:
+				glue.keyboardEvent(0x1000 + 47, 0, false);
+				break;
+			case R.id.key_f2:
+				glue.keyboardEvent(0x1000 + 48, 0, false);
+				break;
+			case R.id.key_f3:
+				glue.keyboardEvent(0x1000 + 49, 0, false);
+				break;
+			case R.id.key_f4:
+				glue.keyboardEvent(0x1000 + 50, 0, false);
+				break;
+			case R.id.key_f5:
+				glue.keyboardEvent(0x1000 + 51, 0, false);
+				break;
+			case R.id.key_f6:
+				glue.keyboardEvent(0x1000 + 52, 0, false);
+				break;
+			case R.id.key_f7:
+				glue.keyboardEvent(0x1000 + 53, 0, false);
+				break;
+			case R.id.key_f8:
+				glue.keyboardEvent(0x1000 + 54, 0, false);
+				break;
+			case R.id.key_f9:
+				glue.keyboardEvent(0x1000 + 55, 0, false);
+				break;
+			case R.id.key_f10:
+				glue.keyboardEvent(0x1000 + 56, 0, false);
+				break;
+			case R.id.key_f11:
+				glue.keyboardEvent(0x1000 + 57, 0, false);
+				break;
+			case R.id.key_f12:
+				glue.keyboardEvent(0x1000 + 58, 0, false);
+				break;
+
+			case R.id.exitgame:
+				showExitConfirmation();
+				break;
+				
+			default:
+				return super.onOptionsItemSelected(item);
+		}
+		
+		return true;
+	}	
+	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu)
+	{
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.ingame, menu);
+		return true;
+	}	
 	
 	@Override
 	public boolean dispatchKeyEvent(KeyEvent ev)
 	{
+		
 		// Very simple key processing for now, just one key event per poll
 		switch (ev.getAction())
 		{
@@ -249,13 +323,17 @@ public class AgsEngine extends Activity
 			{
 				int key = ev.getKeyCode();
 				
-				if (key == KeyEvent.KEYCODE_BACK)
+				if ((key == KeyEvent.KEYCODE_BACK) && ((ev.getFlags() & 0x80) > 0)) // FLAG_LONG_PRESS
 				{
-					if (returnKeyDownTime == 0)
-					{
-						Date date = new Date(); 
-						returnKeyDownTime = date.getTime();
-					}
+					ignoreNextActionUp_Back = true;
+					showExitConfirmation();
+				}
+				
+				if ((key == KeyEvent.KEYCODE_MENU) && ((ev.getFlags() & 0x80) > 0)) // FLAG_LONG_PRESS
+				{
+					ignoreNextActionUp_Menu = true;
+					InputMethodManager manager = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+					manager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
 				}
 				
 				if (key == KeyEvent.KEYCODE_VOLUME_UP)
@@ -264,12 +342,6 @@ public class AgsEngine extends Activity
 				if (key == KeyEvent.KEYCODE_VOLUME_DOWN)
 					 audio.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI);
 				
-				if (key == KeyEvent.KEYCODE_MENU)
-				{
-					InputMethodManager manager = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-					manager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);					
-				}
-				
 				break;
 			}
 
@@ -277,16 +349,17 @@ public class AgsEngine extends Activity
 			{
 				int key = ev.getKeyCode();
 				
-				if (key == KeyEvent.KEYCODE_BACK)
+				if (key == KeyEvent.KEYCODE_MENU)
 				{
-					Date date = new Date();
-					long downTime = date.getTime() - returnKeyDownTime;
-					if (downTime > 1000)
-						showExitConfirmation();
-					else
+					if (!ignoreNextActionUp_Menu)
+						openOptionsMenu();
+					ignoreNextActionUp_Menu = false;
+				}
+				else if (key == KeyEvent.KEYCODE_BACK)
+				{
+					if (!ignoreNextActionUp_Back)
 						glue.keyboardEvent(key, 0, ev.isShiftPressed());
-					
-					returnKeyDownTime = 0;
+					ignoreNextActionUp_Back = false;
 				}
 				else if (
 					   (key == KeyEvent.KEYCODE_MENU)
@@ -306,25 +379,6 @@ public class AgsEngine extends Activity
 		
 		return isInGame;
 	}
-	
-	@Override
-	public boolean dispatchTrackballEvent(MotionEvent ev)
-	{ 
-		switch (ev.getAction())
-		{		
-			case MotionEvent.ACTION_MOVE:
-			{
-				glue.mouseMoveX = (short) (ev.getX() * 10);
-				glue.mouseMoveY = (short) (ev.getY() * 10);
-
-			}
-			case MotionEvent.ACTION_DOWN:
-			{
-				glue.mouseClick = 1;
-			}			
-		}
-		return isInGame;
-	}	
 
 	
 	// Exit confirmation dialog displayed when hitting the "back" button
@@ -399,7 +453,23 @@ public class AgsEngine extends Activity
 	{
 		surfaceView = new CustomGlSurfaceView(this);
 		setContentView(surfaceView);
-
+		
+		surfaceView.setOnLongClickListener(new OnLongClickListener()
+		{
+			public boolean onLongClick(View v)
+			{
+				if (!draggingMouse && !stopLongclick && (Math.abs(downX - lastX) < 4.0f) && (Math.abs(downY - lastY) < 4.0f))
+				{
+					draggingMouse = true;
+					glue.clickMouse(EngineGlue.MOUSE_HOLD_LEFT);
+					return true; // Produces haptic feedback (vibration)
+				}
+				return false;
+			}
+		});
+		
+		surfaceView.setLongClickable(enableLongclick);
+		
 		isInGame = true;
 	}
 

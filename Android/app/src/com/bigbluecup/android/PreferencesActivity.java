@@ -43,6 +43,8 @@ public class PreferencesActivity extends ListActivity
 	static final int CONFIG_GFX_SMOOTH_SPRITES = 16;
 	static final int CONFIG_TRANSLATION = 17;
 	static final int CONFIG_DEBUG_LOGCAT = 18;
+	static final int CONFIG_MOUSE_METHOD = 19;
+	static final int CONFIG_MOUSE_LONGCLICK = 20;
 	
 	static final int LANGUAGE_ID_BASE = 0x71000000;
 	
@@ -111,7 +113,26 @@ public class PreferencesActivity extends ListActivity
 				CONFIG_ROTATION,
 				EnumSet.of(PreferencesEntry.Flags.MENU_ORIENTATION)
 				));
-
+		
+		values.add(new PreferencesEntry(
+				"Controls",
+				"",
+				CONFIG_NONE,
+				EnumSet.of(PreferencesEntry.Flags.HEADER)
+				));
+		values.add(new PreferencesEntry(
+				"Relative mouse control",
+				"The mouse gets moved relative to the finger motion",
+				CONFIG_MOUSE_METHOD,
+				EnumSet.of(PreferencesEntry.Flags.CHECKABLE)
+				));
+		values.add(new PreferencesEntry(
+				"Dragging with longclick",
+				"A longclick keeps the left mouse button pressed",
+				CONFIG_MOUSE_LONGCLICK,
+				EnumSet.of(PreferencesEntry.Flags.CHECKABLE)
+				));
+		
 		values.add(new PreferencesEntry(
 				"Sound", 
 				"", 

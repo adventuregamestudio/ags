@@ -53,6 +53,7 @@ extern "C"
 {
   void android_swap_buffers();
   void android_create_screen(int width, int height, int color_depth);
+  void android_mouse_setup(int left, int right, int top, int bottom, float scaling_x, float scaling_y);
 }
 
 extern "C" void android_debug_printf(char* format, ...);
@@ -494,11 +495,31 @@ void OGLGraphicsDriver::create_backbuffer_arrays()
     {
       backbuffer_vertices[2] = backbuffer_vertices[6] = android_screen_physical_width - 1;
       backbuffer_vertices[5] = backbuffer_vertices[7] = android_screen_physical_width * ((float)_newmode_height / (float)_newmode_width);
+
+#if defined(ANDROID_VERSION)
+      android_mouse_setup(
+        0, 
+        android_screen_physical_width - 1, 
+        (android_screen_physical_height - backbuffer_vertices[5]) / 2, 
+        android_screen_physical_height - ((android_screen_physical_height - backbuffer_vertices[5]) / 2), 
+        (float)_newmode_width / (float)android_screen_physical_width, 
+        (float)_newmode_height / backbuffer_vertices[5]);
+#endif
     }
     else
     {
       backbuffer_vertices[2] = backbuffer_vertices[6] = android_screen_physical_height * ((float)_newmode_width / (float)_newmode_height);
       backbuffer_vertices[5] = backbuffer_vertices[7] = android_screen_physical_height - 1;
+
+#if defined(ANDROID_VERSION)
+      android_mouse_setup(
+        (android_screen_physical_width - backbuffer_vertices[2]) / 2,
+        android_screen_physical_width - ((android_screen_physical_width - backbuffer_vertices[2]) / 2),
+        0,
+        android_screen_physical_height - 1,
+        (float)_newmode_width / backbuffer_vertices[2], 
+        (float)_newmode_height / (float)android_screen_physical_height);
+#endif
     }
   }
   else if (psp_gfx_scaling == 2)
@@ -506,6 +527,16 @@ void OGLGraphicsDriver::create_backbuffer_arrays()
     // Stretch to whole screen
     backbuffer_vertices[2] = backbuffer_vertices[6] = android_screen_physical_width - 1;
     backbuffer_vertices[5] = backbuffer_vertices[7] = android_screen_physical_height - 1;
+
+#if defined(ANDROID_VERSION)
+    android_mouse_setup(
+      0, 
+      android_screen_physical_width - 1, 
+      0, 
+      android_screen_physical_width - 1, 
+      (float)_newmode_width / (float)android_screen_physical_width, 
+      (float)_newmode_height / (float)android_screen_physical_height);
+#endif
   }
   else
   {
@@ -514,6 +545,16 @@ void OGLGraphicsDriver::create_backbuffer_arrays()
     backbuffer_vertices[2] = backbuffer_vertices[6] = _newmode_width * 0.5f;
     backbuffer_vertices[5] = backbuffer_vertices[7] = _newmode_height * 0.5f;
     backbuffer_vertices[1] = backbuffer_vertices[3] = _newmode_height * (-0.5f);
+
+#if defined(ANDROID_VERSION)
+    android_mouse_setup(
+      (android_screen_physical_width - _newmode_width) / 2,
+      android_screen_physical_width - ((android_screen_physical_width - _newmode_width) / 2),
+      (android_screen_physical_height - _newmode_height) / 2, 
+      android_screen_physical_height - ((android_screen_physical_height - _newmode_height) / 2), 
+      1.0f,
+      1.0f);
+#endif
   }
 
    backbuffer_texture_coordinates[5] = backbuffer_texture_coordinates[7] = (float)_newmode_height * _super_sampling / (float)_backbuffer_texture_height;

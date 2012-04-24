@@ -57,6 +57,9 @@ int psp_config_enabled = 0;
 char psp_translation[100];
 char* psp_translations[100];
 
+// Mouse option from Allegro.
+extern int config_mouse_control_mode;
+
 
 // Graphic options from the Allegro library.
 extern int psp_gfx_scaling;
@@ -78,6 +81,8 @@ int psp_gfx_super_sampling = 0;
 int psp_gfx_smooth_sprites = 0;
 
 int psp_debug_write_to_logcat = 0;
+
+int config_mouse_longclick = 0;
 
 extern int display_fps;
 extern int want_exit;
@@ -102,6 +107,7 @@ jmethodID java_messageCallback;
 jmethodID java_blockExecution;
 jmethodID java_swapBuffers;
 jmethodID java_setRotation;
+jmethodID java_enableLongclick;
 
 bool reset_configuration = false;
 
@@ -127,6 +133,8 @@ const int CONFIG_DEBUG_FPS = 15;
 const int CONFIG_GFX_SMOOTH_SPRITES = 16;
 const int CONFIG_TRANSLATION = 17;
 const int CONFIG_DEBUG_LOGCAT = 18;
+const int CONFIG_MOUSE_METHOD = 19;
+const int CONFIG_MOUSE_LONGCLICK = 20;
 
 extern void android_debug_printf(const char* format, ...);
 
@@ -154,6 +162,10 @@ JNIEXPORT jboolean JNICALL
     fprintf(config, "rotation = %d\n", psp_rotation);
     fprintf(config, "translation = %s\n", psp_translation);
 
+    fprintf(config, "[controls]\n");
+    fprintf(config, "mouse_method = %d\n", config_mouse_control_mode);
+    fprintf(config, "mouse_longclick = %d\n", config_mouse_longclick);
+	
     fprintf(config, "[compatibility]\n");
 //    fprintf(config, "ignore_acsetup_cfg_file = %d\n", psp_ignore_acsetup_cfg_file);
     fprintf(config, "clear_cache_on_room_change = %d\n", psp_clear_cache_on_room_change);
@@ -250,6 +262,12 @@ JNIEXPORT jint JNICALL
     case CONFIG_DEBUG_LOGCAT:
       return psp_debug_write_to_logcat;
       break;
+    case CONFIG_MOUSE_METHOD:
+      return config_mouse_control_mode;
+      break;
+    case CONFIG_MOUSE_LONGCLICK:
+      return config_mouse_longclick;
+      break;
     default:
       return 0;
       break;
@@ -327,6 +345,12 @@ JNIEXPORT void JNICALL
       break;
     case CONFIG_DEBUG_LOGCAT:
       psp_debug_write_to_logcat = value;
+      break;
+    case CONFIG_MOUSE_METHOD:
+      config_mouse_control_mode = value;
+      break;
+    case CONFIG_MOUSE_LONGCLICK:
+      config_mouse_longclick = value;
       break;
     default:
       break;
@@ -417,6 +441,7 @@ JNIEXPORT jboolean JNICALL
   java_messageCallback = java_environment->GetMethodID(java_class, "showMessage", "(Ljava/lang/String;)V");
   java_blockExecution = java_environment->GetMethodID(java_class, "blockExecution", "()V");
   java_setRotation = java_environment->GetMethodID(java_class, "setRotation", "(I)V");
+  java_enableLongclick = java_environment->GetMethodID(java_class, "enableLongclick", "()V");
 
   // Initialize JNI for Allegro.
   android_allegro_initialize_jni(java_environment, java_class, java_object);
@@ -456,6 +481,9 @@ JNIEXPORT jboolean JNICALL
   // Set the screen rotation.
   if (psp_rotation > 0)
     java_environment->CallVoidMethod(java_object, java_setRotation, psp_rotation);
+
+  if (config_mouse_longclick > 0)
+    java_environment->CallVoidMethod(java_object, java_enableLongclick);
 
   psp_load_latest_savegame = loadLastSave;
 
@@ -605,6 +633,9 @@ bool ReadConfiguration(char* filename, bool read_everything)
     ReadInteger((int*)&psp_gfx_scaling, "graphics", "scaling", 0, 2, 1);
     ReadInteger((int*)&psp_gfx_super_sampling, "graphics", "super_sampling", 0, 1, 0);
     ReadInteger((int*)&psp_gfx_smooth_sprites, "graphics", "smooth_sprites", 0, 1, 0);
+
+    ReadInteger((int*)&config_mouse_control_mode, "controls", "mouse_method", 0, 1, 0);
+    ReadInteger((int*)&config_mouse_longclick, "controls", "mouse_longclick", 0, 1, 1);
 
     strcpy(filetouse, "nofile");
 

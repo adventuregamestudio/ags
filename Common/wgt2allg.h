@@ -40,7 +40,7 @@
 
 #ifdef WINDOWS_VERSION
 #include "winalleg.h"
-#elif defined(MAC_VERSION)
+#elif defined(MAC_VERSION) && !defined(IOS_VERSION)
 #include <osxalleg.h>
 #endif
 

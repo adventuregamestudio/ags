@@ -12,7 +12,7 @@
 #ifndef __BIGEND_H__
 #define __BIGEND_H__
 
-#ifdef ANDROID_VERSION
+#if defined(ANDROID_VERSION) || defined(IOS_VERSION)
 // Some Android defines that are needed in multiple files.
 // Not the best place for it, but should do for the moment.
 #include <wchar.h>

@@ -16,7 +16,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(ANDROID_VERSION)
+#if defined(ANDROID_VERSION) || defined(IOS_VERSION)
 #include <sys/stat.h>
 #endif
 

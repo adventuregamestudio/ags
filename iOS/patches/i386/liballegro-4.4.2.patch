@@ -1,0 +1,82 @@
+diff -Naur cmake/Toolchain-ios-gcc.cmake cmake/Toolchain-ios-gcc.cmake
+--- cmake/Toolchain-ios-gcc.cmake	1970-01-01 01:00:00.000000000 +0100
++++ cmake/Toolchain-ios-gcc.cmake	2012-05-03 11:51:02.582622500 +0200
+@@ -0,0 +1,38 @@
++# The name of the target operating system.
++set(CMAKE_SYSTEM_NAME Generic)
++
++set(IOS_BASE_SDK "4.3")
++set(IOS_DEPLOY_TGT "3.2")
++
++set(DEVROOT "/Developer/Platforms/iPhoneSimulator.platform/Developer")
++set(SDKROOT "${DEVROOT}/SDKs/iPhoneSimulator${IOS_BASE_SDK}.sdk")
++set(IOS_ADDITIONAL_LIBRARY_PATH "$(pwd)/../../nativelibs/i386")
++set(IOS_PLATFORM_INCLUDE "${SDKROOT}/usr/include")
++set(IOS_PLATFORM_LIB "${SDKROOT}/usr/lib")
++	
++# Location of target environment.
++
++set(CMAKE_SYSTEM_INCLUDE_PATH "${IOS_ADDITIONAL_LIBRARY_PATH}/include" "${IOS_PLATFORM_INCLUDE}")
++set(CMAKE_SYSTEM_LIBRARY_PATH "${IOS_ADDITIONAL_LIBRARY_PATH}/lib" "${IOS_PLATFORM_LIB}")
++
++# Which compilers to use for C and C++.
++set(CMAKE_C_COMPILER "${DEVROOT}/usr/bin/gcc-4.2")
++set(CMAKE_CXX_COMPILER "${DEVROOT}/usr/bin/g++-4.2")
++
++# Needed to pass the compiler tests.
++set(LINK_DIRECTORIES ${NDK_PLATFORM_LIB})
++set(LINK_LIBRARIES "")
++
++set(CMAKE_EXE_LINKER_FLAGS "")
++set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
++set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
++
++# Adjust the default behaviour of the FIND_XXX() commands:
++# search headers and libraries in the target environment, search
++# programs in the host environment.
++set(CMAKE_FIND_ROOT_PATH "")
++set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
++set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
++set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
++
++set(IOS 1)
+diff -Naur CMakeLists.txt CMakeLists.txt
+--- CMakeLists.txt	2011-03-25 00:18:50.000000000 +0100
++++ CMakeLists.txt	2012-05-03 11:51:02.588123200 +0200
+@@ -313,6 +313,21 @@
+     set(CMAKE_INSTALL_PREFIX ${PSP_PREFIX})
+ endif(PSP)
+ 
++if(IOS)
++	set(IOS_BASE_SDK "4.3")
++	set(IOS_DEPLOY_TGT "3.2")
++
++	set(DEVROOT "/Developer/Platforms/iPhoneSimulator.platform/Developer")
++	set(SDKROOT "${DEVROOT}/SDKs/iPhoneSimulator${IOS_BASE_SDK}.sdk")
++	set(IOS_ADDITIONAL_LIBRARY_PATH "$(pwd)/../../../nativelibs/i386")
++	set(IOS_PLATFORM_INCLUDE "${SDKROOT}/usr/include")
++	set(IOS_PLATFORM_LIB "${SDKROOT}/usr/lib")
++
++	set(ALLEGRO_IOS 1)
++	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch i586 -I${IOS_PLATFORM_INCLUDE}")
++	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
++endif(IOS)
++
+ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${WFLAGS} ${WFLAGS_C_ONLY}")
+ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WFLAGS} ${WFLAGS_CXX_ONLY}")
+ 
+@@ -673,6 +688,14 @@
+     m pspaudio pspgu psprtc pspdebug pspdisplay pspge pspctrl pspsdk c pspnet pspnet_inet pspnet_resolver psputility pspuser pspkernel)
+ endif(PSP)
+ 
++# -- iOS --
++
++if(IOS)
++	include_directories(SYSTEM IOS_PLATFORM_INCLUDE "${SDKROOT}/usr/include")
++	link_directories(IOS_PLATFORM_LIB)
++	list(APPEND PLATFORM_SOURCES ${ALLEGRO_SRC_IOS_FILES})
++endif(IOS)
++
+ #-----------------------------------------------------------------------------#
+ #
+ # Generate and install headers

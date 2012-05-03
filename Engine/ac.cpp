@@ -12,7 +12,7 @@
 
 */
 
-#if defined(WINDOWS_VERSION) || defined(MAC_VERSION) || (defined(LINUX_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION))
+#if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
 int psp_video_framedrop = 1;
 int psp_audio_enabled = 1;
 int psp_midi_enabled = 1;
@@ -26,7 +26,7 @@ int psp_gfx_smooth_sprites = 1;
 char psp_translation[] = "default";
 #endif
 
-#if defined(MAC_VERSION) || (defined(LINUX_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION))
+#if (defined(MAC_VERSION) && !defined(IOS_VERSION)) || (defined(LINUX_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION))
 #include <dlfcn.h>
 #endif
 
@@ -4313,7 +4313,7 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
       thisroom.ebscene[cc] = convert_16_to_16bgr (thisroom.ebscene[cc]);
   #endif
 
-#if defined(ANDROID_VERSION) || defined(PSP_VERSION)
+#if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(PSP_VERSION)
   // PSP: Convert 32 bit backgrounds.
   if (bitmap_color_depth(thisroom.ebscene[cc]) == 32)
     thisroom.ebscene[cc] = convert_32_to_32bgr(thisroom.ebscene[cc]);
@@ -7688,7 +7688,7 @@ void put_sprite_256(int xxx,int yyy,block piccy) {
 
 #ifdef USE_15BIT_FIX
   if ((bitmap_color_depth(piccy) < screen_depth) 
-#if defined(ANDROID_VERSION) || defined(WINDOWS_VERSION)
+#if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(WINDOWS_VERSION)
     || ((bmp_bpp(abuf) < screen_depth) && (psp_gfx_renderer > 0)) // Fix for corrupted speechbox outlines with the OGL driver
 #endif
     ) {
@@ -13409,7 +13409,7 @@ int user_to_internal_skip_speech(int userval) {
 
 bool ShouldAntiAliasText() {
   // PSP: Never anti-alias fonts.
-#if defined(PSP_VERSION) || defined(ANDROID_VERSION)
+#if defined(IOS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
   return false;
 #else
   return (game.options[OPT_ANTIALIASFONTS] != 0);
@@ -26957,7 +26957,7 @@ void initialize_sprite (int ee) {
     }
     else if ((spcoldep == 32) && (final_col_dep == 32))
     {
-#if defined(ANDROID_VERSION) || defined(PSP_VERSION)
+#if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(PSP_VERSION)
       // PSP: Convert to BGR color order.
       spriteset.set(ee, convert_32_to_32bgr(spriteset[ee]));
 #endif
@@ -27575,7 +27575,7 @@ void read_config_file(char *argv0) {
     usetup.force_hicolor_mode = INIreadint("misc", "notruecolor", 0);
     usetup.enable_side_borders = INIreadint("misc", "sideborders", 0);
 
-#if defined(PSP_VERSION) || defined(ANDROID_VERSION)
+#if defined(IOS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
     // PSP: Letterboxing is not useful on the PSP.
     force_letterbox = 0;
 #else
@@ -27614,14 +27614,14 @@ void read_config_file(char *argv0) {
     if (usetup.main_data_filename == NULL)
       usetup.main_data_filename = "ac2game.dat";
 
-#if defined(PSP_VERSION) || defined(ANDROID_VERSION)
+#if defined(IOS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
     // PSP: No graphic filters are available.
     usetup.gfxFilterID = NULL;
 #else
     usetup.gfxFilterID = INIreaditem("misc", "gfxfilter");
 #endif
 
-#if defined(PSP_VERSION) || defined(ANDROID_VERSION)
+#if defined(IOS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
     usetup.gfxDriverID = "DX5";
 #else
     usetup.gfxDriverID = INIreaditem("misc", "gfxdriver");
@@ -27629,7 +27629,7 @@ void read_config_file(char *argv0) {
 
     usetup.translation = INIreaditem ("language", "translation");
 
-#if !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
+#if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
     // PSP: Don't let the setup determine the cache size as it is always too big.
     int tempint = INIreadint ("misc", "cachemax");
     if (tempint > 0)
@@ -28262,7 +28262,7 @@ void create_gfx_driver()
   else
 #endif
   {
-#if defined(ANDROID_VERSION) || defined(WINDOWS_VERSION)
+#if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(WINDOWS_VERSION)
     if ((psp_gfx_renderer > 0) && (game.color_depth != 1))
       gfxDriver = GetOGLGraphicsDriver(filter);
     else
@@ -29002,7 +29002,7 @@ int initialize_engine(int argc,char*argv[])
     // when we're using 32-bit colour, it converts hi-color images
     // the wrong way round - so fix that
 
-#if defined(ANDROID_VERSION) || defined(PSP_VERSION)
+#if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(PSP_VERSION)
     _rgb_b_shift_16 = 0;
     _rgb_g_shift_16 = 5;
     _rgb_r_shift_16 = 11;
@@ -29040,7 +29040,7 @@ int initialize_engine(int argc,char*argv[])
   else if (final_col_dep < 16) {
     // ensure that any 32-bit graphics displayed are converted
     // properly to the current depth
-#if defined(ANDROID_VERSION) || defined(PSP_VERSION)
+#if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(PSP_VERSION)
     _rgb_r_shift_32 = 0;
     _rgb_g_shift_32 = 8;
     _rgb_b_shift_32 = 16;

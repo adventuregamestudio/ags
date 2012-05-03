@@ -226,7 +226,7 @@ GFXFilter *filter;
 extern "C" int Init_2xSaI(int d);
 extern "C" void Super2xSaI(BITMAP * src, BITMAP * dest, int s_x, int s_y, int d_x, int d_y, int w, int h);
 
-#if defined(ANDROID_VERSION) || defined(PSP_VERSION)
+#if defined(ANDROID_VERSION) || defined(PSP_VERSION) || defined(IOS_VERSION)
 void InitLUTs(){}
 void hq2x_32( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int BpL ){}
 void hq3x_32( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int BpL ){}

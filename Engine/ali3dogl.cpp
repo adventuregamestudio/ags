@@ -81,6 +81,54 @@ const char* fbo_extension_string = "GL_OES_framebuffer_object";
 #define GL_FRAMEBUFFER_EXT GL_FRAMEBUFFER_OES
 #define GL_COLOR_ATTACHMENT0_EXT GL_COLOR_ATTACHMENT0_OES
 
+#elif defined(IOS_VERSION)
+#include <ali3d.h>
+#include <OpenGLES/ES1/gl.h>
+
+#ifndef GL_GLEXT_PROTOTYPES
+#define GL_GLEXT_PROTOTYPES
+#endif
+
+#include <OpenGLES/ES1/glext.h>
+
+extern "C" 
+{
+  void ios_swap_buffers();
+}
+
+#define HDC void*
+#define HGLRC void*
+#define HWND void*
+#define HINSTANCE void*
+
+#define glOrtho glOrthof
+#define GL_CLAMP GL_CLAMP_TO_EDGE
+
+#define Sleep(x) usleep(x * 1000)
+
+extern int psp_gfx_smoothing;
+extern int psp_gfx_scaling;
+extern int psp_gfx_renderer;
+extern int psp_gfx_super_sampling;
+
+unsigned int android_screen_physical_width;
+unsigned int android_screen_physical_height;
+int android_screen_initialized;
+
+const char* fbo_extension_string = "GL_OES_framebuffer_object";
+
+#define glGenFramebuffersEXT glGenFramebuffersOES
+#define glDeleteFramebuffersEXT glDeleteFramebuffersOES
+#define glBindFramebufferEXT glBindFramebufferOES
+#define glCheckFramebufferStatusEXT glCheckFramebufferStatusOES
+#define glGetFramebufferAttachmentParameterivEXT glGetFramebufferAttachmentParameterivOES
+#define glGenerateMipmapEXT glGenerateMipmapOES
+#define glFramebufferTexture2DEXT glFramebufferTexture2DOES
+#define glFramebufferRenderbufferEXT glFramebufferRenderbufferOES
+
+#define GL_FRAMEBUFFER_EXT GL_FRAMEBUFFER_OES
+#define GL_COLOR_ATTACHMENT0_EXT GL_COLOR_ATTACHMENT0_OES
+
 #endif
 
 
@@ -983,7 +1031,7 @@ void OGLGraphicsDriver::_renderSprite(SpriteDrawListEntry *drawListEntry, bool g
 
 void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterwards)
 {
-  if (!android_screen_initialized)
+  //if (!android_screen_initialized)
   {
     InitOpenGl();
     android_screen_initialized = 1;
@@ -1076,10 +1124,14 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
 
   glFinish();
 
+  int bla = glGetError();
+
 #if defined(WINDOWS_VERSION)
   SwapBuffers(_hDC);
 #elif defined(ANDROID_VERSION)
   android_swap_buffers();
+#elif defined(IOS_VERSION)
+//	ios_swap_buffers();
 #endif
 
   if (clearDrawListAfterwards)

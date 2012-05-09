@@ -1,0 +1,9 @@
+SCC = This is a Source Code Control file
+
+[deps.mak]
+SCC_Aux_Path = "G:\vs\SRCSAFE"
+SCC_Project_Name = "$/ags/netedit/scintilla/gtk", NHCAAAAA
+
+[scintilla.mak]
+SCC_Aux_Path = "G:\vs\SRCSAFE"
+SCC_Project_Name = "$/ags/netedit/scintilla/gtk", NHCAAAAA

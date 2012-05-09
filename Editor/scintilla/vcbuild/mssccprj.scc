@@ -1,0 +1,5 @@
+SCC = This is a Source Code Control file
+
+[SciLexer.dsp]
+SCC_Aux_Path = "G:\vs\SRCSAFE"
+SCC_Project_Name = "$/ags/netedit/scintilla/vcbuild", SNCAAAAA

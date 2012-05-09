@@ -1,5 +1,5 @@
 TARGET = ags_snowrain
-OBJS = ../sdk/psp.o main.o
+OBJS = ../sdk/psp.o ags_snowrain.o
 
 BUILD_PRX = 1
 PRX_EXPORTS = ../sdk/exports.exp

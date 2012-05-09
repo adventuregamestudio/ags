@@ -1034,14 +1034,13 @@ int AGS_EngineOnEvent(int event, int data)                    //*** optional ***
 	return (0);
 }
 
-#if !defined(WINDOWS_VERSION)
-
 //------------------------------------------------------------------------------
 
 int AGS_EngineDebugHook(const char *scriptName,
                         int lineNum, int reserved)            //*** optional ***
 {
 	// Can be used to debug scripts, see documentation
+	return 0;
 }
 
 //------------------------------------------------------------------------------
@@ -1054,7 +1053,6 @@ void AGS_EngineInitGfx(const char *driverID, void *data)      //*** optional ***
 
 //..............................................................................
 
-#endif
 
 #if defined(BUILTIN_PLUGINS)
 }

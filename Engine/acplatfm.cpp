@@ -852,6 +852,46 @@ void pl_run_plugin_init_gfx_hooks (const char *driverName, void *data) {
   }
 }
 
+bool pl_use_builtin_plugin(EnginePlugin* apl)
+{
+#if defined(BUILTIN_PLUGINS)
+  strlwr(apl->filename);
+
+  if (strncmp(apl->filename, "agsflashlight", strlen("agsflashlight")) == 0)
+  {
+    apl->engineStartup = agsflashlight::AGS_EngineStartup;
+    apl->engineShutdown = agsflashlight::AGS_EngineShutdown;
+    apl->onEvent = agsflashlight::AGS_EngineOnEvent;
+    apl->debugHook = agsflashlight::AGS_EngineDebugHook;
+    apl->initGfxHook = agsflashlight::AGS_EngineInitGfx;
+    apl->dllHandle = (HINSTANCE)1;
+    return true;
+  }
+  else if (strncmp(apl->filename, "agsblend", strlen("agsblend")) == 0)
+  {
+    apl->engineStartup = agsblend::AGS_EngineStartup;
+    apl->engineShutdown = agsblend::AGS_EngineShutdown;
+    apl->onEvent = agsblend::AGS_EngineOnEvent;
+    apl->debugHook = agsblend::AGS_EngineDebugHook;
+    apl->initGfxHook = agsblend::AGS_EngineInitGfx;
+    apl->dllHandle = (HINSTANCE)1;
+    return true;
+  }
+  else if (strncmp(apl->filename, "ags_snowrain", strlen("ags_snowrain")) == 0)
+  {
+    apl->engineStartup = ags_snowrain::AGS_EngineStartup;
+    apl->engineShutdown = ags_snowrain::AGS_EngineShutdown;
+    apl->onEvent = ags_snowrain::AGS_EngineOnEvent;
+    apl->debugHook = ags_snowrain::AGS_EngineDebugHook;
+    apl->initGfxHook = ags_snowrain::AGS_EngineInitGfx;
+    apl->dllHandle = (HINSTANCE)1;
+    return true;
+  }
+#endif
+
+  return false;
+}
+
 void pl_read_plugins_from_disk (FILE *iii) {
   if (getw(iii) != 1)
     quit("ERROR: unable to load game, invalid version of plugin data");
@@ -904,10 +944,8 @@ void pl_read_plugins_from_disk (FILE *iii) {
       apl->dllHandle = LoadLibrary(caDylib);
       if (apl->dllHandle == NULL)
       {
-        // forget this plugin
-        numPlugins--;
-        a--;
-        continue;
+        if (!pl_use_builtin_plugin(apl))
+          continue;
       }
     }
 #elif defined(ANDROID_VERSION)
@@ -926,7 +964,11 @@ void pl_read_plugins_from_disk (FILE *iii) {
     apl->dllHandle = dlopen(library_name, RTLD_LAZY);
 
     if (apl->dllHandle == NULL)
-      continue;
+    {
+      if (!pl_use_builtin_plugin(apl))
+        continue;
+    }
+
 #elif defined(PSP_VERSION)
     char module_name[50];
 
@@ -952,52 +994,55 @@ void pl_read_plugins_from_disk (FILE *iii) {
 
     if (apl->dllHandle < 0)
     {
-      printf("Unable to load plugin '%s', error code 0x%08lX\n", apl->filename, apl->dllHandle);
-      apl->dllHandle = 0;
-      continue;
+      if (!pl_use_builtin_plugin(apl))
+        continue;
     }
-
 #else
     apl->dllHandle = LoadLibrary (apl->filename);
-    if (apl->dllHandle == NULL) {
-      sprintf(buffer, "Unable to load plugin '%s'", apl->filename);
-      quit(buffer);
+    if (apl->dllHandle == NULL)
+    {
+      if (!pl_use_builtin_plugin(apl))
+        continue;
     }
 #endif
+
+    else
+    {
 
 #ifdef PSP_VERSION
-    if (kernel_sctrlHENFindFunction(module_name, module_name, 0x960C49BD) == 0) {
-      sprintf(buffer, "Plugin '%s' is an old incompatible version.", apl->filename);
-      quit(buffer);
-    }
+      if (kernel_sctrlHENFindFunction(module_name, module_name, 0x960C49BD) == 0) {
+        sprintf(buffer, "Plugin '%s' is an old incompatible version.", apl->filename);
+        quit(buffer);
+      }
 
-    apl->engineStartup = (void(*)(IAGSEngine*))kernel_sctrlHENFindFunction(module_name, module_name, 0x0F13D9E8); // AGS_EngineStartup
-    apl->engineShutdown = (void(*)())kernel_sctrlHENFindFunction(module_name, module_name, 0x2F131C76); // AGS_EngineShutdown
+      apl->engineStartup = (void(*)(IAGSEngine*))kernel_sctrlHENFindFunction(module_name, module_name, 0x0F13D9E8); // AGS_EngineStartup
+      apl->engineShutdown = (void(*)())kernel_sctrlHENFindFunction(module_name, module_name, 0x2F131C76); // AGS_EngineShutdown
 
-    if (apl->engineStartup == NULL) {
-      sprintf(buffer, "Plugin '%s' is not a valid AGS plugin (no engine startup entry point)", apl->filename);
-      quit(buffer);
-    }
+      if (apl->engineStartup == NULL) {
+        sprintf(buffer, "Plugin '%s' is not a valid AGS plugin (no engine startup entry point)", apl->filename);
+        quit(buffer);
+      }
 
-    apl->onEvent = (int(*)(int,int))kernel_sctrlHENFindFunction(module_name, module_name, 0xE3DFFC5A); // AGS_EngineOnEvent
-    apl->debugHook = (int(*)(const char*,int,int))kernel_sctrlHENFindFunction(module_name, module_name, 0xC37D6879); // AGS_EngineDebugHook
-    apl->initGfxHook = (void(*)(const char*, void*))kernel_sctrlHENFindFunction(module_name, module_name, 0xA428D254); // AGS_EngineInitGfx
+      apl->onEvent = (int(*)(int,int))kernel_sctrlHENFindFunction(module_name, module_name, 0xE3DFFC5A); // AGS_EngineOnEvent
+      apl->debugHook = (int(*)(const char*,int,int))kernel_sctrlHENFindFunction(module_name, module_name, 0xC37D6879); // AGS_EngineDebugHook
+      apl->initGfxHook = (void(*)(const char*, void*))kernel_sctrlHENFindFunction(module_name, module_name, 0xA428D254); // AGS_EngineInitGfx
 #else
-    if (GetProcAddress (apl->dllHandle, "AGS_PluginV2") == NULL) {
-      sprintf(buffer, "Plugin '%s' is an old incompatible version.", apl->filename);
-      quit(buffer);
-    }
-    apl->engineStartup = (void(*)(IAGSEngine*))GetProcAddress (apl->dllHandle, "AGS_EngineStartup");
-    apl->engineShutdown = (void(*)())GetProcAddress (apl->dllHandle, "AGS_EngineShutdown");
+      if (GetProcAddress (apl->dllHandle, "AGS_PluginV2") == NULL) {
+        sprintf(buffer, "Plugin '%s' is an old incompatible version.", apl->filename);
+        quit(buffer);
+      }
+      apl->engineStartup = (void(*)(IAGSEngine*))GetProcAddress (apl->dllHandle, "AGS_EngineStartup");
+      apl->engineShutdown = (void(*)())GetProcAddress (apl->dllHandle, "AGS_EngineShutdown");
 
-    if (apl->engineStartup == NULL) {
-      sprintf(buffer, "Plugin '%s' is not a valid AGS plugin (no engine startup entry point)", apl->filename);
-      quit(buffer);
-    }
-    apl->onEvent = (int(*)(int,int))GetProcAddress (apl->dllHandle, "AGS_EngineOnEvent");
-    apl->debugHook = (int(*)(const char*,int,int))GetProcAddress (apl->dllHandle, "AGS_EngineDebugHook");
-    apl->initGfxHook = (void(*)(const char*, void*))GetProcAddress (apl->dllHandle, "AGS_EngineInitGfx");
+      if (apl->engineStartup == NULL) {
+        sprintf(buffer, "Plugin '%s' is not a valid AGS plugin (no engine startup entry point)", apl->filename);
+        quit(buffer);
+      }
+      apl->onEvent = (int(*)(int,int))GetProcAddress (apl->dllHandle, "AGS_EngineOnEvent");
+      apl->debugHook = (int(*)(const char*,int,int))GetProcAddress (apl->dllHandle, "AGS_EngineDebugHook");
+      apl->initGfxHook = (void(*)(const char*, void*))GetProcAddress (apl->dllHandle, "AGS_EngineInitGfx");
 #endif
+    }
 
     if (datasize > 0) {
       apl->savedata = (char*)malloc(datasize);

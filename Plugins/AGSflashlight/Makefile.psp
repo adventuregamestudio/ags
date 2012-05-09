@@ -1,5 +1,5 @@
 TARGET = agsflashlight
-OBJS = ../sdk/psp.o main.o
+OBJS = ../sdk/psp.o agsflashlight.o
 
 BUILD_PRX = 1
 PRX_EXPORTS = ../sdk/exports.exp

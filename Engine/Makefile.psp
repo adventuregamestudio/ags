@@ -26,7 +26,7 @@ APEG = libsrc/apeg-1.2.1/display.o libsrc/apeg-1.2.1/getbits.o libsrc/apeg-1.2.1
 
 AASTR = libsrc/aastr-0.1.1/AAROT.o libsrc/aastr-0.1.1/aastr.o libsrc/aastr-0.1.1/aautil.o
 
-PLUGINS = ../Plugins/ags_snowrain/main.o ../Plugins/agsflashlight/main.o ../Plugins/agsblend/AGSBlend.o
+PLUGINS = ../Plugins/ags_snowrain/ags_snowrain.o ../Plugins/agsflashlight/agsflashlight.o ../Plugins/agsblend/AGSBlend.o
 
 OBJS = $(ALFONT) $(ALMP3) $(APEG) $(AASTR) $(BASE) $(COMMON) $(PSP_SPECIFIC)
 

@@ -10,6 +10,9 @@ NO_MOD_PLAYBACK = 0
 # The name of the engine prx must be known to the launcher and the engine too
 TARGET = ags321
 
+# Include plugins in the engine?
+WITH_BUILTIN_PLUGINS = 0
+
 PSP_SPECIFIC = acplpsp.o ../PSP/kernel/kernel.o ../PSP/exception/utility/exception.o ../PSP/malloc/malloc.o
 
 BASE = acaudio.o acchars.o acdebug.o acdialog.o acfonts.o acgfx.o acgui.o acplatfm.o acsound.o bigend.o misc.o routefnd.o scrptrt.o ac.o alogg.o almp3.o ali3dsw.o
@@ -23,6 +26,8 @@ APEG = libsrc/apeg-1.2.1/display.o libsrc/apeg-1.2.1/getbits.o libsrc/apeg-1.2.1
 
 AASTR = libsrc/aastr-0.1.1/AAROT.o libsrc/aastr-0.1.1/aastr.o libsrc/aastr-0.1.1/aautil.o
 
+PLUGINS = ../Plugins/ags_snowrain/main.o ../Plugins/agsflashlight/main.o ../Plugins/agsblend/AGSBlend.o
+
 OBJS = $(ALFONT) $(ALMP3) $(APEG) $(AASTR) $(BASE) $(COMMON) $(PSP_SPECIFIC)
 
 INCDIR = ../Common ../Common/libinclude $(shell psp-config --pspdev-path)/psp/include/freetype2
@@ -31,6 +36,12 @@ CFLAGS = -O2 -g -G0 -msingle-float -ffast-math -Wfatal-errors -DALLEGRO_STATICLI
 CXXFLAGS = $(CFLAGS) -fno-rtti -Wno-write-strings
 ASFLAGS = $(CFLAGS)
 LIBS = -lalleg -lalleg-main -lfreetype -lz -lvorbisidec -ltheoradec -logg -lc -lstdc++ -lm
+
+ifeq ($(WITH_BUILTIN_PLUGINS), 1)
+OBJS += $(PLUGINS)
+CFLAGS += -DBUILTIN_PLUGINS
+CXXFLAGS += -DBUILTIN_PLUGINS
+endif
 
 ifeq ($(NO_MOD_PLAYBACK), 1)
 CFLAGS += -DPSP_NO_MOD_PLAYBACK 

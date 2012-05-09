@@ -1,5 +1,5 @@
 TARGET = agsblend
-OBJS = psp.o AGSBlend.o
+OBJS = ../sdk/psp.o AGSBlend.o
 
 INCDIR = 
 CFLAGS = -O2 -G0 -Wall -DPSP_VERSION -DLINUX_VERSION -DPLUGIN_MODULE_NAME="\"$(TARGET)\""
@@ -10,7 +10,7 @@ LIBS = -lm -lstdc++
 LIBDIR =
 
 BUILD_PRX = 1
-PRX_EXPORTS = exports.exp
+PRX_EXPORTS = ../sdk/exports.exp
 
 PSPSDK=$(shell psp-config --pspsdk-path)
 include $(PSPSDK)/lib/build.mak 

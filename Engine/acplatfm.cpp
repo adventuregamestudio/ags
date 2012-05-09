@@ -16,6 +16,12 @@
 #define strnicmp strncasecmp
 #endif
 
+#if defined(BUILTIN_PLUGINS)
+#include "../Plugins/AGSflashlight/agsflashlight.h"
+#include "../Plugins/agsblend/agsblend.h"
+#include "../Plugins/ags_snowrain/ags_snowrain.h"
+#endif
+
 #if defined(MAC_VERSION)
 extern char dataDirectory[512];
 extern char appDirectory[512];
@@ -947,7 +953,7 @@ void pl_read_plugins_from_disk (FILE *iii) {
     if (apl->dllHandle < 0)
     {
       printf("Unable to load plugin '%s', error code 0x%08lX\n", apl->filename, apl->dllHandle);
-	  apl->dllHandle = 0;
+      apl->dllHandle = 0;
       continue;
     }
 

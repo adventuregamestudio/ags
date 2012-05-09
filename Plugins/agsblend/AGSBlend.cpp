@@ -14,7 +14,7 @@
 #define MIN_EDITOR_VERSION 1
 #define MIN_ENGINE_VERSION 3
 
-#if !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
+#ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #endif
@@ -23,8 +23,15 @@
 #include <stdio.h>
 #include <math.h>
 
+#if !defined(BUILTIN_PLUGINS)
 #define THIS_IS_THE_PLUGIN
-#include "../../../Common/agsplugin.h"
+#endif
+
+#include "../../Common/agsplugin.h"
+
+#if defined(BUILTIN_PLUGINS)
+namespace agsblend {
+#endif
 
 typedef unsigned char uint8;
 
@@ -33,7 +40,7 @@ typedef unsigned char uint8;
 #define DEFAULT_RGB_B_SHIFT_32  0
 #define DEFAULT_RGB_A_SHIFT_32  24
 
-#if defined(PSP_VERSION) || defined(ANDROID_VERSION)
+#if !defined(WINDOWS_VERSION)
 #define min(x,y) (((x) < (y)) ? (x) : (y))
 #define max(x,y) (((x) > (y)) ? (x) : (y))
 #endif
@@ -70,7 +77,7 @@ typedef unsigned char uint8;
 
 #pragma endregion
 
-#if !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
+#if defined(WINDOWS_VERSION)
 // The standard Windows DLL entry point
 
 BOOL APIENTRY DllMain( HANDLE hModule, 
@@ -865,7 +872,7 @@ int DrawAlpha(int destination, int sprite, int x, int y, int trans)
 }
 
 
-#if !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
+#if defined(WINDOWS_VERSION)
 
 //==============================================================================
 
@@ -923,10 +930,11 @@ void AGS_EditorProperties(HWND parent)                        //*** optional ***
 {
 	// User has chosen to view the Properties of the plugin
 	// We could load up an options dialog or something here instead
-	MessageBox(parent,
+/*	MessageBox(parent,
 	           L"AGSBlend v1.0 By Calin Leafshade",
 	           L"About",
 			   MB_OK | MB_ICONINFORMATION);
+         */
 }
 
 //------------------------------------------------------------------------------
@@ -1026,7 +1034,7 @@ int AGS_EngineOnEvent(int event, int data)                    //*** optional ***
 	return (0);
 }
 
-#if defined(PSP_VERSION) || defined(ANDROID_VERSION)
+#if !defined(WINDOWS_VERSION)
 
 //------------------------------------------------------------------------------
 
@@ -1046,4 +1054,8 @@ void AGS_EngineInitGfx(const char *driverID, void *data)      //*** optional ***
 
 //..............................................................................
 
+#endif
+
+#if defined(BUILTIN_PLUGINS)
+}
 #endif

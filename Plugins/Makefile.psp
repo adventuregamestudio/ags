@@ -1,0 +1,53 @@
+DISTRIB_NAME = AGS_Runtime_for_PSP_3.21_R8
+PSP_AGS_FOLDER = "j:/psp/game/ags"
+
+all:
+	make blend -f Makefile.psp
+	make snowrain -f Makefile.psp
+	make flashlight -f Makefile.psp
+
+blend:
+	@make -C "agsblend" -f Makefile.psp
+	@cp "agsblend/agsblend.prx" "../PSP/bin"
+ifeq ($(COPY), 1)
+	@cp "agsblend/agsblend.prx" $(PSP_AGS_FOLDER)
+endif
+
+snowrain:
+	@make -f Makefile.psp -C "ags_snowrain"
+	@cp "ags_snowrain/ags_snowrain.prx" "../PSP/bin"
+ifeq ($(COPY), 1)
+	@cp "ags_snowrain/ags_snowrain.prx" $(PSP_AGS_FOLDER)
+endif
+
+flashlight:
+	@make -f Makefile.psp -C "AGSflashlight"
+	@cp "AGSflashlight/agsflashlight.prx" "../PSP/bin"
+ifeq ($(COPY), 1)
+	@cp "AGSflashlight/agsflashlight.prx" $(PSP_AGS_FOLDER)
+endif
+
+cleanblend:
+	@make clean -f Makefile.psp -C "agsblend"
+	@rm -f "../PSP/bin/agsblend.prx"
+	
+cleansnowrain:
+	@make clean -f Makefile.psp -C "ags_snowrain"
+	@rm -f "../PSP/bin/ags_snowrain.prx"
+
+cleanflashlight:
+	@make clean -f Makefile.psp -C "agsflashlight"
+	@rm -f "../PSP/bin/agsflashlight.prx"
+
+distrib:
+	@mkdir "../PSP/dist" || true
+	@mkdir "../PSP/dist/$(DISTRIB_NAME)" || true
+	@cp "../PSP/bin/ags_snowrain.prx" "../PSP/dist/$(DISTRIB_NAME)/ags_snowrain.prx"
+	@cp "../PSP/bin/agsblend.prx" "../PSP/dist/$(DISTRIB_NAME)/agsblend.prx"
+	@cp "../PSP/bin/agsflashlight.prx" "../PSP/dist/$(DISTRIB_NAME)/agsflashlight.prx"
+	@cp "agsblend/License.txt" "../PSP/dist/$(DISTRIB_NAME)/License_AGSBlend.txt"
+
+clean:
+	make cleanblend -f Makefile.psp
+	make cleansnowrain -f Makefile.psp
+	make cleanflashlight -f Makefile.psp

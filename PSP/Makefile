@@ -38,9 +38,9 @@ endif
 
 allplugins:
 ifeq ($(COPY), 1)
-	@make -C "plugins" COPY=1
+	@make -C "../Plugins" -f Makefile.psp COPY=1
 else
-	@make -C "plugins"
+	@make -C "../Plugins" -f Makefile.psp
 endif
 	
 
@@ -61,7 +61,7 @@ cleanengineprx:
 	@rm -f "bin/ags321.prx"
 
 cleanallplugins:
-	@make clean -C "plugins"
+	@make clean -C "../Plugins" -f Makefile.psp
 
 distrib:
 	@mkdir "dist" || true
@@ -73,7 +73,7 @@ distrib:
 	@cp "bin/psp.cfg" "dist/$(DISTRIB_NAME)/psp.cfg"
 	@cp "readme.txt" "dist/$(DISTRIB_NAME)/readme.txt"
 	@cp "../Engine/License.txt" "dist/$(DISTRIB_NAME)/License.txt"
-	@make distrib -C "plugins"
+	@make distrib -C "../Plugins" -f Makefile.psp
 
 clean:
 	make cleankernelprx

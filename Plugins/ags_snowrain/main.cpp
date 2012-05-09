@@ -12,8 +12,15 @@ but a workalike plugin created by JJS for the AGS engine PSP port.
 #pragma warning(disable : 4244)
 #endif
 
+#if !defined(BUILTIN_PLUGINS)
 #define THIS_IS_THE_PLUGIN
-#include "../../../Common/agsplugin.h"
+#endif
+
+#include "../../Common/agsplugin.h"
+
+#if defined(BUILTIN_PLUGINS)
+namespace ags_snowrain {
+#endif
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -755,8 +762,6 @@ void srSetRainFallSpeed(int min_value, int max_value)
   rain->SetFallSpeed(min_value, max_value);
 }
 
-
-
 void AGS_EngineStartup(IAGSEngine *lpEngine)
 {
   engine = lpEngine;
@@ -871,3 +876,7 @@ int AGS_EngineDebugHook(const char *scriptName, int lineNum, int reserved)
 void AGS_EngineInitGfx(const char *driverID, void *data)
 {
 }
+
+#if defined(BUILTIN_PLUGINS)
+}
+#endif

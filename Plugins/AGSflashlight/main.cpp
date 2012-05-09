@@ -12,8 +12,13 @@ but a workalike plugin created by JJS for the AGS engine PSP port.
 #pragma warning(disable : 4244)
 #endif
 
+#if !defined(BUILTIN_PLUGINS)
 #define THIS_IS_THE_PLUGIN
-#include "../../../Common/agsplugin.h"
+#else
+namespace agsflashlight {
+#endif
+
+#include "../../Common/agsplugin.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -747,7 +752,6 @@ int GetFlashlightMask()
   return 0;
 }
 
-
 void AGS_EngineStartup(IAGSEngine *lpEngine)
 {
   engine = lpEngine;
@@ -851,3 +855,7 @@ int AGS_EngineDebugHook(const char *scriptName, int lineNum, int reserved)
 void AGS_EngineInitGfx(const char *driverID, void *data)
 {
 }
+
+#if defined(BUILTIN_PLUGINS)
+}
+#endif

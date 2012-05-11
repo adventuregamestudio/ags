@@ -10,11 +10,14 @@
     <RootNamespace>AGS.Editor</RootNamespace>
     <AssemblyName>AGSEditor</AssemblyName>
     <ApplicationIcon>agsico-1.ico</ApplicationIcon>
-    <SccProjectName>"%24/ags/netedit/AGS.Editor", XYAAAAAA</SccProjectName>
-    <SccLocalPath>.</SccLocalPath>
+    <SccProjectName>
+    </SccProjectName>
+    <SccLocalPath>
+    </SccLocalPath>
     <SccAuxPath>
     </SccAuxPath>
-    <SccProvider>MSSCCI:Microsoft Visual SourceSafe</SccProvider>
+    <SccProvider>
+    </SccProvider>
     <RunPostBuildEvent>Always</RunPostBuildEvent>
     <FileUpgradeFlags>
     </FileUpgradeFlags>

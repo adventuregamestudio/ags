@@ -17,34 +17,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UpdateCPPVersion", "UpdateCPPVersion\UpdateCPPVersion.csproj", "{2F43F889-CAB4-4A00-8AA8-EC688C7124E1}"
 EndProject
 Global
-	GlobalSection(SourceCodeControl) = preSolution
-		SccNumberOfProjects = 6
-		SccProjectUniqueName0 = AGS.Editor\\AGSEditor.csproj
-		SccProjectName0 = \u0022$/ags/netedit/AGS.Editor\u0022,\u0020XYAAAAAA
-		SccLocalPath0 = AGS.Editor
-		SccProvider0 = MSSCCI:Microsoft\u0020Visual\u0020SourceSafe
-		SccProjectUniqueName1 = AGS.Types\\AGS.Types.csproj
-		SccProjectName1 = \u0022$/ags/netedit/AGS.Types\u0022,\u0020PYBAAAAA
-		SccLocalPath1 = AGS.Types
-		SccProvider1 = MSSCCI:Microsoft\u0020Visual\u0020SourceSafe
-		SccProjectUniqueName2 = AGS.Controls\\AGS.Controls.csproj
-		SccProjectName2 = \u0022$/ags/netedit/AGS.Controls\u0022,\u0020RECAAAAA
-		SccLocalPath2 = AGS.Controls
-		SccProvider2 = MSSCCI:Microsoft\u0020Visual\u0020SourceSafe
-		SccProjectUniqueName3 = AGS.CScript.Compiler\\AGS.CScript.Compiler.csproj
-		SccProjectName3 = \u0022$/ags/netedit\u0022,\u0020WYAAAAAA
-		SccLocalPath3 = .
-		SccProvider3 = MSSCCI:Microsoft\u0020Visual\u0020SourceSafe
-		SccProjectFilePathRelativizedFromConnection3 = AGS.CScript.Compiler\\
-		SccProjectUniqueName4 = AGS.Native\\NativeDLL.vcproj
-		SccProjectName4 = \u0022$/ags/netedit/NativeDLL\u0022,\u0020UTBAAAAA
-		SccLocalPath4 = AGS.Native
-		SccProvider4 = MSSCCI:Microsoft\u0020Visual\u0020SourceSafe
-		SccProjectUniqueName5 = UpdateCPPVersion\\UpdateCPPVersion.csproj
-		SccProjectName5 = \u0022$/ags/netedit/UpdateCPPVersion\u0022,\u0020UBDAAAAA
-		SccLocalPath5 = UpdateCPPVersion
-		SccProvider5 = MSSCCI:Microsoft\u0020Visual\u0020SourceSafe
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|Mixed Platforms = Debug|Mixed Platforms

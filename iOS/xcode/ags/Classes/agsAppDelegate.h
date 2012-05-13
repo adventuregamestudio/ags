@@ -4,8 +4,8 @@
 @class agsViewController;
 
 @interface agsAppDelegate : NSObject <UIApplicationDelegate> {
-    UIWindow *window;
-    agsViewController *viewController;
+	UIWindow *window;
+	agsViewController *viewController;
 }
 
 @property (nonatomic, retain) IBOutlet UIWindow *window;

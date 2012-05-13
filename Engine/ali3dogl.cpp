@@ -13,9 +13,9 @@ int psp_gfx_scaling = 1;
 int psp_gfx_renderer = 0;
 int psp_gfx_super_sampling = 0;
 
-unsigned int android_screen_physical_width = 1000;
-unsigned int android_screen_physical_height = 500;
-int android_screen_initialized = 1;
+unsigned int device_screen_physical_width = 1000;
+unsigned int device_screen_physical_height = 500;
+int device_screen_initialized = 1;
 
 const char* fbo_extension_string = "GL_EXT_framebuffer_object";
 
@@ -67,6 +67,12 @@ extern unsigned int android_screen_physical_width;
 extern unsigned int android_screen_physical_height;
 extern int android_screen_initialized;
 
+#define device_screen_physical_width android_screen_physical_width
+#define device_screen_physical_height android_screen_physical_height
+#define device_screen_initialized android_screen_initialized
+#define device_mouse_setup android_mouse_setup
+#define device_swap_buffers android_swap_buffers
+
 const char* fbo_extension_string = "GL_OES_framebuffer_object";
 
 #define glGenFramebuffersEXT glGenFramebuffersOES
@@ -94,6 +100,9 @@ const char* fbo_extension_string = "GL_OES_framebuffer_object";
 extern "C" 
 {
   void ios_swap_buffers();
+  void ios_select_buffer();
+  void ios_create_screen();
+  void ios_mouse_setup(int left, int right, int top, int bottom, float scaling_x, float scaling_y);  
 }
 
 #define HDC void*
@@ -111,9 +120,15 @@ extern int psp_gfx_scaling;
 extern int psp_gfx_renderer;
 extern int psp_gfx_super_sampling;
 
-unsigned int android_screen_physical_width;
-unsigned int android_screen_physical_height;
-int android_screen_initialized;
+extern unsigned int ios_screen_physical_width;
+extern unsigned int ios_screen_physical_height;
+extern int ios_screen_initialized;
+
+#define device_screen_physical_width ios_screen_physical_width
+#define device_screen_physical_height ios_screen_physical_height
+#define device_screen_initialized ios_screen_initialized
+#define device_mouse_setup ios_mouse_setup
+#define device_swap_buffers ios_swap_buffers
 
 const char* fbo_extension_string = "GL_OES_framebuffer_object";
 
@@ -534,56 +549,56 @@ void OGLGraphicsDriver::SetTintMethod(TintMethod method)
 void OGLGraphicsDriver::create_backbuffer_arrays()
 {
   float android_screen_ar = (float)_newmode_width / (float)_newmode_height;
-  float android_device_ar = (float)android_screen_physical_width / (float)android_screen_physical_height;
+  float android_device_ar = (float)device_screen_physical_width / (float)device_screen_physical_height;
 
   if (psp_gfx_scaling == 1)
   {
     // Preserve aspect ratio
     if (android_device_ar <= android_screen_ar)
     {
-      backbuffer_vertices[2] = backbuffer_vertices[6] = android_screen_physical_width - 1;
-      backbuffer_vertices[5] = backbuffer_vertices[7] = android_screen_physical_width * ((float)_newmode_height / (float)_newmode_width);
+      backbuffer_vertices[2] = backbuffer_vertices[6] = device_screen_physical_width - 1;
+      backbuffer_vertices[5] = backbuffer_vertices[7] = device_screen_physical_width * ((float)_newmode_height / (float)_newmode_width);
 
-#if defined(ANDROID_VERSION)
-      android_mouse_setup(
+#if defined(ANDROID_VERSION) || defined(IOS_VERSION)
+      device_mouse_setup(
         0, 
-        android_screen_physical_width - 1, 
-        (android_screen_physical_height - backbuffer_vertices[5]) / 2, 
-        android_screen_physical_height - ((android_screen_physical_height - backbuffer_vertices[5]) / 2), 
-        (float)_newmode_width / (float)android_screen_physical_width, 
+        device_screen_physical_width - 1, 
+        (device_screen_physical_height - backbuffer_vertices[5]) / 2, 
+        device_screen_physical_height - ((device_screen_physical_height - backbuffer_vertices[5]) / 2), 
+        (float)_newmode_width / (float)device_screen_physical_width, 
         (float)_newmode_height / backbuffer_vertices[5]);
 #endif
     }
     else
     {
-      backbuffer_vertices[2] = backbuffer_vertices[6] = android_screen_physical_height * ((float)_newmode_width / (float)_newmode_height);
-      backbuffer_vertices[5] = backbuffer_vertices[7] = android_screen_physical_height - 1;
+      backbuffer_vertices[2] = backbuffer_vertices[6] = device_screen_physical_height * ((float)_newmode_width / (float)_newmode_height);
+      backbuffer_vertices[5] = backbuffer_vertices[7] = device_screen_physical_height - 1;
 
-#if defined(ANDROID_VERSION)
-      android_mouse_setup(
-        (android_screen_physical_width - backbuffer_vertices[2]) / 2,
-        android_screen_physical_width - ((android_screen_physical_width - backbuffer_vertices[2]) / 2),
+#if defined(ANDROID_VERSION) || defined(IOS_VERSION)
+      device_mouse_setup(
+        (device_screen_physical_width - backbuffer_vertices[2]) / 2,
+        device_screen_physical_width - ((device_screen_physical_width - backbuffer_vertices[2]) / 2),
         0,
-        android_screen_physical_height - 1,
+        device_screen_physical_height - 1,
         (float)_newmode_width / backbuffer_vertices[2], 
-        (float)_newmode_height / (float)android_screen_physical_height);
+        (float)_newmode_height / (float)device_screen_physical_height);
 #endif
     }
   }
   else if (psp_gfx_scaling == 2)
   {
     // Stretch to whole screen
-    backbuffer_vertices[2] = backbuffer_vertices[6] = android_screen_physical_width - 1;
-    backbuffer_vertices[5] = backbuffer_vertices[7] = android_screen_physical_height - 1;
+    backbuffer_vertices[2] = backbuffer_vertices[6] = device_screen_physical_width - 1;
+    backbuffer_vertices[5] = backbuffer_vertices[7] = device_screen_physical_height - 1;
 
-#if defined(ANDROID_VERSION)
-    android_mouse_setup(
+#if defined(ANDROID_VERSION) || defined(IOS_VERSION)
+    device_mouse_setup(
       0, 
-      android_screen_physical_width - 1, 
+      device_screen_physical_width - 1, 
       0, 
-      android_screen_physical_width - 1, 
-      (float)_newmode_width / (float)android_screen_physical_width, 
-      (float)_newmode_height / (float)android_screen_physical_height);
+      device_screen_physical_width - 1, 
+      (float)_newmode_width / (float)device_screen_physical_width, 
+      (float)_newmode_height / (float)device_screen_physical_height);
 #endif
   }
   else
@@ -594,12 +609,12 @@ void OGLGraphicsDriver::create_backbuffer_arrays()
     backbuffer_vertices[5] = backbuffer_vertices[7] = _newmode_height * 0.5f;
     backbuffer_vertices[1] = backbuffer_vertices[3] = _newmode_height * (-0.5f);
 
-#if defined(ANDROID_VERSION)
-    android_mouse_setup(
-      (android_screen_physical_width - _newmode_width) / 2,
-      android_screen_physical_width - ((android_screen_physical_width - _newmode_width) / 2),
-      (android_screen_physical_height - _newmode_height) / 2, 
-      android_screen_physical_height - ((android_screen_physical_height - _newmode_height) / 2), 
+#if defined(ANDROID_VERSION) || defined(IOS_VERSION)
+    device_mouse_setup(
+      (device_screen_physical_width - _newmode_width) / 2,
+      device_screen_physical_width - ((device_screen_physical_width - _newmode_width) / 2),
+      (device_screen_physical_height - _newmode_height) / 2, 
+      device_screen_physical_height - ((device_screen_physical_height - _newmode_height) / 2), 
       1.0f,
       1.0f);
 #endif
@@ -614,6 +629,10 @@ void OGLGraphicsDriver::create_backbuffer_arrays()
 
 void OGLGraphicsDriver::InitOpenGl()
 {
+#if defined(IOS_VERSION)
+  ios_select_buffer();
+#endif
+
   if (_render_to_texture)
   {
     char* extensions = (char*)glGetString(GL_EXTENSIONS);
@@ -660,10 +679,10 @@ void OGLGraphicsDriver::InitOpenGl()
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
 
-  glViewport(0, 0, android_screen_physical_width, android_screen_physical_height);
+  glViewport(0, 0, device_screen_physical_width, device_screen_physical_height);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  glOrtho(0, android_screen_physical_width, 0, android_screen_physical_height, 0, 1);
+  glOrtho(0, device_screen_physical_width, 0, device_screen_physical_height, 0, 1);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
@@ -677,23 +696,23 @@ void OGLGraphicsDriver::InitOpenGl()
     if (psp_gfx_scaling == 1)
     {
       float android_screen_ar = (float)_newmode_width / (float)_newmode_height;
-      float android_device_ar = (float)android_screen_physical_width / (float)android_screen_physical_height;
+      float android_device_ar = (float)device_screen_physical_width / (float)device_screen_physical_height;
 
       if (android_device_ar <= android_screen_ar)
       {
-         _scale_width = (float)android_screen_physical_width / (float)_newmode_width;
+         _scale_width = (float)device_screen_physical_width / (float)_newmode_width;
          _scale_height = _scale_width;
       }
       else
       {
-         _scale_height = (float)android_screen_physical_height / (float)_newmode_height;
+         _scale_height = (float)device_screen_physical_height / (float)_newmode_height;
          _scale_width = _scale_height;
       }
     }
     else
     {
-      _scale_width = (float)android_screen_physical_width / (float)_newmode_width;
-      _scale_height = (float)android_screen_physical_height / (float)_newmode_height;
+      _scale_width = (float)device_screen_physical_width / (float)_newmode_width;
+      _scale_height = (float)device_screen_physical_height / (float)_newmode_height;
     }
   }
   else
@@ -737,7 +756,7 @@ void OGLGraphicsDriver::InitOpenGl()
   else
   {
     glEnable(GL_SCISSOR_TEST);
-    glScissor((int)(((float)android_screen_physical_width - _scale_width * (float)_newmode_width) / 2.0f + 1.0f), (int)(((float)android_screen_physical_height - _scale_height * (float)_newmode_height) / 2.0f), (int)(_scale_width * (float)_newmode_width), (int)(_scale_height * (float)_newmode_height));
+    glScissor((int)(((float)device_screen_physical_width - _scale_width * (float)_newmode_width) / 2.0f + 1.0f), (int)(((float)device_screen_physical_height - _scale_height * (float)_newmode_height) / 2.0f), (int)(_scale_width * (float)_newmode_width), (int)(_scale_height * (float)_newmode_height));
   }
 }
 
@@ -750,6 +769,8 @@ bool OGLGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
 {
 #if defined(ANDROID_VERSION)
   android_create_screen(realWidth, realHeight, colourDepth);
+#elif defined(IOS_VERSION)
+  ios_create_screen();
 #endif
 
   if (colourDepth < 15)
@@ -801,7 +822,7 @@ bool OGLGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
 #if defined(WINDOWS_VERSION)
     if (_newmode_windowed)
     {
-      if (adjust_window(android_screen_physical_width, android_screen_physical_height) != 0) 
+      if (adjust_window(device_screen_physical_width, device_screen_physical_height) != 0) 
       {
         ustrzcpy(allegro_error, ALLEGRO_ERROR_SIZE, get_config_text("Window size not supported"));
         return -1;
@@ -834,19 +855,19 @@ bool OGLGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
     };
 
     if (!(_hDC = GetDC(_hWnd)))
-    return false;
+      return false;
 
     if (!(PixelFormat = ChoosePixelFormat(_hDC, &pfd)))
-    return false;
+      return false;
 
     if (!SetPixelFormat(_hDC, PixelFormat, &pfd))
-    return false;
+      return false;
 
     if (!(_hRC = wglCreateContext(_hDC)))
-    return false;
+      return false;
 
     if(!wglMakeCurrent(_hDC, _hRC))
-    return false;
+      return false;
 #endif
 
     InitOpenGl();
@@ -992,7 +1013,7 @@ void OGLGraphicsDriver::_renderSprite(SpriteDrawListEntry *drawListEntry, bool g
     if (_render_to_texture)
       glTranslatef(_newmode_width * _super_sampling / 2.0f, _newmode_height * _super_sampling / 2.0f, 0.0f);
     else
-      glTranslatef(android_screen_physical_width / 2.0f, android_screen_physical_height / 2.0f, 0.0f);
+      glTranslatef(device_screen_physical_width / 2.0f, device_screen_physical_height / 2.0f, 0.0f);
 
     glTranslatef((float)thisX * _scale_width, (float)thisY * _scale_height, 0.0f);
     glScalef(widthToScale * _scale_width, heightToScale * _scale_height, 1.0f);
@@ -1031,10 +1052,14 @@ void OGLGraphicsDriver::_renderSprite(SpriteDrawListEntry *drawListEntry, bool g
 
 void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterwards)
 {
-  //if (!android_screen_initialized)
+#if defined(IOS_VERSION)
+  ios_select_buffer();
+#endif
+
+  if (!device_screen_initialized)
   {
     InitOpenGl();
-    android_screen_initialized = 1;
+    device_screen_initialized = 1;
   }
 
   SpriteDrawListEntry *listToDraw = drawList;
@@ -1062,10 +1087,10 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
     glClear(GL_COLOR_BUFFER_BIT);
     glEnable(GL_SCISSOR_TEST);
 
-    glViewport(0, 0, android_screen_physical_width, android_screen_physical_height);
+    glViewport(0, 0, device_screen_physical_width, device_screen_physical_height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(0, android_screen_physical_width, 0, android_screen_physical_height, 0, 1);
+    glOrtho(0, device_screen_physical_width, 0, device_screen_physical_height, 0, 1);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
   }
@@ -1095,12 +1120,16 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
 
   if (_render_to_texture)
   {
+#if defined(IOS_VERSION)
+    ios_select_buffer();
+#else
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+#endif
 
-    glViewport(0, 0, android_screen_physical_width, android_screen_physical_height);
+    glViewport(0, 0, device_screen_physical_width, device_screen_physical_height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(0, android_screen_physical_width, 0, android_screen_physical_height, 0, 1);
+    glOrtho(0, device_screen_physical_width, 0, device_screen_physical_height, 0, 1);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
@@ -1108,9 +1137,9 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 
     if (psp_gfx_scaling)
-       glTranslatef((android_screen_physical_width - backbuffer_vertices[2] - 1) / 2, (android_screen_physical_height - backbuffer_vertices[5] - 1) / 2, 0);
+       glTranslatef((device_screen_physical_width - backbuffer_vertices[2] - 1) / 2, (device_screen_physical_height - backbuffer_vertices[5] - 1) / 2, 0);
     else
-      glTranslatef(android_screen_physical_width / 2.0f, android_screen_physical_height / 2.0f, 0);
+      glTranslatef(device_screen_physical_width / 2.0f, device_screen_physical_height / 2.0f, 0);
 
     glBindTexture(GL_TEXTURE_2D, _backbuffer);
 
@@ -1128,10 +1157,8 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
 
 #if defined(WINDOWS_VERSION)
   SwapBuffers(_hDC);
-#elif defined(ANDROID_VERSION)
-  android_swap_buffers();
-#elif defined(IOS_VERSION)
-//	ios_swap_buffers();
+#elif defined(ANDROID_VERSION) || defined(IOS_VERSION)
+  device_swap_buffers();
 #endif
 
   if (clearDrawListAfterwards)

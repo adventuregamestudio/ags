@@ -95,6 +95,12 @@
 		6041A8981552E8C400596310 /* libbz2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 6041A8971552E8C400596310 /* libbz2.dylib */; };
 		60819173154C78F000368355 /* acplios.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60819172154C78F000368355 /* acplios.cpp */; };
 		6081918F154D9A2700368355 /* libc.c in Sources */ = {isa = PBXBuildFile; fileRef = 6081918E154D9A2700368355 /* libc.c */; };
+		608498E6155CDF6400121EFE /* Icon-72.png in Resources */ = {isa = PBXBuildFile; fileRef = 608498E5155CDF6400121EFE /* Icon-72.png */; };
+		608498E8155CDF7000121EFE /* Icon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 608498E7155CDF7000121EFE /* Icon@2x.png */; };
+		608A53D4155B05F7002E3D41 /* ags_snowrain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 608A53D3155B05F7002E3D41 /* ags_snowrain.cpp */; };
+		608A53D6155B0608002E3D41 /* AGSBlend.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 608A53D5155B0608002E3D41 /* AGSBlend.cpp */; };
+		608A53D8155B061C002E3D41 /* agsflashlight.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 608A53D7155B061C002E3D41 /* agsflashlight.cpp */; };
+		60BC89A8155E969700807358 /* iTunesArtwork in Resources */ = {isa = PBXBuildFile; fileRef = 60BC89A7155E969700807358 /* iTunesArtwork */; };
 		60CE9D9C155272CD00A52D5A /* libfreetype.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 60CE9D9B155272CD00A52D5A /* libfreetype.a */; };
 		60F49A4A155131E500A07887 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 60F49A49155131E500A07887 /* AudioToolbox.framework */; };
 /* End PBXBuildFile section */
@@ -241,8 +247,14 @@
 		6041A8971552E8C400596310 /* libbz2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libbz2.dylib; path = usr/lib/libbz2.dylib; sourceTree = SDKROOT; };
 		60819172154C78F000368355 /* acplios.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = acplios.cpp; sourceTree = "<group>"; };
 		6081918E154D9A2700368355 /* libc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = libc.c; path = ../../../Android/app/jni/libc.c; sourceTree = SOURCE_ROOT; };
+		608498E5155CDF6400121EFE /* Icon-72.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-72.png"; sourceTree = "<group>"; };
+		608498E7155CDF7000121EFE /* Icon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon@2x.png"; sourceTree = "<group>"; };
+		608A53D3155B05F7002E3D41 /* ags_snowrain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ags_snowrain.cpp; path = ../../../Plugins/ags_snowrain/ags_snowrain.cpp; sourceTree = SOURCE_ROOT; };
+		608A53D5155B0608002E3D41 /* AGSBlend.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AGSBlend.cpp; path = ../../../Plugins/agsblend/AGSBlend.cpp; sourceTree = SOURCE_ROOT; };
+		608A53D7155B061C002E3D41 /* agsflashlight.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = agsflashlight.cpp; path = ../../../Plugins/AGSflashlight/agsflashlight.cpp; sourceTree = SOURCE_ROOT; };
 		609D6FF8154C625A0003AE8D /* acdebug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = acdebug.h; sourceTree = "<group>"; };
 		609D6FF9154C626B0003AE8D /* ali3d.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ali3d.h; sourceTree = "<group>"; };
+		60BC89A7155E969700807358 /* iTunesArtwork */ = {isa = PBXFileReference; lastKnownFileType = file; path = iTunesArtwork; sourceTree = "<group>"; };
 		60CE9D9B155272CD00A52D5A /* libfreetype.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfreetype.a; path = ../../nativelibs/fat/lib/libfreetype.a; sourceTree = SOURCE_ROOT; };
 		60F49A49155131E500A07887 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		8D1107310486CEB800E47090 /* ags-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "ags-Info.plist"; plistStructureDefinitionIdentifier = "com.apple.xcode.plist.structure-definition.iphone.info-plist"; sourceTree = "<group>"; };
@@ -319,6 +331,9 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				60BC89A7155E969700807358 /* iTunesArtwork */,
+				608498E7155CDF7000121EFE /* Icon@2x.png */,
+				608498E5155CDF6400121EFE /* Icon-72.png */,
 				6041A8691552E63B00596310 /* Icon.png */,
 				28EC4C5811D54ECE0027AA9F /* agsViewController.xib */,
 				28AD733E0D9D9553002E5188 /* MainWindow.xib */,
@@ -351,6 +366,7 @@
 		601AC472153892250098399D /* Engine */ = {
 			isa = PBXGroup;
 			children = (
+				608A53D2155B0535002E3D41 /* Plugins */,
 				6081918E154D9A2700368355 /* libc.c */,
 				601ACBCF1538950E0098399D /* Common */,
 				601AC473153892A30098399D /* Engine */,
@@ -591,6 +607,16 @@
 			path = ../../../Common/libinclude/vorbis;
 			sourceTree = SOURCE_ROOT;
 		};
+		608A53D2155B0535002E3D41 /* Plugins */ = {
+			isa = PBXGroup;
+			children = (
+				608A53D7155B061C002E3D41 /* agsflashlight.cpp */,
+				608A53D5155B0608002E3D41 /* AGSBlend.cpp */,
+				608A53D3155B05F7002E3D41 /* ags_snowrain.cpp */,
+			);
+			name = Plugins;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -601,6 +627,7 @@
 				1D60588D0D05DD3D006BFB54 /* Resources */,
 				1D60588E0D05DD3D006BFB54 /* Sources */,
 				1D60588F0D05DD3D006BFB54 /* Frameworks */,
+				604B5533155C4F7400581284 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -650,10 +677,29 @@
 				601ACC30153895100098399D /* Makefile.am in Resources */,
 				601ACC31153895100098399D /* Makefile.in in Resources */,
 				6041A86A1552E63B00596310 /* Icon.png in Resources */,
+				608498E6155CDF6400121EFE /* Icon-72.png in Resources */,
+				608498E8155CDF7000121EFE /* Icon@2x.png in Resources */,
+				60BC89A8155E969700807358 /* iTunesArtwork in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		604B5533155C4F7400581284 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "export CODESIGN_ALLOCATE=/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/codesign_allocate\nif [ \"${PLATFORM_NAME}\" == \"iphoneos\" ]; then\n/Developer/iphoneentitlements401/gen_entitlements.py \"my.company.${PROJECT_NAME}\" \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/${PROJECT_NAME}.xcent\";\ncodesign -f -s \"iPhone Developer\" --entitlements \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/${PROJECT_NAME}.xcent\" \"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/\"\nfi";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		1D60588E0D05DD3D006BFB54 /* Sources */ = {
@@ -726,6 +772,9 @@
 				601ACC37153895100098399D /* sprcache.cpp in Sources */,
 				60819173154C78F000368355 /* acplios.cpp in Sources */,
 				6081918F154D9A2700368355 /* libc.c in Sources */,
+				608A53D4155B05F7002E3D41 /* ags_snowrain.cpp in Sources */,
+				608A53D6155B0608002E3D41 /* AGSBlend.cpp in Sources */,
+				608A53D8155B061C002E3D41 /* agsflashlight.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -745,7 +794,6 @@
 				INFOPLIST_FILE = "ags-Info.plist";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/../../nativelibs/x86/lib\"",
 					"\"$(SRCROOT)/../../nativelibs/fat/lib\"",
 				);
 				PRODUCT_NAME = ags;
@@ -763,7 +811,6 @@
 				INFOPLIST_FILE = "ags-Info.plist";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/../../nativelibs/x86/lib\"",
 					"\"$(SRCROOT)/../../nativelibs/fat/lib\"",
 				);
 				PRODUCT_NAME = ags;
@@ -784,6 +831,7 @@
 					THIS_IS_THE_ENGINE,
 					MAC_VERSION,
 					IOS_VERSION,
+					BUILTIN_PLUGINS,
 					DEBUG,
 				);
 				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
@@ -793,15 +841,16 @@
 					"${SOURCE_ROOT}/../../../Common",
 					"${SOURCE_ROOT}/../../../Common/libinclude",
 					"${SOURCE_ROOT}/../../../Engine",
-					"${SOURCE_ROOT}/../../../iOS/nativelibs/i386/include",
-					"${SOURCE_ROOT}/../../nativelibs/i386/include/freetype2",
+					"${SOURCE_ROOT}/../../../iOS/nativelibs/fat/include",
+					"${SOURCE_ROOT}/../../nativelibs/fat/include/freetype2",
 				);
 				LIBRARY_SEARCH_PATHS = "${SOURCE_ROOT}/../../nativelibs/fat/lib";
+				OTHER_CODE_SIGN_FLAGS = "-gta";
 				PREBINDING = NO;
 				PROVISIONING_PROFILE = "";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				SDKROOT = iphoneos;
-				USER_HEADER_SEARCH_PATHS = "${SOURCE_ROOT}/../../../Common ${SOURCE_ROOT}/../../../Common/libinclude ${SOURCE_ROOT}/../../../Engine ${SOURCE_ROOT}/../../../iOS/nativelibs/i386/include ${SOURCE_ROOT}/../../nativelibs/i386/include/freetype2";
+				USER_HEADER_SEARCH_PATHS = "${SOURCE_ROOT}/../../../Common ${SOURCE_ROOT}/../../../Common/libinclude ${SOURCE_ROOT}/../../../Engine ${SOURCE_ROOT}/../../../iOS/nativelibs/fat/include ${SOURCE_ROOT}/../../nativelibs/fat/include/freetype2";
 			};
 			name = Debug;
 		};
@@ -818,6 +867,7 @@
 					THIS_IS_THE_ENGINE,
 					MAC_VERSION,
 					IOS_VERSION,
+					BUILTIN_PLUGINS,
 				);
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
@@ -825,8 +875,8 @@
 					"${SOURCE_ROOT}/../../../Common",
 					"${SOURCE_ROOT}/../../../Common/libinclude",
 					"${SOURCE_ROOT}/../../../Engine",
-					"${SOURCE_ROOT}/../../../iOS/nativelibs/i386/include",
-					"${SOURCE_ROOT}/../../nativelibs/i386/include/freetype2",
+					"${SOURCE_ROOT}/../../../iOS/nativelibs/fat/include",
+					"${SOURCE_ROOT}/../../nativelibs/fat/include/freetype2",
 				);
 				LIBRARY_SEARCH_PATHS = "${SOURCE_ROOT}/../../nativelibs/fat/lib";
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
@@ -834,7 +884,7 @@
 				PROVISIONING_PROFILE = "";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				SDKROOT = iphoneos;
-				USER_HEADER_SEARCH_PATHS = "${SOURCE_ROOT}/../../../Common ${SOURCE_ROOT}/../../../Common/libinclude ${SOURCE_ROOT}/../../../Engine ${SOURCE_ROOT}/../../../iOS/nativelibs/i386/include ${SOURCE_ROOT}/../../nativelibs/i386/include/freetype2";
+				USER_HEADER_SEARCH_PATHS = "${SOURCE_ROOT}/../../../Common ${SOURCE_ROOT}/../../../Common/libinclude ${SOURCE_ROOT}/../../../Engine ${SOURCE_ROOT}/../../../iOS/nativelibs/fat/include ${SOURCE_ROOT}/../../nativelibs/fat/include/freetype2";
 			};
 			name = Release;
 		};

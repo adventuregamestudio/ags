@@ -66,6 +66,10 @@ extern "C" void selectLatestSavegame();
 extern bool psp_load_latest_savegame;
 #endif
 
+#if defined(IOS_VERSION)
+extern "C" void ios_render();
+#endif
+
 // PSP specific variables:
 extern int psp_video_framedrop; // Drop video frames if lagging behind audio?
 extern int psp_audio_enabled; // Audio can be disabled in the config file.
@@ -2920,6 +2924,9 @@ void render_to_screen(BITMAP *toRender, int atx, int aty) {
 #if defined(ANDROID_VERSION)
       if (game.color_depth == 1)
         android_render();
+#elif defined(IOS_VERSION)
+      if (game.color_depth == 1)
+        ios_render();
 #endif
 
       succeeded = true;
@@ -28735,8 +28742,13 @@ int initialize_engine(int argc,char*argv[])
 
   //init_language_text("en");
   if (check_write_access()==0) {
+#if defined(IOS_VERSION)
+    platform->DisplayAlert("Unable to write to the current directory. Make sure write permissions are"
+    " set for the game directory.\n");
+#else
     platform->DisplayAlert("Unable to write to the current directory. Do not run this game off a\n"
     "network or CD-ROM drive. Also check drive free space (you need 1 Mb free).\n");
+#endif
     proper_exit = 1;
     return EXIT_NORMAL; 
   }
@@ -28879,7 +28891,9 @@ int initialize_engine(int argc,char*argv[])
     secondDepth = 24;
   }
   
-#if 1
+#if !defined(IOS_VERSION)
+  // This code actually causes graphical errors on iOS,
+  // e.g. the raindrops in Gemini Rue are drawn solid black.
 #ifdef MAC_VERSION
   if (game.color_depth > 1)
   {

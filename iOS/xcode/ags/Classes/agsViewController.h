@@ -8,20 +8,11 @@
 #import <OpenGLES/ES2/gl.h>
 #import <OpenGLES/ES2/glext.h>
 
-@interface agsViewController : UIViewController
+@interface agsViewController : UIViewController <UIAlertViewDelegate, UIKeyInput, UITextInputTraits>
 {
-    EAGLContext *context;
-    GLuint program;
-    
-    BOOL animating;
-    NSInteger animationFrameInterval;
-    CADisplayLink *displayLink;
+	EAGLContext *context;
 }
 
-@property (readonly, nonatomic, getter=isAnimating) BOOL animating;
-@property (nonatomic) NSInteger animationFrameInterval;
-
-- (void)startAnimation;
-- (void)stopAnimation;
+- (void)createGestureRecognizers;
 
 @end

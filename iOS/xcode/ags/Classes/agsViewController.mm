@@ -3,20 +3,26 @@
 #import "agsViewController.h"
 #import "EAGLView.h"
 
+// From the engine
 extern void startEngine(char* filename, char* directory, int loadLastSave);
-extern "C" void ios_render();
+extern int psp_rotation;
+
+
 
 @interface agsViewController ()
 @property (nonatomic, retain) EAGLContext *context;
-@property (nonatomic, assign) CADisplayLink *displayLink;
 @end
 
 @implementation agsViewController
 
-@synthesize animating, context, displayLink;
+@synthesize context;
 
 
 agsViewController* agsviewcontroller;
+
+
+
+// Mouse
 
 int mouse_button = 0;
 int mouse_position_x = 0;
@@ -26,7 +32,6 @@ int mouse_relative_position_y = 0;
 
 extern "C"
 {
-
 	int ios_poll_mouse_buttons()
 	{
 		int temp_button = mouse_button;
@@ -46,26 +51,120 @@ extern "C"
 		*x = mouse_position_x;
 		*y = mouse_position_y;
 	}
-
 }
 
 
-// Implement viewDidLoad to do additional setup after loading the view, typically from a nib.
-- (void)viewDidLoad
-{
-	[super viewDidLoad];
-	[self.view setMultipleTouchEnabled:YES];
-	[self createGestureRecognizers];
-	agsviewcontroller = self;
-}
+
+// Keyboard
 
 
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
+- (BOOL)canBecomeFirstResponder
 {
-	// Return YES for supported orientations
 	return YES;
 }
 
+- (void)registerForKeyboardNotifications
+{
+	[[NSNotificationCenter defaultCenter] addObserver:self
+		selector:@selector(keyboardWasShown:)
+		name:UIKeyboardDidShowNotification object:nil];
+
+	[[NSNotificationCenter defaultCenter] addObserver:self
+		selector:@selector(keyboardWillBeHidden:)
+		name:UIKeyboardWillHideNotification object:nil];
+}
+
+- (void)keyboardWasShown:(NSNotification*)aNotification
+{
+	NSDictionary* info = [aNotification userInfo];
+	CGSize kbSize = [[info objectForKey:UIKeyboardFrameBeginUserInfoKey] CGRectValue].size;
+	UIEdgeInsets contentInsets = UIEdgeInsetsMake(0.0, 0.0, kbSize.height, 0.0);
+}
+
+- (void)keyboardWillBeHidden:(NSNotification*)aNotification
+{
+	UIEdgeInsets contentInsets = UIEdgeInsetsZero;
+}
+
+char lastChar;
+
+extern "C" int ios_get_last_keypress()
+{
+  int result = lastChar;
+  lastChar = 0;
+  return result;
+}
+
+- (BOOL)hasText
+{
+	return NO;
+}
+
+- (void)insertText:(NSString *)theText
+{
+	const char* text = [theText cStringUsingEncoding:NSASCIIStringEncoding];
+	if (text)
+		lastChar = text[0];
+}
+
+- (void)deleteBackward
+{
+	lastChar = 8; // Backspace
+}
+
+
+
+// Touching
+
+
+- (IBAction)handleSingleFingerTap:(UIGestureRecognizer *)sender
+{
+	mouse_button = 1;
+}
+
+- (IBAction)handleTwoFingerTap:(UIGestureRecognizer *)sender
+{
+	mouse_button = 2;
+}
+
+BOOL keyboard_active = FALSE;
+
+- (IBAction)handleLongPress:(UIGestureRecognizer *)sender
+{
+	if (sender.state != UIGestureRecognizerStateBegan)
+	  return;
+
+	if (keyboard_active)
+		[self resignFirstResponder];
+	else
+		[self becomeFirstResponder];
+
+	keyboard_active = !keyboard_active;
+}
+
+- (IBAction)handleShortLongPress:(UIGestureRecognizer *)sender
+{
+	if (sender.state != UIGestureRecognizerStateBegan)
+	  return;
+
+	mouse_button = 10;
+}
+
+- (void)touchesMoved:(NSSet*)touches withEvent:(UIEvent*)event
+{
+	UITouch* touch = [touches anyObject];
+	CGPoint touchPoint = [touch locationInView:self.view];	
+	mouse_position_x = touchPoint.x;
+	mouse_position_y = touchPoint.y;
+}
+
+-(void)touchesBegan:(NSSet*)touches withEvent:(UIEvent*)event
+{
+	UITouch* touch = [touches anyObject];
+	CGPoint touchPoint = [touch locationInView:self.view];	
+	mouse_position_x = touchPoint.x;
+	mouse_position_y = touchPoint.y;
+}
 
 - (void)createGestureRecognizers
 {
@@ -85,43 +184,71 @@ extern "C"
 	
 	UILongPressGestureRecognizer* longPressGesture = [[UILongPressGestureRecognizer alloc]
 	initWithTarget:self action:@selector(handleLongPress:)];
+	longPressGesture.minimumPressDuration = 1.5;
 	[self.view addGestureRecognizer:longPressGesture];
 	[longPressGesture release];
+	
+	UILongPressGestureRecognizer* shortLongPressGesture = [[UILongPressGestureRecognizer alloc]
+	initWithTarget:self action:@selector(handleShortLongPress:)];
+	shortLongPressGesture.minimumPressDuration = 0.7;
+	[shortLongPressGesture requireGestureRecognizerToFail:longPressGesture];
+	[self.view addGestureRecognizer:shortLongPressGesture];
+	[shortLongPressGesture release];
 }
 
 
-- (IBAction)handleSingleFingerTap:(UIGestureRecognizer *)sender
+
+
+
+
+- (void)showActivityIndicator
 {
-	mouse_button = 1;
+	UIActivityIndicatorView* indicatorView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
+	[indicatorView startAnimating];
+	indicatorView.center = self.view.center;
+	[self.view addSubview:indicatorView];
+	[indicatorView release];
 }
 
-- (IBAction)handleTwoFingerTap:(UIGestureRecognizer *)sender
+- (void)hideActivityIndicator
 {
-	mouse_button = 2;
+	NSArray *subviews = [self.view subviews];
+		for (UIView *view in subviews)
+			[view removeFromSuperview];
 }
 
-- (IBAction)handleLongPress:(UIGestureRecognizer *)sender
+
+extern "C" void ios_create_screen()
 {
-	mouse_button = 10;
+	[agsviewcontroller performSelectorOnMainThread:@selector(hideActivityIndicator) withObject:nil waitUntilDone:YES];
 }
 
 
-- (void)touchesMoved:(NSSet*)touches withEvent:(UIEvent*)event
+
+// Implement viewDidLoad to do additional setup after loading the view, typically from a nib.
+- (void)viewDidLoad
 {
-	UITouch* touch = [touches anyObject];
-	CGPoint touchPoint = [touch locationInView:self.view];	
-	mouse_position_x = touchPoint.x;
-	mouse_position_y = touchPoint.y;
+	[self showActivityIndicator];
+
+	[super viewDidLoad];
+	[self.view setMultipleTouchEnabled:YES];
+	[self createGestureRecognizers];
+	agsviewcontroller = self;
+	[self registerForKeyboardNotifications];
 }
 
 
--(void)touchesBegan:(NSSet*)touches withEvent:(UIEvent*)event
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
 {
-	UITouch* touch = [touches anyObject];
-	CGPoint touchPoint = [touch locationInView:self.view];	
-	mouse_position_x = touchPoint.x;
-	mouse_position_y = touchPoint.y;
+	// Return YES for supported orientations
+	if (psp_rotation == 0)
+	  return YES;
+	else if (psp_rotation == 1)
+	  return UIInterfaceOrientationIsPortrait(interfaceOrientation);
+	else if (psp_rotation == 2)
+	  return UIInterfaceOrientationIsLandscape(interfaceOrientation);	
 }
+
 
 
 - (void)awakeFromNib
@@ -129,25 +256,23 @@ extern "C"
 	EAGLContext* aContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES1];
 	
 	if (!aContext)
-	NSLog(@"Failed to create ES context");
+		NSLog(@"Failed to create ES context");
 	else if (![EAGLContext setCurrentContext:aContext])
-	NSLog(@"Failed to set ES context current");
+		NSLog(@"Failed to set ES context current");
 	
 	self.context = aContext;
 	[aContext release];
 	
 	[(EAGLView *)self.view setContext:context];
 	[(EAGLView *)self.view setFramebuffer];
-	
-	animating = FALSE;
-	animationFrameInterval = 1;
-	self.displayLink = nil;	
 
 	[NSThread detachNewThreadSelector:@selector(startThread) toTarget:self withObject:nil];  
 }
 
 - (void)startThread
 {
+	NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+
 	// Handle any foreground procedures not related to animation here.
 	NSArray *searchPaths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
 	NSString *documentPath = [searchPaths objectAtIndex:0];
@@ -155,23 +280,42 @@ extern "C"
 	const char* bla = [documentPath UTF8String];
 	char path[300];
 	strcpy(path, bla);
-	strcat(path, "/game/");
+	strcat(path, "/ags/game/");
 	
 	char filename[300];
 	strcpy(filename, path);
 	strcat(filename, "ac2game.dat");
 	
-	animating = FALSE;
-	animationFrameInterval = 1;
-	self.displayLink = nil;
 	startEngine(filename, path, 0);	
+
+	[pool release];
 }
 
+
+extern volatile int ios_wait_for_ui;
+
+void ios_show_message_box(char* buffer)
+{
+	NSString* string = [[NSString alloc] initWithUTF8String: buffer];
+	[agsviewcontroller performSelectorOnMainThread:@selector(showMessageBox:) withObject:string waitUntilDone:YES];
+}
+
+- (void)showMessageBox:(NSString*)text
+{
+	ios_wait_for_ui = 1;
+	UIAlertView *message = [[UIAlertView alloc] initWithTitle:@"Error" message:text delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil];
+	[message show];
+}
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
+{
+   ios_wait_for_ui = 0;
+}
 
 - (void)dealloc
 {
 	if ([EAGLContext currentContext] == context)
-	[EAGLContext setCurrentContext:nil];
+		[EAGLContext setCurrentContext:nil];
 	
 	[context release];
 	
@@ -180,15 +324,11 @@ extern "C"
 
 - (void)viewWillAppear:(BOOL)animated
 {
-	[self startAnimation];
-	
 	[super viewWillAppear:animated];
 }
 
 - (void)viewWillDisappear:(BOOL)animated
 {
-	[self stopAnimation];
-	
 	[super viewWillDisappear:animated];
 }
 
@@ -198,64 +338,8 @@ extern "C"
 
 	// Tear down context.
 	if ([EAGLContext currentContext] == context)
-	[EAGLContext setCurrentContext:nil];
+		[EAGLContext setCurrentContext:nil];
 	self.context = nil;	
-}
-
-- (NSInteger)animationFrameInterval
-{
-	return animationFrameInterval;
-}
-
-- (void)setAnimationFrameInterval:(NSInteger)frameInterval
-{
-	/*
-	Frame interval defines how many display frames must pass between each time the display link fires.
-	The display link will only fire 30 times a second when the frame internal is two on a display that refreshes 60 times a second. The default frame interval setting of one will fire 60 times a second when the display refreshes at 60 times a second. A frame interval setting of less than one results in undefined behavior.
-	*/
-	if (frameInterval >= 1)
-	{
-		animationFrameInterval = frameInterval;
-		
-		if (animating)
-		{
-			[self stopAnimation];
-			[self startAnimation];
-		}
-	}
-}
-
-- (void)startAnimation
-{
-	if (!animating)
-	{
-		CADisplayLink *aDisplayLink = [[UIScreen mainScreen] displayLinkWithTarget:self selector:@selector(drawFrame)];
-		[aDisplayLink setFrameInterval:animationFrameInterval];
-		[aDisplayLink addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
-		self.displayLink = aDisplayLink;
-		
-		animating = TRUE;
-	}
-}
-
-- (void)stopAnimation
-{
-	if (animating)
-	{
-		[self.displayLink invalidate];
-		self.displayLink = nil;
-		animating = FALSE;
-	}
-}
-
-- (void)drawFrame
-{
-	[(EAGLView *)self.view setFramebuffer];
-	
-	ios_render();
-	
-	[(EAGLView *)self.view presentFramebuffer];
-	
 }
 
 - (void)didReceiveMemoryWarning

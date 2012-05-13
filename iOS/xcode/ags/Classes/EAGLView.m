@@ -1,10 +1,3 @@
-//
-//  EAGLView.m
-//  ags
-//
-//  Created by jjs on 13.04.12.
-//  Copyright 2012 __MyCompanyName__. All rights reserved.
-//
 
 #import <QuartzCore/QuartzCore.h>
 
@@ -24,13 +17,13 @@ EAGLView* eaglview;
 void ios_swap_buffers()
 {
 	if (eaglview)
-	[eaglview presentFramebuffer];//swapBuffers];
+		[eaglview presentFramebuffer];
 }
 
 void ios_select_buffer()
 {
 	if (eaglview)
-	[eaglview setFramebuffer];//swapBuffers];
+		[eaglview setFramebuffer];
 }
 
 // You must implement this method
@@ -49,9 +42,8 @@ void ios_select_buffer()
 		
 		eaglLayer.opaque = TRUE;
 		eaglLayer.drawableProperties = [NSDictionary dictionaryWithObjectsAndKeys:
-		[NSNumber numberWithBool:FALSE], kEAGLDrawablePropertyRetainedBacking,
-		kEAGLColorFormatRGBA8, kEAGLDrawablePropertyColorFormat,
-		nil];
+			[NSNumber numberWithBool:FALSE], kEAGLDrawablePropertyRetainedBacking,
+			kEAGLColorFormatRGBA8, kEAGLDrawablePropertyColorFormat, nil];
 	}
 	
 	eaglview = self;
@@ -109,8 +101,8 @@ extern void ios_initialize_renderer(int w, int h);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, colorRenderbuffer);
 		
 		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		NSLog(@"Failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER));
-		
+			NSLog(@"Failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER));
+
 		glClear(GL_COLOR_BUFFER_BIT);
 	}
 }
@@ -135,39 +127,47 @@ extern void ios_initialize_renderer(int w, int h);
 	}
 }
 
+
+extern int is_in_foreground;
+
 - (void)setFramebuffer
 {
-	if (context)
-	{
-		[EAGLContext setCurrentContext:context];
-		
-		if (!defaultFramebuffer)
-		[self createFramebuffer];
-		
-		glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebuffer);
-	}	
-}
+	while (!is_in_foreground)
+		usleep(1000 * 1000);
 
-- (BOOL)presentFramebuffer
-{
-	BOOL success = FALSE;
+	if (changedOrientation)
+	{
+		[self deleteFramebuffer];
+		changedOrientation = false;
+	}
 	
 	if (context)
 	{
 		[EAGLContext setCurrentContext:context];
 		
-		glBindFramebuffer(GL_RENDERBUFFER, colorRenderbuffer);
+		if (!defaultFramebuffer)
+			[self createFramebuffer];
 		
-		success = [context presentRenderbuffer:GL_RENDERBUFFER];
-	}
+		glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebuffer);		
+	}	
+}
 
-	return success;
+- (void)presentFramebuffer
+{
+	if (context)
+	{
+		[EAGLContext setCurrentContext:context];
+		
+		glBindRenderbuffer(GL_RENDERBUFFER, colorRenderbuffer);
+		
+		[context presentRenderbuffer:GL_RENDERBUFFER];
+	}
 }
 
 - (void)layoutSubviews
 {
 	// The framebuffer will be re-created at the beginning of the next setFramebuffer method call.
-	[self deleteFramebuffer];
+	changedOrientation = true;
 }
 
 @end

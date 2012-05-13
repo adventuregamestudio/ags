@@ -797,7 +797,7 @@ void AGS_EngineStartup(IAGSEngine *lpEngine)
   engine->RequestEventHook(AGSE_PREGUIDRAW);
   engine->RequestEventHook(AGSE_PRESCREENDRAW);
   engine->RequestEventHook(AGSE_ENTERROOM);
-#if defined(PSP_VERSION) || defined(ANDROID_VERSION) || defined(AGS_SNOWRAIN_DLL_SAVEGAME_COMPATIBILITY)
+#if defined(PSP_VERSION) || defined(ANDROID_VERSION) || defined(IOS_VERSION) || defined(AGS_SNOWRAIN_DLL_SAVEGAME_COMPATIBILITY)
   engine->RequestEventHook(AGSE_SAVEGAME);
   engine->RequestEventHook(AGSE_RESTOREGAME);
 #endif
@@ -827,7 +827,7 @@ int AGS_EngineOnEvent(int event, int data)
     rain->EnterRoom();
     snow->EnterRoom();
   }
-#if defined(PSP_VERSION) || defined(ANDROID_VERSION) || defined(AGS_SNOWRAIN_DLL_SAVEGAME_COMPATIBILITY)
+#if defined(PSP_VERSION) || defined(ANDROID_VERSION) || defined(IOS_VERSION) || defined(AGS_SNOWRAIN_DLL_SAVEGAME_COMPATIBILITY)
   else if (event == AGSE_RESTOREGAME)
   {
 #ifdef AGS_SNOWRAIN_DLL_SAVEGAME_COMPATIBILITY

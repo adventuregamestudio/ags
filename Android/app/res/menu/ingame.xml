@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+    <item android:id="@+id/keys" android:title="Keys" android:checkable="false">
+        <menu><item android:id="@+id/key_f1" android:title="F1" android:checkable="false"></item><item android:id="@+id/key_f2" android:title="F2" android:checkable="false"></item><item android:id="@+id/key_f3" android:title="F3" android:checkable="false"></item><item android:id="@+id/key_f4" android:title="F4" android:checkable="false"></item><item android:id="@+id/key_f5" android:title="F5" android:checkable="false"></item><item android:id="@+id/key_f6" android:title="F6 (Save)" android:checkable="false"></item><item android:id="@+id/key_f7" android:title="F7 (Restore)" android:checkable="false"></item><item android:id="@+id/key_f8" android:title="F8 (Quit)" android:checkable="false"></item><item android:id="@+id/key_f9" android:title="F9 (Restart)" android:checkable="false"></item><item android:id="@+id/key_f10" android:title="F10" android:checkable="false"></item><item android:id="@+id/key_f11" android:title="F11" android:checkable="false"></item><item android:id="@+id/key_f12" android:title="F12" android:checkable="false"></item></menu>
+    </item>
+    <item android:id="@+id/exitgame" android:title="Exit game" android:checkable="false"></item>
+    
+
+</menu>

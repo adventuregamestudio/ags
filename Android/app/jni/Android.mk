@@ -46,7 +46,7 @@ include $(BUILD_SHARED_LIBRARY)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE    := ags_snowrain
-LOCAL_SRC_FILES := ../Plugins/ags_snowrain/main.cpp
+LOCAL_SRC_FILES := ../Plugins/ags_snowrain/ags_snowrain.cpp
 LOCAL_CFLAGS    := -O2 -g -ffast-math -fsigned-char -Wall -Wfatal-errors -DLINUX_VERSION -DANDROID_VERSION
 LOCAL_CXXFLAGS  := $(LOCAL_CFLAGS) -Wno-write-strings
 LOCAL_LDLIBS    := -static -lstdc++ -Wl,-Bdynamic -lc -lm -llog
@@ -72,7 +72,7 @@ include $(BUILD_SHARED_LIBRARY)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE    := agsflashlight
-LOCAL_SRC_FILES := ../Plugins/AGSflashlight/main.cpp
+LOCAL_SRC_FILES := ../Plugins/AGSflashlight/agsflashlight.cpp
 LOCAL_CFLAGS    := -O2 -g -ffast-math -fsigned-char -Wall -Wfatal-errors -DLINUX_VERSION -DANDROID_VERSION
 LOCAL_CXXFLAGS  := $(LOCAL_CFLAGS) -Wno-write-strings
 LOCAL_LDLIBS    := -static -lstdc++ -Wl,-Bdynamic -lc -lm -llog

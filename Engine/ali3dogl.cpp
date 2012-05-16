@@ -700,13 +700,13 @@ void OGLGraphicsDriver::InitOpenGl()
 
       if (android_device_ar <= android_screen_ar)
       {
-         _scale_width = (float)device_screen_physical_width / (float)_newmode_width;
-         _scale_height = _scale_width;
+        _scale_width = (float)device_screen_physical_width / (float)_newmode_width;
+        _scale_height = _scale_width;
       }
       else
       {
-         _scale_height = (float)device_screen_physical_height / (float)_newmode_height;
-         _scale_width = _scale_height;
+        _scale_height = (float)device_screen_physical_height / (float)_newmode_height;
+        _scale_width = _scale_height;
       }
     }
     else
@@ -750,14 +750,14 @@ void OGLGraphicsDriver::InitOpenGl()
     glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, _backbuffer, 0);
 
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-
-    create_backbuffer_arrays();
   }
   else
   {
     glEnable(GL_SCISSOR_TEST);
     glScissor((int)(((float)device_screen_physical_width - _scale_width * (float)_newmode_width) / 2.0f + 1.0f), (int)(((float)device_screen_physical_height - _scale_height * (float)_newmode_height) / 2.0f), (int)(_scale_width * (float)_newmode_width), (int)(_scale_height * (float)_newmode_height));
   }
+
+  create_backbuffer_arrays();
 }
 
 bool OGLGraphicsDriver::Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer) 

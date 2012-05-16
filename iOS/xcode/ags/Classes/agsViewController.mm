@@ -90,9 +90,9 @@ char lastChar;
 
 extern "C" int ios_get_last_keypress()
 {
-  int result = lastChar;
-  lastChar = 0;
-  return result;
+	int result = lastChar;
+	lastChar = 0;
+	return result;
 }
 
 - (BOOL)hasText
@@ -206,6 +206,7 @@ BOOL keyboard_active = FALSE;
 	UIActivityIndicatorView* indicatorView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
 	[indicatorView startAnimating];
 	indicatorView.center = self.view.center;
+	indicatorView.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin;
 	[self.view addSubview:indicatorView];
 	[indicatorView release];
 }
@@ -213,8 +214,8 @@ BOOL keyboard_active = FALSE;
 - (void)hideActivityIndicator
 {
 	NSArray *subviews = [self.view subviews];
-		for (UIView *view in subviews)
-			[view removeFromSuperview];
+	for (UIView *view in subviews)
+		[view removeFromSuperview];
 }
 
 
@@ -242,11 +243,11 @@ extern "C" void ios_create_screen()
 {
 	// Return YES for supported orientations
 	if (psp_rotation == 0)
-	  return YES;
+		return YES;
 	else if (psp_rotation == 1)
-	  return UIInterfaceOrientationIsPortrait(interfaceOrientation);
+		return UIInterfaceOrientationIsPortrait(interfaceOrientation);
 	else if (psp_rotation == 2)
-	  return UIInterfaceOrientationIsLandscape(interfaceOrientation);	
+		return UIInterfaceOrientationIsLandscape(interfaceOrientation);	
 }
 
 

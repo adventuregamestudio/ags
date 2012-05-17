@@ -23747,10 +23747,10 @@ void save_game(int slotn, const char*descript) {
     }
     else
     {
-      block tempBlock = create_bitmap_ex(final_col_dep, virtual_screen->w, virtual_screen->h);
+      block tempBlock = create_bitmap_ex((psp_gfx_renderer > 0) ? 32 : final_col_dep, virtual_screen->w, virtual_screen->h);
       gfxDriver->GetCopyOfScreenIntoBitmap(tempBlock);
 
-      screenShot = create_bitmap_ex(final_col_dep, usewid, usehit);
+      screenShot = create_bitmap_ex((psp_gfx_renderer > 0) ? 32 : final_col_dep, usewid, usehit);
       stretch_blit(tempBlock, screenShot, 0, 0,
         tempBlock->w, tempBlock->h, 0, 0,
         screenShot->w, screenShot->h);

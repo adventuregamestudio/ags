@@ -16,6 +16,10 @@ int psp_gfx_super_sampling = 0;
 unsigned int device_screen_physical_width = 1000;
 unsigned int device_screen_physical_height = 500;
 int device_screen_initialized = 1;
+int device_mouse_clip_left = 0;
+int device_mouse_clip_right = device_screen_physical_width;
+int device_mouse_clip_top = 0;
+int device_mouse_clip_bottom = device_screen_physical_height;
 
 const char* fbo_extension_string = "GL_EXT_framebuffer_object";
 
@@ -66,12 +70,20 @@ extern int psp_gfx_super_sampling;
 extern unsigned int android_screen_physical_width;
 extern unsigned int android_screen_physical_height;
 extern int android_screen_initialized;
+extern int android_mouse_clip_left;
+extern int android_mouse_clip_right;
+extern int android_mouse_clip_top;
+extern int android_mouse_clip_bottom;
 
 #define device_screen_physical_width android_screen_physical_width
 #define device_screen_physical_height android_screen_physical_height
 #define device_screen_initialized android_screen_initialized
 #define device_mouse_setup android_mouse_setup
 #define device_swap_buffers android_swap_buffers
+#define device_mouse_clip_left android_mouse_clip_left
+#define device_mouse_clip_right android_mouse_clip_right
+#define device_mouse_clip_top android_mouse_clip_top
+#define device_mouse_clip_bottom android_mouse_clip_bottom
 
 const char* fbo_extension_string = "GL_OES_framebuffer_object";
 
@@ -123,12 +135,20 @@ extern int psp_gfx_super_sampling;
 extern unsigned int ios_screen_physical_width;
 extern unsigned int ios_screen_physical_height;
 extern int ios_screen_initialized;
+extern int ios_mouse_clip_left;
+extern int ios_mouse_clip_right;
+extern int ios_mouse_clip_top;
+extern int ios_mouse_clip_bottom;
 
 #define device_screen_physical_width ios_screen_physical_width
 #define device_screen_physical_height ios_screen_physical_height
 #define device_screen_initialized ios_screen_initialized
 #define device_mouse_setup ios_mouse_setup
 #define device_swap_buffers ios_swap_buffers
+#define device_mouse_clip_left ios_mouse_clip_left
+#define device_mouse_clip_right ios_mouse_clip_right
+#define device_mouse_clip_top ios_mouse_clip_top
+#define device_mouse_clip_bottom ios_mouse_clip_bottom
 
 const char* fbo_extension_string = "GL_OES_framebuffer_object";
 
@@ -916,6 +936,48 @@ void OGLGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colo
 
 void OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(BITMAP *destination)
 {
+#if defined(IOS_VERSION)
+  ios_select_buffer();
+#endif
+
+  int retrieve_width = device_mouse_clip_right - device_mouse_clip_left;
+  int retrieve_height = device_mouse_clip_bottom - device_mouse_clip_top;
+
+  int bufferSize = retrieve_width * retrieve_height * 4;
+
+  unsigned char* buffer = (unsigned char*)malloc(bufferSize);
+  if (buffer)
+  {
+    glReadPixels(device_mouse_clip_left, device_mouse_clip_top, retrieve_width, retrieve_height, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+
+    unsigned char* surfaceData = buffer;
+    unsigned char* sourcePtr;
+    unsigned char* destPtr;
+    
+    BITMAP* retrieveInto = create_bitmap_ex(32, retrieve_width, retrieve_height);
+
+    if (retrieveInto)
+    {
+      for (int y = retrieveInto->h - 1; y >= 0; y--)
+      {
+        sourcePtr = surfaceData;
+        destPtr = &retrieveInto->line[y][0];
+        for (int x = 0; x < retrieveInto->w * 4; x += 4)
+        {
+          destPtr[x] = sourcePtr[x + 2];
+          destPtr[x + 2] = sourcePtr[x];
+          destPtr[x + 1] = sourcePtr[x + 1];
+          destPtr[x + 3] = sourcePtr[x + 3];
+        }
+        surfaceData += retrieve_width * 4;
+      }
+
+      stretch_blit(retrieveInto, destination, 0, 0, retrieveInto->w, retrieveInto->h, 0, 0, destination->w, destination->h);
+      destroy_bitmap(retrieveInto);
+    }
+
+    free(buffer);
+  }
 }
 
 void OGLGraphicsDriver::RenderToBackBuffer()
@@ -1152,8 +1214,6 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
   }
 
   glFinish();
-
-  int bla = glGetError();
 
 #if defined(WINDOWS_VERSION)
   SwapBuffers(_hDC);

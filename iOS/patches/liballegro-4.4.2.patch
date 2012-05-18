@@ -1,6 +1,6 @@
 diff -Naur cmake/FileList.cmake cmake/FileList.cmake
 --- cmake/FileList.cmake	2011-03-12 01:26:00.000000000 +0100
-+++ cmake/FileList.cmake	2012-05-13 15:50:34.036288300 +0200
++++ cmake/FileList.cmake	2012-05-18 07:54:07.366062500 +0200
 @@ -334,6 +334,18 @@
          src/psp/pvram.c
          src/psp/pvtable8.c
@@ -39,7 +39,7 @@ diff -Naur cmake/FileList.cmake cmake/FileList.cmake
          include/allegro/platform/alucfg.h
 diff -Naur include/allegro/internal/alconfig.h include/allegro/internal/alconfig.h
 --- include/allegro/internal/alconfig.h	2008-12-24 02:39:48.000000000 +0100
-+++ include/allegro/internal/alconfig.h	2012-05-13 15:50:35.257943400 +0200
++++ include/allegro/internal/alconfig.h	2012-05-18 07:54:09.076279700 +0200
 @@ -14,7 +14,7 @@
   *
   *      See readme.txt for copyright information.
@@ -60,7 +60,7 @@ diff -Naur include/allegro/internal/alconfig.h include/allegro/internal/alconfig
     #endif
 diff -Naur include/allegro/platform/aintios.h include/allegro/platform/aintios.h
 --- include/allegro/platform/aintios.h	1970-01-01 01:00:00.000000000 +0100
-+++ include/allegro/platform/aintios.h	2012-05-13 15:50:35.278446000 +0200
++++ include/allegro/platform/aintios.h	2012-05-18 07:54:09.094782100 +0200
 @@ -0,0 +1,26 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
@@ -90,7 +90,7 @@ diff -Naur include/allegro/platform/aintios.h include/allegro/platform/aintios.h
 +
 diff -Naur include/allegro/platform/alios.h include/allegro/platform/alios.h
 --- include/allegro/platform/alios.h	1970-01-01 01:00:00.000000000 +0100
-+++ include/allegro/platform/alios.h	2012-05-13 15:50:35.346954700 +0200
++++ include/allegro/platform/alios.h	2012-05-18 07:54:09.145788500 +0200
 @@ -0,0 +1,65 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
@@ -159,7 +159,7 @@ diff -Naur include/allegro/platform/alios.h include/allegro/platform/alios.h
 +#endif
 diff -Naur include/allegro/platform/alioscfg.h include/allegro/platform/alioscfg.h
 --- include/allegro/platform/alioscfg.h	1970-01-01 01:00:00.000000000 +0100
-+++ include/allegro/platform/alioscfg.h	2012-05-13 15:50:35.347954800 +0200
++++ include/allegro/platform/alioscfg.h	2012-05-18 07:54:09.147788800 +0200
 @@ -0,0 +1,68 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
@@ -231,7 +231,7 @@ diff -Naur include/allegro/platform/alioscfg.h include/allegro/platform/alioscfg
 +#endif
 diff -Naur include/allegro/system.h include/allegro/system.h
 --- include/allegro/system.h	2011-03-19 00:47:45.000000000 +0100
-+++ include/allegro/system.h	2012-05-13 15:50:35.410962800 +0200
++++ include/allegro/system.h	2012-05-18 07:54:09.203295800 +0200
 @@ -66,6 +66,7 @@
  #define OSTYPE_MACOS       AL_ID('M','A','C',' ')
  #define OSTYPE_MACOSX      AL_ID('M','A','C','X')
@@ -242,7 +242,7 @@ diff -Naur include/allegro/system.h include/allegro/system.h
  AL_VAR(int, os_version);
 diff -Naur src/digmid.c src/digmid.c
 --- src/digmid.c	2007-08-09 22:48:38.000000000 +0200
-+++ src/digmid.c	2012-05-13 15:50:35.863520300 +0200
++++ src/digmid.c	2012-05-18 07:54:09.651852800 +0200
 @@ -13,6 +13,8 @@
   *      By Shawn Hargreaves, based on code by Tom Novelli.
   *      Chris Robinson added some optimizations and the digmid_set_pan method.
@@ -336,7 +336,7 @@ diff -Naur src/digmid.c src/digmid.c
  
 diff -Naur src/file.c src/file.c
 --- src/file.c	2011-03-25 00:18:25.000000000 +0100
-+++ src/file.c	2012-05-13 15:50:36.017539900 +0200
++++ src/file.c	2012-05-18 07:54:09.825874900 +0200
 @@ -1808,7 +1808,7 @@
   *  it returns NULL and stores an error code in errno. An attempt to read a 
   *  normal file in packed mode will cause errno to be set to EDOM.
@@ -348,7 +348,7 @@ diff -Naur src/file.c src/file.c
     int fd;
 diff -Naur src/ios/idrivers.c src/ios/idrivers.c
 --- src/ios/idrivers.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/ios/idrivers.c	2012-05-13 15:50:36.199062900 +0200
++++ src/ios/idrivers.c	2012-05-18 07:54:09.972393500 +0200
 @@ -0,0 +1,75 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
@@ -427,7 +427,7 @@ diff -Naur src/ios/idrivers.c src/ios/idrivers.c
 +END_JOYSTICK_DRIVER_LIST
 diff -Naur src/ios/ifile.c src/ios/ifile.c
 --- src/ios/ifile.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/ios/ifile.c	2012-05-13 15:50:36.203063400 +0200
++++ src/ios/ifile.c	2012-05-18 07:54:09.974393800 +0200
 @@ -0,0 +1,536 @@
 +/*         ______   ___    ___ 
 + *        /\  _  \ /\_ \  /\_ \ 
@@ -967,7 +967,7 @@ diff -Naur src/ios/ifile.c src/ios/ifile.c
 +
 diff -Naur src/ios/igfx.c src/ios/igfx.c
 --- src/ios/igfx.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/ios/igfx.c	2012-05-13 15:50:36.215565000 +0200
++++ src/ios/igfx.c	2012-05-18 07:54:09.975894000 +0200
 @@ -0,0 +1,377 @@
 +/*         ______   ___    ___
 +*        /\  _  \ /\_ \  /\_ \
@@ -1348,8 +1348,8 @@ diff -Naur src/ios/igfx.c src/ios/igfx.c
 +}
 diff -Naur src/ios/ikey.c src/ios/ikey.c
 --- src/ios/ikey.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/ios/ikey.c	2012-05-13 15:50:36.216065100 +0200
-@@ -0,0 +1,229 @@
++++ src/ios/ikey.c	2012-05-18 07:54:09.983394900 +0200
+@@ -0,0 +1,243 @@
 +/*         ______   ___    ___
 +*        /\  _  \ /\_ \  /\_ \
 +*        \ \ \\ \\//\ \ \//\ \      __     __   _ __   ___
@@ -1381,6 +1381,7 @@ diff -Naur src/ios/ikey.c src/ios/ikey.c
 +static int ios_keyboard_init(void);
 +static void ios_keyboard_exit(void);
 +static void ios_keyboard_poll(void);
++static int ios_scancode_to_ascii(int scancode);
 +
 +extern int ios_get_last_keypress();
 +
@@ -1539,6 +1540,19 @@ diff -Naur src/ios/ikey.c src/ios/ikey.c
 +static int ios_last_scancode = -1;
 +
 +
++static int ios_ascii_to_allegro_keycode(int* ascii)
++{
++   if (*ascii > 127)
++   {
++      int result = *ascii - 0x1000;
++     *ascii = 0;
++     return result;
++   }
++   else
++      return ios_ascii_to_allegro[*ascii];
++}
++
++
 +static int ios_keyboard_init(void)
 +{
 +   return 0;
@@ -1563,10 +1577,10 @@ diff -Naur src/ios/ikey.c src/ios/ikey.c
 +   }   
 +   
 +   ascii_code = ios_get_last_keypress();
-+   if ((ascii_code < 1) << (ascii_code > 127))
++   if (ascii_code < 1)
 +      return;
 +   
-+   allegro_keycode = ios_ascii_to_allegro[ascii_code];
++   allegro_keycode = ios_ascii_to_allegro_keycode(&ascii_code);
 +   
 +   if (allegro_keycode == -1)
 +      return;
@@ -1581,7 +1595,7 @@ diff -Naur src/ios/ikey.c src/ios/ikey.c
 +}
 diff -Naur src/ios/imouse.c src/ios/imouse.c
 --- src/ios/imouse.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/ios/imouse.c	2012-05-13 15:50:36.217565300 +0200
++++ src/ios/imouse.c	2012-05-18 07:54:09.984395000 +0200
 @@ -0,0 +1,212 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
@@ -1797,7 +1811,7 @@ diff -Naur src/ios/imouse.c src/ios/imouse.c
 +
 diff -Naur src/ios/isound.c src/ios/isound.c
 --- src/ios/isound.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/ios/isound.c	2012-05-13 15:50:36.219065500 +0200
++++ src/ios/isound.c	2012-05-18 07:54:09.984895100 +0200
 @@ -0,0 +1,174 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
@@ -1975,7 +1989,7 @@ diff -Naur src/ios/isound.c src/ios/isound.c
 +}
 diff -Naur src/ios/isystem.c src/ios/isystem.c
 --- src/ios/isystem.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/ios/isystem.c	2012-05-13 15:50:36.221065700 +0200
++++ src/ios/isystem.c	2012-05-18 07:54:09.987395400 +0200
 @@ -0,0 +1,102 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
@@ -2081,7 +2095,7 @@ diff -Naur src/ios/isystem.c src/ios/isystem.c
 +}
 diff -Naur src/ios/itimer.c src/ios/itimer.c
 --- src/ios/itimer.c	1970-01-01 01:00:00.000000000 +0100
-+++ src/ios/itimer.c	2012-05-13 15:50:36.224566200 +0200
++++ src/ios/itimer.c	2012-05-18 07:54:09.988895600 +0200
 @@ -0,0 +1,228 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \

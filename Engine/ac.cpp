@@ -942,7 +942,7 @@ int errno;
 #define myerrno errno
 #endif
 
-#ifdef MAC_VERSION
+#if defined(MAC_VERSION) && !defined(IOS_VERSION)
 #define EXTENDED_KEY_CODE 0x3f
 #else
 #define EXTENDED_KEY_CODE 0

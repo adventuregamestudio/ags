@@ -11,11 +11,12 @@ extern int psp_rotation;
 
 @interface agsViewController ()
 @property (nonatomic, retain) EAGLContext *context;
+@property (readwrite, retain) UIView *inputAccessoryView;
 @end
 
 @implementation agsViewController
 
-@synthesize context;
+@synthesize context, inputAccessoryView;
 
 
 agsViewController* agsviewcontroller;
@@ -63,30 +64,7 @@ extern "C"
 	return YES;
 }
 
-- (void)registerForKeyboardNotifications
-{
-	[[NSNotificationCenter defaultCenter] addObserver:self
-		selector:@selector(keyboardWasShown:)
-		name:UIKeyboardDidShowNotification object:nil];
-
-	[[NSNotificationCenter defaultCenter] addObserver:self
-		selector:@selector(keyboardWillBeHidden:)
-		name:UIKeyboardWillHideNotification object:nil];
-}
-
-- (void)keyboardWasShown:(NSNotification*)aNotification
-{
-	NSDictionary* info = [aNotification userInfo];
-	CGSize kbSize = [[info objectForKey:UIKeyboardFrameBeginUserInfoKey] CGRectValue].size;
-	UIEdgeInsets contentInsets = UIEdgeInsetsMake(0.0, 0.0, kbSize.height, 0.0);
-}
-
-- (void)keyboardWillBeHidden:(NSNotification*)aNotification
-{
-	UIEdgeInsets contentInsets = UIEdgeInsetsZero;
-}
-
-char lastChar;
+int lastChar;
 
 extern "C" int ios_get_last_keypress()
 {
@@ -110,6 +88,121 @@ extern "C" int ios_get_last_keypress()
 - (void)deleteBackward
 {
 	lastChar = 8; // Backspace
+}
+
+
+- (void)createKeyboardButtonBar:(int)openedKeylist
+{
+	UIToolbar *toolbar;
+	BOOL alreadyExists = (self.inputAccessoryView != NULL);
+	
+	if (alreadyExists)
+		toolbar = self.inputAccessoryView;
+	else
+		toolbar = [[UIToolbar alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 30)];
+
+	toolbar.barStyle = UIBarStyleBlackTranslucent;
+
+	NSMutableArray* array = [[NSMutableArray alloc] initWithCapacity:6];
+	
+	UIBarButtonItem *esc = [[UIBarButtonItem alloc] initWithTitle:@"ESC" style:UIBarButtonItemStyleDone target:self action:@selector(buttonClicked:)];
+	[array addObject:esc];
+	
+	if (openedKeylist == 1)
+	{
+		UIBarButtonItem* f1 = [[UIBarButtonItem alloc] initWithTitle:@"F1" style:UIBarButtonItemStyleBordered target:self action:@selector(buttonClicked:)];
+		UIBarButtonItem* f2 = [[UIBarButtonItem alloc] initWithTitle:@"F2" style:UIBarButtonItemStyleBordered target:self action:@selector(buttonClicked:)];
+		UIBarButtonItem* f3 = [[UIBarButtonItem alloc] initWithTitle:@"F3" style:UIBarButtonItemStyleBordered target:self action:@selector(buttonClicked:)];
+		UIBarButtonItem* f4 = [[UIBarButtonItem alloc] initWithTitle:@"F4" style:UIBarButtonItemStyleBordered target:self action:@selector(buttonClicked:)];
+		[array addObject:f1];
+		[array addObject:f2];
+		[array addObject:f3];
+		[array addObject:f4];
+	}
+	else
+	{
+		UIBarButtonItem* openf1 = [[UIBarButtonItem alloc] initWithTitle:@"F1..." style:UIBarButtonItemStyleBordered target:self action:@selector(buttonClicked:)];
+		[array addObject:openf1];
+	}
+
+	if (openedKeylist == 5)
+	{
+		UIBarButtonItem* f5 = [[UIBarButtonItem alloc] initWithTitle:@"F5" style:UIBarButtonItemStyleBordered target:self action:@selector(buttonClicked:)];
+		UIBarButtonItem* f6 = [[UIBarButtonItem alloc] initWithTitle:@"F6" style:UIBarButtonItemStyleBordered target:self action:@selector(buttonClicked:)];
+		UIBarButtonItem* f7 = [[UIBarButtonItem alloc] initWithTitle:@"F7" style:UIBarButtonItemStyleBordered target:self action:@selector(buttonClicked:)];
+		UIBarButtonItem* f8 = [[UIBarButtonItem alloc] initWithTitle:@"F8" style:UIBarButtonItemStyleBordered target:self action:@selector(buttonClicked:)];
+		[array addObject:f5];
+		[array addObject:f6];
+		[array addObject:f7];
+		[array addObject:f8];
+	}
+	else
+	{
+		UIBarButtonItem* openf5 = [[UIBarButtonItem alloc] initWithTitle:@"F5..." style:UIBarButtonItemStyleBordered target:self action:@selector(buttonClicked:)];
+		[array addObject:openf5];
+		}	
+	
+	if (openedKeylist == 9)
+	{
+		UIBarButtonItem* f9 = [[UIBarButtonItem alloc] initWithTitle:@"F9" style:UIBarButtonItemStyleBordered target:self action:@selector(buttonClicked:)];
+		UIBarButtonItem* f10 = [[UIBarButtonItem alloc] initWithTitle:@"F10" style:UIBarButtonItemStyleBordered target:self action:@selector(buttonClicked:)];
+		UIBarButtonItem* f11 = [[UIBarButtonItem alloc] initWithTitle:@"F11" style:UIBarButtonItemStyleBordered target:self action:@selector(buttonClicked:)];
+		UIBarButtonItem* f12 = [[UIBarButtonItem alloc] initWithTitle:@"F12" style:UIBarButtonItemStyleBordered target:self action:@selector(buttonClicked:)];
+		[array addObject:f9];
+		[array addObject:f10];
+		[array addObject:f11];
+		[array addObject:f12];
+	}
+	else
+	{
+		UIBarButtonItem* openf9 = [[UIBarButtonItem alloc] initWithTitle:@"F9..." style:UIBarButtonItemStyleBordered target:self action:@selector(buttonClicked:)];
+		[array addObject:openf9];
+	}
+
+	[toolbar setItems:array animated:YES];
+
+	if (!alreadyExists)
+	{
+		self.inputAccessoryView = toolbar;
+		[toolbar release];
+	}
+}
+
+
+- (IBAction)buttonClicked:(UIBarButtonItem *)sender
+{
+	if (sender.title == @"ESC")
+		lastChar = 27;
+	else if (sender.title == @"F1")
+		lastChar = 0x1000 + 47;
+	else if (sender.title == @"F2")
+		lastChar = 0x1000 + 48;
+	else if (sender.title == @"F3")
+		lastChar = 0x1000 + 49;
+	else if (sender.title == @"F4")
+		lastChar = 0x1000 + 50;
+	else if (sender.title == @"F5")
+		lastChar = 0x1000 + 51;
+	else if (sender.title == @"F6")
+		lastChar = 0x1000 + 52;
+	else if (sender.title == @"F7")
+		lastChar = 0x1000 + 53;
+	else if (sender.title == @"F8")
+		lastChar = 0x1000 + 54;
+	else if (sender.title == @"F9")
+		lastChar = 0x1000 + 55;
+	else if (sender.title == @"F10")
+		lastChar = 0x1000 + 56;
+	else if (sender.title == @"F11")
+		lastChar = 0x1000 + 57;
+	else if (sender.title == @"F12")
+		lastChar = 0x1000 + 58;
+	else if (sender.title == @"F1...")
+		[self createKeyboardButtonBar:1];
+	else if (sender.title == @"F5...")
+		[self createKeyboardButtonBar:5];
+	else if (sender.title == @"F9...")
+		[self createKeyboardButtonBar:9];
 }
 
 
@@ -235,7 +328,6 @@ extern "C" void ios_create_screen()
 	[self.view setMultipleTouchEnabled:YES];
 	[self createGestureRecognizers];
 	agsviewcontroller = self;
-	[self registerForKeyboardNotifications];
 }
 
 
@@ -249,7 +341,6 @@ extern "C" void ios_create_screen()
 	else if (psp_rotation == 2)
 		return UIInterfaceOrientationIsLandscape(interfaceOrientation);	
 }
-
 
 
 - (void)awakeFromNib
@@ -266,7 +357,9 @@ extern "C" void ios_create_screen()
 	
 	[(EAGLView *)self.view setContext:context];
 	[(EAGLView *)self.view setFramebuffer];
-
+	
+	[self createKeyboardButtonBar:1];
+	
 	[NSThread detachNewThreadSelector:@selector(startThread) toTarget:self withObject:nil];  
 }
 

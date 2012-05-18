@@ -14,5 +14,6 @@
 }
 
 - (void)createGestureRecognizers;
+- (void)createKeyboardButtonBar:(int)openedKeylist;
 
 @end

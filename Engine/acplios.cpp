@@ -493,7 +493,7 @@ bool ReadConfiguration(char* filename, bool read_everything)
       return true;
 
     ReadInteger(&psp_debug_write_to_logcat, "debug", "logging", 0, 1, 0);
-    ReadInteger(&display_fps, "debug", "show_fps", 0, 1, 1);
+    ReadInteger(&display_fps, "debug", "show_fps", 0, 1, 0);
     if (display_fps == 1)
       display_fps = 2;
 
@@ -512,7 +512,7 @@ bool ReadConfiguration(char* filename, bool read_everything)
 
     ReadInteger((int*)&psp_video_framedrop, "video", "framedrop", 0, 1, 0);
 
-    ReadInteger((int*)&psp_gfx_renderer, "graphics", "renderer", 0, 2, 2);
+    ReadInteger((int*)&psp_gfx_renderer, "graphics", "renderer", 0, 2, 0);
     ReadInteger((int*)&psp_gfx_smoothing, "graphics", "smoothing", 0, 1, 1);
     ReadInteger((int*)&psp_gfx_scaling, "graphics", "scaling", 0, 2, 1);
     ReadInteger((int*)&psp_gfx_super_sampling, "graphics", "super_sampling", 0, 1, 0);

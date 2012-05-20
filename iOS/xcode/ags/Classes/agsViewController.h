@@ -11,9 +11,12 @@
 @interface agsViewController : UIViewController <UIAlertViewDelegate, UIKeyInput, UITextInputTraits>
 {
 	EAGLContext *context;
+	BOOL isInPortraitOrientation;
+	BOOL isKeyboardActive;
 }
 
 - (void)createGestureRecognizers;
 - (void)createKeyboardButtonBar:(int)openedKeylist;
+- (void)moveViewAnimated:(BOOL)upwards duration:(float)duration;
 
 @end

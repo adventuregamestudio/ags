@@ -12,11 +12,13 @@ extern int psp_rotation;
 @interface agsViewController ()
 @property (nonatomic, retain) EAGLContext *context;
 @property (readwrite, retain) UIView *inputAccessoryView;
+@property (readwrite, assign) BOOL isInPortraitOrientation;
+@property (readwrite, assign) BOOL isKeyboardActive;
 @end
 
 @implementation agsViewController
 
-@synthesize context, inputAccessoryView;
+@synthesize context, inputAccessoryView, isInPortraitOrientation, isKeyboardActive;
 
 
 agsViewController* agsviewcontroller;
@@ -220,19 +222,35 @@ extern "C" int ios_get_last_keypress()
 	mouse_button = 2;
 }
 
-BOOL keyboard_active = FALSE;
+
+- (void)moveViewAnimated:(BOOL)upwards duration:(float)duration
+{
+	[UIView beginAnimations:nil context:NULL];
+	[UIView setAnimationDuration:duration];
+	self.view.frame = CGRectMake(0, upwards ? (self.view.frame.size.height / -4) : 0, self.view.frame.size.width, self.view.frame.size.height);
+	[UIView commitAnimations];
+}
 
 - (IBAction)handleLongPress:(UIGestureRecognizer *)sender
 {
 	if (sender.state != UIGestureRecognizerStateBegan)
 	  return;
 
-	if (keyboard_active)
+	if (self.isKeyboardActive)
+	{
 		[self resignFirstResponder];
+		
+		if (self.isInPortraitOrientation)
+			[self moveViewAnimated:NO duration:0.25];
+	}
 	else
+	{
 		[self becomeFirstResponder];
+		if (self.isInPortraitOrientation)
+			[self moveViewAnimated:YES duration:0.25];
+	}
 
-	keyboard_active = !keyboard_active;
+	self.isKeyboardActive = !self.isKeyboardActive;
 }
 
 - (IBAction)handleShortLongPress:(UIGestureRecognizer *)sender
@@ -343,6 +361,15 @@ extern "C" void ios_create_screen()
 }
 
 
+//- (void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
+- (void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation
+{
+	self.isInPortraitOrientation = UIInterfaceOrientationIsLandscape(fromInterfaceOrientation);
+	if (self.isKeyboardActive && self.isInPortraitOrientation)
+		[self moveViewAnimated:YES duration:0.1];
+}
+
+
 - (void)awakeFromNib
 {
 	EAGLContext* aContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES1];
@@ -357,6 +384,9 @@ extern "C" void ios_create_screen()
 	
 	[(EAGLView *)self.view setContext:context];
 	[(EAGLView *)self.view setFramebuffer];
+	
+	self.isKeyboardActive = FALSE;
+	self.isInPortraitOrientation = TRUE;
 	
 	[self createKeyboardButtonBar:1];
 	

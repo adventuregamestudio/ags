@@ -4,6 +4,7 @@ Source: https://gitorious.org/~jjs/ags/ags-for-psp
 
 Files: *
 Copyright: Copyright (c) 2006-2010 Chris Jones
+           Copyright (c) 2011-2012 Jochen Schleu
 License: Artistic-2.0
 
 Files: debian/*

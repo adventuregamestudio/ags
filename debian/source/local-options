@@ -1,0 +1,2 @@
+unapply-patches
+extend-diff-ignore="^(Android|Editor|iOS|OSX|Windows)"

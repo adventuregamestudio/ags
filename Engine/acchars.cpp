@@ -1109,6 +1109,12 @@ void Character_SetAsPlayer(CharacterInfo *chaa) {
   if (displayed_room < 0)
     return;
 
+  // Ignore invalid room numbers for the character and just place him in
+  // the current room for 2.x. Following script calls to NewRoom() will
+  // make sure this still works as intended.
+  if ((loaded_game_file_version <= 32) && (playerchar->room < 0))
+    playerchar->room = displayed_room;
+
   if (displayed_room != playerchar->room)
     NewRoom(playerchar->room);
   else   // make sure it doesn't run the region interactions

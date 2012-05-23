@@ -1,0 +1,18 @@
+#!/usr/bin/make -f
+
+PKG_VER = $(shell dpkg-parsechangelog | grep -x "Version:.*" | sed 's@Version: \(.\+\)-.\+@\1@')
+
+%:
+	dh $@ 
+
+override_dh_auto_clean:
+	$(MAKE) --directory=Engine --file=Makefile.linux clean
+
+override_dh_auto_build:
+	$(MAKE) --directory=Engine --file=Makefile.linux
+
+override_dh_clean:
+	dh_clean --exclude=Editor/*
+
+get-orig-source:
+	git archive --prefix=ags_$(PKG_VER)/ --format=tar.gz --output=../ags_$(PKG_VER).orig.tar.gz HEAD Common Engine Manual Plugins PSP

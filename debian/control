@@ -1,0 +1,29 @@
+Source: ags
+Section: games
+Priority: optional
+Maintainer: Tobias Hansen <tobias.han@gmx.de>
+Build-Depends: debhelper (>= 8.0.0),
+               pkg-config,
+               liballegro4.2-dev,
+               libaldmb1-dev,
+               libfreetype6-dev,
+               libtheora-dev,
+               libvorbis-dev,
+               libogg-dev,
+               libx11-dev,
+               libxext-dev,
+               libxxf86vm-dev,
+               libxpm-dev,
+               libxcursor-dev,
+               libxrender-dev,
+               libxfixes-dev,
+               libasound2-dev [linux-any],
+               zlib1g-dev
+Standards-Version: 3.9.3
+Homepage: https://gitorious.org/~jjs/ags/ags-for-psp
+
+Package: ags
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Runtime engine for playing Adventure Game Studio games
+ AGS is an adventure game engine with many games available.

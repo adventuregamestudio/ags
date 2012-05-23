@@ -1,0 +1,30 @@
+--- a/Engine/Makefile.linux
++++ b/Engine/Makefile.linux
+@@ -14,14 +14,16 @@
+ 
+ AASTR = libsrc/aastr-0.1.1/AAROT.o libsrc/aastr-0.1.1/aastr.o libsrc/aastr-0.1.1/aautil.o
+ 
+-OBJS = $(ALFONT) $(ALMP3) $(APEG) $(AASTR) $(HQ2X3X) $(BASE) $(COMMON) $(LINUX_SPECIFIC)
++CDA = libsrc/libcda-0.4/linux.o
+ 
+-INCDIR = ../Engine ../Common ../Common/libinclude $(shell psp-config --pspdev-path)/psp/include/freetype2
++OBJS = $(CDA) $(ALFONT) $(ALMP3) $(APEG) $(AASTR) $(HQ2X3X) $(BASE) $(COMMON) $(LINUX_SPECIFIC)
++
++INCDIR = ../Engine ../Common ../Common/libinclude
+ LIBDIR = ../PSP/lib
+-CFLAGS = -O2 -g -Wfatal-errors -DALLEGRO_STATICLINK -DTHIS_IS_THE_ENGINE -DLINUX_VERSION -DDISABLE_MPEG_AUDIO -DRTLD_NEXT
++CFLAGS = -O2 -g -Wfatal-errors -fpermissive -DALLEGRO_STATICLINK -DTHIS_IS_THE_ENGINE -DLINUX_VERSION -DDISABLE_MPEG_AUDIO -DRTLD_NEXT $(shell pkg-config --cflags freetype2)
+ CXXFLAGS = $(CFLAGS) -fno-rtti -Wno-write-strings
+ ASFLAGS = $(CFLAGS)
+-LIBS = -rdynamic -m32 /usr/local/lib/liballeg.so -laldmb -ldumb -Wl,-Bstatic -lcda -Wl,-Bdynamic -ltheora -logg -lvorbis -lvorbisfile -lfreetype -lXpm -lXcursor -lXrender -lXxf86vm -lXfixes -lXext -lX11 -logg -lasound -lz -ldl -lpthread -lm -lc -lstdc++
++LIBS = -rdynamic $(shell allegro-config --libs) -laldmb -ldumb -Wl,-Bdynamic -ltheora -logg -lvorbis -lvorbisfile -lfreetype -lXpm -lXcursor -lXrender -lXxf86vm -lXfixes -lXext -lX11 -logg -lasound -lz -ldl -lpthread -lm -lc -lstdc++
+ 
+ 
+ CC = gcc
+@@ -43,4 +45,4 @@
+ 
+ .PHONY: clean
+ clean:
+-	rm -f ags $(OBJS)
+\ No newline at end of file
++	rm -f ags $(OBJS)

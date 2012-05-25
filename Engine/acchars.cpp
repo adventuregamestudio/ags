@@ -225,8 +225,8 @@ void fix_player_sprite(MoveList*cmls,CharacterInfo*chinf) {
   // Different logic for 2.x.
   if (loaded_game_file_version <= 32)
   {
-    bool can_right = (views[chinf->view].loops[2].numFrames > 0);
-    bool can_left = (views[chinf->view].loops[1].numFrames > 0);
+    bool can_right = ((views[chinf->view].numLoops >= 3) && (views[chinf->view].loops[2].numFrames > 0));
+    bool can_left = ((views[chinf->view].numLoops >= 2) && (views[chinf->view].loops[1].numFrames > 0));
 
     if (abs(ypmove) < abs(xpmove))
     {

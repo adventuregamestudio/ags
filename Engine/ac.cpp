@@ -14534,7 +14534,11 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
     if (viewWasLocked)
       speakingChar->flags |= CHF_FIXVIEW;
     speakingChar->view=oldview;
-    speakingChar->loop = oldloop;
+
+    // Don't reset the loop in 2.x games
+    if (loaded_game_file_version > 32)
+      speakingChar->loop = oldloop;
+
     speakingChar->animating=0;
     speakingChar->frame = charFrameWas;
     speakingChar->wait=0;

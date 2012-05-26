@@ -708,8 +708,8 @@ void Character_FaceLocation(CharacterInfo *char1, int xx, int yy, int blockingSt
   // FaceLocation() is used to select a specific loop.
   if (loaded_game_file_version <= 32)
   {
-    bool can_right = (views[char1->view].loops[2].numFrames > 0);
-    bool can_left = (views[char1->view].loops[1].numFrames > 0);
+    bool can_right = ((views[char1->view].numLoops >= 3) && (views[char1->view].loops[2].numFrames > 0));
+    bool can_left = ((views[char1->view].numLoops >= 2) && (views[char1->view].loops[1].numFrames > 0));
 
     if (abs(diffry) < abs(diffrx))
     {

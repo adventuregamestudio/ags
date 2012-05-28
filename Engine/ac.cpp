@@ -13415,8 +13415,8 @@ int user_to_internal_skip_speech(int userval) {
 }
 
 bool ShouldAntiAliasText() {
-  // PSP: Never anti-alias fonts.
-#if defined(IOS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
+  // Anti-aliasing produces unreadable text on all non-Windows platforms.
+#if !defined(WINDOWS_VERSION)
   return false;
 #else
   return (game.options[OPT_ANTIALIASFONTS] != 0);

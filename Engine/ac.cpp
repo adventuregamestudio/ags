@@ -23751,10 +23751,15 @@ void save_game(int slotn, const char*descript) {
     }
     else
     {
-      block tempBlock = create_bitmap_ex((psp_gfx_renderer > 0) ? 32 : final_col_dep, virtual_screen->w, virtual_screen->h);
+#if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(WINDOWS_VERSION)
+      int color_depth = (psp_gfx_renderer > 0) ? 32 : final_col_dep;
+#else
+      int color_depth = final_col_dep;
+#endif
+      block tempBlock = create_bitmap_ex(color_depth, virtual_screen->w, virtual_screen->h);
       gfxDriver->GetCopyOfScreenIntoBitmap(tempBlock);
 
-      screenShot = create_bitmap_ex((psp_gfx_renderer > 0) ? 32 : final_col_dep, usewid, usehit);
+      screenShot = create_bitmap_ex(color_depth, usewid, usehit);
       stretch_blit(tempBlock, screenShot, 0, 0,
         tempBlock->w, tempBlock->h, 0, 0,
         screenShot->w, screenShot->h);

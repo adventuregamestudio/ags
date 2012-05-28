@@ -153,7 +153,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories=".;..\common;..\common\libinclude;..\Windows\include"
-				PreprocessorDefinitions="VS2005;_DEBUG;WIN32;NDEBUG;_WINDOWS;ALLEGRO_STATICLINK;THIS_IS_THE_ENGINE;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;_CRT_SECURE_NO_WARNINGS"
+				PreprocessorDefinitions="VS2005;_DEBUG;WIN32;NDEBUG;_WINDOWS;ALLEGRO_STATICLINK;THIS_IS_THE_ENGINE;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;_CRT_SECURE_NO_WARNINGS;BUILTIN_PLUGINS"
 				RuntimeLibrary="1"
 				StructMemberAlignment="0"
 				PrecompiledHeaderFile=".\acwin___Win32_DebugWorking/acwin.pch"
@@ -258,7 +258,7 @@
 				EnableIntrinsicFunctions="true"
 				WholeProgramOptimization="true"
 				AdditionalIncludeDirectories=".;..\common;..\common\libinclude;;..\Windows\include"
-				PreprocessorDefinitions="VS2005;WIN32;NDEBUG;_WINDOWS;ALLEGRO_STATICLINK;THIS_IS_THE_ENGINE;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;_CRT_SECURE_NO_WARNINGS;ALLEGRO_NO_ASM"
+				PreprocessorDefinitions="VS2005;WIN32;NDEBUG;_WINDOWS;ALLEGRO_STATICLINK;THIS_IS_THE_ENGINE;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;_CRT_SECURE_NO_WARNINGS;ALLEGRO_NO_ASM;BUILTIN_PLUGINS"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -3025,6 +3025,22 @@
 					>
 				</File>
 			</Filter>
+		</Filter>
+		<Filter
+			Name="Plugins"
+			>
+			<File
+				RelativePath="..\Plugins\ags_snowrain\ags_snowrain.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\Plugins\agsblend\AGSBlend.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\Plugins\AGSflashlight\agsflashlight.cpp"
+				>
+			</File>
 		</Filter>
 		<File
 			RelativePath=".\License.txt"

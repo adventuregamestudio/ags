@@ -1,0 +1,49 @@
+# Makefile for the Raspberry Pi with Debian
+
+BASE = acaudio.o acchars.o acdebug.o acdialog.o acfonts.o acgfx.o acgui.o acplatfm.o acsound.o bigend.o misc.o routefnd.o scrptrt.o ac.o alogg.o almp3.o ali3dsw.o
+COMMON = ../Common/csrun.o ../Common/Clib32.o ../Common/mousew32.o ../Common/sprcache.o ../Common/cscommon.o ../Common/compress.o ../Common/lzw.o
+
+LINUX_SPECIFIC = acpllnx.o
+
+HQ2X3X = libsrc/hq2x/hq2x3x.o
+
+ALFONT = libsrc/alfont-2.0.9/alfont.o
+
+ALMP3 = libsrc/almp3-2.0.5/decoder/common.o libsrc/almp3-2.0.5/decoder/dct64_i386.o libsrc/almp3-2.0.5/decoder/decode_i386.o libsrc/almp3-2.0.5/decoder/interface.o libsrc/almp3-2.0.5/decoder/layer2.o libsrc/almp3-2.0.5/decoder/layer3.o libsrc/almp3-2.0.5/decoder/tabinit.o
+
+APEG = libsrc/apeg-1.2.1/display.o libsrc/apeg-1.2.1/getbits.o libsrc/apeg-1.2.1/getblk.o libsrc/apeg-1.2.1/gethdr.o libsrc/apeg-1.2.1/getpic.o libsrc/apeg-1.2.1/idct.o libsrc/apeg-1.2.1/motion.o libsrc/apeg-1.2.1/mpeg1dec.o libsrc/apeg-1.2.1/ogg.o libsrc/apeg-1.2.1/recon.o libsrc/apeg-1.2.1/audio/apegcommon.o libsrc/apeg-1.2.1/audio/audio.o libsrc/apeg-1.2.1/audio/dct64.o libsrc/apeg-1.2.1/audio/decode_1to1.o libsrc/apeg-1.2.1/audio/decode_2to1.o libsrc/apeg-1.2.1/audio/decode_4to1.o libsrc/apeg-1.2.1/audio/layer1.o libsrc/apeg-1.2.1/audio/layer2.o libsrc/apeg-1.2.1/audio/layer3.o libsrc/apeg-1.2.1/audio/mpg123.o libsrc/apeg-1.2.1/audio/readers.o libsrc/apeg-1.2.1/audio/tabinit.o libsrc/apeg-1.2.1/audio/vbrhead.o
+
+AASTR = libsrc/aastr-0.1.1/AAROT.o libsrc/aastr-0.1.1/aastr.o libsrc/aastr-0.1.1/aautil.o
+
+CDA = libsrc/libcda-0.5/linux.c
+
+OBJS = $(ALFONT) $(ALMP3) $(APEG) $(AASTR) $(HQ2X3X) $(CDA) $(BASE) $(COMMON) $(LINUX_SPECIFIC)
+
+INCDIR = ../Engine ../Common ../Common/libinclude /usr/include/freetype2
+LIBDIR =
+CFLAGS = -fsigned-char -O2 -g -Wfatal-errors -DALLEGRO_STATICLINK -DTHIS_IS_THE_ENGINE -DLINUX_VERSION -DDISABLE_MPEG_AUDIO -DRTLD_NEXT
+CXXFLAGS = $(CFLAGS) -fno-rtti -Wno-write-strings
+ASFLAGS = $(CFLAGS)
+LIBS = -rdynamic /usr/lib/liballeg.so.4.2 -laldmb -ldumb -Wl,-Bstatic -Wl,-Bdynamic -ltheora -logg -lvorbis -lvorbisfile -lfreetype -lXpm -lXcursor -lXrender -lXxf86vm -lXfixes -lXext -lX11 -logg -lasound -lz -ldl -lpthread -lm -lc -lstdc++
+
+CC = gcc
+CXX = g++
+CFLAGS   := $(addprefix -I,$(INCDIR)) $(CFLAGS)
+CXXFLAGS := $(CFLAGS) $(CXXFLAGS)
+ASFLAGS  := $(CFLAGS) $(ASFLAGS)
+LDFLAGS  := $(addprefix -L,$(LIBDIR))
+
+all: ags
+
+ags: $(OBJS)
+	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
+
+%.o: %.m
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+%.o: %.mm
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+.PHONY: clean
+clean:
+	rm -f ags $(OBJS)

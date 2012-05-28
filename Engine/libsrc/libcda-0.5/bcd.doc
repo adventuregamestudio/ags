@@ -1,0 +1,243 @@
+*********************************************************************
+
+This is the original readme from BCD, in case you're interested.  The
+homepage is no longer available, but is mirrored at:
+
+	http://www.delorie.com/djgpp/doc/brennan/Brennan.html
+
+Also, BCD 1.3 is available at:
+
+	http://www.geocities.com/SiliconValley/Vista/6552/bcd_103.zip
+
+*********************************************************************
+
+				BCD v1.3
+
+BCD is Brennan Underwood's CD audio playing library for DJGPP. It is DJGPP
+compatible and only DJGPP compatible. If you need a Watcom compatible library
+I suggest you get ftp://x2ftp.oulu.fi/pub/msdos/programming/wgt/wgt_cd.zip.
+
+System requirements:
+* DJGPP compatible system (i.e. 386, 1 meg memory etc.)
+  If you do not know what DJGPP is, run, don't walk to
+    http://www.delorie.com/
+  and/or
+    http://brennan.home.ml.org/djgpp/
+* MSCDEX 2.1 or higher
+  MSCDEX should have come with your DOS setup and/or the CD-ROM driver disk.
+* A CD-ROM capable of audio (aren't they all?)
+
+Changes:
+1.0:
+  * Public release
+  * Now uses only DOS ioctl() commands. This may help compatibility.
+  * Convenience functions added.
+1.1:
+  * #define BCD_VERSION added
+  * bcd_open() now returns MSCDEX version number on success.
+  * bcd_open() does not try to bcd_get_audio_info() to help differentiate
+    errors in initialization.
+  * All functions that are capable of it check error status better.
+  * bcd_audio_busy() returns -1 for error.
+  * bcd_error() added for user to get error status.
+  * Added troubleshooting section to bcd.doc.
+1.2:
+  * Fixed a fatal bug; switched to putting command block in a DOS memory chunk
+    (instead of ioctl block sharing __tb with the command block)
+  * Fixed off-by-one error in bcd_get_track_address()
+  * Added bcd_track_is_audio()
+  * No longer defaults to cranked-up volume (too bad)
+  * Checks for __dpmi_int() failure
+1.3:
+  * Option to statically allocate track array
+  * Hopefully gets rid of memory trashing bug
+
+To do:
+  * Add error checking for ioctl2 commands (bcd_play is ok, _stop & _resume
+    need it)
+
+Where to find:
+A copy of this ZIP archive (current version) should always be available via
+http://brennan.home.ml.org/programming/
+I will also try to upload a copy to x2ftp.oulu.fi as much as possible.
+
+Instructions:
+To make BCD, just type 'make'. libbcd.a and bcd.exe (standalone cheesy
+demo) will be compiled for you automagically.
+
+
+Publicly available symbols:
+
+** Library init/deinit functions **
+int bcd_open(void);
+	Call this first. Determines presence of MSCDEX and CD-ROM.
+	Returns version of MSCDEX on success (0x0100 would be v1.0),
+        0 on failure.
+int bcd_close(void);
+	Call this at program exit.
+	Returns 1 on success, 0 on failure.
+
+** Door functions **
+int bcd_open_door(void);
+	Opens the CD-ROM door or tray.
+	Returns 1 on success, 0 on failure.
+int bcd_close_door(void);
+	Closes the CD-ROM door or tray. It can take several seconds for
+	your driver to stop returning "Device not ready" after you close
+	the door.
+	Returns 1 on success, 0 on failure.
+int bcd_lock(int);
+	Lock the CD-ROM door (in software) so those pesky users can't
+	interfere with your plans. Pass zero to unlock, non-zero to lock.
+	(Hint: if it's locked, you don't have to call bcd_disc_changed()
+	 nearly so often. Nor bcd_get_audio_info().)
+	Returns 1 on success, 0 on failure.
+int bcd_disc_changed(void);
+	Returns BCD_DISC_CHANGED if the disc has been changed. Returns
+	BCD_DISC_NOT_CHANGED for no change, and BCD_DISC_UNKNOWN if device
+	doesn't have this capability or information is not available
+	(perhaps the door is open.)
+
+** Driver functions **
+int bcd_reset(void);
+	Call this if you are getting "General failure"s and such, or if
+	your driver won't re-read the TOC without it.
+	It can take several seconds for your driver to stop returning
+        "Device not ready" after you reset the driver.
+	Returns 1 on success, 0 on failure.
+int bcd_device_status(void);
+	Gets the device status. The device controls this, so you can't
+	always count on this working perfectly.
+	The following bit patterns are defined for your convenience:
+#define BCD_DOOR_OPEN		1
+#define BCD_DOOR_UNLOCKED	2
+#define BCD_SUPPORT_COOKED	4
+#define BCD_READ_ONLY		8
+#define BCD_DATA_READ_ONLY	16
+#define BCD_SUPPORT_INTERLEAVE	32
+	You'll probably only care about the first 2.
+
+** Audio functions **
+int bcd_audio_busy(void);
+	If the CD-ROM is busy playing audio, returns 1, 0 if not. Most
+	commands (besides 'stop') will fail if the CD-ROM is busy. Returns
+	-1 on error.
+int bcd_audio_position(void);
+	Current audio play position. Fast enough for realtime display.
+int bcd_now_playing(void);
+	Convenience function, if audio is busy, returns track# playing now.
+	Otherwise returns 0.
+
+int bcd_get_audio_info(void);
+	Query MSCDEX for track list and fills the Track array. Returns number
+	of tracks on the CD.
+	Returns 1 on success, 0 on failure.
+int bcd_get_track_address(int trackno, int *start, int *end);
+	Query track list for track start frame and end frame, which is put
+	into start and end.
+	Returns 1 on success, 0 on failure.
+int bcd_track_is_audio(int tracknum);
+	Query track list for track audio/data status.
+	Returns 1 if track is audio, 0 if data or failure.
+int bcd_play(int start, int len);
+	Plays an arbitrary section of audio for an arbitrary number of
+	frames. Issues a bcd_stop() first if necessary.
+	Returns 1 on success, 0 on failure.
+int bcd_play_track(int tracknum);
+	Convenience fn to play a particular track from beginning to end.
+	Returns 1 on success, 0 on failure.
+int bcd_set_volume(int);
+	Sets the output volume, before it hits your sound card mixer, if
+	any. Pass a value from 0-255, and the CD-ROM will do its best
+	to comply. Input parameter is clamped to (0,255).
+	Returns 1 on success, 0 on failure.
+int bcd_stop(void);
+#define bcd_pause bcd_stop
+	Stop audio output. Synonymous with 'pause,' can be resumed with
+	bcd_resume().
+	Returns 1 on success, 0 on failure.
+int bcd_resume(void);
+	Resumes audio output at last play position.
+	Returns 1 on success, 0 on failure.
+
+** Error functions **
+char *bcd_error(void);
+	Returns human-readable version of last error encountered.
+int _error_code;
+	The actual error code returned by MSCDEX. If you are mad enough to
+	parse them yourself, there are #defines in bcd.h for you.
+char *_bcd_error;
+	The error string generated by BCD-specific errors.
+
+It's recommended you stick with bcd_error() for most applications.
+
+Licensing:
+BCD, like Allegro (a graphics & sound library), is swap-ware:
+"You may use, modify, redistribute, and generally hack it about in any way
+you like, but if you do you must send me something in exchange. This could
+be a complimentary copy of a game, an addition or improvement to BCD,
+a bug report, some money (this is particularly encouraged if you use
+BCD in a commercial product), or just a copy of your AUTOEXEC.BAT if you
+don't have anything better. If you redistribute BCD or make a game using
+it, it would be nice if you mentioned me somewhere in the credits."
+
+I hope Shawn Hargreaves doesn't mind me pinching his licensing statement,
+but I like the idea of swapware and hope it spreads.
+
+So, BCD is free for use, but if you do something
+with it, cool or dumb, I would like credit and I would definitely
+want to hear about what you're doing with it. I also encourage you to
+send me a copy of what you're up to. You should always be able to find
+my web pages via http://brennan.home.ml.org/ and I've got all kinds of
+game programming info under http://brennan.home.ml.org/djgpp/
+Check it out!
+
+
+*********************************************************************
+Troubleshooting:
+
+* Make sure you have MSCDEX 2.1 or higher
+
+* Do not call BCD from an interrupt
+
+* Check bcd_error() when calls to BCD fail. If it's
+  BCD_DE_DEVICE_NOT_READY, you might want to retry in a second or two.
+
+* The door locked status bit fails on some CD-ROMs, including mine, a
+  Creative Labs 4x
+
+* MSCDEX will fail most commands, including sometimes reset, if audio is
+  playing.
+
+* Try running another DJGPP based CD audio program, like Quake, to see
+  if it's a DJGPP-specific thing
+
+*********************************************************************
+
+About the standalone version:
+Type 'bcd help' for a list of commands:
+
+BCD version 1.2
+Usage: BCD {commands}
+Valid commands:
+	close		- close door/tray
+	delay {n}	- delay {n} seconds
+	list		- list track info
+	lock		- lock door/tray
+	open		- open door/tray
+	pladdr {n1} {n2}- play frame {n1} to {n2}
+	play {n}	- play track {n}
+	reset		- reset the drive
+	resume		- resume from last stop
+	status		- show drive status
+	stop		- stop audio playback
+	unlock		- unlock door/tray
+	volume {n}	- set volume to {n} where 0 <= {n} <= 255
+
+*********************************************************************
+
+BCD was written to the spec in the file
+ftp://x2ftp.oulu.fi/pub/msdos/programming/specs/mscdex21.zip
+containing MSCDEX21.DOC.  A fun read, to be sure.
+
+*********************************************************************

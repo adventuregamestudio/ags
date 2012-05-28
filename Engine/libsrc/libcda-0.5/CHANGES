@@ -1,0 +1,42 @@
+January 2000
+
+26	--> released version 0.1 (a little early :)
+	djgpp: implemented proper cd_get_volume
+	djgpp: cd_stop now stops for real, not pause
+	linux: cd_resume won't print crap if not paused
+	windows: implemented Windows version
+	api: added cd_error
+	windows: changed a few things for BCC port
+
+27	bcc: added bcc/dos port
+	--> released version 0.2
+	api: removed cd_error; it was bugging me
+	windows: cleaned up a few pedantic BCC warnings
+	djgpp: cleaned up the underscore frenzy
+	bcc: paused + current_track behavior now same as others
+	linux: fd == -1 unable to open (oops)
+	linux: now uses CDROMPLAYMSF for more compatibility
+	--> released version 0.3
+	
+April 2000
+
+09	beos: implemented BeOS version
+	api: can now use NULL in cd_get_tracks and cd_get_volume
+	api: added cd_error again, using OS error strings
+	--> released version 0.4
+
+November 2000
+
+19	linux: call cd_get_tracks before get_tocentry in cd_is_audio 
+		to refresh data
+	--> released version 0.5
+
+April 2001
+
+17	api: forgot to increment version number in header
+	--> rereleased version 0.5
+
+February 2002
+
+26	changed the licence to zlib/swapware
+	--> rerereleased version 0.5

@@ -2977,7 +2977,7 @@
 				Name="libcda"
 				>
 				<File
-					RelativePath=".\libsrc\libcda-0.4\libcdaWin.C"
+					RelativePath=".\libsrc\libcda-0.5\windows.c"
 					>
 				</File>
 			</Filter>

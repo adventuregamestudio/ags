@@ -1,0 +1,194 @@
+
+			   Libcda 0.5
+
+			19 November 2000
+
+
+   libcda is "A simple, cross-platform CD playing library".  It was
+   designed to be used in computer games, but obviously this is not
+   necessary.
+
+   It also has the forgettable name that is mandatory for all CD audio
+   playing libraries.
+
+   It currently supports:
+
+	 Linux + gcc (only i386 tested)
+	 DOS + djgpp
+	 DOS + BCC (real mode)
+	 Windows + Mingw32
+	 Windows + MSVC
+	 Windows + BCC
+	 BeOS + gcc (only i386 tested)
+
+   Other platforms and compilers will be supported as soon as
+   *someone* contributes some code.  (I've already done versions for
+   every compiler and platform I have access to, all within the space 
+   of one and a bit days, so it's not very difficult... hint, hint)
+
+
+WHAT'S NEW IN 0.5
+
+   * little fix in Linux version
+
+
+WHAT'S NEW IN 0.4
+
+   * BeOS version
+   * cd_error variable
+
+
+COMPILING
+
+   gcc, djgpp, mingw32:
+
+   	You should be able to simply type `make'.  If that does not
+        work, try editing the Makefile.  A library will be made for
+        you.
+
+	Linux: the environment variable `CDAUDIO' can be set to use
+	an alternative CD-ROM device (e.g. /dev/scd0 for SCSI #0).
+
+	mingw32 users: you need to link using `-lwinmm' (libwinmm).
+
+   Borland C / DOS:
+
+	Run `makebcc.bat' to create the example program.
+	
+   MSVC: 
+
+	Insert the files `windows.c' and `example.c' into a new
+	project, and link with `winmm.lib'.
+
+   BCC / Windows (tested with v4.5):
+
+        In the IDE, create a new EasyWin project, and insert 
+	`windows.c' and `example.c'.
+
+   BeOS / gcc:
+
+	Type `make -f Makefile.Be' to make the example program.
+	
+	(If it compiles with CodeWarrior or runs on PPC, tell me!)
+
+
+FUNCTIONS
+
+   The API is deliberately designed to be simple, omitting functions
+   for querying track times, etc.  If you can provide implementations
+   of a function you would like for ALL supported platforms, then I
+   will include it.
+
+   If any of the functions do different things on different platforms,
+   then it is a bug.  If any of the functions or descriptions have 
+   ambiguous behavior or meaning, then it is probably a bug: tell me.
+
+   int cd_init()
+
+	You must initialise the library before using it. Returns zero
+	on success.  Using the following functions after cd_init()
+	has failed will give undefined results (this may change in
+	future).
+
+   void cd_exit()
+
+   	Shutdown.  You must call this at the end of the program.
+
+   int cd_play(int track)
+
+     	Play the specified track.  Returns zero on success.
+
+   int cd_play_range(int start, int end)
+   
+     	Play a sequence of tracks.  Returns zero on success.
+   
+   int cd_play_from(int track)
+
+     	Play from track to end of disc.  Returns zero on success.
+
+   int cd_current_track()
+
+     	Return track currently in playback, or zero if stopped.
+
+   void cd_pause()
+   
+     	Pause playback.
+   
+   void cd_resume()
+   
+     	Resume playback.
+   
+   int cd_is_paused()
+   
+     	Returns non-zero if playback is paused.
+   
+   void cd_stop()
+   
+     	Stop playback.
+   
+   int cd_get_tracks(int *first, int *last)
+
+     	Get first and last tracks of CD.  Returns zero on success.
+	NULL may be used in place of a variable if you are not 
+	interested in the value.
+
+   int cd_is_audio(int track)
+
+     	Returns 1 if track specified is an audio track, zero if it
+	is data, -1 if an error occurs.
+
+   void cd_get_volume(int *c0, int *c1)
+
+     	Return volumes of left and right channels (0 - 255).  
+	c0 and c1 may be NULL.
+
+   void cd_set_volume(int c0, int c1)
+
+     	Set left and right channel volumes (0 - 255).
+
+   void cd_eject()
+   
+     	Eject CD drive (if possible).
+   
+   void cd_close()
+   
+     	Close CD drive (if possible).
+
+   char *cd_error
+	
+	If one of the functions returns an error, this will 
+	point to an OS-dependant error string.  (Not yet
+	available on all platforms.)
+
+
+LICENCE
+
+   See COPYING.
+
+
+TODO / BUGS
+
+   Windows: 
+	missing volume control
+	uses hack to get pause/resume behavior
+
+   BCC: is trashy code
+	uses hack to get pause status
+	needs cd_error
+
+   djgpp: needs cd_error
+
+
+CREDITS
+
+   libcda was written by Peter Wang, in part using:
+
+	 BCD v1.3 by Brennan Underwood (see bcd.doc)
+
+	 code by Barry Egerter (from `cdrom_c.zip').
+
+
+   Email: 	tjaden@users.sf.net
+
+   WWW:   	http://www.alphalink.com.au/~tjaden/
+

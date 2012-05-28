@@ -1,0 +1,56 @@
+There are two licences used in libcda.  The following licence covers
+all files in the libcda package, unless explicitly stated otherwise.
+
+
+  Copyright (C) 2001 Peter Wang and contributing authors.
+
+  This software is provided 'as-is', without any express or implied
+  warranty.  In no event will the authors be held liable for any damages
+  arising from the use of this software.
+
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
+
+  1. The origin of this software must not be misrepresented; you must not
+     claim that you wrote the original software. If you use this software
+     in a product, an acknowledgment in the product documentation would be
+     appreciated but is not required.
+
+  2. Altered source versions must be plainly marked as such, and must not
+     be misrepresented as being the original software.
+
+  3. This notice may not be removed or altered from any source distribution.
+
+
+  [For informational purposes, this is the zlib licence.]
+
+
+------------------------------------------------------------------------
+
+
+Some files are derived from another package called BCD.  I emailed its
+author about changing the licence, but received no reply.  Therefore
+the original licence remains on files that were originally from BCD.
+
+The following licence covers these files ONLY: djgpp.c, bcd.doc
+
+
+  You may use, modify, redistribute, and generally hack it about in
+  any way you like, but if you do you must send me something in
+  exchange.  This could be a complimentary copy of a game, an addition
+  or improvement to BCD, a bug report, some money (this is
+  particularly encouraged if you use BCD in a commercial product), or
+  just a copy of your AUTOEXEC.BAT if you don't have anything
+  better. If you redistribute BCD or make a game using it, it would be
+  nice if you mentioned me somewhere in the credits.
+
+(The author of the licence is Brennan Underwood.)
+
+
+If necessary, you may remove the BCD-derived files when including the
+libcda package _as part of your source tree_.  Do not distribute
+libcda as a standalone package with files missing.
+
+
+

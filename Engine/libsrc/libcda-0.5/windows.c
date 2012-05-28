@@ -3,7 +3,7 @@
  * Using the string interface is probably slightly slower, but damned
  * if I'm going to code using the message interface.
  *
- * Peter Wang <tjaden@psynet.net> 
+ * Peter Wang <tjaden@users.sf.net> 
  */
 
 #include <stdio.h>

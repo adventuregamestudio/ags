@@ -8,11 +8,11 @@
 +INCDIR = ../Engine ../Common ../Common/libinclude
  LIBDIR =
 -CFLAGS = -O2 -g -Wfatal-errors -DALLEGRO_STATICLINK -DTHIS_IS_THE_ENGINE -DLINUX_VERSION -DDISABLE_MPEG_AUDIO -DRTLD_NEXT
-+CFLAGS = -O2 -g -Wfatal-errors -DALLEGRO_STATICLINK -DTHIS_IS_THE_ENGINE -DLINUX_VERSION -DDISABLE_MPEG_AUDIO -DRTLD_NEXT  $(shell pkg-config --cflags freetype2)
++CFLAGS = -O2 -g -Wfatal-errors -fpermissive -DALLEGRO_STATICLINK -DTHIS_IS_THE_ENGINE -DLINUX_VERSION -DDISABLE_MPEG_AUDIO -DRTLD_NEXT  $(shell pkg-config --cflags freetype2)
  CXXFLAGS = $(CFLAGS) -fno-rtti -Wno-write-strings
  ASFLAGS = $(CFLAGS)
 -LIBS = -rdynamic -m32 /usr/local/lib/liballeg.so -laldmb -ldumb -Wl,-Bstatic -Wl,-Bdynamic -ltheora -logg -lvorbis -lvorbisfile -lfreetype -lXpm -lXcursor -lXrender -lXxf86vm -lXfixes -lXext -lX11 -logg -lasound -lz -ldl -lpthread -lm -lc -lstdc++
-+LIBS = -rdynamic -m32 $(shell allegro-config --libs) -laldmb -ldumb -Wl,-Bdynamic -ltheora -logg -lvorbis -lvorbisfile -lfreetype -lXpm -lXcursor -lXrender -lXxf86vm -lXfixes -lXext -lX11 -logg -lasound -lz -ldl -lpthread -lm -lc -lstdc++
++LIBS = -rdynamic $(shell allegro-config --libs) -laldmb -ldumb -Wl,-Bdynamic -ltheora -logg -lvorbis -lvorbisfile -lfreetype -lXpm -lXcursor -lXrender -lXxf86vm -lXfixes -lXext -lX11 -logg -lasound -lz -ldl -lpthread -lm -lc -lstdc++
  
  
  CC = gcc

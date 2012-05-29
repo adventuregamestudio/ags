@@ -15,7 +15,7 @@ APEG = libsrc/apeg-1.2.1/display.o libsrc/apeg-1.2.1/getbits.o libsrc/apeg-1.2.1
 
 AASTR = libsrc/aastr-0.1.1/AAROT.o libsrc/aastr-0.1.1/aastr.o libsrc/aastr-0.1.1/aautil.o
 
-CDA = libsrc/libcda-0.5/linux.c
+CDA = libsrc/libcda-0.5/linux.o
 
 OBJS = $(ALFONT) $(ALMP3) $(APEG) $(AASTR) $(HQ2X3X) $(CDA) $(BASE) $(COMMON) $(LINUX_SPECIFIC)
 

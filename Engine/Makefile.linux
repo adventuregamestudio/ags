@@ -20,10 +20,17 @@ OBJS = $(ALFONT) $(ALMP3) $(APEG) $(AASTR) $(HQ2X3X) $(CDA)  $(BASE) $(COMMON) $
 
 INCDIR = ../Engine ../Common ../Common/libinclude
 LIBDIR =
-CFLAGS = -O2 -g -Wfatal-errors -DALLEGRO_STATICLINK -DTHIS_IS_THE_ENGINE -DLINUX_VERSION -DDISABLE_MPEG_AUDIO -DRTLD_NEXT $(shell pkg-config --cflags freetype2)
-CXXFLAGS = $(CFLAGS) -fno-rtti -Wno-write-strings
-ASFLAGS = $(CFLAGS)
-LIBS = -rdynamic -m32 $(shell allegro-config --libs) -laldmb -ldumb -Wl,-Bdynamic -ltheora -logg -lvorbis -lvorbisfile -lfreetype -lXpm -lXcursor -lXrender -lXxf86vm -lXfixes -lXext -lX11 -logg -lasound -lz -ldl -lpthread -lm -lc -lstdc++
+CFLAGS = -O2 -g -fsigned-char -Wfatal-errors -DALLEGRO_STATICLINK -DTHIS_IS_THE_ENGINE -DLINUX_VERSION -DDISABLE_MPEG_AUDIO -DRTLD_NEXT $(shell pkg-config --cflags freetype2)
+CXXFLAGS = -fno-rtti -Wno-write-strings
+ASFLAGS =
+LIBS = -rdynamic -m32 $(shell allegro-config --libs) -laldmb -ldumb -Wl,-Bdynamic -ltheora -logg 
+ifeq ($(USE_TREMOR), 1)
+  LIBS += -lvorbisidec
+  CFLAGS += -DUSE_TREMOR
+else
+  LIBS += -lvorbis
+endif
+LIBS += -lvorbisfile -lfreetype -lXpm -lXcursor -lXrender -lXxf86vm -lXfixes -lXext -lX11 -logg -lasound -lz -ldl -lpthread -lm -lc -lstdc++
 
 
 CC = gcc

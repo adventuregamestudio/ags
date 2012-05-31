@@ -10,15 +10,7 @@ Build-Depends: debhelper (>= 8.0.0),
                libtheora-dev,
                libvorbis-dev,
                libogg-dev,
-               libx11-dev,
-               libxext-dev,
-               libxxf86vm-dev,
-               libxpm-dev,
-               libxcursor-dev,
-               libxrender-dev,
-               libxfixes-dev,
-               libasound2-dev [linux-any],
-               zlib1g-dev
+               libasound2-dev [linux-any]
 Standards-Version: 3.9.3
 Homepage: https://gitorious.org/~jjs/ags/ags-for-psp
 

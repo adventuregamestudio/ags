@@ -28899,21 +28899,6 @@ int initialize_engine(int argc,char*argv[])
     firstDepth = 32;
     secondDepth = 24;
   }
-  
-#if !defined(IOS_VERSION)
-  // This code actually causes graphical errors on iOS,
-  // e.g. the raindrops in Gemini Rue are drawn solid black.
-#ifdef MAC_VERSION
-  if (game.color_depth > 1)
-  {
-    // force true color - bug in hi color
-    // only noticed in KQ2VGA, and haven't tracked down yet
-    // (some gfx are corrupt)
-    firstDepth = 32;
-    secondDepth = 24;
-  }
-#endif
-#endif
 
   adjust_sizes_for_resolution(loaded_game_file_version);
 

@@ -24,6 +24,12 @@ struct AGSLinux : AGS32BitOSDriver {
   virtual void ShutdownCDPlayer();
   virtual void WriteConsole(const char*, ...);
   virtual void ReplaceSpecialPaths(const char*, char*);
+  virtual void ReadPluginsFromDisk(FILE *iii);
+  virtual void StartPlugins();
+  virtual void ShutdownPlugins();
+  virtual int RunPluginHooks(int event, int data);
+  virtual void RunPluginInitGfxHooks(const char *driverName, void *data);
+  virtual int RunPluginDebugHooks(const char *scriptfile, int linenum);
 };
 
 
@@ -127,4 +133,28 @@ void AGSLinux::ReplaceSpecialPaths(const char *sourcePath, char *destPath) {
   } else {
     strcpy(destPath, sourcePath);
   }
+}
+
+void AGSLinux::ReadPluginsFromDisk(FILE *iii) {
+  pl_read_plugins_from_disk(iii);
+}
+
+void AGSLinux::StartPlugins() {
+  pl_startup_plugins();
+}
+
+void AGSLinux::ShutdownPlugins() {
+  pl_stop_plugins();
+}
+
+int AGSLinux::RunPluginHooks(int event, int data) {
+  return pl_run_plugin_hooks(event, data);
+}
+
+void AGSLinux::RunPluginInitGfxHooks(const char *driverName, void *data) {
+  pl_run_plugin_init_gfx_hooks(driverName, data);
+}
+
+int AGSLinux::RunPluginDebugHooks(const char *scriptfile, int linenum) {
+  return pl_run_plugin_debug_hooks(scriptfile, linenum);
 }

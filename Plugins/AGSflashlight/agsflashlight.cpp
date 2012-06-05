@@ -34,7 +34,7 @@ namespace agsflashlight {
 #define sin(x) vfpu_sinf(x)
 #endif
 
-#if defined(PSP_VERSION) || defined(ANDROID_VERSION) || defined(IOS_VERSION)
+#if defined(__GNUC__)
 inline unsigned long _blender_alpha16_bgr(unsigned long y) __attribute__((always_inline));
 inline void calc_x_n(unsigned long bla) __attribute__((always_inline));
 #endif

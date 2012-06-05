@@ -138,9 +138,9 @@ void AGS32BitOSDriver::YieldCPU() {
 
 // **************** PLUGIN IMPLEMENTATION ****************
 
-#if defined(ANDROID_VERSION) || defined(PSP_VERSION) || defined(WINDOWS_VERSION) || defined(MAC_VERSION)
+#if defined(LINUX_VERSION) || defined(WINDOWS_VERSION) || defined(MAC_VERSION)
 
-#if defined(MAC_VERSION) || defined(ANDROID_VERSION)
+#if defined(MAC_VERSION) || (defined(LINUX_VERSION) && !defined(PSP_VERSION))
 #include <dlfcn.h>
 #define LoadLibrary(name) dlopen(name, RTLD_LOCAL)
 #define FreeLibrary dlclose
@@ -924,6 +924,10 @@ void pl_read_plugins_from_disk (FILE *iii) {
     EnginePlugin *apl = &plugins[a];
     strcpy (apl->filename, buffer);
 #if defined(MAC_VERSION)
+    // Compatibility with the old SnowRain module
+    if (stricmp(apl->filename, "ags_SnowRain20.dll") == 0)
+      strcpy(apl->filename, "ags_snowrain.dll");
+
     // replace .dll with .dylib
     char *extPos = strcasestr(apl->filename, ".dll");
     if (extPos)
@@ -993,6 +997,27 @@ void pl_read_plugins_from_disk (FILE *iii) {
     }
 
     if (apl->dllHandle < 0)
+    {
+      if (!pl_use_builtin_plugin(apl))
+        continue;
+    }
+#elif defined(LINUX_VERSION)
+    // Compatibility with the old SnowRain module
+    if (stricmp(apl->filename, "ags_SnowRain20.dll") == 0)
+      strcpy(apl->filename, "ags_snowrain.dll");
+
+    // replace .dll with .so
+    char *extPos = strcasestr(apl->filename, ".dll");
+    if (extPos)
+    {
+      strcpy(extPos, ".so");
+    }
+    else
+    {
+      strcat(apl->filename, ".so");
+    }
+    apl->dllHandle = LoadLibrary(apl->filename);
+    if (apl->dllHandle == NULL)
     {
       if (!pl_use_builtin_plugin(apl))
         continue;

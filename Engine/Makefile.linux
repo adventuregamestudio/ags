@@ -1,6 +1,7 @@
 
 BASE = acaudio.o acchars.o acdebug.o acdialog.o acfonts.o acgfx.o acgui.o acplatfm.o acsound.o bigend.o misc.o routefnd.o scrptrt.o ac.o alogg.o almp3.o ali3dsw.o
 COMMON = ../Common/csrun.o ../Common/Clib32.o ../Common/mousew32.o ../Common/sprcache.o ../Common/cscommon.o ../Common/compress.o ../Common/lzw.o
+PLUGINS = ../Plugins/AGSflashlight/agsflashlight.o ../Plugins/AGSBlend/AGSBlend.o ../Plugins/ags_snowrain/ags_snowrain.o
 
 LINUX_SPECIFIC = acpllnx.o
 
@@ -16,11 +17,11 @@ AASTR = libsrc/aastr-0.1.1/AAROT.o libsrc/aastr-0.1.1/aastr.o libsrc/aastr-0.1.1
 
 CDA = libsrc/libcda-0.5/linux.o
 
-OBJS = $(ALFONT) $(ALMP3) $(APEG) $(AASTR) $(HQ2X3X) $(CDA)  $(BASE) $(COMMON) $(LINUX_SPECIFIC)
+OBJS = $(ALFONT) $(ALMP3) $(APEG) $(AASTR) $(HQ2X3X) $(CDA) $(PLUGINS) $(BASE) $(COMMON) $(LINUX_SPECIFIC)
 
 INCDIR = ../Engine ../Common ../Common/libinclude
 LIBDIR =
-CFLAGS = -O2 -g -fsigned-char -Wfatal-errors -DALLEGRO_STATICLINK -DTHIS_IS_THE_ENGINE -DLINUX_VERSION -DDISABLE_MPEG_AUDIO -DRTLD_NEXT $(shell pkg-config --cflags freetype2)
+CFLAGS = -O2 -g -fsigned-char -Wfatal-errors -DALLEGRO_STATICLINK -DTHIS_IS_THE_ENGINE -DLINUX_VERSION -DDISABLE_MPEG_AUDIO -DBUILTIN_PLUGINS -DRTLD_NEXT $(shell pkg-config --cflags freetype2)
 CXXFLAGS = -fno-rtti -Wno-write-strings
 ASFLAGS =
 LIBS = -rdynamic -m32 $(shell allegro-config --libs) -laldmb -ldumb -Wl,-Bdynamic -ltheora -logg 

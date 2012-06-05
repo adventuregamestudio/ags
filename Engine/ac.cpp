@@ -170,6 +170,8 @@ extern int our_eip;
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <dirent.h>
+#include "../PSP/launcher/pe.h"
 
 long int filelength(int fhandle)
 {
@@ -28383,6 +28385,44 @@ int initialize_engine(int argc,char*argv[])
     // it's not, so look for the file
     
     game_file_name = ci_find_file(usetup.data_files_dir, usetup.main_data_filename);
+
+#if !defined(WINDOWS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION) && !defined(IOS_VERSION)
+    // Search the exe files for the game data
+    if ((game_file_name == NULL) || (access(game_file_name, F_OK) != 0))
+    {
+      DIR* fd = NULL;
+      struct dirent* entry = NULL;
+      version_info_t version_info;
+
+      if ((fd = opendir(".")))
+      {
+        while ((entry = readdir(fd)))
+        {
+          // Exclude the setup program
+          if (stricmp(entry->d_name, "winsetup.exe") == 0)
+            continue;
+
+          // Filename must be >= 4 chars long
+          int length = strlen(entry->d_name);
+          if (length < 4)
+            continue;
+  
+          if (stricmp(&(entry->d_name[length - 4]), ".exe") == 0)
+          {
+            if (!getVersionInformation(entry->d_name, &version_info))
+              continue;
+            if (strcmp(version_info.internal_name, "acwin") == 0)
+            {
+              game_file_name = (char*)malloc(strlen(entry->d_name) + 1);
+              strcpy(game_file_name, entry->d_name);
+              break;
+            }
+          }
+        }
+        closedir(fd);
+      }
+    }
+#endif
 
     errcod=csetlib(game_file_name,"");
     if (errcod) {

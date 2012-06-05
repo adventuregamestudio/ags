@@ -3,7 +3,7 @@ BASE = acaudio.o acchars.o acdebug.o acdialog.o acfonts.o acgfx.o acgui.o acplat
 COMMON = ../Common/csrun.o ../Common/Clib32.o ../Common/mousew32.o ../Common/sprcache.o ../Common/cscommon.o ../Common/compress.o ../Common/lzw.o
 PLUGINS = ../Plugins/AGSflashlight/agsflashlight.o ../Plugins/AGSBlend/AGSBlend.o ../Plugins/ags_snowrain/ags_snowrain.o
 
-MAC_SPECIFIC = acplmac.o ../OSX/libc.o
+MAC_SPECIFIC = acplmac.o ../OSX/libc.o ../PSP/launcher/pe.o
 
 HQ2X3X = libsrc/hq2x/hq2x3x.o
 

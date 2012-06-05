@@ -30,7 +30,7 @@ ifeq ($(USE_TREMOR), 1)
 else
   LIBS += -lvorbis
 endif
-LIBS += -lvorbisfile -lfreetype -lXpm -lXcursor -lXrender -lXxf86vm -lXfixes -lXext -lX11 -logg -lasound -lz -ldl -lpthread -lm -lc -lstdc++
+LIBS += -lvorbisfile -lfreetype -logg -ldl -lpthread -lm -lc -lstdc++
 
 
 CC = gcc
@@ -38,12 +38,12 @@ CXX = g++
 CFLAGS   := $(addprefix -I,$(INCDIR)) $(CFLAGS)
 CXXFLAGS := $(CFLAGS) $(CXXFLAGS)
 ASFLAGS  := $(CFLAGS) $(ASFLAGS)
-LDFLAGS  := $(addprefix -L,$(LIBDIR))
+LDFLAGS  := -Wl,--as-needed $(addprefix -L,$(LIBDIR))
 
 all: ags
 
 ags: $(OBJS)
-	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
+	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS) $(LIBS)
 
 %.o: %.m
 	$(CC) $(CFLAGS) -c -o $@ $<

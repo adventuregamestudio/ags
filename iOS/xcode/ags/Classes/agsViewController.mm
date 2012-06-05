@@ -14,11 +14,12 @@ extern int psp_rotation;
 @property (readwrite, retain) UIView *inputAccessoryView;
 @property (readwrite, assign) BOOL isInPortraitOrientation;
 @property (readwrite, assign) BOOL isKeyboardActive;
+@property (readwrite, assign) BOOL isIPad;
 @end
 
 @implementation agsViewController
 
-@synthesize context, inputAccessoryView, isInPortraitOrientation, isKeyboardActive;
+@synthesize context, inputAccessoryView, isInPortraitOrientation, isKeyboardActive, isIPad;
 
 
 agsViewController* agsviewcontroller;
@@ -110,7 +111,7 @@ extern "C" int ios_get_last_keypress()
 	UIBarButtonItem *esc = [[UIBarButtonItem alloc] initWithTitle:@"ESC" style:UIBarButtonItemStyleDone target:self action:@selector(buttonClicked:)];
 	[array addObject:esc];
 	
-	if (openedKeylist == 1)
+	if ((openedKeylist == 1) || self.isIPad)
 	{
 		UIBarButtonItem* f1 = [[UIBarButtonItem alloc] initWithTitle:@"F1" style:UIBarButtonItemStyleBordered target:self action:@selector(buttonClicked:)];
 		UIBarButtonItem* f2 = [[UIBarButtonItem alloc] initWithTitle:@"F2" style:UIBarButtonItemStyleBordered target:self action:@selector(buttonClicked:)];
@@ -127,7 +128,7 @@ extern "C" int ios_get_last_keypress()
 		[array addObject:openf1];
 	}
 
-	if (openedKeylist == 5)
+	if ((openedKeylist == 5) || self.isIPad)
 	{
 		UIBarButtonItem* f5 = [[UIBarButtonItem alloc] initWithTitle:@"F5" style:UIBarButtonItemStyleBordered target:self action:@selector(buttonClicked:)];
 		UIBarButtonItem* f6 = [[UIBarButtonItem alloc] initWithTitle:@"F6" style:UIBarButtonItemStyleBordered target:self action:@selector(buttonClicked:)];
@@ -142,9 +143,9 @@ extern "C" int ios_get_last_keypress()
 	{
 		UIBarButtonItem* openf5 = [[UIBarButtonItem alloc] initWithTitle:@"F5..." style:UIBarButtonItemStyleBordered target:self action:@selector(buttonClicked:)];
 		[array addObject:openf5];
-		}	
+	}
 	
-	if (openedKeylist == 9)
+	if ((openedKeylist == 9) || self.isIPad)
 	{
 		UIBarButtonItem* f9 = [[UIBarButtonItem alloc] initWithTitle:@"F9" style:UIBarButtonItemStyleBordered target:self action:@selector(buttonClicked:)];
 		UIBarButtonItem* f10 = [[UIBarButtonItem alloc] initWithTitle:@"F10" style:UIBarButtonItemStyleBordered target:self action:@selector(buttonClicked:)];
@@ -227,7 +228,17 @@ extern "C" int ios_get_last_keypress()
 {
 	[UIView beginAnimations:nil context:NULL];
 	[UIView setAnimationDuration:duration];
-	self.view.frame = CGRectMake(0, upwards ? (self.view.frame.size.height / -4) : 0, self.view.frame.size.width, self.view.frame.size.height);
+	
+	int newTop = 0;
+	if (upwards)
+	{
+		if (self.isIPad)
+			newTop = self.view.frame.size.height / -6;
+		else
+			newTop = self.view.frame.size.height / -4;
+	}
+
+	self.view.frame = CGRectMake(0, newTop, self.view.frame.size.width, self.view.frame.size.height);
 	[UIView commitAnimations];
 }
 
@@ -346,6 +357,7 @@ extern "C" void ios_create_screen()
 	[self.view setMultipleTouchEnabled:YES];
 	[self createGestureRecognizers];
 	agsviewcontroller = self;
+	self.isIPad = (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad);
 }
 
 

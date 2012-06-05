@@ -13,6 +13,7 @@
 	EAGLContext *context;
 	BOOL isInPortraitOrientation;
 	BOOL isKeyboardActive;
+	BOOL isIPad;
 }
 
 - (void)createGestureRecognizers;

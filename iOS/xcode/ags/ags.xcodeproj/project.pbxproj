@@ -95,6 +95,7 @@
 		6041A8981552E8C400596310 /* libbz2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 6041A8971552E8C400596310 /* libbz2.dylib */; };
 		60819173154C78F000368355 /* acplios.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60819172154C78F000368355 /* acplios.cpp */; };
 		6081918F154D9A2700368355 /* libc.c in Sources */ = {isa = PBXBuildFile; fileRef = 6081918E154D9A2700368355 /* libc.c */; };
+		60844EAD1573943400003ED0 /* MainWindow-iPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = 60844EAC1573943400003ED0 /* MainWindow-iPad.xib */; };
 		608498E6155CDF6400121EFE /* Icon-72.png in Resources */ = {isa = PBXBuildFile; fileRef = 608498E5155CDF6400121EFE /* Icon-72.png */; };
 		608498E8155CDF7000121EFE /* Icon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 608498E7155CDF7000121EFE /* Icon@2x.png */; };
 		608A53D4155B05F7002E3D41 /* ags_snowrain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 608A53D3155B05F7002E3D41 /* ags_snowrain.cpp */; };
@@ -247,6 +248,7 @@
 		6041A8971552E8C400596310 /* libbz2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libbz2.dylib; path = usr/lib/libbz2.dylib; sourceTree = SDKROOT; };
 		60819172154C78F000368355 /* acplios.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = acplios.cpp; sourceTree = "<group>"; };
 		6081918E154D9A2700368355 /* libc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = libc.c; path = ../../../Android/app/jni/libc.c; sourceTree = SOURCE_ROOT; };
+		60844EAC1573943400003ED0 /* MainWindow-iPad.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = "MainWindow-iPad.xib"; path = "Resources-iPad/MainWindow-iPad.xib"; sourceTree = "<group>"; };
 		608498E5155CDF6400121EFE /* Icon-72.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-72.png"; sourceTree = "<group>"; };
 		608498E7155CDF7000121EFE /* Icon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon@2x.png"; sourceTree = "<group>"; };
 		608A53D3155B05F7002E3D41 /* ags_snowrain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ags_snowrain.cpp; path = ../../../Plugins/ags_snowrain/ags_snowrain.cpp; sourceTree = SOURCE_ROOT; };
@@ -313,6 +315,7 @@
 				080E96DDFE201D6D7F000001 /* Classes */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
 				29B97317FDCFA39411CA2CEA /* Resources */,
+				60844EAB1573942F00003ED0 /* Resources-iPad */,
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
 			);
@@ -607,6 +610,14 @@
 			path = ../../../Common/libinclude/vorbis;
 			sourceTree = SOURCE_ROOT;
 		};
+		60844EAB1573942F00003ED0 /* Resources-iPad */ = {
+			isa = PBXGroup;
+			children = (
+				60844EAC1573943400003ED0 /* MainWindow-iPad.xib */,
+			);
+			name = "Resources-iPad";
+			sourceTree = "<group>";
+		};
 		608A53D2155B0535002E3D41 /* Plugins */ = {
 			isa = PBXGroup;
 			children = (
@@ -680,6 +691,7 @@
 				608498E6155CDF6400121EFE /* Icon-72.png in Resources */,
 				608498E8155CDF7000121EFE /* Icon@2x.png in Resources */,
 				60BC89A8155E969700807358 /* iTunesArtwork in Resources */,
+				60844EAD1573943400003ED0 /* MainWindow-iPad.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -785,6 +797,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -797,6 +810,8 @@
 					"\"$(SRCROOT)/../../nativelibs/fat/lib\"",
 				);
 				PRODUCT_NAME = ags;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -804,6 +819,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				COPY_PHASE_STRIP = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = ags_Prefix.pch;
@@ -814,6 +830,8 @@
 					"\"$(SRCROOT)/../../nativelibs/fat/lib\"",
 				);
 				PRODUCT_NAME = ags;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;

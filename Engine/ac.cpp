@@ -28091,8 +28091,11 @@ void initialise_game_file_name()
   }
   game_file_name = (char*)malloc(MAX_PATH);
   WideCharToMultiByte(CP_ACP, 0, directoryPathBuffer, -1, game_file_name, MAX_PATH, NULL, NULL);
-#else
+#elif defined(PSP_VERSION) || defined(ANDROID_VERSION) || defined(IOS_VERSION)
   game_file_name = psp_game_file_name;
+#else
+  game_file_name = (char*)malloc(MAX_PATH);
+  strcpy(game_file_name, get_filename(global_argv[datafile_argv]));
 #endif
 }
 

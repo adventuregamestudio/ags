@@ -1,7 +1,7 @@
 
 BASE = acaudio.o acchars.o acdebug.o acdialog.o acfonts.o acgfx.o acgui.o acplatfm.o acsound.o bigend.o misc.o routefnd.o scrptrt.o ac.o alogg.o almp3.o ali3dsw.o
 COMMON = ../Common/csrun.o ../Common/Clib32.o ../Common/mousew32.o ../Common/sprcache.o ../Common/cscommon.o ../Common/compress.o ../Common/lzw.o
-PLUGINS = ../Plugins/AGSflashlight/agsflashlight.o ../Plugins/AGSBlend/AGSBlend.o ../Plugins/ags_snowrain/ags_snowrain.o
+PLUGINS = ../Plugins/AGSflashlight/agsflashlight.o ../Plugins/agsblend/AGSBlend.o ../Plugins/ags_snowrain/ags_snowrain.o
 
 LINUX_SPECIFIC = acpllnx.o ../PSP/launcher/pe.o
 

@@ -1,1 +1,5 @@
 .pc
+*.ncb
+*.suo
+*.vcproj.*.user
+Engine/acwin___Win32_DebugWorking

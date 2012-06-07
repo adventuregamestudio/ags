@@ -1,0 +1,78 @@
+Common for Engine
+ common/acroom.h (implicit)
+ common/clib32.cpp
+ common/compress.cpp
+ common/cscommon.cpp
+ common/csrun.cpp
+ common/lzw.cpp
+ common/mousew32.cpp (-)
+ common/sprcache.cpp
+ 
+
+Common for Native:
+ common/acroom.h
+ common/clib32.cpp
+ common/compress.cpp
+ common/cscommon.cpp
+ common/csparser.cpp (-)
+ common/csrun.cpp
+ common/fmem.cpp (-)
+ common/lzw.cpp
+ common/sprcache.cpp
+
+=
+Common Shared:
+ common/acroom.h
+ common/clib32.cpp
+ common/compress.cpp
+ common/cscommon.cpp
+ common/csrun.cpp
+ common/lzw.cpp
+ common/sprcache.cpp
+ 
+ =
+ Common Unused (?):
+  common/csprepro.cpp
+
+
+
+/-----------------------------
+Engine for Engine:
+ engine/ac.cpp
+ engine/acaudio.cpp
+ engine/acchars.cpp
+ engine/acdebug.cpp
+ engine/acdialog.cpp
+ engine/acfonts.cpp
+ engine/acgfx.cpp
+ engine/acgui.cpp
+ engine/acplatfm.cpp
+ engine/acplwin.cpp  (win !!)
+ engine/acsound.cpp
+ engine/acwavi.cpp  (win ?)
+ engine/acwavi3d.cpp  (win ?)
+ engine/acwsetup.cpp  (win ?)
+ engine/ali3dd3d.cpp  (win ?)
+ engine/ali3dogl.cpp  (win ?)
+ engine/ali3dsw.cpp
+ engine/misc.cpp
+ engine/routefnd.cpp
+ engine/scrptrt.cpp
+ 
+ engine/bigend.cpp (linux ??)
+ engine/alogg.cpp  (non-win ??)
+ engine/almp3.cpp  (non-win ??)
+ 
++ more plat specific?
+
+
+Engine for Native:
+ engine/acfonts.cpp
+ engine/acgui.cpp
+
+
+=
+Engine Shared:
+ engine/acfonts.cpp
+ engine/acgui.cpp
+

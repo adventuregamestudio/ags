@@ -1,0 +1,49 @@
+
+2012-06-07:
+
+This is an excerpt from my PM to Sonneveld regarding my ideas on refactoring.
+Later I found some of my suggestions should perhaps be altered.
+This is for quick reference on what I am trying to do.
+I guess sooner or later I'll have to write more detailed "design document".
+
+
+//===================================================================================================================
+
+
+
+I suggest making a number of separate modules, preferably static libraries (at least for the start), from the Common and Engine sources AND Native library.
+The reasons are:
+1. Simple and direct ties between program parts (leads to better understanding the code in general),
+2. Better encapsulation and overall independence of functional parts, reusability.
+3. Easier portability fixes: low-level stuff may be put into separate library (-ies) without need to put "#ifdef MACOS" (or whatever) all around the code.
+4. Encouraged discipline: less chances new features or fixes will be put into wrong place.
+
+My proposition is to target following separation:
+
+Common Lib - things common to other modules, specifically Engine runtime and Native library;
+External Lib (other name?) - code from "external" third-party libraries;
+Engine Lib - things specifically needed for the engine runtime (this may be built from number of other libs, like video, audio, input, etc, if we want further separation);
+Compiler Lib - things specifically needed for the compiler executable (whether it is a stand-alone or built-in compiler);
+Native Lib - a bridge between native code and .NET projects (Editor or any other frontends that may possibly come in future); should contain ONLY wrappers, nothing else;
+Native Helper Lib - a library that should get all the extra code from current Native library, that is not wrapper on its own (stubs, extra functionality); probably we will find better way to deal with these later; this should also reference Compiler Lib.
+
+Engine Runtime - an application; uses Engine Lib;
+Stand-alone Compiler app; uses Compiler Lib (this may be delayed, since compiler is also included into Editor via Native lib);
+Editor - we leave this as is, just keep in mind it should still use Native lib without problems.
+
+We should probably make two general solutions:
+1. Common + Engine + Compiler
+2. Editor + Native Lib
+
+//------------------------------------------------------------------------------------------------------------------------------------------
+
+The step list I made in previous PM should now look like:
+1. Split the code into source/header files while taking both Engine and Native lib into consideration (both should compile without problems after each change).
+2. Encapsulation: hide global variables, wrap with getters/setters if needed.
+3. Reform project structure - make a number of static libraries of common/engine code as described above.
+4. Separating portable/non-portable, low-level/hi-level functionality.
+5. Start applying code style here (?).
+6. More thorough code enhancement and beautification: changing defines to enums if applicable, splitting long functions, reusing algorythms, etc, similar stuff.
+7. Designing and implementing class system (if we do not like C-style code).
+
+//------------------------------------------------------------------------------------------------------------------------------------------

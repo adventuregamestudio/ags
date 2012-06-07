@@ -3,3 +3,14 @@
 *.suo
 *.vcproj.*.user
 Engine/acwin___Win32_DebugWorking
+Editor/AGS.Controls/bin
+Editor/AGS.Controls/obj
+Editor/AGS.CScript.Compiler/bin
+Editor/AGS.CScript.Compiler/obj
+Editor/AGS.Editor/bin
+Editor/AGS.Editor/obj
+Editor/AGS.Native/Debug
+Editor/AGS.Types/bin
+Editor/AGS.Types/obj
+Editor/UpdateCPPVersion/bin
+Editor/UpdateCPPVersion/obj

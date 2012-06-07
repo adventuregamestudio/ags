@@ -1932,7 +1932,7 @@ void save_room(const char *files, roomstruct rstruc) {
     for (f = 0; f < 11; f++)
       rstruc.password[f] -= passwencstring[f];
 
-  opty = ci_fopen(files, "wb");
+  opty = ci_fopen(const_cast<char*>(files), "wb");
   if (opty == NULL)
     quit("save_room: unable to open room file for writing.");
 
@@ -2054,7 +2054,7 @@ void save_room(const char *files, roomstruct rstruc) {
   if (rfh.version >= 5) {
     long  lee;
 
-    opty = ci_fopen(files,"r+b");
+    opty = ci_fopen(const_cast<char*>(files),"r+b");
     lee = filelength(fileno(opty))-7;
 
     fseek(opty, 3, SEEK_SET);
@@ -2131,7 +2131,7 @@ void save_room(const char *files, roomstruct rstruc) {
       for (gg = 1; gg < rstruc.num_bscenes; gg++)
         curoffs = save_lzw((char*)files, rstruc.ebscene[gg], rstruc.bpalettes[gg], curoffs);
 
-      opty = ci_fopen(files, "r+b");
+      opty = ci_fopen(const_cast<char*>(files), "r+b");
       lenis = (curoffs - lenpos) - 4;
       fseek(opty, lenpos, SEEK_SET);
       fwrite(&lenis, 4, 1, opty);
@@ -5196,3 +5196,23 @@ void load_graphical_scripts(FILE*iii,roomstruct*rst) {
   }
 }
 
+// [IKM] 2012-06-07
+// Had to copy this implementation from Engine/misc.cpp to evade including additional srcs & libs to AGS.Native.
+FILE *ci_fopen(char *file_name, const char *mode)
+{
+    // Don't pass a NULL pointer to newlib on the PSP.
+    if (file_name == NULL)
+    {
+        return NULL;
+    }
+    else
+    {
+        return fopen(file_name, mode);
+    }
+}
+
+// [IKM] 2012-06-07
+// Had to copy this variable definition from Engine/acc.cpp, since it is required in acgui.cpp // GUIInv::CalculateNumCells()
+// due JJS's compatiblity fix for 2.70.
+// This *must* be not less than 31, otherwise function will work in backward-compatibility mode.
+int loaded_game_file_version = 31;

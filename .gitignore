@@ -14,3 +14,7 @@ Editor/AGS.Types/bin
 Editor/AGS.Types/obj
 Editor/UpdateCPPVersion/bin
 Editor/UpdateCPPVersion/obj
+Solutions/.build/
+Solutions/.lib/
+Solutions/Common.Lib/Debug/
+Solutions/Engine.App/Debug/

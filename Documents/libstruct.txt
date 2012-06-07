@@ -1,5 +1,4 @@
 Common for Engine
- common/acroom.h (implicit)
  common/clib32.cpp
  common/compress.cpp
  common/cscommon.cpp
@@ -7,10 +6,10 @@ Common for Engine
  common/lzw.cpp
  common/mousew32.cpp (-)
  common/sprcache.cpp
+ [ALLEGRO_STATICLINK]
  
 
 Common for Native:
- common/acroom.h
  common/clib32.cpp
  common/compress.cpp
  common/cscommon.cpp
@@ -19,16 +18,28 @@ Common for Native:
  common/fmem.cpp (-)
  common/lzw.cpp
  common/sprcache.cpp
+ [ALLEGRO_STATICLINK]
+ [ALLEGRO_NO_ASM] -- needed for AGS.Native, defined always in allegro itself, quote: "Asm build disabled as of 4.3.10+"
 
 =
 Common Shared:
- common/acroom.h
  common/clib32.cpp
  common/compress.cpp
  common/cscommon.cpp
  common/csrun.cpp
  common/lzw.cpp
  common/sprcache.cpp
+ --------------------
+ common/acroom.h   ----| from sprcache.cpp with [CROOM_NOFUNCTIONS]
+ common/bigend.h   ----> allegro for non-win
+ common/compress.h
+ common/cscomp.h
+ common/fmem.h
+ common/misc.h
+ common/sprcache.h
+ common/wgt2allg.h ----> allegro (only declarations, does not require linking lib (?))
+ --------------------
+ 
  
  =
  Common Unused (?):
@@ -60,8 +71,6 @@ Engine for Engine:
  engine/scrptrt.cpp
  
  engine/bigend.cpp (linux ??)
- engine/alogg.cpp  (non-win ??)
- engine/almp3.cpp  (non-win ??)
  
 + more plat specific?
 

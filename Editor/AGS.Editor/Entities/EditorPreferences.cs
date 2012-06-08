@@ -156,6 +156,7 @@ namespace AGS.Editor
 			set { _defaultImportPath = value; }
 		}
 
+        [Obsolete]
 		public bool ProjectTreeOnRight
 		{
 			get { return _projectTreeOnRight; }

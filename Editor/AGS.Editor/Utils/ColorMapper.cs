@@ -37,8 +37,14 @@ namespace AGS.Editor
             int red = ((agsColorNumber >> 11) * 8) & 255;
             int green = ((agsColorNumber >> 5) * 4) & 255;
             int blue = ((agsColorNumber) * 8) & 255;
-            if ((agsColorNumber > 0) && (agsColorNumber < 32))
+            if (((agsColorNumber > 0) && (agsColorNumber < 32)) ||
+                (_editor.CurrentGame.Settings.ColorDepth == GameColorDepth.Palette))
             {
+                if (agsColorNumber >= _editor.CurrentGame.Palette.Length)
+                {
+                    // don't attempt to map invalid 8-bit colour numbers >255
+                    return Color.Black;
+                }
                 // Special Color Number that translates to one of the EGA colours
                 return _editor.CurrentGame.Palette[agsColorNumber].Colour;
             }

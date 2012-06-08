@@ -28,6 +28,7 @@ namespace AGS.Editor
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FindResultsPanel));
             this.pnlTitle = new System.Windows.Forms.Panel();
             this.btnClose = new System.Windows.Forms.Button();
             this.lblTitle = new System.Windows.Forms.Label();
@@ -47,7 +48,7 @@ namespace AGS.Editor
             this.pnlTitle.ForeColor = System.Drawing.SystemColors.ControlText;
             this.pnlTitle.Location = new System.Drawing.Point(0, 0);
             this.pnlTitle.Name = "pnlTitle";
-            this.pnlTitle.Size = new System.Drawing.Size(529, 18);
+            this.pnlTitle.Size = new System.Drawing.Size(521, 18);
             this.pnlTitle.TabIndex = 1;
             // 
             // btnClose
@@ -58,7 +59,7 @@ namespace AGS.Editor
             this.btnClose.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(192)))), ((int)(((byte)(255)))));
             this.btnClose.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnClose.ForeColor = System.Drawing.SystemColors.Control;
-            this.btnClose.Location = new System.Drawing.Point(510, 2);
+            this.btnClose.Location = new System.Drawing.Point(502, 2);
             this.btnClose.Margin = new System.Windows.Forms.Padding(0);
             this.btnClose.Name = "btnClose";
             this.btnClose.Size = new System.Drawing.Size(14, 14);
@@ -90,7 +91,7 @@ namespace AGS.Editor
             this.lvwResults.Location = new System.Drawing.Point(0, 18);
             this.lvwResults.MultiSelect = false;
             this.lvwResults.Name = "lvwResults";
-            this.lvwResults.Size = new System.Drawing.Size(529, 153);
+            this.lvwResults.Size = new System.Drawing.Size(521, 113);
             this.lvwResults.TabIndex = 2;
             this.lvwResults.UseCompatibleStateImageBehavior = false;
             this.lvwResults.View = System.Windows.Forms.View.Details;
@@ -116,11 +117,12 @@ namespace AGS.Editor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.ClientSize = new System.Drawing.Size(521, 131);
             this.Controls.Add(this.lvwResults);
             this.Controls.Add(this.pnlTitle);
             this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "FindResultsPanel";
-            this.Size = new System.Drawing.Size(529, 171);
             this.pnlTitle.ResumeLayout(false);
             this.pnlTitle.PerformLayout();
             this.ResumeLayout(false);

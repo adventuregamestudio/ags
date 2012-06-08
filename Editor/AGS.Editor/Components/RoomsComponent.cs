@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using System.Xml;
 using AGS.Types;
+using WeifenLuo.WinFormsUI.Docking;
 
 namespace AGS.Editor.Components
 {
@@ -27,6 +28,7 @@ namespace AGS.Editor.Components
 
         private const string ROOM_ICON_UNLOADED = "RoomIcon";
         private const string ROOM_ICON_LOADED = "RoomColourIcon";
+        private const string SCRIPT_ICON = "ScriptIcon";
 
         public event PreSaveRoomHandler PreSaveRoom;
         private ContentDocument _roomSettings;
@@ -604,25 +606,33 @@ namespace AGS.Editor.Components
                 _roomScriptEditors.Remove(selectedRoom.Number);
             }
 
-            if (!_roomScriptEditors.ContainsKey(selectedRoom.Number))
+            if (!_roomScriptEditors.ContainsKey(selectedRoom.Number)
+                || _roomScriptEditors[selectedRoom.Number].Control.IsDisposed)
             {
                 if (selectedRoom.Script == null)
                 {
                     selectedRoom.LoadScript();
                 }
-                ScriptEditor scriptEditor = new ScriptEditor(selectedRoom.Script, _agsEditor);
-                scriptEditor.RoomNumber = selectedRoom.Number;
-                scriptEditor.IsModifiedChanged += new EventHandler(ScriptEditor_IsModifiedChanged);
-                if ((_loadedRoom != null) && (_loadedRoom.Number == selectedRoom.Number))
-                {
-                    scriptEditor.Room = _loadedRoom;
-                }
-                _roomScriptEditors.Add(selectedRoom.Number, new ContentDocument(scriptEditor, selectedRoom.Script.FileName, this));
-                _roomScriptEditors[selectedRoom.Number].ToolbarCommands = scriptEditor.ToolbarIcons;
-                _roomScriptEditors[selectedRoom.Number].MainMenu = scriptEditor.ExtraMenu;
+                CreateScriptEditor(selectedRoom);
             }
 
             return _roomScriptEditors[selectedRoom.Number];
+        }
+
+        private void CreateScriptEditor(UnloadedRoom selectedRoom)
+        {
+            ScriptEditor scriptEditor = new ScriptEditor(selectedRoom.Script, _agsEditor);
+            scriptEditor.RoomNumber = selectedRoom.Number;
+            scriptEditor.IsModifiedChanged += new EventHandler(ScriptEditor_IsModifiedChanged);
+            scriptEditor.DockStateChanged += new EventHandler(ScriptEditor_DockStateChanged);            
+            if ((_loadedRoom != null) && (_loadedRoom.Number == selectedRoom.Number))
+            {
+                scriptEditor.Room = _loadedRoom;
+            }
+            _roomScriptEditors[selectedRoom.Number] = new ContentDocument(scriptEditor,
+                selectedRoom.Script.FileName, this, SCRIPT_ICON);
+            _roomScriptEditors[selectedRoom.Number].ToolbarCommands = scriptEditor.ToolbarIcons;
+            _roomScriptEditors[selectedRoom.Number].MainMenu = scriptEditor.ExtraMenu; 
         }
 
         private ContentDocument CreateOrShowScript(UnloadedRoom selectedRoom)
@@ -632,8 +642,28 @@ namespace AGS.Editor.Components
             return scriptEditor;
         }
 
+        private DockData GetPreviousDockData()
+        {
+            if (_roomSettings != null &&
+                _roomSettings.Control.DockState != DockState.Hidden &&
+                _roomSettings.Control.DockState != DockState.Unknown)
+            {
+                EditorContentPanel control = _roomSettings.Control;
+                if (control.FloatPane == null || 
+                    control.FloatPane.FloatWindow == null)
+                {
+                    return new DockData(control.DockState, Rectangle.Empty);
+                }
+                FloatWindow floatWindow = control.FloatPane.FloatWindow;
+                return new DockData(control.DockState, new Rectangle(
+                    floatWindow.Location, floatWindow.Size));
+            }
+            return null;
+        }
+
         private void LoadRoom(string controlID)
         {
+            DockData previousDockData = GetPreviousDockData();            
             UnloadedRoom selectedRoom = FindRoomByID(Convert.ToInt32(controlID.Substring(3)));
             if ((_loadedRoom == null) || (_roomSettings == null) ||
                 (selectedRoom.Number != _loadedRoom.Number))
@@ -642,25 +672,24 @@ namespace AGS.Editor.Components
             }
             if (_roomSettings != null)
             {
+                if (_roomSettings.Control.IsDisposed)
+                {
+                    CreateRoomSettings(previousDockData);
+                }
                 _guiController.AddOrShowPane(_roomSettings);
             }
         }
 
-        private void ScriptEditor_IsModifiedChanged(object sender, EventArgs e)
+        protected override ContentDocument GetDocument(ScriptEditor editor)
         {
-            ScriptEditor sendingPane = (ScriptEditor)sender;
-            string newTitle = sendingPane.Script.FileName + (sendingPane.IsModified ? " *" : "");
-
             foreach (ContentDocument doc in _roomScriptEditors.Values)
             {
-                if (doc.Control == sendingPane)
+                if (doc.Control == editor)
                 {
-                    doc.Name = newTitle;
-                    break;
+                    return doc;
                 }
             }
-
-            _guiController.DocumentTitlesChanged();
+            return null;
         }
 
         private delegate void DisposePaneDelegate(ContentDocument doc);
@@ -860,6 +889,7 @@ namespace AGS.Editor.Components
 			// the user is madly clicking around
 			lock (_roomLoadingOrSavingLock)
 			{
+                DockData previousDockData = GetPreviousDockData();
                 UnloadCurrentRoomAndGreyOutTree();
 
 				if (!File.Exists(newRoom.FileName))
@@ -874,12 +904,7 @@ namespace AGS.Editor.Components
 
 					_loadedRoom.RoomModifiedChanged += _modifiedChangedHandler;
 
-					string paneTitle = "Room " + _loadedRoom.Number + (_loadedRoom.Modified ? " *" : "");
-
-					_roomSettings = new ContentDocument(new RoomSettingsEditor(_loadedRoom), paneTitle, this, ConstructPropertyObjectList(_loadedRoom));
-					_roomSettings.SelectedPropertyGridObject = _loadedRoom;
-					((RoomSettingsEditor)_roomSettings.Control).SaveRoom += new RoomSettingsEditor.SaveRoomHandler(RoomEditor_SaveRoom);
-                    ((RoomSettingsEditor)_roomSettings.Control).AbandonChanges += new RoomSettingsEditor.AbandonChangesHandler(RoomsComponent_AbandonChanges);
+                    CreateRoomSettings(previousDockData);
 
 					if (_loadedRoom.Modified)
 					{
@@ -904,6 +929,21 @@ namespace AGS.Editor.Components
 
 				return true;
 			}
+        }
+
+        private void CreateRoomSettings(DockData previousDockData)
+        {
+            string paneTitle = "Room " + _loadedRoom.Number + (_loadedRoom.Modified ? " *" : "");
+
+            _roomSettings = new ContentDocument(new RoomSettingsEditor(_loadedRoom),
+                paneTitle, this, ROOM_ICON_LOADED, ConstructPropertyObjectList(_loadedRoom));
+            if (previousDockData != null && previousDockData.DockState != DockState.Document)
+            {
+                _roomSettings.PreferredDockData = previousDockData;
+            }
+            _roomSettings.SelectedPropertyGridObject = _loadedRoom;
+            ((RoomSettingsEditor)_roomSettings.Control).SaveRoom += new RoomSettingsEditor.SaveRoomHandler(RoomEditor_SaveRoom);
+            ((RoomSettingsEditor)_roomSettings.Control).AbandonChanges += new RoomSettingsEditor.AbandonChangesHandler(RoomsComponent_AbandonChanges);
         }
 
         private void RoomsComponent_AbandonChanges(Room room)
@@ -1345,7 +1385,7 @@ namespace AGS.Editor.Components
 			ProjectTree treeController = _guiController.ProjectTree;
 			treeController.AddTreeBranch(this, TREE_PREFIX_ROOM_NODE + room.Number, room.Number.ToString() + ": " + room.Description, iconName);
 			treeController.AddTreeLeaf(this, TREE_PREFIX_ROOM_SETTINGS + room.Number, "Edit room", iconName);
-			treeController.AddTreeLeaf(this, TREE_PREFIX_ROOM_SCRIPT + room.Number, "Room script", "ScriptIcon");
+            treeController.AddTreeLeaf(this, TREE_PREFIX_ROOM_SCRIPT + room.Number, "Room script", SCRIPT_ICON);
 		}
 
         private void RePopulateTreeView()

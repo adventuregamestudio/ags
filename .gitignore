@@ -24,3 +24,5 @@ Solutions/Common.Shared.Lib/Release
 Solutions/Engine.App/Release
 Editor/AGS.Native/Release
 Editor/References/AGS.Native.dll
+Solutions/Engine.Shared.Lib/Debug
+Solutions/Engine.Shared.Lib/Release

@@ -23,7 +23,7 @@ extern int spritewidth[], spriteheight[];
 //
 
 //=============================================================================
-// Engine-specific implementations split out of sprcache.cpp
+// Engine-specific implementation split out of sprcache.cpp
 //=============================================================================
 
 void SpriteCache::initFile_adjustBuffers(short numspri)

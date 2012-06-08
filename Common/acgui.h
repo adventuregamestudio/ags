@@ -34,18 +34,8 @@ extern int loaded_game_file_version;
 //#define MAX_OBJ_EACH_TYPE 251
 
 
-
-#ifdef THIS_IS_THE_ENGINE
-extern void wouttext_outline(int, int, int, char *);
-inline void check_font(int *fontnum)
-{
-}
-#else
-
-#define wouttext_outline(a, b, c, d) wouttextxy(a, b, c, d)
-extern GameSetupStruct thisgame;
+extern void wouttext_outline(int xxp, int yyp, int usingfont, char *texx);
 extern void check_font(int *fontnum);
-#endif
 
 template <typename T> struct DynamicArray {
 private:
@@ -194,13 +184,7 @@ struct GUIObject
   void Hide() {
     flags |= GUIF_INVISIBLE;
   }
-  int IsClickable() {
-#ifdef THIS_IS_THE_ENGINE
-    return !(flags & GUIF_NOCLICKS);
-#else  // make sure the button can be selected in the editor
-    return 1;
-#endif
-  }
+  int IsClickable();
   void SetClickable(bool newValue) {
     flags &= ~GUIF_NOCLICKS;
     if (!newValue)
@@ -333,6 +317,10 @@ public:
   GUILabel() {
     reset();
   }
+
+private:
+  void Draw_replace_macro_tokens(char *oritext, char *text);
+  void Draw_split_lines(char *teptr, int wid, int font, int &numlines);
 };
 
 
@@ -377,6 +365,9 @@ struct GUITextBox:public GUIObject
   GUITextBox() {
     reset();
   }
+
+private:
+  void Draw_text_box_contents();
 };
 
 
@@ -462,6 +453,12 @@ struct GUIListBox:public GUIObject
   GUIListBox() {
     reset();
   }
+
+private:
+  int numItemsTemp;
+
+  void Draw_items_fix();
+  void Draw_items_unfix();
 };
 
 
@@ -638,6 +635,9 @@ struct GUIButton:public GUIObject
   GUIButton() {
     reset();
   }
+
+private:
+  void Draw_set_oritext(char *oritext, const char *text);
 };
 
 

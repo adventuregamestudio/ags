@@ -22,16 +22,10 @@
 
 #undef CROOM_NOFUNCTIONS
 
-#ifdef THIS_IS_THE_ENGINE
-#define get_adjusted_spritewidth(x) wgetblockwidth(spriteset[x])
-#define get_adjusted_spriteheight(x) wgetblockheight(spriteset[x])
-#define is_sprite_alpha(x) ((game.spriteflags[x] & SPF_ALPHACHANNEL) != 0)
-#else
 extern int get_adjusted_spritewidth(int spr);
 extern int get_adjusted_spriteheight(int spr);
-#define final_col_dep 32
-#define is_sprite_alpha(x) false
-#endif
+extern bool is_sprite_alpha(int spr);
+extern int final_col_dep;
 
 int guis_need_update = 1;
 int all_buttons_disabled = 0, gui_inv_pic = -1;
@@ -47,23 +41,12 @@ extern inline int get_fixed_pixel_size(int pixels);
 char lines[MAXLINE][200];
 int  numlines;
 
-#ifdef THIS_IS_THE_ENGINE
-
-extern void ensure_text_valid_for_font(char *, int);
-extern void replace_macro_tokens(char*,char*);
-extern void break_up_text_into_lines(int wii,int fonnt,char*todis);
-extern int eip_guinum, eip_guiobj;
-#define SET_EIP(x) our_eip=x;
-#define OUTLINE_ALL_OBJECTS 0
-
-#else  // this is the editor
-
+extern void set_our_eip(int eip);
+#define SET_EIP(x) set_our_eip(x);
+extern void set_eip_guiobj(int eip);
+extern int get_eip_guiobj();
 extern bool outlineGuiObjects;
-#define SET_EIP(x)
-#define OUTLINE_ALL_OBJECTS outlineGuiObjects
-#define wgettextwidth_compensate wgettextwidth
-
-#endif
+extern int wgettextwidth_compensate_shared(const char *tex, int font);
 
 void GUIObject::init() {
   int jj;
@@ -356,29 +339,15 @@ void GUILabel::Draw()
   char oritext[MAX_GUILABEL_TEXT_LEN], *teptr;
 
   check_font(&font);
-#ifdef THIS_IS_THE_ENGINE
-  replace_macro_tokens(get_translation(text), oritext);
-  ensure_text_valid_for_font(oritext, font);
-#else
-  strcpy(oritext, text);
-#endif
+
+  Draw_replace_macro_tokens(oritext, text);
+
   teptr = &oritext[0];
   TEXT_HT = wgettextheight("ZhypjIHQFb", font) + 1;
 
   wtextcolor(textcol);
 
-#ifdef THIS_IS_THE_ENGINE
-  // Use the engine's word wrap tool, to have hebrew-style writing
-  // and other features
-
-  break_up_text_into_lines (wid, font, teptr);
-
-#else
-
-  numlines=0;
-  split_lines_leftright(teptr, wid, font);
-
-#endif // CUSTOM_WORDWRAP
+  Draw_split_lines(teptr, wid, font, numlines);
 
   for (int aa = 0; aa < numlines; aa++) {
     printtext_align(cyp, lines[aa]);
@@ -419,21 +388,7 @@ void GUITextBox::Draw()
       wrectangle(x + 1, y + 1, x + wid - get_fixed_pixel_size(1), y + hit - get_fixed_pixel_size(1));
   }
 
-#ifdef THIS_IS_THE_ENGINE
-  int startx, starty;
-
-  wouttext_outline(x + 1 + get_fixed_pixel_size(1), y + 1 + get_fixed_pixel_size(1), font, text);
-  
-  if (!IsDisabled()) {
-    // draw a cursor
-    startx = wgettextwidth(text, font) + x + 3;
-    starty = y + 1 + wgettextheight("BigyjTEXT", font);
-    wrectangle(startx, starty, startx + get_fixed_pixel_size(5), starty + (get_fixed_pixel_size(1) - 1));
-  }
-#else
-  // print something fake so we can see what it looks like
-  wouttext_outline(x + 2, y + 2, font, "Text Box Contents");
-#endif
+  Draw_text_box_contents();
 }
 
 void GUITextBox::KeyPress(int kp)
@@ -664,11 +619,7 @@ void GUIListBox::Draw()
     rightHandEdge -= get_fixed_pixel_size(7);
   }
 
-#ifndef THIS_IS_THE_ENGINE
-#define numItems 2
-  items[0] = "Sample selected";
-  items[1] = "Sample item";
-#endif
+  Draw_items_fix();
 
   for (int a = 0; a < num_items_fit; a++) {
     int thisyp;
@@ -707,9 +658,8 @@ void GUIListBox::Draw()
   }
   wid++;
   hit++;
-#ifndef THIS_IS_THE_ENGINE
-#undef numItems
-#endif
+
+  Draw_items_unfix();
 }
 
 int GUIListBox::IsInRightMargin(int xx) {
@@ -902,14 +852,8 @@ void GUIButton::Draw()
   else if (text[0] != 0) {
     int usex = x, usey = y;
 
-#ifdef THIS_IS_THE_ENGINE
-    // Allow it to change the string to unicode if it's TTF
-    char oritext[200];
-    strcpy(oritext, get_translation(text));
-    ensure_text_valid_for_font(oritext, font);
-#else
-    char *oritext = text;
-#endif
+    char oritext[200]; // text[] can be not longer than 50 characters due declaration
+    Draw_set_oritext(oritext, text);
 
     if ((ispushed) && (isover)) {
       // move the text a bit while pushed
@@ -1220,9 +1164,7 @@ void GUIMain::draw_at(int xx, int yy)
 
   for (aa = 0; aa < numobjs; aa++) {
     
-#ifdef THIS_IS_THE_ENGINE
-    eip_guiobj = drawOrder[aa];
-#endif
+    set_eip_guiobj(drawOrder[aa]);
 
     GUIObject *objToDraw = objs[drawOrder[aa]];
 
@@ -1236,7 +1178,7 @@ void GUIMain::draw_at(int xx, int yy)
     int selectedColour = 14;
 
     if (highlightobj == drawOrder[aa]) {
-      if (OUTLINE_ALL_OBJECTS)
+      if (outlineGuiObjects)
         selectedColour = 13;
       wsetcolor(selectedColour);
       draw_blob(objToDraw->x + objToDraw->wid - get_fixed_pixel_size(1) - 1, objToDraw->y);
@@ -1245,7 +1187,7 @@ void GUIMain::draw_at(int xx, int yy)
       draw_blob(objToDraw->x + objToDraw->wid - get_fixed_pixel_size(1) - 1, 
                 objToDraw->y + objToDraw->hit - get_fixed_pixel_size(1) - 1);
     }
-    if (OUTLINE_ALL_OBJECTS) {
+    if (outlineGuiObjects) {
       int oo;  // draw a dotted outline round all objects
       wsetcolor(selectedColour);
       for (oo = 0; oo < objToDraw->wid; oo+=2) {
@@ -1616,7 +1558,3 @@ void write_gui(FILE * ooo, GUIMain * guiwrite, GameSetupStruct * gss)
     guilist[ee].WriteToFile(ooo);
 }
 
-#ifdef THIS_IS_THE_ENGINE
-#undef get_adjusted_spritewidth
-#undef get_adjusted_spriteheight
-#endif

@@ -24,10 +24,6 @@
 #include "alfont.h"
 #endif
 
-#ifdef THIS_IS_THE_ENGINE
-#define fopen clibfopen
-#endif
-
 #if defined(LINUX_VERSION) || defined(MAC_VERSION)
 #include <sys/stat.h>
 #define _fileno fileno
@@ -39,6 +35,9 @@ off_t _filelength(int fd) {
 #endif
 
 typedef unsigned char* wgtfont;
+
+extern FILE *fopen_shared(char *, char *);
+extern int flength_shared(FILE *ffi);
 
 extern "C"
 {
@@ -94,16 +93,6 @@ ALFONT_FONT *get_ttf_block(wgtfont fontptr)
 }
 #endif // USE_ALFONT
 
-#ifndef THIS_IS_THE_ENGINE
-extern GameSetupStruct thisgame;
-void check_font(int *fontnum)
-{
-  // Stop roomedit crashing if they specify an invalid font number
-  if (fontnum[0] >= thisgame.numfonts)
-    fontnum[0] = 0;
-}
-#endif
-
 void init_font_renderer()
 {
 #ifdef USE_ALFONT
@@ -116,12 +105,13 @@ void init_font_renderer()
   wtexttransparent(TEXTFG);
 }
 
+extern void set_our_eip(int eip);
+extern int  get_our_eip();
+
 void shutdown_font_renderer()
 {
 #ifdef USE_ALFONT
-#ifdef THIS_IS_THE_ENGINE
-  our_eip = 9919;
-#endif
+  set_our_eip(9919);
   alfont_exit();
 #endif
 }
@@ -314,17 +304,13 @@ void WFNFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
 {
   unsigned int ee;
 
-#ifdef THIS_IS_THE_ENGINE
-  int oldeip = our_eip;
-  our_eip = 415;
-#endif
+  int oldeip = get_our_eip();
+  set_our_eip(415);
 
   for (ee = 0; ee < strlen(text); ee++)
     x += printchar(x, y, fonts[fontNumber], text[ee]);
 
-#ifdef THIS_IS_THE_ENGINE
-  our_eip = oldeip;
-#endif
+  set_our_eip(oldeip);
 }
 
 int WFNFontRenderer::printchar(int xxx, int yyy, wgtfont foo, int charr)
@@ -386,12 +372,12 @@ bool WFNFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
   long lenof;
 
   sprintf(filnm, "agsfnt%d.wfn", fontNumber);
-  ffi = fopen(filnm, "rb");
+  ffi = fopen_shared(filnm, "rb");
   if (ffi == NULL)
   {
     // actual font not found, try font 0 instead
     strcpy(filnm, "agsfnt0.wfn");
-    ffi = fopen(filnm, "rb");
+    ffi = fopen_shared(filnm, "rb");
     if (ffi == NULL)
       return false;
   }
@@ -403,18 +389,12 @@ bool WFNFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
     return false;
   }
 
-#ifdef THIS_IS_THE_ENGINE
-  // clibfopen will have set last_opened_size
-  lenof = last_opened_size;
-#else
-  // in the editor, we don't read from clib, only from disk
-  lenof = filelength(fileno(ffi));
-#endif
+  lenof = flength_shared(ffi);
 
   wgtfont tempalloc = (wgtfont) malloc(lenof + 40);
   fclose(ffi);
 
-  ffi = fopen(filnm, "rb");
+  ffi = fopen_shared(filnm, "rb");
   fread(tempalloc, lenof, 1, ffi);
   fclose(ffi);
 

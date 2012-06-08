@@ -19,7 +19,7 @@
 //
 
 //=============================================================================
-// Symbols, originally defined in sprcache.cpp for AGS.Native
+// AGS.Native-specific implementation split out of sprcache.cpp
 //=============================================================================
 
 void get_new_size_for_sprite(int ee, int ww, int hh, int &newwid, int &newhit) {
@@ -27,12 +27,6 @@ void get_new_size_for_sprite(int ee, int ww, int hh, int &newwid, int &newhit) {
   newhit = hh;
 }
 int spritewidth[MAX_SPRITES + 5], spriteheight[MAX_SPRITES + 5];
-//
-
-
-//=============================================================================
-// AGS.Native-specific implementations split out of sprcache.cpp
-//=============================================================================
 
 void SpriteCache::initFile_adjustBuffers(short numspri)
 {

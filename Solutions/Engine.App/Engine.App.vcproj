@@ -62,7 +62,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Common.Shared.Lib_d.lib odbc32.lib odbccp32.lib libcpmt.lib d3d9.lib quartz.lib strmiids.lib winmm.lib shlwapi.lib amstrmid.lib opengl32.lib"
+				AdditionalDependencies="Common.Shared.Lib_d.lib Engine.Shared.Lib_d.lib odbc32.lib odbccp32.lib libcpmt.lib d3d9.lib quartz.lib strmiids.lib winmm.lib shlwapi.lib amstrmid.lib opengl32.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="$(SolutionDir)\.lib\$(ConfigurationName)"
 				IgnoreDefaultLibraryNames="LIBC;LIBCD;msvcrt;LIBCMT.lib"
@@ -139,7 +139,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Common.Shared.Lib.lib odbc32.lib odbccp32.lib libcmt.lib libcpmt.lib d3d9.lib quartz.lib strmiids.lib winmm.lib shlwapi.lib amstrmid.lib opengl32.lib"
+				AdditionalDependencies="Common.Shared.Lib.lib Engine.Shared.Lib.lib odbc32.lib odbccp32.lib libcmt.lib libcpmt.lib d3d9.lib quartz.lib strmiids.lib winmm.lib shlwapi.lib amstrmid.lib opengl32.lib"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="$(SolutionDir)\.lib\$(ConfigurationName)"
 				IgnoreDefaultLibraryNames="LIBC,LIBCD,msvcrt"
@@ -204,7 +204,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\Engine\acfonts.cpp"
+				RelativePath="..\..\Engine\acfonts_engine.cpp"
 				>
 			</File>
 			<File
@@ -212,7 +212,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\Engine\acgui.cpp"
+				RelativePath="..\..\Engine\acgui_engine.cpp"
 				>
 			</File>
 			<File

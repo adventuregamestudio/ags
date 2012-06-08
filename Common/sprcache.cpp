@@ -810,18 +810,7 @@ bool SpriteCache::loadSpriteIndexFile(int expectedFileID, long spr_initial_offs,
       get_new_size_for_sprite(vv, rspritewidths[vv], rspriteheights[vv], spritewidth[vv], spriteheight[vv]);
     }
     else if (vv > 0) {
-#ifdef THIS_IS_THE_ENGINE
-      // no sprite ... convert it to the blue cup
-      spritewidth[vv] = spritewidth[0];
-      spriteheight[vv] = spriteheight[0];
-      offsets[vv] = offsets[0];
-      flags[vv] = SPRCACHEFLAG_DOESNOTEXIST;
-#else
-      // no sprite ... blank it out
-      spritewidth[vv] = 0;
-      spriteheight[vv] = 0;
-      offsets[vv] = 0;
-#endif
+      initFile_initNullSpriteParams(vv);
     }
   }
 

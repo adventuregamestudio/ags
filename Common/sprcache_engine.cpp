@@ -3,6 +3,12 @@
 //
 
 // Headers, as they are in sprcache.cpp
+#ifdef _MANAGED
+// ensure this doesn't get compiled to .NET IL
+#pragma unmanaged
+#pragma warning (disable: 4996 4312)  // disable deprecation warnings
+#endif
+
 #define WGT2ALLEGRO_NOFUNCTIONS
 #define CROOM_NOFUNCTIONS
 #include "wgt2allg.h"
@@ -12,7 +18,7 @@
 #include "bigend.h"
 //
 
-// For engine these are originally defined in ac.cpp
+// For engine these are defined in ac.cpp
 extern int spritewidth[], spriteheight[];
 //
 

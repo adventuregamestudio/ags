@@ -39,6 +39,9 @@ by both runtimes, this approach can no longer be valid.
 Suggestion is to split out the project-dependent implementation into separate
 source files, while keeping declarations in the shared modules.
 
+Clearly, this will break encapsulation rule, but may be fixed later when more
+serious changes to module structure and user types will take place.
+
 For example, consider following code from 'sprcache.cpp':
 
 //---------------------------------------------------------

@@ -153,7 +153,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="2"
-				AdditionalIncludeDirectories="..\..;..\..\common;..\scintilla\include;..\..\AlFont\freetype\include"
+				AdditionalIncludeDirectories="..\..;..\..\common;..\..\common\libinclude;..\scintilla\include;..\..\Windows\include"
 				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG;_USRDLL;ALLEGRO_STATICLINK;_MERGE_PROXYSTUB;STATIC_BUILD;SCI_LEXER;VS2005;USE_ALFONT;_BIND_TO_CURRENT_VCLIBS_VERSION=1;ALLEGRO_NO_ASM"
 				RuntimeLibrary="2"
 				StructMemberAlignment="3"
@@ -178,7 +178,7 @@
 				Name="VCLinkerTool"
 				RegisterOutput="false"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="winmm.lib imm32.lib ddraw.lib dsound.lib dinput.lib dxguid.lib ..\..\NativeLibs\alleg_s.lib ..\..\NativeLibs\alfont_md.lib"
+				AdditionalDependencies="winmm.lib imm32.lib ddraw.lib dsound.lib dinput.lib dxguid.lib"
 				LinkIncremental="1"
 				ModuleDefinitionFile=""
 				GenerateDebugInformation="false"

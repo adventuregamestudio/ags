@@ -62,6 +62,9 @@ public:
 private:
   void compressSprite(block sprite, FILE *ooo);
   bool loadSpriteIndexFile(int expectedFileID, long spr_initial_offs, short numspri);
+
+  void initFile_adjustBuffers(short numspri);
+  void initFile_initNullSpriteParams(int vv);
 };
 
 #endif // __SPRCACHE_H

@@ -34,16 +34,8 @@ extern void initialize_sprite(int);
 extern void pre_save_sprite(int);
 extern void quit(char *);
 
-#ifdef THIS_IS_THE_ENGINE
 extern void get_new_size_for_sprite(int, int, int, int &, int &);
 extern int spritewidth[], spriteheight[];
-#else
-void get_new_size_for_sprite(int ee, int ww, int hh, int &newwid, int &newhit) {
-  newwid = ww;
-  newhit = hh;
-}
-int spritewidth[MAX_SPRITES + 5], spriteheight[MAX_SPRITES + 5];
-#endif
 
 #define SPRITE_LOCKED -1
 #define START_OF_LIST -1
@@ -695,10 +687,7 @@ int SpriteCache::initFile(const char *filnam)
   if (vers < 4)
     numspri = 200;
 
-#ifdef THIS_IS_THE_ENGINE
-  // adjust the buffers to the sprite file size
-  changeMaxSize(numspri + 1);
-#endif
+  initFile_adjustBuffers(numspri);
 
   // if there is a sprite index file, use it
   if (loadSpriteIndexFile(spriteFileID, spr_initial_offs, numspri))
@@ -723,18 +712,7 @@ int SpriteCache::initFile(const char *filnam)
       offsets[vv] = 0;
       images[vv] = NULL;
 
-#ifdef THIS_IS_THE_ENGINE
-      // make it a blue cup, to avoid crashes
-      spritewidth[vv] = spritewidth[0];
-      spriteheight[vv] = spriteheight[0];
-      offsets[vv] = offsets[0];
-      flags[vv] = SPRCACHEFLAG_DOESNOTEXIST;
-#else
-      // no sprite ... blank it out
-      spritewidth[vv] = 0;
-      spriteheight[vv] = 0;
-      offsets[vv] = 0;
-#endif
+      initFile_initNullSpriteParams(vv);
 
       if (feof(ff))
         break;

@@ -68,7 +68,9 @@ what project it is compiled in.
 How we can deal with this?
 
 1. Declare a new function in SpriteCache class:
-    int initFile_initSpriteParams(int vv);
+//---------------------------------------------------------
+    void initFile_initSpriteParams(int vv);
+//---------------------------------------------------------
     
 2. Use that function in the aforementioned problem place:
 //---------------------------------------------------------
@@ -86,7 +88,7 @@ int SpriteCache::initFile(const char *filnam)
 
 'sprcache_engine.cpp' (an engine-specific file in the Engine.Specific.Lib):
 //---------------------------------------------------------
-int SpriteCache::initFile_initSpriteParams(int vv)
+void SpriteCache::initFile_initSpriteParams(int vv)
 {
     // make it a blue cup, to avoid crashes
     spritewidth[vv] = spritewidth[0];
@@ -97,7 +99,7 @@ int SpriteCache::initFile_initSpriteParams(int vv)
 //---------------------------------------------------------
 'sprcache_agsnative.cpp' (an AGS.Native-specific file in the Native.Specific.Lib):
 //---------------------------------------------------------
-int SpriteCache::initFile_initSpriteParams(int vv)
+void SpriteCache::initFile_initSpriteParams(int vv)
 {
     // no sprite ... blank it out
     spritewidth[vv] = 0;

@@ -18,3 +18,7 @@ Solutions/.build/
 Solutions/.lib/
 Solutions/Common.Lib/Debug/
 Solutions/Engine.App/Debug/
+
+Solutions/Common.Shared.Lib/Debug
+Solutions/Common.Shared.Lib/Release
+Solutions/Engine.App/Release

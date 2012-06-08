@@ -42,10 +42,10 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="&quot;$(SolutionDir)\..\Common&quot;;&quot;$(SolutionDir)\..\Common\libinclude&quot;;&quot;$(SolutionDir)\..\Engine&quot;;&quot;$(SolutionDir)\..\Windows\include&quot;"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;VS2005;_CRT_SECURE_NO_DEPRECATE;ALLEGRO_STATICLINK;THIS_IS_THE_ENGINE;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;BUILTIN_PLUGINS"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;VS2005;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;THIS_IS_THE_ENGINE;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;BUILTIN_PLUGINS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
+				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="4"
@@ -62,7 +62,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Common.Lib_d.lib"
+				AdditionalDependencies="Common.Shared.Lib_d.lib odbc32.lib odbccp32.lib libcpmt.lib d3d9.lib quartz.lib strmiids.lib winmm.lib shlwapi.lib amstrmid.lib opengl32.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="$(SolutionDir)\.lib\$(ConfigurationName)"
 				IgnoreDefaultLibraryNames="LIBC;LIBCD;msvcrt;LIBCMT.lib"
@@ -120,8 +120,8 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="&quot;$(SolutionDir)\..\Common&quot;;&quot;$(SolutionDir)\..\Common\libinclude&quot;;&quot;$(SolutionDir)\..\Engine&quot;;&quot;$(SolutionDir)\..\Windows\include&quot;"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;VS2005;ALLEGRO_STATICLINK;THIS_IS_THE_ENGINE;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;BUILTIN_PLUGINS"
-				RuntimeLibrary="2"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;VS2005;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;THIS_IS_THE_ENGINE;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;ALLEGRO_NO_ASM;BUILTIN_PLUGINS"
+				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -139,14 +139,17 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Common.Lib.lib"
+				AdditionalDependencies="Common.Shared.Lib.lib odbc32.lib odbccp32.lib libcmt.lib libcpmt.lib d3d9.lib quartz.lib strmiids.lib winmm.lib shlwapi.lib amstrmid.lib opengl32.lib"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="$(SolutionDir)\.lib\$(ConfigurationName)"
 				IgnoreDefaultLibraryNames="LIBC,LIBCD,msvcrt"
 				GenerateDebugInformation="true"
+				GenerateMapFile="true"
 				SubSystem="2"
 				OptimizeReferences="2"
-				EnableCOMDATFolding="2"
+				EnableCOMDATFolding="0"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -249,11 +252,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\Engine\bigend.cpp"
+				RelativePath="..\..\Engine\misc.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\Engine\misc.cpp"
+				RelativePath="..\..\Common\mousew32.cpp"
 				>
 			</File>
 			<File
@@ -262,6 +265,10 @@
 			</File>
 			<File
 				RelativePath="..\..\Engine\scrptrt.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Common\sprcache_engine.cpp"
 				>
 			</File>
 		</Filter>

@@ -81,7 +81,7 @@
 				Name="VCLinkerTool"
 				RegisterOutput="false"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="Common.Shared.Lib_d.lib Engine.Shared.Lib_d.lib winmm.lib imm32.lib ddraw.lib dsound.lib dinput.lib dxguid.lib"
+				AdditionalDependencies="Common.Shared.Lib_d.lib Engine.Shared.Lib_d.lib Compiler.Lib_d.lib winmm.lib imm32.lib ddraw.lib dsound.lib dinput.lib dxguid.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="&quot;$(SolutionDir)\..\Solutions\.lib\$(ConfigurationName)&quot;"
 				IgnoreDefaultLibraryNames="LIBCMTD.lib"
@@ -180,7 +180,7 @@
 				Name="VCLinkerTool"
 				RegisterOutput="false"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="Common.Shared.Lib.lib Engine.Shared.Lib.lib winmm.lib imm32.lib ddraw.lib dsound.lib dinput.lib dxguid.lib"
+				AdditionalDependencies="Common.Shared.Lib.lib Engine.Shared.Lib.lib Compiler.Lib.lib winmm.lib imm32.lib ddraw.lib dsound.lib dinput.lib dxguid.lib"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="&quot;$(SolutionDir)\..\Solutions\.lib\$(ConfigurationName)&quot;"
 				IgnoreDefaultLibraryNames="LIBCMT.lib"
@@ -251,15 +251,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\common\CSPARSER.CPP"
-				>
-			</File>
-			<File
 				RelativePath=".\cstretch.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\common\FMEM.CPP"
 				>
 			</File>
 			<File

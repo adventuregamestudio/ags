@@ -17,6 +17,7 @@ Initially proposed list of libs and their meaning:
 2. Engine.Shared.Lib:   a code from Engine folder shared between Engine and AGS.Native;
 3. Engine.Specific.Lib: a code from Common and Engine folders strictly specific to Engine runtime;
 4. Native.Specific.Lib: a code from Common and Engine folders strictly specific to AGS.Native library;
+5. Compiler.Lib:        script compiler functionality (currently only used by AGS.Native).
 
 Library names may change in future. For start they are defined so to better
 reflect not only their functionality, but also the origins of their source.

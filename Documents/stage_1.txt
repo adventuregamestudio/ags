@@ -29,8 +29,7 @@ they can be successfuly built and used as intended without problems.
 
 There is a number of source and header files both in Common and Engine folder
 that contain sections of code specific to either Engine runtime or AGS.Native.
-Their selection is controlled by such macros as, for example, THIS_IS_THE_ENGINE
-and CROOM_NOFUNCTIONS.
+Their selection is controlled by THIS_IS_THE_ENGINE macro.
 
 In the original projects these files were directly included to both the Engine
 and the AGS.Native lib. Since, however, we are to make static libraries shared
@@ -119,5 +118,15 @@ all nicely separated.
 
 In the end, we should achieve such code composition that won't need usage of macros
 to control compilation of project-specific code.
+
+//-----------------------------------------------------------------------------
+// A NOTE on acroom.h
+//
+// acroom.h has one section with THIS_IS_THE_ENGINE, but this is a header,
+// which is included to both runtime at ac.cpp, and editor at agsnative.cpp;
+// plus the mentioned code is disabled when included in any other modules.
+// These facts make me think there should be some other way to deal with it
+// on later stages of refactoring.
+//-----------------------------------------------------------------------------
 
 //=============================================================================

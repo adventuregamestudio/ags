@@ -16,6 +16,31 @@
 #ifndef __CROOM_H
 #define __CROOM_H
 
+//=============================================================================
+// [IKM] 2012-06-08: a quick way to know if acroom.h included in a module
+// with all the function definitions; usage: put following line at the
+// very start of *.cpp file in question:
+// #define TEST__CROOM_NOFUNCTIONS
+//
+#if defined TEST__CROOM_NOFUNCTIONS
+  #ifdef CROOM_NOFUNCTIONS
+    #error CROOM_NOFUNCTIONS IS defined!
+  #else
+    #error CROOM_NOFUNCTIONS NOT defined!
+  #endif
+#endif
+// Same for NO_SAVE_FUNCTIONS
+#if defined TEST__CROOM_NOSAVEFUNCTIONS
+  #ifdef NO_SAVE_FUNCTIONS
+    #error NO_SAVE_FUNCTIONS IS defined!
+  #else
+    #error NO_SAVE_FUNCTIONS NOT defined!
+  #endif
+#endif
+//=============================================================================
+
+
+
 #ifndef CROOM_NOFUNCTIONS
 extern FILE *clibfopen(char *, char *);
 #include "compress.h"

@@ -30,7 +30,7 @@ extern "C"
 //
 
 //=============================================================================
-// Engine-specific implementations split out of acfonts.cpp
+// Engine-specific implementation split out of acfonts.cpp
 //=============================================================================
 
 void set_our_eip(int eip)

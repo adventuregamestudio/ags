@@ -69,11 +69,6 @@ int get_eip_guiobj()
 
 bool outlineGuiObjects = false;
 
-int wgettextwidth_compensate_shared(const char *tex, int font)
-{
-  return wgettextwidth_compensate(tex, font);
-}
-
 void GUILabel::Draw_replace_macro_tokens(char *oritext, char *text)
 {
   replace_macro_tokens(get_translation(text), oritext);

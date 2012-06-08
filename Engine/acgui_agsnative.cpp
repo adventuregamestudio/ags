@@ -52,7 +52,7 @@ int get_eip_guiobj()
   return 0;
 }
 
-int wgettextwidth_compensate_shared(const char *tex, int font)
+int wgettextwidth_compensate(const char *tex, int font)
 {
   return wgettextwidth(tex, font);
 }
@@ -80,6 +80,12 @@ void GUIListBox::Draw_items_fix()
   numItems = 2;
   items[0] = "Sample selected";
   items[1] = "Sample item";
+  //
+  // [IKM] 2012-06-08: a-a-a-and just to test this thing is working....
+  numItems = 3;
+  items[2] = "This item means HACK!! >:]";
+  // ^_^
+  //
 }
 
 void GUIListBox::Draw_items_unfix()

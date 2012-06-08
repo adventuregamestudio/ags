@@ -19,7 +19,7 @@
 #endif
 
 //=============================================================================
-// Symbols, originally defined in acfonts.cpp for AGS.Native
+// AGS.Native-specific implementation split out of acfonts.cpp
 //=============================================================================
 
 extern GameSetupStruct thisgame;
@@ -29,10 +29,6 @@ void check_font(int *fontnum)
   if (fontnum[0] >= thisgame.numfonts)
     fontnum[0] = 0;
 }
-
-//=============================================================================
-// AGS.Native-specific implementations split out of acfonts.cpp
-//=============================================================================
 
 void set_our_eip(int eip)
 {

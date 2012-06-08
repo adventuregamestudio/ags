@@ -81,7 +81,7 @@
 				Name="VCLinkerTool"
 				RegisterOutput="false"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="Common.Shared.Lib_d.lib winmm.lib imm32.lib ddraw.lib dsound.lib dinput.lib dxguid.lib"
+				AdditionalDependencies="Common.Shared.Lib_d.lib Engine.Shared.Lib_d.lib winmm.lib imm32.lib ddraw.lib dsound.lib dinput.lib dxguid.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="&quot;$(SolutionDir)\..\Solutions\.lib\$(ConfigurationName)&quot;"
 				IgnoreDefaultLibraryNames="LIBCMTD.lib"
@@ -180,7 +180,7 @@
 				Name="VCLinkerTool"
 				RegisterOutput="false"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="Common.Shared.Lib.lib winmm.lib imm32.lib ddraw.lib dsound.lib dinput.lib dxguid.lib"
+				AdditionalDependencies="Common.Shared.Lib.lib Engine.Shared.Lib.lib winmm.lib imm32.lib ddraw.lib dsound.lib dinput.lib dxguid.lib"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="&quot;$(SolutionDir)\..\Solutions\.lib\$(ConfigurationName)&quot;"
 				IgnoreDefaultLibraryNames="LIBCMT.lib"
@@ -235,11 +235,11 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\..\Engine\acfonts.cpp"
+				RelativePath="..\..\Engine\acfonts_agsnative.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\Engine\acgui.cpp"
+				RelativePath="..\..\Engine\acgui_agsnative.cpp"
 				>
 			</File>
 			<File

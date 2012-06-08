@@ -46,7 +46,7 @@ extern void set_our_eip(int eip);
 extern void set_eip_guiobj(int eip);
 extern int get_eip_guiobj();
 extern bool outlineGuiObjects;
-extern int wgettextwidth_compensate_shared(const char *tex, int font);
+extern int wgettextwidth_compensate(const char *tex, int font);
 
 void GUIObject::init() {
   int jj;

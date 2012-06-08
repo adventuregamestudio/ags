@@ -85,3 +85,12 @@ Engine Shared:
  engine/acfonts.cpp
  engine/acgui.cpp
 
+
+
+
+
+==================================
+ISSUES
+==================================
+
+acfonts.obj : warning LNK4248: unresolved typeref token (01000013) for 'ALFONT_FONT'; image may not run

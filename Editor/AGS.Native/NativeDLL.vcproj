@@ -81,8 +81,10 @@
 				Name="VCLinkerTool"
 				RegisterOutput="false"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="winmm.lib imm32.lib ddraw.lib dsound.lib dinput.lib dxguid.lib"
+				AdditionalDependencies="Common.Shared.Lib_d.lib winmm.lib imm32.lib ddraw.lib dsound.lib dinput.lib dxguid.lib"
 				LinkIncremental="2"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)\..\Solutions\.lib\$(ConfigurationName)&quot;"
+				IgnoreDefaultLibraryNames="LIBCMTD.lib"
 				ModuleDefinitionFile=""
 				GenerateDebugInformation="true"
 				AssemblyDebug="1"
@@ -178,8 +180,9 @@
 				Name="VCLinkerTool"
 				RegisterOutput="false"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="winmm.lib imm32.lib ddraw.lib dsound.lib dinput.lib dxguid.lib ..\..\NativeLibs\alleg_s.lib ..\..\NativeLibs\alfont_md.lib"
+				AdditionalDependencies="Common.Shared.Lib.lib winmm.lib imm32.lib ddraw.lib dsound.lib dinput.lib dxguid.lib ..\..\NativeLibs\alleg_s.lib ..\..\NativeLibs\alfont_md.lib"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)\..\Solutions\.lib\$(ConfigurationName)&quot;"
 				ModuleDefinitionFile=""
 				GenerateDebugInformation="false"
 				SubSystem="2"
@@ -247,23 +250,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\common\Clib32.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\common\compress.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\common\cscommon.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\common\CSPARSER.CPP"
-				>
-			</File>
-			<File
-				RelativePath="..\..\common\CSRUN.CPP"
 				>
 			</File>
 			<File
@@ -272,10 +259,6 @@
 			</File>
 			<File
 				RelativePath="..\..\common\FMEM.CPP"
-				>
-			</File>
-			<File
-				RelativePath="..\..\common\lzw.cpp"
 				>
 			</File>
 			<File
@@ -291,7 +274,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\Common\sprcache.cpp"
+				RelativePath="..\..\Common\sprcache_agsnative.cpp"
 				>
 			</File>
 		</Filter>
@@ -300,10 +283,6 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
-			<File
-				RelativePath="..\..\acroom.h"
-				>
-			</File>
 			<File
 				RelativePath=".\NativeMethods.h"
 				>

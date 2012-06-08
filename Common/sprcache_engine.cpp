@@ -17,7 +17,7 @@ extern int spritewidth[], spriteheight[];
 //
 
 //=============================================================================
-// AGS.Native-specific implementations split out of sprcache.cpp
+// Engine-specific implementations split out of sprcache.cpp
 //=============================================================================
 
 void SpriteCache::initFile_adjustBuffers(short numspri)

@@ -8,6 +8,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Engine.App", "Engine.App\En
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Common.Shared.Lib", "Common.Shared.Lib\Common.Shared.Lib.vcproj", "{D4368C0D-BCC4-46C9-8D94-0D98D2D7F5F1}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documents", "Documents", "{EA5D64A5-66DF-414C-A68A-706CBCD0D5D8}"
+	ProjectSection(SolutionItems) = preProject
+		..\Documents\libstruct.txt = ..\Documents\libstruct.txt
+		..\Documents\original_plans.txt = ..\Documents\original_plans.txt
+		..\Documents\stage_1.txt = ..\Documents\stage_1.txt
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32

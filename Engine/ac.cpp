@@ -93,7 +93,6 @@ int psp_is_old_datafile = 0; // Set for 3.1.1 and 3.1.2 datafiles
 #define ACI_VERSION_TEXT "3.21.1115"SPECIAL_VERSION
 // this needs to be updated if the "play" struct changes
 #define LOWEST_SGVER_COMPAT "3.20.1103"SPECIAL_VERSION
-//#define THIS_IS_THE_ENGINE   now defined in the VC Project so that it's defined in all files
 
 #define UNICODE
 #include <stdio.h>

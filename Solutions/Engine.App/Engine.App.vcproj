@@ -282,7 +282,51 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\Common\acgfx.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Common\acgui.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Common\acplatfm.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Common\acroom.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Common\acruntim.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Common\acsound.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Common\agsplugin.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\Engine\ali3d.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Common\bigend.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Common\compress.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Common\cscomp.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Common\misc.h"
 				>
 			</File>
 			<File
@@ -290,7 +334,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\Common\sprcache.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\Engine\VMR9Graph.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Common\wgt2allg.h"
 				>
 			</File>
 		</Filter>

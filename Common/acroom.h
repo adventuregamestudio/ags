@@ -47,6 +47,10 @@
 #error CROOM_NOFUNCTIONS macro is obsolete and should not be defined anymore.
 #endif
 
+#if defined NO_SAVE_FUNCTIONS
+#error NO_SAVE_FUNCTIONS macro is obsolete and should not be defined anymore.
+#endif
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>

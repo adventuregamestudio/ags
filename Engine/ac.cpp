@@ -213,7 +213,6 @@ void draw_sprite_compensate(int,int,int,int);
 
 char *get_translation(const char*);
 int   source_text_length = -1;
-#define NO_SAVE_FUNCTIONS
 #define LOADROOM_DO_POLL
 #include "acroom_func.h"
 #include "cscomp.h"

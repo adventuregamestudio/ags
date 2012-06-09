@@ -162,6 +162,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\Common\acroom.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\Common\Clib32.cpp"
 				>
 			</File>
@@ -200,7 +204,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\Common\acroom_func.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\Common\acroom_nofunc.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Common\acroom_savefunc.h"
 				>
 			</File>
 			<File

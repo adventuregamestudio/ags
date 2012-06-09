@@ -26,6 +26,7 @@ int mousex, mousey;
 #include "wgt2allg.h"
 #include "sprcache.h"
 #include "acroom_func.h"
+#include "acroom_savefunc.h"
 #include "acgui.h"
 
 extern void Cstretch_blit(BITMAP *src, BITMAP *dst, int sx, int sy, int sw, int sh, int dx, int dy, int dw, int dh);

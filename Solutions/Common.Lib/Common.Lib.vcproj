@@ -200,6 +200,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\Common\acroom_nofunc.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\Common\bigend.h"
 				>
 			</File>

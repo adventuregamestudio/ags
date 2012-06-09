@@ -23,3 +23,16 @@ acroom part into *.cpp.
 into *.cpp. Split any Engine/AGS.Native specific code left.
 4. Proceed further to separate declarations and implementation in both parts
 to logical units (as far as applicable).
+
+
+
+
+
+
+
+
+//=============================================================================
+// Quick notes for future reference
+//=============================================================================
+
+WGT2ALLEGRO_NOFUNCTIONS - usage similar to CROOM_NOFUNCTIONS

@@ -17,9 +17,8 @@
 #endif
 
 #define WGT2ALLEGRO_NOFUNCTIONS
-#define CROOM_NOFUNCTIONS
 #include "wgt2allg.h"
-#include "acroom.h"
+#include "acroom_nofunc.h"
 #include "sprcache.h"
 #include "compress.h"
 #include "bigend.h"

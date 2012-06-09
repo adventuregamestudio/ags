@@ -298,6 +298,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\Common\acroom_func.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Common\acroom_nofunc.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\Common\acruntim.h"
 				>
 			</File>

@@ -6,15 +6,12 @@
 #pragma unmanaged
 #define WGT2ALLEGRO_NOFUNCTIONS
 #include "wgt2allg.h"
-#define CROOM_NOFUNCTIONS
-#include "acroom.h"
+#include "acroom_nofunc.h"
 #include "acruntim.h"
 #include "acgui.h"
 #include <ctype.h>
 
 #include "bigend.h"
-
-#undef CROOM_NOFUNCTIONS
 
 // For engine these are defined in ac.cpp
 extern int eip_guiobj;

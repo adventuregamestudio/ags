@@ -6,8 +6,7 @@
 #pragma unmanaged
 #define WGT2ALLEGRO_NOFUNCTIONS
 #include "wgt2allg.h"
-#define CROOM_NOFUNCTIONS
-#include "acroom.h"
+#include "acroom_nofunc.h"
 #include "acruntim.h"
 #include "acgui.h"
 #include <ctype.h>

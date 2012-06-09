@@ -28,7 +28,7 @@ fixed move_speed_x, move_speed_y;
 extern char ac_engine_copyright[];
 extern void Display(char *, ...);
 extern void write_log(char *);
-extern void update_polled_stuff();
+extern void update_polled_stuff_if_runtime();
 
 #define COPYRIGHT_CRC 172668
 // stupid name, to deter hackers
@@ -464,7 +464,7 @@ int find_route_dijkstra(int fromx, int fromy, int destx, int desty)
   int totalfound = 0;
   int DIRECTION_BONUS = 0;
 
-  update_polled_stuff();
+  update_polled_stuff_if_runtime();
 
   while (foundAnswer < 0) {
     min = 29999;
@@ -571,7 +571,7 @@ int find_route_dijkstra(int fromx, int fromy, int destx, int desty)
       }
     }
     if (totalfound >= 1000) {
-      update_polled_stuff();
+      update_polled_stuff_if_runtime();
       totalfound = 0;
     }
   }

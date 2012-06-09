@@ -20,7 +20,7 @@
 //amstrmid.lib quartz.lib strmbase.lib ddraw.lib 
 
 extern void update_polled_stuff_and_crossfade();
-extern void update_polled_stuff();
+extern void update_polled_stuff_if_runtime();
 extern int rec_mgetbutton();
 extern int rec_kbhit();
 extern int rec_getch();
@@ -301,7 +301,7 @@ int dxmedia_play_video(const char* filename, bool pUseSound, int canskip, int st
   CoInitialize(NULL);
    
   if (!useSound)
-    update_polled_stuff();
+    update_polled_stuff_if_runtime();
 
   hr = RenderFileToMMStream(filename);
   if (FAILED(hr)) {
@@ -311,7 +311,7 @@ int dxmedia_play_video(const char* filename, bool pUseSound, int canskip, int st
   }
 
   if (!useSound)
-    update_polled_stuff();
+    update_polled_stuff_if_runtime();
   
   hr = InitRenderToSurface();
   if (FAILED(hr)) {

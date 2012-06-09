@@ -524,7 +524,7 @@ int musicPollIterator; // long name so it doesn't interfere with anything else
  if (!psp_audio_multithreaded) \
   { UPDATE_MP3_THREAD }
 
-//#define UPDATE_MP3 update_polled_stuff();
+//#define UPDATE_MP3 update_polled_stuff_if_runtime();
 #if defined(PSP_VERSION)
 // PSP: Workaround for sound stuttering. Do sound updates in its own thread.
 int update_mp3_thread(SceSize args, void *argp)
@@ -3124,7 +3124,7 @@ int LoadSaveSlotScreenshot(int slnum, int width, int height) {
                0, 0, spritewidth[gotSlot], spriteheight[gotSlot],
                0, 0, width, height);
 
-  update_polled_stuff();
+  update_polled_stuff_if_runtime();
 
   // replace the bitmap in the sprite set
   free_dynamic_sprite(gotSlot);
@@ -4067,7 +4067,7 @@ void update_walk_behind_images()
   BITMAP *wbbmp;
   for (ee = 1; ee < MAX_OBJ; ee++)
   {
-    update_polled_stuff();
+    update_polled_stuff_if_runtime();
     
     if (walkBehindRight[ee] > 0)
     {
@@ -4088,7 +4088,7 @@ void update_walk_behind_images()
         }
       }
 
-      update_polled_stuff();
+      update_polled_stuff_if_runtime();
 
       if (walkBehindBitmap[ee] != NULL)
       {
@@ -4130,7 +4130,7 @@ void recache_walk_behinds () {
     }
   }
 
-  update_polled_stuff();
+  update_polled_stuff_if_runtime();
 
   // since this is an 8-bit memory bitmap, we can just use direct 
   // memory access
@@ -4260,7 +4260,7 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
     destroy_bitmap(thisroom.ebscene[0]);
   thisroom.ebscene[0] = create_bitmap(320,200);
 
-  update_polled_stuff();
+  update_polled_stuff_if_runtime();
 
   // load the room from disk
   our_eip=200;
@@ -4277,7 +4277,7 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
     convert_room_coordinates_to_low_res(&thisroom);
   }
 
-  update_polled_stuff();
+  update_polled_stuff_if_runtime();
   our_eip=201;
 /*  // apparently, doing this stops volume spiking between tracks
   if (thisroom.options[ST_TUNE]>0) {
@@ -4307,7 +4307,7 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
     select_palette(palette);
 
   for (cc=0;cc<thisroom.num_bscenes;cc++) {
-    update_polled_stuff();
+    update_polled_stuff_if_runtime();
   #ifdef USE_15BIT_FIX
     // convert down scenes from 16 to 15-bit if necessary
     if ((final_col_dep != game.color_depth*8) &&
@@ -4333,7 +4333,7 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
       (final_col_dep > 8))
     unselect_palette();
 
-  update_polled_stuff();
+  update_polled_stuff_if_runtime();
 
   our_eip=202;
   if (usetup.want_letterbox) {
@@ -4384,7 +4384,7 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
     if (abscreen==1) abuf=screen;
     else if (abscreen==2) abuf=virtual_screen;
 
-    update_polled_stuff();
+    update_polled_stuff_if_runtime();
   }
   // update the script viewport height
   scsystem.viewport_height = divide_down_coordinate(scrnhit);
@@ -4408,11 +4408,11 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
   our_eip=204;
   // copy the walls screen
   blit(thisroom.walls,walkareabackup,0,0,0,0,thisroom.walls->w,thisroom.walls->h);
-  update_polled_stuff();
+  update_polled_stuff_if_runtime();
   redo_walkable_areas();
   // fix walk-behinds to current screen resolution
   thisroom.object = fix_bitmap_size(thisroom.object);
-  update_polled_stuff();
+  update_polled_stuff_if_runtime();
 
   set_color_depth(final_col_dep);
   // convert backgrounds to current res
@@ -4514,7 +4514,7 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
       thisroom.localvars[ff].value = croom->interactionVariableValues[ff];
   }
 
-  update_polled_stuff();
+  update_polled_stuff_if_runtime();
 
   if (thisroom.roomScripts == NULL)
   {
@@ -4575,7 +4575,7 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
   if (thisroom.ebpalShared[thisroom.num_bscenes - 1] == 0)
     thisroom.ebpalShared[0] = 0;*/
 
-  update_polled_stuff();
+  update_polled_stuff_if_runtime();
 
   our_eip = 210;
   if (IS_ANTIALIAS_SPRITES) {
@@ -4621,7 +4621,7 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
 
   }
 
-  update_polled_stuff();
+  update_polled_stuff_if_runtime();
 
   roominst=NULL;
   if (debug_flags & DBG_NOSCRIPT) ;
@@ -4757,7 +4757,7 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
   color_map = NULL;
 
   our_eip = 209;
-  update_polled_stuff();
+  update_polled_stuff_if_runtime();
   generate_light_table();
   update_music_volume();
   update_viewport();
@@ -4777,7 +4777,7 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
   if (game.color_depth > 1)
     setpal();
   our_eip=220;
-  update_polled_stuff();
+  update_polled_stuff_if_runtime();
   DEBUG_CONSOLE("Now in room %d", displayed_room);
   guis_need_update = 1;
   platform->RunPluginHooks(AGSE_ENTERROOM, displayed_room);
@@ -4812,7 +4812,7 @@ void new_room(int newnum,CharacterInfo*forchar) {
   
   platform->WriteDebugString("Room change requested to room %d", newnum);
 
-  update_polled_stuff();
+  update_polled_stuff_if_runtime();
 
   // we are currently running Leaves Screen scripts
   in_leaves_screen = newnum;
@@ -4834,7 +4834,7 @@ void new_room(int newnum,CharacterInfo*forchar) {
     // who is not in the new room. therefore, abort the follow
     playerchar->following = -1;
   }
-  update_polled_stuff();
+  update_polled_stuff_if_runtime();
 
   // change rooms
   unload_old_room();
@@ -4842,7 +4842,7 @@ void new_room(int newnum,CharacterInfo*forchar) {
   if (psp_clear_cache_on_room_change)
     spriteset.removeAll();
 
-  update_polled_stuff();
+  update_polled_stuff_if_runtime();
 
   load_new_room(newnum,forchar);
 }
@@ -5073,7 +5073,7 @@ void process_event(EventHappened*evp) {
           gfxDriver->DrawSprite(0, -(temp_virtual->h - virtual_screen->h), ddb);
         }
         render_to_screen(screen, 0, 0);
-        update_polled_stuff();
+        update_polled_stuff_if_runtime();
         while (timerloop == 0) ;
         transparency -= 16;
       }
@@ -5111,7 +5111,7 @@ void process_event(EventHappened*evp) {
         draw_screen_callback();
         gfxDriver->DrawSprite(0, -(temp_virtual->h - virtual_screen->h), ddb);
         render_to_screen(screen, 0, 0);
-        update_polled_stuff();
+        update_polled_stuff_if_runtime();
         while (timerloop == 0) ;
       }
       release_bitmap(temp_virtual);
@@ -8791,7 +8791,7 @@ void draw_screen_background() {
   {
     if (roomBackgroundBmp == NULL) 
     {
-      update_polled_stuff();
+      update_polled_stuff_if_runtime();
       roomBackgroundBmp = gfxDriver->CreateDDBFromBitmap(thisroom.ebscene[play.bg_frame], false, true);
 
       if ((walkBehindMethod == DrawAsSeparateSprite) && (walkBehindsCachedForBgNum != play.bg_frame))
@@ -8801,7 +8801,7 @@ void draw_screen_background() {
     }
     else if (current_background_is_dirty)
     {
-      update_polled_stuff();
+      update_polled_stuff_if_runtime();
       gfxDriver->UpdateDDBFromBitmap(roomBackgroundBmp, thisroom.ebscene[play.bg_frame], false);
       current_background_is_dirty = false;
       if (walkBehindMethod == DrawAsSeparateSprite)
@@ -10249,7 +10249,7 @@ void DrawingSurface_DrawImage(ScriptDrawingSurface* sds, int xx, int yy, int slo
 
     sourcePic = newPic;
     needToFreeBitmap = true;
-    update_polled_stuff();
+    update_polled_stuff_if_runtime();
   }
 
   sds->StartDrawing();
@@ -11372,7 +11372,7 @@ ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height) {
     BITMAP *scrndump = create_bitmap_ex(final_col_dep, scrnwid, scrnhit);
     gfxDriver->GetCopyOfScreenIntoBitmap(scrndump);
 
-    update_polled_stuff();
+    update_polled_stuff_if_runtime();
 
     if ((scrnwid != width) || (scrnhit != height))
     {
@@ -12913,7 +12913,7 @@ int calculate_max_volume() {
   return newvol;
 }
 
-void update_polled_stuff()
+void update_polled_stuff_if_runtime()
 {
   update_polled_stuff(true);
 }
@@ -12960,7 +12960,7 @@ void update_polled_stuff(bool checkForDebugMessages) {
 // Update the music, and advance the crossfade on a step
 // (this should only be called once per game loop)
 void update_polled_stuff_and_crossfade () {
-  update_polled_stuff ();
+  update_polled_stuff_if_runtime ();
 
   audio_update_polled_stuff();
 
@@ -13632,7 +13632,7 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
           break;
       }
       while ((timerloop == 0) && (play.fast_forward == 0)) {
-        update_polled_stuff();
+        update_polled_stuff_if_runtime();
         platform->YieldCPU();
       }
       countdown--;
@@ -15148,7 +15148,7 @@ void RawDrawImageTransparent(int xx, int yy, int slot, int trans) {
   trans_mode = (trans * 255) / 100;
   RawDrawImage(xx, yy, slot);
 
-  update_polled_stuff();  // this operation can be slow so stop music skipping
+  update_polled_stuff_if_runtime();  // this operation can be slow so stop music skipping
 }
 void RawDrawImageResized(int xx, int yy, int gotSlot, int width, int height) {
   if ((gotSlot < 0) || (gotSlot >= MAX_SPRITES) || (spriteset[gotSlot] == NULL))
@@ -15175,7 +15175,7 @@ void RawDrawImageResized(int xx, int yy, int gotSlot, int width, int height) {
   destroy_bitmap(newPic);
   invalidate_screen();
   mark_current_background_dirty();
-  update_polled_stuff();  // this operation can be slow so stop music skipping
+  update_polled_stuff_if_runtime();  // this operation can be slow so stop music skipping
   RAW_END();
 }
 void RawDrawLine (int fromx, int fromy, int tox, int toy) {
@@ -16441,7 +16441,7 @@ void play_theora_video(const char *name, int skip, int flags)
   apeg_disable_length_detection(TRUE);
   // Disable framedrop because it can lead to the PSP not playing the video at all.
   apeg_enable_framedrop(psp_video_framedrop);
-  update_polled_stuff();
+  update_polled_stuff_if_runtime();
 
   stretch_flc = (flags % 10);
   canabort = skip;
@@ -16482,7 +16482,7 @@ void play_theora_video(const char *name, int skip, int flags)
     fli_ddb = NULL;
   }
 
-  update_polled_stuff();
+  update_polled_stuff_if_runtime();
 
   clear(virtual_screen);
 
@@ -20903,7 +20903,7 @@ void ShakeScreen(int severe) {
 
       render_graphics();
 
-      update_polled_stuff();
+      update_polled_stuff_if_runtime();
     }
 
     play.mouse_cursor_hidden--;
@@ -20922,7 +20922,7 @@ void ShakeScreen(int severe) {
       else
         render_to_screen(tty, 0, severe);
 
-      update_polled_stuff();
+      update_polled_stuff_if_runtime();
     }
     clear_letterbox_borders();
     render_to_screen(tty, 0, 0);
@@ -22723,7 +22723,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
 
   play.in_conversation ++;
 
-  update_polled_stuff();
+  update_polled_stuff_if_runtime();
 
   if (game.dialog_bullet > 0)
     bullet_wid = spritewidth[game.dialog_bullet]+3;
@@ -22734,7 +22734,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
 
   said_text = 0;
 
-  update_polled_stuff();
+  update_polled_stuff_if_runtime();
 
   block tempScrn = create_bitmap_ex(final_col_dep, screen->w, screen->h);
 
@@ -22836,11 +22836,11 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
     int wantRefresh = 0;
     mouseison=-10;
     
-    update_polled_stuff();
+    update_polled_stuff_if_runtime();
     //blit(virtual_screen, tempScrn, 0, 0, 0, 0, screen->w, screen->h);
     if (!play.mouse_cursor_hidden)
       domouse(1);
-    update_polled_stuff();
+    update_polled_stuff_if_runtime();
 
  redraw_options:
 
@@ -23009,12 +23009,12 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
     wantRefresh = 0;
     wsetscreen(virtual_screen);
 
-    update_polled_stuff();
+    update_polled_stuff_if_runtime();
 
     subBitmap = recycle_bitmap(subBitmap, bitmap_color_depth(tempScrn), dirtywidth, dirtyheight);
     subBitmap = gfxDriver->ConvertBitmapToSupportedColourDepth(subBitmap);
 
-    update_polled_stuff();
+    update_polled_stuff_if_runtime();
 
     if (usingCustomRendering)
     {
@@ -23194,7 +23194,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
         goto redraw_options;
       }
       while ((timerloop == 0) && (play.fast_forward == 0)) {
-        update_polled_stuff();
+        update_polled_stuff_if_runtime();
         platform->YieldCPU();
       }
 
@@ -23395,7 +23395,7 @@ long write_screen_shot_for_vista(FILE *ooo, block screenshot)
   
   save_bitmap(tempFileName, screenshot, palette);
 
-  update_polled_stuff();
+  update_polled_stuff_if_runtime();
   
   if (exists(tempFileName))
   {
@@ -23492,7 +23492,7 @@ void save_game_data (FILE *ooo, block screenshot) {
       fputc (0, ooo);
   }
 
-  update_polled_stuff();
+  update_polled_stuff_if_runtime();
 
   if (play.cur_music_number >= 0) {
     if (IsMusicPlaying() == 0)
@@ -23554,7 +23554,7 @@ void save_game_data (FILE *ooo, block screenshot) {
     serialize_bitmap (screenover[bb].pic, ooo);
   }
 
-  update_polled_stuff();
+  update_polled_stuff_if_runtime();
 
   for (bb = 0; bb < MAX_DYNAMIC_SURFACES; bb++)
   {
@@ -23569,7 +23569,7 @@ void save_game_data (FILE *ooo, block screenshot) {
     }
   }
 
-  update_polled_stuff();
+  update_polled_stuff_if_runtime();
 
   if (displayed_room >= 0) {
 
@@ -23638,7 +23638,7 @@ void save_game_data (FILE *ooo, block screenshot) {
 
   putw(current_music_type, ooo);
 
-  update_polled_stuff();
+  update_polled_stuff_if_runtime();
 }
 
 // Some people have been having crashes with the save game list,
@@ -23768,7 +23768,7 @@ void save_game(int slotn, const char*descript) {
     }
   }
 
-  update_polled_stuff();
+  update_polled_stuff_if_runtime();
 
   save_game_data(ooo, screenShot);
 
@@ -23778,7 +23778,7 @@ void save_game(int slotn, const char*descript) {
     long screenShotSize = write_screen_shot_for_vista(ooo, screenShot);
     fclose(ooo);
 
-    update_polled_stuff();
+    update_polled_stuff_if_runtime();
 
     ooo = fopen(nametouse, "r+b");
     fseek(ooo, 12, SEEK_SET);
@@ -23907,7 +23907,7 @@ int restore_game_data (FILE *ooo, const char *nametouse) {
     guibgbmp[vv] = NULL;
   }
   
-  update_polled_stuff();
+  update_polled_stuff_if_runtime();
 
   ccFreeInstance(gameinstFork);
   ccFreeInstance(gameinst);
@@ -23925,7 +23925,7 @@ int restore_game_data (FILE *ooo, const char *nametouse) {
     dialogScriptsInst = NULL;
   }
 
-  update_polled_stuff();
+  update_polled_stuff_if_runtime();
 
   // read the global script data segment
   int gdatasize = getw(ooo);
@@ -24163,7 +24163,7 @@ int restore_game_data (FILE *ooo, const char *nametouse) {
     }
   }
 
-  update_polled_stuff();
+  update_polled_stuff_if_runtime();
 
   // load into a temp array since ccUnserialiseObjects will destroy
   // it otherwise
@@ -24180,7 +24180,7 @@ int restore_game_data (FILE *ooo, const char *nametouse) {
     }
   }
 
-  update_polled_stuff();
+  update_polled_stuff_if_runtime();
 
   block newbscene[MAX_BSCENE];
   for (bb = 0; bb < MAX_BSCENE; bb++)
@@ -24344,12 +24344,12 @@ int restore_game_data (FILE *ooo, const char *nametouse) {
   int queuedMusicSize = play.music_queue_size;
   play.music_queue_size = 0;
 
-  update_polled_stuff();
+  update_polled_stuff_if_runtime();
 
   if (displayed_room >= 0)
     load_new_room(displayed_room,NULL);//&game.chars[game.playercharacter]);
 
-  update_polled_stuff();
+  update_polled_stuff_if_runtime();
 
   play.gscript_timer=gstimer;
 
@@ -24370,7 +24370,7 @@ int restore_game_data (FILE *ooo, const char *nametouse) {
   set_window_title(play.game_name);
 #endif
 
-  update_polled_stuff();
+  update_polled_stuff_if_runtime();
 
   if (displayed_room >= 0) {
 
@@ -24450,7 +24450,7 @@ int restore_game_data (FILE *ooo, const char *nametouse) {
   guis_need_update = 1;
 
   play.ignore_user_input_until_time = 0;
-  update_polled_stuff();
+  update_polled_stuff_if_runtime();
 
   platform->RunPluginHooks(AGSE_POSTRESTOREGAME, 0);
 
@@ -24855,7 +24855,7 @@ start_actinv:
       }
     wasonitem=isonitem;
     while (timerloop == 0) {
-      update_polled_stuff();
+      update_polled_stuff_if_runtime();
       platform->YieldCPU();
     }
   }
@@ -26245,7 +26245,7 @@ void break_into_debugger()
 
   while (game_paused_in_debugger) 
   {
-    update_polled_stuff();
+    update_polled_stuff_if_runtime();
     platform->YieldCPU();
   }
 
@@ -26553,7 +26553,7 @@ void mainloop(bool checkControls, IDriverDependantBitmap *extraBitmap, int extra
   }
   our_eip=7;
 //    if (mgetbutton()>NONE) break;
-  update_polled_stuff();
+  update_polled_stuff_if_runtime();
   if (play.bg_anim_delay > 0) play.bg_anim_delay--;
   else if (play.bg_frame_locked) ;
   else {
@@ -26595,7 +26595,7 @@ void mainloop(bool checkControls, IDriverDependantBitmap *extraBitmap, int extra
   // make sure we poll, cos a low framerate (eg 5 fps) could stutter
   // mp3 music
   while (timerloop == 0) {
-    update_polled_stuff();
+    update_polled_stuff_if_runtime();
     platform->YieldCPU();
   }
 }
@@ -27016,7 +27016,7 @@ void initialize_sprite (int ee) {
     }
 
     platform->RunPluginHooks(AGSE_SPRITELOAD, ee);
-    update_polled_stuff();
+    update_polled_stuff_if_runtime();
 
     our_eip = oldeip;
   }
@@ -29106,7 +29106,7 @@ int initialize_engine(int argc,char*argv[])
 
   platform->PostAllegroInit((usetup.windowed > 0) ? true : false);
 
-  gfxDriver->SetCallbackForPolling(update_polled_stuff);
+  gfxDriver->SetCallbackForPolling(update_polled_stuff_if_runtime);
   gfxDriver->SetCallbackToDrawScreen(draw_screen_callback);
   gfxDriver->SetCallbackForNullSprite(GfxDriverNullSpriteCallback);
 

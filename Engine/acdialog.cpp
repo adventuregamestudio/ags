@@ -71,7 +71,7 @@ extern int rec_misbuttondown(int);
 extern int rec_mgetbutton();
 extern void next_iteration();
 extern void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY);
-extern void update_polled_stuff();
+extern void update_polled_stuff_if_runtime();
 extern char *get_language_text(int);
 extern int sgsiglen;
 extern void update_polled_stuff_and_crossfade();
@@ -301,7 +301,7 @@ struct PushButton:public NewControl
       next_iteration();
       state = mouseisinarea();
       // stop mp3 skipping if button held down
-      update_polled_stuff();
+      update_polled_stuff_if_runtime();
       if (wasstat != state) {
 //        domouse(2);
         draw();

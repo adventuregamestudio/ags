@@ -17,17 +17,27 @@ contains a lot of preprocessor-switch controlled code with function implementati
 
 Task: split up acroom.h in following substeps:
 1. Separate the code under CROOM_NOFUNCTIONS macro control.
-2. Separate the definition and implementation (if any) from "non-functions"
+2. Separate the code under NO_SAVE_FUNCTIONS macro control.
+3. Separate the definition and implementation (if any) from "non-functions"
 acroom part into *.cpp.
-3. Separate the definition and implementation from "functions" acroom part
+4. Separate the definition and implementation from "functions" acroom part
 into *.cpp. Split any Engine/AGS.Native specific code left.
-4. Proceed further to separate declarations and implementation in both parts
+5. Proceed further to separate declarations and implementation in both parts
 to logical units (as far as applicable).
 
-
-
-
-
+Result:
+    acroom.h            - a common header file, should not be included directly;
+    acroom_nofunc.h     - header file for modules that do not need acroom functions;
+    acroom_func.h       - header file for modules that do need acroom functions;
+    acroom_savefunc.h   - header file for modules that need save functions;
+    
+    acroom.cpp          - contains function implementations from acroom (except save functions);
+    acroom_save.cpp     - contains save functions from acroom;
+    
+Linkage:
+    Common.Lib:         acroom.cpp
+    Engine.App:         acroom.cpp (via Common.Lib)
+    AGS.Native:         acroom.cpp (via Common.Lib); acroom_save.cpp
 
 
 

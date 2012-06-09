@@ -5197,6 +5197,11 @@ void load_graphical_scripts(FILE*iii,roomstruct*rst) {
   }
 }
 
+void update_polled_stuff_if_runtime()
+{
+	// do nothing
+}
+
 // [IKM] 2012-06-07
 // Had to copy this implementation from Engine/misc.cpp to evade including additional srcs & libs to AGS.Native.
 FILE *ci_fopen(char *file_name, const char *mode)

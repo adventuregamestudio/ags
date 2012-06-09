@@ -212,10 +212,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\Common\acroom_savefunc.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\Common\bigend.h"
 				>
 			</File>

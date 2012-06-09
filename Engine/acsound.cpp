@@ -10,8 +10,7 @@
   You MAY NOT compile your own builds of the engine without making it EXPLICITLY
   CLEAR that the code has been altered from the Standard Version.
 */
-#define WGT2ALLEGRO_NOFUNCTIONS
-#include "wgt2allg.h"
+#include "wgt2allg_nofunc.h"
 #include "acsound.h"
 #include "alogg.h"
 #include "almp3.h"

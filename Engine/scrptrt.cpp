@@ -17,8 +17,7 @@
 */
 #include <stdio.h>
 #include <stdlib.h>
-#define WGT2ALLEGRO_NOFUNCTIONS
-#include "wgt2allg.h"
+#include "wgt2allg_nofunc.h"
 #include "acroom_nofunc.h"
 #include "bigend.h"
 

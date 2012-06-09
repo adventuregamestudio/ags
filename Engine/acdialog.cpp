@@ -11,8 +11,7 @@
 */
 
 // DIALOG SYSTEM STUFF below
-#define WGT2ALLEGRO_NOFUNCTIONS
-#include "wgt2allg.h"
+#include "wgt2allg_nofunc.h"
 #include <string.h>
 #include <ctype.h>
 #include "ali3d.h"

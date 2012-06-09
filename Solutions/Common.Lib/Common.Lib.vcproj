@@ -235,6 +235,14 @@
 				RelativePath="..\..\Common\wgt2allg.h"
 				>
 			</File>
+			<File
+				RelativePath="..\..\Common\wgt2allg_2.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Common\wgt2allg_nofunc.h"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>

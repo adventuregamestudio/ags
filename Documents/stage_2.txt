@@ -40,6 +40,18 @@ Linkage:
     AGS.Native:         acroom.cpp (via Common.Lib); acroom_save.cpp
 
 
+//-----------------------------------------------------------------------------
+// step 2 -- wgt2allg.h
+//-----------------------------------------------------------------------------
+
+Task: split up wgt2allg.h similar to acroom.h (should be easier though):
+1. Separate the code under WGT2ALLEGRO_NOFUNCTIONS macro control.
+2. Move the implementation to wgt2allg.cpp.
+3. Proceed further to separate declarations and implementation to logical units
+(if applicable).
+
+
+
 
 //=============================================================================
 // Quick notes for future reference

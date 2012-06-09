@@ -4,8 +4,7 @@
 
 // Headers, as they are in acgui.cpp
 #pragma unmanaged
-#define WGT2ALLEGRO_NOFUNCTIONS
-#include "wgt2allg.h"
+#include "wgt2allg_nofunc.h"
 #include "acroom_nofunc.h"
 #include "acruntim.h"
 #include "acgui.h"

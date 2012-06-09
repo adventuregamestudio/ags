@@ -13,8 +13,7 @@
 
 */
 
-#define WGT2ALLEGRO_NOFUNCTIONS
-#include "wgt2allg.h"
+#include "wgt2allg_nofunc.h"
 #include "acgfx.h"
 #ifdef WINDOWS_VERSION
 #include <d3d9.h>

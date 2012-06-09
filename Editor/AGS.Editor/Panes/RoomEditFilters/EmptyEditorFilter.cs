@@ -107,9 +107,10 @@ namespace AGS.Editor
         {
         }
 
-		public void KeyPressed(Keys key)
-		{
-		}
+        public bool KeyPressed(Keys key)
+        {
+            return false;
+        }
 
         public void Dispose()
         {

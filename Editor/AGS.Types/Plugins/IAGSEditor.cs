@@ -77,6 +77,14 @@ namespace AGS.Types
 		/// RequiredAGSVersion: 3.0.1.35
 		/// </summary>
 		ISourceControlIntegration SourceControl { get; }
+        /// <summary>
+        /// Sets the Source Control Provider object, which allows you to
+        /// replace the built-in provider via a plugin. Use the
+        /// Source Control Integration object to perform any source
+        /// control-related operations.
+        /// RequiredAGSVersion: 3.2.2.111
+        /// </summary>
+        ISourceControlProvider SourceControlProvider { set; }
 		/// <summary>
 		/// Gets the RoomController, which provides methods to manipulate
 		/// the currently loaded room file.

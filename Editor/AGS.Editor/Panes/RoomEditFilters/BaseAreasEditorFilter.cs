@@ -352,7 +352,7 @@ namespace AGS.Editor
             return false;
         }
 
-		public void KeyPressed(Keys key)
+		public bool KeyPressed(Keys key)
 		{
 			if ((key == (Keys.Control | Keys.Z)) && (_toolbarIcons[TOOLBAR_INDEX_UNDO].Enabled))
 			{
@@ -378,6 +378,7 @@ namespace AGS.Editor
 			{
 				CommandClick(SELECT_AREA_COMMAND);
 			}
+            return false;
 		}
 
         public virtual void CommandClick(string command)

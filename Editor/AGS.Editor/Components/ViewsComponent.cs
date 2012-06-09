@@ -13,7 +13,8 @@ namespace AGS.Editor.Components
         private const string COMMAND_NEW_VIEW = "NewView";
         private const string COMMAND_RENAME = "RenameView";
 		private const string COMMAND_DELETE = "DeleteView";
-
+        private const string ICON_KEY = "ViewsIcon";
+        
         private Dictionary<View, ContentDocument> _documents;
         private Game.ViewListUpdatedHandler _viewsUpdatedHandler;
         private Game _eventHookedToGame = null;
@@ -23,9 +24,9 @@ namespace AGS.Editor.Components
         {
             _documents = new Dictionary<View, ContentDocument>();
             _viewsUpdatedHandler = new Game.ViewListUpdatedHandler(CurrentGame_ViewListUpdated);
-            _guiController.RegisterIcon("ViewsIcon", ResourceManager.GetIcon("view.ico"));
+            _guiController.RegisterIcon(ICON_KEY, ResourceManager.GetIcon("view.ico"));
             _guiController.RegisterIcon("ViewIcon", ResourceManager.GetIcon("view-item.ico"));
-            _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Views", "ViewsIcon");
+            _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Views", ICON_KEY);
 			_guiController.ProjectTree.OnAfterLabelEdit += new ProjectTree.AfterLabelEditHandler(ProjectTree_OnAfterLabelEdit);
 			RefreshDataFromGame();
         }
@@ -131,12 +132,16 @@ namespace AGS.Editor.Components
 
 		private void ShowOrAddPane(View chosenItem)
 		{
-			if (!_documents.ContainsKey(chosenItem))
+            ContentDocument document;
+			if (!_documents.TryGetValue(chosenItem, out document)
+                || document.Control.IsDisposed)
 			{
-				_documents.Add(chosenItem, new ContentDocument(new ViewEditor(chosenItem), chosenItem.WindowTitle, this, null));
-				_documents[chosenItem].SelectedPropertyGridObject = chosenItem;
+                document = new ContentDocument(new ViewEditor(chosenItem), chosenItem.WindowTitle, this,
+                    ICON_KEY, null);
+                _documents[chosenItem] = document;
+                document.SelectedPropertyGridObject = chosenItem;
 			}
-			_guiController.AddOrShowPane(_documents[chosenItem]);
+            _guiController.AddOrShowPane(document);
 			_guiController.ShowCuppit("Views are how you set up animations in AGS. Each View contains a set of related animations, each of which is a Loop consisting of several Frames.\nFor character walking animations, a view consists of one loop for each direction.", "Views introduction");
 		}
 

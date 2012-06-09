@@ -11,7 +11,8 @@ namespace AGS.Editor.Components
     class TextParserComponent : BaseComponent
     {
         private const string TOP_LEVEL_COMMAND_ID = "TextParser";
-
+        private const string ICON_KEY = "TextParserIcon";
+        
         private TextParserEditor _editor;
         private ContentDocument _document;
 
@@ -19,8 +20,8 @@ namespace AGS.Editor.Components
             : base(guiController, agsEditor)
         {
             RecreateDocument();
-            _guiController.RegisterIcon("TextParserIcon", Resources.ResourceManager.GetIcon("textparser.ico"));
-            _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Text Parser", "TextParserIcon");
+            _guiController.RegisterIcon(ICON_KEY, Resources.ResourceManager.GetIcon("textparser.ico"));
+            _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Text Parser", ICON_KEY);
         }
 
         private void RecreateDocument()
@@ -30,7 +31,7 @@ namespace AGS.Editor.Components
                 _document.Dispose();
             }
             _editor = new TextParserEditor(_agsEditor.CurrentGame.TextParser);
-            _document = new ContentDocument(_editor, "Text Parser", this);
+            _document = new ContentDocument(_editor, "Text Parser", this, ICON_KEY);
         }
 
         public override string ComponentID
@@ -40,6 +41,10 @@ namespace AGS.Editor.Components
 
         public override void CommandClick(string controlID)
         {
+            if (_document.Control.IsDisposed)
+            {
+                RecreateDocument();
+            }
             _guiController.AddOrShowPane(_document);
 			_guiController.ShowCuppit("Use the Text Parser if you want to have the player type commands in to the game. This is fairly advanced stuff, so I'd recommend you start off with a point-and-click interface.", "Text Parser introduction");
 		}

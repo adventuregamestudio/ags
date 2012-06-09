@@ -224,6 +224,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\Common\acroom_engine.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\Engine\acsound.cpp"
 				>
 			</File>

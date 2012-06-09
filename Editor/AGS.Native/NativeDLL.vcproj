@@ -243,6 +243,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\Common\acroom_agsnative.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\Common\acroom_save.cpp"
 				>
 			</File>

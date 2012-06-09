@@ -1064,6 +1064,7 @@ void load_main_block(roomstruct *rstruc, char *files, FILE *opty, room_file_head
   }
 }
 
+extern bool load_room_is_version_bad(roomstruct *rstruc);
 void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
   FILE              *opty;
   room_file_header  rfh;
@@ -1168,11 +1169,8 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
 #endif
   //fclose(opty);
   rstruc->wasversion = rfh.version;
-#ifdef THIS_IS_THE_ENGINE
-  if ((rstruc->wasversion < 17) | (rstruc->wasversion > ROOM_FILE_VERSION))
-#else
-  if ((rstruc->wasversion < 15) || (rstruc->wasversion > ROOM_FILE_VERSION))
-#endif
+
+  if (load_room_is_version_bad(rstruc))
   {
     fclose(opty);
     quit("Load_Room: Bad packed file. Either the file requires a newer or older version of\n"

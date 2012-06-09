@@ -1,0 +1,25 @@
+//=============================================================================
+// STAGE TWO: Modules
+//=============================================================================
+
+Once the source files are distributed between the libraries it is time for
+module splitting. Ideally there should be one module (*.h/*.cpp pair) per
+logical union of functions, class and logical union of structs or other declarations.
+At the moment there are several *.h and *.cpp files that contain abnormal amount
+of code, in the first instance - acroom.h and ac.cpp.
+
+While ac.cpp is strictly engine source file, acroom.h is not only shared, but
+contains a lot of preprocessor-switch controlled code with function implementations.
+
+//-----------------------------------------------------------------------------
+// step 1 -- acroom.h
+//-----------------------------------------------------------------------------
+
+Task: split up acroom.h in following substeps:
+1. Separate the code under CROOM_NOFUNCTIONS macro control.
+2. Separate the definition and implementation (if any) from "non-functions"
+acroom part into *.cpp.
+3. Separate the definition and implementation from "functions" acroom part
+into *.cpp. Split any Engine/AGS.Native specific code left.
+4. Proceed further to separate declarations and implementation in both parts
+to logical units (as far as applicable).

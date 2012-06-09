@@ -11,6 +11,10 @@ b) reusability of common parts;
 c) better understanding of program structure and ties between modules;
 d) higher discipline when adding fixes and new features.
 
+//-----------------------------------------------------------------------------
+// step 1
+//-----------------------------------------------------------------------------
+
 Initially proposed list of libs and their meaning:
 
 1. Common.Shared.Lib:   a code from Common folder shared between Engine and AGS.Native;
@@ -23,6 +27,17 @@ Library names may change in future. For start they are defined so to better
 reflect not only their functionality, but also the origins of their source.
 Their contents may also change (be split or joined) after it is ensured that
 they can be successfuly built and used as intended without problems.
+
+//-----------------------------------------------------------------------------
+// step 2
+//-----------------------------------------------------------------------------
+
+1. Postpone Engine.Specific.Lib and Native.Specific.Lib since they don't seem to
+be really needed, at least at the moment. Besides, it would take a while to
+split application-dependent and application-independent engine code from ac.cpp.
+
+2. Merge Common.Shared.Lib and Engine.Shared.Lib in Common.Lib.
+
 
 //=============================================================================
 // ISSUE: Partially shared source code

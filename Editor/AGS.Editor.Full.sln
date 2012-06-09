@@ -2,6 +2,9 @@
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AGSEditor", "AGS.Editor\AGSEditor.csproj", "{6C0D2BF2-2F34-42FF-8356-79254CCF3131}"
+	ProjectSection(ProjectDependencies) = postProject
+		{65A387AF-C78C-492B-AB93-E13C6090355D} = {65A387AF-C78C-492B-AB93-E13C6090355D}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AGS.Types", "AGS.Types\AGS.Types.csproj", "{3EBBEDAB-214C-4201-BB5A-5152D56908DD}"
 EndProject

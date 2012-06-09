@@ -3,26 +3,20 @@ Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Engine.App", "Engine.App\Engine.App.vcproj", "{49A909AF-49F3-451D-B6DF-839159E54A01}"
 	ProjectSection(ProjectDependencies) = postProject
-		{D4368C0D-BCC4-46C9-8D94-0D98D2D7F5F1} = {D4368C0D-BCC4-46C9-8D94-0D98D2D7F5F1}
-		{F9F9F611-3F21-4093-8118-227D8C45B2C1} = {F9F9F611-3F21-4093-8118-227D8C45B2C1}
+		{463A715C-3EF3-47C7-AC7F-D97660149C49} = {463A715C-3EF3-47C7-AC7F-D97660149C49}
 	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Common.Shared.Lib", "Common.Shared.Lib\Common.Shared.Lib.vcproj", "{D4368C0D-BCC4-46C9-8D94-0D98D2D7F5F1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documents", "Documents", "{EA5D64A5-66DF-414C-A68A-706CBCD0D5D8}"
 	ProjectSection(SolutionItems) = preProject
-		acroom.txt = acroom.txt
+		..\Documents\acroom.txt = ..\Documents\acroom.txt
 		..\Documents\libstruct.txt = ..\Documents\libstruct.txt
 		..\Documents\original_plans.txt = ..\Documents\original_plans.txt
 		..\Documents\stage_1.txt = ..\Documents\stage_1.txt
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Engine.Shared.Lib", "Engine.Shared.Lib\Engine.Shared.Lib.vcproj", "{F9F9F611-3F21-4093-8118-227D8C45B2C1}"
-	ProjectSection(ProjectDependencies) = postProject
-		{D4368C0D-BCC4-46C9-8D94-0D98D2D7F5F1} = {D4368C0D-BCC4-46C9-8D94-0D98D2D7F5F1}
-	EndProjectSection
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Compiler.Lib", "Compiler.Lib\Compiler.Lib.vcproj", "{7B621FC0-BFD0-40E4-800A-0CD5E5707532}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Common.Lib", "Common.Lib\Common.Lib.vcproj", "{463A715C-3EF3-47C7-AC7F-D97660149C49}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -34,18 +28,14 @@ Global
 		{49A909AF-49F3-451D-B6DF-839159E54A01}.Debug|Win32.Build.0 = Debug|Win32
 		{49A909AF-49F3-451D-B6DF-839159E54A01}.Release|Win32.ActiveCfg = Release|Win32
 		{49A909AF-49F3-451D-B6DF-839159E54A01}.Release|Win32.Build.0 = Release|Win32
-		{D4368C0D-BCC4-46C9-8D94-0D98D2D7F5F1}.Debug|Win32.ActiveCfg = Debug|Win32
-		{D4368C0D-BCC4-46C9-8D94-0D98D2D7F5F1}.Debug|Win32.Build.0 = Debug|Win32
-		{D4368C0D-BCC4-46C9-8D94-0D98D2D7F5F1}.Release|Win32.ActiveCfg = Release|Win32
-		{D4368C0D-BCC4-46C9-8D94-0D98D2D7F5F1}.Release|Win32.Build.0 = Release|Win32
-		{F9F9F611-3F21-4093-8118-227D8C45B2C1}.Debug|Win32.ActiveCfg = Debug|Win32
-		{F9F9F611-3F21-4093-8118-227D8C45B2C1}.Debug|Win32.Build.0 = Debug|Win32
-		{F9F9F611-3F21-4093-8118-227D8C45B2C1}.Release|Win32.ActiveCfg = Release|Win32
-		{F9F9F611-3F21-4093-8118-227D8C45B2C1}.Release|Win32.Build.0 = Release|Win32
 		{7B621FC0-BFD0-40E4-800A-0CD5E5707532}.Debug|Win32.ActiveCfg = Debug|Win32
 		{7B621FC0-BFD0-40E4-800A-0CD5E5707532}.Debug|Win32.Build.0 = Debug|Win32
 		{7B621FC0-BFD0-40E4-800A-0CD5E5707532}.Release|Win32.ActiveCfg = Release|Win32
 		{7B621FC0-BFD0-40E4-800A-0CD5E5707532}.Release|Win32.Build.0 = Release|Win32
+		{463A715C-3EF3-47C7-AC7F-D97660149C49}.Debug|Win32.ActiveCfg = Debug|Win32
+		{463A715C-3EF3-47C7-AC7F-D97660149C49}.Debug|Win32.Build.0 = Debug|Win32
+		{463A715C-3EF3-47C7-AC7F-D97660149C49}.Release|Win32.ActiveCfg = Release|Win32
+		{463A715C-3EF3-47C7-AC7F-D97660149C49}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

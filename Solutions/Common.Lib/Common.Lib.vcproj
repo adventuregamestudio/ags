@@ -2,8 +2,8 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="Common.Shared.Lib"
-	ProjectGUID="{D4368C0D-BCC4-46C9-8D94-0D98D2D7F5F1}"
+	Name="Common.Lib"
+	ProjectGUID="{463A715C-3EF3-47C7-AC7F-D97660149C49}"
 	RootNamespace="CommonLib"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
@@ -21,7 +21,7 @@
 			OutputDirectory="$(SolutionDir)\.lib\$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
-			CharacterSet="2"
+			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)\..\Common&quot;;&quot;$(SolutionDir)\..\Windows\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)\..\Common&quot;;&quot;$(SolutionDir)\..\Common\libinclude&quot;;&quot;$(SolutionDir)\..\Windows\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_WINDOWS;VS2005;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;WINDOWS_VERSION;DISABLE_MPEG_AUDIO"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -85,7 +85,7 @@
 			OutputDirectory="$(SolutionDir)\.lib\$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
-			CharacterSet="2"
+			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -154,6 +154,14 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath="..\..\Engine\acfonts.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Engine\acgui.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\Common\Clib32.cpp"
 				>
 			</File>
@@ -183,6 +191,10 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath="..\..\Common\acgfx.h"
+				>
+			</File>
 			<File
 				RelativePath="..\..\Common\acroom.h"
 				>

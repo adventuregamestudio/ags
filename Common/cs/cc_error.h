@@ -24,5 +24,6 @@ extern bool ccErrorIsUserError;
 extern const char *ccCurScriptName; // name of currently compiling script
 
 extern void ccGetCallStack(ccInstance *inst, char *buffer, int maxLines);
+extern const char* ccGetSectionNameAtOffs(ccScript *scri, long offs);
 
 #endif // __CC_ERROR_H

@@ -23,20 +23,13 @@
 extern void cc_error(char *, ...);
 extern int currentline;
 
-extern int ccAddObjectReference(long handle);
-extern int ccReleaseObjectReference(long handle);
+
 extern void fputstring(char *sss, FILE *ddd);
 extern void fgetstring_limit(char *sss, FILE *ddd, int bufsize);
 extern void fgetstring(char *sss, FILE *ddd);
 
-#define FIXUP_GLOBALDATA  1     // code[fixup] += &globaldata[0]
-#define FIXUP_FUNCTION    2     // code[fixup] += &code[0]
-#define FIXUP_STRING      3     // code[fixup] += &strings[0]
-#define FIXUP_IMPORT      4     // code[fixup] = &imported_thing[code[fixup]]
-#define FIXUP_DATADATA    5     // globaldata[fixup] += &globaldata[0]
-#define FIXUP_STACK       6     // code[fixup] += &stack[0]
-#define EXPORT_FUNCTION   1
-#define EXPORT_DATA       2
+
+
 
 //=============================================================================
 #include "cc_treemap.h"

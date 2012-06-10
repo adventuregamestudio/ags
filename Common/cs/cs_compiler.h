@@ -34,4 +34,6 @@ extern void ccSetSoftwareVersion(const char *version);
 // compile the script supplied, returns NULL on failure
 extern ccScript *ccCompileText(const char *script, const char *scriptName);
 
+extern const char *ccSoftwareVersion;
+
 #endif // __CS_COMPILER_H

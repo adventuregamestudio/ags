@@ -34,6 +34,7 @@ struct ICCObjectReader {
 struct ICCStringClass {
     virtual void* CreateString(const char *fromText) = 0;
 };
+
 // set the class that will be used for dynamic strings
 extern void  ccSetStringClassImpl(ICCStringClass *theClass);
 // register a memory handle for the object and allow script
@@ -54,5 +55,10 @@ extern void  ccAttemptDisposeObject(long handle);
 // translate between object handles and memory addresses
 extern long  ccGetObjectHandleFromAddress(const char *address);
 extern const char *ccGetObjectAddressFromHandle(long handle);
+
+extern int ccAddObjectReference(long handle);
+extern int ccReleaseObjectReference(long handle);
+
+extern ICCStringClass *stringClassImpl;
 
 #endif // __CC_DYNAMICOBJECT_H

@@ -30,6 +30,12 @@
 #include "misc.h"
 #include "bigend.h"
 
+#include "cs/cc_dynamicobject.h"
+#include "cs/cc_dynamicarray.h"
+#include "cs/cc_managedobjectpool.h"
+#include "cs/cc_symboldef.h"
+#include "cs/cc_compiledscript.h"
+
 #ifdef AGS_BIG_ENDIAN
 #include <list>
 #include <algorithm>
@@ -111,7 +117,6 @@ ccInstance *loadedInstances[MAX_LOADED_INSTANCES] = {NULL,
 
 char ccRunnerCopyright[] = "ScriptExecuter32 v" SCOM_VERSIONSTR " (c) 2001 Chris Jones";
 static ccInstance *current_instance;
-static ICCStringClass *stringClassImpl = NULL;
 static int maxWhileLoops = 0;
 extern void quit(char *);
 extern void write_log(char *);
@@ -165,383 +170,13 @@ struct CompareStringsPartial : ICompareStrings {
 };
 CompareStringsPartial ccCompareStringsPartial;
 
-// *** IMPL FOR DYNAMIC ARRAYS **
 
-#define CC_DYNAMIC_ARRAY_TYPE_NAME "CCDynamicArray"
-#define ARRAY_MANAGED_TYPE_FLAG    0x80000000
 
-struct CCDynamicArray : ICCDynamicObject
-{
-  // return the type name of the object
-  virtual const char *GetType() {
-    return CC_DYNAMIC_ARRAY_TYPE_NAME;
-  }
-
-  virtual int Dispose(const char *address, bool force) {
-    address -= 8;
-
-    // If it's an array of managed objects, release
-    // their ref counts
-    long *elementCount = (long*)address;
-    if (elementCount[0] & ARRAY_MANAGED_TYPE_FLAG)
-    {
-      elementCount[0] &= ~ARRAY_MANAGED_TYPE_FLAG;
-      for (int i = 0; i < elementCount[0]; i++)
-      {
-        if (elementCount[2 + i] != NULL)
-        {
-          ccReleaseObjectReference(elementCount[2 + i]);
-        }
-      }
-    }
-
-    delete (void*)address;
-    return 1;
-  }
-
-  // serialize the object into BUFFER (which is BUFSIZE bytes)
-  // return number of bytes used
-  virtual int Serialize(const char *address, char *buffer, int bufsize) {
-    long *sizeInBytes = &((long*)address)[-1];
-    long sizeToWrite = *sizeInBytes + 8;
-    if (sizeToWrite > bufsize)
-    {
-      // buffer not big enough, ask for a bigger one
-      return -sizeToWrite;
-    }
-    memcpy(buffer, address - 8, sizeToWrite);
-    return sizeToWrite;
-  }
-
-  virtual void Unserialize(int index, const char *serializedData, int dataSize) {
-    char *newArray = new char[dataSize];
-    memcpy(newArray, serializedData, dataSize);
-    ccRegisterUnserializedObject(index, &newArray[8], this);
-  }
-
-  long Create(int numElements, int elementSize, bool isManagedType)
-  {
-    char *newArray = new char[numElements * elementSize + 8];
-    memset(newArray, 0, numElements * elementSize + 8);
-    long *sizePtr = (long*)newArray;
-    sizePtr[0] = numElements;
-    sizePtr[1] = numElements * elementSize;
-    if (isManagedType) 
-      sizePtr[0] |= ARRAY_MANAGED_TYPE_FLAG;
-    return ccRegisterManagedObject(&newArray[8], this);
-  }
-
-};
-CCDynamicArray globalDynamicArray;
 
 // *** MAIN CLASS CODE STARTS **
 
-#define OBJECT_CACHE_MAGIC_NUMBER 0xa30b
-#define SERIALIZE_BUFFER_SIZE 10240
-const int ARRAY_INCREMENT_SIZE = 100;
-const int GARBAGE_COLLECTION_INTERVAL = 100;
 
-struct ManagedObjectPool {
-  struct ManagedObject {
-    long handle;
-    const char *addr;
-    ICCDynamicObject * callback;
-    int  refCount;
 
-    void init(long theHandle, const char *theAddress, ICCDynamicObject *theCallback) {
-      handle = theHandle;
-      addr = theAddress;
-      callback = theCallback;
-      refCount = 0;
-
-#ifdef DEBUG_MANAGED_OBJECTS
-      char bufff[200];
-      sprintf(bufff,"Allocated managed object handle=%d, type=%s", theHandle, theCallback->GetType());
-      write_log(bufff);
-#endif
-    }
-
-    int remove(bool force) {
-
-      if ((callback != NULL) && (callback->Dispose(addr, force) == 0) &&
-          (force == false))
-        return 0;
-
-#ifdef DEBUG_MANAGED_OBJECTS
-      char bufff[200];
-      sprintf(bufff,"Line %d Disposing managed object handle=%d", currentline, handle);
-      write_log(bufff);
-#endif
-
-      handle = 0;
-      addr = 0;
-      callback = NULL;
-      return 1;
-    }
-
-    int AddRef() {
-
-#ifdef DEBUG_MANAGED_OBJECTS
-  char bufff[200];
-  sprintf(bufff,"Line %d AddRef: handle=%d new refcount=%d", currentline, handle, refCount+1);
-  write_log(bufff);
-#endif
-
-      return ++refCount;
-    }
-
-    int CheckDispose() {
-      if ((refCount < 1) && (callback != NULL)) {
-        if (remove(false))
-          return 1;
-      }
-      return 0;
-    }
-
-    int SubRef() {
-      refCount--;
-
-#ifdef DEBUG_MANAGED_OBJECTS
-  char bufff[200];
-  sprintf(bufff,"Line %d SubRef: handle=%d new refcount=%d", currentline, handle, refCount);
-  write_log(bufff);
-#endif
-
-      return CheckDispose();
-    }
-
-    void SubRefNoDispose() {
-      refCount--;
-
-#ifdef DEBUG_MANAGED_OBJECTS
-  char bufff[200];
-  sprintf(bufff,"Line %d SubRefNoDispose: handle=%d new refcount=%d", currentline, handle, refCount);
-  write_log(bufff);
-#endif
-    }
-  };
-private:
-
-  ManagedObject *objects;
-  int arrayAllocLimit;
-  int numObjects;  // not actually numObjects, but the highest index used
-  int objectCreationCounter;  // used to do garbage collection every so often
-
-public:
-
-  long AddRef(long handle) {
-    return objects[handle].AddRef();
-  }
-
-  int CheckDispose(long handle) {
-    return objects[handle].CheckDispose();
-  }
-
-  long SubRef(long handle) {
-    if ((disableDisposeForObject != NULL) && 
-        (objects[handle].addr == disableDisposeForObject))
-      objects[handle].SubRefNoDispose();
-    else
-      objects[handle].SubRef();
-    return objects[handle].refCount;
-  }
-
-  long AddressToHandle(const char *addr) {
-    // this function is only called when a pointer is set
-    // SLOW LOOP ALERT, improve at some point
-    for (int kk = 1; kk < arrayAllocLimit; kk++) {
-      if (objects[kk].addr == addr)
-        return objects[kk].handle;
-    }
-    return 0;
-  }
-
-  const char* HandleToAddress(long handle) {
-    // this function is called often (whenever a pointer is used)
-    if ((handle < 1) || (handle >= arrayAllocLimit))
-      return NULL;
-    if (objects[handle].handle == 0)
-      return NULL;
-    return objects[handle].addr;
-  }
-
-  int RemoveObject(const char *address) {
-    long handl = AddressToHandle(address);
-    if (handl == 0)
-      return 0;
-
-    objects[handl].remove(true);
-    return 1;
-  }
-
-  void RunGarbageCollectionIfAppropriate()
-  {
-    if (objectCreationCounter > GARBAGE_COLLECTION_INTERVAL)
-    {
-      objectCreationCounter = 0;
-      RunGarbageCollection();
-    }
-  }
-
-  void RunGarbageCollection()
-  {
-    //write_log("Running garbage collection");
-
-    for (int i = 1; i < numObjects; i++) 
-    {
-      if ((objects[i].refCount < 1) && (objects[i].callback != NULL)) 
-      {
-        objects[i].remove(false);
-      }
-    }
-  }
-
-  int AddObject(const char *address, ICCDynamicObject *callback, int useSlot = -1) {
-    if (useSlot == -1)
-      useSlot = numObjects;
-
-    objectCreationCounter++;
-
-    if (useSlot < arrayAllocLimit) {
-      // still space in the array, so use it
-      objects[useSlot].init(useSlot, address, callback);
-      if (useSlot == numObjects)
-        numObjects++;
-      return useSlot;
-    }
-    else {
-      // array has been used up
-      if (useSlot == numObjects) {
-        // if adding new (not un-serializing) check for empty slot
-        // check backwards, since newer objects don't tend to last
-        // long
-        for (int i = arrayAllocLimit - 1; i >= 1; i--) {
-          if (objects[i].handle == 0) {
-            objects[i].init(i, address, callback);
-            return i;
-          }
-        }
-      }
-      // no empty slots, expand array
-      while (useSlot >= arrayAllocLimit)
-        arrayAllocLimit += ARRAY_INCREMENT_SIZE;
-
-      objects = (ManagedObject*)realloc(objects, sizeof(ManagedObject) * arrayAllocLimit);
-      memset(&objects[useSlot], 0, sizeof(ManagedObject) * ARRAY_INCREMENT_SIZE);
-      objects[useSlot].init(useSlot, address, callback);
-      if (useSlot == numObjects)
-        numObjects++;
-      return useSlot;
-    }
-  }
-
-  void WriteToDisk(FILE *output) {
-    int serializeBufferSize = SERIALIZE_BUFFER_SIZE;
-    char *serializeBuffer = (char*)malloc(serializeBufferSize);
-
-    putw(OBJECT_CACHE_MAGIC_NUMBER, output);
-    putw(1, output);  // version
-    putw(numObjects, output);
-
-    // use this opportunity to clean up any non-referenced pointers
-    RunGarbageCollection();
-
-    for (int i = 1; i < numObjects; i++) 
-    {
-      if ((objects[i].handle) && (objects[i].callback != NULL)) {
-        // write the type of the object
-        fputstring((char*)objects[i].callback->GetType(), output);
-        // now write the object data
-        int bytesWritten = objects[i].callback->Serialize(objects[i].addr, serializeBuffer, serializeBufferSize);
-        if ((bytesWritten < 0) && ((-bytesWritten) > serializeBufferSize))
-        {
-          // buffer not big enough, re-allocate with requested size
-          serializeBufferSize = -bytesWritten;
-          serializeBuffer = (char*)realloc(serializeBuffer, serializeBufferSize);
-          bytesWritten = objects[i].callback->Serialize(objects[i].addr, serializeBuffer, serializeBufferSize);
-        }
-        putw(bytesWritten, output);
-        if (bytesWritten > 0)
-          fwrite(serializeBuffer, bytesWritten, 1, output);
-        putw(objects[i].refCount, output);
-      }
-      else  // write empty string if we cannot serialize it
-        fputc(0, output); 
-    }
-
-    free(serializeBuffer);
-  }
-
-  int ReadFromDisk(FILE *input, ICCObjectReader *reader) {
-    int serializeBufferSize = SERIALIZE_BUFFER_SIZE;
-    char *serializeBuffer = (char*)malloc(serializeBufferSize);
-    char typeNameBuffer[200];
-
-    if (getw(input) != OBJECT_CACHE_MAGIC_NUMBER) {
-      cc_error("Data was not written by ccSeralize");
-      return -1;
-    }
-
-    if (getw(input) != 1) {
-      cc_error("Invalid data version");
-      return -1;
-    }
-
-    int numObjs = getw(input);
-
-    if (numObjs >= arrayAllocLimit) {
-      arrayAllocLimit = numObjs + ARRAY_INCREMENT_SIZE;
-      free(objects);
-      objects = (ManagedObject*)calloc(sizeof(ManagedObject), arrayAllocLimit);
-    }
-    numObjects = numObjs;
-
-    for (int i = 1; i < numObjs; i++) {
-      fgetstring_limit(typeNameBuffer, input, 199);
-      if (typeNameBuffer[0] != 0) {
-        int numBytes = getw(input);
-        if (numBytes > serializeBufferSize) {
-          serializeBufferSize = numBytes;
-          serializeBuffer = (char*)realloc(serializeBuffer, serializeBufferSize);
-        }
-        if (numBytes > 0)
-          fread(serializeBuffer, numBytes, 1, input);
-
-        if (strcmp(typeNameBuffer, CC_DYNAMIC_ARRAY_TYPE_NAME) == 0)
-        {
-          globalDynamicArray.Unserialize(i, serializeBuffer, numBytes);
-        }
-        else
-        {
-          reader->Unserialize(i, typeNameBuffer, serializeBuffer, numBytes);
-        }
-        objects[i].refCount = getw(input);
-      }
-    }
-
-    free(serializeBuffer);
-    return 0;
-  }
-
-  void reset() {
-    // de-allocate all objects
-    for (int kk = 1; kk < arrayAllocLimit; kk++) {
-      if (objects[kk].handle)
-        objects[kk].remove(true);
-    }
-    memset(&objects[0], 0, sizeof(ManagedObject) * arrayAllocLimit);
-    numObjects = 1;
-  }
-
-  ManagedObjectPool() {
-    numObjects = 1;
-    arrayAllocLimit = 10;
-    objects = (ManagedObject*)calloc(sizeof(ManagedObject), arrayAllocLimit);
-    disableDisposeForObject = NULL;
-  }
-
-  const char* disableDisposeForObject;
-};
 
 struct SystemImports
 {
@@ -740,7 +375,6 @@ void nullfree(void *data)
     free(data);
 }
 
-ManagedObjectPool pool;
 SystemImports simp;
 
 #ifdef AGS_BIG_ENDIAN
@@ -1094,87 +728,25 @@ char *ccGetSymbolAddr(ccInstance * inst, char *symname)
   return NULL;
 }
 
-void ccSetStringClassImpl(ICCStringClass *theClass) {
-  stringClassImpl = theClass;
-}
 
-long ccRegisterManagedObject(const void *object, ICCDynamicObject *callback) {
-  long handl = pool.AddObject((const char*)object, callback);
 
-#ifdef DEBUG_MANAGED_OBJECTS
-  char bufff[200];
-  sprintf(bufff,"Register managed object type '%s' handle=%d addr=%08X", ((callback == NULL) ? "(unknown)" : callback->GetType()), handl, object);
-  write_log(bufff);
-#endif
 
-  return handl;
-}
 
-long ccRegisterUnserializedObject(int index, const void *object, ICCDynamicObject *callback) {
-  return pool.AddObject((const char*)object, callback, index);
-}
 
-int ccUnRegisterManagedObject(const void *object) {
-  return pool.RemoveObject((const char*)object);
-}
 
-void ccAttemptDisposeObject(long handle) {
-  if (pool.HandleToAddress(handle) != NULL)
-    pool.CheckDispose(handle);
-}
 
-void ccUnregisterAllObjects() {
-  pool.reset();
-}
 
-void ccSerializeAllObjects(FILE *output) {
-  pool.WriteToDisk(output);
-}
 
-int ccUnserializeAllObjects(FILE *input, ICCObjectReader *callback) {
-  // un-register all existing objects, ready for the un-serialization
-  ccUnregisterAllObjects();
-  return pool.ReadFromDisk(input, callback);
-}
 
-long ccGetObjectHandleFromAddress(const char *address) {
-  // set to null
-  if (address == NULL)
-    return 0;
 
-  long handl = pool.AddressToHandle(address);
 
-#ifdef DEBUG_MANAGED_OBJECTS
-  char bufff[200];
-  sprintf(bufff,"Line %d WritePtr: %08X to %d", currentline, address, handl);
-  write_log(bufff);
-#endif
 
-  if (handl == 0) {
-    cc_error("Pointer cast failure: the object being pointed to is not in the managed object pool");
-    return -1;
-  }
-  return handl;
-}
 
-const char *ccGetObjectAddressFromHandle(long handle) {
-  if (handle == 0) {
-    return NULL;
-  }
-  const char *addr = pool.HandleToAddress(handle);
 
-#ifdef DEBUG_MANAGED_OBJECTS
-  char bufff[200];
-  sprintf(bufff,"Line %d ReadPtr: %d to %08X", currentline, handle, addr);
-  write_log(bufff);
-#endif
 
-  if (addr == NULL) {
-    cc_error("Error retrieving pointer: invalid handle %d", handle);
-    return NULL;
-  }
-  return addr;
-}
+
+
+
 
 int ccAddObjectReference(long handle) {
   if (handle == 0)
@@ -1194,6 +766,9 @@ int ccReleaseObjectReference(long handle) {
 
   return pool.SubRef(handle);
 }
+
+
+
 
 new_line_hook_type new_line_hook = NULL;
 
@@ -2031,125 +1606,7 @@ void ccAbortAndDestroyInstance(ccInstance * inst)
   }
 }
 
-void freadstring(char **strptr, FILE * iii)
-{
-  static char ibuffer[300];
-  int idxx = 0;
 
-  while ((ibuffer[idxx] = fgetc(iii)) != 0)
-    idxx++;
 
-  if (ibuffer[0] == 0) {
-    strptr[0] = NULL;
-    return;
-  }
 
-  strptr[0] = (char *)malloc(strlen(ibuffer) + 1);
-  strcpy(strptr[0], ibuffer);
-}
 
-long fget_long(FILE * iii)
-{
-  long tmpp;
-  fread(&tmpp, 4, 1, iii);
-  return tmpp;
-}
-
-ccScript *fread_script(FILE * ooo)
-{
-  ccScript *scri = (ccScript *) malloc(sizeof(ccScript));
-  scri->instances = 0;
-  int n;
-  char gotsig[5];
-  currentline = -1;
-  // MACPORT FIX: swap 'size' and 'nmemb'
-  fread(gotsig, 1, 4, ooo);
-  gotsig[4] = 0;
-
-  int fileVer = fget_long(ooo);
-
-  if ((strcmp(gotsig, scfilesig) != 0) || (fileVer > SCOM_VERSION)) {
-    cc_error("file was not written by fwrite_script or seek position is incorrect");
-    free(scri);
-    return NULL;
-  }
-
-  scri->globaldatasize = fget_long(ooo);
-  scri->codesize = fget_long(ooo);
-  scri->stringssize = fget_long(ooo);
-
-  if (scri->globaldatasize > 0) {
-    scri->globaldata = (char *)malloc(scri->globaldatasize);
-    // MACPORT FIX: swap
-    fread(scri->globaldata, sizeof(char), scri->globaldatasize, ooo);
-  }
-  else
-    scri->globaldata = NULL;
-
-  if (scri->codesize > 0) {
-    scri->code = (long *)malloc(scri->codesize * sizeof(long));
-    // MACPORT FIX: swap
-    fread(scri->code, sizeof(long), scri->codesize, ooo);
-  }
-  else
-    scri->code = NULL;
-
-  if (scri->stringssize > 0) {
-    scri->strings = (char *)malloc(scri->stringssize);
-    // MACPORT FIX: swap
-    fread(scri->strings, sizeof(char), scri->stringssize, ooo);
-  } 
-  else
-    scri->strings = NULL;
-
-  scri->numfixups = fget_long(ooo);
-  if (scri->numfixups > 0) {
-    scri->fixuptypes = (char *)malloc(scri->numfixups);
-    scri->fixups = (long *)malloc(scri->numfixups * sizeof(long));
-    // MACPORT FIX: swap 'size' and 'nmemb'
-    fread(scri->fixuptypes, sizeof(char), scri->numfixups, ooo);
-    fread(scri->fixups, sizeof(long), scri->numfixups, ooo);
-  }
-  else {
-    scri->fixups = NULL;
-    scri->fixuptypes = NULL;
-  }
-
-  scri->numimports = fget_long(ooo);
-
-  scri->imports = (char**)malloc(sizeof(char*) * scri->numimports);
-  for (n = 0; n < scri->numimports; n++)
-    freadstring(&scri->imports[n], ooo);
-
-  scri->numexports = fget_long(ooo);
-  scri->exports = (char**)malloc(sizeof(char*) * scri->numexports);
-  scri->export_addr = (long*)malloc(sizeof(long) * scri->numexports);
-  for (n = 0; n < scri->numexports; n++) {
-    freadstring(&scri->exports[n], ooo);
-    scri->export_addr[n] = fget_long(ooo);
-  }
-
-  if (fileVer >= 83) {
-    // read in the Sections
-    scri->numSections = fget_long(ooo);
-    scri->sectionNames = (char**)malloc(scri->numSections * sizeof(char*));
-    scri->sectionOffsets = (long*)malloc(scri->numSections * sizeof(long));
-    for (n = 0; n < scri->numSections; n++) {
-      freadstring(&scri->sectionNames[n], ooo);
-      scri->sectionOffsets[n] = fget_long(ooo);
-    }
-  }
-  else
-  {
-    scri->numSections = 0;
-    scri->sectionNames = NULL;
-    scri->sectionOffsets = NULL;
-  }
-
-  if (fget_long(ooo) != ENDFILESIG) {
-    cc_error("internal error rebuilding script");
-    free(scri);
-    return NULL;
-  }
-  return scri;
-}

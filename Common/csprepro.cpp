@@ -2,83 +2,16 @@
 */
 #include <stdio.h>
 #include <stdlib.h>
-#include <String.h>
+#include <string.h>
 #include "cscomp.h"
 
 #include "csprepro.h"
 
 // ******* BEGIN PREPROCESSOR CODE ************
 
-const char *ccSoftwareVersion = "1.0";
 
-#define MAX_LINE_LENGTH 500
-#define MAXDEFINES 1500
-struct MacroTable {
-  int num;
-  char*name[MAXDEFINES];
-  char*macro[MAXDEFINES];
-  void init() {
-    num=0; }
-  void shutdown();
-  int  find_name(char*);
-  void add(char*,char*);
-  void remove(int index);
-  void merge(MacroTable *);
 
-  MacroTable() {
-    init();
-  }
-};
-void MacroTable::shutdown() {
-  int rr;
-  for (rr=0;rr<num;rr++) {
-    free(macro[rr]);
-    free(name[rr]);
-    macro[rr]=NULL;
-    name[rr]=NULL;
-  }
-  num = 0;
-}
-void MacroTable::merge(MacroTable *others) {
 
-  for (int aa = 0; aa < others->num; aa++) {
-    this->add(others->name[aa], others->macro[aa]);
-  }
-
-}
-int MacroTable::find_name(char* namm) {
-  int ss;
-  for (ss=0;ss<num;ss++) {
-    if (strcmp(namm,name[ss])==0) return ss;
-    }
-  return -1;
-  }
-void MacroTable::add(char*namm,char*mac) {
-  if (find_name(namm) >= 0) {
-    cc_error("macro '%s' already defined",namm);
-    return;
-    }
-  if (num>=MAXDEFINES) {
-    cc_error("too many macros defined");
-    return;
-    }
-  name[num]=(char*)malloc(strlen(namm)+5);
-  strcpy(name[num],namm);
-  macro[num]=(char*)malloc(strlen(mac)+5);
-  strcpy(macro[num],mac);
-  num++;
-  }
-void MacroTable::remove(int index) {
-  if ((index < 0) || (index >= num)) {
-    cc_error("MacroTable::Remove: index out of range");
-    return;
-  }
-  // just blank out the entry, don't bother to remove it
-  name[index][0] = 0;
-  macro[index][0] = 0;
-}
-
-MacroTable macros;
 
 #define MAX_NESTED_IFDEFS 10
 char nested_if_include[MAX_NESTED_IFDEFS];
@@ -91,32 +24,7 @@ int deletingCurrentLine() {
   return 0;
 }
 
-int is_whitespace(char cht) {
-  // space, tab, EOF, VT (dunno, Chrille had this char appearing)
-  if ((cht==' ') || (cht==9) || (cht == 26) || (cht == 11)) return 1;
-  return 0;
-  }
 
-void skip_whitespace(char**pttt) {
-  char*mpt=pttt[0];
-  while (is_whitespace(mpt[0])) mpt++;
-  pttt[0]=mpt;
-  }
-
-int is_digit(int chrac) {
-  if ((chrac >= '0') && (chrac <= '9')) return 1;
-  return 0;
-}
-
-int is_alphanum(int chrac) {
-  if ((chrac>='A') & (chrac<='Z')) return 1;
-  if ((chrac>='a') & (chrac<='z')) return 1;
-  if ((chrac>='0') & (chrac<='9')) return 1;
-  if (chrac == '_') return 1;
-  if (chrac == '\"') return 1;
-  if (chrac == '\'') return 1;
-  return 0;
-  }
 
 void get_next_word(char*stin,char*wo, bool includeDots = false) {
   if (stin[0] == '\"') {
@@ -453,13 +361,7 @@ void cc_preprocess(const char *inpu,char*outp) {
  
 }
 
-void preproc_shutdown() {
-  macros.shutdown();
-  }
-void preproc_startup(MacroTable *preDefinedMacros) {
-  macros.init();
-  if (preDefinedMacros)
-    macros.merge(preDefinedMacros);
-}
+
+
 
 // ***** END PREPROCESSOR CODE *********

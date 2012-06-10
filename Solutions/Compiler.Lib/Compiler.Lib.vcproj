@@ -155,10 +155,6 @@
 				RelativePath="..\..\Common\csparser.cpp"
 				>
 			</File>
-			<File
-				RelativePath="..\..\Common\fmem.cpp"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -171,10 +167,6 @@
 			</File>
 			<File
 				RelativePath="..\..\Common\csprepro.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Common\fmem.h"
 				>
 			</File>
 		</Filter>

@@ -22,8 +22,6 @@ Task: split up acroom.h in following substeps:
 acroom part into *.cpp.
 4. Separate the definition and implementation from "functions" acroom part
 into *.cpp. Split any Engine/AGS.Native specific code left.
-5. Proceed further to separate declarations and implementation in both parts
-to logical units (as far as applicable).
 
 Result:
     acroom.h            - a common header file, should not be included directly;
@@ -47,9 +45,27 @@ Linkage:
 Task: split up wgt2allg.h similar to acroom.h (should be easier though):
 1. Separate the code under WGT2ALLEGRO_NOFUNCTIONS macro control.
 2. Move the implementation to wgt2allg.cpp.
-3. Proceed further to separate declarations and implementation to logical units
-(if applicable).
 
+Result:
+    wgt2allg.h          - a first part of common header, should not be included directly;
+    wgt2allg_2.h        - a second part of common header, should not be included directly;
+    wgt2allg_nofunc.h   - header file for modules that do not need wgt2allg functions;
+    wgt2allg_func.h     - header file for modules that need wgt2allg functions;
+    
+    wgt2allg.cpp        - contains function implementations from wgt2allg;
+    
+Linkage:
+
+    Common.Lib:         wgt2allg.cpp
+    Engine.App:         wgt2allg.cpp (via Common.Lib)
+    AGS.Native:         wgt2allg.cpp (via Common.Lib)
+    
+
+//-----------------------------------------------------------------------------
+// step 3 -- splitting Common.Lib headers and modules
+//-----------------------------------------------------------------------------
+
+Task: split up headers and source files into logical units.
 
 
 
@@ -58,3 +74,5 @@ Task: split up wgt2allg.h similar to acroom.h (should be easier though):
 //=============================================================================
 
 WGT2ALLEGRO_NOFUNCTIONS - usage similar to CROOM_NOFUNCTIONS
+
+ALLEGRO_BIG_ENDIAN - must test compilation of libs with this macro defined

@@ -200,10 +200,6 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="..\..\Common\acgfx.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\Common\acroom.h"
 				>
 			</File>
@@ -251,6 +247,66 @@
 				RelativePath="..\..\Common\wgt2allg_nofunc.h"
 				>
 			</File>
+			<Filter
+				Name="acroom"
+				>
+				<File
+					RelativePath="..\..\Common\acroom\acroom_action.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\acroom\acroom_audio.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\acroom\acroom_core.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\acroom\acroom_defines.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\acroom\acroom_dialog.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\acroom\acroom_gamestruct.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\acroom\acroom_interaction.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\acroom\acroom_lipsync.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\acroom\acroom_move.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\acroom\acroom_object.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\acroom\acroom_properties.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\acroom\acroom_room.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\acroom\acroom_script.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\acroom\acroom_view.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 	</Files>
 	<Globals>

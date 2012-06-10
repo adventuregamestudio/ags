@@ -369,6 +369,42 @@
 				RelativePath="..\..\Common\wgt2allg_nofunc.h"
 				>
 			</File>
+			<Filter
+				Name="acroom"
+				>
+				<File
+					RelativePath="..\..\Common\acroom\acroom_func_action.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\acroom\acroom_func_compress.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\acroom\acroom_func_core.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\acroom\acroom_func_dictionary.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\acroom\acroom_func_gamestruct.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\acroom\acroom_func_interaction.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\acroom\acroom_func_room.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\acroom\acroom_func_script.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Resource Files"

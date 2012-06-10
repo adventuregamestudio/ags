@@ -31,13 +31,11 @@
 #include "acroom.h"
 #include "compress.h"
 
-extern char *croom_h_copyright;
-extern char *game_file_sig;
-#define GAME_FILE_VERSION 42
-extern block backups[5];
+//=============================================================================
+#include "acroom/acroom_func_core.h"
+//=============================================================================
 
-
-extern int cunpackbitl(unsigned char *, int size, FILE *infile);
+//extern int cunpackbitl(unsigned char *, int size, FILE *infile);
 
 /*long cloadcompfile(FILE*outpt,block tobesaved,color*pal,long poot=0);
   }*/
@@ -52,97 +50,25 @@ extern int cunpackbitl(unsigned char *, int size, FILE *infile);
 //void CustomProperties::Serialize (FILE *outto);
 //int CustomProperties::UnSerialize (FILE *infrom);
 
-
-extern int in_interaction_editor;
-
-
-//void WordsDictionary::sort ();
-//int WordsDictionary::find_index (const char*wrem);
-
-extern ActionTypes actions[NUM_ACTION_TYPES];
-extern InteractionVariable globalvars[MAX_GLOBAL_VARIABLES];
-extern int numGlobalVars;
-
-void serialize_command_list (NewInteractionCommandList *nicl, FILE*ooo);
-void serialize_new_interaction (NewInteraction *nint, FILE*ooo);
-NewInteractionCommandList *deserialize_command_list (FILE *ooo);
-
-extern NewInteraction *nitemp;
-NewInteraction *deserialize_new_interaction (FILE *ooo);
-
-//void NewInteractionCommandList::reset ();
+//=============================================================================
+#include "acroom/acroom_func_action.h"
+//=============================================================================
+#include "acroom/acroom_func_interaction.h"
+//=============================================================================
 
 
 
-extern int ff;
-/*void roomstruct::allocall();
-*/
-//void roomstruct::freemessage();
-/*void roomstruct::freeall();
-}*/
-/*void roomstruct::freeall();*/
 
-struct room_file_header {
-  short version PCKD;
-  
-#ifdef ALLEGRO_BIG_ENDIAN
-  void ReadFromFile(FILE *fp)
-  {
-    version = __getshort__bigendian(fp);
-  }
-#endif
-};
+//=============================================================================
+#include "acroom/acroom_func_compress.h"
+//=============================================================================
+#include "acroom/acroom_func_script.h"
+//=============================================================================
+#include "acroom/acroom_func_dictionary.h"
+//=============================================================================
 
-extern int _acroom_bpp;  // bytes per pixel of currently loading room
-
-// returns bytes per pixel for bitmap's color depth
-extern int bmp_bpp(BITMAP*bmpt);
-
-
-extern void update_polled_stuff_if_runtime();
-//#ifdef LOADROOM_DO_POLL
-//extern void update_polled_stuff();
-//#else
-//static void update_polled_stuff() { }
-//#endif
-
-#if defined(LINUX_VERSION) || defined(MAC_VERSION) || defined(DJGPP) || defined(_MSC_VER)
-extern void lzwcompress(FILE *,FILE *);
-extern void lzwexpand(FILE *,FILE *);
-extern unsigned char *lzwexpand_to_mem(FILE *);
-extern long maxsize, outbytes, putbytes;
-extern char *lztempfnm;
-
-extern long save_lzw(char *fnn, BITMAP *bmpp, color *pall, long offe);
-extern BITMAP *recalced;
-/*long load_lzw(char*fnn,BITMAP*bmm,color*pall,long ooff);*/
-extern long load_lzw(FILE *iii, BITMAP *bmm, color *pall);
-extern long savecompressed_allegro(char *fnn, BITMAP *bmpp, color *pall, long ooo);
-extern long loadcompressed_allegro(FILE *fpp, BITMAP **bimpp, color *pall, long ooo);
-#endif // LINUX_VERSION || MAC_VERSION || DJGPP || _MSC_VER
-
-#define BLOCKTYPE_MAIN        1
-#define BLOCKTYPE_SCRIPT      2
-#define BLOCKTYPE_COMPSCRIPT  3
-#define BLOCKTYPE_COMPSCRIPT2 4
-#define BLOCKTYPE_OBJECTNAMES 5
-#define BLOCKTYPE_ANIMBKGRND  6
-#define BLOCKTYPE_COMPSCRIPT3 7     // new CSCOMP script instead of SeeR
-#define BLOCKTYPE_PROPERTIES  8
-#define BLOCKTYPE_OBJECTSCRIPTNAMES 9
-#define BLOCKTYPE_EOF         0xff
-
-extern void load_script_configuration(FILE *);
-extern void save_script_configuration(FILE *);
-extern void load_graphical_scripts(FILE *, roomstruct *);
-extern void save_graphical_scripts(FILE *, roomstruct *);
-extern char *passwencstring;;
-
-extern void decrypt_text(char*toenc);
-extern void read_string_decrypt(FILE *ooo, char *sss);
-extern void read_dictionary (WordsDictionary *dict, FILE *writeto);
-extern void freadmissout(short *pptr, FILE *opty);
-
+//
+// These defines are not used anywhere!
 #define HS_STANDON    0
 #define HS_LOOKAT     1
 #define HS_INTERACT   2
@@ -152,14 +78,14 @@ extern void freadmissout(short *pptr, FILE *opty);
 #define OBJ_INTERACT  1
 #define OBJ_TALKTO    2
 #define OBJ_USEINV    3
+//
+//
 
-extern void add_to_eventblock(EventBlock *evpt, int evnt, int whatac, int val1, int data, short scorr);
-extern int usesmisccond;
+//=============================================================================
+#include "acroom/acroom_func_room.h"
+//=============================================================================
 
-void deserialize_interaction_scripts(FILE *iii, InteractionScripts *scripts);
 
-extern void load_main_block(roomstruct *rstruc, char *files, FILE *opty, room_file_header rfh);
-extern void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes);
 //void ViewStruct::Initialize(int loopCount);
 //void ViewStruct::Dispose();
 //void ViewStruct::WriteToFile(FILE *ooo);
@@ -175,10 +101,9 @@ extern void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes);
 //int CharacterInfo::get_blocking_bottom();
 
 
-#define COPY_CHAR_VAR(name) ci->name = oci->name
-void ConvertOldCharacterToNew (OldCharacterInfo *oci, CharacterInfo *ci);
-void ConvertOldGameStruct (OldGameSetupStruct *ogss, GameSetupStruct *gss);
-void Convert272ViewsToNew (int numof, ViewStruct272 *oldv, ViewStruct *newv);
+//=============================================================================
+#include "acroom/acroom_func_gamestruct.h"
+//=============================================================================
 
 
 #endif // __CROOM_FUNC_H

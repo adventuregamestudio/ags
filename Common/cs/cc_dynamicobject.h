@@ -10,11 +10,12 @@
 **
 */
 
-#ifndef __CS_OBJECT_H
-#define __CS_OBJECT_H
+#ifndef __CC_DYNAMICOBJECT_H
+#define __CC_DYNAMICOBJECT_H
+
 
 // OBJECT-BASED SCRIPTING RUNTIME FUNCTIONS
-// interface 
+// interface
 struct ICCDynamicObject {
     // when a ref count reaches 0, this is called with the address
     // of the object. Return 1 to remove the object from memory, 0 to
@@ -26,6 +27,7 @@ struct ICCDynamicObject {
     // return number of bytes used
     virtual int Serialize(const char *address, char *buffer, int bufsize) = 0;
 };
+
 struct ICCObjectReader {
     virtual void Unserialize(int index, const char *objectType, const char *serializedData, int dataSize) = 0;
 };
@@ -53,4 +55,4 @@ extern void  ccAttemptDisposeObject(long handle);
 extern long  ccGetObjectHandleFromAddress(const char *address);
 extern const char *ccGetObjectAddressFromHandle(long handle);
 
-#endif
+#endif // __CC_DYNAMICOBJECT_H

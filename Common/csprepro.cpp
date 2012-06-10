@@ -5,6 +5,8 @@
 #include <String.h>
 #include "cscomp.h"
 
+#include "csprepro.h"
+
 // ******* BEGIN PREPROCESSOR CODE ************
 
 const char *ccSoftwareVersion = "1.0";

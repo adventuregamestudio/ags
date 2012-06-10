@@ -18,9 +18,14 @@
 
 #include "cs/cs_common.h"
 #include "cs/cs_compiler.h"
-#include "cs/cs_object.h"
+//=============================================================================
+#include "cs/cc_dynamicobject.h"
+//=============================================================================
 #include "cs/cs_runtime.h"
-#include "cs/cs_misc.h"
+//=============================================================================
+#include "cs/cc_options.h"
+#include "cs/cc_error.h"
+//=============================================================================
 #include "cs/cs_internal.h"
 
 #endif // __CSCOMP_H

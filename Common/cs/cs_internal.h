@@ -16,13 +16,12 @@
 // *
 // ***************** INTERNAL USE ONLY *******************
 // *
+
+// [IKM] 2012-06-10: What does 'internal' mean here? these functions
+// are used all around the place, both in compiler and runtime.
+
 extern void cc_error(char *, ...);
 extern int currentline;
-
-extern int is_alphanum(int);
-extern void cc_preprocess(char *, char *);
-extern void preproc_startup(void);
-extern void preproc_shutdown(void);
 
 extern int ccAddObjectReference(long handle);
 extern int ccReleaseObjectReference(long handle);
@@ -39,30 +38,9 @@ extern void fgetstring(char *sss, FILE *ddd);
 #define EXPORT_FUNCTION   1
 #define EXPORT_DATA       2
 
-struct ICompareStrings {
-    virtual int compare(const char *left, const char *right) {
-        return strcmp(left, right);
-    }
-};
-
-// Binary tree structure for holding strings, allows fast access
-struct ccTreeMap {
-    ccTreeMap *left, *right;
-    const char *text;
-    int value;
-
-    ccTreeMap();
-    ccTreeMap *findNode(const char *key, ICompareStrings *comparer);
-    int findValue(const char* key, ICompareStrings *comparer);
-    int findValue(const char* key);
-    void Clone(ccTreeMap *node);
-    void removeNode();
-    void removeEntry(const char *key);
-    void addEntry(const char* ntx, int p_value);
-    void destroyNonRecursive();
-    void clear();
-    ~ccTreeMap();
-};
+//=============================================================================
+#include "cc_treemap.h"
+//=============================================================================
 
 
 static char *sccmdnames[] = {

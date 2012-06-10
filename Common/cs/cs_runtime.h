@@ -13,9 +13,10 @@
 #ifndef __CS_RUNTIME_H
 #define __CS_RUNTIME_H
 
+#include "cc_script.h"      // ccScript
+#include "cc_instance.h"    // ccInstance
+
 // ************ SCRIPT LOADING AND RUNNING FUNCTIONS ************
-// read back a script written with fwrite_script
-extern ccScript *fread_script(FILE *);
 
 // give the script access to a variable or function in your program
 extern void ccAddExternalSymbol(char *, void *);
@@ -44,8 +45,6 @@ extern void ccRemoveAllSymbols();
 extern void ccSetScriptAliveTimer (int);
 // reset the current while loop counter
 extern void ccNotifyScriptStillAlive ();
-
-
 
 // DEBUG HOOK
 typedef void (*new_line_hook_type) (ccInstance *, int);

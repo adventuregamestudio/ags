@@ -307,6 +307,30 @@
 				Name="cs"
 				>
 				<File
+					RelativePath="..\..\Common\cs\cc_dynamicobject.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cc_error.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cc_instance.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cc_options.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cc_script.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cc_treemap.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\cs\cs_common.h"
 					>
 				</File>
@@ -316,14 +340,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\cs\cs_internal.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cs_misc.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cs_object.h"
 					>
 				</File>
 				<File

@@ -80,3 +80,8 @@ WGT2ALLEGRO_NOFUNCTIONS - usage similar to CROOM_NOFUNCTIONS
 
 ALLEGRO_BIG_ENDIAN - must test compilation of libs with this macro defined
 
+Question: why does the runtime script interpreter (csrun.cpp) needed to be shared?
+What use does it have for AGS.Native?
+
+Engine sends messages to debugger either via files or named pipes;
+IAGSEditorDebugger interface is used to make a call.

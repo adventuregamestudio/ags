@@ -16,73 +16,6 @@
 #define SCOM_VERSION 89
 #define SCOM_VERSIONSTR "0.89"
 
-struct ccScript
-{
-    char *globaldata;
-    long globaldatasize;
-    long *code;
-    long codesize;
-    char *strings;
-    long stringssize;
-    char *fixuptypes;             // global data/string area/ etc
-    long *fixups;                 // code array index to fixup (in longs)
-    int numfixups;
-    int importsCapacity;
-    char **imports;
-    int numimports;
-    int exportsCapacity;
-    char **exports;   // names of exports
-    long *export_addr;        // high byte is type; low 24-bits are offset
-    int numexports;
-    int instances;
-    // 'sections' allow the interpreter to find out which bit
-    // of the code came from header files, and which from the main file
-    char **sectionNames;
-    long *sectionOffsets;
-    int numSections;
-    int capacitySections;
-};
-
-#define SREG_SP           1     // stack pointer
-#define SREG_MAR          2     // memory address register
-#define SREG_AX           3     // general purpose
-#define SREG_BX           4
-#define SREG_CX           5
-#define SREG_OP           6    // object pointer for member func calls
-#define SREG_DX           7
-#define CC_NUM_REGISTERS  8
-#define INSTF_SHAREDATA   1
-#define INSTF_ABORTED     2
-#define INSTF_FREE        4
-#define INSTF_RUNNING     8   // set by main code to confirm script isn't stuck
-#define CC_STACK_SIZE     4000
-#define MAX_CALL_STACK    100
-
-struct ccInstance
-{
-    long flags;
-    char *globaldata;
-    long globaldatasize;
-    unsigned long *code;
-    ccInstance *runningInst;  // might point to another instance if in far call
-    long codesize;
-    char *strings;
-    long stringssize;
-    char **exportaddr;  // real pointer to export
-    char *stack;
-    long stacksize;
-    long registers[CC_NUM_REGISTERS];
-    long pc;                        // program counter
-    long line_number;               // source code line number
-    ccScript *instanceof;
-    long callStackLineNumber[MAX_CALL_STACK];
-    long callStackAddr[MAX_CALL_STACK];
-    ccInstance *callStackCodeInst[MAX_CALL_STACK];
-    int  callStackSize;
-    int  loadedInstanceId;
-    int  returnValue;
-};
-
 // virtual CPU commands
 #define SCMD_ADD          1     // reg1 += arg2
 #define SCMD_SUB          2     // reg1 -= arg2
@@ -157,5 +90,10 @@ struct ccInstance
 #define SCMD_DYNAMICBOUNDS 71   // check reg1 is between 0 and m[MAR-4]
 #define SCMD_NEWARRAY     72    // reg1 = new array of reg1 elements, each of size arg2 (arg3=managed type?)
 
+
+//=============================================================================
+#include "cc_script.h"
+#include "cc_instance.h"
+//=============================================================================
 
 #endif // __CS_COMMON_H

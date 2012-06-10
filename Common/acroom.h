@@ -31,6 +31,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+
 #include "cscomp.h"
 
 // MACPORT FIX: endian support

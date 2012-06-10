@@ -5,6 +5,9 @@
 Once the source files are distributed between the libraries it is time for
 module splitting. Ideally there should be one module (*.h/*.cpp pair) per
 logical union of functions, class and logical union of structs or other declarations.
+There's also a need to make sure Common lib modules do not have anything strictly
+specific to either runtime or editor left in them.
+
 At the moment there are several *.h and *.cpp files that contain abnormal amount
 of code, in the first instance - acroom.h and ac.cpp.
 
@@ -76,3 +79,4 @@ Task: split up headers and source files into logical units.
 WGT2ALLEGRO_NOFUNCTIONS - usage similar to CROOM_NOFUNCTIONS
 
 ALLEGRO_BIG_ENDIAN - must test compilation of libs with this macro defined
+

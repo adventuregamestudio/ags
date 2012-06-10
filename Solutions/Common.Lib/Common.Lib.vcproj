@@ -220,10 +220,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\Common\fmem.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\Common\misc.h"
 				>
 			</File>
@@ -304,6 +300,34 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\acroom\acroom_view.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="cs"
+				>
+				<File
+					RelativePath="..\..\Common\cs\cs_common.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cs_compiler.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cs_internal.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cs_misc.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cs_object.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cs_runtime.h"
 					>
 				</File>
 			</Filter>

@@ -52,8 +52,7 @@ building the package.
 
 Install build dependencies and devscripts:
 
-    sudo apt-get install devscripts debhelper pkg-config liballegro4.2-dev
-libaldmb1-dev libfreetype6-dev libtheora-dev libvorbis-dev libogg-dev
+    sudo apt-get install devscripts debhelper pkg-config liballegro4.2-dev libaldmb1-dev libfreetype6-dev libtheora-dev libvorbis-dev libogg-dev
 
 Build the package and install it and its dependencies with gdebi:
 

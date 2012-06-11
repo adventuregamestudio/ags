@@ -100,7 +100,7 @@ or
 
     ags game.exe
 
-The configuration file acsetup.cfg in the game directory will be used
+The configuration file **acsetup.cfg** in the game directory will be used
 if present.
 
 For midi music playback, you have to download GUS patches. We recommend
@@ -112,4 +112,4 @@ A direct link is here:
 
 http://www.eglebbk.dds.nl/program/download/digmid.dat
 
-Rename that file to "patches.dat" and place it directly into your home folder.
+Rename that file to **patches.dat** and place it directly into your home folder.

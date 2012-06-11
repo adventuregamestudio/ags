@@ -38,12 +38,12 @@ is available on official firmwares. It also requires kernel mode if run with the
 ####Playable with restrictions:
 
 -   Quest for Glory II Remake: Very close to the memory limit. You have to set
-    "clear_cache_on_room_change=1" and "enable_extra_memory=1" in the configuration
+    `clear_cache_on_room_change=1` and `enable_extra_memory=1` in the configuration
     file. The game might still crash later on, this is not fully tested.
 -   Fountain of Youth Demo: The save/load dialog has a very low framerate, but
     otherwise the game runs fine.
 -   The McCarthy Chronicles: In the games option menu, disable reflections to increase
-    the frame rate. It is also recommended to move the "film grain" slider fully
+    the frame rate. It is also recommended to move the *"film grain"* slider fully
     to the left.
 -   The Journey Down: The outro sequence will run with a very low frame rate.
 -   Aeronuts: The plane arcade sections are slow but playable.
@@ -62,27 +62,31 @@ is available on official firmwares. It also requires kernel mode if run with the
 ##How to run games:
 
 1.  Copy the original game folder into the Eboot directory.
-    E.g. if you want to run the game "Demo Quest" you put the games files into
-    the folder "x:\PSP\GAME\ags\Demo Quest\" (drive letter and PSP game folder
+    E.g. if you want to run the game *Demo Quest* you put the games files into
+    the folder **x:\PSP\GAME\ags\Demo Quest\** (drive letter and PSP game folder
     is dependent on your configuration).
     NOTE: If the game is created with an incompatible engine version, this will
     be indicated in the games list.
 2.  If you only want to run a single game, put the data files directly into the
-    folder with the Eboot and rename the main game executable to "ac2game.dat".
+    folder with the Eboot and rename the main game executable to **ac2game.dat**.
     It will then autostart this game.
 3.  For midi music playback, you have to download GUS patches and place them
     in the Eboot directory. I recommend going to this address:
+
     http://alleg.sourceforge.net/digmid.html
+
     and downloading "Richard Sanders's GUS patches". A direct link is here:
+
     http://www.eglebbk.dds.nl/program/download/digmid.dat
-    Rename that file to "patches.dat" and place it in the same directory as the Eboot.
+
+    Rename that file to **patches.dat** and place it in the same directory as the Eboot.
     Advanced users can also download other patchsets. The configuration file
-    must be named "default.cfg" and placed in the Eboot directory.
+    must be named **default.cfg** and placed in the Eboot directory.
 
 
 ##The configuration file:
 
-You can customize the behaviour of the runtime by placing a file "psp.cfg" in the
+You can customize the behaviour of the runtime by placing a file **psp.cfg** in the
 Eboot directory or the directory of the game you want to run. A config file in
 the game directory will overwrite the settings from the global configuration file.
 
@@ -174,12 +178,12 @@ the game directory will overwrite the settings from the global configuration fil
     -   You need MinPSPW 0.11 for Windows or Linux.
     -   You also need the M33 SDK from 4.01 M33 or from PRO CFW.
     -   The sources for the AGS port are available from here:
-        "http://gitorious.org/~jjs/ags-for-psp"
-    -   Typing "make" in the "PSP" folder will build all files necessary and put them
-        into the "PSP/bin" folder.
+        http://github.com/adventuregamestudio/ags
+    -   Typing `make` in the **PSP** folder will build all files necessary and put them
+        into the **PSP/bin** folder.
 
 2.  Building the libraries:
-    -   Check the file "readme.txt" in the "patches" folder.
+    -   Check the file **readme.txt** in the **patches** folder.
 
 
 ##Main source code changes from the PC version (also check the commit log of the git repository):

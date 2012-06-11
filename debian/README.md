@@ -106,10 +106,10 @@ if present.
 For midi music playback, you have to download GUS patches. We recommend
 "Richard Sanders's GUS patches" from this address:
 
-    http://alleg.sourceforge.net/digmid.html
+http://alleg.sourceforge.net/digmid.html
 
 A direct link is here:
 
-    http://www.eglebbk.dds.nl/program/download/digmid.dat
+http://www.eglebbk.dds.nl/program/download/digmid.dat
 
 Rename that file to "patches.dat" and place it directly into your home folder.

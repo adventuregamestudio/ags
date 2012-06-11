@@ -12,6 +12,8 @@ Build-Depends: debhelper (>= 8.0.0),
                libogg-dev
 Standards-Version: 3.9.3
 Homepage: https://github.com/adventuregamestudio/ags
+Vcs-Git: git://github.com/adventuregamestudio/ags.git
+Vcs-Browser: https://github.com/adventuregamestudio/ags
 
 Package: ags
 Architecture: any

@@ -13,6 +13,8 @@
 #include "acroom_nofunc.h"
 #include "acruntim.h"
 
+#include "cs/cs_runtime.h"
+
 extern int psp_is_old_datafile;
 
 extern "C" {

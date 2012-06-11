@@ -9,10 +9,14 @@ see the license.txt for details.
 */
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include "NativeMethods.h"
 #include "scripting.h"
-#include "cscomp.h"
+//#include "cscomp.h"
+#include "cs/cs_compiler.h"
+#include "cs/cc_options.h"
+#include "cs/cc_error.h"
 
 extern char editorVersionNumber[50];
 extern void ConvertFileNameToCharArray(System::String^ clrString, char *textBuffer);

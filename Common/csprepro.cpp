@@ -3,14 +3,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "cscomp.h"
+//#include "cscomp.h"
 
-#include "csprepro.h"
+//#include "csprepro.h"
 
 // ******* BEGIN PREPROCESSOR CODE ************
 
 
-
+#ifdef UNUSED_CODE
 
 
 #define MAX_NESTED_IFDEFS 10
@@ -362,6 +362,6 @@ void cc_preprocess(const char *inpu,char*outp) {
 }
 
 
-
+#endif
 
 // ***** END PREPROCESSOR CODE *********

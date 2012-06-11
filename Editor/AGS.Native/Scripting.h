@@ -1,4 +1,5 @@
-#include "cscomp.h"
+//#include "cscomp.h"
+#include "cs/cc_script.h"
 
 namespace AGS
 {

@@ -6,7 +6,7 @@
 #include <io.h>
 #include "agsplgint.h"
 #include "fmem.h"
-#include "cscomp.h"
+//#include "cscomp.h"
 
 extern char editorVersionNumber[50];
 

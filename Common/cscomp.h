@@ -16,6 +16,8 @@
 #include <stdio.h>
 //#include "fmem.h"
 
+#error Do not include cscomp.h for now.
+
 #include "cs/cs_common.h"
 #include "cs/cs_compiler.h"
 //=============================================================================

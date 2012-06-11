@@ -32,7 +32,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "cscomp.h"
+//#include "cscomp.h"
 
 // MACPORT FIX: endian support
 #include "bigend.h"

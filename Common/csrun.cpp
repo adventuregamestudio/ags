@@ -26,7 +26,7 @@
 #pragma unmanaged
 #endif
 
-#include "cscomp.h"
+//#include "cscomp.h"
 #include "misc.h"
 #include "bigend.h"
 
@@ -35,6 +35,12 @@
 #include "cs/cc_managedobjectpool.h"
 #include "cs/cc_symboldef.h"
 #include "cs/cc_compiledscript.h"
+
+#include "cs/cc_instance.h"
+#include "cs/cs_common.h"
+#include "cs/cs_runtime.h"
+#include "cs/cc_options.h"
+#include "cs/cc_error.h"
 
 #ifdef AGS_BIG_ENDIAN
 #include <list>

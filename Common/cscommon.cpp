@@ -15,7 +15,9 @@
 #pragma unmanaged
 #endif
 
-#include "cscomp.h"
+//#include "cscomp.h"
+#include "cs/cc_error.h"    // ccError global vars
+#include "cs/cs_runtime.h"  // ccGetCurrentInstance
 
 
 int currentline = 0;

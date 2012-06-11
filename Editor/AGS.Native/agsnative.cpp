@@ -29,6 +29,8 @@ int mousex, mousey;
 #include "acroom_savefunc.h"
 #include "acgui.h"
 
+#include "cs/cs_internal.h" // fputstring, etc
+
 extern void Cstretch_blit(BITMAP *src, BITMAP *dst, int sx, int sy, int sw, int sh, int dx, int dy, int dw, int dh);
 extern void Cstretch_sprite(BITMAP *dst, BITMAP *src, int x, int y, int w, int h);
 

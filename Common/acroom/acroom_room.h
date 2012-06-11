@@ -2,6 +2,8 @@
 #ifndef __CROOM_ROOM_H
 #define __CROOM_ROOM_H
 
+#include "cs/cc_script.h"   // ccScript
+
 
 // thisroom.options[0] = startup music
 // thisroom.options[1] = can save/load on screen (0=yes, 1=no)

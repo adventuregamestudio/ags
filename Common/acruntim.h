@@ -16,6 +16,10 @@
 
 #include "ali3d.h"
 
+#include "cs/cc_dynamicobject.h"    // ICCDynamicObject
+#include "cs/cc_instance.h"         // ccInstance
+#include "cs/cs_internal.h"         // fputstring, etc
+
 // Max script string length
 #define MAX_MAXSTRLEN 200
 #define MAXGLOBALVARS 50

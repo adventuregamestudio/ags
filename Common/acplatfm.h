@@ -18,7 +18,7 @@
 #include "acroom_nofunc.h"
 #include "acruntim.h"
 #include "acsound.h"
-#include "cscomp.h"
+//#include "cscomp.h"
 #include "ali3d.h"
 
 #ifdef WINDOWS_VERSION

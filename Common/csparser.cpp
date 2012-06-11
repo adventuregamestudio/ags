@@ -36,10 +36,11 @@
 #pragma unmanaged
 #endif
 
-#include "fmem.h"
-#include "csprepro.cpp"
-#include "cscomp.h"
+//#include "fmem.h"
+//#include "csprepro.cpp"
+//#include "cscomp.h"
 
+#ifdef UNUSED_CODE
 
 void dump_code(FILE*dto,ccScript*cctemp) {
   fprintf(dto,"script data size: %d\n",cctemp->globaldatasize);
@@ -74,3 +75,5 @@ void dump_code(FILE*dto,ccScript*cctemp) {
     }
 
   }
+
+#endif

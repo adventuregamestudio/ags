@@ -15,4 +15,4 @@ override_dh_clean:
 	dh_clean --exclude=Editor/*
 
 get-orig-source:
-	git archive --prefix=ags_$(VERSION)/ --format=tar HEAD Common Engine Manual Plugins README.md | gzip > ../ags_$(VERSION).orig.tar.gz
+	git archive --prefix=ags_$(VERSION)/ --format=tar HEAD Common Engine Manual Plugins PSP README.md | gzip > ../ags_$(VERSION).orig.tar.gz

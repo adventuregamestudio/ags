@@ -1,2 +1,2 @@
 unapply-patches
-extend-diff-ignore="^(Android|Editor|iOS|OSX|PSP|Windows)"
+extend-diff-ignore="^(Android|Editor|iOS|OSX|Windows)"

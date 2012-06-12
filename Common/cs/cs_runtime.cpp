@@ -28,6 +28,7 @@ prior express permission from Chris Jones.
 #include "cc_options.h"
 #include "cc_dynamicarray.h"
 #include "cc_managedobjectpool.h"
+#include "cc_instance.h"
 
 #include "bigend.h"
 #include "misc.h"
@@ -320,7 +321,6 @@ void *ccGetSymbolAddress(char *namof)
 
 
 char ccRunnerCopyright[] = "ScriptExecuter32 v" SCOM_VERSIONSTR " (c) 2001 Chris Jones";
-static ccInstance *current_instance;
 static int maxWhileLoops = 0;
 
 #define MAX_FUNC_PARAMS 20
@@ -1195,11 +1195,6 @@ void ccAbortAndDestroyInstance(ccInstance * inst)
         ccAbortInstance(inst);
         inst->flags |= INSTF_FREE;
     }
-}
-
-ccInstance *ccGetCurrentInstance()
-{
-    return current_instance;
 }
 
 // If a while loop does this many iterations without the

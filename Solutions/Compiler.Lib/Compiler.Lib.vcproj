@@ -41,6 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
+				AdditionalIncludeDirectories="..\..\Common"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -106,6 +107,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
+				AdditionalIncludeDirectories="..\..\Common"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -151,16 +153,124 @@
 			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
+			<File
+				RelativePath="..\..\Common\fmem.cpp"
+				>
+			</File>
+			<Filter
+				Name="cs"
+				>
+				<File
+					RelativePath="..\..\Common\cs\cc_compiledscript.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cc_internallist.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cc_macrotable.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cc_symboltable.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cs_compiler.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cs_parser.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cs_parser_common.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cs_prepro.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
-		</Filter>
-		<Filter
-			Name="Included Source Files"
-			>
+			<File
+				RelativePath="..\..\Common\fmem.h"
+				>
+			</File>
+			<Filter
+				Name="cs"
+				>
+				<File
+					RelativePath="..\..\Common\cs\cc_compiledscript.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cc_error.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cc_instance.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cc_internallist.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cc_macrotable.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cc_options.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cc_script.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cc_symboldef.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cc_symboltable.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cc_treemap.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cc_variablesymlist.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cs_common.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cs_compiler.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cs_parser.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cs_parser_common.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cs_prepro.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 	</Files>
 	<Globals>

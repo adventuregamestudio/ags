@@ -56,4 +56,14 @@ struct ccInstance
     int  returnValue;
 };
 
+// [IKM] 2012-06-12
+// This function was implemented in csrun.cpp and probably (not completely sure yet)
+// belongs to runtime only, but it is referenced in cc_error() function which, by-turn,
+// is referenced by AGS.Native.
+// Hence I am moving it here until more elegant solution is found.
+
+// returns the currently executing instance, or NULL if none
+extern ccInstance *ccGetCurrentInstance(void);
+extern ccInstance *current_instance; // should not be exposed this way, temporary solution
+
 #endif

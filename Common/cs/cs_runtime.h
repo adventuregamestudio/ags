@@ -48,9 +48,7 @@ extern int ccCallInstance(ccInstance *, char *, long, ...);
 extern void ccAbortInstance(ccInstance *);
 // aborts instance, then frees the memory later when it is done with
 extern void ccAbortAndDestroyInstance(ccInstance *);
-// returns the currently executing instance, or NULL if none
 
-extern ccInstance *ccGetCurrentInstance(void);
 // Set the number of while loop iterations that aborts the script
 extern void ccSetScriptAliveTimer (int);
 // reset the current while loop counter

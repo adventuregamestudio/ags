@@ -275,6 +275,30 @@
 				RelativePath="..\..\Common\sprcache_engine.cpp"
 				>
 			</File>
+			<Filter
+				Name="cs"
+				>
+				<File
+					RelativePath="..\..\Common\cs\cc_dynamicarray.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cc_dynamicobject.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cc_managedobjectpool.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cc_systemimports.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cs_runtime.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -402,6 +426,74 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\acroom\acroom_func_script.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="cs"
+				>
+				<File
+					RelativePath="..\..\Common\cs\cc_compiledscript.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cc_dynamicarray.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cc_dynamicobject.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cc_error.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cc_instance.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cc_managedobjectpool.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cc_options.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cc_script.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cc_spans.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cc_symboldef.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cc_systemimports.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cc_treemap.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cs_common.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cs_parser_common.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cs_runtime.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cs_utils.h"
 					>
 				</File>
 			</Filter>

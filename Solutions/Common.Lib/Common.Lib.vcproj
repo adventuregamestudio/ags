@@ -174,10 +174,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\Common\fmem.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\Common\lzw.cpp"
 				>
 			</File>
@@ -193,31 +189,11 @@
 				Name="cs"
 				>
 				<File
-					RelativePath="..\..\Common\cs\cc_compiledscript.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_dynamicarray.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_dynamicobject.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Common\cs\cc_error.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\cs\cc_internallist.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_macrotable.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_managedobjectpool.cpp"
+					RelativePath="..\..\Common\cs\cc_instance.cpp"
 					>
 				</File>
 				<File
@@ -229,39 +205,11 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\cs\cc_symboltable.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_systemimports.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Common\cs\cc_treemap.cpp"
 					>
 				</File>
 				<File
 					RelativePath="..\..\Common\cs\cs_common.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cs_compiler.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cs_parser.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cs_parser_common.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cs_prepro.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cs_runtime.cpp"
 					>
 				</File>
 				<File
@@ -293,10 +241,6 @@
 			</File>
 			<File
 				RelativePath="..\..\Common\cscomp.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Common\fmem.h"
 				>
 			</File>
 			<File
@@ -387,35 +331,11 @@
 				Name="cs"
 				>
 				<File
-					RelativePath="..\..\Common\cs\cc_compiledscript.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_dynamicarray.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_dynamicobject.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Common\cs\cc_error.h"
 					>
 				</File>
 				<File
 					RelativePath="..\..\Common\cs\cc_instance.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_internallist.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_macrotable.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_managedobjectpool.h"
 					>
 				</File>
 				<File
@@ -427,55 +347,11 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\cs\cc_spans.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_symboldef.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_symboltable.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_systemimports.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Common\cs\cc_treemap.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\cs\cc_variablesymlist.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Common\cs\cs_common.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cs_compiler.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cs_internal.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cs_parser.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cs_parser_common.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cs_prepro.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cs_runtime.h"
 					>
 				</File>
 				<File

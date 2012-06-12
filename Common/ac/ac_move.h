@@ -1,5 +1,5 @@
-#ifndef __CROOM_MOVE_H
-#define __CROOM_MOVE_H
+#ifndef __AC_MOVE_H
+#define __AC_MOVE_H
 
 #ifndef ROOMEDIT
 #define MAXNEEDSTAGES 40
@@ -16,4 +16,4 @@ struct MoveList {
 #endif
 
 
-#endif // __CROOM_MOVE_H
+#endif // __AC_MOVE_H

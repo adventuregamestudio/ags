@@ -1,5 +1,5 @@
-#ifndef __CROOM_LIPSYNC_H
-#define __CROOM_LIPSYNC_H
+#ifndef __AC_LIPSYNC_H
+#define __AC_LIPSYNC_H
 
 struct SpeechLipSyncLine {
     char  filename[14];
@@ -8,4 +8,4 @@ struct SpeechLipSyncLine {
     short numPhenomes;
 };
 
-#endif // __CROOM_LIPSYNC_H
+#endif // __AC_LIPSYNC_H

@@ -217,6 +217,78 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="ac"
+				>
+				<File
+					RelativePath="..\..\Common\ac\ac_actiontype.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_characterinfo.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_customproperties.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_custompropertyschema.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_dialog.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_gamesetupstruct.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_interaction.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_interfacebutton.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_interfaceelement.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_inventoryiteminfo.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_messageinfo.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_mousecursor.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_point.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_room.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_script.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_view.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_wordsdictionary.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -268,62 +340,106 @@
 				>
 			</File>
 			<Filter
-				Name="acroom"
+				Name="ac"
 				>
 				<File
-					RelativePath="..\..\Common\acroom\acroom_action.h"
+					RelativePath="..\..\Common\ac\ac_actiontype.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acroom\acroom_audio.h"
+					RelativePath="..\..\Common\ac\ac_animationstruct.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acroom\acroom_core.h"
+					RelativePath="..\..\Common\ac\ac_audioclip.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acroom\acroom_defines.h"
+					RelativePath="..\..\Common\ac\ac_characterinfo.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acroom\acroom_dialog.h"
+					RelativePath="..\..\Common\ac\ac_customproperties.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acroom\acroom_gamestruct.h"
+					RelativePath="..\..\Common\ac\ac_custompropertyschema.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acroom\acroom_interaction.h"
+					RelativePath="..\..\Common\ac\ac_defines.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acroom\acroom_lipsync.h"
+					RelativePath="..\..\Common\ac\ac_dialog.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acroom\acroom_move.h"
+					RelativePath="..\..\Common\ac\ac_eventblock.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acroom\acroom_object.h"
+					RelativePath="..\..\Common\ac\ac_gamesetupstruct.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acroom\acroom_properties.h"
+					RelativePath="..\..\Common\ac\ac_interaction.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acroom\acroom_room.h"
+					RelativePath="..\..\Common\ac\ac_interfacebutton.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acroom\acroom_script.h"
+					RelativePath="..\..\Common\ac\ac_interfaceelement.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acroom\acroom_view.h"
+					RelativePath="..\..\Common\ac\ac_inventoryiteminfo.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_lipsync.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_messageinfo.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_mousecursor.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_move.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_object.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_point.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_quit.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_room.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_script.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_view.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_wordsdictionary.h"
 					>
 				</File>
 			</Filter>

@@ -32,7 +32,7 @@
 #include "compress.h"
 
 //=============================================================================
-#include "acroom/acroom_func_core.h"
+#include "ac/acroom_func_core.h"
 //=============================================================================
 
 //extern int cunpackbitl(unsigned char *, int size, FILE *infile);
@@ -51,20 +51,20 @@
 //int CustomProperties::UnSerialize (FILE *infrom);
 
 //=============================================================================
-#include "acroom/acroom_func_action.h"
+#include "ac/acroom_func_action.h"
 //=============================================================================
-#include "acroom/acroom_func_interaction.h"
+#include "ac/acroom_func_interaction.h"
 //=============================================================================
 
 
 
 
 //=============================================================================
-#include "acroom/acroom_func_compress.h"
+#include "ac/acroom_func_compress.h"
 //=============================================================================
-#include "acroom/acroom_func_script.h"
+#include "ac/acroom_func_script.h"
 //=============================================================================
-#include "acroom/acroom_func_dictionary.h"
+#include "ac/acroom_func_dictionary.h"
 //=============================================================================
 
 //
@@ -82,7 +82,7 @@
 //
 
 //=============================================================================
-#include "acroom/acroom_func_room.h"
+#include "ac/acroom_func_room.h"
 //=============================================================================
 
 
@@ -102,7 +102,7 @@
 
 
 //=============================================================================
-#include "acroom/acroom_func_gamestruct.h"
+#include "ac/acroom_func_gamestruct.h"
 //=============================================================================
 
 

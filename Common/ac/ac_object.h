@@ -1,5 +1,5 @@
-#ifndef __CROOM_OBJECT_H
-#define __CROOM_OBJECT_H
+#ifndef __AC_OBJECT_H
+#define __AC_OBJECT_H
 
 // object flags (currently only a char)
 #define OBJF_NOINTERACT        1  // not clickable
@@ -10,4 +10,4 @@
 #define OBJF_SOLID          0x20  // blocks characters from moving
 #define OBJF_DELETED        0x40  // object has been deleted
 
-#endif // __CROOM_OBJECT_H
+#endif // __AC_OBJECT_H

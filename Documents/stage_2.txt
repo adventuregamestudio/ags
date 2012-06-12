@@ -1,5 +1,5 @@
 //=============================================================================
-// STAGE TWO: Modules
+// STAGE TWO: Modules: Common.Lib and Compiler.Lib
 //=============================================================================
 
 Once the source files are distributed between the libraries it is time for
@@ -65,10 +65,12 @@ Linkage:
     
 
 //-----------------------------------------------------------------------------
-// step 3 -- splitting Common.Lib headers and modules
+// step 3 -- splitting compiler/interpreter header and source file
 //-----------------------------------------------------------------------------
 
-Task: split up headers and source files into logical units.
+Task:
+1. Split up headers and source files of compiler/interpreter into logical units;
+2. Separate the units between Common, Compiler and Runtime projects.
 
 Some symbols may become exposed to public as a result, but this is a temporary
 measure and will be fixed later.
@@ -78,6 +80,18 @@ moved to Common lib in order to gather a logically bound set of types and functi
 I presume that afterwards a reverse process will take place which will result
 in all compiler- and runtime-specific code be moved to Compiler lib and Engine app
 respectively; at least that is something one should aim.
+UPDATE: /2012-06-12/ that's what really happened now.
+
+//-----------------------------------------------------------------------------
+// step 4 -- splitting acroom header and source files
+//-----------------------------------------------------------------------------
+/2012-06-12/
+
+Task:
+1. Split up existing acroom*.h headers and acroom.cpp source file into logical units;
+2. Move any runtime-specific code found to Engine.App.
+
+
 
 //=============================================================================
 // Quick notes for future reference
@@ -94,3 +108,8 @@ What use does it have for AGS.Native?
 Engine sends messages to debugger either via files or named pipes;
 IAGSEditorDebugger interface is used to make a call.
 
+I am not sure it is a good idea to call quit() function from the middle of random
+process, like it is done now; perhaps this behavior could be substituted by
+tested return values?
+
+What is ROOMEDIT macro?

@@ -1,6 +1,7 @@
-#ifndef __CROOM_ACTION_H
-#define __CROOM_ACTION_H
+#ifndef __AC_ACTIONTYPE_H
+#define __AC_ACTIONTYPE_H
 
+#include "ac_interaction.h" // constants
 
 #define NUM_ACTION_TYPES 48
 #define ARG_TYPE_INT 1
@@ -23,8 +24,9 @@ struct ActionTypes {
     char  description[200];
     char  textscript[80];
 };
+
 extern ActionTypes actions[NUM_ACTION_TYPES];
 
 
 
-#endif // __CROOM_ACTION_H
+#endif // __AC_ACTIONTYPE_H

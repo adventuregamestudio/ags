@@ -1,6 +1,5 @@
-
-#ifndef __CROOM_DEFINES_H
-#define __CROOM_DEFINES_H
+#ifndef __AC_DEFINES_H
+#define __AC_DEFINES_H
 
 #define EXIT_NORMAL 91
 #define EXIT_CRASH  92
@@ -115,4 +114,4 @@
 
 #define int32 int
 
-#endif
+#endif // __AC_DEFINES_H

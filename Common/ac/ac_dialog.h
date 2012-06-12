@@ -1,5 +1,5 @@
-#ifndef __CROOM_DIALOG_H
-#define __CROOM_DIALOG_H
+#ifndef __AC_DIALOG_H
+#define __AC_DIALOG_H
 
 
 
@@ -40,19 +40,9 @@ struct DialogTopic {
     int           topicFlags;
 
 #ifdef ALLEGRO_BIG_ENDIAN
-    void ReadFromFile(FILE *fp)
-    {
-        fread(optionnames, 150*sizeof(char), MAXTOPICOPTIONS, fp);
-        fread(optionflags, sizeof(int), MAXTOPICOPTIONS, fp);
-        optionscripts = (unsigned char *) getw(fp);
-        fread(entrypoints, sizeof(short), MAXTOPICOPTIONS, fp);
-        startupentrypoint = __getshort__bigendian(fp);
-        codesize = __getshort__bigendian(fp);
-        numoptions = getw(fp);
-        topicFlags = getw(fp);
-    }
+    void ReadFromFile(FILE *fp);
 #endif
 };
 
 
-#endif // __CROOM_DIALOG_H
+#endif // __AC_DIALOG_H

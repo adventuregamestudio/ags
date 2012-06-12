@@ -1,8 +1,14 @@
 
-#ifndef __CROOM_ROOM_H
-#define __CROOM_ROOM_H
+#ifndef __AC_ROOM_H
+#define __AC_ROOM_H
 
-#include "cs/cc_script.h"   // ccScript
+#include "ac/ac_defines.h"      // PCKD
+#include "ac/ac_interaction.h"  // NewInteraction
+#include "ac/ac_customproperties.h"
+#include "ac/ac_messageinfo.h"
+#include "ac/ac_animationstruct.h"
+#include "ac/ac_point.h"
+#include "cs/cc_script.h"       // ccScript
 
 
 // thisroom.options[0] = startup music
@@ -32,87 +38,7 @@ struct sprstruc {
     }
 #endif
 };
-
-#define MSG_DISPLAYNEXT 1 // supercedes using alt-200 at end of message
-#define MSG_TIMELIMIT   2
-struct MessageInfo {
-    char  displayas  PCKD; // 0 = normal window, 1 = as speech
-    char  flags      PCKD; // combination of MSG_xxx flags
-
-#ifdef ALLEGRO_BIG_ENDIAN
-    void ReadFromFile(FILE *fp)
-    {
-        displayas = getc(fp);
-        flags = getc(fp);
-    }
-#endif
-};
 #pragma pack()
-
-
-
-#define AE_WAITFLAG   0x80000000
-#define MAXANIMSTAGES 10
-struct AnimationStruct {
-    int   x, y;
-    int   data;
-    int   object;
-    int   speed;
-    char  action;
-    char  wait;
-    AnimationStruct() { action = 0; object = 0; wait = 1; speed = 5; }
-};
-
-struct FullAnimation {
-    AnimationStruct stage[MAXANIMSTAGES];
-    int             numstages;
-    FullAnimation() { numstages = 0; }
-};
-
-
-struct _Point {
-    short x, y;
-};
-
-
-
-
-
-
-
-
-
-
-// careful with this - the shadinginfo[] array needs to be
-// MAX_WALK_AREAS + 1 if this gets changed
-#define MAX_WALK_AREAS 15
-#define MAXPOINTS 30
-struct PolyPoints {
-    int x[MAXPOINTS];
-    int y[MAXPOINTS];
-    int numpoints;
-    void add_point(int xxx,int yyy) {
-        x[numpoints] = xxx;
-        y[numpoints] = yyy;
-        numpoints++;
-
-        if (numpoints >= MAXPOINTS)
-            quit("too many poly points added");
-    }
-    PolyPoints() { numpoints = 0; }
-
-#ifdef ALLEGRO_BIG_ENDIAN
-    void ReadFromFile(FILE *fp)
-    {
-        fread(x, sizeof(int), MAXPOINTS, fp);
-        fread(y, sizeof(int), MAXPOINTS, fp);
-        numpoints = getw(fp);
-    }
-#endif
-};
-
-
-
 
 #define MAXANIMS      10
 #define MAX_FLAGS     15
@@ -192,50 +118,10 @@ struct roomstruct {
     int           lastLoadNumObjects;
     int           lastLoadNumRegions;
 
-    roomstruct() {
-        ebscene[0] = NULL; walls = NULL; object = NULL; lookat = NULL; nummes = 0;
-        left = 0; right = 317; top = 40; bottom = 199; numobj = MAX_OBJ; numsprs = 0; password[0] = 0;
-        wasversion = ROOM_FILE_VERSION; numanims = 0; regions = NULL; numwalkareas = 0;
-        numhotspots = 0;
-        memset(&objbaseline[0], 0xff, sizeof(int) * MAX_INIT_SPR);
-        memset(&objectFlags[0], 0, sizeof(short) * MAX_INIT_SPR);
-        width = 320; height = 200; scripts = NULL; compiled_script = NULL;
-        cscriptsize = 0;
-        memset(&walk_area_zoom[0], 0, sizeof(short) * (MAX_WALK_AREAS + 1));
-        memset(&walk_area_light[0], 0, sizeof(short) * (MAX_WALK_AREAS + 1));
-        resolution = 1; num_bscenes = 1; ebscene[0] = NULL;
-        bscene_anim_speed = 5; bytes_per_pixel = 1;
-        numLocalVars = 0;
-        localvars = NULL;
-        lastLoadNumHotspots = 0;
-        lastLoadNumRegions = 0;
-        lastLoadNumObjects = 0;
-        int i;
-        for (i = 0; i <= MAX_WALK_AREAS; i++) {
-            walk_area_zoom2[i] = NOT_VECTOR_SCALED;
-            walk_area_top[i] = -1;
-            walk_area_bottom[i] = -1;
-        }
-        for (i = 0; i < MAX_HOTSPOTS; i++) {
-            intrHotspot[i] = new NewInteraction();
-            hotspotnames[i] = NULL;
-            hotspotScriptNames[i][0] = 0;
-        }
-        for (i = 0; i < MAX_INIT_SPR; i++)
-            intrObject[i] = new NewInteraction();
-        for (i = 0; i < MAX_REGIONS; i++)
-            intrRegion[i] = new NewInteraction();
-        intrRoom = new NewInteraction();
-        gameId = 0;
-        numRegions = 0;
-        hotspotScripts = NULL;
-        regionScripts = NULL;
-        objectScripts = NULL;
-        roomScripts = NULL;
-    }
+    roomstruct();
     //void allocall();
     //void freeall();
     void freemessage();
 };
 
-#endif // __CROOM_ROOM_H
+#endif // __AC_ROOM_H

@@ -1,5 +1,5 @@
-#ifndef __CROOM_AUDIO_H
-#define __CROOM_AUDIO_H
+#ifndef __AC_AUDIOCLIP_H
+#define __AC_AUDIOCLIP_H
 
 #define AUCL_BUNDLE_EXE 1
 #define AUCL_BUNDLE_VOX 2
@@ -32,4 +32,4 @@ struct AudioClipType {
     int reservedForFuture;
 };
 
-#endif // __CROOM_AUDIO_H
+#endif // __AC_AUDIOCLIP_H

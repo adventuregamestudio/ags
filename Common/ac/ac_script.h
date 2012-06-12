@@ -1,5 +1,8 @@
-#ifndef __CROOM_SCRIPT_H
-#define __CROOM_SCRIPT_H
+#ifndef __AC_SCRIPT_H
+#define __AC_SCRIPT_H
+
+#include "ac/ac_defines.h"  // PCKD
+#include "cs/cc_script.h"   // ccScript
 
 extern int in_interaction_editor;  // whether to remove script functions/etc
 
@@ -38,20 +41,9 @@ struct ScriptModule {
     int  weAreOwner;
     ccScript *compiled;
 
-    void init() { 
-        name = NULL;
-        author = NULL;
-        version = NULL;
-        description = NULL;
-        script = NULL;
-        scriptHeader = NULL;
-        uniqueKey = 0;
-        permissions = 0;
-        weAreOwner = 1;
-        compiled = NULL;
-    }
+    void init();
 
     ScriptModule() { init(); }
 };
 
-#endif // __CROOM_SCRIPT_H
+#endif // __AC_SCRIPT_H

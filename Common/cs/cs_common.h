@@ -90,10 +90,20 @@
 #define SCMD_DYNAMICBOUNDS 71   // check reg1 is between 0 and m[MAR-4]
 #define SCMD_NEWARRAY     72    // reg1 = new array of reg1 elements, each of size arg2 (arg3=managed type?)
 
+extern int currentline;
+
+// Internally used names for commands, registers
+extern const char *sccmdnames[];
+extern const char *regnames[];
+// Number of arguments for each command
+extern const short sccmdargs[];
+// Script file signature
+extern const char scfilesig[5];
+#define ENDFILESIG 0xbeefcafe
 
 //=============================================================================
-#include "cc_script.h"
-#include "cc_instance.h"
+//#include "cc_script.h"
+//#include "cc_instance.h"
 //=============================================================================
 
 #endif // __CS_COMMON_H

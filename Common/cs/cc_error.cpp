@@ -1,7 +1,44 @@
 
 #include <stdio.h>
+#include <stdarg.h>
 #include <string.h>
 #include "cc_error.h"
+#include "cs_common.h"
+#include "cs_runtime.h"
+
+void cc_error(char *descr, ...)
+{
+    ccErrorCallStack[0] = 0;
+    ccErrorIsUserError = false;
+    if (descr[0] == '!')
+    {
+        ccErrorIsUserError = true;
+        descr++;
+    }
+
+    char displbuf[1000];
+    va_list ap;
+
+    va_start(ap, descr);
+    vsprintf(displbuf, descr, ap);
+    va_end(ap);
+
+    if (currentline > 0) {
+
+        if (ccGetCurrentInstance() == NULL) {
+            sprintf(ccErrorString, "Error (line %d): %s", currentline, displbuf);
+        }
+        else {
+            sprintf(ccErrorString, "Error: %s\n", displbuf);
+            ccGetCallStack(ccGetCurrentInstance(), ccErrorCallStack, 5);
+        }
+    }
+    else
+        sprintf(ccErrorString, "Runtime error: %s", displbuf);
+
+    ccError = 1;
+    ccErrorLine = currentline;
+}
 
 int ccError = 0;
 int ccErrorLine = 0;

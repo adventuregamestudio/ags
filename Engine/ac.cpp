@@ -216,10 +216,12 @@ int   source_text_length = -1;
 #define LOADROOM_DO_POLL
 #include "acroom_func.h"
 //#include "cscomp.h"
+#include "cs/cs_common.h"
 #include "cs/cc_instance.h"
 #include "cs/cs_runtime.h"
 #include "cs/cc_error.h"
 #include "cs/cc_options.h"
+#include "cs/cs_utils.h"
 
 #include <aastr.h>
 #include <acdebug.h>

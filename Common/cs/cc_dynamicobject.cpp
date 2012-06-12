@@ -21,6 +21,7 @@ prior express permission from Chris Jones.
 #include <string.h>
 #include "cc_dynamicobject.h"
 #include "cc_managedobjectpool.h"
+#include "cc_error.h"
 
 ICCStringClass *stringClassImpl = NULL;
 
@@ -114,4 +115,23 @@ const char *ccGetObjectAddressFromHandle(long handle) {
         return NULL;
     }
     return addr;
+}
+
+int ccAddObjectReference(long handle) {
+    if (handle == 0)
+        return 0;
+
+    return pool.AddRef(handle);
+}
+
+int ccReleaseObjectReference(long handle) {
+    if (handle == 0)
+        return 0;
+
+    if (pool.HandleToAddress(handle) == NULL) {
+        cc_error("Error releasing pointer: invalid handle %d", handle);
+        return -1;
+    }
+
+    return pool.SubRef(handle);
 }

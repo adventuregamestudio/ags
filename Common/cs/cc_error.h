@@ -15,6 +15,8 @@
 
 #include "cc_instance.h"  // ccInstance
 
+extern void cc_error(char *, ...);
+
 // error reporting
 extern int ccError;             // set to non-zero if error occurs
 extern int ccErrorLine;         // line number of the error

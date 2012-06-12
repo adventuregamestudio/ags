@@ -10,7 +10,7 @@
 #include "wgt2allg_nofunc.h"
 #include "acroom_func.h"
 
-#include "cs/cs_internal.h" // fputstring, etc
+#include "cs/cs_utils.h" // fputstring, etc
 
 extern "C" {
 	extern FILE *clibfopen(char *, char *);

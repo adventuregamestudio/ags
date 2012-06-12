@@ -40,6 +40,8 @@
 //#include "csprepro.cpp"
 //#include "cscomp.h"
 
+#error 'csparser.cpp' contents were split up to separate modules; do not include this file in the build
+
 #ifdef UNUSED_CODE
 
 void dump_code(FILE*dto,ccScript*cctemp) {

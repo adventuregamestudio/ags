@@ -174,14 +174,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\Common\cscommon.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Common\csrun.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\Common\fmem.cpp"
 				>
 			</File>
@@ -241,7 +233,15 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\cs\cc_systemimports.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\cs\cc_treemap.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cs_common.cpp"
 					>
 				</File>
 				<File
@@ -258,6 +258,14 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\cs\cs_prepro.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cs_runtime.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cs_utils.cpp"
 					>
 				</File>
 			</Filter>
@@ -419,11 +427,19 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\cs\cc_spans.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\cs\cc_symboldef.h"
 					>
 				</File>
 				<File
 					RelativePath="..\..\Common\cs\cc_symboltable.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cc_systemimports.h"
 					>
 				</File>
 				<File
@@ -460,6 +476,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\cs\cs_runtime.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cs_utils.h"
 					>
 				</File>
 			</Filter>

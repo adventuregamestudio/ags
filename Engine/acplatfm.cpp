@@ -13,6 +13,7 @@
 */
 #include "acplatfm.h"
 #include "cs/cs_runtime.h"
+#include "cs/cs_utils.h"
 #if defined(LINUX_VERSION) || defined(MAC_VERSION)
 #define strnicmp strncasecmp
 #endif

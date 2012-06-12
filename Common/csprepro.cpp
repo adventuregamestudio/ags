@@ -9,6 +9,8 @@
 
 // ******* BEGIN PREPROCESSOR CODE ************
 
+#error 'csprepro.cpp' contents were split up to separate modules; do not include this file in the build
+
 
 #ifdef UNUSED_CODE
 

@@ -86,6 +86,7 @@ respectively; at least that is something one should aim.
 WGT2ALLEGRO_NOFUNCTIONS - usage similar to CROOM_NOFUNCTIONS
 
 ALLEGRO_BIG_ENDIAN - must test compilation of libs with this macro defined
+(note: "bigend.h" must be included in module if there's this macro in the code)
 
 Question: why does the runtime script interpreter (csrun.cpp) needed to be shared?
 What use does it have for AGS.Native?

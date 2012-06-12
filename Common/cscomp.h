@@ -16,8 +16,9 @@
 #include <stdio.h>
 //#include "fmem.h"
 
-#error Do not include cscomp.h for now.
+#error Do not include cscomp.h for now
 
+/*
 #include "cs/cs_common.h"
 #include "cs/cs_compiler.h"
 //=============================================================================
@@ -29,5 +30,6 @@
 #include "cs/cc_error.h"
 //=============================================================================
 #include "cs/cs_internal.h"
+*/
 
 #endif // __CSCOMP_H

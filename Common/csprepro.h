@@ -13,6 +13,9 @@
 #ifndef __CSPREPRO_H
 #define __CSPREPRO_H
 
+#error Do not include csprepro.h for now
+
+/*
 // These declarations are moved from cscomp.h, since they are used
 // only internally in the compiler and have no need to be exposed.
 
@@ -21,5 +24,6 @@ extern int is_alphanum(int);
 extern void cc_preprocess(char *, char *);
 extern void preproc_startup(void);
 extern void preproc_shutdown(void);
+*/
 
 #endif

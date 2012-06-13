@@ -91,6 +91,22 @@ Task:
 1. Split up existing acroom*.h headers and acroom.cpp source file into logical units;
 2. Move any runtime-specific code found to Engine.App.
 
+//-----------------------------------------------------------------------------
+// step 5 -- what is left in Common.Lib
+//-----------------------------------------------------------------------------
+/2012-06-14/
+
+So, what's left here for the Stage Two, before we move to Engine part?
+1. acroom.h is now just a list of headers to include; question is, are those headers
+really need to be included altogether? Probably it's the time to get rid of acroom,
+acroom_func and acroom_nofunc headers.
+2. bigend, clib32, compress, lzw, misc and sprcache modules seem to be self-sufficient
+allright, no changes needed at the moment.
+3. wgt2allg* headers need to be rejoined, since their separation was temporary and
+served rather a possibility to make smaller changes and better understand the code;
+all the implementation is in wgt2allg.cpp now anyway.
+4. acfonts and acgui modules on other hand contain a lot of different classes and
+should be split.
 
 
 //=============================================================================
@@ -101,6 +117,15 @@ WGT2ALLEGRO_NOFUNCTIONS - usage similar to CROOM_NOFUNCTIONS
 
 ALLEGRO_BIG_ENDIAN - must test compilation of libs with this macro defined
 (note: "bigend.h" must be included in module if there's this macro in the code)
+//------------------------------------
+It appears ALLEGRO_BIG_ENDIAN code is not much used at the moment, and does not
+even compile (latter may be fixed easily by few tweaks). However, there are several
+methods in ac* classes for reading and writing objects under big endian platforms.
+This may be a good idea to move little endian code to these methods too, thus
+further enhancing code structure.
+This will not be "refactoring" in a common sense and will require more accurate
+testing, so I'll leave this for the future.
+//------------------------------------
 
 Question: why does the runtime script interpreter (csrun.cpp) needed to be shared?
 What use does it have for AGS.Native?

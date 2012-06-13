@@ -11896,6 +11896,8 @@ void BuildAudioClipArray()
 
  19 : 2.5.1
  22 : 2.5.5
+
+ Variable number of sprites.
  24 : 2.5.6
  25 : 2.6.0
 
@@ -12024,8 +12026,8 @@ int load_game_file() {
 #endif
 
   int numToRead;
-  if (filever < 25)
-    numToRead = 6000; // Fixed number of sprites on < 2.60
+  if (filever < 24)
+    numToRead = 6000; // Fixed number of sprites on < 2.56
   else
     numToRead = getw(iii);
 

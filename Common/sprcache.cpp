@@ -17,7 +17,8 @@
 #endif
 
 #include "wgt2allg_nofunc.h"
-#include "acroom_nofunc.h"
+//#include "acroom_nofunc.h"
+#include "ac/ac_gamesetupstruct.h"  // constants
 #include "sprcache.h"
 #include "compress.h"
 #include "bigend.h"

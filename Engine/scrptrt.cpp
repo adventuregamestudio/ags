@@ -18,7 +18,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "wgt2allg_nofunc.h"
-#include "acroom_nofunc.h"
+//#include "acroom_nofunc.h"
+#include "ac/ac_room.h"
 #include "bigend.h"
 
 char *scripteditruntimecopr = "Script Editor v1.2 run-time component. (c) 1998 Chris Jones";

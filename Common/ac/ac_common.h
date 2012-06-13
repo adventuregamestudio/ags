@@ -7,10 +7,8 @@
 void quit(char *);
 void update_polled_stuff_if_runtime();
 
-// those two do not seem to be used anywhere
 extern char *croom_h_copyright;
 extern char *game_file_sig;
-//
 
 #define GAME_FILE_VERSION 42
 

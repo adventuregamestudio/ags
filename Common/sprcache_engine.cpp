@@ -10,7 +10,7 @@
 #endif
 
 #include "wgt2allg_nofunc.h"
-#include "acroom_nofunc.h"
+//#include "acroom_nofunc.h"
 #include "sprcache.h"
 #include "compress.h"
 #include "bigend.h"

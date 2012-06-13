@@ -16,6 +16,10 @@
 
 #include "ali3d.h"
 
+#include "ac/ac_gamesetupstruct.h"  // constants
+#include "ac/ac_move.h"             // MoveList
+#include "ac/ac_room.h"             // constants
+#include "ac/ac_view.h"             // ViewStruct
 #include "cs/cc_dynamicobject.h"    // ICCDynamicObject
 #include "cs/cc_instance.h"         // ccInstance
 //#include "cs/cs_internal.h"         // fputstring, etc

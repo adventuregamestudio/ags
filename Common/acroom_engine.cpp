@@ -9,7 +9,8 @@
 #include "bigend.h"
 #include "misc.h"
 #include "wgt2allg_nofunc.h"
-#include "acroom_func.h"
+//#include "acroom_func.h"
+#include "ac/ac_room.h"
 //
 
 //=============================================================================

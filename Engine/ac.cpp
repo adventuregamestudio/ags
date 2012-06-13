@@ -214,9 +214,13 @@ void draw_sprite_compensate(int,int,int,int);
 char *get_translation(const char*);
 int   source_text_length = -1;
 #define LOADROOM_DO_POLL
-#include "acroom_func.h"
+//#include "acroom_func.h"
 //#include "ac/ac_gamesetupstruct.h"
+#include "ac/ac_common.h"
 #include "ac/ac_compress.h"
+#include "ac/ac_gamesetupstruct.h"
+#include "ac/ac_lipsync.h"
+#include "ac/ac_object.h"
 //#include "cscomp.h"
 #include "cs/cs_common.h"
 #include "cs/cc_instance.h"

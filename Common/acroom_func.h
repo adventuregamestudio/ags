@@ -31,6 +31,8 @@
 #include "acroom.h"
 #include "compress.h"
 
+#error Do not include acroom_func.h for now
+
 //=============================================================================
 //#include "ac/acroom_func_core.h"
 //=============================================================================

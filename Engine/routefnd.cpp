@@ -12,7 +12,10 @@
   CLEAR that the code has been altered from the Standard Version.
 */
 #include "wgt2allg_nofunc.h"
-#include "acroom_nofunc.h"
+//#include "acroom_nofunc.h"
+#include "ac/ac_common.h"   // quit()
+#include "ac/ac_move.h"     // MoveList
+#include "ac/ac_point.h"
 #include <string.h>
 #include <math.h>
 #define MANOBJNUM 99

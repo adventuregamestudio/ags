@@ -30,4 +30,6 @@
 
 #include "acroom.h"
 
+#error Do not include acroom_nofunc.h for now
+
 #endif // __CROOM_NOFUNC_H

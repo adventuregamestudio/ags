@@ -346,18 +346,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\Common\acroom.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Common\acroom_func.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Common\acroom_nofunc.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\Common\acruntim.h"
 				>
 			</File>
@@ -379,10 +367,6 @@
 			</File>
 			<File
 				RelativePath="..\..\Common\compress.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Common\cscomp.h"
 				>
 			</File>
 			<File

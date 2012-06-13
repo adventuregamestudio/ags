@@ -27,6 +27,8 @@
 #error NO_SAVE_FUNCTIONS macro is obsolete. Simply do not include this header if you do not want save functions.
 #endif
 
+#error Do not include acroom_savefunc.h for now
+
 /*
 extern void encrypt_text(char *toenc);
 extern void write_string_encrypt(FILE *ooo, char *sss);

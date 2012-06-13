@@ -13,7 +13,8 @@
 */
 
 #include "wgt2allg_nofunc.h"
-#include "acroom_nofunc.h"
+//#include "acroom_nofunc.h"
+#include "ac/ac_common.h"   // quit()
 #include "acruntim.h"
 #include <math.h>
 

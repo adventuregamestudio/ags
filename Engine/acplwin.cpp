@@ -16,6 +16,7 @@
 // ********* WINDOWS *********
 
 #include "acplatfm.h"
+#include "ac/ac_common.h"   // quit()
 
 #include <shlobj.h>
 #include <time.h>

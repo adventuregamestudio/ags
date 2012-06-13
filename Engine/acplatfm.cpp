@@ -12,6 +12,7 @@
 
 */
 #include "acplatfm.h"
+#include "ac/ac_common.h"   // quit()
 #include "cs/cs_runtime.h"
 #include "cs/cs_utils.h"
 #if defined(LINUX_VERSION) || defined(MAC_VERSION)

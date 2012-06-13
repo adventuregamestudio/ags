@@ -25,10 +25,16 @@ int mousex, mousey;
 #include "misc.h"
 #include "wgt2allg_func.h"
 #include "sprcache.h"
-#include "acroom_func.h"
-#include "acroom_savefunc.h"
+//#include "acroom_func.h"
+//#include "acroom_savefunc.h"
+#include "ac/ac_actiontype.h"
+#include "ac/ac_common.h"
 #include "ac/ac_compress.h"
+#include "ac/ac_gamesetupstruct.h"
+#include "ac/ac_object.h"
 #include "ac/ac_room.h"
+#include "ac/ac_script.h"
+#include "ac/ac_view.h"
 #include "acgui.h"
 
 //#include "cs/cs_internal.h" // fputstring, etc

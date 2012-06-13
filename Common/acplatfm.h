@@ -15,7 +15,7 @@
 #endif
 
 #include "wgt2allg_nofunc.h"
-#include "acroom_nofunc.h"
+//#include "acroom_nofunc.h"
 #include "acruntim.h"
 #include "acsound.h"
 //#include "cscomp.h"

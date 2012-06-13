@@ -165,3 +165,27 @@ void ViewStruct272::ReadFromFile(FILE *fp)
     }
 #endif
 }
+
+void Convert272ViewsToNew (int numof, ViewStruct272 *oldv, ViewStruct *newv) {
+  
+  for (int a = 0; a < numof; a++) {
+    newv[a].Initialize(oldv[a].numloops);
+    
+    for (int b = 0; b < oldv[a].numloops; b++) 
+    {
+      newv[a].loops[b].Initialize(oldv[a].numframes[b]);
+
+      if ((oldv[a].numframes[b] > 0) &&
+          (oldv[a].frames[b][oldv[a].numframes[b] - 1].pic == -1))
+      {
+        newv[a].loops[b].flags = LOOPFLAG_RUNNEXTLOOP;
+        newv[a].loops[b].numFrames--;
+      }
+      else
+        newv[a].loops[b].flags = 0;
+
+      for (int c = 0; c < newv[a].loops[b].numFrames; c++)
+        newv[a].loops[b].frames[c] = oldv[a].frames[b][c];
+    }
+  }
+}

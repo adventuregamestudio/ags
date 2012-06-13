@@ -215,6 +215,8 @@ char *get_translation(const char*);
 int   source_text_length = -1;
 #define LOADROOM_DO_POLL
 #include "acroom_func.h"
+//#include "ac/ac_gamesetupstruct.h"
+#include "ac/ac_compress.h"
 //#include "cscomp.h"
 #include "cs/cs_common.h"
 #include "cs/cc_instance.h"

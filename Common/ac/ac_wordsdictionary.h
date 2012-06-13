@@ -16,5 +16,11 @@ struct WordsDictionary {
     int   find_index (const char *);
 };
 
+extern char *passwencstring;
+
+extern void decrypt_text(char*toenc);
+extern void read_string_decrypt(FILE *ooo, char *sss);
+extern void read_dictionary (WordsDictionary *dict, FILE *writeto);
+extern void freadmissout(short *pptr, FILE *opty);
 
 #endif // __AC_WORDSDICTIONARY_H

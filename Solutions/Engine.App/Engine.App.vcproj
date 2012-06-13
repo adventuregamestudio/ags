@@ -370,6 +370,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\Engine\scrptrt.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\Common\sprcache.h"
 				>
 			</File>
@@ -396,38 +400,6 @@
 			<Filter
 				Name="ac"
 				>
-				<File
-					RelativePath="..\..\Common\ac\acroom_func_action.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\acroom_func_compress.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\acroom_func_core.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\acroom_func_dictionary.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\acroom_func_gamestruct.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\acroom_func_interaction.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\acroom_func_room.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\acroom_func_script.h"
-					>
-				</File>
 			</Filter>
 			<Filter
 				Name="cs"

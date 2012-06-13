@@ -124,4 +124,39 @@ struct roomstruct {
     void freemessage();
 };
 
+#define BLOCKTYPE_MAIN        1
+#define BLOCKTYPE_SCRIPT      2
+#define BLOCKTYPE_COMPSCRIPT  3
+#define BLOCKTYPE_COMPSCRIPT2 4
+#define BLOCKTYPE_OBJECTNAMES 5
+#define BLOCKTYPE_ANIMBKGRND  6
+#define BLOCKTYPE_COMPSCRIPT3 7     // new CSCOMP script instead of SeeR
+#define BLOCKTYPE_PROPERTIES  8
+#define BLOCKTYPE_OBJECTSCRIPTNAMES 9
+#define BLOCKTYPE_EOF         0xff
+
+struct room_file_header {
+    short version PCKD;
+
+#ifdef ALLEGRO_BIG_ENDIAN
+    void ReadFromFile(FILE *fp)
+    {
+        version = __getshort__bigendian(fp);
+    }
+#endif
+};
+
+extern int _acroom_bpp;  // bytes per pixel of currently loading room
+
+extern void load_main_block(roomstruct *rstruc, char *files, FILE *opty, room_file_header rfh);
+extern void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes);
+
+
+// Those are, in fact, are project-dependent and are implemented in runtime and AGS.Native
+extern void load_script_configuration(FILE *);
+extern void save_script_configuration(FILE *);
+extern void load_graphical_scripts(FILE *, roomstruct *);
+extern void save_graphical_scripts(FILE *, roomstruct *);
+//
+
 #endif // __AC_ROOM_H

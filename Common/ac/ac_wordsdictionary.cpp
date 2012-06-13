@@ -1,7 +1,10 @@
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "ac_wordsdictionary.h"
+#include "ac/ac_wordsdictionary.h"
+#include "ac/ac_common.h"
+#include "ac/ac_defines.h"
 
 void WordsDictionary::allocate_memory(int wordCount)
 {
@@ -57,4 +60,49 @@ int WordsDictionary::find_index (const char*wrem) {
             return aa;
     }
     return -1;
+}
+
+char *passwencstring = "Avis Durgan";
+
+void decrypt_text(char*toenc) {
+  int adx = 0;
+
+  while (1) {
+    toenc[0] -= passwencstring[adx];
+    if (toenc[0] == 0)
+      break;
+
+    adx++;
+    toenc++;
+
+    if (adx > 10)
+      adx = 0;
+  }
+}
+
+void read_string_decrypt(FILE *ooo, char *sss) {
+  int newlen = getw(ooo);
+  if ((newlen < 0) || (newlen > 5000000))
+    quit("ReadString: file is corrupt");
+
+  // MACPORT FIX: swap as usual
+  fread(sss, sizeof(char), newlen, ooo);
+  sss[newlen] = 0;
+  decrypt_text(sss);
+}
+
+void read_dictionary (WordsDictionary *dict, FILE *writeto) {
+  int ii;
+
+  dict->allocate_memory(getw(writeto));
+  for (ii = 0; ii < dict->num_words; ii++) {
+    read_string_decrypt (writeto, dict->word[ii]);
+    fread(&dict->wordnum[ii], sizeof(short), 1, writeto);
+  }
+}
+
+void freadmissout(short *pptr, FILE *opty) {
+  fread(&pptr[0], 2, 5, opty);
+  fread(&pptr[7], 2, NUM_CONDIT - 7, opty);
+  pptr[5] = pptr[6] = 0;
 }

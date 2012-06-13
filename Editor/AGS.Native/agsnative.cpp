@@ -27,6 +27,8 @@ int mousex, mousey;
 #include "sprcache.h"
 #include "acroom_func.h"
 #include "acroom_savefunc.h"
+#include "ac/ac_compress.h"
+#include "ac/ac_room.h"
 #include "acgui.h"
 
 //#include "cs/cs_internal.h" // fputstring, etc

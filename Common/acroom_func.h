@@ -32,7 +32,7 @@
 #include "compress.h"
 
 //=============================================================================
-#include "ac/acroom_func_core.h"
+//#include "ac/acroom_func_core.h"
 //=============================================================================
 
 //extern int cunpackbitl(unsigned char *, int size, FILE *infile);
@@ -51,24 +51,27 @@
 //int CustomProperties::UnSerialize (FILE *infrom);
 
 //=============================================================================
-#include "ac/acroom_func_action.h"
+//#include "ac/acroom_func_action.h"
 //=============================================================================
-#include "ac/acroom_func_interaction.h"
+//#include "ac/acroom_func_interaction.h"
 //=============================================================================
 
 
 
 
 //=============================================================================
-#include "ac/acroom_func_compress.h"
+//#include "ac/acroom_func_compress.h"
 //=============================================================================
-#include "ac/acroom_func_script.h"
+//#include "ac/acroom_func_script.h"
 //=============================================================================
-#include "ac/acroom_func_dictionary.h"
+//#include "ac/acroom_func_dictionary.h"
 //=============================================================================
 
 //
-// These defines are not used anywhere!
+// Those defines are not used anywhere!
+
+#ifdef UNUSED_CODE
+
 #define HS_STANDON    0
 #define HS_LOOKAT     1
 #define HS_INTERACT   2
@@ -78,11 +81,13 @@
 #define OBJ_INTERACT  1
 #define OBJ_TALKTO    2
 #define OBJ_USEINV    3
+
+#endif // UNUSED_CODE
 //
 //
 
 //=============================================================================
-#include "ac/acroom_func_room.h"
+//#include "ac/acroom_func_room.h"
 //=============================================================================
 
 
@@ -102,7 +107,7 @@
 
 
 //=============================================================================
-#include "ac/acroom_func_gamestruct.h"
+//#include "ac/acroom_func_gamestruct.h"
 //=============================================================================
 
 

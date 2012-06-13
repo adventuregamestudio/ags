@@ -4,8 +4,7 @@
 
 #include "ac/ac_audioclip.h"        // AudioClip, AudioClipType
 #include "ac/ac_characterinfo.h"    // OldCharacterInfo, CharacterInfo
-#include "ac/ac_custompropertyschema.h"// CustomPropertySchema
-#include "ac/ac_customproperties.h" // CustomProperties
+#include "ac/ac_customproperties.h" // CustomProperties, CustomPropertySchema
 #include "ac/ac_dialog.h"           // constants
 #include "ac/ac_eventblock.h"       // EventBlock
 #include "ac/ac_interaction.h"      // NewInteraction
@@ -211,5 +210,6 @@ struct GameSetupStruct: public GameSetupStructBase {
     AudioClipType    *audioClipTypes;
 };
 
+void ConvertOldGameStruct (OldGameSetupStruct *ogss, GameSetupStruct *gss);
 
 #endif // __AC_GAMESETUPSTRUCT_H

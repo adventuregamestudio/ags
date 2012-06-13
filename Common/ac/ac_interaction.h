@@ -122,5 +122,17 @@ struct InteractionScripts {
 };
 
 
+extern InteractionVariable globalvars[MAX_GLOBAL_VARIABLES];
+extern int numGlobalVars;
+
+extern void serialize_command_list (NewInteractionCommandList *nicl, FILE*ooo);
+extern void serialize_new_interaction (NewInteraction *nint, FILE*ooo);
+extern NewInteractionCommandList *deserialize_command_list (FILE *ooo);
+
+extern NewInteraction *nitemp;
+extern NewInteraction *deserialize_new_interaction (FILE *ooo);
+
+extern void deserialize_interaction_scripts(FILE *iii, InteractionScripts *scripts);
+
 
 #endif // __AC_INTERACTION_H

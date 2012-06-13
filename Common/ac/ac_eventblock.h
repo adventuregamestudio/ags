@@ -11,4 +11,6 @@ struct EventBlock {
     short score[MAXCOMMANDS];
 };
 
+extern void add_to_eventblock(EventBlock *evpt, int evnt, int whatac, int val1, int data, short scorr);
+
 #endif // __AC_EVENTBLOCK_H

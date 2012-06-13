@@ -52,4 +52,6 @@ struct ViewStruct272 {
     void ReadFromFile(FILE *fp);
 };
 
+void Convert272ViewsToNew (int numof, ViewStruct272 *oldv, ViewStruct *newv);
+
 #endif // __AC_VIEW_H

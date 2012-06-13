@@ -1,6 +1,6 @@
 
-#include "ac_point.h"
-#include "ac_quit.h"    // quit()
+#include "ac/ac_point.h"
+#include "ac/ac_common.h"    // quit()
 
 void PolyPoints::add_point(int xxx,int yyy) {
     x[numpoints] = xxx;

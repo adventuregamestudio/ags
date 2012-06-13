@@ -162,10 +162,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\Common\acroom.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\Common\Clib32.cpp"
 				>
 			</File>
@@ -229,15 +225,23 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\ac\ac_common.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_compress.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\ac\ac_customproperties.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_custompropertyschema.cpp"
+					RelativePath="..\..\Common\ac\ac_dialog.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_dialog.cpp"
+					RelativePath="..\..\Common\ac\ac_eventblock.cpp"
 					>
 				</File>
 				<File
@@ -359,11 +363,15 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_customproperties.h"
+					RelativePath="..\..\Common\ac\ac_common.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_custompropertyschema.h"
+					RelativePath="..\..\Common\ac\ac_compress.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_customproperties.h"
 					>
 				</File>
 				<File
@@ -420,10 +428,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\ac\ac_point.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\ac_quit.h"
 					>
 				</File>
 				<File

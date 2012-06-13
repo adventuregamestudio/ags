@@ -1,4 +1,5 @@
 
+#include <string.h>
 #include "ac_characterinfo.h"
 
 int CharacterInfo::get_effective_y() {
@@ -75,3 +76,38 @@ void CharacterInfo::ReadFromFile(FILE *fp)
     fseek(fp, 4 - (((MAX_INV+2)*sizeof(short)+40+MAX_SCRIPT_NAME_LEN+1)%4), SEEK_CUR);
 }
 #endif
+
+void ConvertOldCharacterToNew (OldCharacterInfo *oci, CharacterInfo *ci) {
+  COPY_CHAR_VAR (defview);
+  COPY_CHAR_VAR (talkview);
+  COPY_CHAR_VAR (view);
+  COPY_CHAR_VAR (room);
+  COPY_CHAR_VAR (prevroom);
+  COPY_CHAR_VAR (x);
+  COPY_CHAR_VAR (y);
+  COPY_CHAR_VAR (wait);
+  COPY_CHAR_VAR (flags);
+  COPY_CHAR_VAR (following);
+  COPY_CHAR_VAR (followinfo);
+  COPY_CHAR_VAR (idleview);
+  COPY_CHAR_VAR (idletime);
+  COPY_CHAR_VAR (idleleft);
+  COPY_CHAR_VAR (transparency);
+  COPY_CHAR_VAR (baseline);
+  COPY_CHAR_VAR (activeinv);
+  COPY_CHAR_VAR (loop);
+  COPY_CHAR_VAR (frame);
+  COPY_CHAR_VAR (walking);
+  COPY_CHAR_VAR (animating);
+  COPY_CHAR_VAR (walkspeed);
+  COPY_CHAR_VAR (animspeed);
+  COPY_CHAR_VAR (actx);
+  COPY_CHAR_VAR (acty);
+  COPY_CHAR_VAR (on);
+  strcpy (ci->name, oci->name);
+  strcpy (ci->scrname, oci->scrname);
+  memcpy (&ci->inv[0], &oci->inv[0], sizeof(short) * 100);
+  // move the talking colour into the struct and remove from flags
+  ci->talkcolor = (oci->flags & OCHF_SPEECHCOL) >> OCHF_SPEECHCOLSHIFT;
+  ci->flags = ci->flags & (~OCHF_SPEECHCOL);
+}

@@ -13,7 +13,8 @@
 #pragma unmanaged
 #endif
 
-#include "wgt2allg_nofunc.h"
+//#include "wgt2allg_nofunc.h"
+#include "wgt2allg.h"
 
 #include "misc.h"
 

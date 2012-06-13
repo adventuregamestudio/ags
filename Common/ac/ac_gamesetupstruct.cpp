@@ -1,6 +1,7 @@
 
 #include <stdio.h>
-#include "wgt2allg_nofunc.h"        // macros, typedef
+//#include "wgt2allg_nofunc.h"        // macros, typedef
+#include "wgt2allg.h"
 #include "ac/ac_gamesetupstruct.h"
 
 void GameSetupStructBase::ReadFromFile(FILE *fp)

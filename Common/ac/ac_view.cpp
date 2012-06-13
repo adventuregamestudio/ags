@@ -3,7 +3,8 @@
 #include <stdlib.h>
 #include "ac/ac_view.h"
 
-#include "wgt2allg_nofunc.h"
+//#include "wgt2allg_nofunc.h"
+#include "wgt2allg.h"
 
 void ViewFrame::ReadFromFile(FILE *fp)
 {

@@ -11,7 +11,8 @@
   You MAY NOT compile your own builds of the engine without making it EXPLICITLY
   CLEAR that the code has been altered from the Standard Version.
 */
-#include "wgt2allg_nofunc.h"
+//#include "wgt2allg_nofunc.h"
+#include "wgt2allg.h"
 //#include "acroom_nofunc.h"
 #include "ac/ac_common.h"   // quit()
 #include "ac/ac_move.h"     // MoveList

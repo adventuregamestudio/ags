@@ -146,7 +146,8 @@ extern void * memcpy_amd(void *dest, const void *src, size_t n);
 
 #define IS_ANTIALIAS_SPRITES usetup.enable_antialiasing && (play.disable_antialiasing == 0)
 extern int our_eip;
-#include "wgt2allg_func.h"
+//#include "wgt2allg_func.h"
+#include "wgt2allg.h"
 #include "sprcache.h"
 
 // Allegro 4 has switched 15-bit colour to BGR instead of RGB, so

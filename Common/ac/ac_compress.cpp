@@ -1,6 +1,7 @@
 
 #include <stdio.h>
-#include "wgt2allg_nofunc.h"
+//#include "wgt2allg_nofunc.h"
+#include "wgt2allg.h"
 #include "ac/ac_compress.h"
 //#include "ac/acroom_func_core.h"
 #include "ac/ac_common.h"	// quit()

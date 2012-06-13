@@ -25,6 +25,8 @@
 #error Do not include wgt2allg_2.h directly, include either wgt2allg_func.h or wgt2allg_nofunc.h instead.
 #endif
 
+#error Do not include wgt2allg_2.h for now
+
 
 #define tx    abuf->cl
 #define ty    abuf->ct

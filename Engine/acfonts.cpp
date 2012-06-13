@@ -13,7 +13,8 @@
 #ifndef USE_ALFONT
 #define USE_ALFONT
 #endif
-#include "wgt2allg_nofunc.h"
+//#include "wgt2allg_nofunc.h"
+#include "wgt2allg.h"
 //#include "acroom_nofunc.h"
 #include "acruntim.h"
 

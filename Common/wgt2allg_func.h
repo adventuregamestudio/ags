@@ -29,6 +29,8 @@
 
 #include "wgt2allg.h"
 
+#error Do not include wgt2allg_func.h for now
+
 #ifdef __cplusplus
 extern "C"
 {

@@ -23,7 +23,8 @@ bool ShouldAntiAliasText() { return (antiAliasFonts != 0); }
 
 int mousex, mousey;
 #include "misc.h"
-#include "wgt2allg_func.h"
+//#include "wgt2allg_func.h"
+#include "wgt2allg.h"
 #include "sprcache.h"
 //#include "acroom_func.h"
 //#include "acroom_savefunc.h"

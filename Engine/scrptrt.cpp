@@ -17,7 +17,8 @@
 */
 #include <stdio.h>
 #include <stdlib.h>
-#include "wgt2allg_nofunc.h"
+//#include "wgt2allg_nofunc.h"
+#include "wgt2allg.h"
 //#include "acroom_nofunc.h"
 #include "ac/ac_room.h"
 #include "bigend.h"

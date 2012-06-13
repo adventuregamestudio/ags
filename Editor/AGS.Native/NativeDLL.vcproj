@@ -274,6 +274,18 @@
 				RelativePath="..\..\Common\sprcache_agsnative.cpp"
 				>
 			</File>
+			<Filter
+				Name="ac"
+				>
+				<File
+					RelativePath="..\..\Common\ac\ac_actiontype.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_script.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"

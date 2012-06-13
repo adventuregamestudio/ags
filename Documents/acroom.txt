@@ -26,3 +26,57 @@ Engine:
     
 AGS.Native:
     agsnative.cpp           - CROOM_NOFUNCTIONS  |  - NO_SAVE_FUNCTIONS
+
+
+
+//=============================================================================
+
+After split.
+Linked acroom sources:
+
+(-) means shared
+
+Engine.App:
+    ac_characterinfo
+    ac_common               (-)
+    ac_compress             (-)
+    ac_customproperties     (-)
+    ac_interaction          (-)
+    ac_mousecursor          (-)
+    ac_room                 (-)
+    ac_view                 (-)
+    ac_wordsdictionary      (-)
+
+AGS.Native:
+    ac_actiontype
+    ac_common               (-)
+    ac_compress             (-)
+    ac_customproperties     (-)
+    ac_interaction          (-)
+    ac_mousecursor          (-)
+    ac_room                 (-)
+    ac_script
+    ac_view                 (-)
+    ac_wordsdictionary      (-)
+    
+Unused (?): ------ need to test with ALLEGRO_BIG_ENDIAN !!
+    ac_dialog
+    ac_eventblock
+    ac_gamesetupstruct
+    ac_interfacebutton
+    ac_interfaceelement
+    ac_inventoryiteminfo
+    ac_lipsync
+    ac_messageinfo
+    ac_point
+
+Common.Lib:
+    ac_common          
+    ac_compress        
+    ac_customproperties
+    ac_interaction     
+    ac_mousecursor     
+    ac_room            
+    ac_view            
+    ac_wordsdictionary 
+    

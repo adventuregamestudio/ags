@@ -217,14 +217,6 @@
 				Name="ac"
 				>
 				<File
-					RelativePath="..\..\Common\ac\ac_actiontype.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\ac_characterinfo.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Common\ac\ac_common.cpp"
 					>
 				</File>
@@ -237,35 +229,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_dialog.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\ac_eventblock.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\ac_gamesetupstruct.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Common\ac\ac_interaction.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\ac_interfacebutton.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\ac_interfaceelement.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\ac_inventoryiteminfo.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\ac_messageinfo.cpp"
 					>
 				</File>
 				<File
@@ -273,15 +237,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_point.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Common\ac\ac_room.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\ac_script.cpp"
 					>
 				</File>
 				<File
@@ -347,19 +303,7 @@
 				Name="ac"
 				>
 				<File
-					RelativePath="..\..\Common\ac\ac_actiontype.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Common\ac\ac_animationstruct.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\ac_audioclip.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\ac_characterinfo.h"
 					>
 				</File>
 				<File
@@ -379,35 +323,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_dialog.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\ac_eventblock.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\ac_gamesetupstruct.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Common\ac\ac_interaction.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\ac_interfacebutton.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\ac_interfaceelement.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\ac_inventoryiteminfo.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\ac_lipsync.h"
 					>
 				</File>
 				<File
@@ -419,23 +335,11 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_move.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\ac_object.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Common\ac\ac_point.h"
 					>
 				</File>
 				<File
 					RelativePath="..\..\Common\ac\ac_room.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\ac_script.h"
 					>
 				</File>
 				<File

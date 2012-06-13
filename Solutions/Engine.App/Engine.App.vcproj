@@ -299,6 +299,14 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="ac"
+				>
+				<File
+					RelativePath="..\..\Common\ac\ac_characterinfo.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -400,6 +408,14 @@
 			<Filter
 				Name="ac"
 				>
+				<File
+					RelativePath="..\..\Common\ac\ac_characterinfo.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_defines.h"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="cs"

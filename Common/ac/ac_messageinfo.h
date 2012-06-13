@@ -1,7 +1,7 @@
 #ifndef __AC_MESSAGEINFO_H
 #define __AC_MESSAGEINFO_H
 
-#include "ac_defines.h" // PCKD
+#include "ac/ac_defines.h" // PCKD
 
 #pragma pack(1)
 
@@ -11,9 +11,7 @@ struct MessageInfo {
     char  displayas  PCKD; // 0 = normal window, 1 = as speech
     char  flags      PCKD; // combination of MSG_xxx flags
 
-#ifdef ALLEGRO_BIG_ENDIAN
     void ReadFromFile(FILE *fp);
-#endif
 };
 
 #pragma pack()

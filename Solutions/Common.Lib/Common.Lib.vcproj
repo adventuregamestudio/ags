@@ -42,7 +42,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="&quot;$(SolutionDir)\..\Common&quot;;&quot;$(SolutionDir)\..\Common\libinclude&quot;;&quot;$(SolutionDir)\..\Windows\include&quot;"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_WINDOWS;VS2005;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;WINDOWS_VERSION;DISABLE_MPEG_AUDIO"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_WINDOWS;VS2005;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;ALLEGRO_BIG_ENDIAN"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -162,6 +162,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\Engine\bigend.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\Common\Clib32.cpp"
 				>
 			</File>
@@ -233,7 +237,15 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\ac\ac_messageinfo.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\ac\ac_mousecursor.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_point.cpp"
 					>
 				</File>
 				<File

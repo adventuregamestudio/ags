@@ -64,9 +64,13 @@ void ViewLoopNew::ReadFromFile(FILE *iii)
 {
 #ifdef ALLEGRO_BIG_ENDIAN
 
-    STEVE PLEASE VALIDATE THAT THIS CODE IS OK
+    // [IKM] 2012-06-13
+    // A shoutout from earlier days (or years?) of AGS :)
+    // (I guess "Steve" is Steve McCree)
 
-        Initialize(__getshort__bigendian(fp));
+    /* STEVE PLEASE VALIDATE THAT THIS CODE IS OK */
+
+    Initialize(__getshort__bigendian(iii));
     flags = getw(iii);
 
     for (int i = 0; i < numFrames; ++i)
@@ -118,7 +122,7 @@ void ViewStruct::WriteToFile(FILE *ooo)
 void ViewStruct::ReadFromFile(FILE *iii)
 {
 #ifdef ALLEGRO_BIG_ENDIAN
-    Initialize(__getshort__bigendian(fp));
+    Initialize(__getshort__bigendian(iii));
 #else
     Initialize(getshort(iii));
 #endif
@@ -147,7 +151,6 @@ void ViewStruct272::ReadFromFile(FILE *fp)
             frames[j][i].ReadFromFile(fp);
         }
     }
-}
 #else
     fread(&numloops, 2, 1, fp);
     for (int i = 0; i < 16; ++i)

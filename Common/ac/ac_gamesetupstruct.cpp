@@ -1,10 +1,11 @@
 
+#include <stdio.h>
 #include "wgt2allg_nofunc.h"        // macros, typedef
-#include "ac_gamesetupstruct.h"
+#include "ac/ac_gamesetupstruct.h"
 
-#ifdef ALLEGRO_BIG_ENDIAN
 void GameSetupStructBase::ReadFromFile(FILE *fp)
 {
+#ifdef ALLEGRO_BIG_ENDIAN
     fread(&gamename[0], sizeof(char), 50, fp);
     fseek(fp, 2, SEEK_CUR);    // skip the array padding
     fread(options, sizeof(int), 100, fp);
@@ -38,8 +39,10 @@ void GameSetupStructBase::ReadFromFile(FILE *fp)
     globalscript = (char *) getw(fp);
     chars = (CharacterInfo *) getw(fp);
     compiled_script = (ccScript *) getw(fp);
-}
+#else
+    throw "GameSetupStructBase::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
 #endif
+}
 
 void ConvertOldGameStruct (OldGameSetupStruct *ogss, GameSetupStruct *gss) {
   int i;

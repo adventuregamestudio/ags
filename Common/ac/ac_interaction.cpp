@@ -14,23 +14,42 @@ NewInteractionValue::NewInteractionValue() {
     extra = 0;
 }
 
-#ifdef ALLEGRO_BIG_ENDIAN
+
 void NewInteractionValue::ReadFromFile(FILE *fp)
 {
+#ifdef ALLEGRO_BIG_ENDIAN
     fread(&valType, sizeof(char), 1, fp);
     char pad[3]; fread(pad, sizeof(char), 3, fp);
     val = getw(fp);
     extra = getw(fp);
+#else
+    throw "NewInteractionValue::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
+#endif
 }
+
 void NewInteractionValue::WriteToFile(FILE *fp)
 {
+#ifdef ALLEGRO_BIG_ENDIAN
     fwrite(&valType, sizeof(char), 1, fp);
     char pad[3]; fwrite(pad, sizeof(char), 3, fp);
     putw(val, fp);
     putw(extra, fp);
-}
+#else
+    throw "NewInteractionValue::WriteToFile() is not implemented for little-endian platforms and should not be called.";
 #endif
+}
 
+
+void InteractionVariable::ReadFromFile(FILE *fp)
+{
+#ifdef ALLEGRO_BIG_ENDIAN
+    fread(name, sizeof(char), 23, fp);
+    type = getc(fp);
+    value = getw(fp);
+#else
+    throw "InteractionVariable::WriteToFile() is not implemented for little-endian platforms and should not be called.";
+#endif
+}
 
 
 NewInteractionCommand::NewInteractionCommand() {
@@ -45,9 +64,9 @@ NewInteractionCommandList *NewInteractionCommand::get_child_list() {
 
 void NewInteractionCommand::reset() { remove(); }
 
-#ifdef ALLEGRO_BIG_ENDIAN
 void NewInteractionCommand::ReadFromFile(FILE *fp)
 {
+#ifdef ALLEGRO_BIG_ENDIAN
     getw(fp); // skip the vtbl ptr
     type = getw(fp);
     for (int i = 0; i < MAX_ACTION_ARGS; ++i)
@@ -57,9 +76,14 @@ void NewInteractionCommand::ReadFromFile(FILE *fp)
     // all that matters is whether or not these are null...
     children = (NewInteractionAction *) getw(fp);
     parent = (NewInteractionCommandList *) getw(fp);
+#else
+    throw "NewInteractionCommand::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
+#endif
 }
+
 void NewInteractionCommand::WriteToFile(FILE *fp)
 {
+#ifdef ALLEGRO_BIG_ENDIAN
     putw(0, fp); // write dummy vtbl ptr 
     putw(type, fp);
     for (int i = 0; i < MAX_ACTION_ARGS; ++i)
@@ -68,8 +92,10 @@ void NewInteractionCommand::WriteToFile(FILE *fp)
     }
     putw((int)children, fp);
     putw((int)parent, fp);
-}
+#else
+    throw "NewInteractionCommand::WriteToFile() is not implemented for little-endian platforms and should not be called.";
 #endif
+}
 
 NewInteractionCommandList::NewInteractionCommandList () {
     numCommands = 0;
@@ -117,17 +143,23 @@ NewInteraction::~NewInteraction() {
     reset();
 }
 
-#ifdef ALLEGRO_BIG_ENDIAN
 void NewInteraction::ReadFromFile(FILE *fp)
 {
+#ifdef ALLEGRO_BIG_ENDIAN
     // it's all ints!
     fread(&numEvents, sizeof(int), sizeof(NewInteraction)/sizeof(int), fp);
+#else
+    throw "NewInteraction::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
+#endif
 }
 void NewInteraction::WriteToFile(FILE *fp)
 {
+#ifdef ALLEGRO_BIG_ENDIAN
     fwrite(&numEvents, sizeof(int), sizeof(NewInteraction)/sizeof(int), fp);
-}
+#else
+    throw "NewInteraction::WriteToFile() is not implemented for little-endian platforms and should not be called.";
 #endif
+}
 
 
 InteractionScripts::InteractionScripts() {
@@ -145,13 +177,13 @@ void serialize_command_list (NewInteractionCommandList *nicl, FILE*ooo) {
     return;
   putw (nicl->numCommands, ooo);
   putw (nicl->timesRun, ooo);
-#ifndef ALLEGRO_BIG_ENDIAN
-  fwrite (&nicl->command[0], sizeof(NewInteractionCommand), nicl->numCommands, ooo);
-#else
+#ifdef ALLEGRO_BIG_ENDIAN
   for (int iteratorCount = 0; iteratorCount < nicl->numCommands; ++iteratorCount)
   {
-    nicl->command[iteratorCount].WriteToFile(ooo);
+      nicl->command[iteratorCount].WriteToFile(ooo);
   }
+#else
+  fwrite (&nicl->command[0], sizeof(NewInteractionCommand), nicl->numCommands, ooo);  
 #endif  // ALLEGRO_BIG_ENDIAN
   for (int k = 0; k < nicl->numCommands; k++) {
     if (nicl->command[k].children != NULL)
@@ -178,13 +210,13 @@ NewInteractionCommandList *deserialize_command_list (FILE *ooo) {
   NewInteractionCommandList *nicl = new NewInteractionCommandList;
   nicl->numCommands = getw(ooo);
   nicl->timesRun = getw(ooo);
-#ifndef ALLEGRO_BIG_ENDIAN
-  fread (&nicl->command[0], sizeof(NewInteractionCommand), nicl->numCommands, ooo);
-#else
+#ifdef ALLEGRO_BIG_ENDIAN
   for (int iteratorCount = 0; iteratorCount < nicl->numCommands; ++iteratorCount)
   {
-    nicl->command[iteratorCount].ReadFromFile(ooo);
+      nicl->command[iteratorCount].ReadFromFile(ooo);
   }
+#else
+  fread (&nicl->command[0], sizeof(NewInteractionCommand), nicl->numCommands, ooo);  
 #endif  // ALLEGRO_BIG_ENDIAN
   for (int k = 0; k < nicl->numCommands; k++) {
     if (nicl->command[k].children != NULL) {

@@ -46,6 +46,13 @@ Engine.App:
     ac_room                 (-)
     ac_view                 (-)
     ac_wordsdictionary      (-)
+    ac_dialog               ALLEGRO_BIG_ENDIAN
+    ac_gamesetupstruct      ALLEGRO_BIG_ENDIAN
+    ac_inventoryiteminfo    ALLEGRO_BIG_ENDIAN
+    ac_messageinfo          (-)ALLEGRO_BIG_ENDIAN
+    ac_point                (-)ALLEGRO_BIG_ENDIAN
+    ac_interfaceelement     just in case (see comment inside)
+    
 
 AGS.Native:
     ac_actiontype
@@ -58,17 +65,14 @@ AGS.Native:
     ac_script
     ac_view                 (-)
     ac_wordsdictionary      (-)
+    ac_messageinfo          (-)ALLEGRO_BIG_ENDIAN
+    ac_point                (-)ALLEGRO_BIG_ENDIAN
     
-Unused (?): ------ need to test with ALLEGRO_BIG_ENDIAN !!
-    ac_dialog
+Unused (?):
     ac_eventblock
-    ac_gamesetupstruct
     ac_interfacebutton
-    ac_interfaceelement
-    ac_inventoryiteminfo
-    ac_lipsync
-    ac_messageinfo
-    ac_point
+    
+    
 
 Common.Lib:
     ac_common          
@@ -79,4 +83,6 @@ Common.Lib:
     ac_room            
     ac_view            
     ac_wordsdictionary 
+    ac_messageinfo          ALLEGRO_BIG_ENDIAN
+    ac_point                ALLEGRO_BIG_ENDIAN
     

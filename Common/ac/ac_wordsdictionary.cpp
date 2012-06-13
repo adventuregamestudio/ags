@@ -5,6 +5,7 @@
 #include "ac/ac_wordsdictionary.h"
 #include "ac/ac_common.h"
 #include "ac/ac_defines.h"
+#include "bigend.h"
 
 void WordsDictionary::allocate_memory(int wordCount)
 {
@@ -138,10 +139,10 @@ void write_dictionary (WordsDictionary *dict, FILE *writeto) {
   putw(dict->num_words, writeto);
   for (ii = 0; ii < dict->num_words; ii++) {
     write_string_encrypt (writeto, dict->word[ii]);
-#ifndef ALLEGRO_BIG_ENDIAN
-    fwrite(&dict->wordnum[ii], sizeof(short), 1, writeto);
-#else
+#ifdef ALLEGRO_BIG_ENDIAN
     __putshort__lilendian(dict->wordnum[ii], writeto);
-#endif  // ALLEGRO_BIG_ENDIAN
+#else
+    fwrite(&dict->wordnum[ii], sizeof(short), 1, writeto);
+#endif
   }
 }

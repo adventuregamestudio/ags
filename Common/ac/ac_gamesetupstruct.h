@@ -171,9 +171,7 @@ struct GameSetupStructBase {
     CharacterInfo    *chars;
     ccScript         *compiled_script;
 
-#ifdef ALLEGRO_BIG_ENDIAN
     void ReadFromFile(FILE *fp);
-#endif
 };
 
 #define MAXVIEWNAMELENGTH 15

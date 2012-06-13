@@ -247,20 +247,19 @@ int WFNFontRenderer::GetTextWidth(const char *texx, int fontNumber)
   {
     thisCharacter = texx[dd];
     if ((thisCharacter >= 128) || (thisCharacter < 0)) thisCharacter = '?';
-#ifndef ALLEGRO_BIG_ENDIAN
-
+#ifdef ALLEGRO_BIG_ENDIAN
+    short *tabaddr; // [IKM] 2012-06-13: added by guess, just to make this compile
+    tabaddr = (short *)&foon[15];
+    tabaddr = (short *)&foon[__short_swap_endian(tabaddr[0])];     // get address table
+    tabaddr = (short *)&foon[__short_swap_endian(tabaddr[thisCharacter])];      // use table to find character
+    totlen += __short_swap_endian(tabaddr[0]);
+#else
     char* fontaddr = psp_get_char(foon, thisCharacter);
 
     short tabaddr_d;
     memcpy(&tabaddr_d, (char*)((int)fontaddr + 0), 2);
 
     totlen += tabaddr_d;
-
-#else
-    tabaddr = (short *)&foon[15];
-    tabaddr = (short *)&foon[__short_swap_endian(tabaddr[0])];     // get address table
-    tabaddr = (short *)&foon[__short_swap_endian(tabaddr[thisCharacter])];      // use table to find character
-    totlen += __short_swap_endian(tabaddr[0]);
 #endif
   }
   return totlen * wtext_multiply;
@@ -277,19 +276,18 @@ int WFNFontRenderer::GetTextHeight(const char *texx, int fontNumber)
   {
     thisCharacter = texx[dd];
     if ((thisCharacter >= 128) || (thisCharacter < 0)) thisCharacter = '?';
-#ifndef ALLEGRO_BIG_ENDIAN
-
+#ifdef ALLEGRO_BIG_ENDIAN
+    short *tabaddr; // [IKM] 2012-06-13: added by guess, just to make this compile
+    tabaddr = (short *)&foon[15];
+    tabaddr = (short *)&foon[__short_swap_endian(tabaddr[0])];     // get address table
+    tabaddr = (short *)&foon[__short_swap_endian(tabaddr[thisCharacter])];      // use table to find character
+    int charHeight = __short_swap_endian(tabaddr[1]);
+#else
     char* fontaddr = psp_get_char(foon, thisCharacter);
     short tabaddr_d;
     memcpy(&tabaddr_d, (char*)((int)fontaddr + 2), 2);
 
     int charHeight = tabaddr_d;
-
-#else
-    tabaddr = (short *)&foon[15];
-    tabaddr = (short *)&foon[__short_swap_endian(tabaddr[0])];     // get address table
-    tabaddr = (short *)&foon[__short_swap_endian(tabaddr[thisCharacter])];      // use table to find character
-    int charHeight = __short_swap_endian(tabaddr[1]);
 #endif
     if (charHeight > highest)
       highest = charHeight;
@@ -318,8 +316,13 @@ int WFNFontRenderer::printchar(int xxx, int yyy, wgtfont foo, int charr)
   if ((charr > 127) || (charr < 0))
     charr = '?';
 
-#ifndef ALLEGRO_BIG_ENDIAN
-
+#ifdef ALLEGRO_BIG_ENDIAN
+  short *tabaddr; // [IKM] 2012-06-13: added by guess, just to make this compile
+  tabaddr = (short *)&foo[__short_swap_endian(tabaddr[0])];
+  tabaddr = (short *)&foo[__short_swap_endian(tabaddr[charr])];
+  int charWidth = __short_swap_endian(tabaddr[0]);
+  int charHeight = __short_swap_endian(tabaddr[1]);
+#else
   char* tabaddr = psp_get_char(foo, charr);
 
   short tabaddr_d;
@@ -328,12 +331,6 @@ int WFNFontRenderer::printchar(int xxx, int yyy, wgtfont foo, int charr)
 
   memcpy(&tabaddr_d, (char*)((int)tabaddr + 2), 2);
   int charHeight = tabaddr_d;
-
-#else
-  tabaddr = (short *)&foo[__short_swap_endian(tabaddr[0])];
-  tabaddr = (short *)&foo[__short_swap_endian(tabaddr[charr])];
-  int charWidth = __short_swap_endian(tabaddr[0]);
-  int charHeight = __short_swap_endian(tabaddr[1]);
 #endif
 
   actdata = (unsigned char *)&tabaddr[2*2];

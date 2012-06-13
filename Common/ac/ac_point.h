@@ -16,9 +16,7 @@ struct PolyPoints {
     void add_point(int xxx,int yyy);
     PolyPoints() { numpoints = 0; }
 
-#ifdef ALLEGRO_BIG_ENDIAN
     void ReadFromFile(FILE *fp);
-#endif
 };
 
 #endif // __AC_POINT_H

@@ -9,9 +9,7 @@ struct InventoryItemInfo {
     int  reserved[5];
     char flags;
 
-#ifdef ALLEGRO_BIG_ENDIAN
     void ReadFromFile(FILE *fp);
-#endif
 };
 
 #endif // __AC_INVENTORYITEMINFO_H

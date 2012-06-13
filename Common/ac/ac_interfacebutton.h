@@ -11,7 +11,9 @@ struct InterfaceButton {
     int rightclick; // if inv, then leftclick = wid, rightclick = hit
     int reserved_for_future;
     char flags;
+#ifdef UNUSED_CODE
     void set(int xx, int yy, int picc, int overpicc, int actionn);
+#endif
 };
 
 #endif // __AC_INTERFACEBUTTON_H

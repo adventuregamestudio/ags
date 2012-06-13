@@ -42,7 +42,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="&quot;$(SolutionDir)\..\Common&quot;;&quot;$(SolutionDir)\..\Common\libinclude&quot;;&quot;$(SolutionDir)\..\Engine&quot;;&quot;$(SolutionDir)\..\Windows\include&quot;"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;VS2005;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;THIS_IS_THE_ENGINE;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;BUILTIN_PLUGINS"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;VS2005;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;THIS_IS_THE_ENGINE;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;BUILTIN_PLUGINS;ALLEGRO_BIG_ENDIAN"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -306,6 +306,22 @@
 					RelativePath="..\..\Common\ac\ac_characterinfo.cpp"
 					>
 				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_dialog.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_gamesetupstruct.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_interfaceelement.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_inventoryiteminfo.cpp"
+					>
+				</File>
 			</Filter>
 		</Filter>
 		<Filter
@@ -413,7 +429,55 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\ac\ac_common.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\ac\ac_defines.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_dialog.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_eventblock.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_gamesetupstruct.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_interaction.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_interfacebutton.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_interfaceelement.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_inventoryiteminfo.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_messageinfo.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_mousecursor.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_point.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_wordsdictionary.h"
 					>
 				</File>
 			</Filter>

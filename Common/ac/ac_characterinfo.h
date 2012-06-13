@@ -68,9 +68,7 @@ struct CharacterInfo {
     int get_blocking_top();    // return Y - BlockingHeight/2
     int get_blocking_bottom(); // return Y + BlockingHeight/2
 
-#ifdef ALLEGRO_BIG_ENDIAN
     void ReadFromFile(FILE *fp);
-#endif
 };
 
 

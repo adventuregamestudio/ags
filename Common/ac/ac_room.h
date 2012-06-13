@@ -27,16 +27,7 @@ struct sprstruc {
     short on      PCKD;
     sprstruc() { on = 0; }
 
-#ifdef ALLEGRO_BIG_ENDIAN
-    void ReadFromFile(FILE *fp)
-    {
-        sprnum = __getshort__bigendian(fp);
-        x = __getshort__bigendian(fp);
-        y = __getshort__bigendian(fp);
-        room = __getshort__bigendian(fp);
-        on = __getshort__bigendian(fp);
-    }
-#endif
+    void ReadFromFile(FILE *fp);
 };
 #pragma pack()
 
@@ -138,12 +129,7 @@ struct roomstruct {
 struct room_file_header {
     short version PCKD;
 
-#ifdef ALLEGRO_BIG_ENDIAN
-    void ReadFromFile(FILE *fp)
-    {
-        version = __getshort__bigendian(fp);
-    }
-#endif
+    void ReadFromFile(FILE *fp);
 };
 
 extern int _acroom_bpp;  // bytes per pixel of currently loading room

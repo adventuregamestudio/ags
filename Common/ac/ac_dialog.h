@@ -39,9 +39,7 @@ struct DialogTopic {
     int           numoptions;
     int           topicFlags;
 
-#ifdef ALLEGRO_BIG_ENDIAN
     void ReadFromFile(FILE *fp);
-#endif
 };
 
 

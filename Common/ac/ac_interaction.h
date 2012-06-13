@@ -32,10 +32,8 @@ struct NewInteractionValue {
 
     NewInteractionValue();
 
-#ifdef ALLEGRO_BIG_ENDIAN
     void ReadFromFile(FILE *fp);
     void WriteToFile(FILE *fp);
-#endif
 };
 
 struct NewInteractionAction {
@@ -55,10 +53,8 @@ struct NewInteractionCommand: public NewInteractionAction {
 
     void reset();
 
-#ifdef ALLEGRO_BIG_ENDIAN
     void ReadFromFile(FILE *fp);
     void WriteToFile(FILE *fp);
-#endif
 };
 
 struct NewInteractionCommandList : public NewInteractionAction {
@@ -86,10 +82,8 @@ struct NewInteraction {
     void reset();
     ~NewInteraction();
 
-#ifdef ALLEGRO_BIG_ENDIAN
     void ReadFromFile(FILE *fp);
     void WriteToFile(FILE *fp);
-#endif
 };
 
 
@@ -98,14 +92,7 @@ struct InteractionVariable {
     char type;
     int  value;
 
-#ifdef ALLEGRO_BIG_ENDIAN
-    void ReadFromFile(FILE *fp)
-    {
-        fread(name, sizeof(char), 23, fp);
-        type = getc(fp);
-        value = getw(fp);
-    }
-#endif
+    void ReadFromFile(FILE *fp);
 };
 extern InteractionVariable globalvars[];
 extern int numGlobalVars;

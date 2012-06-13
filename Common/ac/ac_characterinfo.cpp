@@ -1,6 +1,8 @@
 
+#include <stdio.h>
 #include <string.h>
 #include "ac_characterinfo.h"
+#include "bigend.h"
 
 int CharacterInfo::get_effective_y() {
     return y - z;
@@ -23,9 +25,10 @@ int CharacterInfo::get_blocking_bottom() {
     return y + 3;
 }
 
-#ifdef ALLEGRO_BIG_ENDIAN
 void CharacterInfo::ReadFromFile(FILE *fp)
 {
+    int reserved[2];
+#ifdef ALLEGRO_BIG_ENDIAN
     defview = getw(fp);
     talkview = getw(fp);
     view = getw(fp);
@@ -74,8 +77,10 @@ void CharacterInfo::ReadFromFile(FILE *fp)
     // MAX_INV is odd, so need to sweep up padding
     // skip over padding that makes struct a multiple of 4 bytes long
     fseek(fp, 4 - (((MAX_INV+2)*sizeof(short)+40+MAX_SCRIPT_NAME_LEN+1)%4), SEEK_CUR);
-}
+#else
+    throw "CharacterInfo::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
 #endif
+}
 
 void ConvertOldCharacterToNew (OldCharacterInfo *oci, CharacterInfo *ci) {
   COPY_CHAR_VAR (defview);

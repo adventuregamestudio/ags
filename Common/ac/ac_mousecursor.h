@@ -14,9 +14,7 @@ struct MouseCursor {
     char  flags;
     MouseCursor();
 
-#ifdef ALLEGRO_BIG_ENDIAN
     void ReadFromFile(FILE *fp);
-#endif
 };
 
 #endif // __AC_MOUSECURSOR_H

@@ -11,8 +11,9 @@
 #include "acroom_func.h"
 #include "acroom_savefunc.h"
 
+#error 'acroom_save.cpp' contents were split up to separate modules; do not include this file in the build
 
-
+/*
 void encrypt_text(char *toenc) {
   int adx = 0, tobreak = 0;
 
@@ -51,3 +52,4 @@ void write_dictionary (WordsDictionary *dict, FILE *writeto) {
 #endif  // ALLEGRO_BIG_ENDIAN
   }
 }
+*/

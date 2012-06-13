@@ -23,4 +23,8 @@ extern void read_string_decrypt(FILE *ooo, char *sss);
 extern void read_dictionary (WordsDictionary *dict, FILE *writeto);
 extern void freadmissout(short *pptr, FILE *opty);
 
+extern void encrypt_text(char *toenc);
+extern void write_string_encrypt(FILE *ooo, char *sss);
+extern void write_dictionary (WordsDictionary *dict, FILE *writeto);
+
 #endif // __AC_WORDSDICTIONARY_H

@@ -122,7 +122,17 @@ Done.
 //-----------------------------------------------------------------------------
 /2012-06-14/
 
+Done. Although it looks tad messy right now.
 
+//-----------------------------------------------------------------------------
+// step 7 -- acfonts
+//-----------------------------------------------------------------------------
+/2012-06-14/
+
+acfonts.cpp is shared, but it references something from acruntim.h, which is not
+good. Basically, it should be understood why it needs acruntim and separate
+those parts of it which belong only to engine.
+NOTE: acruntim will be split later.
 
 
 //=============================================================================
@@ -154,3 +164,6 @@ process, like it is done now; perhaps this behavior could be substituted by
 tested return values?
 
 What is ROOMEDIT macro?
+
+IAGSFontRenderer is declared in both acruntim.h and agsplugin.h; declarations are
+*IDENTICAL* o_0

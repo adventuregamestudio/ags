@@ -276,6 +276,7 @@ public:
   virtual void Unserialize(int key, const char *serializedData, int dataSize) = 0;
 };
 
+/*
 #ifndef __ACRUNTIME_H
 class IAGSFontRenderer {
 public:
@@ -289,6 +290,8 @@ public:
   virtual void EnsureTextValidForFont(char *text, int fontNumber) = 0;
 };
 #endif
+*/
+#include "acfont/ac_agsfontrenderer.h"	// IAGSFontRenderer
 
 // The plugin-to-engine interface
 class IAGSEngine {

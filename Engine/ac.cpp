@@ -229,6 +229,7 @@ int   source_text_length = -1;
 #include "cs/cc_error.h"
 #include "cs/cc_options.h"
 #include "cs/cs_utils.h"
+#include "acfont/ac_agsfontrenderer.h" // fontRenderers
 
 #include <aastr.h>
 #include <acdebug.h>

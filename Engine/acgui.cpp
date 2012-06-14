@@ -20,7 +20,8 @@
 #include <ctype.h>
 
 #include "bigend.h"
-#include "cs/cs_utils.h"    // fputstring, etc
+#include "cs/cs_utils.h"				// fputstring, etc
+#include "acfont/ac_agsfontrenderer.h"	// fontRenderers
 
 extern int get_adjusted_spritewidth(int spr);
 extern int get_adjusted_spriteheight(int spr);

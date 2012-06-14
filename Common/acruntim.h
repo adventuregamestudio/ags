@@ -735,19 +735,6 @@ struct PluginObjectReader {
 
 #ifndef _AGS_PLUGIN_H
 #undef IAGSManagedObjectReader
-
-// If you change this, also need to update agsplugin.h
-class IAGSFontRenderer {
-public:
-  virtual bool LoadFromDisk(int fontNumber, int fontSize) = 0;
-  virtual void FreeMemory(int fontNumber) = 0;
-  virtual bool SupportsExtendedCharacters(int fontNumber) = 0;
-  virtual int GetTextWidth(const char *text, int fontNumber) = 0;
-  virtual int GetTextHeight(const char *text, int fontNumber) = 0;
-  virtual void RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour) = 0;
-  virtual void AdjustYCoordinateForFont(int *ycoord, int fontNumber) = 0;
-  virtual void EnsureTextValidForFont(char *text, int fontNumber) = 0;
-};
 #endif
 
 enum eScriptSystemOSID {
@@ -805,7 +792,6 @@ extern AGSPlatformDriver *platform;
 
 extern GFXFilter *filter;
 
-extern IAGSFontRenderer* fontRenderers[MAX_FONTS];
 
 #define DEBUG_CONSOLE if (play.debug_mode) debug_write_console
 

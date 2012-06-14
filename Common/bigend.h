@@ -25,8 +25,6 @@ char *strlwr(char *s);
 #endif
 
 
-#ifndef ROOMEDIT
-
 #ifdef ALLEGRO_BIG_ENDIAN
 
 #include <Allegro.h>
@@ -53,7 +51,5 @@ size_t __fwrite__lilendian(void const *, size_t size, size_t nmemb, FILE *);
 #endif  __BIGEND_ORIGINAL_FILE_FUNCTIONS
 
 #endif  // ALLEGRO_BIG_ENDIAN
-
-#endif  // ROOMEDIT
 
 #endif  // __BIGEND_H__

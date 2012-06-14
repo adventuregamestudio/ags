@@ -188,7 +188,7 @@ namespace AGS.Editor.TextProcessing
                 }
                 else
                 {
-                    Factory.GUIController.ShowFindSymbolResults(results, null);
+                    Factory.GUIController.ShowFindSymbolResults(results);
                 }
             }
             return showDialog;

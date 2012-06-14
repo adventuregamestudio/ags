@@ -1,6 +1,6 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: AGS
-Source: https://gitorious.org/~jjs/ags/ags-for-psp
+Source: https://github.com/adventuregamestudio/ags
 
 Files: *
 Copyright: Copyright (c) 2006-2010 Chris Jones

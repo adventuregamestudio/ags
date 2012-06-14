@@ -28,6 +28,9 @@ namespace AGS.Editor
         [DllImport("user32.dll")]
         internal static extern IntPtr GetWindowThreadProcessId(IntPtr hWnd, out IntPtr lpdwProcessId);
 
+        [DllImport("user32.dll", EntryPoint = "DestroyIcon")]
+        private static extern bool DestroyIcon(IntPtr hIcon);
+
         public static string SelectedReligion = "Not a Believer";
 
         public static void CopyMemory(IntPtr source, IntPtr destination, int numberOfBytes)
@@ -356,6 +359,29 @@ namespace AGS.Editor
             }
 
             return key;
+        }
+
+        /// <summary>
+        /// Converts an image to icon.
+        /// Code taken from comments section in:
+        /// http://ryanfarley.com/blog/archive/2004/04/06/507.aspx
+        /// </summary>
+        /// <param name="image">The image</param>
+        /// <returns>The icon</returns>
+        public static Icon ImageToIcon(Image image)
+        {
+            Icon icon = null;
+
+            Bitmap bitmap = new Bitmap(image);
+            IntPtr UnmanagedIconHandle = bitmap.GetHicon();
+
+            // Clone FromHandle result so we can destroy the unmanaged handle version of the icon before the converted object is passed out.
+            icon = Icon.FromHandle(UnmanagedIconHandle).Clone() as Icon;
+
+            //Unfortunately, GetHicon creates an unmanaged handle which must be manually destroyed otherwise a generic error will occur in GDI+.
+            DestroyIcon(UnmanagedIconHandle);
+
+            return icon;
         }
     }
 }

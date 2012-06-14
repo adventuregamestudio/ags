@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Windows.Forms;
+using WeifenLuo.WinFormsUI.Docking;
 
 namespace AGS.Types
 {
@@ -23,17 +24,23 @@ namespace AGS.Types
 		private int _tabXOffset;
 		private int _tabWidth;
 		private bool _visible;
+        private string _iconKey;
+        private DockData _preferredDockData;
 
-		public ContentDocument(EditorContentPanel control, string name, IEditorComponent owner)
+		public ContentDocument(EditorContentPanel control, string name, 
+            IEditorComponent owner, string iconKey)
 		{
 			_control = control;
 			_name = name;
 			_owner = owner;
+            _iconKey = iconKey;
 			_toolbarCommands = null;
 		}
 
-		public ContentDocument(EditorContentPanel control, string name, IEditorComponent owner, Dictionary<string, object> propertyGridObjectList)
-			: this(control, name, owner)
+		public ContentDocument(EditorContentPanel control, string name, 
+            IEditorComponent owner, string iconKey,
+            Dictionary<string, object> propertyGridObjectList)
+			: this(control, name, owner, iconKey)
 		{
 			_propertyGridObjectList = propertyGridObjectList;
 		}
@@ -47,6 +54,12 @@ namespace AGS.Types
 		{
 			get { return _owner; }
 		}
+
+        public DockData PreferredDockData
+        {
+            get { return _preferredDockData; }
+            set { _preferredDockData = value; }
+        }
 
 		public string Name
 		{
@@ -120,6 +133,12 @@ namespace AGS.Types
 			get { return _mainMenu; }
 			set { _mainMenu = value; }
 		}
+
+        public string IconKey
+        {
+            get { return _iconKey; }
+            set { _iconKey = value; }
+        }
 
 		public void Dispose()
 		{

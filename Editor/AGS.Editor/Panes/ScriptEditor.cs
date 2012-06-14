@@ -60,11 +60,27 @@ namespace AGS.Editor
         private bool _fileChangedExternally = false;
         // we need this bool because it's not necessarily the same as scintilla.Modified
         private bool _editorTextModifiedSinceLastCopy = false;
+        private int _firstVisibleLine;
 
         public ScriptEditor(Script scriptToEdit, AGSEditor agsEditor)
         {
-            InitializeComponent();
             _agsEditor = agsEditor;
+            Init(scriptToEdit);
+            _room = null;
+            _roomNumber = 0;
+        }
+
+        public void Clear()
+        {
+            this.Controls.Clear();
+            _toolbarIcons.Clear();
+            _extraMenu.Commands.Clear();
+            this.Resize -= new EventHandler(ScriptEditor_Resize);
+        }
+
+        public void Init(Script scriptToEdit)
+        {
+            InitializeComponent();
 
             _autocompleteUpdateHandler = new AutoComplete.BackgroundCacheUpdateStatusChangedHandler(AutoComplete_BackgroundCacheUpdateStatusChanged);
             AutoComplete.BackgroundCacheUpdateStatusChanged += _autocompleteUpdateHandler;
@@ -93,11 +109,31 @@ namespace AGS.Editor
             _extraMenu.Commands.Add(new MenuCommand(REPLACE_ALL_COMMAND, "Replace All...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.E));
             _extraMenu.Commands.Add(MenuCommand.Separator);
             _extraMenu.Commands.Add(new MenuCommand(SHOW_AUTOCOMPLETE_COMMAND, "Show Autocomplete", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Space, "ShowAutocompleteMenuIcon"));
-			_extraMenu.Commands.Add(new MenuCommand(TOGGLE_BREAKPOINT_COMMAND, "Toggle Breakpoint", System.Windows.Forms.Keys.F9, "ToggleBreakpointMenuIcon"));
-			_extraMenu.Commands.Add(new MenuCommand(MATCH_BRACE_COMMAND, "Match Brace", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.B));
+            _extraMenu.Commands.Add(new MenuCommand(TOGGLE_BREAKPOINT_COMMAND, "Toggle Breakpoint", System.Windows.Forms.Keys.F9, "ToggleBreakpointMenuIcon"));
+            _extraMenu.Commands.Add(new MenuCommand(MATCH_BRACE_COMMAND, "Match Brace", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.B));
 
+            this.Resize += new EventHandler(ScriptEditor_Resize);
+            this.Script = scriptToEdit;
+
+            InitScintilla();            
+        }
+        
+        public bool MovedFromDocument { get; set; }
+
+        public string ModifiedText
+        {
+            get 
+            { 
+                return scintilla.IsDisposed ? 
+                    null : scintilla.GetText(); 
+            }
+            set { scintilla.SetTextModified(value); }
+        }
+
+        public void InitScintilla()
+        {            
             scintilla.SetKeyWords(Constants.SCRIPT_KEY_WORDS);
-			UpdateStructHighlighting();
+            UpdateStructHighlighting();
 
             // pressing ( [ or . will auto-complete
             scintilla.SetFillupKeys(Constants.AUTOCOMPLETE_ACCEPT_KEYS);
@@ -108,22 +144,22 @@ namespace AGS.Editor
             scintilla.AttemptModify += new ScintillaWrapper.AttemptModifyHandler(scintilla_AttemptModify);
             scintilla.UpdateUI += new EventHandler(scintilla_UpdateUI);
             scintilla.TextModified += new ScintillaWrapper.TextModifiedHandler(scintilla_TextModified);
-			scintilla.ConstructContextMenu += new ScintillaWrapper.ConstructContextMenuHandler(scintilla_ConstructContextMenu);
-			scintilla.ActivateContextMenu += new ScintillaWrapper.ActivateContextMenuHandler(scintilla_ActivateContextMenu);
+            scintilla.ConstructContextMenu += new ScintillaWrapper.ConstructContextMenuHandler(scintilla_ConstructContextMenu);
+            scintilla.ActivateContextMenu += new ScintillaWrapper.ActivateContextMenuHandler(scintilla_ActivateContextMenu);
             scintilla.ToggleBreakpoint += new EventHandler<Scintilla.MarginClickEventArgs>(scintilla_ToggleBreakpoint);
-            this.Resize += new EventHandler(ScriptEditor_Resize);
-
-            if (!scriptToEdit.IsHeader)
+            
+            if (!this.Script.IsHeader)
             {
-                scintilla.SetAutoCompleteSource(scriptToEdit);
+                scintilla.SetAutoCompleteSource(this.Script);
             }
 
             scintilla.SetKeyWords(Constants.SCRIPT_KEY_WORDS);
             UpdateStructHighlighting();
+        }
 
-            this.Script = scriptToEdit;
-            _room = null;
-            _roomNumber = 0;
+        public void ActivateWindow()
+        {
+            OnWindowActivated();
         }
 
         void scintilla_ToggleBreakpoint(object sender, Scintilla.MarginClickEventArgs e)
@@ -319,6 +355,10 @@ namespace AGS.Editor
         public void ActivateTextEditor()
         {
             scintilla.ActivateTextEditor();
+            if (scintilla.CurrentLine == 0) //If no item was seleced via Find/Replace etc
+            {
+                scintilla.GoToLine(_firstVisibleLine);
+            }
         }
 
         public void DeactivateTextEditor()
@@ -392,7 +432,7 @@ namespace AGS.Editor
                 UpdateScriptObjectWithLatestTextInWindow();
             }
 
-            if (scintilla.IsModified) 
+            if (!scintilla.IsDisposed && scintilla.IsModified) 
             {
                 _script.SaveToDisk();
                 scintilla.SetSavePoint();
@@ -665,6 +705,18 @@ namespace AGS.Editor
             {
                 SelectFunctionInListForCurrentPosition();
             }
+            if (scintilla.FirstVisibleLine != 0)
+            {
+                //This 'hack' is used in order to save the position of the scrollbar
+                //when the docking has changed, in order to recreate the document
+                //with the previous scrollbar position.
+                //When the docking state changes, the first visible line in scintilla
+                //changes to 0, before we have a chance of saving it, and use it
+                //to recreate the scrollbar position.
+                //The only scenario in which this will not work is if the scrollbar position
+                //really was 0, but then the user could simply press Ctrl+Home and fix this easily.
+                _firstVisibleLine = scintilla.FirstVisibleLine;
+            }            
         }
 
         private void scintilla_TextModified(int startPos, int length, bool wasAdded)
@@ -968,6 +1020,6 @@ namespace AGS.Editor
             {
                 UpdateFunctionList();
             }
-        }
+        }            
     }
 }

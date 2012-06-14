@@ -27,6 +27,8 @@ namespace AGS.Editor
                 AGS.Types.Version.AGS_EDITOR_COPYRIGHT + Environment.NewLine +
 				"Scintilla (c) 1998-2003 Neil Hodgson, all rights reserved" +
 				Environment.NewLine +
+                "DockPanel Suite (c) 2007 Weifen Luo" +
+                Environment.NewLine +
 				"See the DOCS folder for copyrights of used libraries." +
 				Environment.NewLine + 
 				"System: " + GetOperatingSystemName() + 

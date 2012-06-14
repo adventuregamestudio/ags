@@ -20,7 +20,7 @@ namespace AGS.Editor.Components
         private const string XML_ELEMENT_PATH = "SourceControlPath";
         private const string XML_ELEMENT_USING_SCC = "ProjectUnderControl";
 
-        private SourceControlProvider _sourceControl = null;
+        private ISourceControlProvider _sourceControl = null;
         private bool _menuShowsUnderControl = false;
         private MenuCommands _menuCommands = new MenuCommands(GUIController.FILE_MENU_ID, 900);
         private string _sourceControlPathLoadedFromUserData = null;

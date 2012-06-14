@@ -8,7 +8,7 @@ using AGS.Types;
 
 namespace AGS.Editor
 {
-    public class SourceControlProvider : IDisposable
+    public class SourceControlProvider : ISourceControlProvider
     {
         private string _providerName = null;
         private string _providerDLL = null;

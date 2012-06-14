@@ -13,7 +13,8 @@ namespace AGS.Editor.Components
         private const string TOP_LEVEL_COMMAND_ID = "GlobalVariables";
         private const string GLOBAL_VARS_HEADER_FILE_NAME = "_GlobalVariables.ash";
         private const string GLOBAL_VARS_SCRIPT_FILE_NAME = "_GlobalVariables.asc";
-
+        private const string ICON_KEY = "GlobalVarsIcon";
+        
         private GlobalVariablesEditor _editor;
         private ContentDocument _document;
         private Script _scriptModule;
@@ -25,8 +26,8 @@ namespace AGS.Editor.Components
             RecreateDocument();
             _scriptHeader = new Script(GLOBAL_VARS_HEADER_FILE_NAME, string.Empty, true);
             _scriptModule = new Script(GLOBAL_VARS_SCRIPT_FILE_NAME, string.Empty, false);
-            _guiController.RegisterIcon("GlobalVarsIcon", Resources.ResourceManager.GetIcon("globalvars.ico"));
-            _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Global variables", "GlobalVarsIcon");
+            _guiController.RegisterIcon(ICON_KEY, Resources.ResourceManager.GetIcon("globalvars.ico"));
+            _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Global variables", ICON_KEY);
             _editor.GlobalVariableChanged += new GlobalVariablesEditor.GlobalVariableChangedHandler(_editor_GlobalVariableChanged);
             _agsEditor.GetScriptHeaderList += new GetScriptHeaderListHandler(_agsEditor_GetScriptHeaderList);
             _agsEditor.GetScriptModuleList += new GetScriptModuleListHandler(_agsEditor_GetScriptModuleList);
@@ -107,7 +108,7 @@ namespace AGS.Editor.Components
                 _document.Dispose();
             }
             _editor = new GlobalVariablesEditor(_agsEditor.CurrentGame);
-            _document = new ContentDocument(_editor, "Global Variables", this);
+            _document = new ContentDocument(_editor, "Global Variables", this, ICON_KEY);
         }
 
         public override string ComponentID
@@ -117,6 +118,10 @@ namespace AGS.Editor.Components
 
         public override void CommandClick(string controlID)
         {
+            if (_document.Control.IsDisposed)
+            {
+                RecreateDocument();
+            }
             _guiController.AddOrShowPane(_document);
 		}
 

@@ -125,19 +125,24 @@ Done.
 Done. Although it looks tad messy right now.
 
 //-----------------------------------------------------------------------------
-// step 7 -- acfonts
+// step 7 -- acfonts and acgui
 //-----------------------------------------------------------------------------
 /2012-06-14/
 
 acfonts.cpp is shared, but it references something from acruntim.h, which is not
 good. Basically, it should be understood why it needs acruntim and separate
 those parts of it which belong only to engine.
-NOTE: acruntim will be split later.
+NOTE: acruntim will be split later (probably with engine code).
 
 //-----------------------------------------------------------------------------
-// step 7 -- acgui
+// step 8 -- acgui
 //-----------------------------------------------------------------------------
 /2012-06-14/
+
+Practically same as acfonts.
+
+It appears, both acfont and acgui functionality is shared almost fully. I just
+had to make sure acruntim.h is not referenced anywhere.
 
 
 //=============================================================================

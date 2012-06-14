@@ -103,6 +103,7 @@ extern inline void multiply_up_coordinates(int *x, int *y);
 extern inline int get_fixed_pixel_size(int pixels);
 
 extern void wouttext_outline(int xxp, int yyp, int usingfont, char *texx);
+extern int wgettextwidth_compensate(const char *tex, int font) ;
 extern void check_font(int *fontnum);
 
 extern void set_our_eip(int eip);

@@ -16,8 +16,6 @@
 #include "sprcache.h"
 #include "ac/ac_gamesetupstruct.h"
 
-#include "acruntim.h"	// constants
-
 extern SpriteCache spriteset;
 
 
@@ -28,6 +26,11 @@ int  numlines;
 int guis_need_update = 1;
 int all_buttons_disabled = 0, gui_inv_pic = -1;
 int gui_disabled_style = 0;
+
+
+// Temporarily copied this from acruntim.h;
+// it is unknown if this should be defined for all solution, or only runtime
+#define STD_BUFFER_SIZE 3000
 
 
 

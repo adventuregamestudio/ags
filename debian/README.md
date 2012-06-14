@@ -1,8 +1,29 @@
+#Building the engine on any 32 bit Linux
+On Debian/Ubuntu, building a package (see below) is recommended.
+On other distributions, install development files of the following
+libraries. (In brackets are versions that are known to work, but other
+versions should work, too.)
+
+-   Allegro 4 (> 4.2.2)
+-   libaldmb (0.9.3)
+-   libdumb (0.9.3)
+-   libfreetype (2.4.9)
+-   libogg (1.2.2-1.3.0)
+-   libtheora (1.1.1-1.2.0)
+-   libvorbis (1.3.2)
+
+Download the sources with git and compile:
+
+    git clone git://github.com/adventuregamestudio/ags.git
+    cd ags
+    make --directory=Engine --file=Makefile.linux
+
+The **ags** executable can now be found in the **Engine** folder.
+
+
 #Building a Debian/Ubuntu package of AGS
-While it's not strictly necessary to do this on 32 bit architectures
-(one can just install the build dependencies and run
-`make --directory=Engine --file=Makefile.linux` on any Linux), it
-greatly simplifies the installation of AGS on 64 bit architectures.
+While it's not strictly necessary to do this on 32 bit architectures,
+it greatly simplifies the installation of AGS on 64 bit architectures.
 AGS doesn't work natively on 64 bit, but the development versions of
 Debian and Ubuntu will soon support parallel installation of both 32
 and 64 bit versions of all required libraries. (This page will be
@@ -89,7 +110,7 @@ Build the package with pbuilder and install it and its dependencies with gdebi:
     sudo gdebi /var/cache/pbuilder/result/ags_3.21.1115~JJS-1_i386.deb
 
 
-##Using the engine
+#Using the engine
 
 To start an AGS game, just run ags with the game directory or the game
 file as parameter, e.g.
@@ -101,7 +122,8 @@ or
     ags game.exe
 
 The configuration file **acsetup.cfg** in the game directory will be used
-if present.
+if present. Sometimes a configuration file coming with a game can cause problems,
+so if a game doesn't start, try deleting **acsetup.cfg** first.
 
 For midi music playback, you have to download GUS patches. We recommend
 "Richard Sanders's GUS patches" from this address:

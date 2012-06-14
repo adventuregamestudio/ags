@@ -1,0 +1,28 @@
+//=============================================================================
+// STAGE THREE: Modules: Engine.App
+//=============================================================================
+
+Engine contains quite a large heap separated between few modules, in the first
+place - infamous ac.cpp with ~30k lines of code. More code referenced from
+ac.cpp can be found in other source files. It's interesting that in many cases
+the functions from different modules are declared not in headers but directly
+in *.cpp as externs.
+
+Splitting perhaps should start from smaller modules to get used to engine code
+before diving into ac.cpp.
+
+//-----------------------------------------------------------------------------
+// step 1 -- start with smaller ones
+//-----------------------------------------------------------------------------
+
+    acgfx.h, .cpp
+    acsound.h, .cpp
+    acaudio.cpp (audiochannel, soundclip)
+    acchars (character, helpers)
+    acdebug
+            
+    
+
+//=============================================================================
+// Quick notes for future reference
+//=============================================================================

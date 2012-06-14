@@ -311,7 +311,15 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\ac\ac_eventblock.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\ac\ac_gamesetupstruct.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_interfacebutton.cpp"
 					>
 				</File>
 				<File

@@ -51,7 +51,6 @@ Engine.App:
     ac_inventoryiteminfo    ALLEGRO_BIG_ENDIAN
     ac_messageinfo          (-)ALLEGRO_BIG_ENDIAN
     ac_point                (-)ALLEGRO_BIG_ENDIAN
-    ac_interfaceelement     just in case (see comment inside)
     
 
 AGS.Native:
@@ -69,8 +68,9 @@ AGS.Native:
     ac_point                (-)ALLEGRO_BIG_ENDIAN
     
 Unused (?):
-    ac_eventblock
-    ac_interfacebutton
+    ac_eventblock           moved to engine just in case
+    ac_interfacebutton      moved to engine just in case
+    ac_interfaceelement     moved to engine just in case
     
     
 

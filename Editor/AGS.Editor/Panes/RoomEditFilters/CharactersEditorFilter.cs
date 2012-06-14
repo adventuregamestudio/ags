@@ -23,10 +23,10 @@ namespace AGS.Editor
         private Room _room;
         private Panel _panel;
         private Character _selectedCharacter = null;
-        private bool _movingCharacter = false;
+        private bool _movingCharacterWithMouse = false;
         private int _menuClickX = 0;
         private int _menuClickY = 0;
-        private int _offsetX, _offsetY;
+        private int _mouseOffsetX, _mouseOffsetY;
 
         public CharactersEditorFilter(Panel displayPanel, Room room, Game game)
         {
@@ -84,29 +84,38 @@ namespace AGS.Editor
             {
                 if (!state.DragFromCenter)
                 {
-                    _offsetX = xClick - character.StartX;
-                    _offsetY = yClick - character.StartY;
+                    _mouseOffsetX = xClick - character.StartX;
+                    _mouseOffsetY = yClick - character.StartY;
                 }
                 else
                 {
-                    _offsetX = 0;
-                    _offsetY = 0;
+                    _mouseOffsetX = 0;
+                    _mouseOffsetY = 0;
                 }
                 _selectedCharacter = character;
-                _movingCharacter = true;
+                _movingCharacterWithMouse = true;
             }
         }
 
         public bool MouseMove(int x, int y, RoomEditorState state)
         {
-            if (_movingCharacter)
-            {
-                _selectedCharacter.StartX = (x + state.ScrollOffsetX) / state.ScaleFactor - _offsetX;
-                _selectedCharacter.StartY = (y + state.ScrollOffsetY) / state.ScaleFactor - _offsetY;
+            if (!_movingCharacterWithMouse) return false;
+            
+            int newX = (x + state.ScrollOffsetX) / state.ScaleFactor - _mouseOffsetX;
+            int newY = (y + state.ScrollOffsetY) / state.ScaleFactor - _mouseOffsetY;
+            return MoveCharacter(newX, newY);                     
+        }
 
-                return true;
+        private bool MoveCharacter(int newX, int newY)
+        {
+            if (_selectedCharacter.StartX == newX &&
+                _selectedCharacter.StartY == newY)
+            {
+                return false;
             }
-            return false;
+            _selectedCharacter.StartX = newX;
+            _selectedCharacter.StartY = newY;
+            return true;
         }
 
         private void CoordMenuEventHandler(object sender, EventArgs e)
@@ -173,7 +182,7 @@ namespace AGS.Editor
 
         public void MouseUp(MouseEventArgs e, RoomEditorState state)
         {
-            _movingCharacter = false;
+            _movingCharacterWithMouse = false;
 
             if (e.Button == MouseButtons.Middle)
             {
@@ -237,13 +246,13 @@ namespace AGS.Editor
                 Rectangle rect = GetCharacterRect(_selectedCharacter, scale, state);
                 graphics.DrawRectangle(pen, rect);
 
-                if (_movingCharacter)
+                if (_movingCharacterWithMouse)
                 {
                     System.Drawing.Font font = new System.Drawing.Font("Arial", 10.0f);
                     string toDraw = String.Format("X:{0}, Y:{1}", _selectedCharacter.StartX, _selectedCharacter.StartY);
 
-                    int scaledx = (_selectedCharacter.StartX * state.ScaleFactor) - ((int)graphics.MeasureString(toDraw, font).Width / 2);
-                    int scaledy = (_selectedCharacter.StartY * state.ScaleFactor) - rect.Height - (int)graphics.MeasureString(toDraw, font).Height;
+                    int scaledx = rect.X + (rect.Width / 2) - ((int)graphics.MeasureString(toDraw, font).Width / 2);
+                    int scaledy = rect.Y - (int)graphics.MeasureString(toDraw, font).Height;
                     if (scaledx < 0) scaledx = 0;
                     if (scaledy < 0) scaledy = 0;
 
@@ -370,8 +379,21 @@ namespace AGS.Editor
         {
         }
 
-        public void KeyPressed(Keys keyData)
+        public bool KeyPressed(Keys key)
         {
+            if (_selectedCharacter == null) return false;
+            switch (key)
+            {
+                case Keys.Right:
+                    return MoveCharacter(_selectedCharacter.StartX + 1, _selectedCharacter.StartY);
+                case Keys.Left:
+                    return MoveCharacter(_selectedCharacter.StartX - 1, _selectedCharacter.StartY);
+                case Keys.Down:
+                    return MoveCharacter(_selectedCharacter.StartX, _selectedCharacter.StartY + 1);
+                case Keys.Up:
+                    return MoveCharacter(_selectedCharacter.StartX, _selectedCharacter.StartY - 1);
+            }
+            return false;
         }
 
         public void Dispose()

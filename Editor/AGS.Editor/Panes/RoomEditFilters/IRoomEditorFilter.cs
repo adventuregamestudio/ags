@@ -22,6 +22,6 @@ namespace AGS.Editor
         void FilterOn();
         void FilterOff();
         void CommandClick(string command);
-		void KeyPressed(Keys keyData);
+        bool KeyPressed(Keys keyData);
     }
 }

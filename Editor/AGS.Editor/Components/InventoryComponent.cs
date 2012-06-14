@@ -13,7 +13,8 @@ namespace AGS.Editor.Components
         private const string TOP_LEVEL_COMMAND_ID = "Inventory";
         private const string COMMAND_NEW_ITEM = "NewInventory";
         private const string COMMAND_DELETE_ITEM = "DeleteInventory";
-
+        private const string ICON_KEY = "InventorysIcon";
+        
         private Dictionary<InventoryItem, ContentDocument> _documents;
         private InventoryItem _itemRightClicked = null;
 
@@ -22,8 +23,8 @@ namespace AGS.Editor.Components
         {
             _documents = new Dictionary<InventoryItem, ContentDocument>();
             _guiController.RegisterIcon("InventoryIcon", Resources.ResourceManager.GetIcon("iconinv-item.ico"));
-            _guiController.RegisterIcon("InventorysIcon", Resources.ResourceManager.GetIcon("iconinv.ico"));
-            _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Inventory items", "InventorysIcon");
+            _guiController.RegisterIcon(ICON_KEY, Resources.ResourceManager.GetIcon("iconinv.ico"));
+            _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Inventory items", ICON_KEY);
             RePopulateTreeView();
         }
 
@@ -77,12 +78,17 @@ namespace AGS.Editor.Components
 
 		private void ShowOrAddPane(InventoryItem chosenItem)
 		{
-			if (!_documents.ContainsKey(chosenItem))
+            ContentDocument document;
+			if (!_documents.TryGetValue(chosenItem, out document)
+                || document.Control.IsDisposed)
 			{
-				_documents.Add(chosenItem, new ContentDocument(new InventoryEditor(chosenItem), chosenItem.WindowTitle, this, ConstructPropertyObjectList(chosenItem)));
-				_documents[chosenItem].SelectedPropertyGridObject = chosenItem;
+                document = new ContentDocument(new InventoryEditor(chosenItem),
+                    chosenItem.WindowTitle, this, ICON_KEY,
+                    ConstructPropertyObjectList(chosenItem));
+				_documents[chosenItem] = document;
+                document.SelectedPropertyGridObject = chosenItem;
 			}
-			_guiController.AddOrShowPane(_documents[chosenItem]);
+            _guiController.AddOrShowPane(document);
 			_guiController.ShowCuppit("Inventory items are things that characters can carry around with them. You can set up this inventory item using the property grid on the right.", "Inventory introduction");
 		}
 

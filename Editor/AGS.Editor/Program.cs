@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
+using System.Runtime.InteropServices;
 
 namespace AGS.Editor
 {
@@ -104,7 +105,17 @@ namespace AGS.Editor
 			}
 			else
 			{
-				MessageBox.Show("An unexpected error occurred trying to start up the AGS Editor. Please consult the details below and post the error to the AGS Technical Forum.\n\n" + ex.ToString(), "Error", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                string error = ex.Message;
+                try
+                {
+                    error = ex.ToString();
+                }
+                catch (SEHException sehException)
+                {
+                    error = string.Format("\nStack Trace SEHException: HResult Error Code: {0}, Exception: {1}",
+                        sehException.ErrorCode, error);
+                }
+                MessageBox.Show("An unexpected error occurred trying to start up the AGS Editor. Please consult the details below and post the error to the AGS Technical Forum.\n\n" + error, "Error", MessageBoxButtons.OK, MessageBoxIcon.Stop);
 			}
 		}
 

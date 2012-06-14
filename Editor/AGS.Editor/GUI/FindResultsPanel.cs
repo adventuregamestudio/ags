@@ -7,10 +7,11 @@ using System.Data;
 using System.Text;
 using System.Windows.Forms;
 using AGS.Types.AutoComplete;
+using WeifenLuo.WinFormsUI.Docking;
 
 namespace AGS.Editor
 {
-    public partial class FindResultsPanel : UserControl
+    public partial class FindResultsPanel : DockContent
     {
         private List<ScriptTokenReference> _results;
         
@@ -31,8 +32,6 @@ namespace AGS.Editor
             get { return _results; }
             set { _results = value; RefreshGui(); }
         }
-
-        public ScintillaWrapper Scintilla { get; set; }
 
         private void RefreshGui()
         {

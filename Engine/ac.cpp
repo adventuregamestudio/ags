@@ -11896,6 +11896,8 @@ void BuildAudioClipArray()
 
  19 : 2.5.1
  22 : 2.5.5
+
+ Variable number of sprites.
  24 : 2.5.6
  25 : 2.6.0
 
@@ -12024,8 +12026,8 @@ int load_game_file() {
 #endif
 
   int numToRead;
-  if (filever < 25)
-    numToRead = 6000; // Fixed number of sprites on < 2.60
+  if (filever < 24)
+    numToRead = 6000; // Fixed number of sprites on < 2.56
   else
     numToRead = getw(iii);
 
@@ -16277,6 +16279,10 @@ int fli_callback(...) {
 
 void play_flc_file(int numb,int playflags) {
   color oldpal[256];
+
+  // AGS 2.x: If the screen is faded out, fade in again when playing a movie.
+  if (loaded_game_file_version <= 32)
+    play.screen_is_faded_out = 0;
 
   if (play.fast_forward)
     return;

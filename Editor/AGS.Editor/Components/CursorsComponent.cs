@@ -14,6 +14,7 @@ namespace AGS.Editor.Components
         private const string COMMAND_NEW_ITEM = "NewCursor";
         private const string COMMAND_DELETE_ITEM = "DeleteCursor";
         private const int BUILT_IN_CURSORS = 8;
+        private const string ICON_KEY = "CursorsIcon";
 
         private Dictionary<MouseCursor, ContentDocument> _documents;
         private MouseCursor _itemRightClicked = null;
@@ -22,9 +23,9 @@ namespace AGS.Editor.Components
             : base(guiController, agsEditor)
         {
             _documents = new Dictionary<MouseCursor, ContentDocument>();
-            _guiController.RegisterIcon("CursorsIcon", Resources.ResourceManager.GetIcon("cursor.ico"));
+            _guiController.RegisterIcon(ICON_KEY, Resources.ResourceManager.GetIcon("cursor.ico"));
             _guiController.RegisterIcon("CursorIcon", Resources.ResourceManager.GetIcon("cursor-item.ico"));
-            _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Mouse cursors", "CursorsIcon");
+            _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Mouse cursors", ICON_KEY);
             RePopulateTreeView();
         }
 
@@ -77,12 +78,18 @@ namespace AGS.Editor.Components
 
 		private void ShowOrAddPane(MouseCursor chosenCursor)
 		{
-			if (!_documents.ContainsKey(chosenCursor))
+            ContentDocument document;
+			if (!_documents.TryGetValue(chosenCursor, out document)
+                || document.Control.IsDisposed)
 			{
-				_documents.Add(chosenCursor, new ContentDocument(new CursorEditor(chosenCursor), chosenCursor.WindowTitle, this, ConstructPropertyObjectList(chosenCursor)));
-				_documents[chosenCursor].SelectedPropertyGridObject = chosenCursor;
+                document = new ContentDocument(new CursorEditor(chosenCursor),
+                    chosenCursor.WindowTitle, this, ICON_KEY, 
+                    ConstructPropertyObjectList(chosenCursor));
+                
+                _documents[chosenCursor] = document;
+                document.SelectedPropertyGridObject = chosenCursor;
 			}
-			_guiController.AddOrShowPane(_documents[chosenCursor]);
+            _guiController.AddOrShowPane(document);
 			_guiController.ShowCuppit("The Cursor Editor allows you to set up the various mouse cursors used in the game. You can probably just leave the default ones for now, unless you want some specialist cursor modes.", "Cursors introduction");
 		}
 

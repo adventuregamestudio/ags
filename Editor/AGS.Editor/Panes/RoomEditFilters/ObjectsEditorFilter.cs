@@ -19,7 +19,7 @@ namespace AGS.Editor
         private GUIController.PropertyObjectChangedHandler _propertyObjectChangedDelegate;
         private RoomObject _selectedObject;
 		private RoomObject _lastSelectedObject;
-        private bool _movingObject;
+        private bool _movingObjectWithMouse;
         private int _mouseOffsetX, _mouseOffsetY;
         private int _menuClickX, _menuClickY;
         private List<RoomObject> _objectBaselines = new List<RoomObject>();
@@ -52,8 +52,21 @@ namespace AGS.Editor
 			get { return string.Empty; }
 		}
 
-		public void KeyPressed(Keys key)
+		public bool KeyPressed(Keys key)
 		{
+            if (_selectedObject == null) return false;
+            switch (key)
+            {
+                case Keys.Right:
+                    return MoveObject(_selectedObject.StartX + 1, _selectedObject.StartY);                    
+                case Keys.Left:
+                    return MoveObject(_selectedObject.StartX - 1, _selectedObject.StartY);                    
+                case Keys.Down:
+                    return MoveObject(_selectedObject.StartX, _selectedObject.StartY + 1);
+                case Keys.Up:
+                    return MoveObject(_selectedObject.StartX, _selectedObject.StartY - 1);                    
+            }
+            return false;
 		}
 
         public virtual void PaintToHDC(IntPtr hDC, RoomEditorState state)
@@ -124,13 +137,13 @@ namespace AGS.Editor
                 pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dot;
                 graphics.DrawRectangle(pen, xPos, yPos, width * state.ScaleFactor, height * state.ScaleFactor);
 
-                if (_movingObject)
+                if (_movingObjectWithMouse)
                 {
                     System.Drawing.Font font = new System.Drawing.Font("Arial", 10.0f);
                     string toDraw = String.Format("X:{0}, Y:{1}", _selectedObject.StartX, _selectedObject.StartY);
 
-                    int scaledx = (_selectedObject.StartX * state.ScaleFactor) + (width / 2) - ((int)graphics.MeasureString(toDraw, font).Width / 2);
-                    int scaledy = (_selectedObject.StartY * state.ScaleFactor) - height - (int)graphics.MeasureString(toDraw, font).Height;
+                    int scaledx = xPos + (width * state.ScaleFactor / 2) - ((int)graphics.MeasureString(toDraw, font).Width / 2);
+                    int scaledy = yPos - (int)graphics.MeasureString(toDraw, font).Height;
                     if (scaledx < 0) scaledx = 0;
                     if (scaledy < 0) scaledy = 0;
 
@@ -171,7 +184,7 @@ namespace AGS.Editor
                     }
                     else
                     {
-                        _movingObject = true;
+                        _movingObjectWithMouse = true;
                         _mouseOffsetX = x - obj.StartX;
                         _mouseOffsetY = y - obj.StartY;
                     }
@@ -295,7 +308,7 @@ namespace AGS.Editor
 
         public virtual void MouseUp(MouseEventArgs e, RoomEditorState state)
         {
-            _movingObject = false;
+            _movingObjectWithMouse = false;
 			_lastSelectedObject = _selectedObject;
 
             if (e.Button == MouseButtons.Middle)
@@ -318,31 +331,37 @@ namespace AGS.Editor
 
         public virtual bool MouseMove(int x, int y, RoomEditorState state)
         {
+            if (!_movingObjectWithMouse) return false;
             int realX = (x + state.ScrollOffsetX) / state.ScaleFactor;
             int realY = (y + state.ScrollOffsetY) / state.ScaleFactor;
 
-            if ((_movingObject) && (realY < _room.Height) && 
+            if ((_movingObjectWithMouse) && (realY < _room.Height) &&
                 (realX < _room.Width) && (realY >= 0) && (realX >= 0))
             {
-                if (_selectedObject == null)
-                {
-                    _movingObject = false;
-                }
-                else
-                {
-                    int newX = realX - _mouseOffsetX;
-                    int newY = realY - _mouseOffsetY;
-                    if ((newX != _selectedObject.StartX) ||
-                        (newY != _selectedObject.StartY))
-                    {
-                        _selectedObject.StartX = SetObjectCoordinate(newX);
-                        _selectedObject.StartY = SetObjectCoordinate(newY);
-                        _room.Modified = true;
-                    }
-                }
-                return true;
+                int newX = realX - _mouseOffsetX;
+                int newY = realY - _mouseOffsetY;
+                return MoveObject(newX, newY);
             }
             return false;
+        }
+
+        private bool MoveObject(int newX, int newY)
+        {            
+            if (_selectedObject == null)
+            {
+                _movingObjectWithMouse = false;
+            }
+            else
+            {
+                if ((newX != _selectedObject.StartX) ||
+                    (newY != _selectedObject.StartY))
+                {
+                    _selectedObject.StartX = SetObjectCoordinate(newX);
+                    _selectedObject.StartY = SetObjectCoordinate(newY);
+                    _room.Modified = true;
+                }
+            }
+            return true;            
         }
 
         private int SetObjectCoordinate(int newCoord)

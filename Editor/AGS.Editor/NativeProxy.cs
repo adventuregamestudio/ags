@@ -24,6 +24,10 @@ namespace AGS.Editor
 		[DllImport("kernel32.dll")]
 		public static extern int GetPrivateProfileString(string section, string key, string def, System.Text.StringBuilder retVal, int size, string filePath);
 
+        public const uint WM_MOUSEACTIVATE = 0x21;
+        public const uint MA_ACTIVATE = 1;
+        public const uint MA_ACTIVATEANDEAT = 2; 
+
         private const int VK_SHIFT = 0x10;
         private const int VK_CONTROL = 0x11;
 

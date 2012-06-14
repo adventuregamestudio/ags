@@ -11,22 +11,29 @@ namespace AGS.Editor.Components
     class PaletteComponent : BaseComponent
     {
         private const string TOP_LEVEL_COMMAND_ID = "Palette";
-
+        private const string ICON_KEY = "PaletteIcon";
+        
         private PaletteEditor _palEditor;
         private ContentDocument _document;
 
         public PaletteComponent(GUIController guiController, AGSEditor agsEditor)
             : base(guiController, agsEditor)
         {
+            Init();
+            _guiController.RegisterIcon(ICON_KEY, Resources.ResourceManager.GetIcon("iconpal.ico"));
+            _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Colours", ICON_KEY);
+        }
+
+        private void Init()
+        {
             _palEditor = new PaletteEditor();
-            RecreateDocument();
-            _guiController.RegisterIcon("PaletteIcon", Resources.ResourceManager.GetIcon("iconpal.ico"));
-            _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Colours", "PaletteIcon");
+            RecreateDocument();            
         }
 
         private void RecreateDocument()
         {
-            _document = new ContentDocument(_palEditor, "Colours", this, ConstructPropertyObjectList());
+            _document = new ContentDocument(_palEditor, "Colours", this, ICON_KEY,
+                ConstructPropertyObjectList());
         }
 
         public override string ComponentID
@@ -36,6 +43,10 @@ namespace AGS.Editor.Components
 
         public override void CommandClick(string controlID)
         {
+            if (_palEditor.IsDisposed)
+            {
+                Init();
+            }
             _guiController.AddOrShowPane(_document);
             _palEditor.OnShow();
 			_guiController.ShowCuppit("The Colours window allows you to find out the AGS Colour Number for a colour, and also to set up your palette in 256-colour games.", "Colours introduction");

@@ -15,10 +15,12 @@ namespace AGS.Editor
         private EventHandler _onClick;
         private ToolStripMenuItem _currentPaneMenu = null;
 		private Dictionary<string, List<MenuCommands>> _menuCommandGroups = new Dictionary<string, List<MenuCommands>>();
+        private WindowsMenuManager _windowsMenuManager;
 
-        internal MainMenuManager(MenuStrip mainMenu)
+        internal MainMenuManager(MenuStrip mainMenu, WindowsMenuManager windowsMenuManager)
         {
             _mainMenu = mainMenu;
+            _windowsMenuManager = windowsMenuManager;
             _onClick = new EventHandler(MenuEventHandler);
         }
 
@@ -90,6 +92,12 @@ namespace AGS.Editor
 				}
 			}
 		}
+
+        public void RefreshWindowsMenu(List<ContentDocument> documents,
+            ContentDocument activeDocument)
+        {
+            _windowsMenuManager.Refresh(documents, activeDocument); 
+        }
 
 		public void AddMenuCommandGroup(MenuCommands commands)
 		{

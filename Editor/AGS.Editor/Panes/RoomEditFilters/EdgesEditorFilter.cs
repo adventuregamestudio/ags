@@ -20,6 +20,7 @@ namespace AGS.Editor
 
         private Room _room;
         private SelectedEdge _selectedEdge = SelectedEdge.None;
+        private SelectedEdge _lastSelectedEdge = SelectedEdge.None;
         private Panel _panel;
         private ToolTip _tooltip;
         private int _tooltipX = -100, _tooltipY = -100;
@@ -63,8 +64,20 @@ namespace AGS.Editor
         {
         }
 
-		public void KeyPressed(Keys key)
+		public bool KeyPressed(Keys key)
 		{
+            switch (key)
+            {
+                case Keys.Right:
+                    return MoveEdgeWithKeyboard(1, 0);
+                case Keys.Left:
+                    return MoveEdgeWithKeyboard(-1, 0);
+                case Keys.Down:
+                    return MoveEdgeWithKeyboard(0, 1);
+                case Keys.Up:
+                    return MoveEdgeWithKeyboard(0, -1);
+            }
+            return false;
 		}
 
         public void Paint(Graphics graphics, RoomEditorState state)
@@ -100,6 +113,7 @@ namespace AGS.Editor
             {
                 _selectedEdge = SelectedEdge.None;
             }
+            _lastSelectedEdge = _selectedEdge;
         }
 
         public void MouseUp(MouseEventArgs e, RoomEditorState state)
@@ -188,31 +202,77 @@ namespace AGS.Editor
 			get { return string.Empty; }
 		}
 
+        private bool MoveEdgeWithKeyboard(int offsetX, int offsetY)
+        {
+            switch (_lastSelectedEdge)
+            {
+                case SelectedEdge.Left:
+                    if (offsetX == 0) return false;
+                    MoveLeftEdge(_room.LeftEdgeX + offsetX);
+                    break;
+                case SelectedEdge.Right:
+                    if (offsetX == 0) return false;
+                    MoveRightEdge(_room.RightEdgeX + offsetX);
+                    break;
+                case SelectedEdge.Top:
+                    if (offsetY == 0) return false;
+                    MoveTopEdge(_room.TopEdgeY + offsetY);
+                    break;
+                case SelectedEdge.Bottom:
+                    if (offsetY == 0) return false;
+                    MoveBottomEdge(_room.BottomEdgeY + offsetY);
+                    break;
+                default:
+                    return false;
+            }
+            return true;
+        }
+
         private void MoveEdgeWithMouse(int x, int y)
         {
             switch (_selectedEdge)
             {
                 case SelectedEdge.Left:
-                    x = Math.Min(x, _room.RightEdgeX - 1);
-                    x = Math.Max(x, 0);
-                    _room.LeftEdgeX = x;
+                    MoveLeftEdge(x);
                     break;
                 case SelectedEdge.Right:
-                    x = Math.Max(x, _room.LeftEdgeX + 1);
-                    x = Math.Min(x, _room.Width - 1);
-                    _room.RightEdgeX = x;
+                    MoveRightEdge(x);
                     break;
                 case SelectedEdge.Top:
-                    y = Math.Min(y, _room.BottomEdgeY - 1);
-                    y = Math.Max(y, 0);
-                    _room.TopEdgeY = y;
+                    MoveTopEdge(y);
                     break;
                 case SelectedEdge.Bottom:
-                    y = Math.Max(y, _room.TopEdgeY + 1);
-                    y = Math.Min(y, _room.Height - 1);
-                    _room.BottomEdgeY = y;
+                    MoveBottomEdge(y);
                     break;
             }
+        }
+
+        private void MoveLeftEdge(int x)
+        {
+            x = Math.Min(x, _room.RightEdgeX - 1);
+            x = Math.Max(x, 0);
+            _room.LeftEdgeX = x; 
+        }
+
+        private void MoveRightEdge(int x)
+        {
+            x = Math.Max(x, _room.LeftEdgeX + 1);
+            x = Math.Min(x, _room.Width - 1);
+            _room.RightEdgeX = x; 
+        }
+
+        private void MoveTopEdge(int y)
+        {
+            y = Math.Min(y, _room.BottomEdgeY - 1);
+            y = Math.Max(y, 0);
+            _room.TopEdgeY = y;
+        }
+
+        private void MoveBottomEdge(int y)
+        {
+            y = Math.Max(y, _room.TopEdgeY + 1);
+            y = Math.Min(y, _room.Height - 1);
+            _room.BottomEdgeY = y;
         }
 
         private bool IsCursorOnVerticalEdge(int cursorX, int edgeX)

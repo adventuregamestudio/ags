@@ -39,6 +39,8 @@ namespace AGS.Editor.TextProcessing
             foreach (IScript script in scriptsToSearch)
             {
                 if (script == null) continue;
+                _scintilla = new ScintillaWrapper();                
+                _scintilla.SetText(script.Text);            
                 FindAllUsagesInScript(token, startSearchAtLineIndex, endSearchAtLineIndex, script);
             }
 
@@ -66,7 +68,11 @@ namespace AGS.Editor.TextProcessing
             List<IScript> scriptsToSearch = null;
             startSearchAtLineIndex = null;
             endSearchAtLineIndex = null;
-            ScriptToken scriptToken = _scriptEditor.FindTokenAsLocalVariable(token, true);
+            ScriptToken scriptToken = null;
+            if (_scriptEditor != null && _scintilla != null)
+            {
+                scriptToken = _scriptEditor.FindTokenAsLocalVariable(token, true);
+            }
             if (scriptToken != null)
             {
                 ScriptFunction function = _scintilla.FindFunctionAtCurrentPosition();
@@ -80,7 +86,11 @@ namespace AGS.Editor.TextProcessing
             
             if (scriptsToSearch == null)
             {
-                ScriptStruct scriptStruct = _scriptEditor.FindGlobalVariableOrType(token);
+                ScriptStruct scriptStruct = null;
+                if (_scriptEditor != null)
+                {
+                    scriptStruct = _scriptEditor.FindGlobalVariableOrType(token);
+                }
                 if (scriptStruct == null)
                 {
                     scriptsToSearch = _agsEditor.GetAllScripts();
@@ -101,12 +111,12 @@ namespace AGS.Editor.TextProcessing
             }
             else
             {
-                Factory.GUIController.ShowFindSymbolResults(_results, _scintilla);
+                Factory.GUIController.ShowFindSymbolResults(_results);
             }
         }
 
         private void FindAllUsagesInScript(string token, int? startSearchAtLineIndex, int? endSearchAtLineIndex, IScript script)
-        {
+        {            
             string[] lines = script.Text.Split('\n');
             int startLineCharacterIndex = 0;
             int startSearchAtLine = startSearchAtLineIndex.HasValue ?

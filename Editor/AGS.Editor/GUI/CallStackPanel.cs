@@ -6,10 +6,11 @@ using System.Drawing;
 using System.Data;
 using System.Text;
 using System.Windows.Forms;
+using WeifenLuo.WinFormsUI.Docking;
 
 namespace AGS.Editor
 {
-    public partial class CallStackPanel : UserControl
+    public partial class CallStackPanel : DockContent
     {
         private DebugCallStack _callStack;
 

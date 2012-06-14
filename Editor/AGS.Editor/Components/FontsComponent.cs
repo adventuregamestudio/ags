@@ -15,7 +15,8 @@ namespace AGS.Editor.Components
         private const string COMMAND_NEW_ITEM = "NewFont";
         private const string COMMAND_DELETE_ITEM = "DeleteFont";
         private const int BUILT_IN_FONTS = 3;
-
+        private const string ICON_KEY = "FontsIcon";
+        
         private Dictionary<AGS.Types.Font, ContentDocument> _documents;
         private AGS.Types.Font _itemRightClicked = null;
 
@@ -23,9 +24,9 @@ namespace AGS.Editor.Components
             : base(guiController, agsEditor)
         {
             _documents = new Dictionary<AGS.Types.Font, ContentDocument>();
-            _guiController.RegisterIcon("FontsIcon", Resources.ResourceManager.GetIcon("font.ico"));
+            _guiController.RegisterIcon(ICON_KEY, Resources.ResourceManager.GetIcon("font.ico"));
             _guiController.RegisterIcon("FontIcon", Resources.ResourceManager.GetIcon("font-item.ico"));
-            _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Fonts", "FontsIcon");
+            _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Fonts", ICON_KEY);
             RePopulateTreeView();
         }
 
@@ -101,15 +102,19 @@ namespace AGS.Editor.Components
 
 		private void ShowOrAddPane(AGS.Types.Font chosenFont)
 		{
-			if (!_documents.ContainsKey(chosenFont))
+            ContentDocument document;
+			if (!_documents.TryGetValue(chosenFont, out document)
+                || document.Control.IsDisposed)
 			{
 				Dictionary<string, object> list = new Dictionary<string, object>();
 				list.Add(chosenFont.Name + " (Font " + chosenFont.ID + ")", chosenFont);
 
-				_documents.Add(chosenFont, new ContentDocument(new FontEditor(chosenFont), chosenFont.WindowTitle, this, list));
-				_documents[chosenFont].SelectedPropertyGridObject = chosenFont;
+                document = new ContentDocument(new FontEditor(chosenFont),
+                    chosenFont.WindowTitle, this, ICON_KEY, list);
+                _documents[chosenFont] = document;
+                document.SelectedPropertyGridObject = chosenFont;
 			}
-			_guiController.AddOrShowPane(_documents[chosenFont]);
+            _guiController.AddOrShowPane(document);
 			_guiController.ShowCuppit("The Font Editor allows you to import fonts into your game. Windows TTF fonts are supported, as are SCI fonts which can be created with Radiant FontEdit.", "Fonts introduction");
 		}
 

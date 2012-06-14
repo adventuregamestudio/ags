@@ -15,7 +15,8 @@ namespace AGS.Editor.Components
         private const string COMMAND_IMPORT = "ImportCharacter";
         private const string COMMAND_DELETE_ITEM = "DeleteCharacter";
         private const string COMMAND_EXPORT = "ExportCharacter";
-
+        private const string ICON_KEY = "CharactersIcon";
+        
         private const string CHARACTER_EXPORT_FILE_FILTER = "AGS 3.1+ exported characters (*.chr)|*.chr|AGS 2.72/3.0 exported characters (*.cha)|*.cha";
         private const string CHARACTER_IMPORT_FILE_FILTER = "AGS exported characters (*.chr; *.cha)|*.chr;*.cha|AGS 3.1+ exported characters (*.chr)|*.chr|AGS 2.72/3.0 exported characters (*.cha)|*.cha";
         private const string NEW_CHARACTER_FILE_EXTENSION = ".chr";
@@ -27,9 +28,9 @@ namespace AGS.Editor.Components
             : base(guiController, agsEditor)
         {
             _documents = new Dictionary<Character, ContentDocument>();
-            _guiController.RegisterIcon("CharactersIcon", Resources.ResourceManager.GetIcon("charactr.ico"));
+            _guiController.RegisterIcon(ICON_KEY, Resources.ResourceManager.GetIcon("charactr.ico"));
             _guiController.RegisterIcon("CharacterIcon", Resources.ResourceManager.GetIcon("charactr-item.ico"));
-            _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Characters", "CharactersIcon");
+            _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Characters", ICON_KEY);
             RePopulateTreeView();
         }
 
@@ -100,12 +101,17 @@ namespace AGS.Editor.Components
 
 		private void ShowOrAddPane(Character chosenItem)
 		{
-			if (!_documents.ContainsKey(chosenItem))
+            ContentDocument document;
+			if (!_documents.TryGetValue(chosenItem, out document)
+                || document.Control.IsDisposed)
 			{
-				_documents.Add(chosenItem, new ContentDocument(new CharacterEditor(chosenItem), chosenItem.WindowTitle, this, ConstructPropertyObjectList(chosenItem)));
-				_documents[chosenItem].SelectedPropertyGridObject = chosenItem;
+                document = new ContentDocument(new CharacterEditor(chosenItem),
+                    chosenItem.WindowTitle, this, ICON_KEY,
+                    ConstructPropertyObjectList(chosenItem));
+				_documents[chosenItem] = document;
+				document.SelectedPropertyGridObject = chosenItem;
 			}
-			_guiController.AddOrShowPane(_documents[chosenItem]);
+			_guiController.AddOrShowPane(document);
 			_guiController.ShowCuppit("Characters can move around from room to room within the game, and can take part in conversations. The Player Character is the one that the player is controlling.", "Characters introduction");
 		}
 

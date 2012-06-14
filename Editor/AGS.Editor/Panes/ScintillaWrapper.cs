@@ -208,8 +208,16 @@ namespace AGS.Editor
 
         void scintillaControl1_MarginClick(object sender, Scintilla.MarginClickEventArgs e)
         {
-            if (e.Margin == 1) ToggleBreakpoint(this, e);
-            else if (e.Margin == 2) this.scintillaControl1.ToggleFold(e.LineNumber);
+            if (e.Margin == 1)
+            {
+                if (ToggleBreakpoint != null)
+                    ToggleBreakpoint(this, e);
+            }
+            else if (e.Margin == 2)
+            {
+                this.scintillaControl1.ToggleFold(e.LineNumber);
+            }
+
             this.scintillaControl1.Invalidate();
         }
 
@@ -278,6 +286,11 @@ namespace AGS.Editor
             get { return scintillaControl1.LineFromPosition(scintillaControl1.CurrentPos); }
         }
 
+        public int FirstVisibleLine
+        {
+            get { return scintillaControl1.FirstVisibleLine; }
+        }
+
 		public void SetAsDialog()
         {
             scintillaControl1.SetLexer(0);
@@ -285,8 +298,7 @@ namespace AGS.Editor
         }
         public void GoToPosition(int newPos)
         {
-			int lineNum = scintillaControl1.LineFromPosition(newPos);
-
+			int lineNum = scintillaControl1.LineFromPosition(newPos);            
 			if ((lineNum <= scintillaControl1.FirstVisibleLine) ||
 				(lineNum >= scintillaControl1.FirstVisibleLine + scintillaControl1.LinesOnScreen))
 			{
@@ -426,13 +438,26 @@ namespace AGS.Editor
 
         public void SetText(string newText)
         {
+            SetText(newText, true);
+        }
+
+        public void SetTextModified(string newText)
+        {
+            SetText(newText, false);
+        }
+
+        public void SetText(string newText, bool clearModified)
+        {
             bool shouldBeReadOnly = this.scintillaControl1.IsReadOnly;
             this.scintillaControl1.IsReadOnly = false;
 
             this.scintillaControl1.SetText(newText);
             this.scintillaControl1.ConvertEOLs(EndOfLine.Crlf);
-            this.scintillaControl1.SetSavePoint();
-            this.scintillaControl1.EmptyUndoBuffer();
+            if (clearModified)
+            {
+                this.scintillaControl1.SetSavePoint();
+                this.scintillaControl1.EmptyUndoBuffer();
+            }
 
             this.scintillaControl1.IsReadOnly = shouldBeReadOnly;
         }
@@ -855,7 +880,7 @@ namespace AGS.Editor
                 (!scintillaControl1.IsCallTipActive) &&
                 (!scintillaControl1.IsAutoCActive) &&
                 (!InsideStringOrComment(false, e.Position)) &&
-                _activated && !TabbedDocumentContainer.HoveringTabs
+                _activated && !TabbedDocumentManager.HoveringTabs
                 && !ScriptEditor.HoveringCombo)
             {
                 ShowCalltip(FindEndOfCurrentWord(e.Position), -1, false);

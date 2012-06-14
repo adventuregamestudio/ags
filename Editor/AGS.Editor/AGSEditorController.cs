@@ -126,5 +126,13 @@ namespace AGS.Editor
 				return _roomController;
 			}
 		}
+
+        ISourceControlProvider IAGSEditor.SourceControlProvider
+        {
+            set
+            {
+                _agsEditor.SourceControlProvider = value;
+            }
+        }
 	}
 }

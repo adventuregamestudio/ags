@@ -158,8 +158,8 @@ public class AgsEngine extends Activity
 		{
 			case MotionEvent.ACTION_DOWN:
 			{
-				downX = ev.getX();
-				downY = ev.getY();
+				downX = lastX = ev.getX();
+				downY = lastY = ev.getY();
 				ignoreMovement = false;
 				initialized = false;
 				stopLongclick = false;

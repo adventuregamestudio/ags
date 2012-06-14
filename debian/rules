@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-PKG_VER = $(shell dpkg-parsechangelog | grep -x "Version:.*" | sed 's@Version: \(.\+\)-.\+@\1@')
+VERSION = $(shell dpkg-parsechangelog | grep -x "Version:.*" | sed 's@Version: \(.\+\)-.\+@\1@')
 
 %:
 	dh $@ 
@@ -15,4 +15,4 @@ override_dh_clean:
 	dh_clean --exclude=Editor/*
 
 get-orig-source:
-	git archive --prefix=ags_$(PKG_VER)/ --format=tar.gz --output=../ags_$(PKG_VER).orig.tar.gz HEAD Common Engine Manual Plugins PSP
+	git archive --prefix=ags_$(VERSION)/ --format=tar HEAD Common Engine Manual Plugins PSP README.md | gzip > ../ags_$(VERSION).orig.tar.gz

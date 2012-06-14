@@ -6,6 +6,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.Xml;
 using AGS.Types;
+using WeifenLuo.WinFormsUI.Docking;
 
 namespace AGS.Editor.Components
 {
@@ -19,11 +20,14 @@ namespace AGS.Editor.Components
         private const string MENU_COMMAND_EXPORT = "ExportScript";
         private const string MENU_COMMAND_MOVE_UP = "MoveScriptUp";
         private const string MENU_COMMAND_MOVE_DOWN = "MoveScriptDown";
-
+        private const string ICON_KEY = "ScriptIcon";
+        
 		private const string COMMAND_OPEN_GLOBAL_SCRIPT = "GoToGlobalScript";
 		private const string COMMAND_OPEN_GLOBAL_HEADER = "GoToGlobalScriptHeader";
 
         private const string SCRIPT_MODULE_FILE_FILTER = "AGS script modules (*.scm)|*.scm";
+
+        private delegate void CloseScriptEditor();
 
         private Dictionary<Script,ContentDocument> _editors;
         private ScriptEditor _lastActivated;
@@ -42,7 +46,7 @@ namespace AGS.Editor.Components
             _timer.Tick += new EventHandler(timer_Tick);
             _editors = new Dictionary<Script, ContentDocument>();
 
-            _guiController.RegisterIcon("ScriptIcon", Resources.ResourceManager.GetIcon("script.ico"));
+            _guiController.RegisterIcon(ICON_KEY, Resources.ResourceManager.GetIcon("script.ico"));
             _guiController.RegisterIcon("ScriptsIcon", Resources.ResourceManager.GetIcon("scripts.ico"));
             _guiController.RegisterIcon("CutIcon", Resources.ResourceManager.GetIcon("cut.ico"));
             _guiController.RegisterIcon("CopyIcon", Resources.ResourceManager.GetIcon("copy.ico"));
@@ -185,6 +189,13 @@ namespace AGS.Editor.Components
 			}
         }
 
+        protected override ContentDocument GetDocument(ScriptEditor editor)
+        {
+            ContentDocument document;
+            if (!_editors.TryGetValue(editor.Script, out document)) return null;
+            return document;
+        }
+
         private string FindFirstAvailableFileName(string prefix)
         {
             int attempt = 0;
@@ -259,8 +270,9 @@ namespace AGS.Editor.Components
         {
             chosenItem.LoadFromDisk();
             ScriptEditor newEditor = new ScriptEditor(chosenItem, _agsEditor);
+            newEditor.DockStateChanged += new EventHandler(ScriptEditor_DockStateChanged);
             newEditor.IsModifiedChanged += new EventHandler(ScriptEditor_IsModifiedChanged);
-            _editors.Add(chosenItem, new ContentDocument(newEditor, chosenItem.FileName, this, null));
+            _editors[chosenItem] = new ContentDocument(newEditor, chosenItem.FileName, this, ICON_KEY, null);
             _editors[chosenItem].PanelClosed += _panelClosedHandler;
             _editors[chosenItem].ToolbarCommands = newEditor.ToolbarIcons;
             _editors[chosenItem].MainMenu = newEditor.ExtraMenu;
@@ -268,7 +280,7 @@ namespace AGS.Editor.Components
             {
                 _editors[chosenItem].SelectedPropertyGridObject = chosenItem;
             }
-        }
+        }        
 
         private ScriptEditor GetScriptEditor(string fileName, out Script script)
         {
@@ -277,7 +289,7 @@ namespace AGS.Editor.Components
             {
                 return null;
             }
-            if (!_editors.ContainsKey(script))
+            if (!_editors.ContainsKey(script) || _editors[script].Control.IsDisposed)
             {
                 CreateEditorForScript(script);
             }
@@ -364,19 +376,6 @@ namespace AGS.Editor.Components
             {
                 ((ScriptEditor)_editors[script].Control).ScriptModifiedExternally();
             }
-        }
-
-        private void UpdateScriptWindowTitle(ScriptEditor editor)
-        {
-            string newTitle = editor.Script.FileName + (editor.IsModified ? " *" : "");
-            _editors[editor.Script].Name = newTitle;
-            _guiController.DocumentTitlesChanged();
-        }
-
-        private void ScriptEditor_IsModifiedChanged(object sender, EventArgs e)
-        {
-            ScriptEditor sendingPane = (ScriptEditor)sender;
-            UpdateScriptWindowTitle(sendingPane);
         }
 
         private void timer_Tick(object sender, EventArgs e)
@@ -552,7 +551,7 @@ namespace AGS.Editor.Components
             _guiController.ProjectTree.StartFromNode(this, ROOT_COMMAND);
             foreach (Script item in _agsEditor.CurrentGame.Scripts)
             {
-                string iconKey = "ScriptIcon";
+                string iconKey = ICON_KEY;
                 bool allowLabelEdit = true;
 
                 if (item.FileName == Script.GLOBAL_HEADER_FILE_NAME)

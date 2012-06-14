@@ -154,10 +154,6 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\..\Engine\acgui.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\Engine\bigend.cpp"
 				>
 			</File>
@@ -277,12 +273,52 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="acgui"
+				>
+				<File
+					RelativePath="..\..\Common\acgui\ac_guibutton.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\acgui\ac_guiinv.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\acgui\ac_guilabel.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\acgui\ac_guilistbox.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\acgui\ac_guimain.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\acgui\ac_guiobject.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\acgui\ac_guislider.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\acgui\ac_guitextbox.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath="..\..\Common\acruntim.h"
+				>
+			</File>
 			<File
 				RelativePath="..\..\Common\bigend.h"
 				>
@@ -404,6 +440,50 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\acfont\ac_wfnfontrenderer.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="acgui"
+				>
+				<File
+					RelativePath="..\..\Common\acgui\ac_dynamicarray.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\acgui\ac_guibutton.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\acgui\ac_guidefines.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\acgui\ac_guiinv.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\acgui\ac_guilabel.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\acgui\ac_guilistbox.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\acgui\ac_guimain.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\acgui\ac_guiobject.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\acgui\ac_guislider.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\acgui\ac_guitextbox.h"
 					>
 				</File>
 			</Filter>

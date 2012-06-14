@@ -858,12 +858,13 @@ extern GFXFilter *filter;
 #define TURNING_AROUND     1000
 #define TURNING_BACKWARDS 10000
 
-#define MAXLINE 50
 #define MAX_SOUND_CHANNELS 8
 #define SPECIAL_CROSSFADE_CHANNEL 8
 #define MAX_PLUGIN_OBJECT_READERS 50
 
 #define NEXT_ITERATION() play.gamestep++
+
+#include "acgui/ac_guidefines.h"
 
 extern GameSetupStruct game;
 extern GameState play;

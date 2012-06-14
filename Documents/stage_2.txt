@@ -134,6 +134,11 @@ good. Basically, it should be understood why it needs acruntim and separate
 those parts of it which belong only to engine.
 NOTE: acruntim will be split later.
 
+//-----------------------------------------------------------------------------
+// step 7 -- acgui
+//-----------------------------------------------------------------------------
+/2012-06-14/
+
 
 //=============================================================================
 // Quick notes for future reference

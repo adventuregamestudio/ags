@@ -374,7 +374,16 @@ int initialize_engine(int argc,char*argv[]);
 block recycle_bitmap(block bimp, int coldep, int wid, int hit);
 
 #define WOUTTEXT_REVERSE wouttext_reverseifnecessary
-#include "acgui.h"
+//#include "acgui.h"
+#include "acgui/ac_dynamicarray.h"
+#include "acgui/ac_guimain.h"
+#include "acgui/ac_guibutton.h"
+#include "acgui/ac_guiinv.h"
+#include "acgui/ac_guilabel.h"
+#include "acgui/ac_guilistbox.h"
+#include "acgui/ac_guislider.h"
+#include "acgui/ac_guitextbox.h"
+
 #include "acruntim.h"
 #include "acsound.h"
 

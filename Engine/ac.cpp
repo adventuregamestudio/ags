@@ -382,6 +382,8 @@ block recycle_bitmap(block bimp, int coldep, int wid, int hit);
 #include "acruntim.h"
 #include "acsound.h"
 
+#include "acgfx/ac_gfxfilters.h"
+
 #define MAX_SCRIPT_MODULES 50
 
 

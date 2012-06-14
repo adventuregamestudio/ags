@@ -357,6 +357,8 @@ struct SpriteDrawListEntry
   bool skip;
 };
 
+#include "acgfx/ac_d3dgfxfilter.h"
+
 class OGLGraphicsDriver : public IGraphicsDriver
 {
 public:

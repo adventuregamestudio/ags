@@ -12,7 +12,7 @@
 #include "bigend.h"
 #include "sprcache.h"
 #include "acsound.h"
-#include "acgfx.h"
+//#include "acgfx.h"
 
 #include "ali3d.h"
 

@@ -106,6 +106,8 @@ public:
 
 };
 
+#include "acgfx/ac_allegrogfxfilter.h"
+
 class ALSoftwareGraphicsDriver : public IGraphicsDriver
 {
 public:

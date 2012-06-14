@@ -7,7 +7,8 @@
 #ifndef __ALI3D_H
 #define __ALI3D_H
 
-#include "acgfx.h"
+#include "acgfx/ac_gfxfilter.h"
+#include "acgfx/ac_blender.h"
 
 typedef void (*ALI3DCLIENTCALLBACK)();
 typedef bool (*ALI3DCLIENTCALLBACKXY)(int x, int y);

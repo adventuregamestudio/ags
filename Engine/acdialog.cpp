@@ -11,7 +11,6 @@
 */
 
 // DIALOG SYSTEM STUFF below
-//#include "wgt2allg_nofunc.h"
 #include "wgt2allg.h"
 #include <string.h>
 #include <ctype.h>

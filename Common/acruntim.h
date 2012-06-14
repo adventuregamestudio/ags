@@ -22,7 +22,6 @@
 #include "ac/ac_view.h"             // ViewStruct
 #include "cs/cc_dynamicobject.h"    // ICCDynamicObject
 #include "cs/cc_instance.h"         // ccInstance
-//#include "cs/cs_internal.h"         // fputstring, etc
 
 // Max script string length
 #define MAX_MAXSTRLEN 200

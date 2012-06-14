@@ -1,3 +1,15 @@
+/*
+** Adventure Game Studio GUI routines
+** Copyright (C) 2000-2005, Chris Jones
+** All Rights Reserved.
+**
+** This is UNPUBLISHED PROPRIETARY SOURCE CODE;
+** the contents of this file may not be disclosed to third parties,
+** copied or duplicated in any form, in whole or in part, without
+** prior express permission from Chris Jones.
+**
+*/
+
 #ifndef __AC_GUILABEL_H
 #define __AC_GUILABEL_H
 

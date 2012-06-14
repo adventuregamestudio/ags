@@ -1,17 +1,26 @@
-//
-// Implementation from acroom.h that was previously put under NO_SAVE_FUNCTIONS
-// macro control
-//
 
+#ifdef UNUSED_CODE
 
-// MACPORT FIX: endian support
-#include "bigend.h"
-#include "misc.h"
-#include "wgt2allg_nofunc.h"
-#include "acroom_func.h"
-#include "acroom_savefunc.h"
-
-#error 'acroom_save.cpp' contents were split up to separate modules; do not include this file in the build
+/*long cloadcompfile(FILE*outpt,block tobesaved,color*pal,long poot=0) {
+  fseek(outpt,poot,SEEK_SET);
+  int widt,hit,hh;
+  for (hh=0;hh<4;hh++) *tobesaved++=fgetc(outpt);
+  tobesaved-=4;
+  widt=*tobesaved++;  widt+=(*tobesaved++)*256;
+  hit=*tobesaved++; hit+=(*tobesaved++)*256;
+  unsigned char* ress=(unsigned char*)malloc(widt+1);
+  for (int ww=0;ww<hit;ww++) {
+    cunpackbitl(ress,widt,outpt);
+    for (int ss=0;ss<widt;ss++)  (*tobesaved++)=ress[ss];
+    }
+  for (ww=0;ww<256;ww++) {
+    pal[ww].r=fgetc(outpt);
+    pal[ww].g=fgetc(outpt);
+    pal[ww].b=fgetc(outpt);
+    }
+  poot=ftell(outpt); free(ress); tobesaved-=(widt*hit+4);
+  return poot;
+  }*/
 
 /*
 void encrypt_text(char *toenc) {
@@ -53,3 +62,5 @@ void write_dictionary (WordsDictionary *dict, FILE *writeto) {
   }
 }
 */
+
+#endif

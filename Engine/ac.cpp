@@ -146,7 +146,6 @@ extern void * memcpy_amd(void *dest, const void *src, size_t n);
 
 #define IS_ANTIALIAS_SPRITES usetup.enable_antialiasing && (play.disable_antialiasing == 0)
 extern int our_eip;
-//#include "wgt2allg_func.h"
 #include "wgt2allg.h"
 #include "sprcache.h"
 
@@ -215,14 +214,11 @@ void draw_sprite_compensate(int,int,int,int);
 char *get_translation(const char*);
 int   source_text_length = -1;
 #define LOADROOM_DO_POLL
-//#include "acroom_func.h"
-//#include "ac/ac_gamesetupstruct.h"
 #include "ac/ac_common.h"
 #include "ac/ac_compress.h"
 #include "ac/ac_gamesetupstruct.h"
 #include "ac/ac_lipsync.h"
 #include "ac/ac_object.h"
-//#include "cscomp.h"
 #include "cs/cs_common.h"
 #include "cs/cc_instance.h"
 #include "cs/cs_runtime.h"
@@ -374,7 +370,6 @@ int initialize_engine(int argc,char*argv[]);
 block recycle_bitmap(block bimp, int coldep, int wid, int hit);
 
 #define WOUTTEXT_REVERSE wouttext_reverseifnecessary
-//#include "acgui.h"
 #include "acgui/ac_dynamicarray.h"
 #include "acgui/ac_guimain.h"
 #include "acgui/ac_guibutton.h"

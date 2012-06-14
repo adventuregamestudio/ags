@@ -4,11 +4,8 @@
 
 // Headers, as they are in acgui.cpp
 #pragma unmanaged
-//#include "wgt2allg_nofunc.h"
 #include "wgt2allg.h"
-//#include "acroom_nofunc.h"
 #include "acruntim.h"
-//#include "acgui.h"
 #include "acgui/ac_guimain.h"
 #include "acgui/ac_guibutton.h"
 #include "acgui/ac_guilabel.h"

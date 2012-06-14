@@ -101,9 +101,4 @@ extern const short sccmdargs[];
 extern const char scfilesig[5];
 #define ENDFILESIG 0xbeefcafe
 
-//=============================================================================
-//#include "cc_script.h"
-//#include "cc_instance.h"
-//=============================================================================
-
 #endif // __CS_COMMON_H

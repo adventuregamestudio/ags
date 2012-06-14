@@ -142,7 +142,6 @@ extern "C"
         extern long clibfilesize(char *);
         extern long last_opened_size;
     }
-#define fopen clibfopen
 #endif
 
     extern void wsetscreen(block nss);
@@ -191,10 +190,6 @@ extern "C"
     extern long wtimer(struct time tt1, struct time tt2);
 
     extern void wcopyscreen(int x1, int y1, int x2, int y2, block src, int dx, int dy, block dest);
-
-#ifdef USE_CLIB
-#undef fopen
-#endif
 
 #ifdef __cplusplus
 }

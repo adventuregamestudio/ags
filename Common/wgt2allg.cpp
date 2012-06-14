@@ -1,7 +1,8 @@
 
 #define USE_CLIB
-//#include "wgt2allg_func.h"
 #include "wgt2allg.h"
+
+#define fopen clibfopen
 
 #ifdef __cplusplus
 extern "C"

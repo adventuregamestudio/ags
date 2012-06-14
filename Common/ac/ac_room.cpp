@@ -1,12 +1,10 @@
 
 #include <stdio.h>
-//#include "wgt2allg_nofunc.h"
 #include "wgt2allg.h"
 #include "ac/ac_room.h"
 #include "ac/ac_common.h"
 #include "ac/ac_wordsdictionary.h"
 #include "cs/cs_utils.h"
-//#include "acroom_func_script.h"
 #include "ac/ac_compress.h"
 
 extern "C" {

@@ -205,6 +205,26 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\cs\cs_unused.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\..\Common\cs\cs_utils.cpp"
 					>
 				</File>
@@ -243,6 +263,26 @@
 				<File
 					RelativePath="..\..\Common\ac\ac_room.cpp"
 					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_unused.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\Common\ac\ac_view.cpp"
@@ -376,6 +416,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\ac\ac_room.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_unused.h"
 					>
 				</File>
 				<File

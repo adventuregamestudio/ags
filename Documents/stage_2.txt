@@ -107,8 +107,6 @@ served rather a possibility to make smaller changes and better understand the co
 all the implementation is in wgt2allg.cpp now anyway.
 4. acfonts and acgui modules on other hand contain a lot of different classes and
 should be split.
-5. acruntime has a good bunch of type declarations and symbols exported from runtime
-part. Split.
 
 //-----------------------------------------------------------------------------
 // step 5 -- final hours of acroom.h

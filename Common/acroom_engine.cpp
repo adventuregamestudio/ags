@@ -8,9 +8,7 @@
 // MACPORT FIX: endian support
 #include "bigend.h"
 #include "misc.h"
-//#include "wgt2allg_nofunc.h"
 #include "wgt2allg.h"
-//#include "acroom_func.h"
 #include "ac/ac_room.h"
 //
 

@@ -14,12 +14,9 @@
 #define DOS_VERSION
 #endif
 
-//#include "wgt2allg_nofunc.h"
 #include "wgt2allg.h"
-//#include "acroom_nofunc.h"
 #include "acruntim.h"
 #include "acsound.h"
-//#include "cscomp.h"
 #include "ali3d.h"
 
 #ifdef WINDOWS_VERSION

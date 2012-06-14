@@ -54,8 +54,7 @@ namespace AGS.Editor.Components
             _agsEditor.GetSourceControlFileList += new GetSourceControlFileListHandler(_agsEditor_GetSourceControlFileList);
             _agsEditor.PreCompileGame += new AGSEditor.PreCompileGameHandler(_agsEditor_PreCompileGame);
 
-            _editor = new AudioEditor();
-            _document = new ContentDocument(_editor, "Audio", this);
+            RecreateDocument();
             _guiController.RegisterIcon("AGSAudioClipsIcon", Resources.ResourceManager.GetIcon("audio.ico"));
             _guiController.RegisterIcon("AGSAudioClipIconMidi", Resources.ResourceManager.GetIcon("audio-midi.ico"));
             _guiController.RegisterIcon("AGSAudioClipIconMod", Resources.ResourceManager.GetIcon("audio-mod.ico"));
@@ -68,6 +67,12 @@ namespace AGS.Editor.Components
             _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "Audio", "AGSAudioClipsIcon");
             _guiController.ProjectTree.OnAfterLabelEdit += new ProjectTree.AfterLabelEditHandler(ProjectTree_OnAfterLabelEdit);
             RePopulateTreeView();
+        }
+
+        private void RecreateDocument()
+        {
+            _editor = new AudioEditor();
+            _document = new ContentDocument(_editor, "Audio", this, AUDIO_CLIP_TYPE_ICON);             
         }
 
         public override string ComponentID
@@ -255,6 +260,10 @@ namespace AGS.Editor.Components
 
             if (itemToEdit != null)
             {
+                if (_document.Control.IsDisposed)
+                {
+                    RecreateDocument();
+                }
                 _editor.SelectedItem = itemToEdit;
                 _document.SelectedPropertyGridObject = itemToEdit;
                 _guiController.AddOrShowPane(_document);

@@ -6,6 +6,12 @@
 #include <allegro/platform/aintwin.h>
 #include <ali3d.h>
 #include <GL/gl.h>
+
+// Allegro and glext.h define these
+#undef int32_t
+#undef int64_t
+#undef uint64_t
+
 #include <GL/glext.h>
 
 int psp_gfx_smoothing = 1;

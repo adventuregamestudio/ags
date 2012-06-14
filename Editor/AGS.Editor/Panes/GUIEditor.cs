@@ -874,6 +874,20 @@ namespace AGS.Editor
             }
         }
 
+        private void refreshProperties()
+        {
+            if (_selectedControl != null)
+            {
+
+                Factory.GUIController.SetPropertyGridObject(_selectedControl);
+            }
+            else
+            {
+                Factory.GUIController.SetPropertyGridObject(_gui);
+            }
+            bgPanel.Invalidate();
+        }
+
         private void bgPanel_MouseUp(object sender, MouseEventArgs e)
         {
             _snappedx = -1;
@@ -892,6 +906,7 @@ namespace AGS.Editor
             else if (_resizingControl)
             {
                 _resizingControl = false;
+                refreshProperties();
             }
             else if (_drawingSelectionBox)
             {
@@ -906,16 +921,7 @@ namespace AGS.Editor
             else
             {
                 _movingControl = false;
-                if (_selectedControl != null)
-                {
-                    
-                    Factory.GUIController.SetPropertyGridObject(_selectedControl);
-                }
-                else
-                {
-                    Factory.GUIController.SetPropertyGridObject(_gui);
-                }
-                bgPanel.Invalidate();
+                refreshProperties();
 
                 if ((e.Button == MouseButtons.Right))
                 {

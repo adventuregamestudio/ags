@@ -480,11 +480,6 @@ namespace AGS.Editor
 
 		private bool ProcessZoomAndPanKeyPresses(Keys keyData)
 		{
-			if (!DoesThisPanelHaveFocus())
-			{
-				return false;
-			}
-
 			if (keyData == Keys.Down)
 			{
 				bufferedPanel1.AutoScrollPosition = new Point(Math.Abs(bufferedPanel1.AutoScrollPosition.X), Math.Abs(bufferedPanel1.AutoScrollPosition.Y) + 50);
@@ -525,11 +520,19 @@ namespace AGS.Editor
 		{
 			bool returnHandled = true;
 
-			if (!ProcessZoomAndPanKeyPresses(keyData))
-			{
-				_filter.KeyPressed(keyData);
-				returnHandled = false;
-			}
+            if (!DoesThisPanelHaveFocus())
+            {
+                return false;
+            }
+            if (_filter.KeyPressed(keyData))
+            {
+                bufferedPanel1.Invalidate();
+                Factory.GUIController.RefreshPropertyGrid();
+            }
+            else if (!ProcessZoomAndPanKeyPresses(keyData))
+            {
+                returnHandled = false;
+            }			
 			return returnHandled;
 		}
 

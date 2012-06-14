@@ -11,17 +11,18 @@ namespace AGS.Editor.Components
         private ContentDocument _document;
         private MenuCommands _menuCommands = new MenuCommands(GUIController.HELP_MENU_ID, 500);
 
+        private const string ICON_KEY = "MenuIconShowStartPage";
         private const string SHOW_START_PAGE_COMMAND = "ShowStartPage";
 
         public WelcomeComponent(GUIController guiController, AGSEditor agsEditor)
             : base(guiController, agsEditor)
         {
             _welcomePane = new WelcomePane(guiController);
-            _document = new ContentDocument(_welcomePane, "Start Page", this);
+            _document = new ContentDocument(_welcomePane, "Start Page", this, ICON_KEY);
 
-            _guiController.RegisterIcon("MenuIconShowStartPage", Resources.ResourceManager.GetIcon("menu_help_showstart.ico"));
+            _guiController.RegisterIcon(ICON_KEY, Resources.ResourceManager.GetIcon("menu_help_showstart.ico"));
 
-            _menuCommands.Commands.Add(new MenuCommand(SHOW_START_PAGE_COMMAND, "Show Start Page", "MenuIconShowStartPage"));
+            _menuCommands.Commands.Add(new MenuCommand(SHOW_START_PAGE_COMMAND, "Show Start Page", ICON_KEY));
             _guiController.AddMenuItems(this, _menuCommands);
         }
 

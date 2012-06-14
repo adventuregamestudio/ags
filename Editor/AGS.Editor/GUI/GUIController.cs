@@ -46,7 +46,7 @@ namespace AGS.Editor
         private delegate void ParameterlessDelegate();
         private delegate void ZoomToFileDelegate(string fileName, ZoomToFileZoomType zoomType, int lineNumber, bool isDebugExecutionPoint, bool selectWholeLine, string errorMessage, bool activateEditor);
         private delegate void ShowCallStackDelegate(DebugCallStack callStack);
-        private delegate void ShowFindSymbolResultsDelegate(List<ScriptTokenReference> results, ScintillaWrapper scintilla);
+        private delegate void ShowFindSymbolResultsDelegate(List<ScriptTokenReference> results);
 
         private frmMain _mainForm;
         private Dictionary<string, IEditorComponent> _menuItems;
@@ -132,6 +132,11 @@ namespace AGS.Editor
 		{
 			get { return FILE_MENU_ID; }
 		}
+
+        public Icon MainIcon
+        {
+            get { return _mainForm.Icon; }
+        }
 
 		public void ShowMessage(string message, MessageBoxIconType icon)
 		{
@@ -297,8 +302,7 @@ namespace AGS.Editor
             _mainForm.pnlOutput.ErrorsToList = errors;
             if (errors.Count > 0)
             {
-                _mainForm.pnlOutput.Visible = true;
-                _mainForm.pnlOutput.Focus();
+                _mainForm.pnlOutput.Show();
             }
         }
 
@@ -315,7 +319,7 @@ namespace AGS.Editor
                 return;
             }
 
-            _mainForm.pnlOutput.Visible = false;
+            _mainForm.pnlOutput.Hide();
         }
 
         public void ShowCallStack(DebugCallStack callStack)
@@ -327,33 +331,29 @@ namespace AGS.Editor
             }
 
             _mainForm.pnlCallStack.CallStack = callStack;
-            _mainForm.pnlCallStack.Visible = true;
-            _mainForm.pnlCallStack.Focus();
+            _mainForm.pnlCallStack.Show();            
         }
 
         public void HideCallStack()
         {
-            _mainForm.pnlCallStack.Visible = false;
+            _mainForm.pnlCallStack.Hide();
         }
 
-        public void ShowFindSymbolResults(List<ScriptTokenReference> results,
-            ScintillaWrapper scintilla)
+        public void ShowFindSymbolResults(List<ScriptTokenReference> results)
         {            
             if (_mainForm.pnlFindResults.InvokeRequired)
             {
-                _mainForm.pnlFindResults.Invoke(new ShowFindSymbolResultsDelegate(ShowFindSymbolResults), results, scintilla);
+                _mainForm.pnlFindResults.Invoke(new ShowFindSymbolResultsDelegate(ShowFindSymbolResults), results);
                 return;
             }
 
             _mainForm.pnlFindResults.Results = results;
-            _mainForm.pnlFindResults.Scintilla = scintilla;
-            _mainForm.pnlFindResults.Visible = true;
-            _mainForm.pnlFindResults.Focus();
+            _mainForm.pnlFindResults.Show();           
         }
 
         public void HideFindSymbolResults()
         {
-            _mainForm.pnlFindResults.Visible = false;
+            _mainForm.pnlFindResults.Hide();
         }
 
         public ContentDocument ActivePane
@@ -626,9 +626,10 @@ namespace AGS.Editor
             SourceControlFileStatus[] fileStatuses = _agsEditor.SourceControlProvider.GetFileStatuses(files);
             for (int i = 0; i < files.Length; i++)
             {
-                if ((fileStatuses[i] == SourceControlFileStatus.NotControlled) ||
+                if (((fileStatuses[i] == SourceControlFileStatus.NotControlled) ||
                     ((fileStatuses[i] & SourceControlFileStatus.Deleted) != 0) ||
-                    ((fileStatuses[i] & SourceControlFileStatus.CheckedOutByMe) != 0))
+                    ((fileStatuses[i] & SourceControlFileStatus.CheckedOutByMe) != 0)) &&
+                    (fileStatuses[i] != SourceControlFileStatus.Invalid))
                 {
                     fileNamesToShow.Add(files[i]);
                 }
@@ -691,10 +692,11 @@ namespace AGS.Editor
                 _interactiveTasks = new InteractiveTasks(_agsEditor.Tasks);
                 _mainForm = new frmMain();
                 SetEditorWindowSizeFromRegistry();
-                _treeManager = new ProjectTree(_mainForm.projectTree);
+                _treeManager = new ProjectTree(_mainForm.projectPanel.projectTree);
                 _treeManager.OnContextMenuClick += new ProjectTree.MenuClickHandler(_mainForm_OnMenuClick);
                 _toolBarManager = new ToolBarManager(_mainForm.toolStrip);
-                _menuManager = new MainMenuManager(_mainForm.mainMenu);
+                WindowsMenuManager windowsMenuManager = new WindowsMenuManager(_mainForm.windowsToolStripMenuItem, _mainForm.GetStartupPanes());
+                _menuManager = new MainMenuManager(_mainForm.mainMenu, windowsMenuManager);
                 _mainForm.OnEditorShutdown += new frmMain.EditorShutdownHandler(_mainForm_OnEditorShutdown);
                 _mainForm.OnPropertyChanged += new frmMain.PropertyChangedHandler(_mainForm_OnPropertyChanged);
                 _mainForm.OnPropertyObjectChanged += new frmMain.PropertyObjectChangedHandler(_mainForm_OnPropertyObjectChanged);
@@ -710,7 +712,7 @@ namespace AGS.Editor
 				_mainForm.SetTreeImageList(_imageList);
                 _mainForm.mainMenu.ImageList = _imageList;
 				_mainForm.pnlOutput.SetImageList(_imageList);
-				_mainForm.SetProjectTreeLocation(_agsEditor.Preferences.ProjectTreeOnRight);
+				//_mainForm.SetProjectTreeLocation(_agsEditor.Preferences.ProjectTreeOnRight);
 
                 ViewUIEditor.ViewSelectionGUI = new ViewUIEditor.ViewSelectionGUIType(ShowViewChooserFromPropertyGrid);
                 SpriteSelectUIEditor.SpriteSelectionGUI = new SpriteSelectUIEditor.SpriteSelectionGUIType(ShowSpriteChooserFromPropertyGrid);
@@ -1226,7 +1228,7 @@ namespace AGS.Editor
             if (prefsEditor.ShowDialog() == DialogResult.OK)
             {
                 _agsEditor.Preferences.SaveToRegistry();
-				_mainForm.SetProjectTreeLocation(_agsEditor.Preferences.ProjectTreeOnRight);
+				//_mainForm.SetProjectTreeLocation(_agsEditor.Preferences.ProjectTreeOnRight);
             }
             prefsEditor.Dispose();
         }
@@ -1383,9 +1385,10 @@ namespace AGS.Editor
         void _mainForm_OnPropertyChanged(string propertyName, object oldValue)
         {
             if (ActivePane != null)
-            {
+            {               
                 ActivePane.Owner.PropertyChanged(propertyName, oldValue);
                 ActivePane.Control.PropertyChanged(propertyName, oldValue);
+                DocumentTitlesChanged();
             }
         }
 
@@ -1562,12 +1565,12 @@ namespace AGS.Editor
                     _mainForm.Width = Math.Max(formWidth, 300);
                     _mainForm.Height = Math.Max(formHeight, 300);
                     _mainForm.WindowState = (key.GetValue("MainWinMaximize", "0").ToString() == "1") ? FormWindowState.Maximized : FormWindowState.Normal;
-                    int splitterX = Convert.ToInt32(key.GetValue("MainWinSplitter1", 0));
+                    /*int splitterX = Convert.ToInt32(key.GetValue("MainWinSplitter1", 0));
                     int splitterY = Convert.ToInt32(key.GetValue("MainWinSplitter2", 0));
                     if ((splitterX > 0) && (splitterY > 0))
                     {
                         _mainForm.SetSplitterPositions(splitterX, splitterY);
-                    }
+                    }*/
                 }
                 catch (Exception ex)
                 {
@@ -1597,10 +1600,10 @@ namespace AGS.Editor
                     key.SetValue("MainWinX", _mainForm.Left.ToString());
                     key.SetValue("MainWinY", _mainForm.Top.ToString());
                 }
-                int splitterX, splitterY;
+                /*int splitterX, splitterY;
                 _mainForm.GetSplitterPositions(out splitterX, out splitterY);
                 key.SetValue("MainWinSplitter1", splitterX.ToString());
-                key.SetValue("MainWinSplitter2", splitterY.ToString());
+                key.SetValue("MainWinSplitter2", splitterY.ToString());*/
                 key.Close();
             }
         }

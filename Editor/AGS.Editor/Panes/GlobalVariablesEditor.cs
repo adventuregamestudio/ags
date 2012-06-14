@@ -95,6 +95,10 @@ namespace AGS.Editor
             {
                 EditSelectedVariable(selectedVariable);
             }
+            else if ((item.Name == MENU_ITEM_FIND_WORD) && (selectedVariable != null))
+            {
+                FindSelectedVariable(selectedVariable);
+            }
             else if (item.Name == MENU_ITEM_ADD_WORD)
             {
                 GlobalVariable variable = new GlobalVariable();
@@ -131,6 +135,13 @@ namespace AGS.Editor
             }
         }
 
+        private void FindSelectedVariable(GlobalVariable variable)
+        {
+            TextProcessing.FindAllUsages findAllUsages = new TextProcessing.FindAllUsages(null,
+                null, null, AGSEditor.Instance);
+            findAllUsages.Find(null, variable.Name);
+        }
+
         private void AddNewVariableToList(GlobalVariable variable)
         {
             _variables.Add(variable);
@@ -153,6 +164,7 @@ namespace AGS.Editor
             {
                 menu.Items.Add(new ToolStripMenuItem("Edit...", null, onClick, MENU_ITEM_EDIT_WORD));
                 menu.Items.Add(new ToolStripMenuItem("Delete", null, onClick, MENU_ITEM_DELETE_WORD));
+                menu.Items.Add(new ToolStripMenuItem("Find All Usages", null, onClick, MENU_ITEM_FIND_WORD));
                 menu.Items.Add(new ToolStripSeparator());
             }
             menu.Items.Add(new ToolStripMenuItem("Add new variable...", null, onClick, MENU_ITEM_ADD_WORD));

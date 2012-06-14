@@ -9,10 +9,11 @@ Build-Depends: debhelper (>= 8.0.0),
                libfreetype6-dev,
                libtheora-dev,
                libvorbis-dev,
-               libogg-dev,
-               libasound2-dev [linux-any]
+               libogg-dev
 Standards-Version: 3.9.3
-Homepage: https://gitorious.org/~jjs/ags/ags-for-psp
+Homepage: https://github.com/adventuregamestudio/ags
+Vcs-Git: git://github.com/adventuregamestudio/ags.git
+Vcs-Browser: https://github.com/adventuregamestudio/ags
 
 Package: ags
 Architecture: any

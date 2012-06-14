@@ -8,6 +8,8 @@ using System.Text;
 using System.Windows.Forms;
 using AGS.Types;
 using AGS.Editor.TextProcessing;
+using WeifenLuo.WinFormsUI.Docking;
+using System.Diagnostics;
 
 namespace AGS.Editor
 {
@@ -25,18 +27,32 @@ namespace AGS.Editor
 
         private Dictionary<string, object> _propertyObjectList = null;
         private bool _ignorePropertyListChange = false;
-		private int _splitterXtoSet = 0;
-		private int _splitterYtoSet = 0;
+		//private int _splitterXtoSet = 0;
+		//private int _splitterYtoSet = 0;
 		private bool _suspendDrawing = false;
+        private WindowsLayoutManager _layoutManager;
 
         public frmMain()
         {
             InitializeComponent();
-            tabbedDocumentContainer1.ActiveDocumentChanged += new TabbedDocumentContainer.ActiveDocumentChangeHandler(tabbedDocumentContainer1_ActiveDocumentChanged);
-            tabbedDocumentContainer1.ActiveDocumentChanging += new TabbedDocumentContainer.ActiveDocumentChangeHandler(tabbedDocumentContainer1_ActiveDocumentChanging);
+            LoadLayout();            			
+            tabbedDocumentContainer1.ActiveDocumentChanged += new TabbedDocumentManager.ActiveDocumentChangeHandler(tabbedDocumentContainer1_ActiveDocumentChanged);
+            tabbedDocumentContainer1.ActiveDocumentChanging += new TabbedDocumentManager.ActiveDocumentChangeHandler(tabbedDocumentContainer1_ActiveDocumentChanging);
 			this.Load += new EventHandler(frmMain_Load);
             this.Activated += new EventHandler(frmMain_Activated);
             this.Deactivate += new EventHandler(frmMain_Deactivated);
+        }
+
+        public List<DockContent> GetStartupPanes()
+        {
+            return new List<DockContent> 
+            {
+                projectPanel,
+                propertiesPanel,
+                pnlOutput,
+                pnlFindResults,
+                pnlCallStack
+            };
         }
 
         private void frmMain_Activated(object sender, EventArgs e)
@@ -57,13 +73,13 @@ namespace AGS.Editor
 
 		private void frmMain_Load(object sender, EventArgs e)
 		{
-			if (_splitterXtoSet > 0)
-			{
+            /*if (_splitterXtoSet > 0)
+			{                
 				this.mainContainer.SplitterDistance = _splitterXtoSet;
 				this.leftSplitter.SplitterDistance = _splitterYtoSet;
 				_splitterXtoSet = 0;
 				_splitterYtoSet = 0;
-			}
+			}*/
 		}
 
         public void RefreshPropertyGridForDocument(ContentDocument document)
@@ -93,11 +109,13 @@ namespace AGS.Editor
             {
                 // Remember which pane and item were selected on the property grid,
                 // so that we can restore them later
-                tabbedDocumentContainer1.ActiveDocument.SelectedPropertyGridTab = propertiesPanel.SelectedTab.TabName;
-                if (propertiesPanel.SelectedGridItem != null)
+                tabbedDocumentContainer1.ActiveDocument.SelectedPropertyGridTab = 
+                    propertiesPanel.propertiesGrid.SelectedTab.TabName;
+                if (propertiesPanel.propertiesGrid.SelectedGridItem != null)
                 {
-                    tabbedDocumentContainer1.ActiveDocument.SelectedPropertyGridItem = propertiesPanel.SelectedGridItem.Label;
-                }
+                    tabbedDocumentContainer1.ActiveDocument.SelectedPropertyGridItem = 
+                        propertiesPanel.propertiesGrid.SelectedGridItem.Label;
+                }                
             }
         }
 
@@ -125,7 +143,7 @@ namespace AGS.Editor
 
         private GridItem FindPropertyGridItemForType(string fullTypeName)
         {
-            GridItem startFromHere = propertiesPanel.SelectedGridItem;
+            GridItem startFromHere = propertiesPanel.propertiesGrid.SelectedGridItem;
             if (startFromHere == null)
             {
                 return null;
@@ -152,9 +170,9 @@ namespace AGS.Editor
                 {
                     if ((itemToSelect.Parent != null) && (!itemToSelect.Parent.Expanded))
                     {
-                        propertiesPanel.ExpandAllGridItems();
+                        propertiesPanel.propertiesGrid.ExpandAllGridItems();
                     }
-                    propertiesPanel.SelectedGridItem = itemToSelect;
+                    propertiesPanel.propertiesGrid.SelectedGridItem = itemToSelect;
                 }
             }
         }
@@ -201,7 +219,7 @@ namespace AGS.Editor
             }
         }
 
-		public void SetProjectTreeLocation(bool rightHandSide)
+		/*public void SetProjectTreeLocation(bool rightHandSide)
 		{
 			SplitterPanel leftHandPanel = this.mainContainer.Panel1;
 			SplitterPanel rightHandPanel = this.mainContainer.Panel2;
@@ -233,7 +251,7 @@ namespace AGS.Editor
             panelWithMainPane.Controls.Add(this.pnlFindResults);
 			panelWithProjectTree.Controls.Add(this.leftSplitter);
 			this.mainContainer.SplitterDistance = this.mainContainer.ClientSize.Width - this.mainContainer.SplitterDistance;
-		}
+		}*/
 
         public ContentDocument ActivePane
         {
@@ -247,19 +265,19 @@ namespace AGS.Editor
 
         public void SetTreeImageList(ImageList imageList)
         {
-            projectTree.ImageList = imageList;
+            projectPanel.projectTree.ImageList = imageList;
         }
 
         public bool SelectTabInPropertyGrid(string tabName)
         {
             int tabIndex = 0;
-            foreach (System.Windows.Forms.Design.PropertyTab propertyTab in propertiesPanel.PropertyTabs)
+            foreach (System.Windows.Forms.Design.PropertyTab propertyTab in propertiesPanel.propertiesGrid.PropertyTabs)
             {
                 if (propertyTab.TabName == tabName)
                 {
-                    if (propertyTab != propertiesPanel.SelectedTab)
+                    if (propertyTab != propertiesPanel.propertiesGrid.SelectedTab)
                     {
-                    	Hacks.SetSelectedTabInPropertyGrid(propertiesPanel, tabIndex);
+                    	Hacks.SetSelectedTabInPropertyGrid(propertiesPanel.propertiesGrid, tabIndex);
                     }
                     return true;
                 }
@@ -278,7 +296,7 @@ namespace AGS.Editor
             propertiesPanel.Focus();
             // The property grid provides no RootGridItem property,
             // so we must find it manually
-            GridItem rootItem = propertiesPanel.SelectedGridItem;
+            GridItem rootItem = propertiesPanel.propertiesGrid.SelectedGridItem;
             while (rootItem.GridItemType != GridItemType.Root)
             {
                 rootItem = rootItem.Parent;
@@ -311,29 +329,30 @@ namespace AGS.Editor
                 _ignorePropertyListChange = true;
 
                 object previouslySelected = null;
-                if ((_propertyObjectList != null) && (propertyObjectCombo.SelectedItem != null))
+                if ((_propertyObjectList != null) && (propertiesPanel.propertyObjectCombo.SelectedItem != null))
                 {
-                    previouslySelected = _propertyObjectList[(string)propertyObjectCombo.SelectedItem];
+                    previouslySelected = _propertyObjectList[(string)propertiesPanel.propertyObjectCombo.SelectedItem];
                 }
 
                 _propertyObjectList = propertyObjects;
 
-                propertyObjectCombo.Items.Clear();
+                propertiesPanel.propertyObjectCombo.Items.Clear();
                 if (_propertyObjectList != null)
                 {
                     foreach (string name in _propertyObjectList.Keys)
                     {
-                        propertyObjectCombo.Items.Add(name);
+                        propertiesPanel.propertyObjectCombo.Items.Add(name);
                         if (_propertyObjectList[name] == previouslySelected)
                         {
-                            propertyObjectCombo.SelectedItem = propertyObjectCombo.Items[propertyObjectCombo.Items.Count - 1];
+                            propertiesPanel.propertyObjectCombo.SelectedItem = 
+                                propertiesPanel.propertyObjectCombo.Items[propertiesPanel.propertyObjectCombo.Items.Count - 1];
                         }
                     }
-                    propertyObjectCombo.Enabled = true;
+                    propertiesPanel.propertyObjectCombo.Enabled = true;
                 }
                 else
                 {
-                    propertyObjectCombo.Enabled = false;
+                    propertiesPanel.propertyObjectCombo.Enabled = false;
                 }
             }
             finally
@@ -343,16 +362,16 @@ namespace AGS.Editor
         }
 
         public void SetPropertyObject(object propertiesObject)
-        {
-            propertiesPanel.SelectedObject = propertiesObject;
+        {            
+            propertiesPanel.propertiesGrid.SelectedObject = propertiesObject;
             SelectObjectInPropertyList(propertiesObject);
         }
 
         public void SetPropertyObjects(object[] propertiesObjects)
         {
-            propertiesPanel.SelectedObjects = propertiesObjects;
+            propertiesPanel.propertiesGrid.SelectedObjects = propertiesObjects;
 
-            propertyObjectCombo.SelectedIndex = -1;
+            propertiesPanel.propertyObjectCombo.SelectedIndex = -1;
         }
 
         private void SelectObjectInPropertyList(object propertiesObject)
@@ -363,13 +382,14 @@ namespace AGS.Editor
                 {
                     if (_propertyObjectList[name] == propertiesObject)
                     {
-                        propertyObjectCombo.SelectedIndex = propertyObjectCombo.Items.IndexOf(name);
+                        propertiesPanel.propertyObjectCombo.SelectedIndex =
+                            propertiesPanel.propertyObjectCombo.Items.IndexOf(name);
                     }
                 }
             }
         }
 
-		public void SetSplitterPositions(int mainSplitterX, int propertiesSplitterY)
+		/*public void SetSplitterPositions(int mainSplitterX, int propertiesSplitterY)
 		{
 			_splitterXtoSet = mainSplitterX;
 			_splitterYtoSet = propertiesSplitterY;
@@ -377,9 +397,9 @@ namespace AGS.Editor
 
 		public void GetSplitterPositions(out int mainSplitterX, out int propertiesSplitterY)
 		{
-			mainSplitterX = this.mainContainer.SplitterDistance;
-			propertiesSplitterY = this.leftSplitter.SplitterDistance;
-		}
+            mainSplitterX = 0;// this.mainContainer.SplitterDistance;
+            propertiesSplitterY = 0;// this.leftSplitter.SplitterDistance;
+		}*/
 
         private void frmMain_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -387,11 +407,15 @@ namespace AGS.Editor
             {
                 e.Cancel = !OnEditorShutdown();
             }
+            if (!e.Cancel)
+            {
+                _layoutManager.SaveLayout();
+            }
         }
 
         private void propertiesPanel_PropertyValueChanged(object s, PropertyValueChangedEventArgs e)
         {
-            tabbedDocumentContainer1.Invalidate(true);
+            //tabbedDocumentContainer1.Invalidate(true);
 
             if (OnPropertyChanged != null)
             {
@@ -401,7 +425,9 @@ namespace AGS.Editor
 
         private void frmMain_Shown(object sender, EventArgs e)
         {
-			if (AGS.Types.Version.IS_BETA_VERSION)
+            this.tabbedDocumentContainer1.Init();
+            
+            if (AGS.Types.Version.IS_BETA_VERSION)
 			{
 				Factory.GUIController.ShowMessage("This is a BETA version of AGS. BE VERY CAREFUL and MAKE SURE YOU BACKUP YOUR GAME before loading it in this editor.", MessageBoxIcon.Warning);
 			}
@@ -412,11 +438,32 @@ namespace AGS.Editor
 			}
         }
 
+        private void LoadLayout()
+        {
+            _layoutManager = new WindowsLayoutManager(mainContainer,
+                GetStartupPanes());
+            if (!_layoutManager.LoadLayout())
+            {
+                SetDefaultLayout();
+            }            
+        }
+
+        private void SetDefaultLayout()
+        {
+            this.projectPanel.Show();
+            this.propertiesPanel.Show();
+            this.pnlCallStack.Show(mainContainer, DockState.DockBottom);
+            this.pnlFindResults.Show(pnlCallStack.Pane, pnlCallStack);
+            this.pnlOutput.Show(pnlCallStack.Pane, pnlFindResults);
+        }
+
         private void propertyObjectCombo_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if ((propertyObjectCombo.SelectedItem != null) && (!_ignorePropertyListChange))
+            if ((propertiesPanel.propertyObjectCombo.SelectedItem != null) && 
+                (!_ignorePropertyListChange))
             {
-                object newObject = _propertyObjectList[(string)propertyObjectCombo.SelectedItem];
+                object newObject = _propertyObjectList[
+                    (string)propertiesPanel.propertyObjectCombo.SelectedItem];
                 SetPropertyObject(newObject);
 
                 if (OnPropertyObjectChanged != null)
@@ -433,7 +480,7 @@ namespace AGS.Editor
 
         private void frmMain_KeyUp(object sender, KeyEventArgs e)
         {
-			if (!projectTree.Focused)
+			if (!projectPanel.Focused)
 			{
 				e.Handled = tabbedDocumentContainer1.ProcessKeyUp(e.KeyData);
 			}
@@ -441,7 +488,7 @@ namespace AGS.Editor
 
         private void frmMain_KeyDown(object sender, KeyEventArgs e)
         {
-			if (!projectTree.Focused)
+            if (!projectPanel.Focused)
 			{
 				e.Handled = tabbedDocumentContainer1.ProcessKeyDown(e.KeyData);
 				e.SuppressKeyPress = e.Handled;

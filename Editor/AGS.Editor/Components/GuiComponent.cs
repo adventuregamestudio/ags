@@ -18,7 +18,8 @@ namespace AGS.Editor.Components
         private const string COMMAND_IMPORT_GUI = "ImportGUI";
         private const string COMMAND_DELETE_GUI = "DeleteGUI";
         private const string COMMAND_EXPORT_GUI = "ExportGUI";
-
+        private const string ICON_KEY = "GUIsIcon";
+        
         internal const string MODE_SELECT_CONTROLS = "SelectControls";
         internal const string MODE_ADD_BUTTON = "AddButton";
         internal const string MODE_ADD_LABEL = "AddLabel";
@@ -34,7 +35,7 @@ namespace AGS.Editor.Components
             : base(guiController, agsEditor)
         {
             _documents = new Dictionary<GUI, ContentDocument>();
-            _guiController.RegisterIcon("GUIsIcon", Resources.ResourceManager.GetIcon("icongui.ico"));
+            _guiController.RegisterIcon(ICON_KEY, Resources.ResourceManager.GetIcon("icongui.ico"));
             _guiController.RegisterIcon("GUIIcon", Resources.ResourceManager.GetIcon("icongui-item.ico"));
             _guiController.RegisterIcon("SelectGUIIcon", Resources.ResourceManager.GetIcon("cursor.ico"));
             _guiController.RegisterIcon("GUIButtonIcon", Resources.ResourceManager.GetIcon("guis_button.ico"));
@@ -43,7 +44,7 @@ namespace AGS.Editor.Components
             _guiController.RegisterIcon("GUIListBoxIcon", Resources.ResourceManager.GetIcon("guis_listbox.ico"));
             _guiController.RegisterIcon("GUISliderIcon", Resources.ResourceManager.GetIcon("guis_slider.ico"));
             _guiController.RegisterIcon("GUITextBoxIcon", Resources.ResourceManager.GetIcon("guis_textbox.ico"));
-            _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "GUIs", "GUIsIcon");
+            _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "GUIs", ICON_KEY);
 
             RePopulateTreeView();
         }
@@ -130,20 +131,24 @@ namespace AGS.Editor.Components
 
 		private void ShowOrAddPane(GUI chosenGui)
 		{
-			if (!_documents.ContainsKey(chosenGui))
+            ContentDocument document;
+			if (!_documents.TryGetValue(chosenGui, out document) 
+                || document.Control.IsDisposed)
 			{
 				List<MenuCommand> toolbarIcons = CreateToolbarIcons();
 				GUIEditor editor = new GUIEditor(chosenGui, toolbarIcons);
 				editor.OnControlsChanged += new GUIEditor.ControlsChanged(_guiEditor_OnControlsChanged);
 				editor.OnGuiNameChanged += new GUIEditor.GuiNameChanged(_guiEditor_OnGuiNameChanged);
-				_documents.Add(chosenGui, new ContentDocument(editor, chosenGui.WindowTitle, this, ConstructPropertyObjectList(chosenGui)));
-				_documents[chosenGui].SelectedPropertyGridObject = chosenGui;
+                document = new ContentDocument(editor, chosenGui.WindowTitle,
+                    this, ICON_KEY, ConstructPropertyObjectList(chosenGui));
+                _documents[chosenGui] = document;
+                document.SelectedPropertyGridObject = chosenGui;
 				if (chosenGui is NormalGUI)
 				{
-					_documents[chosenGui].ToolbarCommands = toolbarIcons;
+                    document.ToolbarCommands = toolbarIcons;
 				}
 			}
-			_guiController.AddOrShowPane(_documents[chosenGui]);
+            _guiController.AddOrShowPane(document);
 			_guiController.ShowCuppit("The GUI Editor is where you set up the GUIs in your game. Use the buttons in the toolbar to add controls, and the property grid on the right to edit the selected control's properties.", "GUI Editor introduction");
 		}
 

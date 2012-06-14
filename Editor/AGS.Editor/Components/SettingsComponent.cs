@@ -10,6 +10,7 @@ namespace AGS.Editor.Components
 {
     class SettingsComponent : BaseComponent
     {
+        private const string ICON_KEY = "SettingsIcon";
         private GeneralSettings _settingsPane;
         private ContentDocument _document;
 
@@ -17,9 +18,9 @@ namespace AGS.Editor.Components
             : base(guiController, agsEditor)
         {
             _settingsPane = new GeneralSettings();
-            _document = new ContentDocument(_settingsPane, "General Settings", this);
-            _guiController.RegisterIcon("SettingsIcon", Resources.ResourceManager.GetIcon("iconsett.ico"));
-            _guiController.ProjectTree.AddTreeRoot(this, "GeneralSettings", "General Settings", "SettingsIcon");
+            _document = new ContentDocument(_settingsPane, "General Settings", this, ICON_KEY);
+            _guiController.RegisterIcon(ICON_KEY, Resources.ResourceManager.GetIcon("iconsett.ico"));
+            _guiController.ProjectTree.AddTreeRoot(this, "GeneralSettings", "General Settings", ICON_KEY);
         }
 
         public override string ComponentID

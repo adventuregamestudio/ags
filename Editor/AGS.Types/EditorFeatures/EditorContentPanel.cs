@@ -2,17 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Windows.Forms;
+using WeifenLuo.WinFormsUI.Docking;
 
 namespace AGS.Types
 {
-	public class EditorContentPanel : UserControl, IDisposable
+	public class EditorContentPanel : DockContent, IDisposable
 	{
-		public EditorContentPanel()
+        public EditorContentPanel()
 			: base()
-		{
+		{            
 		}
 
-		public void CommandClick(string command)
+        public void CommandClick(string command)
 		{
 			OnCommandClick(command);
 		}
@@ -20,6 +21,14 @@ namespace AGS.Types
 		protected virtual void OnCommandClick(string command)
 		{
 		}
+
+        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        {
+            base.OnClosing(e);
+            bool cancelClose = false;
+            PanelClosing(true, ref cancelClose);
+            e.Cancel = cancelClose;
+        }
 
 		public void PanelClosing(bool canCancel, ref bool cancelClose)
 		{
@@ -111,7 +120,7 @@ namespace AGS.Types
 			base.Dispose();
 		}
 
-		protected virtual void OnDispose()
+        protected virtual void OnDispose()
 		{
 		}
 	}

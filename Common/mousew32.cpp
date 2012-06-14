@@ -30,7 +30,9 @@
 #define FALSE 0
 #endif
 
-#define MAXCURSORS 20
+#include "mousew32.h"
+
+
 /*
 int  minstalled();    // this returns number of buttons (or 0)
 void minst();   // this exits if not installed

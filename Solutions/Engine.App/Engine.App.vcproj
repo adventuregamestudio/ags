@@ -378,6 +378,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\Engine\mousew32.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\Engine\resource.h"
 				>
 			</File>

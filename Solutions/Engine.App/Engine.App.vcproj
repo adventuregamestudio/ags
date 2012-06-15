@@ -656,6 +656,10 @@
 					RelativePath="..\..\Engine\acmain\ac_maindefines.h"
 					>
 				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_richgamemedia.h"
+					>
+				</File>
 			</Filter>
 		</Filter>
 		<Filter

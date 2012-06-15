@@ -3,10 +3,6 @@
 // Here I put only explicit defines made in the start of ac.cpp
 //
 
-#if (defined(MAC_VERSION) && !defined(IOS_VERSION)) || (defined(LINUX_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION))
-#include <dlfcn.h>
-#endif
-
 #if defined(PSP_VERSION)
 #define cos(a) vfpu_cosf(a)
 #define sin(a) vfpu_sinf(a)

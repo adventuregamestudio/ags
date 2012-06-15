@@ -26,31 +26,7 @@ int psp_gfx_smooth_sprites = 1;
 char psp_translation[] = "default";
 #endif
 
-#if (defined(MAC_VERSION) && !defined(IOS_VERSION)) || (defined(LINUX_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION))
-#include <dlfcn.h>
-#endif
 
-#if defined(PSP_VERSION)
-// PSP header.
-#include <pspsdk.h>
-#include <pspdebug.h>
-#include <pspthreadman.h>
-#include <psputils.h>
-#include <pspmath.h>
-
-#define cos(a) vfpu_cosf(a)
-#define sin(a) vfpu_sinf(a)
-#define tan(a) vfpu_tanf(a)
-#define cos(a) vfpu_acosf(a)
-#define sin(a) vfpu_asinf(a)
-#define atan(a) vfpu_atanf(a)
-#define atan2(a,b) vfpu_atan2f(a,b)
-#define log(a) vfpu_logf(a)
-#define exp(a) vfpu_expf(a)
-#define cosh(a) vfpu_coshf(a)
-#define sinh(a) vfpu_sinhf(a)
-#define tanh(a) vfpu_tanhf(a)
-#endif
 
 #if defined(MAC_VERSION) || (defined(LINUX_VERSION) && !defined(PSP_VERSION))
 #include <pthread.h>
@@ -83,18 +59,16 @@ extern int psp_gfx_smooth_sprites; // usetup.enable_antialiasing
 extern char psp_translation[]; // Translation file
 int psp_is_old_datafile = 0; // Set for 3.1.1 and 3.1.2 datafiles
 
-#ifdef NO_MP3_PLAYER
-#define SPECIAL_VERSION "NMP"
-#else
-#define SPECIAL_VERSION ""
-#endif
-// Version and build numbers
-#define AC_VERSION_TEXT "3.21 "
-#define ACI_VERSION_TEXT "3.21.1115"SPECIAL_VERSION
-// this needs to be updated if the "play" struct changes
-#define LOWEST_SGVER_COMPAT "3.20.1103"SPECIAL_VERSION
 
-#define UNICODE
+#if defined(PSP_VERSION)
+// PSP header.
+#include <pspsdk.h>
+#include <pspdebug.h>
+#include <pspthreadman.h>
+#include <psputils.h>
+#include <pspmath.h>
+#endif
+
 #include <stdio.h>
 #include <ctype.h>
 #include <math.h>
@@ -140,20 +114,16 @@ extern "C" {
 extern void * memcpy_amd(void *dest, const void *src, size_t n);
 }
 #define memcpyfast memcpy_amd*/
-#define memcpyfast memcpy
 
-#define USE_CLIB
 
-#define IS_ANTIALIAS_SPRITES usetup.enable_antialiasing && (play.disable_antialiasing == 0)
+
+
+
 extern int our_eip;
 #include "wgt2allg.h"
 #include "sprcache.h"
 
-// Allegro 4 has switched 15-bit colour to BGR instead of RGB, so
-// in this case we need to convert the graphics on load
-#if ALLEGRO_DATE > 19991010
-#define USE_15BIT_FIX
-#endif
+
 
 #ifdef WINDOWS_VERSION
 #include <crtdbg.h>
@@ -162,9 +132,6 @@ extern int our_eip;
 
 #elif defined(LINUX_VERSION) || defined(MAC_VERSION)
 
-#define HWND long
-#define _getcwd getcwd
-#define strnicmp strncasecmp
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -182,7 +149,6 @@ long int filelength(int fhandle)
 #else   // it's DOS (DJGPP)
 
 #include "sys/exceptn.h"
-#define _getcwd getcwd
 
 int sys_getch() {
   return getch();
@@ -190,11 +156,6 @@ int sys_getch() {
 
 #endif  // WINDOWS_VERSION
 
-#define getr32(xx) ((xx >> _rgb_r_shift_32) & 0xFF)
-#define getg32(xx) ((xx >> _rgb_g_shift_32) & 0xFF)
-#define getb32(xx) ((xx >> _rgb_b_shift_32) & 0xFF)
-#define geta32(xx) ((xx >> _rgb_a_shift_32) & 0xFF)
-#define makeacol32(r,g,b,a) ((r << _rgb_r_shift_32) | (g << _rgb_g_shift_32) | (b << _rgb_b_shift_32) | (a << _rgb_a_shift_32))
 /*
 #if defined(WINDOWS_VERSION) || defined(LINUX_VERSION) || defined(MAC_VERSION)
 not needed now that allegro is being built with MSVC solution with no ASM
@@ -213,7 +174,7 @@ void draw_sprite_compensate(int,int,int,int);
 
 char *get_translation(const char*);
 int   source_text_length = -1;
-#define LOADROOM_DO_POLL
+
 #include "ac/ac_common.h"
 #include "ac/ac_compress.h"
 #include "ac/ac_gamesetupstruct.h"
@@ -230,7 +191,7 @@ int   source_text_length = -1;
 #include <aastr.h>
 #include <acdebug.h>
 
-#define INI_READONLY
+
 //#include <myini.H>
 
 #include "agsplugin.h"
@@ -245,17 +206,9 @@ BEGIN_COLOR_DEPTH_LIST
   COLOR_DEPTH_32
 END_COLOR_DEPTH_LIST
 
-#if defined(WINDOWS_VERSION) && !defined(_DEBUG)
-#define USE_CUSTOM_EXCEPTION_HANDLER
-#endif
+
 extern "C" HWND allegro_wnd;
 
-// archive attributes to search for - al_findfirst breaks with 0
-#define FA_SEARCH -1
-
-// MACPORT FIX 9/6/5: undef M_PI first
-#undef M_PI
-#define M_PI 3.14159265358979323846
 
 
 // Windows Vista Rich Save Games, modified to be platform-agnostic
@@ -281,20 +234,12 @@ typedef struct _RICH_GAME_MEDIA_HEADER
 } RICH_GAME_MEDIA_HEADER;
 #pragma pack(pop)
 
-#ifndef MAX_PATH
-#define MAX_PATH 260
-#endif
 
 #ifdef WINDOWS_VERSION
 int wArgc;
 LPWSTR *wArgv;
 #else
-#define wArgc argc
-#define wArgv argv
-#define LPWSTR char*
-#define LPCWSTR const char*
-#define WCHAR char
-#define StrCpyW strcpy
+
 #endif
 
 // ***** EXTERNS ****
@@ -369,7 +314,7 @@ int initialize_engine_with_exception_handling(int argc,char*argv[]);
 int initialize_engine(int argc,char*argv[]);
 block recycle_bitmap(block bimp, int coldep, int wid, int hit);
 
-#define WOUTTEXT_REVERSE wouttext_reverseifnecessary
+
 #include "acgui/ac_dynamicarray.h"
 #include "acgui/ac_guimain.h"
 #include "acgui/ac_guibutton.h"
@@ -383,8 +328,6 @@ block recycle_bitmap(block bimp, int coldep, int wid, int hit);
 #include "acsound.h"
 
 #include "acgfx/ac_gfxfilters.h"
-
-#define MAX_SCRIPT_MODULES 50
 
 
 // **** TYPES ****

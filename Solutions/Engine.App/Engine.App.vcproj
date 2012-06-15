@@ -391,6 +391,14 @@
 					</FileConfiguration>
 				</File>
 			</Filter>
+			<Filter
+				Name="acmain"
+				>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_main.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -638,6 +646,14 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acgfx\ac_scalinggfxfilter.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="acmain"
+				>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_maindefines.h"
 					>
 				</File>
 			</Filter>

@@ -1,6 +1,31 @@
 
 #include "acmain/ac_maindefines.h"
 
+
+void start_skipping_cutscene () {
+    play.fast_forward = 1;
+    // if a drop-down icon bar is up, remove it as it will pause the game
+    if (ifacepopped>=0)
+        remove_popup_interface(ifacepopped);
+
+    // if a text message is currently displayed, remove it
+    if (is_text_overlay > 0)
+        remove_screen_overlay(OVER_TEXTMSG);
+
+}
+
+void check_skip_cutscene_keypress (int kgn) {
+
+    if ((play.in_cutscene > 0) && (play.in_cutscene != 3)) {
+        if ((kgn != 27) && ((play.in_cutscene == 1) || (play.in_cutscene == 5)))
+            ;
+        else
+            start_skipping_cutscene();
+    }
+
+}
+
+
 // Helper functions used by StartCutscene/EndCutscene, but also
 // by SkipUntilCharacterStops
 void initialize_skippable_cutscene() {

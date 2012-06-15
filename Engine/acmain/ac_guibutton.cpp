@@ -1,6 +1,68 @@
 
 #include "acmain/ac_maindefines.h"
 
+// ** start animating buttons code
+
+// returns 1 if animation finished
+int UpdateAnimatingButton(int bu) {
+    if (animbuts[bu].wait > 0) {
+        animbuts[bu].wait--;
+        return 0;
+    }
+    ViewStruct *tview = &views[animbuts[bu].view];
+
+    animbuts[bu].frame++;
+
+    if (animbuts[bu].frame >= tview->loops[animbuts[bu].loop].numFrames) 
+    {
+        if (tview->loops[animbuts[bu].loop].RunNextLoop()) {
+            // go to next loop
+            animbuts[bu].loop++;
+            animbuts[bu].frame = 0;
+        }
+        else if (animbuts[bu].repeat) {
+            animbuts[bu].frame = 0;
+            // multi-loop anim, go back
+            while ((animbuts[bu].loop > 0) && 
+                (tview->loops[animbuts[bu].loop - 1].RunNextLoop()))
+                animbuts[bu].loop--;
+        }
+        else
+            return 1;
+    }
+
+    CheckViewFrame(animbuts[bu].view, animbuts[bu].loop, animbuts[bu].frame);
+
+    // update the button's image
+    guibuts[animbuts[bu].buttonid].pic = tview->loops[animbuts[bu].loop].frames[animbuts[bu].frame].pic;
+    guibuts[animbuts[bu].buttonid].usepic = guibuts[animbuts[bu].buttonid].pic;
+    guibuts[animbuts[bu].buttonid].pushedpic = 0;
+    guibuts[animbuts[bu].buttonid].overpic = 0;
+    guis_need_update = 1;
+
+    animbuts[bu].wait = animbuts[bu].speed + tview->loops[animbuts[bu].loop].frames[animbuts[bu].frame].speed;
+    return 0;
+}
+
+void StopButtonAnimation(int idxn) {
+    numAnimButs--;
+    for (int aa = idxn; aa < numAnimButs; aa++) {
+        animbuts[aa] = animbuts[aa + 1];
+    }
+}
+
+void FindAndRemoveButtonAnimation(int guin, int objn) {
+
+    for (int ii = 0; ii < numAnimButs; ii++) {
+        if ((animbuts[ii].ongui == guin) && (animbuts[ii].onguibut == objn)) {
+            StopButtonAnimation(ii);
+            ii--;
+        }
+
+    }
+}
+// ** end animating buttons code
+
 // *** BUTTON FUNCTIONS
 
 

@@ -2,6 +2,130 @@
 #include "acmain/ac_maindefines.h"
 
 
+
+// override packfile functions to allow it to load from our
+// custom CLIB datafiles
+extern "C" {
+PACKFILE*_my_temppack;
+extern char* clibgetdatafile(char*);
+#if ALLEGRO_DATE > 19991010
+#define PFO_PARAM const char *
+#else
+#define PFO_PARAM char *
+#endif
+#ifndef RTLD_NEXT
+extern PACKFILE *__old_pack_fopen(PFO_PARAM,PFO_PARAM);
+#endif
+
+#if ALLEGRO_DATE > 19991010
+PACKFILE *pack_fopen(const char *filnam1, const char *modd1) {
+#else
+PACKFILE *pack_fopen(char *filnam1, char *modd1) {
+#endif
+  char  *filnam = (char *)filnam1;
+  char  *modd = (char *)modd1;
+  int   needsetback = 0;
+
+  if (filnam[0] == '~') {
+    // ~ signals load from specific data file, not the main default one
+    char gfname[80];
+    int ii = 0;
+    
+    filnam++;
+    while (filnam[0]!='~') {
+      gfname[ii] = filnam[0];
+      filnam++;
+      ii++;
+    }
+    filnam++;
+    // MACPORT FIX 9/6/5: changed from NULL TO '\0'
+    gfname[ii] = '\0';
+/*    char useloc[250];
+#ifdef LINUX_VERSION
+    sprintf(useloc,"%s/%s",usetup.data_files_dir,gfname);
+#else
+    sprintf(useloc,"%s\\%s",usetup.data_files_dir,gfname);
+#endif
+    csetlib(useloc,"");*/
+    
+    char *libname = ci_find_file(usetup.data_files_dir, gfname);
+    if (csetlib(libname,""))
+    {
+      // Hack for running in Debugger
+      free(libname);
+      libname = ci_find_file("Compiled", gfname);
+      csetlib(libname,"");
+    }
+    free(libname);
+    
+    needsetback = 1;
+  }
+
+  // if the file exists, override the internal file
+  FILE *testf = fopen(filnam, "rb");
+  if (testf != NULL)
+    fclose(testf);
+
+#ifdef RTLD_NEXT
+  static PACKFILE * (*__old_pack_fopen)(PFO_PARAM, PFO_PARAM) = NULL;
+  if(!__old_pack_fopen) {
+    __old_pack_fopen = (PACKFILE* (*)(PFO_PARAM, PFO_PARAM))dlsym(RTLD_NEXT, "pack_fopen");
+    if(!__old_pack_fopen) {
+      // Looks like we're linking statically to allegro...
+      // Let's see if it has been patched
+      __old_pack_fopen = (PACKFILE* (*)(PFO_PARAM, PFO_PARAM))dlsym(RTLD_DEFAULT, "__allegro_pack_fopen");
+      if(!__old_pack_fopen) {
+        fprintf(stderr, "If you're linking statically to allegro, you need to apply this patch to allegro:\n"
+        "https://sourceforge.net/tracker/?func=detail&aid=3302567&group_id=5665&atid=355665\n");
+        exit(1);
+      }
+    }
+  }
+#endif
+
+  if ((cliboffset(filnam)<1) || (testf != NULL)) {
+    if (needsetback) csetlib(game_file_name,"");
+    return __old_pack_fopen(filnam, modd);
+  } 
+  else {
+    _my_temppack=__old_pack_fopen(clibgetdatafile(filnam), modd);
+    if (_my_temppack == NULL)
+      quitprintf("pack_fopen: unable to change datafile: not found: %s", clibgetdatafile(filnam));
+
+    pack_fseek(_my_temppack,cliboffset(filnam));
+    
+#if ALLEGRO_DATE < 20050101
+    _my_temppack->todo=clibfilesize(filnam);
+#else
+    _my_temppack->normal.todo = clibfilesize(filnam);
+#endif
+
+    if (needsetback)
+      csetlib(game_file_name,"");
+    return _my_temppack;
+  }
+}
+
+} // end extern "C"
+
+// end packfile functions
+
+
+
+
+void get_current_dir_path(char* buffer, const char *fileName)
+{
+    if (use_compiled_folder_as_current_dir)
+    {
+        sprintf(buffer, "Compiled\\%s", fileName);
+    }
+    else
+    {
+        strcpy(buffer, fileName);
+    }
+}
+
+
 #define MAX_OPEN_SCRIPT_FILES 10
 FILE*valid_handles[MAX_OPEN_SCRIPT_FILES+1];
 int num_open_script_files = 0;

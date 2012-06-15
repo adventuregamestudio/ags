@@ -2,24 +2,112 @@
 #include "acmain/ac_maindefines.h"
 
 
+void split_lines_rightleft (char *todis, int wii, int fonnt) {
+    // start on the last character
+    char *thisline = todis + strlen(todis) - 1;
+    char prevlwas, *prevline = NULL;
+    // work backwards
+    while (thisline >= todis) {
 
-int StringToInt(char*stino) {
-    return atoi(stino);
+        int needBreak = 0;
+        if (thisline <= todis) 
+            needBreak = 1;
+        // ignore \[ sequence
+        else if ((thisline > todis) && (thisline[-1] == '\\')) { }
+        else if (thisline[0] == '[') {
+            needBreak = 1;
+            thisline++;
+        }
+        else if (wgettextwidth_compensate(thisline, fonnt) >= wii) {
+            // go 'back' to the nearest word
+            while ((thisline[0] != ' ') && (thisline[0] != 0))
+                thisline++;
+
+            if (thisline[0] == 0)
+                quit("!Single word too wide for window");
+
+            thisline++;
+            needBreak = 1;
+        }
+
+        if (needBreak) {
+            strcpy(lines[numlines], thisline);
+            removeBackslashBracket(lines[numlines]);
+            numlines++;
+            if (prevline) {
+                prevline[0] = prevlwas;
+            }
+            thisline--;
+            prevline = thisline;
+            prevlwas = prevline[0];
+            prevline[0] = 0;
+        }
+
+        thisline--;
+    }
+    if (prevline)
+        prevline[0] = prevlwas;
 }
 
-int StrGetCharAt (char *strin, int posn) {
-    if ((posn < 0) || (posn >= (int)strlen(strin)))
-        return 0;
-    return strin[posn];
+
+
+char *reverse_text(char *text) {
+    int stlen = strlen(text), rr;
+    char *backwards = (char*)malloc(stlen + 1);
+    for (rr = 0; rr < stlen; rr++)
+        backwards[rr] = text[(stlen - rr) - 1];
+    backwards[stlen] = 0;
+    return backwards;
 }
 
-void StrSetCharAt (char *strin, int posn, int nchar) {
-    if ((posn < 0) || (posn > (int)strlen(strin)) || (posn >= MAX_MAXSTRLEN))
-        quit("!StrSetCharAt: tried to write past end of string");
+void wouttext_reverseifnecessary(int x, int y, int font, char *text) {
+    char *backwards = NULL;
+    char *otext = text;
+    if (game.options[OPT_RIGHTLEFTWRITE]) {
+        backwards = reverse_text(text);
+        otext = backwards;
+    }
 
-    if (posn == (int)strlen(strin))
-        strin[posn+1] = 0;
-    strin[posn] = nchar;
+    wouttext_outline(x, y, font, otext);
+
+    if (backwards)
+        free(backwards);
+}
+
+void break_up_text_into_lines(int wii,int fonnt,char*todis) {
+    if (fonnt == -1)
+        fonnt = play.normal_font;
+
+    //  char sofar[100];
+    if (todis[0]=='&') {
+        while ((todis[0]!=' ') & (todis[0]!=0)) todis++;
+        if (todis[0]==' ') todis++;
+    }
+    numlines=0;
+    longestline=0;
+
+    // Don't attempt to display anything if the width is tiny
+    if (wii < 3)
+        return;
+
+    int rr;
+
+    if (game.options[OPT_RIGHTLEFTWRITE] == 0)
+    {
+        split_lines_leftright(todis, wii, fonnt);
+    }
+    else {
+        // Right-to-left just means reverse the text then
+        // write it as normal
+        char *backwards = reverse_text(todis);
+        split_lines_rightleft (backwards, wii, fonnt);
+        free(backwards);
+    }
+
+    for (rr=0;rr<numlines;rr++) {
+        if (wgettextwidth_compensate(lines[rr],fonnt) > longestline)
+            longestline = wgettextwidth_compensate(lines[rr],fonnt);
+    }
 }
 
 

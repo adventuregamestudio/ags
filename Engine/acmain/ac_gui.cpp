@@ -2,6 +2,149 @@
 #include "acmain/ac_maindefines.h"
 
 
+int GetBaseWidth () {
+    return BASEWIDTH;
+}
+
+
+
+void remove_popup_interface(int ifacenum) {
+    if (ifacepopped != ifacenum) return;
+    ifacepopped=-1; UnPauseGame();
+    guis[ifacenum].on=0;
+    if (mousey<=guis[ifacenum].popupyp)
+        filter->SetMousePosition(mousex, guis[ifacenum].popupyp+2);
+    if ((!IsInterfaceEnabled()) && (cur_cursor == cur_mode))
+        // Only change the mouse cursor if it hasn't been specifically changed first
+        set_mouse_cursor(CURS_WAIT);
+    else if (IsInterfaceEnabled())
+        set_default_cursor();
+
+    if (ifacenum==mouse_on_iface) mouse_on_iface=-1;
+    guis_need_update = 1;
+}
+
+void process_interface_click(int ifce, int btn, int mbut) {
+    if (btn < 0) {
+        // click on GUI background
+        run_text_script_2iparam(gameinst, guis[ifce].clickEventHandler, (int)&scrGui[ifce], mbut);
+        return;
+    }
+
+    int btype=(guis[ifce].objrefptr[btn] >> 16) & 0x000ffff;
+    int rtype=0,rdata;
+    if (btype==GOBJ_BUTTON) {
+        GUIButton*gbuto=(GUIButton*)guis[ifce].objs[btn];
+        rtype=gbuto->leftclick;
+        rdata=gbuto->lclickdata;
+    }
+    else if ((btype==GOBJ_SLIDER) || (btype == GOBJ_TEXTBOX) || (btype == GOBJ_LISTBOX))
+        rtype = IBACT_SCRIPT;
+    else quit("unknown GUI object triggered process_interface");
+
+    if (rtype==0) ;
+    else if (rtype==IBACT_SETMODE)
+        set_cursor_mode(rdata);
+    else if (rtype==IBACT_SCRIPT) {
+        GUIObject *theObj = guis[ifce].objs[btn];
+        // if the object has a special handler script then run it;
+        // otherwise, run interface_click
+        if ((theObj->GetNumEvents() > 0) &&
+            (theObj->eventHandlers[0][0] != 0) &&
+            (ccGetSymbolAddr(gameinst, theObj->eventHandlers[0]) != NULL)) {
+                // control-specific event handler
+                if (strchr(theObj->GetEventArgs(0), ',') != NULL)
+                    run_text_script_2iparam(gameinst, theObj->eventHandlers[0], (int)theObj, mbut);
+                else
+                    run_text_script_iparam(gameinst, theObj->eventHandlers[0], (int)theObj);
+        }
+        else
+            run_text_script_2iparam(gameinst,"interface_click",ifce,btn);
+    }
+}
+
+
+void replace_macro_tokens(char*statusbarformat,char*cur_stb_text) {
+    char*curptr=&statusbarformat[0];
+    char tmpm[3];
+    char*endat = curptr + strlen(statusbarformat);
+    cur_stb_text[0]=0;
+    char tempo[STD_BUFFER_SIZE];
+
+    while (1) {
+        if (curptr[0]==0) break;
+        if (curptr>=endat) break;
+        if (curptr[0]=='@') {
+            char *curptrWasAt = curptr;
+            char macroname[21]; int idd=0; curptr++;
+            for (idd=0;idd<20;idd++) {
+                if (curptr[0]=='@') {
+                    macroname[idd]=0;
+                    curptr++;
+                    break;
+                }
+                // unterminated macro (eg. "@SCORETEXT"), so abort
+                if (curptr[0] == 0)
+                    break;
+                macroname[idd]=curptr[0];
+                curptr++;
+            }
+            macroname[idd]=0; 
+            tempo[0]=0;
+            if (stricmp(macroname,"score")==0)
+                sprintf(tempo,"%d",play.score);
+            else if (stricmp(macroname,"totalscore")==0)
+                sprintf(tempo,"%d",MAXSCORE);
+            else if (stricmp(macroname,"scoretext")==0)
+                sprintf(tempo,"%d of %d",play.score,MAXSCORE);
+            else if (stricmp(macroname,"gamename")==0)
+                strcpy(tempo, play.game_name);
+            else if (stricmp(macroname,"overhotspot")==0) {
+                // While game is in Wait mode, no overhotspot text
+                if (!IsInterfaceEnabled())
+                    tempo[0] = 0;
+                else
+                    GetLocationName(divide_down_coordinate(mousex), divide_down_coordinate(mousey), tempo);
+            }
+            else { // not a macro, there's just a @ in the message
+                curptr = curptrWasAt + 1;
+                strcpy(tempo, "@");
+            }
+
+            strcat(cur_stb_text,tempo);
+        }
+        else {
+            tmpm[0]=curptr[0]; tmpm[1]=0;
+            strcat(cur_stb_text,tmpm);
+            curptr++;
+        }
+    }
+}
+
+
+void update_gui_zorder() {
+    int numdone = 0, b;
+
+    // for each GUI
+    for (int a = 0; a < game.numgui; a++) {
+        // find the right place in the draw order array
+        int insertAt = numdone;
+        for (b = 0; b < numdone; b++) {
+            if (guis[a].zorder < guis[play.gui_draw_order[b]].zorder) {
+                insertAt = b;
+                break;
+            }
+        }
+        // insert the new item
+        for (b = numdone - 1; b >= insertAt; b--)
+            play.gui_draw_order[b + 1] = play.gui_draw_order[b];
+        play.gui_draw_order[insertAt] = a;
+        numdone++;
+    }
+
+}
+
+
 void export_gui_controls(int ee) {
 
     for (int ff = 0; ff < guis[ee].numobjs; ff++) {

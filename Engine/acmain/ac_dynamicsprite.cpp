@@ -2,6 +2,28 @@
 #include "acmain/ac_maindefines.h"
 
 
+
+int LoadImageFile(const char *filename) {
+
+    char loadFromPath[MAX_PATH];
+    get_current_dir_path(loadFromPath, filename);
+
+    block loadedFile = load_bitmap(loadFromPath, NULL);
+
+    if (loadedFile == NULL)
+        return 0;
+
+    int gotSlot = spriteset.findFreeSlot();
+    if (gotSlot <= 0)
+        return 0;
+
+    add_dynamic_sprite(gotSlot, gfxDriver->ConvertBitmapToSupportedColourDepth(loadedFile));
+
+    return gotSlot;
+}
+
+
+
 // ** SCRIPT DYNAMIC SPRITE
 
 int ScriptDynamicSprite::Dispose(const char *address, bool force) {

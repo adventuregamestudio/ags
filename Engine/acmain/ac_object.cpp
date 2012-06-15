@@ -2,6 +2,54 @@
 #include "acmain/ac_maindefines.h"
 
 
+inline int is_valid_object(int obtest) {
+    if ((obtest < 0) || (obtest >= croom->numobj)) return 0;
+    return 1;
+}
+
+
+void SetObjectTint(int obj, int red, int green, int blue, int opacity, int luminance) {
+    if ((red < 0) || (green < 0) || (blue < 0) ||
+        (red > 255) || (green > 255) || (blue > 255) ||
+        (opacity < 0) || (opacity > 100) ||
+        (luminance < 0) || (luminance > 100))
+        quit("!SetObjectTint: invalid parameter. R,G,B must be 0-255, opacity & luminance 0-100");
+
+    if (!is_valid_object(obj))
+        quit("!SetObjectTint: invalid object number specified");
+
+    DEBUG_CONSOLE("Set object %d tint RGB(%d,%d,%d) %d%%", obj, red, green, blue, opacity);
+
+    objs[obj].tint_r = red;
+    objs[obj].tint_g = green;
+    objs[obj].tint_b = blue;
+    objs[obj].tint_level = opacity;
+    objs[obj].tint_light = (luminance * 25) / 10;
+    objs[obj].flags |= OBJF_HASTINT;
+}
+
+void Object_Tint(ScriptObject *objj, int red, int green, int blue, int saturation, int luminance) {
+    SetObjectTint(objj->id, red, green, blue, saturation, luminance);
+}
+
+void RemoveObjectTint(int obj) {
+    if (!is_valid_object(obj))
+        quit("!RemoveObjectTint: invalid object");
+
+    if (objs[obj].flags & OBJF_HASTINT) {
+        DEBUG_CONSOLE("Un-tint object %d", obj);
+        objs[obj].flags &= ~OBJF_HASTINT;
+    }
+    else {
+        debug_log("RemoveObjectTint called but object was not tinted");
+    }
+}
+
+void Object_RemoveTint(ScriptObject *objj) {
+    RemoveObjectTint(objj->id);
+}
+
+
 void SetObjectView(int obn,int vii) {
     if (!is_valid_object(obn)) quit("!SetObjectView: invalid object number specified");
     DEBUG_CONSOLE("Object %d set to view %d", obn, vii);

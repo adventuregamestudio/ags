@@ -2,6 +2,257 @@
 #include "acmain/ac_maindefines.h"
 
 
+const char *load_game_errors[9] =
+  {"No error","File not found","Not an AGS save game",
+  "Invalid save game version","Saved with different interpreter",
+  "Saved under a different game", "Resolution mismatch",
+  "Colour depth mismatch", ""};
+
+void restart_game() {
+  can_run_delayed_command();
+  if (inside_script) {
+    curscript->queue_action(ePSARestartGame, 0, "RestartGame");
+    return;
+  }
+  int errcod;
+  if ((errcod = load_game(RESTART_POINT_SAVE_GAME_NUMBER, NULL, NULL))!=0)
+    quitprintf("unable to restart game (error:%s)", load_game_errors[-errcod]);
+
+}
+
+
+
+void set_game_speed(int fps) {
+    frames_per_second = fps;
+    time_between_timers = 1000 / fps;
+    install_int_ex(dj_timer_handler,MSEC_TO_TIMER(time_between_timers));
+}
+
+
+
+extern char buffer2[60];
+int oldmouse;
+void setup_for_dialog() {
+  cbuttfont = play.normal_font;
+  acdialog_font = play.normal_font;
+  wsetscreen(virtual_screen);
+  if (!play.mouse_cursor_hidden)
+    domouse(1);
+  oldmouse=cur_cursor; set_mouse_cursor(CURS_ARROW);
+}
+void restore_after_dialog() {
+  set_mouse_cursor(oldmouse);
+  if (!play.mouse_cursor_hidden)
+    domouse(2);
+  construct_virtual_screen(true);
+}
+
+void RestoreGameSlot(int slnum) {
+  if (displayed_room < 0)
+    quit("!RestoreGameSlot: a game cannot be restored from within game_start");
+
+  can_run_delayed_command();
+  if (inside_script) {
+    curscript->queue_action(ePSARestoreGame, slnum, "RestoreGameSlot");
+    return;
+  }
+  load_game(slnum, NULL, NULL);
+}
+
+void get_save_game_path(int slotNum, char *buffer) {
+  strcpy(buffer, saveGameDirectory);
+  sprintf(&buffer[strlen(buffer)], sgnametemplate, slotNum);
+  strcat(buffer, saveGameSuffix);
+}
+
+void DeleteSaveSlot (int slnum) {
+  char nametouse[260];
+  get_save_game_path(slnum, nametouse);
+  unlink (nametouse);
+  if ((slnum >= 1) && (slnum <= MAXSAVEGAMES)) {
+    char thisname[260];
+    for (int i = MAXSAVEGAMES; i > slnum; i--) {
+      get_save_game_path(i, thisname);
+      FILE *fin = fopen (thisname, "rb");
+      if (fin != NULL) {
+        fclose (fin);
+        // Rename the highest save game to fill in the gap
+        rename (thisname, nametouse);
+        break;
+      }
+    }
+
+  }
+}
+
+int Game_SetSaveGameDirectory(const char *newFolder) {
+
+  // don't allow them to go to another folder
+  if ((newFolder[0] == '/') || (newFolder[0] == '\\') ||
+    (newFolder[0] == ' ') ||
+    ((newFolder[0] != 0) && (newFolder[1] == ':')))
+    return 0;
+
+  char newSaveGameDir[260];
+  platform->ReplaceSpecialPaths(newFolder, newSaveGameDir);
+  fix_filename_slashes(newSaveGameDir);
+
+#if defined(LINUX_VERSION) || defined(MAC_VERSION)
+  mkdir(newSaveGameDir, 0);
+#else
+  mkdir(newSaveGameDir);
+#endif
+
+  put_backslash(newSaveGameDir);
+
+  char newFolderTempFile[260];
+  strcpy(newFolderTempFile, newSaveGameDir);
+  strcat(newFolderTempFile, "agstmp.tmp");
+
+  FILE *testTemp = fopen(newFolderTempFile, "wb");
+  if (testTemp == NULL) {
+    return 0;
+  }
+  fclose(testTemp);
+  unlink(newFolderTempFile);
+
+  // copy the Restart Game file, if applicable
+  char restartGamePath[260];
+  sprintf(restartGamePath, "%s""agssave.%d%s", saveGameDirectory, RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix);
+  FILE *restartGameFile = fopen(restartGamePath, "rb");
+  if (restartGameFile != NULL) {
+    long fileSize = filelength(fileno(restartGameFile));
+    char *mbuffer = (char*)malloc(fileSize);
+    fread(mbuffer, fileSize, 1, restartGameFile);
+    fclose(restartGameFile);
+
+    sprintf(restartGamePath, "%s""agssave.%d%s", newSaveGameDir, RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix);
+    restartGameFile = fopen(restartGamePath, "wb");
+    fwrite(mbuffer, fileSize, 1, restartGameFile);
+    fclose(restartGameFile);
+    free(mbuffer);
+  }
+
+  strcpy(saveGameDirectory, newSaveGameDir);
+  return 1;
+}
+
+int GetSaveSlotDescription(int slnum,char*desbuf) {
+  VALIDATE_STRING(desbuf);
+  if (load_game(slnum, desbuf, NULL) == 0)
+    return 1;
+  sprintf(desbuf,"INVALID SLOT %d", slnum);
+  return 0;
+}
+
+const char* Game_GetSaveSlotDescription(int slnum) {
+  char buffer[STD_BUFFER_SIZE];
+  if (load_game(slnum, buffer, NULL) == 0)
+    return CreateNewScriptString(buffer);
+  return NULL;
+}
+
+int LoadSaveSlotScreenshot(int slnum, int width, int height) {
+  int gotSlot;
+  multiply_up_coordinates(&width, &height);
+
+  if (load_game(slnum, NULL, &gotSlot) != 0)
+    return 0;
+
+  if (gotSlot == 0)
+    return 0;
+
+  if ((spritewidth[gotSlot] == width) && (spriteheight[gotSlot] == height))
+    return gotSlot;
+
+  // resize the sprite to the requested size
+  block newPic = create_bitmap_ex(bitmap_color_depth(spriteset[gotSlot]), width, height);
+
+  stretch_blit(spriteset[gotSlot], newPic,
+               0, 0, spritewidth[gotSlot], spriteheight[gotSlot],
+               0, 0, width, height);
+
+  update_polled_stuff_if_runtime();
+
+  // replace the bitmap in the sprite set
+  free_dynamic_sprite(gotSlot);
+  add_dynamic_sprite(gotSlot, newPic);
+
+  return gotSlot;
+}
+
+
+int load_game_and_print_error(int toload) {
+    int ecret = load_game(toload, NULL, NULL);
+    if (ecret < 0) {
+        // disable speech in case there are dynamic graphics that
+        // have been freed
+        int oldalways = game.options[OPT_ALWAYSSPCH];
+        game.options[OPT_ALWAYSSPCH] = 0;
+        Display("Unable to load game (error: %s).",load_game_errors[-ecret]);
+        game.options[OPT_ALWAYSSPCH] = oldalways;
+    }
+    return ecret;
+}
+
+void restore_game_dialog() {
+    can_run_delayed_command();
+    if (thisroom.options[ST_SAVELOAD] == 1) {
+        DisplayMessage (983);
+        return;
+    }
+    if (inside_script) {
+        curscript->queue_action(ePSARestoreGameDialog, 0, "RestoreGameDialog");
+        return;
+    }
+    setup_for_dialog();
+    int toload=loadgamedialog();
+    restore_after_dialog();
+    if (toload>=0) {
+        load_game_and_print_error(toload);
+    }
+}
+
+void save_game_dialog() {
+    if (thisroom.options[ST_SAVELOAD] == 1) {
+        DisplayMessage (983);
+        return;
+    }
+    if (inside_script) {
+        curscript->queue_action(ePSASaveGameDialog, 0, "SaveGameDialog");
+        return;
+    }
+    setup_for_dialog();
+    int toload=savegamedialog();
+    restore_after_dialog();
+    if (toload>=0)
+        save_game(toload,buffer2);
+}
+
+
+void PauseGame() {
+    game_paused++;
+    DEBUG_CONSOLE("Game paused");
+}
+void UnPauseGame() {
+    if (game_paused > 0)
+        game_paused--;
+    DEBUG_CONSOLE("Game UnPaused, pause level now %d", game_paused);
+}
+
+
+int IsGamePaused() {
+    if (game_paused>0) return 1;
+    return 0;
+}
+
+
+void setup_sierra_interface() {
+    int rr;
+    game.numgui =0;
+    for (rr=0;rr<42;rr++) game.paluses[rr]=PAL_GAMEWIDE;
+    for (rr=42;rr<256;rr++) game.paluses[rr]=PAL_BACKGROUND;
+}
 
 
 /*

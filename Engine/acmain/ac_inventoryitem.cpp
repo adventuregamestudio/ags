@@ -2,6 +2,70 @@
 #include "acmain/ac_maindefines.h"
 
 
+void set_inv_item_cursorpic(int invItemId, int piccy) 
+{
+    game.invinfo[invItemId].cursorPic = piccy;
+
+    if ((cur_cursor == MODE_USE) && (playerchar->activeinv == invItemId)) 
+    {
+        update_inv_cursor(invItemId);
+        set_mouse_cursor(cur_cursor);
+    }
+}
+
+void InventoryItem_SetCursorGraphic(ScriptInvItem *iitem, int newSprite) 
+{
+    set_inv_item_cursorpic(iitem->id, newSprite);
+}
+
+int InventoryItem_GetCursorGraphic(ScriptInvItem *iitem) 
+{
+    return game.invinfo[iitem->id].cursorPic;
+}
+
+void set_inv_item_pic(int invi, int piccy) {
+    if ((invi < 1) || (invi > game.numinvitems))
+        quit("!SetInvItemPic: invalid inventory item specified");
+
+    if (game.invinfo[invi].pic == piccy)
+        return;
+
+    if (game.invinfo[invi].pic == game.invinfo[invi].cursorPic)
+    {
+        // Backwards compatibility -- there didn't used to be a cursorPic,
+        // so if they're the same update both.
+        set_inv_item_cursorpic(invi, piccy);
+    }
+
+    game.invinfo[invi].pic = piccy;
+    guis_need_update = 1;
+}
+
+void InventoryItem_SetGraphic(ScriptInvItem *iitem, int piccy) {
+    set_inv_item_pic(iitem->id, piccy);
+}
+
+void SetInvItemName(int invi, const char *newName) {
+    if ((invi < 1) || (invi > game.numinvitems))
+        quit("!SetInvName: invalid inventory item specified");
+
+    // set the new name, making sure it doesn't overflow the buffer
+    strncpy(game.invinfo[invi].name, newName, 25);
+    game.invinfo[invi].name[24] = 0;
+
+    // might need to redraw the GUI if it has the inv item name on it
+    guis_need_update = 1;
+}
+
+void InventoryItem_SetName(ScriptInvItem *scii, const char *newname) {
+    SetInvItemName(scii->id, newname);
+}
+
+int InventoryItem_GetID(ScriptInvItem *scii) {
+    return scii->id;
+}
+
+
 
 int GetInvAt (int xxx, int yyy) {
   int ongui = GetGUIAt (xxx, yyy);

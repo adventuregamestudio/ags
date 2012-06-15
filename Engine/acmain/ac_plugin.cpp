@@ -1,6 +1,13 @@
 
 #include "acmain/ac_maindefines.h"
 
+
+int pluginSimulatedClick = NONE;
+void PluginSimulateMouseClick(int pluginButtonID) {
+    pluginSimulatedClick = pluginButtonID - 1;
+}
+
+
 // Stubs for plugin functions.
 void ScriptStub_ShellExecute()
 {

@@ -2,6 +2,139 @@
 #include "acmain/ac_maindefines.h"
 
 
+
+int is_valid_character(int newchar) {
+    if ((newchar < 0) || (newchar >= game.numcharacters)) return 0;
+    return 1;
+}
+
+
+
+
+void SetCharacterIdle(int who, int iview, int itime) {
+    if (!is_valid_character(who))
+        quit("!SetCharacterIdle: Invalid character specified");
+
+    Character_SetIdleView(&game.chars[who], iview, itime);
+}
+
+
+
+int GetCharacterWidth(int ww) {
+    CharacterInfo *char1 = &game.chars[ww];
+
+    if (charextra[ww].width < 1)
+    {
+        if ((char1->view < 0) ||
+            (char1->loop >= views[char1->view].numLoops) ||
+            (char1->frame >= views[char1->view].loops[char1->loop].numFrames))
+        {
+            debug_log("GetCharacterWidth: Character %s has invalid frame: view %d, loop %d, frame %d", char1->scrname, char1->view + 1, char1->loop, char1->frame);
+            return multiply_up_coordinate(4);
+        }
+
+        return spritewidth[views[char1->view].loops[char1->loop].frames[char1->frame].pic];
+    }
+    else 
+        return charextra[ww].width;
+}
+
+int GetCharacterHeight(int charid) {
+    CharacterInfo *char1 = &game.chars[charid];
+
+    if (charextra[charid].height < 1)
+    {
+        if ((char1->view < 0) ||
+            (char1->loop >= views[char1->view].numLoops) ||
+            (char1->frame >= views[char1->view].loops[char1->loop].numFrames))
+        {
+            debug_log("GetCharacterHeight: Character %s has invalid frame: view %d, loop %d, frame %d", char1->scrname, char1->view + 1, char1->loop, char1->frame);
+            return multiply_up_coordinate(2);
+        }
+
+        return spriteheight[views[char1->view].loops[char1->loop].frames[char1->frame].pic];
+    }
+    else
+        return charextra[charid].height;
+}
+
+
+
+int wantMoveNow (int chnum, CharacterInfo *chi) {
+    // check most likely case first
+    if ((charextra[chnum].zoom == 100) || ((chi->flags & CHF_SCALEMOVESPEED) == 0))
+        return 1;
+
+    // the % checks don't work when the counter is negative, so once
+    // it wraps round, correct it
+    while (chi->walkwaitcounter < 0) {
+        chi->walkwaitcounter += 12000;
+    }
+
+    // scaling 170-200%, move 175% speed
+    if (charextra[chnum].zoom >= 170) {
+        if ((chi->walkwaitcounter % 4) >= 1)
+            return 2;
+        else
+            return 1;
+    }
+    // scaling 140-170%, move 150% speed
+    else if (charextra[chnum].zoom >= 140) {
+        if ((chi->walkwaitcounter % 2) == 1)
+            return 2;
+        else
+            return 1;
+    }
+    // scaling 115-140%, move 125% speed
+    else if (charextra[chnum].zoom >= 115) {
+        if ((chi->walkwaitcounter % 4) >= 3)
+            return 2;
+        else
+            return 1;
+    }
+    // scaling 80-120%, normal speed
+    else if (charextra[chnum].zoom >= 80)
+        return 1;
+    // scaling 60-80%, move 75% speed
+    if (charextra[chnum].zoom >= 60) {
+        if ((chi->walkwaitcounter % 4) >= 1)
+            return 1;
+    }
+    // scaling 30-60%, move 50% speed
+    else if (charextra[chnum].zoom >= 30) {
+        if ((chi->walkwaitcounter % 2) == 1)
+            return -1;
+        else if (charextra[chnum].xwas != INVALID_X) {
+            // move the second half of the movement to make it smoother
+            chi->x = charextra[chnum].xwas;
+            chi->y = charextra[chnum].ywas;
+            charextra[chnum].xwas = INVALID_X;
+        }
+    }
+    // scaling 0-30%, move 25% speed
+    else {
+        if ((chi->walkwaitcounter % 4) >= 3)
+            return -1;
+        if (((chi->walkwaitcounter % 4) == 1) && (charextra[chnum].xwas != INVALID_X)) {
+            // move the second half of the movement to make it smoother
+            chi->x = charextra[chnum].xwas;
+            chi->y = charextra[chnum].ywas;
+            charextra[chnum].xwas = INVALID_X;
+        }
+
+    }
+
+    return 0;
+}
+
+
+void setup_player_character(int charid) {
+    game.playercharacter = charid;
+    playerchar = &game.chars[charid];
+    _sc_PlayerCharPtr = ccGetObjectHandleFromAddress((char*)playerchar);
+}
+
+
 void SetCharacterBaseline (int obn, int basel) {
     if (!is_valid_character(obn)) quit("!SetCharacterBaseline: invalid object number specified");
 

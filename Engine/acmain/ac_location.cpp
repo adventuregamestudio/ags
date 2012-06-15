@@ -2,6 +2,96 @@
 #include "acmain/ac_maindefines.h"
 
 
+// return the walkable area at the character's feet, taking into account
+// that he might just be off the edge of one
+int get_walkable_area_at_location(int xx, int yy) {
+
+    int onarea = get_walkable_area_pixel(xx, yy);
+
+    if (onarea < 0) {
+        // the character has walked off the edge of the screen, so stop them
+        // jumping up to full size when leaving
+        if (xx >= thisroom.width)
+            onarea = get_walkable_area_pixel(thisroom.width-1, yy);
+        else if (xx < 0)
+            onarea = get_walkable_area_pixel(0, yy);
+        else if (yy >= thisroom.height)
+            onarea = get_walkable_area_pixel(xx, thisroom.height - 1);
+        else if (yy < 0)
+            onarea = get_walkable_area_pixel(xx, 1);
+    }
+    if (onarea==0) {
+        // the path finder sometimes slightly goes into non-walkable areas;
+        // so check for scaling in adjacent pixels
+        const int TRYGAP=2;
+        onarea = get_walkable_area_pixel(xx + TRYGAP, yy);
+        if (onarea<=0)
+            onarea = get_walkable_area_pixel(xx - TRYGAP, yy);
+        if (onarea<=0)
+            onarea = get_walkable_area_pixel(xx, yy + TRYGAP);
+        if (onarea<=0)
+            onarea = get_walkable_area_pixel(xx, yy - TRYGAP);
+        if (onarea < 0)
+            onarea = 0;
+    }
+
+    return onarea;
+}
+
+int get_walkable_area_at_character (int charnum) {
+    CharacterInfo *chin = &game.chars[charnum];
+    return get_walkable_area_at_location(chin->x, chin->y);
+}
+
+
+int GetRegionAt (int xxx, int yyy) {
+    // if the co-ordinates are off the edge of the screen,
+    // correct them to be just within
+    // this fixes walk-off-screen problems
+    xxx = convert_to_low_res(xxx);
+    yyy = convert_to_low_res(yyy);
+
+    if (xxx >= thisroom.regions->w)
+        xxx = thisroom.regions->w - 1;
+    if (yyy >= thisroom.regions->h)
+        yyy = thisroom.regions->h - 1;
+    if (xxx < 0)
+        xxx = 0;
+    if (yyy < 0)
+        yyy = 0;
+
+    int hsthere = getpixel (thisroom.regions, xxx, yyy);
+    if (hsthere < 0)
+        hsthere = 0;
+
+    if (hsthere >= MAX_REGIONS) {
+        char tempmsg[300];
+        sprintf(tempmsg, "!An invalid pixel was found on the room region mask (colour %d, location: %d, %d)", hsthere, xxx, yyy);
+        quit(tempmsg);
+    }
+
+    if (croom->region_enabled[hsthere] == 0)
+        return 0;
+    return hsthere;
+}
+
+ScriptRegion *GetRegionAtLocation(int xx, int yy) {
+    int hsnum = GetRegionAt(xx, yy);
+    if (hsnum <= 0)
+        return &scrRegion[0];
+    return &scrRegion[hsnum];
+}
+
+
+
+int get_hotspot_at(int xpp,int ypp) {
+    int onhs=getpixel(thisroom.lookat, convert_to_low_res(xpp), convert_to_low_res(ypp));
+    if (onhs<0) return 0;
+    if (croom->hotspot_enabled[onhs]==0) return 0;
+    return onhs;
+}
+
+
 int GetGUIAt (int xx,int yy) {
     multiply_up_coordinates(&xx, &yy);
 

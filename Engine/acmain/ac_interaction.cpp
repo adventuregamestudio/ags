@@ -2,6 +2,42 @@
 #include "acmain/ac_maindefines.h"
 
 
+void NewInteractionCommand::remove () {
+  if (children != NULL) {
+    children->reset();
+    delete children;
+  }
+  children = NULL;
+  parent = NULL;
+  type = 0;
+}
+
+
+
+void RunInventoryInteraction (int iit, int modd) {
+    if ((iit < 0) || (iit >= game.numinvitems))
+        quit("!RunInventoryInteraction: invalid inventory number");
+
+    evblocknum = iit;
+    if (modd == MODE_LOOK)
+        run_event_block_inv(iit, 0);
+    else if (modd == MODE_HAND)
+        run_event_block_inv(iit, 1);
+    else if (modd == MODE_USE) {
+        play.usedinv = playerchar->activeinv;
+        run_event_block_inv(iit, 3);
+    }
+    else if (modd == MODE_TALK)
+        run_event_block_inv(iit, 2);
+    else // other click on invnetory
+        run_event_block_inv(iit, 4);
+}
+
+void InventoryItem_RunInteraction(ScriptInvItem *iitem, int mood) {
+    RunInventoryInteraction(iitem->id, mood);
+}
+
+
 void RunObjectInteraction (int aa, int mood) {
     if (!is_valid_object(aa))
         quit("!RunObjectInteraction: invalid object number for current room");

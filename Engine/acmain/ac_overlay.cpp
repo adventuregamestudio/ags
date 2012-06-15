@@ -2,6 +2,122 @@
 #include "acmain/ac_maindefines.h"
 
 
+void remove_screen_overlay_index(int cc) {
+    int dd;
+    if (screenover[cc].pic!=NULL)
+        wfreeblock(screenover[cc].pic);
+    screenover[cc].pic=NULL;
+
+    if (screenover[cc].bmp != NULL)
+        gfxDriver->DestroyDDB(screenover[cc].bmp);
+    screenover[cc].bmp = NULL;
+
+    if (screenover[cc].type==OVER_COMPLETE) is_complete_overlay--;
+    if (screenover[cc].type==OVER_TEXTMSG) is_text_overlay--;
+
+    // if the script didn't actually use the Overlay* return
+    // value, dispose of the pointer
+    if (screenover[cc].associatedOverlayHandle)
+        ccAttemptDisposeObject(screenover[cc].associatedOverlayHandle);
+
+    numscreenover--;
+    for (dd = cc; dd < numscreenover; dd++)
+        screenover[dd] = screenover[dd+1];
+
+    // if an overlay before the sierra-style speech one is removed,
+    // update the index
+    if (face_talking > cc)
+        face_talking--;
+}
+
+void remove_screen_overlay(int type) {
+    int cc;
+    for (cc=0;cc<numscreenover;cc++) {
+        if (screenover[cc].type==type) ;
+        else if (type==-1) ;
+        else continue;
+        remove_screen_overlay_index(cc);
+        cc--;
+    }
+}
+
+int find_overlay_of_type(int typ) {
+    int ww;
+    for (ww=0;ww<numscreenover;ww++) {
+        if (screenover[ww].type == typ) return ww;
+    }
+    return -1;
+}
+
+int add_screen_overlay(int x,int y,int type,block piccy, bool alphaChannel = false) {
+    if (numscreenover>=MAX_SCREEN_OVERLAYS)
+        quit("too many screen overlays created");
+    if (type==OVER_COMPLETE) is_complete_overlay++;
+    if (type==OVER_TEXTMSG) is_text_overlay++;
+    if (type==OVER_CUSTOM) {
+        int uu;  // find an unused custom ID
+        for (uu=OVER_CUSTOM+1;uu<OVER_CUSTOM+100;uu++) {
+            if (find_overlay_of_type(uu) == -1) { type=uu; break; }
+        }
+    }
+    screenover[numscreenover].pic=piccy;
+    screenover[numscreenover].bmp = gfxDriver->CreateDDBFromBitmap(piccy, alphaChannel);
+    screenover[numscreenover].x=x;
+    screenover[numscreenover].y=y;
+    screenover[numscreenover].type=type;
+    screenover[numscreenover].timeout=0;
+    screenover[numscreenover].bgSpeechForChar = -1;
+    screenover[numscreenover].associatedOverlayHandle = 0;
+    screenover[numscreenover].hasAlphaChannel = alphaChannel;
+    screenover[numscreenover].positionRelativeToScreen = true;
+    numscreenover++;
+    return numscreenover-1;
+}
+
+
+
+void get_overlay_position(int overlayidx, int *x, int *y) {
+    int tdxp, tdyp;
+
+    if (screenover[overlayidx].x == OVR_AUTOPLACE) {
+        // auto place on character
+        int charid = screenover[overlayidx].y;
+        int charpic = views[game.chars[charid].view].loops[game.chars[charid].loop].frames[0].pic;
+
+        tdyp = multiply_up_coordinate(game.chars[charid].get_effective_y()) - offsety - 5;
+        if (charextra[charid].height<1)
+            tdyp -= spriteheight[charpic];
+        else
+            tdyp -= charextra[charid].height;
+
+        tdyp -= screenover[overlayidx].pic->h;
+        if (tdyp < 5) tdyp=5;
+        tdxp = (multiply_up_coordinate(game.chars[charid].x) - screenover[overlayidx].pic->w/2) - offsetx;
+        if (tdxp < 0) tdxp=0;
+
+        if ((tdxp + screenover[overlayidx].pic->w) >= scrnwid)
+            tdxp = (scrnwid - screenover[overlayidx].pic->w) - 1;
+        if (game.chars[charid].room != displayed_room) {
+            tdxp = scrnwid/2 - screenover[overlayidx].pic->w/2;
+            tdyp = scrnhit/2 - screenover[overlayidx].pic->h/2;
+        }
+    }
+    else {
+        tdxp = screenover[overlayidx].x;
+        tdyp = screenover[overlayidx].y;
+
+        if (!screenover[overlayidx].positionRelativeToScreen)
+        {
+            tdxp -= offsetx;
+            tdyp -= offsety;
+        }
+    }
+    *x = tdxp;
+    *y = tdyp;
+}
+
+
+
 // ** SCRIPT OVERLAY OBJECT
 
 int ScriptOverlay::Dispose(const char *address, bool force) 

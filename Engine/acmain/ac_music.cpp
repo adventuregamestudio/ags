@@ -2,6 +2,68 @@
 #include "acmain/ac_maindefines.h"
 
 
+void PlayMusicResetQueue(int newmus) {
+    play.music_queue_size = 0;
+    newmusic(newmus);
+}
+
+/*
+#include "almp3_old.h"
+ALLEGRO_MP3 *mp3ptr;
+int mp3vol=128;
+
+void amp_setvolume(int newvol) { mp3vol=newvol; }
+int load_amp(char*namm,int loop) {
+  mp3ptr = new ALLEGRO_MP3(namm);
+  if (mp3ptr == NULL) return 0;
+  if (mp3ptr->get_error_code() != 0) {
+    delete mp3ptr;
+    return 0;
+    }
+  mp3ptr->play(mp3vol, 8192);
+  return 1;
+  }
+void install_amp() { }
+void unload_amp() {
+  mp3ptr->stop();
+  delete mp3ptr;
+  }
+int amp_decode() {
+  mp3ptr->poll();
+  if (mp3ptr->is_finished()) {
+    if (play.music_repeat)
+      mp3ptr->play(mp3vol, 8192);
+    else return -1;
+    }
+  return 0;
+  }
+*/
+//#endif
+
+
+
+
+void SeekMIDIPosition (int position) {
+    if (play.silent_midi)
+        midi_seek (position);
+    if (current_music_type == MUS_MIDI) {
+        midi_seek(position);
+        DEBUG_CONSOLE("Seek MIDI position to %d", position);
+    }
+}
+
+int GetMIDIPosition () {
+    if (play.silent_midi)
+        return midi_pos;
+    if (current_music_type != MUS_MIDI)
+        return -1;
+    if (play.fast_forward)
+        return 99999;
+
+    return midi_pos;
+}
+
+
 
 int IsMusicPlaying() {
     // in case they have a "while (IsMusicPlaying())" loop

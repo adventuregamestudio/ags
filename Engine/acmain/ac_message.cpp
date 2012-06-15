@@ -2,6 +2,47 @@
 #include "acmain/ac_maindefines.h"
 
 
+
+int wgetfontheight(int font) {
+    int htof = wgettextheight(heightTestString, font);
+
+    // automatic outline fonts are 2 pixels taller
+    if (game.fontoutline[font] == FONT_OUTLINE_AUTO) {
+        // scaled up SCI font, push outline further out
+        if ((game.options[OPT_NOSCALEFNT] == 0) && (!fontRenderers[font]->SupportsExtendedCharacters(font)))
+            htof += get_fixed_pixel_size(2);
+        // otherwise, just push outline by 1 pixel
+        else
+            htof += 2;
+    }
+
+    return htof;
+}
+
+int wgettextwidth_compensate(const char *tex, int font) {
+    int wdof = wgettextwidth(tex, font);
+
+    if (game.fontoutline[font] == FONT_OUTLINE_AUTO) {
+        // scaled up SCI font, push outline further out
+        if ((game.options[OPT_NOSCALEFNT] == 0) && (!fontRenderers[font]->SupportsExtendedCharacters(font)))
+            wdof += get_fixed_pixel_size(2);
+        // otherwise, just push outline by 1 pixel
+        else
+            wdof += get_fixed_pixel_size(1);
+    }
+
+    return wdof;
+}
+
+
+void set_default_glmsg (int msgnum, const char* val) {
+    if (game.messages[msgnum-500] == NULL) {
+        game.messages[msgnum-500] = (char*)malloc (strlen(val)+5);
+        strcpy (game.messages[msgnum-500], val);
+    }
+}
+
+
 void do_corner(int sprn,int xx1,int yy1,int typx,int typy) {
     if (sprn<0) return;
     block thisone = spriteset[sprn];

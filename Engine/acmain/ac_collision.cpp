@@ -2,6 +2,104 @@
 #include "acmain/ac_maindefines.h"
 
 
+
+void get_char_blocking_rect(int charid, int *x1, int *y1, int *width, int *y2) {
+    CharacterInfo *char1 = &game.chars[charid];
+    int cwidth, fromx;
+
+    if (char1->blocking_width < 1)
+        cwidth = divide_down_coordinate(GetCharacterWidth(charid)) - 4;
+    else
+        cwidth = char1->blocking_width;
+
+    fromx = char1->x - cwidth/2;
+    if (fromx < 0) {
+        cwidth += fromx;
+        fromx = 0;
+    }
+    if (fromx + cwidth >= convert_back_to_high_res(walkable_areas_temp->w))
+        cwidth = convert_back_to_high_res(walkable_areas_temp->w) - fromx;
+
+    if (x1)
+        *x1 = fromx;
+    if (width)
+        *width = cwidth;
+    if (y1)
+        *y1 = char1->get_blocking_top();
+    if (y2)
+        *y2 = char1->get_blocking_bottom();
+}
+
+// Check whether the source char has walked onto character ww
+int is_char_on_another (int sourceChar, int ww, int*fromxptr, int*cwidptr) {
+
+    int fromx, cwidth;
+    int y1, y2;
+    get_char_blocking_rect(ww, &fromx, &y1, &cwidth, &y2);
+
+    if (fromxptr)
+        fromxptr[0] = fromx;
+    if (cwidptr)
+        cwidptr[0] = cwidth;
+
+    // if the character trying to move is already on top of
+    // this char somehow, allow them through
+    if ((sourceChar >= 0) &&
+        // x/width are left and width co-ords, so they need >= and <
+        (game.chars[sourceChar].x >= fromx) &&
+        (game.chars[sourceChar].x < fromx + cwidth) &&
+        // y1/y2 are the top/bottom co-ords, so they need >= / <=
+        (game.chars[sourceChar].y >= y1 ) &&
+        (game.chars[sourceChar].y <= y2 ))
+        return 1;
+
+    return 0;
+}
+
+void get_object_blocking_rect(int objid, int *x1, int *y1, int *width, int *y2) {
+    RoomObject *tehobj = &objs[objid];
+    int cwidth, fromx;
+
+    if (tehobj->blocking_width < 1)
+        cwidth = divide_down_coordinate(tehobj->last_width) - 4;
+    else
+        cwidth = tehobj->blocking_width;
+
+    fromx = tehobj->x + (divide_down_coordinate(tehobj->last_width) / 2) - cwidth / 2;
+    if (fromx < 0) {
+        cwidth += fromx;
+        fromx = 0;
+    }
+    if (fromx + cwidth >= convert_back_to_high_res(walkable_areas_temp->w))
+        cwidth = convert_back_to_high_res(walkable_areas_temp->w) - fromx;
+
+    if (x1)
+        *x1 = fromx;
+    if (width)
+        *width = cwidth;
+    if (y1) {
+        if (tehobj->blocking_height > 0)
+            *y1 = tehobj->y - tehobj->blocking_height / 2;
+        else
+            *y1 = tehobj->y - 2;
+    }
+    if (y2) {
+        if (tehobj->blocking_height > 0)
+            *y2 = tehobj->y + tehobj->blocking_height / 2;
+        else
+            *y2 = tehobj->y + 3;
+    }
+}
+
+int is_point_in_rect(int x, int y, int left, int top, int right, int bottom) {
+    if ((x >= left) && (x < right) && (y >= top ) && (y <= bottom))
+        return 1;
+    return 0;
+}
+
+
+
+
 #define OVERLAPPING_OBJECT 1000
 struct Rect {
     int x1,y1,x2,y2;

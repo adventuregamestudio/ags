@@ -14,6 +14,1004 @@
 
 #include "acmain/ac_maindefines.h"
 
+// for external modules to call
+void next_iteration() {
+    NEXT_ITERATION();
+}
+
+
+
+void precache_view(int view) 
+{
+    if (view < 0) 
+        return;
+
+    for (int i = 0; i < views[view].numLoops; i++) {
+        for (int j = 0; j < views[view].loops[i].numFrames; j++)
+            spriteset.precache (views[view].loops[i].frames[j].pic);
+    }
+}
+
+
+// PSP: Update in thread if wanted.
+extern volatile int psp_audio_multithreaded;
+volatile bool update_mp3_thread_running = false;
+int musicPollIterator; // long name so it doesn't interfere with anything else
+#define UPDATE_MP3_THREAD \
+   while (switching_away_from_game) { } \
+   for (musicPollIterator = 0; musicPollIterator <= MAX_SOUND_CHANNELS; musicPollIterator++) { \
+     if ((channels[musicPollIterator] != NULL) && (channels[musicPollIterator]->done == 0)) \
+       channels[musicPollIterator]->poll(); \
+   }
+#define UPDATE_MP3 \
+ if (!psp_audio_multithreaded) \
+  { UPDATE_MP3_THREAD }
+
+//#define UPDATE_MP3 update_polled_stuff_if_runtime();
+#if defined(PSP_VERSION)
+// PSP: Workaround for sound stuttering. Do sound updates in its own thread.
+int update_mp3_thread(SceSize args, void *argp)
+{
+  while (update_mp3_thread_running)
+  {
+    UPDATE_MP3_THREAD
+    sceKernelDelayThread(1000 * 50);
+  }
+  return 0;
+}
+#elif (defined(LINUX_VERSION) && !defined(PSP_VERSION)) || defined(MAC_VERSION)
+void* update_mp3_thread(void* arg)
+{
+  while (update_mp3_thread_running)
+  {
+    UPDATE_MP3_THREAD
+    usleep(1000 * 50);
+  }
+  pthread_exit(NULL);
+}
+#elif defined(WINDOWS_VERSION)
+DWORD WINAPI update_mp3_thread(LPVOID lpParam)
+{
+  while (update_mp3_thread_running)
+  {
+    UPDATE_MP3_THREAD
+    Sleep(50);
+  }
+  return 0;
+}
+#endif
+
+
+// check and abort game if the script is currently
+// inside the rep_exec_always function
+void can_run_delayed_command() {
+  if (no_blocking_functions)
+    quit("!This command cannot be used within non-blocking events such as " REP_EXEC_ALWAYS_NAME);
+}
+
+
+void main_loop_until(int untilwhat,int udata,int mousestuff) {
+    play.disabled_user_interface++;
+    guis_need_update = 1;
+    // Only change the mouse cursor if it hasn't been specifically changed first
+    // (or if it's speech, always change it)
+    if (((cur_cursor == cur_mode) || (untilwhat == UNTIL_NOOVERLAY)) &&
+        (cur_mode != CURS_WAIT))
+        set_mouse_cursor(CURS_WAIT);
+
+    restrict_until=untilwhat;
+    user_disabled_data=udata;
+    return;
+}
+
+
+
+// update_stuff: moves and animates objects, executes repeat scripts, and
+// the like.
+void update_stuff() {
+  int aa;
+  our_eip = 20;
+
+  if (play.gscript_timer > 0) play.gscript_timer--;
+  for (aa=0;aa<MAX_TIMERS;aa++) {
+    if (play.script_timers[aa] > 1) play.script_timers[aa]--;
+    }
+  // update graphics for object if cycling view
+  for (aa=0;aa<croom->numobj;aa++) {
+    if (objs[aa].on != 1) continue;
+    if (objs[aa].moving>0) {
+      do_movelist_move(&objs[aa].moving,&objs[aa].x,&objs[aa].y);
+      }
+    if (objs[aa].cycling==0) continue;
+    if (objs[aa].view<0) continue;
+    if (objs[aa].wait>0) { objs[aa].wait--; continue; }
+
+    if (objs[aa].cycling >= ANIM_BACKWARDS) {
+      // animate backwards
+      objs[aa].frame--;
+      if (objs[aa].frame < 0) {
+        if ((objs[aa].loop > 0) && 
+           (views[objs[aa].view].loops[objs[aa].loop - 1].RunNextLoop())) 
+        {
+          // If it's a Go-to-next-loop on the previous one, then go back
+          objs[aa].loop --;
+          objs[aa].frame = views[objs[aa].view].loops[objs[aa].loop].numFrames - 1;
+        }
+        else if (objs[aa].cycling % ANIM_BACKWARDS == ANIM_ONCE) {
+          // leave it on the first frame
+          objs[aa].cycling = 0;
+          objs[aa].frame = 0;
+        }
+        else { // repeating animation
+          objs[aa].frame = views[objs[aa].view].loops[objs[aa].loop].numFrames - 1;
+        }
+      }
+    }
+    else {  // Animate forwards
+      objs[aa].frame++;
+      if (objs[aa].frame >= views[objs[aa].view].loops[objs[aa].loop].numFrames) {
+        // go to next loop thing
+        if (views[objs[aa].view].loops[objs[aa].loop].RunNextLoop()) {
+          if (objs[aa].loop+1 >= views[objs[aa].view].numLoops)
+            quit("!Last loop in a view requested to move to next loop");
+          objs[aa].loop++;
+          objs[aa].frame=0;
+        }
+        else if (objs[aa].cycling % ANIM_BACKWARDS == ANIM_ONCE) {
+          // leave it on the last frame
+          objs[aa].cycling=0;
+          objs[aa].frame--;
+          }
+        else {
+          if (play.no_multiloop_repeat == 0) {
+            // multi-loop anims, go back to start of it
+            while ((objs[aa].loop > 0) && 
+              (views[objs[aa].view].loops[objs[aa].loop - 1].RunNextLoop()))
+              objs[aa].loop --;
+          }
+          if (objs[aa].cycling % ANIM_BACKWARDS == ANIM_ONCERESET)
+            objs[aa].cycling=0;
+          objs[aa].frame=0;
+        }
+      }
+    }  // end if forwards
+
+    ViewFrame*vfptr=&views[objs[aa].view].loops[objs[aa].loop].frames[objs[aa].frame];
+    objs[aa].num = vfptr->pic;
+
+    if (objs[aa].cycling == 0)
+      continue;
+
+    objs[aa].wait=vfptr->speed+objs[aa].overall_speed;
+    CheckViewFrame (objs[aa].view, objs[aa].loop, objs[aa].frame);
+  }
+  our_eip = 21;
+
+  // shadow areas
+  int onwalkarea = get_walkable_area_at_character (game.playercharacter);
+  if (onwalkarea<0) ;
+  else if (playerchar->flags & CHF_FIXVIEW) ;
+  else { onwalkarea=thisroom.shadinginfo[onwalkarea];
+    if (onwalkarea>0) playerchar->view=onwalkarea-1;
+    else if (thisroom.options[ST_MANVIEW]==0) playerchar->view=playerchar->defview;
+    else playerchar->view=thisroom.options[ST_MANVIEW]-1;
+  }
+  our_eip = 22;
+
+  #define MAX_SHEEP 30
+  int numSheep = 0;
+  int followingAsSheep[MAX_SHEEP];
+
+  // move & animate characters
+  for (aa=0;aa<game.numcharacters;aa++) {
+    if (game.chars[aa].on != 1) continue;
+    CharacterInfo*chi=&game.chars[aa];
+    
+    // walking
+    if (chi->walking >= TURNING_AROUND) {
+      // Currently rotating to correct direction
+      if (chi->walkwait > 0) chi->walkwait--;
+      else {
+        // Work out which direction is next
+        int wantloop = find_looporder_index(chi->loop) + 1;
+        // going anti-clockwise, take one before instead
+        if (chi->walking >= TURNING_BACKWARDS)
+          wantloop -= 2;
+        while (1) {
+          if (wantloop >= 8)
+            wantloop = 0;
+          if (wantloop < 0)
+            wantloop = 7;
+          if ((turnlooporder[wantloop] >= views[chi->view].numLoops) ||
+              (views[chi->view].loops[turnlooporder[wantloop]].numFrames < 1) ||
+              ((turnlooporder[wantloop] >= 4) && ((chi->flags & CHF_NODIAGONAL)!=0))) {
+            if (chi->walking >= TURNING_BACKWARDS)
+              wantloop--;
+            else
+              wantloop++;
+          }
+          else break;
+        }
+        chi->loop = turnlooporder[wantloop];
+        chi->walking -= TURNING_AROUND;
+        // if still turning, wait for next frame
+        if (chi->walking % TURNING_BACKWARDS >= TURNING_AROUND)
+          chi->walkwait = chi->animspeed;
+        else
+          chi->walking = chi->walking % TURNING_BACKWARDS;
+        charextra[aa].animwait = 0;
+      }
+      continue;
+    }
+    // Make sure it doesn't flash up a blue cup
+    if (chi->view < 0) ;
+    else if (chi->loop >= views[chi->view].numLoops)
+      chi->loop = 0;
+
+    int doing_nothing = 1;
+
+    if ((chi->walking > 0) && (chi->room == displayed_room))
+    {
+      if (chi->walkwait > 0) chi->walkwait--;
+      else 
+      {
+        chi->flags &= ~CHF_AWAITINGMOVE;
+
+        // Move the character
+        int numSteps = wantMoveNow(aa, chi);
+
+        if ((numSteps) && (charextra[aa].xwas != INVALID_X)) {
+          // if the zoom level changed mid-move, the walkcounter
+          // might not have come round properly - so sort it out
+          chi->x = charextra[aa].xwas;
+          chi->y = charextra[aa].ywas;
+          charextra[aa].xwas = INVALID_X;
+        }
+
+        int oldxp = chi->x, oldyp = chi->y;
+
+        for (int ff = 0; ff < abs(numSteps); ff++) {
+          if (doNextCharMoveStep (aa, chi))
+            break;
+          if ((chi->walking == 0) || (chi->walking >= TURNING_AROUND))
+            break;
+        }
+
+        if (numSteps < 0) {
+          // very small scaling, intersperse the movement
+          // to stop it being jumpy
+          charextra[aa].xwas = chi->x;
+          charextra[aa].ywas = chi->y;
+          chi->x = ((chi->x) - oldxp) / 2 + oldxp;
+          chi->y = ((chi->y) - oldyp) / 2 + oldyp;
+        }
+        else if (numSteps > 0)
+          charextra[aa].xwas = INVALID_X;
+
+        if ((chi->flags & CHF_ANTIGLIDE) == 0)
+          chi->walkwaitcounter++;
+      }
+
+      if (chi->loop >= views[chi->view].numLoops)
+        quitprintf("Unable to render character %d (%s) because loop %d does not exist in view %d", chi->index_id, chi->name, chi->loop, chi->view + 1);
+
+      // check don't overflow loop
+      int framesInLoop = views[chi->view].loops[chi->loop].numFrames;
+      if (chi->frame > framesInLoop)
+      {
+        chi->frame = 1;
+
+        if (framesInLoop < 2)
+          chi->frame = 0;
+
+        if (framesInLoop < 1)
+          quitprintf("Unable to render character %d (%s) because there are no frames in loop %d", chi->index_id, chi->name, chi->loop);
+      }
+
+      if (chi->walking<1) {
+        charextra[aa].process_idle_this_time = 1;
+        doing_nothing=1;
+        chi->walkwait=0;
+        charextra[aa].animwait = 0;
+        // use standing pic
+        StopMoving(aa);
+        chi->frame = 0;
+        CheckViewFrameForCharacter(chi);
+      }
+      else if (charextra[aa].animwait > 0) charextra[aa].animwait--;
+      else {
+        if (chi->flags & CHF_ANTIGLIDE)
+          chi->walkwaitcounter++;
+
+        if ((chi->flags & CHF_MOVENOTWALK) == 0)
+        {
+          chi->frame++;
+          if (chi->frame >= views[chi->view].loops[chi->loop].numFrames)
+          {
+            // end of loop, so loop back round skipping the standing frame
+            chi->frame = 1;
+
+            if (views[chi->view].loops[chi->loop].numFrames < 2)
+              chi->frame = 0;
+          }
+
+          charextra[aa].animwait = views[chi->view].loops[chi->loop].frames[chi->frame].speed + chi->animspeed;
+
+          if (chi->flags & CHF_ANTIGLIDE)
+            chi->walkwait = charextra[aa].animwait;
+          else
+            chi->walkwait = 0;
+
+          CheckViewFrameForCharacter(chi);
+        }
+      }
+      doing_nothing = 0;
+    }
+    // not moving, but animating
+    // idleleft is <0 while idle view is playing (.animating is 0)
+    if (((chi->animating != 0) || (chi->idleleft < 0)) &&
+        ((chi->walking == 0) || ((chi->flags & CHF_MOVENOTWALK) != 0)) &&
+        (chi->room == displayed_room)) 
+    {
+      doing_nothing = 0;
+      // idle anim doesn't count as doing something
+      if (chi->idleleft < 0)
+        doing_nothing = 1;
+
+      if (chi->wait>0) chi->wait--;
+      else if ((char_speaking == aa) && (game.options[OPT_LIPSYNCTEXT] != 0)) {
+        // currently talking with lip-sync speech
+        int fraa = chi->frame;
+        chi->wait = update_lip_sync (chi->view, chi->loop, &fraa) - 1;
+        // closed mouth at end of sentence
+        if ((play.messagetime >= 0) && (play.messagetime < play.close_mouth_speech_time))
+          chi->frame = 0;
+
+        if (chi->frame != fraa) {
+          chi->frame = fraa;
+          CheckViewFrameForCharacter(chi);
+        }
+        
+        continue;
+      }
+      else {
+        int oldframe = chi->frame;
+        if (chi->animating & CHANIM_BACKWARDS) {
+          chi->frame--;
+          if (chi->frame < 0) {
+            // if the previous loop is a Run Next Loop one, go back to it
+            if ((chi->loop > 0) && 
+              (views[chi->view].loops[chi->loop - 1].RunNextLoop())) {
+
+              chi->loop --;
+              chi->frame = views[chi->view].loops[chi->loop].numFrames - 1;
+            }
+            else if (chi->animating & CHANIM_REPEAT) {
+
+              chi->frame = views[chi->view].loops[chi->loop].numFrames - 1;
+
+              while (views[chi->view].loops[chi->loop].RunNextLoop()) {
+                chi->loop++;
+                chi->frame = views[chi->view].loops[chi->loop].numFrames - 1;
+              }
+            }
+            else {
+              chi->frame++;
+              chi->animating = 0;
+            }
+          }
+        }
+        else
+          chi->frame++;
+
+        if ((aa == char_speaking) &&
+            (channels[SCHAN_SPEECH] == NULL) &&
+            (play.close_mouth_speech_time > 0) &&
+            (play.messagetime < play.close_mouth_speech_time)) {
+          // finished talking - stop animation
+          chi->animating = 0;
+          chi->frame = 0;
+        }
+
+        if (chi->frame >= views[chi->view].loops[chi->loop].numFrames) {
+          
+          if (views[chi->view].loops[chi->loop].RunNextLoop()) 
+          {
+            if (chi->loop+1 >= views[chi->view].numLoops)
+              quit("!Animating character tried to overrun last loop in view");
+            chi->loop++;
+            chi->frame=0;
+          }
+          else if ((chi->animating & CHANIM_REPEAT)==0) {
+            chi->animating=0;
+            chi->frame--;
+            // end of idle anim
+            if (chi->idleleft < 0) {
+              // constant anim, reset (need this cos animating==0)
+              if (chi->idletime == 0)
+                chi->frame = 0;
+              // one-off anim, stop
+              else {
+                ReleaseCharacterView(aa);
+                chi->idleleft=chi->idletime;
+              }
+            }
+          }
+          else {
+            chi->frame=0;
+            // if it's a multi-loop animation, go back to start
+            if (play.no_multiloop_repeat == 0) {
+              while ((chi->loop > 0) && 
+                  (views[chi->view].loops[chi->loop - 1].RunNextLoop()))
+                chi->loop--;
+            }
+          }
+        }
+        chi->wait = views[chi->view].loops[chi->loop].frames[chi->frame].speed;
+        // idle anim doesn't have speed stored cos animating==0
+        if (chi->idleleft < 0)
+          chi->wait += chi->animspeed+5;
+        else 
+          chi->wait += (chi->animating >> 8) & 0x00ff;
+
+        if (chi->frame != oldframe)
+          CheckViewFrameForCharacter(chi);
+      }
+    }
+
+    if ((chi->following >= 0) && (chi->followinfo == FOLLOW_ALWAYSONTOP)) {
+      // an always-on-top follow
+      if (numSheep >= MAX_SHEEP)
+        quit("too many sheep");
+      followingAsSheep[numSheep] = aa;
+      numSheep++;
+    }
+    // not moving, but should be following another character
+    else if ((chi->following >= 0) && (doing_nothing == 1)) {
+      short distaway=(chi->followinfo >> 8) & 0x00ff;
+      // no character in this room
+      if ((game.chars[chi->following].on == 0) || (chi->on == 0)) ;
+      else if (chi->room < 0) {
+        chi->room ++;
+        if (chi->room == 0) {
+          // appear in the new room
+          chi->room = game.chars[chi->following].room;
+          chi->x = play.entered_at_x;
+          chi->y = play.entered_at_y;
+        }
+      }
+      // wait a bit, so we're not constantly walking
+      else if (Random(100) < (chi->followinfo & 0x00ff)) ;
+      // the followed character has changed room
+      else if ((chi->room != game.chars[chi->following].room)
+            && (game.chars[chi->following].on == 0))
+        ;  // do nothing if the player isn't visible
+      else if (chi->room != game.chars[chi->following].room) {
+        chi->prevroom = chi->room;
+        chi->room = game.chars[chi->following].room;
+
+        if (chi->room == displayed_room) {
+          // only move to the room-entered position if coming into
+          // the current room
+          if (play.entered_at_x > (thisroom.width - 8)) {
+            chi->x = thisroom.width+8;
+            chi->y = play.entered_at_y;
+            }
+          else if (play.entered_at_x < 8) {
+            chi->x = -8;
+            chi->y = play.entered_at_y;
+            }
+          else if (play.entered_at_y > (thisroom.height - 8)) {
+            chi->y = thisroom.height+8;
+            chi->x = play.entered_at_x;
+            }
+          else if (play.entered_at_y < thisroom.top+8) {
+            chi->y = thisroom.top+1;
+            chi->x = play.entered_at_x;
+            }
+          else {
+            // not at one of the edges
+            // delay for a few seconds to let the player move
+            chi->room = -play.follow_change_room_timer;
+          }
+          if (chi->room >= 0) {
+            walk_character(aa,play.entered_at_x,play.entered_at_y,1, true);
+            doing_nothing = 0;
+          }
+        }
+      }
+      else if (chi->room != displayed_room) {
+        // if the characetr is following another character and
+        // neither is in the current room, don't try to move
+      }
+      else if ((abs(game.chars[chi->following].x - chi->x) > distaway+30) |
+        (abs(game.chars[chi->following].y - chi->y) > distaway+30) |
+        ((chi->followinfo & 0x00ff) == 0)) {
+        // in same room
+        int goxoffs=(Random(50)-25);
+        // make sure he's not standing on top of the other man
+        if (goxoffs < 0) goxoffs-=distaway;
+        else goxoffs+=distaway;
+        walk_character(aa,game.chars[chi->following].x + goxoffs,
+          game.chars[chi->following].y + (Random(50)-25),0, true);
+        doing_nothing = 0;
+      }
+    }
+
+    // no idle animation, so skip this bit
+    if (chi->idleview < 1) ;
+    // currently playing idle anim
+    else if (chi->idleleft < 0) ;
+    // not in the current room
+    else if (chi->room != displayed_room) ;
+    // they are moving or animating (or the view is locked), so 
+    // reset idle timeout
+    else if ((doing_nothing == 0) || ((chi->flags & CHF_FIXVIEW) != 0))
+      chi->idleleft = chi->idletime;
+    // count idle time
+    else if ((loopcounter%40==0) || (charextra[aa].process_idle_this_time == 1)) {
+      chi->idleleft--;
+      if (chi->idleleft == -1) {
+        int useloop=chi->loop;
+        DEBUG_CONSOLE("%s: Now idle (view %d)", chi->scrname, chi->idleview+1);
+        SetCharacterView(aa,chi->idleview+1);
+        // SetCharView resets it to 0
+        chi->idleleft = -2;
+        int maxLoops = views[chi->idleview].numLoops;
+        // if the char is set to "no diagonal loops", don't try
+        // to use diagonal idle loops either
+        if ((maxLoops > 4) && (useDiagonal(chi)))
+          maxLoops = 4;
+        // If it's not a "swimming"-type idleanim, choose a random loop
+        // if there arent enough loops to do the current one.
+        if ((chi->idletime > 0) && (useloop >= maxLoops)) {
+          do {
+            useloop = rand() % maxLoops;
+          // don't select a loop which is a continuation of a previous one
+          } while ((useloop > 0) && (views[chi->idleview].loops[useloop-1].RunNextLoop()));
+        }
+        // Normal idle anim - just reset to loop 0 if not enough to
+        // use the current one
+        else if (useloop >= maxLoops)
+          useloop = 0;
+
+        animate_character(chi,useloop,
+          chi->animspeed+5,(chi->idletime == 0) ? 1 : 0, 1);
+
+        // don't set Animating while the idle anim plays
+        chi->animating = 0;
+      }
+    }  // end do idle animation
+
+    charextra[aa].process_idle_this_time = 0;
+  }
+
+  // update location of all following_exactly characters
+  for (aa = 0; aa < numSheep; aa++) {
+    CharacterInfo *chi = &game.chars[followingAsSheep[aa]];
+
+    chi->x = game.chars[chi->following].x;
+    chi->y = game.chars[chi->following].y;
+    chi->z = game.chars[chi->following].z;
+    chi->room = game.chars[chi->following].room;
+    chi->prevroom = game.chars[chi->following].prevroom;
+
+    int usebase = game.chars[chi->following].get_baseline();
+
+    if (chi->flags & CHF_BEHINDSHEPHERD)
+      chi->baseline = usebase - 1;
+    else
+      chi->baseline = usebase + 1;
+  }
+
+  our_eip = 23;
+
+  // update overlay timers
+  for (aa=0;aa<numscreenover;aa++) {
+    if (screenover[aa].timeout > 0) {
+      screenover[aa].timeout--;
+      if (screenover[aa].timeout == 0)
+        remove_screen_overlay(screenover[aa].type);
+    }
+  }
+
+  // determine if speech text should be removed
+  if (play.messagetime>=0) {
+    play.messagetime--;
+    // extend life of text if the voice hasn't finished yet
+    if (channels[SCHAN_SPEECH] != NULL) {
+      if ((!rec_isSpeechFinished()) && (play.fast_forward == 0)) {
+      //if ((!channels[SCHAN_SPEECH]->done) && (play.fast_forward == 0)) {
+        if (play.messagetime <= 1)
+          play.messagetime = 1;
+      }
+      else  // if the voice has finished, remove the speech
+        play.messagetime = 0;
+    }
+
+    if (play.messagetime < 1) 
+    {
+      if (play.fast_forward > 0)
+      {
+        remove_screen_overlay(OVER_TEXTMSG);
+      }
+      else if (play.cant_skip_speech & SKIP_AUTOTIMER)
+      {
+        remove_screen_overlay(OVER_TEXTMSG);
+        play.ignore_user_input_until_time = globalTimerCounter + (play.ignore_user_input_after_text_timeout_ms / time_between_timers);
+      }
+    }
+  }
+  our_eip = 24;
+
+  // update sierra-style speech
+  if ((face_talking >= 0) && (play.fast_forward == 0)) 
+{
+    int updatedFrame = 0;
+
+    if ((facetalkchar->blinkview > 0) && (facetalkAllowBlink)) {
+      if (facetalkchar->blinktimer > 0) {
+        // countdown to playing blink anim
+        facetalkchar->blinktimer--;
+        if (facetalkchar->blinktimer == 0) {
+          facetalkchar->blinkframe = 0;
+          facetalkchar->blinktimer = -1;
+          updatedFrame = 2;
+        }
+      }
+      else if (facetalkchar->blinktimer < 0) {
+        // currently playing blink anim
+        if (facetalkchar->blinktimer < ( (0 - 6) - views[facetalkchar->blinkview].loops[facetalkBlinkLoop].frames[facetalkchar->blinkframe].speed)) {
+          // time to advance to next frame
+          facetalkchar->blinktimer = -1;
+          facetalkchar->blinkframe++;
+          updatedFrame = 2;
+          if (facetalkchar->blinkframe >= views[facetalkchar->blinkview].loops[facetalkBlinkLoop].numFrames) 
+          {
+            facetalkchar->blinkframe = 0;
+            facetalkchar->blinktimer = facetalkchar->blinkinterval;
+          }
+        }
+        else
+          facetalkchar->blinktimer--;
+      }
+
+    }
+
+    if (curLipLine >= 0) {
+      // check voice lip sync
+      int spchOffs = channels[SCHAN_SPEECH]->get_pos_ms ();
+      if (curLipLinePhenome >= splipsync[curLipLine].numPhenomes) {
+        // the lip-sync has finished, so just stay idle
+      }
+      else 
+      {
+        while ((curLipLinePhenome < splipsync[curLipLine].numPhenomes) &&
+          ((curLipLinePhenome < 0) || (spchOffs >= splipsync[curLipLine].endtimeoffs[curLipLinePhenome])))
+        {
+          curLipLinePhenome ++;
+          if (curLipLinePhenome >= splipsync[curLipLine].numPhenomes)
+            facetalkframe = game.default_lipsync_frame;
+          else
+            facetalkframe = splipsync[curLipLine].frame[curLipLinePhenome];
+
+          if (facetalkframe >= views[facetalkview].loops[facetalkloop].numFrames)
+            facetalkframe = 0;
+
+          updatedFrame |= 1;
+        }
+      }
+    }
+    else if (facetalkwait>0) facetalkwait--;
+    // don't animate if the speech has finished
+    else if ((play.messagetime < 1) && (facetalkframe == 0) && (play.close_mouth_speech_time > 0))
+      ;
+    else {
+      // Close mouth at end of sentence
+      if ((play.messagetime < play.close_mouth_speech_time) &&
+          (play.close_mouth_speech_time > 0)) {
+        facetalkframe = 0;
+        facetalkwait = play.messagetime;
+      }
+      else if ((game.options[OPT_LIPSYNCTEXT]) && (facetalkrepeat > 0)) {
+        // lip-sync speech (and not a thought)
+        facetalkwait = update_lip_sync (facetalkview, facetalkloop, &facetalkframe);
+        // It is actually displayed for facetalkwait+1 loops
+        // (because when it's 1, it gets --'d then wait for next time)
+        facetalkwait --;
+      }
+      else {
+        // normal non-lip-sync
+        facetalkframe++;
+        if ((facetalkframe >= views[facetalkview].loops[facetalkloop].numFrames) ||
+            ((play.messagetime < 1) && (play.close_mouth_speech_time > 0))) {
+
+          if ((facetalkframe >= views[facetalkview].loops[facetalkloop].numFrames) &&
+              (views[facetalkview].loops[facetalkloop].RunNextLoop())) 
+          {
+            facetalkloop++;
+          }
+          else 
+          {
+            facetalkloop = 0;
+          }
+          facetalkframe = 0;
+          if (!facetalkrepeat)
+            facetalkwait = 999999;
+        }
+        if ((facetalkframe != 0) || (facetalkrepeat == 1))
+          facetalkwait = views[facetalkview].loops[facetalkloop].frames[facetalkframe].speed + GetCharacterSpeechAnimationDelay(facetalkchar);
+      }
+      updatedFrame |= 1;
+    }
+
+    // is_text_overlay might be 0 if it was only just destroyed this loop
+    if ((updatedFrame) && (is_text_overlay > 0)) {
+
+      if (updatedFrame & 1)
+        CheckViewFrame (facetalkview, facetalkloop, facetalkframe);
+      if (updatedFrame & 2)
+        CheckViewFrame (facetalkchar->blinkview, facetalkBlinkLoop, facetalkchar->blinkframe);
+
+      int yPos = 0;
+      int thisPic = views[facetalkview].loops[facetalkloop].frames[facetalkframe].pic;
+      
+      if (game.options[OPT_SPEECHTYPE] == 3) {
+        // QFG4-style fullscreen dialog
+        yPos = (screenover[face_talking].pic->h / 2) - (spriteheight[thisPic] / 2);
+        clear_to_color(screenover[face_talking].pic, 0);
+      }
+      else {
+        clear_to_color(screenover[face_talking].pic, bitmap_mask_color(screenover[face_talking].pic));
+      }
+
+      DrawViewFrame(screenover[face_talking].pic, &views[facetalkview].loops[facetalkloop].frames[facetalkframe], 0, yPos);
+//      draw_sprite(screenover[face_talking].pic, spriteset[thisPic], 0, yPos);
+
+      if ((facetalkchar->blinkview > 0) && (facetalkchar->blinktimer < 0)) {
+        // draw the blinking sprite on top
+        DrawViewFrame(screenover[face_talking].pic,
+            &views[facetalkchar->blinkview].loops[facetalkBlinkLoop].frames[facetalkchar->blinkframe],
+            0, yPos);
+
+/*        draw_sprite(screenover[face_talking].pic,
+          spriteset[views[facetalkchar->blinkview].frames[facetalkloop][facetalkchar->blinkframe].pic],
+          0, yPos);*/
+      }
+
+      gfxDriver->UpdateDDBFromBitmap(screenover[face_talking].bmp, screenover[face_talking].pic, false);
+    }  // end if updatedFrame
+  }
+
+  our_eip = 25;
+}
+
+
+
+const char *get_engine_version() {
+    return ACI_VERSION_TEXT;
+}
+
+void atexit_handler() {
+    if (proper_exit==0) {
+        sprintf(pexbuf,"\nError: the program has exited without requesting it.\n"
+            "Program pointer: %+03d  (write this number down), ACI version " ACI_VERSION_TEXT "\n"
+            "If you see a list of numbers above, please write them down and contact\n"
+            "Chris Jones. Otherwise, note down any other information displayed.\n",
+            our_eip);
+        platform->DisplayAlert(pexbuf);
+    }
+
+    if (!(music_file == NULL))
+        free(music_file);
+
+    if (!(speech_file == NULL))
+        free(speech_file);
+
+    // Deliberately commented out, because chances are game_file_name
+    // was not allocated on the heap, it points to argv[0] or
+    // the gamefilenamebuf memory
+    // It will get freed by the system anyway, leaving it in can
+    // cause a crash on exit
+    /*if (!(game_file_name == NULL))
+    free(game_file_name);*/
+}
+
+
+
+
+
+char return_to_roomedit[30] = "\0";
+char return_to_room[150] = "\0";
+// quit - exits the engine, shutting down everything gracefully
+// The parameter is the message to print. If this message begins with
+// an '!' character, then it is printed as a "contact game author" error.
+// If it begins with a '|' then it is treated as a "thanks for playing" type
+// message. If it begins with anything else, it is treated as an internal
+// error.
+// "!|" is a special code used to mean that the player has aborted (Alt+X)
+void quit(char*quitmsg) {
+    int i;
+    // Need to copy it in case it's from a plugin (since we're
+    // about to free plugins)
+    char qmsgbufr[STD_BUFFER_SIZE];
+    strncpy(qmsgbufr, quitmsg, STD_BUFFER_SIZE);
+    qmsgbufr[STD_BUFFER_SIZE - 1] = 0;
+    char *qmsg = &qmsgbufr[0];
+
+    bool handledErrorInEditor = false;
+
+    if (editor_debugging_initialized)
+    {
+        if ((qmsg[0] == '!') && (qmsg[1] != '|'))
+        {
+            handledErrorInEditor = send_exception_to_editor(&qmsg[1]);
+        }
+        send_message_to_editor("EXIT");
+        editor_debugger->Shutdown();
+    }
+
+    our_eip = 9900;
+    stop_recording();
+
+    if (need_to_stop_cd)
+        cd_manager(3,0);
+
+    our_eip = 9020;
+    ccUnregisterAllObjects();
+
+    our_eip = 9019;
+    platform->AboutToQuitGame();
+
+    our_eip = 9016;
+    platform->ShutdownPlugins();
+
+    if ((qmsg[0] == '|') && (check_dynamic_sprites_at_exit) && 
+        (game.options[OPT_DEBUGMODE] != 0)) {
+            // game exiting normally -- make sure the dynamic sprites
+            // have been deleted
+            for (i = 1; i < spriteset.elements; i++) {
+                if (game.spriteflags[i] & SPF_DYNAMICALLOC)
+                    debug_log("Dynamic sprite %d was never deleted", i);
+            }
+    }
+
+    // allegro_exit assumes screen is correct
+    if (_old_screen)
+        screen = _old_screen;
+
+    platform->FinishedUsingGraphicsMode();
+
+    if (use_cdplayer)
+        platform->ShutdownCDPlayer();
+
+    our_eip = 9917;
+    game.options[OPT_CROSSFADEMUSIC] = 0;
+    stopmusic();
+#ifndef PSP_NO_MOD_PLAYBACK
+    if (opts.mod_player)
+        remove_mod_player();
+#endif
+
+    // Quit the sound thread.
+    update_mp3_thread_running = false;
+
+    remove_sound();
+    our_eip = 9901;
+
+    char alertis[1500]="\0";
+    if (qmsg[0]=='|') ; //qmsg++;
+    else if (qmsg[0]=='!') { 
+        qmsg++;
+
+        if (qmsg[0] == '|')
+            strcpy (alertis, "Abort key pressed.\n\n");
+        else if (qmsg[0] == '?') {
+            strcpy(alertis, "A fatal error has been generated by the script using the AbortGame function. Please contact the game author for support.\n\n");
+            qmsg++;
+        }
+        else
+            strcpy(alertis,"An error has occurred. Please contact the game author for support, as this "
+            "is likely to be a scripting error and not a bug in AGS.\n"
+            "(ACI version " ACI_VERSION_TEXT ")\n\n");
+
+        strcat (alertis, get_cur_script(5) );
+
+        if (qmsg[0] != '|')
+            strcat(alertis,"\nError: ");
+        else
+            qmsg = "";
+    }
+    else if (qmsg[0] == '%') {
+        qmsg++;
+
+        sprintf(alertis, "A warning has been generated. This is not normally fatal, but you have selected "
+            "to treat warnings as errors.\n"
+            "(ACI version " ACI_VERSION_TEXT ")\n\n%s\n", get_cur_script(5));
+    }
+    else strcpy(alertis,"An internal error has occurred. Please note down the following information.\n"
+        "If the problem persists, post the details on the AGS Technical Forum.\n"
+        "(ACI version " ACI_VERSION_TEXT ")\n"
+        "\nError: ");
+
+    shutdown_font_renderer();
+    our_eip = 9902;
+
+    // close graphics mode (Win) or return to text mode (DOS)
+    if (_sub_screen) {
+        destroy_bitmap(_sub_screen);
+        _sub_screen = NULL;
+    }
+
+    our_eip = 9907;
+
+    close_translation();
+
+    our_eip = 9908;
+
+    // Release the display mode (and anything dependant on the window)
+    if (gfxDriver != NULL)
+        gfxDriver->UnInit();
+
+    // Tell Allegro that we are no longer in graphics mode
+    set_gfx_mode(GFX_TEXT, 0, 0, 0, 0);
+
+    // successful exit displays no messages (because Windoze closes the dos-box
+    // if it is empty).
+    if (qmsg[0]=='|') ;
+    else if (!handledErrorInEditor)
+    {
+        // Display the message (at this point the window still exists)
+        sprintf(pexbuf,"%s\n",qmsg);
+        strcat(alertis,pexbuf);
+        platform->DisplayAlert(alertis);
+    }
+
+    // remove the game window
+    allegro_exit();
+
+    if (gfxDriver != NULL)
+    {
+        delete gfxDriver;
+        gfxDriver = NULL;
+    }
+
+    platform->PostAllegroExit();
+
+    our_eip = 9903;
+
+    // wipe all the interaction structs so they don't de-alloc the children twice
+    memset (&roomstats[0], 0, sizeof(RoomStatus) * MAX_ROOMS);
+    memset (&troom, 0, sizeof(RoomStatus));
+
+    /*  _CrtMemState memstart;
+    _CrtMemCheckpoint(&memstart);
+    _CrtMemDumpStatistics( &memstart );*/
+
+    /*  // print the FPS if there wasn't an error
+    if ((play.debug_mode!=0) && (qmsg[0]=='|'))
+    printf("Last cycle fps: %d\n",fps);*/
+    al_ffblk	dfb;
+    int	dun = al_findfirst("~ac*.tmp",&dfb,FA_SEARCH);
+    while (!dun) {
+        unlink(dfb.name);
+        dun = al_findnext(&dfb);
+    }
+    al_findclose (&dfb);
+
+    proper_exit=1;
+
+    write_log_debug("***** ENGINE HAS SHUTDOWN");
+
+    our_eip = 9904;
+    exit(EXIT_NORMAL);
+}
+
+extern "C" {
+    void quit_c(char*msg) {
+        quit(msg);
+    }
+}
 
 
 int do_movelist_move(short*mlnum,int*xx,int*yy) {

@@ -395,11 +395,19 @@
 				Name="acmain"
 				>
 				<File
+					RelativePath="..\..\Engine\acmain\ac_audiochannel.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acmain\ac_audioclip.cpp"
 					>
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_background.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_ccdynamicobject.cpp"
 					>
 				</File>
 				<File
@@ -412,6 +420,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_collision.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_controls.cpp"
 					>
 				</File>
 				<File
@@ -455,7 +467,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acmain\ac_fadeinout.cpp"
+					RelativePath="..\..\Engine\acmain\ac_executingscript.cpp"
 					>
 				</File>
 				<File
@@ -515,6 +527,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\acmain\ac_lipsync.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acmain\ac_location.cpp"
 					>
 				</File>
@@ -556,6 +572,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_plugin.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_record.cpp"
 					>
 				</File>
 				<File
@@ -612,6 +632,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_transition.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_translation.cpp"
 					>
 				</File>
 				<File
@@ -897,11 +921,51 @@
 				Name="acmain"
 				>
 				<File
+					RelativePath="..\..\Engine\acmain\ac_cccharacter.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_ccdialog.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_ccgui.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_ccguiobject.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_cchotspot.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_ccinventory.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_ccobject.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_ccregion.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acmain\ac_maindefines.h"
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\acmain\ac_nonblockingscriptfunction.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acmain\ac_richgamemedia.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_scriptdialogoptionsrendering.h"
 					>
 				</File>
 			</Filter>

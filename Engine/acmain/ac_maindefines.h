@@ -1,4 +1,5 @@
-
+#ifndef __AC_MAINDEFINES_H
+#define __AC_MAINDEFINES_H
 //
 // Here I put only explicit defines made in the start of ac.cpp
 //
@@ -109,3 +110,25 @@
 #define WOUTTEXT_REVERSE wouttext_reverseifnecessary
 
 #define MAX_SCRIPT_MODULES 50
+
+
+// Check that a supplied buffer from a text script function was not null
+#define VALIDATE_STRING(strin) if ((unsigned long)strin <= 4096) quit("!String argument was null: make sure you pass a string, not an int, as a buffer")
+
+
+
+#undef kbhit
+#define mgetbutton rec_mgetbutton
+#define domouse rec_domouse
+#define misbuttondown rec_misbuttondown
+#define kbhit rec_kbhit
+#define getch rec_getch
+
+
+#define Random __Rand
+
+// MACPORT FIX 9/6/5: undef (was macro) and add prototype
+#undef wouttext_outline
+//void wouttext_outline(int xxp, int yyp, int usingfont, char *texx);
+
+#endif // __AC_MAINDEFINES_H

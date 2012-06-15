@@ -204,3 +204,10 @@ FLOAT_RETURN_TYPE Math_Sqrt(SCRIPT_FLOAT(value)) {
     RETURN_FLOAT(value);
 }
 
+int __Rand(int upto) {
+    upto++;
+    if (upto < 1)
+        quit("!Random: invalid parameter passed -- must be at least 0.");
+    return rand()%upto;
+}
+

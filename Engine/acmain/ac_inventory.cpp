@@ -2,6 +2,46 @@
 #include "acmain/ac_maindefines.h"
 
 
+void SetActiveInventory(int iit) {
+
+    ScriptInvItem *tosend = NULL;
+    if ((iit > 0) && (iit < game.numinvitems))
+        tosend = &scrInv[iit];
+    else if (iit != -1)
+        quitprintf("!SetActiveInventory: invalid inventory number %d", iit);
+
+    Character_SetActiveInventory(playerchar, tosend);
+}
+
+
+void update_invorder() {
+    for (int cc = 0; cc < game.numcharacters; cc++) {
+        charextra[cc].invorder_count = 0;
+        int ff, howmany;
+        // Iterate through all inv items, adding them once (or multiple
+        // times if requested) to the list.
+        for (ff=0;ff < game.numinvitems;ff++) {
+            howmany = game.chars[cc].inv[ff];
+            if ((game.options[OPT_DUPLICATEINV] == 0) && (howmany > 1))
+                howmany = 1;
+
+            for (int ts = 0; ts < howmany; ts++) {
+                if (charextra[cc].invorder_count >= MAX_INVORDER)
+                    quit("!Too many inventory items to display: 500 max");
+
+                charextra[cc].invorder[charextra[cc].invorder_count] = ff;
+                charextra[cc].invorder_count++;
+            }
+        }
+    }
+    // backwards compatibility
+    play.obsolete_inv_numorder = charextra[game.playercharacter].invorder_count;
+
+    guis_need_update = 1;
+}
+
+
+
 void add_inventory(int inum) {
     if ((inum < 0) || (inum >= MAX_INV))
         quit("!AddInventory: invalid inventory number");

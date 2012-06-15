@@ -395,6 +395,10 @@
 				Name="acmain"
 				>
 				<File
+					RelativePath="..\..\Engine\acmain\ac_audioclip.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acmain\ac_background.cpp"
 					>
 				</File>
@@ -404,6 +408,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_character.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_collision.cpp"
 					>
 				</File>
 				<File
@@ -419,7 +427,15 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\acmain\ac_datetime.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acmain\ac_debug.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_display.cpp"
 					>
 				</File>
 				<File
@@ -427,7 +443,15 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\acmain\ac_drawingsurface.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acmain\ac_dynamicsprite.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_event.cpp"
 					>
 				</File>
 				<File
@@ -499,6 +523,14 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\acmain\ac_math.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_message.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acmain\ac_minidump.cpp"
 					>
 				</File>
@@ -512,6 +544,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_object.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_overlay.cpp"
 					>
 				</File>
 				<File
@@ -539,7 +575,23 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\acmain\ac_serialize.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_sound.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_speech.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acmain\ac_sprite.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_string.cpp"
 					>
 				</File>
 				<File
@@ -559,7 +611,15 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\acmain\ac_transition.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acmain\ac_variable.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_video.cpp"
 					>
 				</File>
 				<File
@@ -568,6 +628,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_viewport.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_wait.cpp"
 					>
 				</File>
 				<File

@@ -2,6 +2,181 @@
 #include "acmain/ac_maindefines.h"
 
 
+int GetGUIAt (int xx,int yy) {
+    multiply_up_coordinates(&xx, &yy);
+
+    int aa, ll;
+    for (ll = game.numgui - 1; ll >= 0; ll--) {
+        aa = play.gui_draw_order[ll];
+        if (guis[aa].on<1) continue;
+        if (guis[aa].flags & GUIF_NOCLICK) continue;
+        if ((xx>=guis[aa].x) & (yy>=guis[aa].y) &
+            (xx<=guis[aa].x+guis[aa].wid) & (yy<=guis[aa].y+guis[aa].hit))
+            return aa;
+    }
+    return -1;
+}
+
+ScriptGUI *GetGUIAtLocation(int xx, int yy) {
+    int guiid = GetGUIAt(xx, yy);
+    if (guiid < 0)
+        return NULL;
+    return &scrGui[guiid];
+}
+
+
+int isposinbox(int mmx,int mmy,int lf,int tp,int rt,int bt) {
+    if ((mmx>=lf) & (mmx<=rt) & (mmy>=tp) & (mmy<=bt)) return TRUE;
+    else return FALSE;
+}
+
+// xx,yy is the position in room co-ordinates that we are checking
+// arx,ary is the sprite x/y co-ordinates
+int is_pos_in_sprite(int xx,int yy,int arx,int ary, block sprit, int spww,int sphh, int flipped = 0) {
+    if (spww==0) spww = divide_down_coordinate(sprit->w) - 1;
+    if (sphh==0) sphh = divide_down_coordinate(sprit->h) - 1;
+
+    if (isposinbox(xx,yy,arx,ary,arx+spww,ary+sphh)==FALSE)
+        return FALSE;
+
+    if (game.options[OPT_PIXPERFECT]) 
+    {
+        // if it's transparent, or off the edge of the sprite, ignore
+        int xpos = multiply_up_coordinate(xx - arx);
+        int ypos = multiply_up_coordinate(yy - ary);
+
+        if (gfxDriver->HasAcceleratedStretchAndFlip())
+        {
+            // hardware acceleration, so the sprite in memory will not have
+            // been stretched, it will be original size. Thus, adjust our
+            // calculations to compensate
+            multiply_up_coordinates(&spww, &sphh);
+
+            if (spww != sprit->w)
+                xpos = (xpos * sprit->w) / spww;
+            if (sphh != sprit->h)
+                ypos = (ypos * sprit->h) / sphh;
+        }
+
+        if (flipped)
+            xpos = (sprit->w - 1) - xpos;
+
+        int gpcol = my_getpixel(sprit, xpos, ypos);
+
+        if ((gpcol == bitmap_mask_color(sprit)) || (gpcol == -1))
+            return FALSE;
+    }
+    return TRUE;
+}
+
+
+
+// Used for deciding whether a char or obj was closer
+int char_lowest_yp, obj_lowest_yp;
+
+int GetObjectAt(int xx,int yy) {
+    int aa,bestshotyp=-1,bestshotwas=-1;
+    // translate screen co-ordinates to room co-ordinates
+    xx += divide_down_coordinate(offsetx);
+    yy += divide_down_coordinate(offsety);
+    // Iterate through all objects in the room
+    for (aa=0;aa<croom->numobj;aa++) {
+        if (objs[aa].on != 1) continue;
+        if (objs[aa].flags & OBJF_NOINTERACT)
+            continue;
+        int xxx=objs[aa].x,yyy=objs[aa].y;
+        int isflipped = 0;
+        int spWidth = divide_down_coordinate(objs[aa].get_width());
+        int spHeight = divide_down_coordinate(objs[aa].get_height());
+        if (objs[aa].view >= 0)
+            isflipped = views[objs[aa].view].loops[objs[aa].loop].frames[objs[aa].frame].flags & VFLG_FLIPSPRITE;
+
+        block theImage = GetObjectImage(aa, &isflipped);
+
+        if (is_pos_in_sprite(xx, yy, xxx, yyy - spHeight, theImage,
+            spWidth, spHeight, isflipped) == FALSE)
+            continue;
+
+        int usebasel = objs[aa].get_baseline();   
+        if (usebasel < bestshotyp) continue;
+
+        bestshotwas = aa;
+        bestshotyp = usebasel;
+    }
+    obj_lowest_yp = bestshotyp;
+    return bestshotwas;
+}
+
+ScriptObject *GetObjectAtLocation(int xx, int yy) {
+    int hsnum = GetObjectAt(xx, yy);
+    if (hsnum < 0)
+        return NULL;
+    return &scrObj[hsnum];
+}
+
+
+// X and Y co-ordinates must be in 320x200 format
+int check_click_on_object(int xx,int yy,int mood) {
+    int aa = GetObjectAt(xx - divide_down_coordinate(offsetx), yy - divide_down_coordinate(offsety));
+    if (aa < 0) return 0;
+    RunObjectInteraction(aa, mood);
+    return 1;
+}
+
+int is_pos_on_character(int xx,int yy) {
+    int cc,sppic,lowestyp=0,lowestwas=-1;
+    for (cc=0;cc<game.numcharacters;cc++) {
+        if (game.chars[cc].room!=displayed_room) continue;
+        if (game.chars[cc].on==0) continue;
+        if (game.chars[cc].flags & CHF_NOINTERACT) continue;
+        if (game.chars[cc].view < 0) continue;
+        CharacterInfo*chin=&game.chars[cc];
+
+        if ((chin->view < 0) || 
+            (chin->loop >= views[chin->view].numLoops) ||
+            (chin->frame >= views[chin->view].loops[chin->loop].numFrames))
+        {
+            continue;
+        }
+
+        sppic=views[chin->view].loops[chin->loop].frames[chin->frame].pic;
+        int usewid = charextra[cc].width;
+        int usehit = charextra[cc].height;
+        if (usewid==0) usewid=spritewidth[sppic];
+        if (usehit==0) usehit=spriteheight[sppic];
+        int xxx = chin->x - divide_down_coordinate(usewid) / 2;
+        int yyy = chin->get_effective_y() - divide_down_coordinate(usehit);
+
+        int mirrored = views[chin->view].loops[chin->loop].frames[chin->frame].flags & VFLG_FLIPSPRITE;
+        block theImage = GetCharacterImage(cc, &mirrored);
+
+        if (is_pos_in_sprite(xx,yy,xxx,yyy, theImage,
+            divide_down_coordinate(usewid),
+            divide_down_coordinate(usehit), mirrored) == FALSE)
+            continue;
+
+        int use_base = chin->get_baseline();
+        if (use_base < lowestyp) continue;
+        lowestyp=use_base;
+        lowestwas=cc;
+    }
+    char_lowest_yp = lowestyp;
+    return lowestwas;
+}
+
+int GetCharacterAt (int xx, int yy) {
+    xx += divide_down_coordinate(offsetx);
+    yy += divide_down_coordinate(offsety);
+    return is_pos_on_character(xx,yy);
+}
+
+CharacterInfo *GetCharacterAtLocation(int xx, int yy) {
+    int hsnum = GetCharacterAt(xx, yy);
+    if (hsnum < 0)
+        return NULL;
+    return &game.chars[hsnum];
+}
+
 
 // allowHotspot0 defines whether Hotspot 0 returns LOCTYPE_HOTSPOT
 // or whether it returns 0

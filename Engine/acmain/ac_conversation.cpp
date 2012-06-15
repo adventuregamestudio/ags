@@ -1,6 +1,124 @@
 
 #include "acmain/ac_maindefines.h"
 
+// ** SCRIPT DIALOGOPTIONSRENDERING OBJECT
+
+int DialogOptionsRendering_GetX(ScriptDialogOptionsRendering *dlgOptRender)
+{
+    return dlgOptRender->x;
+}
+
+void DialogOptionsRendering_SetX(ScriptDialogOptionsRendering *dlgOptRender, int newX)
+{
+    dlgOptRender->x = newX;
+}
+
+int DialogOptionsRendering_GetY(ScriptDialogOptionsRendering *dlgOptRender)
+{
+    return dlgOptRender->y;
+}
+
+void DialogOptionsRendering_SetY(ScriptDialogOptionsRendering *dlgOptRender, int newY)
+{
+    dlgOptRender->y = newY;
+}
+
+int DialogOptionsRendering_GetWidth(ScriptDialogOptionsRendering *dlgOptRender)
+{
+    return dlgOptRender->width;
+}
+
+void DialogOptionsRendering_SetWidth(ScriptDialogOptionsRendering *dlgOptRender, int newWidth)
+{
+    dlgOptRender->width = newWidth;
+}
+
+int DialogOptionsRendering_GetHeight(ScriptDialogOptionsRendering *dlgOptRender)
+{
+    return dlgOptRender->height;
+}
+
+void DialogOptionsRendering_SetHeight(ScriptDialogOptionsRendering *dlgOptRender, int newHeight)
+{
+    dlgOptRender->height = newHeight;
+}
+
+int DialogOptionsRendering_GetParserTextboxX(ScriptDialogOptionsRendering *dlgOptRender)
+{
+    return dlgOptRender->parserTextboxX;
+}
+
+void DialogOptionsRendering_SetParserTextboxX(ScriptDialogOptionsRendering *dlgOptRender, int newX)
+{
+    dlgOptRender->parserTextboxX = newX;
+}
+
+int DialogOptionsRendering_GetParserTextboxY(ScriptDialogOptionsRendering *dlgOptRender)
+{
+    return dlgOptRender->parserTextboxY;
+}
+
+void DialogOptionsRendering_SetParserTextboxY(ScriptDialogOptionsRendering *dlgOptRender, int newY)
+{
+    dlgOptRender->parserTextboxY = newY;
+}
+
+int DialogOptionsRendering_GetParserTextboxWidth(ScriptDialogOptionsRendering *dlgOptRender)
+{
+    return dlgOptRender->parserTextboxWidth;
+}
+
+void DialogOptionsRendering_SetParserTextboxWidth(ScriptDialogOptionsRendering *dlgOptRender, int newWidth)
+{
+    dlgOptRender->parserTextboxWidth = newWidth;
+}
+
+ScriptDialog* DialogOptionsRendering_GetDialogToRender(ScriptDialogOptionsRendering *dlgOptRender)
+{
+    return &scrDialog[dlgOptRender->dialogID];
+}
+
+ScriptDrawingSurface* DialogOptionsRendering_GetSurface(ScriptDialogOptionsRendering *dlgOptRender)
+{
+    dlgOptRender->surfaceAccessed = true;
+    return dlgOptRender->surfaceToRenderTo;
+}
+
+int DialogOptionsRendering_GetActiveOptionID(ScriptDialogOptionsRendering *dlgOptRender)
+{
+    return dlgOptRender->activeOptionID + 1;
+}
+
+void DialogOptionsRendering_SetActiveOptionID(ScriptDialogOptionsRendering *dlgOptRender, int activeOptionID)
+{
+    int optionCount = dialog[scrDialog[dlgOptRender->dialogID].id].numoptions;
+    if ((activeOptionID < 0) || (activeOptionID > optionCount))
+        quitprintf("DialogOptionsRenderingInfo.ActiveOptionID: invalid ID specified for this dialog (specified %d, valid range: 1..%d)", activeOptionID, optionCount);
+
+    dlgOptRender->activeOptionID = activeOptionID - 1;
+}
+
+
+
+void RunDialog(int tum) {
+    if ((tum<0) | (tum>=game.numdialog))
+        quit("!RunDialog: invalid topic number specified");
+
+    can_run_delayed_command();
+
+    if (play.stop_dialog_at_end != DIALOG_NONE) {
+        if (play.stop_dialog_at_end == DIALOG_RUNNING)
+            play.stop_dialog_at_end = DIALOG_NEWTOPIC + tum;
+        else
+            quit("!NewRoom: two NewRoom/RunDiaolg/StopDialog requests within dialog");
+        return;
+    }
+
+    if (inside_script) 
+        curscript->queue_action(ePSARunDialog, tum, "RunDialog");
+    else
+        do_conversation(tum);
+}
 
 
 void StopDialog() {

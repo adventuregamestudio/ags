@@ -2,6 +2,40 @@
 #include "acmain/ac_maindefines.h"
 
 
+int create_global_script() {
+    ccSetOption(SCOPT_AUTOIMPORT, 1);
+    for (int kk = 0; kk < numScriptModules; kk++) {
+        moduleInst[kk] = ccCreateInstance(scriptModules[kk]);
+        if (moduleInst[kk] == NULL)
+            return -3;
+        // create a forked instance for rep_exec_always
+        moduleInstFork[kk] = ccForkInstance(moduleInst[kk]);
+        if (moduleInstFork[kk] == NULL)
+            return -3;
+
+        moduleRepExecAddr[kk] = ccGetSymbolAddr(moduleInst[kk], REP_EXEC_NAME);
+    }
+    gameinst = ccCreateInstance(gamescript);
+    if (gameinst == NULL)
+        return -3;
+    // create a forked instance for rep_exec_always
+    gameinstFork = ccForkInstance(gameinst);
+    if (gameinstFork == NULL)
+        return -3;
+
+    if (dialogScriptsScript != NULL)
+    {
+        dialogScriptsInst = ccCreateInstance(dialogScriptsScript);
+        if (dialogScriptsInst == NULL)
+            return -3;
+    }
+
+    ccSetOption(SCOPT_AUTOIMPORT, 0);
+    return 0;
+}
+
+
+
 void script_debug(int cmdd,int dataa) {
   if (play.debug_mode==0) return;
   int rr;

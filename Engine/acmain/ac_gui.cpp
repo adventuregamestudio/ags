@@ -2,6 +2,135 @@
 #include "acmain/ac_maindefines.h"
 
 
+void export_gui_controls(int ee) {
+
+    for (int ff = 0; ff < guis[ee].numobjs; ff++) {
+        if (guis[ee].objs[ff]->scriptName[0] != 0)
+            ccAddExternalSymbol(guis[ee].objs[ff]->scriptName, guis[ee].objs[ff]);
+
+        ccRegisterManagedObject(guis[ee].objs[ff], &ccDynamicGUIObject);
+    }
+}
+
+void unexport_gui_controls(int ee) {
+
+    for (int ff = 0; ff < guis[ee].numobjs; ff++) {
+        if (guis[ee].objs[ff]->scriptName[0] != 0)
+            ccRemoveExternalSymbol(guis[ee].objs[ff]->scriptName);
+
+        if (!ccUnRegisterManagedObject(guis[ee].objs[ff]))
+            quit("unable to unregister guicontrol object");
+    }
+}
+
+
+
+
+int convert_gui_disabled_style(int oldStyle) {
+    int toret = GUIDIS_GREYOUT;
+
+    // if GUIs Turn Off is selected, don't grey out buttons for
+    // any Persistent GUIs which remain
+    // set to 0x80 so that it is still non-zero, but has no effect
+    if (oldStyle == 3)
+        toret = GUIDIS_GUIOFF;
+    // GUIs Go Black
+    else if (oldStyle == 1)
+        toret = GUIDIS_BLACKOUT;
+    // GUIs unchanged
+    else if (oldStyle == 2)
+        toret = GUIDIS_UNCHANGED;
+
+    return toret;
+}
+
+void update_gui_disabled_status() {
+    // update GUI display status (perhaps we've gone into
+    // an interface disabled state)
+    int all_buttons_was = all_buttons_disabled;
+    all_buttons_disabled = 0;
+
+    if (!IsInterfaceEnabled()) {
+        all_buttons_disabled = gui_disabled_style;
+    }
+
+    if (all_buttons_was != all_buttons_disabled) {
+        // GUIs might have been removed/added
+        for (int aa = 0; aa < game.numgui; aa++) {
+            guis[aa].control_positions_changed();
+        }
+        guis_need_update = 1;
+        invalidate_screen();
+    }
+}
+
+
+int adjust_x_for_guis (int xx, int yy) {
+    if ((game.options[OPT_DISABLEOFF]==3) && (all_buttons_disabled > 0))
+        return xx;
+    // If it's covered by a GUI, move it right a bit
+    for (int aa=0;aa < game.numgui; aa++) {
+        if (guis[aa].on < 1)
+            continue;
+        if ((guis[aa].x > xx) || (guis[aa].y > yy) || (guis[aa].y + guis[aa].hit < yy))
+            continue;
+        // totally transparent GUI, ignore
+        if ((guis[aa].bgcol == 0) && (guis[aa].bgpic < 1))
+            continue;
+
+        // try to deal with full-width GUIs across the top
+        if (guis[aa].x + guis[aa].wid >= get_fixed_pixel_size(280))
+            continue;
+
+        if (xx < guis[aa].x + guis[aa].wid) 
+            xx = guis[aa].x + guis[aa].wid + 2;        
+    }
+    return xx;
+}
+
+int adjust_y_for_guis ( int yy) {
+    if ((game.options[OPT_DISABLEOFF]==3) && (all_buttons_disabled > 0))
+        return yy;
+    // If it's covered by a GUI, move it down a bit
+    for (int aa=0;aa < game.numgui; aa++) {
+        if (guis[aa].on < 1)
+            continue;
+        if (guis[aa].y > yy)
+            continue;
+        // totally transparent GUI, ignore
+        if ((guis[aa].bgcol == 0) && (guis[aa].bgpic < 1))
+            continue;
+
+        // try to deal with full-height GUIs down the left or right
+        if (guis[aa].hit > get_fixed_pixel_size(50))
+            continue;
+
+        if (yy < guis[aa].y + guis[aa].hit) 
+            yy = guis[aa].y + guis[aa].hit + 2;        
+    }
+    return yy;
+}
+
+
+
+int IsGUIOn (int guinum) {
+    if ((guinum < 0) || (guinum >= game.numgui))
+        quit("!IsGUIOn: invalid GUI number specified");
+    return (guis[guinum].on >= 1) ? 1 : 0;
+}
+
+// This is an internal script function, and is undocumented.
+// It is used by the editor's automatic macro generation.
+int FindGUIID (const char* GUIName) {
+    for (int ii = 0; ii < game.numgui; ii++) {
+        if (strcmp(guis[ii].name, GUIName) == 0)
+            return ii;
+        if ((guis[ii].name[0] == 'g') && (stricmp(&guis[ii].name[1], GUIName) == 0))
+            return ii;
+    }
+    quit("FindGUIID: No matching GUI found: GUI may have been deleted");
+    return -1;
+}
 
 
 void InterfaceOn(int ifn) {

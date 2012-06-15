@@ -1,6 +1,45 @@
 
 #include "acmain/ac_maindefines.h"
 
+
+void add_inventory(int inum) {
+    if ((inum < 0) || (inum >= MAX_INV))
+        quit("!AddInventory: invalid inventory number");
+
+    Character_AddInventory(playerchar, &scrInv[inum], SCR_NO_VALUE);
+
+    play.obsolete_inv_numorder = charextra[game.playercharacter].invorder_count;
+}
+
+void lose_inventory(int inum) {
+    if ((inum < 0) || (inum >= MAX_INV))
+        quit("!LoseInventory: invalid inventory number");
+
+    Character_LoseInventory(playerchar, &scrInv[inum]);
+
+    play.obsolete_inv_numorder = charextra[game.playercharacter].invorder_count;
+}
+
+void AddInventoryToCharacter(int charid, int inum) {
+    if (!is_valid_character(charid))
+        quit("!AddInventoryToCharacter: invalid character specified");
+    if ((inum < 1) || (inum >= game.numinvitems))
+        quit("!AddInventory: invalid inv item specified");
+
+    Character_AddInventory(&game.chars[charid], &scrInv[inum], SCR_NO_VALUE);
+}
+
+void LoseInventoryFromCharacter(int charid, int inum) {
+    if (!is_valid_character(charid))
+        quit("!LoseInventoryFromCharacter: invalid character specified");
+    if ((inum < 1) || (inum >= game.numinvitems))
+        quit("!AddInventory: invalid inv item specified");
+
+    Character_LoseInventory(&game.chars[charid], &scrInv[inum]);
+}
+
+
+
 #define ICONSPERLINE 4
 
 struct DisplayInvItem {

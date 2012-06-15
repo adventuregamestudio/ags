@@ -2,6 +2,33 @@
 #include "acmain/ac_maindefines.h"
 
 
+GUIObject *GetGUIControlAtLocation(int xx, int yy) {
+    int guinum = GetGUIAt(xx, yy);
+    if (guinum == -1)
+        return NULL;
+
+    multiply_up_coordinates(&xx, &yy);
+
+    int oldmousex = mousex, oldmousey = mousey;
+    mousex = xx - guis[guinum].x;
+    mousey = yy - guis[guinum].y;
+    int toret = guis[guinum].find_object_under_mouse(0, false);
+    mousex = oldmousex;
+    mousey = oldmousey;
+    if (toret < 0)
+        return NULL;
+
+    return guis[guinum].objs[toret];
+}
+
+int GetGUIObjectAt (int xx, int yy) {
+    GUIObject *toret = GetGUIControlAtLocation(xx, yy);
+    if (toret == NULL)
+        return -1;
+
+    return toret->objn;
+}
+
 
 int GUIControl_GetVisible(GUIObject *guio) {
   return guio->IsVisible();

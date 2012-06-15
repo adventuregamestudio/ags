@@ -3,6 +3,27 @@
 
 
 
+int StringToInt(char*stino) {
+    return atoi(stino);
+}
+
+int StrGetCharAt (char *strin, int posn) {
+    if ((posn < 0) || (posn >= (int)strlen(strin)))
+        return 0;
+    return strin[posn];
+}
+
+void StrSetCharAt (char *strin, int posn, int nchar) {
+    if ((posn < 0) || (posn > (int)strlen(strin)) || (posn >= MAX_MAXSTRLEN))
+        quit("!StrSetCharAt: tried to write past end of string");
+
+    if (posn == (int)strlen(strin))
+        strin[posn+1] = 0;
+    strin[posn] = nchar;
+}
+
+
+
 int MAXSTRLEN = MAX_MAXSTRLEN;
 void check_strlen(char*ptt) {
   MAXSTRLEN = MAX_MAXSTRLEN;

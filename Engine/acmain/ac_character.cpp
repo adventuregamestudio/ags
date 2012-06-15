@@ -2,6 +2,80 @@
 #include "acmain/ac_maindefines.h"
 
 
+void SetCharacterBaseline (int obn, int basel) {
+    if (!is_valid_character(obn)) quit("!SetCharacterBaseline: invalid object number specified");
+
+    Character_SetBaseline(&game.chars[obn], basel);
+}
+
+// pass trans=0 for fully solid, trans=100 for fully transparent
+void SetCharacterTransparency(int obn,int trans) {
+    if (!is_valid_character(obn))
+        quit("!SetCharTransparent: invalid character number specified");
+
+    Character_SetTransparency(&game.chars[obn], trans);
+}
+
+void scAnimateCharacter (int chh, int loopn, int sppd, int rept) {
+    if (!is_valid_character(chh))
+        quit("AnimateCharacter: invalid character");
+
+    animate_character(&game.chars[chh], loopn, sppd, rept);
+}
+
+void AnimateCharacterEx(int chh, int loopn, int sppd, int rept, int direction, int blocking) {
+    if ((direction < 0) || (direction > 1))
+        quit("!AnimateCharacterEx: invalid direction");
+    if (!is_valid_character(chh))
+        quit("AnimateCharacter: invalid character");
+
+    if (direction)
+        direction = BACKWARDS;
+    else
+        direction = FORWARDS;
+
+    if (blocking)
+        blocking = BLOCKING;
+    else
+        blocking = IN_BACKGROUND;
+
+    Character_Animate(&game.chars[chh], loopn, sppd, rept, blocking, direction);
+
+}
+
+void animate_character(CharacterInfo *chap, int loopn,int sppd,int rept, int noidleoverride, int direction) {
+
+    if ((chap->view < 0) || (chap->view > game.numviews)) {
+        quitprintf("!AnimateCharacter: you need to set the view number first\n"
+            "(trying to animate '%s' using loop %d. View is currently %d).",chap->name,loopn,chap->view+1);
+    }
+    DEBUG_CONSOLE("%s: Start anim view %d loop %d, spd %d, repeat %d", chap->scrname, chap->view+1, loopn, sppd, rept);
+    if ((chap->idleleft < 0) && (noidleoverride == 0)) {
+        // if idle view in progress for the character (and this is not the
+        // "start idle animation" animate_character call), stop the idle anim
+        Character_UnlockView(chap);
+        chap->idleleft=chap->idletime;
+    }
+    if ((loopn < 0) || (loopn >= views[chap->view].numLoops))
+        quit("!AnimateCharacter: invalid loop number specified");
+    Character_StopMoving(chap);
+    chap->animating=1;
+    if (rept) chap->animating |= CHANIM_REPEAT;
+    if (direction) chap->animating |= CHANIM_BACKWARDS;
+
+    chap->animating|=((sppd << 8) & 0xff00);
+    chap->loop=loopn;
+
+    if (direction) {
+        chap->frame = views[chap->view].loops[loopn].numFrames - 1;
+    }
+    else
+        chap->frame=0;
+
+    chap->wait = sppd + views[chap->view].loops[loopn].frames[chap->frame].speed;
+    CheckViewFrameForCharacter(chap);
+}
+
 
 void SetPlayerCharacter(int newchar) {
   if (!is_valid_character(newchar))

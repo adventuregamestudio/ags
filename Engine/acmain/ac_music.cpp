@@ -2,6 +2,208 @@
 #include "acmain/ac_maindefines.h"
 
 
+
+int IsMusicPlaying() {
+    // in case they have a "while (IsMusicPlaying())" loop
+    if ((play.fast_forward) && (play.skip_until_char_stops < 0))
+        return 0;
+
+    if (usetup.midicard == MIDI_NONE)
+        return 0;
+
+    if (current_music_type != 0) {
+        if (channels[SCHAN_MUSIC] == NULL)
+            current_music_type = 0;
+        else if (channels[SCHAN_MUSIC]->done == 0)
+            return 1;
+        else if ((crossFading > 0) && (channels[crossFading] != NULL))
+            return 1;
+        return 0;
+    }
+
+    return 0;
+}
+
+void clear_music_cache() {
+
+    if (cachedQueuedMusic != NULL) {
+        cachedQueuedMusic->destroy();
+        delete cachedQueuedMusic;
+        cachedQueuedMusic = NULL;
+    }
+
+}
+
+int PlayMusicQueued(int musnum) {
+
+    // Just get the queue size
+    if (musnum < 0)
+        return play.music_queue_size;
+
+    if ((IsMusicPlaying() == 0) && (play.music_queue_size == 0)) {
+        newmusic(musnum);
+        return 0;
+    }
+
+    if (play.music_queue_size >= MAX_QUEUED_MUSIC) {
+        DEBUG_CONSOLE("Too many queued music, cannot add %d", musnum);
+        return 0;
+    }
+
+    if ((play.music_queue_size > 0) && 
+        (play.music_queue[play.music_queue_size - 1] >= QUEUED_MUSIC_REPEAT)) {
+            quit("!PlayMusicQueued: cannot queue music after a repeating tune has been queued");
+    }
+
+    if (play.music_repeat) {
+        DEBUG_CONSOLE("Queuing music %d to loop", musnum);
+        musnum += QUEUED_MUSIC_REPEAT;
+    }
+    else {
+        DEBUG_CONSOLE("Queuing music %d", musnum);
+    }
+
+    play.music_queue[play.music_queue_size] = musnum;
+    play.music_queue_size++;
+
+    if (play.music_queue_size == 1) {
+
+        clear_music_cache();
+
+        cachedQueuedMusic = load_music_from_disk(musnum, (play.music_repeat > 0));
+    }
+
+    return play.music_queue_size;
+}
+
+void play_next_queued() {
+    // check if there's a queued one to play
+    if (play.music_queue_size > 0) {
+
+        int tuneToPlay = play.music_queue[0];
+
+        if (tuneToPlay >= QUEUED_MUSIC_REPEAT) {
+            // Loop it!
+            play.music_repeat++;
+            play_new_music(tuneToPlay - QUEUED_MUSIC_REPEAT, cachedQueuedMusic);
+            play.music_repeat--;
+        }
+        else {
+            // Don't loop it!
+            int repeatWas = play.music_repeat;
+            play.music_repeat = 0;
+            play_new_music(tuneToPlay, cachedQueuedMusic);
+            play.music_repeat = repeatWas;
+        }
+
+        // don't free the memory, as it has been transferred onto the
+        // main music channel
+        cachedQueuedMusic = NULL;
+
+        play.music_queue_size--;
+        for (int i = 0; i < play.music_queue_size; i++)
+            play.music_queue[i] = play.music_queue[i + 1];
+
+        if (play.music_queue_size > 0)
+            cachedQueuedMusic = load_music_from_disk(play.music_queue[0], 0);
+    }
+
+}
+
+int calculate_max_volume() {
+    // quieter so that sounds can be heard better
+    int newvol=play.music_master_volume + ((int)thisroom.options[ST_VOLUME]) * 30;
+    if (newvol>255) newvol=255;
+    if (newvol<0) newvol=0;
+
+    if (play.fast_forward)
+        newvol = 0;
+
+    return newvol;
+}
+
+void update_polled_stuff_if_runtime()
+{
+    update_polled_stuff(true);
+}
+
+// add/remove the volume drop to the audio channels while speech is playing
+void apply_volume_drop_modifier(bool applyModifier)
+{
+    for (int i = 0; i < MAX_SOUND_CHANNELS; i++) 
+    {
+        if ((channels[i] != NULL) && (channels[i]->done == 0) && (channels[i]->sourceClip != NULL))
+        {
+            if (applyModifier)
+            {
+                int audioType = ((ScriptAudioClip*)channels[i]->sourceClip)->type;
+                channels[i]->volModifier = -(game.audioClipTypes[audioType].volume_reduction_while_speech_playing * 255 / 100);
+            }
+            else
+                channels[i]->volModifier = 0;
+
+            channels[i]->set_volume(channels[i]->vol);
+        }
+    }
+}
+
+void update_polled_stuff(bool checkForDebugMessages) {
+    UPDATE_MP3
+
+        if (want_exit) {
+            want_exit = 0;
+            quit("||exit!");
+        }
+        if (mvolcounter > update_music_at) {
+            update_music_volume();
+            apply_volume_drop_modifier(false);
+            update_music_at = 0;
+            mvolcounter = 0;
+            update_ambient_sound_vol();
+        }
+
+        if ((editor_debugging_initialized) && (checkForDebugMessages))
+            check_for_messages_from_editor();
+}
+
+// Update the music, and advance the crossfade on a step
+// (this should only be called once per game loop)
+void update_polled_stuff_and_crossfade () {
+    update_polled_stuff_if_runtime ();
+
+    audio_update_polled_stuff();
+
+    if (crossFading) {
+        crossFadeStep++;
+        update_music_volume();
+    }
+
+    // Check if the current music has finished playing
+    if ((play.cur_music_number >= 0) && (play.fast_forward == 0)) {
+        if (IsMusicPlaying() == 0) {
+            // The current music has finished
+            play.cur_music_number = -1;
+            play_next_queued();
+        }
+        else if ((game.options[OPT_CROSSFADEMUSIC] > 0) &&
+            (play.music_queue_size > 0) && (!crossFading)) {
+                // want to crossfade, and new tune in the queue
+                int curpos = channels[SCHAN_MUSIC]->get_pos_ms();
+                int muslen = channels[SCHAN_MUSIC]->get_length_ms();
+                if ((curpos > 0) && (muslen > 0)) {
+                    // we want to crossfade, and we know how far through
+                    // the tune we are
+                    int takesSteps = calculate_max_volume() / game.options[OPT_CROSSFADEMUSIC];
+                    int takesMs = (takesSteps * 1000) / frames_per_second;
+                    if (curpos >= muslen - takesMs)
+                        play_next_queued();
+                }
+        }
+    }
+
+}
+
+
 void stopmusic() {
 
   if (crossFading > 0) {

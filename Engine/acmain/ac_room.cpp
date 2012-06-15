@@ -2,6 +2,26 @@
 #include "acmain/ac_maindefines.h"
 
 
+ScriptDrawingSurface* Room_GetDrawingSurfaceForBackground(int backgroundNumber)
+{
+    if (displayed_room < 0)
+        quit("!Room.GetDrawingSurfaceForBackground: no room is currently loaded");
+
+    if (backgroundNumber == SCR_NO_VALUE)
+    {
+        backgroundNumber = play.bg_frame;
+    }
+
+    if ((backgroundNumber < 0) || (backgroundNumber >= thisroom.num_bscenes))
+        quit("!Room.GetDrawingSurfaceForBackground: invalid background number specified");
+
+
+    ScriptDrawingSurface *surface = new ScriptDrawingSurface();
+    surface->roomBackgroundNumber = backgroundNumber;
+    ccRegisterManagedObject(surface, surface);
+    return surface;
+}
+
 
 int Room_GetObjectCount() {
   return croom->numobj;

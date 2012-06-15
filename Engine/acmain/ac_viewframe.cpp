@@ -1,6 +1,60 @@
 
 #include "acmain/ac_maindefines.h"
 
+// ** SCRIPT VIEW FRAME OBJECT
+
+int ScriptViewFrame::Dispose(const char *address, bool force) {
+    // always dispose a ViewFrame
+    delete this;
+    return 1;
+}
+
+const char *ScriptViewFrame::GetType() {
+    return "ViewFrame";
+}
+
+int ScriptViewFrame::Serialize(const char *address, char *buffer, int bufsize) {
+    StartSerialize(buffer);
+    SerializeInt(view);
+    SerializeInt(loop);
+    SerializeInt(frame);
+    return EndSerialize();
+}
+
+void ScriptViewFrame::Unserialize(int index, const char *serializedData, int dataSize) {
+    StartUnserialize(serializedData, dataSize);
+    view = UnserializeInt();
+    loop = UnserializeInt();
+    frame = UnserializeInt();
+    ccRegisterUnserializedObject(index, this, this);
+}
+
+ScriptViewFrame::ScriptViewFrame(int p_view, int p_loop, int p_frame) {
+    view = p_view;
+    loop = p_loop;
+    frame = p_frame;
+}
+
+ScriptViewFrame::ScriptViewFrame() {
+    view = -1;
+    loop = -1;
+    frame = -1;
+}
+
+
+void allocate_memory_for_views(int viewCount)
+{
+    views = (ViewStruct*)calloc(sizeof(ViewStruct) * viewCount, 1);
+    game.viewNames = (char**)malloc(sizeof(char*) * viewCount);
+    game.viewNames[0] = (char*)malloc(MAXVIEWNAMELENGTH * viewCount);
+
+    for (int i = 1; i < viewCount; i++)
+    {
+        game.viewNames[i] = game.viewNames[0] + (MAXVIEWNAMELENGTH * i);
+    }
+}
+
+
 
 int ViewFrame_GetFlipped(ScriptViewFrame *svf) {
   if (views[svf->view].loops[svf->loop].frames[svf->frame].flags & VFLG_FLIPSPRITE)

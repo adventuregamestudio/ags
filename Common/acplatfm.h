@@ -16,7 +16,8 @@
 
 #include "wgt2allg.h"
 #include "acruntim.h"
-#include "acsound.h"
+//#include "acsound.h"
+#include "acaudio/ac_sound.h"
 #include "ali3d.h"
 
 #ifdef WINDOWS_VERSION

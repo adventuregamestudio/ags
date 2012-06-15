@@ -11,7 +11,7 @@
 
 #include "bigend.h"
 #include "sprcache.h"
-#include "acsound.h"
+//#include "acsound.h"
 //#include "acgfx.h"
 
 #include "ali3d.h"
@@ -460,6 +460,8 @@ struct CharacterExtras {
   char  slow_move_counter;
   short animwait;
 };
+
+#include "acaudio/ac_soundclip.h"
 
 struct QueuedAudioItem {
   short audioClipIndex;

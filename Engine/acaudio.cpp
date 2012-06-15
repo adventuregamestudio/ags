@@ -12,6 +12,7 @@
 #include "wgt2allg.h"
 #include "ac/ac_common.h"   // quit()
 #include "acruntim.h"
+#include "acaudio/ac_sound.h"
 
 #include "cs/cs_runtime.h"
 

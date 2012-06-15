@@ -380,9 +380,10 @@ block recycle_bitmap(block bimp, int coldep, int wid, int hit);
 #include "acgui/ac_guitextbox.h"
 
 #include "acruntim.h"
-#include "acsound.h"
+//#include "acsound.h"
 
 #include "acgfx/ac_gfxfilters.h"
+#include "acaudio/ac_sound.h"
 
 #define MAX_SCRIPT_MODULES 50
 

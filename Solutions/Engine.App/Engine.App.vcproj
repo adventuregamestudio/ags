@@ -188,10 +188,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\Engine\acdebug.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\Engine\acdialog.cpp"
 				>
 			</File>
@@ -463,16 +459,28 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="acdebug"
+				>
+				<File
+					RelativePath="..\..\Engine\acdebug\ac_debug.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acdebug\ac_filebasedagsdebugger.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acdebug\ac_namedpipesagsdebugger.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
-			<File
-				RelativePath="..\..\Engine\acdebug.h"
-				>
-			</File>
 			<File
 				RelativePath="..\..\Common\acplatfm.h"
 				>
@@ -782,6 +790,26 @@
 				>
 				<File
 					RelativePath="..\..\Engine\acchar\ac_charhelpers.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="acdebug"
+				>
+				<File
+					RelativePath="..\..\Engine\acdebug\ac_debug.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acdebug\ac_dummyagsdebugger.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acdebug\ac_filebasedagsdebugger.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acdebug\ac_namedpipesagsdebugger.h"
 					>
 				</File>
 			</Filter>

@@ -228,7 +228,8 @@ int   source_text_length = -1;
 #include "acfont/ac_agsfontrenderer.h" // fontRenderers
 
 #include <aastr.h>
-#include <acdebug.h>
+//#include <acdebug.h>
+#include "acdebug/ac_debug.h"
 
 #define INI_READONLY
 //#include <myini.H>

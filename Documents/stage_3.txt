@@ -20,7 +20,7 @@ before diving into ac.cpp.
     acaudio.cpp (audiochannel, soundclip)
     acchars (character, helpers)
     acdebug
-            
+    acdialog            
     
 
 //=============================================================================
@@ -28,7 +28,7 @@ before diving into ac.cpp.
 //=============================================================================
 
 Surely, something has to be done with wgt2allg header in the future. It appears
-that it is highly sensitive to the header including order which not always
+that it is highly sensitive to the header including order which does not always
 make sense; this issue must be investigated.
 It will also be good to know if there's a way to not include all of the allegro
 headers if you just need couple of symbols for audio or gfx.

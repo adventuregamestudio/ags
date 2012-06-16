@@ -592,10 +592,7 @@ struct GameState {
 };
 
 
-struct ScriptInvItem {
-  int id;
-  int reserved;
-};
+
 
 struct ScriptDialog {
   int id;
@@ -831,6 +828,7 @@ extern GFXFilter *filter;
 
 #include "acgui/ac_guidefines.h"
 #include "acaudio/ac_audiochannel.h"
+#include "acrun/ac_inventoryitem.h"
 
 extern GameSetupStruct game;
 extern GameState play;

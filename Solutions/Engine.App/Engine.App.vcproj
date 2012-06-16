@@ -188,10 +188,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\Engine\acchars.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\Engine\acdebug.cpp"
 				>
 			</File>
@@ -448,6 +444,22 @@
 				>
 				<File
 					RelativePath="..\..\Engine\acrun\ac_ccdynamicobject.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acrun\ac_inventoryitem.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="acchars"
+				>
+				<File
+					RelativePath="..\..\Engine\acchars\ac_character.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acchars\ac_charhelpers.cpp"
 					>
 				</File>
 			</Filter>
@@ -762,6 +774,14 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acaudio\ac_soundinternaldefs.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="acchar"
+				>
+				<File
+					RelativePath="..\..\Engine\acchar\ac_charhelpers.h"
 					>
 				</File>
 			</Filter>

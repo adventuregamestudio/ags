@@ -188,10 +188,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\Engine\acdialog.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\Engine\acfonts_engine.cpp"
 				>
 			</File>
@@ -472,6 +468,34 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acdebug\ac_namedpipesagsdebugger.cpp"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="acdialog"
+				>
+				<File
+					RelativePath="..\..\Engine\acdialog\ac_cscidialog.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acdialog\ac_mylabel.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acdialog\ac_mylistbox.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acdialog\ac_mytextbox.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acdialog\ac_newcontrol.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acdialog\ac_pushbutton.cpp"
 					>
 				</File>
 			</Filter>
@@ -810,6 +834,42 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acdebug\ac_namedpipesagsdebugger.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="acdialog"
+				>
+				<File
+					RelativePath="..\..\Engine\acdialog\ac_cscidialog.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acdialog\ac_dialogdefines.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acdialog\ac_dialoginternaldefines.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acdialog\ac_mylabel.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acdialog\ac_mylistbox.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acdialog\ac_mytextbox.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acdialog\ac_newcontrol.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acdialog\ac_pushbutton.h"
 					>
 				</File>
 			</Filter>

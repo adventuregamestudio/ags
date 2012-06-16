@@ -20,7 +20,14 @@ before diving into ac.cpp.
     acaudio.cpp (audiochannel, soundclip)
     acchars (character, helpers)
     acdebug
-    acdialog            
+    acdialog
+    
+    
+//-----------------------------------------------------------------------------
+// step 2 -- onward to the depths
+//-----------------------------------------------------------------------------
+
+    ac.cpp, acruntim.h
     
 
 //=============================================================================

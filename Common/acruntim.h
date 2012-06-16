@@ -291,25 +291,8 @@ struct ScriptObject {
   RoomObject *obj;
 };
 
-struct AGSCCDynamicObject : ICCDynamicObject {
-public:
-  // default implementation
-  virtual int Dispose(const char *address, bool force);
 
-  virtual void Unserialize(int index, const char *serializedData, int dataSize) = 0;
-
-protected:
-  int bytesSoFar;
-  int totalBytes;
-  char *serbuffer;
-
-  void StartSerialize(char *sbuffer);
-  void SerializeInt(int val);
-  int  EndSerialize();
-  void StartUnserialize(const char *sbuffer, int pTotalBytes);
-  int  UnserializeInt();
-
-};
+#include "acrun/ac_ccdynamicobject.h"
 
 
 struct ScriptOverlay : AGSCCDynamicObject {
@@ -389,24 +372,6 @@ struct ScriptDynamicSprite : AGSCCDynamicObject {
 
   ScriptDynamicSprite(int slot);
   ScriptDynamicSprite();
-};
-
-struct ScriptAudioChannel
-{
-  int id;
-  int reserved;
-};
-
-struct CCAudioChannel : AGSCCDynamicObject {
-  virtual const char *GetType();
-  virtual int Serialize(const char *address, char *buffer, int bufsize);
-  virtual void Unserialize(int index, const char *serializedData, int dataSize);
-};
-
-struct CCAudioClip : AGSCCDynamicObject {
-  virtual const char *GetType();
-  virtual int Serialize(const char *address, char *buffer, int bufsize);
-  virtual void Unserialize(int index, const char *serializedData, int dataSize);
 };
 
 struct ScriptString : AGSCCDynamicObject, ICCStringClass {
@@ -859,13 +824,13 @@ extern GFXFilter *filter;
 #define TURNING_AROUND     1000
 #define TURNING_BACKWARDS 10000
 
-#define MAX_SOUND_CHANNELS 8
-#define SPECIAL_CROSSFADE_CHANNEL 8
+
 #define MAX_PLUGIN_OBJECT_READERS 50
 
 #define NEXT_ITERATION() play.gamestep++
 
 #include "acgui/ac_guidefines.h"
+#include "acaudio/ac_audiochannel.h"
 
 extern GameSetupStruct game;
 extern GameState play;

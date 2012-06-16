@@ -188,10 +188,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\Engine\acaudio.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\Engine\acchars.cpp"
 				>
 			</File>
@@ -391,6 +387,18 @@
 				Name="acaudio"
 				>
 				<File
+					RelativePath="..\..\Engine\acaudio\ac_audio.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acaudio\ac_audiochannel.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acaudio\ac_audioclip.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acaudio\ac_mydumbmod.cpp"
 					>
 				</File>
@@ -432,6 +440,14 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acaudio\ac_soundclip.cpp"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="acrun"
+				>
+				<File
+					RelativePath="..\..\Engine\acrun\ac_ccdynamicobject.h"
 					>
 				</File>
 			</Filter>
@@ -684,6 +700,18 @@
 			<Filter
 				Name="acaudio"
 				>
+				<File
+					RelativePath="..\..\Engine\acaudio\ac_audio.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acaudio\ac_audiochannel.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acaudio\ac_audioclip.h"
+					>
+				</File>
 				<File
 					RelativePath="..\..\Engine\acaudio\ac_mydumbmod.h"
 					>

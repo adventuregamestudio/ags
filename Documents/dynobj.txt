@@ -1,0 +1,16 @@
+
+There is a bunch of paired types with one unit of a pair being a struct
+Script*something and another being struct CC*something, a child of
+struct AGSCCDynamicObject.
+
+In other word, we may say there's a pair of DynamicObject and ScriptObject.
+
+Example: *AudioClip, *AudioChannel.
+
+On other hand there are types called Script*something that are derived from
+AGSCCDynamicObject on their own.
+
+Example: ScriptViewFrame, ScriptDynamicSprite
+
+Why such composition and how it works?
+

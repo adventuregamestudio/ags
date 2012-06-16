@@ -57,4 +57,3 @@ SOUNDCLIP::~SOUNDCLIP()
 {
     destroyMutex();
 }
-

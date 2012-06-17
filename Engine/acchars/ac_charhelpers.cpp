@@ -14,7 +14,7 @@
 
 #include <stdio.h>
 #include "wgt2allg.h"
-#include "acchar/ac_charhelpers.h"
+#include "acchars/ac_charhelpers.h"
 #include "acruntim.h"
 #include "ac/ac_common.h"           // quit()
 #include <math.h>

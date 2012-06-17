@@ -2,6 +2,7 @@
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_location.h"
 
+int getloctype_index = 0, getloctype_throughgui = 0;
 
 // return the walkable area at the character's feet, taking into account
 // that he might just be off the edge of one

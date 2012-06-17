@@ -404,7 +404,7 @@ int numPluginReaders = 0;
 
 
 int num_scripts=0;
-int getloctype_index = 0, getloctype_throughgui = 0;
+
 int user_disabled_for=0,user_disabled_data=0,user_disabled_data2=0;
 int user_disabled_data3=0;
 

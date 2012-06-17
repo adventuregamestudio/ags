@@ -6,6 +6,11 @@ int GetLocationType(int xxx,int yyy);
 void GetLocationName(int xxx,int yyy,char*tempo);
 int GetGUIAt (int xx,int yy);
 int get_hotspot_at(int xpp,int ypp);
+int is_pos_on_character(int xx,int yy);
+int check_click_on_object(int xx,int yy,int mood);
+
+
+extern int getloctype_index, getloctype_throughgui;
 
 
 

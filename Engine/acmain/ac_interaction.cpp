@@ -1,6 +1,10 @@
 
+#include <stdio.h>
+#include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_interaction.h"
+#include "acmain/ac_commonheaders.h"
+#include "acchars/ac_charhelpers.h"
 
 void NewInteractionCommand::remove () {
   if (children != NULL) {

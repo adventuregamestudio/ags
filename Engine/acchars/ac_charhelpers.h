@@ -31,5 +31,7 @@ void find_nearest_walkable_area (int *xx, int *yy);
 void MoveToWalkableArea(int charid);
 void FaceLocation(int cha, int xx, int yy);
 void FaceCharacter(int cha,int toface);
+void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims);
+
 
 #endif // __AC_CHARHELPERS_H

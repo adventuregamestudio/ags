@@ -46,3 +46,6 @@ and more wise header composition will help to solve this.
 On other hand, if we are to design a brand new class system, the situation may
 change to something totally different. Currently many similar issues are rising
 because module splitting was made raw.
+
+There's a separate structure for storing dynamic room status. How much it needs
+to be separate?

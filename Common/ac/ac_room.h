@@ -31,10 +31,6 @@ struct sprstruc {
 };
 #pragma pack()
 
-#define MAXANIMS      10
-#define MAX_FLAGS     15
-#define MAXOBJNAMELEN 30
-#define MAX_BSCENE    5   // max number of frames in animating bg scene
 #define NOT_VECTOR_SCALED -10000
 #define TINT_IS_ENABLED 0x80000000
 struct roomstruct {

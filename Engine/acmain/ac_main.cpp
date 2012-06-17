@@ -33,21 +33,8 @@ void precache_view(int view)
 }
 
 
-// PSP: Update in thread if wanted.
-extern volatile int psp_audio_multithreaded;
-volatile bool update_mp3_thread_running = false;
-int musicPollIterator; // long name so it doesn't interfere with anything else
-#define UPDATE_MP3_THREAD \
-   while (switching_away_from_game) { } \
-   for (musicPollIterator = 0; musicPollIterator <= MAX_SOUND_CHANNELS; musicPollIterator++) { \
-     if ((channels[musicPollIterator] != NULL) && (channels[musicPollIterator]->done == 0)) \
-       channels[musicPollIterator]->poll(); \
-   }
-#define UPDATE_MP3 \
- if (!psp_audio_multithreaded) \
-  { UPDATE_MP3_THREAD }
 
-//#define UPDATE_MP3 update_polled_stuff_if_runtime();
+
 #if defined(PSP_VERSION)
 // PSP: Workaround for sound stuttering. Do sound updates in its own thread.
 int update_mp3_thread(SceSize args, void *argp)

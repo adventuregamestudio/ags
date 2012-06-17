@@ -1,6 +1,27 @@
 
+#include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
+#include "acaudio/ac_music.h"
+#include "acrun/ac_gamestate.h"
+#include "acaudio/ac_sound.h"
+#include "acdebug/ac_debug.h"
+#include "acrun/ac_gamesetup.h"
+#include "acaudio/ac_audio.h"
+#include "ac/ac_common.h"
+#include "acrun/ac_runninggame.h"
+#include "acmain/ac_file.h"
 
+
+int current_music_type = 0;
+int crossFading = 0, crossFadeVolumePerStep = 0, crossFadeStep = 0;
+int crossFadeVolumeAtStart = 0;
+SOUNDCLIP *cachedQueuedMusic = NULL;
+
+volatile bool update_mp3_thread_running = false;
+int musicPollIterator; // long name so it doesn't interfere with anything else
+
+volatile int mvolcounter = 0;
+int update_music_at=0;
 
 void PlayMusicResetQueue(int newmus) {
     play.music_queue_size = 0;

@@ -4,8 +4,7 @@
 
 
 volatile int timerloop=0;
-volatile int mvolcounter = 0;
-int update_music_at=0;
+
 int time_between_timers=25;  // in milliseconds
 // our timer, used to keep game running at same speed on all systems
 #if defined(WINDOWS_VERSION)

@@ -38,6 +38,10 @@
 #define MAX_HOTSPOTS  50   // v2.62 increased from 20 to 30; v2.8 to 50
 #define MAX_REGIONS   16
 
+// careful with this - the shadinginfo[] array needs to be
+// MAX_WALK_AREAS + 1 if this gets changed
+#define MAX_WALK_AREAS 15
+
 #define MAX_SCRIPT_NAME_LEN 20
 
 //const int MISC_COND = MAX_OBJ * 4 + NUMOTCON + MAX_INIT_SPR * 4;
@@ -96,10 +100,18 @@
 
 #define MAX_ROOMS 300
 
+#define MAXANIMS      10
+#define MAX_FLAGS     15
+#define MAXOBJNAMELEN 30
+#define MAX_BSCENE    5   // max number of frames in animating bg scene
 
-#ifdef DJGPP
-#include <unistd.h>
-#endif
+#define MAX_SPRITES         30000
+#define MAX_CURSOR          20
+
+
+//#ifdef DJGPP
+//#include <unistd.h>
+//#endif
 
 #ifdef _MSC_VER
 #undef VTA_LEFT

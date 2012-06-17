@@ -24,11 +24,17 @@ extern "C" {
 }
 extern int psp_is_old_datafile;
 
+#if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
+volatile int psp_audio_multithreaded = 1;
+#endif
+
 ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
 CCAudioChannel ccDynamicAudio;
 CCAudioClip ccDynamicAudioClip;
 char acaudio_buffer[256];
 int reserved_channel_count = 0;
+
+SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
 
 
 void calculate_reserved_channel_count()

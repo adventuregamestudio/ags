@@ -5,9 +5,6 @@ struct _Point {
     short x, y;
 };
 
-// careful with this - the shadinginfo[] array needs to be
-// MAX_WALK_AREAS + 1 if this gets changed
-#define MAX_WALK_AREAS 15
 #define MAXPOINTS 30
 struct PolyPoints {
     int x[MAXPOINTS];

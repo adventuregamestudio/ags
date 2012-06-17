@@ -12,6 +12,10 @@ CLEAR that the code has been altered from the Standard Version.
 #ifndef __AC_AUDIO_H
 #define __AC_AUDIO_H
 
+#define VOL_CHANGEEXISTING   1678
+#define VOL_SETFUTUREDEFAULT 1679
+#define VOL_BOTH             1680
+
 #include "acaudio/ac_audiochannel.h"
 #include "acaudio/ac_soundclip.h"
 
@@ -43,5 +47,11 @@ ScriptAudioClip* get_audio_clip_for_old_style_number(bool isMusic, int indexNumb
 // ***** BACKWARDS COMPATIBILITY WITH OLD AUDIO SYSTEM ***** //
 int get_old_style_number_for_sound(int sound_number);
 SOUNDCLIP *load_sound_clip_from_old_style_number(bool isMusic, int indexNumber, bool repeat);
+
+extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
+
+#if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
+volatile int psp_audio_multithreaded;
+#endif
 
 #endif // __AC_AUDIO_H

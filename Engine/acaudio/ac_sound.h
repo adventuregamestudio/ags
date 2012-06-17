@@ -14,7 +14,9 @@
 #define __AC_SOUND_H
 
 #include "acaudio/ac_sounddefines.h"
+#include "acaudio/ac_audiodefines.h"
 #include "acaudio/ac_soundclip.h"
+#include "acaudio/ac_ambientsound.h"
 
 #define MUS_MIDI 1
 #define MUS_MP3  2
@@ -32,5 +34,9 @@ SOUNDCLIP *my_load_mod(const char *filname, int repet);
 
 int  init_mod_player(int numVoices);
 void remove_mod_player();
+
+void update_ambient_sound_vol ();
+
+extern AmbientSound ambient[MAX_SOUND_CHANNELS + 1];  // + 1 just for safety on array iterations
 
 #endif // __AC_SOUND_H

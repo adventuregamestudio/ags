@@ -1,6 +1,8 @@
 
 #include "acmain/ac_maindefines.h"
 
+roomstruct thisroom;
+
 block fix_bitmap_size(block todubl) {
     int oldw=todubl->w, oldh=todubl->h;
     int newWidth = multiply_up_coordinate(thisroom.width);

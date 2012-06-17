@@ -372,8 +372,8 @@
 				</File>
 			</Filter>
 			<Filter
-			    Name="acaudio"
-			    >
+				Name="acaudio"
+				>
 				<File
 					RelativePath="..\..\Engine\acaudio\ac_audio.cpp"
 					>
@@ -384,6 +384,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acaudio\ac_audioclip.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_music.cpp"
 					>
 				</File>
 				<File
@@ -435,11 +439,19 @@
 				Name="acrun"
 				>
 				<File
-					RelativePath="..\..\Engine\acrun\ac_ccdynamicobject.h"
+					RelativePath="..\..\Engine\acrun\ac_gamesetup.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acrun\ac_inventoryitem.h"
+					RelativePath="..\..\Engine\acrun\ac_gamestate.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acrun\ac_roomobject.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acrun\ac_runninggame.cpp"
 					>
 				</File>
 			</Filter>
@@ -471,7 +483,7 @@
 					>
 				</File>
 			</Filter>
-		 <Filter
+			<Filter
 				Name="acdialog"
 				>
 				<File
@@ -498,8 +510,8 @@
 					RelativePath="..\..\Engine\acdialog\ac_pushbutton.cpp"
 					>
 				</File>
-     </Filter>
-     <Filter
+			</Filter>
+			<Filter
 				Name="acmain"
 				>
 				<File
@@ -663,10 +675,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acmain\ac_music.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\acmain\ac_object.cpp"
 					>
 				</File>
@@ -776,63 +784,63 @@
 				</File>
 			</Filter>
 		</Filter>
-    <Filter
-        Name="Header Files"
-        Filter="h;hpp;hxx;hm;inl;inc;xsd"
-        UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
+		<Filter
+			Name="Header Files"
+			Filter="h;hpp;hxx;hm;inl;inc;xsd"
+			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
-        <File
-          RelativePath="..\..\Common\acplatfm.h"
+			<File
+				RelativePath="..\..\Common\acplatfm.h"
 				>
-        </File>
-        <File
-          RelativePath="..\..\Common\acruntim.h"
+			</File>
+			<File
+				RelativePath="..\..\Common\acruntim.h"
 				>
-        </File>
-        <File
-          RelativePath="..\..\Common\agsplugin.h"
+			</File>
+			<File
+				RelativePath="..\..\Common\agsplugin.h"
 				>
-        </File>
-        <File
-          RelativePath="..\..\Engine\ali3d.h"
+			</File>
+			<File
+				RelativePath="..\..\Engine\ali3d.h"
 				>
-        </File>
-        <File
-          RelativePath="..\..\Common\bigend.h"
+			</File>
+			<File
+				RelativePath="..\..\Common\bigend.h"
 				>
-        </File>
-        <File
-          RelativePath="..\..\Common\compress.h"
+			</File>
+			<File
+				RelativePath="..\..\Common\compress.h"
 				>
-        </File>
-        <File
-          RelativePath="..\..\Common\misc.h"
+			</File>
+			<File
+				RelativePath="..\..\Common\misc.h"
 				>
-        </File>
-        <File
-          RelativePath="..\..\Engine\mousew32.h"
+			</File>
+			<File
+				RelativePath="..\..\Engine\mousew32.h"
 				>
-        </File>
-        <File
-          RelativePath="..\..\Engine\resource.h"
+			</File>
+			<File
+				RelativePath="..\..\Engine\resource.h"
 				>
-        </File>
-        <File
-          RelativePath="..\..\Engine\scrptrt.h"
+			</File>
+			<File
+				RelativePath="..\..\Engine\scrptrt.h"
 				>
-        </File>
-        <File
-          RelativePath="..\..\Common\sprcache.h"
+			</File>
+			<File
+				RelativePath="..\..\Common\sprcache.h"
 				>
-        </File>
-        <File
-          RelativePath="..\..\Engine\VMR9Graph.h"
+			</File>
+			<File
+				RelativePath="..\..\Engine\VMR9Graph.h"
 				>
-        </File>
-        <File
-          RelativePath="..\..\Common\wgt2allg.h"
+			</File>
+			<File
+				RelativePath="..\..\Common\wgt2allg.h"
 				>
-        </File>
+			</File>
 			<Filter
 				Name="ac"
 				>
@@ -1021,6 +1029,10 @@
 				Name="acaudio"
 				>
 				<File
+					RelativePath="..\..\Engine\acaudio\ac_ambientsound.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acaudio\ac_audio.h"
 					>
 				</File>
@@ -1030,6 +1042,14 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acaudio\ac_audioclip.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acaudio\ac_audiodefines.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acaudio\ac_music.h"
 					>
 				</File>
 				<File
@@ -1062,6 +1082,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acaudio\ac_mywave.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acrun\ac_queuedaudioitem.h"
 					>
 				</File>
 				<File
@@ -1113,43 +1137,43 @@
 					>
 				</File>
 			</Filter>
-      <Filter
+			<Filter
 				Name="acdialog"
 				>
-        <File
+				<File
 					RelativePath="..\..\Engine\acdialog\ac_cscidialog.h"
 					>
-        </File>
-        <File
+				</File>
+				<File
 					RelativePath="..\..\Engine\acdialog\ac_dialogdefines.h"
 					>
-        </File>
-        <File
+				</File>
+				<File
 					RelativePath="..\..\Engine\acdialog\ac_dialoginternaldefines.h"
 					>
-        </File>
-        <File
+				</File>
+				<File
 					RelativePath="..\..\Engine\acdialog\ac_mylabel.h"
 					>
-        </File>
-        <File
+				</File>
+				<File
 					RelativePath="..\..\Engine\acdialog\ac_mylistbox.h"
 					>
-        </File>
-        <File
+				</File>
+				<File
 					RelativePath="..\..\Engine\acdialog\ac_mytextbox.h"
 					>
-        </File>
-        <File
+				</File>
+				<File
 					RelativePath="..\..\Engine\acdialog\ac_newcontrol.h"
 					>
-        </File>
-        <File
+				</File>
+				<File
 					RelativePath="..\..\Engine\acdialog\ac_pushbutton.h"
 					>
-        </File>
-      </Filter>
-      <Filter
+				</File>
+			</Filter>
+			<Filter
 				Name="acmain"
 				>
 				<File
@@ -1185,6 +1209,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\acmain\ac_file.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acmain\ac_maindefines.h"
 					>
 				</File>
@@ -1197,7 +1225,47 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\acmain\ac_room.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acmain\ac_scriptdialogoptionsrendering.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="acrun"
+				>
+				<File
+					RelativePath="..\..\Engine\acrun\ac_ccdynamicobject.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acrun\ac_gamesetup.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acrun\ac_gamestate.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acrun\ac_inventoryitem.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acrun\ac_roomobject.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acrun\ac_roomstatus.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acrun\ac_rundefines.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acrun\ac_runninggame.h"
 					>
 				</File>
 			</Filter>

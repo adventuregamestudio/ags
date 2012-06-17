@@ -24,8 +24,6 @@
 #define VTA_CENTRE      2
 #define IFLG_TEXTWINDOW 1
 
-#define MAX_SPRITES         30000
-#define MAX_CURSOR          20
 #define PAL_GAMEWIDE        0
 #define PAL_LOCKED          1
 #define PAL_BACKGROUND      2

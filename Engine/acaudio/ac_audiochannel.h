@@ -3,9 +3,7 @@
 
 #include "acrun/ac_ccdynamicobject.h"
 #include "acaudio/ac_audioclip.h"
-
-#define MAX_SOUND_CHANNELS 8
-#define SPECIAL_CROSSFADE_CHANNEL 8
+#include "acaudio/ac_audiodefines.h"
 
 struct ScriptAudioChannel
 {
@@ -37,5 +35,8 @@ int AudioClip_GetType(ScriptAudioClip *clip);
 //const char *CCAudioChannel::GetType();
 //int CCAudioChannel::Serialize(const char *address, char *buffer, int bufsize);
 //void CCAudioChannel::Unserialize(int index, const char *serializedData, int dataSize);
+
+void stop_and_destroy_channel_ex(int chid, bool resetLegacyMusicSettings);
+void stop_and_destroy_channel (int chid);
 
 #endif // __AC_AUDIOCHANNEL_H

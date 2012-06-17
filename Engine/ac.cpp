@@ -22,7 +22,7 @@ int psp_audio_enabled = 1;
 int psp_midi_enabled = 1;
 int psp_ignore_acsetup_cfg_file = 0;
 int psp_clear_cache_on_room_change = 0;
-volatile int psp_audio_multithreaded = 1;
+
 int psp_midi_preload_patches = 0;
 int psp_audio_cachesize = 10;
 char psp_game_file_name[] = "ac2game.dat";
@@ -376,23 +376,17 @@ extern char*scripttempn;
 #define REC_ENDOFFILE  0x6f
 short *recordbuffer = NULL;
 int  recbuffersize = 0, recsize = 0;
-volatile int switching_away_from_game = 0;
+
 
 
 
 const char* sgnametemplate = "agssave.%03d";
 char saveGameSuffix[MAX_SG_EXT_LENGTH + 1];
 
-SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
-SOUNDCLIP *cachedQueuedMusic = NULL;
+
+
 int numSoundChannels = 8;
-#define SCHAN_SPEECH  0
-#define SCHAN_AMBIENT 1
-#define SCHAN_MUSIC   2
-#define SCHAN_NORMAL  3
-#define AUDIOTYPE_LEGACY_AMBIENT_SOUND 1
-#define AUDIOTYPE_LEGACY_MUSIC 2
-#define AUDIOTYPE_LEGACY_SOUND 3
+
 
 #define MAX_ANIMATING_BUTTONS 15
 #define RESTART_POINT_SAVE_GAME_NUMBER 999
@@ -407,19 +401,16 @@ enum WalkBehindMethodEnum
 AGSPlatformDriver *platform = NULL;
 // crossFading is >0 (channel number of new track), or -1 (old
 // track fading out, no new track)
-int crossFading = 0, crossFadeVolumePerStep = 0, crossFadeStep = 0;
-int crossFadeVolumeAtStart = 0;
+
 int last_sound_played[MAX_SOUND_CHANNELS + 1];
 char *heightTestString = "ZHwypgfjqhkilIK";
 block virtual_screen; 
 int scrnwid,scrnhit;
 int current_screen_resolution_multiplier = 1;
-roomstruct thisroom;
-GameSetupStruct game;
-RoomStatus *roomstats;
-RoomStatus troom;    // used for non-saveable rooms, eg. intro
-GameState play;
-GameSetup usetup;
+
+
+
+
 CharacterExtras *charextra;
 int force_letterbox = 0;
 int game_paused=0;
@@ -431,7 +422,7 @@ color palette[256];
 SpriteCache spriteset(1);
 long t1;  // timer for FPS
 int cur_mode,cur_cursor;
-int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
+
 char saveGameDirectory[260] = "./";
 //int abort_all_conditions=0;
 int fps=0,display_fps=0;
@@ -533,17 +524,10 @@ int mouse_on_iface=-1;   // mouse cursor is over this interface
 int mouse_on_iface_button=-1;
 int mouse_pushed_iface=-1;  // this BUTTON on interface MOUSE_ON_IFACE is pushed
 int mouse_ifacebut_xoffs=-1,mouse_ifacebut_yoffs=-1;
-int debug_flags=0;
+
 IDriverDependantBitmap* roomBackgroundBmp = NULL;
 
-int use_compiled_folder_as_current_dir = 0;
-int editor_debugging_enabled = 0;
-int editor_debugging_initialized = 0;
-char editor_debugger_instance_token[100];
-IAGSEditorDebugger *editor_debugger = NULL;
-int break_on_next_script_step = 0;
-volatile int game_paused_in_debugger = 0;
-HWND editor_window_handle = NULL;
+
 
 int in_enters_screen=0,done_es_error = 0;
 int in_leaves_screen = -1;
@@ -553,20 +537,10 @@ int said_text = 0;
 int convert_16bit_bgr = 0;
 int mouse_z_was = 0;
 int bg_just_changed = 0;
-int loaded_game_file_version = 0;
-volatile char want_exit = 0, abort_engine = 0;
+
+
 char check_dynamic_sprites_at_exit = 1;
-#define DBG_NOIFACE       1
-#define DBG_NODRAWSPRITES 2
-#define DBG_NOOBJECTS     4
-#define DBG_NOUPDATE      8
-#define DBG_NOSFX      0x10
-#define DBG_NOMUSIC    0x20
-#define DBG_NOSCRIPT   0x40
-#define DBG_DBGSCRIPT  0x80
-#define DBG_DEBUGMODE 0x100
-#define DBG_REGONLY   0x200
-#define DBG_NOVIDEO   0x400
+
 #define MAXEVENTS 15
 EventHappened event[MAXEVENTS+1];
 int numevents=0;
@@ -581,7 +555,7 @@ int numevents=0;
 #define EVB_HOTSPOT 1
 #define EVB_ROOM    2
 char ac_engine_copyright[]="Adventure Game Studio engine & tools (c) 1999-2000 by Chris Jones.";
-int current_music_type = 0;
+
 
 #define LOCTYPE_HOTSPOT 1
 #define LOCTYPE_CHAR 2
@@ -596,7 +570,7 @@ char*tsnames[4]={NULL, REP_EXEC_NAME, "on_key_press","on_mouse_click"};
 char*evblockbasename;
 int evblocknum;
 //int current_music=0;
-int frames_per_second=40;
+
 int in_new_room=0, new_room_was = 0;  // 1 in new room, 2 first time in new room, 3 loading saved game
 int new_room_pos=0;
 int new_room_x = SCR_NO_VALUE, new_room_y = SCR_NO_VALUE;

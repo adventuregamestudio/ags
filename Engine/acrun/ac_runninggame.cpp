@@ -40,3 +40,8 @@ ScriptHotspot scrHotspot[MAX_HOTSPOTS];
 ScriptRegion scrRegion[MAX_REGIONS];
 ScriptInvItem scrInv[MAX_INV];
 ScriptDialog scrDialog[MAX_DIALOG];
+
+//block spriteset[MAX_SPRITES+1];
+//SpriteCache spriteset (MAX_SPRITES+1);
+// initially size 1, this will be increased by the initFile function
+SpriteCache spriteset(1);

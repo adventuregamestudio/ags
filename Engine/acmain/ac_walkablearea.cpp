@@ -2,6 +2,7 @@
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_walkablearea.h"
 
+block walkareabackup=NULL, walkable_areas_temp = NULL;
 
 void redo_walkable_areas() {
 

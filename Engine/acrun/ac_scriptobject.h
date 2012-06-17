@@ -29,4 +29,9 @@ struct ScriptDialog {
     int reserved;
 };
 
+struct ScriptInvItem {
+    int id;
+    int reserved;
+};
+
 #endif // __AC_SCRIPTOBJECT_H

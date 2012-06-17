@@ -20,6 +20,7 @@
 #include "acrun/ac_charactercache.h"
 #include "acrun/ac_objectcache.h"
 #include "acrun/ac_scriptobject.h"
+#include "sprcache.h"
 
 extern GameState play;
 extern GameSetup usetup;
@@ -49,8 +50,8 @@ extern RoomStatus*croom;
 
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 
-CharacterCache *charcache;
-ObjectCache objcache[MAX_INIT_SPR];
+extern CharacterCache *charcache;
+extern ObjectCache objcache[MAX_INIT_SPR];
 
 extern ScriptObject scrObj[MAX_INIT_SPR];
 extern ScriptGUI *scrGui;
@@ -58,5 +59,7 @@ extern ScriptHotspot scrHotspot[MAX_HOTSPOTS];
 extern ScriptRegion scrRegion[MAX_REGIONS];
 extern ScriptInvItem scrInv[MAX_INV];
 extern ScriptDialog scrDialog[MAX_DIALOG];
+
+extern SpriteCache spriteset;
 
 #endif // __AC_RUNNINGGAME_H

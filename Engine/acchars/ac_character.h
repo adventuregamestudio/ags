@@ -3,6 +3,7 @@
 
 #include "acrun/ac_rundefines.h"
 #include "ac/ac_characterinfo.h"
+#include "acrun/ac_scriptobject.h"
 
 struct CharacterExtras {
     // UGLY UGLY UGLY!! The CharacterInfo struct size is fixed because it's
@@ -24,10 +25,14 @@ void Character_Walk(CharacterInfo *chaa, int x, int y, int blocking, int direct)
 void Character_FaceLocation(CharacterInfo *char1, int xx, int yy, int blockingStyle);
 void Character_StopMoving(CharacterInfo *charp);
 int GetCharacterWidth(int ww);
+int GetCharacterHeight(int charid);
 void Character_UnlockView(CharacterInfo *chaa);
 void Character_SetManualScaling(CharacterInfo *chaa, int yesorno);
 void setup_player_character(int charid);
 void Character_SetIgnoreScaling(CharacterInfo *chaa, int yesorno);
 void animate_character(CharacterInfo *chap, int loopn,int sppd,int rept, int noidleoverride = 0, int direction = 0);
+int is_valid_character(int newchar);
+int Character_IsCollidingWithObject(CharacterInfo *chin, ScriptObject *objid);
+int Character_IsCollidingWithChar(CharacterInfo *char1, CharacterInfo *char2);
 
 #endif // __AC_CHARACTER_H

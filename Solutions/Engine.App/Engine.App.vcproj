@@ -531,10 +531,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acmain\ac_character.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\acmain\ac_collision.cpp"
 					>
 				</File>
@@ -1214,6 +1210,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_collision.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_commonheaders.h"
 					>
 				</File>
 				<File

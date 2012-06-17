@@ -1,6 +1,7 @@
 
+#include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
-#include "acmain/ac_collision.h"
+#include "acmain/ac_commonheaders.h"
 
 
 void get_char_blocking_rect(int charid, int *x1, int *y1, int *width, int *y2) {

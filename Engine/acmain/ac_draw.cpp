@@ -5,6 +5,23 @@
 
 color palette[256];
 
+IGraphicsDriver *gfxDriver;
+IDriverDependantBitmap *mouseCursor = NULL;
+IDriverDependantBitmap *blankImage = NULL;
+IDriverDependantBitmap *blankSidebarImage = NULL;
+IDriverDependantBitmap *debugConsole = NULL;
+
+// actsps is used for temporary storage of the bitamp image
+// of the latest version of the sprite
+int actSpsCount = 0;
+block *actsps;
+IDriverDependantBitmap* *actspsbmp;
+// temporary cache of walk-behind for this actsps image
+block *actspswb;
+IDriverDependantBitmap* *actspswbbmp;
+CachedActSpsData* actspswbcache;
+
+
 
 void setpal() {
     wsetpalette(0,255,palette);

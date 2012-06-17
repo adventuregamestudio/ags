@@ -399,10 +399,7 @@ int force_letterbox = 0;
 int game_paused=0;
 int ifacepopped=-1;  // currently displayed pop-up GUI (-1 if none)
 
-//block spriteset[MAX_SPRITES+1];
-//SpriteCache spriteset (MAX_SPRITES+1);
-// initially size 1, this will be increased by the initFile function
-SpriteCache spriteset(1);
+
 long t1;  // timer for FPS
 
 
@@ -437,11 +434,7 @@ ccScript* dialogScriptsScript = NULL;
 ccInstance *gameinst = NULL, *roominst = NULL;
 ccInstance *dialogScriptsInst = NULL;
 ccInstance *gameinstFork = NULL, *roominstFork = NULL;
-IGraphicsDriver *gfxDriver;
-IDriverDependantBitmap *mouseCursor = NULL;
-IDriverDependantBitmap *blankImage = NULL;
-IDriverDependantBitmap *blankSidebarImage = NULL;
-IDriverDependantBitmap *debugConsole = NULL;
+
 block debugConsoleBuffer = NULL;
 block blank_mouse_cursor = NULL;
 bool current_background_is_dirty = false;
@@ -464,7 +457,7 @@ block _old_screen=NULL;
 block _sub_screen=NULL;
 
 DialogTopic *dialog;
-block walkareabackup=NULL, walkable_areas_temp = NULL;
+
 ExecutingScript scripts[MAX_SCRIPT_AT_ONCE];
 ExecutingScript*curscript = NULL;
 AnimatingGUIButton animbuts[MAX_ANIMATING_BUTTONS];
@@ -570,15 +563,7 @@ int thingsToDrawSize = 0;
 
 int final_scrn_wid=0,final_scrn_hit=0,final_col_dep=0;
 int post_script_cleanup_stack = 0;
-// actsps is used for temporary storage of the bitamp image
-// of the latest version of the sprite
-int actSpsCount = 0;
-block *actsps;
-IDriverDependantBitmap* *actspsbmp;
-// temporary cache of walk-behind for this actsps image
-block *actspswb;
-IDriverDependantBitmap* *actspswbbmp;
-CachedActSpsData* actspswbcache;
+
 
 
 

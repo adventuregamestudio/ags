@@ -1,6 +1,10 @@
 
+#include <stdio.h>
+#include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
 #include "acrun/ac_datetime.h"
+#include "acrun/ac_platformdriver.h"
+#include "ac/ac_common.h"
 
 // ** SCRIPT DATETIME OBJECT
 

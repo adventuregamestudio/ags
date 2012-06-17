@@ -17,6 +17,9 @@ int rec_kbhit () ;
 int rec_getch () ;
 void stop_recording() ;
 void rec_domouse (int what);
+int rec_isSpeechFinished ();
+void start_replay_record ();
+void start_recording();
 
 
 extern char replayfile[MAX_PATH];
@@ -26,3 +29,5 @@ extern int replay_start_this_time;
 
 extern short *recordbuffer;
 extern int  recbuffersize, recsize;
+
+extern const char *replayTempFile;

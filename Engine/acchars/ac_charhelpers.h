@@ -33,5 +33,7 @@ void FaceLocation(int cha, int xx, int yy);
 void FaceCharacter(int cha,int toface);
 void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims);
 
+extern int turnlooporder[8];
+
 
 #endif // __AC_CHARHELPERS_H

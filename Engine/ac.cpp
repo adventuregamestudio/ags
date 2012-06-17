@@ -16,19 +16,7 @@
 #include <dlfcn.h>
 #endif
 
-#if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
-int psp_video_framedrop = 1;
-int psp_audio_enabled = 1;
-int psp_midi_enabled = 1;
-int psp_ignore_acsetup_cfg_file = 0;
-int psp_clear_cache_on_room_change = 0;
 
-int psp_midi_preload_patches = 0;
-int psp_audio_cachesize = 10;
-char psp_game_file_name[] = "ac2game.dat";
-int psp_gfx_smooth_sprites = 1;
-char psp_translation[] = "default";
-#endif
 
 
 
@@ -81,9 +69,7 @@ extern char psp_translation[]; // Translation file
 #include <dir.h>
 #endif
 
-#if !defined(LINUX_VERSION) && !defined(MAC_VERSION)
-#include <process.h>
-#endif
+
 
 // MACPORT FIX: endian support
 #include "bigend.h"
@@ -215,8 +201,7 @@ extern "C" HWND allegro_wnd;
 
 
 #ifdef WINDOWS_VERSION
-int wArgc;
-LPWSTR *wArgv;
+
 #else
 
 #endif
@@ -329,10 +314,7 @@ struct TempEip {
 
 
 
-// **** GLOBALS ****
-char *music_file;
-char *speech_file;
-WCHAR directoryPathBuffer[MAX_PATH];
+
 
 /*extern int get_route_composition();
 extern int routex1;*/
@@ -365,7 +347,7 @@ char *heightTestString = "ZHwypgfjqhkilIK";
 
 
 
-long t1;  // timer for FPS
+
 
 
 
@@ -379,7 +361,7 @@ char alpha_blend_cursor = 0;
 
 
 
-int use_extra_sound_offset = 0;
+
 
 
 
@@ -405,20 +387,14 @@ int numPluginReaders = 0;
 
 int num_scripts=0;
 
-int user_disabled_for=0,user_disabled_data=0,user_disabled_data2=0;
-int user_disabled_data3=0;
-
-// Sierra-style speech settings
-int face_talking=-1,facetalkview=0,facetalkwait=0,facetalkframe=0;
-int facetalkloop=0, facetalkrepeat = 0, facetalkAllowBlink = 1;
-int facetalkBlinkLoop = 0;
-CharacterInfo *facetalkchar = NULL;
 
 
 
 
-// set to 0 once successful
-int working_gfx_mode_status = -1;
+
+
+
+
 
 
 
@@ -437,10 +413,7 @@ int scaddr;
 
 
 
-int need_to_stop_cd=0;
-int debug_15bit_mode = 0, debug_24bit_mode = 0;
 
-int convert_16bit_bgr = 0;
 int mouse_z_was = 0;
 
 
@@ -484,7 +457,7 @@ int scrlockWasDown = 0;
 
 int pluginsWantingDebugHooks = 0;
 
-const char *replayTempFile = "~replay.tmp";
+
 
 
 
@@ -619,10 +592,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
 extern const char* ccGetSectionNameAtOffs(ccScript *scri, long offs);
 
 
-//char datname[80]="ac.clb";
-char ac_conf_file_defname[MAX_PATH] = "acsetup.cfg";
-char *ac_config_file = &ac_conf_file_defname[0];
-char conffilebuf[512];
+
 
 
 //char*ac_default_header=NULL,*temphdr=NULL;

@@ -29,6 +29,11 @@ int Game_GetColorFromRGB(int red, int grn, int blu);
 void render_to_screen(BITMAP *toRender, int atx, int aty);
 void draw_screen_callback();
 void write_screen();
+void GfxDriverOnInitCallback(void *data);
+bool GfxDriverNullSpriteCallback(int x, int y);
+void init_invalid_regions(int scrnHit);
+int get_screen_x_adjustment(BITMAP *checkFor);
+int get_screen_y_adjustment(BITMAP *checkFor);
 
 extern color palette[256];
 
@@ -67,7 +72,10 @@ extern int offsetx, offsety;
 extern block raw_saved_screen;
 extern block dotted_mouse_cursor;
 
+extern block _old_screen;
+extern block _sub_screen;
 
+extern int _places_r, _places_g, _places_b;
 
 
 #endif // __AC_DRAW_H

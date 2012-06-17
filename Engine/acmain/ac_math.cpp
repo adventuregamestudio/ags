@@ -1,19 +1,10 @@
 
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
 #include "acmain/ac_maindefines.h"
-
-
-// unfortunately MSVC and GCC automatically push floats as doubles
-// to functions, thus we need to manually access it as 32-bit
-#define SCRIPT_FLOAT(x) long __script_float##x
-#define INIT_SCRIPT_FLOAT(x) float x; memcpy(&x, &__script_float##x, sizeof(float))
-#define FLOAT_RETURN_TYPE long
-#define RETURN_FLOAT(x) long __ret##x; memcpy(&__ret##x, &x, sizeof(float)); return __ret##x
-
-enum RoundDirections {
-    eRoundDown = 0,
-    eRoundNearest = 1,
-    eRoundUp = 2
-};
+#include "acmain/ac_math.h"
+#include "ac/ac_common.h"
 
 int FloatToInt(SCRIPT_FLOAT(value), int roundDirection) {
     INIT_SCRIPT_FLOAT(value);

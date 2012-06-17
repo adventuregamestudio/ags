@@ -1,6 +1,7 @@
 
 #include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
+#include "acmain/ac_controls.h"
 #include "acmain/ac_commonheaders.h"
 #include "acgui/ac_guiinv.h"
 #include "acmain/ac_guiinvwindow.h"
@@ -14,7 +15,6 @@
 int myerrno;
 #else
 int errno;
-#define myerrno errno
 #endif
 
 #if defined(MAC_VERSION) && !defined(IOS_VERSION)

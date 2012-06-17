@@ -14,6 +14,7 @@ void update_polled_stuff_and_crossfade ();
 int IsMusicPlaying();
 void clear_music_cache();
 void System_SetVolume(int newvol) ;
+void stopmusic();
 
 #define UPDATE_MP3 \
     if (!psp_audio_multithreaded) \

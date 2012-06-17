@@ -43,6 +43,10 @@ void Character_SetActiveInventory(CharacterInfo *chaa, ScriptInvItem* iit);
 void Character_AddInventory(CharacterInfo *chaa, ScriptInvItem *invi, int addIndex);
 void Character_LoseInventory(CharacterInfo *chap, ScriptInvItem *invi);
 
+int wantMoveNow (int chnum, CharacterInfo *chi);
+void SetCharacterView(int chaa,int vii);
+int GetCharacterSpeechAnimationDelay(CharacterInfo *cha);
+
 extern CharacterInfo*playerchar;
 extern CharacterExtras *charextra;
 extern long _sc_PlayerCharPtr;

@@ -10,6 +10,8 @@ int replay_start_this_time = 0;
 short *recordbuffer = NULL;
 int  recbuffersize = 0, recsize = 0;
 
+const char *replayTempFile = "~replay.tmp";
+
 void write_record_event (int evnt, int dlen, short *dbuf) {
 
   recordbuffer[recsize] = play.gamestep;

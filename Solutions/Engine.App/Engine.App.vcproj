@@ -1253,11 +1253,19 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\acmain\ac_cdplayer.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acmain\ac_collision.h"
 					>
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_commonheaders.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_controls.h"
 					>
 				</File>
 				<File
@@ -1330,6 +1338,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_maindefines.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_math.h"
 					>
 				</File>
 				<File

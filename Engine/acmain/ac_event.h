@@ -43,6 +43,7 @@ extern int evblocknum;
 void run_on_event (int evtype, int wparam);
 void setevent(int evtyp,int ev1=0,int ev2=-1000,int ev3=0);
 void run_event_block_inv(int invNum, int aaa);
+void update_events();
 
 void GiveScore(int amnt) ;
 

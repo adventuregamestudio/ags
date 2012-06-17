@@ -12,8 +12,60 @@
 
 */
 
+#define USE_CLIB
+#include <stdio.h>
+#include "wgt2allg.h"
+#include "ali3d.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_main.h"
+#include "acmain/ac_commonheaders.h"
+#include "acaudio/ac_audio.h"
+#include "acaudio/ac_music.h"
+#include "acaudio/ac_sound.h"
+#include "acmain/ac_controls.h"
+#include "acchars/ac_charhelpers.h"
+#include "acmain/ac_lipsync.h"
+#include "acmain/ac_math.h"
+#include "acmain/ac_cdplayer.h"
+#include "cs/cs_runtime.h"
+#include "acmain/ac_animatingguibutton.h"
+#include "acgui/ac_guibutton.h"
+#include "acgfx/ac_gfxfilters.h"
+#include "acrun/ac_executingscript.h"
+#include "acmain/ac_transition.h"
+#include "cs/cs_utils.h"
+#include "mousew32.h"
+#include "acmain/ac_display.h"
+#include "acmain/ac_file.h"
+#include "routefnd.h"
+#include "misc.h"
+#include "cs/cc_error.h"
+#include "acfont/ac_agsfontrenderer.h"
+#include "acmain/ac_display.h"
+#include "acaudio/ac_soundcache.h"
+
+
+#ifdef WINDOWS_VERSION
+#include <shlwapi.h>
+//#include <crtdbg.h>
+//#include "winalleg.h"
+
+int wArgc;
+LPWSTR *wArgv;
+#else
+// ???
+#endif
+
+#if !defined(LINUX_VERSION) && !defined(MAC_VERSION)
+#include <process.h>
+#endif
+
+// **** GLOBALS ****
+char *music_file;
+char *speech_file;
+WCHAR directoryPathBuffer[MAX_PATH];
+
+
 
 // for external modules to call
 void next_iteration() {
@@ -70,6 +122,10 @@ DWORD WINAPI update_mp3_thread(LPVOID lpParam)
 #endif
 
 
+int user_disabled_for=0,user_disabled_data=0,user_disabled_data2=0;
+int user_disabled_data3=0;
+
+
 // check and abort game if the script is currently
 // inside the rep_exec_always function
 void can_run_delayed_command() {
@@ -91,6 +147,14 @@ void main_loop_until(int untilwhat,int udata,int mousestuff) {
     user_disabled_data=udata;
     return;
 }
+
+
+
+// Sierra-style speech settings
+int face_talking=-1,facetalkview=0,facetalkwait=0,facetalkframe=0;
+int facetalkloop=0, facetalkrepeat = 0, facetalkAllowBlink = 1;
+int facetalkBlinkLoop = 0;
+CharacterInfo *facetalkchar = NULL;
 
 
 
@@ -1142,6 +1206,10 @@ int check_write_access() {
   return 1;
 }
 
+
+long t1;  // timer for FPS // ... 't1'... how very appropriate.. :)
+
+
 void mainloop(bool checkControls, IDriverDependantBitmap *extraBitmap, int extraX, int extraY) {
   UPDATE_MP3
 
@@ -1480,6 +1548,12 @@ int malloc_fail_handler(size_t amountwanted) {
   return 0;
 }
 #endif
+
+// set to 0 once successful
+int working_gfx_mode_status = -1;
+int debug_15bit_mode = 0, debug_24bit_mode = 0;
+int convert_16bit_bgr = 0;
+
 
 int init_gfx_mode(int wid,int hit,int cdep) {
 
@@ -1845,6 +1919,27 @@ int INIreadint (const char *sectn, const char *item, int errornosect = 1) {
   free (tempstr);
   return toret;
 }
+
+
+//char datname[80]="ac.clb";
+char ac_conf_file_defname[MAX_PATH] = "acsetup.cfg";
+char *ac_config_file = &ac_conf_file_defname[0];
+char conffilebuf[512];
+
+
+#if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
+int psp_video_framedrop = 1;
+int psp_audio_enabled = 1;
+int psp_midi_enabled = 1;
+int psp_ignore_acsetup_cfg_file = 0;
+int psp_clear_cache_on_room_change = 0;
+
+int psp_midi_preload_patches = 0;
+int psp_audio_cachesize = 10;
+char psp_game_file_name[] = "ac2game.dat";
+int psp_gfx_smooth_sprites = 1;
+char psp_translation[] = "default";
+#endif
 
 
 void read_config_file(char *argv0) {
@@ -2449,6 +2544,8 @@ void initialise_game_file_name()
 #endif
 }
 
+extern "C" int  cfopenpriority;
+
 int main(int argc,char*argv[]) { 
   our_eip = -999;
   cfopenpriority=2;
@@ -2623,6 +2720,13 @@ int main(int argc,char*argv[]) {
   }
 }
 
+#if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(WINDOWS_VERSION)
+extern int psp_gfx_smoothing;
+extern int psp_gfx_scaling;
+extern int psp_gfx_renderer;
+extern int psp_gfx_super_sampling;
+#endif
+
 void create_gfx_driver() 
 {
 #ifdef WINDOWS_VERSION
@@ -2642,6 +2746,11 @@ void create_gfx_driver()
   gfxDriver->SetCallbackOnInit(GfxDriverOnInitCallback);
   gfxDriver->SetTintMethod(TintReColourise);
 }
+
+
+extern "C" int csetlib(char *namm, char *passw);
+
+int use_extra_sound_offset = 0;
 
 int initialize_engine(int argc,char*argv[])
 {

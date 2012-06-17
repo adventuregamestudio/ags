@@ -10,6 +10,7 @@ void update_gui_zorder();
 void export_gui_controls(int ee);
 int convert_gui_disabled_style(int oldStyle);
 void unexport_gui_controls(int ee);
+void update_gui_disabled_status();
 
 extern int ifacepopped;  // currently displayed pop-up GUI (-1 if none)
 

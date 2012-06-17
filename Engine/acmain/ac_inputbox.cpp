@@ -2,6 +2,7 @@
 #include "wgt2allg.h"
 #include "ali3d.h"
 #include "acmain/ac_maindefines.h"
+#include "acmain/ac_inputbox.h"
 #include "ac/ac_common.h"
 #include "acmain/ac_game.h"
 #include "acdialog/ac_cscidialog.h"

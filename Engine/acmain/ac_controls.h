@@ -1,5 +1,6 @@
 
 void check_controls();
+int my_readkey();
 
 extern int restrict_until;
 

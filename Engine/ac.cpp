@@ -414,7 +414,7 @@ int scaddr;
 
 
 
-int mouse_z_was = 0;
+
 
 
 

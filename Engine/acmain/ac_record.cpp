@@ -1,6 +1,16 @@
 
+#include <stdio.h>
+#include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_record.h"
+#include "acmain/ac_commonheaders.h"
+#include "mousew32.h"
+#include "acmain/ac_controls.h"
+#include "acaudio/ac_audio.h"
+#include "acgfx/ac_gfxfilters.h"
+#include "acmain/ac_plugin.h"
+#include "acmain/ac_inputbox.h"
+#include "cs/cs_utils.h"
 
 char replayfile[MAX_PATH] = "record.dat";
 int replay_time = 0;
@@ -11,6 +21,8 @@ short *recordbuffer = NULL;
 int  recbuffersize = 0, recsize = 0;
 
 const char *replayTempFile = "~replay.tmp";
+
+int mouse_z_was = 0;
 
 void write_record_event (int evnt, int dlen, short *dbuf) {
 

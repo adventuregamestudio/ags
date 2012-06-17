@@ -21,6 +21,7 @@ int load_game_file();
 int Game_SetSaveGameDirectory(const char *newFolder);
 int GetGlobalInt(int index);
 void SetGlobalString (int index, char *newval);
+void save_game_data (FILE *ooo, block screenshot);
 
 extern char saveGameDirectory[260];
 extern int want_quit;

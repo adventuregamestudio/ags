@@ -1309,6 +1309,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\acmain\ac_inputbox.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acmain\ac_interaction.h"
 					>
 				</File>
@@ -1362,6 +1366,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_parser.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_plugin.h"
 					>
 				</File>
 				<File

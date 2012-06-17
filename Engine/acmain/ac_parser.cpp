@@ -1,6 +1,9 @@
 
+#include <stdio.h>
+#include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_parser.h"
+#include "acmain/ac_commonheaders.h"
 
 int find_word_in_dictionary (char *lookfor) {
   int j;

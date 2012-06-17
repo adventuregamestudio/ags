@@ -10,6 +10,7 @@ SOUNDCLIP *load_music_from_disk(int mnum, bool doRepeat);
 void play_new_music(int mnum, SOUNDCLIP *music);
 void update_polled_stuff(bool checkForDebugMessages);
 void update_music_volume();
+void update_polled_stuff_and_crossfade ();
 
 #define UPDATE_MP3 \
     if (!psp_audio_multithreaded) \

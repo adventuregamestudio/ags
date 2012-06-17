@@ -1,6 +1,6 @@
 
 #include "acmain/ac_maindefines.h"
-
+#include "acmain/ac_parser.h"
 
 int find_word_in_dictionary (char *lookfor) {
   int j;

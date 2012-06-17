@@ -1,10 +1,9 @@
 
 #include "acmain/ac_maindefines.h"
-
+#include "acmain/ac_timer.h"
 
 
 volatile int timerloop=0;
-
 int time_between_timers=25;  // in milliseconds
 // our timer, used to keep game running at same speed on all systems
 #if defined(WINDOWS_VERSION)

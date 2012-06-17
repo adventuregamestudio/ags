@@ -4,7 +4,7 @@
 
 void do_main_cycle(int untilwhat,int daaa);
 void can_run_delayed_command();
-void mainloop(bool checkControls, IDriverDependantBitmap *extraBitmap, int extraX, int extraY);
+void mainloop(bool checkControls = false, IDriverDependantBitmap *extraBitmap = NULL, int extraX = 0, int extraY = 0);
 
 
 #endif // __AC_MAIN_H

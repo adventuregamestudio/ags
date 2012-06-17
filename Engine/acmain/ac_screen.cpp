@@ -1,7 +1,10 @@
 
 #include "acmain/ac_maindefines.h"
+#include "acmain/ac_screen.h"
 
-
+int scrnwid,scrnhit;
+int current_screen_resolution_multiplier = 1;
+int force_letterbox = 0;
 
 int GetMaxScreenHeight () {
     int maxhit = BASEHEIGHT;

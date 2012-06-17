@@ -21,7 +21,7 @@ block *actspswb;
 IDriverDependantBitmap* *actspswbbmp;
 CachedActSpsData* actspswbcache;
 
-
+block virtual_screen;
 
 void setpal() {
     wsetpalette(0,255,palette);

@@ -16,6 +16,7 @@ int check_mouse_wheel ();
 int rec_kbhit () ;
 int rec_getch () ;
 void stop_recording() ;
+void rec_domouse (int what);
 
 
 extern char replayfile[MAX_PATH];

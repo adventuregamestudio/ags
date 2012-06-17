@@ -371,11 +371,8 @@ int numSoundChannels = 8;
 
 
 char *heightTestString = "ZHwypgfjqhkilIK";
-block virtual_screen; 
-int scrnwid,scrnhit;
-int current_screen_resolution_multiplier = 1;
 
-int force_letterbox = 0;
+
 int game_paused=0;
 
 
@@ -406,7 +403,7 @@ IDriverDependantBitmap **guibgbmp = NULL;
 block debugConsoleBuffer = NULL;
 block blank_mouse_cursor = NULL;
 bool current_background_is_dirty = false;
-int longestline = 0;
+
 
 PluginObjectReader pluginReaders[MAX_PLUGIN_OBJECT_READERS];
 int numPluginReaders = 0;
@@ -471,7 +468,7 @@ IDriverDependantBitmap* roomBackgroundBmp = NULL;
 
 int need_to_stop_cd=0;
 int debug_15bit_mode = 0, debug_24bit_mode = 0;
-int said_text = 0;
+
 int convert_16bit_bgr = 0;
 int mouse_z_was = 0;
 
@@ -533,11 +530,7 @@ int pluginsWantingDebugHooks = 0;
 
 const char *replayTempFile = "~replay.tmp";
 
-NonBlockingScriptFunction repExecAlways(REP_EXEC_ALWAYS_NAME, 0);
-NonBlockingScriptFunction getDialogOptionsDimensionsFunc("dialog_options_get_dimensions", 1);
-NonBlockingScriptFunction renderDialogOptionsFunc("dialog_options_render", 1);
-NonBlockingScriptFunction getDialogOptionUnderCursorFunc("dialog_options_get_active", 1);
-NonBlockingScriptFunction runDialogOptionMouseClickHandlerFunc("dialog_options_mouse_click", 2);
+
 
 //  *** FUNCTIONS ****
 

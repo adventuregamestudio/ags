@@ -699,6 +699,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\acmain\ac_nonblockingscriptfunction.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acmain\ac_object.cpp"
 					>
 				</File>
@@ -1325,6 +1329,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\acmain\ac_parser.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acmain\ac_record.h"
 					>
 				</File>
@@ -1334,6 +1342,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_room.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_screen.h"
 					>
 				</File>
 				<File
@@ -1358,6 +1370,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_strings.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_timer.h"
 					>
 				</File>
 				<File

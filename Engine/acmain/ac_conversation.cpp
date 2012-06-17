@@ -6,6 +6,10 @@
 #include "acmain/ac_commonheaders.h"
 #include "acmain/ac_scriptdialogoptionsrendering.h"
 #include "acrun/ac_executingscript.h"
+#include "acaudio/ac_sound.h"
+#include "acgui/ac_guitextbox.h"
+#include "acmain/ac_parser.h"
+#include "acaudio/ac_music.h"
 
 
 int said_speech_line; // used while in dialog to track whether screen needs updating
@@ -13,6 +17,9 @@ int said_speech_line; // used while in dialog to track whether screen needs upda
 // Old dialog support
 unsigned char** old_dialog_scripts;
 char** old_speech_lines;
+
+int said_text = 0;
+int longestline = 0;
 
 
 // ** SCRIPT DIALOGOPTIONSRENDERING OBJECT

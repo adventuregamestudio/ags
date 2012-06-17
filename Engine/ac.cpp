@@ -221,12 +221,7 @@ LPWSTR *wArgv;
 
 #endif
 
-// ***** EXTERNS ****
-extern "C" {
- extern int  csetlib(char*,char*);
- extern FILE*clibfopen(char*,char*);
- extern int  cfopenpriority;
- }
+
 extern int  minstalled();
 extern void mnewcursor(char);
 extern void mgetgraphpos();
@@ -489,7 +484,7 @@ int post_script_cleanup_stack = 0;
 
 
 RGB_MAP rgb_table;  // for 256-col antialiasing
-char* game_file_name=NULL;
+
 
 
 int scrlockWasDown = 0;

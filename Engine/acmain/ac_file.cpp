@@ -1,8 +1,53 @@
 
+#define USE_CLIB
+#include <stdio.h>
+#include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_file.h"
+#include "acmain/ac_commonheaders.h"
+#include "misc.h"
+#include "acrun/ac_scriptfile.h"
 
 
+#ifdef WINDOWS_VERSION
+//#include <crtdbg.h>
+//#include "winalleg.h"
+//#include <shlwapi.h>
+
+#elif defined(LINUX_VERSION) || defined(MAC_VERSION)
+
+/*
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <dirent.h>
+#include "../PSP/launcher/pe.h"
+*/
+
+long int filelength(int fhandle)
+{
+    struct stat statbuf;
+    fstat(fhandle, &statbuf);
+    return statbuf.st_size;
+}
+
+#else   // it's DOS (DJGPP)
+
+//#include "sys/exceptn.h"
+
+//int sys_getch() {
+//    return getch();
+//}
+
+#endif  // WINDOWS_VERSION
+
+// ***** EXTERNS ****
+extern "C" {
+    extern int  csetlib(char*,char*);
+    extern FILE*clibfopen(char*,char*);
+    extern int  cfopenpriority;
+    extern long cliboffset(char*);
+}
 
 // override packfile functions to allow it to load from our
 // custom CLIB datafiles
@@ -17,6 +62,11 @@ extern char* clibgetdatafile(char*);
 #ifndef RTLD_NEXT
 extern PACKFILE *__old_pack_fopen(PFO_PARAM,PFO_PARAM);
 #endif
+
+
+char* game_file_name=NULL;
+
+
 
 #if ALLEGRO_DATE > 19991010
 PACKFILE *pack_fopen(const char *filnam1, const char *modd1) {

@@ -611,10 +611,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acmain\ac_executingscript.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\acmain\ac_file.cpp"
 					>
 				</File>
@@ -1478,6 +1474,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acrun\ac_scriptdynamicsprite.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acrun\ac_scriptfile.h"
 					>
 				</File>
 				<File

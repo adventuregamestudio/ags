@@ -31,3 +31,5 @@ extern short *recordbuffer;
 extern int  recbuffersize, recsize;
 
 extern const char *replayTempFile;
+
+extern int mouse_z_was;

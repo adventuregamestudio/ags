@@ -15,6 +15,8 @@ int IsMusicPlaying();
 void clear_music_cache();
 void System_SetVolume(int newvol) ;
 void stopmusic();
+void PlayMusicResetQueue(int newmus);
+void update_music_volume();
 
 #define UPDATE_MP3 \
     if (!psp_audio_multithreaded) \

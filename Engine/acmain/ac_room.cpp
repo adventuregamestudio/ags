@@ -1,8 +1,24 @@
-
+#define USE_CLIB
+#include <stdio.h>
+#include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_room.h"
+#include "acmain/ac_commonheaders.h"
+#include "acrun/ac_executingscript.h"
+#include "cs/cs_runtime.h"
+#include "acmain/ac_transition.h"
+#include "acaudio/ac_audio.h"
+#include "acaudio/ac_music.h"
+#include "acaudio/ac_sound.h"
+#include "acgfx/ac_gfxfilters.h"
+#include "acchars/ac_charhelpers.h"
+#include "agsplugin.h"
+#include "cs/cc_error.h"
 
 roomstruct thisroom;
+RGB_MAP rgb_table;  // for 256-col antialiasing
+int new_room_flags=0;
+int gs_to_newroom=-1;
 
 block fix_bitmap_size(block todubl) {
     int oldw=todubl->w, oldh=todubl->h;
@@ -763,7 +779,7 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
     //  MSS_CHECK_ALL_BLOCKS;
 }
 
-
+extern int psp_clear_cache_on_room_change;
 
 // new_room: changes the current room number, and loads the new room from disk
 void new_room(int newnum,CharacterInfo*forchar) {
@@ -993,6 +1009,7 @@ int find_highest_room_entered() {
   return fndas;
 }
 
+extern long t1;  // defined in ac_main
 
 void first_room_initialization() {
   starting_room = displayed_room;

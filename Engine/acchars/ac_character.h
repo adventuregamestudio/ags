@@ -38,6 +38,7 @@ void SetCharacterSpeechView (int chaa, int vii);
 void Character_SetOption(CharacterInfo *chaa, int flag, int yesorno);
 void MoveCharacterToHotspot(int chaa,int hotsp);
 void scAnimateCharacter (int chh, int loopn, int sppd, int rept);
+void Character_ChangeRoom(CharacterInfo *chaa, int room, int x, int y);
 
 ScriptInvItem* Character_GetActiveInventory(CharacterInfo *chaa);
 void Character_SetActiveInventory(CharacterInfo *chaa, ScriptInvItem* iit);

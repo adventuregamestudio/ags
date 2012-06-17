@@ -18,6 +18,9 @@ void set_mouse_cursor(int newcurs);
 void set_new_cursor_graphic (int spriteslot);
 void set_default_cursor();
 int GetMouseCursor();
+void SetMouseBounds (int x1, int y1, int x2, int y2);
+void enable_cursor_mode(int modd);
+void disable_cursor_mode(int modd);
 
 
 extern int cur_mode,cur_cursor;

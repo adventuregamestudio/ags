@@ -7,6 +7,7 @@ enum WalkBehindMethodEnum
 };
 
 void update_walk_behind_images();
+void recache_walk_behinds ();
 
 extern char *walkBehindExists;  // whether a WB area is in this column
 extern int *walkBehindStartY, *walkBehindEndY ;

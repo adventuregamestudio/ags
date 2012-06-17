@@ -399,7 +399,7 @@ int num_scripts=0;
 
 
 
-int gs_to_newroom=-1;
+
 
 
 
@@ -437,7 +437,7 @@ char ac_engine_copyright[]="Adventure Game Studio engine & tools (c) 1999-2000 b
 
 
 
-int new_room_flags=0;
+
 
 
 
@@ -446,7 +446,7 @@ int post_script_cleanup_stack = 0;
 
 
 
-RGB_MAP rgb_table;  // for 256-col antialiasing
+
 
 
 

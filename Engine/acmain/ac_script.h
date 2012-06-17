@@ -18,6 +18,8 @@ int run_text_script(ccInstance*sci,char*tsname);
 void setup_script_exports();
 int create_global_script();
 
+void cancel_all_scripts();
+
 
 extern int inside_script,in_graph_script;
 extern int no_blocking_functions; // set to 1 while in rep_Exec_always

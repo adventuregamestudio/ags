@@ -39,6 +39,7 @@ void putpixel_compensate (block onto, int xx,int yy, int col);
 // returns 1 if nothing at all has changed and actsps is still
 // intact from last time; 0 otherwise
 int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysUseSoftware);
+void clear_letterbox_borders();
 
 extern color palette[256];
 extern COLOR_MAP maincoltable;
@@ -48,6 +49,9 @@ void setpal();
 AGS_INLINE int convert_to_low_res(int coord);
 AGS_INLINE int convert_back_to_high_res(int coord);
 AGS_INLINE void multiply_up_coordinates_round_up(int *x, int *y);
+
+block convert_16_to_15(block iii);
+block convert_16_to_16bgr(block tempbl);
 
 extern IGraphicsDriver *gfxDriver;
 extern IDriverDependantBitmap *mouseCursor;
@@ -87,6 +91,8 @@ extern int _places_r, _places_g, _places_b;
 
 // whether there are currently remnants of a DisplaySpeech
 extern int screen_is_dirty;
+
+extern IDriverDependantBitmap* roomBackgroundBmp;
 
 
 #endif // __AC_DRAW_H

@@ -1,5 +1,6 @@
 
 void PauseGame();
+void UnPauseGame();
 int IsGamePaused();
 void SetGameSpeed(int newspd);
 void SetGlobalInt(int index,int valu);

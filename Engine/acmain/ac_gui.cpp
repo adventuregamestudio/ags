@@ -1,6 +1,14 @@
 
+#include <stdio.h>
+#include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_gui.h"
+#include "acmain/ac_commonheaders.h"
+#include "acgfx/ac_gfxfilters.h"
+#include "acrun/ac_executingscript.h"
+#include "acgui/ac_guibutton.h"
+#include "cs/cs_runtime.h"
+#include "acmain/ac_guicontrol.h"
 
 
 int ifacepopped=-1;  // currently displayed pop-up GUI (-1 if none)

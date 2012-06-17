@@ -1,6 +1,6 @@
 
 #include "acmain/ac_maindefines.h"
-
+#include "acmain/ac_guicontrol.h"
 
 GUIObject *GetGUIControlAtLocation(int xx, int yy) {
     int guinum = GetGUIAt(xx, yy);

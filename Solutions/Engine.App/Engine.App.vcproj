@@ -1297,6 +1297,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\acmain\ac_guicontrol.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acmain\ac_guiinvwindow.h"
 					>
 				</File>

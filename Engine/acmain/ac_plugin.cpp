@@ -1,5 +1,7 @@
 
+#include <stdio.h>
 #include "acmain/ac_maindefines.h"
+#include "acmain/ac_mouse.h"            // NONE constant
 
 
 int pluginSimulatedClick = NONE;

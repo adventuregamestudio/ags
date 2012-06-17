@@ -16,5 +16,7 @@ int initialize_engine_with_exception_handling(int argc,char*argv[]);
 
 void precache_view(int view);
 
+extern int face_talking;
+
 
 #endif // __AC_MAIN_H

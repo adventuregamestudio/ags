@@ -1,3 +1,5 @@
+#ifndef __AC_SCRIPTOVERLAY_H
+#define __AC_SCRIPTOVERLAY_H
 
 #include "acrun/ac_ccdynamicobject.h"
 
@@ -14,3 +16,5 @@ struct ScriptOverlay : AGSCCDynamicObject {
     void Remove();
     ScriptOverlay();
 };
+
+#endif // __AC_SCRIPTOVERLAY_H

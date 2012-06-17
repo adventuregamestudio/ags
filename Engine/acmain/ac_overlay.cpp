@@ -1,6 +1,9 @@
 
+#include <stdio.h>
+#include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_overlay.h"
+#include "acmain/ac_commonheaders.h"
 
 ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 int is_complete_overlay=0,is_text_overlay=0;
@@ -52,7 +55,7 @@ int find_overlay_of_type(int typ) {
     return -1;
 }
 
-int add_screen_overlay(int x,int y,int type,block piccy, bool alphaChannel = false) {
+int add_screen_overlay(int x,int y,int type,block piccy, bool alphaChannel) {
     if (numscreenover>=MAX_SCREEN_OVERLAYS)
         quit("too many screen overlays created");
     if (type==OVER_COMPLETE) is_complete_overlay++;

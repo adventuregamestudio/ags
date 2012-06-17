@@ -1,3 +1,5 @@
+#ifndef __AC_SCREENOVERLAY_H
+#define __AC_SCREENOVERLAY_H
 
 #include "ali3d.h"
 
@@ -11,3 +13,4 @@ struct ScreenOverlay {
     bool positionRelativeToScreen;
 };
 
+#endif // __AC_SCREENOVERLAY_H

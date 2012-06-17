@@ -356,7 +356,7 @@ int numSoundChannels = 8;
 
 
 
-char alpha_blend_cursor = 0;
+
 
 
 

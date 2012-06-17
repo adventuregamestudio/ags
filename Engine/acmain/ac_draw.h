@@ -34,6 +34,7 @@ bool GfxDriverNullSpriteCallback(int x, int y);
 void init_invalid_regions(int scrnHit);
 int get_screen_x_adjustment(BITMAP *checkFor);
 int get_screen_y_adjustment(BITMAP *checkFor);
+void putpixel_compensate (block onto, int xx,int yy, int col);
 
 extern color palette[256];
 
@@ -41,6 +42,7 @@ void setpal();
 
 AGS_INLINE int convert_to_low_res(int coord);
 AGS_INLINE int convert_back_to_high_res(int coord);
+AGS_INLINE void multiply_up_coordinates_round_up(int *x, int *y);
 
 extern IGraphicsDriver *gfxDriver;
 extern IDriverDependantBitmap *mouseCursor;
@@ -71,6 +73,7 @@ extern int offsetx, offsety;
 
 extern block raw_saved_screen;
 extern block dotted_mouse_cursor;
+extern block blank_mouse_cursor;
 
 extern block _old_screen;
 extern block _sub_screen;

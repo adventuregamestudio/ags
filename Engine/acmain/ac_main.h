@@ -14,5 +14,7 @@ int wait_loop_still_valid();
 int initialize_engine(int argc,char*argv[]);
 int initialize_engine_with_exception_handling(int argc,char*argv[]);
 
+void precache_view(int view);
+
 
 #endif // __AC_MAIN_H

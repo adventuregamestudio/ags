@@ -1,6 +1,12 @@
 
+#include <stdio.h>
+#include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_mouse.h"
+#include "acmain/ac_commonheaders.h"
+#include "acgfx/ac_gfxfilters.h"
+#include "mousew32.h"
+#include "acgui/ac_guibutton.h"
 
 int cur_mode,cur_cursor;
 ScriptMouse scmouse;
@@ -87,6 +93,7 @@ void update_inv_cursor(int invnum) {
     }
   }
 
+char alpha_blend_cursor = 0;
 
 void update_cached_mouse_cursor() 
 {

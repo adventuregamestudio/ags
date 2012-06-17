@@ -37,3 +37,5 @@ extern int mousex, mousey;
 extern int hotx, hoty;
 extern int disable_mgetgraphpos;
 extern char currentcursor;
+
+extern block mousecurs[MAXCURSORS];

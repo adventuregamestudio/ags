@@ -19,6 +19,8 @@ void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int baselin
 void tint_image (block source, block dest, int red, int grn, int blu, int light_level, int luminance=255);
 void draw_sprite_support_alpha(int xpos, int ypos, block image, int slot);
 int Game_GetColorFromRGB(int red, int grn, int blu);
+void render_to_screen(BITMAP *toRender, int atx, int aty);
+void draw_screen_callback();
 
 extern color palette[256];
 

@@ -1,6 +1,16 @@
 
+#include <stdio.h>
+#include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_event.h"
+#include "acmain/ac_commonheaders.h"
+#include "acaudio/ac_audio.h"
+#include "acrun/ac_executingscript.h"
+#include "cs/cc_error.h"
+#include "agsplugin.h"
+#include "acmain/ac_transition.h"
+#include "acaudio/ac_audio.h"
+#include "acaudio/ac_music.h"
 
 int in_enters_screen=0,done_es_error = 0;
 int in_leaves_screen = -1;
@@ -10,6 +20,10 @@ int numevents=0;
 
 char*evblockbasename;
 int evblocknum;
+
+int eventClaimed = EVENT_NONE;
+
+char*tsnames[4]={NULL, REP_EXEC_NAME, "on_key_press","on_mouse_click"};
 
 
 void GiveScore(int amnt) 

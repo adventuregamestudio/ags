@@ -1,5 +1,6 @@
 
 #include "acmain/ac_maindefines.h"
+#include "acmain/ac_transition.h"
 
 
 void my_fade_out(int spdd) {

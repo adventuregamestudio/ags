@@ -207,7 +207,7 @@ extern const char *get_engine_version();
 extern void quitprintf(char*texx, ...) ;
 extern void RefreshMouse();
 extern void PluginSimulateMouseClick(int pluginButtonID);
-extern int  run_script_function_if_exist(ccInstance*sci,char*tsname,int numParam, int iparam, int iparam2, int iparam3 = 0) ;
+
 extern int  IsChannelPlaying(int chan) ;
 extern void stop_and_destroy_channel (int chid) ;
 extern int  rec_kbhit();

@@ -5,6 +5,7 @@ void remove_popup_interface(int ifacenum);
 int IsInterfaceEnabled();
 void DisableInterface();
 void EnableInterface();
+void process_interface_click(int ifce, int btn, int mbut);
 
 extern int ifacepopped;  // currently displayed pop-up GUI (-1 if none)
 

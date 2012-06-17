@@ -1389,6 +1389,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\acmain\ac_transition.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acmain\ac_translation.h"
 					>
 				</File>

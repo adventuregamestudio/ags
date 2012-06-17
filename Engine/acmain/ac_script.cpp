@@ -14,6 +14,12 @@ NonBlockingScriptFunction runDialogOptionMouseClickHandlerFunc("dialog_options_m
 
 ScriptSystem scsystem;
 
+ccScript *scriptModules[MAX_SCRIPT_MODULES];
+ccInstance *moduleInst[MAX_SCRIPT_MODULES];
+ccInstance *moduleInstFork[MAX_SCRIPT_MODULES];
+char *moduleRepExecAddr[MAX_SCRIPT_MODULES];
+int numScriptModules = 0;
+
 
 char bname[40],bne[40];
 char* make_ts_func_name(char*base,int iii,int subd) {

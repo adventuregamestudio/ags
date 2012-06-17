@@ -398,11 +398,7 @@ int use_extra_sound_offset = 0;
 PluginObjectReader pluginReaders[MAX_PLUGIN_OBJECT_READERS];
 int numPluginReaders = 0;
 
-ccScript *scriptModules[MAX_SCRIPT_MODULES];
-ccInstance *moduleInst[MAX_SCRIPT_MODULES];
-ccInstance *moduleInstFork[MAX_SCRIPT_MODULES];
-char *moduleRepExecAddr[MAX_SCRIPT_MODULES];
-int numScriptModules = 0;
+
 
 
 
@@ -415,7 +411,7 @@ int numScriptModules = 0;
 
 AnimatingGUIButton animbuts[MAX_ANIMATING_BUTTONS];
 int numAnimButs = 0;
-int num_scripts=0, eventClaimed = EVENT_NONE;
+int num_scripts=0;
 int getloctype_index = 0, getloctype_throughgui = 0;
 int user_disabled_for=0,user_disabled_data=0,user_disabled_data2=0;
 int user_disabled_data3=0;
@@ -471,10 +467,9 @@ char ac_engine_copyright[]="Adventure Game Studio engine & tools (c) 1999-2000 b
 
 
 
-#define REP_EXEC_ALWAYS_NAME "repeatedly_execute_always"
-#define REP_EXEC_NAME "repeatedly_execute"
 
-char*tsnames[4]={NULL, REP_EXEC_NAME, "on_key_press","on_mouse_click"};
+
+
 
 //int current_music=0;
 
@@ -519,8 +514,7 @@ int  run_text_script_2iparam(ccInstance*,char*,int,int);
 int  run_text_script_iparam(ccInstance*,char*,int);
 //void run_graph_script(int);
 //void run_event_block(EventBlock*,int,int=-1, int=-1);
-int  run_interaction_event (NewInteraction *nint, int evnt, int chkAny = -1, int isInv = 0);
-int  run_interaction_script(InteractionScripts *nint, int evnt, int chkAny = -1, int isInv = 0);
+
 void new_room(int,CharacterInfo*);
 void NewRoom(int);
 void AnimateObject(int,int,int,int);

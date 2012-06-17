@@ -1,5 +1,9 @@
 
+#include <stdio.h>
+#include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
+#include "acgui/ac_guislider.h"
+#include "acmain/ac_commonheaders.h"
 
 // *** SLIDER FUNCTIONS
 

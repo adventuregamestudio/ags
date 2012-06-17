@@ -39,5 +39,6 @@ void update_ambient_sound_vol ();
 int play_sound(int val1);
 
 extern AmbientSound ambient[MAX_SOUND_CHANNELS + 1];  // + 1 just for safety on array iterations
+extern int last_sound_played[MAX_SOUND_CHANNELS + 1];
 
 #endif // __AC_SOUND_H

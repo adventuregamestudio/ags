@@ -31,7 +31,7 @@ SOUNDCLIP *load_sound_clip(ScriptAudioClip *audioClip, bool repeat);
 void recache_queued_clips_after_loading_save_game();
 void audio_update_polled_stuff();
 void queue_audio_clip_to_play(ScriptAudioClip *clip, int priority, int repeat);
-ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *clip, int priority, int repeat, int fromOffset, SOUNDCLIP *soundfx);
+ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *clip, int priority, int repeat, int fromOffset, SOUNDCLIP *cachedClip = NULL);
 void remove_clips_of_type_from_queue(int audioType);
 ScriptAudioChannel* play_audio_clip(ScriptAudioClip *clip, int priority, int repeat, int fromOffset, bool queueIfNoChannel);
 void play_audio_clip_by_index(int audioClipIndex);
@@ -51,7 +51,7 @@ SOUNDCLIP *load_sound_clip_from_old_style_number(bool isMusic, int indexNumber, 
 extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
 
 #if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
-volatile int psp_audio_multithreaded;
+extern volatile int psp_audio_multithreaded;
 #endif
 
 #endif // __AC_AUDIO_H

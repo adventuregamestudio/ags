@@ -349,6 +349,9 @@ void remove_mod_player() {
 #include "acmain/ac_maindefines.h"
 
 
+int last_sound_played[MAX_SOUND_CHANNELS + 1];
+
+
 bool AmbientSound::IsPlaying () {
     if (channel <= 0)
         return false;

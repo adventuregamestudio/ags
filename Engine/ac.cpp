@@ -367,10 +367,9 @@ int numSoundChannels = 8;
 
 
 
-// crossFading is >0 (channel number of new track), or -1 (old
-// track fading out, no new track)
 
-int last_sound_played[MAX_SOUND_CHANNELS + 1];
+
+
 char *heightTestString = "ZHwypgfjqhkilIK";
 block virtual_screen; 
 int scrnwid,scrnhit;

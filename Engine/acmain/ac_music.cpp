@@ -13,6 +13,8 @@
 
 
 int current_music_type = 0;
+// crossFading is >0 (channel number of new track), or -1 (old
+// track fading out, no new track)
 int crossFading = 0, crossFadeVolumePerStep = 0, crossFadeStep = 0;
 int crossFadeVolumeAtStart = 0;
 SOUNDCLIP *cachedQueuedMusic = NULL;

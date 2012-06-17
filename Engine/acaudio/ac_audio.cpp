@@ -13,11 +13,15 @@
 #include <stdio.h>
 #include "wgt2allg.h"
 #include "acaudio/ac_audio.h"
-#include "ac/ac_gamesetupstruct.h"
+#include "acmain/ac_commonheaders.h"
 #include "cs/cs_runtime.h"
-#include "acruntim.h"
 #include "acaudio/ac_sound.h"
-#include "ac/ac_common.h"           // quit()
+#include "acaudio/ac_music.h"
+//#include "ac/ac_gamesetupstruct.h"
+//
+//#include "acruntim.h"
+//
+
 
 extern "C" {
     extern FILE*clibfopen(char*,char*);

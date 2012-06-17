@@ -1,4 +1,5 @@
 
+#include "acgui/ac_guiobject.h"
 
 void GUIControl_SetEnabled(GUIObject *guio, int enabled);
 void GUIControl_SetPosition(GUIObject *guio, int xx, int yy);

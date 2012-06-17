@@ -1,6 +1,16 @@
 
+#include <stdio.h>
+#include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_guicontrol.h"
+#include "acmain/ac_commonheaders.h"
+#include "acgui/ac_guibutton.h"
+#include "acgui/ac_guiinv.h"
+#include "acgui/ac_guilabel.h"
+#include "acgui/ac_guilistbox.h"
+#include "acgui/ac_guislider.h"
+#include "acgui/ac_guitextbox.h"
+
 
 GUIObject *GetGUIControlAtLocation(int xx, int yy) {
     int guinum = GetGUIAt(xx, yy);

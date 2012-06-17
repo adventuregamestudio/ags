@@ -315,20 +315,7 @@ block recycle_bitmap(block bimp, int coldep, int wid, int hit);
 // **** TYPES ****
 
 
-struct ScriptGUI {
-  int id;
-  GUIMain *gui;
-};
 
-struct ScriptHotspot {
-  int id;
-  int reserved;
-};
-
-struct ScriptRegion {
-  int id;
-  int reserved;
-};
 
 
 
@@ -408,20 +395,16 @@ block virtual_screen;
 int scrnwid,scrnhit;
 int current_screen_resolution_multiplier = 1;
 
-
-
-
-CharacterExtras *charextra;
 int force_letterbox = 0;
 int game_paused=0;
 int ifacepopped=-1;  // currently displayed pop-up GUI (-1 if none)
-color palette[256];
+
 //block spriteset[MAX_SPRITES+1];
 //SpriteCache spriteset (MAX_SPRITES+1);
 // initially size 1, this will be increased by the initFile function
 SpriteCache spriteset(1);
 long t1;  // timer for FPS
-int cur_mode,cur_cursor;
+
 
 char saveGameDirectory[260] = "./";
 //int abort_all_conditions=0;
@@ -439,10 +422,9 @@ WalkBehindMethodEnum walkBehindMethod = DrawOverCharSprite;
 unsigned long loopcounter=0,lastcounter=0;
 volatile unsigned long globalTimerCounter = 0;
 char alpha_blend_cursor = 0;
-RoomObject*objs;
-RoomStatus*croom=NULL;
-CharacterInfo*playerchar;
-long _sc_PlayerCharPtr = 0;
+
+
+
 int offsetx = 0, offsety = 0;
 int use_extra_sound_offset = 0;
 GUIMain*guis=NULL;
@@ -474,13 +456,13 @@ ccInstance *moduleInstFork[MAX_SCRIPT_MODULES];
 char *moduleRepExecAddr[MAX_SCRIPT_MODULES];
 int numScriptModules = 0;
 
-ViewStruct*views=NULL;
+
 ScriptMouse scmouse;
 COLOR_MAP maincoltable;
 ScriptSystem scsystem;
 block _old_screen=NULL;
 block _sub_screen=NULL;
-MoveList *mls = NULL;
+
 DialogTopic *dialog;
 block walkareabackup=NULL, walkable_areas_temp = NULL;
 ExecutingScript scripts[MAX_SCRIPT_AT_ONCE];
@@ -514,12 +496,12 @@ int said_speech_line; // used while in dialog to track whether screen needs upda
 
 int restrict_until=0;
 int gs_to_newroom=-1;
-ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
+
 int proper_exit=0,our_eip=0;
 int numscreenover=0;
 int scaddr;
 int walk_behind_baselines_changed = 0;
-int displayed_room=-10,starting_room = -1;
+
 int mouse_on_iface=-1;   // mouse cursor is over this interface
 int mouse_on_iface_button=-1;
 int mouse_pushed_iface=-1;  // this BUTTON on interface MOUSE_ON_IFACE is pushed
@@ -529,14 +511,13 @@ IDriverDependantBitmap* roomBackgroundBmp = NULL;
 
 
 
-int in_enters_screen=0,done_es_error = 0;
-int in_leaves_screen = -1;
+
 int need_to_stop_cd=0;
 int debug_15bit_mode = 0, debug_24bit_mode = 0;
 int said_text = 0;
 int convert_16bit_bgr = 0;
 int mouse_z_was = 0;
-int bg_just_changed = 0;
+
 
 
 char check_dynamic_sprites_at_exit = 1;
@@ -571,9 +552,7 @@ char*evblockbasename;
 int evblocknum;
 //int current_music=0;
 
-int in_new_room=0, new_room_was = 0;  // 1 in new room, 2 first time in new room, 3 loading saved game
-int new_room_pos=0;
-int new_room_x = SCR_NO_VALUE, new_room_y = SCR_NO_VALUE;
+
 unsigned int load_new_game = 0;
 int load_new_game_restore = -1;
 int inside_script=0,in_graph_script=0;
@@ -588,8 +567,7 @@ int sprlistsize=0;
 #define MAX_THINGS_TO_DRAW 125
 SpriteListEntry thingsToDrawList[MAX_THINGS_TO_DRAW];
 int thingsToDrawSize = 0;
-int use_cdplayer=0;
-bool triedToUseCdAudioCommand = false;
+
 int final_scrn_wid=0,final_scrn_hit=0,final_col_dep=0;
 int post_script_cleanup_stack = 0;
 // actsps is used for temporary storage of the bitamp image
@@ -602,15 +580,7 @@ block *actspswb;
 IDriverDependantBitmap* *actspswbbmp;
 CachedActSpsData* actspswbcache;
 
-CharacterCache *charcache = NULL;
-ObjectCache objcache[MAX_INIT_SPR];
 
-ScriptObject scrObj[MAX_INIT_SPR];
-ScriptGUI *scrGui = NULL;
-ScriptHotspot scrHotspot[MAX_HOTSPOTS];
-ScriptRegion scrRegion[MAX_REGIONS];
-ScriptInvItem scrInv[MAX_INV];
-ScriptDialog scrDialog[MAX_DIALOG];
 
 RGB_MAP rgb_table;  // for 256-col antialiasing
 char* game_file_name=NULL;

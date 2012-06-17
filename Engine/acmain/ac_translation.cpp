@@ -1,5 +1,6 @@
 
 #include "acmain/ac_maindefines.h"
+#include "acmain/ac_translation.h"
 
 
 // Binary tree structure for holding translations, allows fast

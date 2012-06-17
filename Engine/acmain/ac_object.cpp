@@ -1,5 +1,6 @@
 
 #include "acmain/ac_maindefines.h"
+#include "acmain/ac_object.h"
 
 
 inline int is_valid_object(int obtest) {

@@ -1,6 +1,8 @@
 
 #include "acmain/ac_maindefines.h"
+#include "acmain/ac_overlay.h"
 
+ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 
 void remove_screen_overlay_index(int cc) {
     int dd;

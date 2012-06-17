@@ -1,5 +1,9 @@
 
 #include "acmain/ac_maindefines.h"
+#include "acmain/ac_event.h"
+
+int in_enters_screen=0,done_es_error = 0;
+int in_leaves_screen = -1;
 
 
 void GiveScore(int amnt) 

@@ -1,6 +1,12 @@
 
+#include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
+#include "acmain/ac_draw.h"
+#include "acrun/ac_runninggame.h"
+#include "acmain/ac_event.h"
+#include "ac/ac_common.h"
 
+int bg_just_changed = 0;
 
 void on_background_frame_change () {
 

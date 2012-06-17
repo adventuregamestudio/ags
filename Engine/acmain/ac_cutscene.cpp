@@ -1,5 +1,6 @@
 
 #include "acmain/ac_maindefines.h"
+#include "acmain/ac_cutscene.h"
 
 
 void start_skipping_cutscene () {

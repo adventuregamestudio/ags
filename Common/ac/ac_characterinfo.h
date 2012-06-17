@@ -98,5 +98,6 @@ struct OldCharacterInfo {
 
 #define COPY_CHAR_VAR(name) ci->name = oci->name
 void ConvertOldCharacterToNew (OldCharacterInfo *oci, CharacterInfo *ci);
+void animate_character(CharacterInfo *chap, int loopn,int sppd,int rept, int noidleoverride, int direction);
 
 #endif // __AC_CHARACTERINFO_H

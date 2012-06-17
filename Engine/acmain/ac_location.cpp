@@ -1,5 +1,6 @@
 
 #include "acmain/ac_maindefines.h"
+#include "acmain/ac_location.h"
 
 
 // return the walkable area at the character's feet, taking into account

@@ -1,5 +1,8 @@
 
+#include <stdio.h>
 #include "acmain/ac_maindefines.h"
+#include "acrun/ac_ccdynamicobject.h"
+#include "ac/ac_common.h"
 
 // *** The script serialization routines for built-in types
 

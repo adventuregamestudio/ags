@@ -1,5 +1,6 @@
 
 #include "acmain/ac_maindefines.h"
+#include "acmain/ac_inventory.h"
 
 
 void SetActiveInventory(int iit) {

@@ -447,6 +447,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\acrun\ac_platformdriver.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acrun\ac_roomobject.cpp"
 					>
 				</File>
@@ -514,14 +518,6 @@
 			<Filter
 				Name="acmain"
 				>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_audiochannel.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_audioclip.cpp"
-					>
-				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_background.cpp"
 					>
@@ -826,6 +822,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\Engine\routefnd.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\Engine\scrptrt.h"
 				>
 			</File>
@@ -1110,10 +1110,14 @@
 				</File>
 			</Filter>
 			<Filter
-				Name="acchar"
+				Name="acchars"
 				>
 				<File
-					RelativePath="..\..\Engine\acchar\ac_charhelpers.h"
+					RelativePath="..\..\Engine\acchars\ac_character.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acchars\ac_charhelpers.h"
 					>
 				</File>
 			</Filter>
@@ -1209,7 +1213,35 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\acmain\ac_collision.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_cutscene.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_draw.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_event.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acmain\ac_file.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_inventory.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_location.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_main.h"
 					>
 				</File>
 				<File
@@ -1217,7 +1249,23 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\acmain\ac_message.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_mouse.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acmain\ac_nonblockingscriptfunction.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_object.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_overlay.h"
 					>
 				</File>
 				<File
@@ -1232,12 +1280,44 @@
 					RelativePath="..\..\Engine\acmain\ac_scriptdialogoptionsrendering.h"
 					>
 				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_speech.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_string.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_strings.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_translation.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_viewframe.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_walkablearea.h"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="acrun"
 				>
 				<File
 					RelativePath="..\..\Engine\acrun\ac_ccdynamicobject.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acrun\ac_charactercache.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acrun\ac_datetime.h"
 					>
 				</File>
 				<File
@@ -1250,6 +1330,14 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acrun\ac_inventoryitem.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acrun\ac_objectcache.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acrun\ac_platformdriver.h"
 					>
 				</File>
 				<File
@@ -1266,6 +1354,18 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acrun\ac_runninggame.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acrun\ac_screenoverlay.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acrun\ac_scriptobject.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acrun\ac_scriptoverlay.h"
 					>
 				</File>
 			</Filter>

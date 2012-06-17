@@ -1,6 +1,6 @@
 
 #include "acmain/ac_maindefines.h"
-
+#include "acmain/ac_walkablearea.h"
 
 
 void redo_walkable_areas() {

@@ -15,3 +15,28 @@ volatile char want_exit = 0, abort_engine = 0;
 int loaded_game_file_version = 0;
 
 int frames_per_second=40;
+
+int displayed_room=-10,starting_room = -1;
+
+MoveList *mls = NULL;
+
+int in_new_room=0, new_room_was = 0;  // 1 in new room, 2 first time in new room, 3 loading saved game
+int new_room_pos=0;
+int new_room_x = SCR_NO_VALUE, new_room_y = SCR_NO_VALUE;
+
+ViewStruct*views=NULL;
+
+RoomObject*objs;
+RoomStatus*croom=NULL;
+
+int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
+
+CharacterCache *charcache = NULL;
+ObjectCache objcache[MAX_INIT_SPR];
+
+ScriptObject scrObj[MAX_INIT_SPR];
+ScriptGUI *scrGui = NULL;
+ScriptHotspot scrHotspot[MAX_HOTSPOTS];
+ScriptRegion scrRegion[MAX_REGIONS];
+ScriptInvItem scrInv[MAX_INV];
+ScriptDialog scrDialog[MAX_DIALOG];

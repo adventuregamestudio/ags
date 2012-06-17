@@ -261,7 +261,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_room.cpp"
+					RelativePath="..\..\Common\ac\ac_roomstruct.cpp"
 					>
 				</File>
 				<File
@@ -423,7 +423,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_room.h"
+					RelativePath="..\..\Common\ac\ac_roomstruct.h"
 					>
 				</File>
 				<File

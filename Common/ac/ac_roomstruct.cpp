@@ -1,7 +1,7 @@
 
 #include <stdio.h>
 #include "wgt2allg.h"
-#include "ac/ac_room.h"
+#include "ac/ac_roomstruct.h"
 #include "ac/ac_common.h"
 #include "ac/ac_wordsdictionary.h"
 #include "cs/cs_utils.h"

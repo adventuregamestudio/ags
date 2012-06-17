@@ -1,5 +1,9 @@
 
 #include "acmain/ac_maindefines.h"
+#include "acmain/ac_draw.h"
+
+
+color palette[256];
 
 
 void setpal() {

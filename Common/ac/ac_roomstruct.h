@@ -1,6 +1,6 @@
 
-#ifndef __AC_ROOM_H
-#define __AC_ROOM_H
+#ifndef __AC_ROOMSTRUCT_H
+#define __AC_ROOMSTRUCT_H
 
 #include "ac/ac_defines.h"      // PCKD
 #include "ac/ac_interaction.h"  // NewInteraction
@@ -141,4 +141,4 @@ extern void load_graphical_scripts(FILE *, roomstruct *);
 extern void save_graphical_scripts(FILE *, roomstruct *);
 //
 
-#endif // __AC_ROOM_H
+#endif // __AC_ROOMSTRUCT_H

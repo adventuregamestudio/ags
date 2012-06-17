@@ -1,5 +1,6 @@
 
 #include "acmain/ac_maindefines.h"
+#include "acmain/ac_strings.h"
 
 
 void split_lines_rightleft (char *todis, int wii, int fonnt) {

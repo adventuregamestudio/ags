@@ -1,6 +1,8 @@
 
 #include "acmain/ac_maindefines.h"
+#include "acmain/ac_mouse.h"
 
+int cur_mode,cur_cursor;
 
 void update_script_mouse_coords() {
     scmouse.x = divide_down_coordinate(mousex);

@@ -84,51 +84,16 @@ struct SpriteListEntry {
 #define TRANS_OPAQUE        20001
 #define TRANS_RUN_PLUGIN    20002
 
-struct ScreenOverlay {
-  IDriverDependantBitmap *bmp;
-  block pic;
-  int type,x,y,timeout;
-  int bgSpeechForChar;
-  int associatedOverlayHandle;
-  bool hasAlphaChannel;
-  bool positionRelativeToScreen;
-};
 
-struct ScriptObject {
-  int id;
-  RoomObject *obj;
-};
+
+
 
 
 #include "acrun/ac_ccdynamicobject.h"
 
 
-struct ScriptOverlay : AGSCCDynamicObject {
-  int overlayId;
-  int borderWidth;
-  int borderHeight;
-  int isBackgroundSpeech;
 
-  virtual int Dispose(const char *address, bool force);
-  virtual const char *GetType();
-  virtual int Serialize(const char *address, char *buffer, int bufsize);
-  virtual void Unserialize(int index, const char *serializedData, int dataSize);
-  void Remove();
-  ScriptOverlay();
-};
 
-struct ScriptDateTime : AGSCCDynamicObject {
-  int year, month, day;
-  int hour, minute, second;
-  int rawUnixTime;
-
-  virtual int Dispose(const char *address, bool force);
-  virtual const char *GetType();
-  virtual int Serialize(const char *address, char *buffer, int bufsize);
-  virtual void Unserialize(int index, const char *serializedData, int dataSize);
-
-  ScriptDateTime();
-};
 
 struct ScriptDrawingSurface : AGSCCDynamicObject {
   int roomBackgroundNumber;
@@ -198,21 +163,7 @@ struct ScriptString : AGSCCDynamicObject, ICCStringClass {
 
 
 
-struct CharacterExtras {
-  // UGLY UGLY UGLY!! The CharacterInfo struct size is fixed because it's
-  // used in the scripts, therefore overflowing stuff has to go here
-  short invorder[MAX_INVORDER];
-  short invorder_count;
-  short width,height;
-  short zoom;
-  short xwas, ywas;
-  short tint_r, tint_g;
-  short tint_b, tint_level;
-  short tint_light;
-  char  process_idle_this_time;
-  char  slow_move_counter;
-  short animwait;
-};
+
 
 #include "acaudio/ac_soundclip.h"
 
@@ -223,10 +174,7 @@ struct CharacterExtras {
 
 
 
-struct ScriptDialog {
-  int id;
-  int reserved;
-};
+
 
 
 // object-based File routine -- struct definition
@@ -262,26 +210,9 @@ struct sc_File : ICCDynamicObject {
 };
 
 
-// stores cached info about the character
-struct CharacterCache {
-  block image;
-  int sppic;
-  int scaling;
-  int inUse;
-  short tintredwas, tintgrnwas, tintbluwas, tintamntwas;
-  short lightlevwas, tintlightwas;
-  // no mirroredWas is required, since the code inverts the sprite number
-};
 
-// stores cached object info
-struct ObjectCache {
-  block image;
-  int   sppic;
-  short tintredwas, tintgrnwas, tintbluwas, tintamntwas, tintlightwas;
-  short lightlevwas, mirroredWas, zoomWas;
-  // The following are used to determine if the character has moved
-  int   xwas, ywas;
-};
+
+
 
 enum PostScriptAction {
   ePSANewRoom,
@@ -329,57 +260,7 @@ struct PluginObjectReader {
 #undef IAGSManagedObjectReader
 #endif
 
-enum eScriptSystemOSID {
-  eOS_DOS = 1,
-  eOS_Win = 2,
-  eOS_Linux = 3,
-  eOS_Mac = 4
-};
 
-struct AGSPlatformDriver {
-  virtual void AboutToQuitGame();
-  virtual void Delay(int millis) = 0;
-  virtual void DisplayAlert(const char*, ...) = 0;
-  virtual const char *GetAllUsersDataDirectory() { return NULL; }
-  virtual unsigned long GetDiskFreeSpaceMB() = 0;
-  virtual const char* GetNoMouseErrorString() = 0;
-  virtual eScriptSystemOSID GetSystemOSID() = 0;
-  virtual void GetSystemTime(ScriptDateTime*) = 0;
-  virtual void PlayVideo(const char* name, int skip, int flags) = 0;
-  virtual void InitialiseAbufAtStartup();
-  virtual void PostAllegroInit(bool windowed);
-  virtual void PostAllegroExit() = 0;
-  virtual void FinishedUsingGraphicsMode();
-  virtual void ReplaceSpecialPaths(const char *sourcePath, char *destPath) = 0;
-  virtual int  RunSetup() = 0;
-  virtual void SetGameWindowIcon();
-  virtual void WriteConsole(const char*, ...) = 0;
-  virtual void WriteDebugString(const char*, ...);
-  virtual void YieldCPU() = 0;
-  virtual void DisplaySwitchOut();
-  virtual void DisplaySwitchIn();
-  virtual void RegisterGameWithGameExplorer();
-  virtual void UnRegisterGameWithGameExplorer();
-  virtual int  ConvertKeycodeToScanCode(int keyCode);
-
-  virtual int  InitializeCDPlayer() = 0;  // return 0 on success
-  virtual int  CDPlayerCommand(int cmdd, int datt) = 0;
-  virtual void ShutdownCDPlayer() = 0;
-
-  virtual void ReadPluginsFromDisk(FILE *);
-  virtual void StartPlugins();
-  virtual int  RunPluginHooks(int event, int data);
-  virtual void RunPluginInitGfxHooks(const char *driverName, void *data);
-  virtual int  RunPluginDebugHooks(const char *scriptfile, int linenum);
-  virtual void ShutdownPlugins();
-
-  static AGSPlatformDriver *GetDriver();
-
-private:
-  static AGSPlatformDriver *instance;
-};
-
-extern AGSPlatformDriver *platform;
 
 
 extern GFXFilter *filter;
@@ -387,73 +268,6 @@ extern GFXFilter *filter;
 
 
 
-#define NUM_DIGI_VOICES     16
-#define NUM_MOD_DIGI_VOICES 12
-
-#define DEBUG_CONSOLE_NUMLINES 6
-#define TXT_SCOREBAR        29
-#define MAXSCORE play.totalscore
-#define CHANIM_REPEAT    2
-#define CHANIM_BACKWARDS 4
-#define ANIM_BACKWARDS 10
-#define ANIM_ONCE      1
-#define ANIM_REPEAT    2
-#define ANIM_ONCERESET 3
-#define FONT_STATUSBAR  0
-#define FONT_NORMAL     play.normal_font
-//#define FONT_SPEECHBACK 1
-#define FONT_SPEECH     play.speech_font
-#define MODE_WALK 0
-#define MODE_LOOK 1
-#define MODE_HAND 2
-#define MODE_TALK 3
-#define MODE_USE  4
-#define MODE_PICKUP 5
-#define CURS_ARROW  6
-#define CURS_WAIT   7
-#define MODE_CUSTOM1 8
-#define MODE_CUSTOM2 9
-
-#define OVER_TEXTMSG  1
-#define OVER_COMPLETE 2
-#define OVER_PICTURE  3
-#define OVER_CUSTOM   100
-#define OVR_AUTOPLACE 30000
-#define FOR_ANIMATION 1
-#define FOR_SCRIPT    2
-#define FOR_EXITLOOP  3
-#define opts usetup
-#define CHMLSOFFS (MAX_INIT_SPR+1)    // reserve this many movelists for objects & stuff
-#define MAX_SCREEN_OVERLAYS 20
-#define abort_all_conditions restrict_until
-#define MAX_SCRIPT_AT_ONCE 10
-#define EVENT_NONE       0
-#define EVENT_INPROGRESS 1
-#define EVENT_CLAIMED    2
-
-#define SKIP_AUTOTIMER  1
-#define SKIP_KEYPRESS   2
-#define SKIP_MOUSECLICK 4
-
-#define UNTIL_ANIMEND   1
-#define UNTIL_MOVEEND   2
-#define UNTIL_CHARIS0   3
-#define UNTIL_NOOVERLAY 4
-#define UNTIL_NEGATIVE  5
-#define UNTIL_INTIS0    6
-#define UNTIL_SHORTIS0  7
-#define UNTIL_INTISNEG  8
-#define MANOBJNUM 99
-
-#define STD_BUFFER_SIZE 3000
-
-#define TURNING_AROUND     1000
-#define TURNING_BACKWARDS 10000
-
-
-#define MAX_PLUGIN_OBJECT_READERS 50
-
-#define NEXT_ITERATION() play.gamestep++
 
 #include "acgui/ac_guidefines.h"
 #include "acaudio/ac_audiochannel.h"
@@ -603,28 +417,9 @@ extern void recache_queued_clips_after_loading_save_game();
 
 #define AMBIENCE_FULL_DIST 25
 
-// parameters to run_on_event
-#define GE_LEAVE_ROOM 1
-#define GE_ENTER_ROOM 2
-#define GE_MAN_DIES   3
-#define GE_GOT_SCORE  4
-#define GE_GUI_MOUSEDOWN 5
-#define GE_GUI_MOUSEUP   6
-#define GE_ADD_INV       7
-#define GE_LOSE_INV      8
-#define GE_RESTORE_GAME  9
 
-// These numbers were chosen arbitrarily -- the idea is
-// to make sure that the user gets the parameters the right way round
-#define ANYWHERE       304
-#define WALKABLE_AREAS 305
-#define BLOCKING       919
-#define IN_BACKGROUND  920
-#define FORWARDS       1062
-#define BACKWARDS      1063
 
-#define SCR_NO_VALUE   31998
-#define SCR_COLOR_TRANSPARENT -1
+
 
 // Character methods
 extern void Character_AddInventory(CharacterInfo *chaa, ScriptInvItem *, int addIndex);
@@ -742,12 +537,7 @@ extern void Character_SetY(CharacterInfo *chaa, int newval);
 extern int  Character_GetZ(CharacterInfo *chaa);
 extern void Character_SetZ(CharacterInfo *chaa, int newval);
 
-#ifdef WINDOWS_VERSION
-#define AGS_INLINE inline
-#else
-// the linux compiler won't allow extern inline
-#define AGS_INLINE
-#endif
+
 
 extern AGS_INLINE int divide_down_coordinate(int coord);
 extern AGS_INLINE int multiply_up_coordinate(int coord);

@@ -1,6 +1,6 @@
 
 #include "acmain/ac_maindefines.h"
-
+#include "acmain/ac_viewframe.h"
 
 
 void SetFrameSound (int vii, int loop, int frame, int sound) {

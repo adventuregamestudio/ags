@@ -38,6 +38,11 @@ void SetCharacterSpeechView (int chaa, int vii);
 void Character_SetOption(CharacterInfo *chaa, int flag, int yesorno);
 void MoveCharacterToHotspot(int chaa,int hotsp);
 
+ScriptInvItem* Character_GetActiveInventory(CharacterInfo *chaa);
+void Character_SetActiveInventory(CharacterInfo *chaa, ScriptInvItem* iit);
+void Character_AddInventory(CharacterInfo *chaa, ScriptInvItem *invi, int addIndex);
+void Character_LoseInventory(CharacterInfo *chap, ScriptInvItem *invi);
+
 extern CharacterInfo*playerchar;
 extern CharacterExtras *charextra;
 extern long _sc_PlayerCharPtr;

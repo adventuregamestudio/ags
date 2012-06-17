@@ -462,7 +462,7 @@ char ac_engine_copyright[]="Adventure Game Studio engine & tools (c) 1999-2000 b
 
 
 
-int in_inv_screen = 0, inv_screen_newroom = -1;
+
 
 int new_room_flags=0;
 

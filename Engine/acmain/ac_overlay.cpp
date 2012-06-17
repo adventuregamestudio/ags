@@ -3,6 +3,7 @@
 #include "acmain/ac_overlay.h"
 
 ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
+int is_complete_overlay=0,is_text_overlay=0;
 
 void remove_screen_overlay_index(int cc) {
     int dd;

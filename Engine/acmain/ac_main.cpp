@@ -13,6 +13,7 @@
 */
 
 #include "acmain/ac_maindefines.h"
+#include "acmain/ac_main.h"
 
 // for external modules to call
 void next_iteration() {

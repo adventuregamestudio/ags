@@ -1,5 +1,19 @@
 
+#include <stdio.h>
+#include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
+#include "acmain/ac_conversation.h"
+#include "acmain/ac_commonheaders.h"
+#include "acmain/ac_scriptdialogoptionsrendering.h"
+#include "acrun/ac_executingscript.h"
+
+
+int said_speech_line; // used while in dialog to track whether screen needs updating
+
+// Old dialog support
+unsigned char** old_dialog_scripts;
+char** old_speech_lines;
+
 
 // ** SCRIPT DIALOGOPTIONSRENDERING OBJECT
 

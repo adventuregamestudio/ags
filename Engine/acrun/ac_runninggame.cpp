@@ -45,3 +45,25 @@ ScriptDialog scrDialog[MAX_DIALOG];
 //SpriteCache spriteset (MAX_SPRITES+1);
 // initially size 1, this will be increased by the initFile function
 SpriteCache spriteset(1);
+
+int proper_exit=0,our_eip=0;
+
+GUIMain*guis=NULL;
+
+
+DialogTopic *dialog;
+
+
+CCGUIObject ccDynamicGUIObject;
+CCCharacter ccDynamicCharacter;
+CCHotspot   ccDynamicHotspot;
+CCRegion    ccDynamicRegion;
+CCInventory ccDynamicInv;
+CCGUI       ccDynamicGUI;
+CCObject    ccDynamicObject;
+CCDialog    ccDynamicDialog;
+ScriptString myScriptStringImpl;
+ScriptDialogOptionsRendering ccDialogOptionsRendering;
+ScriptDrawingSurface* dialogOptionsRenderingSurface;
+
+

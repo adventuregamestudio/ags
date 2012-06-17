@@ -1,6 +1,8 @@
 
 #include "acmain/ac_maindefines.h"
+#include "acmain/ac_dynamicsprite.h"
 
+char check_dynamic_sprites_at_exit = 1;
 
 
 int LoadImageFile(const char *filename) {

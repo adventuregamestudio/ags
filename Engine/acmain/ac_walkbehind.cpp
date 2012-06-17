@@ -1,6 +1,15 @@
 
 #include "acmain/ac_maindefines.h"
+#include "acmain/ac_walkbehind.h"
 
+char *walkBehindExists = NULL;  // whether a WB area is in this column
+int *walkBehindStartY = NULL, *walkBehindEndY = NULL;
+char noWalkBehindsAtAll = 0;
+int walkBehindLeft[MAX_OBJ], walkBehindTop[MAX_OBJ];
+int walkBehindRight[MAX_OBJ], walkBehindBottom[MAX_OBJ];
+IDriverDependantBitmap *walkBehindBitmap[MAX_OBJ];
+int walkBehindsCachedForBgNum = 0;
+WalkBehindMethodEnum walkBehindMethod = DrawOverCharSprite;
 
 void update_walk_behind_images()
 {

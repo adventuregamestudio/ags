@@ -61,4 +61,14 @@ void quitprintf(char*texx, ...);
 
 extern int debug_flags;
 
+struct DebugConsoleText {
+    char text[100];
+    char script[12];
+};
+
+extern DebugConsoleText debug_line[DEBUG_CONSOLE_NUMLINES];
+extern int first_debug_line, last_debug_line, display_console;
+
+extern int fps,display_fps;
+
 #endif // __AC_DEBUG_H

@@ -1,7 +1,11 @@
 
+#include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
-
-
+#include "acmain/ac_commonheaders.h"
+#include "acgui/ac_guiinv.h"
+#include "acmain/ac_guiinvwindow.h"
+#include "agsplugin.h"
+#include "acgui/ac_guitextbox.h"
 
 
 #define ALLEGRO_KEYBOARD_HANDLER
@@ -23,6 +27,9 @@ int errno;
 #define AGS_KEYCODE_DELETE 383
 #define AGS_KEYCODE_ALT_TAB 399
 #define READKEY_CODE_ALT_TAB 0x4000
+
+
+int restrict_until=0;
 
 int my_readkey() {
   int gott=readkey();

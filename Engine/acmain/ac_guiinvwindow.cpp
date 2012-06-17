@@ -1,6 +1,6 @@
 
 #include "acmain/ac_maindefines.h"
-
+#include "acmain/ac_guiinvwindow.h"
 
 int offset_over_inv(GUIInv *inv) {
 

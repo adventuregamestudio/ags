@@ -21,6 +21,18 @@
 #include "acrun/ac_objectcache.h"
 #include "acrun/ac_scriptobject.h"
 #include "sprcache.h"
+#include "acgui/ac_guimain.h"
+#include "acmain/ac_scriptdialogoptionsrendering.h"
+#include "acrun/ac_scriptdrawingsurface.h"
+#include "acmain/ac_scriptstring.h"
+#include "acmain/ac_ccdialog.h"
+#include "acmain/ac_cccharacter.h"
+#include "acmain/ac_cchotspot.h"
+#include "acmain/ac_ccregion.h"
+#include "acmain/ac_ccinventory.h"
+#include "acmain/ac_ccgui.h"
+#include "acmain/ac_ccobject.h"
+#include "acmain/ac_ccguiobject.h"
 
 extern GameState play;
 extern GameSetup usetup;
@@ -61,5 +73,23 @@ extern ScriptInvItem scrInv[MAX_INV];
 extern ScriptDialog scrDialog[MAX_DIALOG];
 
 extern SpriteCache spriteset;
+
+extern int proper_exit,our_eip;
+
+extern GUIMain*guis;
+
+extern DialogTopic *dialog;
+
+extern CCGUIObject ccDynamicGUIObject;
+extern CCCharacter ccDynamicCharacter;
+extern CCHotspot   ccDynamicHotspot;
+extern CCRegion    ccDynamicRegion;
+extern CCInventory ccDynamicInv;
+extern CCGUI       ccDynamicGUI;
+extern CCObject    ccDynamicObject;
+extern CCDialog    ccDynamicDialog;
+extern ScriptString myScriptStringImpl;
+extern ScriptDialogOptionsRendering ccDialogOptionsRendering;
+extern ScriptDrawingSurface* dialogOptionsRenderingSurface;
 
 #endif // __AC_RUNNINGGAME_H

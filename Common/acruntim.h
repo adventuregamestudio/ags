@@ -60,11 +60,7 @@ struct AnimatingGUIButton {
   short speed, repeat, wait;
 };
 
-struct EventHappened {
-  int type;
-  int data1,data2,data3;
-  int player;
-};
+
 
 struct SpriteListEntry {
   IDriverDependantBitmap *bmp;
@@ -95,33 +91,7 @@ struct SpriteListEntry {
 
 
 
-struct ScriptDrawingSurface : AGSCCDynamicObject {
-  int roomBackgroundNumber;
-  int dynamicSpriteNumber;
-  int dynamicSurfaceNumber;
-  bool isLinkedBitmapOnly;
-  BITMAP *linkedBitmapOnly;
-  int currentColour;
-  int currentColourScript;
-  int highResCoordinates;
-  int modified;
-  int hasAlphaChannel;
-  BITMAP* abufBackup;
 
-  virtual int Dispose(const char *address, bool force);
-  virtual const char *GetType();
-  virtual int Serialize(const char *address, char *buffer, int bufsize);
-  virtual void Unserialize(int index, const char *serializedData, int dataSize);
-  BITMAP* GetBitmapSurface();
-  void StartDrawing();
-  void MultiplyThickness(int *adjustValue);
-  void UnMultiplyThickness(int *adjustValue);
-  void MultiplyCoordinates(int *xcoord, int *ycoord);
-  void FinishedDrawing();
-  void FinishedDrawingReadOnly();
-
-  ScriptDrawingSurface();
-};
 
 struct ScriptViewFrame : AGSCCDynamicObject {
   int view, loop, frame;
@@ -147,19 +117,7 @@ struct ScriptDynamicSprite : AGSCCDynamicObject {
   ScriptDynamicSprite();
 };
 
-struct ScriptString : AGSCCDynamicObject, ICCStringClass {
-  char *text;
 
-  virtual int Dispose(const char *address, bool force);
-  virtual const char *GetType();
-  virtual int Serialize(const char *address, char *buffer, int bufsize);
-  virtual void Unserialize(int index, const char *serializedData, int dataSize);
-
-  virtual void* CreateString(const char *fromText);
-
-  ScriptString();
-  ScriptString(const char *fromText);
-};
 
 
 
@@ -214,38 +172,9 @@ struct sc_File : ICCDynamicObject {
 
 
 
-enum PostScriptAction {
-  ePSANewRoom,
-  ePSAInvScreen,
-  ePSARestoreGame,
-  ePSARestoreGameDialog,
-  ePSARunAGSGame,
-  ePSARunDialog,
-  ePSARestartGame,
-  ePSASaveGame,
-  ePSASaveGameDialog
-};
 
-#define MAX_QUEUED_SCRIPTS 4
-#define MAX_QUEUED_ACTIONS 5
-struct ExecutingScript {
-  ccInstance *inst;
-  PostScriptAction postScriptActions[MAX_QUEUED_ACTIONS];
-  const char *postScriptActionNames[MAX_QUEUED_ACTIONS];
-  char postScriptSaveSlotDescription[MAX_QUEUED_ACTIONS][100];
-  int  postScriptActionData[MAX_QUEUED_ACTIONS];
-  int  numPostScriptActions;
-  char script_run_another[MAX_QUEUED_SCRIPTS][30];
-  int  run_another_p1[MAX_QUEUED_SCRIPTS];
-  int  run_another_p2[MAX_QUEUED_SCRIPTS];
-  int  numanother;
-  char forked;
 
-  int queue_action(PostScriptAction act, int data, const char *aname);
-  void run_another (char *namm, int p1, int p2);
-  void init();
-  ExecutingScript();
-};
+
 
 #ifndef _AGS_PLUGIN_H
 #define IAGSManagedObjectReader void
@@ -317,10 +246,7 @@ extern ObjectCache objcache[MAX_INIT_SPR];
 extern ExecutingScript *curscript;
 extern PluginObjectReader pluginReaders[MAX_PLUGIN_OBJECT_READERS];
 
-#define DOMOUSE_NOCURSOR 5
-#define NONE -1
-#define LEFT  0
-#define RIGHT 1
+
 extern int  mousex,mousey;
 extern void domouse(int);
 extern int  mgetbutton();

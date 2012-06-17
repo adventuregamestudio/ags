@@ -92,9 +92,7 @@ struct DialogTopic;
 void preprocess_dialog_script(DialogTopic *);
 #endif
 
-// Old dialog support
-unsigned char** old_dialog_scripts;
-char** old_speech_lines;
+
 
 
 #ifdef MAC_VERSION
@@ -289,7 +287,7 @@ void replace_macro_tokens(char*,char*);
 void wouttext_reverseifnecessary(int x, int y, int font, char *text);
 void SetGameSpeed(int newspd);
 void SetMultitasking(int mode);
-void put_sprite_256(int xxx,int yyy,block piccy);
+
 void construct_virtual_screen(bool fullRedraw);
 int initialize_engine_with_exception_handling(int argc,char*argv[]);
 int initialize_engine(int argc,char*argv[]);
@@ -329,10 +327,7 @@ struct TempEip {
   ~TempEip () { our_eip = oldval; }
 };
 
-struct DebugConsoleText {
-  char text[100];
-  char script[12];
-};
+
 
 struct CachedActSpsData {
   int xWas, yWas;
@@ -352,17 +347,8 @@ WCHAR directoryPathBuffer[MAX_PATH];
 /*extern int get_route_composition();
 extern int routex1;*/
 extern char*scripttempn;
-#define REC_MOUSECLICK 1
-#define REC_MOUSEMOVE  2
-#define REC_MOUSEDOWN  3
-#define REC_KBHIT      4
-#define REC_GETCH      5
-#define REC_KEYDOWN    6
-#define REC_MOUSEWHEEL 7
-#define REC_SPEECHFINISHED 8
-#define REC_ENDOFFILE  0x6f
-short *recordbuffer = NULL;
-int  recbuffersize = 0, recsize = 0;
+
+
 
 
 
@@ -378,14 +364,9 @@ int numSoundChannels = 8;
 #define MAX_ANIMATING_BUTTONS 15
 #define RESTART_POINT_SAVE_GAME_NUMBER 999
 
-enum WalkBehindMethodEnum
-{
-  DrawOverCharSprite,
-  DrawAsSeparateSprite,
-  DrawAsSeparateCharSprite
-};
 
-AGSPlatformDriver *platform = NULL;
+
+
 // crossFading is >0 (channel number of new track), or -1 (old
 // track fading out, no new track)
 
@@ -397,7 +378,7 @@ int current_screen_resolution_multiplier = 1;
 
 int force_letterbox = 0;
 int game_paused=0;
-int ifacepopped=-1;  // currently displayed pop-up GUI (-1 if none)
+
 
 
 long t1;  // timer for FPS
@@ -405,17 +386,9 @@ long t1;  // timer for FPS
 
 char saveGameDirectory[260] = "./";
 //int abort_all_conditions=0;
-int fps=0,display_fps=0;
-DebugConsoleText debug_line[DEBUG_CONSOLE_NUMLINES];
-int first_debug_line = 0, last_debug_line = 0, display_console = 0;
-char *walkBehindExists = NULL;  // whether a WB area is in this column
-int *walkBehindStartY = NULL, *walkBehindEndY = NULL;
-char noWalkBehindsAtAll = 0;
-int walkBehindLeft[MAX_OBJ], walkBehindTop[MAX_OBJ];
-int walkBehindRight[MAX_OBJ], walkBehindBottom[MAX_OBJ];
-IDriverDependantBitmap *walkBehindBitmap[MAX_OBJ];
-int walkBehindsCachedForBgNum = 0;
-WalkBehindMethodEnum walkBehindMethod = DrawOverCharSprite;
+
+
+
 unsigned long loopcounter=0,lastcounter=0;
 volatile unsigned long globalTimerCounter = 0;
 char alpha_blend_cursor = 0;
@@ -424,16 +397,12 @@ char alpha_blend_cursor = 0;
 
 int offsetx = 0, offsety = 0;
 int use_extra_sound_offset = 0;
-GUIMain*guis=NULL;
+
 //GUIMain dummygui;
 //GUIButton dummyguicontrol;
 block *guibg = NULL;
 IDriverDependantBitmap **guibgbmp = NULL;
-ccScript* gamescript=NULL;
-ccScript* dialogScriptsScript = NULL;
-ccInstance *gameinst = NULL, *roominst = NULL;
-ccInstance *dialogScriptsInst = NULL;
-ccInstance *gameinstFork = NULL, *roominstFork = NULL;
+
 
 block debugConsoleBuffer = NULL;
 block blank_mouse_cursor = NULL;
@@ -456,17 +425,16 @@ ScriptSystem scsystem;
 block _old_screen=NULL;
 block _sub_screen=NULL;
 
-DialogTopic *dialog;
 
-ExecutingScript scripts[MAX_SCRIPT_AT_ONCE];
-ExecutingScript*curscript = NULL;
+
+
 AnimatingGUIButton animbuts[MAX_ANIMATING_BUTTONS];
 int numAnimButs = 0;
 int num_scripts=0, eventClaimed = EVENT_NONE;
 int getloctype_index = 0, getloctype_throughgui = 0;
 int user_disabled_for=0,user_disabled_data=0,user_disabled_data2=0;
 int user_disabled_data3=0;
-int is_complete_overlay=0,is_text_overlay=0;
+
 // Sierra-style speech settings
 int face_talking=-1,facetalkview=0,facetalkwait=0,facetalkframe=0;
 int facetalkloop=0, facetalkrepeat = 0, facetalkAllowBlink = 1;
@@ -485,20 +453,17 @@ char **guiScriptObjNames = NULL;
 // set to 0 once successful
 int working_gfx_mode_status = -1;
 
-int said_speech_line; // used while in dialog to track whether screen needs updating
 
-int restrict_until=0;
+
+
 int gs_to_newroom=-1;
 
-int proper_exit=0,our_eip=0;
+
 int numscreenover=0;
 int scaddr;
 int walk_behind_baselines_changed = 0;
 
-int mouse_on_iface=-1;   // mouse cursor is over this interface
-int mouse_on_iface_button=-1;
-int mouse_pushed_iface=-1;  // this BUTTON on interface MOUSE_ON_IFACE is pushed
-int mouse_ifacebut_xoffs=-1,mouse_ifacebut_yoffs=-1;
+
 
 IDriverDependantBitmap* roomBackgroundBmp = NULL;
 
@@ -513,21 +478,9 @@ int mouse_z_was = 0;
 
 
 
-char check_dynamic_sprites_at_exit = 1;
 
-#define MAXEVENTS 15
-EventHappened event[MAXEVENTS+1];
-int numevents=0;
-#define EV_TEXTSCRIPT 1
-#define EV_RUNEVBLOCK 2
-#define EV_FADEIN     3
-#define EV_IFACECLICK 4
-#define EV_NEWROOM    5
-#define TS_REPEAT   1
-#define TS_KEYPRESS 2
-#define TS_MCLICK   3
-#define EVB_HOTSPOT 1
-#define EVB_ROOM    2
+
+
 char ac_engine_copyright[]="Adventure Game Studio engine & tools (c) 1999-2000 by Chris Jones.";
 
 
@@ -541,15 +494,13 @@ char ac_engine_copyright[]="Adventure Game Studio engine & tools (c) 1999-2000 b
 #define REP_EXEC_NAME "repeatedly_execute"
 
 char*tsnames[4]={NULL, REP_EXEC_NAME, "on_key_press","on_mouse_click"};
-char*evblockbasename;
-int evblocknum;
+
 //int current_music=0;
 
 
 unsigned int load_new_game = 0;
 int load_new_game_restore = -1;
-int inside_script=0,in_graph_script=0;
-int no_blocking_functions = 0; // set to 1 while in rep_Exec_always
+
 int in_inv_screen = 0, inv_screen_newroom = -1;
 int mouse_frame=0,mouse_delay=0;
 int lastmx=-1,lastmy=-1;
@@ -576,10 +527,7 @@ block dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 int scrlockWasDown = 0;
 // whether there are currently remnants of a DisplaySpeech
 int screen_is_dirty = 0;
-char replayfile[MAX_PATH] = "record.dat";
-int replay_time = 0;
-unsigned long replay_last_second = 0;
-int replay_start_this_time = 0;
+
 char pexbuf[STD_BUFFER_SIZE];
 
 int pluginsWantingDebugHooks = 0;
@@ -712,17 +660,7 @@ void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int baselin
 
 
 
-CCGUIObject ccDynamicGUIObject;
-CCCharacter ccDynamicCharacter;
-CCHotspot   ccDynamicHotspot;
-CCRegion    ccDynamicRegion;
-CCInventory ccDynamicInv;
-CCGUI       ccDynamicGUI;
-CCObject    ccDynamicObject;
-CCDialog    ccDynamicDialog;
-ScriptString myScriptStringImpl;
-ScriptDialogOptionsRendering ccDialogOptionsRendering;
-ScriptDrawingSurface* dialogOptionsRenderingSurface;
+
 
 
 

@@ -35,4 +35,7 @@ int is_valid_character(int newchar);
 int Character_IsCollidingWithObject(CharacterInfo *chin, ScriptObject *objid);
 int Character_IsCollidingWithChar(CharacterInfo *char1, CharacterInfo *char2);
 
+extern CharacterInfo*playerchar;
+extern CharacterExtras *charextra;
+
 #endif // __AC_CHARACTER_H

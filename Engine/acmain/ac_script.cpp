@@ -1,5 +1,11 @@
 
 #include "acmain/ac_maindefines.h"
+#include "acmain/ac_script.h"
+
+
+int inside_script=0,in_graph_script=0;
+int no_blocking_functions = 0; // set to 1 while in rep_Exec_always
+
 
 char bname[40],bne[40];
 char* make_ts_func_name(char*base,int iii,int subd) {

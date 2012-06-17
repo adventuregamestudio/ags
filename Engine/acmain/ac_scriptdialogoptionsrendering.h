@@ -1,6 +1,7 @@
 #ifndef __AC_SCRIPTDIALOGOPTIONSRENDERING_H
 #define __AC_SCRIPTDIALOGOPTIONSRENDERING_H
 
+#include "acrun/ac_scriptdrawingsurface.h"
 
 struct ScriptDialogOptionsRendering : AGSCCDynamicObject {
     int x, y, width, height;

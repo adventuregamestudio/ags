@@ -1,6 +1,6 @@
 
 #include "acmain/ac_maindefines.h"
-
+#include "acmain/ac_game.h"
 
 const char *load_game_errors[9] =
   {"No error","File not found","Not an AGS save game",

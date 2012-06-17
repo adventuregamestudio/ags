@@ -1,6 +1,13 @@
 
 #include "acmain/ac_maindefines.h"
+#include "acmain/ac_gui.h"
 
+
+int ifacepopped=-1;  // currently displayed pop-up GUI (-1 if none)
+int mouse_on_iface=-1;   // mouse cursor is over this interface
+int mouse_on_iface_button=-1;
+int mouse_pushed_iface=-1;  // this BUTTON on interface MOUSE_ON_IFACE is pushed
+int mouse_ifacebut_xoffs=-1,mouse_ifacebut_yoffs=-1;
 
 int GetBaseWidth () {
     return BASEWIDTH;

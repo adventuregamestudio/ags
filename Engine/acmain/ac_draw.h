@@ -6,6 +6,7 @@
 void invalidate_screen();
 void mark_current_background_dirty();
 void invalidate_cached_walkbehinds();
+void put_sprite_256(int xxx,int yyy,block piccy);
 
 extern color palette[256];
 

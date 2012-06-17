@@ -1,6 +1,14 @@
 
 #include "acmain/ac_maindefines.h"
+#include "acmain/ac_record.h"
 
+char replayfile[MAX_PATH] = "record.dat";
+int replay_time = 0;
+unsigned long replay_last_second = 0;
+int replay_start_this_time = 0;
+
+short *recordbuffer = NULL;
+int  recbuffersize = 0, recsize = 0;
 
 void write_record_event (int evnt, int dlen, short *dbuf) {
 

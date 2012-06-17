@@ -1,6 +1,6 @@
 
 #include "acmain/ac_maindefines.h"
-
+#include "acmain/ac_interaction.h"
 
 void NewInteractionCommand::remove () {
   if (children != NULL) {

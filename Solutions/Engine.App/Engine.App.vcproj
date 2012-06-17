@@ -439,6 +439,10 @@
 				Name="acrun"
 				>
 				<File
+					RelativePath="..\..\Engine\acrun\ac_executingscript.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acrun\ac_gamesetup.cpp"
 					>
 				</File>
@@ -523,7 +527,39 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\acmain\ac_cccharacter.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_ccdialog.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acmain\ac_ccdynamicobject.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_ccgui.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_ccguiobject.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_cchotspot.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_ccinventory.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_ccobject.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_ccregion.cpp"
 					>
 				</File>
 				<File
@@ -552,10 +588,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_datetime.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_debug.cpp"
 					>
 				</File>
 				<File
@@ -1217,6 +1249,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\acmain\ac_conversation.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acmain\ac_cutscene.h"
 					>
 				</File>
@@ -1225,11 +1261,31 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\acmain\ac_dynamicsprite.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acmain\ac_event.h"
 					>
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_file.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_game.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_gui.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_guiinvwindow.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_interaction.h"
 					>
 				</File>
 				<File
@@ -1269,6 +1325,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\acmain\ac_record.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acmain\ac_richgamemedia.h"
 					>
 				</File>
@@ -1277,7 +1337,15 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\acmain\ac_script.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acmain\ac_scriptdialogoptionsrendering.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_scriptstring.h"
 					>
 				</File>
 				<File
@@ -1304,6 +1372,10 @@
 					RelativePath="..\..\Engine\acmain\ac_walkablearea.h"
 					>
 				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_walkbehind.h"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="acrun"
@@ -1318,6 +1390,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acrun\ac_datetime.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acrun\ac_executingscript.h"
 					>
 				</File>
 				<File
@@ -1358,6 +1434,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acrun\ac_screenoverlay.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acrun\ac_scriptdrawingsurface.h"
 					>
 				</File>
 				<File

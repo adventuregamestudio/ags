@@ -52,6 +52,11 @@ IAGSEditorDebugger *GetEditorDebugger(const char *instanceToken)
 
 int debug_flags=0;
 
+DebugConsoleText debug_line[DEBUG_CONSOLE_NUMLINES];
+int first_debug_line = 0, last_debug_line = 0, display_console = 0;
+
+int fps=0,display_fps=0;
+
 void quitprintf(char*texx, ...) {
     char displbuf[STD_BUFFER_SIZE];
     va_list ap;

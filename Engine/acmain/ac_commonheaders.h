@@ -1,6 +1,12 @@
 #ifndef __AC_COMMONHEADERS_H
 #define __AC_COMMONHEADERS_H
 
+// I know this should not be like that (slows down compilation quite a bit),
+// but that was an easy way to not worry about headers during splitting that
+// ac.cpp.
+//
+// Things should change when class system is developed.
+
 #include "ac/ac_common.h"
 #include "acchars/ac_character.h"
 #include "acdebug/ac_debug.h"

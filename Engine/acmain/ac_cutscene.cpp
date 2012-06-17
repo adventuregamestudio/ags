@@ -1,6 +1,11 @@
 
+#include <stdio.h>
+#include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_cutscene.h"
+#include "acmain/ac_commonheaders.h"
+#include "acaudio/ac_music.h"
+#include "acaudio/ac_audio.h"
 
 
 void start_skipping_cutscene () {

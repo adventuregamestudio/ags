@@ -17,22 +17,20 @@
 #include "mpg123.h"
 #include "mpglib.h"
 
-extern struct mpstr *gmp;
-
  /* old WRITE_SAMPLE */
 #define WRITE_SAMPLE(samples,sum,clip) \
   if( (sum) > 32767.0) { *(samples) = 32767; (clip)++; } \
   else if( (sum) < -32768.0) { *(samples) = -32768; (clip)++; } \
   else { *(samples) = (short)sum; }
 
-int synth_1to1_mono(real *bandPtr,unsigned char *samples,int *pnt)
+int synth_1to1_mono(void *mp,real *bandPtr,unsigned char *samples,int *pnt)
 {
   short samples_tmp[64];
   short *tmp1 = samples_tmp;
   int i,ret;
   int pnt1 = 0;
 
-  ret = synth_1to1(bandPtr,0,(unsigned char *) samples_tmp,&pnt1);
+  ret = synth_1to1(mp,bandPtr,0,(unsigned char *) samples_tmp,&pnt1);
   samples += *pnt;
 
   for(i=0;i<32;i++) {
@@ -46,8 +44,10 @@ int synth_1to1_mono(real *bandPtr,unsigned char *samples,int *pnt)
 }
 
 
-int synth_1to1(real *bandPtr,int channel,unsigned char *out,int *pnt)
+int synth_1to1(void *mp,real *bandPtr,int channel,unsigned char *out,int *pnt)
 {
+  struct mpstr *gmp = mp;
+
   static const int step = 2;
   int bo;
   short *samples = (short *) (out + *pnt);

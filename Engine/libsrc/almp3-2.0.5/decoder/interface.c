@@ -5,14 +5,11 @@
 #include "mpglib.h"
 
 
-/* Global mp .. it's a hack */
-struct mpstr *gmp;
+volatile int init = 0;
 
 
 int InitMP3(struct mpstr *mp)
 {
-  static int init = 0;
-
 	memset(mp,0,sizeof(struct mpstr));
 
 	mp->framesize = 0;
@@ -140,8 +137,6 @@ int decodeMP3(struct mpstr *mp, char *in, int isize,
 {
 	int len;
 
-	gmp = mp;
-
 	if(osize < 4608) {
 		return MP3_ERR;
 	}
@@ -197,7 +192,7 @@ int decodeMP3(struct mpstr *mp, char *in, int isize,
 	if (mp->fr.error_protection)
     getbits(16);
 
-	if ((&mp->fr)->do_layer(&mp->fr, (unsigned char*) out, done) < 0)
+	if ((&mp->fr)->do_layer(mp, &mp->fr, (unsigned char*) out, done) < 0)
     return MP3_ERR;
 
 	mp->fsizeold = mp->framesize;
@@ -205,8 +200,10 @@ int decodeMP3(struct mpstr *mp, char *in, int isize,
 	return MP3_OK;
 }
 
-int almp3_set_pointer(long backstep)
+int almp3_set_pointer(void *mp, long backstep)
 {
+  struct mpstr *gmp = mp;
+
   unsigned char *bsbufold;
   if(gmp->fsizeold < 0 && backstep > 0) {
     return MP3_ERR;

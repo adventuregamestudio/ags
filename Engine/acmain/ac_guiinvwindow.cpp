@@ -1,6 +1,9 @@
 
+#include <stdio.h>
+#include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_guiinvwindow.h"
+#include "acmain/ac_commonheaders.h"
 
 int offset_over_inv(GUIInv *inv) {
 

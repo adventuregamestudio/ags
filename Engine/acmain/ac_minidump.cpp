@@ -1,7 +1,11 @@
 
+#include <stdio.h>
 #include "acmain/ac_maindefines.h"
 
 #ifdef WINDOWS_VERSION
+#include "windows.h"
+#include <crtdbg.h>
+
 CONTEXT cpustate;
 EXCEPTION_RECORD excinfo;
 int miniDumpResultCode = 0;

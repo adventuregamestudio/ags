@@ -380,7 +380,7 @@ int game_paused=0;
 long t1;  // timer for FPS
 
 
-char saveGameDirectory[260] = "./";
+
 //int abort_all_conditions=0;
 
 
@@ -508,7 +508,7 @@ int sprlistsize=0;
 SpriteListEntry thingsToDrawList[MAX_THINGS_TO_DRAW];
 int thingsToDrawSize = 0;
 
-int final_scrn_wid=0,final_scrn_hit=0,final_col_dep=0;
+
 int post_script_cleanup_stack = 0;
 
 

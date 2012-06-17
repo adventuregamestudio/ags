@@ -2,6 +2,8 @@
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_game.h"
 
+char saveGameDirectory[260] = "./";
+
 const char *load_game_errors[9] =
   {"No error","File not found","Not an AGS save game",
   "Invalid save game version","Saved with different interpreter",

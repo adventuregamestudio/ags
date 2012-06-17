@@ -6,6 +6,8 @@ int scrnwid,scrnhit;
 int current_screen_resolution_multiplier = 1;
 int force_letterbox = 0;
 
+int final_scrn_wid=0,final_scrn_hit=0,final_col_dep=0;
+
 int GetMaxScreenHeight () {
     int maxhit = BASEHEIGHT;
     if ((maxhit == 200) || (maxhit == 400))

@@ -1,6 +1,11 @@
 
+#include <stdio.h>
+#include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
-
+#include "acmain/ac_display.h"
+#include "acmain/ac_commonheaders.h"
+#include "acgui/ac_guiinv.h"
+#include "acaudio/ac_audio.h"
 
 
 int adjust_pixel_size_for_loaded_data(int size, int filever)

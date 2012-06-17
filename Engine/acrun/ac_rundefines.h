@@ -116,6 +116,12 @@
 #define AGS_INLINE
 #endif
 
+#define BASEWIDTH usetup.base_width
+#define BASEHEIGHT usetup.base_height
+#define TRANS_ALPHA_CHANNEL 20000
+#define TRANS_OPAQUE        20001
+#define TRANS_RUN_PLUGIN    20002
+
 
 #include "ac/ac_defines.h"
 

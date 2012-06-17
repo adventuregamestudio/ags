@@ -1261,6 +1261,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\acmain\ac_display.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acmain\ac_draw.h"
 					>
 				</File>

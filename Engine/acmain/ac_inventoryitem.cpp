@@ -1,5 +1,10 @@
 
+#include <stdio.h>
+#include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
+#include "acmain/ac_commonheaders.h"
+#include "acgui/ac_guiinv.h"
+#include "acmain/ac_guiinvwindow.h"
 
 
 void set_inv_item_cursorpic(int invItemId, int piccy) 

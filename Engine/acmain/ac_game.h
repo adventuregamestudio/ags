@@ -8,6 +8,7 @@ int LoadSaveSlotScreenshot(int slnum, int width, int height);
 int GetGameSpeed();
 int load_game(int slotn, char*descrp, int *wantShot);
 void save_game(int slotn, const char*descript);
+int GetSaveSlotDescription(int slnum,char*desbuf);
 
 extern char saveGameDirectory[260];
 extern int want_quit;

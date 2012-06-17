@@ -41,6 +41,7 @@ void putpixel_compensate (block onto, int xx,int yy, int col);
 int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysUseSoftware);
 
 extern color palette[256];
+extern COLOR_MAP maincoltable;
 
 void setpal();
 

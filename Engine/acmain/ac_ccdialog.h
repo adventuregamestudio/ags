@@ -1,6 +1,8 @@
 #ifndef __AC_CCDIALOG_H
 #define __AC_CCDIALOG_H
 
+#include "acrun/ac_ccdynamicobject.h"
+
 struct CCDialog : AGSCCDynamicObject {
 
     // return the type name of the object

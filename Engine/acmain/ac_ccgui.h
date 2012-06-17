@@ -1,6 +1,8 @@
 #ifndef __AC_CCGUI_H
 #define __AC_CCGUI_H
 
+#include "acrun/ac_ccdynamicobject.h"
+
 struct CCGUI : AGSCCDynamicObject {
 
     // return the type name of the object

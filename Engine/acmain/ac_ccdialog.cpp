@@ -1,5 +1,9 @@
 
+#include <stdio.h>
 #include "ac_ccdialog.h"
+#include "acrun/ac_scriptobject.h"
+#include "wgt2allg.h"
+#include "acrun/ac_runninggame.h"
 
 // return the type name of the object
 const char *CCDialog::GetType() {

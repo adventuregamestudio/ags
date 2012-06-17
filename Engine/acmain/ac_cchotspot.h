@@ -1,6 +1,8 @@
 #ifndef __AC_CCHOTSPOT_H
 #define __AC_CCHOTSPOT_H
 
+#include "acrun/ac_ccdynamicobject.h"
+
 struct CCHotspot : AGSCCDynamicObject {
 
     // return the type name of the object

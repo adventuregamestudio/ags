@@ -1,6 +1,8 @@
 #ifndef __AC_CCINVENTORY_H
 #define __AC_CCINVENTORY_H
 
+#include "acrun/ac_ccdynamicobject.h"
+
 struct CCInventory : AGSCCDynamicObject {
 
     // return the type name of the object

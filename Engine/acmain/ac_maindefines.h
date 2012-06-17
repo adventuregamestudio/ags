@@ -1,5 +1,8 @@
 #ifndef __AC_MAINDEFINES_H
 #define __AC_MAINDEFINES_H
+
+#include "acrun/ac_rundefines.h"
+
 //
 // Here I put only explicit defines made in the start of ac.cpp
 //

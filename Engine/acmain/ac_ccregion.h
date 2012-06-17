@@ -1,6 +1,8 @@
 #ifndef __AC_CCREGION_H
 #define __AC_CCREGION_H
 
+#include "acrun/ac_ccdynamicobject.h"
+
 struct CCRegion : AGSCCDynamicObject {
 
     // return the type name of the object

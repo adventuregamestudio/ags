@@ -1,6 +1,8 @@
 #ifndef __AC_CCOBJECT_H
 #define __AC_CCOBJECT_H
 
+#include "acrun/ac_ccdynamicobject.h"
+
 struct CCObject : AGSCCDynamicObject {
 
     // return the type name of the object

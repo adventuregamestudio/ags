@@ -1313,6 +1313,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\acmain\ac_inventoryitem.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acmain\ac_lipsync.h"
 					>
 				</File>

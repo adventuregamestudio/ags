@@ -1,6 +1,11 @@
 
+#include <stdio.h>
+#include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_location.h"
+#include "acmain/ac_commonheaders.h"
+#include "ac/ac_object.h"
+#include "acmain/ac_inventoryitem.h"
 
 int getloctype_index = 0, getloctype_throughgui = 0;
 

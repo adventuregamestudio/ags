@@ -17,6 +17,7 @@ void update_inv_cursor(int invnum);
 void set_mouse_cursor(int newcurs);
 void set_new_cursor_graphic (int spriteslot);
 void set_default_cursor();
+int GetMouseCursor();
 
 
 extern int cur_mode,cur_cursor;

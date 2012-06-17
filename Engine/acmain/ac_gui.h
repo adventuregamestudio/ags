@@ -6,6 +6,10 @@ int IsInterfaceEnabled();
 void DisableInterface();
 void EnableInterface();
 void process_interface_click(int ifce, int btn, int mbut);
+void update_gui_zorder();
+void export_gui_controls(int ee);
+int convert_gui_disabled_style(int oldStyle);
+void unexport_gui_controls(int ee);
 
 extern int ifacepopped;  // currently displayed pop-up GUI (-1 if none)
 
@@ -15,6 +19,7 @@ extern int mouse_pushed_iface;  // this BUTTON on interface MOUSE_ON_IFACE is pu
 extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 
 extern int eip_guinum, eip_guiobj;
+
 
 
 

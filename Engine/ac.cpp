@@ -61,7 +61,7 @@ extern char psp_game_file_name[]; // Game filename from the menu.
 extern int psp_gfx_renderer; // Which renderer to use.
 extern int psp_gfx_smooth_sprites; // usetup.enable_antialiasing
 extern char psp_translation[]; // Translation file
-int psp_is_old_datafile = 0; // Set for 3.1.1 and 3.1.2 datafiles
+
 
 
 #if defined(PSP_VERSION)
@@ -274,7 +274,7 @@ extern void QGRegisterFunctions();  // let the QFG module register its own
 
 
 
-int engineNeedsAsInt = 100;
+
 
 int  sc_GetTime(int whatti);
 void quitprintf(char*texx, ...);
@@ -343,16 +343,14 @@ extern char*scripttempn;
 
 
 
-const char* sgnametemplate = "agssave.%03d";
-char saveGameSuffix[MAX_SG_EXT_LENGTH + 1];
+
 
 
 
 int numSoundChannels = 8;
 
 
-#define MAX_ANIMATING_BUTTONS 15
-#define RESTART_POINT_SAVE_GAME_NUMBER 999
+
 
 
 
@@ -363,7 +361,7 @@ int numSoundChannels = 8;
 char *heightTestString = "ZHwypgfjqhkilIK";
 
 
-int game_paused=0;
+
 
 
 
@@ -404,8 +402,7 @@ int numPluginReaders = 0;
 
 
 
-AnimatingGUIButton animbuts[MAX_ANIMATING_BUTTONS];
-int numAnimButs = 0;
+
 int num_scripts=0;
 int getloctype_index = 0, getloctype_throughgui = 0;
 int user_disabled_for=0,user_disabled_data=0,user_disabled_data2=0;
@@ -416,15 +413,9 @@ int face_talking=-1,facetalkview=0,facetalkwait=0,facetalkframe=0;
 int facetalkloop=0, facetalkrepeat = 0, facetalkAllowBlink = 1;
 int facetalkBlinkLoop = 0;
 CharacterInfo *facetalkchar = NULL;
-// lip-sync speech settings
-int loops_per_character, text_lips_offset, char_speaking = -1;
-char *text_lips_text = NULL;
-SpeechLipSyncLine *splipsync = NULL;
-int numLipLines = 0, curLipLine = -1, curLipLinePhenome = 0;
-int gameHasBeenRestored = 0;
-char **characterScriptObjNames = NULL;
-char objectScriptObjNames[MAX_INIT_SPR][MAX_SCRIPT_NAME_LEN + 5];
-char **guiScriptObjNames = NULL;
+
+
+
 
 // set to 0 once successful
 int working_gfx_mode_status = -1;
@@ -469,8 +460,7 @@ char ac_engine_copyright[]="Adventure Game Studio engine & tools (c) 1999-2000 b
 //int current_music=0;
 
 
-unsigned int load_new_game = 0;
-int load_new_game_restore = -1;
+
 
 int in_inv_screen = 0, inv_screen_newroom = -1;
 
@@ -490,7 +480,7 @@ RGB_MAP rgb_table;  // for 256-col antialiasing
 int scrlockWasDown = 0;
 
 
-char pexbuf[STD_BUFFER_SIZE];
+
 
 int pluginsWantingDebugHooks = 0;
 
@@ -624,7 +614,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
 
 
 
-char rbuffer[200];
+
 
 extern const char* ccGetSectionNameAtOffs(ccScript *scri, long offs);
 

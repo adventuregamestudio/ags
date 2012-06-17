@@ -11,6 +11,9 @@ void play_new_music(int mnum, SOUNDCLIP *music);
 void update_polled_stuff(bool checkForDebugMessages);
 void update_music_volume();
 void update_polled_stuff_and_crossfade ();
+int IsMusicPlaying();
+void clear_music_cache();
+void System_SetVolume(int newvol) ;
 
 #define UPDATE_MP3 \
     if (!psp_audio_multithreaded) \
@@ -31,5 +34,12 @@ extern int musicPollIterator; // long name so it doesn't interfere with anything
 
 extern volatile int mvolcounter;
 extern int update_music_at;
+
+// crossFading is >0 (channel number of new track), or -1 (old
+// track fading out, no new track)
+extern int crossFading, crossFadeVolumePerStep, crossFadeStep;
+extern int crossFadeVolumeAtStart;
+
+extern SOUNDCLIP *cachedQueuedMusic;
 
 #endif // __AC_MUSIC_H

@@ -15,6 +15,9 @@ int  run_interaction_event (NewInteraction *nint, int evnt, int chkAny = -1, int
 int  run_interaction_script(InteractionScripts *nint, int evnt, int chkAny = -1, int isInv = 0);
 int run_text_script(ccInstance*sci,char*tsname);
 
+void setup_script_exports();
+int create_global_script();
+
 
 extern int inside_script,in_graph_script;
 extern int no_blocking_functions; // set to 1 while in rep_Exec_always
@@ -32,3 +35,6 @@ extern ccInstance *moduleInstFork[MAX_SCRIPT_MODULES];
 extern char *moduleRepExecAddr[MAX_SCRIPT_MODULES];
 extern int numScriptModules;
 
+extern char **characterScriptObjNames = NULL;
+extern char objectScriptObjNames[MAX_INIT_SPR][MAX_SCRIPT_NAME_LEN + 5];
+extern char **guiScriptObjNames = NULL;

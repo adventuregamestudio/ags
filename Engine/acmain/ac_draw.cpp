@@ -24,12 +24,7 @@ IDriverDependantBitmap *blankImage = NULL;
 IDriverDependantBitmap *blankSidebarImage = NULL;
 IDriverDependantBitmap *debugConsole = NULL;
 
-struct CachedActSpsData {
-    int xWas, yWas;
-    int baselineWas;
-    int isWalkBehindHere;
-    int valid;
-};
+
 
 // actsps is used for temporary storage of the bitamp image
 // of the latest version of the sprite

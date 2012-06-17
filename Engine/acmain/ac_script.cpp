@@ -20,6 +20,10 @@ ccInstance *moduleInstFork[MAX_SCRIPT_MODULES];
 char *moduleRepExecAddr[MAX_SCRIPT_MODULES];
 int numScriptModules = 0;
 
+char **characterScriptObjNames = NULL;
+char objectScriptObjNames[MAX_INIT_SPR][MAX_SCRIPT_NAME_LEN + 5];
+char **guiScriptObjNames = NULL;
+
 
 char bname[40],bne[40];
 char* make_ts_func_name(char*base,int iii,int subd) {

@@ -37,6 +37,7 @@ void remove_mod_player();
 
 void update_ambient_sound_vol ();
 int play_sound(int val1);
+void PlayAmbientSound (int channel, int sndnum, int vol, int x, int y) ;
 
 extern AmbientSound ambient[MAX_SOUND_CHANNELS + 1];  // + 1 just for safety on array iterations
 extern int last_sound_played[MAX_SOUND_CHANNELS + 1];

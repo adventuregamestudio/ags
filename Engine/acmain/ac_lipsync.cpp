@@ -1,6 +1,12 @@
 
 #include "acmain/ac_maindefines.h"
+#include "acmain/ac_lipsync.h"
 
+// lip-sync speech settings
+int loops_per_character, text_lips_offset, char_speaking = -1;
+char *text_lips_text = NULL;
+SpeechLipSyncLine *splipsync = NULL;
+int numLipLines = 0, curLipLine = -1, curLipLinePhenome = 0;
 
 // Calculate which frame of the loop to use for this character of
 // speech

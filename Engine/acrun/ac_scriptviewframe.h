@@ -1,4 +1,6 @@
 
+#include "acrun/ac_ccdynamicobject.h"
+
 struct ScriptViewFrame : AGSCCDynamicObject {
     int view, loop, frame;
 

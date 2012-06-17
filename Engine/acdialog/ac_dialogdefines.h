@@ -14,12 +14,7 @@
 #define MSG_PLAYBUTTON   994    // "Play"
 #define MSG_QUITDIALOG   995    // "Do you want to quit?"
 
-struct GameSetup
-{
-    int digicard, midicard;
-    int mod_player;
-    int textheight;
-};
+#include "acrun/ac_gamesetup.h"
 
 /*#define COL251 26
 #define COL252 28

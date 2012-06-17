@@ -1,9 +1,55 @@
-
+#define USE_CLIB
+#include <stdio.h>
+#include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_game.h"
+#include "acmain/ac_commonheaders.h"
+#include "acrun/ac_executingscript.h"
+#include "acdialog/ac_cscidialog.h"
+#include "acmain/ac_conversation.h"
+#include "acgui/ac_guilabel.h"
+#include "cs/cs_utils.h"
+#include "acaudio/ac_audioclip.h"
+#include "acaudio/ac_audio.h"
+#include "acmain/ac_file.h"
+#include "cs/cs_runtime.h"
+#include "acmain/ac_lipsync.h"
+#include "acrun/ac_scriptviewframe.h"
+#include "agsplugin.h"
+#include "acmain/ac_animatingguibutton.h"
+#include "acaudio/ac_music.h"
+#include "acaudio/ac_sound.h"
+#include "acmain/ac_richgamemedia.h"
+#include "acmain/ac_serializer.h"
+#include "cs/cc_error.h"
+#include "acgfx/ac_gfxfilters.h"
+
+extern "C" int csetlib(char *namm, char *passw);
+
 
 char saveGameDirectory[260] = "./";
 int want_quit = 0;
+
+const char* sgnametemplate = "agssave.%03d";
+char saveGameSuffix[MAX_SG_EXT_LENGTH + 1];
+
+int game_paused=0;
+
+// PSP specific variables:
+int psp_is_old_datafile = 0; // Set for 3.1.1 and 3.1.2 datafiles
+
+
+int engineNeedsAsInt = 100;
+char pexbuf[STD_BUFFER_SIZE];
+
+unsigned int load_new_game = 0;
+int load_new_game_restore = -1;
+
+extern int psp_gfx_smoothing;
+extern int psp_gfx_scaling;
+extern int psp_gfx_renderer;
+extern int psp_gfx_super_sampling;
+
 
 const char *load_game_errors[9] =
   {"No error","File not found","Not an AGS save game",
@@ -2051,7 +2097,7 @@ void save_game(int slotn, const char*descript) {
   fclose(ooo);
 }
 
-
+char rbuffer[200];
 
 
 int restore_game_data (FILE *ooo, const char *nametouse) {
@@ -2707,7 +2753,7 @@ int restore_game_data (FILE *ooo, const char *nametouse) {
   return 0;
 }
 
-
+int gameHasBeenRestored = 0;
 
 int do_game_load(const char *nametouse, int slotNumber, char *descrp, int *wantShot)
 {

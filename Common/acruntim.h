@@ -37,13 +37,7 @@ extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 
 
 
-struct AnimatingGUIButton {
-  // index into guibuts array, GUI, button
-  short buttonid, ongui, onguibut;
-  // current animation status
-  short view, loop, frame;
-  short speed, repeat, wait;
-};
+
 
 
 

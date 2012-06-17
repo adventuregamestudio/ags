@@ -1,6 +1,6 @@
 
 #include "acmain/ac_maindefines.h"
-
+#include "acmain/ac_region.h"
 
 void generate_light_table() {
     int cc;

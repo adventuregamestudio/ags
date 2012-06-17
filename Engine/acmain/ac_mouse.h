@@ -1,6 +1,8 @@
 #ifndef __AC_MOUSE_H
 #define __AC_MOUSE_H
 
+#include "acrun/ac_scriptobject.h"
+
 #define DOMOUSE_NOCURSOR 5
 // are these mouse buttons? ;/
 // note: also defined in ac_cscidialog as const ints

@@ -23,6 +23,7 @@
 #include "acmain/ac_object.h"
 #include "acmain/ac_overlay.h"
 #include "acmain/ac_record.h"
+#include "acmain/ac_region.h"
 #include "acmain/ac_room.h"
 #include "acmain/ac_screen.h"
 #include "acmain/ac_script.h"

@@ -3,6 +3,13 @@
 
 #include "ali3d.h"
 
+struct CachedActSpsData {
+    int xWas, yWas;
+    int baselineWas;
+    int isWalkBehindHere;
+    int valid;
+};
+
 void invalidate_screen();
 void mark_current_background_dirty();
 void invalidate_cached_walkbehinds();
@@ -39,7 +46,27 @@ extern block *actsps;
 extern block virtual_screen; 
 
 extern block dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
-extern int trans_mode=0;
+extern int trans_mode;
+
+// actsps is used for temporary storage of the bitamp image
+// of the latest version of the sprite
+extern int actSpsCount;
+extern block *actsps;
+extern IDriverDependantBitmap* *actspsbmp;
+// temporary cache of walk-behind for this actsps image
+extern block *actspswb;
+extern IDriverDependantBitmap* *actspswbbmp;
+extern CachedActSpsData* actspswbcache;
+
+extern block *guibg;
+extern IDriverDependantBitmap **guibgbmp;
+
+extern int offsetx, offsety;
+
+extern block raw_saved_screen;
+extern block dotted_mouse_cursor;
+
+
 
 
 #endif // __AC_DRAW_H

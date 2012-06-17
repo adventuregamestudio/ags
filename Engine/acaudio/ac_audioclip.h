@@ -18,6 +18,8 @@ ScriptAudioChannel* AudioClip_Play(ScriptAudioClip *clip, int priority, int repe
 ScriptAudioChannel* AudioClip_PlayFrom(ScriptAudioClip *clip, int position, int priority, int repeat);
 ScriptAudioChannel* AudioClip_PlayQueued(ScriptAudioClip *clip, int priority, int repeat);
 
+void BuildAudioClipArray();
+
 
 //const char *CCAudioClip::GetType();
 //int CCAudioClip::Serialize(const char *address, char *buffer, int bufsize);

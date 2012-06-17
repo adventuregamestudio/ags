@@ -39,9 +39,18 @@ extern char saveGameSuffix[21];
 // These are defined in ac_cscidialog
 //
 
-const int NONE = -1, LEFT = 0, RIGHT = 1;
+//const int NONE = -1, LEFT = 0, RIGHT = 1;
+#include "acmain/ac_mouse.h"
 
 void refresh_screen();
+int loadgamedialog();
+int savegamedialog();
+void preparesavegamelist(int ctrllist);
+void enterstringwindow(char *prompttext, char *stouse);
+int enternumberwindow(char *prompttext);
+int roomSelectorWindow(int currentRoom, int numRooms, int*roomNumbers, char**roomNames);
+int myscimessagebox(char *lpprompt, char *btn1, char *btn2);
+int quitdialog();
 
 extern int windowbackgroundcolor, pushbuttondarkcolor;
 extern int pushbuttonlightcolor;

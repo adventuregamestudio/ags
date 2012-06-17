@@ -39,5 +39,6 @@ void Character_SetOption(CharacterInfo *chaa, int flag, int yesorno);
 
 extern CharacterInfo*playerchar;
 extern CharacterExtras *charextra;
+extern long _sc_PlayerCharPtr;
 
 #endif // __AC_CHARACTER_H

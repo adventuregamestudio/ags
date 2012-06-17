@@ -1,6 +1,13 @@
 
+#include <stdio.h>
+#include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_dynamicsprite.h"
+#include "acmain/ac_commonheaders.h"
+#include "acmain/ac_file.h"
+#include "acrun/ac_scriptdynamicsprite.h"
+#include <math.h>
+#include "acgui/ac_guibutton.h"
 
 char check_dynamic_sprites_at_exit = 1;
 

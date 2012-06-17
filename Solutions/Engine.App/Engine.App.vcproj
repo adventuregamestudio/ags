@@ -1473,11 +1473,19 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\acrun\ac_scriptdynamicsprite.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acrun\ac_scriptobject.h"
 					>
 				</File>
 				<File
 					RelativePath="..\..\Engine\acrun\ac_scriptoverlay.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acrun\ac_scriptviewframe.h"
 					>
 				</File>
 			</Filter>

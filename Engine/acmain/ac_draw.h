@@ -17,6 +17,8 @@ void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY
 void construct_virtual_screen(bool fullRedraw) ;
 void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int baseline, int trans, int sprNum, bool isWalkBehind = false);
 void tint_image (block source, block dest, int red, int grn, int blu, int light_level, int luminance=255);
+void draw_sprite_support_alpha(int xpos, int ypos, block image, int slot);
+int Game_GetColorFromRGB(int red, int grn, int blu);
 
 extern color palette[256];
 
@@ -33,6 +35,9 @@ extern IDriverDependantBitmap *debugConsole;
 
 extern block *actsps;
 extern block virtual_screen; 
+
+extern block dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
+extern int trans_mode=0;
 
 
 #endif // __AC_DRAW_H

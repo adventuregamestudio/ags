@@ -9,6 +9,10 @@ int mouse_on_iface_button=-1;
 int mouse_pushed_iface=-1;  // this BUTTON on interface MOUSE_ON_IFACE is pushed
 int mouse_ifacebut_xoffs=-1,mouse_ifacebut_yoffs=-1;
 
+int eip_guinum, eip_guiobj;
+
+
+
 int GetBaseWidth () {
     return BASEWIDTH;
 }

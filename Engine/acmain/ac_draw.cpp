@@ -1,15 +1,35 @@
 
+#include <stdio.h>
+#include <aastr.h>
+#include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_draw.h"
+#include "acmain/ac_commonheaders.h"
+#include "ac/ac_compress.h"
+#include "agsplugin.h"
+#include "acmain/ac_spritelistentry.h"
+#include "ac/ac_object.h"
+#include "mousew32.h"
+#include "acaudio/ac_audio.h"
+#include "acaudio/ac_music.h"
 
 
 color palette[256];
+
+COLOR_MAP maincoltable;
 
 IGraphicsDriver *gfxDriver;
 IDriverDependantBitmap *mouseCursor = NULL;
 IDriverDependantBitmap *blankImage = NULL;
 IDriverDependantBitmap *blankSidebarImage = NULL;
 IDriverDependantBitmap *debugConsole = NULL;
+
+struct CachedActSpsData {
+    int xWas, yWas;
+    int baselineWas;
+    int isWalkBehindHere;
+    int valid;
+};
 
 // actsps is used for temporary storage of the bitamp image
 // of the latest version of the sprite
@@ -22,6 +42,42 @@ IDriverDependantBitmap* *actspswbbmp;
 CachedActSpsData* actspswbcache;
 
 block virtual_screen;
+
+bool current_background_is_dirty = false;
+
+block _old_screen=NULL;
+block _sub_screen=NULL;
+
+int offsetx = 0, offsety = 0;
+
+int trans_mode=0;
+
+IDriverDependantBitmap* roomBackgroundBmp = NULL;
+
+
+#define MAX_SPRITES_ON_SCREEN 76
+SpriteListEntry sprlist[MAX_SPRITES_ON_SCREEN];
+int sprlistsize=0;
+#define MAX_THINGS_TO_DRAW 125
+SpriteListEntry thingsToDrawList[MAX_THINGS_TO_DRAW];
+int thingsToDrawSize = 0;
+
+//GUIMain dummygui;
+//GUIButton dummyguicontrol;
+block *guibg = NULL;
+IDriverDependantBitmap **guibgbmp = NULL;
+
+
+block debugConsoleBuffer = NULL;
+block blank_mouse_cursor = NULL;
+
+// whether there are currently remnants of a DisplaySpeech
+int screen_is_dirty = 0;
+
+block raw_saved_screen = NULL;
+block dotted_mouse_cursor = NULL;
+block dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
+
 
 void setpal() {
     wsetpalette(0,255,palette);
@@ -897,6 +953,13 @@ void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int baselin
     if (spp == NULL)
         quit("add_to_sprite_list: attempted to draw NULL sprite");
 }
+
+#if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(WINDOWS_VERSION)
+extern int psp_gfx_smoothing;
+extern int psp_gfx_scaling;
+extern int psp_gfx_renderer;
+extern int psp_gfx_super_sampling;
+#endif
 
 void put_sprite_256(int xxx,int yyy,block piccy) {
 
@@ -2626,6 +2689,10 @@ void UpdatePalette() {
   if (!play.fast_forward)  
     setpal();
 }
+
+#if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
+extern volatile int psp_audio_multithreaded; // in ac_audio
+#endif
 
 
 void construct_virtual_screen(bool fullRedraw) 

@@ -34,4 +34,21 @@ struct ScriptInvItem {
     int reserved;
 };
 
+// The text script's "mouse" struct
+struct ScriptMouse {
+    int x,y;
+};
+
+// The text script's "system" struct
+struct ScriptSystem {
+    int width,height;
+    int coldepth;
+    int os;
+    int windowed;
+    int vsync;
+    int viewport_width, viewport_height;
+    char aci_version[10];
+    int reserved[5];  // so that future scripts don't overwrite data
+};
+
 #endif // __AC_SCRIPTOBJECT_H

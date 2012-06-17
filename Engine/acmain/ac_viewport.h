@@ -1,0 +1,2 @@
+
+void update_viewport();

@@ -13,3 +13,7 @@ extern int mouse_on_iface_button;
 extern int mouse_pushed_iface;  // this BUTTON on interface MOUSE_ON_IFACE is pushed
 extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 
+extern int eip_guinum, eip_guiobj;
+
+
+

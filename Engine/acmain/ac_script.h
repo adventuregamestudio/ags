@@ -16,3 +16,5 @@ extern NonBlockingScriptFunction renderDialogOptionsFunc;
 extern NonBlockingScriptFunction getDialogOptionUnderCursorFunc;
 extern NonBlockingScriptFunction runDialogOptionMouseClickHandlerFunc;
 
+extern ScriptSystem scsystem;
+

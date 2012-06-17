@@ -10,6 +10,7 @@ int walkBehindRight[MAX_OBJ], walkBehindBottom[MAX_OBJ];
 IDriverDependantBitmap *walkBehindBitmap[MAX_OBJ];
 int walkBehindsCachedForBgNum = 0;
 WalkBehindMethodEnum walkBehindMethod = DrawOverCharSprite;
+int walk_behind_baselines_changed = 0;
 
 void update_walk_behind_images()
 {

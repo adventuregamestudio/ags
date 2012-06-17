@@ -123,6 +123,13 @@
 #define TRANS_RUN_PLUGIN    20002
 
 
+#define LOCTYPE_HOTSPOT 1
+#define LOCTYPE_CHAR 2
+#define LOCTYPE_OBJ  3
+
+#define MAX_DYNAMIC_SURFACES 20
+
+
 #include "ac/ac_defines.h"
 
 #endif // __AC_RUNDEFINES_H

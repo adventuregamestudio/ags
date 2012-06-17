@@ -34,3 +34,4 @@ int minstalled();
 
 
 extern int mousex, mousey;
+extern int hotx, hoty;

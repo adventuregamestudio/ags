@@ -277,8 +277,8 @@ extern int  cd_getlasttrack(int);
 extern int  cd_isplayingaudio(int);
 extern void QGRegisterFunctions();  // let the QFG module register its own
 
-int eip_guinum, eip_guiobj;
-int trans_mode=0;
+
+
 int engineNeedsAsInt = 100;
 
 int  sc_GetTime(int whatti);
@@ -329,12 +329,7 @@ struct TempEip {
 
 
 
-struct CachedActSpsData {
-  int xWas, yWas;
-  int baselineWas;
-  int isWalkBehindHere;
-  int valid;
-};
+
 
 
 
@@ -385,24 +380,19 @@ long t1;  // timer for FPS
 
 
 
-unsigned long loopcounter=0,lastcounter=0;
-volatile unsigned long globalTimerCounter = 0;
+
 char alpha_blend_cursor = 0;
 
 
 
-int offsetx = 0, offsety = 0;
+
 int use_extra_sound_offset = 0;
 
-//GUIMain dummygui;
-//GUIButton dummyguicontrol;
-block *guibg = NULL;
-IDriverDependantBitmap **guibgbmp = NULL;
 
 
-block debugConsoleBuffer = NULL;
-block blank_mouse_cursor = NULL;
-bool current_background_is_dirty = false;
+
+
+
 
 
 PluginObjectReader pluginReaders[MAX_PLUGIN_OBJECT_READERS];
@@ -415,11 +405,10 @@ char *moduleRepExecAddr[MAX_SCRIPT_MODULES];
 int numScriptModules = 0;
 
 
-ScriptMouse scmouse;
-COLOR_MAP maincoltable;
-ScriptSystem scsystem;
-block _old_screen=NULL;
-block _sub_screen=NULL;
+
+
+
+
 
 
 
@@ -455,13 +444,13 @@ int working_gfx_mode_status = -1;
 int gs_to_newroom=-1;
 
 
-int numscreenover=0;
+
 int scaddr;
-int walk_behind_baselines_changed = 0;
 
 
 
-IDriverDependantBitmap* roomBackgroundBmp = NULL;
+
+
 
 
 
@@ -480,11 +469,7 @@ int mouse_z_was = 0;
 char ac_engine_copyright[]="Adventure Game Studio engine & tools (c) 1999-2000 by Chris Jones.";
 
 
-#define LOCTYPE_HOTSPOT 1
-#define LOCTYPE_CHAR 2
-#define LOCTYPE_OBJ  3
 
-#define MAX_DYNAMIC_SURFACES 20
 
 #define REP_EXEC_ALWAYS_NAME "repeatedly_execute_always"
 #define REP_EXEC_NAME "repeatedly_execute"
@@ -498,15 +483,9 @@ unsigned int load_new_game = 0;
 int load_new_game_restore = -1;
 
 int in_inv_screen = 0, inv_screen_newroom = -1;
-int mouse_frame=0,mouse_delay=0;
-int lastmx=-1,lastmy=-1;
+
 int new_room_flags=0;
-#define MAX_SPRITES_ON_SCREEN 76
-SpriteListEntry sprlist[MAX_SPRITES_ON_SCREEN];
-int sprlistsize=0;
-#define MAX_THINGS_TO_DRAW 125
-SpriteListEntry thingsToDrawList[MAX_THINGS_TO_DRAW];
-int thingsToDrawSize = 0;
+
 
 
 int post_script_cleanup_stack = 0;
@@ -516,13 +495,10 @@ int post_script_cleanup_stack = 0;
 
 RGB_MAP rgb_table;  // for 256-col antialiasing
 char* game_file_name=NULL;
-int want_quit = 0, screen_reset = 0;
-block raw_saved_screen = NULL;
-block dotted_mouse_cursor = NULL;
-block dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
+
+
 int scrlockWasDown = 0;
-// whether there are currently remnants of a DisplaySpeech
-int screen_is_dirty = 0;
+
 
 char pexbuf[STD_BUFFER_SIZE];
 
@@ -599,8 +575,8 @@ void save_game_data (FILE *, block screenshot);
 void setup_script_exports ();
 void SetSpeechFont (int);
 void SetNormalFont (int);
-void tint_image (block source, block dest, int red, int grn, int blu, int light_level, int luminance=255);
-void get_message_text (int msnum, char *buffer, char giveErr = 1);
+
+
 void render_graphics(IDriverDependantBitmap *extraBitmap = NULL, int extraX = 0, int extraY = 0);
 int  wait_loop_still_valid();
 SOUNDCLIP *load_music_from_disk(int mnum, bool repeat);
@@ -608,7 +584,7 @@ void play_new_music(int mnum, SOUNDCLIP *music);
 int GetGameSpeed();
 int check_for_messages_from_editor();
 int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBackground);
-void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int baseline, int trans, int sprNum, bool isWalkBehind = false);
+
 
 
 

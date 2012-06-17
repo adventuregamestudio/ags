@@ -2,6 +2,8 @@
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_timer.h"
 
+unsigned long loopcounter=0,lastcounter=0;
+volatile unsigned long globalTimerCounter = 0;
 
 volatile int timerloop=0;
 int time_between_timers=25;  // in milliseconds

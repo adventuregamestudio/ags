@@ -35,22 +35,7 @@ extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 
 
 
-// The text script's "mouse" struct
-struct ScriptMouse {
-  int x,y;
-};
 
-// The text script's "system" struct
-struct ScriptSystem {
-  int width,height;
-  int coldepth;
-  int os;
-  int windowed;
-  int vsync;
-  int viewport_width, viewport_height;
-  char aci_version[10];
-  int reserved[5];  // so that future scripts don't overwrite data
-};
 
 struct AnimatingGUIButton {
   // index into guibuts array, GUI, button
@@ -62,15 +47,6 @@ struct AnimatingGUIButton {
 
 
 
-struct SpriteListEntry {
-  IDriverDependantBitmap *bmp;
-  block pic;
-  int baseline;
-  int x,y;
-  int transparent;
-  bool takesPriorityIfEqual;
-  bool hasAlphaChannel;
-};
 
 
 

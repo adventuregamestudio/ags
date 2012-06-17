@@ -13,10 +13,14 @@ void set_cursor_mode(int newmode);
 void SetNextCursor ();
 void update_inv_cursor(int invnum);
 void set_mouse_cursor(int newcurs);
+void set_new_cursor_graphic (int spriteslot);
 
 
 extern int cur_mode,cur_cursor;
 
+extern ScriptMouse scmouse;
+extern int mouse_frame,mouse_delay;
+extern int lastmx,lastmy;
 
 
 #endif // __AC_MOUSE_H

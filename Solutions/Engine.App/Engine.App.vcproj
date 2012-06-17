@@ -1213,6 +1213,10 @@
 				Name="acmain"
 				>
 				<File
+					RelativePath="..\..\Engine\acmain\ac_background.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acmain\ac_cccharacter.h"
 					>
 				</File>
@@ -1369,6 +1373,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\acmain\ac_spritelistentry.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acmain\ac_string.h"
 					>
 				</File>
@@ -1386,6 +1394,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_viewframe.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_viewport.h"
 					>
 				</File>
 				<File

@@ -1,6 +1,6 @@
 
 #include "acmain/ac_maindefines.h"
-
+#include "acmain/ac_viewport.h"
 
 void check_viewport_coords() 
 {

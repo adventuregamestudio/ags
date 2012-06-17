@@ -12,6 +12,8 @@ NonBlockingScriptFunction renderDialogOptionsFunc("dialog_options_render", 1);
 NonBlockingScriptFunction getDialogOptionUnderCursorFunc("dialog_options_get_active", 1);
 NonBlockingScriptFunction runDialogOptionMouseClickHandlerFunc("dialog_options_mouse_click", 2);
 
+ScriptSystem scsystem;
+
 
 char bname[40],bne[40];
 char* make_ts_func_name(char*base,int iii,int subd) {

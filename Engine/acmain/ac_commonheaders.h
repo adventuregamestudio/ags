@@ -6,6 +6,7 @@
 #include "acdebug/ac_debug.h"
 #include "acrun/ac_platformdriver.h"
 #include "acrun/ac_runninggame.h"
+#include "acmain/ac_background.h"
 #include "acmain/ac_collision.h"
 #include "acmain/ac_cutscene.h"
 #include "acmain/ac_dynamicsprite.h"
@@ -31,6 +32,7 @@
 #include "acmain/ac_timer.h"
 #include "acmain/ac_translation.h"
 #include "acmain/ac_viewframe.h"
+#include "acmain/ac_viewport.h"
 #include "acmain/ac_walkablearea.h"
 #include "acmain/ac_walkbehind.h"
 

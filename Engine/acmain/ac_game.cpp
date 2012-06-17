@@ -3,6 +3,7 @@
 #include "acmain/ac_game.h"
 
 char saveGameDirectory[260] = "./";
+int want_quit = 0;
 
 const char *load_game_errors[9] =
   {"No error","File not found","Not an AGS save game",

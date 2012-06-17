@@ -3,6 +3,10 @@
 #include "acmain/ac_mouse.h"
 
 int cur_mode,cur_cursor;
+ScriptMouse scmouse;
+
+int mouse_frame=0,mouse_delay=0;
+int lastmx=-1,lastmy=-1;
 
 void update_script_mouse_coords() {
     scmouse.x = divide_down_coordinate(mousex);

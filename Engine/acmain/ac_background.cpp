@@ -1,6 +1,7 @@
 
 #include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
+#include "acmain/ac_background.h"
 #include "acmain/ac_draw.h"
 #include "acrun/ac_runninggame.h"
 #include "acmain/ac_event.h"

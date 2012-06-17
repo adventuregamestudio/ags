@@ -8,4 +8,4 @@ extern int force_letterbox;
 
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern int screen_reset;
-extern int numscreenover=0;
+extern int numscreenover;

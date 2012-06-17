@@ -1,6 +1,9 @@
 
+#include <stdio.h>
+#include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_screen.h"
+#include "acmain/ac_commonheaders.h"
 
 int scrnwid,scrnhit;
 int current_screen_resolution_multiplier = 1;

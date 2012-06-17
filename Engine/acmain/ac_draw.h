@@ -20,7 +20,7 @@ void pop_screen();
 void update_screen();
 void invalidate_rect(int x1, int y1, int x2, int y2);
 // Draw everything 
-void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY);
+void render_graphics(IDriverDependantBitmap *extraBitmap = NULL, int extraX = 0, int extraY = 0);
 void construct_virtual_screen(bool fullRedraw) ;
 void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int baseline, int trans, int sprNum, bool isWalkBehind = false);
 void tint_image (block source, block dest, int red, int grn, int blu, int light_level, int luminance=255);
@@ -76,6 +76,9 @@ extern block _old_screen;
 extern block _sub_screen;
 
 extern int _places_r, _places_g, _places_b;
+
+// whether there are currently remnants of a DisplaySpeech
+extern int screen_is_dirty;
 
 
 #endif // __AC_DRAW_H

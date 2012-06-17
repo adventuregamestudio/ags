@@ -161,7 +161,7 @@ extern "C" {
 void draw_sprite_compensate(int,int,int,int);
 
 char *get_translation(const char*);
-int   source_text_length = -1;
+
 
 #include "ac/ac_common.h"
 #include "ac/ac_compress.h"
@@ -340,7 +340,7 @@ int numSoundChannels = 8;
 
 
 
-char *heightTestString = "ZHwypgfjqhkilIK";
+
 
 
 
@@ -529,7 +529,7 @@ void SetSpeechFont (int);
 void SetNormalFont (int);
 
 
-void render_graphics(IDriverDependantBitmap *extraBitmap = NULL, int extraX = 0, int extraY = 0);
+
 int  wait_loop_still_valid();
 SOUNDCLIP *load_music_from_disk(int mnum, bool repeat);
 void play_new_music(int mnum, SOUNDCLIP *music);

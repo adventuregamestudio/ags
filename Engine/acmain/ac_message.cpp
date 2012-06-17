@@ -1,8 +1,17 @@
 
+#include <stdio.h>
+#include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_message.h"
+#include "acmain/ac_commonheaders.h"
+#include "acfont/ac_agsfontrenderer.h"
+#include "acgui/ac_guibutton.h"
+#include "acmain/ac_lipsync.h"
+#include "acmain/ac_conversation.h"
+#include "acaudio/ac_audio.h"
+#include "acaudio/ac_music.h"
 
-
+char *heightTestString = "ZHwypgfjqhkilIK";
 
 int wgetfontheight(int font) {
     int htof = wgettextheight(heightTestString, font);
@@ -179,7 +188,7 @@ TopBarSettings topBar;
 block screenop = NULL;
 int wantFreeScreenop = 0;
 int texthit;
-void draw_text_window(int*xins,int*yins,int*xx,int*yy,int*wii,int ovrheight=0, int ifnum=-1) {
+void draw_text_window(int*xins,int*yins,int*xx,int*yy,int*wii,int ovrheight, int ifnum) {
     if (ifnum < 0)
         ifnum = game.options[OPT_TWCUSTOM];
 
@@ -293,6 +302,8 @@ void wouttext_outline(int xxp, int yyp, int usingfont, char*texx) {
     textcol = otextc;
     wouttextxy(xxp, yyp, usingfont, texx);
 }
+
+int   source_text_length = -1;
 
 int GetTextDisplayTime (char *text, int canberel=0) {
     int uselen = strlen(text);

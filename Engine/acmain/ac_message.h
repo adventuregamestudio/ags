@@ -1,3 +1,5 @@
+#ifndef __AC_MESSAGE_H
+#define __AC_MESSAGE_H
 
 void _DisplaySpeechCore(int chid, char *displbuf);
 void _DisplayThoughtCore(int chid, const char *displbuf);
@@ -10,3 +12,5 @@ void set_default_glmsg (int msgnum, const char* val);
 int user_to_internal_skip_speech(int userval);
 
 extern block screenop;
+
+#endif // __AC_MESSAGE_H

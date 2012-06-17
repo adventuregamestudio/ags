@@ -1,5 +1,9 @@
 
-#include "acmin/ac_maindefines.h"
+#include <stdio.h>
+#include "wgt2allg.h"
+#include "acmain/ac_maindefines.h"
+#include "acgui/ac_guilabel.h"
+#include "acmain/ac_commonheaders.h"
 
 // ** LABEL FUNCTIONS
 

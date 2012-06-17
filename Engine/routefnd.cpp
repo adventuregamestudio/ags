@@ -766,8 +766,7 @@ void calculate_move_stage(MoveList * mlsp, int aaa)
 
 #define MAKE_INTCOORD(x,y) (((unsigned short)x << 16) | ((unsigned short)y))
 
-int find_route(short srcx, short srcy, short xx, short yy, block onscreen, int movlst, int nocross =
-               0, int ignore_walls = 0)
+int find_route(short srcx, short srcy, short xx, short yy, block onscreen, int movlst, int nocross, int ignore_walls)
 {
 #ifdef DEBUG_PATHFINDER
   __wnormscreen();

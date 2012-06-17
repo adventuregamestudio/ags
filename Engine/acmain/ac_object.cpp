@@ -1,6 +1,11 @@
 
+#include <stdio.h>
+#include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_object.h"
+#include "acmain/ac_commonheaders.h"
+#include "ac/ac_object.h"
+#include "routefnd.h"
 
 
 inline int is_valid_object(int obtest) {

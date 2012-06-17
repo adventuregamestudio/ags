@@ -35,6 +35,10 @@ void init_invalid_regions(int scrnHit);
 int get_screen_x_adjustment(BITMAP *checkFor);
 int get_screen_y_adjustment(BITMAP *checkFor);
 void putpixel_compensate (block onto, int xx,int yy, int col);
+// create the actsps[aa] image with the object drawn correctly
+// returns 1 if nothing at all has changed and actsps is still
+// intact from last time; 0 otherwise
+int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysUseSoftware);
 
 extern color palette[256];
 

@@ -37,6 +37,7 @@ int Character_IsCollidingWithChar(CharacterInfo *char1, CharacterInfo *char2);
 void SetCharacterSpeechView (int chaa, int vii);
 void Character_SetOption(CharacterInfo *chaa, int flag, int yesorno);
 void MoveCharacterToHotspot(int chaa,int hotsp);
+void scAnimateCharacter (int chh, int loopn, int sppd, int rept);
 
 ScriptInvItem* Character_GetActiveInventory(CharacterInfo *chaa);
 void Character_SetActiveInventory(CharacterInfo *chaa, ScriptInvItem* iit);

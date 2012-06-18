@@ -1,6 +1,10 @@
 
+#include <stdio.h>
+#include <string.h>
+#include "wgt2allg.h"
 #include "acrun/ac_executingscript.h"
 #include "acmain/ac_maindefines.h"
+#include "acdebug/ac_debug.h"
 
 ExecutingScript scripts[MAX_SCRIPT_AT_ONCE];
 ExecutingScript*curscript = NULL;

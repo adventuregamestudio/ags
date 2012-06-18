@@ -9,13 +9,23 @@
   CLEAR that the code has been altered from the Standard Version.
 
 */
-
+/*
 #ifdef WINDOWS_VERSION
 #include <windows.h>    // for HWND
 #else
 // ???
 #endif
+*/
+#include <stdio.h>
+#include "wgt2allg.h"
 #include "acdebug/ac_debug.h"
+#include "acmain/ac_commonheaders.h"
+#include "acrun/ac_executingscript.h"
+#include "cs/cs_common.h"
+#include "cs/cc_error.h"
+#include "acgui/ac_dynamicarray.h"
+#include "acaudio/ac_audio.h"
+#include "acaudio/ac_music.h"
 
 int use_compiled_folder_as_current_dir = 0;
 int editor_debugging_enabled = 0;
@@ -373,6 +383,8 @@ void break_into_debugger()
 }
 
 int scrDebugWait = 0;
+extern int pluginsWantingDebugHooks;
+
 // allow LShift to single-step,  RShift to pause flow
 void scriptDebugHook (ccInstance *ccinst, int linenum) {
 
@@ -411,6 +423,8 @@ void scriptDebugHook (ccInstance *ccinst, int linenum) {
         }
     }
 }
+
+int scrlockWasDown = 0;
 
 void check_debug_keys() {
     if (play.debug_mode) {

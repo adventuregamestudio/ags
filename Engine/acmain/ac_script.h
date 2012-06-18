@@ -23,6 +23,7 @@ void setup_script_exports();
 int create_global_script();
 
 void cancel_all_scripts();
+void get_script_name(ccInstance *rinst, char *curScrName);
 
 
 extern int inside_script,in_graph_script;

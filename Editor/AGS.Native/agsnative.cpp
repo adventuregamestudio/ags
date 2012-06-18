@@ -33,7 +33,7 @@ int mousex, mousey;
 #include "ac/ac_compress.h"
 #include "ac/ac_gamesetupstruct.h"
 #include "ac/ac_object.h"
-#include "ac/ac_room.h"
+#include "ac/ac_roomstruct.h"
 #include "ac/ac_script.h"
 #include "ac/ac_view.h"
 //#include "acgui.h"

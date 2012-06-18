@@ -1,6 +1,8 @@
 #ifndef __AC_AMBIENTSOUND_H
 #define __AC_AMBIENTSOUND_H
 
+#define AMBIENCE_FULL_DIST 25
+
 struct AmbientSound {
     int  channel;  // channel number, 1 upwards
     int  x,y;

@@ -40,6 +40,8 @@ void putpixel_compensate (block onto, int xx,int yy, int col);
 int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysUseSoftware);
 void clear_letterbox_borders();
 
+void draw_and_invalidate_text(int x1, int y1, int font, const char *text);
+
 
 int Game_GetColorFromRGB(int red, int grn, int blu);
 void RawSaveScreen ();
@@ -75,9 +77,9 @@ extern COLOR_MAP maincoltable;
 
 void setpal();
 
-AGS_INLINE int convert_to_low_res(int coord);
-AGS_INLINE int convert_back_to_high_res(int coord);
-AGS_INLINE void multiply_up_coordinates_round_up(int *x, int *y);
+extern AGS_INLINE int convert_to_low_res(int coord);
+extern AGS_INLINE int convert_back_to_high_res(int coord);
+extern AGS_INLINE void multiply_up_coordinates_round_up(int *x, int *y);
 
 block convert_16_to_15(block iii);
 block convert_16_to_16bgr(block tempbl);

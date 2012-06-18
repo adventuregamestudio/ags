@@ -9,7 +9,7 @@
 #include "bigend.h"
 #include "misc.h"
 #include "wgt2allg.h"
-#include "ac/ac_room.h"
+#include "ac/ac_roomstruct.h"
 //
 
 //=============================================================================

@@ -66,12 +66,47 @@ char *speech_file;
 WCHAR directoryPathBuffer[MAX_PATH];
 
 
+#if defined(MAC_VERSION) || (defined(LINUX_VERSION) && !defined(PSP_VERSION))
+#include <pthread.h>
+pthread_t soundthread;
+#endif
+
+#if defined(ANDROID_VERSION)
+#include <sys/stat.h>
+#include <android/log.h>
+
+extern "C" void android_render();
+extern "C" void selectLatestSavegame();
+extern bool psp_load_latest_savegame;
+#endif
+
+#ifdef MAC_VERSION
+char dataDirectory[512];
+char appDirectory[512];
+extern "C"
+{
+    int osx_sys_question(const char *msg, const char *but1, const char *but2);
+}
+#endif
+
+// How is this actually used??
+// We need COLOR_DEPTH_24 to allow it to load the preload PCX in hi-col
+BEGIN_COLOR_DEPTH_LIST
+    COLOR_DEPTH_8
+    COLOR_DEPTH_15
+    COLOR_DEPTH_16
+    COLOR_DEPTH_24
+    COLOR_DEPTH_32
+END_COLOR_DEPTH_LIST
+
+
+extern "C" HWND allegro_wnd;
+
 
 // for external modules to call
 void next_iteration() {
     NEXT_ITERATION();
 }
-
 
 
 void precache_view(int view) 
@@ -3688,6 +3723,11 @@ int initialize_engine(int argc,char*argv[])
 #if defined(WINDOWS_VERSION) || defined(LINUX_VERSION) || defined(MAC_VERSION)
 END_OF_MAIN()
 #endif
+
+// in ac_minidump
+extern int CustomExceptionHandler (LPEXCEPTION_POINTERS exinfo);
+extern EXCEPTION_RECORD excinfo;
+extern int miniDumpResultCode;
 
 int initialize_engine_with_exception_handling(int argc,char*argv[])
 {

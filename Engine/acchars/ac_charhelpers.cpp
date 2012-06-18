@@ -15,8 +15,9 @@
 #include <stdio.h>
 #include "wgt2allg.h"
 #include "acchars/ac_charhelpers.h"
-#include "acruntim.h"
-#include "ac/ac_common.h"           // quit()
+//#include "acruntim.h"
+#include "acmain/ac_commonheaders.h"
+#include "routefnd.h"
 #include <math.h>
 
 extern int loaded_game_file_version;

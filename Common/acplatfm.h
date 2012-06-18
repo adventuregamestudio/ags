@@ -15,8 +15,9 @@
 #endif
 
 #include "wgt2allg.h"
-#include "acruntim.h"
+//#include "acruntim.h"
 //#include "acsound.h"
+#include "acrun/ac_platformdriver.h"
 #include "acaudio/ac_sound.h"
 #include "ali3d.h"
 

@@ -1,6 +1,25 @@
 #ifndef __AC_MAINDEFINES_H
 #define __AC_MAINDEFINES_H
 
+//=============================================================================
+//
+//                    WARNING!!
+//
+// [IKM] 2012-06-19
+//
+// ac_maindefines.h should be only included in *.cpp files before the
+// code, that was split out of former ac.cpp.
+// Do NOT include this in headers or other *.cpp files; some declarations
+// here may screw things up.
+//
+// At the moment it is 100% fact that UNICODE macro can cause this. May be
+// there are other potential problems yet unknown.
+// Unfortunately I was unable to determine what exactly UNICODE is essential
+// for in the former ac.cpp code. Perhaps in the future it would be possible
+// to pinpoint exact parts of code that only need UNICODE to be defined.
+//
+//=============================================================================
+
 #include "acrun/ac_rundefines.h"
 
 //
@@ -109,10 +128,8 @@
 #endif
 
 
-
+#undef WOUTTEXT_REVERSE
 #define WOUTTEXT_REVERSE wouttext_reverseifnecessary
-
-#define MAX_SCRIPT_MODULES 50
 
 
 // Check that a supplied buffer from a text script function was not null

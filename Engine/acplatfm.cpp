@@ -12,12 +12,20 @@
 
 */
 #include "acplatfm.h"
-#include "ac/ac_common.h"   // quit()
 #include "cs/cs_runtime.h"
 #include "cs/cs_utils.h"
 #if defined(LINUX_VERSION) || defined(MAC_VERSION)
 #define strnicmp strncasecmp
 #endif
+#include "acmain/ac_commonheaders.h"
+#include "acmain/ac_parser.h"
+#include "acaudio/ac_audio.h"
+#include "acaudio/ac_music.h"
+#include "acaudio/ac_audiochannel.h"
+#include "acrun/ac_executingscript.h"
+#include "acmain/ac_plugin.h"
+#include "acgfx/ac_gfxfilters.h"
+#include "acmain/ac_cdplayer.h"
 
 #if defined(BUILTIN_PLUGINS)
 #include "../Plugins/AGSflashlight/agsflashlight.h"
@@ -47,6 +55,7 @@ extern "C"
 AGSPlatformDriver* AGSPlatformDriver::instance = NULL;
 
 int numcddrives=0;
+int pluginsWantingDebugHooks = 0;
 
 // ******** DEFAULT IMPLEMENTATIONS *******
 
@@ -216,7 +225,7 @@ BITMAP * IAGSEngine::GetVirtualScreen ()
 
   return gfxDriver->GetMemoryBackBuffer();
 }
-void IAGSEngine::RequestEventHook (int event) {
+void IAGSEngine::RequestEventHook (int32 event) {
   if (event >= AGSE_TOOHIGH) 
     quit("!IAGSEngine::RequestEventHook: invalid event requested");
 
@@ -237,7 +246,7 @@ void IAGSEngine::RequestEventHook (int event) {
   plugins[this->pluginId].wantHook |= event;
 }
 
-void IAGSEngine::UnrequestEventHook(int event) {
+void IAGSEngine::UnrequestEventHook(int32 event) {
   if (event >= AGSE_TOOHIGH) 
     quit("!IAGSEngine::UnrequestEventHook: invalid event requested");
 
@@ -251,7 +260,7 @@ void IAGSEngine::UnrequestEventHook(int event) {
   plugins[this->pluginId].wantHook &= ~event;
 }
 
-int IAGSEngine::GetSavedData (char *buffer, int bufsize) {
+int IAGSEngine::GetSavedData (char *buffer, int32 bufsize) {
   int savedatasize = plugins[this->pluginId].savedatasize;
 
   if (bufsize < savedatasize)
@@ -262,7 +271,7 @@ int IAGSEngine::GetSavedData (char *buffer, int bufsize) {
 
   return savedatasize;
 }
-void IAGSEngine::DrawText (int x, int y, int font, int color, char *text) 
+void IAGSEngine::DrawText (int32 x, int32 y, int32 font, int32 color, char *text) 
 {
   wtextcolor (color);
   draw_and_invalidate_text(x, y, font, text);
@@ -308,7 +317,7 @@ int IAGSEngine::GetNumBackgrounds () {
 int IAGSEngine::GetCurrentBackground () {
   return play.bg_frame;
 }
-BITMAP *IAGSEngine::GetBackgroundScene (int index) {
+BITMAP *IAGSEngine::GetBackgroundScene (int32 index) {
   return thisroom.ebscene[index];
 }
 void IAGSEngine::GetBitmapDimensions (BITMAP *bmp, int32 *width, int32 *height, int32 *coldepth) {
@@ -335,7 +344,7 @@ void IAGSEngine::DrawTextWrapped (int32 xx, int32 yy, int32 wid, int32 font, int
 
   wtextcolor(color);
   wtexttransparent(TEXTFG);
-  multiply_up_coordinates(&xx, &yy);
+  multiply_up_coordinates((int*)&xx, (int*)&yy); // stupid! quick tweak
   for (int i = 0; i < numlines; i++)
     draw_and_invalidate_text(xx, yy + texthit*i, font, lines[i]);
 }
@@ -345,17 +354,20 @@ void IAGSEngine::SetVirtualScreen (BITMAP *bmp) {
 int IAGSEngine::LookupParserWord (const char *word) {
   return find_word_in_dictionary ((char*)word);
 }
-void IAGSEngine::BlitBitmap (int x, int y, BITMAP *bmp, int masked) {
+void IAGSEngine::BlitBitmap (int32 x, int32 y, BITMAP *bmp, int32 masked) {
   wputblock (x, y, bmp, masked);
   invalidate_rect(x, y, x + bmp->w, y + bmp->h);
 }
-void IAGSEngine::BlitSpriteTranslucent(int x, int y, BITMAP *bmp, int trans) {
+void IAGSEngine::BlitSpriteTranslucent(int32 x, int32 y, BITMAP *bmp, int32 trans) {
   set_trans_blender(0, 0, 0, trans);
   draw_trans_sprite(abuf, bmp, x, y);
 }
-void IAGSEngine::BlitSpriteRotated(int x, int y, BITMAP *bmp, int angle) {
+void IAGSEngine::BlitSpriteRotated(int32 x, int32 y, BITMAP *bmp, int32 angle) {
   rotate_sprite(abuf, bmp, x, y, itofix(angle));
 }
+
+extern void domouse(int);
+extern int  mgetbutton();
 
 void IAGSEngine::PollSystem () {
   
@@ -427,7 +439,7 @@ void IAGSEngine::FreeBitmap (BITMAP *tofree) {
 BITMAP *IAGSEngine::GetSpriteGraphic (int32 num) {
   return spriteset[num];
 }
-BITMAP *IAGSEngine::GetRoomMask (int index) {
+BITMAP *IAGSEngine::GetRoomMask (int32 index) {
   if (index == MASK_WALKABLE)
     return thisroom.walls;
   else if (index == MASK_WALKBEHIND)
@@ -610,7 +622,7 @@ int IAGSEngine::CanRunScriptFunctionNow() {
     return 0;
   return 1;
 }
-int IAGSEngine::CallGameScriptFunction(const char *name, int globalScript, int numArgs, int arg1, int arg2, int arg3) {
+int IAGSEngine::CallGameScriptFunction(const char *name, int32 globalScript, int32 numArgs, int32 arg1, int32 arg2, int32 arg3) {
   if (inside_script)
     return -300;
 
@@ -737,12 +749,12 @@ int IAGSEngine::DecrementManagedObjectRefCount(const char *address) {
   return ccReleaseObjectReference(GetManagedObjectKeyByAddress(address));
 }
 
-void IAGSEngine::SetMousePosition(int x, int y) {
+void IAGSEngine::SetMousePosition(int32 x, int32 y) {
   filter->SetMousePosition(x, y);
   RefreshMouse();
 }
 
-void IAGSEngine::SimulateMouseClick(int button) {
+void IAGSEngine::SimulateMouseClick(int32 button) {
   PluginSimulateMouseClick(button);
 }
 

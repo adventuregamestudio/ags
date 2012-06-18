@@ -10,6 +10,8 @@
 #define LEFT  0
 #define RIGHT 1
 
+#define MOUSE_MAX_Y divide_down_coordinate(vesa_yres)
+
 void update_script_mouse_coords();
 void HideMouseCursor ();
 void ShowMouseCursor ();
@@ -17,7 +19,7 @@ void ShowMouseCursor ();
 // in an object parameter
 void Mouse_SetVisible(int isOn);
 int Mouse_GetVisible();
-#define MOUSE_MAX_Y divide_down_coordinate(vesa_yres);
+
 void SetMouseBounds (int x1, int y1, int x2, int y2);
 void update_inv_cursor(int invnum);
 

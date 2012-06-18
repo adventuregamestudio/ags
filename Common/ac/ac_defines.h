@@ -124,6 +124,8 @@
 #define PCKD
 #endif
 
-#define int32 int
+#ifndef int32
+#define int32 long
+#endif
 
 #endif // __AC_DEFINES_H

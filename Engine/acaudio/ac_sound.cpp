@@ -13,6 +13,8 @@ CLEAR that the code has been altered from the Standard Version.
 #include "wgt2allg.h"
 #include "acaudio/ac_sound.h"
 #include "acaudio/ac_soundinternaldefs.h"
+#include "acaudio/ac_audio.h"
+#include "acaudio/ac_music.h"
 #include "acaudio/ac_soundcache.h"
 #include "acaudio/ac_mywave.h"
 #ifndef NO_MP3_PLAYER
@@ -28,7 +30,11 @@ CLEAR that the code has been altered from the Standard Version.
 #ifdef DUMB_MOD_PLAYER
 #include "acaudio/ac_mydumbmod.h"
 #endif
+#include "acmain/ac_commonheaders.h"
+#include <math.h>
 
+
+int numSoundChannels = 8;
 
 
 #if defined(MAC_VERSION) || defined(LINUX_VERSION)

@@ -5,7 +5,7 @@
 #include "ac/ac_common.h"
 #include "acrun/ac_runninggame.h"
 
-extern volatile int mvolcounter = 0; // in ac_music
+extern volatile int mvolcounter; // in ac_music
 
 unsigned long loopcounter=0,lastcounter=0;
 volatile unsigned long globalTimerCounter = 0;

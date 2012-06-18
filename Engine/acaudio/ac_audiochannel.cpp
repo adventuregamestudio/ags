@@ -2,8 +2,10 @@
 #include <stdio.h>
 #include "wgt2allg.h"
 #include "acaudio/ac_audiochannel.h"
-#include "acruntim.h"
+//#include "acruntim.h"
 #include "acaudio/ac_audio.h"
+#include "acaudio/ac_sound.h"
+#include "acmain/ac_commonheaders.h"
 
 
 extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];

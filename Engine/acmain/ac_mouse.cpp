@@ -44,8 +44,6 @@ int Mouse_GetVisible() {
     return 1;
 }
 
-
-#define MOUSE_MAX_Y divide_down_coordinate(vesa_yres)
 void SetMouseBounds (int x1, int y1, int x2, int y2) {
     if ((x1 == 0) && (y1 == 0) && (x2 == 0) && (y2 == 0)) {
         x2 = BASEWIDTH-1;

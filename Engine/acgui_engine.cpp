@@ -5,13 +5,17 @@
 // Headers, as they are in acgui.cpp
 #pragma unmanaged
 #include "wgt2allg.h"
-#include "acruntim.h"
+//#include "acruntim.h"
 #include "acgui/ac_guimain.h"
 #include "acgui/ac_guibutton.h"
 #include "acgui/ac_guilabel.h"
 #include "acgui/ac_guilistbox.h"
 #include "acgui/ac_guitextbox.h"
 #include <ctype.h>
+#include "ac/ac_gamesetupstruct.h"
+#include "sprcache.h"
+#include "acmain/ac_translation.h"
+#include "acmain/ac_strings.h"
 
 #include "bigend.h"
 
@@ -22,6 +26,9 @@ extern void replace_macro_tokens(char*,char*);
 // For engine these are defined in acfonts.cpp
 extern void ensure_text_valid_for_font(char *, int);
 //
+
+extern SpriteCache spriteset; // in ac_runningame
+extern GameSetupStruct game;
 
 //=============================================================================
 // Engine-specific implementation split out of acgui.h

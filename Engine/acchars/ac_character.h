@@ -179,6 +179,8 @@ void SetCharacterIgnoreWalkbehinds (int cha, int clik);
 void MoveCharacterToObject(int chaa,int obbj);
 void MoveCharacterToHotspot(int chaa,int hotsp);
 void MoveCharacterBlocking(int chaa,int xx,int yy,int direct);
+
+
 extern CharacterInfo*playerchar;
 extern CharacterExtras *charextra;
 extern long _sc_PlayerCharPtr;

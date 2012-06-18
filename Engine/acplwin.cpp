@@ -16,7 +16,9 @@
 // ********* WINDOWS *********
 
 #include "acplatfm.h"
-#include "ac/ac_common.h"   // quit()
+#include "acmain/ac_commonheaders.h"
+//#include "acruntim.h"
+#include "acaudio/ac_music.h"
 
 #include <shlobj.h>
 #include <time.h>

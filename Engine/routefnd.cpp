@@ -16,6 +16,7 @@
 #include "ac/ac_common.h"   // quit()
 #include "ac/ac_move.h"     // MoveList
 #include "ac/ac_point.h"
+#include "ac/ac_defines.h"
 #include <string.h>
 #include <math.h>
 #define MANOBJNUM 99
@@ -27,7 +28,9 @@ int routex1, routey1;
 int suggestx, suggesty;
 fixed move_speed_x, move_speed_y;
 
-extern char ac_engine_copyright[];
+// Why is this in routefnd?
+char ac_engine_copyright[]="Adventure Game Studio engine & tools (c) 1999-2000 by Chris Jones.";
+
 extern void Display(char *, ...);
 extern void write_log(char *);
 extern void update_polled_stuff_if_runtime();

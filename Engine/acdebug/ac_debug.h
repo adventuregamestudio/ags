@@ -14,6 +14,7 @@
 #define __AC_DEBUG_H
 
 #include "cs/cc_instance.h"
+#include "acrun/ac_rundefines.h"
 
 #define DBG_NOIFACE       1
 #define DBG_NODRAWSPRITES 2

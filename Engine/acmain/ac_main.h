@@ -15,6 +15,7 @@ int wait_loop_still_valid();
 
 int initialize_engine(int argc,char*argv[]);
 int initialize_engine_with_exception_handling(int argc,char*argv[]);
+const char *get_engine_version();
 
 void precache_view(int view);
 

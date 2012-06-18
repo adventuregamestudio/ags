@@ -2,8 +2,6 @@
 #include "wgt2allg.h"
 #include "acrun/ac_gamesetup.h"
 
-GameSetup usetup;
-
 GameSetup::GameSetup()
 {
     digicard=DIGI_AUTODETECT; midicard=MIDI_AUTODETECT;

@@ -184,10 +184,6 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\..\Engine\ac.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\Engine\acfonts_engine.cpp"
 				>
 			</File>
@@ -444,10 +440,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acrun\ac_gamesetup.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acrun\ac_gamestate.cpp"
 					>
 				</File>
 				<File
@@ -811,10 +803,6 @@
 			>
 			<File
 				RelativePath="..\..\Common\acplatfm.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Common\acruntim.h"
 				>
 			</File>
 			<File

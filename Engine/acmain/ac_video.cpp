@@ -11,7 +11,7 @@
 #include "acmain/ac_file.h"
 
 #if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
-extern int psp_video_framedrop = 1;
+extern int psp_video_framedrop;
 #endif
 
 

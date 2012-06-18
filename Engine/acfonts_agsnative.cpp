@@ -10,7 +10,8 @@
 //#include "wgt2allg_nofunc.h"
 #include "wgt2allg.h"
 //#include "acroom_nofunc.h"
-#include "acruntim.h"
+//#include "acruntim.h"
+#include "ac/ac_gamesetupstruct.h"
 
 #ifdef USE_ALFONT
 #include "alfont.h"
@@ -21,6 +22,7 @@
 //=============================================================================
 
 extern GameSetupStruct thisgame;
+
 void check_font(int *fontnum)
 {
   // Stop roomedit crashing if they specify an invalid font number

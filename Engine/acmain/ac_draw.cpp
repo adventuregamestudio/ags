@@ -13,6 +13,20 @@
 #include "acaudio/ac_audio.h"
 #include "acaudio/ac_music.h"
 
+#if defined(ANDROID_VERSION)
+#include <sys/stat.h>
+#include <android/log.h>
+
+extern "C" void android_render();
+extern "C" void selectLatestSavegame();
+extern bool psp_load_latest_savegame;
+#endif
+
+
+#if defined(IOS_VERSION)
+extern "C" void ios_render();
+#endif
+
 
 color palette[256];
 

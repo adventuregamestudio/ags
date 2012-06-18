@@ -5,7 +5,7 @@
 
 GameState play;
 GameSetup usetup;
-roomstruct thisroom;
+//roomstruct thisroom;
 GameSetupStruct game;
 RoomStatus *roomstats;
 RoomStatus troom;    // used for non-saveable rooms, eg. intro

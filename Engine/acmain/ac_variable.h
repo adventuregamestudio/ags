@@ -1,5 +1,5 @@
 
-#include "acmain/ac_interaction.h"
+#include "ac/ac_interaction.h"
 
 InteractionVariable *get_interaction_variable (int varindx);
 InteractionVariable *FindGraphicalVariable(const char *varName);

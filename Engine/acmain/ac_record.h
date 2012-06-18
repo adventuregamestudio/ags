@@ -9,17 +9,23 @@
 #define REC_SPEECHFINISHED 8
 #define REC_ENDOFFILE  0x6f
 
-int rec_misbuttondown (int but);
+void write_record_event (int evnt, int dlen, short *dbuf);
+void disable_replay_playback ();
+void done_playback_event (int size);
+int rec_getch ();
+int rec_kbhit ();
+
 int rec_iskeypressed (int keycode);
-int rec_mgetbutton();
-int check_mouse_wheel ();
-int rec_kbhit () ;
-int rec_getch () ;
-void stop_recording() ;
-void rec_domouse (int what);
 int rec_isSpeechFinished ();
-void start_replay_record ();
+int rec_misbuttondown (int but);
+int rec_mgetbutton();
+void rec_domouse (int what);
+int check_mouse_wheel ();
 void start_recording();
+void start_replay_record ();
+void scStartRecording (int keyToStop);
+void stop_recording();
+
 
 
 extern char replayfile[MAX_PATH];

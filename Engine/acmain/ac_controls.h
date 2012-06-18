@@ -1,6 +1,9 @@
 
-void check_controls();
 int my_readkey();
+int IsButtonDown(int which);
+int IsKeyPressed (int keycode);
+// check_controls: checks mouse & keyboard interface
+void check_controls();
 
 extern int restrict_until;
 

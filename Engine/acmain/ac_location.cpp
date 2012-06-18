@@ -129,7 +129,7 @@ int isposinbox(int mmx,int mmy,int lf,int tp,int rt,int bt) {
 
 // xx,yy is the position in room co-ordinates that we are checking
 // arx,ary is the sprite x/y co-ordinates
-int is_pos_in_sprite(int xx,int yy,int arx,int ary, block sprit, int spww,int sphh, int flipped = 0) {
+int is_pos_in_sprite(int xx,int yy,int arx,int ary, block sprit, int spww,int sphh, int flipped) {
     if (spww==0) spww = divide_down_coordinate(sprit->w) - 1;
     if (sphh==0) sphh = divide_down_coordinate(sprit->h) - 1;
 

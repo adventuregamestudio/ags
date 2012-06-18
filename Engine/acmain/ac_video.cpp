@@ -1,6 +1,6 @@
 
 #include "acmain/ac_maindefines.h"
-
+#include "acmain/ac_video.h"
 
 
 // FLIC player start

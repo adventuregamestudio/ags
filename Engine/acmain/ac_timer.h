@@ -7,6 +7,8 @@ extern "C" void dj_timer_handler();
 void dj_timer_handler(...);
 #endif
 
+int IsTimerExpired(int tnum);
+
 extern volatile int timerloop;
 extern int time_between_timers;  // in milliseconds
 

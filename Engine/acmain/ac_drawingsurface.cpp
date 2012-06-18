@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
+#include "acmain/ac_drawingsurface.h"
 #include "acmain/ac_commonheaders.h"
 
 // ** SCRIPT DRAWINGSURFACE OBJECT

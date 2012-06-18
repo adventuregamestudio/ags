@@ -1,4 +1,5 @@
-
+#ifndef __AC_SCRIPTSTRING_H
+#define __AC_SCRIPTSTRING_H
 
 struct ScriptString : AGSCCDynamicObject, ICCStringClass {
     char *text;
@@ -13,3 +14,5 @@ struct ScriptString : AGSCCDynamicObject, ICCStringClass {
     ScriptString();
     ScriptString(const char *fromText);
 };
+
+#endif // __AC_SCRIPTSTRING_H

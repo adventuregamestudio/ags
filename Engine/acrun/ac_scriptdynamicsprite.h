@@ -1,3 +1,7 @@
+#ifndef __AC_SCRIPTDYNAMICSPRITE_H
+#define __AC_SCRIPTDYNAMICSPRITE_H
+
+#include "acrun/ac_ccdynamicobject.h"
 
 struct ScriptDynamicSprite : AGSCCDynamicObject {
     int slot;
@@ -10,3 +14,5 @@ struct ScriptDynamicSprite : AGSCCDynamicObject {
     ScriptDynamicSprite(int slot);
     ScriptDynamicSprite();
 };
+
+#endif // __AC_SCRIPTDYNAMICSPRITE_H

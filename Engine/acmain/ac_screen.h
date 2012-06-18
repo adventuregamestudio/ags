@@ -1,6 +1,9 @@
 
 
 int GetMaxScreenHeight ();
+void FlipScreen(int amount);
+void ShakeScreen(int severe);
+void ShakeScreenBackground (int delay, int amount, int length);
 
 extern int scrnwid,scrnhit;
 extern int current_screen_resolution_multiplier;

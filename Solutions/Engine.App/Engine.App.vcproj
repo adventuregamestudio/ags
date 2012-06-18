@@ -1269,6 +1269,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\acmain\ac_customproperties.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acmain\ac_cutscene.h"
 					>
 				</File>
@@ -1278,6 +1282,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_draw.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_drawingsurface.h"
 					>
 				</File>
 				<File
@@ -1301,11 +1309,35 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\acmain\ac_guibutton.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acmain\ac_guicontrol.h"
 					>
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_guiinvwindow.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_guilabel.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_guilistbox.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_guislider.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_guitextbox.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_hotspot.h"
 					>
 				</File>
 				<File
@@ -1425,6 +1457,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\acmain\ac_system.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acmain\ac_timer.h"
 					>
 				</File>
@@ -1437,11 +1473,23 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\acmain\ac_variable.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_video.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\acmain\ac_viewframe.h"
 					>
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_viewport.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\acmain\ac_wait.h"
 					>
 				</File>
 				<File

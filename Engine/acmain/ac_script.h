@@ -1,6 +1,10 @@
+#ifndef __AC_SCRIPT_H
+#define __AC_SCRIPT_H
 
+#include "ac/ac_interaction.h"
 #include "cs/cc_instance.h"
 #include "acmain/ac_nonblockingscriptfunction.h"
+#include "acrun/ac_scriptobject.h"
 
 #define REP_EXEC_ALWAYS_NAME "repeatedly_execute_always"
 #define REP_EXEC_NAME "repeatedly_execute"
@@ -37,6 +41,8 @@ extern ccInstance *moduleInstFork[MAX_SCRIPT_MODULES];
 extern char *moduleRepExecAddr[MAX_SCRIPT_MODULES];
 extern int numScriptModules;
 
-extern char **characterScriptObjNames = NULL;
+extern char **characterScriptObjNames;
 extern char objectScriptObjNames[MAX_INIT_SPR][MAX_SCRIPT_NAME_LEN + 5];
-extern char **guiScriptObjNames = NULL;
+extern char **guiScriptObjNames;
+
+#endif // __AC_SCRIPT_H

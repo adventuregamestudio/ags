@@ -1,3 +1,5 @@
+#ifndef __AC_SCRIPTVIEWFRAME_H
+#define __AC_SCRIPTVIEWFRAME_H
 
 #include "acrun/ac_ccdynamicobject.h"
 
@@ -12,3 +14,5 @@ struct ScriptViewFrame : AGSCCDynamicObject {
     ScriptViewFrame(int p_view, int p_loop, int p_frame);
     ScriptViewFrame();
 };
+
+#endif // __AC_SCRIPTVIEWFRAME_H

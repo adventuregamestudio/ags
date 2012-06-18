@@ -40,13 +40,20 @@ extern int numevents;
 extern char*evblockbasename;
 extern int evblocknum;
 
+extern int eventClaimed;
+
+void GiveScore(int amnt);
+int run_claimable_event(char *tsname, bool includeRoom, int numParams, int param1, int param2, bool *eventWasClaimed);
+// runs the global script on_event fnuction
 void run_on_event (int evtype, int wparam);
-void setevent(int evtyp,int ev1=0,int ev2=-1000,int ev3=0);
-void run_event_block_inv(int invNum, int aaa);
-void update_events();
 void run_room_event(int id);
+void run_event_block_inv(int invNum, int aaa);
+// event list functions
+void setevent(int evtyp,int ev1=0,int ev2=-1000,int ev3=0);
 void process_event(EventHappened*evp);
-
-void GiveScore(int amnt) ;
-
+void runevent_now (int evtyp, int ev1, int ev2, int ev3);
+void processallevents(int numev,EventHappened*evlist);
+void update_events();
+// end event list functions
+void ClaimEvent();
 #endif // __AC_EVENT_H

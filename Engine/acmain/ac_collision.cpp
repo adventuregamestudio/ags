@@ -1,6 +1,7 @@
 
 #include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
+#include "acmain/ac_collision.h"
 #include "acmain/ac_commonheaders.h"
 
 
@@ -101,10 +102,7 @@ int is_point_in_rect(int x, int y, int left, int top, int right, int bottom) {
 
 
 
-#define OVERLAPPING_OBJECT 1000
-struct Rect {
-    int x1,y1,x2,y2;
-};
+
 
 int GetThingRect(int thing, Rect *rect) {
     if (is_valid_character(thing)) {

@@ -35,11 +35,24 @@ SOUNDCLIP *my_load_mod(const char *filname, int repet);
 int  init_mod_player(int numVoices);
 void remove_mod_player();
 
-void update_ambient_sound_vol ();
-int play_sound(int val1);
-void PlayAmbientSound (int channel, int sndnum, int vol, int x, int y) ;
-void StopAmbientSound (int channel);
+void force_audiostream_include();
+
+int get_volume_adjusted_for_distance(int volume, int sndX, int sndY, int sndMaxDist);
 void update_directional_sound_vol();
+void update_ambient_sound_vol ();
+void StopAmbientSound (int channel);
+SOUNDCLIP *load_sound_from_path(int soundNumber, int volume, bool repeat);
+void PlayAmbientSound (int channel, int sndnum, int vol, int x, int y);
+int IsChannelPlaying(int chan);
+int IsSoundPlaying();
+void stop_all_sound_and_music();
+void shutdown_sound();
+// returns -1 on failure, channel number on success
+int PlaySoundEx(int val1, int channel);
+void StopAllSounds(int evenAmbient);
+
+int play_sound_priority (int val1, int priority);
+int play_sound(int val1);
 
 extern AmbientSound ambient[MAX_SOUND_CHANNELS + 1];  // + 1 just for safety on array iterations
 extern int last_sound_played[MAX_SOUND_CHANNELS + 1];

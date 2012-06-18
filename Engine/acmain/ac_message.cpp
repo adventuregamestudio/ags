@@ -228,7 +228,7 @@ void draw_text_window(int*xins,int*yins,int*xx,int*yy,int*wii,int ovrheight, int
 
 }
 
-void draw_text_window_and_bar(int*xins,int*yins,int*xx,int*yy,int*wii,int ovrheight=0, int ifnum=-1) {
+void draw_text_window_and_bar(int*xins,int*yins,int*xx,int*yy,int*wii,int ovrheight, int ifnum) {
 
     draw_text_window(xins, yins, xx, yy, wii, ovrheight, ifnum);
 
@@ -305,7 +305,7 @@ void wouttext_outline(int xxp, int yyp, int usingfont, char*texx) {
 
 int   source_text_length = -1;
 
-int GetTextDisplayTime (char *text, int canberel=0) {
+int GetTextDisplayTime (char *text, int canberel) {
     int uselen = strlen(text);
 
     int fpstimer = frames_per_second;
@@ -842,7 +842,7 @@ void DisplayThought(int chid, const char*texx, ...) {
 }
 
 
-void replace_tokens(char*srcmes,char*destm, int maxlen = 99999) {
+void replace_tokens(char*srcmes,char*destm, int maxlen) {
     int indxdest=0,indxsrc=0;
     char*srcp,*destp;
     while (srcmes[indxsrc]!=0) {

@@ -71,6 +71,8 @@ void nullfree(void *data)
 
 ccInstance *ccCreateInstanceEx(ccScript * scri, ccInstance * joined)
 {
+
+
     int i;
 
     currentline = -1;

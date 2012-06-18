@@ -25,7 +25,6 @@ void construct_virtual_screen(bool fullRedraw) ;
 void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int baseline, int trans, int sprNum, bool isWalkBehind = false);
 void tint_image (block source, block dest, int red, int grn, int blu, int light_level, int luminance=255);
 void draw_sprite_support_alpha(int xpos, int ypos, block image, int slot);
-int Game_GetColorFromRGB(int red, int grn, int blu);
 void render_to_screen(BITMAP *toRender, int atx, int aty);
 void draw_screen_callback();
 void write_screen();
@@ -40,6 +39,36 @@ void putpixel_compensate (block onto, int xx,int yy, int col);
 // intact from last time; 0 otherwise
 int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysUseSoftware);
 void clear_letterbox_borders();
+
+
+int Game_GetColorFromRGB(int red, int grn, int blu);
+void RawSaveScreen ();
+// RawRestoreScreen: copy backup bitmap back to screen; we
+// deliberately don't free the block cos they can multiple restore
+// and it gets freed on room exit anyway
+void RawRestoreScreen();
+// Restores the backup bitmap, but tints it to the specified level
+void RawRestoreScreenTinted(int red, int green, int blue, int opacity);
+void RawDrawFrameTransparent (int frame, int translev);
+void RawClear (int clr);
+void RawSetColor (int clr);
+void RawSetColorRGB(int red, int grn, int blu);
+void RawPrint (int xx, int yy, char*texx, ...);
+void RawPrintMessageWrapped (int xx, int yy, int wid, int font, int msgm);
+void RawDrawImageCore(int xx, int yy, int slot);
+void RawDrawImage(int xx, int yy, int slot);
+void RawDrawImageOffset(int xx, int yy, int slot);
+void RawDrawImageTransparent(int xx, int yy, int slot, int trans);
+void RawDrawImageResized(int xx, int yy, int gotSlot, int width, int height);
+void RawDrawLine (int fromx, int fromy, int tox, int toy);
+void RawDrawCircle (int xx, int yy, int rad);
+void RawDrawRectangle(int x1, int y1, int x2, int y2);
+void RawDrawTriangle(int x1, int y1, int x2, int y2, int x3, int y3);
+void CyclePalette(int strt,int eend);
+void SetPalRGB(int inndx,int rr,int gg,int bb);
+void UpdatePalette();
+void TintScreen(int red, int grn, int blu);
+
 
 extern color palette[256];
 extern COLOR_MAP maincoltable;

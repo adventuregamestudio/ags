@@ -298,15 +298,6 @@ block recycle_bitmap(block bimp, int coldep, int wid, int hit);
 
 
 
-struct TempEip {
-  int oldval;
-  TempEip (int newval) {
-    oldval = our_eip;
-    our_eip = newval;
-  }
-  ~TempEip () { our_eip = oldval; }
-};
-
 
 
 
@@ -385,7 +376,7 @@ int numPluginReaders = 0;
 
 
 
-int num_scripts=0;
+
 
 
 
@@ -441,7 +432,7 @@ char ac_engine_copyright[]="Adventure Game Studio engine & tools (c) 1999-2000 b
 
 
 
-int post_script_cleanup_stack = 0;
+
 
 
 
@@ -595,5 +586,3 @@ extern const char* ccGetSectionNameAtOffs(ccScript *scri, long offs);
 
 
 
-//char*ac_default_header=NULL,*temphdr=NULL;
-char ac_default_header[15000],temphdr[10000];

@@ -1,7 +1,49 @@
 
+#include <stdio.h>
+#include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_script.h"
+#include "acmain/ac_commonheaders.h"
+#include "cs/cc_error.h"
+#include "cs/cc_options.h"
+#include "cs/cs_runtime.h"
+#include "acrun/ac_executingscript.h"
+#include "acmain/ac_conversation.h"
+#include "acgfx/ac_gfxfilters.h"
+#include "acdialog/ac_cscidialog.h"
+#include "acmain/ac_variable.h"
+#include "acaudio/ac_audio.h"
+#include "acaudio/ac_music.h"
+#include "acaudio/ac_sound.h"
+#include "acmain/ac_video.h"
+#include "acchars/ac_charhelpers.h"
+#include "acmain/ac_wait.h"
+#include "acmain/ac_hotspot.h"
+#include "acmain/ac_customproperties.h"
+#include "acmain/ac_file.h"
+#include "acmain/ac_inventoryitem.h"
+#include "acmain/ac_guicontrol.h"
+#include "acmain/ac_guilabel.h"
+#include "acmain/ac_guibutton.h"
+#include "acmain/ac_guislider.h"
+#include "acmain/ac_guilistbox.h"
+#include "acmain/ac_guitextbox.h"
+#include "acmain/ac_guiinvwindow.h"
+#include "acmain/ac_controls.h"
+#include "acmain/ac_math.h"
+#include "acmain/ac_drawingsurface.h"
+#include "acmain/ac_inputbox.h"
+#include "acmain/ac_system.h"
+#include "acmain/ac_parser.h"
+#include "acmain/ac_cdplayer.h"
+#include "acmain/ac_transition.h"
+#include "acmain/ac_display.h"
+#include "acmain/ac_plugin.h"
 
+
+
+int num_scripts=0;
+int post_script_cleanup_stack = 0;
 
 int inside_script=0,in_graph_script=0;
 int no_blocking_functions = 0; // set to 1 while in rep_Exec_always
@@ -543,6 +585,17 @@ int get_nivalue (NewInteractionCommandList *nic, int idx, int parm) {
 #define IPARAM3 get_nivalue(nicl, i, 2)
 #define IPARAM4 get_nivalue(nicl, i, 3)
 #define IPARAM5 get_nivalue(nicl, i, 4)
+
+
+struct TempEip {
+    int oldval;
+    TempEip (int newval) {
+        oldval = our_eip;
+        our_eip = newval;
+    }
+    ~TempEip () { our_eip = oldval; }
+};
+
 
 // the 'cmdsrun' parameter counts how many commands are run.
 // if a 'Inv Item Was Used' check does not pass, it doesn't count
@@ -2006,6 +2059,10 @@ void setup_script_exports() {
   scAdd_External_Symbol("GetFlashlightMask",(void *)GetFlashlightInt);
 }
 
+
+//char*ac_default_header=NULL,*temphdr=NULL;
+char ac_default_header[15000]; // this is not used anywhere (?)
+char temphdr[10000];
 
 void setup_exports(char*expfrom) {
   char namof[30]="\0"; temphdr[0]=0;

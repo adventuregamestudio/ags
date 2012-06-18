@@ -1,6 +1,6 @@
 
 #include "acmain/ac_maindefines.h"
-
+#include "acmain/ac_wait.h"
 
 void scrWait(int nloops) {
     if (nloops < 1)

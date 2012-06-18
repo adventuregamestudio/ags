@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
-#include "acgui/ac_guilistbox.h"
+#include "acmain/ac_guilistbox.h"
 #include "acmain/ac_commonheaders.h"
 #include "acmain/ac_file.h"
 

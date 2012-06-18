@@ -1,6 +1,6 @@
 
 #include "acmain/ac_maindefines.h"
-
+#include "acmain/ac_system.h"
 
 int System_GetColorDepth() {
   return final_col_dep;

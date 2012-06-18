@@ -1,4 +1,7 @@
+#ifndef __AC_SCRIPTFILE_H
+#define __AC_SCRIPTFILE_H
 
+#include "acrun/ac_ccdynamicobject.h"
 
 // object-based File routine -- struct definition
 #define scFileRead   1
@@ -32,3 +35,4 @@ struct sc_File : ICCDynamicObject {
     }
 };
 
+#endif // __AC_SCRIPTFILE_H

@@ -4,7 +4,7 @@
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_commonheaders.h"
 #include "acmain/ac_animatingguibutton.h"
-#include "acgui/ac_guibutton.h"
+#include "acmain/ac_guibutton.h"
 
 // ** start animating buttons code
 

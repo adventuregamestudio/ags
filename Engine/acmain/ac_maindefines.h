@@ -136,13 +136,16 @@
 #define VALIDATE_STRING(strin) if ((unsigned long)strin <= 4096) quit("!String argument was null: make sure you pass a string, not an int, as a buffer")
 
 
-
+// This was defined after record functions implementations;
+// if this is defined for record unit it will cause endless recursion
+#ifndef IS_RECORD_UNIT
 #undef kbhit
 #define mgetbutton rec_mgetbutton
 #define domouse rec_domouse
 #define misbuttondown rec_misbuttondown
 #define kbhit rec_kbhit
 #define getch rec_getch
+#endif
 
 
 #define Random __Rand

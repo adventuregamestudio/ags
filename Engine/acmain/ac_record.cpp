@@ -1,6 +1,7 @@
 
 #include <stdio.h>
 #include "wgt2allg.h"
+#define IS_RECORD_UNIT
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_record.h"
 #include "acmain/ac_commonheaders.h"

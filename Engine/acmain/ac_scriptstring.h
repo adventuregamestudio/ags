@@ -1,6 +1,8 @@
 #ifndef __AC_SCRIPTSTRING_H
 #define __AC_SCRIPTSTRING_H
 
+#include "acrun/ac_ccdynamicobject.h"
+
 struct ScriptString : AGSCCDynamicObject, ICCStringClass {
     char *text;
 

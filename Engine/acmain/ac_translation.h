@@ -1,3 +1,5 @@
+#ifndef __AC_TRANSLATION_H
+#define __AC_TRANSLATION_H
 
 void close_translation ();
 bool init_translation (const char *lang);
@@ -95,3 +97,4 @@ extern TreeMap *transtree = NULL;
 extern char transFileName[MAX_PATH];
 
 
+#endif // __AC_TRANSLATION_H

@@ -1,0 +1,21 @@
+//=============================================================================
+// STAGE FOUR: Getting pieces together
+//=============================================================================
+
+When splitting ac.cpp I made some rush decisions. It was a messy code in the
+single unit, now it is a messy code split to dozens of units with compilation
+time boosted up.
+
+AGS code has numerous cross-ties between units with uncommon functions
+referencing same global variables and other functions. Originally this was
+handled by delaring a whole lot of symbols in headers (namely - acruntim.h).
+
+Time for cleaning up, code structure optimization and beautification.
+
+Primary objectives are:
+1. Recompose the code to enhance logical division between sets of functions.
+2. Reduce number of headers included to source files.
+3. There should be a special header containing declarations of all the
+functions that are registered as script symbols.
+4. Cleanup solution, re-group files in folders.
+5. Make sure everything can be built and run on other supported platforms.

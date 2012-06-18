@@ -1,5 +1,9 @@
 
+#include <stdio.h>
+#include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
+#include "acmain/ac_commonheaders.h"
+#include "agsplugin.h"
 
 
 void get_new_size_for_sprite (int ee, int ww, int hh, int &newwid, int &newhit) {

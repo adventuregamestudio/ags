@@ -1,4 +1,5 @@
-
+#ifndef __AC_SCREEN_H
+#define __AC_SCREEN_H
 
 int GetMaxScreenHeight ();
 void FlipScreen(int amount);
@@ -12,3 +13,5 @@ extern int force_letterbox;
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern int screen_reset;
 extern int numscreenover;
+
+#endif // __AC_SCREEN_H

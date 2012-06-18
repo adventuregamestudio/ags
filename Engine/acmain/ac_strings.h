@@ -1,3 +1,5 @@
+#ifndef __AC_STRINGS_H
+#define __AC_STRINGS_H
 
 void split_lines_rightleft (char *todis, int wii, int fonnt);
 char *reverse_text(char *text);
@@ -23,4 +25,6 @@ void _sc_sprintf(char*destt,char*texx, ...);;
 
 
 extern int MAXSTRLEN;
+
+#endif // __AC_STRINGS_H
 

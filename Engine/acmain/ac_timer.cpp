@@ -1,6 +1,11 @@
 
+#include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_timer.h"
+#include "ac/ac_common.h"
+#include "acrun/ac_runninggame.h"
+
+extern volatile int mvolcounter = 0; // in ac_music
 
 unsigned long loopcounter=0,lastcounter=0;
 volatile unsigned long globalTimerCounter = 0;

@@ -5,6 +5,10 @@
 #include "acmain/ac_mouse.h"            // NONE constant
 
 
+PluginObjectReader pluginReaders[MAX_PLUGIN_OBJECT_READERS];
+int numPluginReaders = 0;
+
+
 int pluginSimulatedClick = NONE;
 void PluginSimulateMouseClick(int pluginButtonID) {
     pluginSimulatedClick = pluginButtonID - 1;

@@ -1,3 +1,18 @@
+#ifndef __AC_PLUGIN_H
+#define __AC_PLUGIN_H
+
+#ifndef _AGS_PLUGIN_H
+#define IAGSManagedObjectReader void
+#endif
+
+struct PluginObjectReader {
+    IAGSManagedObjectReader *reader;
+    const char *type;
+};
+
+#ifndef _AGS_PLUGIN_H
+#undef IAGSManagedObjectReader
+#endif
 
 void PluginSimulateMouseClick(int pluginButtonID);
 // Stubs for plugin functions.
@@ -44,3 +59,7 @@ void SetFlashlightInt5(int Param1, int Param2, int Param3, int Param4, int Param
 
 
 extern int pluginSimulatedClick;
+extern PluginObjectReader pluginReaders[MAX_PLUGIN_OBJECT_READERS];
+extern int numPluginReaders;
+
+#endif // __AC_PLUGIN_H

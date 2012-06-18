@@ -361,8 +361,7 @@ int numSoundChannels = 8;
 
 
 
-PluginObjectReader pluginReaders[MAX_PLUGIN_OBJECT_READERS];
-int numPluginReaders = 0;
+
 
 
 

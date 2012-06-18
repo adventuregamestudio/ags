@@ -1,6 +1,22 @@
 
+#include <stdio.h>
+#include "string.h"
+#include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_serializer.h"
+#include "acrun/ac_runninggame.h"
+#include "acrun/ac_scriptobject.h"
+#include "acrun/ac_scriptfile.h"
+#include "acrun/ac_scriptoverlay.h"
+#include "acrun/ac_datetime.h"
+#include "acrun/ac_scriptviewframe.h"
+#include "acrun/ac_scriptdynamicsprite.h"
+#include "acrun/ac_scriptdrawingsurface.h"
+#include "acaudio/ac_audio.h"
+#include "acdebug/ac_debug.h"
+
+#include "agsplugin.h"
+#include "acmain/ac_plugin.h"
 
 // *** De-serialization of script objects
 

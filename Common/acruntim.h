@@ -90,18 +90,7 @@ extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 
 
 
-#ifndef _AGS_PLUGIN_H
-#define IAGSManagedObjectReader void
-#endif
 
-struct PluginObjectReader {
-  IAGSManagedObjectReader *reader;
-  const char *type;
-};
-
-#ifndef _AGS_PLUGIN_H
-#undef IAGSManagedObjectReader
-#endif
 
 
 

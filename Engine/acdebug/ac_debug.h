@@ -64,7 +64,7 @@ found" are logged instead of exiting the program.
 */
 void debug_log(char*texx, ...);
 void quitprintf(char*texx, ...);
-bool init_editor_debugging() ;
+bool init_editor_debugging();
 
 // allow LShift to single-step,  RShift to pause flow
 void scriptDebugHook (ccInstance *ccinst, int linenum) ;

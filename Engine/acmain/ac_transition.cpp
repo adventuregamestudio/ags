@@ -1,6 +1,10 @@
 
+#include "wgt2allg.h"
+#include "ali3d.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_transition.h"
+#include "acmain/ac_commonheaders.h"
+#include "agsplugin.h"
 
 
 void my_fade_out(int spdd) {

@@ -1,3 +1,5 @@
+#ifndef __AC_TRANSITION_H
+#define __AC_TRANSITION_H
 
 void my_fade_out(int spdd);
 void my_fade_in(PALLETE p, int speed);
@@ -11,3 +13,5 @@ void FadeIn(int sppd);
 
 extern block temp_virtual;
 extern color old_palette[256];
+
+#endif // __AC_TRANSITION_H

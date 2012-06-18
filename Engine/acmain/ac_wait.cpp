@@ -1,6 +1,12 @@
 
+#include <stdio.h>
+#include "wgt2allg.h"
+#include "ali3d.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_wait.h"
+#include "ac/ac_common.h"
+#include "acrun/ac_runninggame.h"
+#include "acmain/ac_main.h"
 
 void scrWait(int nloops) {
     if (nloops < 1)

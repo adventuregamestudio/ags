@@ -1,3 +1,5 @@
+#ifndef __AC_WALKBEHIND_H
+#define __AC_WALKBEHIND_H
 
 enum WalkBehindMethodEnum
 {
@@ -19,3 +21,5 @@ extern IDriverDependantBitmap *walkBehindBitmap[MAX_OBJ];
 extern int walkBehindsCachedForBgNum;
 extern WalkBehindMethodEnum walkBehindMethod;
 extern int walk_behind_baselines_changed;
+
+#endif // __AC_WALKBEHIND_H

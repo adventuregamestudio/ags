@@ -1,6 +1,10 @@
 
+#include <stdio.h>
+#include "wgt2allg.h"
+#include "ali3d.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_walkbehind.h"
+#include "acmain/ac_commonheaders.h"
 
 char *walkBehindExists = NULL;  // whether a WB area is in this column
 int *walkBehindStartY = NULL, *walkBehindEndY = NULL;

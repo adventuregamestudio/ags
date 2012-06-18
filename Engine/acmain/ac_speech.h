@@ -1,3 +1,7 @@
+#ifndef __AC_SPEECH_H
+#define __AC_SPEECH_H
+
+#include "ac/ac_characterinfo.h"
 
 void SetTextWindowGUI (int guinum);
 int DisplaySpeechBackground(int charid,char*speel);
@@ -22,3 +26,4 @@ void DisplaySpeechAt (int xx, int yy, int wii, int aschar, char*spch);
 
 void SetSkipSpeech (int newval);
 
+#endif // __AC_SPEECH_H

@@ -12,6 +12,7 @@
 #include "acaudio/ac_music.h"
 
 
+
 int said_speech_line; // used while in dialog to track whether screen needs updating
 
 // Old dialog support

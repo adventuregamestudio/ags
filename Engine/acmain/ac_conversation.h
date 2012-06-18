@@ -48,3 +48,6 @@ extern int longestline;
 extern unsigned char** old_dialog_scripts;
 extern char** old_speech_lines;
 
+extern int said_speech_line; // used while in dialog to track whether screen needs updating
+extern int said_text;
+

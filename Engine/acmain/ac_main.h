@@ -1,6 +1,8 @@
 #ifndef __AC_MAIN_H
 #define __AC_MAIN_H
 
+#include "ac/ac_characterinfo.h"
+
 void do_main_cycle(int untilwhat,int daaa);
 void can_run_delayed_command();
 void mainloop(bool checkControls = false, IDriverDependantBitmap *extraBitmap = NULL, int extraX = 0, int extraY = 0);
@@ -16,8 +18,15 @@ int initialize_engine_with_exception_handling(int argc,char*argv[]);
 
 void precache_view(int view);
 
-extern int face_talking;
 extern int convert_16bit_bgr;
+
+extern char *music_file;
+extern char *speech_file;
+
+extern int face_talking,facetalkview,facetalkwait,facetalkframe;
+extern int facetalkloop, facetalkrepeat, facetalkAllowBlink;
+extern int facetalkBlinkLoop;
+extern CharacterInfo *facetalkchar;
 
 
 #endif // __AC_MAIN_H

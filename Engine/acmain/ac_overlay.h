@@ -8,6 +8,7 @@ int find_overlay_of_type(int typ);
 void remove_screen_overlay(int type);
 void get_overlay_position(int overlayidx, int *x, int *y);
 int add_screen_overlay(int x,int y,int type,block piccy, bool alphaChannel = false);
+void remove_screen_overlay_index(int cc);
 
 
 void RemoveOverlay(int ovrid);

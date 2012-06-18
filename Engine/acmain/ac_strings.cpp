@@ -1,6 +1,12 @@
 
+#include <stdio.h>
+#include <stdarg.h>
+#include <string.h>
+#include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_strings.h"
+#include "acmain/ac_commonheaders.h"
+#include "acmain/ac_conversation.h"
 
 
 void split_lines_rightleft (char *todis, int wii, int fonnt) {

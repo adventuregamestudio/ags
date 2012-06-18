@@ -1,6 +1,18 @@
-
+#define USE_CLIB
+#include <stdio.h>
+#include "wgt2allg.h"
+#include "ali3d.h"
+#include "apeg.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_video.h"
+#include "acmain/ac_commonheaders.h"
+#include "acaudio/ac_music.h"
+#include "acaudio/ac_sound.h"
+#include "acmain/ac_file.h"
+
+#if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
+extern int psp_video_framedrop = 1;
+#endif
 
 
 // FLIC player start

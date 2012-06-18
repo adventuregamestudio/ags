@@ -1,6 +1,9 @@
 
+#include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_walkablearea.h"
+#include "acmain/ac_commonheaders.h"
+#include "ac/ac_object.h"
 
 block walkareabackup=NULL, walkable_areas_temp = NULL;
 

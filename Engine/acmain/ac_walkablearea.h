@@ -1,4 +1,5 @@
-
+#ifndef __AC_WALKABLEAREA_H
+#define __AC_WALKABLEAREA_H
 
 void redo_walkable_areas();
 int get_walkable_area_pixel(int x, int y);
@@ -13,3 +14,5 @@ void RestoreWalkableArea(int areanum);
 int GetWalkableAreaAt(int xxx,int yyy);
 
 extern block walkareabackup, walkable_areas_temp;
+
+#endif // __AC_WALKABLEAREA_H

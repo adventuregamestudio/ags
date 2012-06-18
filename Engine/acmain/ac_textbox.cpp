@@ -1,6 +1,10 @@
 
+#include <stdio.h>
+#include <string.h>
+#include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_guitextbox.h"
+#include "acmain/ac_commonheaders.h"
 
 // ** TEXT BOX FUNCTIONS
 

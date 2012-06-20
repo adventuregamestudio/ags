@@ -18,8 +18,8 @@ prior express permission from Chris Jones.
 #ifndef __CS_RUNTIME_H
 #define __CS_RUNTIME_H
 
-#include "cc_script.h"      // ccScript
-#include "cc_instance.h"    // ccInstance
+#include "cs/cc_script.h"      // ccScript
+#include "cs/cc_instance.h"    // ccInstance
 
 // ************ SCRIPT LOADING AND RUNNING FUNCTIONS ************
 

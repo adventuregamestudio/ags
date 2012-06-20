@@ -2,10 +2,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "cc_managedobjectpool.h"
+#include "cs/cc_managedobjectpool.h"
 #include "ac/dynobj/cc_dynamicarray.h"        // globalDynamicArray, constants
-#include "cs_utils.h"               // fputstring, etc
-#include "cc_error.h"
+#include "cs/cs_utils.h"               // fputstring, etc
+#include "cs/cc_error.h"
 
 void ManagedObjectPool::ManagedObject::init(long theHandle, const char *theAddress, ICCDynamicObject *theCallback) {
     handle = theHandle;

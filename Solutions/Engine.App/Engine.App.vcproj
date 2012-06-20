@@ -253,15 +253,15 @@
 				Name="cs"
 				>
 				<File
-					RelativePath="..\..\Common\cs\cc_managedobjectpool.cpp"
+					RelativePath="..\..\Engine\cs\cc_managedobjectpool.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\cs\cc_systemimports.cpp"
+					RelativePath="..\..\Engine\cs\cc_systemimports.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\cs\cs_runtime.cpp"
+					RelativePath="..\..\Engine\cs\cs_runtime.cpp"
 					>
 				</File>
 			</Filter>

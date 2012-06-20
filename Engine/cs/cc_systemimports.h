@@ -1,8 +1,8 @@
 #ifndef __CC_SYSTEMIMPORTS_H
 #define __CC_SYSTEMIMPORTS_H
 
-#include "cc_instance.h"    // ccInstance
-#include "cc_treemap.h"     // ccTreeMap
+#include "cs/cc_instance.h"    // ccInstance
+#include "cs/cc_treemap.h"     // ccTreeMap
 
 struct SystemImports
 {

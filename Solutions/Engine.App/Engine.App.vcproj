@@ -62,7 +62,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Common.Lib_d.lib odbc32.lib odbccp32.lib libcpmt.lib d3d9.lib quartz.lib strmiids.lib winmm.lib shlwapi.lib amstrmid.lib opengl32.lib"
+				AdditionalDependencies="Common_d.lib odbc32.lib odbccp32.lib libcpmt.lib d3d9.lib quartz.lib strmiids.lib winmm.lib shlwapi.lib amstrmid.lib opengl32.lib"
+				OutputFile="$(OutDir)\acwin.exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="$(SolutionDir)\.lib\$(ConfigurationName)"
 				IgnoreDefaultLibraryNames="LIBC;LIBCD;msvcrt;LIBCMT.lib"
@@ -139,7 +140,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Common.Lib.lib odbc32.lib odbccp32.lib libcmt.lib libcpmt.lib d3d9.lib quartz.lib strmiids.lib winmm.lib shlwapi.lib amstrmid.lib opengl32.lib"
+				AdditionalDependencies="Common.lib odbc32.lib odbccp32.lib libcmt.lib libcpmt.lib d3d9.lib quartz.lib strmiids.lib winmm.lib shlwapi.lib amstrmid.lib opengl32.lib"
+				OutputFile="$(OutDir)\acwin.exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="$(SolutionDir)\.lib\$(ConfigurationName)"
 				IgnoreDefaultLibraryNames="LIBC,LIBCD,msvcrt"

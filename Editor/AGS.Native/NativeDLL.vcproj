@@ -28,7 +28,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="start /WAIT $(SolutionDir)\UpdateCPPVersion\bin\$(ConfigurationName)\UpdateCPPVersion.exe $(TargetPath)"
+				CommandLine="start /WAIT $(SolutionDir)\..\Editor\UpdateCPPVersion\bin\$(ConfigurationName)\UpdateCPPVersion.exe $(TargetPath)"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -81,7 +81,7 @@
 				Name="VCLinkerTool"
 				RegisterOutput="false"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="Common.Lib_d.lib Compiler.Lib_d.lib winmm.lib imm32.lib ddraw.lib dsound.lib dinput.lib dxguid.lib"
+				AdditionalDependencies="Common_d.lib Compiler_d.lib winmm.lib imm32.lib ddraw.lib dsound.lib dinput.lib dxguid.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="&quot;$(SolutionDir)\..\Solutions\.lib\$(ConfigurationName)&quot;"
 				IgnoreDefaultLibraryNames="LIBCMTD.lib"
@@ -128,7 +128,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="$(SolutionDir)\UpdateCPPVersion\bin\$(ConfigurationName)\UpdateCPPVersion.exe $(TargetPath)"
+				CommandLine="$(SolutionDir)\..\Editor\UpdateCPPVersion\bin\$(ConfigurationName)\UpdateCPPVersion.exe $(TargetPath)"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -180,7 +180,7 @@
 				Name="VCLinkerTool"
 				RegisterOutput="false"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="Common.Lib.lib Compiler.Lib.lib winmm.lib imm32.lib ddraw.lib dsound.lib dinput.lib dxguid.lib"
+				AdditionalDependencies="Common.lib Compiler.lib winmm.lib imm32.lib ddraw.lib dsound.lib dinput.lib dxguid.lib"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="&quot;$(SolutionDir)\..\Solutions\.lib\$(ConfigurationName)&quot;"
 				IgnoreDefaultLibraryNames="LIBCMT.lib"
@@ -220,7 +220,7 @@
 	<References>
 		<ProjectReference
 			ReferencedProjectIdentifier="{3EBBEDAB-214C-4201-BB5A-5152D56908DD}"
-			RelativePathToProject=".\AGS.Types\AGS.Types.csproj"
+			RelativePathToProject="..\Editor\AGS.Types\AGS.Types.csproj"
 		/>
 		<AssemblyReference
 			RelativePath="System.Drawing.dll"

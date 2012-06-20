@@ -62,7 +62,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)\$(ProjectName)_d.lib"
+				OutputFile="$(OutDir)\Common_d.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -127,6 +127,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				OutputFile="$(OutDir)\Common.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"

@@ -388,6 +388,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\ac\ac_characterinfo.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\ac\ac_common.h"
 					>
 				</File>
@@ -404,11 +408,31 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_gamedefines.h"
+					RelativePath="..\..\Common\ac\ac_dialog.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_eventblock.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_gamesetupstruct.h"
 					>
 				</File>
 				<File
 					RelativePath="..\..\Common\ac\ac_interaction.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_interfacebutton.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_interfaceelement.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_inventoryiteminfo.h"
 					>
 				</File>
 				<File

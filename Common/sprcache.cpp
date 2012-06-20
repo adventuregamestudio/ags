@@ -17,7 +17,7 @@
 #endif
 
 #include "wgt2allg.h"
-#include "ac/ac_gamesetupstruct.h"  // constants
+#include "ac/ac_defines.h"
 #include "sprcache.h"
 #include "compress.h"
 #include "bigend.h"

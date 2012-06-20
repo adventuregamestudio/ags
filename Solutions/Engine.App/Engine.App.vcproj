@@ -269,31 +269,31 @@
 				Name="ac"
 				>
 				<File
-					RelativePath="..\..\Common\ac\ac_characterinfo.cpp"
+					RelativePath="..\..\Engine\ac\ac_characterinfo.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_dialog.cpp"
+					RelativePath="..\..\Engine\ac\ac_dialog.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_eventblock.cpp"
+					RelativePath="..\..\Engine\ac\ac_eventblock.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_gamesetupstruct.cpp"
+					RelativePath="..\..\Engine\ac\ac_gamesetupstruct.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_interfacebutton.cpp"
+					RelativePath="..\..\Engine\ac\ac_interfacebutton.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_interfaceelement.cpp"
+					RelativePath="..\..\Engine\ac\ac_interfaceelement.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_inventoryiteminfo.cpp"
+					RelativePath="..\..\Engine\ac\ac_inventoryiteminfo.cpp"
 					>
 				</File>
 				<Filter
@@ -1071,11 +1071,19 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\ac_lipsync.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\ac\ac_messageinfo.h"
 					>
 				</File>
 				<File
 					RelativePath="..\..\Common\ac\ac_mousecursor.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\ac_move.h"
 					>
 				</File>
 				<File

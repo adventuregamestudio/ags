@@ -1,6 +1,6 @@
 
 #include <stdio.h>
-#include "ac_script.h"
+#include "ac/ac_script.h"
 
 int in_interaction_editor = 0;
 

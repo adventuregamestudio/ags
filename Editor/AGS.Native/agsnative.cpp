@@ -5222,22 +5222,7 @@ void update_polled_stuff_if_runtime()
 }
 
 // [IKM] 2012-06-07
-// Had to copy this implementation from Engine/misc.cpp to evade including additional srcs & libs to AGS.Native.
-FILE *ci_fopen(char *file_name, const char *mode)
-{
-    // Don't pass a NULL pointer to newlib on the PSP.
-    if (file_name == NULL)
-    {
-        return NULL;
-    }
-    else
-    {
-        return fopen(file_name, mode);
-    }
-}
-
-// [IKM] 2012-06-07
-// Had to copy this variable definition from Engine/acc.cpp, since it is required in acgui.cpp // GUIInv::CalculateNumCells()
+// Had to copy this variable definition from Engine/ac.cpp, since it is required in acgui.cpp // GUIInv::CalculateNumCells()
 // due JJS's compatiblity fix for 2.70.
 // This *must* be not less than 31, otherwise function will work in backward-compatibility mode.
 int loaded_game_file_version = 31;

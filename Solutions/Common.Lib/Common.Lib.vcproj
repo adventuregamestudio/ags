@@ -155,7 +155,7 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\..\Engine\bigend.cpp"
+				RelativePath="..\..\Common\bigend.cpp"
 				>
 			</File>
 			<File
@@ -168,6 +168,10 @@
 			</File>
 			<File
 				RelativePath="..\..\Common\lzw.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Common\misc.cpp"
 				>
 			</File>
 			<File

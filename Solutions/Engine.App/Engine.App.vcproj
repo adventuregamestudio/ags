@@ -230,11 +230,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\Engine\misc.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Common\mousew32.cpp"
+				RelativePath="..\..\Engine\mousew32.cpp"
 				>
 			</File>
 			<File
@@ -980,7 +976,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\Common\agsplugin.h"
+				RelativePath="..\..\Engine\agsplugin.h"
 				>
 			</File>
 			<File

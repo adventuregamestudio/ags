@@ -27,7 +27,7 @@
 #define THIS_IS_THE_PLUGIN
 #endif
 
-#include "../../Common/agsplugin.h"
+#include "../../Engine/agsplugin.h"
 
 #if defined(BUILTIN_PLUGINS)
 namespace agsblend {

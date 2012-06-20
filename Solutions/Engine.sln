@@ -8,6 +8,21 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Engine.App", "Engine.App\En
 		{463A715C-3EF3-47C7-AC7F-D97660149C49} = {463A715C-3EF3-47C7-AC7F-D97660149C49}
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documents", "Documents", "{970F4C86-CFE7-4543-A3A3-3125CDB4E75A}"
+	ProjectSection(SolutionItems) = preProject
+		..\Documents\acroom.txt = ..\Documents\acroom.txt
+		..\Documents\class_design_notes.txt = ..\Documents\class_design_notes.txt
+		..\Documents\codestyle.txt = ..\Documents\codestyle.txt
+		..\Documents\compiler.txt = ..\Documents\compiler.txt
+		..\Documents\dynobj.txt = ..\Documents\dynobj.txt
+		..\Documents\libstruct.txt = ..\Documents\libstruct.txt
+		..\Documents\original_plans.txt = ..\Documents\original_plans.txt
+		..\Documents\stage_1.txt = ..\Documents\stage_1.txt
+		..\Documents\stage_2.txt = ..\Documents\stage_2.txt
+		..\Documents\stage_3.txt = ..\Documents\stage_3.txt
+		..\Documents\stage_4.txt = ..\Documents\stage_4.txt
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32

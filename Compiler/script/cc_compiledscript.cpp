@@ -3,9 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "cc_compiledscript.h"
-#include "cs_common.h"          // macro definitions
+#include "cs/cs_common.h"       // macro definitions
 #include "cc_symboltable.h"     // symbolTable
-#include "cc_options.h"         // ccGetOption
+#include "cs/cc_options.h"      // ccGetOption
 
 extern void cc_error(char *, ...);
 

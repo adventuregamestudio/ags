@@ -13,7 +13,7 @@
 #ifndef __CS_COMPILER_H
 #define __CS_COMPILER_H
 
-#include "cc_script.h"  // ccScript
+#include "cs/cc_script.h"  // ccScript
 
 // ********* SCRIPT COMPILATION FUNCTIONS **************
 // add a script that will be compiled as a header into every compilation

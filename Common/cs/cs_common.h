@@ -90,6 +90,21 @@
 #define SCMD_DYNAMICBOUNDS 71   // check reg1 is between 0 and m[MAR-4]
 #define SCMD_NEWARRAY     72    // reg1 = new array of reg1 elements, each of size arg2 (arg3=managed type?)
 
+
+
+#define EXPORT_FUNCTION   1
+#define EXPORT_DATA       2
+
+#define FIXUP_GLOBALDATA  1     // code[fixup] += &globaldata[0]
+#define FIXUP_FUNCTION    2     // code[fixup] += &code[0]
+#define FIXUP_STRING      3     // code[fixup] += &strings[0]
+#define FIXUP_IMPORT      4     // code[fixup] = &imported_thing[code[fixup]]
+#define FIXUP_DATADATA    5     // globaldata[fixup] += &globaldata[0]
+#define FIXUP_STACK       6     // code[fixup] += &stack[0]
+
+
+
+
 extern int currentline;
 
 // Internally used names for commands, registers

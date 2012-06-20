@@ -6,8 +6,9 @@
 #include "cc_macrotable.h"
 #include "cc_compiledscript.h"
 #include "cc_symboltable.h"
-#include "cc_error.h"
-#include "cc_options.h"
+#include "cs/cc_error.h"
+#include "cs/cc_options.h"
+#include "cs/cs_common.h"
 
 #include "cs_prepro.h"
 #include "cs_parser.h"

@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\Common"
+				AdditionalIncludeDirectories="..\..\Common;..\..\Compiler"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -107,7 +107,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\..\Common"
+				AdditionalIncludeDirectories="..\..\Common;..\..\Compiler"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -155,42 +155,42 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\..\Common\fmem.cpp"
+				RelativePath="..\..\Compiler\fmem.cpp"
 				>
 			</File>
 			<Filter
-				Name="cs"
+				Name="script"
 				>
 				<File
-					RelativePath="..\..\Common\cs\cc_compiledscript.cpp"
+					RelativePath="..\..\Compiler\script\cc_compiledscript.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\cs\cc_internallist.cpp"
+					RelativePath="..\..\Compiler\script\cc_internallist.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\cs\cc_macrotable.cpp"
+					RelativePath="..\..\Compiler\script\cc_macrotable.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\cs\cc_symboltable.cpp"
+					RelativePath="..\..\Compiler\script\cc_symboltable.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\cs\cs_compiler.cpp"
+					RelativePath="..\..\Compiler\script\cs_compiler.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\cs\cs_parser.cpp"
+					RelativePath="..\..\Compiler\script\cs_parser.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\cs\cs_parser_common.cpp"
+					RelativePath="..\..\Compiler\script\cs_parser_common.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\cs\cs_prepro.cpp"
+					RelativePath="..\..\Compiler\script\cs_prepro.cpp"
 					>
 				</File>
 			</Filter>
@@ -208,23 +208,11 @@
 				Name="cs"
 				>
 				<File
-					RelativePath="..\..\Common\cs\cc_compiledscript.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Common\cs\cc_error.h"
 					>
 				</File>
 				<File
 					RelativePath="..\..\Common\cs\cc_instance.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_internallist.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_macrotable.h"
 					>
 				</File>
 				<File
@@ -236,39 +224,55 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\cs\cc_symboldef.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_symboltable.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Common\cs\cc_treemap.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_variablesymlist.h"
 					>
 				</File>
 				<File
 					RelativePath="..\..\Common\cs\cs_common.h"
 					>
 				</File>
+			</Filter>
+			<Filter
+				Name="script"
+				>
 				<File
-					RelativePath="..\..\Common\cs\cs_compiler.h"
+					RelativePath="..\..\Compiler\script\cc_compiledscript.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\cs\cs_parser.h"
+					RelativePath="..\..\Compiler\script\cc_internallist.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\cs\cs_parser_common.h"
+					RelativePath="..\..\Compiler\script\cc_macrotable.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\cs\cs_prepro.h"
+					RelativePath="..\..\Compiler\script\cc_symboldef.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Compiler\script\cc_symboltable.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Compiler\script\cc_variablesymlist.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Compiler\script\cs_compiler.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Compiler\script\cs_parser.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Compiler\script\cs_parser_common.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Compiler\script\cs_prepro.h"
 					>
 				</File>
 			</Filter>

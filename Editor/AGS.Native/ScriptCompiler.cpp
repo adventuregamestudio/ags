@@ -14,7 +14,7 @@ see the license.txt for details.
 #include "NativeMethods.h"
 #include "scripting.h"
 //#include "cscomp.h"
-#include "cs/cs_compiler.h"
+#include "script/cs_compiler.h"
 #include "cs/cc_options.h"
 #include "cs/cc_error.h"
 

@@ -1,16 +1,10 @@
 #ifndef __CC_COMPILEDSCRIPT_H
 #define __CC_COMPILEDSCRIPT_H
 
-#include "cc_script.h"          // ccScript
+#include "cs/cc_script.h"       // ccScript
 #include "cs_parser_common.h"   // macro definitions
 #include "cc_symboldef.h"       // SymbolDef
 
-#define FIXUP_GLOBALDATA  1     // code[fixup] += &globaldata[0]
-#define FIXUP_FUNCTION    2     // code[fixup] += &code[0]
-#define FIXUP_STRING      3     // code[fixup] += &strings[0]
-#define FIXUP_IMPORT      4     // code[fixup] = &imported_thing[code[fixup]]
-#define FIXUP_DATADATA    5     // globaldata[fixup] += &globaldata[0]
-#define FIXUP_STACK       6     // code[fixup] += &stack[0]
 
 struct ccCompiledScript: public ccScript {
     long codeallocated;

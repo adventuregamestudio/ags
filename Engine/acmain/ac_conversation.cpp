@@ -4,7 +4,7 @@
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_conversation.h"
 #include "acmain/ac_commonheaders.h"
-#include "acmain/ac_scriptdialogoptionsrendering.h"
+#include "ac/dynobj/scriptdialogoptionsrendering.h"
 #include "acrun/ac_executingscript.h"
 #include "acaudio/ac_sound.h"
 #include "acgui/ac_guitextbox.h"

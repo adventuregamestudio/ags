@@ -1,5 +1,5 @@
 
-#include "acrun/ac_scriptdrawingsurface.h"
+#include "ac/dynobj/scriptdrawingsurface.h"
 
 void DrawingSurface_Release(ScriptDrawingSurface* sds);
 // convert actual co-ordinate back to what the script is expecting

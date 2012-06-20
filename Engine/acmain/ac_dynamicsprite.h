@@ -1,8 +1,8 @@
 #ifndef __AC_DYNAMICSPRITE_H
 #define __AC_DYNAMICSPRITE_H
 
-#include "acrun/ac_scriptdynamicsprite.h"
-#include "acrun/ac_scriptdrawingsurface.h"
+#include "ac/dynobj/scriptdynamicsprite.h"
+#include "ac/dynobj/scriptdrawingsurface.h"
 
 int LoadImageFile(const char *filename);
 void DynamicSprite_Delete(ScriptDynamicSprite *sds);

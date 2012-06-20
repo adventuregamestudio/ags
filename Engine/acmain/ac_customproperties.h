@@ -1,5 +1,7 @@
 
-#include "acrun/ac_scriptobject.h"
+#include "ac/dynobj/scriptobject.h"
+#include "ac/dynobj/scriptinvitem.h"
+#include "ac/dynobj/scripthotspot.h"
 #include "ac/ac_characterinfo.h"
 
 

@@ -1,5 +1,5 @@
 
-#include "acrun/ac_scriptobject.h"
+#include "ac/dynobj/scriptgui.h"
 
 int GetBaseWidth ();
 void remove_popup_interface(int ifacenum);

@@ -19,5 +19,6 @@ Header markup template
 #endif // __AGS_EE_MODULE__HEADERNAME_H
 
 
-EE - means EnginE
+CN - CommoN
+EE - EnginE
 ****************************************************************************************

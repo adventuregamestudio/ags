@@ -6,7 +6,7 @@
 #include "acmain/ac_file.h"
 #include "acmain/ac_commonheaders.h"
 #include "misc.h"
-#include "acrun/ac_scriptfile.h"
+#include "ac/dynobj/scriptfile.h"
 
 
 #ifdef WINDOWS_VERSION
@@ -344,21 +344,9 @@ void FileWriteRawChar(FILE *haa, int chartoWrite) {
 
 // object-based File routines
 
-const char *fopenModes[] = {NULL, "rb", "wb", "ab"};
 
-int sc_File::OpenFile(const char *filename, int mode) {
-  handle = FileOpen(filename, fopenModes[mode]);
-  if (handle == NULL)
-    return 0;
-  return 1;
-}
 
-void sc_File::Close() {
-  if (handle) {
-    FileClose(handle);
-    handle = NULL;
-  }
-}
+
 
 int File_Exists(const char *fnmm) {
   char fileToCheck[MAX_PATH];

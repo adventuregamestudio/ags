@@ -253,14 +253,6 @@
 				Name="cs"
 				>
 				<File
-					RelativePath="..\..\Common\cs\cc_dynamicarray.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_dynamicobject.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Common\cs\cc_managedobjectpool.cpp"
 					>
 				</File>
@@ -304,6 +296,98 @@
 					RelativePath="..\..\Common\ac\ac_inventoryiteminfo.cpp"
 					>
 				</File>
+				<Filter
+					Name="dynobj"
+					>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\cc_agsdynamicobject.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\cc_audiochannel.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\cc_audioclip.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\cc_character.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\cc_dialog.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\cc_dynamicarray.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\cc_dynamicobject.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\cc_gui.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\cc_guiobject.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\cc_hotspot.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\cc_inventory.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\cc_object.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\cc_region.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\cc_serializer.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\scriptdatetime.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\scriptdialogoptionsrendering.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\scriptdrawingsurface.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\scriptdynamicsprite.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\scriptfile.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\scriptoverlay.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\scriptstring.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\scriptviewframe.cpp"
+						>
+					</File>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="acgfx"
@@ -525,42 +609,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acmain\ac_cccharacter.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_ccdialog.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_ccdynamicobject.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_ccgui.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_ccguiobject.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_cchotspot.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_ccinventory.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_ccobject.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_ccregion.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\acmain\ac_cdplayer.cpp"
 					>
 				</File>
@@ -726,10 +774,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_script.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_serialize.cpp"
 					>
 				</File>
 				<File
@@ -1042,20 +1086,148 @@
 					RelativePath="..\..\Common\ac\ac_wordsdictionary.h"
 					>
 				</File>
+				<Filter
+					Name="dynobj"
+					>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\all_dynamicclasses.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\all_scriptclasses.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\cc_agsdynamicobject.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\cc_audiochannel.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\cc_audioclip.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\cc_character.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\cc_dialog.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\cc_dynamicarray.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\cc_dynamicobject.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\cc_gui.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\cc_guiobject.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\cc_hotspot.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\cc_inventory.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\cc_object.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\cc_region.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\cc_serializer.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\scriptaudiochannel.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\scriptdatetime.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\scriptdialog.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\scriptdialogoptionsrendering.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\scriptdrawingsurface.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\scriptdynamicsprite.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\scriptfile.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\scriptgui.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\scripthotspot.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\scriptinvitem.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\scriptmouse.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\scriptobject.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\scriptoverlay.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\scriptregion.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\scriptstring.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\scriptsystem.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\scriptviewframe.h"
+						>
+					</File>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="cs"
 				>
 				<File
 					RelativePath="..\..\Common\cs\cc_compiledscript.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_dynamicarray.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_dynamicobject.h"
 					>
 				</File>
 				<File
@@ -1551,10 +1723,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acmain\ac_serializer.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\acmain\ac_speech.h"
 					>
 				</File>
@@ -1687,10 +1855,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acrun\ac_scriptobject.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\acrun\ac_scriptoverlay.h"
 					>
 				</File>
@@ -1712,6 +1876,14 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\script\symbol_registry.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="platform"
+				>
+				<File
+					RelativePath="..\..\Common\platform\file.h"
 					>
 				</File>
 			</Filter>

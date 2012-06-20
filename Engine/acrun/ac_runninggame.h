@@ -19,20 +19,10 @@
 #include "acrun/ac_roomobject.h"
 #include "acrun/ac_charactercache.h"
 #include "acrun/ac_objectcache.h"
-#include "acrun/ac_scriptobject.h"
+#include "ac/dynobj/all_scriptclasses.h"
 #include "sprcache.h"
 #include "acgui/ac_guimain.h"
-#include "acmain/ac_scriptdialogoptionsrendering.h"
-#include "acrun/ac_scriptdrawingsurface.h"
-#include "acmain/ac_scriptstring.h"
-#include "acmain/ac_ccdialog.h"
-#include "acmain/ac_cccharacter.h"
-#include "acmain/ac_cchotspot.h"
-#include "acmain/ac_ccregion.h"
-#include "acmain/ac_ccinventory.h"
-#include "acmain/ac_ccgui.h"
-#include "acmain/ac_ccobject.h"
-#include "acmain/ac_ccguiobject.h"
+#include "ac/dynobj/all_dynamicclasses.h"
 
 extern GameState play;
 extern GameSetup usetup;

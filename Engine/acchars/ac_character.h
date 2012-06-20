@@ -3,8 +3,9 @@
 
 #include "acrun/ac_rundefines.h"
 #include "ac/ac_characterinfo.h"
-#include "acrun/ac_scriptobject.h"
-#include "acrun/ac_scriptoverlay.h"
+#include "ac/dynobj/scriptinvitem.h"
+#include "ac/dynobj/scriptobject.h"
+#include "ac/dynobj/scriptoverlay.h"
 
 struct CharacterExtras {
     // UGLY UGLY UGLY!! The CharacterInfo struct size is fixed because it's

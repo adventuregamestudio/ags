@@ -26,7 +26,7 @@ prior express permission from Chris Jones.
 #include "cc_spans.h"
 #include "cc_compiledscript.h"
 #include "cc_options.h"
-#include "cc_dynamicarray.h"
+#include "ac/dynobj/cc_dynamicarray.h"
 #include "cc_managedobjectpool.h"
 #include "cc_instance.h"
 

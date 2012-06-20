@@ -1,7 +1,7 @@
 #ifndef __AC_VIEWFRAME_H
 #define __AC_VIEWFRAME_H
 
-#include "acrun/ac_scriptviewframe.h"
+#include "ac/dynobj/scriptviewframe.h"
 #include "ac/ac_characterinfo.h"
 #include "ac/ac_view.h"
 #include "ac/ac_audioclip.h"

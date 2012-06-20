@@ -6,7 +6,7 @@
 #include "acgui/ac_guilistbox.h"
 #include "acgui/ac_guislider.h"
 #include "acgui/ac_guitextbox.h"
-#include "acrun/ac_scriptobject.h"
+#include "ac/dynobj/scriptgui.h"
 
 GUIObject *GetGUIControlAtLocation(int xx, int yy);
 int GetGUIObjectAt (int xx, int yy);

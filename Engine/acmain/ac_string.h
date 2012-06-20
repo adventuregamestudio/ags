@@ -1,8 +1,6 @@
 #ifndef __AC_STRING_H
 #define __AC_STRING_H
 
-#include "acmain/ac_scriptstring.h"
-
 const char* CreateNewScriptString(const char *fromText, bool reAllocate = true);
 int String_IsNullOrEmpty(const char *thisString);
 const char* String_Copy(const char *srcString);

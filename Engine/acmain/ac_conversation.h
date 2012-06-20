@@ -1,6 +1,6 @@
 
-#include "acrun/ac_scriptobject.h"
-#include "acmain/ac_scriptdialogoptionsrendering.h"
+#include "ac/dynobj/scriptdialog.h"
+#include "ac/dynobj/scriptdialogoptionsrendering.h"
 
 void do_conversation(int dlgnum);
 int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBackground) ;

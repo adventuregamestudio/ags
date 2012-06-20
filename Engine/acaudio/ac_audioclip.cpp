@@ -4,6 +4,7 @@
 #include "acaudio/ac_audioclip.h"
 #include "acaudio/ac_audio.h"
 #include "ac/ac_gamesetupstruct.h"
+#include "ac/dynobj/scriptaudiochannel.h"
 
 extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
 extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
@@ -46,22 +47,7 @@ ScriptAudioChannel* AudioClip_PlayQueued(ScriptAudioClip *clip, int priority, in
 }
 
 
-const char *CCAudioClip::GetType() {
-    return "AudioClip";
-}
 
-int CCAudioClip::Serialize(const char *address, char *buffer, int bufsize) {
-    ScriptAudioClip *ach = (ScriptAudioClip*)address;
-    StartSerialize(buffer);
-    SerializeInt(ach->id);
-    return EndSerialize();
-}
-
-void CCAudioClip::Unserialize(int index, const char *serializedData, int dataSize) {
-    StartUnserialize(serializedData, dataSize);
-    int id = UnserializeInt();
-    ccRegisterUnserializedObject(index, &game.audioClips[id], this);
-}
 
 
 #include "acmain/ac_maindefines.h"

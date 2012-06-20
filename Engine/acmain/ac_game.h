@@ -1,5 +1,5 @@
 
-#include "acrun/ac_scriptviewframe.h"
+#include "ac/dynobj/scriptviewframe.h"
 
 void restart_game();
 void set_game_speed(int fps);

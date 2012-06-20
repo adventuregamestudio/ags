@@ -1,21 +1,10 @@
 #ifndef __AC_AUDIOCHANNEL_H
 #define __AC_AUDIOCHANNEL_H
 
-#include "acrun/ac_ccdynamicobject.h"
+#include "ac/dynobj/cc_agsdynamicobject.h"
 #include "acaudio/ac_audioclip.h"
 #include "acaudio/ac_audiodefines.h"
 
-struct ScriptAudioChannel
-{
-    int id;
-    int reserved;
-};
-
-struct CCAudioChannel : AGSCCDynamicObject {
-    virtual const char *GetType();
-    virtual int Serialize(const char *address, char *buffer, int bufsize);
-    virtual void Unserialize(int index, const char *serializedData, int dataSize);
-};
 
 int AudioChannel_GetID(ScriptAudioChannel *channel);
 int AudioChannel_GetIsPlaying(ScriptAudioChannel *channel);

@@ -1,5 +1,5 @@
 
-#include "acrun/ac_scriptobject.h"
+#include "ac/dynobj/scriptobject.h"
 #include "ac/ac_move.h"
 
 inline int is_valid_object(int obtest);

@@ -4,3 +4,10 @@ Normal debugging / logging without using quit() all the time.
 
 Internal event system: defines a number of events and allows to hook callbacks to them.
 This will reduce number of references between units: simplier and cleaner code, more bug-proof.
+
+Every struct should have a read/write (or serialize/unserialize) methods.
+
+There should be interfaces wrapping low-level functionality to be used instead of raw FILE or BITMAP
+references.
+
+

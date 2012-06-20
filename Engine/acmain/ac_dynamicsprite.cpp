@@ -5,7 +5,7 @@
 #include "acmain/ac_dynamicsprite.h"
 #include "acmain/ac_commonheaders.h"
 #include "acmain/ac_file.h"
-#include "acrun/ac_scriptdynamicsprite.h"
+#include "ac/dynobj/scriptdynamicsprite.h"
 #include <math.h>
 #include "acgui/ac_guibutton.h"
 
@@ -35,39 +35,7 @@ int LoadImageFile(const char *filename) {
 
 // ** SCRIPT DYNAMIC SPRITE
 
-int ScriptDynamicSprite::Dispose(const char *address, bool force) {
-    // always dispose
-    if ((slot) && (!force))
-        free_dynamic_sprite(slot);
 
-    delete this;
-    return 1;
-}
-
-const char *ScriptDynamicSprite::GetType() {
-    return "DynamicSprite";
-}
-
-int ScriptDynamicSprite::Serialize(const char *address, char *buffer, int bufsize) {
-    StartSerialize(buffer);
-    SerializeInt(slot);
-    return EndSerialize();
-}
-
-void ScriptDynamicSprite::Unserialize(int index, const char *serializedData, int dataSize) {
-    StartUnserialize(serializedData, dataSize);
-    slot = UnserializeInt();
-    ccRegisterUnserializedObject(index, this, this);
-}
-
-ScriptDynamicSprite::ScriptDynamicSprite(int theSlot) {
-    slot = theSlot;
-    ccRegisterManagedObject(this, this);
-}
-
-ScriptDynamicSprite::ScriptDynamicSprite() {
-    slot = 0;
-}
 
 void DynamicSprite_Delete(ScriptDynamicSprite *sds) {
     if (sds->slot) {

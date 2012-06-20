@@ -1,7 +1,9 @@
 #ifndef __AC_LOCATION_H
 #define __AC_LOCATION_H
 
-#include "acrun/ac_scriptobject.h"
+#include "ac/dynobj/scriptgui.h"
+#include "ac/dynobj/scriptobject.h"
+#include "ac/dynobj/scriptregion.h"
 #include "ac/ac_characterinfo.h"
 
 int get_walkable_area_at_location(int xx, int yy);

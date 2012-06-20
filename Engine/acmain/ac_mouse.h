@@ -1,7 +1,7 @@
 #ifndef __AC_MOUSE_H
 #define __AC_MOUSE_H
 
-#include "acrun/ac_scriptobject.h"
+#include "ac/dynobj/scriptmouse.h"
 
 #define DOMOUSE_NOCURSOR 5
 // are these mouse buttons? ;/

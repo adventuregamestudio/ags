@@ -7,6 +7,37 @@
 #ifndef __AGS_EE_SCRIPT__SYMBOLREGISTRY_H
 #define __AGS_EE_SCRIPT__SYMBOLREGISTRY_H
 
+//-----------------------------------------------------------------------------
+// TODO
+//-----------------------------------------------------------------------------
+//
+// 1. An exported function should be named according to conformant pattern,
+// that would explicitly tell:
+//      - that function is being exported to script system;
+//      - that function should either be treated as a class member or global;
+//      - minimal and maximal number of parameters.
+// E.g.:
+//      se_Button_Animate_4_5
+//
+//-----------------------------------------------------------------------------
+//
+// 2. I suppose it would be better if modules would declare a set of exported
+// functions in headers intended to be included to symbol_registry.h.
+//
+// In such case each module will control what it allows to export, and exporting
+// units will know what they may use. Export system should determine which of
+// the available symbols are to be registered and under which script-names.
+//
+// I.e. e.g. Character module will have a character_export.h with a set of
+// character-specific functions and/or symbols declared, symbol_registry.h
+// will have that header permanently included in itself, ex_character.cpp
+// will register all the symbols it wants from the given list.
+//
+// This is more a question of design rather than technical necessity, but I
+// think this will allow more accurate control over exports.
+//
+//-----------------------------------------------------------------------------
+
 #include <stdio.h>
 #include "script/ex_defines.h"
 

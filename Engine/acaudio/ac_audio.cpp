@@ -17,10 +17,9 @@
 #include "cs/cs_runtime.h"
 #include "acaudio/ac_sound.h"
 #include "acaudio/ac_music.h"
-//#include "ac/ac_gamesetupstruct.h"
-//
-//#include "acruntim.h"
-//
+#include "ac/dynobj/scriptaudiochannel.h"
+#include "ac/dynobj/cc_audiochannel.h"
+#include "ac/dynobj/cc_audioclip.h"
 
 
 extern "C" {

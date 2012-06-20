@@ -3,7 +3,7 @@
 
 #include "acgui/ac_guiinv.h"
 #include "ac/ac_characterinfo.h"
-#include "acrun/ac_scriptobject.h"
+#include "ac/dynobj/scriptinvitem.h"
 
 int offset_over_inv(GUIInv *inv);
 

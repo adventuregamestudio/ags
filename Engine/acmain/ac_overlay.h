@@ -1,8 +1,9 @@
 #ifndef __AC_OVERLAY_H
 #define __AC_OVERLAY_H
 
-#include "acrun/ac_scriptoverlay.h"
+#include "ac/dynobj/scriptoverlay.h"
 #include "acrun/ac_screenoverlay.h"
+#include "acrun/ac_rundefines.h"
 
 int find_overlay_of_type(int typ);
 void remove_screen_overlay(int type);

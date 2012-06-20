@@ -1,5 +1,5 @@
 
-#include "acrun/ac_scriptobject.h"
+#include "ac/dynobj/scriptregion.h"
 
 void generate_light_table();
 void SetAreaLightLevel(int area, int brightness);

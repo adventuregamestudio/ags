@@ -1,7 +1,7 @@
 #ifndef __AC_FILE_H
 #define __AC_FILE_H
 
-#include "acrun/ac_scriptfile.h"
+#include "ac/dynobj/scriptfile.h"
 
 void get_current_dir_path(char* buffer, const char *fileName);
 int check_valid_file_handle(FILE*hann, char*msg);

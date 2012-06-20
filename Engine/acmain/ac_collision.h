@@ -1,7 +1,7 @@
 #ifndef __AC_COLLISION_H
 #define __AC_COLLISION_H
 
-#include "acrun/ac_scriptobject.h"
+#include "ac/dynobj/scriptobject.h"
 
 #define OVERLAPPING_OBJECT 1000
 struct Rect {

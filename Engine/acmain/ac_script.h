@@ -4,7 +4,7 @@
 #include "ac/ac_interaction.h"
 #include "cs/cc_instance.h"
 #include "acmain/ac_nonblockingscriptfunction.h"
-#include "acrun/ac_scriptobject.h"
+#include "ac/dynobj/scriptsystem.h"
 
 #define REP_EXEC_ALWAYS_NAME "repeatedly_execute_always"
 #define REP_EXEC_NAME "repeatedly_execute"

@@ -1,7 +1,7 @@
 #ifndef __AC_INVENTORYITEM_H
 #define __AC_INVENTORYITEM_H
 
-#include "acrun/ac_scriptobject.h"
+#include "ac/dynobj/scriptinvitem.h"
 
 void set_inv_item_cursorpic(int invItemId, int piccy);
 void InventoryItem_SetCursorGraphic(ScriptInvItem *iitem, int newSprite);

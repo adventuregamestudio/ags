@@ -1,7 +1,7 @@
 #ifndef __CC_MANAGEDOBJECTPOOL_H
 #define __CC_MANAGEDOBJECTPOOL_H
 
-#include "cc_dynamicobject.h"   // ICCDynamicObject
+#include "ac/dynobj/cc_dynamicobject.h"   // ICCDynamicObject
 
 #define OBJECT_CACHE_MAGIC_NUMBER 0xa30b
 #define SERIALIZE_BUFFER_SIZE 10240

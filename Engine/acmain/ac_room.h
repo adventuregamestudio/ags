@@ -2,7 +2,7 @@
 #define __AC_ROOM_H
 
 #include "ac/ac_characterinfo.h"
-#include "acrun/ac_scriptdrawingsurface.h"
+#include "ac/dynobj/scriptdrawingsurface.h"
 #include "ac/ac_roomstruct.h"
 
 block fix_bitmap_size(block todubl);

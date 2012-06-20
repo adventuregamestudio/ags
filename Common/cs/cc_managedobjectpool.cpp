@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "cc_managedobjectpool.h"
-#include "cc_dynamicarray.h"        // globalDynamicArray, constants
+#include "ac/dynobj/cc_dynamicarray.h"        // globalDynamicArray, constants
 #include "cs_utils.h"               // fputstring, etc
 #include "cc_error.h"
 

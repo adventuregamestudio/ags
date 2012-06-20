@@ -2,10 +2,10 @@
 #include <stdio.h>
 #include "wgt2allg.h"
 #include "acaudio/ac_audiochannel.h"
-//#include "acruntim.h"
 #include "acaudio/ac_audio.h"
 #include "acaudio/ac_sound.h"
 #include "acmain/ac_commonheaders.h"
+#include "ac/dynobj/scriptaudiochannel.h"
 
 
 extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
@@ -174,22 +174,7 @@ int AudioClip_GetType(ScriptAudioClip *clip)
 }
 
 
-const char *CCAudioChannel::GetType() {
-    return "AudioChannel";
-}
 
-int CCAudioChannel::Serialize(const char *address, char *buffer, int bufsize) {
-    ScriptAudioChannel *ach = (ScriptAudioChannel*)address;
-    StartSerialize(buffer);
-    SerializeInt(ach->id);
-    return EndSerialize();
-}
-
-void CCAudioChannel::Unserialize(int index, const char *serializedData, int dataSize) {
-    StartUnserialize(serializedData, dataSize);
-    int id = UnserializeInt();
-    ccRegisterUnserializedObject(index, &scrAudioChannel[id], this);
-}
 
 
 

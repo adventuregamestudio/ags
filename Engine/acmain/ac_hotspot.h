@@ -1,5 +1,5 @@
 
-#include "acrun/ac_scriptobject.h"
+#include "ac/dynobj/scripthotspot.h"
 
 void DisableHotspot(int hsnum);
 void EnableHotspot(int hsnum);

@@ -1,19 +1,25 @@
-export NDK_PLATFORM_ROOT=$NDK_ROOT/platforms/android-9/arch-x86/usr
-export NDK_ADDITIONAL_LIBRARY_PATH=$(pwd)/../../nativelibs/x86
-export NDK_HOST_NAME=i686-android-linux
+#!/bin/bash
 
+# Set up build environment
+source ../setenv.sh i686-android-linux
+
+# Download and extract the library source
 FILENAME=libogg-1.3.0
 EXTENSION=tar.gz
-
 wget -c http://downloads.xiph.org/releases/ogg/$FILENAME.$EXTENSION -O ../$FILENAME.$EXTENSION
-
 tar -zxf ../$FILENAME.$EXTENSION
 
+# Get the newest config files for autotools
+source ../update-config.sh $FILENAME
+
+# Build and install library
 cd $FILENAME
 
-wget http://git.savannah.gnu.org/cgit/config.git/plain/config.sub -O config.sub
-wget http://git.savannah.gnu.org/cgit/config.git/plain/config.guess -O config.guess
+export LDFLAGS="-Wl,-L$NDK_ADDITIONAL_LIBRARY_PATH/lib"
+export CFLAGS="-I$NDK_ADDITIONAL_LIBRARY_PATH/include"
+export LIBS="-lc"
 
-LDFLAGS="-Wl,-rpath-link=$NDK_PLATFORM_ROOT/lib,-L$NDK_ADDITIONAL_LIBRARY_PATH/lib,-L$NDK_PLATFORM_ROOT/lib" CFLAGS="-nostdlib -I$NDK_ADDITIONAL_LIBRARY_PATH/include -I$NDK_PLATFORM_ROOT/include" LIBS="-lc" ./configure --host=$NDK_HOST_NAME --prefix=$NDK_ADDITIONAL_LIBRARY_PATH
+./configure --host=$NDK_HOST_NAME --prefix=$NDK_ADDITIONAL_LIBRARY_PATH
+
 make
 make install

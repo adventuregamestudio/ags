@@ -235,15 +235,15 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\..\Engine\acfonts_agsnative.cpp"
+				RelativePath="..\Native\acfonts_agsnative.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\Engine\acgui_agsnative.cpp"
+				RelativePath="..\Native\acgui_agsnative.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\Common\acroom_agsnative.cpp"
+				RelativePath="..\Native\acroom_agsnative.cpp"
 				>
 			</File>
 			<File
@@ -271,7 +271,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\Common\sprcache_agsnative.cpp"
+				RelativePath="..\Native\sprcache_agsnative.cpp"
 				>
 			</File>
 			<Filter

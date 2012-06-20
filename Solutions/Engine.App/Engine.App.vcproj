@@ -202,7 +202,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\Common\acroom_engine.cpp"
+				RelativePath="..\..\Engine\acroom_engine.cpp"
 				>
 			</File>
 			<File
@@ -246,7 +246,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\Common\sprcache_engine.cpp"
+				RelativePath="..\..\Engine\sprcache_engine.cpp"
 				>
 			</File>
 			<Filter

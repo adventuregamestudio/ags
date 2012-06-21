@@ -3,6 +3,10 @@
 
 #include "ac/dynobj/scriptfile.h"
 
+#if defined(LINUX_VERSION) || defined(MAC_VERSION)
+long int filelength(int fhandle);
+#endif
+
 void get_current_dir_path(char* buffer, const char *fileName);
 int check_valid_file_handle(FILE*hann, char*msg);
 bool validate_user_file_path(const char *fnmm, char *output, bool currentDirOnly);

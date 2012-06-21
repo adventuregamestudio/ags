@@ -1,8 +1,6 @@
 
 BASE = \
-acfonts_agsnative.o \
 acfonts_engine.o \
-acgui_agsnative.o \
 acgui_engine.o \
 acplatfm.o \
 ali3dsw.o \
@@ -126,13 +124,11 @@ acrun/ac_roomobject.o \
 acrun/ac_runninggame.o
 
 COMMON = \
-../Common/acroom_agsnative.o \
 ../Common/acroom_engine.o \
 ../Common/Clib32.o \
 ../Common/compress.o \
 ../Common/lzw.o \
 ../Common/mousew32.o \
-../Common/sprcache_agsnative.o \
 ../Common/sprcache.o \
 ../Common/sprcache_engine.o \
 ../Common/wgt2allg.o \

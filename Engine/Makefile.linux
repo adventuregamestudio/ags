@@ -3,12 +3,19 @@ BASE = \
 acfonts_engine.o \
 acgui_engine.o \
 acplatfm.o \
+acroom_engine.o \
 ali3dsw.o \
-bigend.o \
-macport.o \
-misc.o \
+mousew32.o \
 routefnd.o \
 scrptrt.o \
+sprcache_engine.o \
+ac/ac_characterinfo.o \
+ac/ac_dialog.o \
+ac/ac_eventblock.o \
+ac/ac_gamesetupstruct.o \
+ac/ac_interfacebutton.o \
+ac/ac_interfaceelement.o \
+ac/ac_inventoryiteminfo.o \
 acaudio/ac_audiochannel.o \
 acaudio/ac_audioclip.o \
 acaudio/ac_audio.o \
@@ -27,7 +34,7 @@ acchars/ac_character.o \
 acchars/ac_charhelpers.o \
 acdebug/ac_debug.o \
 acdebug/ac_filebasedagsdebugger.o \
-acdebug/ac_namedpipesagsdebugger.o \
+#acdebug/ac_namedpipesagsdebugger.o \
 acdialog/ac_cscidialog.o \
 acdialog/ac_mylabel.o \
 acdialog/ac_mylistbox.o \
@@ -124,31 +131,22 @@ acrun/ac_roomobject.o \
 acrun/ac_runninggame.o
 
 COMMON = \
-../Common/acroom_engine.o \
+../Common/bigend.o \
+../Common/macport.o \
+../Common/misc.o \
 ../Common/Clib32.o \
 ../Common/compress.o \
 ../Common/lzw.o \
-../Common/mousew32.o \
 ../Common/sprcache.o \
-../Common/sprcache_engine.o \
 ../Common/wgt2allg.o \
-../Common/ac/ac_actiontype.o \
-../Common/ac/ac_characterinfo.o \
 ../Common/ac/ac_common.o \
 ../Common/ac/ac_compress.o \
 ../Common/ac/ac_customproperties.o \
-../Common/ac/ac_dialog.o \
-../Common/ac/ac_eventblock.o \
-../Common/ac/ac_gamesetupstruct.o \
 ../Common/ac/ac_interaction.o \
-../Common/ac/ac_interfacebutton.o \
-../Common/ac/ac_interfaceelement.o \
-../Common/ac/ac_inventoryiteminfo.o \
 ../Common/ac/ac_messageinfo.o \
 ../Common/ac/ac_mousecursor.o \
 ../Common/ac/ac_point.o \
 ../Common/ac/ac_roomstruct.o \
-../Common/ac/ac_script.o \
 ../Common/ac/ac_unused.o \
 ../Common/ac/ac_view.o \
 ../Common/ac/ac_wordsdictionary.o \
@@ -164,25 +162,12 @@ COMMON = \
 ../Common/acgui/ac_guiobject.o \
 ../Common/acgui/ac_guislider.o \
 ../Common/acgui/ac_guitextbox.o \
-../Common/cs/cc_compiledscript.o \
-../Common/cs/cc_dynamicarray.o \
-../Common/cs/cc_dynamicobject.o \
 ../Common/cs/cc_error.o \
 ../Common/cs/cc_instance.o \
-../Common/cs/cc_internallist.o \
-../Common/cs/cc_macrotable.o \
-../Common/cs/cc_managedobjectpool.o \
 ../Common/cs/cc_options.o \
 ../Common/cs/cc_script.o \
-../Common/cs/cc_symboltable.o \
-../Common/cs/cc_systemimports.o \
 ../Common/cs/cc_treemap.o \
 ../Common/cs/cs_common.o \
-../Common/cs/cs_compiler.o \
-../Common/cs/cs_parser_common.o \
-../Common/cs/cs_parser.o \
-../Common/cs/cs_prepro.o \
-../Common/cs/cs_runtime.o \
 ../Common/cs/cs_unused.o \
 ../Common/cs/cs_utils.o
 

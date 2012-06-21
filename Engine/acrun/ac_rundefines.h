@@ -126,6 +126,10 @@
 #define Sleep(x) usleep(1000*x)
 #endif
 
+#if defined(LINUX_VERSION) || defined(MAC_VERSION)
+#define HWND long
+#endif
+
 #define BASEWIDTH usetup.base_width
 #define BASEHEIGHT usetup.base_height
 #define TRANS_ALPHA_CHANNEL 20000

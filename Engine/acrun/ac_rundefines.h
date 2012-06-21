@@ -118,6 +118,14 @@
 #define AGS_INLINE
 #endif
 
+#ifndef MAX_PATH
+#define MAX_PATH 260
+#endif
+
+#if (!defined(WINDOWS_VERSION) && !defined(PSP_VERSION))
+#define Sleep(x) usleep(1000*x)
+#endif
+
 #define BASEWIDTH usetup.base_width
 #define BASEHEIGHT usetup.base_height
 #define TRANS_ALPHA_CHANNEL 20000

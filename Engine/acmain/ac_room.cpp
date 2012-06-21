@@ -7,13 +7,12 @@
 #include "acrun/ac_executingscript.h"
 #include "cs/cs_runtime.h"
 #include "acmain/ac_transition.h"
-#include "acaudio/ac_audio.h"
-#include "acaudio/ac_music.h"
-#include "acaudio/ac_sound.h"
 #include "acgfx/ac_gfxfilters.h"
 #include "acchars/ac_charhelpers.h"
 #include "agsplugin.h"
 #include "cs/cc_error.h"
+#include "media/audio/audio.h"
+#include "ac/global_audio.h"
 
 roomstruct thisroom;
 RGB_MAP rgb_table;  // for 256-col antialiasing

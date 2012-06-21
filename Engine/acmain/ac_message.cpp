@@ -8,8 +8,7 @@
 #include "acgui/ac_guibutton.h"
 #include "acmain/ac_lipsync.h"
 #include "acmain/ac_conversation.h"
-#include "acaudio/ac_audio.h"
-#include "acaudio/ac_music.h"
+#include "media/audio/audio.h"
 
 char *heightTestString = "ZHwypgfjqhkilIK";
 

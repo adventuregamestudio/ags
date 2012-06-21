@@ -24,8 +24,8 @@
 #include "cs/cs_common.h"
 #include "cs/cc_error.h"
 #include "acgui/ac_dynamicarray.h"
-#include "acaudio/ac_audio.h"
-#include "acaudio/ac_music.h"
+#include "media/audio/audio.h"
+
 
 int use_compiled_folder_as_current_dir = 0;
 int editor_debugging_enabled = 0;

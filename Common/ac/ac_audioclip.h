@@ -11,18 +11,7 @@ enum AudioFileType {
     eAudioFileMIDI = 5,
     eAudioFileMOD = 6
 };
-struct ScriptAudioClip {
-    int id;  // not used by editor, set in engine only
-    char scriptName[30];
-    char fileName[15];
-    char bundlingType;
-    char type;
-    char fileType;
-    char defaultRepeat;
-    short defaultPriority;
-    short defaultVolume;
-    int  reserved;
-};
+
 #define AUDIO_CLIP_TYPE_SOUND 1
 struct AudioClipType {
     int id;

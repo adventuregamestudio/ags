@@ -17,8 +17,7 @@
 
 #include "acplatfm.h"
 #include "acmain/ac_commonheaders.h"
-//#include "acruntim.h"
-#include "acaudio/ac_music.h"
+#include "media/audio/audio.h"
 
 #include <shlobj.h>
 #include <time.h>

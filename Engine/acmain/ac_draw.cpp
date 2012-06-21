@@ -10,8 +10,8 @@
 #include "acmain/ac_spritelistentry.h"
 #include "ac/ac_object.h"
 #include "mousew32.h"
-#include "acaudio/ac_audio.h"
-#include "acaudio/ac_music.h"
+#include "media/audio/audio.h"
+
 
 #if defined(ANDROID_VERSION)
 #include <sys/stat.h>

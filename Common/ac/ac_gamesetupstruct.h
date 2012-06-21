@@ -2,7 +2,9 @@
 #ifndef __AC_GAMESETUPSTRUCT_H
 #define __AC_GAMESETUPSTRUCT_H
 
-#include "ac/ac_audioclip.h"        // AudioClip, AudioClipType
+#include "platform/file.h"
+#include "ac/dynobj/scriptaudioclip.h"   // ScriptAudioClip
+#include "ac/ac_audioclip.h"        // AudioClipType
 #include "ac/ac_characterinfo.h"    // OldCharacterInfo, CharacterInfo
 #include "ac/ac_customproperties.h" // CustomProperties, CustomPropertySchema
 #include "ac/ac_dialog.h"           // constants
@@ -12,6 +14,7 @@
 #include "ac/ac_inventoryiteminfo.h"// InventoryItemInfo
 #include "ac/ac_mousecursor.h"      // MouseCursor
 #include "ac/ac_wordsdictionary.h"  // WordsDictionary
+#include "ac/dynobj/scriptaudioclip.h" // ScriptAudioClip
 #include "cs/cc_script.h"           // ccScript
 
 #define POPUP_NONE      0

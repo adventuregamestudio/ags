@@ -13,6 +13,8 @@
 #ifndef __CC_SCRIPT_H
 #define __CC_SCRIPT_H
 
+#include "platform/file.h"
+
 struct ccScript
 {
     char *globaldata;

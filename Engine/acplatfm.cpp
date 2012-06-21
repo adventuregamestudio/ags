@@ -19,9 +19,9 @@
 #endif
 #include "acmain/ac_commonheaders.h"
 #include "acmain/ac_parser.h"
-#include "acaudio/ac_audio.h"
-#include "acaudio/ac_music.h"
-#include "acaudio/ac_audiochannel.h"
+#include "ac/global_audio.h"
+#include "media/audio/audio.h"
+#include "media/audio/sound.h"
 #include "acrun/ac_executingscript.h"
 #include "acmain/ac_plugin.h"
 #include "acgfx/ac_gfxfilters.h"

@@ -1,0 +1,29 @@
+#ifndef __AC_AUDIODEFINES_H
+#define __AC_AUDIODEFINES_H
+
+#define MUS_MIDI 1
+#define MUS_MP3  2
+#define MUS_WAVE 3
+#define MUS_MOD  4
+#define MUS_OGG  5
+
+#ifndef PSP_NO_MOD_PLAYBACK
+#if (defined(LINUX_VERSION) || defined(WINDOWS_VERSION) || defined(MAC_VERSION))
+#define DUMB_MOD_PLAYER
+#else
+#define JGMOD_MOD_PLAYER
+#endif
+#endif
+
+#define MAX_SOUND_CHANNELS 8
+#define SPECIAL_CROSSFADE_CHANNEL 8
+
+#define SCHAN_SPEECH  0
+#define SCHAN_AMBIENT 1
+#define SCHAN_MUSIC   2
+#define SCHAN_NORMAL  3
+#define AUDIOTYPE_LEGACY_AMBIENT_SOUND 1
+#define AUDIOTYPE_LEGACY_MUSIC 2
+#define AUDIOTYPE_LEGACY_SOUND 3
+
+#endif // __AC_AUDIODEFINES_H

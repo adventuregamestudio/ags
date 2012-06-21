@@ -467,6 +467,14 @@
 					RelativePath="..\..\Common\ac\ac_wordsdictionary.h"
 					>
 				</File>
+				<Filter
+					Name="dynobj"
+					>
+					<File
+						RelativePath="..\..\Common\ac\dynobj\scriptaudioclip.h"
+						>
+					</File>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="cs"

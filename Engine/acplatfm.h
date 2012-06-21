@@ -18,7 +18,7 @@
 //#include "acruntim.h"
 //#include "acsound.h"
 #include "acrun/ac_platformdriver.h"
-#include "acaudio/ac_sound.h"
+//#include "acaudio/ac_sound.h"
 #include "ali3d.h"
 
 #ifdef WINDOWS_VERSION

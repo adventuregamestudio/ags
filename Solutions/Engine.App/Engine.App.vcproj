@@ -292,6 +292,26 @@
 					RelativePath="..\..\Engine\ac\ac_inventoryiteminfo.cpp"
 					>
 				</File>
+				<File
+					RelativePath="..\..\Engine\ac\audiochannel.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\audioclip.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\game_audio.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\global_audio.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\system_audio.cpp"
+					>
+				</File>
 				<Filter
 					Name="dynobj"
 					>
@@ -447,70 +467,6 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
-				</File>
-			</Filter>
-			<Filter
-				Name="acaudio"
-				>
-				<File
-					RelativePath="..\..\Engine\acaudio\ac_audio.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acaudio\ac_audiochannel.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acaudio\ac_audioclip.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_music.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acaudio\ac_mydumbmod.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acaudio\ac_myjgmod.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acaudio\ac_mymidi.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acaudio\ac_mymp3.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acaudio\ac_myogg.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acaudio\ac_mystaticmp3.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acaudio\ac_mystaticogg.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acaudio\ac_mywave.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acaudio\ac_sound.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acaudio\ac_soundcache.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acaudio\ac_soundclip.cpp"
-					>
 				</File>
 			</Filter>
 			<Filter
@@ -965,6 +921,70 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="media"
+				>
+				<Filter
+					Name="audio"
+					>
+					<File
+						RelativePath="..\..\Engine\media\audio\ambientsound.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\media\audio\audio.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\media\audio\clip_mydumbmod.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\media\audio\clip_myjgmod.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\media\audio\clip_mymidi.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\media\audio\clip_mymp3.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\media\audio\clip_myogg.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\media\audio\clip_mystaticmp3.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\media\audio\clip_mystaticogg.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\media\audio\clip_mywave.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\media\audio\sound.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\media\audio\soundcache.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\media\audio\soundclip.cpp"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="video"
+					>
+				</Filter>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -1088,6 +1108,30 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\ac\ac_wordsdictionary.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\audiochannel.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\audioclip.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\audiodefines.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\game_audio.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\global_audio.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\system_audio.h"
 					>
 				</File>
 				<Filter
@@ -1340,90 +1384,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acgfx\ac_scalinggfxfilter.h"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="acaudio"
-				>
-				<File
-					RelativePath="..\..\Engine\acaudio\ac_ambientsound.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acaudio\ac_audio.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acaudio\ac_audiochannel.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acaudio\ac_audioclip.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acaudio\ac_audiodefines.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acaudio\ac_music.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acaudio\ac_mydumbmod.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acaudio\ac_myjgmod.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acaudio\ac_mymidi.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acaudio\ac_mymp3.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acaudio\ac_myogg.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acaudio\ac_mystaticmp3.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acaudio\ac_mystaticogg.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acaudio\ac_mywave.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acrun\ac_queuedaudioitem.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acaudio\ac_sound.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acaudio\ac_soundcache.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acaudio\ac_soundclip.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acaudio\ac_sounddefines.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acaudio\ac_soundinternaldefs.h"
 					>
 				</File>
 			</Filter>
@@ -1890,6 +1850,78 @@
 					RelativePath="..\..\Common\platform\file.h"
 					>
 				</File>
+			</Filter>
+			<Filter
+				Name="media"
+				>
+				<Filter
+					Name="audio"
+					>
+					<File
+						RelativePath="..\..\Engine\media\audio\ambientsound.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\media\audio\audio.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\media\audio\audiointernaldefs.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\media\audio\clip_mydumbmod.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\media\audio\clip_myjgmod.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\media\audio\clip_mymidi.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\media\audio\clip_mymp3.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\media\audio\clip_myogg.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\media\audio\clip_mystaticmp3.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\media\audio\clip_mystaticogg.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\media\audio\clip_mywave.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\media\audio\queuedaudioitem.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\media\audio\sound.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\media\audio\soundcache.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\media\audio\soundclip.h"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="video"
+					>
+				</Filter>
 			</Filter>
 		</Filter>
 		<Filter

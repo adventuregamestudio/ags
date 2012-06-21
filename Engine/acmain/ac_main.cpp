@@ -19,9 +19,6 @@
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_main.h"
 #include "acmain/ac_commonheaders.h"
-#include "acaudio/ac_audio.h"
-#include "acaudio/ac_music.h"
-#include "acaudio/ac_sound.h"
 #include "acmain/ac_controls.h"
 #include "acchars/ac_charhelpers.h"
 #include "acmain/ac_lipsync.h"
@@ -42,7 +39,8 @@
 #include "cs/cc_error.h"
 #include "acfont/ac_agsfontrenderer.h"
 #include "acmain/ac_display.h"
-#include "acaudio/ac_soundcache.h"
+#include "media/audio/audio.h"
+#include "media/audio/soundcache.h"
 
 
 #ifdef WINDOWS_VERSION

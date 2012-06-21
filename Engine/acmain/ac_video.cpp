@@ -6,9 +6,9 @@
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_video.h"
 #include "acmain/ac_commonheaders.h"
-#include "acaudio/ac_music.h"
-#include "acaudio/ac_sound.h"
 #include "acmain/ac_file.h"
+#include "media/audio/audio.h"
+#include "ac/global_audio.h"
 
 #if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
 extern int psp_video_framedrop;

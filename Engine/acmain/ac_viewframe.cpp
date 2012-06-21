@@ -4,7 +4,8 @@
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_viewframe.h"
 #include "acmain/ac_commonheaders.h"
-#include "acaudio/ac_audio.h"
+#include "media/audio/audio.h"
+
 
 // PSP specific variables:
 extern int psp_is_old_datafile; // Set for 3.1.1 and 3.1.2 datafiles // in ac_game

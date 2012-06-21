@@ -4,12 +4,11 @@
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_speech.h"
 #include "acmain/ac_commonheaders.h"
-#include "acaudio/ac_audio.h"
-#include "acaudio/ac_music.h"
-#include "acaudio/ac_sound.h"
 #include "acmain/ac_lipsync.h"
 #include "acmain/ac_conversation.h"
 #include "acchars/ac_charhelpers.h"
+#include "media/audio/audio.h"
+#include "media/audio/sound.h"
 
 
 void SetTextWindowGUI (int guinum) {

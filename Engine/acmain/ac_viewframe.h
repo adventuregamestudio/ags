@@ -4,6 +4,7 @@
 #include "ac/dynobj/scriptviewframe.h"
 #include "ac/ac_characterinfo.h"
 #include "ac/ac_view.h"
+#include "ac/dynobj/scriptaudioclip.h"
 #include "ac/ac_audioclip.h"
 
 void SetFrameSound (int vii, int loop, int frame, int sound);

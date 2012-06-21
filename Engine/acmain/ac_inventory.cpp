@@ -4,7 +4,7 @@
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_inventory.h"
 #include "acmain/ac_commonheaders.h"
-#include "acaudio/ac_music.h"
+#include "media/audio/audio.h"
 #include "acrun/ac_executingscript.h"
 #include "acgui/ac_guiinv.h"
 

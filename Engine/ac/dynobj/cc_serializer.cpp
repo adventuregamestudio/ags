@@ -8,7 +8,7 @@
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/all_scriptclasses.h"
 #include "ac/dynobj/scriptfile.h"
-#include "acaudio/ac_audio.h"
+#include "media/audio/audio.h"
 #include "acdebug/ac_debug.h"
 
 #include "agsplugin.h"

@@ -2,7 +2,7 @@
 #define __AC_GAMESTATE_H
 
 #include "acrun/ac_rundefines.h"
-#include "acaudio/ac_queuedaudioitem.h"
+#include "media/audio/queuedaudioitem.h"
 
 // Adding to this might need to modify AGSDEFNS.SH and AGSPLUGIN.H
 struct GameState {

@@ -21,10 +21,10 @@ OBJS = $(ALFONT) $(ALMP3) $(APEG) $(AASTR) $(HQ2X3X) $(CDA) $(PLUGINS) $(BASE) $
 
 INCDIR = ../Engine ../Common ../Common/libinclude
 LIBDIR =
-CFLAGS = -O2 -g -fsigned-char -Wfatal-errors -DALLEGRO_STATICLINK -DTHIS_IS_THE_ENGINE -DLINUX_VERSION -DDISABLE_MPEG_AUDIO -DBUILTIN_PLUGINS -DRTLD_NEXT $(shell pkg-config --cflags freetype2)
+CFLAGS = -m32 -O2 -g -fsigned-char -Wfatal-errors -DALLEGRO_STATICLINK -DTHIS_IS_THE_ENGINE -DLINUX_VERSION -DDISABLE_MPEG_AUDIO -DBUILTIN_PLUGINS -DRTLD_NEXT $(shell pkg-config --cflags freetype2)
 CXXFLAGS = -fno-rtti -Wno-write-strings
 ASFLAGS =
-LIBS = -rdynamic -m32 $(shell allegro-config --libs) -laldmb -ldumb -Wl,-Bdynamic -ltheora -logg 
+LIBS = -rdynamic $(shell allegro-config --libs) -laldmb -ldumb -Wl,-Bdynamic -ltheora -logg 
 ifeq ($(USE_TREMOR), 1)
   LIBS += -lvorbisidec
   CFLAGS += -DUSE_TREMOR

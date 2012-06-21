@@ -2081,7 +2081,7 @@
 				Name="apeg"
 				>
 				<File
-					RelativePath="..\..\Engine\libsrc\apeg-1.2.1\audio\audio.c"
+					RelativePath="..\..\Engine\libsrc\apeg-1.2.1\audio\aaudio.c"
 					>
 				</File>
 				<File

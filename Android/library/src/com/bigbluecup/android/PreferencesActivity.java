@@ -325,38 +325,61 @@ public class PreferencesActivity extends ListActivity
 	{
 		item.setChecked(true);
 
-		if (item.getItemId() == R.id.software) {
+		// This must be if-else instead of switch-case because it is in a library
+
+		if (item.getItemId() == R.id.software)
+		{
 			setValueForId(CONFIG_GFX_RENDERER, 0);
 			return true;
-		} else if (item.getItemId() == R.id.hardware) {
+		}
+		else if (item.getItemId() == R.id.hardware)
+		{
 			setValueForId(CONFIG_GFX_RENDERER, 1);
 			return true;
-		} else if (item.getItemId() == R.id.rtt) {
+		}
+		else if (item.getItemId() == R.id.rtt)
+		{
 			setValueForId(CONFIG_GFX_RENDERER, 2);
 			return true;
-		} else if (item.getItemId() == R.id.auto) {
+		}
+		else if (item.getItemId() == R.id.auto)
+		{
 			setValueForId(CONFIG_ROTATION, 0);
 			return true;
-		} else if (item.getItemId() == R.id.portrait) {
+		}
+		else if (item.getItemId() == R.id.portrait)
+		{
 			setValueForId(CONFIG_ROTATION, 1);
 			return true;
-		} else if (item.getItemId() == R.id.landscape) {
+		}
+		else if (item.getItemId() == R.id.landscape)
+		{
 			setValueForId(CONFIG_ROTATION, 2);
 			return true;
-		} else if (item.getItemId() == R.id.no_scaling) {
+		}
+		else if (item.getItemId() == R.id.no_scaling)
+		{
 			setValueForId(CONFIG_GFX_SCALING, 0);
 			return true;
-		} else if (item.getItemId() == R.id.preserve_aspect_ratio) {
+		}
+		else if (item.getItemId() == R.id.preserve_aspect_ratio)
+		{
 			setValueForId(CONFIG_GFX_SCALING, 1);
 			return true;
-		} else if (item.getItemId() == R.id.ignore_aspect_ratio) {
+		}
+		else if (item.getItemId() == R.id.ignore_aspect_ratio)
+		{
 			setValueForId(CONFIG_GFX_SCALING, 2);
 			return true;
-		} else if (item.getItemId() == R.id.default_language) {
+		}
+		else if (item.getItemId() == R.id.default_language)
+		{
 			setStringValueForId(CONFIG_TRANSLATION, "default");
 			setValueForId(CONFIG_TRANSLATION, 0);
 			return true;
-		} else {
+		}
+		else
+		{
 			int id = item.getItemId();
 			if ((id > LANGUAGE_ID_BASE) && (id <= LANGUAGE_ID_BASE + 100))
 			{

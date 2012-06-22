@@ -20,7 +20,6 @@
 #include "wgt2allg.h"
 #include "debug/debug.h"
 #include "acmain/ac_commonheaders.h"
-#include "acrun/ac_executingscript.h"
 #include "cs/cs_common.h"
 #include "cs/cc_error.h"
 #include "acgui/ac_dynamicarray.h"

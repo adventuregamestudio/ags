@@ -1,5 +1,13 @@
-#ifndef __AC_EVENT_H
-#define __AC_EVENT_H
+
+//=============================================================================
+//
+//
+//
+//=============================================================================
+#ifndef __AGS_EE_AC__EVENT_H
+#define __AGS_EE_AC__EVENT_H
+
+#include "acrun/ac_rundefines.h"
 
 // parameters to run_on_event
 #define GE_LEAVE_ROOM 1
@@ -31,18 +39,6 @@ struct EventHappened {
     int player;
 };
 
-extern int in_enters_screen,done_es_error;
-extern int in_leaves_screen;
-
-extern EventHappened event[MAXEVENTS+1];
-extern int numevents;
-
-extern char*evblockbasename;
-extern int evblocknum;
-
-extern int eventClaimed;
-
-void GiveScore(int amnt);
 int run_claimable_event(char *tsname, bool includeRoom, int numParams, int param1, int param2, bool *eventWasClaimed);
 // runs the global script on_event fnuction
 void run_on_event (int evtype, int wparam);
@@ -56,4 +52,19 @@ void processallevents(int numev,EventHappened*evlist);
 void update_events();
 // end event list functions
 void ClaimEvent();
-#endif // __AC_EVENT_H
+
+extern int in_enters_screen,done_es_error;
+extern int in_leaves_screen;
+
+extern EventHappened event[MAXEVENTS+1];
+extern int numevents;
+
+extern char*evblockbasename;
+extern int evblocknum;
+
+extern int eventClaimed;
+
+extern char*tsnames[4];
+
+#endif // __AGS_EE_AC__EVENT_H
+

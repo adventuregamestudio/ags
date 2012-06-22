@@ -1,5 +1,12 @@
 
-#include "acrun/ac_rundefines.h"
+//=============================================================================
+//
+//
+//
+//=============================================================================
+#ifndef __AGS_EE_SCRIPT__EXECUTINGSCRIPT_H
+#define __AGS_EE_SCRIPT__EXECUTINGSCRIPT_H
+
 #include "cs/cc_instance.h"
 
 enum PostScriptAction {
@@ -35,12 +42,4 @@ struct ExecutingScript {
     ExecutingScript();
 };
 
-extern ExecutingScript scripts[MAX_SCRIPT_AT_ONCE];
-extern ExecutingScript*curscript;
-
-extern ccScript* gamescript;
-extern ccScript* dialogScriptsScript;
-extern ccInstance *gameinst, *roominst;
-extern ccInstance *dialogScriptsInst;
-extern ccInstance *gameinstFork, *roominstFork;
-
+#endif // __AGS_EE_SCRIPT__EXECUTINGSCRIPT_H

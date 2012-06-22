@@ -20,7 +20,7 @@ prior express permission from Chris Jones.
 #include <stdlib.h>
 #include <string.h>
 #include "ac/dynobj/cc_dynamicobject.h"
-#include "cs/cc_managedobjectpool.h"
+#include "ac/dynobj/managedobjectpool.h"
 #include "cs/cc_error.h"
 
 ICCStringClass *stringClassImpl = NULL;

@@ -8,7 +8,9 @@
 #include "ac/ac_characterinfo.h"    // OldCharacterInfo, CharacterInfo
 #include "ac/ac_customproperties.h" // CustomProperties, CustomPropertySchema
 #include "ac/ac_dialog.h"           // constants
+#ifdef UNUSED_CODE
 #include "ac/ac_eventblock.h"       // EventBlock
+#endif
 #include "ac/ac_interaction.h"      // NewInteraction
 #include "ac/ac_interfaceelement.h" // InterfaceElement
 #include "ac/ac_inventoryiteminfo.h"// InventoryItemInfo
@@ -108,8 +110,10 @@ struct OriGameSetupStruct {
     char              *globalscript;
     int               numcharacters;
     OldCharacterInfo     *chars;
-    EventBlock        __charcond[50];
-    EventBlock        __invcond[100];
+#ifdef UNUSED_CODE
+    EventBlock        __charcond[50];   // [IKM] 2012-06-22: does not seem to be used anywhere
+    EventBlock        __invcond[100];   // same
+#endif
     ccScript          *compiled_script;
     int               playercharacter;
     unsigned char     __old_spriteflags[2100];

@@ -12,7 +12,7 @@
 
 */
 #include "acplatfm.h"
-#include "cs/cs_runtime.h"
+#include "script/script_runtime.h"
 #include "cs/cs_utils.h"
 #if defined(LINUX_VERSION) || defined(MAC_VERSION)
 #define strnicmp strncasecmp
@@ -22,7 +22,6 @@
 #include "ac/global_audio.h"
 #include "media/audio/audio.h"
 #include "media/audio/sound.h"
-#include "acrun/ac_executingscript.h"
 #include "acmain/ac_plugin.h"
 #include "acgfx/ac_gfxfilters.h"
 #include "acmain/ac_cdplayer.h"

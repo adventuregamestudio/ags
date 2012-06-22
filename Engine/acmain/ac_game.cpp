@@ -4,13 +4,12 @@
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_game.h"
 #include "acmain/ac_commonheaders.h"
-#include "acrun/ac_executingscript.h"
 #include "acdialog/ac_cscidialog.h"
 #include "acmain/ac_conversation.h"
 #include "acgui/ac_guilabel.h"
 #include "cs/cs_utils.h"
 #include "acmain/ac_file.h"
-#include "cs/cs_runtime.h"
+#include "script/script_runtime.h"
 #include "acmain/ac_lipsync.h"
 #include "ac/dynobj/scriptviewframe.h"
 #include "agsplugin.h"
@@ -23,6 +22,7 @@
 #include "ac/audioclip.h"
 #include "ac/global_audio.h"
 #include "ac/system_audio.h"
+#include "script/exports.h"
 
 extern "C" int csetlib(char *namm, char *passw);
 
@@ -49,6 +49,20 @@ extern int psp_gfx_smoothing;
 extern int psp_gfx_scaling;
 extern int psp_gfx_renderer;
 extern int psp_gfx_super_sampling;
+
+
+
+void GiveScore(int amnt) 
+{
+    guis_need_update = 1;
+    play.score += amnt;
+
+    if ((amnt > 0) && (play.score_sound >= 0))
+        play_audio_clip_by_index(play.score_sound);
+
+    run_on_event (GE_GOT_SCORE, amnt);
+}
+
 
 
 const char *load_game_errors[9] =

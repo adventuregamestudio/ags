@@ -16,9 +16,12 @@ struct RoomStatus {
   NewInteraction intrObject [MAX_INIT_SPR];
   NewInteraction intrRegion [MAX_REGIONS];
   NewInteraction intrRoom;
-/*  EventBlock hscond[MAX_HOTSPOTS];
+  // [IKM] 2012-06-22: not used anywhere
+#ifdef UNUSED_CODE
+  EventBlock hscond[MAX_HOTSPOTS];
   EventBlock objcond[MAX_INIT_SPR];
-  EventBlock misccond;*/
+  EventBlock misccond;
+#endif
   char  hotspot_enabled[MAX_HOTSPOTS];
   char  region_enabled[MAX_REGIONS];
   short walkbehind_base[MAX_OBJ];

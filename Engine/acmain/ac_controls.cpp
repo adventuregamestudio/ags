@@ -7,6 +7,7 @@
 #include "acmain/ac_guiinvwindow.h"
 #include "agsplugin.h"
 #include "acgui/ac_guitextbox.h"
+#include "ac/global_debug.h"
 
 
 #define ALLEGRO_KEYBOARD_HANDLER

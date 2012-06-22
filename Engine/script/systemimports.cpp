@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "cc_systemimports.h"
+#include "script/systemimports.h"
 
 
 extern void quit(char *);

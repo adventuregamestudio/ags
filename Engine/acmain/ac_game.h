@@ -1,6 +1,8 @@
 
 #include "ac/dynobj/scriptviewframe.h"
 
+void GiveScore(int amnt);
+
 void restart_game();
 void set_game_speed(int fps);
 void setup_for_dialog();

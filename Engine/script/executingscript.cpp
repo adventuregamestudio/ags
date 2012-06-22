@@ -1,19 +1,7 @@
 
-#include <stdio.h>
-#include <string.h>
-#include "wgt2allg.h"
-#include "acrun/ac_executingscript.h"
-#include "acmain/ac_maindefines.h"
+#include "string.h"
+#include "executingscript.h"
 #include "debug/debug.h"
-
-ExecutingScript scripts[MAX_SCRIPT_AT_ONCE];
-ExecutingScript*curscript = NULL;
-
-ccScript* gamescript=NULL;
-ccScript* dialogScriptsScript = NULL;
-ccInstance *gameinst = NULL, *roominst = NULL;
-ccInstance *dialogScriptsInst = NULL;
-ccInstance *gameinstFork = NULL, *roominstFork = NULL;
 
 int ExecutingScript::queue_action(PostScriptAction act, int data, const char *aname) {
     if (numPostScriptActions >= MAX_QUEUED_ACTIONS)

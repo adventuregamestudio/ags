@@ -246,22 +246,6 @@
 				>
 			</File>
 			<Filter
-				Name="cs"
-				>
-				<File
-					RelativePath="..\..\Engine\cs\cc_managedobjectpool.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\cs\cc_systemimports.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\cs\cs_runtime.cpp"
-					>
-				</File>
-			</Filter>
-			<Filter
 				Name="ac"
 				>
 				<File
@@ -270,10 +254,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\ac_dialog.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\ac\ac_eventblock.cpp"
 					>
 				</File>
 				<File
@@ -301,11 +281,23 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\event.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\game_audio.cpp"
 					>
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\global_audio.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\global_debug.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\global_timer.cpp"
 					>
 				</File>
 				<File
@@ -373,6 +365,10 @@
 					</File>
 					<File
 						RelativePath="..\..\Engine\ac\dynobj\cc_serializer.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\dynobj\managedobjectpool.cpp"
 						>
 					</File>
 					<File
@@ -476,10 +472,6 @@
 			<Filter
 				Name="acrun"
 				>
-				<File
-					RelativePath="..\..\Engine\acrun\ac_executingscript.cpp"
-					>
-				</File>
 				<File
 					RelativePath="..\..\Engine\acrun\ac_gamesetup.cpp"
 					>
@@ -590,10 +582,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_dynamicsprite.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_event.cpp"
 					>
 				</File>
 				<File
@@ -710,10 +698,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_screen.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_script.cpp"
 					>
 				</File>
 				<File
@@ -901,7 +885,23 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\script\executingscript.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\script\exports.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\script\script.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\script\script_runtime.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\script\systemimports.cpp"
 					>
 				</File>
 			</Filter>
@@ -1067,10 +1067,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_eventblock.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Common\ac\ac_gamesetupstruct.h"
 					>
 				</File>
@@ -1127,11 +1123,23 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\event.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\game_audio.h"
 					>
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\global_audio.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\global_debug.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\global_timer.h"
 					>
 				</File>
 				<File
@@ -1210,6 +1218,10 @@
 						>
 					</File>
 					<File
+						RelativePath="..\..\Engine\ac\dynobj\managedobjectpool.h"
+						>
+					</File>
+					<File
 						RelativePath="..\..\Engine\ac\dynobj\scriptaudiochannel.h"
 						>
 					</File>
@@ -1283,19 +1295,11 @@
 				Name="cs"
 				>
 				<File
-					RelativePath="..\..\Common\cs\cc_compiledscript.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Common\cs\cc_error.h"
 					>
 				</File>
 				<File
 					RelativePath="..\..\Common\cs\cc_instance.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_managedobjectpool.h"
 					>
 				</File>
 				<File
@@ -1307,31 +1311,11 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\cs\cc_spans.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_symboldef.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_systemimports.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Common\cs\cc_treemap.h"
 					>
 				</File>
 				<File
 					RelativePath="..\..\Common\cs\cs_common.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cs_parser_common.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cs_runtime.h"
 					>
 				</File>
 				<File
@@ -1455,38 +1439,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acmain\ac_cccharacter.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_ccdialog.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_ccgui.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_ccguiobject.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_cchotspot.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_ccinventory.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_ccobject.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_ccregion.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\acmain\ac_cdplayer.h"
 					>
 				</File>
@@ -1528,10 +1480,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_dynamicsprite.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_event.h"
 					>
 				</File>
 				<File
@@ -1663,18 +1611,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acmain\ac_script.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_scriptdialogoptionsrendering.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_scriptstring.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\acmain\ac_speech.h"
 					>
 				</File>
@@ -1735,19 +1671,11 @@
 				Name="acrun"
 				>
 				<File
-					RelativePath="..\..\Engine\acrun\ac_ccdynamicobject.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\acrun\ac_charactercache.h"
 					>
 				</File>
 				<File
 					RelativePath="..\..\Engine\acrun\ac_datetime.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acrun\ac_executingscript.h"
 					>
 				</File>
 				<File
@@ -1790,26 +1718,6 @@
 					RelativePath="..\..\Engine\acrun\ac_screenoverlay.h"
 					>
 				</File>
-				<File
-					RelativePath="..\..\Engine\acrun\ac_scriptdrawingsurface.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acrun\ac_scriptdynamicsprite.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acrun\ac_scriptfile.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acrun\ac_scriptoverlay.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acrun\ac_scriptviewframe.h"
-					>
-				</File>
 			</Filter>
 			<Filter
 				Name="script"
@@ -1819,11 +1727,35 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\script\executingscript.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\script\exports.h"
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\script\nonblockingscriptfunction.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\script\script.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\script\script_runtime.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\script\spans.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\script\symbol_registry.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\script\systemimports.h"
 					>
 				</File>
 			</Filter>

@@ -16,7 +16,7 @@
 #include "ac/dynobj/cc_audioclip.h"
 #include "ac/dynobj/cc_audiochannel.h"
 #include "acrun/ac_gamestate.h"
-#include "cs/cs_runtime.h"
+#include "script/script_runtime.h"
 #include "ac/audiochannel.h"
 #include "ac/audioclip.h"
 #include "acrun/ac_gamesetup.h"

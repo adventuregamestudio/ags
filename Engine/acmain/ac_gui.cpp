@@ -5,9 +5,8 @@
 #include "acmain/ac_gui.h"
 #include "acmain/ac_commonheaders.h"
 #include "acgfx/ac_gfxfilters.h"
-#include "acrun/ac_executingscript.h"
 #include "acgui/ac_guibutton.h"
-#include "cs/cs_runtime.h"
+#include "script/script_runtime.h"
 #include "acmain/ac_guicontrol.h"
 
 

@@ -1,5 +1,11 @@
-#ifndef __AC_NONBLOCKINGSCRIPTFUNCTION_H
-#define __AC_NONBLOCKINGSCRIPTFUNCTION_H
+
+//=============================================================================
+//
+//
+//
+//=============================================================================
+#ifndef __AGS_EE_SCRIPT__NONBLOCKINGSCRIPTFUNCTION_H
+#define __AGS_EE_SCRIPT__NONBLOCKINGSCRIPTFUNCTION_H
 
 #include "acrun/ac_rundefines.h"
 
@@ -29,6 +35,4 @@ struct NonBlockingScriptFunction
     }
 };
 
-
-
-#endif // __AC_NONBLOCKINGSCRIPTFUNCTION_H
+#endif // __AGS_EE_SCRIPT__NONBLOCKINGSCRIPTFUNCTION_H

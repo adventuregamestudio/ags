@@ -19,15 +19,14 @@ prior express permission from Chris Jones.
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
-#include "cs/cs_runtime.h"
+#include "script/script_runtime.h"
 #include "cs/cs_common.h"
-#include "cs/cc_systemimports.h"
 #include "cs/cc_error.h"
-#include "cs/cc_spans.h"
 #include "cs/cc_options.h"
 #include "ac/dynobj/cc_dynamicarray.h"
-#include "cs/cc_managedobjectpool.h"
-#include "cs/cc_instance.h"
+#include "ac/dynobj/managedobjectpool.h"
+#include "script/spans.h"
+#include "script/systemimports.h"
 
 #include "bigend.h"
 #include "misc.h"

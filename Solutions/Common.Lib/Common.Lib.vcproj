@@ -270,26 +270,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_unused.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
 					RelativePath="..\..\Common\ac\ac_view.cpp"
 					>
 				</File>
@@ -413,10 +393,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\ac\ac_dialog.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\ac_eventblock.h"
 					>
 				</File>
 				<File

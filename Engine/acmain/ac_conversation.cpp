@@ -5,7 +5,6 @@
 #include "acmain/ac_conversation.h"
 #include "acmain/ac_commonheaders.h"
 #include "ac/dynobj/scriptdialogoptionsrendering.h"
-#include "acrun/ac_executingscript.h"
 #include "media/audio/audio.h"
 #include "acgui/ac_guitextbox.h"
 #include "acmain/ac_parser.h"

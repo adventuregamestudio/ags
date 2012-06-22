@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "cs/cc_managedobjectpool.h"
-#include "ac/dynobj/cc_dynamicarray.h"        // globalDynamicArray, constants
+#include "ac/dynobj/managedobjectpool.h"
+#include "ac/dynobj/cc_dynamicarray.h" // globalDynamicArray, constants
 #include "cs/cs_utils.h"               // fputstring, etc
 #include "cs/cc_error.h"
 

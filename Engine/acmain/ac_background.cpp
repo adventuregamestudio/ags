@@ -4,7 +4,7 @@
 #include "acmain/ac_background.h"
 #include "acmain/ac_draw.h"
 #include "acrun/ac_runninggame.h"
-#include "acmain/ac_event.h"
+#include "ac/event.h"
 #include "ac/ac_common.h"
 
 int bg_just_changed = 0;

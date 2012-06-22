@@ -65,28 +65,7 @@ void CheckViewFrame (int view, int loop, int frame) {
     }
 }
 
-void CheckViewFrameForCharacter(CharacterInfo *chi) {
 
-    int soundVolumeWas = play.sound_volume;
-
-    if (chi->flags & CHF_SCALEVOLUME) {
-        // adjust the sound volume using the character's zoom level
-        int zoom_level = charextra[chi->index_id].zoom;
-        if (zoom_level == 0)
-            zoom_level = 100;
-
-        play.sound_volume = (play.sound_volume * zoom_level) / 100;
-
-        if (play.sound_volume < 0)
-            play.sound_volume = 0;
-        if (play.sound_volume > 255)
-            play.sound_volume = 255;
-    }
-
-    CheckViewFrame(chi->view, chi->loop, chi->frame);
-
-    play.sound_volume = soundVolumeWas;
-}
 
 
 

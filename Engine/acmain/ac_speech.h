@@ -1,7 +1,7 @@
 #ifndef __AC_SPEECH_H
 #define __AC_SPEECH_H
 
-#include "ac/ac_characterinfo.h"
+#include "ac/characterinfo.h"
 
 void SetTextWindowGUI (int guinum);
 int DisplaySpeechBackground(int charid,char*speel);
@@ -20,7 +20,7 @@ int IsMusicVoxAvailable ();
 void SetSpeechStyle (int newstyle);
 void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThought);
 int get_character_currently_talking();
-int Character_GetSpeakingFrame(CharacterInfo *chaa);
+
 void DisplaySpeech(char*texx, int aschar);
 void DisplaySpeechAt (int xx, int yy, int wii, int aschar, char*spch);
 

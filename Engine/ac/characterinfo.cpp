@@ -1,7 +1,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "ac/ac_characterinfo.h"
+#include "ac/characterinfo.h"
 #include "bigend.h"
 
 int CharacterInfo::get_effective_y() {

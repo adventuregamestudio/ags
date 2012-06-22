@@ -4,7 +4,7 @@
 #include "ac/dynobj/scriptgui.h"
 #include "ac/dynobj/scriptobject.h"
 #include "ac/dynobj/scriptregion.h"
-#include "ac/ac_characterinfo.h"
+#include "ac/characterinfo.h"
 
 int get_walkable_area_at_location(int xx, int yy);
 int get_walkable_area_at_character (int charnum);
@@ -22,8 +22,7 @@ ScriptObject *GetObjectAtLocation(int xx, int yy);
 // X and Y co-ordinates must be in 320x200 format
 int check_click_on_object(int xx,int yy,int mood);
 int is_pos_on_character(int xx,int yy);
-int GetCharacterAt (int xx, int yy);
-CharacterInfo *GetCharacterAtLocation(int xx, int yy);
+
 
 int __GetLocationType(int xxx,int yyy, int allowHotspot0);
 

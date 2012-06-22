@@ -249,10 +249,6 @@
 				Name="ac"
 				>
 				<File
-					RelativePath="..\..\Engine\ac\ac_characterinfo.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\ac\ac_dialog.cpp"
 					>
 				</File>
@@ -281,6 +277,14 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\character.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\characterinfo.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\event.cpp"
 					>
 				</File>
@@ -290,6 +294,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\global_audio.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\global_character.cpp"
 					>
 				</File>
 				<File
@@ -486,18 +494,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acrun\ac_runninggame.cpp"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="acchars"
-				>
-				<File
-					RelativePath="..\..\Engine\acchars\ac_character.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acchars\ac_charhelpers.cpp"
 					>
 				</File>
 			</Filter>
@@ -1051,10 +1047,6 @@
 				Name="ac"
 				>
 				<File
-					RelativePath="..\..\Common\ac\ac_characterinfo.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Common\ac\ac_common.h"
 					>
 				</File>
@@ -1123,6 +1115,18 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\character.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\characterextras.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\characterinfo.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\event.h"
 					>
 				</File>
@@ -1132,6 +1136,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\global_audio.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\global_character.h"
 					>
 				</File>
 				<File
@@ -1376,18 +1384,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acgfx\ac_scalinggfxfilter.h"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="acchars"
-				>
-				<File
-					RelativePath="..\..\Engine\acchars\ac_character.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acchars\ac_charhelpers.h"
 					>
 				</File>
 			</Filter>

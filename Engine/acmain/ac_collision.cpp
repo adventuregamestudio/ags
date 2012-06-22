@@ -179,22 +179,7 @@ int my_getpixel(BITMAP *blk, int x, int y) {
     return blk->vtable->getpixel(blk, x, y) & 0x00ffffff;
 }
 
-block GetCharacterImage(int charid, int *isFlipped) 
-{
-    if (!gfxDriver->HasAcceleratedStretchAndFlip())
-    {
-        if (actsps[charid + MAX_INIT_SPR] != NULL) 
-        {
-            // the actsps image is pre-flipped, so no longer register the image as such
-            if (isFlipped)
-                *isFlipped = 0;
-            return actsps[charid + MAX_INIT_SPR];
-        }
-    }
-    CharacterInfo*chin=&game.chars[charid];
-    int sppic = views[chin->view].loops[chin->loop].frames[chin->frame].pic;
-    return spriteset[sppic];
-}
+
 
 block GetObjectImage(int obj, int *isFlipped) 
 {

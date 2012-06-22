@@ -1,7 +1,7 @@
 #ifndef __AC_MAIN_H
 #define __AC_MAIN_H
 
-#include "ac/ac_characterinfo.h"
+#include "ac/characterinfo.h"
 
 void do_main_cycle(int untilwhat,int daaa);
 void can_run_delayed_command();

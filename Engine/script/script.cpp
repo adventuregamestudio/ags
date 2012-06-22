@@ -4,7 +4,6 @@
 #include "wgt2allg.h"
 #include "ac/global_audio.h"
 #include "ac/global_video.h"
-#include "acchars/ac_charhelpers.h"
 #include "cs/cc_error.h"
 #include "cs/cc_options.h"
 #include "acmain/ac_maindefines.h"

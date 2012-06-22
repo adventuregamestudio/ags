@@ -6,7 +6,6 @@
 #include "acmain/ac_commonheaders.h"
 #include "acmain/ac_lipsync.h"
 #include "acmain/ac_conversation.h"
-#include "acchars/ac_charhelpers.h"
 #include "media/audio/audio.h"
 #include "media/audio/sound.h"
 
@@ -664,26 +663,7 @@ int get_character_currently_talking() {
     return -1;
 }
 
-int Character_GetSpeakingFrame(CharacterInfo *chaa) {
 
-    if ((face_talking >= 0) && (facetalkrepeat))
-    {
-        if (facetalkchar->index_id == chaa->index_id)
-        {
-            return facetalkframe;
-        }
-    }
-    else if (char_speaking >= 0)
-    {
-        if (char_speaking == chaa->index_id)
-        {
-            return chaa->frame;
-        }
-    }
-
-    quit("!Character.SpeakingFrame: character is not currently speaking");
-    return -1;
-}
 
 
 void DisplaySpeech(char*texx, int aschar) {

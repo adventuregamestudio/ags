@@ -12,24 +12,68 @@
 
 */
 
-#include <stdio.h>
 #include "wgt2allg.h"
-#include "acchars/ac_character.h"
-#include "ac/ac_common.h"           // quit()
-//#include "acruntim.h"
-#include "acchars/ac_charhelpers.h"
+#include "ac/character.h"
+#include "ac/ac_common.h"
+#include "ac/ac_gamesetupstruct.h"
+#include "ac/ac_roomstruct.h"
+#include "ac/ac_view.h"
+#include "ac/event.h"
+#include "ac/global_character.h"
 #include "acgui/ac_guimain.h"
 #include "routefnd.h"
-#include "acmain/ac_commonheaders.h"
+#include "acmain/ac_collision.h"
+#include "acmain/ac_customproperties.h"
+#include "acmain/ac_cutscene.h"
+#include "acmain/ac_draw.h"
+#include "acmain/ac_inventory.h"
+#include "acmain/ac_location.h"
+#include "acmain/ac_main.h"
+#include "acmain/ac_message.h"
+#include "acmain/ac_mouse.h"
+#include "acmain/ac_object.h"
+#include "acmain/ac_room.h"
+#include "acmain/ac_screen.h"
+#include "acmain/ac_speech.h"
+#include "acmain/ac_string.h"
+#include "acmain/ac_strings.h"
+#include "acmain/ac_translation.h"
+#include "acmain/ac_viewframe.h"
+#include "acmain/ac_walkablearea.h"
+#include "acrun/ac_gamestate.h"
+#include "debug/debug.h"
+#include "sprcache.h"
+#include <math.h>
 
-extern int loaded_game_file_version;
+extern GameSetupStruct game;
+extern int displayed_room,starting_room;
+extern roomstruct thisroom;
+extern MoveList *mls;
+extern int new_room_pos;
+extern int new_room_x, new_room_y;
+extern GameState play;
+extern ViewStruct*views;
+extern RoomObject*objs;
+extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
+extern ScriptInvItem scrInv[MAX_INV];
+extern SpriteCache spriteset;
 
-// **** CHARACTER: FUNCTIONS ****
+
+//--------------------------------
+
+#define CHECK_DIAGONAL(maindir,othdir,codea,codeb) \
+    if (no_diagonal) ;\
+  else if (abs(maindir) > abs(othdir) / 2) {\
+  if (maindir < 0) useloop=codea;\
+    else useloop=codeb;\
+}
+
 
 CharacterExtras *charextra;
 CharacterInfo*playerchar;
 long _sc_PlayerCharPtr = 0;
 
+// **** CHARACTER: FUNCTIONS ****
 
 void Character_AddInventory(CharacterInfo *chaa, ScriptInvItem *invi, int addIndex) {
     int ee;
@@ -188,26 +232,6 @@ void Character_ChangeRoom(CharacterInfo *chaa, int room, int x, int y) {
     NewRoom(room);
 }
 
-void FindReasonableLoopForCharacter(CharacterInfo *chap) {
-
-    if (chap->loop >= views[chap->view].numLoops)
-        chap->loop=0;
-    if (views[chap->view].numLoops < 1)
-        quitprintf("!View %d does not have any loops", chap->view + 1);
-
-    // if the current loop has no frames, find one that does
-    if (views[chap->view].loops[chap->loop].numFrames < 1) 
-    {
-        for (int i = 0; i < views[chap->view].numLoops; i++) 
-        {
-            if (views[chap->view].loops[i].numFrames > 0) {
-                chap->loop = i;
-                break;
-            }
-        }
-    }
-
-}
 
 void Character_ChangeView(CharacterInfo *chap, int vii) {
     vii--;
@@ -839,24 +863,6 @@ void Character_UnlockView(CharacterInfo *chaa) {
 
 }
 
-void walk_or_move_character(CharacterInfo *chaa, int x, int y, int blocking, int direct, bool isWalk)
-{
-    if (chaa->on != 1)
-        quit("!MoveCharacterBlocking: character is turned off and cannot be moved");
-
-    if ((direct == ANYWHERE) || (direct == 1))
-        walk_character(chaa->index_id, x, y, 1, isWalk);
-    else if ((direct == WALKABLE_AREAS) || (direct == 0))
-        walk_character(chaa->index_id, x, y, 0, isWalk);
-    else
-        quit("!Character.Walk: Direct must be ANYWHERE or WALKABLE_AREAS");
-
-    if ((blocking == BLOCKING) || (blocking == 1))
-        do_main_cycle(UNTIL_MOVEEND,(int)&chaa->walking);
-    else if ((blocking != IN_BACKGROUND) && (blocking != 0))
-        quit("!Character.Walk: Blocking must be BLOCKING or IN_BACKGRUOND");
-
-}
 
 void Character_Walk(CharacterInfo *chaa, int x, int y, int blocking, int direct) 
 {
@@ -897,9 +903,26 @@ void Character_WalkStraight(CharacterInfo *chaa, int xx, int yy, int blocking) {
 
 }
 
+void Character_RunInteraction(CharacterInfo *chaa, int mood) {
+
+    RunCharacterInteraction(chaa->index_id, mood);
+}
+
+
 
 // **** CHARACTER: PROPERTIES ****
 
+int Character_GetProperty(CharacterInfo *chaa, const char *property) {
+
+    return get_int_property(&game.charProps[chaa->index_id], property);
+
+}
+void Character_GetPropertyText(CharacterInfo *chaa, const char *property, char *bufer) {
+    get_text_property(&game.charProps[chaa->index_id], property, bufer);
+}
+const char* Character_GetTextProperty(CharacterInfo *chaa, const char *property) {
+    return get_text_property_dynamic_string(&game.charProps[chaa->index_id], property);
+}
 
 ScriptInvItem* Character_GetActiveInventory(CharacterInfo *chaa) {
 
@@ -1287,21 +1310,6 @@ void Character_SetSpeechColor(CharacterInfo *chaa, int ncol) {
     chaa->talkcolor = ncol;
 }
 
-int GetCharacterSpeechAnimationDelay(CharacterInfo *cha)
-{
-    if (game.options[OPT_OLDTALKANIMSPD])
-    {
-        // The talkanim property only applies to Lucasarts style speech.
-        // Sierra style speech has a fixed delay of 5.
-        if (game.options[OPT_SPEECHTYPE] == 0)
-            return play.talkanim_speed;
-        else
-            return 5;
-    }
-    else
-        return cha->speech_anim_speed;
-}
-
 void Character_SetSpeechAnimationDelay(CharacterInfo *chaa, int newDelay) 
 {
     if (game.options[OPT_OLDTALKANIMSPD])
@@ -1415,70 +1423,481 @@ void Character_SetZ(CharacterInfo *chaa, int newval) {
     chaa->z = newval;
 }
 
+extern int char_speaking;
+
+int Character_GetSpeakingFrame(CharacterInfo *chaa) {
+
+    if ((face_talking >= 0) && (facetalkrepeat))
+    {
+        if (facetalkchar->index_id == chaa->index_id)
+        {
+            return facetalkframe;
+        }
+    }
+    else if (char_speaking >= 0)
+    {
+        if (char_speaking == chaa->index_id)
+        {
+            return chaa->frame;
+        }
+    }
+
+    quit("!Character.SpeakingFrame: character is not currently speaking");
+    return -1;
+}
+
+//=============================================================================
+
+// order of loops to turn character in circle from down to down
+int turnlooporder[8] = {0, 6, 1, 7, 3, 5, 2, 4};
+
+void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
+    CharacterInfo*chin=&game.chars[chac];
+    if (chin->room!=displayed_room)
+        quit("!MoveCharacter: character not in current room");
+
+    chin->flags &= ~CHF_MOVENOTWALK;
+
+    int toxPassedIn = tox, toyPassedIn = toy;
+    int charX = convert_to_low_res(chin->x);
+    int charY = convert_to_low_res(chin->y);
+    tox = convert_to_low_res(tox);
+    toy = convert_to_low_res(toy);
+
+    if ((tox == charX) && (toy == charY)) {
+        StopMoving(chac);
+        DEBUG_CONSOLE("%s already at destination, not moving", chin->scrname);
+        return;
+    }
+
+    if ((chin->animating) && (autoWalkAnims))
+        chin->animating = 0;
+
+    if (chin->idleleft < 0) {
+        ReleaseCharacterView(chac);
+        chin->idleleft=chin->idletime;
+    }
+    // stop them to make sure they're on a walkable area
+    // but save their frame first so that if they're already
+    // moving it looks smoother
+    int oldframe = chin->frame;
+    int waitWas = 0, animWaitWas = 0;
+    // if they are currently walking, save the current Wait
+    if (chin->walking)
+    {
+        waitWas = chin->walkwait;
+        animWaitWas = charextra[chac].animwait;
+    }
+
+    StopMoving (chac);
+    chin->frame = oldframe;
+    // use toxPassedIn cached variable so the hi-res co-ordinates
+    // are still displayed as such
+    DEBUG_CONSOLE("%s: Start move to %d,%d", chin->scrname, toxPassedIn, toyPassedIn);
+
+    int move_speed_x = chin->walkspeed;
+    int move_speed_y = chin->walkspeed;
+
+    if (chin->walkspeed_y != UNIFORM_WALK_SPEED)
+        move_speed_y = chin->walkspeed_y;
+
+    if ((move_speed_x == 0) && (move_speed_y == 0)) {
+        debug_log("Warning: MoveCharacter called for '%s' with walk speed 0", chin->name);
+    }
+
+    set_route_move_speed(move_speed_x, move_speed_y);
+    set_color_depth(8);
+    int mslot=find_route(charX, charY, tox, toy, prepare_walkable_areas(chac), chac+CHMLSOFFS, 1, ignwal);
+    set_color_depth(final_col_dep);
+    if (mslot>0) {
+        chin->walking = mslot;
+        mls[mslot].direct = ignwal;
+
+        if ((game.options[OPT_NATIVECOORDINATES] != 0) &&
+            (game.default_resolution > 2))
+        {
+            convert_move_path_to_high_res(&mls[mslot]);
+        }
+        // cancel any pending waits on current animations
+        // or if they were already moving, keep the current wait - 
+        // this prevents a glitch if MoveCharacter is called when they
+        // are already moving
+        if (autoWalkAnims)
+        {
+            chin->walkwait = waitWas;
+            charextra[chac].animwait = animWaitWas;
+
+            if (mls[mslot].pos[0] != mls[mslot].pos[1]) {
+                fix_player_sprite(&mls[mslot],chin);
+            }
+        }
+        else
+            chin->flags |= CHF_MOVENOTWALK;
+    }
+    else if (autoWalkAnims) // pathfinder couldn't get a route, stand them still
+        chin->frame = 0;
+}
+
+int find_looporder_index (int curloop) {
+    int rr;
+    for (rr = 0; rr < 8; rr++) {
+        if (turnlooporder[rr] == curloop)
+            return rr;
+    }
+    return 0;
+}
+
+// returns 0 to use diagonal, 1 to not
+int useDiagonal (CharacterInfo *char1) {
+    if ((views[char1->view].numLoops < 8) || ((char1->flags & CHF_NODIAGONAL)!=0))
+        return 1;
+    // If they have just provided standing frames for loops 4-7, to
+    // provide smoother turning
+    if (views[char1->view].loops[4].numFrames < 2)
+        return 2;
+    return 0;
+}
+
+// returns 1 normally, or 0 if they only have horizontal animations
+int hasUpDownLoops(CharacterInfo *char1) {
+    // if no loops in the Down animation
+    // or no loops in the Up animation
+    if ((views[char1->view].loops[0].numFrames < 1) ||
+        (views[char1->view].numLoops < 4) ||
+        (views[char1->view].loops[3].numFrames < 1))
+    {
+        return 0;
+    }
+
+    return 1;
+}
+
+void start_character_turning (CharacterInfo *chinf, int useloop, int no_diagonal) {
+    // work out how far round they have to turn 
+    int fromidx = find_looporder_index (chinf->loop);
+    int toidx = find_looporder_index (useloop);
+    //Display("Curloop: %d, needloop: %d",chinf->loop, useloop);
+    int ii, go_anticlock = 0;
+    // work out whether anticlockwise is quicker or not
+    if ((toidx > fromidx) && ((toidx - fromidx) > 4))
+        go_anticlock = 1;
+    if ((toidx < fromidx) && ((fromidx - toidx) < 4))
+        go_anticlock = 1;
+    // strip any current turning_around stages
+    chinf->walking = chinf->walking % TURNING_AROUND;
+    if (go_anticlock)
+        chinf->walking += TURNING_BACKWARDS;
+    else
+        go_anticlock = -1;
+
+    // Allow the diagonal frames just for turning
+    if (no_diagonal == 2)
+        no_diagonal = 0;
+
+    for (ii = fromidx; ii != toidx; ii -= go_anticlock) {
+        if (ii < 0)
+            ii = 7;
+        if (ii >= 8)
+            ii = 0;
+        if (ii == toidx)
+            break;
+        if ((turnlooporder[ii] >= 4) && (no_diagonal > 0))
+            continue;
+        if (views[chinf->view].loops[turnlooporder[ii]].numFrames < 1)
+            continue;
+        if (turnlooporder[ii] < views[chinf->view].numLoops)
+            chinf->walking += TURNING_AROUND;
+    }
+
+}
 
 
 
+// loops: 0=down, 1=left, 2=right, 3=up, 4=down-right, 5=up-right,
+// 6=down-left, 7=up-left
+void fix_player_sprite(MoveList*cmls,CharacterInfo*chinf) {
+    int view_num=chinf->view;
+    int want_horiz=1,useloop = 1,no_diagonal=0;
+    fixed xpmove = cmls->xpermove[cmls->onstage];
+    fixed ypmove = cmls->ypermove[cmls->onstage];
+
+    // if not moving, do nothing
+    if ((xpmove == 0) && (ypmove == 0))
+        return;
+
+    no_diagonal = useDiagonal (chinf);
+
+    // Different logic for 2.x.
+    if (loaded_game_file_version <= 32)
+    {
+        bool can_right = ((views[chinf->view].numLoops >= 3) && (views[chinf->view].loops[2].numFrames > 0));
+        bool can_left = ((views[chinf->view].numLoops >= 2) && (views[chinf->view].loops[1].numFrames > 0));
+
+        if (abs(ypmove) < abs(xpmove))
+        {
+            if (!can_left && !can_right)
+                useloop = 0;
+            else if (can_right && (xpmove >= 0)) {
+                useloop=2;
+                CHECK_DIAGONAL(ypmove, xpmove, 5, 4)
+            }
+            else if (can_left && (xpmove < 0)) {
+                useloop=1;
+                CHECK_DIAGONAL(ypmove, xpmove,7,6)
+            }
+        }
+        else
+        {
+            if (ypmove>=0) {
+                useloop=0;
+                CHECK_DIAGONAL(xpmove ,ypmove ,6,4)
+            }
+            else if (ypmove<0) {
+                useloop=3;
+                CHECK_DIAGONAL(xpmove, ypmove,7,5)
+            }
+        }
+    }
+    else
+    {
+        if (hasUpDownLoops(chinf) == 0)
+            want_horiz = 1;
+        else if (abs(ypmove) > abs(xpmove))
+            want_horiz = 0;
+
+        if ((want_horiz==1) && (xpmove > 0)) {
+            // right
+            useloop=2;
+            // diagonal up-right/down-right
+            CHECK_DIAGONAL(ypmove,xpmove,5,4)
+        }
+        else if ((want_horiz==1) && (xpmove <= 0)) {
+            // left
+            useloop=1;
+            // diagonal up-left/down-left
+            CHECK_DIAGONAL(ypmove,xpmove,7,6)
+        }
+        else if (ypmove < 0) {
+            // up
+            useloop=3;
+            // diagonal up-left/up-right
+            CHECK_DIAGONAL(xpmove,ypmove,7,5)
+        }
+        else {
+            // down
+            useloop=0;
+            // diagonal down-left/down-right
+            CHECK_DIAGONAL(xpmove,ypmove,6,4)
+        }
+    }
+
+    if ((game.options[OPT_ROTATECHARS] == 0) || ((chinf->flags & CHF_NOTURNING) != 0)) {
+        chinf->loop = useloop;
+        return;
+    }
+    if ((chinf->loop > 3) && ((chinf->flags & CHF_NODIAGONAL)!=0)) {
+        // They've just been playing an animation with an extended loop number,
+        // so don't try and rotate using it
+        chinf->loop = useloop;
+        return;
+    }
+    if ((chinf->loop >= views[chinf->view].numLoops) ||
+        (views[chinf->view].loops[chinf->loop].numFrames < 1) ||
+        (hasUpDownLoops(chinf) == 0)) {
+            // Character is not currently on a valid loop, so don't try to rotate
+            // eg. left/right only view, but current loop 0
+            chinf->loop = useloop;
+            return;
+    }
+    start_character_turning (chinf, useloop, no_diagonal);
+}
+
+// Check whether two characters have walked into each other
+int has_hit_another_character(int sourceChar) {
+
+    // if the character who's moving doesn't block, don't bother checking
+    if (game.chars[sourceChar].flags & CHF_NOBLOCKING)
+        return -1;
+
+    for (int ww = 0; ww < game.numcharacters; ww++) {
+        if (game.chars[ww].on != 1) continue;
+        if (game.chars[ww].room != displayed_room) continue;
+        if (ww == sourceChar) continue;
+        if (game.chars[ww].flags & CHF_NOBLOCKING) continue;
+
+        if (is_char_on_another (sourceChar, ww, NULL, NULL)) {
+            // we are now overlapping character 'ww'
+            if ((game.chars[ww].walking) && 
+                ((game.chars[ww].flags & CHF_AWAITINGMOVE) == 0))
+                return ww;
+        }
+
+    }
+    return -1;
+}
+
+// Does the next move from the character's movelist.
+// Returns 1 if they are now waiting for another char to move,
+// otherwise returns 0
+int doNextCharMoveStep (int aa, CharacterInfo *chi) {
+    int ntf=0, xwas = chi->x, ywas = chi->y;
+
+    if (do_movelist_move(&chi->walking,&chi->x,&chi->y) == 2) 
+    {
+        if ((chi->flags & CHF_MOVENOTWALK) == 0)
+            fix_player_sprite(&mls[chi->walking], chi);
+    }
+
+    ntf = has_hit_another_character(aa);
+    if (ntf >= 0) {
+        chi->walkwait = 30;
+        if (game.chars[ntf].walkspeed < 5)
+            chi->walkwait += (5 - game.chars[ntf].walkspeed) * 5;
+        // we are now waiting for the other char to move, so
+        // make sure he doesn't stop for us too
+
+        chi->flags |= CHF_AWAITINGMOVE;
+
+        if ((chi->flags & CHF_MOVENOTWALK) == 0)
+        {
+            chi->frame = 0;
+            charextra[aa].animwait = chi->walkwait;
+        }
+
+        if ((chi->walking < 1) || (chi->walking >= TURNING_AROUND)) ;
+        else if (mls[chi->walking].onpart > 0) {
+            mls[chi->walking].onpart --;
+            chi->x = xwas;
+            chi->y = ywas;
+        }
+        DEBUG_CONSOLE("%s: Bumped into %s, waiting for them to move", chi->scrname, game.chars[ntf].scrname);
+        return 1;
+    }
+    return 0;
+}
+
+extern int engineNeedsAsInt;
+
+int find_nearest_walkable_area_within(int *xx, int *yy, int range, int step)
+{
+    int ex, ey, nearest = 99999, thisis, nearx = 0, neary = 0;
+    int startx = 0, starty = 14;
+    int roomWidthLowRes = convert_to_low_res(thisroom.width);
+    int roomHeightLowRes = convert_to_low_res(thisroom.height);
+    int xwidth = roomWidthLowRes, yheight = roomHeightLowRes;
+
+    int xLowRes = convert_to_low_res(xx[0]);
+    int yLowRes = convert_to_low_res(yy[0]);
+    int rightEdge = convert_to_low_res(thisroom.right);
+    int leftEdge = convert_to_low_res(thisroom.left);
+    int topEdge = convert_to_low_res(thisroom.top);
+    int bottomEdge = convert_to_low_res(thisroom.bottom);
+
+    // tweak because people forget to move the edges sometimes
+    // if the player is already over the edge, ignore it
+    if (xLowRes >= rightEdge) rightEdge = roomWidthLowRes;
+    if (xLowRes <= leftEdge) leftEdge = 0;
+    if (yLowRes >= bottomEdge) bottomEdge = roomHeightLowRes;
+    if (yLowRes <= topEdge) topEdge = 0;
+
+    if (range > 0) 
+    {
+        startx = xLowRes - range;
+        starty = yLowRes - range;
+        xwidth = startx + range * 2;
+        yheight = starty + range * 2;
+        if (startx < 0) startx = 0;
+        if (starty < 10) starty = 10;
+        if (xwidth > roomWidthLowRes) xwidth = roomWidthLowRes;
+        if (yheight > roomHeightLowRes) yheight = roomHeightLowRes;
+    }
+
+    for (ex = startx; ex < xwidth; ex += step) {
+        for (ey = starty; ey < yheight; ey += step) {
+            // non-walkalbe, so don't go here
+            if (getpixel(thisroom.walls,ex,ey) == 0) continue;
+            // off a screen edge, don't move them there
+            if ((ex <= leftEdge) || (ex >= rightEdge) ||
+                (ey <= topEdge) || (ey >= bottomEdge))
+                continue;
+            // otherwise, calculate distance from target
+            thisis=(int) ::sqrt((double)((ex - xLowRes) * (ex - xLowRes) + (ey - yLowRes) * (ey - yLowRes)));
+            if (thisis<nearest) { nearest=thisis; nearx=ex; neary=ey; }
+        }
+    }
+    if (nearest < 90000) 
+    {
+        xx[0] = convert_back_to_high_res(nearx);
+        yy[0] = convert_back_to_high_res(neary);
+        return 1;
+    }
+
+    return 0;
+}
+
+void find_nearest_walkable_area (int *xx, int *yy) {
+
+
+    int pixValue = getpixel(thisroom.walls, convert_to_low_res(xx[0]), convert_to_low_res(yy[0]));
+    // only fix this code if the game was built with 2.61 or above
+    if (pixValue == 0 || (engineNeedsAsInt >=261 && pixValue < 1))
+    {
+        // First, check every 2 pixels within immediate area
+        if (!find_nearest_walkable_area_within(xx, yy, 20, 2))
+        {
+            // If not, check whole screen at 5 pixel intervals
+            find_nearest_walkable_area_within(xx, yy, -1, 5);
+        }
+    }
+
+}
+
+void FindReasonableLoopForCharacter(CharacterInfo *chap) {
+
+    if (chap->loop >= views[chap->view].numLoops)
+        chap->loop=0;
+    if (views[chap->view].numLoops < 1)
+        quitprintf("!View %d does not have any loops", chap->view + 1);
+
+    // if the current loop has no frames, find one that does
+    if (views[chap->view].loops[chap->loop].numFrames < 1) 
+    {
+        for (int i = 0; i < views[chap->view].numLoops; i++) 
+        {
+            if (views[chap->view].loops[i].numFrames > 0) {
+                chap->loop = i;
+                break;
+            }
+        }
+    }
+
+}
+
+void walk_or_move_character(CharacterInfo *chaa, int x, int y, int blocking, int direct, bool isWalk)
+{
+    if (chaa->on != 1)
+        quit("!MoveCharacterBlocking: character is turned off and cannot be moved");
+
+    if ((direct == ANYWHERE) || (direct == 1))
+        walk_character(chaa->index_id, x, y, 1, isWalk);
+    else if ((direct == WALKABLE_AREAS) || (direct == 0))
+        walk_character(chaa->index_id, x, y, 0, isWalk);
+    else
+        quit("!Character.Walk: Direct must be ANYWHERE or WALKABLE_AREAS");
+
+    if ((blocking == BLOCKING) || (blocking == 1))
+        do_main_cycle(UNTIL_MOVEEND,(int)&chaa->walking);
+    else if ((blocking != IN_BACKGROUND) && (blocking != 0))
+        quit("!Character.Walk: Blocking must be BLOCKING or IN_BACKGRUOND");
+
+}
 
 #include "acmain/ac_maindefines.h"
-
-
 
 int is_valid_character(int newchar) {
     if ((newchar < 0) || (newchar >= game.numcharacters)) return 0;
     return 1;
 }
-
-
-
-
-void SetCharacterIdle(int who, int iview, int itime) {
-    if (!is_valid_character(who))
-        quit("!SetCharacterIdle: Invalid character specified");
-
-    Character_SetIdleView(&game.chars[who], iview, itime);
-}
-
-
-
-int GetCharacterWidth(int ww) {
-    CharacterInfo *char1 = &game.chars[ww];
-
-    if (charextra[ww].width < 1)
-    {
-        if ((char1->view < 0) ||
-            (char1->loop >= views[char1->view].numLoops) ||
-            (char1->frame >= views[char1->view].loops[char1->loop].numFrames))
-        {
-            debug_log("GetCharacterWidth: Character %s has invalid frame: view %d, loop %d, frame %d", char1->scrname, char1->view + 1, char1->loop, char1->frame);
-            return multiply_up_coordinate(4);
-        }
-
-        return spritewidth[views[char1->view].loops[char1->loop].frames[char1->frame].pic];
-    }
-    else 
-        return charextra[ww].width;
-}
-
-int GetCharacterHeight(int charid) {
-    CharacterInfo *char1 = &game.chars[charid];
-
-    if (charextra[charid].height < 1)
-    {
-        if ((char1->view < 0) ||
-            (char1->loop >= views[char1->view].numLoops) ||
-            (char1->frame >= views[char1->view].loops[char1->loop].numFrames))
-        {
-            debug_log("GetCharacterHeight: Character %s has invalid frame: view %d, loop %d, frame %d", char1->scrname, char1->view + 1, char1->loop, char1->frame);
-            return multiply_up_coordinate(2);
-        }
-
-        return spriteheight[views[char1->view].loops[char1->loop].frames[char1->frame].pic];
-    }
-    else
-        return charextra[charid].height;
-}
-
-
 
 int wantMoveNow (int chnum, CharacterInfo *chi) {
     // check most likely case first
@@ -1555,47 +1974,6 @@ void setup_player_character(int charid) {
 }
 
 
-void SetCharacterBaseline (int obn, int basel) {
-    if (!is_valid_character(obn)) quit("!SetCharacterBaseline: invalid object number specified");
-
-    Character_SetBaseline(&game.chars[obn], basel);
-}
-
-// pass trans=0 for fully solid, trans=100 for fully transparent
-void SetCharacterTransparency(int obn,int trans) {
-    if (!is_valid_character(obn))
-        quit("!SetCharTransparent: invalid character number specified");
-
-    Character_SetTransparency(&game.chars[obn], trans);
-}
-
-void scAnimateCharacter (int chh, int loopn, int sppd, int rept) {
-    if (!is_valid_character(chh))
-        quit("AnimateCharacter: invalid character");
-
-    animate_character(&game.chars[chh], loopn, sppd, rept);
-}
-
-void AnimateCharacterEx(int chh, int loopn, int sppd, int rept, int direction, int blocking) {
-    if ((direction < 0) || (direction > 1))
-        quit("!AnimateCharacterEx: invalid direction");
-    if (!is_valid_character(chh))
-        quit("AnimateCharacter: invalid character");
-
-    if (direction)
-        direction = BACKWARDS;
-    else
-        direction = FORWARDS;
-
-    if (blocking)
-        blocking = BLOCKING;
-    else
-        blocking = IN_BACKGROUND;
-
-    Character_Animate(&game.chars[chh], loopn, sppd, rept, blocking, direction);
-
-}
-
 void animate_character(CharacterInfo *chap, int loopn,int sppd,int rept, int noidleoverride, int direction) {
 
     if ((chap->view < 0) || (chap->view > game.numviews)) {
@@ -1629,181 +2007,92 @@ void animate_character(CharacterInfo *chap, int loopn,int sppd,int rept, int noi
     CheckViewFrameForCharacter(chap);
 }
 
+void CheckViewFrameForCharacter(CharacterInfo *chi) {
 
-void SetPlayerCharacter(int newchar) {
-    if (!is_valid_character(newchar))
-        quit("!SetPlayerCharacter: Invalid character specified");
+    int soundVolumeWas = play.sound_volume;
 
-    Character_SetAsPlayer(&game.chars[newchar]);
+    if (chi->flags & CHF_SCALEVOLUME) {
+        // adjust the sound volume using the character's zoom level
+        int zoom_level = charextra[chi->index_id].zoom;
+        if (zoom_level == 0)
+            zoom_level = 100;
+
+        play.sound_volume = (play.sound_volume * zoom_level) / 100;
+
+        if (play.sound_volume < 0)
+            play.sound_volume = 0;
+        if (play.sound_volume > 255)
+            play.sound_volume = 255;
+    }
+
+    CheckViewFrame(chi->view, chi->loop, chi->frame);
+
+    play.sound_volume = soundVolumeWas;
 }
 
-void FollowCharacterEx(int who, int tofollow, int distaway, int eagerness) {
-    if (!is_valid_character(who))
-        quit("!FollowCharacter: Invalid character specified");
-    CharacterInfo *chtofollow;
-    if (tofollow == -1)
-        chtofollow = NULL;
-    else if (!is_valid_character(tofollow))
-        quit("!FollowCharacterEx: invalid character to follow");
-    else
-        chtofollow = &game.chars[tofollow];
-
-    Character_FollowCharacter(&game.chars[who], chtofollow, distaway, eagerness);
+block GetCharacterImage(int charid, int *isFlipped) 
+{
+    if (!gfxDriver->HasAcceleratedStretchAndFlip())
+    {
+        if (actsps[charid + MAX_INIT_SPR] != NULL) 
+        {
+            // the actsps image is pre-flipped, so no longer register the image as such
+            if (isFlipped)
+                *isFlipped = 0;
+            return actsps[charid + MAX_INIT_SPR];
+        }
+    }
+    CharacterInfo*chin=&game.chars[charid];
+    int sppic = views[chin->view].loops[chin->loop].frames[chin->frame].pic;
+    return spriteset[sppic];
 }
 
-void FollowCharacter(int who, int tofollow) {
-    FollowCharacterEx(who,tofollow,10,97);
+CharacterInfo *GetCharacterAtLocation(int xx, int yy) {
+    int hsnum = GetCharacterAt(xx, yy);
+    if (hsnum < 0)
+        return NULL;
+    return &game.chars[hsnum];
 }
 
-void SetCharacterIgnoreLight (int who, int yesorno) {
-    if (!is_valid_character(who))
-        quit("!SetCharacterIgnoreLight: Invalid character specified");
+extern int char_lowest_yp, obj_lowest_yp;
 
-    Character_SetIgnoreLighting(&game.chars[who], yesorno);
+int is_pos_on_character(int xx,int yy) {
+    int cc,sppic,lowestyp=0,lowestwas=-1;
+    for (cc=0;cc<game.numcharacters;cc++) {
+        if (game.chars[cc].room!=displayed_room) continue;
+        if (game.chars[cc].on==0) continue;
+        if (game.chars[cc].flags & CHF_NOINTERACT) continue;
+        if (game.chars[cc].view < 0) continue;
+        CharacterInfo*chin=&game.chars[cc];
+
+        if ((chin->view < 0) || 
+            (chin->loop >= views[chin->view].numLoops) ||
+            (chin->frame >= views[chin->view].loops[chin->loop].numFrames))
+        {
+            continue;
+        }
+
+        sppic=views[chin->view].loops[chin->loop].frames[chin->frame].pic;
+        int usewid = charextra[cc].width;
+        int usehit = charextra[cc].height;
+        if (usewid==0) usewid=spritewidth[sppic];
+        if (usehit==0) usehit=spriteheight[sppic];
+        int xxx = chin->x - divide_down_coordinate(usewid) / 2;
+        int yyy = chin->get_effective_y() - divide_down_coordinate(usehit);
+
+        int mirrored = views[chin->view].loops[chin->loop].frames[chin->frame].flags & VFLG_FLIPSPRITE;
+        block theImage = GetCharacterImage(cc, &mirrored);
+
+        if (is_pos_in_sprite(xx,yy,xxx,yyy, theImage,
+            divide_down_coordinate(usewid),
+            divide_down_coordinate(usehit), mirrored) == FALSE)
+            continue;
+
+        int use_base = chin->get_baseline();
+        if (use_base < lowestyp) continue;
+        lowestyp=use_base;
+        lowestwas=cc;
+    }
+    char_lowest_yp = lowestyp;
+    return lowestwas;
 }
-
-
-
-
-void MoveCharacter(int cc,int xx,int yy) {
-    walk_character(cc,xx,yy,0, true);
-}
-void MoveCharacterDirect(int cc,int xx, int yy) {
-    walk_character(cc,xx,yy,1, true);
-}
-void MoveCharacterStraight(int cc,int xx, int yy) {
-    if (!is_valid_character(cc))
-        quit("!MoveCharacterStraight: invalid character specified");
-
-    Character_WalkStraight(&game.chars[cc], xx, yy, IN_BACKGROUND);
-}
-
-// Append to character path
-void MoveCharacterPath (int chac, int tox, int toy) {
-    if (!is_valid_character(chac))
-        quit("!MoveCharacterPath: invalid character specified");
-
-    Character_AddWaypoint(&game.chars[chac], tox, toy);
-}
-
-
-int GetPlayerCharacter() {
-    return game.playercharacter;
-}
-
-void SetCharacterSpeedEx(int chaa, int xspeed, int yspeed) {
-    if (!is_valid_character(chaa))
-        quit("!SetCharacterSpeedEx: invalid character");
-
-    Character_SetSpeed(&game.chars[chaa], xspeed, yspeed);
-
-}
-
-void SetCharacterSpeed(int chaa,int nspeed) {
-    SetCharacterSpeedEx(chaa, nspeed, nspeed);
-}
-
-void SetTalkingColor(int chaa,int ncol) {
-    if (!is_valid_character(chaa)) quit("!SetTalkingColor: invalid character");
-
-    Character_SetSpeechColor(&game.chars[chaa], ncol);
-}
-
-void SetCharacterSpeechView (int chaa, int vii) {
-    if (!is_valid_character(chaa))
-        quit("!SetCharacterSpeechView: invalid character specified");
-
-    Character_SetSpeechView(&game.chars[chaa], vii);
-}
-
-void SetCharacterBlinkView (int chaa, int vii, int intrv) {
-    if (!is_valid_character(chaa))
-        quit("!SetCharacterBlinkView: invalid character specified");
-
-    Character_SetBlinkView(&game.chars[chaa], vii);
-    Character_SetBlinkInterval(&game.chars[chaa], intrv);
-}
-
-void SetCharacterView(int chaa,int vii) {
-    if (!is_valid_character(chaa))
-        quit("!SetCharacterView: invalid character specified");
-
-    Character_LockView(&game.chars[chaa], vii);
-}
-
-void SetCharacterFrame(int chaa, int view, int loop, int frame) {
-
-    Character_LockViewFrame(&game.chars[chaa], view, loop, frame);
-}
-
-// similar to SetCharView, but aligns the frame to make it line up
-void SetCharacterViewEx (int chaa, int vii, int loop, int align) {
-
-    Character_LockViewAligned(&game.chars[chaa], vii, loop, align);
-}
-
-void SetCharacterViewOffset (int chaa, int vii, int xoffs, int yoffs) {
-
-    Character_LockViewOffset(&game.chars[chaa], vii, xoffs, yoffs);
-}
-
-
-void ChangeCharacterView(int chaa,int vii) {
-    if (!is_valid_character(chaa))
-        quit("!ChangeCharacterView: invalid character specified");
-
-    Character_ChangeView(&game.chars[chaa], vii);
-}
-
-void SetCharacterClickable (int cha, int clik) {
-    if (!is_valid_character(cha))
-        quit("!SetCharacterClickable: Invalid character specified");
-    // make the character clicklabe (reset "No interaction" bit)
-    game.chars[cha].flags&=~CHF_NOINTERACT;
-    // if they don't want it clickable, set the relevant bit
-    if (clik == 0)
-        game.chars[cha].flags|=CHF_NOINTERACT;
-}
-
-void SetCharacterIgnoreWalkbehinds (int cha, int clik) {
-    if (!is_valid_character(cha))
-        quit("!SetCharacterIgnoreWalkbehinds: Invalid character specified");
-
-    Character_SetIgnoreWalkbehinds(&game.chars[cha], clik);
-}
-
-
-void MoveCharacterToObject(int chaa,int obbj) {
-    // invalid object, do nothing
-    // this allows MoveCharacterToObject(EGO, GetObjectAt(...));
-    if (!is_valid_object(obbj))
-        return;
-
-    walk_character(chaa,objs[obbj].x+5,objs[obbj].y+6,0, true);
-    do_main_cycle(UNTIL_MOVEEND,(int)&game.chars[chaa].walking);
-}
-
-void MoveCharacterToHotspot(int chaa,int hotsp) {
-    if ((hotsp<0) || (hotsp>=MAX_HOTSPOTS))
-        quit("!MovecharacterToHotspot: invalid hotspot");
-    if (thisroom.hswalkto[hotsp].x<1) return;
-    walk_character(chaa,thisroom.hswalkto[hotsp].x,thisroom.hswalkto[hotsp].y,0, true);
-    do_main_cycle(UNTIL_MOVEEND,(int)&game.chars[chaa].walking);
-}
-
-void MoveCharacterBlocking(int chaa,int xx,int yy,int direct) {
-    if (!is_valid_character (chaa))
-        quit("!MoveCharacterBlocking: invalid character");
-
-    // check if they try to move the player when Hide Player Char is
-    // ticked -- otherwise this will hang the game
-    if (game.chars[chaa].on != 1)
-        quit("!MoveCharacterBlocking: character is turned off (is Hide Player Character selected?) and cannot be moved");
-
-    if (direct)
-        MoveCharacterDirect(chaa,xx,yy);
-    else
-        MoveCharacter(chaa,xx,yy);
-    do_main_cycle(UNTIL_MOVEEND,(int)&game.chars[chaa].walking);
-}
-

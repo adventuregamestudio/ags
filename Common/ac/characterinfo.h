@@ -1,7 +1,8 @@
 #ifndef __AC_CHARACTERINFO_H
 #define __AC_CHARACTERINFO_H
 
-#include "ac_defines.h" // constants
+#include "ac/ac_defines.h" // constants
+#include "platform/file.h"
 
 #define MAX_INV             301
 #define CHF_MANUALSCALING   1
@@ -98,6 +99,5 @@ struct OldCharacterInfo {
 
 #define COPY_CHAR_VAR(name) ci->name = oci->name
 void ConvertOldCharacterToNew (OldCharacterInfo *oci, CharacterInfo *ci);
-void animate_character(CharacterInfo *chap, int loopn,int sppd,int rept, int noidleoverride, int direction);
 
 #endif // __AC_CHARACTERINFO_H

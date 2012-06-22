@@ -5,7 +5,7 @@
 #include "platform/file.h"
 #include "ac/dynobj/scriptaudioclip.h"   // ScriptAudioClip
 #include "ac/ac_audioclip.h"        // AudioClipType
-#include "ac/ac_characterinfo.h"    // OldCharacterInfo, CharacterInfo
+#include "ac/characterinfo.h"       // OldCharacterInfo, CharacterInfo
 #include "ac/ac_customproperties.h" // CustomProperties, CustomPropertySchema
 #include "ac/ac_dialog.h"           // constants
 #ifdef UNUSED_CODE

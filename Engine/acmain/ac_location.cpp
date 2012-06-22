@@ -220,59 +220,10 @@ int check_click_on_object(int xx,int yy,int mood) {
     return 1;
 }
 
-int is_pos_on_character(int xx,int yy) {
-    int cc,sppic,lowestyp=0,lowestwas=-1;
-    for (cc=0;cc<game.numcharacters;cc++) {
-        if (game.chars[cc].room!=displayed_room) continue;
-        if (game.chars[cc].on==0) continue;
-        if (game.chars[cc].flags & CHF_NOINTERACT) continue;
-        if (game.chars[cc].view < 0) continue;
-        CharacterInfo*chin=&game.chars[cc];
 
-        if ((chin->view < 0) || 
-            (chin->loop >= views[chin->view].numLoops) ||
-            (chin->frame >= views[chin->view].loops[chin->loop].numFrames))
-        {
-            continue;
-        }
 
-        sppic=views[chin->view].loops[chin->loop].frames[chin->frame].pic;
-        int usewid = charextra[cc].width;
-        int usehit = charextra[cc].height;
-        if (usewid==0) usewid=spritewidth[sppic];
-        if (usehit==0) usehit=spriteheight[sppic];
-        int xxx = chin->x - divide_down_coordinate(usewid) / 2;
-        int yyy = chin->get_effective_y() - divide_down_coordinate(usehit);
 
-        int mirrored = views[chin->view].loops[chin->loop].frames[chin->frame].flags & VFLG_FLIPSPRITE;
-        block theImage = GetCharacterImage(cc, &mirrored);
 
-        if (is_pos_in_sprite(xx,yy,xxx,yyy, theImage,
-            divide_down_coordinate(usewid),
-            divide_down_coordinate(usehit), mirrored) == FALSE)
-            continue;
-
-        int use_base = chin->get_baseline();
-        if (use_base < lowestyp) continue;
-        lowestyp=use_base;
-        lowestwas=cc;
-    }
-    char_lowest_yp = lowestyp;
-    return lowestwas;
-}
-
-int GetCharacterAt (int xx, int yy) {
-    xx += divide_down_coordinate(offsetx);
-    yy += divide_down_coordinate(offsety);
-    return is_pos_on_character(xx,yy);
-}
-
-CharacterInfo *GetCharacterAtLocation(int xx, int yy) {
-    int hsnum = GetCharacterAt(xx, yy);
-    if (hsnum < 0)
-        return NULL;
-    return &game.chars[hsnum];
-}
 
 
 // allowHotspot0 defines whether Hotspot 0 returns LOCTYPE_HOTSPOT

@@ -1,7 +1,7 @@
 #ifndef __AC_ROOM_H
 #define __AC_ROOM_H
 
-#include "ac/ac_characterinfo.h"
+#include "ac/characterinfo.h"
 #include "ac/dynobj/scriptdrawingsurface.h"
 #include "ac/ac_roomstruct.h"
 

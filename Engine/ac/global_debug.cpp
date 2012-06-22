@@ -3,7 +3,7 @@
 #include "wgt2allg.h"
 #include "ali3d.h"
 #include "ac/ac_gamesetupstruct.h"
-#include "ac/ac_characterinfo.h"
+#include "ac/characterinfo.h"
 #include "ac/ac_roomstruct.h"
 #include "acdialog/ac_cscidialog.h"
 #include "acgfx/ac_gfxfilters.h"

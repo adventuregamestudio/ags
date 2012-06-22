@@ -3,14 +3,14 @@
 #include "ac/dynobj/scriptobject.h"
 #include "ac/dynobj/scriptregion.h"
 #include "ac/dynobj/scripthotspot.h"
-#include "ac/ac_characterinfo.h"
+#include "ac/characterinfo.h"
 
 void RunInventoryInteraction (int iit, int modd);
 void InventoryItem_RunInteraction(ScriptInvItem *iitem, int mood);
 void RunObjectInteraction (int aa, int mood);
 void Object_RunInteraction(ScriptObject *objj, int mode);
-void RunCharacterInteraction (int cc, int mood);
-void Character_RunInteraction(CharacterInfo *chaa, int mood);
+
+
 int check_click_on_character(int xx,int yy,int mood);
 void RunRegionInteraction (int regnum, int mood);
 void Region_RunInteraction(ScriptRegion *ssr, int mood);

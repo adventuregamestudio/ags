@@ -1,6 +1,8 @@
 #ifndef __AC_ROOMOBJECT_H
 #define __AC_ROOMOBJECT_H
 
+#include "platform/file.h"
+
 // This struct is only used in save games and by plugins
 struct RoomObject {
     int   x,y;

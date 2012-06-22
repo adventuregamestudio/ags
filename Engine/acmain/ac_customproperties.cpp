@@ -3,7 +3,6 @@
 #include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_customproperties.h"
-#include "ac/ac_customproperties.h"
 #include "acmain/ac_commonheaders.h"
 
 // begin custom property functions
@@ -65,24 +64,7 @@ int GetInvProperty (int item, const char *property) {
 int InventoryItem_GetProperty(ScriptInvItem *scii, const char *property) {
   return get_int_property (&game.invProps[scii->id], property);
 }
-int GetCharacterProperty (int cha, const char *property) {
-  if (!is_valid_character(cha))
-    quit("!GetCharacterProperty: invalid character");
-  return get_int_property (&game.charProps[cha], property);
-}
-int Character_GetProperty(CharacterInfo *chaa, const char *property) {
 
-  return get_int_property(&game.charProps[chaa->index_id], property);
-
-}
-
-
-void SetCharacterProperty (int who, int flag, int yesorno) {
-  if (!is_valid_character(who))
-    quit("!SetCharacterProperty: Invalid character specified");
-
-  Character_SetOption(&game.chars[who], flag, yesorno);
-}
 
 
 
@@ -116,15 +98,7 @@ void InventoryItem_GetPropertyText(ScriptInvItem *scii, const char *property, ch
 const char* InventoryItem_GetTextProperty(ScriptInvItem *scii, const char *property) {
   return get_text_property_dynamic_string(&game.invProps[scii->id], property);
 }
-void GetCharacterPropertyText (int item, const char *property, char *bufer) {
-  get_text_property (&game.charProps[item], property, bufer);
-}
-void Character_GetPropertyText(CharacterInfo *chaa, const char *property, char *bufer) {
-  get_text_property(&game.charProps[chaa->index_id], property, bufer);
-}
-const char* Character_GetTextProperty(CharacterInfo *chaa, const char *property) {
-  return get_text_property_dynamic_string(&game.charProps[chaa->index_id], property);
-}
+
 void GetHotspotPropertyText (int item, const char *property, char *bufer) {
   get_text_property (&thisroom.hsProps[item], property, bufer);
 }

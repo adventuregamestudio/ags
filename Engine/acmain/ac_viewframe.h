@@ -2,14 +2,13 @@
 #define __AC_VIEWFRAME_H
 
 #include "ac/dynobj/scriptviewframe.h"
-#include "ac/ac_characterinfo.h"
+#include "ac/characterinfo.h"
 #include "ac/ac_view.h"
 #include "ac/dynobj/scriptaudioclip.h"
 #include "ac/ac_audioclip.h"
 
 void SetFrameSound (int vii, int loop, int frame, int sound);
 void CheckViewFrame (int view, int loop, int frame);
-void CheckViewFrameForCharacter(CharacterInfo *chi);
 // draws a view frame, flipped if appropriate
 void DrawViewFrame(block target, ViewFrame *vframe, int x, int y);
 

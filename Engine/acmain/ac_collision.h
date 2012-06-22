@@ -20,7 +20,7 @@ int AreThingsOverlapping(int thing1, int thing2);
 int AreObjectsColliding(int obj1,int obj2);
 int Object_IsCollidingWithObject(ScriptObject *objj, ScriptObject *obj2);
 int my_getpixel(BITMAP *blk, int x, int y);
-block GetCharacterImage(int charid, int *isFlipped);
+
 block GetObjectImage(int obj, int *isFlipped);
 int AreCharObjColliding(int charid,int objid);
 int AreCharactersColliding(int cchar1,int cchar2);

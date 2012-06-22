@@ -11,7 +11,8 @@
 
 #include "ac/ac_common.h"
 #include "ac/event.h"
-#include "acchars/ac_character.h"
+#include "ac/character.h"
+#include "ac/global_character.h"
 #include "acrun/ac_platformdriver.h"
 #include "acrun/ac_runninggame.h"
 #include "acmain/ac_background.h"

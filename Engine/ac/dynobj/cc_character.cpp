@@ -1,6 +1,6 @@
 
 #include "ac/dynobj/cc_character.h"
-#include "ac/ac_characterinfo.h"
+#include "ac/characterinfo.h"
 #include "wgt2allg.h"
 #include "ac/ac_gamesetupstruct.h"
 

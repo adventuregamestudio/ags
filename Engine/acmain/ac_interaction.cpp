@@ -4,7 +4,6 @@
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_interaction.h"
 #include "acmain/ac_commonheaders.h"
-#include "acchars/ac_charhelpers.h"
 
 void NewInteractionCommand::remove () {
   if (children != NULL) {
@@ -81,41 +80,8 @@ void Object_RunInteraction(ScriptObject *objj, int mode) {
 }
 
 
-void RunCharacterInteraction (int cc, int mood) {
-    if (!is_valid_character(cc))
-        quit("!RunCharacterInteraction: invalid character");
 
-    int passon=-1,cdata=-1;
-    if (mood==MODE_LOOK) passon=0;
-    else if (mood==MODE_HAND) passon=1;
-    else if (mood==MODE_TALK) passon=2;
-    else if (mood==MODE_USE) { passon=3;
-    cdata=playerchar->activeinv;
-    play.usedinv=cdata;
-    }
-    else if (mood==MODE_PICKUP) passon = 5;
-    else if (mood==MODE_CUSTOM1) passon = 6;
-    else if (mood==MODE_CUSTOM2) passon = 7;
 
-    evblockbasename="character%d"; evblocknum=cc;
-    if (game.charScripts != NULL) 
-    {
-        if (passon>=0)
-            run_interaction_script(game.charScripts[cc], passon, 4, (passon == 3));
-        run_interaction_script(game.charScripts[cc], 4);  // any click on char
-    }
-    else 
-    {
-        if (passon>=0)
-            run_interaction_event(game.intrChar[cc],passon, 4, (passon == 3));
-        run_interaction_event(game.intrChar[cc],4);  // any click on char
-    }
-}
-
-void Character_RunInteraction(CharacterInfo *chaa, int mood) {
-
-    RunCharacterInteraction(chaa->index_id, mood);
-}
 
 
 int check_click_on_character(int xx,int yy,int mood) {

@@ -15,7 +15,7 @@
 
 #include <windows.h>
 #include <io.h>
-#include "acdebug/ac_debug.h"
+#include "debug/debug.h"
 
 struct NamedPipesAGSDebugger : IAGSEditorDebugger
 {

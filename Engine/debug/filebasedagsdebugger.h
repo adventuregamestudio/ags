@@ -13,7 +13,7 @@
 #ifndef __AC_FILEBASEDAGSDEBUGGER_H
 #define __AC_FILEBASEDAGSDEBUGGER_H
 
-#include "acdebug/ac_debug.h"
+#include "debug/debug.h"
 
 struct FileBasedAGSDebugger : IAGSEditorDebugger
 {

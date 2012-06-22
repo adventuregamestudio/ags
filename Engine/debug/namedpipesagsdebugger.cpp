@@ -1,6 +1,6 @@
 
 #include <stdio.h>
-#include "acdebug/ac_namedpipesagsdebugger.h"
+#include "debug/namedpipesagsdebugger.h"
 
 void NamedPipesAGSDebugger::SendAcknowledgement()
 {

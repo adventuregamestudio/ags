@@ -4,7 +4,7 @@
 #include "acmain/ac_maindefines.h"
 #include "ac/ac_common.h"
 #include "ac/ac_gamesetupstruct.h"
-#include "acdebug/ac_debug.h"
+#include "debug/debug.h"
 #include "acmain/ac_cutscene.h"
 #include "acmain/ac_draw.h"
 #include "acmain/ac_mouse.h"

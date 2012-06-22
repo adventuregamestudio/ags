@@ -13,7 +13,7 @@ CLEAR that the code has been altered from the Standard Version.
 #ifndef __AC_DUMMYAGSDEBUGGER_H
 #define __AC_DUMMYAGSDEBUGGER_H
 
-#include "acdebug/ac_debug.h"
+#include "debug/debug.h"
 
 struct DummyAGSDebugger : IAGSEditorDebugger
 {

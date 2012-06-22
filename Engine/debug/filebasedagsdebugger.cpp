@@ -1,6 +1,6 @@
 
 #include "wgt2allg.h"                           // exists()
-#include "acdebug/ac_filebasedagsdebugger.h"
+#include "debug/filebasedagsdebugger.h"
 
 const char* SENT_MESSAGE_FILE_NAME = "dbgrecv.tmp";
 

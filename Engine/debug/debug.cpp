@@ -18,7 +18,7 @@
 */
 #include <stdio.h>
 #include "wgt2allg.h"
-#include "acdebug/ac_debug.h"
+#include "debug/debug.h"
 #include "acmain/ac_commonheaders.h"
 #include "acrun/ac_executingscript.h"
 #include "cs/cs_common.h"
@@ -38,7 +38,7 @@ HWND editor_window_handle = NULL;
 
 #ifdef WINDOWS_VERSION
 
-#include "acdebug/ac_namedpipesagsdebugger.h"
+#include "debug/namedpipesagsdebugger.h"
 
 IAGSEditorDebugger *GetEditorDebugger(const char *instanceToken)
 {

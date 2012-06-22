@@ -13,33 +13,10 @@
 #ifndef __AC_DEBUG_H
 #define __AC_DEBUG_H
 
+#include "debug/agseditordebugger.h"
 #include "cs/cc_instance.h"
 #include "acrun/ac_rundefines.h"
 
-#define DBG_NOIFACE       1
-#define DBG_NODRAWSPRITES 2
-#define DBG_NOOBJECTS     4
-#define DBG_NOUPDATE      8
-#define DBG_NOSFX      0x10
-#define DBG_NOMUSIC    0x20
-#define DBG_NOSCRIPT   0x40
-#define DBG_DBGSCRIPT  0x80
-#define DBG_DEBUGMODE 0x100
-#define DBG_REGONLY   0x200
-#define DBG_NOVIDEO   0x400
-
-struct IAGSEditorDebugger
-{
-public:
-    virtual bool Initialize() = 0;
-    virtual void Shutdown() = 0;
-    virtual bool SendMessageToEditor(const char *message) = 0;
-    virtual bool IsMessageAvailable() = 0;
-    // Message will be allocated on heap with malloc
-    virtual char* GetNextMessage() = 0;
-};
-
-IAGSEditorDebugger *GetEditorDebugger(const char *instanceToken);
 
 #define DEBUG_CONSOLE if (play.debug_mode) debug_write_console
 
@@ -51,8 +28,6 @@ extern int editor_debugging_initialized;
 extern char editor_debugger_instance_token[100];
 extern IAGSEditorDebugger *editor_debugger;
 extern int break_on_next_script_step;
-extern volatile int game_paused_in_debugger;
-extern HWND editor_window_handle;
 
 int check_for_messages_from_editor();
 bool send_message_to_editor(const char *msg);

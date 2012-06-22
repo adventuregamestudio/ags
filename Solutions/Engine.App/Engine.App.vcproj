@@ -510,22 +510,6 @@
 				</File>
 			</Filter>
 			<Filter
-				Name="acdebug"
-				>
-				<File
-					RelativePath="..\..\Engine\acdebug\ac_debug.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acdebug\ac_filebasedagsdebugger.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acdebug\ac_namedpipesagsdebugger.cpp"
-					>
-				</File>
-			</Filter>
-			<Filter
 				Name="acdialog"
 				>
 				<File
@@ -989,6 +973,22 @@
 					</File>
 				</Filter>
 			</Filter>
+			<Filter
+				Name="debug"
+				>
+				<File
+					RelativePath="..\..\Engine\debug\debug.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\debug\filebasedagsdebugger.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\debug\namedpipesagsdebugger.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -1404,26 +1404,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acchars\ac_charhelpers.h"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="acdebug"
-				>
-				<File
-					RelativePath="..\..\Engine\acdebug\ac_debug.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acdebug\ac_dummyagsdebugger.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acdebug\ac_filebasedagsdebugger.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acdebug\ac_namedpipesagsdebugger.h"
 					>
 				</File>
 			</Filter>
@@ -1930,6 +1910,30 @@
 						>
 					</File>
 				</Filter>
+			</Filter>
+			<Filter
+				Name="debug"
+				>
+				<File
+					RelativePath="..\..\Engine\debug\agseditordebugger.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\debug\debug.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\debug\dummyagsdebugger.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\debug\filebasedagsdebugger.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\debug\namedpipesagsdebugger.h"
+					>
+				</File>
 			</Filter>
 		</Filter>
 		<Filter

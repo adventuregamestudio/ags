@@ -309,6 +309,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\global_video.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\system_audio.cpp"
 					>
 				</File>
@@ -769,10 +773,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acmain\ac_video.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\acmain\ac_viewframe.cpp"
 					>
 				</File>
@@ -983,6 +983,10 @@
 				<Filter
 					Name="video"
 					>
+					<File
+						RelativePath="..\..\Engine\media\video\video.cpp"
+						>
+					</File>
 				</Filter>
 			</Filter>
 		</Filter>
@@ -1128,6 +1132,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\global_audio.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\global_video.h"
 					>
 				</File>
 				<File
@@ -1723,10 +1731,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acmain\ac_video.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\acmain\ac_viewframe.h"
 					>
 				</File>
@@ -1921,6 +1925,10 @@
 				<Filter
 					Name="video"
 					>
+					<File
+						RelativePath="..\..\Engine\media\video\video.h"
+						>
+					</File>
 				</Filter>
 			</Filter>
 		</Filter>

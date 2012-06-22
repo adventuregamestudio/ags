@@ -11,8 +11,8 @@
 #include "ac/game_audio.h"
 #include "acmain/ac_file.h"
 
-extern GameState play;
 extern GameSetup usetup;
+extern GameState play;
 extern roomstruct thisroom;
 
 void StopAmbientSound (int channel) {

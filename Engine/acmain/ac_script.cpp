@@ -12,7 +12,6 @@
 #include "acgfx/ac_gfxfilters.h"
 #include "acdialog/ac_cscidialog.h"
 #include "acmain/ac_variable.h"
-#include "acmain/ac_video.h"
 #include "acchars/ac_charhelpers.h"
 #include "acmain/ac_wait.h"
 #include "acmain/ac_hotspot.h"
@@ -38,6 +37,7 @@
 #include "acmain/ac_plugin.h"
 #include "media/audio/audio.h"
 #include "ac/global_audio.h"
+#include "ac/global_video.h"
 
 
 

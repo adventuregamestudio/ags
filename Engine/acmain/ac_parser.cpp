@@ -1,5 +1,6 @@
 
 #include <stdio.h>
+#include <cctype>       //isalnum()
 #include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_parser.h"

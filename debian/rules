@@ -1,6 +1,9 @@
 #!/usr/bin/make -f
 
-VERSION = $(shell dpkg-parsechangelog | grep -x "Version:.*" | sed 's@Version: \(.\+\)-.\+@\1@')
+# Keep this list of folders that are not included in the
+# orig syncronized with the one in debian/source/local-options!
+ORIG_CONTENT := $(shell git ls-tree --name-only HEAD | grep -Ev '^(Android|Editor|iOS|OSX|Windows|debian|\.git.*)')
+VERSION := $(shell dpkg-parsechangelog | grep -x "Version:.*" | sed 's@Version: \(.\+\)-.\+@\1@')
 
 %:
 	dh $@ 
@@ -15,4 +18,4 @@ override_dh_clean:
 	dh_clean --exclude=Editor/*
 
 get-orig-source:
-	git archive --prefix=ags_$(VERSION)/ --format=tar HEAD Common Engine Manual Plugins PSP README.md | gzip > ../ags_$(VERSION).orig.tar.gz
+	git archive --prefix=ags_$(VERSION)/ --format=tar HEAD $(ORIG_CONTENT) | gzip > ../ags_$(VERSION).orig.tar.gz

@@ -9,6 +9,8 @@
 #define REC_SPEECHFINISHED 8
 #define REC_ENDOFFILE  0x6f
 
+#include "acrun/ac_rundefines.h"
+
 void write_record_event (int evnt, int dlen, short *dbuf);
 void disable_replay_playback ();
 void done_playback_event (int size);

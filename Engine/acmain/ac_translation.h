@@ -1,6 +1,8 @@
 #ifndef __AC_TRANSLATION_H
 #define __AC_TRANSLATION_H
 
+#include "acrun/ac_rundefines.h"
+
 void close_translation ();
 bool init_translation (const char *lang);
 char *get_translation (const char *text);

@@ -25,6 +25,7 @@
 #include "acmain/ac_plugin.h"
 #include "acgfx/ac_gfxfilters.h"
 #include "acmain/ac_cdplayer.h"
+#include "acrun/ac_runninggame.h"      //displayed_room
 
 #if defined(BUILTIN_PLUGINS)
 #include "../Plugins/AGSflashlight/agsflashlight.h"

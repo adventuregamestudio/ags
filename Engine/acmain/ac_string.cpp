@@ -3,12 +3,14 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include "wgt2allg.h"  //strupr and strlwr on Linux
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_string.h"
 #include "ac/ac_common.h"
 #include "acmain/ac_strings.h"
 #include "acmain/ac_translation.h"
 #include "ac/dynobj/scriptstring.h"
+#include "bigend.h"    //stricmp()
 
 
 // ** SCRIPT STRING

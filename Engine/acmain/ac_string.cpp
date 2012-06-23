@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include "wgt2allg.h"  //strupr and strlwr on Linux
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_string.h"
 #include "ac/ac_common.h"

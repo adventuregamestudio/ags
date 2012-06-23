@@ -40,6 +40,10 @@
 #include "media/audio/audio.h"
 #include "media/audio/soundcache.h"
 
+#ifdef LINUX_VERSION
+#include "../PSP/launcher/pe.h"
+#endif
+
 
 #ifdef WINDOWS_VERSION
 #include <shlwapi.h>

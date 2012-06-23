@@ -24,6 +24,11 @@
 #include "ac/system_audio.h"
 #include "script/exports.h"
 
+#if defined(LINUX_VERSION) || defined(MAC_VERSION)
+#include <sys/stat.h>                      //mkdir
+#endif
+
+
 extern "C" int csetlib(char *namm, char *passw);
 
 

@@ -184,10 +184,10 @@ media/video/video.o
 
 COMMON = \
 ../Common/bigend.o \
-../Common/misc.o \
 ../Common/Clib32.o \
 ../Common/compress.o \
 ../Common/lzw.o \
+../Common/misc.o \
 ../Common/sprcache.o \
 ../Common/wgt2allg.o \
 ../Common/ac/ac_common.o \
@@ -218,7 +218,6 @@ COMMON = \
 ../Common/cs/cc_script.o \
 ../Common/cs/cc_treemap.o \
 ../Common/cs/cs_common.o \
-../Common/cs/cs_unused.o \
 ../Common/cs/cs_utils.o
 
 PLUGINS = ../Plugins/AGSflashlight/agsflashlight.o ../Plugins/agsblend/AGSBlend.o ../Plugins/ags_snowrain/ags_snowrain.o

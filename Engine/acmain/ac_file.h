@@ -40,7 +40,11 @@ int File_ReadRawChar(sc_File *fil);
 int File_ReadRawInt(sc_File *fil);
 int File_GetEOF(sc_File *fil);
 int File_GetError(sc_File *fil);
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 extern char* game_file_name;
-
+#ifdef __cplusplus
+}
+#endif
 #endif // __AC_FILE_H

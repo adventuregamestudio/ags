@@ -12,6 +12,11 @@
 #include "media/audio/audio.h"
 #include "ac/global_audio.h"
 
+#if defined(MAC_VERSION) || defined(LINUX_VERSION)
+// for toupper
+#include <ctype.h>
+#endif
+
 roomstruct thisroom;
 RGB_MAP rgb_table;  // for 256-col antialiasing
 int new_room_flags=0;

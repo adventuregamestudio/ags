@@ -20,6 +20,8 @@ extern "C" {
 char *strupr(char *s);
 char *strlwr(char *s);
 }
+#endif
+#if defined(ANDROID_VERSION) || defined(IOS_VERSION) || defined(LINUX_VERSION)
 #define stricmp strcasecmp
 #define strnicmp strncasecmp
 #endif

@@ -15,7 +15,7 @@
 //#include <shlwapi.h>
 
 #elif defined(LINUX_VERSION) || defined(MAC_VERSION)
-
+#include <dlfcn.h>
 /*
 #include <sys/types.h>
 #include <sys/stat.h>

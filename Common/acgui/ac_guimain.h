@@ -14,6 +14,7 @@
 #define __AC_GUIMAIN_H
 
 #include "acgui/ac_guiobject.h"
+#include "acrun/ac_rundefines.h" //AGS_INLINE
 
 // There were issues when including header caused conflicts
 struct GameSetupStruct;
@@ -109,10 +110,11 @@ extern bool is_sprite_alpha(int spr);
 extern int final_col_dep;
 
 extern void draw_sprite_compensate(int spr, int x, int y, int xray);
-extern inline int divide_down_coordinate(int coord);
-extern inline int multiply_up_coordinate(int coord);
-extern inline void multiply_up_coordinates(int *x, int *y);
-extern inline int get_fixed_pixel_size(int pixels);
+
+extern AGS_INLINE int divide_down_coordinate(int coord);
+extern AGS_INLINE int multiply_up_coordinate(int coord);
+extern AGS_INLINE void multiply_up_coordinates(int *x, int *y);
+extern AGS_INLINE int get_fixed_pixel_size(int pixels);
 
 extern void wouttext_outline(int xxp, int yyp, int usingfont, char *texx);
 extern int wgettextwidth_compensate(const char *tex, int font) ;

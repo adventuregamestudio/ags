@@ -1,8 +1,9 @@
 
 #include "ac/dynobj/scriptobject.h"
 #include "ac/ac_move.h"
+#include "acrun/ac_rundefines.h" //AGS_INLINE
 
-inline int is_valid_object(int obtest);
+AGS_INLINE int is_valid_object(int obtest);
 void SetObjectTint(int obj, int red, int green, int blue, int opacity, int luminance);
 void Object_Tint(ScriptObject *objj, int red, int green, int blue, int saturation, int luminance);
 void RemoveObjectTint(int obj);

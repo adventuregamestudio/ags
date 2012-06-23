@@ -10,8 +10,6 @@
 #include "mpglib.h"
 #include "huffman.h"
 
-extern struct mpstr *gmp;
-
 #define MPEG1
 
 
@@ -1423,9 +1421,11 @@ static void dct12(real *in,real *rawout1,real *rawout2,register real *wi,registe
 /*
  * III_hybrid
  */
-static void III_hybrid(real fsIn[SBLIMIT][SSLIMIT],real tsOut[SSLIMIT][SBLIMIT],
+static void III_hybrid(void *mp,real fsIn[SBLIMIT][SSLIMIT],real tsOut[SSLIMIT][SBLIMIT],
    int ch,struct gr_info_s *gr_info)
 {
+   struct mpstr *gmp = mp;
+
    real *tspnt = (real *) tsOut;
    real (*block)[2][SBLIMIT*SSLIMIT] = gmp->hybrid_block;
    int *blc = gmp->hybrid_blc;
@@ -1475,7 +1475,7 @@ static void III_hybrid(real fsIn[SBLIMIT][SSLIMIT],real tsOut[SSLIMIT][SBLIMIT],
 /*
  * main layer3 handler
  */
-int do_layer3(struct frame *fr, unsigned char *pcm_sample, int *pcm_point)
+int do_layer3(void *mp, struct frame *fr, unsigned char *pcm_sample, int *pcm_point)
 {
   int gr, ch, ss, clip = 0;
   int scalefacs[2][39]; /* max 39 for short[13][3] mode, mixed: 38, long: 22 */
@@ -1518,7 +1518,7 @@ int do_layer3(struct frame *fr, unsigned char *pcm_sample, int *pcm_point)
 #endif
   }
 
-  if(almp3_set_pointer(sideinfo.main_data_begin) == MP3_ERR)
+  if(almp3_set_pointer(mp,sideinfo.main_data_begin) == MP3_ERR)
     return 0;
 
 
@@ -1599,17 +1599,17 @@ int do_layer3(struct frame *fr, unsigned char *pcm_sample, int *pcm_point)
     for(ch=0;ch<stereo1;ch++) {
       struct gr_info_s *gr_info = &(sideinfo.ch[ch].gr[gr]);
       III_antialias(hybridIn[ch],gr_info);
-      III_hybrid(hybridIn[ch], hybridOut[ch], ch,gr_info);
+      III_hybrid(mp,hybridIn[ch], hybridOut[ch], ch,gr_info);
     }
 
     for(ss=0;ss<SSLIMIT;ss++) {
       if(single >= 0) {
-        clip += synth_1to1_mono(hybridOut[0][ss],pcm_sample,pcm_point);
+        clip += synth_1to1_mono(mp,hybridOut[0][ss],pcm_sample,pcm_point);
       }
       else {
         int p1 = *pcm_point;
-        clip += synth_1to1(hybridOut[0][ss],0,pcm_sample,&p1);
-        clip += synth_1to1(hybridOut[1][ss],1,pcm_sample,pcm_point);
+        clip += synth_1to1(mp,hybridOut[0][ss],0,pcm_sample,&p1);
+        clip += synth_1to1(mp,hybridOut[1][ss],1,pcm_sample,pcm_point);
       }
     }
   }

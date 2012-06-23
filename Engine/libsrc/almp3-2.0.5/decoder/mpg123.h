@@ -92,19 +92,19 @@ struct frame {
     int framesize;  /* computed framesize */
     int II_sblimit; /* Layer 2 */
     struct al_table *alloc; /* Layer 2 */
-    int (*do_layer)(struct frame *fr,unsigned char *, int *);/* Layer 2 */
+    int (*do_layer)(void *mp,struct frame *fr,unsigned char *, int *);/* Layer 2 */
 };
 
 /* extern unsigned int   get1bit(void);*/
 extern unsigned int getbits(int);
 extern unsigned int getbits_fast(int);
-extern int almp3_set_pointer(long);
+extern int almp3_set_pointer(void *,long);
 
 extern unsigned char *wordpointer;
 extern int bitindex;
 
-extern int do_layer3(struct frame *fr,unsigned char *,int *);
-extern int do_layer2(struct frame *fr,unsigned char *,int *);
+extern int do_layer3(void *mp,struct frame *fr,unsigned char *,int *);
+extern int do_layer2(void *mp,struct frame *fr,unsigned char *,int *);
 
 extern int decode_header(struct frame *fr,unsigned long newhead);
 extern int head_check(unsigned long head);
@@ -139,9 +139,9 @@ struct III_sideinfo
   } ch[2];
 };
 
-extern int synth_1to1 (real *,int,unsigned char *,int *);
+extern int synth_1to1 (void *,real *,int,unsigned char *,int *);
 extern int tsynth_1to1 (real *,int,unsigned char *,int *);
-extern int synth_1to1_mono (real *,unsigned char *,int *);
+extern int synth_1to1_mono (void *,real *,unsigned char *,int *);
 
 extern void init_layer3(int);
 extern void init_layer2(void);

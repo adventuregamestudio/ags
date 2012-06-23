@@ -259,7 +259,7 @@ void II_select_table(struct frame *fr)
 
 
 
-int do_layer2(struct frame *fr,unsigned char *pcm_sample,int *pcm_point)
+int do_layer2(void *mp,struct frame *fr,unsigned char *pcm_sample,int *pcm_point)
 {
   int clip=0;
   int i,j;
@@ -285,12 +285,12 @@ int do_layer2(struct frame *fr,unsigned char *pcm_sample,int *pcm_point)
     {
       if(single >= 0)
       {
-        clip += synth_1to1_mono(fraction[single][j],pcm_sample,pcm_point);
+        clip += synth_1to1_mono(mp,fraction[single][j],pcm_sample,pcm_point);
       }
       else {
           int p1 = *pcm_point;
-          clip += synth_1to1(fraction[0][j],0,pcm_sample,&p1);
-          clip += synth_1to1(fraction[1][j],1,pcm_sample,pcm_point);
+          clip += synth_1to1(mp,fraction[0][j],0,pcm_sample,&p1);
+          clip += synth_1to1(mp,fraction[1][j],1,pcm_sample,pcm_point);
       }
     }
   }

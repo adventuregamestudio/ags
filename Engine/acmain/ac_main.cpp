@@ -3723,11 +3723,12 @@ int initialize_engine(int argc,char*argv[])
 #if defined(WINDOWS_VERSION) || defined(LINUX_VERSION) || defined(MAC_VERSION)
 END_OF_MAIN()
 #endif
-
+#ifdef WINDOWS_VERSION
 // in ac_minidump
 extern int CustomExceptionHandler (LPEXCEPTION_POINTERS exinfo);
 extern EXCEPTION_RECORD excinfo;
 extern int miniDumpResultCode;
+#endif
 
 int initialize_engine_with_exception_handling(int argc,char*argv[])
 {

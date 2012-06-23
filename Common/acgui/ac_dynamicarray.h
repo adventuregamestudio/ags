@@ -13,6 +13,8 @@
 #ifndef __AC_DYNAMICARRAY_H
 #define __AC_DYNAMICARRAY_H
 
+#include <cstdlib> //calloc()
+
 template <typename T> struct DynamicArray {
 private:
   T defaultConstructed;

@@ -1,7 +1,7 @@
 
+#include "ac/ac_common.h"           // AGS_INLINE
 #include "ac/dynobj/scriptobject.h"
 #include "ac/ac_move.h"
-#include "acrun/ac_rundefines.h" //AGS_INLINE
 
 AGS_INLINE int is_valid_object(int obtest);
 void SetObjectTint(int obj, int red, int green, int blue, int opacity, int luminance);

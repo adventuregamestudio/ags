@@ -6,7 +6,6 @@
 #include "acmain/ac_commonheaders.h"
 #include "ac/ac_object.h"
 #include "routefnd.h"
-#include "acrun/ac_rundefines.h" //AGS_INLINE
 
 AGS_INLINE int is_valid_object(int obtest) {
     if ((obtest < 0) || (obtest >= croom->numobj)) return 0;

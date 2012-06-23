@@ -106,17 +106,9 @@
 #define TURNING_AROUND     1000
 #define TURNING_BACKWARDS 10000
 
-
 #define MAX_PLUGIN_OBJECT_READERS 50
 
 #define NEXT_ITERATION() play.gamestep++
-
-#ifdef WINDOWS_VERSION
-#define AGS_INLINE inline
-#else
-// the linux compiler won't allow extern inline
-#define AGS_INLINE
-#endif
 
 #ifndef MAX_PATH
 #define MAX_PATH 260

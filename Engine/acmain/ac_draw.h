@@ -2,6 +2,7 @@
 #define __AC_DRAW_H
 
 #include "ali3d.h"
+#include "ac/ac_common.h" // AGS_INLINE
 
 struct CachedActSpsData {
     int xWas, yWas;

@@ -2,6 +2,13 @@
 #ifndef __AC_COMMON_H
 #define __AC_COMMON_H
 
+#ifdef WINDOWS_VERSION
+#define AGS_INLINE inline
+#else
+// the linux compiler won't allow extern inline
+#define AGS_INLINE
+#endif
+
 // quit() and update_polled_stuff_if_runtime() are the project-dependent functions,
 // they are defined both in Engine.App and AGS.Native.
 void quit(char *);

@@ -15,7 +15,6 @@ acmain/ac_display.o \
 acmain/ac_draw.o \
 acmain/ac_drawingsurface.o \
 acmain/ac_dynamicsprite.o \
-acmain/ac_event.o \
 acmain/ac_file.o \
 acmain/ac_game.o \
 acmain/ac_guibutton.o \
@@ -37,7 +36,6 @@ acmain/ac_math.o \
 acmain/ac_message.o \
 acmain/ac_minidump.o \
 acmain/ac_mouse.o \
-acmain/ac_music.o \
 acmain/ac_object.o \
 acmain/ac_option.o \
 acmain/ac_overlay.o \
@@ -47,7 +45,6 @@ acmain/ac_record.o \
 acmain/ac_region.o \
 acmain/ac_room.o \
 acmain/ac_screen.o \
-acmain/ac_script.o \
 acmain/ac_speech.o \
 acmain/ac_sprite.o \
 acmain/ac_string.o \
@@ -58,7 +55,6 @@ acmain/ac_timer.o \
 acmain/ac_transition.o \
 acmain/ac_translation.o \
 acmain/ac_variable.o \
-acmain/ac_video.o \
 acmain/ac_viewframe.o \
 acmain/ac_viewport.o \
 acmain/ac_wait.o \
@@ -78,6 +74,7 @@ ac/dynobj/cc_inventory.o \
 ac/dynobj/cc_object.o \
 ac/dynobj/cc_region.o \
 ac/dynobj/cc_serializer.o \
+ac/dynobj/managedobjectpool.o \
 ac/dynobj/scriptdatetime.o \
 ac/dynobj/scriptdialogoptionsrendering.o \
 ac/dynobj/scriptdrawingsurface.o \
@@ -86,7 +83,6 @@ ac/dynobj/scriptfile.o \
 ac/dynobj/scriptoverlay.o \
 ac/dynobj/scriptstring.o \
 ac/dynobj/scriptviewframe.o \
-acrun/ac_executingscript.o \
 acrun/ac_gamesetup.o \
 acrun/ac_platformdriver.o \
 acrun/ac_roomobject.o \
@@ -100,31 +96,23 @@ mousew32.o \
 routefnd.o \
 scrptrt.o \
 sprcache_engine.o \
-ac/ac_characterinfo.o \
 ac/ac_dialog.o \
-ac/ac_eventblock.o \
 ac/ac_gamesetupstruct.o \
 ac/ac_interfacebutton.o \
 ac/ac_interfaceelement.o \
 ac/ac_inventoryiteminfo.o \
-acaudio/ac_audiochannel.o \
-acaudio/ac_audioclip.o \
-acaudio/ac_audio.o \
-acaudio/ac_mydumbmod.o \
-acaudio/ac_myjgmod.o \
-acaudio/ac_mymidi.o \
-acaudio/ac_mymp3.o \
-acaudio/ac_myogg.o \
-acaudio/ac_mystaticmp3.o \
-acaudio/ac_mystaticogg.o \
-acaudio/ac_mywave.o \
-acaudio/ac_soundcache.o \
-acaudio/ac_soundclip.o \
-acaudio/ac_sound.o \
-acchars/ac_character.o \
-acchars/ac_charhelpers.o \
-acdebug/ac_debug.o \
-acdebug/ac_filebasedagsdebugger.o \
+ac/audiochannel.o \
+ac/audioclip.o \
+ac/character.o \
+ac/characterinfo.o \
+ac/event.o \
+ac/game_audio.o \
+ac/global_character.o \
+ac/global_debug.o \
+ac/global_timer.o \
+ac/global_audio.o \
+ac/global_video.o \
+ac/system_audio.o \
 acdialog/ac_cscidialog.o \
 acdialog/ac_mylabel.o \
 acdialog/ac_mylistbox.o \
@@ -142,9 +130,8 @@ acgfx/ac_hq2xgfxfilter.o \
 acgfx/ac_hq3xgfxfilter.o \
 acgfx/ac_scalingallegrogfxfilter.o \
 acgfx/ac_scalinggfxfilter.o \
-cs/cc_managedobjectpool.o \
-cs/cc_systemimports.o \
-cs/cs_runtime.o \
+debug/debug.o \
+debug/filebasedagsdebugger.o \
 script/ex_audio.o \
 script/ex_builtin_plugins.o \
 script/ex_button.o \
@@ -175,11 +162,25 @@ script/ex_slider.o \
 script/ex_string.o \
 script/ex_system.o \
 script/ex_textbox.o \
-script/ex_viewframe.o
-
-# acwavi.cpp acwavi3d.cpp ACWSETUP.CPP
-
-
+script/ex_viewframe.o \
+script/executingscript.o \
+script/script.o \
+script/script_runtime.o \
+script/systemimports.o \
+media/audio/ambientsound.o \
+media/audio/audio.o \
+media/audio/clip_mydumbmod.o \
+media/audio/clip_myjgmod.o \
+media/audio/clip_mymidi.o \
+media/audio/clip_mymp3.o \
+media/audio/clip_myogg.o \
+media/audio/clip_mystaticmp3.o \
+media/audio/clip_mystaticogg.o \
+media/audio/clip_mywave.o \
+media/audio/sound.o \
+media/audio/soundcache.o \
+media/audio/soundclip.o \
+media/video/video.o
 
 COMMON = \
 ../Common/bigend.o \
@@ -197,7 +198,6 @@ COMMON = \
 ../Common/ac/ac_mousecursor.o \
 ../Common/ac/ac_point.o \
 ../Common/ac/ac_roomstruct.o \
-../Common/ac/ac_unused.o \
 ../Common/ac/ac_view.o \
 ../Common/ac/ac_wordsdictionary.o \
 ../Common/acfont/ac_agsfontrenderer.o \
@@ -231,7 +231,7 @@ ALFONT = libsrc/alfont-2.0.9/alfont.o
 
 ALMP3 = libsrc/almp3-2.0.5/decoder/common.o libsrc/almp3-2.0.5/decoder/dct64_i386.o libsrc/almp3-2.0.5/decoder/decode_i386.o libsrc/almp3-2.0.5/decoder/interface.o libsrc/almp3-2.0.5/decoder/layer2.o libsrc/almp3-2.0.5/decoder/layer3.o libsrc/almp3-2.0.5/decoder/tabinit.o
 
-APEG = libsrc/apeg-1.2.1/display.o libsrc/apeg-1.2.1/getbits.o libsrc/apeg-1.2.1/getblk.o libsrc/apeg-1.2.1/gethdr.o libsrc/apeg-1.2.1/getpic.o libsrc/apeg-1.2.1/idct.o libsrc/apeg-1.2.1/motion.o libsrc/apeg-1.2.1/mpeg1dec.o libsrc/apeg-1.2.1/ogg.o libsrc/apeg-1.2.1/recon.o libsrc/apeg-1.2.1/audio/apegcommon.o libsrc/apeg-1.2.1/audio/audio.o libsrc/apeg-1.2.1/audio/dct64.o libsrc/apeg-1.2.1/audio/decode_1to1.o libsrc/apeg-1.2.1/audio/decode_2to1.o libsrc/apeg-1.2.1/audio/decode_4to1.o libsrc/apeg-1.2.1/audio/layer1.o libsrc/apeg-1.2.1/audio/layer2.o libsrc/apeg-1.2.1/audio/layer3.o libsrc/apeg-1.2.1/audio/mpg123.o libsrc/apeg-1.2.1/audio/readers.o libsrc/apeg-1.2.1/audio/tabinit.o libsrc/apeg-1.2.1/audio/vbrhead.o
+APEG = libsrc/apeg-1.2.1/display.o libsrc/apeg-1.2.1/getbits.o libsrc/apeg-1.2.1/getblk.o libsrc/apeg-1.2.1/gethdr.o libsrc/apeg-1.2.1/getpic.o libsrc/apeg-1.2.1/idct.o libsrc/apeg-1.2.1/motion.o libsrc/apeg-1.2.1/mpeg1dec.o libsrc/apeg-1.2.1/ogg.o libsrc/apeg-1.2.1/recon.o libsrc/apeg-1.2.1/audio/apegcommon.o libsrc/apeg-1.2.1/audio/aaudio.o libsrc/apeg-1.2.1/audio/dct64.o libsrc/apeg-1.2.1/audio/decode_1to1.o libsrc/apeg-1.2.1/audio/decode_2to1.o libsrc/apeg-1.2.1/audio/decode_4to1.o libsrc/apeg-1.2.1/audio/layer1.o libsrc/apeg-1.2.1/audio/layer2.o libsrc/apeg-1.2.1/audio/layer3.o libsrc/apeg-1.2.1/audio/mpg123.o libsrc/apeg-1.2.1/audio/readers.o libsrc/apeg-1.2.1/audio/tabinit.o libsrc/apeg-1.2.1/audio/vbrhead.o
 
 AASTR = libsrc/aastr-0.1.1/AAROT.o libsrc/aastr-0.1.1/aastr.o libsrc/aastr-0.1.1/aautil.o
 

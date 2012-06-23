@@ -44,7 +44,6 @@
 #include "../PSP/launcher/pe.h"
 #endif
 
-
 #ifdef WINDOWS_VERSION
 #include <shlwapi.h>
 //#include <crtdbg.h>

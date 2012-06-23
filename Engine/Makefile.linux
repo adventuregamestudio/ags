@@ -1,5 +1,7 @@
 
 BASE = \
+almp3.o \
+alogg.o \
 acmain/ac_animatingguibutton.o \
 acmain/ac_background.o \
 acmain/ac_cdplayer.o \

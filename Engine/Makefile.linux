@@ -46,7 +46,6 @@ acmain/ac_region.o \
 acmain/ac_room.o \
 acmain/ac_screen.o \
 acmain/ac_script.o \
-#acmain/ac_serialize.o \
 acmain/ac_speech.o \
 acmain/ac_sprite.o \
 acmain/ac_string.o \
@@ -124,7 +123,6 @@ acchars/ac_character.o \
 acchars/ac_charhelpers.o \
 acdebug/ac_debug.o \
 acdebug/ac_filebasedagsdebugger.o \
-#acdebug/ac_namedpipesagsdebugger.o \
 acdialog/ac_cscidialog.o \
 acdialog/ac_mylabel.o \
 acdialog/ac_mylistbox.o \
@@ -141,13 +139,48 @@ acgfx/acgfx_unused.o \
 acgfx/ac_hq2xgfxfilter.o \
 acgfx/ac_hq3xgfxfilter.o \
 acgfx/ac_scalingallegrogfxfilter.o \
-acgfx/ac_scalinggfxfilter.o
+acgfx/ac_scalinggfxfilter.o \
+cs/cc_managedobjectpool.o \
+cs/cc_systemimports.o \
+cs/cs_runtime.o \
+script/ex_audio.o \
+script/ex_builtin_plugins.o \
+script/ex_button.o \
+script/ex_character.o \
+script/ex_datetime.o \
+script/ex_dialog.o \
+script/ex_drawingsurface.o \
+script/ex_dynamicsprite.o \
+script/ex_file.o \
+script/ex_game.o \
+script/ex_global.o \
+script/ex_guicontrol.o \
+script/ex_gui.o \
+script/ex_hotspot.o \
+script/ex_inventoryitem.o \
+script/ex_invwindow.o \
+script/ex_label.o \
+script/ex_listbox.o \
+script/ex_math.o \
+script/ex_mouse.o \
+script/ex_object.o \
+script/ex_overlay.o \
+script/ex_parser.o \
+script/exports.o \
+script/ex_region.o \
+script/ex_room.o \
+script/ex_slider.o \
+script/ex_string.o \
+script/ex_system.o \
+script/ex_textbox.o \
+script/ex_viewframe.o
+
+# acwavi.cpp acwavi3d.cpp ACWSETUP.CPP
 
 
 
 COMMON = \
 ../Common/bigend.o \
-../Common/macport.o \
 ../Common/misc.o \
 ../Common/Clib32.o \
 ../Common/compress.o \
@@ -202,7 +235,7 @@ AASTR = libsrc/aastr-0.1.1/AAROT.o libsrc/aastr-0.1.1/aastr.o libsrc/aastr-0.1.1
 
 CDA = libsrc/libcda-0.5/linux.o
 
-OBJS = $(ALFONT) $(ALMP3) $(APEG) $(AASTR) $(HQ2X3X) $(CDA) $(PLUGINS) $(BASE) $(COMMON) $(LINUX_SPECIFIC)
+OBJS = $(ALFONT) $(ALMP3) $(APEG) $(AASTR) $(HQ2X3X) $(CDA) $(PLUGINS) $(BASE) $(LINUX_SPECIFIC)
 
 INCDIR = ../Engine ../Common ../Common/libinclude
 LIBDIR =
@@ -221,6 +254,7 @@ LIBS += -lvorbisfile -lfreetype -logg -ldl -lpthread -lm -lc -lstdc++
 
 CC = gcc
 CXX = g++
+AR = ar
 CFLAGS   := $(addprefix -I,$(INCDIR)) $(CFLAGS)
 CXXFLAGS := $(CFLAGS) $(CXXFLAGS)
 ASFLAGS  := $(CFLAGS) $(ASFLAGS)
@@ -228,9 +262,11 @@ LDFLAGS  := -Wl,--as-needed $(addprefix -L,$(LIBDIR))
 
 all: ags
 
-ags: $(OBJS)
+ags: $(OBJS) common.a 
 	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS) $(LIBS)
 
+common.a: $(COMMON)
+	$(AR) rcs $@ $^
 %.o: %.m
 	$(CC) $(CFLAGS) -c -o $@ $<
 
@@ -239,4 +275,4 @@ ags: $(OBJS)
 
 .PHONY: clean
 clean:
-	rm -f ags $(OBJS)
+	rm -f ags common.a $(OBJS) $(COMMON)

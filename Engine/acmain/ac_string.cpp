@@ -9,6 +9,7 @@
 #include "acmain/ac_strings.h"
 #include "acmain/ac_translation.h"
 #include "ac/dynobj/scriptstring.h"
+#include "bigend.h"    //stricmp()
 
 
 // ** SCRIPT STRING

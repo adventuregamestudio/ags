@@ -10,6 +10,7 @@
 
 */
 
+#include <cctype>            //isdigit()
 #include "wgt2allg.h"
 #include "ali3d.h"
 #include "acdialog/ac_cscidialog.h"

@@ -1,11 +1,8 @@
 #ifndef __AC_FILE_H
 #define __AC_FILE_H
 
+#include "platform/file.h"
 #include "ac/dynobj/scriptfile.h"
-
-#if defined(LINUX_VERSION) || defined(MAC_VERSION)
-long int filelength(int fhandle);
-#endif
 
 void get_current_dir_path(char* buffer, const char *fileName);
 int check_valid_file_handle(FILE*hann, char*msg);

@@ -24,13 +24,6 @@
 #include "../PSP/launcher/pe.h"
 */
 
-long int filelength(int fhandle)
-{
-    struct stat statbuf;
-    fstat(fhandle, &statbuf);
-    return statbuf.st_size;
-}
-
 #else   // it's DOS (DJGPP)
 
 //#include "sys/exceptn.h"

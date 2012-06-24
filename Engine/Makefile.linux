@@ -218,7 +218,8 @@ COMMON = \
 ../Common/cs/cc_script.o \
 ../Common/cs/cc_treemap.o \
 ../Common/cs/cs_common.o \
-../Common/cs/cs_utils.o
+../Common/cs/cs_utils.o \
+../Common/platform/file.o
 
 PLUGINS = ../Plugins/AGSflashlight/agsflashlight.o ../Plugins/agsblend/AGSBlend.o ../Plugins/ags_snowrain/ags_snowrain.o
 

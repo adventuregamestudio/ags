@@ -12,4 +12,8 @@
 #include <stdio.h>
 // TODO: other platforms?
 
+#if defined(LINUX_VERSION) || defined(MAC_VERSION)
+long int filelength(int fhandle);
+#endif
+
 #endif // __AGS_CN_PLATFORM__FILE_H

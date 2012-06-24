@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)\..\Engine&quot;;&quot;$(SolutionDir)\..\Common&quot;;&quot;$(SolutionDir)\..\Common\libinclude&quot;;&quot;$(SolutionDir)\..\Windows\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)\..\Common&quot;;&quot;$(SolutionDir)\..\Common\libinclude&quot;;&quot;$(SolutionDir)\..\Windows\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_WINDOWS;VS2005;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;WINDOWS_VERSION;DISABLE_MPEG_AUDIO"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -314,6 +314,14 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="platform"
+				>
+				<File
+					RelativePath="..\..\Common\platform\file.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -525,6 +533,14 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\acgui\ac_guitextbox.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="platform"
+				>
+				<File
+					RelativePath="..\..\Common\platform\file.h"
 					>
 				</File>
 			</Filter>

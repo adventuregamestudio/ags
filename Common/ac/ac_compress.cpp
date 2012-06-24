@@ -5,7 +5,7 @@
 #include "ac/ac_common.h"	// quit()
 #include "compress.h"
 #include "misc.h"
-#include "acmain/ac_file.h"     // filelength()
+#include "platform/file.h"     // filelength()
 
 
 

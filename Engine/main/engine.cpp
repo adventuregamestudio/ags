@@ -17,7 +17,7 @@
 //
 
 #include "main/mainheader.h"
-#include "acmain/ac_main.h"
+#include "ali3d.h"
 
 #if defined(MAC_VERSION) || (defined(LINUX_VERSION) && !defined(PSP_VERSION))
 #include <pthread.h>
@@ -192,6 +192,38 @@ int engine_init_game_data_internal(int argc,char*argv[])
     }
 
     return RETURN_CONTINUE;
+}
+
+void initialise_game_file_name()
+{
+#ifdef WINDOWS_VERSION
+    WCHAR buffer[MAX_PATH];
+    LPCWSTR dataFilePath = wArgv[datafile_argv];
+    // Hack for Windows in case there are unicode chars in the path.
+    // The normal argv[] array has ????? instead of the unicode chars
+    // and fails, so instead we manually get the short file name, which
+    // is always using ANSI chars.
+    if (wcschr(dataFilePath, '\\') == NULL)
+    {
+        GetCurrentDirectoryW(MAX_PATH, buffer);
+        wcscat(buffer, L"\\");
+        wcscat(buffer, dataFilePath);
+        dataFilePath = &buffer[0];
+    }
+    if (GetShortPathNameW(dataFilePath, directoryPathBuffer, MAX_PATH) == 0)
+    {
+        platform->DisplayAlert("Unable to determine startup path: GetShortPathNameW failed. The specified game file might be missing.");
+        game_file_name = NULL;
+        return;
+    }
+    game_file_name = (char*)malloc(MAX_PATH);
+    WideCharToMultiByte(CP_ACP, 0, directoryPathBuffer, -1, game_file_name, MAX_PATH, NULL, NULL);
+#elif defined(PSP_VERSION) || defined(ANDROID_VERSION) || defined(IOS_VERSION)
+    game_file_name = psp_game_file_name;
+#else
+    game_file_name = (char*)malloc(MAX_PATH);
+    strcpy(game_file_name, get_filename(global_argv[datafile_argv]));
+#endif
 }
 
 int engine_init_game_data(int argc,char*argv[])
@@ -768,6 +800,46 @@ void engine_init_screen_settings()
     adjust_sizes_for_resolution(loaded_game_file_version);
 }
 
+int initialize_graphics_filter(const char *filterID, int width, int height, int colDepth)
+{
+    int idx = 0;
+    GFXFilter **filterList;
+
+    if (stricmp(usetup.gfxDriverID, "D3D9") == 0)
+    {
+        filterList = get_d3d_gfx_filter_list(false);
+    }
+    else
+    {
+        filterList = get_allegro_gfx_filter_list(false);
+    }
+
+    // by default, select No Filter
+    filter = filterList[0];
+
+    GFXFilter *thisFilter = filterList[idx];
+    while (thisFilter != NULL) {
+
+        if ((filterID != NULL) &&
+            (strcmp(thisFilter->GetFilterID(), filterID) == 0))
+            filter = thisFilter;
+        else if (idx > 0)
+            delete thisFilter;
+
+        idx++;
+        thisFilter = filterList[idx];
+    }
+
+    const char *filterError = filter->Initialize(width, height, colDepth);
+    if (filterError != NULL) {
+        proper_exit = 1;
+        platform->DisplayAlert("Unable to initialize the graphics filter. It returned the following error:\n'%s'\n\nTry running Setup and selecting a different graphics filter.", filterError);
+        return -1;
+    }
+
+    return 0;
+}
+
 int engine_init_gfx_filters()
 {
     write_log_debug("Init gfx filters");
@@ -778,6 +850,163 @@ int engine_init_gfx_filters()
     }
 
     return RETURN_CONTINUE;
+}
+
+extern int psp_gfx_renderer; // defined in ali3dogl
+
+void create_gfx_driver() 
+{
+#ifdef WINDOWS_VERSION
+    if (stricmp(usetup.gfxDriverID, "D3D9") == 0)
+        gfxDriver = GetD3DGraphicsDriver(filter);
+    else
+#endif
+    {
+#if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(WINDOWS_VERSION)
+        if ((psp_gfx_renderer > 0) && (game.color_depth != 1))
+            gfxDriver = GetOGLGraphicsDriver(filter);
+        else
+#endif
+            gfxDriver = GetSoftwareGraphicsDriver(filter);
+    }
+
+    gfxDriver->SetCallbackOnInit(GfxDriverOnInitCallback);
+    gfxDriver->SetTintMethod(TintReColourise);
+}
+
+int init_gfx_mode(int wid,int hit,int cdep) {
+
+    // a mode has already been initialized, so abort
+    if (working_gfx_mode_status == 0) return 0;
+
+    if (debug_15bit_mode)
+        cdep = 15;
+    else if (debug_24bit_mode)
+        cdep = 24;
+
+    platform->WriteDebugString("Attempt to switch gfx mode to %d x %d (%d-bit)", wid, hit, cdep);
+
+    if (usetup.refresh >= 50)
+        request_refresh_rate(usetup.refresh);
+
+    final_scrn_wid = wid;
+    final_scrn_hit = hit;
+    final_col_dep = cdep;
+
+    if (game.color_depth == 1) {
+        final_col_dep = 8;
+    }
+    else {
+        set_color_depth(cdep);
+    }
+
+    working_gfx_mode_status = (gfxDriver->Init(wid, hit, final_col_dep, usetup.windowed > 0, &timerloop) ? 0 : -1);
+
+    if (working_gfx_mode_status == 0) 
+        platform->WriteDebugString("Succeeded. Using gfx mode %d x %d (%d-bit)", wid, hit, final_col_dep);
+    else
+        platform->WriteDebugString("Failed, resolution not supported");
+
+    if ((working_gfx_mode_status < 0) && (usetup.windowed > 0) && (editor_debugging_enabled == 0)) {
+        usetup.windowed ++;
+        if (usetup.windowed > 2) usetup.windowed = 0;
+        return init_gfx_mode(wid,hit,cdep);
+    }
+    return working_gfx_mode_status;    
+}
+
+int try_widescreen_bordered_graphics_mode_if_appropriate(int initasx, int initasy, int firstDepth)
+{
+    if (working_gfx_mode_status == 0) return 0;
+    if (usetup.enable_side_borders == 0)
+    {
+        platform->WriteDebugString("Widescreen side borders: disabled in Setup");
+        return 1;
+    }
+    if (usetup.windowed > 0)
+    {
+        platform->WriteDebugString("Widescreen side borders: disabled (windowed mode)");
+        return 1;
+    }
+
+    int failed = 1;
+    int desktopWidth, desktopHeight;
+    if (get_desktop_resolution(&desktopWidth, &desktopHeight) == 0)
+    {
+        int gameHeight = initasy;
+
+        int screenRatio = (desktopWidth * 1000) / desktopHeight;
+        int gameRatio = (initasx * 1000) / gameHeight;
+        // 1250 = 1280x1024 
+        // 1333 = 640x480, 800x600, 1024x768, 1152x864, 1280x960
+        // 1600 = 640x400, 960x600, 1280x800, 1680x1050
+        // 1666 = 1280x768
+
+        platform->WriteDebugString("Widescreen side borders: game resolution: %d x %d; desktop resolution: %d x %d", initasx, gameHeight, desktopWidth, desktopHeight);
+
+        if ((screenRatio > 1500) && (gameRatio < 1500))
+        {
+            int tryWidth = (initasx * screenRatio) / gameRatio;
+            int supportedRes = gfxDriver->FindSupportedResolutionWidth(tryWidth, gameHeight, firstDepth, 110);
+            if (supportedRes > 0)
+            {
+                tryWidth = supportedRes;
+                platform->WriteDebugString("Widescreen side borders: enabled, attempting resolution %d x %d", tryWidth, gameHeight);
+            }
+            else
+            {
+                platform->WriteDebugString("Widescreen side borders: gfx card does not support suitable resolution. will attempt %d x %d anyway", tryWidth, gameHeight);
+            }
+            failed = init_gfx_mode(tryWidth, gameHeight, firstDepth);
+        }
+        else
+        {
+            platform->WriteDebugString("Widescreen side borders: disabled (not necessary, game and desktop aspect ratios match)", initasx, gameHeight, desktopWidth, desktopHeight);
+        }
+    }
+    else 
+    {
+        platform->WriteDebugString("Widescreen side borders: disabled (unable to obtain desktop resolution)");
+    }
+    return failed;
+}
+
+int switch_to_graphics_mode(int initasx, int initasy, int scrnwid, int scrnhit, int firstDepth, int secondDepth) 
+{
+    int failed;
+    int initasyLetterbox = (initasy * 12) / 10;
+
+    // first of all, try 16-bit normal then letterboxed
+    if (game.options[OPT_LETTERBOX] == 0) 
+    {
+        failed = try_widescreen_bordered_graphics_mode_if_appropriate(initasx, initasy, firstDepth);
+        failed = init_gfx_mode(initasx,initasy, firstDepth);
+    }
+    failed = try_widescreen_bordered_graphics_mode_if_appropriate(initasx, initasyLetterbox, firstDepth);
+    failed = init_gfx_mode(initasx, initasyLetterbox, firstDepth);
+
+    if (secondDepth != firstDepth) {
+        // now, try 15-bit normal then letterboxed
+        if (game.options[OPT_LETTERBOX] == 0) 
+        {
+            failed = try_widescreen_bordered_graphics_mode_if_appropriate(initasx, initasy, secondDepth);
+            failed = init_gfx_mode(initasx,initasy, secondDepth);
+        }
+        failed = try_widescreen_bordered_graphics_mode_if_appropriate(initasx, initasyLetterbox, secondDepth);
+        failed = init_gfx_mode(initasx, initasyLetterbox, secondDepth);
+    }
+
+    if ((scrnwid != initasx) || (scrnhit != initasy))
+    {
+        // now, try the original resolution at 16 then 15 bit
+        failed = init_gfx_mode(scrnwid,scrnhit,firstDepth);
+        failed = init_gfx_mode(scrnwid,scrnhit, secondDepth);
+    }
+
+    if (failed)
+        return -1;
+
+    return 0;
 }
 
 void engine_init_gfx_driver()
@@ -843,6 +1072,26 @@ int engine_init_graphics_mode()
     }
 
     return RETURN_CONTINUE;
+}
+
+void CreateBlankImage()
+{
+    // this is the first time that we try to use the graphics driver,
+    // so it's the most likey place for a crash
+    try
+    {
+        BITMAP *blank = create_bitmap_ex(final_col_dep, 16, 16);
+        blank = gfxDriver->ConvertBitmapToSupportedColourDepth(blank);
+        clear(blank);
+        blankImage = gfxDriver->CreateDDBFromBitmap(blank, false, true);
+        blankSidebarImage = gfxDriver->CreateDDBFromBitmap(blank, false, true);
+        destroy_bitmap(blank);
+    }
+    catch (Ali3DException gfxException)
+    {
+        quit((char*)gfxException._message);
+    }
+
 }
 
 void engine_post_init_gfx_driver()
@@ -962,6 +1211,36 @@ void engine_set_color_conversions()
     set_color_conversion(COLORCONV_MOST | COLORCONV_EXPAND_256 | COLORCONV_REDUCE_16_TO_15);
 }
 
+void show_preload () {
+    // ** Do the preload graphic if available
+    color temppal[256];
+    block splashsc = load_pcx("preload.pcx",temppal);
+    if (splashsc != NULL) {
+        if (bitmap_color_depth(splashsc) == 8)
+            wsetpalette(0,255,temppal);
+        block tsc = create_bitmap_ex(bitmap_color_depth(screen),splashsc->w,splashsc->h);
+        blit(splashsc,tsc,0,0,0,0,tsc->w,tsc->h);
+        clear(screen);
+        stretch_sprite(screen, tsc, 0, 0, scrnwid,scrnhit);
+
+        gfxDriver->ClearDrawList();
+
+        if (!gfxDriver->UsesMemoryBackBuffer())
+        {
+            IDriverDependantBitmap *ddb = gfxDriver->CreateDDBFromBitmap(screen, false, true);
+            gfxDriver->DrawSprite(0, 0, ddb);
+            render_to_screen(screen, 0, 0);
+            gfxDriver->DestroyDDB(ddb);
+        }
+        else
+            render_to_screen(screen, 0, 0);
+
+        wfreeblock(splashsc);
+        wfreeblock(tsc);
+        platform->Delay(500);
+    }
+}
+
 void engine_show_preload()
 {
     write_log_debug("Check for preload image");
@@ -1000,6 +1279,236 @@ void engine_setup_screen()
 
     for (int ee = 0; ee < MAX_INIT_SPR + game.numcharacters; ee++)
         actsps[ee] = NULL;
+}
+
+void init_game_settings() {
+    int ee;
+
+    for (ee=0;ee<256;ee++) {
+        if (game.paluses[ee]!=PAL_BACKGROUND)
+            palette[ee]=game.defpal[ee];
+    }
+
+    if (game.options[OPT_NOSCALEFNT]) wtext_multiply=1;
+
+    for (ee = 0; ee < game.numcursors; ee++) 
+    {
+        // The cursor graphics are assigned to mousecurs[] and so cannot
+        // be removed from memory
+        if (game.mcurs[ee].pic >= 0)
+            spriteset.precache (game.mcurs[ee].pic);
+
+        // just in case they typed an invalid view number in the editor
+        if (game.mcurs[ee].view >= game.numviews)
+            game.mcurs[ee].view = -1;
+
+        if (game.mcurs[ee].view >= 0)
+            precache_view (game.mcurs[ee].view);
+    }
+    // may as well preload the character gfx
+    if (playerchar->view >= 0)
+        precache_view (playerchar->view);
+
+    for (ee = 0; ee < MAX_INIT_SPR; ee++)
+        objcache[ee].image = NULL;
+
+    /*  dummygui.guiId = -1;
+    dummyguicontrol.guin = -1;
+    dummyguicontrol.objn = -1;*/
+
+    our_eip=-6;
+    //  game.chars[0].talkview=4;
+    //init_language_text(game.langcodes[0]);
+
+    for (ee = 0; ee < MAX_INIT_SPR; ee++) {
+        scrObj[ee].id = ee;
+        scrObj[ee].obj = NULL;
+    }
+
+    for (ee=0;ee<game.numcharacters;ee++) {
+        memset(&game.chars[ee].inv[0],0,MAX_INV*sizeof(short));
+        game.chars[ee].activeinv=-1;
+        game.chars[ee].following=-1;
+        game.chars[ee].followinfo=97 | (10 << 8);
+        game.chars[ee].idletime=20;  // can be overridden later with SetIdle or summink
+        game.chars[ee].idleleft=game.chars[ee].idletime;
+        game.chars[ee].transparency = 0;
+        game.chars[ee].baseline = -1;
+        game.chars[ee].walkwaitcounter = 0;
+        game.chars[ee].z = 0;
+        charextra[ee].xwas = INVALID_X;
+        charextra[ee].zoom = 100;
+        if (game.chars[ee].view >= 0) {
+            // set initial loop to 0
+            game.chars[ee].loop = 0;
+            // or to 1 if they don't have up/down frames
+            if (views[game.chars[ee].view].loops[0].numFrames < 1)
+                game.chars[ee].loop = 1;
+        }
+        charextra[ee].process_idle_this_time = 0;
+        charextra[ee].invorder_count = 0;
+        charextra[ee].slow_move_counter = 0;
+        charextra[ee].animwait = 0;
+    }
+    // multiply up gui positions
+    guibg = (block*)malloc(sizeof(block) * game.numgui);
+    guibgbmp = (IDriverDependantBitmap**)malloc(sizeof(IDriverDependantBitmap*) * game.numgui);
+    for (ee=0;ee<game.numgui;ee++) {
+        guibgbmp[ee] = NULL;
+        GUIMain*cgp=&guis[ee];
+        guibg[ee] = create_bitmap_ex (final_col_dep, cgp->wid, cgp->hit);
+        guibg[ee] = gfxDriver->ConvertBitmapToSupportedColourDepth(guibg[ee]);
+    }
+
+    our_eip=-5;
+    for (ee=0;ee<game.numinvitems;ee++) {
+        if (game.invinfo[ee].flags & IFLG_STARTWITH) playerchar->inv[ee]=1;
+        else playerchar->inv[ee]=0;
+    }
+    play.score=0;
+    play.sierra_inv_color=7;
+    play.talkanim_speed = 5;
+    play.inv_item_wid = 40;
+    play.inv_item_hit = 22;
+    play.messagetime=-1;
+    play.disabled_user_interface=0;
+    play.gscript_timer=-1;
+    play.debug_mode=game.options[OPT_DEBUGMODE];
+    play.inv_top=0;
+    play.inv_numdisp=0;
+    play.obsolete_inv_numorder=0;
+    play.text_speed=15;
+    play.text_min_display_time_ms = 1000;
+    play.ignore_user_input_after_text_timeout_ms = 500;
+    play.ignore_user_input_until_time = 0;
+    play.lipsync_speed = 15;
+    play.close_mouth_speech_time = 10;
+    play.disable_antialiasing = 0;
+    play.rtint_level = 0;
+    play.rtint_light = 255;
+    play.text_speed_modifier = 0;
+    play.text_align = SCALIGN_LEFT;
+    // Make the default alignment to the right with right-to-left text
+    if (game.options[OPT_RIGHTLEFTWRITE])
+        play.text_align = SCALIGN_RIGHT;
+
+    play.speech_bubble_width = get_fixed_pixel_size(100);
+    play.bg_frame=0;
+    play.bg_frame_locked=0;
+    play.bg_anim_delay=0;
+    play.anim_background_speed = 0;
+    play.silent_midi = 0;
+    play.current_music_repeating = 0;
+    play.skip_until_char_stops = -1;
+    play.get_loc_name_last_time = -1;
+    play.get_loc_name_save_cursor = -1;
+    play.restore_cursor_mode_to = -1;
+    play.restore_cursor_image_to = -1;
+    play.ground_level_areas_disabled = 0;
+    play.next_screen_transition = -1;
+    play.temporarily_turned_off_character = -1;
+    play.inv_backwards_compatibility = 0;
+    play.gamma_adjustment = 100;
+    play.num_do_once_tokens = 0;
+    play.do_once_tokens = NULL;
+    play.music_queue_size = 0;
+    play.shakesc_length = 0;
+    play.wait_counter=0;
+    play.key_skip_wait = 0;
+    play.cur_music_number=-1;
+    play.music_repeat=1;
+    play.music_master_volume=160;
+    play.digital_master_volume = 100;
+    play.screen_flipped=0;
+    play.offsets_locked=0;
+    play.cant_skip_speech = user_to_internal_skip_speech(game.options[OPT_NOSKIPTEXT]);
+    play.sound_volume = 255;
+    play.speech_volume = 255;
+    play.normal_font = 0;
+    play.speech_font = 1;
+    play.speech_text_shadow = 16;
+    play.screen_tint = -1;
+    play.bad_parsed_word[0] = 0;
+    play.swap_portrait_side = 0;
+    play.swap_portrait_lastchar = -1;
+    play.in_conversation = 0;
+    play.skip_display = 3;
+    play.no_multiloop_repeat = 0;
+    play.in_cutscene = 0;
+    play.fast_forward = 0;
+    play.totalscore = game.totalscore;
+    play.roomscript_finished = 0;
+    play.no_textbg_when_voice = 0;
+    play.max_dialogoption_width = get_fixed_pixel_size(180);
+    play.no_hicolor_fadein = 0;
+    play.bgspeech_game_speed = 0;
+    play.bgspeech_stay_on_display = 0;
+    play.unfactor_speech_from_textlength = 0;
+    play.mp3_loop_before_end = 70;
+    play.speech_music_drop = 60;
+    play.room_changes = 0;
+    play.check_interaction_only = 0;
+    play.replay_hotkey = 318;  // Alt+R
+    play.dialog_options_x = 0;
+    play.dialog_options_y = 0;
+    play.min_dialogoption_width = 0;
+    play.disable_dialog_parser = 0;
+    play.ambient_sounds_persist = 0;
+    play.screen_is_faded_out = 0;
+    play.player_on_region = 0;
+    play.top_bar_backcolor = 8;
+    play.top_bar_textcolor = 16;
+    play.top_bar_bordercolor = 8;
+    play.top_bar_borderwidth = 1;
+    play.top_bar_ypos = 25;
+    play.top_bar_font = -1;
+    play.screenshot_width = 160;
+    play.screenshot_height = 100;
+    play.speech_text_align = SCALIGN_CENTRE;
+    play.auto_use_walkto_points = 1;
+    play.inventory_greys_out = 0;
+    play.skip_speech_specific_key = 0;
+    play.abort_key = 324;  // Alt+X
+    play.fade_to_red = 0;
+    play.fade_to_green = 0;
+    play.fade_to_blue = 0;
+    play.show_single_dialog_option = 0;
+    play.keep_screen_during_instant_transition = 0;
+    play.read_dialog_option_colour = -1;
+    play.narrator_speech = game.playercharacter;
+    play.crossfading_out_channel = 0;
+    play.speech_textwindow_gui = game.options[OPT_TWCUSTOM];
+    if (play.speech_textwindow_gui == 0)
+        play.speech_textwindow_gui = -1;
+    strcpy(play.game_name, game.gamename);
+    play.lastParserEntry[0] = 0;
+    play.follow_change_room_timer = 150;
+    for (ee = 0; ee < MAX_BSCENE; ee++) 
+        play.raw_modified[ee] = 0;
+    play.game_speed_modifier = 0;
+    if (debug_flags & DBG_DEBUGMODE)
+        play.debug_mode = 1;
+    gui_disabled_style = convert_gui_disabled_style(game.options[OPT_DISABLEOFF]);
+
+    memset(&play.walkable_areas_on[0],1,MAX_WALK_AREAS+1);
+    memset(&play.script_timers[0],0,MAX_TIMERS * sizeof(int));
+    memset(&play.default_audio_type_volumes[0], -1, MAX_AUDIO_TYPES * sizeof(int));
+
+    // reset graphical script vars (they're still used by some games)
+    for (ee = 0; ee < MAXGLOBALVARS; ee++) 
+        play.globalvars[ee] = 0;
+
+    for (ee = 0; ee < MAXGLOBALSTRINGS; ee++)
+        play.globalstrings[ee][0] = 0;
+
+    for (ee = 0; ee < MAX_SOUND_CHANNELS; ee++)
+        last_sound_played[ee] = -1;
+
+    if (usetup.translation)
+        init_translation (usetup.translation);
+
+    update_invorder();
+    displayed_room = -10;
 }
 
 void engine_init_game_settings()
@@ -1167,6 +1676,9 @@ int initialize_engine(int argc,char*argv[])
 
     engine_init_exit_handler();
 
+    // [IKM] I seriously don't get it why do we need to delete warnings.log
+    // in the middle of procedure; some warnings may have already being
+    // written there at this point, no?
     unlink("warnings.log");
 
     engine_init_rand();

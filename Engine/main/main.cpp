@@ -23,6 +23,7 @@
 //
 
 #include "main/mainheader.h"
+#include "routefnd.h"
 
 #ifdef MAC_VERSION
 char dataDirectory[512];
@@ -179,6 +180,25 @@ void main_init_crt_report()
 #endif
 }
 
+void change_to_directory_of_file(LPCWSTR fileName)
+{
+    WCHAR wcbuffer[MAX_PATH];
+    StrCpyW(wcbuffer, fileName);
+
+#if defined(LINUX_VERSION) || defined(MAC_VERSION)
+    if (strrchr(wcbuffer, '/') != NULL) {
+        strrchr(wcbuffer, '/')[0] = 0;
+        chdir(wcbuffer);
+    }
+#else
+    LPWSTR backSlashAt = StrRChrW(wcbuffer, NULL, L'\\');
+    if (backSlashAt != NULL) {
+        wcbuffer[wcslen(wcbuffer) - wcslen(backSlashAt)] = L'\0';
+        SetCurrentDirectoryW(wcbuffer);
+    }
+#endif
+}
+
 void main_set_gamedir(int argc,char*argv[])
 {
     if ((loadSaveGameOnStartup != NULL) && (argv[0] != NULL))
@@ -214,6 +234,10 @@ int main(int argc,char*argv[]) {
         return res;
     }
 
+    // [IKM] For some bizzare reason this function is a part of routefnd module;
+    // I cannot just move it here, because it references certain variables from
+    // that module and so probably somehow related to it, in a logical or maybe
+    // philosophical way, I just cannot figure out what at the time being.
     print_welcome_text(AC_VERSION_TEXT,ACI_VERSION_TEXT);
     if ((argc>1) && (argv[1][1]=='?'))
         return 0;

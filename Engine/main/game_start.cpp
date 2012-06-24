@@ -18,83 +18,6 @@
 
 #include "main/mainheader.h"
 
-void start_playback()
-{
-    FILE *in = fopen(replayfile, "rb");
-    if (in != NULL) {
-        char buffer [100];
-        fread (buffer, 12, 1, in);
-        buffer[12] = 0;
-        if (strcmp (buffer, "AGSRecording") != 0) {
-            Display("ERROR: Invalid recorded data file");
-            play.playback = 0;
-        }
-        else {
-            fgetstring_limit (buffer, in, 12);
-            if (buffer[0] != '2') 
-                quit("!Replay file is from an old version of AGS");
-            if (strcmp (buffer, "2.55.553") < 0)
-                quit("!Replay file was recorded with an older incompatible version");
-
-            if (strcmp (buffer, ACI_VERSION_TEXT)) {
-                // Disable text as speech while displaying the warning message
-                // This happens if the user's graphics card does BGR order 16-bit colour
-                int oldalways = game.options[OPT_ALWAYSSPCH];
-                game.options[OPT_ALWAYSSPCH] = 0;
-                play.playback = 0;
-                Display("Warning! replay is from a different version of AGS (%s) - it may not work properly.", buffer);
-                play.playback = 1;
-                srand (play.randseed);
-                play.gamestep = 0;
-                game.options[OPT_ALWAYSSPCH] = oldalways;
-            }
-
-            int replayver = getw(in);
-
-            if ((replayver < 1) || (replayver > 3))
-                quit("!Unsupported Replay file version");
-
-            if (replayver >= 2) {
-                fgetstring_limit (buffer, in, 99);
-                int uid = getw (in);
-                if ((strcmp (buffer, game.gamename) != 0) || (uid != game.uniqueid)) {
-                    char msg[150];
-                    sprintf (msg, "!This replay is meant for the game '%s' and will not work correctly with this game.", buffer);
-                    quit (msg);
-                }
-                // skip the total time
-                getw (in);
-                // replay description, maybe we'll use this later
-                fgetstring_limit (buffer, in, 99);
-            }
-
-            play.randseed = getw(in);
-            int flen = filelength(fileno(in)) - ftell (in);
-            if (replayver >= 3) {
-                flen = getw(in) * sizeof(short);
-            }
-            recordbuffer = (short*)malloc (flen);
-            fread (recordbuffer, flen, 1, in);
-            srand (play.randseed);
-            recbuffersize = flen / sizeof(short);
-            recsize = 0;
-            disable_mgetgraphpos = 1;
-            replay_time = 0;
-            replay_last_second = loopcounter;
-            if (replayver >= 3) {
-                int issave = getw(in);
-                if (issave) {
-                    if (restore_game_data (in, replayfile))
-                        quit("!Error running replay... could be incorrect game version");
-                    replay_last_second = loopcounter;
-                }
-            }
-            fclose (in);
-        }
-    }
-    else // file not found
-        play.playback = 0;
-}
 
 void start_game_check_replay()
 {
@@ -144,6 +67,34 @@ void start_game_load_savegame_on_startup()
             quitprintf("Unable to resume the save game. Try starting the game over. (Error: %s)", load_game_errors[-loadGameErrorCode]);
         }
     }
+}
+
+void start_game() {
+    set_cursor_mode(MODE_WALK);
+    filter->SetMousePosition(160,100);
+    newmusic(0);
+
+    our_eip = -42;
+
+    for (int kk = 0; kk < numScriptModules; kk++)
+        run_text_script(moduleInst[kk], "game_start");
+
+    run_text_script(gameinst,"game_start");
+
+    our_eip = -43;
+
+    SetRestartPoint();
+
+    our_eip=-3;
+
+    if (displayed_room < 0) {
+        current_fade_out_effect();
+        load_new_room(playerchar->room,playerchar);
+        // load_new_room updates it, but it should be -1 in the first room
+        playerchar->prevroom = -1;
+    }
+
+    first_room_initialization();
 }
 
 void do_start_game()

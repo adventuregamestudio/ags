@@ -42,6 +42,8 @@ DWORD WINAPI update_mp3_thread(LPVOID lpParam);
 void CreateBlankImage();
 void initialize_start_and_play_game(int override_start_room, const char *loadSaveGameOnStartup);
 void change_to_directory_of_file(LPCWSTR fileName);
+void update_stuff();
+int load_game_file();
 
 #if defined(WINDOWS_VERSION)
 #include <new.h>
@@ -95,5 +97,13 @@ extern int convert_16bit_bgr;
 extern int wArgc;
 extern LPWSTR *wArgv;
 #endif
+
+extern long t1;  // timer for FPS
+extern int user_disabled_for,user_disabled_data,user_disabled_data2;
+extern int user_disabled_data3;
+
+extern char *music_file;
+extern char *speech_file;
+extern WCHAR directoryPathBuffer[MAX_PATH];
 
 #endif // __AC_MAIN_H

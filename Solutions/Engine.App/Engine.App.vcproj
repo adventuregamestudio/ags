@@ -989,7 +989,19 @@
 				Name="main"
 				>
 				<File
+					RelativePath="..\..\Engine\main\config.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\main\engine.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\main\game_file.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\main\game_run.cpp"
 					>
 				</File>
 				<File
@@ -998,6 +1010,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\main\main.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\main\quit.cpp"
 					>
 				</File>
 			</Filter>

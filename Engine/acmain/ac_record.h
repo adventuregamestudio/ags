@@ -28,6 +28,8 @@ void start_replay_record ();
 void scStartRecording (int keyToStop);
 void stop_recording();
 
+void start_playback();
+
 
 
 extern char replayfile[MAX_PATH];

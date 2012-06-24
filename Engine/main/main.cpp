@@ -148,6 +148,8 @@ int main_process_cmdline(int argc,char*argv[])
         }
         else if (argv[ee][0]!='-') datafile_argv=ee;
     }
+
+    return RETURN_CONTINUE;
 }
 
 void main_init_crt_report()

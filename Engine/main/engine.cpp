@@ -1092,8 +1092,6 @@ void engine_prepare_to_start_game()
 
 int initialize_engine(int argc,char*argv[])
 {
-    FILE*ppp;
-    int ee;
     int res;
 
     engine_read_config(argc, argv);

@@ -180,7 +180,10 @@ media/audio/clip_mywave.o \
 media/audio/sound.o \
 media/audio/soundcache.o \
 media/audio/soundclip.o \
-media/video/video.o
+media/video/video.o \
+main/game_start.o \
+main/engine.o \
+main/main.o
 
 COMMON = \
 ../Common/bigend.o \

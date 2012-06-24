@@ -16,6 +16,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documents", "Documents", "{
 		..\Documents\compiler.txt = ..\Documents\compiler.txt
 		..\Documents\dynobj.txt = ..\Documents\dynobj.txt
 		..\Documents\libstruct.txt = ..\Documents\libstruct.txt
+		..\Documents\main_thread.txt = ..\Documents\main_thread.txt
 		..\Documents\original_plans.txt = ..\Documents\original_plans.txt
 		..\Documents\stage_1.txt = ..\Documents\stage_1.txt
 		..\Documents\stage_2.txt = ..\Documents\stage_2.txt

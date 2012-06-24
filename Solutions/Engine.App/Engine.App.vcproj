@@ -985,6 +985,22 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="main"
+				>
+				<File
+					RelativePath="..\..\Engine\main\engine.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\main\game_start.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\main\main.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -1860,6 +1876,18 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\debug\namedpipesagsdebugger.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="main"
+				>
+				<File
+					RelativePath="..\..\Engine\main\maindefines.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\main\mainheader.h"
 					>
 				</File>
 			</Filter>

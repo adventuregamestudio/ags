@@ -31,7 +31,6 @@ acmain/ac_inventory.o \
 acmain/ac_inventoryitem.o \
 acmain/ac_lipsync.o \
 acmain/ac_location.o \
-acmain/ac_main.o \
 acmain/ac_math.o \
 acmain/ac_message.o \
 acmain/ac_minidump.o \
@@ -181,9 +180,15 @@ media/audio/sound.o \
 media/audio/soundcache.o \
 media/audio/soundclip.o \
 media/video/video.o \
-main/game_start.o \
+main/config.o \
 main/engine.o \
-main/main.o
+main/game_file.o \
+main/game_run.o \
+main/game_start.o \
+main/graphics_mode.o \
+main/main.o \
+main/quit.o \
+main/update.o
 
 COMMON = \
 ../Common/bigend.o \

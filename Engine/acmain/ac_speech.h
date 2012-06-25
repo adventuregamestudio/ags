@@ -26,4 +26,10 @@ void DisplaySpeechAt (int xx, int yy, int wii, int aschar, char*spch);
 
 void SetSkipSpeech (int newval);
 
+// Sierra-style speech settings
+extern int face_talking,facetalkview,facetalkwait,facetalkframe;
+extern int facetalkloop, facetalkrepeat, facetalkAllowBlink;
+extern int facetalkBlinkLoop;
+extern CharacterInfo *facetalkchar;
+
 #endif // __AC_SPEECH_H

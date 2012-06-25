@@ -17,6 +17,7 @@
 //
 
 #include "main/mainheader.h"
+#include "main/game_start.h"
 
 
 void start_game_check_replay()

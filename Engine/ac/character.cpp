@@ -28,7 +28,6 @@
 #include "acmain/ac_draw.h"
 #include "acmain/ac_inventory.h"
 #include "acmain/ac_location.h"
-#include "acmain/ac_main.h"
 #include "acmain/ac_message.h"
 #include "acmain/ac_mouse.h"
 #include "acmain/ac_object.h"
@@ -42,6 +41,8 @@
 #include "acmain/ac_walkablearea.h"
 #include "acrun/ac_gamestate.h"
 #include "debug/debug.h"
+#include "main/game_run.h"
+#include "main/update.h"
 #include "sprcache.h"
 #include <math.h>
 

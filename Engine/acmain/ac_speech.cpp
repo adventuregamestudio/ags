@@ -10,6 +10,14 @@
 #include "media/audio/sound.h"
 
 
+// Sierra-style speech settings
+int face_talking=-1,facetalkview=0,facetalkwait=0,facetalkframe=0;
+int facetalkloop=0, facetalkrepeat = 0, facetalkAllowBlink = 1;
+int facetalkBlinkLoop = 0;
+CharacterInfo *facetalkchar = NULL;
+
+
+
 void SetTextWindowGUI (int guinum) {
     if ((guinum < -1) | (guinum >= game.numgui))
         quit("!SetTextWindowGUI: invalid GUI number");

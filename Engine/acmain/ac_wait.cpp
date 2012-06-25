@@ -6,7 +6,7 @@
 #include "acmain/ac_wait.h"
 #include "ac/ac_common.h"
 #include "acrun/ac_runninggame.h"
-#include "acmain/ac_main.h"
+#include "main/game_run.h"
 
 void scrWait(int nloops) {
     if (nloops < 1)

@@ -13,6 +13,7 @@ void CheckViewFrame (int view, int loop, int frame);
 void DrawViewFrame(block target, ViewFrame *vframe, int x, int y);
 
 void allocate_memory_for_views(int viewCount);
+void precache_view(int view);
 int ViewFrame_GetFlipped(ScriptViewFrame *svf);
 int ViewFrame_GetGraphic(ScriptViewFrame *svf);
 void ViewFrame_SetGraphic(ScriptViewFrame *svf, int newPic);

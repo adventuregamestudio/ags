@@ -8,6 +8,7 @@
 #include "media/audio/audio.h"
 #include "acgui/ac_guitextbox.h"
 #include "acmain/ac_parser.h"
+#include "main/game_run.h"
 
 
 

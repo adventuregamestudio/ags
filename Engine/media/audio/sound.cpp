@@ -46,21 +46,8 @@ int numSoundChannels = 8;
 #include <ctype.h>
 #endif
 
-/*
-extern "C" {
-    extern int alogg_is_end_of_oggstream(ALOGG_OGGSTREAM *ogg);
-    extern int alogg_is_end_of_ogg(ALOGG_OGG *ogg);
-    extern int alogg_get_ogg_freq(ALOGG_OGG *ogg);
-    extern int alogg_get_ogg_stereo(ALOGG_OGG *ogg);
-}
 
-
-extern int use_extra_sound_offset;
-extern int our_eip;
-extern void quit(char *);
-extern void write_log(char*msg) ;
-//extern void sample_update_callback(SAMPLE *sample, int voice);
-*/
+int use_extra_sound_offset = 0;
 
 
 

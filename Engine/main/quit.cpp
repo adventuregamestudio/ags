@@ -17,6 +17,7 @@
 //
 
 #include "main/mainheader.h"
+#include "main/quit.h"
 
 bool handledErrorInEditor;
 

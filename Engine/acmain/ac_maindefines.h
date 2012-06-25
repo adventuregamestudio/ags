@@ -114,18 +114,7 @@
 
 
 
-#ifdef WINDOWS_VERSION
 
-#else
-
-#define wArgc argc
-#define wArgv argv
-#define LPWSTR char*
-#define LPCWSTR const char*
-#define WCHAR char
-#define StrCpyW strcpy
-
-#endif
 
 
 #undef WOUTTEXT_REVERSE

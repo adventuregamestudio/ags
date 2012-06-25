@@ -24,5 +24,6 @@ SOUNDCLIP *my_load_midi(const char *filname, int repet);
 SOUNDCLIP *my_load_mod(const char *filname, int repet);
 
 extern int numSoundChannels;
+extern int use_extra_sound_offset;
 
 #endif // __AC_SOUND_H

@@ -17,8 +17,15 @@
 //
 
 #include "main/mainheader.h"
+#include "main/game_run.h"
 
 int numEventsAtStartOfFunction;
+long t1;  // timer for FPS // ... 't1'... how very appropriate.. :)
+
+int user_disabled_for=0,user_disabled_data=0,user_disabled_data2=0;
+int user_disabled_data3=0;
+
+
 
 void game_loop_check_want_exit()
 {
@@ -439,4 +446,46 @@ int main_game_loop() {
     
     our_eip = 78;
     return 0;
+}
+
+
+void main_loop_until(int untilwhat,int udata,int mousestuff) {
+    play.disabled_user_interface++;
+    guis_need_update = 1;
+    // Only change the mouse cursor if it hasn't been specifically changed first
+    // (or if it's speech, always change it)
+    if (((cur_cursor == cur_mode) || (untilwhat == UNTIL_NOOVERLAY)) &&
+        (cur_mode != CURS_WAIT))
+        set_mouse_cursor(CURS_WAIT);
+
+    restrict_until=untilwhat;
+    user_disabled_data=udata;
+    return;
+}
+
+// This function is called from lot of various functions
+// in the game core, character, room object etc
+void do_main_cycle(int untilwhat,int daaa) {
+  // blocking cutscene - end skipping
+  EndSkippingUntilCharStops();
+
+  // this function can get called in a nested context, so
+  // remember the state of these vars in case a higher level
+  // call needs them
+  int cached_restrict_until = restrict_until;
+  int cached_user_disabled_data = user_disabled_data;
+  int cached_user_disabled_for = user_disabled_for;
+
+  main_loop_until(untilwhat,daaa,0);
+  user_disabled_for=FOR_EXITLOOP;
+  while (main_game_loop()==0) ;
+
+  restrict_until = cached_restrict_until;
+  user_disabled_data = cached_user_disabled_data;
+  user_disabled_for = cached_user_disabled_for;
+}
+
+// for external modules to call
+void next_iteration() {
+    NEXT_ITERATION();
 }

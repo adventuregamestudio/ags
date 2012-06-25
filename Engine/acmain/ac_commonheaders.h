@@ -25,7 +25,6 @@
 #include "acmain/ac_interaction.h"
 #include "acmain/ac_inventory.h"
 #include "acmain/ac_location.h"
-#include "acmain/ac_main.h"
 #include "acmain/ac_message.h"
 #include "acmain/ac_mouse.h"
 #include "acmain/ac_object.h"
@@ -44,6 +43,14 @@
 #include "acmain/ac_walkablearea.h"
 #include "acmain/ac_walkbehind.h"
 #include "debug/debug.h"
+#include "main/config.h"
+#include "main/engine.h"
+#include "main/game_run.h"
+#include "main/game_start.h"
+#include "main/graphics_mode.h"
+#include "main/main.h"
+#include "main/quit.h"
+#include "main/update.h"
 #include "script/script.h"
 
 #endif // __AC_COMMONHEADERS_H

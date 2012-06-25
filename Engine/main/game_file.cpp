@@ -17,6 +17,7 @@
 //
 
 #include "main/mainheader.h"
+#include "main/game_file.h"
 #include "ac/audioclip.h"
 #include "acgui/ac_guilabel.h"
 #include "script/exports.h"
@@ -59,9 +60,6 @@ Audio clips
 
 */
 
-// PSP specific variables:
-int psp_is_old_datafile = 0; // Set for 3.1.1 and 3.1.2 datafiles
-
 extern int engineNeedsAsInt; // defined in ac_game
 extern char saveGameSuffix[MAX_SG_EXT_LENGTH + 1];
 
@@ -73,28 +71,28 @@ extern DynamicArray<GUILabel> guilabels; // defined in ac_guilabel
 extern int numguilabels;
 
 
-int load_game_file() {
-    int ee, bb;
-    char teststr[31];
+int filever;
+// PSP specific variables:
+int psp_is_old_datafile = 0; // Set for 3.1.1 and 3.1.2 datafiles
 
-    game_paused = 0;  // reset the game paused flag
-    ifacepopped = -1;
 
-    FILE*iii = clibfopen("game28.dta", "rb"); // 3.x data file name
+FILE * game_file_open()
+{
+	FILE*iii = clibfopen("game28.dta", "rb"); // 3.x data file name
     if (iii==NULL) {
         iii = clibfopen("ac2game.dta", "rb"); // 2.x data file name
-        if (iii==NULL)
-            return -1;
     }
 
-    our_eip=-18;
-    setup_script_exports();
+	return iii;
+}
 
-    our_eip=-16;
+int game_file_read_version(FILE*iii)
+{
+	char teststr[31];
 
-    teststr[30]=0;
+	teststr[30]=0;
     fread(&teststr[0],30,1,iii);
-    int filever=getw(iii);
+    filever=getw(iii);
 
     if (filever < 42) {
         // Allow loading of 2.x+ datafiles
@@ -106,7 +104,7 @@ int load_game_file() {
         psp_is_old_datafile = 1;
     }
 
-    int engineverlen = getw(iii);
+	int engineverlen = getw(iii);
     char engineneeds[20];
     // MACPORT FIX 13/6/5: switch 'size' and 'nmemb' so it doesn't treat the string as an int
     fread(&engineneeds[0], sizeof(char), engineverlen, iii);
@@ -129,39 +127,12 @@ int load_game_file() {
 
     loaded_game_file_version = filever;
 
-    game.charScripts = NULL;
-    game.invScripts = NULL;
-    memset(&game.spriteflags[0], 0, MAX_SPRITES);
+	return RETURN_CONTINUE;
+}
 
-#ifdef ALLEGRO_BIG_ENDIAN
-    GameSetupStructBase *gameBase = (GameSetupStructBase *) &game;
-    gameBase->ReadFromFile(iii);
-#else
-    fread(&game, sizeof (GameSetupStructBase), 1, iii);
-#endif
-
-    if (filever <= 37) // <= 3.1
-    {
-        // Fix animation speed for old formats
-        game.options[OPT_OLDTALKANIMSPD] = 1;
-    }
-
-    if (game.numfonts > MAX_FONTS)
-        quit("!This game requires a newer version of AGS. Too many fonts for this version to handle.");
-
-    if (filever > 32) // only 3.x
-    {
-        fread(&game.guid[0], 1, MAX_GUID_LENGTH, iii);
-        fread(&game.saveGameFileExtension[0], 1, MAX_SG_EXT_LENGTH, iii);
-        fread(&game.saveGameFolderName[0], 1, MAX_SG_FOLDER_LEN, iii);
-
-        if (game.saveGameFileExtension[0] != 0)
-            sprintf(saveGameSuffix, ".%s", game.saveGameFileExtension);
-        else
-            saveGameSuffix[0] = 0;
-    }
-
-    fread(&game.fontflags[0], 1, game.numfonts, iii);
+void game_file_read_font_flags(FILE*iii)
+{
+	fread(&game.fontflags[0], 1, game.numfonts, iii);
     fread(&game.fontoutline[0], 1, game.numfonts, iii);
 
 #if !defined(WINDOWS_VERSION)
@@ -173,8 +144,11 @@ int load_game_file() {
             game.fontoutline[i] = FONT_OUTLINE_AUTO;
     }
 #endif
+}
 
-    int numToRead;
+void game_file_read_sprite_flags(FILE*iii)
+{
+	int numToRead;
     if (filever < 24)
         numToRead = 6000; // Fixed number of sprites on < 2.56
     else
@@ -184,6 +158,10 @@ int load_game_file() {
         quit("Too many sprites; need newer AGS version");
     }
     fread(&game.spriteflags[0], 1, numToRead, iii);
+}
+
+void game_file_read_invinfo(FILE*iii)
+{
 #ifdef ALLEGRO_BIG_ENDIAN
     for (int iteratorCount = 0; iteratorCount < game.numinvitems; ++iteratorCount)
     {
@@ -192,9 +170,12 @@ int load_game_file() {
 #else
     fread(&game.invinfo[0], sizeof(InventoryItemInfo), game.numinvitems, iii);
 #endif
+}
 
-    if (game.numcursors > MAX_CURSOR)
-        quit("Too many cursors: need newer AGS version");
+void game_file_read_cursors(FILE*iii)
+{
+	if (game.numcursors > MAX_CURSOR)
+		quit("Too many cursors: need newer AGS version");
 #ifdef ALLEGRO_BIG_ENDIAN
     for (int iteratorCount = 0; iteratorCount < game.numcursors; ++iteratorCount)
     {
@@ -204,7 +185,7 @@ int load_game_file() {
     fread(&game.mcurs[0], sizeof(MouseCursor), game.numcursors, iii);
 #endif
 
-    if (filever <= 32) // 2.x
+	if (filever <= 32) // 2.x
     {
         // Change cursor.view from 0 to -1 for non-animating cursors.
         int i;
@@ -214,11 +195,14 @@ int load_game_file() {
                 game.mcurs[i].view = -1;
         }
     }
+}
 
-    numGlobalVars = 0;
-
-    if (filever > 32) // 3.x
+void game_file_read_interaction_scripts(FILE*iii)
+{
+	if (filever > 32) // 3.x
     {
+		int bb;
+
         game.charScripts = new InteractionScripts*[game.numcharacters];
         game.invScripts = new InteractionScripts*[game.numinvitems];
         for (bb = 0; bb < game.numcharacters; bb++) {
@@ -232,6 +216,8 @@ int load_game_file() {
     }
     else // 2.x
     {
+		int bb;
+
         game.intrChar = new NewInteraction*[game.numcharacters];
 
         for (bb = 0; bb < game.numcharacters; bb++) {
@@ -244,20 +230,19 @@ int load_game_file() {
         numGlobalVars = getw(iii);
         fread(globalvars, sizeof(InteractionVariable), numGlobalVars, iii);
     }
+}
 
-    if (game.dict != NULL) {
+void game_file_read_words_dictionary(FILE*iii)
+{
+	if (game.dict != NULL) {
         game.dict = (WordsDictionary*)malloc(sizeof(WordsDictionary));
         read_dictionary (game.dict, iii);
     }
+}
 
-    if (game.compiled_script == NULL)
-        quit("No global script in game; data load error");
-
-    gamescript = fread_script(iii);
-    if (gamescript == NULL)
-        quit("Global script load failed; need newer version?");
-
-    if (filever > 37) // 3.1.1+ dialog script
+void game_file_read_dialog_script(FILE*iii)
+{
+	if (filever > 37) // 3.1.1+ dialog script
     {
         dialogScriptsScript = fread_script(iii);
         if (dialogScriptsScript == NULL)
@@ -267,14 +252,17 @@ int load_game_file() {
     {
         dialogScriptsScript = NULL;
     }
+}
 
-    if (filever >= 31) // 2.7.0+ script modules
+void game_file_read_script_modules(FILE*iii)
+{
+	if (filever >= 31) // 2.7.0+ script modules
     {
         numScriptModules = getw(iii);
         if (numScriptModules > MAX_SCRIPT_MODULES)
             quit("too many script modules; need newer version?");
 
-        for (bb = 0; bb < numScriptModules; bb++) {
+        for (int bb = 0; bb < numScriptModules; bb++) {
             scriptModules[bb] = fread_script(iii);
             if (scriptModules[bb] == NULL)
                 quit("Script module load failure; need newer version?");
@@ -287,23 +275,11 @@ int load_game_file() {
     {
         numScriptModules = 0;
     }
+}
 
-    our_eip=-15;
-
-    charextra = (CharacterExtras*)calloc(game.numcharacters, sizeof(CharacterExtras));
-    mls = (MoveList*)calloc(game.numcharacters + MAX_INIT_SPR + 1, sizeof(MoveList));
-    actSpsCount = game.numcharacters + MAX_INIT_SPR + 2;
-    actsps = (block*)calloc(actSpsCount, sizeof(block));
-    actspsbmp = (IDriverDependantBitmap**)calloc(actSpsCount, sizeof(IDriverDependantBitmap*));
-    actspswb = (block*)calloc(actSpsCount, sizeof(block));
-    actspswbbmp = (IDriverDependantBitmap**)calloc(actSpsCount, sizeof(IDriverDependantBitmap*));
-    actspswbcache = (CachedActSpsData*)calloc(actSpsCount, sizeof(CachedActSpsData));
-    game.charProps = (CustomProperties*)calloc(game.numcharacters, sizeof(CustomProperties));
-
-    allocate_memory_for_views(game.numviews);
-    int iteratorCount = 0;
-
-    if (filever > 32) // 3.x views
+void game_file_read_views(FILE*iii)
+{
+	if (filever > 32) // 3.x views
     {
         for (int iteratorCount = 0; iteratorCount < game.numviews; ++iteratorCount)
         {
@@ -313,23 +289,18 @@ int load_game_file() {
     else // 2.x views
     {
         ViewStruct272* oldv = (ViewStruct272*)calloc(game.numviews, sizeof(ViewStruct272));
-        for (iteratorCount = 0; iteratorCount < game.numviews; ++iteratorCount)
+        for (int iteratorCount = 0; iteratorCount < game.numviews; ++iteratorCount)
         {
             oldv[iteratorCount].ReadFromFile(iii);
         }
         Convert272ViewsToNew(game.numviews, oldv, views);
         free(oldv);
     }
+}
 
-    our_eip=-14;
-
-    if (filever <= 19) // <= 2.1 skip unknown data
-    {
-        int count = getw(iii);
-        fseek(iii, count * 0x204, SEEK_CUR);
-    }
-
-    game.chars=(CharacterInfo*)calloc(1,sizeof(CharacterInfo)*game.numcharacters+5);
+void game_file_read_characters(FILE*iii)
+{
+	game.chars=(CharacterInfo*)calloc(1,sizeof(CharacterInfo)*game.numcharacters+5);
 #ifdef ALLEGRO_BIG_ENDIAN
     for (int iteratorCount = 0; iteratorCount < game.numcharacters; ++iteratorCount)
     {
@@ -361,11 +332,17 @@ int load_game_file() {
                 game.chars[i].flags |= CHF_ANTIGLIDE;
         }
     }
+}
 
-    if (filever > 19) // > 2.1
+void game_file_read_lipsync(FILE*iii)
+{
+	if (filever > 19) // > 2.1
         fread(&game.lipSyncFrameLetters[0][0], MAXLIPSYNCFRAMES, 50, iii);
+}
 
-    for (ee=0;ee<MAXGLOBALMES;ee++) {
+void game_file_read_messages(FILE*iii)
+{
+	for (int ee=0;ee<MAXGLOBALMES;ee++) {
         if (game.messages[ee]==NULL) continue;
         game.messages[ee]=(char*)malloc(500);
 
@@ -397,9 +374,11 @@ int load_game_file() {
     set_default_glmsg (993, "Quit");
     set_default_glmsg (994, "Play");
     set_default_glmsg (995, "Are you sure you want to quit?");
-    our_eip=-13;
+}
 
-    dialog=(DialogTopic*)malloc(sizeof(DialogTopic)*game.numdialog+5);
+void game_file_read_dialogs(FILE*iii)
+{
+	dialog=(DialogTopic*)malloc(sizeof(DialogTopic)*game.numdialog+5);
 
 #ifdef ALLEGRO_BIG_ENDIAN
     for (int iteratorCount = 0; iteratorCount < game.numdialog; ++iteratorCount)
@@ -415,7 +394,7 @@ int load_game_file() {
         old_dialog_scripts = (unsigned char**)malloc(game.numdialog * sizeof(unsigned char**));
 
         int i;
-        for (i = 0; i < game.numdialog; i++)
+        for (int i = 0; i < game.numdialog; i++)
         {
             old_dialog_scripts[i] = (unsigned char*)malloc(dialog[i].codesize);
             fread(old_dialog_scripts[i], dialog[i].codesize, 1, iii);
@@ -485,17 +464,23 @@ int load_game_file() {
         }
         old_speech_lines = (char**)realloc(old_speech_lines, i * sizeof(char**));
     }
+}
 
-    read_gui(iii,guis,&game, &guis);
+void game_file_read_gui(FILE*iii)
+{
+	read_gui(iii,guis,&game, &guis);
 
-    for (bb = 0; bb < numguilabels; bb++) {
+    for (int bb = 0; bb < numguilabels; bb++) {
         // labels are not clickable by default
         guilabels[bb].SetClickable(false);
     }
 
     play.gui_draw_order = (int*)calloc(game.numgui * sizeof(int), 1);
+}
 
-    if (filever >= 25) // >= 2.60
+void game_file_read_plugins(FILE*iii)
+{
+	if (filever >= 25) // >= 2.60
     {
         platform->ReadPluginsFromDisk(iii);
 
@@ -503,6 +488,7 @@ int load_game_file() {
             quit("load room: unable to deserialize prop schema");
 
         int errors = 0;
+		int bb;
 
         for (bb = 0; bb < game.numcharacters; bb++)
             errors += game.charProps[bb].UnSerialize (iii);
@@ -521,8 +507,11 @@ int load_game_file() {
         for (bb = 0; bb < game.numdialog; bb++)
             fgetstring_limit(game.dialogScriptNames[bb], iii, MAX_SCRIPT_NAME_LEN);
     }
+}
 
-    if (filever >= 41)
+void game_file_read_audio(FILE*iii)
+{
+	if (filever >= 41)
     {
         game.audioClipTypeCount = getw(iii);
 
@@ -579,13 +568,16 @@ int load_game_file() {
                 play.score_sound = -1;
         }
     }
+}
 
-    if ((filever >= 36) && (game.options[OPT_DEBUGMODE] != 0))
+void game_file_read_room_names(FILE*iii)
+{
+	if ((filever >= 36) && (game.options[OPT_DEBUGMODE] != 0))
     {
         game.roomCount = getw(iii);
         game.roomNumbers = (int*)malloc(game.roomCount * sizeof(int));
         game.roomNames = (char**)malloc(game.roomCount * sizeof(char*));
-        for (bb = 0; bb < game.roomCount; bb++)
+        for (int bb = 0; bb < game.roomCount; bb++)
         {
             game.roomNumbers[bb] = getw(iii);
             fgetstring_limit(pexbuf, iii, sizeof(pexbuf));
@@ -597,18 +589,13 @@ int load_game_file() {
     {
         game.roomCount = 0;
     }
+}
 
-    fclose(iii);
+void init_and_register_characters()
+{
+	characterScriptObjNames = (char**)malloc(sizeof(char*) * game.numcharacters);
 
-    update_gui_zorder();
-
-    if (game.numfonts == 0)
-        return -2;  // old v2.00 version
-
-    our_eip=-11;
-    characterScriptObjNames = (char**)malloc(sizeof(char*) * game.numcharacters);
-
-    for (ee=0;ee<game.numcharacters;ee++) {
+    for (int ee=0;ee<game.numcharacters;ee++) {
         game.chars[ee].walking = 0;
         game.chars[ee].animating = 0;
         game.chars[ee].pic_xoffs = 0;
@@ -630,22 +617,31 @@ int load_game_file() {
 
         ccAddExternalSymbol(characterScriptObjNames[ee], &game.chars[ee]);
     }
+}
 
-    for (ee = 0; ee < MAX_HOTSPOTS; ee++) {
+void init_and_register_hotspots()
+{
+	for (int ee = 0; ee < MAX_HOTSPOTS; ee++) {
         scrHotspot[ee].id = ee;
         scrHotspot[ee].reserved = 0;
 
         ccRegisterManagedObject(&scrHotspot[ee], &ccDynamicHotspot);
     }
+}
 
-    for (ee = 0; ee < MAX_REGIONS; ee++) {
+void init_and_register_regions()
+{
+	for (int ee = 0; ee < MAX_REGIONS; ee++) {
         scrRegion[ee].id = ee;
         scrRegion[ee].reserved = 0;
 
         ccRegisterManagedObject(&scrRegion[ee], &ccDynamicRegion);
     }
+}
 
-    for (ee = 0; ee < MAX_INV; ee++) {
+void init_and_register_invitems()
+{
+	for (int ee = 0; ee < MAX_INV; ee++) {
         scrInv[ee].id = ee;
         scrInv[ee].reserved = 0;
 
@@ -654,8 +650,11 @@ int load_game_file() {
         if (game.invScriptNames[ee][0] != 0)
             ccAddExternalSymbol(game.invScriptNames[ee], &scrInv[ee]);
     }
+}
 
-    for (ee = 0; ee < game.numdialog; ee++) {
+void init_and_register_dialogs()
+{
+	for (int ee = 0; ee < game.numdialog; ee++) {
         scrDialog[ee].id = ee;
         scrDialog[ee].reserved = 0;
 
@@ -664,8 +663,13 @@ int load_game_file() {
         if (game.dialogScriptNames[ee][0] != 0)
             ccAddExternalSymbol(game.dialogScriptNames[ee], &scrDialog[ee]);
     }
+}
 
-    scrGui = (ScriptGUI*)malloc(sizeof(ScriptGUI) * game.numgui);
+void init_and_register_guis()
+{
+	int ee;
+
+	scrGui = (ScriptGUI*)malloc(sizeof(ScriptGUI) * game.numgui);
     for (ee = 0; ee < game.numgui; ee++) {
         scrGui[ee].gui = NULL;
         scrGui[ee].id = -1;
@@ -697,9 +701,12 @@ int load_game_file() {
 
     //ccRegisterManagedObject(&dummygui, NULL);
     //ccRegisterManagedObject(&dummyguicontrol, NULL);
+}
 
-    our_eip=-22;
-    for (ee=0;ee<game.numfonts;ee++) 
+void init_and_register_fonts()
+{
+	our_eip=-22;
+    for (int ee=0;ee<game.numfonts;ee++) 
     {
         int fontsize = game.fontflags[ee] & FFLG_SIZEMASK;
         if (fontsize == 0)
@@ -711,13 +718,24 @@ int load_game_file() {
         if (!wloadfont_size(ee, fontsize))
             quitprintf("Unable to load font %d, no renderer could load a matching file", ee);
     }
+}
+
+void init_and_register_game_objects()
+{
+	init_and_register_characters();
+	init_and_register_hotspots();
+	init_and_register_regions();
+	init_and_register_invitems();
+	init_and_register_dialogs();
+	init_and_register_guis();
+    init_and_register_fonts();    
 
     wtexttransparent(TEXTFG);
     play.fade_effect=game.options[OPT_FADETYPE];
 
     our_eip=-21;
 
-    for (ee = 0; ee < MAX_INIT_SPR; ee++) {
+    for (int ee = 0; ee < MAX_INIT_SPR; ee++) {
         ccRegisterManagedObject(&scrObj[ee], &ccDynamicObject);
     }
 
@@ -739,13 +757,158 @@ int load_game_file() {
     ccAddExternalSymbol("region",&scrRegion[0]);
     ccAddExternalSymbol("inventory",&scrInv[0]);
     ccAddExternalSymbol("dialog", &scrDialog[0]);
+}
+
+int load_game_file() {
+
+	int res;    
+
+    game_paused = 0;  // reset the game paused flag
+    ifacepopped = -1;
+
+	//-----------------------------------------------------------
+	// Start reading from file
+	//-----------------------------------------------------------
+
+    FILE*iii = game_file_open();
+	if (iii==NULL)
+		return -1;
+
+    our_eip=-18;
+
+    setup_script_exports();
+
+    our_eip=-16;
+
+	res = game_file_read_version(iii);
+	if (res != RETURN_CONTINUE) {
+		return res;
+	}
+
+    game.charScripts = NULL;
+    game.invScripts = NULL;
+    memset(&game.spriteflags[0], 0, MAX_SPRITES);
+
+#ifdef ALLEGRO_BIG_ENDIAN
+    GameSetupStructBase *gameBase = (GameSetupStructBase *) &game;
+    gameBase->ReadFromFile(iii);
+#else
+    fread(&game, sizeof (GameSetupStructBase), 1, iii);
+#endif
+
+    if (filever <= 37) // <= 3.1
+    {
+        // Fix animation speed for old formats
+        game.options[OPT_OLDTALKANIMSPD] = 1;
+    }
+
+    if (game.numfonts > MAX_FONTS)
+        quit("!This game requires a newer version of AGS. Too many fonts for this version to handle.");
+
+    if (filever > 32) // only 3.x
+    {
+        fread(&game.guid[0], 1, MAX_GUID_LENGTH, iii);
+        fread(&game.saveGameFileExtension[0], 1, MAX_SG_EXT_LENGTH, iii);
+        fread(&game.saveGameFolderName[0], 1, MAX_SG_FOLDER_LEN, iii);
+
+        if (game.saveGameFileExtension[0] != 0)
+            sprintf(saveGameSuffix, ".%s", game.saveGameFileExtension);
+        else
+            saveGameSuffix[0] = 0;
+    }
+
+	game_file_read_font_flags(iii);
+
+	game_file_read_sprite_flags(iii);
+    
+	game_file_read_invinfo(iii);
+
+	game_file_read_cursors(iii);
+
+    numGlobalVars = 0;
+
+	game_file_read_interaction_scripts(iii);
+
+	game_file_read_words_dictionary(iii);
+
+    if (game.compiled_script == NULL)
+        quit("No global script in game; data load error");
+
+    gamescript = fread_script(iii);
+    if (gamescript == NULL)
+        quit("Global script load failed; need newer version?");
+
+	game_file_read_dialog_script(iii);
+
+	game_file_read_script_modules(iii);
+
+    our_eip=-15;
+
+    charextra = (CharacterExtras*)calloc(game.numcharacters, sizeof(CharacterExtras));
+    mls = (MoveList*)calloc(game.numcharacters + MAX_INIT_SPR + 1, sizeof(MoveList));
+    actSpsCount = game.numcharacters + MAX_INIT_SPR + 2;
+    actsps = (block*)calloc(actSpsCount, sizeof(block));
+    actspsbmp = (IDriverDependantBitmap**)calloc(actSpsCount, sizeof(IDriverDependantBitmap*));
+    actspswb = (block*)calloc(actSpsCount, sizeof(block));
+    actspswbbmp = (IDriverDependantBitmap**)calloc(actSpsCount, sizeof(IDriverDependantBitmap*));
+    actspswbcache = (CachedActSpsData*)calloc(actSpsCount, sizeof(CachedActSpsData));
+    game.charProps = (CustomProperties*)calloc(game.numcharacters, sizeof(CustomProperties));
+
+    allocate_memory_for_views(game.numviews);
+    int iteratorCount = 0;
+
+	game_file_read_views(iii);
+
+    our_eip=-14;
+
+    if (filever <= 19) // <= 2.1 skip unknown data
+    {
+        int count = getw(iii);
+        fseek(iii, count * 0x204, SEEK_CUR);
+    }
+
+	game_file_read_characters(iii);
+
+	game_file_read_lipsync(iii);
+
+	game_file_read_messages(iii);
+    
+    our_eip=-13;
+
+	game_file_read_dialogs(iii);
+
+	game_file_read_gui(iii);
+
+	game_file_read_plugins(iii);
+
+	game_file_read_audio(iii);
+
+    game_file_read_room_names(iii);
+
+	fclose(iii);
+
+	//-----------------------------------------------------------
+	// Reading from file is finished here
+	//-----------------------------------------------------------
+
+    update_gui_zorder();
+
+    if (game.numfonts == 0)
+        return -2;  // old v2.00 version
+
+    our_eip=-11;
+
+	init_and_register_game_objects();    
 
     our_eip = -23;
+
     platform->StartPlugins();
 
     our_eip = -24;
+
     ccSetScriptAliveTimer(150000);
     ccSetStringClassImpl(&myScriptStringImpl);
+
     if (create_global_script())
         return -3;
 

@@ -10,6 +10,17 @@
 // PSP specific variables:
 extern int psp_is_old_datafile; // Set for 3.1.1 and 3.1.2 datafiles // in ac_game
 
+void precache_view(int view) 
+{
+    if (view < 0) 
+        return;
+
+    for (int i = 0; i < views[view].numLoops; i++) {
+        for (int j = 0; j < views[view].loops[i].numFrames; j++)
+            spriteset.precache (views[view].loops[i].frames[j].pic);
+    }
+}
+
 void SetFrameSound (int vii, int loop, int frame, int sound) {
     if ((vii < 1) || (vii > game.numviews))
         quit("!SetFrameSound: invalid view number");

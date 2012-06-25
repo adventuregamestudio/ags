@@ -23,6 +23,7 @@
 //
 
 #include "main/mainheader.h"
+#include "main/main.h"
 #include "routefnd.h"
 
 #ifdef MAC_VERSION
@@ -34,7 +35,43 @@ extern "C"
 }
 #endif
 
+
+#ifdef WINDOWS_VERSION
+
+int wArgc;
+LPWSTR *wArgv;
+
+#endif
+
+#ifndef WINDOWS_VERSION
+char **global_argv = 0;
+#endif
+
 extern "C" int  cfopenpriority;
+
+
+// Startup flags, set from parameters to engine
+int datafile_argv=0, change_to_game_dir = 0, force_window = 0;
+int override_start_room = 0, force_16bit = 0;
+bool justRegisterGame = false;
+bool justUnRegisterGame = false;
+const char *loadSaveGameOnStartup = NULL;
+
+
+#if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
+int psp_video_framedrop = 1;
+int psp_audio_enabled = 1;
+int psp_midi_enabled = 1;
+int psp_ignore_acsetup_cfg_file = 0;
+int psp_clear_cache_on_room_change = 0;
+
+int psp_midi_preload_patches = 0;
+int psp_audio_cachesize = 10;
+char psp_game_file_name[] = "ac2game.dat";
+int psp_gfx_smooth_sprites = 1;
+char psp_translation[] = "default";
+#endif
+
 
 void main_pre_init()
 {
@@ -223,6 +260,18 @@ void main_set_gamedir(int argc,char*argv[])
     getcwd(dataDirectory, 512);
 #endif
 }
+
+#if defined(WINDOWS_VERSION)
+#include <new.h>
+char tempmsg[100];
+char*printfworkingspace;
+int malloc_fail_handler(size_t amountwanted) {
+  free(printfworkingspace);
+  sprintf(tempmsg,"Out of memory: failed to allocate %ld bytes (at PP=%d)",amountwanted, our_eip);
+  quit(tempmsg);
+  return 0;
+}
+#endif
 
 int main(int argc,char*argv[]) { 
     

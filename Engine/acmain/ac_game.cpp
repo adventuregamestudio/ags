@@ -49,10 +49,13 @@ char pexbuf[STD_BUFFER_SIZE];
 unsigned int load_new_game = 0;
 int load_new_game_restore = -1;
 
+
+#if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(WINDOWS_VERSION)
 extern int psp_gfx_smoothing;
 extern int psp_gfx_scaling;
 extern int psp_gfx_renderer;
 extern int psp_gfx_super_sampling;
+#endif
 
 
 

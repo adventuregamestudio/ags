@@ -17,6 +17,7 @@
 //
 
 #include "main/mainheader.h"
+#include "main/config.h"
 
 //char datname[80]="ac.clb";
 char ac_conf_file_defname[MAX_PATH] = "acsetup.cfg";

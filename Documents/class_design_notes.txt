@@ -11,3 +11,16 @@ There should be interfaces wrapping low-level functionality to be used instead o
 references.
 
 
+
+
+What classes do we need? Thoughts -
+
+Engine - obviously, at least for init and main loop.
+Game
+Room
+Character
+Object (RoomObject)
+Hotspot
+Region
+
+Speech/ConversationManager (Speech/ConversationController) - implements speech style (lucas art, sierra etc)

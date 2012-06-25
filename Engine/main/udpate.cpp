@@ -12,166 +12,141 @@
 
 */
 
+//
+// Game update procedure
+//
+
 #include "main/mainheader.h"
-#include "acmain/ac_main.h"
-
-#ifdef WINDOWS_VERSION
-int wArgc;
-LPWSTR *wArgv;
-#endif
-
-// **** GLOBALS ****
-char *music_file;
-char *speech_file;
-WCHAR directoryPathBuffer[MAX_PATH];
-
-// How is this actually used??
-// We need COLOR_DEPTH_24 to allow it to load the preload PCX in hi-col
-BEGIN_COLOR_DEPTH_LIST
-    COLOR_DEPTH_8
-    COLOR_DEPTH_15
-    COLOR_DEPTH_16
-    COLOR_DEPTH_24
-    COLOR_DEPTH_32
-END_COLOR_DEPTH_LIST
+#include "main/update.h"
 
 
-extern "C" HWND allegro_wnd;
+#define MAX_SHEEP 30	// sheep == follower
 
 
-// for external modules to call
-void next_iteration() {
-    NEXT_ITERATION();
-}
+int do_movelist_move(short*mlnum,int*xx,int*yy) {
+  int need_to_fix_sprite=0;
+  if (mlnum[0]<1) quit("movelist_move: attempted to move on a non-exist movelist");
+  MoveList*cmls; cmls=&mls[mlnum[0]];
+  fixed xpermove=cmls->xpermove[cmls->onstage],ypermove=cmls->ypermove[cmls->onstage];
 
+  short targetx=short((cmls->pos[cmls->onstage+1] >> 16) & 0x00ffff);
+  short targety=short(cmls->pos[cmls->onstage+1] & 0x00ffff);
+  int xps=xx[0],yps=yy[0];
+  if (cmls->doneflag & 1) {
+    // if the X-movement has finished, and the Y-per-move is < 1, finish
+    // This can cause jump at the end, but without it the character will
+    // walk on the spot for a while if the Y-per-move is for example 0.2
+//    if ((ypermove & 0xfffff000) == 0) cmls->doneflag|=2;
+//    int ypmm=(ypermove >> 16) & 0x0000ffff;
 
-void precache_view(int view) 
-{
-    if (view < 0) 
-        return;
+    // NEW 2.15 SR-1 plan: if X-movement has finished, and Y-per-move is < 1,
+    // allow it to finish more easily by moving target zone
 
-    for (int i = 0; i < views[view].numLoops; i++) {
-        for (int j = 0; j < views[view].loops[i].numFrames; j++)
-            spriteset.precache (views[view].loops[i].frames[j].pic);
+    int adjAmnt = 3;
+    // 2.70: if the X permove is also <=1, don't do the skipping
+    if (((xpermove & 0xffff0000) == 0xffff0000) ||
+        ((xpermove & 0xffff0000) == 0x00000000))
+      adjAmnt = 2;
+
+    // 2.61 RC1: correct this to work with > -1 as well as < 1
+    if (ypermove == 0) { }
+    // Y per move is < 1, so finish the move
+    else if ((ypermove & 0xffff0000) == 0)
+      targety -= adjAmnt;
+    // Y per move is -1 exactly, don't snap to finish
+    else if (ypermove == 0xffff0000) { }
+    // Y per move is > -1, so finish the move
+    else if ((ypermove & 0xffff0000) == 0xffff0000)
+      targety += adjAmnt;
+  }
+  else xps=cmls->fromx+(int)(fixtof(xpermove)*(float)cmls->onpart);
+
+  if (cmls->doneflag & 2) {
+    // Y-movement has finished
+
+    int adjAmnt = 3;
+
+    // if the Y permove is also <=1, don't skip as far
+    if (((ypermove & 0xffff0000) == 0xffff0000) ||
+        ((ypermove & 0xffff0000) == 0x00000000))
+      adjAmnt = 2;
+
+    if (xpermove == 0) { }
+    // Y per move is < 1, so finish the move
+    else if ((xpermove & 0xffff0000) == 0)
+      targetx -= adjAmnt;
+    // X per move is -1 exactly, don't snap to finish
+    else if (xpermove == 0xffff0000) { }
+    // X per move is > -1, so finish the move
+    else if ((xpermove & 0xffff0000) == 0xffff0000)
+      targetx += adjAmnt;
+
+/*    int xpmm=(xpermove >> 16) & 0x0000ffff;
+//    if ((xpmm==0) | (xpmm==0xffff)) cmls->doneflag|=1;
+    if (xpmm==0) cmls->doneflag|=1;*/
     }
-}
-
-
-
-
-#if defined(PSP_VERSION)
-// PSP: Workaround for sound stuttering. Do sound updates in its own thread.
-int update_mp3_thread(SceSize args, void *argp)
-{
-  while (update_mp3_thread_running)
-  {
-    UPDATE_MP3_THREAD
-    sceKernelDelayThread(1000 * 50);
+  else yps=cmls->fromy+(int)(fixtof(ypermove)*(float)cmls->onpart);
+  // check if finished horizontal movement
+  if (((xpermove > 0) && (xps >= targetx)) ||
+      ((xpermove < 0) && (xps <= targetx))) {
+    cmls->doneflag|=1;
+    xps = targetx;
+    // if the Y is almost there too, finish it
+    // this is new in v2.40
+    // removed in 2.70
+    /*if (abs(yps - targety) <= 2)
+      yps = targety;*/
   }
-  return 0;
-}
-#elif (defined(LINUX_VERSION) && !defined(PSP_VERSION)) || defined(MAC_VERSION)
-void* update_mp3_thread(void* arg)
-{
-  while (update_mp3_thread_running)
-  {
-    UPDATE_MP3_THREAD
-    usleep(1000 * 50);
+  else if (xpermove == 0)
+    cmls->doneflag|=1;
+  // check if finished vertical movement
+  if ((ypermove > 0) & (yps>=targety)) {
+    cmls->doneflag|=2;
+    yps = targety;
   }
-  pthread_exit(NULL);
-}
-#elif defined(WINDOWS_VERSION)
-DWORD WINAPI update_mp3_thread(LPVOID lpParam)
-{
-  while (update_mp3_thread_running)
-  {
-    UPDATE_MP3_THREAD
-    Sleep(50);
+  else if ((ypermove < 0) & (yps<=targety)) {
+    cmls->doneflag|=2;
+    yps = targety;
   }
-  return 0;
-}
-#endif
+  else if (ypermove == 0)
+    cmls->doneflag|=2;
+
+  if ((cmls->doneflag & 0x03)==3) {
+    // this stage is done, go on to the next stage
+    // signed shorts to ensure that numbers like -20 do not become 65515
+    cmls->fromx=(signed short)((cmls->pos[cmls->onstage+1] >> 16) & 0x000ffff);
+    cmls->fromy=(signed short)(cmls->pos[cmls->onstage+1] & 0x000ffff);
+    if ((cmls->fromx > 65000) || (cmls->fromy > 65000))
+      quit("do_movelist: int to short rounding error");
+
+    cmls->onstage++; cmls->onpart=-1; cmls->doneflag&=0xf0;
+    cmls->lastx=-1;
+    if (cmls->onstage < cmls->numstage) {
+      xps=cmls->fromx; yps=cmls->fromy; }
+    if (cmls->onstage>=cmls->numstage-1) {  // last stage is just dest pos
+      cmls->numstage=0;
+      mlnum[0]=0;
+      need_to_fix_sprite=1;
+      }
+    else need_to_fix_sprite=2;
+    }
+  cmls->onpart++;
+  xx[0]=xps; yy[0]=yps;
+  return need_to_fix_sprite;
+  }
 
 
-int user_disabled_for=0,user_disabled_data=0,user_disabled_data2=0;
-int user_disabled_data3=0;
-
-
-// check and abort game if the script is currently
-// inside the rep_exec_always function
-void can_run_delayed_command() {
-  if (no_blocking_functions)
-    quit("!This command cannot be used within non-blocking events such as " REP_EXEC_ALWAYS_NAME);
-}
-
-
-void main_loop_until(int untilwhat,int udata,int mousestuff) {
-    play.disabled_user_interface++;
-    guis_need_update = 1;
-    // Only change the mouse cursor if it hasn't been specifically changed first
-    // (or if it's speech, always change it)
-    if (((cur_cursor == cur_mode) || (untilwhat == UNTIL_NOOVERLAY)) &&
-        (cur_mode != CURS_WAIT))
-        set_mouse_cursor(CURS_WAIT);
-
-    restrict_until=untilwhat;
-    user_disabled_data=udata;
-    return;
-}
-
-
-
-// Sierra-style speech settings
-int face_talking=-1,facetalkview=0,facetalkwait=0,facetalkframe=0;
-int facetalkloop=0, facetalkrepeat = 0, facetalkAllowBlink = 1;
-int facetalkBlinkLoop = 0;
-CharacterInfo *facetalkchar = NULL;
-
-
-
-// update_stuff: moves and animates objects, executes repeat scripts, and
-// the like.
-void update_stuff() {
-  int aa;
-  our_eip = 20;
-
+void update_script_timers()
+{
   if (play.gscript_timer > 0) play.gscript_timer--;
-  for (aa=0;aa<MAX_TIMERS;aa++) {
+  for (int aa=0;aa<MAX_TIMERS;aa++) {
     if (play.script_timers[aa] > 1) play.script_timers[aa]--;
     }
-  // update graphics for object if cycling view
-  for (aa=0;aa<croom->numobj;aa++) {
-    if (objs[aa].on != 1) continue;
-    if (objs[aa].moving>0) {
-      do_movelist_move(&objs[aa].moving,&objs[aa].x,&objs[aa].y);
-      }
-    if (objs[aa].cycling==0) continue;
-    if (objs[aa].view<0) continue;
-    if (objs[aa].wait>0) { objs[aa].wait--; continue; }
+}
 
-    if (objs[aa].cycling >= ANIM_BACKWARDS) {
-      // animate backwards
-      objs[aa].frame--;
-      if (objs[aa].frame < 0) {
-        if ((objs[aa].loop > 0) && 
-           (views[objs[aa].view].loops[objs[aa].loop - 1].RunNextLoop())) 
-        {
-          // If it's a Go-to-next-loop on the previous one, then go back
-          objs[aa].loop --;
-          objs[aa].frame = views[objs[aa].view].loops[objs[aa].loop].numFrames - 1;
-        }
-        else if (objs[aa].cycling % ANIM_BACKWARDS == ANIM_ONCE) {
-          // leave it on the first frame
-          objs[aa].cycling = 0;
-          objs[aa].frame = 0;
-        }
-        else { // repeating animation
-          objs[aa].frame = views[objs[aa].view].loops[objs[aa].loop].numFrames - 1;
-        }
-      }
-    }
-    else {  // Animate forwards
-      objs[aa].frame++;
+void update_cycle_view_forwards(int &aa)
+{
+	objs[aa].frame++;
       if (objs[aa].frame >= views[objs[aa].view].loops[objs[aa].loop].numFrames) {
         // go to next loop thing
         if (views[objs[aa].view].loops[objs[aa].loop].RunNextLoop()) {
@@ -197,6 +172,52 @@ void update_stuff() {
           objs[aa].frame=0;
         }
       }
+}
+
+void update_cycle_view_backwards(int &aa)
+{
+	// animate backwards
+      objs[aa].frame--;
+      if (objs[aa].frame < 0) {
+        if ((objs[aa].loop > 0) && 
+           (views[objs[aa].view].loops[objs[aa].loop - 1].RunNextLoop())) 
+        {
+          // If it's a Go-to-next-loop on the previous one, then go back
+          objs[aa].loop --;
+          objs[aa].frame = views[objs[aa].view].loops[objs[aa].loop].numFrames - 1;
+        }
+        else if (objs[aa].cycling % ANIM_BACKWARDS == ANIM_ONCE) {
+          // leave it on the first frame
+          objs[aa].cycling = 0;
+          objs[aa].frame = 0;
+        }
+        else { // repeating animation
+          objs[aa].frame = views[objs[aa].view].loops[objs[aa].loop].numFrames - 1;
+        }
+      }
+}
+
+void update_cycling_views()
+{
+	// update graphics for object if cycling view
+  for (int aa=0;aa<croom->numobj;aa++) {
+    if (objs[aa].on != 1) continue;
+    if (objs[aa].moving>0) {
+      do_movelist_move(&objs[aa].moving,&objs[aa].x,&objs[aa].y);
+      }
+    if (objs[aa].cycling==0) continue;
+    if (objs[aa].view<0) continue;
+    if (objs[aa].wait>0) { objs[aa].wait--; continue; }
+
+    if (objs[aa].cycling >= ANIM_BACKWARDS) {
+
+      update_cycle_view_backwards(aa);
+
+    }
+    else {  // Animate forwards
+      
+	  update_cycle_view_forwards(aa);
+
     }  // end if forwards
 
     ViewFrame*vfptr=&views[objs[aa].view].loops[objs[aa].loop].frames[objs[aa].frame];
@@ -208,9 +229,11 @@ void update_stuff() {
     objs[aa].wait=vfptr->speed+objs[aa].overall_speed;
     CheckViewFrame (objs[aa].view, objs[aa].loop, objs[aa].frame);
   }
-  our_eip = 21;
+}
 
-  // shadow areas
+void update_shadow_areas()
+{
+	// shadow areas
   int onwalkarea = get_walkable_area_at_character (game.playercharacter);
   if (onwalkarea<0) ;
   else if (playerchar->flags & CHF_FIXVIEW) ;
@@ -219,18 +242,10 @@ void update_stuff() {
     else if (thisroom.options[ST_MANVIEW]==0) playerchar->view=playerchar->defview;
     else playerchar->view=thisroom.options[ST_MANVIEW]-1;
   }
-  our_eip = 22;
+}
 
-  #define MAX_SHEEP 30
-  int numSheep = 0;
-  int followingAsSheep[MAX_SHEEP];
-
-  // move & animate characters
-  for (aa=0;aa<game.numcharacters;aa++) {
-    if (game.chars[aa].on != 1) continue;
-    CharacterInfo*chi=&game.chars[aa];
-    
-    // walking
+int update_character_walking(CharacterInfo*chi, int &aa)
+{
     if (chi->walking >= TURNING_AROUND) {
       // Currently rotating to correct direction
       if (chi->walkwait > 0) chi->walkwait--;
@@ -264,16 +279,16 @@ void update_stuff() {
           chi->walking = chi->walking % TURNING_BACKWARDS;
         charextra[aa].animwait = 0;
       }
-      continue;
+	  return RETURN_CONTINUE;
+      //continue;
     }
-    // Make sure it doesn't flash up a blue cup
-    if (chi->view < 0) ;
-    else if (chi->loop >= views[chi->view].numLoops)
-      chi->loop = 0;
 
-    int doing_nothing = 1;
+	return 0;
+}
 
-    if ((chi->walking > 0) && (chi->room == displayed_room))
+void update_character_moving(CharacterInfo*chi, int &aa, int &doing_nothing)
+{
+	if ((chi->walking > 0) && (chi->room == displayed_room))
     {
       if (chi->walkwait > 0) chi->walkwait--;
       else 
@@ -370,7 +385,11 @@ void update_stuff() {
       }
       doing_nothing = 0;
     }
-    // not moving, but animating
+}
+
+int update_character_animating(CharacterInfo*chi, int &aa, int &doing_nothing)
+{
+	// not moving, but animating
     // idleleft is <0 while idle view is playing (.animating is 0)
     if (((chi->animating != 0) || (chi->idleleft < 0)) &&
         ((chi->walking == 0) || ((chi->flags & CHF_MOVENOTWALK) != 0)) &&
@@ -395,7 +414,8 @@ void update_stuff() {
           CheckViewFrameForCharacter(chi);
         }
         
-        continue;
+        //continue;
+		return RETURN_CONTINUE;
       }
       else {
         int oldframe = chi->frame;
@@ -482,7 +502,12 @@ void update_stuff() {
       }
     }
 
-    if ((chi->following >= 0) && (chi->followinfo == FOLLOW_ALWAYSONTOP)) {
+	return 0;
+}
+
+void update_character_follower(CharacterInfo*chi, int &aa, int &numSheep, int *followingAsSheep, int &doing_nothing)
+{
+	if ((chi->following >= 0) && (chi->followinfo == FOLLOW_ALWAYSONTOP)) {
       // an always-on-top follow
       if (numSheep >= MAX_SHEEP)
         quit("too many sheep");
@@ -560,8 +585,11 @@ void update_stuff() {
         doing_nothing = 0;
       }
     }
+}
 
-    // no idle animation, so skip this bit
+void update_character_idle(CharacterInfo*chi, int &aa, int &doing_nothing)
+{
+	// no idle animation, so skip this bit
     if (chi->idleview < 1) ;
     // currently playing idle anim
     else if (chi->idleleft < 0) ;
@@ -605,12 +633,49 @@ void update_stuff() {
         chi->animating = 0;
       }
     }  // end do idle animation
+}
+
+void update_character_move_and_anim(int &numSheep, int *followingAsSheep)
+{
+	int res;
+
+	// move & animate characters
+  for (int aa=0;aa<game.numcharacters;aa++) {
+    if (game.chars[aa].on != 1) continue;
+    CharacterInfo*chi=&game.chars[aa];
+    
+	// walking
+	res = update_character_walking(chi, aa);
+	if (res == RETURN_CONTINUE) { // [IKM] now, this is one of those places...
+		continue;				  //  must be careful not to screw things up
+	}
+    
+    // Make sure it doesn't flash up a blue cup
+    if (chi->view < 0) ;
+    else if (chi->loop >= views[chi->view].numLoops)
+      chi->loop = 0;
+
+    int doing_nothing = 1;
+
+	update_character_moving(chi, aa, doing_nothing);
+
+	res = update_character_animating(chi, aa, doing_nothing);
+	if (res == RETURN_CONTINUE) { // [IKM] now, this is one of those places...
+		continue;				  //  must be careful not to screw things up
+	}    
+
+	update_character_follower(chi, aa, numSheep, followingAsSheep, doing_nothing);
+
+	update_character_idle(chi, aa, doing_nothing);
 
     charextra[aa].process_idle_this_time = 0;
   }
+}
 
-  // update location of all following_exactly characters
-  for (aa = 0; aa < numSheep; aa++) {
+void update_following_exactly_characters(int &numSheep, int *followingAsSheep)
+{
+	// update location of all following_exactly characters
+  for (int aa = 0; aa < numSheep; aa++) {
     CharacterInfo *chi = &game.chars[followingAsSheep[aa]];
 
     chi->x = game.chars[chi->following].x;
@@ -626,19 +691,23 @@ void update_stuff() {
     else
       chi->baseline = usebase + 1;
   }
+}
 
-  our_eip = 23;
-
-  // update overlay timers
-  for (aa=0;aa<numscreenover;aa++) {
+void update_overlay_timers()
+{
+	// update overlay timers
+  for (int aa=0;aa<numscreenover;aa++) {
     if (screenover[aa].timeout > 0) {
       screenover[aa].timeout--;
       if (screenover[aa].timeout == 0)
         remove_screen_overlay(screenover[aa].type);
     }
   }
+}
 
-  // determine if speech text should be removed
+void update_speech_and_messages()
+{
+	// determine if speech text should be removed
   if (play.messagetime>=0) {
     play.messagetime--;
     // extend life of text if the voice hasn't finished yet
@@ -665,11 +734,13 @@ void update_stuff() {
       }
     }
   }
-  our_eip = 24;
+}
 
-  // update sierra-style speech
-  if ((face_talking >= 0) && (play.fast_forward == 0)) 
+void update_sierra_speech()
 {
+	// update sierra-style speech
+  if ((face_talking >= 0) && (play.fast_forward == 0)) 
+  {
     int updatedFrame = 0;
 
     if ((facetalkchar->blinkview > 0) && (facetalkAllowBlink)) {
@@ -805,294 +876,40 @@ void update_stuff() {
       gfxDriver->UpdateDDBFromBitmap(screenover[face_talking].bmp, screenover[face_talking].pic, false);
     }  // end if updatedFrame
   }
+}
+
+// update_stuff: moves and animates objects, executes repeat scripts, and
+// the like.
+void update_stuff() {
+  
+  our_eip = 20;
+
+  update_script_timers();
+
+  update_cycling_views();
+
+  our_eip = 21;
+
+  update_shadow_areas();
+  
+  our_eip = 22;
+
+  int numSheep = 0;
+  int followingAsSheep[MAX_SHEEP];
+
+  update_character_move_and_anim(numSheep, followingAsSheep);
+
+  update_following_exactly_characters(numSheep, followingAsSheep);
+
+  our_eip = 23;
+
+  update_overlay_timers();
+
+  update_speech_and_messages();
+
+  our_eip = 24;
+
+  update_sierra_speech();
 
   our_eip = 25;
 }
-
-
-
-const char *get_engine_version() {
-    return ACI_VERSION_TEXT;
-}
-
-void atexit_handler() {
-    if (proper_exit==0) {
-        sprintf(pexbuf,"\nError: the program has exited without requesting it.\n"
-            "Program pointer: %+03d  (write this number down), ACI version " ACI_VERSION_TEXT "\n"
-            "If you see a list of numbers above, please write them down and contact\n"
-            "Chris Jones. Otherwise, note down any other information displayed.\n",
-            our_eip);
-        platform->DisplayAlert(pexbuf);
-    }
-
-    if (!(music_file == NULL))
-        free(music_file);
-
-    if (!(speech_file == NULL))
-        free(speech_file);
-
-    // Deliberately commented out, because chances are game_file_name
-    // was not allocated on the heap, it points to argv[0] or
-    // the gamefilenamebuf memory
-    // It will get freed by the system anyway, leaving it in can
-    // cause a crash on exit
-    /*if (!(game_file_name == NULL))
-    free(game_file_name);*/
-}
-
-
-
-
-
-
-
-int do_movelist_move(short*mlnum,int*xx,int*yy) {
-  int need_to_fix_sprite=0;
-  if (mlnum[0]<1) quit("movelist_move: attempted to move on a non-exist movelist");
-  MoveList*cmls; cmls=&mls[mlnum[0]];
-  fixed xpermove=cmls->xpermove[cmls->onstage],ypermove=cmls->ypermove[cmls->onstage];
-
-  short targetx=short((cmls->pos[cmls->onstage+1] >> 16) & 0x00ffff);
-  short targety=short(cmls->pos[cmls->onstage+1] & 0x00ffff);
-  int xps=xx[0],yps=yy[0];
-  if (cmls->doneflag & 1) {
-    // if the X-movement has finished, and the Y-per-move is < 1, finish
-    // This can cause jump at the end, but without it the character will
-    // walk on the spot for a while if the Y-per-move is for example 0.2
-//    if ((ypermove & 0xfffff000) == 0) cmls->doneflag|=2;
-//    int ypmm=(ypermove >> 16) & 0x0000ffff;
-
-    // NEW 2.15 SR-1 plan: if X-movement has finished, and Y-per-move is < 1,
-    // allow it to finish more easily by moving target zone
-
-    int adjAmnt = 3;
-    // 2.70: if the X permove is also <=1, don't do the skipping
-    if (((xpermove & 0xffff0000) == 0xffff0000) ||
-        ((xpermove & 0xffff0000) == 0x00000000))
-      adjAmnt = 2;
-
-    // 2.61 RC1: correct this to work with > -1 as well as < 1
-    if (ypermove == 0) { }
-    // Y per move is < 1, so finish the move
-    else if ((ypermove & 0xffff0000) == 0)
-      targety -= adjAmnt;
-    // Y per move is -1 exactly, don't snap to finish
-    else if (ypermove == 0xffff0000) { }
-    // Y per move is > -1, so finish the move
-    else if ((ypermove & 0xffff0000) == 0xffff0000)
-      targety += adjAmnt;
-  }
-  else xps=cmls->fromx+(int)(fixtof(xpermove)*(float)cmls->onpart);
-
-  if (cmls->doneflag & 2) {
-    // Y-movement has finished
-
-    int adjAmnt = 3;
-
-    // if the Y permove is also <=1, don't skip as far
-    if (((ypermove & 0xffff0000) == 0xffff0000) ||
-        ((ypermove & 0xffff0000) == 0x00000000))
-      adjAmnt = 2;
-
-    if (xpermove == 0) { }
-    // Y per move is < 1, so finish the move
-    else if ((xpermove & 0xffff0000) == 0)
-      targetx -= adjAmnt;
-    // X per move is -1 exactly, don't snap to finish
-    else if (xpermove == 0xffff0000) { }
-    // X per move is > -1, so finish the move
-    else if ((xpermove & 0xffff0000) == 0xffff0000)
-      targetx += adjAmnt;
-
-/*    int xpmm=(xpermove >> 16) & 0x0000ffff;
-//    if ((xpmm==0) | (xpmm==0xffff)) cmls->doneflag|=1;
-    if (xpmm==0) cmls->doneflag|=1;*/
-    }
-  else yps=cmls->fromy+(int)(fixtof(ypermove)*(float)cmls->onpart);
-  // check if finished horizontal movement
-  if (((xpermove > 0) && (xps >= targetx)) ||
-      ((xpermove < 0) && (xps <= targetx))) {
-    cmls->doneflag|=1;
-    xps = targetx;
-    // if the Y is almost there too, finish it
-    // this is new in v2.40
-    // removed in 2.70
-    /*if (abs(yps - targety) <= 2)
-      yps = targety;*/
-  }
-  else if (xpermove == 0)
-    cmls->doneflag|=1;
-  // check if finished vertical movement
-  if ((ypermove > 0) & (yps>=targety)) {
-    cmls->doneflag|=2;
-    yps = targety;
-  }
-  else if ((ypermove < 0) & (yps<=targety)) {
-    cmls->doneflag|=2;
-    yps = targety;
-  }
-  else if (ypermove == 0)
-    cmls->doneflag|=2;
-
-  if ((cmls->doneflag & 0x03)==3) {
-    // this stage is done, go on to the next stage
-    // signed shorts to ensure that numbers like -20 do not become 65515
-    cmls->fromx=(signed short)((cmls->pos[cmls->onstage+1] >> 16) & 0x000ffff);
-    cmls->fromy=(signed short)(cmls->pos[cmls->onstage+1] & 0x000ffff);
-    if ((cmls->fromx > 65000) || (cmls->fromy > 65000))
-      quit("do_movelist: int to short rounding error");
-
-    cmls->onstage++; cmls->onpart=-1; cmls->doneflag&=0xf0;
-    cmls->lastx=-1;
-    if (cmls->onstage < cmls->numstage) {
-      xps=cmls->fromx; yps=cmls->fromy; }
-    if (cmls->onstage>=cmls->numstage-1) {  // last stage is just dest pos
-      cmls->numstage=0;
-      mlnum[0]=0;
-      need_to_fix_sprite=1;
-      }
-    else need_to_fix_sprite=2;
-    }
-  cmls->onpart++;
-  xx[0]=xps; yy[0]=yps;
-  return need_to_fix_sprite;
-  }
-
-
-int check_write_access() {
-
-  if (platform->GetDiskFreeSpaceMB() < 2)
-    return 0;
-
-  our_eip = -1895;
-
-  // The Save Game Dir is the only place that we should write to
-  char tempPath[MAX_PATH];
-  sprintf(tempPath, "%s""tmptest.tmp", saveGameDirectory);
-  FILE *yy = fopen(tempPath, "wb");
-  if (yy == NULL)
-    return 0;
-
-  our_eip = -1896;
-
-  fwrite("just to test the drive free space", 30, 1, yy);
-  fclose(yy);
-
-  our_eip = -1897;
-
-  if (unlink(tempPath))
-    return 0;
-
-  return 1;
-}
-
-
-long t1;  // timer for FPS // ... 't1'... how very appropriate.. :)
-
-
-
-
-
-
-
-void do_main_cycle(int untilwhat,int daaa) {
-  // blocking cutscene - end skipping
-  EndSkippingUntilCharStops();
-
-  // this function can get called in a nested context, so
-  // remember the state of these vars in case a higher level
-  // call needs them
-  int cached_restrict_until = restrict_until;
-  int cached_user_disabled_data = user_disabled_data;
-  int cached_user_disabled_for = user_disabled_for;
-
-  main_loop_until(untilwhat,daaa,0);
-  user_disabled_for=FOR_EXITLOOP;
-  while (main_game_loop()==0) ;
-
-  restrict_until = cached_restrict_until;
-  user_disabled_data = cached_user_disabled_data;
-  user_disabled_for = cached_user_disabled_for;
-}
-
-
-#if defined(WINDOWS_VERSION)
-#include <new.h>
-char tempmsg[100];
-char*printfworkingspace;
-int malloc_fail_handler(size_t amountwanted) {
-  free(printfworkingspace);
-  sprintf(tempmsg,"Out of memory: failed to allocate %ld bytes (at PP=%d)",amountwanted, our_eip);
-  quit(tempmsg);
-  return 0;
-}
-#endif
-
-// set to 0 once successful
-int working_gfx_mode_status = -1;
-int debug_15bit_mode = 0, debug_24bit_mode = 0;
-int convert_16bit_bgr = 0;
-
-
-
-void winclosehook() {
-  want_exit = 1;
-  abort_engine = 1;
-  check_dynamic_sprites_at_exit = 0;
-/*  while (want_exit == 1)
-    yield_timeslice();
-  / *if (want_quit == 0)
-    want_quit = 1;
-  else* / quit("|game aborted");
-*/
-}
-
-
-
-
-
-
-#if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
-int psp_video_framedrop = 1;
-int psp_audio_enabled = 1;
-int psp_midi_enabled = 1;
-int psp_ignore_acsetup_cfg_file = 0;
-int psp_clear_cache_on_room_change = 0;
-
-int psp_midi_preload_patches = 0;
-int psp_audio_cachesize = 10;
-char psp_game_file_name[] = "ac2game.dat";
-int psp_gfx_smooth_sprites = 1;
-char psp_translation[] = "default";
-#endif
-
-
-
-
-// Startup flags, set from parameters to engine
-int datafile_argv=0, change_to_game_dir = 0, force_window = 0;
-int override_start_room = 0, force_16bit = 0;
-bool justRegisterGame = false;
-bool justUnRegisterGame = false;
-const char *loadSaveGameOnStartup = NULL;
-#ifndef WINDOWS_VERSION
-char **global_argv = 0;
-#endif
-
-
-extern "C" int  cfopenpriority;
-
-
-
-#if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(WINDOWS_VERSION)
-extern int psp_gfx_smoothing;
-extern int psp_gfx_scaling;
-extern int psp_gfx_renderer;
-extern int psp_gfx_super_sampling;
-#endif
-
-
-
-int use_extra_sound_offset = 0;
-
-

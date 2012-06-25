@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="windows-1251"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Engine.App"
 	ProjectGUID="{49A909AF-49F3-451D-B6DF-839159E54A01}"
 	RootNamespace="EngineApp"
@@ -645,10 +645,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acmain\ac_main.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\acmain\ac_math.cpp"
 					>
 				</File>
@@ -1009,11 +1005,19 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\main\graphics_mode.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\main\main.cpp"
 					>
 				</File>
 				<File
 					RelativePath="..\..\Engine\main\quit.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\main\udpate.cpp"
 					>
 				</File>
 			</Filter>
@@ -1899,11 +1903,47 @@
 				Name="main"
 				>
 				<File
+					RelativePath="..\..\Engine\main\config.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\main\engine.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\main\game_file.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\main\game_run.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\main\game_start.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\main\graphics_mode.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\main\main.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\main\maindefines.h"
 					>
 				</File>
 				<File
 					RelativePath="..\..\Engine\main\mainheader.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\main\quit.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\main\update.h"
 					>
 				</File>
 			</Filter>

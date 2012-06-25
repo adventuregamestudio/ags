@@ -23,9 +23,9 @@
 #include "debug/debug.h"
 #include "acmain/ac_draw.h"
 #include "acmain/ac_object.h"
-#include "acmain/ac_main.h"
 #include "acmain/ac_customproperties.h"
 #include "acrun/ac_gamestate.h"
+#include "main/game_run.h"
 #include "script/script.h"
 
 

@@ -14,7 +14,6 @@
 #include "wgt2allg.h"
 #include "ali3d.h"
 #include "acmain/ac_maindefines.h"
-#include "acmain/ac_main.h"
 #include "acmain/ac_commonheaders.h"
 #include "acmain/ac_controls.h"
 #include "acmain/ac_lipsync.h"

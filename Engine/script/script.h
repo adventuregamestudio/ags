@@ -40,6 +40,7 @@ int     get_nivalue (NewInteractionCommandList *nic, int idx, int parm);
 int     run_interaction_commandlist (NewInteractionCommandList *nicl, int *timesrun, int*cmdsrun);
 void    run_unhandled_event (int evnt);
 void    setup_exports(char*expfrom);
+void    can_run_delayed_command();
 
 
 extern ExecutingScript scripts[MAX_SCRIPT_AT_ONCE];

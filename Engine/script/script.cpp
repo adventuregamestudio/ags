@@ -811,6 +811,13 @@ int run_interaction_commandlist (NewInteractionCommandList *nicl, int *timesrun,
 
 }
 
+// check and abort game if the script is currently
+// inside the rep_exec_always function
+void can_run_delayed_command() {
+  if (no_blocking_functions)
+    quit("!This command cannot be used within non-blocking events such as " REP_EXEC_ALWAYS_NAME);
+}
+
 void run_unhandled_event (int evnt) {
 
     if (play.check_interaction_only)

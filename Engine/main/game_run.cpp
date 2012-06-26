@@ -16,6 +16,7 @@
 // Game loop
 //
 
+#include "ac/hotspot.h"
 #include "main/mainheader.h"
 #include "main/game_run.h"
 

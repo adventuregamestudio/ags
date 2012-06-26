@@ -1,6 +1,8 @@
 
 #include <stdio.h>
 #include "wgt2allg.h"
+#include "ac/global_hotspot.h"
+#include "ac/hotspot.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_interaction.h"
 #include "acmain/ac_commonheaders.h"
@@ -14,8 +16,6 @@ void NewInteractionCommand::remove () {
   parent = NULL;
   type = 0;
 }
-
-
 
 void RunInventoryInteraction (int iit, int modd) {
     if ((iit < 0) || (iit >= game.numinvitems))
@@ -39,25 +39,6 @@ void RunInventoryInteraction (int iit, int modd) {
 void InventoryItem_RunInteraction(ScriptInvItem *iitem, int mood) {
     RunInventoryInteraction(iitem->id, mood);
 }
-
-
-
-
-
-
-
-
-
-
-int check_click_on_character(int xx,int yy,int mood) {
-    int lowestwas=is_pos_on_character(xx,yy);
-    if (lowestwas>=0) {
-        RunCharacterInteraction (lowestwas, mood);
-        return 1;
-    }
-    return 0;
-}
-
 
 void RunRegionInteraction (int regnum, int mood) {
     if ((regnum < 0) || (regnum >= MAX_REGIONS))
@@ -90,61 +71,6 @@ void RunRegionInteraction (int regnum, int mood) {
 
 void Region_RunInteraction(ScriptRegion *ssr, int mood) {
     RunRegionInteraction(ssr->id, mood);
-}
-
-void RunHotspotInteraction (int hotspothere, int mood) {
-
-    int passon=-1,cdata=-1;
-    if (mood==MODE_TALK) passon=4;
-    else if (mood==MODE_WALK) passon=0;
-    else if (mood==MODE_LOOK) passon=1;
-    else if (mood==MODE_HAND) passon=2;
-    else if (mood==MODE_PICKUP) passon=7;
-    else if (mood==MODE_CUSTOM1) passon = 8;
-    else if (mood==MODE_CUSTOM2) passon = 9;
-    else if (mood==MODE_USE) { passon=3;
-    cdata=playerchar->activeinv;
-    play.usedinv=cdata;
-    }
-
-    if ((game.options[OPT_WALKONLOOK]==0) & (mood==MODE_LOOK)) ;
-    else if (play.auto_use_walkto_points == 0) ;
-    else if ((mood!=MODE_WALK) && (play.check_interaction_only == 0))
-        MoveCharacterToHotspot(game.playercharacter,hotspothere);
-
-    // can't use the setevent functions because this ProcessClick is only
-    // executed once in a eventlist
-    char *oldbasename = evblockbasename;
-    int   oldblocknum = evblocknum;
-
-    evblockbasename="hotspot%d";
-    evblocknum=hotspothere;
-
-    if (thisroom.hotspotScripts != NULL) 
-    {
-        if (passon>=0)
-            run_interaction_script(thisroom.hotspotScripts[hotspothere], passon, 5, (passon == 3));
-        run_interaction_script(thisroom.hotspotScripts[hotspothere], 5);  // any click on hotspot
-    }
-    else
-    {
-        if (passon>=0) {
-            if (run_interaction_event(&croom->intrHotspot[hotspothere],passon, 5, (passon == 3))) {
-                evblockbasename = oldbasename;
-                evblocknum = oldblocknum;
-                return;
-            }
-        }
-        // run the 'any click on hs' event
-        run_interaction_event(&croom->intrHotspot[hotspothere],5);
-    }
-
-    evblockbasename = oldbasename;
-    evblocknum = oldblocknum;
-}
-
-void Hotspot_RunInteraction (ScriptHotspot *hss, int mood) {
-    RunHotspotInteraction(hss->id, mood);
 }
 
 void ProcessClick(int xx,int yy,int mood) {

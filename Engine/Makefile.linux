@@ -23,7 +23,6 @@ acmain/ac_guiinvwindow.o \
 acmain/ac_guilabel.o \
 acmain/ac_guilistbox.o \
 acmain/ac_guislider.o \
-acmain/ac_hotspot.o \
 acmain/ac_inputbox.o \
 acmain/ac_interaction.o \
 acmain/ac_inventory.o \
@@ -105,9 +104,11 @@ ac/character.o \
 ac/characterinfo.o \
 ac/event.o \
 ac/game_audio.o \
+ac/hotspot.o \
 ac/global_audio.o \
 ac/global_character.o \
 ac/global_debug.o \
+ac/global_hotspot.o \
 ac/global_object.o \
 ac/global_timer.o \
 ac/global_video.o \

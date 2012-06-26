@@ -167,6 +167,7 @@ void get_char_blocking_rect(int charid, int *x1, int *y1, int *width, int *y2);
 // Check whether the source char has walked onto character ww
 int is_char_on_another (int sourceChar, int ww, int*fromxptr, int*cwidptr);
 int my_getpixel(BITMAP *blk, int x, int y);
+int check_click_on_character(int xx,int yy,int mood);
 
 
 extern CharacterInfo*playerchar;

@@ -1,10 +1,11 @@
 
 #include <stdio.h>
 #include "wgt2allg.h"
+#include "ac/ac_object.h"
+#include "ac/hotspot.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_location.h"
 #include "acmain/ac_commonheaders.h"
-#include "ac/ac_object.h"
 #include "acmain/ac_inventoryitem.h"
 
 int getloctype_index = 0, getloctype_throughgui = 0;
@@ -91,12 +92,7 @@ ScriptRegion *GetRegionAtLocation(int xx, int yy) {
 
 
 
-int get_hotspot_at(int xpp,int ypp) {
-    int onhs=getpixel(thisroom.lookat, convert_to_low_res(xpp), convert_to_low_res(ypp));
-    if (onhs<0) return 0;
-    if (croom->hotspot_enabled[onhs]==0) return 0;
-    return onhs;
-}
+
 
 
 int GetGUIAt (int xx,int yy) {

@@ -2160,3 +2160,12 @@ int my_getpixel(BITMAP *blk, int x, int y) {
     // strip the alpha channel
     return blk->vtable->getpixel(blk, x, y) & 0x00ffffff;
 }
+
+int check_click_on_character(int xx,int yy,int mood) {
+    int lowestwas=is_pos_on_character(xx,yy);
+    if (lowestwas>=0) {
+        RunCharacterInteraction (lowestwas, mood);
+        return 1;
+    }
+    return 0;
+}

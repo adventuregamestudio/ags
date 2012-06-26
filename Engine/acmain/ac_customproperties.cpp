@@ -68,12 +68,7 @@ int InventoryItem_GetProperty(ScriptInvItem *scii, const char *property) {
 
 
 
-int GetHotspotProperty (int hss, const char *property) {
-  return get_int_property (&thisroom.hsProps[hss], property);
-}
-int Hotspot_GetProperty (ScriptHotspot *hss, const char *property) {
-  return get_int_property (&thisroom.hsProps[hss->id], property);
-}
+
 
 
 
@@ -92,15 +87,7 @@ const char* InventoryItem_GetTextProperty(ScriptInvItem *scii, const char *prope
   return get_text_property_dynamic_string(&game.invProps[scii->id], property);
 }
 
-void GetHotspotPropertyText (int item, const char *property, char *bufer) {
-  get_text_property (&thisroom.hsProps[item], property, bufer);
-}
-void Hotspot_GetPropertyText (ScriptHotspot *hss, const char *property, char *bufer) {
-  get_text_property (&thisroom.hsProps[hss->id], property, bufer);
-}
-const char* Hotspot_GetTextProperty(ScriptHotspot *hss, const char *property) {
-  return get_text_property_dynamic_string(&thisroom.hsProps[hss->id], property);
-}
+
 
 void GetRoomPropertyText (const char *property, char *bufer) {
   get_text_property (&thisroom.roomProps, property, bufer);

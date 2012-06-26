@@ -12,7 +12,7 @@ int get_walkable_area_at_character (int charnum);
 int GetRegionAt (int xxx, int yyy);
 ScriptRegion *GetRegionAtLocation(int xx, int yy);
 
-int get_hotspot_at(int xpp,int ypp);
+
 
 int GetGUIAt (int xx,int yy);
 ScriptGUI *GetGUIAtLocation(int xx, int yy);

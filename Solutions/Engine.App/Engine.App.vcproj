@@ -305,6 +305,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\global_hotspot.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\global_object.cpp"
 					>
 				</File>
@@ -314,6 +318,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\global_video.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\hotspot.cpp"
 					>
 				</File>
 				<File
@@ -626,10 +634,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_guislider.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_hotspot.cpp"
 					>
 				</File>
 				<File
@@ -1191,6 +1195,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\global_hotspot.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\global_object.h"
 					>
 				</File>
@@ -1200,6 +1208,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\global_video.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\hotspot.h"
 					>
 				</File>
 				<File

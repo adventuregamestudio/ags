@@ -39,7 +39,6 @@ acmain/ac_overlay.o \
 acmain/ac_parser.o \
 acmain/ac_plugin.o \
 acmain/ac_record.o \
-acmain/ac_region.o \
 acmain/ac_room.o \
 acmain/ac_screen.o \
 acmain/ac_speech.o \
@@ -110,10 +109,12 @@ ac/global_character.o \
 ac/global_debug.o \
 ac/global_hotspot.o \
 ac/global_object.o \
+ac/global_region.o \
 ac/global_timer.o \
 ac/global_video.o \
 ac/object.o \
 ac/path.o \
+ac/region.o \
 ac/roomobject.o \
 ac/roomstatus.o \
 ac/system_audio.o \

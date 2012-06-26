@@ -313,6 +313,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\global_region.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\global_timer.cpp"
 					>
 				</File>
@@ -330,6 +334,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\path.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\region.cpp"
 					>
 				</File>
 				<File
@@ -690,10 +698,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_record.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_region.cpp"
 					>
 				</File>
 				<File
@@ -1203,6 +1207,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\global_region.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\global_timer.h"
 					>
 				</File>
@@ -1224,6 +1232,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\path.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\region.h"
 					>
 				</File>
 				<File
@@ -1599,10 +1611,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acmain\ac_hotspot.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\acmain\ac_inputbox.h"
 					>
 				</File>
@@ -1656,10 +1664,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_record.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_region.h"
 					>
 				</File>
 				<File

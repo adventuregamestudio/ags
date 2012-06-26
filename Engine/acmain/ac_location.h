@@ -9,8 +9,8 @@
 int get_walkable_area_at_location(int xx, int yy);
 int get_walkable_area_at_character (int charnum);
 
-int GetRegionAt (int xxx, int yyy);
-ScriptRegion *GetRegionAtLocation(int xx, int yy);
+
+
 
 
 

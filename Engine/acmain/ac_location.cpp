@@ -52,43 +52,7 @@ int get_walkable_area_at_character (int charnum) {
 }
 
 
-int GetRegionAt (int xxx, int yyy) {
-    // if the co-ordinates are off the edge of the screen,
-    // correct them to be just within
-    // this fixes walk-off-screen problems
-    xxx = convert_to_low_res(xxx);
-    yyy = convert_to_low_res(yyy);
 
-    if (xxx >= thisroom.regions->w)
-        xxx = thisroom.regions->w - 1;
-    if (yyy >= thisroom.regions->h)
-        yyy = thisroom.regions->h - 1;
-    if (xxx < 0)
-        xxx = 0;
-    if (yyy < 0)
-        yyy = 0;
-
-    int hsthere = getpixel (thisroom.regions, xxx, yyy);
-    if (hsthere < 0)
-        hsthere = 0;
-
-    if (hsthere >= MAX_REGIONS) {
-        char tempmsg[300];
-        sprintf(tempmsg, "!An invalid pixel was found on the room region mask (colour %d, location: %d, %d)", hsthere, xxx, yyy);
-        quit(tempmsg);
-    }
-
-    if (croom->region_enabled[hsthere] == 0)
-        return 0;
-    return hsthere;
-}
-
-ScriptRegion *GetRegionAtLocation(int xx, int yy) {
-    int hsnum = GetRegionAt(xx, yy);
-    if (hsnum <= 0)
-        return &scrRegion[0];
-    return &scrRegion[hsnum];
-}
 
 
 

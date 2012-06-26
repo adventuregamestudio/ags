@@ -5,7 +5,7 @@
 
 void GameSetupStructBase::ReadFromFile(FILE *fp)
 {
-#ifdef ALLEGRO_BIG_ENDIAN
+//#ifdef ALLEGRO_BIG_ENDIAN
     fread(&gamename[0], sizeof(char), 50, fp);
     fseek(fp, 2, SEEK_CUR);    // skip the array padding
     fread(options, sizeof(int), 100, fp);
@@ -16,7 +16,7 @@ void GameSetupStructBase::ReadFromFile(FILE *fp)
     numcharacters = getw(fp);
     playercharacter = getw(fp);
     totalscore = getw(fp);
-    numinvitems = __getshort__bigendian(fp);
+    numinvitems = getshort(fp);//__getshort__bigendian(fp);
     fseek(fp, 2, SEEK_CUR);    // skip the padding
     numdialog = getw(fp);
     numdlgmessage = getw(fp);
@@ -24,8 +24,8 @@ void GameSetupStructBase::ReadFromFile(FILE *fp)
     color_depth = getw(fp);
     target_win = getw(fp);
     dialog_bullet = getw(fp);
-    hotdot = __getshort__bigendian(fp);
-    hotdotouter = __getshort__bigendian(fp);
+    hotdot = getshort(fp);//__getshort__bigendian(fp);
+    hotdotouter = getshort(fp);//__getshort__bigendian(fp);
     uniqueid = getw(fp);
     numgui = getw(fp);
     numcursors = getw(fp);
@@ -39,9 +39,9 @@ void GameSetupStructBase::ReadFromFile(FILE *fp)
     globalscript = (char *) getw(fp);
     chars = (CharacterInfo *) getw(fp);
     compiled_script = (ccScript *) getw(fp);
-#else
-    throw "GameSetupStructBase::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
-#endif
+//#else
+//    throw "GameSetupStructBase::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
+//#endif
 }
 
 void ConvertOldGameStruct (OldGameSetupStruct *ogss, GameSetupStruct *gss) {

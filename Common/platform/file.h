@@ -16,4 +16,12 @@
 long int filelength(int fhandle);
 #endif
 
+// Two functions to match those defined by bigend version by McCrea
+#if !defined ALLEGRO_BIG_ENDIAN
+short int   getshort(FILE *);
+void        putshort(short int, FILE *);
+#endif // !ALLEGRO_BIG_ENDIAN
+
+#include "bigend.h"
+
 #endif // __AGS_CN_PLATFORM__FILE_H

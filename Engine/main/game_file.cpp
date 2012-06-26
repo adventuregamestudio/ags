@@ -162,28 +162,28 @@ void game_file_read_sprite_flags(FILE*iii)
 
 void game_file_read_invinfo(FILE*iii)
 {
-#ifdef ALLEGRO_BIG_ENDIAN
+//#ifdef ALLEGRO_BIG_ENDIAN
     for (int iteratorCount = 0; iteratorCount < game.numinvitems; ++iteratorCount)
     {
         game.invinfo[iteratorCount].ReadFromFile(iii);
     }
-#else
-    fread(&game.invinfo[0], sizeof(InventoryItemInfo), game.numinvitems, iii);
-#endif
+//#else
+//    fread(&game.invinfo[0], sizeof(InventoryItemInfo), game.numinvitems, iii);
+//#endif
 }
 
 void game_file_read_cursors(FILE*iii)
 {
 	if (game.numcursors > MAX_CURSOR)
 		quit("Too many cursors: need newer AGS version");
-#ifdef ALLEGRO_BIG_ENDIAN
+//#ifdef ALLEGRO_BIG_ENDIAN
     for (int iteratorCount = 0; iteratorCount < game.numcursors; ++iteratorCount)
     {
         game.mcurs[iteratorCount].ReadFromFile(iii);
     }
-#else
-    fread(&game.mcurs[0], sizeof(MouseCursor), game.numcursors, iii);
-#endif
+//#else
+//    fread(&game.mcurs[0], sizeof(MouseCursor), game.numcursors, iii);
+//#endif
 
 	if (filever <= 32) // 2.x
     {
@@ -301,14 +301,14 @@ void game_file_read_views(FILE*iii)
 void game_file_read_characters(FILE*iii)
 {
 	game.chars=(CharacterInfo*)calloc(1,sizeof(CharacterInfo)*game.numcharacters+5);
-#ifdef ALLEGRO_BIG_ENDIAN
+//#ifdef ALLEGRO_BIG_ENDIAN
     for (int iteratorCount = 0; iteratorCount < game.numcharacters; ++iteratorCount)
     {
         game.chars[iteratorCount].ReadFromFile(iii);
     }
-#else
-    fread(&game.chars[0],sizeof(CharacterInfo),game.numcharacters,iii);  
-#endif
+//#else
+//    fread(&game.chars[0],sizeof(CharacterInfo),game.numcharacters,iii);  
+//#endif
     charcache = (CharacterCache*)calloc(1,sizeof(CharacterCache)*game.numcharacters+5);
 
     if (filever <= 32) // fixup charakter script names for 2.x (EGO -> cEgo)
@@ -380,14 +380,14 @@ void game_file_read_dialogs(FILE*iii)
 {
 	dialog=(DialogTopic*)malloc(sizeof(DialogTopic)*game.numdialog+5);
 
-#ifdef ALLEGRO_BIG_ENDIAN
+//#ifdef ALLEGRO_BIG_ENDIAN
     for (int iteratorCount = 0; iteratorCount < game.numdialog; ++iteratorCount)
     {
         dialog[iteratorCount].ReadFromFile(iii);
     }
-#else
-    fread(&dialog[0],sizeof(DialogTopic),game.numdialog,iii);  
-#endif
+//#else
+//    fread(&dialog[0],sizeof(DialogTopic),game.numdialog,iii);  
+//#endif
 
     if (filever <= 37) // Dialog script
     {
@@ -789,12 +789,12 @@ int load_game_file() {
     game.invScripts = NULL;
     memset(&game.spriteflags[0], 0, MAX_SPRITES);
 
-#ifdef ALLEGRO_BIG_ENDIAN
+//#ifdef ALLEGRO_BIG_ENDIAN
     GameSetupStructBase *gameBase = (GameSetupStructBase *) &game;
     gameBase->ReadFromFile(iii);
-#else
-    fread(&game, sizeof (GameSetupStructBase), 1, iii);
-#endif
+//#else
+//    fread(&game, sizeof (GameSetupStructBase), 1, iii);
+//#endif
 
     if (filever <= 37) // <= 3.1
     {

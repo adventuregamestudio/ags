@@ -20,7 +20,7 @@
 #include "ac/ac_defines.h"
 #include "sprcache.h"
 #include "compress.h"
-#include "bigend.h"
+#include "platform/file.h"
 
 extern "C" {
   extern FILE *clibfopen(char *, char *);

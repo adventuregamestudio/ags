@@ -14,6 +14,7 @@
 #endif
 
 #include "wgt2allg.h"
+#include "platform/file.h"
 
 #include "misc.h"
 
@@ -24,7 +25,7 @@
 #include <conio.h>
 #endif
 
-#include "bigend.h"
+#include "platform/file.h"
 
 #if !defined(MAC_VERSION)
 typedef unsigned char * __block;
@@ -43,16 +44,16 @@ extern "C"
   extern block wnewblock(int, int, int, int);
 }
 
-#ifndef ALLEGRO_BIG_ENDIAN
-extern "C"
-{
-  extern void putshort(short, FILE *);
-  extern short getshort(FILE *);
-}
-#else
-#define putshort __putshort__lilendian
-#define getshort __getshort__bigendian
-#endif
+//#ifdef ALLEGRO_BIG_ENDIAN
+//#define putshort __putshort__lilendian
+//#define getshort __getshort__bigendian
+//#else
+//extern "C"
+//{
+  //extern void putshort(short, FILE *);
+  //extern short getshort(FILE *);
+//}
+//#endif
 
 #ifndef __WGT4_H
 struct color

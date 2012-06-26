@@ -28,7 +28,7 @@ int CharacterInfo::get_blocking_bottom() {
 void CharacterInfo::ReadFromFile(FILE *fp)
 {
     int reserved[2];
-#ifdef ALLEGRO_BIG_ENDIAN
+//#ifdef ALLEGRO_BIG_ENDIAN
     defview = getw(fp);
     talkview = getw(fp);
     view = getw(fp);
@@ -38,48 +38,48 @@ void CharacterInfo::ReadFromFile(FILE *fp)
     y = getw(fp);
     wait = getw(fp);
     flags = getw(fp);
-    following = __getshort__bigendian(fp);
-    followinfo = __getshort__bigendian(fp);
+    following = getshort(fp);//__getshort__bigendian(fp);
+    followinfo = getshort(fp);//__getshort__bigendian(fp);
     idleview = getw(fp);
-    idletime = __getshort__bigendian(fp);
-    idleleft = __getshort__bigendian(fp);
-    transparency = __getshort__bigendian(fp);
-    baseline = __getshort__bigendian(fp);
+    idletime = getshort(fp);//__getshort__bigendian(fp);
+    idleleft = getshort(fp);//__getshort__bigendian(fp);
+    transparency = getshort(fp);//__getshort__bigendian(fp);
+    baseline = getshort(fp);//__getshort__bigendian(fp);
     activeinv = getw(fp);
     talkcolor = getw(fp);
     thinkview = getw(fp);
-    blinkview = __getshort__bigendian(fp);
-    blinkinterval = __getshort__bigendian(fp);
-    blinktimer = __getshort__bigendian(fp);
-    blinkframe = __getshort__bigendian(fp);
-    walkspeed_y = __getshort__bigendian(fp);
-    pic_yoffs = __getshort__bigendian(fp);
+    blinkview = getshort(fp);//__getshort__bigendian(fp);
+    blinkinterval = getshort(fp);//__getshort__bigendian(fp);
+    blinktimer = getshort(fp);//__getshort__bigendian(fp);
+    blinkframe = getshort(fp);//__getshort__bigendian(fp);
+    walkspeed_y = getshort(fp);//__getshort__bigendian(fp);
+    pic_yoffs = getshort(fp);//__getshort__bigendian(fp);
     z = getw(fp);
     reserved[0] = getw(fp);
     reserved[1] = getw(fp);
-    blocking_width = __getshort__bigendian(fp);
-    blocking_height = __getshort__bigendian(fp);;
+    blocking_width = getshort(fp);//__getshort__bigendian(fp);
+    blocking_height = getshort(fp);//__getshort__bigendian(fp);;
     index_id = getw(fp);
-    pic_xoffs = __getshort__bigendian(fp);
-    walkwaitcounter = __getshort__bigendian(fp);
-    loop = __getshort__bigendian(fp);
-    frame = __getshort__bigendian(fp);
-    walking = __getshort__bigendian(fp);
-    animating = __getshort__bigendian(fp);
-    walkspeed = __getshort__bigendian(fp);
-    animspeed = __getshort__bigendian(fp);
+    pic_xoffs = getshort(fp);//__getshort__bigendian(fp);
+    walkwaitcounter = getshort(fp);//__getshort__bigendian(fp);
+    loop = getshort(fp);//__getshort__bigendian(fp);
+    frame = getshort(fp);//__getshort__bigendian(fp);
+    walking = getshort(fp);//__getshort__bigendian(fp);
+    animating = getshort(fp);//__getshort__bigendian(fp);
+    walkspeed = getshort(fp);//__getshort__bigendian(fp);
+    animspeed = getshort(fp);//__getshort__bigendian(fp);
     fread(inv, sizeof(short), MAX_INV, fp);
-    actx = __getshort__bigendian(fp);
-    acty = __getshort__bigendian(fp);
+    actx = getshort(fp);//__getshort__bigendian(fp);
+    acty = getshort(fp);//__getshort__bigendian(fp);
     fread(name, sizeof(char), 40, fp);
     fread(scrname, sizeof(char), MAX_SCRIPT_NAME_LEN, fp);
     on = getc(fp);
     // MAX_INV is odd, so need to sweep up padding
     // skip over padding that makes struct a multiple of 4 bytes long
     fseek(fp, 4 - (((MAX_INV+2)*sizeof(short)+40+MAX_SCRIPT_NAME_LEN+1)%4), SEEK_CUR);
-#else
-    throw "CharacterInfo::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
-#endif
+//#else
+    //throw "CharacterInfo::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
+//#endif
 }
 
 void ConvertOldCharacterToNew (OldCharacterInfo *oci, CharacterInfo *ci) {

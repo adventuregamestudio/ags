@@ -2,32 +2,32 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "ac/ac_view.h"
-
 #include "wgt2allg.h"
+#include "platform/file.h"
 
 void ViewFrame::ReadFromFile(FILE *fp)
 {
-#ifdef ALLEGRO_BIG_ENDIAN
+//#ifdef ALLEGRO_BIG_ENDIAN
     pic = getw(fp);
-    xoffs = __getshort__bigendian(fp);
-    yoffs = __getshort__bigendian(fp);
-    speed = __getshort__bigendian(fp);
+    xoffs = getshort(fp);//__getshort__bigendian(fp);
+    yoffs = getshort(fp);//__getshort__bigendian(fp);
+    speed = getshort(fp);//__getshort__bigendian(fp);
     fseek(fp, 2, SEEK_CUR);
     flags = getw(fp);
     sound = getw(fp);
     reserved_for_future[0] = getw(fp);
     reserved_for_future[1] = getw(fp);
-#else
-    pic = getw(fp);
-    fread(&xoffs, 2, 1, fp);
-    fread(&yoffs, 2, 1, fp);
-    fread(&speed, 2, 1, fp);
-    fseek(fp, 2, SEEK_CUR);
-    flags = getw(fp);
-    sound = getw(fp);
-    reserved_for_future[0] = getw(fp);
-    reserved_for_future[1] = getw(fp);
-#endif
+//#else
+//    pic = getw(fp);
+//    fread(&xoffs, 2, 1, fp);
+//    fread(&yoffs, 2, 1, fp);
+//    fread(&speed, 2, 1, fp);
+//    fseek(fp, 2, SEEK_CUR);
+//    flags = getw(fp);
+//    sound = getw(fp);
+//    reserved_for_future[0] = getw(fp);
+//    reserved_for_future[1] = getw(fp);
+//#endif
 }
 
 bool ViewLoopNew::RunNextLoop() 
@@ -62,15 +62,15 @@ void ViewLoopNew::WriteToFile(FILE *ooo)
 
 void ViewLoopNew::ReadFromFile(FILE *iii)
 {
-#ifdef ALLEGRO_BIG_ENDIAN
+//#ifdef ALLEGRO_BIG_ENDIAN
 
     // [IKM] 2012-06-13
     // A shoutout from earlier days (or years?) of AGS :)
-    // (I guess "Steve" is Steve McCree)
+    // (I guess "Steve" is Steve McCrea)
 
     /* STEVE PLEASE VALIDATE THAT THIS CODE IS OK */
 
-    Initialize(__getshort__bigendian(iii));
+    Initialize(getshort(iii)/*__getshort__bigendian(iii)*/);
     flags = getw(iii);
 
     for (int i = 0; i < numFrames; ++i)
@@ -78,14 +78,14 @@ void ViewLoopNew::ReadFromFile(FILE *iii)
         frames[i].ReadFromFile(iii);
     }
 
-#else
+//#else
 
-    Initialize(getshort(iii));
-    flags = getw(iii);
+//    Initialize(getshort(iii));
+//    flags = getw(iii);
 
-    fread(frames, sizeof(ViewFrame), numFrames, iii);
+//    fread(frames, sizeof(ViewFrame), numFrames, iii);
 
-#endif
+//#endif
 
     // an extra frame is allocated in memory to prevent
     // crashes with empty loops -- set its picture to teh BLUE CUP!!
@@ -121,11 +121,11 @@ void ViewStruct::WriteToFile(FILE *ooo)
 
 void ViewStruct::ReadFromFile(FILE *iii)
 {
-#ifdef ALLEGRO_BIG_ENDIAN
-    Initialize(__getshort__bigendian(iii));
-#else
-    Initialize(getshort(iii));
-#endif
+//#ifdef ALLEGRO_BIG_ENDIAN
+    Initialize(getshort(iii)/*__getshort__bigendian(iii)*/);
+//#else
+//    Initialize(getshort(iii));
+//#endif
 
     for (int i = 0; i < numLoops; i++)
     {
@@ -135,11 +135,11 @@ void ViewStruct::ReadFromFile(FILE *iii)
 
 void ViewStruct272::ReadFromFile(FILE *fp)
 {
-#ifdef ALLEGRO_BIG_ENDIAN
-    numloops = __getshort__bigendian(fp);
+//#ifdef ALLEGRO_BIG_ENDIAN
+    numloops = getshort(fp);//__getshort__bigendian(fp);
     for (int i = 0; i < 16; ++i)
     {
-        numframes[i] = __getshort__bigendian(fp);
+        numframes[i] = getshort(fp);//__getshort__bigendian(fp);
     }
     // skip padding if there is any
     fseek(fp, 2*(2 - ((16+1)%2)), SEEK_CUR);
@@ -151,22 +151,22 @@ void ViewStruct272::ReadFromFile(FILE *fp)
             frames[j][i].ReadFromFile(fp);
         }
     }
-#else
-    fread(&numloops, 2, 1, fp);
-    for (int i = 0; i < 16; ++i)
-    {
-        fread(&numframes[i], 2, 1, fp);
-    }
-    fseek(fp, 2*(2 - ((16+1)%2)), SEEK_CUR);
-    fread(loopflags, sizeof(int), 16, fp);
-    for (int j = 0; j < 16; ++j)
-    {
-        for (int i = 0; i < 20; ++i)
-        {
-            frames[j][i].ReadFromFile(fp);
-        }
-    }
-#endif
+//#else
+//    fread(&numloops, 2, 1, fp);
+//    for (int i = 0; i < 16; ++i)
+//    {
+//        fread(&numframes[i], 2, 1, fp);
+//    }
+//    fseek(fp, 2*(2 - ((16+1)%2)), SEEK_CUR);
+//    fread(loopflags, sizeof(int), 16, fp);
+//    for (int j = 0; j < 16; ++j)
+//    {
+//        for (int i = 0; i < 20; ++i)
+//        {
+//            frames[j][i].ReadFromFile(fp);
+//        }
+//    }
+//#endif
 }
 
 void Convert272ViewsToNew (int numof, ViewStruct272 *oldv, ViewStruct *newv) {

@@ -6,6 +6,7 @@
 #include "ac/ac_wordsdictionary.h"
 #include "cs/cs_utils.h"
 #include "ac/ac_compress.h"
+#include "platform/file.h"
 
 extern "C" {
   extern FILE *clibfopen(char *, char *);
@@ -17,15 +18,15 @@ int _acroom_bpp = 1;  // bytes per pixel of currently loading room
 
 void sprstruc::ReadFromFile(FILE *fp)
 {
-#ifdef ALLEGRO_BIG_ENDIAN
-    sprnum = __getshort__bigendian(fp);
-    x = __getshort__bigendian(fp);
-    y = __getshort__bigendian(fp);
-    room = __getshort__bigendian(fp);
-    on = __getshort__bigendian(fp);
-#else
-    throw "sprstruc::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
-#endif
+//#ifdef ALLEGRO_BIG_ENDIAN
+    sprnum = getshort(fp);//__getshort__bigendian(fp);
+    x = getshort(fp);//__getshort__bigendian(fp);
+    y = getshort(fp);//__getshort__bigendian(fp);
+    room = getshort(fp);//__getshort__bigendian(fp);
+    on = getshort(fp);//__getshort__bigendian(fp);
+//#else
+//    throw "sprstruc::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
+//#endif
 }
 
 roomstruct::roomstruct() {
@@ -120,11 +121,11 @@ for (int f=0;f<nummes;f++) if (message[f]!=NULL) free(message[f]); }*/
 
 void room_file_header::ReadFromFile(FILE *fp)
 {
-#ifdef ALLEGRO_BIG_ENDIAN
-    version = __getshort__bigendian(fp);
-#else
-    throw "room_file_header::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
-#endif
+//#ifdef ALLEGRO_BIG_ENDIAN
+    version = getshort(fp);//getshort(fp);__getshort__bigendian(fp);
+//#else
+//    throw "room_file_header::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
+//#endif
 }
 
 
@@ -190,12 +191,13 @@ void load_main_block(roomstruct *rstruc, char *files, FILE *opty, room_file_head
 	if (rstruc->numhotspots > MAX_HOTSPOTS)
 		quit("room has too many hotspots: need newer version of AGS?");
 
-#ifdef ALLEGRO_BIG_ENDIAN
+//#ifdef ALLEGRO_BIG_ENDIAN
     // Points are a pair of shorts
+    // [IKM] TODO: read/write memeber for _Point?
     fread(&rstruc->hswalkto[0], sizeof(short), 2*rstruc->numhotspots, opty);
-#else
-    fread(&rstruc->hswalkto[0], sizeof(_Point), rstruc->numhotspots, opty);
-#endif
+//#else
+//    fread(&rstruc->hswalkto[0], sizeof(_Point), rstruc->numhotspots, opty);
+//#endif
 
 	for (f = 0; f < rstruc->numhotspots; f++)
 	{
@@ -218,14 +220,14 @@ void load_main_block(roomstruct *rstruc, char *files, FILE *opty, room_file_head
     
   fread(&rstruc->numwalkareas, 4, 1, opty);
   // MACPORT FIX: read polypoints
-#ifdef ALLEGRO_BIG_ENDIAN
+//#ifdef ALLEGRO_BIG_ENDIAN
   for (int iteratorCount = 0; iteratorCount < rstruc->numwalkareas; ++iteratorCount)
   {
       rstruc->wallpoints[iteratorCount].ReadFromFile(opty);
   }
-#else
-  fread(&rstruc->wallpoints[0], sizeof(PolyPoints), rstruc->numwalkareas, opty);
-#endif
+//#else
+//  fread(&rstruc->wallpoints[0], sizeof(PolyPoints), rstruc->numwalkareas, opty);
+//#endif
   
   update_polled_stuff_if_runtime();
 
@@ -236,27 +238,27 @@ void load_main_block(roomstruct *rstruc, char *files, FILE *opty, room_file_head
 
   fread(&rstruc->numsprs, 2, 1, opty);
   // MACPORT FIX: read sprstrucs
-#ifdef ALLEGRO_BIG_ENDIAN
+//#ifdef ALLEGRO_BIG_ENDIAN
   for (int iteratorCount = 0; iteratorCount < rstruc->numsprs; ++iteratorCount)
   {
       rstruc->sprs[iteratorCount].ReadFromFile(opty);
   }
-#else
-  fread(&rstruc->sprs[0], sizeof(sprstruc), rstruc->numsprs, opty);
-#endif
+//#else
+//  fread(&rstruc->sprs[0], sizeof(sprstruc), rstruc->numsprs, opty);
+//#endif
 
   if (rfh.version >= 19) {
     rstruc->numLocalVars = getw(opty);
     if (rstruc->numLocalVars > 0) {
       rstruc->localvars = (InteractionVariable*)malloc (sizeof(InteractionVariable) * rstruc->numLocalVars);
-#ifdef ALLEGRO_BIG_ENDIAN
+//#ifdef ALLEGRO_BIG_ENDIAN
       for (int iteratorCount = 0; iteratorCount < rstruc->numLocalVars; ++iteratorCount)
       {
           rstruc->localvars[iteratorCount].ReadFromFile(opty);
       }
-#else
-      fread (&rstruc->localvars[0], sizeof(InteractionVariable), rstruc->numLocalVars, opty);
-#endif
+//#else
+//      fread (&rstruc->localvars[0], sizeof(InteractionVariable), rstruc->numLocalVars, opty);
+//#endif
     }
   }
   
@@ -394,16 +396,16 @@ void load_main_block(roomstruct *rstruc, char *files, FILE *opty, room_file_head
     rstruc->gameId = getw(opty);
 
   if (rfh.version >= 3)
-#ifdef ALLEGRO_BIG_ENDIAN
+//#ifdef ALLEGRO_BIG_ENDIAN
   {
       for (int iteratorCount = 0; iteratorCount < rstruc->nummes; ++iteratorCount)
       {
           rstruc->msgi[iteratorCount].ReadFromFile(opty);
       }
   }
-#else
-    fread(&rstruc->msgi[0], sizeof(MessageInfo), rstruc->nummes, opty);
-#endif
+//#else
+    //fread(&rstruc->msgi[0], sizeof(MessageInfo), rstruc->nummes, opty);
+//#endif
   else
     memset(&rstruc->msgi[0], 0, sizeof(MessageInfo) * MAXMESS);
 
@@ -600,11 +602,11 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
   }
   update_polled_stuff_if_runtime();  // it can take a while to load the file sometimes
 
-#ifdef ALLEGRO_BIG_ENDIAN
+//#ifdef ALLEGRO_BIG_ENDIAN
   rfh.ReadFromFile(opty);
-#else
-  fread(&rfh, sizeof(rfh), 1, opty);  
-#endif
+//#else
+//  fread(&rfh, sizeof(rfh), 1, opty);  
+//#endif
   //fclose(opty);
   rstruc->wasversion = rfh.version;
 

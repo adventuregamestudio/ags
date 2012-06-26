@@ -1,6 +1,7 @@
 
 #define USE_CLIB
 #include "wgt2allg.h"
+#include "platform/file.h"
 
 #define fopen clibfopen
 
@@ -130,6 +131,8 @@ block abuf;
     return tempbitm;
   }
 
+  // [IKM] recreated these in platform/file unit
+  /*
   short getshort(FILE * fff)
   {
     short sss;
@@ -141,6 +144,7 @@ block abuf;
   {
     fwrite(&num, 2, 1, fff);
   }
+  */
 
   block wloadblock(char *fill)
   {

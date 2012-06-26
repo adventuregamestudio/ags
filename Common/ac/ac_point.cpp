@@ -14,11 +14,11 @@ void PolyPoints::add_point(int xxx,int yyy) {
 
 void PolyPoints::ReadFromFile(FILE *fp)
 {
-#ifdef ALLEGRO_BIG_ENDIAN
+//#ifdef ALLEGRO_BIG_ENDIAN
     fread(x, sizeof(int), MAXPOINTS, fp);
     fread(y, sizeof(int), MAXPOINTS, fp);
     numpoints = getw(fp);
-#else
-    throw "PolyPoints::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
-#endif
+//#else
+//    throw "PolyPoints::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
+//#endif
 }

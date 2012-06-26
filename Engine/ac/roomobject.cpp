@@ -23,25 +23,25 @@ int RoomObject::get_baseline() {
 
 void RoomObject::ReadFromFile(FILE *fp)
 {
-#ifdef ALLEGRO_BIG_ENDIAN
+//#ifdef ALLEGRO_BIG_ENDIAN
     fread(&x, sizeof(int), 2, fp);
     fread(&tint_r, sizeof(short), 15, fp);
     fread(&cycling, sizeof(char), 4, fp);
     fread(&blocking_width, sizeof(short), 2, fp);
     fseek(fp, 2, SEEK_CUR);
-#else
-    throw "RoomObject::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
-#endif
+//#else
+//    throw "RoomObject::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
+//#endif
 }
 void RoomObject::WriteToFile(FILE *fp)
 {
-#ifdef ALLEGRO_BIG_ENDIAN
+//#ifdef ALLEGRO_BIG_ENDIAN
     fwrite(&x, sizeof(int), 2, fp);
     fwrite(&tint_r, sizeof(short), 15, fp);
     fwrite(&cycling, sizeof(char), 4, fp);
     fwrite(&blocking_width, sizeof(short), 2, fp);
     putc(0, fp); putc(0, fp);
-#else
-    throw "RoomObject::WriteToFile() is not implemented for little-endian platforms and should not be called.";
-#endif
+//#else
+//    throw "RoomObject::WriteToFile() is not implemented for little-endian platforms and should not be called.";
+//#endif
 }

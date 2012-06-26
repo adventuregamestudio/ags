@@ -3,7 +3,7 @@
 
 void RoomStatus::ReadFromFile(FILE *fp)
 {
-#ifdef ALLEGRO_BIG_ENDIAN
+//#ifdef ALLEGRO_BIG_ENDIAN
     beenhere = getw(fp);
     numobj = getw(fp);
     for (int i = 0; i < MAX_INIT_SPR; ++i)
@@ -33,13 +33,13 @@ void RoomStatus::ReadFromFile(FILE *fp)
     fread(walkbehind_base, sizeof(short), MAX_OBJ, fp);
     fseek(fp, 4 - ((MAX_HOTSPOTS+MAX_REGIONS+2*MAX_OBJ)%4), SEEK_CUR);
     fread(interactionVariableValues, sizeof(int), MAX_GLOBAL_VARIABLES, fp);
-#else
-    throw "RoomStatus::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
-#endif
+//#else
+//    throw "RoomStatus::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
+//#endif
 }
 void RoomStatus::WriteToFile(FILE *fp)
 {
-#ifdef ALLEGRO_BIG_ENDIAN
+//#ifdef ALLEGRO_BIG_ENDIAN
     char pad[4];
     putw(beenhere, fp);
     putw(numobj, fp);
@@ -70,7 +70,7 @@ void RoomStatus::WriteToFile(FILE *fp)
     fwrite(walkbehind_base, sizeof(short), MAX_OBJ, fp);
     fwrite(pad, sizeof(char), 4 - ((MAX_HOTSPOTS+MAX_REGIONS+2*MAX_OBJ)%4), fp);
     fwrite(interactionVariableValues, sizeof(int), MAX_GLOBAL_VARIABLES, fp);
-#else
-    throw "RoomStatus::WriteToFile() is not implemented for little-endian platforms and should not be called.";
-#endif
+//#else
+//    throw "RoomStatus::WriteToFile() is not implemented for little-endian platforms and should not be called.";
+//#endif
 }

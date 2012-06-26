@@ -152,8 +152,12 @@ extern "C"
 
     extern block tempbitm;
     extern block wnewblock(int x1, int y1, int x2, int y2);
+
+    // [IKM] recreated these in platform/file unit
+    /*
     extern short getshort(FILE * fff);
     extern void putshort(short num, FILE *fff);
+    */
     extern block wloadblock(char *fill);
 
     extern int wloadsprites(color * pall, char *filnam, block * sarray, int strt, int eend);

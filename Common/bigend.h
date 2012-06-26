@@ -45,6 +45,8 @@ size_t __fwrite__lilendian(void const *, size_t size, size_t nmemb, FILE *);
 
 #ifndef __BIGEND_ORIGINAL_FILE_FUNCTIONS
 
+#define getshort __getshort__bigendian
+#define putshort __putshort__lilendian
 #define getw __getw__bigendian
 #define putw __putw__lilendian
 #define fread __fread__bigendian

@@ -1,5 +1,11 @@
-#ifndef __AC_ROOMOBJECT_H
-#define __AC_ROOMOBJECT_H
+
+//=============================================================================
+//
+//
+//
+//=============================================================================
+#ifndef __AGS_EE_AC__ROOMOBJECT_H
+#define __AGS_EE_AC__ROOMOBJECT_H
 
 #include "platform/file.h"
 
@@ -30,5 +36,4 @@ struct RoomObject {
     void WriteToFile(FILE *fp);
 };
 
-
-#endif // __AC_ROOMOBJECT_H
+#endif // __AGS_EE_AC__ROOMOBJECT_H

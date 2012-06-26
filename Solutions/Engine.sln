@@ -26,6 +26,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documents", "Documents", "{
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Compiler.Lib", "Compiler.Lib\Compiler.Lib.vcproj", "{7B621FC0-BFD0-40E4-800A-0CD5E5707532}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Ports", "Ports", "{4D28FFA8-F8AD-4F34-B908-F6E5BEDE8272}"
+	ProjectSection(SolutionItems) = preProject
+		..\Engine\Makefile.linux = ..\Engine\Makefile.linux
+		..\Engine\Makefile.osx = ..\Engine\Makefile.osx
+		..\Engine\Makefile.psp = ..\Engine\Makefile.psp
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32

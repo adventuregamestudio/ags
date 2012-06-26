@@ -7,8 +7,8 @@
 
 void RunInventoryInteraction (int iit, int modd);
 void InventoryItem_RunInteraction(ScriptInvItem *iitem, int mood);
-void RunObjectInteraction (int aa, int mood);
-void Object_RunInteraction(ScriptObject *objj, int mode);
+
+
 
 
 int check_click_on_character(int xx,int yy,int mood);

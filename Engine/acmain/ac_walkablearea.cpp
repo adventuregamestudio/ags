@@ -135,6 +135,12 @@ void remove_walkable_areas_from_temp(int fromx, int cwidth, int starty, int endy
 
 }
 
+int is_point_in_rect(int x, int y, int left, int top, int right, int bottom) {
+    if ((x >= left) && (x < right) && (y >= top ) && (y <= bottom))
+        return 1;
+    return 0;
+}
+
 block prepare_walkable_areas (int sourceChar) {
     // copy the walkable areas to the temp bitmap
     blit (thisroom.walls, walkable_areas_temp, 0,0,0,0,thisroom.walls->w,thisroom.walls->h);

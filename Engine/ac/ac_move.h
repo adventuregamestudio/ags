@@ -12,6 +12,4 @@ struct MoveList {
     char  doneflag;
     char  direct;  // MoveCharDirect was used or not
 };
-
-
 #endif // __AC_MOVE_H

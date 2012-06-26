@@ -20,9 +20,11 @@
 #include "ac/ac_view.h"
 #include "ac/event.h"
 #include "ac/global_character.h"
+#include "ac/object.h"
+#include "ac/global_object.h"
+#include "ac/path.h"
 #include "acgui/ac_guimain.h"
 #include "routefnd.h"
-#include "acmain/ac_collision.h"
 #include "acmain/ac_customproperties.h"
 #include "acmain/ac_cutscene.h"
 #include "acmain/ac_draw.h"
@@ -30,7 +32,6 @@
 #include "acmain/ac_location.h"
 #include "acmain/ac_message.h"
 #include "acmain/ac_mouse.h"
-#include "acmain/ac_object.h"
 #include "acmain/ac_room.h"
 #include "acmain/ac_screen.h"
 #include "acmain/ac_speech.h"
@@ -73,6 +74,7 @@ extern SpriteCache spriteset;
 CharacterExtras *charextra;
 CharacterInfo*playerchar;
 long _sc_PlayerCharPtr = 0;
+int char_lowest_yp;
 
 // **** CHARACTER: FUNCTIONS ****
 
@@ -2096,4 +2098,65 @@ int is_pos_on_character(int xx,int yy) {
     }
     char_lowest_yp = lowestyp;
     return lowestwas;
+}
+
+void get_char_blocking_rect(int charid, int *x1, int *y1, int *width, int *y2) {
+    CharacterInfo *char1 = &game.chars[charid];
+    int cwidth, fromx;
+
+    if (char1->blocking_width < 1)
+        cwidth = divide_down_coordinate(GetCharacterWidth(charid)) - 4;
+    else
+        cwidth = char1->blocking_width;
+
+    fromx = char1->x - cwidth/2;
+    if (fromx < 0) {
+        cwidth += fromx;
+        fromx = 0;
+    }
+    if (fromx + cwidth >= convert_back_to_high_res(walkable_areas_temp->w))
+        cwidth = convert_back_to_high_res(walkable_areas_temp->w) - fromx;
+
+    if (x1)
+        *x1 = fromx;
+    if (width)
+        *width = cwidth;
+    if (y1)
+        *y1 = char1->get_blocking_top();
+    if (y2)
+        *y2 = char1->get_blocking_bottom();
+}
+
+// Check whether the source char has walked onto character ww
+int is_char_on_another (int sourceChar, int ww, int*fromxptr, int*cwidptr) {
+
+    int fromx, cwidth;
+    int y1, y2;
+    get_char_blocking_rect(ww, &fromx, &y1, &cwidth, &y2);
+
+    if (fromxptr)
+        fromxptr[0] = fromx;
+    if (cwidptr)
+        cwidptr[0] = cwidth;
+
+    // if the character trying to move is already on top of
+    // this char somehow, allow them through
+    if ((sourceChar >= 0) &&
+        // x/width are left and width co-ords, so they need >= and <
+        (game.chars[sourceChar].x >= fromx) &&
+        (game.chars[sourceChar].x < fromx + cwidth) &&
+        // y1/y2 are the top/bottom co-ords, so they need >= / <=
+        (game.chars[sourceChar].y >= y1 ) &&
+        (game.chars[sourceChar].y <= y2 ))
+        return 1;
+
+    return 0;
+}
+
+int my_getpixel(BITMAP *blk, int x, int y) {
+    if ((x < 0) || (y < 0) || (x >= blk->w) || (y >= blk->h))
+        return -1;
+
+    // strip the alpha channel
+    return blk->vtable->getpixel(blk, x, y) & 0x00ffffff;
 }

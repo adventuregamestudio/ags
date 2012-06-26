@@ -2,7 +2,8 @@
 #define __AC_DRAW_H
 
 #include "ali3d.h"
-#include "ac/ac_common.h" // AGS_INLINE
+#include "ac/ac_defines.h" // AGS_INLINE
+#include "acrun/ac_rundefines.h"
 
 struct CachedActSpsData {
     int xWas, yWas;
@@ -78,10 +79,12 @@ extern COLOR_MAP maincoltable;
 
 void setpal();
 
+extern AGS_INLINE int get_fixed_pixel_size(int pixels);
 extern AGS_INLINE int convert_to_low_res(int coord);
 extern AGS_INLINE int convert_back_to_high_res(int coord);
-extern AGS_INLINE void multiply_up_coordinates_round_up(int *x, int *y);
 extern AGS_INLINE int multiply_up_coordinate(int coord);
+extern AGS_INLINE void multiply_up_coordinates(int *x, int *y);
+extern AGS_INLINE void multiply_up_coordinates_round_up(int *x, int *y);
 extern AGS_INLINE int divide_down_coordinate(int coord);
 extern AGS_INLINE int divide_down_coordinate_round_up(int coord);
 

@@ -1,6 +1,6 @@
 
 #include <stdio.h>
-#include "acrun/ac_roomobject.h"
+#include "ac/roomobject.h"
 #include "ac/ac_defines.h"
 
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
@@ -20,7 +20,6 @@ int RoomObject::get_baseline() {
         return y;
     return baseline;
 }
-
 
 void RoomObject::ReadFromFile(FILE *fp)
 {

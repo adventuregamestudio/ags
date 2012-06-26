@@ -75,14 +75,7 @@ int Hotspot_GetProperty (ScriptHotspot *hss, const char *property) {
   return get_int_property (&thisroom.hsProps[hss->id], property);
 }
 
-int GetObjectProperty (int hss, const char *property) {
-  if (!is_valid_object(hss))
-    quit("!GetObjectProperty: invalid object");
-  return get_int_property (&thisroom.objProps[hss], property);
-}
-int Object_GetProperty (ScriptObject *objj, const char *property) {
-  return GetObjectProperty(objj->id, property);
-}
+
 
 int GetRoomProperty (const char *property) {
   return get_int_property (&thisroom.roomProps, property);
@@ -108,15 +101,7 @@ void Hotspot_GetPropertyText (ScriptHotspot *hss, const char *property, char *bu
 const char* Hotspot_GetTextProperty(ScriptHotspot *hss, const char *property) {
   return get_text_property_dynamic_string(&thisroom.hsProps[hss->id], property);
 }
-void GetObjectPropertyText (int item, const char *property, char *bufer) {
-  get_text_property (&thisroom.objProps[item], property, bufer);
-}
-void Object_GetPropertyText(ScriptObject *objj, const char *property, char *bufer) {
-  GetObjectPropertyText(objj->id, property, bufer);
-}
-const char* Object_GetTextProperty(ScriptObject *objj, const char *property) {
-  return get_text_property_dynamic_string(&thisroom.objProps[objj->id], property);
-}
+
 void GetRoomPropertyText (const char *property, char *bufer) {
   get_text_property (&thisroom.roomProps, property, bufer);
 }

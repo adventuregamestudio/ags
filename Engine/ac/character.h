@@ -50,7 +50,7 @@ void    Character_Walk(CharacterInfo *chaa, int x, int y, int blocking, int dire
 void    Character_Move(CharacterInfo *chaa, int x, int y, int blocking, int direct);
 void    Character_WalkStraight(CharacterInfo *chaa, int xx, int yy, int blocking);
 
-void Character_RunInteraction(CharacterInfo *chaa, int mood);
+void    Character_RunInteraction(CharacterInfo *chaa, int mood);
 
 // **** CHARACTER: PROPERTIES ****
 
@@ -163,6 +163,10 @@ void CheckViewFrameForCharacter(CharacterInfo *chi);
 block GetCharacterImage(int charid, int *isFlipped);
 CharacterInfo *GetCharacterAtLocation(int xx, int yy);
 int is_pos_on_character(int xx,int yy);
+void get_char_blocking_rect(int charid, int *x1, int *y1, int *width, int *y2);
+// Check whether the source char has walked onto character ww
+int is_char_on_another (int sourceChar, int ww, int*fromxptr, int*cwidptr);
+int my_getpixel(BITMAP *blk, int x, int y);
 
 
 extern CharacterInfo*playerchar;

@@ -128,4 +128,11 @@
 #define int32 long
 #endif
 
+#ifdef WINDOWS_VERSION
+#define AGS_INLINE inline
+#else
+// the linux compiler won't allow extern inline
+#define AGS_INLINE
+#endif
+
 #endif // __AC_DEFINES_H

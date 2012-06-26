@@ -41,43 +41,8 @@ void InventoryItem_RunInteraction(ScriptInvItem *iitem, int mood) {
 }
 
 
-void RunObjectInteraction (int aa, int mood) {
-    if (!is_valid_object(aa))
-        quit("!RunObjectInteraction: invalid object number for current room");
-    int passon=-1,cdata=-1;
-    if (mood==MODE_LOOK) passon=0;
-    else if (mood==MODE_HAND) passon=1;
-    else if (mood==MODE_TALK) passon=2;
-    else if (mood==MODE_PICKUP) passon=5;
-    else if (mood==MODE_CUSTOM1) passon = 6;
-    else if (mood==MODE_CUSTOM2) passon = 7;
-    else if (mood==MODE_USE) { passon=3;
-    cdata=playerchar->activeinv;
-    play.usedinv=cdata; }
-    evblockbasename="object%d"; evblocknum=aa;
 
-    if (thisroom.objectScripts != NULL) 
-    {
-        if (passon>=0) 
-        {
-            if (run_interaction_script(thisroom.objectScripts[aa], passon, 4, (passon == 3)))
-                return;
-        }
-        run_interaction_script(thisroom.objectScripts[aa], 4);  // any click on obj
-    }
-    else
-    {
-        if (passon>=0) {
-            if (run_interaction_event(&croom->intrObject[aa],passon, 4, (passon == 3)))
-                return;
-        }
-        run_interaction_event(&croom->intrObject[aa],4);  // any click on obj
-    }
-}
 
-void Object_RunInteraction(ScriptObject *objj, int mode) {
-    RunObjectInteraction(objj->id, mode);
-}
 
 
 

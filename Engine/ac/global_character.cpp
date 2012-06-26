@@ -17,14 +17,14 @@
 #include "ac/ac_common.h"
 #include "ac/ac_gamesetupstruct.h"
 #include "ac/ac_roomstruct.h"
-#include "ac/ac_view.h"
 #include "ac/character.h"
 #include "ac/event.h"
-#include "debug/debug.h"
-#include "acmain/ac_draw.h"
-#include "acmain/ac_object.h"
+#include "ac/object.h"
+#include "ac/ac_view.h"
 #include "acmain/ac_customproperties.h"
+#include "acmain/ac_draw.h"
 #include "acrun/ac_gamestate.h"
+#include "debug/debug.h"
 #include "main/game_run.h"
 #include "script/script.h"
 
@@ -35,11 +35,13 @@ extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern RoomObject*objs;
 extern roomstruct thisroom;
 extern GameState play;
+extern ScriptObject scrObj[MAX_INIT_SPR];
 
 // defined in character unit
 extern CharacterExtras *charextra;
 extern CharacterInfo*playerchar;
 extern long _sc_PlayerCharPtr;
+extern CharacterInfo*playerchar;
 
 
 void StopMoving(int chaa) {
@@ -390,6 +392,24 @@ void RunCharacterInteraction (int cc, int mood) {
             run_interaction_event(game.intrChar[cc],passon, 4, (passon == 3));
         run_interaction_event(game.intrChar[cc],4);  // any click on char
     }
+}
+
+int AreCharObjColliding(int charid,int objid) {
+    if (!is_valid_character(charid))
+        quit("!AreCharObjColliding: invalid character");
+    if (!is_valid_object(objid))
+        quit("!AreCharObjColliding: invalid object number");
+
+    return Character_IsCollidingWithObject(&game.chars[charid], &scrObj[objid]);
+}
+
+int AreCharactersColliding(int cchar1,int cchar2) {
+    if (!is_valid_character(cchar1))
+        quit("!AreCharactersColliding: invalid char1");
+    if (!is_valid_character(cchar2))
+        quit("!AreCharactersColliding: invalid char2");
+
+    return Character_IsCollidingWithChar(&game.chars[cchar1], &game.chars[cchar2]);
 }
 
 int GetCharacterProperty (int cha, const char *property) {

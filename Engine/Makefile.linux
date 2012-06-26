@@ -5,7 +5,6 @@ alogg.o \
 acmain/ac_animatingguibutton.o \
 acmain/ac_background.o \
 acmain/ac_cdplayer.o \
-acmain/ac_collision.o \
 acmain/ac_controls.o \
 acmain/ac_conversation.o \
 acmain/ac_customproperties.o \
@@ -106,11 +105,16 @@ ac/character.o \
 ac/characterinfo.o \
 ac/event.o \
 ac/game_audio.o \
+ac/global_audio.o \
 ac/global_character.o \
 ac/global_debug.o \
+ac/global_object.o \
 ac/global_timer.o \
-ac/global_audio.o \
 ac/global_video.o \
+ac/object.o \
+ac/path.o \
+ac/roomobject.o \
+ac/roomstatus.o \
 ac/system_audio.o \
 acdialog/ac_cscidialog.o \
 acdialog/ac_mylabel.o \

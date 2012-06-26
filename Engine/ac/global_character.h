@@ -50,6 +50,8 @@ void MoveCharacterToHotspot(int chaa,int hotsp);
 void MoveCharacterBlocking(int chaa,int xx,int yy,int direct);
 
 void RunCharacterInteraction (int cc, int mood);
+int  AreCharObjColliding(int charid,int objid);
+int  AreCharactersColliding(int cchar1,int cchar2);
 
 int  GetCharacterProperty (int cha, const char *property);
 void SetCharacterProperty (int who, int flag, int yesorno);

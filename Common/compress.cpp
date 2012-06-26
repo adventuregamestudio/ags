@@ -295,7 +295,7 @@ int cunpackbitl16(unsigned short *line, int size, FILE * infile)
   return ferror(infile);
 }
 
-int cunpackbitl32(unsigned long *line, int size, FILE * infile)
+int cunpackbitl32(unsigned int *line, int size, FILE * infile)
 {
   int n = 0;                    // number of bytes decoded
 
@@ -310,7 +310,7 @@ int cunpackbitl32(unsigned long *line, int size, FILE * infile)
 
     if (cx < 0) {                //.............run
       int i = 1 - cx;
-      unsigned long ch = getw(infile);
+      unsigned int ch = getw(infile);
       while (i--) {
         // test for buffer overflow
         if (n >= size)
@@ -325,7 +325,7 @@ int cunpackbitl32(unsigned long *line, int size, FILE * infile)
         if (n >= size)
           return -1;
 
-        line[n++] = getw(infile);
+        line[n++] = (unsigned int)getw(infile);
       }
     }
   }

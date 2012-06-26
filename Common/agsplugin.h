@@ -463,7 +463,7 @@ public:
   // check whether a script function can be run now
   AGSIFUNC(int)    CanRunScriptFunctionNow();
   // call a user-defined script function
-  AGSIFUNC(int)    CallGameScriptFunction(const char *name, int32 globalScript, int32 numArgs, int32 arg1 = 0, int32 arg2 = 0, int32 arg3 = 0);
+  AGSIFUNC(int)    CallGameScriptFunction(const char *name, int32 globalScript, int32 numArgs, long arg1 = 0, long arg2 = 0, long arg3 = 0);
 
   // *** BELOW ARE INTERFACE VERSION 15 AND ABOVE ONLY
   // force any sprites on-screen using the slot to be updated
@@ -471,7 +471,7 @@ public:
   // change whether the specified sprite is a 32-bit alpha blended image
   AGSIFUNC(void)   SetSpriteAlphaBlended(int32 slot, int32 isAlphaBlended);
   // run the specified script function whenever script engine is available
-  AGSIFUNC(void)   QueueGameScriptFunction(const char *name, int32 globalScript, int32 numArgs, int32 arg1 = 0, int32 arg2 = 0);
+  AGSIFUNC(void)   QueueGameScriptFunction(const char *name, int32 globalScript, int32 numArgs, long arg1 = 0, long arg2 = 0);
   // register a new dynamic managed script object
   AGSIFUNC(int)    RegisterManagedObject(const void *object, IAGSScriptManagedObject *callback);
   // add an object reader for the specified object type

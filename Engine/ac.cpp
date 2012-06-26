@@ -372,9 +372,11 @@ block recycle_bitmap(block bimp, int coldep, int wid, int hit);
 // **** TYPES ****
 
 
+// 64 bit: This struct must be 8 byte long
 struct ScriptGUI {
   int id;
-  GUIMain *gui;
+  //GUIMain *gui;
+  int __padding;
 };
 
 struct ScriptHotspot {
@@ -626,7 +628,7 @@ int walkBehindRight[MAX_OBJ], walkBehindBottom[MAX_OBJ];
 IDriverDependantBitmap *walkBehindBitmap[MAX_OBJ];
 int walkBehindsCachedForBgNum = 0;
 WalkBehindMethodEnum walkBehindMethod = DrawOverCharSprite;
-unsigned long loopcounter=0,lastcounter=0;
+unsigned int loopcounter=0,lastcounter=0;
 volatile unsigned long globalTimerCounter = 0;
 char alpha_blend_cursor = 0;
 RoomObject*objs;
@@ -679,7 +681,7 @@ AnimatingGUIButton animbuts[MAX_ANIMATING_BUTTONS];
 int numAnimButs = 0;
 int num_scripts=0, eventClaimed = EVENT_NONE;
 int getloctype_index = 0, getloctype_throughgui = 0;
-int user_disabled_for=0,user_disabled_data=0,user_disabled_data2=0;
+long user_disabled_for=0,user_disabled_data=0,user_disabled_data2=0;
 int user_disabled_data3=0;
 int is_complete_overlay=0,is_text_overlay=0;
 // Sierra-style speech settings
@@ -857,8 +859,8 @@ void mainloop(bool checkControls = false, IDriverDependantBitmap *extraBitmap = 
 void set_mouse_cursor(int);
 void set_default_cursor();
 int  run_text_script(ccInstance*,char*);
-int  run_text_script_2iparam(ccInstance*,char*,int,int);
-int  run_text_script_iparam(ccInstance*,char*,int);
+int  run_text_script_2iparam(ccInstance*,char*,long,long);
+int  run_text_script_iparam(ccInstance*,char*,long);
 //void run_graph_script(int);
 //void run_event_block(EventBlock*,int,int=-1, int=-1);
 int  run_interaction_event (NewInteraction *nint, int evnt, int chkAny = -1, int isInv = 0);
@@ -2195,10 +2197,13 @@ char *get_translation (const char *text) {
   }
 
   // check if a plugin wants to translate it - if so, return that
-  char *plResult = (char*)platform->RunPluginHooks(AGSE_TRANSLATETEXT, (int)text);
+  char *plResult = (char*)platform->RunPluginHooks(AGSE_TRANSLATETEXT, (long)text);
   if (plResult) {
-    if (((int)plResult >= -1) && ((int)plResult < 10000))
-      quit("!Plugin did not return a string for text translation");
+
+//  64bit: This is a wonky way to detect a valid pointer
+//  if (((int)plResult >= -1) && ((int)plResult < 10000))
+//    quit("!Plugin did not return a string for text translation");
+
     return plResult;
   }
 
@@ -3434,7 +3439,7 @@ void run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun) {
   _do_run_script_func_cant_block(roominstFork, funcToRun, &funcToRun->roomHasFunction);
 }
 
-int run_script_function_if_exist(ccInstance*sci,char*tsname,int numParam, int iparam, int iparam2, int iparam3) {
+int run_script_function_if_exist(ccInstance*sci,char*tsname,int numParam, long iparam, long iparam2, long iparam3) {
   int oldRestoreCount = gameHasBeenRestored;
   // First, save the current ccError state
   // This is necessary because we might be attempting
@@ -3513,7 +3518,7 @@ int run_text_script(ccInstance*sci,char*tsname) {
   return toret;
 }
 
-int run_claimable_event(char *tsname, bool includeRoom, int numParams, int param1, int param2, bool *eventWasClaimed) {
+int run_claimable_event(char *tsname, bool includeRoom, int numParams, long param1, long param2, bool *eventWasClaimed) {
   *eventWasClaimed = true;
   // Run the room script function, and if it is not claimed,
   // then run the main one
@@ -3547,7 +3552,7 @@ int run_claimable_event(char *tsname, bool includeRoom, int numParams, int param
   return 0;
 }
 
-int run_text_script_iparam(ccInstance*sci,char*tsname,int iparam) {
+int run_text_script_iparam(ccInstance*sci,char*tsname,long iparam) {
   if ((strcmp(tsname, "on_key_press") == 0) || (strcmp(tsname, "on_mouse_click") == 0)) {
     bool eventWasClaimed;
     int toret = run_claimable_event(tsname, true, 1, iparam, 0, &eventWasClaimed);
@@ -3559,7 +3564,7 @@ int run_text_script_iparam(ccInstance*sci,char*tsname,int iparam) {
   return run_script_function_if_exist(sci, tsname, 1, iparam, 0);
 }
 
-int run_text_script_2iparam(ccInstance*sci,char*tsname,int iparam,int param2) {
+int run_text_script_2iparam(ccInstance*sci,char*tsname,long iparam,long param2) {
   if (strcmp(tsname, "on_event") == 0) {
     bool eventWasClaimed;
     int toret = run_claimable_event(tsname, true, 2, iparam, param2, &eventWasClaimed);
@@ -4533,7 +4538,8 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
   objs=&croom->obj[0];
 
   for (cc = 0; cc < MAX_INIT_SPR; cc++) {
-    scrObj[cc].obj = &croom->obj[cc];
+    // 64 bit: Using the id instead
+    // scrObj[cc].obj = &croom->obj[cc];
     objectScriptObjNames[cc][0] = 0;
   }
 
@@ -4851,7 +4857,7 @@ void new_room(int newnum,CharacterInfo*forchar) {
 
 // animation player start
 
-void main_loop_until(int untilwhat,int udata,int mousestuff) {
+void main_loop_until(int untilwhat,long udata,int mousestuff) {
   play.disabled_user_interface++;
   guis_need_update = 1;
   // Only change the mouse cursor if it hasn't been specifically changed first
@@ -5550,7 +5556,7 @@ void remove_popup_interface(int ifacenum) {
 void process_interface_click(int ifce, int btn, int mbut) {
   if (btn < 0) {
     // click on GUI background
-    run_text_script_2iparam(gameinst, guis[ifce].clickEventHandler, (int)&scrGui[ifce], mbut);
+    run_text_script_2iparam(gameinst, guis[ifce].clickEventHandler, (long)&scrGui[ifce], mbut);
     return;
   }
 
@@ -5577,9 +5583,9 @@ void process_interface_click(int ifce, int btn, int mbut) {
         (ccGetSymbolAddr(gameinst, theObj->eventHandlers[0]) != NULL)) {
       // control-specific event handler
       if (strchr(theObj->GetEventArgs(0), ',') != NULL)
-        run_text_script_2iparam(gameinst, theObj->eventHandlers[0], (int)theObj, mbut);
+        run_text_script_2iparam(gameinst, theObj->eventHandlers[0], (long)theObj, mbut);
       else
-        run_text_script_iparam(gameinst, theObj->eventHandlers[0], (int)theObj);
+        run_text_script_iparam(gameinst, theObj->eventHandlers[0], (long)theObj);
     }
     else
       run_text_script_2iparam(gameinst,"interface_click",ifce,btn);
@@ -7491,7 +7497,7 @@ int sort_out_walk_behinds(block sprit,int xx,int yy,int basel, block copyPixelsF
   int spcoldep = bitmap_color_depth(sprit);
   int screenhit = thisroom.object->h;
   short *shptr, *shptr2;
-  long *loptr, *loptr2;
+  int *loptr, *loptr2;
   int pixelsChanged = 0;
   int ee = 0;
   if (xx < 0)
@@ -7562,10 +7568,10 @@ int sort_out_walk_behinds(block sprit,int xx,int yy,int basel, block copyPixelsF
           }
         }
         else if (spcoldep <= 32) {
-          loptr = (long*)&sprit->line[rr][0];
-          loptr2 = (long*)&checkPixelsFrom->line[(rr * 100) / zoom][0];
+          loptr = (int*)&sprit->line[rr][0];
+          loptr2 = (int*)&checkPixelsFrom->line[(rr * 100) / zoom][0];
           if (loptr2[(ee * 100) / zoom] != maskcol) {
-            loptr[ee] = ((long*)(&copyPixelsFrom->line[rr + yy][0]))[ee + xx];
+            loptr[ee] = ((int*)(&copyPixelsFrom->line[rr + yy][0]))[ee + xx];
             pixelsChanged = 1;
           }
         }
@@ -7584,7 +7590,7 @@ int sort_out_walk_behinds(block sprit,int xx,int yy,int basel, block copyPixelsF
           memcpy(&chptr[ee * 3], &maskcol, 3);
         }
         else if (spcoldep <= 32) {
-          loptr = (long*)&sprit->line[rr][0];
+          loptr = (int*)&sprit->line[rr][0];
           loptr[ee] = maskcol;
         }
         else
@@ -7747,8 +7753,8 @@ void repair_alpha_channel(block dest, block bgpic)
   int theHit = (dest->h < bgpic->h) ? dest->h : bgpic->h;
   for (int y = 0; y < theHit; y++) 
   {
-    unsigned long *destination = ((unsigned long*)dest->line[y]);
-    unsigned long *source = ((unsigned long*)bgpic->line[y]);
+    unsigned int *destination = ((unsigned int*)dest->line[y]);
+    unsigned int *source = ((unsigned int*)bgpic->line[y]);
     for (int x = 0; x < theWid; x++) 
     {
       destination[x] |= (source[x] & 0xff000000);
@@ -11178,7 +11184,7 @@ void DynamicSprite_CopyTransparencyMask(ScriptDynamicSprite *sds, int sourceSpri
   int bytesPerPixel = (colDep + 1) / 8;
 
   unsigned short *shortPtr;
-  unsigned long *longPtr;
+  unsigned int *longPtr;
   for (int y = 0; y < target->h; y++)
   {
     unsigned char * sourcePixel = source->line[y];
@@ -11186,7 +11192,7 @@ void DynamicSprite_CopyTransparencyMask(ScriptDynamicSprite *sds, int sourceSpri
     for (int x = 0; x < target->w; x++)
     {
       shortPtr = (unsigned short*)sourcePixel;
-      longPtr = (unsigned long*)sourcePixel;
+      longPtr = (unsigned int*)sourcePixel;
 
       if ((colDep == 8) && (sourcePixel[0] == maskColor))
       {
@@ -11202,7 +11208,7 @@ void DynamicSprite_CopyTransparencyMask(ScriptDynamicSprite *sds, int sourceSpri
       }
       else if ((bytesPerPixel == 4) && (longPtr[0] == maskColor))
       {
-        ((unsigned long*)targetPixel)[0] = maskColor;
+        ((unsigned int*)targetPixel)[0] = maskColor;
       }
       else if ((bytesPerPixel == 4) && (sourceHasAlpha))
       {
@@ -11984,12 +11990,8 @@ int load_game_file() {
   game.invScripts = NULL;
   memset(&game.spriteflags[0], 0, MAX_SPRITES);
 
-#ifndef ALLEGRO_BIG_ENDIAN
-  fread(&game, sizeof (GameSetupStructBase), 1, iii);
-#else
   GameSetupStructBase *gameBase = (GameSetupStructBase *) &game;
   gameBase->ReadFromFile(iii);
-#endif
 
   if (filever <= 37) // <= 3.1
   {
@@ -12252,14 +12254,10 @@ int load_game_file() {
 
   dialog=(DialogTopic*)malloc(sizeof(DialogTopic)*game.numdialog+5);
 
-#ifndef ALLEGRO_BIG_ENDIAN
-  fread(&dialog[0],sizeof(DialogTopic),game.numdialog,iii);
-#else
   for (int iteratorCount = 0; iteratorCount < game.numdialog; ++iteratorCount)
   {
     dialog[iteratorCount].ReadFromFile(iii);
   }
-#endif
 
   if (filever <= 37) // Dialog script
   {
@@ -12518,7 +12516,8 @@ int load_game_file() {
 
   scrGui = (ScriptGUI*)malloc(sizeof(ScriptGUI) * game.numgui);
   for (ee = 0; ee < game.numgui; ee++) {
-    scrGui[ee].gui = NULL;
+    // 64 bit: Using the id instead
+    // scrGui[ee].gui = NULL;
     scrGui[ee].id = -1;
   }
 
@@ -12539,7 +12538,8 @@ int load_game_file() {
     guiScriptObjNames[ee] = (char*)malloc(21);
     strcpy(guiScriptObjNames[ee], guis[ee].name);
 
-    scrGui[ee].gui = &guis[ee];
+    // 64 bit: Using the id instead
+    // scrGui[ee].gui = &guis[ee];
     scrGui[ee].id = ee;
 
     ccAddExternalSymbol(guiScriptObjNames[ee], &scrGui[ee]);
@@ -14176,7 +14176,7 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
   if (isPause) {
     if (update_music_at > 0)
       update_music_at += play.messagetime;
-    do_main_cycle(UNTIL_INTISNEG,(int)&play.messagetime);
+    do_main_cycle(UNTIL_INTISNEG,(long)&play.messagetime);
     return;
   }
 
@@ -15320,12 +15320,12 @@ int Object_GetTransparency(ScriptObject *objj) {
   if (!is_valid_object(objj->id))
     quit("!Object.Transparent: invalid object number specified");
 
-  if (objj->obj->transparent == 0)
+  if (objs[objj->id].transparent == 0)
     return 0;
-  if (objj->obj->transparent == 255)
+  if (objs[objj->id].transparent == 255)
     return 100;
 
-  return 100 - ((objj->obj->transparent * 10) / 25);
+  return 100 - ((objs[objj->id].transparent * 10) / 25);
 
 }
 
@@ -15463,7 +15463,7 @@ void AnimateObjectEx(int obn,int loopn,int spdd,int rept, int direction, int blo
   CheckViewFrame (objs[obn].view, loopn, objs[obn].frame);
 
   if (blocking)
-    do_main_cycle(UNTIL_CHARIS0,(int)&objs[obn].cycling);
+    do_main_cycle(UNTIL_CHARIS0,(long)&objs[obn].cycling);
 }
 
 void Object_Animate(ScriptObject *objj, int loop, int delay, int repeat, int blocking, int direction) {
@@ -15574,28 +15574,28 @@ int IsObjectOn (int objj) {
 }
 
 int Object_GetView(ScriptObject *objj) {
-  if (objj->obj->view < 0)
+  if (objs[objj->id].view < 0)
     return 0;
-  return objj->obj->view + 1;
+  return objs[objj->id].view + 1;
 }
 
 int Object_GetLoop(ScriptObject *objj) {
-  if (objj->obj->view < 0)
+  if (objs[objj->id].view < 0)
     return 0;
-  return objj->obj->loop;
+  return objs[objj->id].loop;
 }
 
 int Object_GetFrame(ScriptObject *objj) {
-  if (objj->obj->view < 0)
+  if (objs[objj->id].view < 0)
     return 0;
-  return objj->obj->frame;
+  return objs[objj->id].frame;
 }
 
 int Object_GetVisible(ScriptObject *objj) {
   return IsObjectOn(objj->id);
 }
 
-void SetObjectGraphic(int obn,int slott) {
+void SetObjectGraphic(long obn,long slott) {
   if (!is_valid_object(obn)) quit("!SetObjectGraphic: invalid object specified");
 
   if (objs[obn].num != slott) {
@@ -15757,7 +15757,7 @@ void scrWait(int nloops) {
 
   play.wait_counter = nloops;
   play.key_skip_wait = 0;
-  do_main_cycle(UNTIL_MOVEEND,(int)&play.wait_counter);
+  do_main_cycle(UNTIL_MOVEEND,(long)&play.wait_counter);
   }
 
 int WaitKey(int nloops) {
@@ -15766,7 +15766,7 @@ int WaitKey(int nloops) {
 
   play.wait_counter = nloops;
   play.key_skip_wait = 1;
-  do_main_cycle(UNTIL_MOVEEND,(int)&play.wait_counter);
+  do_main_cycle(UNTIL_MOVEEND,(long)&play.wait_counter);
   if (play.wait_counter < 0)
     return 1;
   return 0;
@@ -15778,7 +15778,7 @@ int WaitMouseKey(int nloops) {
 
   play.wait_counter = nloops;
   play.key_skip_wait = 3;
-  do_main_cycle(UNTIL_MOVEEND,(int)&play.wait_counter);
+  do_main_cycle(UNTIL_MOVEEND,(long)&play.wait_counter);
   if (play.wait_counter < 0)
     return 1;
   return 0;
@@ -17147,11 +17147,11 @@ void Object_SetPosition(ScriptObject *objj, int xx, int yy) {
 }
 
 void Object_SetX(ScriptObject *objj, int xx) {
-  SetObjectPosition(objj->id, xx, objj->obj->y);
+  SetObjectPosition(objj->id, xx, objs[objj->id].y);
 }
 
 void Object_SetY(ScriptObject *objj, int yy) {
-  SetObjectPosition(objj->id, objj->obj->x, yy);
+  SetObjectPosition(objj->id, objs[objj->id].x, yy);
 }
 
 void convert_move_path_to_high_res(MoveList *ml)
@@ -19284,7 +19284,7 @@ int GUI_GetVisible(ScriptGUI *tehgui) {
   // GUI_GetVisible is slightly different from IsGUIOn, because
   // with a mouse ypos gui it returns 1 if the GUI is enabled,
   // whereas IsGUIOn actually checks if it is displayed
-  if (tehgui->gui->on != 0)
+  if (guis[tehgui->id].on != 0)
     return 1;
   return 0;
 }
@@ -19433,25 +19433,25 @@ void SetGUIObjectPosition(int guin, int objn, int xx, int yy) {
 }
 
 int GUI_GetX(ScriptGUI *tehgui) {
-  return divide_down_coordinate(tehgui->gui->x);
+  return divide_down_coordinate(guis[tehgui->id].x);
 }
 
 void GUI_SetX(ScriptGUI *tehgui, int xx) {
   if (xx >= thisroom.width)
     quit("!GUI.X: co-ordinates specified are out of range.");
 
-  tehgui->gui->x = multiply_up_coordinate(xx);
+  guis[tehgui->id].x = multiply_up_coordinate(xx);
 }
 
 int GUI_GetY(ScriptGUI *tehgui) {
-  return divide_down_coordinate(tehgui->gui->y);
+  return divide_down_coordinate(guis[tehgui->id].y);
 }
 
 void GUI_SetY(ScriptGUI *tehgui, int yy) {
   if (yy >= thisroom.height)
     quit("!GUI.Y: co-ordinates specified are out of range.");
 
-  tehgui->gui->y = multiply_up_coordinate(yy);
+  guis[tehgui->id].y = multiply_up_coordinate(yy);
 }
 
 void GUI_SetPosition(ScriptGUI *tehgui, int xx, int yy) {
@@ -19537,7 +19537,7 @@ void GUI_SetSize(ScriptGUI *sgui, int widd, int hitt) {
   if ((widd < 1) || (hitt < 1) || (widd > BASEWIDTH) || (hitt > GetMaxScreenHeight()))
     quitprintf("!SetGUISize: invalid dimensions (tried to set to %d x %d)", widd, hitt);
 
-  GUIMain *tehgui = sgui->gui;
+  GUIMain *tehgui = &guis[sgui->id];
   multiply_up_coordinates(&widd, &hitt);
 
   if ((tehgui->wid == widd) && (tehgui->hit == hitt))
@@ -19552,11 +19552,11 @@ void GUI_SetSize(ScriptGUI *sgui, int widd, int hitt) {
 }
 
 int GUI_GetWidth(ScriptGUI *sgui) {
-  return divide_down_coordinate(sgui->gui->wid);
+  return divide_down_coordinate(guis[sgui->id].wid);
 }
 
 int GUI_GetHeight(ScriptGUI *sgui) {
-  return divide_down_coordinate(sgui->gui->hit);
+  return divide_down_coordinate(guis[sgui->id].hit);
 }
 
 void GUI_SetWidth(ScriptGUI *sgui, int newwid) {
@@ -19575,12 +19575,12 @@ void SetGUISize (int ifn, int widd, int hitt) {
 }
 
 void GUI_SetZOrder(ScriptGUI *tehgui, int z) {
-  tehgui->gui->zorder = z;
+  guis[tehgui->id].zorder = z;
   update_gui_zorder();
 }
 
 int GUI_GetZOrder(ScriptGUI *tehgui) {
-  return tehgui->gui->zorder;
+  return guis[tehgui->id].zorder;
 }
 
 void SetGUIZOrder(int guin, int z) {
@@ -19591,13 +19591,13 @@ void SetGUIZOrder(int guin, int z) {
 }
 
 void GUI_SetClickable(ScriptGUI *tehgui, int clickable) {
-  tehgui->gui->flags &= ~GUIF_NOCLICK;
+  guis[tehgui->id].flags &= ~GUIF_NOCLICK;
   if (clickable == 0)
-    tehgui->gui->flags |= GUIF_NOCLICK;
+    guis[tehgui->id].flags |= GUIF_NOCLICK;
 }
 
 int GUI_GetClickable(ScriptGUI *tehgui) {
-  if (tehgui->gui->flags & GUIF_NOCLICK)
+  if (guis[tehgui->id].flags & GUIF_NOCLICK)
     return 0;
   return 1;
 }
@@ -19614,29 +19614,29 @@ int GUI_GetID(ScriptGUI *tehgui) {
 }
 
 GUIObject* GUI_GetiControls(ScriptGUI *tehgui, int idx) {
-  if ((idx < 0) || (idx >= tehgui->gui->numobjs))
+  if ((idx < 0) || (idx >= guis[tehgui->id].numobjs))
     return NULL;
-  return tehgui->gui->objs[idx];
+  return guis[tehgui->id].objs[idx];
 }
 
 int GUI_GetControlCount(ScriptGUI *tehgui) {
-  return tehgui->gui->numobjs;
+  return guis[tehgui->id].numobjs;
 }
 
 void GUI_SetTransparency(ScriptGUI *tehgui, int trans) {
   if ((trans < 0) | (trans > 100))
     quit("!SetGUITransparency: transparency value must be between 0 and 100");
 
-  tehgui->gui->SetTransparencyAsPercentage(trans);
+  guis[tehgui->id].SetTransparencyAsPercentage(trans);
 }
 
 int GUI_GetTransparency(ScriptGUI *tehgui) {
-  if (tehgui->gui->transparency == 0)
+  if (guis[tehgui->id].transparency == 0)
     return 0;
-  if (tehgui->gui->transparency == 255)
+  if (guis[tehgui->id].transparency == 255)
     return 100;
 
-  return 100 - ((tehgui->gui->transparency * 10) / 25);
+  return 100 - ((guis[tehgui->id].transparency * 10) / 25);
 }
 
 // pass trans=0 for fully solid, trans=100 for fully transparent
@@ -19648,7 +19648,7 @@ void SetGUITransparency(int ifn, int trans) {
 }
 
 void GUI_Centre(ScriptGUI *sgui) {
-  GUIMain *tehgui = sgui->gui;
+  GUIMain *tehgui = &guis[sgui->id];
   tehgui->x = scrnwid / 2 - tehgui->wid / 2;
   tehgui->y = scrnhit / 2 - tehgui->hit / 2;
 }
@@ -20351,16 +20351,16 @@ void Slider_SetHandleOffset(GUISlider *guisl, int newOffset)
 }
 
 void GUI_SetBackgroundGraphic(ScriptGUI *tehgui, int slotn) {
-  if (tehgui->gui->bgpic != slotn) {
-    tehgui->gui->bgpic = slotn;
+  if (guis[tehgui->id].bgpic != slotn) {
+    guis[tehgui->id].bgpic = slotn;
     guis_need_update = 1;
   }
 }
 
 int GUI_GetBackgroundGraphic(ScriptGUI *tehgui) {
-  if (tehgui->gui->bgpic < 1)
+  if (guis[tehgui->id].bgpic < 1)
     return 0;
-  return tehgui->gui->bgpic;
+  return guis[tehgui->id].bgpic;
 }
 
 void SetGUIBackgroundPic (int guin, int slotn) {
@@ -21386,7 +21386,7 @@ void Object_Move(ScriptObject *objj, int x, int y, int speed, int blocking, int 
   move_object(objj->id, x, y, speed, direct);
 
   if ((blocking == BLOCKING) || (blocking == 1))
-    do_main_cycle(UNTIL_SHORTIS0,(int)&objj->obj->moving);
+    do_main_cycle(UNTIL_SHORTIS0,(long)&objs[objj->id].moving);
   else if ((blocking != IN_BACKGROUND) && (blocking != 0))
     quit("Object.Move: invalid BLOCKING paramter");
 }
@@ -21492,7 +21492,7 @@ int Object_GetClickable(ScriptObject *objj) {
   if (!is_valid_object(objj->id))
     quit("!Object.Clickable: Invalid object specified");
 
-  if (objj->obj->flags & OBJF_NOINTERACT)
+  if (objs[objj->id].flags & OBJF_NOINTERACT)
     return 0;
   return 1;
 }
@@ -21501,9 +21501,9 @@ void Object_SetIgnoreScaling(ScriptObject *objj, int newval) {
   if (!is_valid_object(objj->id))
     quit("!Object.IgnoreScaling: Invalid object specified");
 
-  objj->obj->flags &= ~OBJF_USEROOMSCALING;
+  objs[objj->id].flags &= ~OBJF_USEROOMSCALING;
   if (!newval)
-    objj->obj->flags |= OBJF_USEROOMSCALING;
+    objs[objj->id].flags |= OBJF_USEROOMSCALING;
 
   // clear the cache
   objcache[objj->id].ywas = -9999;
@@ -21513,37 +21513,37 @@ int Object_GetIgnoreScaling(ScriptObject *objj) {
   if (!is_valid_object(objj->id))
     quit("!Object.IgnoreScaling: Invalid object specified");
 
-  if (objj->obj->flags & OBJF_USEROOMSCALING)
+  if (objs[objj->id].flags & OBJF_USEROOMSCALING)
     return 0;
   return 1;
 }
 
 void Object_SetSolid(ScriptObject *objj, int solid) {
-  objj->obj->flags &= ~OBJF_SOLID;
+  objs[objj->id].flags &= ~OBJF_SOLID;
   if (solid)
-    objj->obj->flags |= OBJF_SOLID;
+    objs[objj->id].flags |= OBJF_SOLID;
 }
 
 int Object_GetSolid(ScriptObject *objj) {
-  if (objj->obj->flags & OBJF_SOLID)
+  if (objs[objj->id].flags & OBJF_SOLID)
     return 1;
   return 0;
 }
 
 void Object_SetBlockingWidth(ScriptObject *objj, int bwid) {
-  objj->obj->blocking_width = bwid;
+  objs[objj->id].blocking_width = bwid;
 }
 
 int Object_GetBlockingWidth(ScriptObject *objj) {
-  return objj->obj->blocking_width;
+  return objs[objj->id].blocking_width;
 }
 
 void Object_SetBlockingHeight(ScriptObject *objj, int bhit) {
-  objj->obj->blocking_height = bhit;
+  objs[objj->id].blocking_height = bhit;
 }
 
 int Object_GetBlockingHeight(ScriptObject *objj) {
-  return objj->obj->blocking_height;
+  return objs[objj->id].blocking_height;
 }
 
 void SetObjectIgnoreWalkbehinds (int cha, int clik) {
@@ -21568,7 +21568,7 @@ int Object_GetIgnoreWalkbehinds(ScriptObject *chaa) {
   if (!is_valid_object(chaa->id))
     quit("!Object.IgnoreWalkbehinds: Invalid object specified");
 
-  if (chaa->obj->flags & OBJF_NOWALKBEHINDS)
+  if (objs[chaa->id].flags & OBJF_NOWALKBEHINDS)
     return 1;
   return 0;
 }
@@ -21580,7 +21580,7 @@ void MoveCharacterToObject(int chaa,int obbj) {
     return;
 
   walk_character(chaa,objs[obbj].x+5,objs[obbj].y+6,0, true);
-  do_main_cycle(UNTIL_MOVEEND,(int)&game.chars[chaa].walking);
+  do_main_cycle(UNTIL_MOVEEND,(long)&game.chars[chaa].walking);
 }
 
 void MoveCharacterToHotspot(int chaa,int hotsp) {
@@ -21588,7 +21588,7 @@ void MoveCharacterToHotspot(int chaa,int hotsp) {
     quit("!MovecharacterToHotspot: invalid hotspot");
   if (thisroom.hswalkto[hotsp].x<1) return;
   walk_character(chaa,thisroom.hswalkto[hotsp].x,thisroom.hswalkto[hotsp].y,0, true);
-  do_main_cycle(UNTIL_MOVEEND,(int)&game.chars[chaa].walking);
+  do_main_cycle(UNTIL_MOVEEND,(long)&game.chars[chaa].walking);
   }
 
 void MoveCharacterBlocking(int chaa,int xx,int yy,int direct) {
@@ -21604,7 +21604,7 @@ void MoveCharacterBlocking(int chaa,int xx,int yy,int direct) {
     MoveCharacterDirect(chaa,xx,yy);
   else
     MoveCharacter(chaa,xx,yy);
-  do_main_cycle(UNTIL_MOVEEND,(int)&game.chars[chaa].walking);
+  do_main_cycle(UNTIL_MOVEEND,(long)&game.chars[chaa].walking);
   }
 
 
@@ -21895,6 +21895,7 @@ int _sc_stricmp (char *s1, char *s2) {
 }*/
 
 
+// 64 bit: Not sure if this function is 64 bit ready
 // Custom printf, needed because floats are pushed as 8 bytes
 void my_sprintf(char *buffer, const char *fmt, va_list ap) {
   int bufidx = 0;
@@ -21963,8 +21964,10 @@ void my_sprintf(char *buffer, const char *fmt, va_list ap) {
       memcpy(&floatArg, &theArg, sizeof(float));
       sprintf(spfbuffer, fmtstring, floatArg);
     }
+/*  64 bit: Not compatible
     else if ((theArg == (int)buffer) && (endptr[-1] == 's'))
       quit("Cannot use destination as argument to StrFormat");
+*/
     else if ((theArg < 0x10000) && (endptr[-1] == 's'))
       quit("!One of the string arguments supplied was not a string");
     else if (endptr[-1] == 's')
@@ -22173,7 +22176,7 @@ int run_interaction_commandlist (NewInteractionCommandList *nicl, int *timesrun,
         MoveObject (IPARAM1, IPARAM2, IPARAM3, IPARAM4);
         // if they want to wait until finished, do so
         if (IPARAM5)
-          do_main_cycle(UNTIL_MOVEEND,(int)&objs[IPARAM1].moving);
+          do_main_cycle(UNTIL_MOVEEND,(long)&objs[IPARAM1].moving);
         break;
       case 15: // Object Off
         ObjectOff (IPARAM1);
@@ -22252,12 +22255,12 @@ int run_interaction_commandlist (NewInteractionCommandList *nicl, int *timesrun,
         break;
       case 34: // Run animation
         scAnimateCharacter(IPARAM1, IPARAM2, IPARAM3, 0);
-        do_main_cycle(UNTIL_SHORTIS0,(int)&game.chars[IPARAM1].animating);
+        do_main_cycle(UNTIL_SHORTIS0,(long)&game.chars[IPARAM1].animating);
         break;
       case 35: // Quick animation
         SetCharacterView (IPARAM1, IPARAM2);
         scAnimateCharacter(IPARAM1, IPARAM3, IPARAM4, 0);
-        do_main_cycle(UNTIL_SHORTIS0,(int)&game.chars[IPARAM1].animating);
+        do_main_cycle(UNTIL_SHORTIS0,(long)&game.chars[IPARAM1].animating);
         ReleaseCharacterView (IPARAM1);
         break;
       case 36: // Set idle animation
@@ -23636,7 +23639,7 @@ void save_game_data (FILE *ooo, block screenshot) {
   putw(crossFadeStep, ooo);
   putw(crossFadeVolumeAtStart, ooo);
 
-  platform->RunPluginHooks(AGSE_SAVEGAME, (int)ooo);
+  platform->RunPluginHooks(AGSE_SAVEGAME, (long)ooo);
   putw (MAGICNUMBER, ooo);  // to verify the plugins
 
   // save the room music volume
@@ -23716,7 +23719,7 @@ void save_game(int slotn, const char*descript) {
   // Initialize and write Vista header
   RICH_GAME_MEDIA_HEADER vistaHeader;
   memset(&vistaHeader, 0, sizeof(RICH_GAME_MEDIA_HEADER));
-  memcpy(&vistaHeader.dwMagicNumber, RM_MAGICNUMBER, sizeof(long));
+  memcpy(&vistaHeader.dwMagicNumber, RM_MAGICNUMBER, sizeof(int));
   vistaHeader.dwHeaderVersion = 1;
   vistaHeader.dwHeaderSize = sizeof(RICH_GAME_MEDIA_HEADER);
   vistaHeader.dwThumbnailOffsetHigherDword = 0;
@@ -23782,8 +23785,8 @@ void save_game(int slotn, const char*descript) {
 
   if (screenShot != NULL)
   {
-    long screenShotOffset = ftell(ooo) - sizeof(RICH_GAME_MEDIA_HEADER);
-    long screenShotSize = write_screen_shot_for_vista(ooo, screenShot);
+    int screenShotOffset = ftell(ooo) - sizeof(RICH_GAME_MEDIA_HEADER);
+    int screenShotSize = write_screen_shot_for_vista(ooo, screenShot);
     fclose(ooo);
 
     update_polled_stuff();
@@ -24298,7 +24301,7 @@ int restore_game_data (FILE *ooo, const char *nametouse) {
 
   recache_queued_clips_after_loading_save_game();
 
-  platform->RunPluginHooks(AGSE_RESTOREGAME, (int)ooo);
+  platform->RunPluginHooks(AGSE_RESTOREGAME, (long)ooo);
   if (getw(ooo) != (unsigned)MAGICNUMBER)
     quit("!One of the game plugins did not restore its game data correctly.");
 
@@ -26733,7 +26736,7 @@ int main_game_loop() {
   return 0;
 }
 
-void do_main_cycle(int untilwhat,int daaa) {
+void do_main_cycle(int untilwhat,long daaa) {
   // blocking cutscene - end skipping
   EndSkippingUntilCharStops();
 
@@ -26830,7 +26833,7 @@ void set_rgb_mask_using_alpha_channel(block image)
 
   for (y=0; y < image->h; y++) 
   {
-    unsigned long*psrc = (unsigned long *)image->line[y];
+    unsigned int*psrc = (unsigned int *)image->line[y];
 
     for (x=0; x < image->w; x++) 
     {
@@ -26847,12 +26850,12 @@ block remove_alpha_channel(block from) {
   block to = create_bitmap_ex(depth, from->w, from->h);
   int maskcol = bitmap_mask_color(to);
   int y,x;
-  unsigned long c,b,g,r;
+  unsigned int c,b,g,r;
 
   if (depth == 24) {
     // 32-to-24
     for (y=0; y < from->h; y++) {
-      unsigned long*psrc = (unsigned long *)from->line[y];
+      unsigned int*psrc = (unsigned int *)from->line[y];
       unsigned char*pdest = (unsigned char*)to->line[y];
 
       for (x=0; x < from->w; x++) {
@@ -26869,7 +26872,7 @@ block remove_alpha_channel(block from) {
   else {  // 32 to 15 or 16
 
     for (y=0; y < from->h; y++) {
-      unsigned long*psrc = (unsigned long *)from->line[y];
+      unsigned int*psrc = (unsigned int *)from->line[y];
       unsigned short*pdest = (unsigned short *)to->line[y];
 
       for (x=0; x < from->w; x++) {
@@ -27234,7 +27237,8 @@ void init_game_settings() {
 
   for (ee = 0; ee < MAX_INIT_SPR; ee++) {
     scrObj[ee].id = ee;
-    scrObj[ee].obj = NULL;
+    // 64 bit: Using the id instead
+    // scrObj[ee].obj = NULL;
   }
 
   for (ee=0;ee<game.numcharacters;ee++) {
@@ -29267,3 +29271,12 @@ int initialize_engine_with_exception_handling(int argc,char*argv[])
 #endif
 }
 
+
+#if !defined(ALLEGRO_BIG_ENDIAN)
+short int __getshort__bigendian(FILE* file)
+{
+  short int temp = 0;
+  fread(&temp, 2, 1, file);
+  return temp;
+}
+#endif

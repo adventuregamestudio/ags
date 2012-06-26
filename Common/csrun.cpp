@@ -1299,6 +1299,11 @@ int cc_run_code(ccInstance * inst, long curpc)
   inst->pc = curpc;
   inst->returnValue = -1;
 
+  // 64 bit: For dealing with the stack
+  int original_sp_diff = 0;
+  int new_sp_diff = 0;
+  int sp_index = 0;
+
   if ((curpc < 0) || (curpc >= inst->runningInst->codesize)) {
     cc_error("specified code offset is not valid");
     return -1;
@@ -1351,11 +1356,41 @@ int cc_run_code(ccInstance * inst, long curpc)
           new_line_hook(inst, currentline);
         break;
       case SCMD_ADD:
+        // 64 bit: Keeping track of the stack variables
+        if (arg1 == SREG_SP)
+        {
+          inst->stackSizes[inst->stackSizeIndex] = arg2;
+          inst->stackSizeIndex++;
+        }
+
         inst->registers[arg1] += arg2;
         CHECK_STACK 
         break;
       case SCMD_SUB:
-        inst->registers[arg1] -= arg2;
+        // 64 bit: Rewrite the offset so that it doesn't point inside a variable on the stack
+        if (arg1 == SREG_SP)
+        {
+          int orig_sub = arg2;
+          int new_sub = 0;
+          while (orig_sub > 0)
+          {
+            if (inst->stackSizes[inst->stackSizeIndex - 1] == -1)
+            {
+              orig_sub -= 4;
+              new_sub += sizeof(long);
+            }
+            else
+            {
+              orig_sub -= inst->stackSizes[inst->stackSizeIndex - 1];
+              new_sub += inst->stackSizes[inst->stackSizeIndex - 1];
+            }
+            inst->stackSizeIndex--;
+          }
+          inst->registers[arg1] -= new_sub;
+        }
+        else
+          inst->registers[arg1] -= arg2;
+
         break;
       case SCMD_REGTOREG:
         inst->registers[arg2] = inst->registers[arg1];
@@ -1369,12 +1404,14 @@ int cc_run_code(ccInstance * inst, long curpc)
         if (loopIterationCheckDisabled > 0)
           loopIterationCheckDisabled--;
 
-        inst->registers[SREG_SP] -= 4;
+        inst->registers[SREG_SP] -= sizeof(long);
+        inst->stackSizeIndex--;
+
         curnest--;
-        memcpy(&(inst->pc), (char*)inst->registers[SREG_SP], 4);
+        memcpy(&(inst->pc), (char*)inst->registers[SREG_SP], sizeof(long));
         if (inst->pc == 0)
         {
-          inst->returnValue = inst->registers[SREG_AX];
+          inst->returnValue = (int)inst->registers[SREG_AX];
           return 0;
         }
         current_instance = inst;
@@ -1384,6 +1421,8 @@ int cc_run_code(ccInstance * inst, long curpc)
         inst->registers[arg1] = arg2;
         break;
       case SCMD_MEMREAD:
+        // 64 bit: Memory reads are still 32 bit
+        memset(&(inst->registers[arg1]), 0, sizeof(long));
         memcpy(&(inst->registers[arg1]), (char*)inst->registers[SREG_MAR], 4);
 #ifdef AGS_BIG_ENDIAN
         {
@@ -1398,6 +1437,7 @@ int cc_run_code(ccInstance * inst, long curpc)
 #endif
         break;
       case SCMD_MEMWRITE:
+        // 64 bit: Memory writes are still 32 bit
         memcpy((char*)inst->registers[SREG_MAR], &(inst->registers[arg1]), 4);
 #ifdef AGS_BIG_ENDIAN
         {
@@ -1413,63 +1453,91 @@ int cc_run_code(ccInstance * inst, long curpc)
 #endif
         break;
       case SCMD_LOADSPOFFS:
-        inst->registers[SREG_MAR] = inst->registers[SREG_SP] - arg1;
+
+        // 64 bit: Rewrite offset so that it doesn't point inside a variable
+        original_sp_diff = arg1;
+        new_sp_diff = 0;
+        sp_index = inst->stackSizeIndex - 1;
+
+        while (original_sp_diff > 0)
+        {
+          if (inst->stackSizes[sp_index] == -1)
+          {
+           	original_sp_diff -= 4;
+            new_sp_diff += sizeof(long);//inst->stackSizes[sp_index];
+            sp_index--;
+          }
+          else
+          {
+            original_sp_diff -= inst->stackSizes[sp_index];
+            new_sp_diff += inst->stackSizes[sp_index];
+            sp_index--;
+          }
+        }
+
+        if (sp_index < -1)
+          cc_error("Stack offset cannot be rewritten. Stack corrupted?");
+
+        inst->registers[SREG_MAR] = inst->registers[SREG_SP] - new_sp_diff;
         break;
+
+      // 64 bit: Force 32 bit math
+
       case SCMD_MULREG:
-        inst->registers[arg1] *= inst->registers[arg2];
+        inst->registers[arg1] = (int)((int)inst->registers[arg1] * (int)inst->registers[arg2]);
         break;
       case SCMD_DIVREG:
         if (inst->registers[arg2] == 0) {
           cc_error("!Integer divide by zero");
           return -1;
         } 
-        inst->registers[arg1] /= inst->registers[arg2];
+        inst->registers[arg1] = (int)((int)inst->registers[arg1] / (int)inst->registers[arg2]);
         break;
       case SCMD_ADDREG:
-        inst->registers[arg1] += inst->registers[arg2];
+        inst->registers[arg1] = (int)((int)inst->registers[arg1] + (int)inst->registers[arg2]);
         break;
       case SCMD_SUBREG:
-        inst->registers[arg1] -= inst->registers[arg2];
+        inst->registers[arg1] = (int)((int)inst->registers[arg1] - (int)inst->registers[arg2]);
         break;
       case SCMD_BITAND:
-        inst->registers[arg1] = inst->registers[arg1] & inst->registers[arg2];
+        inst->registers[arg1] = (int)((int)inst->registers[arg1] & (int)inst->registers[arg2]);
         break;
       case SCMD_BITOR:
-        inst->registers[arg1] = inst->registers[arg1] | inst->registers[arg2];
+        inst->registers[arg1] = (int)((int)inst->registers[arg1] | (int)inst->registers[arg2]);
         break;
       case SCMD_ISEQUAL:
-        inst->registers[arg1] = (inst->registers[arg1] == inst->registers[arg2]);
+        inst->registers[arg1] = (int)((int)inst->registers[arg1] == (int)inst->registers[arg2]);
         break;
       case SCMD_NOTEQUAL:
-        inst->registers[arg1] = (inst->registers[arg1] != inst->registers[arg2]);
+        inst->registers[arg1] = (int)((int)inst->registers[arg1] != (int)inst->registers[arg2]);
         break;
       case SCMD_GREATER:
-        inst->registers[arg1] = (inst->registers[arg1] > inst->registers[arg2]);
+        inst->registers[arg1] = (int)((int)inst->registers[arg1] > (int)inst->registers[arg2]);
         break;
       case SCMD_LESSTHAN:
-        inst->registers[arg1] = (inst->registers[arg1] < inst->registers[arg2]);
+        inst->registers[arg1] = (int)((int)inst->registers[arg1] < (int)inst->registers[arg2]);
         break;
       case SCMD_GTE:
-        inst->registers[arg1] = (inst->registers[arg1] >= inst->registers[arg2]);
+        inst->registers[arg1] = (int)((int)inst->registers[arg1] >= (int)inst->registers[arg2]);
         break;
       case SCMD_LTE:
-        inst->registers[arg1] = (inst->registers[arg1] <= inst->registers[arg2]);
+        inst->registers[arg1] = (int)((int)inst->registers[arg1] <= (int)inst->registers[arg2]);
         break;
       case SCMD_AND:
-        inst->registers[arg1] = (inst->registers[arg1] && inst->registers[arg2]);
+        inst->registers[arg1] = (int)((int)inst->registers[arg1] && (int)inst->registers[arg2]);
         break;
       case SCMD_OR:
-        inst->registers[arg1] = (inst->registers[arg1] || inst->registers[arg2]);
+        inst->registers[arg1] = (int)((int)inst->registers[arg1] || (int)inst->registers[arg2]);
         break;
       case SCMD_XORREG:
-        inst->registers[arg1] = (inst->registers[arg1] ^ inst->registers[arg2]);
+        inst->registers[arg1] = (int)((int)inst->registers[arg1] ^ (int)inst->registers[arg2]);
         break;
       case SCMD_MODREG:
         if (inst->registers[arg2] == 0) {
           cc_error("!Integer divide by zero");
           return -1;
         } 
-        inst->registers[arg1] %= inst->registers[arg2];
+        inst->registers[arg1] = (int)((int)inst->registers[arg1] % (int)inst->registers[arg2]);
         break;
       case SCMD_NOTREG:
         inst->registers[arg1] = !(inst->registers[arg1]);
@@ -1485,9 +1553,12 @@ int cc_run_code(ccInstance * inst, long curpc)
         PUSH_CALL_STACK(inst);
 
         temp_variable = inst->pc + sccmdargs[thisInstruction] + 1;
-        memcpy((char*)inst->registers[SREG_SP], &temp_variable, 4);
+        memcpy((char*)inst->registers[SREG_SP], &temp_variable, sizeof(long));
 
-        inst->registers[SREG_SP] += 4;
+        inst->registers[SREG_SP] += sizeof(long);
+
+        inst->stackSizes[inst->stackSizeIndex] = -1;
+        inst->stackSizeIndex++;
 
         if (thisbase[curnest] == 0)
           inst->pc = inst->registers[arg1];
@@ -1555,13 +1626,23 @@ int cc_run_code(ccInstance * inst, long curpc)
           inst->pc += arg1;
         break;
       case SCMD_PUSHREG:
-        memcpy((char*)inst->registers[SREG_SP], &(inst->registers[arg1]), 4);
-        inst->registers[SREG_SP] += 4;
+        // 64 bit: Registers are pushed as 8 byte values. Their size is set to "-1" so that
+        // they can be identified later.
+        inst->stackSizes[inst->stackSizeIndex] = -1;
+        inst->stackSizeIndex++;
+
+        memcpy((char*)inst->registers[SREG_SP], &(inst->registers[arg1]), sizeof(long));
+        inst->registers[SREG_SP] += sizeof(long);
         CHECK_STACK
         break;
       case SCMD_POPREG:
-        inst->registers[SREG_SP] -= 4;
-        memcpy(&(inst->registers[arg1]), (char*)inst->registers[SREG_SP], 4);
+        // 64 bit: Registers are pushed as 8 byte values
+        if (inst->stackSizes[inst->stackSizeIndex - 1] != -1)
+          cc_error("Trying to pop value that was not pushed. Stack corrupted?");
+
+        inst->stackSizeIndex--;
+        inst->registers[SREG_SP] -= sizeof(long);
+        memcpy(&(inst->registers[arg1]), (char*)inst->registers[SREG_SP], sizeof(long));
         break;
       case SCMD_JMP:
         inst->pc += arg1;
@@ -1600,10 +1681,13 @@ int cc_run_code(ccInstance * inst, long curpc)
         }
         break;
         }
+
+      // 64 bit: Handles are always 32 bit values. They are not C pointer.
+
       case SCMD_MEMREADPTR:
         ccError = 0;
 
-        long handle;
+        int handle;
         memcpy(&handle, (char*)(inst->registers[SREG_MAR]), 4);
         inst->registers[arg1] = (long)ccGetObjectAddressFromHandle(handle);
 
@@ -1612,16 +1696,16 @@ int cc_run_code(ccInstance * inst, long curpc)
           return -1;
         break;
       case SCMD_MEMWRITEPTR: {
-        long ptr;
-        memcpy(&ptr, ((char*)inst->registers[SREG_MAR]), 4);
 
-        long newHandle = ccGetObjectHandleFromAddress((char*)inst->registers[arg1]);
+        int handle;
+        memcpy(&handle, (char*)(inst->registers[SREG_MAR]), 4);
+
+        int newHandle = ccGetObjectHandleFromAddress((char*)inst->registers[arg1]);
         if (newHandle == -1)
           return -1;
 
-        if (ptr != newHandle) {
- 
-          ccReleaseObjectReference(ptr);
+        if (handle != newHandle) {
+          ccReleaseObjectReference(handle);
           ccAddObjectReference(newHandle);
           memcpy(((char*)inst->registers[SREG_MAR]), &newHandle, 4);
         }
@@ -1630,10 +1714,10 @@ int cc_run_code(ccInstance * inst, long curpc)
       case SCMD_MEMINITPTR: { 
         // like memwriteptr, but doesn't attempt to free the old one
 
-        long ptr;
-        memcpy(&ptr, ((char*)inst->registers[SREG_MAR]), 4);
+        int handle;
+        memcpy(&handle, ((char*)inst->registers[SREG_MAR]), 4);
 
-        long newHandle = ccGetObjectHandleFromAddress((char*)inst->registers[arg1]);
+        int newHandle = ccGetObjectHandleFromAddress((char*)inst->registers[arg1]);
         if (newHandle == -1)
           return -1;
 
@@ -1642,23 +1726,23 @@ int cc_run_code(ccInstance * inst, long curpc)
         break;
       }
       case SCMD_MEMZEROPTR: {
-        long ptr;
-        memcpy(&ptr, ((char*)inst->registers[SREG_MAR]), 4);
-        ccReleaseObjectReference(ptr);
+        int handle;
+        memcpy(&handle, ((char*)inst->registers[SREG_MAR]), 4);
+        ccReleaseObjectReference(handle);
         memset(((char*)inst->registers[SREG_MAR]), 0, 4);
 
         break;
       }
       case SCMD_MEMZEROPTRND: {
-        long ptr;
-        memcpy(&ptr, ((char*)inst->registers[SREG_MAR]), 4);
+        int handle;
+        memcpy(&handle, ((char*)inst->registers[SREG_MAR]), 4);
 
         // don't do the Dispose check for the object being returned -- this is
         // for returning a String (or other pointer) from a custom function.
         // Note: we might be freeing a dynamic array which contains the DisableDispose
         // object, that will be handled inside the recursive call to SubRef.
         pool.disableDisposeForObject = (const char*)inst->registers[SREG_AX];
-        ccReleaseObjectReference(ptr);
+        ccReleaseObjectReference(handle);
         pool.disableDisposeForObject = NULL;
         memset(((char*)inst->registers[SREG_MAR]), 0, 4);
         break;
@@ -1690,16 +1774,24 @@ int cc_run_code(ccInstance * inst, long curpc)
           startArg = callstacksize - num_args_to_func;
 
         for (aa = startArg; aa < callstacksize; aa++) {
-          memcpy((char*)inst->registers[SREG_SP], &(callstack[aa]), 4);
-          inst->registers[SREG_SP] += 4;
+          // 64 bit: Arguments are pushed as 64 bit values
+          memcpy((char*)inst->registers[SREG_SP], &(callstack[aa]), sizeof(long));
+          inst->registers[SREG_SP] += sizeof(long);
+
+          inst->stackSizes[inst->stackSizeIndex] = -1;//sizeof(long);
+          inst->stackSizeIndex++;
         }
 
         // 0, so that the cc_run_code returns
-        memset((char*)inst->registers[SREG_SP], 0, 4);
+        memset((char*)inst->registers[SREG_SP], 0, sizeof(long));
 
         long oldstack = inst->registers[SREG_SP];
-        inst->registers[SREG_SP] += 4;
+        inst->registers[SREG_SP] += sizeof(long);
         CHECK_STACK
+
+        inst->stackSizes[inst->stackSizeIndex] = -1;//sizeof(long);
+        inst->stackSizeIndex++;
+
         int oldpc = inst->pc;
         ccInstance *wasRunning = inst->runningInst;
 
@@ -1712,7 +1804,7 @@ int cc_run_code(ccInstance * inst, long curpc)
           cc_error("call address not aligned");
           return -1;
         }
-        callAddr /= 4;
+        callAddr /= sizeof(long);
 
         if (cc_run_code(inst, callAddr))
           return -1;
@@ -1781,7 +1873,8 @@ int cc_run_code(ccInstance * inst, long curpc)
         break;
       case SCMD_SUBREALSTACK:
         if (was_just_callas >= 0) {
-          inst->registers[SREG_SP] -= arg1 * 4;
+          inst->registers[SREG_SP] -= arg1 * sizeof(long);
+          inst->stackSizeIndex -= arg1;
           was_just_callas = -1;
         }
         callstacksize -= arg1;
@@ -1796,10 +1889,10 @@ int cc_run_code(ccInstance * inst, long curpc)
         next_call_needs_object = 1;
         break;
       case SCMD_SHIFTLEFT:
-        inst->registers[arg1] = (inst->registers[arg1] << inst->registers[arg2]);
+        inst->registers[arg1] = (int)((int)inst->registers[arg1] << (int)inst->registers[arg2]);
         break;
       case SCMD_SHIFTRIGHT:
-        inst->registers[arg1] = (inst->registers[arg1] >> inst->registers[arg2]);
+        inst->registers[arg1] = (int)((int)inst->registers[arg1] >> (int)inst->registers[arg2]);
         break;
       case SCMD_THISBASE:
         thisbase[curnest] = arg1;
@@ -1985,6 +2078,15 @@ int ccCallInstance(ccInstance * inst, char *funcname, long numargs, ...)
   inst->registers[SREG_SP] += (numargs * sizeof(long));
   inst->runningInst = inst;
 
+  // 64 bit: Initialize array for stack variable sizes with the argument values
+  inst->stackSizeIndex = 0;
+  int i;
+  for (i = 0; i < numargs; i++)
+  {
+    inst->stackSizes[inst->stackSizeIndex] = -1;
+    inst->stackSizeIndex++;
+  }
+
   int reterr = cc_run_code(inst, startat);
   inst->registers[SREG_SP] -= (numargs - 1) * sizeof(long);
   inst->pc = 0;
@@ -2048,9 +2150,10 @@ void freadstring(char **strptr, FILE * iii)
   strcpy(strptr[0], ibuffer);
 }
 
-long fget_long(FILE * iii)
+// 64 bit: This is supposed to read a 32 bit value
+int fget_long(FILE * iii)
 {
-  long tmpp;
+  int tmpp;
   fread(&tmpp, 4, 1, iii);
   return tmpp;
 }
@@ -2089,7 +2192,12 @@ ccScript *fread_script(FILE * ooo)
   if (scri->codesize > 0) {
     scri->code = (long *)malloc(scri->codesize * sizeof(long));
     // MACPORT FIX: swap
-    fread(scri->code, sizeof(long), scri->codesize, ooo);
+
+    // 64 bit: Read code into 8 byte array, necessary for being able to perform
+    // relocations on the references.
+    int i;
+    for (i = 0; i < scri->codesize; i++)
+      scri->code[i] = fget_long(ooo);
   }
   else
     scri->code = NULL;
@@ -2108,7 +2216,11 @@ ccScript *fread_script(FILE * ooo)
     scri->fixups = (long *)malloc(scri->numfixups * sizeof(long));
     // MACPORT FIX: swap 'size' and 'nmemb'
     fread(scri->fixuptypes, sizeof(char), scri->numfixups, ooo);
-    fread(scri->fixups, sizeof(long), scri->numfixups, ooo);
+
+    // 64 bit: Read fixups into 8 byte array too
+    int i;
+    for (i = 0; i < scri->numfixups; i++)
+      scri->fixups[i] = fget_long(ooo);
   }
   else {
     scri->fixups = NULL;

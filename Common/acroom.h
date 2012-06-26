@@ -28,6 +28,10 @@ extern FILE *clibfopen(char *, char *);
 // MACPORT FIX: endian support
 #include "bigend.h"
 
+
+// 64 bit: Hackish way to read value in a struct
+short int __getshort__bigendian(FILE* file);
+
 #define EXIT_NORMAL 91
 #define EXIT_CRASH  92
 
@@ -1145,8 +1149,10 @@ void serialize_new_interaction (NewInteraction *nint, FILE*ooo) {
   putw (1, ooo);  // Version
   putw (nint->numEvents, ooo);
   fwrite (&nint->eventTypes[0], sizeof(int), nint->numEvents, ooo);
+
+  // 64 bit: The pointer is only checked against NULL to determine whether the event exists
   for (a = 0; a < nint->numEvents; a++)
-    putw ((int)nint->response[a], ooo);
+    putw ((long)nint->response[a], ooo);
 
   for (a = 0; a < nint->numEvents; a++) {
     if (nint->response[a] != NULL)
@@ -1189,6 +1195,8 @@ NewInteraction *deserialize_new_interaction (FILE *ooo) {
   }
   fread (&nitemp->eventTypes[0], sizeof(int), nitemp->numEvents, ooo);
   //fread (&nitemp->response[0], sizeof(void*), nitemp->numEvents, ooo);
+
+  // 64 bit: The pointer is only checked against NULL to determine whether the event exists
   for (a = 0; a < nitemp->numEvents; a++)
     nitemp->response[a] = (NewInteractionCommandList*)getw(ooo);
 
@@ -1341,7 +1349,7 @@ BITMAP *recalced;
   fseek(iii,ooff,SEEK_SET);*/
 
 long load_lzw(FILE *iii, BITMAP *bmm, color *pall) {
-  long          uncompsiz, *loptr;
+  int          uncompsiz, *loptr;
   unsigned char *membuffer;
   int           arin;
 
@@ -1358,7 +1366,7 @@ long load_lzw(FILE *iii, BITMAP *bmm, color *pall) {
   membuffer = lzwexpand_to_mem(iii);
   update_polled_stuff();
 
-  loptr = (long *)&membuffer[0];
+  loptr = (int *)&membuffer[0];
   membuffer += 8;
 #ifdef ALLEGRO_BIG_ENDIAN
   loptr[0] = __int_swap_endian(loptr[0]);
@@ -2094,7 +2102,7 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
   }
 
   int   thisblock = 0;
-  long  bloklen;
+  int  bloklen;
   FILE *optywas;
 
   while (thisblock != BLOCKTYPE_EOF) {
@@ -2715,7 +2723,6 @@ struct DialogTopic {
   int           numoptions;
   int           topicFlags;
   
-#ifdef ALLEGRO_BIG_ENDIAN
   void ReadFromFile(FILE *fp)
   {
     fread(optionnames, 150*sizeof(char), MAXTOPICOPTIONS, fp);
@@ -2727,7 +2734,6 @@ struct DialogTopic {
     numoptions = getw(fp);
     topicFlags = getw(fp);
   }
-#endif
 };
 
 #define MAX_SPRITES         30000
@@ -2877,8 +2883,8 @@ struct GameSetupStructBase {
   CharacterInfo    *chars;
   ccScript         *compiled_script;
 
-#ifdef ALLEGRO_BIG_ENDIAN
-  void ReadFromFile(FILE *fp)
+
+void ReadFromFile(FILE *fp)
   {
     fread(&gamename[0], sizeof(char), 50, fp);
     fseek(fp, 2, SEEK_CUR);    // skip the array padding
@@ -2908,13 +2914,16 @@ struct GameSetupStructBase {
     invhotdotsprite = getw(fp);
     fread(reserved, sizeof(int), 17, fp);
     // read the final ptrs so we know to load dictionary, scripts etc
-    fread(messages, sizeof(int), MAXGLOBALMES, fp);
+    // 64 bit: Read 4 byte values into array of 8 byte
+    int i;
+    for (i = 0; i < MAXGLOBALMES; i++)
+      messages[i] = (char*)getw(fp);
+
     dict = (WordsDictionary *) getw(fp);
     globalscript = (char *) getw(fp);
     chars = (CharacterInfo *) getw(fp);
     compiled_script = (ccScript *) getw(fp);
   }
-#endif
 };
 
 #define MAXVIEWNAMELENGTH 15

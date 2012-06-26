@@ -236,7 +236,7 @@ struct ccScript
 #define INSTF_ABORTED     2
 #define INSTF_FREE        4
 #define INSTF_RUNNING     8   // set by main code to confirm script isn't stuck
-#define CC_STACK_SIZE     4000
+#define CC_STACK_SIZE     (1000 * sizeof(long))
 #define MAX_CALL_STACK    100
 
 struct ccInstance
@@ -262,6 +262,14 @@ struct ccInstance
   int  callStackSize;
   int  loadedInstanceId;
   int  returnValue;
+
+  // 64 bit: Variables to keep track of the size of the variables on the stack.
+  // This is necessary because the compiled code accesses values on the stack with
+  // absolute offsets that don't take into account the 8 byte long pointers on
+  // 64 bit systems. These variables help with rewriting the offsets for the
+  // modified stack.
+  int stackSizes[CC_STACK_SIZE];
+  int stackSizeIndex;
 };
 
 // virtual CPU commands

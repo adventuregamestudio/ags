@@ -562,7 +562,7 @@ void Character_Animate(CharacterInfo *chaa, int loop, int delay, int repeat, int
   animate_character(chaa, loop, delay, repeat, 0, direction);
 
   if ((blocking == BLOCKING) || (blocking == 1))
-    do_main_cycle(UNTIL_SHORTIS0,(int)&chaa->animating);
+    do_main_cycle(UNTIL_SHORTIS0,(long)&chaa->animating);
   else if ((blocking != IN_BACKGROUND) && (blocking != 0))
     quit("!Character.Animate: Invalid BLOCKING parameter");
 }
@@ -773,7 +773,7 @@ void Character_FaceLocation(CharacterInfo *char1, int xx, int yy, int blockingSt
       start_character_turning (char1, useloop, no_diagonal);
 
       if ((blockingStyle == BLOCKING) || (blockingStyle == 1))
-        do_main_cycle(UNTIL_MOVEEND,(int)&char1->walking);
+        do_main_cycle(UNTIL_MOVEEND,(long)&char1->walking);
     }
     else
       char1->loop = useloop;
@@ -789,7 +789,7 @@ void Character_FaceObject(CharacterInfo *char1, ScriptObject *obj, int blockingS
     quit("!FaceObject: invalid object specified");
   
 
-  Character_FaceLocation(char1, obj->obj->x, obj->obj->y, blockingStyle);
+  Character_FaceLocation(char1, objs[obj->id].x, objs[obj->id].y, blockingStyle);
 }
 
 void Character_FollowCharacter(CharacterInfo *chaa, CharacterInfo *tofollow, int distaway, int eagerness) {
@@ -1297,7 +1297,7 @@ void walk_or_move_character(CharacterInfo *chaa, int x, int y, int blocking, int
     quit("!Character.Walk: Direct must be ANYWHERE or WALKABLE_AREAS");
 
   if ((blocking == BLOCKING) || (blocking == 1))
-    do_main_cycle(UNTIL_MOVEEND,(int)&chaa->walking);
+    do_main_cycle(UNTIL_MOVEEND,(long)&chaa->walking);
   else if ((blocking != IN_BACKGROUND) && (blocking != 0))
     quit("!Character.Walk: Blocking must be BLOCKING or IN_BACKGRUOND");
 
@@ -1336,7 +1336,7 @@ void Character_WalkStraight(CharacterInfo *chaa, int xx, int yy, int blocking) {
   walk_character(chaa->index_id, movetox, movetoy, 1, true);
 
   if ((blocking == BLOCKING) || (blocking == 1))
-    do_main_cycle(UNTIL_MOVEEND,(int)&chaa->walking);
+    do_main_cycle(UNTIL_MOVEEND,(long)&chaa->walking);
   else if ((blocking != IN_BACKGROUND) && (blocking != 0))
     quit("!Character.Walk: Blocking must be BLOCKING or IN_BACKGRUOND");
 

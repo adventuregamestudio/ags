@@ -25,4 +25,4 @@ extern void cpackbitl16(unsigned short *line, int size, FILE * outfile);
 extern void cpackbitl32(unsigned long *line, int size, FILE * outfile);
 extern int  cunpackbitl(unsigned char *line, int size, FILE * infile);
 extern int  cunpackbitl16(unsigned short *line, int size, FILE * infile);
-extern int  cunpackbitl32(unsigned long *line, int size, FILE * infile);
+extern int  cunpackbitl32(unsigned int *line, int size, FILE * infile);

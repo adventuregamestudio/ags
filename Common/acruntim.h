@@ -279,9 +279,12 @@ struct ScreenOverlay {
   bool positionRelativeToScreen;
 };
 
+
+// 64 bit: Struct size must be 8 byte for scripts to work
 struct ScriptObject {
   int id;
-  RoomObject *obj;
+  //RoomObject *obj;
+  int __padding;
 };
 
 struct AGSCCDynamicObject : ICCDynamicObject {
@@ -781,7 +784,7 @@ struct AGSPlatformDriver {
 
   virtual void ReadPluginsFromDisk(FILE *);
   virtual void StartPlugins();
-  virtual int  RunPluginHooks(int event, int data);
+  virtual int  RunPluginHooks(int event, long data);
   virtual void RunPluginInitGfxHooks(const char *driverName, void *data);
   virtual int  RunPluginDebugHooks(const char *scriptfile, int linenum);
   virtual void ShutdownPlugins();
@@ -927,7 +930,7 @@ extern const char *get_engine_version();
 extern void quitprintf(char*texx, ...) ;
 extern void RefreshMouse();
 extern void PluginSimulateMouseClick(int pluginButtonID);
-extern int  run_script_function_if_exist(ccInstance*sci,char*tsname,int numParam, int iparam, int iparam2, int iparam3 = 0) ;
+extern int  run_script_function_if_exist(ccInstance*sci,char*tsname,int numParam, long iparam, long iparam2, long iparam3 = 0) ;
 extern int  IsChannelPlaying(int chan) ;
 extern void stop_and_destroy_channel (int chid) ;
 extern int  rec_kbhit();
@@ -948,7 +951,7 @@ extern int  find_route(short,short,short,short,block,int,int=0,int=0);
 extern void set_route_move_speed(int x, int y);
 extern void init_pathfinder();
 extern block prepare_walkable_areas (int sourceChar);
-extern void do_main_cycle(int,int);
+extern void do_main_cycle(int,long);
 extern void add_inventory(int inum);
 extern void lose_inventory(int inum);
 extern void animate_character(CharacterInfo *,int,int,int,int = 0, int = 0);

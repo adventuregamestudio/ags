@@ -578,7 +578,6 @@ struct NewInteractionValue {
     extra = 0;
   }
   
-#ifdef ALLEGRO_BIG_ENDIAN
   void ReadFromFile(FILE *fp)
   {
     fread(&valType, sizeof(char), 1, fp);
@@ -593,7 +592,6 @@ struct NewInteractionValue {
     putw(val, fp);
     putw(extra, fp);
   }
-#endif
 };
 
 struct NewInteractionAction {
@@ -619,7 +617,6 @@ struct NewInteractionCommand: public NewInteractionAction {
 
   void reset() { remove(); }
   
-#ifdef ALLEGRO_BIG_ENDIAN
   void ReadFromFile(FILE *fp)
   {
     getw(fp); // skip the vtbl ptr
@@ -629,8 +626,8 @@ struct NewInteractionCommand: public NewInteractionAction {
       data[i].ReadFromFile(fp);
     }
     // all that matters is whether or not these are null...
-    children = (NewInteractionAction *) getw(fp);
-    parent = (NewInteractionCommandList *) getw(fp);
+    children = (NewInteractionAction *)(long)getw(fp);
+    parent = (NewInteractionCommandList *)(long)getw(fp);
   }
   void WriteToFile(FILE *fp)
   {
@@ -640,10 +637,9 @@ struct NewInteractionCommand: public NewInteractionAction {
     {
       data[i].WriteToFile(fp);
     }
-    putw((int)children, fp);
-    putw((int)parent, fp);
+    putw((long)children, fp);
+    putw((long)parent, fp);
   }
-#endif
 };
 
 struct NewInteractionCommandList : public NewInteractionAction {
@@ -1164,14 +1160,12 @@ NewInteractionCommandList *deserialize_command_list (FILE *ooo) {
   NewInteractionCommandList *nicl = new NewInteractionCommandList;
   nicl->numCommands = getw(ooo);
   nicl->timesRun = getw(ooo);
-#ifndef ALLEGRO_BIG_ENDIAN
-  fread (&nicl->command[0], sizeof(NewInteractionCommand), nicl->numCommands, ooo);
-#else
+
   for (int iteratorCount = 0; iteratorCount < nicl->numCommands; ++iteratorCount)
   {
     nicl->command[iteratorCount].ReadFromFile(ooo);
   }
-#endif  // ALLEGRO_BIG_ENDIAN
+
   for (int k = 0; k < nicl->numCommands; k++) {
     if (nicl->command[k].children != NULL) {
       nicl->command[k].children = deserialize_command_list (ooo);
@@ -2119,7 +2113,7 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
     if (thisblock == BLOCKTYPE_MAIN)
       load_main_block(rstruc, files, opty, rfh);
     else if (thisblock == BLOCKTYPE_SCRIPT) {
-      long  lee;
+      int  lee;
       int   hh;
 
       fread(&lee, 4, 1, opty);

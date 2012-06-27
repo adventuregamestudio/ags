@@ -3,7 +3,7 @@
 #include "wgt2allg.h"
 #include "ac/ac_roomstruct.h"
 #include "debug/debug.h"
-#include "acrun/ac_gamestate.h"
+#include "ac/gamestate.h"
 #include "media/audio/audio.h"
 
 extern GameState play;

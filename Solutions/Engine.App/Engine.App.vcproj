@@ -285,6 +285,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\datetime.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\event.cpp"
 					>
 				</File>
@@ -293,11 +297,19 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\gamesetup.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\global_audio.cpp"
 					>
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\global_character.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\global_datetime.cpp"
 					>
 				</File>
 				<File
@@ -517,10 +529,6 @@
 				Name="acrun"
 				>
 				<File
-					RelativePath="..\..\Engine\acrun\ac_gamesetup.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\acrun\ac_platformdriver.cpp"
 					>
 				</File>
@@ -586,10 +594,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_cutscene.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_datetime.cpp"
 					>
 				</File>
 				<File
@@ -1099,62 +1103,6 @@
 				Name="ac"
 				>
 				<File
-					RelativePath="..\..\Common\ac\ac_common.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\ac_defines.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\ac_dialog.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\ac_gamesetupstruct.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\ac_interaction.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\ac_interfacebutton.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\ac_interfaceelement.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\ac_inventoryiteminfo.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\ac\ac_lipsync.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\ac_messageinfo.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\ac_mousecursor.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\ac\ac_move.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\ac_point.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\ac_wordsdictionary.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\ac\audiochannel.h"
 					>
 				</File>
@@ -1171,11 +1119,19 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\charactercache.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\characterextras.h"
 					>
 				</File>
 				<File
 					RelativePath="..\..\Common\ac\characterinfo.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\datetime.h"
 					>
 				</File>
 				<File
@@ -1187,11 +1143,23 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\gamesetup.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\gamestate.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\global_audio.h"
 					>
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\global_character.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\global_datetime.h"
 					>
 				</File>
 				<File
@@ -1223,6 +1191,14 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\lipsync.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\movelist.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\object.h"
 					>
 				</File>
@@ -1244,6 +1220,14 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\roomstatus.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\rundefines.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\screenoverlay.h"
 					>
 				</File>
 				<File
@@ -1739,31 +1723,7 @@
 				Name="acrun"
 				>
 				<File
-					RelativePath="..\..\Engine\acrun\ac_charactercache.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acrun\ac_datetime.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acrun\ac_gamesetup.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acrun\ac_gamestate.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acrun\ac_inventoryitem.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\acrun\ac_platformdriver.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acrun\ac_roomstatus.h"
 					>
 				</File>
 				<File
@@ -1772,10 +1732,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acrun\ac_runninggame.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acrun\ac_screenoverlay.h"
 					>
 				</File>
 			</Filter>
@@ -1822,10 +1778,6 @@
 			<Filter
 				Name="platform"
 				>
-				<File
-					RelativePath="..\..\Common\platform\file.h"
-					>
-				</File>
 			</Filter>
 			<Filter
 				Name="media"
@@ -2369,6 +2321,70 @@
 				RelativePath="..\..\Plugins\AGSflashlight\agsflashlight.cpp"
 				>
 			</File>
+		</Filter>
+		<Filter
+			Name="Common Header Files"
+			>
+			<Filter
+				Name="ac"
+				>
+				<File
+					RelativePath="..\..\Common\ac\ac_common.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_defines.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_dialog.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_gamesetupstruct.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_interaction.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_interfacebutton.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_interfaceelement.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_inventoryiteminfo.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_messageinfo.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_mousecursor.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_point.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\ac_wordsdictionary.h"
+					>
+				</File>
+				<Filter
+					Name="dynobj"
+					>
+					<File
+						RelativePath="..\..\Common\ac\dynobj\scriptaudioclip.h"
+						>
+					</File>
+				</Filter>
+			</Filter>
 		</Filter>
 	</Files>
 	<Globals>

@@ -17,11 +17,11 @@
 #include "acmain/ac_screen.h"
 #include "acmain/ac_translation.h"
 #include "acmain/ac_walkablearea.h"
-#include "acrun/ac_gamestate.h"
-#include "acrun/ac_gamesetup.h"
+#include "ac/gamestate.h"
+#include "ac/gamesetup.h"
 #include "sprcache.h"
 #include "debug/debug.h"
-#include "ac/ac_move.h"
+#include "ac/movelist.h"
 #include "cs/cc_options.h"
 
 extern GameSetupStruct game;

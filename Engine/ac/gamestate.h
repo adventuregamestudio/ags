@@ -1,7 +1,7 @@
 #ifndef __AC_GAMESTATE_H
 #define __AC_GAMESTATE_H
 
-#include "acrun/ac_rundefines.h"
+#include "ac/rundefines.h"
 #include "media/audio/queuedaudioitem.h"
 
 // Adding to this might need to modify AGSDEFNS.SH and AGSPLUGIN.H

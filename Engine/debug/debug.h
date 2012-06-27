@@ -15,8 +15,8 @@
 
 #include "debug/agseditordebugger.h"
 #include "cs/cc_instance.h"
-#include "acrun/ac_rundefines.h"
-#include "acrun/ac_gamestate.h"
+#include "ac/rundefines.h"
+#include "ac/gamestate.h"
 
 extern GameState play;
 #define DEBUG_CONSOLE if (play.debug_mode) debug_write_console

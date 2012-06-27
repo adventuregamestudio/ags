@@ -11,7 +11,7 @@
 #include "acmain/ac_message.h"
 #include "acmain/ac_mouse.h"
 #include "acmain/ac_record.h"
-#include "acrun/ac_gamestate.h"
+#include "ac/gamestate.h"
 #include "acrun/ac_platformdriver.h"
 #include "media/audio/audio.h"
 

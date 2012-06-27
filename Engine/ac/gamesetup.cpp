@@ -1,6 +1,6 @@
 
 #include "wgt2allg.h"
-#include "acrun/ac_gamesetup.h"
+#include "ac/gamesetup.h"
 
 GameSetup::GameSetup()
 {

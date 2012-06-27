@@ -7,7 +7,7 @@
 #ifndef __AGS_EE_SCRIPT__NONBLOCKINGSCRIPTFUNCTION_H
 #define __AGS_EE_SCRIPT__NONBLOCKINGSCRIPTFUNCTION_H
 
-#include "acrun/ac_rundefines.h"
+#include "ac/rundefines.h"
 
 struct NonBlockingScriptFunction
 {

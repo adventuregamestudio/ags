@@ -136,7 +136,7 @@ int     Character_GetSpeakingFrame(CharacterInfo *chaa);
 
 //=============================================================================
 
-#include "ac/ac_move.h"
+#include "ac/movelist.h"
 
 void animate_character(CharacterInfo *chap, int loopn,int sppd,int rept, int noidleoverride, int direction);
 void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims);

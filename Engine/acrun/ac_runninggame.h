@@ -9,15 +9,15 @@
 #ifndef __AC_RUNNINGGAME_H
 #define __AC_RUNNINGGAME_H
 
-#include "acrun/ac_gamestate.h"
-#include "acrun/ac_gamesetup.h"
+#include "ac/gamestate.h"
+#include "ac/gamesetup.h"
 #include "ac/ac_roomstruct.h"
 #include "ac/ac_gamesetupstruct.h"
 #include "ac/roomstatus.h"
-#include "ac/ac_move.h"
+#include "ac/movelist.h"
 #include "ac/ac_view.h"
 #include "ac/roomobject.h"
-#include "acrun/ac_charactercache.h"
+#include "ac/charactercache.h"
 #include "ac/objectcache.h"
 #include "ac/dynobj/all_scriptclasses.h"
 #include "sprcache.h"

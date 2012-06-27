@@ -3,7 +3,7 @@
 #include "ac/system_audio.h"
 #include "wgt2allg.h"
 #include "ac/audiodefines.h"
-#include "acrun/ac_gamestate.h"
+#include "ac/gamestate.h"
 
 extern GameState play;
 extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];

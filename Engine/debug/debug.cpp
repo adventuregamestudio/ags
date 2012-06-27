@@ -57,7 +57,7 @@ IAGSEditorDebugger *GetEditorDebugger(const char *instanceToken)
 
 
 #include "acmain/ac_maindefines.h"
-#include "acrun/ac_rundefines.h"
+#include "ac/rundefines.h"
 
 int debug_flags=0;
 

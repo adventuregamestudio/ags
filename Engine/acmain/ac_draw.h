@@ -3,7 +3,7 @@
 
 #include "ali3d.h"
 #include "ac/ac_defines.h" // AGS_INLINE
-#include "acrun/ac_rundefines.h"
+#include "ac/rundefines.h"
 
 struct CachedActSpsData {
     int xWas, yWas;

@@ -41,7 +41,7 @@
 #include "acmain/ac_translation.h"
 #include "acmain/ac_viewframe.h"
 #include "acmain/ac_walkablearea.h"
-#include "acrun/ac_gamestate.h"
+#include "ac/gamestate.h"
 #include "debug/debug.h"
 #include "main/game_run.h"
 #include "main/update.h"

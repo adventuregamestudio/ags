@@ -1,5 +1,5 @@
 
-#include "ac/ac_lipsync.h"
+#include "ac/lipsync.h"
 
 int update_lip_sync(int talkview, int talkloop, int *talkframeptr);
 

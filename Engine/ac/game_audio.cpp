@@ -5,8 +5,8 @@
 #include "ac/audiochannel.h"
 #include "ac/ac_gamesetupstruct.h"
 #include "debug/debug.h"
-#include "acrun/ac_rundefines.h"
-#include "acrun/ac_gamestate.h"
+#include "ac/rundefines.h"
+#include "ac/gamestate.h"
 #include "media/audio/audio.h"
 
 extern GameSetupStruct game;

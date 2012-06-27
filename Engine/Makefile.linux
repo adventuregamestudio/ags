@@ -9,7 +9,6 @@ acmain/ac_controls.o \
 acmain/ac_conversation.o \
 acmain/ac_customproperties.o \
 acmain/ac_cutscene.o \
-acmain/ac_datetime.o \
 acmain/ac_display.o \
 acmain/ac_draw.o \
 acmain/ac_drawingsurface.o \
@@ -79,7 +78,6 @@ ac/dynobj/scriptfile.o \
 ac/dynobj/scriptoverlay.o \
 ac/dynobj/scriptstring.o \
 ac/dynobj/scriptviewframe.o \
-acrun/ac_gamesetup.o \
 acrun/ac_platformdriver.o \
 acrun/ac_roomobject.o \
 acrun/ac_runninggame.o \
@@ -101,11 +99,14 @@ ac/audiochannel.o \
 ac/audioclip.o \
 ac/character.o \
 ac/characterinfo.o \
+ac/datetime.o \
 ac/event.o \
 ac/game_audio.o \
+ac/gamesetup.o \
 ac/hotspot.o \
 ac/global_audio.o \
 ac/global_character.o \
+ac/global_datetime.o \
 ac/global_debug.o \
 ac/global_hotspot.o \
 ac/global_object.o \

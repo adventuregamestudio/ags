@@ -14,7 +14,7 @@
 #define MSG_PLAYBUTTON   994    // "Play"
 #define MSG_QUITDIALOG   995    // "Do you want to quit?"
 
-#include "acrun/ac_gamesetup.h"
+#include "ac/gamesetup.h"
 
 /*#define COL251 26
 #define COL252 28

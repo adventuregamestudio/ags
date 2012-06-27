@@ -23,7 +23,7 @@
 #include "ac/ac_view.h"
 #include "acmain/ac_customproperties.h"
 #include "acmain/ac_draw.h"
-#include "acrun/ac_gamestate.h"
+#include "ac/gamestate.h"
 #include "debug/debug.h"
 #include "main/game_run.h"
 #include "script/script.h"

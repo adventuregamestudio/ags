@@ -14,7 +14,7 @@
 #include "wgt2allg.h"
 #include "routefnd.h"
 #include "ac/ac_common.h"   // quit()
-#include "ac/ac_move.h"     // MoveList
+#include "ac/movelist.h"     // MoveList
 #include "ac/ac_point.h"
 #include "ac/ac_defines.h"
 #include <string.h>

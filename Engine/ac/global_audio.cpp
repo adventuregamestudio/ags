@@ -1,8 +1,8 @@
 
 #include "ac/global_audio.h"
 #include "wgt2allg.h"
-#include "acrun/ac_gamestate.h"
-#include "acrun/ac_gamesetup.h"
+#include "ac/gamestate.h"
+#include "ac/gamesetup.h"
 #include "media/audio/audio.h"
 #include "media/audio/sound.h"
 #include "ac/ac_common.h"

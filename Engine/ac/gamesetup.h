@@ -4,6 +4,7 @@
 // game setup, read in from CFG file
 // this struct is redefined in acdialog.cpp, any changes might
 // need to be reflected there
+// [IKM] 2012-06-27: now it isn't
 struct GameSetup {
     int digicard,midicard;
     int mod_player;

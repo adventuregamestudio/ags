@@ -9,8 +9,8 @@
 #include "acmain/ac_draw.h"
 #include "acmain/ac_mouse.h"
 #include "acmain/ac_record.h"
-#include "acrun/ac_gamestate.h"
-#include "acrun/ac_gamesetup.h"
+#include "ac/gamestate.h"
+#include "ac/gamesetup.h"
 #include "media/video/video.h"
 
 

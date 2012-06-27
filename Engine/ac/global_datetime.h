@@ -4,11 +4,10 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__PATH_H
-#define __AGS_EE_AC__PATH_H
+#ifndef __AGS_EE_AC__GLOBALDATETIME_H
+#define __AGS_EE_AC__GLOBALDATETIME_H
 
-#include "ac/movelist.h"
+int sc_GetTime(int whatti) ;
+int GetRawTime ();
 
-void convert_move_path_to_high_res(MoveList *ml);
-
-#endif // __AGS_EE_AC__PATH_H
+#endif // __AGS_EE_AC__GLOBALDATETIME_H

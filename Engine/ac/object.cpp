@@ -16,7 +16,7 @@
 #include "acmain/ac_string.h"
 #include "acmain/ac_translation.h"
 #include "acmain/ac_walkablearea.h"
-#include "acrun/ac_rundefines.h"
+#include "ac/rundefines.h"
 #include "debug/debug.h"
 #include "main/game_run.h"
 #include "routefnd.h"

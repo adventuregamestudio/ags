@@ -1,7 +1,8 @@
 #ifndef __AC_PLATFORMDRIVER_H
 #define __AC_PLATFORMDRIVER_H
 
-#include "acrun/ac_datetime.h"
+#include "ac/datetime.h"
+#include "platform/file.h"
 
 enum eScriptSystemOSID {
     eOS_DOS = 1,
@@ -53,6 +54,8 @@ private:
     static AGSPlatformDriver *instance;
 };
 
+// [IKM] What is a need to have this global var if you can get AGSPlatformDriver
+// instance by calling AGSPlatformDriver::GetDriver()?
 extern AGSPlatformDriver *platform;
 
 #endif // __AC_PLATFORMDRIVER_H

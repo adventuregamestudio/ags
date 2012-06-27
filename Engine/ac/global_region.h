@@ -4,8 +4,8 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__GLOBALHOTSPOT_H
-#define __AGS_EE_AC__GLOBALHOTSPOT_H
+#ifndef __AGS_EE_AC__GLOBALREGION_H
+#define __AGS_EE_AC__GLOBALREGION_H
 
 int  GetRegionAt (int xxx, int yyy);
 void SetAreaLightLevel(int area, int brightness);
@@ -15,4 +15,4 @@ void EnableRegion(int hsnum);
 void DisableGroundLevelAreas(int alsoEffects);
 void EnableGroundLevelAreas(); 
 
-#endif // __AGS_EE_AC__GLOBALHOTSPOT_H
+#endif // __AGS_EE_AC__GLOBALREGION_H

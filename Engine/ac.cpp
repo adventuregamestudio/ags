@@ -16198,10 +16198,12 @@ static void display_switch_in() {
       channels[i]->resume();
     }
   }
+/*
+  This can cause a segfault on Linux
 
   if (gfxDriver->UsesMemoryBackBuffer())  // make sure all borders are cleared
     gfxDriver->ClearRectangle(0, 0, final_scrn_wid - 1, final_scrn_hit - 1, NULL);
-
+*/
   platform->DisplaySwitchIn();
 }
 

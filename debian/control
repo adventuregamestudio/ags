@@ -18,5 +18,17 @@ Vcs-Browser: https://github.com/adventuregamestudio/ags
 Package: ags
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: Runtime engine for playing Adventure Game Studio games
+Description: Adventure Game Studio runtime engine
  AGS is an adventure game engine with many games available.
+
+Package: ags-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends:
+    ags (= ${binary:Version}),
+    ${misc:Depends}
+Description: Adventure Game Studio runtime engine (debugging symbols)
+ AGS is an adventure game engine with many games available.
+ .
+ This package contains the debugging symbols for ags.

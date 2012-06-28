@@ -1367,25 +1367,34 @@ int cc_run_code(ccInstance * inst, long curpc)
         CHECK_STACK 
         break;
       case SCMD_SUB:
-        // 64 bit: Rewrite the offset so that it doesn't point inside a variable on the stack
-        if (arg1 == SREG_SP)
+        // 64 bit: Rewrite the offset so that it doesn't point inside a variable on the stack.
+        // AGS 2.x games also perform relative stack access by copying SREG_SP to SREG_MAR
+        // and then subtracting from that.
+        if ((arg1 == SREG_SP) || ((arg1 == SREG_MAR) && (inst->registers[SREG_MAR] == inst->registers[SREG_SP])))
         {
           int orig_sub = arg2;
           int new_sub = 0;
+          int temp_index = inst->stackSizeIndex;
           while (orig_sub > 0)
           {
-            if (inst->stackSizes[inst->stackSizeIndex - 1] == -1)
+            if (temp_index < 1)
+              cc_error("Subtracting from stack variable would underflow stack. Stack corrupted?");
+
+            if (inst->stackSizes[temp_index - 1] == -1)
             {
               orig_sub -= 4;
               new_sub += sizeof(long);
             }
             else
             {
-              orig_sub -= inst->stackSizes[inst->stackSizeIndex - 1];
-              new_sub += inst->stackSizes[inst->stackSizeIndex - 1];
+              orig_sub -= inst->stackSizes[temp_index - 1];
+              new_sub += inst->stackSizes[temp_index - 1];
             }
-            inst->stackSizeIndex--;
+            temp_index--;
           }
+          if (arg1 == SREG_SP)
+            inst->stackSizeIndex = temp_index;
+
           inst->registers[arg1] -= new_sub;
         }
         else

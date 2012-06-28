@@ -33,7 +33,7 @@ else
 endif
 LIBS += -lvorbisfile -lfreetype -logg -ldl -lpthread -lm -lc -lstdc++
 
-
+PREFIX = /usr/local
 CC = gcc
 CXX = g++
 CFLAGS   := $(addprefix -I,$(INCDIR)) $(CFLAGS)
@@ -52,6 +52,14 @@ ags: $(OBJS)
 %.o: %.mm
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-.PHONY: clean
+.PHONY: clean install uninstall
+
 clean:
 	rm -f ags $(OBJS)
+
+install: ags
+	mkdir -p $(PREFIX)/bin
+	cp -t $(PREFIX)/bin ags
+
+uninstall:
+	rm -f $(PREFIX)/bin/ags

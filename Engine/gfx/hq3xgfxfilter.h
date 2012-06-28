@@ -13,31 +13,25 @@ CLEAR that the code has been altered from the Standard Version.
 
 */
 
-#ifndef __AC_HQ2XGFXFILTER_H
-#define __AC_HQ2XGFXFILTER_H
+#ifndef __AC_HQ3XGFXFILTER_H
+#define __AC_HQ3XGFXFILTER_H
 
-#include "acgfx/ac_scalingallegrogfxfilter.h"
+#include "gfx/scalingallegrogfxfilter.h"
 
-struct Hq2xGFXFilter : public ScalingAllegroGFXFilter {
+struct Hq3xGFXFilter : public ScalingAllegroGFXFilter {
 private:
     BITMAP *realScreenBuffer;
 
 public:
 
-    Hq2xGFXFilter(bool justCheckingForSetup) : ScalingAllegroGFXFilter(2, justCheckingForSetup) { }
+    Hq3xGFXFilter(bool justCheckingForSetup) : ScalingAllegroGFXFilter(3, justCheckingForSetup) { }
 
     virtual const char* Initialize(int width, int height, int colDepth);
-
-
     virtual BITMAP* ScreenInitialized(BITMAP *screen, int fakeWidth, int fakeHeight);
-
     virtual BITMAP *ShutdownAndReturnRealScreen(BITMAP *currentScreen);
-
     virtual void RenderScreen(BITMAP *toRender, int x, int y);
-
     virtual const char *GetVersionBoxText();
-
     virtual const char *GetFilterID();
 };
 
-#endif // __AC_HQ2XGFXFILTER_H
+#endif // __AC_HQ3XGFXFILTER_H

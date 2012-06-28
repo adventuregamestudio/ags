@@ -23,7 +23,7 @@
 #include "media/audio/audio.h"
 #include "media/audio/sound.h"
 #include "acmain/ac_plugin.h"
-#include "acgfx/ac_gfxfilters.h"
+#include "gfx/gfxfilter.h"
 #include "acmain/ac_cdplayer.h"
 #include "acrun/ac_runninggame.h"      //displayed_room
 

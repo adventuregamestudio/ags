@@ -14,7 +14,7 @@
 #include <io.h>
 #include <stdlib.h>
 #include "resource.h"
-#include "acgfx/ac_gfxfilters.h"
+#include "gfx/gfxfilter.h"
 
 #define AL_ID(a,b,c,d)     (((a)<<24) | ((b)<<16) | ((c)<<8) | (d))
 

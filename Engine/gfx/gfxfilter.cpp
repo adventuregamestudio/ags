@@ -1,12 +1,53 @@
 
-#include "acgfx/ac_gfxfilters.h"
+#include <stdlib.h>                   // NULL
+#include "gfx/gfxfilter.h"
 #include "wgt2allg.h"
-#include "acgfx/ac_allegrogfxfilter.h"
-#include "acgfx/ac_scalingallegrogfxfilter.h"
-#include "acgfx/ac_hq2xgfxfilter.h"
-#include "acgfx/ac_hq3xgfxfilter.h"
-#include "acgfx/ac_d3dgfxfilter.h"
-#include "acgfx/ac_aad3dgfxfilter.h"
+#include "gfx/allegrogfxfilter.h"
+#include "gfx/scalingallegrogfxfilter.h"
+#include "gfx/hq2xgfxfilter.h"
+#include "gfx/hq3xgfxfilter.h"
+#include "gfx/d3dgfxfilter.h"
+#include "gfx/aad3dgfxfilter.h"
+#include "mousew32.h"
+
+// Standard do-nothing filter
+
+const char* GFXFilter::Initialize(int width, int height, int colDepth) {
+    return NULL;  // always succeeds
+}
+
+void GFXFilter::UnInitialize() {
+    // do nothing
+}
+
+void GFXFilter::GetRealResolution(int *wid, int *hit) {
+    // no change
+}
+
+void GFXFilter::SetMouseArea(int x1, int y1, int x2, int y2) {
+    mgraphconfine(x1, y1, x2, y2);
+}
+
+void GFXFilter::SetMouseLimit(int x1, int y1, int x2, int y2) {
+    msetcursorlimit(x1, y1, x2, y2);
+}
+
+void GFXFilter::SetMousePosition(int x, int y) {
+    msetgraphpos(x, y);
+}
+
+const char *GFXFilter::GetVersionBoxText() {
+    return "";
+}
+
+const char *GFXFilter::GetFilterID() {
+    return "None";
+}
+
+GFXFilter::~GFXFilter()
+{
+}
+
 
 GFXFilter *filter;
 

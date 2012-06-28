@@ -6,7 +6,7 @@
 #include "ac/characterinfo.h"
 #include "ac/ac_roomstruct.h"
 #include "acdialog/ac_cscidialog.h"
-#include "acgfx/ac_gfxfilters.h"
+#include "gfx/gfxfilter.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_draw.h"
 #include "acmain/ac_game.h"

@@ -22,7 +22,7 @@
 #include "script/script_runtime.h"
 #include "acmain/ac_animatingguibutton.h"
 #include "acgui/ac_guibutton.h"
-#include "acgfx/ac_gfxfilters.h"
+#include "gfx/gfxfilter.h"
 #include "acmain/ac_transition.h"
 #include "cs/cs_utils.h"
 #include "mousew32.h"

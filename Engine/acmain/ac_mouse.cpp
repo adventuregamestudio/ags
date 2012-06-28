@@ -4,7 +4,7 @@
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_mouse.h"
 #include "acmain/ac_commonheaders.h"
-#include "acgfx/ac_gfxfilters.h"
+#include "gfx/gfxfilter.h"
 #include "mousew32.h"
 #include "acgui/ac_guibutton.h"
 

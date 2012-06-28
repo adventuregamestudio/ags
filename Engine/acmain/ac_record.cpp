@@ -8,7 +8,7 @@
 #include "mousew32.h"
 #include "acmain/ac_controls.h"
 #include "media/audio/audio.h"
-#include "acgfx/ac_gfxfilters.h"
+#include "gfx/gfxfilter.h"
 #include "acmain/ac_plugin.h"
 #include "acmain/ac_inputbox.h"
 #include "cs/cs_utils.h"

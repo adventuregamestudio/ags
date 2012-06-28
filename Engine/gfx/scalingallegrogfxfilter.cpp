@@ -1,7 +1,7 @@
 
 #include "wgt2allg.h"
-#include "acgfx/ac_scalingallegrogfxfilter.h"
-#include "acgfx/ac_gfxfilterdefines.h"
+#include "gfx/scalingallegrogfxfilter.h"
+#include "gfx/gfxfilterdefines.h"
 
 ScalingAllegroGFXFilter::ScalingAllegroGFXFilter(int multiplier, bool justCheckingForSetup) : 
     AllegroGFXFilter(multiplier, justCheckingForSetup) {

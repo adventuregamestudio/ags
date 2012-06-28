@@ -462,67 +462,47 @@
 				</Filter>
 			</Filter>
 			<Filter
-				Name="acgfx"
+				Name="gfx"
 				>
 				<File
-					RelativePath="..\..\Engine\acgfx\aad3dgfxfilter.cpp"
+					RelativePath="..\..\Engine\gfx\aad3dgfxfilter.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acgfx\ac_allegrogfxfilter.cpp"
+					RelativePath="..\..\Engine\gfx\allegrogfxfilter.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acgfx\ac_blender.cpp"
+					RelativePath="..\..\Engine\gfx\blender.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acgfx\ac_d3dgfxfilter.cpp"
+					RelativePath="..\..\Engine\gfx\d3dgfxfilter.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acgfx\ac_gfxfilter.cpp"
+					RelativePath="..\..\Engine\gfx\gfxfilter.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acgfx\ac_gfxfilters.cpp"
+					RelativePath="..\..\Engine\gfx\gfxfilterdefines.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acgfx\ac_hq2xgfxfilter.cpp"
+					RelativePath="..\..\Engine\gfx\hq2xgfxfilter.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acgfx\ac_hq3xgfxfilter.cpp"
+					RelativePath="..\..\Engine\gfx\hq3xgfxfilter.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acgfx\ac_scalingallegrogfxfilter.cpp"
+					RelativePath="..\..\Engine\gfx\scalingallegrogfxfilter.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acgfx\ac_scalinggfxfilter.cpp"
+					RelativePath="..\..\Engine\gfx\scalinggfxfilter.cpp"
 					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acgfx\acgfx_unused.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
 				</File>
 			</Filter>
 			<Filter
@@ -1408,58 +1388,50 @@
 				</File>
 			</Filter>
 			<Filter
-				Name="acgfx"
+				Name="gfx"
 				>
 				<File
-					RelativePath="..\..\Engine\acgfx\ac_aad3dgfxfilter.h"
+					RelativePath="..\..\Engine\gfx\aad3dgfxfilter.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acgfx\ac_allegrogfxfilter.h"
+					RelativePath="..\..\Engine\gfx\allegrogfxfilter.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acgfx\ac_blender.h"
+					RelativePath="..\..\Engine\gfx\blender.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acgfx\ac_d3dgfxfilter.h"
+					RelativePath="..\..\Engine\gfx\d3dgfxfilter.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acgfx\ac_gfxfilter.h"
+					RelativePath="..\..\Engine\gfx\gfxfilter.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acgfx\ac_gfxfilterdefines.h"
+					RelativePath="..\..\Engine\gfx\gfxfilterhelpers.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acgfx\ac_gfxfilterhelpers.h"
+					RelativePath="..\..\Engine\gfx\hq2x3x.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acgfx\ac_gfxfilters.h"
+					RelativePath="..\..\Engine\gfx\hq2xgfxfilter.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acgfx\ac_hq2x3x.h"
+					RelativePath="..\..\Engine\gfx\hq3xgfxfilter.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acgfx\ac_hq2xgfxfilter.h"
+					RelativePath="..\..\Engine\gfx\scalingallegrogfxfilter.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acgfx\ac_hq3xgfxfilter.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acgfx\ac_scalingallegrogfxfilter.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acgfx\ac_scalinggfxfilter.h"
+					RelativePath="..\..\Engine\gfx\scalinggfxfilter.h"
 					>
 				</File>
 			</Filter>

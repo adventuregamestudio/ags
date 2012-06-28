@@ -1,6 +1,6 @@
 
 #include "stdio.h"
-#include "acgfx/ac_aad3dgfxfilter.h"
+#include "gfx/aad3dgfxfilter.h"
 
 #ifdef WINDOWS_VERSION
 #include <d3d9.h>

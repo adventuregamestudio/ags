@@ -1,7 +1,7 @@
 
-#include "acgfx/ac_blender.h"
+#include "gfx/blender.h"
 #include "wgt2allg.h"
-#include "acgfx/ac_gfxfilterdefines.h"
+#include "gfx/gfxfilterdefines.h"
 
 extern "C" {
     unsigned long _blender_trans16(unsigned long x, unsigned long y, unsigned long n);

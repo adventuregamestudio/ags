@@ -6,7 +6,7 @@
 #include "acmain/ac_commonheaders.h"
 #include "script/script_runtime.h"
 #include "acmain/ac_transition.h"
-#include "acgfx/ac_gfxfilters.h"
+#include "gfx/gfxfilter.h"
 #include "agsplugin.h"
 #include "cs/cc_error.h"
 #include "media/audio/audio.h"

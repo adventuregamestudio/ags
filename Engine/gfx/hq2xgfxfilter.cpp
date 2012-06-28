@@ -1,8 +1,8 @@
 
 #include "wgt2allg.h"
-#include "acgfx/ac_hq2xgfxfilter.h"
-#include "acgfx/ac_hq2x3x.h"
-#include "acgfx/ac_gfxfilterdefines.h"
+#include "gfx/hq2xgfxfilter.h"
+#include "gfx/hq2x3x.h"
+#include "gfx/gfxfilterdefines.h"
 
 const char* Hq2xGFXFilter::Initialize(int width, int height, int colDepth) {
     if (colDepth < 32)

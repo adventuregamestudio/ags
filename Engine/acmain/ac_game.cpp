@@ -17,7 +17,7 @@
 #include "acmain/ac_richgamemedia.h"
 #include "ac/dynobj/cc_serializer.h"
 #include "cs/cc_error.h"
-#include "acgfx/ac_gfxfilters.h"
+#include "gfx/gfxfilter.h"
 #include "media/audio/audio.h"
 #include "ac/audioclip.h"
 #include "ac/global_audio.h"

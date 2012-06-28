@@ -757,9 +757,6 @@ struct GUIMain
       objs[i] = (GUIObject*)getw(fp);
 
     fread(&objrefptr, sizeof(int), MAX_OBJS_ON_GUI, fp);
-
-    if (loaded_game_file_version <= 32) // Fix names for 2.x: "GUI" -> "gGui"
-      FixupGuiName(name);
   }
 
   void WriteToFile(FILE *fp)

@@ -16198,10 +16198,12 @@ static void display_switch_in() {
       channels[i]->resume();
     }
   }
+/*
+  This can cause a segfault on Linux
 
   if (gfxDriver->UsesMemoryBackBuffer())  // make sure all borders are cleared
     gfxDriver->ClearRectangle(0, 0, final_scrn_wid - 1, final_scrn_hit - 1, NULL);
-
+*/
   platform->DisplaySwitchIn();
 }
 
@@ -16338,7 +16340,11 @@ void play_flc_file(int numb,int playflags) {
   fli_ddb = gfxDriver->CreateDDBFromBitmap(fli_target, false, true);
 
   if (play_fli(flicnam,fli_buffer,0,fli_callback)==FLI_ERROR)
-    quit("FLI/FLC animation play error");
+  {
+    // This is not a fatal error that should prevent the game from continuing
+    //quit("FLI/FLC animation play error");
+    write_log_debug("FLI/FLC animation play error");
+  }
 
   wfreeblock(fli_buffer);
   clear(screen);

@@ -1743,7 +1743,7 @@ int has_hit_another_character(int sourceChar) {
 // Does the next move from the character's movelist.
 // Returns 1 if they are now waiting for another char to move,
 // otherwise returns 0
-int doNextCharMoveStep (int aa, CharacterInfo *chi) {
+int doNextCharMoveStep (CharacterInfo *chi, int &char_index, CharacterExtras *chex) {
     int ntf=0, xwas = chi->x, ywas = chi->y;
 
     if (do_movelist_move(&chi->walking,&chi->x,&chi->y) == 2) 
@@ -1752,7 +1752,7 @@ int doNextCharMoveStep (int aa, CharacterInfo *chi) {
             fix_player_sprite(&mls[chi->walking], chi);
     }
 
-    ntf = has_hit_another_character(aa);
+    ntf = has_hit_another_character(char_index);
     if (ntf >= 0) {
         chi->walkwait = 30;
         if (game.chars[ntf].walkspeed < 5)
@@ -1765,7 +1765,7 @@ int doNextCharMoveStep (int aa, CharacterInfo *chi) {
         if ((chi->flags & CHF_MOVENOTWALK) == 0)
         {
             chi->frame = 0;
-            charextra[aa].animwait = chi->walkwait;
+            chex->animwait = chi->walkwait;
         }
 
         if ((chi->walking < 1) || (chi->walking >= TURNING_AROUND)) ;
@@ -1903,9 +1903,9 @@ int is_valid_character(int newchar) {
     return 1;
 }
 
-int wantMoveNow (int chnum, CharacterInfo *chi) {
+int wantMoveNow (CharacterInfo *chi, CharacterExtras *chex) {
     // check most likely case first
-    if ((charextra[chnum].zoom == 100) || ((chi->flags & CHF_SCALEMOVESPEED) == 0))
+    if ((chex->zoom == 100) || ((chi->flags & CHF_SCALEMOVESPEED) == 0))
         return 1;
 
     // the % checks don't work when the counter is negative, so once
@@ -1915,54 +1915,54 @@ int wantMoveNow (int chnum, CharacterInfo *chi) {
     }
 
     // scaling 170-200%, move 175% speed
-    if (charextra[chnum].zoom >= 170) {
+    if (chex->zoom >= 170) {
         if ((chi->walkwaitcounter % 4) >= 1)
             return 2;
         else
             return 1;
     }
     // scaling 140-170%, move 150% speed
-    else if (charextra[chnum].zoom >= 140) {
+    else if (chex->zoom >= 140) {
         if ((chi->walkwaitcounter % 2) == 1)
             return 2;
         else
             return 1;
     }
     // scaling 115-140%, move 125% speed
-    else if (charextra[chnum].zoom >= 115) {
+    else if (chex->zoom >= 115) {
         if ((chi->walkwaitcounter % 4) >= 3)
             return 2;
         else
             return 1;
     }
     // scaling 80-120%, normal speed
-    else if (charextra[chnum].zoom >= 80)
+    else if (chex->zoom >= 80)
         return 1;
     // scaling 60-80%, move 75% speed
-    if (charextra[chnum].zoom >= 60) {
+    if (chex->zoom >= 60) {
         if ((chi->walkwaitcounter % 4) >= 1)
             return 1;
     }
     // scaling 30-60%, move 50% speed
-    else if (charextra[chnum].zoom >= 30) {
+    else if (chex->zoom >= 30) {
         if ((chi->walkwaitcounter % 2) == 1)
             return -1;
-        else if (charextra[chnum].xwas != INVALID_X) {
+        else if (chex->xwas != INVALID_X) {
             // move the second half of the movement to make it smoother
-            chi->x = charextra[chnum].xwas;
-            chi->y = charextra[chnum].ywas;
-            charextra[chnum].xwas = INVALID_X;
+            chi->x = chex->xwas;
+            chi->y = chex->ywas;
+            chex->xwas = INVALID_X;
         }
     }
     // scaling 0-30%, move 25% speed
     else {
         if ((chi->walkwaitcounter % 4) >= 3)
             return -1;
-        if (((chi->walkwaitcounter % 4) == 1) && (charextra[chnum].xwas != INVALID_X)) {
+        if (((chi->walkwaitcounter % 4) == 1) && (chex->xwas != INVALID_X)) {
             // move the second half of the movement to make it smoother
-            chi->x = charextra[chnum].xwas;
-            chi->y = charextra[chnum].ywas;
-            charextra[chnum].xwas = INVALID_X;
+            chi->x = chex->xwas;
+            chi->y = chex->ywas;
+            chex->xwas = INVALID_X;
         }
 
     }

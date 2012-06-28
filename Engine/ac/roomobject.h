@@ -10,6 +10,7 @@
 #include "platform/file.h"
 
 // This struct is only used in save games and by plugins
+// [IKM] Not really.... used in update loop
 struct RoomObject {
     int   x,y;
     int   transparent;    // current transparency setting
@@ -31,6 +32,10 @@ struct RoomObject {
     int get_width();
     int get_height();
     int get_baseline();
+
+	void UpdateCyclingView();
+	void update_cycle_view_forwards();
+	void update_cycle_view_backwards();
 
     void ReadFromFile(FILE *fp);
     void WriteToFile(FILE *fp);

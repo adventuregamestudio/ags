@@ -149,14 +149,14 @@ void start_character_turning (CharacterInfo *chinf, int useloop, int no_diagonal
 void fix_player_sprite(MoveList*cmls,CharacterInfo*chinf);
 // Check whether two characters have walked into each other
 int  has_hit_another_character(int sourceChar);
-int  doNextCharMoveStep (int aa, CharacterInfo *chi);
+int  doNextCharMoveStep (CharacterInfo *chi, int &char_index, CharacterExtras *chex);
 int  find_nearest_walkable_area_within(int *xx, int *yy, int range, int step);
 void find_nearest_walkable_area (int *xx, int *yy);
 void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims);
 void FindReasonableLoopForCharacter(CharacterInfo *chap);
 void walk_or_move_character(CharacterInfo *chaa, int x, int y, int blocking, int direct, bool isWalk);
 int  is_valid_character(int newchar);
-int  wantMoveNow (int chnum, CharacterInfo *chi);
+int  wantMoveNow (CharacterInfo *chi, CharacterExtras *chex);
 void setup_player_character(int charid);
 void animate_character(CharacterInfo *chap, int loopn,int sppd,int rept, int noidleoverride=0, int direction=0);
 void CheckViewFrameForCharacter(CharacterInfo *chi);

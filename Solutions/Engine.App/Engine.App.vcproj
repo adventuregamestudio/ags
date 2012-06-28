@@ -1911,7 +1911,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\main\maindefines.h"
+					RelativePath="..\..\Engine\main\maindefines_ex.h"
 					>
 				</File>
 				<File

@@ -7,7 +7,7 @@
 #ifndef __AGS_EE_MAIN__MAINHEADER_H
 #define __AGS_EE_MAIN__MAINHEADER_H
 
-#include "main/maindefines.h"
+#include "main/maindefines_ex.h"
 
 #define USE_CLIB
 #include <stdio.h>

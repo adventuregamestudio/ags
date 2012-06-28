@@ -28,6 +28,8 @@
 #define OCHF_SPEECHCOLSHIFT 24
 #define UNIFORM_WALK_SPEED  0
 #define FOLLOW_ALWAYSONTOP  0x7ffe
+
+struct CharacterExtras; // forward declaration
 // remember - if change this struct, also change AGSDEFNS.SH and
 // plugin header file struct
 struct CharacterInfo {
@@ -68,6 +70,19 @@ struct CharacterInfo {
     int get_baseline();      // return baseline, or Y if not set
     int get_blocking_top();    // return Y - BlockingHeight/2
     int get_blocking_bottom(); // return Y + BlockingHeight/2
+
+	// [IKM] 2012-06-28: I still have to pass char_index to some of those functions
+	// either because they use it to set some variables with it,
+	// or because they pass it further to other functions, that are called from various places
+	// and it would be too much to change them all simultaneously
+	void UpdateMoveAndAnim(int &char_index, CharacterExtras *chex, int &numSheep, int *followingAsSheep);
+	void UpdateFollowingExactlyCharacter();
+
+	int  update_character_walking(CharacterExtras *chex);
+	void update_character_moving(int &char_index, CharacterExtras *chex, int &doing_nothing);
+	int  update_character_animating(int &char_index, int &doing_nothing);
+	void update_character_idle(CharacterExtras *chex, int &doing_nothing);
+	void update_character_follower(int &char_index, int &numSheep, int *followingAsSheep, int &doing_nothing);
 
     void ReadFromFile(FILE *fp);
 };

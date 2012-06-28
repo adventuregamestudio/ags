@@ -518,30 +518,34 @@
 				</File>
 			</Filter>
 			<Filter
-				Name="acdialog"
+				Name="gui"
 				>
 				<File
-					RelativePath="..\..\Engine\acdialog\ac_cscidialog.cpp"
+					RelativePath="..\..\Engine\gui\cscidialog.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acdialog\ac_mylabel.cpp"
+					RelativePath="..\..\Engine\gui\dialog.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acdialog\ac_mylistbox.cpp"
+					RelativePath="..\..\Engine\gui\mylabel.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acdialog\ac_mytextbox.cpp"
+					RelativePath="..\..\Engine\gui\mylistbox.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acdialog\ac_newcontrol.cpp"
+					RelativePath="..\..\Engine\gui\mypushbutton.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acdialog\ac_pushbutton.cpp"
+					RelativePath="..\..\Engine\gui\mytextbox.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gui\newcontrol.cpp"
 					>
 				</File>
 			</Filter>
@@ -1436,42 +1440,6 @@
 				</File>
 			</Filter>
 			<Filter
-				Name="acdialog"
-				>
-				<File
-					RelativePath="..\..\Engine\acdialog\ac_cscidialog.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acdialog\ac_dialogdefines.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acdialog\ac_dialoginternaldefines.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acdialog\ac_mylabel.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acdialog\ac_mylistbox.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acdialog\ac_mytextbox.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acdialog\ac_newcontrol.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acdialog\ac_pushbutton.h"
-					>
-				</File>
-			</Filter>
-			<Filter
 				Name="acmain"
 				>
 				<File
@@ -1896,6 +1864,50 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\main\update.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="gui"
+				>
+				<File
+					RelativePath="..\..\Engine\gui\cscidialog.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gui\dialog.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gui\dialogdefines.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gui\dialoginternaldefines.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gui\mycontrols.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gui\mylabel.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gui\mylistbox.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gui\mypushbutton.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gui\mytextbox.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gui\newcontrol.h"
 					>
 				</File>
 			</Filter>

@@ -1,5 +1,10 @@
-#ifndef __AC_NEWCONTROL_H
-#define __AC_NEWCONTROL_H
+//=============================================================================
+//
+//
+//
+//=============================================================================
+#ifndef __AGS_EE_GUI__NEWCONTROL_H
+#define __AGS_EE_GUI__NEWCONTROL_H
 
 struct NewControl
 {
@@ -17,4 +22,4 @@ struct NewControl
   void drawandmouse();
 };
 
-#endif // __AC_NEWCONTROL_H
+#endif // __AGS_EE_GUI__NEWCONTROL_H

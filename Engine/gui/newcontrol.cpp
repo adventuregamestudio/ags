@@ -1,6 +1,7 @@
 
-#include "acdialog/ac_newcontrol.h"
-#include "acdialog/ac_dialoginternaldefines.h"
+#include "wgt2allg.h"
+#include "gui/newcontrol.h"
+#include "gui/dialoginternaldefines.h"
 
 extern int topwindowhandle;
 extern int mousex, mousey;

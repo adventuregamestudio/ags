@@ -2,11 +2,21 @@
 #include <string.h>
 #include "wgt2allg.h"
 #include "ali3d.h"
-#include "acdialog/ac_pushbutton.h"
-#include "acdialog/ac_cscidialog.h"
-#include "acdialog/ac_dialoginternaldefines.h"
+#include "acmain/ac_mouse.h"
+#include "acmain/ac_record.h"
+#include "gui/mypushbutton.h"
+#include "gui/dialog.h"
+#include "gui/dialoginternaldefines.h"
+#include "main/game_run.h"
+#include "media/audio/audio.h"
 
-PushButton::PushButton(int xx, int yy, int wi, int hi, char *tex)
+extern volatile int timerloop;
+
+extern int windowbackgroundcolor, pushbuttondarkcolor;
+extern int pushbuttonlightcolor;
+extern int cbuttfont;
+
+MyPushButton::MyPushButton(int xx, int yy, int wi, int hi, char *tex)
 {                             //wlevel=2;
     x = xx;
     y = yy;
@@ -17,7 +27,7 @@ PushButton::PushButton(int xx, int yy, int wi, int hi, char *tex)
     text[49] = 0;
 };
 
-void PushButton::draw()
+void MyPushButton::draw()
 {
     wtextcolor(0);
     wsetcolor(COL254);
@@ -46,7 +56,7 @@ void PushButton::draw()
 
 //extern const int LEFT;  // in mousew32
 
-int PushButton::pressedon()
+int MyPushButton::pressedon()
 {
     int wasstat;
     while (mbutrelease(LEFT) == 0) {
@@ -76,7 +86,7 @@ int PushButton::pressedon()
     return wasstat;
 }
 
-int PushButton::processmessage(int mcode, int wParam, long lParam)
+int MyPushButton::processmessage(int mcode, int wParam, long lParam)
 {
     return -1;                  // doesn't support messages
 }

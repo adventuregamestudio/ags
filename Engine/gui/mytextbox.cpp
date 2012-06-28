@@ -2,9 +2,13 @@
 #include <string.h>
 #include "wgt2allg.h"
 #include "ali3d.h"
-#include "acdialog/ac_mytextbox.h"
-#include "acdialog/ac_cscidialog.h"
-#include "acdialog/ac_dialoginternaldefines.h"
+#include "gui/mytextbox.h"
+#include "gui/dialoginternaldefines.h"
+
+extern GameSetup usetup;
+
+extern int windowbackgroundcolor;
+extern int cbuttfont;
 
 MyTextBox::MyTextBox(int xx, int yy, int wii, char *tee)
 {

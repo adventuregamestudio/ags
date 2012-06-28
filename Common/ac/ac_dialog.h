@@ -1,7 +1,7 @@
 #ifndef __AC_DIALOG_H
 #define __AC_DIALOG_H
 
-
+// [IKM] This is *conversation* dialog, not *gui* dialog, mind you!
 
 #define MAXTOPICOPTIONS     30
 #define DFLG_ON             1  // currently enabled

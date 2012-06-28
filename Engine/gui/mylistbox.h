@@ -1,7 +1,7 @@
 #ifndef __AC_MYLISTBOX_H
 #define __AC_MYLISTBOX_H
 
-#include "acdialog/ac_newcontrol.h"
+#include "gui/newcontrol.h"
 
 #define MAXLISTITEM 300
 #define ARROWWIDTH 8

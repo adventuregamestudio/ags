@@ -5,7 +5,7 @@
 #include "acmain/ac_inputbox.h"
 #include "ac/ac_common.h"
 #include "acmain/ac_game.h"
-#include "acdialog/ac_cscidialog.h"
+#include "gui/dialog.h"
 #include "acmain/ac_translation.h"
 #include "acmain/ac_string.h"
 

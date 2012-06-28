@@ -1,5 +1,10 @@
-#ifndef __AC_DIALOGDEFINES_H
-#define __AC_DIALOGDEFINES_H
+//=============================================================================
+//
+//
+//
+//=============================================================================
+#ifndef __AGS_EE_GUI__DIALOGDEFINES_H
+#define __AGS_EE_GUI__DIALOGDEFINES_H
 
 #define MSG_RESTORE      984
 #define MSG_CANCEL       985    // "Cancel"
@@ -86,4 +91,4 @@ struct OnScreenWindow
     int oldtop;
 };
 
-#endif // __AC_DIALOGDEFINES_H
+#endif // __AGS_EE_GUI__DIALOGDEFINES_H

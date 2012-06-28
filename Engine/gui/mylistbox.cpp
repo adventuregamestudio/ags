@@ -2,9 +2,17 @@
 #include <string.h>
 #include "wgt2allg.h"
 #include "ali3d.h"
-#include "acdialog/ac_mylistbox.h"
-#include "acdialog/ac_cscidialog.h"
-#include "acdialog/ac_dialoginternaldefines.h"
+#include "ac/ac_common.h"
+#include "ac/gamesetup.h"
+#include "gui/mylistbox.h"
+#include "gui/dialoginternaldefines.h"
+
+extern GameSetup usetup;
+extern int mousex, mousey, numcurso, hotx, hoty;
+
+extern int windowbackgroundcolor;
+extern int cbuttfont;
+extern int smcode;
 
   MyListBox::MyListBox(int xx, int yy, int wii, int hii)
   {

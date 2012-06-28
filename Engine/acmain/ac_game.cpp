@@ -4,7 +4,7 @@
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_game.h"
 #include "acmain/ac_commonheaders.h"
-#include "acdialog/ac_cscidialog.h"
+#include "gui/dialog.h"
 #include "acmain/ac_conversation.h"
 #include "acgui/ac_guilabel.h"
 #include "cs/cs_utils.h"
@@ -98,7 +98,8 @@ void set_game_speed(int fps) {
     install_int_ex(dj_timer_handler,MSEC_TO_TIMER(time_between_timers));
 }
 
-
+extern int cbuttfont;
+extern int acdialog_font;
 
 extern char buffer2[60];
 int oldmouse;

@@ -2,9 +2,19 @@
 #include <string.h>
 #include "wgt2allg.h"
 #include "ali3d.h"
-#include "acdialog/ac_mylabel.h"
-#include "acdialog/ac_cscidialog.h"
-#include "acdialog/ac_dialoginternaldefines.h"
+#include "ac/gamesetup.h"
+#include "acgui/ac_guidefines.h"
+#include "acmain/ac_message.h"
+#include "acmain/ac_strings.h"
+#include "gui/mylabel.h"
+#include "gui/dialoginternaldefines.h"
+
+extern GameSetup usetup;
+// ac_guimain
+extern int numlines;
+extern char lines[MAXLINE][200];
+
+extern int acdialog_font;
 
 MyLabel::MyLabel(int xx, int yy, int wii, char *tee)
 {

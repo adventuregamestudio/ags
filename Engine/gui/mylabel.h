@@ -1,7 +1,7 @@
 #ifndef __AC_MYLABEL_H
 #define __AC_MYLABEL_H
 
-#include "acdialog/ac_newcontrol.h"
+#include "gui/newcontrol.h"
 
 #ifdef DJGPP
 #pragma warn -inl

@@ -1,7 +1,7 @@
 #ifndef __AC_MYTEXTBOX_H
 #define __AC_MYTEXTBOX_H
 
-#include "acdialog/ac_newcontrol.h"
+#include "gui/newcontrol.h"
 
 #define TEXTBOX_MAXLEN 49
 #ifdef DJGPP

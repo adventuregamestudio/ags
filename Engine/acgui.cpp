@@ -1506,6 +1506,9 @@ void read_gui(FILE * iii, GUIMain * guiread, GameSetupStruct * gss, GUIMain** al
     if (gver < 105)
       guiread[ee].zorder = ee;
 
+    if (loaded_game_file_version <= 32) // Fix names for 2.x: "GUI" -> "gGui"
+      guiread->FixupGuiName(guiread[ee].name);
+
     guiread[ee].guiId = ee;
   }
 

@@ -120,9 +120,7 @@ void NewRoom(int nrnum) {
 
 
 void NewRoomEx(int nrnum,int newx,int newy) {
-
     Character_ChangeRoom(playerchar, nrnum, newx, newy);
-
 }
 
 void NewRoomNPC(int charid, int nrnum, int newx, int newy) {

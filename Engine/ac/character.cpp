@@ -24,6 +24,7 @@
 #include "ac/display.h"
 #include "ac/draw.h"
 #include "ac/event.h"
+#include "ac/game.h"
 #include "ac/global_audio.h"
 #include "ac/global_character.h"
 #include "ac/global_game.h"
@@ -67,8 +68,6 @@ extern GameSetupStruct game;
 extern int displayed_room,starting_room;
 extern roomstruct thisroom;
 extern MoveList *mls;
-extern int new_room_pos;
-extern int new_room_x, new_room_y;
 extern GameState play;
 extern ViewStruct*views;
 extern RoomObject*objs;
@@ -239,18 +238,23 @@ void Character_ChangeRoomAutoPosition(CharacterInfo *chaa, int room, int newPos)
 }
 
 void Character_ChangeRoom(CharacterInfo *chaa, int room, int x, int y) {
+    Character_ChangeRoomSetLoop(chaa, room, x, y, SCR_NO_VALUE);
+}
+
+void Character_ChangeRoomSetLoop(CharacterInfo *chaa, int room, int x, int y, int direction) {
 
     if (chaa->index_id != game.playercharacter) {
         // NewRoomNPC
         if ((x != SCR_NO_VALUE) && (y != SCR_NO_VALUE)) {
             chaa->x = x;
             chaa->y = y;
+			if (direction != SCR_NO_VALUE && direction>=0) chaa->loop = direction;
         }
         chaa->prevroom = chaa->room;
         chaa->room = room;
 
-        DEBUG_CONSOLE("%s moved to room %d, location %d,%d",
-            chaa->scrname, room, chaa->x, chaa->y);
+		DEBUG_CONSOLE("%s moved to room %d, location %d,%d, loop %d",
+			chaa->scrname, room, chaa->x, chaa->y, chaa->loop);
 
         return;
     }
@@ -270,6 +274,7 @@ void Character_ChangeRoom(CharacterInfo *chaa, int room, int x, int y) {
             // walk-in animation if they want
             new_room_x = x;
             new_room_y = y;
+			if (direction != SCR_NO_VALUE) new_room_loop = direction;
         }
     }
 
@@ -2777,6 +2782,11 @@ RuntimeScriptValue Sc_Character_ChangeRoom(void *self, const RuntimeScriptValue 
     API_OBJCALL_VOID_PINT3(CharacterInfo, Character_ChangeRoom);
 }
 
+RuntimeScriptValue Sc_Character_ChangeRoomSetLoop(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT4(CharacterInfo, Character_ChangeRoomSetLoop);
+}
+
 // void | CharacterInfo *chaa, int room, int newPos
 RuntimeScriptValue Sc_Character_ChangeRoomAutoPosition(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -3479,6 +3489,7 @@ void RegisterCharacterAPI()
 	ccAddExternalObjectFunction("Character::AddWaypoint^2",             Sc_Character_AddWaypoint);
 	ccAddExternalObjectFunction("Character::Animate^5",                 Sc_Character_Animate);
 	ccAddExternalObjectFunction("Character::ChangeRoom^3",              Sc_Character_ChangeRoom);
+    ccAddExternalObjectFunction("Character::ChangeRoom^4",              Sc_Character_ChangeRoomSetLoop);
 	ccAddExternalObjectFunction("Character::ChangeRoomAutoPosition^2",  Sc_Character_ChangeRoomAutoPosition);
 	ccAddExternalObjectFunction("Character::ChangeView^1",              Sc_Character_ChangeView);
 	ccAddExternalObjectFunction("Character::FaceCharacter^2",           Sc_Character_FaceCharacter);

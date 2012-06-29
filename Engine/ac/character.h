@@ -31,6 +31,7 @@ void    Character_AddWaypoint(CharacterInfo *chaa, int x, int y);
 void    Character_Animate(CharacterInfo *chaa, int loop, int delay, int repeat, int blocking, int direction);
 void    Character_ChangeRoomAutoPosition(CharacterInfo *chaa, int room, int newPos);
 void    Character_ChangeRoom(CharacterInfo *chaa, int room, int x, int y);
+void    Character_ChangeRoomSetLoop(CharacterInfo *chaa, int room, int x, int y, int direction);
 void    Character_ChangeView(CharacterInfo *chap, int vii);
 void    Character_FaceCharacter(CharacterInfo *char1, CharacterInfo *char2, int blockingStyle);
 void    Character_FaceLocation(CharacterInfo *char1, int xx, int yy, int blockingStyle);

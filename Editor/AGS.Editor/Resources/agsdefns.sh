@@ -310,6 +310,17 @@ enum ChangeVolumeType {
   eVolExistingAndFuture = 1680
 };
 
+enum CharacterDirection {
+  eDirectionDown = 0,
+  eDirectionLeft,
+  eDirectionRight,
+  eDirectionUp,
+  eDirectionDownRight,
+  eDirectionUpRight,
+  eDirectionDownLeft,
+  eDirectionUpLeft
+};
+
 internalstring autoptr managed struct String {
   /// Creates a formatted string using the supplied parameters.
   import static String Format(const string format, ...);    // $AUTOCOMPLETESTATICONLY$
@@ -1881,7 +1892,7 @@ managed struct Character {
   /// Animates the character using its current locked view.
   import function Animate(int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eBlock, Direction=eForwards);
   /// Moves the character to another room. If this is the player character, the game will also switch to that room.
-  import function ChangeRoom(int room, int x=SCR_NO_VALUE, int y=SCR_NO_VALUE);
+  import function ChangeRoom(int room, int x=SCR_NO_VALUE, int y=SCR_NO_VALUE, CharacterDirection direction=SCR_NO_VALUE);
   /// Moves the character to another room, using the old-style position variable
   import function ChangeRoomAutoPosition(int room, int position=0);
   /// Changes the character's normal walking view.

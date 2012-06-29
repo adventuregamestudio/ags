@@ -4,15 +4,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include "wgt2allg.h"
+#include "ac/ac_common.h"
 #include "acmain/ac_maindefines.h"
+#include "acmain/ac_speech.h"
+#include "acmain/ac_string.h"
 #include "acmain/ac_translation.h"
 #include "acrun/ac_runninggame.h"
-#include "ac/ac_common.h"
 #include "misc.h"
-#include "acmain/ac_speech.h"
-#include "acrun/ac_platformdriver.h"
-#include "agsplugin.h"
-#include "acmain/ac_string.h"
+#include "platform/agsplatformdriver.h"
+#include "plugin/agsplugin.h"
 
 extern int source_text_length;
 

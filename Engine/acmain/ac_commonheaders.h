@@ -17,7 +17,6 @@
 #include "ac/global_object.h"
 #include "ac/global_region.h"
 #include "ac/region.h"
-#include "acrun/ac_platformdriver.h"
 #include "acrun/ac_runninggame.h"
 #include "acmain/ac_background.h"
 #include "acmain/ac_cutscene.h"
@@ -52,6 +51,7 @@
 #include "main/main.h"
 #include "main/quit.h"
 #include "main/update.h"
+#include "platform/agsplatformdriver.h"
 #include "script/script.h"
 
 #endif // __AC_COMMONHEADERS_H

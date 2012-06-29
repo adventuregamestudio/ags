@@ -6,7 +6,7 @@
 #include "acmain/ac_draw.h"
 #include "acmain/ac_commonheaders.h"
 #include "ac/ac_compress.h"
-#include "agsplugin.h"
+#include "plugin/agsplugin.h"
 #include "acmain/ac_spritelistentry.h"
 #include "ac/ac_object.h"
 #include "mousew32.h"

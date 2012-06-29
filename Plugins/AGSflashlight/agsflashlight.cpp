@@ -16,7 +16,7 @@ but a workalike plugin created by JJS for the AGS engine PSP port.
 #define THIS_IS_THE_PLUGIN
 #endif
 
-#include "../../Engine/agsplugin.h"
+#include "plugin/agsplugin.h"
 
 #if defined(BUILTIN_PLUGINS)
 namespace agsflashlight {

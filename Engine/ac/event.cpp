@@ -5,7 +5,7 @@
 #include "acmain/ac_commonheaders.h"
 #include "cs/cc_error.h"
 #include "acmain/ac_transition.h"
-#include "agsplugin.h"
+#include "plugin/agsplugin.h"
 #include "media/audio/audio.h"
 
 int in_enters_screen=0,done_es_error = 0;

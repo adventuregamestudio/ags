@@ -1,8 +1,25 @@
-#ifndef __AC_PLATFORMDRIVER_H
-#define __AC_PLATFORMDRIVER_H
+/*
+  AGS Cross-Platform Header
+
+  This is UNPUBLISHED PROPRIETARY SOURCE CODE;
+  the contents of this file may not be disclosed to third parties,
+  copied or duplicated in any form, in whole or in part, without
+  prior express permission from Chris Jones.
+*/
+//=============================================================================
+//
+//
+//
+//=============================================================================
+#ifndef __AGS_EE_PLATFORM__AGSPLATFORMDRIVER_H
+#define __AGS_EE_PLATFORM__AGSPLATFORMDRIVER_H
 
 #include "ac/datetime.h"
 #include "platform/file.h"
+
+#ifdef DJGPP
+#define DOS_VERSION
+#endif
 
 enum eScriptSystemOSID {
     eOS_DOS = 1,
@@ -58,4 +75,4 @@ private:
 // instance by calling AGSPlatformDriver::GetDriver()?
 extern AGSPlatformDriver *platform;
 
-#endif // __AC_PLATFORMDRIVER_H
+#endif // __AGS_EE_PLATFORM__AGSPLATFORMDRIVER_H

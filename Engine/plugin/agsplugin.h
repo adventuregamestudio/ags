@@ -14,6 +14,8 @@
 #ifndef _AGS_PLUGIN_H
 #define _AGS_PLUGIN_H
 
+#include "platform/file.h"
+
 // If the plugin isn't using DDraw, don't require the headers
 #ifndef DIRECTDRAW_VERSION
 typedef void *LPDIRECTDRAW2;
@@ -558,5 +560,12 @@ DLLEXPORT void   AGS_EngineInitGfx(const char* driverID, void *data);
 DLLEXPORT int    AGS_PluginV2 ( ) { return 1; }
 
 #endif // THIS_IS_THE_PLUGIN
+
+void pl_stop_plugins();
+void pl_startup_plugins();
+int  pl_run_plugin_hooks (int event, int data);
+void pl_run_plugin_init_gfx_hooks(const char *driverName, void *data);
+int  pl_run_plugin_debug_hooks (const char *scriptfile, int linenum);
+void pl_read_plugins_from_disk (FILE *iii);
 
 #endif

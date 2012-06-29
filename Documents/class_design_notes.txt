@@ -10,7 +10,24 @@ Every struct should have a read/write (or serialize/unserialize) methods.
 There should be interfaces wrapping low-level functionality to be used instead of raw FILE or BITMAP
 references.
 
+//----------------------------------------------------------------------
 
+Extendable and backwards-compatiblity serialization format is a must-do and first priority.
+Every class should be able to read and write itself normally depending on version.
+This will require few control fields, like
+
+char   - format type;
+int32  - version;
+int32  - size
+
+or just sole version.
+
+After this is implemented, structures may be changed with more freedom.
+
+A number of classes are quite obvious: Engine, Room, Room object, Character, etc.
+But there should also be introduced new classes for customizable and extendable behavior, like speech style.
+
+//----------------------------------------------------------------------
 
 
 What classes do we need? Thoughts -

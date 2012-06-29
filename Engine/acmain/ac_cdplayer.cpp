@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_cdplayer.h"
-#include "acrun/ac_platformdriver.h"
+#include "platform/agsplatformdriver.h"
 
 int use_cdplayer=0;
 bool triedToUseCdAudioCommand = false;

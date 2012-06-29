@@ -1,7 +1,7 @@
 #ifndef AGS_SNOWRAIN_H
 #define AGS_SNOWRAIN_H
 
-#include "../../Engine/agsplugin.h"
+#include "plugin/agsplugin.h"
 
 namespace ags_snowrain
 {

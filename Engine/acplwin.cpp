@@ -15,9 +15,12 @@
 
 // ********* WINDOWS *********
 
-#include "acplatfm.h"
+#include "wgt2allg.h"
+#include "ali3d.h"
 #include "acmain/ac_commonheaders.h"
 #include "media/audio/audio.h"
+#include "platform/ags32bitosdriver.h"
+#include "plugin/agsplugin.h"
 
 #include <shlobj.h>
 #include <time.h>
@@ -26,6 +29,8 @@
 #include <rpcsal.h>
 #endif
 #include <gameux.h>
+
+#include <libcda.h>
 
 
 #ifndef CSIDL_LOCAL_APPDATA

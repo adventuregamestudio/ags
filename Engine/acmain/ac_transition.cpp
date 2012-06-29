@@ -4,7 +4,7 @@
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_transition.h"
 #include "acmain/ac_commonheaders.h"
-#include "agsplugin.h"
+#include "plugin/agsplugin.h"
 
 
 void my_fade_out(int spdd) {

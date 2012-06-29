@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)\..\Common&quot;;&quot;$(SolutionDir)\..\Common\libinclude&quot;;&quot;$(SolutionDir)\..\Engine&quot;;&quot;$(SolutionDir)\..\Windows\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)\..\Common&quot;;&quot;$(SolutionDir)\..\Common\libinclude&quot;;&quot;$(SolutionDir)\..\Engine&quot;;&quot;$(SolutionDir)\..\Plugins&quot;;&quot;$(SolutionDir)\..\Windows\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;VS2005;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;THIS_IS_THE_ENGINE;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;BUILTIN_PLUGINS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -120,7 +120,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)\..\Common&quot;;&quot;$(SolutionDir)\..\Common\libinclude&quot;;&quot;$(SolutionDir)\..\Engine&quot;;&quot;$(SolutionDir)\..\Windows\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)\..\Common&quot;;&quot;$(SolutionDir)\..\Common\libinclude&quot;;&quot;$(SolutionDir)\..\Engine&quot;;&quot;$(SolutionDir)\..\Plugins&quot;;&quot;$(SolutionDir)\..\Windows\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;VS2005;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;THIS_IS_THE_ENGINE;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;ALLEGRO_NO_ASM;BUILTIN_PLUGINS"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -191,10 +191,6 @@
 			</File>
 			<File
 				RelativePath="..\..\Engine\acgui_engine.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Engine\acplatfm.cpp"
 				>
 			</File>
 			<File
@@ -508,10 +504,6 @@
 			<Filter
 				Name="acrun"
 				>
-				<File
-					RelativePath="..\..\Engine\acrun\ac_platformdriver.cpp"
-					>
-				</File>
 				<File
 					RelativePath="..\..\Engine\acrun\ac_runninggame.cpp"
 					>
@@ -1025,20 +1017,32 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="platform"
+				>
+				<File
+					RelativePath="..\..\Engine\platform\ags32bitosdriver.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\platform\agsplatformdriver.cpp"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="plugin"
+				>
+				<File
+					RelativePath="..\..\Engine\plugin\agsplugin.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
-			<File
-				RelativePath="..\..\Common\acplatfm.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Engine\agsplugin.h"
-				>
-			</File>
 			<File
 				RelativePath="..\..\Engine\ali3d.h"
 				>
@@ -1360,34 +1364,10 @@
 				</Filter>
 			</Filter>
 			<Filter
-				Name="cs"
+				Name="plugin"
 				>
 				<File
-					RelativePath="..\..\Common\cs\cc_error.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_instance.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_options.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_script.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_treemap.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cs_common.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cs_utils.h"
+					RelativePath="..\..\Engine\plugin\agsplugin.h"
 					>
 				</File>
 			</Filter>
@@ -1663,10 +1643,6 @@
 				Name="acrun"
 				>
 				<File
-					RelativePath="..\..\Engine\acrun\ac_platformdriver.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\acrun\ac_rundefines.h"
 					>
 				</File>
@@ -1718,6 +1694,14 @@
 			<Filter
 				Name="platform"
 				>
+				<File
+					RelativePath="..\..\Engine\platform\ags32bitosdriver.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\platform\agsplatformdriver.h"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="media"
@@ -2368,6 +2352,38 @@
 						>
 					</File>
 				</Filter>
+			</Filter>
+			<Filter
+				Name="cs"
+				>
+				<File
+					RelativePath="..\..\Common\cs\cc_error.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cc_instance.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cc_options.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cc_script.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cc_treemap.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cs_common.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\cs\cs_utils.h"
+					>
+				</File>
 			</Filter>
 		</Filter>
 	</Files>

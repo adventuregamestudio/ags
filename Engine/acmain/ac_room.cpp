@@ -7,7 +7,7 @@
 #include "script/script_runtime.h"
 #include "acmain/ac_transition.h"
 #include "gfx/gfxfilter.h"
-#include "agsplugin.h"
+#include "plugin/agsplugin.h"
 #include "cs/cc_error.h"
 #include "media/audio/audio.h"
 #include "ac/global_audio.h"

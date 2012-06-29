@@ -5,15 +5,15 @@
 #include "apeg.h"
 #include "acmain/ac_maindefines.h"
 #include "ac/ac_gamesetupstruct.h"
+#include "ac/gamestate.h"
 #include "ac/global_audio.h"
 #include "acmain/ac_draw.h"
 #include "acmain/ac_file.h"
 #include "acmain/ac_message.h"
 #include "acmain/ac_mouse.h"
 #include "acmain/ac_record.h"
-#include "ac/gamestate.h"
-#include "acrun/ac_platformdriver.h"
 #include "media/audio/audio.h"
+#include "platform/agsplatformdriver.h"
 
 
 extern GameSetupStruct game;

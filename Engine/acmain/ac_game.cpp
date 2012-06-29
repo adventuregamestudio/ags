@@ -12,7 +12,7 @@
 #include "script/script_runtime.h"
 #include "acmain/ac_lipsync.h"
 #include "ac/dynobj/scriptviewframe.h"
-#include "agsplugin.h"
+#include "plugin/agsplugin.h"
 #include "acmain/ac_animatingguibutton.h"
 #include "acmain/ac_richgamemedia.h"
 #include "ac/dynobj/cc_serializer.h"

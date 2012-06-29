@@ -11,7 +11,7 @@
 #include "media/audio/audio.h"
 #include "debug/debug.h"
 
-#include "agsplugin.h"
+#include "plugin/agsplugin.h"
 #include "acmain/ac_plugin.h"
 
 // *** De-serialization of script objects

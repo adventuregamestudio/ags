@@ -5,7 +5,7 @@
 #include "acmain/ac_commonheaders.h"
 #include "acgui/ac_guiinv.h"
 #include "acmain/ac_guiinvwindow.h"
-#include "agsplugin.h"
+#include "plugin/agsplugin.h"
 #include "acgui/ac_guitextbox.h"
 #include "ac/global_debug.h"
 

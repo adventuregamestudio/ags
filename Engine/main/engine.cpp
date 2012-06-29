@@ -38,6 +38,8 @@ WCHAR directoryPathBuffer[MAX_PATH];
 
 int errcod;
 
+HWND allegro_wnd;
+
 
 
 void engine_read_config(int argc,char*argv[])
@@ -308,7 +310,7 @@ void engine_init_fonts()
     init_font_renderer();
 }
 
-void engine_init_mouse()
+int engine_init_mouse()
 {
     write_log_debug("Initializing mouse");
 
@@ -321,6 +323,8 @@ void engine_init_mouse()
         return EXIT_NORMAL;
     }
 #endif // DEBUG
+
+	return RETURN_CONTINUE;
 }
 
 int engine_check_memory()
@@ -1214,7 +1218,10 @@ int initialize_engine(int argc,char*argv[])
 
     our_eip = -188;
 
-    engine_init_mouse();
+    res = engine_init_mouse();
+	if (res != RETURN_CONTINUE) {
+        return res;
+    }
 
     our_eip = -187;
 
@@ -1365,6 +1372,10 @@ extern int CustomExceptionHandler (LPEXCEPTION_POINTERS exinfo);
 extern EXCEPTION_RECORD excinfo;
 extern int miniDumpResultCode;
 #endif
+
+// defined in main/main
+extern char tempmsg[100];
+extern char*printfworkingspace;
 
 int initialize_engine_with_exception_handling(int argc,char*argv[])
 {

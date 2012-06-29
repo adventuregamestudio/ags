@@ -565,7 +565,7 @@ _aa_add_rgb24 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, unsigned lo
 void
 _aa_add_rgb32 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, unsigned long _num)
 {
-  unsigned long *sline;
+  unsigned int *sline;
   int sx, sx1i, sx1f, sx2i, sx2f;
   int sy, sy1i, sy1f, sy2i, sy2f;
   unsigned long r1, g1, b1;
@@ -578,7 +578,7 @@ _aa_add_rgb32 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, unsigned lo
   /* First line.  */
   sx1i = _sx1 >> aa_BITS;
   sx = sx1i;
-  sline = (unsigned long*) (_src->line[sy]) + sx;
+  sline = (unsigned int*) (_src->line[sy]) + sx;
 
   sx1f = aa_SIZE - (_sx1 & aa_MASK);
   scolor = *sline;
@@ -617,7 +617,7 @@ _aa_add_rgb32 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, unsigned lo
       do
 	{
 	  sx = sx1i;
-	  sline = (unsigned long*) (_src->line[sy]) + sx;
+	  sline = (unsigned int*) (_src->line[sy]) + sx;
 
 	  scolor = *sline;
 	  r2 += MUL (getr32 (scolor), sx1f);
@@ -652,7 +652,7 @@ _aa_add_rgb32 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, unsigned lo
   if (sy2f != 0)
     {
       sx = sx1i;
-      sline = (unsigned long*) (_src->line[sy]) + sx;
+      sline = (unsigned int*) (_src->line[sy]) + sx;
 
       scolor = *sline;
       r2 = MUL (getr32 (scolor), sx1f);
@@ -1576,7 +1576,7 @@ _aa_masked_add_rgb24 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, unsi
 void
 _aa_masked_add_rgb32 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, unsigned long _num)
 {
-  unsigned long *sline;
+  unsigned int *sline;
   int sx, sx1i, sx1f, sx2i, sx2f;
   int sy, sy1i, sy1f, sy2i, sy2f;
   unsigned long r1, g1, b1, t1;
@@ -1589,7 +1589,7 @@ _aa_masked_add_rgb32 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, unsi
   /* First line.  */
   sx1i = _sx1 >> aa_BITS;
   sx = sx1i;
-  sline = (unsigned long*) (_src->line[sy]) + sx;
+  sline = (unsigned int*) (_src->line[sy]) + sx;
 
   sx1f = aa_SIZE - (_sx1 & aa_MASK);
   scolor = *sline;
@@ -1648,7 +1648,7 @@ _aa_masked_add_rgb32 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, unsi
       do
 	{
 	  sx = sx1i;
-	  sline = (unsigned long*) (_src->line[sy]) + sx;
+	  sline = (unsigned int*) (_src->line[sy]) + sx;
 
 	  scolor = *sline;
 	  if (scolor != MASK_COLOR_32)
@@ -1699,7 +1699,7 @@ _aa_masked_add_rgb32 (BITMAP *_src, int _sx1, int _sx2, int _sy1, int _sy2, unsi
   if (sy2f != 0)
     {
       sx = sx1i;
-      sline = (unsigned long*) (_src->line[sy]) + sx;
+      sline = (unsigned int*) (_src->line[sy]) + sx;
 
       scolor = *sline;
       if (scolor != MASK_COLOR_32)

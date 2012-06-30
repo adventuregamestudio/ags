@@ -105,8 +105,6 @@ void allocate_memory_for_views(int viewCount)
     }
 }
 
-
-
 int ViewFrame_GetFlipped(ScriptViewFrame *svf) {
   if (views[svf->view].loops[svf->loop].frames[svf->frame].flags & VFLG_FLIPSPRITE)
     return 1;

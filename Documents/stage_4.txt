@@ -76,3 +76,11 @@ functions that are registered as script symbols.
         main    - engine entry point (main function and similar)
         script  - related to script running and exporting symbols
      
+     
+//=============================================================================
+// Quick notes
+//=============================================================================
+
+game_file basically loads GameSetupStruct + few more objects;
+make ReadFromFile in GameSetupStruct and move code there
+

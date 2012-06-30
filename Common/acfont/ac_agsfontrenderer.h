@@ -1,7 +1,7 @@
 #ifndef __AC_AGSFONTRENDERER_H
 #define __AC_AGSFONTRENDERER_H
 
-//#include "ac/ac_gamesetupstruct.h"	// constants
+//#include "ac/gamesetupstruct.h"	// constants
 // temporary define copy
 #ifndef MAX_FONTS
 #define MAX_FONTS           15

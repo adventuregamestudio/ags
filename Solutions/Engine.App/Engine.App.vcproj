@@ -249,10 +249,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\ac\ac_gamesetupstruct.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\ac\ac_interfacebutton.cpp"
 					>
 				</File>

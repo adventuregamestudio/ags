@@ -4,7 +4,9 @@
 #include <string.h>
 #include <ctype.h>
 #include "acgui/ac_guimain.h"
+#include "wgt2allg.h"
 #include "ac/ac_common.h"	// quit()
+#include "ac/gamesetupstruct.h"
 #include "acgui/ac_guibutton.h"
 #include "acgui/ac_guilabel.h"
 #include "acgui/ac_guislider.h"
@@ -12,9 +14,7 @@
 #include "acgui/ac_guitextbox.h"
 #include "acgui/ac_guilistbox.h"
 #include "acfont/ac_fonts.h"
-#include "wgt2allg.h"
 #include "sprcache.h"
-#include "ac/ac_gamesetupstruct.h"
 
 extern SpriteCache spriteset;
 

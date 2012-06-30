@@ -1,6 +1,8 @@
 #ifndef __AC_CUSTOMPROPERTIES_H
 #define __AC_CUSTOMPROPERTIES_H
 
+#include "platform/file.h"
+
 #define MAX_CUSTOM_PROPERTIES 30
 #define MAX_CUSTOM_PROPERTY_VALUE_LENGTH 500
 #define PROP_TYPE_BOOL   1

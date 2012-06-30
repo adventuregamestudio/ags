@@ -4,7 +4,7 @@
 #include "ali3d.h"
 #include "apeg.h"
 #include "acmain/ac_maindefines.h"
-#include "ac/ac_gamesetupstruct.h"
+#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
 #include "acmain/ac_draw.h"

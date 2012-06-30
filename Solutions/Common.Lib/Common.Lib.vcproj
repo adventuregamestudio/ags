@@ -257,6 +257,14 @@
 					RelativePath="..\..\Common\ac\ac_wordsdictionary.cpp"
 					>
 				</File>
+				<File
+					RelativePath="..\..\Common\ac\gamesetupstruct.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\gamesetupstructbase.cpp"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="acfont"
@@ -429,6 +437,22 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\ac\ac_wordsdictionary.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\gamesetupstruct.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\gamesetupstructbase.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\gamestructdefines.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\oldgamesetupstruct.h"
 					>
 				</File>
 				<Filter

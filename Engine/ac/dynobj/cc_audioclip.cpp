@@ -2,7 +2,7 @@
 #include "ac/dynobj/cc_audioclip.h"
 #include "ac/ac_audioclip.h"
 #include "wgt2allg.h"
-#include "ac/ac_gamesetupstruct.h"
+#include "ac/gamesetupstruct.h"
 
 extern GameSetupStruct game;
 

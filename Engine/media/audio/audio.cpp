@@ -12,7 +12,7 @@
 
 #include "wgt2allg.h"
 #include "media/audio/audio.h"
-#include "ac/ac_gamesetupstruct.h"
+#include "ac/gamesetupstruct.h"
 #include "ac/dynobj/cc_audioclip.h"
 #include "ac/dynobj/cc_audiochannel.h"
 #include "ac/gamestate.h"

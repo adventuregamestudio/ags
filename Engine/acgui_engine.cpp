@@ -12,7 +12,7 @@
 #include "acgui/ac_guilistbox.h"
 #include "acgui/ac_guitextbox.h"
 #include <ctype.h>
-#include "ac/ac_gamesetupstruct.h"
+#include "ac/gamesetupstruct.h"
 #include "sprcache.h"
 #include "acmain/ac_translation.h"
 #include "acmain/ac_strings.h"

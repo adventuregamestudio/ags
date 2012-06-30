@@ -28,7 +28,6 @@
 #define DCMD_ENDSCRIPT      0xff
 #define DCHAR_NARRATOR  999
 #define DCHAR_PLAYER    998
-#define MAX_DIALOG          500
 struct DialogTopic {
     char          optionnames[MAXTOPICOPTIONS][150];
     int           optionflags[MAXTOPICOPTIONS];

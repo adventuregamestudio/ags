@@ -7,7 +7,7 @@
 #include "ac/ac_common.h"
 #include "acmain/ac_drawingsurface.h"
 #include "ac/gamestate.h"
-#include "ac/ac_gamesetupstruct.h"
+#include "ac/gamesetupstruct.h"
 
 extern roomstruct thisroom;
 extern SpriteCache spriteset;

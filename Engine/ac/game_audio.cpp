@@ -3,7 +3,7 @@
 #include "ac/game_audio.h"
 #include "ac/ac_common.h"
 #include "ac/audiochannel.h"
-#include "ac/ac_gamesetupstruct.h"
+#include "ac/gamesetupstruct.h"
 #include "debug/debug.h"
 #include "ac/rundefines.h"
 #include "ac/gamestate.h"

@@ -18,6 +18,7 @@
 
 #include "main/mainheader.h"
 #include "main/game_file.h"
+#include "ac/ac_dialog.h"
 #include "ac/audioclip.h"
 #include "acgui/ac_guilabel.h"
 #include "script/exports.h"
@@ -130,116 +131,6 @@ int game_file_read_version(FILE*iii)
 	return RETURN_CONTINUE;
 }
 
-void game_file_read_font_flags(FILE*iii)
-{
-	fread(&game.fontflags[0], 1, game.numfonts, iii);
-    fread(&game.fontoutline[0], 1, game.numfonts, iii);
-
-#if !defined(WINDOWS_VERSION)
-    // Outline fonts are misaligned on platforms other than Windows
-    int i;
-    for (i = 0; i < MAX_FONTS; i++)
-    {
-        if (game.fontoutline[i] >= 0)
-            game.fontoutline[i] = FONT_OUTLINE_AUTO;
-    }
-#endif
-}
-
-void game_file_read_sprite_flags(FILE*iii)
-{
-	int numToRead;
-    if (filever < 24)
-        numToRead = 6000; // Fixed number of sprites on < 2.56
-    else
-        numToRead = getw(iii);
-
-    if (numToRead > MAX_SPRITES) {
-        quit("Too many sprites; need newer AGS version");
-    }
-    fread(&game.spriteflags[0], 1, numToRead, iii);
-}
-
-void game_file_read_invinfo(FILE*iii)
-{
-//#ifdef ALLEGRO_BIG_ENDIAN
-    for (int iteratorCount = 0; iteratorCount < game.numinvitems; ++iteratorCount)
-    {
-        game.invinfo[iteratorCount].ReadFromFile(iii);
-    }
-//#else
-//    fread(&game.invinfo[0], sizeof(InventoryItemInfo), game.numinvitems, iii);
-//#endif
-}
-
-void game_file_read_cursors(FILE*iii)
-{
-	if (game.numcursors > MAX_CURSOR)
-		quit("Too many cursors: need newer AGS version");
-//#ifdef ALLEGRO_BIG_ENDIAN
-    for (int iteratorCount = 0; iteratorCount < game.numcursors; ++iteratorCount)
-    {
-        game.mcurs[iteratorCount].ReadFromFile(iii);
-    }
-//#else
-//    fread(&game.mcurs[0], sizeof(MouseCursor), game.numcursors, iii);
-//#endif
-
-	if (filever <= 32) // 2.x
-    {
-        // Change cursor.view from 0 to -1 for non-animating cursors.
-        int i;
-        for (i = 0; i < game.numcursors; i++)
-        {
-            if (game.mcurs[i].view == 0)
-                game.mcurs[i].view = -1;
-        }
-    }
-}
-
-void game_file_read_interaction_scripts(FILE*iii)
-{
-	if (filever > 32) // 3.x
-    {
-		int bb;
-
-        game.charScripts = new InteractionScripts*[game.numcharacters];
-        game.invScripts = new InteractionScripts*[game.numinvitems];
-        for (bb = 0; bb < game.numcharacters; bb++) {
-            game.charScripts[bb] = new InteractionScripts();
-            deserialize_interaction_scripts(iii, game.charScripts[bb]);
-        }
-        for (bb = 1; bb < game.numinvitems; bb++) {
-            game.invScripts[bb] = new InteractionScripts();
-            deserialize_interaction_scripts(iii, game.invScripts[bb]);
-        }
-    }
-    else // 2.x
-    {
-		int bb;
-
-        game.intrChar = new NewInteraction*[game.numcharacters];
-
-        for (bb = 0; bb < game.numcharacters; bb++) {
-            game.intrChar[bb] = deserialize_new_interaction(iii);
-        }
-        for (bb = 0; bb < game.numinvitems; bb++) {
-            game.intrInv[bb] = deserialize_new_interaction(iii);
-        }
-
-        numGlobalVars = getw(iii);
-        fread(globalvars, sizeof(InteractionVariable), numGlobalVars, iii);
-    }
-}
-
-void game_file_read_words_dictionary(FILE*iii)
-{
-	if (game.dict != NULL) {
-        game.dict = (WordsDictionary*)malloc(sizeof(WordsDictionary));
-        read_dictionary (game.dict, iii);
-    }
-}
-
 void game_file_read_dialog_script(FILE*iii)
 {
 	if (filever > 37) // 3.1.1+ dialog script
@@ -298,69 +189,8 @@ void game_file_read_views(FILE*iii)
     }
 }
 
-void game_file_read_characters(FILE*iii)
+void game_file_set_default_glmsg()
 {
-	game.chars=(CharacterInfo*)calloc(1,sizeof(CharacterInfo)*game.numcharacters+5);
-//#ifdef ALLEGRO_BIG_ENDIAN
-    for (int iteratorCount = 0; iteratorCount < game.numcharacters; ++iteratorCount)
-    {
-        game.chars[iteratorCount].ReadFromFile(iii);
-    }
-//#else
-//    fread(&game.chars[0],sizeof(CharacterInfo),game.numcharacters,iii);  
-//#endif
-    charcache = (CharacterCache*)calloc(1,sizeof(CharacterCache)*game.numcharacters+5);
-
-    if (filever <= 32) // fixup charakter script names for 2.x (EGO -> cEgo)
-    {
-        char tempbuffer[200];
-        for (int i = 0; i < game.numcharacters; i++)
-        {
-            memset(tempbuffer, 0, 200);
-            tempbuffer[0] = 'c';
-            tempbuffer[1] = game.chars[i].scrname[0];
-            strcat(&tempbuffer[2], strlwr(&game.chars[i].scrname[1]));
-            strcpy(game.chars[i].scrname, tempbuffer);
-        }
-    }
-
-    if (filever <= 37) // fix character walk speed for < 3.1.1
-    {
-        for (int i = 0; i < game.numcharacters; i++)
-        {
-            if (game.options[OPT_ANTIGLIDE])
-                game.chars[i].flags |= CHF_ANTIGLIDE;
-        }
-    }
-}
-
-void game_file_read_lipsync(FILE*iii)
-{
-	if (filever > 19) // > 2.1
-        fread(&game.lipSyncFrameLetters[0][0], MAXLIPSYNCFRAMES, 50, iii);
-}
-
-void game_file_read_messages(FILE*iii)
-{
-	for (int ee=0;ee<MAXGLOBALMES;ee++) {
-        if (game.messages[ee]==NULL) continue;
-        game.messages[ee]=(char*)malloc(500);
-
-        if (filever < 26) // Global messages are not encrypted on < 2.61
-        {
-            char* nextchar = game.messages[ee];
-
-            while (1)
-            {
-                *nextchar = fgetc(iii);
-                if (*nextchar == 0)
-                    break;
-                nextchar++;
-            }
-        }
-        else
-            read_string_decrypt(iii, game.messages[ee]);
-    }
     set_default_glmsg (983, "Sorry, not now.");
     set_default_glmsg (984, "Restore");
     set_default_glmsg (985, "Cancel");
@@ -478,86 +308,12 @@ void game_file_read_gui(FILE*iii)
     play.gui_draw_order = (int*)calloc(game.numgui * sizeof(int), 1);
 }
 
-void game_file_read_plugins(FILE*iii)
+void game_file_set_score_sound(GameSetupStruct::GAME_STRUCT_READ_DATA &read_data)
 {
-	if (filever >= 25) // >= 2.60
-    {
-        platform->ReadPluginsFromDisk(iii);
-
-        if (game.propSchema.UnSerialize(iii))
-            quit("load room: unable to deserialize prop schema");
-
-        int errors = 0;
-		int bb;
-
-        for (bb = 0; bb < game.numcharacters; bb++)
-            errors += game.charProps[bb].UnSerialize (iii);
-        for (bb = 0; bb < game.numinvitems; bb++)
-            errors += game.invProps[bb].UnSerialize (iii);
-
-        if (errors > 0)
-            quit("LoadGame: errors encountered reading custom props");
-
-        for (bb = 0; bb < game.numviews; bb++)
-            fgetstring_limit(game.viewNames[bb], iii, MAXVIEWNAMELENGTH);
-
-        for (bb = 0; bb < game.numinvitems; bb++)
-            fgetstring_limit(game.invScriptNames[bb], iii, MAX_SCRIPT_NAME_LEN);
-
-        for (bb = 0; bb < game.numdialog; bb++)
-            fgetstring_limit(game.dialogScriptNames[bb], iii, MAX_SCRIPT_NAME_LEN);
+    if (read_data.filever >= 41) {
+        play.score_sound = read_data.score_sound;
     }
-}
-
-void game_file_read_audio(FILE*iii)
-{
-	if (filever >= 41)
-    {
-        game.audioClipTypeCount = getw(iii);
-
-        if (game.audioClipTypeCount > MAX_AUDIO_TYPES)
-            quit("LoadGame: too many audio types");
-
-        game.audioClipTypes = (AudioClipType*)malloc(game.audioClipTypeCount * sizeof(AudioClipType));
-        fread(&game.audioClipTypes[0], sizeof(AudioClipType), game.audioClipTypeCount, iii);
-        game.audioClipCount = getw(iii);
-        game.audioClips = (ScriptAudioClip*)malloc(game.audioClipCount * sizeof(ScriptAudioClip));
-        fread(&game.audioClips[0], sizeof(ScriptAudioClip), game.audioClipCount, iii);
-        play.score_sound = getw(iii);
-    }
-    else
-    {
-        // Create game.soundClips and game.audioClipTypes structures.
-        game.audioClipCount = 1000;
-        game.audioClipTypeCount = 4;
-
-        game.audioClipTypes = (AudioClipType*)malloc(game.audioClipTypeCount * sizeof(AudioClipType));
-        memset(game.audioClipTypes, 0, game.audioClipTypeCount * sizeof(AudioClipType));
-
-        game.audioClips = (ScriptAudioClip*)malloc(game.audioClipCount * sizeof(ScriptAudioClip));
-        memset(game.audioClips, 0, game.audioClipCount * sizeof(ScriptAudioClip));
-
-        int i;
-        for (i = 0; i < 4; i++)
-        {
-            game.audioClipTypes[i].reservedChannels = 1;
-            game.audioClipTypes[i].id = i;
-            game.audioClipTypes[i].volume_reduction_while_speech_playing = 10;
-        }
-        game.audioClipTypes[3].reservedChannels = 0;
-
-
-        game.audioClipCount = 0;
-
-        if (csetlib("music.vox", "") == 0)
-            BuildAudioClipArray();
-
-        csetlib(game_file_name, "");
-        BuildAudioClipArray();
-
-        game.audioClips = (ScriptAudioClip*)realloc(game.audioClips, game.audioClipCount * sizeof(ScriptAudioClip));
-
-
+    else {
         play.score_sound = -1;
         if (game.options[OPT_SCORESOUND] > 0)
         {
@@ -567,27 +323,6 @@ void game_file_read_audio(FILE*iii)
             else
                 play.score_sound = -1;
         }
-    }
-}
-
-void game_file_read_room_names(FILE*iii)
-{
-	if ((filever >= 36) && (game.options[OPT_DEBUGMODE] != 0))
-    {
-        game.roomCount = getw(iii);
-        game.roomNumbers = (int*)malloc(game.roomCount * sizeof(int));
-        game.roomNames = (char**)malloc(game.roomCount * sizeof(char*));
-        for (int bb = 0; bb < game.roomCount; bb++)
-        {
-            game.roomNumbers[bb] = getw(iii);
-            fgetstring_limit(pexbuf, iii, sizeof(pexbuf));
-            game.roomNames[bb] = (char*)malloc(strlen(pexbuf) + 1);
-            strcpy(game.roomNames[bb], pexbuf);
-        }
-    }
-    else
-    {
-        game.roomCount = 0;
     }
 }
 
@@ -805,31 +540,15 @@ int load_game_file() {
     if (game.numfonts > MAX_FONTS)
         quit("!This game requires a newer version of AGS. Too many fonts for this version to handle.");
 
-    if (filever > 32) // only 3.x
-    {
-        fread(&game.guid[0], 1, MAX_GUID_LENGTH, iii);
-        fread(&game.saveGameFileExtension[0], 1, MAX_SG_EXT_LENGTH, iii);
-        fread(&game.saveGameFolderName[0], 1, MAX_SG_FOLDER_LEN, iii);
+    GameSetupStruct::GAME_STRUCT_READ_DATA read_data;
+    read_data.filever        = filever;
+    read_data.saveGameSuffix = saveGameSuffix;
+    read_data.max_audio_types= MAX_AUDIO_TYPES;
+    read_data.game_file_name = game_file_name;
 
-        if (game.saveGameFileExtension[0] != 0)
-            sprintf(saveGameSuffix, ".%s", game.saveGameFileExtension);
-        else
-            saveGameSuffix[0] = 0;
-    }
-
-	game_file_read_font_flags(iii);
-
-	game_file_read_sprite_flags(iii);
-    
-	game_file_read_invinfo(iii);
-
-	game_file_read_cursors(iii);
-
-    numGlobalVars = 0;
-
-	game_file_read_interaction_scripts(iii);
-
-	game_file_read_words_dictionary(iii);
+    //-----------------------------------------------------
+    game.ReadFromFile_Part1(iii, read_data);
+    //-----------------------------------------------------
 
     if (game.compiled_script == NULL)
         quit("No global script in game; data load error");
@@ -838,7 +557,7 @@ int load_game_file() {
     if (gamescript == NULL)
         quit("Global script load failed; need newer version?");
 
-	game_file_read_dialog_script(iii);
+    game_file_read_dialog_script(iii);
 
 	game_file_read_script_modules(iii);
 
@@ -867,11 +586,12 @@ int load_game_file() {
         fseek(iii, count * 0x204, SEEK_CUR);
     }
 
-	game_file_read_characters(iii);
+    charcache = (CharacterCache*)calloc(1,sizeof(CharacterCache)*game.numcharacters+5);
+    //-----------------------------------------------------
+    game.ReadFromFile_Part2(iii, read_data);
+    //-----------------------------------------------------
 
-	game_file_read_lipsync(iii);
-
-	game_file_read_messages(iii);
+    game_file_set_default_glmsg();
     
     our_eip=-13;
 
@@ -879,11 +599,16 @@ int load_game_file() {
 
 	game_file_read_gui(iii);
 
-	game_file_read_plugins(iii);
+    if (filever >= 25) // >= 2.60
+    {
+        platform->ReadPluginsFromDisk(iii);
+    }
 
-	game_file_read_audio(iii);
+    //-----------------------------------------------------
+    game.ReadFromFile_Part3(iii, read_data);
+    //-----------------------------------------------------
 
-    game_file_read_room_names(iii);
+    game_file_set_score_sound(read_data);
 
 	fclose(iii);
 

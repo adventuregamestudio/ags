@@ -4,7 +4,7 @@
 #include "ac/characterinfo.h"
 #include "wgt2allg.h"
 #include "ac/ac_common.h"
-#include "ac/ac_gamesetupstruct.h"
+#include "ac/gamesetupstruct.h"
 #include "ac/ac_roomstruct.h"
 #include "ac/audiodefines.h"
 #include "ac/character.h"

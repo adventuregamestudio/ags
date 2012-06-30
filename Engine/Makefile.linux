@@ -89,7 +89,6 @@ routefnd.o \
 scrptrt.o \
 sprcache_engine.o \
 ac/ac_dialog.o \
-ac/ac_gamesetupstruct.o \
 ac/ac_interfacebutton.o \
 ac/ac_interfaceelement.o \
 ac/ac_inventoryiteminfo.o \
@@ -215,6 +214,8 @@ COMMON = \
 ../Common/ac/ac_roomstruct.o \
 ../Common/ac/ac_view.o \
 ../Common/ac/ac_wordsdictionary.o \
+../Common/ac/gamesetupstruct.o \
+../Common/ac/gamesetupstructbase.o \
 ../Common/acfont/ac_agsfontrenderer.o \
 ../Common/acfont/ac_fonts.o \
 ../Common/acfont/ac_ttffontrenderer.o \

@@ -7,11 +7,8 @@
 #ifndef USE_ALFONT
 #define USE_ALFONT
 #endif
-//#include "wgt2allg_nofunc.h"
 #include "wgt2allg.h"
-//#include "acroom_nofunc.h"
-//#include "acruntim.h"
-#include "ac/ac_gamesetupstruct.h"
+#include "ac/gamesetupstruct.h"
 
 #ifdef USE_ALFONT
 #include "alfont.h"

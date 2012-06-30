@@ -9,10 +9,8 @@
 #pragma warning (disable: 4996 4312)  // disable deprecation warnings
 #endif
 
-//#include "wgt2allg_nofunc.h"
 #include "wgt2allg.h"
-//#include "acroom_nofunc.h"
-#include "ac/ac_gamesetupstruct.h"
+#include "ac/ac_defines.h"
 #include "sprcache.h"
 #include "compress.h"
 #include "bigend.h"

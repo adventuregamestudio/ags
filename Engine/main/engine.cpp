@@ -16,6 +16,7 @@
 // Engine initialization
 //
 
+#include "ac/gui.h"
 #include "main/mainheader.h"
 #include "main/graphics_mode.h"
 #include "main/engine.h"

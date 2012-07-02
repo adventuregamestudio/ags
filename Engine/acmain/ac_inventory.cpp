@@ -5,7 +5,7 @@
 #include "acmain/ac_inventory.h"
 #include "acmain/ac_commonheaders.h"
 #include "media/audio/audio.h"
-#include "acgui/ac_guiinv.h"
+#include "gui/guiinv.h"
 
 
 int in_inv_screen = 0, inv_screen_newroom = -1;

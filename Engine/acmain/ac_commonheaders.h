@@ -23,7 +23,7 @@
 #include "acmain/ac_dynamicsprite.h"
 #include "acmain/ac_draw.h"
 #include "acmain/ac_game.h"
-#include "acmain/ac_gui.h"
+#include "ac/gui.h"
 #include "acmain/ac_interaction.h"
 #include "acmain/ac_inventory.h"
 #include "acmain/ac_location.h"

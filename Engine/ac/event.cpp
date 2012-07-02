@@ -1,6 +1,7 @@
 
 #include "event.h"
 #include "wgt2allg.h"
+#include "ac/gui.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_commonheaders.h"
 #include "cs/cc_error.h"

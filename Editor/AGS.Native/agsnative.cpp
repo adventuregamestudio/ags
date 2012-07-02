@@ -38,13 +38,13 @@ int mousex, mousey;
 #include "ac/ac_view.h"
 #include "ac/gamesetupstruct.h"
 //#include "acgui.h"
-#include "acgui/ac_guimain.h"
-#include "acgui/ac_guiinv.h"
-#include "acgui/ac_guibutton.h"
-#include "acgui/ac_guilabel.h"
-#include "acgui/ac_guitextbox.h"
-#include "acgui/ac_guilistbox.h"
-#include "acgui/ac_guislider.h"
+#include "gui/guimain.h"
+#include "gui/guiinv.h"
+#include "gui/guibutton.h"
+#include "gui/guilabel.h"
+#include "gui/guitextbox.h"
+#include "gui/guilistbox.h"
+#include "gui/guislider.h"
 
 //#include "cs/cs_internal.h" // fputstring, etc
 #include "cs/cs_utils.h"    // fputstring, etc

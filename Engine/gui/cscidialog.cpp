@@ -3,8 +3,9 @@
 #include "wgt2allg.h"
 #include "ali3d.h"
 #include "ac/ac_common.h"
-#include "acgui/ac_guimain.h"
-#include "acmain/ac_gui.h"
+#include "ac/gamesetup.h"
+#include "gui/guimain.h"
+#include "ac/gui.h"
 #include "acmain/ac_mouse.h"
 #include "acmain/ac_record.h"
 #include "media/audio/audio.h"
@@ -16,6 +17,7 @@
 extern char ignore_bounds; // from mousew32
 extern IGraphicsDriver *gfxDriver;
 extern volatile int timerloop; // ac_timer
+extern GameSetup usetup;
 
 //extern void get_save_game_path(int slotNum, char *buffer);
 //extern char saveGameDirectory[260];
@@ -290,4 +292,8 @@ int finddefaultcontrol(int flagmask)
     }
 
     return -1;
+}
+
+int GetBaseWidth () {
+    return BASEWIDTH;
 }

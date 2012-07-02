@@ -6,7 +6,7 @@
 #include "acmain/ac_commonheaders.h"
 #include "gfx/gfxfilter.h"
 #include "mousew32.h"
-#include "acgui/ac_guibutton.h"
+#include "gui/guibutton.h"
 
 int cur_mode,cur_cursor;
 ScriptMouse scmouse;

@@ -24,7 +24,7 @@
 #include "ac/global_region.h"
 #include "ac/object.h"
 #include "ac/path.h"
-#include "acgui/ac_guimain.h"
+#include "gui/guimain.h"
 #include "routefnd.h"
 #include "acmain/ac_customproperties.h"
 #include "acmain/ac_cutscene.h"

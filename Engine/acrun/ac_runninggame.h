@@ -22,7 +22,7 @@
 #include "ac/objectcache.h"
 #include "ac/dynobj/all_scriptclasses.h"
 #include "sprcache.h"
-#include "acgui/ac_guimain.h"
+#include "gui/guimain.h"
 #include "ac/dynobj/all_dynamicclasses.h"
 
 extern GameState play;

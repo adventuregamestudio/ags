@@ -16,9 +16,16 @@
 // Game loop
 //
 
+#include "ac/gui.h"
 #include "ac/hotspot.h"
 #include "main/mainheader.h"
 #include "main/game_run.h"
+
+extern AnimatingGUIButton animbuts[MAX_ANIMATING_BUTTONS];
+extern int numAnimButs;
+
+extern int mouse_on_iface;   // mouse cursor is over this interface
+extern int ifacepopped;
 
 int numEventsAtStartOfFunction;
 long t1;  // timer for FPS // ... 't1'... how very appropriate.. :)

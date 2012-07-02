@@ -3,7 +3,7 @@
 #include "wgt2allg.h"
 #include "ali3d.h"
 #include "ac/gamesetup.h"
-#include "acgui/ac_guidefines.h"
+#include "gui/guidefines.h"
 #include "acmain/ac_message.h"
 #include "acmain/ac_strings.h"
 #include "gui/mylabel.h"

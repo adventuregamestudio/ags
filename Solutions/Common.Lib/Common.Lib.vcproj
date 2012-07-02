@@ -287,38 +287,38 @@
 				</File>
 			</Filter>
 			<Filter
-				Name="acgui"
+				Name="gui"
 				>
 				<File
-					RelativePath="..\..\Common\acgui\ac_guibutton.cpp"
+					RelativePath="..\..\Common\gui\guibutton.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acgui\ac_guiinv.cpp"
+					RelativePath="..\..\Common\gui\guiinv.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acgui\ac_guilabel.cpp"
+					RelativePath="..\..\Common\gui\guilabel.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acgui\ac_guilistbox.cpp"
+					RelativePath="..\..\Common\gui\guilistbox.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acgui\ac_guimain.cpp"
+					RelativePath="..\..\Common\gui\guimain.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acgui\ac_guiobject.cpp"
+					RelativePath="..\..\Common\gui\guiobject.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acgui\ac_guislider.cpp"
+					RelativePath="..\..\Common\gui\guislider.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acgui\ac_guitextbox.cpp"
+					RelativePath="..\..\Common\gui\guitextbox.cpp"
 					>
 				</File>
 			</Filter>
@@ -517,46 +517,46 @@
 				</File>
 			</Filter>
 			<Filter
-				Name="acgui"
+				Name="gui"
 				>
 				<File
-					RelativePath="..\..\Common\acgui\ac_dynamicarray.h"
+					RelativePath="..\..\Common\gui\dynamicarray.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acgui\ac_guibutton.h"
+					RelativePath="..\..\Common\gui\guibutton.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acgui\ac_guidefines.h"
+					RelativePath="..\..\Common\gui\guidefines.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acgui\ac_guiinv.h"
+					RelativePath="..\..\Common\gui\guiinv.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acgui\ac_guilabel.h"
+					RelativePath="..\..\Common\gui\guilabel.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acgui\ac_guilistbox.h"
+					RelativePath="..\..\Common\gui\guilistbox.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acgui\ac_guimain.h"
+					RelativePath="..\..\Common\gui\guimain.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acgui\ac_guiobject.h"
+					RelativePath="..\..\Common\gui\guiobject.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acgui\ac_guislider.h"
+					RelativePath="..\..\Common\gui\guislider.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acgui\ac_guitextbox.h"
+					RelativePath="..\..\Common\gui\guitextbox.h"
 					>
 				</File>
 			</Filter>

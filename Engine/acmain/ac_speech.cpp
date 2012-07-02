@@ -1,6 +1,7 @@
 
 #include <stdio.h>
 #include "wgt2allg.h"
+#include "ac/gui.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_speech.h"
 #include "acmain/ac_commonheaders.h"

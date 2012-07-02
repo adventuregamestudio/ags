@@ -9,11 +9,11 @@
 //#include "acroom_nofunc.h"
 //#include "acruntim.h"
 //#include "acgui.h"
-#include "acgui/ac_guimain.h"
-#include "acgui/ac_guilabel.h"
-#include "acgui/ac_guitextbox.h"
-#include "acgui/ac_guibutton.h"
-#include "acgui/ac_guilistbox.h"
+#include "gui/guimain.h"
+#include "gui/guilabel.h"
+#include "gui/guitextbox.h"
+#include "gui/guibutton.h"
+#include "gui/guilistbox.h"
 #include <ctype.h>
 
 #include "bigend.h"

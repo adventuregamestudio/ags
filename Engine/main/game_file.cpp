@@ -20,7 +20,8 @@
 #include "main/game_file.h"
 #include "ac/ac_dialog.h"
 #include "ac/audioclip.h"
-#include "acgui/ac_guilabel.h"
+#include "ac/gui.h"
+#include "gui/guilabel.h"
 #include "script/exports.h"
 
 /*
@@ -70,6 +71,8 @@ extern char** old_speech_lines;
 
 extern DynamicArray<GUILabel> guilabels; // defined in ac_guilabel
 extern int numguilabels;
+
+extern int ifacepopped;
 
 
 int filever;

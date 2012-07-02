@@ -4,9 +4,11 @@
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_inventoryitem.h"
 #include "acmain/ac_commonheaders.h"
-#include "acgui/ac_guiinv.h"
-#include "acmain/ac_guiinvwindow.h"
+#include "gui/guiinv.h"
+#include "ac/invwindow.h"
 
+
+extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 
 void set_inv_item_cursorpic(int invItemId, int piccy) 
 {

@@ -1,7 +1,7 @@
 #ifndef __AC_MESSAGE_H
 #define __AC_MESSAGE_H
 
-#include "acgui/ac_guimain.h"
+#include "gui/guimain.h"
 
 int wgetfontheight(int font);
 int wgettextwidth_compensate(const char *tex, int font);

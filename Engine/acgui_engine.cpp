@@ -6,11 +6,11 @@
 #pragma unmanaged
 #include "wgt2allg.h"
 //#include "acruntim.h"
-#include "acgui/ac_guimain.h"
-#include "acgui/ac_guibutton.h"
-#include "acgui/ac_guilabel.h"
-#include "acgui/ac_guilistbox.h"
-#include "acgui/ac_guitextbox.h"
+#include "gui/guimain.h"
+#include "gui/guibutton.h"
+#include "gui/guilabel.h"
+#include "gui/guilistbox.h"
+#include "gui/guitextbox.h"
 #include <ctype.h>
 #include "ac/gamesetupstruct.h"
 #include "sprcache.h"

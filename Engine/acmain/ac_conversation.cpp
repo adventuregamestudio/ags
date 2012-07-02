@@ -6,10 +6,10 @@
 #include "acmain/ac_commonheaders.h"
 #include "ac/dynobj/scriptdialogoptionsrendering.h"
 #include "media/audio/audio.h"
-#include "acgui/ac_guitextbox.h"
+#include "gui/guitextbox.h"
 #include "acmain/ac_parser.h"
 #include "main/game_run.h"
-
+#include "ac/global_gui.h"
 
 
 int said_speech_line; // used while in dialog to track whether screen needs updating

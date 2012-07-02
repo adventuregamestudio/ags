@@ -6,6 +6,8 @@
 #include "plugin/agsplugin.h"
 
 
+extern int eip_guinum, eip_guiobj;
+
 void get_new_size_for_sprite (int ee, int ww, int hh, int &newwid, int &newhit) {
   newwid = ww * current_screen_resolution_multiplier;
   newhit = hh * current_screen_resolution_multiplier;

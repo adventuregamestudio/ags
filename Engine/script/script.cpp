@@ -3,6 +3,7 @@
 #include "script/script.h"
 #include "wgt2allg.h"
 #include "ac/global_audio.h"
+#include "ac/global_gui.h"
 #include "ac/global_hotspot.h"
 #include "ac/global_video.h"
 #include "cs/cc_error.h"

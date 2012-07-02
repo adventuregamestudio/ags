@@ -3,11 +3,13 @@
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_controls.h"
 #include "acmain/ac_commonheaders.h"
-#include "acgui/ac_guiinv.h"
-#include "acmain/ac_guiinvwindow.h"
+#include "gui/guiinv.h"
+#include "ac/invwindow.h"
 #include "plugin/agsplugin.h"
-#include "acgui/ac_guitextbox.h"
+#include "gui/guitextbox.h"
 #include "ac/global_debug.h"
+#include "ac/gui.h"
+#include "ac/global_gui.h"
 
 
 #define ALLEGRO_KEYBOARD_HANDLER
@@ -28,6 +30,13 @@ int errno;
 #define AGS_KEYCODE_DELETE 383
 #define AGS_KEYCODE_ALT_TAB 399
 #define READKEY_CODE_ALT_TAB 0x4000
+
+
+extern int ifacepopped;  // currently displayed pop-up GUI (-1 if none)
+extern int mouse_on_iface;   // mouse cursor is over this interface
+extern int mouse_on_iface_button;
+extern int mouse_pushed_iface;  // this BUTTON on interface MOUSE_ON_IFACE is pushed
+extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 
 
 int restrict_until=0;

@@ -5,6 +5,10 @@
 #include "acmain/ac_cutscene.h"
 #include "acmain/ac_commonheaders.h"
 #include "media/audio/audio.h"
+#include "ac/gui.h"
+
+
+extern int ifacepopped;  // currently displayed pop-up GUI (-1 if none)
 
 
 void start_skipping_cutscene () {

@@ -6,14 +6,14 @@
 #include "acmain/ac_commonheaders.h"
 #include "gui/dialog.h"
 #include "acmain/ac_conversation.h"
-#include "acgui/ac_guilabel.h"
+#include "gui/guilabel.h"
 #include "cs/cs_utils.h"
 #include "acmain/ac_file.h"
 #include "script/script_runtime.h"
 #include "acmain/ac_lipsync.h"
 #include "ac/dynobj/scriptviewframe.h"
 #include "plugin/agsplugin.h"
-#include "acmain/ac_animatingguibutton.h"
+#include "gui/animatingguibutton.h"
 #include "acmain/ac_richgamemedia.h"
 #include "ac/dynobj/cc_serializer.h"
 #include "cs/cc_error.h"
@@ -23,6 +23,7 @@
 #include "ac/global_audio.h"
 #include "ac/system_audio.h"
 #include "script/exports.h"
+#include "ac/gui.h"
 
 #if defined(LINUX_VERSION) || defined(MAC_VERSION)
 #include <sys/stat.h>                      //mkdir
@@ -30,6 +31,17 @@
 
 
 extern "C" int csetlib(char *namm, char *passw);
+
+
+extern AnimatingGUIButton animbuts[MAX_ANIMATING_BUTTONS];
+extern int numAnimButs;
+
+extern int ifacepopped;  // currently displayed pop-up GUI (-1 if none)
+extern int mouse_on_iface;   // mouse cursor is over this interface
+extern int mouse_on_iface_button;
+extern int mouse_pushed_iface;  // this BUTTON on interface MOUSE_ON_IFACE is pushed
+extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
+
 
 
 char saveGameDirectory[260] = "./";

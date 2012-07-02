@@ -22,7 +22,7 @@
 #include "acmain/ac_commonheaders.h"
 #include "cs/cs_common.h"
 #include "cs/cc_error.h"
-#include "acgui/ac_dynamicarray.h"
+#include "gui/dynamicarray.h"
 #include "media/audio/audio.h"
 
 

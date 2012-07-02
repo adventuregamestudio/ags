@@ -7,7 +7,7 @@
 #include "acmain/ac_file.h"
 #include "ac/dynobj/scriptdynamicsprite.h"
 #include <math.h>
-#include "acgui/ac_guibutton.h"
+#include "gui/guibutton.h"
 
 char check_dynamic_sprites_at_exit = 1;
 

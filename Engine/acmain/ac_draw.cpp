@@ -11,6 +11,7 @@
 #include "ac/ac_object.h"
 #include "mousew32.h"
 #include "media/audio/audio.h"
+#include "ac/global_gui.h"
 
 
 #if defined(ANDROID_VERSION)
@@ -26,6 +27,10 @@ extern bool psp_load_latest_savegame;
 #if defined(IOS_VERSION)
 extern "C" void ios_render();
 #endif
+
+
+extern int mouse_on_iface_button;
+extern int eip_guinum;
 
 
 // How is this actually used??

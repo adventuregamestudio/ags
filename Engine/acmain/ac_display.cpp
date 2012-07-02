@@ -4,7 +4,7 @@
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_display.h"
 #include "acmain/ac_commonheaders.h"
-#include "acgui/ac_guiinv.h"
+#include "gui/guiinv.h"
 #include "media/audio/audio.h"
 
 

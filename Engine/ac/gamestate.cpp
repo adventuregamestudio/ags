@@ -180,7 +180,7 @@ void GameState::ReadFromFile(FILE *f)
 
     for (int i = 0; i < MAX_QUEUED_MUSIC; ++i)
     {
-        new_music_queue->WriteToFile(f);
+        new_music_queue->ReadFromFile(f);
     }
 
     fread(takeover_from, sizeof(char), 50, f);

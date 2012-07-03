@@ -28,9 +28,11 @@ void WFNFontRenderer::AdjustYCoordinateForFont(int *ycoord, int fontNumber)
 
 void WFNFontRenderer::EnsureTextValidForFont(char *text, int fontNumber)
 {
+  if ( extendedCharacters[fontNumber] ) return; 
+
   // replace any extended characters with question marks
   while (text[0]!=0) {
-    if ((unsigned char)text[0] > 126) 
+    if ((unsigned char)text[0] > 127 ) // Why was this "> 126" ?
     {
       text[0] = '?';
     }
@@ -42,48 +44,51 @@ void WFNFontRenderer::EnsureTextValidForFont(char *text, int fontNumber)
 // Get the position of a character in a bitmap font.
 // Rewritten code to fulfill the alignment restrictions of pointers
 // on the MIPS processor. Can and should be done more efficiently.
-char* psp_get_char(wgtfont foon, int thisCharacter)
+unsigned char* psp_get_char(wgtfont foon, int thisCharacter)
 {
-  char* tabaddr_ptr = NULL;
-  short tabaddr_value = 0;
+  unsigned char* tabaddr_ptr = NULL;
+  unsigned short tabaddr_value = 0;
 
-  //tabaddr = (short *)&foon[15];
-  tabaddr_ptr = (char*)&foon[15];
+  //tabaddr = (unsigned short *)&foon[15];
+  tabaddr_ptr = (unsigned char*)&foon[15];
 
-  //tabaddr = (short *)&foon[tabaddr[0]];     // get address table
+  //tabaddr = (unsigned short *)&foon[tabaddr[0]];     // get address table
   memcpy(&tabaddr_value, tabaddr_ptr, 2);
-  tabaddr_ptr = (char*)&foon[tabaddr_value];
+  tabaddr_ptr = (unsigned char*)&foon[tabaddr_value];
 
-  //tabaddr = (short *)&foon[tabaddr[thisCharacter]];      // use table to find character
+  //tabaddr = (unsigned short *)&foon[tabaddr[(unsigned char)charr]];      // use table to find character
   memcpy(&tabaddr_value, &tabaddr_ptr[thisCharacter*2], 2);
 
-  return (char*)&foon[tabaddr_value];
+  return (unsigned char*)&foon[tabaddr_value];
 }
 
 
 int WFNFontRenderer::GetTextWidth(const char *texx, int fontNumber)
 {
   wgtfont foon = fonts[fontNumber];
-
+  //unsigned short *tabaddr;
   int totlen = 0;
   unsigned int dd;
 
-  char thisCharacter;
+  unsigned char thisCharacter;
   for (dd = 0; dd < strlen(texx); dd++) 
   {
     thisCharacter = texx[dd];
-    if ((thisCharacter >= 128) || (thisCharacter < 0)) thisCharacter = '?';
+    if ( !extendedCharacters[fontNumber] && (thisCharacter >= 128) )  thisCharacter = '?';
 #ifdef ALLEGRO_BIG_ENDIAN
-    short *tabaddr; // [IKM] 2012-06-13: added by guess, just to make this compile
-    tabaddr = (short *)&foon[15];
-    tabaddr = (short *)&foon[__short_swap_endian(tabaddr[0])];     // get address table
-    tabaddr = (short *)&foon[__short_swap_endian(tabaddr[thisCharacter])];      // use table to find character
+    unsigned short *tabaddr; // [IKM] 2012-06-13: added by guess, just to make this compile
+    tabaddr = (unsigned short *)&foon[15];
+    tabaddr = (unsigned short *)&foon[__short_swap_endian(tabaddr[0])];     // get address table
+    tabaddr = (unsigned short *)&foon[__short_swap_endian(tabaddr[thisCharacter])];      // use table to find character
     totlen += __short_swap_endian(tabaddr[0]);
 #else
-    char* fontaddr = psp_get_char(foon, thisCharacter);
+    //tabaddr = (unsigned short *)&foon[15];
+    //tabaddr = (unsigned short *)&foon[tabaddr[0]];     // get address table
+    //tabaddr = (unsigned short *)&foon[tabaddr[thisCharacter]];      // use table to find character
+    unsigned char* fontaddr = psp_get_char(foon, (unsigned char)thisCharacter);
 
-    short tabaddr_d;
-    memcpy(&tabaddr_d, (char*)((int)fontaddr + 0), 2);
+    unsigned short tabaddr_d;
+    memcpy(&tabaddr_d, (unsigned char*)((int)fontaddr + 0), 2);
 
     totlen += tabaddr_d;
 #endif
@@ -93,25 +98,29 @@ int WFNFontRenderer::GetTextWidth(const char *texx, int fontNumber)
 
 int WFNFontRenderer::GetTextHeight(const char *texx, int fontNumber)
 {
+  //unsigned short *tabaddr;
   int highest = 0;
   unsigned int dd;
   wgtfont foon = fonts[fontNumber];
 
-  char thisCharacter;
+  unsigned char thisCharacter;
   for (dd = 0; dd < strlen(texx); dd++) 
   {
     thisCharacter = texx[dd];
-    if ((thisCharacter >= 128) || (thisCharacter < 0)) thisCharacter = '?';
+    if ( !extendedCharacters[fontNumber] && (thisCharacter >= 128) )  thisCharacter = '?';
 #ifdef ALLEGRO_BIG_ENDIAN
-    short *tabaddr; // [IKM] 2012-06-13: added by guess, just to make this compile
-    tabaddr = (short *)&foon[15];
-    tabaddr = (short *)&foon[__short_swap_endian(tabaddr[0])];     // get address table
-    tabaddr = (short *)&foon[__short_swap_endian(tabaddr[thisCharacter])];      // use table to find character
-    int charHeight = __short_swap_endian(tabaddr[1]);
+    unsigned short *tabaddr; // [IKM] 2012-06-13: added by guess, just to make this compile
+    tabaddr = (unsigned short *)&foon[15];
+    tabaddr = (unsigned short *)&foon[__short_swap_endian(tabaddr[0])];     // get address table
+    tabaddr = (unsigned short *)&foon[__short_swap_endian(tabaddr[thisCharacter])];      // use table to find character
+    totlen += __short_swap_endian(tabaddr[0]);
 #else
-    char* fontaddr = psp_get_char(foon, thisCharacter);
-    short tabaddr_d;
-    memcpy(&tabaddr_d, (char*)((int)fontaddr + 2), 2);
+    //tabaddr = (unsigned short *)&foon[15];
+    //tabaddr = (unsigned short *)&foon[tabaddr[0]];     // get address table
+    //tabaddr = (unsigned short *)&foon[tabaddr[thisCharacter]];      // use table to find character
+    unsigned char* fontaddr = psp_get_char(foon, (unsigned char)thisCharacter);
+    unsigned short tabaddr_d;
+    memcpy(&tabaddr_d, (unsigned char*)((int)fontaddr + 2), 2);
 
     int charHeight = tabaddr_d;
 #endif
@@ -129,37 +138,45 @@ void WFNFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
   set_our_eip(415);
 
   for (ee = 0; ee < strlen(text); ee++)
-    x += printchar(x, y, fonts[fontNumber], text[ee]);
+    x += printchar(x, y, fontNumber, text[ee]);
 
   set_our_eip(oldeip);
 }
 
-int WFNFontRenderer::printchar(int xxx, int yyy, wgtfont foo, int charr)
+int WFNFontRenderer::printchar(int xxx, int yyy, int fontNumber, int charr)
 {
+  wgtfont foo = fonts[fontNumber];
+  //unsigned short *tabaddr = (unsigned short *)&foo[15];
   unsigned char *actdata;
   int tt, ss, bytewid, orixp = xxx;
 
-  if ((charr > 127) || (charr < 0))
+  if ( !extendedCharacters[fontNumber] && ((unsigned char)charr >= 128) ) 
     charr = '?';
 
 #ifdef ALLEGRO_BIG_ENDIAN
-  short *tabaddr; // [IKM] 2012-06-13: added by guess, just to make this compile
-  tabaddr = (short *)&foo[__short_swap_endian(tabaddr[0])];
-  tabaddr = (short *)&foo[__short_swap_endian(tabaddr[charr])];
+  unsigned short *tabaddr; // [IKM] 2012-06-13: added by guess, just to make this compile
+  tabaddr = (unsigned short *)&foo[__short_swap_endian(tabaddr[0])];
+  tabaddr = (unsigned short *)&foo[__short_swap_endian(tabaddr[(unsigned char)charr])];
   int charWidth = __short_swap_endian(tabaddr[0]);
   int charHeight = __short_swap_endian(tabaddr[1]);
+  actdata = (unsigned char *)&tabaddr[2];
 #else
-  char* tabaddr = psp_get_char(foo, charr);
+  
+  //tabaddr = (unsigned short *)&foo[tabaddr[0]];        // get address table
+  //tabaddr = (unsigned short *)&foo[tabaddr[(unsigned char)charr]];    // use table to find character (MUST BE UNSIGNED! - Alan)
+  unsigned char* tabaddr = psp_get_char(foo, (unsigned char)charr);
 
-  short tabaddr_d;
-  memcpy(&tabaddr_d, (char*)((int)tabaddr), 2);
+  unsigned short tabaddr_d;
+  //int charWidth = tabaddr[0];
+  memcpy(&tabaddr_d, (unsigned char*)((int)tabaddr), 2);
   int charWidth = tabaddr_d;
 
-  memcpy(&tabaddr_d, (char*)((int)tabaddr + 2), 2);
+  //int charHeight = tabaddr[1];
+  memcpy(&tabaddr_d, (unsigned char*)((int)tabaddr + 2), 2);
   int charHeight = tabaddr_d;
-#endif
 
-  actdata = (unsigned char *)&tabaddr[2*2];
+  actdata = (unsigned char *)&tabaddr[2*2];  // [AlanDrake] 2012-07-03: moved here because I doubt that 2*2 will work for big endian
+#endif
   bytewid = ((charWidth - 1) / 8) + 1;
 
   // MACPORT FIX: switch now using charWidth and charHeight
@@ -168,7 +185,7 @@ int WFNFontRenderer::printchar(int xxx, int yyy, wgtfont foo, int charr)
       if (((actdata[tt * bytewid + (ss / 8)] & (0x80 >> (ss % 8))) != 0)) {
         if (wtext_multiply > 1) {
           rectfill(abuf, xxx + ss, yyy + tt, xxx + ss + (wtext_multiply - 1),
-                   yyy + tt + (wtext_multiply - 1), textcol);
+            yyy + tt + (wtext_multiply - 1), textcol);
         } 
         else
         {
@@ -219,6 +236,13 @@ bool WFNFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
   fclose(ffi);
 
   fonts[fontNumber] = tempalloc;
+
+  // Check if this font supports extended ASCII
+  unsigned char* tabaddr_ptr = (unsigned char*)&fonts[fontNumber][15];
+  unsigned short tabaddr_value = 0;
+  memcpy(&tabaddr_value, tabaddr_ptr, 2); // address table
+  extendedCharacters[fontNumber] = ((lenof - tabaddr_value)/2 > 128); // Are there more than 128 entries ?
+  
   return true;
 }
 

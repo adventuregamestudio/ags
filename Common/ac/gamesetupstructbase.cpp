@@ -42,3 +42,41 @@ void GameSetupStructBase::ReadFromFile(FILE *fp)
     //    throw "GameSetupStructBase::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
     //#endif
 }
+
+void GameSetupStructBase::WriteToFile(FILE *fp)
+{
+    fwrite(&gamename[0], sizeof(char), 50, fp);
+    char padding[2];
+    fwrite(&padding, sizeof(char), 2, fp);    // skip the array padding
+    fwrite(options, sizeof(int), 100, fp);
+    fwrite(&paluses[0], sizeof(unsigned char), 256, fp);
+    // colors are an array of chars
+    fwrite(&defpal[0], sizeof(char), sizeof(color)*256, fp);
+    putw(numviews, fp);
+    putw(numcharacters, fp);
+    putw(playercharacter, fp);
+    putw(totalscore, fp);
+    putshort(numinvitems, fp);//__getshort__bigendian(fp);
+    fwrite(&padding, sizeof(char), 2, fp);    // skip the padding
+    putw(numdialog, fp);
+    putw(numdlgmessage, fp);
+    putw(numfonts, fp);
+    putw(color_depth, fp);
+    putw(target_win, fp);
+    putw(dialog_bullet, fp);
+    putshort(hotdot, fp);//__getshort__bigendian(fp);
+    putshort(hotdotouter, fp);//__getshort__bigendian(fp);
+    putw(uniqueid, fp);
+    putw(numgui, fp);
+    putw(numcursors, fp);
+    putw(default_resolution, fp);
+    putw(default_lipsync_frame, fp);
+    putw(invhotdotsprite, fp);
+    fwrite(reserved, sizeof(int), 17, fp);
+    // write the final ptrs so we know to load dictionary, scripts etc
+    fwrite(messages, sizeof(int), MAXGLOBALMES, fp);
+    putw((int32)dict, fp);
+    putw((int32)globalscript, fp);
+    putw((int32)chars, fp);
+    putw((int32)compiled_script, fp);
+}

@@ -50,6 +50,7 @@ struct GameSetupStructBase {
     ccScript         *compiled_script;
 
     void ReadFromFile(FILE *fp);
+    void WriteToFile(FILE *fp);
 };
 
 #endif // __AGS_CN_AC__GAMESETUPSTRUCTBASE_H

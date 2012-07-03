@@ -102,6 +102,11 @@ struct GameSetupStruct: public GameSetupStructBase {
     void read_audio(FILE *f, GAME_STRUCT_READ_DATA &read_data);
     void read_room_names(FILE *f, GAME_STRUCT_READ_DATA &read_data);
     //--------------------------------------------------------------------
+
+    // Functions for reading and writing appropriate data from/to save game
+    void ReadFromSaveGame(FILE *f, char* gswas, ccScript* compsc, CharacterInfo* chwas,
+                                   WordsDictionary *olddict, char** mesbk);
+    void WriteForSaveGame(FILE *f);
 };
 
 //=============================================================================

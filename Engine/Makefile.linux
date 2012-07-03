@@ -92,6 +92,7 @@ ac/datetime.o \
 ac/event.o \
 ac/game_audio.o \
 ac/gamesetup.o \
+ac/gamestate.o \
 ac/hotspot.o \
 ac/global_audio.o \
 ac/global_character.o \
@@ -188,6 +189,7 @@ media/audio/clip_myogg.o \
 media/audio/clip_mystaticmp3.o \
 media/audio/clip_mystaticogg.o \
 media/audio/clip_mywave.o \
+media/audio/queuedaudioitem.o \
 media/audio/sound.o \
 media/audio/soundcache.o \
 media/audio/soundclip.o \

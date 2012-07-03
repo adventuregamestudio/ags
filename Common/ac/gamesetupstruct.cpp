@@ -404,6 +404,60 @@ void GameSetupStruct::read_room_names(FILE*iii, GAME_STRUCT_READ_DATA &read_data
     }
 }
 
+void GameSetupStruct::ReadFromSaveGame(FILE *f, char* gswas, ccScript* compsc, CharacterInfo* chwas,
+                                       WordsDictionary *olddict, char** mesbk)
+{
+    // [IKM] No padding here! -- this data was originally read exactly as done here
+    //
+
+    fread(&invinfo[0], sizeof(InventoryItemInfo), numinvitems, f);
+    fread(&mcurs[0], sizeof(MouseCursor), numcursors, f);
+
+    if (invScripts == NULL)
+    {
+        int bb;
+        for (bb = 0; bb < numinvitems; bb++)
+            fread (&intrInv[bb]->timesRun[0], sizeof (int), MAX_NEWINTERACTION_EVENTS, f);
+        for (bb = 0; bb < numcharacters; bb++)
+            fread (&intrChar[bb]->timesRun[0], sizeof (int), MAX_NEWINTERACTION_EVENTS, f);
+    }
+
+    // restore pointer members
+    globalscript=gswas;
+    compiled_script=compsc;
+    chars=chwas;
+    dict = olddict;
+    for (int vv=0;vv<MAXGLOBALMES;vv++) messages[vv]=mesbk[vv];
+
+    fread(&options[0], sizeof(int), OPT_HIGHESTOPTION+1, f);
+    options[OPT_LIPSYNCTEXT] = fgetc(f);
+
+    fread(&chars[0],sizeof(CharacterInfo),numcharacters,f);
+}
+
+void GameSetupStruct::WriteForSaveGame(FILE *f)
+{
+    // [IKM] No padding here! -- this data was originally written exactly as done here
+    //
+
+    fwrite(&invinfo[0], sizeof(InventoryItemInfo), numinvitems, f);
+    fwrite(&mcurs[0], sizeof(MouseCursor), numcursors, f);
+
+    if (invScripts == NULL)
+    {
+      int bb;
+      for (bb = 0; bb < numinvitems; bb++)
+        fwrite (&intrInv[bb]->timesRun[0], sizeof (int), MAX_NEWINTERACTION_EVENTS, f);
+      for (bb = 0; bb < numcharacters; bb++)
+        fwrite (&intrChar[bb]->timesRun[0], sizeof (int), MAX_NEWINTERACTION_EVENTS, f); 
+    }
+
+    fwrite (&options[0], sizeof(int), OPT_HIGHESTOPTION+1, f);
+    fputc (options[OPT_LIPSYNCTEXT], f);
+
+    fwrite(&chars[0],sizeof(CharacterInfo),numcharacters,f);
+}
+
 //=============================================================================
 
 void ConvertOldGameStruct (OldGameSetupStruct *ogss, GameSetupStruct *gss) {

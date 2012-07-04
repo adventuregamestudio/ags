@@ -33,6 +33,8 @@ extern char **global_argv;
 #endif
 
 
+extern char* game_file_name;
+
 char *music_file;
 char *speech_file;
 WCHAR directoryPathBuffer[MAX_PATH];

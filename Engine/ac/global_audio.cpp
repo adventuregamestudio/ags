@@ -9,7 +9,7 @@
 #include "debug/debug.h"
 #include "ac/ac_roomstruct.h"
 #include "ac/game_audio.h"
-#include "acmain/ac_file.h"
+#include "ac/file.h"
 
 extern GameSetup usetup;
 extern GameState play;

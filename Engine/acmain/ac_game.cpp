@@ -8,7 +8,7 @@
 #include "acmain/ac_conversation.h"
 #include "gui/guilabel.h"
 #include "cs/cs_utils.h"
-#include "acmain/ac_file.h"
+#include "ac/file.h"
 #include "script/script_runtime.h"
 #include "acmain/ac_lipsync.h"
 #include "ac/dynobj/scriptviewframe.h"
@@ -51,7 +51,7 @@ const char* sgnametemplate = "agssave.%03d";
 char saveGameSuffix[MAX_SG_EXT_LENGTH + 1];
 
 int game_paused=0;
-
+extern char* game_file_name;
 
 
 
@@ -1322,7 +1322,6 @@ void save_game_audioclips_and_crossfade(FILE *ooo)
 #define MAGICNUMBER 0xbeefcafe
 // Write the save game position to the file
 void save_game_data (FILE *ooo, block screenshot) {
-  int bb, cc, dd;
 
   platform->RunPluginHooks(AGSE_PRESAVEGAME, 0);
   putw(SGVERSION,ooo);
@@ -1855,8 +1854,6 @@ void restore_game_thisroom(FILE *ooo, short *saved_light_levels, int *saved_tint
 void restore_game_ambientsounds(FILE *ooo, int crossfadeInChannelWas, int crossfadeOutChannelWas,
                                 int *doAmbient)
 {
-    int cc, dd;
-
     int bb;
     for (bb = 0; bb <= MAX_SOUND_CHANNELS; bb++)
     {

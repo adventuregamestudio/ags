@@ -4,7 +4,7 @@
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_dynamicsprite.h"
 #include "acmain/ac_commonheaders.h"
-#include "acmain/ac_file.h"
+#include "ac/file.h"
 #include "ac/dynobj/scriptdynamicsprite.h"
 #include <math.h>
 #include "gui/guibutton.h"

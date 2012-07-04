@@ -289,6 +289,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\file.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\game_audio.cpp"
 					>
 				</File>
@@ -318,6 +322,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\global_debug.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\global_file.cpp"
 					>
 				</File>
 				<File
@@ -642,10 +650,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_dynamicsprite.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_file.cpp"
 					>
 				</File>
 				<File
@@ -1159,6 +1163,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\file.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\game_audio.h"
 					>
 				</File>
@@ -1188,6 +1196,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\global_debug.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\global_file.h"
 					>
 				</File>
 				<File
@@ -2045,11 +2057,11 @@
 				Name="AllegroPatches"
 				>
 				<File
-					RelativePath="..\..\Engine\libsrc\allegro-4.2.2-agspatch\c\cstretch.c"
+					RelativePath="..\..\Engine\libsrc\allegro-4.2.2-agspatch\afile.c"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\libsrc\allegro-4.2.2-agspatch\file.c"
+					RelativePath="..\..\Engine\libsrc\allegro-4.2.2-agspatch\c\cstretch.c"
 					>
 				</File>
 				<File

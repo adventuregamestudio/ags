@@ -1,6 +1,6 @@
 
 #include "ac/dynobj/scriptfile.h"
-#include "acmain/ac_file.h"
+#include "ac/global_file.h"
 
 const char *sc_File::fopenModes[] = {NULL, "rb", "wb", "ab"};
 

@@ -8,7 +8,7 @@
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
 #include "acmain/ac_draw.h"
-#include "acmain/ac_file.h"
+#include "ac/file.h"
 #include "acmain/ac_message.h"
 #include "acmain/ac_mouse.h"
 #include "acmain/ac_record.h"

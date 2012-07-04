@@ -12,7 +12,7 @@
 #include "acmain/ac_plugin.h"
 #include "acmain/ac_inputbox.h"
 #include "cs/cs_utils.h"
-#include "acmain/ac_file.h"        //filelength()
+#include "ac/file.h"        //filelength()
 
 char replayfile[MAX_PATH] = "record.dat";
 int replay_time = 0;

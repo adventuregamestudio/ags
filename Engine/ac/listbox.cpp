@@ -3,7 +3,7 @@
 #include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
 #include "ac/ac_common.h"
-#include "acmain/ac_file.h"
+#include "ac/file.h"
 #include "acmain/ac_game.h"
 #include "acmain/ac_string.h"
 #include "ac/gamestate.h"

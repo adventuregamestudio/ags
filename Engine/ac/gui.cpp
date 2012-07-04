@@ -191,7 +191,12 @@ int GUI_GetBackgroundGraphic(ScriptGUI *tehgui) {
   return tehgui->gui->bgpic;
 }
 
-
+ScriptGUI *GetGUIAtLocation(int xx, int yy) {
+    int guiid = GetGUIAt(xx, yy);
+    if (guiid < 0)
+        return NULL;
+    return &scrGui[guiid];
+}
 
 //=============================================================================
 

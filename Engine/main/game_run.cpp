@@ -27,6 +27,8 @@ extern int numAnimButs;
 extern int mouse_on_iface;   // mouse cursor is over this interface
 extern int ifacepopped;
 
+extern int is_text_overlay;
+
 int numEventsAtStartOfFunction;
 long t1;  // timer for FPS // ... 't1'... how very appropriate.. :)
 

@@ -11,7 +11,7 @@
 #include "ac/characterextras.h"
 #include "ac/dynobj/scriptobject.h"
 #include "ac/dynobj/scriptinvitem.h"
-#include "acmain/ac_overlay.h"
+#include "ac/dynobj/scriptoverlay.h"
 
 // **** CHARACTER: FUNCTIONS ****
 

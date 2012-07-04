@@ -23,7 +23,9 @@
 #include "ac/global_object.h"
 #include "ac/global_region.h"
 #include "ac/object.h"
+#include "ac/overlay.h"
 #include "ac/path.h"
+#include "ac/screenoverlay.h"
 #include "gui/guimain.h"
 #include "routefnd.h"
 #include "acmain/ac_customproperties.h"
@@ -60,6 +62,7 @@ extern RoomObject*objs;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern ScriptInvItem scrInv[MAX_INV];
 extern SpriteCache spriteset;
+extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 
 
 //--------------------------------

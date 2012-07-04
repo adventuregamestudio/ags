@@ -39,6 +39,7 @@ extern int mouse_pushed_iface;  // this BUTTON on interface MOUSE_ON_IFACE is pu
 extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 
 extern char check_dynamic_sprites_at_exit;
+extern int is_complete_overlay,is_text_overlay;
 
 
 int restrict_until=0;

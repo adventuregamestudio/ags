@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="windows-1251"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Engine.App"
 	ProjectGUID="{49A909AF-49F3-451D-B6DF-839159E54A01}"
 	RootNamespace="EngineApp"
@@ -349,6 +349,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\global_inventoryitem.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\global_label.cpp"
 					>
 				</File>
@@ -358,6 +362,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\global_object.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\global_overlay.cpp"
 					>
 				</File>
 				<File
@@ -397,6 +405,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\inventoryitem.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\invwindow.cpp"
 					>
 				</File>
@@ -410,6 +422,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\object.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\overlay.cpp"
 					>
 				</File>
 				<File
@@ -698,10 +714,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_mouse.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_overlay.cpp"
 					>
 				</File>
 				<File
@@ -1227,6 +1239,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\global_inventoryitem.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\global_label.h"
 					>
 				</File>
@@ -1236,6 +1252,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\global_object.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\global_overlay.h"
 					>
 				</File>
 				<File
@@ -1271,6 +1291,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\inventoryitem.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\invwindow.h"
 					>
 				</File>
@@ -1296,6 +1320,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\objectcache.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\overlay.h"
 					>
 				</File>
 				<File
@@ -1572,14 +1600,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_draw.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_dynamicsprite.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_file.h"
 					>
 				</File>
 				<File

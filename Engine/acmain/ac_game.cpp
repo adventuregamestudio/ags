@@ -24,6 +24,7 @@
 #include "ac/system_audio.h"
 #include "script/exports.h"
 #include "ac/gui.h"
+#include "ac/screenoverlay.h"
 
 #if defined(LINUX_VERSION) || defined(MAC_VERSION)
 #include <sys/stat.h>                      //mkdir
@@ -42,6 +43,8 @@ extern int mouse_on_iface_button;
 extern int mouse_pushed_iface;  // this BUTTON on interface MOUSE_ON_IFACE is pushed
 extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 
+extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
+extern int is_complete_overlay, is_text_overlay;
 
 
 char saveGameDirectory[260] = "./";

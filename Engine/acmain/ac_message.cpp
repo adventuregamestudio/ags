@@ -10,6 +10,9 @@
 #include "acmain/ac_conversation.h"
 #include "media/audio/audio.h"
 #include "ac/gui.h"
+#include "ac/screenoverlay.h"
+
+extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 
 char *heightTestString = "ZHwypgfjqhkilIK";
 

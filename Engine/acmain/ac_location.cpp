@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include "wgt2allg.h"
 #include "ac/ac_object.h"
+#include "ac/global_gui.h"
+#include "ac/global_inventoryitem.h"
 #include "ac/hotspot.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_location.h"
@@ -50,42 +52,6 @@ int get_walkable_area_at_character (int charnum) {
     CharacterInfo *chin = &game.chars[charnum];
     return get_walkable_area_at_location(chin->x, chin->y);
 }
-
-
-
-
-
-
-
-
-
-int GetGUIAt (int xx,int yy) {
-    multiply_up_coordinates(&xx, &yy);
-
-    int aa, ll;
-    for (ll = game.numgui - 1; ll >= 0; ll--) {
-        aa = play.gui_draw_order[ll];
-        if (guis[aa].on<1) continue;
-        if (guis[aa].flags & GUIF_NOCLICK) continue;
-        if ((xx>=guis[aa].x) & (yy>=guis[aa].y) &
-            (xx<=guis[aa].x+guis[aa].wid) & (yy<=guis[aa].y+guis[aa].hit))
-            return aa;
-    }
-    return -1;
-}
-
-ScriptGUI *GetGUIAtLocation(int xx, int yy) {
-    int guiid = GetGUIAt(xx, yy);
-    if (guiid < 0)
-        return NULL;
-    return &scrGui[guiid];
-}
-
-
-
-
-
-
 
 
 

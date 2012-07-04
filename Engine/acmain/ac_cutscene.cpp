@@ -9,6 +9,7 @@
 
 
 extern int ifacepopped;  // currently displayed pop-up GUI (-1 if none)
+extern int is_complete_overlay,is_text_overlay;
 
 
 void start_skipping_cutscene () {

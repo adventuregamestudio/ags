@@ -15,7 +15,6 @@ acmain/ac_game.o \
 acmain/ac_inputbox.o \
 acmain/ac_interaction.o \
 acmain/ac_inventory.o \
-acmain/ac_inventoryitem.o \
 acmain/ac_lipsync.o \
 acmain/ac_location.o \
 acmain/ac_math.o \
@@ -24,7 +23,6 @@ acmain/ac_minidump.o \
 acmain/ac_mouse.o \
 acmain/ac_object.o \
 acmain/ac_option.o \
-acmain/ac_overlay.o \
 acmain/ac_parser.o \
 acmain/ac_plugin.o \
 acmain/ac_record.o \
@@ -94,6 +92,7 @@ ac/game_audio.o \
 ac/gamesetup.o \
 ac/gamestate.o \
 ac/hotspot.o \
+ac/inventoryitem.o \
 ac/global_audio.o \
 ac/global_character.o \
 ac/global_datetime.o \
@@ -101,7 +100,9 @@ ac/global_debug.o \
 ac/global_dynamicsprite.o \
 ac/global_file.o \
 ac/global_hotspot.o \
+ac/global_inventoryitem.o \
 ac/global_object.o \
+ac/global_overlay.o \
 ac/global_region.o \
 ac/global_timer.o \
 ac/global_video.o \
@@ -112,6 +113,7 @@ ac/global_listbox.o \
 ac/global_slider.o \
 ac/global_textbox.o \
 ac/object.o \
+ac/overlay.o \
 ac/path.o \
 ac/region.o \
 ac/roomobject.o \

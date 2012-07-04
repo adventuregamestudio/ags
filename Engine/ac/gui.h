@@ -32,6 +32,7 @@ int		GUI_GetTransparency(ScriptGUI *tehgui);
 void	GUI_Centre(ScriptGUI *sgui);
 void	GUI_SetBackgroundGraphic(ScriptGUI *tehgui, int slotn);
 int		GUI_GetBackgroundGraphic(ScriptGUI *tehgui);
+ScriptGUI *GetGUIAtLocation(int xx, int yy);
 
 void	remove_popup_interface(int ifacenum);
 void	process_interface_click(int ifce, int btn, int mbut);

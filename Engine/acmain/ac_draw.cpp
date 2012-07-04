@@ -12,6 +12,7 @@
 #include "mousew32.h"
 #include "media/audio/audio.h"
 #include "ac/global_gui.h"
+#include "ac/screenoverlay.h"
 
 
 #if defined(ANDROID_VERSION)
@@ -31,6 +32,9 @@ extern "C" void ios_render();
 
 extern int mouse_on_iface_button;
 extern int eip_guinum;
+
+extern int is_complete_overlay,is_text_overlay;
+extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 
 
 // How is this actually used??

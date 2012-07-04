@@ -11,7 +11,6 @@ int force_letterbox = 0;
 
 int final_scrn_wid=0,final_scrn_hit=0,final_col_dep=0;
 int screen_reset = 0;
-int numscreenover=0;
 
 int GetMaxScreenHeight () {
     int maxhit = BASEHEIGHT;

@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "wgt2allg.h"
 #include "ac/gui.h"
+#include "ac/screenoverlay.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_speech.h"
 #include "acmain/ac_commonheaders.h"
@@ -9,6 +10,10 @@
 #include "acmain/ac_conversation.h"
 #include "media/audio/audio.h"
 #include "media/audio/sound.h"
+
+
+extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
+extern int is_text_overlay;
 
 
 // Sierra-style speech settings

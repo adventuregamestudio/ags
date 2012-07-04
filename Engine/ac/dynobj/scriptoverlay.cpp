@@ -1,8 +1,12 @@
 
 #include "ac/dynobj/scriptoverlay.h"
 #include "wgt2allg.h"
-#include "acmain/ac_overlay.h"
 #include "ac/ac_common.h"
+#include "ac/overlay.h"
+#include "ac/rundefines.h"
+#include "ac/screenoverlay.h"
+
+extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 
 int ScriptOverlay::Dispose(const char *address, bool force) 
 {

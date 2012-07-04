@@ -202,3 +202,18 @@ int GetGUIObjectAt (int xx, int yy) {
 
     return toret->objn;
 }
+
+int GetGUIAt (int xx,int yy) {
+    multiply_up_coordinates(&xx, &yy);
+
+    int aa, ll;
+    for (ll = game.numgui - 1; ll >= 0; ll--) {
+        aa = play.gui_draw_order[ll];
+        if (guis[aa].on<1) continue;
+        if (guis[aa].flags & GUIF_NOCLICK) continue;
+        if ((xx>=guis[aa].x) & (yy>=guis[aa].y) &
+            (xx<=guis[aa].x+guis[aa].wid) & (yy<=guis[aa].y+guis[aa].hit))
+            return aa;
+    }
+    return -1;
+}

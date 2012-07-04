@@ -1,6 +1,10 @@
 DISTRIB_NAME = AGS_Runtime_for_PSP_3.21_R8
 PSP_AGS_FOLDER = "j:/psp/game/ags"
 
+.PHONY: kernelprx exceptionprx launchereboot engineprx allplugins \
+        cleankernelprx cleanexceptionprx cleanlaunchereboot cleanengineprx cleanallplugins \
+        distrib
+
 all:
 	make kernelprx
 	make exceptionprx
@@ -71,7 +75,7 @@ distrib:
 	@cp "bin/kernel.prx" "dist/$(DISTRIB_NAME)/kernel.prx"
 	@cp "bin/exception.prx" "dist/$(DISTRIB_NAME)/exception.prx"
 	@cp "bin/psp.cfg" "dist/$(DISTRIB_NAME)/psp.cfg"
-	@cp "readme.txt" "dist/$(DISTRIB_NAME)/readme.txt"
+	@cp "readme.md" "dist/$(DISTRIB_NAME)/readme.txt"
 	@cp "../Engine/License.txt" "dist/$(DISTRIB_NAME)/License.txt"
 	@make distrib -C "../Plugins" -f Makefile.psp
 

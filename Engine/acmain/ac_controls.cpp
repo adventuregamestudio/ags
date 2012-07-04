@@ -38,6 +38,8 @@ extern int mouse_on_iface_button;
 extern int mouse_pushed_iface;  // this BUTTON on interface MOUSE_ON_IFACE is pushed
 extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 
+extern char check_dynamic_sprites_at_exit;
+
 
 int restrict_until=0;
 

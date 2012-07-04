@@ -285,6 +285,14 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\drawingsurface.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\dynamicsprite.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\event.cpp"
 					>
 				</File>
@@ -322,6 +330,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\global_debug.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\global_dynamicsprite.cpp"
 					>
 				</File>
 				<File
@@ -642,14 +654,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_draw.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_drawingsurface.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_dynamicsprite.cpp"
 					>
 				</File>
 				<File
@@ -1159,6 +1163,14 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\drawingsurface.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\dynamicsprite.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\event.h"
 					>
 				</File>
@@ -1196,6 +1208,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\global_debug.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\global_dynamicsprite.h"
 					>
 				</File>
 				<File
@@ -1556,10 +1572,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_draw.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_drawingsurface.h"
 					>
 				</File>
 				<File

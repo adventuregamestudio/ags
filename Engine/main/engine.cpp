@@ -34,6 +34,7 @@ extern char **global_argv;
 
 
 extern char* game_file_name;
+extern char check_dynamic_sprites_at_exit;
 
 char *music_file;
 char *speech_file;

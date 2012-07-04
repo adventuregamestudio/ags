@@ -19,6 +19,8 @@
 #include "main/mainheader.h"
 #include "main/quit.h"
 
+extern char check_dynamic_sprites_at_exit;
+
 bool handledErrorInEditor;
 
 void quit_tell_editor_debugger(char *qmsg)

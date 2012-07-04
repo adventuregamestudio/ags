@@ -1,41 +1,54 @@
 
+#include <math.h>
+#include "wgt2allg.h"
+#include "ac/dynamicsprite.h"
+#include "ac/ac_common.h"
+#include "ac/ac_roomstruct.h"
+#include "acmain/ac_maindefines.h"
+#include "ac/charactercache.h"
+#include "ac/gamesetupstruct.h"
+#include "ac/global_dynamicsprite.h"
+#include "ac/file.h"
+#include "ac/objectcache.h"
+#include "ac/roomobject.h"
+#include "ac/roomstatus.h"
+#include "acmain/ac_game.h"
+#include "acmain/ac_draw.h"
+//#include "acmain/ac_math.h"
+#include "debug/debug.h"
+#include "gui/dynamicarray.h"
+#include "gui/guibutton.h"
+#include "sprcache.h"
+
+/*
 #include <stdio.h>
 #include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
-#include "acmain/ac_dynamicsprite.h"
+#include "ac/dynamicsprite.h"
 #include "acmain/ac_commonheaders.h"
 #include "ac/file.h"
 #include "ac/dynobj/scriptdynamicsprite.h"
 #include <math.h>
 #include "gui/guibutton.h"
+*/
+
+extern GameSetupStruct game;
+extern SpriteCache spriteset;
+extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
+extern roomstruct thisroom;
+extern DynamicArray<GUIButton> guibuts;
+extern int numguibuts;
+extern RoomObject*objs;
+extern RoomStatus*croom;
+extern CharacterCache *charcache;
+extern ObjectCache objcache[MAX_INIT_SPR];
+
+extern int final_scrn_wid,final_scrn_hit,final_col_dep;
+extern int scrnwid,scrnhit;
 
 char check_dynamic_sprites_at_exit = 1;
 
-
-int LoadImageFile(const char *filename) {
-
-    char loadFromPath[MAX_PATH];
-    get_current_dir_path(loadFromPath, filename);
-
-    block loadedFile = load_bitmap(loadFromPath, NULL);
-
-    if (loadedFile == NULL)
-        return 0;
-
-    int gotSlot = spriteset.findFreeSlot();
-    if (gotSlot <= 0)
-        return 0;
-
-    add_dynamic_sprite(gotSlot, gfxDriver->ConvertBitmapToSupportedColourDepth(loadedFile));
-
-    return gotSlot;
-}
-
-
-
 // ** SCRIPT DYNAMIC SPRITE
-
-
 
 void DynamicSprite_Delete(ScriptDynamicSprite *sds) {
     if (sds->slot) {
@@ -497,7 +510,7 @@ ScriptDynamicSprite* DynamicSprite_CreateFromBackground(int frame, int x1, int y
     return new ScriptDynamicSprite(gotSlot);
 }
 
-
+//=============================================================================
 
 void add_dynamic_sprite(int gotSlot, block redin, bool hasAlpha) {
 

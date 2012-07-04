@@ -20,7 +20,7 @@
 #include "acrun/ac_runninggame.h"
 #include "acmain/ac_background.h"
 #include "acmain/ac_cutscene.h"
-#include "acmain/ac_dynamicsprite.h"
+#include "ac/dynamicsprite.h"
 #include "acmain/ac_draw.h"
 #include "acmain/ac_game.h"
 #include "ac/gui.h"

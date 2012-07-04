@@ -11,9 +11,6 @@ acmain/ac_customproperties.o \
 acmain/ac_cutscene.o \
 acmain/ac_display.o \
 acmain/ac_draw.o \
-acmain/ac_drawingsurface.o \
-acmain/ac_dynamicsprite.o \
-acmain/ac_file.o \
 acmain/ac_game.o \
 acmain/ac_inputbox.o \
 acmain/ac_interaction.o \
@@ -89,7 +86,10 @@ ac/audioclip.o \
 ac/character.o \
 ac/characterinfo.o \
 ac/datetime.o \
+ac/drawingsurface.o \
+ac/dynamicsprite.o \
 ac/event.o \
+ac/file.o \
 ac/game_audio.o \
 ac/gamesetup.o \
 ac/gamestate.o \
@@ -98,6 +98,8 @@ ac/global_audio.o \
 ac/global_character.o \
 ac/global_datetime.o \
 ac/global_debug.o \
+ac/global_dynamicsprite.o \
+ac/global_file.o \
 ac/global_hotspot.o \
 ac/global_object.o \
 ac/global_region.o \

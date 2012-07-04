@@ -12,7 +12,7 @@
 #include "ac/objectcache.h"
 #include "ac/roomstatus.h"
 #include "acmain/ac_draw.h"
-#include "acmain/ac_dynamicsprite.h"
+#include "ac/dynamicsprite.h"
 #include "ac/file.h"
 #include "acmain/ac_message.h"
 #include "acmain/ac_mouse.h"

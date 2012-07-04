@@ -25,6 +25,8 @@
 #include "gui/dynamicarray.h"
 #include "media/audio/audio.h"
 
+extern char check_dynamic_sprites_at_exit;
+
 
 int use_compiled_folder_as_current_dir = 0;
 int editor_debugging_enabled = 0;

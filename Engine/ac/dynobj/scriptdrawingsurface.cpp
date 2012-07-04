@@ -5,7 +5,7 @@
 #include "sprcache.h"
 #include "ac/rundefines.h"
 #include "ac/ac_common.h"
-#include "acmain/ac_drawingsurface.h"
+#include "ac/drawingsurface.h"
 #include "ac/gamestate.h"
 #include "ac/gamesetupstruct.h"
 

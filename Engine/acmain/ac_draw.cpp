@@ -13,6 +13,8 @@
 #include "media/audio/audio.h"
 #include "ac/global_gui.h"
 #include "ac/screenoverlay.h"
+#include "ac/walkablearea.h"
+#include "ac/walkbehind.h"
 
 
 #if defined(ANDROID_VERSION)
@@ -35,6 +37,16 @@ extern int eip_guinum;
 
 extern int is_complete_overlay,is_text_overlay;
 extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
+
+extern WalkBehindMethodEnum walkBehindMethod;
+extern int *walkBehindStartY, *walkBehindEndY;
+extern char noWalkBehindsAtAll;
+extern char *walkBehindExists;  // whether a WB area is in this column
+extern IDriverDependantBitmap *walkBehindBitmap[MAX_OBJ];
+extern int walkBehindLeft[MAX_OBJ], walkBehindTop[MAX_OBJ];
+extern int walkBehindRight[MAX_OBJ], walkBehindBottom[MAX_OBJ];
+extern int walk_behind_baselines_changed;
+extern int walkBehindsCachedForBgNum;
 
 
 // How is this actually used??
@@ -772,6 +784,11 @@ IDriverDependantBitmap* recycle_ddb_bitmap(IDriverDependantBitmap *bimp, BITMAP 
     return bimp;
 }
 
+void invalidate_cached_walkbehinds() 
+{
+    memset(&actspswbcache[0], 0, sizeof(CachedActSpsData) * actSpsCount);
+}
+
 // sort_out_walk_behinds: modifies the supplied sprite by overwriting parts
 // of it with transparent pixels where there are walk-behind areas
 // Returns whether any pixels were updated
@@ -891,11 +908,6 @@ int sort_out_walk_behinds(block sprit,int xx,int yy,int basel, block copyPixelsF
         }
     }
     return pixelsChanged;
-}
-
-void invalidate_cached_walkbehinds() 
-{
-    memset(&actspswbcache[0], 0, sizeof(CachedActSpsData) * actSpsCount);
 }
 
 void sort_out_char_sprite_walk_behind(int actspsIndex, int xx, int yy, int basel, int zoom, int width, int height)

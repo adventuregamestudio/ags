@@ -26,6 +26,7 @@
 #include "ac/overlay.h"
 #include "ac/path.h"
 #include "ac/screenoverlay.h"
+#include "ac/walkablearea.h"
 #include "gui/guimain.h"
 #include "routefnd.h"
 #include "acmain/ac_customproperties.h"
@@ -42,7 +43,6 @@
 #include "acmain/ac_strings.h"
 #include "acmain/ac_translation.h"
 #include "acmain/ac_viewframe.h"
-#include "acmain/ac_walkablearea.h"
 #include "ac/gamestate.h"
 #include "debug/debug.h"
 #include "main/game_run.h"
@@ -63,6 +63,7 @@ extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern ScriptInvItem scrInv[MAX_INV];
 extern SpriteCache spriteset;
 extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
+extern block walkable_areas_temp;
 
 
 //--------------------------------

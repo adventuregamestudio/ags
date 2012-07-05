@@ -11,12 +11,12 @@
 #include "ac/objectcache.h"
 #include "ac/path.h"
 #include "ac/roomstatus.h"
+#include "ac/rundefines.h"
+#include "ac/walkablearea.h"
 #include "acmain/ac_customproperties.h"
 #include "acmain/ac_draw.h"
 #include "acmain/ac_string.h"
 #include "acmain/ac_translation.h"
-#include "acmain/ac_walkablearea.h"
-#include "ac/rundefines.h"
 #include "debug/debug.h"
 #include "main/game_run.h"
 #include "routefnd.h"
@@ -31,6 +31,7 @@ extern int loaded_game_file_version;
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern MoveList *mls;
 extern GameSetupStruct game;
+extern block walkable_areas_temp;
 
 
 int Object_IsCollidingWithObject(ScriptObject *objj, ScriptObject *obj2) {

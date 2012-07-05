@@ -41,6 +41,8 @@ extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 extern char check_dynamic_sprites_at_exit;
 extern int is_complete_overlay,is_text_overlay;
 
+extern char noWalkBehindsAtAll;
+
 
 int restrict_until=0;
 

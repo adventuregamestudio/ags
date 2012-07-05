@@ -6,6 +6,10 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/characterinfo.h"
 #include "ac/ac_roomstruct.h"
+#include "ac/gamestate.h"
+#include "ac/gamesetup.h"
+#include "ac/movelist.h"
+#include "ac/walkablearea.h"
 #include "gfx/gfxfilter.h"
 #include "gui/guidialog.h"
 #include "acmain/ac_maindefines.h"
@@ -17,13 +21,9 @@
 #include "acmain/ac_room.h"
 #include "acmain/ac_screen.h"
 #include "acmain/ac_translation.h"
-#include "acmain/ac_walkablearea.h"
-#include "ac/gamestate.h"
-#include "ac/gamesetup.h"
-#include "sprcache.h"
-#include "debug/debug.h"
-#include "ac/movelist.h"
 #include "cs/cc_options.h"
+#include "debug/debug.h"
+#include "sprcache.h"
 
 extern GameSetupStruct game;
 extern GameSetup usetup;

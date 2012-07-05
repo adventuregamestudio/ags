@@ -5,6 +5,7 @@
 #include "ac/global_gui.h"
 #include "ac/global_inventoryitem.h"
 #include "ac/hotspot.h"
+#include "ac/walkablearea.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_location.h"
 #include "acmain/ac_commonheaders.h"

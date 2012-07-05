@@ -41,8 +41,6 @@
 #include "acmain/ac_translation.h"
 #include "acmain/ac_viewframe.h"
 #include "acmain/ac_viewport.h"
-#include "acmain/ac_walkablearea.h"
-#include "acmain/ac_walkbehind.h"
 #include "debug/debug.h"
 #include "main/config.h"
 #include "main/engine.h"

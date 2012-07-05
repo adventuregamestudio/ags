@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="windows-1251"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="Engine.App"
 	ProjectGUID="{49A909AF-49F3-451D-B6DF-839159E54A01}"
 	RootNamespace="EngineApp"
@@ -401,6 +401,14 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\global_walkablearea.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\global_walkbehind.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\gui.cpp"
 					>
 				</File>
@@ -466,6 +474,14 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\textbox.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\walkablearea.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\walkbehind.cpp"
 					>
 				</File>
 				<Filter
@@ -790,14 +806,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_wait.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_walkablearea.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_walkbehind.cpp"
 					>
 				</File>
 			</Filter>
@@ -1299,6 +1307,14 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\global_walkablearea.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\global_walkbehind.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\gui.h"
 					>
 				</File>
@@ -1380,6 +1396,14 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\textbox.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\walkablearea.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\walkbehind.h"
 					>
 				</File>
 				<Filter
@@ -1738,22 +1762,10 @@
 					RelativePath="..\..\Engine\acmain\ac_wait.h"
 					>
 				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_walkablearea.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_walkbehind.h"
-					>
-				</File>
 			</Filter>
 			<Filter
 				Name="acrun"
 				>
-				<File
-					RelativePath="..\..\Engine\acrun\ac_rundefines.h"
-					>
-				</File>
 				<File
 					RelativePath="..\..\Engine\acrun\ac_runninggame.h"
 					>

@@ -18,9 +18,11 @@
 
 #include "main/mainheader.h"
 #include "ali3d.h"
+#include "ac/walkbehind.h"
 #include "main/graphics_mode.h"
 
 extern int psp_gfx_renderer; // defined in ali3dogl
+extern WalkBehindMethodEnum walkBehindMethod;
 
 int initasx,initasy;
 int firstDepth, secondDepth;

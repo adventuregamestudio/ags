@@ -11,11 +11,16 @@
 #include "cs/cc_error.h"
 #include "media/audio/audio.h"
 #include "ac/global_audio.h"
+#include "ac/walkablearea.h"
+#include "ac/walkbehind.h"
 
 #if defined(MAC_VERSION) || defined(LINUX_VERSION)
 // for toupper
 #include <ctype.h>
 #endif
+
+extern block walkareabackup;
+extern block walkable_areas_temp;
 
 roomstruct thisroom;
 RGB_MAP rgb_table;  // for 256-col antialiasing

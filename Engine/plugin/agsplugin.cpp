@@ -102,6 +102,7 @@ struct EnginePlugin {
     void      (*initGfxHook) (const char *driverName, void *data);
     int       (*debugHook) (const char * whichscript, int lineNumber, int reserved);
     IAGSEngine  eiface;
+    bool        builtin;
 
     EnginePlugin() {
         filename[0] = 0;
@@ -109,6 +110,7 @@ struct EnginePlugin {
         wantHook = 0;
         invalidatedRegion = 0;
         savedata = NULL;
+        builtin = false;
     }
 };
 #define MAXPLUGINS 20
@@ -736,10 +738,12 @@ void pl_stop_plugins() {
                 free(plugins[a].savedata);
                 plugins[a].savedata = NULL;
             }
+            if (!plugins[a].builtin) {
 #ifdef PSP_VERSION
-            sceKernelUnloadModule(plugins[a].dllHandle);
+                sceKernelUnloadModule(plugins[a].dllHandle);
 #else
-            FreeLibrary (plugins[a].dllHandle);
+                FreeLibrary (plugins[a].dllHandle);
+            }
 #endif
         }
     }
@@ -802,6 +806,7 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         apl->debugHook = agsflashlight::AGS_EngineDebugHook;
         apl->initGfxHook = agsflashlight::AGS_EngineInitGfx;
         apl->dllHandle = (HINSTANCE)1;
+        apl->builtin = true;
         return true;
     }
     else if (strncmp(apl->filename, "agsblend", strlen("agsblend")) == 0)
@@ -812,6 +817,7 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         apl->debugHook = agsblend::AGS_EngineDebugHook;
         apl->initGfxHook = agsblend::AGS_EngineInitGfx;
         apl->dllHandle = (HINSTANCE)1;
+        apl->builtin = true;
         return true;
     }
     else if (strncmp(apl->filename, "ags_snowrain", strlen("ags_snowrain")) == 0)
@@ -822,6 +828,7 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         apl->debugHook = ags_snowrain::AGS_EngineDebugHook;
         apl->initGfxHook = ags_snowrain::AGS_EngineInitGfx;
         apl->dllHandle = (HINSTANCE)1;
+        apl->builtin = true;
         return true;
     }
 #endif

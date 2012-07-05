@@ -19,6 +19,15 @@ To get started with the AGS engine, see the platform specific instructions or fo
 
 The bug tracker is at [jjs.at/tracker](http://jjs.at/tracker). Please report any bugs you find!
 
+## Contributing
+
+We are happy about every contributor, so if you want to help out, you can get commit access to the [adventuregamestudio/ags](https://github.com/adventuregamestudio/ags) repository.
+
+There is also always the possibility of pushing changes to a personal fork and then creating a pull request.
+This is also a good idea if you have commit access, but feel that changes you made should be reviewed before inclusion.
+
+The [main](https://github.com/adventuregamestudio/ags/tree/main) branch should be kept in a working state and always compilable on all targeted platforms.
+Larger changes that potentially break things temporarily should first be made in [refactory](https://github.com/adventuregamestudio/ags/tree/refactory) (for refactoring) and other branches or in personal forks.
 
 ##AGS game compatibility:
 

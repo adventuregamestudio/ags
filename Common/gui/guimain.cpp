@@ -87,9 +87,6 @@ void GUIMain::ReadFromFile(FILE *fp, int version)
     // it will be regenerated
     fread(vtext, sizeof(char), 40, fp);
     fread(&x, sizeof(int), 27 + 2*MAX_OBJS_ON_GUI, fp);
-
-    if (loaded_game_file_version <= 32) // Fix names for 2.x: "GUI" -> "gGui"
-      FixupGuiName(name);
 }
 
 void GUIMain::WriteToFile(FILE *fp)
@@ -498,6 +495,9 @@ void read_gui(FILE * iii, GUIMain * guiread, GameSetupStruct * gss, GUIMain** al
       sprintf(guiread[ee].name, "GUI%d", ee);
     if (gver < 105)
       guiread[ee].zorder = ee;
+
+    if (loaded_game_file_version <= 32) // Fix names for 2.x: "GUI" -> "gGui"
+        guiread->FixupGuiName(guiread[ee].name);
 
     guiread[ee].guiId = ee;
   }

@@ -285,7 +285,7 @@ else
 endif
 LIBS += -lvorbisfile -lfreetype -logg -ldl -lpthread -lm -lc -lstdc++
 
-
+PREFIX = /usr/local
 CC = gcc
 CXX = g++
 AR = ar
@@ -307,6 +307,14 @@ common.a: $(COMMON)
 %.o: %.mm
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-.PHONY: clean
+.PHONY: clean install uninstall
+
 clean:
 	rm -f ags common.a $(OBJS) $(COMMON)
+
+install: ags
+	mkdir -p $(PREFIX)/bin
+	cp -t $(PREFIX)/bin ags
+
+uninstall:
+	rm -f $(PREFIX)/bin/ags

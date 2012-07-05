@@ -92,7 +92,11 @@ void play_flc_file(int numb,int playflags) {
     fli_ddb = gfxDriver->CreateDDBFromBitmap(fli_target, false, true);
 
     if (play_fli(flicnam,fli_buffer,0,fli_callback)==FLI_ERROR)
-        quit("FLI/FLC animation play error");
+    {
+        // This is not a fatal error that should prevent the game from continuing
+        //quit("FLI/FLC animation play error");
+        write_log_debug("FLI/FLC animation play error");
+    }
 
     wfreeblock(fli_buffer);
     clear(screen);

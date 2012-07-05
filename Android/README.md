@@ -34,7 +34,6 @@ your last savegame.
 -   Single finger tap: Perform a left click
 -   Tap with two fingers: Perform a right click
 -   Longclick: Hold down the left mouse button until tapping the screen again
-
 -   MENU button: Opens a menu for key input and quitting the game
 -   MENU button longpress: Opens and closes the onscreen keyboard
 -   BACK button: Sends ESC key command to the game

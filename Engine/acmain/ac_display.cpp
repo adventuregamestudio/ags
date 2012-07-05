@@ -146,7 +146,7 @@ static void display_switch_in() {
     }
 
     // This can cause a segfault on Linux
-#ifndef (LINUX_VERSION)
+#if !defined (LINUX_VERSION)
     if (gfxDriver->UsesMemoryBackBuffer())  // make sure all borders are cleared
         gfxDriver->ClearRectangle(0, 0, final_scrn_wid - 1, final_scrn_hit - 1, NULL);
 #endif

@@ -5,7 +5,7 @@
 #include "ac/ac_common.h"
 #include "ac/gamesetup.h"
 #include "gui/mylistbox.h"
-#include "gui/dialoginternaldefines.h"
+#include "gui/guidialoginternaldefines.h"
 
 extern GameSetup usetup;
 extern int mousex, mousey, numcurso, hotx, hoty;

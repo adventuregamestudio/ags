@@ -1,7 +1,5 @@
 
-#include <stdio.h>
-#include "ac/ac_dialog.h"
-#include "platform/file.h"
+#include "ac/dialogtopic.h"
 
 void DialogTopic::ReadFromFile(FILE *fp)
 {

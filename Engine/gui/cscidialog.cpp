@@ -10,7 +10,7 @@
 #include "acmain/ac_record.h"
 #include "media/audio/audio.h"
 #include "gui/cscidialog.h"
-#include "gui/dialog.h"
+#include "gui/guidialog.h"
 #include "gui/mycontrols.h"
 #include "main/game_run.h"
 

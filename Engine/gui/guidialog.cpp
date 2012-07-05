@@ -1,5 +1,5 @@
 
-#include "gui/dialog.h"
+#include "gui/guidialog.h"
 #include "wgt2allg.h"
 #include "ali3d.h"
 #include "ac/ac_common.h"

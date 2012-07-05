@@ -5,8 +5,8 @@
 #include "acmain/ac_mouse.h"
 #include "acmain/ac_record.h"
 #include "gui/mypushbutton.h"
-#include "gui/dialog.h"
-#include "gui/dialoginternaldefines.h"
+#include "gui/guidialog.h"
+#include "gui/guidialoginternaldefines.h"
 #include "main/game_run.h"
 #include "media/audio/audio.h"
 

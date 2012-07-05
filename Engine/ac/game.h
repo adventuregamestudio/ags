@@ -4,9 +4,12 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_AC__GAMEAUDIO_H
-#define __AGS_EE_AC__GAMEAUDIO_H
+#ifndef __AGS_EE_AC__GAME_H
+#define __AGS_EE_AC__GAME_H
 
+//=============================================================================
+// Audio
+//=============================================================================
 #define VOL_CHANGEEXISTING   1678
 #define VOL_SETFUTUREDEFAULT 1679
 #define VOL_BOTH             1680
@@ -18,6 +21,10 @@ void Game_SetAudioTypeVolume(int audioType, int volume, int changeType);
 
 int Game_GetMODPattern();
 
+//=============================================================================
+// Dialogs
+//=============================================================================
+int Game_GetDialogCount();
 
 
-#endif // __AGS_EE_GAME__GAMEAUDIO_H
+#endif // __AGS_EE_AC__GAME_H

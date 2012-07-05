@@ -7,12 +7,12 @@
 #include "acfont/ac_agsfontrenderer.h"
 #include "gui/guibutton.h"
 #include "acmain/ac_lipsync.h"
-#include "acmain/ac_conversation.h"
 #include "media/audio/audio.h"
 #include "ac/gui.h"
 #include "ac/screenoverlay.h"
 
 extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
+extern int longestline;
 
 char *heightTestString = "ZHwypgfjqhkilIK";
 

@@ -15,8 +15,8 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_GUI__DIALOG_H
-#define __AGS_EE_GUI__DIALOG_H
+#ifndef __AGS_EE_GUI__GUIDIALOG_H
+#define __AGS_EE_GUI__GUIDIALOG_H
 
 void refresh_screen();
 int  loadgamedialog();
@@ -28,4 +28,4 @@ int  roomSelectorWindow(int currentRoom, int numRooms, int*roomNumbers, char**ro
 int  myscimessagebox(char *lpprompt, char *btn1, char *btn2);
 int  quitdialog();
 
-#endif // __AGS_EE_GUI__DIALOG_H
+#endif // __AGS_EE_GUI__GUIDIALOG_H

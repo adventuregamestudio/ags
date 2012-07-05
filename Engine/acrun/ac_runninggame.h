@@ -11,7 +11,7 @@
 
 #include "ac/gamestate.h"
 #include "ac/gamesetup.h"
-#include "ac/ac_dialog.h"
+#include "ac/dialogtopic.h"
 #include "ac/ac_roomstruct.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/roomstatus.h"

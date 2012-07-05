@@ -388,10 +388,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_dialog.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Common\ac\ac_gamesetupstruct.h"
 					>
 				</File>
@@ -437,6 +433,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\ac\ac_wordsdictionary.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\dialogtopic.h"
 					>
 				</File>
 				<File

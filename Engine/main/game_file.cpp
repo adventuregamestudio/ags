@@ -18,7 +18,7 @@
 
 #include "main/mainheader.h"
 #include "main/game_file.h"
-#include "ac/ac_dialog.h"
+#include "ac/dialogtopic.h"
 #include "ac/audioclip.h"
 #include "ac/gui.h"
 #include "gui/guilabel.h"

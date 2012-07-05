@@ -1,6 +1,6 @@
 
 #include "wgt2allg.h"
-#include "ac/game_audio.h"
+#include "ac/game.h"
 #include "ac/ac_common.h"
 #include "ac/audiochannel.h"
 #include "ac/gamesetupstruct.h"
@@ -12,6 +12,10 @@
 extern GameSetupStruct game;
 extern GameState play;
 extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
+
+//=============================================================================
+// Audio
+//=============================================================================
 
 void Game_StopAudio(int audioType)
 {
@@ -103,3 +107,11 @@ int Game_GetMODPattern() {
     return -1;
 }
 
+//=============================================================================
+// Dialogs
+//=============================================================================
+
+int Game_GetDialogCount()
+{
+  return game.numdialog;
+}

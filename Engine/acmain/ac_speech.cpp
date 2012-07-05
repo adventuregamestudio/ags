@@ -7,13 +7,14 @@
 #include "acmain/ac_speech.h"
 #include "acmain/ac_commonheaders.h"
 #include "acmain/ac_lipsync.h"
-#include "acmain/ac_conversation.h"
 #include "media/audio/audio.h"
 #include "media/audio/sound.h"
 
 
 extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern int is_text_overlay;
+extern int said_speech_line;
+extern int said_text;
 
 
 // Sierra-style speech settings

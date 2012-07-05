@@ -2,7 +2,9 @@
 #include <string.h>
 #include "script/script.h"
 #include "wgt2allg.h"
+#include "ac/dialog.h"
 #include "ac/global_audio.h"
+#include "ac/global_dialog.h"
 #include "ac/global_gui.h"
 #include "ac/global_hotspot.h"
 #include "ac/global_video.h"
@@ -10,7 +12,6 @@
 #include "cs/cc_options.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_commonheaders.h"
-#include "acmain/ac_conversation.h"
 #include "acmain/ac_variable.h"
 #include "acmain/ac_wait.h"
 #include "media/audio/audio.h"

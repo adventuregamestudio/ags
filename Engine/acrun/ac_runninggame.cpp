@@ -51,7 +51,7 @@ int proper_exit=0,our_eip=0;
 GUIMain*guis=NULL;
 
 
-DialogTopic *dialog;
+
 
 
 CCGUIObject ccDynamicGUIObject;
@@ -63,7 +63,7 @@ CCGUI       ccDynamicGUI;
 CCObject    ccDynamicObject;
 CCDialog    ccDynamicDialog;
 ScriptString myScriptStringImpl;
-ScriptDialogOptionsRendering ccDialogOptionsRendering;
-ScriptDrawingSurface* dialogOptionsRenderingSurface;
+
+
 
 

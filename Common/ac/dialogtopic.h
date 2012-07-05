@@ -1,5 +1,13 @@
-#ifndef __AC_DIALOG_H
-#define __AC_DIALOG_H
+
+//=============================================================================
+//
+//
+//
+//=============================================================================
+#ifndef __AGS_CN_AC__DIALOGTOPIC_H
+#define __AGS_CN_AC__DIALOGTOPIC_H
+
+#include "platform/file.h"
 
 // [IKM] This is *conversation* dialog, not *gui* dialog, mind you!
 
@@ -42,4 +50,4 @@ struct DialogTopic {
 };
 
 
-#endif // __AC_DIALOG_H
+#endif // __AGS_CN_AC__DIALOGTOPIC_H

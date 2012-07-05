@@ -245,10 +245,6 @@
 				Name="ac"
 				>
 				<File
-					RelativePath="..\..\Engine\ac\ac_dialog.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\ac\ac_interfacebutton.cpp"
 					>
 				</File>
@@ -285,6 +281,18 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\dialog.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\dialogoptionsrendering.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\dialogtopic.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\drawingsurface.cpp"
 					>
 				</File>
@@ -301,7 +309,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\ac\game_audio.cpp"
+					RelativePath="..\..\Engine\ac\game.cpp"
 					>
 				</File>
 				<File
@@ -330,6 +338,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\global_debug.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\global_dialog.cpp"
 					>
 				</File>
 				<File
@@ -613,7 +625,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\gui\dialog.cpp"
+					RelativePath="..\..\Engine\gui\guidialog.cpp"
 					>
 				</File>
 				<File
@@ -650,10 +662,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_controls.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_conversation.cpp"
 					>
 				</File>
 				<File
@@ -1175,6 +1183,14 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\dialog.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\dialogoptionsrendering.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\drawingsurface.h"
 					>
 				</File>
@@ -1191,7 +1207,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\ac\game_audio.h"
+					RelativePath="..\..\Engine\ac\game.h"
 					>
 				</File>
 				<File
@@ -1220,6 +1236,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\global_debug.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\global_dialog.h"
 					>
 				</File>
 				<File
@@ -1583,10 +1603,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acmain\ac_conversation.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\acmain\ac_customproperties.h"
 					>
 				</File>
@@ -1604,10 +1620,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_game.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_guitextbox.h"
 					>
 				</File>
 				<File
@@ -1959,19 +1971,19 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\gui\dialog.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\gui\dialogdefines.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\gui\dialoginternaldefines.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\gui\gui.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gui\guidialog.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gui\guidialogdefines.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gui\guidialoginternaldefines.h"
 					>
 				</File>
 				<File

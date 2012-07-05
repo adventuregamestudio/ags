@@ -6,7 +6,6 @@ acmain/ac_animatingguibutton.o \
 acmain/ac_background.o \
 acmain/ac_cdplayer.o \
 acmain/ac_controls.o \
-acmain/ac_conversation.o \
 acmain/ac_customproperties.o \
 acmain/ac_cutscene.o \
 acmain/ac_display.o \
@@ -75,7 +74,6 @@ mousew32.o \
 routefnd.o \
 scrptrt.o \
 sprcache_engine.o \
-ac/ac_dialog.o \
 ac/ac_interfacebutton.o \
 ac/ac_interfaceelement.o \
 ac/ac_inventoryiteminfo.o \
@@ -84,11 +82,14 @@ ac/audioclip.o \
 ac/character.o \
 ac/characterinfo.o \
 ac/datetime.o \
+ac/dialog.o \
+ac/dialogoptionsrendering.o \
+ac/dialogtopic.o \
 ac/drawingsurface.o \
 ac/dynamicsprite.o \
 ac/event.o \
 ac/file.o \
-ac/game_audio.o \
+ac/game.o \
 ac/gamesetup.o \
 ac/gamestate.o \
 ac/hotspot.o \
@@ -97,6 +98,7 @@ ac/global_audio.o \
 ac/global_character.o \
 ac/global_datetime.o \
 ac/global_debug.o \
+ac/global_dialog.o \
 ac/global_dynamicsprite.o \
 ac/global_file.o \
 ac/global_hotspot.o \
@@ -137,7 +139,7 @@ gfx/hq3xgfxfilter.o \
 gfx/scalingallegrogfxfilter.o \
 gfx/scalinggfxfilter.o \
 gui/cscidialog.o \
-gui/dialog.o \
+gui/guidialog.o \
 gui/mylabel.o \
 gui/mylistbox.o \
 gui/mytextbox.o \

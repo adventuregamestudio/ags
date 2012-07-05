@@ -6,7 +6,8 @@
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_strings.h"
 #include "acmain/ac_commonheaders.h"
-#include "acmain/ac_conversation.h"
+
+extern int longestline;
 
 
 void split_lines_rightleft (char *todis, int wii, int fonnt) {

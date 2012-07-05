@@ -3,8 +3,8 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_GUI__DIALOGDEFINES_H
-#define __AGS_EE_GUI__DIALOGDEFINES_H
+#ifndef __AGS_EE_GUI__GUIDIALOGDEFINES_H
+#define __AGS_EE_GUI__GUIDIALOGDEFINES_H
 
 #define MSG_RESTORE      984
 #define MSG_CANCEL       985    // "Cancel"
@@ -91,4 +91,4 @@ struct OnScreenWindow
     int oldtop;
 };
 
-#endif // __AGS_EE_GUI__DIALOGDEFINES_H
+#endif // __AGS_EE_GUI__GUIDIALOGDEFINES_H

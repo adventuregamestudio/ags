@@ -3,10 +3,10 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_GUI__DIALOGINTERNALDEFINES_H
-#define __AGS_EE_GUI__DIALOGINTERNALDEFINES_H
+#ifndef __AGS_EE_GUI__GUIDIALOGINTERNALDEFINES_H
+#define __AGS_EE_GUI__GUIDIALOGINTERNALDEFINES_H
 
-#include "gui/dialogdefines.h"
+#include "gui/guidialogdefines.h"
 
 #if defined(DJGPP) || defined(LINUX_VERSION) || defined(MAC_VERSION)
 #define _getcwd getcwd
@@ -30,4 +30,4 @@ extern int rec_kbhit();
 #define mbutrelease !rec_misbuttondown
 #define TEXT_HT usetup.textheight
 
-#endif // __AGS_EE_GUI__DIALOGINTERNALDEFINES_H
+#endif // __AGS_EE_GUI__GUIDIALOGINTERNALDEFINES_H

@@ -8,7 +8,7 @@
 #include "ac/ac_common.h"
 #include "debug/debug.h"
 #include "ac/ac_roomstruct.h"
-#include "ac/game_audio.h"
+#include "ac/game.h"
 #include "ac/file.h"
 
 extern GameSetup usetup;

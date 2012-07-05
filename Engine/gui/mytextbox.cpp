@@ -3,7 +3,7 @@
 #include "wgt2allg.h"
 #include "ali3d.h"
 #include "gui/mytextbox.h"
-#include "gui/dialoginternaldefines.h"
+#include "gui/guidialoginternaldefines.h"
 
 extern GameSetup usetup;
 

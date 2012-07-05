@@ -27656,7 +27656,7 @@ void read_config_file(char *argv0) {
     usetup.gfxFilterID = INIreaditem("misc", "gfxfilter");
 #endif
 
-#if defined(IOS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
+#if defined(LINUX_VERSION) || defined(MAC_VERSION)
     usetup.gfxDriverID = "DX5";
 #else
     usetup.gfxDriverID = INIreaditem("misc", "gfxdriver");

@@ -1,4 +1,4 @@
-#Building the engine on any 32 bit Linux
+#Building the engine on any Linux
 On Debian/Ubuntu, building a package (see below) is recommended.
 On other distributions, install development files of the following
 libraries. (In brackets are versions that are known to work, but other
@@ -12,23 +12,36 @@ versions should work, too.)
 -   libtheora (1.1.1-1.2.0)
 -   libvorbis (1.3.2)
 
-Download the sources with git and compile:
+Download the sources with git and change into the **ags** directory:
 
     git clone git://github.com/adventuregamestudio/ags.git
     cd ags
+
+If you are on a 64 bit system, check out the *64bit* branch:
+
+    git checkout 64bit
+
+Compile the engine:
+
     make --directory=Engine --file=Makefile.linux
 
-The **ags** executable can now be found in the **Engine** folder.
+The **ags** executable can now be found in the **Engine** folder and
+can be installed with
+
+    sudo make --directory=Engine --file=Makefile.linux install
+
+Please take note of the usage instructions at the end of this document.
 
 
 #Building a Debian/Ubuntu package of AGS
-While it's not strictly necessary to do this on 32 bit architectures,
-it greatly simplifies the installation of AGS on 64 bit architectures.
-AGS doesn't work natively on 64 bit, but the development versions of
-Debian and Ubuntu will soon support parallel installation of both 32
-and 64 bit versions of all required libraries. (This page will be
-updated when it works.) Thanks to multiarch, installing AGS on 64 bit
-systems will be as easy as on 32 bit systems.
+Building a package is the preferred way to install software on
+Debian/Ubuntu. On 32 bit systems, this works just fine with the
+*main* branch. On 64 bit systems, there are two possible ways
+to do this. First, you can use the experimental *64bit* branch. Second,
+the development versions of Debian and Ubuntu support parallel
+installation of both 32 and 64 bit versions of all required libraries
+(multiarch), so you can also use the more stable *main* branch there and build a 
+32 bit AGS to use on your 64 bit system.
 
 
 ##Getting and updating the sources
@@ -36,6 +49,11 @@ systems will be as easy as on 32 bit systems.
 ###First time
     git clone git://github.com/adventuregamestudio/ags.git
     cd ags
+    debian/rules get-orig-source
+
+If you want to build a native 64 bit AGS, check out the *64bit* branch:
+
+    git checkout 64bit
     debian/rules get-orig-source
 
 ###Updating (with clean working directory)
@@ -69,7 +87,9 @@ building the package.
 
 ##Building the package
 
-###32 bit (i386)
+###Native AGS package
+So you want to build on a 32 bit system or a 64 bit AGS on a 64 bit system.
+Make sure you are in the right git branch (see above).
 
 Install build dependencies and devscripts:
 
@@ -81,18 +101,17 @@ Build the package and install it and its dependencies with gdebi:
     debuild
     sudo gdebi ../ags_3.21.1115~JJS-1_i386.deb
 
-###64 bit (amd64)
+###32 bit AGS on 64 bit system
 
-This part doesn't work like this, until the libdumb package was rebuilt
-in Debian/Ubuntu. It will soon work in Debian sid and wheezy and Ubuntu
-quantal. This page will be updated once the time has come. 
+This part works only on Debian sid and wheezy and Ubuntu quantal.
 
 Enable multiarch:
 
     sudo dpkg --add-architecture i386
     sudo apt-get update
 
-Install and prepare pbuilder (use the same distribution you are using):
+Install and prepare pbuilder (use the same distribution you are using,
+i.e. `sid`, `wheezy` or `quantal`):
 
     sudo apt-get install pbuilder
     sudo pbuilder create --distribution sid --architecture i386

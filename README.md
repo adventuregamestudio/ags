@@ -15,9 +15,9 @@ To get started with the AGS engine, see the platform specific instructions or fo
 -    Windows
 
 
-##Bug tracker
+##Issue tracker
 
-The bug tracker is at [jjs.at/tracker](http://jjs.at/tracker). Please report any bugs you find!
+Please report bugs and feature requests at the [AGS Issue Tracker](http://www.adventuregamestudio.co.uk/yabb/index.php?action=projects)!
 
 ## Contributing
 

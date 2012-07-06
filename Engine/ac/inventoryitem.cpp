@@ -56,6 +56,16 @@ int InventoryItem_GetGraphic(ScriptInvItem *iitem) {
   return game.invinfo[iitem->id].pic;
 }
 
+void InventoryItem_RunInteraction(ScriptInvItem *iitem, int mood) {
+    RunInventoryInteraction(iitem->id, mood);
+}
+
+int InventoryItem_CheckInteractionAvailable(ScriptInvItem *iitem, int mood) {
+  return IsInventoryInteractionAvailable(iitem->id, mood);
+}
+
+//=============================================================================
+
 void set_inv_item_cursorpic(int invItemId, int piccy) 
 {
     game.invinfo[invItemId].cursorPic = piccy;

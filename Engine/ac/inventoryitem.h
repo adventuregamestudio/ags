@@ -18,6 +18,8 @@ ScriptInvItem *GetInvAtLocation(int xx, int yy);
 void InventoryItem_GetName(ScriptInvItem *iitem, char *buff);
 const char* InventoryItem_GetName_New(ScriptInvItem *invitem);
 int  InventoryItem_GetGraphic(ScriptInvItem *iitem);
+void InventoryItem_RunInteraction(ScriptInvItem *iitem, int mood);
+int  InventoryItem_CheckInteractionAvailable(ScriptInvItem *iitem, int mood);
 
 void set_inv_item_cursorpic(int invItemId, int piccy);
 

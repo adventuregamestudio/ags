@@ -3,7 +3,7 @@
 #include <string.h>
 #include <math.h>
 #include "acmain/ac_maindefines.h"
-#include "acmain/ac_math.h"
+#include "math.h"
 #include "ac/ac_common.h"
 
 int FloatToInt(SCRIPT_FLOAT(value), int roundDirection) {
@@ -201,4 +201,3 @@ int __Rand(int upto) {
         quit("!Random: invalid parameter passed -- must be at least 0.");
     return rand()%upto;
 }
-

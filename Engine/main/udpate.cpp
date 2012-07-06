@@ -19,6 +19,7 @@
 #include "main/mainheader.h"
 #include "main/update.h"
 #include "ac/screenoverlay.h"
+#include "ac/viewframe.h"
 
 extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern int is_text_overlay;

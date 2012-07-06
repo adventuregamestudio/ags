@@ -17,62 +17,6 @@ void NewInteractionCommand::remove () {
   type = 0;
 }
 
-void RunInventoryInteraction (int iit, int modd) {
-    if ((iit < 0) || (iit >= game.numinvitems))
-        quit("!RunInventoryInteraction: invalid inventory number");
-
-    evblocknum = iit;
-    if (modd == MODE_LOOK)
-        run_event_block_inv(iit, 0);
-    else if (modd == MODE_HAND)
-        run_event_block_inv(iit, 1);
-    else if (modd == MODE_USE) {
-        play.usedinv = playerchar->activeinv;
-        run_event_block_inv(iit, 3);
-    }
-    else if (modd == MODE_TALK)
-        run_event_block_inv(iit, 2);
-    else // other click on invnetory
-        run_event_block_inv(iit, 4);
-}
-
-void InventoryItem_RunInteraction(ScriptInvItem *iitem, int mood) {
-    RunInventoryInteraction(iitem->id, mood);
-}
-
-void RunRegionInteraction (int regnum, int mood) {
-    if ((regnum < 0) || (regnum >= MAX_REGIONS))
-        quit("!RunRegionInteraction: invalid region speicfied");
-    if ((mood < 0) || (mood > 2))
-        quit("!RunRegionInteraction: invalid event specified");
-
-    // We need a backup, because region interactions can run
-    // while another interaction (eg. hotspot) is in a Wait
-    // command, and leaving our basename would call the wrong
-    // script later on
-    char *oldbasename = evblockbasename;
-    int   oldblocknum = evblocknum;
-
-    evblockbasename = "region%d";
-    evblocknum = regnum;
-
-    if (thisroom.regionScripts != NULL)
-    {
-        run_interaction_script(thisroom.regionScripts[regnum], mood);
-    }
-    else
-    {
-        run_interaction_event(&croom->intrRegion[regnum], mood);
-    }
-
-    evblockbasename = oldbasename;
-    evblocknum = oldblocknum;
-}
-
-void Region_RunInteraction(ScriptRegion *ssr, int mood) {
-    RunRegionInteraction(ssr->id, mood);
-}
-
 void ProcessClick(int xx,int yy,int mood) {
     getloctype_throughgui = 1;
     int loctype = GetLocationType (xx, yy);
@@ -109,32 +53,6 @@ void ProcessClick(int xx,int yy,int mood) {
     else if (loctype == LOCTYPE_HOTSPOT) 
         RunHotspotInteraction (getloctype_index, mood);
 }
-
-
-
-int IsInventoryInteractionAvailable (int item, int mood) {
-  if ((item < 0) || (item >= MAX_INV))
-    quit("!IsInventoryInteractionAvailable: invalid inventory number");
-
-  play.check_interaction_only = 1;
-
-  RunInventoryInteraction(item, mood);
-
-  int ciwas = play.check_interaction_only;
-  play.check_interaction_only = 0;
-
-  if (ciwas == 2)
-    return 1;
-
-  return 0;
-}
-
-int InventoryItem_CheckInteractionAvailable(ScriptInvItem *iitem, int mood) {
-  return IsInventoryInteractionAvailable(iitem->id, mood);
-}
-
-
-
 
 int IsInteractionAvailable (int xx,int yy,int mood) {
   getloctype_throughgui = 1;

@@ -449,6 +449,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\math.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\object.cpp"
 					>
 				</File>
@@ -729,19 +733,11 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acmain\ac_inventoryitem.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\acmain\ac_lipsync.cpp"
 					>
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_location.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_math.cpp"
 					>
 				</File>
 				<File
@@ -1363,6 +1359,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\math.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\movelist.h"
 					>
 				</File>
@@ -1639,10 +1639,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acmain\ac_collision.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\acmain\ac_commonheaders.h"
 					>
 				</File>
@@ -1683,10 +1679,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acmain\ac_inventoryitem.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\acmain\ac_lipsync.h"
 					>
 				</File>
@@ -1696,10 +1688,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_maindefines.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_math.h"
 					>
 				</File>
 				<File

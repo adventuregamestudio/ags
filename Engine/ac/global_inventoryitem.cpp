@@ -10,12 +10,18 @@
 #include "acmain/ac_translation.h"
 #include "gui/guimain.h"
 #include "gui/guiinv.h"
+#include "ac/event.h"
+#include "ac/gamestate.h"
 
 extern GameSetupStruct game;
+extern GameState play;
 extern int guis_need_update;
 extern int mousex, mousey;
 extern GUIMain*guis;
 extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
+extern char*evblockbasename;
+extern int evblocknum;
+extern CharacterInfo*playerchar;
 
 
 void set_inv_item_pic(int invi, int piccy) {
@@ -79,3 +85,38 @@ int GetInvGraphic(int indx) {
   return game.invinfo[indx].pic;
 }
 
+void RunInventoryInteraction (int iit, int modd) {
+    if ((iit < 0) || (iit >= game.numinvitems))
+        quit("!RunInventoryInteraction: invalid inventory number");
+
+    evblocknum = iit;
+    if (modd == MODE_LOOK)
+        run_event_block_inv(iit, 0);
+    else if (modd == MODE_HAND)
+        run_event_block_inv(iit, 1);
+    else if (modd == MODE_USE) {
+        play.usedinv = playerchar->activeinv;
+        run_event_block_inv(iit, 3);
+    }
+    else if (modd == MODE_TALK)
+        run_event_block_inv(iit, 2);
+    else // other click on invnetory
+        run_event_block_inv(iit, 4);
+}
+
+int IsInventoryInteractionAvailable (int item, int mood) {
+  if ((item < 0) || (item >= MAX_INV))
+    quit("!IsInventoryInteractionAvailable: invalid inventory number");
+
+  play.check_interaction_only = 1;
+
+  RunInventoryInteraction(item, mood);
+
+  int ciwas = play.check_interaction_only;
+  play.check_interaction_only = 0;
+
+  if (ciwas == 2)
+    return 1;
+
+  return 0;
+}

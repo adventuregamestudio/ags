@@ -76,6 +76,12 @@ int Region_GetID(ScriptRegion *ssr) {
     return ssr->id;
 }
 
+void Region_RunInteraction(ScriptRegion *ssr, int mood) {
+    RunRegionInteraction(ssr->id, mood);
+}
+
+//=============================================================================
+
 void generate_light_table() {
     int cc;
     if ((game.color_depth == 1) && (color_map == NULL)) {

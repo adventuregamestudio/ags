@@ -10,6 +10,7 @@
 #include "ac/global_debug.h"
 #include "ac/gui.h"
 #include "ac/global_gui.h"
+#include "ac/global_inventoryitem.h"
 
 
 #define ALLEGRO_KEYBOARD_HANDLER

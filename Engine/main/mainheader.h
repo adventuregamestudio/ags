@@ -17,7 +17,7 @@
 #include "acmain/ac_commonheaders.h"
 #include "acmain/ac_controls.h"
 #include "acmain/ac_lipsync.h"
-#include "acmain/ac_math.h"
+#include "ac/math.h"
 #include "acmain/ac_cdplayer.h"
 #include "script/script_runtime.h"
 #include "gui/animatingguibutton.h"

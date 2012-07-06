@@ -11,6 +11,7 @@
 #include "cs/cc_error.h"
 #include "media/audio/audio.h"
 #include "ac/global_audio.h"
+#include "ac/viewport.h"
 #include "ac/walkablearea.h"
 #include "ac/walkbehind.h"
 

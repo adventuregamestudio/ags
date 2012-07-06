@@ -13,6 +13,8 @@
 #include "media/audio/audio.h"
 #include "ac/global_gui.h"
 #include "ac/screenoverlay.h"
+#include "ac/viewframe.h"
+#include "ac/viewport.h"
 #include "ac/walkablearea.h"
 #include "ac/walkbehind.h"
 

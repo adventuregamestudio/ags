@@ -6,7 +6,7 @@
 #include "ac/ac_defines.h"
 #include "ac/gamestate.h"
 #include "ac/rundefines.h"
-#include "acmain/ac_viewframe.h"
+#include "ac/viewframe.h"
 #include "main/update.h"
 
 

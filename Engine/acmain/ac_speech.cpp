@@ -3,6 +3,7 @@
 #include "wgt2allg.h"
 #include "ac/gui.h"
 #include "ac/screenoverlay.h"
+#include "ac/viewframe.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_speech.h"
 #include "acmain/ac_commonheaders.h"

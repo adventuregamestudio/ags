@@ -1,6 +1,7 @@
 
 #include <stdio.h>
 #include "wgt2allg.h"
+#include "ac/viewframe.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_mouse.h"
 #include "acmain/ac_commonheaders.h"

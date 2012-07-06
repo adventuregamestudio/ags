@@ -16,11 +16,12 @@
 // Engine initialization
 //
 
-#include "ac/gui.h"
 #include "main/mainheader.h"
 #include "main/graphics_mode.h"
 #include "main/engine.h"
 #include "main/main.h"
+#include "ac/gui.h"
+#include "ac/viewframe.h"
 #include "media/audio/sound.h"
 
 #if defined(MAC_VERSION) || (defined(LINUX_VERSION) && !defined(PSP_VERSION))

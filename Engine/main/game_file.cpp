@@ -21,6 +21,7 @@
 #include "ac/dialogtopic.h"
 #include "ac/audioclip.h"
 #include "ac/gui.h"
+#include "ac/viewframe.h"
 #include "gui/guilabel.h"
 #include "script/exports.h"
 

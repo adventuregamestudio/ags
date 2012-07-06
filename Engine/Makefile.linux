@@ -37,7 +37,6 @@ acmain/ac_transition.o \
 acmain/ac_translation.o \
 acmain/ac_variable.o \
 acmain/ac_viewframe.o \
-acmain/ac_viewport.o \
 acmain/ac_wait.o \
 ac/dynobj/cc_agsdynamicobject.o \
 ac/dynobj/cc_audiochannel.o \
@@ -112,6 +111,7 @@ ac/global_label.o \
 ac/global_listbox.o \
 ac/global_slider.o \
 ac/global_textbox.o \
+ac/global_viewport.o \
 ac/global_walkablearea.o \
 ac/global_walkbehind.o \
 ac/object.o \
@@ -121,6 +121,7 @@ ac/region.o \
 ac/roomobject.o \
 ac/roomstatus.o \
 ac/system_audio.o \
+ac/viewport.o \
 ac/walkablearea.o \
 ac/walkbehind.o \
 ac/button.o \

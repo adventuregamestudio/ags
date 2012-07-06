@@ -401,6 +401,14 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\global_viewframe.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\global_viewport.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\global_walkablearea.cpp"
 					>
 				</File>
@@ -474,6 +482,14 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\textbox.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\viewframe.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\viewport.cpp"
 					>
 				</File>
 				<File
@@ -794,14 +810,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_variable.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_viewframe.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_viewport.cpp"
 					>
 				</File>
 				<File
@@ -1307,6 +1315,14 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\global_viewframe.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\global_viewport.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\global_walkablearea.h"
 					>
 				</File>
@@ -1396,6 +1412,14 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\textbox.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\viewframe.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\viewport.h"
 					>
 				</File>
 				<File
@@ -1687,10 +1711,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acmain\ac_overlay.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\acmain\ac_parser.h"
 					>
 				</File>
@@ -1748,14 +1768,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_variable.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_viewframe.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_viewport.h"
 					>
 				</File>
 				<File

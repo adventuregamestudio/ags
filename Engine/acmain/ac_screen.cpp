@@ -1,9 +1,15 @@
 
 #include <stdio.h>
 #include "wgt2allg.h"
+#include "ac/ac_roomstruct.h"
+#include "ac/gamesetup.h"
+#include "ac/global_game.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_screen.h"
 #include "acmain/ac_commonheaders.h"
+
+extern GameSetup usetup;
+extern roomstruct thisroom;
 
 int scrnwid,scrnhit;
 int current_screen_resolution_multiplier = 1;

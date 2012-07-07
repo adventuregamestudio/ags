@@ -5,15 +5,20 @@
 #include <string.h>
 #include "wgt2allg.h"
 #include "ac/ac_common.h"
+#include "ac/gamesetup.h"
+#include "ac/gamesetupstruct.h"
+#include "ac/gamestate.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_speech.h"
 #include "acmain/ac_string.h"
 #include "acmain/ac_translation.h"
-#include "acrun/ac_runninggame.h"
 #include "misc.h"
 #include "platform/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 
+extern GameSetupStruct game;
+extern GameState play;
+extern GameSetup usetup;
 extern int source_text_length;
 
 TreeMap::TreeMap() {
@@ -273,33 +278,6 @@ int GetTranslationName (char* buffer) {
         strstr (buffer, ".tra")[0] = 0;
 
     return IsTranslationAvailable();
-}
-
-const char* Game_GetTranslationFilename() {
-    char buffer[STD_BUFFER_SIZE];
-    GetTranslationName(buffer);
-    return CreateNewScriptString(buffer);
-}
-
-int Game_ChangeTranslation(const char *newFilename)
-{
-    if ((newFilename == NULL) || (newFilename[0] == 0))
-    {
-        close_translation();
-        strcpy(transFileName, "");
-        return 1;
-    }
-
-    char oldTransFileName[MAX_PATH];
-    strcpy(oldTransFileName, transFileName);
-
-    if (!init_translation(newFilename))
-    {
-        strcpy(transFileName, oldTransFileName);
-        return 0;
-    }
-
-    return 1;
 }
 
 // End translation functions

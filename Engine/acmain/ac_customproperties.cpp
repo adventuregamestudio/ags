@@ -1,9 +1,14 @@
 
 #include <stdio.h>
 #include "wgt2allg.h"
+#include "ac/ac_roomstruct.h"
+#include "ac/gamesetupstruct.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_customproperties.h"
 #include "acmain/ac_commonheaders.h"
+
+extern GameSetupStruct game;
+extern roomstruct thisroom;
 
 // begin custom property functions
 

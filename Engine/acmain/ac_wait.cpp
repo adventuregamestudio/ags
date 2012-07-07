@@ -2,11 +2,13 @@
 #include <stdio.h>
 #include "wgt2allg.h"
 #include "ali3d.h"
+#include "ac/ac_common.h"
+#include "ac/gamestate.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_wait.h"
-#include "ac/ac_common.h"
-#include "acrun/ac_runninggame.h"
 #include "main/game_run.h"
+
+extern GameState play;
 
 void scrWait(int nloops) {
     if (nloops < 1)

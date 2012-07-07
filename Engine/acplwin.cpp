@@ -17,10 +17,16 @@
 
 #include "wgt2allg.h"
 #include "ali3d.h"
+#include "ac/gamesetup.h"
+#include "ac/gamesetupstruct.h"
 #include "acmain/ac_commonheaders.h"
 #include "media/audio/audio.h"
 #include "platform/ags32bitosdriver.h"
 #include "plugin/agsplugin.h"
+
+extern GameSetupStruct game;
+extern GameSetup usetup;
+extern int our_eip;
 
 #include <shlobj.h>
 #include <time.h>

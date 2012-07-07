@@ -1,21 +1,31 @@
 
 #include <stdio.h>
 #include "wgt2allg.h"
+#include "ac/ac_view.h"
+#include "ac/gamesetupstruct.h"
 #include "ac/gui.h"
+#include "ac/global_game.h"
 #include "ac/screenoverlay.h"
 #include "ac/viewframe.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_speech.h"
 #include "acmain/ac_commonheaders.h"
 #include "acmain/ac_lipsync.h"
+#include "gui/guimain.h"
 #include "media/audio/audio.h"
 #include "media/audio/sound.h"
+#include "sprcache.h"
 
-
+extern GameSetupStruct game;
+extern GUIMain*guis;
+extern ViewStruct*views;
 extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern int is_text_overlay;
 extern int said_speech_line;
 extern int said_text;
+extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
+extern SpriteCache spriteset;
+extern int our_eip,displayed_room;
 
 
 // Sierra-style speech settings
@@ -199,15 +209,6 @@ void SetNormalFont (int fontnum) {
         quit("!SetNormalFont: invalid font number.");
     play.normal_font = fontnum;
 }
-int Game_GetSpeechFont() {
-    return play.speech_font;
-}
-int Game_GetNormalFont() {
-    return play.normal_font;
-}
-
-
-
 
 void __scr_play_speech(int who, int which) {
     // *** implement this - needs to call stop_speech as well

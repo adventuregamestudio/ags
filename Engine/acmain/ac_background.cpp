@@ -3,9 +3,15 @@
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_background.h"
 #include "acmain/ac_draw.h"
-#include "acrun/ac_runninggame.h"
 #include "ac/event.h"
 #include "ac/ac_common.h"
+#include "ac/ac_roomstruct.h"
+#include "ac/gamesetupstruct.h"
+#include "ac/gamestate.h"
+
+extern GameSetupStruct game;
+extern roomstruct thisroom;
+extern GameState play;
 
 int bg_just_changed = 0;
 

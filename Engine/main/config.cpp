@@ -16,8 +16,14 @@
 // Game configuration
 //
 
+#include "ac/gamesetup.h"
 #include "main/mainheader.h"
 #include "main/config.h"
+#include "sprcache.h"
+
+extern GameSetup usetup;
+extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
+extern SpriteCache spriteset;
 
 //char datname[80]="ac.clb";
 char ac_conf_file_defname[MAX_PATH] = "acsetup.cfg";

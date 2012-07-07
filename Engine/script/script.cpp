@@ -2,12 +2,17 @@
 #include <string.h>
 #include "script/script.h"
 #include "wgt2allg.h"
+#include "ac/ac_roomstruct.h"
 #include "ac/dialog.h"
+#include "ac/game.h"
+#include "ac/gamesetupstruct.h"
 #include "ac/global_audio.h"
 #include "ac/global_dialog.h"
+#include "ac/global_game.h"
 #include "ac/global_gui.h"
 #include "ac/global_hotspot.h"
 #include "ac/global_video.h"
+#include "ac/roomobject.h"
 #include "cs/cc_error.h"
 #include "cs/cc_options.h"
 #include "acmain/ac_maindefines.h"
@@ -17,8 +22,13 @@
 #include "media/audio/audio.h"
 #include "script/script_runtime.h"
 
+extern GameSetupStruct game;
 extern GameState play;
-
+extern roomstruct thisroom;
+extern int gameHasBeenRestored, displayed_room;
+extern unsigned int load_new_game;
+extern RoomObject*objs;
+extern int our_eip;
 
 ExecutingScript scripts[MAX_SCRIPT_AT_ONCE];
 ExecutingScript*curscript = NULL;

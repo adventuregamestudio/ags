@@ -10,9 +10,20 @@
 #include "media/audio/audio.h"
 #include "ac/gui.h"
 #include "ac/screenoverlay.h"
+#include "ac/gamesetupstruct.h"
+#include "sprcache.h"
+#include "ac/ac_roomstruct.h"
+#include "ac/global_game.h"
+#include "ac/game.h"
 
 extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern int longestline;
+extern GameSetupStruct game;
+extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
+extern SpriteCache spriteset;
+extern GUIMain*guis;
+extern roomstruct thisroom;
+extern int frames_per_second;
 
 char *heightTestString = "ZHwypgfjqhkilIK";
 
@@ -936,16 +947,6 @@ const char* Room_GetMessages(int index) {
     char buffer[STD_BUFFER_SIZE];
     buffer[0]=0;
     replace_tokens(get_translation(thisroom.message[index]), buffer, STD_BUFFER_SIZE);
-    return CreateNewScriptString(buffer);
-}
-
-const char* Game_GetGlobalMessages(int index) {
-    if ((index < 500) || (index >= MAXGLOBALMES + 500)) {
-        return NULL;
-    }
-    char buffer[STD_BUFFER_SIZE];
-    buffer[0] = 0;
-    replace_tokens(get_translation(get_global_message(index)), buffer, STD_BUFFER_SIZE);
     return CreateNewScriptString(buffer);
 }
 

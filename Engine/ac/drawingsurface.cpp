@@ -3,6 +3,7 @@
 #include "ac/drawingsurface.h"
 #include "ac/ac_common.h"
 #include "ac/charactercache.h"
+#include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/objectcache.h"

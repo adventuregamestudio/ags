@@ -1,12 +1,19 @@
 
 #include <stdio.h>
 #include "wgt2allg.h"
+#include "ac/gamesetup.h"
+#include "ac/gamesetupstruct.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_display.h"
 #include "acmain/ac_commonheaders.h"
 #include "gui/guiinv.h"
+#include "gui/guimain.h"
 #include "media/audio/audio.h"
 
+extern GameSetupStruct game;
+extern GUIMain*guis;
+extern GameSetup usetup;
+extern char saveGameDirectory[260];
 
 int adjust_pixel_size_for_loaded_data(int size, int filever)
 {

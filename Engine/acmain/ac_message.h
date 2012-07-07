@@ -40,7 +40,7 @@ char *get_global_message (int msnum);
 void get_message_text (int msnum, char *buffer, char giveErr = 1);
 void GetMessageText (int msg, char *buffer);
 const char* Room_GetMessages(int index);
-const char* Game_GetGlobalMessages(int index);
+
 void DisplayMessageAtY(int msnum, int ypos);
 void DisplayMessage(int msnum);
 

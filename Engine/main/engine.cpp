@@ -17,12 +17,18 @@
 //
 
 #include "main/mainheader.h"
+#include "ac/game.h"
+#include "ac/gamesetup.h"
+#include "ac/gamesetupstruct.h"
+#include "ac/objectcache.h"
+#include "ac/roomstatus.h"
 #include "main/graphics_mode.h"
 #include "main/engine.h"
 #include "main/main.h"
 #include "ac/gui.h"
 #include "ac/viewframe.h"
 #include "media/audio/sound.h"
+#include "sprcache.h"
 
 #if defined(MAC_VERSION) || (defined(LINUX_VERSION) && !defined(PSP_VERSION))
 #include <pthread.h>
@@ -36,6 +42,23 @@ extern char **global_argv;
 
 extern char* game_file_name;
 extern char check_dynamic_sprites_at_exit;
+extern int our_eip;
+extern volatile char want_exit, abort_engine;
+extern GameSetup usetup;
+extern GameSetupStruct game;
+extern RoomStatus *roomstats;
+extern int proper_exit;
+extern char pexbuf[STD_BUFFER_SIZE];
+extern char saveGameDirectory[260];
+extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
+extern SpriteCache spriteset;
+extern ObjectCache objcache[MAX_INIT_SPR];
+extern ScriptObject scrObj[MAX_INIT_SPR];
+extern ViewStruct*views;
+extern GUIMain*guis;
+extern int displayed_room;
+extern int eip_guinum;
+extern int eip_guiobj;
 
 char *music_file;
 char *speech_file;

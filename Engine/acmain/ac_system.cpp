@@ -1,9 +1,12 @@
 
 #include <stdio.h>
 #include "wgt2allg.h"
+#include "ac/gamesetup.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_system.h"
 #include "acmain/ac_commonheaders.h"
+
+extern GameSetup usetup;
 
 int System_GetColorDepth() {
   return final_col_dep;

@@ -4,11 +4,11 @@
 #include "acmain/ac_maindefines.h"
 #include "ac/ac_common.h"
 #include "ac/file.h"
-#include "acmain/ac_game.h"
 #include "acmain/ac_string.h"
 #include "ac/gamestate.h"
 #include "gui/guimain.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/global_game.h"
 
 extern int guis_need_update;
 extern char saveGameDirectory[260];

@@ -7,15 +7,11 @@ acmain/ac_background.o \
 acmain/ac_cdplayer.o \
 acmain/ac_controls.o \
 acmain/ac_customproperties.o \
-acmain/ac_cutscene.o \
 acmain/ac_display.o \
 acmain/ac_draw.o \
-acmain/ac_game.o \
-acmain/ac_inputbox.o \
 acmain/ac_interaction.o \
 acmain/ac_inventory.o \
 acmain/ac_lipsync.o \
-acmain/ac_location.o \
 acmain/ac_math.o \
 acmain/ac_message.o \
 acmain/ac_minidump.o \
@@ -62,7 +58,6 @@ ac/dynobj/scriptoverlay.o \
 ac/dynobj/scriptstring.o \
 ac/dynobj/scriptviewframe.o \
 acrun/ac_roomobject.o \
-acrun/ac_runninggame.o \
 acfonts_engine.o \
 acgui_engine.o \
 acroom_engine.o \
@@ -98,6 +93,7 @@ ac/global_debug.o \
 ac/global_dialog.o \
 ac/global_dynamicsprite.o \
 ac/global_file.o \
+ac/global_game.o \
 ac/global_hotspot.o \
 ac/global_inventoryitem.o \
 ac/global_object.o \

@@ -1,13 +1,22 @@
 
 #include "event.h"
 #include "wgt2allg.h"
+#include "ac/ac_roomstruct.h"
+#include "ac/gamesetupstruct.h"
+#include "ac/global_game.h"
 #include "ac/gui.h"
+#include "ac/roomstatus.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_commonheaders.h"
-#include "cs/cc_error.h"
 #include "acmain/ac_transition.h"
+#include "cs/cc_error.h"
 #include "plugin/agsplugin.h"
 #include "media/audio/audio.h"
+
+extern GameSetupStruct game;
+extern roomstruct thisroom;
+extern RoomStatus*croom;
+extern int displayed_room;
 
 int in_enters_screen=0,done_es_error = 0;
 int in_leaves_screen = -1;

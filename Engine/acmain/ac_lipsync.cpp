@@ -1,9 +1,14 @@
 
 #include <stdio.h>
 #include "wgt2allg.h"
+#include "ac/ac_view.h"
+#include "ac/gamesetupstruct.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_lipsync.h"
 #include "acmain/ac_commonheaders.h"
+
+extern GameSetupStruct game;
+extern ViewStruct*views;
 
 // lip-sync speech settings
 int loops_per_character, text_lips_offset, char_speaking = -1;

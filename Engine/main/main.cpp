@@ -22,6 +22,8 @@
 // What about other platforms?
 //
 
+#include "wgt2allg.h"
+#include "ac/gamesetup.h"
 #include "main/mainheader.h"
 #include "main/main.h"
 #include "routefnd.h"
@@ -48,6 +50,10 @@ char **global_argv = 0;
 #endif
 
 extern "C" int  cfopenpriority;
+
+
+extern GameSetup usetup;
+extern int our_eip;
 
 
 // Startup flags, set from parameters to engine

@@ -1,11 +1,16 @@
 
 #include "wgt2allg.h"
 #include "ali3d.h"
+#include "ac/gamesetupstruct.h"
+#include "ac/gamestate.h"
+#include "ac/global_game.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_transition.h"
 #include "acmain/ac_commonheaders.h"
 #include "plugin/agsplugin.h"
 
+extern GameSetupStruct game;
+extern GameState play;
 
 void my_fade_out(int spdd) {
     EndSkippingUntilCharStops();

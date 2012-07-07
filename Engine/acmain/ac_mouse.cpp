@@ -8,6 +8,15 @@
 #include "gfx/gfxfilter.h"
 #include "mousew32.h"
 #include "gui/guibutton.h"
+#include "ac/gamesetup.h"
+#include "ac/gamesetupstruct.h"
+#include "sprcache.h"
+
+extern GameSetup usetup;
+extern GameSetupStruct game;
+extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
+extern SpriteCache spriteset;
+extern GUIMain*guis;
 
 int cur_mode,cur_cursor;
 ScriptMouse scmouse;

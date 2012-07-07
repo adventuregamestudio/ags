@@ -3,11 +3,13 @@
 #include <stdarg.h>
 #include <string.h>
 #include "wgt2allg.h"
+#include "ac/gamesetupstruct.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_strings.h"
 #include "acmain/ac_commonheaders.h"
 
 extern int longestline;
+extern GameSetupStruct game;
 
 
 void split_lines_rightleft (char *todis, int wii, int fonnt) {

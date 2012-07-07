@@ -8,29 +8,16 @@
 #include "ac/charactercache.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/global_dynamicsprite.h"
+#include "ac/global_game.h"
 #include "ac/file.h"
 #include "ac/objectcache.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
-#include "acmain/ac_game.h"
 #include "acmain/ac_draw.h"
-//#include "acmain/ac_math.h"
 #include "debug/debug.h"
 #include "gui/dynamicarray.h"
 #include "gui/guibutton.h"
 #include "sprcache.h"
-
-/*
-#include <stdio.h>
-#include "wgt2allg.h"
-#include "acmain/ac_maindefines.h"
-#include "ac/dynamicsprite.h"
-#include "acmain/ac_commonheaders.h"
-#include "ac/file.h"
-#include "ac/dynobj/scriptdynamicsprite.h"
-#include <math.h>
-#include "gui/guibutton.h"
-*/
 
 extern GameSetupStruct game;
 extern SpriteCache spriteset;

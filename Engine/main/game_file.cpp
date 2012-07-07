@@ -18,10 +18,15 @@
 
 #include "main/mainheader.h"
 #include "main/game_file.h"
-#include "ac/dialogtopic.h"
 #include "ac/audioclip.h"
+#include "ac/charactercache.h"
+#include "ac/dialogtopic.h"
+#include "ac/gamesetupstruct.h"
+#include "ac/gamestructdefines.h"
 #include "ac/gui.h"
 #include "ac/viewframe.h"
+#include "ac/dynobj/all_dynamicclasses.h"
+#include "ac/dynobj/all_scriptclasses.h"
 #include "gui/guilabel.h"
 #include "script/exports.h"
 
@@ -74,6 +79,35 @@ extern DynamicArray<GUILabel> guilabels; // defined in ac_guilabel
 extern int numguilabels;
 
 extern int ifacepopped;
+
+extern GameSetupStruct game;
+extern ViewStruct*views;
+extern DialogTopic *dialog;
+extern GUIMain*guis;
+extern CharacterCache *charcache;
+extern MoveList *mls;
+
+extern CCGUIObject ccDynamicGUIObject;
+extern CCCharacter ccDynamicCharacter;
+extern CCHotspot   ccDynamicHotspot;
+extern CCRegion    ccDynamicRegion;
+extern CCInventory ccDynamicInv;
+extern CCGUI       ccDynamicGUI;
+extern CCObject    ccDynamicObject;
+extern CCDialog    ccDynamicDialog;
+extern ScriptString myScriptStringImpl;
+extern ScriptObject scrObj[MAX_INIT_SPR];
+extern ScriptGUI    *scrGui;
+extern ScriptHotspot scrHotspot[MAX_HOTSPOTS];
+extern ScriptRegion scrRegion[MAX_REGIONS];
+extern ScriptInvItem scrInv[MAX_INV];
+extern ScriptDialog scrDialog[MAX_DIALOG];
+
+extern ScriptDialogOptionsRendering ccDialogOptionsRendering;
+extern ScriptDrawingSurface* dialogOptionsRenderingSurface;
+
+extern int our_eip;
+extern int game_paused;
 
 
 int filever;

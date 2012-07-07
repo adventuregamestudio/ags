@@ -7,10 +7,18 @@
 #include "ac/invwindow.h"
 #include "plugin/agsplugin.h"
 #include "gui/guitextbox.h"
+#include "ac/game.h"
 #include "ac/global_debug.h"
 #include "ac/gui.h"
 #include "ac/global_gui.h"
 #include "ac/global_inventoryitem.h"
+#include "ac/gamesetupstruct.h"
+#include "ac/roomstatus.h"
+#include "ac/roomobject.h"
+#include "gui/guimain.h"
+#include "ac/global_game.h"
+#include "ac/ac_roomstruct.h"
+#include "sprcache.h"
 
 
 #define ALLEGRO_KEYBOARD_HANDLER
@@ -43,6 +51,17 @@ extern char check_dynamic_sprites_at_exit;
 extern int is_complete_overlay,is_text_overlay;
 
 extern char noWalkBehindsAtAll;
+
+extern int displayed_room;
+extern int our_eip;
+extern GameSetupStruct game;
+extern GUIMain*guis;
+extern RoomStatus*croom;
+extern RoomObject*objs;
+extern roomstruct thisroom;
+extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
+extern SpriteCache spriteset;
+extern int in_new_room, new_room_was;
 
 
 int restrict_until=0;

@@ -10,8 +10,7 @@ void stop_speech();
 void SetSpeechVolume(int newvol);
 void SetSpeechFont (int fontnum);
 void SetNormalFont (int fontnum);
-int Game_GetSpeechFont();
-int Game_GetNormalFont();
+
 void __scr_play_speech(int who, int which);
 
 void SetVoiceMode (int newmod);

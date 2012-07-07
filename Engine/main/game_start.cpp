@@ -16,8 +16,18 @@
 // Game initialization
 //
 
+#include "wgt2allg.h"
+#include "ac/game.h"
+#include "ac/gamesetupstruct.h"
+#include "ac/global_game.h"
 #include "main/mainheader.h"
 #include "main/game_start.h"
+
+extern int our_eip, displayed_room;
+extern const char *load_game_errors[9];
+extern volatile char want_exit, abort_engine;
+extern unsigned int load_new_game;
+extern GameSetupStruct game;
 
 
 void start_game_check_replay()

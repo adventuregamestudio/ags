@@ -353,6 +353,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\global_game.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\global_gui.cpp"
 					>
 				</File>
@@ -646,14 +650,6 @@
 				</File>
 			</Filter>
 			<Filter
-				Name="acrun"
-				>
-				<File
-					RelativePath="..\..\Engine\acrun\ac_runninggame.cpp"
-					>
-				</File>
-			</Filter>
-			<Filter
 				Name="gui"
 				>
 				<File
@@ -705,23 +701,11 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acmain\ac_cutscene.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\acmain\ac_display.cpp"
 					>
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_draw.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_game.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_inputbox.cpp"
 					>
 				</File>
 				<File
@@ -734,10 +718,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_lipsync.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_location.cpp"
 					>
 				</File>
 				<File
@@ -1263,6 +1243,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\global_game.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\global_gui.h"
 					>
 				</File>
@@ -1663,10 +1647,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\acmain\ac_game.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\acmain\ac_inputbox.h"
 					>
 				</File>
@@ -1760,14 +1740,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_wait.h"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="acrun"
-				>
-				<File
-					RelativePath="..\..\Engine\acrun\ac_runninggame.h"
 					>
 				</File>
 			</Filter>

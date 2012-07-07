@@ -24,9 +24,9 @@ extern CharacterExtras *charextra;
 
 
 ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
+int numscreenover=0;
 int is_complete_overlay=0,is_text_overlay=0;
 int crovr_id=2;  // whether using SetTextOverlay or CreateTextOvelay
-int numscreenover=0;
 
 void Overlay_Remove(ScriptOverlay *sco) {
     sco->Remove();

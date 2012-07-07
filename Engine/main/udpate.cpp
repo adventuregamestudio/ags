@@ -16,10 +16,25 @@
 // Game update procedure
 //
 
+#include "wgt2allg.h"
+#include "ac/ac_roomstruct.h"
+#include "ac/gamesetupstruct.h"
+#include "ac/roomstatus.h"
+#include "ac/roomobject.h"
 #include "main/mainheader.h"
 #include "main/update.h"
 #include "ac/screenoverlay.h"
 #include "ac/viewframe.h"
+#include "ac/walkablearea.h"
+
+extern MoveList *mls;
+extern RoomStatus*croom;
+extern GameSetupStruct game;
+extern roomstruct thisroom;
+extern RoomObject*objs;
+extern ViewStruct*views;
+extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
+extern int our_eip;
 
 extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern int is_text_overlay;

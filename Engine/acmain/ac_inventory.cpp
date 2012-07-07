@@ -1,12 +1,19 @@
 
 #include <stdio.h>
 #include "wgt2allg.h"
+#include "ac/gamesetupstruct.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_inventory.h"
 #include "acmain/ac_commonheaders.h"
 #include "media/audio/audio.h"
 #include "gui/guiinv.h"
+#include "sprcache.h"
 
+
+extern GameSetupStruct game;
+extern ScriptInvItem scrInv[MAX_INV];
+extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
+extern SpriteCache spriteset;
 
 int in_inv_screen = 0, inv_screen_newroom = -1;
 

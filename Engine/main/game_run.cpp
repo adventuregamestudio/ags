@@ -16,6 +16,11 @@
 // Game loop
 //
 
+#include "wgt2allg.h"
+#include "ac/ac_roomstruct.h"
+#include "ac/game.h"
+#include "ac/gamesetupstruct.h"
+#include "ac/global_game.h"
 #include "ac/gui.h"
 #include "ac/hotspot.h"
 #include "main/mainheader.h"
@@ -28,6 +33,15 @@ extern int mouse_on_iface;   // mouse cursor is over this interface
 extern int ifacepopped;
 
 extern int is_text_overlay;
+
+extern volatile char want_exit, abort_engine;
+extern int want_quit;
+extern int proper_exit,our_eip;
+extern int displayed_room, starting_room, in_new_room, new_room_was;
+extern GameSetupStruct game;
+extern roomstruct thisroom;
+extern int game_paused;
+extern int getloctype_index;
 
 int numEventsAtStartOfFunction;
 long t1;  // timer for FPS // ... 't1'... how very appropriate.. :)

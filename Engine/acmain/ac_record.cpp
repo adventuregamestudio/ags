@@ -10,9 +10,13 @@
 #include "media/audio/audio.h"
 #include "gfx/gfxfilter.h"
 #include "acmain/ac_plugin.h"
-#include "acmain/ac_inputbox.h"
 #include "cs/cs_utils.h"
 #include "ac/file.h"        //filelength()
+#include "ac/gamesetupstruct.h"
+#include "ac/game.h"
+#include "ac/global_game.h"
+
+extern GameSetupStruct game;
 
 char replayfile[MAX_PATH] = "record.dat";
 int replay_time = 0;

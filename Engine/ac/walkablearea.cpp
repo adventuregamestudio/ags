@@ -173,3 +173,44 @@ block prepare_walkable_areas (int sourceChar) {
 
     return walkable_areas_temp;
 }
+
+// return the walkable area at the character's feet, taking into account
+// that he might just be off the edge of one
+int get_walkable_area_at_location(int xx, int yy) {
+
+    int onarea = get_walkable_area_pixel(xx, yy);
+
+    if (onarea < 0) {
+        // the character has walked off the edge of the screen, so stop them
+        // jumping up to full size when leaving
+        if (xx >= thisroom.width)
+            onarea = get_walkable_area_pixel(thisroom.width-1, yy);
+        else if (xx < 0)
+            onarea = get_walkable_area_pixel(0, yy);
+        else if (yy >= thisroom.height)
+            onarea = get_walkable_area_pixel(xx, thisroom.height - 1);
+        else if (yy < 0)
+            onarea = get_walkable_area_pixel(xx, 1);
+    }
+    if (onarea==0) {
+        // the path finder sometimes slightly goes into non-walkable areas;
+        // so check for scaling in adjacent pixels
+        const int TRYGAP=2;
+        onarea = get_walkable_area_pixel(xx + TRYGAP, yy);
+        if (onarea<=0)
+            onarea = get_walkable_area_pixel(xx - TRYGAP, yy);
+        if (onarea<=0)
+            onarea = get_walkable_area_pixel(xx, yy + TRYGAP);
+        if (onarea<=0)
+            onarea = get_walkable_area_pixel(xx, yy - TRYGAP);
+        if (onarea < 0)
+            onarea = 0;
+    }
+
+    return onarea;
+}
+
+int get_walkable_area_at_character (int charnum) {
+    CharacterInfo *chin = &game.chars[charnum];
+    return get_walkable_area_at_location(chin->x, chin->y);
+}

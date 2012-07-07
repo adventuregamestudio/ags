@@ -18,8 +18,14 @@
 
 #include "main/mainheader.h"
 #include "ali3d.h"
+#include "ac/gamesetup.h"
+#include "ac/gamesetupstruct.h"
 #include "ac/walkbehind.h"
 #include "main/graphics_mode.h"
+
+extern GameSetup usetup;
+extern GameSetupStruct game;
+extern int proper_exit;
 
 extern int psp_gfx_renderer; // defined in ali3dogl
 extern WalkBehindMethodEnum walkBehindMethod;

@@ -8,7 +8,6 @@
 #include "ac/gamesetup.h"
 #include "acmain/ac_screen.h"
 #include "debug/debug.h"
-#include "acmain/ac_game.h"
 #include "gui/guimain.h"
 #include "gfx/gfxfilter.h"
 #include "acmain/ac_mouse.h"
@@ -18,10 +17,10 @@
 #include "gui/guibutton.h"
 #include "ac/ac_interfacebutton.h"
 #include "script/script_runtime.h"
-#include "acmain/ac_location.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/dynobj/cc_guiobject.h"
 #include "acmain/ac_draw.h"
+#include "ac/global_game.h"
 
 
 extern GameSetup usetup;

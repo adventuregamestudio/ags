@@ -9,9 +9,12 @@
 #include "gui/guiinv.h"
 #include "gui/guilabel.h"
 #include "gui/guilistbox.h"
+#include "gui/guimain.h"
 #include "gui/guislider.h"
 #include "gui/guitextbox.h"
 
+extern GUIMain*guis;
+extern ScriptGUI*scrGui;
 
 GUIObject *GetGUIControlAtLocation(int xx, int yy) {
     int guinum = GetGUIAt(xx, yy);

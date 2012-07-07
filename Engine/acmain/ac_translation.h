@@ -8,8 +8,6 @@ bool init_translation (const char *lang);
 char *get_translation (const char *text);
 int IsTranslationAvailable ();
 int GetTranslationName (char* buffer);
-const char* Game_GetTranslationFilename();
-int Game_ChangeTranslation(const char *newFilename);
 
 // Binary tree structure for holding translations, allows fast
 // access

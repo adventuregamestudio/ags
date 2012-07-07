@@ -11,12 +11,22 @@
 #include "ac/ac_object.h"
 #include "mousew32.h"
 #include "media/audio/audio.h"
+#include "ac/global_game.h"
 #include "ac/global_gui.h"
 #include "ac/screenoverlay.h"
 #include "ac/viewframe.h"
 #include "ac/viewport.h"
 #include "ac/walkablearea.h"
 #include "ac/walkbehind.h"
+#include "ac/gamesetup.h"
+#include "ac/gamesetupstruct.h"
+#include "ac/ac_roomstruct.h"
+#include "ac/roomstatus.h"
+#include "ac/charactercache.h"
+#include "ac/objectcache.h"
+#include "ac/roomobject.h"
+#include "ac/ac_view.h"
+#include "sprcache.h"
 
 
 #if defined(ANDROID_VERSION)
@@ -33,6 +43,19 @@ extern bool psp_load_latest_savegame;
 extern "C" void ios_render();
 #endif
 
+extern GameSetupStruct game;
+extern GameSetup usetup;
+extern roomstruct thisroom;
+extern RoomStatus*croom;
+extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
+extern SpriteCache spriteset;
+extern RoomObject*objs;
+extern ObjectCache objcache[MAX_INIT_SPR];
+extern ViewStruct*views;
+extern CharacterCache *charcache;
+extern GUIMain*guis;
+
+extern int our_eip, displayed_room, in_new_room;
 
 extern int mouse_on_iface_button;
 extern int eip_guinum;
@@ -2419,21 +2442,7 @@ void update_screen() {
 
 
 
-int Game_GetColorFromRGB(int red, int grn, int blu) {
-    if ((red < 0) || (red > 255) || (grn < 0) || (grn > 255) ||
-        (blu < 0) || (blu > 255))
-        quit("!GetColorFromRGB: colour values must be 0-255");
 
-    if (game.color_depth == 1)
-    {
-        return makecol8(red, grn, blu);
-    }
-
-    int agscolor = ((blu >> 3) & 0x1f);
-    agscolor += ((grn >> 2) & 0x3f) << 5;
-    agscolor += ((red >> 3) & 0x1f) << 11;
-    return agscolor;
-}
 
 // Raw screen writing routines - similar to old CapturedStuff
 #define RAW_START() block oldabuf=abuf; abuf=thisroom.ebscene[play.bg_frame]; play.raw_modified[play.bg_frame] = 1

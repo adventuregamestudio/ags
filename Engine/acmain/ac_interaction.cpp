@@ -1,11 +1,18 @@
 
 #include <stdio.h>
 #include "wgt2allg.h"
+#include "ac/ac_roomstruct.h"
+#include "ac/gamesetupstruct.h"
+#include "ac/global_game.h"
 #include "ac/global_hotspot.h"
 #include "ac/hotspot.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_interaction.h"
 #include "acmain/ac_commonheaders.h"
+
+extern GameSetupStruct game;
+extern roomstruct thisroom;
+extern int getloctype_throughgui, getloctype_index;
 
 void NewInteractionCommand::remove () {
   if (children != NULL) {

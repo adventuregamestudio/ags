@@ -1,9 +1,11 @@
 
 #include "wgt2allg.h"
+#include "ac/ac_common.h"
+#include "ac/gamestate.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_timer.h"
-#include "ac/ac_common.h"
-#include "acrun/ac_runninggame.h"
+
+extern GameState play;
 
 extern volatile int mvolcounter; // in ac_music
 

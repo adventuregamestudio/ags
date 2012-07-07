@@ -4,7 +4,6 @@
 #include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
 #include "ac/dynobj/cc_serializer.h"
-#include "acrun/ac_runninggame.h"
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/all_scriptclasses.h"
 #include "ac/dynobj/scriptfile.h"
@@ -13,6 +12,17 @@
 
 #include "plugin/agsplugin.h"
 #include "acmain/ac_plugin.h"
+
+extern CCGUIObject ccDynamicGUIObject;
+extern CCCharacter ccDynamicCharacter;
+extern CCHotspot   ccDynamicHotspot;
+extern CCRegion    ccDynamicRegion;
+extern CCInventory ccDynamicInv;
+extern CCGUI       ccDynamicGUI;
+extern CCObject    ccDynamicObject;
+extern CCDialog    ccDynamicDialog;
+extern ScriptDrawingSurface* dialogOptionsRenderingSurface;
+extern ScriptDialogOptionsRendering ccDialogOptionsRendering;
 
 // *** De-serialization of script objects
 

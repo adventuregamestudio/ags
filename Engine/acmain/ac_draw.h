@@ -45,7 +45,7 @@ void clear_letterbox_borders();
 void draw_and_invalidate_text(int x1, int y1, int font, const char *text);
 
 
-int Game_GetColorFromRGB(int red, int grn, int blu);
+
 void RawSaveScreen ();
 // RawRestoreScreen: copy backup bitmap back to screen; we
 // deliberately don't free the block cos they can multiple restore

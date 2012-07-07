@@ -1,12 +1,17 @@
 
 #include <stdio.h>
 #include "wgt2allg.h"
+#include "ac/gamesetupstruct.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_commonheaders.h"
 #include "plugin/agsplugin.h"
+#include "sprcache.h"
 
-
+extern GameSetupStruct game;
 extern int eip_guinum, eip_guiobj;
+extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
+extern SpriteCache spriteset;
+extern int our_eip;
 
 void get_new_size_for_sprite (int ee, int ww, int hh, int &newwid, int &newhit) {
   newwid = ww * current_screen_resolution_multiplier;

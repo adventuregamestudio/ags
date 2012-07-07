@@ -14,16 +14,42 @@
 #include "ac/viewport.h"
 #include "ac/walkablearea.h"
 #include "ac/walkbehind.h"
+#include "ac/roomobject.h"
+#include "ac/roomstatus.h"
+#include "ac/charactercache.h"
+#include "ac/objectcache.h"
+#include "ac/gamesetup.h"
+#include "ac/gamesetupstruct.h"
+#include "sprcache.h"
+#include "ac/dynobj/scripthotspot.h"
+#include "ac/global_game.h"
 
 #if defined(MAC_VERSION) || defined(LINUX_VERSION)
 // for toupper
 #include <ctype.h>
 #endif
 
+extern GameSetupStruct game;
+extern RoomStatus*croom;
+extern RoomStatus troom;    // used for non-saveable rooms, eg. intro
+extern int displayed_room;
+extern RoomObject*objs;
+extern CharacterCache *charcache;
+extern ObjectCache objcache[MAX_INIT_SPR];
+extern GameSetup usetup;
+extern RoomStatus *roomstats;
+extern int our_eip, in_new_room;
+extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
+extern SpriteCache spriteset;
+extern ScriptObject scrObj[MAX_INIT_SPR];
+extern ScriptHotspot scrHotspot[MAX_HOTSPOTS];
+extern int new_room_x,new_room_y,new_room_pos,starting_room;
+extern MoveList *mls;
+
 extern block walkareabackup;
 extern block walkable_areas_temp;
 
-roomstruct thisroom;
+extern roomstruct thisroom;
 RGB_MAP rgb_table;  // for 256-col antialiasing
 int new_room_flags=0;
 int gs_to_newroom=-1;

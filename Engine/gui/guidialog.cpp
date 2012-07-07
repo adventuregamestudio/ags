@@ -3,10 +3,10 @@
 #include "wgt2allg.h"
 #include "ali3d.h"
 #include "ac/ac_common.h"
+#include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "acmain/ac_draw.h"
-#include "acmain/ac_game.h"
 #include "acmain/ac_message.h"
 #include "gui/cscidialog.h"
 

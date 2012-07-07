@@ -79,6 +79,86 @@ static int alfont_textmode = 0;
 static int alfont_inited = 0;
 
 
+
+/*
+   JJS: These functions replace the standard Allegro blender.
+   Code is reverse-engineered from the alfont MSVC library.
+   The blender functions are based on the originals with small modifications
+   that enable correct drawing of anti-aliased fonts.
+*/
+
+/* original: _blender_trans15 in colblend.c */
+unsigned long __skiptranspixels_blender_trans15(unsigned long x, unsigned long y, unsigned long n)
+{
+   unsigned long result;
+
+   if ((y & 0xFFFF) == 0x7C1F)
+      return x;
+
+   if (n)
+      n = (n + 1) / 8;
+
+   x = ((x & 0xFFFF) | (x << 16)) & 0x3E07C1F;
+   y = ((y & 0xFFFF) | (y << 16)) & 0x3E07C1F;
+
+   result = ((x - y) * n / 32 + y) & 0x3E07C1F;
+
+   return ((result & 0xFFFF) | (result >> 16));
+}
+
+/* original: _blender_trans16 in colblend.c */
+unsigned long __skiptranspixels_blender_trans16(unsigned long x, unsigned long y, unsigned long n)
+{
+   unsigned long result;
+
+   if ((y & 0xFFFF) == 0xF81F)
+      return x;
+   
+   if (n)
+      n = (n + 1) / 8;
+
+   x = ((x & 0xFFFF) | (x << 16)) & 0x7E0F81F;
+   y = ((y & 0xFFFF) | (y << 16)) & 0x7E0F81F;
+
+   result = ((x - y) * n / 32 + y) & 0x7E0F81F;
+
+   return ((result & 0xFFFF) | (result >> 16));
+}
+
+/* original: _blender_trans24 in colblend.c */
+unsigned long __preservedalpha_blender_trans24(unsigned long x, unsigned long y, unsigned long n)
+{
+   unsigned long res, g, alpha;
+   
+   alpha = (y & 0xFF000000);
+   
+   if ((y & 0xFFFFFF) == 0xFF00FF)
+      return ((x & 0xFFFFFF) | (n << 24));
+   
+   if (n)
+      n++;
+
+   res = ((x & 0xFF00FF) - (y & 0xFF00FF)) * n / 256 + y;
+   y &= 0xFF00;
+   x &= 0xFF00;
+   g = (x - y) * n / 256 + y;
+
+   res &= 0xFF00FF;
+   g &= 0xFF00;
+
+   return res | g | alpha;
+}
+
+/* replaces set_trans_blender() */
+void set_preservedalpha_trans_blender(int r, int g, int b, int a)
+{
+  set_blender_mode(__skiptranspixels_blender_trans15, __skiptranspixels_blender_trans16, __preservedalpha_blender_trans24, r, g, b, a);
+}
+
+
+
+
+
 /* helpers */
 
 static void _alfont_reget_fixed_sizes(ALFONT_FONT *f) {
@@ -856,7 +936,7 @@ void alfont_textout_aa_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int
   if (f->transparency!=255) {
 	  if (bitmap_color_depth(bmp)>8) {
 		drawing_mode(DRAW_MODE_TRANS,NULL,0,0);
-		set_trans_blender(0,0,0,f->transparency);
+		set_preservedalpha_trans_blender(0,0,0,f->transparency);
 	  }
   }
   else {
@@ -1470,7 +1550,7 @@ void alfont_textout_aa_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int
 								solid_mode();
 							else {
 								drawing_mode(DRAW_MODE_TRANS, NULL, 0, 0);
-								set_trans_blender(0, 0, 0, alpha);
+								set_preservedalpha_trans_blender(0, 0, 0, alpha);
 							}
 							if(first_x>bmp_x) first_x=bmp_x;
 							if(final_x<bmp_x) final_x=bmp_x;
@@ -2019,7 +2099,7 @@ void alfont_textout_ex(BITMAP *bmp, ALFONT_FONT *f, const char *s, int x, int y,
   if (f->transparency!=255) {
 	  if (bitmap_color_depth(bmp)>8) {
 		drawing_mode(DRAW_MODE_TRANS,NULL,0,0);
-		set_trans_blender(0,0,0,f->transparency);
+		set_preservedalpha_trans_blender(0,0,0,f->transparency);
 	  }
   }
   else {

@@ -13419,12 +13419,7 @@ int user_to_internal_skip_speech(int userval) {
 }
 
 bool ShouldAntiAliasText() {
-  // Anti-aliasing produces unreadable text on all non-Windows platforms.
-#if !defined(WINDOWS_VERSION)
-  return false;
-#else
   return (game.options[OPT_ANTIALIASFONTS] != 0);
-#endif
 }
 
 // Pass yy = -1 to find Y co-ord automatically

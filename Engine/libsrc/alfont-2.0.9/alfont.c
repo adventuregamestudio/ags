@@ -80,6 +80,16 @@ static int alfont_inited = 0;
 
 
 
+
+char* alfont_get_name(ALFONT_FONT *f)
+{
+  if (!f)
+    return "";
+
+  return ((FT_FaceRec*)(f->face))->family_name;
+}
+
+
 /*
    JJS: These functions replace the standard Allegro blender.
    Code is reverse-engineered from the alfont MSVC library.

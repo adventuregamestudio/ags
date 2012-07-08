@@ -1,7 +1,7 @@
 
 #include <stdio.h>
 #include "wgt2allg.h"
-#include "ac/ac_roomstruct.h"
+#include "ac/roomstruct.h"
 #include "ac/gamesetupstruct.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_customproperties.h"
@@ -77,9 +77,7 @@ int InventoryItem_GetProperty(ScriptInvItem *scii, const char *property) {
 
 
 
-int GetRoomProperty (const char *property) {
-  return get_int_property (&thisroom.roomProps, property);
-}
+
 
 
 void GetInvPropertyText (int item, const char *property, char *bufer) {
@@ -94,12 +92,7 @@ const char* InventoryItem_GetTextProperty(ScriptInvItem *scii, const char *prope
 
 
 
-void GetRoomPropertyText (const char *property, char *bufer) {
-  get_text_property (&thisroom.roomProps, property, bufer);
-}
-const char* Room_GetTextProperty(const char *property) {
-  return get_text_property_dynamic_string(&thisroom.roomProps, property);
-}
+
 
 // end custom property functions
 

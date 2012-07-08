@@ -24,7 +24,7 @@
 #include "debug/debug.h"
 #include "ac/ac_common.h"
 #include "ac/global_audio.h"
-#include "ac/ac_roomstruct.h"
+#include "ac/roomstruct.h"
 #include <math.h>
 
 extern GameSetupStruct game;

@@ -28,7 +28,6 @@
 #include "ac/overlay.h"
 #include "ac/global_overlay.h"
 #include "acmain/ac_record.h"
-#include "acmain/ac_room.h"
 #include "acmain/ac_screen.h"
 #include "acmain/ac_speech.h"
 #include "acmain/ac_string.h"

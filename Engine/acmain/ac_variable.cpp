@@ -3,8 +3,8 @@
 #include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_variable.h"
-#include "acmain/ac_room.h"
 #include "ac/ac_common.h"
+#include "ac/roomstruct.h"
 
 extern roomstruct thisroom; // in ac_room
 

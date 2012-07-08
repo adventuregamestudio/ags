@@ -4,7 +4,7 @@
 #include "ali3d.h"
 #include "ac/ac_common.h"
 #include "ac/ac_defines.h"
-#include "ac/ac_roomstruct.h"
+#include "ac/roomstruct.h"
 #include "ac/gamestate.h"
 #include "acmain/ac_draw.h"
 #include "media/audio/audio.h"

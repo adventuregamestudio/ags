@@ -389,6 +389,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\global_room.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\global_slider.cpp"
 					>
 				</File>
@@ -470,6 +474,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\region.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\room.cpp"
 					>
 				</File>
 				<File
@@ -742,10 +750,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_record.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_room.cpp"
 					>
 				</File>
 				<File
@@ -1279,6 +1283,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\global_room.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\global_slider.h"
 					>
 				</File>
@@ -1368,6 +1376,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\region.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\room.h"
 					>
 				</File>
 				<File
@@ -1692,10 +1704,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\acmain\ac_richgamemedia.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_room.h"
 					>
 				</File>
 				<File

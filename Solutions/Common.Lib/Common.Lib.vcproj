@@ -246,10 +246,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_roomstruct.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Common\ac\ac_view.cpp"
 					>
 				</File>
@@ -263,6 +259,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\ac\gamesetupstructbase.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\roomstruct.cpp"
 					>
 				</File>
 			</Filter>
@@ -368,10 +368,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_characterinfo.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Common\ac\ac_common.h"
 					>
 				</File>
@@ -385,10 +381,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\ac\ac_defines.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\ac_gamesetupstruct.h"
 					>
 				</File>
 				<File
@@ -420,14 +412,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_roomstruct.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\ac_unused.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Common\ac\ac_view.h"
 					>
 				</File>
@@ -453,6 +437,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\ac\oldgamesetupstruct.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\roomstruct.h"
 					>
 				</File>
 				<Filter

@@ -3,7 +3,7 @@
 #include "wgt2allg.h"
 #include "ac/ac_common.h"
 #include "ac/ac_defines.h"
-#include "ac/ac_roomstruct.h"
+#include "ac/roomstruct.h"
 #include "ac/walkablearea.h"
 #include "acmain/ac_draw.h"
 #include "debug/debug.h"

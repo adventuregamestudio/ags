@@ -7,7 +7,7 @@
 #include "media/audio/sound.h"
 #include "ac/ac_common.h"
 #include "debug/debug.h"
-#include "ac/ac_roomstruct.h"
+#include "ac/roomstruct.h"
 #include "ac/game.h"
 #include "ac/file.h"
 

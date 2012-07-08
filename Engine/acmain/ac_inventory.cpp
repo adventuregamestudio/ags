@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "wgt2allg.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/global_room.h"
 #include "acmain/ac_maindefines.h"
 #include "acmain/ac_inventory.h"
 #include "acmain/ac_commonheaders.h"

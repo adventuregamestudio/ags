@@ -17,7 +17,7 @@
 #include "ac/roomobject.h"
 #include "gui/guimain.h"
 #include "ac/global_game.h"
-#include "ac/ac_roomstruct.h"
+#include "ac/roomstruct.h"
 #include "sprcache.h"
 
 

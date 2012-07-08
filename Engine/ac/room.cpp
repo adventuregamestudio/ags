@@ -1,58 +1,163 @@
 #define USE_CLIB
-#include <stdio.h>
 #include "wgt2allg.h"
+#include "ac/ac_common.h"
 #include "acmain/ac_maindefines.h"
-#include "acmain/ac_room.h"
-#include "acmain/ac_commonheaders.h"
-#include "script/script_runtime.h"
-#include "acmain/ac_transition.h"
-#include "gfx/gfxfilter.h"
-#include "plugin/agsplugin.h"
-#include "cs/cc_error.h"
-#include "media/audio/audio.h"
+#include "ac/audiodefines.h"
+#include "ac/charactercache.h"
+#include "ac/characterextras.h"
+#include "ac/event.h"
+#include "ac/gamesetup.h"
+#include "ac/gamesetupstruct.h"
+#include "ac/gamestate.h"
 #include "ac/global_audio.h"
+#include "ac/global_character.h"
+#include "ac/global_game.h"
+#include "ac/global_object.h"
+#include "ac/objectcache.h"
+#include "ac/overlay.h"
+#include "ac/region.h"
+#include "ac/room.h"
+#include "ac/roomobject.h"
+#include "ac/roomstatus.h"
 #include "ac/viewport.h"
 #include "ac/walkablearea.h"
 #include "ac/walkbehind.h"
-#include "ac/roomobject.h"
-#include "ac/roomstatus.h"
-#include "ac/charactercache.h"
-#include "ac/objectcache.h"
-#include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
-#include "sprcache.h"
+#include "ac/dynobj/scriptobject.h"
 #include "ac/dynobj/scripthotspot.h"
-#include "ac/global_game.h"
+#include "acmain/ac_customproperties.h"
+#include "acmain/ac_draw.h"
+#include "acmain/ac_message.h"
+#include "acmain/ac_mouse.h"
+#include "acmain/ac_record.h"
+#include "acmain/ac_string.h"
+#include "acmain/ac_transition.h"
+#include "acmain/ac_translation.h"
+#include "cs/cc_instance.h"
+#include "debug/debug.h"
+#include "media/audio/audio.h"
+#include "platform/agsplatformdriver.h"
+#include "plugin/agsplugin.h"
+#include "script/script.h"
+#include "script/script_runtime.h"
+#include "sprcache.h"
 
 #if defined(MAC_VERSION) || defined(LINUX_VERSION)
 // for toupper
 #include <ctype.h>
 #endif
 
+extern GameSetup usetup;
 extern GameSetupStruct game;
+extern GameState play;
 extern RoomStatus*croom;
 extern RoomStatus troom;    // used for non-saveable rooms, eg. intro
 extern int displayed_room;
 extern RoomObject*objs;
+extern roomstruct thisroom;
+extern ccInstance *roominst;
+extern AGSPlatformDriver *platform;
+extern int numevents;
 extern CharacterCache *charcache;
 extern ObjectCache objcache[MAX_INIT_SPR];
-extern GameSetup usetup;
+extern CharacterExtras *charextra;
+extern int done_es_error;
+extern int our_eip;
+extern int final_scrn_wid,final_scrn_hit,final_col_dep;
+extern int scrnwid,scrnhit;
+extern block walkareabackup, walkable_areas_temp;
 extern RoomStatus *roomstats;
-extern int our_eip, in_new_room;
-extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
-extern SpriteCache spriteset;
 extern ScriptObject scrObj[MAX_INIT_SPR];
+extern SpriteCache spriteset;
+extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
+extern int in_new_room, new_room_was;  // 1 in new room, 2 first time in new room, 3 loading saved game
+extern int new_room_pos;
+extern int new_room_x, new_room_y;
 extern ScriptHotspot scrHotspot[MAX_HOTSPOTS];
-extern int new_room_x,new_room_y,new_room_pos,starting_room;
-extern MoveList *mls;
+extern int guis_need_update;
+extern int in_leaves_screen;
+extern CharacterInfo*playerchar;
+extern int starting_room;
+extern unsigned long loopcounter,lastcounter;
+extern int ccError;
+extern char ccErrorString[400];
 
-extern block walkareabackup;
-extern block walkable_areas_temp;
-
-extern roomstruct thisroom;
 RGB_MAP rgb_table;  // for 256-col antialiasing
 int new_room_flags=0;
 int gs_to_newroom=-1;
+
+ScriptDrawingSurface* Room_GetDrawingSurfaceForBackground(int backgroundNumber)
+{
+    if (displayed_room < 0)
+        quit("!Room.GetDrawingSurfaceForBackground: no room is currently loaded");
+
+    if (backgroundNumber == SCR_NO_VALUE)
+    {
+        backgroundNumber = play.bg_frame;
+    }
+
+    if ((backgroundNumber < 0) || (backgroundNumber >= thisroom.num_bscenes))
+        quit("!Room.GetDrawingSurfaceForBackground: invalid background number specified");
+
+
+    ScriptDrawingSurface *surface = new ScriptDrawingSurface();
+    surface->roomBackgroundNumber = backgroundNumber;
+    ccRegisterManagedObject(surface, surface);
+    return surface;
+}
+
+
+int Room_GetObjectCount() {
+    return croom->numobj;
+}
+
+int Room_GetWidth() {
+    return thisroom.width;
+}
+
+int Room_GetHeight() {
+    return thisroom.height;
+}
+
+int Room_GetColorDepth() {
+    return bitmap_color_depth(thisroom.ebscene[0]);
+}
+
+int Room_GetLeftEdge() {
+    return thisroom.left;
+}
+
+int Room_GetRightEdge() {
+    return thisroom.right;
+}
+
+int Room_GetTopEdge() {
+    return thisroom.top;
+}
+
+int Room_GetBottomEdge() {
+    return thisroom.bottom;
+}
+
+int Room_GetMusicOnLoad() {
+    return thisroom.options[ST_TUNE];
+}
+
+const char* Room_GetTextProperty(const char *property) {
+    return get_text_property_dynamic_string(&thisroom.roomProps, property);
+}
+
+const char* Room_GetMessages(int index) {
+    if ((index < 0) || (index >= thisroom.nummes)) {
+        return NULL;
+    }
+    char buffer[STD_BUFFER_SIZE];
+    buffer[0]=0;
+    replace_tokens(get_translation(thisroom.message[index]), buffer, STD_BUFFER_SIZE);
+    return CreateNewScriptString(buffer);
+}
+
+
+//=============================================================================
 
 block fix_bitmap_size(block todubl) {
     int oldw=todubl->w, oldh=todubl->h;
@@ -73,151 +178,137 @@ block fix_bitmap_size(block todubl) {
 }
 
 
-void SetAmbientTint (int red, int green, int blue, int opacity, int luminance) {
-  if ((red < 0) || (green < 0) || (blue < 0) ||
-      (red > 255) || (green > 255) || (blue > 255) ||
-      (opacity < 0) || (opacity > 100) ||
-      (luminance < 0) || (luminance > 100))
-    quit("!SetTint: invalid parameter. R,G,B must be 0-255, opacity & luminance 0-100");
 
-  DEBUG_CONSOLE("Set ambient tint RGB(%d,%d,%d) %d%%", red, green, blue, opacity);
-
-  play.rtint_red = red;
-  play.rtint_green = green;
-  play.rtint_blue = blue;
-  play.rtint_level = opacity;
-  play.rtint_light = (luminance * 25) / 10;
-}
 
 void save_room_data_segment () {
-  if (croom->tsdatasize > 0)
-    free(croom->tsdata);
-  croom->tsdata = NULL;
-  croom->tsdatasize = roominst->globaldatasize;
-  if (croom->tsdatasize > 0) {
-    croom->tsdata=(char*)malloc(croom->tsdatasize+10);
-    ccFlattenGlobalData (roominst);
-    memcpy(croom->tsdata,&roominst->globaldata[0],croom->tsdatasize);
-    ccUnFlattenGlobalData (roominst);
-  }
+    if (croom->tsdatasize > 0)
+        free(croom->tsdata);
+    croom->tsdata = NULL;
+    croom->tsdatasize = roominst->globaldatasize;
+    if (croom->tsdatasize > 0) {
+        croom->tsdata=(char*)malloc(croom->tsdatasize+10);
+        ccFlattenGlobalData (roominst);
+        memcpy(croom->tsdata,&roominst->globaldata[0],croom->tsdatasize);
+        ccUnFlattenGlobalData (roominst);
+    }
 
 }
 
 void unload_old_room() {
-  int ff;
+    int ff;
 
-  // if switching games on restore, don't do this
-  if (displayed_room < 0)
-    return;
+    // if switching games on restore, don't do this
+    if (displayed_room < 0)
+        return;
 
-  platform->WriteDebugString("Unloading room %d", displayed_room);
+    platform->WriteDebugString("Unloading room %d", displayed_room);
 
-  current_fade_out_effect();
+    current_fade_out_effect();
 
-  clear(abuf);
-  for (ff=0;ff<croom->numobj;ff++)
-    objs[ff].moving = 0;
+    clear(abuf);
+    for (ff=0;ff<croom->numobj;ff++)
+        objs[ff].moving = 0;
 
-  if (!play.ambient_sounds_persist) {
-    for (ff = 1; ff < MAX_SOUND_CHANNELS; ff++)
-      StopAmbientSound(ff);
-  }
-
-  cancel_all_scripts();
-  numevents = 0;  // cancel any pending room events
-
-  if (roomBackgroundBmp != NULL)
-  {
-    gfxDriver->DestroyDDB(roomBackgroundBmp);
-    roomBackgroundBmp = NULL;
-  }
-
-  if (croom==NULL) ;
-  else if (roominst!=NULL) {
-    save_room_data_segment();
-    ccFreeInstance(roominstFork);
-    ccFreeInstance(roominst);
-    roominstFork = NULL;
-    roominst=NULL;
-  }
-  else croom->tsdatasize=0;
-  memset(&play.walkable_areas_on[0],1,MAX_WALK_AREAS+1);
-  play.bg_frame=0;
-  play.bg_frame_locked=0;
-  play.offsets_locked=0;
-  remove_screen_overlay(-1);
-  if (raw_saved_screen != NULL) {
-    wfreeblock(raw_saved_screen);
-    raw_saved_screen = NULL;
-  }
-  for (ff = 0; ff < MAX_BSCENE; ff++)
-    play.raw_modified[ff] = 0;
-  for (ff = 0; ff < thisroom.numLocalVars; ff++)
-    croom->interactionVariableValues[ff] = thisroom.localvars[ff].value;
-
-  // wipe the character cache when we change rooms
-  for (ff = 0; ff < game.numcharacters; ff++) {
-    if (charcache[ff].inUse) {
-      destroy_bitmap (charcache[ff].image);
-      charcache[ff].image = NULL;
-      charcache[ff].inUse = 0;
+    if (!play.ambient_sounds_persist) {
+        for (ff = 1; ff < MAX_SOUND_CHANNELS; ff++)
+            StopAmbientSound(ff);
     }
-    // ensure that any half-moves (eg. with scaled movement) are stopped
-    charextra[ff].xwas = INVALID_X;
-  }
 
-  play.swap_portrait_lastchar = -1;
+    cancel_all_scripts();
+    numevents = 0;  // cancel any pending room events
 
-  for (ff = 0; ff < croom->numobj; ff++) {
-    // un-export the object's script object
-    if (objectScriptObjNames[ff][0] == 0)
-      continue;
-    
-    ccRemoveExternalSymbol(objectScriptObjNames[ff]);
-  }
-
-  for (ff = 0; ff < MAX_HOTSPOTS; ff++) {
-    if (thisroom.hotspotScriptNames[ff][0] == 0)
-      continue;
-
-    ccRemoveExternalSymbol(thisroom.hotspotScriptNames[ff]);
-  }
-
-  // clear the object cache
-  for (ff = 0; ff < MAX_INIT_SPR; ff++) {
-    if (objcache[ff].image != NULL) {
-      destroy_bitmap (objcache[ff].image);
-      objcache[ff].image = NULL;
+    if (roomBackgroundBmp != NULL)
+    {
+        gfxDriver->DestroyDDB(roomBackgroundBmp);
+        roomBackgroundBmp = NULL;
     }
-  }
-  // clear the actsps buffers to save memory, since the
-  // objects/characters involved probably aren't on the
-  // new screen. this also ensures all cached data is flushed
-  for (ff = 0; ff < MAX_INIT_SPR + game.numcharacters; ff++) {
-    if (actsps[ff] != NULL)
-      destroy_bitmap(actsps[ff]);
-    actsps[ff] = NULL;
 
-    if (actspsbmp[ff] != NULL)
-      gfxDriver->DestroyDDB(actspsbmp[ff]);
-    actspsbmp[ff] = NULL;
+    if (croom==NULL) ;
+    else if (roominst!=NULL) {
+        save_room_data_segment();
+        ccFreeInstance(roominstFork);
+        ccFreeInstance(roominst);
+        roominstFork = NULL;
+        roominst=NULL;
+    }
+    else croom->tsdatasize=0;
+    memset(&play.walkable_areas_on[0],1,MAX_WALK_AREAS+1);
+    play.bg_frame=0;
+    play.bg_frame_locked=0;
+    play.offsets_locked=0;
+    remove_screen_overlay(-1);
+    if (raw_saved_screen != NULL) {
+        wfreeblock(raw_saved_screen);
+        raw_saved_screen = NULL;
+    }
+    for (ff = 0; ff < MAX_BSCENE; ff++)
+        play.raw_modified[ff] = 0;
+    for (ff = 0; ff < thisroom.numLocalVars; ff++)
+        croom->interactionVariableValues[ff] = thisroom.localvars[ff].value;
 
-    if (actspswb[ff] != NULL)
-      destroy_bitmap(actspswb[ff]);
-    actspswb[ff] = NULL;
+    // wipe the character cache when we change rooms
+    for (ff = 0; ff < game.numcharacters; ff++) {
+        if (charcache[ff].inUse) {
+            destroy_bitmap (charcache[ff].image);
+            charcache[ff].image = NULL;
+            charcache[ff].inUse = 0;
+        }
+        // ensure that any half-moves (eg. with scaled movement) are stopped
+        charextra[ff].xwas = INVALID_X;
+    }
 
-    if (actspswbbmp[ff] != NULL)
-      gfxDriver->DestroyDDB(actspswbbmp[ff]);
-    actspswbbmp[ff] = NULL;
+    play.swap_portrait_lastchar = -1;
 
-    actspswbcache[ff].valid = 0;
-  }
+    for (ff = 0; ff < croom->numobj; ff++) {
+        // un-export the object's script object
+        if (objectScriptObjNames[ff][0] == 0)
+            continue;
 
-  // if Hide Player Character was ticked, restore it to visible
-  if (play.temporarily_turned_off_character >= 0) {
-    game.chars[play.temporarily_turned_off_character].on = 1;
-    play.temporarily_turned_off_character = -1;
-  }
+        ccRemoveExternalSymbol(objectScriptObjNames[ff]);
+    }
+
+    for (ff = 0; ff < MAX_HOTSPOTS; ff++) {
+        if (thisroom.hotspotScriptNames[ff][0] == 0)
+            continue;
+
+        ccRemoveExternalSymbol(thisroom.hotspotScriptNames[ff]);
+    }
+
+    // clear the object cache
+    for (ff = 0; ff < MAX_INIT_SPR; ff++) {
+        if (objcache[ff].image != NULL) {
+            destroy_bitmap (objcache[ff].image);
+            objcache[ff].image = NULL;
+        }
+    }
+    // clear the actsps buffers to save memory, since the
+    // objects/characters involved probably aren't on the
+    // new screen. this also ensures all cached data is flushed
+    for (ff = 0; ff < MAX_INIT_SPR + game.numcharacters; ff++) {
+        if (actsps[ff] != NULL)
+            destroy_bitmap(actsps[ff]);
+        actsps[ff] = NULL;
+
+        if (actspsbmp[ff] != NULL)
+            gfxDriver->DestroyDDB(actspsbmp[ff]);
+        actspsbmp[ff] = NULL;
+
+        if (actspswb[ff] != NULL)
+            destroy_bitmap(actspswb[ff]);
+        actspswb[ff] = NULL;
+
+        if (actspswbbmp[ff] != NULL)
+            gfxDriver->DestroyDDB(actspswbbmp[ff]);
+        actspswbbmp[ff] = NULL;
+
+        actspswbcache[ff].valid = 0;
+    }
+
+    // if Hide Player Character was ticked, restore it to visible
+    if (play.temporarily_turned_off_character >= 0) {
+        game.chars[play.temporarily_turned_off_character].on = 1;
+        play.temporarily_turned_off_character = -1;
+    }
 
 }
 
@@ -255,7 +346,7 @@ void convert_room_coordinates_to_low_res(roomstruct *rstruc)
     rstruc->height /= 2;
 }
 
-
+extern int convert_16bit_bgr;
 
 #define NO_GAME_ID_IN_ROOM_FILE 16325
 // forchar = playerchar on NewRoom, or NULL if restore saved game
@@ -856,238 +947,61 @@ void new_room(int newnum,CharacterInfo*forchar) {
     load_new_room(newnum,forchar);
 }
 
-
-
-
-ScriptDrawingSurface* Room_GetDrawingSurfaceForBackground(int backgroundNumber)
-{
-    if (displayed_room < 0)
-        quit("!Room.GetDrawingSurfaceForBackground: no room is currently loaded");
-
-    if (backgroundNumber == SCR_NO_VALUE)
-    {
-        backgroundNumber = play.bg_frame;
-    }
-
-    if ((backgroundNumber < 0) || (backgroundNumber >= thisroom.num_bscenes))
-        quit("!Room.GetDrawingSurfaceForBackground: invalid background number specified");
-
-
-    ScriptDrawingSurface *surface = new ScriptDrawingSurface();
-    surface->roomBackgroundNumber = backgroundNumber;
-    ccRegisterManagedObject(surface, surface);
-    return surface;
-}
-
-
-int Room_GetObjectCount() {
-  return croom->numobj;
-}
-
-int Room_GetWidth() {
-  return thisroom.width;
-}
-
-int Room_GetHeight() {
-  return thisroom.height;
-}
-
-int Room_GetColorDepth() {
-  return bitmap_color_depth(thisroom.ebscene[0]);
-}
-
-int Room_GetLeftEdge() {
-  return thisroom.left;
-}
-
-int Room_GetRightEdge() {
-  return thisroom.right;
-}
-
-int Room_GetTopEdge() {
-  return thisroom.top;
-}
-
-int Room_GetBottomEdge() {
-  return thisroom.bottom;
-}
-
-int Room_GetMusicOnLoad() {
-  return thisroom.options[ST_TUNE];
-}
-
-
-
-void NewRoom(int nrnum) {
-  if (nrnum < 0)
-    quitprintf("!NewRoom: room change requested to invalid room number %d.", nrnum);
-
-  if (displayed_room < 0) {
-    // called from game_start; change the room where the game will start
-    playerchar->room = nrnum;
-    return;
-  }
-
-  
-  DEBUG_CONSOLE("Room change requested to room %d", nrnum);
-  EndSkippingUntilCharStops();
-
-  can_run_delayed_command();
-
-  if (play.stop_dialog_at_end != DIALOG_NONE) {
-    if (play.stop_dialog_at_end == DIALOG_RUNNING)
-      play.stop_dialog_at_end = DIALOG_NEWROOM + nrnum;
-    else
-      quit("!NewRoom: two NewRoom/RunDialog/StopDialog requests within dialog");
-    return;
-  }
-
-  if (in_leaves_screen >= 0) {
-    // NewRoom called from the Player Leaves Screen event -- just
-    // change which room it will go to
-    in_leaves_screen = nrnum;
-  }
-  else if (in_enters_screen) {
-    setevent(EV_NEWROOM,nrnum);
-    return;
-  }
-  else if (in_inv_screen) {
-    inv_screen_newroom = nrnum;
-    return;
-  }
-  else if ((inside_script==0) & (in_graph_script==0)) {
-    new_room(nrnum,playerchar);
-    return;
-  }
-  else if (inside_script) {
-    curscript->queue_action(ePSANewRoom, nrnum, "NewRoom");
-    // we might be within a MoveCharacterBlocking -- the room
-    // change should abort it
-    if ((playerchar->walking > 0) && (playerchar->walking < TURNING_AROUND)) {
-      // nasty hack - make sure it doesn't move the character
-      // to a walkable area
-      mls[playerchar->walking].direct = 1;
-      StopMoving(game.playercharacter);
-    }
-  }
-  else if (in_graph_script)
-    gs_to_newroom = nrnum;
-}
-
-
-void NewRoomEx(int nrnum,int newx,int newy) {
-
-  Character_ChangeRoom(playerchar, nrnum, newx, newy);
-
-}
-
-void NewRoomNPC(int charid, int nrnum, int newx, int newy) {
-  if (!is_valid_character(charid))
-    quit("!NewRoomNPC: invalid character");
-  if (charid == game.playercharacter)
-    quit("!NewRoomNPC: use NewRoomEx with the player character");
-
-  Character_ChangeRoom(&game.chars[charid], nrnum, newx, newy);
-}
-
-void ResetRoom(int nrnum) {
-  if (nrnum == displayed_room)
-    quit("!ResetRoom: cannot reset current room");
-  if ((nrnum<0) | (nrnum>=MAX_ROOMS))
-    quit("!ResetRoom: invalid room number");
-  if (roomstats[nrnum].beenhere) {
-    if (roomstats[nrnum].tsdata!=NULL)
-      free(roomstats[nrnum].tsdata);
-    roomstats[nrnum].tsdata=NULL;
-    roomstats[nrnum].tsdatasize=0;
-    }
-  roomstats[nrnum].beenhere=0;
-  DEBUG_CONSOLE("Room %d reset to original state", nrnum);
-}
-
-int HasPlayerBeenInRoom(int roomnum) {
-  if ((roomnum < 0) || (roomnum >= MAX_ROOMS))
-    return 0;
-  return roomstats[roomnum].beenhere;
-}
-
-
-
-void CallRoomScript (int value) {
-  can_run_delayed_command();
-
-  if (!inside_script)
-    quit("!CallRoomScript: not inside a script???");
-
-  play.roomscript_finished = 0;
-  curscript->run_another("$on_call", value, 0);
-}
-
-
-int HasBeenToRoom (int roomnum) {
-  if ((roomnum < 0) || (roomnum >= MAX_ROOMS))
-    quit("!HasBeenToRoom: invalid room number specified");
-
-  if (roomstats[roomnum].beenhere)
-    return 1;
-  return 0;
-}
-
 int find_highest_room_entered() {
-  int qq,fndas=-1;
-  for (qq=0;qq<MAX_ROOMS;qq++) {
-    if (roomstats[qq].beenhere!=0) fndas=qq;
-  }
-  // This is actually legal - they might start in room 400 and save
-  //if (fndas<0) quit("find_highest_room: been in no rooms?");
-  return fndas;
+    int qq,fndas=-1;
+    for (qq=0;qq<MAX_ROOMS;qq++) {
+        if (roomstats[qq].beenhere!=0) fndas=qq;
+    }
+    // This is actually legal - they might start in room 400 and save
+    //if (fndas<0) quit("find_highest_room: been in no rooms?");
+    return fndas;
 }
 
 extern long t1;  // defined in ac_main
 
 void first_room_initialization() {
-  starting_room = displayed_room;
-  t1 = time(NULL);
-  lastcounter=0;
-  loopcounter=0;
-  mouse_z_was = mouse_z;
+    starting_room = displayed_room;
+    t1 = time(NULL);
+    lastcounter=0;
+    loopcounter=0;
+    mouse_z_was = mouse_z;
 }
 
 void check_new_room() {
-  // if they're in a new room, run Player Enters Screen and on_event(ENTER_ROOM)
-  if ((in_new_room>0) & (in_new_room!=3)) {
-    EventHappened evh;
-    evh.type = EV_RUNEVBLOCK;
-    evh.data1 = EVB_ROOM;
-    evh.data2 = 0;
-    evh.data3 = 5;
-    evh.player=game.playercharacter;
-    // make sure that any script calls don't re-call enters screen
-    int newroom_was = in_new_room;
-    in_new_room = 0;
-    play.disabled_user_interface ++;
-    process_event(&evh);
-    play.disabled_user_interface --;
-    in_new_room = newroom_was;
-//    setevent(EV_RUNEVBLOCK,EVB_ROOM,0,5);
-  }
+    // if they're in a new room, run Player Enters Screen and on_event(ENTER_ROOM)
+    if ((in_new_room>0) & (in_new_room!=3)) {
+        EventHappened evh;
+        evh.type = EV_RUNEVBLOCK;
+        evh.data1 = EVB_ROOM;
+        evh.data2 = 0;
+        evh.data3 = 5;
+        evh.player=game.playercharacter;
+        // make sure that any script calls don't re-call enters screen
+        int newroom_was = in_new_room;
+        in_new_room = 0;
+        play.disabled_user_interface ++;
+        process_event(&evh);
+        play.disabled_user_interface --;
+        in_new_room = newroom_was;
+        //    setevent(EV_RUNEVBLOCK,EVB_ROOM,0,5);
+    }
 }
 
 void compile_room_script() {
-  ccError = 0;
+    ccError = 0;
 
-  roominst = ccCreateInstance(thisroom.compiled_script);
+    roominst = ccCreateInstance(thisroom.compiled_script);
 
-  if ((ccError!=0) || (roominst==NULL)) {
-   char thiserror[400];
-   sprintf(thiserror, "Unable to create local script: %s", ccErrorString);
-   quit(thiserror);
-  }
+    if ((ccError!=0) || (roominst==NULL)) {
+        char thiserror[400];
+        sprintf(thiserror, "Unable to create local script: %s", ccErrorString);
+        quit(thiserror);
+    }
 
-  roominstFork = ccForkInstance(roominst);
-  if (roominstFork == NULL)
-    quitprintf("Unable to create forked room instance: %s", ccErrorString);
+    roominstFork = ccForkInstance(roominst);
+    if (roominstFork == NULL)
+        quitprintf("Unable to create forked room instance: %s", ccErrorString);
 
-  repExecAlways.roomHasFunction = true;
-  getDialogOptionsDimensionsFunc.roomHasFunction = true;
+    repExecAlways.roomHasFunction = true;
+    getDialogOptionsDimensionsFunc.roomHasFunction = true;
 }

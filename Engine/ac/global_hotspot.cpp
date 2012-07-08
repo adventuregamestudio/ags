@@ -4,7 +4,7 @@
 #include "ac/ac_common.h"
 #include "ac/ac_defines.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/ac_roomstruct.h"
+#include "ac/roomstruct.h"
 #include "ac/characterinfo.h"
 #include "ac/event.h"
 #include "ac/global_character.h"

@@ -12,7 +12,7 @@
 #include "ac/screenoverlay.h"
 #include "ac/gamesetupstruct.h"
 #include "sprcache.h"
-#include "ac/ac_roomstruct.h"
+#include "ac/roomstruct.h"
 #include "ac/global_game.h"
 #include "ac/game.h"
 
@@ -940,15 +940,7 @@ void GetMessageText (int msg, char *buffer) {
     get_message_text (msg, buffer, 0);
 }
 
-const char* Room_GetMessages(int index) {
-    if ((index < 0) || (index >= thisroom.nummes)) {
-        return NULL;
-    }
-    char buffer[STD_BUFFER_SIZE];
-    buffer[0]=0;
-    replace_tokens(get_translation(thisroom.message[index]), buffer, STD_BUFFER_SIZE);
-    return CreateNewScriptString(buffer);
-}
+
 
 void DisplayMessageAtY(int msnum, int ypos) {
     char msgbufr[3001];

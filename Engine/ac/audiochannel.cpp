@@ -1,7 +1,7 @@
 
 #include "ac/audiochannel.h"
 #include "wgt2allg.h"
-#include "ac/ac_roomstruct.h"
+#include "ac/roomstruct.h"
 #include "debug/debug.h"
 #include "ac/gamestate.h"
 #include "media/audio/audio.h"

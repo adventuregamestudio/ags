@@ -5,7 +5,7 @@
 #include "acmain/ac_draw.h"
 #include "ac/event.h"
 #include "ac/ac_common.h"
-#include "ac/ac_roomstruct.h"
+#include "ac/roomstruct.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 

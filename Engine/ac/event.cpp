@@ -1,9 +1,10 @@
 
 #include "event.h"
 #include "wgt2allg.h"
-#include "ac/ac_roomstruct.h"
+#include "ac/roomstruct.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/global_game.h"
+#include "ac/global_room.h"
 #include "ac/gui.h"
 #include "ac/roomstatus.h"
 #include "acmain/ac_maindefines.h"

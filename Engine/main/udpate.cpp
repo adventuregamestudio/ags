@@ -17,7 +17,7 @@
 //
 
 #include "wgt2allg.h"
-#include "ac/ac_roomstruct.h"
+#include "ac/roomstruct.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/roomstatus.h"
 #include "ac/roomobject.h"

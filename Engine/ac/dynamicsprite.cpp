@@ -3,7 +3,7 @@
 #include "wgt2allg.h"
 #include "ac/dynamicsprite.h"
 #include "ac/ac_common.h"
-#include "ac/ac_roomstruct.h"
+#include "ac/roomstruct.h"
 #include "acmain/ac_maindefines.h"
 #include "ac/charactercache.h"
 #include "ac/gamesetupstruct.h"

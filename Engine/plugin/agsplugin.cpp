@@ -3,7 +3,7 @@
 #include "plugin/agsplugin.h"
 #include "ali3d.h"
 #include "ac/ac_common.h"
-#include "ac/ac_roomstruct.h"
+#include "ac/roomstruct.h"
 #include "ac/ac_view.h"
 #include "ac/charactercache.h"
 #include "ac/dynamicsprite.h"

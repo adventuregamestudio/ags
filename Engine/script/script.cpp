@@ -2,7 +2,7 @@
 #include <string.h>
 #include "script/script.h"
 #include "wgt2allg.h"
-#include "ac/ac_roomstruct.h"
+#include "ac/roomstruct.h"
 #include "ac/dialog.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
@@ -11,7 +11,9 @@
 #include "ac/global_game.h"
 #include "ac/global_gui.h"
 #include "ac/global_hotspot.h"
+#include "ac/global_room.h"
 #include "ac/global_video.h"
+#include "ac/room.h"
 #include "ac/roomobject.h"
 #include "cs/cc_error.h"
 #include "cs/cc_options.h"

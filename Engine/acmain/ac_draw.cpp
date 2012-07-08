@@ -20,7 +20,7 @@
 #include "ac/walkbehind.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/ac_roomstruct.h"
+#include "ac/roomstruct.h"
 #include "ac/roomstatus.h"
 #include "ac/charactercache.h"
 #include "ac/objectcache.h"

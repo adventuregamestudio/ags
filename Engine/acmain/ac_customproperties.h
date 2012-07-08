@@ -12,9 +12,8 @@ void GetInvPropertyText (int item, const char *property, char *bufer);
 void InventoryItem_GetPropertyText(ScriptInvItem *scii, const char *property, char *bufer);
 const char* InventoryItem_GetTextProperty(ScriptInvItem *scii, const char *property);
 
-int GetRoomProperty (const char *property);
-void GetRoomPropertyText (const char *property, char *bufer);
-const char* Room_GetTextProperty(const char *property);
+
+
 
 int get_int_property (CustomProperties *cprop, const char *property);
 void get_text_property (CustomProperties *cprop, const char *property, char *bufer);

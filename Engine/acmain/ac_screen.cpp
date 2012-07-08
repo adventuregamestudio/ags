@@ -1,7 +1,7 @@
 
 #include <stdio.h>
 #include "wgt2allg.h"
-#include "ac/ac_roomstruct.h"
+#include "ac/roomstruct.h"
 #include "ac/gamesetup.h"
 #include "ac/global_game.h"
 #include "acmain/ac_maindefines.h"

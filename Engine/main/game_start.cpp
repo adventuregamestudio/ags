@@ -20,6 +20,7 @@
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/global_game.h"
+#include "ac/room.h"
 #include "main/mainheader.h"
 #include "main/game_start.h"
 

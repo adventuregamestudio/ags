@@ -2,7 +2,7 @@
 #include "ac/gui.h"
 #include "wgt2allg.h"
 #include "ac/ac_common.h"
-#include "ac/ac_roomstruct.h"
+#include "ac/roomstruct.h"
 #include "ac/global_gui.h"
 #include "ac/rundefines.h"
 #include "ac/gamesetup.h"

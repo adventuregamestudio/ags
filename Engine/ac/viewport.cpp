@@ -1,7 +1,7 @@
 
 #include "ac/viewport.h"
 #include "wgt2allg.h"
-#include "ac/ac_roomstruct.h"
+#include "ac/roomstruct.h"
 #include "ac/characterinfo.h"
 #include "ac/gamestate.h"
 #include "ac/gamesetup.h"

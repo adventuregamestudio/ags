@@ -3,7 +3,7 @@
 #include "wgt2allg.h"
 #include "ac/ac_defines.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/ac_roomstruct.h"
+#include "ac/roomstruct.h"
 #include "ac/global_region.h"
 #include "ac/roomstatus.h"
 

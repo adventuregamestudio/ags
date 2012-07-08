@@ -19,7 +19,7 @@
 #include <stdio.h>
 #include "wgt2allg.h"
 #include "debug/debug.h"
-#include "ac/ac_roomstruct.h"
+#include "ac/roomstruct.h"
 #include "acmain/ac_commonheaders.h"
 #include "cs/cs_common.h"
 #include "cs/cc_error.h"

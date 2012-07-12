@@ -94,6 +94,9 @@ Change to the <SOURCE>/Android/buildlibs directory and run
 
 This will download, patch, build and properly install the required libraries.
 
+The scripts require standalone toolchains for all Android platforms and they have to
+be available on the PATH. See docs/STANDALONE-TOOLCHAIN.html in the NDK directory
+for instructions on creating the standalone toolchains.
 
 
 ##Links

@@ -46,4 +46,25 @@ int GetLocationType(int xxx,int yyy);
 void SaveCursorForLocationChange();
 void GetLocationName(int xxx,int yyy,char*tempo);
 
+int IsKeyPressed (int keycode);
+
+int SaveScreenShot(char*namm);
+void SetMultitasking (int mode);
+
+void ProcessClick(int xx,int yy,int mood);
+int IsInteractionAvailable (int xx,int yy,int mood);
+
+void GetMessageText (int msg, char *buffer);
+
+void SetSpeechFont (int fontnum);
+void SetNormalFont (int fontnum);
+
+void _sc_AbortGame(char*texx, ...);
+
+int GetGraphicalVariable (const char *varName);
+void SetGraphicalVariable (const char *varName, int p_value);
+void scrWait(int nloops);
+int WaitKey(int nloops);
+int WaitMouseKey(int nloops);
+
 #endif // __AGS_EE_AC__GLOBALGAME_H

@@ -18,4 +18,7 @@ int  HasBeenToRoom (int roomnum);
 int GetRoomProperty (const char *property);
 void GetRoomPropertyText (const char *property, char *bufer);
 
+void SetBackgroundFrame(int frnum);
+int GetBackgroundFrame() ;
+
 #endif // __AGS_EE_AC__GLOBALROOM_H

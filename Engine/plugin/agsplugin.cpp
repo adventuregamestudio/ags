@@ -6,28 +6,29 @@
 #include "ac/roomstruct.h"
 #include "ac/ac_view.h"
 #include "ac/charactercache.h"
+#include "ac/display.h"
+#include "ac/draw.h"
 #include "ac/dynamicsprite.h"
 #include "ac/file.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/global_audio.h"
+#include "ac/global_plugin.h"
 #include "ac/global_walkablearea.h"
+#include "ac/mouse.h"
 #include "ac/movelist.h"
 #include "ac/objectcache.h"
+#include "ac/parser.h"
+#include "ac/record.h"
 #include "ac/roomstatus.h"
-#include "acmain/ac_draw.h"
-#include "acmain/ac_message.h"
-#include "acmain/ac_mouse.h"
-#include "acmain/ac_parser.h"
-#include "acmain/ac_plugin.h"
-#include "acmain/ac_record.h"
-#include "acmain/ac_string.h"
-#include "acmain/ac_strings.h"
+#include "ac/string.h"
 #include "cs/cs_utils.h"
 #include "debug/debug.h"
+#include "gui/guidefines.h"
 #include "main/engine.h"
 #include "media/audio/audio.h"
 #include "media/audio/sound.h"
+#include "plugin/pluginobjectreader.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
 #include "sprcache.h"
@@ -68,6 +69,13 @@ extern ccInstance *gameinst, *roominst;
 extern CharacterCache *charcache;
 extern ObjectCache objcache[MAX_INIT_SPR];
 extern MoveList *mls;
+extern block virtual_screen;
+extern int numlines;
+extern char lines[MAXLINE][200];
+extern color palette[256];
+extern int offsetx, offsety;
+extern PluginObjectReader pluginReaders[MAX_PLUGIN_OBJECT_READERS];
+extern int numPluginReaders;
 
 // **************** PLUGIN IMPLEMENTATION ****************
 

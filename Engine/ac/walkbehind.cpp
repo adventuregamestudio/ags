@@ -6,7 +6,6 @@
 #include "ac/ac_defines.h"
 #include "ac/roomstruct.h"
 #include "ac/gamestate.h"
-#include "acmain/ac_draw.h"
 #include "media/audio/audio.h"
 
 extern roomstruct thisroom;

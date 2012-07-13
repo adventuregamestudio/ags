@@ -4,25 +4,24 @@
 #include "ali3d.h"
 #include "apeg.h"
 #include "acmain/ac_maindefines.h"
+#include "ac/draw.h"
+#include "ac/file.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
-#include "acmain/ac_draw.h"
-#include "ac/file.h"
-#include "acmain/ac_message.h"
-#include "acmain/ac_mouse.h"
-#include "acmain/ac_record.h"
+#include "ac/global_display.h"
+#include "ac/mouse.h"
+#include "ac/record.h"
 #include "media/audio/audio.h"
 #include "platform/agsplatformdriver.h"
 
 
 extern GameSetupStruct game;
 extern GameState play;
-
-// defined in ac_screen
+extern IGraphicsDriver *gfxDriver;
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern int scrnwid,scrnhit;
-
+extern block virtual_screen;
 
 #if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
 extern int psp_video_framedrop;

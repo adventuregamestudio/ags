@@ -1,5 +1,6 @@
 
 #include "wgt2allg.h"
+#include "ali3d.h"
 #include "ac/game.h"
 #include "ac/ac_common.h"
 #include "ac/roomstruct.h"
@@ -10,40 +11,40 @@
 #include "ac/charactercache.h"
 #include "ac/characterextras.h"
 #include "ac/dialogtopic.h"
+#include "ac/draw.h"
 #include "ac/dynamicsprite.h"
 #include "ac/event.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
+#include "ac/global_character.h"
+#include "ac/global_display.h"
 #include "ac/global_game.h"
 #include "ac/global_gui.h"
 #include "ac/global_object.h"
+#include "ac/global_translation.h"
 #include "ac/gui.h"
 #include "ac/hotspot.h"
 #include "ac/lipsync.h"
+#include "ac/mouse.h"
 #include "ac/movelist.h"
 #include "ac/objectcache.h"
 #include "ac/overlay.h"
+#include "ac/record.h"
 #include "ac/region.h"
+#include "ac/richgamemedia.h"
 #include "ac/room.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
 #include "ac/rundefines.h"
 #include "ac/screenoverlay.h"
-#include "ac/system_audio.h"
+#include "ac/string.h"
+#include "ac/system.h"
+#include "ac/timer.h"
+#include "ac/translation.h"
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/all_scriptclasses.h"
-#include "acmain/ac_background.h"
-#include "acmain/ac_draw.h"
-#include "acmain/ac_inventory.h"
-#include "acmain/ac_message.h"
-#include "acmain/ac_mouse.h"
-#include "acmain/ac_record.h"
-#include "acmain/ac_richgamemedia.h"
-#include "acmain/ac_string.h"
-#include "acmain/ac_timer.h"
-#include "acmain/ac_translation.h"
 #include "cs/cc_error.h"
 #include "cs/cs_utils.h"
 #include "debug/debug.h"
@@ -91,6 +92,23 @@ extern int psp_gfx_renderer;
 extern int psp_gfx_super_sampling;
 
 extern int obj_lowest_yp, char_lowest_yp;
+
+extern int actSpsCount;
+extern block *actsps;
+extern IDriverDependantBitmap* *actspsbmp;
+// temporary cache of walk-behind for this actsps image
+extern block *actspswb;
+extern IDriverDependantBitmap* *actspswbbmp;
+extern CachedActSpsData* actspswbcache;
+extern block *guibg;
+extern IDriverDependantBitmap **guibgbmp;
+extern char transFileName[MAX_PATH];
+extern color palette[256];
+extern int offsetx,offsety;
+extern unsigned long loopcounter;
+extern block raw_saved_screen;
+extern block dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
+extern IGraphicsDriver *gfxDriver;
 
 //=============================================================================
 GameState play;
@@ -2481,4 +2499,148 @@ int __GetLocationType(int xxx,int yyy, int allowHotspot0) {
         getloctype_index = objat;
 
     return winner;
+}
+
+void display_switch_out() {
+    // this is only called if in SWITCH_PAUSE mode
+    //debug_log("display_switch_out");
+
+    switching_away_from_game++;
+
+    platform->DisplaySwitchOut();
+
+    // allow background running temporarily to halt the sound
+    if (set_display_switch_mode(SWITCH_BACKGROUND) == -1)
+        set_display_switch_mode(SWITCH_BACKAMNESIA);
+
+    // stop the sound stuttering
+    for (int i = 0; i <= MAX_SOUND_CHANNELS; i++) {
+        if ((channels[i] != NULL) && (channels[i]->done == 0)) {
+            channels[i]->pause();
+        }
+    }
+
+    rest(1000);
+
+    // restore the callbacks
+    SetMultitasking(0);
+
+    switching_away_from_game--;
+}
+
+void display_switch_in() {
+    for (int i = 0; i <= MAX_SOUND_CHANNELS; i++) {
+        if ((channels[i] != NULL) && (channels[i]->done == 0)) {
+            channels[i]->resume();
+        }
+    }
+
+    // This can cause a segfault on Linux
+#if !defined (LINUX_VERSION)
+    if (gfxDriver->UsesMemoryBackBuffer())  // make sure all borders are cleared
+        gfxDriver->ClearRectangle(0, 0, final_scrn_wid - 1, final_scrn_hit - 1, NULL);
+#endif
+
+    platform->DisplaySwitchIn();
+}
+
+void replace_tokens(char*srcmes,char*destm, int maxlen) {
+    int indxdest=0,indxsrc=0;
+    char*srcp,*destp;
+    while (srcmes[indxsrc]!=0) {
+        srcp=&srcmes[indxsrc];
+        destp=&destm[indxdest];
+        if ((strncmp(srcp,"@IN",3)==0) | (strncmp(srcp,"@GI",3)==0)) {
+            int tokentype=0;
+            if (srcp[1]=='I') tokentype=1;
+            else tokentype=2;
+            int inx=atoi(&srcp[3]);
+            srcp++;
+            indxsrc+=2;
+            while (srcp[0]!='@') {
+                if (srcp[0]==0) quit("!Display: special token not terminated");
+                srcp++;
+                indxsrc++;
+            }
+            char tval[10];
+            if (tokentype==1) {
+                if ((inx<1) | (inx>=game.numinvitems))
+                    quit("!Display: invalid inv item specified in @IN@");
+                sprintf(tval,"%d",playerchar->inv[inx]);
+            }
+            else {
+                if ((inx<0) | (inx>=MAXGSVALUES))
+                    quit("!Display: invalid global int index speicifed in @GI@");
+                sprintf(tval,"%d",GetGlobalInt(inx));
+            }
+            strcpy(destp,tval);
+            indxdest+=strlen(tval);
+        }
+        else {
+            destp[0]=srcp[0];
+            indxdest++;
+            indxsrc++;
+        }
+        if (indxdest >= maxlen - 3)
+            break;
+    }
+    destm[indxdest]=0;
+}
+
+char *get_global_message (int msnum) {
+    if (game.messages[msnum-500] == NULL)
+        return "";
+    return get_translation(game.messages[msnum-500]);
+}
+
+void get_message_text (int msnum, char *buffer, char giveErr) {
+    int maxlen = 9999;
+    if (!giveErr)
+        maxlen = MAX_MAXSTRLEN;
+
+    if (msnum>=500) { //quit("global message requseted, nto yet supported");
+
+        if ((msnum >= MAXGLOBALMES + 500) || (game.messages[msnum-500]==NULL)) {
+            if (giveErr)
+                quit("!DisplayGlobalMessage: message does not exist");
+            buffer[0] = 0;
+            return;
+        }
+        buffer[0] = 0;
+        replace_tokens(get_translation(game.messages[msnum-500]), buffer, maxlen);
+        return;
+    }
+    else if (msnum >= thisroom.nummes) {
+        if (giveErr)
+            quit("!DisplayMessage: Invalid message number to display");
+        buffer[0] = 0;
+        return;
+    }
+
+    buffer[0]=0;
+    replace_tokens(get_translation(thisroom.message[msnum]), buffer, maxlen);
+}
+
+InteractionVariable *get_interaction_variable (int varindx) {
+
+    if ((varindx >= LOCAL_VARIABLE_OFFSET) && (varindx < LOCAL_VARIABLE_OFFSET + thisroom.numLocalVars))
+        return &thisroom.localvars[varindx - LOCAL_VARIABLE_OFFSET];
+
+    if ((varindx < 0) || (varindx >= numGlobalVars))
+        quit("!invalid interaction variable specified");
+
+    return &globalvars[varindx];
+}
+
+InteractionVariable *FindGraphicalVariable(const char *varName) {
+    int ii;
+    for (ii = 0; ii < numGlobalVars; ii++) {
+        if (stricmp (globalvars[ii].name, varName) == 0)
+            return &globalvars[ii];
+    }
+    for (ii = 0; ii < thisroom.numLocalVars; ii++) {
+        if (stricmp (thisroom.localvars[ii].name, varName) == 0)
+            return &thisroom.localvars[ii];
+    }
+    return NULL;
 }

@@ -31,5 +31,6 @@ void SetGUIObjectEnabled(int guin, int objn, int enabled);
 void SetGUIObjectPosition(int guin, int objn, int xx, int yy);
 int GetGUIObjectAt (int xx, int yy);
 int GetGUIAt (int xx,int yy);
+void SetTextWindowGUI (int guinum);
 
 #endif // __AGS_EE_AC__GLOBALGUI_H

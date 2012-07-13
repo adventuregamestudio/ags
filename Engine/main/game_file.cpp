@@ -18,17 +18,24 @@
 
 #include "main/mainheader.h"
 #include "main/game_file.h"
+#include "ac/ac_common.h"
 #include "ac/audioclip.h"
+#include "ac/character.h"
 #include "ac/charactercache.h"
 #include "ac/dialogtopic.h"
+#include "ac/draw.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/gamestate.h"
 #include "ac/gamestructdefines.h"
 #include "ac/gui.h"
 #include "ac/viewframe.h"
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/all_scriptclasses.h"
+#include "debug/debug.h"
 #include "gui/guilabel.h"
+#include "platform/agsplatformdriver.h"
 #include "script/exports.h"
+#include "script/script.h"
 
 /*
 
@@ -108,6 +115,25 @@ extern ScriptDrawingSurface* dialogOptionsRenderingSurface;
 
 extern int our_eip;
 extern int game_paused;
+
+extern AGSPlatformDriver *platform;
+extern ccScript* gamescript;
+extern ccScript* dialogScriptsScript;
+extern ccScript *scriptModules[MAX_SCRIPT_MODULES];
+extern ccInstance *moduleInst[MAX_SCRIPT_MODULES];
+extern ccInstance *moduleInstFork[MAX_SCRIPT_MODULES];
+extern char *moduleRepExecAddr[MAX_SCRIPT_MODULES];
+extern int numScriptModules;
+extern GameState play;
+extern char **characterScriptObjNames;
+extern char objectScriptObjNames[MAX_INIT_SPR][MAX_SCRIPT_NAME_LEN + 5];
+extern char **guiScriptObjNames;
+extern int actSpsCount;
+extern block *actsps;
+extern IDriverDependantBitmap* *actspsbmp;
+extern block *actspswb;
+extern IDriverDependantBitmap* *actspswbbmp;
+extern CachedActSpsData* actspswbcache;
 
 
 int filever;
@@ -225,6 +251,13 @@ void game_file_read_views(FILE*iii)
         }
         Convert272ViewsToNew(game.numviews, oldv, views);
         free(oldv);
+    }
+}
+
+void set_default_glmsg (int msgnum, const char* val) {
+    if (game.messages[msgnum-500] == NULL) {
+        game.messages[msgnum-500] = (char*)malloc (strlen(val)+5);
+        strcpy (game.messages[msgnum-500], val);
     }
 }
 

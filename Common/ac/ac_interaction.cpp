@@ -62,6 +62,16 @@ NewInteractionCommandList *NewInteractionCommand::get_child_list() {
     return (NewInteractionCommandList*)children;
 }
 
+void NewInteractionCommand::remove () {
+    if (children != NULL) {
+        children->reset();
+        delete children;
+    }
+    children = NULL;
+    parent = NULL;
+    type = 0;
+}
+
 void NewInteractionCommand::reset() { remove(); }
 
 void NewInteractionCommand::ReadFromFile(FILE *fp)

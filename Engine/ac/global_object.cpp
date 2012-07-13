@@ -1,23 +1,24 @@
 
 #include "wgt2allg.h"
+#include "ali3d.h"
 #include "ac/global_object.h"
 #include "ac/ac_common.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/ac_object.h"
-#include "ac/roomstruct.h"
 #include "ac/ac_view.h"
+#include "acmain/ac_maindefines.h"
 #include "ac/character.h"
+#include "ac/draw.h"
 #include "ac/event.h"
+#include "ac/gamesetupstruct.h"
 #include "ac/global_character.h"
+#include "ac/global_translation.h"
 #include "ac/object.h"
 #include "ac/objectcache.h"
+#include "ac/properties.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
+#include "ac/roomstruct.h"
 #include "ac/viewframe.h"
-#include "acmain/ac_customproperties.h"
-#include "acmain/ac_draw.h"
-#include "acmain/ac_maindefines.h"
-#include "acmain/ac_translation.h"
 #include "debug/debug.h"
 #include "main/game_run.h"
 #include "script/script.h"
@@ -35,6 +36,11 @@ extern roomstruct thisroom;
 extern CharacterInfo*playerchar;
 extern int displayed_room;
 extern SpriteCache spriteset;
+extern int offsetx, offsety;
+extern int actSpsCount;
+extern block *actsps;
+extern IDriverDependantBitmap* *actspsbmp;
+extern IGraphicsDriver *gfxDriver;
 
 // Used for deciding whether a char or obj was closer
 int obj_lowest_yp;

@@ -13,9 +13,9 @@
 #include "gui/guitextbox.h"
 #include <ctype.h>
 #include "ac/gamesetupstruct.h"
+#include "ac/global_translation.h"
+#include "ac/string.h"
 #include "sprcache.h"
-#include "acmain/ac_translation.h"
-#include "acmain/ac_strings.h"
 
 #include "bigend.h"
 

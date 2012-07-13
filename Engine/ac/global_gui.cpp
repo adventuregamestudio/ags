@@ -1,15 +1,16 @@
 
-#include "ac/global_gui.h"
 #include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
 #include "ac/ac_common.h"
+#include "ac/display.h"
+#include "ac/draw.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/global_game.h"
+#include "ac/global_gui.h"
 #include "ac/gui.h"
 #include "ac/guicontrol.h"
-#include "acmain/ac_message.h"
-#include "acmain/ac_mouse.h"
-#include "acmain/ac_strings.h"
+#include "ac/mouse.h"
+#include "ac/string.h"
 #include "debug/debug.h"
 #include "gui/guimain.h"
 
@@ -215,4 +216,17 @@ int GetGUIAt (int xx,int yy) {
             return aa;
     }
     return -1;
+}
+
+void SetTextWindowGUI (int guinum) {
+    if ((guinum < -1) | (guinum >= game.numgui))
+        quit("!SetTextWindowGUI: invalid GUI number");
+
+    if (guinum < 0) ;  // disable it
+    else if (!guis[guinum].is_textwindow())
+        quit("!SetTextWindowGUI: specified GUI is not a text window");
+
+    if (play.speech_textwindow_gui == game.options[OPT_TWCUSTOM])
+        play.speech_textwindow_gui = guinum;
+    game.options[OPT_TWCUSTOM] = guinum;
 }

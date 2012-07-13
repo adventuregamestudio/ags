@@ -20,6 +20,9 @@ const char* InventoryItem_GetName_New(ScriptInvItem *invitem);
 int  InventoryItem_GetGraphic(ScriptInvItem *iitem);
 void InventoryItem_RunInteraction(ScriptInvItem *iitem, int mood);
 int  InventoryItem_CheckInteractionAvailable(ScriptInvItem *iitem, int mood);
+int  InventoryItem_GetProperty(ScriptInvItem *scii, const char *property);
+void InventoryItem_GetPropertyText(ScriptInvItem *scii, const char *property, char *bufer);
+const char* InventoryItem_GetTextProperty(ScriptInvItem *scii, const char *property);
 
 void set_inv_item_cursorpic(int invItemId, int piccy);
 

@@ -245,18 +245,6 @@
 				Name="ac"
 				>
 				<File
-					RelativePath="..\..\Engine\ac\ac_interfacebutton.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\ac\ac_interfaceelement.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\ac\ac_inventoryiteminfo.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\ac\audiochannel.cpp"
 					>
 				</File>
@@ -266,6 +254,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\button.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\cdaudio.cpp"
 					>
 				</File>
 				<File
@@ -290,6 +282,14 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\dialogtopic.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\display.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\draw.cpp"
 					>
 				</File>
 				<File
@@ -345,6 +345,14 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\global_display.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\global_drawingsurface.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\global_dynamicsprite.cpp"
 					>
 				</File>
@@ -369,11 +377,19 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\global_invwindow.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\global_label.cpp"
 					>
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\global_listbox.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\global_mouse.cpp"
 					>
 				</File>
 				<File
@@ -385,6 +401,22 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\global_palette.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\global_parser.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\plugin\global_plugin.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\global_record.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\global_region.cpp"
 					>
 				</File>
@@ -393,7 +425,15 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\global_screen.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\global_slider.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\global_string.cpp"
 					>
 				</File>
 				<File
@@ -402,6 +442,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\global_timer.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\global_translation.cpp"
 					>
 				</File>
 				<File
@@ -441,7 +485,19 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\interfacebutton.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\interfaceelement.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\inventoryitem.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\inventoryiteminfo.cpp"
 					>
 				</File>
 				<File
@@ -461,6 +517,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\mouse.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\object.cpp"
 					>
 				</File>
@@ -469,7 +529,19 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\parser.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\path.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\properties.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\record.cpp"
 					>
 				</File>
 				<File
@@ -489,15 +561,39 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\screen.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\slider.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\ac\system_audio.cpp"
+					RelativePath="..\..\Engine\ac\sprite.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\string.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\system.cpp"
 					>
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\textbox.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\timer.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\translation.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\tree_map.cpp"
 					>
 				</File>
 				<File
@@ -686,114 +782,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\gui\newcontrol.cpp"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="acmain"
-				>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_background.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_cdplayer.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_controls.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_customproperties.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_display.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_draw.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_interaction.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_inventory.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_lipsync.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_message.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_minidump.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_mouse.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_parser.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_plugin.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_record.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_screen.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_speech.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_sprite.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_string.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_strings.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_system.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_timer.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_transition.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_translation.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_variable.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_wait.cpp"
 					>
 				</File>
 			</Filter>
@@ -1088,6 +1076,10 @@
 					RelativePath="..\..\Engine\plugin\agsplugin.cpp"
 					>
 				</File>
+				<File
+					RelativePath="..\..\Engine\plugin\pluginobjectreader.cpp"
+					>
+				</File>
 			</Filter>
 		</Filter>
 		<Filter
@@ -1159,6 +1151,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\cdaudio.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\character.h"
 					>
 				</File>
@@ -1184,6 +1180,14 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\dialogoptionsrendering.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\display.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\draw.h"
 					>
 				</File>
 				<File
@@ -1239,6 +1243,14 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\global_display.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\global_drawingsurface.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\global_dynamicsprite.h"
 					>
 				</File>
@@ -1263,11 +1275,19 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\global_invwindow.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\global_label.h"
 					>
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\global_listbox.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\global_mouse.h"
 					>
 				</File>
 				<File
@@ -1279,6 +1299,22 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\global_palette.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\global_parser.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\global_plugin.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\global_record.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\global_region.h"
 					>
 				</File>
@@ -1287,7 +1323,15 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\global_screen.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\global_slider.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\global_string.h"
 					>
 				</File>
 				<File
@@ -1296,6 +1340,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\global_timer.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\global_translation.h"
 					>
 				</File>
 				<File
@@ -1339,6 +1387,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\keycode.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\label.h"
 					>
 				</File>
@@ -1352,6 +1404,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\math.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\mouse.h"
 					>
 				</File>
 				<File
@@ -1371,11 +1427,27 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\parser.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\path.h"
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\properties.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\record.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\region.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\richgamemedia.h"
 					>
 				</File>
 				<File
@@ -1395,6 +1467,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\screen.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\screenoverlay.h"
 					>
 				</File>
@@ -1403,11 +1479,39 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\ac\system_audio.h"
+					RelativePath="..\..\Engine\ac\sprite.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\spritelistentry.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\string.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\system.h"
 					>
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\textbox.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\timer.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\topbarsettings.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\translation.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\tree_map.h"
 					>
 				</File>
 				<File
@@ -1574,6 +1678,10 @@
 					RelativePath="..\..\Engine\plugin\agsplugin.h"
 					>
 				</File>
+				<File
+					RelativePath="..\..\Engine\plugin\pluginobjectreader.h"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="gfx"
@@ -1627,127 +1735,7 @@
 				Name="acmain"
 				>
 				<File
-					RelativePath="..\..\Engine\acmain\ac_background.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_cdplayer.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_commonheaders.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_controls.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_customproperties.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_cutscene.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_display.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_draw.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_inputbox.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_interaction.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_inventory.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_lipsync.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_location.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\acmain\ac_maindefines.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_message.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_mouse.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_parser.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_plugin.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_record.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_richgamemedia.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_screen.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_speech.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_spritelistentry.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_string.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_strings.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_system.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_timer.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_transition.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_translation.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_variable.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_wait.h"
 					>
 				</File>
 			</Filter>
@@ -1940,6 +1928,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\main\mainheader.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\main\minidump.cpp"
 					>
 				</File>
 				<File
@@ -2165,7 +2157,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\libsrc\apeg-1.2.1\display.c"
+					RelativePath="..\..\Engine\libsrc\apeg-1.2.1\adisplay.c"
 					>
 				</File>
 				<File

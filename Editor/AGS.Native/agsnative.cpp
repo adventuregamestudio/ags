@@ -32,7 +32,7 @@ int mousex, mousey;
 #include "ac/ac_common.h"
 #include "ac/ac_compress.h"
 #include "ac/ac_object.h"
-#include "ac/ac_roomstruct.h"
+#include "ac/roomstruct.h"
 #include "ac/ac_script.h"
 #include "ac/ac_view.h"
 #include "ac/dialogtopic.h"
@@ -1162,9 +1162,11 @@ void drawBlockOfColour(int hdc, int x,int y, int width, int height, int colNum)
   wfreeblock(palbmp);
 }
 
+/* [IKM] 2012-07-08: use the Common implementation
 void NewInteractionCommand::remove () 
 {
 }
+*/
 
 void new_font () {
   wloadfont_size(thisgame.numfonts, 0);

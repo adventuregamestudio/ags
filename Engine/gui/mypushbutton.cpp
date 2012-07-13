@@ -2,8 +2,8 @@
 #include <string.h>
 #include "wgt2allg.h"
 #include "ali3d.h"
-#include "acmain/ac_mouse.h"
-#include "acmain/ac_record.h"
+#include "ac/mouse.h"
+#include "ac/record.h"
 #include "gui/mypushbutton.h"
 #include "gui/guidialog.h"
 #include "gui/guidialoginternaldefines.h"

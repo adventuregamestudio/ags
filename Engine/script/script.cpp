@@ -2,25 +2,33 @@
 #include <string.h>
 #include "script/script.h"
 #include "wgt2allg.h"
+#include "ac/ac_common.h"
+#include "acmain/ac_maindefines.h"
 #include "ac/roomstruct.h"
+#include "ac/character.h"
 #include "ac/dialog.h"
+#include "ac/event.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/gamestate.h"
 #include "ac/global_audio.h"
+#include "ac/global_character.h"
 #include "ac/global_dialog.h"
+#include "ac/global_display.h"
 #include "ac/global_game.h"
 #include "ac/global_gui.h"
 #include "ac/global_hotspot.h"
+#include "ac/global_object.h"
 #include "ac/global_room.h"
 #include "ac/global_video.h"
+#include "ac/invwindow.h"
+#include "ac/mouse.h"
 #include "ac/room.h"
 #include "ac/roomobject.h"
 #include "cs/cc_error.h"
 #include "cs/cc_options.h"
-#include "acmain/ac_maindefines.h"
-#include "acmain/ac_commonheaders.h"
-#include "acmain/ac_variable.h"
-#include "acmain/ac_wait.h"
+#include "debug/debug.h"
+#include "main/game_run.h"
 #include "media/audio/audio.h"
 #include "script/script_runtime.h"
 
@@ -31,6 +39,8 @@ extern int gameHasBeenRestored, displayed_room;
 extern unsigned int load_new_game;
 extern RoomObject*objs;
 extern int our_eip;
+extern int guis_need_update;
+extern CharacterInfo*playerchar;
 
 ExecutingScript scripts[MAX_SCRIPT_AT_ONCE];
 ExecutingScript*curscript = NULL;

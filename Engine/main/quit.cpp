@@ -17,9 +17,15 @@
 //
 
 #include "wgt2allg.h"
+#include "ali3d.h"
+#include "ac/cdaudio.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/record.h"
 #include "ac/roomstatus.h"
+#include "ac/translation.h"
+#include "debug/agseditordebugger.h"
+#include "debug/debug.h"
 #include "main/mainheader.h"
 #include "main/quit.h"
 #include "sprcache.h"
@@ -33,8 +39,14 @@ extern int our_eip;
 extern GameSetup usetup;
 extern char pexbuf[STD_BUFFER_SIZE];
 extern int proper_exit;
-
 extern char check_dynamic_sprites_at_exit;
+extern int editor_debugging_initialized;
+extern IAGSEditorDebugger *editor_debugger;
+extern int need_to_stop_cd;
+extern block _old_screen;
+extern block _sub_screen;
+extern int use_cdplayer;
+extern IGraphicsDriver *gfxDriver;
 
 bool handledErrorInEditor;
 

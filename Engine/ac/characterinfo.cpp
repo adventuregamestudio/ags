@@ -13,7 +13,6 @@
 #include "ac/global_character.h"
 #include "ac/math.h"
 #include "ac/viewframe.h"
-#include "acmain/ac_lipsync.h"
 #include "debug/debug.h"
 #include "main/maindefines_ex.h"	// RETURN_CONTINUE
 #include "main/update.h"

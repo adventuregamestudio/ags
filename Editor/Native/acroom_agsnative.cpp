@@ -11,7 +11,7 @@
 //#include "wgt2allg_nofunc.h"
 #include "wgt2allg.h"
 //#include "acroom_func.h"
-#include "ac/ac_roomstruct.h"
+#include "ac/roomstruct.h"
 //
 
 //=============================================================================

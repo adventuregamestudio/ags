@@ -61,4 +61,16 @@ void GetCharacterPropertyText (int item, const char *property, char *bufer);
 int GetCharacterSpeechAnimationDelay(CharacterInfo *cha);
 int GetCharacterAt (int xx, int yy);
 
+void SetActiveInventory(int iit);
+void AddInventoryToCharacter(int charid, int inum);
+void LoseInventoryFromCharacter(int charid, int inum);
+void update_invorder();
+void add_inventory(int inum);
+void lose_inventory(int inum);
+
+void DisplayThought(int chid, const char*texx, ...);
+void __sc_displayspeech(int chid,char*texx, ...);
+void DisplaySpeechAt (int xx, int yy, int wii, int aschar, char*spch);
+int DisplaySpeechBackground(int charid,char*speel);
+
 #endif // __AGS_EE_AC__CHARACTEREXTRAS_H

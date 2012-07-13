@@ -11,8 +11,8 @@
 #ifdef UNUSED_CODE
 #include "ac/ac_eventblock.h"       // EventBlock
 #endif
-#include "ac/ac_interfaceelement.h" // InterfaceElement
-#include "ac/ac_inventoryiteminfo.h"// InventoryItemInfo
+#include "ac/interfaceelement.h"    // InterfaceElement
+#include "ac/inventoryiteminfo.h"   // InventoryItemInfo
 #include "ac/ac_mousecursor.h"      // MouseCursor
 #include "ac/ac_wordsdictionary.h"  // WordsDictionary
 #include "cs/cc_script.h"           // ccScript

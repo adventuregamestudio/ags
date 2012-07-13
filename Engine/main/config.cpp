@@ -16,7 +16,9 @@
 // Game configuration
 //
 
+#include "wgt2allg.h"
 #include "ac/gamesetup.h"
+#include "ac/gamestate.h"
 #include "main/mainheader.h"
 #include "main/config.h"
 #include "sprcache.h"
@@ -24,6 +26,19 @@
 extern GameSetup usetup;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
+extern int psp_video_framedrop;
+extern int psp_audio_enabled;
+extern int psp_midi_enabled;
+extern int psp_ignore_acsetup_cfg_file;
+extern int psp_clear_cache_on_room_change;
+extern int psp_midi_preload_patches;
+extern int psp_audio_cachesize;
+extern char psp_game_file_name[];
+extern int psp_gfx_smooth_sprites;
+extern char psp_translation[];
+extern int force_letterbox;
+extern char replayfile[MAX_PATH];
+extern GameState play;
 
 //char datname[80]="ac.clb";
 char ac_conf_file_defname[MAX_PATH] = "acsetup.cfg";

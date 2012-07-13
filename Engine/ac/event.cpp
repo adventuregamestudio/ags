@@ -1,23 +1,38 @@
 
 #include "event.h"
 #include "wgt2allg.h"
-#include "ac/roomstruct.h"
+#include "ali3d.h"
+#include "ac/ac_common.h"
+#include "acmain/ac_maindefines.h"
+#include "ac/draw.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/global_room.h"
+#include "ac/global_screen.h"
 #include "ac/gui.h"
 #include "ac/roomstatus.h"
-#include "acmain/ac_maindefines.h"
-#include "acmain/ac_commonheaders.h"
-#include "acmain/ac_transition.h"
+#include "ac/roomstruct.h"
+#include "ac/screen.h"
 #include "cs/cc_error.h"
-#include "plugin/agsplugin.h"
 #include "media/audio/audio.h"
+#include "platform/agsplatformdriver.h"
+#include "plugin/agsplugin.h"
+#include "script/script.h"
 
 extern GameSetupStruct game;
 extern roomstruct thisroom;
 extern RoomStatus*croom;
 extern int displayed_room;
+extern GameState play;
+extern color palette[256];
+extern IGraphicsDriver *gfxDriver;
+extern AGSPlatformDriver *platform;
+extern block temp_virtual;
+extern block virtual_screen;
+extern volatile int timerloop;
+extern int scrnwid,scrnhit;
+extern color old_palette[256];
 
 int in_enters_screen=0,done_es_error = 0;
 int in_leaves_screen = -1;

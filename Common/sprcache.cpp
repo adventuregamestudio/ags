@@ -27,11 +27,11 @@ extern "C" {
 }
 
 //#define DEBUG_SPRITECACHE
+// [IKM] We have to forward-declare these because their implementations are in the Engine
 extern void write_log(char *);
+extern void quit(char *);
 extern void initialize_sprite(int);
 extern void pre_save_sprite(int);
-extern void quit(char *);
-
 extern void get_new_size_for_sprite(int, int, int, int &, int &);
 extern int spritewidth[], spriteheight[];
 

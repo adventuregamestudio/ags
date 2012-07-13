@@ -1,26 +1,27 @@
 
 #include "ac/gui.h"
 #include "wgt2allg.h"
+#include "ali3d.h"
 #include "ac/ac_common.h"
-#include "ac/roomstruct.h"
-#include "ac/global_gui.h"
-#include "ac/rundefines.h"
+#include "ac/draw.h"
 #include "ac/gamesetup.h"
-#include "acmain/ac_screen.h"
-#include "debug/debug.h"
-#include "gui/guimain.h"
-#include "gfx/gfxfilter.h"
-#include "acmain/ac_mouse.h"
-#include "cs/cc_instance.h"
-#include "ac/dynobj/scriptgui.h"
-#include "script/script.h"
-#include "gui/guibutton.h"
-#include "ac/ac_interfacebutton.h"
-#include "script/script_runtime.h"
 #include "ac/gamesetupstruct.h"
-#include "ac/dynobj/cc_guiobject.h"
-#include "acmain/ac_draw.h"
 #include "ac/global_game.h"
+#include "ac/global_gui.h"
+#include "ac/global_screen.h"
+#include "ac/interfacebutton.h"
+#include "ac/mouse.h"
+#include "ac/roomstruct.h"
+#include "ac/rundefines.h"
+#include "ac/dynobj/cc_guiobject.h"
+#include "ac/dynobj/scriptgui.h"
+#include "cs/cc_instance.h"
+#include "debug/debug.h"
+#include "gfx/gfxfilter.h"
+#include "gui/guibutton.h"
+#include "gui/guimain.h"
+#include "script/script.h"
+#include "script/script_runtime.h"
 
 
 extern GameSetup usetup;
@@ -32,6 +33,10 @@ extern ccInstance *gameinst;
 extern ScriptGUI *scrGui;
 extern GameSetupStruct game;
 extern CCGUIObject ccDynamicGUIObject;
+extern int scrnwid,scrnhit;
+extern block *guibg;
+extern IDriverDependantBitmap **guibgbmp;
+extern IGraphicsDriver *gfxDriver;
 
 
 int ifacepopped=-1;  // currently displayed pop-up GUI (-1 if none)

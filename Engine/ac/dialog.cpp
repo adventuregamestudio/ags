@@ -3,28 +3,27 @@
 #include "wgt2allg.h"
 #include "ac/ac_common.h"
 #include "acmain/ac_maindefines.h"
+#include "ac/character.h"
 #include "ac/characterinfo.h"
 #include "ac/dialogtopic.h"
+#include "ac/display.h"
+#include "ac/draw.h"
 #include "ac/gamestate.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/global_character.h"
 #include "ac/global_dialog.h"
+#include "ac/global_display.h"
 #include "ac/global_game.h"
 #include "ac/global_gui.h"
 #include "ac/global_room.h"
+#include "ac/global_translation.h"
 #include "ac/overlay.h"
+#include "ac/mouse.h"
+#include "ac/parser.h"
+#include "ac/record.h"
+#include "ac/string.h"
 #include "ac/dynobj/scriptdialogoptionsrendering.h"
 #include "ac/dynobj/scriptdrawingsurface.h"
-#include "acmain/ac_draw.h"
-#include "acmain/ac_inventory.h"
-#include "acmain/ac_message.h"
-#include "acmain/ac_mouse.h"
-#include "acmain/ac_parser.h"
-#include "acmain/ac_record.h"
-#include "acmain/ac_speech.h"
-#include "acmain/ac_string.h"
-#include "acmain/ac_strings.h"
-#include "acmain/ac_translation.h"
 #include "cs/cc_instance.h"
 #include "gui/guimain.h"
 #include "gui/guitextbox.h"
@@ -45,7 +44,10 @@ extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern GUIMain*guis;
 extern volatile int timerloop;
 extern AGSPlatformDriver *platform;
-
+extern int cur_mode,cur_cursor;
+extern block virtual_screen;
+extern block screenop;
+extern IGraphicsDriver *gfxDriver;
 
 DialogTopic *dialog;
 ScriptDialogOptionsRendering ccDialogOptionsRendering;

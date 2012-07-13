@@ -17,24 +17,46 @@
 //
 
 #include "wgt2allg.h"
-#include "ac/roomstruct.h"
+#include "ac/ac_common.h"
+#include "ac/characterextras.h"
+#include "ac/characterinfo.h"
+#include "ac/draw.h"
+#include "ac/event.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/global_character.h"
+#include "ac/global_debug.h"
+#include "ac/global_display.h"
 #include "ac/global_game.h"
+#include "ac/global_gui.h"
+#include "ac/global_inventoryitem.h"
+#include "ac/global_region.h"
 #include "ac/gui.h"
 #include "ac/hotspot.h"
+#include "ac/invwindow.h"
+#include "ac/mouse.h"
+#include "ac/overlay.h"
+#include "ac/record.h"
 #include "ac/room.h"
+#include "ac/roomobject.h"
+#include "ac/roomstatus.h"
+#include "ac/roomstruct.h"
+#include "debug/debug.h"
+#include "gui/guiinv.h"
+#include "gui/guimain.h"
+#include "gui/guitextbox.h"
 #include "main/mainheader.h"
 #include "main/game_run.h"
+#include "main/update.h"
+#include "plugin/agsplugin.h"
+#include "script/script.h"
+#include "sprcache.h"
 
 extern AnimatingGUIButton animbuts[MAX_ANIMATING_BUTTONS];
 extern int numAnimButs;
-
 extern int mouse_on_iface;   // mouse cursor is over this interface
 extern int ifacepopped;
-
 extern int is_text_overlay;
-
 extern volatile char want_exit, abort_engine;
 extern int want_quit;
 extern int proper_exit,our_eip;
@@ -43,6 +65,28 @@ extern GameSetupStruct game;
 extern roomstruct thisroom;
 extern int game_paused;
 extern int getloctype_index;
+extern int in_enters_screen,done_es_error;
+extern int in_leaves_screen;
+extern int inside_script,in_graph_script;
+extern int no_blocking_functions;
+extern CharacterInfo*playerchar;
+extern GameState play;
+extern GUIMain*guis;
+extern int is_complete_overlay;
+extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
+extern int cur_mode;
+extern RoomObject*objs;
+extern int replay_start_this_time;
+extern char noWalkBehindsAtAll;
+extern RoomStatus*croom;
+extern CharacterExtras *charextra;
+extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
+extern SpriteCache spriteset;
+extern int offsetx, offsety;
+extern unsigned long loopcounter,lastcounter;
+extern volatile int timerloop;
+extern int cur_mode,cur_cursor;
+
 
 int numEventsAtStartOfFunction;
 long t1;  // timer for FPS // ... 't1'... how very appropriate.. :)
@@ -50,7 +94,7 @@ long t1;  // timer for FPS // ... 't1'... how very appropriate.. :)
 int user_disabled_for=0,user_disabled_data=0,user_disabled_data2=0;
 int user_disabled_data3=0;
 
-
+int restrict_until=0;
 
 void game_loop_check_want_exit()
 {
@@ -149,6 +193,336 @@ int game_loop_check_ground_level_interactions()
 
     return RETURN_CONTINUE;
 }
+
+// check_controls: checks mouse & keyboard interface
+void check_controls() {
+    int numevents_was = numevents;
+    our_eip = 1007;
+    NEXT_ITERATION();
+
+    int aa,mongu=-1;
+    // If all GUIs are off, skip the loop
+    if ((game.options[OPT_DISABLEOFF]==3) && (all_buttons_disabled > 0)) ;
+    else {
+        // Scan for mouse-y-pos GUIs, and pop one up if appropriate
+        // Also work out the mouse-over GUI while we're at it
+        int ll;
+        for (ll = 0; ll < game.numgui;ll++) {
+            aa = play.gui_draw_order[ll];
+            if (guis[aa].is_mouse_on_gui()) mongu=aa;
+
+            if (guis[aa].popup!=POPUP_MOUSEY) continue;
+            if (is_complete_overlay>0) break;  // interfaces disabled
+            //    if (play.disabled_user_interface>0) break;
+            if (ifacepopped==aa) continue;
+            if (guis[aa].on==-1) continue;
+            // Don't allow it to be popped up while skipping cutscene
+            if (play.fast_forward) continue;
+
+            if (mousey < guis[aa].popupyp) {
+                set_mouse_cursor(CURS_ARROW);
+                guis[aa].on=1; guis_need_update = 1;
+                ifacepopped=aa; PauseGame();
+                break;
+            }
+        }
+    }
+
+    mouse_on_iface=mongu;
+    if ((ifacepopped>=0) && (mousey>=guis[ifacepopped].y+guis[ifacepopped].hit))
+        remove_popup_interface(ifacepopped);
+
+    // check mouse clicks on GUIs
+    static int wasbutdown=0,wasongui=0;
+
+    if ((wasbutdown>0) && (misbuttondown(wasbutdown-1))) {
+        for (aa=0;aa<guis[wasongui].numobjs;aa++) {
+            if (guis[wasongui].objs[aa]->activated<1) continue;
+            if (guis[wasongui].get_control_type(aa)!=GOBJ_SLIDER) continue;
+            // GUI Slider repeatedly activates while being dragged
+            guis[wasongui].objs[aa]->activated=0;
+            setevent(EV_IFACECLICK, wasongui, aa, wasbutdown);
+            break;
+        }
+    }
+    else if ((wasbutdown>0) && (!misbuttondown(wasbutdown-1))) {
+        guis[wasongui].mouse_but_up();
+        int whichbut=wasbutdown;
+        wasbutdown=0;
+
+        for (aa=0;aa<guis[wasongui].numobjs;aa++) {
+            if (guis[wasongui].objs[aa]->activated<1) continue;
+            guis[wasongui].objs[aa]->activated=0;
+            if (!IsInterfaceEnabled()) break;
+
+            int cttype=guis[wasongui].get_control_type(aa);
+            if ((cttype == GOBJ_BUTTON) || (cttype == GOBJ_SLIDER) || (cttype == GOBJ_LISTBOX)) {
+                setevent(EV_IFACECLICK, wasongui, aa, whichbut);
+            }
+            else if (cttype == GOBJ_INVENTORY) {
+                mouse_ifacebut_xoffs=mousex-(guis[wasongui].objs[aa]->x)-guis[wasongui].x;
+                mouse_ifacebut_yoffs=mousey-(guis[wasongui].objs[aa]->y)-guis[wasongui].y;
+                int iit=offset_over_inv((GUIInv*)guis[wasongui].objs[aa]);
+                if (iit>=0) {
+                    evblocknum=iit;
+                    play.used_inv_on = iit;
+                    if (game.options[OPT_HANDLEINVCLICKS]) {
+                        // Let the script handle the click
+                        // LEFTINV is 5, RIGHTINV is 6
+                        setevent(EV_TEXTSCRIPT,TS_MCLICK, whichbut + 4);
+                    }
+                    else if (whichbut==2)  // right-click is always Look
+                        run_event_block_inv(iit, 0);
+                    else if (cur_mode == MODE_HAND)
+                        SetActiveInventory(iit);
+                    else
+                        RunInventoryInteraction (iit, cur_mode);
+                    evblocknum=-1;
+                }
+            }
+            else quit("clicked on unknown control type");
+            if (guis[wasongui].popup==POPUP_MOUSEY)
+                remove_popup_interface(wasongui);
+            break;
+        }
+
+        run_on_event(GE_GUI_MOUSEUP, wasongui);
+    }
+
+    aa=mgetbutton();
+    if (aa>NONE) {
+        if ((play.in_cutscene == 3) || (play.in_cutscene == 4))
+            start_skipping_cutscene();
+        if ((play.in_cutscene == 5) && (aa == RIGHT))
+            start_skipping_cutscene();
+
+        if (play.fast_forward) { }
+        else if ((play.wait_counter > 0) && (play.key_skip_wait > 1))
+            play.wait_counter = -1;
+        else if (is_text_overlay > 0) {
+            if (play.cant_skip_speech & SKIP_MOUSECLICK)
+                remove_screen_overlay(OVER_TEXTMSG);
+        }
+        else if (!IsInterfaceEnabled()) ;  // blocking cutscene, ignore mouse
+        else if (platform->RunPluginHooks(AGSE_MOUSECLICK, aa+1)) {
+            // plugin took the click
+            DEBUG_CONSOLE("Plugin handled mouse button %d", aa+1);
+        }
+        else if (mongu>=0) {
+            if (wasbutdown==0) {
+                DEBUG_CONSOLE("Mouse click over GUI %d", mongu);
+                guis[mongu].mouse_but_down();
+                // run GUI click handler if not on any control
+                if ((guis[mongu].mousedownon < 0) && (guis[mongu].clickEventHandler[0] != 0))
+                    setevent(EV_IFACECLICK, mongu, -1, aa + 1);
+
+                run_on_event(GE_GUI_MOUSEDOWN, mongu);
+            }
+            wasongui=mongu;
+            wasbutdown=aa+1;
+        }
+        else setevent(EV_TEXTSCRIPT,TS_MCLICK,aa+1);
+        //    else run_text_script_iparam(gameinst,"on_mouse_click",aa+1);
+    }
+    aa = check_mouse_wheel();
+    if (aa < 0)
+        setevent (EV_TEXTSCRIPT, TS_MCLICK, 9);
+    else if (aa > 0)
+        setevent (EV_TEXTSCRIPT, TS_MCLICK, 8);
+
+    // check keypresses
+    if (kbhit()) {
+        // in case they press the finish-recording button, make sure we know
+        int was_playing = play.playback;
+
+        int kgn = getch();
+        if (kgn==0) kgn=getch()+300;
+        //    if (kgn==367) restart_game();
+        //    if (kgn==2) Display("numover: %d character movesped: %d, animspd: %d",numscreenover,playerchar->walkspeed,playerchar->animspeed);
+        //    if (kgn==2) CreateTextOverlay(50,60,170,FONT_SPEECH,14,"This is a test screen overlay which shouldn't disappear");
+        //    if (kgn==2) { Display("Crashing"); strcpy(NULL, NULL); }
+        //    if (kgn == 2) FaceLocation (game.playercharacter, playerchar->x + 1, playerchar->y);
+        //if (kgn == 2) SetCharacterIdle (game.playercharacter, 5, 0);
+        //if (kgn == 2) Display("Some for?ign text");
+        //if (kgn == 2) do_conversation(5);
+
+        if (kgn == play.replay_hotkey) {
+            // start/stop recording
+            if (play.recording)
+                stop_recording();
+            else if ((play.playback) || (was_playing))
+                ;  // do nothing (we got the replay of the stop key)
+            else
+                replay_start_this_time = 1;
+        }
+
+        check_skip_cutscene_keypress (kgn);
+
+        if (play.fast_forward) { }
+        else if (platform->RunPluginHooks(AGSE_KEYPRESS, kgn)) {
+            // plugin took the keypress
+            DEBUG_CONSOLE("Keypress code %d taken by plugin", kgn);
+        }
+        else if ((kgn == '`') && (play.debug_mode > 0)) {
+            // debug console
+            display_console = !display_console;
+        }
+        else if ((is_text_overlay > 0) &&
+            (play.cant_skip_speech & SKIP_KEYPRESS) &&
+            (kgn != 434)) {
+                // 434 = F12, allow through for screenshot of text
+                // (though atm with one script at a time that won't work)
+                // only allow a key to remove the overlay if the icon bar isn't up
+                if (IsGamePaused() == 0) {
+                    // check if it requires a specific keypress
+                    if ((play.skip_speech_specific_key > 0) &&
+                        (kgn != play.skip_speech_specific_key)) { }
+                    else
+                        remove_screen_overlay(OVER_TEXTMSG);
+                }
+        }
+        else if ((play.wait_counter > 0) && (play.key_skip_wait > 0)) {
+            play.wait_counter = -1;
+            DEBUG_CONSOLE("Keypress code %d ignored - in Wait", kgn);
+        }
+        else if ((kgn == 5) && (display_fps == 2)) {
+            // if --fps paramter is used, Ctrl+E will max out frame rate
+            SetGameSpeed(1000);
+            display_fps = 2;
+        }
+        else if ((kgn == 4) && (play.debug_mode > 0)) {
+            // ctrl+D - show info
+            char infobuf[900];
+            int ff;
+            // MACPORT FIX 9/6/5: added last %s
+            sprintf(infobuf,"In room %d %s[Player at %d, %d (view %d, loop %d, frame %d)%s%s%s",
+                displayed_room, (noWalkBehindsAtAll ? "(has no walk-behinds)" : ""), playerchar->x,playerchar->y,
+                playerchar->view + 1, playerchar->loop,playerchar->frame,
+                (IsGamePaused() == 0) ? "" : "[Game paused.",
+                (play.ground_level_areas_disabled == 0) ? "" : "[Ground areas disabled.",
+                (IsInterfaceEnabled() == 0) ? "[Game in Wait state" : "");
+            for (ff=0;ff<croom->numobj;ff++) {
+                if (ff >= 8) break; // buffer not big enough for more than 7
+                sprintf(&infobuf[strlen(infobuf)],
+                    "[Object %d: (%d,%d) size (%d x %d) on:%d moving:%s animating:%d slot:%d trnsp:%d clkble:%d",
+                    ff, objs[ff].x, objs[ff].y,
+                    (spriteset[objs[ff].num] != NULL) ? spritewidth[objs[ff].num] : 0,
+                    (spriteset[objs[ff].num] != NULL) ? spriteheight[objs[ff].num] : 0,
+                    objs[ff].on,
+                    (objs[ff].moving > 0) ? "yes" : "no", objs[ff].cycling,
+                    objs[ff].num, objs[ff].transparent,
+                    ((objs[ff].flags & OBJF_NOINTERACT) != 0) ? 0 : 1 );
+            }
+            Display(infobuf);
+            int chd = game.playercharacter;
+            char bigbuffer[STD_BUFFER_SIZE] = "CHARACTERS IN THIS ROOM:[";
+            for (ff = 0; ff < game.numcharacters; ff++) {
+                if (game.chars[ff].room != displayed_room) continue;
+                if (strlen(bigbuffer) > 430) {
+                    strcat(bigbuffer, "and more...");
+                    Display(bigbuffer);
+                    strcpy(bigbuffer, "CHARACTERS IN THIS ROOM (cont'd):[");
+                }
+                chd = ff;
+                sprintf(&bigbuffer[strlen(bigbuffer)], 
+                    "%s (view/loop/frm:%d,%d,%d  x/y/z:%d,%d,%d  idleview:%d,time:%d,left:%d walk:%d anim:%d follow:%d flags:%X wait:%d zoom:%d)[",
+                    game.chars[chd].scrname, game.chars[chd].view+1, game.chars[chd].loop, game.chars[chd].frame,
+                    game.chars[chd].x, game.chars[chd].y, game.chars[chd].z,
+                    game.chars[chd].idleview, game.chars[chd].idletime, game.chars[chd].idleleft,
+                    game.chars[chd].walking, game.chars[chd].animating, game.chars[chd].following,
+                    game.chars[chd].flags, game.chars[chd].wait, charextra[chd].zoom);
+            }
+            Display(bigbuffer);
+
+        }
+        /*    else if (kgn == 21) {
+        play.debug_mode++;
+        script_debug(5,0);
+        play.debug_mode--;
+        }*/
+        else if ((kgn == 22) && (play.wait_counter < 1) && (is_text_overlay == 0) && (restrict_until == 0)) {
+            // make sure we can't interrupt a Wait()
+            // and desync the music to cutscene
+            play.debug_mode++;
+            script_debug (1,0);
+            play.debug_mode--;
+        }
+        else if (inside_script) {
+            // Don't queue up another keypress if it can't be run instantly
+            DEBUG_CONSOLE("Keypress %d ignored (game blocked)", kgn);
+        }
+        else {
+            int keywasprocessed = 0;
+            // determine if a GUI Text Box should steal the click
+            // it should do if a displayable character (32-255) is
+            // pressed, but exclude control characters (<32) and
+            // extended keys (eg. up/down arrow; 256+)
+            if ( ((kgn >= 32) && (kgn != '[') && (kgn < 256)) || (kgn == 13) || (kgn == 8) ) {
+                int uu,ww;
+                for (uu=0;uu<game.numgui;uu++) {
+                    if (guis[uu].on < 1) continue;
+                    for (ww=0;ww<guis[uu].numobjs;ww++) {
+                        // not a text box, ignore it
+                        if ((guis[uu].objrefptr[ww] >> 16)!=GOBJ_TEXTBOX)
+                            continue;
+                        GUITextBox*guitex=(GUITextBox*)guis[uu].objs[ww];
+                        // if the text box is disabled, it cannot except keypresses
+                        if ((guitex->IsDisabled()) || (!guitex->IsVisible()))
+                            continue;
+                        guitex->KeyPress(kgn);
+                        if (guitex->activated) {
+                            guitex->activated = 0;
+                            setevent(EV_IFACECLICK, uu, ww, 1);
+                        }
+                        keywasprocessed = 1;
+                    }
+                }
+            }
+            if (!keywasprocessed) {
+                if ((kgn>='a') & (kgn<='z')) kgn-=32;
+                DEBUG_CONSOLE("Running on_key_press keycode %d", kgn);
+                setevent(EV_TEXTSCRIPT,TS_KEYPRESS,kgn);
+            }
+        }
+        //    run_text_script_iparam(gameinst,"on_key_press",kgn);
+    }
+
+    if ((IsInterfaceEnabled()) && (IsGamePaused() == 0) &&
+        (in_new_room == 0) && (new_room_was == 0)) {
+            // Only allow walking off edges if not in wait mode, and
+            // if not in Player Enters Screen (allow walking in from off-screen)
+            int edgesActivated[4] = {0, 0, 0, 0};
+            // Only do it if nothing else has happened (eg. mouseclick)
+            if ((numevents == numevents_was) &&
+                ((play.ground_level_areas_disabled & GLED_INTERACTION) == 0)) {
+
+                    if (playerchar->x <= thisroom.left)
+                        edgesActivated[0] = 1;
+                    else if (playerchar->x >= thisroom.right)
+                        edgesActivated[1] = 1;
+                    if (playerchar->y >= thisroom.bottom)
+                        edgesActivated[2] = 1;
+                    else if (playerchar->y <= thisroom.top)
+                        edgesActivated[3] = 1;
+
+                    if ((play.entered_edge >= 0) && (play.entered_edge <= 3)) {
+                        // once the player is no longer outside the edge, forget the stored edge
+                        if (edgesActivated[play.entered_edge] == 0)
+                            play.entered_edge = -10;
+                        // if we are walking in from off-screen, don't activate edges
+                        else
+                            edgesActivated[play.entered_edge] = 0;
+                    }
+
+                    for (int ii = 0; ii < 4; ii++) {
+                        if (edgesActivated[ii])
+                            setevent(EV_RUNEVBLOCK, EVB_ROOM, 0, ii);
+                    }
+            }
+    }
+    our_eip = 1008;
+
+}  // end check_controls
 
 void game_loop_check_controls(bool checkControls)
 {

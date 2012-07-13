@@ -18,17 +18,39 @@
 
 #include "main/mainheader.h"
 #include "ali3d.h"
+#include "ac/ac_common.h"
+#include "ac/display.h"
+#include "ac/draw.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/walkbehind.h"
+#include "debug/debug.h"
+#include "gui/guiinv.h"
+#include "gui/guimain.h"
 #include "main/graphics_mode.h"
+#include "platform/agsplatformdriver.h"
 
 extern GameSetup usetup;
 extern GameSetupStruct game;
 extern int proper_exit;
-
+extern GUIMain*guis;
 extern int psp_gfx_renderer; // defined in ali3dogl
 extern WalkBehindMethodEnum walkBehindMethod;
+extern DynamicArray<GUIInv> guiinv;
+extern int numguiinv;
+extern int scrnwid,scrnhit;
+extern int current_screen_resolution_multiplier;
+extern int force_letterbox;
+extern AGSPlatformDriver *platform;
+extern int force_16bit;
+extern IGraphicsDriver *gfxDriver;
+extern int final_scrn_wid,final_scrn_hit,final_col_dep;
+extern volatile int timerloop;
+extern IDriverDependantBitmap *blankImage;
+extern IDriverDependantBitmap *blankSidebarImage;
+extern block _old_screen;
+extern block _sub_screen;
+extern int _places_r, _places_g, _places_b;
 
 int initasx,initasy;
 int firstDepth, secondDepth;
@@ -37,6 +59,81 @@ int firstDepth, secondDepth;
 int working_gfx_mode_status = -1;
 int debug_15bit_mode = 0, debug_24bit_mode = 0;
 int convert_16bit_bgr = 0;
+
+int ff; // whatever!
+
+int adjust_pixel_size_for_loaded_data(int size, int filever)
+{
+    if (filever < 37)
+    {
+        return multiply_up_coordinate(size);
+    }
+    return size;
+}
+
+void adjust_pixel_sizes_for_loaded_data(int *x, int *y, int filever)
+{
+    x[0] = adjust_pixel_size_for_loaded_data(x[0], filever);
+    y[0] = adjust_pixel_size_for_loaded_data(y[0], filever);
+}
+
+void adjust_sizes_for_resolution(int filever)
+{
+    int ee;
+    for (ee = 0; ee < game.numcursors; ee++) 
+    {
+        game.mcurs[ee].hotx = adjust_pixel_size_for_loaded_data(game.mcurs[ee].hotx, filever);
+        game.mcurs[ee].hoty = adjust_pixel_size_for_loaded_data(game.mcurs[ee].hoty, filever);
+    }
+
+    for (ee = 0; ee < game.numinvitems; ee++) 
+    {
+        adjust_pixel_sizes_for_loaded_data(&game.invinfo[ee].hotx, &game.invinfo[ee].hoty, filever);
+    }
+
+    for (ee = 0; ee < game.numgui; ee++) 
+    {
+        GUIMain*cgp=&guis[ee];
+        adjust_pixel_sizes_for_loaded_data(&cgp->x, &cgp->y, filever);
+        if (cgp->wid < 1)
+            cgp->wid = 1;
+        if (cgp->hit < 1)
+            cgp->hit = 1;
+        // Temp fix for older games
+        if (cgp->wid == BASEWIDTH - 1)
+            cgp->wid = BASEWIDTH;
+
+        adjust_pixel_sizes_for_loaded_data(&cgp->wid, &cgp->hit, filever);
+
+        cgp->popupyp = adjust_pixel_size_for_loaded_data(cgp->popupyp, filever);
+
+        for (ff = 0; ff < cgp->numobjs; ff++) 
+        {
+            adjust_pixel_sizes_for_loaded_data(&cgp->objs[ff]->x, &cgp->objs[ff]->y, filever);
+            adjust_pixel_sizes_for_loaded_data(&cgp->objs[ff]->wid, &cgp->objs[ff]->hit, filever);
+            cgp->objs[ff]->activated=0;
+        }
+    }
+
+    if ((filever >= 37) && (game.options[OPT_NATIVECOORDINATES] == 0) &&
+        (game.default_resolution > 2))
+    {
+        // New 3.1 format game file, but with Use Native Coordinates off
+
+        for (ee = 0; ee < game.numcharacters; ee++) 
+        {
+            game.chars[ee].x /= 2;
+            game.chars[ee].y /= 2;
+        }
+
+        for (ee = 0; ee < numguiinv; ee++)
+        {
+            guiinv[ee].itemWidth /= 2;
+            guiinv[ee].itemHeight /= 2;
+        }
+    }
+
+}
 
 void engine_init_screen_settings()
 {

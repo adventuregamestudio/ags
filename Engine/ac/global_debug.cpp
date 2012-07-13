@@ -3,24 +3,24 @@
 #include "wgt2allg.h"
 #include "ali3d.h"
 #include "ac/ac_common.h"
-#include "ac/gamesetupstruct.h"
+#include "acmain/ac_maindefines.h"
 #include "ac/characterinfo.h"
-#include "ac/roomstruct.h"
+#include "ac/draw.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
+#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
+#include "ac/global_character.h"
+#include "ac/global_display.h"
 #include "ac/global_room.h"
 #include "ac/movelist.h"
+#include "ac/properties.h"
+#include "ac/record.h"
+#include "ac/roomstruct.h"
+#include "ac/tree_map.h"
 #include "ac/walkablearea.h"
 #include "gfx/gfxfilter.h"
 #include "gui/guidialog.h"
-#include "acmain/ac_maindefines.h"
-#include "acmain/ac_draw.h"
-#include "acmain/ac_inventory.h"
-#include "acmain/ac_message.h"
-#include "acmain/ac_record.h"
-#include "acmain/ac_screen.h"
-#include "acmain/ac_translation.h"
 #include "cs/cc_options.h"
 #include "debug/debug.h"
 #include "sprcache.h"
@@ -38,6 +38,9 @@ extern TreeMap *transtree;
 extern int offsetx, offsety;
 extern int displayed_room, starting_room;
 extern MoveList *mls;
+extern int final_scrn_wid,final_scrn_hit,final_col_dep;
+extern int scrnwid,scrnhit;
+extern char transFileName[MAX_PATH];
 
 void script_debug(int cmdd,int dataa) {
     if (play.debug_mode==0) return;

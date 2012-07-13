@@ -17,18 +17,34 @@
 //
 
 #include "wgt2allg.h"
+#include "ac/ac_common.h"
+#include "ac/characterinfo.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/gamestate.h"
 #include "ac/global_game.h"
+#include "ac/mouse.h"
+#include "ac/record.h"
 #include "ac/room.h"
+#include "ac/screen.h"
+#include "debug/debug.h"
 #include "main/mainheader.h"
+#include "main/game_run.h"
 #include "main/game_start.h"
+#include "script/script.h"
 
 extern int our_eip, displayed_room;
 extern const char *load_game_errors[9];
 extern volatile char want_exit, abort_engine;
 extern unsigned int load_new_game;
 extern GameSetupStruct game;
+extern GameState play;
+extern volatile int timerloop;
+extern const char *loadSaveGameOnStartup;
+extern ccInstance *moduleInst[MAX_SCRIPT_MODULES];
+extern int numScriptModules;
+extern CharacterInfo*playerchar;
+extern int convert_16bit_bgr;
 
 
 void start_game_check_replay()

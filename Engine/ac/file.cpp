@@ -6,8 +6,7 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/global_file.h"
 #include "ac/rundefines.h"
-#include "acmain/ac_string.h"
-#include "acmain/ac_strings.h"
+#include "ac/string.h"
 #include "debug/debug.h"
 #include "misc.h"
 #include "platform/agsplatformdriver.h"
@@ -65,8 +64,8 @@ extern GameSetupStruct game;
 extern char saveGameDirectory[260];
 extern AGSPlatformDriver *platform;
 
-
 extern char* game_file_name;
+extern int MAXSTRLEN;
 
 // object-based File routines
 

@@ -1,8 +1,8 @@
 
 #include "ac/global_viewport.h"
 #include "wgt2allg.h"
+#include "ac/draw.h"
 #include "ac/viewport.h"
-#include "acmain/ac_draw.h"
 #include "debug/debug.h"
 
 extern int offsetx, offsety;

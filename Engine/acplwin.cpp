@@ -17,9 +17,14 @@
 
 #include "wgt2allg.h"
 #include "ali3d.h"
+#include "ac/ac_common.h"
+#include "ac/draw.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
-#include "acmain/ac_commonheaders.h"
+#include "ac/global_display.h"
+#include "ac/rundefines.h"
+#include "ac/string.h"
+#include "main/engine.h"
 #include "media/audio/audio.h"
 #include "platform/ags32bitosdriver.h"
 #include "plugin/agsplugin.h"
@@ -27,6 +32,9 @@
 extern GameSetupStruct game;
 extern GameSetup usetup;
 extern int our_eip;
+extern IGraphicsDriver *gfxDriver;
+extern color palette[256];
+extern block virtual_screen;
 
 #include <shlobj.h>
 #include <time.h>

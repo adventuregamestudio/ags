@@ -388,18 +388,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_interfacebutton.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\ac_interfaceelement.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\ac_inventoryiteminfo.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Common\ac\ac_messageinfo.h"
 					>
 				</File>
@@ -433,6 +421,18 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\ac\gamestructdefines.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\interfacebutton.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\interfaceelement.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\inventoryiteminfo.h"
 					>
 				</File>
 				<File

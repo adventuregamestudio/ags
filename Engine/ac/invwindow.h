@@ -25,6 +25,10 @@ void			InvWindow_ScrollDown(GUIInv *guii);
 void			InvWindow_ScrollUp(GUIInv *guii);
 ScriptInvItem*	InvWindow_GetItemAtIndex(GUIInv *guii, int index);
 
+//=============================================================================
+
 int				offset_over_inv(GUIInv *inv);
+int             __actual_invscreen();
+int             invscreen();
 
 #endif // __AGS_EE_AC__INVWINDOW_H

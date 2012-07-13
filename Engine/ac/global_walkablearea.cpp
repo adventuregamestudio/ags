@@ -3,9 +3,9 @@
 #include "wgt2allg.h"
 #include "ac/ac_common.h"
 #include "ac/ac_defines.h"
+#include "ac/draw.h"
 #include "ac/roomstruct.h"
 #include "ac/walkablearea.h"
-#include "acmain/ac_draw.h"
 #include "debug/debug.h"
 
 extern roomstruct thisroom;

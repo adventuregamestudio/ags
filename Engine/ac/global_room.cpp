@@ -4,15 +4,16 @@
 #include "ac/ac_common.h"
 #include "ac/character.h"
 #include "ac/characterinfo.h"
+#include "ac/draw.h"
 #include "ac/event.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_character.h"
 #include "ac/global_game.h"
 #include "ac/movelist.h"
+#include "ac/properties.h"
 #include "ac/room.h"
 #include "ac/roomstatus.h"
-#include "acmain/ac_customproperties.h"
 #include "debug/debug.h"
 #include "script/script.h"
 
@@ -162,4 +163,28 @@ int GetRoomProperty (const char *property) {
 
 void GetRoomPropertyText (const char *property, char *bufer) {
     get_text_property (&thisroom.roomProps, property, bufer);
+}
+
+void SetBackgroundFrame(int frnum) {
+    if ((frnum<-1) | (frnum>=thisroom.num_bscenes))
+        quit("!SetBackgrondFrame: invalid frame number specified");
+    if (frnum<0) {
+        play.bg_frame_locked=0;
+        return;
+    }
+
+    play.bg_frame_locked = 1;
+
+    if (frnum == play.bg_frame)
+    {
+        // already on this frame, do nothing
+        return;
+    }
+
+    play.bg_frame = frnum;
+    on_background_frame_change ();
+}
+
+int GetBackgroundFrame() {
+    return play.bg_frame;
 }

@@ -1,11 +1,11 @@
 
+#include "wgt2allg.h"
 #include "ac/global_walkbehind.h"
 #include "ac/ac_common.h"
 #include "ac/ac_defines.h"
+#include "ac/draw.h"
 #include "ac/roomstatus.h"
 #include "ac/walkbehind.h"
-#include "wgt2allg.h"
-#include "acmain/ac_draw.h"
 #include "debug/debug.h"
 
 extern RoomStatus*croom;

@@ -1,16 +1,18 @@
 
 #include "wgt2allg.h"
+#include "ali3d.h"
 #include "ac/overlay.h"
 #include "ac/ac_common.h"
+#include "ac/ac_view.h"
 #include "ac/characterextras.h"
+#include "ac/draw.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/global_overlay.h"
+#include "ac/global_translation.h"
 #include "ac/rundefines.h"
 #include "ac/screenoverlay.h"
-#include "ac/ac_view.h"
-#include "acmain/ac_draw.h"
-#include "acmain/ac_strings.h"
-#include "acmain/ac_translation.h"
+#include "ac/string.h"
+
 
 extern GameSetupStruct game;
 extern int scrnwid,scrnhit;
@@ -20,6 +22,7 @@ extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern int face_talking;
 extern ViewStruct*views;
 extern CharacterExtras *charextra;
+extern IGraphicsDriver *gfxDriver;
 
 
 

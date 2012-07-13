@@ -5,6 +5,7 @@
 #include "ac/ac_view.h"
 #include "acmain/ac_maindefines.h"
 #include "ac/character.h"
+#include "ac/draw.h"
 #include "ac/dynamicsprite.h"
 #include "ac/event.h"
 #include "ac/file.h"
@@ -12,24 +13,32 @@
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
+#include "ac/global_character.h"
 #include "ac/global_gui.h"
+#include "ac/global_hotspot.h"
 #include "ac/global_inventoryitem.h"
+#include "ac/global_translation.h"
 #include "ac/gui.h"
+#include "ac/hotspot.h"
+#include "ac/keycode.h"
+#include "ac/mouse.h"
+#include "ac/object.h"
+#include "ac/record.h"
 #include "ac/room.h"
 #include "ac/roomstatus.h"
 #include "ac/roomstruct.h"
-#include "acmain/ac_draw.h"
-#include "acmain/ac_inventory.h"
-#include "acmain/ac_mouse.h"
-#include "acmain/ac_translation.h"
+#include "ac/string.h"
 #include "debug/debug.h"
 #include "gui/guidialog.h"
 #include "main/engine.h"
 #include "main/game_start.h"
+#include "main/game_run.h"
 #include "media/audio/audio.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
 #include "sprcache.h"
+
+#define ALLEGRO_KEYBOARD_HANDLER
 
 extern int guis_need_update;
 extern GameState play;
@@ -52,6 +61,12 @@ extern RoomStatus*croom;
 extern int gui_disabled_style;
 extern roomstruct thisroom;
 extern int getloctype_index;
+extern int offsetx, offsety;
+extern char saveGameDirectory[260];
+extern IGraphicsDriver *gfxDriver;
+extern int scrnwid,scrnhit;
+extern color palette[256];
+extern block virtual_screen;
 
 extern "C" int csetlib(char *namm, char *passw);
 
@@ -549,4 +564,346 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
     if (play.get_loc_name_last_time != onhs)
         guis_need_update = 1;
     play.get_loc_name_last_time = onhs;
+}
+
+int IsKeyPressed (int keycode) {
+#ifdef ALLEGRO_KEYBOARD_HANDLER
+    if (keyboard_needs_poll())
+        poll_keyboard();
+    if (keycode >= 300) {
+        // function keys are 12 lower in allegro 4
+        if ((keycode>=359) & (keycode<=368)) keycode-=12;
+        // F11-F12
+        else if ((keycode==433) || (keycode==434)) keycode-=76;
+        // left arrow
+        else if (keycode==375) keycode=382;
+        // right arrow
+        else if (keycode==377) keycode=383;
+        // up arrow
+        else if (keycode==372) keycode=384;
+        // down arrow
+        else if (keycode==380) keycode=385;
+        // numeric keypad
+        else if (keycode==379) keycode=338;
+        else if (keycode==380) keycode=339;
+        else if (keycode==381) keycode=340;
+        else if (keycode==375) keycode=341;
+        else if (keycode==376) keycode=342;
+        else if (keycode==377) keycode=343;
+        else if (keycode==371) keycode=344;
+        else if (keycode==372) keycode=345;
+        else if (keycode==373) keycode=346;
+        // insert
+        else if (keycode == AGS_KEYCODE_INSERT) keycode = KEY_INSERT + 300;
+        // delete
+        else if (keycode == AGS_KEYCODE_DELETE) keycode = KEY_DEL + 300;
+
+        // deal with shift/ctrl/alt
+        if (keycode == 403) keycode = KEY_LSHIFT;
+        else if (keycode == 404) keycode = KEY_RSHIFT;
+        else if (keycode == 405) keycode = KEY_LCONTROL;
+        else if (keycode == 406) keycode = KEY_RCONTROL;
+        else if (keycode == 407) keycode = KEY_ALT;
+        else keycode -= 300;
+
+        if (rec_iskeypressed(keycode))
+            return 1;
+        // deal with numeric pad keys having different codes to arrow keys
+        if ((keycode == KEY_LEFT) && (rec_iskeypressed(KEY_4_PAD) != 0))
+            return 1;
+        if ((keycode == KEY_RIGHT) && (rec_iskeypressed(KEY_6_PAD) != 0))
+            return 1;
+        if ((keycode == KEY_UP) && (rec_iskeypressed(KEY_8_PAD) != 0))
+            return 1;
+        if ((keycode == KEY_DOWN) && (rec_iskeypressed(KEY_2_PAD) != 0))
+            return 1;
+        // PgDn/PgUp are equivalent to 3 and 9 on numeric pad
+        if ((keycode == KEY_9_PAD) && (rec_iskeypressed(KEY_PGUP) != 0))
+            return 1;
+        if ((keycode == KEY_3_PAD) && (rec_iskeypressed(KEY_PGDN) != 0))
+            return 1;
+        // Home/End are equivalent to 7 and 1
+        if ((keycode == KEY_7_PAD) && (rec_iskeypressed(KEY_HOME) != 0))
+            return 1;
+        if ((keycode == KEY_1_PAD) && (rec_iskeypressed(KEY_END) != 0))
+            return 1;
+        // insert/delete have numpad equivalents
+        if ((keycode == KEY_INSERT) && (rec_iskeypressed(KEY_0_PAD) != 0))
+            return 1;
+        if ((keycode == KEY_DEL) && (rec_iskeypressed(KEY_DEL_PAD) != 0))
+            return 1;
+
+        return 0;
+    }
+    // convert ascii to scancode
+    else if ((keycode >= 'A') && (keycode <= 'Z'))
+    {
+        keycode = platform->ConvertKeycodeToScanCode(keycode);
+    }
+    else if ((keycode >= '0') && (keycode <= '9'))
+        keycode -= ('0' - KEY_0);
+    else if (keycode == 8)
+        keycode = KEY_BACKSPACE;
+    else if (keycode == 9)
+        keycode = KEY_TAB;
+    else if (keycode == 13) {
+        // check both the main return key and the numeric pad enter
+        if (rec_iskeypressed(KEY_ENTER))
+            return 1;
+        keycode = KEY_ENTER_PAD;
+    }
+    else if (keycode == ' ')
+        keycode = KEY_SPACE;
+    else if (keycode == 27)
+        keycode = KEY_ESC;
+    else if (keycode == '-') {
+        // check both the main - key and the numeric pad
+        if (rec_iskeypressed(KEY_MINUS))
+            return 1;
+        keycode = KEY_MINUS_PAD;
+    }
+    else if (keycode == '+') {
+        // check both the main + key and the numeric pad
+        if (rec_iskeypressed(KEY_EQUALS))
+            return 1;
+        keycode = KEY_PLUS_PAD;
+    }
+    else if (keycode == '/') {
+        // check both the main / key and the numeric pad
+        if (rec_iskeypressed(KEY_SLASH))
+            return 1;
+        keycode = KEY_SLASH_PAD;
+    }
+    else if (keycode == '=')
+        keycode = KEY_EQUALS;
+    else if (keycode == '[')
+        keycode = KEY_OPENBRACE;
+    else if (keycode == ']')
+        keycode = KEY_CLOSEBRACE;
+    else if (keycode == '\\')
+        keycode = KEY_BACKSLASH;
+    else if (keycode == ';')
+        keycode = KEY_SEMICOLON;
+    else if (keycode == '\'')
+        keycode = KEY_QUOTE;
+    else if (keycode == ',')
+        keycode = KEY_COMMA;
+    else if (keycode == '.')
+        keycode = KEY_STOP;
+    else {
+        DEBUG_CONSOLE("IsKeyPressed: unsupported keycode %d", keycode);
+        return 0;
+    }
+
+    if (rec_iskeypressed(keycode))
+        return 1;
+    return 0;
+#else
+    // old allegro version
+    quit("allegro keyboard handler not in use??");
+#endif
+}
+
+int SaveScreenShot(char*namm) {
+    char fileName[MAX_PATH];
+
+    if (strchr(namm,'.') == NULL)
+        sprintf(fileName, "%s%s.bmp", saveGameDirectory, namm);
+    else
+        sprintf(fileName, "%s%s", saveGameDirectory, namm);
+
+    if (gfxDriver->RequiresFullRedrawEachFrame()) 
+    {
+        BITMAP *buffer = create_bitmap_ex(32, scrnwid, scrnhit);
+        gfxDriver->GetCopyOfScreenIntoBitmap(buffer);
+
+        if (save_bitmap(fileName, buffer, palette)!=0)
+        {
+            destroy_bitmap(buffer);
+            return 0;
+        }
+        destroy_bitmap(buffer);
+    }
+    else if (save_bitmap(fileName, virtual_screen, palette)!=0)
+        return 0; // failed
+
+    return 1;  // successful
+}
+
+void SetMultitasking (int mode) {
+    if ((mode < 0) | (mode > 1))
+        quit("!SetMultitasking: invalid mode parameter");
+
+    // Don't allow background running if full screen
+    if ((mode == 1) && (usetup.windowed == 0))
+        mode = 0;
+
+    if (mode == 0) {
+        if (set_display_switch_mode(SWITCH_PAUSE) == -1)
+            set_display_switch_mode(SWITCH_AMNESIA);
+        // install callbacks to stop the sound when switching away
+        set_display_switch_callback(SWITCH_IN, display_switch_in);
+        set_display_switch_callback(SWITCH_OUT, display_switch_out);
+    }
+    else {
+        if (set_display_switch_mode (SWITCH_BACKGROUND) == -1)
+            set_display_switch_mode(SWITCH_BACKAMNESIA);
+    }
+}
+
+extern int getloctype_throughgui, getloctype_index;
+
+void ProcessClick(int xx,int yy,int mood) {
+    getloctype_throughgui = 1;
+    int loctype = GetLocationType (xx, yy);
+    xx += divide_down_coordinate(offsetx); 
+    yy += divide_down_coordinate(offsety);
+
+    if ((mood==MODE_WALK) && (game.options[OPT_NOWALKMODE]==0)) {
+        int hsnum=get_hotspot_at(xx,yy);
+        if (hsnum<1) ;
+        else if (thisroom.hswalkto[hsnum].x<1) ;
+        else if (play.auto_use_walkto_points == 0) ;
+        else {
+            xx=thisroom.hswalkto[hsnum].x;
+            yy=thisroom.hswalkto[hsnum].y;
+            DEBUG_CONSOLE("Move to walk-to point hotspot %d", hsnum);
+        }
+        walk_character(game.playercharacter,xx,yy,0, true);
+        return;
+    }
+    play.usedmode=mood;
+
+    if (loctype == 0) {
+        // click on nothing -> hotspot 0
+        getloctype_index = 0;
+        loctype = LOCTYPE_HOTSPOT;
+    }
+
+    if (loctype == LOCTYPE_CHAR) {
+        if (check_click_on_character(xx,yy,mood)) return;
+    }
+    else if (loctype == LOCTYPE_OBJ) {
+        if (check_click_on_object(xx,yy,mood)) return;
+    }
+    else if (loctype == LOCTYPE_HOTSPOT) 
+        RunHotspotInteraction (getloctype_index, mood);
+}
+
+int IsInteractionAvailable (int xx,int yy,int mood) {
+    getloctype_throughgui = 1;
+    int loctype = GetLocationType (xx, yy);
+    xx += divide_down_coordinate(offsetx); 
+    yy += divide_down_coordinate(offsety);
+
+    // You can always walk places
+    if ((mood==MODE_WALK) && (game.options[OPT_NOWALKMODE]==0))
+        return 1;
+
+    play.check_interaction_only = 1;
+
+    if (loctype == 0) {
+        // click on nothing -> hotspot 0
+        getloctype_index = 0;
+        loctype = LOCTYPE_HOTSPOT;
+    }
+
+    if (loctype == LOCTYPE_CHAR) {
+        check_click_on_character(xx,yy,mood);
+    }
+    else if (loctype == LOCTYPE_OBJ) {
+        check_click_on_object(xx,yy,mood);
+    }
+    else if (loctype == LOCTYPE_HOTSPOT)
+        RunHotspotInteraction (getloctype_index, mood);
+
+    int ciwas = play.check_interaction_only;
+    play.check_interaction_only = 0;
+
+    if (ciwas == 2)
+        return 1;
+
+    return 0;
+}
+
+void GetMessageText (int msg, char *buffer) {
+    VALIDATE_STRING(buffer);
+    get_message_text (msg, buffer, 0);
+}
+
+void SetSpeechFont (int fontnum) {
+    if ((fontnum < 0) || (fontnum >= game.numfonts))
+        quit("!SetSpeechFont: invalid font number.");
+    play.speech_font = fontnum;
+}
+
+void SetNormalFont (int fontnum) {
+    if ((fontnum < 0) || (fontnum >= game.numfonts))
+        quit("!SetNormalFont: invalid font number.");
+    play.normal_font = fontnum;
+}
+
+void _sc_AbortGame(char*texx, ...) {
+    char displbuf[STD_BUFFER_SIZE] = "!?";
+    va_list ap;
+    va_start(ap,texx);
+    my_sprintf(&displbuf[2], get_translation(texx), ap);
+    va_end(ap);
+
+    quit(displbuf);
+}
+
+int GetGraphicalVariable (const char *varName) {
+    InteractionVariable *theVar = FindGraphicalVariable(varName);
+    if (theVar == NULL) {
+        char quitmessage[120];
+        sprintf (quitmessage, "!GetGraphicalVariable: interaction variable '%s' not found", varName);
+        quit(quitmessage);
+        return 0;
+    }
+    return theVar->value;
+}
+
+void SetGraphicalVariable (const char *varName, int p_value) {
+    InteractionVariable *theVar = FindGraphicalVariable(varName);
+    if (theVar == NULL) {
+        char quitmessage[120];
+        sprintf (quitmessage, "!SetGraphicalVariable: interaction variable '%s' not found", varName);
+        quit(quitmessage);
+    }
+    else
+        theVar->value = p_value;
+}
+
+void scrWait(int nloops) {
+    if (nloops < 1)
+        quit("!Wait: must wait at least 1 loop");
+
+    play.wait_counter = nloops;
+    play.key_skip_wait = 0;
+    do_main_cycle(UNTIL_MOVEEND,(int)&play.wait_counter);
+}
+
+int WaitKey(int nloops) {
+    if (nloops < 1)
+        quit("!WaitKey: must wait at least 1 loop");
+
+    play.wait_counter = nloops;
+    play.key_skip_wait = 1;
+    do_main_cycle(UNTIL_MOVEEND,(int)&play.wait_counter);
+    if (play.wait_counter < 0)
+        return 1;
+    return 0;
+}
+
+int WaitMouseKey(int nloops) {
+    if (nloops < 1)
+        quit("!WaitMouseKey: must wait at least 1 loop");
+
+    play.wait_counter = nloops;
+    play.key_skip_wait = 3;
+    do_main_cycle(UNTIL_MOVEEND,(int)&play.wait_counter);
+    if (play.wait_counter < 0)
+        return 1;
+    return 0;
 }

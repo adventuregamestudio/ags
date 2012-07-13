@@ -1,13 +1,14 @@
 
-#include "ac/global_inventoryitem.h"
 #include "wgt2allg.h"
 #include "ac/ac_common.h"
 #include "acmain/ac_maindefines.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/global_gui.h"
+#include "ac/global_inventoryitem.h"
+#include "ac/global_translation.h"
 #include "ac/inventoryitem.h"
 #include "ac/invwindow.h"
-#include "acmain/ac_translation.h"
+#include "ac/properties.h"
 #include "gui/guimain.h"
 #include "gui/guiinv.h"
 #include "ac/event.h"
@@ -119,4 +120,12 @@ int IsInventoryInteractionAvailable (int item, int mood) {
     return 1;
 
   return 0;
+}
+
+int GetInvProperty (int item, const char *property) {
+    return get_int_property (&game.invProps[item], property);
+}
+
+void GetInvPropertyText (int item, const char *property, char *bufer) {
+    get_text_property (&game.invProps[item], property, bufer);
 }

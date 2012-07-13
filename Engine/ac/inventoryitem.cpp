@@ -4,9 +4,11 @@
 #include "ac/characterinfo.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/global_inventoryitem.h"
-#include "acmain/ac_mouse.h"
-#include "acmain/ac_string.h"
-#include "acmain/ac_translation.h"
+#include "ac/global_translation.h"
+#include "ac/mouse.h"
+#include "ac/properties.h"
+#include "ac/rundefines.h"
+#include "ac/string.h"
 
 
 extern GameSetupStruct game;
@@ -62,6 +64,18 @@ void InventoryItem_RunInteraction(ScriptInvItem *iitem, int mood) {
 
 int InventoryItem_CheckInteractionAvailable(ScriptInvItem *iitem, int mood) {
   return IsInventoryInteractionAvailable(iitem->id, mood);
+}
+
+int InventoryItem_GetProperty(ScriptInvItem *scii, const char *property) {
+    return get_int_property (&game.invProps[scii->id], property);
+}
+
+void InventoryItem_GetPropertyText(ScriptInvItem *scii, const char *property, char *bufer) {
+    get_text_property(&game.invProps[scii->id], property, bufer);
+}
+
+const char* InventoryItem_GetTextProperty(ScriptInvItem *scii, const char *property) {
+    return get_text_property_dynamic_string(&game.invProps[scii->id], property);
 }
 
 //=============================================================================

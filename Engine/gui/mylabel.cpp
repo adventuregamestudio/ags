@@ -2,10 +2,10 @@
 #include <string.h>
 #include "wgt2allg.h"
 #include "ali3d.h"
+#include "ac/display.h"
 #include "ac/gamesetup.h"
+#include "ac/string.h"
 #include "gui/guidefines.h"
-#include "acmain/ac_message.h"
-#include "acmain/ac_strings.h"
 #include "gui/mylabel.h"
 #include "gui/guidialoginternaldefines.h"
 

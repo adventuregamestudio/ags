@@ -96,11 +96,6 @@ extern int  numlines;
 extern void read_gui(FILE * iii, GUIMain * guiread, GameSetupStruct * gss, GUIMain** allocate = NULL);
 extern void write_gui(FILE * ooo, GUIMain * guiwrite, GameSetupStruct * gss);
 
-extern void removeBackslashBracket(char *lbuffer);
-// Break up the text into lines, using normal Western left-right style
-extern void split_lines_leftright(const char *todis, int wii, int fonnt);
-
-
 extern int loaded_game_file_version;
 extern int mousex, mousey;
 

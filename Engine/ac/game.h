@@ -14,6 +14,7 @@
 #ifndef __AGS_EE_AC__GAME_H
 #define __AGS_EE_AC__GAME_H
 
+#include "ac/ac_interaction.h"
 #include "ac/dynobj/scriptviewframe.h"
 #include "platform/file.h"
 
@@ -131,5 +132,15 @@ void initialize_skippable_cutscene();
 void stop_fast_forwarding();
 
 int __GetLocationType(int xxx,int yyy, int allowHotspot0);
+
+void display_switch_out();
+void display_switch_in();
+
+void replace_tokens(char*srcmes,char*destm, int maxlen = 99999);
+char *get_global_message (int msnum);
+void get_message_text (int msnum, char *buffer, char giveErr = 1);
+
+InteractionVariable *get_interaction_variable (int varindx);
+InteractionVariable *FindGraphicalVariable(const char *varName);
 
 #endif // __AGS_EE_AC__GAME_H

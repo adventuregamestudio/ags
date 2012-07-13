@@ -1,16 +1,17 @@
 #define USE_CLIB
 #include "ac/global_video.h"
 #include "wgt2allg.h"
-#include "acmain/ac_maindefines.h"
+#include "ali3d.h"
 #include "ac/ac_common.h"
-#include "ac/gamesetupstruct.h"
-#include "ac/global_game.h"
-#include "debug/debug.h"
-#include "acmain/ac_draw.h"
-#include "acmain/ac_mouse.h"
-#include "acmain/ac_record.h"
-#include "ac/gamestate.h"
+#include "acmain/ac_maindefines.h"
+#include "ac/draw.h"
 #include "ac/gamesetup.h"
+#include "ac/gamesetupstruct.h"
+#include "ac/gamestate.h"
+#include "ac/global_game.h"
+#include "ac/mouse.h"
+#include "ac/record.h"
+#include "debug/debug.h"
 #include "media/video/video.h"
 
 
@@ -26,6 +27,7 @@ extern block hicol_buf;
 extern block fli_buffer;
 extern IDriverDependantBitmap *fli_ddb;
 extern BITMAP *fli_target;
+extern IGraphicsDriver *gfxDriver;
 
 // defined in ac_screen
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;

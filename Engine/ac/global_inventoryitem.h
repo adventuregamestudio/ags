@@ -14,5 +14,7 @@ void GetInvName(int indx,char*buff);
 int  GetInvGraphic(int indx);
 void RunInventoryInteraction (int iit, int modd);
 int  IsInventoryInteractionAvailable (int item, int mood);
+int  GetInvProperty (int item, const char *property);
+void GetInvPropertyText (int item, const char *property, char *bufer);
 
 #endif // __AGS_EE_AC__GLOBALINVENTORYITEM_H

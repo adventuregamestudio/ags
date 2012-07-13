@@ -1,11 +1,11 @@
 
 #include "ac/viewport.h"
 #include "wgt2allg.h"
+#include "ac/draw.h"
 #include "ac/roomstruct.h"
 #include "ac/characterinfo.h"
 #include "ac/gamestate.h"
 #include "ac/gamesetup.h"
-#include "acmain/ac_draw.h"
 
 extern int offsetx, offsety;
 extern GameState play;

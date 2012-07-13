@@ -10,7 +10,7 @@
 #include "ac/ac_audioclip.h"        // AudioClipType
 #include "ac/ac_customproperties.h" // CustomProperties, CustomPropertySchema
 #include "ac/ac_interaction.h"      // NewInteraction
-#include "ac/ac_inventoryiteminfo.h"// InventoryItemInfo
+#include "ac/inventoryiteminfo.h"   // InventoryItemInfo
 #include "ac/ac_mousecursor.h"      // MouseCursor
 #include "ac/gamesetupstructbase.h"
 #include "ac/oldgamesetupstruct.h"

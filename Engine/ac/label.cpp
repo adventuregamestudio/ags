@@ -4,8 +4,8 @@
 #include "wgt2allg.h"
 #include "ac/ac_common.h"
 #include "ac/gamesetupstruct.h"
-#include "acmain/ac_string.h"
-#include "acmain/ac_translation.h"
+#include "ac/global_translation.h"
+#include "ac/string.h"
 
 extern int guis_need_update;
 extern GameSetupStruct game;

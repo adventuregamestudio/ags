@@ -11,7 +11,7 @@
 #include "debug/debug.h"
 
 #include "plugin/agsplugin.h"
-#include "acmain/ac_plugin.h"
+#include "plugin/pluginobjectreader.h"
 
 extern CCGUIObject ccDynamicGUIObject;
 extern CCCharacter ccDynamicCharacter;
@@ -23,6 +23,8 @@ extern CCObject    ccDynamicObject;
 extern CCDialog    ccDynamicDialog;
 extern ScriptDrawingSurface* dialogOptionsRenderingSurface;
 extern ScriptDialogOptionsRendering ccDialogOptionsRendering;
+extern PluginObjectReader pluginReaders[MAX_PLUGIN_OBJECT_READERS];
+extern int numPluginReaders;
 
 // *** De-serialization of script objects
 

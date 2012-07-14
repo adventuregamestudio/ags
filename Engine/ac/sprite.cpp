@@ -2,6 +2,7 @@
 #include "util/wgt2allg.h"
 #include "ali3d.h"
 #include "ac/common.h"
+#include "ac/draw.h"            // USE_15BIT_FIX
 #include "ac/gamesetupstruct.h"
 #include "ac/sprite.h"
 #include "platform/agsplatformdriver.h"
@@ -18,6 +19,7 @@ extern int our_eip, eip_guinum, eip_guiobj;
 extern color palette[256];
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
+extern int convert_16bit_bgr;
 
 void get_new_size_for_sprite (int ee, int ww, int hh, int &newwid, int &newhit) {
     newwid = ww * current_screen_resolution_multiplier;

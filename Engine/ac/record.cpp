@@ -2,8 +2,7 @@
 #define IS_RECORD_UNIT
 #include "util/wgt2allg.h"
 #include "ac/common.h"
-#include "acmain/ac_maindefines.h"
-#include "ac/audiodefines.h"
+#include "media/audio/audiodefines.h"
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -12,6 +11,7 @@
 #include "ac/keycode.h"
 #include "ac/mouse.h"
 #include "ac/record.h"
+#include "main/main.h"
 #include "util/string_utils.h"
 #include "gfx/gfxfilter.h"
 #include "mousew32.h"

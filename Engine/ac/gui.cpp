@@ -12,7 +12,7 @@
 #include "ac/interfacebutton.h"
 #include "ac/mouse.h"
 #include "ac/roomstruct.h"
-#include "ac/rundefines.h"
+#include "ac/runtime_defines.h"
 #include "ac/dynobj/cc_guiobject.h"
 #include "ac/dynobj/scriptgui.h"
 #include "script/cc_instance.h"

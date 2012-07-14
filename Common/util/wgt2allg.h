@@ -273,10 +273,6 @@ extern void wtexttransparent(int);
 extern void my_destroy_bitmap(BITMAP *bitmap);
 */
 
-
-
-
-
 #ifdef __cplusplus
 extern "C"
 {
@@ -288,6 +284,9 @@ extern "C"
 }
 #endif
 
+
+// archive attributes to search for - al_findfirst breaks with 0
+#define FA_SEARCH -1
 
 
 #endif

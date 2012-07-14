@@ -3,7 +3,7 @@
 #include "ac/dynobj/scriptdrawingsurface.h"
 #include "ac/roomstruct.h"
 #include "ac/spritecache.h"
-#include "ac/rundefines.h"
+#include "ac/runtime_defines.h"
 #include "ac/common.h"
 #include "ac/drawingsurface.h"
 #include "ac/gamestate.h"

@@ -15,7 +15,7 @@
 
 #include "debug/agseditordebugger.h"
 #include "script/cc_instance.h"
-#include "ac/rundefines.h"
+#include "ac/runtime_defines.h"
 #include "ac/gamestate.h"
 #include "platform/agsplatformdriver.h"
 

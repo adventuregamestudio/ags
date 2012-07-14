@@ -13,7 +13,7 @@
 #include "ac/properties.h"
 #include "ac/roomstatus.h"
 #include "ac/roomstruct.h"
-#include "ac/rundefines.h"
+#include "ac/runtime_defines.h"
 #include "ac/string.h"
 #include "ac/walkablearea.h"
 #include "debug/debug.h"

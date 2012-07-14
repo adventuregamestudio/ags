@@ -17,6 +17,16 @@
 #define REC_SPEECHFINISHED 8
 #define REC_ENDOFFILE  0x6f
 
+// If this is defined for record unit it will cause endless recursion!
+#ifndef IS_RECORD_UNIT
+#undef kbhit
+#define mgetbutton rec_mgetbutton
+#define domouse rec_domouse
+#define misbuttondown rec_misbuttondown
+#define kbhit rec_kbhit
+#define getch rec_getch
+#endif
+
 void write_record_event (int evnt, int dlen, short *dbuf);
 void disable_replay_playback ();
 void done_playback_event (int size);

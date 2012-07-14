@@ -1143,10 +1143,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\ac\audiodefines.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\ac\button.h"
 					>
 				</File>
@@ -1463,7 +1459,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\ac\rundefines.h"
+					RelativePath="..\..\Engine\ac\runtime_defines.h"
 					>
 				</File>
 				<File
@@ -1732,14 +1728,6 @@
 				</File>
 			</Filter>
 			<Filter
-				Name="acmain"
-				>
-				<File
-					RelativePath="..\..\Engine\acmain\ac_maindefines.h"
-					>
-				</File>
-			</Filter>
-			<Filter
 				Name="script"
 				>
 				<File
@@ -1790,6 +1778,10 @@
 					RelativePath="..\..\Engine\platform\agsplatformdriver.h"
 					>
 				</File>
+				<File
+					RelativePath="..\..\Engine\platform\override_defines.h"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="media"
@@ -1803,6 +1795,10 @@
 					</File>
 					<File
 						RelativePath="..\..\Engine\media\audio\audio.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\media\audio\audiodefines.h"
 						>
 					</File>
 					<File
@@ -1967,7 +1963,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\gui\guidialoginternaldefines.h"
+					RelativePath="..\..\Engine\gui\guidialoginternaldefs.h"
 					>
 				</File>
 				<File

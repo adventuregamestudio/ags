@@ -13,7 +13,6 @@
 #include <stdio.h>
 #include "util/wgt2allg.h"
 #include "ali3d.h"
-#include "acmain/ac_maindefines.h"
 #include "ac/math.h"
 #include "script/script_runtime.h"
 #include "gui/animatingguibutton.h"

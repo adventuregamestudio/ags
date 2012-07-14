@@ -2,7 +2,6 @@
 #include "ac/invwindow.h"
 #include "util/wgt2allg.h"
 #include "ac/common.h"
-#include "acmain/ac_maindefines.h"
 #include "ac/characterextras.h"
 #include "ac/characterinfo.h"
 #include "ac/draw.h"

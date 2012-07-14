@@ -10,6 +10,24 @@
 #include "ac/common_defines.h"
 #include "ali3d.h"
 
+// [IKM] personally I do not see much sense in this,
+// memcpyfast alias is used only once in the Engine
+#define memcpyfast memcpy
+#define IS_ANTIALIAS_SPRITES usetup.enable_antialiasing && (play.disable_antialiasing == 0)
+
+// Allegro 4 has switched 15-bit colour to BGR instead of RGB, so
+// in this case we need to convert the graphics on load
+#if ALLEGRO_DATE > 19991010
+#define USE_15BIT_FIX
+#endif
+
+#define getr32(xx) ((xx >> _rgb_r_shift_32) & 0xFF)
+#define getg32(xx) ((xx >> _rgb_g_shift_32) & 0xFF)
+#define getb32(xx) ((xx >> _rgb_b_shift_32) & 0xFF)
+#define geta32(xx) ((xx >> _rgb_a_shift_32) & 0xFF)
+#define makeacol32(r,g,b,a) ((r << _rgb_r_shift_32) | (g << _rgb_g_shift_32) | (b << _rgb_b_shift_32) | (a << _rgb_a_shift_32))
+
+
 struct CachedActSpsData {
     int xWas, yWas;
     int baselineWas;

@@ -7,6 +7,24 @@
 #ifndef __AGS_EE_MAIN__MAIN_H
 #define __AGS_EE_MAIN__MAIN_H
 
+#ifdef NO_MP3_PLAYER
+#define SPECIAL_VERSION "NMP"
+#else
+#define SPECIAL_VERSION ""
+#endif
+
+// Version and build numbers
+#define AC_VERSION_TEXT "3.21 "
+#define ACI_VERSION_TEXT "3.21.1115"SPECIAL_VERSION
+// this needs to be updated if the "play" struct changes
+#define LOWEST_SGVER_COMPAT "3.20.1103"SPECIAL_VERSION
+
+#if defined(WINDOWS_VERSION) && !defined(_DEBUG)
+#define USE_CUSTOM_EXCEPTION_HANDLER
+#endif
+
+//=============================================================================
+
 #ifdef WINDOWS_VERSION
 
 extern int wArgc;

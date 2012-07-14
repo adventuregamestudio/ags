@@ -1923,8 +1923,6 @@ void walk_or_move_character(CharacterInfo *chaa, int x, int y, int blocking, int
 
 }
 
-#include "acmain/ac_maindefines.h"
-
 int is_valid_character(int newchar) {
     if ((newchar < 0) || (newchar >= game.numcharacters)) return 0;
     return 1;

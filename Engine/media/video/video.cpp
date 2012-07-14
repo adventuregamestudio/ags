@@ -3,7 +3,6 @@
 #include "video.h"
 #include "ali3d.h"
 #include "apeg.h"
-#include "acmain/ac_maindefines.h"
 #include "ac/draw.h"
 #include "ac/file.h"
 #include "ac/gamesetupstruct.h"

@@ -2,9 +2,9 @@
 #include <string.h>
 #include "util/wgt2allg.h"
 #include "ac/common.h"
-#include "acmain/ac_maindefines.h"
 #include "ac/gamestate.h"
 #include "ac/global_translation.h"
+#include "ac/string.h"
 #include "ac/tree_map.h"
 #include "platform/agsplatformdriver.h"
 #include "plugin/agsplugin.h"

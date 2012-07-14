@@ -3,7 +3,6 @@
 #include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "ac/common_defines.h"
-#include "acmain/ac_maindefines.h"
 #include "ac/characterinfo.h"
 #include "ac/draw.h"
 #include "ac/event.h"
@@ -14,6 +13,7 @@
 #include "ac/properties.h"
 #include "ac/roomstatus.h"
 #include "ac/roomstruct.h"
+#include "ac/string.h"
 #include "debug/debug.h"
 #include "script/script.h"
 

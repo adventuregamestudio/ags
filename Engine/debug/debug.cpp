@@ -19,13 +19,14 @@
 #include <stdio.h>
 #include "util/wgt2allg.h"
 #include "ac/common.h"
-#include "debug/debug.h"
 #include "ac/roomstruct.h"
-#include "script/script_common.h"
-#include "script/cc_error.h"
+#include "ac/runtime_defines.h"
+#include "debug/debug.h"
 #include "gui/dynamicarray.h"
 #include "media/audio/audio.h"
 #include "script/script.h"
+#include "script/script_common.h"
+#include "script/cc_error.h"
 
 extern char check_dynamic_sprites_at_exit;
 extern int displayed_room;
@@ -62,12 +63,6 @@ IAGSEditorDebugger *GetEditorDebugger(const char *instanceToken)
 }
 
 #endif
-
-
-
-
-#include "acmain/ac_maindefines.h"
-#include "ac/rundefines.h"
 
 int debug_flags=0;
 

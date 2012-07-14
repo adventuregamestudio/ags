@@ -1,7 +1,7 @@
 #ifndef __AC_GAMESTATE_H
 #define __AC_GAMESTATE_H
 
-#include "ac/rundefines.h"
+#include "ac/runtime_defines.h"
 #include "media/audio/queuedaudioitem.h"
 #include "platform/file.h"
 

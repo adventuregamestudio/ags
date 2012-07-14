@@ -6,7 +6,7 @@
 #include "ac/record.h"
 #include "gui/mypushbutton.h"
 #include "gui/guidialog.h"
-#include "gui/guidialoginternaldefines.h"
+#include "gui/guidialoginternaldefs.h"
 #include "main/game_run.h"
 #include "media/audio/audio.h"
 

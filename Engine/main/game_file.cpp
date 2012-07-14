@@ -32,6 +32,7 @@
 #include "ac/dynobj/all_scriptclasses.h"
 #include "debug/debug.h"
 #include "gui/guilabel.h"
+#include "main/main.h"
 #include "platform/agsplatformdriver.h"
 #include "script/exports.h"
 #include "script/script.h"

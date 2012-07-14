@@ -7,7 +7,7 @@
 #include "ac/string.h"
 #include "gui/guidefines.h"
 #include "gui/mylabel.h"
-#include "gui/guidialoginternaldefines.h"
+#include "gui/guidialoginternaldefs.h"
 
 extern GameSetup usetup;
 // ac_guimain

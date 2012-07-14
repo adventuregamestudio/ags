@@ -1,11 +1,12 @@
 
 
 #include <stdio.h>
-#include "acmain/ac_maindefines.h"
 
 #ifdef WINDOWS_VERSION
+#define UNICODE
 #include "windows.h"
 #include <crtdbg.h>
+#include "main/main.h"
 
 CONTEXT cpustate;
 EXCEPTION_RECORD excinfo;

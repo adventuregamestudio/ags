@@ -550,8 +550,6 @@ SOUNDCLIP *load_sound_clip_from_old_style_number(bool isMusic, int indexNumber, 
 
 //=============================================================================
 
-#include "acmain/ac_maindefines.h"
-
 int last_sound_played[MAX_SOUND_CHANNELS + 1];
 
 void force_audiostream_include() {

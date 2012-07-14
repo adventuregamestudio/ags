@@ -1,5 +1,5 @@
-#ifndef __AC_RUNDEFINES_H
-#define __AC_RUNDEFINES_H
+#ifndef __AC_RUNTIMEDEFINES_H
+#define __AC_RUNTIMEDEFINES_H
 
 // Max script string length
 #define MAX_MAXSTRLEN 200
@@ -142,4 +142,4 @@
 
 #include "ac/common_defines.h"
 
-#endif // __AC_RUNDEFINES_H
+#endif // __AC_RUNTIMEDEFINES_H

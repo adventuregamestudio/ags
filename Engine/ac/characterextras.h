@@ -7,7 +7,7 @@
 #ifndef __AGS_EE_AC__CHARACTEREXTRAS_H
 #define __AGS_EE_AC__CHARACTEREXTRAS_H
 
-#include "ac/rundefines.h"
+#include "ac/runtime_defines.h"
 
 struct CharacterExtras {
     // UGLY UGLY UGLY!! The CharacterInfo struct size is fixed because it's

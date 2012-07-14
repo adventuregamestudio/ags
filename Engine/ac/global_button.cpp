@@ -1,10 +1,10 @@
 
 #include "ac/global_button.h"
 #include "util/wgt2allg.h"
-#include "acmain/ac_maindefines.h"
 #include "ac/common.h"
 #include "ac/button.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/string.h"
 #include "gui/guimain.h"
 #include "gui/guibutton.h"
 

@@ -6,7 +6,7 @@
 #ifndef __AGS_EE_GUI__ANIMATINGGUIBUTTON_H
 #define __AGS_EE_GUI__ANIMATINGGUIBUTTON_H
 
-#include "ac/rundefines.h"
+#include "ac/runtime_defines.h"
 
 struct AnimatingGUIButton {
     // index into guibuts array, GUI, button

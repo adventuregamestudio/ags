@@ -18,7 +18,7 @@
 #ifndef __AGS_EE_GUI__CSCIDIALOG_H
 #define __AGS_EE_GUI__CSCIDIALOG_H
 
-#include "gui/guidialoginternaldefines.h"
+#include "gui/guidialoginternaldefs.h"
 
 int  WINAPI _export CSCIGetVersion();
 int  WINAPI _export CSCIDrawWindow(int xx, int yy, int wid, int hit);

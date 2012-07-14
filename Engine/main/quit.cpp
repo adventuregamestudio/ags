@@ -26,6 +26,7 @@
 #include "ac/translation.h"
 #include "debug/agseditordebugger.h"
 #include "debug/debug.h"
+#include "main/main.h"
 #include "main/mainheader.h"
 #include "main/quit.h"
 #include "ac/spritecache.h"

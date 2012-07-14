@@ -5,7 +5,6 @@
 #include "ac/common.h"
 #include "font/agsfontrenderer.h"
 #include "font/fonts.h"
-#include "acmain/ac_maindefines.h"
 #include "ac/character.h"
 #include "ac/draw.h"
 #include "ac/game.h"

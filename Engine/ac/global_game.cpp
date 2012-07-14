@@ -3,7 +3,6 @@
 #include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "ac/view.h"
-#include "acmain/ac_maindefines.h"
 #include "ac/character.h"
 #include "ac/draw.h"
 #include "ac/dynamicsprite.h"

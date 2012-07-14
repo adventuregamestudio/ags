@@ -7,6 +7,10 @@
 #ifndef __AGS_EE_AC__MATH_H
 #define __AGS_EE_AC__MATH_H
 
+// MACPORT FIX 9/6/5: undef M_PI first
+#undef M_PI
+#define M_PI 3.14159265358979323846
+
 // unfortunately MSVC and GCC automatically push floats as doubles
 // to functions, thus we need to manually access it as 32-bit
 #define SCRIPT_FLOAT(x) long __script_float##x
@@ -44,5 +48,6 @@ FLOAT_RETURN_TYPE Math_GetPi();
 FLOAT_RETURN_TYPE Math_Sqrt(SCRIPT_FLOAT(value));
 
 int __Rand(int upto);
+#define Random __Rand
 
 #endif // __AGS_EE_AC__MATH_H

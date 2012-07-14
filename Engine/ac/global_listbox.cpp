@@ -1,8 +1,8 @@
 
 #include "ac/global_listbox.h"
-#include "acmain/ac_maindefines.h"
 #include "ac/common.h"
 #include "ac/listbox.h"
+#include "ac/string.h"
 
 void ListBoxClear(int guin, int objn) {
   GUIListBox*guisl=is_valid_listbox(guin,objn);

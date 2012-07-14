@@ -11,7 +11,7 @@ You MAY NOT compile your own builds of the engine without making it EXPLICITLY
 CLEAR that the code has been altered from the Standard Version.
 */
 #include "util/wgt2allg.h"
-#include "ac/audiodefines.h"
+#include "media/audio/audiodefines.h"
 #include "media/audio/sound.h"
 #include "media/audio/audiointernaldefs.h"
 #include "media/audio/clip_mywave.h"

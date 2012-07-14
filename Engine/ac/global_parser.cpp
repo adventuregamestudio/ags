@@ -1,8 +1,8 @@
 
 #include "ac/global_parser.h"
-#include "acmain/ac_maindefines.h"
 #include "ac/common.h"
 #include "ac/gamestate.h"
+#include "ac/string.h"
 
 extern GameState play;
 

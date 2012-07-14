@@ -1,10 +1,9 @@
 
 #include <string.h>
 #include "ac/common.h"
-#include "acmain/ac_maindefines.h"
 #include "ac/global_string.h"
 #include "ac/global_translation.h"
-#include "ac/rundefines.h"
+#include "ac/runtime_defines.h"
 #include "ac/string.h"
 
 extern int MAXSTRLEN;

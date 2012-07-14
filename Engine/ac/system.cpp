@@ -2,8 +2,7 @@
 #include "ac/common.h"
 #include "util/wgt2allg.h"
 #include "ali3d.h"
-#include "acmain/ac_maindefines.h"
-#include "ac/audiodefines.h"
+#include "media/audio/audiodefines.h"
 #include "ac/draw.h"
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
@@ -12,6 +11,7 @@
 #include "ac/system.h"
 #include "ac/dynobj/scriptsystem.h"
 #include "debug/debug.h"
+#include "main/main.h"
 
 extern GameSetup usetup;
 extern GameState play;

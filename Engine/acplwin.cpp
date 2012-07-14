@@ -22,7 +22,7 @@
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/global_display.h"
-#include "ac/rundefines.h"
+#include "ac/runtime_defines.h"
 #include "ac/string.h"
 #include "main/engine.h"
 #include "media/audio/audio.h"

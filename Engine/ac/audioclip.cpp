@@ -51,6 +51,3 @@ ScriptAudioChannel* AudioClip_PlayQueued(ScriptAudioClip *clip, int priority, in
 {
     return play_audio_clip(clip, priority, repeat, 0, true);
 }
-
-#include "acmain/ac_maindefines.h"
-

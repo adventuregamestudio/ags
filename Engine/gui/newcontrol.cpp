@@ -1,7 +1,7 @@
 
 #include "util/wgt2allg.h"
 #include "gui/newcontrol.h"
-#include "gui/guidialoginternaldefines.h"
+#include "gui/guidialoginternaldefs.h"
 
 extern int topwindowhandle;
 extern int mousex, mousey;

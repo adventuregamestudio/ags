@@ -3,7 +3,7 @@
 #include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "ac/overlay.h"
-#include "ac/rundefines.h"
+#include "ac/runtime_defines.h"
 #include "ac/screenoverlay.h"
 
 extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];

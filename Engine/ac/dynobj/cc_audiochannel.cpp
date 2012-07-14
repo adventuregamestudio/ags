@@ -1,6 +1,6 @@
 
 #include "ac/dynobj/cc_audiochannel.h"
-#include "ac/audiodefines.h"
+#include "media/audio/audiodefines.h"
 #include "ac/dynobj/scriptaudiochannel.h"
 
 extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];

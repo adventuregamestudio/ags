@@ -3,7 +3,6 @@
 #include "util/wgt2allg.h"
 #include "ali3d.h"
 #include "ac/common.h"
-#include "acmain/ac_maindefines.h"
 #include "ac/characterinfo.h"
 #include "ac/draw.h"
 #include "ac/game.h"
@@ -23,6 +22,7 @@
 #include "gui/guidialog.h"
 #include "script/cc_options.h"
 #include "debug/debug.h"
+#include "main/main.h"
 #include "ac/spritecache.h"
 
 extern GameSetupStruct game;

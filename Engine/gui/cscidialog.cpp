@@ -7,7 +7,7 @@
 #include "ac/gui.h"
 #include "ac/mouse.h"
 #include "ac/record.h"
-#include "ac/rundefines.h"
+#include "ac/runtime_defines.h"
 #include "gui/cscidialog.h"
 #include "gui/guidialog.h"
 #include "gui/guimain.h"

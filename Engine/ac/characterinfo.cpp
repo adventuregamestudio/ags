@@ -6,7 +6,7 @@
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/roomstruct.h"
-#include "ac/audiodefines.h"
+#include "media/audio/audiodefines.h"
 #include "ac/character.h"
 #include "ac/characterextras.h"
 #include "ac/gamestate.h"

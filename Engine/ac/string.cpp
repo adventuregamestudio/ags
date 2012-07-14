@@ -2,12 +2,11 @@
 #include "ac/string.h"
 #include "util/wgt2allg.h"  //strupr and strlwr on Linux
 #include "ac/common.h"
-#include "acmain/ac_maindefines.h"
 #include "ac/display.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_translation.h"
-#include "ac/rundefines.h"
+#include "ac/runtime_defines.h"
 #include "ac/dynobj/scriptstring.h"
 #include "debug/debug.h"
 #include "util/string_utils.h"

@@ -9,7 +9,7 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/global_overlay.h"
 #include "ac/global_translation.h"
-#include "ac/rundefines.h"
+#include "ac/runtime_defines.h"
 #include "ac/screenoverlay.h"
 #include "ac/string.h"
 

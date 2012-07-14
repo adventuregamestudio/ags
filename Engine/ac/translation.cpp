@@ -5,7 +5,7 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
-#include "ac/rundefines.h"
+#include "ac/runtime_defines.h"
 #include "ac/translation.h"
 #include "ac/tree_map.h"
 #include "util/misc.h"

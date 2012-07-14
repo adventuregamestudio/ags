@@ -1,7 +1,6 @@
 
 #include <stdio.h>
 #include "util/wgt2allg.h"
-#include "acmain/ac_maindefines.h"
 #include "ac/common.h"
 #include "ac/guicontrol.h"
 #include "ac/global_gui.h"

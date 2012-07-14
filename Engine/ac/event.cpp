@@ -3,7 +3,6 @@
 #include "util/wgt2allg.h"
 #include "ali3d.h"
 #include "ac/common.h"
-#include "acmain/ac_maindefines.h"
 #include "ac/draw.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"

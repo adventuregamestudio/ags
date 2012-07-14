@@ -3,8 +3,8 @@
 //
 //
 //=============================================================================
-#ifndef __AGS_EE_GUI__GUIDIALOGINTERNALDEFINES_H
-#define __AGS_EE_GUI__GUIDIALOGINTERNALDEFINES_H
+#ifndef __AGS_EE_GUI__GUIDIALOGINTERNALDEFS_H
+#define __AGS_EE_GUI__GUIDIALOGINTERNALDEFS_H
 
 #include "gui/guidialogdefines.h"
 
@@ -30,4 +30,4 @@ extern int rec_kbhit();
 #define mbutrelease !rec_misbuttondown
 #define TEXT_HT usetup.textheight
 
-#endif // __AGS_EE_GUI__GUIDIALOGINTERNALDEFINES_H
+#endif // __AGS_EE_GUI__GUIDIALOGINTERNALDEFS_H

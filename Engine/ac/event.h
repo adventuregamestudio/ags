@@ -7,7 +7,7 @@
 #ifndef __AGS_EE_AC__EVENT_H
 #define __AGS_EE_AC__EVENT_H
 
-#include "ac/rundefines.h"
+#include "ac/runtime_defines.h"
 
 // parameters to run_on_event
 #define GE_LEAVE_ROOM 1

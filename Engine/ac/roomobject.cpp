@@ -5,7 +5,7 @@
 #include "ac/common.h"
 #include "ac/common_defines.h"
 #include "ac/gamestate.h"
-#include "ac/rundefines.h"
+#include "ac/runtime_defines.h"
 #include "ac/viewframe.h"
 #include "main/update.h"
 

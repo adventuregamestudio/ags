@@ -8,7 +8,7 @@
 #define USE_ALFONT
 #endif
 #include "util/wgt2allg.h"
-//#include "acruntim.h"
+#include "ac/gamesetupstruct.h"
 
 #ifdef USE_ALFONT
 #include "alfont.h"
@@ -16,6 +16,7 @@
 
 // For engine these are defined in ac.cpp
 extern int our_eip;
+extern GameSetupStruct game;
 
 // For engine these are defined in clib32.cpp
 extern "C"
@@ -48,4 +49,9 @@ int flength_shared(FILE *ffi)
 {
   // clibfopen will have set last_opened_size
   return last_opened_size;
+}
+
+void set_font_outline(int font_number, int outline_type)
+{
+    game.fontoutline[font_number] = FONT_OUTLINE_AUTO;
 }

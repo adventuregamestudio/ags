@@ -396,14 +396,8 @@ int GetTextDisplayTime (char *text, int canberel) {
 }
 
 bool ShouldAntiAliasText() {
-    // Anti-aliasing produces unreadable text on all non-Windows platforms.
-#if !defined(WINDOWS_VERSION)
-    return false;
-#else
     return (game.options[OPT_ANTIALIASFONTS] != 0);
-#endif
 }
-
 
 void wouttext_outline(int xxp, int yyp, int usingfont, char*texx) {
     int otextc=textcol;

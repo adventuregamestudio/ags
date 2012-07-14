@@ -117,16 +117,6 @@ void GameSetupStruct::read_font_flags(FILE *iii, GAME_STRUCT_READ_DATA &read_dat
 {
     fread(&fontflags[0], 1, numfonts, iii);
     fread(&fontoutline[0], 1, numfonts, iii);
-
-#if !defined(WINDOWS_VERSION)
-    // Outline fonts are misaligned on platforms other than Windows
-    int i;
-    for (i = 0; i < MAX_FONTS; i++)
-    {
-        if (fontoutline[i] >= 0)
-            fontoutline[i] = FONT_OUTLINE_AUTO;
-    }
-#endif
 }
 
 void GameSetupStruct::read_sprite_flags(FILE*iii, GAME_STRUCT_READ_DATA &read_data)

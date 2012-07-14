@@ -32,3 +32,5 @@ Solutions/Compiler.Lib/Release
 Solutions/Common.Lib/Release
 *.csproj.user
 Solutions/References
+*.idc
+Engine/version.aps

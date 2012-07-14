@@ -17,10 +17,33 @@
 //
 
 #include "main/mainheader.h"
+#include "gfx/ali3d.h"
+#include "ac/common.h"
+#include "ac/character.h"
+#include "ac/characterextras.h"
+#include "ac/characterinfo.h"
+#include "ac/draw.h"
+#include "ac/game.h"
+#include "ac/gamesetup.h"
+#include "ac/gamesetupstruct.h"
+#include "ac/global_character.h"
+#include "ac/global_game.h"
+#include "ac/gui.h"
+#include "ac/lipsync.h"
+#include "ac/objectcache.h"
+#include "ac/roomstatus.h"
+#include "ac/translation.h"
+#include "ac/viewframe.h"
+#include "ac/dynobj/scriptobject.h"
+#include "ac/dynobj/scriptsystem.h"
+#include "debug/debug.h"
+#include "main/config.h"
+#include "main/game_start.h"
 #include "main/graphics_mode.h"
 #include "main/engine.h"
 #include "main/main.h"
 #include "media/audio/sound.h"
+#include "ac/spritecache.h"
 
 #if defined(MAC_VERSION) || (defined(LINUX_VERSION) && !defined(PSP_VERSION))
 #include <pthread.h>
@@ -31,6 +54,40 @@ pthread_t soundthread;
 extern char **global_argv;
 #endif
 
+
+extern char* game_file_name;
+extern char check_dynamic_sprites_at_exit;
+extern int our_eip;
+extern volatile char want_exit, abort_engine;
+extern GameSetup usetup;
+extern GameSetupStruct game;
+extern RoomStatus *roomstats;
+extern int proper_exit;
+extern char pexbuf[STD_BUFFER_SIZE];
+extern char saveGameDirectory[260];
+extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
+extern SpriteCache spriteset;
+extern ObjectCache objcache[MAX_INIT_SPR];
+extern ScriptObject scrObj[MAX_INIT_SPR];
+extern ViewStruct*views;
+extern GUIMain*guis;
+extern int displayed_room;
+extern int eip_guinum;
+extern int eip_guiobj;
+extern const char *replayTempFile;
+extern SpeechLipSyncLine *splipsync;
+extern int numLipLines, curLipLine, curLipLinePhenome;
+extern int scrnwid,scrnhit;
+extern ScriptSystem scsystem;
+extern int final_scrn_wid,final_scrn_hit,final_col_dep;
+extern IGraphicsDriver *gfxDriver;
+extern block virtual_screen;
+extern block *actsps;
+extern color palette[256];
+extern CharacterExtras *charextra;
+extern CharacterInfo*playerchar;
+extern block *guibg;
+extern IDriverDependantBitmap **guibgbmp;
 
 char *music_file;
 char *speech_file;
@@ -51,6 +108,15 @@ void engine_read_config(int argc,char*argv[])
 
     set_uformat(U_ASCII);
 }
+
+#define ALLEGRO_KEYBOARD_HANDLER
+// KEYBOARD HANDLER
+#if defined(LINUX_VERSION) || defined(MAC_VERSION)
+extern int myerrno;
+#else
+int errno;
+#define myerrno errno
+#endif
 
 int engine_init_allegro()
 {

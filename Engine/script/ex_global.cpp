@@ -12,7 +12,7 @@
 
 #include "script/symbol_registry.h"
 #include <string.h>
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/gamestate.h"
 
 void register_global_script_functions()

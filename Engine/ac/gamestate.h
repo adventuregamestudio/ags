@@ -1,8 +1,9 @@
 #ifndef __AC_GAMESTATE_H
 #define __AC_GAMESTATE_H
 
-#include "ac/rundefines.h"
+#include "ac/runtime_defines.h"
 #include "media/audio/queuedaudioitem.h"
+#include "platform/file.h"
 
 // Adding to this might need to modify AGSDEFNS.SH and AGSPLUGIN.H
 struct GameState {
@@ -158,6 +159,9 @@ struct GameState {
     int   ignore_user_input_after_text_timeout_ms;
     unsigned long ignore_user_input_until_time;
     int   default_audio_type_volumes[MAX_AUDIO_TYPES];
+
+    void ReadFromFile(FILE *f);
+    void WriteToFile(FILE *f);
 };
 
 #endif // __AC_GAMESTATE_H

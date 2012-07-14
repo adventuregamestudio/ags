@@ -1,15 +1,18 @@
 
 #include "ac/global_region.h"
-#include "wgt2allg.h"
-#include "ac/ac_common.h"
-#include "ac/ac_roomstruct.h"
+#include "util/wgt2allg.h"
+#include "ac/common.h"
+#include "ac/draw.h"
 #include "ac/region.h"
 #include "ac/roomstatus.h"
-#include "acmain/ac_draw.h"
+#include "ac/roomstruct.h"
 #include "debug/debug.h"
+#include "script/script.h"
 
 extern roomstruct thisroom;
 extern RoomStatus*croom;
+extern char*evblockbasename;
+extern int evblocknum;
 
 int GetRegionAt (int xxx, int yyy) {
     // if the co-ordinates are off the edge of the screen,
@@ -119,4 +122,33 @@ void EnableGroundLevelAreas() {
     play.ground_level_areas_disabled = 0;
 
     DEBUG_CONSOLE("Ground-level areas re-enabled");
+}
+
+void RunRegionInteraction (int regnum, int mood) {
+    if ((regnum < 0) || (regnum >= MAX_REGIONS))
+        quit("!RunRegionInteraction: invalid region speicfied");
+    if ((mood < 0) || (mood > 2))
+        quit("!RunRegionInteraction: invalid event specified");
+
+    // We need a backup, because region interactions can run
+    // while another interaction (eg. hotspot) is in a Wait
+    // command, and leaving our basename would call the wrong
+    // script later on
+    char *oldbasename = evblockbasename;
+    int   oldblocknum = evblocknum;
+
+    evblockbasename = "region%d";
+    evblocknum = regnum;
+
+    if (thisroom.regionScripts != NULL)
+    {
+        run_interaction_script(thisroom.regionScripts[regnum], mood);
+    }
+    else
+    {
+        run_interaction_event(&croom->intrRegion[regnum], mood);
+    }
+
+    evblockbasename = oldbasename;
+    evblocknum = oldblocknum;
 }

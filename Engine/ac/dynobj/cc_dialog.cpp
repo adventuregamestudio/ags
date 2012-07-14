@@ -1,7 +1,8 @@
 
 #include "ac/dynobj/cc_dialog.h"
-#include "ac/ac_dialog.h"
+#include "ac/dialogtopic.h"
 #include "ac/dynobj/scriptdialog.h"
+#include "ac/gamestructdefines.h"
 
 extern ScriptDialog scrDialog[MAX_DIALOG];
 

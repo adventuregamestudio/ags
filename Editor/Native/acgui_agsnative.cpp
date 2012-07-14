@@ -4,21 +4,16 @@
 
 // Headers, as they are in acgui.cpp
 #pragma unmanaged
-//#include "wgt2allg_nofunc.h"
-#include "wgt2allg.h"
-//#include "acroom_nofunc.h"
-//#include "acruntim.h"
-//#include "acgui.h"
-#include "acgui/ac_guimain.h"
-#include "acgui/ac_guilabel.h"
-#include "acgui/ac_guitextbox.h"
-#include "acgui/ac_guibutton.h"
-#include "acgui/ac_guilistbox.h"
+#include "util/wgt2allg.h"
+#include "gui/guimain.h"
+#include "gui/guilabel.h"
+#include "gui/guitextbox.h"
+#include "gui/guibutton.h"
+#include "gui/guilistbox.h"
+#include "util/string_utils.h"
 #include <ctype.h>
 
-#include "bigend.h"
-
-#undef CROOM_NOFUNCTIONS
+#include "platform/bigend.h"
 
 //=============================================================================
 // AGS.Native-specific implementation split out of acgui.h
@@ -66,6 +61,8 @@ void GUILabel::Draw_replace_macro_tokens(char *oritext, char *text)
   strcpy(oritext, text);
 }
 
+//-----------------------------------------------------------------------------
+
 void GUILabel::Draw_split_lines(char *teptr, int wid, int font, int &numlines)
 {
   numlines=0;
@@ -84,12 +81,6 @@ void GUIListBox::Draw_items_fix()
   numItems = 2;
   items[0] = "Sample selected";
   items[1] = "Sample item";
-  //
-  // [IKM] 2012-06-08: a-a-a-and just to test this thing is working....
-  numItems = 3;
-  items[2] = "This item means HACK!! >:]";
-  // ^_^
-  //
 }
 
 void GUIListBox::Draw_items_unfix()

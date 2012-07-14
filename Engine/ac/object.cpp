@@ -1,25 +1,24 @@
 
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/object.h"
-#include "ali3d.h"
-#include "ac/ac_common.h"
-#include "ac/ac_gamesetupstruct.h"
-#include "ac/ac_object.h"
-#include "ac/ac_roomstruct.h"
+#include "gfx/ali3d.h"
+#include "ac/common.h"
+#include "ac/gamesetupstruct.h"
+#include "ac/draw.h"
 #include "ac/character.h"
 #include "ac/global_object.h"
+#include "ac/global_translation.h"
 #include "ac/objectcache.h"
 #include "ac/path.h"
+#include "ac/properties.h"
 #include "ac/roomstatus.h"
-#include "acmain/ac_customproperties.h"
-#include "acmain/ac_draw.h"
-#include "acmain/ac_string.h"
-#include "acmain/ac_translation.h"
-#include "acmain/ac_walkablearea.h"
-#include "ac/rundefines.h"
+#include "ac/roomstruct.h"
+#include "ac/runtime_defines.h"
+#include "ac/string.h"
+#include "ac/walkablearea.h"
 #include "debug/debug.h"
 #include "main/game_run.h"
-#include "routefnd.h"
+#include "ac/route_finder.h"
 
 
 extern ScriptObject scrObj[MAX_INIT_SPR];
@@ -31,6 +30,9 @@ extern int loaded_game_file_version;
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern MoveList *mls;
 extern GameSetupStruct game;
+extern block walkable_areas_temp;
+extern IGraphicsDriver *gfxDriver;
+extern int offsetx,offsety;
 
 
 int Object_IsCollidingWithObject(ScriptObject *objj, ScriptObject *obj2) {
@@ -426,4 +428,12 @@ int is_pos_in_sprite(int xx,int yy,int arx,int ary, block sprit, int spww,int sp
             return FALSE;
     }
     return TRUE;
+}
+
+// X and Y co-ordinates must be in 320x200 format
+int check_click_on_object(int xx,int yy,int mood) {
+    int aa = GetObjectAt(xx - divide_down_coordinate(offsetx), yy - divide_down_coordinate(offsety));
+    if (aa < 0) return 0;
+    RunObjectInteraction(aa, mood);
+    return 1;
 }

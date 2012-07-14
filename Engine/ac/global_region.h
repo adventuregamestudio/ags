@@ -13,6 +13,7 @@ void SetRegionTint (int area, int red, int green, int blue, int amount);
 void DisableRegion(int hsnum);
 void EnableRegion(int hsnum);
 void DisableGroundLevelAreas(int alsoEffects);
-void EnableGroundLevelAreas(); 
+void EnableGroundLevelAreas();
+void RunRegionInteraction (int regnum, int mood);
 
 #endif // __AGS_EE_AC__GLOBALREGION_H

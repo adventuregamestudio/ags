@@ -11,7 +11,7 @@
 #include "ac/characterextras.h"
 #include "ac/dynobj/scriptobject.h"
 #include "ac/dynobj/scriptinvitem.h"
-#include "acmain/ac_overlay.h"
+#include "ac/dynobj/scriptoverlay.h"
 
 // **** CHARACTER: FUNCTIONS ****
 
@@ -167,8 +167,18 @@ void get_char_blocking_rect(int charid, int *x1, int *y1, int *width, int *y2);
 // Check whether the source char has walked onto character ww
 int is_char_on_another (int sourceChar, int ww, int*fromxptr, int*cwidptr);
 int my_getpixel(BITMAP *blk, int x, int y);
+// X and Y co-ordinates must be in 320x200 format
 int check_click_on_character(int xx,int yy,int mood);
+int is_pos_on_character(int xx,int yy);
+void _DisplaySpeechCore(int chid, char *displbuf);
+void _DisplayThoughtCore(int chid, const char *displbuf);
+int user_to_internal_skip_speech(int userval);
 
+void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThought);
+int get_character_currently_talking();
+void DisplaySpeech(char*texx, int aschar);
+
+int update_lip_sync(int talkview, int talkloop, int *talkframeptr);
 
 extern CharacterInfo*playerchar;
 extern CharacterExtras *charextra;

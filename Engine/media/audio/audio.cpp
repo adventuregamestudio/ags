@@ -10,9 +10,9 @@
 
 */
 
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "media/audio/audio.h"
-#include "ac/ac_gamesetupstruct.h"
+#include "ac/gamesetupstruct.h"
 #include "ac/dynobj/cc_audioclip.h"
 #include "ac/dynobj/cc_audiochannel.h"
 #include "ac/gamestate.h"
@@ -22,9 +22,9 @@
 #include "ac/gamesetup.h"
 #include "media/audio/sound.h"
 #include "debug/debug.h"
-#include "ac/ac_common.h"
+#include "ac/common.h"
 #include "ac/global_audio.h"
-#include "ac/ac_roomstruct.h"
+#include "ac/roomstruct.h"
 #include <math.h>
 
 extern GameSetupStruct game;
@@ -549,8 +549,6 @@ SOUNDCLIP *load_sound_clip_from_old_style_number(bool isMusic, int indexNumber, 
 }
 
 //=============================================================================
-
-#include "acmain/ac_maindefines.h"
 
 int last_sound_played[MAX_SOUND_CHANNELS + 1];
 

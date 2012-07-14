@@ -1,5 +1,5 @@
 //#include "cscomp.h"
-#include "cs/cc_script.h"
+#include "script/cc_script.h"
 
 namespace AGS
 {

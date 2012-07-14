@@ -1,11 +1,11 @@
 
-#include "ac/audiodefines.h"
+#include "media/audio/audiodefines.h"
 
 #ifndef NO_MP3_PLAYER
 
 #include "media/audio/clip_mymp3.h"
 #include "media/audio/audiointernaldefs.h"
-#include "ac/ac_common.h"               // quit()
+#include "ac/common.h"               // quit()
 
 int MYMP3::poll()
 {

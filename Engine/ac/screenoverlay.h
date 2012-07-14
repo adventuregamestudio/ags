@@ -7,7 +7,7 @@
 #ifndef __AGS_EE_AC__SCREENOVERLAY_H
 #define __AGS_EE_AC__SCREENOVERLAY_H
 
-#include "ali3d.h"
+#include "gfx/ali3d.h"
 
 struct ScreenOverlay {
     IDriverDependantBitmap *bmp;

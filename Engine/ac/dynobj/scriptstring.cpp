@@ -1,6 +1,6 @@
 
 #include "ac/dynobj/scriptstring.h"
-#include "acmain/ac_string.h"
+#include "ac/string.h"
 #include <stdlib.h>
 #include <string.h>
 

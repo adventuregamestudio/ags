@@ -1,16 +1,16 @@
 #define USE_CLIB
 #include "ac/global_video.h"
-#include "wgt2allg.h"
-#include "acmain/ac_maindefines.h"
-#include "ac/ac_common.h"
-#include "ac/ac_gamesetupstruct.h"
-#include "debug/debug.h"
-#include "acmain/ac_cutscene.h"
-#include "acmain/ac_draw.h"
-#include "acmain/ac_mouse.h"
-#include "acmain/ac_record.h"
-#include "ac/gamestate.h"
+#include "util/wgt2allg.h"
+#include "gfx/ali3d.h"
+#include "ac/common.h"
+#include "ac/draw.h"
 #include "ac/gamesetup.h"
+#include "ac/gamesetupstruct.h"
+#include "ac/gamestate.h"
+#include "ac/global_game.h"
+#include "ac/mouse.h"
+#include "ac/record.h"
+#include "debug/debug.h"
 #include "media/video/video.h"
 
 
@@ -26,6 +26,7 @@ extern block hicol_buf;
 extern block fli_buffer;
 extern IDriverDependantBitmap *fli_ddb;
 extern BITMAP *fli_target;
+extern IGraphicsDriver *gfxDriver;
 
 // defined in ac_screen
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
@@ -92,7 +93,11 @@ void play_flc_file(int numb,int playflags) {
     fli_ddb = gfxDriver->CreateDDBFromBitmap(fli_target, false, true);
 
     if (play_fli(flicnam,fli_buffer,0,fli_callback)==FLI_ERROR)
-        quit("FLI/FLC animation play error");
+    {
+        // This is not a fatal error that should prevent the game from continuing
+        //quit("FLI/FLC animation play error");
+        write_log_debug("FLI/FLC animation play error");
+    }
 
     wfreeblock(fli_buffer);
     clear(screen);

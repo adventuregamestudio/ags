@@ -154,163 +154,111 @@
 			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
-			<File
-				RelativePath="..\..\Common\bigend.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Common\Clib32.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Common\compress.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Common\lzw.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Common\misc.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Common\sprcache.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Common\wgt2allg.cpp"
-				>
-			</File>
-			<Filter
-				Name="cs"
-				>
-				<File
-					RelativePath="..\..\Common\cs\cc_error.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_instance.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_options.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_script.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_treemap.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cs_common.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cs_utils.cpp"
-					>
-				</File>
-			</Filter>
 			<Filter
 				Name="ac"
 				>
 				<File
-					RelativePath="..\..\Common\ac\ac_common.cpp"
+					RelativePath="..\..\Common\ac\common.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_compress.cpp"
+					RelativePath="..\..\Common\ac\customproperties.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_customproperties.cpp"
+					RelativePath="..\..\Common\ac\gamesetupstruct.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_interaction.cpp"
+					RelativePath="..\..\Common\ac\gamesetupstructbase.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_messageinfo.cpp"
+					RelativePath="..\..\Common\ac\interaction.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_mousecursor.cpp"
+					RelativePath="..\..\Common\ac\messageinfo.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_point.cpp"
+					RelativePath="..\..\Common\ac\mousecursor.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_roomstruct.cpp"
+					RelativePath="..\..\Common\ac\point.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_view.cpp"
+					RelativePath="..\..\Common\ac\roomstruct.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_wordsdictionary.cpp"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="acfont"
-				>
-				<File
-					RelativePath="..\..\Common\acfont\ac_agsfontrenderer.cpp"
+					RelativePath="..\..\Common\ac\spritecache.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acfont\ac_fonts.cpp"
+					RelativePath="..\..\Common\ac\view.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acfont\ac_ttffontrenderer.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\acfont\ac_wfnfontrenderer.cpp"
+					RelativePath="..\..\Common\ac\wordsdictionary.cpp"
 					>
 				</File>
 			</Filter>
 			<Filter
-				Name="acgui"
+				Name="font"
 				>
 				<File
-					RelativePath="..\..\Common\acgui\ac_guibutton.cpp"
+					RelativePath="..\..\Common\font\agsfontrenderer.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acgui\ac_guiinv.cpp"
+					RelativePath="..\..\Common\font\fonts.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acgui\ac_guilabel.cpp"
+					RelativePath="..\..\Common\font\ttffontrenderer.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acgui\ac_guilistbox.cpp"
+					RelativePath="..\..\Common\font\wfnfontrenderer.cpp"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="gui"
+				>
+				<File
+					RelativePath="..\..\Common\gui\guibutton.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acgui\ac_guimain.cpp"
+					RelativePath="..\..\Common\gui\guiinv.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acgui\ac_guiobject.cpp"
+					RelativePath="..\..\Common\gui\guilabel.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acgui\ac_guislider.cpp"
+					RelativePath="..\..\Common\gui\guilistbox.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acgui\ac_guitextbox.cpp"
+					RelativePath="..\..\Common\gui\guimain.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\gui\guiobject.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\gui\guislider.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\gui\guitextbox.cpp"
 					>
 				</File>
 			</Filter>
@@ -318,7 +266,67 @@
 				Name="platform"
 				>
 				<File
+					RelativePath="..\..\Common\platform\bigend.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\platform\file.cpp"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="util"
+				>
+				<File
+					RelativePath="..\..\Common\util\clib32.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\compress.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\lzw.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\misc.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\string_utils.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\wgt2allg.cpp"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="script"
+				>
+				<File
+					RelativePath="..\..\Common\script\cc_error.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\script\cc_instance.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\script\cc_options.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\script\cc_script.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\script\cc_treemap.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\script\script_common.cpp"
 					>
 				</File>
 			</Filter>
@@ -328,107 +336,91 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
-			<File
-				RelativePath="..\..\Common\bigend.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Common\compress.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Common\misc.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Common\sprcache.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Common\wgt2allg.h"
-				>
-			</File>
 			<Filter
 				Name="ac"
 				>
 				<File
-					RelativePath="..\..\Common\ac\ac_animationstruct.h"
+					RelativePath="..\..\Common\ac\animationstruct.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_audioclip.h"
+					RelativePath="..\..\Common\ac\audiocliptype.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_characterinfo.h"
+					RelativePath="..\..\Common\ac\common.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_common.h"
+					RelativePath="..\..\Common\ac\common_defines.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_compress.h"
+					RelativePath="..\..\Common\ac\customproperties.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_customproperties.h"
+					RelativePath="..\..\Common\ac\dialogtopic.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_defines.h"
+					RelativePath="..\..\Common\ac\gamesetupstruct.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_dialog.h"
+					RelativePath="..\..\Common\ac\gamesetupstructbase.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_gamesetupstruct.h"
+					RelativePath="..\..\Common\ac\gamestructdefines.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_interaction.h"
+					RelativePath="..\..\Common\ac\interaction.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_interfacebutton.h"
+					RelativePath="..\..\Common\ac\interfacebutton.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_interfaceelement.h"
+					RelativePath="..\..\Common\ac\interfaceelement.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_inventoryiteminfo.h"
+					RelativePath="..\..\Common\ac\inventoryiteminfo.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_messageinfo.h"
+					RelativePath="..\..\Common\ac\messageinfo.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_mousecursor.h"
+					RelativePath="..\..\Common\ac\mousecursor.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_point.h"
+					RelativePath="..\..\Common\ac\oldgamesetupstruct.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_roomstruct.h"
+					RelativePath="..\..\Common\ac\point.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_unused.h"
+					RelativePath="..\..\Common\ac\roomstruct.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_view.h"
+					RelativePath="..\..\Common\ac\spritecache.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_wordsdictionary.h"
+					RelativePath="..\..\Common\ac\view.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\wordsdictionary.h"
 					>
 				</File>
 				<Filter
@@ -441,98 +433,66 @@
 				</Filter>
 			</Filter>
 			<Filter
-				Name="cs"
+				Name="font"
 				>
 				<File
-					RelativePath="..\..\Common\cs\cc_error.h"
+					RelativePath="..\..\Common\font\agsfontrenderer.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\cs\cc_instance.h"
+					RelativePath="..\..\Common\font\fonts.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\cs\cc_options.h"
+					RelativePath="..\..\Common\font\ttffontrenderer.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\cs\cc_script.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_treemap.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cs_common.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cs_utils.h"
+					RelativePath="..\..\Common\font\wfnfontrenderer.h"
 					>
 				</File>
 			</Filter>
 			<Filter
-				Name="acfont"
+				Name="gui"
 				>
 				<File
-					RelativePath="..\..\Common\acfont\ac_agsfontrenderer.h"
+					RelativePath="..\..\Common\gui\dynamicarray.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acfont\ac_fonts.h"
+					RelativePath="..\..\Common\gui\guibutton.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acfont\ac_ttffontrenderer.h"
+					RelativePath="..\..\Common\gui\guidefines.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acfont\ac_wfnfontrenderer.h"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="acgui"
-				>
-				<File
-					RelativePath="..\..\Common\acgui\ac_dynamicarray.h"
+					RelativePath="..\..\Common\gui\guiinv.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acgui\ac_guibutton.h"
+					RelativePath="..\..\Common\gui\guilabel.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acgui\ac_guidefines.h"
+					RelativePath="..\..\Common\gui\guilistbox.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acgui\ac_guiinv.h"
+					RelativePath="..\..\Common\gui\guimain.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acgui\ac_guilabel.h"
+					RelativePath="..\..\Common\gui\guiobject.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acgui\ac_guilistbox.h"
+					RelativePath="..\..\Common\gui\guislider.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\acgui\ac_guimain.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\acgui\ac_guiobject.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\acgui\ac_guislider.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\acgui\ac_guitextbox.h"
+					RelativePath="..\..\Common\gui\guitextbox.h"
 					>
 				</File>
 			</Filter>
@@ -540,7 +500,63 @@
 				Name="platform"
 				>
 				<File
+					RelativePath="..\..\Common\platform\bigend.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\platform\file.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="util"
+				>
+				<File
+					RelativePath="..\..\Common\util\compress.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\lzw.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\misc.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\string_utils.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\wgt2allg.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="script"
+				>
+				<File
+					RelativePath="..\..\Common\script\cc_error.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\script\cc_instance.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\script\cc_options.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\script\cc_script.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\script\cc_treemap.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\script\script_common.h"
 					>
 				</File>
 			</Filter>

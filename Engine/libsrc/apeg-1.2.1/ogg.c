@@ -480,8 +480,13 @@ static void alvorbis_get_data(APEG_LAYER *layer)
 {
 	ALOGG_INFO *info = layer->ogg_info;
 
+#if defined(USE_TREMOR)
 	// libtremor returns int values
 	int **pcm;
+#else
+	float **pcm;
+#endif
+
 	int ret;
 
 	do {
@@ -501,6 +506,7 @@ static void alvorbis_get_data(APEG_LAYER *layer)
 				// This prevents channel blending or dropping.
 				for(i = 0;i < ret && i < maxsamples;i+=step)
 				{
+#if defined(USE_TREMOR)
 					int val = (pcm[(i/step)&1][i] >> 9) + 32768;
 
 					// Make sure to mix in the center voice channel
@@ -509,12 +515,29 @@ static void alvorbis_get_data(APEG_LAYER *layer)
 						val += (pcm[info->vinfo.channels-1][i] >> 9) + 32768;
 						val >>= 1;
 					}
+#else
+					int val = ((pcm[(i/step)&1][i]+1.0f)*32767.5f);
+
+					// Make sure to mix in the center voice channel
+					if((info->vinfo.channels&1))
+					{
+						val += ((pcm[info->vinfo.channels-1][i]+1.0f)*32767.5f);
+						val >>= 1;
+					}
+
+					val &= (~val) >> 31;
+					val -= 65535;
+					val &= val >> 31;
+					val += 65535;
+#endif
 
 					audiobuf[count++] = val;
 				}
 			}
 			else
 			{
+
+#if defined(USE_TREMOR)
 				if(info->vinfo.channels > layer->stream.audio.channels)
 				{
 					for(i = 0;i < ret && i < maxsamples;i+=step)
@@ -567,6 +590,91 @@ static void alvorbis_get_data(APEG_LAYER *layer)
 						}
 					}
 				}
+#else
+				if(info->vinfo.channels > layer->stream.audio.channels)
+				{
+					for(i = 0;i < ret && i < maxsamples;i+=step)
+					{
+						// Just in case.. if there's a center audio channel,
+						// mix it in
+						if(!(layer->stream.audio.channels&1) &&
+						   (info->vinfo.channels&1))
+						{
+							int cval = (pcm[info->vinfo.channels-1][i]+1.0f) *
+							           32767.5f * 0.70710678f;
+							for(j = 0;j < 2;++j)
+							{
+								int val = (int)((pcm[j][i]+1.0f)*32767.5f) + cval;
+								val &= (~val) >> 31;
+								val -= 65535;
+								val &= val >> 31;
+								val += 65535;
+								audiobuf[count++] = val;
+							}
+							for(;j < layer->stream.audio.channels;++j)
+							{
+								int val = ((pcm[j][i]+1.0f)*32767.5f);
+								val &= (~val) >> 31;
+								val -= 65535;
+								val &= val >> 31;
+								val += 65535;
+								audiobuf[count++] = val;
+							}
+						}
+						else if((layer->stream.audio.channels&1))
+						{
+							for(j = 0;j < layer->stream.audio.channels-1;++j)
+							{
+								int val = (int)((pcm[j][i]+1.0f)*32767.5f);
+								val &= (~val) >> 31;
+								val -= 65535;
+								val &= val >> 31;
+								val += 65535;
+								audiobuf[count++] = val;
+							}
+							if((info->vinfo.channels&1))
+							{
+								int cval = (pcm[info->vinfo.channels-1][i] +
+								            1.0f) * 32767.5f;
+								cval &= (~cval) >> 31;
+								cval -= 65535;
+								cval &= cval >> 31;
+								cval += 65535;
+								audiobuf[count++] = cval;
+							}
+							else
+								audiobuf[count++] = 0x8000;
+						}
+						else
+						{
+							for(j = 0;j < layer->stream.audio.channels;++j)
+							{
+								int val = ((pcm[j][i]+1.0f)*32767.5f);
+								val &= (~val) >> 31;
+								val -= 65535;
+								val &= val >> 31;
+								val += 65535;
+								audiobuf[count++] = val;
+							}
+						}
+					}
+				}
+				else
+				{
+					for(i = 0;i < ret && i < maxsamples;i+=step)
+					{
+						for(j = 0;j < layer->stream.audio.channels;++j)
+						{
+							int val = ((pcm[j][i]+1.0f)*32767.5f);
+							val &= (~val) >> 31;
+							val -= 65535;
+							val &= val >> 31;
+							val += 65535;
+							audiobuf[count++] = val;
+						}
+					}
+				}
+#endif
 			}
 
 			vorbis_synthesis_read(&info->vdsp, i);

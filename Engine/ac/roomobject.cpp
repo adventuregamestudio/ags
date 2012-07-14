@@ -1,12 +1,12 @@
 
 #include <stdio.h>
 #include "ac/roomobject.h"
-#include "wgt2allg.h"
-#include "ac/ac_common.h"
-#include "ac/ac_defines.h"
+#include "util/wgt2allg.h"
+#include "ac/common.h"
+#include "ac/common_defines.h"
 #include "ac/gamestate.h"
-#include "ac/rundefines.h"
-#include "acmain/ac_viewframe.h"
+#include "ac/runtime_defines.h"
+#include "ac/viewframe.h"
 #include "main/update.h"
 
 

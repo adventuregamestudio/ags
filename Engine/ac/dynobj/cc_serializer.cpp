@@ -1,10 +1,8 @@
 
 #include <stdio.h>
 #include "string.h"
-#include "wgt2allg.h"
-#include "acmain/ac_maindefines.h"
+#include "util/wgt2allg.h"
 #include "ac/dynobj/cc_serializer.h"
-#include "acrun/ac_runninggame.h"
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/all_scriptclasses.h"
 #include "ac/dynobj/scriptfile.h"
@@ -12,7 +10,20 @@
 #include "debug/debug.h"
 
 #include "plugin/agsplugin.h"
-#include "acmain/ac_plugin.h"
+#include "plugin/pluginobjectreader.h"
+
+extern CCGUIObject ccDynamicGUIObject;
+extern CCCharacter ccDynamicCharacter;
+extern CCHotspot   ccDynamicHotspot;
+extern CCRegion    ccDynamicRegion;
+extern CCInventory ccDynamicInv;
+extern CCGUI       ccDynamicGUI;
+extern CCObject    ccDynamicObject;
+extern CCDialog    ccDynamicDialog;
+extern ScriptDrawingSurface* dialogOptionsRenderingSurface;
+extern ScriptDialogOptionsRendering ccDialogOptionsRendering;
+extern PluginObjectReader pluginReaders[MAX_PLUGIN_OBJECT_READERS];
+extern int numPluginReaders;
 
 // *** De-serialization of script objects
 

@@ -1,7 +1,7 @@
 
 #include "ac/dynobj/cc_object.h"
 #include "ac/dynobj/scriptobject.h"
-#include "ac/ac_defines.h"
+#include "ac/common_defines.h"
 
 extern ScriptObject scrObj[MAX_INIT_SPR];
 

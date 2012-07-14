@@ -34,5 +34,15 @@ void    SetMusicRepeat(int loopflag);
 void    PlayMP3File (char *filename);
 void    PlaySilentMIDI (int mnum);
 
+void    SetSpeechVolume(int newvol);
+void    __scr_play_speech(int who, int which);
+void    SetVoiceMode (int newmod);
+int     IsVoxAvailable();
+int     IsMusicVoxAvailable ();
+
+//=============================================================================
+
+int     play_speech(int charid,int sndid);
+void    stop_speech();
 
 #endif // __AGS_EE_AC__GLOBALAUDIO_H

@@ -20,8 +20,10 @@
 
 #endif
 
-// The PSP only has hardware support for single precision math.
+// The PSP (and embedded processors in general) only has hardware support for single precision math.
+#if defined(PSP_VERSION) || defined(ANDROID_VERSION) || defined(IOS_VERSION)
 # define REAL_IS_FLOAT
+#endif
 
 #ifndef M_PI
 # define M_PI       3.14159265358979323846

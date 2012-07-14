@@ -1,6 +1,6 @@
 
-#include "wgt2allg.h"
-#include "ac/audiodefines.h"
+#include "util/wgt2allg.h"
+#include "media/audio/audiodefines.h"
 #include "media/audio/soundclip.h"
 #include "media/audio/audiointernaldefs.h"
 

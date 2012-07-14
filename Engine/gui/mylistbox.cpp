@@ -1,11 +1,11 @@
 
 #include <string.h>
-#include "wgt2allg.h"
-#include "ali3d.h"
-#include "ac/ac_common.h"
+#include "util/wgt2allg.h"
+#include "gfx/ali3d.h"
+#include "ac/common.h"
 #include "ac/gamesetup.h"
 #include "gui/mylistbox.h"
-#include "gui/dialoginternaldefines.h"
+#include "gui/guidialoginternaldefs.h"
 
 extern GameSetup usetup;
 extern int mousex, mousey, numcurso, hotx, hoty;

@@ -1,9 +1,9 @@
 
 #include <string.h>
-#include "wgt2allg.h"
-#include "ali3d.h"
+#include "util/wgt2allg.h"
+#include "gfx/ali3d.h"
 #include "gui/mytextbox.h"
-#include "gui/dialoginternaldefines.h"
+#include "gui/guidialoginternaldefs.h"
 
 extern GameSetup usetup;
 

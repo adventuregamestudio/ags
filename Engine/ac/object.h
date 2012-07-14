@@ -9,7 +9,7 @@
 #ifndef __AGS_EE_AC__OBJECT_H
 #define __AGS_EE_AC__OBJECT_H
 
-#include "ac/ac_defines.h"
+#include "ac/common_defines.h"
 #include "ac/dynobj/scriptobject.h"
 
 AGS_INLINE int is_valid_object(int obtest);
@@ -66,6 +66,8 @@ void    move_object(int objj,int tox,int toy,int spee,int ignwal);
 void    get_object_blocking_rect(int objid, int *x1, int *y1, int *width, int *y2);
 int     isposinbox(int mmx,int mmy,int lf,int tp,int rt,int bt);
 int     is_pos_in_sprite(int xx,int yy,int arx,int ary, block sprit, int spww,int sphh, int flipped = 0);
+// X and Y co-ordinates must be in 320x200 format
+int     check_click_on_object(int xx,int yy,int mood);
 
 #endif // __AGS_EE_AC__OBJECT_H
 

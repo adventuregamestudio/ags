@@ -8,7 +8,7 @@
 #define __AGS_EE_AC__ROOMSTATUS_H
 
 #include "ac/roomobject.h"
-#include "ac/ac_interaction.h"
+#include "ac/interaction.h"
 
 // This struct is saved in the save games - it contains everything about
 // a room that could change

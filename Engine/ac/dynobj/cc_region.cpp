@@ -1,7 +1,7 @@
 
 #include "ac/dynobj/cc_region.h"
 #include "ac/dynobj/scriptregion.h"
-#include "ac/ac_defines.h"
+#include "ac/common_defines.h"
 
 extern ScriptRegion scrRegion[MAX_REGIONS];
 

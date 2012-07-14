@@ -1,6 +1,6 @@
 
 #include "gfx/blender.h"
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "gfx/gfxfilterdefines.h"
 
 extern "C" {

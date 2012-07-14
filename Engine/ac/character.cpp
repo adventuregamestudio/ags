@@ -12,40 +12,40 @@
 
 */
 
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/character.h"
-#include "ac/ac_common.h"
-#include "ac/ac_gamesetupstruct.h"
-#include "ac/ac_roomstruct.h"
-#include "ac/ac_view.h"
+#include "ac/common.h"
+#include "ac/gamesetupstruct.h"
+#include "ac/roomstruct.h"
+#include "ac/view.h"
+#include "ac/display.h"
+#include "ac/draw.h"
 #include "ac/event.h"
+#include "ac/global_audio.h"
 #include "ac/global_character.h"
+#include "ac/global_game.h"
 #include "ac/global_object.h"
 #include "ac/global_region.h"
+#include "ac/global_room.h"
+#include "ac/global_translation.h"
+#include "ac/gui.h"
+#include "ac/lipsync.h"
+#include "ac/mouse.h"
 #include "ac/object.h"
+#include "ac/overlay.h"
 #include "ac/path.h"
-#include "acgui/ac_guimain.h"
-#include "routefnd.h"
-#include "acmain/ac_customproperties.h"
-#include "acmain/ac_cutscene.h"
-#include "acmain/ac_draw.h"
-#include "acmain/ac_inventory.h"
-#include "acmain/ac_location.h"
-#include "acmain/ac_message.h"
-#include "acmain/ac_mouse.h"
-#include "acmain/ac_room.h"
-#include "acmain/ac_screen.h"
-#include "acmain/ac_speech.h"
-#include "acmain/ac_string.h"
-#include "acmain/ac_strings.h"
-#include "acmain/ac_translation.h"
-#include "acmain/ac_viewframe.h"
-#include "acmain/ac_walkablearea.h"
+#include "ac/properties.h"
+#include "ac/screenoverlay.h"
+#include "ac/string.h"
+#include "ac/viewframe.h"
+#include "ac/walkablearea.h"
+#include "gui/guimain.h"
+#include "ac/route_finder.h"
 #include "ac/gamestate.h"
 #include "debug/debug.h"
 #include "main/game_run.h"
 #include "main/update.h"
-#include "sprcache.h"
+#include "ac/spritecache.h"
 #include <math.h>
 
 extern GameSetupStruct game;
@@ -60,7 +60,22 @@ extern RoomObject*objs;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern ScriptInvItem scrInv[MAX_INV];
 extern SpriteCache spriteset;
-
+extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
+extern block walkable_areas_temp;
+extern IGraphicsDriver *gfxDriver;
+extern block *actsps;
+extern int source_text_length;
+extern int offsetx, offsety;
+extern int is_text_overlay;
+extern int said_speech_line;
+extern int numscreenover;
+extern int said_text;
+extern int our_eip;
+extern int update_music_at;
+extern int scrnwid,scrnhit;
+extern int current_screen_resolution_multiplier;
+extern int cur_mode;
+extern int screen_is_dirty;
 
 //--------------------------------
 
@@ -76,6 +91,18 @@ CharacterExtras *charextra;
 CharacterInfo*playerchar;
 long _sc_PlayerCharPtr = 0;
 int char_lowest_yp;
+
+// Sierra-style speech settings
+int face_talking=-1,facetalkview=0,facetalkwait=0,facetalkframe=0;
+int facetalkloop=0, facetalkrepeat = 0, facetalkAllowBlink = 1;
+int facetalkBlinkLoop = 0;
+CharacterInfo *facetalkchar = NULL;
+
+// lip-sync speech settings
+int loops_per_character, text_lips_offset, char_speaking = -1;
+char *text_lips_text = NULL;
+SpeechLipSyncLine *splipsync = NULL;
+int numLipLines = 0, curLipLine = -1, curLipLinePhenome = 0;
 
 // **** CHARACTER: FUNCTIONS ****
 
@@ -1896,8 +1923,6 @@ void walk_or_move_character(CharacterInfo *chaa, int x, int y, int blocking, int
 
 }
 
-#include "acmain/ac_maindefines.h"
-
 int is_valid_character(int newchar) {
     if ((newchar < 0) || (newchar >= game.numcharacters)) return 0;
     return 1;
@@ -1970,13 +1995,11 @@ int wantMoveNow (CharacterInfo *chi, CharacterExtras *chex) {
     return 0;
 }
 
-
 void setup_player_character(int charid) {
     game.playercharacter = charid;
     playerchar = &game.chars[charid];
     _sc_PlayerCharPtr = ccGetObjectHandleFromAddress((char*)playerchar);
 }
-
 
 void animate_character(CharacterInfo *chap, int loopn,int sppd,int rept, int noidleoverride, int direction) {
 
@@ -2169,4 +2192,560 @@ int check_click_on_character(int xx,int yy,int mood) {
         return 1;
     }
     return 0;
+}
+
+void _DisplaySpeechCore(int chid, char *displbuf) {
+    if (displbuf[0] == 0) {
+        // no text, just update the current character who's speaking
+        // this allows the portrait side to be switched with an empty
+        // speech line
+        play.swap_portrait_lastchar = chid;
+        return;
+    }
+
+    // adjust timing of text (so that DisplaySpeech("%s", str) pauses
+    // for the length of the string not 2 frames)
+    if ((int)strlen(displbuf) > source_text_length + 3)
+        source_text_length = strlen(displbuf);
+
+    DisplaySpeech(displbuf, chid);
+}
+
+void _DisplayThoughtCore(int chid, const char *displbuf) {
+    // adjust timing of text (so that DisplayThought("%s", str) pauses
+    // for the length of the string not 2 frames)
+    if ((int)strlen(displbuf) > source_text_length + 3)
+        source_text_length = strlen(displbuf);
+
+    int xpp = -1, ypp = -1, width = -1;
+
+    if ((game.options[OPT_SPEECHTYPE] == 0) || (game.chars[chid].thinkview <= 0)) {
+        // lucasarts-style, so we want a speech bubble actually above
+        // their head (or if they have no think anim in Sierra-style)
+        width = multiply_up_coordinate(play.speech_bubble_width);
+        xpp = (multiply_up_coordinate(game.chars[chid].x) - offsetx) - width / 2;
+        if (xpp < 0)
+            xpp = 0;
+        // -1 will automatically put it above the char's head
+        ypp = -1;
+    }
+
+    _displayspeech ((char*)displbuf, chid, xpp, ypp, width, 1);
+}
+
+int user_to_internal_skip_speech(int userval) {
+    // 0 = click mouse or key to skip
+    if (userval == 0)
+        return SKIP_AUTOTIMER | SKIP_KEYPRESS | SKIP_MOUSECLICK;
+    // 1 = key only
+    else if (userval == 1)
+        return SKIP_AUTOTIMER | SKIP_KEYPRESS;
+    // 2 = can't skip at all
+    else if (userval == 2)
+        return SKIP_AUTOTIMER;
+    // 3 = only on keypress, no auto timer
+    else if (userval == 3)
+        return SKIP_KEYPRESS | SKIP_MOUSECLICK;
+    // 4 = mouse only
+    else if (userval == 4)
+        return SKIP_AUTOTIMER | SKIP_MOUSECLICK;
+    else
+        quit("user_to_internal_skip_speech: unknown userval");
+
+    return 0;
+}
+
+
+void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThought) {
+    if (!is_valid_character(aschar))
+        quit("!DisplaySpeech: invalid character");
+
+    CharacterInfo *speakingChar = &game.chars[aschar];
+    if ((speakingChar->view < 0) || (speakingChar->view >= game.numviews))
+        quit("!DisplaySpeech: character has invalid view");
+
+    if (is_text_overlay > 0)
+        quit("!DisplaySpeech: speech was already displayed (nested DisplaySpeech, perhaps room script and global script conflict?)");
+
+    EndSkippingUntilCharStops();
+
+    said_speech_line = 1;
+
+    int aa;
+    if (play.bgspeech_stay_on_display == 0) {
+        // remove any background speech
+        for (aa=0;aa<numscreenover;aa++) {
+            if (screenover[aa].timeout > 0) {
+                remove_screen_overlay(screenover[aa].type);
+                aa--;
+            }
+        }
+    }
+    said_text = 1;
+
+    // the strings are pre-translated
+    //texx = get_translation(texx);
+    our_eip=150;
+
+    int isPause = 1;
+    // if the message is all .'s, don't display anything
+    for (aa = 0; texx[aa] != 0; aa++) {
+        if (texx[aa] != '.') {
+            isPause = 0;
+            break;
+        }
+    }
+
+    play.messagetime = GetTextDisplayTime(texx);
+
+    if (isPause) {
+        if (update_music_at > 0)
+            update_music_at += play.messagetime;
+        do_main_cycle(UNTIL_INTISNEG,(int)&play.messagetime);
+        return;
+    }
+
+    int textcol = speakingChar->talkcolor;
+
+    // if it's 0, it won't be recognised as speech
+    if (textcol == 0)
+        textcol = 16;
+
+    int allowShrink = 0;
+    int bwidth = widd;
+    if (bwidth < 0)
+        bwidth = scrnwid/2 + scrnwid/4;
+
+    our_eip=151;
+
+    int useview = speakingChar->talkview;
+    if (isThought) {
+        useview = speakingChar->thinkview;
+        // view 0 is not valid for think views
+        if (useview == 0)
+            useview = -1;
+        // speech bubble can shrink to fit
+        allowShrink = 1;
+        if (speakingChar->room != displayed_room) {
+            // not in room, centre it
+            xx = -1;
+            yy = -1;
+        }
+    }
+
+    if (useview >= game.numviews)
+        quitprintf("!Character.Say: attempted to use view %d for animation, but it does not exist", useview + 1);
+
+    int tdxp = xx,tdyp = yy;
+    int oldview=-1, oldloop = -1;
+    int ovr_type = 0;
+
+    text_lips_offset = 0;
+    text_lips_text = texx;
+
+    block closeupface=NULL;
+    if (texx[0]=='&') {
+        // auto-speech
+        int igr=atoi(&texx[1]);
+        while ((texx[0]!=' ') & (texx[0]!=0)) texx++;
+        if (texx[0]==' ') texx++;
+        if (igr <= 0)
+            quit("DisplaySpeech: auto-voice symbol '&' not followed by valid integer");
+
+        text_lips_text = texx;
+
+        if (play_speech(aschar,igr)) {
+            if (play.want_speech == 2)
+                texx = "  ";  // speech only, no text.
+        }
+    }
+    if (game.options[OPT_SPEECHTYPE] == 3)
+        remove_screen_overlay(OVER_COMPLETE);
+    our_eip=1500;
+
+    if (game.options[OPT_SPEECHTYPE] == 0)
+        allowShrink = 1;
+
+    if (speakingChar->idleleft < 0)  {
+        // if idle anim in progress for the character, stop it
+        ReleaseCharacterView(aschar);
+        //    speakingChar->idleleft = speakingChar->idletime;
+    }
+
+    bool overlayPositionFixed = false;
+    int charFrameWas = 0;
+    int viewWasLocked = 0;
+    if (speakingChar->flags & CHF_FIXVIEW)
+        viewWasLocked = 1;
+
+    /*if ((speakingChar->room == displayed_room) ||
+    ((useview >= 0) && (game.options[OPT_SPEECHTYPE] > 0)) ) {*/
+
+    if (speakingChar->room == displayed_room) {
+        // If the character is in this room, go for it - otherwise
+        // run the "else" clause which  does text in the middle of
+        // the screen.
+        our_eip=1501;
+        if (tdxp < 0)
+            tdxp = multiply_up_coordinate(speakingChar->x) - offsetx;
+        if (tdxp < 2)
+            tdxp=2;
+
+        if (speakingChar->walking)
+            StopMoving(aschar);
+
+        // save the frame we need to go back to
+        // if they were moving, this will be 0 (because we just called
+        // StopMoving); otherwise, it might be a specific animation 
+        // frame which we should return to
+        if (viewWasLocked)
+            charFrameWas = speakingChar->frame;
+
+        // if the current loop doesn't exist in talking view, use loop 0
+        if (speakingChar->loop >= views[speakingChar->view].numLoops)
+            speakingChar->loop = 0;
+
+        if ((speakingChar->view < 0) || 
+            (speakingChar->loop >= views[speakingChar->view].numLoops) ||
+            (views[speakingChar->view].loops[speakingChar->loop].numFrames < 1))
+        {
+            quitprintf("Unable to display speech because the character %s has an invalid view frame (View %d, loop %d, frame %d)", speakingChar->scrname, speakingChar->view + 1, speakingChar->loop, speakingChar->frame);
+        }
+
+        our_eip=1504;
+
+        if (tdyp < 0) 
+        {
+            int sppic = views[speakingChar->view].loops[speakingChar->loop].frames[0].pic;
+            tdyp = multiply_up_coordinate(speakingChar->get_effective_y()) - offsety - get_fixed_pixel_size(5);
+            if (charextra[aschar].height < 1)
+                tdyp -= spriteheight[sppic];
+            else
+                tdyp -= charextra[aschar].height;
+            // if it's a thought, lift it a bit further up
+            if (isThought)  
+                tdyp -= get_fixed_pixel_size(10);
+        }
+
+        our_eip=1505;
+        if (tdyp < 5)
+            tdyp=5;
+
+        tdxp=-tdxp;  // tell it to centre it
+        our_eip=152;
+
+        if ((useview >= 0) && (game.options[OPT_SPEECHTYPE] > 0)) {
+            // Sierra-style close-up portrait
+
+            if (play.swap_portrait_lastchar != aschar) {
+                // if the portraits are set to Alternate, OR they are
+                // set to Left but swap_portrait has been set to 1 (the old
+                // method for enabling it), then swap them round
+                if ((game.options[OPT_PORTRAITSIDE] == PORTRAIT_ALTERNATE) ||
+                    ((game.options[OPT_PORTRAITSIDE] == 0) &&
+                    (play.swap_portrait_side > 0))) {
+
+                        if (play.swap_portrait_side == 2)
+                            play.swap_portrait_side = 1;
+                        else
+                            play.swap_portrait_side = 2;
+                }
+
+                if (game.options[OPT_PORTRAITSIDE] == PORTRAIT_XPOSITION) {
+                    // Portrait side based on character X-positions
+                    if (play.swap_portrait_lastchar < 0) {
+                        // no previous character been spoken to
+                        // therefore, find another character in this room
+                        // that it could be
+                        for (int ce = 0; ce < game.numcharacters; ce++) {
+                            if ((game.chars[ce].room == speakingChar->room) &&
+                                (game.chars[ce].on == 1) &&
+                                (ce != aschar)) {
+                                    play.swap_portrait_lastchar = ce;
+                                    break;
+                            }
+                        }
+                    }
+
+                    if (play.swap_portrait_lastchar >= 0) {
+                        // if this character is right of the one before, put the
+                        // portrait on the right
+                        if (speakingChar->x > game.chars[play.swap_portrait_lastchar].x)
+                            play.swap_portrait_side = -1;
+                        else
+                            play.swap_portrait_side = 0;
+                    }
+                }
+
+                play.swap_portrait_lastchar = aschar;
+            }
+
+            // Determine whether to display the portrait on the left or right
+            int portrait_on_right = 0;
+
+            if (game.options[OPT_SPEECHTYPE] == 3) 
+            { }  // always on left with QFG-style speech
+            else if ((play.swap_portrait_side == 1) ||
+                (play.swap_portrait_side == -1) ||
+                (game.options[OPT_PORTRAITSIDE] == PORTRAIT_RIGHT))
+                portrait_on_right = 1;
+
+
+            int bigx=0,bigy=0,kk;
+            ViewStruct*viptr=&views[useview];
+            for (kk = 0; kk < viptr->loops[0].numFrames; kk++) 
+            {
+                int tw = spritewidth[viptr->loops[0].frames[kk].pic];
+                if (tw > bigx) bigx=tw;
+                tw = spriteheight[viptr->loops[0].frames[kk].pic];
+                if (tw > bigy) bigy=tw;
+            }
+
+            // if they accidentally used a large full-screen image as the sierra-style
+            // talk view, correct it
+            if ((game.options[OPT_SPEECHTYPE] != 3) && (bigx > scrnwid - get_fixed_pixel_size(50)))
+                bigx = scrnwid - get_fixed_pixel_size(50);
+
+            if (widd > 0)
+                bwidth = widd - bigx;
+
+            our_eip=153;
+            int draw_yp = 0, ovr_yp = get_fixed_pixel_size(20);
+            if (game.options[OPT_SPEECHTYPE] == 3) {
+                // QFG4-style whole screen picture
+                closeupface = create_bitmap_ex(bitmap_color_depth(spriteset[viptr->loops[0].frames[0].pic]), scrnwid, scrnhit);
+                clear_to_color(closeupface, 0);
+                draw_yp = scrnhit/2 - spriteheight[viptr->loops[0].frames[0].pic]/2;
+                bigx = scrnwid/2 - get_fixed_pixel_size(20);
+                ovr_type = OVER_COMPLETE;
+                ovr_yp = 0;
+                tdyp = -1;  // center vertically
+            }
+            else {
+                // KQ6-style close-up face picture
+                if (yy < 0)
+                    ovr_yp = adjust_y_for_guis (ovr_yp);
+                else
+                    ovr_yp = yy;
+
+                closeupface = create_bitmap_ex(bitmap_color_depth(spriteset[viptr->loops[0].frames[0].pic]),bigx+1,bigy+1);
+                clear_to_color(closeupface,bitmap_mask_color(closeupface));
+                ovr_type = OVER_PICTURE;
+
+                if (yy < 0)
+                    tdyp = ovr_yp + get_textwindow_top_border_height(play.speech_textwindow_gui);
+            }
+            //draw_sprite(closeupface,spriteset[viptr->frames[0][0].pic],0,draw_yp);
+            DrawViewFrame(closeupface, &viptr->loops[0].frames[0], 0, draw_yp);
+
+            int overlay_x = get_fixed_pixel_size(10);
+
+            if (xx < 0) {
+                tdxp = get_fixed_pixel_size(16) + bigx + get_textwindow_border_width(play.speech_textwindow_gui) / 2;
+
+                int maxWidth = (scrnwid - tdxp) - get_fixed_pixel_size(5) - 
+                    get_textwindow_border_width (play.speech_textwindow_gui) / 2;
+
+                if (bwidth > maxWidth)
+                    bwidth = maxWidth;
+            }
+            else {
+                tdxp = xx + bigx + get_fixed_pixel_size(8);
+                overlay_x = xx;
+            }
+
+            // allow the text box to be shrunk to fit the text
+            allowShrink = 1;
+
+            // if the portrait's on the right, swap it round
+            if (portrait_on_right) {
+                if ((xx < 0) || (widd < 0)) {
+                    overlay_x = (scrnwid - bigx) - get_fixed_pixel_size(5);
+                    tdxp = get_fixed_pixel_size(9);
+                }
+                else {
+                    overlay_x = (xx + widd - bigx) - get_fixed_pixel_size(5);
+                    tdxp = xx;
+                }
+                tdxp += get_textwindow_border_width(play.speech_textwindow_gui) / 2;
+                allowShrink = 2;
+            }
+            if (game.options[OPT_SPEECHTYPE] == 3)
+                overlay_x = 0;
+            face_talking=add_screen_overlay(overlay_x,ovr_yp,ovr_type,closeupface);
+            facetalkframe = 0;
+            facetalkwait = viptr->loops[0].frames[0].speed + GetCharacterSpeechAnimationDelay(speakingChar);
+            facetalkloop = 0;
+            facetalkview = useview;
+            facetalkrepeat = (isThought) ? 0 : 1;
+            facetalkBlinkLoop = 0;
+            facetalkAllowBlink = 1;
+            if ((isThought) && (speakingChar->flags & CHF_NOBLINKANDTHINK))
+                facetalkAllowBlink = 0;
+            facetalkchar = &game.chars[aschar];
+            if (facetalkchar->blinktimer < 0)
+                facetalkchar->blinktimer = facetalkchar->blinkinterval;
+            textcol=-textcol;
+            overlayPositionFixed = true;
+        }
+        else if (useview >= 0) {
+            // Lucasarts-style speech
+            our_eip=154;
+
+            oldview = speakingChar->view;
+            oldloop = speakingChar->loop;
+            speakingChar->animating = 1 | (GetCharacterSpeechAnimationDelay(speakingChar) << 8);
+            // only repeat if speech, not thought
+            if (!isThought)
+                speakingChar->animating |= CHANIM_REPEAT;
+
+            speakingChar->view = useview;
+            speakingChar->frame=0;
+            speakingChar->flags|=CHF_FIXVIEW;
+
+            if (speakingChar->loop >= views[speakingChar->view].numLoops)
+            {
+                // current character loop is outside the normal talking directions
+                speakingChar->loop = 0;
+            }
+
+            facetalkBlinkLoop = speakingChar->loop;
+
+            if ((speakingChar->loop >= views[speakingChar->view].numLoops) ||
+                (views[speakingChar->view].loops[speakingChar->loop].numFrames < 1))
+            {
+                quitprintf("!Unable to display speech because the character %s has an invalid speech view (View %d, loop %d, frame %d)", speakingChar->scrname, speakingChar->view + 1, speakingChar->loop, speakingChar->frame);
+            }
+
+            // set up the speed of the first frame
+            speakingChar->wait = GetCharacterSpeechAnimationDelay(speakingChar) + 
+                views[speakingChar->view].loops[speakingChar->loop].frames[0].speed;
+
+            if (widd < 0) {
+                bwidth = scrnwid/2 + scrnwid/6;
+                // If they are close to the screen edge, make the text narrower
+                int relx = multiply_up_coordinate(speakingChar->x) - offsetx;
+                if ((relx < scrnwid / 4) || (relx > scrnwid - (scrnwid / 4)))
+                    bwidth -= scrnwid / 5;
+            }
+            /*   this causes the text to bob up and down as they talk
+            tdxp = OVR_AUTOPLACE;
+            tdyp = aschar;*/
+            if (!isThought)  // set up the lip sync if not thinking
+                char_speaking = aschar;
+
+        }
+    }
+    else
+        allowShrink = 1;
+
+    // it wants the centred position, so make it so
+    if ((xx >= 0) && (tdxp < 0))
+        tdxp -= widd / 2;
+
+    // if they used DisplaySpeechAt, then use the supplied width
+    if ((widd > 0) && (isThought == 0))
+        allowShrink = 0;
+
+    our_eip=155;
+    _display_at(tdxp,tdyp,bwidth,texx,0,textcol, isThought, allowShrink, overlayPositionFixed);
+    our_eip=156;
+    if ((play.in_conversation > 0) && (game.options[OPT_SPEECHTYPE] == 3))
+        closeupface = NULL;
+    if (closeupface!=NULL)
+        remove_screen_overlay(ovr_type);
+    screen_is_dirty = 1;
+    face_talking = -1;
+    facetalkchar = NULL;
+    our_eip=157;
+    if (oldview>=0) {
+        speakingChar->flags &= ~CHF_FIXVIEW;
+        if (viewWasLocked)
+            speakingChar->flags |= CHF_FIXVIEW;
+        speakingChar->view=oldview;
+
+        // Don't reset the loop in 2.x games
+        if (loaded_game_file_version > 32)
+            speakingChar->loop = oldloop;
+
+        speakingChar->animating=0;
+        speakingChar->frame = charFrameWas;
+        speakingChar->wait=0;
+        speakingChar->idleleft = speakingChar->idletime;
+        // restart the idle animation straight away
+        charextra[aschar].process_idle_this_time = 1;
+    }
+    char_speaking = -1;
+    stop_speech();
+}
+
+int get_character_currently_talking() {
+    if ((face_talking >= 0) && (facetalkrepeat))
+        return facetalkchar->index_id;
+    else if (char_speaking >= 0)
+        return char_speaking;
+
+    return -1;
+}
+
+void DisplaySpeech(char*texx, int aschar) {
+    _displayspeech (texx, aschar, -1, -1, -1, 0);
+}
+
+// Calculate which frame of the loop to use for this character of
+// speech
+int GetLipSyncFrame (char *curtex, int *stroffs) {
+    /*char *frameletters[MAXLIPSYNCFRAMES] =
+    {"./,/ ", "A", "O", "F/V", "D/N/G/L/R", "B/P/M",
+    "Y/H/K/Q/C", "I/T/E/X/th", "U/W", "S/Z/J/ch", NULL,
+    NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};*/
+
+    int bestfit_len = 0, bestfit = game.default_lipsync_frame;
+    for (int aa = 0; aa < MAXLIPSYNCFRAMES; aa++) {
+        char *tptr = game.lipSyncFrameLetters[aa];
+        while (tptr[0] != 0) {
+            int lenthisbit = strlen(tptr);
+            if (strchr(tptr, '/'))
+                lenthisbit = strchr(tptr, '/') - tptr;
+
+            if ((strnicmp (curtex, tptr, lenthisbit) == 0) && (lenthisbit > bestfit_len)) {
+                bestfit = aa;
+                bestfit_len = lenthisbit;
+            }
+            tptr += lenthisbit;
+            while (tptr[0] == '/')
+                tptr++;
+        }
+    }
+    // If it's an unknown character, use the default frame
+    if (bestfit_len == 0)
+        bestfit_len = 1;
+    *stroffs += bestfit_len;
+    return bestfit;
+}
+
+int update_lip_sync(int talkview, int talkloop, int *talkframeptr) {
+    int talkframe = talkframeptr[0];
+    int talkwait = 0;
+
+    // lip-sync speech
+    char *nowsaying = &text_lips_text[text_lips_offset];
+    // if it's an apostraphe, skip it (we'll, I'll, etc)
+    if (nowsaying[0] == '\'') {
+        text_lips_offset++;
+        nowsaying++;
+    }
+
+    if (text_lips_offset >= (int)strlen(text_lips_text))
+        talkframe = 0;
+    else {
+        talkframe = GetLipSyncFrame (nowsaying, &text_lips_offset);
+        if (talkframe >= views[talkview].loops[talkloop].numFrames)
+            talkframe = 0;
+    }
+
+    talkwait = loops_per_character + views[talkview].loops[talkloop].frames[talkframe].speed;
+
+    talkframeptr[0] = talkframe;
+    return talkwait;
 }

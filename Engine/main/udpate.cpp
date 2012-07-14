@@ -16,8 +16,48 @@
 // Game update procedure
 //
 
+#include "util/wgt2allg.h"
+#include "ac/common.h"
+#include "ac/character.h"
+#include "ac/characterextras.h"
+#include "ac/gamestate.h"
+#include "ac/gamesetupstruct.h"
+#include "ac/global_character.h"
+#include "ac/lipsync.h"
+#include "ac/overlay.h"
+#include "ac/record.h"
+#include "ac/roomobject.h"
+#include "ac/roomstatus.h"
+#include "ac/roomstruct.h"
 #include "main/mainheader.h"
 #include "main/update.h"
+#include "ac/screenoverlay.h"
+#include "ac/viewframe.h"
+#include "ac/walkablearea.h"
+
+extern MoveList *mls;
+extern RoomStatus*croom;
+extern GameSetupStruct game;
+extern GameState play;
+extern roomstruct thisroom;
+extern RoomObject*objs;
+extern ViewStruct*views;
+extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
+extern int our_eip;
+extern CharacterInfo*playerchar;
+extern CharacterExtras *charextra;
+extern CharacterInfo *facetalkchar;
+extern int face_talking,facetalkview,facetalkwait,facetalkframe;
+extern int facetalkloop, facetalkrepeat, facetalkAllowBlink;
+extern int facetalkBlinkLoop;
+extern volatile unsigned long globalTimerCounter;
+extern int time_between_timers;
+extern SpeechLipSyncLine *splipsync;
+extern int numLipLines, curLipLine, curLipLinePhenome;
+extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
+extern int numscreenover;
+extern int is_text_overlay;
+extern IGraphicsDriver *gfxDriver;
 
 
 int do_movelist_move(short*mlnum,int*xx,int*yy) {

@@ -21,7 +21,7 @@ prior express permission from Chris Jones.
 #include <string.h>
 #include "ac/dynobj/cc_dynamicobject.h"
 #include "ac/dynobj/managedobjectpool.h"
-#include "cs/cc_error.h"
+#include "script/cc_error.h"
 
 ICCStringClass *stringClassImpl = NULL;
 

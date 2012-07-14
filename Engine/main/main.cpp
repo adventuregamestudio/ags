@@ -22,9 +22,17 @@
 // What about other platforms?
 //
 
+#include "util/wgt2allg.h"
+#include "ac/common.h"
+#include "ac/gamesetup.h"
+#include "ac/gamestate.h"
+#include "debug/agseditordebugger.h"
+#include "debug/debug.h"
+#include "main/engine.h"
 #include "main/mainheader.h"
 #include "main/main.h"
-#include "routefnd.h"
+#include "platform/agsplatformdriver.h"
+#include "ac/route_finder.h"
 
 #ifdef MAC_VERSION
 char dataDirectory[512];
@@ -48,6 +56,20 @@ char **global_argv = 0;
 #endif
 
 extern "C" int  cfopenpriority;
+
+
+extern GameSetup usetup;
+extern GameState play;
+extern int our_eip;
+extern AGSPlatformDriver *platform;
+extern int debug_flags;
+extern int force_letterbox;
+extern int debug_15bit_mode, debug_24bit_mode;
+extern int convert_16bit_bgr;
+extern int display_fps;
+extern int editor_debugging_enabled;
+extern int editor_debugging_initialized;
+extern char editor_debugger_instance_token[100];
 
 
 // Startup flags, set from parameters to engine

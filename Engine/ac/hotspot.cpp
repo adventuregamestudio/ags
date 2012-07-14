@@ -1,13 +1,13 @@
 
 #include "ac/hotspot.h"
-#include "wgt2allg.h"
-#include "ac/ac_roomstruct.h"
+#include "util/wgt2allg.h"
+#include "ac/draw.h"
+#include "ac/roomstruct.h"
 #include "ac/global_hotspot.h"
+#include "ac/global_translation.h"
+#include "ac/properties.h"
 #include "ac/roomstatus.h"
-#include "acmain/ac_customproperties.h"
-#include "acmain/ac_draw.h"
-#include "acmain/ac_string.h"
-#include "acmain/ac_translation.h"
+#include "ac/string.h"
 
 extern roomstruct thisroom;
 extern RoomStatus*croom;

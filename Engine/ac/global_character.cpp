@@ -13,17 +13,23 @@
 */
 
 #include "ac/global_character.h"
-#include "wgt2allg.h"
-#include "ac/ac_common.h"
-#include "ac/ac_gamesetupstruct.h"
-#include "ac/ac_roomstruct.h"
+#include "util/wgt2allg.h"
+#include "ac/common.h"
+#include "ac/view.h"
 #include "ac/character.h"
+#include "ac/display.h"
+#include "ac/draw.h"
 #include "ac/event.h"
-#include "ac/object.h"
-#include "ac/ac_view.h"
-#include "acmain/ac_customproperties.h"
-#include "acmain/ac_draw.h"
+#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
+#include "ac/global_overlay.h"
+#include "ac/global_translation.h"
+#include "ac/object.h"
+#include "ac/overlay.h"
+#include "ac/properties.h"
+#include "ac/roomstruct.h"
+#include "ac/screenoverlay.h"
+#include "ac/string.h"
 #include "debug/debug.h"
 #include "main/game_run.h"
 #include "script/script.h"
@@ -36,6 +42,12 @@ extern RoomObject*objs;
 extern roomstruct thisroom;
 extern GameState play;
 extern ScriptObject scrObj[MAX_INIT_SPR];
+extern ScriptInvItem scrInv[MAX_INV];
+extern int offsetx, offsety;
+extern int guis_need_update;
+extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
+extern int numscreenover;
+extern int scrnwid,scrnhit;
 
 // defined in character unit
 extern CharacterExtras *charextra;
@@ -433,4 +445,131 @@ int GetCharacterAt (int xx, int yy) {
     xx += divide_down_coordinate(offsetx);
     yy += divide_down_coordinate(offsety);
     return is_pos_on_character(xx,yy);
+}
+
+void SetActiveInventory(int iit) {
+
+    ScriptInvItem *tosend = NULL;
+    if ((iit > 0) && (iit < game.numinvitems))
+        tosend = &scrInv[iit];
+    else if (iit != -1)
+        quitprintf("!SetActiveInventory: invalid inventory number %d", iit);
+
+    Character_SetActiveInventory(playerchar, tosend);
+}
+
+void update_invorder() {
+    for (int cc = 0; cc < game.numcharacters; cc++) {
+        charextra[cc].invorder_count = 0;
+        int ff, howmany;
+        // Iterate through all inv items, adding them once (or multiple
+        // times if requested) to the list.
+        for (ff=0;ff < game.numinvitems;ff++) {
+            howmany = game.chars[cc].inv[ff];
+            if ((game.options[OPT_DUPLICATEINV] == 0) && (howmany > 1))
+                howmany = 1;
+
+            for (int ts = 0; ts < howmany; ts++) {
+                if (charextra[cc].invorder_count >= MAX_INVORDER)
+                    quit("!Too many inventory items to display: 500 max");
+
+                charextra[cc].invorder[charextra[cc].invorder_count] = ff;
+                charextra[cc].invorder_count++;
+            }
+        }
+    }
+    // backwards compatibility
+    play.obsolete_inv_numorder = charextra[game.playercharacter].invorder_count;
+
+    guis_need_update = 1;
+}
+
+void add_inventory(int inum) {
+    if ((inum < 0) || (inum >= MAX_INV))
+        quit("!AddInventory: invalid inventory number");
+
+    Character_AddInventory(playerchar, &scrInv[inum], SCR_NO_VALUE);
+
+    play.obsolete_inv_numorder = charextra[game.playercharacter].invorder_count;
+}
+
+void lose_inventory(int inum) {
+    if ((inum < 0) || (inum >= MAX_INV))
+        quit("!LoseInventory: invalid inventory number");
+
+    Character_LoseInventory(playerchar, &scrInv[inum]);
+
+    play.obsolete_inv_numorder = charextra[game.playercharacter].invorder_count;
+}
+
+void AddInventoryToCharacter(int charid, int inum) {
+    if (!is_valid_character(charid))
+        quit("!AddInventoryToCharacter: invalid character specified");
+    if ((inum < 1) || (inum >= game.numinvitems))
+        quit("!AddInventory: invalid inv item specified");
+
+    Character_AddInventory(&game.chars[charid], &scrInv[inum], SCR_NO_VALUE);
+}
+
+void LoseInventoryFromCharacter(int charid, int inum) {
+    if (!is_valid_character(charid))
+        quit("!LoseInventoryFromCharacter: invalid character specified");
+    if ((inum < 1) || (inum >= game.numinvitems))
+        quit("!AddInventory: invalid inv item specified");
+
+    Character_LoseInventory(&game.chars[charid], &scrInv[inum]);
+}
+
+void DisplayThought(int chid, const char*texx, ...) {
+    if ((chid < 0) || (chid >= game.numcharacters))
+        quit("!DisplayThought: invalid character specified");
+
+    char displbuf[STD_BUFFER_SIZE];
+    va_list ap;
+    va_start(ap,texx);
+    my_sprintf(displbuf,get_translation(texx),ap);
+    va_end(ap);
+
+    _DisplayThoughtCore(chid, displbuf);
+}
+
+void __sc_displayspeech(int chid,char*texx, ...) {
+    if ((chid<0) || (chid>=game.numcharacters))
+        quit("!DisplaySpeech: invalid character specified");
+
+    char displbuf[STD_BUFFER_SIZE];
+    va_list ap;
+    va_start(ap,texx);
+    my_sprintf(displbuf, get_translation(texx), ap);
+    va_end(ap);
+
+    _DisplaySpeechCore(chid, displbuf);
+
+}
+
+// **** THIS IS UNDOCUMENTED BECAUSE IT DOESN'T WORK PROPERLY
+// **** AT 640x400 AND DOESN'T USE THE RIGHT SPEECH STYLE
+void DisplaySpeechAt (int xx, int yy, int wii, int aschar, char*spch) {
+    multiply_up_coordinates(&xx, &yy);
+    wii = multiply_up_coordinate(wii);
+    _displayspeech (get_translation(spch), aschar, xx, yy, wii, 0);
+}
+
+int DisplaySpeechBackground(int charid,char*speel) {
+    // remove any previous background speech for this character
+    int cc;
+    for (cc = 0; cc < numscreenover; cc++) {
+        if (screenover[cc].bgSpeechForChar == charid) {
+            remove_screen_overlay_index(cc);
+            cc--;
+        }
+    }
+
+    int ovrl=CreateTextOverlay(OVR_AUTOPLACE,charid,scrnwid/2,FONT_SPEECH,
+        -game.chars[charid].talkcolor, get_translation(speel));
+
+    int scid = find_overlay_of_type(ovrl);
+    screenover[scid].bgSpeechForChar = charid;
+    screenover[scid].timeout = GetTextDisplayTime(speel, 1);
+    return ovrl;
 }

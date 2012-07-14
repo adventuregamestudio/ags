@@ -1,12 +1,12 @@
 
 #include <string.h>
-#include "wgt2allg.h"
-#include "ali3d.h"
-#include "acmain/ac_mouse.h"
-#include "acmain/ac_record.h"
+#include "util/wgt2allg.h"
+#include "gfx/ali3d.h"
+#include "ac/mouse.h"
+#include "ac/record.h"
 #include "gui/mypushbutton.h"
-#include "gui/dialog.h"
-#include "gui/dialoginternaldefines.h"
+#include "gui/guidialog.h"
+#include "gui/guidialoginternaldefs.h"
 #include "main/game_run.h"
 #include "media/audio/audio.h"
 

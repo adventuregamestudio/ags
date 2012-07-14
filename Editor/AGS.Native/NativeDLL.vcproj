@@ -83,7 +83,7 @@
 				IgnoreImportLibrary="true"
 				AdditionalDependencies="Common_d.lib Compiler_d.lib winmm.lib imm32.lib ddraw.lib dsound.lib dinput.lib dxguid.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)\..\Solutions\.lib\$(ConfigurationName)&quot;"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)\..\Solutions\.lib\$(ConfigurationName)&quot;;&quot;$(SolutionDir)\..\Windows\lib&quot;"
 				IgnoreDefaultLibraryNames="LIBCMTD.lib"
 				ModuleDefinitionFile=""
 				GenerateDebugInformation="true"
@@ -182,7 +182,7 @@
 				IgnoreImportLibrary="true"
 				AdditionalDependencies="Common.lib Compiler.lib winmm.lib imm32.lib ddraw.lib dsound.lib dinput.lib dxguid.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)\..\Solutions\.lib\$(ConfigurationName)&quot;"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)\..\Solutions\.lib\$(ConfigurationName)&quot;;&quot;$(SolutionDir)\..\Windows\lib&quot;"
 				IgnoreDefaultLibraryNames="LIBCMT.lib"
 				ModuleDefinitionFile=""
 				GenerateDebugInformation="false"
@@ -278,11 +278,11 @@
 				Name="ac"
 				>
 				<File
-					RelativePath="..\Native\ac\ac_actiontype.cpp"
+					RelativePath="..\Native\ac\actiontype.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\Native\ac\ac_script.cpp"
+					RelativePath="..\Native\ac\scriptmodule.cpp"
 					>
 				</File>
 			</Filter>
@@ -300,6 +300,18 @@
 				RelativePath=".\Scripting.h"
 				>
 			</File>
+			<Filter
+				Name="ac"
+				>
+				<File
+					RelativePath="..\Native\ac\actiontype.h"
+					>
+				</File>
+				<File
+					RelativePath="..\Native\ac\scriptmodule.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Resource Files"

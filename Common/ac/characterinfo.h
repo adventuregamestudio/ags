@@ -1,7 +1,7 @@
 #ifndef __AC_CHARACTERINFO_H
 #define __AC_CHARACTERINFO_H
 
-#include "ac/ac_defines.h" // constants
+#include "ac/common_defines.h" // constants
 #include "platform/file.h"
 
 #define MAX_INV             301

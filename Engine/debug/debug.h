@@ -14,9 +14,10 @@
 #define __AC_DEBUG_H
 
 #include "debug/agseditordebugger.h"
-#include "cs/cc_instance.h"
-#include "ac/rundefines.h"
+#include "script/cc_instance.h"
+#include "ac/runtime_defines.h"
 #include "ac/gamestate.h"
+#include "platform/agsplatformdriver.h"
 
 extern GameState play;
 #define DEBUG_CONSOLE if (play.debug_mode) debug_write_console
@@ -57,7 +58,7 @@ extern DebugConsoleText debug_line[DEBUG_CONSOLE_NUMLINES];
 extern int first_debug_line, last_debug_line, display_console;
 
 extern int fps,display_fps;
-
+extern AGSPlatformDriver *platform;
 
 // this function is only enabled for special builds if a startup
 // issue needs to be checked

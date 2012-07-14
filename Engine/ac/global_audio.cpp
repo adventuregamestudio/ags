@@ -1,19 +1,25 @@
 
-#include "ac/global_audio.h"
-#include "wgt2allg.h"
-#include "ac/gamestate.h"
+#include "util/wgt2allg.h"
+#include "ac/common.h"
+#include "ac/file.h"
+#include "ac/game.h"
 #include "ac/gamesetup.h"
+#include "ac/gamesetupstruct.h"
+#include "ac/gamestate.h"
+#include "ac/global_audio.h"
+#include "ac/lipsync.h"
+#include "ac/roomstruct.h"
+#include "debug/debug.h"
 #include "media/audio/audio.h"
 #include "media/audio/sound.h"
-#include "ac/ac_common.h"
-#include "debug/debug.h"
-#include "ac/ac_roomstruct.h"
-#include "ac/game_audio.h"
-#include "acmain/ac_file.h"
 
 extern GameSetup usetup;
 extern GameState play;
+extern GameSetupStruct game;
 extern roomstruct thisroom;
+extern char *speech_file;
+extern SpeechLipSyncLine *splipsync;
+extern int numLipLines, curLipLine, curLipLinePhenome;
 
 void StopAmbientSound (int channel) {
     if ((channel < 0) || (channel >= MAX_SOUND_CHANNELS))
@@ -386,3 +392,159 @@ void PlaySilentMIDI (int mnum) {
     channels[play.silent_midi_channel]->volAsPercentage = 0;
 }
 
+void SetSpeechVolume(int newvol) {
+    if ((newvol<0) | (newvol>255))
+        quit("!SetSpeechVolume: invalid volume - must be from 0-255");
+
+    if (channels[SCHAN_SPEECH])
+        channels[SCHAN_SPEECH]->set_volume (newvol);
+
+    play.speech_volume = newvol;
+}
+
+void __scr_play_speech(int who, int which) {
+    // *** implement this - needs to call stop_speech as well
+    // to reset the volume
+    quit("PlaySpeech not yet implemented");
+}
+
+// 0 = text only
+// 1 = voice & text
+// 2 = voice only
+void SetVoiceMode (int newmod) {
+    if ((newmod < 0) | (newmod > 2))
+        quit("!SetVoiceMode: invalid mode number (must be 0,1,2)");
+    // If speech is turned off, store the mode anyway in case the
+    // user adds the VOX file later
+    if (play.want_speech < 0)
+        play.want_speech = (-newmod) - 1;
+    else
+        play.want_speech = newmod;
+}
+
+int IsVoxAvailable() {
+    if (play.want_speech < 0)
+        return 0;
+    return 1;
+}
+
+int IsMusicVoxAvailable () {
+    return play.seperate_music_lib;
+}
+
+int play_speech(int charid,int sndid) {
+    stop_and_destroy_channel (SCHAN_SPEECH);
+
+    // don't play speech if we're skipping a cutscene
+    if (play.fast_forward)
+        return 0;
+    if ((play.want_speech < 1) || (speech_file == NULL))
+        return 0;
+
+    SOUNDCLIP *speechmp3;
+    /*  char finame[40]="~SPEECH.VOX~NARR";
+    if (charid >= 0)
+    strncpy(&finame[12],game.chars[charid].scrname,4);*/
+
+    char finame[40] = "~";
+    strcat(finame, get_filename(speech_file));
+    strcat(finame, "~");
+
+    if (charid >= 0) {
+        // append the first 4 characters of the script name to the filename
+        char theScriptName[5];
+        if (game.chars[charid].scrname[0] == 'c')
+            strncpy(theScriptName, &game.chars[charid].scrname[1], 4);
+        else
+            strncpy(theScriptName, game.chars[charid].scrname, 4);
+        theScriptName[4] = 0;
+        strcat(finame, theScriptName);
+    }
+    else
+        strcat(finame, "NARR");
+
+    // append the speech number
+    sprintf(&finame[strlen(finame)],"%d",sndid);
+
+    int ii;  // Compare the base file name to the .pam file name
+    char *basefnptr = strchr (&finame[4], '~') + 1;
+    curLipLine = -1;  // See if we have voice lip sync for this line
+    curLipLinePhenome = -1;
+    for (ii = 0; ii < numLipLines; ii++) {
+        if (stricmp(splipsync[ii].filename, basefnptr) == 0) {
+            curLipLine = ii;
+            break;
+        }
+    }
+    // if the lip-sync is being used for voice sync, disable
+    // the text-related lipsync
+    if (numLipLines > 0)
+        game.options[OPT_LIPSYNCTEXT] = 0;
+
+    strcat (finame, ".WAV");
+    speechmp3 = my_load_wave (finame, play.speech_volume, 0);
+
+    if (speechmp3 == NULL) {
+        strcpy (&finame[strlen(finame)-3], "ogg");
+        speechmp3 = my_load_ogg (finame, play.speech_volume);
+    }
+
+    if (speechmp3 == NULL) {
+        strcpy (&finame[strlen(finame)-3], "mp3");
+        speechmp3 = my_load_mp3 (finame, play.speech_volume);
+    }
+
+    if (speechmp3 != NULL) {
+        if (speechmp3->play() == 0)
+            speechmp3 = NULL;
+    }
+
+    if (speechmp3 == NULL) {
+        debug_log ("Speech load failure: '%s'",finame);
+        curLipLine = -1;
+        return 0;
+    }
+
+    channels[SCHAN_SPEECH] = speechmp3;
+    play.music_vol_was = play.music_master_volume;
+
+    // Negative value means set exactly; positive means drop that amount
+    if (play.speech_music_drop < 0)
+        play.music_master_volume = -play.speech_music_drop;
+    else
+        play.music_master_volume -= play.speech_music_drop;
+
+    apply_volume_drop_modifier(true);
+    update_music_volume();
+    update_music_at = 0;
+    mvolcounter = 0;
+
+    update_ambient_sound_vol();
+
+    // change Sierra w/bgrnd  to Sierra without background when voice
+    // is available (for Tierra)
+    if ((game.options[OPT_SPEECHTYPE] == 2) && (play.no_textbg_when_voice > 0)) {
+        game.options[OPT_SPEECHTYPE] = 1;
+        play.no_textbg_when_voice = 2;
+    }
+
+    return 1;
+}
+
+void stop_speech() {
+    if (channels[SCHAN_SPEECH] != NULL) {
+        play.music_master_volume = play.music_vol_was;
+        // update the music in a bit (fixes two speeches follow each other
+        // and music going up-then-down)
+        update_music_at = 20;
+        mvolcounter = 1;
+        stop_and_destroy_channel (SCHAN_SPEECH);
+        curLipLine = -1;
+
+        if (play.no_textbg_when_voice == 2) {
+            // set back to Sierra w/bgrnd
+            play.no_textbg_when_voice = 1;
+            game.options[OPT_SPEECHTYPE] = 2;
+        }
+    }
+}

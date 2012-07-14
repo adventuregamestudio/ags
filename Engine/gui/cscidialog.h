@@ -18,7 +18,7 @@
 #ifndef __AGS_EE_GUI__CSCIDIALOG_H
 #define __AGS_EE_GUI__CSCIDIALOG_H
 
-#include "gui/dialoginternaldefines.h"
+#include "gui/guidialoginternaldefs.h"
 
 int  WINAPI _export CSCIGetVersion();
 int  WINAPI _export CSCIDrawWindow(int xx, int yy, int wid, int hit);
@@ -31,5 +31,6 @@ void multiply_up_to_game_res(int *x, int *y);
 void multiply_up(int *x1, int *y1, int *x2, int *y2);
 int  checkcontrols();
 int  finddefaultcontrol(int flagmask);
+int  GetBaseWidth ();
 
 #endif // __AGS_EE_GUI__CSCIDIALOG_H

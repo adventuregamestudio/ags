@@ -12,7 +12,7 @@ CLEAR that the code has been altered from the Standard Version.
 #ifndef __AC_AUDIO_H
 #define __AC_AUDIO_H
 
-#include "ac/audiodefines.h"
+#include "media/audio/audiodefines.h"
 #include "ac/dynobj/scriptaudioclip.h"
 #include "ac/dynobj/scriptaudiochannel.h"
 #include "media/audio/ambientsound.h"

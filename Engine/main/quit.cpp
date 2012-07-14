@@ -16,8 +16,38 @@
 // Quit game procedure
 //
 
+#include "util/wgt2allg.h"
+#include "gfx/ali3d.h"
+#include "ac/cdaudio.h"
+#include "ac/gamesetup.h"
+#include "ac/gamesetupstruct.h"
+#include "ac/record.h"
+#include "ac/roomstatus.h"
+#include "ac/translation.h"
+#include "debug/agseditordebugger.h"
+#include "debug/debug.h"
+#include "main/main.h"
 #include "main/mainheader.h"
 #include "main/quit.h"
+#include "ac/spritecache.h"
+
+extern GameSetupStruct game;
+extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
+extern SpriteCache spriteset;
+extern RoomStatus *roomstats;
+extern RoomStatus troom;    // used for non-saveable rooms, eg. intro
+extern int our_eip;
+extern GameSetup usetup;
+extern char pexbuf[STD_BUFFER_SIZE];
+extern int proper_exit;
+extern char check_dynamic_sprites_at_exit;
+extern int editor_debugging_initialized;
+extern IAGSEditorDebugger *editor_debugger;
+extern int need_to_stop_cd;
+extern block _old_screen;
+extern block _sub_screen;
+extern int use_cdplayer;
+extern IGraphicsDriver *gfxDriver;
 
 bool handledErrorInEditor;
 

@@ -1,8 +1,8 @@
 
-#include "ac/audiodefines.h"
+#include "media/audio/audiodefines.h"
 #include "media/audio/clip_myogg.h"
 #include "media/audio/audiointernaldefs.h"
-#include "ac/ac_common.h"               // quit()
+#include "ac/common.h"               // quit()
 
 extern "C" {
     extern int alogg_is_end_of_oggstream(ALOGG_OGGSTREAM *ogg);

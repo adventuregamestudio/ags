@@ -17,13 +17,24 @@
 #endif
 */
 #include <stdio.h>
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
+#include "ac/common.h"
+#include "ac/roomstruct.h"
+#include "ac/runtime_defines.h"
 #include "debug/debug.h"
-#include "acmain/ac_commonheaders.h"
-#include "cs/cs_common.h"
-#include "cs/cc_error.h"
-#include "acgui/ac_dynamicarray.h"
+#include "gui/dynamicarray.h"
 #include "media/audio/audio.h"
+#include "script/script.h"
+#include "script/script_common.h"
+#include "script/cc_error.h"
+
+extern char check_dynamic_sprites_at_exit;
+extern int displayed_room;
+extern roomstruct thisroom;
+extern char pexbuf[STD_BUFFER_SIZE];
+extern volatile char want_exit, abort_engine;
+extern ccScript* gamescript;
+extern ccScript* dialogScriptsScript;
 
 
 int use_compiled_folder_as_current_dir = 0;
@@ -52,12 +63,6 @@ IAGSEditorDebugger *GetEditorDebugger(const char *instanceToken)
 }
 
 #endif
-
-
-
-
-#include "acmain/ac_maindefines.h"
-#include "ac/rundefines.h"
 
 int debug_flags=0;
 

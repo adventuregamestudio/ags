@@ -1,13 +1,13 @@
 
 #include <string.h>
-#include "wgt2allg.h"
-#include "ali3d.h"
+#include "util/wgt2allg.h"
+#include "gfx/ali3d.h"
+#include "ac/display.h"
 #include "ac/gamesetup.h"
-#include "acgui/ac_guidefines.h"
-#include "acmain/ac_message.h"
-#include "acmain/ac_strings.h"
+#include "ac/string.h"
+#include "gui/guidefines.h"
 #include "gui/mylabel.h"
-#include "gui/dialoginternaldefines.h"
+#include "gui/guidialoginternaldefs.h"
 
 extern GameSetup usetup;
 // ac_guimain

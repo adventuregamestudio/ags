@@ -18,6 +18,4 @@ ScriptAudioChannel* AudioClip_Play(ScriptAudioClip *clip, int priority, int repe
 ScriptAudioChannel* AudioClip_PlayFrom(ScriptAudioClip *clip, int position, int priority, int repeat);
 ScriptAudioChannel* AudioClip_PlayQueued(ScriptAudioClip *clip, int priority, int repeat);
 
-void    BuildAudioClipArray();
-
 #endif // __AGS_EE_AC__AUDIOCLIP_H

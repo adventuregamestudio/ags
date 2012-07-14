@@ -1,36 +1,37 @@
 
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "plugin/agsplugin.h"
-#include "ali3d.h"
-#include "ac/ac_common.h"
-#include "ac/ac_gamesetupstruct.h"
-#include "ac/ac_roomstruct.h"
+#include "gfx/ali3d.h"
+#include "ac/common.h"
+#include "ac/roomstruct.h"
+#include "ac/view.h"
 #include "ac/charactercache.h"
+#include "ac/display.h"
+#include "ac/draw.h"
+#include "ac/dynamicsprite.h"
+#include "ac/file.h"
 #include "ac/gamesetup.h"
+#include "ac/gamesetupstruct.h"
 #include "ac/global_audio.h"
+#include "ac/global_plugin.h"
+#include "ac/global_walkablearea.h"
+#include "ac/mouse.h"
 #include "ac/movelist.h"
 #include "ac/objectcache.h"
+#include "ac/parser.h"
+#include "ac/record.h"
 #include "ac/roomstatus.h"
-#include "acmain/ac_draw.h"
-#include "acmain/ac_dynamicsprite.h"
-#include "acmain/ac_file.h"
-#include "acmain/ac_message.h"
-#include "acmain/ac_mouse.h"
-#include "acmain/ac_parser.h"
-#include "acmain/ac_plugin.h"
-#include "acmain/ac_record.h"
-#include "acmain/ac_string.h"
-#include "acmain/ac_strings.h"
-#include "acmain/ac_viewframe.h"
-#include "acmain/ac_walkablearea.h"
-#include "cs/cs_utils.h"
+#include "ac/string.h"
+#include "util/string_utils.h"
 #include "debug/debug.h"
+#include "gui/guidefines.h"
 #include "main/engine.h"
 #include "media/audio/audio.h"
 #include "media/audio/sound.h"
+#include "plugin/pluginobjectreader.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
-#include "sprcache.h"
+#include "ac/spritecache.h"
 
 
 
@@ -68,6 +69,13 @@ extern ccInstance *gameinst, *roominst;
 extern CharacterCache *charcache;
 extern ObjectCache objcache[MAX_INIT_SPR];
 extern MoveList *mls;
+extern block virtual_screen;
+extern int numlines;
+extern char lines[MAXLINE][200];
+extern color palette[256];
+extern int offsetx, offsety;
+extern PluginObjectReader pluginReaders[MAX_PLUGIN_OBJECT_READERS];
+extern int numPluginReaders;
 
 // **************** PLUGIN IMPLEMENTATION ****************
 
@@ -102,6 +110,7 @@ struct EnginePlugin {
     void      (*initGfxHook) (const char *driverName, void *data);
     int       (*debugHook) (const char * whichscript, int lineNumber, int reserved);
     IAGSEngine  eiface;
+    bool        builtin;
 
     EnginePlugin() {
         filename[0] = 0;
@@ -109,6 +118,7 @@ struct EnginePlugin {
         wantHook = 0;
         invalidatedRegion = 0;
         savedata = NULL;
+        builtin = false;
     }
 };
 #define MAXPLUGINS 20
@@ -736,10 +746,12 @@ void pl_stop_plugins() {
                 free(plugins[a].savedata);
                 plugins[a].savedata = NULL;
             }
+            if (!plugins[a].builtin) {
 #ifdef PSP_VERSION
-            sceKernelUnloadModule(plugins[a].dllHandle);
+                sceKernelUnloadModule(plugins[a].dllHandle);
 #else
-            FreeLibrary (plugins[a].dllHandle);
+                FreeLibrary (plugins[a].dllHandle);
+            }
 #endif
         }
     }
@@ -802,6 +814,7 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         apl->debugHook = agsflashlight::AGS_EngineDebugHook;
         apl->initGfxHook = agsflashlight::AGS_EngineInitGfx;
         apl->dllHandle = (HINSTANCE)1;
+        apl->builtin = true;
         return true;
     }
     else if (strncmp(apl->filename, "agsblend", strlen("agsblend")) == 0)
@@ -812,6 +825,7 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         apl->debugHook = agsblend::AGS_EngineDebugHook;
         apl->initGfxHook = agsblend::AGS_EngineInitGfx;
         apl->dllHandle = (HINSTANCE)1;
+        apl->builtin = true;
         return true;
     }
     else if (strncmp(apl->filename, "ags_snowrain", strlen("ags_snowrain")) == 0)
@@ -822,6 +836,7 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         apl->debugHook = ags_snowrain::AGS_EngineDebugHook;
         apl->initGfxHook = ags_snowrain::AGS_EngineInitGfx;
         apl->dllHandle = (HINSTANCE)1;
+        apl->builtin = true;
         return true;
     }
 #endif

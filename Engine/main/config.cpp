@@ -16,8 +16,29 @@
 // Game configuration
 //
 
+#include "util/wgt2allg.h"
+#include "ac/gamesetup.h"
+#include "ac/gamestate.h"
 #include "main/mainheader.h"
 #include "main/config.h"
+#include "ac/spritecache.h"
+
+extern GameSetup usetup;
+extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
+extern SpriteCache spriteset;
+extern int psp_video_framedrop;
+extern int psp_audio_enabled;
+extern int psp_midi_enabled;
+extern int psp_ignore_acsetup_cfg_file;
+extern int psp_clear_cache_on_room_change;
+extern int psp_midi_preload_patches;
+extern int psp_audio_cachesize;
+extern char psp_game_file_name[];
+extern int psp_gfx_smooth_sprites;
+extern char psp_translation[];
+extern int force_letterbox;
+extern char replayfile[MAX_PATH];
+extern GameState play;
 
 //char datname[80]="ac.clb";
 char ac_conf_file_defname[MAX_PATH] = "acsetup.cfg";
@@ -245,7 +266,7 @@ void read_config_file(char *argv0) {
         usetup.gfxFilterID = INIreaditem("misc", "gfxfilter");
 #endif
 
-#if defined(IOS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
+#if defined(LINUX_VERSION) || defined(MAC_VERSION)
         usetup.gfxDriverID = "DX5";
 #else
         usetup.gfxDriverID = INIreaditem("misc", "gfxdriver");

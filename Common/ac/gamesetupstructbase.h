@@ -8,7 +8,7 @@
 #define __AGS_CN_AC__GAMESETUPSTRUCTBASE_H
 
 #include "ac/characterinfo.h"       // OldCharacterInfo, CharacterInfo
-#include "ac/ac_wordsdictionary.h"  // WordsDictionary
+#include "ac/wordsdictionary.h"  // WordsDictionary
 #include "ac/gamestructdefines.h"
 #include "script/cc_script.h"           // ccScript
 #include "platform/file.h"

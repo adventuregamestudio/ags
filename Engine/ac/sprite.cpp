@@ -1,7 +1,7 @@
 
 #include "wgt2allg.h"
 #include "ali3d.h"
-#include "ac/ac_common.h"
+#include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/sprite.h"
 #include "platform/agsplatformdriver.h"

@@ -2,7 +2,7 @@
 #include "ac/global_datetime.h"
 #include "wgt2allg.h"
 #include "ac/datetime.h"
-#include "ac/ac_common.h"
+#include "ac/common.h"
 
 int sc_GetTime(int whatti) {
     ScriptDateTime *sdt = DateTime_Now_Core();

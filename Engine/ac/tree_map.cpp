@@ -1,7 +1,7 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include "ac/ac_common.h"
+#include "ac/common.h"
 #include "ac/tree_map.h"
 
 TreeMap::TreeMap() {

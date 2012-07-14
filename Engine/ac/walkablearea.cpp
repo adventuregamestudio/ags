@@ -1,7 +1,7 @@
 
 #include "wgt2allg.h"
-#include "ac/ac_common.h"
-#include "ac/ac_object.h"
+#include "ac/common.h"
+#include "ac/object.h"
 #include "ac/roomstruct.h"
 #include "ac/character.h"
 #include "ac/draw.h"

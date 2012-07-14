@@ -1,7 +1,7 @@
 
 #include "ac/dynobj/scriptoverlay.h"
 #include "wgt2allg.h"
-#include "ac/ac_common.h"
+#include "ac/common.h"
 #include "ac/overlay.h"
 #include "ac/rundefines.h"
 #include "ac/screenoverlay.h"

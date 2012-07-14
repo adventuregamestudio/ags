@@ -1,7 +1,7 @@
 
 #include "ac/string.h"
 #include "wgt2allg.h"  //strupr and strlwr on Linux
-#include "ac/ac_common.h"
+#include "ac/common.h"
 #include "acmain/ac_maindefines.h"
 #include "ac/display.h"
 #include "ac/gamesetupstruct.h"

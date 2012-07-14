@@ -1,7 +1,7 @@
 
 #include "ac/dynobj/cc_hotspot.h"
 #include "ac/dynobj/scripthotspot.h"
-#include "ac/ac_defines.h"
+#include "ac/common_defines.h"
 
 extern ScriptHotspot scrHotspot[MAX_HOTSPOTS];
 

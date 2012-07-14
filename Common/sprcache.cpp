@@ -17,9 +17,9 @@
 #endif
 
 #include "wgt2allg.h"
-#include "ac/ac_defines.h"
+#include "ac/common_defines.h"
 #include "sprcache.h"
-#include "compress.h"
+#include "util/compress.h"
 #include "platform/file.h"
 
 extern "C" {

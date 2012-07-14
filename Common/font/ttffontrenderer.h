@@ -1,23 +1,20 @@
-#ifndef __AC_WFNFONTRENDERER_H
-#define __AC_WFNFONTRENDERER_H
+#ifndef __AC_TTFFONTRENDERER_H
+#define __AC_TTFFONTRENDERER_H
 
-#include "acfont/ac_agsfontrenderer.h"
+#include "font/agsfontrenderer.h"
 
-class WFNFontRenderer : public IAGSFontRenderer {
+class TTFFontRenderer : public IAGSFontRenderer {
 public:
   virtual bool LoadFromDisk(int fontNumber, int fontSize);
   virtual void FreeMemory(int fontNumber);
-  virtual bool SupportsExtendedCharacters(int fontNumber) { return false; }
+  virtual bool SupportsExtendedCharacters(int fontNumber) { return true; }
   virtual int GetTextWidth(const char *text, int fontNumber);
   virtual int GetTextHeight(const char *text, int fontNumber);
   virtual void RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour) ;
   virtual void AdjustYCoordinateForFont(int *ycoord, int fontNumber);
   virtual void EnsureTextValidForFont(char *text, int fontNumber);
-
-private:
-  int printchar(int xxx, int yyy, wgtfont foo, int charr);
 };
 
-extern WFNFontRenderer wfnRenderer;
+extern TTFFontRenderer ttfRenderer;
 
-#endif // __AC_WFNFONTRENDERER_H
+#endif // __AC_TTFFONTRENDERER_H

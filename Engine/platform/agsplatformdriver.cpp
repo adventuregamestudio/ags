@@ -15,7 +15,7 @@
 #include <string.h>
 #include "platform/agsplatformdriver.h"
 #include "wgt2allg.h"
-#include "ac/ac_common.h"
+#include "ac/common.h"
 #include "util/string_utils.h"
 
 #if defined(LINUX_VERSION) || defined(MAC_VERSION)

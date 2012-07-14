@@ -140,6 +140,6 @@
 
 #define MAX_OPEN_SCRIPT_FILES 10
 
-#include "ac/ac_defines.h"
+#include "ac/common_defines.h"
 
 #endif // __AC_RUNDEFINES_H

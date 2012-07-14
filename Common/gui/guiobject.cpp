@@ -3,7 +3,7 @@
 #include "gui/guiobject.h"
 #include "gui/guimain.h"
 #include "util/string_utils.h"  // fputstring, etc
-#include "ac/ac_common.h"		// quit()
+#include "ac/common.h"		// quit()
 
 void GUIObject::init() {
   int jj;

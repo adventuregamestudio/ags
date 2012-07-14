@@ -1,5 +1,5 @@
-#ifndef __AC_AUDIOCLIP_H
-#define __AC_AUDIOCLIP_H
+#ifndef __AC_AUDIOCLIPTYPE_H
+#define __AC_AUDIOCLIPTYPE_H
 
 #define AUCL_BUNDLE_EXE 1
 #define AUCL_BUNDLE_VOX 2
@@ -21,4 +21,4 @@ struct AudioClipType {
     int reservedForFuture;
 };
 
-#endif // __AC_AUDIOCLIP_H
+#endif // __AC_AUDIOCLIPTYPE_H

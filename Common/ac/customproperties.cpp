@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "ac_customproperties.h"
+#include "ac/customproperties.h"
 #include "util/string_utils.h"      // fputstring, etc
 #include "bigend.h"                 // stricmp()
 

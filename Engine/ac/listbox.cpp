@@ -2,7 +2,7 @@
 #include "ac/listbox.h"
 #include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
-#include "ac/ac_common.h"
+#include "ac/common.h"
 #include "ac/file.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"

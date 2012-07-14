@@ -7,7 +7,7 @@
 #ifndef __AGS_EE_AC__DRAW_H
 #define __AGS_EE_AC__DRAW_H
 
-#include "ac/ac_defines.h"
+#include "ac/common_defines.h"
 #include "ali3d.h"
 
 struct CachedActSpsData {

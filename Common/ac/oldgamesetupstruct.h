@@ -9,12 +9,12 @@
 
 #include "ac/characterinfo.h"       // OldCharacterInfo, CharacterInfo
 #ifdef UNUSED_CODE
-#include "ac/ac_eventblock.h"       // EventBlock
+#include "ac/eventblock.h"       // EventBlock
 #endif
 #include "ac/interfaceelement.h"    // InterfaceElement
 #include "ac/inventoryiteminfo.h"   // InventoryItemInfo
-#include "ac/ac_mousecursor.h"      // MouseCursor
-#include "ac/ac_wordsdictionary.h"  // WordsDictionary
+#include "ac/mousecursor.h"      // MouseCursor
+#include "ac/wordsdictionary.h"  // WordsDictionary
 #include "script/cc_script.h"           // ccScript
 
 struct OriGameSetupStruct {

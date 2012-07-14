@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include "ac/roomobject.h"
 #include "wgt2allg.h"
-#include "ac/ac_common.h"
-#include "ac/ac_defines.h"
+#include "ac/common.h"
+#include "ac/common_defines.h"
 #include "ac/gamestate.h"
 #include "ac/rundefines.h"
 #include "ac/viewframe.h"

@@ -5,7 +5,7 @@
 
 #include "media/audio/clip_mymp3.h"
 #include "media/audio/audiointernaldefs.h"
-#include "ac/ac_common.h"               // quit()
+#include "ac/common.h"               // quit()
 
 int MYMP3::poll()
 {

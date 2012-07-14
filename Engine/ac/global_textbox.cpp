@@ -1,7 +1,7 @@
 
 #include "ac/global_textbox.h"
 #include "wgt2allg.h"
-#include "ac/ac_common.h"
+#include "ac/common.h"
 #include "acmain/ac_maindefines.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/textbox.h"

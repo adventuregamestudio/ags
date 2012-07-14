@@ -14,7 +14,7 @@
 #ifndef __AGS_EE_AC__GAME_H
 #define __AGS_EE_AC__GAME_H
 
-#include "ac/ac_interaction.h"
+#include "ac/interaction.h"
 #include "ac/dynobj/scriptviewframe.h"
 #include "platform/file.h"
 

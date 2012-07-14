@@ -1,10 +1,9 @@
 
 #include "wgt2allg.h"
 #include "aastr.h"
-#include "ac/ac_common.h"
-#include "ac/ac_compress.h"
-#include "ac/ac_object.h"
-#include "ac/ac_view.h"
+#include "ac/common.h"
+#include "util/compress.h"
+#include "ac/view.h"
 #include "acmain/ac_maindefines.h"
 #include "ac/charactercache.h"
 #include "ac/characterextras.h"
@@ -1198,77 +1197,77 @@ void get_local_tint(int xpp, int ypp, int nolight,
                     int *tint_b, int *tint_lit,
                     int *light_lev) {
 
-                        int tint_level = 0, light_level = 0;
-                        int tint_amount = 0;
-                        int tint_red = 0;
-                        int tint_green = 0;
-                        int tint_blue = 0;
-                        int tint_light = 255;
+    int tint_level = 0, light_level = 0;
+    int tint_amount = 0;
+    int tint_red = 0;
+    int tint_green = 0;
+    int tint_blue = 0;
+    int tint_light = 255;
 
-                        if (nolight == 0) {
+    if (nolight == 0) {
 
-                            int onRegion = 0;
+        int onRegion = 0;
 
-                            if ((play.ground_level_areas_disabled & GLED_EFFECTS) == 0) {
-                                // check if the player is on a region, to find its
-                                // light/tint level
-                                onRegion = GetRegionAt (xpp, ypp);
-                                if (onRegion == 0) {
-                                    // when walking, he might just be off a walkable area
-                                    onRegion = GetRegionAt (xpp - 3, ypp);
-                                    if (onRegion == 0)
-                                        onRegion = GetRegionAt (xpp + 3, ypp);
-                                    if (onRegion == 0)
-                                        onRegion = GetRegionAt (xpp, ypp - 3);
-                                    if (onRegion == 0)
-                                        onRegion = GetRegionAt (xpp, ypp + 3);
-                                }
-                            }
+        if ((play.ground_level_areas_disabled & GLED_EFFECTS) == 0) {
+            // check if the player is on a region, to find its
+            // light/tint level
+            onRegion = GetRegionAt (xpp, ypp);
+            if (onRegion == 0) {
+                // when walking, he might just be off a walkable area
+                onRegion = GetRegionAt (xpp - 3, ypp);
+                if (onRegion == 0)
+                    onRegion = GetRegionAt (xpp + 3, ypp);
+                if (onRegion == 0)
+                    onRegion = GetRegionAt (xpp, ypp - 3);
+                if (onRegion == 0)
+                    onRegion = GetRegionAt (xpp, ypp + 3);
+            }
+        }
 
-                            if ((onRegion > 0) && (onRegion <= MAX_REGIONS)) {
-                                light_level = thisroom.regionLightLevel[onRegion];
-                                tint_level = thisroom.regionTintLevel[onRegion];
-                            }
-                            else if (onRegion <= 0) {
-                                light_level = thisroom.regionLightLevel[0];
-                                tint_level = thisroom.regionTintLevel[0];
-                            }
-                            if ((game.color_depth == 1) || ((tint_level & 0x00ffffff) == 0) ||
-                                ((tint_level & TINT_IS_ENABLED) == 0))
-                                tint_level = 0;
+        if ((onRegion > 0) && (onRegion <= MAX_REGIONS)) {
+            light_level = thisroom.regionLightLevel[onRegion];
+            tint_level = thisroom.regionTintLevel[onRegion];
+        }
+        else if (onRegion <= 0) {
+            light_level = thisroom.regionLightLevel[0];
+            tint_level = thisroom.regionTintLevel[0];
+        }
+        if ((game.color_depth == 1) || ((tint_level & 0x00ffffff) == 0) ||
+            ((tint_level & TINT_IS_ENABLED) == 0))
+            tint_level = 0;
 
-                            if (tint_level) {
-                                tint_red = (unsigned char)(tint_level & 0x000ff);
-                                tint_green = (unsigned char)((tint_level >> 8) & 0x000ff);
-                                tint_blue = (unsigned char)((tint_level >> 16) & 0x000ff);
-                                tint_amount = light_level;
-                                // older versions of the editor had a bug - work around it
-                                if (tint_amount < 0)
-                                    tint_amount = 50;
-                                /*red = ((red + 100) * 25) / 20;
-                                grn = ((grn + 100) * 25) / 20;
-                                blu = ((blu + 100) * 25) / 20;*/
-                            }
+        if (tint_level) {
+            tint_red = (unsigned char)(tint_level & 0x000ff);
+            tint_green = (unsigned char)((tint_level >> 8) & 0x000ff);
+            tint_blue = (unsigned char)((tint_level >> 16) & 0x000ff);
+            tint_amount = light_level;
+            // older versions of the editor had a bug - work around it
+            if (tint_amount < 0)
+                tint_amount = 50;
+            /*red = ((red + 100) * 25) / 20;
+            grn = ((grn + 100) * 25) / 20;
+            blu = ((blu + 100) * 25) / 20;*/
+        }
 
-                            if (play.rtint_level > 0) {
-                                // override with room tint
-                                tint_level = 1;
-                                tint_red = play.rtint_red;
-                                tint_green = play.rtint_green;
-                                tint_blue = play.rtint_blue;
-                                tint_amount = play.rtint_level;
-                                tint_light = play.rtint_light;
-                            }
-                        }
+        if (play.rtint_level > 0) {
+            // override with room tint
+            tint_level = 1;
+            tint_red = play.rtint_red;
+            tint_green = play.rtint_green;
+            tint_blue = play.rtint_blue;
+            tint_amount = play.rtint_level;
+            tint_light = play.rtint_light;
+        }
+    }
 
-                        // copy to output parameters
-                        *tint_amnt = tint_amount;
-                        *tint_r = tint_red;
-                        *tint_g = tint_green;
-                        *tint_b = tint_blue;
-                        *tint_lit = tint_light;
-                        if (light_lev)
-                            *light_lev = light_level;
+    // copy to output parameters
+    *tint_amnt = tint_amount;
+    *tint_r = tint_red;
+    *tint_g = tint_green;
+    *tint_b = tint_blue;
+    *tint_lit = tint_light;
+    if (light_lev)
+        *light_lev = light_level;
 }
 
 
@@ -1281,63 +1280,63 @@ void apply_tint_or_light(int actspsindex, int light_level,
                          int tint_blue, int tint_light, int coldept,
                          block blitFrom) {
 
-                             // In a 256-colour game, we cannot do tinting or lightening
-                             // (but we can do darkening, if light_level < 0)
-                             if (game.color_depth == 1) {
-                                 if ((light_level > 0) || (tint_amount != 0))
-                                     return;
-                             }
+ // In a 256-colour game, we cannot do tinting or lightening
+ // (but we can do darkening, if light_level < 0)
+ if (game.color_depth == 1) {
+     if ((light_level > 0) || (tint_amount != 0))
+         return;
+ }
 
-                             // we can only do tint/light if the colour depths match
-                             if (final_col_dep == bitmap_color_depth(actsps[actspsindex])) {
-                                 block oldwas;
-                                 // if the caller supplied a source bitmap, blit from it
-                                 // (used as a speed optimisation where possible)
-                                 if (blitFrom) 
-                                     oldwas = blitFrom;
-                                 // otherwise, make a new target bmp
-                                 else {
-                                     oldwas = actsps[actspsindex];
-                                     actsps[actspsindex] = create_bitmap_ex(coldept, oldwas->w, oldwas->h);
-                                 }
+ // we can only do tint/light if the colour depths match
+ if (final_col_dep == bitmap_color_depth(actsps[actspsindex])) {
+     block oldwas;
+     // if the caller supplied a source bitmap, blit from it
+     // (used as a speed optimisation where possible)
+     if (blitFrom) 
+         oldwas = blitFrom;
+     // otherwise, make a new target bmp
+     else {
+         oldwas = actsps[actspsindex];
+         actsps[actspsindex] = create_bitmap_ex(coldept, oldwas->w, oldwas->h);
+     }
 
-                                 if (tint_amount) {
-                                     // It is an RGB tint
+     if (tint_amount) {
+         // It is an RGB tint
 
-                                     tint_image (oldwas, actsps[actspsindex], tint_red, tint_green, tint_blue, tint_amount, tint_light);
-                                 }
-                                 else {
-                                     // the RGB values passed to set_trans_blender decide whether it will darken
-                                     // or lighten sprites ( <128=darken, >128=lighten). The parameter passed
-                                     // to draw_lit_sprite defines how much it will be darkened/lightened by.
-                                     int lit_amnt;
-                                     clear_to_color(actsps[actspsindex], bitmap_mask_color(actsps[actspsindex]));
-                                     // It's a light level, not a tint
-                                     if (game.color_depth == 1) {
-                                         // 256-col
-                                         lit_amnt = (250 - ((-light_level) * 5)/2);
-                                     }
-                                     else {
-                                         // hi-color
-                                         if (light_level < 0)
-                                             set_my_trans_blender(8,8,8,0);
-                                         else
-                                             set_my_trans_blender(248,248,248,0);
-                                         lit_amnt = abs(light_level) * 2;
-                                     }
+         tint_image (oldwas, actsps[actspsindex], tint_red, tint_green, tint_blue, tint_amount, tint_light);
+     }
+     else {
+         // the RGB values passed to set_trans_blender decide whether it will darken
+         // or lighten sprites ( <128=darken, >128=lighten). The parameter passed
+         // to draw_lit_sprite defines how much it will be darkened/lightened by.
+         int lit_amnt;
+         clear_to_color(actsps[actspsindex], bitmap_mask_color(actsps[actspsindex]));
+         // It's a light level, not a tint
+         if (game.color_depth == 1) {
+             // 256-col
+             lit_amnt = (250 - ((-light_level) * 5)/2);
+         }
+         else {
+             // hi-color
+             if (light_level < 0)
+                 set_my_trans_blender(8,8,8,0);
+             else
+                 set_my_trans_blender(248,248,248,0);
+             lit_amnt = abs(light_level) * 2;
+         }
 
-                                     draw_lit_sprite(actsps[actspsindex], oldwas, 0, 0, lit_amnt);
-                                 }
+         draw_lit_sprite(actsps[actspsindex], oldwas, 0, 0, lit_amnt);
+     }
 
-                                 if (oldwas != blitFrom)
-                                     wfreeblock(oldwas);
+     if (oldwas != blitFrom)
+         wfreeblock(oldwas);
 
-                             }
-                             else if (blitFrom) {
-                                 // sprite colour depth != game colour depth, so don't try and tint
-                                 // but we do need to do something, so copy the source
-                                 blit(blitFrom, actsps[actspsindex], 0, 0, 0, 0, actsps[actspsindex]->w, actsps[actspsindex]->h);
-                             }
+ }
+ else if (blitFrom) {
+     // sprite colour depth != game colour depth, so don't try and tint
+     // but we do need to do something, so copy the source
+     blit(blitFrom, actsps[actspsindex], 0, 0, 0, 0, actsps[actspsindex]->w, actsps[actspsindex]->h);
+ }
 
 }
 
@@ -1349,76 +1348,76 @@ int scale_and_flip_sprite(int useindx, int coldept, int zoom_level,
                           int sppic, int newwidth, int newheight,
                           int isMirrored) {
 
-                              int actsps_used = 1;
+  int actsps_used = 1;
 
-                              // create and blank out the new sprite
-                              actsps[useindx] = recycle_bitmap(actsps[useindx], coldept, newwidth, newheight);
-                              clear_to_color(actsps[useindx],bitmap_mask_color(actsps[useindx]));
+  // create and blank out the new sprite
+  actsps[useindx] = recycle_bitmap(actsps[useindx], coldept, newwidth, newheight);
+  clear_to_color(actsps[useindx],bitmap_mask_color(actsps[useindx]));
 
-                              if (zoom_level != 100) {
-                                  // Scaled character
+  if (zoom_level != 100) {
+      // Scaled character
 
-                                  our_eip = 334;
+      our_eip = 334;
 
-                                  // Ensure that anti-aliasing routines have a palette to
-                                  // use for mapping while faded out
-                                  if (in_new_room)
-                                      select_palette (palette);
+      // Ensure that anti-aliasing routines have a palette to
+      // use for mapping while faded out
+      if (in_new_room)
+          select_palette (palette);
 
 
-                                  if (isMirrored) {
-                                      block tempspr = create_bitmap_ex (coldept, newwidth, newheight);
-                                      clear_to_color (tempspr, bitmap_mask_color(actsps[useindx]));
-                                      if ((IS_ANTIALIAS_SPRITES) && ((game.spriteflags[sppic] & SPF_ALPHACHANNEL) == 0))
-                                          aa_stretch_sprite (tempspr, spriteset[sppic], 0, 0, newwidth, newheight);
-                                      else
-                                          stretch_sprite (tempspr, spriteset[sppic], 0, 0, newwidth, newheight);
-                                      draw_sprite_h_flip (actsps[useindx], tempspr, 0, 0);
-                                      wfreeblock (tempspr);
-                                  }
-                                  else if ((IS_ANTIALIAS_SPRITES) && ((game.spriteflags[sppic] & SPF_ALPHACHANNEL) == 0))
-                                      aa_stretch_sprite(actsps[useindx],spriteset[sppic],0,0,newwidth,newheight);
-                                  else
-                                      stretch_sprite(actsps[useindx],spriteset[sppic],0,0,newwidth,newheight);
+      if (isMirrored) {
+          block tempspr = create_bitmap_ex (coldept, newwidth, newheight);
+          clear_to_color (tempspr, bitmap_mask_color(actsps[useindx]));
+          if ((IS_ANTIALIAS_SPRITES) && ((game.spriteflags[sppic] & SPF_ALPHACHANNEL) == 0))
+              aa_stretch_sprite (tempspr, spriteset[sppic], 0, 0, newwidth, newheight);
+          else
+              stretch_sprite (tempspr, spriteset[sppic], 0, 0, newwidth, newheight);
+          draw_sprite_h_flip (actsps[useindx], tempspr, 0, 0);
+          wfreeblock (tempspr);
+      }
+      else if ((IS_ANTIALIAS_SPRITES) && ((game.spriteflags[sppic] & SPF_ALPHACHANNEL) == 0))
+          aa_stretch_sprite(actsps[useindx],spriteset[sppic],0,0,newwidth,newheight);
+      else
+          stretch_sprite(actsps[useindx],spriteset[sppic],0,0,newwidth,newheight);
 
-                                  /*  AASTR2 version of code (doesn't work properly, gives black borders)
-                                  if (IS_ANTIALIAS_SPRITES) {
-                                  int aa_mode = AA_MASKED; 
-                                  if (game.spriteflags[sppic] & SPF_ALPHACHANNEL)
-                                  aa_mode |= AA_ALPHA | AA_RAW_ALPHA;
-                                  if (isMirrored)
-                                  aa_mode |= AA_HFLIP;
+      /*  AASTR2 version of code (doesn't work properly, gives black borders)
+      if (IS_ANTIALIAS_SPRITES) {
+      int aa_mode = AA_MASKED; 
+      if (game.spriteflags[sppic] & SPF_ALPHACHANNEL)
+      aa_mode |= AA_ALPHA | AA_RAW_ALPHA;
+      if (isMirrored)
+      aa_mode |= AA_HFLIP;
 
-                                  aa_set_mode(aa_mode);
-                                  aa_stretch_sprite(actsps[useindx],spriteset[sppic],0,0,newwidth,newheight);
-                                  }
-                                  else if (isMirrored) {
-                                  block tempspr = create_bitmap_ex (coldept, newwidth, newheight);
-                                  clear_to_color (tempspr, bitmap_mask_color(actsps[useindx]));
-                                  stretch_sprite (tempspr, spriteset[sppic], 0, 0, newwidth, newheight);
-                                  draw_sprite_h_flip (actsps[useindx], tempspr, 0, 0);
-                                  wfreeblock (tempspr);
-                                  }
-                                  else
-                                  stretch_sprite(actsps[useindx],spriteset[sppic],0,0,newwidth,newheight);
-                                  */
-                                  if (in_new_room)
-                                      unselect_palette();
+      aa_set_mode(aa_mode);
+      aa_stretch_sprite(actsps[useindx],spriteset[sppic],0,0,newwidth,newheight);
+      }
+      else if (isMirrored) {
+      block tempspr = create_bitmap_ex (coldept, newwidth, newheight);
+      clear_to_color (tempspr, bitmap_mask_color(actsps[useindx]));
+      stretch_sprite (tempspr, spriteset[sppic], 0, 0, newwidth, newheight);
+      draw_sprite_h_flip (actsps[useindx], tempspr, 0, 0);
+      wfreeblock (tempspr);
+      }
+      else
+      stretch_sprite(actsps[useindx],spriteset[sppic],0,0,newwidth,newheight);
+      */
+      if (in_new_room)
+          unselect_palette();
 
-                              } 
-                              else {
-                                  // Not a scaled character, draw at normal size
+  } 
+  else {
+      // Not a scaled character, draw at normal size
 
-                                  our_eip = 339;
+      our_eip = 339;
 
-                                  if (isMirrored)
-                                      draw_sprite_h_flip (actsps[useindx], spriteset[sppic], 0, 0);
-                                  else
-                                      actsps_used = 0;
-                                  //blit (spriteset[sppic], actsps[useindx], 0, 0, 0, 0, actsps[useindx]->w, actsps[useindx]->h);
-                              }
+      if (isMirrored)
+          draw_sprite_h_flip (actsps[useindx], spriteset[sppic], 0, 0);
+      else
+          actsps_used = 0;
+      //blit (spriteset[sppic], actsps[useindx], 0, 0, 0, 0, actsps[useindx]->w, actsps[useindx]->h);
+  }
 
-                              return actsps_used;
+  return actsps_used;
 }
 
 

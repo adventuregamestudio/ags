@@ -14,8 +14,8 @@
 
 #include "ac/global_character.h"
 #include "wgt2allg.h"
-#include "ac/ac_common.h"
-#include "ac/ac_view.h"
+#include "ac/common.h"
+#include "ac/view.h"
 #include "ac/character.h"
 #include "ac/display.h"
 #include "ac/draw.h"

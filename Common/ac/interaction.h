@@ -1,7 +1,7 @@
 #ifndef __AC_INTERACTION_H
 #define __AC_INTERACTION_H
 
-#include "ac_defines.h" // macros, typedef
+#include "ac/common_defines.h" // macros, typedef
 #include "platform/file.h"
 
 /* THE WAY THIS WORKS:

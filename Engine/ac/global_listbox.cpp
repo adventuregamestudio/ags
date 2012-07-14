@@ -1,7 +1,7 @@
 
 #include "ac/global_listbox.h"
 #include "acmain/ac_maindefines.h"
-#include "ac/ac_common.h"
+#include "ac/common.h"
 #include "ac/listbox.h"
 
 void ListBoxClear(int guin, int objn) {

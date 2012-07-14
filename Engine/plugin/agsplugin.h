@@ -293,7 +293,7 @@ public:
 };
 #endif
 */
-#include "acfont/ac_agsfontrenderer.h"	// IAGSFontRenderer
+#include "font/agsfontrenderer.h"	// IAGSFontRenderer
 
 // The plugin-to-engine interface
 class IAGSEngine {

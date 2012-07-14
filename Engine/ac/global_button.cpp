@@ -2,7 +2,7 @@
 #include "ac/global_button.h"
 #include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
-#include "ac/ac_common.h"
+#include "ac/common.h"
 #include "ac/button.h"
 #include "ac/gamesetupstruct.h"
 #include "gui/guimain.h"

@@ -2,12 +2,12 @@
 #ifndef __AC_ROOMSTRUCT_H
 #define __AC_ROOMSTRUCT_H
 
-#include "ac/ac_defines.h"      // PCKD
-#include "ac/ac_interaction.h"  // NewInteraction
-#include "ac/ac_customproperties.h"
-#include "ac/ac_messageinfo.h"
-#include "ac/ac_animationstruct.h"
-#include "ac/ac_point.h"
+#include "ac/common_defines.h"      // PCKD
+#include "ac/interaction.h"  // NewInteraction
+#include "ac/customproperties.h"
+#include "ac/messageinfo.h"
+#include "ac/animationstruct.h"
+#include "ac/point.h"
 #include "script/cc_script.h"       // ccScript
 
 

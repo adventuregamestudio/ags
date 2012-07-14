@@ -6,7 +6,7 @@
 #include "wgt2allg.h"
 #include "alfont.h"
 
-#include "acfont/ac_agsfontrenderer.h"
+#include "font/agsfontrenderer.h"
 
 IAGSFontRenderer* fontRenderers[MAX_FONTS];
 wgtfont fonts[MAX_FONTS];

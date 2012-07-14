@@ -18,7 +18,7 @@
 */
 #include <stdio.h>
 #include "wgt2allg.h"
-#include "ac/ac_common.h"
+#include "ac/common.h"
 #include "debug/debug.h"
 #include "ac/roomstruct.h"
 #include "script/script_common.h"

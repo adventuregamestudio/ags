@@ -1,7 +1,7 @@
 
 #include "ac/global_timer.h"
 #include "ac/rundefines.h"
-#include "ac/ac_common.h"
+#include "ac/common.h"
 #include "ac/gamestate.h"
 
 extern GameState play;

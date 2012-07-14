@@ -4,7 +4,7 @@
 #include <string.h>
 #include "gui/guilistbox.h"
 #include "gui/guimain.h"
-#include "acfont/ac_fonts.h"
+#include "font/fonts.h"
 #include "wgt2allg.h"
 
 DynamicArray<GUIListBox> guilist;

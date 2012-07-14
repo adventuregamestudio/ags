@@ -1,6 +1,6 @@
 
 #include "wgt2allg.h"
-#include "ac/ac_common.h"
+#include "ac/common.h"
 #include "ac/display.h"
 #include "ac/draw.h"
 #include "ac/game.h"

@@ -2,7 +2,7 @@
 #include <cctype>
 #include "wgt2allg.h"
 #include "ali3d.h"
-#include "ac/ac_common.h"
+#include "ac/common.h"
 #include "ac/gamesetup.h"
 #include "ac/gui.h"
 #include "ac/mouse.h"

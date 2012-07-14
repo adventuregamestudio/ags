@@ -1,7 +1,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "ac/ac_view.h"
+#include "ac/view.h"
 #include "wgt2allg.h"
 #include "platform/file.h"
 

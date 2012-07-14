@@ -2,7 +2,7 @@
 #include "ac/global_label.h"
 #include "wgt2allg.h"
 #include "acmain/ac_maindefines.h"
-#include "ac/ac_common.h"
+#include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/label.h"
 #include "gui/guimain.h"

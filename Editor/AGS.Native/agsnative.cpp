@@ -25,13 +25,11 @@ int mousex, mousey;
 #include "misc.h"
 #include "wgt2allg.h"
 #include "sprcache.h"
-#include "ac/ac_actiontype.h"
-#include "ac/ac_common.h"
-#include "ac/ac_compress.h"
-#include "ac/ac_object.h"
+#include "ac/actiontype.h"
+#include "ac/common.h"
 #include "ac/roomstruct.h"
-#include "ac/ac_script.h"
-#include "ac/ac_view.h"
+#include "ac/scriptmodule.h"
+#include "ac/view.h"
 #include "ac/dialogtopic.h"
 #include "ac/gamesetupstruct.h"
 #include "gui/guimain.h"
@@ -41,7 +39,7 @@ int mousex, mousey;
 #include "gui/guitextbox.h"
 #include "gui/guilistbox.h"
 #include "gui/guislider.h"
-
+#include "util/compress.h"
 #include "util/string_utils.h"    // fputstring, etc
 
 extern void Cstretch_blit(BITMAP *src, BITMAP *dst, int sx, int sy, int sw, int sh, int dx, int dy, int dw, int dh);

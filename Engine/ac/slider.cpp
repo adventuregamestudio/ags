@@ -1,6 +1,6 @@
 
 #include "ac/slider.h"
-#include "ac/ac_common.h"
+#include "ac/common.h"
 
 extern int guis_need_update;
 

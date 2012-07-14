@@ -6,7 +6,7 @@
 #include "wgt2allg.h"
 #include "alfont.h"
 
-#include "acfont/ac_ttffontrenderer.h"
+#include "font/ttffontrenderer.h"
 
 // project-specific implementation
 extern bool ShouldAntiAliasText();

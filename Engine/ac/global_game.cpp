@@ -1,8 +1,8 @@
 #define USE_CLIB
 #include "ac/global_game.h"
 #include "wgt2allg.h"
-#include "ac/ac_common.h"
-#include "ac/ac_view.h"
+#include "ac/common.h"
+#include "ac/view.h"
 #include "acmain/ac_maindefines.h"
 #include "ac/character.h"
 #include "ac/draw.h"

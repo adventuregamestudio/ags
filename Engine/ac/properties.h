@@ -7,7 +7,7 @@
 #ifndef __AGS_EE_AC__PROPERTIES_H
 #define __AGS_EE_AC__PROPERTIES_H
 
-#include "ac/ac_customproperties.h"
+#include "ac/customproperties.h"
 
 int get_int_property (CustomProperties *cprop, const char *property);
 void get_text_property (CustomProperties *cprop, const char *property, char *bufer);

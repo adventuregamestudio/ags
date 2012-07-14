@@ -2,9 +2,9 @@
 #include "wgt2allg.h"
 #include "ali3d.h"
 #include "ac/game.h"
-#include "ac/ac_common.h"
+#include "ac/common.h"
 #include "ac/roomstruct.h"
-#include "ac/ac_view.h"
+#include "ac/view.h"
 #include "acmain/ac_maindefines.h"
 #include "ac/audiochannel.h"
 #include "ac/character.h"
@@ -1081,7 +1081,7 @@ void save_game_room_state(FILE *ooo)
             save_room_data_segment();
 
         // Update the saved interaction variable values
-        for (ff = 0; ff < thisroom.numLocalVars; ff++)
+        for (int ff = 0; ff < thisroom.numLocalVars; ff++)
             croom->interactionVariableValues[ff] = thisroom.localvars[ff].value;
     }
 

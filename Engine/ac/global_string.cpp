@@ -1,6 +1,6 @@
 
 #include <string.h>
-#include "ac/ac_common.h"
+#include "ac/common.h"
 #include "acmain/ac_maindefines.h"
 #include "ac/global_string.h"
 #include "ac/global_translation.h"

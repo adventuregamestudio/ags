@@ -1,8 +1,8 @@
 
 #include "wgt2allg.h"
 #include "ac/global_walkbehind.h"
-#include "ac/ac_common.h"
-#include "ac/ac_defines.h"
+#include "ac/common.h"
+#include "ac/common_defines.h"
 #include "ac/draw.h"
 #include "ac/roomstatus.h"
 #include "ac/walkbehind.h"

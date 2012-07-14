@@ -14,6 +14,6 @@ extern char *game_file_sig;
 
 // [ROFLMAO] What the fuck is this? [/ROFLMAO]
 // Used alot in numerous modules
-extern int ff;
+//extern int ff;
 
 #endif // __AC_COMMON_H

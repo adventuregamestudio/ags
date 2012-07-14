@@ -1,7 +1,7 @@
 
 #include "ac/global_region.h"
 #include "wgt2allg.h"
-#include "ac/ac_common.h"
+#include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/region.h"
 #include "ac/roomstatus.h"

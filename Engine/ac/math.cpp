@@ -4,7 +4,7 @@
 #include <math.h>
 #include "acmain/ac_maindefines.h"
 #include "math.h"
-#include "ac/ac_common.h"
+#include "ac/common.h"
 
 int FloatToInt(SCRIPT_FLOAT(value), int roundDirection) {
     INIT_SCRIPT_FLOAT(value);

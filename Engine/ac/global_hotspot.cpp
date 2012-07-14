@@ -1,8 +1,8 @@
 
 #include "ac/global_hotspot.h"
 #include "wgt2allg.h"
-#include "ac/ac_common.h"
-#include "ac/ac_defines.h"
+#include "ac/common.h"
+#include "ac/common_defines.h"
 #include "acmain/ac_maindefines.h"
 #include "ac/characterinfo.h"
 #include "ac/draw.h"

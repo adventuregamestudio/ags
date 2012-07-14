@@ -1,6 +1,6 @@
 
 #include "media/audio/queuedaudioitem.h"
-#include "ac/ac_defines.h"
+#include "ac/common_defines.h"
 
 // [IKM] 2012-07-02: these functions are used during load/save game,
 // and read/written as-is, hence cachedClip pointer should be serialized

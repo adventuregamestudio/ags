@@ -1,8 +1,8 @@
 
 #include <stdio.h>              // NULL definition xD
 #include <string.h>
-#include "ac/ac_interaction.h"
-#include "ac/ac_common.h"
+#include "ac/interaction.h"
+#include "ac/common.h"
 #include "util/string_utils.h"      // fputstring, etc
 
 InteractionVariable globalvars[MAX_GLOBAL_VARIABLES] = {{"Global 1", 0, 0}};

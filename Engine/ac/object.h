@@ -9,7 +9,7 @@
 #ifndef __AGS_EE_AC__OBJECT_H
 #define __AGS_EE_AC__OBJECT_H
 
-#include "ac/ac_defines.h"
+#include "ac/common_defines.h"
 #include "ac/dynobj/scriptobject.h"
 
 AGS_INLINE int is_valid_object(int obtest);

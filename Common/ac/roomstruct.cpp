@@ -2,16 +2,17 @@
 #include <stdio.h>
 #include "wgt2allg.h"
 #include "ac/roomstruct.h"
-#include "ac/ac_common.h"
-#include "ac/ac_wordsdictionary.h"
+#include "ac/common.h"
+#include "ac/wordsdictionary.h"
 #include "util/string_utils.h"      // fputstring, etc
-#include "ac/ac_compress.h"
+#include "util/compress.h"
 #include "platform/file.h"
 
 extern "C" {
   extern FILE *clibfopen(char *, char *);
 }
 
+extern BITMAP *recalced;
 
 block backups[5];
 int _acroom_bpp = 1;  // bytes per pixel of currently loading room

@@ -14,10 +14,10 @@
 
 #include "wgt2allg.h"
 #include "ac/character.h"
-#include "ac/ac_common.h"
+#include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/roomstruct.h"
-#include "ac/ac_view.h"
+#include "ac/view.h"
 #include "ac/display.h"
 #include "ac/draw.h"
 #include "ac/event.h"

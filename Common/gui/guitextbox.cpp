@@ -3,7 +3,7 @@
 #include "gui/guitextbox.h"
 #include "gui/guimain.h"
 #include "wgt2allg.h"
-#include "acfont/ac_agsfontrenderer.h"	// fontRenderers;
+#include "font/agsfontrenderer.h"	// fontRenderers;
 
 DynamicArray<GUITextBox> guitext;
 int numguitext = 0;

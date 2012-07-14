@@ -6,10 +6,10 @@
 #include "wgt2allg.h"
 #include "alfont.h"
 
-#include "acfont/ac_fonts.h"
-#include "acfont/ac_agsfontrenderer.h"
-#include "acfont/ac_ttffontrenderer.h"
-#include "acfont/ac_wfnfontrenderer.h"
+#include "font/fonts.h"
+#include "font/agsfontrenderer.h"
+#include "font/ttffontrenderer.h"
+#include "font/wfnfontrenderer.h"
 
 extern void set_our_eip(int eip);
 extern int  get_our_eip();

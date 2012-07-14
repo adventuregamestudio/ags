@@ -22,7 +22,7 @@
 #include "ac/gamesetup.h"
 #include "media/audio/sound.h"
 #include "debug/debug.h"
-#include "ac/ac_common.h"
+#include "ac/common.h"
 #include "ac/global_audio.h"
 #include "ac/roomstruct.h"
 #include <math.h>

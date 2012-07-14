@@ -1,7 +1,7 @@
 
 #include "ac/invwindow.h"
 #include "wgt2allg.h"
-#include "ac/ac_common.h"
+#include "ac/common.h"
 #include "acmain/ac_maindefines.h"
 #include "ac/characterextras.h"
 #include "ac/characterinfo.h"

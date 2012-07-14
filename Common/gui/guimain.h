@@ -14,7 +14,7 @@
 #define __AC_GUIMAIN_H
 
 #include "gui/guiobject.h"
-#include "ac/ac_defines.h"       // AGS_INLINE
+#include "ac/common_defines.h"       // AGS_INLINE
 
 // There were issues when including header caused conflicts
 struct GameSetupStruct;

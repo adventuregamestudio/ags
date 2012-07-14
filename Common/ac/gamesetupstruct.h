@@ -7,11 +7,11 @@
 #ifndef __AGS_CN_AC__GAMESETUPSTRUCT_H
 #define __AGS_CN_AC__GAMESETUPSTRUCT_H
 
-#include "ac/ac_audioclip.h"        // AudioClipType
-#include "ac/ac_customproperties.h" // CustomProperties, CustomPropertySchema
-#include "ac/ac_interaction.h"      // NewInteraction
+#include "ac/audiocliptype.h"        // AudioClipType
+#include "ac/customproperties.h" // CustomProperties, CustomPropertySchema
+#include "ac/interaction.h"      // NewInteraction
 #include "ac/inventoryiteminfo.h"   // InventoryItemInfo
-#include "ac/ac_mousecursor.h"      // MouseCursor
+#include "ac/mousecursor.h"      // MouseCursor
 #include "ac/gamesetupstructbase.h"
 #include "ac/oldgamesetupstruct.h"
 #include "ac/dynobj/scriptaudioclip.h" // ScriptAudioClip

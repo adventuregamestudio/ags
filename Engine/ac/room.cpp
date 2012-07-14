@@ -1,7 +1,7 @@
 #define USE_CLIB
 #include "wgt2allg.h"
 #include "ali3d.h"
-#include "ac/ac_common.h"
+#include "ac/common.h"
 #include "acmain/ac_maindefines.h"
 #include "ac/audiodefines.h"
 #include "ac/charactercache.h"
@@ -645,7 +645,7 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
     }
     else {
         // We have been here before
-        for (ff = 0; ff < thisroom.numLocalVars; ff++)
+        for (int ff = 0; ff < thisroom.numLocalVars; ff++)
             thisroom.localvars[ff].value = croom->interactionVariableValues[ff];
     }
 
@@ -717,7 +717,7 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
         // sometimes the palette has corrupt entries, which crash
         // the create_rgb_table call
         // so, fix them
-        for (ff = 0; ff < 256; ff++) {
+        for (int ff = 0; ff < 256; ff++) {
             if (palette[ff].r > 63)
                 palette[ff].r = 63;
             if (palette[ff].g > 63)
@@ -734,7 +734,7 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
 
         // if a following character is still waiting to come into the
         // previous room, force it out so that the timer resets
-        for (ff = 0; ff < game.numcharacters; ff++) {
+        for (int ff = 0; ff < game.numcharacters; ff++) {
             if ((game.chars[ff].following >= 0) && (game.chars[ff].room < 0)) {
                 if ((game.chars[ff].following == game.playercharacter) &&
                     (forchar->prevroom == newnum))

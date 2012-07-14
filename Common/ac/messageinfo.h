@@ -1,7 +1,7 @@
 #ifndef __AC_MESSAGEINFO_H
 #define __AC_MESSAGEINFO_H
 
-#include "ac/ac_defines.h" // PCKD
+#include "ac/common_defines.h" // PCKD
 
 #pragma pack(1)
 

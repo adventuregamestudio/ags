@@ -17,7 +17,7 @@
 //
 
 #include "wgt2allg.h"
-#include "ac/ac_common.h"
+#include "ac/common.h"
 #include "ac/character.h"
 #include "ac/characterextras.h"
 #include "ac/gamestate.h"

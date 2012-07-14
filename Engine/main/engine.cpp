@@ -18,7 +18,7 @@
 
 #include "main/mainheader.h"
 #include "ali3d.h"
-#include "ac/ac_common.h"
+#include "ac/common.h"
 #include "ac/character.h"
 #include "ac/characterextras.h"
 #include "ac/characterinfo.h"

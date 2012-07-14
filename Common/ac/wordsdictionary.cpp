@@ -2,9 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "ac/ac_wordsdictionary.h"
-#include "ac/ac_common.h"
-#include "ac/ac_defines.h"
+#include "ac/wordsdictionary.h"
+#include "ac/common.h"
+#include "ac/common_defines.h"
 #include "platform/file.h"
 
 void WordsDictionary::allocate_memory(int wordCount)

@@ -1,6 +1,6 @@
 
 #include <stdio.h>              // NULL definition xD
-#include "ac_actiontype.h"
+#include "ac/actiontype.h"
 
 // {name, flags, numArgs, {argTypes}, {argNames}, description, textscript}
 ActionTypes actions[NUM_ACTION_TYPES] = {

@@ -11,7 +11,7 @@
 
 #include "wgt2allg.h"
 #include "sprcache.h"
-#include "compress.h"
+#include "util/compress.h"
 #include "bigend.h"
 //
 

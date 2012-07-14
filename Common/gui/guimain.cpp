@@ -5,7 +5,7 @@
 #include <ctype.h>
 #include "gui/guimain.h"
 #include "wgt2allg.h"
-#include "ac/ac_common.h"	// quit()
+#include "ac/common.h"	// quit()
 #include "ac/gamesetupstruct.h"
 #include "gui/guibutton.h"
 #include "gui/guilabel.h"
@@ -13,7 +13,7 @@
 #include "gui/guiinv.h"
 #include "gui/guitextbox.h"
 #include "gui/guilistbox.h"
-#include "acfont/ac_fonts.h"
+#include "font/fonts.h"
 #include "sprcache.h"
 
 extern SpriteCache spriteset;

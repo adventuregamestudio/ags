@@ -1,8 +1,8 @@
 
 #include "ac/button.h"
 #include "wgt2allg.h"
-#include "ac/ac_common.h"
-#include "ac/ac_view.h"
+#include "ac/common.h"
+#include "ac/view.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/global_translation.h"
 #include "ac/string.h"

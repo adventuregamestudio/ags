@@ -18,8 +18,7 @@
 
 #include "main/mainheader.h"
 #include "main/game_file.h"
-#include "ac/ac_common.h"
-#include "ac/audioclip.h"
+#include "ac/common.h"
 #include "ac/character.h"
 #include "ac/charactercache.h"
 #include "ac/dialogtopic.h"

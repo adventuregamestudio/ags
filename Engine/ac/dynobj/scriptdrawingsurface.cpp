@@ -4,7 +4,7 @@
 #include "ac/roomstruct.h"
 #include "sprcache.h"
 #include "ac/rundefines.h"
-#include "ac/ac_common.h"
+#include "ac/common.h"
 #include "ac/drawingsurface.h"
 #include "ac/gamestate.h"
 #include "ac/gamesetupstruct.h"

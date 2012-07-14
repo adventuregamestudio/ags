@@ -13,10 +13,10 @@
 */
 #include "wgt2allg.h"
 #include "routefnd.h"
-#include "ac/ac_common.h"   // quit()
+#include "ac/common.h"   // quit()
 #include "ac/movelist.h"     // MoveList
-#include "ac/ac_point.h"
-#include "ac/ac_defines.h"
+#include "ac/point.h"
+#include "ac/common_defines.h"
 #include <string.h>
 #include <math.h>
 #define MANOBJNUM 99

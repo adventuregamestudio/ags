@@ -210,10 +210,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\Engine\ACWSETUP.CPP"
-				>
-			</File>
-			<File
 				RelativePath="..\..\Engine\ali3dd3d.cpp"
 				>
 			</File>
@@ -1078,6 +1074,14 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\plugin\pluginobjectreader.cpp"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="setup"
+				>
+				<File
+					RelativePath="..\..\Engine\setup\acwsetup.cpp"
 					>
 				</File>
 			</Filter>
@@ -2002,7 +2006,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\Engine\resource\game-1.ICO"
+				RelativePath="..\..\Engine\resource\game-1.ico"
 				>
 			</File>
 			<File

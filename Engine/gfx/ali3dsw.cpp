@@ -12,7 +12,7 @@
   CLEAR that the code has been altered from the Standard Version.
 */
 #include <allegro.h>
-#include <ali3d.h>
+#include "gfx/ali3d.h"
 
 #include <stdio.h>
 
@@ -106,7 +106,7 @@ public:
 
 };
 
-#include "gfx/allegrogfxfilter.h"
+#include "gfx/gfxfilter_allegro.h"
 
 class ALSoftwareGraphicsDriver : public IGraphicsDriver
 {

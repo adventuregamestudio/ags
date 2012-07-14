@@ -1,6 +1,6 @@
 
 #include "util/wgt2allg.h"
-#include "ali3d.h"
+#include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/gamesetup.h"
 #include "ac/draw.h"

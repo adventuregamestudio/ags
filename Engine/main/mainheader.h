@@ -12,14 +12,14 @@
 #define USE_CLIB
 #include <stdio.h>
 #include "util/wgt2allg.h"
-#include "ali3d.h"
+#include "gfx/ali3d.h"
 #include "ac/math.h"
 #include "script/script_runtime.h"
 #include "gui/animatingguibutton.h"
 #include "gui/guibutton.h"
 #include "gfx/gfxfilter.h"
 #include "util/string_utils.h"
-#include "mousew32.h"
+#include "device/mousew32.h"
 #include "ac/file.h"
 #include "routefnd.h"
 #include "util/misc.h"

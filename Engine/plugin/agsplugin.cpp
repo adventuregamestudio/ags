@@ -1,7 +1,7 @@
 
 #include "util/wgt2allg.h"
 #include "plugin/agsplugin.h"
-#include "ali3d.h"
+#include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/roomstruct.h"
 #include "ac/view.h"

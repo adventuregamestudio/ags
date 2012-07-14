@@ -4,7 +4,7 @@
 #if defined(WINDOWS_VERSION)
 #include <winalleg.h>
 #include <allegro/platform/aintwin.h>
-#include <ali3d.h>
+#include "gfx/ali3d.h"
 #include <GL/gl.h>
 
 // Allegro and glext.h define these
@@ -39,7 +39,7 @@ PFNGLFRAMEBUFFERTEXTURE2DEXTPROC glFramebufferTexture2DEXT = 0;
 PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC glFramebufferRenderbufferEXT = 0;
 
 #elif defined(ANDROID_VERSION)
-#include <ali3d.h>
+#include "gfx/ali3d.h"
 #include <GLES/gl.h>
 
 #ifndef GL_GLEXT_PROTOTYPES
@@ -106,7 +106,7 @@ const char* fbo_extension_string = "GL_OES_framebuffer_object";
 #define GL_COLOR_ATTACHMENT0_EXT GL_COLOR_ATTACHMENT0_OES
 
 #elif defined(IOS_VERSION)
-#include <ali3d.h>
+#include "gfx/ali3d.h"
 #include <OpenGLES/ES1/gl.h>
 
 #ifndef GL_GLEXT_PROTOTYPES
@@ -357,7 +357,7 @@ struct SpriteDrawListEntry
   bool skip;
 };
 
-#include "gfx/d3dgfxfilter.h"
+#include "gfx/gfxfilter_d3d.h"
 
 class OGLGraphicsDriver : public IGraphicsDriver
 {

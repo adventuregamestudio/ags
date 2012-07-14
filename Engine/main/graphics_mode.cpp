@@ -17,7 +17,7 @@
 //
 
 #include "main/mainheader.h"
-#include "ali3d.h"
+#include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/display.h"
 #include "ac/draw.h"

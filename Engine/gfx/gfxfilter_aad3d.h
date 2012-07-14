@@ -16,7 +16,7 @@ CLEAR that the code has been altered from the Standard Version.
 #ifndef __AC_AAD3DGFXFILTER_H
 #define __AC_AAD3DGFXFILTER_H
 
-#include "gfx/d3dgfxfilter.h"
+#include "gfx/gfxfilter_d3d.h"
 
 // Anti-aliased D3D filter
 

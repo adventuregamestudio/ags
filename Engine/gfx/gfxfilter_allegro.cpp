@@ -1,6 +1,6 @@
 
 #include "util/wgt2allg.h"
-#include "gfx/allegrogfxfilter.h"
+#include "gfx/gfxfilter_allegro.h"
 #include "gfx/gfxfilterdefines.h"
 
 // Standard Allegro filter

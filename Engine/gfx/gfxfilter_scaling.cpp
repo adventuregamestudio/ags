@@ -1,8 +1,8 @@
 
 #include <stdio.h>
-#include "gfx/scalinggfxfilter.h"
+#include "gfx/gfxfilter_scaling.h"
 #include "util/wgt2allg.h"
-#include "mousew32.h"
+#include "device/mousew32.h"
 #include "gfx/gfxfilterhelpers.h"
 
 // Standard scaling filter

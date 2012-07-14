@@ -13,31 +13,29 @@ CLEAR that the code has been altered from the Standard Version.
 
 */
 
-#ifndef __AC_HQ2XGFXFILTER_H
-#define __AC_HQ2XGFXFILTER_H
+#ifndef __AC_ALLEGROGFXFILTER_H
+#define __AC_ALLEGROGFXFILTER_H
 
-#include "gfx/scalingallegrogfxfilter.h"
+#include "gfx/gfxfilter_scaling.h"
 
-struct Hq2xGFXFilter : public ScalingAllegroGFXFilter {
-private:
-    BITMAP *realScreenBuffer;
+struct AllegroGFXFilter : ScalingGFXFilter {
+protected:
+    BITMAP *realScreen;
+    int lastBlitX;
+    int lastBlitY;
 
 public:
 
-    Hq2xGFXFilter(bool justCheckingForSetup) : ScalingAllegroGFXFilter(2, justCheckingForSetup) { }
-
-    virtual const char* Initialize(int width, int height, int colDepth);
-
+    AllegroGFXFilter(bool justCheckingForSetup);
+    AllegroGFXFilter(int multiplier, bool justCheckingForSetup);
 
     virtual BITMAP* ScreenInitialized(BITMAP *screen, int fakeWidth, int fakeHeight);
-
     virtual BITMAP *ShutdownAndReturnRealScreen(BITMAP *currentScreen);
-
     virtual void RenderScreen(BITMAP *toRender, int x, int y);
-
-    virtual const char *GetVersionBoxText();
-
-    virtual const char *GetFilterID();
+    virtual void RenderScreenFlipped(BITMAP *toRender, int x, int y, int flipType);
+    virtual void ClearRect(int x1, int y1, int x2, int y2, int color);
+    virtual void GetCopyOfScreenIntoBitmap(BITMAP *copyBitmap);
+    virtual void GetCopyOfScreenIntoBitmap(BITMAP *copyBitmap, bool copyWithYOffset);
 };
 
-#endif // __AC_HQ2XGFXFILTER_H
+#endif // __AC_ALLEGROGFXFILTER_H

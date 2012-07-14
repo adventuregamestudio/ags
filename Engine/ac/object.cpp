@@ -1,7 +1,7 @@
 
 #include "util/wgt2allg.h"
 #include "ac/object.h"
-#include "ali3d.h"
+#include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/draw.h"

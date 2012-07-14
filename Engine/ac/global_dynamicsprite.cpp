@@ -1,7 +1,7 @@
 
 #include "ac/global_dynamicsprite.h"
 #include "util/wgt2allg.h"
-#include "ali3d.h"
+#include "gfx/ali3d.h"
 #include "ac/dynamicsprite.h"
 #include "ac/file.h"
 #include "ac/spritecache.h"

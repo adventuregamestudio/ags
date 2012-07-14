@@ -16,7 +16,7 @@ CLEAR that the code has been altered from the Standard Version.
 #ifndef __AC_HQ3XGFXFILTER_H
 #define __AC_HQ3XGFXFILTER_H
 
-#include "gfx/scalingallegrogfxfilter.h"
+#include "gfx/gfxfilter_scalingallegro.h"
 
 struct Hq3xGFXFilter : public ScalingAllegroGFXFilter {
 private:

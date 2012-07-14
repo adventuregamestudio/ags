@@ -202,30 +202,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\Engine\acwavi.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Engine\acwavi3d.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Engine\ali3dd3d.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Engine\ali3dogl.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Engine\ali3dsw.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Engine\mousew32.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\Engine\routefnd.cpp"
 				>
 			</File>
@@ -709,11 +685,15 @@
 				Name="gfx"
 				>
 				<File
-					RelativePath="..\..\Engine\gfx\aad3dgfxfilter.cpp"
+					RelativePath="..\..\Engine\gfx\ali3dd3d.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\gfx\allegrogfxfilter.cpp"
+					RelativePath="..\..\Engine\gfx\ali3dogl.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\ali3dsw.cpp"
 					>
 				</File>
 				<File
@@ -721,31 +701,39 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\gfx\d3dgfxfilter.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\gfx\gfxfilter.cpp"
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\gfx\gfxfilter_aad3d.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\gfxfilter_allegro.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\gfxfilter_d3d.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\gfxfilter_hq2x.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\gfxfilter_hq3x.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\gfxfilter_scaling.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\gfxfilter_scalingallegro.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\gfx\gfxfilterdefines.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\gfx\hq2xgfxfilter.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\gfx\hq3xgfxfilter.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\gfx\scalingallegrogfxfilter.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\gfx\scalinggfxfilter.cpp"
 					>
 				</File>
 			</Filter>
@@ -992,6 +980,14 @@
 					Name="video"
 					>
 					<File
+						RelativePath="..\..\Engine\media\video\acwavi.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\media\video\acwavi3d.cpp"
+						>
+					</File>
+					<File
 						RelativePath="..\..\Engine\media\video\video.cpp"
 						>
 					</File>
@@ -1085,6 +1081,14 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="device"
+				>
+				<File
+					RelativePath="..\..\Engine\device\mousew32.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -1092,47 +1096,11 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="..\..\Engine\ali3d.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Common\bigend.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Common\compress.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Common\misc.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Engine\mousew32.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Engine\resource.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\Engine\routefnd.h"
 				>
 			</File>
 			<File
 				RelativePath="..\..\Engine\scrptrt.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Common\sprcache.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Engine\VMR9Graph.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Common\wgt2allg.h"
 				>
 			</File>
 			<Filter
@@ -1687,11 +1655,7 @@
 				Name="gfx"
 				>
 				<File
-					RelativePath="..\..\Engine\gfx\aad3dgfxfilter.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\gfx\allegrogfxfilter.h"
+					RelativePath="..\..\Engine\gfx\ali3d.h"
 					>
 				</File>
 				<File
@@ -1699,11 +1663,35 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\gfx\d3dgfxfilter.h"
+					RelativePath="..\..\Engine\gfx\gfxfilter.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\gfx\gfxfilter.h"
+					RelativePath="..\..\Engine\gfx\gfxfilter_aad3d.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\gfxfilter_allegro.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\gfxfilter_d3d.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\gfxfilter_hq2x.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\gfxfilter_hq3x.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\gfxfilter_scaling.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\gfxfilter_scalingallegro.h"
 					>
 				</File>
 				<File
@@ -1712,22 +1700,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\gfx\hq2x3x.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\gfx\hq2xgfxfilter.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\gfx\hq3xgfxfilter.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\gfx\scalingallegrogfxfilter.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\gfx\scalinggfxfilter.h"
 					>
 				</File>
 			</Filter>
@@ -1865,6 +1837,10 @@
 						RelativePath="..\..\Engine\media\video\video.h"
 						>
 					</File>
+					<File
+						RelativePath="..\..\Engine\media\video\VMR9Graph.h"
+						>
+					</File>
 				</Filter>
 			</Filter>
 			<Filter
@@ -1995,6 +1971,14 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="device"
+				>
+				<File
+					RelativePath="..\..\Engine\device\mousew32.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Resource Files"
@@ -2109,7 +2093,7 @@
 				Name="almp3"
 				>
 				<File
-					RelativePath="..\..\Engine\almp3.c"
+					RelativePath="..\..\Engine\libsrc\almp3\almp3.c"
 					>
 				</File>
 				<File
@@ -2145,7 +2129,7 @@
 				Name="alogg"
 				>
 				<File
-					RelativePath="..\..\Engine\alogg.c"
+					RelativePath="..\..\Engine\libsrc\alogg\alogg.c"
 					>
 				</File>
 			</Filter>
@@ -2397,51 +2381,87 @@
 				Name="ac"
 				>
 				<File
-					RelativePath="..\..\Common\ac\ac_common.h"
+					RelativePath="..\..\Common\ac\animationstruct.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_defines.h"
+					RelativePath="..\..\Common\ac\audiocliptype.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_dialog.h"
+					RelativePath="..\..\Common\ac\common.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_gamesetupstruct.h"
+					RelativePath="..\..\Common\ac\common_defines.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_interaction.h"
+					RelativePath="..\..\Common\ac\customproperties.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_interfacebutton.h"
+					RelativePath="..\..\Common\ac\dialogtopic.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_interfaceelement.h"
+					RelativePath="..\..\Common\ac\gamesetupstruct.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_inventoryiteminfo.h"
+					RelativePath="..\..\Common\ac\gamesetupstructbase.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_messageinfo.h"
+					RelativePath="..\..\Common\ac\gamestructdefines.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_mousecursor.h"
+					RelativePath="..\..\Common\ac\interaction.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_point.h"
+					RelativePath="..\..\Common\ac\interfacebutton.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\ac_wordsdictionary.h"
+					RelativePath="..\..\Common\ac\interfaceelement.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\inventoryiteminfo.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\messageinfo.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\mousecursor.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\oldgamesetupstruct.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\point.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\roomstruct.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\spritecache.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\view.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\wordsdictionary.h"
 					>
 				</File>
 				<Filter
@@ -2454,34 +2474,54 @@
 				</Filter>
 			</Filter>
 			<Filter
-				Name="cs"
+				Name="script"
 				>
 				<File
-					RelativePath="..\..\Common\cs\cc_error.h"
+					RelativePath="..\..\Common\script\cc_error.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\cs\cc_instance.h"
+					RelativePath="..\..\Common\script\cc_instance.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\cs\cc_options.h"
+					RelativePath="..\..\Common\script\cc_options.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\cs\cc_script.h"
+					RelativePath="..\..\Common\script\cc_script.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\cs\cc_treemap.h"
+					RelativePath="..\..\Common\script\cc_treemap.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\cs\cs_common.h"
+					RelativePath="..\..\Common\script\script_common.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="util"
+				>
+				<File
+					RelativePath="..\..\Common\util\compress.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\cs\cs_utils.h"
+					RelativePath="..\..\Common\util\lzw.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\misc.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\string_utils.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\wgt2allg.h"
 					>
 				</File>
 			</Filter>

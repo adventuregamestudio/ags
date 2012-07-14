@@ -14,8 +14,8 @@
 #define _D3DTYPES_H_
 #define _STRSAFE_H_INCLUDED_
 typedef float D3DVALUE, *LPD3DVALUE;
-#include "VMR9Graph.h"
-#include <ali3d.h>
+#include "media/video/VMR9Graph.h"
+#include "gfx/ali3d.h"
 //#include <atlbase.h>
 
 #ifndef VS2005

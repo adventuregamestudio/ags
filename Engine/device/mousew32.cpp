@@ -30,7 +30,7 @@
 #define FALSE 0
 #endif
 
-#include "mousew32.h"
+#include "device/mousew32.h"
 
 
 /*

@@ -2,13 +2,13 @@
 #include <stdlib.h>                   // NULL
 #include "gfx/gfxfilter.h"
 #include "util/wgt2allg.h"
-#include "gfx/allegrogfxfilter.h"
-#include "gfx/scalingallegrogfxfilter.h"
-#include "gfx/hq2xgfxfilter.h"
-#include "gfx/hq3xgfxfilter.h"
-#include "gfx/d3dgfxfilter.h"
-#include "gfx/aad3dgfxfilter.h"
-#include "mousew32.h"
+#include "gfx/gfxfilter_allegro.h"
+#include "gfx/gfxfilter_scalingallegro.h"
+#include "gfx/gfxfilter_hq2x.h"
+#include "gfx/gfxfilter_hq3x.h"
+#include "gfx/gfxfilter_d3d.h"
+#include "gfx/gfxfilter_aad3d.h"
+#include "device/mousew32.h"
 
 // Standard do-nothing filter
 

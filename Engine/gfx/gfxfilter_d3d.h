@@ -16,7 +16,7 @@ CLEAR that the code has been altered from the Standard Version.
 #ifndef __AC_D3DGFXFILTER_H
 #define __AC_D3DGFXFILTER_H
 
-#include "gfx/scalinggfxfilter.h"
+#include "gfx/gfxfilter_scaling.h"
 
 struct D3DGFXFilter : ScalingGFXFilter {
 protected:

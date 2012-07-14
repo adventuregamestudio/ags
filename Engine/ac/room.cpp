@@ -1,6 +1,6 @@
 #define USE_CLIB
 #include "util/wgt2allg.h"
-#include "ali3d.h"
+#include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "media/audio/audiodefines.h"
 #include "ac/charactercache.h"

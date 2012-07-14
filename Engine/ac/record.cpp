@@ -14,7 +14,7 @@
 #include "main/main.h"
 #include "util/string_utils.h"
 #include "gfx/gfxfilter.h"
-#include "mousew32.h"
+#include "device/mousew32.h"
 
 extern GameSetupStruct game;
 extern GameState play;

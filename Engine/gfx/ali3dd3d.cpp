@@ -18,8 +18,8 @@
 #include <winalleg.h>
 #include <allegro/platform/aintwin.h>
 #include <d3d9.h>
-#include <ali3d.h>
-#include "gfx/d3dgfxfilter.h"
+#include "gfx/ali3d.h"
+#include "gfx/gfxfilter_d3d.h"
 
 extern int dxmedia_play_video_3d(const char*filename, IDirect3DDevice9 *device, bool useAVISound, int canskip, int stretch);
 extern void dxmedia_shutdown_3d();

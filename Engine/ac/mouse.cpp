@@ -1,7 +1,7 @@
 
 #include "ac/mouse.h"
 #include "util/wgt2allg.h"
-#include "ali3d.h"
+#include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/characterinfo.h"
 #include "ac/draw.h"
@@ -15,7 +15,7 @@
 #include "debug/debug.h"
 #include "gui/guibutton.h"
 #include "gui/guimain.h"
-#include "mousew32.h"
+#include "device/mousew32.h"
 #include "ac/spritecache.h"
 
 extern GameSetup usetup;

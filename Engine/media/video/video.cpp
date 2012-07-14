@@ -1,7 +1,7 @@
 
 #include "util/wgt2allg.h"
 #include "video.h"
-#include "ali3d.h"
+#include "gfx/ali3d.h"
 #include "apeg.h"
 #include "ac/draw.h"
 #include "ac/file.h"

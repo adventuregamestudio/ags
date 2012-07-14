@@ -1998,23 +1998,23 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 			<File
-				RelativePath="..\..\Engine\DefaultGDF.gdf.xml"
+				RelativePath="..\..\Engine\resource\DefaultGDF.gdf.xml"
 				>
 			</File>
 			<File
-				RelativePath="..\..\Engine\game-1.ICO"
+				RelativePath="..\..\Engine\resource\game-1.ICO"
 				>
 			</File>
 			<File
-				RelativePath="..\..\Engine\tintshader.fxo"
+				RelativePath="..\..\Engine\resource\tintshader.fxo"
 				>
 			</File>
 			<File
-				RelativePath="..\..\Engine\tintshaderLegacy.fxo"
+				RelativePath="..\..\Engine\resource\tintshaderLegacy.fxo"
 				>
 			</File>
 			<File
-				RelativePath="..\..\Engine\version.rc"
+				RelativePath="..\..\Engine\resource\version.rc"
 				>
 			</File>
 		</Filter>

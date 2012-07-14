@@ -1,6 +1,6 @@
 
 #include "ac/common.h"
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ali3d.h"
 #include "acmain/ac_maindefines.h"
 #include "ac/audiodefines.h"

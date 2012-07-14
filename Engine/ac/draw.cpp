@@ -1,5 +1,5 @@
 
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "aastr.h"
 #include "ac/common.h"
 #include "util/compress.h"
@@ -36,7 +36,7 @@
 #include "media/audio/audio.h"
 #include "platform/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
-#include "sprcache.h"
+#include "ac/spritecache.h"
 
 #if defined(ANDROID_VERSION)
 #include <sys/stat.h>

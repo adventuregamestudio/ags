@@ -1,7 +1,7 @@
 
 #include <stdio.h>
 #include "ac/roomobject.h"
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "ac/common_defines.h"
 #include "ac/gamestate.h"

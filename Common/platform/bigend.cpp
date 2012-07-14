@@ -19,7 +19,7 @@
 // define this before including bigend.h in this file only
 // allows the overridden functions to call into the originals
 #define __BIGEND_ORIGINAL_FILE_FUNCTIONS
-#include "bigend.h"
+#include "platform/bigend.h"
 
 //-----------------------------------------------------------------
 

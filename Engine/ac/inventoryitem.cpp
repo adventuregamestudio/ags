@@ -1,6 +1,6 @@
 
 #include "ac/inventoryitem.h"
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/characterinfo.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/global_inventoryitem.h"

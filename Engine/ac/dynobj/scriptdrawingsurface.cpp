@@ -1,8 +1,8 @@
 
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/dynobj/scriptdrawingsurface.h"
 #include "ac/roomstruct.h"
-#include "sprcache.h"
+#include "ac/spritecache.h"
 #include "ac/rundefines.h"
 #include "ac/common.h"
 #include "ac/drawingsurface.h"

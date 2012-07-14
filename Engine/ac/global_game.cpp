@@ -1,6 +1,6 @@
 #define USE_CLIB
 #include "ac/global_game.h"
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "ac/view.h"
 #include "acmain/ac_maindefines.h"
@@ -36,7 +36,7 @@
 #include "media/audio/audio.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
-#include "sprcache.h"
+#include "ac/spritecache.h"
 
 #define ALLEGRO_KEYBOARD_HANDLER
 

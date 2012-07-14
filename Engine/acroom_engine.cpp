@@ -6,9 +6,9 @@
 
 #include <stdio.h>  // needed for bigend
 // MACPORT FIX: endian support
-#include "bigend.h"
-#include "misc.h"
-#include "wgt2allg.h"
+#include "platform/bigend.h"
+#include "util/misc.h"
+#include "util/wgt2allg.h"
 #include "ac/roomstruct.h"
 //
 

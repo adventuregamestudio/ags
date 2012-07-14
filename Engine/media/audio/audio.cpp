@@ -10,7 +10,7 @@
 
 */
 
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "media/audio/audio.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/dynobj/cc_audioclip.h"

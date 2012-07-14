@@ -9,11 +9,11 @@
 #pragma warning (disable: 4996 4312)  // disable deprecation warnings
 #endif
 
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/common_defines.h"
-#include "sprcache.h"
+#include "ac/spritecache.h"
 #include "util/compress.h"
-#include "bigend.h"
+#include "platform/bigend.h"
 //
 
 //=============================================================================

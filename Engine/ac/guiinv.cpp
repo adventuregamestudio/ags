@@ -1,11 +1,11 @@
 
 #include "gui/guiinv.h"
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/draw.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/characterextras.h"
-#include "sprcache.h"
+#include "ac/spritecache.h"
 
 
 extern GameSetupStruct game;

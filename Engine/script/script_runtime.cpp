@@ -28,8 +28,8 @@ prior express permission from Chris Jones.
 #include "script/spans.h"
 #include "script/systemimports.h"
 
-#include "bigend.h"
-#include "misc.h"
+#include "platform/bigend.h"
+#include "util/misc.h"
 
 
 #ifdef AGS_BIG_ENDIAN

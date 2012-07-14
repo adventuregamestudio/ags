@@ -1,7 +1,7 @@
 
 #include <stdlib.h>                   // NULL
 #include "gfx/gfxfilter.h"
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "gfx/allegrogfxfilter.h"
 #include "gfx/scalingallegrogfxfilter.h"
 #include "gfx/hq2xgfxfilter.h"

@@ -7,11 +7,11 @@ prior express permission from Chris Jones.
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/common.h"	// quit()
 #include "util/compress.h"
 #include "util/lzw.h"
-#include "misc.h"
+#include "util/misc.h"
 #include "platform/file.h"     // filelength()
 
 #ifdef _MANAGED
@@ -19,10 +19,10 @@ prior express permission from Chris Jones.
 #pragma unmanaged
 #endif
 
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "platform/file.h"
 
-#include "misc.h"
+#include "util/misc.h"
 
 #if !defined(LINUX_VERSION) && !defined(MAC_VERSION)
 #ifndef VS2005

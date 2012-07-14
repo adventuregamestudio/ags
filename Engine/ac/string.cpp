@@ -1,6 +1,6 @@
 
 #include "ac/string.h"
-#include "wgt2allg.h"  //strupr and strlwr on Linux
+#include "util/wgt2allg.h"  //strupr and strlwr on Linux
 #include "ac/common.h"
 #include "acmain/ac_maindefines.h"
 #include "ac/display.h"
@@ -11,7 +11,7 @@
 #include "ac/dynobj/scriptstring.h"
 #include "debug/debug.h"
 #include "util/string_utils.h"
-#include "bigend.h"    //stricmp()
+#include "platform/bigend.h"    //stricmp()
 
 extern char lines[MAXLINE][200];
 extern int  numlines;

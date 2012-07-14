@@ -12,7 +12,7 @@
 
 */
 
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/character.h"
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
@@ -45,7 +45,7 @@
 #include "debug/debug.h"
 #include "main/game_run.h"
 #include "main/update.h"
-#include "sprcache.h"
+#include "ac/spritecache.h"
 #include <math.h>
 
 extern GameSetupStruct game;

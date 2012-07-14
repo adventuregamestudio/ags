@@ -1,5 +1,5 @@
 
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "ac/object.h"
 #include "ac/roomstruct.h"

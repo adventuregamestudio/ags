@@ -1,7 +1,7 @@
 
 #include <stdio.h>
 #include "gfx/scalinggfxfilter.h"
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "mousew32.h"
 #include "gfx/gfxfilterhelpers.h"
 

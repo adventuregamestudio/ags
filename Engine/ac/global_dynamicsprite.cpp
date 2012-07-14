@@ -1,10 +1,10 @@
 
 #include "ac/global_dynamicsprite.h"
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ali3d.h"
 #include "ac/dynamicsprite.h"
 #include "ac/file.h"
-#include "sprcache.h"
+#include "ac/spritecache.h"
 
 extern SpriteCache spriteset;
 extern IGraphicsDriver *gfxDriver;

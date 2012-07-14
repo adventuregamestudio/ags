@@ -16,7 +16,7 @@
 // Game loop
 //
 
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "ac/characterextras.h"
 #include "ac/characterinfo.h"
@@ -50,7 +50,7 @@
 #include "main/update.h"
 #include "plugin/agsplugin.h"
 #include "script/script.h"
-#include "sprcache.h"
+#include "ac/spritecache.h"
 
 extern AnimatingGUIButton animbuts[MAX_ANIMATING_BUTTONS];
 extern int numAnimButs;

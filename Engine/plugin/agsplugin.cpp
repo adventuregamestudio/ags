@@ -1,5 +1,5 @@
 
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "plugin/agsplugin.h"
 #include "ali3d.h"
 #include "ac/common.h"
@@ -31,7 +31,7 @@
 #include "plugin/pluginobjectreader.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
-#include "sprcache.h"
+#include "ac/spritecache.h"
 
 
 

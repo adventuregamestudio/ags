@@ -1,6 +1,6 @@
 
 #include <stdio.h>
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/roomstruct.h"
 #include "ac/common.h"
 #include "ac/wordsdictionary.h"

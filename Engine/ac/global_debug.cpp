@@ -1,6 +1,6 @@
 
 #include "ac/global_debug.h"
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ali3d.h"
 #include "ac/common.h"
 #include "acmain/ac_maindefines.h"
@@ -23,7 +23,7 @@
 #include "gui/guidialog.h"
 #include "script/cc_options.h"
 #include "debug/debug.h"
-#include "sprcache.h"
+#include "ac/spritecache.h"
 
 extern GameSetupStruct game;
 extern GameSetup usetup;

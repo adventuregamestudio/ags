@@ -1,5 +1,5 @@
 #define USE_CLIB
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ali3d.h"
 #include "ac/common.h"
 #include "acmain/ac_maindefines.h"
@@ -40,7 +40,7 @@
 #include "plugin/agsplugin.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
-#include "sprcache.h"
+#include "ac/spritecache.h"
 
 #if defined(MAC_VERSION) || defined(LINUX_VERSION)
 // for toupper

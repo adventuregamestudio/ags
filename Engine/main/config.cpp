@@ -16,12 +16,12 @@
 // Game configuration
 //
 
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
 #include "main/mainheader.h"
 #include "main/config.h"
-#include "sprcache.h"
+#include "ac/spritecache.h"
 
 extern GameSetup usetup;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];

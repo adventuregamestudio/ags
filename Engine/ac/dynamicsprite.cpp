@@ -1,6 +1,6 @@
 
 #include <math.h>
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/dynamicsprite.h"
 #include "ac/common.h"
 #include "acmain/ac_maindefines.h"
@@ -17,7 +17,7 @@
 #include "debug/debug.h"
 #include "gui/dynamicarray.h"
 #include "gui/guibutton.h"
-#include "sprcache.h"
+#include "ac/spritecache.h"
 
 extern GameSetupStruct game;
 extern SpriteCache spriteset;

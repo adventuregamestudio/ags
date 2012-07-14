@@ -16,7 +16,7 @@
 // Game update procedure
 //
 
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "ac/character.h"
 #include "ac/characterextras.h"

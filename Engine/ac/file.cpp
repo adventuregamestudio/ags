@@ -1,6 +1,6 @@
 #define USE_CLIB
 #include "ac/file.h"
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
@@ -8,7 +8,7 @@
 #include "ac/rundefines.h"
 #include "ac/string.h"
 #include "debug/debug.h"
-#include "misc.h"
+#include "util/misc.h"
 #include "platform/agsplatformdriver.h"
 
 #ifdef WINDOWS_VERSION

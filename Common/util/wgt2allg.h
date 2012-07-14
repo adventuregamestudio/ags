@@ -44,7 +44,7 @@
 #include <osxalleg.h>
 #endif
 
-#include "bigend.h"
+#include "platform/bigend.h"
 
 
 

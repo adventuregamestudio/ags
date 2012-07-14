@@ -3,7 +3,7 @@
 #define USE_ALFONT
 #endif
 
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "alfont.h"
 
 #include "font/fonts.h"

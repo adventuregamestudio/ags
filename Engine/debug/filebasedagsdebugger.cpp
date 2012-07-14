@@ -1,5 +1,5 @@
 
-#include "wgt2allg.h"                           // exists()
+#include "util/wgt2allg.h"                           // exists()
 #include "debug/filebasedagsdebugger.h"
 #include "ac/file.h"                     // filelength()
 

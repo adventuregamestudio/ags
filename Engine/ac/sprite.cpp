@@ -1,12 +1,12 @@
 
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ali3d.h"
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/sprite.h"
 #include "platform/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
-#include "sprcache.h"
+#include "ac/spritecache.h"
 
 extern GameSetupStruct game;
 extern int scrnwid,scrnhit;

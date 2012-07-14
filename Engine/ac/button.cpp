@@ -1,6 +1,6 @@
 
 #include "ac/button.h"
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "ac/view.h"
 #include "ac/gamesetupstruct.h"

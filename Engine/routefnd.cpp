@@ -11,7 +11,7 @@
   You MAY NOT compile your own builds of the engine without making it EXPLICITLY
   CLEAR that the code has been altered from the Standard Version.
 */
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "routefnd.h"
 #include "ac/common.h"   // quit()
 #include "ac/movelist.h"     // MoveList

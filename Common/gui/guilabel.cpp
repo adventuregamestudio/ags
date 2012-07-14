@@ -4,7 +4,7 @@
 #include <string.h>
 #include "gui/guilabel.h"
 #include "gui/guimain.h"
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 
 DynamicArray<GUILabel> guilabels;
 int numguilabels = 0;

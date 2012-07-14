@@ -1,5 +1,5 @@
 
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "gfx/allegrogfxfilter.h"
 #include "gfx/gfxfilterdefines.h"
 

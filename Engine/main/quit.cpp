@@ -16,7 +16,7 @@
 // Quit game procedure
 //
 
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ali3d.h"
 #include "ac/cdaudio.h"
 #include "ac/gamesetup.h"
@@ -28,7 +28,7 @@
 #include "debug/debug.h"
 #include "main/mainheader.h"
 #include "main/quit.h"
-#include "sprcache.h"
+#include "ac/spritecache.h"
 
 extern GameSetupStruct game;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];

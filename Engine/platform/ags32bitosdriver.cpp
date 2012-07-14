@@ -1,6 +1,6 @@
 
 #include "platform/ags32bitosdriver.h"
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/common.h"
 
 #if !defined(BSD_VERSION) && (defined(LINUX_VERSION) || defined(WINDOWS_VERSION))

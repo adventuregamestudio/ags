@@ -1,6 +1,6 @@
 
 #include "ac/invwindow.h"
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "acmain/ac_maindefines.h"
 #include "ac/characterextras.h"
@@ -17,7 +17,7 @@
 #include "main/game_run.h"
 #include "media/audio/audio.h"
 #include "platform/agsplatformdriver.h"
-#include "sprcache.h"
+#include "ac/spritecache.h"
 
 extern int guis_need_update;
 extern GameSetupStruct game;

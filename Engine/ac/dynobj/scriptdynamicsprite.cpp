@@ -1,6 +1,6 @@
 
 #include "ac/dynobj/scriptdynamicsprite.h"
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/dynamicsprite.h"
 
 int ScriptDynamicSprite::Dispose(const char *address, bool force) {

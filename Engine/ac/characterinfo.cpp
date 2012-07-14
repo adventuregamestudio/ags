@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "ac/characterinfo.h"
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/roomstruct.h"

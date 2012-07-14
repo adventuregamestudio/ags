@@ -11,7 +11,7 @@
 
 #define USE_CLIB
 #include <stdio.h>
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ali3d.h"
 #include "acmain/ac_maindefines.h"
 #include "ac/math.h"
@@ -23,7 +23,7 @@
 #include "mousew32.h"
 #include "ac/file.h"
 #include "routefnd.h"
-#include "misc.h"
+#include "util/misc.h"
 #include "script/cc_error.h"
 #include "font/agsfontrenderer.h"
 #include "media/audio/audio.h"

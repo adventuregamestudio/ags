@@ -1,5 +1,5 @@
 
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/draw.h"
 #include "ac/drawingsurface.h"
 #include "ac/common.h"
@@ -15,7 +15,7 @@
 #include "ac/string.h"
 #include "debug/debug.h"
 #include "gui/guimain.h"
-#include "sprcache.h"
+#include "ac/spritecache.h"
 
 extern GameSetupStruct game;
 extern GameState play;

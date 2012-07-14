@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include "gui/guislider.h"
 #include "gui/guimain.h"
-#include "wgt2allg.h"
-#include "sprcache.h"
+#include "util/wgt2allg.h"
+#include "ac/spritecache.h"
 
 extern SpriteCache spriteset;
 

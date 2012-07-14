@@ -13,7 +13,7 @@
 */
 
 #include "ac/global_character.h"
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "ac/view.h"
 #include "ac/character.h"

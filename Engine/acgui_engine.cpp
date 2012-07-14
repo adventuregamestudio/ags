@@ -4,7 +4,7 @@
 
 // Headers, as they are in acgui.cpp
 #pragma unmanaged
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 //#include "acruntim.h"
 #include "gui/guimain.h"
 #include "gui/guibutton.h"
@@ -15,9 +15,9 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/global_translation.h"
 #include "ac/string.h"
-#include "sprcache.h"
+#include "ac/spritecache.h"
 
-#include "bigend.h"
+#include "platform/bigend.h"
 
 // For engine these are defined in ac.cpp
 extern int eip_guiobj;

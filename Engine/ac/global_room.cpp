@@ -1,6 +1,6 @@
 
 #include "ac/global_room.h"
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "ac/character.h"
 #include "ac/characterinfo.h"

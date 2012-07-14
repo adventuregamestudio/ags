@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "ac/view.h"
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "platform/file.h"
 
 void ViewFrame::ReadFromFile(FILE *fp)

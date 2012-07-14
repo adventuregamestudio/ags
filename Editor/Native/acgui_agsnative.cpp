@@ -4,7 +4,7 @@
 
 // Headers, as they are in acgui.cpp
 #pragma unmanaged
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "gui/guimain.h"
 #include "gui/guilabel.h"
 #include "gui/guitextbox.h"
@@ -13,7 +13,7 @@
 #include "util/string_utils.h"
 #include <ctype.h>
 
-#include "bigend.h"
+#include "platform/bigend.h"
 
 //=============================================================================
 // AGS.Native-specific implementation split out of acgui.h

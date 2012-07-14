@@ -21,7 +21,7 @@
 #include <io.h>
 #endif
 
-#include "bigend.h"
+#include "platform/bigend.h"
 
 extern void quit(char *);
 

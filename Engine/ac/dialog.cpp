@@ -1,6 +1,6 @@
 
 #include "ac/dialog.h"
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "acmain/ac_maindefines.h"
 #include "ac/character.h"
@@ -31,7 +31,7 @@
 #include "media/audio/audio.h"
 #include "platform/agsplatformdriver.h"
 #include "script/script.h"
-#include "sprcache.h"
+#include "ac/spritecache.h"
 
 extern GameSetupStruct game;
 extern GameState play;

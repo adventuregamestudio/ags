@@ -1,5 +1,5 @@
 
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/gamesetupstructbase.h"
 
 void GameSetupStructBase::ReadFromFile(FILE *fp)

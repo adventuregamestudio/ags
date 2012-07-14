@@ -1,7 +1,7 @@
 
 #include <stdio.h>
 #include "string.h"
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "acmain/ac_maindefines.h"
 #include "ac/dynobj/cc_serializer.h"
 #include "ac/dynobj/all_dynamicclasses.h"

@@ -5,7 +5,7 @@
 #include "gui/guilistbox.h"
 #include "gui/guimain.h"
 #include "font/fonts.h"
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 
 DynamicArray<GUIListBox> guilist;
 int numguilist = 0;

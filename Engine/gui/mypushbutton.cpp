@@ -1,6 +1,6 @@
 
 #include <string.h>
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ali3d.h"
 #include "ac/mouse.h"
 #include "ac/record.h"

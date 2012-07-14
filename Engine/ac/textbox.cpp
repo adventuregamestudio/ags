@@ -2,7 +2,7 @@
 #include <string.h>
 #include "ac/textbox.h"
 #include "ac/common.h"
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/string.h"
 

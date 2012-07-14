@@ -28,7 +28,7 @@
 */
 
 #include "allegro.h"
-#include "misc.h"
+#include "util/misc.h"
 
 #if defined(MAC_VERSION) || defined(WINDOWS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
 #include <string.h>

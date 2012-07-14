@@ -42,14 +42,14 @@
 //#include "djcompat.h"
 #include "allegro.h"
 #endif
-#include "misc.h"
+#include "util/misc.h"
 
 #ifdef MAC_VERSION
 #include "macport.h"
 #include <sys/stat.h>
 #endif
 
-#include "bigend.h"
+#include "platform/bigend.h"
 
 #define CLIB_IS_INSTALLED
 char clib32copyright[] = "CLIB32 v1.21 (c) 1995,1996,1998,2001,2007 Chris Jones";

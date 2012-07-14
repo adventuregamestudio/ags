@@ -1,10 +1,10 @@
 
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/viewframe.h"
 #include "debug/debug.h"
 #include "media/audio/audio.h"
-#include "sprcache.h"
+#include "ac/spritecache.h"
 
 extern GameSetupStruct game;
 extern ViewStruct*views;

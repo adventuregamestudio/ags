@@ -1,5 +1,5 @@
 
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ali3d.h"
 #include "ac/global_object.h"
 #include "ac/common.h"
@@ -22,7 +22,7 @@
 #include "debug/debug.h"
 #include "main/game_run.h"
 #include "script/script.h"
-#include "sprcache.h"
+#include "ac/spritecache.h"
 
 #define OVERLAPPING_OBJECT 1000
 

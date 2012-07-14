@@ -1,7 +1,7 @@
 
 #include "ac/dynobj/cc_character.h"
 #include "ac/characterinfo.h"
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/gamesetupstruct.h"
 
 extern GameSetupStruct game;

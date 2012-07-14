@@ -1,5 +1,5 @@
 
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/gamestate.h"
 #include "ac/gamesetupstruct.h"
 #include "util/string_utils.h"

@@ -1,6 +1,6 @@
 
 #include "ac/display.h"
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ali3d.h"
 #include "ac/common.h"
 #include "font/agsfontrenderer.h"
@@ -26,7 +26,7 @@
 #include "main/game_run.h"
 #include "media/audio/audio.h"
 #include "platform/agsplatformdriver.h"
-#include "sprcache.h"
+#include "ac/spritecache.h"
 
 extern GameState play;
 extern GameSetupStruct game;

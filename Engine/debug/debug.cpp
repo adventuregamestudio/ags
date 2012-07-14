@@ -17,7 +17,7 @@
 #endif
 */
 #include <stdio.h>
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "debug/debug.h"
 #include "ac/roomstruct.h"

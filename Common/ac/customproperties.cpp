@@ -4,7 +4,7 @@
 #include <string.h>
 #include "ac/customproperties.h"
 #include "util/string_utils.h"      // fputstring, etc
-#include "bigend.h"                 // stricmp()
+#include "platform/bigend.h"                 // stricmp()
 
 // Find the index of the specified property
 int CustomPropertySchema::findProperty (const char *pname) {

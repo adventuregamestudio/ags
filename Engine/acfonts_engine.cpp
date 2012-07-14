@@ -7,7 +7,7 @@
 #ifndef USE_ALFONT
 #define USE_ALFONT
 #endif
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 //#include "acruntim.h"
 
 #ifdef USE_ALFONT

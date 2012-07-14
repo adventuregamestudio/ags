@@ -1,6 +1,6 @@
 
 #include "ac/region.h"
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/common_defines.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/roomstruct.h"

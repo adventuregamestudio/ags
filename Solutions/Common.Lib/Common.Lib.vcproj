@@ -154,26 +154,6 @@
 			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
-			<File
-				RelativePath="..\..\Common\bigend.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Common\Clib32.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Common\misc.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Common\sprcache.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Common\wgt2allg.cpp"
-				>
-			</File>
 			<Filter
 				Name="ac"
 				>
@@ -211,6 +191,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\ac\roomstruct.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\spritecache.cpp"
 					>
 				</File>
 				<File
@@ -282,6 +266,10 @@
 				Name="platform"
 				>
 				<File
+					RelativePath="..\..\Common\platform\bigend.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\platform\file.cpp"
 					>
 				</File>
@@ -289,6 +277,10 @@
 			<Filter
 				Name="util"
 				>
+				<File
+					RelativePath="..\..\Common\util\clib32.cpp"
+					>
+				</File>
 				<File
 					RelativePath="..\..\Common\util\compress.cpp"
 					>
@@ -298,7 +290,15 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\util\misc.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\util\string_utils.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\wgt2allg.cpp"
 					>
 				</File>
 			</Filter>
@@ -336,22 +336,6 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
-			<File
-				RelativePath="..\..\Common\bigend.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Common\misc.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Common\sprcache.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Common\wgt2allg.h"
-				>
-			</File>
 			<Filter
 				Name="ac"
 				>
@@ -425,6 +409,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\ac\roomstruct.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\spritecache.h"
 					>
 				</File>
 				<File
@@ -512,6 +500,10 @@
 				Name="platform"
 				>
 				<File
+					RelativePath="..\..\Common\platform\bigend.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\platform\file.h"
 					>
 				</File>
@@ -528,7 +520,15 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\util\misc.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\util\string_utils.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\wgt2allg.h"
 					>
 				</File>
 			</Filter>

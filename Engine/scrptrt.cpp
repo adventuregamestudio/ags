@@ -17,9 +17,9 @@
 */
 #include <stdio.h>
 #include <stdlib.h>
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/roomstruct.h"
-#include "bigend.h"
+#include "platform/bigend.h"
 
 char *scripteditruntimecopr = "Script Editor v1.2 run-time component. (c) 1998 Chris Jones";
 

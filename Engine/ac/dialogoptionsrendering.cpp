@@ -1,5 +1,5 @@
 
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/dialogoptionsrendering.h"
 #include "ac/dialogtopic.h"
 #include "ac/gamestructdefines.h"

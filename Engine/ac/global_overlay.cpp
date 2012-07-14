@@ -1,6 +1,6 @@
 
 #include "ac/global_overlay.h"
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "ac/display.h"
 #include "ac/draw.h"
@@ -10,7 +10,7 @@
 #include "ac/rundefines.h"
 #include "ac/screenoverlay.h"
 #include "ac/string.h"
-#include "sprcache.h"
+#include "ac/spritecache.h"
 
 
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];

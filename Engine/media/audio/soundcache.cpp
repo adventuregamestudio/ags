@@ -1,7 +1,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "media/audio/soundcache.h"
 #include "media/audio/audiointernaldefs.h"
 

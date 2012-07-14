@@ -1,5 +1,5 @@
 
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "ac/display.h"
 #include "ac/draw.h"
@@ -12,7 +12,7 @@
 #include "ac/string.h"
 #include "debug/debug.h"
 #include "gui/guidefines.h"
-#include "sprcache.h"
+#include "ac/spritecache.h"
 
 extern block raw_saved_screen;
 extern roomstruct thisroom;

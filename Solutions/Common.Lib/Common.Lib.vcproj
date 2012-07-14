@@ -183,34 +183,6 @@
 				>
 			</File>
 			<Filter
-				Name="cs"
-				>
-				<File
-					RelativePath="..\..\Common\cs\cc_error.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_instance.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_options.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_script.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_treemap.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cs_common.cpp"
-					>
-				</File>
-			</Filter>
-			<Filter
 				Name="ac"
 				>
 				<File
@@ -331,6 +303,34 @@
 				>
 				<File
 					RelativePath="..\..\Common\util\string_utils.cpp"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="script"
+				>
+				<File
+					RelativePath="..\..\Common\script\cc_error.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\script\cc_instance.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\script\cc_options.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\script\cc_script.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\script\cc_treemap.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\script\script_common.cpp"
 					>
 				</File>
 			</Filter>
@@ -457,34 +457,6 @@
 				</Filter>
 			</Filter>
 			<Filter
-				Name="cs"
-				>
-				<File
-					RelativePath="..\..\Common\cs\cc_error.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_instance.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_options.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_script.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cc_treemap.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\cs\cs_common.h"
-					>
-				</File>
-			</Filter>
-			<Filter
 				Name="acfont"
 				>
 				<File
@@ -561,6 +533,34 @@
 				>
 				<File
 					RelativePath="..\..\Common\util\string_utils.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="script"
+				>
+				<File
+					RelativePath="..\..\Common\script\cc_error.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\script\cc_instance.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\script\cc_options.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\script\cc_script.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\script\cc_treemap.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\script\script_common.h"
 					>
 				</File>
 			</Filter>

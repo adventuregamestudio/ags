@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "cc_script.h"
-#include "cs_common.h"      // SCOM_VERSION, scfilesig
+#include "script/script_common.h"      // SCOM_VERSION, scfilesig
 #include "cc_error.h"
 
 void fput_long(long loo,FILE*ooo) {

@@ -15,7 +15,7 @@
 #include "ac/inventoryiteminfo.h"   // InventoryItemInfo
 #include "ac/ac_mousecursor.h"      // MouseCursor
 #include "ac/ac_wordsdictionary.h"  // WordsDictionary
-#include "cs/cc_script.h"           // ccScript
+#include "script/cc_script.h"           // ccScript
 
 struct OriGameSetupStruct {
     char              gamename[30];

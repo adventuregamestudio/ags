@@ -15,8 +15,8 @@ see the license.txt for details.
 #include "scripting.h"
 //#include "cscomp.h"
 #include "script/cs_compiler.h"
-#include "cs/cc_options.h"
-#include "cs/cc_error.h"
+#include "script/cc_options.h"
+#include "script/cc_error.h"
 
 extern char editorVersionNumber[50];
 extern void ConvertFileNameToCharArray(System::String^ clrString, char *textBuffer);

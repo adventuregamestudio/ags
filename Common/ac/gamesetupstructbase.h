@@ -10,7 +10,7 @@
 #include "ac/characterinfo.h"       // OldCharacterInfo, CharacterInfo
 #include "ac/ac_wordsdictionary.h"  // WordsDictionary
 #include "ac/gamestructdefines.h"
-#include "cs/cc_script.h"           // ccScript
+#include "script/cc_script.h"           // ccScript
 #include "platform/file.h"
 
 // This struct is written directly to the disk file // [IKM] not really anymore

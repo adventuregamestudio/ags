@@ -7,7 +7,7 @@
 #ifndef __AGS_EE_SCRIPT__EXECUTINGSCRIPT_H
 #define __AGS_EE_SCRIPT__EXECUTINGSCRIPT_H
 
-#include "cs/cc_instance.h"
+#include "script/cc_instance.h"
 
 enum PostScriptAction {
     ePSANewRoom,

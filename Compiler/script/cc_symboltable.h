@@ -2,7 +2,7 @@
 #define __CC_SYMBOLTABLE_H
 
 #include "cs_parser_common.h"   // macro definitions
-#include "cs/cc_treemap.h"
+#include "script/cc_treemap.h"
 
 struct symbolTable {
     int numsymbols;

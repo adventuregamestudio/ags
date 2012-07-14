@@ -20,9 +20,9 @@ prior express permission from Chris Jones.
 #include <stdarg.h>
 #include <string.h>
 #include "script/script_runtime.h"
-#include "cs/cs_common.h"
-#include "cs/cc_error.h"
-#include "cs/cc_options.h"
+#include "script/script_common.h"
+#include "script/cc_error.h"
+#include "script/cc_options.h"
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/managedobjectpool.h"
 #include "script/spans.h"

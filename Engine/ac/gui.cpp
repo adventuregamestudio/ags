@@ -15,7 +15,7 @@
 #include "ac/rundefines.h"
 #include "ac/dynobj/cc_guiobject.h"
 #include "ac/dynobj/scriptgui.h"
-#include "cs/cc_instance.h"
+#include "script/cc_instance.h"
 #include "debug/debug.h"
 #include "gfx/gfxfilter.h"
 #include "gui/guibutton.h"

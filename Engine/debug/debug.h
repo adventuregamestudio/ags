@@ -14,7 +14,7 @@
 #define __AC_DEBUG_H
 
 #include "debug/agseditordebugger.h"
-#include "cs/cc_instance.h"
+#include "script/cc_instance.h"
 #include "ac/rundefines.h"
 #include "ac/gamestate.h"
 #include "platform/agsplatformdriver.h"

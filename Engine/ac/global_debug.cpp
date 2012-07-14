@@ -21,7 +21,7 @@
 #include "ac/walkablearea.h"
 #include "gfx/gfxfilter.h"
 #include "gui/guidialog.h"
-#include "cs/cc_options.h"
+#include "script/cc_options.h"
 #include "debug/debug.h"
 #include "sprcache.h"
 

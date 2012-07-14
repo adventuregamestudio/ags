@@ -24,7 +24,7 @@
 #include "ac/file.h"
 #include "routefnd.h"
 #include "misc.h"
-#include "cs/cc_error.h"
+#include "script/cc_error.h"
 #include "acfont/ac_agsfontrenderer.h"
 #include "media/audio/audio.h"
 #include "media/audio/soundcache.h"

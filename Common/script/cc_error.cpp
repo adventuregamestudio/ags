@@ -3,7 +3,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include "cc_error.h"
-#include "cs_common.h"  // current_line
+#include "script/script_common.h"  // current_line
 
 void cc_error(char *descr, ...)
 {

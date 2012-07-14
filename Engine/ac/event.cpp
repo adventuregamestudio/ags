@@ -14,7 +14,7 @@
 #include "ac/roomstatus.h"
 #include "ac/roomstruct.h"
 #include "ac/screen.h"
-#include "cs/cc_error.h"
+#include "script/cc_error.h"
 #include "media/audio/audio.h"
 #include "platform/agsplatformdriver.h"
 #include "plugin/agsplugin.h"

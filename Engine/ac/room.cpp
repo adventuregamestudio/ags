@@ -33,7 +33,7 @@
 #include "ac/walkbehind.h"
 #include "ac/dynobj/scriptobject.h"
 #include "ac/dynobj/scripthotspot.h"
-#include "cs/cc_instance.h"
+#include "script/cc_instance.h"
 #include "debug/debug.h"
 #include "media/audio/audio.h"
 #include "platform/agsplatformdriver.h"

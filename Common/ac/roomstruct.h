@@ -8,7 +8,7 @@
 #include "ac/ac_messageinfo.h"
 #include "ac/ac_animationstruct.h"
 #include "ac/ac_point.h"
-#include "cs/cc_script.h"       // ccScript
+#include "script/cc_script.h"       // ccScript
 
 
 // thisroom.options[0] = startup music

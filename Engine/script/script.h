@@ -8,7 +8,7 @@
 #define __AGS_EE_SCRIPT__SCRIPT_H
 
 #include "ac/ac_interaction.h"
-#include "cs/cc_instance.h"
+#include "script/cc_instance.h"
 #include "script/executingscript.h"
 #include "script/nonblockingscriptfunction.h"
 #include "ac/dynobj/scriptsystem.h"

@@ -22,7 +22,7 @@
 #include "ac/record.h"
 #include "ac/roomstatus.h"
 #include "ac/string.h"
-#include "cs/cs_utils.h"
+#include "util/string_utils.h"
 #include "debug/debug.h"
 #include "gui/guidefines.h"
 #include "main/engine.h"

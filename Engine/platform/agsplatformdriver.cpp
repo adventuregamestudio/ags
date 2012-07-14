@@ -16,7 +16,7 @@
 #include "platform/agsplatformdriver.h"
 #include "wgt2allg.h"
 #include "ac/ac_common.h"
-#include "cs/cs_utils.h"
+#include "util/string_utils.h"
 
 #if defined(LINUX_VERSION) || defined(MAC_VERSION)
 #define strnicmp strncasecmp

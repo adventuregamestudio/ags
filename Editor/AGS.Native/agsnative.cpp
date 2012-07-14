@@ -23,11 +23,8 @@ bool ShouldAntiAliasText() { return (antiAliasFonts != 0); }
 
 int mousex, mousey;
 #include "misc.h"
-//#include "wgt2allg_func.h"
 #include "wgt2allg.h"
 #include "sprcache.h"
-//#include "acroom_func.h"
-//#include "acroom_savefunc.h"
 #include "ac/ac_actiontype.h"
 #include "ac/ac_common.h"
 #include "ac/ac_compress.h"
@@ -37,7 +34,6 @@ int mousex, mousey;
 #include "ac/ac_view.h"
 #include "ac/dialogtopic.h"
 #include "ac/gamesetupstruct.h"
-//#include "acgui.h"
 #include "gui/guimain.h"
 #include "gui/guiinv.h"
 #include "gui/guibutton.h"
@@ -46,8 +42,7 @@ int mousex, mousey;
 #include "gui/guilistbox.h"
 #include "gui/guislider.h"
 
-//#include "cs/cs_internal.h" // fputstring, etc
-#include "cs/cs_utils.h"    // fputstring, etc
+#include "util/string_utils.h"    // fputstring, etc
 
 extern void Cstretch_blit(BITMAP *src, BITMAP *dst, int sx, int sy, int sw, int sh, int dx, int dy, int dw, int dh);
 extern void Cstretch_sprite(BITMAP *dst, BITMAP *src, int x, int y, int w, int h);

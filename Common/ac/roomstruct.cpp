@@ -4,7 +4,7 @@
 #include "ac/roomstruct.h"
 #include "ac/ac_common.h"
 #include "ac/ac_wordsdictionary.h"
-#include "cs/cs_utils.h"
+#include "util/string_utils.h"      // fputstring, etc
 #include "ac/ac_compress.h"
 #include "platform/file.h"
 

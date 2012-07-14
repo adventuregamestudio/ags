@@ -4,7 +4,7 @@
 #include <string.h>
 #include "ac/dynobj/managedobjectpool.h"
 #include "ac/dynobj/cc_dynamicarray.h" // globalDynamicArray, constants
-#include "cs/cs_utils.h"               // fputstring, etc
+#include "util/string_utils.h"               // fputstring, etc
 #include "cs/cc_error.h"
 
 void ManagedObjectPool::ManagedObject::init(long theHandle, const char *theAddress, ICCDynamicObject *theCallback) {

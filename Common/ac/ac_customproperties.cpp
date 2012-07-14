@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "ac_customproperties.h"
-#include "cs/cs_utils.h"            // fputstring, etc
+#include "util/string_utils.h"      // fputstring, etc
 #include "bigend.h"                 // stricmp()
 
 // Find the index of the specified property

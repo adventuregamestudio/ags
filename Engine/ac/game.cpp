@@ -46,7 +46,7 @@
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/all_scriptclasses.h"
 #include "cs/cc_error.h"
-#include "cs/cs_utils.h"
+#include "util/string_utils.h"
 #include "debug/debug.h"
 #include "gui/animatingguibutton.h"
 #include "gui/guidialog.h"

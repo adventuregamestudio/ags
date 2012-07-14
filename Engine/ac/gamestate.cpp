@@ -2,7 +2,7 @@
 #include "wgt2allg.h"
 #include "ac/gamestate.h"
 #include "ac/gamesetupstruct.h"
-#include "cs/cs_utils.h"
+#include "util/string_utils.h"
 
 //
 // [IKM] What must be kept in mind: in previous versions of AGS

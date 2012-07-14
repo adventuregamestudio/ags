@@ -209,10 +209,6 @@
 					RelativePath="..\..\Common\cs\cs_common.cpp"
 					>
 				</File>
-				<File
-					RelativePath="..\..\Common\cs\cs_utils.cpp"
-					>
-				</File>
 			</Filter>
 			<Filter
 				Name="ac"
@@ -327,6 +323,14 @@
 				>
 				<File
 					RelativePath="..\..\Common\platform\file.cpp"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="util"
+				>
+				<File
+					RelativePath="..\..\Common\util\string_utils.cpp"
 					>
 				</File>
 			</Filter>
@@ -479,10 +483,6 @@
 					RelativePath="..\..\Common\cs\cs_common.h"
 					>
 				</File>
-				<File
-					RelativePath="..\..\Common\cs\cs_utils.h"
-					>
-				</File>
 			</Filter>
 			<Filter
 				Name="acfont"
@@ -553,6 +553,14 @@
 				>
 				<File
 					RelativePath="..\..\Common\platform\file.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="util"
+				>
+				<File
+					RelativePath="..\..\Common\util\string_utils.h"
 					>
 				</File>
 			</Filter>

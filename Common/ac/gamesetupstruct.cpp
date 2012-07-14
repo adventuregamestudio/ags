@@ -2,7 +2,7 @@
 #include "wgt2allg.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/ac_common.h"
-#include "cs/cs_utils.h"
+#include "util/string_utils.h"      // fputstring, etc
 
 
 // Create the missing audioClips data structure for 3.1.x games.

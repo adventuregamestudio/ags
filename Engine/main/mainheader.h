@@ -19,7 +19,7 @@
 #include "gui/animatingguibutton.h"
 #include "gui/guibutton.h"
 #include "gfx/gfxfilter.h"
-#include "cs/cs_utils.h"
+#include "util/string_utils.h"
 #include "mousew32.h"
 #include "ac/file.h"
 #include "routefnd.h"

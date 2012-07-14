@@ -3,7 +3,7 @@
 #include <string.h>
 #include "ac/ac_interaction.h"
 #include "ac/ac_common.h"
-#include "cs/cs_utils.h"
+#include "util/string_utils.h"      // fputstring, etc
 
 InteractionVariable globalvars[MAX_GLOBAL_VARIABLES] = {{"Global 1", 0, 0}};
 int numGlobalVars = 1;

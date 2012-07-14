@@ -30,15 +30,12 @@ int StrContains (const char *s1, const char *s2);
 //=============================================================================
 
 const char* CreateNewScriptString(const char *fromText, bool reAllocate = true);
-void removeBackslashBracket(char *lbuffer);
-// Break up the text into lines, using normal Western left-right style
-void split_lines_leftright(const char *todis, int wii, int fonnt);
 void split_lines_rightleft (char *todis, int wii, int fonnt);
 char *reverse_text(char *text);
 void wouttext_reverseifnecessary(int x, int y, int font, char *text);
 void break_up_text_into_lines(int wii,int fonnt,char*todis);
 void check_strlen(char*ptt);
 void my_strncpy(char *dest, const char *src, int len);
-void my_sprintf(char *buffer, const char *fmt, va_list ap);;
+void my_sprintf(char *buffer, const char *fmt, va_list ap);
 
 #endif // __AGS_EE_AC__STRING_H

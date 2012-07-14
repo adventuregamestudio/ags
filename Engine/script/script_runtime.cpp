@@ -1274,5 +1274,4 @@ void ccUnFlattenGlobalData(ccInstance * cinst)
 #endif
         }
     }
-
 }

@@ -185,34 +185,6 @@
 			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
-			<File
-				RelativePath="..\..\Engine\acfonts_engine.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Engine\acgui_engine.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Engine\acplwin.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Engine\acroom_engine.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Engine\routefnd.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Engine\scrptrt.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\Engine\sprcache_engine.cpp"
-				>
-			</File>
 			<Filter
 				Name="ac"
 				>
@@ -525,11 +497,19 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\room_engine.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\roomobject.cpp"
 					>
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\roomstatus.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\route_finder.cpp"
 					>
 				</File>
 				<File
@@ -542,6 +522,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\sprite.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\spritecache_engine.cpp"
 					>
 				</File>
 				<File
@@ -745,6 +729,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\gui\gui_engine.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\gui\guidialog.cpp"
 					>
 				</File>
@@ -905,6 +893,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\script\script_engine.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\script\script_runtime.cpp"
 					>
 				</File>
@@ -1053,6 +1045,10 @@
 				Name="platform"
 				>
 				<File
+					RelativePath="..\..\Engine\platform\windows\acplwin.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\platform\ags32bitosdriver.cpp"
 					>
 				</File>
@@ -1089,16 +1085,20 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="font"
+				>
+				<File
+					RelativePath="..\..\Engine\font\fonts_engine.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
-			<File
-				RelativePath="..\..\Engine\routefnd.h"
-				>
-			</File>
 			<File
 				RelativePath="..\..\Engine\scrptrt.h"
 				>
@@ -1428,6 +1428,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\roomstatus.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\route_finder.h"
 					>
 				</File>
 				<File

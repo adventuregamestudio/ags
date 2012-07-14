@@ -40,7 +40,7 @@
 #include "ac/viewframe.h"
 #include "ac/walkablearea.h"
 #include "gui/guimain.h"
-#include "routefnd.h"
+#include "ac/route_finder.h"
 #include "ac/gamestate.h"
 #include "debug/debug.h"
 #include "main/game_run.h"

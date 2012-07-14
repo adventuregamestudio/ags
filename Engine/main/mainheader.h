@@ -21,7 +21,7 @@
 #include "util/string_utils.h"
 #include "device/mousew32.h"
 #include "ac/file.h"
-#include "routefnd.h"
+#include "ac/route_finder.h"
 #include "util/misc.h"
 #include "script/cc_error.h"
 #include "font/agsfontrenderer.h"

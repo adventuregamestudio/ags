@@ -12,7 +12,7 @@
   CLEAR that the code has been altered from the Standard Version.
 */
 #include "util/wgt2allg.h"
-#include "routefnd.h"
+#include "ac/route_finder.h"
 #include "ac/common.h"   // quit()
 #include "ac/movelist.h"     // MoveList
 #include "ac/point.h"

@@ -18,7 +18,7 @@
 #include "ac/walkablearea.h"
 #include "debug/debug.h"
 #include "main/game_run.h"
-#include "routefnd.h"
+#include "ac/route_finder.h"
 
 
 extern ScriptObject scrObj[MAX_INIT_SPR];

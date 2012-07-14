@@ -32,7 +32,7 @@
 #include "main/mainheader.h"
 #include "main/main.h"
 #include "platform/agsplatformdriver.h"
-#include "routefnd.h"
+#include "ac/route_finder.h"
 
 #ifdef MAC_VERSION
 char dataDirectory[512];

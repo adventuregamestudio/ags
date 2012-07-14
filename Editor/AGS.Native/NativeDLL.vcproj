@@ -300,6 +300,18 @@
 				RelativePath=".\Scripting.h"
 				>
 			</File>
+			<Filter
+				Name="ac"
+				>
+				<File
+					RelativePath="..\Native\ac\ac_actiontype.h"
+					>
+				</File>
+				<File
+					RelativePath="..\Native\ac\ac_script.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Resource Files"

@@ -2,7 +2,7 @@
 #define __AC_SCRIPT_H
 
 #include "ac/ac_defines.h"  // PCKD
-#include "cs/cc_script.h"   // ccScript
+#include "script/cc_script.h"   // ccScript
 
 extern int in_interaction_editor;  // whether to remove script functions/etc
 

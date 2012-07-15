@@ -48,7 +48,7 @@ HWND editor_window_handle = NULL;
 
 #ifdef WINDOWS_VERSION
 
-#include "debug/namedpipesagsdebugger.h"
+#include "platform/windows/debug/namedpipesagsdebugger.h"
 
 IAGSEditorDebugger *GetEditorDebugger(const char *instanceToken)
 {

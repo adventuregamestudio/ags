@@ -976,7 +976,7 @@
 						>
 					</File>
 					<File
-						RelativePath="..\..\Engine\media\video\acwavi3d.cpp"
+						RelativePath="..\..\Engine\platform\windows\media\video\acwavi3d.cpp"
 						>
 					</File>
 					<File

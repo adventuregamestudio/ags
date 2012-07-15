@@ -1,8 +1,8 @@
 --- a/Engine/Makefile.linux
 +++ b/Engine/Makefile.linux
-@@ -239,7 +239,7 @@
+@@ -60,7 +60,7 @@
  
- INCDIR = ../Engine ../Common ../Common/libinclude
+ INCDIR = ../Engine ../Common ../Common/libinclude ../Plugins
  LIBDIR =
 -CFLAGS = -O2 -g -fpermissive -fsigned-char -Wfatal-errors -DALLEGRO_STATICLINK -DTHIS_IS_THE_ENGINE -DLINUX_VERSION -DDISABLE_MPEG_AUDIO -DBUILTIN_PLUGINS -DRTLD_NEXT $(shell pkg-config --cflags freetype2)
 +CFLAGS = -O2 -g -fsigned-char -Wfatal-errors -DALLEGRO_STATICLINK -DTHIS_IS_THE_ENGINE -DLINUX_VERSION -DDISABLE_MPEG_AUDIO -DBUILTIN_PLUGINS -DRTLD_NEXT $(shell pkg-config --cflags freetype2)

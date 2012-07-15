@@ -1,4 +1,4 @@
-
+#include <cctype> //isalnum()
 #include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"

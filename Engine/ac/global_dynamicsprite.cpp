@@ -5,6 +5,7 @@
 #include "ac/dynamicsprite.h"
 #include "ac/file.h"
 #include "ac/spritecache.h"
+#include "ac/runtime_defines.h" //MAX_PATH
 
 extern SpriteCache spriteset;
 extern IGraphicsDriver *gfxDriver;

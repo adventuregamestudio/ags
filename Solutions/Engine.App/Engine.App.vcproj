@@ -669,7 +669,7 @@
 				Name="gfx"
 				>
 				<File
-					RelativePath="..\..\Engine\gfx\ali3dd3d.cpp"
+					RelativePath="..\..\Engine\platform\windows\gfx\ali3dd3d.cpp"
 					>
 				</File>
 				<File

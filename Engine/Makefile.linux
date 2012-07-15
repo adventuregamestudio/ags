@@ -6,12 +6,10 @@ device \
 font \
 gfx \
 gui \
-libsrc \
 main \
 media \
 media/audio \
 media/video \
-platform \
 plugin \
 resource \
 script \

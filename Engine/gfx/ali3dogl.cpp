@@ -1,3 +1,6 @@
+
+#if !defined(LINUX_VERSION) && !defined(MAC_VERSION) //not on Linux and Mac yet
+
 #include <stdio.h>
 #include <allegro.h>
 
@@ -38,7 +41,7 @@ PFNGLGENERATEMIPMAPEXTPROC glGenerateMipmapEXT = 0;
 PFNGLFRAMEBUFFERTEXTURE2DEXTPROC glFramebufferTexture2DEXT = 0;
 PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC glFramebufferRenderbufferEXT = 0;
 
-#elif defined(ANDROID_VERSION)
+#elif defined(ANDROID_VERSION) || defined(LINUX_VERSION)
 #include "gfx/ali3d.h"
 #include <GLES/gl.h>
 
@@ -1797,3 +1800,5 @@ void OGLGraphicsDriver::SetScreenTint(int red, int green, int blue)
     _screenTintSprite.skip = ((red == 0) && (green == 0) && (blue == 0));
   }
 }
+
+#endif //not on Linux and Mac yet

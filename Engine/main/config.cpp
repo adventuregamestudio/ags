@@ -22,6 +22,7 @@
 #include "main/mainheader.h"
 #include "main/config.h"
 #include "ac/spritecache.h"
+#include "platform/override_defines.h" //_getcwd()
 
 extern GameSetup usetup;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];

@@ -5,7 +5,7 @@
 
 #include "util/wgt2allg.h"
 #include "alfont.h"
-
+#include "ac/gamestructdefines.h" //FONT_OUTLINE_AUTO
 #include "font/ttffontrenderer.h"
 
 // project-specific implementation

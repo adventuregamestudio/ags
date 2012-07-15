@@ -111,12 +111,8 @@ void engine_read_config(int argc,char*argv[])
 
 #define ALLEGRO_KEYBOARD_HANDLER
 // KEYBOARD HANDLER
-#if defined(LINUX_VERSION) || defined(MAC_VERSION)
-extern int myerrno;
-#else
 int errno;
 #define myerrno errno
-#endif
 
 int engine_init_allegro()
 {

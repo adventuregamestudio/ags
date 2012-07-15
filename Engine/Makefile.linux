@@ -1,259 +1,46 @@
+BASE_subdirs = \
+ac \
+ac/dynobj \
+debug \
+device \
+font \
+gfx \
+gui \
+libsrc \
+main \
+media \
+media/audio \
+media/video \
+platform \
+plugin \
+resource \
+script \
+setup
 
-BASE = \
-almp3.o \
-alogg.o \
-acmain/ac_animatingguibutton.o \
-acmain/ac_background.o \
-acmain/ac_cdplayer.o \
-acmain/ac_controls.o \
-acmain/ac_customproperties.o \
-acmain/ac_display.o \
-acmain/ac_draw.o \
-acmain/ac_interaction.o \
-acmain/ac_inventory.o \
-acmain/ac_lipsync.o \
-acmain/ac_math.o \
-acmain/ac_message.o \
-acmain/ac_minidump.o \
-acmain/ac_mouse.o \
-acmain/ac_object.o \
-acmain/ac_option.o \
-acmain/ac_parser.o \
-acmain/ac_plugin.o \
-acmain/ac_record.o \
-acmain/ac_screen.o \
-acmain/ac_speech.o \
-acmain/ac_sprite.o \
-acmain/ac_string.o \
-acmain/ac_strings.o \
-acmain/ac_system.o \
-acmain/ac_timer.o \
-acmain/ac_transition.o \
-acmain/ac_translation.o \
-acmain/ac_variable.o \
-acmain/ac_viewframe.o \
-acmain/ac_wait.o \
-ac/dynobj/cc_agsdynamicobject.o \
-ac/dynobj/cc_audiochannel.o \
-ac/dynobj/cc_audioclip.o \
-ac/dynobj/cc_character.o \
-ac/dynobj/cc_dialog.o \
-ac/dynobj/cc_dynamicarray.o \
-ac/dynobj/cc_dynamicobject.o \
-ac/dynobj/cc_gui.o \
-ac/dynobj/cc_guiobject.o \
-ac/dynobj/cc_hotspot.o \
-ac/dynobj/cc_inventory.o \
-ac/dynobj/cc_object.o \
-ac/dynobj/cc_region.o \
-ac/dynobj/cc_serializer.o \
-ac/dynobj/managedobjectpool.o \
-ac/dynobj/scriptdatetime.o \
-ac/dynobj/scriptdialogoptionsrendering.o \
-ac/dynobj/scriptdrawingsurface.o \
-ac/dynobj/scriptdynamicsprite.o \
-ac/dynobj/scriptfile.o \
-ac/dynobj/scriptoverlay.o \
-ac/dynobj/scriptstring.o \
-ac/dynobj/scriptviewframe.o \
-acrun/ac_roomobject.o \
-acfonts_engine.o \
-acgui_engine.o \
-acroom_engine.o \
-ali3dsw.o \
-mousew32.o \
-routefnd.o \
-scrptrt.o \
-sprcache_engine.o \
-ac/ac_interfacebutton.o \
-ac/ac_interfaceelement.o \
-ac/ac_inventoryiteminfo.o \
-ac/audiochannel.o \
-ac/audioclip.o \
-ac/character.o \
-ac/characterinfo.o \
-ac/datetime.o \
-ac/dialog.o \
-ac/dialogoptionsrendering.o \
-ac/dialogtopic.o \
-ac/drawingsurface.o \
-ac/dynamicsprite.o \
-ac/event.o \
-ac/file.o \
-ac/game.o \
-ac/gamesetup.o \
-ac/gamestate.o \
-ac/hotspot.o \
-ac/inventoryitem.o \
-ac/global_audio.o \
-ac/global_character.o \
-ac/global_datetime.o \
-ac/global_debug.o \
-ac/global_dialog.o \
-ac/global_dynamicsprite.o \
-ac/global_file.o \
-ac/global_game.o \
-ac/global_hotspot.o \
-ac/global_inventoryitem.o \
-ac/global_object.o \
-ac/global_overlay.o \
-ac/global_region.o \
-ac/global_room.o \
-ac/global_timer.o \
-ac/global_video.o \
-ac/global_button.o \
-ac/global_gui.o \
-ac/global_label.o \
-ac/global_listbox.o \
-ac/global_slider.o \
-ac/global_textbox.o \
-ac/global_viewport.o \
-ac/global_walkablearea.o \
-ac/global_walkbehind.o \
-ac/object.o \
-ac/overlay.o \
-ac/path.o \
-ac/region.o \
-ac/room.o \
-ac/roomobject.o \
-ac/roomstatus.o \
-ac/system_audio.o \
-ac/viewport.o \
-ac/walkablearea.o \
-ac/walkbehind.o \
-ac/button.o \
-ac/gui.o \
-ac/guicontrol.o \
-ac/invwindow.o \
-ac/label.o \
-ac/listbox.o \
-ac/slider.o \
-ac/textbox.o \
-gfx/aad3dgfxfilter.o \
-gfx/allegrogfxfilter.o \
-gfx/blender.o \
-gfx/d3dgfxfilter.o \
-gfx/gfxfilter.o \
-gfx/hq2xgfxfilter.o \
-gfx/hq3xgfxfilter.o \
-gfx/scalingallegrogfxfilter.o \
-gfx/scalinggfxfilter.o \
-gui/cscidialog.o \
-gui/guidialog.o \
-gui/mylabel.o \
-gui/mylistbox.o \
-gui/mytextbox.o \
-gui/mypushbutton.o \
-gui/newcontrol.o \
-debug/debug.o \
-debug/filebasedagsdebugger.o \
-platform/ags32bitosdriver.o \
-platform/agsplatformdriver.o \
-plugin/agsplugin.o \
-script/ex_audio.o \
-script/ex_builtin_plugins.o \
-script/ex_button.o \
-script/ex_character.o \
-script/ex_datetime.o \
-script/ex_dialog.o \
-script/ex_drawingsurface.o \
-script/ex_dynamicsprite.o \
-script/ex_file.o \
-script/ex_game.o \
-script/ex_global.o \
-script/ex_guicontrol.o \
-script/ex_gui.o \
-script/ex_hotspot.o \
-script/ex_inventoryitem.o \
-script/ex_invwindow.o \
-script/ex_label.o \
-script/ex_listbox.o \
-script/ex_math.o \
-script/ex_mouse.o \
-script/ex_object.o \
-script/ex_overlay.o \
-script/ex_parser.o \
-script/exports.o \
-script/ex_region.o \
-script/ex_room.o \
-script/ex_slider.o \
-script/ex_string.o \
-script/ex_system.o \
-script/ex_textbox.o \
-script/ex_viewframe.o \
-script/executingscript.o \
-script/script.o \
-script/script_runtime.o \
-script/systemimports.o \
-media/audio/ambientsound.o \
-media/audio/audio.o \
-media/audio/clip_mydumbmod.o \
-media/audio/clip_myjgmod.o \
-media/audio/clip_mymidi.o \
-media/audio/clip_mymp3.o \
-media/audio/clip_myogg.o \
-media/audio/clip_mystaticmp3.o \
-media/audio/clip_mystaticogg.o \
-media/audio/clip_mywave.o \
-media/audio/queuedaudioitem.o \
-media/audio/sound.o \
-media/audio/soundcache.o \
-media/audio/soundclip.o \
-media/video/video.o \
-main/config.o \
-main/engine.o \
-main/game_file.o \
-main/game_run.o \
-main/game_start.o \
-main/graphics_mode.o \
-main/main.o \
-main/quit.o \
-main/update.o
+BASE_c_sources := $(wildcard $(addsuffix /*.c,$(BASE_subdirs)))
+BASE_cpp_sources := $(wildcard $(addsuffix /*.cpp,$(BASE_subdirs)))
+BASE := $(patsubst %.c,%.o,$(BASE_c_sources)) $(patsubst %.cpp,%.o,$(BASE_cpp_sources))
 
-COMMON = \
-../Common/bigend.o \
-../Common/Clib32.o \
-../Common/compress.o \
-../Common/lzw.o \
-../Common/misc.o \
-../Common/sprcache.o \
-../Common/wgt2allg.o \
-../Common/ac/ac_common.o \
-../Common/ac/ac_compress.o \
-../Common/ac/ac_customproperties.o \
-../Common/ac/ac_interaction.o \
-../Common/ac/ac_messageinfo.o \
-../Common/ac/ac_mousecursor.o \
-../Common/ac/ac_point.o \
-../Common/ac/ac_roomstruct.o \
-../Common/ac/ac_view.o \
-../Common/ac/ac_wordsdictionary.o \
-../Common/ac/gamesetupstruct.o \
-../Common/ac/gamesetupstructbase.o \
-../Common/acfont/ac_agsfontrenderer.o \
-../Common/acfont/ac_fonts.o \
-../Common/acfont/ac_ttffontrenderer.o \
-../Common/acfont/ac_wfnfontrenderer.o \
-../Common/gui/guibutton.o \
-../Common/gui/guiinv.o \
-../Common/gui/guilabel.o \
-../Common/gui/guilistbox.o \
-../Common/gui/guimain.o \
-../Common/gui/guiobject.o \
-../Common/gui/guislider.o \
-../Common/gui/guitextbox.o \
-../Common/cs/cc_error.o \
-../Common/cs/cc_instance.o \
-../Common/cs/cc_options.o \
-../Common/cs/cc_script.o \
-../Common/cs/cc_treemap.o \
-../Common/cs/cs_common.o \
-../Common/cs/cs_utils.o \
+COMMON_subdirs = \
+../Common/ac \
+../Common/ac/dynobj \
+../Common/font \
+../Common/gui \
+../Common/script \
+../Common/util
+
+COMMON_c_sources := $(wildcard $(addsuffix /*.c,$(COMMON_subdirs)))
+COMMON_cpp_sources := $(wildcard $(addsuffix /*.cpp,$(COMMON_subdirs)))
+COMMON := $(patsubst %.c,%.o,$(COMMON_c_sources)) $(patsubst %.cpp,%.o,$(COMMON_cpp_sources)) \
+../Common/platform/bigend.o \
 ../Common/platform/file.o
 
 PLUGINS = ../Plugins/AGSflashlight/agsflashlight.o ../Plugins/agsblend/AGSBlend.o ../Plugins/ags_snowrain/ags_snowrain.o
 
-LINUX_SPECIFIC = acpllnx.o ../PSP/launcher/pe.o
+LINUX_SPECIFIC = platform/linux/acpllnx.o \
+platform/ags32bitosdriver.o \
+platform/agsplatformdriver.o \
+../PSP/launcher/pe.o
 
 HQ2X3X = libsrc/hq2x/hq2x3x.o
 
@@ -261,7 +48,7 @@ ALFONT = libsrc/alfont-2.0.9/alfont.o
 
 ALMP3 = libsrc/almp3-2.0.5/decoder/common.o libsrc/almp3-2.0.5/decoder/dct64_i386.o libsrc/almp3-2.0.5/decoder/decode_i386.o libsrc/almp3-2.0.5/decoder/interface.o libsrc/almp3-2.0.5/decoder/layer2.o libsrc/almp3-2.0.5/decoder/layer3.o libsrc/almp3-2.0.5/decoder/tabinit.o
 
-APEG = libsrc/apeg-1.2.1/display.o libsrc/apeg-1.2.1/getbits.o libsrc/apeg-1.2.1/getblk.o libsrc/apeg-1.2.1/gethdr.o libsrc/apeg-1.2.1/getpic.o libsrc/apeg-1.2.1/idct.o libsrc/apeg-1.2.1/motion.o libsrc/apeg-1.2.1/mpeg1dec.o libsrc/apeg-1.2.1/ogg.o libsrc/apeg-1.2.1/recon.o libsrc/apeg-1.2.1/audio/apegcommon.o libsrc/apeg-1.2.1/audio/aaudio.o libsrc/apeg-1.2.1/audio/dct64.o libsrc/apeg-1.2.1/audio/decode_1to1.o libsrc/apeg-1.2.1/audio/decode_2to1.o libsrc/apeg-1.2.1/audio/decode_4to1.o libsrc/apeg-1.2.1/audio/layer1.o libsrc/apeg-1.2.1/audio/layer2.o libsrc/apeg-1.2.1/audio/layer3.o libsrc/apeg-1.2.1/audio/mpg123.o libsrc/apeg-1.2.1/audio/readers.o libsrc/apeg-1.2.1/audio/tabinit.o libsrc/apeg-1.2.1/audio/vbrhead.o
+APEG = libsrc/apeg-1.2.1/adisplay.o libsrc/apeg-1.2.1/getbits.o libsrc/apeg-1.2.1/getblk.o libsrc/apeg-1.2.1/gethdr.o libsrc/apeg-1.2.1/getpic.o libsrc/apeg-1.2.1/idct.o libsrc/apeg-1.2.1/motion.o libsrc/apeg-1.2.1/mpeg1dec.o libsrc/apeg-1.2.1/ogg.o libsrc/apeg-1.2.1/recon.o libsrc/apeg-1.2.1/audio/apegcommon.o libsrc/apeg-1.2.1/audio/aaudio.o libsrc/apeg-1.2.1/audio/dct64.o libsrc/apeg-1.2.1/audio/decode_1to1.o libsrc/apeg-1.2.1/audio/decode_2to1.o libsrc/apeg-1.2.1/audio/decode_4to1.o libsrc/apeg-1.2.1/audio/layer1.o libsrc/apeg-1.2.1/audio/layer2.o libsrc/apeg-1.2.1/audio/layer3.o libsrc/apeg-1.2.1/audio/mpg123.o libsrc/apeg-1.2.1/audio/readers.o libsrc/apeg-1.2.1/audio/tabinit.o libsrc/apeg-1.2.1/audio/vbrhead.o
 
 AASTR = libsrc/aastr-0.1.1/AAROT.o libsrc/aastr-0.1.1/aastr.o libsrc/aastr-0.1.1/aautil.o
 

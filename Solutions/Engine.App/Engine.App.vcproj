@@ -1131,10 +1131,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\characterinfo.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\ac\datetime.h"
 					>
 				</File>
@@ -2386,6 +2382,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\ac\audiocliptype.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\characterinfo.h"
 					>
 				</File>
 				<File

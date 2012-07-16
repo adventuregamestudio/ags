@@ -348,6 +348,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\ac\characterinfo.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\ac\common.h"
 					>
 				</File>

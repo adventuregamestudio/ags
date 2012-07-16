@@ -95,7 +95,7 @@ WCHAR directoryPathBuffer[MAX_PATH];
 
 int errcod;
 
-HWND allegro_wnd;
+extern "C" HWND allegro_wnd;
 
 
 

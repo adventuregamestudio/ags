@@ -49,7 +49,7 @@
 #include <sys/stat.h>
 #endif
 
-#include "platform/bigend.h"
+#include "util/string_utils.h"
 
 #define CLIB_IS_INSTALLED
 char clib32copyright[] = "CLIB32 v1.21 (c) 1995,1996,1998,2001,2007 Chris Jones";

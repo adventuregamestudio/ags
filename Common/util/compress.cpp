@@ -12,7 +12,7 @@ prior express permission from Chris Jones.
 #include "util/compress.h"
 #include "util/lzw.h"
 #include "util/misc.h"
-#include "platform/file.h"     // filelength()
+#include "util/file.h"     // filelength()
 
 #ifdef _MANAGED
 // ensure this doesn't get compiled to .NET IL
@@ -20,7 +20,7 @@ prior express permission from Chris Jones.
 #endif
 
 #include "util/wgt2allg.h"
-#include "platform/file.h"
+#include "util/file.h"
 
 #include "util/misc.h"
 
@@ -31,7 +31,7 @@ prior express permission from Chris Jones.
 #include <conio.h>
 #endif
 
-#include "platform/file.h"
+#include "util/file.h"
 
 #if !defined(MAC_VERSION)
 typedef unsigned char * __block;

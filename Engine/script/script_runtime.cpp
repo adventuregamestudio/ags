@@ -27,8 +27,6 @@ prior express permission from Chris Jones.
 #include "ac/dynobj/managedobjectpool.h"
 #include "script/spans.h"
 #include "script/systemimports.h"
-
-#include "platform/bigend.h"
 #include "util/misc.h"
 
 

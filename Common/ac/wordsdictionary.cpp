@@ -5,7 +5,7 @@
 #include "ac/wordsdictionary.h"
 #include "ac/common.h"
 #include "ac/common_defines.h"
-#include "platform/file.h"
+#include "util/file.h"
 
 void WordsDictionary::allocate_memory(int wordCount)
 {

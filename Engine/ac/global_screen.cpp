@@ -13,7 +13,7 @@
 #include "ac/runtime_defines.h"
 #include "ac/screen.h"
 #include "debug/debug.h"
-#include "platform/agsplatformdriver.h"
+#include "platform/base/agsplatformdriver.h"
 
 extern GameSetup usetup;
 extern GameState play;

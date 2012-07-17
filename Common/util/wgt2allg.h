@@ -35,7 +35,6 @@
 #include <io.h>
 #endif
 
-
 #include <stdarg.h>
 
 #ifdef WINDOWS_VERSION
@@ -44,19 +43,10 @@
 #include <osxalleg.h>
 #endif
 
-#include "platform/bigend.h"
-
-
-
-//#if !defined __WGT2ALLG_FUNC_H && !defined __WGT2ALLG_NOFUNC_H
-//#error Do not include wgt2allg.h directly, include either wgt2allg_func.h or wgt2allg_nofunc.h instead.
-//#endif
 
 #if defined WGT2ALLEGRO_NOFUNCTIONS
 #error WGT2ALLEGRO_NOFUNCTIONS macro is obsolete and should not be defined anymore.
 #endif
-
-
 
 typedef BITMAP *block;
 

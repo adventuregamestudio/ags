@@ -12,7 +12,7 @@
 #include "ac/mouse.h"
 #include "ac/record.h"
 #include "media/audio/audio.h"
-#include "platform/agsplatformdriver.h"
+#include "platform/base/agsplatformdriver.h"
 
 
 extern GameSetupStruct game;

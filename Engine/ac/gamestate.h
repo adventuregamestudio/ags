@@ -3,7 +3,7 @@
 
 #include "ac/runtime_defines.h"
 #include "media/audio/queuedaudioitem.h"
-#include "platform/file.h"
+#include "util/file.h"
 
 // Adding to this might need to modify AGSDEFNS.SH and AGSPLUGIN.H
 struct GameState {

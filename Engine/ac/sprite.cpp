@@ -5,7 +5,7 @@
 #include "ac/draw.h"            // USE_15BIT_FIX
 #include "ac/gamesetupstruct.h"
 #include "ac/sprite.h"
-#include "platform/agsplatformdriver.h"
+#include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "ac/spritecache.h"
 

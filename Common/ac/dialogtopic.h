@@ -7,7 +7,7 @@
 #ifndef __AGS_CN_AC__DIALOGTOPIC_H
 #define __AGS_CN_AC__DIALOGTOPIC_H
 
-#include "platform/file.h"
+#include "util/file.h"
 
 // [IKM] This is *conversation* dialog, not *gui* dialog, mind you!
 

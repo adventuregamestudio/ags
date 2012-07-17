@@ -2,7 +2,7 @@
 #define __AC_CHARACTERINFO_H
 
 #include "ac/common_defines.h" // constants
-#include "platform/file.h"
+#include "util/file.h"
 
 #define MAX_INV             301
 #define CHF_MANUALSCALING   1

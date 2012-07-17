@@ -15,7 +15,7 @@
 #include "ac/record.h"
 #include "main/game_run.h"
 #include "media/audio/audio.h"
-#include "platform/agsplatformdriver.h"
+#include "platform/base/agsplatformdriver.h"
 #include "ac/spritecache.h"
 
 extern int guis_need_update;

@@ -31,7 +31,7 @@
 #include "main/engine.h"
 #include "main/mainheader.h"
 #include "main/main.h"
-#include "platform/agsplatformdriver.h"
+#include "platform/base/agsplatformdriver.h"
 #include "ac/route_finder.h"
 
 #ifdef MAC_VERSION

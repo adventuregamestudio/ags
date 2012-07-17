@@ -35,7 +35,7 @@
 #include "script/cc_instance.h"
 #include "debug/debug.h"
 #include "media/audio/audio.h"
-#include "platform/agsplatformdriver.h"
+#include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "script/script.h"
 #include "script/script_runtime.h"

@@ -15,7 +15,7 @@
 #include "ac/screen.h"
 #include "script/cc_error.h"
 #include "media/audio/audio.h"
-#include "platform/agsplatformdriver.h"
+#include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "script/script.h"
 

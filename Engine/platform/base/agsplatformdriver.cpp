@@ -13,7 +13,7 @@
 */
 #include <stdio.h>
 #include <string.h>
-#include "platform/agsplatformdriver.h"
+#include "platform/base/agsplatformdriver.h"
 #include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "util/string_utils.h"

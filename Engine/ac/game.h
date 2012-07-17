@@ -16,7 +16,7 @@
 
 #include "ac/interaction.h"
 #include "ac/dynobj/scriptviewframe.h"
-#include "platform/file.h"
+#include "util/file.h"
 
 #define RAGMODE_PRESERVEGLOBALINT 1
 #define RAGMODE_LOADNOW 0x8000000  // just to make sure it's non-zero

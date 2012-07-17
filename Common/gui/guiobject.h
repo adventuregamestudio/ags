@@ -14,7 +14,7 @@
 #define __AC_GUIOBJECT_H
 
 #include "gui/guidefines.h"
-#include "platform/file.h"
+#include "util/file.h"
 
 #define GUIDIS_GREYOUT   1
 #define GUIDIS_BLACKOUT  2

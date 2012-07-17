@@ -17,7 +17,7 @@
 #include "script/cc_instance.h"
 #include "ac/runtime_defines.h"
 #include "ac/gamestate.h"
-#include "platform/agsplatformdriver.h"
+#include "platform/base/agsplatformdriver.h"
 
 extern GameState play;
 #define DEBUG_CONSOLE if (play.debug_mode) debug_write_console

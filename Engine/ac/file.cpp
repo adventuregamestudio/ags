@@ -9,7 +9,7 @@
 #include "ac/string.h"
 #include "debug/debug.h"
 #include "util/misc.h"
-#include "platform/agsplatformdriver.h"
+#include "platform/base/agsplatformdriver.h"
 
 #ifdef WINDOWS_VERSION
 //#include <crtdbg.h>

@@ -7,7 +7,7 @@
 #ifndef __AGS_EE_AC__GLOBALFILE_H
 #define __AGS_EE_AC__GLOBALFILE_H
 
-#include "platform/file.h"
+#include "util/file.h"
 
 FILE* FileOpen(const char*fnmm, const char* mode);
 void  FileClose(FILE*hha);

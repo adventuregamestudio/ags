@@ -1,7 +1,7 @@
 
 #include <stdio.h>
 #include "ac/mousecursor.h"
-#include "platform/file.h"
+#include "util/file.h"
 
 MouseCursor::MouseCursor() { pic = 2054; hotx = 0; hoty = 0; name[0] = 0; flags = 0; view = -1; }
 

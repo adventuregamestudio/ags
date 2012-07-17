@@ -13,7 +13,6 @@
 #include "ac/common_defines.h"
 #include "ac/spritecache.h"
 #include "util/compress.h"
-#include "platform/bigend.h"
 //
 
 //=============================================================================

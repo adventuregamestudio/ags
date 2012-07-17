@@ -1,5 +1,5 @@
 
-#include "platform/file.h"
+#include "util/file.h"
 
 #if defined(LINUX_VERSION) || defined(MAC_VERSION)
 #include <sys/stat.h>
@@ -11,8 +11,8 @@ long int filelength(int fhandle)
 }
 #endif
 
-// Two functions to match those defined by bigend version by McCrea
 #if !defined ALLEGRO_BIG_ENDIAN
+// Two functions to match those defined by bigend version by McCrea
 short int   getshort(FILE * f)
 {
     short i;

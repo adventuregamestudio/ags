@@ -2,7 +2,7 @@
 #define __AC_INTERACTION_H
 
 #include "ac/common_defines.h" // macros, typedef
-#include "platform/file.h"
+#include "util/file.h"
 
 /* THE WAY THIS WORKS:
 *

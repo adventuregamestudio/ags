@@ -6,7 +6,7 @@
 #include "ac/global_translation.h"
 #include "ac/string.h"
 #include "ac/tree_map.h"
-#include "platform/agsplatformdriver.h"
+#include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 
 extern GameState play;

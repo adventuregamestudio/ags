@@ -33,7 +33,7 @@
 #include "debug/debug.h"
 #include "gui/guimain.h"
 #include "media/audio/audio.h"
-#include "platform/agsplatformdriver.h"
+#include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "ac/spritecache.h"
 

@@ -8,7 +8,7 @@
 #include "ac/global_game.h"
 #include "ac/global_screen.h"
 #include "ac/screen.h"
-#include "platform/agsplatformdriver.h"
+#include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 
 extern GameSetupStruct game;

@@ -263,18 +263,6 @@
 				</File>
 			</Filter>
 			<Filter
-				Name="platform"
-				>
-				<File
-					RelativePath="..\..\Common\platform\bigend.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\platform\file.cpp"
-					>
-				</File>
-			</Filter>
-			<Filter
 				Name="util"
 				>
 				<File
@@ -283,6 +271,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\util\compress.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\file.cpp"
 					>
 				</File>
 				<File
@@ -501,22 +493,14 @@
 				</File>
 			</Filter>
 			<Filter
-				Name="platform"
-				>
-				<File
-					RelativePath="..\..\Common\platform\bigend.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\platform\file.h"
-					>
-				</File>
-			</Filter>
-			<Filter
 				Name="util"
 				>
 				<File
 					RelativePath="..\..\Common\util\compress.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\file.h"
 					>
 				</File>
 				<File

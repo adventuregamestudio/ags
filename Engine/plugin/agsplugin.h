@@ -14,7 +14,7 @@
 #ifndef _AGS_PLUGIN_H
 #define _AGS_PLUGIN_H
 
-#include "platform/file.h"
+#include "util/file.h"
 
 // If the plugin isn't using DDraw, don't require the headers
 #ifndef DIRECTDRAW_VERSION

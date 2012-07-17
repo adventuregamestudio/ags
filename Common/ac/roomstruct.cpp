@@ -6,7 +6,7 @@
 #include "ac/wordsdictionary.h"
 #include "util/string_utils.h"      // fputstring, etc
 #include "util/compress.h"
-#include "platform/file.h"
+#include "util/file.h"
 
 extern "C" {
   extern FILE *clibfopen(char *, char *);

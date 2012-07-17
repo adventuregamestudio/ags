@@ -11,7 +11,7 @@
 #include "ac/wordsdictionary.h"  // WordsDictionary
 #include "ac/gamestructdefines.h"
 #include "script/cc_script.h"           // ccScript
-#include "platform/file.h"
+#include "util/file.h"
 
 // This struct is written directly to the disk file // [IKM] not really anymore
 // The GameSetupStruct subclass parts are written individually

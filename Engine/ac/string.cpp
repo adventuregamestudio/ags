@@ -10,7 +10,6 @@
 #include "ac/dynobj/scriptstring.h"
 #include "debug/debug.h"
 #include "util/string_utils.h"
-#include "platform/bigend.h"    //stricmp()
 
 extern char lines[MAXLINE][200];
 extern int  numlines;

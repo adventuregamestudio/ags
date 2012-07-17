@@ -28,7 +28,7 @@
 #include "gui/guitextbox.h"
 #include "main/game_run.h"
 #include "media/audio/audio.h"
-#include "platform/agsplatformdriver.h"
+#include "platform/base/agsplatformdriver.h"
 #include "script/script.h"
 #include "ac/spritecache.h"
 

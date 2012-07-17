@@ -6,7 +6,7 @@
 #ifndef __AGS_EE_PLATFORM__AGS32BITOSDRIVER_H
 #define __AGS_EE_PLATFORM__AGS32BITOSDRIVER_H
 
-#include "platform/agsplatformdriver.h"
+#include "platform/base/agsplatformdriver.h"
 
 struct AGS32BitOSDriver : AGSPlatformDriver {
     virtual void GetSystemTime(ScriptDateTime*) ;

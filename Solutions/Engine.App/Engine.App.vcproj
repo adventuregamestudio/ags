@@ -1048,14 +1048,22 @@
 					RelativePath="..\..\Engine\platform\windows\acplwin.cpp"
 					>
 				</File>
-				<File
-					RelativePath="..\..\Engine\platform\ags32bitosdriver.cpp"
+				<Filter
+					Name="base"
 					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\platform\agsplatformdriver.cpp"
+					<File
+						RelativePath="..\..\Engine\platform\base\agsplatformdriver.cpp"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="32bit"
 					>
-				</File>
+					<File
+						RelativePath="..\..\Engine\platform\32bit\ags32bitosdriver.cpp"
+						>
+					</File>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="plugin"
@@ -1742,18 +1750,26 @@
 			<Filter
 				Name="platform"
 				>
-				<File
-					RelativePath="..\..\Engine\platform\ags32bitosdriver.h"
+				<Filter
+					Name="base"
 					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\platform\agsplatformdriver.h"
+					<File
+						RelativePath="..\..\Engine\platform\base\agsplatformdriver.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\platform\base\override_defines.h"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="32bit"
 					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\platform\override_defines.h"
-					>
-				</File>
+					<File
+						RelativePath="..\..\Engine\platform\32bit\ags32bitosdriver.h"
+						>
+					</File>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="media"

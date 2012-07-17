@@ -7,7 +7,7 @@
 #ifndef __AGS_EE_AC__ROOMOBJECT_H
 #define __AGS_EE_AC__ROOMOBJECT_H
 
-#include "platform/file.h"
+#include "util/file.h"
 
 // This struct is only used in save games and by plugins
 // [IKM] Not really.... used in update loop

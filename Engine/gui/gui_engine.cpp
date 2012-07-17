@@ -17,8 +17,6 @@
 #include "ac/string.h"
 #include "ac/spritecache.h"
 
-#include "platform/bigend.h"
-
 // For engine these are defined in ac.cpp
 extern int eip_guiobj;
 extern void replace_macro_tokens(char*,char*);

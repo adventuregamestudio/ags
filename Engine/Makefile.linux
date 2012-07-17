@@ -10,6 +10,7 @@ main \
 media \
 media/audio \
 media/video \
+platform/base \
 plugin \
 resource \
 script \
@@ -24,20 +25,18 @@ COMMON_subdirs = \
 ../Common/ac/dynobj \
 ../Common/font \
 ../Common/gui \
+../Common/platform/base \
 ../Common/script \
 ../Common/util
 
 COMMON_c_sources := $(wildcard $(addsuffix /*.c,$(COMMON_subdirs)))
 COMMON_cpp_sources := $(wildcard $(addsuffix /*.cpp,$(COMMON_subdirs)))
-COMMON := $(patsubst %.c,%.o,$(COMMON_c_sources)) $(patsubst %.cpp,%.o,$(COMMON_cpp_sources)) \
-../Common/platform/bigend.o \
-../Common/platform/file.o
+COMMON := $(patsubst %.c,%.o,$(COMMON_c_sources)) $(patsubst %.cpp,%.o,$(COMMON_cpp_sources))
 
 PLUGINS = ../Plugins/AGSflashlight/agsflashlight.o ../Plugins/agsblend/AGSBlend.o ../Plugins/ags_snowrain/ags_snowrain.o
 
 LINUX_SPECIFIC = platform/linux/acpllnx.o \
-platform/ags32bitosdriver.o \
-platform/agsplatformdriver.o \
+platform/32bit/ags32bitosdriver.o \
 ../PSP/launcher/pe.o
 
 HQ2X3X = libsrc/hq2x/hq2x3x.o

@@ -20,7 +20,7 @@
 #include "ac/common_defines.h"
 #include "ac/spritecache.h"
 #include "util/compress.h"
-#include "platform/file.h"
+#include "util/file.h"
 
 extern "C" {
   extern FILE *clibfopen(char *, char *);

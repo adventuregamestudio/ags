@@ -13,8 +13,6 @@
 #include "util/string_utils.h"
 #include <ctype.h>
 
-#include "platform/bigend.h"
-
 //=============================================================================
 // AGS.Native-specific implementation split out of acgui.h
 //=============================================================================

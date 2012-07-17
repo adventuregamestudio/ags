@@ -21,8 +21,6 @@
 #include <io.h>
 #endif
 
-#include "platform/bigend.h"
-
 extern void quit(char *);
 
 int insert(int, int);

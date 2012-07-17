@@ -1,7 +1,7 @@
 
 #define USE_CLIB
 #include "util/wgt2allg.h"
-#include "platform/file.h"
+#include "util/file.h"
 
 #define fopen clibfopen
 

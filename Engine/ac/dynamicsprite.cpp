@@ -18,7 +18,7 @@
 #include "gui/dynamicarray.h"
 #include "gui/guibutton.h"
 #include "ac/spritecache.h"
-#include "platform/override_defines.h"
+#include "platform/base/override_defines.h"
 
 extern GameSetupStruct game;
 extern SpriteCache spriteset;

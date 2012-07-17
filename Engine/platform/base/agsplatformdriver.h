@@ -15,7 +15,7 @@
 #define __AGS_EE_PLATFORM__AGSPLATFORMDRIVER_H
 
 #include "ac/datetime.h"
-#include "platform/file.h"
+#include "util/file.h"
 
 #ifdef DJGPP
 #define DOS_VERSION

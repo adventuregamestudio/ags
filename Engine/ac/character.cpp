@@ -46,6 +46,7 @@
 #include "main/game_run.h"
 #include "main/update.h"
 #include "ac/spritecache.h"
+#include "util/string_utils.h"
 #include <math.h>
 
 extern GameSetupStruct game;

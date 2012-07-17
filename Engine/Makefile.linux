@@ -36,7 +36,7 @@ COMMON := $(patsubst %.c,%.o,$(COMMON_c_sources)) $(patsubst %.cpp,%.o,$(COMMON_
 PLUGINS = ../Plugins/AGSflashlight/agsflashlight.o ../Plugins/agsblend/AGSBlend.o ../Plugins/ags_snowrain/ags_snowrain.o
 
 LINUX_SPECIFIC = platform/linux/acpllnx.o \
-platform/32bit/ags32bitosdriver.o \
+platform/ags32bitosdriver.o \
 ../PSP/launcher/pe.o
 
 HQ2X3X = libsrc/hq2x/hq2x3x.o

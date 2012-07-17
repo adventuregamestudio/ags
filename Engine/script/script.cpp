@@ -30,6 +30,7 @@
 #include "main/game_run.h"
 #include "media/audio/audio.h"
 #include "script/script_runtime.h"
+#include "util/string_utils.h"
 
 extern GameSetupStruct game;
 extern GameState play;

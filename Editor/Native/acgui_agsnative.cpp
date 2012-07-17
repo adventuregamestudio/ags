@@ -2,16 +2,14 @@
 // Implementation from acgui.h and acgui.cpp specific to AGS.Native library
 //
 
-// Headers, as they are in acgui.cpp
 #pragma unmanaged
-#include "util/wgt2allg.h"
-#include "gui/guimain.h"
-#include "gui/guilabel.h"
-#include "gui/guitextbox.h"
+
+#include "font/fonts.h"
 #include "gui/guibutton.h"
+#include "gui/guilabel.h"
 #include "gui/guilistbox.h"
+#include "gui/guitextbox.h"
 #include "util/string_utils.h"
-#include <ctype.h>
 
 //=============================================================================
 // AGS.Native-specific implementation split out of acgui.h

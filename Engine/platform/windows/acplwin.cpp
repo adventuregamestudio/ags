@@ -26,7 +26,7 @@
 #include "ac/string.h"
 #include "main/engine.h"
 #include "media/audio/audio.h"
-#include "platform/32bit/ags32bitosdriver.h"
+#include "platform/ags32bitosdriver.h"
 #include "plugin/agsplugin.h"
 
 extern GameSetupStruct game;

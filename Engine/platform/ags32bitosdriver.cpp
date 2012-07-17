@@ -1,5 +1,5 @@
 
-#include "platform/32bit/ags32bitosdriver.h"
+#include "platform/ags32bitosdriver.h"
 #include "util/wgt2allg.h"
 #include "ac/common.h"
 

@@ -23,12 +23,12 @@ If you are on a 64 bit system, check out the *64bit* branch:
 
 Compile the engine:
 
-    make --directory=Engine --file=Makefile.linux
+    make --directory=Engine
 
 The **ags** executable can now be found in the **Engine** folder and
 can be installed with
 
-    sudo make --directory=Engine --file=Makefile.linux install
+    sudo make --directory=Engine install
 
 Please take note of the usage instructions at the end of this document.
 

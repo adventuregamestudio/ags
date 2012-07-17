@@ -4,7 +4,7 @@
 # orig syncronized with the one in debian/source/local-options!
 ORIG_CONTENT := $(shell git ls-tree --name-only HEAD | grep -Ev '^(Android|Editor|iOS|OSX|Windows|debian|\.git.*)')
 VERSION := $(shell dpkg-parsechangelog | grep -x "Version:.*" | sed 's@Version: \(.\+\)-.\+@\1@')
-MAKE = make --directory=Engine --file=Makefile.linux
+MAKE = make --directory=Engine
 
 %:
 	dh $@

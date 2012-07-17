@@ -1,3 +1,11 @@
+UNAME := $(shell uname)
+
+ifeq ($(UNAME), Darwin)
+include Makefile-defs.osx
+else
+include Makefile-defs.linux
+endif
+
 BASE_subdirs = \
 ac \
 ac/dynobj \
@@ -16,9 +24,8 @@ resource \
 script \
 setup
 
-BASE_c_sources := $(wildcard $(addsuffix /*.c,$(BASE_subdirs)))
 BASE_cpp_sources := $(wildcard $(addsuffix /*.cpp,$(BASE_subdirs)))
-BASE := $(patsubst %.c,%.o,$(BASE_c_sources)) $(patsubst %.cpp,%.o,$(BASE_cpp_sources))
+BASE := $(patsubst %.cpp,%.o,$(BASE_cpp_sources))
 
 COMMON_subdirs = \
 ../Common/ac \
@@ -29,15 +36,10 @@ COMMON_subdirs = \
 ../Common/script \
 ../Common/util
 
-COMMON_c_sources := $(wildcard $(addsuffix /*.c,$(COMMON_subdirs)))
 COMMON_cpp_sources := $(wildcard $(addsuffix /*.cpp,$(COMMON_subdirs)))
-COMMON := $(patsubst %.c,%.o,$(COMMON_c_sources)) $(patsubst %.cpp,%.o,$(COMMON_cpp_sources))
+COMMON := $(patsubst %.cpp,%.o,$(COMMON_cpp_sources)) $(COMMON_PLATFORM)
 
 PLUGINS = ../Plugins/AGSflashlight/agsflashlight.o ../Plugins/agsblend/AGSBlend.o ../Plugins/ags_snowrain/ags_snowrain.o
-
-LINUX_SPECIFIC = platform/linux/acpllnx.o \
-platform/ags32bitosdriver.o \
-../PSP/launcher/pe.o
 
 HQ2X3X = libsrc/hq2x/hq2x3x.o
 
@@ -53,30 +55,9 @@ AASTR = libsrc/aastr-0.1.1/AAROT.o libsrc/aastr-0.1.1/aastr.o libsrc/aastr-0.1.1
 
 CDA = libsrc/libcda-0.5/linux.o
 
-OBJS = $(ALFONT) $(ALMP3) $(ALOGG) $(APEG) $(AASTR) $(HQ2X3X) $(CDA) $(PLUGINS) $(BASE) $(LINUX_SPECIFIC)
+OBJS = $(ALFONT) $(ALMP3) $(ALOGG) $(APEG) $(AASTR) $(HQ2X3X) $(CDA) $(PLUGINS) $(BASE) $(BASE_PLATFORM)
 
-INCDIR = ../Engine ../Common ../Common/libinclude ../Plugins
-LIBDIR =
-CFLAGS = -O2 -g -fpermissive -fsigned-char -Wfatal-errors -DALLEGRO_STATICLINK -DTHIS_IS_THE_ENGINE -DLINUX_VERSION -DDISABLE_MPEG_AUDIO -DBUILTIN_PLUGINS -DRTLD_NEXT $(shell pkg-config --cflags freetype2)
-CXXFLAGS = -fno-rtti -Wno-write-strings
-ASFLAGS =
-LIBS = -rdynamic $(shell allegro-config --libs) -laldmb -ldumb -Wl,-Bdynamic -ltheora -logg 
-ifeq ($(USE_TREMOR), 1)
-  LIBS += -lvorbisidec
-  CFLAGS += -DUSE_TREMOR
-else
-  LIBS += -lvorbis
-endif
-LIBS += -lvorbisfile -lfreetype -logg -ldl -lpthread -lm -lc -lstdc++
 
-PREFIX = /usr/local
-CC = gcc
-CXX = g++
-AR = ar
-CFLAGS   := $(addprefix -I,$(INCDIR)) $(CFLAGS)
-CXXFLAGS := $(CFLAGS) $(CXXFLAGS)
-ASFLAGS  := $(CFLAGS) $(ASFLAGS)
-LDFLAGS  := -Wl,--as-needed $(addprefix -L,$(LIBDIR))
 
 all: ags
 

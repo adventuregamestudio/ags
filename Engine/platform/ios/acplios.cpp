@@ -95,7 +95,7 @@ const int CONFIG_MOUSE_LONGCLICK = 20;
 
 
 
-struct AGSIOS : AGS32BitOSDriver {
+struct AGSIOS : AGSPlatformDriver {
 
   virtual int  CDPlayerCommand(int cmdd, int datt);
   virtual void Delay(int millis);

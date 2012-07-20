@@ -10,7 +10,7 @@
 bool PlayMovie(char const *name, int skipType);
 
 
-struct AGSMac : AGS32BitOSDriver {
+struct AGSMac : AGSPlatformDriver {
 
   virtual int  CDPlayerCommand(int cmdd, int datt);
   virtual void Delay(int millis);

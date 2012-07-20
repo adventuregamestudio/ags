@@ -6,14 +6,14 @@
 
 #include "util/wgt2allg.h"
 #include "gfx/ali3d.h"
-#include "platform/ags32bitosdriver.h"
+#include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include <libcda.h>
 
 #include <pwd.h>
 #include <sys/stat.h>
 
-struct AGSLinux : AGS32BitOSDriver {
+struct AGSLinux : AGSPlatformDriver {
 
   virtual int  CDPlayerCommand(int cmdd, int datt);
   virtual void Delay(int millis);

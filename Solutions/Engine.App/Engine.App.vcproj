@@ -1044,10 +1044,6 @@
 			<Filter
 				Name="platform"
 				>
-				<File
-					RelativePath="..\..\Engine\platform\windows\acplwin.cpp"
-					>
-				</File>
 				<Filter
 					Name="base"
 					>
@@ -1057,10 +1053,10 @@
 					</File>
 				</Filter>
 				<Filter
-					Name="32bit"
+					Name="windows"
 					>
 					<File
-						RelativePath="..\..\Engine\platform\32bit\ags32bitosdriver.cpp"
+						RelativePath="..\..\Engine\platform\windows\acplwin.cpp"
 						>
 					</File>
 				</Filter>
@@ -1759,14 +1755,6 @@
 					</File>
 					<File
 						RelativePath="..\..\Engine\platform\base\override_defines.h"
-						>
-					</File>
-				</Filter>
-				<Filter
-					Name="32bit"
-					>
-					<File
-						RelativePath="..\..\Engine\platform\32bit\ags32bitosdriver.h"
 						>
 					</File>
 				</Filter>

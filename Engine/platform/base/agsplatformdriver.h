@@ -36,7 +36,7 @@ struct AGSPlatformDriver {
     virtual unsigned long GetDiskFreeSpaceMB() = 0;
     virtual const char* GetNoMouseErrorString() = 0;
     virtual eScriptSystemOSID GetSystemOSID() = 0;
-    virtual void GetSystemTime(ScriptDateTime*) = 0;
+    virtual void GetSystemTime(ScriptDateTime*);
     virtual void PlayVideo(const char* name, int skip, int flags) = 0;
     virtual void InitialiseAbufAtStartup();
     virtual void PostAllegroInit(bool windowed);
@@ -47,7 +47,7 @@ struct AGSPlatformDriver {
     virtual void SetGameWindowIcon();
     virtual void WriteConsole(const char*, ...) = 0;
     virtual void WriteDebugString(const char*, ...);
-    virtual void YieldCPU() = 0;
+    virtual void YieldCPU();
     virtual void DisplaySwitchOut();
     virtual void DisplaySwitchIn();
     virtual void RegisterGameWithGameExplorer();
@@ -70,6 +70,11 @@ struct AGSPlatformDriver {
 private:
     static AGSPlatformDriver *instance;
 };
+
+#if !defined(ANDROID_VERSION) && !defined(PSP_VERSION) && !defined(DOS_VERSION) && !defined(BSD_VERSION) && !defined(MAC_VERSION)
+int cd_player_init();
+int cd_player_control(int cmdd, int datt);
+#endif
 
 // [IKM] What is a need to have this global var if you can get AGSPlatformDriver
 // instance by calling AGSPlatformDriver::GetDriver()?

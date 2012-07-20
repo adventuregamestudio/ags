@@ -16,7 +16,6 @@ LDFLAGS  := $(addprefix -L,$(LIBDIR))
 
 BASE_PLATFORM = \
 platform/osx/acplmac.o \
-platform/ags32bitosdriver.o \
 ../OSX/libc.o \
 ../PSP/launcher/pe.o
 

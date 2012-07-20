@@ -26,7 +26,7 @@
 #include "ac/string.h"
 #include "main/engine.h"
 #include "media/audio/audio.h"
-#include "platform/ags32bitosdriver.h"
+#include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 
 extern GameSetupStruct game;
@@ -78,7 +78,7 @@ extern int acwsetup(const char*, const char*);
 extern void set_icon();
 extern char* game_file_name;
 
-struct AGSWin32 : AGS32BitOSDriver {
+struct AGSWin32 : AGSPlatformDriver {
   AGSWin32();
 
   virtual void AboutToQuitGame();

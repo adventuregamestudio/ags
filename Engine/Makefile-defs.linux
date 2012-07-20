@@ -23,7 +23,6 @@ LDFLAGS  := -Wl,--as-needed $(addprefix -L,$(LIBDIR))
 
 BASE_PLATFORM = \
 platform/linux/acpllnx.o \
-platform/ags32bitosdriver.o \
 ../PSP/launcher/pe.o
 
 COMMON_PLATFORM = \

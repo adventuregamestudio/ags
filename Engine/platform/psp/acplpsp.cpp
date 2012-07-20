@@ -36,7 +36,7 @@ extern "C" void gprof_cleanup();
 #define PSP_CONFIG_FILENAME "psp.cfg"
 
 
-struct AGSPSP : AGS32BitOSDriver {
+struct AGSPSP : AGSPlatformDriver {
 
   virtual int  CDPlayerCommand(int cmdd, int datt);
   virtual void Delay(int millis);

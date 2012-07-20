@@ -23,7 +23,7 @@ int INIreadint (const char *sectn, const char *item, int errornosect = 1);
 bool ReadConfiguration(char* filename, bool read_everything);
 void ResetConfiguration();
 
-struct AGSAndroid : AGS32BitOSDriver {
+struct AGSAndroid : AGSPlatformDriver {
 
   virtual int  CDPlayerCommand(int cmdd, int datt);
   virtual void Delay(int millis);

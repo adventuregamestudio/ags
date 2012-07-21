@@ -68,10 +68,11 @@ namespace Scintilla
             this.SendMessageDirect(Constants.SCI_SETFOLDFLAGS, 16, 0); // 16  	Draw line below if not expanded
 
             SetMarginSensitivity(2, 1);
+        }
 
-
-            
-
+        public void SetIndentationGuides(int flag)
+        {
+            this.SendMessageDirect(Constants.SCI_SETINDENTATIONGUIDES, flag);
         }
 
         private bool isNumeric(char token)

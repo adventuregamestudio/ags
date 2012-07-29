@@ -99,13 +99,7 @@ namespace AGS.Editor.Components
                 AudioClip clipToDelete = _items[_rightClickedID];
                 if (_guiController.ShowQuestion("Are you sure you want to delete audio '" + clipToDelete.ScriptName + "'?") == System.Windows.Forms.DialogResult.Yes)
                 {
-                    AudioClipFolder parentFolder = this.FindFolderThatContainsItem(this.GetRootFolder(), clipToDelete);
-                    parentFolder.Items.Remove(clipToDelete);
-                    DeleteResourcesForAudioClip(clipToDelete);
-
-                    AudioClipTypeConverter.SetAudioClipList(_agsEditor.CurrentGame.RootAudioClipFolder.GetAllAudioClipsFromAllSubFolders());
-                    RePopulateTreeView(GetNodeIDForFolder(parentFolder));
-                    _guiController.ProjectTree.ExpandNode(this, GetNodeIDForFolder(parentFolder));
+                    DeleteSingleItem(clipToDelete);                    
                 }
             }
             else if (controlID == SPEECH_NODE_ID)
@@ -266,6 +260,7 @@ namespace AGS.Editor.Components
                 }
                 _editor.SelectedItem = itemToEdit;
                 _document.SelectedPropertyGridObject = itemToEdit;
+                _document.TreeNodeID = _rightClickedID;
                 _guiController.AddOrShowPane(_document);
             }
         }
@@ -670,14 +665,6 @@ namespace AGS.Editor.Components
             menu.Add(new MenuCommand(COMMAND_PROPERTIES, "Properties", null));
         }
 
-        protected override AudioClipFolder CreateFolderObject(string name, AudioClipFolder parentFolder)
-        {
-            AudioClipFolder newFolder = new AudioClipFolder(name);
-            newFolder.DefaultType = parentFolder.DefaultType;
-            newFolder.DefaultBundlingType = parentFolder.DefaultBundlingType;
-            return newFolder;
-        }
-
         protected override string GetFolderDeleteConfirmationText()
         {
             return "Are you sure you want to delete this folder and all the audio clips that it contains?";
@@ -713,6 +700,12 @@ namespace AGS.Editor.Components
         protected override void DeleteResourcesUsedByFolder(AudioClipFolder folder)
         {
             DeleteResourcesForAudioClips(folder.GetAllAudioClipsFromAllSubFolders());
+        }
+
+        protected override void DeleteResourcesUsedByItem(AudioClip item)
+        {
+            DeleteResourcesForAudioClip(item);
+            AudioClipTypeConverter.SetAudioClipList(_agsEditor.CurrentGame.RootAudioClipFolder.GetAllAudioClipsFromAllSubFolders());                    
         }
 
         private void DeleteResourcesForAudioClip(AudioClip clipToDelete)

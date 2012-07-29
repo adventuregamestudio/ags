@@ -75,7 +75,7 @@ namespace AGS.Editor
 
 		private void btnOK_Click(object sender, EventArgs e)
 		{
-			if (Factory.NativeProxy.IsShiftPressed())
+			if (Utilities.IsShiftPressed())
 			{
 				pictureBox.Image = Resources.ResourceManager.GetBitmap("splash-mittens.bmp");
 				this.Text = "The cast and crew of Mittens 2007 Canada";

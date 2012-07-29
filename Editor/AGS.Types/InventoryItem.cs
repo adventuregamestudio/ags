@@ -7,7 +7,7 @@ using System.Xml;
 namespace AGS.Types
 {
     [PropertyTab(typeof(PropertyTabInteractions), PropertyTabScope.Component)]
-    public class InventoryItem
+    public class InventoryItem : IToXml
     {
         private static InteractionSchema _interactionSchema;
 

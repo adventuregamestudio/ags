@@ -7,7 +7,7 @@ using System.Xml;
 
 namespace AGS.Types
 {
-    public class UnloadedRoom : IRoom
+    public class UnloadedRoom : IRoom, IToXml, IComparable
     {
         private const string ROOM_FILE_NAME_FORMAT = "room{0}.crm";
         private const string ROOM_SCRIPT_FILE_NAME_FORMAT = "room{0}.asc";
@@ -112,6 +112,13 @@ namespace AGS.Types
         public void ToXml(XmlTextWriter writer)
         {
             SerializeUtils.SerializeToXML(this, writer);
+        }
+
+        public int CompareTo(object other)
+        {
+            IRoom otherRoom = other as IRoom;
+            if (otherRoom == null) return 0;
+            return CompareTo(otherRoom);
         }
 
         public int CompareTo(IRoom other)

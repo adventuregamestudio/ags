@@ -25,10 +25,10 @@ namespace AGS.Editor
 
         public string ConvertGameDialogScripts(Game game, CompileMessages errors, bool rebuildAll)
         {
-            int stringBuilderCapacity = 1000 * game.Dialogs.Count + _DefaultDialogScriptsScript.Length;
+            int stringBuilderCapacity = 1000 * game.RootDialogFolder.GetAllItemsCount() + _DefaultDialogScriptsScript.Length;
             StringBuilder sb = new StringBuilder(_DefaultDialogScriptsScript, stringBuilderCapacity);
 
-            foreach (Dialog dialog in game.Dialogs)
+            foreach (Dialog dialog in game.RootDialogFolder.AllItemsFlat)
             {
                 sb.AppendLine(AGS.CScript.Compiler.Constants.NEW_SCRIPT_MARKER + "Dialog " + dialog.ID + "\"");
 
@@ -292,7 +292,7 @@ namespace AGS.Editor
                 return string.Format("return {0};", dialogID) + "}";
             }
 
-            foreach (Dialog otherDialog in _game.Dialogs)
+            foreach (Dialog otherDialog in _game.RootDialogFolder.AllItemsFlat)
             {
                 if (string.Compare(otherDialog.Name, newDialogName, true) == 0)
                 {
@@ -383,7 +383,7 @@ namespace AGS.Editor
         {
             string scriptNameWithCPrefix = "c" + scriptName;
 
-            foreach (Character character in _game.Characters)
+            foreach (Character character in _game.RootCharacterFolder.AllItemsFlat)
             {
                 string thisCharName = character.ScriptName.ToLower();
                 if ((thisCharName == scriptName) ||

@@ -86,7 +86,7 @@ namespace AGS.Editor
             //             
             this.mainContainer.ActiveAutoHideContent = null;
             this.mainContainer.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.mainContainer.DockBackColor = System.Drawing.SystemColors.Control;
+            this.mainContainer.DockBackColor = System.Drawing.SystemColors.Control;            
             this.mainContainer.Location = new System.Drawing.Point(0, 51);
             this.mainContainer.Name = "mainContainer";
             this.mainContainer.DocumentStyle = WeifenLuo.WinFormsUI.Docking.DocumentStyle.DockingMdi;
@@ -112,7 +112,7 @@ namespace AGS.Editor
             tabGradient3.TextColor = System.Drawing.SystemColors.ControlText;
             dockPaneStripGradient1.InactiveTabGradient = tabGradient3;
             dockPaneStripSkin1.DocumentGradient = dockPaneStripGradient1;
-            dockPaneStripSkin1.TextFont = new System.Drawing.Font("Tahoma", 8.400001F);
+            dockPaneStripSkin1.TextFont = new System.Drawing.Font("Tahoma", 8.400001F);            
             tabGradient4.EndColor = System.Drawing.SystemColors.ActiveCaption;
             tabGradient4.LinearGradientMode = System.Drawing.Drawing2D.LinearGradientMode.Vertical;
             tabGradient4.StartColor = System.Drawing.SystemColors.GradientActiveCaption;
@@ -135,7 +135,7 @@ namespace AGS.Editor
             tabGradient7.TextColor = System.Drawing.SystemColors.ControlDarkDark;
             dockPaneStripToolWindowGradient1.InactiveTabGradient = tabGradient7;
             dockPaneStripSkin1.ToolWindowGradient = dockPaneStripToolWindowGradient1;
-            dockPanelSkin1.DockPaneStripSkin = dockPaneStripSkin1;
+            dockPanelSkin1.DockPaneStripSkin = dockPaneStripSkin1;            
             this.mainContainer.Skin = dockPanelSkin1;
             this.mainContainer.TabIndex = 0;             
             // 
@@ -143,7 +143,7 @@ namespace AGS.Editor
             // 
             this.pnlCallStack.CallStack = null;
             this.pnlCallStack.ClientSize = new System.Drawing.Size(489, 65);
-            this.pnlCallStack.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.pnlCallStack.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlCallStack.DockPanel = this.mainContainer;
             this.pnlCallStack.DockState = WeifenLuo.WinFormsUI.Docking.DockState.Unknown;
             this.pnlCallStack.FloatPane = null;
@@ -151,7 +151,7 @@ namespace AGS.Editor
             this.pnlCallStack.IsFloat = false;
             this.pnlCallStack.IsHidden = true;
             this.pnlCallStack.HideOnClose = true;
-            this.pnlCallStack.Location = new System.Drawing.Point(0, 110);
+            this.pnlCallStack.Location = new System.Drawing.Point(0, 0);
             this.pnlCallStack.Name = "pnlCallStack";
             this.pnlCallStack.Text = "Call Stack";
             this.pnlCallStack.Pane = null;
@@ -163,14 +163,14 @@ namespace AGS.Editor
             // pnlFindResults
             // 
             this.pnlFindResults.ClientSize = new System.Drawing.Size(489, 65);
-            this.pnlFindResults.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.pnlFindResults.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlFindResults.DockPanel = this.mainContainer;
             this.pnlFindResults.DockState = WeifenLuo.WinFormsUI.Docking.DockState.Unknown;
             this.pnlFindResults.FloatPane = null;
             this.pnlFindResults.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.pnlFindResults.IsFloat = false;
             this.pnlFindResults.IsHidden = true;
-            this.pnlFindResults.Location = new System.Drawing.Point(0, 215);
+            this.pnlFindResults.Location = new System.Drawing.Point(0, 0);
             this.pnlFindResults.Name = "pnlFindResults";
             this.pnlFindResults.Text = "Find Results";
             this.pnlFindResults.HideOnClose = true;
@@ -183,8 +183,8 @@ namespace AGS.Editor
             // 
             // pnlOutput
             // 
-            this.pnlOutput.ClientSize = new System.Drawing.Size(489, 81);
-            this.pnlOutput.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.pnlOutput.ClientSize = new System.Drawing.Size(489, 65);
+            this.pnlOutput.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlOutput.DockPanel = this.mainContainer;
             this.pnlOutput.DockState = WeifenLuo.WinFormsUI.Docking.DockState.Unknown;
             this.pnlOutput.ErrorsToList = null;
@@ -193,7 +193,7 @@ namespace AGS.Editor
             this.pnlOutput.IsFloat = false;
             this.pnlOutput.IsHidden = true;
             this.pnlOutput.HideOnClose = true;
-            this.pnlOutput.Location = new System.Drawing.Point(0, 320);
+            this.pnlOutput.Location = new System.Drawing.Point(0, 0);
             this.pnlOutput.Name = "pnlOutput";
             this.pnlOutput.Text = "Output";
             this.pnlOutput.Pane = null;
@@ -298,7 +298,7 @@ namespace AGS.Editor
 
         #endregion
 
-        private WeifenLuo.WinFormsUI.Docking.DockPanel mainContainer;
+        internal WeifenLuo.WinFormsUI.Docking.DockPanel mainContainer;
         internal AGS.Editor.ProjectPanel projectPanel;
         internal MenuStripExtended mainMenu;
         private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;

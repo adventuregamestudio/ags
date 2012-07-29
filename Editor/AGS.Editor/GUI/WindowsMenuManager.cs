@@ -10,12 +10,14 @@ namespace AGS.Editor
     public class WindowsMenuManager
     {
         private ToolStripMenuItem _windowsMenu;
+        private DockPanel _dockPanel;
         private const string MENU_SEPARATOR = "-";
 
         internal WindowsMenuManager(ToolStripMenuItem windowsMenu,
-            List<DockContent> startupPanes)
+            List<DockContent> startupPanes, DockPanel dockPanel)
         {
             _windowsMenu = windowsMenu;
+            _dockPanel = dockPanel;
             InitItems(startupPanes);
         }
 
@@ -75,6 +77,15 @@ namespace AGS.Editor
                     if (menuItem.Checked)
                     {
                         dockContent.Show();
+                        if (dockContent.IsHidden)
+                        {
+                            //todo: Find a better solution.
+                            //This is a hack since apparently the docking suite doesn't save/load
+                            //the layout correctly when the window was floating.
+                            //Loading the editor will hide all windows that were floating
+                            //and the previous dockContent.Show will not bring them back and the window stays hidden!
+                            dockContent.Show(_dockPanel, DockState.Float);
+                        }
                     }
                     else
                     {
@@ -94,7 +105,7 @@ namespace AGS.Editor
         {
             foreach (ContentDocument document in documents)
             {
-                ToolStripMenuItem menuItem = new ToolStripMenuItem(document.Control.Text);
+                ToolStripMenuItem menuItem = new ToolStripMenuItem(document.Control.DockingContainer.Text);
                 menuItem.CheckOnClick = false;
                 menuItem.Checked = (document == activeDocument);
                 menuItem.Tag = document;

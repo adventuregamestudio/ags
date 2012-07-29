@@ -7,7 +7,7 @@ using AGS.Types.Interfaces;
 
 namespace AGS.Types
 {
-    public class Dialog : IScript
+    public class Dialog : IScript, IToXml
     {
         public const int MAX_OPTIONS_PER_DIALOG = 30;
 

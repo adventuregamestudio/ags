@@ -5,19 +5,21 @@ using System.Text;
 using System.Windows.Forms;
 using System.Xml;
 using AGS.Types;
+using AGS.Editor.TextProcessing;
 
 namespace AGS.Editor.Components
 {
-    class GuiComponent : BaseComponent
+    class GuiComponent : BaseComponentWithFolders<GUI, GUIFolder>
     {
         private const string GUI_FILE_FILTER = "AGS exported GUIs (*.guf)|*.guf";
 
-        private const string TOP_LEVEL_COMMAND_ID = "GUI";
+        private const string GUIS_COMMAND_ID = "GUI";
         private const string COMMAND_NEW_GUI = "NewGUI";
         private const string COMMAND_NEW_TEXTWINDOW = "NewTextWindow";
         private const string COMMAND_IMPORT_GUI = "ImportGUI";
         private const string COMMAND_DELETE_GUI = "DeleteGUI";
         private const string COMMAND_EXPORT_GUI = "ExportGUI";
+        private const string COMMAND_FIND_ALL_USAGES = "FindAllUsages";
         private const string ICON_KEY = "GUIsIcon";
         
         internal const string MODE_SELECT_CONTROLS = "SelectControls";
@@ -32,7 +34,7 @@ namespace AGS.Editor.Components
         private Dictionary<GUI, ContentDocument> _documents;
 
         public GuiComponent(GUIController guiController, AGSEditor agsEditor)
-            : base(guiController, agsEditor)
+            : base(guiController, agsEditor, GUIS_COMMAND_ID)
         {
             _documents = new Dictionary<GUI, ContentDocument>();
             _guiController.RegisterIcon(ICON_KEY, Resources.ResourceManager.GetIcon("icongui.ico"));
@@ -54,13 +56,9 @@ namespace AGS.Editor.Components
             get { return ComponentIDs.GUIs; }
         }
 
-        public override void CommandClick(string controlID)
+        protected override void ItemCommandClick(string controlID)
         {
-            if (controlID == TOP_LEVEL_COMMAND_ID)
-            {
-                // click on the parent "GUI" node
-            }
-            else if (controlID == COMMAND_NEW_GUI)
+            if (controlID == COMMAND_NEW_GUI)
             {
                 AddNewGUI(new NormalGUI());
             }
@@ -76,15 +74,19 @@ namespace AGS.Editor.Components
                     try
                     {
                         GUI newGui = ImportExport.ImportGUIFromFile(fileName, _agsEditor.CurrentGame);
-                        newGui.ID = _agsEditor.CurrentGame.GUIs.Count;
-                        _agsEditor.CurrentGame.GUIs.Add(newGui);
-                        RePopulateTreeView();
+                        newGui.ID = _agsEditor.CurrentGame.RootGUIFolder.GetAllItemsCount();
+                        AddSingleItem(newGui);                        
                     }
                     catch (Exception ex)
                     {
                         _guiController.ShowMessage("There was an error importing the GUI. The error was: " + ex.Message, MessageBoxIcon.Warning);
                     }
                 }
+            }
+            else if (controlID == COMMAND_FIND_ALL_USAGES)
+            {
+                FindAllUsages findAllUsage = new FindAllUsages(null, null, null, _agsEditor);
+                findAllUsage.Find(null, _guiRightClicked.Name);
             }
             else if (controlID == COMMAND_EXPORT_GUI)
             {
@@ -105,28 +107,39 @@ namespace AGS.Editor.Components
             {
                 if (MessageBox.Show("Are you sure you want to delete this GUI? Doing so could break any scripts that refer to GUIs by number.", "Confirm delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
-                    int removingID = _guiRightClicked.ID;
-                    foreach (GUI gui in _agsEditor.CurrentGame.GUIs)
-                    {
-                        if (gui.ID > removingID)
-                        {
-                            gui.ID--;
-                        }
-                    }
-                    if (_documents.ContainsKey(_guiRightClicked))
-                    {
-                        _guiController.RemovePaneIfExists(_documents[_guiRightClicked]);
-                        _documents.Remove(_guiRightClicked);
-                    }
-                    _agsEditor.CurrentGame.GUIs.Remove(_guiRightClicked);
-                    RePopulateTreeView();
+                    DeleteSingleItem(_guiRightClicked);
                 }
             }
-            else
+            else if ((!controlID.StartsWith(NODE_ID_PREFIX_FOLDER)) &&
+                     (controlID != TOP_LEVEL_COMMAND_ID))
             {
-                GUI chosenGui = _agsEditor.CurrentGame.GUIs[Convert.ToInt32(controlID.Substring(3))];
-				ShowOrAddPane(chosenGui);
-			}
+                GUI chosenGui = _agsEditor.CurrentGame.RootGUIFolder.FindGUIByID
+                    (Convert.ToInt32(controlID.Substring(ITEM_COMMAND_PREFIX.Length)), true);
+                ShowOrAddPane(chosenGui);
+            }
+        }
+
+        private void DeleteGUI(GUI guiToDelete)
+        {
+            int removingID = guiToDelete.ID;
+            foreach (GUI gui in _agsEditor.CurrentGame.RootGUIFolder.AllItemsFlat)
+            {
+                if (gui.ID > removingID)
+                {
+                    gui.ID--;
+                }
+            }
+            ContentDocument document;
+            if (_documents.TryGetValue(guiToDelete, out document))
+            {
+                _guiController.RemovePaneIfExists(document);
+                _documents.Remove(guiToDelete);
+            }
+        }
+
+        protected override void DeleteResourcesUsedByItem(GUI item)
+        {
+            DeleteGUI(item);
         }
 
 		private void ShowOrAddPane(GUI chosenGui)
@@ -148,6 +161,7 @@ namespace AGS.Editor.Components
                     document.ToolbarCommands = toolbarIcons;
 				}
 			}
+            document.TreeNodeID = GetNodeID(chosenGui);
             _guiController.AddOrShowPane(document);
 			_guiController.ShowCuppit("The GUI Editor is where you set up the GUIs in your game. Use the buttons in the toolbar to add controls, and the property grid on the right to edit the selected control's properties.", "GUI Editor introduction");
 		}
@@ -166,22 +180,25 @@ namespace AGS.Editor.Components
 			}
         }
 
+        protected override void AddExtraCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
+        {
+            menu.Add(new MenuCommand(COMMAND_NEW_GUI, "New GUI", null));
+            menu.Add(new MenuCommand(COMMAND_NEW_TEXTWINDOW, "New Text Window GUI", null));
+            menu.Add(new MenuCommand(COMMAND_IMPORT_GUI, "Import GUI...", null));
+        }
+
         public override IList<MenuCommand> GetContextMenu(string controlID)
         {
-            IList<MenuCommand> menu = new List<MenuCommand>();
-            if (controlID == TOP_LEVEL_COMMAND_ID)
+            IList<MenuCommand> menu = base.GetContextMenu(controlID);
+            if ((controlID.StartsWith(ITEM_COMMAND_PREFIX)) &&
+                (!IsFolderNode(controlID)))
             {
-                menu.Add(new MenuCommand(COMMAND_NEW_GUI, "New GUI", null));
-                menu.Add(new MenuCommand(COMMAND_NEW_TEXTWINDOW, "New Text Window GUI", null));
-                menu.Add(new MenuCommand(COMMAND_IMPORT_GUI, "Import GUI...", null));
-            }
-            else
-            {
-                int guiID = Convert.ToInt32(controlID.Substring(3));
-                GUI gui = _agsEditor.CurrentGame.GUIs[guiID];
+                int guiID = Convert.ToInt32(controlID.Substring(ITEM_COMMAND_PREFIX.Length));
+                GUI gui = _agsEditor.CurrentGame.RootGUIFolder.FindGUIByID(guiID, true);
                 _guiRightClicked = gui;
                 menu.Add(new MenuCommand(COMMAND_DELETE_GUI, "Delete " + gui.Name, null));
                 menu.Add(new MenuCommand(COMMAND_EXPORT_GUI, "Export GUI...", null));
+                menu.Add(new MenuCommand(COMMAND_FIND_ALL_USAGES, "Find All Usages of " + gui.Name, null));
             }
             return menu;
         }
@@ -221,36 +238,14 @@ namespace AGS.Editor.Components
         }
 
         private void AddNewGUI(GUI newGui)
-        {
-            IList<GUI> guis = _agsEditor.CurrentGame.GUIs;
-            newGui.ID = guis.Count;
+        {            
+            newGui.ID = _agsEditor.CurrentGame.RootGUIFolder.GetAllItemsCount();
             newGui.Name = _agsEditor.GetFirstAvailableScriptName("gGui");
-            guis.Add(newGui);
-            _guiController.ProjectTree.StartFromNode(this, TOP_LEVEL_COMMAND_ID);
-            _guiController.ProjectTree.AddTreeLeaf(this, "GUI" + newGui.ID, newGui.ID.ToString() + ": " + newGui.Name, "GUIIcon");
-            _guiController.ProjectTree.SelectNode(this, "GUI" + newGui.ID);
+            string newNodeId = AddSingleItem(newGui);
+            _guiController.ProjectTree.SelectNode(this, newNodeId);
 			ShowOrAddPane(newGui);
         }
-
-        private void RePopulateTreeView()
-        {
-            _guiController.ProjectTree.RemoveAllChildNodes(this, TOP_LEVEL_COMMAND_ID);
-            _guiController.ProjectTree.StartFromNode(this, TOP_LEVEL_COMMAND_ID);
-            foreach (GUI gui in _agsEditor.CurrentGame.GUIs)
-            {
-                _guiController.ProjectTree.AddTreeLeaf(this, "GUI" + gui.ID, gui.ID.ToString() + ": " + gui.Name, "GUIIcon");
-            }
-            if (_documents.ContainsValue(_guiController.ActivePane))
-            {
-                GUIEditor editor = (GUIEditor)_guiController.ActivePane.Control;
-                _guiController.ProjectTree.SelectNode(this, "GUI" + editor.GuiToEdit.ID);
-            }
-            else if (_agsEditor.CurrentGame.GUIs.Count > 0)
-            {
-                _guiController.ProjectTree.SelectNode(this, "GUI0");
-            }
-        }
-
+        
         private Dictionary<string, object> ConstructPropertyObjectList(GUI forGui)
         {
             Dictionary<string, object> list = new Dictionary<string, object>();
@@ -271,5 +266,33 @@ namespace AGS.Editor.Components
         {
             RePopulateTreeView();
         }
+
+        private string GetNodeID(GUI item)
+        {
+            return ITEM_COMMAND_PREFIX + item.ID;
+        }
+
+        protected override ProjectTreeItem CreateTreeItemForItem(GUI item)
+        {
+            ProjectTreeItem treeItem = (ProjectTreeItem)_guiController.ProjectTree.AddTreeLeaf
+                (this, GetNodeID(item), item.ID.ToString() + ": " + item.Name, "GUIIcon");
+            return treeItem;
+        }
+
+        protected override bool CanFolderBeDeleted(GUIFolder folder)
+        {
+            return true;
+        }
+
+        protected override string GetFolderDeleteConfirmationText()
+        {
+            return "Are you sure you want to delete this folder and all its GUIs?" + Environment.NewLine + Environment.NewLine + "If any of the GUIs are referenced in code by their number it could cause crashes in the game.";
+        }
+
+        protected override GUIFolder GetRootFolder()
+        {
+            return _agsEditor.CurrentGame.RootGUIFolder;
+        }
+
     }
 }

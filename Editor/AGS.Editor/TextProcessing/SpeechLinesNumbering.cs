@@ -51,7 +51,7 @@ namespace AGS.Editor
             SpeechLineProcessor processor = new SpeechLineProcessor(game, _includeNarrator,
                 _combineIdenticalLines, _removeNumbering, _characterID, _speechableFunctionCalls, _errors, _referenceFile);
 
-            foreach (Dialog dialog in game.Dialogs)
+            foreach (Dialog dialog in game.RootDialogFolder.AllItemsFlat)
             {
                 foreach (DialogOption option in dialog.Options)
                 {
@@ -64,12 +64,9 @@ namespace AGS.Editor
                 dialog.Script = processor.ProcessText(dialog.Script, GameTextType.DialogScript);
             }
 
-            foreach (Script script in game.Scripts)
+            foreach (ScriptAndHeader script in game.RootScriptFolder.AllItemsFlat)
             {
-                if (!script.IsHeader)
-                {
-                    script.Text = processor.ProcessText(script.Text, GameTextType.Script);
-                }
+                script.Script.Text = processor.ProcessText(script.Script.Text, GameTextType.Script);                
             }
 
 			for (int i = 0; i < game.GlobalMessages.Length; i++)

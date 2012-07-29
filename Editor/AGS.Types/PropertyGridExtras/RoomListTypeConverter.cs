@@ -7,7 +7,7 @@ using System.Reflection;
 
 namespace AGS.Types
 {
-    public class RoomListTypeConverter : BaseListSelectTypeConverter<Font>
+    public class RoomListTypeConverter : BaseListSelectTypeConverter
     {
         private static Dictionary<int, string> _possibleValues = new Dictionary<int, string>();
         private static IList<IRoom> _Rooms = null;

@@ -8,17 +8,17 @@ using System.Windows.Forms;
 using System.Xml;
 using AGS.Types;
 using WeifenLuo.WinFormsUI.Docking;
+using System.Threading;
 
 namespace AGS.Editor.Components
 {
-    class RoomsComponent : BaseComponentWithScripts, IRoomController
+    class RoomsComponent : BaseComponentWithScripts<UnloadedRoom, UnloadedRoomFolder>, IRoomController
     {
-        private const string TOP_LEVEL_COMMAND_ID = "Rooms";
+        private const string ROOMS_COMMAND_ID = "Rooms";
         private const string COMMAND_NEW_ITEM = "NewRoom";
-        private const string COMMAND_ADD_EXISTING_ROOM = "AddExistingRoom";
+        private const string COMMAND_IMPORT_ROOM = "AddExistingRoom";
 		private const string COMMAND_SORT_BY_NUMBER = "SortByNumber";
-        private const string COMMAND_DELETE_ITEM = "DeleteRoom";
-        private const string COMMAND_EXCLUDE_ITEM = "ExcludeRoom";
+        private const string COMMAND_DELETE_ITEM = "DeleteRoom";        
 		private const string COMMAND_CREATE_TEMPLATE = "TemplateFromRoom";
         private const string TREE_PREFIX_ROOM_NODE = "Rom";
         private const string TREE_PREFIX_ROOM_SETTINGS = "Roe";
@@ -40,7 +40,7 @@ namespace AGS.Editor.Components
 		private object _roomLoadingOrSavingLock = new object();
 
         public RoomsComponent(GUIController guiController, AGSEditor agsEditor)
-            : base(guiController, agsEditor)
+            : base(guiController, agsEditor, ROOMS_COMMAND_ID)
         {
             _guiController.RegisterIcon("RoomsIcon", Resources.ResourceManager.GetIcon("room.ico"));
             _guiController.RegisterIcon(ROOM_ICON_UNLOADED, Resources.ResourceManager.GetIcon("room-item.ico"));
@@ -79,7 +79,7 @@ namespace AGS.Editor.Components
             get { return ComponentIDs.Rooms; }
         }
 
-        public override void CommandClick(string controlID)
+        protected override void ItemCommandClick(string controlID)
         {
             if (controlID == COMMAND_NEW_ITEM)
             {
@@ -92,7 +92,7 @@ namespace AGS.Editor.Components
 				dialog.Dispose();
 				DisposeIcons(templates);
             }
-            else if (controlID == COMMAND_ADD_EXISTING_ROOM)
+            else if (controlID == COMMAND_IMPORT_ROOM)
             {
                 string fileName = _guiController.ShowOpenFileDialog("Choose room to import...", "AGS room files (*.crm)|*.crm");
                 if (fileName != null)
@@ -104,30 +104,19 @@ namespace AGS.Editor.Components
 			{
 				CreateTemplateFromRoom(_rightClickedRoomNumber);
 			}
-			else if (controlID == COMMAND_EXCLUDE_ITEM)
-			{
-				if (MessageBox.Show("Are you sure you want to remove this room from the game? The file will not be deleted.", "Confirm exclude", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
-				{
-                    if (EnsureNoCharactersStartInRoom(_rightClickedRoomNumber))
-                    {
-                        RemoveRoomFromGame(_rightClickedRoomNumber);
-                    }
-				}
-			}
 			else if (controlID == COMMAND_DELETE_ITEM)
 			{
 				if (MessageBox.Show("Are you sure you want to delete this room? It cannot be recovered.", "Confirm delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
 				{
                     if (EnsureNoCharactersStartInRoom(_rightClickedRoomNumber))
                     {
-                        DeleteRoom(_rightClickedRoomNumber);
+                        DeleteSingleItem(FindRoomByID(_rightClickedRoomNumber));
                     }
 				}
 			}
 			else if (controlID == COMMAND_SORT_BY_NUMBER)
 			{
-				RoomList roomList = (RoomList)_agsEditor.CurrentGame.Rooms;
-				roomList.SortByNumber();
+                _agsEditor.CurrentGame.RootRoomFolder.Sort(true);				
 				RePopulateTreeView();
                 RoomListTypeConverter.SetRoomList(_agsEditor.CurrentGame.Rooms);
             }
@@ -156,6 +145,7 @@ namespace AGS.Editor.Components
 
 				if (_roomSettings != null)
 				{
+                    _roomSettings.TreeNodeID = TREE_PREFIX_ROOM_SETTINGS + _rightClickedRoomNumber;
 					_guiController.AddOrShowPane(_roomSettings);
 				}
 			}
@@ -177,7 +167,7 @@ namespace AGS.Editor.Components
             bool okToContinue = true;
             List<Character> charactersThatStartInThisRoom = new List<Character>();
             string characterList = string.Empty;
-            foreach (var character in _agsEditor.CurrentGame.Characters)
+            foreach (var character in _agsEditor.CurrentGame.RootCharacterFolder.AllItemsFlat)
             {
                 if (character.StartingRoom == roomNumber)
                 {
@@ -200,9 +190,14 @@ namespace AGS.Editor.Components
             return okToContinue;
         }
 
-        private void DeleteRoom(int roomNumber)
+        protected override void DeleteResourcesUsedByItem(UnloadedRoom item)
         {
-            UnloadedRoom roomToDelete = RemoveRoomFromGame(roomNumber);
+            DeleteRoom(item);
+        }
+
+        private void DeleteRoom(UnloadedRoom roomToDelete)
+        {
+            UnloadRoom(roomToDelete);
 
             CloseRoomScriptEditorIfOpen(roomToDelete.Number);
 
@@ -297,26 +292,23 @@ namespace AGS.Editor.Components
 		}
 
 		private void CloseRoomScriptEditorIfOpen(int roomNumber)
-		{
-			if (_roomScriptEditors.ContainsKey(roomNumber))
+		{            
+            ContentDocument document;
+			if (_roomScriptEditors.TryGetValue(roomNumber, out document))
 			{
-				DisposePane(_roomScriptEditors[roomNumber]);
+                DisposePane(document);
 				_roomScriptEditors.Remove(roomNumber);
 			}
 		}
 
-        private UnloadedRoom RemoveRoomFromGame(int roomNumber)
+        private void UnloadRoom(UnloadedRoom roomToDelete)
         {
-            UnloadedRoom roomToDelete = FindRoomByID(roomNumber);
             if ((_loadedRoom != null) && (roomToDelete.Number == _loadedRoom.Number))
             {
                 UnloadCurrentRoom();
             }
-            _agsEditor.CurrentGame.Rooms.Remove(roomToDelete);
-
-            RoomListTypeConverter.SetRoomList(_agsEditor.CurrentGame.Rooms);
-            RePopulateTreeView();
-            return roomToDelete;
+            
+            RoomListTypeConverter.SetRoomList(_agsEditor.CurrentGame.Rooms);            
         }
 
         private void ImportExistingRoomFile(string fileName)
@@ -381,7 +373,7 @@ namespace AGS.Editor.Components
                 }
 
                 UnloadedRoom newRoom = new UnloadedRoom(newRoomNumber);
-                _agsEditor.CurrentGame.Rooms.Add(newRoom);
+                AddSingleItem(newRoom);                
 				_agsEditor.CurrentGame.FilesAddedOrRemoved = true;
 
                 RePopulateTreeView();
@@ -455,13 +447,9 @@ namespace AGS.Editor.Components
 				{
 					_nativeProxy.ExtractRoomTemplateFiles(template.FileName, newRoom.Number);
 				}
-
-                _agsEditor.CurrentGame.Rooms.Add(newRoom);
-                _guiController.ProjectTree.StartFromNode(this, TOP_LEVEL_COMMAND_ID);
-				AddTreeNodeForRoom(newRoom);
-				_agsEditor.CurrentGame.FilesAddedOrRemoved = true;
-//                _guiController.ProjectTree.AddTreeLeaf(this, TREE_PREFIX_ROOM_NODE + newRoom.Number, newRoom.Number.ToString() + ": ", ROOM_ICON_UNLOADED);
-                _guiController.ProjectTree.SelectNode(this, TREE_PREFIX_ROOM_NODE + newRoom.Number);
+                string newNodeID = AddSingleItem(newRoom);
+                _agsEditor.CurrentGame.FilesAddedOrRemoved = true;
+                _guiController.ProjectTree.SelectNode(this, newNodeID);
                 RoomListTypeConverter.SetRoomList(_agsEditor.CurrentGame.Rooms);
             }
             catch (Exception ex)
@@ -569,15 +557,15 @@ namespace AGS.Editor.Components
         }
 
         private object SaveRoomOnThread(object parameter)
-        {
+        {            
             Room room = (Room)parameter;
             _agsEditor.RegenerateScriptHeader(room);
             List<Script> headers = (List<Script>)_agsEditor.GetAllScriptHeaders();
-			_agsEditor.CompileScript(room.Script, headers, null, true);
+            _agsEditor.CompileScript(room.Script, headers, null, true);
 
             _nativeProxy.SaveRoom(room);
             room.Modified = false;
-            return null;
+            return null;            
         }
 
         private IScriptEditor GetScriptEditor(string fileName, bool showEditor)
@@ -590,7 +578,9 @@ namespace AGS.Editor.Components
                 ScriptEditor editor = (ScriptEditor)GetScriptEditor(roomToGetScriptFor).Control;
                 if (showEditor && editor != null)
                 {
-                    _guiController.AddOrShowPane(_roomScriptEditors[roomNumberToEdit]);            
+                    ContentDocument document = _roomScriptEditors[roomNumberToEdit];
+                    document.TreeNodeID = TREE_PREFIX_ROOM_SCRIPT + roomNumberToEdit;
+                    _guiController.AddOrShowPane(document);            
                 }
                 return editor;
             }
@@ -599,15 +589,14 @@ namespace AGS.Editor.Components
 
         private ContentDocument GetScriptEditor(UnloadedRoom selectedRoom)
         {
-            if ((_roomScriptEditors.ContainsKey(selectedRoom.Number)) &&
-                (!_roomScriptEditors[selectedRoom.Number].Visible))
+            ContentDocument document;
+            if (_roomScriptEditors.TryGetValue(selectedRoom.Number, out document) && !document.Visible)
             {
-                DisposePane(_roomScriptEditors[selectedRoom.Number]);
+                DisposePane(document);
                 _roomScriptEditors.Remove(selectedRoom.Number);
             }
 
-            if (!_roomScriptEditors.ContainsKey(selectedRoom.Number)
-                || _roomScriptEditors[selectedRoom.Number].Control.IsDisposed)
+            if (!_roomScriptEditors.TryGetValue(selectedRoom.Number, out document) || document.Control.IsDisposed)
             {
                 if (selectedRoom.Script == null)
                 {
@@ -621,10 +610,15 @@ namespace AGS.Editor.Components
 
         private void CreateScriptEditor(UnloadedRoom selectedRoom)
         {
-            ScriptEditor scriptEditor = new ScriptEditor(selectedRoom.Script, _agsEditor);
+            ScriptEditor scriptEditor = new ScriptEditor(selectedRoom.Script, _agsEditor, null);
             scriptEditor.RoomNumber = selectedRoom.Number;
             scriptEditor.IsModifiedChanged += new EventHandler(ScriptEditor_IsModifiedChanged);
-            scriptEditor.DockStateChanged += new EventHandler(ScriptEditor_DockStateChanged);            
+            if (scriptEditor.DockingContainer == null)
+            {
+                scriptEditor.DockingContainer = new DockingContainer(scriptEditor);
+            }
+            scriptEditor.DockingContainer.DockStateChanged += new EventHandler(ScriptEditor_DockStateChanged);     
+            scriptEditor.DockStateChanged_Hack +=new EventHandler(ScriptEditor_DockStateChanged_Hack);
             if ((_loadedRoom != null) && (_loadedRoom.Number == selectedRoom.Number))
             {
                 scriptEditor.Room = _loadedRoom;
@@ -638,24 +632,26 @@ namespace AGS.Editor.Components
         private ContentDocument CreateOrShowScript(UnloadedRoom selectedRoom)
         {
             ContentDocument scriptEditor = GetScriptEditor(selectedRoom);
-            _guiController.AddOrShowPane(_roomScriptEditors[selectedRoom.Number]);
+            ContentDocument document = _roomScriptEditors[selectedRoom.Number];
+            document.TreeNodeID = TREE_PREFIX_ROOM_SCRIPT + selectedRoom.Number;
+            _guiController.AddOrShowPane(document);
             return scriptEditor;
         }
 
         private DockData GetPreviousDockData()
         {
             if (_roomSettings != null &&
-                _roomSettings.Control.DockState != DockState.Hidden &&
-                _roomSettings.Control.DockState != DockState.Unknown)
+                _roomSettings.Control.DockingContainer.DockState != DockingState.Hidden &&
+                _roomSettings.Control.DockingContainer.DockState != DockingState.Unknown)
             {
                 EditorContentPanel control = _roomSettings.Control;
-                if (control.FloatPane == null || 
-                    control.FloatPane.FloatWindow == null)
+                if (control.DockingContainer.FloatPane == null ||
+                    control.DockingContainer.FloatPane.FloatWindow == null)
                 {
-                    return new DockData(control.DockState, Rectangle.Empty);
+                    return new DockData(control.DockingContainer.DockState, Rectangle.Empty);
                 }
-                FloatWindow floatWindow = control.FloatPane.FloatWindow;
-                return new DockData(control.DockState, new Rectangle(
+                IFloatWindow floatWindow = control.DockingContainer.FloatPane.FloatWindow;
+                return new DockData(control.DockingContainer.DockState, new Rectangle(
                     floatWindow.Location, floatWindow.Size));
             }
             return null;
@@ -676,6 +672,7 @@ namespace AGS.Editor.Components
                 {
                     CreateRoomSettings(previousDockData);
                 }
+                _roomSettings.TreeNodeID = controlID;
                 _guiController.AddOrShowPane(_roomSettings);
             }
         }
@@ -911,12 +908,14 @@ namespace AGS.Editor.Components
 						CreateOrShowScript(_loadedRoom);
 					}
 
-					if (_roomScriptEditors.ContainsKey(_loadedRoom.Number))
+                    ContentDocument document;
+					if (_roomScriptEditors.TryGetValue(_loadedRoom.Number, out document))
 					{
-						((ScriptEditor)_roomScriptEditors[_loadedRoom.Number].Control).Room = _loadedRoom;
+                        ScriptEditor editor = ((ScriptEditor)document.Control);
+                        editor.Room = _loadedRoom;
 						if (_loadedRoom.Modified)
 						{
-							((ScriptEditor)_roomScriptEditors[_loadedRoom.Number].Control).ScriptModifiedExternally();
+                            editor.ScriptModifiedExternally();
 						}
 					}
 
@@ -937,7 +936,7 @@ namespace AGS.Editor.Components
 
             _roomSettings = new ContentDocument(new RoomSettingsEditor(_loadedRoom),
                 paneTitle, this, ROOM_ICON_LOADED, ConstructPropertyObjectList(_loadedRoom));
-            if (previousDockData != null && previousDockData.DockState != DockState.Document)
+            if (previousDockData != null && previousDockData.DockState != DockingState.Document)
             {
                 _roomSettings.PreferredDockData = previousDockData;
             }
@@ -1035,36 +1034,37 @@ namespace AGS.Editor.Components
 				oldRoom.Number = numberRequested;
 
 				LoadDifferentRoom(oldRoom);
+                _roomSettings.TreeNodeID = TREE_PREFIX_ROOM_SETTINGS + numberRequested;
 				_guiController.AddOrShowPane(_roomSettings);
 				_agsEditor.CurrentGame.FilesAddedOrRemoved = true;
 				RePopulateTreeView();
 			}
 		}
 
+        protected override void AddExtraCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
+        {
+            menu.Add(new MenuCommand(COMMAND_NEW_ITEM, "New room...", null));
+            menu.Add(new MenuCommand(COMMAND_IMPORT_ROOM, "Import existing room...", null));
+            menu.Add(MenuCommand.Separator);
+            menu.Add(new MenuCommand(COMMAND_SORT_BY_NUMBER, "Sort rooms by number", null));
+        }
+
         public override IList<MenuCommand> GetContextMenu(string controlID)
         {
-            IList<MenuCommand> menu = new List<MenuCommand>();
-            if (controlID == TOP_LEVEL_COMMAND_ID)
-            {
-                menu.Add(new MenuCommand(COMMAND_NEW_ITEM, "New room...", null));
-                menu.Add(new MenuCommand(COMMAND_ADD_EXISTING_ROOM, "Import existing room...", null));
-				menu.Add(MenuCommand.Separator);
-				menu.Add(new MenuCommand(COMMAND_SORT_BY_NUMBER, "Sort rooms by number", null));
-			}
-            else if ((controlID.StartsWith(TREE_PREFIX_ROOM_SETTINGS)) ||
+            IList<MenuCommand> menu = base.GetContextMenu(controlID);
+            if ((controlID.StartsWith(TREE_PREFIX_ROOM_SETTINGS)) ||
                      (controlID.StartsWith(TREE_PREFIX_ROOM_SCRIPT)))
             {
                 // No right-click menu for these
             }
-            else
+            else if (controlID.StartsWith(TREE_PREFIX_ROOM_NODE))
             {
                 _rightClickedRoomNumber = Convert.ToInt32(controlID.Substring(3));
 
                 menu.Add(new MenuCommand(COMMAND_LOAD_ROOM, "Edit this room", null));
                 menu.Add(MenuCommand.Separator);
 
-                menu.Add(new MenuCommand(COMMAND_DELETE_ITEM, "Delete this room", null));
-                menu.Add(new MenuCommand(COMMAND_EXCLUDE_ITEM, "Exclude from game", null));
+                menu.Add(new MenuCommand(COMMAND_DELETE_ITEM, "Delete this room", null));                
                 menu.Add(MenuCommand.Separator);
                 menu.Add(new MenuCommand(COMMAND_CREATE_TEMPLATE, "Create template from room...", null));
             }
@@ -1165,9 +1165,10 @@ namespace AGS.Editor.Components
             if ((fileName == Script.CURRENT_ROOM_SCRIPT_FILE_NAME) &&
                 (_loadedRoom != null))
             {
-                if (_roomScriptEditors.ContainsKey(_loadedRoom.Number))
+                ContentDocument document;
+                if (_roomScriptEditors.TryGetValue(_loadedRoom.Number, out document))
                 {
-                    ((ScriptEditor)_roomScriptEditors[_loadedRoom.Number].Control).UpdateScriptObjectWithLatestTextInWindow();
+                    ((ScriptEditor)document.Control).UpdateScriptObjectWithLatestTextInWindow();
                 }
                 script = _loadedRoom.Script;
             }
@@ -1175,11 +1176,12 @@ namespace AGS.Editor.Components
 
         private void GUIController_OnScriptChanged(Script script)
         {
+            ContentDocument document;
             if ((_loadedRoom != null) &&
                 (script == _loadedRoom.Script) &&
-                (_roomScriptEditors.ContainsKey(_loadedRoom.Number)))
+                (_roomScriptEditors.TryGetValue(_loadedRoom.Number, out document)))
             {
-                ((ScriptEditor)_roomScriptEditors[_loadedRoom.Number].Control).ScriptModifiedExternally();
+                ((ScriptEditor)document.Control).ScriptModifiedExternally();
             }
         }
 
@@ -1191,10 +1193,9 @@ namespace AGS.Editor.Components
 		/// <param name="roomFileName">Room .CRM file name</param>
 		private bool HaveScriptHeadersBeenUpdatedSinceRoomWasCompiled(string roomFileName)
 		{
-			foreach (Script script in _agsEditor.CurrentGame.Scripts)
+			foreach (ScriptAndHeader script in _agsEditor.CurrentGame.RootScriptFolder.AllItemsFlat)
 			{
-				if ((script.IsHeader) &&
-					(Utilities.DoesFileNeedRecompile(script.FileName, roomFileName)))
+				if ((Utilities.DoesFileNeedRecompile(script.Header.FileName, roomFileName)))
 				{
 					return true;
 				}
@@ -1207,7 +1208,7 @@ namespace AGS.Editor.Components
 			List<UnloadedRoom> roomsToRebuild = new List<UnloadedRoom>();
 			List<string> roomFileNamesToRebuild = new List<string>();
             bool success = true;
-            foreach (UnloadedRoom unloadedRoom in _agsEditor.CurrentGame.Rooms)
+            foreach (UnloadedRoom unloadedRoom in _agsEditor.CurrentGame.RootRoomFolder.AllItemsFlat)
             {
                 if (!File.Exists(unloadedRoom.ScriptFileName))
                 {
@@ -1308,7 +1309,7 @@ namespace AGS.Editor.Components
 		private bool CheckOutAllRoomsAndScripts()
 		{
 			List<string> roomFileNamesToRebuild = new List<string>();
-			foreach (UnloadedRoom unloadedRoom in _agsEditor.CurrentGame.Rooms)
+            foreach (UnloadedRoom unloadedRoom in _agsEditor.CurrentGame.RootRoomFolder.AllItemsFlat)
 			{
 				roomFileNamesToRebuild.Add(unloadedRoom.FileName);
 				roomFileNamesToRebuild.Add(unloadedRoom.ScriptFileName);
@@ -1328,7 +1329,7 @@ namespace AGS.Editor.Components
 				}
 			}
 
-			foreach (UnloadedRoom unloadedRoom in _agsEditor.CurrentGame.Rooms)
+            foreach (UnloadedRoom unloadedRoom in _agsEditor.CurrentGame.RootRoomFolder.AllItemsFlat)
             {
                 UnloadCurrentRoom();
                 Room room = LoadNewRoomIntoMemory(unloadedRoom, errors);
@@ -1373,7 +1374,7 @@ namespace AGS.Editor.Components
             }
         }
 
-		private void AddTreeNodeForRoom(UnloadedRoom room)
+        protected override ProjectTreeItem CreateTreeItemForItem(UnloadedRoom room)
 		{
 			string iconName = ROOM_ICON_UNLOADED;
 
@@ -1383,38 +1384,11 @@ namespace AGS.Editor.Components
 			}
 
 			ProjectTree treeController = _guiController.ProjectTree;
-			treeController.AddTreeBranch(this, TREE_PREFIX_ROOM_NODE + room.Number, room.Number.ToString() + ": " + room.Description, iconName);
+			ProjectTreeItem treeItem = treeController.AddTreeBranch(this, TREE_PREFIX_ROOM_NODE + room.Number, room.Number.ToString() + ": " + room.Description, iconName);
 			treeController.AddTreeLeaf(this, TREE_PREFIX_ROOM_SETTINGS + room.Number, "Edit room", iconName);
             treeController.AddTreeLeaf(this, TREE_PREFIX_ROOM_SCRIPT + room.Number, "Room script", SCRIPT_ICON);
+            return treeItem;
 		}
-
-        private void RePopulateTreeView()
-        {
-			ProjectTree treeController = _guiController.ProjectTree;
-			treeController.RemoveAllChildNodes(this, TOP_LEVEL_COMMAND_ID);
-            treeController.StartFromNode(this, TOP_LEVEL_COMMAND_ID);
-
-            foreach (UnloadedRoom room in _agsEditor.CurrentGame.Rooms)
-            {
-				AddTreeNodeForRoom(room);
-                treeController.StartFromNode(this, TOP_LEVEL_COMMAND_ID);
-            }
-
-            if (_loadedRoom != null)
-            {
-                treeController.SelectNode(this, TREE_PREFIX_ROOM_SETTINGS + _loadedRoom.Number);
-            }
-
-/*            if (_documents.ContainsValue(_guiController.ActivePane))
-            {
-                CharacterEditor editor = (CharacterEditor)_guiController.ActivePane.Control;
-                _guiController.ProjectTree.SelectNode(this, "Chr" + editor.ItemToEdit.ID);
-            }
-            else if (_agsEditor.CurrentGame.Rooms.Count > 0)
-            {
-                _guiController.ProjectTree.SelectNode(this, "Rom0");
-            }*/
-        }
 
         private Dictionary<string, object> ConstructPropertyObjectList(Room room)
         {
@@ -1472,5 +1446,24 @@ namespace AGS.Editor.Components
 		{
 			set { _nativeProxy.GreyOutNonSelectedMasks = value; }
 		}
+
+        protected override bool CanFolderBeDeleted(UnloadedRoomFolder folder)
+        {
+            foreach (UnloadedRoom room in folder.AllItemsFlat)
+            {
+                if (!EnsureNoCharactersStartInRoom(room.Number)) return false;
+            }
+            return true;
+        }
+
+        protected override string GetFolderDeleteConfirmationText()
+        {
+            return "Are you sure you want to delete this folder and all its rooms?" + Environment.NewLine + Environment.NewLine + "If any of the rooms are referenced in code by their number it could cause crashes in the game.";
+        }
+
+        protected override UnloadedRoomFolder GetRootFolder()
+        {
+            return _agsEditor.CurrentGame.RootRoomFolder;
+        }
 	}
 }

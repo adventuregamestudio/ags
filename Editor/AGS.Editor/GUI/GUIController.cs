@@ -695,7 +695,8 @@ namespace AGS.Editor
                 _treeManager = new ProjectTree(_mainForm.projectPanel.projectTree);
                 _treeManager.OnContextMenuClick += new ProjectTree.MenuClickHandler(_mainForm_OnMenuClick);
                 _toolBarManager = new ToolBarManager(_mainForm.toolStrip);
-                WindowsMenuManager windowsMenuManager = new WindowsMenuManager(_mainForm.windowsToolStripMenuItem, _mainForm.GetStartupPanes());
+                WindowsMenuManager windowsMenuManager = new WindowsMenuManager(_mainForm.windowsToolStripMenuItem, 
+                    _mainForm.GetStartupPanes(), _mainForm.mainContainer);
                 _menuManager = new MainMenuManager(_mainForm.mainMenu, windowsMenuManager);
                 _mainForm.OnEditorShutdown += new frmMain.EditorShutdownHandler(_mainForm_OnEditorShutdown);
                 _mainForm.OnPropertyChanged += new frmMain.PropertyChangedHandler(_mainForm_OnPropertyChanged);
@@ -1113,7 +1114,7 @@ namespace AGS.Editor
             List<WizardPage> pages = new List<WizardPage>();
             AutoNumberSpeechWizardPage mainPage = new AutoNumberSpeechWizardPage();
             pages.Add(mainPage);
-            AutoNumberSpeechWizardPage2 advancedOptions = new AutoNumberSpeechWizardPage2(_agsEditor.CurrentGame.Characters);
+            AutoNumberSpeechWizardPage2 advancedOptions = new AutoNumberSpeechWizardPage2(_agsEditor.CurrentGame.RootCharacterFolder.AllItemsFlat);
             pages.Add(advancedOptions);
 
             WizardDialog dialog = new WizardDialog("Number Speech Lines", "This wizard will guide you through automatically numbering your game speech lines.\n\nThis process automatically assigns speech numbers to all displayable text in the game. It will modify your dialogs and scripts in order to assign a unique number to each line of text for each character.\n\nWARNING: It is STRONGLY RECOMMENDED that you back up your game before continuing, just in case anything goes wrong.\n\nWARNING: Running this process will overwrite any existing speech lines and re-number them all from scratch.", pages);

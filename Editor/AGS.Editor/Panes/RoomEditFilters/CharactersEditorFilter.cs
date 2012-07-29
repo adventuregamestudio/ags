@@ -43,7 +43,7 @@ namespace AGS.Editor
 
             _selectedCharacter = null;
 
-            foreach (Character character in _game.Characters)
+            foreach (Character character in _game.RootCharacterFolder.AllItemsFlat)
             {
                 if (_room.Number == character.StartingRoom)
                 {
@@ -196,7 +196,7 @@ namespace AGS.Editor
 
         public void PaintToHDC(IntPtr hdc, RoomEditorState state)
         {
-            foreach (Character character in _game.Characters)
+            foreach (Character character in _game.RootCharacterFolder.AllItemsFlat)
             {
                 if (_room.Number == character.StartingRoom)
                 {
@@ -326,7 +326,7 @@ namespace AGS.Editor
         {
             Dictionary<string, object> defaultPropertyObjectList = new Dictionary<string, object>();
             defaultPropertyObjectList.Add(_room.PropertyGridTitle, _room);
-            foreach (Character character in _game.Characters)
+            foreach (Character character in _game.RootCharacterFolder.AllItemsFlat)
             {
                 if (character.StartingRoom == _room.Number)
                 {

@@ -62,7 +62,7 @@
     <Reference Include="System.Web" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
-    <Reference Include="WeifenLuo.WinFormsUI.Docking, Version=2.5.0.15095, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="WeifenLuo.WinFormsUI.Docking, Version=2.6.0.0, Culture=neutral, PublicKeyToken=5cded1a1a0a7b481, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\References\WeifenLuo.WinFormsUI.Docking.dll</HintPath>
     </Reference>
@@ -156,13 +156,13 @@
     <Compile Include="Components\SettingsComponent.cs" />
     <Compile Include="Components\GuiComponent.cs" />
     <Compile Include="Panes\CharacterEditor.cs">
-      <SubType>Form</SubType>
+      <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Panes\CharacterEditor.Designer.cs">
       <DependentUpon>CharacterEditor.cs</DependentUpon>
     </Compile>
     <Compile Include="Panes\LipSyncEditor.cs">
-      <SubType>Form</SubType>
+      <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Panes\LipSyncEditor.Designer.cs">
       <DependentUpon>LipSyncEditor.cs</DependentUpon>
@@ -174,13 +174,13 @@
       <DependentUpon>ScintillaWrapper.cs</DependentUpon>
     </Compile>
     <Compile Include="Panes\CursorEditor.cs">
-      <SubType>Form</SubType>
+      <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Panes\CursorEditor.Designer.cs">
       <DependentUpon>CursorEditor.cs</DependentUpon>
     </Compile>
     <Compile Include="Panes\DialogEditor.cs">
-      <SubType>Form</SubType>
+      <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Panes\DialogEditor.Designer.cs">
       <DependentUpon>DialogEditor.cs</DependentUpon>
@@ -192,40 +192,40 @@
       <DependentUpon>DialogOptionEditor.cs</DependentUpon>
     </Compile>
     <Compile Include="Panes\FontEditor.cs">
-      <SubType>Form</SubType>
+      <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Panes\FontEditor.Designer.cs">
       <DependentUpon>FontEditor.cs</DependentUpon>
     </Compile>
     <Compile Include="Panes\GeneralSettings.cs">
-      <SubType>Form</SubType>
+      <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Panes\GeneralSettings.Designer.cs">
       <DependentUpon>GeneralSettings.cs</DependentUpon>
     </Compile>
     <Compile Include="GUI\GUIController.cs" />
     <Compile Include="Panes\GUIEditor.cs">
-      <SubType>Form</SubType>
+      <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Panes\GUIEditor.Designer.cs">
       <DependentUpon>GUIEditor.cs</DependentUpon>
     </Compile>
     <Compile Include="NativeProxy.cs" />
     <Compile Include="Panes\InventoryEditor.cs">
-      <SubType>Form</SubType>
+      <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Panes\InventoryEditor.Designer.cs">
       <DependentUpon>InventoryEditor.cs</DependentUpon>
     </Compile>
     <Compile Include="Panes\PaletteEditor.cs">
-      <SubType>Form</SubType>
+      <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Panes\PaletteEditor.Designer.cs">
       <DependentUpon>PaletteEditor.cs</DependentUpon>
     </Compile>
     <Compile Include="Components\ComponentIDs.cs" />
     <Compile Include="Panes\ScriptEditor.cs">
-      <SubType>Form</SubType>
+      <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Panes\ScriptEditor.Designer.cs">
       <DependentUpon>ScriptEditor.cs</DependentUpon>
@@ -237,7 +237,7 @@
       <DependentUpon>SpriteImportWindow.cs</DependentUpon>
     </Compile>
     <Compile Include="Panes\SpriteManager.cs">
-      <SubType>Form</SubType>
+      <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Panes\SpriteManager.Designer.cs">
       <DependentUpon>SpriteManager.cs</DependentUpon>
@@ -249,13 +249,13 @@
       <DependentUpon>SpriteSelector.cs</DependentUpon>
     </Compile>
     <Compile Include="Panes\TextParserEditor.cs">
-      <SubType>Form</SubType>
+      <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Panes\TextParserEditor.Designer.cs">
       <DependentUpon>TextParserEditor.cs</DependentUpon>
     </Compile>
     <Compile Include="Panes\ViewEditor.cs">
-      <SubType>Form</SubType>
+      <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Panes\ViewEditor.Designer.cs">
       <DependentUpon>ViewEditor.cs</DependentUpon>
@@ -544,6 +544,9 @@
       <SubType>Designer</SubType>
       <DependentUpon>GlobalVariableDialog.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="GUI\GotoLineDialog.resx">
+      <DependentUpon>GotoLineDialog.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="GUI\HelpPopup.resx">
       <SubType>Designer</SubType>
       <DependentUpon>HelpPopup.cs</DependentUpon>
@@ -770,6 +773,18 @@
     <Compile Include="Debugger\IEngineCommunication.cs" />
     <Compile Include="Debugger\NamedPipesEngineCommunication.cs" />
     <Compile Include="Debugger\NamedPipeServer.cs" />
+    <Compile Include="GUI\Docking\DockingContainer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\Docking\DockingPane.cs" />
+    <Compile Include="GUI\Docking\DockingPanel.cs" />
+    <Compile Include="GUI\Docking\FloatingWindow.cs" />
+    <Compile Include="GUI\GotoLineDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GUI\GotoLineDialog.Designer.cs">
+      <DependentUpon>GotoLineDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="GUI\MenuStripExtended.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -888,19 +903,19 @@
     <Compile Include="InteractiveTasks.cs" />
     <Compile Include="Audio\MidiPlayer.cs" />
     <Compile Include="Panes\AudioEditor.cs">
-      <SubType>Form</SubType>
+      <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Panes\AudioEditor.Designer.cs">
       <DependentUpon>AudioEditor.cs</DependentUpon>
     </Compile>
     <Compile Include="Panes\GlobalVariablesEditor.cs">
-      <SubType>Form</SubType>
+      <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Panes\GlobalVariablesEditor.Designer.cs">
       <DependentUpon>GlobalVariablesEditor.cs</DependentUpon>
     </Compile>
     <Compile Include="Panes\WelcomePane.cs">
-      <SubType>Form</SubType>
+      <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Panes\WelcomePane.Designer.cs">
       <DependentUpon>WelcomePane.cs</DependentUpon>
@@ -1004,7 +1019,7 @@
     <Compile Include="Panes\RoomEditFilters\WalkableAreasEditorFilter.cs" />
     <Compile Include="Panes\RoomEditFilters\WalkBehindsEditorFilter.cs" />
     <Compile Include="Panes\RoomSettingsEditor.cs">
-      <SubType>Form</SubType>
+      <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Panes\RoomSettingsEditor.Designer.cs">
       <DependentUpon>RoomSettingsEditor.cs</DependentUpon>

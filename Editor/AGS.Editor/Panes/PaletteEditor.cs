@@ -221,11 +221,11 @@ namespace AGS.Editor
                 {
                     ShowContextMenu(selectedIndex, e.Location);
                 }
-                else if (Factory.NativeProxy.IsControlPressed())
+                else if (Utilities.IsControlPressed())
                 {
                     ToggleColourSelected(selectedIndex);
                 }
-                else if (Factory.NativeProxy.IsShiftPressed())
+                else if (Utilities.IsShiftPressed())
                 {
                     AddRangeToSelection(selectedIndex);
                 }

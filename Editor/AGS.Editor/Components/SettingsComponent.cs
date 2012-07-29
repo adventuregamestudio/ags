@@ -30,6 +30,7 @@ namespace AGS.Editor.Components
 
         public override void CommandClick(string controlID)
         {
+            _document.TreeNodeID = controlID;
             _guiController.AddOrShowPane(_document);
 			_guiController.ShowCuppit("This is the Game Settings window. It's where you set various options for your game, such as the name, resolution and dialog type.", "Game Settings introduction");
         }

@@ -19,8 +19,8 @@ namespace AGS.Editor
 		[DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Winapi)]
 		internal static extern IntPtr GetFocus();
 
-        [DllImport("kernel32.dll")]
-        internal static extern void RtlMoveMemory(IntPtr dest, IntPtr src, uint len);
+        //[DllImport("kernel32.dll")]
+        //internal static extern void RtlMoveMemory(IntPtr dest, IntPtr src, uint len);
 
         [DllImport("user32.dll")]
         internal static extern IntPtr GetForegroundWindow();
@@ -35,7 +35,10 @@ namespace AGS.Editor
 
         public static void CopyMemory(IntPtr source, IntPtr destination, int numberOfBytes)
         {
-            RtlMoveMemory(destination, source, (uint)numberOfBytes);
+            byte[] tmpArray = new byte[numberOfBytes];
+            Marshal.Copy(source, tmpArray, 0, numberOfBytes);
+            Marshal.Copy(tmpArray, 0, destination, numberOfBytes);
+            //RtlMoveMemory(destination, source, (uint)numberOfBytes);
         }
 
         public static Process GetProcessForActiveApplication()
@@ -46,13 +49,28 @@ namespace AGS.Editor
             return Process.GetProcessById(activeProcessId.ToInt32());
         }
 
+        public static bool IsMonoRunning()
+        {
+            return Type.GetType("Mono.Runtime") != null;
+        }
+
         public static bool IsThisApplicationCurrentlyActive()
         {
             return (GetProcessForActiveApplication().Id == Process.GetCurrentProcess().Id);
         }
 
+        public static bool IsShiftPressed()
+        {
+            return (System.Windows.Forms.Control.ModifierKeys & Keys.Shift) == Keys.Shift;
+        }
+
+        public static bool IsControlPressed()
+        {
+            return (System.Windows.Forms.Control.ModifierKeys & Keys.Control) == Keys.Control;
+        }
+
 		public static Control GetControlThatHasFocus()
-		{
+		{            
 			Control focusControl = null;
 			IntPtr focusHandle = GetFocus();
 			if (focusHandle != IntPtr.Zero)

@@ -6,10 +6,12 @@ using WeifenLuo.WinFormsUI.Docking;
 
 namespace AGS.Editor.Components
 {
-    internal abstract class BaseComponentWithScripts : BaseComponent
+    internal abstract class BaseComponentWithScripts<TScript, TScriptFolder> : BaseComponentWithFolders<TScript, TScriptFolder>
+        where TScript : IToXml
+        where TScriptFolder : BaseFolderCollection<TScript, TScriptFolder>
     {
-        public BaseComponentWithScripts(GUIController guiController, AGSEditor agsEditor)
-            : base(guiController, agsEditor)
+        public BaseComponentWithScripts(GUIController guiController, AGSEditor agsEditor, string topLevelCommandId)
+            : base(guiController, agsEditor, topLevelCommandId)
         {
         }
 
@@ -49,17 +51,25 @@ namespace AGS.Editor.Components
         {
             ScriptEditor sendingPane = (ScriptEditor)sender;
             UpdateScriptWindowTitle(sendingPane);
-        }        
+        }
+
+        protected void ScriptEditor_DockStateChanged_Hack(object sender, EventArgs e)
+        {
+            ScriptEditor editor = (ScriptEditor)sender;
+            ReInitializeScriptEditor(editor); 
+        }
 
         protected void ScriptEditor_DockStateChanged(object sender, EventArgs e)
         {
-            ScriptEditor editor = (ScriptEditor)sender;
-            if (editor.DockState != DockState.Document && !editor.MovedFromDocument)
+            DockingContainer container = (DockingContainer)sender;
+            ScriptEditor editor = (ScriptEditor)container.Panel;
+            if (editor.DockingContainer.DockState == DockingState.Hidden) return;
+            if (editor.DockingContainer.DockState != DockingState.Document && !editor.MovedFromDocument)
             {
                 editor.MovedFromDocument = true;
                 ReInitializeScriptEditor(editor);
             }
-            else if (editor.DockState == DockState.Document && editor.MovedFromDocument)
+            else if (editor.DockingContainer.DockState == DockingState.Document && editor.MovedFromDocument)
             {
                 editor.MovedFromDocument = false;
                 ReInitializeScriptEditor(editor);
@@ -73,12 +83,12 @@ namespace AGS.Editor.Components
             if (document != null)
             {
                 document.Name = newTitle;
-                document.Control.Text = newTitle;
+                document.Control.DockingContainer.Text = newTitle;
             }
             _guiController.DocumentTitlesChanged();
         }
         
-        private void ReInitializeScriptEditor(ScriptEditor editor)
+        protected virtual void ReInitializeScriptEditor(ScriptEditor editor)
         {
             Script script = editor.Script;
             string modifiedText = editor.ModifiedText;

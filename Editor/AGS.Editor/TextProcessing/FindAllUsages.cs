@@ -105,10 +105,16 @@ namespace AGS.Editor.TextProcessing
         
         private void ShowResults()
         {
-            if (_results.Count <= 1)
+            if (_results.Count == 0)
             {
-                Factory.GUIController.ShowMessage("This is the only usage!", MessageBoxIcon.Information);                
+                Factory.GUIController.ShowMessage("No usages were found!", MessageBoxIcon.Information);                
             }
+            else if (_results.Count == 1)
+            {
+                Factory.GUIController.ZoomToFile(_results[0].Script.FileName, ZoomToFileZoomType.ZoomToCharacterPosition,
+                    _results[0].CharacterIndex);
+                Factory.GUIController.ShowMessage("This is the only usage!", MessageBoxIcon.Information);  
+            }                            
             else
             {
                 Factory.GUIController.ShowFindSymbolResults(_results);

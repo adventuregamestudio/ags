@@ -28,15 +28,15 @@ namespace AGS.Types
         /// </summary>
         public event ViewListUpdatedHandler ViewListUpdated;
 
-        private List<GUI> _guis;
-        private List<InventoryItem> _inventoryItems;
-        private List<Character> _characters;
+        private GUIFolder _guis;
+        private InventoryItemFolder _inventoryItems;
+        private CharacterFolder _characters;
         private List<MouseCursor> _cursors;
         private List<Font> _fonts;
-        private List<Dialog> _dialogs;
+        private DialogFolder _dialogs;
         private List<Plugin> _plugins;
         private List<Translation> _translations;
-        private RoomList _rooms;
+        private UnloadedRoomFolder _rooms;
         private List<OldInteractionVariable> _oldInteractionVariables;
         private string[] _globalMessages;
         private Character _playerCharacter;
@@ -46,7 +46,7 @@ namespace AGS.Types
         private ViewFolder _views;
         private AudioClipFolder _audioClips;
         private List<AudioClipType> _audioClipTypes;
-        private Scripts _scripts;
+        private ScriptFolder _scripts;
         private Scripts _scriptsToCompile;
         private TextParser _textParser;
         private LipSync _lipSync;
@@ -63,15 +63,15 @@ namespace AGS.Types
 
         public Game()
         {
-            _guis = new List<GUI>();
-            _inventoryItems = new List<InventoryItem>();
+            _guis = new GUIFolder(GUIFolder.MAIN_GUI_FOLDER_NAME);
+            _inventoryItems = new InventoryItemFolder(InventoryItemFolder.MAIN_INVENTORY_ITEM_FOLDER_NAME);
             _cursors = new List<MouseCursor>();
-            _dialogs = new List<Dialog>();
+            _dialogs = new DialogFolder(DialogFolder.MAIN_DIALOG_FOLDER_NAME);
             _fonts = new List<Font>();
-            _characters = new List<Character>();
+            _characters = new CharacterFolder(CharacterFolder.MAIN_CHARACTER_FOLDER_NAME);
             _plugins = new List<Plugin>();
             _translations = new List<Translation>();
-            _rooms = new RoomList();
+            _rooms = new UnloadedRoomFolder(UnloadedRoomFolder.MAIN_UNLOADED_ROOM_FOLDER_NAME);
             _oldInteractionVariables = new List<OldInteractionVariable>();
             _settings = new Settings();
             _palette = new PaletteEntry[PALETTE_SIZE];
@@ -85,10 +85,12 @@ namespace AGS.Types
             _globalVariables = new GlobalVariables();
             _globalMessages = new string[NUMBER_OF_GLOBAL_MESSAGES];
 			_deletedViewIDs = new Dictionary<int, object>();
-            _scripts = new Scripts();
+            _scripts = new ScriptFolder(ScriptFolder.MAIN_SCRIPT_FOLDER_NAME);
             _scriptsToCompile = new Scripts();
-            _scripts.Add(new Script(Script.GLOBAL_HEADER_FILE_NAME, "// script header\r\n", true));
-            _scripts.Add(new Script(Script.GLOBAL_SCRIPT_FILE_NAME, "// global script\r\n", false));
+            ScriptAndHeader globalScript = new ScriptAndHeader(
+                new Script(Script.GLOBAL_HEADER_FILE_NAME, "// script header\r\n", true),
+                new Script(Script.GLOBAL_SCRIPT_FILE_NAME, "// global script\r\n", false));
+            _scripts.Items.Add(globalScript);            
             _playerCharacter = null;
 
             for (int i = 0; i < _globalMessages.Length; i++)
@@ -106,22 +108,54 @@ namespace AGS.Types
 
         public IList<GUI> GUIs
         {
-            get { return _guis; }
+            get 
+            {
+                List<GUI> guis = new List<GUI>();
+                foreach (GUI gui in _guis.AllItemsFlat)
+                {
+                    guis.Add(gui);
+                }
+                return guis; 
+            }
         }
 
         public IList<InventoryItem> InventoryItems
         {
-            get { return _inventoryItems; }
+            get 
+            {
+                List<InventoryItem> inventoryItems = new List<InventoryItem>();
+                foreach (InventoryItem inventoryItem in _inventoryItems.AllItemsFlat)
+                {
+                    inventoryItems.Add(inventoryItem);
+                }
+                return inventoryItems;
+            }
         }
 
         public IList<Character> Characters
         {
-            get { return _characters; }
+            get 
+            {
+                List<Character> characters = new List<Character>();
+                foreach (Character character in _characters.AllItemsFlat)
+                {
+                    characters.Add(character);
+                }
+                return characters; 
+            }
         }
 
         public IList<Dialog> Dialogs
         {
-            get { return _dialogs; }
+            get 
+            {
+                List<Dialog> dialogs = new List<Dialog>();
+                foreach (Dialog dialog in _dialogs.AllItemsFlat)
+                {
+                    dialogs.Add(dialog);
+                }
+                return dialogs; 
+            }
         }
 
         public IList<MouseCursor> Cursors
@@ -146,7 +180,15 @@ namespace AGS.Types
 
         public IList<IRoom> Rooms
         {
-            get { return _rooms; }
+            get 
+            {
+                List<IRoom> rooms = new List<IRoom>();
+                foreach (UnloadedRoom room in _rooms.AllItemsFlat)
+                {
+                    rooms.Add(room);
+                }
+                return rooms;
+            }
         }
 
         public List<OldInteractionVariable> OldInteractionVariables
@@ -191,10 +233,40 @@ namespace AGS.Types
             set { _sprites = value; }
         }
 
+        public CharacterFolder RootCharacterFolder
+        {
+            get { return _characters; }
+        }
+
+        public DialogFolder RootDialogFolder
+        {
+            get { return _dialogs; }
+        }
+
         public ViewFolder RootViewFolder
         {
             get { return _views; }
             set { _views = value; }
+        }
+
+        public ScriptFolder RootScriptFolder
+        {
+            get { return _scripts; }
+        }
+
+        public InventoryItemFolder RootInventoryItemFolder
+        {
+            get { return _inventoryItems; }
+        }
+
+        public GUIFolder RootGUIFolder
+        {
+            get { return _guis; }
+        }
+
+        public UnloadedRoomFolder RootRoomFolder
+        {
+            get { return _rooms; }
         }
 
         public AudioClipFolder RootAudioClipFolder
@@ -209,7 +281,15 @@ namespace AGS.Types
 
         public Scripts Scripts
         {
-            get { return _scripts; }
+            get 
+            {
+                Scripts scripts = new Scripts();
+                foreach (Script script in _scripts.AllScriptsFlat)
+                {
+                    scripts.Add(script);
+                }
+                return scripts;
+            }
         }
 
         // Used by the AGF->DTA compiler to bring in any extra modules
@@ -395,32 +475,18 @@ namespace AGS.Types
 		/// Returns the View object associated with the supplied ID
 		/// </summary>
 		public View FindViewByID(int viewNumber)
-        {
+        {           
             return this.RootViewFolder.FindViewByID(viewNumber, true);
         }
 
 		public Character FindCharacterByID(int charID)
 		{
-			foreach (Character character in _characters)
-			{
-				if (character.ID == charID)
-				{
-					return character;
-				}
-			}
-			return null;
+            return _characters.FindCharacterByID(charID, true);			
 		}
 
 		public UnloadedRoom FindRoomByID(int roomNumber)
         {
-            foreach (UnloadedRoom room in _rooms)
-            {
-                if (room.Number == roomNumber)
-                {
-                    return room;
-                }
-            }
-            return null;
+            return _rooms.FindUnloadedRoomByID(roomNumber, true);
         }
 
 		public bool DoesRoomNumberAlreadyExist(int roomNumber)
@@ -582,24 +648,15 @@ namespace AGS.Types
             writer.WriteEndElement();
 
             writer.WriteStartElement("Rooms");
-            foreach (UnloadedRoom room in _rooms)
-            {
-                room.ToXml(writer);
-            }
+            _rooms.ToXml(writer);
             writer.WriteEndElement();
 
             writer.WriteStartElement("GUIs");
-            foreach (GUI gui in _guis)
-            {
-                gui.ToXml(writer);
-            }
+            _guis.ToXml(writer);
             writer.WriteEndElement();
 
             writer.WriteStartElement("InventoryItems");
-            foreach (InventoryItem item in _inventoryItems)
-            {
-                item.ToXml(writer);
-            }
+            _inventoryItems.ToXml(writer);            
             writer.WriteEndElement();
 
             writer.WriteStartElement("TextParser");
@@ -607,19 +664,13 @@ namespace AGS.Types
             writer.WriteEndElement();
 
             writer.WriteStartElement("Characters");
-            foreach (Character character in _characters)
-            {
-                character.ToXml(writer);
-            }
+            _characters.ToXml(writer);
             writer.WriteEndElement();
 
             writer.WriteElementString("PlayerCharacter", (_playerCharacter == null) ? string.Empty : _playerCharacter.ID.ToString());
 
             writer.WriteStartElement("Dialogs");
-            foreach (Dialog dialog in _dialogs)
-            {
-                dialog.ToXml(writer);
-            }
+            _dialogs.ToXml(writer);            
             writer.WriteEndElement();
 
             writer.WriteStartElement("Cursors");
@@ -657,7 +708,9 @@ namespace AGS.Types
 			}
 			writer.WriteEndElement();
 
+            writer.WriteStartElement("Scripts");
             _scripts.ToXml(writer);
+            writer.WriteEndElement();
 
             writer.WriteStartElement("AudioClips");
             _audioClips.ToXml(writer);
@@ -707,45 +760,22 @@ namespace AGS.Types
                 _plugins.Add(new Plugin(pluginNode));
             }
 
-            _rooms.Clear();
-            foreach (XmlNode roomNode in SerializeUtils.GetChildNodes(node, "Rooms"))
-            {
-                _rooms.Add(new UnloadedRoom(roomNode));
-            }
+            _rooms = new UnloadedRoomFolder(node.SelectSingleNode("Rooms").FirstChild, node);
+            
+            _guis = new GUIFolder(node.SelectSingleNode("GUIs").FirstChild, node);            
 
-            _guis.Clear();
-            foreach (XmlNode guiNode in SerializeUtils.GetChildNodes(node, "GUIs"))
-            {
-                if (guiNode.FirstChild.Name == NormalGUI.XML_ELEMENT_NAME)
-                {
-                    _guis.Add(new NormalGUI(guiNode));
-                }
-                else
-                {
-                    _guis.Add(new TextWindowGUI(guiNode));
-                }
-            }
-
-            _inventoryItems.Clear();
-            foreach (XmlNode invNode in SerializeUtils.GetChildNodes(node, "InventoryItems"))
-            {
-                _inventoryItems.Add(new InventoryItem(invNode));
-            }
+            _inventoryItems = new InventoryItemFolder(node.SelectSingleNode("InventoryItems").FirstChild, node);            
 
             _textParser = new TextParser(node.SelectSingleNode("TextParser"));
 
-            _characters.Clear();
-            foreach (XmlNode invNode in SerializeUtils.GetChildNodes(node, "Characters"))
-            {
-                _characters.Add(new Character(invNode));
-            }
+            _characters = new CharacterFolder(node.SelectSingleNode("Characters").FirstChild, node);            
 
             _playerCharacter = null;
             string playerCharText = SerializeUtils.GetElementString(node, "PlayerCharacter");
             if (playerCharText.Length > 0)
             {
                 int playerCharID = Convert.ToInt32(playerCharText);
-                foreach (Character character in _characters)
+                foreach (Character character in RootCharacterFolder.AllItemsFlat)
                 {
                     if (character.ID == playerCharID)
                     {
@@ -755,11 +785,7 @@ namespace AGS.Types
                 }
             }
 
-            _dialogs.Clear();
-            foreach (XmlNode dialogNode in SerializeUtils.GetChildNodes(node, "Dialogs"))
-            {
-                _dialogs.Add(new Dialog(dialogNode));
-            }
+            _dialogs = new DialogFolder(node.SelectSingleNode("Dialogs").FirstChild, node);                                    
 
             _cursors.Clear();
             foreach (XmlNode cursNode in SerializeUtils.GetChildNodes(node, "Cursors"))
@@ -788,7 +814,7 @@ namespace AGS.Types
 				}
 			}
 
-            _scripts = new Scripts(node);
+            _scripts = new ScriptFolder(node.SelectSingleNode("Scripts").FirstChild, node);
 
             if (node.SelectSingleNode("AudioClips") != null)
             {
@@ -860,7 +886,7 @@ namespace AGS.Types
 				}
 			}
 
-            foreach (GUI gui in this.GUIs)
+            foreach (GUI gui in this.RootGUIFolder.AllItemsFlat)
             {
                 if (gui != ignoreObject)
                 {
@@ -886,7 +912,7 @@ namespace AGS.Types
                 }
             }
 
-            foreach (InventoryItem item in this.InventoryItems)
+            foreach (InventoryItem item in this.RootInventoryItemFolder.AllItemsFlat)
             {
                 if ((item.Name == tryName) && (item != ignoreObject))
                 {
@@ -894,7 +920,7 @@ namespace AGS.Types
                 }
             }
 
-            foreach (Character character in this.Characters)
+            foreach (Character character in this.RootCharacterFolder.AllItemsFlat)
             {
                 if (character != ignoreObject)
                 {
@@ -912,7 +938,7 @@ namespace AGS.Types
                 }
             }
 
-            foreach (Dialog dialog in this.Dialogs)
+            foreach (Dialog dialog in this.RootDialogFolder.AllItemsFlat)
             {
                 if ((dialog.Name == tryName) && (dialog != ignoreObject))
                 {
@@ -984,11 +1010,11 @@ namespace AGS.Types
         public List<Script> GetAllGameAndLoadedRoomScripts()
         {
             List<Script> scripts = new List<Script>();
-            foreach (Script script in this.Scripts)
+            foreach (Script script in this.RootScriptFolder.AllScriptsFlat)
             {
                 scripts.Add(script);
             }
-            foreach (UnloadedRoom room in this.Rooms)
+            foreach (UnloadedRoom room in this.RootRoomFolder.AllItemsFlat)
             {
                 if (room.Script != null)
                 {
@@ -1076,11 +1102,11 @@ namespace AGS.Types
 
             const int MULTIPLY_FACTOR = 2;
 
-            foreach (GUI gui in _guis)
+            foreach (GUI gui in _guis.AllItemsFlat)
             {
-                if (gui is NormalGUI)
-                {
-                    NormalGUI normalGui = (NormalGUI)gui;
+                NormalGUI normalGui = gui as NormalGUI;
+                if (normalGui != null)
+                {                    
                     normalGui.Left *= MULTIPLY_FACTOR;
                     normalGui.Top *= MULTIPLY_FACTOR;
                     normalGui.Width *= MULTIPLY_FACTOR;
@@ -1094,10 +1120,11 @@ namespace AGS.Types
                     control.Width *= MULTIPLY_FACTOR;
                     control.Height *= MULTIPLY_FACTOR;
 
-                    if (control is GUIInventory)
+                    GUIInventory guiInventory = control as GUIInventory;
+                    if (guiInventory != null)
                     {
-                        ((GUIInventory)control).ItemWidth *= MULTIPLY_FACTOR;
-                        ((GUIInventory)control).ItemHeight *= MULTIPLY_FACTOR;
+                        guiInventory.ItemWidth *= MULTIPLY_FACTOR;
+                        guiInventory.ItemHeight *= MULTIPLY_FACTOR;
                     }
                 }
             }
@@ -1111,7 +1138,7 @@ namespace AGS.Types
                 }
             }
 
-            foreach (InventoryItem item in _inventoryItems)
+            foreach (InventoryItem item in _inventoryItems.AllItemsFlat)
             {
                 if (item.HotspotX >= 0)
                 {
@@ -1120,7 +1147,7 @@ namespace AGS.Types
                 }
             }
 
-            foreach (Character character in _characters)
+            foreach (Character character in RootCharacterFolder.AllItemsFlat)
             {
                 character.StartX *= MULTIPLY_FACTOR;
                 character.StartY *= MULTIPLY_FACTOR;

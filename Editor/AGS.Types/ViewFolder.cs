@@ -18,7 +18,7 @@ namespace AGS.Types
             get { return _items; }
         }
 
-		/// <summary>
+        /// <summary>
 		/// Finds the View object for the specified view number.
 		/// Returns null if the view is not found.
 		/// </summary>
@@ -26,29 +26,14 @@ namespace AGS.Types
 		/// <param name="recursive">Whether to also search sub-folders</param>
 		public View FindViewByID(int viewNumber, bool recursive)
 		{
-			foreach (View view in _items)
-			{
-				if (view.ID == viewNumber)
-				{
-					return view;
-				}
-			}
-
-			if (recursive)
-			{
-				foreach (ViewFolder subFolder in this.SubFolders)
-				{
-					View found = subFolder.FindViewByID(viewNumber, recursive);
-					if (found != null)
-					{
-						return found;
-					}
-				}
-			}
-			return null;
+            return FindItem(IsItem, viewNumber, recursive);			
 		}
 
-
+        public override ViewFolder CreateChildFolder(string name)
+        {
+            return new ViewFolder(name);
+        }
+        
         protected override ViewFolder CreateFolder(XmlNode node)
         {
             return new ViewFolder(node);
@@ -58,5 +43,10 @@ namespace AGS.Types
         {
             return new View(node);
         }
+
+        private bool IsItem(View view, int viewNumber)
+        {
+            return view.ID == viewNumber;
+        }		
     }
 }

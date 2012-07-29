@@ -35,6 +35,18 @@ namespace AGS.Editor
             _startingSpriteNumber = existingSprite;
         }
 
+        protected override void OnClosed(EventArgs e)
+        {
+            //If a sprite or a folder was added, we need to refresh the sprite manager component
+            ISpriteController spriteController = (ISpriteController)
+                Factory.ComponentController.FindComponentThatImplementsInterface(typeof(ISpriteController));
+
+            if (spriteController != null)
+            {
+                spriteController.Refresh();
+            }
+        }
+
         public Sprite SelectedSprite
         {
             get { return _selectedSprite; }

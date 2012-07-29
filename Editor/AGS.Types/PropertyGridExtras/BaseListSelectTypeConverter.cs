@@ -7,7 +7,7 @@ using System.Reflection;
 
 namespace AGS.Types
 {
-    public abstract class BaseListSelectTypeConverter<T> : TypeConverter
+    public abstract class BaseListSelectTypeConverter : TypeConverter
     {
         protected abstract Dictionary<int, string> GetValueList();
 

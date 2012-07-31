@@ -1,0 +1,44 @@
+diff -Naur src/llex.c src/llex.c
+--- src/llex.c	2007-12-27 14:02:25.000000000 +0100
++++ src/llex.c	2012-07-30 12:19:06.628478800 +0200
+@@ -176,9 +176,8 @@
+ 
+ static void trydecpoint (LexState *ls, SemInfo *seminfo) {
+   /* format error: try to update decimal point separator */
+-  struct lconv *cv = localeconv();
+   char old = ls->decpoint;
+-  ls->decpoint = (cv ? cv->decimal_point[0] : '.');
++  ls->decpoint = '.';
+   buffreplace(ls, old, ls->decpoint);  /* try updated decimal separator */
+   if (!luaO_str2d(luaZ_buffer(ls->buff), &seminfo->r)) {
+     /* format error with correct decimal point: no more options */
+diff -Naur src/Makefile src/Makefile
+--- src/Makefile	2008-01-19 20:37:58.000000000 +0100
++++ src/Makefile	2012-07-30 12:10:36.058644700 +0200
+@@ -7,17 +7,12 @@
+ # Your platform. See PLATS for possible values.
+ PLAT= none
+ 
+-CC= gcc
+ CFLAGS= -O2 -Wall $(MYCFLAGS)
+ AR= ar rcu
+ RANLIB= ranlib
+ RM= rm -f
+ LIBS= -lm $(MYLIBS)
+ 
+-MYCFLAGS=
+-MYLDFLAGS=
+-MYLIBS=
+-
+ # == END OF USER SETTINGS. NO NEED TO CHANGE ANYTHING BELOW THIS LINE =========
+ 
+ PLATS= aix ansi bsd freebsd generic linux macosx mingw posix solaris
+@@ -93,7 +88,7 @@
+ 	$(MAKE) all MYCFLAGS="-DLUA_USE_LINUX" MYLIBS="-Wl,-E -lreadline"
+ 
+ generic:
+-	$(MAKE) all MYCFLAGS=
++	$(MAKE) all
+ 
+ linux:
+ 	$(MAKE) all MYCFLAGS=-DLUA_USE_LINUX MYLIBS="-Wl,-E -ldl -lreadline -lhistory -lncurses"

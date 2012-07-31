@@ -9,6 +9,9 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnClickListener;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
 import android.media.AudioManager;
 import android.os.Bundle;
@@ -63,6 +66,14 @@ public class AgsEngine extends Activity
 		String baseDirectory = getIntent().getExtras().getString("directory");
 		boolean loadLastSave = getIntent().getExtras().getBoolean("loadLastSave");
 		
+		// Get app directory
+		String appDirectory = "";
+		try
+		{
+			appDirectory = getPackageManager().getPackageInfo(getPackageName(), 0).applicationInfo.dataDir;
+		}
+		catch (NameNotFoundException e) { }
+
 		// Set windows options
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -77,11 +88,11 @@ public class AgsEngine extends Activity
 		handler = new MessageHandler();
 		
 		audio = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
-		
+
 		// Switch to the loading view and start the game
 		isInGame = true;
 		setContentView(R.layout.loading);
-		glue = new EngineGlue(this, gameFilename, baseDirectory, loadLastSave);
+		glue = new EngineGlue(this, gameFilename, baseDirectory, appDirectory, loadLastSave);
 		glue.start();
 	}
 	

@@ -41,6 +41,10 @@ extern "C"
 #include "../PSP/kernel/kernel.h"
 #endif
 
+#if defined(ANDROID_VERSION)
+extern char android_app_directory[256];
+#endif
+
 AGSPlatformDriver* AGSPlatformDriver::instance = NULL;
 
 int numcddrives=0;
@@ -968,8 +972,7 @@ void pl_read_plugins_from_disk (FILE *iii) {
 
     strlwr(apl->filename);
 
-    strcpy(library_name, "/data/data/com.bigbluecup.android/lib/lib");
-    strcat(library_name, apl->filename);
+    sprintf(library_name, "%s/lib/lib%s", android_app_directory, apl->filename);
     strcpy(&library_name[strlen(library_name) - 4], ".so");
 
     apl->dllHandle = dlopen(library_name, RTLD_LAZY);

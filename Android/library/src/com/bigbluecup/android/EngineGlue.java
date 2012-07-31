@@ -44,19 +44,21 @@ public class EngineGlue extends Thread implements CustomGlSurfaceView.Renderer
 
 	private String gameFilename = "";
 	private String baseDirectory = "";
+	private String appDirectory = "";
 	private boolean loadLastSave = false;
 	
 	public native void nativeInitializeRenderer(int width, int height);
 	public native void shutdownEngine();
-	private native boolean startEngine(Object object, String filename, String directory, boolean loadLastSave);
+	private native boolean startEngine(Object object, String filename, String directory, String appDirectory, boolean loadLastSave);
 	private native void pauseEngine();
 	private native void resumeEngine();
 	
-	public EngineGlue(AgsEngine activity, String filename, String directory, boolean loadLastSave)
+	public EngineGlue(AgsEngine activity, String filename, String directory, String appDirectory, boolean loadLastSave)
 	{
 		this.activity = activity;
 		gameFilename = filename;
 		baseDirectory = directory;
+		this.appDirectory = appDirectory;
 		this.loadLastSave = loadLastSave;
 		
 		System.loadLibrary("agsengine");
@@ -64,7 +66,7 @@ public class EngineGlue extends Thread implements CustomGlSurfaceView.Renderer
 	
 	public void run()
 	{
-		startEngine(this, gameFilename, baseDirectory, loadLastSave);
+		startEngine(this, gameFilename, baseDirectory, appDirectory, loadLastSave);
 	}	
 
 	public void pauseGame()

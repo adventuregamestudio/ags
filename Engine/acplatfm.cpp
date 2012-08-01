@@ -20,6 +20,9 @@
 #include "../Plugins/AGSflashlight/agsflashlight.h"
 #include "../Plugins/agsblend/agsblend.h"
 #include "../Plugins/ags_snowrain/ags_snowrain.h"
+#if defined(IOS_VERSION)
+#include "../Plugins/agstouch/agstouch.h"
+#endif
 #endif
 
 #if defined(MAC_VERSION)
@@ -898,6 +901,19 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
     apl->builtin = true;
     return true;
   }
+#if defined(IOS_VERSION)
+  else if (strncmp(apl->filename, "agstouch", strlen("agstouch")) == 0)
+  {
+    apl->engineStartup = agstouch::AGS_EngineStartup;
+    apl->engineShutdown = agstouch::AGS_EngineShutdown;
+    apl->onEvent = agstouch::AGS_EngineOnEvent;
+    apl->debugHook = agstouch::AGS_EngineDebugHook;
+    apl->initGfxHook = agstouch::AGS_EngineInitGfx;
+    apl->dllHandle = (HINSTANCE)1;
+    apl->builtin = true;
+    return true;
+  }
+#endif
 #endif
 
   return false;

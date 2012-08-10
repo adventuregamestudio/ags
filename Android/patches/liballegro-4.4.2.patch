@@ -1269,7 +1269,7 @@ diff -Naur src/android/agfx.c src/android/agfx.c
 +   glMatrixMode(GL_PROJECTION);
 +   glLoadIdentity();
 +
-+   glOrthof(0, android_screen_physical_width, 0, android_screen_physical_height, 0, 1);
++   glOrthof(0, android_screen_physical_width - 1, 0, android_screen_physical_height - 1, 0, 1);
 +
 +   glMatrixMode(GL_MODELVIEW);
 +   glLoadIdentity();

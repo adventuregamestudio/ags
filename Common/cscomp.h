@@ -18,6 +18,16 @@
 #define SCOM_VERSION 89
 #define SCOM_VERSIONSTR "0.89"
 
+
+// Detect building for 64 bit
+#if defined(LINUX_VERSION) || defined(MAC_VERSION)
+#include <limits.h>
+#if (__WORDSIZE == 64)
+#define AGS_64BIT
+#endif
+#endif
+
+
 struct ccScript;
 struct ccInstance;
 
@@ -263,6 +273,7 @@ struct ccInstance
   int  loadedInstanceId;
   int  returnValue;
 
+#if defined(AGS_64BIT)
   // 64 bit: Variables to keep track of the size of the variables on the stack.
   // This is necessary because the compiled code accesses values on the stack with
   // absolute offsets that don't take into account the 8 byte long pointers on
@@ -270,6 +281,7 @@ struct ccInstance
   // modified stack.
   int stackSizes[CC_STACK_SIZE];
   int stackSizeIndex;
+#endif
 };
 
 // virtual CPU commands

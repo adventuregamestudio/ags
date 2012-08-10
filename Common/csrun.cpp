@@ -1356,17 +1356,20 @@ int cc_run_code(ccInstance * inst, long curpc)
           new_line_hook(inst, currentline);
         break;
       case SCMD_ADD:
+#if defined(AGS_64BIT)
         // 64 bit: Keeping track of the stack variables
         if (arg1 == SREG_SP)
         {
           inst->stackSizes[inst->stackSizeIndex] = arg2;
           inst->stackSizeIndex++;
         }
+#endif
 
         inst->registers[arg1] += arg2;
         CHECK_STACK 
         break;
       case SCMD_SUB:
+#if defined(AGS_64BIT)
         // 64 bit: Rewrite the offset so that it doesn't point inside a variable on the stack.
         // AGS 2.x games also perform relative stack access by copying SREG_SP to SREG_MAR
         // and then subtracting from that.
@@ -1399,7 +1402,9 @@ int cc_run_code(ccInstance * inst, long curpc)
         }
         else
           inst->registers[arg1] -= arg2;
-
+#else
+          inst->registers[arg1] -= arg2;
+#endif  
         break;
       case SCMD_REGTOREG:
         inst->registers[arg2] = inst->registers[arg1];
@@ -1414,7 +1419,9 @@ int cc_run_code(ccInstance * inst, long curpc)
           loopIterationCheckDisabled--;
 
         inst->registers[SREG_SP] -= sizeof(long);
+#if defined(AGS_64BIT)
         inst->stackSizeIndex--;
+#endif
 
         curnest--;
         memcpy(&(inst->pc), (char*)inst->registers[SREG_SP], sizeof(long));
@@ -1462,7 +1469,7 @@ int cc_run_code(ccInstance * inst, long curpc)
 #endif
         break;
       case SCMD_LOADSPOFFS:
-
+#if defined(AGS_64BIT)
         // 64 bit: Rewrite offset so that it doesn't point inside a variable
         original_sp_diff = arg1;
         new_sp_diff = 0;
@@ -1488,6 +1495,9 @@ int cc_run_code(ccInstance * inst, long curpc)
           cc_error("Stack offset cannot be rewritten. Stack corrupted?");
 
         inst->registers[SREG_MAR] = inst->registers[SREG_SP] - new_sp_diff;
+#else
+        inst->registers[SREG_MAR] = inst->registers[SREG_SP] - arg1;
+#endif
         break;
 
       // 64 bit: Force 32 bit math
@@ -1566,8 +1576,10 @@ int cc_run_code(ccInstance * inst, long curpc)
 
         inst->registers[SREG_SP] += sizeof(long);
 
+#if defined(AGS_64BIT)
         inst->stackSizes[inst->stackSizeIndex] = -1;
         inst->stackSizeIndex++;
+#endif
 
         if (thisbase[curnest] == 0)
           inst->pc = inst->registers[arg1];
@@ -1635,21 +1647,26 @@ int cc_run_code(ccInstance * inst, long curpc)
           inst->pc += arg1;
         break;
       case SCMD_PUSHREG:
+#if defined(AGS_64BIT)
         // 64 bit: Registers are pushed as 8 byte values. Their size is set to "-1" so that
         // they can be identified later.
         inst->stackSizes[inst->stackSizeIndex] = -1;
         inst->stackSizeIndex++;
+#endif
 
         memcpy((char*)inst->registers[SREG_SP], &(inst->registers[arg1]), sizeof(long));
         inst->registers[SREG_SP] += sizeof(long);
         CHECK_STACK
         break;
       case SCMD_POPREG:
+#if defined(AGS_64BIT)
         // 64 bit: Registers are pushed as 8 byte values
         if (inst->stackSizes[inst->stackSizeIndex - 1] != -1)
           cc_error("Trying to pop value that was not pushed. Stack corrupted?");
 
         inst->stackSizeIndex--;
+#endif
+
         inst->registers[SREG_SP] -= sizeof(long);
         memcpy(&(inst->registers[arg1]), (char*)inst->registers[SREG_SP], sizeof(long));
         break;
@@ -1787,8 +1804,10 @@ int cc_run_code(ccInstance * inst, long curpc)
           memcpy((char*)inst->registers[SREG_SP], &(callstack[aa]), sizeof(long));
           inst->registers[SREG_SP] += sizeof(long);
 
+#if defined(AGS_64BIT)
           inst->stackSizes[inst->stackSizeIndex] = -1;//sizeof(long);
           inst->stackSizeIndex++;
+#endif
         }
 
         // 0, so that the cc_run_code returns
@@ -1798,8 +1817,10 @@ int cc_run_code(ccInstance * inst, long curpc)
         inst->registers[SREG_SP] += sizeof(long);
         CHECK_STACK
 
+#if defined(AGS_64BIT)
         inst->stackSizes[inst->stackSizeIndex] = -1;//sizeof(long);
         inst->stackSizeIndex++;
+#endif
 
         int oldpc = inst->pc;
         ccInstance *wasRunning = inst->runningInst;
@@ -1883,7 +1904,9 @@ int cc_run_code(ccInstance * inst, long curpc)
       case SCMD_SUBREALSTACK:
         if (was_just_callas >= 0) {
           inst->registers[SREG_SP] -= arg1 * sizeof(long);
+#if defined(AGS_64BIT)
           inst->stackSizeIndex -= arg1;
+#endif
           was_just_callas = -1;
         }
         callstacksize -= arg1;
@@ -2087,6 +2110,7 @@ int ccCallInstance(ccInstance * inst, char *funcname, long numargs, ...)
   inst->registers[SREG_SP] += (numargs * sizeof(long));
   inst->runningInst = inst;
 
+#if defined(AGS_64BIT)
   // 64 bit: Initialize array for stack variable sizes with the argument values
   inst->stackSizeIndex = 0;
   int i;
@@ -2095,6 +2119,7 @@ int ccCallInstance(ccInstance * inst, char *funcname, long numargs, ...)
     inst->stackSizes[inst->stackSizeIndex] = -1;
     inst->stackSizeIndex++;
   }
+#endif
 
   int reterr = cc_run_code(inst, startat);
   inst->registers[SREG_SP] -= (numargs - 1) * sizeof(long);

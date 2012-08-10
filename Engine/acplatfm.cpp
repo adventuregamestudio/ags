@@ -20,6 +20,9 @@
 #include "../Plugins/AGSflashlight/agsflashlight.h"
 #include "../Plugins/agsblend/agsblend.h"
 #include "../Plugins/ags_snowrain/ags_snowrain.h"
+#if defined(IOS_VERSION)
+#include "../Plugins/agstouch/agstouch.h"
+#endif
 #endif
 
 #if defined(MAC_VERSION)
@@ -39,6 +42,10 @@ extern "C"
 #include <systemctrl.h>
 }
 #include "../PSP/kernel/kernel.h"
+#endif
+
+#if defined(ANDROID_VERSION)
+extern char android_app_directory[256];
 #endif
 
 AGSPlatformDriver* AGSPlatformDriver::instance = NULL;
@@ -894,6 +901,19 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
     apl->builtin = true;
     return true;
   }
+#if defined(IOS_VERSION)
+  else if (strncmp(apl->filename, "agstouch", strlen("agstouch")) == 0)
+  {
+    apl->engineStartup = agstouch::AGS_EngineStartup;
+    apl->engineShutdown = agstouch::AGS_EngineShutdown;
+    apl->onEvent = agstouch::AGS_EngineOnEvent;
+    apl->debugHook = agstouch::AGS_EngineDebugHook;
+    apl->initGfxHook = agstouch::AGS_EngineInitGfx;
+    apl->dllHandle = (HINSTANCE)1;
+    apl->builtin = true;
+    return true;
+  }
+#endif
 #endif
 
   return false;
@@ -968,8 +988,7 @@ void pl_read_plugins_from_disk (FILE *iii) {
 
     strlwr(apl->filename);
 
-    strcpy(library_name, "/data/data/com.bigbluecup.android/lib/lib");
-    strcat(library_name, apl->filename);
+    sprintf(library_name, "%s/lib/lib%s", android_app_directory, apl->filename);
     strcpy(&library_name[strlen(library_name) - 4], ".so");
 
     apl->dllHandle = dlopen(library_name, RTLD_LAZY);

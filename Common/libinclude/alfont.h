@@ -49,6 +49,8 @@ typedef struct ALFONT_FONT ALFONT_FONT;
 
 /* API */
 
+ALFONT_DLL_DECLSPEC char* alfont_get_name(ALFONT_FONT *f);
+
 ALFONT_DLL_DECLSPEC int alfont_init(void);
 ALFONT_DLL_DECLSPEC void alfont_exit(void);
 

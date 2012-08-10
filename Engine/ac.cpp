@@ -12018,16 +12018,6 @@ int load_game_file() {
   fread(&game.fontflags[0], 1, game.numfonts, iii);
   fread(&game.fontoutline[0], 1, game.numfonts, iii);
 
-#if !defined(WINDOWS_VERSION)
-  // Outline fonts are misaligned on platforms other than Windows
-  int i;
-  for (i = 0; i < MAX_FONTS; i++)
-  {
-    if (game.fontoutline[i] >= 0)
-      game.fontoutline[i] = FONT_OUTLINE_AUTO;
-  }
-#endif
-
   int numToRead;
   if (filever < 24)
     numToRead = 6000; // Fixed number of sprites on < 2.56
@@ -13420,12 +13410,7 @@ int user_to_internal_skip_speech(int userval) {
 }
 
 bool ShouldAntiAliasText() {
-  // Anti-aliasing produces unreadable text on all non-Windows platforms.
-#if !defined(WINDOWS_VERSION)
-  return false;
-#else
   return (game.options[OPT_ANTIALIASFONTS] != 0);
-#endif
 }
 
 // Pass yy = -1 to find Y co-ord automatically

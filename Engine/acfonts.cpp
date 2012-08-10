@@ -496,6 +496,15 @@ bool TTFFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
   if (alfptr == NULL)
     return false;
 
+#if !defined(WINDOWS_VERSION)
+  // Check for the LucasFan font since it comes with an outline font that
+  // is drawn incorrectly with Freetype versions > 2.1.3.
+  // A simple workaround is to disable outline fonts for it and use
+  // automatic outline drawing.
+  if (strcmp(alfont_get_name(alfptr), "LucasFan-Font") == 0)
+    game.fontoutline[fontNumber] = FONT_OUTLINE_AUTO;
+#endif
+
   if (fontSize > 0)
     alfont_set_font_size(alfptr, fontSize);
 

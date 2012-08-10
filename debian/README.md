@@ -134,7 +134,7 @@ Build the package with pbuilder and install it and its dependencies with gdebi:
 To start an AGS game, just run ags with the game directory or the game
 file as parameter, e.g.
 
-    ags /path/to/game
+    ags /path/to/game/
 
 or
 

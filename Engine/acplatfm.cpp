@@ -1024,6 +1024,7 @@ void pl_read_plugins_from_disk (FILE *iii) {
 
     if (apl->dllHandle < 0)
     {
+      apl->dllHandle = NULL; // dllhandle contains an error code at this point, set it to NULL for the engine
       if (!pl_use_builtin_plugin(apl))
         continue;
     }

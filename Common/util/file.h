@@ -24,4 +24,12 @@ short int   getshort(FILE *);
 void        putshort(short int, FILE *);
 #endif // !ALLEGRO_BIG_ENDIAN
 
+// Get required padding length when reading/writing a structure
+// same way as if it was written as an object in whole;
+// result could be from 0 to 3 inclusive.
+inline size_t get_padding(int previous_data_length)
+{
+    return 4 - (previous_data_length % 4);
+}
+
 #endif // __AGS_CN_UTIL__FILE_H

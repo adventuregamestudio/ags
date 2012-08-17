@@ -7,7 +7,7 @@
 // simply like pointer (although that probably does not mean much sense?)
 void QueuedAudioItem::ReadFromFile(FILE *f)
 {
-    char padding[3];
+    char padding[3] = {0,0,0};
     audioClipIndex = getshort(f);
     priority = getshort(f);
     repeat = fgetc(f);
@@ -17,7 +17,7 @@ void QueuedAudioItem::ReadFromFile(FILE *f)
 
 void QueuedAudioItem::WriteToFile(FILE *f)
 {
-    char padding[3];
+    char padding[3] = {0,0,0};
     putshort(audioClipIndex, f);
     putshort(priority, f);
     fputc(repeat, f);

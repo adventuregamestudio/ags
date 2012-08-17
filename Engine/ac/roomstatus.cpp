@@ -31,7 +31,7 @@ void RoomStatus::ReadFromFile(FILE *fp)
     fread(hotspot_enabled, sizeof(char), MAX_HOTSPOTS, fp);
     fread(region_enabled, sizeof(char), MAX_REGIONS, fp);
     fread(walkbehind_base, sizeof(short), MAX_OBJ, fp);
-    fseek(fp, 4 - ((MAX_HOTSPOTS+MAX_REGIONS+2*MAX_OBJ)%4), SEEK_CUR);
+    fseek(fp, get_padding(MAX_HOTSPOTS+MAX_REGIONS+2*MAX_OBJ), SEEK_CUR);
     fread(interactionVariableValues, sizeof(int), MAX_GLOBAL_VARIABLES, fp);
 //#else
 //    throw "RoomStatus::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
@@ -68,7 +68,7 @@ void RoomStatus::WriteToFile(FILE *fp)
     fwrite(hotspot_enabled, sizeof(char), MAX_HOTSPOTS, fp);
     fwrite(region_enabled, sizeof(char), MAX_REGIONS, fp);
     fwrite(walkbehind_base, sizeof(short), MAX_OBJ, fp);
-    fwrite(pad, sizeof(char), 4 - ((MAX_HOTSPOTS+MAX_REGIONS+2*MAX_OBJ)%4), fp);
+    fwrite(pad, sizeof(char), get_padding(MAX_HOTSPOTS+MAX_REGIONS+2*MAX_OBJ), fp);
     fwrite(interactionVariableValues, sizeof(int), MAX_GLOBAL_VARIABLES, fp);
 //#else
 //    throw "RoomStatus::WriteToFile() is not implemented for little-endian platforms and should not be called.";

@@ -20,3 +20,16 @@ void MouseCursor::ReadFromFile(FILE *fp)
 //    throw "MouseCursor::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
 //#endif
 }
+
+void MouseCursor::WriteToFile(FILE *fp)
+{
+    char padding[3] = {0,0,0};
+
+    putw(pic, fp);
+    putshort(hotx, fp);
+    putshort(hoty, fp);
+    putshort(view, fp);
+    fwrite(name, sizeof(char), 10, fp);
+    putc(flags, fp);
+    fwrite(padding, sizeof(char), 3, fp);
+}

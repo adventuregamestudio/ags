@@ -1,6 +1,8 @@
 #ifndef __AC_AUDIOCLIPTYPE_H
 #define __AC_AUDIOCLIPTYPE_H
 
+#include "util/file.h"
+
 #define AUCL_BUNDLE_EXE 1
 #define AUCL_BUNDLE_VOX 2
 enum AudioFileType {
@@ -19,6 +21,9 @@ struct AudioClipType {
     int volume_reduction_while_speech_playing;
     int crossfadeSpeed;
     int reservedForFuture;
+
+    void ReadFromFile(FILE *f);
+    void WriteToFile(FILE *f);
 };
 
 #endif // __AC_AUDIOCLIPTYPE_H

@@ -30,6 +30,21 @@ void ViewFrame::ReadFromFile(FILE *fp)
 //#endif
 }
 
+void ViewFrame::WriteToFile(FILE *fp)
+{
+    char padding[3] = {0,0,0};
+
+    putw(pic, fp);
+    putshort(xoffs, fp);//__getshort__bigendian(fp);
+    putshort(yoffs, fp);//__getshort__bigendian(fp);
+    putshort(speed, fp);//__getshort__bigendian(fp);
+    fwrite(padding, sizeof(char), 2, fp);
+    putw(flags, fp);
+    putw(sound, fp);
+    putw(reserved_for_future[0], fp);
+    putw(reserved_for_future[1], fp);
+}
+
 bool ViewLoopNew::RunNextLoop() 
 {
     return (flags & LOOPFLAG_RUNNEXTLOOP);
@@ -56,7 +71,11 @@ void ViewLoopNew::WriteToFile(FILE *ooo)
 {
     fwrite(&numFrames, sizeof(short), 1, ooo);
     fwrite(&flags, sizeof(int), 1, ooo);
-    fwrite(frames, sizeof(ViewFrame), numFrames, ooo);
+    for (int i = 0; i < numFrames; ++i)
+    {
+        frames[i].WriteToFile(ooo);
+    }
+    //fwrite(frames, sizeof(ViewFrame), numFrames, ooo);
 }
 
 

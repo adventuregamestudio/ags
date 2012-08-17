@@ -11,5 +11,8 @@ struct MoveList {
     int   lastx, lasty;
     char  doneflag;
     char  direct;  // MoveCharDirect was used or not
+
+    void ReadFromFile(FILE *f);
+    void WriteToFile(FILE *f);
 };
 #endif // __AC_MOVE_H

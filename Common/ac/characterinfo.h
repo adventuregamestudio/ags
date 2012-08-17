@@ -85,6 +85,7 @@ struct CharacterInfo {
 	void update_character_follower(int &char_index, int &numSheep, int *followingAsSheep, int &doing_nothing);
 
     void ReadFromFile(FILE *fp);
+    void WriteToFile(FILE *fp);
 };
 
 

@@ -15,6 +15,7 @@ struct MouseCursor {
     MouseCursor();
 
     void ReadFromFile(FILE *fp);
+    void WriteToFile(FILE *fp);
 };
 
 #endif // __AC_MOUSECURSOR_H

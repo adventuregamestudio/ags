@@ -8,6 +8,7 @@
 #define __AGS_EE_AC__SCREENOVERLAY_H
 
 #include "gfx/ali3d.h"
+#include "util/file.h"
 
 struct ScreenOverlay {
     IDriverDependantBitmap *bmp;
@@ -17,6 +18,9 @@ struct ScreenOverlay {
     int associatedOverlayHandle;
     bool hasAlphaChannel;
     bool positionRelativeToScreen;
+
+    void ReadFromFile(FILE *f);
+    void WriteToFile(FILE *f);
 };
 
 #endif // __AGS_EE_AC__SCREENOVERLAY_H

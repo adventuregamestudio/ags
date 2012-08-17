@@ -158,6 +158,10 @@
 				Name="ac"
 				>
 				<File
+					RelativePath="..\..\Common\ac\audiocliptype.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\ac\common.cpp"
 					>
 				</File>
@@ -205,6 +209,14 @@
 					RelativePath="..\..\Common\ac\wordsdictionary.cpp"
 					>
 				</File>
+				<Filter
+					Name="dynobj"
+					>
+					<File
+						RelativePath="..\..\Common\ac\dynobj\scriptaudioclip.cpp"
+						>
+					</File>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="font"

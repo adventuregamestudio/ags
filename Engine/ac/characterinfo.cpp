@@ -544,10 +544,65 @@ void CharacterInfo::ReadFromFile(FILE *fp)
     on = getc(fp);
     // MAX_INV is odd, so need to sweep up padding
     // skip over padding that makes struct a multiple of 4 bytes long
-    fseek(fp, 4 - (((MAX_INV+2)*sizeof(short)+40+MAX_SCRIPT_NAME_LEN+1)%4), SEEK_CUR);
+    fseek(fp, get_padding(((MAX_INV+2)*sizeof(short)+40+MAX_SCRIPT_NAME_LEN+1)), SEEK_CUR);
 //#else
     //throw "CharacterInfo::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
 //#endif
+}
+
+void CharacterInfo::WriteToFile(FILE *fp)
+{
+    char padding[3] = {0,0,0};
+
+    putw(defview, fp);
+    putw(talkview, fp);
+    putw(view, fp);
+    putw(room, fp);
+    putw(prevroom, fp);
+    putw(x, fp);
+    putw(y, fp);
+    putw(wait, fp);
+    putw(flags, fp);
+    putshort(following, fp);//__getshort__bigendian(fp);
+    putshort(followinfo, fp);//__getshort__bigendian(fp);
+    putw(idleview, fp);
+    putshort(idletime, fp);//__getshort__bigendian(fp);
+    putshort(idleleft, fp);//__getshort__bigendian(fp);
+    putshort(transparency, fp);//__getshort__bigendian(fp);
+    putshort(baseline, fp);//__getshort__bigendian(fp);
+    putw(activeinv, fp);
+    putw(talkcolor, fp);
+    putw(thinkview, fp);
+    putshort(blinkview, fp);//__getshort__bigendian(fp);
+    putshort(blinkinterval, fp);//__getshort__bigendian(fp);
+    putshort(blinktimer, fp);//__getshort__bigendian(fp);
+    putshort(blinkframe, fp);//__getshort__bigendian(fp);
+    putshort(walkspeed_y, fp);//__getshort__bigendian(fp);
+    putshort(pic_yoffs, fp);//__getshort__bigendian(fp);
+    putw(z, fp);
+    putw(padding[0], fp);
+    putw(padding[1], fp);
+    putshort(blocking_width, fp);//__getshort__bigendian(fp);
+    putshort(blocking_height, fp);//__getshort__bigendian(fp);;
+    putw(index_id, fp);
+    putshort(pic_xoffs, fp);//__getshort__bigendian(fp);
+    putshort(walkwaitcounter, fp);//__getshort__bigendian(fp);
+    putshort(loop, fp);//__getshort__bigendian(fp);
+    putshort(frame, fp);//__getshort__bigendian(fp);
+    putshort(walking, fp);//__getshort__bigendian(fp);
+    putshort(animating, fp);//__getshort__bigendian(fp);
+    putshort(walkspeed, fp);//__getshort__bigendian(fp);
+    putshort(animspeed, fp);//__getshort__bigendian(fp);
+    fwrite(inv, sizeof(short), MAX_INV, fp);
+    putshort(actx, fp);//__getshort__bigendian(fp);
+    putshort(acty, fp);//__getshort__bigendian(fp);
+    fwrite(name, sizeof(char), 40, fp);
+    fwrite(scrname, sizeof(char), MAX_SCRIPT_NAME_LEN, fp);
+    putc(on, fp);
+    // MAX_INV is odd, so need to sweep up padding
+    // skip over padding that makes struct a multiple of 4 bytes long
+    char long_padding[3];
+    fwrite(long_padding, sizeof(char), get_padding((MAX_INV+2)*sizeof(short)+40+MAX_SCRIPT_NAME_LEN+1), fp);
 }
 
 void ConvertOldCharacterToNew (OldCharacterInfo *oci, CharacterInfo *ci) {

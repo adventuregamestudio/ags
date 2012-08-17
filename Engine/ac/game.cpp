@@ -1089,7 +1089,8 @@ void save_game_room_state(FILE *ooo)
     for (int bb = 0; bb < MAX_ROOMS; bb++) {
         if (roomstats[bb].beenhere) {
             fputc (1, ooo);
-            fwrite(&roomstats[bb],sizeof(RoomStatus),1,ooo);
+            //fwrite(&roomstats[bb],sizeof(RoomStatus),1,ooo);
+            roomstats[bb].WriteToFile(ooo);
             if (roomstats[bb].tsdatasize>0)
                 fwrite(&roomstats[bb].tsdata[0], 1, roomstats[bb].tsdatasize, ooo);
         }
@@ -1109,12 +1110,20 @@ void save_game_play_ex_data(FILE *ooo)
 
 void save_game_movelist(FILE *ooo)
 {
-    fwrite(&mls[0],sizeof(MoveList), game.numcharacters + MAX_INIT_SPR + 1, ooo);
+    for (int i = 0; i < game.numcharacters + MAX_INIT_SPR + 1; ++i)
+    {
+        mls[i].WriteToFile(ooo);
+    }
+    //fwrite(&mls[0],sizeof(MoveList), game.numcharacters + MAX_INIT_SPR + 1, ooo);
 }
 
 void save_game_charextras(FILE *ooo)
 {
-    fwrite(&charextra[0],sizeof(CharacterExtras),game.numcharacters,ooo);
+    for (int i = 0; i < game.numcharacters; ++i)
+    {
+        charextra[i].WriteToFile(ooo);
+    }
+    //fwrite(&charextra[0],sizeof(CharacterExtras),game.numcharacters,ooo);
 }
 
 void save_game_palette(FILE *ooo)
@@ -1143,13 +1152,21 @@ void save_game_gui(FILE *ooo)
 {
     write_gui(ooo,guis,&game);
     putw(numAnimButs, ooo);
-    fwrite(&animbuts[0], sizeof(AnimatingGUIButton), numAnimButs, ooo);
+    for (int i = 0; i < numAnimButs; ++i)
+    {
+        animbuts[i].WriteToFile(ooo);
+    }
+    //fwrite(&animbuts[0], sizeof(AnimatingGUIButton), numAnimButs, ooo);
 }
 
 void save_game_audiocliptypes(FILE *ooo)
 {
     putw(game.audioClipTypeCount, ooo);
-    fwrite(&game.audioClipTypes[0], sizeof(AudioClipType), game.audioClipTypeCount, ooo);
+    for (int i = 0; i < game.audioClipTypeCount; ++i)
+    {
+        game.audioClipTypes[i].WriteToFile(ooo);
+    }
+    //fwrite(&game.audioClipTypes[0], sizeof(AudioClipType), game.audioClipTypeCount, ooo);
 }
 
 void save_game_thisroom(FILE *ooo)
@@ -1162,13 +1179,21 @@ void save_game_thisroom(FILE *ooo)
 
 void save_game_ambientsounds(FILE *ooo)
 {
-    fwrite (&ambient[0], sizeof(AmbientSound), MAX_SOUND_CHANNELS, ooo);
+    for (int i = 0; i < MAX_SOUND_CHANNELS; ++i)
+    {
+        ambient[i].WriteToFile(ooo);
+    }
+    //fwrite (&ambient[0], sizeof(AmbientSound), MAX_SOUND_CHANNELS, ooo);
 }
 
 void save_game_overlays(FILE *ooo)
 {
     putw(numscreenover,ooo);
-    fwrite(&screenover[0],sizeof(ScreenOverlay),numscreenover,ooo);
+    for (int i = 0; i < numscreenover; ++i)
+    {
+        screenover[i].WriteToFile(ooo);
+    }
+    //fwrite(&screenover[0],sizeof(ScreenOverlay),numscreenover,ooo);
     for (int bb=0;bb<numscreenover;bb++) {
         serialize_bitmap (screenover[bb].pic, ooo);
     }
@@ -1204,7 +1229,8 @@ void save_game_displayed_room_status(FILE *ooo)
             serialize_bitmap (raw_saved_screen, ooo);
 
         // save the current troom, in case they save in room 600 or whatever
-        fwrite(&troom,sizeof(RoomStatus),1,ooo);
+        troom.WriteToFile(ooo);
+        //fwrite(&troom,sizeof(RoomStatus),1,ooo);
         if (troom.tsdatasize>0)
             fwrite(&troom.tsdata[0],troom.tsdatasize,1,ooo);
 
@@ -1214,7 +1240,11 @@ void save_game_displayed_room_status(FILE *ooo)
 void save_game_globalvars(FILE *ooo)
 {
     putw (numGlobalVars, ooo);
-    fwrite (&globalvars[0], sizeof(InteractionVariable), numGlobalVars, ooo);
+    for (int i = 0; i < numGlobalVars; ++i)
+    {
+        globalvars[i].ReadFromFile(ooo);
+    }
+    //fwrite (&globalvars[0], sizeof(InteractionVariable), numGlobalVars, ooo);
 }
 
 void save_game_views(FILE *ooo)
@@ -1647,7 +1677,8 @@ void restore_game_room_state(FILE *ooo, const char *nametouse)
         roomstats[vv].beenhere = fgetc (ooo);
 
         if (roomstats[vv].beenhere) {
-            fread(&roomstats[vv],sizeof(RoomStatus),1,ooo);
+            //fread(&roomstats[vv],sizeof(RoomStatus),1,ooo);
+            roomstats[vv].ReadFromFile(ooo);
             if (roomstats[vv].tsdatasize>0) {
                 roomstats[vv].tsdata=(char*)malloc(roomstats[vv].tsdatasize+8);
                 fread(&roomstats[vv].tsdata[0],roomstats[vv].tsdatasize,1,ooo);
@@ -1727,12 +1758,20 @@ void restore_game_play(FILE *ooo)
 
 void restore_game_movelist(FILE *ooo)
 {
-    fread(&mls[0],sizeof(MoveList), game.numcharacters + MAX_INIT_SPR + 1, ooo);
+    for (int i = 0; i < game.numcharacters + MAX_INIT_SPR + 1; ++i)
+    {
+        mls[i].ReadFromFile(ooo);
+    }
+    //fread(&mls[0],sizeof(MoveList), game.numcharacters + MAX_INIT_SPR + 1, ooo);
 }
 
 void restore_game_charextras(FILE *ooo)
 {
-    fread(&charextra[0],sizeof(CharacterExtras),game.numcharacters,ooo);
+    for (int i = 0; i < game.numcharacters; ++i)
+    {
+        charextra[i].ReadFromFile(ooo);
+    }
+    //fread(&charextra[0],sizeof(CharacterExtras),game.numcharacters,ooo);
 }
 
 void restore_game_palette(FILE *ooo)
@@ -1770,7 +1809,11 @@ void restore_game_gui(FILE *ooo, int numGuisWas)
         export_gui_controls(vv);
 
     numAnimButs = getw(ooo);
-    fread(&animbuts[0], sizeof(AnimatingGUIButton), numAnimButs, ooo);
+    for (int i = 0; i < numAnimButs; ++i)
+    {
+        animbuts[i].ReadFromFile(ooo);
+    }
+    //fread(&animbuts[0], sizeof(AnimatingGUIButton), numAnimButs, ooo);
 }
 
 void restore_game_audiocliptypes(FILE *ooo)
@@ -1778,7 +1821,11 @@ void restore_game_audiocliptypes(FILE *ooo)
     if (getw(ooo) != game.audioClipTypeCount)
         quit("!Restore_Game: game has changed (audio types), unable to restore");
 
-    fread(&game.audioClipTypes[0], sizeof(AudioClipType), game.audioClipTypeCount, ooo);
+    for (int i = 0; i < game.audioClipTypeCount; ++i)
+    {
+        game.audioClipTypes[i].ReadFromFile(ooo);
+    }
+    //fread(&game.audioClipTypes[0], sizeof(AudioClipType), game.audioClipTypeCount, ooo);
 }
 
 void restore_game_thisroom(FILE *ooo, short *saved_light_levels, int *saved_tint_levels,
@@ -1802,7 +1849,11 @@ void restore_game_ambientsounds(FILE *ooo, int crossfadeInChannelWas, int crossf
     play.crossfading_in_channel = crossfadeInChannelWas;
     play.crossfading_out_channel = crossfadeOutChannelWas;
 
-    fread(&ambient[0], sizeof(AmbientSound), MAX_SOUND_CHANNELS, ooo);
+    for (int i = 0; i < MAX_SOUND_CHANNELS; ++i)
+    {
+        ambient[i].ReadFromFile(ooo);
+    }
+    //fread(&ambient[0], sizeof(AmbientSound), MAX_SOUND_CHANNELS, ooo);
 
     for (bb = 1; bb < MAX_SOUND_CHANNELS; bb++) {
         if (ambient[bb].channel == 0)
@@ -1817,7 +1868,11 @@ void restore_game_ambientsounds(FILE *ooo, int crossfadeInChannelWas, int crossf
 void restore_game_overlays(FILE *ooo)
 {
     numscreenover = getw(ooo);
-    fread(&screenover[0],sizeof(ScreenOverlay),numscreenover,ooo);
+    for (int i = 0; i < numscreenover; ++i)
+    {
+        screenover[i].ReadFromFile(ooo);
+    }
+    //fread(&screenover[0],sizeof(ScreenOverlay),numscreenover,ooo);
     for (int bb=0;bb<numscreenover;bb++) {
         if (screenover[bb].pic != NULL)
         {
@@ -1869,7 +1924,8 @@ void restore_game_displayed_room_status(FILE *ooo, block *newbscene)
         if (troom.tsdata != NULL)
             free (troom.tsdata);
         // get the current troom, in case they save in room 600 or whatever
-        fread(&troom,sizeof(RoomStatus),1,ooo);
+        troom.ReadFromFile(ooo);
+        //fread(&troom,sizeof(RoomStatus),1,ooo);
         if (troom.tsdatasize > 0) {
             troom.tsdata=(char*)malloc(troom.tsdatasize+5);
             fread(&troom.tsdata[0],troom.tsdatasize,1,ooo);
@@ -1885,7 +1941,10 @@ void restore_game_globalvars(FILE *ooo)
     if (getw (ooo) != numGlobalVars) 
         quit("!Game has been modified since save; unable to restore game (GM01)");
 
-    fread (&globalvars[0], sizeof(InteractionVariable), numGlobalVars, ooo);
+    for (int i = 0; i < numGlobalVars; ++i)
+    {
+        globalvars[i].ReadFromFile(ooo);
+    }
 }
 
 void restore_game_views(FILE *ooo)

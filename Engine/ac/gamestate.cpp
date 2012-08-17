@@ -18,7 +18,7 @@ extern GameSetupStruct game;
 
 void GameState::ReadFromFile(FILE *f)
 {
-    char padding[3]; // to align data
+    char padding[3] = {0,0,0}; // to align data
 
     score = getw(f);
     usedmode = getw(f);
@@ -227,7 +227,7 @@ void GameState::WriteToFile(FILE *f)
     // which aligns data on its own. Here we have to do that manually.
     //
     //-------------------------------------------------
-    char padding[3]; // to align data
+    char padding[3] = {0,0,0}; // to align data
 
     putw(score, f);
     putw(usedmode, f);

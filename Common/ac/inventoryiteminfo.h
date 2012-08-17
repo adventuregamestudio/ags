@@ -10,6 +10,7 @@ struct InventoryItemInfo {
     char flags;
 
     void ReadFromFile(FILE *fp);
+    void WriteToFile(FILE *fp);
 };
 
 #endif // __AC_INVENTORYITEMINFO_H

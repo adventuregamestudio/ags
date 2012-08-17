@@ -13,6 +13,7 @@ struct ViewFrame {
     ViewFrame() { pic = 0; xoffs = 0; yoffs = 0; speed = 0; }
 
     void ReadFromFile(FILE *fp);
+    void WriteToFile(FILE *fp);
 };
 
 #define LOOPFLAG_RUNNEXTLOOP 1

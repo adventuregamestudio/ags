@@ -203,7 +203,9 @@ void GameSetupStruct::read_interaction_scripts(FILE*iii, GAME_STRUCT_READ_DATA &
         }
 
         numGlobalVars = getw(iii);
-        fread(globalvars, sizeof(InteractionVariable), numGlobalVars, iii);
+        for (bb = 0; bb < numGlobalVars; bb++) {
+            globalvars[bb].ReadFromFile(iii);
+        }
     }
 }
 
@@ -318,6 +320,7 @@ void GameSetupStruct::read_customprops(FILE*iii, GAME_STRUCT_READ_DATA &read_dat
 
 void GameSetupStruct::read_audio(FILE*iii, GAME_STRUCT_READ_DATA &read_data)
 {
+    int i;
     if (read_data.filever >= 41)
     {
         audioClipTypeCount = getw(iii);
@@ -326,10 +329,20 @@ void GameSetupStruct::read_audio(FILE*iii, GAME_STRUCT_READ_DATA &read_data)
             quit("LoadGame: too many audio types");
 
         audioClipTypes = (AudioClipType*)malloc(audioClipTypeCount * sizeof(AudioClipType));
-        fread(&audioClipTypes[0], sizeof(AudioClipType), audioClipTypeCount, iii);
+        //fread(&audioClipTypes[0], sizeof(AudioClipType), audioClipTypeCount, iii);
+        for (i = 0; i < audioClipTypeCount; ++i)
+        {
+            audioClipTypes[i].ReadFromFile(iii);
+        }
+
         audioClipCount = getw(iii);
         audioClips = (ScriptAudioClip*)malloc(audioClipCount * sizeof(ScriptAudioClip));
-        fread(&audioClips[0], sizeof(ScriptAudioClip), audioClipCount, iii);
+        //fread(&audioClips[0], sizeof(ScriptAudioClip), audioClipCount, iii);
+        for (i = 0; i < audioClipCount; ++i)
+        {
+            audioClips[i].ReadFromFile(iii);
+        }
+        
         //play.score_sound = getw(iii);
         read_data.score_sound = getw(iii);
     }
@@ -397,15 +410,22 @@ void GameSetupStruct::read_room_names(FILE*iii, GAME_STRUCT_READ_DATA &read_data
 void GameSetupStruct::ReadFromSaveGame(FILE *f, char* gswas, ccScript* compsc, CharacterInfo* chwas,
                                        WordsDictionary *olddict, char** mesbk)
 {
+    int bb;
     // [IKM] No padding here! -- this data was originally read exactly as done here
     //
-
-    fread(&invinfo[0], sizeof(InventoryItemInfo), numinvitems, f);
-    fread(&mcurs[0], sizeof(MouseCursor), numcursors, f);
+    //fread(&invinfo[0], sizeof(InventoryItemInfo), numinvitems, f);
+    for (bb = 0; bb < numinvitems; bb++)
+    {
+        invinfo[bb].ReadFromFile(f);
+    }
+    //fread(&mcurs[0], sizeof(MouseCursor), numcursors, f);
+    for (bb = 0; bb < numcursors; bb++)
+    {
+        mcurs[bb].ReadFromFile(f);
+    }
 
     if (invScripts == NULL)
     {
-        int bb;
         for (bb = 0; bb < numinvitems; bb++)
             fread (&intrInv[bb]->timesRun[0], sizeof (int), MAX_NEWINTERACTION_EVENTS, f);
         for (bb = 0; bb < numcharacters; bb++)
@@ -422,16 +442,29 @@ void GameSetupStruct::ReadFromSaveGame(FILE *f, char* gswas, ccScript* compsc, C
     fread(&options[0], sizeof(int), OPT_HIGHESTOPTION+1, f);
     options[OPT_LIPSYNCTEXT] = fgetc(f);
 
-    fread(&chars[0],sizeof(CharacterInfo),numcharacters,f);
+    //fread(&chars[0],sizeof(CharacterInfo),numcharacters,f);
+    for (bb = 0; bb < numcharacters; bb++)
+    {
+        chars[bb].ReadFromFile(f);
+    }
 }
 
 void GameSetupStruct::WriteForSaveGame(FILE *f)
 {
     // [IKM] No padding here! -- this data was originally written exactly as done here
     //
+    int bb;
 
-    fwrite(&invinfo[0], sizeof(InventoryItemInfo), numinvitems, f);
-    fwrite(&mcurs[0], sizeof(MouseCursor), numcursors, f);
+    //fwrite(&invinfo[0], sizeof(InventoryItemInfo), numinvitems, f);
+    for (bb = 0; bb < numinvitems; bb++)
+    {
+        invinfo[bb].WriteToFile(f);
+    }
+    //fwrite(&mcurs[0], sizeof(MouseCursor), numcursors, f);
+    for (bb = 0; bb < numcursors; bb++)
+    {
+        mcurs[bb].WriteToFile(f);
+    }
 
     if (invScripts == NULL)
     {
@@ -445,7 +478,11 @@ void GameSetupStruct::WriteForSaveGame(FILE *f)
     fwrite (&options[0], sizeof(int), OPT_HIGHESTOPTION+1, f);
     fputc (options[OPT_LIPSYNCTEXT], f);
 
-    fwrite(&chars[0],sizeof(CharacterInfo),numcharacters,f);
+    //fwrite(&chars[0],sizeof(CharacterInfo),numcharacters,f);
+    for (bb = 0; bb < numcharacters; bb++)
+    {
+        chars[bb].WriteToFile(f);
+    }
 }
 
 //=============================================================================

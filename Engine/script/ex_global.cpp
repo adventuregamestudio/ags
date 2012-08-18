@@ -12,8 +12,8 @@
 
 #include "script/symbol_registry.h"
 #include <string.h>
-#include "wgt2allg.h"
-#include "acrun/ac_gamestate.h"
+#include "util/wgt2allg.h"
+#include "ac/gamestate.h"
 
 void register_global_script_functions()
 {

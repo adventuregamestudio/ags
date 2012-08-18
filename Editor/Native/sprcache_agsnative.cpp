@@ -2,21 +2,15 @@
 // Implementation from sprcache.cpp specific to AGS.Native library
 //
 
-// Headers, as they are in sprcache.cpp
 #ifdef _MANAGED
 // ensure this doesn't get compiled to .NET IL
 #pragma unmanaged
 #pragma warning (disable: 4996 4312)  // disable deprecation warnings
 #endif
 
-//#include "wgt2allg_nofunc.h"
-#include "wgt2allg.h"
-//#include "acroom_nofunc.h"
-#include "ac/ac_gamesetupstruct.h"
-#include "sprcache.h"
-#include "compress.h"
-#include "bigend.h"
-//
+#include "util/wgt2allg.h"
+#include "ac/common_defines.h"
+#include "ac/spritecache.h"
 
 //=============================================================================
 // AGS.Native-specific implementation split out of sprcache.cpp

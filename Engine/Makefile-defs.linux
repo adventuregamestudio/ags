@@ -1,0 +1,29 @@
+INCDIR = ../Engine ../Common ../Common/libinclude ../Plugins
+LIBDIR =
+CFLAGS = -O2 -g -fpermissive -fsigned-char -Wfatal-errors -DALLEGRO_STATICLINK -DTHIS_IS_THE_ENGINE -DLINUX_VERSION -DDISABLE_MPEG_AUDIO -DBUILTIN_PLUGINS -DRTLD_NEXT $(shell pkg-config --cflags freetype2)
+CXXFLAGS = -fno-rtti -Wno-write-strings
+ASFLAGS =
+LIBS = -rdynamic $(shell allegro-config --libs) -laldmb -ldumb -Wl,-Bdynamic -ltheora -logg 
+ifeq ($(USE_TREMOR), 1)
+  LIBS += -lvorbisidec
+  CFLAGS += -DUSE_TREMOR
+else
+  LIBS += -lvorbis
+endif
+LIBS += -lvorbisfile -lfreetype -logg -ldl -lpthread -lm -lc -lstdc++
+
+PREFIX = /usr/local
+CC = gcc
+CXX = g++
+AR = ar
+CFLAGS   := $(addprefix -I,$(INCDIR)) $(CFLAGS)
+CXXFLAGS := $(CFLAGS) $(CXXFLAGS)
+ASFLAGS  := $(CFLAGS) $(ASFLAGS)
+LDFLAGS  := -Wl,--as-needed $(addprefix -L,$(LIBDIR))
+
+BASE_PLATFORM = \
+platform/linux/acpllnx.o \
+../PSP/launcher/pe.o
+
+COMMON_PLATFORM = \
+../Common/platform/bigend/bigend.o

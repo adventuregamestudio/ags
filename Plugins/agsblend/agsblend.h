@@ -1,7 +1,7 @@
 #ifndef AGS_BLEND_H
 #define AGS_BLEND_H
 
-#include "../../Engine/agsplugin.h"
+#include "plugin/agsplugin.h"
 
 namespace agsblend
 {

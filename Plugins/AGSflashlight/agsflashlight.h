@@ -1,7 +1,7 @@
 #ifndef AGS_FLASHLIGHT_H
 #define AGS_FLASHLIGHT_H
 
-#include "../../Engine/agsplugin.h"
+#include "plugin/agsplugin.h"
 
 namespace agsflashlight
 {

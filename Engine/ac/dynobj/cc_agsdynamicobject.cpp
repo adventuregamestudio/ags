@@ -1,6 +1,6 @@
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
-#include "ac/ac_common.h"               // quit()
+#include "ac/common.h"               // quit()
 
 // *** The script serialization routines for built-in types
 

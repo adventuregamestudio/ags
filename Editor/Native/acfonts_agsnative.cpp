@@ -2,20 +2,13 @@
 // Implementation from acfonts.cpp specific to AGS.Native library
 //
 
-// Headers, as they are in acfonts.cpp
 #pragma unmanaged
+
 #ifndef USE_ALFONT
 #define USE_ALFONT
 #endif
-//#include "wgt2allg_nofunc.h"
-#include "wgt2allg.h"
-//#include "acroom_nofunc.h"
-//#include "acruntim.h"
-#include "ac/ac_gamesetupstruct.h"
-
-#ifdef USE_ALFONT
-#include "alfont.h"
-#endif
+#include "util/wgt2allg.h"
+#include "ac/gamesetupstruct.h"
 
 //=============================================================================
 // AGS.Native-specific implementation split out of acfonts.cpp

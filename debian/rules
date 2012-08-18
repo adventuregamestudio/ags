@@ -1,18 +1,29 @@
 #!/usr/bin/make -f
 
-VERSION = $(shell dpkg-parsechangelog | grep -x "Version:.*" | sed 's@Version: \(.\+\)-.\+@\1@')
+# Keep this list of folders that are not included in the
+# orig syncronized with the one in debian/source/local-options!
+ORIG_CONTENT := $(shell git ls-tree --name-only HEAD | grep -Ev '^(Android|Editor|iOS|OSX|Windows|debian|\.git.*)')
+VERSION := $(shell dpkg-parsechangelog | grep -x "Version:.*" | sed 's@Version: \(.\+\)-.\+@\1@')
+MAKE = make --directory=Engine
 
 %:
-	dh $@ 
+	dh $@
 
 override_dh_auto_clean:
-	$(MAKE) --directory=Engine --file=Makefile.linux clean
+	$(MAKE) clean
 
 override_dh_auto_build:
-	$(MAKE) --directory=Engine --file=Makefile.linux
+	$(MAKE)
+
+override_dh_auto_install:
+	$(MAKE) install PREFIX=$(CURDIR)/debian/tmp/usr
 
 override_dh_clean:
 	dh_clean --exclude=Editor/*
 
 get-orig-source:
-	git archive --prefix=ags_$(VERSION)/ --format=tar HEAD Common Engine Manual Plugins PSP README.md | gzip > ../ags_$(VERSION).orig.tar.gz
+	git archive --prefix=ags_$(VERSION)/ --format=tar HEAD $(ORIG_CONTENT) | gzip > ../ags_$(VERSION).orig.tar.gz
+
+.PHONY: override_dh_strip
+override_dh_strip:
+	dh_strip --dbg-package=ags-dbg

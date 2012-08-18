@@ -1,7 +1,7 @@
 
 #include "ac/dynobj/cc_inventory.h"
 #include "ac/dynobj/scriptinvitem.h"
-#include "ac/ac_characterinfo.h"
+#include "ac/characterinfo.h"
 
 extern ScriptInvItem scrInv[MAX_INV];
 

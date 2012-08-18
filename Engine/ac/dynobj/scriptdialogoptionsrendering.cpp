@@ -1,5 +1,5 @@
 
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/dynobj/scriptdialogoptionsrendering.h"
 
 // return the type name of the object

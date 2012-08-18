@@ -6,9 +6,9 @@
 #include "cc_internallist.h"    // ccInternalList
 #include "cs_parser_common.h"
 #include "cc_symboltable.h"
-#include "cs/cc_options.h"
-#include "cs/cs_common.h"
-#include "cs/cc_error.h"
+#include "script/cc_options.h"
+#include "script/script_common.h"
+#include "script/cc_error.h"
 #include "cc_variablesymlist.h"
 
 #include "fmem.h"

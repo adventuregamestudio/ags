@@ -1,13 +1,13 @@
 
-#include "wgt2allg.h"
+#include "util/wgt2allg.h"
 #include "ac/dynobj/scriptdrawingsurface.h"
-#include "ac/ac_roomstruct.h"
-#include "sprcache.h"
-#include "acrun/ac_rundefines.h"
-#include "ac/ac_common.h"
-#include "acmain/ac_drawingsurface.h"
-#include "acrun/ac_gamestate.h"
-#include "ac/ac_gamesetupstruct.h"
+#include "ac/roomstruct.h"
+#include "ac/spritecache.h"
+#include "ac/runtime_defines.h"
+#include "ac/common.h"
+#include "ac/drawingsurface.h"
+#include "ac/gamestate.h"
+#include "ac/gamesetupstruct.h"
 
 extern roomstruct thisroom;
 extern SpriteCache spriteset;

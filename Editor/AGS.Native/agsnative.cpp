@@ -22,31 +22,25 @@ int antiAliasFonts = 0;
 bool ShouldAntiAliasText() { return (antiAliasFonts != 0); }
 
 int mousex, mousey;
-#include "misc.h"
-//#include "wgt2allg_func.h"
-#include "wgt2allg.h"
-#include "sprcache.h"
-//#include "acroom_func.h"
-//#include "acroom_savefunc.h"
-#include "ac/ac_actiontype.h"
-#include "ac/ac_common.h"
-#include "ac/ac_compress.h"
-#include "ac/ac_gamesetupstruct.h"
-#include "ac/ac_object.h"
-#include "ac/ac_roomstruct.h"
-#include "ac/ac_script.h"
-#include "ac/ac_view.h"
-//#include "acgui.h"
-#include "acgui/ac_guimain.h"
-#include "acgui/ac_guiinv.h"
-#include "acgui/ac_guibutton.h"
-#include "acgui/ac_guilabel.h"
-#include "acgui/ac_guitextbox.h"
-#include "acgui/ac_guilistbox.h"
-#include "acgui/ac_guislider.h"
-
-//#include "cs/cs_internal.h" // fputstring, etc
-#include "cs/cs_utils.h"    // fputstring, etc
+#include "util/misc.h"
+#include "util/wgt2allg.h"
+#include "ac/spritecache.h"
+#include "ac/actiontype.h"
+#include "ac/common.h"
+#include "ac/roomstruct.h"
+#include "ac/scriptmodule.h"
+#include "ac/view.h"
+#include "ac/dialogtopic.h"
+#include "ac/gamesetupstruct.h"
+#include "gui/guimain.h"
+#include "gui/guiinv.h"
+#include "gui/guibutton.h"
+#include "gui/guilabel.h"
+#include "gui/guitextbox.h"
+#include "gui/guilistbox.h"
+#include "gui/guislider.h"
+#include "util/compress.h"
+#include "util/string_utils.h"    // fputstring, etc
 
 extern void Cstretch_blit(BITMAP *src, BITMAP *dst, int sx, int sy, int sw, int sh, int dx, int dy, int dw, int dh);
 extern void Cstretch_sprite(BITMAP *dst, BITMAP *src, int x, int y, int w, int h);
@@ -1161,9 +1155,11 @@ void drawBlockOfColour(int hdc, int x,int y, int width, int height, int colNum)
   wfreeblock(palbmp);
 }
 
+/* [IKM] 2012-07-08: use the Common implementation
 void NewInteractionCommand::remove () 
 {
 }
+*/
 
 void new_font () {
   wloadfont_size(thisgame.numfonts, 0);

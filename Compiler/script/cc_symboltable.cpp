@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "cc_symboltable.h"
-#include "cs/cs_common.h"      // macro definitions
+#include "script/script_common.h"      // macro definitions
 #include "cc_symboldef.h"   // macro definitions
 
 

@@ -13,7 +13,7 @@
 #ifndef __CC_DYNAMICOBJECT_H
 #define __CC_DYNAMICOBJECT_H
 
-#include "platform/file.h"
+#include "util/file.h"
 
 
 // OBJECT-BASED SCRIPTING RUNTIME FUNCTIONS

@@ -17,4 +17,6 @@
 #include "ac/dynobj/cc_object.h"
 #include "ac/dynobj/cc_region.h"
 
+#include "ac/dynobj/cc_serializer.h"
+
 #endif // __AGS_EE_DYNOBJ__ALLDYNAMICCLASSES_H

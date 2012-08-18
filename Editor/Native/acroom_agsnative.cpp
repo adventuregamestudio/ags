@@ -2,17 +2,8 @@
 // Implementation from acroom.cpp specific to AGS.Native library
 //
 
-// Headers, as they are in acroom.cpp
-
-#include <stdio.h>  // needed for bigend
-// MACPORT FIX: endian support
-#include "bigend.h"
-#include "misc.h"
-//#include "wgt2allg_nofunc.h"
-#include "wgt2allg.h"
-//#include "acroom_func.h"
-#include "ac/ac_roomstruct.h"
-//
+#include "util/wgt2allg.h"
+#include "ac/roomstruct.h"
 
 //=============================================================================
 // AGS.Native-specific implementation split out of acroom.cpp

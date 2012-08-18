@@ -560,6 +560,14 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="core"
+				>
+				<File
+					RelativePath="..\..\Common\core\types.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 	</Files>
 	<Globals>

@@ -347,23 +347,28 @@ public class AgsEngine extends Activity
 					if (!ignoreNextActionUp_Menu)
 						openOptionsMenu();
 					ignoreNextActionUp_Menu = false;
+					return isInGame;
 				}
 				else if (key == KeyEvent.KEYCODE_BACK)
 				{
 					if (!ignoreNextActionUp_Back)
 						glue.keyboardEvent(key, 0, ev.isShiftPressed());
 					ignoreNextActionUp_Back = false;
+					return isInGame;
 				}
-				else if (
-					   (key == KeyEvent.KEYCODE_MENU)
+
+				if (   (key == KeyEvent.KEYCODE_MENU)
 					|| (key == KeyEvent.KEYCODE_VOLUME_UP)
 					|| (key == KeyEvent.KEYCODE_VOLUME_DOWN)
 					|| (key == 164) // KEYCODE_VOLUME_MUTE
+					|| (key == KeyEvent.KEYCODE_SEARCH)
 					|| (key == KeyEvent.KEYCODE_ALT_LEFT)
 					|| (key == KeyEvent.KEYCODE_ALT_RIGHT)
 					|| (key == KeyEvent.KEYCODE_SHIFT_LEFT)
 					|| (key == KeyEvent.KEYCODE_SHIFT_RIGHT))
+				{
 					return isInGame;
+				}
 
 				glue.keyboardEvent(key, ev.getUnicodeChar(), ev.isShiftPressed());
 				break;

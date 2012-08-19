@@ -1,5 +1,5 @@
 APP_PROJECT_PATH := $(call my-dir)/..
-APP_MODULES      := agsengine pe ags_snowrain agsblend agsflashlight agslua
+APP_MODULES      := agsengine pe ags_snowrain agsblend agsflashlight agslua agsspritefont
 APP_STL          := gnustl_static
 APP_OPTIM        := release
 APP_GNUSTL_FORCE_CPP_FEATURES := exceptions

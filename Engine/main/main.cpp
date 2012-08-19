@@ -34,6 +34,10 @@
 #include "platform/base/agsplatformdriver.h"
 #include "ac/route_finder.h"
 
+#ifdef _DEBUG
+#include "test/test_all.h"
+#endif
+
 #ifdef MAC_VERSION
 char dataDirectory[512];
 char appDirectory[512];
@@ -296,6 +300,10 @@ int malloc_fail_handler(size_t amountwanted) {
 #endif
 
 int main(int argc,char*argv[]) { 
+
+#ifdef _DEBUG
+    Test_DoAllTests();
+#endif
     
     int res;
     main_init();

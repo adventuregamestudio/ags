@@ -1113,6 +1113,18 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="test"
+				>
+				<File
+					RelativePath="..\..\Engine\test\test_all.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\test\test_string.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -1992,6 +2004,22 @@
 				>
 				<File
 					RelativePath="..\..\Engine\device\mousew32.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="test"
+				>
+				<File
+					RelativePath="..\..\Engine\test\test_all.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\test\test_internal.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\test\test_string.h"
 					>
 				</File>
 			</Filter>

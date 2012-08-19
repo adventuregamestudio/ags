@@ -298,6 +298,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\util\string.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\util\string_utils.cpp"
 					>
 				</File>
@@ -520,7 +524,15 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\util\math.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\util\misc.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\string.h"
 					>
 				</File>
 				<File

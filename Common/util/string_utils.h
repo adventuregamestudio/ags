@@ -29,7 +29,7 @@ void split_lines_leftright(const char *todis, int wii, int fonnt);
 
 //=============================================================================
 
-void fputstring(char *sss, FILE *ddd);
+void fputstring(const char *sss, FILE *ddd);
 void fgetstring_limit(char *sss, FILE *ddd, int bufsize);
 void fgetstring(char *sss, FILE *ddd);
 

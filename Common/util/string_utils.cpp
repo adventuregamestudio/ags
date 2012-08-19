@@ -1,5 +1,6 @@
 
 #include <string.h>
+#include "ac/common.h"
 #include "gui/guidefines.h"
 #include "util/string_utils.h"
 
@@ -17,7 +18,6 @@ extern char lines[MAXLINE][200];
 extern int  numlines;
 
 extern int wgettextwidth_compensate(const char *tex, int font);
-extern void quit(char * message) ;
 
 // Break up the text into lines, using normal Western left-right style
 void split_lines_leftright(const char *todis, int wii, int fonnt) {
@@ -95,7 +95,7 @@ void split_lines_leftright(const char *todis, int wii, int fonnt) {
 
 //=============================================================================
 
-void fputstring(char *sss, FILE *ddd) {
+void fputstring(const char *sss, FILE *ddd) {
     int b = 0;
     while (sss[b] != 0) {
         fputc(sss[b], ddd);

@@ -15,6 +15,9 @@
 #include <stdlib.h>
 #include "resource/resource.h"
 #include "gfx/gfxfilter.h"
+#include "util/string.h"
+
+using AGS::Common::CString;
 
 #define AL_ID(a,b,c,d)     (((a)<<24) | ((b)<<16) | ((c)<<8) | (d))
 
@@ -29,9 +32,9 @@
 #define MIDI_WIN32MAPPER         AL_ID('W','3','2','M')
 
 extern "C" HWND allegro_wnd;
-extern int  INIreadint(const char*, const char*, int=0);
+extern int  INIreadint(const CString&, const CString &, int=0);
 extern void fgetstring_limit (char *, FILE *, int);
-extern char* ac_config_file;
+extern CString ac_config_file;
 const char*setupstring, *enginever;
 int curscrn=-1,csendto,curdigi=0,curmidi=0,windowed=0,useletterbox = 0;
 int defaultRes = -1, mustBeLetterbox = 0, gameColDep = 0;

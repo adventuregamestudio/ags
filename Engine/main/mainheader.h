@@ -52,6 +52,6 @@ extern "C" void selectLatestSavegame();
 extern bool psp_load_latest_savegame;
 #endif
 
-extern "C" int csetlib(char *namm, char *passw);
+extern "C" int csetlib(const char *namm, const char *passw);
 
 #endif // __AGS_EE_MAIN__MAINHEADER_H

@@ -9,8 +9,10 @@
 #include "ac/string.h"
 #include "gui/guimain.h"
 
+using AGS::Common::CString;
+
 extern int guis_need_update;
-extern char saveGameDirectory[260];
+extern CString saveGameDirectory;
 extern GameState play;
 extern GUIMain*guis;
 extern GameSetupStruct game;
@@ -70,7 +72,7 @@ int ListBox_FillSaveGameList(GUIListBox *listbox) {
   char buff[200];
 
   char searchPath[260];
-  sprintf(searchPath, "%s""agssave.*", saveGameDirectory);
+  sprintf(searchPath, "%s""agssave.*", saveGameDirectory.GetCStr());
 
   int don = al_findfirst(searchPath, &ffb, FA_SEARCH);
   while (!don) {

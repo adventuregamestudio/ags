@@ -21,9 +21,9 @@ public:
 
     virtual bool Initialize() { return false; }
     virtual void Shutdown() { }
-    virtual bool SendMessageToEditor(const char *message) { return false; }
+    virtual bool SendMessageToEditor(const CString &message) { return false; }
     virtual bool IsMessageAvailable() { return false; }
-    virtual char* GetNextMessage() { return NULL; }
+    virtual Common::CString GetNextMessage() { return NULL; }
 };
 
 #endif // __AC_DUMMYAGSDEBUGGER_H

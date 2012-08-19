@@ -56,6 +56,8 @@
 #include "script/script_runtime.h"
 #include "ac/spritecache.h"
 
+using AGS::Common::CString;
+
 #if defined(LINUX_VERSION) || defined(MAC_VERSION)
 #include <sys/stat.h>                      //mkdir
 #endif
@@ -163,7 +165,7 @@ MoveList *mls = NULL;
 
 //=============================================================================
 
-char saveGameDirectory[260] = "./";
+CString saveGameDirectory = "./";
 int want_quit = 0;
 
 const char* sgnametemplate = "agssave.%03d";
@@ -357,7 +359,7 @@ int Game_SetSaveGameDirectory(const char *newFolder) {
 
     // copy the Restart Game file, if applicable
     char restartGamePath[260];
-    sprintf(restartGamePath, "%s""agssave.%d%s", saveGameDirectory, RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix);
+    sprintf(restartGamePath, "%s""agssave.%d%s", saveGameDirectory.GetCStr(), RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix);
     FILE *restartGameFile = fopen(restartGamePath, "rb");
     if (restartGameFile != NULL) {
         long fileSize = filelength(fileno(restartGameFile));
@@ -372,7 +374,7 @@ int Game_SetSaveGameDirectory(const char *newFolder) {
         free(mbuffer);
     }
 
-    strcpy(saveGameDirectory, newSaveGameDir);
+    saveGameDirectory = newSaveGameDir;
     return 1;
 }
 
@@ -987,7 +989,7 @@ long write_screen_shot_for_vista(FILE *ooo, block screenshot)
 {
     long fileSize = 0;
     char tempFileName[MAX_PATH];
-    sprintf(tempFileName, "%s""_tmpscht.bmp", saveGameDirectory);
+    sprintf(tempFileName, "%s""_tmpscht.bmp", saveGameDirectory.GetCStr());
 
     save_bitmap(tempFileName, screenshot, palette);
 
@@ -1022,7 +1024,7 @@ void save_game_screenshot(FILE *ooo, block &screenshot)
 void save_game_header(FILE *ooo)
 {
     fputstring(ACI_VERSION_TEXT, ooo);
-    fputstring(usetup.main_data_filename, ooo);
+    fputstring(usetup.main_data_filename.GetCStr(), ooo);
 }
 
 void save_game_head_dynamic_values(FILE *ooo)

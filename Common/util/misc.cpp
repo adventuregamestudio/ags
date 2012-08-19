@@ -32,8 +32,11 @@
 
 #if defined(MAC_VERSION) || defined(WINDOWS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
 #include <string.h>
+
+using AGS::Common::CString;
+
 /* File Name Concatenator basically on Windows / DOS */
-char *ci_find_file(char *dir_name, char *file_name)
+CString ci_find_file(const char *dir_name, const char *file_name)
 {
   char  *diamond = NULL;
 
@@ -54,7 +57,7 @@ char *ci_find_file(char *dir_name, char *file_name)
 
 #else
 /* Case Insensitive File Find */
-char *ci_find_file(char *dir_name, char *file_name)
+char *ci_find_file(const char *dir_name, const char *file_name)
 {
   struct stat   statbuf;
   struct dirent *entry = NULL;
@@ -148,7 +151,7 @@ char *ci_find_file(char *dir_name, char *file_name)
 
 
 /* Case Insensitive fopen */
-FILE *ci_fopen(char *file_name, const char *mode)
+FILE *ci_fopen(const char *file_name, const char *mode)
 {
 #if defined(WINDOWS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
   // Don't pass a NULL pointer to newlib on the PSP.

@@ -32,6 +32,8 @@
 #include "script/script_runtime.h"
 #include "util/string_utils.h"
 
+using AGS::Common::CString;
+
 extern GameSetupStruct game;
 extern GameState play;
 extern roomstruct thisroom;
@@ -382,15 +384,15 @@ void cancel_all_scripts() {
     if (roominst!=NULL) ccAbortInstance(roominst);*/
 }
 
-void get_script_name(ccInstance *rinst, char *curScrName) {
+CString get_script_name(ccInstance *rinst) {
     if (rinst == NULL)
-        strcpy (curScrName, "Not in a script");
+        return "Not in a script";
     else if (rinst->instanceof == gamescript)
-        strcpy (curScrName, "Global script");
+        return "Global script";
     else if (rinst->instanceof == thisroom.compiled_script)
-        sprintf (curScrName, "Room %d script", displayed_room);
+        return CString::MakeString("Room %d script", displayed_room);
     else
-        strcpy (curScrName, "Unknown script");
+        return "Unknown script";
 }
 
 //=============================================================================

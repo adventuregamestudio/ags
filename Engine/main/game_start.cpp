@@ -33,6 +33,8 @@
 #include "main/game_start.h"
 #include "script/script.h"
 
+using AGS::Common::CString;
+
 extern int our_eip, displayed_room;
 extern const char *load_game_errors[9];
 extern volatile char want_exit, abort_engine;
@@ -40,7 +42,7 @@ extern unsigned int load_new_game;
 extern GameSetupStruct game;
 extern GameState play;
 extern volatile int timerloop;
-extern const char *loadSaveGameOnStartup;
+extern CString loadSaveGameOnStartup;
 extern ccInstance *moduleInst[MAX_SCRIPT_MODULES];
 extern int numScriptModules;
 extern CharacterInfo*playerchar;

@@ -2,9 +2,13 @@
 #ifndef __AC_COMMON_H
 #define __AC_COMMON_H
 
+#include "util/string.h"
+
+using namespace AGS; // FIXME later
+
 // quit() and update_polled_stuff_if_runtime() are the project-dependent functions,
 // they are defined both in Engine.App and AGS.Native.
-void quit(char *);
+void quit(const Common::CString &quit_message);
 void update_polled_stuff_if_runtime();
 
 extern char *croom_h_copyright;

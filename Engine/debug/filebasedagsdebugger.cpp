@@ -3,7 +3,9 @@
 #include "debug/filebasedagsdebugger.h"
 #include "ac/file.h"                     // filelength()
 
-const char* SENT_MESSAGE_FILE_NAME = "dbgrecv.tmp";
+using AGS::Common::CString;
+
+const CString SENT_MESSAGE_FILE_NAME = "dbgrecv.tmp";
 
 bool FileBasedAGSDebugger::Initialize()
 {
@@ -18,7 +20,7 @@ void FileBasedAGSDebugger::Shutdown()
 {
 }
 
-bool FileBasedAGSDebugger::SendMessageToEditor(const char *message) 
+bool FileBasedAGSDebugger::SendMessageToEditor(const CString &message) 
 {
     while (exists(SENT_MESSAGE_FILE_NAME))
     {
@@ -26,7 +28,7 @@ bool FileBasedAGSDebugger::SendMessageToEditor(const char *message)
     }
 
     FILE *outt = fopen(SENT_MESSAGE_FILE_NAME, "wb");
-    fprintf(outt, message);
+    fprintf(outt, message.GetCStr());
     fclose(outt);
     return true;
 }
@@ -36,7 +38,7 @@ bool FileBasedAGSDebugger::IsMessageAvailable()
     return (exists("dbgsend.tmp") != 0);
 }
 
-char* FileBasedAGSDebugger::GetNextMessage()
+CString FileBasedAGSDebugger::GetNextMessage()
 {
     FILE *inn = fopen("dbgsend.tmp", "rb");
     if (inn == NULL)

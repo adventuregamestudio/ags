@@ -10,6 +10,8 @@
 #include "ac/tree_map.h"
 #include "util/misc.h"
 
+using AGS::Common::CString;
+
 extern GameSetup usetup;
 extern GameSetupStruct game;
 extern GameState play;
@@ -28,7 +30,6 @@ void close_translation () {
 }
 
 bool init_translation (const char *lang) {
-    char *transFileLoc;
 
     if (lang == NULL) {
         sprintf(transFileName, "default.tra");
@@ -37,10 +38,9 @@ bool init_translation (const char *lang) {
         sprintf(transFileName, "%s.tra", lang);
     }
 
-    transFileLoc = ci_find_file(usetup.data_files_dir, transFileName);
+    CString transFileLoc = ci_find_file(usetup.data_files_dir, transFileName);
 
     FILE *language_file = clibfopen(transFileLoc, "rb");
-    free(transFileLoc);
 
     if (language_file == NULL) 
     {

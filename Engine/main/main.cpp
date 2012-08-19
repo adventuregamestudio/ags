@@ -38,12 +38,14 @@
 #include "test/test_all.h"
 #endif
 
+using AGS::Common::CString;
+
 #ifdef MAC_VERSION
-char dataDirectory[512];
-char appDirectory[512];
+CString dataDirectory[512];
+CString appDirectory[512];
 extern "C"
 {
-    int osx_sys_question(const char *msg, const char *but1, const char *but2);
+    int osx_sys_question(const CString &msg, const CString &but1, const CString &but2);
 }
 #endif
 
@@ -73,7 +75,6 @@ extern int convert_16bit_bgr;
 extern int display_fps;
 extern int editor_debugging_enabled;
 extern int editor_debugging_initialized;
-extern char editor_debugger_instance_token[100];
 
 
 // Startup flags, set from parameters to engine
@@ -81,7 +82,7 @@ int datafile_argv=0, change_to_game_dir = 0, force_window = 0;
 int override_start_room = 0, force_16bit = 0;
 bool justRegisterGame = false;
 bool justUnRegisterGame = false;
-const char *loadSaveGameOnStartup = NULL;
+CString loadSaveGameOnStartup;
 
 
 #if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
@@ -93,9 +94,9 @@ int psp_clear_cache_on_room_change = 0;
 
 int psp_midi_preload_patches = 0;
 int psp_audio_cachesize = 10;
-char psp_game_file_name[] = "ac2game.dat";
+const CString psp_game_file_name = "ac2game.dat";
 int psp_gfx_smooth_sprites = 1;
-char psp_translation[] = "default";
+const CString psp_translation = "default";
 #endif
 
 
@@ -134,8 +135,8 @@ int main_preprocess_cmdline(int argc,char*argv[])
     return RETURN_CONTINUE;
 }
 
-extern char return_to_roomedit[30];
-extern char return_to_room[150];
+CString return_to_roomedit;
+CString return_to_room;
 
 int main_process_cmdline(int argc,char*argv[])
 {
@@ -164,8 +165,8 @@ int main_process_cmdline(int argc,char*argv[])
         }
 #endif
         else if ((stricmp(argv[ee],"--testre") == 0) && (ee < argc-2)) {
-            strcpy(return_to_roomedit, argv[ee+1]);
-            strcpy(return_to_room, argv[ee+2]);
+            return_to_roomedit = argv[ee+1];
+            return_to_room = argv[ee+2];
             ee+=2;
         }
         else if (stricmp(argv[ee],"--15bit")==0) debug_15bit_mode = 1;
@@ -197,7 +198,7 @@ int main_process_cmdline(int argc,char*argv[])
         }
         else if ((stricmp(argv[ee],"--enabledebugger") == 0) && (argc > ee + 1))
         {
-            strcpy(editor_debugger_instance_token, argv[ee + 1]);
+            editor_debugger_instance_token = argv[ee + 1];
             editor_debugging_enabled = 1;
             force_window = 1;
             ee++;
@@ -289,6 +290,7 @@ void main_set_gamedir(int argc,char*argv[])
 
 #if defined(WINDOWS_VERSION)
 #include <new.h>
+// NOTE: Probably should not use dynamically allocated string object here
 char tempmsg[100];
 char*printfworkingspace;
 int malloc_fail_handler(size_t amountwanted) {

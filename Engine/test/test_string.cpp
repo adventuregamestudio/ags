@@ -1,6 +1,7 @@
 
 #ifdef _DEBUG
 
+#include <stdio.h>
 #include <string.h>
 #include "util/string.h"
 #include "test/test_internal.h"
@@ -45,6 +46,13 @@ void Test_String()
     CString filled2;
     filled2.FillString('b',6);
 
+    int compare_left1 = made_string.CompareLeft("This is a string");
+    int compare_left2 = made_string.CompareLeft("Ahis is a string");
+
+    //char longBuf[260];
+    //CString str = "./";
+    //sprintf(longBuf, "%s""agssave.%d%s", str, 999, "");
+
     //-----------------------------------------------------
     // Assertions
     assert(s1.GetLength() == 14);
@@ -75,6 +83,9 @@ void Test_String()
 
     assert(strcmp(filled1.GetCStr(), "aaaaa") == 0);
     assert(strcmp(filled2.GetCStr(), "bbbbbb") == 0);
+
+    assert(compare_left1 == 0);
+    assert(compare_left2 > 0);
 }
 
 #endif // _DEBUG

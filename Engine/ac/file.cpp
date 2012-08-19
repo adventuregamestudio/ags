@@ -11,6 +11,8 @@
 #include "util/misc.h"
 #include "platform/base/agsplatformdriver.h"
 
+using AGS::Common::CString;
+
 #ifdef WINDOWS_VERSION
 //#include <crtdbg.h>
 //#include "winalleg.h"
@@ -38,10 +40,10 @@
 
 // ***** EXTERNS ****
 extern "C" {
-    extern int  csetlib(char*,char*);
-    extern FILE*clibfopen(char*,char*);
+    extern int  csetlib(const char*,const char*);
+    extern FILE*clibfopen(const char*,const char*);
     extern int  cfopenpriority;
-    extern long cliboffset(char*);
+    extern long cliboffset(const char*);
 }
 
 // override packfile functions to allow it to load from our
@@ -61,10 +63,10 @@ extern "C" {
 
 extern GameSetup usetup;
 extern GameSetupStruct game;
-extern char saveGameDirectory[260];
+extern CString saveGameDirectory;
 extern AGSPlatformDriver *platform;
 
-extern char* game_file_name;
+extern CString game_file_name;
 extern int MAXSTRLEN;
 
 // object-based File routines
@@ -232,15 +234,13 @@ PACKFILE *pack_fopen(char *filnam1, char *modd1) {
 #endif
     csetlib(useloc,"");*/
     
-    char *libname = ci_find_file(usetup.data_files_dir, gfname);
+    CString libname = ci_find_file(usetup.data_files_dir, gfname);
     if (csetlib(libname,""))
     {
       // Hack for running in Debugger
-      free(libname);
       libname = ci_find_file("Compiled", gfname);
       csetlib(libname,"");
     }
-    free(libname);
     
     needsetback = 1;
   }
@@ -328,7 +328,7 @@ bool validate_user_file_path(const char *fnmm, char *output, bool currentDirOnly
   if (strncmp(fnmm, "$SAVEGAMEDIR$", 13) == 0) 
   {
     fnmm += 14;
-    sprintf(output, "%s%s", saveGameDirectory, fnmm);
+    sprintf(output, "%s%s", saveGameDirectory.GetCStr(), fnmm);
   }
   else if (strncmp(fnmm, "$APPDATADIR$", 12) == 0) 
   {

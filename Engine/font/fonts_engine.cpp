@@ -21,7 +21,7 @@ extern GameSetupStruct game;
 // For engine these are defined in clib32.cpp
 extern "C"
 {
-  extern FILE *clibfopen(char *, char *);
+  extern FILE *clibfopen(const char *, const char *);
   extern long last_opened_size;
 }
 //

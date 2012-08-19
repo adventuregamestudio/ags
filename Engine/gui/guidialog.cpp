@@ -10,11 +10,13 @@
 #include "gui/cscidialog.h"
 #include <cctype> //isdigit()
 
+using AGS::Common::CString;
+
 extern IGraphicsDriver *gfxDriver;
 extern GameSetup usetup;
 
 // from ac_game
-extern char saveGameDirectory[260];
+extern CString saveGameDirectory;
 extern char saveGameSuffix[MAX_SG_EXT_LENGTH + 1];
 
 // from gui/cscidialog
@@ -239,7 +241,7 @@ void preparesavegamelist(int ctrllist)
   _getcwd(curdir, 255);
 
   char searchPath[260];
-  sprintf(searchPath, "%s""agssave.*%s", saveGameDirectory, saveGameSuffix);
+  sprintf(searchPath, "%s""agssave.*%s", saveGameDirectory.GetCStr(), saveGameSuffix);
 
   int don = al_findfirst(searchPath, &ffb, -1);
   while (!don) {

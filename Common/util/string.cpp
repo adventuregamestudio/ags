@@ -1,6 +1,7 @@
 
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "util/string.h"
 #include "util/math.h"
@@ -36,7 +37,10 @@ CString::CString(const char *cstr, int length)
 {
     _length = length;
     _cstr = new char[_length + 1];
-    memcpy(_cstr, cstr, sizeof(char) * _length);
+    if (cstr)
+    {
+        memcpy(_cstr, cstr, sizeof(char) * _length);
+    }    
     _cstr[_length] = 0;
 }
 
@@ -79,21 +83,26 @@ int CString::CompareNoCase(const char *cstr) const
     return stricmp(_cstr, cstr);
 }
 
+int CString::CompareLeft(const char *cstr) const
+{
+    int count = strlen(cstr);
+    return strncmp(_cstr, cstr, count);
+}
+
+int CString::FindChar(char c) const
+{
+    const char * p_str = strchr(_cstr, c);
+    if (p_str)
+    {
+        return -1;
+    }
+    return p_str - _cstr;
+}
+
 void CString::FillString(char c, int count)
 {
     SetLength(count);
     memset(_cstr, c, count);
-}
-
-void CString::Append(const CString &str)
-{
-    char *newcstr = new char[_length + str._length + 1];
-    memcpy(newcstr, _cstr, sizeof(char) * _length);
-    memcpy(newcstr + sizeof(char) * _length, str._cstr, sizeof(char) * str._length);
-    _length += str._length;
-    newcstr[_length] = 0;
-    delete [] _cstr;
-    _cstr = newcstr;
 }
 
 void CString::Append(const char *cstr)
@@ -101,7 +110,7 @@ void CString::Append(const char *cstr)
     int add_length = strlen(cstr);
     char *newcstr = new char[_length + add_length + 1];
     memcpy(newcstr, _cstr, sizeof(char) * _length);
-    memcpy(newcstr + sizeof(char) * _length, _cstr, sizeof(char) * add_length);
+    memcpy(newcstr + sizeof(char) * _length, cstr, sizeof(char) * add_length);
     _length += add_length;
     newcstr[_length] = 0;
     delete [] _cstr;
@@ -192,19 +201,25 @@ void CString::Format(const char *fcstr, ...)
     return s;
 }
 
-/*
-CString::operator const char *() const
+int CString::ToInt() const
 {
-    return _cstr;
+    if (!_length)
+    {
+        return 0;
+    }
+
+    return atoi(_cstr);
 }
-*/
 
 CString &CString::operator=(const CString& str)
 {
     delete [] _cstr;
     _length = str._length;
     _cstr = new char[_length + 1];
-    memcpy(_cstr, str._cstr, sizeof(char) * _length);
+    if (str._cstr)
+    {
+        memcpy(_cstr, str._cstr, sizeof(char) * _length);
+    }
     _cstr[_length] = 0;
     return *this;
 }
@@ -212,9 +227,12 @@ CString &CString::operator=(const CString& str)
 CString &CString::operator=(const char *cstr)
 {
     delete [] _cstr;
-    _length = strlen(cstr);
+    _length = cstr ? strlen(cstr) : 0;
     _cstr = new char[_length + 1];
-    memcpy(_cstr, cstr, sizeof(char) * _length);
+    if (cstr)
+    {
+        memcpy(_cstr, cstr, sizeof(char) * _length);
+    }
     _cstr[_length] = 0;
     return *this;
 }

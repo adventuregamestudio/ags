@@ -19,12 +19,12 @@ CLEAR that the code has been altered from the Standard Version.
 #include <stdio.h>
 #include <stdlib.h>
 #include "util/wgt2allg.h"
+#include "ac/common.h"
 #include "ac/roomstruct.h"
 
 char *scripteditruntimecopr = "Script Editor v1.2 run-time component. (c) 1998 Chris Jones";
 
 #define SCRIPT_CONFIG_VERSION 1
-extern void quit(char *);
 
 long getlong(FILE * iii)
 {

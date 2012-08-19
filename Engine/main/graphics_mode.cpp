@@ -30,6 +30,8 @@
 #include "main/graphics_mode.h"
 #include "platform/base/agsplatformdriver.h"
 
+using AGS::Common::CString;
+
 extern GameSetup usetup;
 extern GameSetupStruct game;
 extern int proper_exit;

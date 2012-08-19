@@ -41,22 +41,16 @@ public:
         return _length == 0;
     }
 
-    char                *GetBuffer(int length);
+    char                *GetBuffer(int length = -1);
     void                ReleaseBuffer(int set_length = -1);
 
     int                 Compare(const char *cstr) const;
-    inline int          Compare(const CString &str) const
-    {
-        return Compare(str.GetCStr());
-    }
     int                 CompareNoCase(const char *cstr) const;
-    inline int          CompareNoCase(const CString &str) const
-    {
-        return CompareNoCase(str.GetCStr());
-    }
+    int                 CompareLeft(const char *cstr) const;
+
+    int                 FindChar(char c) const;
 
     void                FillString(char c, int count);
-    void                Append(const CString &str);
     void                Append(const char *cstr);
     void                AppendChar(char c);
 
@@ -71,12 +65,25 @@ public:
     void                Format(const char *fcstr, ...);
     static CString      MakeString(const char *fcstr, ...);
 
-    //operator const char *() const;
+    int                 ToInt() const;
+
+    inline operator const char *() const
+    {
+        return _cstr;
+    }
     CString &operator=(const CString&);
     CString &operator=(const char *cstr);
     inline char operator[](int index) const
     {
         return GetAt(index);
+    }
+    inline bool operator==(const CString &str)
+    {
+        return Compare(str) == 0;
+    }
+    inline bool operator==(const char *cstr)
+    {
+        return cstr ? (Compare(cstr) == 0) : IsEmpty();
     }
 
 protected:

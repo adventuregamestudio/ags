@@ -1,6 +1,10 @@
 #ifndef __AC_GAMESETUP_H
 #define __AC_GAMESETUP_H
 
+#include "util/string.h"
+
+using namespace AGS; // FIXME later
+
 // game setup, read in from CFG file
 // this struct is redefined in acdialog.cpp, any changes might
 // need to be reflected there
@@ -19,11 +23,11 @@ struct GameSetup {
     char  force_hicolor_mode;
     char  disable_exception_handling;
     char  enable_side_borders;
-    char *data_files_dir;
-    char *main_data_filename;
-    char *translation;
-    char *gfxFilterID;
-    char *gfxDriverID;
+    Common::CString data_files_dir;
+    Common::CString main_data_filename;
+    Common::CString translation;
+    Common::CString gfxFilterID;
+    Common::CString gfxDriverID;
     GameSetup();
 };
 

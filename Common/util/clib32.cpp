@@ -243,7 +243,7 @@ extern "C"
     return 0;
   }
 
-  int csetlib(char *namm, char *passw)
+  int csetlib(const char *namm, const char *passw)
   {
     original_base_filename[0] = 0;
 
@@ -280,7 +280,7 @@ extern "C"
         (lib_version != 20) && (lib_version != 21))
       return -3;  // unsupported version
 
-    char *nammwas = namm;
+    const char *nammwas = namm;
     // remove slashes so that the lib name fits in the buffer
     while ((strchr(namm, '\\') != NULL) || (strchr(namm, '/') != NULL))
       namm++;
@@ -395,7 +395,7 @@ extern "C"
     return &mflib.filenames[index][0];
   }
 
-  int clibfindindex(char *fill)
+  int clibfindindex(const char *fill)
   {
     if (lib_file_name[0] == ' ')
       return -1;
@@ -408,7 +408,7 @@ extern "C"
     return -1;
   }
 
-  long clibfilesize(char *fill)
+  long clibfilesize(const char *fill)
   {
     int idxx = clibfindindex(fill);
     if (idxx >= 0)
@@ -416,7 +416,7 @@ extern "C"
     return -1;
   }
 
-  long cliboffset(char *fill)
+  long cliboffset(const char *fill)
   {
     int idxx = clibfindindex(fill);
     if (idxx >= 0)
@@ -444,7 +444,7 @@ extern "C"
   }
 
   FILE *tfil;
-  FILE *clibopenfile(char *filly, char *readmode)
+  FILE *clibopenfile(const char *filly, const char *readmode)
   {
     int bb;
     for (bb = 0; bb < mflib.num_files; bb++) {
@@ -469,7 +469,7 @@ extern "C"
 #define PR_FILEFIRST 2
   int cfopenpriority = PR_DATAFIRST;
 
-  FILE *clibfopen(char *filnamm, char *fmt)
+  FILE *clibfopen(const char *filnamm, const char *fmt)
   {
     last_opened_size = -1;
     if (cfopenpriority == PR_FILEFIRST) {

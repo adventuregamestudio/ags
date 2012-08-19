@@ -22,17 +22,17 @@ struct NamedPipesAGSDebugger : IAGSEditorDebugger
 private:
     HANDLE _hPipeSending;
     HANDLE _hPipeReading;
-    const char *_instanceToken;
+    Common::CString _instanceToken;
 
     void SendAcknowledgement();
 public:
 
-    NamedPipesAGSDebugger(const char *instanceToken);
+    NamedPipesAGSDebugger(const Common::CString &instanceToken);
     virtual bool Initialize();
     virtual void Shutdown();
-    virtual bool SendMessageToEditor(const char *message);
+    virtual bool SendMessageToEditor(const Common::CString &message);
     virtual bool IsMessageAvailable();
-    virtual char* GetNextMessage();
+    virtual Common::CString GetNextMessage();
 };
 
 #endif // __AC_NAMEDPIPESAGSDEBUGGER_H

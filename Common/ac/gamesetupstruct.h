@@ -68,7 +68,7 @@ struct GameSetupStruct: public GameSetupStructBase {
         // in
         int  filever;
         int  max_audio_types;
-        char *game_file_name;
+        const char *game_file_name;
 
         // out
         char *saveGameSuffix;

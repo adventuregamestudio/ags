@@ -85,21 +85,21 @@ include $(BUILD_SHARED_LIBRARY)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE    := agslua
-LOCAL_SRC_FILES := ../Plugins/agslua/agslua/agslua_autogen.cpp \
-../Plugins/agslua/agslua/AGSLua_Main.cpp \
-../Plugins/agslua/agslua/AGSManagedObjects.cpp \
-../Plugins/agslua/agslua/CompressedLuaChunks.cpp \
-../Plugins/agslua/agslua/Internal.cpp \
-../Plugins/agslua/agslua/LuaCustomisation.cpp \
-../Plugins/agslua/agslua/LuaFromAGS.cpp \
-../Plugins/agslua/agslua/LuaValueList.cpp \
-../Plugins/agslua/agslua/SerializeLuaUniverse.cpp \
-../Plugins/agslua/agslua/AGSStructFields.cpp \
-../Plugins/agslua/agslua/DLLStuff.cpp \
-../Plugins/agslua/agslua/pluto.c \
-../Plugins/agslua/agslua/pdep.c \
-../Plugins/agslua/agslua/lzio.c
-LOCAL_CFLAGS    := -O2 -g -ffast-math -fsigned-char -Wall -Wfatal-errors -DTHIS_IS_THE_PLUGIN -DLINUX_VERSION -DANDROID_VERSION -I$(AGS_COMMON_PATH)/../Plugins/agslua/lualibhelp/include -I$(ADDITIONAL_LIBRARY_PATH)/include
+LOCAL_SRC_FILES := ../Plugins/agslua/agslua/agslua/agslua_autogen.cpp \
+../Plugins/agslua/agslua/agslua/AGSLua_Main.cpp \
+../Plugins/agslua/agslua/agslua/AGSManagedObjects.cpp \
+../Plugins/agslua/agslua/agslua/CompressedLuaChunks.cpp \
+../Plugins/agslua/agslua/agslua/Internal.cpp \
+../Plugins/agslua/agslua/agslua/LuaCustomisation.cpp \
+../Plugins/agslua/agslua/agslua/LuaFromAGS.cpp \
+../Plugins/agslua/agslua/agslua/LuaValueList.cpp \
+../Plugins/agslua/agslua/agslua/SerializeLuaUniverse.cpp \
+../Plugins/agslua/agslua/agslua/AGSStructFields.cpp \
+../Plugins/agslua/agslua/agslua/DLLStuff.cpp \
+../Plugins/agslua/agslua/agslua/pluto.c \
+../Plugins/agslua/agslua/agslua/pdep.c \
+../Plugins/agslua/agslua/agslua/lzio.c
+LOCAL_CFLAGS    := -O2 -g -ffast-math -fsigned-char -Wall -Wfatal-errors -DTHIS_IS_THE_PLUGIN -DLINUX_VERSION -DANDROID_VERSION -I$(AGS_COMMON_PATH)/../Plugins/agslua/agslua/lualibhelp/include -I$(ADDITIONAL_LIBRARY_PATH)/include
 LOCAL_CXXFLAGS  := $(LOCAL_CFLAGS) -Wno-write-strings
 LOCAL_LDLIBS    := -Wl,-Bstatic -lstdc++ -llua -Wl,-Bdynamic -lc -lm -llog -lz
 LOCAL_LDFLAGS   := -Wl,-L$(ADDITIONAL_LIBRARY_PATH)/lib

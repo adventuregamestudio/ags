@@ -5,6 +5,7 @@ all:
 	make blend -f Makefile.psp
 	make snowrain -f Makefile.psp
 	make flashlight -f Makefile.psp
+	make lua -f Makefile.psp
 
 blend:
 	@make -C "agsblend" -f Makefile.psp
@@ -27,6 +28,13 @@ ifeq ($(COPY), 1)
 	@cp "AGSflashlight/agsflashlight.prx" $(PSP_AGS_FOLDER)
 endif
 
+lua:
+	@make -f Makefile.psp -C "agslua"
+	@cp "agslua/agslua.prx" "../PSP/bin"
+ifeq ($(COPY), 1)
+	@cp "agslua/agslua.prx" $(PSP_AGS_FOLDER)
+endif
+
 cleanblend:
 	@make clean -f Makefile.psp -C "agsblend"
 	@rm -f "../PSP/bin/agsblend.prx"
@@ -39,15 +47,21 @@ cleanflashlight:
 	@make clean -f Makefile.psp -C "agsflashlight"
 	@rm -f "../PSP/bin/agsflashlight.prx"
 
+cleanlua:
+	@make clean -f Makefile.psp -C "agslua"
+	@rm -f "../PSP/bin/agslua.prx"
+
 distrib:
 	@mkdir "../PSP/dist" || true
 	@mkdir "../PSP/dist/$(DISTRIB_NAME)" || true
 	@cp "../PSP/bin/ags_snowrain.prx" "../PSP/dist/$(DISTRIB_NAME)/ags_snowrain.prx"
 	@cp "../PSP/bin/agsblend.prx" "../PSP/dist/$(DISTRIB_NAME)/agsblend.prx"
 	@cp "../PSP/bin/agsflashlight.prx" "../PSP/dist/$(DISTRIB_NAME)/agsflashlight.prx"
+	@cp "../PSP/bin/agslua.prx" "../PSP/dist/$(DISTRIB_NAME)/agslua.prx"
 	@cp "agsblend/License.txt" "../PSP/dist/$(DISTRIB_NAME)/License_AGSBlend.txt"
 
 clean:
 	make cleanblend -f Makefile.psp
 	make cleansnowrain -f Makefile.psp
 	make cleanflashlight -f Makefile.psp
+	make cleanlua -f Makefile.psp

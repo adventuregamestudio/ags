@@ -67,7 +67,7 @@ cleanengineprx:
 cleanallplugins:
 	@make clean -C "../Plugins" -f Makefile.psp
 
-distrib:
+distrib: all
 	@mkdir "dist" || true
 	@mkdir "dist/$(DISTRIB_NAME)" || true
 	@cp "bin/EBOOT.PBP" "dist/$(DISTRIB_NAME)/EBOOT.PBP"

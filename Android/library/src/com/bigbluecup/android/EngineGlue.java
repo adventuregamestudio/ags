@@ -154,6 +154,10 @@ public class EngineGlue extends Thread implements CustomGlSurfaceView.Renderer
 		catch (InterruptedException e) {}
 		
 		activity.surfaceView.initialize(configSpec, this);
+
+		// Make sure the mouse starts in the center of the screen
+		mouseMoveX = (short)(activity.surfaceView.getWidth() / 2);
+		mouseMoveY = (short)(activity.surfaceView.getHeight() / 2);
 	}
 	
 	private void swapBuffers()

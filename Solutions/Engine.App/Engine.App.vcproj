@@ -1121,6 +1121,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\test\test_file.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\test\test_string.cpp"
 					>
 				</File>
@@ -2012,6 +2016,10 @@
 				>
 				<File
 					RelativePath="..\..\Engine\test\test_all.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\test\test_file.h"
 					>
 				</File>
 				<File

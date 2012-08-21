@@ -290,6 +290,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\util\filestream.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\util\lzw.cpp"
 					>
 				</File>
@@ -512,11 +516,19 @@
 				Name="util"
 				>
 				<File
+					RelativePath="..\..\Common\util\bbop.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\util\compress.h"
 					>
 				</File>
 				<File
 					RelativePath="..\..\Common\util\file.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\filestream.h"
 					>
 				</File>
 				<File
@@ -529,6 +541,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\util\misc.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\stream.h"
 					>
 				</File>
 				<File

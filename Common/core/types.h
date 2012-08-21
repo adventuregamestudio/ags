@@ -34,6 +34,7 @@
 #define _INTPTR_T_DEFINED
 #define _UINTPTR_T_DEFINED
 
+// TODO
 // Conflicts with some of the basic WinAPI headers
 //#define byte         unsigned char
 

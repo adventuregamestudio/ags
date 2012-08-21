@@ -25,3 +25,30 @@ void        putshort(short int i, FILE * f)
     fwrite(&i, sizeof(short), 1, f);
 }
 #endif // !ALLEGRO_BIG_ENDIAN
+
+#include "util/filestream.h"
+
+namespace AGS
+{
+namespace Common
+{
+
+bool File::FileExists(const CString &filename)
+{
+    // TODO
+    return false;
+}
+
+CFileStream *File::OpenFile(const CString &filename, FileOpenMode open_mode, FileWorkMode work_mode)
+{
+    CFileStream *fs = new CFileStream(filename, open_mode, work_mode);
+    if (!fs->IsValid())
+    {
+        delete fs;
+        return NULL;
+    }
+    return fs;
+}
+
+} // namespace Common
+} // namespace AGS

@@ -63,6 +63,7 @@ char *CString::GetBuffer(int length)
         SetLength(length);
     }
 
+    // TODO
     // Actually should return a writable buffer and copy buffer
     // contents to _cstr when ReleaseBuffer is called
     return _cstr;
@@ -70,7 +71,16 @@ char *CString::GetBuffer(int length)
 
 void CString::ReleaseBuffer(int set_length)
 {
+    // TODO
     // Should copy buffer contents to _cstr here
+    if (set_length < 0)
+    {
+        _length = strlen(_cstr);
+    }
+    else
+    {
+        _length = set_length;
+    }
 }
 
 int CString::Compare(const char *cstr) const

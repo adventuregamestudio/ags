@@ -28,9 +28,9 @@ public:
     // Is end of stream
     virtual bool    EOS() const;
     // Total length of stream (if known)
-    virtual int     Length() const;
+    virtual int     GetLength() const;
     // Current position (if known)
-    virtual int     Position() const;
+    virtual int     GetPosition() const;
     virtual bool    CanRead() const;
     virtual bool    CanWrite() const;
     virtual bool    CanSeek() const;
@@ -59,11 +59,12 @@ protected:
     virtual int     WriteAndConvertArrayOfInt32(const int32_t *buffer, int count);
     virtual int     WriteAndConvertArrayOfInt64(const int64_t *buffer, int count);
 
+    void            Open(const CString &file_name, FileOpenMode open_mode, FileWorkMode work_mode);
+
 private:
     FILE                *_file;
     const FileOpenMode  _openMode;
     const FileWorkMode  _workMode;
-    int                 _length;
 };
 
 } // namespace Common

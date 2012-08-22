@@ -12,7 +12,6 @@ namespace File = AGS::Common::File;
 
 void Test_File()
 {
-    return;
     //-----------------------------------------------------
     // Operations
     CStream *out = File::OpenFile("test.tmp", AGS::Common::kFile_CreateAlways, AGS::Common::kFile_Write);

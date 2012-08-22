@@ -38,9 +38,9 @@ public:
     // Is end of stream
     virtual bool    EOS() const = 0;
     // Total length of stream (if known)
-    virtual int     Length() const = 0;
+    virtual int     GetLength() const = 0;
     // Current position (if known)
-    virtual int     Position() const = 0;
+    virtual int     GetPosition() const = 0;
     virtual bool    CanRead() const = 0;
     virtual bool    CanWrite() const = 0;
     virtual bool    CanSeek() const = 0;

@@ -1,6 +1,7 @@
 
 #include <stdio.h>
 #include "util/filestream.h"
+#include "util/math.h"
 
 // FIXME
 #define byte    unsigned char
@@ -15,46 +16,8 @@ CFileStream::CFileStream(const CString &file_name, FileOpenMode open_mode, FileW
     , _file(NULL)
     , _openMode(open_mode)
     , _workMode(work_mode)
-    , _length(0)
 {
-    CString mode;
-
-    if (open_mode == kFile_Open)
-    {
-        if (work_mode == kFile_Read)
-        {
-            mode.AppendChar('r');
-        }
-        else
-        {
-            mode.Append("r+");
-        }
-    }
-    else if (open_mode == kFile_Create)
-    {
-        if (work_mode == kFile_Write)
-        {
-            mode.AppendChar('a');
-        }
-        else
-        {
-            mode.Append("a+");
-        }
-    }
-    else // kFile_CreateAlways
-    {
-        if (work_mode == kFile_Write)
-        {
-            mode.AppendChar('w');
-        }
-        else
-        {
-            mode.Append("w+");
-        }
-    }
-
-    _file = fopen(file_name, mode);
-    _length = _file->_cnt;
+    Open(file_name, open_mode, work_mode);
 }
 
 CFileStream::CFileStream(const CString &file_name, FileOpenMode open_mode, FileWorkMode work_mode,
@@ -63,9 +26,8 @@ CFileStream::CFileStream(const CString &file_name, FileOpenMode open_mode, FileW
     , _file(NULL)
     , _openMode(open_mode)
     , _workMode(work_mode)
-    , _length(0)
 {
-
+    Open(file_name, open_mode, work_mode);
 }
 
 CFileStream::~CFileStream()
@@ -86,16 +48,24 @@ bool CFileStream::EOS() const
     return !IsValid() || feof(_file) != 0;
 }
 
-int CFileStream::Length() const
+int CFileStream::GetLength() const
 {
-    // TODO
-    return IsValid() ? _length : 0;
+    if (IsValid())
+    {
+        int cur_pos = ftell(_file);
+        fseek(_file, 0, SEEK_SET);
+        fseek(_file, 0, SEEK_END);
+        int length = ftell(_file);
+        fseek(_file, cur_pos, SEEK_SET);
+        return length;
+    }
+
+    return 0;
 }
 
-int CFileStream::Position() const
+int CFileStream::GetPosition() const
 {
-    // TODO
-    return IsValid() ? _file->_cnt : 0;
+    return IsValid() ? ftell(_file) : 0;
 }
 
 bool CFileStream::CanRead() const
@@ -110,7 +80,7 @@ bool CFileStream::CanWrite() const
 
 bool CFileStream::CanSeek() const
 {
-    return IsValid() && _file != NULL;
+    return IsValid();
 }
 
 int CFileStream::Seek(StreamSeek seek, int pos)
@@ -129,13 +99,7 @@ int CFileStream::Seek(StreamSeek seek, int pos)
     }
 
     int result = fseek(_file, pos, stdclib_seek);
-
-    if (result == 0)
-    {
-        // Success
-    }
-    // TODO
-    return 0;
+    return GetPosition();
 }
 
 int8_t CFileStream::ReadInt8()
@@ -204,7 +168,7 @@ CString CFileStream::ReadString(int max_chars)
     char c = 0;
     do
     {
-        buf_size = str.GetLength() + 3000;
+        buf_size = Math::Min(str.GetLength() + 3000, max_chars);
         char *buf = str.GetBuffer(buf_size);
         do
         {
@@ -213,7 +177,13 @@ CString CFileStream::ReadString(int max_chars)
         while (c != 0 && chars_read < buf_size);
         str.ReleaseBuffer(chars_read);
     }
-    while (c != 0);
+    while (c != 0 && chars_read < max_chars);
+
+    if (c != 0 && chars_read != max_chars)
+    {
+        fseek(_file, max_chars - chars_read, SEEK_CUR);
+    }
+
     return str;
 }
 
@@ -361,6 +331,48 @@ int CFileStream::WriteAndConvertArrayOfInt64(const int64_t *buffer, int count)
         fwrite(&val, sizeof(int64_t), 1, _file);
     }
     return count;
+}
+
+void CFileStream::Open(const CString &file_name, FileOpenMode open_mode, FileWorkMode work_mode)
+{
+    CString mode;
+
+    if (open_mode == kFile_Open)
+    {
+        if (work_mode == kFile_Read)
+        {
+            mode.AppendChar('r');
+        }
+        else
+        {
+            mode.Append("r+");
+        }
+    }
+    else if (open_mode == kFile_Create)
+    {
+        if (work_mode == kFile_Write)
+        {
+            mode.AppendChar('a');
+        }
+        else
+        {
+            mode.Append("a+");
+        }
+    }
+    else // kFile_CreateAlways
+    {
+        if (work_mode == kFile_Write)
+        {
+            mode.AppendChar('w');
+        }
+        else
+        {
+            mode.Append("w+");
+        }
+    }
+
+    mode.AppendChar('b');
+    _file = fopen(file_name, mode);
 }
 
 } // namespace Common

@@ -389,6 +389,47 @@ struct ScriptRegion {
 
 
 
+// JJS: Replacement for the global roomstats array in the original engine.
+
+RoomStatus* room_statuses[MAX_ROOMS];
+
+// Replaces all accesses to the roomstats array
+RoomStatus* getRoomStatus(int room)
+{
+  if (room_statuses[room] == NULL)
+  {
+    // First access, allocate and initialise the status
+    room_statuses[room] = new RoomStatus;
+    memset(room_statuses[room], 0, sizeof(RoomStatus));
+  }
+  return room_statuses[room];
+}
+
+// Used in places where it is only important to know whether the player
+// had previously entered the room. In this case it is not necessary
+// to initialise the status because a player can only have been in
+// a room if the status is already initialised.
+bool isRoomStatusValid(int room)
+{
+  return (room_statuses[room] != NULL);
+}
+
+void resetRoomStatuses()
+{
+  for (int i = 0; i < MAX_ROOMS; i++)
+  {
+    if (room_statuses[i] != NULL)
+    {
+      if ((room_statuses[i]->tsdata != NULL) && (room_statuses[i]->tsdatasize > 0))
+        free(room_statuses[i]->tsdata);
+
+      delete room_statuses[i];
+      room_statuses[i] = NULL;
+    }
+  }
+}
+
+
 
 int ExecutingScript::queue_action(PostScriptAction act, int data, const char *aname) {
   if (numPostScriptActions >= MAX_QUEUED_ACTIONS)
@@ -597,7 +638,6 @@ int scrnwid,scrnhit;
 int current_screen_resolution_multiplier = 1;
 roomstruct thisroom;
 GameSetupStruct game;
-RoomStatus *roomstats;
 RoomStatus troom;    // used for non-saveable rooms, eg. intro
 GameState play;
 GameSetup usetup;
@@ -4443,7 +4483,7 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
     memset(&troom.region_enabled[0], 1, MAX_REGIONS);
   }
   if ((newnum>=0) & (newnum<MAX_ROOMS))
-    croom=&roomstats[newnum];
+    croom = getRoomStatus(newnum);
   else croom=&troom;
 
   if (croom->beenhere > 0) {
@@ -9588,7 +9628,7 @@ void quit(char*quitmsg) {
   our_eip = 9903;
 
   // wipe all the interaction structs so they don't de-alloc the children twice
-  memset (&roomstats[0], 0, sizeof(RoomStatus) * MAX_ROOMS);
+  resetRoomStatuses();
   memset (&troom, 0, sizeof(RoomStatus));
 
 /*  _CrtMemState memstart;
@@ -12775,15 +12815,7 @@ void unload_game_file() {
   free_do_once_tokens();
   free(play.gui_draw_order);
 
-  free (roomstats);
-  roomstats=(RoomStatus*)calloc(sizeof(RoomStatus),MAX_ROOMS);
-  for (ee=0;ee<MAX_ROOMS;ee++) {
-    roomstats[ee].beenhere=0;
-    roomstats[ee].numobj=0;
-    roomstats[ee].tsdatasize=0;
-    roomstats[ee].tsdata=NULL;
-  }
-  
+  resetRoomStatuses();
 }
 
 // **** text script exported functions
@@ -20682,20 +20714,31 @@ void ResetRoom(int nrnum) {
     quit("!ResetRoom: cannot reset current room");
   if ((nrnum<0) | (nrnum>=MAX_ROOMS))
     quit("!ResetRoom: invalid room number");
-  if (roomstats[nrnum].beenhere) {
-    if (roomstats[nrnum].tsdata!=NULL)
-      free(roomstats[nrnum].tsdata);
-    roomstats[nrnum].tsdata=NULL;
-    roomstats[nrnum].tsdatasize=0;
+
+  if (isRoomStatusValid(nrnum))
+  {
+    RoomStatus* roomstat = getRoomStatus(nrnum);
+    if (roomstat->beenhere)
+    {
+      if (roomstat->tsdata != NULL)
+        free(roomstat->tsdata);
+      roomstat->tsdata = NULL;
+      roomstat->tsdatasize = 0;
     }
-  roomstats[nrnum].beenhere=0;
+    roomstat->beenhere = 0;
+  }
+
   DEBUG_CONSOLE("Room %d reset to original state", nrnum);
 }
 
 int HasPlayerBeenInRoom(int roomnum) {
   if ((roomnum < 0) || (roomnum >= MAX_ROOMS))
     return 0;
-  return roomstats[roomnum].beenhere;
+
+  if (isRoomStatusValid(roomnum))
+    return getRoomStatus(roomnum)->beenhere;
+  else
+    return 0;
 }
 
 void SetRestartPoint() {
@@ -22006,9 +22049,10 @@ int HasBeenToRoom (int roomnum) {
   if ((roomnum < 0) || (roomnum >= MAX_ROOMS))
     quit("!HasBeenToRoom: invalid room number specified");
 
-  if (roomstats[roomnum].beenhere)
-    return 1;
-  return 0;
+  if (isRoomStatusValid(roomnum))
+    return getRoomStatus(roomnum)->beenhere;
+  else
+    return 0;
 }
 
 // **** end of trext script exported functions
@@ -23369,7 +23413,8 @@ int sgsiglen=32;
 int find_highest_room_entered() {
   int qq,fndas=-1;
   for (qq=0;qq<MAX_ROOMS;qq++) {
-    if (roomstats[qq].beenhere!=0) fndas=qq;
+    if (isRoomStatusValid(qq) && (getRoomStatus(qq)->beenhere != 0))
+      fndas = qq;
   }
   // This is actually legal - they might start in room 400 and save
   //if (fndas<0) quit("find_highest_room: been in no rooms?");
@@ -23480,12 +23525,20 @@ void save_game_data (FILE *ooo, block screenshot) {
   }
 
   // write the room state for all the rooms the player has been in
+  RoomStatus* roomstat;
+
   for (bb = 0; bb < MAX_ROOMS; bb++) {
-    if (roomstats[bb].beenhere) {
-      fputc (1, ooo);
-      fwrite(&roomstats[bb],sizeof(RoomStatus),1,ooo);
-      if (roomstats[bb].tsdatasize>0)
-        fwrite(&roomstats[bb].tsdata[0], 1, roomstats[bb].tsdatasize, ooo);
+    if (isRoomStatusValid(bb))
+    {
+      roomstat = getRoomStatus(bb);
+
+      if (roomstat->beenhere)
+      {
+        fputc(1, ooo);
+        fwrite(roomstat, sizeof(RoomStatus), 1, ooo);
+        if (roomstat->tsdatasize>0)
+          fwrite(&roomstat->tsdata[0], 1, roomstat->tsdatasize, ooo);
+      }
     }
     else
       fputc (0, ooo);
@@ -23947,32 +24000,36 @@ int restore_game_data (FILE *ooo, const char *nametouse) {
   displayed_room = getw(ooo);
 
   // now the rooms
-  for (vv=0;vv<MAX_ROOMS;vv++) {
-    if (roomstats[vv].tsdata==NULL) ;
-    else if (roomstats[vv].tsdatasize>0) {
-      free(roomstats[vv].tsdata);
-      roomstats[vv].tsdatasize=0; roomstats[vv].tsdata=NULL;
-      }
-    roomstats[vv].beenhere=0;
-    }
+  resetRoomStatuses();
+
   long gobackto=ftell(ooo);
   fclose(ooo);
   ooo=fopen(nametouse,"rb");
   fseek(ooo,gobackto,SEEK_SET);
 
   // read the room state for all the rooms the player has been in
-  for (vv=0;vv<MAX_ROOMS;vv++) {
-    if ((roomstats[vv].tsdatasize>0) & (roomstats[vv].tsdata!=NULL))
-      free(roomstats[vv].tsdata);
-    roomstats[vv].tsdatasize=0;
-    roomstats[vv].tsdata=NULL;
-    roomstats[vv].beenhere = fgetc (ooo);
+  RoomStatus* roomstat;
+  int beenhere;
+  for (vv=0;vv<MAX_ROOMS;vv++)
+  {
+    beenhere = fgetc(ooo);
+    if (beenhere)
+    {
+      roomstat = getRoomStatus(vv);
+      if ((roomstat->tsdatasize > 0) && (roomstat->tsdata != NULL))
+        free(roomstat->tsdata);
+      roomstat->tsdatasize = 0;
+      roomstat->tsdata = NULL;
+      roomstat->beenhere = beenhere;
 
-    if (roomstats[vv].beenhere) {
-      fread(&roomstats[vv],sizeof(RoomStatus),1,ooo);
-      if (roomstats[vv].tsdatasize>0) {
-        roomstats[vv].tsdata=(char*)malloc(roomstats[vv].tsdatasize+8);
-        fread(&roomstats[vv].tsdata[0],roomstats[vv].tsdatasize,1,ooo);
+      if (roomstat->beenhere)
+      {
+        fread(roomstat, sizeof(RoomStatus), 1, ooo);
+        if (roomstat->tsdatasize > 0)
+        {
+          roomstat->tsdata=(char*)malloc(roomstat->tsdatasize + 8);
+          fread(&roomstat->tsdata[0], roomstat->tsdatasize, 1, ooo);
+        }
       }
     }
   }
@@ -28510,15 +28567,6 @@ int initialize_engine(int argc,char*argv[])
   free(memcheck);
   unlink (replayTempFile);
 
-  write_log_debug("Initializing rooms");
-
-  roomstats=(RoomStatus*)calloc(sizeof(RoomStatus),MAX_ROOMS);
-  for (ee=0;ee<MAX_ROOMS;ee++) {
-    roomstats[ee].beenhere=0;
-    roomstats[ee].numobj=0;
-    roomstats[ee].tsdatasize=0;
-    roomstats[ee].tsdata=NULL;
-    }
   play.want_speech=-2;
 
   our_eip = -186;

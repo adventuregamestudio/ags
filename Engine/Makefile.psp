@@ -50,7 +50,7 @@ else
 LIBS += -laldmb -ldumb
 endif
 
-LIBS += -lpsppower -lpspdebug -lpspgu -lpspctrl -lpspge -lpspdisplay -lpsprtc -lpspaudio -lpspsystemctrl_user -lpspmath
+LIBS += -lpsppower -lpspdebug -lpspgu -lpspctrl -lpspge -lpspdisplay -lpsprtc -lpspaudio -lpspsystemctrl_user -lpspmath -lpspfpu
 LDFLAGS =
 
 ifeq ($(PROFILING), 1)

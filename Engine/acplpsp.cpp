@@ -11,6 +11,7 @@
 #include <pspctrl.h>
 #include <pspkernel.h>
 #include <psputility.h>
+#include <pspfpu.h>
 #include <stdio.h>
 #include <dirent.h>
 #include <sys/stat.h> 
@@ -587,6 +588,12 @@ int AGSPSP::RunPluginDebugHooks(const char *scriptfile, int linenum) {
 AGSPlatformDriver* AGSPlatformDriver::GetDriver() {
   if (instance == NULL)
     instance = new AGSPSP();
+
+  // Disable FPU exception.
+  // JJS: I only know of one case where this is relevant. In Ben Jordan 8 when
+  // going from the map to the library SCMD_FMULREG will be called with the
+  // floating point register containing NAN.
+  pspFpuSetEnable(0);
 
   // Setup the exception handler prx.
   initExceptionHandler();

@@ -160,6 +160,31 @@ block raw_saved_screen = NULL;
 block dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 
 
+// TODO: move to test unit
+#include "gfx/allegrobitmap.h"
+using AGS::Common::CAllegroBitmap;
+extern CAllegroBitmap *test_allegro_bitmap;
+extern IDriverDependantBitmap *test_allegro_ddb;
+void allegro_bitmap_test_draw()
+{
+	if (test_allegro_bitmap)
+	{
+		wsetcolor(15);
+		test_allegro_bitmap->Clear(test_allegro_bitmap->GetMaskColor());
+		test_allegro_bitmap->FillRect(CRect(50,50,150,150), currentcolor);
+
+		if (test_allegro_ddb == NULL) 
+        {
+            test_allegro_ddb = gfxDriver->CreateDDBFromBitmap((BITMAP*)test_allegro_bitmap->GetBitmapObject(), false, true);
+        }
+        else
+        {
+            gfxDriver->UpdateDDBFromBitmap(test_allegro_ddb, (BITMAP*)test_allegro_bitmap->GetBitmapObject(), false);
+        }
+        gfxDriver->DrawSprite(-offsetx, -offsety, test_allegro_ddb);
+	}
+}
+
 void setpal() {
     wsetpalette(0,255,palette);
 }
@@ -2077,6 +2102,8 @@ void draw_screen_background() {
         }
     }
     our_eip=36;
+
+	allegro_bitmap_test_draw();
 }
 
 
@@ -2331,7 +2358,6 @@ void pop_screen() {
     numOnStack--;
     wsetscreen(screenstack[numOnStack]);
 }
-
 
 // update_screen: copies the contents of the virtual screen to the actual
 // screen, and draws the mouse cursor on.

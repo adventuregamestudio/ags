@@ -1246,6 +1246,16 @@ void engine_prepare_to_start_game()
 #endif
 }
 
+// TODO: move to test unit
+#include "gfx/allegrobitmap.h"
+using AGS::Common::CAllegroBitmap;
+CAllegroBitmap *test_allegro_bitmap;
+IDriverDependantBitmap *test_allegro_ddb;
+void allegro_bitmap_test_init()
+{
+	test_allegro_bitmap = CAllegroBitmap::CreateBitmap(320,200,32);
+}
+
 int initialize_engine(int argc,char*argv[])
 {
     int res;
@@ -1418,6 +1428,8 @@ int initialize_engine(int argc,char*argv[])
     engine_init_game_settings();
 
     engine_prepare_to_start_game();
+
+	allegro_bitmap_test_init();
 
     initialize_start_and_play_game(override_start_room, loadSaveGameOnStartup);
 

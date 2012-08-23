@@ -232,6 +232,18 @@ void quit_delete_temp_files()
     al_findclose (&dfb);
 }
 
+// TODO: move to test unit
+#include "gfx/allegrobitmap.h"
+using AGS::Common::CAllegroBitmap;
+extern CAllegroBitmap *test_allegro_bitmap;
+extern IDriverDependantBitmap *test_allegro_ddb;
+void allegro_bitmap_test_release()
+{
+	delete test_allegro_bitmap;
+	if (test_allegro_ddb)
+		gfxDriver->DestroyDDB(test_allegro_ddb);
+}
+
 char return_to_roomedit[30] = "\0";
 char return_to_room[150] = "\0";
 // quit - exits the engine, shutting down everything gracefully
@@ -249,6 +261,8 @@ void quit(char*quitmsg) {
     strncpy(qmsgbufr, quitmsg, STD_BUFFER_SIZE);
     qmsgbufr[STD_BUFFER_SIZE - 1] = 0;
     char *qmsg = &qmsgbufr[0];
+
+	allegro_bitmap_test_release();
 
     handledErrorInEditor = false;
 

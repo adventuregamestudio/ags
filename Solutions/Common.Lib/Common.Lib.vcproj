@@ -278,6 +278,10 @@
 				Name="util"
 				>
 				<File
+					RelativePath="..\..\Common\util\alignedstream.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\util\clib32.cpp"
 					>
 				</File>
@@ -517,6 +521,10 @@
 				>
 				<File
 					RelativePath="..\..\Common\util\agsstream.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\alignedstream.h"
 					>
 				</File>
 				<File

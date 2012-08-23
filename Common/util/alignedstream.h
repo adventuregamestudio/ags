@@ -1,0 +1,126 @@
+
+//=============================================================================
+//
+// Class CAlignedStream
+// A simple wrapper around stream that controls data padding.
+// 
+// Originally, a number of objects in AGS were read and written directly
+// as a data struct in a whole. In order to support backwards compatibility
+// with games made by older versions of AGS, some of the game objects must
+// be read having automatic data alignment in mind.
+//-----------------------------------------------------------------------------
+//
+// CAlignedStream does not own the underlying stream therefore does not destroy
+// wrapped stream object. It overrides the reading and writing, and inserts
+// extra data padding when needed.
+//
+// Aligned stream works either in read or write mode, it cannot be opened in
+// combined mode.
+//
+// CAlignedStream does not support seek, hence moving stream pointer to random
+// position will break padding count logic.
+//
+// A Close() method must be called either explicitly by user or implicitly by
+// stream destructor in order to read/write remaining padding bytes.
+//
+//=============================================================================
+#ifndef __AGS_CN_UTIL__ALIGNEDSTREAM_H
+#define __AGS_CN_UTIL__ALIGNEDSTREAM_H
+
+#include "util/stream.h"
+
+namespace AGS
+{
+namespace Common
+{
+
+enum AlignedStreamMode
+{
+    kAligned_Read,
+    kAligned_Write
+};
+
+class CAlignedStream : public IStream
+{
+public:
+    CAlignedStream(IStream *stream, AlignedStreamMode mode, size_t alignment = sizeof(int32_t));
+    virtual ~CAlignedStream();
+
+    // Close() MUST be called at the end of aligned stream work so that the
+    // stream could read/write the necessary padding at the end of data chunk;
+    // Close() will be called automatically from stream's destructor, but is
+    // exposed in case user would like to explicitly end aligned read/write at
+    // certain point.
+    void            Close();
+
+    // Is stream valid (underlying data initialized properly)
+    virtual bool    IsValid() const;
+    // Is end of stream
+    virtual bool    EOS() const;
+    // Total length of stream (if known)
+    virtual int     GetLength() const;
+    // Current position (if known)
+    virtual int     GetPosition() const;
+    virtual bool    CanRead() const;
+    virtual bool    CanWrite() const;
+    virtual bool    CanSeek() const;
+
+    virtual int     Seek(StreamSeek seek, int pos);
+
+    virtual int8_t  ReadInt8();
+    virtual int16_t ReadInt16();
+    virtual int32_t ReadInt32();
+    virtual int64_t ReadInt64();
+    virtual int     Read(void *buffer, int size);
+    virtual int     Read(void *buffer, int elem_size, int count);
+    virtual CString ReadString(int max_chars = 5000000);
+
+    virtual void    WriteInt8(int8_t val);
+    virtual void    WriteInt16(int16_t val);
+    virtual void    WriteInt32(int32_t val);
+    virtual void    WriteInt64(int64_t val);
+    virtual int     Write(const void *buffer, int size);
+    virtual int     Write(const void *buffer, int elem_size, int count);
+    virtual void    WriteString(const CString &str);
+
+    inline int ReadArrayOfInt16(int16_t *buffer, int count)
+    {
+        return Read(buffer, sizeof(int16_t), count);
+    }
+    inline int ReadArrayOfInt32(int32_t *buffer, int count)
+    {
+        return Read(buffer, sizeof(int32_t), count);
+    }
+    inline int ReadArrayOfInt64(int64_t *buffer, int count)
+    {
+        return Read(buffer, sizeof(int64_t), count);
+    }
+    inline int WriteArrayOfInt16(const int16_t *buffer, int count)
+    {
+        return Write(buffer, sizeof(int16_t), count);
+    }
+    inline int WriteArrayOfInt32(const int32_t *buffer, int count)
+    {
+        return Write(buffer, sizeof(int32_t), count);
+    }
+    inline int WriteArrayOfInt64(const int64_t *buffer, int count)
+    {
+        return Write(buffer, sizeof(int64_t), count);
+    }
+
+protected:
+    void            ReadPadding(size_t next_type);
+    void            WritePadding(size_t next_type);
+
+private:
+    IStream             *_stream;
+    AlignedStreamMode   _mode;
+    size_t              _alignment;
+    int64_t             _block;
+    int8_t              _paddingBuffer[sizeof(int64_t)];
+};
+
+} // namespace Common
+} // namespace AGS
+
+#endif // __AGS_CN_UTIL__ALIGNEDSTREAM_H

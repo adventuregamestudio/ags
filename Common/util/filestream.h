@@ -7,7 +7,7 @@
 #ifndef __AGS_CN_UTIL__FILESTREAM_H
 #define __AGS_CN_UTIL__FILESTREAM_H
 
-#include "util/stream.h"
+#include "util/agsstream.h"
 #include "util/file.h"
 
 namespace AGS
@@ -15,7 +15,7 @@ namespace AGS
 namespace Common
 {
 
-class CFileStream : public CStream
+class CFileStream : public CAGSStream
 {
 public:
     CFileStream(const CString &file_name, FileOpenMode open_mode, FileWorkMode work_mode);

@@ -12,7 +12,7 @@ namespace Common
 {
 
 CFileStream::CFileStream(const CString &file_name, FileOpenMode open_mode, FileWorkMode work_mode)
-    : CStream(kDefaultSystemEndianess, kDefaultSystemEndianess)
+    : CAGSStream(kDefaultSystemEndianess, kDefaultSystemEndianess)
     , _file(NULL)
     , _openMode(open_mode)
     , _workMode(work_mode)
@@ -22,7 +22,7 @@ CFileStream::CFileStream(const CString &file_name, FileOpenMode open_mode, FileW
 
 CFileStream::CFileStream(const CString &file_name, FileOpenMode open_mode, FileWorkMode work_mode,
             DataEndianess caller_endianess, DataEndianess stream_endianess)
-    : CStream(caller_endianess, stream_endianess)
+    : CAGSStream(caller_endianess, stream_endianess)
     , _file(NULL)
     , _openMode(open_mode)
     , _workMode(work_mode)
@@ -53,7 +53,6 @@ int CFileStream::GetLength() const
     if (IsValid())
     {
         int cur_pos = ftell(_file);
-        fseek(_file, 0, SEEK_SET);
         fseek(_file, 0, SEEK_END);
         int length = ftell(_file);
         fseek(_file, cur_pos, SEEK_SET);
@@ -226,7 +225,7 @@ int CFileStream::Write(const void *buffer, int size)
 {
     if (CanWrite())
     {
-        return fwrite(&buffer, sizeof(byte), size, _file);
+        return fwrite(buffer, sizeof(byte), size, _file);
     }
     return 0;
 }

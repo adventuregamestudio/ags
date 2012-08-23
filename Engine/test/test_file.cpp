@@ -7,14 +7,14 @@
 #include "test/test_internal.h"
 
 using AGS::Common::CString;
-using AGS::Common::CStream;
+using AGS::Common::CAGSStream;
 namespace File = AGS::Common::File;
 
 void Test_File()
 {
     //-----------------------------------------------------
     // Operations
-    CStream *out = File::OpenFile("test.tmp", AGS::Common::kFile_CreateAlways, AGS::Common::kFile_Write);
+    CAGSStream *out = File::OpenFile("test.tmp", AGS::Common::kFile_CreateAlways, AGS::Common::kFile_Write);
 
     out->WriteInt16(10);
     out->WriteInt64(-20202);
@@ -22,7 +22,7 @@ void Test_File()
 
     delete out;
 
-    CStream *in = File::OpenFile("test.tmp", AGS::Common::kFile_Open, AGS::Common::kFile_Read);
+    CAGSStream *in = File::OpenFile("test.tmp", AGS::Common::kFile_Open, AGS::Common::kFile_Read);
 
     int16_t int16val    = in->ReadInt16();
     int64_t int64val    = in->ReadInt64();

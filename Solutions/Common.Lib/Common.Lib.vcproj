@@ -516,6 +516,10 @@
 				Name="util"
 				>
 				<File
+					RelativePath="..\..\Common\util\agsstream.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\util\bbop.h"
 					>
 				</File>

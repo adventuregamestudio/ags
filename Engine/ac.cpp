@@ -4882,7 +4882,23 @@ void new_room(int newnum,CharacterInfo*forchar) {
   unload_old_room();
 
   if (psp_clear_cache_on_room_change)
+  {
+    // Delete all cached sprites
     spriteset.removeAll();
+
+    // Delete all gui background images
+    for (int i = 0; i < game.numgui; i++)
+    {
+      if (guibg[i])
+        wfreeblock (guibg[i]);
+      guibg[i] = NULL;
+
+      if (guibgbmp[i])
+        gfxDriver->DestroyDDB(guibgbmp[i]);
+      guibgbmp[i] = NULL;
+    }
+    guis_need_update = 1;
+  }
 
   update_polled_stuff();
 
@@ -8983,6 +8999,10 @@ void draw_fps()
   draw_and_invalidate_text(get_fixed_pixel_size(250), yp, FONT_SPEECH,tbuffer);
 }
 
+
+
+extern void recreate_guibg_image(GUIMain *tehgui);
+
 // draw_screen_overlay: draws any stuff currently on top of the background,
 // like a message box or popup interface
 void draw_screen_overlay() {
@@ -9026,6 +9046,10 @@ void draw_screen_overlay() {
       guis_need_update = 0;
       for (aa=0;aa<game.numgui;aa++) {
         if (guis[aa].on<1) continue;
+
+        if (guibg[aa] == NULL)
+          recreate_guibg_image(&guis[aa]);
+
         eip_guinum = aa;
         our_eip = 370;
         clear_to_color (guibg[aa], bitmap_mask_color(guibg[aa]));
@@ -27314,11 +27338,9 @@ void init_game_settings() {
   guibg = (block*)malloc(sizeof(block) * game.numgui);
   guibgbmp = (IDriverDependantBitmap**)malloc(sizeof(IDriverDependantBitmap*) * game.numgui);
   for (ee=0;ee<game.numgui;ee++) {
+    guibg[ee] = NULL;
     guibgbmp[ee] = NULL;
-    GUIMain*cgp=&guis[ee];
-    guibg[ee] = create_bitmap_ex (final_col_dep, cgp->wid, cgp->hit);
-    guibg[ee] = gfxDriver->ConvertBitmapToSupportedColourDepth(guibg[ee]);
-  }
+   }
 
   our_eip=-5;
   for (ee=0;ee<game.numinvitems;ee++) {

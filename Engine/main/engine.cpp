@@ -61,7 +61,6 @@ extern int our_eip;
 extern volatile char want_exit, abort_engine;
 extern GameSetup usetup;
 extern GameSetupStruct game;
-extern RoomStatus *roomstats;
 extern int proper_exit;
 extern char pexbuf[STD_BUFFER_SIZE];
 extern char saveGameDirectory[260];
@@ -408,15 +407,7 @@ int engine_check_memory()
 
 void engine_init_rooms()
 {
-    write_log_debug("Initializing rooms");
-
-    roomstats=(RoomStatus*)calloc(sizeof(RoomStatus),MAX_ROOMS);
-    for (int ee=0;ee<MAX_ROOMS;ee++) {
-        roomstats[ee].beenhere=0;
-        roomstats[ee].numobj=0;
-        roomstats[ee].tsdatasize=0;
-        roomstats[ee].tsdata=NULL;
-    }
+    // Obsolete now since room statuses are allocated only when needed
 }
 
 int engine_init_speech()
@@ -968,10 +959,8 @@ void init_game_settings() {
     guibg = (block*)malloc(sizeof(block) * game.numgui);
     guibgbmp = (IDriverDependantBitmap**)malloc(sizeof(IDriverDependantBitmap*) * game.numgui);
     for (ee=0;ee<game.numgui;ee++) {
+        guibg[ee] = NULL;
         guibgbmp[ee] = NULL;
-        GUIMain*cgp=&guis[ee];
-        guibg[ee] = create_bitmap_ex (final_col_dep, cgp->wid, cgp->hit);
-        guibg[ee] = gfxDriver->ConvertBitmapToSupportedColourDepth(guibg[ee]);
     }
 
     our_eip=-5;

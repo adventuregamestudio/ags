@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<PreferenceScreen
+        xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <CheckBoxPreference android:disableDependentsState="false" android:summary="Check to override the global preferences for this game" android:key="@string/CONFIG_ENABLED" android:title="Use custom preferences"/>
+
+    <PreferenceCategory
+            android:title="General" android:key="preference_key_general">
+        <ListPreference android:summary="Select the game language if available" android:dialogTitle="Game language" android:title="Game language" android:key="@string/CONFIG_TRANSLATION" android:entries="@array/game_language" android:entryValues="@array/game_language_values"/>
+        <ListPreference android:summary="Prevents the screen from automatically rotating" android:entries="@array/screen_orientation" android:dialogTitle="Screen orientation" android:title="Lock screen orientation" android:key="@string/CONFIG_ROTATION" android:entryValues="@array/screen_orientation_values" android:shouldDisableView="true" android:dependency="@string/CONFIG_ENABLED"/>
+
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Controls" android:key="preference_key_controls">
+        <CheckBoxPreference android:summary="The mouse gets moved relative to the finger motion" android:key="@string/CONFIG_MOUSE_METHOD" android:title="Relative mouse control" android:shouldDisableView="true" android:dependency="@string/CONFIG_ENABLED"/>
+        <CheckBoxPreference android:summary="A longclick keeps the left mouse button pressed" android:key="@string/CONFIG_MOUSE_LONGCLICK" android:title="Dragging with longclick" android:shouldDisableView="true" android:dependency="@string/CONFIG_ENABLED"/>
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Sound" android:key="preference_key_sound">
+        <CheckBoxPreference android:key="@string/CONFIG_AUDIO_ENABLED" android:title="Enabled" android:shouldDisableView="true" android:dependency="@string/CONFIG_ENABLED"/>
+        <CheckBoxPreference android:summary="Reduces stuttering but throws off lipsyncing" android:key="@string/CONFIG_AUDIO_THREADED" android:title="Use multithreading" android:shouldDisableView="true" android:dependency="@string/CONFIG_ENABLED"/>
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Midi" android:key="preference_key_midi">
+        <CheckBoxPreference android:summary="Needs MIDI patches on the SD card" android:key="@string/CONFIG_MIDI_ENABLED" android:title="Enabled" android:shouldDisableView="true" android:dependency="@string/CONFIG_ENABLED"/>
+        <CheckBoxPreference android:summary="Less delay between MIDI tracks but causes a startup delay" android:key="@string/CONFIG_MIDI_PRELOAD" android:title="Preload patches" android:shouldDisableView="true" android:dependency="@string/CONFIG_ENABLED"/>
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Video" android:key="preference_key_video">
+        <CheckBoxPreference android:summary="On slow devices this can lead to all frames being skipped" android:key="@string/CONFIG_VIDEO_FRAMEDROP" android:title="Drop frames if necessary" android:shouldDisableView="true" android:dependency="@string/CONFIG_ENABLED"/>
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Graphics" android:key="preference_key_graphics">
+        <ListPreference android:summary="Choose between software and hardware rendering" android:entries="@array/renderer" android:dialogTitle="Select renderer" android:entryValues="@array/renderer_values" android:title="Select renderer" android:key="@string/CONFIG_GFX_RENDERER" android:shouldDisableView="true" android:dependency="@string/CONFIG_ENABLED"/>
+        <ListPreference android:entries="@array/screen_scaling" android:dialogTitle="Screen scaling" android:entryValues="@array/screen_scaling_values" android:title="Screen scaling" android:key="@string/CONFIG_GFX_SCALING" android:shouldDisableView="true" android:dependency="@string/CONFIG_ENABLED"/>
+        <CheckBoxPreference android:key="@string/CONFIG_GFX_SMOOTHING" android:title="Linear filtering" android:shouldDisableView="true" android:dependency="@string/CONFIG_ENABLED"/>
+        <CheckBoxPreference android:summary="Use a higher resolution for scaling objects" android:key="@string/CONFIG_GFX_SS" android:title="Supersampling" android:shouldDisableView="true" android:dependency="@string/CONFIG_ENABLED"/>
+        <CheckBoxPreference android:key="@string/CONFIG_GFX_SMOOTH_SPRITES" android:title="Smooth scaled sprites" android:shouldDisableView="true" android:dependency="@string/CONFIG_ENABLED"/>
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Debug" android:key="preference_key_debug">
+        <CheckBoxPreference android:key="@string/CONFIG_DEBUG_FPS" android:title="Show framerate" android:shouldDisableView="true" android:dependency="@string/CONFIG_ENABLED"/>
+        <CheckBoxPreference android:summary="Use a logcat reader to view the messages" android:key="@string/CONFIG_DEBUG_LOGCAT" android:title="Log debug messages" android:shouldDisableView="true" android:dependency="@string/CONFIG_ENABLED"/>
+    </PreferenceCategory>
+
+</PreferenceScreen>
+

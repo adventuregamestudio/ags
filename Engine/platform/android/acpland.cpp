@@ -90,6 +90,7 @@ extern void PauseGame();
 extern void UnPauseGame();
 extern int main(int argc,char*argv[]);
 
+char android_app_directory[256];
 char psp_game_file_name[256];
 char* psp_game_file_name_pointer = psp_game_file_name;
 
@@ -432,7 +433,7 @@ JNIEXPORT void JNICALL
 
 
 JNIEXPORT jboolean JNICALL 
-  Java_com_bigbluecup_android_EngineGlue_startEngine(JNIEnv* env, jobject object, jclass stringclass, jstring filename, jstring directory, jboolean loadLastSave)
+  Java_com_bigbluecup_android_EngineGlue_startEngine(JNIEnv* env, jobject object, jclass stringclass, jstring filename, jstring directory, jstring appDirectory, jboolean loadLastSave)
 {
   // Get JNI interfaces.
   java_object = env->NewGlobalRef(object);
@@ -455,6 +456,11 @@ JNIEXPORT jboolean JNICALL
   const char* cdirectory = java_environment->GetStringUTFChars(directory, NULL);
   chdir(cdirectory);
   java_environment->ReleaseStringUTFChars(directory, cdirectory);
+
+  // Get the app directory (something like "/data/data/com.bigbluecup.android.launcher")
+  const char* cappDirectory = java_environment->GetStringUTFChars(appDirectory, NULL);
+  strcpy(android_app_directory, cappDirectory);
+  java_environment->ReleaseStringUTFChars(appDirectory, cappDirectory);
 
   // Reset configuration.
   ResetConfiguration();

@@ -15,6 +15,7 @@
 #include "ac/global_game.h"
 #include "ac/global_gui.h"
 #include "ac/global_region.h"
+#include "ac/gui.h"
 #include "ac/mouse.h"
 #include "ac/objectcache.h"
 #include "ac/overlay.h"
@@ -2156,6 +2157,10 @@ void draw_screen_overlay() {
             guis_need_update = 0;
             for (aa=0;aa<game.numgui;aa++) {
                 if (guis[aa].on<1) continue;
+
+                if (guibg[aa] == NULL)
+                    recreate_guibg_image(&guis[aa]);
+
                 eip_guinum = aa;
                 our_eip = 370;
                 clear_to_color (guibg[aa], bitmap_mask_color(guibg[aa]));

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="CONFIG_NONE">-1</string>
+    <string name="CONFIG_IGNORE_ACSETUP">0</string>
+    <string name="CONFIG_CLEAR_CACHE">1</string>
+    <string name="CONFIG_AUDIO_RATE">2</string>
+    <string name="CONFIG_AUDIO_ENABLED">3</string>
+    <string name="CONFIG_AUDIO_THREADED">4</string>
+    <string name="CONFIG_AUDIO_CACHESIZE">5</string>
+    <string name="CONFIG_MIDI_ENABLED">6</string>
+    <string name="CONFIG_MIDI_PRELOAD">7</string>
+    <string name="CONFIG_VIDEO_FRAMEDROP">8</string>
+    <string name="CONFIG_GFX_RENDERER">9</string>
+    <string name="CONFIG_GFX_SMOOTHING">10</string>
+    <string name="CONFIG_GFX_SCALING">11</string>
+    <string name="CONFIG_GFX_SS">12</string>
+    <string name="CONFIG_ROTATION">13</string>
+    <string name="CONFIG_ENABLED">14</string>
+    <string name="CONFIG_DEBUG_FPS">15</string>
+    <string name="CONFIG_GFX_SMOOTH_SPRITES">16</string>
+    <string name="CONFIG_TRANSLATION">17</string>
+    <string name="CONFIG_DEBUG_LOGCAT">18</string>
+    <string name="CONFIG_MOUSE_METHOD">19</string>
+    <string name="CONFIG_MOUSE_LONGCLICK">20</string>
+</resources>

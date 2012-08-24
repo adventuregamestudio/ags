@@ -39,7 +39,10 @@
 #include "AGSflashlight/agsflashlight.h"
 #include "agsblend/agsblend.h"
 #include "ags_snowrain/ags_snowrain.h"
-#endif
+#if defined(IOS_VERSION)
+#include "../Plugins/agstouch/agstouch.h"
+#endif // IOS_VERSION
+#endif // BUILTIN_PLUGINS
 
 #if defined(MAC_VERSION)
 extern char dataDirectory[512];
@@ -48,7 +51,11 @@ extern "C"
 {
     int osx_sys_question(AL_CONST char *msg, AL_CONST char *but1, AL_CONST char *but2);
 }
-#endif
+#endif // MAC_VERSION
+
+#if defined(ANDROID_VERSION)
+extern char android_app_directory[256];
+#endif // ANDROID_VERSION
 
 
 extern IGraphicsDriver *gfxDriver;
@@ -839,7 +846,20 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         apl->builtin = true;
         return true;
     }
-#endif
+#if defined(IOS_VERSION)
+    else if (strncmp(apl->filename, "agstouch", strlen("agstouch")) == 0)
+    {
+        apl->engineStartup = agstouch::AGS_EngineStartup;
+        apl->engineShutdown = agstouch::AGS_EngineShutdown;
+        apl->onEvent = agstouch::AGS_EngineOnEvent;
+        apl->debugHook = agstouch::AGS_EngineDebugHook;
+        apl->initGfxHook = agstouch::AGS_EngineInitGfx;
+        apl->dllHandle = (HINSTANCE)1;
+        apl->builtin = true;
+        return true;
+    }
+#endif // IOS_VERSION
+#endif // BUILTIN_PLUGINS
 
     return false;
 }
@@ -913,8 +933,7 @@ void pl_read_plugins_from_disk (FILE *iii) {
 
         strlwr(apl->filename);
 
-        strcpy(library_name, "/data/data/com.bigbluecup.android/lib/lib");
-        strcat(library_name, apl->filename);
+        sprintf(library_name, "%s/lib/lib%s", android_app_directory, apl->filename);
         strcpy(&library_name[strlen(library_name) - 4], ".so");
 
         apl->dllHandle = dlopen(library_name, RTLD_LAZY);
@@ -950,6 +969,7 @@ void pl_read_plugins_from_disk (FILE *iii) {
 
         if (apl->dllHandle < 0)
         {
+            apl->dllHandle = NULL; // dllhandle contains an error code at this point, set it to NULL for the engine
             if (!pl_use_builtin_plugin(apl))
                 continue;
         }

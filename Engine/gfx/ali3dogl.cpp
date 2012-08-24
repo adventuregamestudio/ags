@@ -713,7 +713,7 @@ void OGLGraphicsDriver::InitOpenGl()
   glViewport(0, 0, device_screen_physical_width, device_screen_physical_height);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  glOrtho(0, device_screen_physical_width, 0, device_screen_physical_height, 0, 1);
+  glOrtho(0, device_screen_physical_width - 1, 0, device_screen_physical_height - 1, 0, 1);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
@@ -1150,7 +1150,7 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
     glViewport(0, 0, _newmode_width * _super_sampling, _newmode_height * _super_sampling);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(0, _newmode_width * _super_sampling, 0, _newmode_height * _super_sampling, 0, 1);
+    glOrtho(0, _newmode_width * _super_sampling - 1, 0, _newmode_height * _super_sampling - 1, 0, 1);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
   }
@@ -1163,7 +1163,7 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
     glViewport(0, 0, device_screen_physical_width, device_screen_physical_height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(0, device_screen_physical_width, 0, device_screen_physical_height, 0, 1);
+    glOrtho(0, device_screen_physical_width - 1, 0, device_screen_physical_height - 1, 0, 1);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
   }
@@ -1202,7 +1202,7 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
     glViewport(0, 0, device_screen_physical_width, device_screen_physical_height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(0, device_screen_physical_width, 0, device_screen_physical_height, 0, 1);
+    glOrtho(0, device_screen_physical_width - 1, 0, device_screen_physical_height - 1, 0, 1);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 

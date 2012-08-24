@@ -114,7 +114,6 @@ extern IGraphicsDriver *gfxDriver;
 GameState play;
 GameSetup usetup;
 GameSetupStruct game;
-RoomStatus *roomstats;
 RoomStatus troom;    // used for non-saveable rooms, eg. intro
 RoomObject*objs;
 RoomStatus*croom=NULL;
@@ -629,14 +628,7 @@ void unload_game_file() {
     free_do_once_tokens();
     free(play.gui_draw_order);
 
-    free (roomstats);
-    roomstats=(RoomStatus*)calloc(sizeof(RoomStatus),MAX_ROOMS);
-    for (ee=0;ee<MAX_ROOMS;ee++) {
-        roomstats[ee].beenhere=0;
-        roomstats[ee].numobj=0;
-        roomstats[ee].tsdatasize=0;
-        roomstats[ee].tsdata=NULL;
-    }
+    resetRoomStatuses();
 
 }
 
@@ -1086,13 +1078,19 @@ void save_game_room_state(FILE *ooo)
     }
 
     // write the room state for all the rooms the player has been in
+    RoomStatus* roomstat;
     for (int bb = 0; bb < MAX_ROOMS; bb++) {
-        if (roomstats[bb].beenhere) {
-            fputc (1, ooo);
-            //fwrite(&roomstats[bb],sizeof(RoomStatus),1,ooo);
-            roomstats[bb].WriteToFile(ooo);
-            if (roomstats[bb].tsdatasize>0)
-                fwrite(&roomstats[bb].tsdata[0], 1, roomstats[bb].tsdatasize, ooo);
+        if (isRoomStatusValid(bb))
+        {
+            roomstat = getRoomStatus(bb);
+            if (roomstat->beenhere) {
+                fputc (1, ooo);
+                roomstat->WriteToFile(ooo);
+                if (roomstat->tsdatasize>0)
+                    fwrite(&roomstat->tsdata[0], 1, roomstat->tsdatasize, ooo);
+            }
+            else
+                fputc (0, ooo); // <--- [IKM] added by me, CHECKME if needed / works correctly
         }
         else
             fputc (0, ooo);
@@ -1655,56 +1653,39 @@ void restore_game_room_state(FILE *ooo, const char *nametouse)
     displayed_room = getw(ooo);
 
     // now the rooms
-    for (vv=0;vv<MAX_ROOMS;vv++) {
-        if (roomstats[vv].tsdata==NULL) ;
-        else if (roomstats[vv].tsdatasize>0) {
-            free(roomstats[vv].tsdata);
-            roomstats[vv].tsdatasize=0; roomstats[vv].tsdata=NULL;
-        }
-        roomstats[vv].beenhere=0;
-    }
+    resetRoomStatuses();
+
     long gobackto=ftell(ooo);
     fclose(ooo);
     ooo=fopen(nametouse,"rb");
     fseek(ooo,gobackto,SEEK_SET);
 
     // read the room state for all the rooms the player has been in
-    for (vv=0;vv<MAX_ROOMS;vv++) {
-        if ((roomstats[vv].tsdatasize>0) & (roomstats[vv].tsdata!=NULL))
-            free(roomstats[vv].tsdata);
-        roomstats[vv].tsdatasize=0;
-        roomstats[vv].tsdata=NULL;
-        roomstats[vv].beenhere = fgetc (ooo);
+    RoomStatus* roomstat;
+    int beenhere;
+    for (vv=0;vv<MAX_ROOMS;vv++)
+    {
+        beenhere = fgetc(ooo);
+        if (beenhere)
+        {
+            roomstat = getRoomStatus(vv);
+            if ((roomstat->tsdatasize > 0) && (roomstat->tsdata != NULL))
+                free(roomstat->tsdata);
+            roomstat->tsdatasize = 0;
+            roomstat->tsdata = NULL;
+            roomstat->beenhere = beenhere;
 
-        if (roomstats[vv].beenhere) {
-            //fread(&roomstats[vv],sizeof(RoomStatus),1,ooo);
-            roomstats[vv].ReadFromFile(ooo);
-            if (roomstats[vv].tsdatasize>0) {
-                roomstats[vv].tsdata=(char*)malloc(roomstats[vv].tsdatasize+8);
-                fread(&roomstats[vv].tsdata[0],roomstats[vv].tsdatasize,1,ooo);
+            if (roomstat->beenhere)
+            {
+                roomstat->ReadFromFile(ooo);
+                if (roomstat->tsdatasize > 0)
+                {
+                    roomstat->tsdata=(char*)malloc(roomstat->tsdatasize + 8);
+                    fread(&roomstat->tsdata[0], roomstat->tsdatasize, 1, ooo);
+                }
             }
         }
     }
-
-    /*  for (vv=0;vv<MAX_ROOMS;vv++) {
-    if ((roomstats[vv].tsdatasize>0) & (roomstats[vv].tsdata!=NULL))
-    free(roomstats[vv].tsdata);
-    roomstats[vv].tsdatasize=0;
-    roomstats[vv].tsdata=NULL;
-    }
-    int numtoread=getw(ooo);
-    if ((numtoread < 0) | (numtoread>MAX_ROOMS)) {
-    sprintf(rbuffer,"Save game has invalid value for rooms_entered: %d",numtoread);
-    quit(rbuffer);
-    }
-    fread(&roomstats[0],sizeof(RoomStatus),numtoread,ooo);
-    for (vv=0;vv<numtoread;vv++) {
-    if (roomstats[vv].tsdatasize>0) {
-    roomstats[vv].tsdata=(char*)malloc(roomstats[vv].tsdatasize+5);
-    fread(&roomstats[vv].tsdata[0],roomstats[vv].tsdatasize,1,ooo);
-    }
-    else roomstats[vv].tsdata=NULL;
-    }*/
 }
 
 void restore_game_play(FILE *ooo)

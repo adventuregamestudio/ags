@@ -14,22 +14,22 @@ namespace AGS
 namespace Engine
 {
 
-namespace out
+namespace Out
 {
-    class CConsoleOutputTarget : public AGS::Common::out::IOutputTarget
+    class CConsoleOutputTarget : public AGS::Common::Out::IOutputTarget
     {
     public:
         CConsoleOutputTarget();
         virtual ~CConsoleOutputTarget();
 
-        virtual void out(const char *sz_fullmsg);
+        virtual void Out(const char *sz_fullmsg);
 
     protected:
 
     private:
     };
 
-}   // namespace out
+}   // namespace Out
 
 }   // namespace Engine
 }   // namespace AGS

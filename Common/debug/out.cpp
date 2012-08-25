@@ -12,7 +12,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
-#include "debug/out.h"
+#include "debug/Out.h"
 #include "debug/outputtarget.h"
 
 #define STD_BUFFER_SIZE 3000
@@ -22,288 +22,205 @@ namespace AGS
 namespace Common
 {
 
-namespace out
+namespace Out
 {
-    struct OUTPUT_TARGET
+    struct COutputTargetSlot
     {
-        IOutputTarget   *delegate_object;
+    public:
+        IOutputTarget   *DelegateObject;
         // target-specific verbosity setting
-        int             verbosity;
-        // TODO: use shared ptrs instead of remembering that ptr is shared
-        bool            shared;
-        bool            suppressed;
+        OutputVerbosity Verbosity;
+        // TODO: use safer technique instead of remembering that ptr is shared
+        bool            IsShared;
+        bool            IsSuppressed;
 
-        //char            buffer[STD_BUFFER_SIZE];
-
-        OUTPUT_TARGET()
+        COutputTargetSlot(IOutputTarget *output_target, OutputVerbosity verbosity, bool shared_object)
         {
-            delegate_object = NULL;
-            verbosity       = 0;
-            shared          = false;
-            suppressed      = false;
+            DelegateObject  = output_target;
+            Verbosity       = verbosity;
+            IsShared        = shared_object;
+            IsSuppressed    = false;
         }
 
-        ~OUTPUT_TARGET()
+        ~COutputTargetSlot()
         {
-            if (!shared) {
-                delete delegate_object;
+            if (!IsShared) {
+                delete DelegateObject;
             }
         }
     };
 
-    struct INTERNAL_DATA
+    struct CInternalData
     {
+    public:
         // general verbosity setting
-        int             verbosity;
-        OUTPUT_TARGET   targets[MAX_TARGETS];
+        OutputVerbosity     Verbosity;
+        COutputTargetSlot   *Targets[MAX_TARGETS];
 
-        INTERNAL_DATA()
+        CInternalData()
         {
-            verbosity = 0;
+            Verbosity = kVerbose_Never;
+            memset(Targets, NULL, sizeof(Targets));
         }
     };
 
-    // Internal va_list version of out()
-    void vout (int reason, const char *sz_msg, va_list argptr);
-    // Internal va_list version of out with additional function name string
-    void voutfn (int reason, const char *sz_fnname, const char *sz_msg, va_list argptr);
+    // Internal va_list version of Out()
+    void VOut  (OutputVerbosity reason, const char *sz_msg, va_list argptr);
     // Internal va_list wrapper over print()
-    void vprint(int reason, const char *sz_msg, va_list argptr);
+    void VPrint(OutputVerbosity reason, const char *sz_msg, va_list argptr);
     // Does actual print
-    void print (int reason, const char *sz_msg);
+    void Print (OutputVerbosity reason, const char *sz_msg);
 
     // Check verbosity settings to check if it is permitted to
     // print a message for given reason
-    inline bool get_output_permission (int verbosity, int reason = REASON_WHATEVER);
+    inline bool GetOutputPermission (OutputVerbosity verbosity, OutputVerbosity reason = kVerbose_Always);
 
-}   // namespace out
+}   // namespace Out
 
 }   // namespace Common
 }   // namespace AGS
 
-using namespace AGS;
-using namespace AGS::Common;
+namespace Out = AGS::Common::Out;
 
-out::INTERNAL_DATA idata;
+Out::CInternalData IData;
 
 //-----------------------------------------------------------------------------
 // System management
 //-----------------------------------------------------------------------------
-void out::init (int cmdarg_count, char **cmdargs)
+void Out::Init (int cmdarg_count, char **cmdargs)
 {
     // TODO: check cmdargs to set up the settings
     //
     //
-    idata.verbosity = REASON_WHATEVER; /*play.debug_mode != 0 ? REASON_WHATEVER : 0;*/
+    IData.Verbosity = kVerbose_Always; /*play.debug_mode != 0 ? kVerbose_Always : 0;*/
 
     //-------------------------------------------
     //
 }
 
-void out::add_output_target(int target_id, out::IOutputTarget *output_target, int verbosity, bool shared_ptr)
+void Out::AddOutputTarget(int target_id, Out::IOutputTarget *output_target, OutputVerbosity verbosity, bool shared_object)
 {
     // TODO: use array class instead
     if (target_id < 0 || target_id >= MAX_TARGETS) {
-        out::warn("Output system: unable to add target output, because id %d is out of range", target_id);
+        Out::Warn("Output system: unable to add target output, because id %d is Out of range", target_id);
         return;
     }
 
-    if (idata.targets[target_id].shared) {
-        delete idata.targets[target_id].delegate_object;
-        idata.targets[target_id].delegate_object = NULL;
-    }
-
-    idata.targets[target_id].shared         = shared_ptr;
-    idata.targets[target_id].verbosity      = verbosity;
-    idata.targets[target_id].delegate_object= output_target;
+    delete IData.Targets[target_id];
+    IData.Targets[target_id] = new COutputTargetSlot(output_target, verbosity, shared_object);
 }
 
-void out::shutdown ()
+void Out::Shutdown ()
 {
     // release any memory, resources etc here
 
-    // TODO: this should be handled by shared pointers!
     for (int i = 0; i < MAX_TARGETS; ++i)
     {
-        if (!idata.targets[i].shared) {
-            delete idata.targets[i].delegate_object;
-            idata.targets[i].delegate_object = NULL;
-        }
+        delete IData.Targets[i];
+        IData.Targets[i] = NULL;
     }
 }
 
 //-----------------------------------------------------------------------------
 // Verbosity setting
 //-----------------------------------------------------------------------------
-inline bool out::get_output_permission (int verbosity, int reason /* = REASON_WHATEVER */)
+inline bool Out::GetOutputPermission (OutputVerbosity verbosity, OutputVerbosity reason)
 {
-    // verbosity is tested against VERBOSE_DO_LOG separately,
+    // verbosity is tested against kVerbose_DoLog separately,
     // since reason is not required to has that bit set
-    return (verbosity & VERBOSE_DO_LOG) != 0 && (verbosity & reason) != 0;
+    return (verbosity & kVerbose_DoLog) != 0 && (verbosity & reason) != 0;
 }
 
 //-----------------------------------------------------------------------------
 // Convenience functions, with regard to verbosity settings
 //-----------------------------------------------------------------------------
-void out::debug (const char *sz_msg, ...)
+void Out::Debug (const char *sz_msg, ...)
 {
     va_list argptr;
     va_start(argptr, sz_msg);
-    out::vout(REASON_DEBUG, sz_msg, argptr);
+    Out::VOut(kVerbose_Debug, sz_msg, argptr);
     va_end(argptr);
 }
 
-void out::debug (const char *sz_fnname, const char *sz_msg, ...)
+void Out::Notify (const char *sz_msg, ...)
 {
     va_list argptr;
     va_start(argptr, sz_msg);
-    out::voutfn(REASON_DEBUG, sz_fnname, sz_msg, argptr);
+    Out::VOut(kVerbose_Notification, sz_msg, argptr);
     va_end(argptr);
 }
 
-void out::notify (const char *sz_msg, ...)
+void Out::Warn (const char *sz_msg, ...)
 {
     va_list argptr;
     va_start(argptr, sz_msg);
-    out::vout(REASON_NOTIFICATION, sz_msg, argptr);
+    Out::VOut(kVerbose_Warning, sz_msg, argptr);
     va_end(argptr);
 }
 
-void out::notify (const char *sz_fnname, const char *sz_msg, ...)
+void Out::HandledError (const char *sz_msg, ...)
 {
     va_list argptr;
     va_start(argptr, sz_msg);
-    out::voutfn(REASON_NOTIFICATION, sz_fnname, sz_msg, argptr);
+    Out::VOut(kVerbose_HandledError, sz_msg, argptr);
     va_end(argptr);
 }
 
-void out::warn (const char *sz_msg, ...)
+void Out::UnhandledError (const char *sz_msg, ...)
 {
     va_list argptr;
     va_start(argptr, sz_msg);
-    out::vout(REASON_WARNING, sz_msg, argptr);
+    Out::VOut(kVerbose_UnhandledError, sz_msg, argptr);
     va_end(argptr);
 }
 
-void out::warn (const char *sz_fnname, const char *sz_msg, ...)
+void Out::FatalError(const char *sz_msg, ...)
 {
     va_list argptr;
     va_start(argptr, sz_msg);
-    out::voutfn(REASON_WARNING, sz_fnname, sz_msg, argptr);
+    Out::VOut(kVerbose_FatalError, sz_msg, argptr);
     va_end(argptr);
-}
-
-void out::handled_err (const char *sz_msg, ...)
-{
-    va_list argptr;
-    va_start(argptr, sz_msg);
-    out::vout(REASON_HANDLED_ERROR, sz_msg, argptr);
-    va_end(argptr);
-}
-
-void out::handled_err (const char *sz_fnname, const char *sz_msg, ...)
-{
-    va_list argptr;
-    va_start(argptr, sz_msg);
-    out::voutfn(REASON_HANDLED_ERROR, sz_fnname, sz_msg, argptr);
-    va_end(argptr);
-}
-
-void out::unhandled_err (const char *sz_msg, ...)
-{
-    va_list argptr;
-    va_start(argptr, sz_msg);
-    out::vout(REASON_UNHANDLED_ERROR, sz_msg, argptr);
-    va_end(argptr);
-}
-
-void out::unhandled_err (const char *sz_fnname, const char *sz_msg, ...)
-{
-    va_list argptr;
-    va_start(argptr, sz_msg);
-    out::voutfn(REASON_UNHANDLED_ERROR, sz_fnname, sz_msg, argptr);
-    va_end(argptr);
-}
-
-void out::fatal_err (const char *sz_msg, ...)
-{
-    va_list argptr;
-    va_start(argptr, sz_msg);
-    out::vout(REASON_FATAL_ERROR, sz_msg, argptr);
-    va_end(argptr);
-}
-
-void out::fatal_err (const char *sz_fnname, const char *sz_msg, ...)
-{
-    va_list argptr;
-    va_start(argptr, sz_msg);
-    out::voutfn(REASON_FATAL_ERROR, sz_fnname, sz_msg, argptr);
-    va_end(argptr);
-}
-
-void out::fnin (const char *sz_fnname)
-{
-    out::out(REASON_FUNCTION_ENTER, ">>> function: %s", sz_fnname);
-}
-
-void out::fnout (const char *sz_fnname)
-{
-    out::out(REASON_FUNCTION_EXIT, "<<< function: %s", sz_fnname);
 }
 
 //-----------------------------------------------------------------------------
 // Make an output with regard to verbosity settings
 //-----------------------------------------------------------------------------
-void out::out (int reason, const char *sz_msg, ...)
+void Out::Out (OutputVerbosity reason, const char *sz_msg, ...)
 {
-    if (!get_output_permission(idata.verbosity, reason)) {
+    if (!GetOutputPermission(IData.Verbosity, reason)) {
         return;
     }
 
     va_list argptr;
     va_start(argptr, sz_msg);
-    out::vprint(reason, sz_msg, argptr);
+    Out::VPrint(reason, sz_msg, argptr);
     va_end(argptr);
 }
 
-void out::vout (int reason, const char *sz_msg, va_list argptr)
+void Out::VOut (OutputVerbosity reason, const char *sz_msg, va_list argptr)
 {
-    if (!get_output_permission(idata.verbosity, reason)) {
+    if (!GetOutputPermission(IData.Verbosity, reason)) {
         return;
     }
 
-    out::vprint(reason, sz_msg, argptr);
-}
-
-void out::voutfn (int reason, const char *sz_fnname, const char *sz_msg, va_list argptr)
-{
-    if (!get_output_permission(idata.verbosity, reason)) {
-        return;
-    }
-
-    char buffer[STD_BUFFER_SIZE];
-    int fnname_length = strlen(sz_fnname);
-    sprintf(buffer, "@%s: ", sz_fnname);
-    vsprintf(buffer + fnname_length + 3, sz_msg, argptr);
-
-    out::print(reason, buffer);
+    Out::VPrint(reason, sz_msg, argptr);
 }
 
 //-----------------------------------------------------------------------------
 // Force print: make an output regardless of verbosity settings
 //-----------------------------------------------------------------------------
-void out::fprint (const char *sz_msg, ...)
+void Out::FPrint (const char *sz_msg, ...)
 {
     va_list argptr;
     va_start(argptr, sz_msg);
-    out::vprint(REASON_WHATEVER, sz_msg, argptr);
+    Out::VPrint(kVerbose_Always, sz_msg, argptr);
     va_end(argptr);
 }
 
 //-----------------------------------------------------------------------------
 // Do actual print
 //-----------------------------------------------------------------------------
-void out::vprint (int reason, const char *sz_msg, va_list argptr)
+void Out::VPrint (OutputVerbosity reason, const char *sz_msg, va_list argptr)
 {
     // Make a formatted string
     char buffer[STD_BUFFER_SIZE];
@@ -312,28 +229,32 @@ void out::vprint (int reason, const char *sz_msg, va_list argptr)
     // TODO: Optionally add information here (room index, etc) (?)
     //
     //
-    // Send final message to targets
-    print(reason, buffer);
+    // Send final message to Targets
+    Print(reason, buffer);
 }
 
-void out::print (int reason, const char *sz_msg)
+void Out::Print (OutputVerbosity reason, const char *sz_msg)
 {    
     for (int i = 0; i < MAX_TARGETS; ++i)
     {
-        if (idata.targets[i].delegate_object) {
-            if (idata.targets[i].suppressed) {
-                continue;
-            }
-            if (!get_output_permission(idata.targets[i].verbosity, reason)) {
-                continue;
-            }
-
-            // We suppress current target here  so that if it makes a call
-            // to output system itself, message would not print to the
-            // same target
-            idata.targets[i].suppressed = true;
-            idata.targets[i].delegate_object->out(sz_msg);
-            idata.targets[i].suppressed = false;
+        COutputTargetSlot *target = IData.Targets[i];
+        if (!target || !target->DelegateObject)
+        {
+            continue;
         }
+
+        if (target->IsSuppressed) {
+            continue;
+        }
+        if (!GetOutputPermission(target->Verbosity, reason)) {
+            continue;
+        }
+
+        // We suppress current target here  so that if it makes a call
+        // to output system itself, message would not print to the
+        // same target
+        target->IsSuppressed = true;
+        target->DelegateObject->Out(sz_msg);
+        target->IsSuppressed = false;
     }
 } 

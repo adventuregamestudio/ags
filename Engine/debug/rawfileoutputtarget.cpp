@@ -3,8 +3,12 @@
 #include "debug/rawfileoutputtarget.h"
 #include "debug/out.h"
 
-using namespace AGS;
-using namespace Engine;
+namespace AGS
+{
+namespace Engine
+{
+namespace Out
+{
 //
 // TODO:
 // Use advanced utility classes instead of C-style strings and arrays.      
@@ -17,7 +21,7 @@ using namespace Engine;
 // useful information. Whether this is to be determined here or on
 // high-level side remains a question.
 //
-out::CRawFileOutputTarget::CRawFileOutputTarget(const char *sz_filepath)
+CRawFileOutputTarget::CRawFileOutputTarget(const char *sz_filepath)
 {
     File = NULL;
 
@@ -28,13 +32,13 @@ out::CRawFileOutputTarget::CRawFileOutputTarget(const char *sz_filepath)
     DidWriteOnce = false;
 }
 
-out::CRawFileOutputTarget::~CRawFileOutputTarget()
+CRawFileOutputTarget::~CRawFileOutputTarget()
 {
     CloseFile();
     delete [] FilePath;
 }
 
-void out::CRawFileOutputTarget::out(const char *sz_fullmsg)
+void CRawFileOutputTarget::Out(const char *sz_fullmsg)
 {
     if (!OpenFile()) {
         return;
@@ -44,7 +48,7 @@ void out::CRawFileOutputTarget::out(const char *sz_fullmsg)
     CloseFile();
 }
 
-bool out::CRawFileOutputTarget::OpenFile()
+bool CRawFileOutputTarget::OpenFile()
 {
     char *open_mode;
     if (DidWriteOnce) {
@@ -64,7 +68,7 @@ bool out::CRawFileOutputTarget::OpenFile()
     return true;
 }
 
-void out::CRawFileOutputTarget::CloseFile()
+void CRawFileOutputTarget::CloseFile()
 {
     if (!File) {
         return;
@@ -73,3 +77,7 @@ void out::CRawFileOutputTarget::CloseFile()
     fclose(File);
     File = NULL;
 }
+
+} // namespace Out
+} // namespace Engine
+} // namespace AGS

@@ -6,28 +6,32 @@
 #include "debug/debug.h"
 #include "debug/out.h"
 
-using namespace AGS;
-using namespace Engine;
-
 extern roomstruct thisroom;
 extern ccScript* gamescript;
 extern ccScript* dialogScriptsScript;
 extern int currentline;
-
-out::CConsoleOutputTarget::CConsoleOutputTarget()
-{
-}
-
-out::CConsoleOutputTarget::~CConsoleOutputTarget()
-{
-}
 
 #define STD_BUFFER_SIZE 3000
 
 extern DebugConsoleText debug_line[DEBUG_CONSOLE_NUMLINES];
 extern int first_debug_line, last_debug_line, display_console;
 
-void out::CConsoleOutputTarget::out(const char *sz_fullmsg)
+namespace AGS
+{
+namespace Engine
+{
+namespace Out
+{
+
+CConsoleOutputTarget::CConsoleOutputTarget()
+{
+}
+
+CConsoleOutputTarget::~CConsoleOutputTarget()
+{
+}
+
+void CConsoleOutputTarget::Out(const char *sz_fullmsg)
 {
     AGSPlatformDriver *platform_driver = AGSPlatformDriver::GetDriver();
 
@@ -63,3 +67,7 @@ void out::CConsoleOutputTarget::out(const char *sz_fullmsg)
     if (last_debug_line == first_debug_line)
         first_debug_line = (first_debug_line + 1) % DEBUG_CONSOLE_NUMLINES;
 }
+
+} // namespace Out
+} // namespace Engine
+} // namespace AGS

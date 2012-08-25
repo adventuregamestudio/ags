@@ -12,14 +12,14 @@ namespace AGS
 namespace Common
 {
 
-namespace out
+namespace Out
 {
     class IOutputTarget
     {
     public:
         virtual ~IOutputTarget() {}
 
-        virtual void out(const char *sz_fullmsg) = 0;
+        virtual void Out(const char *sz_fullmsg) = 0;
     };
 
 }   // namespace out

@@ -120,7 +120,7 @@ int AGSPlatformDriver::ConvertKeycodeToScanCode(int keycode)
 //-----------------------------------------------
 // IOutputTarget implementation
 //-----------------------------------------------
-void AGSPlatformDriver::out(const char *sz_fullmsg) {
+void AGSPlatformDriver::Out(const char *sz_fullmsg) {
     // do nothing
 }
 

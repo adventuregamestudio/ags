@@ -21,7 +21,7 @@
 //
 //-----------------------------------------------------------------------------
 // TODO:
-// 1. Use advanced utility classes instead of C-style strings and arrays.    
+// + Use advanced utility classes instead of C-style strings and arrays.    
 //
 //=============================================================================
 #ifndef __AGS_CN_DEBUG__OUT_H
@@ -34,78 +34,69 @@ namespace AGS
 namespace Common
 {
 
-namespace out
+namespace Out
 {
     // Verbosity
-    enum
+    enum OutputVerbosity
     {
-        VERBOSE_DO_LOG          = 0x0001, // do log (otherwise do not, C.O.)
+        kVerbose_Never          = 0,
+        kVerbose_DoLog          = 0x0001, // do log (otherwise do not, C.O.)
 
         // Debug reason is for random information about current game state,
         // like outputting object values, or telling that execution has
         // passed certain point in the function
-        REASON_DEBUG            = 0x0002,
+        kVerbose_Debug          = 0x0002,
         // Notifications are made when the program is passing important
         // checkpoints, like initializing or shutting engine down, or
         // when program decides to make a workaround to solve some problem
-        REASON_NOTIFICATION     = 0x0004,
+        kVerbose_Notification   = 0x0004,
         // Warnings are made when unexpected or generally strange behavior
         // is detected in program, which does not necessarily mean error,
         // but still may be a symptom of a bigger problem
-        REASON_WARNING          = 0x0008,
+        kVerbose_Warning        = 0x0008,
         // Handled errors are ones that were 'fixed' by the program on run;
         // There's high chance that program will continue running as normal,
         // but message should be maid to bring user or dev's attention
-        REASON_HANDLED_ERROR    = 0x0010,
+        kVerbose_HandledError   = 0x0010,
         // Unhandled errors are errors that program was not able to fix;
         // Program *may* try to continue, but there's no guarantee it will
         // work as expected
-        REASON_UNHANDLED_ERROR  = 0x0020,
+        kVerbose_UnhandledError = 0x0020,
         // Fatal errors make program abort immediately
-        REASON_FATAL_ERROR      = 0x0040,
+        kVerbose_FatalError     = 0x0040,
 
         // Convenience aliases
-        REASON_FUNCTION_ENTER   = REASON_DEBUG,
-        REASON_FUNCTION_EXIT    = REASON_DEBUG,
-
-        REASON_NOT_DEBUG        = 0x007D,
-        REASON_WARN_ERRORS      = 0x0079,
+        kVerbose_NoDebug        = 0x007D,
+        kVerbose_WarnErrors     = 0x0079,
         // Just print out the damned message!
-        REASON_WHATEVER         = 0x00FF
+        kVerbose_Always         = 0x00FF
     };
 
     const int MAX_TARGETS = 10; // TODO: remove this when array classes are implemented
 
     // System management
-    void init (int cmdarg_count, char **cmdargs);
-    // TODO: use shared ptrs instead of telling that ptr is shared
-    void add_output_target(int target_id, out::IOutputTarget *output_target, int verbosity, bool shared_ptr);
-    void shutdown ();
+    void Init (int cmdarg_count, char **cmdargs);
+    // TODO: use safer technique like shared ptrs or reference counted objects
+    // instead of telling that ptr is shared
+    void AddOutputTarget(int target_id, IOutputTarget *output_target, OutputVerbosity verbosity, bool shared_object);
+    void Shutdown ();
 
     // Convenience functions, with regard to verbosity settings
-    void debug          (const char *sz_msg, ...);
-    void debug          (const char *sz_fnname, const char *sz_msg, ...);
-    void notify         (const char *sz_msg, ...);
-    void notify         (const char *sz_fnname, const char *sz_msg, ...);
-    void warn           (const char *sz_msg, ...);
-    void warn           (const char *sz_fnname, const char *sz_msg, ...);
-    void handled_err    (const char *sz_msg, ...);
-    void handled_err    (const char *sz_fnname, const char *sz_msg, ...);
-    void unhandled_err  (const char *sz_msg, ...);
-    void unhandled_err  (const char *sz_fnname, const char *sz_msg, ...);
-    void fatal_err      (const char *sz_msg, ...);
-    void fatal_err      (const char *sz_fnname, const char *sz_msg, ...);
-    void fnin           (const char *sz_fnname);
-    void fnout          (const char *sz_fnname);
+    void Debug          (const char *sz_msg, ...);
+    void Notify         (const char *sz_msg, ...);
+    void Warn           (const char *sz_msg, ...);
+    void HandledError   (const char *sz_msg, ...);
+    void UnhandledError (const char *sz_msg, ...);
+    void FatalError     (const char *sz_msg, ...);
 
     // Make an output with regard to verbosity settings
-    void out   (int reason, const char *sz_msg, ...);
+    void Out   (OutputVerbosity reason, const char *sz_msg, ...);
 
     // Force print: output message regardless of verbosity settings
-    // This will make an output even if VERBOSE_DO_LOG is not set
-    void fprint(const char *sz_msg, ...);
+    // This will make an output even if kVerbose_DoLog is not set
+    void FPrint(const char *sz_msg, ...);
 
-}   // namespace out
+}   // namespace Out
 
 }   // namespace Common
 }   // namespace AGS

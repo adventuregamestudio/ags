@@ -15,15 +15,15 @@ namespace AGS
 namespace Engine
 {
 
-namespace out
+namespace Out
 {
-    class CRawFileOutputTarget : public AGS::Common::out::IOutputTarget
+    class CRawFileOutputTarget : public AGS::Common::Out::IOutputTarget
     {
     public:
         CRawFileOutputTarget(const char *sz_filepath);
         virtual ~CRawFileOutputTarget();
 
-        virtual void out(const char *sz_fullmsg);
+        virtual void Out(const char *sz_fullmsg);
 
     protected:
         bool OpenFile();
@@ -35,7 +35,7 @@ namespace out
         bool DidWriteOnce;
     };
 
-}   // namespace out
+}   // namespace Out
 
 }   // namespace Engine
 }   // namespace AGS

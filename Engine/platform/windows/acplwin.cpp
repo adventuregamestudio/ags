@@ -115,7 +115,7 @@ struct AGSWin32 : AGSPlatformDriver {
   //-----------------------------------------------
   // IOutputTarget implementation
   //-----------------------------------------------
-  virtual void out(const char *sz_fullmsg);
+  virtual void Out(const char *sz_fullmsg);
 
 private:
   void add_game_to_game_explorer(IGameExplorer* pFwGameExplorer, GUID *guid, const char *guidAsText, bool allUsers);
@@ -820,7 +820,7 @@ AGSPlatformDriver* AGSPlatformDriver::GetDriver() {
 //-----------------------------------------------
 // IOutputTarget implementation
 //-----------------------------------------------
-void AGSWin32::out(const char *sz_fullmsg) {
+void AGSWin32::Out(const char *sz_fullmsg) {
     this->WriteDebugString(sz_fullmsg);
 }
 

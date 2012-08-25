@@ -31,7 +31,7 @@ enum eScriptSystemOSID {
 
 struct AGSPlatformDriver
     // be used as a output target for logging system
-    : public AGS::Common::out::IOutputTarget
+    : public AGS::Common::Out::IOutputTarget
 {
     virtual void AboutToQuitGame();
     virtual void Delay(int millis) = 0;
@@ -74,7 +74,7 @@ struct AGSPlatformDriver
     //-----------------------------------------------
     // IOutputTarget implementation
     //-----------------------------------------------
-    virtual void out(const char *sz_fullmsg);
+    virtual void Out(const char *sz_fullmsg);
 
 private:
     static AGSPlatformDriver *instance;

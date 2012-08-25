@@ -30,6 +30,7 @@ BASE := $(patsubst %.cpp,%.o,$(BASE_cpp_sources))
 COMMON_subdirs = \
 ../Common/ac \
 ../Common/ac/dynobj \
+../Common/debug \
 ../Common/font \
 ../Common/gui \
 ../Common/platform/base \

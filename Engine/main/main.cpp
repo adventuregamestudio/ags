@@ -313,6 +313,7 @@ int main(int argc,char*argv[]) {
     if ((argc>1) && (argv[1][1]=='?'))
         return 0;
 
+    initialize_debug_system();
     write_log_debug("***** ENGINE STARTUP");
 
 #if defined(WINDOWS_VERSION)

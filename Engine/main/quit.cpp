@@ -308,6 +308,8 @@ void quit(char*quitmsg) {
 
     write_log_debug("***** ENGINE HAS SHUTDOWN");
 
+    shutdown_debug_system();
+
     our_eip = 9904;
     exit(EXIT_NORMAL);
 }

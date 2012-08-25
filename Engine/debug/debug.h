@@ -20,6 +20,10 @@
 #include "platform/base/agsplatformdriver.h"
 
 extern GameState play;
+void initialize_debug_system();
+void shutdown_debug_system();
+
+
 #define DEBUG_CONSOLE if (play.debug_mode) debug_write_console
 
 void debug_write_console (char *msg, ...);
@@ -62,7 +66,21 @@ extern AGSPlatformDriver *platform;
 
 // this function is only enabled for special builds if a startup
 // issue needs to be checked
-#define write_log_debug(msg) platform->WriteDebugString(msg)
+
+// [IKM] 2012-06-23 for test only! FIXME!!
+#include "debug/out.h"
+// Note: DEBUG_CONSOLE should not be enabled for new output system
+// until verbosity settings are checked for targets: too many
+// data is being written to the file.
+//#undef DEBUG_CONSOLE
+//#define DEBUG_CONSOLE        AGS::Common::out::fprint
+//#define debug_log(msg)     AGS::Common::out::fprint(msg);
+//#define write_log_debug(msg) platform->WriteDebugString(msg) <---- original code
+#undef write_log_debug
+#define write_log_debug(msg) AGS::Common::out::fprint(msg)
+
+
+
 /*extern "C" {
 void write_log_debug(const char*msg) {
 //if (play.debug_mode == 0)

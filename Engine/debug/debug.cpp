@@ -23,6 +23,9 @@
 #include "ac/runtime_defines.h"
 #include "debug/debug.h"
 #include "gui/dynamicarray.h"
+#include "debug/out.h"
+#include "debug/consoleoutputtarget.h"
+#include "debug/rawfileoutputtarget.h"
 #include "media/audio/audio.h"
 #include "script/script.h"
 #include "script/script_common.h"
@@ -71,6 +74,69 @@ int first_debug_line = 0, last_debug_line = 0, display_console = 0;
 
 int fps=0,display_fps=0;
 
+using namespace AGS;
+using namespace Common;
+
+enum
+{
+    TARGET_FILE,
+    TARGET_SYSTEMDEBUGGER,
+    TARGET_GAMECONSOLE,
+    TARGET_FILE_EXTRA_TEST,
+};
+
+void initialize_output_subsystem()
+{
+    out::init(0, NULL);
+    out::add_output_target(TARGET_FILE, new Engine::out::CRawFileOutputTarget("warning.log"),
+        out::REASON_NOT_DEBUG, false);
+    out::add_output_target(TARGET_SYSTEMDEBUGGER, AGSPlatformDriver::GetDriver(),
+        out::REASON_WARN_ERRORS, true);
+    out::add_output_target(TARGET_GAMECONSOLE, new Engine::out::CConsoleOutputTarget(),
+        out::REASON_WHATEVER, false);
+    out::add_output_target(TARGET_FILE_EXTRA_TEST, new Engine::out::CRawFileOutputTarget("ags_game_debug.log"),
+        out::REASON_WHATEVER, false);
+
+    out::fprint("Debug system: output subsystem initialized");
+    out::fprint("Debug system: testing!");
+
+    out::debug          ("This is a debug message, p1 = %d, p2 = %f", 1, 2.0);
+    out::debug          ("Function name", "This is a debug message, p1 = %d, p2 = %f", 1, 2.0);
+    out::notify         ("This is a notification, p1 = %d, p2 = %f", 1, 2.0);
+    out::notify         ("Function name", "This is a notification, p1 = %d, p2 = %f", 1, 2.0);
+    out::warn           ("This is a warning, p1 = %d, p2 = %f", 1, 2.0);
+    out::warn           ("Function name", "This is a warning, p1 = %d, p2 = %f", 1, 2.0);
+    out::handled_err    ("This is a handled error, p1 = %d, p2 = %f", 1, 2.0);
+    out::handled_err    ("Function name", "This is a handled error, p1 = %d, p2 = %f", 1, 2.0);
+    out::unhandled_err  ("This is an unhandled error, p1 = %d, p2 = %f", 1, 2.0);
+    out::unhandled_err  ("Function name", "This is an unhandled error, p1 = %d, p2 = %f", 1, 2.0);
+    out::fatal_err      ("This is a fatal error, p1 = %d, p2 = %f", 1, 2.0);
+    out::fatal_err      ("Function name", "This is a fatal error, p1 = %d, p2 = %f", 1, 2.0);
+    out::fnin           ("Function name");
+    out::fnout          ("Function name");
+
+    out::fprint("Debug system: end testing!");
+}
+
+void initialize_debug_system()
+{
+    initialize_output_subsystem();
+
+    Common::out::fprint("Debug system initialized");
+}
+
+void shutdown_output_subsystem()
+{
+    Common::out::fprint("Debug system: shutting down output subsystem...");
+
+    AGS::Common::out::shutdown();
+}
+
+void shutdown_debug_system()
+{
+    shutdown_output_subsystem();
+}
+
 void quitprintf(char*texx, ...) {
     char displbuf[STD_BUFFER_SIZE];
     va_list ap;
@@ -95,6 +161,16 @@ void write_log(char*msg) {
 found" are logged instead of exiting the program.
 */
 void debug_log(char*texx, ...) {
+
+    // [IKM] FIXME!! for test only
+    char displbuf[STD_BUFFER_SIZE];
+    va_list ap;
+    va_start(ap,texx);
+    vsprintf(displbuf,texx,ap);
+    va_end(ap);
+    AGS::Common::out::fprint(displbuf);
+
+#ifdef USE_OLD_CODE
     // if not in debug mode, don't print it so we don't worry the
     // end player
     if (play.debug_mode == 0)
@@ -129,6 +205,7 @@ void debug_log(char*texx, ...) {
         fprintf(outfil,"(in room %d): %s\n",displayed_room,displbuf);
         fclose(outfil);
     }
+#endif // USE_OLD_CODE
 }
 
 

@@ -117,6 +117,13 @@ int AGSPlatformDriver::ConvertKeycodeToScanCode(int keycode)
     return keycode;
 }
 
+//-----------------------------------------------
+// IOutputTarget implementation
+//-----------------------------------------------
+void AGSPlatformDriver::out(const char *sz_fullmsg) {
+    // do nothing
+}
+
 // ********** CD Player Functions common to Win and Linux ********
 
 #if !defined(ANDROID_VERSION) && !defined(PSP_VERSION) && !defined(DOS_VERSION) && !defined(BSD_VERSION) && !defined(MAC_VERSION)

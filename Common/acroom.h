@@ -28,6 +28,10 @@ extern FILE *clibfopen(char *, char *);
 // MACPORT FIX: endian support
 #include "bigend.h"
 
+
+// 64 bit: Hackish way to read value in a struct
+short int __getshort__bigendian(FILE* file);
+
 #define EXIT_NORMAL 91
 #define EXIT_CRASH  92
 
@@ -574,7 +578,6 @@ struct NewInteractionValue {
     extra = 0;
   }
   
-#ifdef ALLEGRO_BIG_ENDIAN
   void ReadFromFile(FILE *fp)
   {
     fread(&valType, sizeof(char), 1, fp);
@@ -589,7 +592,6 @@ struct NewInteractionValue {
     putw(val, fp);
     putw(extra, fp);
   }
-#endif
 };
 
 struct NewInteractionAction {
@@ -615,7 +617,6 @@ struct NewInteractionCommand: public NewInteractionAction {
 
   void reset() { remove(); }
   
-#ifdef ALLEGRO_BIG_ENDIAN
   void ReadFromFile(FILE *fp)
   {
     getw(fp); // skip the vtbl ptr
@@ -625,8 +626,8 @@ struct NewInteractionCommand: public NewInteractionAction {
       data[i].ReadFromFile(fp);
     }
     // all that matters is whether or not these are null...
-    children = (NewInteractionAction *) getw(fp);
-    parent = (NewInteractionCommandList *) getw(fp);
+    children = (NewInteractionAction *)(long)getw(fp);
+    parent = (NewInteractionCommandList *)(long)getw(fp);
   }
   void WriteToFile(FILE *fp)
   {
@@ -636,10 +637,9 @@ struct NewInteractionCommand: public NewInteractionAction {
     {
       data[i].WriteToFile(fp);
     }
-    putw((int)children, fp);
-    putw((int)parent, fp);
+    putw((long)children, fp);
+    putw((long)parent, fp);
   }
-#endif
 };
 
 struct NewInteractionCommandList : public NewInteractionAction {
@@ -751,7 +751,7 @@ struct InteractionScripts {
 
   ~InteractionScripts() {
     for (int i = 0; i < numEvents; i++)
-      delete scriptFuncNames[i];
+      delete[] scriptFuncNames[i];
   }
 };
 
@@ -1145,8 +1145,10 @@ void serialize_new_interaction (NewInteraction *nint, FILE*ooo) {
   putw (1, ooo);  // Version
   putw (nint->numEvents, ooo);
   fwrite (&nint->eventTypes[0], sizeof(int), nint->numEvents, ooo);
+
+  // 64 bit: The pointer is only checked against NULL to determine whether the event exists
   for (a = 0; a < nint->numEvents; a++)
-    putw ((int)nint->response[a], ooo);
+    putw ((long)nint->response[a], ooo);
 
   for (a = 0; a < nint->numEvents; a++) {
     if (nint->response[a] != NULL)
@@ -1158,14 +1160,12 @@ NewInteractionCommandList *deserialize_command_list (FILE *ooo) {
   NewInteractionCommandList *nicl = new NewInteractionCommandList;
   nicl->numCommands = getw(ooo);
   nicl->timesRun = getw(ooo);
-#ifndef ALLEGRO_BIG_ENDIAN
-  fread (&nicl->command[0], sizeof(NewInteractionCommand), nicl->numCommands, ooo);
-#else
+
   for (int iteratorCount = 0; iteratorCount < nicl->numCommands; ++iteratorCount)
   {
     nicl->command[iteratorCount].ReadFromFile(ooo);
   }
-#endif  // ALLEGRO_BIG_ENDIAN
+
   for (int k = 0; k < nicl->numCommands; k++) {
     if (nicl->command[k].children != NULL) {
       nicl->command[k].children = deserialize_command_list (ooo);
@@ -1189,6 +1189,8 @@ NewInteraction *deserialize_new_interaction (FILE *ooo) {
   }
   fread (&nitemp->eventTypes[0], sizeof(int), nitemp->numEvents, ooo);
   //fread (&nitemp->response[0], sizeof(void*), nitemp->numEvents, ooo);
+
+  // 64 bit: The pointer is only checked against NULL to determine whether the event exists
   for (a = 0; a < nitemp->numEvents; a++)
     nitemp->response[a] = (NewInteractionCommandList*)getw(ooo);
 
@@ -1341,7 +1343,7 @@ BITMAP *recalced;
   fseek(iii,ooff,SEEK_SET);*/
 
 long load_lzw(FILE *iii, BITMAP *bmm, color *pall) {
-  long          uncompsiz, *loptr;
+  int          uncompsiz, *loptr;
   unsigned char *membuffer;
   int           arin;
 
@@ -1358,7 +1360,7 @@ long load_lzw(FILE *iii, BITMAP *bmm, color *pall) {
   membuffer = lzwexpand_to_mem(iii);
   update_polled_stuff();
 
-  loptr = (long *)&membuffer[0];
+  loptr = (int *)&membuffer[0];
   membuffer += 8;
 #ifdef ALLEGRO_BIG_ENDIAN
   loptr[0] = __int_swap_endian(loptr[0]);
@@ -2033,7 +2035,7 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
 	  {
 		  delete rstruc->hotspotScripts[i];
 	  }
-	  delete rstruc->hotspotScripts;
+	  delete[] rstruc->hotspotScripts;
 	  rstruc->hotspotScripts = NULL;
   }
   if (rstruc->objectScripts != NULL)
@@ -2042,7 +2044,7 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
 	  {
 		  delete rstruc->objectScripts[i];
 	  }
-	  delete rstruc->objectScripts;
+	  delete[] rstruc->objectScripts;
 	  rstruc->objectScripts = NULL;
   }
   if (rstruc->regionScripts != NULL)
@@ -2051,7 +2053,7 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
 	  {
 		  delete rstruc->regionScripts[i];
 	  }
-	  delete rstruc->regionScripts;
+	  delete[] rstruc->regionScripts;
 	  rstruc->regionScripts = NULL;
   }
 
@@ -2094,7 +2096,7 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
   }
 
   int   thisblock = 0;
-  long  bloklen;
+  int  bloklen;
   FILE *optywas;
 
   while (thisblock != BLOCKTYPE_EOF) {
@@ -2111,7 +2113,7 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
     if (thisblock == BLOCKTYPE_MAIN)
       load_main_block(rstruc, files, opty, rfh);
     else if (thisblock == BLOCKTYPE_SCRIPT) {
-      long  lee;
+      int  lee;
       int   hh;
 
       fread(&lee, 4, 1, opty);
@@ -2715,7 +2717,6 @@ struct DialogTopic {
   int           numoptions;
   int           topicFlags;
   
-#ifdef ALLEGRO_BIG_ENDIAN
   void ReadFromFile(FILE *fp)
   {
     fread(optionnames, 150*sizeof(char), MAXTOPICOPTIONS, fp);
@@ -2727,7 +2728,6 @@ struct DialogTopic {
     numoptions = getw(fp);
     topicFlags = getw(fp);
   }
-#endif
 };
 
 #define MAX_SPRITES         30000
@@ -2877,8 +2877,8 @@ struct GameSetupStructBase {
   CharacterInfo    *chars;
   ccScript         *compiled_script;
 
-#ifdef ALLEGRO_BIG_ENDIAN
-  void ReadFromFile(FILE *fp)
+
+void ReadFromFile(FILE *fp)
   {
     fread(&gamename[0], sizeof(char), 50, fp);
     fseek(fp, 2, SEEK_CUR);    // skip the array padding
@@ -2908,13 +2908,16 @@ struct GameSetupStructBase {
     invhotdotsprite = getw(fp);
     fread(reserved, sizeof(int), 17, fp);
     // read the final ptrs so we know to load dictionary, scripts etc
-    fread(messages, sizeof(int), MAXGLOBALMES, fp);
+    // 64 bit: Read 4 byte values into array of 8 byte
+    int i;
+    for (i = 0; i < MAXGLOBALMES; i++)
+      messages[i] = (char*)getw(fp);
+
     dict = (WordsDictionary *) getw(fp);
     globalscript = (char *) getw(fp);
     chars = (CharacterInfo *) getw(fp);
     compiled_script = (ccScript *) getw(fp);
   }
-#endif
 };
 
 #define MAXVIEWNAMELENGTH 15

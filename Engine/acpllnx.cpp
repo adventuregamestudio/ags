@@ -27,14 +27,27 @@ struct AGSLinux : AGS32BitOSDriver {
   virtual void ReadPluginsFromDisk(FILE *iii);
   virtual void StartPlugins();
   virtual void ShutdownPlugins();
-  virtual int RunPluginHooks(int event, int data);
+  virtual int RunPluginHooks(int event, long data);
   virtual void RunPluginInitGfxHooks(const char *driverName, void *data);
   virtual int RunPluginDebugHooks(const char *scriptfile, int linenum);
+  virtual void WriteDebugString(const char* texx, ...);
 };
 
 
 int AGSLinux::CDPlayerCommand(int cmdd, int datt) {
   return cd_player_control(cmdd, datt);
+}
+
+
+void AGSLinux::WriteDebugString(const char* texx, ...) {
+  char displbuf[STD_BUFFER_SIZE] = "AGS: ";
+  va_list ap;
+  va_start(ap,texx);
+  vsprintf(&displbuf[5],texx,ap);
+  va_end(ap);
+  strcat(displbuf, "\n");
+
+  printf(displbuf);
 }
 
 void AGSLinux::DisplayAlert(const char *text, ...) {
@@ -147,7 +160,7 @@ void AGSLinux::ShutdownPlugins() {
   pl_stop_plugins();
 }
 
-int AGSLinux::RunPluginHooks(int event, int data) {
+int AGSLinux::RunPluginHooks(int event, long data) {
   return pl_run_plugin_hooks(event, data);
 }
 

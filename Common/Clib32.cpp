@@ -74,8 +74,8 @@ struct MultiFileLib
   char data_filenames[MAXMULTIFILES][20];
   int num_data_files;
   char filenames[MAX_FILES][25];
-  long offset[MAX_FILES];
-  long length[MAX_FILES];
+  int offset[MAX_FILES];
+  int length[MAX_FILES];
   char file_datafile[MAX_FILES];        // number of datafile
   int num_files;
 };
@@ -85,8 +85,8 @@ struct MultiFileLibNew
   char data_filenames[MAXMULTIFILES][50];
   int num_data_files;
   char filenames[MAX_FILES][100];
-  long offset[MAX_FILES];
-  long length[MAX_FILES];
+  int offset[MAX_FILES];
+  int length[MAX_FILES];
   char file_datafile[MAX_FILES];        // number of datafile
   int num_files;
 };
@@ -187,8 +187,8 @@ extern "C"
     {
       fgetstring_enc(mfl->filenames[aa], wout, 100);
     }
-    fread_data_enc(&mfl->offset[0], sizeof(long), mfl->num_files, wout);
-    fread_data_enc(&mfl->length[0], sizeof(long), mfl->num_files, wout);
+    fread_data_enc(&mfl->offset[0], sizeof(int), mfl->num_files, wout);
+    fread_data_enc(&mfl->length[0], sizeof(int), mfl->num_files, wout);
     fread_data_enc(&mfl->file_datafile[0], 1, mfl->num_files, wout);
     return 0;
   }
@@ -214,8 +214,8 @@ extern "C"
       fread(mfl->filenames[aa], nameLength, 1, wout);
       clib_decrypt_text(mfl->filenames[aa]);
     }
-    fread(&mfl->offset[0], sizeof(long), mfl->num_files, wout);
-    fread(&mfl->length[0], sizeof(long), mfl->num_files, wout);
+    fread(&mfl->offset[0], sizeof(int), mfl->num_files, wout);
+    fread(&mfl->length[0], sizeof(int), mfl->num_files, wout);
     fread(&mfl->file_datafile[0], 1, mfl->num_files, wout);
     return 0;
   }
@@ -230,8 +230,8 @@ extern "C"
       return -1;
 
     fread(&mfl->filenames[0][0], 25, mfl->num_files, wout);
-    fread(&mfl->offset[0], sizeof(long), mfl->num_files, wout);
-    fread(&mfl->length[0], sizeof(long), mfl->num_files, wout);
+    fread(&mfl->offset[0], sizeof(int), mfl->num_files, wout);
+    fread(&mfl->length[0], sizeof(int), mfl->num_files, wout);
     fread(&mfl->file_datafile[0], 1, mfl->num_files, wout);
 
     if (libver >= 11)
@@ -317,8 +317,8 @@ extern "C"
         // convert to newer format
         mflib.num_files = mflibOld->num_files;
         mflib.num_data_files = mflibOld->num_data_files;
-        memcpy(&mflib.offset[0], &mflibOld->offset[0], sizeof(long) * mflib.num_files);
-        memcpy(&mflib.length[0], &mflibOld->length[0], sizeof(long) * mflib.num_files);
+        memcpy(&mflib.offset[0], &mflibOld->offset[0], sizeof(int) * mflib.num_files);
+        memcpy(&mflib.length[0], &mflibOld->length[0], sizeof(int) * mflib.num_files);
         memcpy(&mflib.file_datafile[0], &mflibOld->file_datafile[0], sizeof(char) * mflib.num_files);
         for (aa = 0; aa < mflib.num_data_files; aa++)
           strcpy(mflib.data_filenames[aa], mflibOld->data_filenames[aa]);

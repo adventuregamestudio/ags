@@ -19,7 +19,7 @@
 #include "ac/roomstruct.h"
 #include "ac/string.h"
 #include "ac/viewframe.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "main/game_run.h"
 #include "script/script.h"
 #include "ac/spritecache.h"

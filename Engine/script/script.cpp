@@ -26,7 +26,7 @@
 #include "ac/roomobject.h"
 #include "script/cc_error.h"
 #include "script/cc_options.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "main/game_run.h"
 #include "media/audio/audio.h"
 #include "script/script_runtime.h"

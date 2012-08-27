@@ -27,7 +27,7 @@
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
 #include "debug/agseditordebugger.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "main/engine.h"
 #include "main/mainheader.h"
 #include "main/main.h"

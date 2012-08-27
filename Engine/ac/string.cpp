@@ -8,7 +8,7 @@
 #include "ac/global_translation.h"
 #include "ac/runtime_defines.h"
 #include "ac/dynobj/scriptstring.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "util/string_utils.h"
 
 extern char lines[MAXLINE][200];

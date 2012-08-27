@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include "gui/guimain.h"
 #include "util/wgt2allg.h"
+#include "util/string_utils.h"
 #include "ac/common.h"	// quit()
 #include "ac/gamesetupstruct.h"
 #include "gui/guibutton.h"

@@ -36,7 +36,8 @@
 #include "ac/viewframe.h"
 #include "ac/dynobj/scriptobject.h"
 #include "ac/dynobj/scriptsystem.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
+#include "debug/debugger.h"
 #include "main/config.h"
 #include "main/game_start.h"
 #include "main/graphics_mode.h"
@@ -110,8 +111,12 @@ void engine_read_config(int argc,char*argv[])
 
 #define ALLEGRO_KEYBOARD_HANDLER
 // KEYBOARD HANDLER
+#if defined(LINUX_VERSION) || defined(MAC_VERSION)
+int myerrno;
+#else
 int errno;
 #define myerrno errno
+#endif
 
 int engine_init_allegro()
 {
@@ -1156,35 +1161,23 @@ void engine_init_game_shit()
 #if defined(PSP_VERSION)
 // PSP: Workaround for sound stuttering. Do sound updates in its own thread.
 int update_mp3_thread(SceSize args, void *argp)
-{
-  while (update_mp3_thread_running)
-  {
-    UPDATE_MP3_THREAD
-    sceKernelDelayThread(1000 * 50);
-  }
-  return 0;
-}
-#elif (defined(LINUX_VERSION) && !defined(PSP_VERSION)) || defined(MAC_VERSION)
+#elif (defined(LINUX_VERSION) || defined(MAC_VERSION))
 void* update_mp3_thread(void* arg)
-{
-  while (update_mp3_thread_running)
-  {
-    UPDATE_MP3_THREAD
-    usleep(1000 * 50);
-  }
-  pthread_exit(NULL);
-}
 #elif defined(WINDOWS_VERSION)
 DWORD WINAPI update_mp3_thread(LPVOID lpParam)
+#endif
 {
   while (update_mp3_thread_running)
   {
     UPDATE_MP3_THREAD
-    Sleep(50);
+    platform->Delay(50);
   }
+#if (defined(LINUX_VERSION) || defined(MAC_VERSION)) && !defined(PSP_VERSION)
+  pthread_exit(0);
+#else
   return 0;
-}
 #endif
+}
 
 void engine_start_multithreaded_audio()
 {

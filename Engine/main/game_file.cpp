@@ -30,7 +30,7 @@
 #include "ac/viewframe.h"
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/all_scriptclasses.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "gui/guilabel.h"
 #include "main/main.h"
 #include "platform/base/agsplatformdriver.h"

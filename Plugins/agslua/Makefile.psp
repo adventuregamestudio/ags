@@ -18,7 +18,7 @@ agslua/agslua/lzio.o
 BUILD_PRX = 1
 PRX_EXPORTS = exports.exp
 
-INCDIR = agslua/lualibhelp/include/
+INCDIR = agslua/lualibhelp/include/ ../../Engine ../../Common
 CFLAGS = -O2 -G0 -g -Wall -DTHIS_IS_THE_PLUGIN -DPSP_VERSION -DLINUX_VERSION -DPLUGIN_MODULE_NAME="\"$(TARGET)\""
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)

@@ -1,5 +1,6 @@
 #define USE_CLIB
 #include "util/wgt2allg.h"
+#include "util/string_utils.h" //strlwr()
 #include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "media/audio/audiodefines.h"
@@ -33,7 +34,8 @@
 #include "ac/dynobj/scriptobject.h"
 #include "ac/dynobj/scripthotspot.h"
 #include "script/cc_instance.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
+#include "debug/debugger.h"
 #include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"

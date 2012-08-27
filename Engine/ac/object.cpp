@@ -16,7 +16,7 @@
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
 #include "ac/walkablearea.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "main/game_run.h"
 #include "ac/route_finder.h"
 

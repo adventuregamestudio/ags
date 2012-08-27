@@ -22,7 +22,7 @@ bool FileBasedAGSDebugger::SendMessageToEditor(const char *message)
 {
     while (exists(SENT_MESSAGE_FILE_NAME))
     {
-        Sleep(1);
+        platform->YieldCPU();
     }
 
     FILE *outt = fopen(SENT_MESSAGE_FILE_NAME, "wb");

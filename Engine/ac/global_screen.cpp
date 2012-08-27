@@ -12,7 +12,7 @@
 #include "ac/roomstruct.h"
 #include "ac/runtime_defines.h"
 #include "ac/screen.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "platform/base/agsplatformdriver.h"
 
 extern GameSetup usetup;

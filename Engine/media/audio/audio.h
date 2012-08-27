@@ -82,9 +82,8 @@ void        newmusic(int mnum);
 
 
 
-#if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
 extern volatile int psp_audio_multithreaded;    // needed for UPDATE_MP3 macro
-#endif
+
 #define UPDATE_MP3 \
     if (!psp_audio_multithreaded) \
 { UPDATE_MP3_THREAD }

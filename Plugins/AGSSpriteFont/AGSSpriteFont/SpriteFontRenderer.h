@@ -1,5 +1,5 @@
 #pragma once
-#include "../../../Common/agsplugin.h"
+#include "plugin/agsplugin.h"
 #include "SpriteFont.h"
 #include <vector>
 class SpriteFontRenderer :

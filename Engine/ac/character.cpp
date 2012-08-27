@@ -42,7 +42,7 @@
 #include "gui/guimain.h"
 #include "ac/route_finder.h"
 #include "ac/gamestate.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "main/game_run.h"
 #include "main/update.h"
 #include "ac/spritecache.h"

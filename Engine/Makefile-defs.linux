@@ -1,7 +1,7 @@
 INCDIR = ../Engine ../Common ../Common/libinclude ../Plugins
 LIBDIR =
-CFLAGS = -O2 -g -fpermissive -fsigned-char -Wfatal-errors -DALLEGRO_STATICLINK -DTHIS_IS_THE_ENGINE -DLINUX_VERSION -DDISABLE_MPEG_AUDIO -DBUILTIN_PLUGINS -DRTLD_NEXT $(shell pkg-config --cflags freetype2)
-CXXFLAGS = -fno-rtti -Wno-write-strings
+CFLAGS = -O2 -g -fsigned-char -Wfatal-errors -DALLEGRO_STATICLINK -DTHIS_IS_THE_ENGINE -DLINUX_VERSION -DDISABLE_MPEG_AUDIO -DBUILTIN_PLUGINS -DRTLD_NEXT $(shell pkg-config --cflags freetype2)
+CXXFLAGS = -fno-rtti -Wno-write-strings -fpermissive
 ASFLAGS =
 LIBS = -rdynamic $(shell allegro-config --libs) -laldmb -ldumb -Wl,-Bdynamic -ltheora -logg 
 ifeq ($(USE_TREMOR), 1)
@@ -22,8 +22,8 @@ ASFLAGS  := $(CFLAGS) $(ASFLAGS)
 LDFLAGS  := -Wl,--as-needed $(addprefix -L,$(LIBDIR))
 
 BASE_PLATFORM = \
-platform/linux/acpllnx.o \
-../PSP/launcher/pe.o
+platform/linux/acpllnx.cpp \
+../PSP/launcher/pe.c
 
 COMMON_PLATFORM = \
-../Common/platform/bigend/bigend.o
+../Common/platform/bigend/bigend.cpp

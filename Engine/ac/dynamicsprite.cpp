@@ -14,7 +14,7 @@
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
 #include "ac/roomstruct.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "gui/dynamicarray.h"
 #include "gui/guibutton.h"
 #include "ac/spritecache.h"

@@ -16,7 +16,7 @@
 #include "ac/dynobj/cc_guiobject.h"
 #include "ac/dynobj/scriptgui.h"
 #include "script/cc_instance.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "gfx/gfxfilter.h"
 #include "gui/guibutton.h"
 #include "gui/guimain.h"

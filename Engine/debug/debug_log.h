@@ -10,10 +10,9 @@
 
 */
 
-#ifndef __AC_DEBUG_H
-#define __AC_DEBUG_H
+#ifndef __AC_DEBUG_LOG_H
+#define __AC_DEBUG_LOG_H
 
-#include "debug/agseditordebugger.h"
 #include "script/cc_instance.h"
 #include "ac/runtime_defines.h"
 #include "ac/gamestate.h"
@@ -23,23 +22,9 @@ extern GameState play;
 void initialize_debug_system();
 void shutdown_debug_system();
 
-
 #define DEBUG_CONSOLE if (play.debug_mode) debug_write_console
 
 void debug_write_console (char *msg, ...);
-
-extern int use_compiled_folder_as_current_dir;
-extern int editor_debugging_enabled;
-extern int editor_debugging_initialized;
-extern char editor_debugger_instance_token[100];
-extern IAGSEditorDebugger *editor_debugger;
-extern int break_on_next_script_step;
-
-int check_for_messages_from_editor();
-bool send_message_to_editor(const char *msg);
-bool send_exception_to_editor(char *qmsg);
-const char *get_cur_script(int numberOfLinesOfCallStack);
-void check_debug_keys();
 
 /* The idea of this is that non-essential errors such as "sound file not
 found" are logged instead of exiting the program.
@@ -61,7 +46,7 @@ struct DebugConsoleText {
 extern DebugConsoleText debug_line[DEBUG_CONSOLE_NUMLINES];
 extern int first_debug_line, last_debug_line, display_console;
 
-extern int fps,display_fps;
+
 extern AGSPlatformDriver *platform;
 
 // this function is only enabled for special builds if a startup
@@ -82,4 +67,4 @@ fclose(ooo);
 }
 }*/
 
-#endif // __AC_DEBUG_H
+#endif // __AC_DEBUG_LOG_H

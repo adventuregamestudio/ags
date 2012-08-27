@@ -31,7 +31,8 @@
 #include "ac/walkablearea.h"
 #include "ac/walkbehind.h"
 #include "ac/dynobj/scriptsystem.h"
-#include "debug/debug.h"
+#include "debug/debugger.h"
+#include "debug/debug_log.h"
 #include "gui/guimain.h"
 #include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
@@ -2454,9 +2455,7 @@ void update_screen() {
 
 
 
-#if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
 extern volatile int psp_audio_multithreaded; // in ac_audio
-#endif
 
 
 void construct_virtual_screen(bool fullRedraw) 

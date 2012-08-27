@@ -3,7 +3,7 @@
 #include "consoleoutputtarget.h"
 #include "util/wgt2allg.h"
 #include "ac/roomstruct.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "debug/out.h"
 
 extern roomstruct thisroom;

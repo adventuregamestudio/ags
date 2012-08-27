@@ -3,7 +3,6 @@
 #endif
 
 
-#include "acplatfm.h"
 #include <pspsdk.h>
 #include <pspthreadman.h>
 #include <pspdebug.h>
@@ -18,6 +17,9 @@
 
 #include <allegro.h>
 
+#include "ac/runtime_defines.h"
+#include "platform/base/agsplatformdriver.h"
+#include "plugin/agsplugin.h"
 
 extern "C" {
 #include <systemctrl.h>
@@ -587,25 +589,27 @@ int AGSPSP::RunPluginDebugHooks(const char *scriptfile, int linenum) {
 
 AGSPlatformDriver* AGSPlatformDriver::GetDriver() {
   if (instance == NULL)
+  {
     instance = new AGSPSP();
 
-  // Disable FPU exception.
-  // JJS: I only know of one case where this is relevant. In Ben Jordan 8 when
-  // going from the map to the library SCMD_FMULREG will be called with the
-  // floating point register containing NAN.
-  pspFpuSetEnable(0);
+    // Disable FPU exception.
+    // JJS: I only know of one case where this is relevant. In Ben Jordan 8 when
+    // going from the map to the library SCMD_FMULREG will be called with the
+    // floating point register containing NAN.
+    pspFpuSetEnable(0);
 
-  // Setup the exception handler prx.
-  initExceptionHandler();
+    // Setup the exception handler prx.
+    initExceptionHandler();
 
-  // Load the kernel module
-  pspSdkLoadStartModule("kernel.prx", PSP_MEMORY_PARTITION_KERNEL);
+    // Load the kernel module
+    pspSdkLoadStartModule("kernel.prx", PSP_MEMORY_PARTITION_KERNEL);
 
-  // Set CPU speed to maximum here.
-  scePowerSetClockFrequency(333, 333, 166);
-  
-  // Initialize the game filename.
-  psp_initialize();
-  
+    // Set CPU speed to maximum here.
+    scePowerSetClockFrequency(333, 333, 166);
+
+    // Initialize the game filename.
+    psp_initialize();
+  }
+
   return instance;
 }

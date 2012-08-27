@@ -1879,7 +1879,11 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\debug\debug.h"
+					RelativePath="..\..\Engine\debug\debug_log.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\debug\debugger.h"
 					>
 				</File>
 				<File

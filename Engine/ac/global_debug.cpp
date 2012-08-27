@@ -21,7 +21,8 @@
 #include "gfx/gfxfilter.h"
 #include "gui/guidialog.h"
 #include "script/cc_options.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
+#include "debug/debugger.h"
 #include "main/main.h"
 #include "ac/spritecache.h"
 

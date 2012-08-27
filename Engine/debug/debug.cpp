@@ -21,7 +21,8 @@
 #include "ac/common.h"
 #include "ac/roomstruct.h"
 #include "ac/runtime_defines.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
+#include "debug/debugger.h"
 #include "gui/dynamicarray.h"
 #include "debug/out.h"
 #include "debug/consoleoutputtarget.h"
@@ -87,13 +88,12 @@ enum
 void initialize_output_subsystem()
 {
     Out::Init(0, NULL);
-    Out::AddOutputTarget(TARGET_FILE, new AGS::Engine::Out::CRawFileOutputTarget("agsgame.log"),
+	Out::AddOutputTarget(TARGET_FILE, new AGS::Engine::Out::CRawFileOutputTarget("agsgame.log"),
         Out::kVerbose_NoDebug, false);
     Out::AddOutputTarget(TARGET_SYSTEMDEBUGGER, AGSPlatformDriver::GetDriver(),
         Out::kVerbose_WarnErrors, true);
-    Out::AddOutputTarget(TARGET_GAMECONSOLE, new AGS::Engine::Out::CConsoleOutputTarget(),
+	Out::AddOutputTarget(TARGET_GAMECONSOLE, new AGS::Engine::Out::CConsoleOutputTarget(),
         Out::kVerbose_Always, false);
-
     Out::FPrint("Debug system: output subsystem initialized");
 }
 

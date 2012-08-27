@@ -30,7 +30,7 @@
 #include "ac/roomstruct.h"
 #include "ac/screenoverlay.h"
 #include "ac/string.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "main/game_run.h"
 #include "script/script.h"
 

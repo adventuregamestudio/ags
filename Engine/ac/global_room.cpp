@@ -14,7 +14,7 @@
 #include "ac/properties.h"
 #include "ac/room.h"
 #include "ac/roomstatus.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "script/script.h"
 
 extern GameState play;

@@ -1,8 +1,9 @@
 
-#if !defined(LINUX_VERSION) && !defined(MAC_VERSION) //not on Linux and Mac yet
+#if defined(WINDOWS_VERSION) || defined(ANDROID_VERSION) || defined(IOS_VERSION)
 
 #include <stdio.h>
 #include <allegro.h>
+#include "platform/base/agsplatformdriver.h"
 
 #if defined(WINDOWS_VERSION)
 #include <winalleg.h>
@@ -58,8 +59,6 @@ PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC glFramebufferRenderbufferEXT = 0;
 
 #define glOrtho glOrthof
 #define GL_CLAMP GL_CLAMP_TO_EDGE
-
-#define Sleep(x) usleep(x * 1000)
 
 // Defined in Allegro
 extern "C" 
@@ -133,8 +132,6 @@ extern "C"
 
 #define glOrtho glOrthof
 #define GL_CLAMP GL_CLAMP_TO_EDGE
-
-#define Sleep(x) usleep(x * 1000)
 
 extern int psp_gfx_smoothing;
 extern int psp_gfx_scaling;
@@ -1686,7 +1683,7 @@ void OGLGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
     {
       if (_pollingCallback)
         _pollingCallback();
-      Sleep(1);
+      platform->YieldCPU();
     }
     while (timerValue == *_loopTimer);
 
@@ -1764,7 +1761,7 @@ void OGLGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
 
     if (_pollingCallback)
       _pollingCallback();
-    Sleep(delay);
+    platform->Delay(delay);
   }
 
   this->DestroyDDB(d3db);
@@ -1801,4 +1798,4 @@ void OGLGraphicsDriver::SetScreenTint(int red, int green, int blue)
   }
 }
 
-#endif //not on Linux and Mac yet
+#endif // only on Windows, Android and iOS

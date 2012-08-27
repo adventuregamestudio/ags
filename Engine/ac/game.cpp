@@ -46,7 +46,7 @@
 #include "ac/dynobj/all_scriptclasses.h"
 #include "script/cc_error.h"
 #include "util/string_utils.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "gui/animatingguibutton.h"
 #include "gui/guidialog.h"
 #include "main/main.h"

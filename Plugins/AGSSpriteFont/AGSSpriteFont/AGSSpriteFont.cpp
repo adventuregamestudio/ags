@@ -21,7 +21,7 @@
 #endif
 
 #define THIS_IS_THE_PLUGIN
-#include "../../../Common/agsplugin.h"
+#include "plugin/agsplugin.h"
 #include "SpriteFontRenderer.h"
 #include "VariableWidthSpriteFont.h"
 

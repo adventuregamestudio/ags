@@ -1,7 +1,7 @@
 #pragma once
 #include <map>
 #include "CharacterEntry.h"
-#include "../../../Common/agsplugin.h"
+#include "plugin/agsplugin.h"
 class VariableWidthFont
 {
 public:

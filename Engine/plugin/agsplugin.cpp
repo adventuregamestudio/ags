@@ -23,7 +23,8 @@
 #include "ac/roomstatus.h"
 #include "ac/string.h"
 #include "util/string_utils.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
+#include "debug/debugger.h"
 #include "gui/guidefines.h"
 #include "main/engine.h"
 #include "media/audio/audio.h"
@@ -51,12 +52,22 @@ extern "C"
 {
     int osx_sys_question(AL_CONST char *msg, AL_CONST char *but1, AL_CONST char *but2);
 }
-#endif // MAC_VERSION
+#endif
+
+#if defined(PSP_VERSION)
+#include <pspsdk.h>
+#include <pspkernel.h>
+extern "C"
+{
+#include <systemctrl.h>
+}
+#include "../PSP/kernel/kernel.h"
+#endif
+
 
 #if defined(ANDROID_VERSION)
 extern char android_app_directory[256];
-#endif // ANDROID_VERSION
-
+#endif
 
 extern IGraphicsDriver *gfxDriver;
 extern int scrnwid,scrnhit;
@@ -754,12 +765,12 @@ void pl_stop_plugins() {
                 plugins[a].savedata = NULL;
             }
             if (!plugins[a].builtin) {
-#ifdef PSP_VERSION
+#if defined(PSP_VERSION)
                 sceKernelUnloadModule(plugins[a].dllHandle);
 #else
                 FreeLibrary (plugins[a].dllHandle);
-            }
 #endif
+            }
         }
     }
     numPlugins = 0;
@@ -1006,7 +1017,7 @@ void pl_read_plugins_from_disk (FILE *iii) {
         else
         {
 
-#ifdef PSP_VERSION
+#if defined(PSP_VERSION)
             if (kernel_sctrlHENFindFunction(module_name, module_name, 0x960C49BD) == 0) {
                 sprintf(buffer, "Plugin '%s' is an old incompatible version.", apl->filename);
                 quit(buffer);

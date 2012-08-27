@@ -13,6 +13,7 @@
 */
 #include <allegro.h>
 #include "gfx/ali3d.h"
+#include "platform/base/agsplatformdriver.h"
 
 #include <stdio.h>
 
@@ -21,11 +22,6 @@
 #include <pspsdk.h>
 #include <pspthreadman.h>
 #include <psputils.h>
-#define Sleep(x) sceKernelDelayThread(1000*x)
-#endif
-
-#if (defined(LINUX_VERSION) && !defined(PSP_VERSION)) || defined(MAC_VERSION)
-#define Sleep(x) usleep(1000*x)
 #endif
 
 #ifdef _WIN32
@@ -644,7 +640,7 @@ void ALSoftwareGraphicsDriver::highcolor_fade_in(BITMAP *currentVirtScreen, int 
        {
          if (_callback)
            _callback();
-         Sleep(1);
+         platform->Delay(1);
        }
        while (timerValue == *_loopTimer);
    }
@@ -683,7 +679,7 @@ void ALSoftwareGraphicsDriver::highcolor_fade_out(int speed, int targetColourRed
                 {
                   if (_callback)
                     _callback();
-                  Sleep(1);
+                  platform->Delay(1);
                 }
                 while (timerValue == *_loopTimer);
             }
@@ -775,7 +771,7 @@ void ALSoftwareGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int del
       if (_callback)
         _callback();
 
-      Sleep(delay);
+      platform->Delay(delay);
     }
     this->ClearRectangle(0, 0, _screenWidth - 1, _screenHeight - 1, NULL);
   }

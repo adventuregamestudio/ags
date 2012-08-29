@@ -478,7 +478,8 @@ void init_and_register_guis()
 
 	scrGui = (ScriptGUI*)malloc(sizeof(ScriptGUI) * game.numgui);
     for (ee = 0; ee < game.numgui; ee++) {
-        scrGui[ee].gui = NULL;
+        // 64 bit: Using the id instead
+        // scrGui[ee].gui = NULL;
         scrGui[ee].id = -1;
     }
 
@@ -499,7 +500,8 @@ void init_and_register_guis()
         guiScriptObjNames[ee] = (char*)malloc(21);
         strcpy(guiScriptObjNames[ee], guis[ee].name);
 
-        scrGui[ee].gui = &guis[ee];
+        // 64 bit: Using the id instead
+        // scrGui[ee].gui = &guis[ee];
         scrGui[ee].id = ee;
 
         ccAddExternalSymbol(guiScriptObjNames[ee], &scrGui[ee]);

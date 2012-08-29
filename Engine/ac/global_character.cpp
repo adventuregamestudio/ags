@@ -333,7 +333,7 @@ void MoveCharacterToObject(int chaa,int obbj) {
         return;
 
     walk_character(chaa,objs[obbj].x+5,objs[obbj].y+6,0, true);
-    do_main_cycle(UNTIL_MOVEEND,(int)&game.chars[chaa].walking);
+    do_main_cycle(UNTIL_MOVEEND,(long)&game.chars[chaa].walking);
 }
 
 void MoveCharacterToHotspot(int chaa,int hotsp) {
@@ -341,7 +341,7 @@ void MoveCharacterToHotspot(int chaa,int hotsp) {
         quit("!MovecharacterToHotspot: invalid hotspot");
     if (thisroom.hswalkto[hotsp].x<1) return;
     walk_character(chaa,thisroom.hswalkto[hotsp].x,thisroom.hswalkto[hotsp].y,0, true);
-    do_main_cycle(UNTIL_MOVEEND,(int)&game.chars[chaa].walking);
+    do_main_cycle(UNTIL_MOVEEND,(long)&game.chars[chaa].walking);
 }
 
 void MoveCharacterBlocking(int chaa,int xx,int yy,int direct) {
@@ -357,7 +357,7 @@ void MoveCharacterBlocking(int chaa,int xx,int yy,int direct) {
         MoveCharacterDirect(chaa,xx,yy);
     else
         MoveCharacter(chaa,xx,yy);
-    do_main_cycle(UNTIL_MOVEEND,(int)&game.chars[chaa].walking);
+    do_main_cycle(UNTIL_MOVEEND,(long)&game.chars[chaa].walking);
 }
 
 int GetCharacterSpeechAnimationDelay(CharacterInfo *cha)

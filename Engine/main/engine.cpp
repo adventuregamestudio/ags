@@ -932,7 +932,8 @@ void init_game_settings() {
 
     for (ee = 0; ee < MAX_INIT_SPR; ee++) {
         scrObj[ee].id = ee;
-        scrObj[ee].obj = NULL;
+        // 64 bit: Using the id instead
+        // scrObj[ee].obj = NULL;
     }
 
     for (ee=0;ee<game.numcharacters;ee++) {

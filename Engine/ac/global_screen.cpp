@@ -22,7 +22,7 @@ extern roomstruct thisroom;
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
 extern color palette[256];
-extern unsigned long loopcounter;
+extern unsigned int loopcounter;
 
 int scrnwid,scrnhit;
 int current_screen_resolution_multiplier = 1;

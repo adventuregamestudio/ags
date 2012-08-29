@@ -37,7 +37,7 @@ int  AGSPlatformDriver::RunPluginDebugHooks(const char *scriptfile, int linenum)
 void AGSPlatformDriver::RunPluginInitGfxHooks(const char *driverName, void *data) { }
 void AGSPlatformDriver::ShutdownPlugins() { }
 void AGSPlatformDriver::StartPlugins() { }
-int  AGSPlatformDriver::RunPluginHooks(int event, int data) { return 0; }
+int  AGSPlatformDriver::RunPluginHooks(int event, long data) { return 0; }
 void AGSPlatformDriver::WriteDebugString(const char*, ...) { }
 void AGSPlatformDriver::AboutToQuitGame() { }
 void AGSPlatformDriver::PostAllegroInit(bool windowed) { }

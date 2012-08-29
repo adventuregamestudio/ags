@@ -59,7 +59,7 @@ struct AGSPSP : AGSPlatformDriver {
   virtual void ReadPluginsFromDisk(FILE *iii);
   virtual void StartPlugins();
   virtual void ShutdownPlugins();
-  virtual int RunPluginHooks(int event, int data);
+  virtual int RunPluginHooks(int event, long data);
   virtual void RunPluginInitGfxHooks(const char *driverName, void *data);
   virtual int RunPluginDebugHooks(const char *scriptfile, int linenum);
 };
@@ -574,7 +574,7 @@ void AGSPSP::ShutdownPlugins() {
   pl_stop_plugins();
 }
 
-int AGSPSP::RunPluginHooks(int event, int data) {
+int AGSPSP::RunPluginHooks(int event, long data) {
   return pl_run_plugin_hooks(event, data);
 }
 

@@ -107,7 +107,7 @@ struct AGSWin32 : AGSPlatformDriver {
 
   virtual void ReadPluginsFromDisk(FILE *);
   virtual void StartPlugins();
-  virtual int  RunPluginHooks(int event, int data);
+  virtual int  RunPluginHooks(int event, long data);
   virtual void RunPluginInitGfxHooks(const char *driverName, void *data);
   virtual int  RunPluginDebugHooks(const char *scriptfile, int linenum);
   virtual void ShutdownPlugins();
@@ -781,7 +781,7 @@ void AGSWin32::ShutdownPlugins() {
   pl_stop_plugins();
 }
 
-int AGSWin32::RunPluginHooks(int event, int data) {
+int AGSWin32::RunPluginHooks(int event, long data) {
   return pl_run_plugin_hooks(event, data);
 }
 

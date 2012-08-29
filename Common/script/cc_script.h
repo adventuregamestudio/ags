@@ -15,6 +15,16 @@
 
 #include "util/file.h"
 
+
+// Detect building for 64 bit
+#if defined(LINUX_VERSION) || defined(MAC_VERSION)
+#include <limits.h>
+#if (__WORDSIZE == 64)
+#define AGS_64BIT
+#endif
+#endif
+
+
 struct ccScript
 {
     char *globaldata;

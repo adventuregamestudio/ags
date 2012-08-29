@@ -193,7 +193,7 @@ void Character_Animate(CharacterInfo *chaa, int loop, int delay, int repeat, int
     animate_character(chaa, loop, delay, repeat, 0, direction);
 
     if ((blocking == BLOCKING) || (blocking == 1))
-        do_main_cycle(UNTIL_SHORTIS0,(int)&chaa->animating);
+        do_main_cycle(UNTIL_SHORTIS0,(long)&chaa->animating);
     else if ((blocking != IN_BACKGROUND) && (blocking != 0))
         quit("!Character.Animate: Invalid BLOCKING parameter");
 }
@@ -399,8 +399,7 @@ void Character_FaceObject(CharacterInfo *char1, ScriptObject *obj, int blockingS
     if (obj == NULL) 
         quit("!FaceObject: invalid object specified");
 
-
-    Character_FaceLocation(char1, obj->obj->x, obj->obj->y, blockingStyle);
+    Character_FaceLocation(char1, objs[obj->id].x, objs[obj->id].y, blockingStyle);
 }
 
 void Character_FollowCharacter(CharacterInfo *chaa, CharacterInfo *tofollow, int distaway, int eagerness) {
@@ -2302,7 +2301,7 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
     if (isPause) {
         if (update_music_at > 0)
             update_music_at += play.messagetime;
-        do_main_cycle(UNTIL_INTISNEG,(int)&play.messagetime);
+        do_main_cycle(UNTIL_INTISNEG,(long)&play.messagetime);
         return;
     }
 

@@ -31,10 +31,13 @@ char *get_translation (const char *text) {
     }
 
     // check if a plugin wants to translate it - if so, return that
-    char *plResult = (char*)platform->RunPluginHooks(AGSE_TRANSLATETEXT, (int)text);
+    char *plResult = (char*)platform->RunPluginHooks(AGSE_TRANSLATETEXT, (long)text);
     if (plResult) {
-        if (((int)plResult >= -1) && ((int)plResult < 10000))
-            quit("!Plugin did not return a string for text translation");
+
+//  64bit: This is a wonky way to detect a valid pointer
+//  if (((int)plResult >= -1) && ((int)plResult < 10000))
+//    quit("!Plugin did not return a string for text translation");
+
         return plResult;
     }
 

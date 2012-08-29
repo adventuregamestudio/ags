@@ -1280,7 +1280,7 @@ __inline void get_pixel_if_not_transparent15(unsigned short *pixel, unsigned sho
   }
 }
 
-__inline void get_pixel_if_not_transparent32(unsigned long *pixel, unsigned long *red, unsigned long *green, unsigned long *blue, unsigned long *divisor)
+__inline void get_pixel_if_not_transparent32(unsigned int *pixel, unsigned int *red, unsigned int *green, unsigned int *blue, unsigned int *divisor)
 {
   if (pixel[0] != MASK_COLOR_32)
   {
@@ -1316,8 +1316,8 @@ void OGLGraphicsDriver::UpdateTextureRegion(TextureTile *tile, BITMAP *allegroBi
     // Mimic the behaviour of GL_CLAMP_EDGE for the bottom line
     if (y == tile->height)
     {
-      unsigned long* memPtrLong = (unsigned long*)memPtr;
-      unsigned long* memPtrLong_previous = (unsigned long*)(memPtr - tileWidth * 4);
+      unsigned int* memPtrLong = (unsigned int*)memPtr;
+      unsigned int* memPtrLong_previous = (unsigned int*)(memPtr - tileWidth * 4);
 
       for (int x = 0; x < tileWidth; x++)
         memPtrLong[x] = memPtrLong_previous[x] & 0x00FFFFFF;
@@ -1374,7 +1374,7 @@ void OGLGraphicsDriver::UpdateTextureRegion(TextureTile *tile, BITMAP *allegroBi
       else if (target->_colDepth == 32)
 */
       {
-        unsigned long* memPtrLong = (unsigned long*)memPtr;
+        unsigned int* memPtrLong = (unsigned int*)memPtr;
 
         if (x == tile->width)
         {
@@ -1382,7 +1382,7 @@ void OGLGraphicsDriver::UpdateTextureRegion(TextureTile *tile, BITMAP *allegroBi
           continue;
         }
 
-        unsigned long* srcData = (unsigned long*)&allegroBitmap->line[y + tile->y][(x + tile->x) * 4];
+        unsigned int* srcData = (unsigned int*)&allegroBitmap->line[y + tile->y][(x + tile->x) * 4];
         if (*srcData == MASK_COLOR_32)
         {
           if (target->_opaque)  // set to black if opaque
@@ -1393,15 +1393,15 @@ void OGLGraphicsDriver::UpdateTextureRegion(TextureTile *tile, BITMAP *allegroBi
           // pixel to stop the linear filter doing black outlines
           else
           {
-            unsigned long red = 0, green = 0, blue = 0, divisor = 0;
+            unsigned int red = 0, green = 0, blue = 0, divisor = 0;
             if (x > 0)
               get_pixel_if_not_transparent32(&srcData[-1], &red, &green, &blue, &divisor);
             if (x < tile->width - 1)
               get_pixel_if_not_transparent32(&srcData[1], &red, &green, &blue, &divisor);
             if (y > 0)
-              get_pixel_if_not_transparent32((unsigned long*)&allegroBitmap->line[y + tile->y - 1][(x + tile->x) * 4], &red, &green, &blue, &divisor);
+              get_pixel_if_not_transparent32((unsigned int*)&allegroBitmap->line[y + tile->y - 1][(x + tile->x) * 4], &red, &green, &blue, &divisor);
             if (y < tile->height - 1)
-              get_pixel_if_not_transparent32((unsigned long*)&allegroBitmap->line[y + tile->y + 1][(x + tile->x) * 4], &red, &green, &blue, &divisor);
+              get_pixel_if_not_transparent32((unsigned int*)&allegroBitmap->line[y + tile->y + 1][(x + tile->x) * 4], &red, &green, &blue, &divisor);
             if (divisor > 0)
               memPtrLong[x] = ((red / divisor) << 16) | ((green / divisor) << 8) | (blue / divisor);
             else

@@ -24,7 +24,7 @@ extern GameState play;
 extern int char_speaking;
 extern roomstruct thisroom;
 extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
-extern unsigned long loopcounter;
+extern unsigned int loopcounter;
 
 #define Random __Rand
 

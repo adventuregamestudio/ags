@@ -105,7 +105,7 @@ extern IDriverDependantBitmap **guibgbmp;
 extern char transFileName[MAX_PATH];
 extern color palette[256];
 extern int offsetx,offsety;
-extern unsigned long loopcounter;
+extern unsigned int loopcounter;
 extern block raw_saved_screen;
 extern block dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 extern IGraphicsDriver *gfxDriver;
@@ -1362,7 +1362,7 @@ void save_game_data (FILE *ooo, block screenshot) {
 
     save_game_audioclips_and_crossfade(ooo);  
 
-    platform->RunPluginHooks(AGSE_SAVEGAME, (int)ooo);
+    platform->RunPluginHooks(AGSE_SAVEGAME, (long)ooo);
     putw (MAGICNUMBER, ooo);  // to verify the plugins
 
     // save the room music volume
@@ -1443,7 +1443,7 @@ void save_game(int slotn, const char*descript) {
     // Initialize and write Vista header
     RICH_GAME_MEDIA_HEADER vistaHeader;
     memset(&vistaHeader, 0, sizeof(RICH_GAME_MEDIA_HEADER));
-    memcpy(&vistaHeader.dwMagicNumber, RM_MAGICNUMBER, sizeof(long));
+    memcpy(&vistaHeader.dwMagicNumber, RM_MAGICNUMBER, sizeof(int));
     vistaHeader.dwHeaderVersion = 1;
     vistaHeader.dwHeaderSize = sizeof(RICH_GAME_MEDIA_HEADER);
     vistaHeader.dwThumbnailOffsetHigherDword = 0;
@@ -1483,8 +1483,8 @@ void save_game(int slotn, const char*descript) {
 
     if (screenShot != NULL)
     {
-        long screenShotOffset = ftell(ooo) - sizeof(RICH_GAME_MEDIA_HEADER);
-        long screenShotSize = write_screen_shot_for_vista(ooo, screenShot);
+        int screenShotOffset = ftell(ooo) - sizeof(RICH_GAME_MEDIA_HEADER);
+        int screenShotSize = write_screen_shot_for_vista(ooo, screenShot);
         fclose(ooo);
 
         update_polled_stuff_if_runtime();
@@ -2139,7 +2139,7 @@ int restore_game_data (FILE *ooo, const char *nametouse) {
 
     recache_queued_clips_after_loading_save_game();
 
-    platform->RunPluginHooks(AGSE_RESTOREGAME, (int)ooo);
+    platform->RunPluginHooks(AGSE_RESTOREGAME, (long)ooo);
     if (getw(ooo) != (unsigned)MAGICNUMBER)
         quit("!One of the game plugins did not restore its game data correctly.");
 

@@ -64,7 +64,7 @@ struct AGSPlatformDriver
 
     virtual void ReadPluginsFromDisk(FILE *);
     virtual void StartPlugins();
-    virtual int  RunPluginHooks(int event, int data);
+    virtual int  RunPluginHooks(int event, long data);
     virtual void RunPluginInitGfxHooks(const char *driverName, void *data);
     virtual int  RunPluginDebugHooks(const char *scriptfile, int linenum);
     virtual void ShutdownPlugins();

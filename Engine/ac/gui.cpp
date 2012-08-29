@@ -59,31 +59,31 @@ int GUI_GetVisible(ScriptGUI *tehgui) {
   // GUI_GetVisible is slightly different from IsGUIOn, because
   // with a mouse ypos gui it returns 1 if the GUI is enabled,
   // whereas IsGUIOn actually checks if it is displayed
-  if (tehgui->gui->on != 0)
+  if (guis[tehgui->id].on != 0)
     return 1;
   return 0;
 }
 
 int GUI_GetX(ScriptGUI *tehgui) {
-  return divide_down_coordinate(tehgui->gui->x);
+  return divide_down_coordinate(guis[tehgui->id].x);
 }
 
 void GUI_SetX(ScriptGUI *tehgui, int xx) {
   if (xx >= thisroom.width)
     quit("!GUI.X: co-ordinates specified are out of range.");
 
-  tehgui->gui->x = multiply_up_coordinate(xx);
+  guis[tehgui->id].x = multiply_up_coordinate(xx);
 }
 
 int GUI_GetY(ScriptGUI *tehgui) {
-  return divide_down_coordinate(tehgui->gui->y);
+  return divide_down_coordinate(guis[tehgui->id].y);
 }
 
 void GUI_SetY(ScriptGUI *tehgui, int yy) {
   if (yy >= thisroom.height)
     quit("!GUI.Y: co-ordinates specified are out of range.");
 
-  tehgui->gui->y = multiply_up_coordinate(yy);
+  guis[tehgui->id].y = multiply_up_coordinate(yy);
 }
 
 void GUI_SetPosition(ScriptGUI *tehgui, int xx, int yy) {
@@ -95,7 +95,7 @@ void GUI_SetSize(ScriptGUI *sgui, int widd, int hitt) {
   if ((widd < 1) || (hitt < 1) || (widd > BASEWIDTH) || (hitt > GetMaxScreenHeight()))
     quitprintf("!SetGUISize: invalid dimensions (tried to set to %d x %d)", widd, hitt);
 
-  GUIMain *tehgui = sgui->gui;
+  GUIMain *tehgui = &guis[sgui->id];
   multiply_up_coordinates(&widd, &hitt);
 
   if ((tehgui->wid == widd) && (tehgui->hit == hitt))
@@ -110,11 +110,11 @@ void GUI_SetSize(ScriptGUI *sgui, int widd, int hitt) {
 }
 
 int GUI_GetWidth(ScriptGUI *sgui) {
-  return divide_down_coordinate(sgui->gui->wid);
+  return divide_down_coordinate(guis[sgui->id].wid);
 }
 
 int GUI_GetHeight(ScriptGUI *sgui) {
-  return divide_down_coordinate(sgui->gui->hit);
+  return divide_down_coordinate(guis[sgui->id].hit);
 }
 
 void GUI_SetWidth(ScriptGUI *sgui, int newwid) {
@@ -126,22 +126,22 @@ void GUI_SetHeight(ScriptGUI *sgui, int newhit) {
 }
 
 void GUI_SetZOrder(ScriptGUI *tehgui, int z) {
-  tehgui->gui->zorder = z;
+  guis[tehgui->id].zorder = z;
   update_gui_zorder();
 }
 
 int GUI_GetZOrder(ScriptGUI *tehgui) {
-  return tehgui->gui->zorder;
+  return guis[tehgui->id].zorder;
 }
 
 void GUI_SetClickable(ScriptGUI *tehgui, int clickable) {
-  tehgui->gui->flags &= ~GUIF_NOCLICK;
+  guis[tehgui->id].flags &= ~GUIF_NOCLICK;
   if (clickable == 0)
-    tehgui->gui->flags |= GUIF_NOCLICK;
+    guis[tehgui->id].flags |= GUIF_NOCLICK;
 }
 
 int GUI_GetClickable(ScriptGUI *tehgui) {
-  if (tehgui->gui->flags & GUIF_NOCLICK)
+  if (guis[tehgui->id].flags & GUIF_NOCLICK)
     return 0;
   return 1;
 }
@@ -151,48 +151,48 @@ int GUI_GetID(ScriptGUI *tehgui) {
 }
 
 GUIObject* GUI_GetiControls(ScriptGUI *tehgui, int idx) {
-  if ((idx < 0) || (idx >= tehgui->gui->numobjs))
+  if ((idx < 0) || (idx >= guis[tehgui->id].numobjs))
     return NULL;
-  return tehgui->gui->objs[idx];
+  return guis[tehgui->id].objs[idx];
 }
 
 int GUI_GetControlCount(ScriptGUI *tehgui) {
-  return tehgui->gui->numobjs;
+  return guis[tehgui->id].numobjs;
 }
 
 void GUI_SetTransparency(ScriptGUI *tehgui, int trans) {
   if ((trans < 0) | (trans > 100))
     quit("!SetGUITransparency: transparency value must be between 0 and 100");
 
-  tehgui->gui->SetTransparencyAsPercentage(trans);
+  guis[tehgui->id].SetTransparencyAsPercentage(trans);
 }
 
 int GUI_GetTransparency(ScriptGUI *tehgui) {
-  if (tehgui->gui->transparency == 0)
+  if (guis[tehgui->id].transparency == 0)
     return 0;
-  if (tehgui->gui->transparency == 255)
+  if (guis[tehgui->id].transparency == 255)
     return 100;
 
-  return 100 - ((tehgui->gui->transparency * 10) / 25);
+  return 100 - ((guis[tehgui->id].transparency * 10) / 25);
 }
 
 void GUI_Centre(ScriptGUI *sgui) {
-  GUIMain *tehgui = sgui->gui;
+  GUIMain *tehgui = &guis[sgui->id];
   tehgui->x = scrnwid / 2 - tehgui->wid / 2;
   tehgui->y = scrnhit / 2 - tehgui->hit / 2;
 }
 
 void GUI_SetBackgroundGraphic(ScriptGUI *tehgui, int slotn) {
-  if (tehgui->gui->bgpic != slotn) {
-    tehgui->gui->bgpic = slotn;
+  if (guis[tehgui->id].bgpic != slotn) {
+    guis[tehgui->id].bgpic = slotn;
     guis_need_update = 1;
   }
 }
 
 int GUI_GetBackgroundGraphic(ScriptGUI *tehgui) {
-  if (tehgui->gui->bgpic < 1)
+  if (guis[tehgui->id].bgpic < 1)
     return 0;
-  return tehgui->gui->bgpic;
+  return guis[tehgui->id].bgpic;
 }
 
 ScriptGUI *GetGUIAtLocation(int xx, int yy) {
@@ -223,7 +223,7 @@ void remove_popup_interface(int ifacenum) {
 void process_interface_click(int ifce, int btn, int mbut) {
     if (btn < 0) {
         // click on GUI background
-        run_text_script_2iparam(gameinst, guis[ifce].clickEventHandler, (int)&scrGui[ifce], mbut);
+        run_text_script_2iparam(gameinst, guis[ifce].clickEventHandler, (long)&scrGui[ifce], mbut);
         return;
     }
 
@@ -250,9 +250,9 @@ void process_interface_click(int ifce, int btn, int mbut) {
             (ccGetSymbolAddr(gameinst, theObj->eventHandlers[0]) != NULL)) {
                 // control-specific event handler
                 if (strchr(theObj->GetEventArgs(0), ',') != NULL)
-                    run_text_script_2iparam(gameinst, theObj->eventHandlers[0], (int)theObj, mbut);
+                    run_text_script_2iparam(gameinst, theObj->eventHandlers[0], (long)theObj, mbut);
                 else
-                    run_text_script_iparam(gameinst, theObj->eventHandlers[0], (int)theObj);
+                    run_text_script_iparam(gameinst, theObj->eventHandlers[0], (long)theObj);
         }
         else
             run_text_script_2iparam(gameinst,"interface_click",ifce,btn);

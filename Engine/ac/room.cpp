@@ -78,7 +78,7 @@ extern int guis_need_update;
 extern int in_leaves_screen;
 extern CharacterInfo*playerchar;
 extern int starting_room;
-extern unsigned long loopcounter,lastcounter;
+extern unsigned int loopcounter,lastcounter;
 extern int ccError;
 extern char ccErrorString[400];
 extern IDriverDependantBitmap* roomBackgroundBmp;
@@ -669,7 +669,8 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
     objs=&croom->obj[0];
 
     for (cc = 0; cc < MAX_INIT_SPR; cc++) {
-        scrObj[cc].obj = &croom->obj[cc];
+        // 64 bit: Using the id instead
+        // scrObj[cc].obj = &croom->obj[cc];
         objectScriptObjNames[cc][0] = 0;
     }
 

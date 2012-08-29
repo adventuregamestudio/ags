@@ -29,12 +29,12 @@ struct AGSLinux : AGSPlatformDriver {
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
   virtual void WriteConsole(const char*, ...);
-  void WriteDebugString(const char* texx, ...);
+  virtual void WriteDebugString(const char* texx, ...);
   virtual void ReplaceSpecialPaths(const char*, char*);
   virtual void ReadPluginsFromDisk(FILE *iii);
   virtual void StartPlugins();
   virtual void ShutdownPlugins();
-  virtual int RunPluginHooks(int event, int data);
+  virtual int RunPluginHooks(int event, long data);
   virtual void RunPluginInitGfxHooks(const char *driverName, void *data);
   virtual int RunPluginDebugHooks(const char *scriptfile, int linenum);
 };
@@ -165,7 +165,7 @@ void AGSLinux::ShutdownPlugins() {
   pl_stop_plugins();
 }
 
-int AGSLinux::RunPluginHooks(int event, int data) {
+int AGSLinux::RunPluginHooks(int event, long data) {
   return pl_run_plugin_hooks(event, data);
 }
 

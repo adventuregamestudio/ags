@@ -572,7 +572,7 @@ int IAGSEngine::CanRunScriptFunctionNow() {
         return 0;
     return 1;
 }
-int IAGSEngine::CallGameScriptFunction(const char *name, int32 globalScript, int32 numArgs, int32 arg1, int32 arg2, int32 arg3) {
+int IAGSEngine::CallGameScriptFunction(const char *name, int32 globalScript, int32 numArgs, long arg1, long arg2, long arg3) {
     if (inside_script)
         return -300;
 
@@ -612,7 +612,7 @@ void IAGSEngine::SetSpriteAlphaBlended(int32 slot, int32 isAlphaBlended) {
         game.spriteflags[slot] |= SPF_ALPHACHANNEL;
 }
 
-void IAGSEngine::QueueGameScriptFunction(const char *name, int32 globalScript, int32 numArgs, int32 arg1, int32 arg2) {
+void IAGSEngine::QueueGameScriptFunction(const char *name, int32 globalScript, int32 numArgs, long arg1, long arg2) {
     if (!inside_script) {
         this->CallGameScriptFunction(name, globalScript, numArgs, arg1, arg2, 0);
         return;
@@ -784,7 +784,7 @@ void pl_startup_plugins() {
     }
 }
 
-int pl_run_plugin_hooks (int event, int data) {
+int pl_run_plugin_hooks (int event, long data) {
     int i, retval = 0;
     for (i = 0; i < numPlugins; i++) {
         if (plugins[i].wantHook & event) {

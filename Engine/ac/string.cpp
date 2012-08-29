@@ -367,6 +367,7 @@ void my_strncpy(char *dest, const char *src, int len) {
         strcpy(dest, src);
 }
 
+// 64 bit: Not sure if this function is 64 bit ready
 // Custom printf, needed because floats are pushed as 8 bytes
 void my_sprintf(char *buffer, const char *fmt, va_list ap) {
     int bufidx = 0;
@@ -435,8 +436,10 @@ void my_sprintf(char *buffer, const char *fmt, va_list ap) {
             memcpy(&floatArg, &theArg, sizeof(float));
             sprintf(spfbuffer, fmtstring, floatArg);
         }
+/*      64 bit: Not compatible
         else if ((theArg == (int)buffer) && (endptr[-1] == 's'))
             quit("Cannot use destination as argument to StrFormat");
+*/
         else if ((theArg < 0x10000) && (endptr[-1] == 's'))
             quit("!One of the string arguments supplied was not a string");
         else if (endptr[-1] == 's')

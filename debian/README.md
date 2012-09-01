@@ -17,10 +17,6 @@ Download the sources with git and change into the **ags** directory:
     git clone git://github.com/adventuregamestudio/ags.git
     cd ags
 
-If you are on a 64 bit system, check out the *64bit* branch:
-
-    git checkout 64bit
-
 Compile the engine:
 
     make --directory=Engine --file=Makefile.linux
@@ -35,13 +31,7 @@ Please take note of the usage instructions at the end of this document.
 
 #Building a Debian/Ubuntu package of AGS
 Building a package is the preferred way to install software on
-Debian/Ubuntu. On 32 bit systems, this works just fine with the
-*main* branch. On 64 bit systems, there are two possible ways
-to do this. First, you can use the experimental *64bit* branch. Second,
-the development versions of Debian and Ubuntu support parallel
-installation of both 32 and 64 bit versions of all required libraries
-(multiarch), so you can also use the more stable *main* branch there and build a 
-32 bit AGS to use on your 64 bit system.
+Debian/Ubuntu. 
 
 
 ##Getting and updating the sources
@@ -49,11 +39,6 @@ installation of both 32 and 64 bit versions of all required libraries
 ###First time
     git clone git://github.com/adventuregamestudio/ags.git
     cd ags
-    debian/rules get-orig-source
-
-If you want to build a native 64 bit AGS, check out the *64bit* branch:
-
-    git checkout 64bit
     debian/rules get-orig-source
 
 ###Updating (with clean working directory)
@@ -86,10 +71,16 @@ building the package.
 
 
 ##Building the package
+There are two possibilities here. Normally you should go with
+*Native AGS package*.
+However, there is still the possibility that that AGS crashes randomly
+on 64 bit systems. We are not able to reproduce this reliably.
+If you observe this problem and are able to help resolve it, that would be great.
+Otherwise, there is a workaround that is described in the section
+*32 bit AGS on 64 bit system* below.
 
 ###Native AGS package
 So you want to build on a 32 bit system or a 64 bit AGS on a 64 bit system.
-Make sure you are in the right git branch (see above).
 
 Install build dependencies and devscripts:
 
@@ -102,7 +93,9 @@ Build the package and install it and its dependencies with gdebi:
     sudo gdebi ../ags_3.21.1115~JJS-1_i386.deb
 
 ###32 bit AGS on 64 bit system
-
+The development versions of Debian and Ubuntu support parallel
+installation of both 32 and 64 bit versions of all required libraries
+(multiarch), so you can build a 32 bit AGS to use on your 64 bit system.
 This part works only on Debian sid and wheezy and Ubuntu quantal.
 
 Enable multiarch:

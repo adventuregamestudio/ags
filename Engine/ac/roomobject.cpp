@@ -118,7 +118,7 @@ void RoomObject::update_cycle_view_backwards()
 void RoomObject::ReadFromFile(FILE *fp)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
-    fread(&x, sizeof(int), 2, fp);
+    fread(&x, sizeof(int), 3, fp);
     fread(&tint_r, sizeof(short), 15, fp);
     fread(&cycling, sizeof(char), 4, fp);
     fread(&blocking_width, sizeof(short), 2, fp);
@@ -130,7 +130,7 @@ void RoomObject::ReadFromFile(FILE *fp)
 void RoomObject::WriteToFile(FILE *fp)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
-    fwrite(&x, sizeof(int), 2, fp);
+    fwrite(&x, sizeof(int), 3, fp);
     fwrite(&tint_r, sizeof(short), 15, fp);
     fwrite(&cycling, sizeof(char), 4, fp);
     fwrite(&blocking_width, sizeof(short), 2, fp);

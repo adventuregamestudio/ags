@@ -1631,7 +1631,7 @@ void restore_game_scripts(FILE *ooo, int &gdatasize, char **newglobaldatabuffer,
     // read the global script data segment
     gdatasize = getw(ooo);
     *newglobaldatabuffer = (char*)malloc(gdatasize);
-    fread(newglobaldatabuffer, sizeof(char), gdatasize, ooo);
+    fread(*newglobaldatabuffer, sizeof(char), gdatasize, ooo);
     //fread(&gameinst->globaldata[0],gdatasize,1,ooo);
     //ccUnFlattenGlobalData (gameinst);
 
@@ -1655,11 +1655,15 @@ void restore_game_room_state(FILE *ooo, const char *nametouse)
     // now the rooms
     resetRoomStatuses();
 
+// JJS: What was the point in closing and reopening the file?
+// It is amazing that this worked at all because the original file handle
+// is still used in the calling function! Blows up on 64 bit Linux though.
+/*
     long gobackto=ftell(ooo);
     fclose(ooo);
     ooo=fopen(nametouse,"rb");
     fseek(ooo,gobackto,SEEK_SET);
-
+*/
     // read the room state for all the rooms the player has been in
     RoomStatus* roomstat;
     int beenhere;
@@ -1680,7 +1684,7 @@ void restore_game_room_state(FILE *ooo, const char *nametouse)
                 roomstat->ReadFromFile(ooo);
                 if (roomstat->tsdatasize > 0)
                 {
-                    roomstat->tsdata=(char*)malloc(roomstat->tsdatasize + 8);
+                    roomstat->tsdata=(char*)malloc(roomstat->tsdatasize + 8);  // JJS: Why allocate 8 additional bytes?
                     fread(&roomstat->tsdata[0], roomstat->tsdatasize, 1, ooo);
                 }
             }

@@ -27,7 +27,9 @@ common.a: $(OBJS_COMMON)
 %.o: %.mm
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-.PHONY: clean install uninstall
+.PHONY: clean install uninstall rebuild
+
+rebuild: clean all
 
 clean:
 	rm -f ags common.a $(OBJS) $(OBJS_COMMON)

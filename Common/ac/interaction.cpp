@@ -156,8 +156,16 @@ NewInteraction::~NewInteraction() {
 void NewInteraction::ReadFromFile(FILE *fp)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
-    // it's all ints!
-    fread(&numEvents, sizeof(int), sizeof(NewInteraction)/sizeof(int), fp);
+    // it's all ints! <- JJS: No, it's not! There are pointer too.
+
+  numEvents = getw(fp);
+  fread(&eventTypes, sizeof(*eventTypes), MAX_NEWINTERACTION_EVENTS, fp);
+  fread(&timesRun, sizeof(*timesRun), MAX_NEWINTERACTION_EVENTS, fp);
+
+  for (int i = 0; i < MAX_NEWINTERACTION_EVENTS; i++)
+    response[i] = (NewInteractionCommandList*)getw(fp);
+
+//    fread(&numEvents, sizeof(int), sizeof(NewInteraction)/sizeof(int), fp);
 //#else
 //    throw "NewInteraction::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
 //#endif
@@ -165,7 +173,15 @@ void NewInteraction::ReadFromFile(FILE *fp)
 void NewInteraction::WriteToFile(FILE *fp)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
-    fwrite(&numEvents, sizeof(int), sizeof(NewInteraction)/sizeof(int), fp);
+
+  putw(numEvents, fp);
+  fwrite(&eventTypes, sizeof(*eventTypes), MAX_NEWINTERACTION_EVENTS, fp);
+  fwrite(&timesRun, sizeof(*timesRun), MAX_NEWINTERACTION_EVENTS, fp);
+
+  for (int i = 0; i < MAX_NEWINTERACTION_EVENTS; i++)
+    putw((int)(response[i] != NULL), fp);
+
+//    fwrite(&numEvents, sizeof(int), sizeof(NewInteraction)/sizeof(int), fp);
 //#else
 //    throw "NewInteraction::WriteToFile() is not implemented for little-endian platforms and should not be called.";
 //#endif

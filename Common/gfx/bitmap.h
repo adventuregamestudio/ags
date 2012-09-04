@@ -266,7 +266,12 @@ protected:
 	virtual void	Destroy() = 0;
 };
 
-typedef IBitmap *PBitmap;
+// TODO: revise this construction later
+namespace Bitmap
+{
+	IBitmap *CreateBitmap(int width, int height, int color_depth = 0);
+	IBitmap *CreateSubBitmap(IBitmap *src, int x, int y, int width, int height);
+}
 
 } // namespace Common
 } // namespace AGS

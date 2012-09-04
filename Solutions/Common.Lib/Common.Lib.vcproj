@@ -341,6 +341,10 @@
 					RelativePath="..\..\Common\gfx\allegrobitmap.cpp"
 					>
 				</File>
+				<File
+					RelativePath="..\..\Common\gfx\bitmap.cpp"
+					>
+				</File>
 			</Filter>
 		</Filter>
 		<Filter

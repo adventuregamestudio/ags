@@ -9,6 +9,9 @@
 
 namespace AGS
 {
+
+namespace Common { class IBitmap; }
+
 namespace Engine
 {
 
@@ -43,6 +46,16 @@ typedef void (*GFXDRV_CLIENTCALLBACKINITGFX)(void *data);
 
 class IGraphicsDriver
 {
+  //---------------------------------------------------------------------------
+  // FIXME: these are only temporary stubs, to make the project compile between large changes to code
+public:
+  BITMAP *ConvertBitmapToSupportedColourDepth(BITMAP *bitmap) { return NULL; }
+  IDriverDependantBitmap* CreateDDBFromBitmap(BITMAP *bitmap, bool hasAlpha, bool opaque = false) { return NULL; }
+  void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, BITMAP *bitmap, bool hasAlpha) {};
+  void GetCopyOfScreenIntoBitmap(BITMAP *destination) {}
+  //BITMAP *GetMemoryBackBuffer() { return NULL; }
+  void SetMemoryBackBuffer(BITMAP *backBuffer) {}
+  //---------------------------------------------------------------------------
 public:
   virtual const char*GetDriverName() = 0;
   virtual const char*GetDriverID() = 0;
@@ -59,9 +72,9 @@ public:
   virtual void SetCallbackForNullSprite(GFXDRV_CLIENTCALLBACKXY callback) = 0;
   virtual void UnInit() = 0;
   virtual void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse) = 0;
-  virtual BITMAP* ConvertBitmapToSupportedColourDepth(BITMAP* allegroBitmap) = 0;
-  virtual IDriverDependantBitmap* CreateDDBFromBitmap(BITMAP* allegroBitmap, bool hasAlpha, bool opaque = false) = 0;
-  virtual void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, BITMAP* allegroBitmap, bool hasAlpha) = 0;
+  virtual Common::IBitmap *ConvertBitmapToSupportedColourDepth(Common::IBitmap *bitmap) = 0;
+  virtual IDriverDependantBitmap* CreateDDBFromBitmap(Common::IBitmap *bitmap, bool hasAlpha, bool opaque = false) = 0;
+  virtual void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Common::IBitmap *bitmap, bool hasAlpha) = 0;
   virtual void DestroyDDB(IDriverDependantBitmap* bitmap) = 0;
   virtual void ClearDrawList() = 0;
   virtual void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap) = 0;
@@ -70,7 +83,7 @@ public:
   virtual void RenderToBackBuffer() = 0;
   virtual void Render() = 0;
   virtual void Render(GlobalFlipType flip) = 0;
-  virtual void GetCopyOfScreenIntoBitmap(BITMAP* destination) = 0;
+  virtual void GetCopyOfScreenIntoBitmap(Common::IBitmap *destination) = 0;
   virtual void EnableVsyncBeforeRender(bool enabled) = 0;
   virtual void Vsync() = 0;
   virtual void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue) = 0;
@@ -80,8 +93,8 @@ public:
   virtual void UseSmoothScaling(bool enabled) = 0;
   virtual bool SupportsGammaControl() = 0;
   virtual void SetGamma(int newGamma) = 0;
-  virtual BITMAP* GetMemoryBackBuffer() = 0;
-  virtual void SetMemoryBackBuffer(BITMAP* backBuffer) = 0;
+  virtual Common::IBitmap* GetMemoryBackBuffer() = 0;
+  virtual void SetMemoryBackBuffer(Common::IBitmap *backBuffer) = 0;
   virtual bool RequiresFullRedrawEachFrame() = 0;
   virtual bool HasAcceleratedStretchAndFlip() = 0;
   virtual bool UsesMemoryBackBuffer() = 0;

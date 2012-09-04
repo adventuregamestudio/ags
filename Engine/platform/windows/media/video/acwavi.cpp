@@ -356,7 +356,7 @@ int dxmedia_play_video(const char* filename, bool pUseSound, int canskip, int st
   currentlyPlaying = true;
 
   gfxDriver->ClearDrawList();
-  BITMAP *savedBackBuffer = gfxDriver->GetMemoryBackBuffer();
+  BITMAP *savedBackBuffer = (BITMAP*)gfxDriver->GetMemoryBackBuffer(); // FIXME later (temporary compilation hack)
   gfxDriver->SetMemoryBackBuffer(screen);
 
   while ((g_bAppactive) && (!want_exit)) {

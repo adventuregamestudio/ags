@@ -9,8 +9,12 @@
 #include <allegro/platform/aintwin.h>
 #include "gfx/ali3d.h"
 #include <GL/gl.h>
+#include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
+
+using AGS::Common::IBitmap;
+namespace Bitmap = AGS::Common::Bitmap;
 
 // Allegro and glext.h define these
 #undef int32_t
@@ -379,9 +383,9 @@ public:
   virtual void SetCallbackForNullSprite(GFXDRV_CLIENTCALLBACKXY callback) { _nullSpriteCallback = callback; }
   virtual void UnInit();
   virtual void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse);
-  virtual BITMAP *ConvertBitmapToSupportedColourDepth(BITMAP *allegroBitmap);
-  virtual IDriverDependantBitmap* CreateDDBFromBitmap(BITMAP *allegroBitmap, bool hasAlpha, bool opaque);
-  virtual void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, BITMAP *allegroBitmap, bool hasAlpha);
+  virtual IBitmap *ConvertBitmapToSupportedColourDepth(IBitmap *bitmap);
+  virtual IDriverDependantBitmap* CreateDDBFromBitmap(IBitmap *bitmap, bool hasAlpha, bool opaque);
+  virtual void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, IBitmap *bitmap, bool hasAlpha);
   virtual void DestroyDDB(IDriverDependantBitmap* bitmap);
   virtual void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap);
   virtual void ClearDrawList();
@@ -389,7 +393,7 @@ public:
   virtual void Render();
   virtual void Render(GlobalFlipType flip);
   virtual void SetRenderOffset(int x, int y);
-  virtual void GetCopyOfScreenIntoBitmap(BITMAP* destination);
+  virtual void GetCopyOfScreenIntoBitmap(IBitmap *destination);
   virtual void EnableVsyncBeforeRender(bool enabled) { }
   virtual void Vsync();
   virtual void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
@@ -402,8 +406,8 @@ public:
   virtual bool RequiresFullRedrawEachFrame() { return true; }
   virtual bool HasAcceleratedStretchAndFlip() { return true; }
   virtual bool UsesMemoryBackBuffer() { return false; }
-  virtual BITMAP* GetMemoryBackBuffer() { return NULL; }
-  virtual void SetMemoryBackBuffer(BITMAP *backBuffer) {  }
+  virtual IBitmap *GetMemoryBackBuffer() { return NULL; }
+  virtual void SetMemoryBackBuffer(IBitmap *backBuffer) {  }
   virtual void SetScreenTint(int red, int green, int blue);
 
   // Internal
@@ -438,7 +442,7 @@ private:
   bool _legacyPixelShader;
   float _pixelRenderOffset;
   volatile int *_loopTimer;
-  BITMAP* _screenTintLayer;
+  IBitmap *_screenTintLayer;
   OGLBitmap* _screenTintLayerDDB;
   SpriteDrawListEntry _screenTintSprite;
 
@@ -461,7 +465,7 @@ private:
   void InitOpenGl();
   void set_up_default_vertices();
   void AdjustSizeToNearestSupportedByCard(int *width, int *height);
-  void UpdateTextureRegion(TextureTile *tile, BITMAP *bitmap, OGLBitmap *target, bool hasAlpha);
+  void UpdateTextureRegion(TextureTile *tile, IBitmap *bitmap, OGLBitmap *target, bool hasAlpha);
   void do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
   bool IsModeSupported(int width, int height, int colDepth);
   void create_screen_tint_bitmap();
@@ -915,7 +919,8 @@ bool OGLGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
     return false;
   }
   // create dummy screen bitmap
-  screen = ConvertBitmapToSupportedColourDepth(create_bitmap_ex(colourDepth, virtualWidth, virtualHeight));
+  // FIXME later (temporary compilation hack)
+  screen = (BITMAP*)ConvertBitmapToSupportedColourDepth(Bitmap::CreateBitmap(virtualWidth, virtualHeight, colourDepth))->GetBitmapObject();
 
   return true;
 }
@@ -928,11 +933,8 @@ void OGLGraphicsDriver::UnInit()
     _screenTintLayerDDB = NULL;
     _screenTintSprite.bitmap = NULL;
   }
-  if (_screenTintLayer != NULL)
-  {
-    destroy_bitmap(_screenTintLayer);
-    _screenTintLayer = NULL;
-  }
+  delete _screenTintLayer;
+  _screenTintLayer = NULL;
 
   gfx_driver = NULL;
 }
@@ -947,7 +949,7 @@ void OGLGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colo
 
 }
 
-void OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(BITMAP *destination)
+void OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(IBitmap *destination)
 {
 #if defined(IOS_VERSION)
   ios_select_buffer();
@@ -967,15 +969,15 @@ void OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(BITMAP *destination)
     unsigned char* sourcePtr;
     unsigned char* destPtr;
     
-    BITMAP* retrieveInto = create_bitmap_ex(32, retrieve_width, retrieve_height);
+	IBitmap* retrieveInto = Bitmap::CreateBitmap(retrieve_width, retrieve_height, 32);
 
     if (retrieveInto)
     {
-      for (int y = retrieveInto->h - 1; y >= 0; y--)
+      for (int y = retrieveInto->GetHeight() - 1; y >= 0; y--)
       {
         sourcePtr = surfaceData;
-        destPtr = &retrieveInto->line[y][0];
-        for (int x = 0; x < retrieveInto->w * 4; x += 4)
+        destPtr = &retrieveInto->GetScanLineForWriting(y)[0];
+        for (int x = 0; x < retrieveInto->GetWidth() * 4; x += 4)
         {
           destPtr[x] = sourcePtr[x + 2];
           destPtr[x + 2] = sourcePtr[x];
@@ -985,8 +987,8 @@ void OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(BITMAP *destination)
         surfaceData += retrieve_width * 4;
       }
 
-      stretch_blit(retrieveInto, destination, 0, 0, retrieveInto->w, retrieveInto->h, 0, 0, destination->w, destination->h);
-      destroy_bitmap(retrieveInto);
+      destination->StretchBlt(retrieveInto, 0, 0, retrieveInto->GetWidth(), retrieveInto->GetHeight(), 0, 0, destination->GetWidth(), destination->GetHeight());
+      delete retrieveInto;
     }
 
     free(buffer);
@@ -1302,7 +1304,7 @@ __inline void get_pixel_if_not_transparent32(unsigned long *pixel, unsigned long
   (((((a)&0xff)<<24)|(((b)&0xff)<<16)|(((g)&0xff)<<8)|((r)&0xff)))
 
 
-void OGLGraphicsDriver::UpdateTextureRegion(TextureTile *tile, BITMAP *allegroBitmap, OGLBitmap *target, bool hasAlpha)
+void OGLGraphicsDriver::UpdateTextureRegion(TextureTile *tile, IBitmap *bitmap, OGLBitmap *target, bool hasAlpha)
 {
   int textureHeight = tile->height;
   int textureWidth = tile->width;
@@ -1337,7 +1339,7 @@ void OGLGraphicsDriver::UpdateTextureRegion(TextureTile *tile, BITMAP *allegroBi
 /*    if (target->_colDepth == 15)
       {
         unsigned short* memPtrShort = (unsigned short*)memPtr;
-        unsigned short* srcData = (unsigned short*)&allegroBitmap->line[y + tile->y][(x + tile->x) * 2];
+        unsigned short* srcData = (unsigned short*)&bitmap->GetScanLine[y + tile->y][(x + tile->x) * 2];
         if (*srcData == MASK_COLOR_15) 
         {
           if (target->_opaque)  // set to black if opaque
@@ -1354,9 +1356,9 @@ void OGLGraphicsDriver::UpdateTextureRegion(TextureTile *tile, BITMAP *allegroBi
             if (x < tile->width - 1)
               get_pixel_if_not_transparent15(&srcData[1], &red, &green, &blue, &divisor);
             if (y > 0)
-              get_pixel_if_not_transparent15((unsigned short*)&allegroBitmap->line[y + tile->y - 1][(x + tile->x) * 2], &red, &green, &blue, &divisor);
+              get_pixel_if_not_transparent15((unsigned short*)&bitmap->GetScanLine[y + tile->y - 1][(x + tile->x) * 2], &red, &green, &blue, &divisor);
             if (y < tile->height - 1)
-              get_pixel_if_not_transparent15((unsigned short*)&allegroBitmap->line[y + tile->y + 1][(x + tile->x) * 2], &red, &green, &blue, &divisor);
+              get_pixel_if_not_transparent15((unsigned short*)&bitmap->GetScanLine[y + tile->y + 1][(x + tile->x) * 2], &red, &green, &blue, &divisor);
             if (divisor > 0)
               memPtrShort[x] = ((red / divisor) << 10) | ((green / divisor) << 5) | (blue / divisor);
             else
@@ -1387,7 +1389,7 @@ void OGLGraphicsDriver::UpdateTextureRegion(TextureTile *tile, BITMAP *allegroBi
           continue;
         }
 
-        unsigned long* srcData = (unsigned long*)&allegroBitmap->line[y + tile->y][(x + tile->x) * 4];
+        unsigned long* srcData = (unsigned long*)&bitmap->GetScanLine(y + tile->y)[(x + tile->x) * 4];
         if (*srcData == MASK_COLOR_32)
         {
           if (target->_opaque)  // set to black if opaque
@@ -1404,9 +1406,9 @@ void OGLGraphicsDriver::UpdateTextureRegion(TextureTile *tile, BITMAP *allegroBi
             if (x < tile->width - 1)
               get_pixel_if_not_transparent32(&srcData[1], &red, &green, &blue, &divisor);
             if (y > 0)
-              get_pixel_if_not_transparent32((unsigned long*)&allegroBitmap->line[y + tile->y - 1][(x + tile->x) * 4], &red, &green, &blue, &divisor);
+              get_pixel_if_not_transparent32((unsigned long*)&bitmap->GetScanLine(y + tile->y - 1)[(x + tile->x) * 4], &red, &green, &blue, &divisor);
             if (y < tile->height - 1)
-              get_pixel_if_not_transparent32((unsigned long*)&allegroBitmap->line[y + tile->y + 1][(x + tile->x) * 4], &red, &green, &blue, &divisor);
+              get_pixel_if_not_transparent32((unsigned long*)&bitmap->GetScanLine(y + tile->y + 1)[(x + tile->x) * 4], &red, &green, &blue, &divisor);
             if (divisor > 0)
               memPtrLong[x] = ((red / divisor) << 16) | ((green / divisor) << 8) | (blue / divisor);
             else
@@ -1443,18 +1445,18 @@ void OGLGraphicsDriver::UpdateTextureRegion(TextureTile *tile, BITMAP *allegroBi
   free(origPtr);
 }
 
-void OGLGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, BITMAP *allegroBitmap, bool hasAlpha)
+void OGLGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, IBitmap *bitmap, bool hasAlpha)
 {
   OGLBitmap *target = (OGLBitmap*)bitmapToUpdate;
-  BITMAP* source = allegroBitmap;
-  if ((target->_width == allegroBitmap->w) &&
-     (target->_height == allegroBitmap->h))
+  IBitmap *source = bitmap;
+  if ((target->_width == bitmap->GetWidth()) &&
+     (target->_height == bitmap->GetHeight()))
   {
-    if (bitmap_color_depth(allegroBitmap) != target->_colDepth)
+    if (bitmap->GetColorDepth() != target->_colDepth)
     {
       //throw Ali3DException("Mismatched colour depths");
-      source = create_bitmap_ex(32, allegroBitmap->w, allegroBitmap->h);
-      blit(allegroBitmap, source, 0, 0, 0, 0, source->w, source->h);
+      source = Bitmap::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 32);
+      source->Blit(bitmap, 0, 0, 0, 0, source->GetWidth(), source->GetHeight());
     }
 
     target->_hasAlpha = hasAlpha;
@@ -1464,36 +1466,36 @@ void OGLGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpda
       UpdateTextureRegion(&target->_tiles[i], source, target, hasAlpha);
     }
 
-    if (source != allegroBitmap)
-      destroy_bitmap(source);
+    if (source != bitmap)
+      delete source;
   }
 }
 
-BITMAP* OGLGraphicsDriver::ConvertBitmapToSupportedColourDepth(BITMAP *allegroBitmap)
+IBitmap *OGLGraphicsDriver::ConvertBitmapToSupportedColourDepth(IBitmap *bitmap)
 {
    int colorConv = get_color_conversion();
    set_color_conversion(COLORCONV_KEEP_TRANS | COLORCONV_TOTAL);
 
-   int colourDepth = bitmap_color_depth(allegroBitmap);
+   int colourDepth = bitmap->GetColorDepth();
 /*   if ((colourDepth == 8) || (colourDepth == 16))
    {
      // Most 3D cards don't support 8-bit; and we need 15-bit colour
-     BITMAP* tempBmp = create_bitmap_ex(15, allegroBitmap->w, allegroBitmap->h);
-     blit(allegroBitmap, tempBmp, 0, 0, 0, 0, tempBmp->w, tempBmp->h);
-     destroy_bitmap(allegroBitmap);
+     BITMAP* tempBmp = create_bitmap_ex(15, bitmap->GetWidth(), bitmap->GetHeight());
+     Blit(bitmap, tempBmp, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
+     destroy_bitmap(bitmap);
      set_color_conversion(colorConv);
      return tempBmp;
    }
 */   if (colourDepth != 32)
    {
      // we need 32-bit colour
-     BITMAP* tempBmp = create_bitmap_ex(32, allegroBitmap->w, allegroBitmap->h);
-     blit(allegroBitmap, tempBmp, 0, 0, 0, 0, tempBmp->w, tempBmp->h);
-     destroy_bitmap(allegroBitmap);
+     IBitmap *tempBmp = Bitmap::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 32);
+     tempBmp->Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
+     delete bitmap;
      set_color_conversion(colorConv);
      return tempBmp;
    }
-   return allegroBitmap;
+   return bitmap;
 }
 
 void OGLGraphicsDriver::AdjustSizeToNearestSupportedByCard(int *width, int *height)
@@ -1525,30 +1527,30 @@ void OGLGraphicsDriver::AdjustSizeToNearestSupportedByCard(int *width, int *heig
 
 
 
-IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(BITMAP *allegroBitmap, bool hasAlpha, bool opaque)
+IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(IBitmap *bitmap, bool hasAlpha, bool opaque)
 {
-  int allocatedWidth = allegroBitmap->w;
-  int allocatedHeight = allegroBitmap->h;
-  BITMAP *tempBmp = NULL;
-  int colourDepth = bitmap_color_depth(allegroBitmap);
+  int allocatedWidth = bitmap->GetWidth();
+  int allocatedHeight = bitmap->GetHeight();
+  IBitmap *tempBmp = NULL;
+  int colourDepth = bitmap->GetColorDepth();
 /*  if ((colourDepth == 8) || (colourDepth == 16))
   {
     // Most 3D cards don't support 8-bit; and we need 15-bit colour
-    tempBmp = create_bitmap_ex(15, allegroBitmap->w, allegroBitmap->h);
-    blit(allegroBitmap, tempBmp, 0, 0, 0, 0, tempBmp->w, tempBmp->h);
-    allegroBitmap = tempBmp;
+    tempBmp = create_bitmap_ex(15, bitmap->GetWidth(), bitmap->GetHeight());
+    Blit(bitmap, tempBmp, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
+    bitmap = tempBmp;
     colourDepth = 15;
   }
 */  if (colourDepth != 32)
   {
     // we need 32-bit colour
-    tempBmp = create_bitmap_ex(32, allegroBitmap->w, allegroBitmap->h);
-    blit(allegroBitmap, tempBmp, 0, 0, 0, 0, tempBmp->w, tempBmp->h);
-    allegroBitmap = tempBmp;
+	tempBmp = Bitmap::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 32);
+    tempBmp->Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
+    bitmap = tempBmp;
     colourDepth = 32;
   }
 
-  OGLBitmap *ddb = new OGLBitmap(allegroBitmap->w, allegroBitmap->h, colourDepth, opaque);
+  OGLBitmap *ddb = new OGLBitmap(bitmap->GetWidth(), bitmap->GetHeight(), colourDepth, opaque);
 
   AdjustSizeToNearestSupportedByCard(&allocatedWidth, &allocatedHeight);
   int tilesAcross = 1, tilesDown = 1;
@@ -1568,10 +1570,10 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(BITMAP *allegroBi
 
   tilesAcross = (allocatedWidth + MaxTextureWidth - 1) / MaxTextureWidth;
   tilesDown = (allocatedHeight + MaxTextureHeight - 1) / MaxTextureHeight;
-  int tileWidth = allegroBitmap->w / tilesAcross;
-  int lastTileExtraWidth = allegroBitmap->w % tilesAcross;
-  int tileHeight = allegroBitmap->h / tilesDown;
-  int lastTileExtraHeight = allegroBitmap->h % tilesDown;
+  int tileWidth = bitmap->GetWidth() / tilesAcross;
+  int lastTileExtraWidth = bitmap->GetWidth() % tilesAcross;
+  int tileHeight = bitmap->GetHeight() / tilesDown;
+  int lastTileExtraHeight = bitmap->GetHeight() % tilesDown;
   int tileAllocatedWidth = tileWidth;
   int tileAllocatedHeight = tileHeight;
 
@@ -1584,8 +1586,8 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(BITMAP *allegroBi
   OGLCUSTOMVERTEX *vertices = NULL;
 
   if ((numTiles == 1) &&
-      (allocatedWidth == allegroBitmap->w) &&
-      (allocatedHeight == allegroBitmap->h))
+      (allocatedWidth == bitmap->GetWidth()) &&
+      (allocatedHeight == bitmap->GetHeight()))
   {
     // use default whole-image vertices
   }
@@ -1652,9 +1654,9 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(BITMAP *allegroBi
   ddb->_numTiles = numTiles;
   ddb->_tiles = tiles;
 
-  UpdateDDBFromBitmap(ddb, allegroBitmap, hasAlpha);
+  UpdateDDBFromBitmap(ddb, bitmap, hasAlpha);
 
-  if (tempBmp) destroy_bitmap(tempBmp);
+  delete tempBmp;
 
   return ddb;
 }
@@ -1668,10 +1670,10 @@ void OGLGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   else if (_drawScreenCallback != NULL)
     _drawScreenCallback();
   
-  BITMAP *blackSquare = create_bitmap_ex(32, 16, 16);
-  clear_to_color(blackSquare, makecol32(targetColourRed, targetColourGreen, targetColourBlue));
+  IBitmap *blackSquare = Bitmap::CreateBitmap(16, 16, 32);
+  blackSquare->Clear(makecol32(targetColourRed, targetColourGreen, targetColourBlue));
   IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, false, false);
-  destroy_bitmap(blackSquare);
+  delete blackSquare;
 
   d3db->SetStretch(_newmode_width, _newmode_height);
   this->DrawSprite(-_global_x_offset, -_global_y_offset, d3db);
@@ -1723,10 +1725,10 @@ void OGLGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
   else if (_drawScreenCallback != NULL)
     _drawScreenCallback();
   
-  BITMAP *blackSquare = create_bitmap_ex(32, 16, 16);
-  clear(blackSquare);
+  IBitmap *blackSquare = Bitmap::CreateBitmap(16, 16, 32);
+  blackSquare->Clear();
   IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, false, false);
-  destroy_bitmap(blackSquare);
+  delete blackSquare;
 
   d3db->SetStretch(_newmode_width, _newmode_height);
   this->DrawSprite(0, 0, d3db);
@@ -1780,7 +1782,7 @@ bool OGLGraphicsDriver::PlayVideo(const char *filename, bool useAVISound, VideoS
 
 void OGLGraphicsDriver::create_screen_tint_bitmap() 
 {
-  _screenTintLayer = create_bitmap_ex(this->_newmode_depth, 16, 16);
+	_screenTintLayer = Bitmap::CreateBitmap(16, 16, this->_newmode_depth);
   _screenTintLayer = this->ConvertBitmapToSupportedColourDepth(_screenTintLayer);
   _screenTintLayerDDB = (OGLBitmap*)this->CreateDDBFromBitmap(_screenTintLayer, false, false);
   _screenTintSprite.bitmap = _screenTintLayerDDB;
@@ -1794,7 +1796,7 @@ void OGLGraphicsDriver::SetScreenTint(int red, int green, int blue)
     _tint_green = green; 
     _tint_blue = blue;
 
-    clear_to_color(_screenTintLayer, makecol_depth(bitmap_color_depth(_screenTintLayer), red, green, blue));
+    _screenTintLayer->Clear(makecol_depth(_screenTintLayer->GetColorDepth(), red, green, blue));
     this->UpdateDDBFromBitmap(_screenTintLayerDDB, _screenTintLayer, false);
     _screenTintLayerDDB->SetStretch(_newmode_width, _newmode_height);
     _screenTintLayerDDB->SetTransparency(128);

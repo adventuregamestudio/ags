@@ -156,7 +156,7 @@ BITMAP * IAGSEngine::GetVirtualScreen ()
     if (!gfxDriver->UsesMemoryBackBuffer())
         quit("!This plugin is not compatible with the Direct3D driver.");
 
-    return gfxDriver->GetMemoryBackBuffer();
+	return (BITMAP*)gfxDriver->GetMemoryBackBuffer(); // FIXME later (temporary compilation hack)
 }
 void IAGSEngine::RequestEventHook (int32 event) {
     if (event >= AGSE_TOOHIGH) 

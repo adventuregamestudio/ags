@@ -2,6 +2,10 @@
 #include "util/wgt2allg.h"
 #include "gfx/gfxfilter_scalingallegro.h"
 #include "gfx/gfxfilterdefines.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::IBitmap;
+namespace Bitmap = AGS::Common::Bitmap;
 
 ScalingAllegroGFXFilter::ScalingAllegroGFXFilter(int multiplier, bool justCheckingForSetup) : 
     AllegroGFXFilter(multiplier, justCheckingForSetup) {
@@ -9,40 +13,40 @@ ScalingAllegroGFXFilter::ScalingAllegroGFXFilter(int multiplier, bool justChecki
     lastBlitFrom = NULL;
 }
 
-BITMAP* ScalingAllegroGFXFilter::ScreenInitialized(BITMAP *screen, int fakeWidth, int fakeHeight) {
+IBitmap* ScalingAllegroGFXFilter::ScreenInitialized(IBitmap *screen, int fakeWidth, int fakeHeight) {
     realScreen = screen;
-    realScreenSizedBuffer = create_bitmap_ex(bitmap_color_depth(screen), screen->w, screen->h);
-    fakeScreen = create_bitmap_ex(bitmap_color_depth(screen), fakeWidth, fakeHeight);
+    realScreenSizedBuffer = Bitmap::CreateBitmap(screen->GetWidth(), screen->GetHeight(), screen->GetColorDepth());
+    fakeScreen = Bitmap::CreateBitmap(fakeWidth, fakeHeight, screen->GetColorDepth());
     return fakeScreen;
 }
 
-BITMAP *ScalingAllegroGFXFilter::ShutdownAndReturnRealScreen(BITMAP *currentScreen) {
-    destroy_bitmap(fakeScreen);
-    destroy_bitmap(realScreenSizedBuffer);
+IBitmap *ScalingAllegroGFXFilter::ShutdownAndReturnRealScreen(IBitmap *currentScreen) {
+    delete fakeScreen;
+    delete realScreenSizedBuffer;
     fakeScreen = NULL;
     realScreenSizedBuffer = NULL;
     return realScreen;
 }
 
-void ScalingAllegroGFXFilter::RenderScreen(BITMAP *toRender, int x, int y) 
+void ScalingAllegroGFXFilter::RenderScreen(IBitmap *toRender, int x, int y) 
 {
-    stretch_blit(toRender, realScreen, 0, 0, toRender->w, toRender->h, x * MULTIPLIER, y * MULTIPLIER, toRender->w * MULTIPLIER, toRender->h * MULTIPLIER);
+    realScreen->StretchBlt(toRender, 0, 0, toRender->GetWidth(), toRender->GetHeight(), x * MULTIPLIER, y * MULTIPLIER, toRender->GetWidth() * MULTIPLIER, toRender->GetHeight() * MULTIPLIER);
     lastBlitX = x;
     lastBlitY = y;
     lastBlitFrom = toRender;
 }
 
-void ScalingAllegroGFXFilter::RenderScreenFlipped(BITMAP *toRender, int x, int y, int flipType) {
+void ScalingAllegroGFXFilter::RenderScreenFlipped(IBitmap *toRender, int x, int y, int flipType) {
 
     if (toRender == fakeScreen)
         return;
 
     if (flipType == SCR_HFLIP)
-        draw_sprite_h_flip(fakeScreen, toRender, 0, 0);
+		fakeScreen->FlipBlt(toRender, 0, 0, Common::kBitmap_HFlip);
     else if (flipType == SCR_VFLIP)
-        draw_sprite_v_flip(fakeScreen, toRender, 0, 0);
+        fakeScreen->FlipBlt(toRender, 0, 0, Common::kBitmap_VFlip);
     else if (flipType == SCR_VHFLIP)
-        draw_sprite_vh_flip(fakeScreen, toRender, 0, 0);
+        fakeScreen->FlipBlt(toRender, 0, 0, Common::kBitmap_HVFlip);
 
     RenderScreen(fakeScreen, x, y);
 }
@@ -52,29 +56,29 @@ void ScalingAllegroGFXFilter::ClearRect(int x1, int y1, int x2, int y2, int colo
     y1 *= MULTIPLIER;
     x2 = x2 * MULTIPLIER + (MULTIPLIER - 1);
     y2 = y2 * MULTIPLIER + (MULTIPLIER - 1);
-    rectfill(realScreen, x1, y1, x2, y2, color);
+    realScreen->FillRect(CRect(x1, y1, x2, y2), color);
 }
 
- void ScalingAllegroGFXFilter::GetCopyOfScreenIntoBitmap(BITMAP *copyBitmap) 
+ void ScalingAllegroGFXFilter::GetCopyOfScreenIntoBitmap(IBitmap *copyBitmap) 
 {
     GetCopyOfScreenIntoBitmap(copyBitmap, true);
 }
 
-void ScalingAllegroGFXFilter::GetCopyOfScreenIntoBitmap(BITMAP *copyBitmap, bool copyWithYOffset)
+void ScalingAllegroGFXFilter::GetCopyOfScreenIntoBitmap(IBitmap *copyBitmap, bool copyWithYOffset)
 {
     if (!copyWithYOffset)
     {
-        // Can't stretch_blit from Video Memory to normal memory,
+        // Can't ->StretchBlt from Video Memory to normal memory,
         // so copy the screen to a buffer first.
-        blit(realScreen, realScreenSizedBuffer, 0, 0, 0, 0, realScreen->w, realScreen->h);
-        stretch_blit(realScreenSizedBuffer, copyBitmap, 0, 0, 
-            realScreenSizedBuffer->w, realScreenSizedBuffer->h, 
-            0, 0, copyBitmap->w, copyBitmap->h);
+        realScreenSizedBuffer->Blit(realScreen, 0, 0, 0, 0, realScreen->GetWidth(), realScreen->GetHeight());
+        copyBitmap->StretchBlt(realScreenSizedBuffer, 0, 0, 
+            realScreenSizedBuffer->GetWidth(), realScreenSizedBuffer->GetHeight(), 
+            0, 0, copyBitmap->GetWidth(), copyBitmap->GetHeight());
     }
     else if (lastBlitFrom == NULL)
-        clear(copyBitmap);
+        copyBitmap->Clear();
     else
-        stretch_blit(lastBlitFrom, copyBitmap, 0, 0, 
-        lastBlitFrom->w, lastBlitFrom->h, 
-        0, 0, copyBitmap->w, copyBitmap->h);
+        copyBitmap->StretchBlt(lastBlitFrom, 0, 0, 
+        lastBlitFrom->GetWidth(), lastBlitFrom->GetHeight(), 
+        0, 0, copyBitmap->GetWidth(), copyBitmap->GetHeight());
 }

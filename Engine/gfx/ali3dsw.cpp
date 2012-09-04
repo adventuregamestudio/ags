@@ -336,8 +336,7 @@ bool ALSoftwareGraphicsDriver::Init(int width, int height, int colourDepth, bool
       (set_gfx_mode(driver, actualInitWid, actualInitHit, 0, 0) == 0))
   {
     _screen->Clear();
-	// FIXME later (temporary compilation hack)
-    _screen = (IBitmap*)_filter->ScreenInitialized((BITMAP*)_screen->GetBitmapObject(), width, height);
+    _screen = _filter->ScreenInitialized(_screen, width, height);
 
     virtualScreen = _screen;
 
@@ -393,8 +392,7 @@ void ALSoftwareGraphicsDriver::UnInit()
   }
 
   if (_screen)
-   // FIXME later (temporary compilation hack)
-   _screen = (IBitmap*)_filter->ShutdownAndReturnRealScreen((BITMAP*)_screen->GetBitmapObject());
+   _screen = _filter->ShutdownAndReturnRealScreen(_screen);
 
   // don't do anything else -- the main app may
   // already have called allegro_exit
@@ -598,9 +596,9 @@ void ALSoftwareGraphicsDriver::Render(GlobalFlipType flip)
     this->Vsync();
 
   if (flip == None)
-    _filter->RenderScreen((BITMAP*)virtualScreen->GetBitmapObject(), _global_x_offset, _global_y_offset);
+    _filter->RenderScreen(virtualScreen, _global_x_offset, _global_y_offset);
   else
-    _filter->RenderScreenFlipped((BITMAP*)virtualScreen->GetBitmapObject(), _global_x_offset, _global_y_offset, (int)flip);
+    _filter->RenderScreenFlipped(virtualScreen, _global_x_offset, _global_y_offset, (int)flip);
 }
 
 void ALSoftwareGraphicsDriver::Render()
@@ -615,7 +613,7 @@ void ALSoftwareGraphicsDriver::Vsync()
 
 void ALSoftwareGraphicsDriver::GetCopyOfScreenIntoBitmap(IBitmap *destination)
 {
-  _filter->GetCopyOfScreenIntoBitmap((BITMAP*)destination->GetBitmapObject());
+  _filter->GetCopyOfScreenIntoBitmap(destination);
 }
 
 /**
@@ -651,7 +649,7 @@ void ALSoftwareGraphicsDriver::highcolor_fade_in(IBitmap *currentVirtScreen, int
        set_trans_blender(0,0,0,a);
        bmp_buff->TransBlendBlt(bmp_orig, 0, 0);
        this->Vsync();
-       _filter->RenderScreen((BITMAP*)bmp_buff->GetBitmapObject(), 0, 0);
+       _filter->RenderScreen(bmp_buff, 0, 0);
        do
        {
          if (_callback)
@@ -662,7 +660,7 @@ void ALSoftwareGraphicsDriver::highcolor_fade_in(IBitmap *currentVirtScreen, int
    }
    delete bmp_buff;
 
-   _filter->RenderScreen((BITMAP*)currentVirtScreen->GetBitmapObject(), _global_x_offset, _global_y_offset);
+   _filter->RenderScreen(currentVirtScreen, _global_x_offset, _global_y_offset);
 
    if ((_global_y_offset != 0) || (_global_x_offset != 0))
      delete bmp_orig;
@@ -680,7 +678,7 @@ void ALSoftwareGraphicsDriver::highcolor_fade_out(int speed, int targetColourRed
         if ((bmp_buff = Bitmap::CreateBitmap(bmp_orig->GetWidth(), bmp_orig->GetHeight())))
         {
             int a;
-            _filter->GetCopyOfScreenIntoBitmap((BITMAP*)bmp_orig->GetBitmapObject(), false);
+            _filter->GetCopyOfScreenIntoBitmap(bmp_orig, false);
             if (speed <= 0) speed = 16;
 			
             for (a = 255-speed; a > 0; a-=speed)
@@ -690,7 +688,7 @@ void ALSoftwareGraphicsDriver::highcolor_fade_out(int speed, int targetColourRed
                 set_trans_blender(0,0,0,a);
                 bmp_buff->TransBlendBlt(bmp_orig, 0, 0);
                 this->Vsync();
-                _filter->RenderScreen((BITMAP*)bmp_buff->GetBitmapObject(), 0, 0);
+                _filter->RenderScreen(bmp_buff, 0, 0);
                 do
                 {
                   if (_callback)
@@ -705,7 +703,7 @@ void ALSoftwareGraphicsDriver::highcolor_fade_out(int speed, int targetColourRed
     }
 
     _screen->Clear(clearColor);
-	_filter->RenderScreen((BITMAP*)_screen->GetBitmapObject(), _global_x_offset, _global_y_offset);
+	_filter->RenderScreen(_screen, _global_x_offset, _global_y_offset);
 }
 /** END FADE.C **/
 

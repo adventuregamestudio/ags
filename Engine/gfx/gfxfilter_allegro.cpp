@@ -2,6 +2,9 @@
 #include "util/wgt2allg.h"
 #include "gfx/gfxfilter_allegro.h"
 #include "gfx/gfxfilterdefines.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::IBitmap;
 
 // Standard Allegro filter
 
@@ -19,48 +22,48 @@ AllegroGFXFilter::AllegroGFXFilter(int multiplier, bool justCheckingForSetup) : 
     lastBlitY = 0;
 }
 
-BITMAP* AllegroGFXFilter::ScreenInitialized(BITMAP *screen, int fakeWidth, int fakeHeight) {
+IBitmap* AllegroGFXFilter::ScreenInitialized(IBitmap *screen, int fakeWidth, int fakeHeight) {
     realScreen = screen;
     return screen;
 }
 
-BITMAP *AllegroGFXFilter::ShutdownAndReturnRealScreen(BITMAP *currentScreen) {
+IBitmap *AllegroGFXFilter::ShutdownAndReturnRealScreen(IBitmap *currentScreen) {
     return currentScreen;
 }
 
-void AllegroGFXFilter::RenderScreen(BITMAP *toRender, int x, int y) {
+void AllegroGFXFilter::RenderScreen(IBitmap *toRender, int x, int y) {
 
     if (toRender != realScreen) 
-        blit(toRender, realScreen, 0, 0, x, y, toRender->w, toRender->h);
+        realScreen->Blit(toRender, 0, 0, x, y, toRender->GetWidth(), toRender->GetHeight());
 
     lastBlitX = x;
     lastBlitY = y;
 }
 
-void AllegroGFXFilter::RenderScreenFlipped(BITMAP *toRender, int x, int y, int flipType) {
+void AllegroGFXFilter::RenderScreenFlipped(IBitmap *toRender, int x, int y, int flipType) {
 
     if (toRender == realScreen) 
         return;
 
     if (flipType == SCR_HFLIP)
-        draw_sprite_h_flip(realScreen, toRender, 0, 0);
+		realScreen->FlipBlt(toRender, 0, 0, Common::kBitmap_HFlip);
     else if (flipType == SCR_VFLIP)
-        draw_sprite_v_flip(realScreen, toRender, 0, 0);
+        realScreen->FlipBlt(toRender, 0, 0, Common::kBitmap_VFlip);
     else if (flipType == SCR_VHFLIP)
-        draw_sprite_vh_flip(realScreen, toRender, 0, 0);
+        realScreen->FlipBlt(toRender, 0, 0, Common::kBitmap_HVFlip);
 }
 
 void AllegroGFXFilter::ClearRect(int x1, int y1, int x2, int y2, int color) {
-    rectfill(realScreen, x1, y1, x2, y2, color);
+    realScreen->FillRect(CRect(x1, y1, x2, y2), color);
 }
 
-void AllegroGFXFilter::GetCopyOfScreenIntoBitmap(BITMAP *copyBitmap) 
+void AllegroGFXFilter::GetCopyOfScreenIntoBitmap(IBitmap *copyBitmap) 
 {
     GetCopyOfScreenIntoBitmap(copyBitmap, true);
 }
 
-void AllegroGFXFilter::GetCopyOfScreenIntoBitmap(BITMAP *copyBitmap, bool copyWithOffset)
+void AllegroGFXFilter::GetCopyOfScreenIntoBitmap(IBitmap *copyBitmap, bool copyWithOffset)
 {
     if (copyBitmap != realScreen)
-        blit(realScreen, copyBitmap, (copyWithOffset ? lastBlitX : 0), (copyWithOffset ? lastBlitY : 0), 0, 0, copyBitmap->w, copyBitmap->h);
+        copyBitmap->Blit(realScreen, (copyWithOffset ? lastBlitX : 0), (copyWithOffset ? lastBlitY : 0), 0, 0, copyBitmap->GetWidth(), copyBitmap->GetHeight());
 }

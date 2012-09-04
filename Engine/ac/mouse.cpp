@@ -17,6 +17,7 @@
 #include "gui/guimain.h"
 #include "device/mousew32.h"
 #include "ac/spritecache.h"
+#include "gfx/graphicsdriver.h"
 
 extern GameSetup usetup;
 extern GameSetupStruct game;

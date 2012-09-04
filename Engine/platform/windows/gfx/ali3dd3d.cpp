@@ -20,6 +20,8 @@
 #include <d3d9.h>
 #include "gfx/ali3d.h"
 #include "gfx/gfxfilter_d3d.h"
+#include "gfx/ddb.h"
+#include "gfx/graphicsdriver.h"
 
 extern int dxmedia_play_video_3d(const char*filename, IDirect3DDevice9 *device, bool useAVISound, int canskip, int stretch);
 extern void dxmedia_shutdown_3d();
@@ -230,10 +232,10 @@ public:
   virtual bool Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer);
   virtual bool Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer);
   virtual int  FindSupportedResolutionWidth(int idealWidth, int height, int colDepth, int widthRangeAllowed);
-  virtual void SetCallbackForPolling(ALI3DCLIENTCALLBACK callback) { _pollingCallback = callback; }
-  virtual void SetCallbackToDrawScreen(ALI3DCLIENTCALLBACK callback) { _drawScreenCallback = callback; }
-  virtual void SetCallbackOnInit(ALI3DCLIENTCALLBACKINITGFX callback) { _initGfxCallback = callback; }
-  virtual void SetCallbackForNullSprite(ALI3DCLIENTCALLBACKXY callback) { _nullSpriteCallback = callback; }
+  virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) { _pollingCallback = callback; }
+  virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) { _drawScreenCallback = callback; }
+  virtual void SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) { _initGfxCallback = callback; }
+  virtual void SetCallbackForNullSprite(GFXDRV_CLIENTCALLBACKXY callback) { _nullSpriteCallback = callback; }
   virtual void UnInit();
   virtual void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse);
   virtual BITMAP *ConvertBitmapToSupportedColourDepth(BITMAP *allegroBitmap);
@@ -288,10 +290,10 @@ private:
   bool _newmode_windowed;
   int _global_x_offset, _global_y_offset;
   UINT availableVideoMemory;
-  ALI3DCLIENTCALLBACK _pollingCallback;
-  ALI3DCLIENTCALLBACK _drawScreenCallback;
-  ALI3DCLIENTCALLBACKXY _nullSpriteCallback;
-  ALI3DCLIENTCALLBACKINITGFX _initGfxCallback;
+  GFXDRV_CLIENTCALLBACK _pollingCallback;
+  GFXDRV_CLIENTCALLBACK _drawScreenCallback;
+  GFXDRV_CLIENTCALLBACKXY _nullSpriteCallback;
+  GFXDRV_CLIENTCALLBACKINITGFX _initGfxCallback;
   int _tint_red, _tint_green, _tint_blue;
   CUSTOMVERTEX defaultVertices[4];
   char previousError[ALLEGRO_ERROR_SIZE];

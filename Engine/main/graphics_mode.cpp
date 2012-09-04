@@ -29,6 +29,7 @@
 #include "gui/guimain.h"
 #include "main/graphics_mode.h"
 #include "platform/base/agsplatformdriver.h"
+#include "gfx/graphicsdriver.h"
 
 extern GameSetup usetup;
 extern GameSetupStruct game;

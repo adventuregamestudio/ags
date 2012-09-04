@@ -9,6 +9,7 @@
 #include "ac/gamesetupstruct.h"
 #include "gui/cscidialog.h"
 #include <cctype> //isdigit()
+#include "gfx/graphicsdriver.h"
 
 extern IGraphicsDriver *gfxDriver;
 extern GameSetup usetup;

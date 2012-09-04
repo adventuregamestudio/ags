@@ -18,6 +18,8 @@
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "script/script.h"
+#include "gfx/ddb.h"
+#include "gfx/graphicsdriver.h"
 
 extern GameSetupStruct game;
 extern roomstruct thisroom;

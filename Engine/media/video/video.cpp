@@ -13,6 +13,8 @@
 #include "ac/record.h"
 #include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
+#include "gfx/ddb.h"
+#include "gfx/graphicsdriver.h"
 
 
 extern GameSetupStruct game;

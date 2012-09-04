@@ -8,7 +8,10 @@
 #define __AGS_EE_AC__DRAW_H
 
 #include "ac/common_defines.h"
-#include "gfx/ali3d.h"
+//#include "gfx/ali3d.h"
+
+namespace AGS { namespace Engine { class IDriverDependantBitmap; }}
+using namespace AGS::Engine; // FIXME later
 
 // [IKM] personally I do not see much sense in this,
 // memcpyfast alias is used only once in the Engine

@@ -10,6 +10,9 @@
 #include "gfx/ali3d.h"
 #include "util/file.h"
 
+namespace AGS { namespace Engine { class IDriverDependantBitmap; }}
+using namespace AGS::Engine; // FIXME later
+
 struct ScreenOverlay {
     IDriverDependantBitmap *bmp;
     block pic;

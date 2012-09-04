@@ -28,6 +28,7 @@
 #include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
+#include "gfx/graphicsdriver.h"
 
 extern GameSetupStruct game;
 extern GameSetup usetup;

@@ -24,6 +24,7 @@
 #include "debug/debug.h"
 #include "main/main.h"
 #include "ac/spritecache.h"
+#include "gfx/graphicsdriver.h"
 
 extern GameSetupStruct game;
 extern GameSetup usetup;

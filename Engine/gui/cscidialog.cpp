@@ -14,6 +14,7 @@
 #include "gui/mycontrols.h"
 #include "main/game_run.h"
 #include "media/audio/audio.h"
+#include "gfx/graphicsdriver.h"
 
 extern char ignore_bounds; // from mousew32
 extern IGraphicsDriver *gfxDriver;

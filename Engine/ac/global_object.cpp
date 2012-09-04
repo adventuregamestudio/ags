@@ -23,6 +23,7 @@
 #include "main/game_run.h"
 #include "script/script.h"
 #include "ac/spritecache.h"
+#include "gfx/graphicsdriver.h"
 
 #define OVERLAPPING_OBJECT 1000
 

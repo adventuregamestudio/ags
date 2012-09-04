@@ -30,6 +30,7 @@
 #include "main/mainheader.h"
 #include "main/quit.h"
 #include "ac/spritecache.h"
+#include "gfx/graphicsdriver.h"
 
 extern GameSetupStruct game;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];

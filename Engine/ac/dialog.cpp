@@ -31,6 +31,8 @@
 #include "platform/base/agsplatformdriver.h"
 #include "script/script.h"
 #include "ac/spritecache.h"
+#include "gfx/ddb.h"
+#include "gfx/graphicsdriver.h"
 
 extern GameSetupStruct game;
 extern GameState play;

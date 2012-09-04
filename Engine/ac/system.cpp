@@ -12,6 +12,7 @@
 #include "ac/dynobj/scriptsystem.h"
 #include "debug/debug.h"
 #include "main/main.h"
+#include "gfx/graphicsdriver.h"
 
 extern GameSetup usetup;
 extern GameState play;

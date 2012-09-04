@@ -22,6 +22,7 @@
 #include "gui/guimain.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
+#include "gfx/graphicsdriver.h"
 
 
 extern GameSetup usetup;

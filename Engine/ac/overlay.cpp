@@ -12,6 +12,7 @@
 #include "ac/runtime_defines.h"
 #include "ac/screenoverlay.h"
 #include "ac/string.h"
+#include "gfx/graphicsdriver.h"
 
 
 extern GameSetupStruct game;

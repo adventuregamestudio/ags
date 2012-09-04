@@ -36,6 +36,8 @@
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "ac/spritecache.h"
+#include "gfx/ddb.h"
+#include "gfx/graphicsdriver.h"
 
 #if defined(ANDROID_VERSION)
 #include <sys/stat.h>

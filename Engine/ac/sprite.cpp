@@ -8,6 +8,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "ac/spritecache.h"
+#include "gfx/graphicsdriver.h"
 
 extern GameSetupStruct game;
 extern int scrnwid,scrnhit;

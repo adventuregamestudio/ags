@@ -10,6 +10,7 @@
 #include "ac/screen.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
+#include "gfx/graphicsdriver.h"
 
 extern GameSetupStruct game;
 extern GameState play;

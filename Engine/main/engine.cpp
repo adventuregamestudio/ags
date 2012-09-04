@@ -44,6 +44,7 @@
 #include "main/main.h"
 #include "media/audio/sound.h"
 #include "ac/spritecache.h"
+#include "gfx/graphicsdriver.h"
 
 #if defined(MAC_VERSION) || (defined(LINUX_VERSION) && !defined(PSP_VERSION))
 #include <pthread.h>

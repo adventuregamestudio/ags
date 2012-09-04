@@ -12,6 +12,7 @@
 #include "ac/record.h"
 #include "debug/debug.h"
 #include "media/video/video.h"
+#include "gfx/graphicsdriver.h"
 
 
 extern int loaded_game_file_version;

@@ -7,6 +7,7 @@
 #include "ac/roomstruct.h"
 #include "ac/gamestate.h"
 #include "media/audio/audio.h"
+#include "gfx/graphicsdriver.h"
 
 extern roomstruct thisroom;
 extern GameState play;

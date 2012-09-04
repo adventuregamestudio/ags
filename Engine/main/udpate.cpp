@@ -34,6 +34,7 @@
 #include "ac/screenoverlay.h"
 #include "ac/viewframe.h"
 #include "ac/walkablearea.h"
+#include "gfx/graphicsdriver.h"
 
 extern MoveList *mls;
 extern RoomStatus*croom;

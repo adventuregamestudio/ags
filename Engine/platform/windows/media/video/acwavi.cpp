@@ -15,6 +15,7 @@
 #include <initguid.h>   // Defines DEFINE_GUID macro and enables GUID initialization
 //#include <dsound.h>
 #include "gfx/ali3d.h"
+#include "gfx/graphicsdriver.h"
 
 //link with the following libraries under project/settings/link...
 //amstrmid.lib quartz.lib strmbase.lib ddraw.lib 

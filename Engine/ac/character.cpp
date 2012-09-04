@@ -48,6 +48,7 @@
 #include "ac/spritecache.h"
 #include "util/string_utils.h"
 #include <math.h>
+#include "gfx/graphicsdriver.h"
 
 extern GameSetupStruct game;
 extern int displayed_room,starting_room;

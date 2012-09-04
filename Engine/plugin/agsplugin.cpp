@@ -32,6 +32,7 @@
 #include "script/script.h"
 #include "script/script_runtime.h"
 #include "ac/spritecache.h"
+#include "gfx/graphicsdriver.h"
 
 
 

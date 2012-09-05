@@ -21,6 +21,7 @@ extern volatile int timerloop; // ac_timer
 extern GameSetup usetup;
 
 //extern void get_save_game_path(int slotNum, char *buffer);
+//extern char saveGameDirectory[260];
 
 
 //-----------------------------------------------------------------------------

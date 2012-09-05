@@ -9,7 +9,7 @@
 #include "util/file.h"
 
 extern "C" {
-  extern FILE *clibfopen(const char *, const char *);
+  extern FILE *clibfopen(char *, char *);
 }
 
 extern BITMAP *recalced;

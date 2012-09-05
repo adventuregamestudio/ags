@@ -11,7 +11,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "ac/common.h"
 
 #ifdef _MANAGED
 // ensure this doesn't get compiled to .NET IL
@@ -21,6 +20,8 @@
 #if !defined(LINUX_VERSION) && !defined(MAC_VERSION)
 #include <io.h>
 #endif
+
+extern void quit(char *);
 
 int insert(int, int);
 void _delete(int);

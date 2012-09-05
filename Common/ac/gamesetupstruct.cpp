@@ -9,7 +9,7 @@
 // This is done by going through the data files and adding all music*.*
 // and sound*.* files to it.
 extern "C" {
-    extern int csetlib(const char *namm, const char *passw);
+    extern int csetlib(char *namm, char *passw);
     extern int clibGetNumFiles();
     extern char *clibGetFileName(int index);
 }

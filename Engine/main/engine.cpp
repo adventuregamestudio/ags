@@ -45,8 +45,6 @@
 #include "media/audio/sound.h"
 #include "ac/spritecache.h"
 
-using AGS::Common::CString;
-
 #if defined(MAC_VERSION) || (defined(LINUX_VERSION) && !defined(PSP_VERSION))
 #include <pthread.h>
 pthread_t soundthread;
@@ -57,7 +55,7 @@ extern char **global_argv;
 #endif
 
 
-extern CString game_file_name;
+extern char* game_file_name;
 extern char check_dynamic_sprites_at_exit;
 extern int our_eip;
 extern volatile char want_exit, abort_engine;
@@ -65,7 +63,8 @@ extern GameSetup usetup;
 extern GameSetupStruct game;
 extern RoomStatus *roomstats;
 extern int proper_exit;
-extern CString saveGameDirectory;
+extern char pexbuf[STD_BUFFER_SIZE];
+extern char saveGameDirectory[260];
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
 extern ObjectCache objcache[MAX_INIT_SPR];
@@ -90,8 +89,8 @@ extern CharacterInfo*playerchar;
 extern block *guibg;
 extern IDriverDependantBitmap **guibgbmp;
 
-CString music_file;
-CString speech_file;
+char *music_file;
+char *speech_file;
 WCHAR directoryPathBuffer[MAX_PATH];
 
 int errcod;
@@ -183,8 +182,8 @@ int engine_check_run_setup(int argc,char*argv[])
             // Just re-reading the config file seems to cause a caching
             // problem on Win9x, so let's restart the process.
             allegro_exit();
-            CString quotedpath;
-            quotedpath.Format("\"%s\"", argv[0]);
+            char quotedpath[255];
+            sprintf (quotedpath, "\"%s\"", argv[0]);
             _spawnl (_P_OVERLAY, argv[0], quotedpath, NULL);
             //read_config_file(argv[0]);
         }
@@ -205,8 +204,7 @@ void engine_force_window()
 
 int engine_init_game_data_external(int argc,char*argv[])
 {
-    game_file_name = ci_find_file(usetup.data_files_dir,
-        usetup.main_data_filename);
+    game_file_name = ci_find_file(usetup.data_files_dir, usetup.main_data_filename);
 
 #if !defined(WINDOWS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION) && !defined(IOS_VERSION)
     // Search the exe files for the game data
@@ -249,6 +247,7 @@ int engine_init_game_data_external(int argc,char*argv[])
     errcod=csetlib(game_file_name,"");
     if (errcod) {
         //sprintf(gamefilenamebuf,"%s\\ac2game.ags",usetup.data_files_dir);
+        free(game_file_name);
         game_file_name = ci_find_file(usetup.data_files_dir, "ac2game.ags");
 
         errcod = csetlib(game_file_name,"");
@@ -267,20 +266,16 @@ int engine_init_game_data_internal(int argc,char*argv[])
             // there is a path in the game file name (and the user
             // has not specified another one)
             // save the path, so that it can load the VOX files, etc
-            usetup.data_files_dir = game_file_name;
+            usetup.data_files_dir = (char*)malloc(strlen(game_file_name) + 1);
+            strcpy(usetup.data_files_dir, game_file_name);
 
-            int char_at = usetup.data_files_dir.FindChar('/');
-            if (char_at >= 0)
-                usetup.data_files_dir = usetup.data_files_dir.Left(char_at);
-            else
-            {
-                char_at = usetup.data_files_dir.FindChar('\\');
-                if (char_at >= 0)
-                    usetup.data_files_dir = usetup.data_files_dir.Left(char_at);
-                else {
-                    platform->DisplayAlert("Error processing game file name: slash but no slash");
-                    return EXIT_NORMAL;
-                }
+            if (strrchr(usetup.data_files_dir, '/') != NULL)
+                strrchr(usetup.data_files_dir, '/')[0] = 0;
+            else if (strrchr(usetup.data_files_dir, '\\') != NULL)
+                strrchr(usetup.data_files_dir, '\\')[0] = 0;
+            else {
+                platform->DisplayAlert("Error processing game file name: slash but no slash");
+                return EXIT_NORMAL;
             }
     }
 
@@ -309,13 +304,13 @@ void initialise_game_file_name()
         game_file_name = NULL;
         return;
     }
-    char *buf = game_file_name.GetBuffer(MAX_PATH);
-    WideCharToMultiByte(CP_ACP, 0, directoryPathBuffer, -1, buf, MAX_PATH, NULL, NULL);
-    game_file_name.ReleaseBuffer();
+    game_file_name = (char*)malloc(MAX_PATH);
+    WideCharToMultiByte(CP_ACP, 0, directoryPathBuffer, -1, game_file_name, MAX_PATH, NULL, NULL);
 #elif defined(PSP_VERSION) || defined(ANDROID_VERSION) || defined(IOS_VERSION)
     game_file_name = psp_game_file_name;
 #else
-    game_file_name = get_filename(global_argv[datafile_argv]);
+    game_file_name = (char*)malloc(MAX_PATH);
+    strcpy(game_file_name, get_filename(global_argv[datafile_argv]));
 #endif
 }
 
@@ -330,6 +325,7 @@ int engine_init_game_data(int argc,char*argv[])
     errcod = csetlib(game_file_name,"");  // assume it's appended to exe
 
     our_eip = -194;
+    //  char gamefilenamebuf[200];
 
     int init_res = RETURN_CONTINUE;
 
@@ -350,11 +346,14 @@ int engine_init_game_data(int argc,char*argv[])
 
     if (errcod!=0) {  // there's a problem
         if (errcod==-1) {  // file not found
-            platform->DisplayAlert("You must create and save a game first in the AGS Editor before you can use "
+            char emsg[STD_BUFFER_SIZE];
+            sprintf (emsg,
+                "You must create and save a game first in the AGS Editor before you can use "
                 "this engine.\n\n"
                 "If you have just downloaded AGS, you are probably running the wrong executable.\n"
                 "Run AGSEditor.exe to launch the editor.\n\n"
                 "(Unable to find '%s')\n", argv[datafile_argv]);
+            platform->DisplayAlert(emsg);
         }
         else if (errcod==-4)
             platform->DisplayAlert("ERROR: Too many files in data file.");
@@ -436,6 +435,7 @@ int engine_init_speech()
         if (ppp == NULL)
         {
             // In case they're running in debug, check Compiled folder
+            free(speech_file);
             speech_file = ci_find_file("Compiled", "speech.vox");
             ppp = ci_fopen(speech_file, "rb");
         }
@@ -499,6 +499,7 @@ int engine_init_music()
     if (ppp == NULL)
     {
         // In case they're running in debug, check Compiled folder
+        free(music_file);
         music_file = ci_find_file("Compiled", "audio.vox");
         ppp = ci_fopen(music_file, "rb");
     }
@@ -619,12 +620,19 @@ void engine_init_debug()
 
 void atexit_handler() {
     if (proper_exit==0) {
-        platform->DisplayAlert("\nError: the program has exited without requesting it.\n"
+        sprintf(pexbuf,"\nError: the program has exited without requesting it.\n"
             "Program pointer: %+03d  (write this number down), ACI version " ACI_VERSION_TEXT "\n"
             "If you see a list of numbers above, please write them down and contact\n"
             "Chris Jones. Otherwise, note down any other information displayed.\n",
             our_eip);
+        platform->DisplayAlert(pexbuf);
     }
+
+    if (!(music_file == NULL))
+        free(music_file);
+
+    if (!(speech_file == NULL))
+        free(speech_file);
 
     // Deliberately commented out, because chances are game_file_name
     // was not allocated on the heap, it points to argv[0] or
@@ -727,8 +735,8 @@ void engine_init_directories()
 
     if (game.saveGameFolderName[0] != 0)
     {
-        CString newDirBuffer;
-        newDirBuffer.Format("$MYDOCS$/%s", game.saveGameFolderName);
+        char newDirBuffer[MAX_PATH];
+        sprintf(newDirBuffer, "$MYDOCS$/%s", game.saveGameFolderName);
         Game_SetSaveGameDirectory(newDirBuffer);
     }
     else if (use_compiled_folder_as_current_dir)
@@ -745,8 +753,8 @@ int check_write_access() {
   our_eip = -1895;
 
   // The Save Game Dir is the only place that we should write to
-  CString tempPath;
-  tempPath.Format("%s""tmptest.tmp", saveGameDirectory.GetCStr());
+  char tempPath[MAX_PATH];
+  sprintf(tempPath, "%s""tmptest.tmp", saveGameDirectory);
   FILE *yy = fopen(tempPath, "wb");
   if (yy == NULL)
     return 0;

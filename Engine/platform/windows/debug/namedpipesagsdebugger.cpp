@@ -2,8 +2,6 @@
 #include <stdio.h>
 #include "platform/windows/debug/namedpipesagsdebugger.h"
 
-using AGS::Common::CString;
-
 void NamedPipesAGSDebugger::SendAcknowledgement()
 {
     DWORD bytesWritten;
@@ -11,7 +9,7 @@ void NamedPipesAGSDebugger::SendAcknowledgement()
 }
 
 
-NamedPipesAGSDebugger::NamedPipesAGSDebugger(const CString &instanceToken)
+NamedPipesAGSDebugger::NamedPipesAGSDebugger(const char *instanceToken)
 {
     _instanceToken = instanceToken;
 }
@@ -19,11 +17,11 @@ NamedPipesAGSDebugger::NamedPipesAGSDebugger(const CString &instanceToken)
 bool NamedPipesAGSDebugger::Initialize()
 {
     // can't use a single duplex pipe as it was deadlocking
-    CString pipeNameBuffer;
-    pipeNameBuffer.Format("\\\\.\\pipe\\AGSEditorDebuggerGameToEd%s", _instanceToken);
+    char pipeNameBuffer[MAX_PATH];
+    sprintf(pipeNameBuffer, "\\\\.\\pipe\\AGSEditorDebuggerGameToEd%s", _instanceToken);
     _hPipeSending = CreateFile(pipeNameBuffer, GENERIC_WRITE, 0, NULL, OPEN_EXISTING,0, NULL);
 
-    pipeNameBuffer.Format("\\\\.\\pipe\\AGSEditorDebuggerEdToGame%s", _instanceToken);
+    sprintf(pipeNameBuffer, "\\\\.\\pipe\\AGSEditorDebuggerEdToGame%s", _instanceToken);
     _hPipeReading = CreateFile(pipeNameBuffer, GENERIC_READ, 0, NULL, OPEN_EXISTING,0, NULL);
 
     if ((_hPipeReading == INVALID_HANDLE_VALUE) ||
@@ -43,10 +41,10 @@ void NamedPipesAGSDebugger::Shutdown()
     }
 }
 
-bool NamedPipesAGSDebugger::SendMessageToEditor(const CString &message) 
+bool NamedPipesAGSDebugger::SendMessageToEditor(const char *message) 
 {
     DWORD bytesWritten;
-    return (WriteFile(_hPipeSending, message.GetCStr(), message.GetLength(), &bytesWritten, NULL ) != 0);
+    return (WriteFile(_hPipeSending, message, strlen(message), &bytesWritten, NULL ) != 0);
 }
 
 bool NamedPipesAGSDebugger::IsMessageAvailable()
@@ -57,7 +55,7 @@ bool NamedPipesAGSDebugger::IsMessageAvailable()
     return (bytesAvailable > 0);
 }
 
-CString NamedPipesAGSDebugger::GetNextMessage()
+char* NamedPipesAGSDebugger::GetNextMessage()
 {
     DWORD bytesAvailable = 0;
     PeekNamedPipe(_hPipeReading, NULL, 0, NULL, &bytesAvailable, NULL);

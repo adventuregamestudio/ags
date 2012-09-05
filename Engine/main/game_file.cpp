@@ -37,8 +37,6 @@
 #include "script/exports.h"
 #include "script/script.h"
 
-using AGS::Common::CString;
-
 /*
 
 Game data versions and changes:
@@ -141,7 +139,7 @@ extern CachedActSpsData* actspswbcache;
 int filever;
 // PSP specific variables:
 int psp_is_old_datafile = 0; // Set for 3.1.1 and 3.1.2 datafiles
-CString game_file_name;
+char* game_file_name = NULL;
 
 
 FILE * game_file_open()

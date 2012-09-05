@@ -46,8 +46,6 @@ extern block virtual_screen;
 
 #include <libcda.h>
 
-using AGS::Common::CString;
-
 
 #ifndef CSIDL_LOCAL_APPDATA
 #define CSIDL_LOCAL_APPDATA        0x001C
@@ -78,7 +76,7 @@ extern void dxmedia_resume_video();
 extern char lastError[200];
 extern int acwsetup(const char*, const char*);
 extern void set_icon();
-extern CString game_file_name;
+extern char* game_file_name;
 
 struct AGSWin32 : AGSPlatformDriver {
   AGSWin32();

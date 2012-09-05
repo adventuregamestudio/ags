@@ -12,9 +12,6 @@
 #include "script/executingscript.h"
 #include "script/nonblockingscriptfunction.h"
 #include "ac/dynobj/scriptsystem.h"
-#include "util/string.h"
-
-using namespace AGS; // FIXME later
 
 #define REP_EXEC_ALWAYS_NAME "repeatedly_execute_always"
 #define REP_EXEC_NAME "repeatedly_execute"
@@ -29,7 +26,7 @@ int     run_interaction_script(InteractionScripts *nint, int evnt, int chkAny = 
 int     run_text_script(ccInstance*sci,char*tsname);
 int     create_global_script();
 void    cancel_all_scripts();
-Common::CString get_script_name(ccInstance *rinst);
+void    get_script_name(ccInstance *rinst, char *curScrName);
 
 //=============================================================================
 

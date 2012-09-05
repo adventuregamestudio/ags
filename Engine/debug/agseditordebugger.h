@@ -7,9 +7,6 @@
 #ifndef __AGS_EE_DEBUG__AGSEDITORDEBUGGER_H
 #define __AGS_EE_DEBUG__AGSEDITORDEBUGGER_H
 
-#include "util/string.h"
-using namespace AGS; // FIXME later
-
 #define DBG_NOIFACE       1
 #define DBG_NODRAWSPRITES 2
 #define DBG_NOOBJECTS     4
@@ -27,10 +24,10 @@ struct IAGSEditorDebugger
 public:
     virtual bool Initialize() = 0;
     virtual void Shutdown() = 0;
-    virtual bool SendMessageToEditor(const Common::CString &message) = 0;
+    virtual bool SendMessageToEditor(const char *message) = 0;
     virtual bool IsMessageAvailable() = 0;
     // Message will be allocated on heap with malloc
-    virtual Common::CString GetNextMessage() = 0;
+    virtual char* GetNextMessage() = 0;
 };
 
 #endif // __AGS_EE_DEBUG__AGSEDITORDEBUGGER_H

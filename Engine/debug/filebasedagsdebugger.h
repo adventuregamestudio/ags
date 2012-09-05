@@ -21,10 +21,12 @@ public:
 
     bool Initialize();
     void Shutdown();
-    bool SendMessageToEditor(const Common::CString &message);
+    bool SendMessageToEditor(const char *message);
     bool IsMessageAvailable();
-    Common::CString GetNextMessage();
+    char* GetNextMessage();
 
 };
+
+extern const char* SENT_MESSAGE_FILE_NAME;
 
 #endif // __AC_FILEBASEDAGSDEBUGGER_H

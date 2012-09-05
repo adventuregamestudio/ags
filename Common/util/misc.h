@@ -39,12 +39,8 @@
 #include <sys/stat.h>
 #endif
 
-#include "util/string.h"
-
-using namespace AGS; // FIXME later
-
-FILE *ci_fopen(const char *file_name, const char *mode);
-Common::CString ci_find_file(const char *dir_name, const char *file_name);
+FILE *ci_fopen(char *file_name, const char *mode);
+char *ci_find_file(char *dir_name, char *file_name);
 
 
 #endif  // __MISC_H

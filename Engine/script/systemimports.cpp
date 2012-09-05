@@ -2,8 +2,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "ac/common.h"
 #include "script/systemimports.h"
+
+
+extern void quit(char *);
 
 struct CompareStringsPartial : ICompareStrings {
     virtual int compare(const char *left, const char *right) {

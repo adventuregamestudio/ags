@@ -18,9 +18,6 @@
 #include "ac/runtime_defines.h"
 #include "ac/gamestate.h"
 #include "platform/base/agsplatformdriver.h"
-#include "util/string.h"
-
-using namespace AGS; // FIXME later
 
 extern GameState play;
 #define DEBUG_CONSOLE if (play.debug_mode) debug_write_console
@@ -30,14 +27,14 @@ void debug_write_console (char *msg, ...);
 extern int use_compiled_folder_as_current_dir;
 extern int editor_debugging_enabled;
 extern int editor_debugging_initialized;
-extern Common::CString editor_debugger_instance_token;
+extern char editor_debugger_instance_token[100];
 extern IAGSEditorDebugger *editor_debugger;
 extern int break_on_next_script_step;
 
 int check_for_messages_from_editor();
-bool send_message_to_editor(const Common::CString &msg);
-bool send_exception_to_editor(const Common::CString &qmsg);
-Common::CString get_cur_script(int numberOfLinesOfCallStack);
+bool send_message_to_editor(const char *msg);
+bool send_exception_to_editor(char *qmsg);
+const char *get_cur_script(int numberOfLinesOfCallStack);
 void check_debug_keys();
 
 /* The idea of this is that non-essential errors such as "sound file not

@@ -34,7 +34,7 @@ extern roomstruct thisroom;
 extern CharacterInfo*playerchar;
 
 extern "C" {
-    extern FILE*clibfopen(const char*,const char*);
+    extern FILE*clibfopen(char*,char*);
 }
 extern int psp_is_old_datafile;
 

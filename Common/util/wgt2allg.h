@@ -127,9 +127,9 @@ extern "C"
 #ifdef USE_CLIB
     extern "C"
     {
-        extern FILE *clibfopen(const char *, const char *);
-        extern long cliboffset(const char *);
-        extern long clibfilesize(const char *);
+        extern FILE *clibfopen(char *, char *);
+        extern long cliboffset(char *);
+        extern long clibfilesize(char *);
         extern long last_opened_size;
     }
 #endif

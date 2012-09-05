@@ -23,9 +23,6 @@
 #include "main/config.h"
 #include "ac/spritecache.h"
 #include "platform/base/override_defines.h" //_getcwd()
-#include "util/string.h"
-
-using AGS::Common::CString;
 
 extern GameSetup usetup;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
@@ -37,54 +34,50 @@ extern int psp_ignore_acsetup_cfg_file;
 extern int psp_clear_cache_on_room_change;
 extern int psp_midi_preload_patches;
 extern int psp_audio_cachesize;
-extern CString psp_game_file_name;
+extern char psp_game_file_name[];
 extern int psp_gfx_smooth_sprites;
-extern const CString psp_translation;
+extern char psp_translation[];
 extern int force_letterbox;
-// FIXME later, many relations with other modules
 extern char replayfile[MAX_PATH];
 extern GameState play;
 
 //char datname[80]="ac.clb";
-const CString ac_conf_file_defname = "acsetup.cfg";
-CString ac_config_file;
-CString filetouse = "nofile";
+char ac_conf_file_defname[MAX_PATH] = "acsetup.cfg";
+char *ac_config_file = &ac_conf_file_defname[0];
+char conffilebuf[512];
+
+char filetouse[MAX_PATH] = "nofile";
 
 // Replace the filename part of complete path WASGV with INIFIL
-void INIgetdirec(CString &wasgv, const CString &inifil) {
-    int u = wasgv.GetLength() - 1;
+void INIgetdirec(char *wasgv, char *inifil) {
+    int u = strlen(wasgv) - 1;
 
-    for (u = wasgv.GetLength() - 1; u >= 0; u--) {
+    for (u = strlen(wasgv) - 1; u >= 0; u--) {
         if ((wasgv[u] == '\\') || (wasgv[u] == '/')) {
-            wasgv = wasgv.Left(u);
-            wasgv.Append(inifil);
+            memcpy(&wasgv[u + 1], inifil, strlen(inifil) + 1);
             break;
         }
     }
 
     if (u <= 0) {
         // no slashes - either the path is just "f:acwin.exe"
-        int c_at = wasgv.FindChar(':');
-        if (c_at >= 0)
-        {
-            wasgv = wasgv.Left(c_at);
-            wasgv.Append(inifil);
-        }
+        if (strchr(wasgv, ':') != NULL)
+            memcpy(strchr(wasgv, ':') + 1, inifil, strlen(inifil) + 1);
         // or it's just "acwin.exe" (unlikely)
         else
-            wasgv = inifil;
+            strcpy(wasgv, inifil);
     }
+
 }
 
-CString INIreaditem(const CString &sectn, const CString &entry) {
+char *INIreaditem(const char *sectn, const char *entry) {
     FILE *fin = fopen(filetouse, "rt");
     if (fin == NULL)
         return NULL;
 
-    // FIXME later (better change whole parsing algorythm)
     char templine[200];
-    CString wantsect;
-    wantsect.Format("[%s]", sectn);
+    char wantsect[100];
+    sprintf (wantsect, "[%s]", sectn);
 
     while (!feof(fin)) {
         fgets (templine, 199, fin);
@@ -125,42 +118,43 @@ CString INIreaditem(const CString &sectn, const CString &entry) {
     return NULL;
 }
 
-int INIreadint (const CString &sectn, const CString &item, int errornosect = 1) {
-    CString tempstr = INIreaditem (sectn, item);
-    if (tempstr.IsEmpty())
+int INIreadint (const char *sectn, const char *item, int errornosect = 1) {
+    char *tempstr = INIreaditem (sectn, item);
+    if (tempstr == NULL)
         return -1;
-    return tempstr.ToInt();
+
+    int toret = atoi(tempstr);
+    free (tempstr);
+    return toret;
 }
 
-void read_config_file(const CString &filename) {
+void read_config_file(char *argv0) {
 
     // Try current directory for config first; else try exe dir
-    ac_config_file = ac_conf_file_defname;
+    strcpy (ac_conf_file_defname, "acsetup.cfg");
+    ac_config_file = &ac_conf_file_defname[0];
     FILE *ppp = fopen(ac_config_file, "rb");
     if (ppp == NULL) {
 
-        CString conffilebuf = filename;
+        strcpy(conffilebuf,argv0);
+
         /*    for (int ee=0;ee<(int)strlen(conffilebuf);ee++) {
         if (conffilebuf[ee]=='/') conffilebuf[ee]='\\';
         }*/
-        char *buf = conffilebuf.GetBuffer();
-        fix_filename_case(buf);
-        fix_filename_slashes(buf);
-        conffilebuf.ReleaseBuffer();
+        fix_filename_case(conffilebuf);
+        fix_filename_slashes(conffilebuf);
 
-        INIgetdirec(conffilebuf, ac_config_file);
+        INIgetdirec(conffilebuf,ac_config_file);
         //    printf("Using config: '%s'\n",conffilebuf);
-        ac_config_file = conffilebuf;
+        ac_config_file=&conffilebuf[0];
     }
     else {
         fclose(ppp);
         // put the full path, or it gets written back to the Windows folder
-        char *buf = ac_config_file.GetBuffer(255);
-        _getcwd (buf, 255);
-        strcat (buf, "\\acsetup.cfg");
-        fix_filename_case(buf);
-        fix_filename_slashes(buf);
-        ac_config_file.ReleaseBuffer();
+        _getcwd (ac_config_file, 255);
+        strcat (ac_config_file, "\\acsetup.cfg");
+        fix_filename_case(ac_config_file);
+        fix_filename_slashes(ac_config_file);
     }
 
     // set default dir if no config file
@@ -176,13 +170,13 @@ void read_config_file(const CString &filename) {
     {
         usetup.gfxDriverID = "DX5";
         usetup.enable_antialiasing = psp_gfx_smooth_sprites;
-        usetup.translation = psp_translation.GetCStr();
+        usetup.translation = psp_translation;
         return;
     }
 
     ppp=fopen(ac_config_file,"rt");
     if (ppp!=NULL) {
-        filetouse = ac_config_file;
+        strcpy(filetouse,ac_config_file);
         fclose(ppp);
 #ifndef WINDOWS_VERSION
         usetup.digicard=INIreadint("sound","digiid");
@@ -258,12 +252,8 @@ void read_config_file(const CString &filename) {
 #else
         if ((strlen(usetup.data_files_dir) < 4) && (usetup.data_files_dir[1] == ':'))
         { }  // if the path is just  d:\  don't strip the slash
-        else
-        {
-            int char_at = usetup.data_files_dir.GetLength() - 1;
-            if (usetup.data_files_dir[char_at] == '\\')
-                usetup.data_files_dir = usetup.data_files_dir.Left(char_at);
-        }
+        else if (usetup.data_files_dir[strlen(usetup.data_files_dir)-1] == '\\')
+            usetup.data_files_dir[strlen(usetup.data_files_dir)-1] = 0;
 #endif
 
         usetup.main_data_filename = INIreaditem ("misc", "datafile");
@@ -292,10 +282,10 @@ void read_config_file(const CString &filename) {
             spriteset.maxCacheSize = tempint * 1024;
 #endif
 
-        CString repfile = INIreaditem ("misc", "replay");
+        char *repfile = INIreaditem ("misc", "replay");
         if (repfile != NULL) {
-            // FIXME later
-            strcpy(replayfile, repfile);
+            strcpy (replayfile, repfile);
+            free (repfile);
             play.playback = 1;
         }
         else

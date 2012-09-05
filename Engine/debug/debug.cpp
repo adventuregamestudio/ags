@@ -28,11 +28,10 @@
 #include "script/script_common.h"
 #include "script/cc_error.h"
 
-using AGS::Common::CString;
-
 extern char check_dynamic_sprites_at_exit;
 extern int displayed_room;
 extern roomstruct thisroom;
+extern char pexbuf[STD_BUFFER_SIZE];
 extern volatile char want_exit, abort_engine;
 extern ccScript* gamescript;
 extern ccScript* dialogScriptsScript;
@@ -41,7 +40,7 @@ extern ccScript* dialogScriptsScript;
 int use_compiled_folder_as_current_dir = 0;
 int editor_debugging_enabled = 0;
 int editor_debugging_initialized = 0;
-CString editor_debugger_instance_token;
+char editor_debugger_instance_token[100];
 IAGSEditorDebugger *editor_debugger = NULL;
 int break_on_next_script_step = 0;
 volatile int game_paused_in_debugger = 0;
@@ -51,14 +50,14 @@ HWND editor_window_handle = NULL;
 
 #include "platform/windows/debug/namedpipesagsdebugger.h"
 
-IAGSEditorDebugger *GetEditorDebugger(const CString &instanceToken)
+IAGSEditorDebugger *GetEditorDebugger(const char *instanceToken)
 {
     return new NamedPipesAGSDebugger(instanceToken);
 }
 
 #else   // WINDOWS_VERSION
 
-IAGSEditorDebugger *GetEditorDebugger(const CString &instanceToken)
+IAGSEditorDebugger *GetEditorDebugger(const char *instanceToken)
 {
     return NULL;
 }
@@ -167,58 +166,52 @@ void debug_write_console (char *msg, ...) {
 }
 
 
-CString get_cur_script(int numberOfLinesOfCallStack) {
-    CString buffer;
-    char * buf = buffer.GetBuffer(3000);
-    // FIXME
-    ccGetCallStack(ccGetCurrentInstance(), buf, numberOfLinesOfCallStack);
-    buffer.ReleaseBuffer();
+const char *get_cur_script(int numberOfLinesOfCallStack) {
+    ccGetCallStack(ccGetCurrentInstance(), pexbuf, numberOfLinesOfCallStack);
 
-    if (buffer.IsEmpty())
-    {
-        buffer = ccErrorCallStack;
-    }
+    if (pexbuf[0] == 0)
+        strcpy(pexbuf, ccErrorCallStack);
 
-    return buffer;
+    return &pexbuf[0];
 }
 
-const CString BREAK_MESSAGE = "BREAK";
+static const char* BREAK_MESSAGE = "BREAK";
 
 struct Breakpoint
 {
-    CString scriptName;
+    char scriptName[80];
     int lineNumber;
 };
 
 DynamicArray<Breakpoint> breakpoints;
 int numBreakpoints = 0;
 
-bool send_message_to_editor(const CString &msg, const CString &errorMsg) 
+bool send_message_to_editor(const char *msg, const char *errorMsg) 
 {
-    CString callStack = get_cur_script(25);
-    if (callStack.IsEmpty())
+    const char *callStack = get_cur_script(25);
+    if (callStack[0] == 0)
         return false;
 
-    CString messageToSend;
-    messageToSend.Format("<?xml version=\"1.0\" encoding=\"Windows-1252\"?><Debugger Command=\"%s\">", msg);
+    char messageToSend[STD_BUFFER_SIZE];
+    sprintf(messageToSend, "<?xml version=\"1.0\" encoding=\"Windows-1252\"?><Debugger Command=\"%s\">", msg);
 #ifdef WINDOWS_VERSION
-    messageToSend.Append(CString::MakeString("  <EngineWindow>%d</EngineWindow> ", win_get_window()));
+    sprintf(&messageToSend[strlen(messageToSend)], "  <EngineWindow>%d</EngineWindow> ", win_get_window());
 #endif
-    messageToSend.Append(CString::MakeString("  <ScriptState><![CDATA[%s]]></ScriptState> ", callStack));
-    if (!errorMsg.IsEmpty())
+    sprintf(&messageToSend[strlen(messageToSend)], "  <ScriptState><![CDATA[%s]]></ScriptState> ", callStack);
+    if (errorMsg != NULL)
     {
-        messageToSend.Append(CString::MakeString("  <ErrorMessage><![CDATA[%s]]></ErrorMessage> ", errorMsg));
+        sprintf(&messageToSend[strlen(messageToSend)], "  <ErrorMessage><![CDATA[%s]]></ErrorMessage> ", errorMsg);
     }
-    messageToSend.Append("</Debugger>");
+    strcat(messageToSend, "</Debugger>");
 
     editor_debugger->SendMessageToEditor(messageToSend);
 
     return true;
 }
 
-bool send_message_to_editor(const CString &msg) 
+bool send_message_to_editor(const char *msg) 
 {
-    return send_message_to_editor(msg, "");
+    return send_message_to_editor(msg, NULL);
 }
 
 bool init_editor_debugging() 
@@ -255,48 +248,48 @@ int check_for_messages_from_editor()
 {
     if (editor_debugger->IsMessageAvailable())
     {
-        CString msg = editor_debugger->GetNextMessage();
-        if (msg.IsEmpty())
+        char *msg = editor_debugger->GetNextMessage();
+        if (msg == NULL)
         {
             return 0;
         }
 
-        if (msg.CompareLeft("<Engine Command=\"") != 0) 
+        if (strncmp(msg, "<Engine Command=\"", 17) != 0) 
         {
             //OutputDebugString("Faulty message received from editor:");
             //OutputDebugString(msg);
+            free(msg);
             return 0;
         }
 
-        msg = msg.Mid(17);
+        const char *msgPtr = &msg[17];
 
-        if (msg.CompareLeft("START") == 0)
+        if (strncmp(msgPtr, "START", 5) == 0)
         {
-            // FIXME
-            const char *windowHandle = strstr(msg.GetCStr(), "EditorWindow") + 14;
+            const char *windowHandle = strstr(msgPtr, "EditorWindow") + 14;
             editor_window_handle = (HWND)atoi(windowHandle);
         }
-        else if (msg.CompareLeft("READY") == 0)
+        else if (strncmp(msgPtr, "READY", 5) == 0)
         {
+            free(msg);
             return 2;
         }
-        else if (msg.CompareLeft("SETBREAK") == 0 ||
-            msg.CompareLeft("DELBREAK") == 0)
+        else if ((strncmp(msgPtr, "SETBREAK", 8) == 0) ||
+            (strncmp(msgPtr, "DELBREAK", 8) == 0))
         {
-            bool isDelete = (msg[0] == 'D');
+            bool isDelete = (msgPtr[0] == 'D');
             // Format:  SETBREAK $scriptname$lineNumber$
-            // FIXME: use some kind of fixed buffer iterator here
-            const char *msgPtr = msg.Mid(10);
+            msgPtr += 10;
             char scriptNameBuf[100];
             int i = 0;
             while (msgPtr[0] != '$')
             {
                 scriptNameBuf[i] = msgPtr[0];
-                msgPtr = msgPtr++;
+                msgPtr++;
                 i++;
             }
             scriptNameBuf[i] = 0;
-            msgPtr = msgPtr++;
+            msgPtr++;
 
             int lineNumber = atoi(msgPtr);
 
@@ -305,7 +298,7 @@ int check_for_messages_from_editor()
                 for (i = 0; i < numBreakpoints; i++)
                 {
                     if ((breakpoints[i].lineNumber == lineNumber) &&
-                        (breakpoints[i].scriptName.Compare(scriptNameBuf) == 0))
+                        (strcmp(breakpoints[i].scriptName, scriptNameBuf) == 0))
                     {
                         numBreakpoints--;
                         for (int j = i; j < numBreakpoints; j++)
@@ -318,27 +311,28 @@ int check_for_messages_from_editor()
             }
             else 
             {
-                breakpoints[numBreakpoints].scriptName = scriptNameBuf;
+                strcpy(breakpoints[numBreakpoints].scriptName, scriptNameBuf);
                 breakpoints[numBreakpoints].lineNumber = lineNumber;
                 numBreakpoints++;
             }
         }
-        else if (msg.CompareLeft("RESUME") == 0)
+        else if (strncmp(msgPtr, "RESUME", 6) == 0) 
         {
             game_paused_in_debugger = 0;
         }
-        else if (msg.CompareLeft("STEP") == 0) 
+        else if (strncmp(msgPtr, "STEP", 4) == 0) 
         {
             game_paused_in_debugger = 0;
             break_on_next_script_step = 1;
         }
-        else if (msg.CompareLeft("EXIT") == 0) 
+        else if (strncmp(msgPtr, "EXIT", 4) == 0) 
         {
             want_exit = 1;
             abort_engine = 1;
             check_dynamic_sprites_at_exit = 0;
         }
 
+        free(msg);
         return 1;
     }
 
@@ -348,20 +342,14 @@ int check_for_messages_from_editor()
 
 
 
-bool send_exception_to_editor(const CString &qmsg)
+bool send_exception_to_editor(char *qmsg)
 {
 #ifdef WINDOWS_VERSION
     want_exit = 0;
     // allow the editor to break with the error message
-    CString errorMsgToSend;
-    if (qmsg[0] == '?')
-    {
-        errorMsgToSend = qmsg.Mid(1);
-    }
-    else
-    {
-        errorMsgToSend = qmsg;
-    }
+    const char *errorMsgToSend = qmsg;
+    if (errorMsgToSend[0] == '?')
+        errorMsgToSend++;
 
     if (editor_window_handle != NULL)
         SetForegroundWindow(editor_window_handle);
@@ -406,7 +394,8 @@ void scriptDebugHook (ccInstance *ccinst, int linenum) {
 
     if (pluginsWantingDebugHooks > 0) {
         // a plugin is handling the debugging
-        CString scname = get_script_name(ccinst);
+        char scname[40];
+        get_script_name(ccinst, scname);
         platform->RunPluginDebugHooks(scname, linenum);
         return;
     }
@@ -426,12 +415,12 @@ void scriptDebugHook (ccInstance *ccinst, int linenum) {
         return;
     }
 
-    CString scriptName = ccGetSectionNameAtOffs(ccinst->runningInst->instanceof, ccinst->pc);
+    const char *scriptName = ccGetSectionNameAtOffs(ccinst->runningInst->instanceof, ccinst->pc);
 
     for (int i = 0; i < numBreakpoints; i++)
     {
         if ((breakpoints[i].lineNumber == linenum) &&
-            (breakpoints[i].scriptName.Compare(scriptName) == 0))
+            (strcmp(breakpoints[i].scriptName, scriptName) == 0))
         {
             break_into_debugger();
             break;

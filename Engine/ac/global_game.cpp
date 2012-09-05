@@ -37,8 +37,6 @@
 #include "script/script_runtime.h"
 #include "ac/spritecache.h"
 
-using AGS::Common::CString;
-
 #define ALLEGRO_KEYBOARD_HANDLER
 
 extern int guis_need_update;
@@ -52,7 +50,7 @@ extern SpriteCache spriteset;
 extern int frames_per_second;
 extern int time_between_timers;
 extern char gamefilenamebuf[200];
-extern CString game_file_name;
+extern char* game_file_name;
 extern GameSetup usetup;
 extern unsigned int load_new_game;
 extern int load_new_game_restore;
@@ -63,13 +61,13 @@ extern int gui_disabled_style;
 extern roomstruct thisroom;
 extern int getloctype_index;
 extern int offsetx, offsety;
-extern CString saveGameDirectory;
+extern char saveGameDirectory[260];
 extern IGraphicsDriver *gfxDriver;
 extern int scrnwid,scrnhit;
 extern color palette[256];
 extern block virtual_screen;
 
-extern "C" int csetlib(const char *namm, const char *passw);
+extern "C" int csetlib(char *namm, char *passw);
 
 void GiveScore(int amnt) 
 {
@@ -709,9 +707,9 @@ int SaveScreenShot(char*namm) {
     char fileName[MAX_PATH];
 
     if (strchr(namm,'.') == NULL)
-        sprintf(fileName, "%s%s.bmp", saveGameDirectory.GetCStr(), namm);
+        sprintf(fileName, "%s%s.bmp", saveGameDirectory, namm);
     else
-        sprintf(fileName, "%s%s", saveGameDirectory.GetCStr(), namm);
+        sprintf(fileName, "%s%s", saveGameDirectory, namm);
 
     if (gfxDriver->RequiresFullRedrawEachFrame()) 
     {

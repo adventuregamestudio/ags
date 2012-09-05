@@ -17,19 +17,19 @@
 #endif
 
 #include "util/wgt2allg.h"
-#include "ac/common.h"
 #include "ac/common_defines.h"
 #include "ac/spritecache.h"
 #include "util/compress.h"
 #include "util/file.h"
 
 extern "C" {
-  extern FILE *clibfopen(const char *, const char *);
+  extern FILE *clibfopen(char *, char *);
 }
 
 //#define DEBUG_SPRITECACHE
 // [IKM] We have to forward-declare these because their implementations are in the Engine
 extern void write_log(char *);
+extern void quit(char *);
 extern void initialize_sprite(int);
 extern void pre_save_sprite(int);
 extern void get_new_size_for_sprite(int, int, int, int &, int &);

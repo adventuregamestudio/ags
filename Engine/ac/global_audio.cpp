@@ -13,13 +13,11 @@
 #include "media/audio/audio.h"
 #include "media/audio/sound.h"
 
-using AGS::Common::CString;
-
 extern GameSetup usetup;
 extern GameState play;
 extern GameSetupStruct game;
 extern roomstruct thisroom;
-extern CString speech_file;
+extern char *speech_file;
 extern SpeechLipSyncLine *splipsync;
 extern int numLipLines, curLipLine, curLipLinePhenome;
 

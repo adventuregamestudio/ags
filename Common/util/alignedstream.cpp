@@ -30,6 +30,9 @@ void CAlignedStream::Close()
     {
         WritePadding(_alignment);
     }
+
+    // Release stream
+    _stream = NULL;
 }
 
 bool CAlignedStream::IsValid() const
@@ -134,7 +137,7 @@ int CAlignedStream::Read(void *buffer, int size)
     return read_size;
 }
 
-int CAlignedStream::Read(void *buffer, int elem_size, int count)
+int CAlignedStream::ReadArray(void *buffer, int elem_size, int count)
 {
     int read_size = 0;
     if (_stream)
@@ -210,7 +213,7 @@ int CAlignedStream::Write(const void *buffer, int size)
     return write_size;
 }
 
-int CAlignedStream::Write(const void *buffer, int elem_size, int count)
+int CAlignedStream::WriteArray(const void *buffer, int elem_size, int count)
 {
     int write_size = 0;
     if (_stream)

@@ -72,7 +72,7 @@ public:
     virtual int32_t ReadInt32();
     virtual int64_t ReadInt64();
     virtual int     Read(void *buffer, int size);
-    virtual int     Read(void *buffer, int elem_size, int count);
+    virtual int     ReadArray(void *buffer, int elem_size, int count);
     virtual CString ReadString(int max_chars = 5000000);
 
     virtual void    WriteInt8(int8_t val);
@@ -80,32 +80,32 @@ public:
     virtual void    WriteInt32(int32_t val);
     virtual void    WriteInt64(int64_t val);
     virtual int     Write(const void *buffer, int size);
-    virtual int     Write(const void *buffer, int elem_size, int count);
+    virtual int     WriteArray(const void *buffer, int elem_size, int count);
     virtual void    WriteString(const CString &str);
 
     inline int ReadArrayOfInt16(int16_t *buffer, int count)
     {
-        return Read(buffer, sizeof(int16_t), count);
+        return ReadArray(buffer, sizeof(int16_t), count);
     }
     inline int ReadArrayOfInt32(int32_t *buffer, int count)
     {
-        return Read(buffer, sizeof(int32_t), count);
+        return ReadArray(buffer, sizeof(int32_t), count);
     }
     inline int ReadArrayOfInt64(int64_t *buffer, int count)
     {
-        return Read(buffer, sizeof(int64_t), count);
+        return ReadArray(buffer, sizeof(int64_t), count);
     }
     inline int WriteArrayOfInt16(const int16_t *buffer, int count)
     {
-        return Write(buffer, sizeof(int16_t), count);
+        return WriteArray(buffer, sizeof(int16_t), count);
     }
     inline int WriteArrayOfInt32(const int32_t *buffer, int count)
     {
-        return Write(buffer, sizeof(int32_t), count);
+        return WriteArray(buffer, sizeof(int32_t), count);
     }
     inline int WriteArrayOfInt64(const int64_t *buffer, int count)
     {
-        return Write(buffer, sizeof(int64_t), count);
+        return WriteArray(buffer, sizeof(int64_t), count);
     }
 
 protected:

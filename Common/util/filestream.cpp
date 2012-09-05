@@ -1,4 +1,5 @@
 
+#include <io.h>
 #include <stdio.h>
 #include "util/filestream.h"
 #include "util/math.h"
@@ -52,11 +53,7 @@ int CFileStream::GetLength() const
 {
     if (IsValid())
     {
-        int cur_pos = ftell(_file);
-        fseek(_file, 0, SEEK_END);
-        int length = ftell(_file);
-        fseek(_file, cur_pos, SEEK_SET);
-        return length;
+        return filelength(fileno(_file));
     }
 
     return 0;

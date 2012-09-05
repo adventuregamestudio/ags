@@ -27,13 +27,13 @@ public:
     virtual ~CAGSStream(){}
 
     virtual int Read(void *buffer, int size) = 0;
-    inline virtual int Read(void *buffer, int elem_size, int count)
+    inline virtual int ReadArray(void *buffer, int elem_size, int count)
     {
         return Read(buffer, elem_size * count);
     }
     
     virtual int Write(const void *buffer, int size) = 0;
-    inline virtual int Write(const void *buffer, int elem_size, int count)
+    inline virtual int WriteArray(const void *buffer, int elem_size, int count)
     {
         return Write(buffer, elem_size * count);
     }
@@ -41,32 +41,32 @@ public:
     inline int ReadArrayOfInt16(int16_t *buffer, int count)
     {
         return MustSwapBytes() ?
-            ReadAndConvertArrayOfInt16(buffer, count) : Read(buffer, sizeof(int16_t), count);
+            ReadAndConvertArrayOfInt16(buffer, count) : ReadArray(buffer, sizeof(int16_t), count);
     }
     inline int ReadArrayOfInt32(int32_t *buffer, int count)
     {
         return MustSwapBytes() ?
-            ReadAndConvertArrayOfInt32(buffer, count) : Read(buffer, sizeof(int32_t), count);
+            ReadAndConvertArrayOfInt32(buffer, count) : ReadArray(buffer, sizeof(int32_t), count);
     }
     inline int ReadArrayOfInt64(int64_t *buffer, int count)
     {
         return MustSwapBytes() ?
-            ReadAndConvertArrayOfInt64(buffer, count) : Read(buffer, sizeof(int64_t), count);
+            ReadAndConvertArrayOfInt64(buffer, count) : ReadArray(buffer, sizeof(int64_t), count);
     }
     inline int WriteArrayOfInt16(const int16_t *buffer, int count)
     {
         return MustSwapBytes() ?
-            WriteAndConvertArrayOfInt16(buffer, count) : Write(buffer, sizeof(int16_t), count);
+            WriteAndConvertArrayOfInt16(buffer, count) : WriteArray(buffer, sizeof(int16_t), count);
     }
     inline int WriteArrayOfInt32(const int32_t *buffer, int count)
     {
         return MustSwapBytes() ?
-            WriteAndConvertArrayOfInt32(buffer, count) : Write(buffer, sizeof(int32_t), count);
+            WriteAndConvertArrayOfInt32(buffer, count) : WriteArray(buffer, sizeof(int32_t), count);
     }
     inline int WriteArrayOfInt64(const int64_t *buffer, int count)
     {
         return MustSwapBytes() ?
-            WriteAndConvertArrayOfInt64(buffer, count) : Write(buffer, sizeof(int64_t), count);
+            WriteAndConvertArrayOfInt64(buffer, count) : WriteArray(buffer, sizeof(int64_t), count);
     }
 
 protected:

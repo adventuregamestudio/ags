@@ -23,6 +23,14 @@ public:
         DataEndianess caller_endianess, DataEndianess stream_endianess);
     virtual ~CFileStream();
 
+    // TODO
+    // Temporary solution for cases when the code can't live without
+    // having direct access to FILE pointer
+    inline FILE     *GetHandle() const
+    {
+        return _file;
+    }
+
     // Is stream valid (underlying data initialized properly)
     virtual bool    IsValid() const;
     // Is end of stream

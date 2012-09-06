@@ -10,34 +10,89 @@ namespace Common
 
 /*static*/ CAllegroBitmap *CAllegroBitmap::CreateBitmap(int width, int height, int color_depth)
 {
-	CAllegroBitmap *al_bmp = new CAllegroBitmap();
-	if (!al_bmp->Create(width, height, color_depth))
+	CAllegroBitmap *bitmap = new CAllegroBitmap();
+	if (!bitmap->Create(width, height, color_depth))
 	{
-		delete al_bmp;
-		al_bmp = NULL;
+		delete bitmap;
+		bitmap = NULL;
 	}
-	return al_bmp;
+	return bitmap;
 }
 
-/*static*/ CAllegroBitmap *CAllegroBitmap::CreateSubBitmap(IBitmap *src, int x, int y, int width, int height)
+/*static*/ CAllegroBitmap *CAllegroBitmap::CreateSubBitmap(IBitmap *src, const CRect &rc)
 {
-	CAllegroBitmap *al_bmp = new CAllegroBitmap();
-	if (!al_bmp->CreateShared(src, x, y, width, height))
+	CAllegroBitmap *bitmap = new CAllegroBitmap();
+	if (!bitmap->CreateShared(src, rc.Left, rc.Top, rc.GetWidth(), rc.GetHeight()))
 	{
-		delete al_bmp;
-		al_bmp = NULL;
+		delete bitmap;
+		bitmap = NULL;
 	}
-	return al_bmp;
+	return bitmap;
+}
+
+/*static*/ CAllegroBitmap *CAllegroBitmap::CreateFromRawAllegroBitmap(void *bitmap_data)
+{
+	if (!bitmap_data)
+	{
+		return NULL;
+	}
+
+	CAllegroBitmap *bitmap = new CAllegroBitmap();
+	bitmap->_bitmap = (BITMAP*)bitmap_data;
+	return bitmap;
+}
+
+/*static*/ CAllegroBitmap *CAllegroBitmap::WrapRawAllegroBitmap(void *bitmap_data)
+{
+	if (!bitmap_data)
+	{
+		return NULL;
+	}
+
+	CAllegroBitmap *bitmap = new CAllegroBitmap();
+	bitmap->_bitmap = (BITMAP*)bitmap_data;
+	bitmap->_isDataOwner = false;
+	return bitmap;
+}
+
+/*static*/ CAllegroBitmap *CAllegroBitmap::LoadFromFile(const char *filename)
+{
+	BITMAP *al_bmp = load_bitmap(filename, NULL);
+	if (al_bmp)
+	{
+		CAllegroBitmap *bitmap = new CAllegroBitmap();
+		bitmap->_bitmap = al_bmp;
+		return bitmap;
+	}
+	return NULL;
+}
+
+/*static*/ bool CAllegroBitmap::SaveToFile(IBitmap *bitmap, const char *filename, const void *palette)
+{
+	if (bitmap->GetClassType() != AlBmpSignature)
+	{
+		return false;
+	}
+
+	return save_bitmap(filename, ((CAllegroBitmap*)bitmap)->_bitmap, (const RGB*)palette) == 0;
 }
 
 CAllegroBitmap::CAllegroBitmap()
 	: _bitmap(NULL)
+	, _isDataOwner(false)
 {
 }
 
 CAllegroBitmap::~CAllegroBitmap()
 {
 	Destroy();
+}
+
+void CAllegroBitmap::WrapBitmapObject(BITMAP *al_bmp)
+{
+	Destroy();
+	_bitmap = al_bmp;
+	_isDataOwner = false;
 }
 
 void *CAllegroBitmap::GetBitmapObject()
@@ -235,7 +290,7 @@ void CAllegroBitmap::Blit(IBitmap *src, int src_x, int src_y, int dst_x, int dst
 	}
 }
 
-void CAllegroBitmap::StretchBlt(IBitmap *src, int dst_x, int dst_y, int dst_width, int dst_height, BitmapMaskOption mask)
+void CAllegroBitmap::StretchBlt(IBitmap *src, const CRect &dst_rc, BitmapMaskOption mask)
 {
 	if (src->GetClassType() != GetClassType())
 	{
@@ -246,33 +301,40 @@ void CAllegroBitmap::StretchBlt(IBitmap *src, int dst_x, int dst_y, int dst_widt
 	// WARNING: For some evil reason Allegro expects dest and src bitmaps in different order for blit and draw_sprite
 	if (mask == kBitmap_Transparency)
 	{
-		stretch_sprite(_bitmap, al_src_bmp, dst_x, dst_y, dst_width, dst_height);
+		stretch_sprite(_bitmap, al_src_bmp,
+			dst_rc.Left, dst_rc.Top, dst_rc.GetWidth(), dst_rc.GetHeight());
 	}
 	else
 	{
-		stretch_blit(al_src_bmp, _bitmap, 0, 0, al_src_bmp->w, al_src_bmp->h, dst_x, dst_y, dst_width, dst_height);
+		stretch_blit(al_src_bmp, _bitmap,
+			0, 0, al_src_bmp->w, al_src_bmp->h,
+			dst_rc.Left, dst_rc.Top, dst_rc.GetWidth(), dst_rc.GetHeight());
 	}
 }
 
-void CAllegroBitmap::StretchBlt(IBitmap *src, int src_x, int src_y, int src_width, int src_height, int dst_x, int dst_y, int dst_width, int dst_height, BitmapMaskOption mask)
+void CAllegroBitmap::StretchBlt(IBitmap *src, const CRect &src_rc, const CRect &dst_rc, BitmapMaskOption mask)
 {
 	if (src->GetClassType() != GetClassType())
 	{
 		return;
 	}
-	
+
 	BITMAP *al_src_bmp = (BITMAP*)src->GetBitmapObject();
 	if (mask == kBitmap_Transparency)
 	{
-		masked_stretch_blit(al_src_bmp, _bitmap, src_x, src_y, src_width, src_height, dst_x, dst_y, dst_width, dst_height);
+		masked_stretch_blit(al_src_bmp, _bitmap,
+			src_rc.Left, src_rc.Top, src_rc.GetWidth(), src_rc.GetHeight(),
+			dst_rc.Left, dst_rc.Top, dst_rc.GetWidth(), dst_rc.GetHeight());
 	}
 	else
 	{
-		stretch_blit(al_src_bmp, _bitmap, src_x, src_y, src_width, src_height, dst_x, dst_y, dst_width, dst_height);
+		stretch_blit(al_src_bmp, _bitmap,
+			src_rc.Left, src_rc.Top, src_rc.GetWidth(), src_rc.GetHeight(),
+			dst_rc.Left, dst_rc.Top, dst_rc.GetWidth(), dst_rc.GetHeight());
 	}
 }
 
-void CAllegroBitmap::AAStretchBlt(IBitmap *src, int dst_x, int dst_y, int dst_width, int dst_height, BitmapMaskOption mask)
+void CAllegroBitmap::AAStretchBlt(IBitmap *src, const CRect &dst_rc, BitmapMaskOption mask)
 {
 	if (src->GetClassType() != GetClassType())
 	{
@@ -283,15 +345,18 @@ void CAllegroBitmap::AAStretchBlt(IBitmap *src, int dst_x, int dst_y, int dst_wi
 	// WARNING: For some evil reason Allegro expects dest and src bitmaps in different order for blit and draw_sprite
 	if (mask == kBitmap_Transparency)
 	{
-		aa_stretch_sprite(_bitmap, al_src_bmp, dst_x, dst_y, dst_width, dst_height);
+		aa_stretch_sprite(_bitmap, al_src_bmp,
+			dst_rc.Left, dst_rc.Top, dst_rc.GetWidth(), dst_rc.GetHeight());
 	}
 	else
 	{
-		aa_stretch_blit(al_src_bmp, _bitmap, 0, 0, al_src_bmp->w, al_src_bmp->h, dst_x, dst_y, dst_width, dst_height);
+		aa_stretch_blit(al_src_bmp, _bitmap,
+			0, 0, al_src_bmp->w, al_src_bmp->h,
+			dst_rc.Left, dst_rc.Top, dst_rc.GetWidth(), dst_rc.GetHeight());
 	}
 }
 
-void CAllegroBitmap::AAStretchBlt(IBitmap *src, int src_x, int src_y, int src_width, int src_height, int dst_x, int dst_y, int dst_width, int dst_height, BitmapMaskOption mask)
+void CAllegroBitmap::AAStretchBlt(IBitmap *src, const CRect &src_rc, const CRect &dst_rc, BitmapMaskOption mask)
 {
 	if (src->GetClassType() != GetClassType())
 	{
@@ -303,12 +368,14 @@ void CAllegroBitmap::AAStretchBlt(IBitmap *src, int src_x, int src_y, int src_wi
 	{
 		// TODO: aastr lib does not expose method for masked stretch blit; should do that at some point since 
 		// the source code is a gift-ware anyway
-		// aa_masked_blit(_bitmap, al_src_bmp, src_x, src_y, src_width, src_height, dst_x, dst_y, dst_width, dst_height);
+		// aa_masked_blit(_bitmap, al_src_bmp, src_rc.Left, src_rc.Top, src_rc.GetWidth(), src_rc.GetHeight(), dst_rc.Left, dst_rc.Top, dst_rc.GetWidth(), dst_rc.GetHeight());
 		throw "aa_masked_blit is not yet supported!";
 	}
 	else
 	{
-		aa_stretch_blit(al_src_bmp, _bitmap, src_x, src_y, src_width, src_height, dst_x, dst_y, dst_width, dst_height);
+		aa_stretch_blit(al_src_bmp, _bitmap,
+			src_rc.Left, src_rc.Top, src_rc.GetWidth(), src_rc.GetHeight(),
+			dst_rc.Left, dst_rc.Top, dst_rc.GetWidth(), dst_rc.GetHeight());
 	}
 }
 
@@ -440,6 +507,7 @@ bool CAllegroBitmap::Create(int width, int height, int color_depth)
 	{
 		_bitmap = create_bitmap(width, height);
 	}
+	_isDataOwner = true;
 	return _bitmap != NULL;
 }
 
@@ -453,16 +521,18 @@ bool CAllegroBitmap::CreateShared(IBitmap *src, int x, int y, int width, int hei
 	}
 	CAllegroBitmap *alSrc = (CAllegroBitmap*)src;
 	_bitmap = create_sub_bitmap(alSrc->_bitmap, x, y, width, height);
+	_isDataOwner = true;
 	return _bitmap != NULL;
 }
 
 void CAllegroBitmap::Destroy()
 {
-	if (_bitmap)
+	if (_isDataOwner && _bitmap)
 	{
 		destroy_bitmap(_bitmap);
 	}
 	_bitmap = NULL;
+	_isDataOwner = false;
 }
 
 

@@ -25,7 +25,14 @@ public:
 	static const int32_t AlBmpSignature = MAKE_SIGNATURE('A','L','B','M');
 
 	static CAllegroBitmap *CreateBitmap(int width, int height, int color_depth = 0);
-	static CAllegroBitmap *CreateSubBitmap(IBitmap *src, int x, int y, int width, int height);
+	static CAllegroBitmap *CreateSubBitmap(IBitmap *src, const CRect &rc);
+	// TODO: revise those functions later (currently needed in a few very specific cases)
+	// NOTE: the resulting object __owns__ bitmap data from now on
+	static CAllegroBitmap *CreateFromRawAllegroBitmap(void *bitmap_data);
+	// NOTE: the resulting object __does not own__ bitmap data
+	static CAllegroBitmap *WrapRawAllegroBitmap(void *bitmap_data);
+	static CAllegroBitmap *LoadFromFile(const char *filename);
+	static bool           SaveToFile(IBitmap *bitmap, const char *filename, const void *palette);
 
 	CAllegroBitmap();
 	virtual ~CAllegroBitmap();
@@ -34,6 +41,10 @@ public:
 	{
 		return AlBmpSignature;
 	}
+
+	// TODO: a temporary solution for plugin support
+	// AllegroBitmap will _not_ own the raw data
+	void			WrapBitmapObject(BITMAP *al_bmp);
 
 	virtual void	*GetBitmapObject();
 
@@ -78,11 +89,11 @@ public:
 	virtual void	Blit(IBitmap *src, int dst_x, int dst_y, BitmapMaskOption mask = kBitmap_Copy);
 	virtual void	Blit(IBitmap *src, int src_x, int src_y, int dst_x, int dst_y, int width, int height, BitmapMaskOption mask = kBitmap_Copy);
 	// Copy other bitmap, stretching or shrinking its size to given values
-	virtual void	StretchBlt(IBitmap *src, int dst_x, int dst_y, int dst_width, int dst_height, BitmapMaskOption mask = kBitmap_Copy);
-	virtual void	StretchBlt(IBitmap *src, int src_x, int src_y, int src_width, int src_height, int dst_x, int dst_y, int dst_width, int dst_height, BitmapMaskOption mask = kBitmap_Copy);
+	virtual void	StretchBlt(IBitmap *src, const CRect &dst_rc, BitmapMaskOption mask = kBitmap_Copy);
+	virtual void	StretchBlt(IBitmap *src, const CRect &src_rc, const CRect &dst_rc, BitmapMaskOption mask = kBitmap_Copy);
 	// Antia-aliased stretch-blit
-	virtual void	AAStretchBlt(IBitmap *src, int dst_x, int dst_y, int dst_width, int dst_height, BitmapMaskOption mask = kBitmap_Copy);
-	virtual void	AAStretchBlt(IBitmap *src, int src_x, int src_y, int src_width, int src_height, int dst_x, int dst_y, int dst_width, int dst_height, BitmapMaskOption mask = kBitmap_Copy);
+	virtual void	AAStretchBlt(IBitmap *src, const CRect &dst_rc, BitmapMaskOption mask = kBitmap_Copy);
+	virtual void	AAStretchBlt(IBitmap *src, const CRect &src_rc, const CRect &dst_rc, BitmapMaskOption mask = kBitmap_Copy);
 	// TODO: find more general way to call these operations, probably require pointer to Blending data struct?
 	// Draw bitmap using translucency preset
 	virtual void	TransBlendBlt(IBitmap *src, int dst_x, int dst_y);
@@ -114,6 +125,8 @@ private:
 	virtual void	Destroy();
 
 	BITMAP			*_bitmap;
+	// TODO: revise this flag, currently needed only for wrapping raw bitmap data in limited cases
+	bool			_isDataOwner;
 };
 
 } // namespace Common

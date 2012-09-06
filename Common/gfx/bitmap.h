@@ -7,7 +7,7 @@
 #ifndef __AGS_CN_GFX__BITMAP_H
 #define __AGS_CN_GFX__BITMAP_H
 
-// TODO: move to Math namespace
+// Move geometry classes to their related header
 struct CLine
 {
 	int X1;
@@ -32,7 +32,17 @@ struct CLine
 	}
 };
 
-// TODO: move to Math namespace
+// Helper factory functions
+inline CLine HLine(int x1, int x2, int y)
+{
+	return CLine(x1, y, x2, y);
+}
+
+inline CLine VLine(int x, int y1, int y2)
+{
+	return CLine(x, y1, x, y2);
+}
+
 struct CRect
 {
 	int Left;
@@ -67,7 +77,12 @@ struct CRect
 	}
 };
 
-// TODO: move to Math namespace
+// Helper factory function
+inline CRect RectWH(int x, int y, int width, int height)
+{
+	return CRect(x, y, x + width, y + height);
+}
+
 struct CTriangle
 {
 	int X1;
@@ -98,7 +113,6 @@ struct CTriangle
 	}
 };
 
-// TODO: move to Math namespace
 struct CCircle
 {
 	int X;
@@ -123,7 +137,7 @@ struct CCircle
 
 // TODO: move elsewere
 // Construct a 4-byte integer from four chars
-#define MAKE_SIGNATURE(a,b,c,d) ((a & 0xFF) | ((b & 0xFF) << 8) | ((c & 0xFF) << 16) | ((d & 0xFF) << 24))
+#define MAKE_SIGNATURE(a,b,c,d) (((a & 0xFF) << 24) | ((b & 0xFF) << 16) | ((c & 0xFF) << 8) | (d & 0xFF))
 
 // TODO: move to types definition
 #define int32_t signed int
@@ -223,11 +237,11 @@ public:
 	virtual void	Blit(IBitmap *src, int dst_x, int dst_y, BitmapMaskOption mask = kBitmap_Copy) = 0;
 	virtual void	Blit(IBitmap *src, int src_x, int src_y, int dst_x, int dst_y, int width, int height, BitmapMaskOption mask = kBitmap_Copy) = 0;
 	// Copy other bitmap, stretching or shrinking its size to given values
-	virtual void	StretchBlt(IBitmap *src, int dst_x, int dst_y, int dst_width, int dst_height, BitmapMaskOption mask = kBitmap_Copy) = 0;
-	virtual void	StretchBlt(IBitmap *src, int src_x, int src_y, int src_width, int src_height, int dst_x, int dst_y, int dst_width, int dst_height, BitmapMaskOption mask = kBitmap_Copy) = 0;
+	virtual void	StretchBlt(IBitmap *src, const CRect &dst_rc, BitmapMaskOption mask = kBitmap_Copy) = 0;
+	virtual void	StretchBlt(IBitmap *src, const CRect &src_rc, const CRect &dst_rc, BitmapMaskOption mask = kBitmap_Copy) = 0;
 	// Antia-aliased stretch-blit
-	virtual void	AAStretchBlt(IBitmap *src, int dst_x, int dst_y, int dst_width, int dst_height, BitmapMaskOption mask = kBitmap_Copy) = 0;
-	virtual void	AAStretchBlt(IBitmap *src, int src_x, int src_y, int src_width, int src_height, int dst_x, int dst_y, int dst_width, int dst_height, BitmapMaskOption mask = kBitmap_Copy) = 0;
+	virtual void	AAStretchBlt(IBitmap *src, const CRect &dst_rc, BitmapMaskOption mask = kBitmap_Copy) = 0;
+	virtual void	AAStretchBlt(IBitmap *src, const CRect &src_rc, const CRect &dst_rc, BitmapMaskOption mask = kBitmap_Copy) = 0;
 	// TODO: find more general way to call these three operations, probably require pointer to Blending data struct?
 	// Draw bitmap using translucency preset
 	virtual void	TransBlendBlt(IBitmap *src, int dst_x, int dst_y) = 0;
@@ -270,7 +284,22 @@ protected:
 namespace Bitmap
 {
 	IBitmap *CreateBitmap(int width, int height, int color_depth = 0);
-	IBitmap *CreateSubBitmap(IBitmap *src, int x, int y, int width, int height);
+	IBitmap *CreateSubBitmap(IBitmap *src, const CRect &rc);
+	// TODO: revise those functions later (currently needed in a few very specific cases)
+	// NOTE: the resulting object __owns__ bitmap data from now on
+	IBitmap *CreateRawDataOwner(void *bitmap_data);
+	// NOTE: the resulting object __does not own__ bitmap data
+	IBitmap *CreateRawDataWrapper(void *bitmap_data);
+	IBitmap *LoadFromFile(const char *filename);
+	bool	SaveToFile(IBitmap *bitmap, const char *filename, const void *palette);
+
+	// TODO: revise this later
+	// Getters and setters for screen bitmap
+	// Unfortunately some of the allegro functions require "screen" allegro bitmap,
+	// therefore we must set that pointer to something every time we assign an IBitmap
+	// to screen.
+	IBitmap	*GetScreenBitmap();
+	void	SetScreenBitmap(IBitmap *bitmap);
 }
 
 } // namespace Common

@@ -11,12 +11,16 @@
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "gfx/graphicsdriver.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::IBitmap;
+namespace Bitmap = AGS::Common::Bitmap;
 
 extern GameSetupStruct game;
 extern GameState play;
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
-extern block virtual_screen;
+extern IBitmap *virtual_screen;
 extern int scrnwid,scrnhit;
 
 void my_fade_in(PALLETE p, int speed) {
@@ -35,7 +39,7 @@ void my_fade_in(PALLETE p, int speed) {
 
 //#define _get_script_data_stack_size() (256*sizeof(int)+((int*)&scrpt[10*4])[0]+((int*)&scrpt[12*4])[0])
 //#define _get_script_data_stack_size(instac) ((int*)instac->code)[10]
-block temp_virtual = NULL;
+IBitmap *temp_virtual = NULL;
 color old_palette[256];
 void current_fade_out_effect () {
     if (platform->RunPluginHooks(AGSE_TRANSITIONOUT, 0))
@@ -63,8 +67,8 @@ void current_fade_out_effect () {
     else 
     {
         get_palette(old_palette);
-        temp_virtual = create_bitmap_ex(bitmap_color_depth(abuf),virtual_screen->w,virtual_screen->h);
-        //blit(abuf,temp_virtual,0,0,0,0,abuf->w,abuf->h);
+        temp_virtual = Bitmap::CreateBitmap(virtual_screen->GetWidth(),virtual_screen->GetHeight(),abuf->GetColorDepth());
+        //->Blit(abuf,temp_virtual,0,0,0,0,abuf->GetWidth(),abuf->GetHeight());
         gfxDriver->GetCopyOfScreenIntoBitmap(temp_virtual);
     }
 }
@@ -75,21 +79,21 @@ IDriverDependantBitmap* prepare_screen_for_transition_in()
         quit("Crossfade: buffer is null attempting transition");
 
     temp_virtual = gfxDriver->ConvertBitmapToSupportedColourDepth(temp_virtual);
-    if (temp_virtual->h < scrnhit)
+    if (temp_virtual->GetHeight() < scrnhit)
     {
-        block enlargedBuffer = create_bitmap_ex(bitmap_color_depth(temp_virtual), temp_virtual->w, scrnhit);
-        blit(temp_virtual, enlargedBuffer, 0, 0, 0, (scrnhit - temp_virtual->h) / 2, temp_virtual->w, temp_virtual->h);
-        destroy_bitmap(temp_virtual);
+        IBitmap *enlargedBuffer = Bitmap::CreateBitmap(temp_virtual->GetWidth(), scrnhit, temp_virtual->GetColorDepth());
+        enlargedBuffer->Blit(temp_virtual, 0, 0, 0, (scrnhit - temp_virtual->GetHeight()) / 2, temp_virtual->GetWidth(), temp_virtual->GetHeight());
+        delete temp_virtual;
         temp_virtual = enlargedBuffer;
     }
-    else if (temp_virtual->h > scrnhit)
+    else if (temp_virtual->GetHeight() > scrnhit)
     {
-        block clippedBuffer = create_bitmap_ex(bitmap_color_depth(temp_virtual), temp_virtual->w, scrnhit);
-        blit(temp_virtual, clippedBuffer, 0, (temp_virtual->h - scrnhit) / 2, 0, 0, temp_virtual->w, temp_virtual->h);
-        destroy_bitmap(temp_virtual);
+        IBitmap *clippedBuffer = Bitmap::CreateBitmap(temp_virtual->GetWidth(), scrnhit, temp_virtual->GetColorDepth());
+        clippedBuffer->Blit(temp_virtual, 0, (temp_virtual->GetHeight() - scrnhit) / 2, 0, 0, temp_virtual->GetWidth(), temp_virtual->GetHeight());
+        delete temp_virtual;
         temp_virtual = clippedBuffer;
     }
-    acquire_bitmap(temp_virtual);
+    temp_virtual->Acquire();
     IDriverDependantBitmap *ddb = gfxDriver->CreateDDBFromBitmap(temp_virtual, false);
     return ddb;
 }

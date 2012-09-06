@@ -160,13 +160,13 @@ int  wantMoveNow (CharacterInfo *chi, CharacterExtras *chex);
 void setup_player_character(int charid);
 void animate_character(CharacterInfo *chap, int loopn,int sppd,int rept, int noidleoverride=0, int direction=0);
 void CheckViewFrameForCharacter(CharacterInfo *chi);
-block GetCharacterImage(int charid, int *isFlipped);
+Common::IBitmap *GetCharacterImage(int charid, int *isFlipped);
 CharacterInfo *GetCharacterAtLocation(int xx, int yy);
 int is_pos_on_character(int xx,int yy);
 void get_char_blocking_rect(int charid, int *x1, int *y1, int *width, int *y2);
 // Check whether the source char has walked onto character ww
 int is_char_on_another (int sourceChar, int ww, int*fromxptr, int*cwidptr);
-int my_getpixel(BITMAP *blk, int x, int y);
+int my_getpixel(Common::IBitmap *blk, int x, int y);
 // X and Y co-ordinates must be in 320x200 format
 int check_click_on_character(int xx,int yy,int mood);
 int is_pos_on_character(int xx,int yy);

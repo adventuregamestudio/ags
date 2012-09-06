@@ -125,7 +125,7 @@ bool init_translation (const char *lang) {
             }
         }
         else
-            quit("Unknown block type in translation file.");
+            quit("Unknown IBitmap *type in translation file.");
     }
 
     fclose (language_file);

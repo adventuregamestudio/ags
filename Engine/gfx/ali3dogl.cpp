@@ -15,6 +15,7 @@
 
 using AGS::Common::IBitmap;
 namespace Bitmap = AGS::Common::Bitmap;
+using namespace AGS; // FIXME later
 
 // Allegro and glext.h define these
 #undef int32_t
@@ -919,8 +920,7 @@ bool OGLGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
     return false;
   }
   // create dummy screen bitmap
-  // FIXME later (temporary compilation hack)
-  screen = (BITMAP*)ConvertBitmapToSupportedColourDepth(Bitmap::CreateBitmap(virtualWidth, virtualHeight, colourDepth))->GetBitmapObject();
+  Bitmap::SetScreenBitmap( ConvertBitmapToSupportedColourDepth(Bitmap::CreateBitmap(virtualWidth, virtualHeight, colourDepth)) );
 
   return true;
 }
@@ -987,7 +987,8 @@ void OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(IBitmap *destination)
         surfaceData += retrieve_width * 4;
       }
 
-      destination->StretchBlt(retrieveInto, 0, 0, retrieveInto->GetWidth(), retrieveInto->GetHeight(), 0, 0, destination->GetWidth(), destination->GetHeight());
+      destination->StretchBlt(retrieveInto, RectWH(0, 0, retrieveInto->GetWidth(), retrieveInto->GetHeight()),
+		  RectWH(0, 0, destination->GetWidth(), destination->GetHeight()));
       delete retrieveInto;
     }
 
@@ -1480,7 +1481,7 @@ IBitmap *OGLGraphicsDriver::ConvertBitmapToSupportedColourDepth(IBitmap *bitmap)
 /*   if ((colourDepth == 8) || (colourDepth == 16))
    {
      // Most 3D cards don't support 8-bit; and we need 15-bit colour
-     BITMAP* tempBmp = create_bitmap_ex(15, bitmap->GetWidth(), bitmap->GetHeight());
+     IBitmap* tempBmp = Bitmap::CreateBitmap_(15, bitmap->GetWidth(), bitmap->GetHeight());
      Blit(bitmap, tempBmp, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
      destroy_bitmap(bitmap);
      set_color_conversion(colorConv);
@@ -1536,7 +1537,7 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(IBitmap *bitmap, 
 /*  if ((colourDepth == 8) || (colourDepth == 16))
   {
     // Most 3D cards don't support 8-bit; and we need 15-bit colour
-    tempBmp = create_bitmap_ex(15, bitmap->GetWidth(), bitmap->GetHeight());
+    tempBmp = Bitmap::CreateBitmap_(15, bitmap->GetWidth(), bitmap->GetHeight());
     Blit(bitmap, tempBmp, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
     bitmap = tempBmp;
     colourDepth = 15;

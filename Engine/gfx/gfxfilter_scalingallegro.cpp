@@ -30,7 +30,8 @@ IBitmap *ScalingAllegroGFXFilter::ShutdownAndReturnRealScreen(IBitmap *currentSc
 
 void ScalingAllegroGFXFilter::RenderScreen(IBitmap *toRender, int x, int y) 
 {
-    realScreen->StretchBlt(toRender, 0, 0, toRender->GetWidth(), toRender->GetHeight(), x * MULTIPLIER, y * MULTIPLIER, toRender->GetWidth() * MULTIPLIER, toRender->GetHeight() * MULTIPLIER);
+    realScreen->StretchBlt(toRender, RectWH(0, 0, toRender->GetWidth(), toRender->GetHeight()),
+		RectWH(x * MULTIPLIER, y * MULTIPLIER, toRender->GetWidth() * MULTIPLIER, toRender->GetHeight() * MULTIPLIER));
     lastBlitX = x;
     lastBlitY = y;
     lastBlitFrom = toRender;
@@ -71,14 +72,14 @@ void ScalingAllegroGFXFilter::GetCopyOfScreenIntoBitmap(IBitmap *copyBitmap, boo
         // Can't ->StretchBlt from Video Memory to normal memory,
         // so copy the screen to a buffer first.
         realScreenSizedBuffer->Blit(realScreen, 0, 0, 0, 0, realScreen->GetWidth(), realScreen->GetHeight());
-        copyBitmap->StretchBlt(realScreenSizedBuffer, 0, 0, 
-            realScreenSizedBuffer->GetWidth(), realScreenSizedBuffer->GetHeight(), 
-            0, 0, copyBitmap->GetWidth(), copyBitmap->GetHeight());
+        copyBitmap->StretchBlt(realScreenSizedBuffer,
+			RectWH(0, 0, realScreenSizedBuffer->GetWidth(), realScreenSizedBuffer->GetHeight()), 
+            RectWH(0, 0, copyBitmap->GetWidth(), copyBitmap->GetHeight()));
     }
     else if (lastBlitFrom == NULL)
         copyBitmap->Clear();
     else
-        copyBitmap->StretchBlt(lastBlitFrom, 0, 0, 
-        lastBlitFrom->GetWidth(), lastBlitFrom->GetHeight(), 
-        0, 0, copyBitmap->GetWidth(), copyBitmap->GetHeight());
+        copyBitmap->StretchBlt(lastBlitFrom,
+		RectWH(0, 0, lastBlitFrom->GetWidth(), lastBlitFrom->GetHeight()), 
+        RectWH(0, 0, copyBitmap->GetWidth(), copyBitmap->GetHeight()));
 }

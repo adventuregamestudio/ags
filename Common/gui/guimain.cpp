@@ -15,6 +15,10 @@
 #include "gui/guilistbox.h"
 #include "font/fonts.h"
 #include "ac/spritecache.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::IBitmap;
+namespace Bitmap = AGS::Common::Bitmap;
 
 extern SpriteCache spriteset;
 
@@ -251,7 +255,7 @@ int GUIMain::is_mouse_on_gui()
 
 void GUIMain::draw_blob(int xp, int yp)
 {
-  wbar(xp, yp, xp + get_fixed_pixel_size(1), yp + get_fixed_pixel_size(1));
+  abuf->FillRect(CRect(xp, yp, xp + get_fixed_pixel_size(1), yp + get_fixed_pixel_size(1)), currentcolor);
 }
 
 void GUIMain::draw_at(int xx, int yy)
@@ -265,8 +269,8 @@ void GUIMain::draw_at(int xx, int yy)
   if ((wid < 1) || (hit < 1))
     return;
 
-  block abufwas = abuf;
-  block subbmp = create_sub_bitmap(abuf, xx, yy, wid, hit);
+  IBitmap *abufwas = abuf;
+  IBitmap *subbmp = Bitmap::CreateSubBitmap(abuf, RectWH(xx, yy, wid, hit));
 
   SET_EIP(376)
   // stop border being transparent, if the whole GUI isn't
@@ -275,14 +279,14 @@ void GUIMain::draw_at(int xx, int yy)
 
   abuf = subbmp;
   if (bgcol != 0)
-    clear_to_color(abuf, get_col8_lookup(bgcol));
+    abuf->Clear(get_col8_lookup(bgcol));
 
   SET_EIP(377)
 
   if (fgcol != bgcol) {
-    rect(abuf, 0, 0, abuf->w - 1, abuf->h - 1, get_col8_lookup(fgcol));
+    abuf->DrawRect(CRect(0, 0, abuf->GetWidth() - 1, abuf->GetHeight() - 1), get_col8_lookup(fgcol));
     if (get_fixed_pixel_size(1) > 1)
-      rect(abuf, 1, 1, abuf->w - 2, abuf->h - 2, get_col8_lookup(fgcol));
+      abuf->DrawRect(CRect(1, 1, abuf->GetWidth() - 2, abuf->GetHeight() - 2), get_col8_lookup(fgcol));
   }
 
   SET_EIP(378)
@@ -321,18 +325,18 @@ void GUIMain::draw_at(int xx, int yy)
       int oo;  // draw a dotted outline round all objects
       wsetcolor(selectedColour);
       for (oo = 0; oo < objToDraw->wid; oo+=2) {
-        wputpixel(oo + objToDraw->x, objToDraw->y);
-        wputpixel(oo + objToDraw->x, objToDraw->y + objToDraw->hit - 1);
+        abuf->PutPixel(oo + objToDraw->x, objToDraw->y, currentcolor);
+        abuf->PutPixel(oo + objToDraw->x, objToDraw->y + objToDraw->hit - 1, currentcolor);
       }
       for (oo = 0; oo < objToDraw->hit; oo+=2) {
-        wputpixel(objToDraw->x, oo + objToDraw->y);
-        wputpixel(objToDraw->x + objToDraw->wid - 1, oo + objToDraw->y);
+        abuf->PutPixel(objToDraw->x, oo + objToDraw->y, currentcolor);
+        abuf->PutPixel(objToDraw->x + objToDraw->wid - 1, oo + objToDraw->y, currentcolor);
       }      
     }
   }
 
   SET_EIP(380)
-  destroy_bitmap(abuf);
+  delete abuf;
   abuf = abufwas;
 }
 

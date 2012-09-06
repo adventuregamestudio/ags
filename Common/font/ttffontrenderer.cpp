@@ -7,6 +7,9 @@
 #include "alfont.h"
 #include "ac/gamestructdefines.h" //FONT_OUTLINE_AUTO
 #include "font/ttffontrenderer.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::IBitmap;
 
 // project-specific implementation
 extern bool ShouldAntiAliasText();
@@ -68,17 +71,17 @@ int TTFFontRenderer::GetTextHeight(const char *text, int fontNumber)
   return alfont_text_height(get_ttf_block(fonts[fontNumber]));
 }
 
-void TTFFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour)
+void TTFFontRenderer::RenderText(const char *text, int fontNumber, IBitmap *destination, int x, int y, int colour)
 {
-  if (y > destination->cb)  // optimisation
+  if (y > destination->GetClip().Bottom)  // optimisation
     return;
 
   ALFONT_FONT *alfpt = get_ttf_block(fonts[fontNumber]);
   // Y - 1 because it seems to get drawn down a bit
-  if ((ShouldAntiAliasText()) && (bitmap_color_depth(abuf) > 8))
-    alfont_textout_aa(abuf, alfpt, text, x, y - 1, colour);
+  if ((ShouldAntiAliasText()) && (abuf->GetColorDepth() > 8))
+    alfont_textout_aa((BITMAP*)abuf->GetBitmapObject(), alfpt, text, x, y - 1, colour);
   else
-    alfont_textout(abuf, alfpt, text, x, y - 1, colour);
+    alfont_textout((BITMAP*)abuf->GetBitmapObject(), alfpt, text, x, y - 1, colour);
 }
 
 bool TTFFontRenderer::LoadFromDisk(int fontNumber, int fontSize)

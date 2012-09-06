@@ -26,6 +26,7 @@
 
 using AGS::Common::IBitmap;
 namespace Bitmap = AGS::Common::Bitmap;
+using namespace AGS; // FIXME later
 
 extern int dxmedia_play_video_3d(const char*filename, IDirect3DDevice9 *device, bool useAVISound, int canskip, int stretch);
 extern void dxmedia_shutdown_3d();
@@ -994,8 +995,9 @@ bool D3DGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
     return false;
   }
   // create dummy screen bitmap
-  // FIXME later (temporary compilation hack)
-  screen = (BITMAP*)ConvertBitmapToSupportedColourDepth(Bitmap::CreateBitmap(virtualWidth, virtualHeight, colourDepth))->GetBitmapObject();
+  Bitmap::SetScreenBitmap(
+	  ConvertBitmapToSupportedColourDepth(Bitmap::CreateBitmap(virtualWidth, virtualHeight, colourDepth))
+	  );
   return true;
 }
 
@@ -1152,8 +1154,8 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(IBitmap *destination)
 
     if (retrieveInto != destination)
     {
-      destination->StretchBlt(retrieveInto, 0, 0, retrieveInto->GetWidth(), retrieveInto->GetHeight(),
-                   0, 0, destination->GetWidth(), destination->GetHeight());
+      destination->StretchBlt(retrieveInto, RectWH(0, 0, retrieveInto->GetWidth(), retrieveInto->GetHeight()),
+                   RectWH(0, 0, destination->GetWidth(), destination->GetHeight()));
       delete retrieveInto;
 
       if (_pollingCallback)

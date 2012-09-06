@@ -23,9 +23,6 @@ using AGS::Common::IBitmap;
 namespace Bitmap = AGS::Common::Bitmap;
 using namespace AGS; // FIXME later
 
-// FIXME later (temporary compilation hack)
-IBitmap *_screen;
-
 #if defined(PSP_VERSION)
 // PSP: Includes for sceKernelDelayThread.
 #include <pspsdk.h>
@@ -47,7 +44,7 @@ typedef struct DDRAW_SURFACE {
    LPDIRECTDRAWSURFACE2 id;
    int flags;
    int lock_nesting;
-   BITMAP *parent_bmp;  
+   IBitmap *parent_bmp;  
    struct DDRAW_SURFACE *next;
    struct DDRAW_SURFACE *prev;
 } DDRAW_SURFACE;
@@ -59,7 +56,7 @@ extern "C" DDRAW_SURFACE *gfx_directx_primary_surface;
 #define MAX_DRAW_LIST_SIZE 200
 RGB faded_out_palette[256];
 
-void tint_image(BITMAP* srcimg, BITMAP* destimg, int red, int grn, int blu, int light_level, int luminance);
+void tint_image(IBitmap* srcimg, IBitmap* destimg, int red, int grn, int blu, int light_level, int luminance);
 unsigned long _trans_alpha_blender32(unsigned long x, unsigned long y, unsigned long n);
 
 class ALSoftwareBitmap : public IDriverDependantBitmap
@@ -226,7 +223,7 @@ private:
 bool ALSoftwareGraphicsDriver::IsModeSupported(int driver, int width, int height, int colDepth)
 {
 #if defined(ANDROID_VERSION) || defined(PSP_VERSION) || defined(IOS_VERSION)
-  // Everything is drawn to a virtual _screen, so all resolutions are supported.
+  // Everything is drawn to a virtual Common::gl_ScreenBmp, so all resolutions are supported.
   return true;
 #endif
 
@@ -240,7 +237,7 @@ bool ALSoftwareGraphicsDriver::IsModeSupported(int driver, int width, int height
   }
   if (_gfxModeList != NULL)
   {
-    // if a list is available, check if the mode exists. This prevents the _screen flicking
+    // if a list is available, check if the mode exists. This prevents the Common::gl_ScreenBmp flicking
     // between loads of unsupported resolutions
     for (int i = 0; i < _gfxModeList->num_modes; i++)
     {
@@ -335,10 +332,10 @@ bool ALSoftwareGraphicsDriver::Init(int width, int height, int colourDepth, bool
   if ((IsModeSupported(driver, actualInitWid, actualInitHit, colourDepth)) &&
       (set_gfx_mode(driver, actualInitWid, actualInitHit, 0, 0) == 0))
   {
-    _screen->Clear();
-    _screen = _filter->ScreenInitialized(_screen, width, height);
+    Bitmap::GetScreenBitmap()->Clear();
+    Bitmap::SetScreenBitmap( _filter->ScreenInitialized(Bitmap::GetScreenBitmap(), width, height) );
 
-    virtualScreen = _screen;
+    virtualScreen = Bitmap::GetScreenBitmap();
 
 #ifdef _WIN32
     if (!windowed)
@@ -391,8 +388,8 @@ void ALSoftwareGraphicsDriver::UnInit()
     _gfxModeList = NULL;
   }
 
-  if (_screen)
-   _screen = _filter->ShutdownAndReturnRealScreen(_screen);
+  if (Bitmap::GetScreenBitmap())
+   Bitmap::SetScreenBitmap( _filter->ShutdownAndReturnRealScreen(Bitmap::GetScreenBitmap()) );
 
   // don't do anything else -- the main app may
   // already have called allegro_exit
@@ -566,7 +563,7 @@ void ALSoftwareGraphicsDriver::RenderToBackBuffer()
 
   if (((_tint_red > 0) || (_tint_green > 0) || (_tint_blue > 0))
       && (_colorDepth > 8)) {
-    // _screen tint
+    // Common::gl_ScreenBmp tint
     // This slows down the game no end, only experimental ATM
     set_trans_blender(_tint_red, _tint_green, _tint_blue, 0);
     virtualScreen->LitBlendBlt(virtualScreen, 0, 0, 128);
@@ -579,7 +576,7 @@ void ALSoftwareGraphicsDriver::RenderToBackBuffer()
     }
     if (_spareTintingScreen == NULL)
     {
-      _spareTintingScreen = create_bitmap_ex(GetColorDepth(virtualScreen), virtualScreen->GetWidth(), virtualScreen->GetHeight());
+      _spareTintingScreen = Bitmap::CreateBitmap_(GetColorDepth(virtualScreen), virtualScreen->GetWidth(), virtualScreen->GetHeight());
     }
     tint_image(virtualScreen, _spareTintingScreen, _tint_red, _tint_green, _tint_blue, 100, 255);
     Blit(_spareTintingScreen, virtualScreen, 0, 0, 0, 0, _spareTintingScreen->GetWidth(), _spareTintingScreen->GetHeight());*/
@@ -670,7 +667,7 @@ void ALSoftwareGraphicsDriver::highcolor_fade_out(int speed, int targetColourRed
 {
     IBitmap *bmp_orig, *bmp_buff;
 
-    int clearColor = makecol_depth(_screen->GetColorDepth(),
+    int clearColor = makecol_depth(Bitmap::GetScreenBitmap()->GetColorDepth(),
 				targetColourRed, targetColourGreen, targetColourBlue);
 
     if ((bmp_orig = Bitmap::CreateBitmap(_screenWidth, _screenHeight)))
@@ -702,8 +699,8 @@ void ALSoftwareGraphicsDriver::highcolor_fade_out(int speed, int targetColourRed
         delete bmp_orig;
     }
 
-    _screen->Clear(clearColor);
-	_filter->RenderScreen(_screen, _global_x_offset, _global_y_offset);
+    Bitmap::GetScreenBitmap()->Clear(clearColor);
+	_filter->RenderScreen(Bitmap::GetScreenBitmap(), _global_x_offset, _global_y_offset);
 }
 /** END FADE.C **/
 

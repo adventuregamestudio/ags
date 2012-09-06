@@ -31,6 +31,10 @@
 #include "main/quit.h"
 #include "ac/spritecache.h"
 #include "gfx/graphicsdriver.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::IBitmap;
+namespace Bitmap = AGS::Common::Bitmap;
 
 extern GameSetupStruct game;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
@@ -45,8 +49,8 @@ extern char check_dynamic_sprites_at_exit;
 extern int editor_debugging_initialized;
 extern IAGSEditorDebugger *editor_debugger;
 extern int need_to_stop_cd;
-extern block _old_screen;
-extern block _sub_screen;
+extern IBitmap *_old_screen;
+extern IBitmap *_sub_screen;
 extern int use_cdplayer;
 extern IGraphicsDriver *gfxDriver;
 
@@ -100,8 +104,9 @@ void quit_shutdown_platform(char *qmsg)
     quit_check_dynamic_sprites(qmsg);    
 
     // allegro_exit assumes screen is correct
-    if (_old_screen)
-        screen = _old_screen;
+	if (_old_screen) {
+		Bitmap::SetScreenBitmap( _old_screen );
+	}
 
     platform->FinishedUsingGraphicsMode();
 
@@ -165,10 +170,8 @@ void quit_check_for_error_state(char *qmsg, char *alertis)
 void quit_destroy_subscreen()
 {
     // close graphics mode (Win) or return to text mode (DOS)
-    if (_sub_screen) {
-        destroy_bitmap(_sub_screen);
-        _sub_screen = NULL;
-    }
+    delete _sub_screen;
+	_sub_screen = NULL;
 }
 
 void quit_shutdown_graphics()

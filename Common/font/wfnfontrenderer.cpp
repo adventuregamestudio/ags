@@ -7,6 +7,9 @@
 #include "alfont.h"
 
 #include "font/wfnfontrenderer.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::IBitmap;
 
 extern void set_our_eip(int eip);
 extern int  get_our_eip();
@@ -121,7 +124,7 @@ int WFNFontRenderer::GetTextHeight(const char *texx, int fontNumber)
   return highest * wtext_multiply;
 }
 
-void WFNFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour)
+void WFNFontRenderer::RenderText(const char *text, int fontNumber, IBitmap *destination, int x, int y, int colour)
 {
   unsigned int ee;
 
@@ -167,12 +170,12 @@ int WFNFontRenderer::printchar(int xxx, int yyy, wgtfont foo, int charr)
     for (ss = 0; ss < charWidth; ss++) {
       if (((actdata[tt * bytewid + (ss / 8)] & (0x80 >> (ss % 8))) != 0)) {
         if (wtext_multiply > 1) {
-          rectfill(abuf, xxx + ss, yyy + tt, xxx + ss + (wtext_multiply - 1),
-                   yyy + tt + (wtext_multiply - 1), textcol);
+          abuf->FillRect(CRect(xxx + ss, yyy + tt, xxx + ss + (wtext_multiply - 1),
+                   yyy + tt + (wtext_multiply - 1)), textcol);
         } 
         else
         {
-          putpixel(abuf, xxx + ss, yyy + tt, textcol);
+          abuf->PutPixel(xxx + ss, yyy + tt, textcol);
         }
       }
 

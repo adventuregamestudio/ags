@@ -26,7 +26,7 @@ const char* Room_GetMessages(int index);
 
 //=============================================================================
 
-block fix_bitmap_size(block todubl);
+Common::IBitmap *fix_bitmap_size(Common::IBitmap *todubl);
 void  save_room_data_segment ();
 void  unload_old_room();
 void  convert_room_coordinates_to_low_res(roomstruct *rstruc);

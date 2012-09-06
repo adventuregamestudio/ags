@@ -7,6 +7,10 @@
 #include "ac/spritecache.h"
 #include "ac/runtime_defines.h" //MAX_PATH
 #include "gfx/graphicsdriver.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::IBitmap;
+namespace Bitmap = AGS::Common::Bitmap;
 
 extern SpriteCache spriteset;
 extern IGraphicsDriver *gfxDriver;
@@ -16,7 +20,7 @@ int LoadImageFile(const char *filename) {
     char loadFromPath[MAX_PATH];
     get_current_dir_path(loadFromPath, filename);
 
-    block loadedFile = load_bitmap(loadFromPath, NULL);
+	IBitmap *loadedFile = Bitmap::LoadFromFile(loadFromPath);
 
     if (loadedFile == NULL)
         return 0;

@@ -46,16 +46,6 @@ typedef void (*GFXDRV_CLIENTCALLBACKINITGFX)(void *data);
 
 class IGraphicsDriver
 {
-  //---------------------------------------------------------------------------
-  // FIXME: these are only temporary stubs, to make the project compile between large changes to code
-public:
-  BITMAP *ConvertBitmapToSupportedColourDepth(BITMAP *bitmap) { return NULL; }
-  IDriverDependantBitmap* CreateDDBFromBitmap(BITMAP *bitmap, bool hasAlpha, bool opaque = false) { return NULL; }
-  void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, BITMAP *bitmap, bool hasAlpha) {};
-  void GetCopyOfScreenIntoBitmap(BITMAP *destination) {}
-  //BITMAP *GetMemoryBackBuffer() { return NULL; }
-  void SetMemoryBackBuffer(BITMAP *backBuffer) {}
-  //---------------------------------------------------------------------------
 public:
   virtual const char*GetDriverName() = 0;
   virtual const char*GetDriverID() = 0;

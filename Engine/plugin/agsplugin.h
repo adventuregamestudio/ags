@@ -11,6 +11,18 @@
 // the original agsplugin*.zip file and is totally unmodified.
 //
 
+//-----------------------------------------------------------------------------
+// [IKM] 2012-04-06
+//
+// A NOTE ON BITMAP CLASS
+//
+// We cannot use IBitmap in the plugin interfaces right so because that would
+// break backwards-compatiblity with previously created plugins. IBitmap may
+// only be used internally, in the IAGSEngine implementation, in a very limited
+// fashion.
+//
+//-----------------------------------------------------------------------------
+
 #ifndef _AGS_PLUGIN_H
 #define _AGS_PLUGIN_H
 

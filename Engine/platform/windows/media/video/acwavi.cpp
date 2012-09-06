@@ -16,6 +16,11 @@
 //#include <dsound.h>
 #include "gfx/ali3d.h"
 #include "gfx/graphicsdriver.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::IBitmap;
+namespace Bitmap = AGS::Common::Bitmap;
+using namespace AGS; // FIXME later
 
 //link with the following libraries under project/settings/link...
 //amstrmid.lib quartz.lib strmbase.lib ddraw.lib 
@@ -27,7 +32,7 @@ extern int rec_kbhit();
 extern int rec_getch();
 extern void next_iteration();
 extern void update_music_volume();
-extern void render_to_screen(BITMAP *toRender, int atx, int aty);
+extern void render_to_screen(IBitmap *toRender, int atx, int aty);
 extern int crossFading, crossFadeStep;
 extern volatile char want_exit;
 extern IGraphicsDriver *gfxDriver;
@@ -44,7 +49,7 @@ volatile bool currentlyPaused = false;
 //DirectDrawEx Global interfaces
 extern "C" extern LPDIRECTDRAW2 directdraw;
 //extern "C" extern IUnknown* directsound;
-extern "C" extern BITMAP *gfx_directx_create_system_bitmap(int width, int height);
+extern "C" extern IBitmap *gfx_directx_create_system_bitmap(int width, int height);
 
 //Global MultiMedia streaming interfaces
 IMultiMediaStream		*g_pMMStream=NULL;
@@ -52,8 +57,8 @@ IMediaStream			*g_pPrimaryVidStream=NULL;
 IDirectDrawMediaStream	*g_pDDStream=NULL;
 IDirectDrawStreamSample *g_pSample=NULL;
 
-BITMAP *vscreen = NULL;
-BITMAP *vsMemory = NULL;
+IBitmap *vscreen = NULL;
+IBitmap *vsMemory = NULL;
 
 //Function prototypes
 HRESULT RenderFileToMMStream(LPCTSTR szFilename);	
@@ -88,14 +93,14 @@ typedef struct BMP_EXTRA_INFO {
    int lock_nesting;
 } BMP_EXTRA_INFO;
 
-LPDIRECTDRAWSURFACE get_bitmap_surface (BITMAP *bmp) {
-  BMP_EXTRA_INFO *bei = (BMP_EXTRA_INFO*)bmp->extra;
+LPDIRECTDRAWSURFACE get_bitmap_surface (IBitmap *bmp) {
+  BMP_EXTRA_INFO *bei = (BMP_EXTRA_INFO*)((BITMAP*)bmp->GetBitmapObject())->extra;
 
   // convert the DDSurface2 back to a standard DDSurface
   return (LPDIRECTDRAWSURFACE)bei->surf;
 }
-LPDIRECTDRAWSURFACE2 get_bitmap_surface2 (BITMAP *bmp) {
-  BMP_EXTRA_INFO *bei = (BMP_EXTRA_INFO*)bmp->extra;
+LPDIRECTDRAWSURFACE2 get_bitmap_surface2 (IBitmap *bmp) {
+  BMP_EXTRA_INFO *bei = (BMP_EXTRA_INFO*)((BITMAP*)bmp->GetBitmapObject())->extra;
 
   return bei->surf;
 }
@@ -142,7 +147,7 @@ HRESULT InitRenderToSurface() {
     return E_FAIL;
   }
 
-  vsMemory = create_bitmap_ex(bitmap_color_depth(vscreen), vscreen->w, vscreen->h);
+  vsMemory = Bitmap::CreateBitmap(vscreen->GetWidth(), vscreen->GetHeight(), vscreen->GetColorDepth());
 
   IDirectDrawSurface *g_pDDSOffscreen;
   g_pDDSOffscreen = get_bitmap_surface (vscreen);
@@ -218,7 +223,7 @@ int newWidth, newHeight;
 
 //Perform frame by frame updates and blits. Set the stream 
 //state to STOP if there are no more frames to update.
-void RenderToSurface(BITMAP *vscreen) {
+void RenderToSurface(IBitmap *vscreen) {
   //update each frame
   if (g_pSample->Update(0, NULL, NULL, 0) != S_OK) {
     g_bAppactive = FALSE;
@@ -227,27 +232,30 @@ void RenderToSurface(BITMAP *vscreen) {
   else {
     g_bAppactive = TRUE;
     acquire_screen();
+	IBitmap *screen_bmp = Bitmap::GetScreenBitmap();
     // Because vscreen is a DX Video Bitmap, it can be stretched
     // onto the screen (also a Video Bmp) but not onto a memory
     // bitmap (which is what "screen" is when using gfx filters)
     if (is_video_bitmap(screen))
     {
-      stretch_blit(vscreen, screen, 0, 0, vscreen->w, vscreen->h,
-          screen->w / 2 - newWidth / 2,
-          screen->h / 2 - newHeight / 2,
-          newWidth, newHeight);
+		screen_bmp->StretchBlt(vscreen,
+		  RectWH(0, 0, vscreen->GetWidth(), vscreen->GetHeight()),
+          RectWH(screen_bmp->GetWidth() / 2 - newWidth / 2,
+                 screen_bmp->GetHeight() / 2 - newHeight / 2,
+                 newWidth, newHeight));
     }
     else
     {
-      blit(vscreen, vsMemory, 0, 0, 0, 0, vscreen->w, vscreen->h);
-      stretch_blit(vsMemory, screen, 0, 0, vscreen->w, vscreen->h,
-          screen->w / 2 - newWidth / 2,
-          screen->h / 2 - newHeight / 2,
-          newWidth, newHeight);
+      vsMemory->Blit(vscreen, 0, 0, 0, 0, vscreen->GetWidth(), vscreen->GetHeight());
+      screen_bmp->StretchBlt(vsMemory,
+		  RectWH(0, 0, vscreen->GetWidth(), vscreen->GetHeight()),
+          RectWH(screen_bmp->GetWidth() / 2 - newWidth / 2,
+		         screen_bmp->GetHeight() / 2 - newHeight / 2,
+			     newWidth, newHeight));
     }
     release_screen();
 
-    render_to_screen(screen, 0, 0);
+    render_to_screen(screen_bmp, 0, 0);
     // if we're not playing AVI sound, poll the game MP3
     if (!useSound)
       update_polled_stuff_and_crossfade();
@@ -281,11 +289,11 @@ void dxmedia_abort_video() {
 
     ExitCode();
     CoUninitialize();
-    destroy_bitmap(vscreen);
+    delete vscreen;
     vscreen = NULL;
     if (vsMemory != NULL)
     {
-      destroy_bitmap(vsMemory);
+      delete vsMemory;
       vsMemory = NULL;
     }
     strcpy (lastError, "Played successfully.");
@@ -321,21 +329,25 @@ int dxmedia_play_video(const char* filename, bool pUseSound, int canskip, int st
     return -1;
   }
 	
-  newWidth = vscreen->w;
-  newHeight = vscreen->h;
+  newWidth = vscreen->GetWidth();
+  newHeight = vscreen->GetHeight();
 
-  if ((stretch == 1) || (vscreen->w > screen->w) || (vscreen->h > screen->h)) {
+  IBitmap *screen_bmp = Bitmap::GetScreenBitmap();
+
+  if ((stretch == 1) ||
+	  (vscreen->GetWidth() > screen_bmp->GetWidth()) ||
+	  (vscreen->GetHeight() > screen_bmp->GetHeight())) {
     // If they want to stretch, or if it's bigger than the screen, then stretch
-    float widthRatio = (float)vscreen->w / (float)screen->w;
-    float heightRatio = (float)vscreen->h / (float)screen->h;
+    float widthRatio = (float)vscreen->GetWidth() / (float)screen_bmp->GetWidth();
+    float heightRatio = (float)vscreen->GetHeight() / (float)screen_bmp->GetHeight();
 
     if (widthRatio > heightRatio) {
-      newWidth = vscreen->w / widthRatio;
-      newHeight = vscreen->h / widthRatio;
+      newWidth = vscreen->GetWidth() / widthRatio;
+      newHeight = vscreen->GetHeight() / widthRatio;
     }
     else {
-      newWidth = vscreen->w / heightRatio;
-      newHeight = vscreen->h / heightRatio;
+      newWidth = vscreen->GetWidth() / heightRatio;
+      newHeight = vscreen->GetHeight() / heightRatio;
     }
   }
 
@@ -347,17 +359,17 @@ int dxmedia_play_video(const char* filename, bool pUseSound, int canskip, int st
     sprintf(lastError, "Unable to play stream: 0x%08X", hr);
     ExitCode();
     CoUninitialize();
-    destroy_bitmap (vscreen);
+    delete vscreen;
     return -1;
   }
   // in case we're not full screen, clear the background
-  clear(screen);
+  screen_bmp->Clear();
 
   currentlyPlaying = true;
 
   gfxDriver->ClearDrawList();
-  BITMAP *savedBackBuffer = (BITMAP*)gfxDriver->GetMemoryBackBuffer(); // FIXME later (temporary compilation hack)
-  gfxDriver->SetMemoryBackBuffer(screen);
+  IBitmap *savedBackBuffer = gfxDriver->GetMemoryBackBuffer();
+  gfxDriver->SetMemoryBackBuffer(screen_bmp);
 
   while ((g_bAppactive) && (!want_exit)) {
 

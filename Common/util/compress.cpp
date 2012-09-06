@@ -33,6 +33,11 @@ prior express permission from Chris Jones.
 
 #include "util/file.h"
 
+#include "gfx/bitmap.h"
+
+using AGS::Common::IBitmap;
+namespace Bitmap = AGS::Common::Bitmap;
+
 #if !defined(MAC_VERSION)
 typedef unsigned char * __block;
 #else
@@ -47,7 +52,7 @@ extern char lib_file_name[13];
 extern void domouse(int);
 extern "C"
 {
-  extern block wnewblock(int, int, int, int);
+  extern IBitmap *wnewblock(int, int, int, int);
 }
 
 //#ifdef ALLEGRO_BIG_ENDIAN
@@ -351,24 +356,24 @@ extern int _acroom_bpp;  // bytes per pixel of currently loading room
 
 
 char *lztempfnm = "~aclzw.tmp";
-BITMAP *recalced = NULL;
+IBitmap *recalced = NULL;
 
 // returns bytes per pixel for bitmap's color depth
-int bmp_bpp(BITMAP*bmpt) {
-  if (bitmap_color_depth(bmpt) == 15)
+int bmp_bpp(IBitmap*bmpt) {
+  if (bmpt->GetColorDepth() == 15)
     return 2;
 
-  return bitmap_color_depth(bmpt) / 8;
+  return bmpt->GetColorDepth() / 8;
 }
 
-long save_lzw(char *fnn, BITMAP *bmpp, color *pall, long offe) {
+long save_lzw(char *fnn, IBitmap *bmpp, color *pall, long offe) {
   FILE  *ooo, *iii;
   long  fll, toret, gobacto;
 
   ooo = ci_fopen(lztempfnm, "wb");
-  putw(bmpp->w * bmp_bpp(bmpp), ooo);
-  putw(bmpp->h, ooo);
-  fwrite(&bmpp->line[0][0], bmpp->w * bmp_bpp(bmpp), bmpp->h, ooo);
+  putw(bmpp->GetWidth() * bmp_bpp(bmpp), ooo);
+  putw(bmpp->GetHeight(), ooo);
+  fwrite(&bmpp->GetScanLine(0)[0], bmpp->GetWidth() * bmp_bpp(bmpp), bmpp->GetHeight(), ooo);
   fclose(ooo);
 
   iii = ci_fopen(fnn, "r+b");
@@ -394,12 +399,12 @@ long save_lzw(char *fnn, BITMAP *bmpp, color *pall, long offe) {
   return toret;
 }
 
-/*long load_lzw(char*fnn,BITMAP*bmm,color*pall,long ooff) {
+/*long load_lzw(char*fnn,IBitmap*bmm,color*pall,long ooff) {
   recalced=bmm;
   FILE*iii=clibfopen(fnn,"rb");
   fseek(iii,ooff,SEEK_SET);*/
 
-long load_lzw(FILE *iii, BITMAP *bmm, color *pall) {
+long load_lzw(FILE *iii, IBitmap *bmm, color *pall) {
   long          uncompsiz, *loptr;
   unsigned char *membuffer;
   int           arin;
@@ -453,24 +458,23 @@ long load_lzw(FILE *iii, BITMAP *bmm, color *pall) {
   }
 #endif // ALLEGRO_BIG_ENDIAN
 
-  if (bmm!=NULL)
-    destroy_bitmap(bmm);
+  delete bmm;
 
   update_polled_stuff_if_runtime();
 
-  bmm = create_bitmap_ex(_acroom_bpp * 8, (loptr[0] / _acroom_bpp), loptr[1]);
+  bmm = Bitmap::CreateBitmap((loptr[0] / _acroom_bpp), loptr[1], _acroom_bpp * 8);
   if (bmm == NULL)
     quit("!load_room: not enough memory to load room background");
 
   update_polled_stuff_if_runtime();
 
-  acquire_bitmap (bmm);
+  bmm->Acquire ();
   recalced = bmm;
 
   for (arin = 0; arin < loptr[1]; arin++)
-    memcpy(&bmm->line[arin][0], &membuffer[arin * loptr[0]], loptr[0]);
+    memcpy(&bmm->GetScanLineForWriting(arin)[0], &membuffer[arin * loptr[0]], loptr[0]);
 
-  release_bitmap (bmm);
+  bmm->Release ();
 
   update_polled_stuff_if_runtime();
 
@@ -484,38 +488,37 @@ long load_lzw(FILE *iii, BITMAP *bmm, color *pall) {
   return uncompsiz;
 }
 
-long savecompressed_allegro(char *fnn, BITMAP *bmpp, color *pall, long ooo) {
-  unsigned char *wgtbl = (unsigned char *)malloc(bmpp->w * bmpp->h + 4);
+long savecompressed_allegro(char *fnn, IBitmap *bmpp, color *pall, long ooo) {
+  unsigned char *wgtbl = (unsigned char *)malloc(bmpp->GetWidth() * bmpp->GetHeight() + 4);
   short         *sss = (short *)wgtbl;
   long          toret;
 
-  sss[0] = bmpp->w;
-  sss[1] = bmpp->h;
+  sss[0] = bmpp->GetWidth();
+  sss[1] = bmpp->GetHeight();
 
-  memcpy(&wgtbl[4], &bmpp->line[0][0], bmpp->w * bmpp->h);
+  memcpy(&wgtbl[4], &bmpp->GetScanLine(0)[0], bmpp->GetWidth() * bmpp->GetHeight());
 
   toret = csavecompressed(fnn, wgtbl, pall, ooo);
   free(wgtbl);
   return toret;
 }
 
-long loadcompressed_allegro(FILE *fpp, BITMAP **bimpp, color *pall, long ooo) {
+long loadcompressed_allegro(FILE *fpp, IBitmap **bimpp, color *pall, long ooo) {
   short widd,hitt;
   int   ii;
 
-  BITMAP *bim = *bimpp;
-  if (bim != NULL)
-    destroy_bitmap(bim);
+  IBitmap *bim = *bimpp;
+  delete bim;
 
   fread(&widd,2,1,fpp);
   fread(&hitt,2,1,fpp);
-  bim = create_bitmap_ex(8, widd, hitt);
+  bim = Bitmap::CreateBitmap(widd, hitt, 8);
   if (bim == NULL)
     quit("!load_room: not enough memory to decompress masks");
   *bimpp = bim;
 
   for (ii = 0; ii < hitt; ii++) {
-    cunpackbitl(&bim->line[ii][0], widd, fpp);
+    cunpackbitl(&bim->GetScanLineForWriting(ii)[0], widd, fpp);
     if (ii % 20 == 0)
       update_polled_stuff_if_runtime();
   }

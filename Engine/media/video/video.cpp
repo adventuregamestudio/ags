@@ -15,6 +15,10 @@
 #include "platform/base/agsplatformdriver.h"
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::IBitmap;
+namespace Bitmap = AGS::Common::Bitmap;
 
 
 extern GameSetupStruct game;
@@ -22,7 +26,7 @@ extern GameState play;
 extern IGraphicsDriver *gfxDriver;
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern int scrnwid,scrnhit;
-extern block virtual_screen;
+extern IBitmap *virtual_screen;
 
 #if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
 extern int psp_video_framedrop;
@@ -30,12 +34,12 @@ extern int psp_video_framedrop;
 
 
 // FLIC player start
-block fli_buffer;
+IBitmap *fli_buffer;
 short fliwidth,fliheight;
 int canabort=0, stretch_flc = 1;
-block hicol_buf=NULL;
+IBitmap *hicol_buf=NULL;
 IDriverDependantBitmap *fli_ddb;
-BITMAP *fli_target;
+IBitmap *fli_target;
 int fliTargetWidth, fliTargetHeight;
 int check_if_user_input_should_cancel_video()
 {
@@ -59,18 +63,18 @@ extern "C" int fli_callback() {
 #else
 int fli_callback(...) {
 #endif
-    block usebuf = fli_buffer;
+    IBitmap *usebuf = fli_buffer;
 
     update_polled_stuff_and_crossfade ();
 
     if (game.color_depth > 1) {
-        blit(fli_buffer,hicol_buf,0,0,0,0,fliwidth,fliheight);
+        hicol_buf->Blit(fli_buffer,0,0,0,0,fliwidth,fliheight);
         usebuf=hicol_buf;
     }
     if (stretch_flc == 0)
-        blit(usebuf, fli_target, 0,0,scrnwid/2-fliwidth/2,scrnhit/2-fliheight/2,scrnwid,scrnhit);
+        fli_target->Blit(usebuf, 0,0,scrnwid/2-fliwidth/2,scrnhit/2-fliheight/2,scrnwid,scrnhit);
     else 
-        stretch_blit(usebuf, fli_target, 0,0,fliwidth,fliheight,0,0,scrnwid,scrnhit);
+        fli_target->StretchBlt(usebuf, RectWH(0,0,fliwidth,fliheight), RectWH(0,0,scrnwid,scrnhit));
 
     gfxDriver->UpdateDDBFromBitmap(fli_ddb, fli_target, false);
     gfxDriver->DrawSprite(0, 0, fli_ddb);
@@ -82,8 +86,14 @@ int fli_callback(...) {
 
 // FLIC player end
 
-int theora_playing_callback(BITMAP *theoraBuffer)
+// TODO: find a way to take IBitmap here?
+int theora_playing_callback(BITMAP *theoraBuffer_raw)
 {
+	// [IKM] CHECKME later (need optimization / reimplementation)
+	// This is probably not a very good thing to do in a video callback...
+	// Good thing is that AllegroBitmap does not store much data on its own
+	IBitmap *theoraBuffer = Bitmap::CreateRawDataWrapper(theoraBuffer_raw);
+
     if (theoraBuffer == NULL)
     {
         // No video, only sound
@@ -101,8 +111,8 @@ int theora_playing_callback(BITMAP *theoraBuffer)
         drawAtY = scrnhit / 2 - fliTargetHeight / 2;
         if (!gfxDriver->HasAcceleratedStretchAndFlip())
         {
-            stretch_blit(theoraBuffer, fli_target, 0, 0, theoraBuffer->w, theoraBuffer->h, 
-                drawAtX, drawAtY, fliTargetWidth, fliTargetHeight);
+            fli_target->StretchBlt(theoraBuffer, RectWH(0, 0, theoraBuffer->GetWidth(), theoraBuffer->GetHeight()), 
+                RectWH(drawAtX, drawAtY, fliTargetWidth, fliTargetHeight));
             gfxDriver->UpdateDDBFromBitmap(fli_ddb, fli_target, false);
             drawAtX = 0;
             drawAtY = 0;
@@ -116,14 +126,15 @@ int theora_playing_callback(BITMAP *theoraBuffer)
     else
     {
         gfxDriver->UpdateDDBFromBitmap(fli_ddb, theoraBuffer, false);
-        drawAtX = scrnwid / 2 - theoraBuffer->w / 2;
-        drawAtY = scrnhit / 2 - theoraBuffer->h / 2;
+        drawAtX = scrnwid / 2 - theoraBuffer->GetWidth() / 2;
+        drawAtY = scrnhit / 2 - theoraBuffer->GetHeight() / 2;
     }
 
     gfxDriver->DrawSprite(drawAtX, drawAtY, fli_ddb);
     render_to_screen(virtual_screen, 0, 0);
     update_polled_stuff_and_crossfade ();
 
+	delete theoraBuffer;
     return check_if_user_input_should_cancel_video();
 }
 
@@ -168,7 +179,7 @@ void calculate_destination_size_maintain_aspect_ratio(int vidWidth, int vidHeigh
 
 void play_theora_video(const char *name, int skip, int flags)
 {
-    apeg_set_display_depth(bitmap_color_depth(screen));
+	apeg_set_display_depth(Bitmap::GetScreenBitmap()->GetColorDepth());
     // we must disable length detection, otherwise it takes ages to start
     // playing if the file is large because it seeks through the whole thing
     apeg_disable_length_detection(TRUE);
@@ -195,7 +206,7 @@ void play_theora_video(const char *name, int skip, int flags)
     }
 
     fli_target = NULL;
-    //fli_buffer = create_bitmap_ex(final_col_dep, videoWidth, videoHeight);
+    //fli_buffer = Bitmap::CreateBitmap_(final_col_dep, videoWidth, videoHeight);
     calculate_destination_size_maintain_aspect_ratio(videoWidth, videoHeight, &fliTargetWidth, &fliTargetHeight);
 
     if ((fliTargetWidth == videoWidth) && (fliTargetHeight == videoHeight) && (stretch_flc))
@@ -206,8 +217,8 @@ void play_theora_video(const char *name, int skip, int flags)
 
     if ((stretch_flc) && (!gfxDriver->HasAcceleratedStretchAndFlip()))
     {
-        fli_target = create_bitmap_ex(final_col_dep, scrnwid, scrnhit);
-        clear(fli_target);
+        fli_target = Bitmap::CreateBitmap(scrnwid, scrnhit, final_col_dep);
+        fli_target->Clear();
         fli_ddb = gfxDriver->CreateDDBFromBitmap(fli_target, false, true);
     }
     else
@@ -217,7 +228,7 @@ void play_theora_video(const char *name, int skip, int flags)
 
     update_polled_stuff_if_runtime();
 
-    clear(virtual_screen);
+    virtual_screen->Clear();
 
     if (apeg_play_apeg_stream(oggVid, NULL, 0, theora_playing_callback) == APEG_ERROR)
     {
@@ -226,8 +237,7 @@ void play_theora_video(const char *name, int skip, int flags)
     apeg_close_stream(oggVid);
 
     //destroy_bitmap(fli_buffer);
-    if (fli_target != NULL)
-        destroy_bitmap(fli_target);
+    delete fli_target;
     gfxDriver->DestroyDDB(fli_ddb);
     fli_ddb = NULL;
     invalidate_screen();

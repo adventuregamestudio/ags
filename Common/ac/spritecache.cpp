@@ -21,6 +21,10 @@
 #include "ac/spritecache.h"
 #include "util/compress.h"
 #include "util/file.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::IBitmap;
+namespace Bitmap = AGS::Common::Bitmap;
 
 extern "C" {
   extern FILE *clibfopen(char *, char *);
@@ -63,7 +67,7 @@ void SpriteCache::changeMaxSize(long maxElements) {
     free(flags);
   }
   offsets = (long *)calloc(elements, sizeof(long));
-  images = (block *) calloc(elements, sizeof(block));
+  images = (IBitmap **) calloc(elements, sizeof(IBitmap *));
   mrulist = (int *)calloc(elements, sizeof(int));
   mrubacklink = (int *)calloc(elements, sizeof(int));
   sizes = (int *)calloc(elements, sizeof(int));
@@ -90,7 +94,7 @@ void SpriteCache::reset()
   int ii;
   for (ii = 0; ii < elements; ii++) {
     if (images[ii] != NULL) {
-      wfreeblock(images[ii]);
+      delete images[ii];
       images[ii] = NULL;
     }
   }
@@ -106,12 +110,12 @@ void SpriteCache::reset()
   init();
 }
 
-void SpriteCache::set(int index, block sprite)
+void SpriteCache::set(int index, IBitmap *sprite)
 {
   images[index] = sprite;
 }
 
-void SpriteCache::setNonDiscardable(int index, block sprite)
+void SpriteCache::setNonDiscardable(int index, IBitmap *sprite)
 {
   images[index] = sprite;
   offsets[index] = SPRITE_LOCKED;
@@ -120,7 +124,7 @@ void SpriteCache::setNonDiscardable(int index, block sprite)
 void SpriteCache::removeSprite(int index, bool freeMemory)
 {
   if ((images[index] != NULL) && (freeMemory))
-    wfreeblock(images[index]);
+    delete images[index];
 
   images[index] = NULL;
   offsets[index] = 0;
@@ -133,7 +137,7 @@ int SpriteCache::enlargeTo(long newsize) {
   int elementsWas = elements;
   elements = newsize;
   offsets = (long *)realloc(offsets, elements * sizeof(long));
-  images = (block *)realloc(images, elements * sizeof(block));
+  images = (IBitmap **)realloc(images, elements * sizeof(IBitmap *));
   mrulist = (int *)realloc(mrulist, elements * sizeof(int));
   mrubacklink = (int *)realloc(mrubacklink, elements * sizeof(int));
   sizes = (int *)realloc(sizes, elements * sizeof(int));
@@ -181,7 +185,7 @@ int SpriteCache::doesSpriteExist(int index) {
   return 0;
 }
 
-block SpriteCache::operator [] (int index)
+IBitmap *SpriteCache::operator [] (int index)
 {
   // invalid sprite slot
   if ((index < 0) || (index >= elements))
@@ -258,7 +262,7 @@ void SpriteCache::removeOldest()
     }
     cachesize -= sizes[sprnum];
 
-    wfreeblock(images[sprnum]);
+    delete images[sprnum];
     images[sprnum] = NULL;
   }
 
@@ -313,7 +317,7 @@ void SpriteCache::removeAll()
     if ((offsets[ii] != SPRITE_LOCKED) && (images[ii] != NULL) &&
         ((flags[ii] & SPRCACHEFLAG_DOESNOTEXIST) == 0)) 
     {
-      wfreeblock(images[ii]);
+      delete images[ii];
       images[ii] = NULL;
     }
     mrulist[ii] = 0;
@@ -388,7 +392,7 @@ int SpriteCache::loadSprite(int index)
   spritewidth[index] = wdd;
   spriteheight[index] = htt;
 
-  images[index] = create_bitmap_ex(coldep * 8, wdd, htt);
+  images[index] = Bitmap::CreateBitmap(wdd, htt, coldep * 8);
   if (images[index] == NULL) {
     offsets[index] = 0;
     return 0;
@@ -399,21 +403,21 @@ int SpriteCache::loadSprite(int index)
     getw(ff); // skip data size
     if (coldep == 1) {
       for (hh = 0; hh < htt; hh++)
-        cunpackbitl(&images[index]->line[hh][0], wdd, ff);
+        cunpackbitl(&images[index]->GetScanLineForWriting(hh)[0], wdd, ff);
     }
     else if (coldep == 2) {
       for (hh = 0; hh < htt; hh++)
-        cunpackbitl16((unsigned short*)&images[index]->line[hh][0], wdd, ff);
+        cunpackbitl16((unsigned short*)&images[index]->GetScanLine(hh)[0], wdd, ff);
     }
     else {
       for (hh = 0; hh < htt; hh++)
-        cunpackbitl32((unsigned long*)&images[index]->line[hh][0], wdd, ff);
+        cunpackbitl32((unsigned long*)&images[index]->GetScanLine(hh)[0], wdd, ff);
     }
   }
   else {
     for (hh = 0; hh < htt; hh++)
       // MACPORT FIX: size and nmemb split
-      fread(&images[index]->line[hh][0], coldep, wdd, ff);
+      fread(&images[index]->GetScanLineForWriting(hh)[0], coldep, wdd, ff);
   }
 
   lastLoad = index;
@@ -443,21 +447,21 @@ int SpriteCache::loadSprite(int index)
 
 const char *spriteFileSig = " Sprite File ";
 
-void SpriteCache::compressSprite(block sprite, FILE *ooo) {
+void SpriteCache::compressSprite(IBitmap *sprite, FILE *ooo) {
 
-  int depth = bitmap_color_depth(sprite) / 8;
+  int depth = sprite->GetColorDepth() / 8;
 
   if (depth == 1) {
-    for (int yy = 0; yy < sprite->h; yy++)
-      cpackbitl(&sprite->line[yy][0], sprite->w, ooo);
+    for (int yy = 0; yy < sprite->GetHeight(); yy++)
+      cpackbitl(&sprite->GetScanLineForWriting(yy)[0], sprite->GetWidth(), ooo);
   }
   else if (depth == 2) {
-    for (int yy = 0; yy < sprite->h; yy++)
-      cpackbitl16((unsigned short *)&sprite->line[yy][0], sprite->w, ooo);
+    for (int yy = 0; yy < sprite->GetHeight(); yy++)
+      cpackbitl16((unsigned short *)&sprite->GetScanLine(yy)[0], sprite->GetWidth(), ooo);
   }
   else {
-    for (int yy = 0; yy < sprite->h; yy++)
-      cpackbitl32((unsigned long *)&sprite->line[yy][0], sprite->w, ooo);
+    for (int yy = 0; yy < sprite->GetHeight(); yy++)
+      cpackbitl32((unsigned long *)&sprite->GetScanLine(yy)[0], sprite->GetWidth(), ooo);
   }
 
 }
@@ -518,9 +522,9 @@ int SpriteCache::saveToFile(const char *filnam, int lastElement, bool compressOu
     if (images[i] != NULL) {
       // image in memory -- write it out
       pre_save_sprite(i);
-      int bpss = bitmap_color_depth(images[i]) / 8;
-      spritewidths[i] = images[i]->w;
-      spriteheights[i] = images[i]->h;
+      int bpss = images[i]->GetColorDepth() / 8;
+      spritewidths[i] = images[i]->GetWidth();
+      spriteheights[i] = images[i]->GetHeight();
       putshort(bpss, output);
       putshort(spritewidths[i], output);
       putshort(spriteheights[i], output);
@@ -539,7 +543,7 @@ int SpriteCache::saveToFile(const char *filnam, int lastElement, bool compressOu
         fseek(output, 0, SEEK_END);
       }
       else
-        fwrite(&images[i]->line[0][0], spritewidths[i] * bpss, spriteheights[i], output);
+        fwrite(&images[i]->GetScanLine(0)[0], spritewidths[i] * bpss, spriteheights[i], output);
 
       continue;
     }

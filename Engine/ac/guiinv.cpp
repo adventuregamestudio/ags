@@ -6,6 +6,9 @@
 #include "ac/gamestate.h"
 #include "ac/characterextras.h"
 #include "ac/spritecache.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::IBitmap;
 
 
 extern GameSetupStruct game;
@@ -66,7 +69,7 @@ void GUIInv::Draw() {
             int jj, kk;   // darken the inventory when disabled
             for (jj = 0; jj < wid; jj++) {
                 for (kk = jj % 2; kk < hit; kk += 2)
-                    putpixel(abuf, x + jj, y + kk, col8);
+                    abuf->PutPixel(x + jj, y + kk, col8);
             }
     }
 

@@ -13,7 +13,9 @@
 #include "ac/screenoverlay.h"
 #include "ac/string.h"
 #include "gfx/graphicsdriver.h"
+#include "gfx/bitmap.h"
 
+using AGS::Common::IBitmap;
 
 extern GameSetupStruct game;
 extern int scrnwid,scrnhit;
@@ -144,8 +146,7 @@ ScriptOverlay* Overlay_CreateTextual(int x, int y, int width, int font, int colo
 
 void remove_screen_overlay_index(int cc) {
     int dd;
-    if (screenover[cc].pic!=NULL)
-        wfreeblock(screenover[cc].pic);
+    delete screenover[cc].pic;
     screenover[cc].pic=NULL;
 
     if (screenover[cc].bmp != NULL)
@@ -189,7 +190,7 @@ int find_overlay_of_type(int typ) {
     return -1;
 }
 
-int add_screen_overlay(int x,int y,int type,block piccy, bool alphaChannel) {
+int add_screen_overlay(int x,int y,int type,IBitmap *piccy, bool alphaChannel) {
     if (numscreenover>=MAX_SCREEN_OVERLAYS)
         quit("too many screen overlays created");
     if (type==OVER_COMPLETE) is_complete_overlay++;
@@ -230,16 +231,16 @@ void get_overlay_position(int overlayidx, int *x, int *y) {
         else
             tdyp -= charextra[charid].height;
 
-        tdyp -= screenover[overlayidx].pic->h;
+        tdyp -= screenover[overlayidx].pic->GetHeight();
         if (tdyp < 5) tdyp=5;
-        tdxp = (multiply_up_coordinate(game.chars[charid].x) - screenover[overlayidx].pic->w/2) - offsetx;
+        tdxp = (multiply_up_coordinate(game.chars[charid].x) - screenover[overlayidx].pic->GetWidth()/2) - offsetx;
         if (tdxp < 0) tdxp=0;
 
-        if ((tdxp + screenover[overlayidx].pic->w) >= scrnwid)
-            tdxp = (scrnwid - screenover[overlayidx].pic->w) - 1;
+        if ((tdxp + screenover[overlayidx].pic->GetWidth()) >= scrnwid)
+            tdxp = (scrnwid - screenover[overlayidx].pic->GetWidth()) - 1;
         if (game.chars[charid].room != displayed_room) {
-            tdxp = scrnwid/2 - screenover[overlayidx].pic->w/2;
-            tdyp = scrnhit/2 - screenover[overlayidx].pic->h/2;
+            tdxp = scrnwid/2 - screenover[overlayidx].pic->GetWidth()/2;
+            tdyp = scrnhit/2 - screenover[overlayidx].pic->GetHeight()/2;
         }
     }
     else {

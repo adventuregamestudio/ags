@@ -9,6 +9,10 @@
 #include "plugin/agsplugin.h"
 #include "ac/spritecache.h"
 #include "gfx/graphicsdriver.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::IBitmap;
+namespace Bitmap = AGS::Common::Bitmap;
 
 extern GameSetupStruct game;
 extern int scrnwid,scrnhit;
@@ -44,16 +48,16 @@ void get_new_size_for_sprite (int ee, int ww, int hh, int &newwid, int &newhit) 
 }
 
 // set any alpha-transparent pixels in the image to the appropriate
-// RGB mask value so that the draw_sprite calls work correctly
-void set_rgb_mask_using_alpha_channel(block image)
+// RGB mask value so that the ->Blit calls work correctly
+void set_rgb_mask_using_alpha_channel(IBitmap *image)
 {
     int x, y;
 
-    for (y=0; y < image->h; y++) 
+    for (y=0; y < image->GetHeight(); y++) 
     {
-        unsigned long*psrc = (unsigned long *)image->line[y];
+        unsigned long*psrc = (unsigned long *)image->GetScanLine(y);
 
-        for (x=0; x < image->w; x++) 
+        for (x=0; x < image->GetWidth(); x++) 
         {
             if ((psrc[x] & 0xff000000) == 0x00000000)
                 psrc[x] = MASK_COLOR_32;
@@ -62,21 +66,21 @@ void set_rgb_mask_using_alpha_channel(block image)
 }
 
 // from is a 32-bit RGBA image, to is a 15/16/24-bit destination image
-block remove_alpha_channel(block from) {
+IBitmap *remove_alpha_channel(IBitmap *from) {
     int depth = final_col_dep;
 
-    block to = create_bitmap_ex(depth, from->w, from->h);
-    int maskcol = bitmap_mask_color(to);
+    IBitmap *to = Bitmap::CreateBitmap(from->GetWidth(), from->GetHeight(),depth);
+    int maskcol = to->GetMaskColor();
     int y,x;
     unsigned long c,b,g,r;
 
     if (depth == 24) {
         // 32-to-24
-        for (y=0; y < from->h; y++) {
-            unsigned long*psrc = (unsigned long *)from->line[y];
-            unsigned char*pdest = (unsigned char*)to->line[y];
+        for (y=0; y < from->GetHeight(); y++) {
+            unsigned long*psrc = (unsigned long *)from->GetScanLine(y);
+            unsigned char*pdest = (unsigned char*)to->GetScanLine(y);
 
-            for (x=0; x < from->w; x++) {
+            for (x=0; x < from->GetWidth(); x++) {
                 c = psrc[x];
                 // less than 50% opaque, remove the pixel
                 if (((c >> 24) & 0x00ff) < 128)
@@ -89,11 +93,11 @@ block remove_alpha_channel(block from) {
     }
     else {  // 32 to 15 or 16
 
-        for (y=0; y < from->h; y++) {
-            unsigned long*psrc = (unsigned long *)from->line[y];
-            unsigned short*pdest = (unsigned short *)to->line[y];
+        for (y=0; y < from->GetHeight(); y++) {
+            unsigned long*psrc = (unsigned long *)from->GetScanLine(y);
+            unsigned short*pdest = (unsigned short *)to->GetScanLine(y);
 
-            for (x=0; x < from->w; x++) {
+            for (x=0; x < from->GetWidth(); x++) {
                 c = psrc[x];
                 // less than 50% opaque, remove the pixel
                 if (((c >> 24) & 0x00ff) < 128)
@@ -117,7 +121,7 @@ void pre_save_sprite(int ee) {
 }
 
 // these vars are global to help with debugging
-block tmpdbl, curspr;
+IBitmap *tmpdbl, *curspr;
 int newwid, newhit;
 void initialize_sprite (int ee) {
 
@@ -147,57 +151,57 @@ void initialize_sprite (int ee) {
         }
 
         curspr = spriteset[ee];
-        get_new_size_for_sprite (ee, curspr->w, curspr->h, newwid, newhit);
+        get_new_size_for_sprite (ee, curspr->GetWidth(), curspr->GetHeight(), newwid, newhit);
 
         eip_guinum = ee;
         eip_guiobj = newwid;
 
-        if ((newwid != curspr->w) || (newhit != curspr->h)) {
-            tmpdbl = create_bitmap_ex(bitmap_color_depth(curspr),newwid,newhit);
+        if ((newwid != curspr->GetWidth()) || (newhit != curspr->GetHeight())) {
+            tmpdbl = Bitmap::CreateBitmap(newwid,newhit,curspr->GetColorDepth());
             if (tmpdbl == NULL)
                 quit("Not enough memory to load sprite graphics");
-            acquire_bitmap (tmpdbl);
-            acquire_bitmap (curspr);
-            clear_to_color(tmpdbl,bitmap_mask_color(tmpdbl));
+            tmpdbl->Acquire ();
+            curspr->Acquire ();
+            tmpdbl->Clear(tmpdbl->GetMaskColor());
             /*#ifdef USE_CUSTOM_EXCEPTION_HANDLER
             __try {
             #endif*/
-            stretch_sprite(tmpdbl,curspr,0,0,tmpdbl->w,tmpdbl->h);
+            tmpdbl->StretchBlt(curspr,RectWH(0,0,tmpdbl->GetWidth(),tmpdbl->GetHeight()));
             /*#ifdef USE_CUSTOM_EXCEPTION_HANDLER
             } __except (1) {
-            // I can't trace this fault, but occasionally stretch_sprite
+            // I can't trace this fault, but occasionally ->StretchBlt
             // crashes, even with valid source and dest bitmaps. So,
             // for now, just ignore the exception, since the stretch
             // looks successful
             //MessageBox (allegro_wnd, "ERROR", "FATAL ERROR", MB_OK);
             }
             #endif*/
-            release_bitmap (curspr);
-            release_bitmap (tmpdbl);
-            wfreeblock(curspr);
+            curspr->Release ();
+            tmpdbl->Release ();
+            delete curspr;
             spriteset.set (ee, tmpdbl);
         }
 
         spritewidth[ee]=wgetblockwidth(spriteset[ee]);
         spriteheight[ee]=wgetblockheight(spriteset[ee]);
 
-        int spcoldep = bitmap_color_depth(spriteset[ee]);
+        int spcoldep = spriteset[ee]->GetColorDepth();
 
         if (((spcoldep > 16) && (final_col_dep <= 16)) ||
             ((spcoldep == 16) && (final_col_dep > 16))) {
                 // 16-bit sprite in 32-bit game or vice versa - convert
-                // so that scaling and draw_sprite calls work properly
-                block oldSprite = spriteset[ee];
-                block newSprite;
+                // so that scaling and ->Blit calls work properly
+                IBitmap *oldSprite = spriteset[ee];
+                IBitmap *newSprite;
 
                 if (game.spriteflags[ee] & SPF_ALPHACHANNEL)
                     newSprite = remove_alpha_channel(oldSprite);
                 else {
-                    newSprite = create_bitmap_ex(final_col_dep, spritewidth[ee], spriteheight[ee]);
-                    blit(oldSprite, newSprite, 0, 0, 0, 0, spritewidth[ee], spriteheight[ee]);
+                    newSprite = Bitmap::CreateBitmap(spritewidth[ee], spriteheight[ee], final_col_dep);
+                    newSprite->Blit(oldSprite, 0, 0, 0, 0, spritewidth[ee], spriteheight[ee]);
                 }
                 spriteset.set(ee, newSprite);
-                destroy_bitmap(oldSprite);
+                delete oldSprite;
                 spcoldep = final_col_dep;
         }
         else if ((spcoldep == 32) && (final_col_dep == 32))
@@ -215,7 +219,7 @@ void initialize_sprite (int ee) {
 #ifdef USE_15BIT_FIX
         else if ((final_col_dep != game.color_depth*8) && (spcoldep == game.color_depth*8)) {
             // running in 15-bit mode with a 16-bit game, convert sprites
-            block oldsprite = spriteset[ee];
+            IBitmap *oldsprite = spriteset[ee];
 
             if (game.spriteflags[ee] & SPF_ALPHACHANNEL)
                 // 32-to-24 with alpha channel
@@ -223,9 +227,9 @@ void initialize_sprite (int ee) {
             else
                 spriteset.set (ee, convert_16_to_15(oldsprite));
 
-            destroy_bitmap(oldsprite);
+            delete oldsprite;
         }
-        if ((convert_16bit_bgr == 1) && (bitmap_color_depth(spriteset[ee]) == 16))
+        if ((convert_16bit_bgr == 1) && (spriteset[ee]->GetColorDepth() == 16))
             spriteset.set (ee, convert_16_to_16bgr (spriteset[ee]));
 #endif
 

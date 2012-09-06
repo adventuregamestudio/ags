@@ -15,7 +15,7 @@ using namespace AGS::Engine; // FIXME later
 
 struct ScreenOverlay {
     IDriverDependantBitmap *bmp;
-    block pic;
+    Common::IBitmap *pic;
     int type,x,y,timeout;
     int bgSpeechForChar;
     int associatedOverlayHandle;

@@ -35,6 +35,9 @@
 #include "ac/viewframe.h"
 #include "ac/walkablearea.h"
 #include "gfx/graphicsdriver.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::IBitmap;
 
 extern MoveList *mls;
 extern RoomStatus*croom;
@@ -388,15 +391,15 @@ void update_sierra_speech()
       
       if (game.options[OPT_SPEECHTYPE] == 3) {
         // QFG4-style fullscreen dialog
-        yPos = (screenover[face_talking].pic->h / 2) - (spriteheight[thisPic] / 2);
-        clear_to_color(screenover[face_talking].pic, 0);
+        yPos = (screenover[face_talking].pic->GetHeight() / 2) - (spriteheight[thisPic] / 2);
+        screenover[face_talking].pic->Clear(0);
       }
       else {
-        clear_to_color(screenover[face_talking].pic, bitmap_mask_color(screenover[face_talking].pic));
+        screenover[face_talking].pic->Clear(screenover[face_talking].pic->GetMaskColor());
       }
 
       DrawViewFrame(screenover[face_talking].pic, &views[facetalkview].loops[facetalkloop].frames[facetalkframe], 0, yPos);
-//      draw_sprite(screenover[face_talking].pic, spriteset[thisPic], 0, yPos);
+//      ->Blit(screenover[face_talking].pic, spriteset[thisPic], 0, yPos);
 
       if ((facetalkchar->blinkview > 0) && (facetalkchar->blinktimer < 0)) {
         // draw the blinking sprite on top
@@ -404,7 +407,7 @@ void update_sierra_speech()
             &views[facetalkchar->blinkview].loops[facetalkBlinkLoop].frames[facetalkchar->blinkframe],
             0, yPos);
 
-/*        draw_sprite(screenover[face_talking].pic,
+/*        ->Blit(screenover[face_talking].pic,
           spriteset[views[facetalkchar->blinkview].frames[facetalkloop][facetalkchar->blinkframe].pic],
           0, yPos);*/
       }

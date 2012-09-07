@@ -833,7 +833,7 @@ void engine_init_modxm_player()
 void show_preload () {
     // ** Do the preload graphic if available
     color temppal[256];
-	IBitmap *splashsc = Bitmap::CreateRawDataOwner( load_pcx("preload.pcx",temppal) );
+	IBitmap *splashsc = Bitmap::CreateRawObjectOwner( load_pcx("preload.pcx",temppal) );
     if (splashsc != NULL) {
         if (splashsc->GetColorDepth() == 8)
             wsetpalette(0,255,temppal);

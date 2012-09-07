@@ -28,9 +28,9 @@ public:
 	static CAllegroBitmap *CreateSubBitmap(IBitmap *src, const CRect &rc);
 	// TODO: revise those functions later (currently needed in a few very specific cases)
 	// NOTE: the resulting object __owns__ bitmap data from now on
-	static CAllegroBitmap *CreateFromRawAllegroBitmap(void *bitmap_data);
+	static CAllegroBitmap *CreateFromRawAllegroBitmap(void *bitmap_object);
 	// NOTE: the resulting object __does not own__ bitmap data
-	static CAllegroBitmap *WrapRawAllegroBitmap(void *bitmap_data);
+	static CAllegroBitmap *WrapRawAllegroBitmap(void *bitmap_object);
 	static CAllegroBitmap *LoadFromFile(const char *filename);
 	static bool           SaveToFile(IBitmap *bitmap, const char *filename, const void *palette);
 

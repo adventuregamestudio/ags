@@ -287,9 +287,9 @@ namespace Bitmap
 	IBitmap *CreateSubBitmap(IBitmap *src, const CRect &rc);
 	// TODO: revise those functions later (currently needed in a few very specific cases)
 	// NOTE: the resulting object __owns__ bitmap data from now on
-	IBitmap *CreateRawDataOwner(void *bitmap_data);
+	IBitmap *CreateRawObjectOwner(void *bitmap_object);
 	// NOTE: the resulting object __does not own__ bitmap data
-	IBitmap *CreateRawDataWrapper(void *bitmap_data);
+	IBitmap *CreateRawObjectWrapper(void *bitmap_object);
 	IBitmap *LoadFromFile(const char *filename);
 	bool	SaveToFile(IBitmap *bitmap, const char *filename, const void *palette);
 

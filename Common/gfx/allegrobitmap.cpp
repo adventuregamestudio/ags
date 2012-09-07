@@ -30,27 +30,27 @@ namespace Common
 	return bitmap;
 }
 
-/*static*/ CAllegroBitmap *CAllegroBitmap::CreateFromRawAllegroBitmap(void *bitmap_data)
+/*static*/ CAllegroBitmap *CAllegroBitmap::CreateFromRawAllegroBitmap(void *bitmap_object)
 {
-	if (!bitmap_data)
+	if (!bitmap_object)
 	{
 		return NULL;
 	}
 
 	CAllegroBitmap *bitmap = new CAllegroBitmap();
-	bitmap->_bitmap = (BITMAP*)bitmap_data;
+	bitmap->_bitmap = (BITMAP*)bitmap_object;
 	return bitmap;
 }
 
-/*static*/ CAllegroBitmap *CAllegroBitmap::WrapRawAllegroBitmap(void *bitmap_data)
+/*static*/ CAllegroBitmap *CAllegroBitmap::WrapRawAllegroBitmap(void *bitmap_object)
 {
-	if (!bitmap_data)
+	if (!bitmap_object)
 	{
 		return NULL;
 	}
 
 	CAllegroBitmap *bitmap = new CAllegroBitmap();
-	bitmap->_bitmap = (BITMAP*)bitmap_data;
+	bitmap->_bitmap = (BITMAP*)bitmap_object;
 	bitmap->_isDataOwner = false;
 	return bitmap;
 }
@@ -451,13 +451,37 @@ void CAllegroBitmap::RotateBlt(IBitmap *src, int dst_x, int dst_y, int pivot_x, 
 
 void CAllegroBitmap::PutPixel(int x, int y, color_t color)
 {
-	// CHECK when to use _putpixel* instead
-	putpixel(_bitmap, x, y, color);
+	switch (bitmap_color_depth(_bitmap))
+	{
+	case 8:
+		return _putpixel(_bitmap, x, y, color);
+	case 15:
+		return _putpixel15(_bitmap, x, y, color);
+	case 16:
+		return _putpixel16(_bitmap, x, y, color);
+	case 24:
+		return _putpixel24(_bitmap, x, y, color);
+	case 32:
+		return _putpixel32(_bitmap, x, y, color);
+	}
+	return putpixel(_bitmap, x, y, color);
 }
 
 int CAllegroBitmap::GetPixel(int x, int y) const
 {
-	// CHECK when to use _getpixel* instead
+	switch (bitmap_color_depth(_bitmap))
+	{
+	case 8:
+		return _getpixel(_bitmap, x, y);
+	case 15:
+		return _getpixel15(_bitmap, x, y);
+	case 16:
+		return _getpixel16(_bitmap, x, y);
+	case 24:
+		return _getpixel24(_bitmap, x, y);
+	case 32:
+		return _getpixel32(_bitmap, x, y);
+	}
 	return getpixel(_bitmap, x, y);
 }
 

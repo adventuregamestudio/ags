@@ -30,14 +30,14 @@ IBitmap *CreateSubBitmap(IBitmap *src, const CRect &rc)
 	return CAllegroBitmap::CreateSubBitmap(src, rc);
 }
 
-IBitmap *CreateRawDataOwner(void *bitmap_data)
+IBitmap *CreateRawObjectOwner(void *bitmap_object)
 {
-	return CAllegroBitmap::CreateFromRawAllegroBitmap(bitmap_data);
+	return CAllegroBitmap::CreateFromRawAllegroBitmap(bitmap_object);
 }
 
-IBitmap *CreateRawDataWrapper(void *bitmap_data)
+IBitmap *CreateRawObjectWrapper(void *bitmap_object)
 {
-	return CAllegroBitmap::WrapRawAllegroBitmap(bitmap_data);
+	return CAllegroBitmap::WrapRawAllegroBitmap(bitmap_object);
 }
 
 IBitmap *LoadFromFile(const char *filename)

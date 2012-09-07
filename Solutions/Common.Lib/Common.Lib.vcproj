@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="windows-1251"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Common.Lib"
 	ProjectGUID="{463A715C-3EF3-47C7-AC7F-D97660149C49}"
 	RootNamespace="CommonLib"
@@ -581,6 +581,22 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\gfx\bitmap.h"
+					>
+				</File>
+			</Filter>
+		</Filter>
+		<Filter
+			Name="Library Sources"
+			>
+			<Filter
+				Name="aastr"
+				>
+				<File
+					RelativePath="..\..\Common\libsrc\aastr-0.1.1\aastr.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\libsrc\aastr-0.1.1\aautil.c"
 					>
 				</File>
 			</Filter>

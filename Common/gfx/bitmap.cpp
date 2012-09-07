@@ -61,8 +61,18 @@ IBitmap *GetScreenBitmap()
 
 void SetScreenBitmap(IBitmap *bitmap)
 {
+    // We do not delete previous object here since we can't tell
+    // where it came from and whether it still exists.
+    // (Did I mention this is an ugly workaround? So...)
 	gl_ScreenBmp = bitmap;
-	screen = (BITMAP*)gl_ScreenBmp->GetBitmapObject();
+
+    // Only set allegro screen pointer if there's actual bitmap;
+    // setting it to NULL does not have any sense and may (will?)
+    // cause crashes.
+    if (gl_ScreenBmp)
+    {
+	    screen = (BITMAP*)gl_ScreenBmp->GetBitmapObject();
+    }
 }
 
 };

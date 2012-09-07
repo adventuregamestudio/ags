@@ -136,6 +136,7 @@ public:
 #ifdef _WIN32
     dxGammaControl = NULL;
 #endif
+    _allegroScreenWrapper = NULL;
   }
 
   virtual const char*GetDriverName() { return "Allegro/DX5"; }
@@ -187,6 +188,7 @@ private:
   int _colorDepth;
   bool _windowed;
   bool _autoVsync;
+  IBitmap *_allegroScreenWrapper;
   IBitmap *virtualScreen;
   IBitmap *_spareTintingScreen;
   GFXDRV_CLIENTCALLBACK _callback;
@@ -223,7 +225,7 @@ private:
 bool ALSoftwareGraphicsDriver::IsModeSupported(int driver, int width, int height, int colDepth)
 {
 #if defined(ANDROID_VERSION) || defined(PSP_VERSION) || defined(IOS_VERSION)
-  // Everything is drawn to a virtual Common::gl_ScreenBmp, so all resolutions are supported.
+  // Everything is drawn to a virtual screen, so all resolutions are supported.
   return true;
 #endif
 
@@ -237,7 +239,7 @@ bool ALSoftwareGraphicsDriver::IsModeSupported(int driver, int width, int height
   }
   if (_gfxModeList != NULL)
   {
-    // if a list is available, check if the mode exists. This prevents the Common::gl_ScreenBmp flicking
+    // if a list is available, check if the mode exists. This prevents the screen flicking
     // between loads of unsupported resolutions
     for (int i = 0; i < _gfxModeList->num_modes; i++)
     {
@@ -332,8 +334,19 @@ bool ALSoftwareGraphicsDriver::Init(int width, int height, int colourDepth, bool
   if ((IsModeSupported(driver, actualInitWid, actualInitHit, colourDepth)) &&
       (set_gfx_mode(driver, actualInitWid, actualInitHit, 0, 0) == 0))
   {
+    // [IKM] 2012-09-07
+    // set_gfx_mode is an allegro function that creates screen bitmap;
+    // following code assumes the screen is already created, therefore we should
+    // ensure global bitmap wraps over existing allegro screen bitmap.
+    _allegroScreenWrapper = Bitmap::CreateRawObjectWrapper(screen);
+    Bitmap::SetScreenBitmap( _allegroScreenWrapper );
+
     Bitmap::GetScreenBitmap()->Clear();
     Bitmap::SetScreenBitmap( _filter->ScreenInitialized(Bitmap::GetScreenBitmap(), width, height) );
+
+    // [IKM] 2012-09-07
+    // At this point the wrapper we created is saved by filter for future reference,
+    // therefore we should not delete it right away, but only at driver shutdown.
 
     virtualScreen = Bitmap::GetScreenBitmap();
 
@@ -390,6 +403,16 @@ void ALSoftwareGraphicsDriver::UnInit()
 
   if (Bitmap::GetScreenBitmap())
    Bitmap::SetScreenBitmap( _filter->ShutdownAndReturnRealScreen(Bitmap::GetScreenBitmap()) );
+
+  // [IKM] 2012-09-07
+  // We do not need the wrapper any longer;
+  // this does not destroy the underlying allegro screen bitmap, only wrapper.
+  delete _allegroScreenWrapper;
+  _allegroScreenWrapper = NULL;
+  // Nullify the global screen object (for safety reasons); note this yet does
+  // not change allegro screen pointer (at this moment it should point at the
+  // original internally created allegro bitmap which will be destroyed by Allegro).
+  Bitmap::SetScreenBitmap(NULL);
 
   // don't do anything else -- the main app may
   // already have called allegro_exit

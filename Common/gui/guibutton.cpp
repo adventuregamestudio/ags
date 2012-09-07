@@ -95,7 +95,7 @@ void GUIButton::Draw()
       }
 
       if (drawInv == 1)
-        abuf->StretchBlt(spriteset[gui_inv_pic], RectWH(x + 3, y + 3, wid - 6, hit - 6));
+        abuf->StretchBlt(spriteset[gui_inv_pic], RectWH(x + 3, y + 3, wid - 6, hit - 6), Common::kBitmap_Transparency);
       else if (drawInv == 2)
         draw_sprite_compensate(gui_inv_pic,
                                x + wid / 2 - get_adjusted_spritewidth(gui_inv_pic) / 2,

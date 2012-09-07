@@ -145,5 +145,5 @@ void DrawViewFrame(IBitmap *target, ViewFrame *vframe, int x, int y) {
     if (vframe->flags & VFLG_FLIPSPRITE)
         target->FlipBlt(spriteset[vframe->pic], x, y, Common::kBitmap_HFlip);
     else
-        target->Blit(spriteset[vframe->pic], x, y);
+        target->Blit(spriteset[vframe->pic], x, y, Common::kBitmap_Transparency);
 }

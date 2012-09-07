@@ -48,7 +48,7 @@ void get_new_size_for_sprite (int ee, int ww, int hh, int &newwid, int &newhit) 
 }
 
 // set any alpha-transparent pixels in the image to the appropriate
-// RGB mask value so that the ->Blit calls work correctly
+// RGB mask value so that the blit calls work correctly
 void set_rgb_mask_using_alpha_channel(IBitmap *image)
 {
     int x, y;
@@ -166,10 +166,10 @@ void initialize_sprite (int ee) {
             /*#ifdef USE_CUSTOM_EXCEPTION_HANDLER
             __try {
             #endif*/
-            tmpdbl->StretchBlt(curspr,RectWH(0,0,tmpdbl->GetWidth(),tmpdbl->GetHeight()));
+            tmpdbl->StretchBlt(curspr,RectWH(0,0,tmpdbl->GetWidth(),tmpdbl->GetHeight()), Common::kBitmap_Transparency);
             /*#ifdef USE_CUSTOM_EXCEPTION_HANDLER
             } __except (1) {
-            // I can't trace this fault, but occasionally ->StretchBlt
+            // I can't trace this fault, but occasionally stretch_sprite
             // crashes, even with valid source and dest bitmaps. So,
             // for now, just ignore the exception, since the stretch
             // looks successful
@@ -190,7 +190,7 @@ void initialize_sprite (int ee) {
         if (((spcoldep > 16) && (final_col_dep <= 16)) ||
             ((spcoldep == 16) && (final_col_dep > 16))) {
                 // 16-bit sprite in 32-bit game or vice versa - convert
-                // so that scaling and ->Blit calls work properly
+                // so that scaling and blit calls work properly
                 IBitmap *oldSprite = spriteset[ee];
                 IBitmap *newSprite;
 

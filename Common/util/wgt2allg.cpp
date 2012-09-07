@@ -359,7 +359,7 @@ IBitmap *abuf;
   void wputblock(int xx, int yy, IBitmap *bll, int xray)
   {
     if (xray)
-      abuf->Blit(bll, xx, yy);
+		abuf->Blit(bll, xx, yy, Common::kBitmap_Transparency);
     else
       abuf->Blit(bll, 0, 0, xx, yy, bll->GetWidth(), bll->GetHeight());
   }
@@ -369,7 +369,7 @@ IBitmap *abuf;
   {
 	wputblock_wrapper.WrapBitmapObject(bll);
     if (xray)
-      abuf->Blit(&wputblock_wrapper, xx, yy);
+      abuf->Blit(&wputblock_wrapper, xx, yy, Common::kBitmap_Transparency);
     else
       abuf->Blit(&wputblock_wrapper, 0, 0, xx, yy, wputblock_wrapper.GetWidth(), wputblock_wrapper.GetHeight());
   }

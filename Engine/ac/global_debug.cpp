@@ -84,7 +84,9 @@ void script_debug(int cmdd,int dataa) {
         IBitmap *tempw=Bitmap::CreateBitmap(thisroom.walls->GetWidth(),thisroom.walls->GetHeight());
         tempw->Blit(prepare_walkable_areas(-1),0,0,0,0,tempw->GetWidth(),tempw->GetHeight());
         IBitmap *stretched = Bitmap::CreateBitmap(scrnwid, scrnhit);
-        stretched->StretchBlt(tempw, RectWH(-offsetx, -offsety, get_fixed_pixel_size(tempw->GetWidth()), get_fixed_pixel_size(tempw->GetHeight())));
+        stretched->StretchBlt(tempw,
+			RectWH(-offsetx, -offsety, get_fixed_pixel_size(tempw->GetWidth()), get_fixed_pixel_size(tempw->GetHeight())),
+			Common::kBitmap_Transparency);
 
         IDriverDependantBitmap *ddb = gfxDriver->CreateDDBFromBitmap(stretched, false, true);
         render_graphics(ddb, 0, 0);
@@ -139,7 +141,9 @@ void script_debug(int cmdd,int dataa) {
             short targety=short(cmls->pos[i+1] & 0x00ffff);
             tempw->DrawLine(CLine(srcx, srcy, targetx, targety), get_col8_lookup(i+1));
         }
-		Bitmap::GetScreenBitmap()->StretchBlt(tempw, RectWH(-offsetx, -offsety, multiply_up_coordinate(tempw->GetWidth()), multiply_up_coordinate(tempw->GetHeight())));
+		Bitmap::GetScreenBitmap()->StretchBlt(tempw,
+			RectWH(-offsetx, -offsety, multiply_up_coordinate(tempw->GetWidth()), multiply_up_coordinate(tempw->GetHeight())),
+			Common::kBitmap_Transparency);
         render_to_screen(Bitmap::GetScreenBitmap(), 0, 0);
         delete tempw;
         while (!kbhit()) ;

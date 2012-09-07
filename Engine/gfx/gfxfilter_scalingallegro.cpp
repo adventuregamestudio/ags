@@ -69,7 +69,7 @@ void ScalingAllegroGFXFilter::GetCopyOfScreenIntoBitmap(IBitmap *copyBitmap, boo
 {
     if (!copyWithYOffset)
     {
-        // Can't ->StretchBlt from Video Memory to normal memory,
+        // Can't stretch_blit from Video Memory to normal memory,
         // so copy the screen to a buffer first.
         realScreenSizedBuffer->Blit(realScreen, 0, 0, 0, 0, realScreen->GetWidth(), realScreen->GetHeight());
         copyBitmap->StretchBlt(realScreenSizedBuffer,

@@ -1077,7 +1077,7 @@ void put_sprite_256(int xxx,int yyy,IBitmap *piccy) {
             if ((piccy->GetColorDepth() == 8) && (screen_depth >= 24)) {
                 // 256-col sprite -> truecolor background
                 // this is automatically supported by allegro, no twiddling needed
-                abuf->Blit(piccy, xxx, yyy);
+                abuf->Blit(piccy, xxx, yyy, Common::kBitmap_Transparency);
                 return;
             }
             // 256-col spirte -> hi-color background, or
@@ -1401,16 +1401,16 @@ int scale_and_flip_sprite(int useindx, int coldept, int zoom_level,
           IBitmap *tempspr = Bitmap::CreateBitmap(newwidth, newheight,coldept);
           tempspr->Clear (actsps[useindx]->GetMaskColor());
           if ((IS_ANTIALIAS_SPRITES) && ((game.spriteflags[sppic] & SPF_ALPHACHANNEL) == 0))
-              tempspr->AAStretchBlt (spriteset[sppic], RectWH(0, 0, newwidth, newheight));
+              tempspr->AAStretchBlt (spriteset[sppic], RectWH(0, 0, newwidth, newheight), Common::kBitmap_Transparency);
           else
-              tempspr->StretchBlt (spriteset[sppic], RectWH(0, 0, newwidth, newheight));
+              tempspr->StretchBlt (spriteset[sppic], RectWH(0, 0, newwidth, newheight), Common::kBitmap_Transparency);
           actsps[useindx]->FlipBlt(tempspr, 0, 0, Common::kBitmap_HFlip);
           delete tempspr;
       }
       else if ((IS_ANTIALIAS_SPRITES) && ((game.spriteflags[sppic] & SPF_ALPHACHANNEL) == 0))
-          actsps[useindx]->AAStretchBlt(spriteset[sppic],RectWH(0,0,newwidth,newheight));
+          actsps[useindx]->AAStretchBlt(spriteset[sppic],RectWH(0,0,newwidth,newheight), Common::kBitmap_Transparency);
       else
-          actsps[useindx]->StretchBlt(spriteset[sppic],RectWH(0,0,newwidth,newheight));
+          actsps[useindx]->StretchBlt(spriteset[sppic],RectWH(0,0,newwidth,newheight), Common::kBitmap_Transparency);
 
       /*  AASTR2 version of code (doesn't work properly, gives black borders)
       if (IS_ANTIALIAS_SPRITES) {
@@ -1949,7 +1949,7 @@ void prepare_characters_for_drawing() {
                         comeFrom);
             }
             else if (!actspsUsed)
-                // no scaling, flipping or tinting was done, so just ->Blit it normally
+                // no scaling, flipping or tinting was done, so just blit it normally
                 actsps[useindx]->Blit (spriteset[sppic], 0, 0, 0, 0, actsps[useindx]->GetWidth(), actsps[useindx]->GetHeight());
 
             // update the character cache with the new image

@@ -841,7 +841,7 @@ void show_preload () {
         IBitmap *tsc = Bitmap::CreateBitmap(splashsc->GetWidth(),splashsc->GetHeight(),screen_bmp->GetColorDepth());
         tsc->Blit(splashsc,0,0,0,0,tsc->GetWidth(),tsc->GetHeight());
 		screen_bmp->Clear();
-        screen_bmp->StretchBlt(tsc, RectWH(0, 0, scrnwid,scrnhit));
+        screen_bmp->StretchBlt(tsc, RectWH(0, 0, scrnwid,scrnhit), Common::kBitmap_Transparency);
 
         gfxDriver->ClearDrawList();
 

@@ -290,6 +290,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\util\datastream.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\util\file.cpp"
 					>
 				</File>
@@ -311,6 +315,14 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\util\string_utils.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\textstreamreader.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\textstreamwriter.cpp"
 					>
 				</File>
 				<File
@@ -520,10 +532,6 @@
 				Name="util"
 				>
 				<File
-					RelativePath="..\..\Common\util\agsstream.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Common\util\alignedstream.h"
 					>
 				</File>
@@ -532,7 +540,15 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\util\clib32.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\util\compress.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\datastream.h"
 					>
 				</File>
 				<File
@@ -565,6 +581,26 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\util\string_utils.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\util\textfilestream.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\textreader.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\textstreamreader.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\textstreamwriter.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\textwriter.h"
 					>
 				</File>
 				<File

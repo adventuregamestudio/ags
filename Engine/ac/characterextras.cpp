@@ -18,7 +18,6 @@ void CharacterExtras::ReadFromFile(FILE *f)
     process_idle_this_time = getc(f);
     slow_move_counter = getc(f);
     animwait = getshort(f);
-    fseek(f, get_padding(MAX_INVORDER * sizeof(short) + 2), SEEK_CUR);
 }
 
 void CharacterExtras::WriteToFile(FILE *f)
@@ -39,5 +38,4 @@ void CharacterExtras::WriteToFile(FILE *f)
     putc(process_idle_this_time, f);
     putc(slow_move_counter, f);
     putshort(animwait, f);
-    fwrite(padding, sizeof(char), get_padding(MAX_INVORDER * sizeof(short) + 2), f);
 }

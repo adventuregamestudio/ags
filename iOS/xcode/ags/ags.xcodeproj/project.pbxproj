@@ -93,6 +93,7 @@
 		6041A86A1552E63B00596310 /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 6041A8691552E63B00596310 /* Icon.png */; };
 		6041A8881552E89E00596310 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 6041A8871552E89E00596310 /* libz.dylib */; };
 		6041A8981552E8C400596310 /* libbz2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 6041A8971552E8C400596310 /* libbz2.dylib */; };
+		607B273615C807C800897984 /* agstouch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 607B273515C807C800897984 /* agstouch.cpp */; };
 		60819173154C78F000368355 /* acplios.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60819172154C78F000368355 /* acplios.cpp */; };
 		6081918F154D9A2700368355 /* libc.c in Sources */ = {isa = PBXBuildFile; fileRef = 6081918E154D9A2700368355 /* libc.c */; };
 		60844EAD1573943400003ED0 /* MainWindow-iPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = 60844EAC1573943400003ED0 /* MainWindow-iPad.xib */; };
@@ -246,6 +247,7 @@
 		6041A8691552E63B00596310 /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
 		6041A8871552E89E00596310 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
 		6041A8971552E8C400596310 /* libbz2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libbz2.dylib; path = usr/lib/libbz2.dylib; sourceTree = SDKROOT; };
+		607B273515C807C800897984 /* agstouch.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = agstouch.cpp; path = ../../../Plugins/agstouch/agstouch.cpp; sourceTree = SOURCE_ROOT; };
 		60819172154C78F000368355 /* acplios.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = acplios.cpp; sourceTree = "<group>"; };
 		6081918E154D9A2700368355 /* libc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = libc.c; path = ../../../Android/library/jni/libc.c; sourceTree = SOURCE_ROOT; };
 		60844EAC1573943400003ED0 /* MainWindow-iPad.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = "MainWindow-iPad.xib"; path = "Resources-iPad/MainWindow-iPad.xib"; sourceTree = "<group>"; };
@@ -621,6 +623,7 @@
 		608A53D2155B0535002E3D41 /* Plugins */ = {
 			isa = PBXGroup;
 			children = (
+				607B273515C807C800897984 /* agstouch.cpp */,
 				608A53D7155B061C002E3D41 /* agsflashlight.cpp */,
 				608A53D5155B0608002E3D41 /* AGSBlend.cpp */,
 				608A53D3155B05F7002E3D41 /* ags_snowrain.cpp */,
@@ -787,6 +790,7 @@
 				608A53D4155B05F7002E3D41 /* ags_snowrain.cpp in Sources */,
 				608A53D6155B0608002E3D41 /* AGSBlend.cpp in Sources */,
 				608A53D8155B061C002E3D41 /* agsflashlight.cpp in Sources */,
+				607B273615C807C800897984 /* agstouch.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -15,10 +15,10 @@ ASFLAGS  := $(CFLAGS) $(ASFLAGS)
 LDFLAGS  := $(addprefix -L,$(LIBDIR))
 
 BASE_PLATFORM = \
-platform/osx/acplmac.o \
-../OSX/libc.o \
-../PSP/launcher/pe.o
+platform/osx/acplmac.cpp \
+../OSX/libc.c \
+../PSP/launcher/pe.c
 
 COMMON_PLATFORM = \
-../Common/platform/osx/macport.o \
-../Common/platform/bigend/bigend.o
+../Common/platform/osx/macport.cpp \
+../Common/platform/bigend/bigend.cpp

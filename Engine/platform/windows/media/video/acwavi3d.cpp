@@ -16,6 +16,7 @@
 typedef float D3DVALUE, *LPD3DVALUE;
 #include "media/video/VMR9Graph.h"
 #include "gfx/ali3d.h"
+#include "platform/base/agsplatformdriver.h"
 //#include <atlbase.h>
 
 #ifndef VS2005
@@ -124,7 +125,8 @@ int dxmedia_play_video_3d(const char* filename, IDirect3DDevice9 *device, bool u
   OAFilterState filterState = State_Running;
   while ((filterState != State_Stopped) && (!want_exit))
   {
-    while (timerloop == 0) Sleep(1);
+    while (timerloop == 0)
+      platform->Delay(1);
     timerloop = 0;
 
     if (!useAVISound)

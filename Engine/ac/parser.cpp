@@ -1,11 +1,12 @@
 #include <cctype> //isalnum()
 #include "util/wgt2allg.h"
+#include "util/string_utils.h" //strlwr()
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/parser.h"
 #include "ac/string.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 
 extern GameSetupStruct game;
 extern GameState play;

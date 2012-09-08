@@ -84,8 +84,8 @@ void NewInteractionCommand::ReadFromFile(FILE *fp)
         data[i].ReadFromFile(fp);
     }
     // all that matters is whether or not these are null...
-    children = (NewInteractionAction *) getw(fp);
-    parent = (NewInteractionCommandList *) getw(fp);
+    children = (NewInteractionAction *)(long)getw(fp);
+    parent = (NewInteractionCommandList *)(long)getw(fp);
 //#else
 //    throw "NewInteractionCommand::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
 //#endif
@@ -100,8 +100,8 @@ void NewInteractionCommand::WriteToFile(FILE *fp)
     {
         data[i].WriteToFile(fp);
     }
-    putw((int)children, fp);
-    putw((int)parent, fp);
+    putw((long)children, fp);
+    putw((long)parent, fp);
 //#else
 //    throw "NewInteractionCommand::WriteToFile() is not implemented for little-endian platforms and should not be called.";
 //#endif
@@ -156,8 +156,16 @@ NewInteraction::~NewInteraction() {
 void NewInteraction::ReadFromFile(FILE *fp)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
-    // it's all ints!
-    fread(&numEvents, sizeof(int), sizeof(NewInteraction)/sizeof(int), fp);
+    // it's all ints! <- JJS: No, it's not! There are pointer too.
+
+  numEvents = getw(fp);
+  fread(&eventTypes, sizeof(*eventTypes), MAX_NEWINTERACTION_EVENTS, fp);
+  fread(&timesRun, sizeof(*timesRun), MAX_NEWINTERACTION_EVENTS, fp);
+
+  for (int i = 0; i < MAX_NEWINTERACTION_EVENTS; i++)
+    response[i] = (NewInteractionCommandList*)getw(fp);
+
+//    fread(&numEvents, sizeof(int), sizeof(NewInteraction)/sizeof(int), fp);
 //#else
 //    throw "NewInteraction::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
 //#endif
@@ -165,7 +173,15 @@ void NewInteraction::ReadFromFile(FILE *fp)
 void NewInteraction::WriteToFile(FILE *fp)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
-    fwrite(&numEvents, sizeof(int), sizeof(NewInteraction)/sizeof(int), fp);
+
+  putw(numEvents, fp);
+  fwrite(&eventTypes, sizeof(*eventTypes), MAX_NEWINTERACTION_EVENTS, fp);
+  fwrite(&timesRun, sizeof(*timesRun), MAX_NEWINTERACTION_EVENTS, fp);
+
+  for (int i = 0; i < MAX_NEWINTERACTION_EVENTS; i++)
+    putw((int)(response[i] != NULL), fp);
+
+//    fwrite(&numEvents, sizeof(int), sizeof(NewInteraction)/sizeof(int), fp);
 //#else
 //    throw "NewInteraction::WriteToFile() is not implemented for little-endian platforms and should not be called.";
 //#endif
@@ -207,8 +223,10 @@ void serialize_new_interaction (NewInteraction *nint, FILE*ooo) {
   putw (1, ooo);  // Version
   putw (nint->numEvents, ooo);
   fwrite (&nint->eventTypes[0], sizeof(int), nint->numEvents, ooo);
+
+  // 64 bit: The pointer is only checked against NULL to determine whether the event exists
   for (a = 0; a < nint->numEvents; a++)
-    putw ((int)nint->response[a], ooo);
+    putw ((long)nint->response[a], ooo);
 
   for (a = 0; a < nint->numEvents; a++) {
     if (nint->response[a] != NULL)
@@ -251,6 +269,8 @@ NewInteraction *deserialize_new_interaction (FILE *ooo) {
   }
   fread (&nitemp->eventTypes[0], sizeof(int), nitemp->numEvents, ooo);
   //fread (&nitemp->response[0], sizeof(void*), nitemp->numEvents, ooo);
+
+  // 64 bit: The pointer is only checked against NULL to determine whether the event exists
   for (a = 0; a < nitemp->numEvents; a++)
     nitemp->response[a] = (NewInteractionCommandList*)getw(ooo);
 

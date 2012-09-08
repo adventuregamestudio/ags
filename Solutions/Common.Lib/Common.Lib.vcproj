@@ -334,6 +334,14 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="debug"
+				>
+				<File
+					RelativePath="..\..\Common\debug\out.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -557,6 +565,18 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\script\script_common.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="debug"
+				>
+				<File
+					RelativePath="..\..\Common\debug\out.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\debug\outputtarget.h"
 					>
 				</File>
 			</Filter>

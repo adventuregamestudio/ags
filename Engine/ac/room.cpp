@@ -1,5 +1,6 @@
 #define USE_CLIB
 #include "util/wgt2allg.h"
+#include "util/string_utils.h" //strlwr()
 #include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "media/audio/audiodefines.h"
@@ -33,7 +34,8 @@
 #include "ac/dynobj/scriptobject.h"
 #include "ac/dynobj/scripthotspot.h"
 #include "script/cc_instance.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
+#include "debug/debugger.h"
 #include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
@@ -65,7 +67,6 @@ extern int our_eip;
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern int scrnwid,scrnhit;
 extern block walkareabackup, walkable_areas_temp;
-extern RoomStatus *roomstats;
 extern ScriptObject scrObj[MAX_INIT_SPR];
 extern SpriteCache spriteset;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
@@ -77,7 +78,7 @@ extern int guis_need_update;
 extern int in_leaves_screen;
 extern CharacterInfo*playerchar;
 extern int starting_room;
-extern unsigned long loopcounter,lastcounter;
+extern unsigned int loopcounter,lastcounter;
 extern int ccError;
 extern char ccErrorString[400];
 extern IDriverDependantBitmap* roomBackgroundBmp;
@@ -95,6 +96,9 @@ extern block _old_screen;
 extern block _sub_screen;
 extern int offsetx, offsety;
 extern int mouse_z_was;
+
+extern block *guibg;
+extern IDriverDependantBitmap **guibgbmp;
 
 RGB_MAP rgb_table;  // for 256-col antialiasing
 int new_room_flags=0;
@@ -575,7 +579,7 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
         memset(&troom.region_enabled[0], 1, MAX_REGIONS);
     }
     if ((newnum>=0) & (newnum<MAX_ROOMS))
-        croom=&roomstats[newnum];
+        croom = getRoomStatus(newnum);
     else croom=&troom;
 
     if (croom->beenhere > 0) {
@@ -665,7 +669,8 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
     objs=&croom->obj[0];
 
     for (cc = 0; cc < MAX_INIT_SPR; cc++) {
-        scrObj[cc].obj = &croom->obj[cc];
+        // 64 bit: Using the id instead
+        // scrObj[cc].obj = &croom->obj[cc];
         objectScriptObjNames[cc][0] = 0;
     }
 
@@ -955,7 +960,23 @@ void new_room(int newnum,CharacterInfo*forchar) {
     unload_old_room();
 
     if (psp_clear_cache_on_room_change)
+    {
+        // Delete all cached sprites
         spriteset.removeAll();
+
+        // Delete all gui background images
+        for (int i = 0; i < game.numgui; i++)
+        {
+            if (guibg[i])
+                wfreeblock (guibg[i]);
+            guibg[i] = NULL;
+
+            if (guibgbmp[i])
+                gfxDriver->DestroyDDB(guibgbmp[i]);
+            guibgbmp[i] = NULL;
+        }
+        guis_need_update = 1;
+    }
 
     update_polled_stuff_if_runtime();
 
@@ -965,7 +986,8 @@ void new_room(int newnum,CharacterInfo*forchar) {
 int find_highest_room_entered() {
     int qq,fndas=-1;
     for (qq=0;qq<MAX_ROOMS;qq++) {
-        if (roomstats[qq].beenhere!=0) fndas=qq;
+        if (isRoomStatusValid(qq) && (getRoomStatus(qq)->beenhere != 0))
+            fndas = qq;
     }
     // This is actually legal - they might start in room 400 and save
     //if (fndas<0) quit("find_highest_room: been in no rooms?");

@@ -83,7 +83,7 @@ int WFNFontRenderer::GetTextWidth(const char *texx, int fontNumber)
     char* fontaddr = psp_get_char(foon, thisCharacter);
 
     short tabaddr_d;
-    memcpy(&tabaddr_d, (char*)((int)fontaddr + 0), 2);
+    memcpy(&tabaddr_d, (char*)((long)fontaddr + 0), 2);
 
     totlen += tabaddr_d;
 #endif
@@ -111,7 +111,7 @@ int WFNFontRenderer::GetTextHeight(const char *texx, int fontNumber)
 #else
     char* fontaddr = psp_get_char(foon, thisCharacter);
     short tabaddr_d;
-    memcpy(&tabaddr_d, (char*)((int)fontaddr + 2), 2);
+    memcpy(&tabaddr_d, (char*)((long)fontaddr + 2), 2);
 
     int charHeight = tabaddr_d;
 #endif
@@ -152,10 +152,10 @@ int WFNFontRenderer::printchar(int xxx, int yyy, wgtfont foo, int charr)
   char* tabaddr = psp_get_char(foo, charr);
 
   short tabaddr_d;
-  memcpy(&tabaddr_d, (char*)((int)tabaddr), 2);
+  memcpy(&tabaddr_d, (char*)((long)tabaddr), 2);
   int charWidth = tabaddr_d;
 
-  memcpy(&tabaddr_d, (char*)((int)tabaddr + 2), 2);
+  memcpy(&tabaddr_d, (char*)((long)tabaddr + 2), 2);
   int charHeight = tabaddr_d;
 #endif
 

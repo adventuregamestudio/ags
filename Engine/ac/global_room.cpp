@@ -14,7 +14,7 @@
 #include "ac/properties.h"
 #include "ac/room.h"
 #include "ac/roomstatus.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "script/script.h"
 
 extern GameState play;
@@ -26,7 +26,6 @@ extern int in_leaves_screen;
 extern int in_inv_screen, inv_screen_newroom;
 extern MoveList *mls;
 extern int gs_to_newroom;
-extern RoomStatus *roomstats;
 extern roomstruct thisroom;
 
 void SetAmbientTint (int red, int green, int blue, int opacity, int luminance) {
@@ -122,20 +121,30 @@ void ResetRoom(int nrnum) {
         quit("!ResetRoom: cannot reset current room");
     if ((nrnum<0) | (nrnum>=MAX_ROOMS))
         quit("!ResetRoom: invalid room number");
-    if (roomstats[nrnum].beenhere) {
-        if (roomstats[nrnum].tsdata!=NULL)
-            free(roomstats[nrnum].tsdata);
-        roomstats[nrnum].tsdata=NULL;
-        roomstats[nrnum].tsdatasize=0;
+
+    if (isRoomStatusValid(nrnum))
+    {
+        RoomStatus* roomstat = getRoomStatus(nrnum);
+        if (roomstat->beenhere)
+        {
+            if (roomstat->tsdata != NULL)
+                free(roomstat->tsdata);
+            roomstat->tsdata = NULL;
+            roomstat->tsdatasize = 0;
+        }
+        roomstat->beenhere = 0;
     }
-    roomstats[nrnum].beenhere=0;
+
     DEBUG_CONSOLE("Room %d reset to original state", nrnum);
 }
 
 int HasPlayerBeenInRoom(int roomnum) {
     if ((roomnum < 0) || (roomnum >= MAX_ROOMS))
         return 0;
-    return roomstats[roomnum].beenhere;
+    if (isRoomStatusValid(roomnum))
+        return getRoomStatus(roomnum)->beenhere;
+    else
+        return 0;
 }
 
 void CallRoomScript (int value) {
@@ -152,9 +161,10 @@ int HasBeenToRoom (int roomnum) {
     if ((roomnum < 0) || (roomnum >= MAX_ROOMS))
         quit("!HasBeenToRoom: invalid room number specified");
 
-    if (roomstats[roomnum].beenhere)
-        return 1;
-    return 0;
+    if (isRoomStatusValid(roomnum))
+        return getRoomStatus(roomnum)->beenhere;
+    else
+        return 0;
 }
 
 int GetRoomProperty (const char *property) {

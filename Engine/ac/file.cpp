@@ -7,7 +7,8 @@
 #include "ac/global_file.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
+#include "debug/debugger.h"
 #include "util/misc.h"
 #include "platform/base/agsplatformdriver.h"
 
@@ -16,7 +17,7 @@
 //#include "winalleg.h"
 //#include <shlwapi.h>
 
-#elif defined(LINUX_VERSION) || defined(MAC_VERSION)
+#elif (defined(LINUX_VERSION) || defined(MAC_VERSION)) && !defined(PSP_VERSION)
 #include <dlfcn.h>
 /*
 #include <sys/types.h>

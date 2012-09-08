@@ -10,7 +10,7 @@
 #include "ac/global_translation.h"
 #include "ac/roomstruct.h"
 #include "ac/string.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "gui/guidefines.h"
 #include "ac/spritecache.h"
 

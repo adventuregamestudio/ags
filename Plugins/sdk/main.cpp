@@ -1,6 +1,6 @@
 
 #define THIS_IS_THE_PLUGIN
-#include "../../../Common/agsplugin.h"
+#include "plugin/agsplugin.h"
 
 void AGS_EngineStartup(IAGSEngine *lpEngine)
 {

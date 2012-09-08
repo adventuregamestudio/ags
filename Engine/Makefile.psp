@@ -13,22 +13,22 @@ TARGET = ags321
 # Include plugins in the engine?
 WITH_BUILTIN_PLUGINS = 0
 
-PSP_SPECIFIC = acplpsp.o ../PSP/kernel/kernel.o ../PSP/exception/utility/exception.o ../PSP/malloc/malloc.o
+BASE_PLATFORM = \
+platform/psp/acplpsp.cpp \
+../PSP/kernel/kernel.c \
+../PSP/exception/utility/exception.c \
+../PSP/malloc/malloc.c
 
-BASE = acaudio.o acchars.o acdebug.o acdialog.o acfonts.o acgfx.o acgui.o acplatfm.o acsound.o bigend.o misc.o routefnd.o scrptrt.o ac.o alogg.o almp3.o ali3dsw.o
-COMMON = ../Common/csrun.o ../Common/Clib32.o ../Common/mousew32.o ../Common/sprcache.o ../Common/cscommon.o ../Common/compress.o ../Common/lzw.o
+include Makefile-objs
+OBJS_C_CPP = $(ALFONT) $(ALMP3) $(ALOGG) $(APEG) $(AASTR) $(BASE) $(BASE_PLATFORM) $(COMMON) $(COMMON_PLATFORM)
 
-ALFONT = libsrc/alfont-2.0.9/alfont.o
+ifeq ($(WITH_BUILTIN_PLUGINS), 1)
+OBJS += $(PLUGINS)
+CFLAGS += -DBUILTIN_PLUGINS
+endif
 
-ALMP3 = libsrc/almp3-2.0.5/decoder/common.o libsrc/almp3-2.0.5/decoder/dct64_i386.o libsrc/almp3-2.0.5/decoder/decode_i386.o libsrc/almp3-2.0.5/decoder/interface.o libsrc/almp3-2.0.5/decoder/layer2.o libsrc/almp3-2.0.5/decoder/layer3.o libsrc/almp3-2.0.5/decoder/tabinit.o
-
-APEG = libsrc/apeg-1.2.1/display.o libsrc/apeg-1.2.1/getbits.o libsrc/apeg-1.2.1/getblk.o libsrc/apeg-1.2.1/gethdr.o libsrc/apeg-1.2.1/getpic.o libsrc/apeg-1.2.1/idct.o libsrc/apeg-1.2.1/motion.o libsrc/apeg-1.2.1/mpeg1dec.o libsrc/apeg-1.2.1/ogg.o libsrc/apeg-1.2.1/recon.o libsrc/apeg-1.2.1/audio/apegcommon.o libsrc/apeg-1.2.1/audio/audio.o libsrc/apeg-1.2.1/audio/dct64.o libsrc/apeg-1.2.1/audio/decode_1to1.o libsrc/apeg-1.2.1/audio/decode_2to1.o libsrc/apeg-1.2.1/audio/decode_4to1.o libsrc/apeg-1.2.1/audio/layer1.o libsrc/apeg-1.2.1/audio/layer2.o libsrc/apeg-1.2.1/audio/layer3.o libsrc/apeg-1.2.1/audio/mpg123.o libsrc/apeg-1.2.1/audio/readers.o libsrc/apeg-1.2.1/audio/tabinit.o libsrc/apeg-1.2.1/audio/vbrhead.o
-
-AASTR = libsrc/aastr-0.1.1/AAROT.o libsrc/aastr-0.1.1/aastr.o libsrc/aastr-0.1.1/aautil.o
-
-PLUGINS = ../Plugins/ags_snowrain/ags_snowrain.o ../Plugins/agsflashlight/agsflashlight.o ../Plugins/agsblend/AGSBlend.o
-
-OBJS = $(ALFONT) $(ALMP3) $(APEG) $(AASTR) $(BASE) $(COMMON) $(PSP_SPECIFIC)
+OBJS_C = $(OBJS_C_CPP:.cpp=.o)
+OBJS = $(OBJS_C:.c=.o)
 
 INCDIR = ../Common ../Common/libinclude $(shell psp-config --pspdev-path)/psp/include/freetype2
 LIBDIR = ../PSP/lib
@@ -37,12 +37,6 @@ CXXFLAGS = $(CFLAGS) -fno-rtti -Wno-write-strings
 ASFLAGS = $(CFLAGS)
 LIBS = -lalleg -lalleg-main -lfreetype -lz -lvorbisidec -ltheoradec -logg -lc -lstdc++ -lm
 
-ifeq ($(WITH_BUILTIN_PLUGINS), 1)
-OBJS += $(PLUGINS)
-CFLAGS += -DBUILTIN_PLUGINS
-CXXFLAGS += -DBUILTIN_PLUGINS
-endif
-
 ifeq ($(NO_MOD_PLAYBACK), 1)
 CFLAGS += -DPSP_NO_MOD_PLAYBACK 
 CXXFLAGS += -DPSP_NO_MOD_PLAYBACK
@@ -50,8 +44,8 @@ else
 LIBS += -laldmb -ldumb
 endif
 
-LIBS += -lpsppower -lpspdebug -lpspgu -lpspctrl -lpspge -lpspdisplay -lpsprtc -lpspaudio -lpspsystemctrl_user -lpspmath
-LDFLAGS =
+LIBS += -lpsppower -lpspdebug -lpspgu -lpspctrl -lpspge -lpspdisplay -lpsprtc -lpspaudio -lpspsystemctrl_user -lpspmath -lpspfpu
+LDFLAGS = -Wl,--allow-multiple-definition
 
 ifeq ($(PROFILING), 1)
 CFLAGS += -pg -DPSP_ENABLE_PROFILING

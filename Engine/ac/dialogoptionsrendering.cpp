@@ -3,7 +3,7 @@
 #include "ac/dialogoptionsrendering.h"
 #include "ac/dialogtopic.h"
 #include "ac/gamestructdefines.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 
 extern ScriptDialog scrDialog[MAX_DIALOG];
 extern DialogTopic *dialog;

@@ -2,14 +2,18 @@
 #error This file should only be included on the Android build
 #endif
 
-#include "acplatfm.h"
+#include <allegro.h>
+#include "platform/base/agsplatformdriver.h"
+#include "platform/base/override_defines.h"
+#include "ac/runtime_defines.h"
+#include "plugin/agsplugin.h"
 #include <stdio.h>
 #include <dirent.h>
 #include <sys/stat.h> 
 #include <ctype.h>
+#include <unistd.h>
 
-#include <allegro.h>
-#include "bigend.h"
+
 
 #include <jni.h>
 #include <android/log.h>
@@ -90,6 +94,7 @@ extern void PauseGame();
 extern void UnPauseGame();
 extern int main(int argc,char*argv[]);
 
+char android_app_directory[256];
 char psp_game_file_name[256];
 char* psp_game_file_name_pointer = psp_game_file_name;
 
@@ -432,7 +437,7 @@ JNIEXPORT void JNICALL
 
 
 JNIEXPORT jboolean JNICALL 
-  Java_com_bigbluecup_android_EngineGlue_startEngine(JNIEnv* env, jobject object, jclass stringclass, jstring filename, jstring directory, jboolean loadLastSave)
+  Java_com_bigbluecup_android_EngineGlue_startEngine(JNIEnv* env, jobject object, jclass stringclass, jstring filename, jstring directory, jstring appDirectory, jboolean loadLastSave)
 {
   // Get JNI interfaces.
   java_object = env->NewGlobalRef(object);
@@ -455,6 +460,11 @@ JNIEXPORT jboolean JNICALL
   const char* cdirectory = java_environment->GetStringUTFChars(directory, NULL);
   chdir(cdirectory);
   java_environment->ReleaseStringUTFChars(directory, cdirectory);
+
+  // Get the app directory (something like "/data/data/com.bigbluecup.android.launcher")
+  const char* cappDirectory = java_environment->GetStringUTFChars(appDirectory, NULL);
+  strcpy(android_app_directory, cappDirectory);
+  java_environment->ReleaseStringUTFChars(appDirectory, cappDirectory);
 
   // Reset configuration.
   ResetConfiguration();

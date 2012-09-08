@@ -40,4 +40,13 @@ struct RoomStatus {
     void WriteToFile(FILE *fp);
 };
 
+// Replaces all accesses to the roomstats array
+RoomStatus* getRoomStatus(int room);
+// Used in places where it is only important to know whether the player
+// had previously entered the room. In this case it is not necessary
+// to initialise the status because a player can only have been in
+// a room if the status is already initialised.
+bool isRoomStatusValid(int room);
+void resetRoomStatuses();
+
 #endif // __AGS_EE_AC__ROOMSTATUS_H

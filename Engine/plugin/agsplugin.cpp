@@ -23,7 +23,8 @@
 #include "ac/roomstatus.h"
 #include "ac/string.h"
 #include "util/string_utils.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
+#include "debug/debugger.h"
 #include "gui/guidefines.h"
 #include "main/engine.h"
 #include "media/audio/audio.h"
@@ -39,7 +40,10 @@
 #include "AGSflashlight/agsflashlight.h"
 #include "agsblend/agsblend.h"
 #include "ags_snowrain/ags_snowrain.h"
-#endif
+#if defined(IOS_VERSION)
+#include "../Plugins/agstouch/agstouch.h"
+#endif // IOS_VERSION
+#endif // BUILTIN_PLUGINS
 
 #if defined(MAC_VERSION)
 extern char dataDirectory[512];
@@ -50,6 +54,20 @@ extern "C"
 }
 #endif
 
+#if defined(PSP_VERSION)
+#include <pspsdk.h>
+#include <pspkernel.h>
+extern "C"
+{
+#include <systemctrl.h>
+}
+#include "../PSP/kernel/kernel.h"
+#endif
+
+
+#if defined(ANDROID_VERSION)
+extern char android_app_directory[256];
+#endif
 
 extern IGraphicsDriver *gfxDriver;
 extern int scrnwid,scrnhit;
@@ -554,7 +572,7 @@ int IAGSEngine::CanRunScriptFunctionNow() {
         return 0;
     return 1;
 }
-int IAGSEngine::CallGameScriptFunction(const char *name, int32 globalScript, int32 numArgs, int32 arg1, int32 arg2, int32 arg3) {
+int IAGSEngine::CallGameScriptFunction(const char *name, int32 globalScript, int32 numArgs, long arg1, long arg2, long arg3) {
     if (inside_script)
         return -300;
 
@@ -594,7 +612,7 @@ void IAGSEngine::SetSpriteAlphaBlended(int32 slot, int32 isAlphaBlended) {
         game.spriteflags[slot] |= SPF_ALPHACHANNEL;
 }
 
-void IAGSEngine::QueueGameScriptFunction(const char *name, int32 globalScript, int32 numArgs, int32 arg1, int32 arg2) {
+void IAGSEngine::QueueGameScriptFunction(const char *name, int32 globalScript, int32 numArgs, long arg1, long arg2) {
     if (!inside_script) {
         this->CallGameScriptFunction(name, globalScript, numArgs, arg1, arg2, 0);
         return;
@@ -747,12 +765,12 @@ void pl_stop_plugins() {
                 plugins[a].savedata = NULL;
             }
             if (!plugins[a].builtin) {
-#ifdef PSP_VERSION
+#if defined(PSP_VERSION)
                 sceKernelUnloadModule(plugins[a].dllHandle);
 #else
                 FreeLibrary (plugins[a].dllHandle);
-            }
 #endif
+            }
         }
     }
     numPlugins = 0;
@@ -766,7 +784,7 @@ void pl_startup_plugins() {
     }
 }
 
-int pl_run_plugin_hooks (int event, int data) {
+int pl_run_plugin_hooks (int event, long data) {
     int i, retval = 0;
     for (i = 0; i < numPlugins; i++) {
         if (plugins[i].wantHook & event) {
@@ -839,7 +857,20 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         apl->builtin = true;
         return true;
     }
-#endif
+#if defined(IOS_VERSION)
+    else if (strncmp(apl->filename, "agstouch", strlen("agstouch")) == 0)
+    {
+        apl->engineStartup = agstouch::AGS_EngineStartup;
+        apl->engineShutdown = agstouch::AGS_EngineShutdown;
+        apl->onEvent = agstouch::AGS_EngineOnEvent;
+        apl->debugHook = agstouch::AGS_EngineDebugHook;
+        apl->initGfxHook = agstouch::AGS_EngineInitGfx;
+        apl->dllHandle = (HINSTANCE)1;
+        apl->builtin = true;
+        return true;
+    }
+#endif // IOS_VERSION
+#endif // BUILTIN_PLUGINS
 
     return false;
 }
@@ -913,8 +944,7 @@ void pl_read_plugins_from_disk (FILE *iii) {
 
         strlwr(apl->filename);
 
-        strcpy(library_name, "/data/data/com.bigbluecup.android/lib/lib");
-        strcat(library_name, apl->filename);
+        sprintf(library_name, "%s/lib/lib%s", android_app_directory, apl->filename);
         strcpy(&library_name[strlen(library_name) - 4], ".so");
 
         apl->dllHandle = dlopen(library_name, RTLD_LAZY);
@@ -950,6 +980,7 @@ void pl_read_plugins_from_disk (FILE *iii) {
 
         if (apl->dllHandle < 0)
         {
+            apl->dllHandle = NULL; // dllhandle contains an error code at this point, set it to NULL for the engine
             if (!pl_use_builtin_plugin(apl))
                 continue;
         }
@@ -986,7 +1017,7 @@ void pl_read_plugins_from_disk (FILE *iii) {
         else
         {
 
-#ifdef PSP_VERSION
+#if defined(PSP_VERSION)
             if (kernel_sctrlHENFindFunction(module_name, module_name, 0x960C49BD) == 0) {
                 sprintf(buffer, "Plugin '%s' is an old incompatible version.", apl->filename);
                 quit(buffer);

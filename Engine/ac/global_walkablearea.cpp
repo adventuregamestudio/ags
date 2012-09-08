@@ -6,7 +6,7 @@
 #include "ac/draw.h"
 #include "ac/roomstruct.h"
 #include "ac/walkablearea.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 
 extern roomstruct thisroom;
 extern int offsetx, offsety;

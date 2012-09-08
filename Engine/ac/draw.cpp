@@ -15,6 +15,7 @@
 #include "ac/global_game.h"
 #include "ac/global_gui.h"
 #include "ac/global_region.h"
+#include "ac/gui.h"
 #include "ac/mouse.h"
 #include "ac/objectcache.h"
 #include "ac/overlay.h"
@@ -30,7 +31,8 @@
 #include "ac/walkablearea.h"
 #include "ac/walkbehind.h"
 #include "ac/dynobj/scriptsystem.h"
-#include "debug/debug.h"
+#include "debug/debugger.h"
+#include "debug/debug_log.h"
 #include "gui/guimain.h"
 #include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
@@ -58,7 +60,7 @@ extern ScriptSystem scsystem;
 extern AGSPlatformDriver *platform;
 extern roomstruct thisroom;
 extern char noWalkBehindsAtAll;
-extern unsigned long loopcounter;
+extern unsigned int loopcounter;
 extern char *walkBehindExists;  // whether a WB area is in this column
 extern int *walkBehindStartY, *walkBehindEndY;
 extern int walkBehindLeft[MAX_OBJ], walkBehindTop[MAX_OBJ];
@@ -414,6 +416,7 @@ int IRSpan::mergeSpan(int tx1, int tx2) {
 void init_invalid_regions(int scrnHit) {
     numDirtyRegions = WHOLESCREENDIRTY;
     dirtyRow = (IRRow*)malloc(sizeof(IRRow) * scrnHit);
+    memset(dirtyRow, 0, sizeof(dirtyRow) * scrnHit);
 
     for (int e = 0; e < scrnHit; e++)
         dirtyRow[e].numSpans = 0;
@@ -829,7 +832,7 @@ int sort_out_walk_behinds(block sprit,int xx,int yy,int basel, block copyPixelsF
     int spcoldep = bitmap_color_depth(sprit);
     int screenhit = thisroom.object->h;
     short *shptr, *shptr2;
-    long *loptr, *loptr2;
+    int *loptr, *loptr2;
     int pixelsChanged = 0;
     int ee = 0;
     if (xx < 0)
@@ -900,10 +903,10 @@ int sort_out_walk_behinds(block sprit,int xx,int yy,int basel, block copyPixelsF
                     }
                 }
                 else if (spcoldep <= 32) {
-                    loptr = (long*)&sprit->line[rr][0];
-                    loptr2 = (long*)&checkPixelsFrom->line[(rr * 100) / zoom][0];
+                    loptr = (int*)&sprit->line[rr][0];
+                    loptr2 = (int*)&checkPixelsFrom->line[(rr * 100) / zoom][0];
                     if (loptr2[(ee * 100) / zoom] != maskcol) {
-                        loptr[ee] = ((long*)(&copyPixelsFrom->line[rr + yy][0]))[ee + xx];
+                        loptr[ee] = ((int*)(&copyPixelsFrom->line[rr + yy][0]))[ee + xx];
                         pixelsChanged = 1;
                     }
                 }
@@ -922,7 +925,7 @@ int sort_out_walk_behinds(block sprit,int xx,int yy,int basel, block copyPixelsF
                     memcpy(&chptr[ee * 3], &maskcol, 3);
                 }
                 else if (spcoldep <= 32) {
-                    loptr = (long*)&sprit->line[rr][0];
+                    loptr = (int*)&sprit->line[rr][0];
                     loptr[ee] = maskcol;
                 }
                 else
@@ -1087,8 +1090,8 @@ void repair_alpha_channel(block dest, block bgpic)
     int theHit = (dest->h < bgpic->h) ? dest->h : bgpic->h;
     for (int y = 0; y < theHit; y++) 
     {
-        unsigned long *destination = ((unsigned long*)dest->line[y]);
-        unsigned long *source = ((unsigned long*)bgpic->line[y]);
+        unsigned int *destination = ((unsigned int*)dest->line[y]);
+        unsigned int *source = ((unsigned int*)bgpic->line[y]);
         for (int x = 0; x < theWid; x++) 
         {
             destination[x] |= (source[x] & 0xff000000);
@@ -2156,6 +2159,10 @@ void draw_screen_overlay() {
             guis_need_update = 0;
             for (aa=0;aa<game.numgui;aa++) {
                 if (guis[aa].on<1) continue;
+
+                if (guibg[aa] == NULL)
+                    recreate_guibg_image(&guis[aa]);
+
                 eip_guinum = aa;
                 our_eip = 370;
                 clear_to_color (guibg[aa], bitmap_mask_color(guibg[aa]));
@@ -2449,9 +2456,7 @@ void update_screen() {
 
 
 
-#if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
 extern volatile int psp_audio_multithreaded; // in ac_audio
-#endif
 
 
 void construct_virtual_screen(bool fullRedraw) 

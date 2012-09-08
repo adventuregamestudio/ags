@@ -16,12 +16,12 @@
 #pragma pack(1)
 typedef struct _RICH_GAME_MEDIA_HEADER
 {
-    long       dwMagicNumber;
-    long       dwHeaderVersion;
-    long       dwHeaderSize;
-    long       dwThumbnailOffsetLowerDword;
-    long       dwThumbnailOffsetHigherDword;
-    long       dwThumbnailSize;
+    int       dwMagicNumber;
+    int       dwHeaderVersion;
+    int       dwHeaderSize;
+    int       dwThumbnailOffsetLowerDword;
+    int       dwThumbnailOffsetHigherDword;
+    int       dwThumbnailSize;
     unsigned char guidGameId[16];
     unsigned short szGameName[RM_MAXLENGTH];
     unsigned short szSaveName[RM_MAXLENGTH];

@@ -47,7 +47,7 @@ int eventClaimed = EVENT_NONE;
 char*tsnames[4]={NULL, REP_EXEC_NAME, "on_key_press","on_mouse_click"};
 
 
-int run_claimable_event(char *tsname, bool includeRoom, int numParams, int param1, int param2, bool *eventWasClaimed) {
+int run_claimable_event(char *tsname, bool includeRoom, int numParams, long param1, long param2, bool *eventWasClaimed) {
     *eventWasClaimed = true;
     // Run the room script function, and if it is not claimed,
     // then run the main one

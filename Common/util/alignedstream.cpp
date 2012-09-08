@@ -1,12 +1,13 @@
 
 #include "util/alignedstream.h"
+#include "util/datastream.h"
 
 namespace AGS
 {
 namespace Common
 {
 
-CAlignedStream::CAlignedStream(IStream *stream, AlignedStreamMode mode, size_t alignment)
+CAlignedStream::CAlignedStream(CDataStream *stream, AlignedStreamMode mode, size_t alignment)
     : _stream(stream)
     , _mode(mode)
     , _alignment(alignment)
@@ -21,6 +22,11 @@ CAlignedStream::~CAlignedStream()
 
 void CAlignedStream::Close()
 {
+    if (!_stream)
+    {
+        return;
+    }
+
     // Force the stream to read or write remaining padding to match the alignment
     if (_mode == kAligned_Read)
     {
@@ -31,7 +37,8 @@ void CAlignedStream::Close()
         WritePadding(_alignment);
     }
 
-    // Release stream
+    // TODO: use shared ptr
+    delete _stream;
     _stream = NULL;
 }
 
@@ -71,22 +78,42 @@ bool CAlignedStream::CanSeek() const
     return false;
 }
 
+void CAlignedStream::ReleaseStream()
+{
+    if (!_stream)
+    {
+        return;
+    }
+
+    // Force the stream to read or write remaining padding to match the alignment
+    if (_mode == kAligned_Read)
+    {
+        ReadPadding(_alignment);
+    }
+    else if (_mode == kAligned_Write)
+    {
+        WritePadding(_alignment);
+    }
+
+    _stream = NULL;
+}
+
 int CAlignedStream::Seek(StreamSeek seek, int pos)
 {
     // Not supported
     return 0;
 }
 
-int8_t CAlignedStream::ReadInt8()
+int CAlignedStream::ReadByte()
 {
-    int8_t val = 0;
+    byte b = 0;
     if (_stream)
     {
-        ReadPadding(sizeof(int8_t));
-        val = _stream->ReadInt8();
-        _block += sizeof(int8_t);
+        ReadPadding(sizeof(byte));
+        b = _stream->ReadByte();
+        _block += sizeof(byte);
     }
-    return val;
+    return b;
 }
 
 int16_t CAlignedStream::ReadInt16()
@@ -161,13 +188,13 @@ CString CAlignedStream::ReadString(int max_chars)
     return "";
 }
 
-void CAlignedStream::WriteInt8(int8_t val)
+void CAlignedStream::WriteByte(byte b)
 {
     if (_stream)
     {
-        WritePadding(sizeof(int8_t));
-        _stream->WriteInt8(val);
-        _block += sizeof(int8_t);
+        WritePadding(sizeof(byte));
+        _stream->WriteByte(b);
+        _block += sizeof(byte);
     }
 }
 

@@ -10,9 +10,8 @@
 // be read having automatic data alignment in mind.
 //-----------------------------------------------------------------------------
 //
-// CAlignedStream does not own the underlying stream therefore does not destroy
-// wrapped stream object. It overrides the reading and writing, and inserts
-// extra data padding when needed.
+// CAlignedStream uses the underlying stream, it overrides the reading and
+// writing, and inserts extra data padding when needed.
 //
 // Aligned stream works either in read or write mode, it cannot be opened in
 // combined mode.
@@ -28,11 +27,14 @@
 #define __AGS_CN_UTIL__ALIGNEDSTREAM_H
 
 #include "util/stream.h"
+#include "util/string.h"
 
 namespace AGS
 {
 namespace Common
 {
+
+class CDataStream;
 
 enum AlignedStreamMode
 {
@@ -43,15 +45,9 @@ enum AlignedStreamMode
 class CAlignedStream : public IStream
 {
 public:
-    CAlignedStream(IStream *stream, AlignedStreamMode mode, size_t alignment = sizeof(int32_t));
+    // TODO: use shared ptr
+    CAlignedStream(CDataStream *stream, AlignedStreamMode mode, size_t alignment = sizeof(int32_t));
     virtual ~CAlignedStream();
-
-    // Close() MUST be called at the end of aligned stream work so that the
-    // stream could read/write the necessary padding at the end of data chunk;
-    // Close() will be called automatically from stream's destructor, but is
-    // exposed in case user would like to explicitly end aligned read/write at
-    // certain point.
-    void            Close();
 
     // Is stream valid (underlying data initialized properly)
     virtual bool    IsValid() const;
@@ -65,9 +61,21 @@ public:
     virtual bool    CanWrite() const;
     virtual bool    CanSeek() const;
 
-    virtual int     Seek(StreamSeek seek, int pos);
+    // Free the underlying stream (to prevent automatic dispose on close)
+    // TODO: use shared ptr instead
+    void            ReleaseStream();
+    // Close() MUST be called at the end of aligned stream work so that the
+    // stream could read/write the necessary padding at the end of data chunk;
+    // Close() will be called automatically from stream's destructor, but is
+    // exposed in case user would like to explicitly end aligned read/write at
+    // certain point.
+    virtual void    Close();
 
-    virtual int8_t  ReadInt8();
+    virtual int     ReadByte();
+    inline  int8_t  ReadInt8()
+    {
+        return ReadByte();
+    }
     virtual int16_t ReadInt16();
     virtual int32_t ReadInt32();
     virtual int64_t ReadInt64();
@@ -75,13 +83,19 @@ public:
     virtual int     ReadArray(void *buffer, int elem_size, int count);
     virtual CString ReadString(int max_chars = 5000000);
 
-    virtual void    WriteInt8(int8_t val);
+    virtual void    WriteByte(byte b);
+    inline  void    WriteInt8(int8_t val)
+    {
+        WriteByte(val);
+    }
     virtual void    WriteInt16(int16_t val);
     virtual void    WriteInt32(int32_t val);
     virtual void    WriteInt64(int64_t val);
     virtual int     Write(const void *buffer, int size);
     virtual int     WriteArray(const void *buffer, int elem_size, int count);
     virtual void    WriteString(const CString &str);
+
+    virtual int     Seek(StreamSeek seek, int pos);
 
     inline int ReadArrayOfInt16(int16_t *buffer, int count)
     {
@@ -113,7 +127,7 @@ protected:
     void            WritePadding(size_t next_type);
 
 private:
-    IStream             *_stream;
+    CDataStream         *_stream;
     AlignedStreamMode   _mode;
     size_t              _alignment;
     int64_t             _block;

@@ -4,16 +4,13 @@
 #include "util/filestream.h"
 #include "util/math.h"
 
-// FIXME
-#define byte    unsigned char
-
 namespace AGS
 {
 namespace Common
 {
 
 CFileStream::CFileStream(const CString &file_name, FileOpenMode open_mode, FileWorkMode work_mode)
-    : CAGSStream(kDefaultSystemEndianess, kDefaultSystemEndianess)
+    : CDataStream(kDefaultSystemEndianess, kDefaultSystemEndianess)
     , _file(NULL)
     , _openMode(open_mode)
     , _workMode(work_mode)
@@ -23,7 +20,7 @@ CFileStream::CFileStream(const CString &file_name, FileOpenMode open_mode, FileW
 
 CFileStream::CFileStream(const CString &file_name, FileOpenMode open_mode, FileWorkMode work_mode,
             DataEndianess caller_endianess, DataEndianess stream_endianess)
-    : CAGSStream(caller_endianess, stream_endianess)
+    : CDataStream(caller_endianess, stream_endianess)
     , _file(NULL)
     , _openMode(open_mode)
     , _workMode(work_mode)
@@ -33,10 +30,7 @@ CFileStream::CFileStream(const CString &file_name, FileOpenMode open_mode, FileW
 
 CFileStream::~CFileStream()
 {
-    if (_file)
-    {
-        fclose(_file);
-    }
+    Close();
 }
 
 bool CFileStream::IsValid() const
@@ -79,26 +73,16 @@ bool CFileStream::CanSeek() const
     return IsValid();
 }
 
-int CFileStream::Seek(StreamSeek seek, int pos)
+void CFileStream::Close()
 {
-    if (!CanSeek())
+    if (_file)
     {
-        return 0;
+        fclose(_file);
     }
-
-    int stdclib_seek;
-    switch (seek)
-    {
-    case kSeekBegin:    stdclib_seek = SEEK_SET; break;
-    case kSeekCurrent:  stdclib_seek = SEEK_CUR; break;
-    case kSeekEnd:      stdclib_seek = SEEK_END; break;
-    }
-
-    int result = fseek(_file, pos, stdclib_seek);
-    return GetPosition();
+    _file = NULL;
 }
 
-int8_t CFileStream::ReadInt8()
+int CFileStream::ReadByte()
 {
     if (CanRead())
     {
@@ -151,39 +135,7 @@ int CFileStream::Read(void *buffer, int32_t size)
     return 0;
 }
 
-CString CFileStream::ReadString(int max_chars)
-{
-    if (!CanRead())
-    {
-        return "";
-    }
-
-    CString str;
-    int chars_read = 0;
-    int buf_size = 0;
-    char c = 0;
-    do
-    {
-        buf_size = Math::Min(str.GetLength() + 3000, max_chars);
-        char *buf = str.GetBuffer(buf_size);
-        do
-        {
-            buf[chars_read++] = c = getc(_file);
-        }
-        while (c != 0 && chars_read < buf_size);
-        str.ReleaseBuffer(chars_read);
-    }
-    while (c != 0 && chars_read < max_chars);
-
-    if (c != 0 && chars_read != max_chars)
-    {
-        fseek(_file, max_chars - chars_read, SEEK_CUR);
-    }
-
-    return str;
-}
-
-void CFileStream::WriteInt8(int8_t val)
+void CFileStream::WriteByte(byte val)
 {
     if (CanWrite())
     {
@@ -227,106 +179,23 @@ int CFileStream::Write(const void *buffer, int size)
     return 0;
 }
 
-void CFileStream::WriteString(const CString &str)
+int CFileStream::Seek(StreamSeek seek, int pos)
 {
-    if (CanWrite())
-    {
-        fwrite(str.GetCStr(), sizeof(char), str.GetLength(), _file);
-        fputc(0, _file);
-    }
-}
-
-int CFileStream::ReadAndConvertArrayOfInt16(int16_t *buffer, int count)
-{
-    if (!CanRead())
+    if (!CanSeek())
     {
         return 0;
     }
 
-    for (int i = 0; i < count; ++i, ++buffer)
+    int stdclib_seek;
+    switch (seek)
     {
-        fread(buffer, sizeof(int16_t), 1, _file);
-        ConvertInt16(*buffer);
-    }
-    return count;
-}
-
-int CFileStream::ReadAndConvertArrayOfInt32(int32_t *buffer, int count)
-{
-    if (!CanRead())
-    {
-        return 0;
+    case kSeekBegin:    stdclib_seek = SEEK_SET; break;
+    case kSeekCurrent:  stdclib_seek = SEEK_CUR; break;
+    case kSeekEnd:      stdclib_seek = SEEK_END; break;
     }
 
-    for (int i = 0; i < count; ++i, ++buffer)
-    {
-        fread(buffer, sizeof(int32_t), 1, _file);
-        ConvertInt32(*buffer);
-    }
-    return count;
-}
-
-int CFileStream::ReadAndConvertArrayOfInt64(int64_t *buffer, int count)
-{
-    if (!CanRead())
-    {
-        return 0;
-    }
-
-    for (int i = 0; i < count; ++i, ++buffer)
-    {
-        fread(buffer, sizeof(int64_t), 1, _file);
-        ConvertInt64(*buffer);
-    }
-    return count;
-}
-
-int CFileStream::WriteAndConvertArrayOfInt16(const int16_t *buffer, int count)
-{
-    if (!CanWrite())
-    {
-        return 0;
-    }
-
-    for (int i = 0; i < count; ++i, ++buffer)
-    {
-        int16_t val = *buffer;
-        ConvertInt16(val);
-        fwrite(&val, sizeof(int16_t), 1, _file);
-    }
-    return count;
-}
-
-int CFileStream::WriteAndConvertArrayOfInt32(const int32_t *buffer, int count)
-{
-    if (!CanWrite())
-    {
-        return 0;
-    }
-
-    for (int i = 0; i < count; ++i, ++buffer)
-    {
-        int32_t val = *buffer;
-        ConvertInt32(val);
-        fwrite(&val, sizeof(int32_t), 1, _file);
-    }
-    return count;
-}
-
-int CFileStream::WriteAndConvertArrayOfInt64(const int64_t *buffer, int count)
-{
-    if (!CanWrite())
-    {
-        return 0;
-    }
-
-    for (int i = 0; i < count; ++i, ++buffer)
-    {
-        int64_t val = *buffer;
-        ConvertInt64(val);
-        fwrite(&val, sizeof(int64_t), 1, _file);
-    }
-    return count;
+    int result = fseek(_file, pos, stdclib_seek);
+    return GetPosition();
 }
 
 void CFileStream::Open(const CString &file_name, FileOpenMode open_mode, FileWorkMode work_mode)

@@ -34,9 +34,10 @@
 #define _INTPTR_T_DEFINED
 #define _UINTPTR_T_DEFINED
 
-// TODO
-// Conflicts with some of the basic WinAPI headers
-//#define byte         unsigned char
+// NOTE: if you get errors when compiling windows C headers related to 'byte'
+// symbol, ensure windows headers are included BEFORE the AGS types.h, so that
+// AGS simply redefine byte symbol.
+#define byte         unsigned char
 
 #endif // WINDOWS_VERSION
 

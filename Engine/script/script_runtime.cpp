@@ -28,6 +28,11 @@ prior express permission from Chris Jones.
 #include "script/spans.h"
 #include "script/systemimports.h"
 #include "util/misc.h"
+#include "util/datastream.h"
+#include "util/textstreamwriter.h"
+
+using AGS::Common::CDataStream;
+using AGS::Common::CTextStreamWriter;
 
 
 #ifdef AGS_BIG_ENDIAN
@@ -332,8 +337,9 @@ void dump_instruction(unsigned long *codeptr, int cps, int spp)
         return;
     }
 
-    FILE *dto = ci_fopen("script.log", "at");
-    fprintf(dto, "Line %3d, IP:%8d (SP:%8d) ", line_num, cps, spp);
+    CDataStream *data_s = ci_fopen("script.log", Common::kFile_Create, Common::kFile_Write);
+    CTextStreamWriter writer(data_s);
+    writer.WriteFormat("Line %3d, IP:%8d (SP:%8d) ", line_num, cps, spp);
 
     int l, thisop = codeptr[0] & INSTANCE_ID_REMOVEMASK, isreg = 0, t = 0;
     const char *toprint = sccmdnames[thisop];
@@ -346,23 +352,23 @@ void dump_instruction(unsigned long *codeptr, int cps, int spp)
         isreg |= 2;
         toprint++;
     }
-    fprintf(dto, "%s", toprint);
+    writer.WriteString(toprint);
 
     for (l = 0; l < sccmdargs[thisop]; l++) {
         t++;
         if (l > 0)
-            fprintf(dto, ",");
+            writer.WriteChar(',');
 
         if ((l == 0) && (isreg & 1))
-            fprintf(dto, " %s", regnames[codeptr[t]]);
+            writer.WriteFormat(" %s", regnames[codeptr[t]]);
         else if ((l == 1) && (isreg & 2))
-            fprintf(dto, " %s", regnames[codeptr[t]]);
+            writer.WriteFormat(" %s", regnames[codeptr[t]]);
         else
             // MACPORT FIX 9/6/5: changed %d to %ld
-            fprintf(dto, " %ld", codeptr[t]);
+            writer.WriteFormat(" %ld", codeptr[t]);
     }
-    fprintf(dto, "\n");
-    fclose(dto);
+    writer.WriteLineBreak();
+    // the writer will delete data stream internally
 }
 
 new_line_hook_type new_line_hook = NULL;

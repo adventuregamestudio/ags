@@ -12,6 +12,9 @@
 #include "ac/record.h"
 #include "debug/debug.h"
 #include "media/video/video.h"
+#include "util/datastream.h"
+
+using AGS::Common::CDataStream;
 
 
 extern int loaded_game_file_version;
@@ -60,17 +63,17 @@ void play_flc_file(int numb,int playflags) {
         clearScreenAtStart = 0;
 
     char flicnam[20]; sprintf(flicnam,"flic%d.flc",numb);
-    FILE*iii=clibfopen(flicnam,"rb");
-    if (iii==NULL) { sprintf(flicnam,"flic%d.fli",numb);
-    iii=clibfopen(flicnam,"rb"); }
-    if (iii==NULL) {
+    CDataStream*in=clibfopen(flicnam);
+    if (in==NULL) { sprintf(flicnam,"flic%d.fli",numb);
+    in=clibfopen(flicnam); }
+    if (in==NULL) {
         debug_log("FLIC animation FLIC%d.FLC not found",numb);
         return;
     }
-    fseek(iii,8,SEEK_CUR);
-    fread(&fliwidth,2,1,iii);
-    fread(&fliheight,2,1,iii);
-    fclose(iii);
+    in->Seek(Common::kSeekCurrent,8);
+    in->ReadArray(&fliwidth,2,1);
+    in->ReadArray(&fliheight,2,1);
+    delete in;
     if (game.color_depth > 1) {
         hicol_buf=create_bitmap_ex(final_col_dep,fliwidth,fliheight);
         clear(hicol_buf);

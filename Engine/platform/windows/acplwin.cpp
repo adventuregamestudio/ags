@@ -28,6 +28,9 @@
 #include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
+#include "util/datastream.h"
+
+using AGS::Common::CDataStream;
 
 extern GameSetupStruct game;
 extern GameSetup usetup;
@@ -105,7 +108,7 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual void UnRegisterGameWithGameExplorer();
   virtual int  ConvertKeycodeToScanCode(int keyCode);
 
-  virtual void ReadPluginsFromDisk(FILE *);
+  virtual void ReadPluginsFromDisk(CDataStream *in);
   virtual void StartPlugins();
   virtual int  RunPluginHooks(int event, int data);
   virtual void RunPluginInitGfxHooks(const char *driverName, void *data);
@@ -692,10 +695,8 @@ void AGSWin32::PlayVideo(const char *name, int skip, int flags) {
   }
 
   bool isError = false;
-  FILE *testFile = fopen(useloc, "rb");
-  if (testFile != NULL)
+  if (Common::File::TestReadFile(useloc))
   {
-    fclose(testFile);
     isError = (gfxDriver->PlayVideo(useloc, useSound, (VideoSkipType)skip, (flags > 0)) == 0);
   }
   else
@@ -764,8 +765,8 @@ void AGSWin32::ShutdownCDPlayer() {
   cd_exit();
 }
 
-void AGSWin32::ReadPluginsFromDisk(FILE *iii) {
-  pl_read_plugins_from_disk(iii);
+void AGSWin32::ReadPluginsFromDisk(CDataStream *in) {
+  pl_read_plugins_from_disk(in);
 }
 
 void AGSWin32::StartPlugins() {

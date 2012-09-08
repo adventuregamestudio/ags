@@ -1,6 +1,6 @@
 
-#include "ac/listbox.h"
 #include "util/wgt2allg.h"
+#include "ac/listbox.h"
 #include "ac/common.h"
 #include "ac/file.h"
 #include "ac/gamesetupstruct.h"

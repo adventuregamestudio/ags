@@ -1,6 +1,6 @@
 #define USE_CLIB
-#include "ac/global_game.h"
 #include "util/wgt2allg.h"
+#include "ac/global_game.h"
 #include "ac/common.h"
 #include "ac/view.h"
 #include "ac/character.h"
@@ -112,9 +112,7 @@ void DeleteSaveSlot (int slnum) {
         char thisname[260];
         for (int i = MAXSAVEGAMES; i > slnum; i--) {
             get_save_game_path(i, thisname);
-            FILE *fin = fopen (thisname, "rb");
-            if (fin != NULL) {
-                fclose (fin);
+            if (Common::File::TestReadFile(thisname)) {
                 // Rename the highest save game to fill in the gap
                 rename (thisname, nametouse);
                 break;

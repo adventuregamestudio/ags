@@ -3,6 +3,10 @@
 
 #include "util/file.h"
 
+// Forward declaration
+namespace AGS { namespace Common { class CDataStream; } }
+using namespace AGS; // FIXME later
+
 #define AUCL_BUNDLE_EXE 1
 #define AUCL_BUNDLE_VOX 2
 enum AudioFileType {
@@ -22,8 +26,8 @@ struct AudioClipType {
     int crossfadeSpeed;
     int reservedForFuture;
 
-    void ReadFromFile(FILE *f);
-    void WriteToFile(FILE *f);
+    void ReadFromFile(Common::CDataStream *in);
+    void WriteToFile(Common::CDataStream *out);
 };
 
 #endif // __AC_AUDIOCLIPTYPE_H

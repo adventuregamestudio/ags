@@ -1,20 +1,23 @@
 
 #include "ac/audiocliptype.h"
+#include "util/datastream.h"
 
-void AudioClipType::ReadFromFile(FILE *f)
+using AGS::Common::CDataStream;
+
+void AudioClipType::ReadFromFile(CDataStream *in)
 {
-    id = getw(f);
-    reservedChannels = getw(f);
-    volume_reduction_while_speech_playing = getw(f);
-    crossfadeSpeed = getw(f);
-    reservedForFuture = getw(f);
+    id = in->ReadInt32();
+    reservedChannels = in->ReadInt32();
+    volume_reduction_while_speech_playing = in->ReadInt32();
+    crossfadeSpeed = in->ReadInt32();
+    reservedForFuture = in->ReadInt32();
 }
 
-void AudioClipType::WriteToFile(FILE *f)
+void AudioClipType::WriteToFile(CDataStream *out)
 {
-    putw(id, f);
-    putw(reservedChannels, f);
-    putw(volume_reduction_while_speech_playing, f);
-    putw(crossfadeSpeed, f);
-    putw(reservedForFuture, f);
+    out->WriteInt32(id);
+    out->WriteInt32(reservedChannels);
+    out->WriteInt32(volume_reduction_while_speech_playing);
+    out->WriteInt32(crossfadeSpeed);
+    out->WriteInt32(reservedForFuture);
 }

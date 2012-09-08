@@ -20,38 +20,41 @@ CLEAR that the code has been altered from the Standard Version.
 #include <stdlib.h>
 #include "util/wgt2allg.h"
 #include "ac/roomstruct.h"
+#include "util/filestream.h"
+
+using AGS::Common::CDataStream;
 
 char *scripteditruntimecopr = "Script Editor v1.2 run-time component. (c) 1998 Chris Jones";
 
 #define SCRIPT_CONFIG_VERSION 1
 extern void quit(char *);
 
-long getlong(FILE * iii)
+long getlong(CDataStream *in)
 {
     long tmm;
-    fread(&tmm, 4, 1, iii);
+    in->ReadArray(&tmm, 4, 1);
     return tmm;
 }
 
-void save_script_configuration(FILE * iii)
+void save_script_configuration(CDataStream *out)
 {
     quit("ScriptEdit: run-time version can't save");
 }
 
-void load_script_configuration(FILE * iii)
+void load_script_configuration(CDataStream *in)
 {
     int aa;
-    if (getlong(iii) != SCRIPT_CONFIG_VERSION)
+    if (getlong(in) != SCRIPT_CONFIG_VERSION)
         quit("ScriptEdit: invliad config version");
 
-    int numvarnames = getlong(iii);
+    int numvarnames = getlong(in);
     for (aa = 0; aa < numvarnames; aa++) {
-        int lenoft = getc(iii);
-        fseek(iii, lenoft, SEEK_CUR);
+        int lenoft = in->ReadInt8();
+        in->Seek(Common::kSeekCurrent, lenoft);
     }
 }
 
-void save_graphical_scripts(FILE * fff, roomstruct * rss)
+void save_graphical_scripts(CDataStream *out, roomstruct * rss)
 {
     quit("ScriptEdit: run-time version can't save");
 }
@@ -59,10 +62,9 @@ void save_graphical_scripts(FILE * fff, roomstruct * rss)
 char *scripttempn = "~acsc%d.tmp";
 extern int route_script_link();
 
-void load_graphical_scripts(FILE * iii, roomstruct * rst)
+void load_graphical_scripts(CDataStream *in, roomstruct * rst)
 {
     long ct;
-    FILE *te;
 
     if (route_script_link()) {
         quit("STOP IT.");
@@ -71,22 +73,22 @@ void load_graphical_scripts(FILE * iii, roomstruct * rst)
     }
 
     while (1) {
-        fread(&ct, 4, 1, iii);
-        if ((ct == -1) | (feof(iii) != 0))
+        in->ReadArray(&ct, 4, 1);
+        if ((ct == -1) | (in->EOS() != 0))
             break;
 
         long lee;
-        fread(&lee, 4, 1, iii);
+        in->ReadArray(&lee, 4, 1);
 
         char thisscn[20];
         sprintf(thisscn, scripttempn, ct);
-        te = fopen(thisscn, "wb");
+        CDataStream *te = Common::File::CreateFile(thisscn);
 
         char *scnf = (char *)malloc(lee);
         // MACPORT FIX: swap size and nmemb
-        fread(scnf, sizeof(char), lee, iii);
-        fwrite(scnf, sizeof(char), lee, te);
-        fclose(te);
+        in->ReadArray(scnf, sizeof(char), lee);
+        te->WriteArray(scnf, sizeof(char), lee);
+        delete te;
 
         free(scnf);
     }

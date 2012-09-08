@@ -1,7 +1,7 @@
 
 #include <string.h>
-#include "script/script.h"
 #include "util/wgt2allg.h"
+#include "script/script.h"
 #include "ac/common.h"
 #include "ac/roomstruct.h"
 #include "ac/character.h"

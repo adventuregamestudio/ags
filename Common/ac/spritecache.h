@@ -13,6 +13,9 @@
 #ifndef __SPRCACHE_H
 #define __SPRCACHE_H
 
+namespace AGS { namespace Common { class CDataStream; } }
+using namespace AGS; // FIXME later
+
 // We can't rely on offsets[slot]==0 because when the engine is running
 // this is changed to reference the Bluecup sprite. Therefore we need
 // a definite way of knowing whether the sprite existed in the sprite file.
@@ -50,7 +53,7 @@ public:
   block *images;
   int *sizes;
   unsigned char *flags;
-  FILE *ff;
+  Common::CDataStream *cache_stream;
   bool spritesAreCompressed;
   long cachesize;               // size in bytes of currently cached images
   int *mrulist, *mrubacklink;
@@ -60,7 +63,7 @@ public:
   long lockedSize;              // size in bytes of currently locked images
 
 private:
-  void compressSprite(block sprite, FILE *ooo);
+  void compressSprite(block sprite, Common::CDataStream *out);
   bool loadSpriteIndexFile(int expectedFileID, long spr_initial_offs, short numspri);
 
   void initFile_adjustBuffers(short numspri);

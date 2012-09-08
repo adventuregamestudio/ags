@@ -1,13 +1,16 @@
 
 #include <stdio.h>
-#include "ac/roomobject.h"
 #include "util/wgt2allg.h"
+#include "ac/roomobject.h"
 #include "ac/common.h"
 #include "ac/common_defines.h"
 #include "ac/gamestate.h"
 #include "ac/runtime_defines.h"
 #include "ac/viewframe.h"
 #include "main/update.h"
+#include "util/datastream.h"
+
+using AGS::Common::CDataStream;
 
 
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
@@ -115,26 +118,26 @@ void RoomObject::update_cycle_view_backwards()
       }
 }
 
-void RoomObject::ReadFromFile(FILE *fp)
+void RoomObject::ReadFromFile(CDataStream *in)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
-    fread(&x, sizeof(int), 2, fp);
-    fread(&tint_r, sizeof(short), 15, fp);
-    fread(&cycling, sizeof(char), 4, fp);
-    fread(&blocking_width, sizeof(short), 2, fp);
-    fseek(fp, 2, SEEK_CUR);
+    in->ReadArray(&x, sizeof(int), 2);
+    in->ReadArray(&tint_r, sizeof(short), 15);
+    in->ReadArray(&cycling, sizeof(char), 4);
+    in->ReadArray(&blocking_width, sizeof(short), 2);
+    in->Seek(Common::kSeekCurrent, 2);
 //#else
 //    throw "RoomObject::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
 //#endif
 }
-void RoomObject::WriteToFile(FILE *fp)
+void RoomObject::WriteToFile(CDataStream *out)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
-    fwrite(&x, sizeof(int), 2, fp);
-    fwrite(&tint_r, sizeof(short), 15, fp);
-    fwrite(&cycling, sizeof(char), 4, fp);
-    fwrite(&blocking_width, sizeof(short), 2, fp);
-    putc(0, fp); putc(0, fp);
+    out->WriteArray(&x, sizeof(int), 2);
+    out->WriteArray(&tint_r, sizeof(short), 15);
+    out->WriteArray(&cycling, sizeof(char), 4);
+    out->WriteArray(&blocking_width, sizeof(short), 2);
+    out->WriteInt8(0); out->WriteInt8(0);
 //#else
 //    throw "RoomObject::WriteToFile() is not implemented for little-endian platforms and should not be called.";
 //#endif

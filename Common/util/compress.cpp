@@ -20,7 +20,6 @@ prior express permission from Chris Jones.
 #endif
 
 #include "util/wgt2allg.h"
-#include "util/file.h"
 
 #include "util/misc.h"
 
@@ -31,7 +30,9 @@ prior express permission from Chris Jones.
 #include <conio.h>
 #endif
 
-#include "util/file.h"
+#include "util/datastream.h"
+
+using AGS::Common::CDataStream;
 
 #if !defined(MAC_VERSION)
 typedef unsigned char * __block;
@@ -42,7 +43,7 @@ typedef unsigned char * __block;
 #endif
 #endif
 
-extern long cliboffset(char *);
+extern long cliboffset(const char *);
 extern char lib_file_name[13];
 extern void domouse(int);
 extern "C"
@@ -51,13 +52,13 @@ extern "C"
 }
 
 //#ifdef ALLEGRO_BIG_ENDIAN
-//#define putshort __putshort__lilendian
-//#define getshort __getshort__bigendian
+//#define ->WriteInt16 __putshort__lilendian
+//#define ->ReadInt16 __getshort__bigendian
 //#else
 //extern "C"
 //{
-  //extern void putshort(short, FILE *);
-  //extern short getshort(FILE *);
+  //extern void ->WriteInt16(short, FILE *);
+  //extern short ->ReadInt16(FILE *);
 //}
 //#endif
 
@@ -73,7 +74,7 @@ long csavecompressed(char *, __block, color[256], long = 0);
 long cloadcompressed(char *, __block, color *, long = 0);
 #endif
 
-void cpackbitl(unsigned char *line, int size, FILE * outfile)
+void cpackbitl(unsigned char *line, int size, CDataStream *out)
 {
   int cnt = 0;                  // bytes encoded
 
@@ -85,31 +86,31 @@ void cpackbitl(unsigned char *line, int size, FILE * outfile)
       jmax = size - 1;
 
     if (i == size - 1) {        //................last byte alone
-      fputc(0, outfile);
-      fputc(line[i], outfile);
+      out->WriteInt8(0);
+      out->WriteInt8(line[i]);
       cnt++;
 
     } else if (line[i] == line[j]) {    //....run
       while ((j < jmax) && (line[j] == line[j + 1]))
         j++;
      
-      fputc(i - j, outfile);
-      fputc(line[i], outfile);
+      out->WriteInt8(i - j);
+      out->WriteInt8(line[i]);
       cnt += j - i + 1;
 
     } else {                    //.............................sequence
       while ((j < jmax) && (line[j] != line[j + 1]))
         j++;
 
-      fputc(j - i, outfile);
-      fwrite(line + i, j - i + 1, 1, outfile);
+      out->WriteInt8(j - i);
+      out->WriteArray(line + i, j - i + 1, 1);
       cnt += j - i + 1;
 
     }
   } // end while
 }
 
-void cpackbitl16(unsigned short *line, int size, FILE * outfile)
+void cpackbitl16(unsigned short *line, int size, CDataStream *out)
 {
   int cnt = 0;                  // bytes encoded
 
@@ -121,31 +122,31 @@ void cpackbitl16(unsigned short *line, int size, FILE * outfile)
       jmax = size - 1;
 
     if (i == size - 1) {        //................last byte alone
-      fputc(0, outfile);
-      putshort(line[i], outfile);
+      out->WriteInt8(0);
+      out->WriteInt16(line[i]);
       cnt++;
 
     } else if (line[i] == line[j]) {    //....run
       while ((j < jmax) && (line[j] == line[j + 1]))
         j++;
      
-      fputc(i - j, outfile);
-      putshort(line[i], outfile);
+      out->WriteInt8(i - j);
+      out->WriteInt16(line[i]);
       cnt += j - i + 1;
 
     } else {                    //.............................sequence
       while ((j < jmax) && (line[j] != line[j + 1]))
         j++;
 
-      fputc(j - i, outfile);
-      fwrite(line + i, j - i + 1, 2, outfile);
+      out->WriteInt8(j - i);
+      out->WriteArray(line + i, j - i + 1, 2);
       cnt += j - i + 1;
 
     }
   } // end while
 }
 
-void cpackbitl32(unsigned long *line, int size, FILE * outfile)
+void cpackbitl32(unsigned long *line, int size, CDataStream *out)
 {
   int cnt = 0;                  // bytes encoded
 
@@ -157,24 +158,24 @@ void cpackbitl32(unsigned long *line, int size, FILE * outfile)
       jmax = size - 1;
 
     if (i == size - 1) {        //................last byte alone
-      fputc(0, outfile);
-      putw(line[i], outfile);
+      out->WriteInt8(0);
+      out->WriteInt32(line[i]);
       cnt++;
 
     } else if (line[i] == line[j]) {    //....run
       while ((j < jmax) && (line[j] == line[j + 1]))
         j++;
      
-      fputc(i - j, outfile);
-      putw(line[i], outfile);
+      out->WriteInt8(i - j);
+      out->WriteInt32(line[i]);
       cnt += j - i + 1;
 
     } else {                    //.............................sequence
       while ((j < jmax) && (line[j] != line[j + 1]))
         j++;
 
-      fputc(j - i, outfile);
-      fwrite(line + i, j - i + 1, 4, outfile);
+      out->WriteInt8(j - i);
+      out->WriteArray(line + i, j - i + 1, 4);
       cnt += j - i + 1;
 
     }
@@ -184,14 +185,14 @@ void cpackbitl32(unsigned long *line, int size, FILE * outfile)
 
 long csavecompressed(char *finam, __block tobesaved, color pala[256], long exto)
 {
-  FILE *outpt;
+  CDataStream *outpt;
 
   if (exto > 0) {
-    outpt = ci_fopen(finam, "a+b");
-    fseek(outpt, exto, SEEK_SET);
+    outpt = ci_fopen(finam, Common::kFile_Create, Common::kFile_ReadWrite);
+    outpt->Seek(Common::kSeekBegin, exto);
   } 
   else
-    outpt = ci_fopen(finam, "wb");
+    outpt = ci_fopen(finam, Common::kFile_CreateAlways, Common::kFile_Write);
 
   int widt, hit;
   long ofes;
@@ -199,8 +200,8 @@ long csavecompressed(char *finam, __block tobesaved, color pala[256], long exto)
   widt += (*tobesaved++) * 256;
   hit = *tobesaved++;
   hit += (*tobesaved++) * 256;
-  fwrite(&widt, 2, 1, outpt);
-  fwrite(&hit, 2, 1, outpt);
+  outpt->WriteArray(&widt, 2, 1);
+  outpt->WriteArray(&hit, 2, 1);
 
   unsigned char *ress = (unsigned char *)malloc(widt + 1);
   int ww;
@@ -214,25 +215,26 @@ long csavecompressed(char *finam, __block tobesaved, color pala[256], long exto)
   }
 
   for (ww = 0; ww < 256; ww++) {
-    fputc(pala[ww].r, outpt);
-    fputc(pala[ww].g, outpt);
-    fputc(pala[ww].b, outpt);
+    outpt->WriteInt8(pala[ww].r);
+    outpt->WriteInt8(pala[ww].g);
+    outpt->WriteInt8(pala[ww].b);
   }
 
-  ofes = ftell(outpt);
-  fclose(outpt);
+  ofes = outpt->GetPosition();
+  delete outpt;
   free(ress);
   return ofes;
 }
 
-int cunpackbitl(unsigned char *line, int size, FILE * infile)
+int cunpackbitl(unsigned char *line, int size, CDataStream *in)
 {
   int n = 0;                    // number of bytes decoded
 
   while (n < size) {
-    int ix = fgetc(infile);     // get index byte
-    if (ferror(infile))
-      break;
+    int ix = in->ReadInt8();     // get index byte
+    // TODO: check error when new error handling system is implemented
+    //if (ferror(infile))
+    //  break;
 
     char cx = ix;
     if (cx == -128)
@@ -240,7 +242,7 @@ int cunpackbitl(unsigned char *line, int size, FILE * infile)
 
     if (cx < 0) {                //.............run
       int i = 1 - cx;
-      char ch = fgetc(infile);
+      char ch = in->ReadInt8();
       while (i--) {
         // test for buffer overflow
         if (n >= size)
@@ -255,22 +257,25 @@ int cunpackbitl(unsigned char *line, int size, FILE * infile)
         if (n >= size)
           return -1;
 
-        line[n++] = fgetc(infile);
+        line[n++] = in->ReadInt8();
       }
     }
   }
 
-  return ferror(infile);
+  // TODO: check error when new error handling system is implemented
+  //return ferror(infile);
+  return 0;
 }
 
-int cunpackbitl16(unsigned short *line, int size, FILE * infile)
+int cunpackbitl16(unsigned short *line, int size, CDataStream *in)
 {
   int n = 0;                    // number of bytes decoded
 
   while (n < size) {
-    int ix = fgetc(infile);     // get index byte
-    if (ferror(infile))
-      break;
+    int ix = in->ReadInt8();     // get index byte
+    // TODO: check error when new error handling system is implemented
+    //if (ferror(infile))
+    //  break;
 
     char cx = ix;
     if (cx == -128)
@@ -278,7 +283,7 @@ int cunpackbitl16(unsigned short *line, int size, FILE * infile)
 
     if (cx < 0) {                //.............run
       int i = 1 - cx;
-      unsigned short ch = getshort(infile);
+      unsigned short ch = in->ReadInt16();
       while (i--) {
         // test for buffer overflow
         if (n >= size)
@@ -293,22 +298,25 @@ int cunpackbitl16(unsigned short *line, int size, FILE * infile)
         if (n >= size)
           return -1;
 
-        line[n++] = getshort(infile);
+        line[n++] = in->ReadInt16();
       }
     }
   }
 
-  return ferror(infile);
+  // TODO: check error when new error handling system is implemented
+  //return ferror(infile);
+  return 0;
 }
 
-int cunpackbitl32(unsigned long *line, int size, FILE * infile)
+int cunpackbitl32(unsigned long *line, int size, CDataStream *in)
 {
   int n = 0;                    // number of bytes decoded
 
   while (n < size) {
-    int ix = fgetc(infile);     // get index byte
-    if (ferror(infile))
-      break;
+    int ix = in->ReadInt8();     // get index byte
+    // TODO: check error when new error handling system is implemented
+    //if (ferror(infile))
+    //  break;
 
     char cx = ix;
     if (cx == -128)
@@ -316,7 +324,7 @@ int cunpackbitl32(unsigned long *line, int size, FILE * infile)
 
     if (cx < 0) {                //.............run
       int i = 1 - cx;
-      unsigned long ch = getw(infile);
+      unsigned long ch = in->ReadInt32();
       while (i--) {
         // test for buffer overflow
         if (n >= size)
@@ -331,12 +339,14 @@ int cunpackbitl32(unsigned long *line, int size, FILE * infile)
         if (n >= size)
           return -1;
 
-        line[n++] = getw(infile);
+        line[n++] = in->ReadInt32();
       }
     }
   }
 
-  return ferror(infile);
+  // TODO: check error when new error handling system is implemented
+  //return ferror(infile);
+  return 0;
 }
 
 //=============================================================================
@@ -362,33 +372,33 @@ int bmp_bpp(BITMAP*bmpt) {
 }
 
 long save_lzw(char *fnn, BITMAP *bmpp, color *pall, long offe) {
-  FILE  *ooo, *iii;
+  CDataStream  *lz_temp_s, *out;
   long  fll, toret, gobacto;
 
-  ooo = ci_fopen(lztempfnm, "wb");
-  putw(bmpp->w * bmp_bpp(bmpp), ooo);
-  putw(bmpp->h, ooo);
-  fwrite(&bmpp->line[0][0], bmpp->w * bmp_bpp(bmpp), bmpp->h, ooo);
-  fclose(ooo);
+  lz_temp_s = ci_fopen(lztempfnm, Common::kFile_CreateAlways, Common::kFile_Write);
+  lz_temp_s->WriteInt32(bmpp->w * bmp_bpp(bmpp));
+  lz_temp_s->WriteInt32(bmpp->h);
+  lz_temp_s->WriteArray(&bmpp->line[0][0], bmpp->w * bmp_bpp(bmpp), bmpp->h);
+  delete lz_temp_s;
 
-  iii = ci_fopen(fnn, "r+b");
-  fseek(iii, offe, SEEK_SET);
+  out = ci_fopen(fnn, Common::kFile_Open, Common::kFile_ReadWrite);
+  out->Seek(Common::kSeekBegin, offe);
 
-  ooo = ci_fopen(lztempfnm, "rb");
-  fll = filelength(fileno(ooo));
-  fwrite(&pall[0], sizeof(color), 256, iii);
-  fwrite(&fll, 4, 1, iii);
-  gobacto = ftell(iii);
+  lz_temp_s = ci_fopen(lztempfnm);
+  fll = lz_temp_s->GetLength();
+  out->WriteArray(&pall[0], sizeof(color), 256);
+  out->WriteArray(&fll, 4, 1);
+  gobacto = out->GetPosition();
 
   // reserve space for compressed size
-  fwrite(&fll, 4, 1, iii);
-  lzwcompress(ooo, iii);
-  toret = ftell(iii);
-  fseek(iii, gobacto, SEEK_SET);
+  out->WriteArray(&fll, 4, 1);
+  lzwcompress(lz_temp_s, out);
+  toret = out->GetPosition();
+  out->Seek(Common::kSeekBegin, gobacto);
   fll = (toret - gobacto) - 4;
-  fwrite(&fll, 4, 1, iii);      // write compressed size
-  fclose(ooo);
-  fclose(iii);
+  out->WriteArray(&fll, 4, 1);      // write compressed size
+  delete lz_temp_s;
+  delete out;
   unlink(lztempfnm);
 
   return toret;
@@ -397,24 +407,24 @@ long save_lzw(char *fnn, BITMAP *bmpp, color *pall, long offe) {
 /*long load_lzw(char*fnn,BITMAP*bmm,color*pall,long ooff) {
   recalced=bmm;
   FILE*iii=clibfopen(fnn,"rb");
-  fseek(iii,ooff,SEEK_SET);*/
+  Seek(iii,ooff,SEEK_SET);*/
 
-long load_lzw(FILE *iii, BITMAP *bmm, color *pall) {
+long load_lzw(CDataStream *in, BITMAP *bmm, color *pall) {
   long          uncompsiz, *loptr;
   unsigned char *membuffer;
   int           arin;
 
   recalced = bmm;
   // MACPORT FIX (HACK REALLY)
-  fread(&pall[0], 1, sizeof(color)*256, iii);
-  fread(&maxsize, 4, 1, iii);
-  fread(&uncompsiz,4,1,iii);
+  in->ReadArray(&pall[0], 1, sizeof(color)*256);
+  in->ReadArray(&maxsize, 4, 1);
+  in->ReadArray(&uncompsiz,4,1);
 
-  uncompsiz += ftell(iii);
+  uncompsiz += in->GetPosition();
   outbytes = 0; putbytes = 0;
 
   update_polled_stuff_if_runtime();
-  membuffer = lzwexpand_to_mem(iii);
+  membuffer = lzwexpand_to_mem(in);
   update_polled_stuff_if_runtime();
 
   loptr = (long *)&membuffer[0];
@@ -476,8 +486,8 @@ long load_lzw(FILE *iii, BITMAP *bmm, color *pall) {
 
   free(membuffer-8);
 
-  if (ftell(iii) != uncompsiz)
-    fseek(iii, uncompsiz, SEEK_SET);
+  if (in->GetPosition() != uncompsiz)
+    in->Seek(Common::kSeekBegin, uncompsiz);
 
   update_polled_stuff_if_runtime();
 
@@ -494,12 +504,12 @@ long savecompressed_allegro(char *fnn, BITMAP *bmpp, color *pall, long ooo) {
 
   memcpy(&wgtbl[4], &bmpp->line[0][0], bmpp->w * bmpp->h);
 
-  toret = csavecompressed(fnn, wgtbl, pall, ooo);
+  toret = csavecompressed(fnn, wgtbl, pall);
   free(wgtbl);
   return toret;
 }
 
-long loadcompressed_allegro(FILE *fpp, BITMAP **bimpp, color *pall, long ooo) {
+long loadcompressed_allegro(CDataStream *in, BITMAP **bimpp, color *pall, long ooo) {
   short widd,hitt;
   int   ii;
 
@@ -507,22 +517,22 @@ long loadcompressed_allegro(FILE *fpp, BITMAP **bimpp, color *pall, long ooo) {
   if (bim != NULL)
     destroy_bitmap(bim);
 
-  fread(&widd,2,1,fpp);
-  fread(&hitt,2,1,fpp);
+  in->ReadArray(&widd,2,1);
+  in->ReadArray(&hitt,2,1);
   bim = create_bitmap_ex(8, widd, hitt);
   if (bim == NULL)
     quit("!load_room: not enough memory to decompress masks");
   *bimpp = bim;
 
   for (ii = 0; ii < hitt; ii++) {
-    cunpackbitl(&bim->line[ii][0], widd, fpp);
+    cunpackbitl(&bim->line[ii][0], widd, in);
     if (ii % 20 == 0)
       update_polled_stuff_if_runtime();
   }
 
-  fseek(fpp, 768, SEEK_CUR);  // skip palette
+  in->Seek(Common::kSeekCurrent, 768);  // skip palette
 
-  return ftell(fpp);
+  return in->GetPosition();
 }
 
 

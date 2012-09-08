@@ -1,23 +1,26 @@
 
 #include <stdio.h>
+#include "util/wgt2allg.h"
 #include "gui/guislider.h"
 #include "gui/guimain.h"
-#include "util/wgt2allg.h"
 #include "ac/spritecache.h"
+#include "util/datastream.h"
+
+using AGS::Common::CDataStream;
 
 extern SpriteCache spriteset;
 
 DynamicArray<GUISlider> guislider;
 int numguislider = 0;
 
-void GUISlider::WriteToFile(FILE * ooo)
+void GUISlider::WriteToFile(CDataStream *out)
 {
-  GUIObject::WriteToFile(ooo);
+  GUIObject::WriteToFile(out);
   // MACPORT FIX: swap
-  fwrite(&min, sizeof(int), 7, ooo);
+  out->WriteArray(&min, sizeof(int), 7);
 }
 
-void GUISlider::ReadFromFile(FILE * ooo, int version)
+void GUISlider::ReadFromFile(CDataStream *in, int version)
 {
   int sizeToRead = 4;
 
@@ -29,8 +32,8 @@ void GUISlider::ReadFromFile(FILE * ooo, int version)
     bgimage = 0;
   }
 
-  GUIObject::ReadFromFile(ooo, version);
-  fread(&min, sizeof(int), sizeToRead, ooo);
+  GUIObject::ReadFromFile(in, version);
+  in->ReadArray(&min, sizeof(int), sizeToRead);
 }
 
 void GUISlider::Draw()

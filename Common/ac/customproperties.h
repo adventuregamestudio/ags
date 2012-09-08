@@ -3,6 +3,9 @@
 
 #include "util/file.h"
 
+namespace AGS { namespace Common { class CDataStream; } }
+using namespace AGS; // FIXME later
+
 #define MAX_CUSTOM_PROPERTIES 30
 #define MAX_CUSTOM_PROPERTY_VALUE_LENGTH 500
 #define PROP_TYPE_BOOL   1
@@ -24,8 +27,8 @@ struct CustomPropertySchema {
 
     CustomPropertySchema ();
 
-    void Serialize (FILE *outto);
-    int UnSerialize (FILE *infrom);
+    void Serialize (Common::CDataStream *out);
+    int UnSerialize (Common::CDataStream *in);
 
 };
 
@@ -44,8 +47,8 @@ struct CustomProperties {
 
     void addProperty (const char *newname, const char *newval);
 
-    void Serialize (FILE *outto);
-    int  UnSerialize (FILE *infrom);
+    void Serialize (Common::CDataStream *out);
+    int  UnSerialize (Common::CDataStream *in);
 };
 
 #endif // __AC_CUSTOMPROPERTIES_H

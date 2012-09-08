@@ -7,6 +7,9 @@
 #include "ac/common_defines.h"
 #include "util/file.h"
 #include "util/string_utils.h"
+#include "util/datastream.h"
+
+using AGS::Common::CDataStream;
 
 void WordsDictionary::allocate_memory(int wordCount)
 {
@@ -82,30 +85,30 @@ void decrypt_text(char*toenc) {
   }
 }
 
-void read_string_decrypt(FILE *ooo, char *sss) {
-  int newlen = getw(ooo);
+void read_string_decrypt(CDataStream *in, char *sss) {
+  int newlen = in->ReadInt32();
   if ((newlen < 0) || (newlen > 5000000))
     quit("ReadString: file is corrupt");
 
   // MACPORT FIX: swap as usual
-  fread(sss, sizeof(char), newlen, ooo);
+  in->ReadArray(sss, sizeof(char), newlen);
   sss[newlen] = 0;
   decrypt_text(sss);
 }
 
-void read_dictionary (WordsDictionary *dict, FILE *writeto) {
+void read_dictionary (WordsDictionary *dict, CDataStream *out) {
   int ii;
 
-  dict->allocate_memory(getw(writeto));
+  dict->allocate_memory(out->ReadInt32());
   for (ii = 0; ii < dict->num_words; ii++) {
-    read_string_decrypt (writeto, dict->word[ii]);
-    fread(&dict->wordnum[ii], sizeof(short), 1, writeto);
+    read_string_decrypt (out, dict->word[ii]);
+    out->ReadArray(&dict->wordnum[ii], sizeof(short), 1);
   }
 }
 
-void freadmissout(short *pptr, FILE *opty) {
-  fread(&pptr[0], 2, 5, opty);
-  fread(&pptr[7], 2, NUM_CONDIT - 7, opty);
+void freadmissout(short *pptr, CDataStream *in) {
+  in->ReadArray(&pptr[0], 2, 5);
+  in->ReadArray(&pptr[7], 2, NUM_CONDIT - 7);
   pptr[5] = pptr[6] = 0;
 }
 
@@ -125,25 +128,25 @@ void encrypt_text(char *toenc) {
   }
 }
 
-void write_string_encrypt(FILE *ooo, char *sss) {
+void write_string_encrypt(CDataStream *out, char *sss) {
   int stlent = (int)strlen(sss) + 1;
 
-  putw(stlent, ooo);
+  out->WriteInt32(stlent);
   encrypt_text(sss);
-  fwrite(sss, stlent, 1, ooo);
+  out->WriteArray(sss, stlent, 1);
   decrypt_text(sss);
 }
 
-void write_dictionary (WordsDictionary *dict, FILE *writeto) {
+void write_dictionary (WordsDictionary *dict, CDataStream *out) {
   int ii;
 
-  putw(dict->num_words, writeto);
+  out->WriteInt32(dict->num_words);
   for (ii = 0; ii < dict->num_words; ii++) {
-    write_string_encrypt (writeto, dict->word[ii]);
+    write_string_encrypt (out, dict->word[ii]);
 //#ifdef ALLEGRO_BIG_ENDIAN
-    putshort(dict->wordnum[ii], writeto);//__putshort__lilendian(dict->wordnum[ii], writeto);
+    out->WriteInt16(dict->wordnum[ii]);//__putshort__lilendian(dict->wordnum[ii], writeto);
 //#else
-//    fwrite(&dict->wordnum[ii], sizeof(short), 1, writeto);
+//    ->WriteArray(&dict->wordnum[ii], sizeof(short), 1, writeto);
 //#endif
   }
 }

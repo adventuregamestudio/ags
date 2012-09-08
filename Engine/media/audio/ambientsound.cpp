@@ -2,6 +2,9 @@
 #include "media/audio/ambientsound.h"
 #include "media/audio/audiodefines.h"
 #include "media/audio/soundclip.h"
+#include "util/datastream.h"
+
+using AGS::Common::CDataStream;
 
 extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
 
@@ -11,22 +14,22 @@ bool AmbientSound::IsPlaying () {
     return (channels[channel] != NULL) ? true : false;
 }
 
-void AmbientSound::ReadFromFile(FILE *f)
+void AmbientSound::ReadFromFile(CDataStream *in)
 {
-    channel = getw(f);
-    x = getw(f);
-    y = getw(f);
-    vol = getw(f);
-    num = getw(f);
-    maxdist = getw(f);
+    channel = in->ReadInt32();
+    x = in->ReadInt32();
+    y = in->ReadInt32();
+    vol = in->ReadInt32();
+    num = in->ReadInt32();
+    maxdist = in->ReadInt32();
 }
 
-void AmbientSound::WriteToFile(FILE *f)
+void AmbientSound::WriteToFile(CDataStream *out)
 {
-    putw(channel, f);
-    putw(x, f);
-    putw(y, f);
-    putw(vol, f);
-    putw(num, f);
-    putw(maxdist, f);
+    out->WriteInt32(channel);
+    out->WriteInt32(x);
+    out->WriteInt32(y);
+    out->WriteInt32(vol);
+    out->WriteInt32(num);
+    out->WriteInt32(maxdist);
 }

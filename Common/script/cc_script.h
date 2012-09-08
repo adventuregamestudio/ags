@@ -15,6 +15,9 @@
 
 #include "util/file.h"
 
+namespace AGS { namespace Common { class CDataStream; } }
+using namespace AGS; // FIXME later
+
 struct ccScript
 {
     char *globaldata;
@@ -43,9 +46,9 @@ struct ccScript
 };
 
 // write the script to disk (after compiling)
-extern void fwrite_script(ccScript *, FILE *);
+extern void fwrite_script(ccScript *, Common::CDataStream *out);
 // read back a script written with fwrite_script
-extern ccScript *fread_script(FILE *);
+extern ccScript *fread_script(Common::CDataStream *in);
 // free the memory occupied by the script - do NOT attempt to run the
 // script after calling this function
 extern void ccFreeScript(ccScript *);

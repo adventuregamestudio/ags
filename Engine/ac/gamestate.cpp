@@ -3,10 +3,13 @@
 #include "ac/gamestate.h"
 #include "ac/gamesetupstruct.h"
 #include "util/string_utils.h"
+#include "util/datastream.h"
+
+using AGS::Common::CDataStream;
 
 //
 // [IKM] What must be kept in mind: in previous versions of AGS
-// this struct was read and written as-is (fread/fwrite-ing object)
+// this struct was read and written as-is (in->Read/out->WriteArray-ing object)
 // It did not have virtual functions (did not have functions at all
 // actually), so I believe there's no need to skip 4 bytes for
 // vtable pointer.
@@ -16,193 +19,193 @@
 
 extern GameSetupStruct game;
 
-void GameState::ReadFromFile(FILE *f)
+void GameState::ReadFromFile(CDataStream *in)
 {
     char padding[3] = {0,0,0}; // to align data
 
-    score = getw(f);
-    usedmode = getw(f);
-    disabled_user_interface = getw(f);
-    gscript_timer = getw(f);
-    debug_mode = getw(f);
-    fread(globalvars, sizeof(int32), MAXGLOBALVARS, f);
-    messagetime = getw(f);
-    usedinv = getw(f);
-    inv_top = getw(f);
-    inv_numdisp = getw(f);
-    obsolete_inv_numorder = getw(f);
-    inv_numinline = getw(f);
-    text_speed = getw(f);
-    sierra_inv_color = getw(f);
-    talkanim_speed = getw(f);
-    inv_item_wid = getw(f);
-    inv_item_hit = getw(f);
-    speech_text_shadow = getw(f);
-    swap_portrait_side = getw(f);
-    speech_textwindow_gui = getw(f);
-    follow_change_room_timer = getw(f);
-    totalscore = getw(f);
-    skip_display = getw(f);
-    no_multiloop_repeat = getw(f);
-    roomscript_finished = getw(f);
-    used_inv_on = getw(f);
-    no_textbg_when_voice = getw(f);
-    max_dialogoption_width = getw(f);
-    no_hicolor_fadein = getw(f);
-    bgspeech_game_speed = getw(f);
-    bgspeech_stay_on_display = getw(f);
-    unfactor_speech_from_textlength = getw(f);
-    mp3_loop_before_end = getw(f);
-    speech_music_drop = getw(f);
-    in_cutscene = getw(f);
-    fast_forward = getw(f);
-    room_width = getw(f);
-    room_height = getw(f);
-    game_speed_modifier = getw(f);
-    score_sound = getw(f);
-    takeover_data = getw(f);
-    replay_hotkey = getw(f);
-    dialog_options_x = getw(f);
-    dialog_options_y = getw(f);
-    narrator_speech = getw(f);
-    ambient_sounds_persist = getw(f);
-    lipsync_speed = getw(f);
-    close_mouth_speech_time = getw(f);
-    disable_antialiasing = getw(f);
-    text_speed_modifier = getw(f);
-    text_align = getw(f);
-    speech_bubble_width = getw(f);
-    min_dialogoption_width = getw(f);
-    disable_dialog_parser = getw(f);
-    anim_background_speed = getw(f);  // the setting for this room
-    top_bar_backcolor= getw(f);
-    top_bar_textcolor = getw(f);
-    top_bar_bordercolor = getw(f);
-    top_bar_borderwidth = getw(f);
-    top_bar_ypos = getw(f);
-    screenshot_width = getw(f);
-    screenshot_height = getw(f);
-    top_bar_font = getw(f);
-    speech_text_align = getw(f);
-    auto_use_walkto_points = getw(f);
-    inventory_greys_out = getw(f);
-    skip_speech_specific_key = getw(f);
-    abort_key = getw(f);
-    fade_to_red = getw(f);
-    fade_to_green = getw(f);
-    fade_to_blue = getw(f);
-    show_single_dialog_option = getw(f);
-    keep_screen_during_instant_transition = getw(f);
-    read_dialog_option_colour = getw(f);
-    stop_dialog_at_end = getw(f);
-    fread(reserved, sizeof(int32), 10, f);
+    score = in->ReadInt32();
+    usedmode = in->ReadInt32();
+    disabled_user_interface = in->ReadInt32();
+    gscript_timer = in->ReadInt32();
+    debug_mode = in->ReadInt32();
+    in->ReadArray(globalvars, sizeof(int32), MAXGLOBALVARS);
+    messagetime = in->ReadInt32();
+    usedinv = in->ReadInt32();
+    inv_top = in->ReadInt32();
+    inv_numdisp = in->ReadInt32();
+    obsolete_inv_numorder = in->ReadInt32();
+    inv_numinline = in->ReadInt32();
+    text_speed = in->ReadInt32();
+    sierra_inv_color = in->ReadInt32();
+    talkanim_speed = in->ReadInt32();
+    inv_item_wid = in->ReadInt32();
+    inv_item_hit = in->ReadInt32();
+    speech_text_shadow = in->ReadInt32();
+    swap_portrait_side = in->ReadInt32();
+    speech_textwindow_gui = in->ReadInt32();
+    follow_change_room_timer = in->ReadInt32();
+    totalscore = in->ReadInt32();
+    skip_display = in->ReadInt32();
+    no_multiloop_repeat = in->ReadInt32();
+    roomscript_finished = in->ReadInt32();
+    used_inv_on = in->ReadInt32();
+    no_textbg_when_voice = in->ReadInt32();
+    max_dialogoption_width = in->ReadInt32();
+    no_hicolor_fadein = in->ReadInt32();
+    bgspeech_game_speed = in->ReadInt32();
+    bgspeech_stay_on_display = in->ReadInt32();
+    unfactor_speech_from_textlength = in->ReadInt32();
+    mp3_loop_before_end = in->ReadInt32();
+    speech_music_drop = in->ReadInt32();
+    in_cutscene = in->ReadInt32();
+    fast_forward = in->ReadInt32();
+    room_width = in->ReadInt32();
+    room_height = in->ReadInt32();
+    game_speed_modifier = in->ReadInt32();
+    score_sound = in->ReadInt32();
+    takeover_data = in->ReadInt32();
+    replay_hotkey = in->ReadInt32();
+    dialog_options_x = in->ReadInt32();
+    dialog_options_y = in->ReadInt32();
+    narrator_speech = in->ReadInt32();
+    ambient_sounds_persist = in->ReadInt32();
+    lipsync_speed = in->ReadInt32();
+    close_mouth_speech_time = in->ReadInt32();
+    disable_antialiasing = in->ReadInt32();
+    text_speed_modifier = in->ReadInt32();
+    text_align = in->ReadInt32();
+    speech_bubble_width = in->ReadInt32();
+    min_dialogoption_width = in->ReadInt32();
+    disable_dialog_parser = in->ReadInt32();
+    anim_background_speed = in->ReadInt32();  // the setting for this room
+    top_bar_backcolor= in->ReadInt32();
+    top_bar_textcolor = in->ReadInt32();
+    top_bar_bordercolor = in->ReadInt32();
+    top_bar_borderwidth = in->ReadInt32();
+    top_bar_ypos = in->ReadInt32();
+    screenshot_width = in->ReadInt32();
+    screenshot_height = in->ReadInt32();
+    top_bar_font = in->ReadInt32();
+    speech_text_align = in->ReadInt32();
+    auto_use_walkto_points = in->ReadInt32();
+    inventory_greys_out = in->ReadInt32();
+    skip_speech_specific_key = in->ReadInt32();
+    abort_key = in->ReadInt32();
+    fade_to_red = in->ReadInt32();
+    fade_to_green = in->ReadInt32();
+    fade_to_blue = in->ReadInt32();
+    show_single_dialog_option = in->ReadInt32();
+    keep_screen_during_instant_transition = in->ReadInt32();
+    read_dialog_option_colour = in->ReadInt32();
+    stop_dialog_at_end = in->ReadInt32();
+    in->ReadArray(reserved, sizeof(int32), 10);
     // ** up to here is referenced in the script "game." object
-    recording = getw(f);   // user is recording their moves
-    playback = getw(f);    // playing back recording
-    gamestep = getshort(f);    // step number for matching recordings
-    fread(&padding, sizeof(char), 2, f); // <-- padding
-    randseed = getw(f);    // random seed
-    player_on_region = getw(f);    // player's current region
-    screen_is_faded_out = getw(f); // the screen is currently black
-    check_interaction_only = getw(f);
-    bg_frame = getw(f);
-    bg_anim_delay = getw(f);  // for animating backgrounds
-    music_vol_was = getw(f);  // before the volume drop
-    wait_counter = getshort(f);
-    mboundx1 = getshort(f);
-    mboundx2 = getshort(f);
-    mboundy1 = getshort(f);
-    mboundy2 = getshort(f);
-    fread(&padding, sizeof(char), 2, f); // <-- padding
-    fade_effect = getw(f);
-    bg_frame_locked = getw(f);
-    fread(globalscriptvars, sizeof(int32), MAXGSVALUES, f);
-    cur_music_number = getw(f);
-    music_repeat = getw(f);
-    music_master_volume = getw(f);
-    digital_master_volume = getw(f);
-    fread(walkable_areas_on, sizeof(char), MAX_WALK_AREAS+1, f);
-    screen_flipped = getshort(f);
-    offsets_locked = getshort(f);
-    entered_at_x = getw(f);
-    entered_at_y = getw(f);
-    entered_edge = getw(f);
-    want_speech = getw(f);
-    cant_skip_speech = getw(f);
-    fread(script_timers, sizeof(int32), MAX_TIMERS, f);
-    sound_volume = getw(f);
-    speech_volume = getw(f);
-    normal_font = getw(f);
-    speech_font = getw(f);
-    key_skip_wait = fgetc(f);
-    fread(&padding, sizeof(char), 3, f); // <-- padding
-    swap_portrait_lastchar = getw(f);
-    seperate_music_lib = getw(f);
-    in_conversation = getw(f);
-    screen_tint = getw(f);
-    num_parsed_words = getw(f);
-    fread( parsed_words, sizeof(short), MAX_PARSED_WORDS, f);
-    fread(&padding, sizeof(char), 2, f); // <-- padding
-    fread( bad_parsed_word, sizeof(char), 100, f);
-    raw_color = getw(f);
-    fread( raw_modified, sizeof(int32), MAX_BSCENE, f);
-    fread( filenumbers, sizeof(short), MAXSAVEGAMES, f);
-    room_changes = getw(f);
-    mouse_cursor_hidden = getw(f);
-    silent_midi = getw(f);
-    silent_midi_channel = getw(f);
-    current_music_repeating = getw(f);
-    shakesc_delay = getw(f);
-    shakesc_amount = getw(f);
-    shakesc_length = getw(f);
-    rtint_red = getw(f);
-    rtint_green = getw(f);
-    rtint_blue = getw(f);
-    rtint_level = getw(f);
-    rtint_light = getw(f);
-    end_cutscene_music = getw(f);
-    skip_until_char_stops = getw(f);
-    get_loc_name_last_time = getw(f);
-    get_loc_name_save_cursor = getw(f);
-    restore_cursor_mode_to = getw(f);
-    restore_cursor_image_to = getw(f);
-    music_queue_size = getshort(f);
-    fread(&padding, sizeof(char), 2, f); // <-- padding
-    fread( music_queue, sizeof(short), MAX_QUEUED_MUSIC, f);
-    new_music_queue_size = getshort(f);
-    crossfading_out_channel = getshort(f);
-    crossfade_step = getshort(f);
-    crossfade_out_volume_per_step = getshort(f);
-    crossfade_initial_volume_out = getshort(f);
-    crossfading_in_channel = getshort(f);
-    crossfade_in_volume_per_step = getshort(f);
-    crossfade_final_volume_in = getshort(f);
+    recording = in->ReadInt32();   // user is recording their moves
+    playback = in->ReadInt32();    // playing back recording
+    gamestep = in->ReadInt16();    // step number for matching recordings
+    in->ReadArray(&padding, sizeof(char), 2); // <-- padding
+    randseed = in->ReadInt32();    // random seed
+    player_on_region = in->ReadInt32();    // player's current region
+    screen_is_faded_out = in->ReadInt32(); // the screen is currently black
+    check_interaction_only = in->ReadInt32();
+    bg_frame = in->ReadInt32();
+    bg_anim_delay = in->ReadInt32();  // for animating backgrounds
+    music_vol_was = in->ReadInt32();  // before the volume drop
+    wait_counter = in->ReadInt16();
+    mboundx1 = in->ReadInt16();
+    mboundx2 = in->ReadInt16();
+    mboundy1 = in->ReadInt16();
+    mboundy2 = in->ReadInt16();
+    in->ReadArray(&padding, sizeof(char), 2); // <-- padding
+    fade_effect = in->ReadInt32();
+    bg_frame_locked = in->ReadInt32();
+    in->ReadArray(globalscriptvars, sizeof(int32), MAXGSVALUES);
+    cur_music_number = in->ReadInt32();
+    music_repeat = in->ReadInt32();
+    music_master_volume = in->ReadInt32();
+    digital_master_volume = in->ReadInt32();
+    in->ReadArray(walkable_areas_on, sizeof(char), MAX_WALK_AREAS+1);
+    screen_flipped = in->ReadInt16();
+    offsets_locked = in->ReadInt16();
+    entered_at_x = in->ReadInt32();
+    entered_at_y = in->ReadInt32();
+    entered_edge = in->ReadInt32();
+    want_speech = in->ReadInt32();
+    cant_skip_speech = in->ReadInt32();
+    in->ReadArray(script_timers, sizeof(int32), MAX_TIMERS);
+    sound_volume = in->ReadInt32();
+    speech_volume = in->ReadInt32();
+    normal_font = in->ReadInt32();
+    speech_font = in->ReadInt32();
+    key_skip_wait = in->ReadInt8();
+    in->ReadArray(&padding, sizeof(char), 3); // <-- padding
+    swap_portrait_lastchar = in->ReadInt32();
+    seperate_music_lib = in->ReadInt32();
+    in_conversation = in->ReadInt32();
+    screen_tint = in->ReadInt32();
+    num_parsed_words = in->ReadInt32();
+    in->ReadArray( parsed_words, sizeof(short), MAX_PARSED_WORDS);
+    in->ReadArray(&padding, sizeof(char), 2); // <-- padding
+    in->ReadArray( bad_parsed_word, sizeof(char), 100);
+    raw_color = in->ReadInt32();
+    in->ReadArray( raw_modified, sizeof(int32), MAX_BSCENE);
+    in->ReadArray( filenumbers, sizeof(short), MAXSAVEGAMES);
+    room_changes = in->ReadInt32();
+    mouse_cursor_hidden = in->ReadInt32();
+    silent_midi = in->ReadInt32();
+    silent_midi_channel = in->ReadInt32();
+    current_music_repeating = in->ReadInt32();
+    shakesc_delay = in->ReadInt32();
+    shakesc_amount = in->ReadInt32();
+    shakesc_length = in->ReadInt32();
+    rtint_red = in->ReadInt32();
+    rtint_green = in->ReadInt32();
+    rtint_blue = in->ReadInt32();
+    rtint_level = in->ReadInt32();
+    rtint_light = in->ReadInt32();
+    end_cutscene_music = in->ReadInt32();
+    skip_until_char_stops = in->ReadInt32();
+    get_loc_name_last_time = in->ReadInt32();
+    get_loc_name_save_cursor = in->ReadInt32();
+    restore_cursor_mode_to = in->ReadInt32();
+    restore_cursor_image_to = in->ReadInt32();
+    music_queue_size = in->ReadInt16();
+    in->ReadArray(&padding, sizeof(char), 2); // <-- padding
+    in->ReadArray( music_queue, sizeof(short), MAX_QUEUED_MUSIC);
+    new_music_queue_size = in->ReadInt16();
+    crossfading_out_channel = in->ReadInt16();
+    crossfade_step = in->ReadInt16();
+    crossfade_out_volume_per_step = in->ReadInt16();
+    crossfade_initial_volume_out = in->ReadInt16();
+    crossfading_in_channel = in->ReadInt16();
+    crossfade_in_volume_per_step = in->ReadInt16();
+    crossfade_final_volume_in = in->ReadInt16();
 
     for (int i = 0; i < MAX_QUEUED_MUSIC; ++i)
     {
-        new_music_queue->ReadFromFile(f);
+        new_music_queue[i].ReadFromFile(in);
     }
 
-    fread(takeover_from, sizeof(char), 50, f);
-    fread(playmp3file_name, sizeof(char), PLAYMP3FILE_MAX_FILENAME_LEN, f);
-    fread(globalstrings, sizeof(char), MAXGLOBALSTRINGS * MAX_MAXSTRLEN, f);
-    fread(lastParserEntry, sizeof(char), MAX_MAXSTRLEN, f);
-    fread(game_name, sizeof(char), 100, f);
-    ground_level_areas_disabled = getw(f);
-    next_screen_transition = getw(f);
-    gamma_adjustment = getw(f);
-    temporarily_turned_off_character = getshort(f);
-    inv_backwards_compatibility = getshort(f);
-    gui_draw_order = (int*)getw(f);
-    do_once_tokens = (char**)getw(f);
-    num_do_once_tokens = getw(f);
-    text_min_display_time_ms = getw(f);
-    ignore_user_input_after_text_timeout_ms = getw(f);
-    ignore_user_input_until_time = getw(f);
-    fread(default_audio_type_volumes, sizeof(int32), MAX_AUDIO_TYPES, f);
+    in->ReadArray(takeover_from, sizeof(char), 50);
+    in->ReadArray(playmp3file_name, sizeof(char), PLAYMP3FILE_MAX_FILENAME_LEN);
+    in->ReadArray(globalstrings, sizeof(char), MAXGLOBALSTRINGS * MAX_MAXSTRLEN);
+    in->ReadArray(lastParserEntry, sizeof(char), MAX_MAXSTRLEN);
+    in->ReadArray(game_name, sizeof(char), 100);
+    ground_level_areas_disabled = in->ReadInt32();
+    next_screen_transition = in->ReadInt32();
+    gamma_adjustment = in->ReadInt32();
+    temporarily_turned_off_character = in->ReadInt16();
+    inv_backwards_compatibility = in->ReadInt16();
+    gui_draw_order = (int*)in->ReadInt32();
+    do_once_tokens = (char**)in->ReadInt32();
+    num_do_once_tokens = in->ReadInt32();
+    text_min_display_time_ms = in->ReadInt32();
+    ignore_user_input_after_text_timeout_ms = in->ReadInt32();
+    ignore_user_input_until_time = in->ReadInt32();
+    in->ReadArray(default_audio_type_volumes, sizeof(int32), MAX_AUDIO_TYPES);
 }
 
-void GameState::WriteToFile(FILE *f)
+void GameState::WriteToFile(CDataStream *out)
 {
     //-------------------------------------------------
     // [IKM] 2012-07-02 : on padding.
@@ -222,191 +225,191 @@ void GameState::WriteToFile(FILE *f)
     // Why do we need all this? For backwards compatibility.
     // Originally AGS saves most structs plainly as a single data piece, like
     //
-    //  fwrite(&play,sizeof(GameState),1,ooo);
+    //  out->WriteArray(&play,sizeof(GameState),1,ooo);
     //
     // which aligns data on its own. Here we have to do that manually.
     //
     //-------------------------------------------------
     char padding[3] = {0,0,0}; // to align data
 
-    putw(score, f);
-    putw(usedmode, f);
-    putw(disabled_user_interface, f);
-    putw(gscript_timer, f);
-    putw(debug_mode, f);
-    fwrite(globalvars, sizeof(int32), MAXGLOBALVARS, f);
-    putw(messagetime, f);
-    putw(usedinv, f);
-    putw(inv_top, f);
-    putw(inv_numdisp, f);
-    putw(obsolete_inv_numorder, f);
-    putw(inv_numinline, f);
-    putw(text_speed, f);
-    putw(sierra_inv_color, f);
-    putw(talkanim_speed, f);
-    putw(inv_item_wid, f);
-    putw(inv_item_hit, f);
-    putw(speech_text_shadow, f);
-    putw(swap_portrait_side, f);
-    putw(speech_textwindow_gui, f);
-    putw(follow_change_room_timer, f);
-    putw(totalscore, f);
-    putw(skip_display, f);
-    putw(no_multiloop_repeat, f);
-    putw(roomscript_finished, f);
-    putw(used_inv_on, f);
-    putw(no_textbg_when_voice, f);
-    putw(max_dialogoption_width, f);
-    putw(no_hicolor_fadein, f);
-    putw(bgspeech_game_speed, f);
-    putw(bgspeech_stay_on_display, f);
-    putw(unfactor_speech_from_textlength, f);
-    putw(mp3_loop_before_end, f);
-    putw(speech_music_drop, f);
-    putw(in_cutscene, f);
-    putw(fast_forward, f);
-    putw(room_width, f);
-    putw(room_height, f);
-    putw(game_speed_modifier, f);
-    putw(score_sound, f);
-    putw(takeover_data, f);
-    putw(replay_hotkey, f);
-    putw(dialog_options_x, f);
-    putw(dialog_options_y, f);
-    putw(narrator_speech, f);
-    putw(ambient_sounds_persist, f);
-    putw(lipsync_speed, f);
-    putw(close_mouth_speech_time, f);
-    putw(disable_antialiasing, f);
-    putw(text_speed_modifier, f);
-    putw(text_align, f);
-    putw(speech_bubble_width, f);
-    putw(min_dialogoption_width, f);
-    putw(disable_dialog_parser, f);
-    putw(anim_background_speed, f);  // the setting for this room
-    putw(top_bar_backcolor, f);
-    putw(top_bar_textcolor, f);
-    putw(top_bar_bordercolor, f);
-    putw(top_bar_borderwidth, f);
-    putw(top_bar_ypos, f);
-    putw(screenshot_width, f);
-    putw(screenshot_height, f);
-    putw(top_bar_font, f);
-    putw(speech_text_align, f);
-    putw(auto_use_walkto_points, f);
-    putw(inventory_greys_out, f);
-    putw(skip_speech_specific_key, f);
-    putw(abort_key, f);
-    putw(fade_to_red, f);
-    putw(fade_to_green, f);
-    putw(fade_to_blue, f);
-    putw(show_single_dialog_option, f);
-    putw(keep_screen_during_instant_transition, f);
-    putw(read_dialog_option_colour, f);
-    putw(stop_dialog_at_end, f);
-    fwrite(reserved, sizeof(int32), 10, f);
+    out->WriteInt32(score);
+    out->WriteInt32(usedmode);
+    out->WriteInt32(disabled_user_interface);
+    out->WriteInt32(gscript_timer);
+    out->WriteInt32(debug_mode);
+    out->WriteArray(globalvars, sizeof(int32), MAXGLOBALVARS);
+    out->WriteInt32(messagetime);
+    out->WriteInt32(usedinv);
+    out->WriteInt32(inv_top);
+    out->WriteInt32(inv_numdisp);
+    out->WriteInt32(obsolete_inv_numorder);
+    out->WriteInt32(inv_numinline);
+    out->WriteInt32(text_speed);
+    out->WriteInt32(sierra_inv_color);
+    out->WriteInt32(talkanim_speed);
+    out->WriteInt32(inv_item_wid);
+    out->WriteInt32(inv_item_hit);
+    out->WriteInt32(speech_text_shadow);
+    out->WriteInt32(swap_portrait_side);
+    out->WriteInt32(speech_textwindow_gui);
+    out->WriteInt32(follow_change_room_timer);
+    out->WriteInt32(totalscore);
+    out->WriteInt32(skip_display);
+    out->WriteInt32(no_multiloop_repeat);
+    out->WriteInt32(roomscript_finished);
+    out->WriteInt32(used_inv_on);
+    out->WriteInt32(no_textbg_when_voice);
+    out->WriteInt32(max_dialogoption_width);
+    out->WriteInt32(no_hicolor_fadein);
+    out->WriteInt32(bgspeech_game_speed);
+    out->WriteInt32(bgspeech_stay_on_display);
+    out->WriteInt32(unfactor_speech_from_textlength);
+    out->WriteInt32(mp3_loop_before_end);
+    out->WriteInt32(speech_music_drop);
+    out->WriteInt32(in_cutscene);
+    out->WriteInt32(fast_forward);
+    out->WriteInt32(room_width);
+    out->WriteInt32(room_height);
+    out->WriteInt32(game_speed_modifier);
+    out->WriteInt32(score_sound);
+    out->WriteInt32(takeover_data);
+    out->WriteInt32(replay_hotkey);
+    out->WriteInt32(dialog_options_x);
+    out->WriteInt32(dialog_options_y);
+    out->WriteInt32(narrator_speech);
+    out->WriteInt32(ambient_sounds_persist);
+    out->WriteInt32(lipsync_speed);
+    out->WriteInt32(close_mouth_speech_time);
+    out->WriteInt32(disable_antialiasing);
+    out->WriteInt32(text_speed_modifier);
+    out->WriteInt32(text_align);
+    out->WriteInt32(speech_bubble_width);
+    out->WriteInt32(min_dialogoption_width);
+    out->WriteInt32(disable_dialog_parser);
+    out->WriteInt32(anim_background_speed);  // the setting for this room
+    out->WriteInt32(top_bar_backcolor);
+    out->WriteInt32(top_bar_textcolor);
+    out->WriteInt32(top_bar_bordercolor);
+    out->WriteInt32(top_bar_borderwidth);
+    out->WriteInt32(top_bar_ypos);
+    out->WriteInt32(screenshot_width);
+    out->WriteInt32(screenshot_height);
+    out->WriteInt32(top_bar_font);
+    out->WriteInt32(speech_text_align);
+    out->WriteInt32(auto_use_walkto_points);
+    out->WriteInt32(inventory_greys_out);
+    out->WriteInt32(skip_speech_specific_key);
+    out->WriteInt32(abort_key);
+    out->WriteInt32(fade_to_red);
+    out->WriteInt32(fade_to_green);
+    out->WriteInt32(fade_to_blue);
+    out->WriteInt32(show_single_dialog_option);
+    out->WriteInt32(keep_screen_during_instant_transition);
+    out->WriteInt32(read_dialog_option_colour);
+    out->WriteInt32(stop_dialog_at_end);
+    out->WriteArray(reserved, sizeof(int32), 10);
     // ** up to here is referenced in the script "game." object
-    putw( recording, f);   // user is recording their moves
-    putw( playback, f);    // playing back recording
-    putshort(gamestep, f);    // step number for matching recordings
-    fwrite(&padding, sizeof(char), 2, f); // <-- padding
-    putw(randseed, f);    // random seed
-    putw( player_on_region, f);    // player's current region
-    putw( screen_is_faded_out, f); // the screen is currently black
-    putw( check_interaction_only, f);
-    putw( bg_frame, f);
-    putw( bg_anim_delay, f);  // for animating backgrounds
-    putw( music_vol_was, f);  // before the volume drop
-    putshort(wait_counter, f);
-    putshort(mboundx1, f);
-    putshort(mboundx2, f);
-    putshort(mboundy1, f);
-    putshort(mboundy2, f);
-    fwrite(&padding, sizeof(char), 2, f); // <-- padding
-    putw( fade_effect, f);
-    putw( bg_frame_locked, f);
-    fwrite(globalscriptvars, sizeof(int32), MAXGSVALUES, f);
-    putw( cur_music_number, f);
-    putw( music_repeat, f);
-    putw( music_master_volume, f);
-    putw( digital_master_volume, f);
-    fwrite(walkable_areas_on, sizeof(char), MAX_WALK_AREAS+1, f);
-    putshort( screen_flipped, f);
-    putshort( offsets_locked, f);
-    putw( entered_at_x, f);
-    putw( entered_at_y, f);
-    putw( entered_edge, f);
-    putw( want_speech, f);
-    putw( cant_skip_speech, f);
-    fwrite(script_timers, sizeof(int32), MAX_TIMERS, f);
-    putw( sound_volume, f);
-    putw( speech_volume, f);
-    putw( normal_font, f);
-    putw( speech_font, f);
-    fputc( key_skip_wait, f);
-    fwrite(&padding, sizeof(char), 3, f); // <-- padding
-    putw( swap_portrait_lastchar, f);
-    putw( seperate_music_lib, f);
-    putw( in_conversation, f);
-    putw( screen_tint, f);
-    putw( num_parsed_words, f);
-    fwrite( parsed_words, sizeof(short), MAX_PARSED_WORDS, f);
-    fwrite(&padding, sizeof(char), 2, f); // <-- padding
-    fwrite( bad_parsed_word, sizeof(char), 100, f);
-    putw( raw_color, f);
-    fwrite( raw_modified, sizeof(int32), MAX_BSCENE, f);
-    fwrite( filenumbers, sizeof(short), MAXSAVEGAMES, f);
-    putw( room_changes, f);
-    putw( mouse_cursor_hidden, f);
-    putw( silent_midi, f);
-    putw( silent_midi_channel, f);
-    putw( current_music_repeating, f);
-    putw( shakesc_delay, f);
-    putw( shakesc_amount, f);
-    putw( shakesc_length, f);
-    putw( rtint_red, f);
-    putw( rtint_green, f);
-    putw( rtint_blue, f);
-    putw( rtint_level, f);
-    putw( rtint_light, f);
-    putw( end_cutscene_music, f);
-    putw( skip_until_char_stops, f);
-    putw( get_loc_name_last_time, f);
-    putw( get_loc_name_save_cursor, f);
-    putw( restore_cursor_mode_to, f);
-    putw( restore_cursor_image_to, f);
-    putshort( music_queue_size, f);
-    fwrite(&padding, sizeof(char), 2, f); // <-- padding
-    fwrite( music_queue, sizeof(short), MAX_QUEUED_MUSIC, f);
-    putshort( new_music_queue_size, f);
-    putshort( crossfading_out_channel, f);
-    putshort( crossfade_step, f);
-    putshort( crossfade_out_volume_per_step, f);
-    putshort( crossfade_initial_volume_out, f);
-    putshort( crossfading_in_channel, f);
-    putshort( crossfade_in_volume_per_step, f);
-    putshort( crossfade_final_volume_in, f);
+    out->WriteInt32( recording);   // user is recording their moves
+    out->WriteInt32( playback);    // playing back recording
+    out->WriteInt16(gamestep);    // step number for matching recordings
+    out->WriteArray(&padding, sizeof(char), 2); // <-- padding
+    out->WriteInt32(randseed);    // random seed
+    out->WriteInt32( player_on_region);    // player's current region
+    out->WriteInt32( screen_is_faded_out); // the screen is currently black
+    out->WriteInt32( check_interaction_only);
+    out->WriteInt32( bg_frame);
+    out->WriteInt32( bg_anim_delay);  // for animating backgrounds
+    out->WriteInt32( music_vol_was);  // before the volume drop
+    out->WriteInt16(wait_counter);
+    out->WriteInt16(mboundx1);
+    out->WriteInt16(mboundx2);
+    out->WriteInt16(mboundy1);
+    out->WriteInt16(mboundy2);
+    out->WriteArray(&padding, sizeof(char), 2); // <-- padding
+    out->WriteInt32( fade_effect);
+    out->WriteInt32( bg_frame_locked);
+    out->WriteArray(globalscriptvars, sizeof(int32), MAXGSVALUES);
+    out->WriteInt32( cur_music_number);
+    out->WriteInt32( music_repeat);
+    out->WriteInt32( music_master_volume);
+    out->WriteInt32( digital_master_volume);
+    out->WriteArray(walkable_areas_on, sizeof(char), MAX_WALK_AREAS+1);
+    out->WriteInt16( screen_flipped);
+    out->WriteInt16( offsets_locked);
+    out->WriteInt32( entered_at_x);
+    out->WriteInt32( entered_at_y);
+    out->WriteInt32( entered_edge);
+    out->WriteInt32( want_speech);
+    out->WriteInt32( cant_skip_speech);
+    out->WriteArray(script_timers, sizeof(int32), MAX_TIMERS);
+    out->WriteInt32( sound_volume);
+    out->WriteInt32( speech_volume);
+    out->WriteInt32( normal_font);
+    out->WriteInt32( speech_font);
+    out->WriteInt8( key_skip_wait);
+    out->WriteArray(&padding, sizeof(char), 3); // <-- padding
+    out->WriteInt32( swap_portrait_lastchar);
+    out->WriteInt32( seperate_music_lib);
+    out->WriteInt32( in_conversation);
+    out->WriteInt32( screen_tint);
+    out->WriteInt32( num_parsed_words);
+    out->WriteArray( parsed_words, sizeof(short), MAX_PARSED_WORDS);
+    out->WriteArray(&padding, sizeof(char), 2); // <-- padding
+    out->WriteArray( bad_parsed_word, sizeof(char), 100);
+    out->WriteInt32( raw_color);
+    out->WriteArray( raw_modified, sizeof(int32), MAX_BSCENE);
+    out->WriteArray( filenumbers, sizeof(short), MAXSAVEGAMES);
+    out->WriteInt32( room_changes);
+    out->WriteInt32( mouse_cursor_hidden);
+    out->WriteInt32( silent_midi);
+    out->WriteInt32( silent_midi_channel);
+    out->WriteInt32( current_music_repeating);
+    out->WriteInt32( shakesc_delay);
+    out->WriteInt32( shakesc_amount);
+    out->WriteInt32( shakesc_length);
+    out->WriteInt32( rtint_red);
+    out->WriteInt32( rtint_green);
+    out->WriteInt32( rtint_blue);
+    out->WriteInt32( rtint_level);
+    out->WriteInt32( rtint_light);
+    out->WriteInt32( end_cutscene_music);
+    out->WriteInt32( skip_until_char_stops);
+    out->WriteInt32( get_loc_name_last_time);
+    out->WriteInt32( get_loc_name_save_cursor);
+    out->WriteInt32( restore_cursor_mode_to);
+    out->WriteInt32( restore_cursor_image_to);
+    out->WriteInt16( music_queue_size);
+    out->WriteArray(&padding, sizeof(char), 2); // <-- padding
+    out->WriteArray( music_queue, sizeof(short), MAX_QUEUED_MUSIC);
+    out->WriteInt16( new_music_queue_size);
+    out->WriteInt16( crossfading_out_channel);
+    out->WriteInt16( crossfade_step);
+    out->WriteInt16( crossfade_out_volume_per_step);
+    out->WriteInt16( crossfade_initial_volume_out);
+    out->WriteInt16( crossfading_in_channel);
+    out->WriteInt16( crossfade_in_volume_per_step);
+    out->WriteInt16( crossfade_final_volume_in);
 
     for (int i = 0; i < MAX_QUEUED_MUSIC; ++i)
     {
-        new_music_queue->WriteToFile(f);
+        new_music_queue[i].WriteToFile(out);
     }
 
-    fwrite(takeover_from, sizeof(char), 50, f);
-    fwrite(playmp3file_name, sizeof(char), PLAYMP3FILE_MAX_FILENAME_LEN, f);
-    fwrite(globalstrings, sizeof(char), MAXGLOBALSTRINGS * MAX_MAXSTRLEN, f);
-    fwrite(lastParserEntry, sizeof(char), MAX_MAXSTRLEN, f);
-    fwrite(game_name, sizeof(char), 100, f);
-    putw( ground_level_areas_disabled, f);
-    putw( next_screen_transition, f);
-    putw( gamma_adjustment, f);
-    putshort(temporarily_turned_off_character, f);
-    putshort(inv_backwards_compatibility, f);
-    putw((int32)gui_draw_order, f);
-    putw((int32)do_once_tokens, f);
-    putw( num_do_once_tokens, f);
-    putw( text_min_display_time_ms, f);
-    putw( ignore_user_input_after_text_timeout_ms, f);
-    putw( ignore_user_input_until_time, f);
-    fwrite(default_audio_type_volumes, sizeof(int32), MAX_AUDIO_TYPES, f);
+    out->WriteArray(takeover_from, sizeof(char), 50);
+    out->WriteArray(playmp3file_name, sizeof(char), PLAYMP3FILE_MAX_FILENAME_LEN);
+    out->WriteArray(globalstrings, sizeof(char), MAXGLOBALSTRINGS * MAX_MAXSTRLEN);
+    out->WriteArray(lastParserEntry, sizeof(char), MAX_MAXSTRLEN);
+    out->WriteArray(game_name, sizeof(char), 100);
+    out->WriteInt32( ground_level_areas_disabled);
+    out->WriteInt32( next_screen_transition);
+    out->WriteInt32( gamma_adjustment);
+    out->WriteInt16(temporarily_turned_off_character);
+    out->WriteInt16(inv_backwards_compatibility);
+    out->WriteInt32((int32)gui_draw_order);
+    out->WriteInt32((int32)do_once_tokens);
+    out->WriteInt32( num_do_once_tokens);
+    out->WriteInt32( text_min_display_time_ms);
+    out->WriteInt32( ignore_user_input_after_text_timeout_ms);
+    out->WriteInt32( ignore_user_input_until_time);
+    out->WriteArray(default_audio_type_volumes, sizeof(int32), MAX_AUDIO_TYPES);
 }

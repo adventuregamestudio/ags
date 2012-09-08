@@ -10,6 +10,10 @@
 #include "ac/roomobject.h"
 #include "ac/interaction.h"
 
+// Forward declaration
+namespace AGS { namespace Common { class CDataStream; } }
+using namespace AGS; // FIXME later
+
 // This struct is saved in the save games - it contains everything about
 // a room that could change
 struct RoomStatus {
@@ -36,8 +40,8 @@ struct RoomStatus {
 
     RoomStatus() { beenhere=0; numobj=0; tsdatasize=0; tsdata=NULL; }
 
-    void ReadFromFile(FILE *fp);
-    void WriteToFile(FILE *fp);
+    void ReadFromFile(Common::CDataStream *in);
+    void WriteToFile(Common::CDataStream *out);
 };
 
 #endif // __AGS_EE_AC__ROOMSTATUS_H

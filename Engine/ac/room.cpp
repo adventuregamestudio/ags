@@ -40,6 +40,9 @@
 #include "script/script.h"
 #include "script/script_runtime.h"
 #include "ac/spritecache.h"
+#include "util/datastream.h"
+
+using AGS::Common::CDataStream;
 
 #if defined(MAC_VERSION) || defined(LINUX_VERSION)
 // for toupper
@@ -379,11 +382,11 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
     sprintf(rmfile,"room%d.crm",newnum);
     if (newnum == 0) {
         // support both room0.crm and intro.crm
-        FILE *inpu = clibfopen(rmfile, "rb");
+        CDataStream *inpu = clibfopen(rmfile);
         if (inpu == NULL)
             strcpy(rmfile, "intro.crm");
         else
-            fclose(inpu);
+            delete inpu; // [IKM] How very appropriate
     }
     // reset these back, because they might have been changed.
     if (thisroom.object!=NULL)

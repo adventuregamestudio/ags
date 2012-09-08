@@ -32,6 +32,9 @@
 #include "script/script.h"
 #include "script/script_runtime.h"
 #include "ac/spritecache.h"
+#include "util/datastream.h"
+
+using AGS::Common::CDataStream;
 
 
 
@@ -263,6 +266,8 @@ void IAGSEngine::GetBitmapDimensions (BITMAP *bmp, int32 *width, int32 *height, 
     if (coldepth != NULL)
         coldepth[0] = bitmap_color_depth(bmp);
 }
+// [IKM] Interesting, why does AGS need those two functions?
+// Can it be that it was planned to change implementation in the future?
 int IAGSEngine::FRead (void *buffer, int32 len, int32 handle) {
     return fread (buffer, 1, len, (FILE*)handle);
 }
@@ -844,25 +849,29 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
     return false;
 }
 
-void pl_read_plugins_from_disk (FILE *iii) {
-    if (getw(iii) != 1)
+#include "util/datastream.h"
+
+using AGS::Common::CDataStream;
+
+void pl_read_plugins_from_disk (CDataStream *in) {
+    if (in->ReadInt32() != 1)
         quit("ERROR: unable to load game, invalid version of plugin data");
 
     int a, datasize;
     char buffer[200];
-    numPlugins = getw(iii);
+    numPlugins = in->ReadInt32();
 
     if (numPlugins > MAXPLUGINS)
         quit("Too many plugins used by this game");
 
     for (a = 0; a < numPlugins; a++) {
         // read the plugin name
-        fgetstring (buffer, iii);
-        datasize = getw(iii);
+        fgetstring (buffer, in);
+        datasize = in->ReadInt32();
 
         if (buffer[strlen(buffer) - 1] == '!') {
             // editor-only plugin, ignore it
-            fseek(iii, datasize, SEEK_CUR);
+            in->Seek(Common::kSeekCurrent, datasize);
             a--;
             numPlugins--;
             continue;
@@ -1023,7 +1032,7 @@ void pl_read_plugins_from_disk (FILE *iii) {
 
         if (datasize > 0) {
             apl->savedata = (char*)malloc(datasize);
-            fread (apl->savedata, datasize, 1, iii);
+            in->ReadArray (apl->savedata, datasize, 1);
         }
         apl->savedatasize = datasize;
         apl->eiface.pluginId = a;

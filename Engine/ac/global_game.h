@@ -7,6 +7,9 @@
 #ifndef __AGS_EE_AC__GLOBALGAME_H
 #define __AGS_EE_AC__GLOBALGAME_H
 
+#include "util/string.h"
+using namespace AGS; // FIXME later
+
 void GiveScore(int amnt);
 void restart_game();
 void RestoreGameSlot(int slnum);

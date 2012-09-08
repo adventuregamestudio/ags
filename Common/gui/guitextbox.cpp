@@ -1,27 +1,30 @@
 
 #include <stdio.h>
+#include "util/wgt2allg.h"
 #include "gui/guitextbox.h"
 #include "gui/guimain.h"
-#include "util/wgt2allg.h"
 #include "font/agsfontrenderer.h"	// fontRenderers;
+#include "util/datastream.h"
+
+using AGS::Common::CDataStream;
 
 DynamicArray<GUITextBox> guitext;
 int numguitext = 0;
 
-void GUITextBox::WriteToFile(FILE * ooo)
+void GUITextBox::WriteToFile(CDataStream *out)
 {
-  GUIObject::WriteToFile(ooo);
+  GUIObject::WriteToFile(out);
   // MACPORT FIXES: swap
-  fwrite(&text[0], sizeof(char), 200, ooo);
-  fwrite(&font, sizeof(int), 3, ooo);
+  out->WriteArray(&text[0], sizeof(char), 200);
+  out->WriteArray(&font, sizeof(int), 3);
 }
 
-void GUITextBox::ReadFromFile(FILE * ooo, int version)
+void GUITextBox::ReadFromFile(CDataStream *in, int version)
 {
-  GUIObject::ReadFromFile(ooo, version);
+  GUIObject::ReadFromFile(in, version);
   // MACPORT FIXES: swap
-  fread(&text[0], sizeof(char), 200, ooo);
-  fread(&font, sizeof(int), 3, ooo);
+  in->ReadArray(&text[0], sizeof(char), 200);
+  in->ReadArray(&font, sizeof(int), 3);
   if (textcol == 0)
     textcol = 16;
 }

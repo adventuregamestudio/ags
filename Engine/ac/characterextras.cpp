@@ -1,43 +1,46 @@
 
 #include "ac/characterextras.h"
+#include "util/datastream.h"
 
-void CharacterExtras::ReadFromFile(FILE *f)
+using AGS::Common::CDataStream;
+
+void CharacterExtras::ReadFromFile(CDataStream *in)
 {
-    fread(invorder, sizeof(short), MAX_INVORDER, f);
-    invorder_count = getshort(f);
-    width = getshort(f);
-    height = getshort(f);
-    zoom = getshort(f);
-    xwas = getshort(f);
-    ywas = getshort(f);
-    tint_r = getshort(f);
-    tint_g = getshort(f);
-    tint_b = getshort(f);
-    tint_level = getshort(f);
-    tint_light = getshort(f);
-    process_idle_this_time = getc(f);
-    slow_move_counter = getc(f);
-    animwait = getshort(f);
-    fseek(f, get_padding(MAX_INVORDER * sizeof(short) + 2), SEEK_CUR);
+    in->ReadArray(invorder, sizeof(short), MAX_INVORDER);
+    invorder_count = in->ReadInt16();
+    width = in->ReadInt16();
+    height = in->ReadInt16();
+    zoom = in->ReadInt16();
+    xwas = in->ReadInt16();
+    ywas = in->ReadInt16();
+    tint_r = in->ReadInt16();
+    tint_g = in->ReadInt16();
+    tint_b = in->ReadInt16();
+    tint_level = in->ReadInt16();
+    tint_light = in->ReadInt16();
+    process_idle_this_time = in->ReadInt8();
+    slow_move_counter = in->ReadInt8();
+    animwait = in->ReadInt16();
+    in->Seek(Common::kSeekCurrent, get_padding(MAX_INVORDER * sizeof(short) + 2));
 }
 
-void CharacterExtras::WriteToFile(FILE *f)
+void CharacterExtras::WriteToFile(CDataStream *out)
 {
     char padding[3] = {0,0,0};
-    fwrite(invorder, sizeof(short), MAX_INVORDER, f);
-    putshort(invorder_count, f);
-    putshort(width, f);
-    putshort(height, f);
-    putshort(zoom, f);
-    putshort(xwas, f);
-    putshort(ywas, f);
-    putshort(tint_r, f);
-    putshort(tint_g, f);
-    putshort(tint_b, f);
-    putshort(tint_level, f);
-    putshort(tint_light, f);
-    putc(process_idle_this_time, f);
-    putc(slow_move_counter, f);
-    putshort(animwait, f);
-    fwrite(padding, sizeof(char), get_padding(MAX_INVORDER * sizeof(short) + 2), f);
+    out->WriteArray(invorder, sizeof(short), MAX_INVORDER);
+    out->WriteInt16(invorder_count);
+    out->WriteInt16(width);
+    out->WriteInt16(height);
+    out->WriteInt16(zoom);
+    out->WriteInt16(xwas);
+    out->WriteInt16(ywas);
+    out->WriteInt16(tint_r);
+    out->WriteInt16(tint_g);
+    out->WriteInt16(tint_b);
+    out->WriteInt16(tint_level);
+    out->WriteInt16(tint_light);
+    out->WriteInt8(process_idle_this_time);
+    out->WriteInt8(slow_move_counter);
+    out->WriteInt16(animwait);
+    out->WriteArray(padding, sizeof(char), get_padding(MAX_INVORDER * sizeof(short) + 2));
 }

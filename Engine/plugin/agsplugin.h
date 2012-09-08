@@ -354,7 +354,7 @@ public:
   // *** BELOW ARE INTERFACE VERSION 5 AND ABOVE ONLY
   // similar to fwrite - buffer, size, filehandle
   AGSIFUNC(int)  FWrite (void *, int32, int32);
-  // similar to fread - buffer, size, filehandle
+  // similar to in->ReadArray - buffer, size, filehandle
   AGSIFUNC(int)  FRead (void *, int32, int32);
   // print text, wrapping as usual
   AGSIFUNC(void) DrawTextWrapped (int32 x, int32 y, int32 width, int32 font, int32 color, const char *text);
@@ -561,11 +561,14 @@ DLLEXPORT int    AGS_PluginV2 ( ) { return 1; }
 
 #endif // THIS_IS_THE_PLUGIN
 
+namespace AGS { namespace Common { class CDataStream; }}
+using namespace AGS; // FIXME later
+
 void pl_stop_plugins();
 void pl_startup_plugins();
 int  pl_run_plugin_hooks (int event, int data);
 void pl_run_plugin_init_gfx_hooks(const char *driverName, void *data);
 int  pl_run_plugin_debug_hooks (const char *scriptfile, int linenum);
-void pl_read_plugins_from_disk (FILE *iii);
+void pl_read_plugins_from_disk (Common::CDataStream *in);
 
 #endif

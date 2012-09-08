@@ -1,31 +1,34 @@
 
 #include "gui/animatingguibutton.h"
+#include "util/datastream.h"
 
-void AnimatingGUIButton::ReadFromFile(FILE *f)
+using AGS::Common::CDataStream;
+
+void AnimatingGUIButton::ReadFromFile(CDataStream *in)
 {
-    buttonid = getshort(f);
-    ongui = getshort(f);
-    onguibut = getshort(f);
-    view = getshort(f);
-    loop = getshort(f);
-    frame = getshort(f);
-    speed = getshort(f);
-    repeat = getshort(f);
-    wait = getshort(f);
-    fseek(f, 3, SEEK_CUR);
+    buttonid = in->ReadInt16();
+    ongui = in->ReadInt16();
+    onguibut = in->ReadInt16();
+    view = in->ReadInt16();
+    loop = in->ReadInt16();
+    frame = in->ReadInt16();
+    speed = in->ReadInt16();
+    repeat = in->ReadInt16();
+    wait = in->ReadInt16();
+    in->Seek(Common::kSeekCurrent, 3);
 }
 
-void AnimatingGUIButton::WriteToFile(FILE *f)
+void AnimatingGUIButton::WriteToFile(CDataStream *out)
 {
     char padding[3] = {0,0,0};
-    putshort(buttonid, f);
-    putshort(ongui, f);
-    putshort(onguibut, f);
-    putshort(view, f);
-    putshort(loop, f);
-    putshort(frame, f);
-    putshort(speed, f);
-    putshort(repeat, f);
-    putshort(wait, f);
-    fwrite(padding, sizeof(char), 3, f);
+    out->WriteInt16(buttonid);
+    out->WriteInt16(ongui);
+    out->WriteInt16(onguibut);
+    out->WriteInt16(view);
+    out->WriteInt16(loop);
+    out->WriteInt16(frame);
+    out->WriteInt16(speed);
+    out->WriteInt16(repeat);
+    out->WriteInt16(wait);
+    out->WriteArray(padding, sizeof(char), 3);
 }

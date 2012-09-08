@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "gui/guimain.h"
 #include "util/wgt2allg.h"
+#include "gui/guimain.h"
 #include "ac/common.h"	// quit()
 #include "ac/gamesetupstruct.h"
 #include "gui/guibutton.h"
@@ -15,6 +15,9 @@
 #include "gui/guilistbox.h"
 #include "font/fonts.h"
 #include "ac/spritecache.h"
+#include "util/datastream.h"
+
+using AGS::Common::CDataStream;
 
 extern SpriteCache spriteset;
 
@@ -81,18 +84,18 @@ void GUIMain::SetTransparencyAsPercentage(int percent)
 	  this->transparency = ((100 - percent) * 25) / 10;
 }
 
-void GUIMain::ReadFromFile(FILE *fp, int version)
+void GUIMain::ReadFromFile(CDataStream *in, int version)
 {
     // read/write everything except drawOrder since
     // it will be regenerated
-    fread(vtext, sizeof(char), 40, fp);
-    fread(&x, sizeof(int), 27 + 2*MAX_OBJS_ON_GUI, fp);
+    in->ReadArray(vtext, sizeof(char), 40);
+    in->ReadArray(&x, sizeof(int), 27 + 2*MAX_OBJS_ON_GUI);
 }
 
-void GUIMain::WriteToFile(FILE *fp)
+void GUIMain::WriteToFile(CDataStream *out)
 {
-	fwrite(vtext, sizeof(char), 40, fp);
-	fwrite(&x, sizeof(int), 27 + 2*MAX_OBJS_ON_GUI, fp);
+	out->WriteArray(vtext, sizeof(char), 40);
+	out->WriteArray(&x, sizeof(int), 27 + 2*MAX_OBJS_ON_GUI);
 }
 
 const char* GUIMain::get_objscript_name(const char *basedOn) {
@@ -454,14 +457,14 @@ void GUIMain::mouse_but_up()
 
 #define GUI_VERSION 115
 
-void read_gui(FILE * iii, GUIMain * guiread, GameSetupStruct * gss, GUIMain** allocate)
+void read_gui(CDataStream *in, GUIMain * guiread, GameSetupStruct * gss, GUIMain** allocate)
 {
   int gver, ee;
 
-  if (getw(iii) != (int)GUIMAGIC)
+  if (in->ReadInt32() != (int)GUIMAGIC)
     quit("read_gui: file is corrupt");
 
-  gver = getw(iii);
+  gver = in->ReadInt32();
   if (gver < 100) {
     gss->numgui = gver;
     gver = 0;
@@ -469,7 +472,7 @@ void read_gui(FILE * iii, GUIMain * guiread, GameSetupStruct * gss, GUIMain** al
   else if (gver > GUI_VERSION)
     quit("read_gui: this game requires a newer version of AGS");
   else
-    gss->numgui = getw(iii);
+    gss->numgui = in->ReadInt32();
 
   if ((gss->numgui < 0) || (gss->numgui > 1000))
     quit("read_gui: invalid number of GUIs, file corrupt?");
@@ -484,7 +487,7 @@ void read_gui(FILE * iii, GUIMain * guiread, GameSetupStruct * gss, GUIMain** al
   for (int iteratorCount = 0; iteratorCount < gss->numgui; ++iteratorCount)
   {
     guiread[iteratorCount].init();
-    guiread[iteratorCount].ReadFromFile(iii, gver);
+    guiread[iteratorCount].ReadFromFile(in, gver);
   }
 
   for (ee = 0; ee < gss->numgui; ee++) {
@@ -503,51 +506,51 @@ void read_gui(FILE * iii, GUIMain * guiread, GameSetupStruct * gss, GUIMain** al
   }
 
   // import the buttons
-  numguibuts = getw(iii);
+  numguibuts = in->ReadInt32();
   guibuts.SetSizeTo(numguibuts);
 
   for (ee = 0; ee < numguibuts; ee++)
-    guibuts[ee].ReadFromFile(iii, gver);
+    guibuts[ee].ReadFromFile(in, gver);
 
   // labels
-  numguilabels = getw(iii);
+  numguilabels = in->ReadInt32();
   guilabels.SetSizeTo(numguilabels);
 
   for (ee = 0; ee < numguilabels; ee++)
-    guilabels[ee].ReadFromFile(iii, gver);
+    guilabels[ee].ReadFromFile(in, gver);
 
   // inv controls
-  numguiinv = getw(iii);
+  numguiinv = in->ReadInt32();
   guiinv.SetSizeTo(numguiinv);
 
   for (ee = 0; ee < numguiinv; ee++)
-    guiinv[ee].ReadFromFile(iii, gver);
+    guiinv[ee].ReadFromFile(in, gver);
 
   if (gver >= 100) {
     // sliders
-    numguislider = getw(iii);
+    numguislider = in->ReadInt32();
     guislider.SetSizeTo(numguislider);
 
     for (ee = 0; ee < numguislider; ee++)
-      guislider[ee].ReadFromFile(iii, gver);
+      guislider[ee].ReadFromFile(in, gver);
   }
 
   if (gver >= 101) {
     // text boxes
-    numguitext = getw(iii);
+    numguitext = in->ReadInt32();
     guitext.SetSizeTo(numguitext);
 
     for (ee = 0; ee < numguitext; ee++)
-      guitext[ee].ReadFromFile(iii, gver);
+      guitext[ee].ReadFromFile(in, gver);
   }
 
   if (gver >= 102) {
     // list boxes
-    numguilist = getw(iii);
+    numguilist = in->ReadInt32();
     guilist.SetSizeTo(numguilist);
 
     for (ee = 0; ee < numguilist; ee++)
-      guilist[ee].ReadFromFile(iii, gver);
+      guilist[ee].ReadFromFile(in, gver);
   }
 
   // set up the reverse-lookup array
@@ -571,40 +574,40 @@ void read_gui(FILE * iii, GUIMain * guiread, GameSetupStruct * gss, GUIMain** al
   guis_need_update = 1;
 }
 
-void write_gui(FILE * ooo, GUIMain * guiwrite, GameSetupStruct * gss)
+void write_gui(CDataStream *out, GUIMain * guiwrite, GameSetupStruct * gss)
 {
   int ee;
 
-  putw(GUIMAGIC, ooo);
-  putw(GUI_VERSION, ooo);
-  putw(gss->numgui, ooo);
+  out->WriteInt32(GUIMAGIC);
+  out->WriteInt32(GUI_VERSION);
+  out->WriteInt32(gss->numgui);
 
   for (int iteratorCount = 0; iteratorCount < gss->numgui; ++iteratorCount)
   {
-    guiwrite[iteratorCount].WriteToFile(ooo);
+    guiwrite[iteratorCount].WriteToFile(out);
   }
 
-  putw(numguibuts, ooo);
+  out->WriteInt32(numguibuts);
   for (ee = 0; ee < numguibuts; ee++)
-    guibuts[ee].WriteToFile(ooo);
+    guibuts[ee].WriteToFile(out);
 
-  putw(numguilabels, ooo);
+  out->WriteInt32(numguilabels);
   for (ee = 0; ee < numguilabels; ee++)
-    guilabels[ee].WriteToFile(ooo);
+    guilabels[ee].WriteToFile(out);
 
-  putw(numguiinv, ooo);
+  out->WriteInt32(numguiinv);
   for (ee = 0; ee < numguiinv; ee++)
-    guiinv[ee].WriteToFile(ooo);
+    guiinv[ee].WriteToFile(out);
 
-  putw(numguislider, ooo);
+  out->WriteInt32(numguislider);
   for (ee = 0; ee < numguislider; ee++)
-    guislider[ee].WriteToFile(ooo);
+    guislider[ee].WriteToFile(out);
 
-  putw(numguitext, ooo);
+  out->WriteInt32(numguitext);
   for (ee = 0; ee < numguitext; ee++)
-    guitext[ee].WriteToFile(ooo);
+    guitext[ee].WriteToFile(out);
 
-  putw(numguilist, ooo);
+  out->WriteInt32(numguilist);
   for (ee = 0; ee < numguilist; ee++)
-    guilist[ee].WriteToFile(ooo);
+    guilist[ee].WriteToFile(out);
 }

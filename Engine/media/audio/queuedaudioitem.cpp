@@ -1,26 +1,29 @@
 
 #include "media/audio/queuedaudioitem.h"
 #include "ac/common_defines.h"
+#include "util/datastream.h"
+
+using AGS::Common::CDataStream;
 
 // [IKM] 2012-07-02: these functions are used during load/save game,
 // and read/written as-is, hence cachedClip pointer should be serialized
 // simply like pointer (although that probably does not mean much sense?)
-void QueuedAudioItem::ReadFromFile(FILE *f)
+void QueuedAudioItem::ReadFromFile(CDataStream *in)
 {
     char padding[3] = {0,0,0};
-    audioClipIndex = getshort(f);
-    priority = getshort(f);
-    repeat = fgetc(f);
-    fread(&padding, sizeof(char), 3, f); // <-- padding
-    cachedClip = (SOUNDCLIP*)getw(f);
+    audioClipIndex = in->ReadInt16();
+    priority = in->ReadInt16();
+    repeat = in->ReadBool();
+    in->ReadArray(&padding, sizeof(char), 3); // <-- padding
+    cachedClip = (SOUNDCLIP*)in->ReadInt32();
 }
 
-void QueuedAudioItem::WriteToFile(FILE *f)
+void QueuedAudioItem::WriteToFile(CDataStream *out)
 {
     char padding[3] = {0,0,0};
-    putshort(audioClipIndex, f);
-    putshort(priority, f);
-    fputc(repeat, f);
-    fwrite(&padding, sizeof(char), 3, f); // <-- padding
-    putw((int32)cachedClip, f);
+    out->WriteInt16(audioClipIndex);
+    out->WriteInt16(priority);
+    out->WriteBool(repeat);
+    out->WriteArray(&padding, sizeof(char), 3); // <-- padding
+    out->WriteInt32((int32)cachedClip);
 }

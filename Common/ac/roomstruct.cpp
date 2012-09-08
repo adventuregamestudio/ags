@@ -7,24 +7,24 @@
 #include "util/string_utils.h"      // fputstring, etc
 #include "util/compress.h"
 #include "util/file.h"
+#include "util/clib32.h"
+#include "util/datastream.h"
 
-extern "C" {
-  extern FILE *clibfopen(char *, char *);
-}
+using AGS::Common::CDataStream;
 
 extern BITMAP *recalced;
 
 block backups[5];
 int _acroom_bpp = 1;  // bytes per pixel of currently loading room
 
-void sprstruc::ReadFromFile(FILE *fp)
+void sprstruc::ReadFromFile(Common::CDataStream *in)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
-    sprnum = getshort(fp);//__getshort__bigendian(fp);
-    x = getshort(fp);//__getshort__bigendian(fp);
-    y = getshort(fp);//__getshort__bigendian(fp);
-    room = getshort(fp);//__getshort__bigendian(fp);
-    on = getshort(fp);//__getshort__bigendian(fp);
+    sprnum = in->ReadInt16();//__getshort__bigendian(fp);
+    x = in->ReadInt16();//__getshort__bigendian(fp);
+    y = in->ReadInt16();//__getshort__bigendian(fp);
+    room = in->ReadInt16();//__getshort__bigendian(fp);
+    on = in->ReadInt16();//__getshort__bigendian(fp);
 //#else
 //    throw "sprstruc::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
 //#endif
@@ -120,10 +120,10 @@ freemessage();
 wfreeblock(object); wfreeblock(lookat);
 for (int f=0;f<nummes;f++) if (message[f]!=NULL) free(message[f]); }*/
 
-void room_file_header::ReadFromFile(FILE *fp)
+void room_file_header::ReadFromFile(CDataStream *in)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
-    version = getshort(fp);//getshort(fp);__getshort__bigendian(fp);
+    version = in->ReadInt16();//in->ReadInt16();__getshort__bigendian(fp);
 //#else
 //    throw "room_file_header::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
 //#endif
@@ -132,7 +132,7 @@ void room_file_header::ReadFromFile(FILE *fp)
 
 int usesmisccond = 0;
 
-void load_main_block(roomstruct *rstruc, char *files, FILE *opty, room_file_header rfh) {
+void load_main_block(roomstruct *rstruc, char *files, CDataStream *in, room_file_header rfh) {
   int   f, gsmod, NUMREAD;
   char  buffre[3000];
   long  tesl;
@@ -158,7 +158,7 @@ void load_main_block(roomstruct *rstruc, char *files, FILE *opty, room_file_head
 		free(rstruc->hotspotnames[f]);
 
 	rstruc->hotspotnames[f] = (char*)malloc(20);
-    sprintf(rstruc->hotspotnames[f], "Hotspot %d", f);
+    sprintf(rstruc->hotspotnames[f], "Hotspot %d");
 
     if (f == 0)
       strcpy(rstruc->hotspotnames[f], "No hotspot");
@@ -169,7 +169,7 @@ void load_main_block(roomstruct *rstruc, char *files, FILE *opty, room_file_head
   memset(&rstruc->misccond, 0, sizeof(EventBlock));*/
 
   if (rfh.version >= 12)
-    _acroom_bpp = getw(opty);
+    _acroom_bpp = in->ReadInt32();
   else
     _acroom_bpp = 1;
 
@@ -177,16 +177,16 @@ void load_main_block(roomstruct *rstruc, char *files, FILE *opty, room_file_head
     _acroom_bpp = 1;
 
   rstruc->bytes_per_pixel = _acroom_bpp;
-  fread(&rstruc->numobj, 2, 1, opty);
+  in->ReadArray(&rstruc->numobj, 2, 1);
   if (rstruc->numobj > MAX_OBJ)
     quit("!room newer than this version - too many walk-behinds");
 
   NUMREAD = NUM_CONDIT;
-  fread(&rstruc->objyval[0], 2, rstruc->numobj, opty);
+  in->ReadArray(&rstruc->objyval[0], 2, rstruc->numobj);
 
   gsmod = 0;
 
-  fread(&rstruc->numhotspots, sizeof(int), 1, opty);
+  in->ReadArray(&rstruc->numhotspots, sizeof(int), 1);
   if (rstruc->numhotspots == 0)
     rstruc->numhotspots = 20;
 	if (rstruc->numhotspots > MAX_HOTSPOTS)
@@ -195,9 +195,9 @@ void load_main_block(roomstruct *rstruc, char *files, FILE *opty, room_file_head
 //#ifdef ALLEGRO_BIG_ENDIAN
     // Points are a pair of shorts
     // [IKM] TODO: read/write memeber for _Point?
-    fread(&rstruc->hswalkto[0], sizeof(short), 2*rstruc->numhotspots, opty);
+    in->ReadArray(&rstruc->hswalkto[0], sizeof(short), 2*rstruc->numhotspots);
 //#else
-//    fread(&rstruc->hswalkto[0], sizeof(_Point), rstruc->numhotspots, opty);
+//    in->ReadArray(&rstruc->hswalkto[0], sizeof(_Point), rstruc->numhotspots);
 //#endif
 
 	for (f = 0; f < rstruc->numhotspots; f++)
@@ -205,60 +205,60 @@ void load_main_block(roomstruct *rstruc, char *files, FILE *opty, room_file_head
 		free(rstruc->hotspotnames[f]);
 		if (rfh.version >= 28)
 		{
-			fgetstring_limit(buffre, opty, 2999);
+			fgetstring_limit(buffre, in, 2999);
 			rstruc->hotspotnames[f] = (char*)malloc(strlen(buffre) + 1);
 			strcpy(rstruc->hotspotnames[f], buffre);
 		}
 		else
 		{
 			rstruc->hotspotnames[f] = (char*)malloc(30);
-			fread(rstruc->hotspotnames[f], 30, 1, opty);
+			in->ReadArray(rstruc->hotspotnames[f], 30, 1);
 		}
 	}
 
   if (rfh.version >= 24)
-    fread(&rstruc->hotspotScriptNames[0], MAX_SCRIPT_NAME_LEN, rstruc->numhotspots, opty);
+    in->ReadArray(&rstruc->hotspotScriptNames[0], MAX_SCRIPT_NAME_LEN, rstruc->numhotspots);
     
-  fread(&rstruc->numwalkareas, 4, 1, opty);
+  in->ReadArray(&rstruc->numwalkareas, 4, 1);
   // MACPORT FIX: read polypoints
 //#ifdef ALLEGRO_BIG_ENDIAN
   for (int iteratorCount = 0; iteratorCount < rstruc->numwalkareas; ++iteratorCount)
   {
-      rstruc->wallpoints[iteratorCount].ReadFromFile(opty);
+      rstruc->wallpoints[iteratorCount].ReadFromFile(in);
   }
 //#else
-//  fread(&rstruc->wallpoints[0], sizeof(PolyPoints), rstruc->numwalkareas, opty);
+//  in->ReadArray(&rstruc->wallpoints[0], sizeof(PolyPoints), rstruc->numwalkareas);
 //#endif
   
   update_polled_stuff_if_runtime();
 
-  fread(&rstruc->top, 2, 1, opty);
-  fread(&rstruc->bottom, 2, 1, opty);
-  fread(&rstruc->left, 2, 1, opty);
-  fread(&rstruc->right, 2, 1, opty);
+  in->ReadArray(&rstruc->top, 2, 1);
+  in->ReadArray(&rstruc->bottom, 2, 1);
+  in->ReadArray(&rstruc->left, 2, 1);
+  in->ReadArray(&rstruc->right, 2, 1);
 
-  fread(&rstruc->numsprs, 2, 1, opty);
+  in->ReadArray(&rstruc->numsprs, 2, 1);
   // MACPORT FIX: read sprstrucs
 //#ifdef ALLEGRO_BIG_ENDIAN
   for (int iteratorCount = 0; iteratorCount < rstruc->numsprs; ++iteratorCount)
   {
-      rstruc->sprs[iteratorCount].ReadFromFile(opty);
+      rstruc->sprs[iteratorCount].ReadFromFile(in);
   }
 //#else
-//  fread(&rstruc->sprs[0], sizeof(sprstruc), rstruc->numsprs, opty);
+//  in->ReadArray(&rstruc->sprs[0], sizeof(sprstruc), rstruc->numsprs);
 //#endif
 
   if (rfh.version >= 19) {
-    rstruc->numLocalVars = getw(opty);
+    rstruc->numLocalVars = in->ReadInt32();
     if (rstruc->numLocalVars > 0) {
       rstruc->localvars = (InteractionVariable*)malloc (sizeof(InteractionVariable) * rstruc->numLocalVars);
 //#ifdef ALLEGRO_BIG_ENDIAN
       for (int iteratorCount = 0; iteratorCount < rstruc->numLocalVars; ++iteratorCount)
       {
-          rstruc->localvars[iteratorCount].ReadFromFile(opty);
+          rstruc->localvars[iteratorCount].ReadFromFile(in);
       }
 //#else
-//      fread (&rstruc->localvars[0], sizeof(InteractionVariable), rstruc->numLocalVars, opty);
+//      in->Read (&rstruc->localvars[0], sizeof(InteractionVariable), rstruc->numLocalVars);
 //#endif
     }
   }
@@ -279,7 +279,7 @@ void load_main_block(roomstruct *rstruc, char *files, FILE *opty, room_file_head
 	  if (rfh.version < 26) 
 	  {
 		  if (f < rstruc->numhotspots)
-			rstruc->intrHotspot[f] = deserialize_new_interaction (opty);
+			rstruc->intrHotspot[f] = deserialize_new_interaction (in);
 		  else
 			rstruc->intrHotspot[f] = new NewInteraction();
 	  }
@@ -294,7 +294,7 @@ void load_main_block(roomstruct *rstruc, char *files, FILE *opty, room_file_head
 	  if (rfh.version < 26) 
 	  {
 		  if (f < rstruc->numsprs)
-			rstruc->intrObject[f] = deserialize_new_interaction (opty);
+			rstruc->intrObject[f] = deserialize_new_interaction (in);
 		  else
 			rstruc->intrObject[f] = new NewInteraction();
 	  }
@@ -303,7 +303,7 @@ void load_main_block(roomstruct *rstruc, char *files, FILE *opty, room_file_head
 	if (rfh.version < 26) 
 	{
 	    delete rstruc->intrRoom;
-		rstruc->intrRoom = deserialize_new_interaction (opty);
+		rstruc->intrRoom = deserialize_new_interaction (in);
 	}
 
     for (f = 0; f < MAX_REGIONS; f++) {
@@ -313,7 +313,7 @@ void load_main_block(roomstruct *rstruc, char *files, FILE *opty, room_file_head
     }
 
     if (rfh.version >= 21) {
-      rstruc->numRegions = getw (opty);
+      rstruc->numRegions = in->ReadInt32();
       if (rstruc->numRegions > MAX_REGIONS)
         quit("load_room: needs newer version of AGS - too many regions");
 
@@ -321,7 +321,7 @@ void load_main_block(roomstruct *rstruc, char *files, FILE *opty, room_file_head
 	  {
         for (f = 0; f < rstruc->numRegions; f++) {
           delete rstruc->intrRegion[f];
-          rstruc->intrRegion[f] = deserialize_new_interaction (opty);
+          rstruc->intrRegion[f] = deserialize_new_interaction (in);
 		}
       }
     }
@@ -332,53 +332,53 @@ void load_main_block(roomstruct *rstruc, char *files, FILE *opty, room_file_head
 	  rstruc->objectScripts = new InteractionScripts*[rstruc->numsprs];
       rstruc->regionScripts = new InteractionScripts*[rstruc->numRegions];
 	  rstruc->roomScripts = new InteractionScripts();
-	  deserialize_interaction_scripts(opty, rstruc->roomScripts);
+	  deserialize_interaction_scripts(in, rstruc->roomScripts);
 	  int bb;
       for (bb = 0; bb < rstruc->numhotspots; bb++) {
         rstruc->hotspotScripts[bb] = new InteractionScripts();
-        deserialize_interaction_scripts(opty, rstruc->hotspotScripts[bb]);
+        deserialize_interaction_scripts(in, rstruc->hotspotScripts[bb]);
       }
       for (bb = 0; bb < rstruc->numsprs; bb++) {
         rstruc->objectScripts[bb] = new InteractionScripts();
-        deserialize_interaction_scripts(opty, rstruc->objectScripts[bb]);
+        deserialize_interaction_scripts(in, rstruc->objectScripts[bb]);
       }
 	  for (bb = 0; bb < rstruc->numRegions; bb++) {
         rstruc->regionScripts[bb] = new InteractionScripts();
-        deserialize_interaction_scripts(opty, rstruc->regionScripts[bb]);
+        deserialize_interaction_scripts(in, rstruc->regionScripts[bb]);
       }
 
 	}
   }
 
   if (rfh.version >= 9) {
-    fread(&rstruc->objbaseline[0], sizeof(int), rstruc->numsprs, opty);
-    fread(&rstruc->width, 2, 1, opty);
-    fread(&rstruc->height, 2, 1, opty); 
+    in->ReadArray(&rstruc->objbaseline[0], sizeof(int), rstruc->numsprs);
+    in->ReadArray(&rstruc->width, 2, 1);
+    in->ReadArray(&rstruc->height, 2, 1); 
   }
 
   if (rfh.version >= 23)
-    fread(&rstruc->objectFlags[0], sizeof(short), rstruc->numsprs, opty);
+    in->ReadArray(&rstruc->objectFlags[0], sizeof(short), rstruc->numsprs);
 
   if (rfh.version >= 11)
-    fread(&rstruc->resolution, 2, 1, opty);
+    in->ReadArray(&rstruc->resolution, 2, 1);
 
   int num_walk_areas = MAX_WALK_AREAS;
   if (rfh.version >= 14)
-    num_walk_areas = getw (opty);
+    num_walk_areas = in->ReadInt32();
     
   if (num_walk_areas > MAX_WALK_AREAS + 1)
     quit("load_room: Too many walkable areas, need newer version");
 
   if (rfh.version >= 10)
-    fread(&rstruc->walk_area_zoom[0], sizeof(short), num_walk_areas, opty);
+    in->ReadArray(&rstruc->walk_area_zoom[0], sizeof(short), num_walk_areas);
 
   if (rfh.version >= 13)
-    fread(&rstruc->walk_area_light[0], sizeof(short), num_walk_areas, opty);
+    in->ReadArray(&rstruc->walk_area_light[0], sizeof(short), num_walk_areas);
 
   if (rfh.version >= 18) {
-    fread(&rstruc->walk_area_zoom2[0], sizeof(short), num_walk_areas, opty);
-    fread(&rstruc->walk_area_top[0], sizeof(short), num_walk_areas, opty);
-    fread(&rstruc->walk_area_bottom[0], sizeof(short), num_walk_areas, opty);
+    in->ReadArray(&rstruc->walk_area_zoom2[0], sizeof(short), num_walk_areas);
+    in->ReadArray(&rstruc->walk_area_top[0], sizeof(short), num_walk_areas);
+    in->ReadArray(&rstruc->walk_area_bottom[0], sizeof(short), num_walk_areas);
 
     for (f = 0; f < num_walk_areas; f++) {
       // if they set a contiuously scaled area where the top
@@ -389,32 +389,32 @@ void load_main_block(roomstruct *rstruc, char *files, FILE *opty, room_file_head
     }
   }
 
-  fread(&rstruc->password[0], 11, 1, opty);
-  fread(&rstruc->options[0], 10, 1, opty);
-  fread(&rstruc->nummes, 2, 1, opty);
+  in->ReadArray(&rstruc->password[0], 11, 1);
+  in->ReadArray(&rstruc->options[0], 10, 1);
+  in->ReadArray(&rstruc->nummes, 2, 1);
 
   if (rfh.version >= 25)
-    rstruc->gameId = getw(opty);
+    rstruc->gameId = in->ReadInt32();
 
   if (rfh.version >= 3)
 //#ifdef ALLEGRO_BIG_ENDIAN
   {
       for (int iteratorCount = 0; iteratorCount < rstruc->nummes; ++iteratorCount)
       {
-          rstruc->msgi[iteratorCount].ReadFromFile(opty);
+          rstruc->msgi[iteratorCount].ReadFromFile(in);
       }
   }
 //#else
-    //fread(&rstruc->msgi[0], sizeof(MessageInfo), rstruc->nummes, opty);
+    //in->ReadArray(&rstruc->msgi[0], sizeof(MessageInfo), rstruc->nummes);
 //#endif
   else
     memset(&rstruc->msgi[0], 0, sizeof(MessageInfo) * MAXMESS);
 
   for (f = 0;f < rstruc->nummes; f++) {
     if (rfh.version >= 22)
-      read_string_decrypt(opty, buffre);
+      read_string_decrypt(in, buffre);
     else
-      fgetstring_limit(buffre, opty, 2999);
+      fgetstring_limit(buffre, in, 2999);
 
     rstruc->message[f] = (char *)malloc(strlen(buffre) + 2);
     strcpy(rstruc->message[f], buffre);
@@ -427,11 +427,11 @@ void load_main_block(roomstruct *rstruc, char *files, FILE *opty, room_file_head
 
   rstruc->numanims = 0;
   if (rfh.version >= 6) {
-    fread(&rstruc->numanims, 2, 1, opty);
+    in->ReadArray(&rstruc->numanims, 2, 1);
 
     if (rstruc->numanims > 0)
-      fseek (opty, sizeof(FullAnimation) * rstruc->numanims, SEEK_CUR);
-//      fread(&rstruc->anims[0], sizeof(FullAnimation), rstruc->numanims, opty);
+        in->Seek (Common::kSeekCurrent, sizeof(FullAnimation) * rstruc->numanims);
+//      in->ReadArray(&rstruc->anims[0], sizeof(FullAnimation), rstruc->numanims);
   }
   else {
     rstruc->numanims = 0;
@@ -439,48 +439,48 @@ void load_main_block(roomstruct *rstruc, char *files, FILE *opty, room_file_head
   }
 
   if ((rfh.version >= 4) && (rfh.version < 16)) {
-    load_script_configuration(opty);
-    load_graphical_scripts(opty, rstruc);
+    load_script_configuration(in);
+    load_graphical_scripts(in, rstruc);
   }
 
   if (rfh.version >= 8)
-    fread(&rstruc->shadinginfo[0], sizeof(short), 16, opty);
+    in->ReadArray(&rstruc->shadinginfo[0], sizeof(short), 16);
 
   if (rfh.version >= 21) {
-    fread (&rstruc->regionLightLevel[0], sizeof(short), rstruc->numRegions, opty);
-    fread (&rstruc->regionTintLevel[0], sizeof(int), rstruc->numRegions, opty);
+    in->ReadArray (&rstruc->regionLightLevel[0], sizeof(short), rstruc->numRegions);
+    in->ReadArray (&rstruc->regionTintLevel[0], sizeof(int), rstruc->numRegions);
   }
 
   update_polled_stuff_if_runtime();
 
   if (rfh.version >= 5) {
-    tesl = load_lzw(opty, rstruc->ebscene[0], rstruc->pal);
+    tesl = load_lzw(in, rstruc->ebscene[0], rstruc->pal);
     rstruc->ebscene[0] = recalced;
   }
   else
-    tesl = loadcompressed_allegro(opty, &rstruc->ebscene[0], rstruc->pal, ftell(opty));
+    tesl = loadcompressed_allegro(in, &rstruc->ebscene[0], rstruc->pal, in->GetPosition());
 
   if ((rstruc->ebscene[0]->w > 320) & (rfh.version < 11))
     rstruc->resolution = 2;
 
   update_polled_stuff_if_runtime();
   if (rfh.version >= 21)
-    tesl = loadcompressed_allegro(opty, &rstruc->regions, rstruc->pal, tesl);
+    tesl = loadcompressed_allegro(in, &rstruc->regions, rstruc->pal, tesl);
   else if (rfh.version >= 8) {
-    tesl = loadcompressed_allegro(opty, &rstruc->regions, rstruc->pal, tesl);
+    tesl = loadcompressed_allegro(in, &rstruc->regions, rstruc->pal, tesl);
     // an old version - clear the 'shadow' area into a blank regions bmp
     wfreeblock (rstruc->regions);
     rstruc->regions = NULL;
   }
 
   update_polled_stuff_if_runtime();
-  tesl = loadcompressed_allegro(opty, &rstruc->walls, rstruc->pal, tesl);
+  tesl = loadcompressed_allegro(in, &rstruc->walls, rstruc->pal, tesl);
 
   update_polled_stuff_if_runtime();
-  tesl = loadcompressed_allegro(opty, &rstruc->object, rstruc->pal, tesl);
+  tesl = loadcompressed_allegro(in, &rstruc->object, rstruc->pal, tesl);
 
   update_polled_stuff_if_runtime();
-  tesl = loadcompressed_allegro(opty, &rstruc->lookat, rstruc->pal, tesl);
+  tesl = loadcompressed_allegro(in, &rstruc->lookat, rstruc->pal, tesl);
 
   if (rfh.version < 21) {
     // Old version - copy walkable areas to Regions
@@ -507,7 +507,7 @@ void load_main_block(roomstruct *rstruc, char *files, FILE *opty, room_file_head
 
 extern bool load_room_is_version_bad(roomstruct *rstruc);
 void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
-  FILE              *opty;
+  Common::CDataStream *opty; // CHECKME why "opty"??
   room_file_header  rfh;
   int i;
 
@@ -592,7 +592,7 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
 
   update_polled_stuff_if_runtime();
 
-  opty = clibfopen(files, "rb");
+  opty = clibfopen(files);
   if (opty == NULL) {
     char errbuffr[500];
     sprintf(errbuffr,"Load_room: Unable to load the room file '%s'\n"
@@ -606,31 +606,32 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
 //#ifdef ALLEGRO_BIG_ENDIAN
   rfh.ReadFromFile(opty);
 //#else
-//  fread(&rfh, sizeof(rfh), 1, opty);  
+//  in->ReadArray(&rfh, sizeof(rfh), 1);  
 //#endif
   //fclose(opty);
   rstruc->wasversion = rfh.version;
 
   if (load_room_is_version_bad(rstruc))
   {
-    fclose(opty);
+    delete opty;
     quit("Load_Room: Bad packed file. Either the file requires a newer or older version of\n"
       "this program or the file is corrupt.\n");
   }
 
   int   thisblock = 0;
   long  bloklen;
-  FILE *optywas;
+  Common::CDataStream *optywas; // [IKM] what a mysterious variable... not used for anything sensible
+                               // (and why "opty" ???)
 
   while (thisblock != BLOCKTYPE_EOF) {
     update_polled_stuff_if_runtime();
-    thisblock = fgetc(opty);
+    thisblock = opty->ReadByte();
 
     if (thisblock == BLOCKTYPE_EOF)
       break;
 
-    fread(&bloklen, 4, 1, opty);
-    bloklen += ftell(opty);  // make it the new position for after block read
+    opty->ReadArray(&bloklen, 4, 1);
+    bloklen += opty->GetPosition();  // make it the new position for after block read
     optywas = opty;
 
     if (thisblock == BLOCKTYPE_MAIN)
@@ -639,10 +640,10 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
       long  lee;
       int   hh;
 
-      fread(&lee, 4, 1, opty);
+      opty->ReadArray(&lee, 4, 1);
       rstruc->scripts = (char *)malloc(lee + 5);
       // MACPORT FIX: swap
-      fread(rstruc->scripts, sizeof(char), lee, opty);
+      opty->ReadArray(rstruc->scripts, sizeof(char), lee);
       rstruc->scripts[lee] = 0;
 
       for (hh = 0; hh < lee; hh++)
@@ -660,30 +661,30 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
       quit("Load_room: old room format. Please upgrade the room.");
 #endif
     else if (thisblock == BLOCKTYPE_OBJECTNAMES) {
-      if (fgetc(opty) != rstruc->numsprs)
+      if (opty->ReadInt8() != rstruc->numsprs)
         quit("Load_room: inconsistent blocks for object names");
 
-      fread(&rstruc->objectnames[0][0], MAXOBJNAMELEN, rstruc->numsprs, opty);
+      opty->ReadArray(&rstruc->objectnames[0][0], MAXOBJNAMELEN, rstruc->numsprs);
     }
     else if (thisblock == BLOCKTYPE_OBJECTSCRIPTNAMES) {
-      if (fgetc(opty) != rstruc->numsprs)
+      if (opty->ReadInt8() != rstruc->numsprs)
         quit("Load_room: inconsistent blocks for object script names");
 
-      fread(&rstruc->objectscriptnames[0][0], MAX_SCRIPT_NAME_LEN, rstruc->numsprs, opty);
+      opty->ReadArray(&rstruc->objectscriptnames[0][0], MAX_SCRIPT_NAME_LEN, rstruc->numsprs);
     }
     else if (thisblock == BLOCKTYPE_ANIMBKGRND) {
       int   ct;
       long  fpos;
 
-      rstruc->num_bscenes = fgetc(opty);
-      rstruc->bscene_anim_speed = fgetc(opty);
+      rstruc->num_bscenes = opty->ReadInt8();
+      rstruc->bscene_anim_speed = opty->ReadInt8();
 
       if (rfh.version >= 20)
-        fread(&rstruc->ebpalShared[0], 1, rstruc->num_bscenes, opty);
+        opty->ReadArray(&rstruc->ebpalShared[0], 1, rstruc->num_bscenes);
       else
         memset (&rstruc->ebpalShared[0], 0, rstruc->num_bscenes);
 
-      fpos = ftell(opty);
+      fpos = opty->GetPosition();
 //        fclose(opty);
 
       for (ct = 1; ct < rstruc->num_bscenes; ct++) {
@@ -693,11 +694,11 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
         rstruc->ebscene[ct] = recalced;
       }
 //        opty = clibfopen(files, "rb");
-//        fseek(opty, fpos, SEEK_SET);
+//        Seek(opty, fpos, SEEK_SET);
     }
     else if (thisblock == BLOCKTYPE_PROPERTIES) {
       // Read custom properties
-      if (getw(opty) != 1)
+      if (opty->ReadInt32() != 1)
         quit("LoadRoom: unknown Custom Properties block encounreted");
 
       int errors = 0, gg;
@@ -715,7 +716,7 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
     }
     else if (thisblock == -1)
     {
-      fclose(opty);
+      delete opty;
       quit("LoadRoom: unexpected end of file while loading room");
       return;
     }
@@ -725,15 +726,15 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
       quit(tempbfr);
     }
 
-    // The ftell call below has caused crashes
-    if (ftell(opty) != bloklen)
-      fseek(opty, bloklen, SEEK_SET);
+    // The GetPosition call below has caused crashes
+    if (opty->GetPosition() != bloklen)
+        opty->Seek(Common::kSeekBegin, bloklen);
   }
 
   // sync bpalettes[0] with room.pal
   memcpy (&rstruc->bpalettes[0][0], &rstruc->pal[0], sizeof(color) * 256);
 
-  fclose(opty);
+  delete opty;
 
   if ((rfh.version < 29) && (gameIsHighRes))
   {

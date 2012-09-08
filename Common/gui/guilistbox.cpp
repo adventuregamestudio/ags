@@ -2,10 +2,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "util/wgt2allg.h"
 #include "gui/guilistbox.h"
 #include "gui/guimain.h"
 #include "font/fonts.h"
-#include "util/wgt2allg.h"
+#include "util/datastream.h"
+
+using AGS::Common::CDataStream;
 
 DynamicArray<GUIListBox> guilist;
 int numguilist = 0;
@@ -28,35 +31,35 @@ void GUIListBox::ChangeFont(int newfont) {
 	  num_items_fit = hit / rowheight;
 }
 
-void GUIListBox::WriteToFile(FILE * ooo)
+void GUIListBox::WriteToFile(CDataStream *out)
 {
   int a;
 
-  GUIObject::WriteToFile(ooo);
+  GUIObject::WriteToFile(out);
   // MACPORT FIXES: swap
-  fwrite(&numItems, sizeof(int), 11, ooo);
-  putw(alignment, ooo);
-  putw(reserved1, ooo);
-  putw(selectedbgcol, ooo);
+  out->WriteArray(&numItems, sizeof(int), 11);
+  out->WriteInt32(alignment);
+  out->WriteInt32(reserved1);
+  out->WriteInt32(selectedbgcol);
   for (a = 0; a < numItems; a++)
-    fwrite(&items[a][0], sizeof(char), strlen(items[a]) + 1, ooo);
+    out->WriteArray(&items[a][0], sizeof(char), strlen(items[a]) + 1);
 
   if (exflags & GLF_SGINDEXVALID)
-    fwrite(&saveGameIndex[0], sizeof(short), numItems, ooo);
+    out->WriteArray(&saveGameIndex[0], sizeof(short), numItems);
 }
 
-void GUIListBox::ReadFromFile(FILE * ooo, int version)
+void GUIListBox::ReadFromFile(CDataStream *in, int version)
 {
   int a, i;
   char tempbuf[300];
 
-  GUIObject::ReadFromFile(ooo, version);
+  GUIObject::ReadFromFile(in, version);
   // MACPORT FIXES: swap
-  fread(&numItems, sizeof(int), 11, ooo);
+  in->ReadArray(&numItems, sizeof(int), 11);
 
   if (version >= 112) {
-    alignment = getw(ooo);
-    reserved1 = getw(ooo);
+    alignment = in->ReadInt32();
+    reserved1 = in->ReadInt32();
   }
   else {
     alignment = GALIGN_LEFT;
@@ -64,7 +67,7 @@ void GUIListBox::ReadFromFile(FILE * ooo, int version)
   }
 
   if (version >= 107) {
-    selectedbgcol = getw(ooo);
+    selectedbgcol = in->ReadInt32();
   }
   else {
     selectedbgcol = textcol;
@@ -74,7 +77,7 @@ void GUIListBox::ReadFromFile(FILE * ooo, int version)
 
   for (a = 0; a < numItems; a++) {
     i = 0;
-    while ((tempbuf[i] = fgetc(ooo)) != 0)
+    while ((tempbuf[i] = in->ReadInt8()) != 0)
       i++;
 
     items[a] = (char *)malloc(strlen(tempbuf) + 5);
@@ -83,7 +86,7 @@ void GUIListBox::ReadFromFile(FILE * ooo, int version)
   }
 
   if ((version >= 114) && (exflags & GLF_SGINDEXVALID)) {
-    fread(&saveGameIndex[0], sizeof(short), numItems, ooo);
+    in->ReadArray(&saveGameIndex[0], sizeof(short), numItems);
   }
 
   if (textcol == 0)

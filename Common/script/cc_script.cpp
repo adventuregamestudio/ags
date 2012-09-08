@@ -5,24 +5,30 @@
 #include "cc_script.h"
 #include "script/script_common.h"      // SCOM_VERSION, scfilesig
 #include "cc_error.h"
+#include "util/datastream.h"
 
-void fput_long(long loo,FILE*ooo) {
-    fwrite(&loo,4,1,ooo);
+using AGS::Common::CDataStream;
+
+//
+// [IKM] FIXME: either I am dumb, or those functions below are totally useless
+//
+void fput_long(long loo,CDataStream *out) {
+    out->WriteArray(&loo,4,1);
 }
 
-long fget_long(FILE * iii)
+long fget_long(CDataStream *in)
 {
     long tmpp;
-    fread(&tmpp, 4, 1, iii);
+    in->ReadArray(&tmpp, 4, 1);
     return tmpp;
 }
 
-void freadstring(char **strptr, FILE * iii)
+void freadstring(char **strptr, CDataStream *in)
 {
     static char ibuffer[300];
     int idxx = 0;
 
-    while ((ibuffer[idxx] = fgetc(iii)) != 0)
+    while ((ibuffer[idxx] = in->ReadInt8()) != 0)
         idxx++;
 
     if (ibuffer[0] == 0) {
@@ -34,41 +40,41 @@ void freadstring(char **strptr, FILE * iii)
     strcpy(strptr[0], ibuffer);
 }
 
-void fwrite_script(ccScript*scri,FILE*ooo) {
+void fwrite_script(ccScript*scri, CDataStream *out) {
     int n;
-    fwrite(scfilesig,4,1,ooo);
-    fput_long(SCOM_VERSION,ooo);
-    fput_long(scri->globaldatasize,ooo);
-    fput_long(scri->codesize,ooo);
-    fput_long(scri->stringssize,ooo);
+    out->WriteArray(scfilesig,4,1);
+    fput_long(SCOM_VERSION,out);
+    fput_long(scri->globaldatasize,out);
+    fput_long(scri->codesize,out);
+    fput_long(scri->stringssize,out);
     if (scri->globaldatasize > 0)
-        fwrite(scri->globaldata,scri->globaldatasize,1,ooo);
+        out->WriteArray(scri->globaldata,scri->globaldatasize,1);
     if (scri->codesize > 0)
-        fwrite(scri->code,scri->codesize,sizeof(long),ooo);
+        out->WriteArray(scri->code,scri->codesize,sizeof(long));
     if (scri->stringssize > 0)
-        fwrite(scri->strings,scri->stringssize,1,ooo);
-    fput_long(scri->numfixups,ooo);
+        out->WriteArray(scri->strings,scri->stringssize,1);
+    fput_long(scri->numfixups,out);
     if (scri->numfixups > 0) {
-        fwrite(scri->fixuptypes,scri->numfixups,1,ooo);
-        fwrite(scri->fixups,scri->numfixups,sizeof(long),ooo);
+        out->WriteArray(scri->fixuptypes,scri->numfixups,1);
+        out->WriteArray(scri->fixups,scri->numfixups,sizeof(long));
     }
-    fput_long(scri->numimports,ooo);
+    fput_long(scri->numimports,out);
     for (n=0;n<scri->numimports;n++)
-        fwrite(scri->imports[n],strlen(scri->imports[n])+1,1,ooo);
-    fput_long(scri->numexports,ooo);
+        out->WriteArray(scri->imports[n],strlen(scri->imports[n])+1,1);
+    fput_long(scri->numexports,out);
     for (n=0;n<scri->numexports;n++) {
-        fwrite(scri->exports[n],strlen(scri->exports[n])+1,1,ooo);
-        fput_long(scri->export_addr[n],ooo);
+        out->WriteArray(scri->exports[n],strlen(scri->exports[n])+1,1);
+        fput_long(scri->export_addr[n],out);
     }
-    fput_long(scri->numSections, ooo);
+    fput_long(scri->numSections, out);
     for (n = 0; n < scri->numSections; n++) {
-        fwrite(scri->sectionNames[n], strlen(scri->sectionNames[n]) + 1, 1, ooo);
-        fput_long(scri->sectionOffsets[n], ooo);
+        out->WriteArray(scri->sectionNames[n], strlen(scri->sectionNames[n]) + 1, 1);
+        fput_long(scri->sectionOffsets[n], out);
     }
-    fput_long(ENDFILESIG,ooo);
+    fput_long(ENDFILESIG,out);
 }
 
-ccScript *fread_script(FILE * ooo)
+ccScript *fread_script(CDataStream *in)
 {
     ccScript *scri = (ccScript *) malloc(sizeof(ccScript));
     scri->instances = 0;
@@ -76,10 +82,10 @@ ccScript *fread_script(FILE * ooo)
     char gotsig[5];
     currentline = -1;
     // MACPORT FIX: swap 'size' and 'nmemb'
-    fread(gotsig, 1, 4, ooo);
+    in->ReadArray(gotsig, 1, 4);
     gotsig[4] = 0;
 
-    int fileVer = fget_long(ooo);
+    int fileVer = fget_long(in);
 
     if ((strcmp(gotsig, scfilesig) != 0) || (fileVer > SCOM_VERSION)) {
         cc_error("file was not written by fwrite_script or seek position is incorrect");
@@ -87,14 +93,14 @@ ccScript *fread_script(FILE * ooo)
         return NULL;
     }
 
-    scri->globaldatasize = fget_long(ooo);
-    scri->codesize = fget_long(ooo);
-    scri->stringssize = fget_long(ooo);
+    scri->globaldatasize = fget_long(in);
+    scri->codesize = fget_long(in);
+    scri->stringssize = fget_long(in);
 
     if (scri->globaldatasize > 0) {
         scri->globaldata = (char *)malloc(scri->globaldatasize);
         // MACPORT FIX: swap
-        fread(scri->globaldata, sizeof(char), scri->globaldatasize, ooo);
+        in->ReadArray(scri->globaldata, sizeof(char), scri->globaldatasize);
     }
     else
         scri->globaldata = NULL;
@@ -102,7 +108,7 @@ ccScript *fread_script(FILE * ooo)
     if (scri->codesize > 0) {
         scri->code = (long *)malloc(scri->codesize * sizeof(long));
         // MACPORT FIX: swap
-        fread(scri->code, sizeof(long), scri->codesize, ooo);
+        in->ReadArray(scri->code, sizeof(long), scri->codesize);
     }
     else
         scri->code = NULL;
@@ -110,46 +116,46 @@ ccScript *fread_script(FILE * ooo)
     if (scri->stringssize > 0) {
         scri->strings = (char *)malloc(scri->stringssize);
         // MACPORT FIX: swap
-        fread(scri->strings, sizeof(char), scri->stringssize, ooo);
+        in->ReadArray(scri->strings, sizeof(char), scri->stringssize);
     } 
     else
         scri->strings = NULL;
 
-    scri->numfixups = fget_long(ooo);
+    scri->numfixups = fget_long(in);
     if (scri->numfixups > 0) {
         scri->fixuptypes = (char *)malloc(scri->numfixups);
         scri->fixups = (long *)malloc(scri->numfixups * sizeof(long));
         // MACPORT FIX: swap 'size' and 'nmemb'
-        fread(scri->fixuptypes, sizeof(char), scri->numfixups, ooo);
-        fread(scri->fixups, sizeof(long), scri->numfixups, ooo);
+        in->ReadArray(scri->fixuptypes, sizeof(char), scri->numfixups);
+        in->ReadArray(scri->fixups, sizeof(long), scri->numfixups);
     }
     else {
         scri->fixups = NULL;
         scri->fixuptypes = NULL;
     }
 
-    scri->numimports = fget_long(ooo);
+    scri->numimports = fget_long(in);
 
     scri->imports = (char**)malloc(sizeof(char*) * scri->numimports);
     for (n = 0; n < scri->numimports; n++)
-        freadstring(&scri->imports[n], ooo);
+        freadstring(&scri->imports[n], in);
 
-    scri->numexports = fget_long(ooo);
+    scri->numexports = fget_long(in);
     scri->exports = (char**)malloc(sizeof(char*) * scri->numexports);
     scri->export_addr = (long*)malloc(sizeof(long) * scri->numexports);
     for (n = 0; n < scri->numexports; n++) {
-        freadstring(&scri->exports[n], ooo);
-        scri->export_addr[n] = fget_long(ooo);
+        freadstring(&scri->exports[n], in);
+        scri->export_addr[n] = fget_long(in);
     }
 
     if (fileVer >= 83) {
         // read in the Sections
-        scri->numSections = fget_long(ooo);
+        scri->numSections = fget_long(in);
         scri->sectionNames = (char**)malloc(scri->numSections * sizeof(char*));
         scri->sectionOffsets = (long*)malloc(scri->numSections * sizeof(long));
         for (n = 0; n < scri->numSections; n++) {
-            freadstring(&scri->sectionNames[n], ooo);
-            scri->sectionOffsets[n] = fget_long(ooo);
+            freadstring(&scri->sectionNames[n], in);
+            scri->sectionOffsets[n] = fget_long(in);
         }
     }
     else
@@ -159,7 +165,7 @@ ccScript *fread_script(FILE * ooo)
         scri->sectionOffsets = NULL;
     }
 
-    if (fget_long(ooo) != ENDFILESIG) {
+    if (fget_long(in) != ENDFILESIG) {
         cc_error("internal error rebuilding script");
         free(scri);
         return NULL;

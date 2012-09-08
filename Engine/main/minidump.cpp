@@ -99,6 +99,8 @@ int CustomExceptionHandler (LPEXCEPTION_POINTERS exinfo) {
 FILE *logfile;
 int OurReportingFunction( int reportType, char *userMessage, int *retVal ) {
 
+    // [IKM] How's this supposed to work without opening the file?
+    // This functions does not seem to be called from anywhere
     fprintf(logfile,"%s: %s\n",(reportType == _CRT_ASSERT) ? "Assertion failed" : "Warning",userMessage);
     fflush (logfile);
     return 0;

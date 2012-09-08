@@ -7,12 +7,19 @@
 #include "alfont.h"
 
 #include "font/wfnfontrenderer.h"
+#include "util/datastream.h"
+#include "util/file.h"
+
+using AGS::Common::CDataStream;
+using namespace AGS; // FIXME later
 
 extern void set_our_eip(int eip);
 extern int  get_our_eip();
 
-extern FILE *fopen_shared(char *, char *);
-extern int flength_shared(FILE *ffi);
+extern CDataStream *fopen_shared(char *,
+                                 Common::FileOpenMode open_mode = Common::kFile_Open,
+                                 Common::FileWorkMode work_mode = Common::kFile_Read);
+extern int flength_shared(CDataStream *ffi);
 
 
 // **** WFN Renderer ****
@@ -187,36 +194,36 @@ int WFNFontRenderer::printchar(int xxx, int yyy, wgtfont foo, int charr)
 bool WFNFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
 {
   char filnm[20];
-  FILE *ffi = NULL;
+  CDataStream *ffi = NULL;
   char mbuffer[16];
   long lenof;
 
   sprintf(filnm, "agsfnt%d.wfn", fontNumber);
-  ffi = fopen_shared(filnm, "rb");
+  ffi = fopen_shared(filnm);
   if (ffi == NULL)
   {
     // actual font not found, try font 0 instead
     strcpy(filnm, "agsfnt0.wfn");
-    ffi = fopen_shared(filnm, "rb");
+    ffi = fopen_shared(filnm);
     if (ffi == NULL)
       return false;
   }
 
   mbuffer[15] = 0;
-  fread(mbuffer, 15, 1, ffi);
+  ffi->ReadArray(mbuffer, 15, 1);
   if (strcmp(mbuffer, WFN_FILE_SIGNATURE) != 0) {
-    fclose(ffi);
+    delete ffi;
     return false;
   }
 
   lenof = flength_shared(ffi);
 
   wgtfont tempalloc = (wgtfont) malloc(lenof + 40);
-  fclose(ffi);
+  delete ffi;
 
-  ffi = fopen_shared(filnm, "rb");
-  fread(tempalloc, lenof, 1, ffi);
-  fclose(ffi);
+  ffi = fopen_shared(filnm);
+  ffi->ReadArray(tempalloc, lenof, 1);
+  delete ffi;
 
   fonts[fontNumber] = tempalloc;
   return true;

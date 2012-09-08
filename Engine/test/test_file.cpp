@@ -8,7 +8,7 @@
 #include "test/test_internal.h"
 
 using AGS::Common::CString;
-using AGS::Common::CAGSStream;
+using AGS::Common::CDataStream;
 using AGS::Common::CAlignedStream;
 namespace File = AGS::Common::File;
 
@@ -28,7 +28,7 @@ void Test_File()
 {
     //-----------------------------------------------------
     // Operations
-    CAGSStream *out = File::OpenFile("test.tmp", AGS::Common::kFile_CreateAlways, AGS::Common::kFile_Write);
+    CDataStream *out = File::OpenFile("test.tmp", AGS::Common::kFile_CreateAlways, AGS::Common::kFile_Write);
 
     out->WriteInt16(10);
     out->WriteInt64(-20202);
@@ -56,7 +56,7 @@ void Test_File()
 
     delete out;
 
-    CAGSStream *in = File::OpenFile("test.tmp", AGS::Common::kFile_Open, AGS::Common::kFile_Read);
+    CDataStream *in = File::OpenFile("test.tmp", AGS::Common::kFile_Open, AGS::Common::kFile_Read);
 
     int16_t int16val    = in->ReadInt16();
     int64_t int64val    = in->ReadInt64();
@@ -73,6 +73,7 @@ void Test_File()
         as.Read(tricky_data_in.f, 17);
         as.ReadArrayOfInt32(tricky_data_in.g, 4);
         as.ReadArrayOfInt16(tricky_data_in.h, 13);
+        as.ReleaseStream(); // releasing filestream so that it won't be deleted
     }
 
     int32_t int32val    = in->ReadInt32();

@@ -1,4 +1,5 @@
 
+#include <errno.h>
 #include "util/file.h"
 
 #if defined(LINUX_VERSION) || defined(MAC_VERSION)
@@ -33,10 +34,41 @@ namespace AGS
 namespace Common
 {
 
-bool File::FileExists(const CString &filename)
+bool File::TestReadFile(const CString &filename)
 {
-    // TODO
+    FILE *test_file = fopen(filename, "rb");
+    if (test_file)
+    {
+        fclose(test_file);
+        return true;
+    }
     return false;
+}
+
+bool File::TestCreateFile(const CString &filename)
+{
+    FILE *test_file = fopen(filename, "wb");
+    if (test_file)
+    {
+        fclose(test_file);
+        unlink(filename);
+        return true;
+    }
+    return false;
+}
+
+bool File::DeleteFile(const CString &filename)
+{
+    if (unlink(filename) != 0)
+    {
+        int err;
+        _get_errno(&err);
+        if (err == EACCES)
+        {
+            return false;
+        }
+    }
+    return true;
 }
 
 CFileStream *File::OpenFile(const CString &filename, FileOpenMode open_mode, FileWorkMode work_mode)

@@ -2,6 +2,9 @@
 #include <string.h>
 #include "gui/guidefines.h"
 #include "util/string_utils.h"
+#include "util/datastream.h"
+
+using AGS::Common::CDataStream;
 
 #define STD_BUFFER_SIZE 3000
 
@@ -94,27 +97,30 @@ void split_lines_leftright(const char *todis, int wii, int fonnt) {
 }
 
 //=============================================================================
-
-void fputstring(char *sss, FILE *ddd) {
+// FIXME: remove later when arrays of chars are replaced by string class
+void fputstring(const char *sss, Common::CDataStream *out)
+{
     int b = 0;
     while (sss[b] != 0) {
-        fputc(sss[b], ddd);
+        out->WriteInt8(sss[b]);
         b++;
     }
-    fputc(0,ddd);
+    out->WriteInt8(0);
 }
 
-void fgetstring_limit(char *sss, FILE *ddd, int bufsize) {
+void fgetstring_limit(char *sss, Common::CDataStream *in, int bufsize)
+{
     int b = -1;
     do {
         if (b < bufsize - 1)
             b++;
-        sss[b] = fgetc(ddd);
-        if (feof(ddd))
+        sss[b] = in->ReadInt8();
+        if (in->EOS())
             return;
     } while (sss[b] != 0);
 }
 
-void fgetstring(char *sss, FILE *ddd) {
-    fgetstring_limit (sss, ddd, 50000000);
+void fgetstring(char *sss, Common::CDataStream *in)
+{
+    fgetstring_limit (sss, in, 50000000);
 }

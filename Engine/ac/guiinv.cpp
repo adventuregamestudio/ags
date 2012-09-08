@@ -1,6 +1,6 @@
 
-#include "gui/guiinv.h"
 #include "util/wgt2allg.h"
+#include "gui/guiinv.h"
 #include "ac/draw.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"

@@ -1,9 +1,12 @@
 
 #include <stdio.h>
+#include "util/wgt2allg.h"
 #include "gui/guibutton.h"
 #include "gui/guimain.h"
-#include "util/wgt2allg.h"
 #include "ac/spritecache.h"
+#include "util/datastream.h"
+
+using AGS::Common::CDataStream;
 
 extern SpriteCache spriteset;
 
@@ -13,29 +16,29 @@ DynamicArray<GUIButton> guibuts;
 //GUIButton guibuts[MAX_OBJ_EACH_TYPE];
 int numguibuts = 0;
 
-void GUIButton::WriteToFile(FILE * ooo)
+void GUIButton::WriteToFile(CDataStream *out)
 {
-  GUIObject::WriteToFile(ooo);
+  GUIObject::WriteToFile(out);
   // MACPORT FIXES: swap
-  fwrite(&pic, sizeof(int), 12, ooo);
-  fwrite(&text[0], sizeof(char), 50, ooo);
-  putw(textAlignment, ooo);
-  putw(reserved1, ooo);
+  out->WriteArray(&pic, sizeof(int), 12);
+  out->WriteArray(&text[0], sizeof(char), 50);
+  out->WriteInt32(textAlignment);
+  out->WriteInt32(reserved1);
 }
 
-void GUIButton::ReadFromFile(FILE * ooo, int version)
+void GUIButton::ReadFromFile(CDataStream *in, int version)
 {
-  GUIObject::ReadFromFile(ooo, version);
+  GUIObject::ReadFromFile(in, version);
   // MACPORT FIXES: swap
-  fread(&pic, sizeof(int), 12, ooo);
-  fread(&text[0], sizeof(char), 50, ooo);
+  in->ReadArray(&pic, sizeof(int), 12);
+  in->ReadArray(&text[0], sizeof(char), 50);
   if (textcol == 0)
     textcol = 16;
   usepic = pic;
 
   if (version >= 111) {
-    textAlignment = getw(ooo);
-    reserved1 = getw(ooo);
+    textAlignment = in->ReadInt32();
+    reserved1 = in->ReadInt32();
   }
   else {
     textAlignment = GBUT_ALIGN_TOPMIDDLE;

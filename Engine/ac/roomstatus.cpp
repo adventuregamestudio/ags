@@ -1,75 +1,78 @@
 
 #include "roomstatus.h"
+#include "util/datastream.h"
 
-void RoomStatus::ReadFromFile(FILE *fp)
+using AGS::Common::CDataStream;
+
+void RoomStatus::ReadFromFile(CDataStream *in)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
-    beenhere = getw(fp);
-    numobj = getw(fp);
+    beenhere = in->ReadInt32();
+    numobj = in->ReadInt32();
     for (int i = 0; i < MAX_INIT_SPR; ++i)
     {
-        obj[i].ReadFromFile(fp);
+        obj[i].ReadFromFile(in);
     }
-    fread(flagstates, sizeof(short), MAX_FLAGS, fp);
+    in->ReadArray(flagstates, sizeof(short), MAX_FLAGS);
     // might need to skip 2 if MAX_FLAGS is odd
-    fseek(fp, 2*(MAX_FLAGS%2), SEEK_CUR);
-    tsdatasize = getw(fp);
-    tsdata = (char *) getw(fp);
+    in->Seek(Common::kSeekCurrent, 2*(MAX_FLAGS%2));
+    tsdatasize = in->ReadInt32();
+    tsdata = (char *) in->ReadInt32();
     for (int i = 0; i < MAX_HOTSPOTS; ++i)
     {
-        intrHotspot[i].ReadFromFile(fp);
+        intrHotspot[i].ReadFromFile(in);
     }
     for (int i = 0; i < MAX_INIT_SPR; ++i)
     {
-        intrObject[i].ReadFromFile(fp);
+        intrObject[i].ReadFromFile(in);
     }
     for (int i = 0; i < MAX_REGIONS; ++i)
     {
-        intrRegion[i].ReadFromFile(fp);
+        intrRegion[i].ReadFromFile(in);
     }
-    intrRoom.ReadFromFile(fp);
-    fread(hotspot_enabled, sizeof(char), MAX_HOTSPOTS, fp);
-    fread(region_enabled, sizeof(char), MAX_REGIONS, fp);
-    fread(walkbehind_base, sizeof(short), MAX_OBJ, fp);
-    fseek(fp, get_padding(MAX_HOTSPOTS+MAX_REGIONS+2*MAX_OBJ), SEEK_CUR);
-    fread(interactionVariableValues, sizeof(int), MAX_GLOBAL_VARIABLES, fp);
+    intrRoom.ReadFromFile(in);
+    in->ReadArray(hotspot_enabled, sizeof(char), MAX_HOTSPOTS);
+    in->ReadArray(region_enabled, sizeof(char), MAX_REGIONS);
+    in->ReadArray(walkbehind_base, sizeof(short), MAX_OBJ);
+    in->Seek(Common::kSeekCurrent, get_padding(MAX_HOTSPOTS+MAX_REGIONS+2*MAX_OBJ));
+    in->ReadArray(interactionVariableValues, sizeof(int), MAX_GLOBAL_VARIABLES);
 //#else
 //    throw "RoomStatus::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
 //#endif
 }
-void RoomStatus::WriteToFile(FILE *fp)
+void RoomStatus::WriteToFile(CDataStream *out)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
     char pad[4];
-    putw(beenhere, fp);
-    putw(numobj, fp);
+    out->WriteInt32(beenhere);
+    out->WriteInt32(numobj);
     for (int i = 0; i < MAX_INIT_SPR; ++i)
     {
-        obj[i].WriteToFile(fp);
+        obj[i].WriteToFile(out);
     }
-    fwrite(flagstates, sizeof(short), MAX_FLAGS, fp);
+    out->WriteArray(flagstates, sizeof(short), MAX_FLAGS);
     // might need to skip 2 if MAX_FLAGS is odd
-    fwrite(pad, sizeof(char), 2*(MAX_FLAGS%2), fp);
-    putw(tsdatasize, fp);
-    putw((int)tsdata, fp);
+    out->WriteArray(pad, sizeof(char), 2*(MAX_FLAGS%2));
+    out->WriteInt32(tsdatasize);
+    out->WriteInt32((int)tsdata);
     for (int i = 0; i < MAX_HOTSPOTS; ++i)
     {
-        intrHotspot[i].WriteToFile(fp);
+        intrHotspot[i].WriteToFile(out);
     }
     for (int i = 0; i < MAX_INIT_SPR; ++i)
     {
-        intrObject[i].WriteToFile(fp);
+        intrObject[i].WriteToFile(out);
     }
     for (int i = 0; i < MAX_REGIONS; ++i)
     {
-        intrRegion[i].WriteToFile(fp);
+        intrRegion[i].WriteToFile(out);
     }
-    intrRoom.WriteToFile(fp);
-    fwrite(hotspot_enabled, sizeof(char), MAX_HOTSPOTS, fp);
-    fwrite(region_enabled, sizeof(char), MAX_REGIONS, fp);
-    fwrite(walkbehind_base, sizeof(short), MAX_OBJ, fp);
-    fwrite(pad, sizeof(char), get_padding(MAX_HOTSPOTS+MAX_REGIONS+2*MAX_OBJ), fp);
-    fwrite(interactionVariableValues, sizeof(int), MAX_GLOBAL_VARIABLES, fp);
+    intrRoom.WriteToFile(out);
+    out->WriteArray(hotspot_enabled, sizeof(char), MAX_HOTSPOTS);
+    out->WriteArray(region_enabled, sizeof(char), MAX_REGIONS);
+    out->WriteArray(walkbehind_base, sizeof(short), MAX_OBJ);
+    out->WriteArray(pad, sizeof(char), get_padding(MAX_HOTSPOTS+MAX_REGIONS+2*MAX_OBJ));
+    out->WriteArray(interactionVariableValues, sizeof(int), MAX_GLOBAL_VARIABLES);
 //#else
 //    throw "RoomStatus::WriteToFile() is not implemented for little-endian platforms and should not be called.";
 //#endif

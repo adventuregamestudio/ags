@@ -2,26 +2,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "util/wgt2allg.h"
 #include "gui/guilabel.h"
 #include "gui/guimain.h"
-#include "util/wgt2allg.h"
+#include "util/datastream.h"
+
+using AGS::Common::CDataStream;
 
 DynamicArray<GUILabel> guilabels;
 int numguilabels = 0;
 
-void GUILabel::WriteToFile(FILE * ooo)
+void GUILabel::WriteToFile(CDataStream *out)
 {
-  GUIObject::WriteToFile(ooo);
+  GUIObject::WriteToFile(out);
   // MACPORT FIXES: swap
-  //fwrite(&text[0], sizeof(char), 200, ooo);
-  putw((int)strlen(text) + 1, ooo);
-  fwrite(&text[0], sizeof(char), strlen(text) + 1, ooo);
-  fwrite(&font, sizeof(int), 3, ooo);
+  //->WriteArray(&text[0], sizeof(char), 200);
+  out->WriteInt32((int)strlen(text) + 1);
+  out->WriteArray(&text[0], sizeof(char), strlen(text) + 1);
+  out->WriteArray(&font, sizeof(int), 3);
 }
 
-void GUILabel::ReadFromFile(FILE * ooo, int version)
+void GUILabel::ReadFromFile(CDataStream *in, int version)
 {
-  GUIObject::ReadFromFile(ooo, version);
+  GUIObject::ReadFromFile(in, version);
 
   if (textBufferLen > 0)
     free(text);
@@ -30,13 +33,13 @@ void GUILabel::ReadFromFile(FILE * ooo, int version)
     textBufferLen = 200;
   }
   else {
-    textBufferLen = getw(ooo);
+    textBufferLen = in->ReadInt32();
   }
 
   text = (char*)malloc(textBufferLen);
-  fread(&text[0], sizeof(char), textBufferLen, ooo);
+  in->ReadArray(&text[0], sizeof(char), textBufferLen);
 
-  fread(&font, sizeof(int), 3, ooo);
+  in->ReadArray(&font, sizeof(int), 3);
   if (textcol == 0)
     textcol = 16;
 }

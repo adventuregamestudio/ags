@@ -6,6 +6,9 @@
 #include "ac/dynobj/cc_dynamicarray.h" // globalDynamicArray, constants
 #include "util/string_utils.h"               // fputstring, etc
 #include "script/cc_error.h"
+#include "util/datastream.h"
+
+using AGS::Common::CDataStream;
 
 void ManagedObjectPool::ManagedObject::init(long theHandle, const char *theAddress, ICCDynamicObject *theCallback) {
     handle = theHandle;
@@ -185,13 +188,13 @@ int ManagedObjectPool::AddObject(const char *address, ICCDynamicObject *callback
     }
 }
 
-void ManagedObjectPool::WriteToDisk(FILE *output) {
+void ManagedObjectPool::WriteToDisk(CDataStream *out) {
     int serializeBufferSize = SERIALIZE_BUFFER_SIZE;
     char *serializeBuffer = (char*)malloc(serializeBufferSize);
 
-    putw(OBJECT_CACHE_MAGIC_NUMBER, output);
-    putw(1, output);  // version
-    putw(numObjects, output);
+    out->WriteInt32(OBJECT_CACHE_MAGIC_NUMBER);
+    out->WriteInt32(1);  // version
+    out->WriteInt32(numObjects);
 
     // use this opportunity to clean up any non-referenced pointers
     RunGarbageCollection();
@@ -200,7 +203,7 @@ void ManagedObjectPool::WriteToDisk(FILE *output) {
     {
         if ((objects[i].handle) && (objects[i].callback != NULL)) {
             // write the type of the object
-            fputstring((char*)objects[i].callback->GetType(), output);
+            fputstring((char*)objects[i].callback->GetType(), out);
             // now write the object data
             int bytesWritten = objects[i].callback->Serialize(objects[i].addr, serializeBuffer, serializeBufferSize);
             if ((bytesWritten < 0) && ((-bytesWritten) > serializeBufferSize))
@@ -210,34 +213,34 @@ void ManagedObjectPool::WriteToDisk(FILE *output) {
                 serializeBuffer = (char*)realloc(serializeBuffer, serializeBufferSize);
                 bytesWritten = objects[i].callback->Serialize(objects[i].addr, serializeBuffer, serializeBufferSize);
             }
-            putw(bytesWritten, output);
+            out->WriteInt32(bytesWritten);
             if (bytesWritten > 0)
-                fwrite(serializeBuffer, bytesWritten, 1, output);
-            putw(objects[i].refCount, output);
+                out->WriteArray(serializeBuffer, bytesWritten, 1);
+            out->WriteInt32(objects[i].refCount);
         }
         else  // write empty string if we cannot serialize it
-            fputc(0, output); 
+            out->WriteInt8(0); 
     }
 
     free(serializeBuffer);
 }
 
-int ManagedObjectPool::ReadFromDisk(FILE *input, ICCObjectReader *reader) {
+int ManagedObjectPool::ReadFromDisk(CDataStream *in, ICCObjectReader *reader) {
     int serializeBufferSize = SERIALIZE_BUFFER_SIZE;
     char *serializeBuffer = (char*)malloc(serializeBufferSize);
     char typeNameBuffer[200];
 
-    if (getw(input) != OBJECT_CACHE_MAGIC_NUMBER) {
+    if (in->ReadInt32() != OBJECT_CACHE_MAGIC_NUMBER) {
         cc_error("Data was not written by ccSeralize");
         return -1;
     }
 
-    if (getw(input) != 1) {
+    if (in->ReadInt32() != 1) {
         cc_error("Invalid data version");
         return -1;
     }
 
-    int numObjs = getw(input);
+    int numObjs = in->ReadInt32();
 
     if (numObjs >= arrayAllocLimit) {
         arrayAllocLimit = numObjs + ARRAY_INCREMENT_SIZE;
@@ -247,15 +250,15 @@ int ManagedObjectPool::ReadFromDisk(FILE *input, ICCObjectReader *reader) {
     numObjects = numObjs;
 
     for (int i = 1; i < numObjs; i++) {
-        fgetstring_limit(typeNameBuffer, input, 199);
+        fgetstring_limit(typeNameBuffer, in, 199);
         if (typeNameBuffer[0] != 0) {
-            int numBytes = getw(input);
+            int numBytes = in->ReadInt32();
             if (numBytes > serializeBufferSize) {
                 serializeBufferSize = numBytes;
                 serializeBuffer = (char*)realloc(serializeBuffer, serializeBufferSize);
             }
             if (numBytes > 0)
-                fread(serializeBuffer, numBytes, 1, input);
+                in->ReadArray(serializeBuffer, numBytes, 1);
 
             if (strcmp(typeNameBuffer, CC_DYNAMIC_ARRAY_TYPE_NAME) == 0)
             {
@@ -265,7 +268,7 @@ int ManagedObjectPool::ReadFromDisk(FILE *input, ICCObjectReader *reader) {
             {
                 reader->Unserialize(i, typeNameBuffer, serializeBuffer, numBytes);
             }
-            objects[i].refCount = getw(input);
+            objects[i].refCount = in->ReadInt32();
         }
     }
 

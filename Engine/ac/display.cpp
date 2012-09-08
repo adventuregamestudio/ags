@@ -1,6 +1,6 @@
 
-#include "ac/display.h"
 #include "util/wgt2allg.h"
+#include "ac/display.h"
 #include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "font/agsfontrenderer.h"

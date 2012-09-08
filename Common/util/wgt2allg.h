@@ -85,6 +85,10 @@ extern "C"
 
 //=============================================================================
 
+#ifdef USE_CLIB
+#include "util/clib32.h"
+#endif
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -122,16 +126,6 @@ extern "C"
     extern union REGS r;
     extern void wsetmode(int nnn);
     extern int wgetmode();
-#endif
-
-#ifdef USE_CLIB
-    extern "C"
-    {
-        extern FILE *clibfopen(char *, char *);
-        extern long cliboffset(char *);
-        extern long clibfilesize(char *);
-        extern long last_opened_size;
-    }
 #endif
 
     extern void wsetscreen(block nss);

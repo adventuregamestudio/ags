@@ -10,6 +10,9 @@ prior express permission from Chris Jones.
 
 #include <stdio.h>
 
+namespace AGS { namespace Common { class CDataStream; } }
+using namespace AGS; // FIXME later
+
 // MACPORT FIX 9/6/05: removed far and put space after *
 #if !defined(MAC_VERSION)
 typedef unsigned char * __block;
@@ -22,12 +25,12 @@ typedef unsigned char * __block;
 
 long csavecompressed(char *finam, __block tobesaved, color pala[256], long exto);
 
-void cpackbitl(unsigned char *line, int size, FILE * outfile);
-void cpackbitl16(unsigned short *line, int size, FILE * outfile);
-void cpackbitl32(unsigned long *line, int size, FILE * outfile);
-int  cunpackbitl(unsigned char *line, int size, FILE * infile);
-int  cunpackbitl16(unsigned short *line, int size, FILE * infile);
-int  cunpackbitl32(unsigned long *line, int size, FILE * infile);
+void cpackbitl(unsigned char *line, int size, Common::CDataStream *out);
+void cpackbitl16(unsigned short *line, int size, Common::CDataStream *out);
+void cpackbitl32(unsigned long *line, int size, Common::CDataStream *out);
+int  cunpackbitl(unsigned char *line, int size, Common::CDataStream *in);
+int  cunpackbitl16(unsigned short *line, int size, Common::CDataStream *in);
+int  cunpackbitl32(unsigned long *line, int size, Common::CDataStream *in);
 
 //=============================================================================
 
@@ -36,9 +39,9 @@ int  cunpackbitl32(unsigned long *line, int size, FILE * infile);
 long save_lzw(char *fnn, BITMAP *bmpp, color *pall, long offe);
 
 /*long load_lzw(char*fnn,BITMAP*bmm,color*pall,long ooff);*/
-long load_lzw(FILE *iii, BITMAP *bmm, color *pall);
+long load_lzw(Common::CDataStream *in, BITMAP *bmm, color *pall);
 long savecompressed_allegro(char *fnn, BITMAP *bmpp, color *pall, long ooo);
-long loadcompressed_allegro(FILE *fpp, BITMAP **bimpp, color *pall, long ooo);
+long loadcompressed_allegro(Common::CDataStream *in, BITMAP **bimpp, color *pall, long ooo);
 
 //extern char *lztempfnm;
 //extern BITMAP *recalced;

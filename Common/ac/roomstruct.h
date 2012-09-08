@@ -10,6 +10,9 @@
 #include "ac/point.h"
 #include "script/cc_script.h"       // ccScript
 
+namespace AGS { namespace Common { class CDataStream; } }
+using namespace AGS; // FIXME later
+
 
 // thisroom.options[0] = startup music
 // thisroom.options[1] = can save/load on screen (0=yes, 1=no)
@@ -27,7 +30,7 @@ struct sprstruc {
     short on      PCKD;
     sprstruc() { on = 0; }
 
-    void ReadFromFile(FILE *fp);
+    void ReadFromFile(Common::CDataStream *in);
 };
 #pragma pack()
 
@@ -125,20 +128,19 @@ struct roomstruct {
 struct room_file_header {
     short version PCKD;
 
-    void ReadFromFile(FILE *fp);
+    void ReadFromFile(Common::CDataStream *in);
 };
 
 extern int _acroom_bpp;  // bytes per pixel of currently loading room
 
-extern void load_main_block(roomstruct *rstruc, char *files, FILE *opty, room_file_header rfh);
 extern void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes);
 
 
 // Those are, in fact, are project-dependent and are implemented in runtime and AGS.Native
-extern void load_script_configuration(FILE *);
-extern void save_script_configuration(FILE *);
-extern void load_graphical_scripts(FILE *, roomstruct *);
-extern void save_graphical_scripts(FILE *, roomstruct *);
+extern void load_script_configuration(Common::CDataStream *in);
+extern void save_script_configuration(Common::CDataStream *out);
+extern void load_graphical_scripts(Common::CDataStream *in, roomstruct *);
+extern void save_graphical_scripts(Common::CDataStream *out, roomstruct *);
 //
 
 #endif // __AC_ROOMSTRUCT_H

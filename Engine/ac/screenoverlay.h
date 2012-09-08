@@ -10,6 +10,10 @@
 #include "gfx/ali3d.h"
 #include "util/file.h"
 
+// Forward declaration
+namespace AGS { namespace Common { class CDataStream; } }
+using namespace AGS; // FIXME later
+
 struct ScreenOverlay {
     IDriverDependantBitmap *bmp;
     block pic;
@@ -19,8 +23,8 @@ struct ScreenOverlay {
     bool hasAlphaChannel;
     bool positionRelativeToScreen;
 
-    void ReadFromFile(FILE *f);
-    void WriteToFile(FILE *f);
+    void ReadFromFile(Common::CDataStream *in);
+    void WriteToFile(Common::CDataStream *out);
 };
 
 #endif // __AGS_EE_AC__SCREENOVERLAY_H

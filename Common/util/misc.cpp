@@ -29,6 +29,9 @@
 
 #include "allegro.h"
 #include "util/misc.h"
+#include "util/filestream.h"
+
+using AGS::Common::CDataStream;
 
 #if defined(MAC_VERSION) || defined(WINDOWS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
 #include <string.h>
@@ -148,31 +151,23 @@ char *ci_find_file(char *dir_name, char *file_name)
 
 
 /* Case Insensitive fopen */
-FILE *ci_fopen(char *file_name, const char *mode)
+CDataStream *ci_fopen(const char *file_name, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode)
 {
 #if defined(WINDOWS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
-  // Don't pass a NULL pointer to newlib on the PSP.
-  if (file_name == NULL)
-  {
-    return NULL;
-  }
-  else
-  {
-    return fopen(file_name, mode);
-  }
+  return Common::File::OpenFile(file_name, open_mode, work_mode);
 #else
-  FILE *fd;
+  CDataStream *fs = NULL;
   char *fullpath = ci_find_file(NULL, file_name);
 
   /* If I didn't find a file, this could be writing a new file,
       so use whatever file_name they passed */
   if (fullpath == NULL) {
-    return fopen(file_name, mode);
+    fs = Common::File::OpenFile(file_name, open_mode, work_mode);
   } else {
-    fd = fopen(fullpath, mode);
+    fs = Common::File::OpenFile(fullpath, open_mode, work_mode);
     free(fullpath);
   }
 
-  return fd;
+  return fs;
 #endif
 }

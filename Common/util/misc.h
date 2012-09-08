@@ -31,6 +31,7 @@
 #define __MISC_H
 
 #include <stdio.h>
+#include "util/file.h"
 
 #if defined(LINUX_VERSION)
 #include <unistd.h>
@@ -39,7 +40,12 @@
 #include <sys/stat.h>
 #endif
 
-FILE *ci_fopen(char *file_name, const char *mode);
+namespace AGS { namespace Common { class CDataStream; } }
+using namespace AGS; // FIXME later
+
+Common::CDataStream *ci_fopen(const char *file_name,
+                             Common::FileOpenMode open_mode = Common::kFile_Open,
+                             Common::FileWorkMode work_mode = Common::kFile_Read);
 char *ci_find_file(char *dir_name, char *file_name);
 
 

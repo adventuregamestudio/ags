@@ -7,17 +7,13 @@
 #include "alfont.h"
 #include "ac/gamestructdefines.h" //FONT_OUTLINE_AUTO
 #include "font/ttffontrenderer.h"
+#include "util/clib32.h"
+#include "util/datastream.h"
+
+using AGS::Common::CDataStream;
 
 // project-specific implementation
 extern bool ShouldAntiAliasText();
-
-extern "C"
-{
-  extern FILE *clibfopen(char *, char *);
-  extern long cliboffset(char *);
-  extern long clibfilesize(char *);
-  extern long last_opened_size;
-}
 
 #if defined(LINUX_VERSION) || defined(MAC_VERSION)
 #include <sys/stat.h>
@@ -87,7 +83,7 @@ bool TTFFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
   sprintf(filnm, "agsfnt%d.ttf", fontNumber);
 
   // we read the font in manually to make it load from library file
-  FILE *reader = clibfopen(filnm, "rb");
+  CDataStream *reader = clibfopen(filnm);
   char *membuffer;
 
   if (reader == NULL)
@@ -98,12 +94,12 @@ bool TTFFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
   // if not in the library, get size manually
   if (lenof < 1)
   {
-	  lenof = _filelength(_fileno(reader));
+	  lenof = reader->GetLength();
   }
 
   membuffer = (char *)malloc(lenof);
-  fread(membuffer, lenof, 1, reader);
-  fclose(reader);
+  reader->ReadArray(membuffer, lenof, 1);
+  delete reader;
 
   ALFONT_FONT *alfptr = alfont_load_font_from_mem(membuffer, lenof);
   free(membuffer);

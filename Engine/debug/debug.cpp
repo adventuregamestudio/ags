@@ -27,6 +27,11 @@
 #include "script/script.h"
 #include "script/script_common.h"
 #include "script/cc_error.h"
+#include "util/filestream.h"
+#include "util/textstreamwriter.h"
+
+using AGS::Common::CDataStream;
+using AGS::Common::CTextStreamWriter;
 
 extern char check_dynamic_sprites_at_exit;
 extern int displayed_room;
@@ -113,12 +118,12 @@ void debug_log(char*texx, ...) {
     quit(buffer2);
     }*/
 
-    char*openmode = "at";
+    //char*openmode = "at";
     if (first_time) {
-        openmode = "wt";
+        //openmode = "wt";
         first_time = 0;
     }
-    FILE*outfil = fopen("warnings.log",openmode);
+    CDataStream *outfil = Common::File::OpenFileWrite("warnings.log");
     if (outfil == NULL)
     {
         debug_write_console("* UNABLE TO WRITE TO WARNINGS.LOG");
@@ -126,8 +131,8 @@ void debug_log(char*texx, ...) {
     }
     else
     {
-        fprintf(outfil,"(in room %d): %s\n",displayed_room,displbuf);
-        fclose(outfil);
+        CTextStreamWriter writer(outfil);
+        writer.WriteFormat("(in room %d): %s\n",displayed_room,displbuf);
     }
 }
 

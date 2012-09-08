@@ -1,17 +1,20 @@
 
 #include "ac/dialogtopic.h"
+#include "util/datastream.h"
 
-void DialogTopic::ReadFromFile(FILE *fp)
+using AGS::Common::CDataStream;
+
+void DialogTopic::ReadFromFile(CDataStream *in)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
-    fread(optionnames, 150*sizeof(char), MAXTOPICOPTIONS, fp);
-    fread(optionflags, sizeof(int), MAXTOPICOPTIONS, fp);
-    optionscripts = (unsigned char *) getw(fp);
-    fread(entrypoints, sizeof(short), MAXTOPICOPTIONS, fp);
-    startupentrypoint = getshort(fp);//__getshort__bigendian(fp);
-    codesize = getshort(fp);//__getshort__bigendian(fp);
-    numoptions = getw(fp);
-    topicFlags = getw(fp);
+    in->ReadArray(optionnames, 150*sizeof(char), MAXTOPICOPTIONS);
+    in->ReadArray(optionflags, sizeof(int), MAXTOPICOPTIONS);
+    optionscripts = (unsigned char *) in->ReadInt32();
+    in->ReadArray(entrypoints, sizeof(short), MAXTOPICOPTIONS);
+    startupentrypoint = in->ReadInt16();//__getshort__bigendian(fp);
+    codesize = in->ReadInt16();//__getshort__bigendian(fp);
+    numoptions = in->ReadInt32();
+    topicFlags = in->ReadInt32();
 //#else
 //    throw "DialogTopic::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
 //#endif

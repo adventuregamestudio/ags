@@ -2,8 +2,11 @@
 #define USE_CLIB
 #include "util/wgt2allg.h"
 #include "util/file.h"
+#include "util/datastream.h"
 
-#define fopen clibfopen
+using AGS::Common::CDataStream;
+
+#define fopen clibfopen+++do_not_use!!!
 
 #ifdef __cplusplus
 extern "C"
@@ -73,17 +76,16 @@ block abuf;
 
   int wloadpalette(char *filnam, color * pall)
   {
-    FILE *fff;
     int kk;
 
-    fff = fopen(filnam, "rb");
-    if (fff == NULL)
+    CDataStream *in = clibfopen(filnam);
+    if (in == NULL)
       return -1;
 
     for (kk = 0; kk < 256; kk++)        // there's a filler byte
-      fread(&pall[kk], 3, 1, fff);
+      in->ReadArray(&pall[kk], 3, 1);
 
-    fclose(fff);
+    delete in;
     return 0;
   }
 
@@ -136,59 +138,58 @@ block abuf;
   short getshort(FILE * fff)
   {
     short sss;
-    fread(&sss, 2, 1, fff);
+    in->ReadArray(&sss, 2, 1, fff);
     return sss;
   }
 
   void putshort(short num, FILE *fff)
   {
-    fwrite(&num, 2, 1, fff);
+    ->WriteArray(&num, 2, 1, fff);
   }
   */
 
   block wloadblock(char *fill)
   {
     short widd, hitt;
-    FILE *fff = fopen(fill, "rb");
+    CDataStream *in = clibfopen(fill);
     int ff;
 
-    if (fff == NULL)
+    if (in == NULL)
       return NULL;
 
-    widd = getshort(fff);
-    hitt = getshort(fff);
+    widd = in->ReadInt16();
+    hitt = in->ReadInt16();
     tempbitm = create_bitmap(widd, hitt);
 
     for (ff = 0; ff < hitt; ff++)
-      fread(&tempbitm->line[ff][0], widd, 1, fff);
+      in->ReadArray(&tempbitm->line[ff][0], widd, 1);
 
-    fclose(fff);
+    delete in;
     return tempbitm;
   }
 
   int wloadsprites(color * pall, char *filnam, block * sarray, int strt, int eend)
   {
-    FILE *ff;
     int vers;
     char buff[20];
     int numspri = 0, vv, hh, wdd, htt;
 
-    ff = fopen(filnam, "rb");
-    if (ff == NULL)
+    CDataStream *in = clibfopen(filnam);
+    if (in == NULL)
       return -1;
 
-    vers = getshort(ff);
-    fread(&buff[0], 13, 1, ff);
+    vers = in->ReadInt16();
+    in->ReadArray(&buff[0], 13, 1);
     for (vv = 0; vv < 256; vv++)        // there's a filler byte
-      fread(&pall[vv], 3, 1, ff);
+      in->ReadArray(&pall[vv], 3, 1);
 
     if (vers > 4)
       return -1;
 
     if (vers == 4)
-      numspri = getshort(ff);
+      numspri = in->ReadInt16();
     else {
-      numspri = getshort(ff);
+      numspri = in->ReadInt16();
       if ((numspri < 2) || (numspri > 200))
         numspri = 200;
     }
@@ -197,39 +198,39 @@ block abuf;
       sarray[vv] = NULL;
 
     for (vv = 0; vv <= numspri; vv++) {
-      int coldep = getshort(ff);
+      int coldep = in->ReadInt16();
 
       if (coldep == 0) {
         sarray[vv] = NULL;
-        if (feof(ff))
+        if (in->EOS())
           break;
 
         continue;
       }
 
-      if (feof(ff))
+      if (in->EOS())
         break;
 
       if (vv > eend)
         break;
 
-      wdd = getshort(ff);
-      htt = getshort(ff);
+      wdd = in->ReadInt16();
+      htt = in->ReadInt16();
       if (vv < strt) {
-        fseek(ff, wdd * htt, SEEK_CUR);
+          in->Seek(Common::kSeekCurrent, wdd * htt);
         continue;
       }
       sarray[vv] = create_bitmap_ex(coldep * 8, wdd, htt);
 
       if (sarray[vv] == NULL) {
-        fclose(ff);
+        delete in;
         return -1;
       }
 
       for (hh = 0; hh < htt; hh++)
-        fread(&sarray[vv]->line[hh][0], wdd * coldep, 1, ff);
+        in->ReadArray(&sarray[vv]->line[hh][0], wdd * coldep, 1);
     }
-    fclose(ff);
+    delete in;
     return 0;
   }
 
@@ -255,11 +256,11 @@ block abuf;
     int aa, lastsp = 0;
     char *spsig = " Sprite File ";
 
-    fwrite(&topu, 2, 1, ooo);
-    fwrite(spsig, 13, 1, ooo);
+    ->WriteArray(&topu, 2, 1, ooo);
+    ->WriteArray(spsig, 13, 1, ooo);
 
     for (aa = 0; aa < 256; aa++)
-      fwrite(&pll[aa], 3, 1, ooo);
+      ->WriteArray(&pll[aa], 3, 1, ooo);
 
     for (aa = strt; aa <= eend; aa++) {
       if (spre[aa] != NULL)
@@ -272,7 +273,7 @@ block abuf;
     }
 
     topu = lastsp;
-    fwrite(&topu, 2, 1, ooo);
+    ->WriteArray(&topu, 2, 1, ooo);
 
     // allocate buffers to store the indexing info
     int numsprits = (lastsp - strt) + 1;
@@ -287,7 +288,7 @@ block abuf;
 
       if (spre[aa] == NULL) {
         topu = 0;
-        fwrite(&topu, 2, 1, ooo);
+        ->WriteArray(&topu, 2, 1, ooo);
         // sprite does not exist, zero out its entry
         spritewidths[spidx] = 0;
         spriteheights[spidx] = 0;
@@ -297,34 +298,34 @@ block abuf;
 
       spritewidths[spidx] = spre[aa]->w;
       spriteheights[spidx] = spre[aa]->h;
-      spriteoffs[spidx] = ftell(ooo);
+      spriteoffs[spidx] = GetPosition(ooo);
 
       bpss = bitmap_color_depth(spre[aa]) / 8;
-      fwrite(&bpss, 2, 1, ooo);
+      ->WriteArray(&bpss, 2, 1, ooo);
 
       topu = spre[aa]->w;
-      fwrite(&topu, 2, 1, ooo);
+      ->WriteArray(&topu, 2, 1, ooo);
 
       topu = spre[aa]->h;
-      fwrite(&topu, 2, 1, ooo);
+      ->WriteArray(&topu, 2, 1, ooo);
 
-      fwrite(&spre[aa]->line[0][0], spre[aa]->w * bpss, spre[aa]->h, ooo);
+      ->WriteArray(&spre[aa]->line[0][0], spre[aa]->w * bpss, spre[aa]->h, ooo);
     }
     fclose(ooo);
 
     // write the sprite index file
     ooo = fopen((char*)spindexfilename, "wb");
     // write "SPRINDEX" id
-    fwrite(&spindexid[0], strlen(spindexid), 1, ooo);
+    ->WriteArray(&spindexid[0], strlen(spindexid), 1, ooo);
     // write version (1)
-    putw(1, ooo);
+    ->WriteInt32(1, ooo);
     // write last sprite number and num sprites, to verify that
     // it matches the spr file
-    putw(lastsp, ooo);
-    putw(numsprits, ooo);
-    fwrite(&spritewidths[0], sizeof(short), numsprits, ooo);
-    fwrite(&spriteheights[0], sizeof(short), numsprits, ooo);
-    fwrite(&spriteoffs[0], sizeof(long), numsprits, ooo);
+    ->WriteInt32(lastsp, ooo);
+    ->WriteInt32(numsprits, ooo);
+    ->WriteArray(&spritewidths[0], sizeof(short), numsprits, ooo);
+    ->WriteArray(&spriteheights[0], sizeof(short), numsprits, ooo);
+    ->WriteArray(&spriteoffs[0], sizeof(long), numsprits, ooo);
     fclose(ooo);
 
     free(spritewidths);

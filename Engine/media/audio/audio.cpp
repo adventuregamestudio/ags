@@ -26,6 +26,10 @@
 #include "ac/global_audio.h"
 #include "ac/roomstruct.h"
 #include <math.h>
+#include "util/clib32.h"
+#include "util/datastream.h"
+
+using AGS::Common::CDataStream;
 
 extern GameSetupStruct game;
 extern GameSetup usetup;
@@ -33,9 +37,6 @@ extern GameState play;
 extern roomstruct thisroom;
 extern CharacterInfo*playerchar;
 
-extern "C" {
-    extern FILE*clibfopen(char*,char*);
-}
 extern int psp_is_old_datafile;
 
 #if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
@@ -134,10 +135,11 @@ const char* get_audio_clip_file_name(ScriptAudioClip *clip)
     if (game.audioClips[clip->id].bundlingType == AUCL_BUNDLE_EXE)
     {
         strcpy(acaudio_buffer, game.audioClips[clip->id].fileName);
-        FILE *iii = clibfopen(acaudio_buffer, "rb");
-        if (iii != NULL)
+        CDataStream *in = clibfopen(acaudio_buffer);
+        if (in != NULL)
         {
-            fclose(iii);
+            // CHECKME: so, what was that? a file exists check?
+            delete in;
             return &acaudio_buffer[0];
         }
     }

@@ -1,6 +1,9 @@
 #ifndef __AC_POINT_H
 #define __AC_POINT_H
 
+namespace AGS { namespace Common { class CDataStream; } }
+using namespace AGS; // FIXME later
+
 struct _Point {
     short x, y;
 };
@@ -13,7 +16,7 @@ struct PolyPoints {
     void add_point(int xxx,int yyy);
     PolyPoints() { numpoints = 0; }
 
-    void ReadFromFile(FILE *fp);
+    void ReadFromFile(Common::CDataStream *in);
 };
 
 #endif // __AC_POINT_H

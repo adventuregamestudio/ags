@@ -3,6 +3,11 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/common.h"
 #include "util/string_utils.h"      // fputstring, etc
+#include "util/string.h"
+#include "util/datastream.h"
+
+using AGS::Common::CDataStream;
+using AGS::Common::CString;
 
 
 // Create the missing audioClips data structure for 3.1.x games.
@@ -70,41 +75,41 @@ void GameSetupStruct::BuildAudioClipArray()
 }
 
 
-void GameSetupStruct::ReadFromFile_Part1(FILE *iii, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::ReadFromFile_Part1(Common::CDataStream *in, GAME_STRUCT_READ_DATA &read_data)
 {
-    read_savegame_info(iii, read_data);
-    read_font_flags(iii, read_data);
-    read_sprite_flags(iii, read_data);
-    read_invinfo(iii, read_data);
-    read_cursors(iii, read_data);
-    read_interaction_scripts(iii, read_data);
-    read_words_dictionary(iii, read_data);
+    read_savegame_info(in, read_data);
+    read_font_flags(in, read_data);
+    read_sprite_flags(in, read_data);
+    read_invinfo(in, read_data);
+    read_cursors(in, read_data);
+    read_interaction_scripts(in, read_data);
+    read_words_dictionary(in, read_data);
 }
 
-void GameSetupStruct::ReadFromFile_Part2(FILE *iii, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::ReadFromFile_Part2(Common::CDataStream *in, GAME_STRUCT_READ_DATA &read_data)
 {
-   read_characters(iii, read_data);
-   read_lipsync(iii, read_data);
-   read_messages(iii, read_data);
+   read_characters(in, read_data);
+   read_lipsync(in, read_data);
+   read_messages(in, read_data);
 }
 
-void GameSetupStruct::ReadFromFile_Part3(FILE *iii, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::ReadFromFile_Part3(Common::CDataStream *in, GAME_STRUCT_READ_DATA &read_data)
 {
-    read_customprops(iii, read_data);
-    read_audio(iii, read_data);
-    read_room_names(iii, read_data);
+    read_customprops(in, read_data);
+    read_audio(in, read_data);
+    read_room_names(in, read_data);
 }
 
 //-----------------------------------------------------------------------------
 // Reading Part 1
 
-void GameSetupStruct::read_savegame_info(FILE *iii, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_savegame_info(Common::CDataStream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     if (read_data.filever > 32) // only 3.x
     {
-        fread(&guid[0], 1, MAX_GUID_LENGTH, iii);
-        fread(&saveGameFileExtension[0], 1, MAX_SG_EXT_LENGTH, iii);
-        fread(&saveGameFolderName[0], 1, MAX_SG_FOLDER_LEN, iii);
+        in->ReadArray(&guid[0], 1, MAX_GUID_LENGTH);
+        in->ReadArray(&saveGameFileExtension[0], 1, MAX_SG_EXT_LENGTH);
+        in->ReadArray(&saveGameFolderName[0], 1, MAX_SG_FOLDER_LEN);
 
         if (saveGameFileExtension[0] != 0)
             sprintf(read_data.saveGameSuffix, ".%s", saveGameFileExtension);
@@ -113,49 +118,49 @@ void GameSetupStruct::read_savegame_info(FILE *iii, GAME_STRUCT_READ_DATA &read_
     }
 }
 
-void GameSetupStruct::read_font_flags(FILE *iii, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_font_flags(Common::CDataStream *in, GAME_STRUCT_READ_DATA &read_data)
 {
-    fread(&fontflags[0], 1, numfonts, iii);
-    fread(&fontoutline[0], 1, numfonts, iii);
+    in->ReadArray(&fontflags[0], 1, numfonts);
+    in->ReadArray(&fontoutline[0], 1, numfonts);
 }
 
-void GameSetupStruct::read_sprite_flags(FILE*iii, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_sprite_flags(Common::CDataStream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     int numToRead;
     if (read_data.filever < 24)
         numToRead = 6000; // Fixed number of sprites on < 2.56
     else
-        numToRead = getw(iii);
+        numToRead = in->ReadInt32();
 
     if (numToRead > MAX_SPRITES) {
         quit("Too many sprites; need newer AGS version");
     }
-    fread(&spriteflags[0], 1, numToRead, iii);
+    in->ReadArray(&spriteflags[0], 1, numToRead);
 }
 
-void GameSetupStruct::read_invinfo(FILE*iii, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_invinfo(Common::CDataStream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     //#ifdef ALLEGRO_BIG_ENDIAN
     for (int iteratorCount = 0; iteratorCount < numinvitems; ++iteratorCount)
     {
-        invinfo[iteratorCount].ReadFromFile(iii);
+        invinfo[iteratorCount].ReadFromFile(in);
     }
     //#else
-    //    fread(&invinfo[0], sizeof(InventoryItemInfo), numinvitems, iii);
+    //    in->ReadArray(&invinfo[0], sizeof(InventoryItemInfo), numinvitems);
     //#endif
 }
 
-void GameSetupStruct::read_cursors(FILE*iii, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_cursors(Common::CDataStream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     if (numcursors > MAX_CURSOR)
         quit("Too many cursors: need newer AGS version");
     //#ifdef ALLEGRO_BIG_ENDIAN
     for (int iteratorCount = 0; iteratorCount < numcursors; ++iteratorCount)
     {
-        mcurs[iteratorCount].ReadFromFile(iii);
+        mcurs[iteratorCount].ReadFromFile(in);
     }
     //#else
-    //    fread(&mcurs[0], sizeof(MouseCursor), numcursors, iii);
+    //    in->ReadArray(&mcurs[0], sizeof(MouseCursor), numcursors);
     //#endif
 
     if (read_data.filever <= 32) // 2.x
@@ -170,7 +175,7 @@ void GameSetupStruct::read_cursors(FILE*iii, GAME_STRUCT_READ_DATA &read_data)
     }
 }
 
-void GameSetupStruct::read_interaction_scripts(FILE*iii, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_interaction_scripts(Common::CDataStream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     numGlobalVars = 0;
 
@@ -182,11 +187,11 @@ void GameSetupStruct::read_interaction_scripts(FILE*iii, GAME_STRUCT_READ_DATA &
         invScripts = new InteractionScripts*[numinvitems];
         for (bb = 0; bb < numcharacters; bb++) {
             charScripts[bb] = new InteractionScripts();
-            deserialize_interaction_scripts(iii, charScripts[bb]);
+            deserialize_interaction_scripts(in, charScripts[bb]);
         }
         for (bb = 1; bb < numinvitems; bb++) {
             invScripts[bb] = new InteractionScripts();
-            deserialize_interaction_scripts(iii, invScripts[bb]);
+            deserialize_interaction_scripts(in, invScripts[bb]);
         }
     }
     else // 2.x
@@ -196,40 +201,40 @@ void GameSetupStruct::read_interaction_scripts(FILE*iii, GAME_STRUCT_READ_DATA &
         intrChar = new NewInteraction*[numcharacters];
 
         for (bb = 0; bb < numcharacters; bb++) {
-            intrChar[bb] = deserialize_new_interaction(iii);
+            intrChar[bb] = deserialize_new_interaction(in);
         }
         for (bb = 0; bb < numinvitems; bb++) {
-            intrInv[bb] = deserialize_new_interaction(iii);
+            intrInv[bb] = deserialize_new_interaction(in);
         }
 
-        numGlobalVars = getw(iii);
+        numGlobalVars = in->ReadInt32();
         for (bb = 0; bb < numGlobalVars; bb++) {
-            globalvars[bb].ReadFromFile(iii);
+            globalvars[bb].ReadFromFile(in);
         }
     }
 }
 
-void GameSetupStruct::read_words_dictionary(FILE*iii, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_words_dictionary(Common::CDataStream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     if (dict != NULL) {
         dict = (WordsDictionary*)malloc(sizeof(WordsDictionary));
-        read_dictionary (dict, iii);
+        read_dictionary (dict, in);
     }
 }
 
 //-----------------------------------------------------------------------------
 // Reading Part 2
 
-void GameSetupStruct::read_characters(FILE*iii, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_characters(Common::CDataStream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     chars=(CharacterInfo*)calloc(1,sizeof(CharacterInfo)*numcharacters+5);
     //#ifdef ALLEGRO_BIG_ENDIAN
     for (int iteratorCount = 0; iteratorCount < numcharacters; ++iteratorCount)
     {
-        chars[iteratorCount].ReadFromFile(iii);
+        chars[iteratorCount].ReadFromFile(in);
     }
     //#else
-    //    fread(&chars[0],sizeof(CharacterInfo),numcharacters,iii);  
+    //    in->ReadArray(&chars[0],sizeof(CharacterInfo),numcharacters,in);  
     //#endif
 
     //charcache = (CharacterCache*)calloc(1,sizeof(CharacterCache)*numcharacters+5);
@@ -257,13 +262,13 @@ void GameSetupStruct::read_characters(FILE*iii, GAME_STRUCT_READ_DATA &read_data
     }
 }
 
-void GameSetupStruct::read_lipsync(FILE*iii, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_lipsync(Common::CDataStream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     if (read_data.filever > 19) // > 2.1
-        fread(&lipSyncFrameLetters[0][0], MAXLIPSYNCFRAMES, 50, iii);
+        in->ReadArray(&lipSyncFrameLetters[0][0], MAXLIPSYNCFRAMES, 50);
 }
 
-void GameSetupStruct::read_messages(FILE*iii, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_messages(Common::CDataStream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     for (int ee=0;ee<MAXGLOBALMES;ee++) {
         if (messages[ee]==NULL) continue;
@@ -275,76 +280,76 @@ void GameSetupStruct::read_messages(FILE*iii, GAME_STRUCT_READ_DATA &read_data)
 
             while (1)
             {
-                *nextchar = fgetc(iii);
+                *nextchar = in->ReadInt8();
                 if (*nextchar == 0)
                     break;
                 nextchar++;
             }
         }
         else
-            read_string_decrypt(iii, messages[ee]);
+            read_string_decrypt(in, messages[ee]);
     }
 }
 
 //-----------------------------------------------------------------------------
 // Reading Part 3
 
-void GameSetupStruct::read_customprops(FILE*iii, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_customprops(Common::CDataStream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     if (read_data.filever >= 25) // >= 2.60
     {
-        if (propSchema.UnSerialize(iii))
+        if (propSchema.UnSerialize(in))
             quit("load room: unable to deserialize prop schema");
 
         int errors = 0;
         int bb;
 
         for (bb = 0; bb < numcharacters; bb++)
-            errors += charProps[bb].UnSerialize (iii);
+            errors += charProps[bb].UnSerialize (in);
         for (bb = 0; bb < numinvitems; bb++)
-            errors += invProps[bb].UnSerialize (iii);
+            errors += invProps[bb].UnSerialize (in);
 
         if (errors > 0)
             quit("LoadGame: errors encountered reading custom props");
 
         for (bb = 0; bb < numviews; bb++)
-            fgetstring_limit(viewNames[bb], iii, MAXVIEWNAMELENGTH);
+            fgetstring_limit(viewNames[bb], in, MAXVIEWNAMELENGTH);
 
         for (bb = 0; bb < numinvitems; bb++)
-            fgetstring_limit(invScriptNames[bb], iii, MAX_SCRIPT_NAME_LEN);
+            fgetstring_limit(invScriptNames[bb], in, MAX_SCRIPT_NAME_LEN);
 
         for (bb = 0; bb < numdialog; bb++)
-            fgetstring_limit(dialogScriptNames[bb], iii, MAX_SCRIPT_NAME_LEN);
+            fgetstring_limit(dialogScriptNames[bb], in, MAX_SCRIPT_NAME_LEN);
     }
 }
 
-void GameSetupStruct::read_audio(FILE*iii, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_audio(Common::CDataStream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     int i;
     if (read_data.filever >= 41)
     {
-        audioClipTypeCount = getw(iii);
+        audioClipTypeCount = in->ReadInt32();
 
         if (audioClipTypeCount > read_data.max_audio_types)
             quit("LoadGame: too many audio types");
 
         audioClipTypes = (AudioClipType*)malloc(audioClipTypeCount * sizeof(AudioClipType));
-        //fread(&audioClipTypes[0], sizeof(AudioClipType), audioClipTypeCount, iii);
+        //in->ReadArray(&audioClipTypes[0], sizeof(AudioClipType), audioClipTypeCount);
         for (i = 0; i < audioClipTypeCount; ++i)
         {
-            audioClipTypes[i].ReadFromFile(iii);
+            audioClipTypes[i].ReadFromFile(in);
         }
 
-        audioClipCount = getw(iii);
+        audioClipCount = in->ReadInt32();
         audioClips = (ScriptAudioClip*)malloc(audioClipCount * sizeof(ScriptAudioClip));
-        //fread(&audioClips[0], sizeof(ScriptAudioClip), audioClipCount, iii);
+        //in->ReadArray(&audioClips[0], sizeof(ScriptAudioClip), audioClipCount);
         for (i = 0; i < audioClipCount; ++i)
         {
-            audioClips[i].ReadFromFile(iii);
+            audioClips[i].ReadFromFile(in);
         }
         
-        //play.score_sound = getw(iii);
-        read_data.score_sound = getw(iii);
+        //play.score_sound = in->ReadInt32();
+        read_data.score_sound = in->ReadInt32();
     }
     else
     {
@@ -384,20 +389,19 @@ void GameSetupStruct::read_audio(FILE*iii, GAME_STRUCT_READ_DATA &read_data)
 // it is unknown if this should be defined for all solution, or only runtime
 #define STD_BUFFER_SIZE 3000
 
-void GameSetupStruct::read_room_names(FILE*iii, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_room_names(CDataStream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     if ((read_data.filever >= 36) && (options[OPT_DEBUGMODE] != 0))
     {
-        char pexbuf[STD_BUFFER_SIZE];
-
-        roomCount = getw(iii);
+        roomCount = in->ReadInt32();
         roomNumbers = (int*)malloc(roomCount * sizeof(int));
         roomNames = (char**)malloc(roomCount * sizeof(char*));
+        CString pexbuf;
         for (int bb = 0; bb < roomCount; bb++)
         {
-            roomNumbers[bb] = getw(iii);
-            fgetstring_limit(pexbuf, iii, sizeof(pexbuf));
-            roomNames[bb] = (char*)malloc(strlen(pexbuf) + 1);
+            roomNumbers[bb] = in->ReadInt32();
+            pexbuf = in->ReadString(STD_BUFFER_SIZE);
+            roomNames[bb] = (char*)malloc(pexbuf.GetLength() + 1);
             strcpy(roomNames[bb], pexbuf);
         }
     }
@@ -407,29 +411,29 @@ void GameSetupStruct::read_room_names(FILE*iii, GAME_STRUCT_READ_DATA &read_data
     }
 }
 
-void GameSetupStruct::ReadFromSaveGame(FILE *f, char* gswas, ccScript* compsc, CharacterInfo* chwas,
+void GameSetupStruct::ReadFromSaveGame(CDataStream *in, char* gswas, ccScript* compsc, CharacterInfo* chwas,
                                        WordsDictionary *olddict, char** mesbk)
 {
     int bb;
     // [IKM] No padding here! -- this data was originally read exactly as done here
     //
-    //fread(&invinfo[0], sizeof(InventoryItemInfo), numinvitems, f);
+    //in->ReadArray(&invinfo[0], sizeof(InventoryItemInfo), numinvitems);
     for (bb = 0; bb < numinvitems; bb++)
     {
-        invinfo[bb].ReadFromFile(f);
+        invinfo[bb].ReadFromFile(in);
     }
-    //fread(&mcurs[0], sizeof(MouseCursor), numcursors, f);
+    //in->ReadArray(&mcurs[0], sizeof(MouseCursor), numcursors);
     for (bb = 0; bb < numcursors; bb++)
     {
-        mcurs[bb].ReadFromFile(f);
+        mcurs[bb].ReadFromFile(in);
     }
 
     if (invScripts == NULL)
     {
         for (bb = 0; bb < numinvitems; bb++)
-            fread (&intrInv[bb]->timesRun[0], sizeof (int), MAX_NEWINTERACTION_EVENTS, f);
+            in->ReadArray (&intrInv[bb]->timesRun[0], sizeof (int), MAX_NEWINTERACTION_EVENTS);
         for (bb = 0; bb < numcharacters; bb++)
-            fread (&intrChar[bb]->timesRun[0], sizeof (int), MAX_NEWINTERACTION_EVENTS, f);
+            in->ReadArray (&intrChar[bb]->timesRun[0], sizeof (int), MAX_NEWINTERACTION_EVENTS);
     }
 
     // restore pointer members
@@ -439,49 +443,49 @@ void GameSetupStruct::ReadFromSaveGame(FILE *f, char* gswas, ccScript* compsc, C
     dict = olddict;
     for (int vv=0;vv<MAXGLOBALMES;vv++) messages[vv]=mesbk[vv];
 
-    fread(&options[0], sizeof(int), OPT_HIGHESTOPTION+1, f);
-    options[OPT_LIPSYNCTEXT] = fgetc(f);
+    in->ReadArray(&options[0], sizeof(int), OPT_HIGHESTOPTION+1);
+    options[OPT_LIPSYNCTEXT] = in->ReadInt8();
 
-    //fread(&chars[0],sizeof(CharacterInfo),numcharacters,f);
+    //in->ReadArray(&chars[0],sizeof(CharacterInfo),numcharacters,f);
     for (bb = 0; bb < numcharacters; bb++)
     {
-        chars[bb].ReadFromFile(f);
+        chars[bb].ReadFromFile(in);
     }
 }
 
-void GameSetupStruct::WriteForSaveGame(FILE *f)
+void GameSetupStruct::WriteForSaveGame(CDataStream *out)
 {
     // [IKM] No padding here! -- this data was originally written exactly as done here
     //
     int bb;
 
-    //fwrite(&invinfo[0], sizeof(InventoryItemInfo), numinvitems, f);
+    //out->WriteArray(&invinfo[0], sizeof(InventoryItemInfo), numinvitems);
     for (bb = 0; bb < numinvitems; bb++)
     {
-        invinfo[bb].WriteToFile(f);
+        invinfo[bb].WriteToFile(out);
     }
-    //fwrite(&mcurs[0], sizeof(MouseCursor), numcursors, f);
+    //out->WriteArray(&mcurs[0], sizeof(MouseCursor), numcursors);
     for (bb = 0; bb < numcursors; bb++)
     {
-        mcurs[bb].WriteToFile(f);
+        mcurs[bb].WriteToFile(out);
     }
 
     if (invScripts == NULL)
     {
       int bb;
       for (bb = 0; bb < numinvitems; bb++)
-        fwrite (&intrInv[bb]->timesRun[0], sizeof (int), MAX_NEWINTERACTION_EVENTS, f);
+        out->WriteArray (&intrInv[bb]->timesRun[0], sizeof (int), MAX_NEWINTERACTION_EVENTS);
       for (bb = 0; bb < numcharacters; bb++)
-        fwrite (&intrChar[bb]->timesRun[0], sizeof (int), MAX_NEWINTERACTION_EVENTS, f); 
+        out->WriteArray (&intrChar[bb]->timesRun[0], sizeof (int), MAX_NEWINTERACTION_EVENTS); 
     }
 
-    fwrite (&options[0], sizeof(int), OPT_HIGHESTOPTION+1, f);
-    fputc (options[OPT_LIPSYNCTEXT], f);
+    out->WriteArray (&options[0], sizeof(int), OPT_HIGHESTOPTION+1);
+    out->WriteInt8 (options[OPT_LIPSYNCTEXT]);
 
-    //fwrite(&chars[0],sizeof(CharacterInfo),numcharacters,f);
+    //out->WriteArray(&chars[0],sizeof(CharacterInfo),numcharacters,f);
     for (bb = 0; bb < numcharacters; bb++)
     {
-        chars[bb].WriteToFile(f);
+        chars[bb].WriteToFile(out);
     }
 }
 

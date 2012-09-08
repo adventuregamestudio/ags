@@ -17,6 +17,9 @@
 #include "ac/datetime.h"
 #include "util/file.h"
 
+namespace AGS { namespace Common { class CDataStream; } }
+using namespace AGS; // FIXME later
+
 #ifdef DJGPP
 #define DOS_VERSION
 #endif
@@ -58,7 +61,7 @@ struct AGSPlatformDriver {
     virtual int  CDPlayerCommand(int cmdd, int datt) = 0;
     virtual void ShutdownCDPlayer() = 0;
 
-    virtual void ReadPluginsFromDisk(FILE *);
+    virtual void ReadPluginsFromDisk(Common::CDataStream *in);
     virtual void StartPlugins();
     virtual int  RunPluginHooks(int event, int data);
     virtual void RunPluginInitGfxHooks(const char *driverName, void *data);

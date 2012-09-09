@@ -51,7 +51,7 @@ public:
     virtual int64_t ReadInt64();
     virtual int     Read(void *buffer, int size);
 
-    virtual void    WriteByte(byte b);
+    virtual int     WriteByte(byte b);
     virtual void    WriteInt16(int16_t val);
     virtual void    WriteInt32(int32_t val);
     virtual void    WriteInt64(int64_t val);

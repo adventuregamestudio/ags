@@ -83,7 +83,7 @@ public:
     virtual int     ReadArray(void *buffer, int elem_size, int count);
     virtual CString ReadString(int max_chars = 5000000);
 
-    virtual void    WriteByte(byte b);
+    virtual int     WriteByte(byte b);
     inline  void    WriteInt8(int8_t val)
     {
         WriteByte(val);

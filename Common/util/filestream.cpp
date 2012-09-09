@@ -135,12 +135,13 @@ int CFileStream::Read(void *buffer, int32_t size)
     return 0;
 }
 
-void CFileStream::WriteByte(byte val)
+int CFileStream::WriteByte(byte val)
 {
     if (CanWrite())
     {
-        fputc(val, _file);
+        return fputc(val, _file);
     }
+    return 0;
 }
 
 void CFileStream::WriteInt16(int16_t val)

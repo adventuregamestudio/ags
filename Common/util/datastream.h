@@ -53,16 +53,30 @@ public:
         WriteInt8(val ? 1 : 0);
     }
 
+    //
+    // Read- and WriteArray methods return number of full elements (NOT bytes)
+    // read or written, or -1 if end of stream is reached
+    //
+    // Note that ReadArray and WriteArray do NOT convert byte order even when
+    // work with data of different endianess; they are meant for optimal
+    // reading and writing blocks of raw bytes
+
     inline virtual int ReadArray(void *buffer, int elem_size, int count)
     {
-        return Read(buffer, elem_size * count);
+        return Read(buffer, elem_size * count) / elem_size;
     }
 
     inline virtual int WriteArray(const void *buffer, int elem_size, int count)
     {
-        return Write(buffer, elem_size * count);
+        return Write(buffer, elem_size * count) / elem_size;
     }
 
+    // Practically identical to Read(), this helper's only advantage is
+    // that it makes the meaning of operation more clear to the user
+    inline int ReadArrayOfInt8(int8_t *buffer, int count)
+    {
+        return Read(buffer, count);
+    }
     inline int ReadArrayOfInt16(int16_t *buffer, int count)
     {
         return MustSwapBytes() ?
@@ -77,6 +91,14 @@ public:
     {
         return MustSwapBytes() ?
             ReadAndConvertArrayOfInt64(buffer, count) : ReadArray(buffer, sizeof(int64_t), count);
+    }
+    // Helper function for easier compatibility with 64-bit platforms
+    // reads 32-bit values and stores them in intptr_t array
+    int ReadArrayOfIntPtr32(intptr_var_t *buffer, int count);
+
+    inline int WriteArrayOfInt8(const int8_t *buffer, int count)
+    {
+        return Write(buffer, count);
     }
     inline int WriteArrayOfInt16(const int16_t *buffer, int count)
     {
@@ -93,6 +115,9 @@ public:
         return MustSwapBytes() ?
             WriteAndConvertArrayOfInt64(buffer, count) : WriteArray(buffer, sizeof(int64_t), count);
     }
+    // Helper function for easier compatibility with 64-bit platforms,
+    // writes intptr_t array elements as 32-bit values
+    int WriteArrayOfIntPtr32(const intptr_var_t *buffer, int count);
 
     // Helper methods for reading and writing null-terminated string,
     // reading implies that string length is initially unknown.
@@ -104,7 +129,9 @@ public:
     // terminator or EOS is met, the buffer will contain only leftmost
     // part of the longer string that fits in.
     virtual CString ReadString(int max_chars = 5000000);
-    virtual void    WriteString(const CString &str);
+    // WriteString returns a length of string written,
+    // or -1 if end of stream was reached
+    virtual int     WriteString(const CString &str);
 
 protected:
     DataEndianess _callerEndianess;

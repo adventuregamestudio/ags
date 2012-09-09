@@ -154,26 +154,26 @@ int64_t CAlignedStream::ReadInt64()
 
 int CAlignedStream::Read(void *buffer, int size)
 {
-    int read_size = 0;
     if (_stream)
     {
         ReadPadding(sizeof(int8_t));
-        read_size = _stream->Read(buffer, size);
+        size = _stream->Read(buffer, size);
         _block += size;
+        return size;
     }
-    return read_size;
+    return 0;
 }
 
 int CAlignedStream::ReadArray(void *buffer, int elem_size, int count)
 {
-    int read_size = 0;
     if (_stream)
     {
         ReadPadding(sizeof(elem_size));
-        read_size = _stream->Read(buffer, elem_size * count);
-        _block += elem_size * count;
+        count = _stream->ReadArray(buffer, elem_size, count);
+        _block += count * elem_size;
+        return count;
     }
-    return read_size;
+    return 0;
 }
 
 CString CAlignedStream::ReadString(int max_chars)
@@ -188,14 +188,16 @@ CString CAlignedStream::ReadString(int max_chars)
     return "";
 }
 
-void CAlignedStream::WriteByte(byte b)
+int CAlignedStream::WriteByte(byte b)
 {
     if (_stream)
     {
         WritePadding(sizeof(byte));
-        _stream->WriteByte(b);
+        b = _stream->WriteByte(b);
         _block += sizeof(byte);
+        return b;
     }
+    return 0;
 }
 
 void CAlignedStream::WriteInt16(int16_t val)
@@ -230,26 +232,26 @@ void CAlignedStream::WriteInt64(int64_t val)
 
 int CAlignedStream::Write(const void *buffer, int size)
 {
-    int write_size = 0;
     if (_stream)
     {
         WritePadding(sizeof(int8_t));
-        write_size = _stream->Write(buffer, size);
+        size = _stream->Write(buffer, size);
         _block += size;
+        return size;
     }
-    return write_size;
+    return 0;
 }
 
 int CAlignedStream::WriteArray(const void *buffer, int elem_size, int count)
 {
-    int write_size = 0;
     if (_stream)
     {
         WritePadding(sizeof(elem_size));
-        write_size = _stream->Write(buffer, elem_size * count);
-        _block += elem_size * count;
+        count = _stream->WriteArray(buffer, elem_size, count);
+        _block += count * elem_size;
+        return count;
     }
-    return write_size;
+    return 0;
 }
 
 void CAlignedStream::WriteString(const CString &str)
@@ -279,7 +281,7 @@ void CAlignedStream::ReadPadding(size_t next_type)
         {
             // We do not know and should not care if the underlying stream
             // supports seek, so use read to skip the padding instead.
-            _stream->Read(_paddingBuffer, _alignment - (_block % _alignment));
+            _stream->Read(_paddingBuffer, _alignment - pad);
         }
         // Data is evenly aligned now
         _block = 0;
@@ -301,7 +303,7 @@ void CAlignedStream::WritePadding(size_t next_type)
         // Write padding only if have to
         if (pad)
         {
-            _stream->Write(_paddingBuffer, _alignment - (_block % _alignment));
+            _stream->Write(_paddingBuffer, _alignment - pad);
         }
         // Data is evenly aligned now
         _block = 0;

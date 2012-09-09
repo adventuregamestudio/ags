@@ -54,7 +54,16 @@ void Test_File()
 
     out->WriteInt32(20);
 
+    intptr_var_t ptr32_array_out[4];
+    ptr32_array_out[0] = 0xABCDABCD;
+    ptr32_array_out[1] = 0xFEDCFEDC;
+    ptr32_array_out[2] = 0xFEEDBEEF;
+    ptr32_array_out[3] = 0xBEEFFEED;
+    out->WriteArrayOfIntPtr32(ptr32_array_out, 4);
+
     delete out;
+
+    //-------------------------------------------------------------------------
 
     CDataStream *in = File::OpenFile("test.tmp", AGS::Common::kFile_Open, AGS::Common::kFile_Read);
 
@@ -77,7 +86,10 @@ void Test_File()
     }
 
     int32_t int32val    = in->ReadInt32();
-    
+
+    intptr_var_t ptr32_array_in[4];
+    in->ReadArrayOfIntPtr32(ptr32_array_in, 4);
+
     delete in;
 
     //-----------------------------------------------------
@@ -87,6 +99,11 @@ void Test_File()
     assert(strcmp(str.GetCStr(), "test.tmp") == 0);
     assert(memcmp(&tricky_data_in, &tricky_data_out, sizeof(TTrickyAlignedData)) == 0);
     assert(int32val == 20);
+
+    assert(ptr32_array_in[0] == 0xABCDABCD);
+    assert(ptr32_array_in[1] == 0xFEDCFEDC);
+    assert(ptr32_array_in[2] == 0xFEEDBEEF);
+    assert(ptr32_array_in[3] == 0xBEEFFEED);
 }
 
 #endif // _DEBUG

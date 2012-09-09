@@ -213,14 +213,14 @@ extern "C"
     for (aa = 0; aa < mfl->num_files; aa++)
     {
       short nameLength;
-      ci_s->ReadArray(&nameLength, 2, 1);
+      nameLength = ci_s->ReadInt16();
       nameLength /= 5;
       ci_s->ReadArray(mfl->filenames[aa], nameLength, 1);
       clib_decrypt_text(mfl->filenames[aa]);
     }
-    ci_s->ReadArray(&mfl->offset[0], sizeof(int), mfl->num_files);
-    ci_s->ReadArray(&mfl->length[0], sizeof(int), mfl->num_files);
-    ci_s->ReadArray(&mfl->file_datafile[0], 1, mfl->num_files);
+    ci_s->ReadArrayOfInt32(&mfl->offset[0], mfl->num_files);
+    ci_s->ReadArrayOfInt32(&mfl->length[0], mfl->num_files);
+    ci_s->ReadArrayOfInt8((int8_t*)&mfl->file_datafile[0], mfl->num_files);
     return 0;
   }
 
@@ -234,9 +234,9 @@ extern "C"
       return -1;
 
     ci_s->ReadArray(&mfl->filenames[0][0], 25, mfl->num_files);
-    ci_s->ReadArray(&mfl->offset[0], sizeof(int), mfl->num_files);
-    ci_s->ReadArray(&mfl->length[0], sizeof(int), mfl->num_files);
-    ci_s->ReadArray(&mfl->file_datafile[0], 1, mfl->num_files);
+    ci_s->ReadArrayOfInt32(&mfl->offset[0], mfl->num_files);
+    ci_s->ReadArrayOfInt32(&mfl->length[0], mfl->num_files);
+    ci_s->ReadArrayOfInt8((int8_t*)&mfl->file_datafile[0], mfl->num_files);
 
     if (libver >= 11)
     {
@@ -355,7 +355,7 @@ extern "C"
     strcpy(mflib.data_filenames[0], namm);
 
     short tempshort;
-    ci_s->ReadArray(&tempshort, 2, 1);
+    tempshort = ci_s->ReadInt16();
     mflib.num_files = tempshort;
 
     if (mflib.num_files > MAX_FILES)
@@ -367,7 +367,7 @@ extern "C"
       for (cc = 0; cc < (int)strlen(mflib.filenames[aa]); cc++)
         mflib.filenames[aa][cc] -= passwmodifier;
     }
-    ci_s->ReadArray(&mflib.length[0], 4, mflib.num_files);
+    ci_s->ReadArrayOfInt32(&mflib.length[0], mflib.num_files);
     ci_s->Seek(Common::kSeekCurrent, 2 * mflib.num_files);  // skip flags & ratio
 
     mflib.offset[0] = ci_s->GetPosition();

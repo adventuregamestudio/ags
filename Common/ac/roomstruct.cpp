@@ -177,16 +177,16 @@ void load_main_block(roomstruct *rstruc, char *files, CDataStream *in, room_file
     _acroom_bpp = 1;
 
   rstruc->bytes_per_pixel = _acroom_bpp;
-  in->ReadArray(&rstruc->numobj, 2, 1);
+  rstruc->numobj = in->ReadInt16();
   if (rstruc->numobj > MAX_OBJ)
     quit("!room newer than this version - too many walk-behinds");
 
   NUMREAD = NUM_CONDIT;
-  in->ReadArray(&rstruc->objyval[0], 2, rstruc->numobj);
+  in->ReadArrayOfInt16(&rstruc->objyval[0], rstruc->numobj);
 
   gsmod = 0;
 
-  in->ReadArray(&rstruc->numhotspots, sizeof(int), 1);
+  rstruc->numhotspots = in->ReadInt32();
   if (rstruc->numhotspots == 0)
     rstruc->numhotspots = 20;
 	if (rstruc->numhotspots > MAX_HOTSPOTS)
@@ -194,8 +194,8 @@ void load_main_block(roomstruct *rstruc, char *files, CDataStream *in, room_file
 
 //#ifdef ALLEGRO_BIG_ENDIAN
     // Points are a pair of shorts
-    // [IKM] TODO: read/write memeber for _Point?
-    in->ReadArray(&rstruc->hswalkto[0], sizeof(short), 2*rstruc->numhotspots);
+    // [IKM] TODO: read/write member for _Point?
+    in->ReadArrayOfInt16((int16_t*)&rstruc->hswalkto[0], 2*rstruc->numhotspots);
 //#else
 //    in->ReadArray(&rstruc->hswalkto[0], sizeof(_Point), rstruc->numhotspots);
 //#endif
@@ -219,7 +219,7 @@ void load_main_block(roomstruct *rstruc, char *files, CDataStream *in, room_file
   if (rfh.version >= 24)
     in->ReadArray(&rstruc->hotspotScriptNames[0], MAX_SCRIPT_NAME_LEN, rstruc->numhotspots);
     
-  in->ReadArray(&rstruc->numwalkareas, 4, 1);
+  rstruc->numwalkareas = in->ReadInt32();
   // MACPORT FIX: read polypoints
 //#ifdef ALLEGRO_BIG_ENDIAN
   for (int iteratorCount = 0; iteratorCount < rstruc->numwalkareas; ++iteratorCount)
@@ -232,12 +232,12 @@ void load_main_block(roomstruct *rstruc, char *files, CDataStream *in, room_file
   
   update_polled_stuff_if_runtime();
 
-  in->ReadArray(&rstruc->top, 2, 1);
-  in->ReadArray(&rstruc->bottom, 2, 1);
-  in->ReadArray(&rstruc->left, 2, 1);
-  in->ReadArray(&rstruc->right, 2, 1);
+  rstruc->top = in->ReadInt16();
+  rstruc->bottom = in->ReadInt16();
+  rstruc->left = in->ReadInt16();
+  rstruc->right = in->ReadInt16();
 
-  in->ReadArray(&rstruc->numsprs, 2, 1);
+  rstruc->numsprs = in->ReadInt16();
   // MACPORT FIX: read sprstrucs
 //#ifdef ALLEGRO_BIG_ENDIAN
   for (int iteratorCount = 0; iteratorCount < rstruc->numsprs; ++iteratorCount)
@@ -351,16 +351,16 @@ void load_main_block(roomstruct *rstruc, char *files, CDataStream *in, room_file
   }
 
   if (rfh.version >= 9) {
-    in->ReadArray(&rstruc->objbaseline[0], sizeof(int), rstruc->numsprs);
-    in->ReadArray(&rstruc->width, 2, 1);
-    in->ReadArray(&rstruc->height, 2, 1); 
+    in->ReadArrayOfInt32(&rstruc->objbaseline[0], rstruc->numsprs);
+    rstruc->width = in->ReadInt16();
+    rstruc->height = in->ReadInt16(); 
   }
 
   if (rfh.version >= 23)
-    in->ReadArray(&rstruc->objectFlags[0], sizeof(short), rstruc->numsprs);
+    in->ReadArrayOfInt16(&rstruc->objectFlags[0], rstruc->numsprs);
 
   if (rfh.version >= 11)
-    in->ReadArray(&rstruc->resolution, 2, 1);
+    rstruc->resolution = in->ReadInt16();
 
   int num_walk_areas = MAX_WALK_AREAS;
   if (rfh.version >= 14)
@@ -370,15 +370,15 @@ void load_main_block(roomstruct *rstruc, char *files, CDataStream *in, room_file
     quit("load_room: Too many walkable areas, need newer version");
 
   if (rfh.version >= 10)
-    in->ReadArray(&rstruc->walk_area_zoom[0], sizeof(short), num_walk_areas);
+    in->ReadArrayOfInt16(&rstruc->walk_area_zoom[0], num_walk_areas);
 
   if (rfh.version >= 13)
-    in->ReadArray(&rstruc->walk_area_light[0], sizeof(short), num_walk_areas);
+    in->ReadArrayOfInt16(&rstruc->walk_area_light[0], num_walk_areas);
 
   if (rfh.version >= 18) {
-    in->ReadArray(&rstruc->walk_area_zoom2[0], sizeof(short), num_walk_areas);
-    in->ReadArray(&rstruc->walk_area_top[0], sizeof(short), num_walk_areas);
-    in->ReadArray(&rstruc->walk_area_bottom[0], sizeof(short), num_walk_areas);
+    in->ReadArrayOfInt16(&rstruc->walk_area_zoom2[0], num_walk_areas);
+    in->ReadArrayOfInt16(&rstruc->walk_area_top[0], num_walk_areas);
+    in->ReadArrayOfInt16(&rstruc->walk_area_bottom[0], num_walk_areas);
 
     for (f = 0; f < num_walk_areas; f++) {
       // if they set a contiuously scaled area where the top
@@ -391,7 +391,7 @@ void load_main_block(roomstruct *rstruc, char *files, CDataStream *in, room_file
 
   in->ReadArray(&rstruc->password[0], 11, 1);
   in->ReadArray(&rstruc->options[0], 10, 1);
-  in->ReadArray(&rstruc->nummes, 2, 1);
+  rstruc->nummes = in->ReadInt16();
 
   if (rfh.version >= 25)
     rstruc->gameId = in->ReadInt32();
@@ -427,7 +427,7 @@ void load_main_block(roomstruct *rstruc, char *files, CDataStream *in, room_file
 
   rstruc->numanims = 0;
   if (rfh.version >= 6) {
-    in->ReadArray(&rstruc->numanims, 2, 1);
+    rstruc->numanims = in->ReadInt16();
 
     if (rstruc->numanims > 0)
         in->Seek (Common::kSeekCurrent, sizeof(FullAnimation) * rstruc->numanims);
@@ -444,11 +444,11 @@ void load_main_block(roomstruct *rstruc, char *files, CDataStream *in, room_file
   }
 
   if (rfh.version >= 8)
-    in->ReadArray(&rstruc->shadinginfo[0], sizeof(short), 16);
+    in->ReadArrayOfInt16(&rstruc->shadinginfo[0], 16);
 
   if (rfh.version >= 21) {
-    in->ReadArray (&rstruc->regionLightLevel[0], sizeof(short), rstruc->numRegions);
-    in->ReadArray (&rstruc->regionTintLevel[0], sizeof(int), rstruc->numRegions);
+    in->ReadArrayOfInt16 (&rstruc->regionLightLevel[0], rstruc->numRegions);
+    in->ReadArrayOfInt32 (&rstruc->regionTintLevel[0], rstruc->numRegions);
   }
 
   update_polled_stuff_if_runtime();
@@ -630,7 +630,7 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
     if (thisblock == BLOCKTYPE_EOF)
       break;
 
-    opty->ReadArray(&bloklen, 4, 1);
+    bloklen = opty->ReadInt32();
     bloklen += opty->GetPosition();  // make it the new position for after block read
     optywas = opty;
 
@@ -640,10 +640,10 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
       int   lee;
       int   hh;
 
-      opty->ReadArray(&lee, 4, 1);
+      lee = opty->ReadInt32();
       rstruc->scripts = (char *)malloc(lee + 5);
       // MACPORT FIX: swap
-      opty->ReadArray(rstruc->scripts, sizeof(char), lee);
+      opty->Read(rstruc->scripts, lee);
       rstruc->scripts[lee] = 0;
 
       for (hh = 0; hh < lee; hh++)
@@ -680,7 +680,7 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
       rstruc->bscene_anim_speed = opty->ReadInt8();
 
       if (rfh.version >= 20)
-        opty->ReadArray(&rstruc->ebpalShared[0], 1, rstruc->num_bscenes);
+        opty->Read(&rstruc->ebpalShared[0], rstruc->num_bscenes);
       else
         memset (&rstruc->ebpalShared[0], 0, rstruc->num_bscenes);
 

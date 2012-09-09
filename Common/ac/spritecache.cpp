@@ -614,9 +614,9 @@ int SpriteCache::saveToFile(const char *filnam, int lastElement, bool compressOu
   // it matches the spr file
   spindex_out->WriteInt32(lastslot);
   spindex_out->WriteInt32(numsprits);
-  spindex_out->WriteArray(&spritewidths[0], sizeof(short), numsprits);
-  spindex_out->WriteArray(&spriteheights[0], sizeof(short), numsprits);
-  spindex_out->WriteArray(&spriteoffs[0], sizeof(long), numsprits);
+  spindex_out->WriteArrayOfInt16(&spritewidths[0], numsprits);
+  spindex_out->WriteArrayOfInt16(&spriteheights[0], numsprits);
+  spindex_out->WriteArrayOfInt32((int32_t*)&spriteoffs[0], numsprits);
   delete spindex_out;
 
   free(spritewidths);
@@ -646,7 +646,7 @@ int SpriteCache::initFile(const char *filnam)
 
   spr_initial_offs = cache_stream->GetPosition();
 
-  cache_stream->ReadArray(&vers, 2, 1);
+  vers = cache_stream->ReadInt16();
   // read the "Sprite File" signature
   cache_stream->ReadArray(&buff[0], 13, 1);
 
@@ -679,7 +679,7 @@ int SpriteCache::initFile(const char *filnam)
       cache_stream->Seek(Common::kSeekCurrent, 256 * 3);
   }
 
-  cache_stream->ReadArray(&numspri, 2, 1);
+  numspri = cache_stream->ReadInt16();
 
   if (vers < 4)
     numspri = 200;
@@ -796,13 +796,14 @@ bool SpriteCache::loadSpriteIndexFile(int expectedFileID, long spr_initial_offs,
   short *rspritewidths = (short*)malloc(numsprits * sizeof(short));
   short *rspriteheights = (short*)malloc(numsprits * sizeof(short));
 
-  fidx->ReadArray(&rspritewidths[0], sizeof(short), numsprits);
-  fidx->ReadArray(&rspriteheights[0], sizeof(short), numsprits);
+  fidx->ReadArrayOfInt16(&rspritewidths[0], numsprits);
+  fidx->ReadArrayOfInt16(&rspriteheights[0], numsprits);
 
   // 64 bit: Read 4 byte values into 8 byte array
-  int i;
-  for (i = 0; i < numsprits; i++)
-    offsets[i] = fidx->ReadInt32();
+  fidx->ReadArrayOfIntPtr32((intptr_t*)offsets, numsprits);
+  //int i;
+  //for (i = 0; i < numsprits; i++)
+  //  offsets[i] = fidx->ReadInt32();
 
   for (vv = 0; vv <= numspri; vv++) {
     flags[vv] = 0;

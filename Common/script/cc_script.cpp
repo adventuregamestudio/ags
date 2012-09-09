@@ -13,14 +13,14 @@ using AGS::Common::CDataStream;
 // [IKM] FIXME: either I am dumb, or those functions below are totally useless
 //
 void fput_long(long loo,CDataStream *out) {
-    out->WriteArray(&loo,4,1);
+    out->WriteInt32(loo);
 }
 
 // 64 bit: This is supposed to read a 32 bit value
 long fget_long(CDataStream *in)
 {
   int tmpp;
-  in->ReadArray(&tmpp, 4, 1);
+  tmpp = in->ReadInt32();
   return tmpp;
 }
 
@@ -43,7 +43,7 @@ void freadstring(char **strptr, CDataStream *in)
 
 void fwrite_script(ccScript*scri, CDataStream *out) {
     int n;
-    out->WriteArray(scfilesig,4,1);
+    out->Write(scfilesig,4);
     fput_long(SCOM_VERSION,out);
     fput_long(scri->globaldatasize,out);
     fput_long(scri->codesize,out);
@@ -51,13 +51,13 @@ void fwrite_script(ccScript*scri, CDataStream *out) {
     if (scri->globaldatasize > 0)
         out->WriteArray(scri->globaldata,scri->globaldatasize,1);
     if (scri->codesize > 0)
-        out->WriteArray(scri->code,scri->codesize,sizeof(long));
+        out->WriteArrayOfInt32((int32_t*)scri->code,scri->codesize);
     if (scri->stringssize > 0)
         out->WriteArray(scri->strings,scri->stringssize,1);
     fput_long(scri->numfixups,out);
     if (scri->numfixups > 0) {
         out->WriteArray(scri->fixuptypes,scri->numfixups,1);
-        out->WriteArray(scri->fixups,scri->numfixups,sizeof(long));
+        out->WriteArrayOfInt32((int32_t*)scri->fixups,scri->numfixups);
     }
     fput_long(scri->numimports,out);
     for (n=0;n<scri->numimports;n++)
@@ -83,7 +83,7 @@ ccScript *fread_script(CDataStream *in)
   char gotsig[5];
   currentline = -1;
   // MACPORT FIX: swap 'size' and 'nmemb'
-  in->ReadArray(gotsig, 1, 4);
+  in->Read(gotsig, 4);
   gotsig[4] = 0;
 
   int fileVer = fget_long(in);
@@ -101,7 +101,7 @@ ccScript *fread_script(CDataStream *in)
   if (scri->globaldatasize > 0) {
     scri->globaldata = (char *)malloc(scri->globaldatasize);
     // MACPORT FIX: swap
-    in->ReadArray(scri->globaldata, sizeof(char), scri->globaldatasize);
+    in->Read(scri->globaldata, scri->globaldatasize);
   }
   else
     scri->globaldata = NULL;
@@ -122,7 +122,7 @@ ccScript *fread_script(CDataStream *in)
   if (scri->stringssize > 0) {
     scri->strings = (char *)malloc(scri->stringssize);
     // MACPORT FIX: swap
-    in->ReadArray(scri->strings, sizeof(char), scri->stringssize);
+    in->Read(scri->strings, scri->stringssize);
   } 
   else
     scri->strings = NULL;
@@ -132,7 +132,7 @@ ccScript *fread_script(CDataStream *in)
     scri->fixuptypes = (char *)malloc(scri->numfixups);
     scri->fixups = (long *)malloc(scri->numfixups * sizeof(long));
     // MACPORT FIX: swap 'size' and 'nmemb'
-    in->ReadArray(scri->fixuptypes, sizeof(char), scri->numfixups);
+    in->Read(scri->fixuptypes, scri->numfixups);
 
     // 64 bit: Read fixups into 8 byte array too
     int i;

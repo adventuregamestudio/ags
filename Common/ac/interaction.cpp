@@ -22,8 +22,9 @@ NewInteractionValue::NewInteractionValue() {
 void NewInteractionValue::ReadFromFile(CDataStream *in)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
-    in->ReadArray(&valType, sizeof(char), 1);
-    char pad[3]; in->ReadArray(pad, sizeof(char), 3);
+    in->Read(&valType, 1);
+    char pad[3];
+    in->Read(pad, 3);
     val = in->ReadInt32();
     extra = in->ReadInt32();
 //#else
@@ -34,8 +35,9 @@ void NewInteractionValue::ReadFromFile(CDataStream *in)
 void NewInteractionValue::WriteToFile(CDataStream *out)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
-    out->WriteArray(&valType, sizeof(char), 1);
-    char pad[3]; out->WriteArray(pad, sizeof(char), 3);
+    out->Write(&valType, 1);
+    char pad[3];
+    out->Write(pad, 3);
     out->WriteInt32(val);
     out->WriteInt32(extra);
 //#else
@@ -47,7 +49,7 @@ void NewInteractionValue::WriteToFile(CDataStream *out)
 void InteractionVariable::ReadFromFile(CDataStream *in)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
-    in->ReadArray(name, sizeof(char), 23);
+    in->Read(name, 23);
     type = in->ReadInt8();
     value = in->ReadInt32();
 //#else
@@ -226,7 +228,7 @@ void serialize_new_interaction (NewInteraction *nint, CDataStream *out) {
 
   out->WriteInt32 (1);  // Version
   out->WriteInt32 (nint->numEvents);
-  out->WriteArray (&nint->eventTypes[0], sizeof(int), nint->numEvents);
+  out->WriteArrayOfInt32 (&nint->eventTypes[0], nint->numEvents);
 
   // 64 bit: The pointer is only checked against NULL to determine whether the event exists
   for (a = 0; a < nint->numEvents; a++)
@@ -271,7 +273,7 @@ NewInteraction *deserialize_new_interaction (CDataStream *in) {
     quit("Error: this interaction was saved with a newer version of AGS");
     return NULL;
   }
-  in->ReadArray (&nitemp->eventTypes[0], sizeof(int), nitemp->numEvents);
+  in->ReadArrayOfInt32 (&nitemp->eventTypes[0], nitemp->numEvents);
   //in->ReadArray (&nitemp->response[0], sizeof(void*), nitemp->numEvents);
 
   // 64 bit: The pointer is only checked against NULL to determine whether the event exists

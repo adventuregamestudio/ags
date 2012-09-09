@@ -15,16 +15,16 @@ void GUITextBox::WriteToFile(CDataStream *out)
 {
   GUIObject::WriteToFile(out);
   // MACPORT FIXES: swap
-  out->WriteArray(&text[0], sizeof(char), 200);
-  out->WriteArray(&font, sizeof(int), 3);
+  out->Write(&text[0], 200);
+  out->WriteArrayOfInt32(&font, 3);
 }
 
 void GUITextBox::ReadFromFile(CDataStream *in, int version)
 {
   GUIObject::ReadFromFile(in, version);
   // MACPORT FIXES: swap
-  in->ReadArray(&text[0], sizeof(char), 200);
-  in->ReadArray(&font, sizeof(int), 3);
+  in->Read(&text[0], 200);
+  in->ReadArrayOfInt32(&font, 3);
   if (textcol == 0)
     textcol = 16;
 }

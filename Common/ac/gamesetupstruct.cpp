@@ -107,9 +107,9 @@ void GameSetupStruct::read_savegame_info(Common::CDataStream *in, GAME_STRUCT_RE
 {
     if (read_data.filever > 32) // only 3.x
     {
-        in->ReadArray(&guid[0], 1, MAX_GUID_LENGTH);
-        in->ReadArray(&saveGameFileExtension[0], 1, MAX_SG_EXT_LENGTH);
-        in->ReadArray(&saveGameFolderName[0], 1, MAX_SG_FOLDER_LEN);
+        in->Read(&guid[0], MAX_GUID_LENGTH);
+        in->Read(&saveGameFileExtension[0], MAX_SG_EXT_LENGTH);
+        in->Read(&saveGameFolderName[0], MAX_SG_FOLDER_LEN);
 
         if (saveGameFileExtension[0] != 0)
             sprintf(read_data.saveGameSuffix, ".%s", saveGameFileExtension);
@@ -120,8 +120,8 @@ void GameSetupStruct::read_savegame_info(Common::CDataStream *in, GAME_STRUCT_RE
 
 void GameSetupStruct::read_font_flags(Common::CDataStream *in, GAME_STRUCT_READ_DATA &read_data)
 {
-    in->ReadArray(&fontflags[0], 1, numfonts);
-    in->ReadArray(&fontoutline[0], 1, numfonts);
+    in->Read(&fontflags[0], numfonts);
+    in->Read(&fontoutline[0], numfonts);
 }
 
 void GameSetupStruct::read_sprite_flags(Common::CDataStream *in, GAME_STRUCT_READ_DATA &read_data)
@@ -135,7 +135,7 @@ void GameSetupStruct::read_sprite_flags(Common::CDataStream *in, GAME_STRUCT_REA
     if (numToRead > MAX_SPRITES) {
         quit("Too many sprites; need newer AGS version");
     }
-    in->ReadArray(&spriteflags[0], 1, numToRead);
+    in->Read(&spriteflags[0], numToRead);
 }
 
 void GameSetupStruct::read_invinfo(Common::CDataStream *in, GAME_STRUCT_READ_DATA &read_data)
@@ -431,9 +431,9 @@ void GameSetupStruct::ReadFromSaveGame(CDataStream *in, char* gswas, ccScript* c
     if (invScripts == NULL)
     {
         for (bb = 0; bb < numinvitems; bb++)
-            in->ReadArray (&intrInv[bb]->timesRun[0], sizeof (int), MAX_NEWINTERACTION_EVENTS);
+            in->ReadArrayOfInt32(&intrInv[bb]->timesRun[0], MAX_NEWINTERACTION_EVENTS);
         for (bb = 0; bb < numcharacters; bb++)
-            in->ReadArray (&intrChar[bb]->timesRun[0], sizeof (int), MAX_NEWINTERACTION_EVENTS);
+            in->ReadArrayOfInt32 (&intrChar[bb]->timesRun[0], MAX_NEWINTERACTION_EVENTS);
     }
 
     // restore pointer members
@@ -443,7 +443,7 @@ void GameSetupStruct::ReadFromSaveGame(CDataStream *in, char* gswas, ccScript* c
     dict = olddict;
     for (int vv=0;vv<MAXGLOBALMES;vv++) messages[vv]=mesbk[vv];
 
-    in->ReadArray(&options[0], sizeof(int), OPT_HIGHESTOPTION+1);
+    in->ReadArrayOfInt32(&options[0], OPT_HIGHESTOPTION+1);
     options[OPT_LIPSYNCTEXT] = in->ReadInt8();
 
     //in->ReadArray(&chars[0],sizeof(CharacterInfo),numcharacters,f);
@@ -474,12 +474,12 @@ void GameSetupStruct::WriteForSaveGame(CDataStream *out)
     {
       int bb;
       for (bb = 0; bb < numinvitems; bb++)
-        out->WriteArray (&intrInv[bb]->timesRun[0], sizeof (int), MAX_NEWINTERACTION_EVENTS);
+        out->WriteArrayOfInt32 (&intrInv[bb]->timesRun[0], MAX_NEWINTERACTION_EVENTS);
       for (bb = 0; bb < numcharacters; bb++)
-        out->WriteArray (&intrChar[bb]->timesRun[0], sizeof (int), MAX_NEWINTERACTION_EVENTS); 
+        out->WriteArrayOfInt32 (&intrChar[bb]->timesRun[0], MAX_NEWINTERACTION_EVENTS); 
     }
 
-    out->WriteArray (&options[0], sizeof(int), OPT_HIGHESTOPTION+1);
+    out->WriteArrayOfInt32 (&options[0], OPT_HIGHESTOPTION+1);
     out->WriteInt8 (options[OPT_LIPSYNCTEXT]);
 
     //out->WriteArray(&chars[0],sizeof(CharacterInfo),numcharacters,f);

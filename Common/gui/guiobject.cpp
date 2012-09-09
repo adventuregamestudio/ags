@@ -26,7 +26,7 @@ int GUIObject::IsDisabled() {
 void GUIObject::WriteToFile(CDataStream *out)
 {
   // MACPORT FIX: swap
-  out->WriteArray(&flags, sizeof(int), BASEGOBJ_SIZE);
+  out->WriteArrayOfInt32((int32_t*)&flags, BASEGOBJ_SIZE);
   fputstring(scriptName, out);
 
   out->WriteInt32(GetNumEvents());
@@ -37,7 +37,7 @@ void GUIObject::WriteToFile(CDataStream *out)
 void GUIObject::ReadFromFile(CDataStream *in, int version)
 {
   // MACPORT FIX: swap
-  in->ReadArray(&flags, sizeof(int), BASEGOBJ_SIZE);
+  in->ReadArrayOfInt32((int32_t*)&flags, BASEGOBJ_SIZE);
   if (version >= 106)
     fgetstring_limit(scriptName, in, MAX_GUIOBJ_SCRIPTNAME_LEN);
   else

@@ -16,7 +16,7 @@ void MouseCursor::ReadFromFile(CDataStream *in)
     hoty = in->ReadInt16();//__getshort__bigendian(fp);
     view = in->ReadInt16();//__getshort__bigendian(fp);
     // may need to read padding?
-    in->ReadArray(name, sizeof(char), 10);
+    in->Read(name, 10);
     flags = in->ReadInt8();
     in->Seek(Common::kSeekCurrent, 3);
 //#else
@@ -32,7 +32,7 @@ void MouseCursor::WriteToFile(CDataStream *out)
     out->WriteInt16(hotx);
     out->WriteInt16(hoty);
     out->WriteInt16(view);
-    out->WriteArray(name, sizeof(char), 10);
+    out->Write(name, 10);
     out->WriteInt8(flags);
-    out->WriteArray(padding, sizeof(char), 3);
+    out->Write(padding, 3);
 }

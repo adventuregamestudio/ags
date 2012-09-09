@@ -18,8 +18,8 @@ void GUILabel::WriteToFile(CDataStream *out)
   // MACPORT FIXES: swap
   //->WriteArray(&text[0], sizeof(char), 200);
   out->WriteInt32((int)strlen(text) + 1);
-  out->WriteArray(&text[0], sizeof(char), strlen(text) + 1);
-  out->WriteArray(&font, sizeof(int), 3);
+  out->Write(&text[0], strlen(text) + 1);
+  out->WriteArrayOfInt32(&font, 3);
 }
 
 void GUILabel::ReadFromFile(CDataStream *in, int version)
@@ -37,9 +37,9 @@ void GUILabel::ReadFromFile(CDataStream *in, int version)
   }
 
   text = (char*)malloc(textBufferLen);
-  in->ReadArray(&text[0], sizeof(char), textBufferLen);
+  in->Read(&text[0], textBufferLen);
 
-  in->ReadArray(&font, sizeof(int), 3);
+  in->ReadArrayOfInt32(&font, 3);
   if (textcol == 0)
     textcol = 16;
 }

@@ -91,7 +91,7 @@ void read_string_decrypt(CDataStream *in, char *sss) {
     quit("ReadString: file is corrupt");
 
   // MACPORT FIX: swap as usual
-  in->ReadArray(sss, sizeof(char), newlen);
+  in->Read(sss, newlen);
   sss[newlen] = 0;
   decrypt_text(sss);
 }
@@ -102,13 +102,13 @@ void read_dictionary (WordsDictionary *dict, CDataStream *out) {
   dict->allocate_memory(out->ReadInt32());
   for (ii = 0; ii < dict->num_words; ii++) {
     read_string_decrypt (out, dict->word[ii]);
-    out->ReadArray(&dict->wordnum[ii], sizeof(short), 1);
+    dict->wordnum[ii] = out->ReadInt16();
   }
 }
 
 void freadmissout(short *pptr, CDataStream *in) {
-  in->ReadArray(&pptr[0], 2, 5);
-  in->ReadArray(&pptr[7], 2, NUM_CONDIT - 7);
+  in->ReadArrayOfInt16(&pptr[0], 5);
+  in->ReadArrayOfInt16(&pptr[7], NUM_CONDIT - 7);
   pptr[5] = pptr[6] = 0;
 }
 

@@ -17,7 +17,7 @@ void GUISlider::WriteToFile(CDataStream *out)
 {
   GUIObject::WriteToFile(out);
   // MACPORT FIX: swap
-  out->WriteArray(&min, sizeof(int), 7);
+  out->WriteArrayOfInt32(&min, 7);
 }
 
 void GUISlider::ReadFromFile(CDataStream *in, int version)
@@ -33,7 +33,7 @@ void GUISlider::ReadFromFile(CDataStream *in, int version)
   }
 
   GUIObject::ReadFromFile(in, version);
-  in->ReadArray(&min, sizeof(int), sizeToRead);
+  in->ReadArrayOfInt32(&min, sizeToRead);
 }
 
 void GUISlider::Draw()

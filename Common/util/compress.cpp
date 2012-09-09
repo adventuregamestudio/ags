@@ -200,8 +200,9 @@ long csavecompressed(char *finam, __block tobesaved, color pala[256], long exto)
   widt += (*tobesaved++) * 256;
   hit = *tobesaved++;
   hit += (*tobesaved++) * 256;
-  outpt->WriteArray(&widt, 2, 1);
-  outpt->WriteArray(&hit, 2, 1);
+  // Those were originally written as shorts, although they are ints
+  outpt->WriteInt16(widt);
+  outpt->WriteInt16(hit);
 
   unsigned char *ress = (unsigned char *)malloc(widt + 1);
   int ww;
@@ -387,16 +388,16 @@ long save_lzw(char *fnn, BITMAP *bmpp, color *pall, long offe) {
   lz_temp_s = ci_fopen(lztempfnm);
   fll = lz_temp_s->GetLength();
   out->WriteArray(&pall[0], sizeof(color), 256);
-  out->WriteArray(&fll, 4, 1);
+  out->WriteInt32(fll);
   gobacto = out->GetPosition();
 
   // reserve space for compressed size
-  out->WriteArray(&fll, 4, 1);
+  out->WriteInt32(fll);
   lzwcompress(lz_temp_s, out);
   toret = out->GetPosition();
   out->Seek(Common::kSeekBegin, gobacto);
   fll = (toret - gobacto) - 4;
-  out->WriteArray(&fll, 4, 1);      // write compressed size
+  out->WriteInt32(fll);      // write compressed size
   delete lz_temp_s;
   delete out;
   unlink(lztempfnm);
@@ -416,9 +417,9 @@ long load_lzw(CDataStream *in, BITMAP *bmm, color *pall) {
 
   recalced = bmm;
   // MACPORT FIX (HACK REALLY)
-  in->ReadArray(&pall[0], 1, sizeof(color)*256);
-  in->ReadArray(&maxsize, 4, 1);
-  in->ReadArray(&uncompsiz,4,1);
+  in->Read(&pall[0], sizeof(color)*256);
+  maxsize = in->ReadInt32();
+  uncompsiz = in->ReadInt32();
 
   uncompsiz += in->GetPosition();
   outbytes = 0; putbytes = 0;
@@ -517,8 +518,8 @@ long loadcompressed_allegro(CDataStream *in, BITMAP **bimpp, color *pall, long o
   if (bim != NULL)
     destroy_bitmap(bim);
 
-  in->ReadArray(&widd,2,1);
-  in->ReadArray(&hitt,2,1);
+  widd = in->ReadInt16();
+  hitt = in->ReadInt16();
   bim = create_bitmap_ex(8, widd, hitt);
   if (bim == NULL)
     quit("!load_room: not enough memory to decompress masks");

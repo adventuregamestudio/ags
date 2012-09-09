@@ -37,15 +37,15 @@ void GUIListBox::WriteToFile(CDataStream *out)
 
   GUIObject::WriteToFile(out);
   // MACPORT FIXES: swap
-  out->WriteArray(&numItems, sizeof(int), 11);
+  out->WriteArrayOfInt32(&numItems, 11);
   out->WriteInt32(alignment);
   out->WriteInt32(reserved1);
   out->WriteInt32(selectedbgcol);
   for (a = 0; a < numItems; a++)
-    out->WriteArray(&items[a][0], sizeof(char), strlen(items[a]) + 1);
+    out->Write(&items[a][0], strlen(items[a]) + 1);
 
   if (exflags & GLF_SGINDEXVALID)
-    out->WriteArray(&saveGameIndex[0], sizeof(short), numItems);
+    out->WriteArrayOfInt16(&saveGameIndex[0], numItems);
 }
 
 void GUIListBox::ReadFromFile(CDataStream *in, int version)
@@ -55,7 +55,7 @@ void GUIListBox::ReadFromFile(CDataStream *in, int version)
 
   GUIObject::ReadFromFile(in, version);
   // MACPORT FIXES: swap
-  in->ReadArray(&numItems, sizeof(int), 11);
+  in->ReadArrayOfInt32(&numItems, 11);
 
   if (version >= 112) {
     alignment = in->ReadInt32();
@@ -86,7 +86,7 @@ void GUIListBox::ReadFromFile(CDataStream *in, int version)
   }
 
   if ((version >= 114) && (exflags & GLF_SGINDEXVALID)) {
-    in->ReadArray(&saveGameIndex[0], sizeof(short), numItems);
+    in->ReadArrayOfInt16(&saveGameIndex[0], numItems);
   }
 
   if (textcol == 0)

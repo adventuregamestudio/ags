@@ -41,7 +41,7 @@ void ViewFrame::WriteToFile(CDataStream *out)
     out->WriteInt16(xoffs);//__getshort__bigendian(fp);
     out->WriteInt16(yoffs);//__getshort__bigendian(fp);
     out->WriteInt16(speed);//__getshort__bigendian(fp);
-    out->WriteArray(padding, sizeof(char), 2);
+    out->Write(padding, 2);
     out->WriteInt32(flags);
     out->WriteInt32(sound);
     out->WriteInt32(reserved_for_future[0]);
@@ -72,8 +72,8 @@ void ViewLoopNew::Dispose()
 
 void ViewLoopNew::WriteToFile(CDataStream *out)
 {
-    out->WriteArray(&numFrames, sizeof(short), 1);
-    out->WriteArray(&flags, sizeof(int), 1);
+    out->WriteInt16(numFrames);
+    out->WriteInt32(flags);
     for (int i = 0; i < numFrames; ++i)
     {
         frames[i].WriteToFile(out);
@@ -165,7 +165,7 @@ void ViewStruct272::ReadFromFile(CDataStream *in)
     }
     // skip padding if there is any
     in->Seek(Common::kSeekCurrent, 2*(2 - ((16+1)%2)));
-    in->ReadArray(loopflags, sizeof(int), 16);
+    in->ReadArrayOfInt32(loopflags, 16);
     for (int j = 0; j < 16; ++j)
     {
         for (int i = 0; i < 20; ++i)

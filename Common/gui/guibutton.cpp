@@ -20,8 +20,8 @@ void GUIButton::WriteToFile(CDataStream *out)
 {
   GUIObject::WriteToFile(out);
   // MACPORT FIXES: swap
-  out->WriteArray(&pic, sizeof(int), 12);
-  out->WriteArray(&text[0], sizeof(char), 50);
+  out->WriteArrayOfInt32(&pic, 12);
+  out->Write(&text[0], 50);
   out->WriteInt32(textAlignment);
   out->WriteInt32(reserved1);
 }
@@ -30,8 +30,8 @@ void GUIButton::ReadFromFile(CDataStream *in, int version)
 {
   GUIObject::ReadFromFile(in, version);
   // MACPORT FIXES: swap
-  in->ReadArray(&pic, sizeof(int), 12);
-  in->ReadArray(&text[0], sizeof(char), 50);
+  in->ReadArrayOfInt32(&pic, 12);
+  in->Read(&text[0], 50);
   if (textcol == 0)
     textcol = 16;
   usepic = pic;

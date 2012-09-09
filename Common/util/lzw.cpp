@@ -229,7 +229,7 @@ void lzwexpand(CDataStream *lzw_in, CDataStream *out)
       if (bits & mask) {
         // MACPORT FIX: read to short and expand
         short jshort = 0;
-        lzw_in->ReadArray(&jshort, sizeof(short), 1);
+        jshort = lzw_in->ReadInt16();
         j = jshort;
 
         len = ((j >> 12) & 15) + 3;

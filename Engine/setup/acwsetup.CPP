@@ -103,7 +103,7 @@ void get_replay_name (const char *filename, char *namebuf) {
     return;
 
   char buffer [100];
-  in->ReadArray (buffer, 12, 1);
+  in->Read (buffer, 12);
   buffer[12] = 0;
   if (strcmp (buffer, "AGSRecording") != 0) {
     delete in;

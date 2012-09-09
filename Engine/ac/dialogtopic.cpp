@@ -8,9 +8,9 @@ void DialogTopic::ReadFromFile(CDataStream *in)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
     in->ReadArray(optionnames, 150*sizeof(char), MAXTOPICOPTIONS);
-    in->ReadArray(optionflags, sizeof(int), MAXTOPICOPTIONS);
+    in->ReadArrayOfInt32(optionflags, MAXTOPICOPTIONS);
     optionscripts = (unsigned char *) in->ReadInt32();
-    in->ReadArray(entrypoints, sizeof(short), MAXTOPICOPTIONS);
+    in->ReadArrayOfInt16(entrypoints, MAXTOPICOPTIONS);
     startupentrypoint = in->ReadInt16();//__getshort__bigendian(fp);
     codesize = in->ReadInt16();//__getshort__bigendian(fp);
     numoptions = in->ReadInt32();

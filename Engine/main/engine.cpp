@@ -461,11 +461,11 @@ int engine_init_speech()
                     for (int ee = 0; ee < numLipLines; ee++)
                     {
                         splipsync[ee].numPhenomes = speechsync->ReadInt16();
-                        speechsync->ReadArray(splipsync[ee].filename, 1, 14);
+                        speechsync->Read(splipsync[ee].filename, 14);
                         splipsync[ee].endtimeoffs = (int*)malloc(splipsync[ee].numPhenomes * sizeof(int));
-                        speechsync->ReadArray(splipsync[ee].endtimeoffs, sizeof(int), splipsync[ee].numPhenomes);
+                        speechsync->ReadArrayOfInt32(splipsync[ee].endtimeoffs, splipsync[ee].numPhenomes);
                         splipsync[ee].frame = (short*)malloc(splipsync[ee].numPhenomes * sizeof(short));
-                        speechsync->ReadArray(splipsync[ee].frame, sizeof(short), splipsync[ee].numPhenomes);
+                        speechsync->ReadArrayOfInt16(splipsync[ee].frame, splipsync[ee].numPhenomes);
                     }
                 }
                 delete speechsync;
@@ -757,7 +757,7 @@ int check_write_access() {
 
   our_eip = -1896;
 
-  temp_s->WriteArray("just to test the drive free space", 30, 1);
+  temp_s->Write("just to test the drive free space", 30);
   delete temp_s;
 
   our_eip = -1897;

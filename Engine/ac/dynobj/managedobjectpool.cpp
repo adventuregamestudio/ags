@@ -215,7 +215,7 @@ void ManagedObjectPool::WriteToDisk(CDataStream *out) {
             }
             out->WriteInt32(bytesWritten);
             if (bytesWritten > 0)
-                out->WriteArray(serializeBuffer, bytesWritten, 1);
+                out->Write(serializeBuffer, bytesWritten);
             out->WriteInt32(objects[i].refCount);
         }
         else  // write empty string if we cannot serialize it
@@ -258,7 +258,7 @@ int ManagedObjectPool::ReadFromDisk(CDataStream *in, ICCObjectReader *reader) {
                 serializeBuffer = (char*)realloc(serializeBuffer, serializeBufferSize);
             }
             if (numBytes > 0)
-                in->ReadArray(serializeBuffer, numBytes, 1);
+                in->Read(serializeBuffer, numBytes);
 
             if (strcmp(typeNameBuffer, CC_DYNAMIC_ARRAY_TYPE_NAME) == 0)
             {

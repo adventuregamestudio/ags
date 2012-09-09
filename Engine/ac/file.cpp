@@ -165,7 +165,7 @@ const char* File_ReadStringBack(sc_File *fil) {
     quit("!File.ReadStringBack: file was not written by WriteString");
 
   char *retVal = (char*)malloc(lle);
-  fil->handle->ReadArray(retVal, lle, 1);
+  fil->handle->Read(retVal, lle);
 
   return CreateNewScriptString(retVal, false);
 }

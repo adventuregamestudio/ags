@@ -159,7 +159,7 @@ int game_file_read_version(CDataStream *in)
 	char teststr[31];
 
 	teststr[30]=0;
-    in->ReadArray(&teststr[0],30,1);
+    in->Read(&teststr[0],30);
     filever=in->ReadInt32();
 
     if (filever < 42) {
@@ -175,7 +175,7 @@ int game_file_read_version(CDataStream *in)
 	int engineverlen = in->ReadInt32();
     char engineneeds[20];
     // MACPORT FIX 13/6/5: switch 'size' and 'nmemb' so it doesn't treat the string as an int
-    in->ReadArray(&engineneeds[0], sizeof(char), engineverlen);
+    in->Read(&engineneeds[0], engineverlen);
     engineneeds[engineverlen] = 0;
 
     if (filever > GAME_FILE_VERSION) {
@@ -301,7 +301,7 @@ void game_file_read_dialogs(CDataStream *in)
         for (int i = 0; i < game.numdialog; i++)
         {
             old_dialog_scripts[i] = (unsigned char*)malloc(dialog[i].codesize);
-            in->ReadArray(old_dialog_scripts[i], dialog[i].codesize, 1);
+            in->Read(old_dialog_scripts[i], dialog[i].codesize);
 
             // Skip encrypted text script
             unsigned int script_size = in->ReadInt32();
@@ -359,7 +359,7 @@ void game_file_read_dialogs(CDataStream *in)
                 }
 
                 old_speech_lines[i] = (char*)malloc(newlen + 1);
-                in->ReadArray(old_speech_lines[i], newlen, 1);
+                in->Read(old_speech_lines[i], newlen);
                 old_speech_lines[i][newlen] = 0;
                 decrypt_text(old_speech_lines[i]);
 

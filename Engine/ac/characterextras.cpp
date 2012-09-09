@@ -6,7 +6,7 @@ using AGS::Common::CDataStream;
 
 void CharacterExtras::ReadFromFile(CDataStream *in)
 {
-    in->ReadArray(invorder, sizeof(short), MAX_INVORDER);
+    in->ReadArrayOfInt16(invorder, MAX_INVORDER);
     invorder_count = in->ReadInt16();
     width = in->ReadInt16();
     height = in->ReadInt16();
@@ -26,7 +26,7 @@ void CharacterExtras::ReadFromFile(CDataStream *in)
 void CharacterExtras::WriteToFile(CDataStream *out)
 {
     char padding[3] = {0,0,0};
-    out->WriteArray(invorder, sizeof(short), MAX_INVORDER);
+    out->WriteArrayOfInt16(invorder, MAX_INVORDER);
     out->WriteInt16(invorder_count);
     out->WriteInt16(width);
     out->WriteInt16(height);

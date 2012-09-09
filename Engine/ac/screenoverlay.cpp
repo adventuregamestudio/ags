@@ -35,5 +35,5 @@ void ScreenOverlay::WriteToFile(CDataStream *out)
     out->WriteInt32(associatedOverlayHandle);
     out->WriteBool(hasAlphaChannel);
     out->WriteBool(positionRelativeToScreen);
-    out->WriteArray(padding, sizeof(char), get_padding(sizeof(int8_t) * 2));
+    out->Write(padding, get_padding(sizeof(int8_t) * 2));
 }

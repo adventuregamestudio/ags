@@ -539,11 +539,11 @@ void CharacterInfo::ReadFromFile(CDataStream *in)
     animating = in->ReadInt16();//__getshort__bigendian(fp);
     walkspeed = in->ReadInt16();//__getshort__bigendian(fp);
     animspeed = in->ReadInt16();//__getshort__bigendian(fp);
-    in->ReadArray(inv, sizeof(short), MAX_INV);
+    in->ReadArrayOfInt16(inv, MAX_INV);
     actx = in->ReadInt16();//__getshort__bigendian(fp);
     acty = in->ReadInt16();//__getshort__bigendian(fp);
-    in->ReadArray(name, sizeof(char), 40);
-    in->ReadArray(scrname, sizeof(char), MAX_SCRIPT_NAME_LEN);
+    in->Read(name, 40);
+    in->Read(scrname, MAX_SCRIPT_NAME_LEN);
     on = in->ReadInt8();
     // MAX_INV is odd, so need to sweep up padding
     // skip over padding that makes struct a multiple of 4 bytes long
@@ -596,16 +596,16 @@ void CharacterInfo::WriteToFile(CDataStream *out)
     out->WriteInt16(animating);//__getshort__bigendian(fp);
     out->WriteInt16(walkspeed);//__getshort__bigendian(fp);
     out->WriteInt16(animspeed);//__getshort__bigendian(fp);
-    out->WriteArray(inv, sizeof(short), MAX_INV);
+    out->WriteArrayOfInt16(inv, MAX_INV);
     out->WriteInt16(actx);//__getshort__bigendian(fp);
     out->WriteInt16(acty);//__getshort__bigendian(fp);
-    out->WriteArray(name, sizeof(char), 40);
-    out->WriteArray(scrname, sizeof(char), MAX_SCRIPT_NAME_LEN);
+    out->Write(name, 40);
+    out->Write(scrname, MAX_SCRIPT_NAME_LEN);
     out->WriteInt8(on);
     // MAX_INV is odd, so need to sweep up padding
     // skip over padding that makes struct a multiple of 4 bytes long
     char long_padding[3];
-    out->WriteArray(long_padding, sizeof(char), get_padding((MAX_INV+2)*sizeof(short)+40+MAX_SCRIPT_NAME_LEN+1));
+    out->Write(long_padding, get_padding((MAX_INV+2)*sizeof(short)+40+MAX_SCRIPT_NAME_LEN+1));
 }
 
 void ConvertOldCharacterToNew (OldCharacterInfo *oci, CharacterInfo *ci) {

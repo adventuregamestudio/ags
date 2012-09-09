@@ -361,12 +361,12 @@ int Game_SetSaveGameDirectory(const char *newFolder) {
     if (restartGameFile != NULL) {
         long fileSize = restartGameFile->GetLength();
         char *mbuffer = (char*)malloc(fileSize);
-        restartGameFile->ReadArray(mbuffer, fileSize, 1);
+        restartGameFile->Read(mbuffer, fileSize);
         delete restartGameFile;
 
         sprintf(restartGamePath, "%s""agssave.%d%s", newSaveGameDir, RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix);
         restartGameFile = Common::File::CreateFile(restartGamePath);
-        restartGameFile->WriteArray(mbuffer, fileSize, 1);
+        restartGameFile->Write(mbuffer, fileSize);
         delete restartGameFile;
         free(mbuffer);
     }
@@ -991,11 +991,11 @@ long write_screen_shot_for_vista(CDataStream *out, block screenshot)
         char *buffer = (char*)malloc(fileSize);
 
         CDataStream *temp_in = Common::File::OpenFileRead(tempFileName);
-        temp_in->ReadArray(buffer, fileSize, 1);
+        temp_in->Read(buffer, fileSize);
         delete temp_in;
         unlink(tempFileName);
 
-        out->WriteArray(buffer, fileSize, 1);
+        out->Write(buffer, fileSize);
         free(buffer);
     }
     return fileSize;
@@ -1049,7 +1049,7 @@ void save_game_scripts(CDataStream *out)
     out->WriteInt32(gdatasize);
     ccFlattenGlobalData (gameinst);
     // MACPORT FIX: just in case gdatasize is 2 or 4, don't want to swap endian
-    out->WriteArray(&gameinst->globaldata[0], 1, gdatasize);
+    out->Write(&gameinst->globaldata[0], gdatasize);
     ccUnFlattenGlobalData (gameinst);
     // write the script modules data segments
     out->WriteInt32(numScriptModules);
@@ -1058,7 +1058,7 @@ void save_game_scripts(CDataStream *out)
         out->WriteInt32(glsize);
         if (glsize > 0) {
             ccFlattenGlobalData(moduleInst[bb]);
-            out->WriteArray(&moduleInst[bb]->globaldata[0], 1, glsize);
+            out->Write(&moduleInst[bb]->globaldata[0], glsize);
             ccUnFlattenGlobalData(moduleInst[bb]);
         }
     }
@@ -1087,10 +1087,10 @@ void save_game_room_state(CDataStream *out)
                 out->WriteInt8 (1);
                 roomstat->WriteToFile(out);
                 if (roomstat->tsdatasize>0)
-                    out->WriteArray(&roomstat->tsdata[0], 1, roomstat->tsdatasize);
+                    out->Write(&roomstat->tsdata[0], roomstat->tsdatasize);
             }
             else
-                out->WriteInt8 (0);; // <--- [IKM] added by me, CHECKME if needed / works correctly
+                out->WriteInt8 (0); // <--- [IKM] added by me, CHECKME if needed / works correctly
         }
         else
             out->WriteInt8 (0);
@@ -1103,7 +1103,7 @@ void save_game_play_ex_data(CDataStream *out)
     {
         fputstring(play.do_once_tokens[bb], out);
     }
-    out->WriteArray(&play.gui_draw_order[0], sizeof(int), game.numgui);
+    out->WriteArrayOfInt32(&play.gui_draw_order[0], game.numgui);
 }
 
 void save_game_movelist(CDataStream *out)
@@ -1132,7 +1132,7 @@ void save_game_palette(CDataStream *out)
 void save_game_dialogs(CDataStream *out)
 {
     for (int bb=0;bb<game.numdialog;bb++)
-        out->WriteArray(&dialog[bb].optionflags[0],sizeof(int),MAXTOPICOPTIONS);
+        out->WriteArrayOfInt32(&dialog[bb].optionflags[0],MAXTOPICOPTIONS);
 }
 
 // [IKM] yea, okay this is just plain silly name :)
@@ -1169,10 +1169,10 @@ void save_game_audiocliptypes(CDataStream *out)
 
 void save_game_thisroom(CDataStream *out)
 {
-    out->WriteArray(&thisroom.regionLightLevel[0],sizeof(short), MAX_REGIONS);
-    out->WriteArray(&thisroom.regionTintLevel[0],sizeof(int), MAX_REGIONS);
-    out->WriteArray(&thisroom.walk_area_zoom[0],sizeof(short), MAX_WALK_AREAS + 1);
-    out->WriteArray(&thisroom.walk_area_zoom2[0],sizeof(short), MAX_WALK_AREAS + 1);
+    out->WriteArrayOfInt16(&thisroom.regionLightLevel[0],MAX_REGIONS);
+    out->WriteArrayOfInt32(&thisroom.regionTintLevel[0],MAX_REGIONS);
+    out->WriteArrayOfInt16(&thisroom.walk_area_zoom[0],MAX_WALK_AREAS + 1);
+    out->WriteArrayOfInt16(&thisroom.walk_area_zoom2[0],MAX_WALK_AREAS + 1);
 }
 
 void save_game_ambientsounds(CDataStream *out)
@@ -1230,7 +1230,7 @@ void save_game_displayed_room_status(CDataStream *out)
         troom.WriteToFile(out);
         //out->WriteArray(&troom,sizeof(RoomStatus),1);
         if (troom.tsdatasize>0)
-            out->WriteArray(&troom.tsdata[0],troom.tsdatasize,1);
+            out->Write(&troom.tsdata[0],troom.tsdatasize);
 
     }
 }
@@ -1460,10 +1460,10 @@ void save_game(int slotn, const char*descript) {
     // Started writing to the file here
 
     // Extended savegame info for Win Vista and higher
-    out->WriteArray(&vistaHeader, sizeof(RICH_GAME_MEDIA_HEADER), 1);
+    out->Write(&vistaHeader, sizeof(RICH_GAME_MEDIA_HEADER));
 
     // Savegame signature
-    out->WriteArray(sgsig,sgsiglen,1);
+    out->Write(sgsig,sgsiglen);
 
     safeguard_string ((unsigned char*)descript);
 
@@ -1632,7 +1632,7 @@ void restore_game_scripts(CDataStream *in, int &gdatasize, char **newglobaldatab
     // read the global script data segment
     gdatasize = in->ReadInt32();
     *newglobaldatabuffer = (char*)malloc(gdatasize);
-    in->ReadArray(*newglobaldatabuffer, sizeof(char), gdatasize);
+    in->Read(*newglobaldatabuffer, gdatasize);
     //in->ReadArray(&gameinst->globaldata[0],gdatasize,1);
     //ccUnFlattenGlobalData (gameinst);
 
@@ -1643,7 +1643,7 @@ void restore_game_scripts(CDataStream *in, int &gdatasize, char **newglobaldatab
     for (int vv = 0; vv < numScriptModules; vv++) {
         scriptModuleDataSize[vv] = in->ReadInt32();
         scriptModuleDataBuffers[vv] = (char*)malloc(scriptModuleDataSize[vv]);
-        in->ReadArray(&scriptModuleDataBuffers[vv][0], sizeof(char), scriptModuleDataSize[vv]);
+        in->Read(&scriptModuleDataBuffers[vv][0], scriptModuleDataSize[vv]);
     }
 }
 
@@ -1685,7 +1685,7 @@ void restore_game_room_state(CDataStream *in, const char *nametouse)
                 if (roomstat->tsdatasize > 0)
                 {
                     roomstat->tsdata=(char*)malloc(roomstat->tsdatasize + 8);  // JJS: Why allocate 8 additional bytes?
-                    in->ReadArray(&roomstat->tsdata[0], roomstat->tsdatasize, 1);
+                    in->Read(&roomstat->tsdata[0], roomstat->tsdatasize);
                 }
             }
         }
@@ -1738,7 +1738,7 @@ void restore_game_play(CDataStream *in)
         }
     }
 
-    in->ReadArray(&play.gui_draw_order[0], sizeof(int), game.numgui);
+    in->ReadArrayOfInt32(&play.gui_draw_order[0], game.numgui);
 }
 
 void restore_game_movelist(CDataStream *in)
@@ -1767,7 +1767,7 @@ void restore_game_palette(CDataStream *in)
 void restore_game_dialogs(CDataStream *in)
 {
     for (int vv=0;vv<game.numdialog;vv++)
-        in->ReadArray(&dialog[vv].optionflags[0],sizeof(int),MAXTOPICOPTIONS);
+        in->ReadArrayOfInt32(&dialog[vv].optionflags[0],MAXTOPICOPTIONS);
 }
 
 void restore_game_more_dynamic_values(CDataStream *in)
@@ -1816,10 +1816,10 @@ void restore_game_audiocliptypes(CDataStream *in)
 void restore_game_thisroom(CDataStream *in, short *saved_light_levels, int *saved_tint_levels,
                            short *saved_zoom_levels1, short *saved_zoom_levels2)
 {
-    in->ReadArray(&saved_light_levels[0], sizeof(short), MAX_REGIONS);
-    in->ReadArray(&saved_tint_levels[0], sizeof(int), MAX_REGIONS);
-    in->ReadArray(&saved_zoom_levels1[0],sizeof(short), MAX_WALK_AREAS + 1);
-    in->ReadArray(&saved_zoom_levels2[0],sizeof(short), MAX_WALK_AREAS + 1);
+    in->ReadArrayOfInt16(&saved_light_levels[0],MAX_REGIONS);
+    in->ReadArrayOfInt32(&saved_tint_levels[0], MAX_REGIONS);
+    in->ReadArrayOfInt16(&saved_zoom_levels1[0],MAX_WALK_AREAS + 1);
+    in->ReadArrayOfInt16(&saved_zoom_levels2[0],MAX_WALK_AREAS + 1);
 }
 
 void restore_game_ambientsounds(CDataStream *in, int crossfadeInChannelWas, int crossfadeOutChannelWas,
@@ -1913,7 +1913,7 @@ void restore_game_displayed_room_status(CDataStream *in, block *newbscene)
         //in->ReadArray(&troom,sizeof(RoomStatus),1);
         if (troom.tsdatasize > 0) {
             troom.tsdata=(char*)malloc(troom.tsdatasize+5);
-            in->ReadArray(&troom.tsdata[0],troom.tsdatasize,1);
+            in->Read(&troom.tsdata[0],troom.tsdatasize);
         }
         else
             troom.tsdata = NULL;
@@ -2336,7 +2336,7 @@ int do_game_load(const char *nametouse, int slotNumber, char *descrp, int *wantS
     // skip Vista header
     in->Seek(Common::kSeekBegin, sizeof(RICH_GAME_MEDIA_HEADER));
 
-    in->ReadArray(rbuffer,sgsiglen,1);
+    in->Read(rbuffer,sgsiglen);
     rbuffer[sgsiglen]=0;
     if (strcmp(rbuffer,sgsig)!=0) {
         // not a save game

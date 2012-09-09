@@ -72,8 +72,8 @@ void play_flc_file(int numb,int playflags) {
         return;
     }
     in->Seek(Common::kSeekCurrent,8);
-    in->ReadArray(&fliwidth,2,1);
-    in->ReadArray(&fliheight,2,1);
+    fliwidth = in->ReadInt16();
+    fliheight = in->ReadInt16();
     delete in;
     if (game.color_depth > 1) {
         hicol_buf=create_bitmap_ex(final_col_dep,fliwidth,fliheight);

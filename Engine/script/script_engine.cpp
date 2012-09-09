@@ -32,7 +32,7 @@ extern void quit(char *);
 long getlong(CDataStream *in)
 {
     long tmm;
-    in->ReadArray(&tmm, 4, 1);
+    tmm = in->ReadInt32();
     return tmm;
 }
 
@@ -73,12 +73,12 @@ void load_graphical_scripts(CDataStream *in, roomstruct * rst)
     }
 
     while (1) {
-        in->ReadArray(&ct, 4, 1);
+        ct = in->ReadInt32();
         if ((ct == -1) | (in->EOS() != 0))
             break;
 
         long lee;
-        in->ReadArray(&lee, 4, 1);
+        lee = in->ReadInt32();
 
         char thisscn[20];
         sprintf(thisscn, scripttempn, ct);
@@ -86,8 +86,8 @@ void load_graphical_scripts(CDataStream *in, roomstruct * rst)
 
         char *scnf = (char *)malloc(lee);
         // MACPORT FIX: swap size and nmemb
-        in->ReadArray(scnf, sizeof(char), lee);
-        te->WriteArray(scnf, sizeof(char), lee);
+        in->Read(scnf, lee);
+        te->Write(scnf, lee);
         delete te;
 
         free(scnf);

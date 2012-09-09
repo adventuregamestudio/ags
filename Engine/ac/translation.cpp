@@ -60,7 +60,7 @@ bool init_translation (const char *lang) {
     lang_offs_start = language_file->GetPosition();
 
     char transsig[16];
-    language_file->ReadArray(transsig, 15, 1);
+    language_file->Read(transsig, 15);
     if (strcmp(transsig, "AGSTranslation") != 0) {
         delete language_file;
         return false;
@@ -95,7 +95,7 @@ bool init_translation (const char *lang) {
         else if (blockType == 2) {
             int uidfrom;
             char wasgamename[100];
-            language_file->ReadArray(&uidfrom, 4, 1);
+            uidfrom = language_file->ReadInt32();
             read_string_decrypt (language_file, wasgamename);
             if ((uidfrom != game.uniqueid) || (strcmp (wasgamename, game.gamename) != 0)) {
                 char quitmess[250];

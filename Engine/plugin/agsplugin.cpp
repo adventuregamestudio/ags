@@ -1063,7 +1063,7 @@ void pl_read_plugins_from_disk (CDataStream *in) {
 
         if (datasize > 0) {
             apl->savedata = (char*)malloc(datasize);
-            in->ReadArray (apl->savedata, datasize, 1);
+            in->Read (apl->savedata, datasize);
         }
         apl->savedatasize = datasize;
         apl->eiface.pluginId = a;

@@ -54,7 +54,7 @@ char* FileBasedAGSDebugger::GetNextMessage()
     }
     int fileSize = in->GetLength();
     char *msg = (char*)malloc(fileSize + 1);
-    in->ReadArray(msg, fileSize, 1);
+    in->Read(msg, fileSize);
     delete in;
     unlink("dbgsend.tmp");
     msg[fileSize] = 0;

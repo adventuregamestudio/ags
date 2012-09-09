@@ -9,7 +9,7 @@ using AGS::Common::CDataStream;
 
 //
 // [IKM] What must be kept in mind: in previous versions of AGS
-// this struct was read and written as-is (in->Read/out->WriteArray-ing object)
+// this struct was read and written as-is (read/write-ing object)
 // It did not have virtual functions (did not have functions at all
 // actually), so I believe there's no need to skip 4 bytes for
 // vtable pointer.
@@ -28,7 +28,7 @@ void GameState::ReadFromFile(CDataStream *in)
     disabled_user_interface = in->ReadInt32();
     gscript_timer = in->ReadInt32();
     debug_mode = in->ReadInt32();
-    in->ReadArray(globalvars, sizeof(int32), MAXGLOBALVARS);
+    in->ReadArrayOfInt32(globalvars, MAXGLOBALVARS);
     messagetime = in->ReadInt32();
     usedinv = in->ReadInt32();
     inv_top = in->ReadInt32();
@@ -98,12 +98,12 @@ void GameState::ReadFromFile(CDataStream *in)
     keep_screen_during_instant_transition = in->ReadInt32();
     read_dialog_option_colour = in->ReadInt32();
     stop_dialog_at_end = in->ReadInt32();
-    in->ReadArray(reserved, sizeof(int32), 10);
+    in->ReadArrayOfInt32(reserved, 10);
     // ** up to here is referenced in the script "game." object
     recording = in->ReadInt32();   // user is recording their moves
     playback = in->ReadInt32();    // playing back recording
     gamestep = in->ReadInt16();    // step number for matching recordings
-    in->ReadArray(&padding, sizeof(char), 2); // <-- padding
+    in->Read(&padding, 2); // <-- padding
     randseed = in->ReadInt32();    // random seed
     player_on_region = in->ReadInt32();    // player's current region
     screen_is_faded_out = in->ReadInt32(); // the screen is currently black
@@ -116,15 +116,15 @@ void GameState::ReadFromFile(CDataStream *in)
     mboundx2 = in->ReadInt16();
     mboundy1 = in->ReadInt16();
     mboundy2 = in->ReadInt16();
-    in->ReadArray(&padding, sizeof(char), 2); // <-- padding
+    in->Read(&padding, 2); // <-- padding
     fade_effect = in->ReadInt32();
     bg_frame_locked = in->ReadInt32();
-    in->ReadArray(globalscriptvars, sizeof(int32), MAXGSVALUES);
+    in->ReadArrayOfInt32(globalscriptvars, MAXGSVALUES);
     cur_music_number = in->ReadInt32();
     music_repeat = in->ReadInt32();
     music_master_volume = in->ReadInt32();
     digital_master_volume = in->ReadInt32();
-    in->ReadArray(walkable_areas_on, sizeof(char), MAX_WALK_AREAS+1);
+    in->Read(walkable_areas_on, MAX_WALK_AREAS+1);
     screen_flipped = in->ReadInt16();
     offsets_locked = in->ReadInt16();
     entered_at_x = in->ReadInt32();
@@ -132,24 +132,24 @@ void GameState::ReadFromFile(CDataStream *in)
     entered_edge = in->ReadInt32();
     want_speech = in->ReadInt32();
     cant_skip_speech = in->ReadInt32();
-    in->ReadArray(script_timers, sizeof(int32), MAX_TIMERS);
+    in->ReadArrayOfInt32(script_timers, MAX_TIMERS);
     sound_volume = in->ReadInt32();
     speech_volume = in->ReadInt32();
     normal_font = in->ReadInt32();
     speech_font = in->ReadInt32();
     key_skip_wait = in->ReadInt8();
-    in->ReadArray(&padding, sizeof(char), 3); // <-- padding
+    in->Read(&padding, 3); // <-- padding
     swap_portrait_lastchar = in->ReadInt32();
     seperate_music_lib = in->ReadInt32();
     in_conversation = in->ReadInt32();
     screen_tint = in->ReadInt32();
     num_parsed_words = in->ReadInt32();
-    in->ReadArray( parsed_words, sizeof(short), MAX_PARSED_WORDS);
-    in->ReadArray(&padding, sizeof(char), 2); // <-- padding
-    in->ReadArray( bad_parsed_word, sizeof(char), 100);
+    in->ReadArrayOfInt16( parsed_words, MAX_PARSED_WORDS);
+    in->Read(&padding, 2); // <-- padding
+    in->Read( bad_parsed_word, 100);
     raw_color = in->ReadInt32();
-    in->ReadArray( raw_modified, sizeof(int32), MAX_BSCENE);
-    in->ReadArray( filenumbers, sizeof(short), MAXSAVEGAMES);
+    in->ReadArrayOfInt32( raw_modified, MAX_BSCENE);
+    in->ReadArrayOfInt16( filenumbers, MAXSAVEGAMES);
     room_changes = in->ReadInt32();
     mouse_cursor_hidden = in->ReadInt32();
     silent_midi = in->ReadInt32();
@@ -170,8 +170,8 @@ void GameState::ReadFromFile(CDataStream *in)
     restore_cursor_mode_to = in->ReadInt32();
     restore_cursor_image_to = in->ReadInt32();
     music_queue_size = in->ReadInt16();
-    in->ReadArray(&padding, sizeof(char), 2); // <-- padding
-    in->ReadArray( music_queue, sizeof(short), MAX_QUEUED_MUSIC);
+    in->Read(&padding, 2); // <-- padding
+    in->ReadArrayOfInt16( music_queue, MAX_QUEUED_MUSIC);
     new_music_queue_size = in->ReadInt16();
     crossfading_out_channel = in->ReadInt16();
     crossfade_step = in->ReadInt16();
@@ -186,11 +186,11 @@ void GameState::ReadFromFile(CDataStream *in)
         new_music_queue[i].ReadFromFile(in);
     }
 
-    in->ReadArray(takeover_from, sizeof(char), 50);
-    in->ReadArray(playmp3file_name, sizeof(char), PLAYMP3FILE_MAX_FILENAME_LEN);
-    in->ReadArray(globalstrings, sizeof(char), MAXGLOBALSTRINGS * MAX_MAXSTRLEN);
-    in->ReadArray(lastParserEntry, sizeof(char), MAX_MAXSTRLEN);
-    in->ReadArray(game_name, sizeof(char), 100);
+    in->Read(takeover_from, 50);
+    in->Read(playmp3file_name, PLAYMP3FILE_MAX_FILENAME_LEN);
+    in->Read(globalstrings, MAXGLOBALSTRINGS * MAX_MAXSTRLEN);
+    in->Read(lastParserEntry, MAX_MAXSTRLEN);
+    in->Read(game_name, 100);
     ground_level_areas_disabled = in->ReadInt32();
     next_screen_transition = in->ReadInt32();
     gamma_adjustment = in->ReadInt32();
@@ -202,7 +202,7 @@ void GameState::ReadFromFile(CDataStream *in)
     text_min_display_time_ms = in->ReadInt32();
     ignore_user_input_after_text_timeout_ms = in->ReadInt32();
     ignore_user_input_until_time = in->ReadInt32();
-    in->ReadArray(default_audio_type_volumes, sizeof(int32), MAX_AUDIO_TYPES);
+    in->ReadArrayOfInt32(default_audio_type_volumes, MAX_AUDIO_TYPES);
 }
 
 void GameState::WriteToFile(CDataStream *out)
@@ -225,7 +225,7 @@ void GameState::WriteToFile(CDataStream *out)
     // Why do we need all this? For backwards compatibility.
     // Originally AGS saves most structs plainly as a single data piece, like
     //
-    //  out->WriteArray(&play,sizeof(GameState),1,ooo);
+    //  fwrite(&play,sizeof(GameState),1,ooo);
     //
     // which aligns data on its own. Here we have to do that manually.
     //
@@ -237,7 +237,7 @@ void GameState::WriteToFile(CDataStream *out)
     out->WriteInt32(disabled_user_interface);
     out->WriteInt32(gscript_timer);
     out->WriteInt32(debug_mode);
-    out->WriteArray(globalvars, sizeof(int32), MAXGLOBALVARS);
+    out->WriteArrayOfInt32(globalvars, MAXGLOBALVARS);
     out->WriteInt32(messagetime);
     out->WriteInt32(usedinv);
     out->WriteInt32(inv_top);
@@ -307,12 +307,12 @@ void GameState::WriteToFile(CDataStream *out)
     out->WriteInt32(keep_screen_during_instant_transition);
     out->WriteInt32(read_dialog_option_colour);
     out->WriteInt32(stop_dialog_at_end);
-    out->WriteArray(reserved, sizeof(int32), 10);
+    out->WriteArrayOfInt32(reserved, 10);
     // ** up to here is referenced in the script "game." object
     out->WriteInt32( recording);   // user is recording their moves
     out->WriteInt32( playback);    // playing back recording
     out->WriteInt16(gamestep);    // step number for matching recordings
-    out->WriteArray(&padding, sizeof(char), 2); // <-- padding
+    out->Write(&padding, 2); // <-- padding
     out->WriteInt32(randseed);    // random seed
     out->WriteInt32( player_on_region);    // player's current region
     out->WriteInt32( screen_is_faded_out); // the screen is currently black
@@ -325,15 +325,15 @@ void GameState::WriteToFile(CDataStream *out)
     out->WriteInt16(mboundx2);
     out->WriteInt16(mboundy1);
     out->WriteInt16(mboundy2);
-    out->WriteArray(&padding, sizeof(char), 2); // <-- padding
+    out->Write(&padding, 2); // <-- padding
     out->WriteInt32( fade_effect);
     out->WriteInt32( bg_frame_locked);
-    out->WriteArray(globalscriptvars, sizeof(int32), MAXGSVALUES);
+    out->WriteArrayOfInt32(globalscriptvars, MAXGSVALUES);
     out->WriteInt32( cur_music_number);
     out->WriteInt32( music_repeat);
     out->WriteInt32( music_master_volume);
     out->WriteInt32( digital_master_volume);
-    out->WriteArray(walkable_areas_on, sizeof(char), MAX_WALK_AREAS+1);
+    out->Write(walkable_areas_on, MAX_WALK_AREAS+1);
     out->WriteInt16( screen_flipped);
     out->WriteInt16( offsets_locked);
     out->WriteInt32( entered_at_x);
@@ -341,24 +341,24 @@ void GameState::WriteToFile(CDataStream *out)
     out->WriteInt32( entered_edge);
     out->WriteInt32( want_speech);
     out->WriteInt32( cant_skip_speech);
-    out->WriteArray(script_timers, sizeof(int32), MAX_TIMERS);
+    out->WriteArrayOfInt32(script_timers, MAX_TIMERS);
     out->WriteInt32( sound_volume);
     out->WriteInt32( speech_volume);
     out->WriteInt32( normal_font);
     out->WriteInt32( speech_font);
     out->WriteInt8( key_skip_wait);
-    out->WriteArray(&padding, sizeof(char), 3); // <-- padding
+    out->Write(&padding, 3); // <-- padding
     out->WriteInt32( swap_portrait_lastchar);
     out->WriteInt32( seperate_music_lib);
     out->WriteInt32( in_conversation);
     out->WriteInt32( screen_tint);
     out->WriteInt32( num_parsed_words);
-    out->WriteArray( parsed_words, sizeof(short), MAX_PARSED_WORDS);
-    out->WriteArray(&padding, sizeof(char), 2); // <-- padding
-    out->WriteArray( bad_parsed_word, sizeof(char), 100);
+    out->WriteArrayOfInt16( parsed_words, MAX_PARSED_WORDS);
+    out->Write(&padding, 2); // <-- padding
+    out->Write( bad_parsed_word, 100);
     out->WriteInt32( raw_color);
-    out->WriteArray( raw_modified, sizeof(int32), MAX_BSCENE);
-    out->WriteArray( filenumbers, sizeof(short), MAXSAVEGAMES);
+    out->WriteArrayOfInt32( raw_modified, MAX_BSCENE);
+    out->WriteArrayOfInt16( filenumbers, MAXSAVEGAMES);
     out->WriteInt32( room_changes);
     out->WriteInt32( mouse_cursor_hidden);
     out->WriteInt32( silent_midi);
@@ -379,8 +379,8 @@ void GameState::WriteToFile(CDataStream *out)
     out->WriteInt32( restore_cursor_mode_to);
     out->WriteInt32( restore_cursor_image_to);
     out->WriteInt16( music_queue_size);
-    out->WriteArray(&padding, sizeof(char), 2); // <-- padding
-    out->WriteArray( music_queue, sizeof(short), MAX_QUEUED_MUSIC);
+    out->Write(&padding, 2); // <-- padding
+    out->WriteArrayOfInt16( music_queue, MAX_QUEUED_MUSIC);
     out->WriteInt16( new_music_queue_size);
     out->WriteInt16( crossfading_out_channel);
     out->WriteInt16( crossfade_step);
@@ -395,11 +395,11 @@ void GameState::WriteToFile(CDataStream *out)
         new_music_queue[i].WriteToFile(out);
     }
 
-    out->WriteArray(takeover_from, sizeof(char), 50);
-    out->WriteArray(playmp3file_name, sizeof(char), PLAYMP3FILE_MAX_FILENAME_LEN);
-    out->WriteArray(globalstrings, sizeof(char), MAXGLOBALSTRINGS * MAX_MAXSTRLEN);
-    out->WriteArray(lastParserEntry, sizeof(char), MAX_MAXSTRLEN);
-    out->WriteArray(game_name, sizeof(char), 100);
+    out->Write(takeover_from, 50);
+    out->Write(playmp3file_name, PLAYMP3FILE_MAX_FILENAME_LEN);
+    out->Write(globalstrings, MAXGLOBALSTRINGS * MAX_MAXSTRLEN);
+    out->Write(lastParserEntry, MAX_MAXSTRLEN);
+    out->Write(game_name, 100);
     out->WriteInt32( ground_level_areas_disabled);
     out->WriteInt32( next_screen_transition);
     out->WriteInt32( gamma_adjustment);
@@ -411,5 +411,5 @@ void GameState::WriteToFile(CDataStream *out)
     out->WriteInt32( text_min_display_time_ms);
     out->WriteInt32( ignore_user_input_after_text_timeout_ms);
     out->WriteInt32( ignore_user_input_until_time);
-    out->WriteArray(default_audio_type_volumes, sizeof(int32), MAX_AUDIO_TYPES);
+    out->WriteArrayOfInt32(default_audio_type_volumes, MAX_AUDIO_TYPES);
 }

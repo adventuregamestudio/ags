@@ -74,11 +74,11 @@ void FileClose(CDataStream *hha) {
 void FileWrite(CDataStream *haa, const char *towrite) {
   check_valid_file_handle(haa,"FileWrite");
   haa->WriteInt32(strlen(towrite)+1);
-  haa->WriteArray(towrite,strlen(towrite)+1,1);
+  haa->Write(towrite,strlen(towrite)+1);
   }
 void FileWriteRawLine(CDataStream *haa, const char*towrite) {
   check_valid_file_handle(haa,"FileWriteRawLine");
-  haa->WriteArray(towrite,strlen(towrite),1);
+  haa->Write(towrite,strlen(towrite));
   haa->WriteInt8 (13);
   haa->WriteInt8 (10);
   }
@@ -91,7 +91,7 @@ void FileRead(CDataStream *haa,char*toread) {
   }
   int lle=haa->ReadInt32();
   if ((lle>=200) | (lle<1)) quit("!FileRead: file was not written by FileWrite");
-  haa->ReadArray(toread,lle,1);
+  haa->Read(toread,lle);
   }
 int FileIsEOF (CDataStream *haa) {
   check_valid_file_handle(haa,"FileIsEOF");

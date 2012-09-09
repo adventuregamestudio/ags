@@ -30,5 +30,5 @@ void AnimatingGUIButton::WriteToFile(CDataStream *out)
     out->WriteInt16(speed);
     out->WriteInt16(repeat);
     out->WriteInt16(wait);
-    out->WriteArray(padding, sizeof(char), 3);
+    out->Write(padding, sizeof(char));
 }

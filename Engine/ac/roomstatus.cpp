@@ -15,7 +15,7 @@ void RoomStatus::ReadFromFile(CDataStream *in)
     {
         obj[i].ReadFromFile(in);
     }
-    in->ReadArray(flagstates, sizeof(short), MAX_FLAGS);
+    in->ReadArrayOfInt16(flagstates, MAX_FLAGS);
     // might need to skip 2 if MAX_FLAGS is odd
     in->Seek(Common::kSeekCurrent, 2*(MAX_FLAGS%2));
     tsdatasize = in->ReadInt32();
@@ -33,11 +33,11 @@ void RoomStatus::ReadFromFile(CDataStream *in)
         intrRegion[i].ReadFromFile(in);
     }
     intrRoom.ReadFromFile(in);
-    in->ReadArray(hotspot_enabled, sizeof(char), MAX_HOTSPOTS);
-    in->ReadArray(region_enabled, sizeof(char), MAX_REGIONS);
-    in->ReadArray(walkbehind_base, sizeof(short), MAX_OBJ);
+    in->ReadArrayOfInt8((int8_t*)hotspot_enabled, MAX_HOTSPOTS);
+    in->ReadArrayOfInt8((int8_t*)region_enabled, MAX_REGIONS);
+    in->ReadArrayOfInt16(walkbehind_base, MAX_OBJ);
     in->Seek(Common::kSeekCurrent, get_padding(MAX_HOTSPOTS+MAX_REGIONS+2*MAX_OBJ));
-    in->ReadArray(interactionVariableValues, sizeof(int), MAX_GLOBAL_VARIABLES);
+    in->ReadArrayOfInt32(interactionVariableValues, MAX_GLOBAL_VARIABLES);
 //#else
 //    throw "RoomStatus::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
 //#endif
@@ -52,9 +52,9 @@ void RoomStatus::WriteToFile(CDataStream *out)
     {
         obj[i].WriteToFile(out);
     }
-    out->WriteArray(flagstates, sizeof(short), MAX_FLAGS);
+    out->WriteArrayOfInt16(flagstates, MAX_FLAGS);
     // might need to skip 2 if MAX_FLAGS is odd
-    out->WriteArray(pad, sizeof(char), 2*(MAX_FLAGS%2));
+    out->Write(pad, 2*(MAX_FLAGS%2));
     out->WriteInt32(tsdatasize);
     out->WriteInt32((int)tsdata);
     for (int i = 0; i < MAX_HOTSPOTS; ++i)
@@ -70,11 +70,11 @@ void RoomStatus::WriteToFile(CDataStream *out)
         intrRegion[i].WriteToFile(out);
     }
     intrRoom.WriteToFile(out);
-    out->WriteArray(hotspot_enabled, sizeof(char), MAX_HOTSPOTS);
-    out->WriteArray(region_enabled, sizeof(char), MAX_REGIONS);
-    out->WriteArray(walkbehind_base, sizeof(short), MAX_OBJ);
-    out->WriteArray(pad, sizeof(char), get_padding(MAX_HOTSPOTS+MAX_REGIONS+2*MAX_OBJ));
-    out->WriteArray(interactionVariableValues, sizeof(int), MAX_GLOBAL_VARIABLES);
+    out->Write(hotspot_enabled, MAX_HOTSPOTS);
+    out->Write(region_enabled, MAX_REGIONS);
+    out->WriteArrayOfInt16(walkbehind_base, MAX_OBJ);
+    out->Write(pad, get_padding(MAX_HOTSPOTS+MAX_REGIONS+2*MAX_OBJ));
+    out->WriteArrayOfInt32(interactionVariableValues,MAX_GLOBAL_VARIABLES);
 //#else
 //    throw "RoomStatus::WriteToFile() is not implemented for little-endian platforms and should not be called.";
 //#endif

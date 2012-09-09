@@ -347,7 +347,7 @@ void stop_recording() {
     strcat (replayfile, ".agr");
 
     CDataStream *replay_out = Common::File::CreateFile(replayfile);
-    replay_out->WriteArray ("AGSRecording", 12, 1);
+    replay_out->Write ("AGSRecording", 12);
     fputstring (ACI_VERSION_TEXT, replay_out);
     int write_version = 2;
     CDataStream *replay_temp_in = Common::File::OpenFileRead(replayTempFile);
@@ -364,13 +364,13 @@ void stop_recording() {
     replay_out->WriteInt32 (play.randseed);
     if (write_version >= 3)
         replay_out->WriteInt32 (recsize);
-    replay_out->WriteArray (recordbuffer, recsize, sizeof(short));
+    replay_out->WriteArrayOfInt16 (recordbuffer, recsize);
     if (replay_temp_in) {
         replay_out->WriteInt32 (1);  // yes there is a save present
         int lenno = replay_temp_in->GetLength();
         char *tbufr = (char*)malloc (lenno);
-        replay_temp_in->ReadArray (tbufr, lenno, 1);
-        replay_out->WriteArray (tbufr, lenno, 1);
+        replay_temp_in->Read (tbufr, lenno);
+        replay_out->Write (tbufr, lenno);
         free (tbufr);
         delete replay_temp_in;
         unlink (replayTempFile);
@@ -389,7 +389,7 @@ void start_playback()
     CDataStream *in = Common::File::OpenFileRead(replayfile);
     if (in != NULL) {
         char buffer [100];
-        in->ReadArray(buffer, 12, 1);
+        in->Read(buffer, 12);
         buffer[12] = 0;
         if (strcmp (buffer, "AGSRecording") != 0) {
             Display("ERROR: Invalid recorded data file");
@@ -441,7 +441,7 @@ void start_playback()
                 flen = in->ReadInt32() * sizeof(short);
             }
             recordbuffer = (short*)malloc (flen);
-            in->ReadArray(recordbuffer, flen, 1);
+            in->Read(recordbuffer, flen);
             srand (play.randseed);
             recbuffersize = flen / sizeof(short);
             recsize = 0;

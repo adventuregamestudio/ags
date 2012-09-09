@@ -86,16 +86,30 @@ void GUIMain::SetTransparencyAsPercentage(int percent)
 
 void GUIMain::ReadFromFile(CDataStream *in, int version)
 {
-    // read/write everything except drawOrder since
-    // it will be regenerated
+  // read/write everything except drawOrder since
+  // it will be regenerated
     in->ReadArray(vtext, sizeof(char), 40);
-    in->ReadArray(&x, sizeof(int), 27 + 2*MAX_OBJS_ON_GUI);
+    in->ReadArray(&x, sizeof(int), 27);
+
+  // 64 bit fix: Read 4 byte int values into array of 8 byte long ints
+  int i;
+  for (i = 0; i < MAX_OBJS_ON_GUI; i++)
+    objs[i] = (GUIObject*)in->ReadInt32();
+
+  in->ReadArray(&objrefptr, sizeof(int), MAX_OBJS_ON_GUI);
 }
 
 void GUIMain::WriteToFile(CDataStream *out)
 {
-	out->WriteArray(vtext, sizeof(char), 40);
-	out->WriteArray(&x, sizeof(int), 27 + 2*MAX_OBJS_ON_GUI);
+  out->WriteArray(vtext, sizeof(char), 40);
+  out->WriteArray(&x, sizeof(int), 27);
+
+  // 64 bit fix: Write 4 byte int values from array of 8 byte long ints
+  int i;
+  for (i = 0; i < MAX_OBJS_ON_GUI; i++)
+    out->WriteArray(&objs[i], 4, 1);
+
+  out->WriteArray(&objrefptr, sizeof(int), MAX_OBJS_ON_GUI);
 }
 
 const char* GUIMain::get_objscript_name(const char *basedOn) {

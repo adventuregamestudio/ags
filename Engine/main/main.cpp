@@ -27,7 +27,7 @@
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
 #include "debug/agseditordebugger.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "main/engine.h"
 #include "main/mainheader.h"
 #include "main/main.h"
@@ -321,6 +321,7 @@ int main(int argc,char*argv[]) {
     if ((argc>1) && (argv[1][1]=='?'))
         return 0;
 
+    initialize_debug_system();
     write_log_debug("***** ENGINE STARTUP");
 
 #if defined(WINDOWS_VERSION)
@@ -349,8 +350,9 @@ int main(int argc,char*argv[]) {
 
     if (usetup.disable_exception_handling)
     {
-        initialize_engine(argc, argv);
+        int result = initialize_engine(argc, argv);
         platform->PostAllegroExit();
+        return result;
     }
     else
     {

@@ -146,7 +146,7 @@ void cpackbitl16(unsigned short *line, int size, CDataStream *out)
   } // end while
 }
 
-void cpackbitl32(unsigned long *line, int size, CDataStream *out)
+void cpackbitl32(unsigned int *line, int size, CDataStream *out)
 {
   int cnt = 0;                  // bytes encoded
 
@@ -308,7 +308,7 @@ int cunpackbitl16(unsigned short *line, int size, CDataStream *in)
   return 0;
 }
 
-int cunpackbitl32(unsigned long *line, int size, CDataStream *in)
+int cunpackbitl32(unsigned int *line, int size, CDataStream *in)
 {
   int n = 0;                    // number of bytes decoded
 
@@ -324,7 +324,7 @@ int cunpackbitl32(unsigned long *line, int size, CDataStream *in)
 
     if (cx < 0) {                //.............run
       int i = 1 - cx;
-      unsigned long ch = in->ReadInt32();
+      unsigned int ch = in->ReadInt32();
       while (i--) {
         // test for buffer overflow
         if (n >= size)
@@ -339,7 +339,7 @@ int cunpackbitl32(unsigned long *line, int size, CDataStream *in)
         if (n >= size)
           return -1;
 
-        line[n++] = in->ReadInt32();
+        line[n++] = (unsigned int)in->ReadInt32();
       }
     }
   }
@@ -410,7 +410,7 @@ long save_lzw(char *fnn, BITMAP *bmpp, color *pall, long offe) {
   Seek(iii,ooff,SEEK_SET);*/
 
 long load_lzw(CDataStream *in, BITMAP *bmm, color *pall) {
-  long          uncompsiz, *loptr;
+  int          uncompsiz, *loptr;
   unsigned char *membuffer;
   int           arin;
 
@@ -427,7 +427,7 @@ long load_lzw(CDataStream *in, BITMAP *bmm, color *pall) {
   membuffer = lzwexpand_to_mem(in);
   update_polled_stuff_if_runtime();
 
-  loptr = (long *)&membuffer[0];
+  loptr = (int *)&membuffer[0];
   membuffer += 8;
 #ifdef ALLEGRO_BIG_ENDIAN
   loptr[0] = __int_swap_endian(loptr[0]);

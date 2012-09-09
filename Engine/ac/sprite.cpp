@@ -50,7 +50,7 @@ void set_rgb_mask_using_alpha_channel(block image)
 
     for (y=0; y < image->h; y++) 
     {
-        unsigned long*psrc = (unsigned long *)image->line[y];
+        unsigned int*psrc = (unsigned int *)image->line[y];
 
         for (x=0; x < image->w; x++) 
         {
@@ -67,12 +67,12 @@ block remove_alpha_channel(block from) {
     block to = create_bitmap_ex(depth, from->w, from->h);
     int maskcol = bitmap_mask_color(to);
     int y,x;
-    unsigned long c,b,g,r;
+    unsigned int c,b,g,r;
 
     if (depth == 24) {
         // 32-to-24
         for (y=0; y < from->h; y++) {
-            unsigned long*psrc = (unsigned long *)from->line[y];
+            unsigned int*psrc = (unsigned int *)from->line[y];
             unsigned char*pdest = (unsigned char*)to->line[y];
 
             for (x=0; x < from->w; x++) {
@@ -89,7 +89,7 @@ block remove_alpha_channel(block from) {
     else {  // 32 to 15 or 16
 
         for (y=0; y < from->h; y++) {
-            unsigned long*psrc = (unsigned long *)from->line[y];
+            unsigned int*psrc = (unsigned int *)from->line[y];
             unsigned short*pdest = (unsigned short *)to->line[y];
 
             for (x=0; x < from->w; x++) {

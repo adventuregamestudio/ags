@@ -13,7 +13,7 @@ int CCDynamicArray::Dispose(const char *address, bool force) {
 
     // If it's an array of managed objects, release
     // their ref counts
-    long *elementCount = (long*)address;
+    int *elementCount = (int*)address;
     if (elementCount[0] & ARRAY_MANAGED_TYPE_FLAG)
     {
         elementCount[0] &= ~ARRAY_MANAGED_TYPE_FLAG;
@@ -33,8 +33,8 @@ int CCDynamicArray::Dispose(const char *address, bool force) {
 // serialize the object into BUFFER (which is BUFSIZE bytes)
 // return number of bytes used
 int CCDynamicArray::Serialize(const char *address, char *buffer, int bufsize) {
-    long *sizeInBytes = &((long*)address)[-1];
-    long sizeToWrite = *sizeInBytes + 8;
+    int *sizeInBytes = &((int*)address)[-1];
+    int sizeToWrite = *sizeInBytes + 8;
     if (sizeToWrite > bufsize)
     {
         // buffer not big enough, ask for a bigger one
@@ -54,7 +54,7 @@ long CCDynamicArray::Create(int numElements, int elementSize, bool isManagedType
 {
     char *newArray = new char[numElements * elementSize + 8];
     memset(newArray, 0, numElements * elementSize + 8);
-    long *sizePtr = (long*)newArray;
+    int *sizePtr = (int*)newArray;
     sizePtr[0] = numElements;
     sizePtr[1] = numElements * elementSize;
     if (isManagedType) 

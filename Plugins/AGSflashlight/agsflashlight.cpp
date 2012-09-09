@@ -858,6 +858,93 @@ void AGS_EngineInitGfx(const char *driverID, void *data)
 {
 }
 
+
+
+#if defined(WINDOWS_VERSION) && !defined(BUILTIN_PLUGINS)
+
+// ********************************************
+// ***********  Editor Interface  *************
+// ********************************************
+
+const char* scriptHeader =
+  "import void SetFlashlightTint(int RedTint, int GreenTint, int BlueTint);\r\n"
+  "import int GetFlashlightTintRed();\r\n"
+  "import int GetFlashlightTintGreen();\r\n"
+  "import int GetFlashlightTintBlue();\r\n"
+  "import int GetFlashlightMinLightLevel();\r\n"
+  "import int GetFlashlightMaxLightLevel();\r\n"
+  "import void SetFlashlightDarkness(int LightLevel);\r\n"
+  "import int GetFlashlightDarkness();\r\n"
+  "import void SetFlashlightDarknessSize(int Size);\r\n"
+  "import int GetFlashlightDarknessSize();\r\n"
+  "import void SetFlashlightBrightness(int LightLevel);\r\n"
+  "import int GetFlashlightBrightness();\r\n"
+  "import void SetFlashlightBrightnessSize(int Size);\r\n"
+  "import int GetFlashlightBrightnessSize();\r\n"
+  "import void SetFlashlightPosition(int X, int Y);\r\n"
+  "import int GetFlashlightPositionX();\r\n"
+  "import int GetFlashlightPositionY();\r\n"
+  "import void SetFlashlightFollowMouse(int OnOff);\r\n"
+  "import int GetFlashlightFollowMouse ();\r\n"
+  "import void SetFlashlightFollowCharacter(int CharacterId, int dx, int dy, int horz, int vert);\r\n"
+  "import int GetFlashlightFollowCharacter();\r\n"
+  "import int GetFlashlightCharacterDX();\r\n"
+  "import int GetFlashlightCharacterDY();\r\n"
+  "import int GetFlashlightCharacterHorz();\r\n"
+  "import int GetFlashlightCharacterVert();\r\n";
+
+
+IAGSEditor* editor;
+
+
+LPCSTR AGS_GetPluginName(void)
+{
+  // Return the plugin description
+  return "Flashlight plugin recreation";
+}
+
+int  AGS_EditorStartup(IAGSEditor* lpEditor)
+{
+  // User has checked the plugin to use it in their game
+
+  // If it's an earlier version than what we need, abort.
+  if (lpEditor->version < 1)
+    return -1;
+
+  editor = lpEditor;
+  editor->RegisterScriptHeader(scriptHeader);
+
+  // Return 0 to indicate success
+  return 0;
+}
+
+void AGS_EditorShutdown()
+{
+  // User has un-checked the plugin from their game
+  editor->UnregisterScriptHeader(scriptHeader);
+}
+
+void AGS_EditorProperties(HWND parent)
+{
+  // User has chosen to view the Properties of the plugin
+  // We could load up an options dialog or something here instead
+  MessageBoxA(parent, "Flashlight plugin recreation by JJS", "About", MB_OK | MB_ICONINFORMATION);
+}
+
+int AGS_EditorSaveGame(char* buffer, int bufsize)
+{
+  // We don't want to save any persistent data
+  return 0;
+}
+
+void AGS_EditorLoadGame(char* buffer, int bufsize)
+{
+  // Nothing to load for this plugin
+}
+
+#endif
+
+
 #if defined(BUILTIN_PLUGINS)
 }
 #endif

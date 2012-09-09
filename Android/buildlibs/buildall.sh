@@ -10,5 +10,6 @@ do
 	./theora.sh
 	./allegro.sh
 	./dumb.sh
+	./lua.sh
 	cd ..
 done

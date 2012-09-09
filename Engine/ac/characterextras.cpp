@@ -21,7 +21,6 @@ void CharacterExtras::ReadFromFile(CDataStream *in)
     process_idle_this_time = in->ReadInt8();
     slow_move_counter = in->ReadInt8();
     animwait = in->ReadInt16();
-    in->Seek(Common::kSeekCurrent, get_padding(MAX_INVORDER * sizeof(short) + 2));
 }
 
 void CharacterExtras::WriteToFile(CDataStream *out)
@@ -42,5 +41,4 @@ void CharacterExtras::WriteToFile(CDataStream *out)
     out->WriteInt8(process_idle_this_time);
     out->WriteInt8(slow_move_counter);
     out->WriteInt16(animwait);
-    out->WriteArray(padding, sizeof(char), get_padding(MAX_INVORDER * sizeof(short) + 2));
 }

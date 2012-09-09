@@ -36,7 +36,8 @@
 #include "ac/viewframe.h"
 #include "ac/dynobj/scriptobject.h"
 #include "ac/dynobj/scriptsystem.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
+#include "debug/debugger.h"
 #include "main/config.h"
 #include "main/game_start.h"
 #include "main/graphics_mode.h"
@@ -64,7 +65,6 @@ extern int our_eip;
 extern volatile char want_exit, abort_engine;
 extern GameSetup usetup;
 extern GameSetupStruct game;
-extern RoomStatus *roomstats;
 extern int proper_exit;
 extern char pexbuf[STD_BUFFER_SIZE];
 extern char saveGameDirectory[260];
@@ -114,8 +114,12 @@ void engine_read_config(int argc,char*argv[])
 
 #define ALLEGRO_KEYBOARD_HANDLER
 // KEYBOARD HANDLER
+#if defined(LINUX_VERSION) || defined(MAC_VERSION)
+int myerrno;
+#else
 int errno;
 #define myerrno errno
+#endif
 
 int engine_init_allegro()
 {
@@ -411,15 +415,7 @@ int engine_check_memory()
 
 void engine_init_rooms()
 {
-    write_log_debug("Initializing rooms");
-
-    roomstats=(RoomStatus*)calloc(sizeof(RoomStatus),MAX_ROOMS);
-    for (int ee=0;ee<MAX_ROOMS;ee++) {
-        roomstats[ee].beenhere=0;
-        roomstats[ee].numobj=0;
-        roomstats[ee].tsdatasize=0;
-        roomstats[ee].tsdata=NULL;
-    }
+    // Obsolete now since room statuses are allocated only when needed
 }
 
 int engine_init_speech()
@@ -936,7 +932,8 @@ void init_game_settings() {
 
     for (ee = 0; ee < MAX_INIT_SPR; ee++) {
         scrObj[ee].id = ee;
-        scrObj[ee].obj = NULL;
+        // 64 bit: Using the id instead
+        // scrObj[ee].obj = NULL;
     }
 
     for (ee=0;ee<game.numcharacters;ee++) {
@@ -968,10 +965,8 @@ void init_game_settings() {
     guibg = (block*)malloc(sizeof(block) * game.numgui);
     guibgbmp = (IDriverDependantBitmap**)malloc(sizeof(IDriverDependantBitmap*) * game.numgui);
     for (ee=0;ee<game.numgui;ee++) {
+        guibg[ee] = NULL;
         guibgbmp[ee] = NULL;
-        GUIMain*cgp=&guis[ee];
-        guibg[ee] = create_bitmap_ex (final_col_dep, cgp->wid, cgp->hit);
-        guibg[ee] = gfxDriver->ConvertBitmapToSupportedColourDepth(guibg[ee]);
     }
 
     our_eip=-5;
@@ -1167,35 +1162,23 @@ void engine_init_game_shit()
 #if defined(PSP_VERSION)
 // PSP: Workaround for sound stuttering. Do sound updates in its own thread.
 int update_mp3_thread(SceSize args, void *argp)
-{
-  while (update_mp3_thread_running)
-  {
-    UPDATE_MP3_THREAD
-    sceKernelDelayThread(1000 * 50);
-  }
-  return 0;
-}
-#elif (defined(LINUX_VERSION) && !defined(PSP_VERSION)) || defined(MAC_VERSION)
+#elif (defined(LINUX_VERSION) || defined(MAC_VERSION))
 void* update_mp3_thread(void* arg)
-{
-  while (update_mp3_thread_running)
-  {
-    UPDATE_MP3_THREAD
-    usleep(1000 * 50);
-  }
-  pthread_exit(NULL);
-}
 #elif defined(WINDOWS_VERSION)
 DWORD WINAPI update_mp3_thread(LPVOID lpParam)
+#endif
 {
   while (update_mp3_thread_running)
   {
     UPDATE_MP3_THREAD
-    Sleep(50);
+    platform->Delay(50);
   }
+#if (defined(LINUX_VERSION) || defined(MAC_VERSION)) && !defined(PSP_VERSION)
+  pthread_exit(0);
+#else
   return 0;
-}
 #endif
+}
 
 void engine_start_multithreaded_audio()
 {

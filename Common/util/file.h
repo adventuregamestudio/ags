@@ -18,7 +18,7 @@ long int filelength(int fhandle);
 
 #if defined ALLEGRO_BIG_ENDIAN
 #include "platform/bigend/bigend.h"
-#else !ALLEGRO_BIG_ENDIAN
+#else
 // Two functions to match those defined by bigend version by McCrea
 short int   getshort(FILE *);
 void        putshort(short int, FILE *);

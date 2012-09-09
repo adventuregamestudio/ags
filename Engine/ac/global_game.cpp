@@ -27,7 +27,8 @@
 #include "ac/roomstatus.h"
 #include "ac/roomstruct.h"
 #include "ac/string.h"
-#include "debug/debug.h"
+#include "debug/debugger.h"
+#include "debug/debug_log.h"
 #include "gui/guidialog.h"
 #include "main/engine.h"
 #include "main/game_start.h"
@@ -878,7 +879,7 @@ void scrWait(int nloops) {
 
     play.wait_counter = nloops;
     play.key_skip_wait = 0;
-    do_main_cycle(UNTIL_MOVEEND,(int)&play.wait_counter);
+    do_main_cycle(UNTIL_MOVEEND,(long)&play.wait_counter);
 }
 
 int WaitKey(int nloops) {
@@ -887,7 +888,7 @@ int WaitKey(int nloops) {
 
     play.wait_counter = nloops;
     play.key_skip_wait = 1;
-    do_main_cycle(UNTIL_MOVEEND,(int)&play.wait_counter);
+    do_main_cycle(UNTIL_MOVEEND,(long)&play.wait_counter);
     if (play.wait_counter < 0)
         return 1;
     return 0;
@@ -899,7 +900,7 @@ int WaitMouseKey(int nloops) {
 
     play.wait_counter = nloops;
     play.key_skip_wait = 3;
-    do_main_cycle(UNTIL_MOVEEND,(int)&play.wait_counter);
+    do_main_cycle(UNTIL_MOVEEND,(long)&play.wait_counter);
     if (play.wait_counter < 0)
         return 1;
     return 0;

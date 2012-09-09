@@ -469,6 +469,13 @@ int cc_run_code(ccInstance * inst, long curpc)
     inst->pc = curpc;
     inst->returnValue = -1;
 
+#if defined(AGS_64BIT)
+    // 64 bit: For dealing with the stack
+    int original_sp_diff = 0;
+    int new_sp_diff = 0;
+    int sp_index = 0;
+#endif
+
     if ((curpc < 0) || (curpc >= inst->runningInst->codesize)) {
         cc_error("specified code offset is not valid");
         return -1;
@@ -521,558 +528,678 @@ int cc_run_code(ccInstance * inst, long curpc)
               new_line_hook(inst, currentline);
           break;
       case SCMD_ADD:
-          inst->registers[arg1] += arg2;
-          CHECK_STACK 
-              break;
+#if defined(AGS_64BIT)
+        // 64 bit: Keeping track of the stack variables
+        if (arg1 == SREG_SP)
+        {
+          inst->stackSizes[inst->stackSizeIndex] = arg2;
+          inst->stackSizeIndex++;
+        }
+#endif
+
+        inst->registers[arg1] += arg2;
+        CHECK_STACK 
+        break;
       case SCMD_SUB:
+#if defined(AGS_64BIT)
+        // 64 bit: Rewrite the offset so that it doesn't point inside a variable on the stack.
+        // AGS 2.x games also perform relative stack access by copying SREG_SP to SREG_MAR
+        // and then subtracting from that.
+        if ((arg1 == SREG_SP) || ((arg1 == SREG_MAR) && (inst->registers[SREG_MAR] == inst->registers[SREG_SP])))
+        {
+          int orig_sub = arg2;
+          int new_sub = 0;
+          int temp_index = inst->stackSizeIndex;
+          while (orig_sub > 0)
+          {
+            if (temp_index < 1)
+              cc_error("Subtracting from stack variable would underflow stack. Stack corrupted?");
+
+            if (inst->stackSizes[temp_index - 1] == -1)
+            {
+              orig_sub -= 4;
+              new_sub += sizeof(long);
+            }
+            else
+            {
+              orig_sub -= inst->stackSizes[temp_index - 1];
+              new_sub += inst->stackSizes[temp_index - 1];
+            }
+            temp_index--;
+          }
+          if (arg1 == SREG_SP)
+            inst->stackSizeIndex = temp_index;
+
+          inst->registers[arg1] -= new_sub;
+        }
+        else
           inst->registers[arg1] -= arg2;
-          break;
+#else
+          inst->registers[arg1] -= arg2;
+#endif  
+        break;
       case SCMD_REGTOREG:
-          inst->registers[arg2] = inst->registers[arg1];
-          break;
+        inst->registers[arg2] = inst->registers[arg1];
+        break;
       case SCMD_WRITELIT:
-          // poss something dodgy about this routine
-          mptr = (char *)(inst->registers[SREG_MAR]);
-          memcpy(&mptr[0], &arg2, arg1);
-          break;
+        // poss something dodgy about this routine
+        mptr = (char *)(inst->registers[SREG_MAR]);
+        memcpy(&mptr[0], &arg2, arg1);
+        break;
       case SCMD_RET:
-          if (loopIterationCheckDisabled > 0)
-              loopIterationCheckDisabled--;
+        if (loopIterationCheckDisabled > 0)
+          loopIterationCheckDisabled--;
 
-          inst->registers[SREG_SP] -= 4;
-          curnest--;
-          memcpy(&(inst->pc), (char*)inst->registers[SREG_SP], 4);
-          if (inst->pc == 0)
-          {
-              inst->returnValue = inst->registers[SREG_AX];
-              return 0;
-          }
-          current_instance = inst;
-          POP_CALL_STACK(inst);
-          continue;                 // continue so that the PC doesn't get overwritten
+        inst->registers[SREG_SP] -= sizeof(long);
+#if defined(AGS_64BIT)
+        inst->stackSizeIndex--;
+#endif
+
+        curnest--;
+        memcpy(&(inst->pc), (char*)inst->registers[SREG_SP], sizeof(long));
+        if (inst->pc == 0)
+        {
+          inst->returnValue = (int)inst->registers[SREG_AX];
+          return 0;
+        }
+        current_instance = inst;
+        POP_CALL_STACK(inst);
+        continue;                 // continue so that the PC doesn't get overwritten
       case SCMD_LITTOREG:
-          inst->registers[arg1] = arg2;
-          break;
+        inst->registers[arg1] = arg2;
+        break;
       case SCMD_MEMREAD:
-          memcpy(&(inst->registers[arg1]), (char*)inst->registers[SREG_MAR], 4);
+        // 64 bit: Memory reads are still 32 bit
+        memset(&(inst->registers[arg1]), 0, sizeof(long));
+        memcpy(&(inst->registers[arg1]), (char*)inst->registers[SREG_MAR], 4);
 #ifdef AGS_BIG_ENDIAN
+        {
+          // check if we're reading from the script's global data
+          // if so, swap endian
+          char *charPtr = (char *)inst->registers[SREG_MAR];
+          if (gSpans.IsInSpan(charPtr))
           {
-              // check if we're reading from the script's global data
-              // if so, swap endian
-              char *charPtr = (char *)inst->registers[SREG_MAR];
-              if (gSpans.IsInSpan(charPtr))
-              {
-                  inst->registers[arg1] = __int_swap_endian(inst->registers[arg1]);
-              }
+            inst->registers[arg1] = __int_swap_endian(inst->registers[arg1]);
           }
+        }
 #endif
-          break;
+        break;
       case SCMD_MEMWRITE:
-          memcpy((char*)inst->registers[SREG_MAR], &(inst->registers[arg1]), 4);
+        // 64 bit: Memory writes are still 32 bit
+        memcpy((char*)inst->registers[SREG_MAR], &(inst->registers[arg1]), 4);
 #ifdef AGS_BIG_ENDIAN
+        {
+          // check if we're writing to the script's global data
+          // if so, swap endian
+          char *charPtr = (char *)inst->registers[SREG_MAR];
+          if (gSpans.IsInSpan(charPtr))
           {
-              // check if we're writing to the script's global data
-              // if so, swap endian
-              char *charPtr = (char *)inst->registers[SREG_MAR];
-              if (gSpans.IsInSpan(charPtr))
-              {
-                  long *dataPtr = (long *)charPtr;
-                  *dataPtr = __int_swap_endian(*dataPtr);
-              }
+            long *dataPtr = (long *)charPtr;
+            *dataPtr = __int_swap_endian(*dataPtr);
           }
+        }
 #endif
-          break;
+        break;
       case SCMD_LOADSPOFFS:
-          inst->registers[SREG_MAR] = inst->registers[SREG_SP] - arg1;
-          break;
+#if defined(AGS_64BIT)
+        // 64 bit: Rewrite offset so that it doesn't point inside a variable
+        original_sp_diff = arg1;
+        new_sp_diff = 0;
+        sp_index = inst->stackSizeIndex - 1;
+
+        while (original_sp_diff > 0)
+        {
+          if (inst->stackSizes[sp_index] == -1)
+          {
+           	original_sp_diff -= 4;
+            new_sp_diff += sizeof(long);//inst->stackSizes[sp_index];
+            sp_index--;
+          }
+          else
+          {
+            original_sp_diff -= inst->stackSizes[sp_index];
+            new_sp_diff += inst->stackSizes[sp_index];
+            sp_index--;
+          }
+        }
+
+        if (sp_index < -1)
+          cc_error("Stack offset cannot be rewritten. Stack corrupted?");
+
+        inst->registers[SREG_MAR] = inst->registers[SREG_SP] - new_sp_diff;
+#else
+        inst->registers[SREG_MAR] = inst->registers[SREG_SP] - arg1;
+#endif
+        break;
+
+      // 64 bit: Force 32 bit math
+
       case SCMD_MULREG:
-          inst->registers[arg1] *= inst->registers[arg2];
-          break;
+        inst->registers[arg1] = (int)((int)inst->registers[arg1] * (int)inst->registers[arg2]);
+        break;
       case SCMD_DIVREG:
-          if (inst->registers[arg2] == 0) {
-              cc_error("!Integer divide by zero");
-              return -1;
-          } 
-          inst->registers[arg1] /= inst->registers[arg2];
-          break;
+        if (inst->registers[arg2] == 0) {
+          cc_error("!Integer divide by zero");
+          return -1;
+        } 
+        inst->registers[arg1] = (int)((int)inst->registers[arg1] / (int)inst->registers[arg2]);
+        break;
       case SCMD_ADDREG:
-          inst->registers[arg1] += inst->registers[arg2];
-          break;
+        inst->registers[arg1] = (int)((int)inst->registers[arg1] + (int)inst->registers[arg2]);
+        break;
       case SCMD_SUBREG:
-          inst->registers[arg1] -= inst->registers[arg2];
-          break;
+        inst->registers[arg1] = (int)((int)inst->registers[arg1] - (int)inst->registers[arg2]);
+        break;
       case SCMD_BITAND:
-          inst->registers[arg1] = inst->registers[arg1] & inst->registers[arg2];
-          break;
+        inst->registers[arg1] = (int)((int)inst->registers[arg1] & (int)inst->registers[arg2]);
+        break;
       case SCMD_BITOR:
-          inst->registers[arg1] = inst->registers[arg1] | inst->registers[arg2];
-          break;
+        inst->registers[arg1] = (int)((int)inst->registers[arg1] | (int)inst->registers[arg2]);
+        break;
       case SCMD_ISEQUAL:
-          inst->registers[arg1] = (inst->registers[arg1] == inst->registers[arg2]);
-          break;
+        inst->registers[arg1] = (int)((int)inst->registers[arg1] == (int)inst->registers[arg2]);
+        break;
       case SCMD_NOTEQUAL:
-          inst->registers[arg1] = (inst->registers[arg1] != inst->registers[arg2]);
-          break;
+        inst->registers[arg1] = (int)((int)inst->registers[arg1] != (int)inst->registers[arg2]);
+        break;
       case SCMD_GREATER:
-          inst->registers[arg1] = (inst->registers[arg1] > inst->registers[arg2]);
-          break;
+        inst->registers[arg1] = (int)((int)inst->registers[arg1] > (int)inst->registers[arg2]);
+        break;
       case SCMD_LESSTHAN:
-          inst->registers[arg1] = (inst->registers[arg1] < inst->registers[arg2]);
-          break;
+        inst->registers[arg1] = (int)((int)inst->registers[arg1] < (int)inst->registers[arg2]);
+        break;
       case SCMD_GTE:
-          inst->registers[arg1] = (inst->registers[arg1] >= inst->registers[arg2]);
-          break;
+        inst->registers[arg1] = (int)((int)inst->registers[arg1] >= (int)inst->registers[arg2]);
+        break;
       case SCMD_LTE:
-          inst->registers[arg1] = (inst->registers[arg1] <= inst->registers[arg2]);
-          break;
+        inst->registers[arg1] = (int)((int)inst->registers[arg1] <= (int)inst->registers[arg2]);
+        break;
       case SCMD_AND:
-          inst->registers[arg1] = (inst->registers[arg1] && inst->registers[arg2]);
-          break;
+        inst->registers[arg1] = (int)((int)inst->registers[arg1] && (int)inst->registers[arg2]);
+        break;
       case SCMD_OR:
-          inst->registers[arg1] = (inst->registers[arg1] || inst->registers[arg2]);
-          break;
+        inst->registers[arg1] = (int)((int)inst->registers[arg1] || (int)inst->registers[arg2]);
+        break;
       case SCMD_XORREG:
-          inst->registers[arg1] = (inst->registers[arg1] ^ inst->registers[arg2]);
-          break;
+        inst->registers[arg1] = (int)((int)inst->registers[arg1] ^ (int)inst->registers[arg2]);
+        break;
       case SCMD_MODREG:
-          if (inst->registers[arg2] == 0) {
-              cc_error("!Integer divide by zero");
-              return -1;
-          } 
-          inst->registers[arg1] %= inst->registers[arg2];
-          break;
+        if (inst->registers[arg2] == 0) {
+          cc_error("!Integer divide by zero");
+          return -1;
+        } 
+        inst->registers[arg1] = (int)((int)inst->registers[arg1] % (int)inst->registers[arg2]);
+        break;
       case SCMD_NOTREG:
-          inst->registers[arg1] = !(inst->registers[arg1]);
-          break;
+        inst->registers[arg1] = !(inst->registers[arg1]);
+        break;
       case SCMD_CALL:
-          // Call another function within same script, just save PC
-          // and continue from there
-          if (curnest >= MAXNEST - 1) {
-              cc_error("!call stack overflow, recursive call problem?");
-              return -1;
-          }
-
-          PUSH_CALL_STACK(inst);
-
-          temp_variable = inst->pc + sccmdargs[thisInstruction] + 1;
-          memcpy((char*)inst->registers[SREG_SP], &temp_variable, 4);
-
-          inst->registers[SREG_SP] += 4;
-
-          if (thisbase[curnest] == 0)
-              inst->pc = inst->registers[arg1];
-          else {
-              inst->pc = funcstart[curnest];
-              inst->pc += (inst->registers[arg1] - thisbase[curnest]);
-          }
-
-          if (next_call_needs_object)  // is this right?
-              next_call_needs_object = 0;
-
-          if (loopIterationCheckDisabled)
-              loopIterationCheckDisabled++;
-
-          curnest++;
-          thisbase[curnest] = 0;
-          funcstart[curnest] = inst->pc;
-          CHECK_STACK
-              continue;
-      case SCMD_MEMREADB:
-          tbyte = *((unsigned char *)inst->registers[SREG_MAR]);
-          inst->registers[arg1] = tbyte;
-          break;
-      case SCMD_MEMREADW:
-          tshort = *((short *)inst->registers[SREG_MAR]);
-          inst->registers[arg1] = tshort;
-#ifdef AGS_BIG_ENDIAN
-          {
-              // check if we're reading from the script's global data
-              // if so, swap endian
-              char *charPtr = (char *)inst->registers[SREG_MAR];
-              if (gSpans.IsInSpan(charPtr))
-              {
-                  inst->registers[arg1] = __short_swap_endian(inst->registers[arg1]);
-              }
-          }
-#endif
-          break;
-      case SCMD_MEMWRITEB:
-          tbyte = (unsigned char)inst->registers[arg1];
-          *((unsigned char *)inst->registers[SREG_MAR]) = tbyte;
-          break;
-      case SCMD_MEMWRITEW:
-          tshort = (short)inst->registers[arg1];
-          *((short *)inst->registers[SREG_MAR]) = tshort;
-#ifdef AGS_BIG_ENDIAN
-          {
-              // check if we're writing to the script's global data
-              // if so, swap endian
-              char *charPtr = (char *)inst->registers[SREG_MAR];
-              if (gSpans.IsInSpan(charPtr))
-              {
-                  short *dataPtr = (short *)charPtr;
-                  *dataPtr = __short_swap_endian(*dataPtr);
-              }
-          }
-#endif
-          break;
-      case SCMD_JZ:
-          if (inst->registers[SREG_AX] == 0)
-              inst->pc += arg1;
-          break;
-      case SCMD_JNZ:
-          if (inst->registers[SREG_AX] != 0)
-              inst->pc += arg1;
-          break;
-      case SCMD_PUSHREG:
-          memcpy((char*)inst->registers[SREG_SP], &(inst->registers[arg1]), 4);
-          inst->registers[SREG_SP] += 4;
-          CHECK_STACK
-              break;
-      case SCMD_POPREG:
-          inst->registers[SREG_SP] -= 4;
-          memcpy(&(inst->registers[arg1]), (char*)inst->registers[SREG_SP], 4);
-          break;
-      case SCMD_JMP:
-          inst->pc += arg1;
-          if ((arg1 < 0) && (maxWhileLoops > 0) && (loopIterationCheckDisabled == 0)) {
-              // Make sure it's not stuck in a While loop
-              loopIterations ++;
-              if (inst->flags & INSTF_RUNNING) {
-                  loopIterations = 0;
-                  inst->flags &= ~INSTF_RUNNING;
-              }
-              else if (loopIterations > maxWhileLoops) {
-                  cc_error("!Script appears to be hung (a while loop ran %d times). The problem may be in a calling function; check the call stack.", loopIterations);
-                  return -1;
-              }
-          }
-          break;
-      case SCMD_MUL:
-          inst->registers[arg1] *= arg2;
-          break;
-      case SCMD_CHECKBOUNDS:
-          if ((inst->registers[arg1] < 0) ||
-              (inst->registers[arg1] >= arg2)) {
-                  cc_error("!Array index out of bounds (index: %d, bounds: 0..%d)", inst->registers[arg1], arg2 - 1);
-                  return -1;
-          }
-          break;
-      case SCMD_DYNAMICBOUNDS:
-          {
-              long upperBoundInBytes = *((long *)(inst->registers[SREG_MAR] - 4));
-              if ((inst->registers[arg1] < 0) ||
-                  (inst->registers[arg1] >= upperBoundInBytes)) {
-                      long upperBound = *((long *)(inst->registers[SREG_MAR] - 8)) & (~ARRAY_MANAGED_TYPE_FLAG);
-                      int elementSize = (upperBoundInBytes / upperBound);
-                      cc_error("!Array index out of bounds (index: %d, bounds: 0..%d)", inst->registers[arg1] / elementSize, upperBound - 1);
-                      return -1;
-              }
-              break;
-          }
-      case SCMD_MEMREADPTR:
-          ccError = 0;
-
-          long handle;
-          memcpy(&handle, (char*)(inst->registers[SREG_MAR]), 4);
-          inst->registers[arg1] = (long)ccGetObjectAddressFromHandle(handle);
-
-          // if error occurred, cc_error will have been set
-          if (ccError)
-              return -1;
-          break;
-      case SCMD_MEMWRITEPTR: {
-          long ptr;
-          memcpy(&ptr, ((char*)inst->registers[SREG_MAR]), 4);
-
-          long newHandle = ccGetObjectHandleFromAddress((char*)inst->registers[arg1]);
-          if (newHandle == -1)
-              return -1;
-
-          if (ptr != newHandle) {
-
-              ccReleaseObjectReference(ptr);
-              ccAddObjectReference(newHandle);
-              memcpy(((char*)inst->registers[SREG_MAR]), &newHandle, 4);
-          }
-          break;
-                             }
-      case SCMD_MEMINITPTR: { 
-          // like memwriteptr, but doesn't attempt to free the old one
-
-          long ptr;
-          memcpy(&ptr, ((char*)inst->registers[SREG_MAR]), 4);
-
-          long newHandle = ccGetObjectHandleFromAddress((char*)inst->registers[arg1]);
-          if (newHandle == -1)
-              return -1;
-
-          ccAddObjectReference(newHandle);
-          memcpy(((char*)inst->registers[SREG_MAR]), &newHandle, 4);
-          break;
-                            }
-      case SCMD_MEMZEROPTR: {
-          long ptr;
-          memcpy(&ptr, ((char*)inst->registers[SREG_MAR]), 4);
-          ccReleaseObjectReference(ptr);
-          memset(((char*)inst->registers[SREG_MAR]), 0, 4);
-
-          break;
-                            }
-      case SCMD_MEMZEROPTRND: {
-          long ptr;
-          memcpy(&ptr, ((char*)inst->registers[SREG_MAR]), 4);
-
-          // don't do the Dispose check for the object being returned -- this is
-          // for returning a String (or other pointer) from a custom function.
-          // Note: we might be freeing a dynamic array which contains the DisableDispose
-          // object, that will be handled inside the recursive call to SubRef.
-          pool.disableDisposeForObject = (const char*)inst->registers[SREG_AX];
-          ccReleaseObjectReference(ptr);
-          pool.disableDisposeForObject = NULL;
-          memset(((char*)inst->registers[SREG_MAR]), 0, 4);
-          break;
-                              }
-      case SCMD_CHECKNULL:
-          if (inst->registers[SREG_MAR] == 0) {
-              cc_error("!Null pointer referenced");
-              return -1;
-          }
-          break;
-      case SCMD_CHECKNULLREG:
-          if (inst->registers[arg1] == 0) {
-              cc_error("!Null string referenced");
-              return -1;
-          }
-          break;
-      case SCMD_NUMFUNCARGS:
-          num_args_to_func = arg1;
-          break;
-      case SCMD_CALLAS:{
-          PUSH_CALL_STACK(inst);
-
-          // Call to a function in another script
-          int startArg = 0;
-          // If there are nested CALLAS calls, the stack might
-          // contain 2 calls worth of parameters, so only
-          // push args for this call
-          if (num_args_to_func >= 0)
-              startArg = callstacksize - num_args_to_func;
-
-          for (aa = startArg; aa < callstacksize; aa++) {
-              memcpy((char*)inst->registers[SREG_SP], &(callstack[aa]), 4);
-              inst->registers[SREG_SP] += 4;
-          }
-
-          // 0, so that the cc_run_code returns
-          memset((char*)inst->registers[SREG_SP], 0, 4);
-
-          long oldstack = inst->registers[SREG_SP];
-          inst->registers[SREG_SP] += 4;
-          CHECK_STACK
-              int oldpc = inst->pc;
-          ccInstance *wasRunning = inst->runningInst;
-
-          // extract the instance ID
-          unsigned long instId = (codeInst->code[inst->pc] >> INSTANCE_ID_SHIFT) & INSTANCE_ID_MASK;
-          // determine the offset into the code of the instance we want
-          inst->runningInst = loadedInstances[instId];
-          unsigned long callAddr = inst->registers[arg1] - (unsigned long)(&inst->runningInst->code[0]);
-          if (callAddr % 4 != 0) {
-              cc_error("call address not aligned");
-              return -1;
-          }
-          callAddr /= 4;
-
-          if (cc_run_code(inst, callAddr))
-              return -1;
-
-          inst->runningInst = wasRunning;
-
-          if (inst->flags & INSTF_ABORTED)
-              return 0;
-
-          if (oldstack != inst->registers[SREG_SP]) {
-              cc_error("stack corrupt after function call");
-              return -1;
-          }
-
-          if (next_call_needs_object)
-              next_call_needs_object = 0;
-
-          inst->pc = oldpc;
-          was_just_callas = callstacksize;
-          num_args_to_func = -1;
-          POP_CALL_STACK(inst);
-          break;
-                       }
-      case SCMD_CALLEXT: {
-          int call_uses_object = 0;
-          // Call to a real 'C' code function
-          was_just_callas = -1;
-          if (num_args_to_func < 0)
-              num_args_to_func = callstacksize;
-
-          if (next_call_needs_object) {
-              // member function call
-              // use the callstack +1 size allocation to squeeze
-              // the object address on as the last parameter
-              call_uses_object = 1;
-              next_call_needs_object = 0;
-              callstack[callstacksize] = inst->registers[SREG_OP];
-              inst->registers[SREG_AX] = call_function(inst->registers[arg1], num_args_to_func + 1, callstack, callstacksize - num_args_to_func);
-          }
-          else if (num_args_to_func == 0) {
-              realfunc = (int (*)())inst->registers[arg1];
-              inst->registers[SREG_AX] = realfunc();
-          } 
-          else
-              inst->registers[SREG_AX] = call_function(inst->registers[arg1], num_args_to_func, callstack, callstacksize - num_args_to_func);
-
-          if (ccError)
-              return -1;
-
-          if (call_uses_object) {
-              // Pop OP?
-          }
-
-          current_instance = inst;
-          num_args_to_func = -1;
-          break;
-                         }
-      case SCMD_PUSHREAL:
-          //        printf("pushing arg%d as %ld\n",callstacksize,inst->registers[arg1]);
-          if (callstacksize >= MAX_FUNC_PARAMS) {
-              cc_error("Call stack overflow");
-              return -1;
-          }
-          callstack[callstacksize] = inst->registers[arg1];
-          callstacksize++;
-          break;
-      case SCMD_SUBREALSTACK:
-          if (was_just_callas >= 0) {
-              inst->registers[SREG_SP] -= arg1 * 4;
-              was_just_callas = -1;
-          }
-          callstacksize -= arg1;
-          break;
-      case SCMD_CALLOBJ:
-          // set the OP register
-          if (inst->registers[arg1] == 0) {
-              cc_error("!Null pointer referenced");
-              return -1;
-          }
-          inst->registers[SREG_OP] = inst->registers[arg1];
-          next_call_needs_object = 1;
-          break;
-      case SCMD_SHIFTLEFT:
-          inst->registers[arg1] = (inst->registers[arg1] << inst->registers[arg2]);
-          break;
-      case SCMD_SHIFTRIGHT:
-          inst->registers[arg1] = (inst->registers[arg1] >> inst->registers[arg2]);
-          break;
-      case SCMD_THISBASE:
-          thisbase[curnest] = arg1;
-          break;
-      case SCMD_NEWARRAY:
-          {
-              int arg3 = codeInst->code[inst->pc + 3];
-              int numElements = inst->registers[arg1];
-              if ((numElements < 1) || (numElements > 1000000))
-              {
-                  cc_error("invalid size for dynamic array; requested: %d, range: 1..1000000", numElements);
-                  return -1;
-              }
-              inst->registers[arg1] = (long)ccGetObjectAddressFromHandle(globalDynamicArray.Create(numElements, arg2, (arg3 == 1)));
-              break;
-          }
-      case SCMD_FADD:
-          *freg1 += arg2;
-          break;
-      case SCMD_FSUB:
-          *freg1 -= arg2;
-          break;
-      case SCMD_FMULREG:
-          freg1[0] *= freg2[0];
-          break;
-      case SCMD_FDIVREG:
-          if (freg2[0] == 0.0) {
-              cc_error("!Floating point divide by zero");
-              return -1;
-          } 
-          freg1[0] /= freg2[0];
-          break;
-      case SCMD_FADDREG:
-          freg1[0] += freg2[0];
-          break;
-      case SCMD_FSUBREG:
-          freg1[0] -= freg2[0];
-          break;
-      case SCMD_FGREATER:
-          freg1[0] = (freg1[0] > freg2[0]);
-          break;
-      case SCMD_FLESSTHAN:
-          freg1[0] = (freg1[0] < freg2[0]);
-          break;
-      case SCMD_FGTE:
-          freg1[0] = (freg1[0] >= freg2[0]);
-          break;
-      case SCMD_FLTE:
-          freg1[0] = (freg1[0] <= freg2[0]);
-          break;
-      case SCMD_ZEROMEMORY:
-          mptr = (char *)(inst->registers[SREG_MAR]);
-          if (inst->registers[SREG_MAR] == inst->registers[SREG_SP]) {
-              // creating a local variable -- check the stack to ensure no mem overrun
-              int currentStackSize = inst->registers[SREG_SP] - ((long)&inst->stack[0]);
-              if (currentStackSize + arg1 >= CC_STACK_SIZE) {
-                  cc_error("stack overflow, attempted grow to %d bytes", currentStackSize + arg1);
-                  return -1;
-              }
-          }
-          memset(&mptr[0], 0, arg1);
-          break;
-      case SCMD_CREATESTRING:
-          if (stringClassImpl == NULL) {
-              cc_error("No string class implementation set, but opcode was used");
-              return -1;
-          }
-          inst->registers[arg1] = (long)stringClassImpl->CreateString((const char *)(inst->registers[arg1]));
-          break;
-      case SCMD_STRINGSEQUAL:
-          if ((inst->registers[arg1] == 0) || (inst->registers[arg2] == 0)) {
-              cc_error("!Null pointer referenced");
-              return -1;
-          }
-          if (strcmp((const char*)inst->registers[arg1], (const char*)inst->registers[arg2]) == 0)
-              inst->registers[arg1] = 1;
-          else
-              inst->registers[arg1] = 0;
-          break;
-      case SCMD_STRINGSNOTEQ:
-          if ((inst->registers[arg1] == 0) || (inst->registers[arg2] == 0)) {
-              cc_error("!Null pointer referenced");
-              return -1;
-          }
-          if (strcmp((const char*)inst->registers[arg1], (const char*)inst->registers[arg2]) != 0)
-              inst->registers[arg1] = 1;
-          else
-              inst->registers[arg1] = 0;
-          break;
-      case SCMD_LOOPCHECKOFF:
-          if (loopIterationCheckDisabled == 0)
-              loopIterationCheckDisabled++;
-          break;
-      default:
-          cc_error("invalid instruction %d found in code stream", thisInstruction);
+        // Call another function within same script, just save PC
+        // and continue from there
+        if (curnest >= MAXNEST - 1) {
+          cc_error("!call stack overflow, recursive call problem?");
           return -1;
         }
 
-        if (inst->flags & INSTF_ABORTED)
-            return 0;
+        PUSH_CALL_STACK(inst);
 
-        inst->pc += sccmdargs[thisInstruction] + 1;
+        temp_variable = inst->pc + sccmdargs[thisInstruction] + 1;
+        memcpy((char*)inst->registers[SREG_SP], &temp_variable, sizeof(long));
+
+        inst->registers[SREG_SP] += sizeof(long);
+
+#if defined(AGS_64BIT)
+        inst->stackSizes[inst->stackSizeIndex] = -1;
+        inst->stackSizeIndex++;
+#endif
+
+        if (thisbase[curnest] == 0)
+          inst->pc = inst->registers[arg1];
+        else {
+          inst->pc = funcstart[curnest];
+          inst->pc += (inst->registers[arg1] - thisbase[curnest]);
+        }
+
+        if (next_call_needs_object)  // is this right?
+          next_call_needs_object = 0;
+
+        if (loopIterationCheckDisabled)
+          loopIterationCheckDisabled++;
+
+        curnest++;
+        thisbase[curnest] = 0;
+        funcstart[curnest] = inst->pc;
+        CHECK_STACK
+        continue;
+      case SCMD_MEMREADB:
+        tbyte = *((unsigned char *)inst->registers[SREG_MAR]);
+        inst->registers[arg1] = tbyte;
+        break;
+      case SCMD_MEMREADW:
+        tshort = *((short *)inst->registers[SREG_MAR]);
+        inst->registers[arg1] = tshort;
+#ifdef AGS_BIG_ENDIAN
+        {
+          // check if we're reading from the script's global data
+          // if so, swap endian
+          char *charPtr = (char *)inst->registers[SREG_MAR];
+          if (gSpans.IsInSpan(charPtr))
+          {
+            inst->registers[arg1] = __short_swap_endian(inst->registers[arg1]);
+          }
+        }
+#endif
+        break;
+      case SCMD_MEMWRITEB:
+        tbyte = (unsigned char)inst->registers[arg1];
+        *((unsigned char *)inst->registers[SREG_MAR]) = tbyte;
+        break;
+      case SCMD_MEMWRITEW:
+        tshort = (short)inst->registers[arg1];
+        *((short *)inst->registers[SREG_MAR]) = tshort;
+#ifdef AGS_BIG_ENDIAN
+        {
+          // check if we're writing to the script's global data
+          // if so, swap endian
+          char *charPtr = (char *)inst->registers[SREG_MAR];
+          if (gSpans.IsInSpan(charPtr))
+          {
+            short *dataPtr = (short *)charPtr;
+            *dataPtr = __short_swap_endian(*dataPtr);
+          }
+        }
+#endif
+        break;
+      case SCMD_JZ:
+        if (inst->registers[SREG_AX] == 0)
+          inst->pc += arg1;
+        break;
+      case SCMD_JNZ:
+        if (inst->registers[SREG_AX] != 0)
+          inst->pc += arg1;
+        break;
+      case SCMD_PUSHREG:
+#if defined(AGS_64BIT)
+        // 64 bit: Registers are pushed as 8 byte values. Their size is set to "-1" so that
+        // they can be identified later.
+        inst->stackSizes[inst->stackSizeIndex] = -1;
+        inst->stackSizeIndex++;
+#endif
+
+        memcpy((char*)inst->registers[SREG_SP], &(inst->registers[arg1]), sizeof(long));
+        inst->registers[SREG_SP] += sizeof(long);
+        CHECK_STACK
+        break;
+      case SCMD_POPREG:
+#if defined(AGS_64BIT)
+        // 64 bit: Registers are pushed as 8 byte values
+        if (inst->stackSizes[inst->stackSizeIndex - 1] != -1)
+          cc_error("Trying to pop value that was not pushed. Stack corrupted?");
+
+        inst->stackSizeIndex--;
+#endif
+
+        inst->registers[SREG_SP] -= sizeof(long);
+        memcpy(&(inst->registers[arg1]), (char*)inst->registers[SREG_SP], sizeof(long));
+        break;
+      case SCMD_JMP:
+        inst->pc += arg1;
+        if ((arg1 < 0) && (maxWhileLoops > 0) && (loopIterationCheckDisabled == 0)) {
+          // Make sure it's not stuck in a While loop
+          loopIterations ++;
+          if (inst->flags & INSTF_RUNNING) {
+            loopIterations = 0;
+            inst->flags &= ~INSTF_RUNNING;
+          }
+          else if (loopIterations > maxWhileLoops) {
+            cc_error("!Script appears to be hung (a while loop ran %d times). The problem may be in a calling function; check the call stack.", loopIterations);
+            return -1;
+          }
+        }
+        break;
+      case SCMD_MUL:
+        inst->registers[arg1] *= arg2;
+        break;
+      case SCMD_CHECKBOUNDS:
+        if ((inst->registers[arg1] < 0) ||
+            (inst->registers[arg1] >= arg2)) {
+          cc_error("!Array index out of bounds (index: %d, bounds: 0..%d)", inst->registers[arg1], arg2 - 1);
+          return -1;
+        }
+        break;
+      case SCMD_DYNAMICBOUNDS:
+        {
+        long upperBoundInBytes = *((long *)(inst->registers[SREG_MAR] - 4));
+        if ((inst->registers[arg1] < 0) ||
+            (inst->registers[arg1] >= upperBoundInBytes)) {
+          long upperBound = *((long *)(inst->registers[SREG_MAR] - 8)) & (~ARRAY_MANAGED_TYPE_FLAG);
+          int elementSize = (upperBoundInBytes / upperBound);
+          cc_error("!Array index out of bounds (index: %d, bounds: 0..%d)", inst->registers[arg1] / elementSize, upperBound - 1);
+          return -1;
+        }
+        break;
+        }
+
+      // 64 bit: Handles are always 32 bit values. They are not C pointer.
+
+      case SCMD_MEMREADPTR:
+        ccError = 0;
+
+        int handle;
+        memcpy(&handle, (char*)(inst->registers[SREG_MAR]), 4);
+        inst->registers[arg1] = (long)ccGetObjectAddressFromHandle(handle);
+
+        // if error occurred, cc_error will have been set
+        if (ccError)
+          return -1;
+        break;
+      case SCMD_MEMWRITEPTR: {
+
+        int handle;
+        memcpy(&handle, (char*)(inst->registers[SREG_MAR]), 4);
+
+        int newHandle = ccGetObjectHandleFromAddress((char*)inst->registers[arg1]);
+        if (newHandle == -1)
+          return -1;
+
+        if (handle != newHandle) {
+          ccReleaseObjectReference(handle);
+          ccAddObjectReference(newHandle);
+          memcpy(((char*)inst->registers[SREG_MAR]), &newHandle, 4);
+        }
+        break;
+      }
+      case SCMD_MEMINITPTR: { 
+        // like memwriteptr, but doesn't attempt to free the old one
+
+        int handle;
+        memcpy(&handle, ((char*)inst->registers[SREG_MAR]), 4);
+
+        int newHandle = ccGetObjectHandleFromAddress((char*)inst->registers[arg1]);
+        if (newHandle == -1)
+          return -1;
+
+        ccAddObjectReference(newHandle);
+        memcpy(((char*)inst->registers[SREG_MAR]), &newHandle, 4);
+        break;
+      }
+      case SCMD_MEMZEROPTR: {
+        int handle;
+        memcpy(&handle, ((char*)inst->registers[SREG_MAR]), 4);
+        ccReleaseObjectReference(handle);
+        memset(((char*)inst->registers[SREG_MAR]), 0, 4);
+
+        break;
+      }
+      case SCMD_MEMZEROPTRND: {
+        int handle;
+        memcpy(&handle, ((char*)inst->registers[SREG_MAR]), 4);
+
+        // don't do the Dispose check for the object being returned -- this is
+        // for returning a String (or other pointer) from a custom function.
+        // Note: we might be freeing a dynamic array which contains the DisableDispose
+        // object, that will be handled inside the recursive call to SubRef.
+        pool.disableDisposeForObject = (const char*)inst->registers[SREG_AX];
+        ccReleaseObjectReference(handle);
+        pool.disableDisposeForObject = NULL;
+        memset(((char*)inst->registers[SREG_MAR]), 0, 4);
+        break;
+      }
+      case SCMD_CHECKNULL:
+        if (inst->registers[SREG_MAR] == 0) {
+          cc_error("!Null pointer referenced");
+          return -1;
+        }
+        break;
+      case SCMD_CHECKNULLREG:
+        if (inst->registers[arg1] == 0) {
+          cc_error("!Null string referenced");
+          return -1;
+        }
+        break;
+      case SCMD_NUMFUNCARGS:
+        num_args_to_func = arg1;
+        break;
+      case SCMD_CALLAS:{
+        PUSH_CALL_STACK(inst);
+
+        // Call to a function in another script
+        int startArg = 0;
+        // If there are nested CALLAS calls, the stack might
+        // contain 2 calls worth of parameters, so only
+        // push args for this call
+        if (num_args_to_func >= 0)
+          startArg = callstacksize - num_args_to_func;
+
+        for (aa = startArg; aa < callstacksize; aa++) {
+          // 64 bit: Arguments are pushed as 64 bit values
+          memcpy((char*)inst->registers[SREG_SP], &(callstack[aa]), sizeof(long));
+          inst->registers[SREG_SP] += sizeof(long);
+
+#if defined(AGS_64BIT)
+          inst->stackSizes[inst->stackSizeIndex] = -1;//sizeof(long);
+          inst->stackSizeIndex++;
+#endif
+        }
+
+        // 0, so that the cc_run_code returns
+        memset((char*)inst->registers[SREG_SP], 0, sizeof(long));
+
+        long oldstack = inst->registers[SREG_SP];
+        inst->registers[SREG_SP] += sizeof(long);
+        CHECK_STACK
+
+#if defined(AGS_64BIT)
+        inst->stackSizes[inst->stackSizeIndex] = -1;//sizeof(long);
+        inst->stackSizeIndex++;
+#endif
+
+        int oldpc = inst->pc;
+        ccInstance *wasRunning = inst->runningInst;
+
+        // extract the instance ID
+        unsigned long instId = (codeInst->code[inst->pc] >> INSTANCE_ID_SHIFT) & INSTANCE_ID_MASK;
+        // determine the offset into the code of the instance we want
+        inst->runningInst = loadedInstances[instId];
+        unsigned long callAddr = inst->registers[arg1] - (unsigned long)(&inst->runningInst->code[0]);
+        if (callAddr % 4 != 0) {
+          cc_error("call address not aligned");
+          return -1;
+        }
+        callAddr /= sizeof(long);
+
+        if (cc_run_code(inst, callAddr))
+          return -1;
+
+        inst->runningInst = wasRunning;
+
+        if (inst->flags & INSTF_ABORTED)
+          return 0;
+
+        if (oldstack != inst->registers[SREG_SP]) {
+          cc_error("stack corrupt after function call");
+          return -1;
+        }
+
+        if (next_call_needs_object)
+          next_call_needs_object = 0;
+  
+        inst->pc = oldpc;
+        was_just_callas = callstacksize;
+        num_args_to_func = -1;
+        POP_CALL_STACK(inst);
+        break;
+      }
+      case SCMD_CALLEXT: {
+        int call_uses_object = 0;
+        // Call to a real 'C' code function
+        was_just_callas = -1;
+        if (num_args_to_func < 0)
+          num_args_to_func = callstacksize;
+
+        if (next_call_needs_object) {
+          // member function call
+          // use the callstack +1 size allocation to squeeze
+          // the object address on as the last parameter
+          call_uses_object = 1;
+          next_call_needs_object = 0;
+          callstack[callstacksize] = inst->registers[SREG_OP];
+          inst->registers[SREG_AX] = call_function(inst->registers[arg1], num_args_to_func + 1, callstack, callstacksize - num_args_to_func);
+        }
+        else if (num_args_to_func == 0) {
+          realfunc = (int (*)())inst->registers[arg1];
+          inst->registers[SREG_AX] = realfunc();
+        } 
+        else
+          inst->registers[SREG_AX] = call_function(inst->registers[arg1], num_args_to_func, callstack, callstacksize - num_args_to_func);
+
+        if (ccError)
+          return -1;
+
+        if (call_uses_object) {
+          // Pop OP?
+        }
+
+        current_instance = inst;
+        num_args_to_func = -1;
+        break;
+      }
+      case SCMD_PUSHREAL:
+//        printf("pushing arg%d as %ld\n",callstacksize,inst->registers[arg1]);
+        if (callstacksize >= MAX_FUNC_PARAMS) {
+          cc_error("Call stack overflow");
+          return -1;
+        }
+        callstack[callstacksize] = inst->registers[arg1];
+        callstacksize++;
+        break;
+      case SCMD_SUBREALSTACK:
+        if (was_just_callas >= 0) {
+          inst->registers[SREG_SP] -= arg1 * sizeof(long);
+#if defined(AGS_64BIT)
+          inst->stackSizeIndex -= arg1;
+#endif
+          was_just_callas = -1;
+        }
+        callstacksize -= arg1;
+        break;
+      case SCMD_CALLOBJ:
+        // set the OP register
+        if (inst->registers[arg1] == 0) {
+          cc_error("!Null pointer referenced");
+          return -1;
+        }
+        inst->registers[SREG_OP] = inst->registers[arg1];
+        next_call_needs_object = 1;
+        break;
+      case SCMD_SHIFTLEFT:
+        inst->registers[arg1] = (int)((int)inst->registers[arg1] << (int)inst->registers[arg2]);
+        break;
+      case SCMD_SHIFTRIGHT:
+        inst->registers[arg1] = (int)((int)inst->registers[arg1] >> (int)inst->registers[arg2]);
+        break;
+      case SCMD_THISBASE:
+        thisbase[curnest] = arg1;
+        break;
+      case SCMD_NEWARRAY:
+        {
+        int arg3 = codeInst->code[inst->pc + 3];
+        int numElements = inst->registers[arg1];
+        if ((numElements < 1) || (numElements > 1000000))
+        {
+          cc_error("invalid size for dynamic array; requested: %d, range: 1..1000000", numElements);
+          return -1;
+        }
+        inst->registers[arg1] = (long)ccGetObjectAddressFromHandle(globalDynamicArray.Create(numElements, arg2, (arg3 == 1)));
+        break;
+        }
+      case SCMD_FADD:
+        *freg1 += arg2;
+        break;
+      case SCMD_FSUB:
+        *freg1 -= arg2;
+        break;
+      case SCMD_FMULREG:
+        freg1[0] *= freg2[0];
+        break;
+      case SCMD_FDIVREG:
+        if (freg2[0] == 0.0) {
+          cc_error("!Floating point divide by zero");
+          return -1;
+        } 
+        freg1[0] /= freg2[0];
+        break;
+      case SCMD_FADDREG:
+        freg1[0] += freg2[0];
+        break;
+      case SCMD_FSUBREG:
+        freg1[0] -= freg2[0];
+        break;
+      case SCMD_FGREATER:
+        freg1[0] = (freg1[0] > freg2[0]);
+        break;
+      case SCMD_FLESSTHAN:
+        freg1[0] = (freg1[0] < freg2[0]);
+        break;
+      case SCMD_FGTE:
+        freg1[0] = (freg1[0] >= freg2[0]);
+        break;
+      case SCMD_FLTE:
+        freg1[0] = (freg1[0] <= freg2[0]);
+        break;
+      case SCMD_ZEROMEMORY:
+        mptr = (char *)(inst->registers[SREG_MAR]);
+        if (inst->registers[SREG_MAR] == inst->registers[SREG_SP]) {
+          // creating a local variable -- check the stack to ensure no mem overrun
+          int currentStackSize = inst->registers[SREG_SP] - ((long)&inst->stack[0]);
+          if (currentStackSize + arg1 >= CC_STACK_SIZE) {
+            cc_error("stack overflow, attempted grow to %d bytes", currentStackSize + arg1);
+            return -1;
+          }
+        }
+        memset(&mptr[0], 0, arg1);
+        break;
+      case SCMD_CREATESTRING:
+        if (stringClassImpl == NULL) {
+          cc_error("No string class implementation set, but opcode was used");
+          return -1;
+        }
+        inst->registers[arg1] = (long)stringClassImpl->CreateString((const char *)(inst->registers[arg1]));
+        break;
+      case SCMD_STRINGSEQUAL:
+        if ((inst->registers[arg1] == 0) || (inst->registers[arg2] == 0)) {
+          cc_error("!Null pointer referenced");
+          return -1;
+        }
+        if (strcmp((const char*)inst->registers[arg1], (const char*)inst->registers[arg2]) == 0)
+          inst->registers[arg1] = 1;
+        else
+          inst->registers[arg1] = 0;
+        break;
+      case SCMD_STRINGSNOTEQ:
+        if ((inst->registers[arg1] == 0) || (inst->registers[arg2] == 0)) {
+          cc_error("!Null pointer referenced");
+          return -1;
+        }
+        if (strcmp((const char*)inst->registers[arg1], (const char*)inst->registers[arg2]) != 0)
+          inst->registers[arg1] = 1;
+        else
+          inst->registers[arg1] = 0;
+        break;
+      case SCMD_LOOPCHECKOFF:
+        if (loopIterationCheckDisabled == 0)
+          loopIterationCheckDisabled++;
+        break;
+      default:
+        cc_error("invalid instruction %d found in code stream", thisInstruction);
+        return -1;
     }
+
+    if (inst->flags & INSTF_ABORTED)
+      return 0;
+
+    inst->pc += sccmdargs[thisInstruction] + 1;
+  }
 }
 
 int ccCallInstance(ccInstance * inst, char *funcname, long numargs, ...)
@@ -1154,6 +1281,17 @@ int ccCallInstance(ccInstance * inst, char *funcname, long numargs, ...)
     inst->registers[SREG_SP] = (long)(&inst->stack[0]);
     inst->registers[SREG_SP] += (numargs * sizeof(long));
     inst->runningInst = inst;
+
+#if defined(AGS_64BIT)
+  // 64 bit: Initialize array for stack variable sizes with the argument values
+  inst->stackSizeIndex = 0;
+  int i;
+  for (i = 0; i < numargs; i++)
+  {
+    inst->stackSizes[inst->stackSizeIndex] = -1;
+    inst->stackSizeIndex++;
+  }
+#endif
 
     int reterr = cc_run_code(inst, startat);
     inst->registers[SREG_SP] -= (numargs - 1) * sizeof(long);

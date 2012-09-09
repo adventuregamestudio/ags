@@ -6,6 +6,7 @@
 
 #include "util/wgt2allg.h"
 #include "gfx/ali3d.h"
+#include "ac/runtime_defines.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include <libcda.h>
@@ -28,11 +29,12 @@ struct AGSLinux : AGSPlatformDriver {
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
   virtual void WriteConsole(const char*, ...);
+  virtual void WriteDebugString(const char* texx, ...);
   virtual void ReplaceSpecialPaths(const char*, char*);
   virtual void ReadPluginsFromDisk(FILE *iii);
   virtual void StartPlugins();
   virtual void ShutdownPlugins();
-  virtual int RunPluginHooks(int event, int data);
+  virtual int RunPluginHooks(int event, long data);
   virtual void RunPluginInitGfxHooks(const char *driverName, void *data);
   virtual int RunPluginDebugHooks(const char *scriptfile, int linenum);
 };
@@ -40,6 +42,17 @@ struct AGSLinux : AGSPlatformDriver {
 
 int AGSLinux::CDPlayerCommand(int cmdd, int datt) {
   return cd_player_control(cmdd, datt);
+}
+
+void AGSLinux::WriteDebugString(const char* texx, ...) {
+  char displbuf[STD_BUFFER_SIZE] = "AGS: ";
+  va_list ap;
+  va_start(ap,texx);
+  vsprintf(&displbuf[5],texx,ap);
+  va_end(ap);
+  strcat(displbuf, "\n");
+
+  printf(displbuf);
 }
 
 void AGSLinux::DisplayAlert(const char *text, ...) {
@@ -152,7 +165,7 @@ void AGSLinux::ShutdownPlugins() {
   pl_stop_plugins();
 }
 
-int AGSLinux::RunPluginHooks(int event, int data) {
+int AGSLinux::RunPluginHooks(int event, long data) {
   return pl_run_plugin_hooks(event, data);
 }
 

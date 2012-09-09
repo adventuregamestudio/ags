@@ -88,8 +88,8 @@ void NewInteractionCommand::ReadFromFile(CDataStream *in)
         data[i].ReadFromFile(in);
     }
     // all that matters is whether or not these are null...
-    children = (NewInteractionAction *) in->ReadInt32();
-    parent = (NewInteractionCommandList *) in->ReadInt32();
+    children = (NewInteractionAction *) (long)in->ReadInt32();
+    parent = (NewInteractionCommandList *) (long)in->ReadInt32();
 //#else
 //    throw "NewInteractionCommand::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
 //#endif
@@ -104,8 +104,8 @@ void NewInteractionCommand::WriteToFile(CDataStream *out)
     {
         data[i].WriteToFile(out);
     }
-    out->WriteInt32((int)children);
-    out->WriteInt32((int)parent);
+    out->WriteInt32((long)children);
+    out->WriteInt32((long)parent);
 //#else
 //    throw "NewInteractionCommand::WriteToFile() is not implemented for little-endian platforms and should not be called.";
 //#endif
@@ -160,8 +160,16 @@ NewInteraction::~NewInteraction() {
 void NewInteraction::ReadFromFile(CDataStream *in)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
-    // it's all ints!
-    in->ReadArray(&numEvents, sizeof(int), sizeof(NewInteraction)/sizeof(int));
+    // it's all ints! <- JJS: No, it's not! There are pointer too.
+
+  numEvents = in->ReadInt32();
+  in->ReadArray(&eventTypes, sizeof(*eventTypes), MAX_NEWINTERACTION_EVENTS);
+  in->ReadArray(&timesRun, sizeof(*timesRun), MAX_NEWINTERACTION_EVENTS);
+
+  for (int i = 0; i < MAX_NEWINTERACTION_EVENTS; i++)
+    response[i] = (NewInteractionCommandList*)in->ReadInt32();
+
+//    in->ReadArray(&numEvents, sizeof(int), sizeof(NewInteraction)/sizeof(int));
 //#else
 //    throw "NewInteraction::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
 //#endif
@@ -169,7 +177,15 @@ void NewInteraction::ReadFromFile(CDataStream *in)
 void NewInteraction::WriteToFile(CDataStream *out)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
-    out->WriteArray(&numEvents, sizeof(int), sizeof(NewInteraction)/sizeof(int));
+
+  out->WriteInt32(numEvents);
+  out->WriteArray(&eventTypes, sizeof(*eventTypes), MAX_NEWINTERACTION_EVENTS);
+  out->WriteArray(&timesRun, sizeof(*timesRun), MAX_NEWINTERACTION_EVENTS);
+
+  for (int i = 0; i < MAX_NEWINTERACTION_EVENTS; i++)
+    out->WriteInt32((int)(response[i] != NULL));
+
+//    fwrite(&numEvents, sizeof(int), sizeof(NewInteraction)/sizeof(int), fp);
 //#else
 //    throw "NewInteraction::WriteToFile() is not implemented for little-endian platforms and should not be called.";
 //#endif
@@ -211,8 +227,10 @@ void serialize_new_interaction (NewInteraction *nint, CDataStream *out) {
   out->WriteInt32 (1);  // Version
   out->WriteInt32 (nint->numEvents);
   out->WriteArray (&nint->eventTypes[0], sizeof(int), nint->numEvents);
+
+  // 64 bit: The pointer is only checked against NULL to determine whether the event exists
   for (a = 0; a < nint->numEvents; a++)
-    out->WriteInt32 ((int)nint->response[a]);
+    out->WriteInt32 ((long)nint->response[a]);
 
   for (a = 0; a < nint->numEvents; a++) {
     if (nint->response[a] != NULL)
@@ -255,6 +273,8 @@ NewInteraction *deserialize_new_interaction (CDataStream *in) {
   }
   in->ReadArray (&nitemp->eventTypes[0], sizeof(int), nitemp->numEvents);
   //in->ReadArray (&nitemp->response[0], sizeof(void*), nitemp->numEvents);
+
+  // 64 bit: The pointer is only checked against NULL to determine whether the event exists
   for (a = 0; a < nitemp->numEvents; a++)
     nitemp->response[a] = (NewInteractionCommandList*)in->ReadInt32();
 

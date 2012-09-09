@@ -21,8 +21,12 @@
 #include "ac/common.h"
 #include "ac/roomstruct.h"
 #include "ac/runtime_defines.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
+#include "debug/debugger.h"
 #include "gui/dynamicarray.h"
+#include "debug/out.h"
+#include "debug/consoleoutputtarget.h"
+#include "debug/rawfileoutputtarget.h"
 #include "media/audio/audio.h"
 #include "script/script.h"
 #include "script/script_common.h"
@@ -75,6 +79,47 @@ DebugConsoleText debug_line[DEBUG_CONSOLE_NUMLINES];
 int first_debug_line = 0, last_debug_line = 0, display_console = 0;
 
 int fps=0,display_fps=0;
+
+namespace Out = AGS::Common::Out;
+
+enum
+{
+    TARGET_FILE,
+    TARGET_SYSTEMDEBUGGER,
+    TARGET_GAMECONSOLE,
+    TARGET_FILE_EXTRA_TEST,
+};
+
+void initialize_output_subsystem()
+{
+    Out::Init(0, NULL);
+	Out::AddOutputTarget(TARGET_FILE, new AGS::Engine::Out::CRawFileOutputTarget("agsgame.log"),
+        Out::kVerbose_NoDebug, false);
+    Out::AddOutputTarget(TARGET_SYSTEMDEBUGGER, AGSPlatformDriver::GetDriver(),
+        Out::kVerbose_WarnErrors, true);
+	Out::AddOutputTarget(TARGET_GAMECONSOLE, new AGS::Engine::Out::CConsoleOutputTarget(),
+        Out::kVerbose_Always, false);
+    Out::FPrint("Debug system: output subsystem initialized");
+}
+
+void initialize_debug_system()
+{
+    initialize_output_subsystem();
+
+    Out::FPrint("Debug system initialized");
+}
+
+void shutdown_output_subsystem()
+{
+    Out::FPrint("Debug system: shutting down output subsystem...");
+
+    Out::Shutdown();
+}
+
+void shutdown_debug_system()
+{
+    shutdown_output_subsystem();
+}
 
 void quitprintf(char*texx, ...) {
     char displbuf[STD_BUFFER_SIZE];

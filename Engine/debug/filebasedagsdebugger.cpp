@@ -27,7 +27,7 @@ bool FileBasedAGSDebugger::SendMessageToEditor(const char *message)
 {
     while (exists(SENT_MESSAGE_FILE_NAME))
     {
-        Sleep(1);
+        platform->YieldCPU();
     }
 
     CDataStream *out = Common::File::CreateFile(SENT_MESSAGE_FILE_NAME);

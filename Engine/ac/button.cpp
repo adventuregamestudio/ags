@@ -7,7 +7,7 @@
 #include "ac/global_translation.h"
 #include "ac/string.h"
 #include "ac/viewframe.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "gui/animatingguibutton.h"
 #include "gui/guimain.h"
 

@@ -566,7 +566,7 @@ using namespace AGS; // FIXME later
 
 void pl_stop_plugins();
 void pl_startup_plugins();
-int  pl_run_plugin_hooks (int event, int data);
+int  pl_run_plugin_hooks (int event, long data);
 void pl_run_plugin_init_gfx_hooks(const char *driverName, void *data);
 int  pl_run_plugin_debug_hooks (const char *scriptfile, int linenum);
 void pl_read_plugins_from_disk (Common::CDataStream *in);

@@ -20,6 +20,7 @@
 #include <d3d9.h>
 #include "gfx/ali3d.h"
 #include "gfx/gfxfilter_d3d.h"
+#include "platform/base/agsplatformdriver.h"
 
 extern int dxmedia_play_video_3d(const char*filename, IDirect3DDevice9 *device, bool useAVISound, int canskip, int stretch);
 extern void dxmedia_shutdown_3d();
@@ -1887,7 +1888,7 @@ void D3DGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
     {
       if (_pollingCallback)
         _pollingCallback();
-      Sleep(1);
+      platform->YieldCPU();
     }
     while (timerValue == *_loopTimer);
 
@@ -1965,7 +1966,7 @@ void D3DGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
 
     if (_pollingCallback)
       _pollingCallback();
-    Sleep(delay);
+    platform->Delay(delay);
   }
 
   this->DestroyDDB(d3db);

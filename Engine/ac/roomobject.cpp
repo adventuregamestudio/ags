@@ -121,7 +121,7 @@ void RoomObject::update_cycle_view_backwards()
 void RoomObject::ReadFromFile(CDataStream *in)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
-    in->ReadArray(&x, sizeof(int), 2);
+    in->ReadArray(&x, sizeof(int), 3);
     in->ReadArray(&tint_r, sizeof(short), 15);
     in->ReadArray(&cycling, sizeof(char), 4);
     in->ReadArray(&blocking_width, sizeof(short), 2);
@@ -133,7 +133,7 @@ void RoomObject::ReadFromFile(CDataStream *in)
 void RoomObject::WriteToFile(CDataStream *out)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
-    out->WriteArray(&x, sizeof(int), 2);
+    out->WriteArray(&x, sizeof(int), 3);
     out->WriteArray(&tint_r, sizeof(short), 15);
     out->WriteArray(&cycling, sizeof(char), 4);
     out->WriteArray(&blocking_width, sizeof(short), 2);

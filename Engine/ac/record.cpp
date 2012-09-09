@@ -23,7 +23,7 @@ extern GameSetupStruct game;
 extern GameState play;
 extern int disable_mgetgraphpos;
 extern int mousex,mousey;
-extern unsigned long loopcounter,lastcounter;
+extern unsigned int loopcounter,lastcounter;
 extern volatile unsigned long globalTimerCounter;
 extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
 extern GFXFilter *filter;

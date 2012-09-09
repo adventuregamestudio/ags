@@ -46,7 +46,7 @@
 #include "ac/dynobj/all_scriptclasses.h"
 #include "script/cc_error.h"
 #include "util/string_utils.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "gui/animatingguibutton.h"
 #include "gui/guidialog.h"
 #include "main/main.h"
@@ -108,7 +108,7 @@ extern IDriverDependantBitmap **guibgbmp;
 extern char transFileName[MAX_PATH];
 extern color palette[256];
 extern int offsetx,offsety;
-extern unsigned long loopcounter;
+extern unsigned int loopcounter;
 extern block raw_saved_screen;
 extern block dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 extern IGraphicsDriver *gfxDriver;
@@ -117,7 +117,6 @@ extern IGraphicsDriver *gfxDriver;
 GameState play;
 GameSetup usetup;
 GameSetupStruct game;
-RoomStatus *roomstats;
 RoomStatus troom;    // used for non-saveable rooms, eg. intro
 RoomObject*objs;
 RoomStatus*croom=NULL;
@@ -629,14 +628,7 @@ void unload_game_file() {
     free_do_once_tokens();
     free(play.gui_draw_order);
 
-    free (roomstats);
-    roomstats=(RoomStatus*)calloc(sizeof(RoomStatus),MAX_ROOMS);
-    for (ee=0;ee<MAX_ROOMS;ee++) {
-        roomstats[ee].beenhere=0;
-        roomstats[ee].numobj=0;
-        roomstats[ee].tsdatasize=0;
-        roomstats[ee].tsdata=NULL;
-    }
+    resetRoomStatuses();
 
 }
 
@@ -1086,13 +1078,19 @@ void save_game_room_state(CDataStream *out)
     }
 
     // write the room state for all the rooms the player has been in
+    RoomStatus* roomstat;
     for (int bb = 0; bb < MAX_ROOMS; bb++) {
-        if (roomstats[bb].beenhere) {
-            out->WriteInt8 (1);
-            //out->WriteArray(&roomstats[bb],sizeof(RoomStatus),1);
-            roomstats[bb].WriteToFile(out);
-            if (roomstats[bb].tsdatasize>0)
-                out->WriteArray(&roomstats[bb].tsdata[0], 1, roomstats[bb].tsdatasize);
+        if (isRoomStatusValid(bb))
+        {
+            roomstat = getRoomStatus(bb);
+            if (roomstat->beenhere) {
+                out->WriteInt8 (1);
+                roomstat->WriteToFile(out);
+                if (roomstat->tsdatasize>0)
+                    out->WriteArray(&roomstat->tsdata[0], 1, roomstat->tsdatasize);
+            }
+            else
+                out->WriteInt8 (0);; // <--- [IKM] added by me, CHECKME if needed / works correctly
         }
         else
             out->WriteInt8 (0);
@@ -1364,7 +1362,7 @@ void save_game_data (CDataStream *out, block screenshot) {
 
     save_game_audioclips_and_crossfade(out);  
 
-    platform->RunPluginHooks(AGSE_SAVEGAME, (int)out);
+    platform->RunPluginHooks(AGSE_SAVEGAME, (long)out);
     out->WriteInt32 (MAGICNUMBER);  // to verify the plugins
 
     // save the room music volume
@@ -1445,7 +1443,7 @@ void save_game(int slotn, const char*descript) {
     // Initialize and write Vista header
     RICH_GAME_MEDIA_HEADER vistaHeader;
     memset(&vistaHeader, 0, sizeof(RICH_GAME_MEDIA_HEADER));
-    memcpy(&vistaHeader.dwMagicNumber, RM_MAGICNUMBER, sizeof(long));
+    memcpy(&vistaHeader.dwMagicNumber, RM_MAGICNUMBER, sizeof(int));
     vistaHeader.dwHeaderVersion = 1;
     vistaHeader.dwHeaderSize = sizeof(RICH_GAME_MEDIA_HEADER);
     vistaHeader.dwThumbnailOffsetHigherDword = 0;
@@ -1485,8 +1483,8 @@ void save_game(int slotn, const char*descript) {
 
     if (screenShot != NULL)
     {
-        long screenShotOffset = out->GetPosition() - sizeof(RICH_GAME_MEDIA_HEADER);
-        long screenShotSize = write_screen_shot_for_vista(out, screenShot);
+        int screenShotOffset = out->GetPosition() - sizeof(RICH_GAME_MEDIA_HEADER);
+        int screenShotSize = write_screen_shot_for_vista(out, screenShot);
         delete out;
 
         update_polled_stuff_if_runtime();
@@ -1633,7 +1631,7 @@ void restore_game_scripts(CDataStream *in, int &gdatasize, char **newglobaldatab
     // read the global script data segment
     gdatasize = in->ReadInt32();
     *newglobaldatabuffer = (char*)malloc(gdatasize);
-    in->ReadArray(newglobaldatabuffer, sizeof(char), gdatasize);
+    in->ReadArray(*newglobaldatabuffer, sizeof(char), gdatasize);
     //in->ReadArray(&gameinst->globaldata[0],gdatasize,1);
     //ccUnFlattenGlobalData (gameinst);
 
@@ -1655,14 +1653,7 @@ void restore_game_room_state(CDataStream *in, const char *nametouse)
     displayed_room = in->ReadInt32();
 
     // now the rooms
-    for (vv=0;vv<MAX_ROOMS;vv++) {
-        if (roomstats[vv].tsdata==NULL) ;
-        else if (roomstats[vv].tsdatasize>0) {
-            free(roomstats[vv].tsdata);
-            roomstats[vv].tsdatasize=0; roomstats[vv].tsdata=NULL;
-        }
-        roomstats[vv].beenhere=0;
-    }
+    resetRoomStatuses();
 
     // JJS: What was the point in closing and reopening the file?
     /*
@@ -1673,42 +1664,31 @@ void restore_game_room_state(CDataStream *in, const char *nametouse)
     */
 
     // read the room state for all the rooms the player has been in
-    for (vv=0;vv<MAX_ROOMS;vv++) {
-        if ((roomstats[vv].tsdatasize>0) & (roomstats[vv].tsdata!=NULL))
-            free(roomstats[vv].tsdata);
-        roomstats[vv].tsdatasize=0;
-        roomstats[vv].tsdata=NULL;
-        roomstats[vv].beenhere = in->ReadInt8();
+    RoomStatus* roomstat;
+    int beenhere;
+    for (vv=0;vv<MAX_ROOMS;vv++)
+    {
+        beenhere = in->ReadInt8();
+        if (beenhere)
+        {
+            roomstat = getRoomStatus(vv);
+            if ((roomstat->tsdatasize > 0) && (roomstat->tsdata != NULL))
+                free(roomstat->tsdata);
+            roomstat->tsdatasize = 0;
+            roomstat->tsdata = NULL;
+            roomstat->beenhere = beenhere;
 
-        if (roomstats[vv].beenhere) {
-            //in->ReadArray(&roomstats[vv],sizeof(RoomStatus),1);
-            roomstats[vv].ReadFromFile(in);
-            if (roomstats[vv].tsdatasize>0) {
-                roomstats[vv].tsdata=(char*)malloc(roomstats[vv].tsdatasize+8);
-                in->ReadArray(&roomstats[vv].tsdata[0],roomstats[vv].tsdatasize,1);
+            if (roomstat->beenhere)
+            {
+                roomstat->ReadFromFile(in);
+                if (roomstat->tsdatasize > 0)
+                {
+                    roomstat->tsdata=(char*)malloc(roomstat->tsdatasize + 8);  // JJS: Why allocate 8 additional bytes?
+                    in->ReadArray(&roomstat->tsdata[0], roomstat->tsdatasize, 1);
+                }
             }
         }
     }
-
-    /*  for (vv=0;vv<MAX_ROOMS;vv++) {
-    if ((roomstats[vv].tsdatasize>0) & (roomstats[vv].tsdata!=NULL))
-    free(roomstats[vv].tsdata);
-    roomstats[vv].tsdatasize=0;
-    roomstats[vv].tsdata=NULL;
-    }
-    int numtoread=in->ReadInt32();
-    if ((numtoread < 0) | (numtoread>MAX_ROOMS)) {
-    sprintf(rbuffer,"Save game has invalid value for rooms_entered: %d",numtoread);
-    quit(rbuffer);
-    }
-    in->ReadArray(&roomstats[0],sizeof(RoomStatus),numtoread);
-    for (vv=0;vv<numtoread;vv++) {
-    if (roomstats[vv].tsdatasize>0) {
-    roomstats[vv].tsdata=(char*)malloc(roomstats[vv].tsdatasize+5);
-    in->ReadArray(&roomstats[vv].tsdata[0],roomstats[vv].tsdatasize,1);
-    }
-    else roomstats[vv].tsdata=NULL;
-    }*/
 }
 
 void restore_game_play(CDataStream *in)
@@ -2162,7 +2142,7 @@ int restore_game_data (CDataStream *in, const char *nametouse) {
 
     recache_queued_clips_after_loading_save_game();
 
-    platform->RunPluginHooks(AGSE_RESTOREGAME, (int)in);
+    platform->RunPluginHooks(AGSE_RESTOREGAME, (long)in);
     if (in->ReadInt32() != (unsigned)MAGICNUMBER)
         quit("!One of the game plugins did not restore its game data correctly.");
 

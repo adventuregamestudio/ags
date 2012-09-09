@@ -12,7 +12,7 @@
 #include "ac/global_mouse.h"
 #include "ac/global_screen.h"
 #include "ac/viewframe.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "gui/guibutton.h"
 #include "gui/guimain.h"
 #include "device/mousew32.h"

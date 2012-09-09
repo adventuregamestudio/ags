@@ -13,7 +13,7 @@
 #include "ac/global_character.h"
 #include "ac/math.h"
 #include "ac/viewframe.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "main/maindefines_ex.h"	// RETURN_CONTINUE
 #include "main/update.h"
 #include "util/datastream.h"
@@ -27,7 +27,7 @@ extern GameState play;
 extern int char_speaking;
 extern roomstruct thisroom;
 extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
-extern unsigned long loopcounter;
+extern unsigned int loopcounter;
 
 #define Random __Rand
 

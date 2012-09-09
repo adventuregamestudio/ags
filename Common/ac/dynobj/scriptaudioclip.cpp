@@ -15,9 +15,10 @@ void ScriptAudioClip::ReadFromFile(CDataStream *in)
     type = in->ReadInt8();
     fileType = in->ReadInt8();
     defaultRepeat = in->ReadInt8();
+    in->ReadInt8(); // Padding so that the next short is aligned
     defaultPriority = in->ReadInt16();
     defaultVolume = in->ReadInt16();
     in->ReadArray(&padding, sizeof(char),
-        get_padding(SCRIPTAUDIOCLIP_SCRIPTNAMELENGTH + SCRIPTAUDIOCLIP_FILENAMELENGTH));
+        get_padding(SCRIPTAUDIOCLIP_SCRIPTNAMELENGTH + SCRIPTAUDIOCLIP_FILENAMELENGTH + 1));
     reserved = in->ReadInt32();
 }

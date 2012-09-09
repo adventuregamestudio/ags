@@ -36,7 +36,11 @@ void GameSetupStructBase::ReadFromFile(CDataStream *in)
     invhotdotsprite = in->ReadInt32();
     in->ReadArray(reserved, sizeof(int), 17);
     // read the final ptrs so we know to load dictionary, scripts etc
-    in->ReadArray(messages, sizeof(int), MAXGLOBALMES);
+    // 64 bit: Read 4 byte values into array of 8 byte
+    int i;
+    for (i = 0; i < MAXGLOBALMES; i++)
+      messages[i] = (char*)in->ReadInt32();
+
     dict = (WordsDictionary *) in->ReadInt32();
     globalscript = (char *) in->ReadInt32();
     chars = (CharacterInfo *) in->ReadInt32();

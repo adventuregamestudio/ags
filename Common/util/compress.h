@@ -27,10 +27,10 @@ long csavecompressed(char *finam, __block tobesaved, color pala[256], long exto)
 
 void cpackbitl(unsigned char *line, int size, Common::CDataStream *out);
 void cpackbitl16(unsigned short *line, int size, Common::CDataStream *out);
-void cpackbitl32(unsigned long *line, int size, Common::CDataStream *out);
+void cpackbitl32(unsigned int *line, int size, Common::CDataStream *out);
 int  cunpackbitl(unsigned char *line, int size, Common::CDataStream *in);
 int  cunpackbitl16(unsigned short *line, int size, Common::CDataStream *in);
-int  cunpackbitl32(unsigned long *line, int size, Common::CDataStream *in);
+int  cunpackbitl32(unsigned int *line, int size, Common::CDataStream *in);
 
 //=============================================================================
 

@@ -4,7 +4,7 @@ OBJS = psp.o ags_snowrain.o
 BUILD_PRX = 1
 PRX_EXPORTS = exports.exp
 
-INCDIR = 
+INCDIR = ../../Engine ../../Common
 CFLAGS = -O2 -G0 -g -Wall -DPSP_VERSION -DLINUX_VERSION -DPLUGIN_MODULE_NAME="\"$(TARGET)\""
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)

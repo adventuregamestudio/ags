@@ -1,0 +1,30 @@
+TARGET = agslua
+OBJS = psp.o \
+agslua/agslua/agslua_autogen.o \
+agslua/agslua/AGSLua_Main.o \
+agslua/agslua/AGSManagedObjects.o \
+agslua/agslua/AGSStructFields.o \
+agslua/agslua/CompressedLuaChunks.o \
+agslua/agslua/Internal.o \
+agslua/agslua/LuaCustomisation.o \
+agslua/agslua/LuaFromAGS.o \
+agslua/agslua/LuaValueList.o \
+agslua/agslua/SerializeLuaUniverse.o \
+agslua/agslua/DLLStuff.o \
+agslua/agslua/pluto.o \
+agslua/agslua/pdep.o \
+agslua/agslua/lzio.o
+
+BUILD_PRX = 1
+PRX_EXPORTS = exports.exp
+
+INCDIR = agslua/lualibhelp/include/ ../../Engine ../../Common
+CFLAGS = -O2 -G0 -g -Wall -DTHIS_IS_THE_PLUGIN -DPSP_VERSION -DLINUX_VERSION -DPLUGIN_MODULE_NAME="\"$(TARGET)\""
+CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
+ASFLAGS = $(CFLAGS)
+LDFLAGS = -mno-crt0 -nostartfiles
+LIBS = -lm -lstdc++ -lpspmath -llua -lm -lz
+LIBDIR =
+
+PSPSDK=$(shell psp-config --pspsdk-path)
+include $(PSPSDK)/lib/build.mak 

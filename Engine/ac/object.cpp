@@ -16,7 +16,7 @@
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
 #include "ac/walkablearea.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "main/game_run.h"
 #include "ac/route_finder.h"
 
@@ -71,13 +71,12 @@ int Object_GetTransparency(ScriptObject *objj) {
     if (!is_valid_object(objj->id))
         quit("!Object.Transparent: invalid object number specified");
 
-    if (objj->obj->transparent == 0)
+    if (objs[objj->id].transparent == 0)
         return 0;
-    if (objj->obj->transparent == 255)
-        return 100;
+    if (objs[objj->id].transparent == 255)
+       return 100;
 
-    return 100 - ((objj->obj->transparent * 10) / 25);
-
+    return 100 - ((objs[objj->id].transparent * 10) / 25);
 }
 
 void Object_SetBaseline(ScriptObject *objj, int basel) {
@@ -132,21 +131,21 @@ void Object_SetVisible(ScriptObject *objj, int onoroff) {
 }
 
 int Object_GetView(ScriptObject *objj) {
-    if (objj->obj->view < 0)
+    if (objs[objj->id].view < 0)
         return 0;
-    return objj->obj->view + 1;
+    return objs[objj->id].view + 1;
 }
 
 int Object_GetLoop(ScriptObject *objj) {
-    if (objj->obj->view < 0)
+    if (objs[objj->id].view < 0)
         return 0;
-    return objj->obj->loop;
+    return objs[objj->id].loop;
 }
 
 int Object_GetFrame(ScriptObject *objj) {
-    if (objj->obj->view < 0)
+    if (objs[objj->id].view < 0)
         return 0;
-    return objj->obj->frame;
+    return objs[objj->id].frame;
 }
 
 int Object_GetVisible(ScriptObject *objj) {
@@ -187,11 +186,11 @@ void Object_SetPosition(ScriptObject *objj, int xx, int yy) {
 }
 
 void Object_SetX(ScriptObject *objj, int xx) {
-    SetObjectPosition(objj->id, xx, objj->obj->y);
+    SetObjectPosition(objj->id, xx, objs[objj->id].y);
 }
 
 void Object_SetY(ScriptObject *objj, int yy) {
-    SetObjectPosition(objj->id, objj->obj->x, yy);
+    SetObjectPosition(objj->id, objs[objj->id].x, yy);
 }
 
 void Object_GetName(ScriptObject *objj, char *buffer) {
@@ -216,7 +215,7 @@ void Object_Move(ScriptObject *objj, int x, int y, int speed, int blocking, int 
     move_object(objj->id, x, y, speed, direct);
 
     if ((blocking == BLOCKING) || (blocking == 1))
-        do_main_cycle(UNTIL_SHORTIS0,(int)&objj->obj->moving);
+        do_main_cycle(UNTIL_SHORTIS0,(long)&objs[objj->id].moving);
     else if ((blocking != IN_BACKGROUND) && (blocking != 0))
         quit("Object.Move: invalid BLOCKING paramter");
 }
@@ -229,7 +228,7 @@ int Object_GetClickable(ScriptObject *objj) {
     if (!is_valid_object(objj->id))
         quit("!Object.Clickable: Invalid object specified");
 
-    if (objj->obj->flags & OBJF_NOINTERACT)
+    if (objs[objj->id].flags & OBJF_NOINTERACT)
         return 0;
     return 1;
 }
@@ -238,9 +237,9 @@ void Object_SetIgnoreScaling(ScriptObject *objj, int newval) {
     if (!is_valid_object(objj->id))
         quit("!Object.IgnoreScaling: Invalid object specified");
 
-    objj->obj->flags &= ~OBJF_USEROOMSCALING;
+    objs[objj->id].flags &= ~OBJF_USEROOMSCALING;
     if (!newval)
-        objj->obj->flags |= OBJF_USEROOMSCALING;
+        objs[objj->id].flags |= OBJF_USEROOMSCALING;
 
     // clear the cache
     objcache[objj->id].ywas = -9999;
@@ -250,37 +249,37 @@ int Object_GetIgnoreScaling(ScriptObject *objj) {
     if (!is_valid_object(objj->id))
         quit("!Object.IgnoreScaling: Invalid object specified");
 
-    if (objj->obj->flags & OBJF_USEROOMSCALING)
+    if (objs[objj->id].flags & OBJF_USEROOMSCALING)
         return 0;
     return 1;
 }
 
 void Object_SetSolid(ScriptObject *objj, int solid) {
-    objj->obj->flags &= ~OBJF_SOLID;
+    objs[objj->id].flags &= ~OBJF_SOLID;
     if (solid)
-        objj->obj->flags |= OBJF_SOLID;
+      objs[objj->id].flags |= OBJF_SOLID;
 }
 
 int Object_GetSolid(ScriptObject *objj) {
-    if (objj->obj->flags & OBJF_SOLID)
+    if (objs[objj->id].flags & OBJF_SOLID)
         return 1;
     return 0;
 }
 
 void Object_SetBlockingWidth(ScriptObject *objj, int bwid) {
-    objj->obj->blocking_width = bwid;
+    objs[objj->id].blocking_width = bwid;
 }
 
 int Object_GetBlockingWidth(ScriptObject *objj) {
-    return objj->obj->blocking_width;
+    return objs[objj->id].blocking_width;
 }
 
 void Object_SetBlockingHeight(ScriptObject *objj, int bhit) {
-    objj->obj->blocking_height = bhit;
+    objs[objj->id].blocking_height = bhit;
 }
 
 int Object_GetBlockingHeight(ScriptObject *objj) {
-    return objj->obj->blocking_height;
+    return objs[objj->id].blocking_height;
 }
 
 int Object_GetID(ScriptObject *objj) {
@@ -295,7 +294,7 @@ int Object_GetIgnoreWalkbehinds(ScriptObject *chaa) {
     if (!is_valid_object(chaa->id))
         quit("!Object.IgnoreWalkbehinds: Invalid object specified");
 
-    if (chaa->obj->flags & OBJF_NOWALKBEHINDS)
+    if (objs[chaa->id].flags & OBJF_NOWALKBEHINDS)
         return 1;
     return 0;
 }

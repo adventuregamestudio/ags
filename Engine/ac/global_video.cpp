@@ -10,7 +10,8 @@
 #include "ac/global_game.h"
 #include "ac/mouse.h"
 #include "ac/record.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
+#include "debug/debugger.h"
 #include "media/video/video.h"
 #include "util/datastream.h"
 

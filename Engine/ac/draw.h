@@ -80,5 +80,6 @@ extern AGS_INLINE int divide_down_coordinate_round_up(int coord);
 
 block convert_16_to_15(block iii);
 block convert_16_to_16bgr(block tempbl);
+block convert_32_to_32bgr(block tempbl);
 
 #endif // __AGS_EE_AC__DRAW_H

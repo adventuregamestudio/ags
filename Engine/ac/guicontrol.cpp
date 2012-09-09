@@ -4,7 +4,7 @@
 #include "ac/common.h"
 #include "ac/guicontrol.h"
 #include "ac/global_gui.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "gui/guibutton.h"
 #include "gui/guiinv.h"
 #include "gui/guilabel.h"

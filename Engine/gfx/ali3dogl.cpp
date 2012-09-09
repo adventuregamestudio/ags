@@ -1,10 +1,12 @@
 
-#if !defined(LINUX_VERSION) && !defined(MAC_VERSION) //not on Linux and Mac yet
+#if defined(WINDOWS_VERSION) || defined(ANDROID_VERSION) || defined(IOS_VERSION)
 
 #include <stdio.h>
 #include <allegro.h>
+#include "platform/base/agsplatformdriver.h"
 
 #if defined(WINDOWS_VERSION)
+#undef byte // fix to prevent conflicts with AGS byte
 #include <winalleg.h>
 #include <allegro/platform/aintwin.h>
 #include "gfx/ali3d.h"
@@ -58,8 +60,6 @@ PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC glFramebufferRenderbufferEXT = 0;
 
 #define glOrtho glOrthof
 #define GL_CLAMP GL_CLAMP_TO_EDGE
-
-#define Sleep(x) usleep(x * 1000)
 
 // Defined in Allegro
 extern "C" 
@@ -133,8 +133,6 @@ extern "C"
 
 #define glOrtho glOrthof
 #define GL_CLAMP GL_CLAMP_TO_EDGE
-
-#define Sleep(x) usleep(x * 1000)
 
 extern int psp_gfx_smoothing;
 extern int psp_gfx_scaling;
@@ -713,7 +711,7 @@ void OGLGraphicsDriver::InitOpenGl()
   glViewport(0, 0, device_screen_physical_width, device_screen_physical_height);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  glOrtho(0, device_screen_physical_width, 0, device_screen_physical_height, 0, 1);
+  glOrtho(0, device_screen_physical_width - 1, 0, device_screen_physical_height - 1, 0, 1);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
@@ -1150,7 +1148,7 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
     glViewport(0, 0, _newmode_width * _super_sampling, _newmode_height * _super_sampling);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(0, _newmode_width * _super_sampling, 0, _newmode_height * _super_sampling, 0, 1);
+    glOrtho(0, _newmode_width * _super_sampling - 1, 0, _newmode_height * _super_sampling - 1, 0, 1);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
   }
@@ -1163,7 +1161,7 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
     glViewport(0, 0, device_screen_physical_width, device_screen_physical_height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(0, device_screen_physical_width, 0, device_screen_physical_height, 0, 1);
+    glOrtho(0, device_screen_physical_width - 1, 0, device_screen_physical_height - 1, 0, 1);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
   }
@@ -1202,7 +1200,7 @@ void OGLGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
     glViewport(0, 0, device_screen_physical_width, device_screen_physical_height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(0, device_screen_physical_width, 0, device_screen_physical_height, 0, 1);
+    glOrtho(0, device_screen_physical_width - 1, 0, device_screen_physical_height - 1, 0, 1);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
@@ -1283,7 +1281,7 @@ __inline void get_pixel_if_not_transparent15(unsigned short *pixel, unsigned sho
   }
 }
 
-__inline void get_pixel_if_not_transparent32(unsigned long *pixel, unsigned long *red, unsigned long *green, unsigned long *blue, unsigned long *divisor)
+__inline void get_pixel_if_not_transparent32(unsigned int *pixel, unsigned int *red, unsigned int *green, unsigned int *blue, unsigned int *divisor)
 {
   if (pixel[0] != MASK_COLOR_32)
   {
@@ -1319,8 +1317,8 @@ void OGLGraphicsDriver::UpdateTextureRegion(TextureTile *tile, BITMAP *allegroBi
     // Mimic the behaviour of GL_CLAMP_EDGE for the bottom line
     if (y == tile->height)
     {
-      unsigned long* memPtrLong = (unsigned long*)memPtr;
-      unsigned long* memPtrLong_previous = (unsigned long*)(memPtr - tileWidth * 4);
+      unsigned int* memPtrLong = (unsigned int*)memPtr;
+      unsigned int* memPtrLong_previous = (unsigned int*)(memPtr - tileWidth * 4);
 
       for (int x = 0; x < tileWidth; x++)
         memPtrLong[x] = memPtrLong_previous[x] & 0x00FFFFFF;
@@ -1377,7 +1375,7 @@ void OGLGraphicsDriver::UpdateTextureRegion(TextureTile *tile, BITMAP *allegroBi
       else if (target->_colDepth == 32)
 */
       {
-        unsigned long* memPtrLong = (unsigned long*)memPtr;
+        unsigned int* memPtrLong = (unsigned int*)memPtr;
 
         if (x == tile->width)
         {
@@ -1385,7 +1383,7 @@ void OGLGraphicsDriver::UpdateTextureRegion(TextureTile *tile, BITMAP *allegroBi
           continue;
         }
 
-        unsigned long* srcData = (unsigned long*)&allegroBitmap->line[y + tile->y][(x + tile->x) * 4];
+        unsigned int* srcData = (unsigned int*)&allegroBitmap->line[y + tile->y][(x + tile->x) * 4];
         if (*srcData == MASK_COLOR_32)
         {
           if (target->_opaque)  // set to black if opaque
@@ -1396,15 +1394,15 @@ void OGLGraphicsDriver::UpdateTextureRegion(TextureTile *tile, BITMAP *allegroBi
           // pixel to stop the linear filter doing black outlines
           else
           {
-            unsigned long red = 0, green = 0, blue = 0, divisor = 0;
+            unsigned int red = 0, green = 0, blue = 0, divisor = 0;
             if (x > 0)
               get_pixel_if_not_transparent32(&srcData[-1], &red, &green, &blue, &divisor);
             if (x < tile->width - 1)
               get_pixel_if_not_transparent32(&srcData[1], &red, &green, &blue, &divisor);
             if (y > 0)
-              get_pixel_if_not_transparent32((unsigned long*)&allegroBitmap->line[y + tile->y - 1][(x + tile->x) * 4], &red, &green, &blue, &divisor);
+              get_pixel_if_not_transparent32((unsigned int*)&allegroBitmap->line[y + tile->y - 1][(x + tile->x) * 4], &red, &green, &blue, &divisor);
             if (y < tile->height - 1)
-              get_pixel_if_not_transparent32((unsigned long*)&allegroBitmap->line[y + tile->y + 1][(x + tile->x) * 4], &red, &green, &blue, &divisor);
+              get_pixel_if_not_transparent32((unsigned int*)&allegroBitmap->line[y + tile->y + 1][(x + tile->x) * 4], &red, &green, &blue, &divisor);
             if (divisor > 0)
               memPtrLong[x] = ((red / divisor) << 16) | ((green / divisor) << 8) | (blue / divisor);
             else
@@ -1686,7 +1684,7 @@ void OGLGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
     {
       if (_pollingCallback)
         _pollingCallback();
-      Sleep(1);
+      platform->YieldCPU();
     }
     while (timerValue == *_loopTimer);
 
@@ -1764,7 +1762,7 @@ void OGLGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
 
     if (_pollingCallback)
       _pollingCallback();
-    Sleep(delay);
+    platform->Delay(delay);
   }
 
   this->DestroyDDB(d3db);
@@ -1801,4 +1799,4 @@ void OGLGraphicsDriver::SetScreenTint(int red, int green, int blue)
   }
 }
 
-#endif //not on Linux and Mac yet
+#endif // only on Windows, Android and iOS

@@ -6,7 +6,7 @@
 #include "ac/draw.h"
 #include "ac/roomstatus.h"
 #include "ac/walkbehind.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 
 extern RoomStatus*croom;
 extern int walk_behind_baselines_changed;

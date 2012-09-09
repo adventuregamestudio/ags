@@ -64,6 +64,7 @@ void SpriteCache::changeMaxSize(long maxElements) {
     free(flags);
   }
   offsets = (long *)calloc(elements, sizeof(long));
+  memset(offsets, 0, elements*sizeof(long));
   images = (block *) calloc(elements, sizeof(block));
   mrulist = (int *)calloc(elements, sizeof(int));
   mrubacklink = (int *)calloc(elements, sizeof(int));
@@ -405,7 +406,7 @@ int SpriteCache::loadSprite(int index)
     }
     else {
       for (hh = 0; hh < htt; hh++)
-        cunpackbitl32((unsigned long*)&images[index]->line[hh][0], wdd, cache_stream);
+        cunpackbitl32((unsigned int*)&images[index]->line[hh][0], wdd, cache_stream);
     }
   }
   else {
@@ -455,7 +456,7 @@ void SpriteCache::compressSprite(block sprite, CDataStream *out) {
   }
   else {
     for (int yy = 0; yy < sprite->h; yy++)
-      cpackbitl32((unsigned long *)&sprite->line[yy][0], sprite->w, out);
+      cpackbitl32((unsigned int *)&sprite->line[yy][0], sprite->w, out);
   }
 
 }
@@ -797,7 +798,11 @@ bool SpriteCache::loadSpriteIndexFile(int expectedFileID, long spr_initial_offs,
 
   fidx->ReadArray(&rspritewidths[0], sizeof(short), numsprits);
   fidx->ReadArray(&rspriteheights[0], sizeof(short), numsprits);
-  fidx->ReadArray(&offsets[0], sizeof(long), numsprits);
+
+  // 64 bit: Read 4 byte values into 8 byte array
+  int i;
+  for (i = 0; i < numsprits; i++)
+    offsets[i] = fidx->ReadInt32();
 
   for (vv = 0; vv <= numspri; vv++) {
     flags[vv] = 0;

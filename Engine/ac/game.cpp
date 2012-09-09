@@ -1362,7 +1362,8 @@ void save_game_data (CDataStream *out, block screenshot) {
 
     save_game_audioclips_and_crossfade(out);  
 
-    platform->RunPluginHooks(AGSE_SAVEGAME, (long)out);
+    // [IKM] Plugins expect FILE pointer! // TODO something with this later...
+    platform->RunPluginHooks(AGSE_SAVEGAME, (long)((Common::CFileStream*)out)->GetHandle());
     out->WriteInt32 (MAGICNUMBER);  // to verify the plugins
 
     // save the room music volume
@@ -2142,7 +2143,8 @@ int restore_game_data (CDataStream *in, const char *nametouse) {
 
     recache_queued_clips_after_loading_save_game();
 
-    platform->RunPluginHooks(AGSE_RESTOREGAME, (long)in);
+    // [IKM] Plugins expect FILE pointer! // TODO something with this later
+    platform->RunPluginHooks(AGSE_RESTOREGAME, (long)((Common::CFileStream*)in)->GetHandle());
     if (in->ReadInt32() != (unsigned)MAGICNUMBER)
         quit("!One of the game plugins did not restore its game data correctly.");
 

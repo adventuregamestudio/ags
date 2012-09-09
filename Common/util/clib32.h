@@ -17,6 +17,12 @@ extern "C"
     long cliboffset(const char *);
     long clibfilesize(const char *);
     extern long last_opened_size;
+
+    int clibGetNumFiles();
+    const char *clibGetFileName(int index);
+    const char *clibgetoriginalfilename();
+
+    extern int cfopenpriority;
 };
 
 #endif // __CLIB32_H

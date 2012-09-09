@@ -495,7 +495,7 @@ long load_lzw(CDataStream *in, BITMAP *bmm, color *pall) {
   return uncompsiz;
 }
 
-long savecompressed_allegro(char *fnn, BITMAP *bmpp, color *pall, long ooo) {
+long savecompressed_allegro(char *fnn, BITMAP *bmpp, color *pall, long write_at) {
   unsigned char *wgtbl = (unsigned char *)malloc(bmpp->w * bmpp->h + 4);
   short         *sss = (short *)wgtbl;
   long          toret;
@@ -505,12 +505,12 @@ long savecompressed_allegro(char *fnn, BITMAP *bmpp, color *pall, long ooo) {
 
   memcpy(&wgtbl[4], &bmpp->line[0][0], bmpp->w * bmpp->h);
 
-  toret = csavecompressed(fnn, wgtbl, pall);
+  toret = csavecompressed(fnn, wgtbl, pall, write_at);
   free(wgtbl);
   return toret;
 }
 
-long loadcompressed_allegro(CDataStream *in, BITMAP **bimpp, color *pall, long ooo) {
+long loadcompressed_allegro(CDataStream *in, BITMAP **bimpp, color *pall, long read_at) {
   short widd,hitt;
   int   ii;
 

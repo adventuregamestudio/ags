@@ -40,8 +40,8 @@ long save_lzw(char *fnn, BITMAP *bmpp, color *pall, long offe);
 
 /*long load_lzw(char*fnn,BITMAP*bmm,color*pall,long ooff);*/
 long load_lzw(Common::CDataStream *in, BITMAP *bmm, color *pall);
-long savecompressed_allegro(char *fnn, BITMAP *bmpp, color *pall, long ooo);
-long loadcompressed_allegro(Common::CDataStream *in, BITMAP **bimpp, color *pall, long ooo);
+long savecompressed_allegro(char *fnn, BITMAP *bmpp, color *pall, long write_at);
+long loadcompressed_allegro(Common::CDataStream *in, BITMAP **bimpp, color *pall, long read_at);
 
 //extern char *lztempfnm;
 //extern BITMAP *recalced;

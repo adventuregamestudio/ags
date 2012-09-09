@@ -7,6 +7,10 @@
 #ifndef __AGS_CN_CORE__TYPES_H
 #define __AGS_CN_CORE__TYPES_H
 
+#if defined (_WINDOWS) && !defined (WINDOWS_VERSION)
+#define WINDOWS_VERSION
+#endif
+
 #ifndef NULL
 #define NULL 0
 #endif

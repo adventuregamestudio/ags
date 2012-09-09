@@ -1,19 +1,9 @@
-#define WINDOWS_VERSION
 #define USE_CLIB
 #define SWAP_RB_HICOL  // win32 uses BGR not RGB
 #include <stdio.h>
-void serialize_room_interactions(FILE *);
 void ThrowManagedException(const char *message);
 #pragma unmanaged
 #pragma warning (disable: 4996 4312)  // disable deprecation warnings
-extern "C" {
-  extern FILE *clibfopen(char *filnamm, char *fmt);
-  extern int csetlib(char *fileName, char *password);
-  extern int clibGetNumFiles();
-  extern const char *clibGetFileName(int);
-  extern const char *clibgetoriginalfilename();
-  extern int cfopenpriority;
-}
 extern bool Scintilla_RegisterClasses(void *hInstance);
 extern int Scintilla_LinkLexers();
 
@@ -22,8 +12,9 @@ int antiAliasFonts = 0;
 bool ShouldAntiAliasText() { return (antiAliasFonts != 0); }
 
 int mousex, mousey;
-#include "util/misc.h"
 #include "util/wgt2allg.h"
+#include "util/clib32.h"
+#include "util/misc.h"
 #include "ac/spritecache.h"
 #include "ac/actiontype.h"
 #include "ac/common.h"
@@ -41,10 +32,14 @@ int mousex, mousey;
 #include "gui/guislider.h"
 #include "util/compress.h"
 #include "util/string_utils.h"    // fputstring, etc
+#include "util/filestream.h"
+
+using AGS::Common::CDataStream;
 
 extern void Cstretch_blit(BITMAP *src, BITMAP *dst, int sx, int sy, int sw, int sh, int dx, int dy, int dw, int dh);
 extern void Cstretch_sprite(BITMAP *dst, BITMAP *src, int x, int y, int w, int h);
 
+void serialize_room_interactions(CDataStream *);
 
 int sxmult = 1, symult = 1;
 int dsc_want_hires = 0;
@@ -366,24 +361,24 @@ int extract_room_template_files(const char *templateFileName, int newRoomNumber)
     if (stricmp(thisFile, ROOM_TEMPLATE_ID_FILE) == 0)
       continue;
 
-    FILE *readin = clibfopen ((char*)thisFile, "rb");
+    CDataStream *readin = clibfopen ((char*)thisFile);
     char outputName[MAX_PATH];
     const char *extension = strchr(thisFile, '.');
     sprintf(outputName, "room%d%s", newRoomNumber, extension);
-    FILE *wrout = fopen(outputName, "wb");
+    CDataStream *wrout = Common::File::CreateFile(outputName);
     if ((readin == NULL) || (wrout == NULL)) 
     {
-      if (wrout != NULL) fclose(wrout);
-      if (readin != NULL) fclose(readin);
+      delete wrout;
+      delete readin;
       csetlib(NULL, "");
       return 0;
     }
     long size = clibfilesize((char*)thisFile);
     char *membuff = (char*)malloc (size);
-    fread (membuff, 1, size, readin);
-    fwrite (membuff, 1, size, wrout);
-    fclose (readin);
-    fclose (wrout);
+    readin->Read(membuff, size);
+    wrout->Write (membuff, size );
+    delete readin;
+    delete wrout;
     free (membuff);
   }
 
@@ -417,8 +412,8 @@ int extract_template_files(const char *templateFileName)
     if (stricmp(thisFile, TEMPLATE_LOCK_FILE) == 0)
       continue;
 
-    FILE *readin = clibfopen ((char*)thisFile, "rb");
-    FILE *wrout = fopen (thisFile, "wb");
+    CDataStream *readin = clibfopen ((char*)thisFile);
+    CDataStream *wrout = Common::File::CreateFile (thisFile);
     if ((wrout == NULL) && (strchr(thisFile, '\\') != NULL))
     {
       // an old template with Music/Sound folder, create the folder
@@ -426,7 +421,7 @@ int extract_template_files(const char *templateFileName)
       strcpy(folderName, thisFile);
       *strchr(folderName, '\\') = 0;
       mkdir(folderName);
-      wrout = fopen(thisFile, "wb");
+      wrout = Common::File::CreateFile(thisFile);
     }
     if ((readin == NULL) || (wrout == NULL)) 
     {
@@ -435,10 +430,10 @@ int extract_template_files(const char *templateFileName)
     }
     long size = clibfilesize((char*)thisFile);
     char *membuff = (char*)malloc (size);
-    fread (membuff, 1, size, readin);
-    fwrite (membuff, 1, size, wrout);
-    fclose (readin);
-    fclose (wrout);
+    readin->Read (membuff, size);
+    wrout->Write (membuff, size);
+    delete readin;
+    delete wrout;
     free (membuff);
   }
 
@@ -451,12 +446,12 @@ void extract_icon_from_template(char *iconName, char **iconDataBuffer, long *buf
   // make sure we get the icon from the file
   cfopenpriority = 1;
   long sizey = clibfilesize(iconName);
-  FILE* inpu = clibfopen (iconName, "rb");
+  CDataStream* inpu = clibfopen (iconName);
   if ((inpu != NULL) && (sizey > 0))
   {
     char *iconbuffer = (char*)malloc(sizey);
-    fread (iconbuffer, 1, sizey, inpu);
-    fclose (inpu);
+    inpu->Read (iconbuffer, sizey);
+    delete inpu;
     *iconDataBuffer = iconbuffer;
     *bufferSize = sizey;
   }
@@ -477,15 +472,15 @@ int load_template_file(const char *fileName, char **iconDataBuffer, long *iconDa
     {
       if (cliboffset((char*)ROOM_TEMPLATE_ID_FILE) > 0)
       {
-        FILE *inpu = clibfopen((char*)ROOM_TEMPLATE_ID_FILE, "rb");
-        if (getw(inpu) != ROOM_TEMPLATE_ID_FILE_SIGNATURE)
+        CDataStream *inpu = clibfopen((char*)ROOM_TEMPLATE_ID_FILE);
+        if (inpu->ReadInt32() != ROOM_TEMPLATE_ID_FILE_SIGNATURE)
         {
-          fclose(inpu);
+          delete inpu;
 		  csetlib(NULL, "");
           return 0;
         }
-        int roomNumber = getw(inpu);
-        fclose(inpu);
+        int roomNumber = inpu->ReadInt32();
+        delete inpu;
         char iconName[MAX_PATH];
         sprintf(iconName, "room%d.ico", roomNumber);
         if (cliboffset(iconName) > 0) 
@@ -510,12 +505,12 @@ int load_template_file(const char *fileName, char **iconDataBuffer, long *iconDa
 	      return 0;
       }
 
-	    FILE *inpu = clibfopen((char*)old_editor_main_game_file, "rb");
+	    CDataStream *inpu = clibfopen((char*)old_editor_main_game_file);
 	    if (inpu != NULL) 
 	    {
-		    fseek(inpu, 30, SEEK_CUR);
-		    int gameVersion = _getw(inpu);
-		    fclose(inpu);
+		    inpu->Seek(Common::kSeekCurrent, 30);
+		    int gameVersion = inpu->ReadInt32();
+		    delete inpu;
 		    if (gameVersion != 32)
 		    {
 			    // older than 2.72 template
@@ -933,25 +928,25 @@ void update_font_sizes() {
 const char* import_sci_font(const char*fnn,int fslot) {
   char wgtfontname[100];
   sprintf(wgtfontname,"agsfnt%d.wfn",fslot);
-  FILE*iii=fopen(fnn,"rb");
+  CDataStream*iii=Common::File::OpenFileRead(fnn);
   if (iii==NULL) {
     return "File not found";
   }
-  if (fgetc(iii)!=0x87) {
-    fclose(iii);
+  if (iii->ReadByte()!=0x87) {
+    delete iii;
     return "Not a valid SCI font file";
   }
-  fseek(iii,3,SEEK_CUR);
-  if (getshort(iii)!=0x80) {
-    fclose(iii); 
+  iii->Seek(Common::kSeekCurrent,3);
+  if (iii->ReadInt16()!=0x80) {
+    delete iii; 
 	  return "Invalid SCI font"; 
   }
-  int lineHeight = getshort(iii);
+  int lineHeight = iii->ReadInt16();
   short theiroffs[0x80];
-  fread(theiroffs,2,0x80,iii);
-  FILE*ooo=fopen(wgtfontname,"wb");
-  fwrite("WGT Font File  ",15,1,ooo);
-  putshort(0,ooo);  // will be table address
+  iii->ReadArrayOfInt16(theiroffs,0x80);
+  CDataStream*ooo=Common::File::CreateFile(wgtfontname);
+  ooo->Write("WGT Font File  ",15);
+  ooo->WriteInt16(0);  // will be table address
   short coffsets[0x80];
   char buffer[1000];
   int aa;
@@ -959,32 +954,34 @@ const char* import_sci_font(const char*fnn,int fslot) {
   {
     if (theiroffs[aa] < 100)
     {
-      fclose(iii);
-      fclose(ooo);
+      delete iii;
+      delete ooo;
       unlink(wgtfontname);
       return "Invalid character found in file";
     }
-    fseek(iii,theiroffs[aa]+2,SEEK_SET);
-    int wwi=fgetc(iii)-1;
-    int hhi=fgetc(iii);
-    coffsets[aa]=ftell(ooo);
-    putshort(wwi+1,ooo);
-    putshort(hhi,ooo);
+    iii->Seek(Common::kSeekBegin,theiroffs[aa]+2);
+    int wwi=iii->ReadByte()-1;
+    int hhi=iii->ReadByte();
+    coffsets[aa]=ooo->GetPosition();
+    ooo->WriteInt16(wwi+1);
+    ooo->WriteInt16(hhi);
     if ((wwi<1) | (hhi<1)) continue;
     memset(buffer,0,1000);
     int bytesPerRow = (wwi/8)+1;
-    fread(buffer, bytesPerRow, hhi, iii);
+    iii->ReadArray(buffer, bytesPerRow, hhi);
     for (int bb=0;bb<hhi;bb++) { 
       int thisoffs = bb * bytesPerRow;
-      fwrite(&buffer[thisoffs], bytesPerRow, 1, ooo);
+      ooo->Write(&buffer[thisoffs], bytesPerRow);
     }
   }
-  long tableat=ftell(ooo);
-  fwrite(&coffsets[0],2,0x80,ooo);
-  fclose(ooo); ooo=fopen(wgtfontname,"r+b");
-  fseek(ooo,15,SEEK_SET); putshort(tableat,ooo); 
-  fclose(ooo);
-  fclose(iii);
+  long tableat=ooo->GetPosition();
+  ooo->WriteArrayOfInt16(&coffsets[0],0x80);
+  delete ooo;
+  ooo=Common::File::OpenFile(wgtfontname,Common::kFile_Open,Common::kFile_ReadWrite);
+  ooo->Seek(Common::kSeekBegin,15);
+  ooo->WriteInt16(tableat); 
+  delete ooo;
+  delete iii;
   wfreefont(fslot);
   if (!wloadfont_size(fslot, 0))
   {
@@ -1390,9 +1387,9 @@ bool reload_font(int curFont)
   return wloadfont_size(curFont, fsize);
 }
 
-void load_script_modules_compiled(FILE *inn) {
+void load_script_modules_compiled(CDataStream *inn) {
 
-  numScriptModules = getw(inn);
+  numScriptModules = inn->ReadInt32();
   scModules = (ScriptModule*)realloc(scModules, sizeof(ScriptModule) * numScriptModules);
   for (int i = 0; i < numScriptModules; i++) {
     scModules[i].init();
@@ -1401,23 +1398,23 @@ void load_script_modules_compiled(FILE *inn) {
 
 }
 
-void read_dialogs(FILE*iii, int filever, bool encrypted) {
+void read_dialogs(CDataStream*iii, int filever, bool encrypted) {
   int bb;
   dialog = (DialogTopic*)malloc(sizeof(DialogTopic) * thisgame.numdialog);
-  fread(&dialog[0],sizeof(DialogTopic),thisgame.numdialog,iii);
+  iii->ReadArray(&dialog[0],sizeof(DialogTopic),thisgame.numdialog);
   for (bb=0;bb<thisgame.numdialog;bb++) {
     if (dialog[bb].optionscripts!=NULL) {
       dialog[bb].optionscripts=(unsigned char*)malloc(dialog[bb].codesize+10);
-      fread(&dialog[bb].optionscripts[0],dialog[bb].codesize,1,iii);
+      iii->Read(&dialog[bb].optionscripts[0],dialog[bb].codesize);
     }
-    int lenof=getw(iii);
-    if (lenof<=1) { fgetc(iii);
+    int lenof=iii->ReadInt32();
+    if (lenof<=1) { iii->ReadByte();
       dlgscript[bb]=NULL;
       continue;
     }
     // add a large buffer because it will get added to if another option is added
     dlgscript[bb]=(char*)malloc(lenof + 20000);
-    fread(dlgscript[bb],lenof,1,iii);
+    iii->Read(dlgscript[bb],lenof);
     if (encrypted)
       decrypt_text(dlgscript[bb]);
   }
@@ -1450,11 +1447,11 @@ struct PluginData
 PluginData thisgamePlugins[MAX_PLUGINS];
 int numThisgamePlugins = 0;
 
-void write_plugins_to_disk (FILE *ooo) {
+void write_plugins_to_disk (CDataStream *ooo) {
   int a;
   // version of plugin saving format
-  putw (1, ooo);
-  putw (numThisgamePlugins, ooo);
+  ooo->WriteInt32 (1);
+  ooo->WriteInt32 (numThisgamePlugins);
   
   for (a = 0; a < numThisgamePlugins; a++) {
       fputstring(thisgamePlugins[a].filename, ooo);
@@ -1466,23 +1463,23 @@ void write_plugins_to_disk (FILE *ooo) {
         savesize = 0;
       }
 
-      putw (savesize, ooo);
+      ooo->WriteInt32 (savesize);
       if (savesize > 0)
-        fwrite (&thisgamePlugins[a].data[0], savesize, 1, ooo);
+        ooo->Write (&thisgamePlugins[a].data[0], savesize);
   }
 }
 
-const char * read_plugins_from_disk (FILE *iii) {
-  if (getw(iii) != 1) {
+const char * read_plugins_from_disk (CDataStream *iii) {
+  if (iii->ReadInt32() != 1) {
     return "ERROR: unable to load game, invalid version of plugin data";
   }
 
-  numThisgamePlugins = getw(iii);
+  numThisgamePlugins = iii->ReadInt32();
 
   for (int a = 0; a < numThisgamePlugins; a++) {
     // read the plugin name
     fgetstring (thisgamePlugins[a].filename, iii);
-    int datasize = getw(iii);
+    int datasize = iii->ReadInt32();
     if (datasize > SAVEBUFFERSIZE) {
       return "Invalid plugin save data format, plugin data is lost";
     }
@@ -1492,7 +1489,7 @@ const char * read_plugins_from_disk (FILE *iii) {
 
 	thisgamePlugins[a].dataSize = datasize;
 	if (datasize > 0)
-	  fread (thisgamePlugins[a].data, datasize, 1, iii);
+	  iii->Read (thisgamePlugins[a].data, datasize);
   }
   return NULL;
 }
@@ -1514,37 +1511,37 @@ void allocate_memory_for_views(int viewCount)
 const char *load_dta_file_into_thisgame(const char *fileName)
 {
   int bb;
-  FILE*iii=fopen(fileName, "rb");
+  CDataStream*iii=Common::File::OpenFileRead(fileName);
   if (iii == NULL)
     return "Unable to open file";
 
   char buffer[40];
-  fread(buffer,30,1,iii); 
+  iii->Read(buffer,30);
   buffer[30]=0;
   if (strcmp(buffer,game_file_sig)!=0) {
-    fclose(iii);
+    delete iii;
     return "File contains invalid data and is not an AGS game.";
   }
-  int filever = _getw(iii);
+  int filever = iii->ReadInt32();
   if (filever != 32) 
   {
-	  fclose(iii);
+	  delete iii;
 	  return "This game was saved by an old version of AGS. This version of the editor can only import games saved with AGS 2.72.";
   }
 
   // skip required engine version
-  int stlen = _getw(iii);
-  fseek(iii, stlen, SEEK_CUR);
+  int stlen = iii->ReadInt32();
+  iii->Seek(Common::kSeekCurrent, stlen);
 
-  fread(&thisgame, sizeof (GameSetupStructBase), 1, iii);
-  fread(&thisgame.fontflags[0], 1, thisgame.numfonts, iii);
-  fread(&thisgame.fontoutline[0], 1, thisgame.numfonts, iii);
+  iii->ReadArray(&thisgame, sizeof (GameSetupStructBase), 1);
+  iii->Read(&thisgame.fontflags[0], thisgame.numfonts);
+  iii->Read(&thisgame.fontoutline[0], thisgame.numfonts);
 
-  int numSprites = _getw(iii);
+  int numSprites = iii->ReadInt32();
   memset(&thisgame.spriteflags[0], 0, MAX_SPRITES);
-  fread(&thisgame.spriteflags[0], 1, numSprites, iii);
-  fread(&thisgame.invinfo[0], sizeof(InventoryItemInfo), thisgame.numinvitems, iii);
-  fread(&thisgame.mcurs[0], sizeof(MouseCursor), thisgame.numcursors, iii);
+  iii->Read(&thisgame.spriteflags[0], numSprites);
+  iii->ReadArray(&thisgame.invinfo[0], sizeof(InventoryItemInfo), thisgame.numinvitems);
+  iii->ReadArray(&thisgame.mcurs[0], sizeof(MouseCursor), thisgame.numcursors);
 
   thisgame.intrChar = (NewInteraction**)calloc(thisgame.numcharacters, sizeof(NewInteraction*));
   for (bb = 0; bb < thisgame.numcharacters; bb++) {
@@ -1555,8 +1552,8 @@ const char *load_dta_file_into_thisgame(const char *fileName)
     thisgame.intrInv[bb] = deserialize_new_interaction (iii);
   }
 
-  numGlobalVars = getw(iii);
-  fread (&globalvars[0], sizeof (InteractionVariable), numGlobalVars, iii);
+  numGlobalVars = iii->ReadInt32();
+  iii->ReadArray (&globalvars[0], sizeof (InteractionVariable), numGlobalVars);
 
   if (thisgame.dict != NULL) {
     thisgame.dict = (WordsDictionary*)malloc(sizeof(WordsDictionary));
@@ -1571,12 +1568,12 @@ const char *load_dta_file_into_thisgame(const char *fileName)
   load_script_modules_compiled(iii);
 
   allocate_memory_for_views(thisgame.numviews);
-  fread (&oldViews[0], sizeof(ViewStruct272), thisgame.numviews, iii);
+  iii->ReadArray (&oldViews[0], sizeof(ViewStruct272), thisgame.numviews);
 
   thisgame.chars = (CharacterInfo*)calloc(sizeof(CharacterInfo) * thisgame.numcharacters, 1);
-  fread(&thisgame.chars[0],sizeof(CharacterInfo),thisgame.numcharacters,iii);
+  iii->ReadArray(&thisgame.chars[0],sizeof(CharacterInfo),thisgame.numcharacters);
 
-  fread (&thisgame.lipSyncFrameLetters[0][0], 20, 50, iii);
+  iii->ReadArray (&thisgame.lipSyncFrameLetters[0][0], 20, 50);
 
   for (bb=0;bb<MAXGLOBALMES;bb++) {
     if (thisgame.messages[bb]==NULL) continue;
@@ -1618,7 +1615,7 @@ const char *load_dta_file_into_thisgame(const char *fileName)
   for (bb = 0; bb < thisgame.numdialog; bb++)
     fgetstring_limit(thisgame.dialogScriptNames[bb], iii, MAX_SCRIPT_NAME_LEN);
 
-  fclose(iii);
+  delete iii;
 
   for (bb = 0; bb < thisgame.numgui; bb++)
   {
@@ -1934,7 +1931,7 @@ void calculate_walkable_areas () {
 void save_room(const char *files, roomstruct rstruc) {
   int               f;
   long              xoff, tesl;
-  FILE              *opty;
+  CDataStream       *opty;
   room_file_header  rfh;
 
   if (rstruc.wasversion < ROOM_FILE_VERSION)
@@ -1948,100 +1945,100 @@ void save_room(const char *files, roomstruct rstruc) {
     for (f = 0; f < 11; f++)
       rstruc.password[f] -= passwencstring[f];
 
-  opty = ci_fopen(const_cast<char*>(files), "wb");
+  opty = ci_fopen(const_cast<char*>(files), Common::kFile_CreateAlways, Common::kFile_Write);
   if (opty == NULL)
     quit("save_room: unable to open room file for writing.");
 
   rfh.version = rstruc.wasversion; //ROOM_FILE_VERSION;
-  fwrite(&rfh,sizeof(room_file_header),1,opty);
+  opty->WriteArray(&rfh,sizeof(room_file_header),1);
 
   if (rfh.version >= 5) {
     long blsii = 0;
 
-    fputc(BLOCKTYPE_MAIN, opty);
-    fwrite(&blsii, 4, 1, opty);
+    opty->WriteByte(BLOCKTYPE_MAIN);
+    opty->WriteInt32(blsii);
   }
 
-  putw(rstruc.bytes_per_pixel, opty);  // colour depth bytes per pixel
-  fwrite(&rstruc.numobj, 2, 1, opty);
-  fwrite(&rstruc.objyval[0], 2, rstruc.numobj, opty);
+  opty->WriteInt32(rstruc.bytes_per_pixel);  // colour depth bytes per pixel
+  opty->WriteInt16(rstruc.numobj);
+  opty->WriteArrayOfInt16(&rstruc.objyval[0], rstruc.numobj);
 
-  fwrite(&rstruc.numhotspots, sizeof(int), 1, opty);
-  fwrite(&rstruc.hswalkto[0], sizeof(_Point), rstruc.numhotspots, opty);
+  opty->WriteInt32(rstruc.numhotspots);
+  opty->WriteArray(&rstruc.hswalkto[0], sizeof(_Point), rstruc.numhotspots);
   for (f = 0; f < rstruc.numhotspots; f++)
   {
 	  fputstring(rstruc.hotspotnames[f], opty);
   }
 
   if (rfh.version >= 24)
-    fwrite(&rstruc.hotspotScriptNames[0], MAX_SCRIPT_NAME_LEN, rstruc.numhotspots, opty);
+    opty->WriteArray(&rstruc.hotspotScriptNames[0], MAX_SCRIPT_NAME_LEN, rstruc.numhotspots);
 
-  fwrite(&rstruc.numwalkareas, 4, 1, opty);
-  fwrite(&rstruc.wallpoints[0], sizeof(PolyPoints), rstruc.numwalkareas, opty);
+  opty->WriteInt32(rstruc.numwalkareas);
+  opty->WriteArray(&rstruc.wallpoints[0], sizeof(PolyPoints), rstruc.numwalkareas);
 
-  fwrite(&rstruc.top, 2, 1, opty);
-  fwrite(&rstruc.bottom, 2, 1, opty);
-  fwrite(&rstruc.left, 2, 1, opty);
-  fwrite(&rstruc.right, 2, 1, opty);
-  fwrite(&rstruc.numsprs, 2, 1, opty);
-  fwrite(&rstruc.sprs[0], sizeof(sprstruc), rstruc.numsprs, opty);
+  opty->WriteInt16(rstruc.top);
+  opty->WriteInt16(rstruc.bottom);
+  opty->WriteInt16(rstruc.left);
+  opty->WriteInt16(rstruc.right);
+  opty->WriteInt16(rstruc.numsprs);
+  opty->WriteArray(&rstruc.sprs[0], sizeof(sprstruc), rstruc.numsprs);
 
-  putw (rstruc.numLocalVars, opty);
+  opty->WriteInt32 (rstruc.numLocalVars);
   if (rstruc.numLocalVars > 0) 
-    fwrite (&rstruc.localvars[0], sizeof(InteractionVariable), rstruc.numLocalVars, opty);
+    opty->WriteArray (&rstruc.localvars[0], sizeof(InteractionVariable), rstruc.numLocalVars);
 /*
   for (f = 0; f < rstruc.numhotspots; f++)
-    serialize_new_interaction (rstruc.intrHotspot[f], opty);
+    serialize_new_interaction (rstruc.intrHotspot[f]);
   for (f = 0; f < rstruc.numsprs; f++)
-    serialize_new_interaction (rstruc.intrObject[f], opty);
-  serialize_new_interaction (rstruc.intrRoom, opty);
+    serialize_new_interaction (rstruc.intrObject[f]);
+  serialize_new_interaction (rstruc.intrRoom);
 */
-  putw (MAX_REGIONS, opty);
+  opty->WriteInt32 (MAX_REGIONS);
   /*
   for (f = 0; f < MAX_REGIONS; f++)
-    serialize_new_interaction (rstruc.intrRegion[f], opty);
+    serialize_new_interaction (rstruc.intrRegion[f]);
 	*/
   serialize_room_interactions(opty);
 
-  fwrite(&rstruc.objbaseline[0], sizeof(int), rstruc.numsprs, opty);
-  fwrite(&rstruc.width, 2, 1, opty);
-  fwrite(&rstruc.height, 2, 1, opty);
+  opty->WriteArrayOfInt32(&rstruc.objbaseline[0], rstruc.numsprs);
+  opty->WriteInt16(rstruc.width);
+  opty->WriteInt16(rstruc.height);
 
   if (rfh.version >= 23)
-    fwrite(&rstruc.objectFlags[0], sizeof(short), rstruc.numsprs, opty);
+    opty->WriteArrayOfInt16(&rstruc.objectFlags[0], rstruc.numsprs);
 
   if (rfh.version >= 11)
-    fwrite(&rstruc.resolution,2,1,opty);
+    opty->WriteInt16(rstruc.resolution);
 
   // write the zoom and light levels
-  putw (MAX_WALK_AREAS + 1, opty);
-  fwrite(&rstruc.walk_area_zoom[0], sizeof(short), MAX_WALK_AREAS + 1, opty);
-  fwrite(&rstruc.walk_area_light[0], sizeof(short), MAX_WALK_AREAS + 1, opty);
-  fwrite(&rstruc.walk_area_zoom2[0], sizeof(short), MAX_WALK_AREAS + 1, opty);
-  fwrite(&rstruc.walk_area_top[0], sizeof(short), MAX_WALK_AREAS + 1, opty);
-  fwrite(&rstruc.walk_area_bottom[0], sizeof(short), MAX_WALK_AREAS + 1, opty);
+  opty->WriteInt32 (MAX_WALK_AREAS + 1);
+  opty->WriteArrayOfInt16(&rstruc.walk_area_zoom[0], MAX_WALK_AREAS + 1);
+  opty->WriteArrayOfInt16(&rstruc.walk_area_light[0], MAX_WALK_AREAS + 1);
+  opty->WriteArrayOfInt16(&rstruc.walk_area_zoom2[0], MAX_WALK_AREAS + 1);
+  opty->WriteArrayOfInt16(&rstruc.walk_area_top[0], MAX_WALK_AREAS + 1);
+  opty->WriteArrayOfInt16(&rstruc.walk_area_bottom[0], MAX_WALK_AREAS + 1);
 
-  fwrite(&rstruc.password[0], 11, 1, opty);
-  fwrite(&rstruc.options[0], 10, 1, opty);
-  fwrite(&rstruc.nummes, 2, 1, opty);
+  opty->Write(&rstruc.password[0], 11);
+  opty->Write(&rstruc.options[0], 10);
+  opty->WriteInt16(rstruc.nummes);
 
   if (rfh.version >= 25)
-    putw(rstruc.gameId, opty);
+    opty->WriteInt32(rstruc.gameId);
  
   if (rfh.version >= 3)
-    fwrite(&rstruc.msgi[0], sizeof(MessageInfo), rstruc.nummes, opty);
+    opty->WriteArray(&rstruc.msgi[0], sizeof(MessageInfo), rstruc.nummes);
 
   for (f = 0; f < rstruc.nummes; f++)
     write_string_encrypt(opty, rstruc.message[f]);
-//    fputstring(rstruc.message[f], opty);
+//    fputstring(rstruc.message[f]);
 
   if (rfh.version >= 6) {
     // we no longer use animations, remove them
     rstruc.numanims = 0;
-    fwrite(&rstruc.numanims, 2, 1, opty);
+    opty->WriteInt16(rstruc.numanims);
 
     if (rstruc.numanims > 0)
-      fwrite(&rstruc.anims[0], sizeof(FullAnimation), rstruc.numanims, opty);
+      opty->WriteArray(&rstruc.anims[0], sizeof(FullAnimation), rstruc.numanims);
   }
 
   if ((rfh.version >= 4) && (rfh.version < 16)) {
@@ -2050,15 +2047,15 @@ void save_room(const char *files, roomstruct rstruc) {
   }
 
   if (rfh.version >= 8)
-    fwrite(&rstruc.shadinginfo[0], sizeof(short), 16, opty);
+    opty->WriteArrayOfInt16(&rstruc.shadinginfo[0], 16);
 
   if (rfh.version >= 21) {
-    fwrite(&rstruc.regionLightLevel[0], sizeof(short), MAX_REGIONS, opty);
-    fwrite(&rstruc.regionTintLevel[0], sizeof(int), MAX_REGIONS, opty);
+    opty->WriteArrayOfInt16(&rstruc.regionLightLevel[0], MAX_REGIONS);
+    opty->WriteArrayOfInt32(&rstruc.regionTintLevel[0], MAX_REGIONS);
   }
 
-  xoff = ftell(opty);
-  fclose(opty);
+  xoff = opty->GetPosition();
+  delete opty;
 
   tesl = save_lzw((char*)files, rstruc.ebscene[0], rstruc.pal, xoff);
 
@@ -2070,26 +2067,26 @@ void save_room(const char *files, roomstruct rstruc) {
   if (rfh.version >= 5) {
     long  lee;
 
-    opty = ci_fopen(const_cast<char*>(files),"r+b");
-    lee = filelength(fileno(opty))-7;
+    opty = ci_fopen(files, Common::kFile_Open, Common::kFile_ReadWrite);
+    lee = opty->GetLength()-7;
 
-    fseek(opty, 3, SEEK_SET);
-    fwrite(&lee, 4, 1, opty);
-    fseek(opty, 0, SEEK_END);
+    opty->Seek(Common::kSeekBegin, 3);
+    opty->WriteInt32(lee);
+    opty->Seek(Common::kSeekEnd, 0);
 
     if (rstruc.scripts != NULL) {
       int hh;
 
-      fputc(BLOCKTYPE_SCRIPT, opty);
+      opty->WriteByte(BLOCKTYPE_SCRIPT);
       lee = (int)strlen(rstruc.scripts) + 4;
-      fwrite(&lee, 4, 1, opty);
+      opty->WriteInt32(lee);
       lee -= 4;
 
       for (hh = 0; hh < lee; hh++)
         rstruc.scripts[hh]-=passwencstring[hh % 11];
 
-      fwrite(&lee, 4, 1, opty);
-      fwrite(rstruc.scripts, lee, 1, opty);
+      opty->WriteInt32(lee);
+      opty->Write(rstruc.scripts, lee);
 
       for (hh = 0; hh < lee; hh++)
         rstruc.scripts[hh]+=passwencstring[hh % 11];
@@ -2099,31 +2096,31 @@ void save_room(const char *files, roomstruct rstruc) {
     if (rstruc.compiled_script != NULL) {
       long  leeat, wasat;
 
-      fputc(BLOCKTYPE_COMPSCRIPT3, opty);
+      opty->WriteByte(BLOCKTYPE_COMPSCRIPT3);
       lee = 0;
-      leeat = ftell(opty);
-      fwrite(&lee, 4, 1, opty);
+      leeat = opty->GetPosition();
+      opty->WriteInt32(lee);
       fwrite_script(rstruc.compiled_script, opty);
      
-      wasat = ftell(opty);
-      fseek(opty, leeat, SEEK_SET);
+      wasat = opty->GetPosition();
+      opty->Seek(Common::kSeekBegin, leeat);
       lee = (wasat - leeat) - 4;
-      fwrite(&lee, 4, 1, opty);
-      fseek(opty, 0, SEEK_END);
+      opty->WriteInt32(lee);
+      opty->Seek(Common::kSeekEnd, 0);
     }
 
     if (rstruc.numsprs > 0) {
-      fputc(BLOCKTYPE_OBJECTNAMES, opty);
+      opty->WriteByte(BLOCKTYPE_OBJECTNAMES);
       lee=rstruc.numsprs * MAXOBJNAMELEN + 1;
-      fwrite(&lee, 4, 1, opty);
-      fputc(rstruc.numsprs, opty);
-      fwrite(&rstruc.objectnames[0][0], MAXOBJNAMELEN, rstruc.numsprs, opty);
+      opty->WriteInt32(lee);
+      opty->WriteByte(rstruc.numsprs);
+      opty->WriteArray(&rstruc.objectnames[0][0], MAXOBJNAMELEN, rstruc.numsprs);
 
-      fputc(BLOCKTYPE_OBJECTSCRIPTNAMES, opty);
+      opty->WriteByte(BLOCKTYPE_OBJECTSCRIPTNAMES);
       lee = rstruc.numsprs * MAX_SCRIPT_NAME_LEN + 1;
-      fwrite(&lee, 4, 1, opty);
-      fputc(rstruc.numsprs, opty);
-      fwrite(&rstruc.objectscriptnames[0][0], MAX_SCRIPT_NAME_LEN, rstruc.numsprs, opty);
+      opty->WriteInt32(lee);
+      opty->WriteByte(rstruc.numsprs);
+      opty->WriteArray(&rstruc.objectscriptnames[0][0], MAX_SCRIPT_NAME_LEN, rstruc.numsprs);
     }
 
     long lenpos, lenis;
@@ -2132,49 +2129,49 @@ void save_room(const char *files, roomstruct rstruc) {
     if (rstruc.num_bscenes > 1) {
       long  curoffs;
 
-      fputc(BLOCKTYPE_ANIMBKGRND, opty);
-      lenpos = ftell(opty);
+      opty->WriteByte(BLOCKTYPE_ANIMBKGRND);
+      lenpos = opty->GetPosition();
       lenis = 0;
-      fwrite(&lenis, 4, 1, opty);
-      fputc(rstruc.num_bscenes, opty);
-      fputc(rstruc.bscene_anim_speed, opty);
+      opty->WriteInt32(lenis);
+      opty->WriteByte(rstruc.num_bscenes);
+      opty->WriteByte(rstruc.bscene_anim_speed);
       
-      fwrite (&rstruc.ebpalShared[0], 1, rstruc.num_bscenes, opty);
+      opty->WriteArrayOfInt8 ((int8_t*)&rstruc.ebpalShared[0], rstruc.num_bscenes);
 
-      fclose(opty);
+      delete opty;
 
       curoffs = lenpos + 6 + rstruc.num_bscenes;
       for (gg = 1; gg < rstruc.num_bscenes; gg++)
         curoffs = save_lzw((char*)files, rstruc.ebscene[gg], rstruc.bpalettes[gg], curoffs);
 
-      opty = ci_fopen(const_cast<char*>(files), "r+b");
+      opty = ci_fopen(const_cast<char*>(files), Common::kFile_Open, Common::kFile_ReadWrite);
       lenis = (curoffs - lenpos) - 4;
-      fseek(opty, lenpos, SEEK_SET);
-      fwrite(&lenis, 4, 1, opty);
-      fseek(opty, 0, SEEK_END);
+      opty->Seek(Common::kSeekBegin, lenpos);
+      opty->WriteInt32(lenis);
+      opty->Seek(Common::kSeekEnd, 0);
     }
 
     // Write custom properties
-    fputc (BLOCKTYPE_PROPERTIES, opty);
-    lenpos = ftell(opty);
+    opty->WriteByte (BLOCKTYPE_PROPERTIES);
+    lenpos = opty->GetPosition();
     lenis = 0;
-    fwrite(&lenis, 4, 1, opty);
-    putw (1, opty);  // Version 1 of properties block
+    opty->WriteInt32(lenis);
+    opty->WriteInt32 (1);  // Version 1 of properties block
     rstruc.roomProps.Serialize (opty);
     for (gg = 0; gg < rstruc.numhotspots; gg++)
       rstruc.hsProps[gg].Serialize (opty);
     for (gg = 0; gg < rstruc.numsprs; gg++)
       rstruc.objProps[gg].Serialize (opty);
 
-    lenis = (ftell(opty) - lenpos) - 4;
-    fseek(opty, lenpos, SEEK_SET);
-    fwrite(&lenis, 4, 1, opty);
-    fseek(opty, 0, SEEK_END);
+    lenis = (opty->GetPosition() - lenpos) - 4;
+    opty->Seek(Common::kSeekBegin, lenpos);
+    opty->WriteInt32(lenis);
+    opty->Seek(Common::kSeekEnd, 0);
 
 
     // Write EOF block
-    fputc(BLOCKTYPE_EOF, opty);
-    fclose(opty);
+    opty->WriteByte(BLOCKTYPE_EOF);
+    delete opty;
   }
  
   if (rfh.version < 9) {
@@ -2235,31 +2232,31 @@ extern void init_pseudo_rand_gen(int seed);
 extern int get_pseudo_rand();
 const int RAND_SEED_SALT = 9338638;  // must update clib32.cpp if this changes
 
-void fwrite_data_enc(const void *data, int dataSize, int dataCount, FILE *ooo)
+void fwrite_data_enc(const void *data, int dataSize, int dataCount, CDataStream *ooo)
 {
   const unsigned char *dataChar = (const unsigned char*)data;
   for (int i = 0; i < dataSize * dataCount; i++)
   {
-    fputc(dataChar[i] + get_pseudo_rand(), ooo);
+    ooo->WriteByte(dataChar[i] + get_pseudo_rand());
   }
 }
 
-void fputstring_enc(const char *sss, FILE *ooo) 
+void fputstring_enc(const char *sss, CDataStream *ooo) 
 {
   fwrite_data_enc(sss, 1, strlen(sss) + 1, ooo);
 }
 
-void putw_enc(int numberToWrite, FILE *ooo)
+void putw_enc(int numberToWrite, CDataStream *ooo)
 {
   fwrite_data_enc(&numberToWrite, 4, 1, ooo);
 }
 
-void write_clib_header(FILE*wout) {
+void write_clib_header(CDataStream*wout) {
   int ff;
   int randSeed = (int)time(NULL);
-  putw(randSeed - RAND_SEED_SALT, wout);
+  wout->WriteInt32(randSeed - RAND_SEED_SALT);
   init_pseudo_rand_gen(randSeed);
-  putw_enc(ourlib.num_data_files,wout);
+  putw_enc(ourlib.num_data_files, wout);
   for (ff = 0; ff < ourlib.num_data_files; ff++)
   {
     fputstring_enc(ourlib.data_filenames[ff], wout);
@@ -2269,25 +2266,25 @@ void write_clib_header(FILE*wout) {
   {
     fputstring_enc(ourlib.filenames[ff], wout);
   }
-  fwrite_data_enc(&ourlib.offset[0],4,ourlib.num_files,wout);
-  fwrite_data_enc(&ourlib.length[0],4,ourlib.num_files,wout);
-  fwrite_data_enc(&ourlib.file_datafile[0],1,ourlib.num_files,wout);
+  fwrite_data_enc(&ourlib.offset[0],4,ourlib.num_files, wout);
+  fwrite_data_enc(&ourlib.length[0],4,ourlib.num_files, wout);
+  fwrite_data_enc(&ourlib.file_datafile[0],1,ourlib.num_files, wout);
 }
 
 
 #define CHUNKSIZE 256000
-int copy_file_across(FILE*inlibb,FILE*coppy,long leftforthis) {
+int copy_file_across(CDataStream*inlibb,CDataStream*coppy,long leftforthis) {
   int success = 1;
   char*diskbuffer=(char*)malloc(CHUNKSIZE+10);
   while (leftforthis>0) {
     if (leftforthis>CHUNKSIZE) {
-      fread(diskbuffer,CHUNKSIZE,1,inlibb);
-      success = fwrite(diskbuffer,CHUNKSIZE,1,coppy);
+      inlibb->Read(diskbuffer,CHUNKSIZE);
+      success = coppy->Write(diskbuffer,CHUNKSIZE);
       leftforthis-=CHUNKSIZE;
     }
     else {
-      fread(diskbuffer,leftforthis,1,inlibb);
-      success = fwrite(diskbuffer,leftforthis,1,coppy);
+      inlibb->Read(diskbuffer,leftforthis);
+      success = coppy->Write(diskbuffer,leftforthis);
       leftforthis=0;
     }
     if (success < 1)
@@ -2324,45 +2321,45 @@ const char* make_old_style_data_file(const char* dataFileName, int numfile, char
 		ThrowManagedException(buffer);
     }
 
-    FILE*ddd = fopen(filenames[a],"rb");
+    CDataStream*ddd = Common::File::OpenFileRead(filenames[a]);
     if (ddd==NULL) { 
       filesizes[a] = 0;
       continue;
     }
-    filesizes[a] = _filelength(_fileno(ddd));
-    fclose(ddd);
+    filesizes[a] = ddd->GetLength();
+    delete ddd;
 
     for (int bb = 0; writefname[a][bb] != 0; bb++)
       writefname[a][bb] += passwmod;
   }
   // write the header
-  FILE*wout=fopen(dataFileName, "wb");
-  fwrite("CLIB\x1a",5,1,wout);
-  fputc(6,wout);  // version
-  fputc(passwmod,wout);  // password modifier
-  fputc(0,wout);  // reserved
-  fwrite(&numfile,2,1,wout);
-  for (a=0;a<13;a++) fputc(0,wout);  // the password
-  fwrite(&writefname[0][0],13,numfile,wout);
-  fwrite(&filesizes[0],4,numfile,wout);
-  for (a=0;a<2*numfile;a++) fputc(0,wout);  // comp.ratio
+  CDataStream*wout=Common::File::CreateFile(dataFileName);
+  wout->Write("CLIB\x1a",5);
+  wout->WriteByte(6);  // version
+  wout->WriteByte(passwmod);  // password modifier
+  wout->WriteByte(0);  // reserved
+  wout->WriteInt16(numfile);
+  for (a=0;a<13;a++) wout->WriteByte(0);  // the password
+  wout->WriteArray(&writefname[0][0],13,numfile);
+  wout->WriteArrayOfInt32((int32_t*)&filesizes[0],numfile);
+  for (a=0;a<2*numfile;a++) wout->WriteByte(0);  // comp.ratio
 
   // now copy the data
   for (a=0;a<numfile;a++) {
 
-	FILE*iii = fopen(filenames[a],"rb");
+	CDataStream*iii = Common::File::OpenFileRead(filenames[a]);
     if (iii==NULL) {
       errorMsg = "unable to add one of the files to data file.";
       continue;
     }
     if (copy_file_across(iii,wout,filesizes[a]) < 1) {
       errorMsg = "Error writing file: possibly disk full";
-      fclose(iii);
+      delete iii;
       break;
     }
-    fclose(iii);
+    delete iii;
   }
-  fclose(wout);
+  delete wout;
   free(filesizes);
   free(writefname[0]);
   free(writefname);
@@ -2375,20 +2372,20 @@ const char* make_old_style_data_file(const char* dataFileName, int numfile, char
   return errorMsg;
 }
 
-FILE* find_file_in_path(char *buffer, const char *fileName)
+CDataStream* find_file_in_path(char *buffer, const char *fileName)
 {
 	char tomake[MAX_PATH];
 	strcpy(tomake, fileName);
-	FILE* iii = clibfopen(tomake, "rb");
+	CDataStream* iii = clibfopen(tomake);
 	if (iii == NULL) {
 	  // try in the Audio folder if not found
 	  sprintf(tomake, "AudioCache\\%s", fileName);
-	  iii = clibfopen(tomake, "rb");
+	  iii = clibfopen(tomake);
 	}
 	if (iii == NULL) {
 	  // no? maybe Speech then, templates include this
 	  sprintf(tomake, "Speech\\%s", fileName);
-	  iii = clibfopen(tomake, "rb");
+	  iii = clibfopen(tomake);
 	}
 
 	if (buffer != NULL)
@@ -2400,7 +2397,7 @@ FILE* find_file_in_path(char *buffer, const char *fileName)
 const char* make_data_file(int numFiles, char * const*fileNames, long splitSize, const char *baseFileName, bool makeFileNameAssumptionsForEXE)
 {
   int a,b;
-  FILE*wout;
+  CDataStream*wout;
   char tomake[MAX_PATH];
   ourlib.num_data_files = 0;
   ourlib.num_files = numFiles;
@@ -2429,9 +2426,9 @@ const char* make_data_file(int numFiles, char * const*fileNames, long splitSize,
 		  }
 	  }
 	  long thisFileSize = 0;
-	  FILE *tf = fopen(fileNames[a], "rb");
-	  thisFileSize = _filelength(fileno(tf));
-	  fclose(tf);
+	  CDataStream *tf = Common::File::OpenFileRead(fileNames[a]);
+	  thisFileSize = tf->GetLength();
+	  delete tf;
 	  
 	  sizeSoFar += thisFileSize;
 
@@ -2493,10 +2490,10 @@ const char* make_data_file(int numFiles, char * const*fileNames, long splitSize,
   // write the correct amount of data
   for (b = 0; b < ourlib.num_files; b++) 
   {
-	FILE *iii = find_file_in_path(tomake, ourlib.filenames[b]);
+	CDataStream *iii = find_file_in_path(tomake, ourlib.filenames[b]);
 	if (iii != NULL)
 	{
-		fclose(iii);
+		delete iii;
 
 		if (!makeFileNameAssumptionsForEXE)
 		  strcpy(ourlib.filenames[b], tomake);
@@ -2516,30 +2513,31 @@ const char* make_data_file(int numFiles, char * const*fileNames, long splitSize,
       }
       if (a == 0) strcpy(firstDataFileFullPath, outputFileName);
 
-	  wout = fopen(outputFileName, (a == 0) ? "ab" : "wb");
+	  wout = Common::File::OpenFile(outputFileName,
+          (a == 0) ? Common::kFile_Create : Common::kFile_CreateAlways, Common::kFile_Write);
 	  if (wout == NULL) 
 	  {
 		  return "ERROR: unable to open file for writing";
 	  }
 
-	  startOffset = _filelength(_fileno(wout));
-    fwrite("CLIB\x1a",5,1,wout);
-    fputc(21, wout);  // version
-    fputc(a, wout);   // file number
+	  startOffset = wout->GetLength();
+    wout->Write("CLIB\x1a",5);
+    wout->WriteByte(21);  // version
+    wout->WriteByte(a);   // file number
 
     if (a == 0) 
 	{
-      mainHeaderOffset = ftell(wout);
+      mainHeaderOffset = wout->GetPosition();
       write_clib_header(wout);
     }
 
     for (b=0;b<ourlib.num_files;b++) {
       if (ourlib.file_datafile[b] == a) {
-        ourlib.offset[b] = ftell(wout) - startOffset;
+        ourlib.offset[b] = wout->GetPosition() - startOffset;
 
-		FILE *iii = find_file_in_path(NULL, ourlib.filenames[b]);
+		CDataStream *iii = find_file_in_path(NULL, ourlib.filenames[b]);
         if (iii == NULL) {
-          fclose(wout);
+          delete wout;
           unlink(outputFileName);
 
 		  char buffer[500];
@@ -2548,24 +2546,24 @@ const char* make_data_file(int numFiles, char * const*fileNames, long splitSize,
         }
 
         if (copy_file_across(iii,wout,ourlib.length[b]) < 1) {
-          fclose(iii);
+          delete iii;
           return "Error writing file: possibly disk full";
         }
-        fclose(iii);
+        delete iii;
       }
     }
 	if (startOffset > 0)
 	{
-		putw(startOffset, wout);
-		fwrite(clibendsig, 12, 1, wout);
+		wout->WriteInt32(startOffset);
+		wout->Write(clibendsig, 12);
 	}
-    fclose(wout);
+    delete wout;
   }
 
-  wout = fopen(firstDataFileFullPath, "r+b");
-  fseek(wout, mainHeaderOffset, SEEK_SET);
+  wout = Common::File::OpenFile(firstDataFileFullPath, Common::kFile_Open, Common::kFile_ReadWrite);
+  wout->Seek(Common::kSeekBegin, mainHeaderOffset);
   write_clib_header(wout);
-  fclose(wout);
+  delete wout;
   return NULL;
 }
 
@@ -4138,13 +4136,13 @@ System::String ^load_room_script(System::String ^fileName)
 	char roomFileNameBuffer[MAX_PATH];
 	ConvertStringToCharArray(fileName, roomFileNameBuffer);
 
-	FILE *opty = clibfopen(roomFileNameBuffer, "rb");
+	CDataStream *opty = clibfopen(roomFileNameBuffer);
 	if (opty == NULL) throw gcnew AGSEditorException("Unable to open room file");
 
-	short version = getshort(opty);
+	short version = opty->ReadInt16();
 	if (version < 17)
 	{
-    fclose(opty);
+    delete opty;
 		throw gcnew AGSEditorException("Room file is from an old version of AGS and cannot be processed");
 	}
 
@@ -4153,21 +4151,21 @@ System::String ^load_room_script(System::String ^fileName)
 	int thisblock = 0;
 	while (thisblock != BLOCKTYPE_EOF) 
 	{
-		thisblock = fgetc(opty);
+		thisblock = opty->ReadByte();
 		if (thisblock == BLOCKTYPE_EOF) 
 		{
 			break;
 		}
 
-		int blockLen = getw(opty);
+		int blockLen = opty->ReadInt32();
 
 		if (thisblock == BLOCKTYPE_SCRIPT) 
 		{
-			int lee = getw(opty);
+			int lee = opty->ReadInt32();
 			int hh;
 
 			char *scriptFile = (char *)malloc(lee + 5);
-			fread(scriptFile, sizeof(char), lee, opty);
+			opty->Read(scriptFile, lee);
 			scriptFile[lee] = 0;
 
 			for (hh = 0; hh < lee; hh++)
@@ -4179,11 +4177,11 @@ System::String ^load_room_script(System::String ^fileName)
 		}
 		else 
 		{
-			fseek(opty, blockLen, SEEK_CUR);
+			opty->Seek(Common::kSeekCurrent, blockLen);
 		}
 	}
 
-	fclose(opty);
+	delete opty;
 
 	return scriptToReturn;
 }
@@ -4581,7 +4579,7 @@ static void ConvertViewsToDTAFormat(ViewFolder ^folder, Game ^game)
 	}
 }
 
-void write_compiled_script(FILE *ooo, Script ^script)
+void write_compiled_script(CDataStream *ooo, Script ^script)
 {
 	if (script->CompiledData == nullptr)
 	{
@@ -4591,15 +4589,15 @@ void write_compiled_script(FILE *ooo, Script ^script)
 	fwrite_script(((AGS::Native::CompiledScript^)script->CompiledData)->Data, ooo);
 }
 
-void serialize_interaction_scripts(Interactions ^interactions, FILE *ooo)
+void serialize_interaction_scripts(Interactions ^interactions, CDataStream *ooo)
 {
 	char textBuffer[256];
-	putw(interactions->ScriptFunctionNames->Length, ooo);
+	ooo->WriteInt32(interactions->ScriptFunctionNames->Length);
 	for each (String^ funcName in interactions->ScriptFunctionNames)
 	{
 		if (funcName == nullptr)
 		{
-			fputc(0, ooo);
+			ooo->WriteByte(0);
 		}
 		else 
 		{
@@ -4609,7 +4607,7 @@ void serialize_interaction_scripts(Interactions ^interactions, FILE *ooo)
 	}
 }
 
-void serialize_room_interactions(FILE *ooo) 
+void serialize_room_interactions(CDataStream *ooo) 
 {
 	Room ^roomBeingSaved = TempDataStorage::RoomBeingSaved;
 	serialize_interaction_scripts(roomBeingSaved->Interactions, ooo);
@@ -4633,27 +4631,27 @@ void save_thisgame_to_file(const char *fileName, Game ^game)
   char textBuffer[500];
 	int bb;
 
-	FILE*ooo = fopen(fileName, "wb");
+	CDataStream*ooo = Common::File::CreateFile(fileName);
 	if (ooo == NULL) 
 	{
 		throw gcnew CompileError(String::Format("Cannot open file {0} for writing", gcnew String(fileName)));
 	}
 
-  fwrite(game_file_sig,30,1,ooo);
-  putw(42, ooo);
-  putw(strlen(AGS_VERSION), ooo);
-  fwrite(AGS_VERSION, strlen(AGS_VERSION), 1, ooo);
+  ooo->Write(game_file_sig,30);
+  ooo->WriteInt32(42);
+  ooo->WriteInt32(strlen(AGS_VERSION));
+  ooo->Write(AGS_VERSION, strlen(AGS_VERSION));
 
-  fwrite(&thisgame, sizeof (GameSetupStructBase), 1, ooo);
-  fwrite(&thisgame.guid[0], 1, MAX_GUID_LENGTH, ooo);
-  fwrite(&thisgame.saveGameFileExtension[0], 1, MAX_SG_EXT_LENGTH, ooo);
-  fwrite(&thisgame.saveGameFolderName[0], 1, MAX_SG_FOLDER_LEN, ooo);
-  fwrite(&thisgame.fontflags[0], 1, thisgame.numfonts, ooo);
-  fwrite(&thisgame.fontoutline[0], 1, thisgame.numfonts, ooo);
-  putw (MAX_SPRITES, ooo);
-  fwrite(&thisgame.spriteflags[0], 1, MAX_SPRITES, ooo);
-  fwrite(&thisgame.invinfo[0], sizeof(InventoryItemInfo), thisgame.numinvitems, ooo);
-  fwrite(&thisgame.mcurs[0], sizeof(::MouseCursor), thisgame.numcursors, ooo);
+  ooo->WriteArray(&thisgame, sizeof (GameSetupStructBase), 1);
+  ooo->Write(&thisgame.guid[0], MAX_GUID_LENGTH);
+  ooo->Write(&thisgame.saveGameFileExtension[0], MAX_SG_EXT_LENGTH);
+  ooo->Write(&thisgame.saveGameFolderName[0], MAX_SG_FOLDER_LEN);
+  ooo->Write(&thisgame.fontflags[0], thisgame.numfonts);
+  ooo->Write(&thisgame.fontoutline[0], thisgame.numfonts);
+  ooo->WriteInt32 (MAX_SPRITES);
+  ooo->Write(&thisgame.spriteflags[0], MAX_SPRITES);
+  ooo->WriteArray(&thisgame.invinfo[0], sizeof(InventoryItemInfo), thisgame.numinvitems);
+  ooo->WriteArray(&thisgame.mcurs[0], sizeof(::MouseCursor), thisgame.numcursors);
   
   for (bb = 0; bb < thisgame.numcharacters; bb++)
   {
@@ -4684,7 +4682,7 @@ void save_thisgame_to_file(const char *fileName, Game ^game)
 	  }
   }
 
-  putw(scriptsToWrite->Count, ooo);
+  ooo->WriteInt32(scriptsToWrite->Count);
 
   for each (Script ^script in scriptsToWrite)
   {
@@ -4696,9 +4694,9 @@ void save_thisgame_to_file(const char *fileName, Game ^game)
     newViews[bb].WriteToFile(ooo);
   }
 
-  fwrite(&thisgame.chars[0],sizeof(CharacterInfo),thisgame.numcharacters,ooo);
+  ooo->WriteArray(&thisgame.chars[0],sizeof(CharacterInfo),thisgame.numcharacters);
 
-  fwrite(&thisgame.lipSyncFrameLetters[0][0], MAXLIPSYNCFRAMES, 50, ooo);
+  ooo->WriteArray(&thisgame.lipSyncFrameLetters[0][0], MAXLIPSYNCFRAMES, 50);
 
   char *buffer;
   for (bb=0;bb<MAXGLOBALMES;bb++) 
@@ -4711,7 +4709,7 @@ void save_thisgame_to_file(const char *fileName, Game ^game)
     write_string_encrypt(ooo, buffer);
 	  free(buffer);
   }
-  fwrite(&dialog[0], sizeof(DialogTopic), thisgame.numdialog, ooo);
+  ooo->WriteArray(&dialog[0], sizeof(DialogTopic), thisgame.numdialog);
   write_gui(ooo,&guis[0],&thisgame);
   write_plugins_to_disk(ooo);
   // write the custom properties & schema
@@ -4732,7 +4730,7 @@ void save_thisgame_to_file(const char *fileName, Game ^game)
 
 
   int audioClipTypeCount = game->AudioClipTypes->Count + 1;
-  putw(audioClipTypeCount, ooo);
+  ooo->WriteInt32(audioClipTypeCount);
   ::AudioClipType *clipTypes = (::AudioClipType*)calloc(audioClipTypeCount, sizeof(::AudioClipType));
   // hard-coded SPEECH audio type 0
   clipTypes[0].id = 0;
@@ -4747,11 +4745,11 @@ void save_thisgame_to_file(const char *fileName, Game ^game)
     clipTypes[bb].volume_reduction_while_speech_playing = game->AudioClipTypes[bb - 1]->VolumeReductionWhileSpeechPlaying;
     clipTypes[bb].crossfadeSpeed = (int)game->AudioClipTypes[bb - 1]->CrossfadeClips;
   }
-  fwrite(clipTypes, sizeof(::AudioClipType), audioClipTypeCount, ooo);
+  ooo->WriteArray(clipTypes, sizeof(::AudioClipType), audioClipTypeCount);
   free(clipTypes);
 
   IList<AudioClip^>^ allClips = game->CachedAudioClipListForCompile;
-  putw(allClips->Count, ooo);
+  ooo->WriteInt32(allClips->Count);
   ScriptAudioClip *compiledAudioClips = (ScriptAudioClip*)calloc(allClips->Count, sizeof(ScriptAudioClip));
   for (int i = 0; i < allClips->Count; i++)
   {
@@ -4765,17 +4763,17 @@ void save_thisgame_to_file(const char *fileName, Game ^game)
     compiledAudioClips[i].fileType = (int)clip->FileType;
     compiledAudioClips[i].type = clip->Type;
   }
-  fwrite(compiledAudioClips, sizeof(ScriptAudioClip), allClips->Count, ooo);
+  ooo->WriteArray(compiledAudioClips, sizeof(ScriptAudioClip), allClips->Count);
   free(compiledAudioClips);
-  putw(game->GetAudioArrayIndexFromAudioClipIndex(game->Settings->PlaySoundOnScore), ooo);
+  ooo->WriteInt32(game->GetAudioArrayIndexFromAudioClipIndex(game->Settings->PlaySoundOnScore));
 
   if (game->Settings->DebugMode)
   {
-    putw(game->Rooms->Count, ooo);
+    ooo->WriteInt32(game->Rooms->Count);
     for (bb = 0; bb < game->Rooms->Count; bb++)
     {
       IRoom ^room = game->Rooms[bb];
-      putw(room->Number, ooo);
+      ooo->WriteInt32(room->Number);
       if (room->Description != nullptr)
       {
         ConvertStringToCharArray(room->Description, textBuffer, 500);
@@ -4788,7 +4786,7 @@ void save_thisgame_to_file(const char *fileName, Game ^game)
     }
   }
 
-  fclose(ooo);
+  delete ooo;
 }
 
 void save_game_to_dta_file(Game^ game, const char *fileName)
@@ -5167,48 +5165,46 @@ void quit(char * message)
 
 // ** GRAPHICAL SCRIPT LOAD/SAVE ROUTINES ** //
 
-long getlong(FILE*iii) {
+long getlong(CDataStream*iii) {
   long tmm;
-  fread(&tmm,4,1,iii);
+  tmm = iii->ReadInt32();
   return tmm;
 }
 
-#define putlong putw
-
-void save_script_configuration(FILE*iii) {
+void save_script_configuration(CDataStream*iii) {
   // no variable names
-  putlong (1, iii);
-  putlong (0, iii);
+  iii->WriteInt32 (1);
+  iii->WriteInt32 (0);
 }
 
-void load_script_configuration(FILE*iii) { int aa;
+void load_script_configuration(CDataStream*iii) { int aa;
   if (getlong(iii)!=1) quit("ScriptEdit: invliad config version");
   int numvarnames=getlong(iii);
   for (aa=0;aa<numvarnames;aa++) {
-    int lenoft=getc(iii);
-    fseek(iii,lenoft,SEEK_CUR);
+    int lenoft=iii->ReadByte();
+    iii->Seek(Common::kSeekCurrent,lenoft);
   }
 }
 
-void save_graphical_scripts(FILE*fff,roomstruct*rss) {
+void save_graphical_scripts(CDataStream*fff,roomstruct*rss) {
   // no script
-  putlong (-1, fff);
+  fff->WriteInt32 (-1);
 }
 
 char*scripttempn="~acsc%d.tmp";
-void load_graphical_scripts(FILE*iii,roomstruct*rst) {
+void load_graphical_scripts(CDataStream*iii,roomstruct*rst) {
   long ct;
   bool doneMsg = false;
   while (1) {
-    fread(&ct,4,1,iii);
-    if ((ct==-1) | (feof(iii)!=0)) break;
+    ct = iii->ReadInt32();
+    if ((ct==-1) | (iii->EOS()!=0)) break;
     if (!doneMsg) {
 //      infoBox("WARNING: This room uses graphical scripts, which have been removed from this version. If you save the room now, all graphical scripts will be lost.");
       doneMsg = true;
     }
     // skip the data
-    long lee; fread(&lee,4,1,iii);
-    fseek (iii, lee, SEEK_CUR);
+    long lee = iii->ReadInt32();
+    iii->Seek (Common::kSeekCurrent, lee);
   }
 }
 

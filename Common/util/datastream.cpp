@@ -82,6 +82,15 @@ int CDataStream::WriteString(const CString &str)
     return 0;
 }
 
+int CDataStream::ReadArrayOfIntPtr(intptr_var_t *buffer, int count)
+{
+#if defined (AGS_64BIT) || defined (TEST_64BIT)
+    return MustSwapBytes() ? ReadAndConvertArrayOfInt64(buffer, count) : ReadArrayOfInt64(buffer, count);
+#else
+    return MustSwapBytes() ? ReadAndConvertArrayOfInt32(buffer, count) : ReadArrayOfInt32(buffer, count);
+#endif
+}
+
 int CDataStream::ReadArrayOfIntPtr32(intptr_var_t *buffer, int count)
 {
     if (!CanRead())
@@ -123,6 +132,15 @@ int CDataStream::ReadArrayOfIntPtr32(intptr_var_t *buffer, int count)
     }
 #endif // AGS_64BIT
     return count;
+}
+
+int CDataStream::WriteArrayOfIntPtr(const intptr_var_t *buffer, int count)
+{
+#if defined (AGS_64BIT) || defined (TEST_64BIT)
+    return MustSwapBytes() ? WriteAndConvertArrayOfInt64(buffer, count) : WriteArrayOfInt64(buffer, count);
+#else
+    return MustSwapBytes() ? WriteAndConvertArrayOfInt32(buffer, count) : WriteArrayOfInt32(buffer, count);
+#endif
 }
 
 int CDataStream::WriteArrayOfIntPtr32(const intptr_var_t *buffer, int count)

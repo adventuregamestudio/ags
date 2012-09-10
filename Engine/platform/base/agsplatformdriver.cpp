@@ -41,7 +41,7 @@ int  AGSPlatformDriver::RunPluginDebugHooks(const char *scriptfile, int linenum)
 void AGSPlatformDriver::RunPluginInitGfxHooks(const char *driverName, void *data) { }
 void AGSPlatformDriver::ShutdownPlugins() { }
 void AGSPlatformDriver::StartPlugins() { }
-int  AGSPlatformDriver::RunPluginHooks(int event, int data) { return 0; }
+int  AGSPlatformDriver::RunPluginHooks(int event, long data) { return 0; }
 void AGSPlatformDriver::WriteDebugString(const char*, ...) { }
 void AGSPlatformDriver::AboutToQuitGame() { }
 void AGSPlatformDriver::PostAllegroInit(bool windowed) { }
@@ -119,6 +119,13 @@ int AGSPlatformDriver::ConvertKeycodeToScanCode(int keycode)
 {
     keycode -= ('A' - KEY_A);
     return keycode;
+}
+
+//-----------------------------------------------
+// IOutputTarget implementation
+//-----------------------------------------------
+void AGSPlatformDriver::Out(const char *sz_fullmsg) {
+    // do nothing
 }
 
 // ********** CD Player Functions common to Win and Linux ********

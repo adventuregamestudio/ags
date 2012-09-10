@@ -111,10 +111,15 @@ struct AGSWin32 : AGSPlatformDriver {
 
   virtual void ReadPluginsFromDisk(FILE *);
   virtual void StartPlugins();
-  virtual int  RunPluginHooks(int event, int data);
+  virtual int  RunPluginHooks(int event, long data);
   virtual void RunPluginInitGfxHooks(const char *driverName, void *data);
   virtual int  RunPluginDebugHooks(const char *scriptfile, int linenum);
   virtual void ShutdownPlugins();
+
+  //-----------------------------------------------
+  // IOutputTarget implementation
+  //-----------------------------------------------
+  virtual void Out(const char *sz_fullmsg);
 
 private:
   void add_game_to_game_explorer(IGameExplorer* pFwGameExplorer, GUID *guid, const char *guidAsText, bool allUsers);
@@ -780,7 +785,7 @@ void AGSWin32::ShutdownPlugins() {
   pl_stop_plugins();
 }
 
-int AGSWin32::RunPluginHooks(int event, int data) {
+int AGSWin32::RunPluginHooks(int event, long data) {
   return pl_run_plugin_hooks(event, data);
 }
 
@@ -814,6 +819,13 @@ AGSPlatformDriver* AGSPlatformDriver::GetDriver() {
   if (instance == NULL)
     instance = new AGSWin32();
   return instance;
+}
+
+//-----------------------------------------------
+// IOutputTarget implementation
+//-----------------------------------------------
+void AGSWin32::Out(const char *sz_fullmsg) {
+    this->WriteDebugString(sz_fullmsg);
 }
 
 

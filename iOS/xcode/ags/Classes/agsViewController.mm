@@ -76,6 +76,51 @@ extern "C" int ios_get_last_keypress()
 	return result;
 }
 
+
+extern "C" void ios_show_keyboard()
+{
+	if (agsviewcontroller)
+		[agsviewcontroller performSelectorOnMainThread:@selector(showKeyboard) withObject:nil waitUntilDone:YES];	
+}
+
+extern "C" void ios_hide_keyboard()
+{
+	if (agsviewcontroller)
+		[agsviewcontroller performSelectorOnMainThread:@selector(hideKeyboard) withObject:nil waitUntilDone:YES];	
+}
+
+extern "C" int ios_is_keyboard_visible()
+{
+	return (agsviewcontroller.isKeyboardActive ? 1 : 0);
+}
+
+- (void)showKeyboard
+{
+	if (!self.isKeyboardActive)
+	{
+		[self becomeFirstResponder];
+
+		if (self.isInPortraitOrientation)
+			[self moveViewAnimated:YES duration:0.25];
+
+		self.isKeyboardActive = TRUE;
+	}
+}
+
+- (void)hideKeyboard
+{
+	if (self.isKeyboardActive)
+	{
+		[self resignFirstResponder];
+			
+		if (self.isInPortraitOrientation)
+			[self moveViewAnimated:NO duration:0.25];
+		
+		self.isKeyboardActive = FALSE;
+	}
+}
+
+
 - (BOOL)hasText
 {
 	return NO;
@@ -249,19 +294,12 @@ extern "C" int ios_get_last_keypress()
 
 	if (self.isKeyboardActive)
 	{
-		[self resignFirstResponder];
-		
-		if (self.isInPortraitOrientation)
-			[self moveViewAnimated:NO duration:0.25];
+		[self hideKeyboard];
 	}
 	else
 	{
-		[self becomeFirstResponder];
-		if (self.isInPortraitOrientation)
-			[self moveViewAnimated:YES duration:0.25];
+		[self showKeyboard];
 	}
-
-	self.isKeyboardActive = !self.isKeyboardActive;
 }
 
 - (IBAction)handleShortLongPress:(UIGestureRecognizer *)sender

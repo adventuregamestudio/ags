@@ -6,7 +6,7 @@
 #include "ac/dialogtopic.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "script/script.h"
 
 extern GameSetupStruct game;

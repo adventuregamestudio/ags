@@ -55,7 +55,7 @@ void set_rgb_mask_using_alpha_channel(IBitmap *image)
 
     for (y=0; y < image->GetHeight(); y++) 
     {
-        unsigned long*psrc = (unsigned long *)image->GetScanLine(y);
+        unsigned int*psrc = (unsigned int *)image->GetScanLine(y);
 
         for (x=0; x < image->GetWidth(); x++) 
         {
@@ -72,12 +72,12 @@ IBitmap *remove_alpha_channel(IBitmap *from) {
     IBitmap *to = Bitmap::CreateBitmap(from->GetWidth(), from->GetHeight(),depth);
     int maskcol = to->GetMaskColor();
     int y,x;
-    unsigned long c,b,g,r;
+    unsigned int c,b,g,r;
 
     if (depth == 24) {
         // 32-to-24
         for (y=0; y < from->GetHeight(); y++) {
-            unsigned long*psrc = (unsigned long *)from->GetScanLine(y);
+            unsigned int*psrc = (unsigned int *)from->GetScanLine(y);
             unsigned char*pdest = (unsigned char*)to->GetScanLine(y);
 
             for (x=0; x < from->GetWidth(); x++) {
@@ -94,7 +94,7 @@ IBitmap *remove_alpha_channel(IBitmap *from) {
     else {  // 32 to 15 or 16
 
         for (y=0; y < from->GetHeight(); y++) {
-            unsigned long*psrc = (unsigned long *)from->GetScanLine(y);
+            unsigned int*psrc = (unsigned int *)from->GetScanLine(y);
             unsigned short*pdest = (unsigned short *)to->GetScanLine(y);
 
             for (x=0; x < from->GetWidth(); x++) {

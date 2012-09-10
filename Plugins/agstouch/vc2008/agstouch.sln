@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "agstouch", "agstouch.vcproj", "{31FF3B7D-D7C6-4B10-92DF-C10BADF1899E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{31FF3B7D-D7C6-4B10-92DF-C10BADF1899E}.Debug|Win32.ActiveCfg = Debug|Win32
+		{31FF3B7D-D7C6-4B10-92DF-C10BADF1899E}.Debug|Win32.Build.0 = Debug|Win32
+		{31FF3B7D-D7C6-4B10-92DF-C10BADF1899E}.Release|Win32.ActiveCfg = Release|Win32
+		{31FF3B7D-D7C6-4B10-92DF-C10BADF1899E}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

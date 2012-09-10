@@ -9,7 +9,8 @@
 #include "ac/global_audio.h"
 #include "ac/lipsync.h"
 #include "ac/roomstruct.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
+#include "debug/debugger.h"
 #include "media/audio/audio.h"
 #include "media/audio/sound.h"
 

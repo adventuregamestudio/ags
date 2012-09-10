@@ -19,7 +19,7 @@
 #include "ac/roomstruct.h"
 #include "ac/string.h"
 #include "ac/viewframe.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "main/game_run.h"
 #include "script/script.h"
 #include "ac/spritecache.h"
@@ -226,7 +226,7 @@ void AnimateObjectEx(int obn,int loopn,int spdd,int rept, int direction, int blo
     CheckViewFrame (objs[obn].view, loopn, objs[obn].frame);
 
     if (blocking)
-        do_main_cycle(UNTIL_CHARIS0,(int)&objs[obn].cycling);
+        do_main_cycle(UNTIL_CHARIS0,(long)&objs[obn].cycling);
 }
 
 

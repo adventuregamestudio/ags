@@ -33,7 +33,11 @@ void GameSetupStructBase::ReadFromFile(FILE *fp)
     invhotdotsprite = getw(fp);
     fread(reserved, sizeof(int), 17, fp);
     // read the final ptrs so we know to load dictionary, scripts etc
-    fread(messages, sizeof(int), MAXGLOBALMES, fp);
+    // 64 bit: Read 4 byte values into array of 8 byte
+    int i;
+    for (i = 0; i < MAXGLOBALMES; i++)
+      messages[i] = (char*)getw(fp);
+
     dict = (WordsDictionary *) getw(fp);
     globalscript = (char *) getw(fp);
     chars = (CharacterInfo *) getw(fp);

@@ -48,7 +48,6 @@ extern bool justRegisterGame;
 extern bool justUnRegisterGame;
 extern const char *loadSaveGameOnStartup;
 
-#if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
 extern int psp_video_framedrop;
 extern int psp_audio_enabled;
 extern int psp_midi_enabled;
@@ -60,6 +59,5 @@ extern int psp_audio_cachesize;
 extern char psp_game_file_name[];
 extern int psp_gfx_smooth_sprites;
 extern char psp_translation[];
-#endif
 
 #endif // __AGS_EE_MAIN__MAIN_H

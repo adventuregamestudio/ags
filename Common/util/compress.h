@@ -27,10 +27,10 @@ long csavecompressed(char *finam, __block tobesaved, color pala[256], long exto)
 
 void cpackbitl(unsigned char *line, int size, FILE * outfile);
 void cpackbitl16(unsigned short *line, int size, FILE * outfile);
-void cpackbitl32(unsigned long *line, int size, FILE * outfile);
+void cpackbitl32(unsigned int *line, int size, FILE * outfile);
 int  cunpackbitl(unsigned char *line, int size, FILE * infile);
 int  cunpackbitl16(unsigned short *line, int size, FILE * infile);
-int  cunpackbitl32(unsigned long *line, int size, FILE * infile);
+int  cunpackbitl32(unsigned int *line, int size, FILE * infile);
 
 //=============================================================================
 

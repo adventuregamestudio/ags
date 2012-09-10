@@ -28,9 +28,7 @@ extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern int scrnwid,scrnhit;
 extern IBitmap *virtual_screen;
 
-#if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
 extern int psp_video_framedrop;
-#endif
 
 
 // FLIC player start

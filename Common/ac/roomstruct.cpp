@@ -565,7 +565,7 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
 	  {
 		  delete rstruc->hotspotScripts[i];
 	  }
-	  delete rstruc->hotspotScripts;
+	  delete[] rstruc->hotspotScripts;
 	  rstruc->hotspotScripts = NULL;
   }
   if (rstruc->objectScripts != NULL)
@@ -574,7 +574,7 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
 	  {
 		  delete rstruc->objectScripts[i];
 	  }
-	  delete rstruc->objectScripts;
+	  delete[] rstruc->objectScripts;
 	  rstruc->objectScripts = NULL;
   }
   if (rstruc->regionScripts != NULL)
@@ -583,7 +583,7 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
 	  {
 		  delete rstruc->regionScripts[i];
 	  }
-	  delete rstruc->regionScripts;
+	  delete[] rstruc->regionScripts;
 	  rstruc->regionScripts = NULL;
   }
 
@@ -623,7 +623,7 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
   }
 
   int   thisblock = 0;
-  long  bloklen;
+  int   bloklen;
   FILE *optywas;
 
   while (thisblock != BLOCKTYPE_EOF) {
@@ -640,7 +640,7 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
     if (thisblock == BLOCKTYPE_MAIN)
       load_main_block(rstruc, files, opty, rfh);
     else if (thisblock == BLOCKTYPE_SCRIPT) {
-      long  lee;
+      int   lee;
       int   hh;
 
       fread(&lee, 4, 1, opty);

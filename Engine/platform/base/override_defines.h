@@ -7,6 +7,7 @@
 #define __AGS_EE_PLATFORM__OVERRIDE_DEFINES_H
 
 #if defined(PSP_VERSION)
+#include <pspmath.h>
 #define cos(a) vfpu_cosf(a)
 #define sin(a) vfpu_sinf(a)
 #define tan(a) vfpu_tanf(a)
@@ -28,6 +29,7 @@
 #define HWND long
 #define _getcwd getcwd
 #define strnicmp strncasecmp
+#define stricmp strcasecmp
 
 #else   // it's DOS (DJGPP)
 

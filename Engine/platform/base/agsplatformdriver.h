@@ -16,6 +16,7 @@
 
 #include "ac/datetime.h"
 #include "util/file.h"
+#include "debug/outputtarget.h"
 
 #ifdef DJGPP
 #define DOS_VERSION
@@ -28,7 +29,10 @@ enum eScriptSystemOSID {
     eOS_Mac = 4
 };
 
-struct AGSPlatformDriver {
+struct AGSPlatformDriver
+    // be used as a output target for logging system
+    : public AGS::Common::Out::IOutputTarget
+{
     virtual void AboutToQuitGame();
     virtual void Delay(int millis) = 0;
     virtual void DisplayAlert(const char*, ...) = 0;
@@ -60,12 +64,17 @@ struct AGSPlatformDriver {
 
     virtual void ReadPluginsFromDisk(FILE *);
     virtual void StartPlugins();
-    virtual int  RunPluginHooks(int event, int data);
+    virtual int  RunPluginHooks(int event, long data);
     virtual void RunPluginInitGfxHooks(const char *driverName, void *data);
     virtual int  RunPluginDebugHooks(const char *scriptfile, int linenum);
     virtual void ShutdownPlugins();
 
     static AGSPlatformDriver *GetDriver();
+
+    //-----------------------------------------------
+    // IOutputTarget implementation
+    //-----------------------------------------------
+    virtual void Out(const char *sz_fullmsg);
 
 private:
     static AGSPlatformDriver *instance;

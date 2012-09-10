@@ -2,7 +2,7 @@
 #include "util/wgt2allg.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/viewframe.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "media/audio/audio.h"
 #include "ac/spritecache.h"
 #include "gfx/bitmap.h"

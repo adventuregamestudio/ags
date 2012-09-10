@@ -25,7 +25,8 @@
 #include "ac/roomstatus.h"
 #include "ac/translation.h"
 #include "debug/agseditordebugger.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
+#include "debug/debugger.h"
 #include "main/main.h"
 #include "main/mainheader.h"
 #include "main/quit.h"
@@ -39,7 +40,6 @@ namespace Bitmap = AGS::Common::Bitmap;
 extern GameSetupStruct game;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
-extern RoomStatus *roomstats;
 extern RoomStatus troom;    // used for non-saveable rooms, eg. intro
 extern int our_eip;
 extern GameSetup usetup;
@@ -210,7 +210,7 @@ void quit_release_gfx_driver()
 void quit_release_data()
 {
     // wipe all the interaction structs so they don't de-alloc the children twice
-    memset (&roomstats[0], 0, sizeof(RoomStatus) * MAX_ROOMS);
+    resetRoomStatuses();
     memset (&troom, 0, sizeof(RoomStatus));
 
     /*  _CrtMemState memstart;
@@ -326,6 +326,8 @@ void quit(char*quitmsg) {
     proper_exit=1;
 
     write_log_debug("***** ENGINE HAS SHUTDOWN");
+
+    shutdown_debug_system();
 
     our_eip = 9904;
     exit(EXIT_NORMAL);

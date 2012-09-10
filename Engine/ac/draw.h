@@ -83,5 +83,6 @@ extern AGS_INLINE int divide_down_coordinate_round_up(int coord);
 
 Common::IBitmap *convert_16_to_15(Common::IBitmap *iii);
 Common::IBitmap *convert_16_to_16bgr(Common::IBitmap *tempbl);
+Common::IBitmap *convert_32_to_32bgr(Common::IBitmap *tempbl);
 
 #endif // __AGS_EE_AC__DRAW_H

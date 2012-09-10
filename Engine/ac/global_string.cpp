@@ -5,7 +5,8 @@
 #include "ac/global_translation.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
-#include "util/wgt2allg.h" //strlwr()
+#include "util/wgt2allg.h"
+#include "util/string_utils.h" //strlwr()
 
 extern int MAXSTRLEN;
 

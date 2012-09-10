@@ -14,7 +14,7 @@
 #include "ac/roomstatus.h"
 #include "ac/roomstruct.h"
 #include "ac/string.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "script/script.h"
 
 extern roomstruct thisroom;

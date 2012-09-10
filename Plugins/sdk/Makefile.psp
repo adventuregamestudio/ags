@@ -4,7 +4,7 @@ OBJS = psp.o main.o
 BUILD_PRX = 1
 PRX_EXPORTS = exports.exp
 
-INCDIR = 
+INCDIR = ../../Engine ../../Common
 CFLAGS = -O2 -G0 -Wall -DPSP_VERSION -DPLUGIN_MODULE_NAME="\"$(TARGET)\""
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)

@@ -13,7 +13,7 @@
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
 #include "ac/string.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "gui/guimain.h"
 #include "ac/spritecache.h"
 #include "gfx/bitmap.h"

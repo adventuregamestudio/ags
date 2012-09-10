@@ -3,7 +3,7 @@
 #include "util/wgt2allg.h"
 #include "ac/draw.h"
 #include "ac/viewport.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 
 extern int offsetx, offsety;
 

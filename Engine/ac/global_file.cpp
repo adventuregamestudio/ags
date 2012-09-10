@@ -11,7 +11,7 @@
 //#include "winalleg.h"
 //#include <shlwapi.h>
 
-#elif defined(LINUX_VERSION) || defined(MAC_VERSION)
+#elif (defined(LINUX_VERSION) || defined(MAC_VERSION)) && !defined(PSP_VERSION)
 #include <dlfcn.h>
 /*
 #include <sys/types.h>

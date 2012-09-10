@@ -19,7 +19,7 @@
 #include "ac/screenoverlay.h"
 #include "ac/string.h"
 #include "ac/topbarsettings.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "gui/guibutton.h"
 #include "gui/guimain.h"
 #include "main/game_run.h"

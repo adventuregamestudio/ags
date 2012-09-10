@@ -16,7 +16,7 @@
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
 #include "ac/topbarsettings.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "main/game_run.h"
 
 extern TopBarSettings topBar;

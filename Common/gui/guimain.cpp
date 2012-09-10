@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include "gui/guimain.h"
 #include "util/wgt2allg.h"
+#include "util/string_utils.h"
 #include "ac/common.h"	// quit()
 #include "ac/gamesetupstruct.h"
 #include "gui/guibutton.h"
@@ -87,16 +88,30 @@ void GUIMain::SetTransparencyAsPercentage(int percent)
 
 void GUIMain::ReadFromFile(FILE *fp, int version)
 {
-    // read/write everything except drawOrder since
-    // it will be regenerated
-    fread(vtext, sizeof(char), 40, fp);
-    fread(&x, sizeof(int), 27 + 2*MAX_OBJS_ON_GUI, fp);
+  // read/write everything except drawOrder since
+  // it will be regenerated
+  fread(vtext, sizeof(char), 40, fp);
+  fread(&x, sizeof(int), 27, fp);
+
+  // 64 bit fix: Read 4 byte int values into array of 8 byte long ints
+  int i;
+  for (i = 0; i < MAX_OBJS_ON_GUI; i++)
+    objs[i] = (GUIObject*)getw(fp);
+
+  fread(&objrefptr, sizeof(int), MAX_OBJS_ON_GUI, fp);
 }
 
 void GUIMain::WriteToFile(FILE *fp)
 {
-	fwrite(vtext, sizeof(char), 40, fp);
-	fwrite(&x, sizeof(int), 27 + 2*MAX_OBJS_ON_GUI, fp);
+  fwrite(vtext, sizeof(char), 40, fp);
+  fwrite(&x, sizeof(int), 27, fp);
+
+  // 64 bit fix: Write 4 byte int values from array of 8 byte long ints
+  int i;
+  for (i = 0; i < MAX_OBJS_ON_GUI; i++)
+    fwrite(&objs[i], 4, 1, fp);
+
+  fwrite(&objrefptr, sizeof(int), MAX_OBJS_ON_GUI, fp);
 }
 
 const char* GUIMain::get_objscript_name(const char *basedOn) {

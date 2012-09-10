@@ -14,7 +14,7 @@
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
 #include "ac/roomstruct.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "gui/dynamicarray.h"
 #include "gui/guibutton.h"
 #include "ac/spritecache.h"
@@ -166,7 +166,7 @@ void DynamicSprite_CopyTransparencyMask(ScriptDynamicSprite *sds, int sourceSpri
     int bytesPerPixel = (colDep + 1) / 8;
 
     unsigned short *shortPtr;
-    unsigned long *longPtr;
+    unsigned int *longPtr;
     for (int y = 0; y < target->GetHeight(); y++)
     {
         unsigned char * sourcePixel = source->GetScanLineForWriting(y);
@@ -174,7 +174,7 @@ void DynamicSprite_CopyTransparencyMask(ScriptDynamicSprite *sds, int sourceSpri
         for (int x = 0; x < target->GetWidth(); x++)
         {
             shortPtr = (unsigned short*)sourcePixel;
-            longPtr = (unsigned long*)sourcePixel;
+            longPtr = (unsigned int*)sourcePixel;
 
             if ((colDep == 8) && (sourcePixel[0] == maskColor))
             {
@@ -190,7 +190,7 @@ void DynamicSprite_CopyTransparencyMask(ScriptDynamicSprite *sds, int sourceSpri
             }
             else if ((bytesPerPixel == 4) && (longPtr[0] == maskColor))
             {
-                ((unsigned long*)targetPixel)[0] = maskColor;
+                ((unsigned int*)targetPixel)[0] = maskColor;
             }
             else if ((bytesPerPixel == 4) && (sourceHasAlpha))
             {

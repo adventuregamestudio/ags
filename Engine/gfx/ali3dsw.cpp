@@ -13,6 +13,7 @@
 */
 #include <allegro.h>
 #include "gfx/ali3d.h"
+#include "platform/base/agsplatformdriver.h"
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
@@ -28,11 +29,6 @@ using namespace AGS; // FIXME later
 #include <pspsdk.h>
 #include <pspthreadman.h>
 #include <psputils.h>
-#define Sleep(x) sceKernelDelayThread(1000*x)
-#endif
-
-#if (defined(LINUX_VERSION) && !defined(PSP_VERSION)) || defined(MAC_VERSION)
-#define Sleep(x) usleep(1000*x)
 #endif
 
 #ifdef _WIN32
@@ -505,9 +501,9 @@ void ALSoftwareGraphicsDriver::draw_sprite_with_transparency(IBitmap *piccy, int
     }
     // 256-col spirte -> hi-color background, or
     // 16-bit sprite -> 32-bit background
-	IBitmap* hctemp=Bitmap::CreateBitmap(piccy->GetWidth(), piccy->GetHeight(), screen_depth);
+    IBitmap* hctemp=Bitmap::CreateBitmap(piccy->GetWidth(), piccy->GetHeight(), screen_depth);
     hctemp->Blit(piccy,0,0,0,0,hctemp->GetWidth(),hctemp->GetHeight());
-	int bb,cc,mask_col = virtualScreen->GetMaskColor();
+    int bb,cc,mask_col = virtualScreen->GetMaskColor();
 
     if (sprite_depth == 8) {
       // only do this for 256-col, cos the Blit call converts
@@ -518,7 +514,7 @@ void ALSoftwareGraphicsDriver::draw_sprite_with_transparency(IBitmap *piccy, int
       }
     }
 
-	virtualScreen->Blit(hctemp, xxx, yyy, Common::kBitmap_Transparency);
+    virtualScreen->Blit(hctemp, xxx, yyy, Common::kBitmap_Transparency);
     delete hctemp;
   }
   else
@@ -674,7 +670,7 @@ void ALSoftwareGraphicsDriver::highcolor_fade_in(IBitmap *currentVirtScreen, int
        {
          if (_callback)
            _callback();
-         Sleep(1);
+         platform->Delay(1);
        }
        while (timerValue == *_loopTimer);
    }
@@ -713,7 +709,7 @@ void ALSoftwareGraphicsDriver::highcolor_fade_out(int speed, int targetColourRed
                 {
                   if (_callback)
                     _callback();
-                  Sleep(1);
+                  platform->Delay(1);
                 }
                 while (timerValue == *_loopTimer);
             }
@@ -805,7 +801,7 @@ void ALSoftwareGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int del
       if (_callback)
         _callback();
 
-      Sleep(delay);
+      platform->Delay(delay);
     }
     this->ClearRectangle(0, 0, _screenWidth - 1, _screenHeight - 1, NULL);
   }

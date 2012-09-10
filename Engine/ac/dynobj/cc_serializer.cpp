@@ -7,7 +7,7 @@
 #include "ac/dynobj/all_scriptclasses.h"
 #include "ac/dynobj/scriptfile.h"
 #include "media/audio/audio.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 
 #include "plugin/agsplugin.h"
 #include "plugin/pluginobjectreader.h"

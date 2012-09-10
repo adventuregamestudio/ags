@@ -125,7 +125,7 @@
 #endif
 
 #ifndef int32
-#define int32 long
+#define int32 int
 #endif
 
 #ifdef WINDOWS_VERSION

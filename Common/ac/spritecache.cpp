@@ -620,7 +620,7 @@ int SpriteCache::saveToFile(const char *filnam, int lastElement, bool compressOu
   spindex_out->WriteInt32(numsprits);
   spindex_out->WriteArrayOfInt16(&spritewidths[0], numsprits);
   spindex_out->WriteArrayOfInt16(&spriteheights[0], numsprits);
-  spindex_out->WriteArrayOfInt32((int32_t*)&spriteoffs[0], numsprits);
+  spindex_out->WriteArrayOfIntPtr32((intptr_var_t*)&spriteoffs[0], numsprits);
   delete spindex_out;
 
   free(spritewidths);

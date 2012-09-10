@@ -9,21 +9,7 @@
 
 using AGS::Common::CDataStream;
 
-//
-// [IKM] FIXME: either I am dumb, or those functions below are totally useless
-//
-void fput_long(long loo,CDataStream *out) {
-    out->WriteInt32(loo);
-}
-
-// 64 bit: This is supposed to read a 32 bit value
-long fget_long(CDataStream *in)
-{
-  int tmpp;
-  tmpp = in->ReadInt32();
-  return tmpp;
-}
-
+// [IKM] I reckon this function is almost identical to fgetstring in string_utils
 void freadstring(char **strptr, CDataStream *in)
 {
     static char ibuffer[300];
@@ -44,35 +30,35 @@ void freadstring(char **strptr, CDataStream *in)
 void fwrite_script(ccScript*scri, CDataStream *out) {
     int n;
     out->Write(scfilesig,4);
-    fput_long(SCOM_VERSION,out);
-    fput_long(scri->globaldatasize,out);
-    fput_long(scri->codesize,out);
-    fput_long(scri->stringssize,out);
+    out->WriteInt32(SCOM_VERSION);
+    out->WriteInt32(scri->globaldatasize);
+    out->WriteInt32(scri->codesize);
+    out->WriteInt32(scri->stringssize);
     if (scri->globaldatasize > 0)
         out->WriteArray(scri->globaldata,scri->globaldatasize,1);
     if (scri->codesize > 0)
-        out->WriteArrayOfInt32((int32_t*)scri->code,scri->codesize);
+        out->WriteArrayOfIntPtr32((intptr_var_t*)scri->code,scri->codesize);
     if (scri->stringssize > 0)
         out->WriteArray(scri->strings,scri->stringssize,1);
-    fput_long(scri->numfixups,out);
+    out->WriteInt32(scri->numfixups);
     if (scri->numfixups > 0) {
         out->WriteArray(scri->fixuptypes,scri->numfixups,1);
-        out->WriteArrayOfInt32((int32_t*)scri->fixups,scri->numfixups);
+        out->WriteArrayOfIntPtr32((intptr_var_t*)scri->fixups,scri->numfixups);
     }
-    fput_long(scri->numimports,out);
+    out->WriteInt32(scri->numimports);
     for (n=0;n<scri->numimports;n++)
         out->WriteArray(scri->imports[n],strlen(scri->imports[n])+1,1);
-    fput_long(scri->numexports,out);
+    out->WriteInt32(scri->numexports);
     for (n=0;n<scri->numexports;n++) {
         out->WriteArray(scri->exports[n],strlen(scri->exports[n])+1,1);
-        fput_long(scri->export_addr[n],out);
+        out->WriteInt32(scri->export_addr[n]);
     }
-    fput_long(scri->numSections, out);
+    out->WriteInt32(scri->numSections);
     for (n = 0; n < scri->numSections; n++) {
         out->WriteArray(scri->sectionNames[n], strlen(scri->sectionNames[n]) + 1, 1);
-        fput_long(scri->sectionOffsets[n], out);
+        out->WriteInt32(scri->sectionOffsets[n]);
     }
-    fput_long(ENDFILESIG,out);
+    out->WriteInt32(ENDFILESIG);
 }
 
 ccScript *fread_script(CDataStream *in)
@@ -86,7 +72,7 @@ ccScript *fread_script(CDataStream *in)
   in->Read(gotsig, 4);
   gotsig[4] = 0;
 
-  int fileVer = fget_long(in);
+  int fileVer = in->ReadInt32();
 
   if ((strcmp(gotsig, scfilesig) != 0) || (fileVer > SCOM_VERSION)) {
     cc_error("file was not written by fwrite_script or seek position is incorrect");
@@ -94,9 +80,9 @@ ccScript *fread_script(CDataStream *in)
     return NULL;
   }
 
-  scri->globaldatasize = fget_long(in);
-  scri->codesize = fget_long(in);
-  scri->stringssize = fget_long(in);
+  scri->globaldatasize = in->ReadInt32();
+  scri->codesize = in->ReadInt32();
+  scri->stringssize = in->ReadInt32();
 
   if (scri->globaldatasize > 0) {
     scri->globaldata = (char *)malloc(scri->globaldatasize);
@@ -112,9 +98,10 @@ ccScript *fread_script(CDataStream *in)
 
     // 64 bit: Read code into 8 byte array, necessary for being able to perform
     // relocations on the references.
-    int i;
-    for (i = 0; i < scri->codesize; i++)
-      scri->code[i] = fget_long(in);
+    in->ReadArrayOfIntPtr32((intptr_var_t*)scri->code, scri->codesize);
+    //int i;
+    //for (i = 0; i < scri->codesize; i++)
+    //  scri->code[i] = in->ReadInt32();
   }
   else
     scri->code = NULL;
@@ -127,7 +114,7 @@ ccScript *fread_script(CDataStream *in)
   else
     scri->strings = NULL;
 
-  scri->numfixups = fget_long(in);
+  scri->numfixups = in->ReadInt32();
   if (scri->numfixups > 0) {
     scri->fixuptypes = (char *)malloc(scri->numfixups);
     scri->fixups = (long *)malloc(scri->numfixups * sizeof(long));
@@ -135,37 +122,38 @@ ccScript *fread_script(CDataStream *in)
     in->Read(scri->fixuptypes, scri->numfixups);
 
     // 64 bit: Read fixups into 8 byte array too
-    int i;
-    for (i = 0; i < scri->numfixups; i++)
-      scri->fixups[i] = fget_long(in);
+    in->ReadArrayOfIntPtr32((intptr_var_t*)scri->fixups, scri->numfixups);
+    //int i;
+    //for (i = 0; i < scri->numfixups; i++)
+    //  scri->fixups[i] = in->ReadInt32();
   }
   else {
     scri->fixups = NULL;
     scri->fixuptypes = NULL;
   }
 
-  scri->numimports = fget_long(in);
+  scri->numimports = in->ReadInt32();
 
   scri->imports = (char**)malloc(sizeof(char*) * scri->numimports);
   for (n = 0; n < scri->numimports; n++)
     freadstring(&scri->imports[n], in);
 
-  scri->numexports = fget_long(in);
+  scri->numexports = in->ReadInt32();
   scri->exports = (char**)malloc(sizeof(char*) * scri->numexports);
   scri->export_addr = (long*)malloc(sizeof(long) * scri->numexports);
   for (n = 0; n < scri->numexports; n++) {
     freadstring(&scri->exports[n], in);
-    scri->export_addr[n] = fget_long(in);
+    scri->export_addr[n] = in->ReadInt32();
   }
 
   if (fileVer >= 83) {
     // read in the Sections
-    scri->numSections = fget_long(in);
+    scri->numSections = in->ReadInt32();
     scri->sectionNames = (char**)malloc(scri->numSections * sizeof(char*));
     scri->sectionOffsets = (long*)malloc(scri->numSections * sizeof(long));
     for (n = 0; n < scri->numSections; n++) {
       freadstring(&scri->sectionNames[n], in);
-      scri->sectionOffsets[n] = fget_long(in);
+      scri->sectionOffsets[n] = in->ReadInt32();
     }
   }
   else
@@ -175,7 +163,7 @@ ccScript *fread_script(CDataStream *in)
     scri->sectionOffsets = NULL;
   }
 
-  if (fget_long(in) != ENDFILESIG) {
+  if (in->ReadInt32() != ENDFILESIG) {
     cc_error("internal error rebuilding script");
     free(scri);
     return NULL;

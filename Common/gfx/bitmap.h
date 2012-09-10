@@ -68,19 +68,19 @@ struct CRect
 
 	inline int GetWidth() const
 	{
-		return Right - Left;
+		return Right - Left + 1;
 	}
 
 	inline int GetHeight() const
 	{
-		return Bottom - Top;
+		return Bottom - Top + 1;
 	}
 };
 
 // Helper factory function
 inline CRect RectWH(int x, int y, int width, int height)
 {
-	return CRect(x, y, x + width, y + height);
+	return CRect(x, y, x + width - 1, y + height - 1);
 }
 
 struct CTriangle

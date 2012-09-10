@@ -8,14 +8,17 @@
 #include "ac/drawingsurface.h"
 #include "ac/gamestate.h"
 #include "ac/gamesetupstruct.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::IBitmap;
 
 extern roomstruct thisroom;
 extern SpriteCache spriteset;
-extern block dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
+extern IBitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 extern GameState play;
 extern GameSetupStruct game;
 
-BITMAP* ScriptDrawingSurface::GetBitmapSurface()
+IBitmap* ScriptDrawingSurface::GetBitmapSurface()
 {
     if (roomBackgroundNumber >= 0)
         return thisroom.ebscene[roomBackgroundNumber];

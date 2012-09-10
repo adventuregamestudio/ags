@@ -7,8 +7,10 @@
 #include "gui/guimain.h"
 #include "font/fonts.h"
 #include "util/datastream.h"
+#include "gfx/bitmap.h"
 
 using AGS::Common::CDataStream;
+using AGS::Common::IBitmap;
 
 DynamicArray<GUIListBox> guilist;
 int numguilist = 0;
@@ -189,9 +191,9 @@ void GUIListBox::Draw()
   wtextcolor(textcol);
   wsetcolor(textcol);
   if ((exflags & GLF_NOBORDER) == 0) {
-    wrectangle(x, y, x + wid + (pixel_size - 1), y + hit + (pixel_size - 1));
+    abuf->DrawRect(CRect(x, y, x + wid + (pixel_size - 1), y + hit + (pixel_size - 1)), currentcolor);
     if (pixel_size > 1)
-      wrectangle(x + 1, y + 1, x + wid, y + hit);
+      abuf->DrawRect(CRect(x + 1, y + 1, x + wid, y + hit), currentcolor);
   }
 
   int rightHandEdge = (x + wid) - pixel_size - 1;
@@ -202,21 +204,21 @@ void GUIListBox::Draw()
   // draw the scroll bar in if necessary
   if ((numItems > num_items_fit) && ((exflags & GLF_NOBORDER) == 0) && ((exflags & GLF_NOARROWS) == 0)) {
     int xstrt, ystrt;
-    wrectangle(x + wid - get_fixed_pixel_size(7), y, (x + (pixel_size - 1) + wid) - get_fixed_pixel_size(7), y + hit);
-    wrectangle(x + wid - get_fixed_pixel_size(7), y + hit / 2, x + wid, y + hit / 2 + (pixel_size - 1));
+    abuf->DrawRect(CRect(x + wid - get_fixed_pixel_size(7), y, (x + (pixel_size - 1) + wid) - get_fixed_pixel_size(7), y + hit), currentcolor);
+    abuf->DrawRect(CRect(x + wid - get_fixed_pixel_size(7), y + hit / 2, x + wid, y + hit / 2 + (pixel_size - 1)), currentcolor);
 
     xstrt = (x + wid - get_fixed_pixel_size(6)) + (pixel_size - 1);
     ystrt = (y + hit - 3) - get_fixed_pixel_size(5);
 
-    triangle(abuf, xstrt, ystrt, xstrt + get_fixed_pixel_size(4), ystrt, 
+    abuf->DrawTriangle(CTriangle(xstrt, ystrt, xstrt + get_fixed_pixel_size(4), ystrt, 
              xstrt + get_fixed_pixel_size(2),
-             ystrt + get_fixed_pixel_size(5), get_col8_lookup(textcol));
+             ystrt + get_fixed_pixel_size(5)), get_col8_lookup(textcol));
 
     ystrt = y + 3;
-    triangle(abuf, xstrt, ystrt + get_fixed_pixel_size(5), 
+    abuf->DrawTriangle(CTriangle(xstrt, ystrt + get_fixed_pixel_size(5), 
              xstrt + get_fixed_pixel_size(4), 
              ystrt + get_fixed_pixel_size(5),
-             xstrt + get_fixed_pixel_size(2), ystrt, get_col8_lookup(textcol));
+             xstrt + get_fixed_pixel_size(2), ystrt), get_col8_lookup(textcol));
 
     rightHandEdge -= get_fixed_pixel_size(7);
   }
@@ -240,7 +242,7 @@ void GUIListBox::Draw()
         if ((num_items_fit < numItems) && ((exflags & GLF_NOBORDER) == 0) && ((exflags & GLF_NOARROWS) == 0))
           stretchto -= get_fixed_pixel_size(7);
 
-        wbar(x + pixel_size, thisyp, stretchto, thisyp + rowheight - pixel_size);
+        abuf->FillRect(CRect(x + pixel_size, thisyp, stretchto, thisyp + rowheight - pixel_size), currentcolor);
       }
     }
     else

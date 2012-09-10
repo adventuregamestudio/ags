@@ -3,6 +3,12 @@
 #include "util/wgt2allg.h"
 #include "util/file.h"
 #include "util/datastream.h"
+#include "gfx/bitmap.h"
+#include "gfx/allegrobitmap.h"
+
+using AGS::Common::IBitmap;
+using AGS::Common::CAllegroBitmap;
+namespace Bitmap = AGS::Common::Bitmap;
 
 using AGS::Common::CDataStream;
 
@@ -27,7 +33,7 @@ char password[16];
 char *wgtlibrary;
 int currentcolor;
 int vesa_xres, vesa_yres;
-block abuf;
+IBitmap *abuf;
 
 /*
   GCC from the Android NDK doesn't like allegro_init()
@@ -59,12 +65,26 @@ block abuf;
 #endif
 
 
-  void wsetscreen(block nss)
+  void wsetscreen(IBitmap *nss)
   {
     if (nss == NULL)
-      abuf = screen;
+      abuf = Bitmap::GetScreenBitmap();
     else
       abuf = nss;
+  }
+
+  // [IKM] A very, very dangerous stuff!
+  CAllegroBitmap wsetscreen_wrapper;
+  void wsetscreen_raw(BITMAP *nss)
+  {
+    wsetscreen_wrapper.WrapBitmapObject(nss);
+
+    if (nss == NULL) {
+      abuf = Bitmap::GetScreenBitmap();
+	}
+	else {
+      abuf = &wsetscreen_wrapper;
+	}
   }
 
   void wsetrgb(int coll, int r, int g, int b, color * pall)
@@ -112,9 +132,9 @@ block abuf;
     }
   }
 
-  block tempbitm;
+  IBitmap *tempbitm;
 
-  block wnewblock(int x1, int y1, int x2, int y2)
+  IBitmap *wnewblock(int x1, int y1, int x2, int y2)
   {
     int twid = (x2 - x1) + 1, thit = (y2 - y1) + 1;
 
@@ -124,12 +144,12 @@ block abuf;
     if (thit < 1)
       thit = 1;
 
-    tempbitm = create_bitmap(twid, thit);
+    tempbitm = Bitmap::CreateBitmap(twid, thit);
 
     if (tempbitm == NULL)
       return NULL;
 
-    blit(abuf, tempbitm, x1, y1, 0, 0, tempbitm->w, tempbitm->h);
+    tempbitm->Blit(abuf, x1, y1, 0, 0, tempbitm->GetWidth(), tempbitm->GetHeight());
     return tempbitm;
   }
 
@@ -148,7 +168,7 @@ block abuf;
   }
   */
 
-  block wloadblock(char *fill)
+  IBitmap *wloadblock(char *fill)
   {
     short widd, hitt;
     CDataStream *in = clibfopen(fill);
@@ -159,16 +179,16 @@ block abuf;
 
     widd = in->ReadInt16();
     hitt = in->ReadInt16();
-    tempbitm = create_bitmap(widd, hitt);
+    tempbitm = Bitmap::CreateBitmap(widd, hitt);
 
     for (ff = 0; ff < hitt; ff++)
-      in->ReadArray(&tempbitm->line[ff][0], widd, 1);
+      in->ReadArray(&tempbitm->GetScanLineForWriting(ff)[0], widd, 1);
 
     delete in;
     return tempbitm;
   }
 
-  int wloadsprites(color * pall, char *filnam, block * sarray, int strt, int eend)
+  int wloadsprites(color * pall, char *filnam, IBitmap ** sarray, int strt, int eend)
   {
     int vers;
     char buff[20];
@@ -220,7 +240,7 @@ block abuf;
           in->Seek(Common::kSeekCurrent, wdd * htt);
         continue;
       }
-      sarray[vv] = create_bitmap_ex(coldep * 8, wdd, htt);
+      sarray[vv] = Bitmap::CreateBitmap(wdd, htt, coldep * 8);
 
       if (sarray[vv] == NULL) {
         delete in;
@@ -228,28 +248,26 @@ block abuf;
       }
 
       for (hh = 0; hh < htt; hh++)
-        in->ReadArray(&sarray[vv]->line[hh][0], wdd * coldep, 1);
+        in->ReadArray(&sarray[vv]->GetScanLineForWriting(hh)[0], wdd * coldep, 1);
     }
     delete in;
     return 0;
   }
 
 
-  void wfreesprites(block * blar, int stt, int end)
+  void wfreesprites(IBitmap ** blar, int stt, int end)
   {
     int hh;
 
     for (hh = stt; hh <= end; hh++) {
-      if (blar[hh] != NULL)
-        destroy_bitmap(blar[hh]);
-
+      delete blar[hh];
       blar[hh] = NULL;
     }
   }
 
 
   /*
-  void wsavesprites_ex(color * pll, char *fnm, block * spre, int strt, int eend, unsigned char *arry)
+  void wsavesprites_ex(color * pll, char *fnm, IBitmap ** spre, int strt, int eend, unsigned char *arry)
   {
     FILE *ooo = fopen(fnm, "wb");
     short topu = 4;
@@ -296,17 +314,17 @@ block abuf;
         continue;
       }
 
-      spritewidths[spidx] = spre[aa]->w;
-      spriteheights[spidx] = spre[aa]->h;
+      spritewidths[spidx] = spre[aa]->GetWidth();
+      spriteheights[spidx] = spre[aa]->GetHeight();
       spriteoffs[spidx] = GetPosition(ooo);
 
-      bpss = bitmap_color_depth(spre[aa]) / 8;
+      bpss = ->GetColorDepth(spre[aa]) / 8;
       ->WriteArray(&bpss, 2, 1, ooo);
 
-      topu = spre[aa]->w;
+      topu = spre[aa]->GetWidth();
       ->WriteArray(&topu, 2, 1, ooo);
 
-      topu = spre[aa]->h;
+      topu = spre[aa]->GetHeight();
       ->WriteArray(&topu, 2, 1, ooo);
 
       ->WriteArray(&spre[aa]->line[0][0], spre[aa]->w * bpss, spre[aa]->h, ooo);
@@ -333,18 +351,28 @@ block abuf;
     free(spriteoffs);
   }
 
-  void wsavesprites(color * pll, char *fnm, block * spre, int strt, int eend)
+  void wsavesprites(color * pll, char *fnm, IBitmap ** spre, int strt, int eend)
   {
     wsavesprites_ex(pll, fnm, spre, strt, eend, NULL);
   }
 */
 
-  void wputblock(int xx, int yy, block bll, int xray)
+  void wputblock(int xx, int yy, IBitmap *bll, int xray)
   {
     if (xray)
-      draw_sprite(abuf, bll, xx, yy);
+		abuf->Blit(bll, xx, yy, Common::kBitmap_Transparency);
     else
-      blit(bll, abuf, 0, 0, xx, yy, bll->w, bll->h);
+      abuf->Blit(bll, 0, 0, xx, yy, bll->GetWidth(), bll->GetHeight());
+  }
+
+  CAllegroBitmap wputblock_wrapper; // [IKM] argh! :[
+  void wputblock_raw(int xx, int yy, BITMAP *bll, int xray)
+  {
+	wputblock_wrapper.WrapBitmapObject(bll);
+    if (xray)
+      abuf->Blit(&wputblock_wrapper, xx, yy, Common::kBitmap_Transparency);
+    else
+      abuf->Blit(&wputblock_wrapper, 0, 0, xx, yy, wputblock_wrapper.GetWidth(), wputblock_wrapper.GetHeight());
   }
 
   const int col_lookups[32] = {
@@ -357,7 +385,7 @@ block abuf;
 
   void __my_setcolor(int *ctset, int newcol)
   {
-    int wantColDep = bitmap_color_depth(abuf);
+    int wantColDep = abuf->GetColorDepth();
     if (wantColDep == 8)
       ctset[0] = newcol;
     else if (newcol & 0x40000000) // already calculated it
@@ -414,7 +442,7 @@ block abuf;
 
   int __wremap_keep_transparent = 1;
 
-  void wremap(color * pal1, block picc, color * pal2)
+  void wremap(color * pal1, IBitmap *picc, color * pal2)
   {
     int jj;
     unsigned char color_mapped_table[256];
@@ -441,14 +469,14 @@ block abuf;
       }
     }
 
-    for (jj = 0; jj < (picc->w) * (picc->h); jj++) {
-      int xxl = jj % (picc->w), yyl = jj / (picc->w);
-      int rr = getpixel(picc, xxl, yyl);
-      putpixel(picc, xxl, yyl, color_mapped_table[rr]);
+    for (jj = 0; jj < (picc->GetWidth()) * (picc->GetHeight()); jj++) {
+      int xxl = jj % (picc->GetWidth()), yyl = jj / (picc->GetWidth());
+      int rr = picc->GetPixel(xxl, yyl);
+      picc->PutPixel(xxl, yyl, color_mapped_table[rr]);
     }
   }
 
-  void wremapall(color * pal1, block picc, color * pal2)
+  void wremapall(color * pal1, IBitmap *picc, color * pal2)
   {
     __wremap_keep_transparent--;
     wremap(pal1, picc, pal2);
@@ -497,28 +525,28 @@ block abuf;
     return timm2 - timm1;
   }
 
-  void wcopyscreen(int x1, int y1, int x2, int y2, block src, int dx, int dy, block dest)
+  void wcopyscreen(int x1, int y1, int x2, int y2, IBitmap *src, int dx, int dy, IBitmap *dest)
   {
     if (src == NULL)
-      src = screen;
+      src = Bitmap::GetScreenBitmap();
 
     if (dest == NULL)
-      dest = screen;
+      dest = Bitmap::GetScreenBitmap();
 
-    blit(src, dest, x1, y1, dx, dy, (x2 - x1) + 1, (y2 - y1) + 1);
+    dest->Blit(src, x1, y1, dx, dy, (x2 - x1) + 1, (y2 - y1) + 1);
   }
 
 
   void wbutt(int x1, int y1, int x2, int y2)
   {
     wsetcolor(254);
-    wbar(x1, y1, x2, y2);
+    abuf->FillRect(CRect(x1, y1, x2, y2), currentcolor);
     wsetcolor(253);
-    whline(x1 - 1, x2 + 1, y1 - 1);
-    wline(x1 - 1, y1 - 1, x1 - 1, y2 + 1);
+    abuf->DrawLine(HLine(x1 - 1, x2 + 1, y1 - 1), currentcolor);
+    abuf->DrawLine(CLine(x1 - 1, y1 - 1, x1 - 1, y2 + 1), currentcolor);
     wsetcolor(255);
-    whline(x1 - 1, x2 + 1, y2 + 1);
-    wline(x2 + 1, y1 - 1, x2 + 1, y2 + 1);
+    abuf->DrawLine(HLine(x1 - 1, x2 + 1, y2 + 1), currentcolor);
+    abuf->DrawLine(CLine(x2 + 1, y1 - 1, x2 + 1, y2 + 1), currentcolor);
   }
 
 

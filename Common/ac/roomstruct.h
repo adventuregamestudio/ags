@@ -11,6 +11,7 @@
 #include "script/cc_script.h"       // ccScript
 
 namespace AGS { namespace Common { class CDataStream; } }
+namespace AGS { namespace Common { class IBitmap; }}
 using namespace AGS; // FIXME later
 
 
@@ -37,8 +38,8 @@ struct sprstruc {
 #define NOT_VECTOR_SCALED -10000
 #define TINT_IS_ENABLED 0x80000000
 struct roomstruct {
-    block         walls, object, lookat;          // 'object' is the walk-behind
-    block         regions;
+    Common::IBitmap *        walls, *object, *lookat;          // 'object' is the walk-behind
+    Common::IBitmap *        regions;
     color         pal[256];
     short         numobj;                         // num hotspots, not sprites
     short         objyval[MAX_OBJ];               // baselines of walkbehind areas
@@ -96,7 +97,7 @@ struct roomstruct {
     int           cscriptsize;
     int           num_bscenes, bscene_anim_speed;
     int           bytes_per_pixel;
-    block         ebscene[MAX_BSCENE];
+    Common::IBitmap *        ebscene[MAX_BSCENE];
     color         bpalettes[MAX_BSCENE][256];
     InteractionVariable *localvars;
     int           numLocalVars;

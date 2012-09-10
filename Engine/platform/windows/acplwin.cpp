@@ -29,15 +29,18 @@
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "util/datastream.h"
+#include "gfx/graphicsdriver.h"
+#include "gfx/bitmap.h"
 
 using AGS::Common::CDataStream;
+using AGS::Common::IBitmap;
 
 extern GameSetupStruct game;
 extern GameSetup usetup;
 extern int our_eip;
 extern IGraphicsDriver *gfxDriver;
 extern color palette[256];
-extern block virtual_screen;
+extern IBitmap *virtual_screen;
 
 #include <shlobj.h>
 #include <time.h>
@@ -844,7 +847,7 @@ LPDIRECTDRAWSURFACE2 IAGSEngine::GetBitmapSurface (BITMAP *bmp)
 
   BMP_EXTRA_INFO *bei = (BMP_EXTRA_INFO*)bmp->extra;
 
-  if (bmp == virtual_screen)
+  if (bmp == virtual_screen->GetBitmapObject())
     invalidate_screen();
 
   return bei->surf;

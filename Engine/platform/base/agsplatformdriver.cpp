@@ -18,9 +18,12 @@
 #include "ac/common.h"
 #include "util/string_utils.h"
 #include "util/datastream.h"
+#include "gfx/bitmap.h"
 
 using AGS::Common::CDataStream;
 using AGS::Common::CString;
+using AGS::Common::IBitmap;
+namespace Bitmap = AGS::Common::Bitmap;
 
 #if !defined(BSD_VERSION) && (defined(LINUX_VERSION) || defined(WINDOWS_VERSION))
 #include "libcda.h"
@@ -30,7 +33,7 @@ using AGS::Common::CString;
 #define strnicmp strncasecmp
 #endif
 
-extern block abuf; // in wgt2allg
+extern IBitmap *abuf; // in wgt2allg
 
 AGSPlatformDriver* AGSPlatformDriver::instance = NULL;
 AGSPlatformDriver *platform = NULL;
@@ -102,7 +105,7 @@ void AGSPlatformDriver::ReadPluginsFromDisk(CDataStream *in) {
 void AGSPlatformDriver::InitialiseAbufAtStartup()
 {
     // because loading the game file accesses abuf, it must exist
-    abuf = create_bitmap_ex(8,10,10);
+    abuf = Bitmap::CreateBitmap(10,10,8);
 }
 
 void AGSPlatformDriver::FinishedUsingGraphicsMode()

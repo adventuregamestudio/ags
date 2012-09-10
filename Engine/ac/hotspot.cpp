@@ -8,6 +8,9 @@
 #include "ac/properties.h"
 #include "ac/roomstatus.h"
 #include "ac/string.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::IBitmap;
 
 extern roomstruct thisroom;
 extern RoomStatus*croom;
@@ -68,7 +71,7 @@ const char* Hotspot_GetTextProperty(ScriptHotspot *hss, const char *property) {
 }
 
 int get_hotspot_at(int xpp,int ypp) {
-    int onhs=getpixel(thisroom.lookat, convert_to_low_res(xpp), convert_to_low_res(ypp));
+    int onhs=thisroom.lookat->GetPixel(convert_to_low_res(xpp), convert_to_low_res(ypp));
     if (onhs<0) return 0;
     if (croom->hotspot_enabled[onhs]==0) return 0;
     return onhs;

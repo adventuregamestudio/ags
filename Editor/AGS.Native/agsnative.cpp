@@ -33,13 +33,39 @@ int mousex, mousey;
 #include "util/compress.h"
 #include "util/string_utils.h"    // fputstring, etc
 #include "util/filestream.h"
+#include "gfx/bitmap.h"
 
 using AGS::Common::CDataStream;
+using AGS::Common::IBitmap;
+namespace Bitmap = AGS::Common::Bitmap;
 
+//-----------------------------------------------------------------------------
+// [IKM] 2012-09-07
+// TODO: need a way to make conversions between IBitmap and Windows bitmap;
+// Possible plan:
+// - IBitmap *ConvertToBitmapClass(int class_type) method in IBitmap;
+// - WindowsBitmap implementation of IBitmap;
+// - AllegroBitmap and WindowsBitmap know of each other and may convert to
+// each other.
+//
+//-----------------------------------------------------------------------------
+
+// TODO: do something with this later
+// (those are from 'cstretch' unit)
 extern void Cstretch_blit(BITMAP *src, BITMAP *dst, int sx, int sy, int sw, int sh, int dx, int dy, int dw, int dh);
 extern void Cstretch_sprite(BITMAP *dst, BITMAP *src, int x, int y, int w, int h);
 
 void serialize_room_interactions(CDataStream *);
+
+inline void Cstretch_blit(IBitmap *src, IBitmap *dst, int sx, int sy, int sw, int sh, int dx, int dy, int dw, int dh)
+{
+	Cstretch_blit((BITMAP*)src->GetBitmapObject(), (BITMAP*)dst->GetBitmapObject(), sx, sy, sw, sh, dx, dy, dw, dh);
+}
+inline void Cstretch_sprite(IBitmap *dst, IBitmap *src, int x, int y, int w, int h)
+{
+	Cstretch_sprite((BITMAP*)dst->GetBitmapObject(), (BITMAP*)src->GetBitmapObject(), x, y, w, h);
+}
+
 
 int sxmult = 1, symult = 1;
 int dsc_want_hires = 0;
@@ -60,8 +86,8 @@ const int ROOM_TEMPLATE_ID_FILE_SIGNATURE = 0x74673812;
 bool spritesModified = false;
 roomstruct thisroom;
 bool roomModified = false;
-block drawBuffer = NULL;
-block undoBuffer = NULL;
+IBitmap *drawBuffer = NULL;
+IBitmap *undoBuffer = NULL;
 int loaded_room_number = -1;
 
 // stuff for importing old games
@@ -76,13 +102,13 @@ int numNewViews = 0;
 
 
 bool reload_font(int curFont);
-void drawBlockScaledAt(int hdc, block todraw ,int x, int y, int scaleFactor);
+void drawBlockScaledAt(int hdc, IBitmap *todraw ,int x, int y, int scaleFactor);
 // this is to shut up the linker, it's used by CSRUN.CPP
 void write_log(char *) { }
 
 void GUIInv::Draw() {
   wsetcolor(15);
-  wrectangle(x,y,x+wid,y+hit);
+  abuf->DrawRect(CRect(x,y,x+wid,y+hit), currentcolor);
 }
 
 int multiply_up_coordinate(int coord)
@@ -98,23 +124,34 @@ int get_fixed_pixel_size(int coord)
 // jibbles the sprite around to fix hi-color problems, by swapping
 // the red and blue elements
 #define fix_sprite(num) fix_block(spriteset[num])
-void fix_block (block todraw) {
+void fix_block (IBitmap *todraw) {
   int a,b,pixval;
   if (todraw == NULL)
     return;
-  if (bitmap_color_depth(todraw) == 16) {
-    for (a = 0; a < todraw->w; a++) {
-      for (b = 0; b < todraw->h; b++) {
-        pixval = _getpixel16 (todraw, a, b);
-        _putpixel16 (todraw, a, b, makecol16 (getb16(pixval),getg16(pixval),getr16(pixval)));
+  if (todraw->GetColorDepth() == 16) {
+    for (a = 0; a < todraw->GetWidth(); a++) {
+      for (b = 0; b < todraw->GetHeight(); b++) {
+        //pixval = _getpixel16 ((BITMAP*)todraw->GetBitmapObject(), a, b);
+		pixval = todraw->GetPixel (a, b);
+	    //_putpixel16 ((BITMAP*)todraw->GetBitmapObject(), a, b, makecol16 (getb16(pixval),getg16(pixval),getr16(pixval)));
+		todraw->PutPixel (a, b, makecol16 (getb16(pixval),getg16(pixval),getr16(pixval)));
       }
     }
   }
-  else if (bitmap_color_depth(todraw) == 32) {
-    for (a = 0; a < todraw->w; a++) {
-      for (b = 0; b < todraw->h; b++) {
-        pixval = _getpixel32 (todraw, a, b);
-        _putpixel32 (todraw, a, b, makeacol32 (getb32(pixval),getg32(pixval),getr32(pixval), geta32(pixval)));
+  else if (todraw->GetColorDepth() == 32) {
+    for (a = 0; a < todraw->GetWidth(); a++) {
+      for (b = 0; b < todraw->GetHeight(); b++) {
+		  
+		  // [IKM] 2012-09-07
+		  // CHECKME!!
+		  // Something bad is going on here. Calling AllegroBitmap::GetPixel causes "read protected memory" exception
+		  // for no apparent reason, while calling _getpixel32 directly does not;
+		  // even if I just call _getpixel32 from GetPixel right away and return value, exception is still thrown
+
+        pixval = _getpixel32 ((BITMAP*)todraw->GetBitmapObject(), a, b);
+		//pixval = todraw->GetPixel (a, b);
+		//_putpixel32 ((BITMAP*)todraw->GetBitmapObject(), a, b, makeacol32 (getb32(pixval),getg32(pixval),getr32(pixval), geta32(pixval)));
+		todraw->PutPixel (a, b, makeacol32 (getb32(pixval),getg32(pixval),getr32(pixval), geta32(pixval)));
       }
     }
   }
@@ -128,7 +165,7 @@ void pre_save_sprite(int spnum) {
   fix_sprite(spnum);
 }
 
-block get_sprite (int spnr) {
+IBitmap *get_sprite (int spnr) {
   if (spnr < 0)
     return NULL;
   if (spriteset[spnr] == NULL) {
@@ -137,9 +174,8 @@ block get_sprite (int spnr) {
   return spriteset[spnr];
 }
 
-void SetNewSprite(int slot, block sprit) {
-  if (spriteset[slot] != NULL)
-    wfreeblock(spriteset[slot]);
+void SetNewSprite(int slot, IBitmap *sprit) {
+  delete spriteset[slot];
 
   spriteset.setNonDiscardable(slot, sprit);
   spritesModified = true;
@@ -152,12 +188,14 @@ void deleteSprite (int sprslot) {
 }
 
 void SetNewSpriteFromHBitmap(int slot, int hBmp) {
-  block tempsprite = convert_hbitmap_to_bitmap((HBITMAP)hBmp);
+  // FIXME later
+  IBitmap *tempsprite = Common::Bitmap::CreateRawObjectOwner(convert_hbitmap_to_bitmap((HBITMAP)hBmp));
   SetNewSprite(slot, tempsprite);
 }
 
 int GetSpriteAsHBitmap(int slot) {
-  return (int)convert_bitmap_to_hbitmap(get_sprite(slot));
+  // FIXME later
+  return (int)convert_bitmap_to_hbitmap((BITMAP*)get_sprite(slot)->GetBitmapObject());
 }
 
 bool DoesSpriteExist(int slot) {
@@ -169,11 +207,11 @@ int GetMaxSprites() {
 }
 
 int GetSpriteWidth(int slot) {
-	return get_sprite(slot)->w;
+	return get_sprite(slot)->GetWidth();
 }
 
 int GetSpriteHeight(int slot) {
-	return get_sprite(slot)->h;
+	return get_sprite(slot)->GetHeight();
 }
 
 int GetRelativeSpriteWidth(int slot) {
@@ -190,11 +228,11 @@ int GetSpriteResolutionMultiplier(int slot)
 }
 
 unsigned char* GetRawSpriteData(int spriteSlot) {
-  return &get_sprite(spriteSlot)->line[0][0];
+  return &get_sprite(spriteSlot)->GetScanLineForWriting(0)[0];
 }
 
 int GetSpriteColorDepth(int slot) {
-  return bitmap_color_depth(get_sprite(slot));
+  return get_sprite(slot)->GetColorDepth();
 }
 
 int GetPaletteAsHPalette() {
@@ -240,19 +278,19 @@ int crop_sprite_edges(int numSprites, int *sprites, bool symmetric) {
   // this function has passed in a list of sprites, all the
   // same size, to crop to the size of the smallest
   int aa, xx, yy;
-  int width = spriteset[sprites[0]]->w;
-  int height = spriteset[sprites[0]]->h;
+  int width = spriteset[sprites[0]]->GetWidth();
+  int height = spriteset[sprites[0]]->GetHeight();
   int left = width, right = 0;
   int top = height, bottom = 0;
 
   for (aa = 0; aa < numSprites; aa++) {
-    block sprit = get_sprite(sprites[aa]);
-    int maskcol = bitmap_mask_color(sprit);
+    IBitmap *sprit = get_sprite(sprites[aa]);
+    int maskcol = sprit->GetMaskColor();
 
     // find the left hand side
     for (xx = 0; xx < width; xx++) {
       for (yy = 0; yy < height; yy++) {
-        if (getpixel(sprit, xx, yy) != maskcol) {
+        if (sprit->GetPixel(xx, yy) != maskcol) {
           if (xx < left)
             left = xx;
           xx = width + 10;
@@ -263,7 +301,7 @@ int crop_sprite_edges(int numSprites, int *sprites, bool symmetric) {
     // find the right hand side
     for (xx = width - 1; xx >= 0; xx--) {
       for (yy = 0; yy < height; yy++) {
-        if (getpixel(sprit, xx, yy) != maskcol) {
+        if (sprit->GetPixel(xx, yy) != maskcol) {
           if (xx > right)
             right = xx;
           xx = -10;
@@ -274,7 +312,7 @@ int crop_sprite_edges(int numSprites, int *sprites, bool symmetric) {
     // find the top side
     for (yy = 0; yy < height; yy++) {
       for (xx = 0; xx < width; xx++) {
-        if (getpixel(sprit, xx, yy) != maskcol) {
+        if (sprit->GetPixel(xx, yy) != maskcol) {
           if (yy < top)
             top = yy;
           yy = height + 10;
@@ -285,7 +323,7 @@ int crop_sprite_edges(int numSprites, int *sprites, bool symmetric) {
     // find the bottom side
     for (yy = height - 1; yy >= 0; yy--) {
       for (xx = 0; xx < width; xx++) {
-        if (getpixel(sprit, xx, yy) != maskcol) {
+        if (sprit->GetPixel(xx, yy) != maskcol) {
           if (yy > bottom)
             bottom = yy;
           yy = -10;
@@ -322,11 +360,11 @@ int crop_sprite_edges(int numSprites, int *sprites, bool symmetric) {
   }
 
   for (aa = 0; aa < numSprites; aa++) {
-    block sprit = get_sprite(sprites[aa]);
+    IBitmap *sprit = get_sprite(sprites[aa]);
     // create a new, smaller sprite and copy across
-    block newsprit = create_bitmap_ex(bitmap_color_depth(sprit), newWidth, newHeight);
-    blit(sprit, newsprit, left, top, 0, 0, newWidth, newHeight);
-    destroy_bitmap(sprit);
+	IBitmap *newsprit = Common::Bitmap::CreateBitmap(newWidth, newHeight, sprit->GetColorDepth());
+    newsprit->Blit(sprit, left, top, 0, 0, newWidth, newHeight);
+    delete sprit;
 
     spriteset.setNonDiscardable(sprites[aa], newsprit);
   }
@@ -571,49 +609,49 @@ const char* save_sprites(bool compressSprites)
   return errorMsg;
 }
 
-void drawBlockDoubleAt (int hdc, block todraw ,int x, int y) {
+void drawBlockDoubleAt (int hdc, IBitmap *todraw ,int x, int y) {
   drawBlockScaledAt (hdc, todraw, x, y, 2);
 }
 
-void wputblock_stretch(int xpt,int ypt,block tblock,int nsx,int nsy) {
+void wputblock_stretch(int xpt,int ypt,IBitmap *tblock,int nsx,int nsy) {
   if (bmp_bpp(tblock) != thisgame.color_depth) {
-    block tempst=create_bitmap_ex(thisgame.color_depth*8,tblock->w,tblock->h);
-    blit(tblock,tempst,0,0,0,0,tblock->w,tblock->h);
+    IBitmap *tempst=Common::Bitmap::CreateBitmap(tblock->GetWidth(),tblock->GetHeight(),thisgame.color_depth*8);
+    tempst->Blit(tblock,0,0,0,0,tblock->GetWidth(),tblock->GetHeight());
     int ww,vv;
-    for (ww=0;ww<tblock->w;ww++) {
-      for (vv=0;vv<tblock->h;vv++) {
-        if (getpixel(tblock,ww,vv)==bitmap_mask_color(tblock))
-          putpixel(tempst,ww,vv,bitmap_mask_color(tempst));
+    for (ww=0;ww<tblock->GetWidth();ww++) {
+      for (vv=0;vv<tblock->GetHeight();vv++) {
+        if (tblock->GetPixel(ww,vv)==tblock->GetMaskColor())
+          tempst->PutPixel(ww,vv,tempst->GetMaskColor());
       }
     }
-    stretch_sprite(abuf,tempst,xpt,ypt,nsx,nsy);
-    wfreeblock(tempst);
+    abuf->StretchBlt(tempst,RectWH(xpt,ypt,nsx,nsy), Common::kBitmap_Transparency);
+    delete tempst;
   }
-  else stretch_sprite(abuf,tblock,xpt,ypt,nsx,nsy);
+  else abuf->StretchBlt(tblock,RectWH(xpt,ypt,nsx,nsy), Common::kBitmap_Transparency);
 }
 
 void draw_sprite_compensate(int sprnum, int atxp, int atyp, int seethru) {
-  block blptr = get_sprite(sprnum);
-  block towrite=blptr;
+  IBitmap *blptr = get_sprite(sprnum);
+  IBitmap *towrite=blptr;
   int needtofree=0, main_color_depth = thisgame.color_depth * 8;
 
   if ((bmp_bpp(blptr) > 1) & (main_color_depth==8)) {
 
-    towrite=create_bitmap_ex(8,blptr->w,blptr->h);
+    towrite=Common::Bitmap::CreateBitmap(blptr->GetWidth(),blptr->GetHeight(), 8);
     needtofree=1;
-    clear_to_color(towrite,bitmap_mask_color(towrite));
+    towrite->Clear(towrite->GetMaskColor());
     int xxp,yyp,tmv;
-    for (xxp=0;xxp<blptr->w;xxp++) {
-      for (yyp=0;yyp<blptr->h;yyp++) {
-        tmv=getpixel(blptr,xxp,yyp);
-        if (tmv != bitmap_mask_color(blptr))
-          putpixel(towrite,xxp,yyp,makecol8(getr16(tmv),getg16(tmv),getb16(tmv)));
+    for (xxp=0;xxp<blptr->GetWidth();xxp++) {
+      for (yyp=0;yyp<blptr->GetHeight();yyp++) {
+        tmv=blptr->GetPixel(xxp,yyp);
+        if (tmv != blptr->GetMaskColor())
+          towrite->PutPixel(xxp,yyp,makecol8(getr16(tmv),getg16(tmv),getb16(tmv)));
         }
       }
 
     }
 
-  int nwid=towrite->w,nhit=towrite->h;
+  int nwid=towrite->GetWidth(),nhit=towrite->GetHeight();
   if (thisgame.spriteflags[sprnum] & SPF_640x400) {
     if (dsc_want_hires == 0) {
       nwid/=2;
@@ -625,12 +663,13 @@ void draw_sprite_compensate(int sprnum, int atxp, int atyp, int seethru) {
     nhit *= 2;
   }
   wputblock_stretch(atxp,atyp,towrite,nwid,nhit);
-  if (needtofree) wfreeblock(towrite);
+  if (needtofree) delete towrite;
 }
 
-void drawBlock (HDC hdc, block todraw, int x, int y) {
+void drawBlock (HDC hdc, IBitmap *todraw, int x, int y) {
   set_palette_to_hdc (hdc, palette);
-  blit_to_hdc (todraw, hdc, 0,0,x,y,todraw->w,todraw->h);
+  // FIXME later
+  blit_to_hdc ((BITMAP*)todraw->GetBitmapObject(), hdc, 0,0,x,y,todraw->GetWidth(),todraw->GetHeight());
 }
 
 
@@ -643,14 +682,14 @@ enum RoomAreaMask
     Regions
 };
 
-block get_bitmap_for_mask(roomstruct *roomptr, RoomAreaMask maskType) 
+IBitmap *get_bitmap_for_mask(roomstruct *roomptr, RoomAreaMask maskType) 
 {
 	if (maskType == RoomAreaMask::None) 
 	{
 		return NULL;
 	}
 
-	block source = NULL;
+	IBitmap *source = NULL;
 	switch (maskType) 
 	{
 	case RoomAreaMask::Hotspots:
@@ -672,49 +711,49 @@ block get_bitmap_for_mask(roomstruct *roomptr, RoomAreaMask maskType)
 
 void copy_walkable_to_regions (void *roomptr) {
 	roomstruct *theRoom = (roomstruct*)roomptr;
-	blit(theRoom->walls, theRoom->regions, 0, 0, 0, 0, theRoom->regions->w, theRoom->regions->h);
+	theRoom->regions->Blit(theRoom->walls, 0, 0, 0, 0, theRoom->regions->GetWidth(), theRoom->regions->GetHeight());
 }
 
 int get_mask_pixel(void *roomptr, int maskType, int x, int y)
 {
-	block mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
-	return getpixel(mask, x, y);
+	IBitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
+	return mask->GetPixel(x, y);
 }
 
 void draw_line_onto_mask(void *roomptr, int maskType, int x1, int y1, int x2, int y2, int color)
 {
-	block mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
-	line(mask, x1, y1, x2, y2, color);
+	IBitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
+	mask->DrawLine(CLine(x1, y1, x2, y2), color);
 }
 
 void draw_filled_rect_onto_mask(void *roomptr, int maskType, int x1, int y1, int x2, int y2, int color)
 {
-	block mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
-	rectfill(mask, x1, y1, x2, y2, color);
+	IBitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
+	mask->FillRect(CRect(x1, y1, x2, y2), color);
 }
 
 void draw_fill_onto_mask(void *roomptr, int maskType, int x1, int y1, int color)
 {
-	block mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
-	floodfill(mask, x1, y1, color);
+	IBitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
+	mask->FloodFill(x1, y1, color);
 }
 
 void create_undo_buffer(void *roomptr, int maskType) 
 {
-	block mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
+	IBitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
   if (undoBuffer != NULL)
   {
-    if ((undoBuffer->w != mask->w) || (undoBuffer->h != mask->h)) 
+    if ((undoBuffer->GetWidth() != mask->GetWidth()) || (undoBuffer->GetHeight() != mask->GetHeight())) 
     {
-      destroy_bitmap(undoBuffer);
+      delete undoBuffer;
       undoBuffer = NULL;
     }
   }
   if (undoBuffer == NULL)
   {
-    undoBuffer = create_bitmap_ex(bitmap_color_depth(mask), mask->w, mask->h);
+    undoBuffer = Common::Bitmap::CreateBitmap(mask->GetWidth(), mask->GetHeight(), mask->GetColorDepth());
   }
-  blit(mask, undoBuffer, 0, 0, 0, 0, mask->w, mask->h);
+  undoBuffer->Blit(mask, 0, 0, 0, 0, mask->GetWidth(), mask->GetHeight());
 }
 
 bool does_undo_buffer_exist()
@@ -726,7 +765,7 @@ void clear_undo_buffer()
 {
   if (does_undo_buffer_exist()) 
   {
-    destroy_bitmap(undoBuffer);
+    delete undoBuffer;
     undoBuffer = NULL;
   }
 }
@@ -735,8 +774,8 @@ void restore_from_undo_buffer(void *roomptr, int maskType)
 {
   if (does_undo_buffer_exist())
   {
-  	block mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
-    blit(undoBuffer, mask, 0, 0, 0, 0, mask->w, mask->h);
+  	IBitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
+    mask->Blit(undoBuffer, 0, 0, 0, 0, mask->GetWidth(), mask->GetHeight());
   }
 }
 
@@ -773,35 +812,35 @@ void setup_greyed_out_palette(int selCol)
     set_palette(thisColourOnlyPal);
 }
 
-BITMAP *recycle_bitmap(BITMAP* check, int colDepth, int w, int h)
+IBitmap *recycle_bitmap(IBitmap* check, int colDepth, int w, int h)
 {
-  if ((check != NULL) && (check->w == w) && (check->h == h) &&
-      (bitmap_color_depth(check) == colDepth))
+  if ((check != NULL) && (check->GetWidth() == w) && (check->GetHeight() == h) &&
+      (check->GetColorDepth() == colDepth))
   {
     return check;
   }
-  if (check != NULL)
-    destroy_bitmap(check);
+  delete check;
 
-  return create_bitmap_ex(colDepth, w, h);
+  return Common::Bitmap::CreateBitmap(w, h, colDepth);
 }
 
-block stretchedSprite = NULL, srcAtRightColDep = NULL;
+IBitmap *stretchedSprite = NULL, *srcAtRightColDep = NULL;
 
-void draw_area_mask(roomstruct *roomptr, block destination, RoomAreaMask maskType, int selectedArea, int transparency) 
+void draw_area_mask(roomstruct *roomptr, IBitmap *destination, RoomAreaMask maskType, int selectedArea, int transparency) 
 {
-	block source = get_bitmap_for_mask(roomptr, maskType);
+	IBitmap *source = get_bitmap_for_mask(roomptr, maskType);
 
 	if (source == NULL) return;
 	
-	if (bitmap_color_depth(source) != bitmap_color_depth(destination)) 
+	if (source->GetColorDepth() != destination->GetColorDepth()) 
 	{
-    block sourceSprite = source;
+    IBitmap *sourceSprite = source;
 
-    if ((source->w != destination->w) || (source->h != destination->h))
+    if ((source->GetWidth() != destination->GetWidth()) || (source->GetHeight() != destination->GetHeight()))
     {
-		  stretchedSprite = recycle_bitmap(stretchedSprite, bitmap_color_depth(source), destination->w, destination->h);
-		  stretch_blit(source, stretchedSprite, 0, 0, source->w, source->h, 0, 0, stretchedSprite->w, stretchedSprite->h);
+		  stretchedSprite = recycle_bitmap(stretchedSprite, source->GetColorDepth(), destination->GetWidth(), destination->GetHeight());
+		  stretchedSprite->StretchBlt(source, RectWH(0, 0, source->GetWidth(), source->GetHeight()),
+			  RectWH(0, 0, stretchedSprite->GetWidth(), stretchedSprite->GetHeight()));
       sourceSprite = stretchedSprite;
     }
 
@@ -812,27 +851,27 @@ void draw_area_mask(roomstruct *roomptr, block destination, RoomAreaMask maskTyp
 
     if (transparency > 0)
     {
-      srcAtRightColDep = recycle_bitmap(srcAtRightColDep, bitmap_color_depth(destination), destination->w, destination->h);
+      srcAtRightColDep = recycle_bitmap(srcAtRightColDep, destination->GetColorDepth(), destination->GetWidth(), destination->GetHeight());
       
       int oldColorConv = get_color_conversion();
       set_color_conversion(oldColorConv | COLORCONV_KEEP_TRANS);
 
-      blit(sourceSprite, srcAtRightColDep, 0, 0, 0, 0, sourceSprite->w, sourceSprite->h);
+      srcAtRightColDep->Blit(sourceSprite, 0, 0, 0, 0, sourceSprite->GetWidth(), sourceSprite->GetHeight());
       set_trans_blender(0, 0, 0, (100 - transparency) + 155);
-      draw_trans_sprite(destination, srcAtRightColDep, 0, 0);
+      destination->TransBlendBlt(srcAtRightColDep, 0, 0);
 
       set_color_conversion(oldColorConv);
     }
     else
     {
-		  draw_sprite(destination, sourceSprite, 0, 0);
+		destination->Blit(sourceSprite, 0, 0, Common::kBitmap_Transparency);
     }
 
     set_palette(palette);
 	}
 	else
 	{
-		Cstretch_sprite(destination, source, 0, 0, destination->w, destination->h);
+		Cstretch_sprite(destination, source, 0, 0, destination->GetWidth(), destination->GetHeight());
 	}
 }
 
@@ -843,21 +882,21 @@ void draw_room_background(void *roomvoidptr, int hdc, int x, int y, int bgnum, f
   if (bgnum >= roomptr->num_bscenes)
     return;
 
-  block srcBlock = roomptr->ebscene[bgnum];
+  IBitmap *srcBlock = roomptr->ebscene[bgnum];
   if (srcBlock == NULL)
     return;
 
 	if (drawBuffer != NULL) 
 	{
-		block depthConverted = create_bitmap_ex(bitmap_color_depth(drawBuffer), srcBlock->w, srcBlock->h);
-    if (bitmap_color_depth(srcBlock) == 8)
+		IBitmap *depthConverted = Common::Bitmap::CreateBitmap(srcBlock->GetWidth(), srcBlock->GetHeight(), drawBuffer->GetColorDepth());
+    if (srcBlock->GetColorDepth() == 8)
     {
       select_palette(roomptr->bpalettes[bgnum]);
     }
 
-		blit(srcBlock, depthConverted, 0, 0, 0, 0, srcBlock->w, srcBlock->h);
+		depthConverted->Blit(srcBlock, 0, 0, 0, 0, srcBlock->GetWidth(), srcBlock->GetHeight());
 
-    if (bitmap_color_depth(srcBlock) == 8)
+    if (srcBlock->GetColorDepth() == 8)
     {
       unselect_palette();
     }
@@ -865,32 +904,32 @@ void draw_room_background(void *roomvoidptr, int hdc, int x, int y, int bgnum, f
 		draw_area_mask(roomptr, depthConverted, (RoomAreaMask)maskType, selectedArea, maskTransparency);
 
     int srcX = 0, srcY = 0;
-    int srcWidth = srcBlock->w;
-    int srcHeight = srcBlock->h;
+    int srcWidth = srcBlock->GetWidth();
+    int srcHeight = srcBlock->GetHeight();
 
     if (x < 0)
     {
       srcX = -x / scaleFactor;
       x = 0;
-      srcWidth = drawBuffer->w / scaleFactor + 1;
-      if (srcX + srcWidth > depthConverted->w)
+      srcWidth = drawBuffer->GetWidth() / scaleFactor + 1;
+      if (srcX + srcWidth > depthConverted->GetWidth())
       {
-        srcWidth = depthConverted->w - srcX;
+        srcWidth = depthConverted->GetWidth() - srcX;
       }
     }
     if (y < 0)
     {
       srcY = -y / scaleFactor;
       y = 0;
-      srcHeight = drawBuffer->h / scaleFactor + 1;
-      if (srcY + srcHeight > depthConverted->h)
+      srcHeight = drawBuffer->GetHeight() / scaleFactor + 1;
+      if (srcY + srcHeight > depthConverted->GetHeight())
       {
-        srcHeight = depthConverted->h - srcY;
+        srcHeight = depthConverted->GetHeight() - srcY;
       }
     }
 
 		Cstretch_blit(depthConverted, drawBuffer, srcX, srcY, srcWidth, srcHeight, x, y, srcWidth * scaleFactor, srcHeight * scaleFactor);
-		destroy_bitmap(depthConverted);
+		delete depthConverted;
 	}
 	else {
 		drawBlockScaledAt(hdc, srcBlock, x, y, scaleFactor);
@@ -1007,9 +1046,9 @@ void drawFontAt (int hdc, int fontnum, int x,int y) {
 
   // we can't antialias font because changing col dep to 16 here causes
   // it to crash ... why?
-  block tempblock = create_bitmap_ex(8, FONTGRIDSIZE*10, FONTGRIDSIZE*10);
-  clear_to_color(tempblock, 0);
-  block abufwas = abuf;
+  IBitmap *tempblock = Common::Bitmap::CreateBitmap(FONTGRIDSIZE*10, FONTGRIDSIZE*10, 8);
+  tempblock->Clear(0);
+  IBitmap *abufwas = abuf;
   abuf = tempblock;
   wtextcolor(15);
   for (int aa=0;aa<96;aa++)
@@ -1021,14 +1060,14 @@ void drawFontAt (int hdc, int fontnum, int x,int y) {
   else
     drawBlock((HDC)hdc, tempblock, x, y);
    
-  wfreeblock(tempblock);
+  delete tempblock;
 }
 
 void proportionalDraw (int newwid, int sprnum, int*newx, int*newy) {
   int newhit = newwid;
 
   int newsizx=newwid,newsizy=newhit;
-  int twid=get_sprite(sprnum)->w,thit = get_sprite(sprnum)->h;
+  int twid=get_sprite(sprnum)->GetWidth(),thit = get_sprite(sprnum)->GetHeight();
   if ((twid < newwid/2) && (thit < newhit/2)) {
     newsizx = twid * 2;
     newsizy = thit * 2;
@@ -1047,8 +1086,8 @@ static void doDrawViewLoop (int hdc, int numFrames, ViewFrame *frames, int x, in
   if ((numFrames > 0) && (frames[numFrames-1].pic == -1))
     wtoDraw -= size;
 
-  block todraw = create_bitmap_ex (thisgame.color_depth*8, wtoDraw, size);
-  clear_to_color (todraw, bitmap_mask_color (todraw));
+  IBitmap *todraw = Common::Bitmap::CreateBitmap (wtoDraw, size, thisgame.color_depth*8);
+  todraw->Clear (todraw->GetMaskColor ());
   int neww, newh;
   for (int i = 0; i < numFrames; i++) {
     // don't draw the Go-To-Next-Frame jibble
@@ -1056,37 +1095,37 @@ static void doDrawViewLoop (int hdc, int numFrames, ViewFrame *frames, int x, in
       break;
     // work out the dimensions to stretch to
     proportionalDraw (size, frames[i].pic, &neww, &newh);
-    block toblt = get_sprite(frames[i].pic);
+    IBitmap *toblt = get_sprite(frames[i].pic);
     bool freeBlock = false;
-    if (bitmap_color_depth (toblt) != bitmap_color_depth (todraw)) {
+    if (toblt->GetColorDepth () != todraw->GetColorDepth ()) {
       // 256-col sprite in hi-col game, we need to copy first
-      block oldBlt = toblt;
-      toblt = create_bitmap_ex (bitmap_color_depth (todraw), toblt->w, toblt->h);
-      blit (oldBlt, toblt, 0, 0, 0, 0, oldBlt->w, oldBlt->h);
+      IBitmap *oldBlt = toblt;
+      toblt = Common::Bitmap::CreateBitmap (toblt->GetWidth(), toblt->GetHeight(), todraw->GetColorDepth ());
+      toblt->Blit (oldBlt, 0, 0, 0, 0, oldBlt->GetWidth(), oldBlt->GetHeight());
       freeBlock = true;
     }
-    block flipped = NULL;
+    IBitmap *flipped = NULL;
     if (frames[i].flags & VFLG_FLIPSPRITE) {
       // mirror the sprite
-      flipped = create_bitmap_ex (bitmap_color_depth (todraw), toblt->w, toblt->h);
-      clear_to_color (flipped, bitmap_mask_color (flipped));
-      draw_sprite_h_flip (flipped, toblt, 0, 0);
+      flipped = Common::Bitmap::CreateBitmap (toblt->GetWidth(), toblt->GetHeight(), todraw->GetColorDepth ());
+      flipped->Clear (flipped->GetMaskColor ());
+      flipped->FlipBlt(toblt, 0, 0, Common::kBitmap_HFlip);
       if (freeBlock)
-        wfreeblock(toblt);
+        delete toblt;
       toblt = flipped;
       freeBlock = true;
     }
-    //stretch_sprite(toblt, todraw, 0, 0, toblt->w, toblt->h, size*i, 0, neww, newh);
+    //->StretchBlt(toblt, todraw, 0, 0, toblt->GetWidth(), toblt->GetHeight(), size*i, 0, neww, newh);
 	Cstretch_sprite(todraw, toblt, size*i, 0, neww, newh);
     if (freeBlock)
-      wfreeblock (toblt);
+      delete toblt;
     if (i < numFrames-1) {
       int linecol = makecol_depth(thisgame.color_depth * 8, 0, 64, 200);
       if (thisgame.color_depth == 1)
         linecol = 12;
 
       // Draw dividing line
-      line (todraw, size*(i+1) - 1, 0, size*(i+1) - 1, size-1, linecol);
+	  todraw->DrawLine (CLine(size*(i+1) - 1, 0, size*(i+1) - 1, size-1), linecol);
     }
     if (i == cursel) {
       // Selected item
@@ -1094,18 +1133,18 @@ static void doDrawViewLoop (int hdc, int numFrames, ViewFrame *frames, int x, in
       if (thisgame.color_depth == 1)
         linecol = 14;
       
-      rect (todraw, size * i, 0, size * (i+1) - 1, size-1, linecol);
+      todraw->DrawRect(CRect (size * i, 0, size * (i+1) - 1, size-1), linecol);
     }
   }
   drawBlock ((HDC)hdc, todraw, x, y);
-  wfreeblock(todraw);
+  delete todraw;
 }
 
 int get_adjusted_spritewidth(int spr) {
-  block tsp = get_sprite(spr);
+  IBitmap *tsp = get_sprite(spr);
   if (tsp == NULL) return 0;
 
-  int retval = tsp->w;
+  int retval = tsp->GetWidth();
 
   if (thisgame.spriteflags[spr] & SPF_640x400) {
     if (sxmult == 1)
@@ -1119,10 +1158,10 @@ int get_adjusted_spritewidth(int spr) {
 }
 
 int get_adjusted_spriteheight(int spr) {
-  block tsp = get_sprite(spr);
+  IBitmap *tsp = get_sprite(spr);
   if (tsp == NULL) return 0;
 
-  int retval = tsp->h;
+  int retval = tsp->GetHeight();
 
   if (thisgame.spriteflags[spr] & SPF_640x400) {
     if (symult == 1)
@@ -1146,10 +1185,10 @@ void drawBlockOfColour(int hdc, int x,int y, int width, int height, int colNum)
     colNum = (red << _rgb_r_shift_32) | (grn << _rgb_g_shift_32) | (blu << _rgb_b_shift_32);
   }*/
 
-  block palbmp = create_bitmap_ex(thisgame.color_depth * 8, width, height);
-  clear_to_color (palbmp, colNum);
+  IBitmap *palbmp = Common::Bitmap::CreateBitmap(width, height, thisgame.color_depth * 8);
+  palbmp->Clear (colNum);
   drawBlockScaledAt(hdc, palbmp, x, y, 1);
-  wfreeblock(palbmp);
+  delete palbmp;
 }
 
 /* [IKM] 2012-07-08: use the Common implementation
@@ -1172,7 +1211,7 @@ bool initialize_native()
 	//set_gdi_color_format();
 	palette = &thisgame.defpal[0];
 	thisgame.color_depth = 2;
-	abuf = create_bitmap_ex(32, 10, 10);
+	abuf = Common::Bitmap::CreateBitmap(10, 10, 32);
 	thisgame.numfonts = 0;
 	new_font();
 
@@ -1195,27 +1234,28 @@ void shutdown_native()
 	allegro_exit();
 }
 
-void drawBlockScaledAt (int hdc, block todraw ,int x, int y, int scaleFactor) {
-  if (bitmap_color_depth (todraw) == 8)
+void drawBlockScaledAt (int hdc, IBitmap *todraw ,int x, int y, int scaleFactor) {
+  if (todraw->GetColorDepth () == 8)
     set_palette_to_hdc ((HDC)hdc, palette);
 
-  stretch_blit_to_hdc (todraw, (HDC)hdc, 0,0,todraw->w,todraw->h,
-    x,y,todraw->w * scaleFactor, todraw->h * scaleFactor);
+  // FIXME later
+  stretch_blit_to_hdc ((BITMAP*)todraw->GetBitmapObject(), (HDC)hdc, 0,0,todraw->GetWidth(),todraw->GetHeight(),
+    x,y,todraw->GetWidth() * scaleFactor, todraw->GetHeight() * scaleFactor);
 }
 
 void drawSprite(int hdc, int x, int y, int spriteNum, bool flipImage) {
 	int scaleFactor = ((thisgame.spriteflags[spriteNum] & SPF_640x400) != 0) ? 1 : 2;
-	block theSprite = get_sprite(spriteNum);
+	IBitmap *theSprite = get_sprite(spriteNum);
 
   if (theSprite == NULL)
     return;
 
 	if (flipImage) {
-		block flipped = create_bitmap_ex (bitmap_color_depth(theSprite), theSprite->w, theSprite->h);
-		clear_to_color (flipped, bitmap_mask_color (flipped));
-		draw_sprite_h_flip (flipped, theSprite, 0, 0);
+		IBitmap *flipped = Common::Bitmap::CreateBitmap (theSprite->GetWidth(), theSprite->GetHeight(), theSprite->GetColorDepth());
+		flipped->Clear (flipped->GetMaskColor ());
+		flipped->FlipBlt(theSprite, 0, 0, Common::kBitmap_HFlip);
 		drawBlockScaledAt(hdc, flipped, x, y, scaleFactor);
-		wfreeblock(flipped);
+		delete flipped;
 	}
 	else 
 	{
@@ -1224,26 +1264,24 @@ void drawSprite(int hdc, int x, int y, int spriteNum, bool flipImage) {
 }
 
 void drawSpriteStretch(int hdc, int x, int y, int width, int height, int spriteNum) {
-  block todraw = get_sprite(spriteNum);
-  block tempBlock = NULL;
+  IBitmap *todraw = get_sprite(spriteNum);
+  IBitmap *tempBlock = NULL;
 	
-  if (bitmap_color_depth (todraw) == 8)
+  if (todraw->GetColorDepth () == 8)
     set_palette_to_hdc ((HDC)hdc, palette);
 
   int hdcBpp = GetDeviceCaps((HDC)hdc, BITSPIXEL);
-  if (hdcBpp != bitmap_color_depth(todraw))
+  if (hdcBpp != todraw->GetColorDepth())
   {
-	  tempBlock = create_bitmap_ex(hdcBpp, todraw->w, todraw->h);
-	  blit(todraw, tempBlock, 0, 0, 0, 0, todraw->w, todraw->h);
+	  tempBlock = Common::Bitmap::CreateBitmap(todraw->GetWidth(), todraw->GetHeight(), hdcBpp);
+	  tempBlock->Blit(todraw, 0, 0, 0, 0, todraw->GetWidth(), todraw->GetHeight());
 	  todraw = tempBlock;
   }
 
-  stretch_blit_to_hdc (todraw, (HDC)hdc, 0,0,todraw->w,todraw->h, x,y, width, height);
+  // FIXME later
+  stretch_blit_to_hdc ((BITMAP*)todraw->GetBitmapObject(), (HDC)hdc, 0,0,todraw->GetWidth(),todraw->GetHeight(), x,y, width, height);
 
-  if (tempBlock != NULL)
-  {
-	  destroy_bitmap(tempBlock);
-  }
+  delete tempBlock;
 }
 
 void drawGUIAt (int hdc, int x,int y,int x1,int y1,int x2,int y2, int scaleFactor) {
@@ -1257,9 +1295,9 @@ void drawGUIAt (int hdc, int x,int y,int x1,int y1,int x2,int y2, int scaleFacto
     dsc_want_hires = 1;
   }
 
-  block tempblock = create_bitmap_ex (thisgame.color_depth*8, tempgui.wid, tempgui.hit);
-  clear_to_color(tempblock, bitmap_mask_color (tempblock));
-  block abufWas = abuf;
+  IBitmap *tempblock = Common::Bitmap::CreateBitmap(tempgui.wid, tempgui.hit, thisgame.color_depth*8);
+  tempblock->Clear(tempblock->GetMaskColor ());
+  IBitmap *abufWas = abuf;
   abuf = tempblock;
 
   tempgui.draw_at (0, 0);
@@ -1267,13 +1305,13 @@ void drawGUIAt (int hdc, int x,int y,int x1,int y1,int x2,int y2, int scaleFacto
   dsc_want_hires = 0;
 
   if (x1 >= 0) {
-    rect (abuf, x1, y1, x2, y2, 14);
+    abuf->DrawRect(CRect (x1, y1, x2, y2), 14);
   }
   abuf = abufWas;
 
   drawBlockScaledAt (hdc, tempblock, x, y, scaleFactor);
   //drawBlockDoubleAt (hdc, tempblock, x, y);
-  wfreeblock(tempblock);
+  delete tempblock;
 }
 
 #define SIMP_INDEX0  0
@@ -1284,24 +1322,24 @@ void drawGUIAt (int hdc, int x,int y,int x1,int y1,int x2,int y2, int scaleFacto
 #define SIMP_LEAVEALONE 5
 #define SIMP_NONE     6
 
-void sort_out_transparency(block toimp, int sprite_import_method, color*itspal, bool useBgSlots, int importedColourDepth) 
+void sort_out_transparency(IBitmap *toimp, int sprite_import_method, color*itspal, bool useBgSlots, int importedColourDepth) 
 {
   if (sprite_import_method == SIMP_LEAVEALONE)
     return;
 
   int uu,tt;
   wsetpalette(0,255,palette);
-  int transcol=bitmap_mask_color(toimp);
+  int transcol=toimp->GetMaskColor();
   // NOTE: This takes the pixel from the corner of the overall import
   // graphic, NOT just the image to be imported
   if (sprite_import_method == SIMP_TOPLEFT)
-    transcol=getpixel(toimp,0,0);
+    transcol=toimp->GetPixel(0,0);
   else if (sprite_import_method==SIMP_BOTLEFT)
-    transcol=getpixel(toimp,0,(toimp->h)-1);
+    transcol=toimp->GetPixel(0,(toimp->GetHeight())-1);
   else if (sprite_import_method == SIMP_TOPRIGHT)
-    transcol = getpixel(toimp, (toimp->w)-1, 0);
+    transcol = toimp->GetPixel((toimp->GetWidth())-1, 0);
   else if (sprite_import_method == SIMP_BOTRIGHT)
-    transcol = getpixel(toimp, (toimp->w)-1, (toimp->h)-1);
+    transcol = toimp->GetPixel((toimp->GetWidth())-1, (toimp->GetHeight())-1);
 
   if (sprite_import_method == SIMP_NONE)
   {
@@ -1313,31 +1351,31 @@ void sort_out_transparency(block toimp, int sprite_import_method, color*itspal, 
     else
       changeTransparencyTo = transcol - 1;
 
-    for (tt=0;tt<toimp->w;tt++) {
-      for (uu=0;uu<toimp->h;uu++) {
-        if (getpixel(toimp,tt,uu) == transcol)
-          putpixel(toimp,tt,uu, changeTransparencyTo);
+    for (tt=0;tt<toimp->GetWidth();tt++) {
+      for (uu=0;uu<toimp->GetHeight();uu++) {
+        if (toimp->GetPixel(tt,uu) == transcol)
+          toimp->PutPixel(tt,uu, changeTransparencyTo);
       }
     }
   }
   else
   {
-	  int bitmapMaskColor = bitmap_mask_color(toimp);
+	  int bitmapMaskColor = toimp->GetMaskColor();
     int replaceWithCol = 16;
-	  if (bitmap_color_depth(toimp) > 8)
+	  if (toimp->GetColorDepth() > 8)
 	  {
       if (importedColourDepth == 8)
-        replaceWithCol = makecol_depth(bitmap_color_depth(toimp), itspal[0].r * 4, itspal[0].g * 4, itspal[0].b * 4);
+        replaceWithCol = makecol_depth(toimp->GetColorDepth(), itspal[0].r * 4, itspal[0].g * 4, itspal[0].b * 4);
       else
 		    replaceWithCol = 0;
 	  }
     // swap all transparent pixels with index 0 pixels
-    for (tt=0;tt<toimp->w;tt++) {
-      for (uu=0;uu<toimp->h;uu++) {
-        if (getpixel(toimp,tt,uu)==transcol)
-          putpixel(toimp,tt,uu, bitmapMaskColor);
-        else if (getpixel(toimp,tt,uu) == bitmapMaskColor)
-          putpixel(toimp,tt,uu, replaceWithCol);
+    for (tt=0;tt<toimp->GetWidth();tt++) {
+      for (uu=0;uu<toimp->GetHeight();uu++) {
+        if (toimp->GetPixel(tt,uu)==transcol)
+          toimp->PutPixel(tt,uu, bitmapMaskColor);
+        else if (toimp->GetPixel(tt,uu) == bitmapMaskColor)
+          toimp->PutPixel(tt,uu, replaceWithCol);
       }
     }
   }
@@ -1360,14 +1398,14 @@ void sort_out_transparency(block toimp, int sprite_import_method, color*itspal, 
     wremap(itspal,toimp,oldpale); 
     wsetpalette(0,255,palette);
   }
-  else if (bitmap_color_depth(toimp) == 8) {  // hi-colour game
+  else if (toimp->GetColorDepth() == 8) {  // hi-colour game
     set_palette(itspal);
   }
 }
 
 void update_abuf_coldepth() {
-  wfreeblock(abuf);
-  abuf = create_bitmap_ex (thisgame.color_depth * 8, 10, 10);
+  delete abuf;
+  abuf = Common::Bitmap::CreateBitmap(10, 10, thisgame.color_depth * 8);
 }
 
 bool reload_font(int curFont)
@@ -1711,7 +1749,7 @@ void free_old_game_data()
 }
 
 // remap the scene, from its current palette oldpale to palette
-void remap_background (block scene, color *oldpale, color*palette, int exactPal) {
+void remap_background (IBitmap *scene, color *oldpale, color*palette, int exactPal) {
   int a;  
 
   if (exactPal) {
@@ -1734,11 +1772,11 @@ void remap_background (block scene, color *oldpale, color*palette, int exactPal)
   // find which colours from the image palette are actually used
   int imgpalcnt[256],numimgclr=0;
   memset(&imgpalcnt[0],0,sizeof(int)*256);
-  if (is_linear_bitmap(scene)==0)
+  if (scene->IsLinearBitmap()==0)
     quit("mem bitmap non-linear?");
 
-  for (a=0;a<(scene->w) * (scene->h);a++) {
-    imgpalcnt[scene->line[0][a]]++;
+  for (a=0;a<(scene->GetWidth()) * (scene->GetHeight());a++) {
+    imgpalcnt[scene->GetScanLine(0)[a]]++;
   }
   for (a=0;a<256;a++) {
     if (imgpalcnt[a]>0) numimgclr++;
@@ -1794,20 +1832,20 @@ void remap_background (block scene, color *oldpale, color*palette, int exactPal)
   wremapall(oldpale,scene,tpal); //palette);
 }
 
-void validate_mask(block toValidate, const char *name, int maxColour) {
-  if ((toValidate == NULL) || (bitmap_color_depth(toValidate) != 8) ||
-      (!is_memory_bitmap(toValidate))) {
+void validate_mask(IBitmap *toValidate, const char *name, int maxColour) {
+  if ((toValidate == NULL) || (toValidate->GetColorDepth() != 8) ||
+      (!toValidate->IsMemoryBitmap())) {
     quit("Invalid mask passed to validate_mask");
     return;
   }
 
   bool errFound = false;
   int xx, yy;
-  for (yy = 0; yy < toValidate->h; yy++) {
-    for (xx = 0; xx < toValidate->w; xx++) {
-      if (toValidate->line[yy][xx] >= maxColour) {
+  for (yy = 0; yy < toValidate->GetHeight(); yy++) {
+    for (xx = 0; xx < toValidate->GetWidth(); xx++) {
+      if (toValidate->GetScanLine(yy)[xx] >= maxColour) {
         errFound = true;
-        toValidate->line[yy][xx] = 0;
+        toValidate->GetScanLineForWriting(yy)[xx] = 0;
       }
     }
   }
@@ -1879,20 +1917,20 @@ const char* load_room_file(const char*rtlo) {
   for (ww = 0; ww < thisroom.num_bscenes; ww++)
     fix_block (thisroom.ebscene[ww]);
 
-  if ((thisroom.resolution > 1) && (thisroom.object->w < thisroom.width)) {
+  if ((thisroom.resolution > 1) && (thisroom.object->GetWidth() < thisroom.width)) {
     // 640x400 room with 320x200-res walkbehind
     // resize it up to 640x400-res
-    int oldw = thisroom.object->w, oldh=thisroom.object->h;
-    block tempb = create_bitmap_ex(bitmap_color_depth(thisroom.object), thisroom.width, thisroom.height);
-    clear(tempb);
-    stretch_blit(thisroom.object,tempb,0,0,oldw,oldh,0,0,tempb->w,tempb->h);
-    destroy_bitmap(thisroom.object); 
+    int oldw = thisroom.object->GetWidth(), oldh=thisroom.object->GetHeight();
+    IBitmap *tempb = Common::Bitmap::CreateBitmap(thisroom.width, thisroom.height, thisroom.object->GetColorDepth());
+    tempb->Clear();
+    tempb->StretchBlt(thisroom.object,RectWH(0,0,oldw,oldh),RectWH(0,0,tempb->GetWidth(),tempb->GetHeight()));
+    delete thisroom.object; 
     thisroom.object = tempb;
   }
 
   wsetpalette(0,255,palette);
   
-  if ((bitmap_color_depth (thisroom.ebscene[0]) > 8) &&
+  if ((thisroom.ebscene[0]->GetColorDepth () > 8) &&
       (thisgame.color_depth == 1))
     MessageBox(NULL,"WARNING: This room is hi-color, but your game is currently 256-colour. You will not be able to use this room in this game. Also, the room background will not look right in the editor.", "Colour depth warning", MB_OK);
 
@@ -1912,9 +1950,9 @@ void calculate_walkable_areas () {
     thisroom.walk_area_top[ww] = thisroom.height;
     thisroom.walk_area_bottom[ww] = 0;
   }
-  for (ww = 0; ww < thisroom.walls->w; ww++) {
-    for (int qq = 0; qq < thisroom.walls->h; qq++) {
-      thispix = _getpixel (thisroom.walls, ww, qq);
+  for (ww = 0; ww < thisroom.walls->GetWidth(); ww++) {
+    for (int qq = 0; qq < thisroom.walls->GetHeight(); qq++) {
+      thispix = thisroom.walls->GetPixel (ww, qq);
       if (thispix > MAX_WALK_AREAS)
         continue;
       if (thisroom.walk_area_top[thispix] > qq)
@@ -2605,12 +2643,12 @@ void save_game(bool compressSprites)
 
 void CreateBuffer(int width, int height)
 {
-	drawBuffer = create_bitmap_ex(32, width, height);
-	clear_to_color(drawBuffer, 0x00D0D0D0);
+	drawBuffer = Common::Bitmap::CreateBitmap( width, height, 32);
+	drawBuffer->Clear(0x00D0D0D0);
 }
 
 void DrawSpriteToBuffer(int sprNum, int x, int y, int scaleFactor) {
-	block todraw = spriteset[sprNum];
+	IBitmap *todraw = spriteset[sprNum];
 	if (todraw == NULL)
 	  todraw = spriteset[0];
 
@@ -2620,34 +2658,35 @@ void DrawSpriteToBuffer(int sprNum, int x, int y, int scaleFactor) {
 		scaleFactor *= 2;
 	}
 
-	block imageToDraw = todraw;
+	IBitmap *imageToDraw = todraw;
 
-	if (bitmap_color_depth(todraw) != bitmap_color_depth(drawBuffer)) 
+	if (todraw->GetColorDepth() != drawBuffer->GetColorDepth()) 
 	{
 		int oldColorConv = get_color_conversion();
 		set_color_conversion(oldColorConv | COLORCONV_KEEP_TRANS);
-		block depthConverted = create_bitmap_ex(bitmap_color_depth(drawBuffer), todraw->w, todraw->h);
-		blit(todraw, depthConverted, 0, 0, 0, 0, todraw->w, todraw->h);
+		IBitmap *depthConverted = Common::Bitmap::CreateBitmap(todraw->GetWidth(), todraw->GetHeight(), drawBuffer->GetColorDepth());
+		depthConverted->Blit(todraw, 0, 0, 0, 0, todraw->GetWidth(), todraw->GetHeight());
 		set_color_conversion(oldColorConv);
 
 		imageToDraw = depthConverted;
 	}
 
-	int drawWidth = imageToDraw->w * scaleFactor;
-	int drawHeight = imageToDraw->h * scaleFactor;
+	int drawWidth = imageToDraw->GetWidth() * scaleFactor;
+	int drawHeight = imageToDraw->GetHeight() * scaleFactor;
 
 	if ((thisgame.spriteflags[sprNum] & SPF_ALPHACHANNEL) != 0)
 	{
 		if (scaleFactor > 1)
 		{
-			block resizedImage = create_bitmap_ex(bitmap_color_depth(imageToDraw), drawWidth, drawHeight);
-			stretch_blit(imageToDraw, resizedImage, 0, 0, imageToDraw->w, imageToDraw->h, 0, 0, resizedImage->w, resizedImage->h);
+			IBitmap *resizedImage = Common::Bitmap::CreateBitmap(drawWidth, drawHeight, imageToDraw->GetColorDepth());
+			resizedImage->StretchBlt(imageToDraw, RectWH(0, 0, imageToDraw->GetWidth(), imageToDraw->GetHeight()),
+				RectWH(0, 0, resizedImage->GetWidth(), resizedImage->GetHeight()));
 			if (imageToDraw != todraw)
-				destroy_bitmap(imageToDraw);
+				delete imageToDraw;
 			imageToDraw = resizedImage;
 		}
 		set_alpha_blender();
-		draw_trans_sprite(drawBuffer, imageToDraw, x, y);
+		drawBuffer->TransBlendBlt(imageToDraw, x, y);
 	}
 	else
 	{
@@ -2655,13 +2694,13 @@ void DrawSpriteToBuffer(int sprNum, int x, int y, int scaleFactor) {
 	}
 
 	if (imageToDraw != todraw)
-		destroy_bitmap(imageToDraw);
+		delete imageToDraw;
 }
 
 void RenderBufferToHDC(int hdc) 
 {
-	blit_to_hdc(drawBuffer, (HDC)hdc, 0, 0, 0, 0, drawBuffer->w, drawBuffer->h);
-	destroy_bitmap(drawBuffer);
+	blit_to_hdc((BITMAP*)drawBuffer->GetBitmapObject(), (HDC)hdc, 0, 0, 0, 0, drawBuffer->GetWidth(), drawBuffer->GetHeight());
+	delete drawBuffer;
 	drawBuffer = NULL;
 }
 
@@ -2691,8 +2730,8 @@ void GameUpdated(Game ^game) {
   antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
   update_font_sizes();
 
-  destroy_bitmap(abuf);
-  abuf = create_bitmap_ex(thisgame.color_depth * 8, 32, 32);
+  delete abuf;
+  abuf = Common::Bitmap::CreateBitmap(32, 32, thisgame.color_depth * 8);
 
   // ensure that the sprite import knows about pal slots 
   for (int i = 0; i < 256; i++) {
@@ -2740,7 +2779,7 @@ void drawViewLoop (int hdc, ViewLoop^ loopToDraw, int x, int y, int size, int cu
   free(frames);
 }
 
-block CreateBlockFromBitmap(Bitmap ^bmp, color *imgpal, bool fixColourDepth, bool keepTransparency, int *originalColDepth) 
+IBitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, color *imgpal, bool fixColourDepth, bool keepTransparency, int *originalColDepth) 
 {
 	int colDepth;
 	if (bmp->PixelFormat == PixelFormat::Format8bppIndexed)
@@ -2792,13 +2831,13 @@ block CreateBlockFromBitmap(Bitmap ^bmp, color *imgpal, bool fixColourDepth, boo
     needToFixColourDepth = true;
   }
 
-	block tempsprite = create_bitmap_ex(colDepth, bmp->Width, bmp->Height);
+	IBitmap *tempsprite = Common::Bitmap::CreateBitmap(bmp->Width, bmp->Height, colDepth);
 
 	System::Drawing::Rectangle rect(0, 0, bmp->Width, bmp->Height);
 	BitmapData ^bmpData = bmp->LockBits(rect, ImageLockMode::ReadWrite, bmp->PixelFormat);
 	unsigned char *address = (unsigned char*)bmpData->Scan0.ToPointer();
-	for (int y = 0; y < tempsprite->h; y++) {
-	  memcpy(&tempsprite->line[y][0], address, bmp->Width * ((colDepth + 1) / 8));
+	for (int y = 0; y < tempsprite->GetHeight(); y++) {
+	  memcpy(&tempsprite->GetScanLineForWriting(y)[0], address, bmp->Width * ((colDepth + 1) / 8));
 	  address += bmpData->Stride;
 	}
 	bmp->UnlockBits(bmpData);
@@ -2839,7 +2878,7 @@ block CreateBlockFromBitmap(Bitmap ^bmp, color *imgpal, bool fixColourDepth, boo
 
 	if (needToFixColourDepth)
 	{
-		block spriteAtRightDepth = create_bitmap_ex(thisgame.color_depth * 8, tempsprite->w, tempsprite->h);
+		IBitmap *spriteAtRightDepth = Common::Bitmap::CreateBitmap(tempsprite->GetWidth(), tempsprite->GetHeight(), thisgame.color_depth * 8);
 		if (colDepth == 8)
 		{
 			select_palette(imgpal);
@@ -2855,7 +2894,7 @@ block CreateBlockFromBitmap(Bitmap ^bmp, color *imgpal, bool fixColourDepth, boo
 			set_color_conversion(oldColorConv & ~COLORCONV_KEEP_TRANS);
 		}
 
-		blit(tempsprite, spriteAtRightDepth, 0, 0, 0, 0, tempsprite->w, tempsprite->h);
+		spriteAtRightDepth->Blit(tempsprite, 0, 0, 0, 0, tempsprite->GetWidth(), tempsprite->GetHeight());
 
 		set_color_conversion(oldColorConv);
 
@@ -2863,7 +2902,7 @@ block CreateBlockFromBitmap(Bitmap ^bmp, color *imgpal, bool fixColourDepth, boo
 		{
 			unselect_palette();
 		}
-		destroy_bitmap(tempsprite);
+		delete tempsprite;
 		tempsprite = spriteAtRightDepth;
 	}
 
@@ -2878,11 +2917,9 @@ block CreateBlockFromBitmap(Bitmap ^bmp, color *imgpal, bool fixColourDepth, boo
 void DeleteBackground(Room ^room, int backgroundNumber) 
 {
 	roomstruct *theRoom = (roomstruct*)(void*)room->_roomStructPtr;
-	if (theRoom->ebscene[backgroundNumber] != NULL) 
-	{
-		destroy_bitmap(theRoom->ebscene[backgroundNumber]);
-		theRoom->ebscene[backgroundNumber] = NULL;
-	}
+	delete theRoom->ebscene[backgroundNumber];
+	theRoom->ebscene[backgroundNumber] = NULL;
+	
 	theRoom->num_bscenes--;
 	room->BackgroundCount--;
 	for (int i = backgroundNumber; i < theRoom->num_bscenes; i++) 
@@ -2892,17 +2929,17 @@ void DeleteBackground(Room ^room, int backgroundNumber)
 	}
 }
 
-void ImportBackground(Room ^room, int backgroundNumber, Bitmap ^bmp, bool useExactPalette, bool sharePalette) 
+void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap ^bmp, bool useExactPalette, bool sharePalette) 
 {
 	color oldpale[256];
-	block newbg = CreateBlockFromBitmap(bmp, oldpale, true, false, NULL);
+	IBitmap *newbg = CreateBlockFromBitmap(bmp, oldpale, true, false, NULL);
 	roomstruct *theRoom = (roomstruct*)(void*)room->_roomStructPtr;
 	theRoom->width = room->Width;
 	theRoom->height = room->Height;
 	bool resolutionChanged = (theRoom->resolution != (int)room->Resolution);
 	theRoom->resolution = (int)room->Resolution;
 
-	if (bitmap_color_depth(newbg) == 8) 
+	if (newbg->GetColorDepth() == 8) 
 	{
 		for (int aa = 0; aa < 256; aa++) {
 		  // make sure it maps to locked cols properly
@@ -2934,58 +2971,58 @@ void ImportBackground(Room ^room, int backgroundNumber, Bitmap ^bmp, bool useExa
 	}
 	else 
 	{
-		destroy_bitmap(theRoom->ebscene[backgroundNumber]);
+		delete theRoom->ebscene[backgroundNumber];
 	}
 	theRoom->ebscene[backgroundNumber] = newbg;
 
   // if size or resolution has changed, reset masks
-	if ((newbg->w != theRoom->object->w) || (newbg->h != theRoom->object->h) ||
-      (theRoom->width != theRoom->object->w) || (resolutionChanged))
+	if ((newbg->GetWidth() != theRoom->object->GetWidth()) || (newbg->GetHeight() != theRoom->object->GetHeight()) ||
+      (theRoom->width != theRoom->object->GetWidth()) || (resolutionChanged))
 	{
-		wfreeblock(theRoom->walls);
-		wfreeblock(theRoom->lookat);
-		wfreeblock(theRoom->object);
-		wfreeblock(theRoom->regions);
-		theRoom->walls = create_bitmap_ex(8,theRoom->width / theRoom->resolution, theRoom->height / theRoom->resolution);
-		theRoom->lookat = create_bitmap_ex(8,theRoom->width / theRoom->resolution, theRoom->height / theRoom->resolution);
-		theRoom->object = create_bitmap_ex(8,theRoom->width, theRoom->height);
-		theRoom->regions = create_bitmap_ex(8,theRoom->width / theRoom->resolution, theRoom->height / theRoom->resolution);
-		clear(theRoom->walls);
-		clear(theRoom->lookat);
-		clear(theRoom->object);
-		clear(theRoom->regions);
+		delete theRoom->walls;
+		delete theRoom->lookat;
+		delete theRoom->object;
+		delete theRoom->regions;
+		theRoom->walls = Common::Bitmap::CreateBitmap(theRoom->width / theRoom->resolution, theRoom->height / theRoom->resolution,8);
+		theRoom->lookat = Common::Bitmap::CreateBitmap(theRoom->width / theRoom->resolution, theRoom->height / theRoom->resolution,8);
+		theRoom->object = Common::Bitmap::CreateBitmap(theRoom->width, theRoom->height,8);
+		theRoom->regions = Common::Bitmap::CreateBitmap(theRoom->width / theRoom->resolution, theRoom->height / theRoom->resolution,8);
+		theRoom->walls->Clear();
+		theRoom->lookat->Clear();
+		theRoom->object->Clear();
+		theRoom->regions->Clear();
 	}
 
 	room->BackgroundCount = theRoom->num_bscenes;
-	room->ColorDepth = bitmap_color_depth(theRoom->ebscene[0]);
+	room->ColorDepth = theRoom->ebscene[0]->GetColorDepth();
 }
 
-void import_area_mask(void *roomptr, int maskType, Bitmap ^bmp)
+void import_area_mask(void *roomptr, int maskType, System::Drawing::Bitmap ^bmp)
 {
 	color oldpale[256];
-	block importedImage = CreateBlockFromBitmap(bmp, oldpale, false, false, NULL);
-	block mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
+	IBitmap *importedImage = CreateBlockFromBitmap(bmp, oldpale, false, false, NULL);
+	IBitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
 
-	if (mask->w != importedImage->w)
+	if (mask->GetWidth() != importedImage->GetWidth())
 	{
 		// allow them to import a double-size or half-size mask, adjust it as appropriate
-		Cstretch_blit(importedImage, mask, 0, 0, importedImage->w, importedImage->h, 0, 0, mask->w, mask->h);
+		Cstretch_blit(importedImage, mask, 0, 0, importedImage->GetWidth(), importedImage->GetHeight(), 0, 0, mask->GetWidth(), mask->GetHeight());
 	}
 	else
 	{
-		blit(importedImage, mask, 0, 0, 0, 0, importedImage->w, importedImage->h);
+		mask->Blit(importedImage, 0, 0, 0, 0, importedImage->GetWidth(), importedImage->GetHeight());
 	}
-	destroy_bitmap(importedImage);
+	delete importedImage;
 
 	validate_mask(mask, "imported", (maskType == Hotspots) ? MAX_HOTSPOTS : (MAX_WALK_AREAS + 1));
 }
 
-void set_rgb_mask_from_alpha_channel(block image)
+void set_rgb_mask_from_alpha_channel(IBitmap *image)
 {
-	for (int y = 0; y < image->h; y++)
+	for (int y = 0; y < image->GetHeight(); y++)
 	{
-		unsigned long* thisLine = (unsigned long*)image->line[y];
-		for (int x = 0; x < image->w; x++)
+		unsigned long* thisLine = (unsigned long*)image->GetScanLine(y);
+		for (int x = 0; x < image->GetWidth(); x++)
 		{
 			if ((thisLine[x] & 0xff000000) == 0)
 			{
@@ -2995,12 +3032,12 @@ void set_rgb_mask_from_alpha_channel(block image)
 	}
 }
 
-void set_opaque_alpha_channel(block image)
+void set_opaque_alpha_channel(IBitmap *image)
 {
-	for (int y = 0; y < image->h; y++)
+	for (int y = 0; y < image->GetHeight(); y++)
 	{
-		unsigned long* thisLine = (unsigned long*)image->line[y];
-		for (int x = 0; x < image->w; x++)
+		unsigned long* thisLine = (unsigned long*)image->GetScanLine(y);
+		for (int x = 0; x < image->GetWidth(); x++)
 		{
 			if (thisLine[x] != MASK_COLOR_32)
 			  thisLine[x] |= 0xff000000;
@@ -3008,11 +3045,11 @@ void set_opaque_alpha_channel(block image)
 	}
 }
 
-int SetNewSpriteFromBitmap(int slot, Bitmap^ bmp, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel) 
+int SetNewSpriteFromBitmap(int slot, System::Drawing::Bitmap^ bmp, int spriteImportMethod, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel) 
 {
 	color imgPalBuf[256];
   int importedColourDepth;
-	block tempsprite = CreateBlockFromBitmap(bmp, imgPalBuf, true, (spriteImportMethod != SIMP_NONE), &importedColourDepth);
+	IBitmap *tempsprite = CreateBlockFromBitmap(bmp, imgPalBuf, true, (spriteImportMethod != SIMP_NONE), &importedColourDepth);
 
 	if ((remapColours) || (thisgame.color_depth > 1)) 
 	{
@@ -3028,12 +3065,12 @@ int SetNewSpriteFromBitmap(int slot, Bitmap^ bmp, int spriteImportMethod, bool r
 	{
 		thisgame.spriteflags[slot] |= SPF_ALPHACHANNEL;
 
-		if (bitmap_color_depth(tempsprite) == 32)
+		if (tempsprite->GetColorDepth() == 32)
 		{
 			set_rgb_mask_from_alpha_channel(tempsprite);
 		}
 	}
-	else if (bitmap_color_depth(tempsprite) == 32)
+	else if (tempsprite->GetColorDepth() == 32)
 	{
 		set_opaque_alpha_channel(tempsprite);
 	}
@@ -3057,29 +3094,29 @@ void SetBitmapPaletteFromGlobalPalette(System::Drawing::Bitmap ^bmp)
 	//bmp->MakeTransparent(bmpPalette[0]);
 }
 
-System::Drawing::Bitmap^ ConvertBlockToBitmap(block todraw, bool useAlphaChannel) 
+System::Drawing::Bitmap^ ConvertBlockToBitmap(IBitmap *todraw, bool useAlphaChannel) 
 {
   fix_block(todraw);
 
   PixelFormat pixFormat = PixelFormat::Format32bppRgb;
-  if ((bitmap_color_depth(todraw) == 32) && (useAlphaChannel))
+  if ((todraw->GetColorDepth() == 32) && (useAlphaChannel))
 	  pixFormat = PixelFormat::Format32bppArgb;
-  else if (bitmap_color_depth(todraw) == 24)
+  else if (todraw->GetColorDepth() == 24)
     pixFormat = PixelFormat::Format24bppRgb;
-  else if (bitmap_color_depth(todraw) == 16)
+  else if (todraw->GetColorDepth() == 16)
     pixFormat = PixelFormat::Format16bppRgb565;
-  else if (bitmap_color_depth(todraw) == 15)
+  else if (todraw->GetColorDepth() == 15)
     pixFormat = PixelFormat::Format16bppRgb555;
-  else if (bitmap_color_depth(todraw) == 8)
+  else if (todraw->GetColorDepth() == 8)
     pixFormat = PixelFormat::Format8bppIndexed;
-  int bytesPerPixel = (bitmap_color_depth(todraw) + 1) / 8;
+  int bytesPerPixel = (todraw->GetColorDepth() + 1) / 8;
 
-  Bitmap ^bmp = gcnew System::Drawing::Bitmap(todraw->w, todraw->h, pixFormat);
+  System::Drawing::Bitmap ^bmp = gcnew System::Drawing::Bitmap(todraw->GetWidth(), todraw->GetHeight(), pixFormat);
   System::Drawing::Rectangle rect(0, 0, bmp->Width, bmp->Height);
   BitmapData ^bmpData = bmp->LockBits(rect, ImageLockMode::WriteOnly, bmp->PixelFormat);
   unsigned char *address = (unsigned char*)bmpData->Scan0.ToPointer();
-  for (int y = 0; y < todraw->h; y++) {
-    memcpy(address, &todraw->line[y][0], bmp->Width * bytesPerPixel);
+  for (int y = 0; y < todraw->GetHeight(); y++) {
+    memcpy(address, &todraw->GetScanLine(y)[0], bmp->Width * bytesPerPixel);
     address += bmpData->Stride;
   }
   bmp->UnlockBits(bmpData);
@@ -3091,54 +3128,54 @@ System::Drawing::Bitmap^ ConvertBlockToBitmap(block todraw, bool useAlphaChannel
   return bmp;
 }
 
-System::Drawing::Bitmap^ ConvertBlockToBitmap32(block todraw, int width, int height, bool useAlphaChannel) 
+System::Drawing::Bitmap^ ConvertBlockToBitmap32(IBitmap *todraw, int width, int height, bool useAlphaChannel) 
 {
-  block tempBlock = create_bitmap_ex(32, todraw->w, todraw->h);
+  IBitmap *tempBlock = Common::Bitmap::CreateBitmap(todraw->GetWidth(), todraw->GetHeight(), 32);
 	
-  if (bitmap_color_depth(todraw) == 8)
+  if (todraw->GetColorDepth() == 8)
     select_palette(palette);
 
-  blit(todraw, tempBlock, 0, 0, 0, 0, todraw->w, todraw->h);
+  tempBlock->Blit(todraw, 0, 0, 0, 0, todraw->GetWidth(), todraw->GetHeight());
 
-  if (bitmap_color_depth(todraw) == 8)
+  if (todraw->GetColorDepth() == 8)
 	unselect_palette();
 
-  if ((width != todraw->w) || (height != todraw->h)) 
+  if ((width != todraw->GetWidth()) || (height != todraw->GetHeight())) 
   {
-	  block newBlock = create_bitmap_ex(32, width, height);
-	  Cstretch_blit(tempBlock, newBlock, 0, 0, todraw->w, todraw->h, 0, 0, width, height);
-	  destroy_bitmap(tempBlock);
+	  IBitmap *newBlock = Common::Bitmap::CreateBitmap(width, height, 32);
+	  Cstretch_blit(tempBlock, newBlock, 0, 0, todraw->GetWidth(), todraw->GetHeight(), 0, 0, width, height);
+	  delete tempBlock;
 	  tempBlock = newBlock;
   }
 
   fix_block(tempBlock);
 
   PixelFormat pixFormat = PixelFormat::Format32bppRgb;
-  if ((bitmap_color_depth(todraw) == 32) && (useAlphaChannel))
+  if ((todraw->GetColorDepth() == 32) && (useAlphaChannel))
 	  pixFormat = PixelFormat::Format32bppArgb;
 
-  Bitmap ^bmp = gcnew System::Drawing::Bitmap(width, height, pixFormat);
+  System::Drawing::Bitmap ^bmp = gcnew System::Drawing::Bitmap(width, height, pixFormat);
   System::Drawing::Rectangle rect(0, 0, bmp->Width, bmp->Height);
   BitmapData ^bmpData = bmp->LockBits(rect, ImageLockMode::WriteOnly, bmp->PixelFormat);
   unsigned char *address = (unsigned char*)bmpData->Scan0.ToPointer();
-  for (int y = 0; y < tempBlock->h; y++) {
-    memcpy(address, &tempBlock->line[y][0], bmp->Width * 4);
+  for (int y = 0; y < tempBlock->GetHeight(); y++) {
+    memcpy(address, &tempBlock->GetScanLine(y)[0], bmp->Width * 4);
     address += bmpData->Stride;
   }
   bmp->UnlockBits(bmpData);
-  destroy_bitmap(tempBlock);
+  delete tempBlock;
   return bmp;
 }
 
-System::Drawing::Bitmap^ ConvertAreaMaskToBitmap(block mask) 
+System::Drawing::Bitmap^ ConvertAreaMaskToBitmap(IBitmap *mask) 
 {
-	Bitmap ^bmp = gcnew System::Drawing::Bitmap(mask->w, mask->h, PixelFormat::Format8bppIndexed);
+	System::Drawing::Bitmap ^bmp = gcnew System::Drawing::Bitmap(mask->GetWidth(), mask->GetHeight(), PixelFormat::Format8bppIndexed);
 	System::Drawing::Rectangle rect(0, 0, bmp->Width, bmp->Height);
 	BitmapData ^bmpData = bmp->LockBits(rect, ImageLockMode::WriteOnly, bmp->PixelFormat);
 	unsigned char *address = (unsigned char*)bmpData->Scan0.ToPointer();
-	for (int y = 0; y < mask->h; y++) 
+	for (int y = 0; y < mask->GetHeight(); y++) 
 	{
-		memcpy(address, &mask->line[y][0], bmp->Width);
+		memcpy(address, &mask->GetScanLine(y)[0], bmp->Width);
 		address += bmpData->Stride;
 	}
 	bmp->UnlockBits(bmpData);
@@ -3149,12 +3186,12 @@ System::Drawing::Bitmap^ ConvertAreaMaskToBitmap(block mask)
 }
 
 System::Drawing::Bitmap^ getSpriteAsBitmap(int spriteNum) {
-  block todraw = get_sprite(spriteNum);
+  IBitmap *todraw = get_sprite(spriteNum);
   return ConvertBlockToBitmap(todraw, (thisgame.spriteflags[spriteNum] & SPF_ALPHACHANNEL) != 0);
 }
 
 System::Drawing::Bitmap^ getSpriteAsBitmap32bit(int spriteNum, int width, int height) {
-  block todraw = get_sprite(spriteNum);
+  IBitmap *todraw = get_sprite(spriteNum);
   if (todraw == NULL)
   {
 	  throw gcnew AGSEditorException(String::Format("getSpriteAsBitmap32bit: Unable to find sprite {0}", spriteNum));
@@ -3363,10 +3400,10 @@ Dictionary<int, Sprite^>^ load_sprite_dimensions()
 
 	for (int i = 0; i < spriteset.elements; i++)
 	{
-		block spr = spriteset[i];
+		IBitmap *spr = spriteset[i];
 		if (spr != NULL)
 		{
-			sprites->Add(i, gcnew Sprite(i, spr->w, spr->h, bitmap_color_depth(spr), (thisgame.spriteflags[i] & SPF_640x400) ? SpriteImportResolution::HighRes : SpriteImportResolution::LowRes, (thisgame.spriteflags[i] & SPF_ALPHACHANNEL) ? true : false));
+			sprites->Add(i, gcnew Sprite(i, spr->GetWidth(), spr->GetHeight(), spr->GetColorDepth(), (thisgame.spriteflags[i] & SPF_640x400) ? SpriteImportResolution::HighRes : SpriteImportResolution::LowRes, (thisgame.spriteflags[i] & SPF_ALPHACHANNEL) ? true : false));
 		}
 	}
 
@@ -4226,7 +4263,7 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
   {
   	room->Resolution = (RoomResolution)thisroom.resolution;
   }
-	room->ColorDepth = bitmap_color_depth(thisroom.ebscene[0]);
+	room->ColorDepth = thisroom.ebscene[0]->GetColorDepth();
 	room->BackgroundAnimationDelay = thisroom.bscene_anim_speed;
 	room->BackgroundCount = thisroom.num_bscenes;
 

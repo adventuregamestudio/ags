@@ -48,6 +48,11 @@
 #include "ac/spritecache.h"
 #include "util/string_utils.h"
 #include <math.h>
+#include "gfx/graphicsdriver.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::IBitmap;
+namespace Bitmap = AGS::Common::Bitmap;
 
 extern GameSetupStruct game;
 extern int displayed_room,starting_room;
@@ -62,9 +67,9 @@ extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern ScriptInvItem scrInv[MAX_INV];
 extern SpriteCache spriteset;
 extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
-extern block walkable_areas_temp;
+extern IBitmap *walkable_areas_temp;
 extern IGraphicsDriver *gfxDriver;
-extern block *actsps;
+extern IBitmap **actsps;
 extern int source_text_length;
 extern int offsetx, offsety;
 extern int is_text_overlay;
@@ -474,16 +479,16 @@ int Character_IsCollidingWithObject(CharacterInfo *chin, ScriptObject *objid) {
     if (objs[objid->id].on != 1)
         return 0;
 
-    block checkblk = GetObjectImage(objid->id, NULL);
-    int objWidth = checkblk->w;
-    int objHeight = checkblk->h;
+    IBitmap *checkblk = GetObjectImage(objid->id, NULL);
+    int objWidth = checkblk->GetWidth();
+    int objHeight = checkblk->GetHeight();
     int o1x = objs[objid->id].x;
     int o1y = objs[objid->id].y - divide_down_coordinate(objHeight);
 
-    block charpic = GetCharacterImage(chin->index_id, NULL);
+    IBitmap *charpic = GetCharacterImage(chin->index_id, NULL);
 
-    int charWidth = charpic->w;
-    int charHeight = charpic->h;
+    int charWidth = charpic->GetWidth();
+    int charHeight = charpic->GetHeight();
     int o2x = chin->x - divide_down_coordinate(charWidth) / 2;
     int o2y = chin->get_effective_y() - 5;  // only check feet
 
@@ -497,8 +502,8 @@ int Character_IsCollidingWithObject(CharacterInfo *chin, ScriptObject *objid) {
             // check if they're on a transparent bit of the object
             int stxp = multiply_up_coordinate(o2x - o1x);
             int styp = multiply_up_coordinate(o2y - o1y);
-            int maskcol = bitmap_mask_color (checkblk);
-            int maskcolc = bitmap_mask_color (charpic);
+            int maskcol = checkblk->GetMaskColor ();
+            int maskcolc = charpic->GetMaskColor ();
             int thispix, thispixc;
             // check each pixel of the object along the char's feet
             for (int i = 0; i < charWidth; i += get_fixed_pixel_size(1)) {
@@ -1746,7 +1751,7 @@ void fix_player_sprite(MoveList*cmls,CharacterInfo*chinf) {
 // Check whether two characters have walked into each other
 int has_hit_another_character(int sourceChar) {
 
-    // if the character who's moving doesn't block, don't bother checking
+    // if the character who's moving doesn't IBitmap *, don't bother checking
     if (game.chars[sourceChar].flags & CHF_NOBLOCKING)
         return -1;
 
@@ -1846,7 +1851,7 @@ int find_nearest_walkable_area_within(int *xx, int *yy, int range, int step)
     for (ex = startx; ex < xwidth; ex += step) {
         for (ey = starty; ey < yheight; ey += step) {
             // non-walkalbe, so don't go here
-            if (getpixel(thisroom.walls,ex,ey) == 0) continue;
+            if (thisroom.walls->GetPixel(ex,ey) == 0) continue;
             // off a screen edge, don't move them there
             if ((ex <= leftEdge) || (ex >= rightEdge) ||
                 (ey <= topEdge) || (ey >= bottomEdge))
@@ -1869,7 +1874,7 @@ int find_nearest_walkable_area_within(int *xx, int *yy, int range, int step)
 void find_nearest_walkable_area (int *xx, int *yy) {
 
 
-    int pixValue = getpixel(thisroom.walls, convert_to_low_res(xx[0]), convert_to_low_res(yy[0]));
+    int pixValue = thisroom.walls->GetPixel(convert_to_low_res(xx[0]), convert_to_low_res(yy[0]));
     // only fix this code if the game was built with 2.61 or above
     if (pixValue == 0 || (engineNeedsAsInt >=261 && pixValue < 1))
     {
@@ -2057,7 +2062,7 @@ void CheckViewFrameForCharacter(CharacterInfo *chi) {
     play.sound_volume = soundVolumeWas;
 }
 
-block GetCharacterImage(int charid, int *isFlipped) 
+IBitmap *GetCharacterImage(int charid, int *isFlipped) 
 {
     if (!gfxDriver->HasAcceleratedStretchAndFlip())
     {
@@ -2108,7 +2113,7 @@ int is_pos_on_character(int xx,int yy) {
         int yyy = chin->get_effective_y() - divide_down_coordinate(usehit);
 
         int mirrored = views[chin->view].loops[chin->loop].frames[chin->frame].flags & VFLG_FLIPSPRITE;
-        block theImage = GetCharacterImage(cc, &mirrored);
+        IBitmap *theImage = GetCharacterImage(cc, &mirrored);
 
         if (is_pos_in_sprite(xx,yy,xxx,yyy, theImage,
             divide_down_coordinate(usewid),
@@ -2138,8 +2143,8 @@ void get_char_blocking_rect(int charid, int *x1, int *y1, int *width, int *y2) {
         cwidth += fromx;
         fromx = 0;
     }
-    if (fromx + cwidth >= convert_back_to_high_res(walkable_areas_temp->w))
-        cwidth = convert_back_to_high_res(walkable_areas_temp->w) - fromx;
+    if (fromx + cwidth >= convert_back_to_high_res(walkable_areas_temp->GetWidth()))
+        cwidth = convert_back_to_high_res(walkable_areas_temp->GetWidth()) - fromx;
 
     if (x1)
         *x1 = fromx;
@@ -2177,12 +2182,14 @@ int is_char_on_another (int sourceChar, int ww, int*fromxptr, int*cwidptr) {
     return 0;
 }
 
-int my_getpixel(BITMAP *blk, int x, int y) {
-    if ((x < 0) || (y < 0) || (x >= blk->w) || (y >= blk->h))
+int my_getpixel(IBitmap *blk, int x, int y) {
+    if ((x < 0) || (y < 0) || (x >= blk->GetWidth()) || (y >= blk->GetHeight()))
         return -1;
 
     // strip the alpha channel
-    return blk->vtable->getpixel(blk, x, y) & 0x00ffffff;
+	// TODO: is there a way to do this vtable thing with IBitmap?
+	BITMAP *al_bmp = (BITMAP*)blk->GetBitmapObject();
+    return al_bmp->vtable->getpixel(al_bmp, x, y) & 0x00ffffff;
 }
 
 int check_click_on_character(int xx,int yy,int mood) {
@@ -2343,7 +2350,7 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
     text_lips_offset = 0;
     text_lips_text = texx;
 
-    block closeupface=NULL;
+    IBitmap *closeupface=NULL;
     if (texx[0]=='&') {
         // auto-speech
         int igr=atoi(&texx[1]);
@@ -2513,8 +2520,8 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
             int draw_yp = 0, ovr_yp = get_fixed_pixel_size(20);
             if (game.options[OPT_SPEECHTYPE] == 3) {
                 // QFG4-style whole screen picture
-                closeupface = create_bitmap_ex(bitmap_color_depth(spriteset[viptr->loops[0].frames[0].pic]), scrnwid, scrnhit);
-                clear_to_color(closeupface, 0);
+                closeupface = Bitmap::CreateBitmap(scrnwid, scrnhit, spriteset[viptr->loops[0].frames[0].pic]->GetColorDepth());
+                closeupface->Clear(0);
                 draw_yp = scrnhit/2 - spriteheight[viptr->loops[0].frames[0].pic]/2;
                 bigx = scrnwid/2 - get_fixed_pixel_size(20);
                 ovr_type = OVER_COMPLETE;
@@ -2528,14 +2535,14 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
                 else
                     ovr_yp = yy;
 
-                closeupface = create_bitmap_ex(bitmap_color_depth(spriteset[viptr->loops[0].frames[0].pic]),bigx+1,bigy+1);
-                clear_to_color(closeupface,bitmap_mask_color(closeupface));
+                closeupface = Bitmap::CreateBitmap(bigx+1,bigy+1,spriteset[viptr->loops[0].frames[0].pic]->GetColorDepth());
+                closeupface->Clear(closeupface->GetMaskColor());
                 ovr_type = OVER_PICTURE;
 
                 if (yy < 0)
                     tdyp = ovr_yp + get_textwindow_top_border_height(play.speech_textwindow_gui);
             }
-            //draw_sprite(closeupface,spriteset[viptr->frames[0][0].pic],0,draw_yp);
+            //->Blit(closeupface,spriteset[viptr->frames[0][0].pic],0,draw_yp);
             DrawViewFrame(closeupface, &viptr->loops[0].frames[0], 0, draw_yp);
 
             int overlay_x = get_fixed_pixel_size(10);

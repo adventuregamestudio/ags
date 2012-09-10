@@ -11,6 +11,9 @@
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
 #include "ac/walkablearea.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::IBitmap;
 
 extern roomstruct thisroom;
 extern GameState play;
@@ -20,23 +23,23 @@ extern int displayed_room;
 extern RoomStatus*croom;
 extern RoomObject*objs;
 
-block walkareabackup=NULL, walkable_areas_temp = NULL;
+IBitmap *walkareabackup=NULL, *walkable_areas_temp = NULL;
 
 void redo_walkable_areas() {
 
     // since this is an 8-bit memory bitmap, we can just use direct 
     // memory access
-    if ((!is_linear_bitmap(thisroom.walls)) || (bitmap_color_depth(thisroom.walls) != 8))
+    if ((!thisroom.walls->IsLinearBitmap()) || (thisroom.walls->GetColorDepth() != 8))
         quit("Walkable areas bitmap not linear");
 
-    blit(walkareabackup, thisroom.walls, 0, 0, 0, 0, thisroom.walls->w, thisroom.walls->h);
+    thisroom.walls->Blit(walkareabackup, 0, 0, 0, 0, thisroom.walls->GetWidth(), thisroom.walls->GetHeight());
 
     int hh,ww;
-    for (hh=0;hh<walkareabackup->h;hh++) {
-        for (ww=0;ww<walkareabackup->w;ww++) {
+    for (hh=0;hh<walkareabackup->GetHeight();hh++) {
+        for (ww=0;ww<walkareabackup->GetWidth();ww++) {
             //      if (play.walkable_areas_on[_getpixel(thisroom.walls,ww,hh)]==0)
-            if (play.walkable_areas_on[thisroom.walls->line[hh][ww]]==0)
-                _putpixel(thisroom.walls,ww,hh,0);
+            if (play.walkable_areas_on[thisroom.walls->GetScanLine(hh)[ww]]==0)
+                thisroom.walls->PutPixel(ww,hh,0);
         }
     }
 
@@ -44,7 +47,7 @@ void redo_walkable_areas() {
 
 int get_walkable_area_pixel(int x, int y)
 {
-    return getpixel(thisroom.walls, convert_to_low_res(x), convert_to_low_res(y));
+    return thisroom.walls->GetPixel(convert_to_low_res(x), convert_to_low_res(y));
 }
 
 int get_area_scaling (int onarea, int xx, int yy) {
@@ -98,14 +101,14 @@ void remove_walkable_areas_from_temp(int fromx, int cwidth, int starty, int endy
     endy = convert_to_low_res(endy);
 
     int yyy;
-    if (endy >= walkable_areas_temp->h)
-        endy = walkable_areas_temp->h - 1;
+    if (endy >= walkable_areas_temp->GetHeight())
+        endy = walkable_areas_temp->GetHeight() - 1;
     if (starty < 0)
         starty = 0;
 
     for (; cwidth > 0; cwidth --) {
         for (yyy = starty; yyy <= endy; yyy++)
-            _putpixel (walkable_areas_temp, fromx, yyy, 0);
+            walkable_areas_temp->PutPixel (fromx, yyy, 0);
         fromx ++;
     }
 
@@ -117,10 +120,10 @@ int is_point_in_rect(int x, int y, int left, int top, int right, int bottom) {
     return 0;
 }
 
-block prepare_walkable_areas (int sourceChar) {
+IBitmap *prepare_walkable_areas (int sourceChar) {
     // copy the walkable areas to the temp bitmap
-    blit (thisroom.walls, walkable_areas_temp, 0,0,0,0,thisroom.walls->w,thisroom.walls->h);
-    // if the character who's moving doesn't block, don't bother checking
+    walkable_areas_temp->Blit (thisroom.walls, 0,0,0,0,thisroom.walls->GetWidth(),thisroom.walls->GetHeight());
+    // if the character who's moving doesn't IBitmap *, don't bother checking
     if (sourceChar < 0) ;
     else if (game.chars[sourceChar].flags & CHF_NOBLOCKING)
         return walkable_areas_temp;
@@ -133,8 +136,8 @@ block prepare_walkable_areas (int sourceChar) {
         if (game.chars[ww].room != displayed_room) continue;
         if (ww == sourceChar) continue;
         if (game.chars[ww].flags & CHF_NOBLOCKING) continue;
-        if (convert_to_low_res(game.chars[ww].y) >= walkable_areas_temp->h) continue;
-        if (convert_to_low_res(game.chars[ww].x) >= walkable_areas_temp->w) continue;
+        if (convert_to_low_res(game.chars[ww].y) >= walkable_areas_temp->GetHeight()) continue;
+        if (convert_to_low_res(game.chars[ww].x) >= walkable_areas_temp->GetWidth()) continue;
         if ((game.chars[ww].y < 0) || (game.chars[ww].x < 0)) continue;
 
         CharacterInfo *char1 = &game.chars[ww];
@@ -154,8 +157,8 @@ block prepare_walkable_areas (int sourceChar) {
         if (objs[ww].on != 1) continue;
         if ((objs[ww].flags & OBJF_SOLID) == 0)
             continue;
-        if (convert_to_low_res(objs[ww].y) >= walkable_areas_temp->h) continue;
-        if (convert_to_low_res(objs[ww].x) >= walkable_areas_temp->w) continue;
+        if (convert_to_low_res(objs[ww].y) >= walkable_areas_temp->GetHeight()) continue;
+        if (convert_to_low_res(objs[ww].x) >= walkable_areas_temp->GetWidth()) continue;
         if ((objs[ww].y < 0) || (objs[ww].x < 0)) continue;
 
         int x1, y1, width, y2;

@@ -5,6 +5,9 @@
 #include "debug/debug_log.h"
 #include "media/audio/audio.h"
 #include "ac/spritecache.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::IBitmap;
 
 extern GameSetupStruct game;
 extern ViewStruct*views;
@@ -138,9 +141,9 @@ void CheckViewFrame (int view, int loop, int frame) {
 }
 
 // draws a view frame, flipped if appropriate
-void DrawViewFrame(block target, ViewFrame *vframe, int x, int y) {
+void DrawViewFrame(IBitmap *target, ViewFrame *vframe, int x, int y) {
     if (vframe->flags & VFLG_FLIPSPRITE)
-        draw_sprite_h_flip(target, spriteset[vframe->pic], x, y);
+        target->FlipBlt(spriteset[vframe->pic], x, y, Common::kBitmap_HFlip);
     else
-        draw_sprite(target, spriteset[vframe->pic], x, y);
+        target->Blit(spriteset[vframe->pic], x, y, Common::kBitmap_Transparency);
 }

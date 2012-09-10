@@ -37,6 +37,9 @@
 #include "script/exports.h"
 #include "script/script.h"
 #include "util/datastream.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::IBitmap;
 
 using AGS::Common::CDataStream;
 /*
@@ -131,9 +134,9 @@ extern char **characterScriptObjNames;
 extern char objectScriptObjNames[MAX_INIT_SPR][MAX_SCRIPT_NAME_LEN + 5];
 extern char **guiScriptObjNames;
 extern int actSpsCount;
-extern block *actsps;
+extern IBitmap **actsps;
 extern IDriverDependantBitmap* *actspsbmp;
-extern block *actspswb;
+extern IBitmap **actspswb;
 extern IDriverDependantBitmap* *actspswbbmp;
 extern CachedActSpsData* actspswbcache;
 
@@ -642,9 +645,9 @@ int load_game_file() {
     charextra = (CharacterExtras*)calloc(game.numcharacters, sizeof(CharacterExtras));
     mls = (MoveList*)calloc(game.numcharacters + MAX_INIT_SPR + 1, sizeof(MoveList));
     actSpsCount = game.numcharacters + MAX_INIT_SPR + 2;
-    actsps = (block*)calloc(actSpsCount, sizeof(block));
+    actsps = (IBitmap **)calloc(actSpsCount, sizeof(IBitmap *));
     actspsbmp = (IDriverDependantBitmap**)calloc(actSpsCount, sizeof(IDriverDependantBitmap*));
-    actspswb = (block*)calloc(actSpsCount, sizeof(block));
+    actspswb = (IBitmap **)calloc(actSpsCount, sizeof(IBitmap *));
     actspswbbmp = (IDriverDependantBitmap**)calloc(actSpsCount, sizeof(IDriverDependantBitmap*));
     actspswbcache = (CachedActSpsData*)calloc(actSpsCount, sizeof(CachedActSpsData));
     game.charProps = (CustomProperties*)calloc(game.numcharacters, sizeof(CustomProperties));

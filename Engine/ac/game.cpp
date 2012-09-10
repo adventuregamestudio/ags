@@ -56,8 +56,12 @@
 #include "script/script_runtime.h"
 #include "ac/spritecache.h"
 #include "util/filestream.h"
+#include "gfx/graphicsdriver.h"
+#include "gfx/bitmap.h"
 
 using AGS::Common::CDataStream;
+using AGS::Common::IBitmap;
+namespace Bitmap = AGS::Common::Bitmap;
 
 #if defined(LINUX_VERSION) || defined(MAC_VERSION)
 #include <sys/stat.h>                      //mkdir
@@ -65,7 +69,7 @@ using AGS::Common::CDataStream;
 
 extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
 extern int time_between_timers;
-extern block virtual_screen;
+extern IBitmap *virtual_screen;
 extern int cur_mode,cur_cursor;
 extern SpeechLipSyncLine *splipsync;
 extern int numLipLines, curLipLine, curLipLinePhenome;
@@ -97,20 +101,20 @@ extern int psp_gfx_super_sampling;
 extern int obj_lowest_yp, char_lowest_yp;
 
 extern int actSpsCount;
-extern block *actsps;
+extern IBitmap **actsps;
 extern IDriverDependantBitmap* *actspsbmp;
 // temporary cache of walk-behind for this actsps image
-extern block *actspswb;
+extern IBitmap **actspswb;
 extern IDriverDependantBitmap* *actspswbbmp;
 extern CachedActSpsData* actspswbcache;
-extern block *guibg;
+extern IBitmap **guibg;
 extern IDriverDependantBitmap **guibgbmp;
 extern char transFileName[MAX_PATH];
 extern color palette[256];
 extern int offsetx,offsety;
 extern unsigned int loopcounter;
-extern block raw_saved_screen;
-extern block dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
+extern IBitmap *raw_saved_screen;
+extern IBitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 extern IGraphicsDriver *gfxDriver;
 
 //=============================================================================
@@ -131,7 +135,7 @@ int in_new_room=0, new_room_was = 0;  // 1 in new room, 2 first time in new room
 int new_room_pos=0;
 int new_room_x = SCR_NO_VALUE, new_room_y = SCR_NO_VALUE;
 
-//block spriteset[MAX_SPRITES+1];
+//IBitmap *spriteset[MAX_SPRITES+1];
 //SpriteCache spriteset (MAX_SPRITES+1);
 // initially size 1, this will be increased by the initFile function
 int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
@@ -909,13 +913,13 @@ int Game_ChangeTranslation(const char *newFilename)
 char*sgsig="Adventure Game Studio saved game";
 int sgsiglen=32;
 
-void serialize_bitmap(block thispic, CDataStream *out) {
+void serialize_bitmap(Common::IBitmap *thispic, CDataStream *out) {
     if (thispic != NULL) {
-        out->WriteInt32(thispic->w);
-        out->WriteInt32(thispic->h);
-        out->WriteInt32(bitmap_color_depth(thispic));
-        for (int cc=0;cc<thispic->h;cc++)
-            out->WriteArray(&thispic->line[cc][0],thispic->w,bitmap_color_depth(thispic)/8);
+        out->WriteInt32(thispic->GetWidth());
+        out->WriteInt32(thispic->GetHeight());
+        out->WriteInt32(thispic->GetColorDepth());
+        for (int cc=0;cc<thispic->GetHeight();cc++)
+            out->WriteArray(&thispic->GetScanLine(cc)[0],thispic->GetWidth(),thispic->GetColorDepth()/8);
     }
 }
 
@@ -959,29 +963,29 @@ void convert_guid_from_text_to_binary(const char *guidText, unsigned char *buffe
     temp = buffer[6]; buffer[6] = buffer[7]; buffer[7] = temp;
 }
 
-block read_serialized_bitmap(CDataStream *in) {
-    block thispic;
+IBitmap *read_serialized_bitmap(CDataStream *in) {
+    IBitmap *thispic;
     int picwid = in->ReadInt32();
     int pichit = in->ReadInt32();
     int piccoldep = in->ReadInt32();
-    thispic = create_bitmap_ex(piccoldep,picwid,pichit);
+    thispic = Bitmap::CreateBitmap(picwid,pichit,piccoldep);
     if (thispic == NULL)
         return NULL;
     for (int vv=0; vv < pichit; vv++)
-        in->ReadArray(&thispic->line[vv][0], picwid, piccoldep/8);
+        in->ReadArray(&thispic->GetScanLineForWriting(vv)[0], picwid, piccoldep/8);
     return thispic;
 }
 
 
 
 
-long write_screen_shot_for_vista(CDataStream *out, block screenshot) 
+long write_screen_shot_for_vista(CDataStream *out, IBitmap *screenshot) 
 {
     long fileSize = 0;
     char tempFileName[MAX_PATH];
     sprintf(tempFileName, "%s""_tmpscht.bmp", saveGameDirectory);
 
-    save_bitmap(tempFileName, screenshot, palette);
+	Bitmap::SaveToFile(screenshot, tempFileName, palette);
 
     update_polled_stuff_if_runtime();
 
@@ -1002,7 +1006,7 @@ long write_screen_shot_for_vista(CDataStream *out, block screenshot)
 }
 
 
-void save_game_screenshot(CDataStream *out, block &screenshot)
+void save_game_screenshot(CDataStream *out, IBitmap *screenshot)
 {
     // store the screenshot at the start to make it easily accesible
     out->WriteInt32((screenshot == NULL) ? 0 : 1);
@@ -1288,7 +1292,7 @@ void save_game_audioclips_and_crossfade(CDataStream *out)
 
 #define MAGICNUMBER 0xbeefcafe
 // Write the save game position to the file
-void save_game_data (CDataStream *out, block screenshot) {
+void save_game_data (CDataStream *out, IBitmap *screenshot) {
 
     platform->RunPluginHooks(AGSE_PRESAVEGAME, 0);
     out->WriteInt32(SGVERSION);
@@ -1376,26 +1380,26 @@ void save_game_data (CDataStream *out, block screenshot) {
     update_polled_stuff_if_runtime();
 }
 
-void create_savegame_screenshot(block &screenShot)
+void create_savegame_screenshot(IBitmap *&screenShot)
 {
     if (game.options[OPT_SAVESCREENSHOT]) {
         int usewid = multiply_up_coordinate(play.screenshot_width);
         int usehit = multiply_up_coordinate(play.screenshot_height);
-        if (usewid > virtual_screen->w)
-            usewid = virtual_screen->w;
-        if (usehit > virtual_screen->h)
-            usehit = virtual_screen->h;
+        if (usewid > virtual_screen->GetWidth())
+            usewid = virtual_screen->GetWidth();
+        if (usehit > virtual_screen->GetHeight())
+            usehit = virtual_screen->GetHeight();
 
         if ((play.screenshot_width < 16) || (play.screenshot_height < 16))
             quit("!Invalid game.screenshot_width/height, must be from 16x16 to screen res");
 
         if (gfxDriver->UsesMemoryBackBuffer())
         {
-            screenShot = create_bitmap_ex(bitmap_color_depth(virtual_screen), usewid, usehit);
+            screenShot = Bitmap::CreateBitmap(usewid, usehit, virtual_screen->GetColorDepth());
 
-            stretch_blit(virtual_screen, screenShot, 0, 0,
-                virtual_screen->w, virtual_screen->h, 0, 0,
-                screenShot->w, screenShot->h);
+            screenShot->StretchBlt(virtual_screen,
+				RectWH(0, 0, virtual_screen->GetWidth(), virtual_screen->GetHeight()),
+				RectWH(0, 0, screenShot->GetWidth(), screenShot->GetHeight()));
         }
         else
         {
@@ -1404,15 +1408,15 @@ void create_savegame_screenshot(block &screenShot)
 #else
             int color_depth = final_col_dep;
 #endif
-            block tempBlock = create_bitmap_ex(color_depth, virtual_screen->w, virtual_screen->h);
+            IBitmap *tempBlock = Bitmap::CreateBitmap(virtual_screen->GetWidth(), virtual_screen->GetHeight(), color_depth);
             gfxDriver->GetCopyOfScreenIntoBitmap(tempBlock);
 
-            screenShot = create_bitmap_ex(color_depth, usewid, usehit);
-            stretch_blit(tempBlock, screenShot, 0, 0,
-                tempBlock->w, tempBlock->h, 0, 0,
-                screenShot->w, screenShot->h);
+            screenShot = Bitmap::CreateBitmap(usewid, usehit, color_depth);
+            screenShot->StretchBlt(tempBlock,
+				RectWH(0, 0, tempBlock->GetWidth(), tempBlock->GetHeight()),
+				RectWH(0, 0, screenShot->GetWidth(), screenShot->GetHeight()));
 
-            destroy_bitmap(tempBlock);
+            delete tempBlock;
         }
     }
 }
@@ -1469,7 +1473,7 @@ void save_game(int slotn, const char*descript) {
 
     fputstring((char*)descript, out);
 
-    block screenShot = NULL;
+    IBitmap *screenShot = NULL;
 
     // Screenshot
     create_savegame_screenshot(screenShot);
@@ -1510,7 +1514,7 @@ void restore_game_screenshot(CDataStream *in)
     int isScreen = in->ReadInt32();
     if (isScreen) {
         // skip the screenshot
-        wfreeblock(read_serialized_bitmap(in));
+        delete read_serialized_bitmap(in); // [IKM] how very appropriate
     }
 }
 
@@ -1597,8 +1601,7 @@ void restore_game_spriteset(CDataStream *in)
 void restore_game_clean_gfx()
 {
     for (int vv = 0; vv < game.numgui; vv++) {
-        if (guibg[vv])
-            wfreeblock (guibg[vv]);
+        delete guibg[vv];
         guibg[vv] = NULL;
 
         if (guibgbmp[vv])
@@ -1867,7 +1870,7 @@ void restore_game_overlays(CDataStream *in)
     }
 }
 
-void restore_game_dynamic_surfaces(CDataStream *in, block *dynamicallyCreatedSurfacesFromSaveGame)
+void restore_game_dynamic_surfaces(CDataStream *in, IBitmap **dynamicallyCreatedSurfacesFromSaveGame)
 {
     // load into a temp array since ccUnserialiseObjects will destroy
     // it otherwise
@@ -1884,7 +1887,7 @@ void restore_game_dynamic_surfaces(CDataStream *in, block *dynamicallyCreatedSur
     }
 }
 
-void restore_game_displayed_room_status(CDataStream *in, block *newbscene)
+void restore_game_displayed_room_status(CDataStream *in, IBitmap **newbscene)
 {
     int bb;
     for (bb = 0; bb < MAX_BSCENE; bb++)
@@ -1899,10 +1902,10 @@ void restore_game_displayed_room_status(CDataStream *in, block *newbscene)
             }
         }
         bb = in->ReadInt32();
-        if (raw_saved_screen != NULL) {
-            wfreeblock(raw_saved_screen);
-            raw_saved_screen = NULL;
-        }
+
+        delete raw_saved_screen;
+        raw_saved_screen = NULL;
+
         if (bb)
             raw_saved_screen = read_serialized_bitmap(in);
 
@@ -2126,12 +2129,12 @@ int restore_game_data (CDataStream *in, const char *nametouse) {
 
     update_polled_stuff_if_runtime();
 
-    block dynamicallyCreatedSurfacesFromSaveGame[MAX_DYNAMIC_SURFACES];
+    IBitmap *dynamicallyCreatedSurfacesFromSaveGame[MAX_DYNAMIC_SURFACES];
     restore_game_dynamic_surfaces(in, dynamicallyCreatedSurfacesFromSaveGame);
 
     update_polled_stuff_if_runtime();
 
-    block newbscene[MAX_BSCENE];
+    IBitmap *newbscene[MAX_BSCENE];
     restore_game_displayed_room_status(in, newbscene);
     restore_game_globalvars(in);
     restore_game_views(in);
@@ -2230,7 +2233,7 @@ int restore_game_data (CDataStream *in, const char *nametouse) {
 
         for (bb = 0; bb < MAX_BSCENE; bb++) {
             if (newbscene[bb]) {
-                wfreeblock(thisroom.ebscene[bb]);
+                delete thisroom.ebscene[bb];
                 thisroom.ebscene[bb] = newbscene[bb];
             }
         }
@@ -2294,7 +2297,7 @@ int restore_game_data (CDataStream *in, const char *nametouse) {
     }
 
     for (vv = 0; vv < game.numgui; vv++) {
-        guibg[vv] = create_bitmap_ex (final_col_dep, guis[vv].wid, guis[vv].hit);
+        guibg[vv] = Bitmap::CreateBitmap (guis[vv].wid, guis[vv].hit, final_col_dep);
         guibg[vv] = gfxDriver->ConvertBitmapToSupportedColourDepth(guibg[vv]);
     }
 
@@ -2370,7 +2373,7 @@ int do_game_load(const char *nametouse, int slotNumber, char *descrp, int *wantS
         if (isScreen) {
             int gotSlot = spriteset.findFreeSlot();
             // load the screenshot
-            block redin = read_serialized_bitmap(in);
+            IBitmap *redin = read_serialized_bitmap(in);
             if (gotSlot > 0) {
                 // add it into the sprite set
                 add_dynamic_sprite(gotSlot, gfxDriver->ConvertBitmapToSupportedColourDepth(redin));
@@ -2379,7 +2382,7 @@ int do_game_load(const char *nametouse, int slotNumber, char *descrp, int *wantS
             }
             else
             {
-                destroy_bitmap(redin);
+                delete redin;
             }
         }
         delete in;
@@ -2495,7 +2498,7 @@ int __GetLocationType(int xxx,int yyy, int allowHotspot0) {
 
     multiply_up_coordinates(&xxx, &yyy);
 
-    int wbat = getpixel(thisroom.object, xxx, yyy);
+    int wbat = thisroom.object->GetPixel(xxx, yyy);
 
     if (wbat <= 0) wbat = 0;
     else wbat = croom->walkbehind_base[wbat];

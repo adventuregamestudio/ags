@@ -366,6 +366,18 @@
 					>
 				</File>
 			</Filter>
+                        <Filter
+				Name="gfx"
+				>
+				<File
+					RelativePath="..\..\Common\gfx\allegrobitmap.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\gfx\bitmap.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -664,7 +676,34 @@
 					>
 				</File>
 			</Filter>
-
+			<Filter
+				Name="gfx"
+				>
+				<File
+					RelativePath="..\..\Common\gfx\allegrobitmap.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\gfx\bitmap.h"
+					>
+				</File>
+			</Filter>
+		</Filter>
+		<Filter
+			Name="Library Sources"
+			>
+			<Filter
+				Name="aastr"
+				>
+				<File
+					RelativePath="..\..\Common\libsrc\aastr-0.1.1\aastr.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\libsrc\aastr-0.1.1\aautil.c"
+					>
+				</File>
+			</Filter>
 		</Filter>
 	</Files>
 	<Globals>

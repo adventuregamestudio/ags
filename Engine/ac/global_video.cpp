@@ -14,9 +14,13 @@
 #include "debug/debugger.h"
 #include "media/video/video.h"
 #include "util/datastream.h"
+#include "gfx/graphicsdriver.h"
+#include "gfx/bitmap.h"
 
 using AGS::Common::CDataStream;
 
+using AGS::Common::IBitmap;
+namespace Bitmap = AGS::Common::Bitmap;
 
 extern int loaded_game_file_version;
 extern GameSetup usetup;
@@ -26,10 +30,10 @@ extern GameState play;
 // defined in media/video/video.h
 extern int canabort, stretch_flc;
 extern short fliwidth,fliheight;
-extern block hicol_buf;
-extern block fli_buffer;
+extern IBitmap *hicol_buf;
+extern IBitmap *fli_buffer;
 extern IDriverDependantBitmap *fli_ddb;
-extern BITMAP *fli_target;
+extern IBitmap *fli_target;
 extern IGraphicsDriver *gfxDriver;
 
 // defined in ac_screen
@@ -76,45 +80,47 @@ void play_flc_file(int numb,int playflags) {
     fliheight = in->ReadInt16();
     delete in;
     if (game.color_depth > 1) {
-        hicol_buf=create_bitmap_ex(final_col_dep,fliwidth,fliheight);
-        clear(hicol_buf);
+        hicol_buf=Bitmap::CreateBitmap(fliwidth,fliheight,final_col_dep);
+        hicol_buf->Clear();
     }
     // override the stretch option if necessary
     if ((fliwidth==scrnwid) && (fliheight==scrnhit))
         stretch_flc = 0;
     else if ((fliwidth > scrnwid) || (fliheight > scrnhit))
         stretch_flc = 1;
-    fli_buffer=create_bitmap_ex(8,fliwidth,fliheight); //640,400); //scrnwid,scrnhit);
+    fli_buffer=Bitmap::CreateBitmap(fliwidth,fliheight,8); //640,400); //scrnwid,scrnhit);
     if (fli_buffer==NULL) quit("Not enough memory to play animation");
-    clear(fli_buffer);
+    fli_buffer->Clear();
+
+	IBitmap *screen_bmp = Bitmap::GetScreenBitmap();
 
     if (clearScreenAtStart) {
-        clear(screen);
-        render_to_screen(screen, 0, 0);
+		screen_bmp->Clear();
+        render_to_screen(screen_bmp, 0, 0);
     }
 
-    fli_target = create_bitmap_ex(final_col_dep, screen->w, screen->h);
+    fli_target = Bitmap::CreateBitmap(screen_bmp->GetWidth(), screen_bmp->GetHeight(), final_col_dep);
     fli_ddb = gfxDriver->CreateDDBFromBitmap(fli_target, false, true);
 
-    if (play_fli(flicnam,fli_buffer,0,fli_callback)==FLI_ERROR)
+	if (play_fli(flicnam,(BITMAP*)fli_buffer->GetBitmapObject(),0,fli_callback)==FLI_ERROR)
     {
         // This is not a fatal error that should prevent the game from continuing
         //quit("FLI/FLC animation play error");
         write_log_debug("FLI/FLC animation play error");
     }
 
-    wfreeblock(fli_buffer);
-    clear(screen);
+    delete fli_buffer;
+	screen_bmp->Clear();
     wsetpalette(0,255,oldpal);
-    render_to_screen(screen, 0, 0);
+    render_to_screen(screen_bmp, 0, 0);
 
-    destroy_bitmap(fli_target);
+    delete fli_target;
     gfxDriver->DestroyDDB(fli_ddb);
     fli_ddb = NULL;
 
-    if (hicol_buf!=NULL) {
-        wfreeblock(hicol_buf);
-        hicol_buf=NULL; }
+    
+    delete hicol_buf;
+    hicol_buf=NULL;
     //  wsetscreen(screen); wputblock(0,0,backbuffer,0);
     while (mgetbutton()!=NONE) ;
     invalidate_screen();

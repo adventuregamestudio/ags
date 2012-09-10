@@ -25,6 +25,11 @@
 #include "debug/debugger.h"
 #include "main/main.h"
 #include "ac/spritecache.h"
+#include "gfx/graphicsdriver.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::IBitmap;
+namespace Bitmap = AGS::Common::Bitmap;
 
 extern GameSetupStruct game;
 extern GameSetup usetup;
@@ -73,20 +78,22 @@ void script_debug(int cmdd,int dataa) {
         Display(toDisplay);
         //    Display("shftR: %d  shftG: %d  shftB: %d", _rgb_r_shift_16, _rgb_g_shift_16, _rgb_b_shift_16);
         //    Display("Remaining memory: %d kb",_go32_dpmi_remaining_virtual_memory()/1024);
-        //Display("Play char bcd: %d",bitmap_color_depth(spriteset[views[playerchar->view].frames[playerchar->loop][playerchar->frame].pic]));
+        //Display("Play char bcd: %d",->GetColorDepth(spriteset[views[playerchar->view].frames[playerchar->loop][playerchar->frame].pic]));
     }
     else if (cmdd==2) 
     {  // show walkable areas from here
-        block tempw=create_bitmap(thisroom.walls->w,thisroom.walls->h);
-        blit(prepare_walkable_areas(-1),tempw,0,0,0,0,tempw->w,tempw->h);
-        block stretched = create_bitmap(scrnwid, scrnhit);
-        stretch_sprite(stretched, tempw, -offsetx, -offsety, get_fixed_pixel_size(tempw->w), get_fixed_pixel_size(tempw->h));
+        IBitmap *tempw=Bitmap::CreateBitmap(thisroom.walls->GetWidth(),thisroom.walls->GetHeight());
+        tempw->Blit(prepare_walkable_areas(-1),0,0,0,0,tempw->GetWidth(),tempw->GetHeight());
+        IBitmap *stretched = Bitmap::CreateBitmap(scrnwid, scrnhit);
+        stretched->StretchBlt(tempw,
+			RectWH(-offsetx, -offsety, get_fixed_pixel_size(tempw->GetWidth()), get_fixed_pixel_size(tempw->GetHeight())),
+			Common::kBitmap_Transparency);
 
         IDriverDependantBitmap *ddb = gfxDriver->CreateDDBFromBitmap(stretched, false, true);
         render_graphics(ddb, 0, 0);
 
-        destroy_bitmap(tempw);
-        destroy_bitmap(stretched);
+        delete tempw;
+        delete stretched;
         gfxDriver->DestroyDDB(ddb);
         while (!kbhit()) ;
         getch();
@@ -122,22 +129,24 @@ void script_debug(int cmdd,int dataa) {
             Display("Not currently moving.");
             return;
         }
-        block tempw=create_bitmap(thisroom.walls->w,thisroom.walls->h);
+        IBitmap *tempw=Bitmap::CreateBitmap(thisroom.walls->GetWidth(),thisroom.walls->GetHeight());
         int mlsnum = game.chars[dataa].walking;
         if (game.chars[dataa].walking >= TURNING_AROUND)
             mlsnum %= TURNING_AROUND;
         MoveList*cmls = &mls[mlsnum];
-        clear_to_color(tempw, bitmap_mask_color(tempw));
+        tempw->Clear(tempw->GetMaskColor());
         for (int i = 0; i < cmls->numstage-1; i++) {
             short srcx=short((cmls->pos[i] >> 16) & 0x00ffff);
             short srcy=short(cmls->pos[i] & 0x00ffff);
             short targetx=short((cmls->pos[i+1] >> 16) & 0x00ffff);
             short targety=short(cmls->pos[i+1] & 0x00ffff);
-            line (tempw, srcx, srcy, targetx, targety, get_col8_lookup(i+1));
+            tempw->DrawLine(CLine(srcx, srcy, targetx, targety), get_col8_lookup(i+1));
         }
-        stretch_sprite(screen, tempw, -offsetx, -offsety, multiply_up_coordinate(tempw->w), multiply_up_coordinate(tempw->h));
-        render_to_screen(screen, 0, 0);
-        wfreeblock(tempw);
+		Bitmap::GetScreenBitmap()->StretchBlt(tempw,
+			RectWH(-offsetx, -offsety, multiply_up_coordinate(tempw->GetWidth()), multiply_up_coordinate(tempw->GetHeight())),
+			Common::kBitmap_Transparency);
+        render_to_screen(Bitmap::GetScreenBitmap(), 0, 0);
+        delete tempw;
         while (!kbhit()) ;
         getch();
     }

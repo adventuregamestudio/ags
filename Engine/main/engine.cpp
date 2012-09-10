@@ -46,8 +46,12 @@
 #include "media/audio/sound.h"
 #include "ac/spritecache.h"
 #include "util/filestream.h"
+#include "gfx/graphicsdriver.h"
+#include "gfx/bitmap.h"
 
 using AGS::Common::CDataStream;
+using AGS::Common::IBitmap;
+namespace Bitmap = AGS::Common::Bitmap;
 
 #if defined(MAC_VERSION) || (defined(LINUX_VERSION) && !defined(PSP_VERSION))
 #include <pthread.h>
@@ -84,12 +88,12 @@ extern int scrnwid,scrnhit;
 extern ScriptSystem scsystem;
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern IGraphicsDriver *gfxDriver;
-extern block virtual_screen;
-extern block *actsps;
+extern IBitmap *virtual_screen;
+extern IBitmap **actsps;
 extern color palette[256];
 extern CharacterExtras *charextra;
 extern CharacterInfo*playerchar;
-extern block *guibg;
+extern IBitmap **guibg;
 extern IDriverDependantBitmap **guibgbmp;
 
 char *music_file;
@@ -824,29 +828,30 @@ void engine_init_modxm_player()
 void show_preload () {
     // ** Do the preload graphic if available
     color temppal[256];
-    block splashsc = load_pcx("preload.pcx",temppal);
+	IBitmap *splashsc = Bitmap::CreateRawObjectOwner( load_pcx("preload.pcx",temppal) );
     if (splashsc != NULL) {
-        if (bitmap_color_depth(splashsc) == 8)
+        if (splashsc->GetColorDepth() == 8)
             wsetpalette(0,255,temppal);
-        block tsc = create_bitmap_ex(bitmap_color_depth(screen),splashsc->w,splashsc->h);
-        blit(splashsc,tsc,0,0,0,0,tsc->w,tsc->h);
-        clear(screen);
-        stretch_sprite(screen, tsc, 0, 0, scrnwid,scrnhit);
+		IBitmap *screen_bmp = Bitmap::GetScreenBitmap();
+        IBitmap *tsc = Bitmap::CreateBitmap(splashsc->GetWidth(),splashsc->GetHeight(),screen_bmp->GetColorDepth());
+        tsc->Blit(splashsc,0,0,0,0,tsc->GetWidth(),tsc->GetHeight());
+		screen_bmp->Clear();
+        screen_bmp->StretchBlt(tsc, RectWH(0, 0, scrnwid,scrnhit), Common::kBitmap_Transparency);
 
         gfxDriver->ClearDrawList();
 
         if (!gfxDriver->UsesMemoryBackBuffer())
         {
-            IDriverDependantBitmap *ddb = gfxDriver->CreateDDBFromBitmap(screen, false, true);
+            IDriverDependantBitmap *ddb = gfxDriver->CreateDDBFromBitmap(screen_bmp, false, true);
             gfxDriver->DrawSprite(0, 0, ddb);
-            render_to_screen(screen, 0, 0);
+            render_to_screen(screen_bmp, 0, 0);
             gfxDriver->DestroyDDB(ddb);
         }
         else
-            render_to_screen(screen, 0, 0);
+			render_to_screen(screen_bmp, 0, 0);
 
-        wfreeblock(splashsc);
-        wfreeblock(tsc);
+        delete splashsc;
+        delete tsc;
         platform->Delay(500);
     }
 }
@@ -880,11 +885,11 @@ void engine_setup_screen()
 {
     write_log_debug("Set up screen");
 
-    virtual_screen=create_bitmap_ex(final_col_dep,scrnwid,scrnhit);
-    clear(virtual_screen);
+    virtual_screen=Bitmap::CreateBitmap(scrnwid,scrnhit,final_col_dep);
+    virtual_screen->Clear();
     gfxDriver->SetMemoryBackBuffer(virtual_screen);
     //  ignore_mouseoff_bitmap = virtual_screen;
-    abuf=screen;
+	abuf=Bitmap::GetScreenBitmap();
     our_eip=-7;
 
     for (int ee = 0; ee < MAX_INIT_SPR + game.numcharacters; ee++)
@@ -962,7 +967,7 @@ void init_game_settings() {
         charextra[ee].animwait = 0;
     }
     // multiply up gui positions
-    guibg = (block*)malloc(sizeof(block) * game.numgui);
+    guibg = (IBitmap **)malloc(sizeof(IBitmap *) * game.numgui);
     guibgbmp = (IDriverDependantBitmap**)malloc(sizeof(IDriverDependantBitmap*) * game.numgui);
     for (ee=0;ee<game.numgui;ee++) {
         guibg[ee] = NULL;
@@ -1229,6 +1234,18 @@ void engine_prepare_to_start_game()
 #endif
 }
 
+// TODO: move to test unit
+#include "gfx/allegrobitmap.h"
+using AGS::Common::CAllegroBitmap;
+CAllegroBitmap *test_allegro_bitmap;
+IDriverDependantBitmap *test_allegro_ddb;
+void allegro_bitmap_test_init()
+{
+	test_allegro_bitmap = NULL;
+	// Switched the test off for now
+	//test_allegro_bitmap = CAllegroBitmap::CreateBitmap(320,200,32);
+}
+
 int initialize_engine(int argc,char*argv[])
 {
     int res;
@@ -1401,6 +1418,8 @@ int initialize_engine(int argc,char*argv[])
     engine_init_game_settings();
 
     engine_prepare_to_start_game();
+
+	allegro_bitmap_test_init();
 
     initialize_start_and_play_game(override_start_room, loadSaveGameOnStartup);
 

@@ -43,12 +43,13 @@
 #include <osxalleg.h>
 #endif
 
+namespace AGS { namespace Common { class IBitmap; }}
+using namespace AGS; // FIXME later
+
 
 #if defined WGT2ALLEGRO_NOFUNCTIONS
 #error WGT2ALLEGRO_NOFUNCTIONS macro is obsolete and should not be defined anymore.
 #endif
-
-typedef BITMAP *block;
 
 #if (WGTMAP_SIZE == 1)
 typedef unsigned char *wgtmap;
@@ -106,7 +107,7 @@ extern "C"
     extern char *wgtlibrary;
     extern int currentcolor;
     extern int vesa_xres, vesa_yres;
-    extern block abuf;
+    extern Common::IBitmap *abuf;
 
 #ifdef WINDOWS_VERSION
 #define GFX_VGA GFX_DIRECTX
@@ -128,29 +129,33 @@ extern "C"
     extern int wgetmode();
 #endif
 
-    extern void wsetscreen(block nss);
+    extern void wsetscreen(Common::IBitmap *nss);
+	// CHECKME: temporary solution for plugin system
+	extern void wsetscreen_raw(BITMAP *nss);
     extern void wsetrgb(int coll, int r, int g, int b, color * pall);
     extern int wloadpalette(char *filnam, color * pall);
 
     extern void wcolrotate(unsigned char start, unsigned char finish, int dir, color * pall);
 
-    extern block tempbitm;
-    extern block wnewblock(int x1, int y1, int x2, int y2);
+    extern Common::IBitmap *tempbitm;
+    extern Common::IBitmap *wnewblock(int x1, int y1, int x2, int y2);
 
     // [IKM] recreated these in platform/file unit
     /*
     extern short getshort(FILE * fff);
     extern void putshort(short num, FILE *fff);
     */
-    extern block wloadblock(char *fill);
+    extern Common::IBitmap *wloadblock(char *fill);
 
-    extern int wloadsprites(color * pall, char *filnam, block * sarray, int strt, int eend);
-    extern void wfreesprites(block * blar, int stt, int end);
+    extern int wloadsprites(color * pall, char *filnam, Common::IBitmap ** sarray, int strt, int eend);
+    extern void wfreesprites(Common::IBitmap ** blar, int stt, int end);
     /*
-    extern void wsavesprites_ex(color * pll, char *fnm, block * spre, int strt, int eend, unsigned char *arry);
-    extern void wsavesprites(color * pll, char *fnm, block * spre, int strt, int eend);
+    extern void wsavesprites_ex(color * pll, char *fnm, Common::IBitmap ** spre, int strt, int eend, unsigned char *arry);
+    extern void wsavesprites(color * pll, char *fnm, Common::IBitmap ** spre, int strt, int eend);
     */
-    extern void wputblock(int xx, int yy, block bll, int xray);
+	extern void wputblock(int xx, int yy, Common::IBitmap *bll, int xray);
+	// CHECKME: temporary solution for plugin system
+	extern void wputblock_raw(int xx, int yy, BITMAP *bll, int xray);
 
     extern const int col_lookups[32];
 
@@ -161,8 +166,8 @@ extern "C"
 
 
     extern int __wremap_keep_transparent;
-    extern void wremap(color * pal1, block picc, color * pal2);
-    extern void wremapall(color * pal1, block picc, color * pal2);
+    extern void wremap(color * pal1, Common::IBitmap *picc, color * pal2);
+    extern void wremapall(color * pal1, Common::IBitmap *picc, color * pal2);
 
     // library file functions
     extern void readheader();
@@ -177,7 +182,7 @@ extern "C"
 
     extern long wtimer(struct time tt1, struct time tt2);
 
-    extern void wcopyscreen(int x1, int y1, int x2, int y2, block src, int dx, int dy, block dest);
+    extern void wcopyscreen(int x1, int y1, int x2, int y2, Common::IBitmap *src, int dx, int dy, Common::IBitmap *dest);
 
 #ifdef __cplusplus
 }
@@ -204,8 +209,8 @@ extern "C"
 #define wfade_out(from, to, speed, pal) fade_out_range(5, from, to)
 #define wfastputpixel(x1, y1)           _putpixel(abuf, x1, y1, currentcolor)
 #define wfreeblock(bll)                 destroy_bitmap(bll)
-#define wgetblockheight(bll)            bll->h
-#define wgetblockwidth(bll)             bll->w
+#define wgetblockheight(bll)            bll->GetHeight()
+#define wgetblockwidth(bll)             bll->GetWidth()
 #define wgetpixel(xx, yy)               getpixel(abuf, xx, yy)
 #define whline(x1, x2, yy)              hline(abuf, x1, yy, x2, currentcolor)
 #define wline(x1, y1, x2, y2)           line(abuf,x1,y1,x2,y2,currentcolor)

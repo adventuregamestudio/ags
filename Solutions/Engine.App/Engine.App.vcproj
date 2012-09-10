@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="windows-1251"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Engine.App"
 	ProjectGUID="{49A909AF-49F3-451D-B6DF-839159E54A01}"
 	RootNamespace="EngineApp"
@@ -1703,6 +1703,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\gfx\ddb.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\gfx\gfxfilter.h"
 					>
 				</File>
@@ -1736,6 +1740,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\gfx\gfxfilterhelpers.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\graphicsdriver.h"
 					>
 				</File>
 				<File
@@ -2125,18 +2133,6 @@
 		<Filter
 			Name="Library Sources"
 			>
-			<Filter
-				Name="aastr"
-				>
-				<File
-					RelativePath="..\..\Engine\libsrc\aastr-0.1.1\aastr.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\libsrc\aastr-0.1.1\aautil.c"
-					>
-				</File>
-			</Filter>
 			<Filter
 				Name="AllegroPatches"
 				>

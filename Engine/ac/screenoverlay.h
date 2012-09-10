@@ -12,11 +12,13 @@
 
 // Forward declaration
 namespace AGS { namespace Common { class CDataStream; } }
-using namespace AGS; // FIXME later
+namespace AGS { namespace Engine { class IDriverDependantBitmap; }}
+using namespace AGS::Engine; // FIXME later
+
 
 struct ScreenOverlay {
     IDriverDependantBitmap *bmp;
-    block pic;
+    Common::IBitmap *pic;
     int type,x,y,timeout;
     int bgSpeechForChar;
     int associatedOverlayHandle;

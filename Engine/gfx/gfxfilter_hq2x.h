@@ -18,9 +18,12 @@ CLEAR that the code has been altered from the Standard Version.
 
 #include "gfx/gfxfilter_scalingallegro.h"
 
+namespace AGS { namespace Common { class IBitmap; }}
+using namespace AGS; // FIXME later
+
 struct Hq2xGFXFilter : public ScalingAllegroGFXFilter {
 private:
-    BITMAP *realScreenBuffer;
+    Common::IBitmap *realScreenBuffer;
 
 public:
 
@@ -29,11 +32,11 @@ public:
     virtual const char* Initialize(int width, int height, int colDepth);
 
 
-    virtual BITMAP* ScreenInitialized(BITMAP *screen, int fakeWidth, int fakeHeight);
+    virtual Common::IBitmap *ScreenInitialized(Common::IBitmap *screen, int fakeWidth, int fakeHeight);
 
-    virtual BITMAP *ShutdownAndReturnRealScreen(BITMAP *currentScreen);
+    virtual Common::IBitmap *ShutdownAndReturnRealScreen(Common::IBitmap *currentScreen);
 
-    virtual void RenderScreen(BITMAP *toRender, int x, int y);
+    virtual void RenderScreen(Common::IBitmap *toRender, int x, int y);
 
     virtual const char *GetVersionBoxText();
 

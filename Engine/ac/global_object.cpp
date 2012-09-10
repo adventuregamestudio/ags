@@ -23,6 +23,10 @@
 #include "main/game_run.h"
 #include "script/script.h"
 #include "ac/spritecache.h"
+#include "gfx/graphicsdriver.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::IBitmap;
 
 #define OVERLAPPING_OBJECT 1000
 
@@ -38,7 +42,7 @@ extern int displayed_room;
 extern SpriteCache spriteset;
 extern int offsetx, offsety;
 extern int actSpsCount;
-extern block *actsps;
+extern IBitmap **actsps;
 extern IDriverDependantBitmap* *actspsbmp;
 extern IGraphicsDriver *gfxDriver;
 
@@ -62,7 +66,7 @@ int GetObjectAt(int xx,int yy) {
         if (objs[aa].view >= 0)
             isflipped = views[objs[aa].view].loops[objs[aa].loop].frames[objs[aa].frame].flags & VFLG_FLIPSPRITE;
 
-        block theImage = GetObjectImage(aa, &isflipped);
+        IBitmap *theImage = GetObjectImage(aa, &isflipped);
 
         if (is_pos_in_sprite(xx, yy, xxx, yyy - spHeight, theImage,
             spWidth, spHeight, isflipped) == FALSE)
@@ -236,9 +240,9 @@ void MergeObject(int obn) {
 
     construct_object_gfx(obn, NULL, &theHeight, true);
 
-    block oldabuf = abuf;
+    IBitmap *oldabuf = abuf;
     abuf = thisroom.ebscene[play.bg_frame];
-    if (bitmap_color_depth(abuf) != bitmap_color_depth(actsps[obn]))
+    if (abuf->GetColorDepth() != actsps[obn]->GetColorDepth())
         quit("!MergeObject: unable to merge object due to color depth differences");
 
     int xpos = multiply_up_coordinate(objs[obn].x);
@@ -474,7 +478,7 @@ void GetObjectPropertyText (int item, const char *property, char *bufer) {
     get_text_property (&thisroom.objProps[item], property, bufer);
 }
 
-block GetObjectImage(int obj, int *isFlipped) 
+IBitmap *GetObjectImage(int obj, int *isFlipped) 
 {
     if (!gfxDriver->HasAcceleratedStretchAndFlip())
     {

@@ -21,6 +21,13 @@
 #include "gfx/ali3d.h"
 #include "gfx/gfxfilter_d3d.h"
 #include "platform/base/agsplatformdriver.h"
+#include "gfx/bitmap.h"
+#include "gfx/ddb.h"
+#include "gfx/graphicsdriver.h"
+
+using AGS::Common::IBitmap;
+namespace Bitmap = AGS::Common::Bitmap;
+using namespace AGS; // FIXME later
 
 extern int dxmedia_play_video_3d(const char*filename, IDirect3DDevice9 *device, bool useAVISound, int canskip, int stretch);
 extern void dxmedia_shutdown_3d();
@@ -231,15 +238,15 @@ public:
   virtual bool Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer);
   virtual bool Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer);
   virtual int  FindSupportedResolutionWidth(int idealWidth, int height, int colDepth, int widthRangeAllowed);
-  virtual void SetCallbackForPolling(ALI3DCLIENTCALLBACK callback) { _pollingCallback = callback; }
-  virtual void SetCallbackToDrawScreen(ALI3DCLIENTCALLBACK callback) { _drawScreenCallback = callback; }
-  virtual void SetCallbackOnInit(ALI3DCLIENTCALLBACKINITGFX callback) { _initGfxCallback = callback; }
-  virtual void SetCallbackForNullSprite(ALI3DCLIENTCALLBACKXY callback) { _nullSpriteCallback = callback; }
+  virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) { _pollingCallback = callback; }
+  virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) { _drawScreenCallback = callback; }
+  virtual void SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) { _initGfxCallback = callback; }
+  virtual void SetCallbackForNullSprite(GFXDRV_CLIENTCALLBACKXY callback) { _nullSpriteCallback = callback; }
   virtual void UnInit();
   virtual void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse);
-  virtual BITMAP *ConvertBitmapToSupportedColourDepth(BITMAP *allegroBitmap);
-  virtual IDriverDependantBitmap* CreateDDBFromBitmap(BITMAP *allegroBitmap, bool hasAlpha, bool opaque);
-  virtual void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, BITMAP *allegroBitmap, bool hasAlpha);
+  virtual IBitmap *ConvertBitmapToSupportedColourDepth(IBitmap *bitmap);
+  virtual IDriverDependantBitmap* CreateDDBFromBitmap(IBitmap *bitmap, bool hasAlpha, bool opaque);
+  virtual void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, IBitmap *bitmap, bool hasAlpha);
   virtual void DestroyDDB(IDriverDependantBitmap* bitmap);
   virtual void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap);
   virtual void ClearDrawList();
@@ -247,7 +254,7 @@ public:
   virtual void Render();
   virtual void Render(GlobalFlipType flip);
   virtual void SetRenderOffset(int x, int y);
-  virtual void GetCopyOfScreenIntoBitmap(BITMAP* destination);
+  virtual void GetCopyOfScreenIntoBitmap(IBitmap *destination);
   virtual void EnableVsyncBeforeRender(bool enabled) { }
   virtual void Vsync();
   virtual void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
@@ -260,8 +267,8 @@ public:
   virtual bool RequiresFullRedrawEachFrame() { return true; }
   virtual bool HasAcceleratedStretchAndFlip() { return true; }
   virtual bool UsesMemoryBackBuffer() { return false; }
-  virtual BITMAP* GetMemoryBackBuffer() { return NULL; }
-  virtual void SetMemoryBackBuffer(BITMAP *backBuffer) {  }
+  virtual IBitmap* GetMemoryBackBuffer() { return NULL; }
+  virtual void SetMemoryBackBuffer(IBitmap *backBuffer) {  }
   virtual void SetScreenTint(int red, int green, int blue);
 
   // Internal
@@ -289,10 +296,10 @@ private:
   bool _newmode_windowed;
   int _global_x_offset, _global_y_offset;
   UINT availableVideoMemory;
-  ALI3DCLIENTCALLBACK _pollingCallback;
-  ALI3DCLIENTCALLBACK _drawScreenCallback;
-  ALI3DCLIENTCALLBACKXY _nullSpriteCallback;
-  ALI3DCLIENTCALLBACKINITGFX _initGfxCallback;
+  GFXDRV_CLIENTCALLBACK _pollingCallback;
+  GFXDRV_CLIENTCALLBACK _drawScreenCallback;
+  GFXDRV_CLIENTCALLBACKXY _nullSpriteCallback;
+  GFXDRV_CLIENTCALLBACKINITGFX _initGfxCallback;
   int _tint_red, _tint_green, _tint_blue;
   CUSTOMVERTEX defaultVertices[4];
   char previousError[ALLEGRO_ERROR_SIZE];
@@ -301,7 +308,7 @@ private:
   bool _legacyPixelShader;
   float _pixelRenderOffset;
   volatile int *_loopTimer;
-  BITMAP* _screenTintLayer;
+  IBitmap *_screenTintLayer;
   D3DBitmap* _screenTintLayerDDB;
   SpriteDrawListEntry _screenTintSprite;
 
@@ -317,7 +324,7 @@ private:
   void set_up_default_vertices();
   void make_translated_scaling_matrix(D3DMATRIX *matrix, float x, float y, float xScale, float yScale);
   void AdjustSizeToNearestSupportedByCard(int *width, int *height);
-  void UpdateTextureRegion(TextureTile *tile, BITMAP *bitmap, D3DBitmap *target, bool hasAlpha);
+  void UpdateTextureRegion(TextureTile *tile, IBitmap *bitmap, D3DBitmap *target, bool hasAlpha);
   void do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
   bool IsTextureFormatOk( D3DFORMAT TextureFormat, D3DFORMAT AdapterFormat );
   bool IsModeSupported(int width, int height, int colDepth);
@@ -989,7 +996,9 @@ bool D3DGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
     return false;
   }
   // create dummy screen bitmap
-  screen = ConvertBitmapToSupportedColourDepth(create_bitmap_ex(colourDepth, virtualWidth, virtualHeight));
+  Bitmap::SetScreenBitmap(
+	  ConvertBitmapToSupportedColourDepth(Bitmap::CreateBitmap(virtualWidth, virtualHeight, colourDepth))
+	  );
   return true;
 }
 
@@ -1001,11 +1010,8 @@ void D3DGraphicsDriver::UnInit()
     _screenTintLayerDDB = NULL;
     _screenTintSprite.bitmap = NULL;
   }
-  if (_screenTintLayer != NULL)
-  {
-    destroy_bitmap(_screenTintLayer);
-    _screenTintLayer = NULL;
-  }
+  delete _screenTintLayer;
+  _screenTintLayer = NULL;
 
   dxmedia_shutdown_3d();
   gfx_driver = NULL;
@@ -1054,7 +1060,7 @@ void D3DGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colo
   direct3ddevice->Clear(1, &rectToClear, D3DCLEAR_TARGET, colorDword, 0.5f, 0);
 }
 
-void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(BITMAP *destination)
+void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(IBitmap *destination)
 {
   D3DDISPLAYMODE displayMode;
   direct3ddevice->GetDisplayMode(0, &displayMode);
@@ -1088,23 +1094,24 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(BITMAP *destination)
       areaToCapture = &windowInfo.rcClient;
     }
 
-    BITMAP *finalImage = NULL;
+    IBitmap *finalImage = NULL;
 
-    if (bitmap_color_depth(destination) != 32)
+    if (destination->GetColorDepth() != 32)
     {
       finalImage = destination;
-      destination = create_bitmap_ex(32, destination->w, destination->h);
+	  destination = Bitmap::CreateBitmap(destination->GetWidth(), destination->GetHeight(), 32);
     }
 
-    BITMAP *retrieveInto = destination;
+    IBitmap *retrieveInto = destination;
 
     if ((_newmode_width != _newmode_screen_width) ||
         (_newmode_height != _newmode_screen_height))
     {
       // in letterbox mode the screen is 640x480 but destination might only be 320x200
       // therefore calculate the size like this
-      retrieveInto = create_bitmap_ex(32, destination->w * _newmode_screen_width / _newmode_width, 
-                                          destination->h * _newmode_screen_height / _newmode_height);
+      retrieveInto = Bitmap::CreateBitmap(destination->GetWidth() * _newmode_screen_width / _newmode_width, 
+                                          destination->GetHeight() * _newmode_screen_height / _newmode_height,
+										  32);
     }
 
     D3DLOCKED_RECT lockedRect;
@@ -1117,22 +1124,22 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(BITMAP *destination)
     long *sourcePtr;
     long *destPtr;
     int xOffset = 0;
-    if (destination->h < _newmode_height)
+    if (destination->GetHeight() < _newmode_height)
     {
       // nasty hack for letterbox
-      surfaceData += (lockedRect.Pitch * ((_newmode_height - destination->h) / 2)) * _newmode_screen_height / _newmode_height;
+      surfaceData += (lockedRect.Pitch * ((_newmode_height - destination->GetHeight()) / 2)) * _newmode_screen_height / _newmode_height;
     }
-    if (destination->w < _newmode_width)
+    if (destination->GetWidth() < _newmode_width)
     {
       // hack for side borders
-      xOffset += ((_newmode_width - destination->w) / 2) * _newmode_screen_width / _newmode_width;
+      xOffset += ((_newmode_width - destination->GetWidth()) / 2) * _newmode_screen_width / _newmode_width;
     }
 
-    for (int y = 0; y < retrieveInto->h; y++)
+    for (int y = 0; y < retrieveInto->GetHeight(); y++)
     {
       sourcePtr = (long*)surfaceData;
-      destPtr = (long*)&retrieveInto->line[y][0];
-      for (int x = 0; x < retrieveInto->w; x++)
+      destPtr = (long*)&retrieveInto->GetScanLine(y)[0];
+      for (int x = 0; x < retrieveInto->GetWidth(); x++)
       {
         //destPtr[x] = (sourcePtr[x] & 0x00ff00) | ((sourcePtr[x] & 0x0000ff) << 16) | ((sourcePtr[x] & 0xff0000) >> 16);
         destPtr[x] = sourcePtr[x + xOffset];
@@ -1148,9 +1155,9 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(BITMAP *destination)
 
     if (retrieveInto != destination)
     {
-      stretch_blit(retrieveInto, destination, 0, 0, retrieveInto->w, retrieveInto->h,
-                   0, 0, destination->w, destination->h);
-      destroy_bitmap(retrieveInto);
+      destination->StretchBlt(retrieveInto, RectWH(0, 0, retrieveInto->GetWidth(), retrieveInto->GetHeight()),
+                   RectWH(0, 0, destination->GetWidth(), destination->GetHeight()));
+      delete retrieveInto;
 
       if (_pollingCallback)
         _pollingCallback();
@@ -1158,8 +1165,8 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(BITMAP *destination)
 
     if (finalImage != NULL)
     {
-      blit(destination, finalImage, 0, 0, 0, 0, destination->w, destination->h);
-      destroy_bitmap(destination);
+      finalImage->Blit(destination, 0, 0, 0, 0, destination->GetWidth(), destination->GetHeight());
+      delete destination;
     }
   }
   else
@@ -1494,7 +1501,7 @@ __inline void get_pixel_if_not_transparent32(unsigned long *pixel, unsigned long
   }
 }
 
-void D3DGraphicsDriver::UpdateTextureRegion(TextureTile *tile, BITMAP *allegroBitmap, D3DBitmap *target, bool hasAlpha)
+void D3DGraphicsDriver::UpdateTextureRegion(TextureTile *tile, IBitmap *bitmap, D3DBitmap *target, bool hasAlpha)
 {
   IDirect3DTexture9* newTexture = tile->texture;
 
@@ -1516,7 +1523,7 @@ void D3DGraphicsDriver::UpdateTextureRegion(TextureTile *tile, BITMAP *allegroBi
       if (target->_colDepth == 15)
       {
         unsigned short* memPtrShort = (unsigned short*)memPtr;
-        unsigned short* srcData = (unsigned short*)&allegroBitmap->line[y + tile->y][(x + tile->x) * 2];
+        unsigned short* srcData = (unsigned short*)&bitmap->GetScanLine(y + tile->y)[(x + tile->x) * 2];
         if (*srcData == MASK_COLOR_15) 
         {
           if (target->_opaque)  // set to black if opaque
@@ -1533,9 +1540,9 @@ void D3DGraphicsDriver::UpdateTextureRegion(TextureTile *tile, BITMAP *allegroBi
             if (x < tile->width - 1)
               get_pixel_if_not_transparent15(&srcData[1], &red, &green, &blue, &divisor);
             if (y > 0)
-              get_pixel_if_not_transparent15((unsigned short*)&allegroBitmap->line[y + tile->y - 1][(x + tile->x) * 2], &red, &green, &blue, &divisor);
+              get_pixel_if_not_transparent15((unsigned short*)&bitmap->GetScanLine(y + tile->y - 1)[(x + tile->x) * 2], &red, &green, &blue, &divisor);
             if (y < tile->height - 1)
-              get_pixel_if_not_transparent15((unsigned short*)&allegroBitmap->line[y + tile->y + 1][(x + tile->x) * 2], &red, &green, &blue, &divisor);
+              get_pixel_if_not_transparent15((unsigned short*)&bitmap->GetScanLine(y + tile->y + 1)[(x + tile->x) * 2], &red, &green, &blue, &divisor);
             if (divisor > 0)
               memPtrShort[x] = ((red / divisor) << 10) | ((green / divisor) << 5) | (blue / divisor);
             else
@@ -1558,7 +1565,7 @@ void D3DGraphicsDriver::UpdateTextureRegion(TextureTile *tile, BITMAP *allegroBi
       else if (target->_colDepth == 32)
       {
         unsigned long* memPtrLong = (unsigned long*)memPtr;
-        unsigned long* srcData = (unsigned long*)&allegroBitmap->line[y + tile->y][(x + tile->x) * 4];
+        unsigned long* srcData = (unsigned long*)&bitmap->GetScanLine(y + tile->y)[(x + tile->x) * 4];
         if (*srcData == MASK_COLOR_32)
         {
           if (target->_opaque)  // set to black if opaque
@@ -1575,9 +1582,9 @@ void D3DGraphicsDriver::UpdateTextureRegion(TextureTile *tile, BITMAP *allegroBi
             if (x < tile->width - 1)
               get_pixel_if_not_transparent32(&srcData[1], &red, &green, &blue, &divisor);
             if (y > 0)
-              get_pixel_if_not_transparent32((unsigned long*)&allegroBitmap->line[y + tile->y - 1][(x + tile->x) * 4], &red, &green, &blue, &divisor);
+              get_pixel_if_not_transparent32((unsigned long*)&bitmap->GetScanLine(y + tile->y - 1)[(x + tile->x) * 4], &red, &green, &blue, &divisor);
             if (y < tile->height - 1)
-              get_pixel_if_not_transparent32((unsigned long*)&allegroBitmap->line[y + tile->y + 1][(x + tile->x) * 4], &red, &green, &blue, &divisor);
+              get_pixel_if_not_transparent32((unsigned long*)&bitmap->GetScanLine(y + tile->y + 1)[(x + tile->x) * 4], &red, &green, &blue, &divisor);
             if (divisor > 0)
               memPtrLong[x] = ((red / divisor) << 16) | ((green / divisor) << 8) | (blue / divisor);
             else
@@ -1609,13 +1616,13 @@ void D3DGraphicsDriver::UpdateTextureRegion(TextureTile *tile, BITMAP *allegroBi
   newTexture->UnlockRect(0);
 }
 
-void D3DGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, BITMAP *allegroBitmap, bool hasAlpha)
+void D3DGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, IBitmap *bitmap, bool hasAlpha)
 {
   D3DBitmap *target = (D3DBitmap*)bitmapToUpdate;
-  if ((target->_width == allegroBitmap->w) &&
-     (target->_height == allegroBitmap->h))
+  if ((target->_width == bitmap->GetWidth()) &&
+     (target->_height == bitmap->GetHeight()))
   {
-    if (bitmap_color_depth(allegroBitmap) != target->_colDepth)
+    if (bitmap->GetColorDepth() != target->_colDepth)
     {
       throw Ali3DException("Mismatched colour depths");
     }
@@ -1624,36 +1631,36 @@ void D3DGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpda
 
     for (int i = 0; i < target->_numTiles; i++)
     {
-      UpdateTextureRegion(&target->_tiles[i], allegroBitmap, target, hasAlpha);
+      UpdateTextureRegion(&target->_tiles[i], bitmap, target, hasAlpha);
     }
   }
 }
 
-BITMAP* D3DGraphicsDriver::ConvertBitmapToSupportedColourDepth(BITMAP *allegroBitmap)
+IBitmap *D3DGraphicsDriver::ConvertBitmapToSupportedColourDepth(IBitmap *bitmap)
 {
    int colorConv = get_color_conversion();
    set_color_conversion(COLORCONV_KEEP_TRANS | COLORCONV_TOTAL);
 
-   int colourDepth = bitmap_color_depth(allegroBitmap);
+   int colourDepth = bitmap->GetColorDepth();
    if ((colourDepth == 8) || (colourDepth == 16))
    {
      // Most 3D cards don't support 8-bit; and we need 15-bit colour
-     BITMAP* tempBmp = create_bitmap_ex(15, allegroBitmap->w, allegroBitmap->h);
-     blit(allegroBitmap, tempBmp, 0, 0, 0, 0, tempBmp->w, tempBmp->h);
-     destroy_bitmap(allegroBitmap);
+     IBitmap *tempBmp = Bitmap::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 15);
+     tempBmp->Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
+     delete bitmap;
      set_color_conversion(colorConv);
      return tempBmp;
    }
    if (colourDepth == 24)
    {
      // we need 32-bit colour
-     BITMAP* tempBmp = create_bitmap_ex(32, allegroBitmap->w, allegroBitmap->h);
-     blit(allegroBitmap, tempBmp, 0, 0, 0, 0, tempBmp->w, tempBmp->h);
-     destroy_bitmap(allegroBitmap);
+     IBitmap* tempBmp = Bitmap::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 32);
+     tempBmp->Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
+     delete bitmap;
      set_color_conversion(colorConv);
      return tempBmp;
    }
-   return allegroBitmap;
+   return bitmap;
 }
 
 void D3DGraphicsDriver::AdjustSizeToNearestSupportedByCard(int *width, int *height)
@@ -1710,30 +1717,30 @@ bool D3DGraphicsDriver::IsTextureFormatOk( D3DFORMAT TextureFormat, D3DFORMAT Ad
     return SUCCEEDED( hr );
 }
 
-IDriverDependantBitmap* D3DGraphicsDriver::CreateDDBFromBitmap(BITMAP *allegroBitmap, bool hasAlpha, bool opaque)
+IDriverDependantBitmap* D3DGraphicsDriver::CreateDDBFromBitmap(IBitmap *bitmap, bool hasAlpha, bool opaque)
 {
-  int allocatedWidth = allegroBitmap->w;
-  int allocatedHeight = allegroBitmap->h;
-  BITMAP *tempBmp = NULL;
-  int colourDepth = bitmap_color_depth(allegroBitmap);
+  int allocatedWidth = bitmap->GetWidth();
+  int allocatedHeight = bitmap->GetHeight();
+  IBitmap *tempBmp = NULL;
+  int colourDepth = bitmap->GetColorDepth();
   if ((colourDepth == 8) || (colourDepth == 16))
   {
     // Most 3D cards don't support 8-bit; and we need 15-bit colour
-    tempBmp = create_bitmap_ex(15, allegroBitmap->w, allegroBitmap->h);
-    blit(allegroBitmap, tempBmp, 0, 0, 0, 0, tempBmp->w, tempBmp->h);
-    allegroBitmap = tempBmp;
+    tempBmp = Bitmap::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 15);
+    tempBmp->Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
+    bitmap = tempBmp;
     colourDepth = 15;
   }
   if (colourDepth == 24)
   {
     // we need 32-bit colour
-    tempBmp = create_bitmap_ex(32, allegroBitmap->w, allegroBitmap->h);
-    blit(allegroBitmap, tempBmp, 0, 0, 0, 0, tempBmp->w, tempBmp->h);
-    allegroBitmap = tempBmp;
+    tempBmp = Bitmap::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 32);
+    tempBmp->Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
+    bitmap = tempBmp;
     colourDepth = 32;
   }
 
-  D3DBitmap *ddb = new D3DBitmap(allegroBitmap->w, allegroBitmap->h, colourDepth, opaque);
+  D3DBitmap *ddb = new D3DBitmap(bitmap->GetWidth(), bitmap->GetHeight(), colourDepth, opaque);
 
   AdjustSizeToNearestSupportedByCard(&allocatedWidth, &allocatedHeight);
   int tilesAcross = 1, tilesDown = 1;
@@ -1747,10 +1754,10 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateDDBFromBitmap(BITMAP *allegroBi
   // store this image
   tilesAcross = (allocatedWidth + direct3ddevicecaps.MaxTextureWidth - 1) / direct3ddevicecaps.MaxTextureWidth;
   tilesDown = (allocatedHeight + direct3ddevicecaps.MaxTextureHeight - 1) / direct3ddevicecaps.MaxTextureHeight;
-  int tileWidth = allegroBitmap->w / tilesAcross;
-  int lastTileExtraWidth = allegroBitmap->w % tilesAcross;
-  int tileHeight = allegroBitmap->h / tilesDown;
-  int lastTileExtraHeight = allegroBitmap->h % tilesDown;
+  int tileWidth = bitmap->GetWidth() / tilesAcross;
+  int lastTileExtraWidth = bitmap->GetWidth() % tilesAcross;
+  int tileHeight = bitmap->GetHeight() / tilesDown;
+  int lastTileExtraHeight = bitmap->GetHeight() % tilesDown;
   int tileAllocatedWidth = tileWidth;
   int tileAllocatedHeight = tileHeight;
 
@@ -1763,8 +1770,8 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateDDBFromBitmap(BITMAP *allegroBi
   CUSTOMVERTEX *vertices = NULL;
 
   if ((numTiles == 1) &&
-      (allocatedWidth == allegroBitmap->w) &&
-      (allocatedHeight == allegroBitmap->h))
+      (allocatedWidth == bitmap->GetWidth()) &&
+      (allocatedHeight == bitmap->GetHeight()))
   {
     // use default whole-image vertices
   }
@@ -1852,9 +1859,9 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateDDBFromBitmap(BITMAP *allegroBi
   ddb->_numTiles = numTiles;
   ddb->_tiles = tiles;
 
-  UpdateDDBFromBitmap(ddb, allegroBitmap, hasAlpha);
+  UpdateDDBFromBitmap(ddb, bitmap, hasAlpha);
 
-  if (tempBmp) destroy_bitmap(tempBmp);
+  delete tempBmp;
 
   return ddb;
 }
@@ -1868,10 +1875,10 @@ void D3DGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   else if (_drawScreenCallback != NULL)
     _drawScreenCallback();
   
-  BITMAP *blackSquare = create_bitmap_ex(32, 16, 16);
-  clear_to_color(blackSquare, makecol32(targetColourRed, targetColourGreen, targetColourBlue));
+  IBitmap *blackSquare = Bitmap::CreateBitmap(16, 16, 32);
+  blackSquare->Clear(makecol32(targetColourRed, targetColourGreen, targetColourBlue));
   IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, false, false);
-  destroy_bitmap(blackSquare);
+  delete blackSquare;
 
   d3db->SetStretch(_newmode_width, _newmode_height);
   this->DrawSprite(-_global_x_offset, -_global_y_offset, d3db);
@@ -1923,10 +1930,10 @@ void D3DGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
   else if (_drawScreenCallback != NULL)
     _drawScreenCallback();
   
-  BITMAP *blackSquare = create_bitmap_ex(32, 16, 16);
-  clear(blackSquare);
+  IBitmap *blackSquare = Bitmap::CreateBitmap(16, 16, 32);
+  blackSquare->Clear();
   IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, false, false);
-  destroy_bitmap(blackSquare);
+  delete blackSquare;
 
   d3db->SetStretch(_newmode_width, _newmode_height);
   this->DrawSprite(0, 0, d3db);
@@ -1983,7 +1990,7 @@ bool D3DGraphicsDriver::PlayVideo(const char *filename, bool useAVISound, VideoS
 
 void D3DGraphicsDriver::create_screen_tint_bitmap() 
 {
-  _screenTintLayer = create_bitmap_ex(this->_newmode_depth, 16, 16);
+  _screenTintLayer = Bitmap::CreateBitmap(16, 16, this->_newmode_depth);
   _screenTintLayer = this->ConvertBitmapToSupportedColourDepth(_screenTintLayer);
   _screenTintLayerDDB = (D3DBitmap*)this->CreateDDBFromBitmap(_screenTintLayer, false, false);
   _screenTintSprite.bitmap = _screenTintLayerDDB;
@@ -1997,7 +2004,7 @@ void D3DGraphicsDriver::SetScreenTint(int red, int green, int blue)
     _tint_green = green; 
     _tint_blue = blue;
 
-    clear_to_color(_screenTintLayer, makecol_depth(bitmap_color_depth(_screenTintLayer), red, green, blue));
+    _screenTintLayer->Clear(makecol_depth(_screenTintLayer->GetColorDepth(), red, green, blue));
     this->UpdateDDBFromBitmap(_screenTintLayerDDB, _screenTintLayer, false);
     _screenTintLayerDDB->SetStretch(_newmode_width, _newmode_height);
     _screenTintLayerDDB->SetTransparency(128);

@@ -7,6 +7,11 @@
 #include "ac/roomstruct.h"
 #include "ac/gamestate.h"
 #include "media/audio/audio.h"
+#include "gfx/graphicsdriver.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::IBitmap;
+namespace Bitmap = AGS::Common::Bitmap;
 
 extern roomstruct thisroom;
 extern GameState play;
@@ -26,27 +31,28 @@ int walk_behind_baselines_changed = 0;
 void update_walk_behind_images()
 {
   int ee, rr;
-  int bpp = (bitmap_color_depth(thisroom.ebscene[play.bg_frame]) + 7) / 8;
-  BITMAP *wbbmp;
+  int bpp = (thisroom.ebscene[play.bg_frame]->GetColorDepth() + 7) / 8;
+  IBitmap *wbbmp;
   for (ee = 1; ee < MAX_OBJ; ee++)
   {
     update_polled_stuff_if_runtime();
     
     if (walkBehindRight[ee] > 0)
     {
-      wbbmp = create_bitmap_ex(bitmap_color_depth(thisroom.ebscene[play.bg_frame]), 
+      wbbmp = Bitmap::CreateBitmap( 
                                (walkBehindRight[ee] - walkBehindLeft[ee]) + 1,
-                               (walkBehindBottom[ee] - walkBehindTop[ee]) + 1);
-      clear_to_color(wbbmp, bitmap_mask_color(wbbmp));
+                               (walkBehindBottom[ee] - walkBehindTop[ee]) + 1,
+							   thisroom.ebscene[play.bg_frame]->GetColorDepth());
+      wbbmp->Clear(wbbmp->GetMaskColor());
       int yy, startX = walkBehindLeft[ee], startY = walkBehindTop[ee];
       for (rr = startX; rr <= walkBehindRight[ee]; rr++)
       {
         for (yy = startY; yy <= walkBehindBottom[ee]; yy++)
         {
-          if (thisroom.object->line[yy][rr] == ee)
+          if (thisroom.object->GetScanLine(yy)[rr] == ee)
           {
             for (int ii = 0; ii < bpp; ii++)
-              wbbmp->line[yy - startY][(rr - startX) * bpp + ii] = thisroom.ebscene[play.bg_frame]->line[yy][rr * bpp + ii];
+              wbbmp->GetScanLineForWriting(yy - startY)[(rr - startX) * bpp + ii] = thisroom.ebscene[play.bg_frame]->GetScanLine(yy)[rr * bpp + ii];
           }
         }
       }
@@ -58,7 +64,7 @@ void update_walk_behind_images()
         gfxDriver->DestroyDDB(walkBehindBitmap[ee]);
       }
       walkBehindBitmap[ee] = gfxDriver->CreateDDBFromBitmap(wbbmp, false);
-      destroy_bitmap(wbbmp);
+      delete wbbmp;
     }
   }
 
@@ -73,9 +79,9 @@ void recache_walk_behinds () {
     free (walkBehindEndY);
   }
 
-  walkBehindExists = (char*)malloc (thisroom.object->w);
-  walkBehindStartY = (int*)malloc (thisroom.object->w * sizeof(int));
-  walkBehindEndY = (int*)malloc (thisroom.object->w * sizeof(int));
+  walkBehindExists = (char*)malloc (thisroom.object->GetWidth());
+  walkBehindStartY = (int*)malloc (thisroom.object->GetWidth() * sizeof(int));
+  walkBehindEndY = (int*)malloc (thisroom.object->GetWidth() * sizeof(int));
   noWalkBehindsAtAll = 1;
 
   int ee,rr,tmm;
@@ -98,13 +104,13 @@ void recache_walk_behinds () {
 
   // since this is an 8-bit memory bitmap, we can just use direct 
   // memory access
-  if ((!is_linear_bitmap(thisroom.object)) || (bitmap_color_depth(thisroom.object) != 8))
+  if ((!thisroom.object->IsLinearBitmap()) || (thisroom.object->GetColorDepth() != 8))
     quit("Walk behinds bitmap not linear");
 
-  for (ee=0;ee<thisroom.object->w;ee++) {
+  for (ee=0;ee<thisroom.object->GetWidth();ee++) {
     walkBehindExists[ee] = 0;
-    for (rr=0;rr<thisroom.object->h;rr++) {
-      tmm = thisroom.object->line[rr][ee];
+    for (rr=0;rr<thisroom.object->GetHeight();rr++) {
+      tmm = thisroom.object->GetScanLine(rr)[ee];
       //tmm = _getpixel(thisroom.object,ee,rr);
       if ((tmm >= 1) && (tmm < MAX_OBJ)) {
         if (!walkBehindExists[ee]) {

@@ -255,6 +255,10 @@ public:
 	//=========================================================================
 	// Vector drawing operations
 	//=========================================================================
+    // The PutPixel and GetPixel are supposed to be safe and therefore
+    // relatively slow operations. They should not be used for changing large
+    // blocks of bitmap memory - reading/writing from/to scan lines should be
+    // done in such cases.
 	virtual void	PutPixel(int x, int y, color_t color)					= 0;
 	virtual int		GetPixel(int x, int y) const							= 0;
 	virtual void	DrawLine(const CLine &ln, color_t color)				= 0;

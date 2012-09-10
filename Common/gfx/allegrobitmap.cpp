@@ -2,6 +2,7 @@
 #include <aastr.h>
 #include "gfx/allegrobitmap.h"
 #include "util/wgt2allg.h"
+#include "debug/assert.h"
 
 namespace AGS
 {
@@ -451,6 +452,11 @@ void CAllegroBitmap::RotateBlt(IBitmap *src, int dst_x, int dst_y, int pivot_x, 
 
 void CAllegroBitmap::PutPixel(int x, int y, color_t color)
 {
+    if (x < 0 || x >= _bitmap->w || y < 0 || y >= _bitmap->h)
+    {
+        return;
+    }
+
 	switch (bitmap_color_depth(_bitmap))
 	{
 	case 8:
@@ -464,11 +470,17 @@ void CAllegroBitmap::PutPixel(int x, int y, color_t color)
 	case 32:
 		return _putpixel32(_bitmap, x, y, color);
 	}
+    assert(0); // this should not normally happen
 	return putpixel(_bitmap, x, y, color);
 }
 
 int CAllegroBitmap::GetPixel(int x, int y) const
 {
+    if (x < 0 || x >= _bitmap->w || y < 0 || y >= _bitmap->h)
+    {
+        return 0;
+    }
+
 	switch (bitmap_color_depth(_bitmap))
 	{
 	case 8:
@@ -482,6 +494,7 @@ int CAllegroBitmap::GetPixel(int x, int y) const
 	case 32:
 		return _getpixel32(_bitmap, x, y);
 	}
+    assert(0); // this should not normally happen
 	return getpixel(_bitmap, x, y);
 }
 

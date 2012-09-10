@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "util/string.h"
-#include "test/test_internal.h"
+#include "debug/assert.h"
 
 using AGS::Common::CString;
 

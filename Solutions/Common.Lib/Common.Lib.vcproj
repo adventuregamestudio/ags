@@ -366,7 +366,7 @@
 					>
 				</File>
 			</Filter>
-                        <Filter
+			<Filter
 				Name="gfx"
 				>
 				<File
@@ -667,6 +667,10 @@
 			<Filter
 				Name="debug"
 				>
+				<File
+					RelativePath="..\..\Common\debug\assert.h"
+					>
+				</File>
 				<File
 					RelativePath="..\..\Common\debug\out.h"
 					>

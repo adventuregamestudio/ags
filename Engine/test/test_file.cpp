@@ -5,7 +5,7 @@
 #include <string.h>
 #include "util/alignedstream.h"
 #include "util/filestream.h"
-#include "test/test_internal.h"
+#include "debug/assert.h"
 
 using AGS::Common::CString;
 using AGS::Common::CDataStream;

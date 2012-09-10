@@ -130,7 +130,7 @@ void quit_shutdown_audio()
     remove_sound();
 }
 
-void quit_check_for_error_state(char *qmsg, char *alertis)
+void quit_check_for_error_state(char *&qmsg, char *alertis)
 {
     if (qmsg[0]=='|') ; //qmsg++;
     else if (qmsg[0]=='!') { 

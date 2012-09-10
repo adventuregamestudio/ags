@@ -31,6 +31,7 @@ prior express permission from Chris Jones.
 #endif
 
 #include "util/datastream.h"
+#include "util/filestream.h"
 
 using AGS::Common::CDataStream;
 
@@ -238,9 +239,9 @@ int cunpackbitl(unsigned char *line, int size, CDataStream *in)
 
   while (n < size) {
     int ix = in->ReadInt8();     // get index byte
-    // TODO: check error when new error handling system is implemented
-    //if (ferror(infile))
-    //  break;
+    // TODO: revise when new error handling system is implemented
+    if (ferror(((Common::CFileStream*)in)->GetHandle()))
+      break;
 
     char cx = ix;
     if (cx == -128)
@@ -268,9 +269,8 @@ int cunpackbitl(unsigned char *line, int size, CDataStream *in)
     }
   }
 
-  // TODO: check error when new error handling system is implemented
-  //return ferror(infile);
-  return 0;
+  // TODO: revise when new error handling system is implemented
+  return ferror(((Common::CFileStream*)in)->GetHandle());
 }
 
 int cunpackbitl16(unsigned short *line, int size, CDataStream *in)
@@ -279,9 +279,9 @@ int cunpackbitl16(unsigned short *line, int size, CDataStream *in)
 
   while (n < size) {
     int ix = in->ReadInt8();     // get index byte
-    // TODO: check error when new error handling system is implemented
-    //if (ferror(infile))
-    //  break;
+    // TODO: revise when new error handling system is implemented
+    if (ferror(((Common::CFileStream*)in)->GetHandle()))
+      break;
 
     char cx = ix;
     if (cx == -128)
@@ -309,9 +309,8 @@ int cunpackbitl16(unsigned short *line, int size, CDataStream *in)
     }
   }
 
-  // TODO: check error when new error handling system is implemented
-  //return ferror(infile);
-  return 0;
+  // TODO: revise when new error handling system is implemented
+  return ferror(((Common::CFileStream*)in)->GetHandle());
 }
 
 int cunpackbitl32(unsigned int *line, int size, CDataStream *in)
@@ -320,9 +319,9 @@ int cunpackbitl32(unsigned int *line, int size, CDataStream *in)
 
   while (n < size) {
     int ix = in->ReadInt8();     // get index byte
-    // TODO: check error when new error handling system is implemented
-    //if (ferror(infile))
-    //  break;
+    // TODO: revise when new error handling system is implemented
+    if (ferror(((Common::CFileStream*)in)->GetHandle()))
+      break;
 
     char cx = ix;
     if (cx == -128)
@@ -350,9 +349,8 @@ int cunpackbitl32(unsigned int *line, int size, CDataStream *in)
     }
   }
 
-  // TODO: check error when new error handling system is implemented
-  //return ferror(infile);
-  return 0;
+  // TODO: revise when new error handling system is implemented
+  return ferror(((Common::CFileStream*)in)->GetHandle());
 }
 
 //=============================================================================

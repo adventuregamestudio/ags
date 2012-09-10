@@ -99,8 +99,8 @@ int FileIsEOF (CDataStream *haa) {
     return 1;
 
   // TODO: stream errors
-  //if (ferror (haa))
-  //  return 1;
+  if (ferror (((Common::CFileStream*)haa)->GetHandle()))
+    return 1;
 
   if (haa->GetPosition () >= haa->GetLength())
     return 1;
@@ -110,8 +110,8 @@ int FileIsError(CDataStream *haa) {
   check_valid_file_handle(haa,"FileIsError");
 
   // TODO: stream errors
-  //if (ferror(haa))
-  //  return 1;
+  if (ferror(((Common::CFileStream*)haa)->GetHandle()))
+    return 1;
 
   return 0;
 }

@@ -1,86 +1,90 @@
 
 #include "util/wgt2allg.h"
 #include "ac/gamesetupstructbase.h"
+#include "util/datastream.h"
 
-void GameSetupStructBase::ReadFromFile(FILE *fp)
+using AGS::Common::CDataStream;
+
+void GameSetupStructBase::ReadFromFile(CDataStream *in)
 {
     //#ifdef ALLEGRO_BIG_ENDIAN
-    fread(&gamename[0], sizeof(char), 50, fp);
-    fseek(fp, 2, SEEK_CUR);    // skip the array padding
-    fread(options, sizeof(int), 100, fp);
-    fread(&paluses[0], sizeof(unsigned char), 256, fp);
+    in->Read(&gamename[0], 50);
+    in->Seek(Common::kSeekCurrent, 2);    // skip the array padding
+    in->ReadArrayOfInt32(options, 100);
+    in->Read(&paluses[0], 256);
     // colors are an array of chars
-    fread(&defpal[0], sizeof(char), sizeof(color)*256, fp);
-    numviews = getw(fp);
-    numcharacters = getw(fp);
-    playercharacter = getw(fp);
-    totalscore = getw(fp);
-    numinvitems = getshort(fp);//__getshort__bigendian(fp);
-    fseek(fp, 2, SEEK_CUR);    // skip the padding
-    numdialog = getw(fp);
-    numdlgmessage = getw(fp);
-    numfonts = getw(fp);
-    color_depth = getw(fp);
-    target_win = getw(fp);
-    dialog_bullet = getw(fp);
-    hotdot = getshort(fp);//__getshort__bigendian(fp);
-    hotdotouter = getshort(fp);//__getshort__bigendian(fp);
-    uniqueid = getw(fp);
-    numgui = getw(fp);
-    numcursors = getw(fp);
-    default_resolution = getw(fp);
-    default_lipsync_frame = getw(fp);
-    invhotdotsprite = getw(fp);
-    fread(reserved, sizeof(int), 17, fp);
+    in->Read(&defpal[0], sizeof(color)*256);
+    numviews = in->ReadInt32();
+    numcharacters = in->ReadInt32();
+    playercharacter = in->ReadInt32();
+    totalscore = in->ReadInt32();
+    numinvitems = in->ReadInt16();//__getshort__bigendian(fp);
+    in->Seek(Common::kSeekCurrent, 2);    // skip the padding
+    numdialog = in->ReadInt32();
+    numdlgmessage = in->ReadInt32();
+    numfonts = in->ReadInt32();
+    color_depth = in->ReadInt32();
+    target_win = in->ReadInt32();
+    dialog_bullet = in->ReadInt32();
+    hotdot = in->ReadInt16();//__getshort__bigendian(fp);
+    hotdotouter = in->ReadInt16();//__getshort__bigendian(fp);
+    uniqueid = in->ReadInt32();
+    numgui = in->ReadInt32();
+    numcursors = in->ReadInt32();
+    default_resolution = in->ReadInt32();
+    default_lipsync_frame = in->ReadInt32();
+    invhotdotsprite = in->ReadInt32();
+    in->ReadArrayOfInt32(reserved, 17);
     // read the final ptrs so we know to load dictionary, scripts etc
     // 64 bit: Read 4 byte values into array of 8 byte
-    int i;
-    for (i = 0; i < MAXGLOBALMES; i++)
-      messages[i] = (char*)getw(fp);
+    in->ReadArrayOfIntPtr32((intptr_t*)messages, MAXGLOBALMES);
+    //int i;
+    //for (i = 0; i < MAXGLOBALMES; i++)
+    //  messages[i] = (char*)in->ReadInt32();
 
-    dict = (WordsDictionary *) getw(fp);
-    globalscript = (char *) getw(fp);
-    chars = (CharacterInfo *) getw(fp);
-    compiled_script = (ccScript *) getw(fp);
+    dict = (WordsDictionary *) in->ReadInt32();
+    globalscript = (char *) in->ReadInt32();
+    chars = (CharacterInfo *) in->ReadInt32();
+    compiled_script = (ccScript *) in->ReadInt32();
     //#else
     //    throw "GameSetupStructBase::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
     //#endif
 }
 
-void GameSetupStructBase::WriteToFile(FILE *fp)
+void GameSetupStructBase::WriteToFile(CDataStream *out)
 {
-    fwrite(&gamename[0], sizeof(char), 50, fp);
+    out->Write(&gamename[0], 50);
     char padding[2];
-    fwrite(&padding, sizeof(char), 2, fp);    // skip the array padding
-    fwrite(options, sizeof(int), 100, fp);
-    fwrite(&paluses[0], sizeof(unsigned char), 256, fp);
+    out->Write(&padding, 2);    // skip the array padding
+    out->WriteArrayOfInt32(options, 100);
+    out->Write(&paluses[0], 256);
     // colors are an array of chars
-    fwrite(&defpal[0], sizeof(char), sizeof(color)*256, fp);
-    putw(numviews, fp);
-    putw(numcharacters, fp);
-    putw(playercharacter, fp);
-    putw(totalscore, fp);
-    putshort(numinvitems, fp);//__getshort__bigendian(fp);
-    fwrite(&padding, sizeof(char), 2, fp);    // skip the padding
-    putw(numdialog, fp);
-    putw(numdlgmessage, fp);
-    putw(numfonts, fp);
-    putw(color_depth, fp);
-    putw(target_win, fp);
-    putw(dialog_bullet, fp);
-    putshort(hotdot, fp);//__getshort__bigendian(fp);
-    putshort(hotdotouter, fp);//__getshort__bigendian(fp);
-    putw(uniqueid, fp);
-    putw(numgui, fp);
-    putw(numcursors, fp);
-    putw(default_resolution, fp);
-    putw(default_lipsync_frame, fp);
-    putw(invhotdotsprite, fp);
-    fwrite(reserved, sizeof(int), 17, fp);
+    out->Write(&defpal[0], sizeof(color)*256);
+    out->WriteInt32(numviews);
+    out->WriteInt32(numcharacters);
+    out->WriteInt32(playercharacter);
+    out->WriteInt32(totalscore);
+    out->WriteInt16(numinvitems);//__getshort__bigendian(fp);
+    out->Write(&padding, 2);    // skip the padding
+    out->WriteInt32(numdialog);
+    out->WriteInt32(numdlgmessage);
+    out->WriteInt32(numfonts);
+    out->WriteInt32(color_depth);
+    out->WriteInt32(target_win);
+    out->WriteInt32(dialog_bullet);
+    out->WriteInt16(hotdot);//__getshort__bigendian(fp);
+    out->WriteInt16(hotdotouter);//__getshort__bigendian(fp);
+    out->WriteInt32(uniqueid);
+    out->WriteInt32(numgui);
+    out->WriteInt32(numcursors);
+    out->WriteInt32(default_resolution);
+    out->WriteInt32(default_lipsync_frame);
+    out->WriteInt32(invhotdotsprite);
+    out->WriteArrayOfInt32(reserved, 17);
     // write the final ptrs so we know to load dictionary, scripts etc
-    fwrite(messages, sizeof(int), MAXGLOBALMES, fp);
-    putw((int32)dict, fp);
-    putw((int32)globalscript, fp);
-    putw((int32)chars, fp);
-    putw((int32)compiled_script, fp);
+    out->WriteArrayOfIntPtr32((intptr_t*)messages, MAXGLOBALMES);
+    out->WriteInt32((int32)dict);
+    out->WriteInt32((int32)globalscript);
+    out->WriteInt32((int32)chars);
+    out->WriteInt32((int32)compiled_script);
 }

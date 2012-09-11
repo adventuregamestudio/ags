@@ -1,6 +1,6 @@
 #define USE_CLIB
-#include "ac/global_game.h"
 #include "util/wgt2allg.h"
+#include "ac/global_game.h"
 #include "ac/common.h"
 #include "ac/view.h"
 #include "ac/character.h"
@@ -37,6 +37,11 @@
 #include "script/script.h"
 #include "script/script_runtime.h"
 #include "ac/spritecache.h"
+#include "gfx/graphicsdriver.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::IBitmap;
+namespace Bitmap = AGS::Common::Bitmap;
 
 #define ALLEGRO_KEYBOARD_HANDLER
 
@@ -66,7 +71,7 @@ extern char saveGameDirectory[260];
 extern IGraphicsDriver *gfxDriver;
 extern int scrnwid,scrnhit;
 extern color palette[256];
-extern block virtual_screen;
+extern IBitmap *virtual_screen;
 
 extern "C" int csetlib(char *namm, char *passw);
 
@@ -113,9 +118,7 @@ void DeleteSaveSlot (int slnum) {
         char thisname[260];
         for (int i = MAXSAVEGAMES; i > slnum; i--) {
             get_save_game_path(i, thisname);
-            FILE *fin = fopen (thisname, "rb");
-            if (fin != NULL) {
-                fclose (fin);
+            if (Common::File::TestReadFile(thisname)) {
                 // Rename the highest save game to fill in the gap
                 rename (thisname, nametouse);
                 break;
@@ -163,11 +166,11 @@ int LoadSaveSlotScreenshot(int slnum, int width, int height) {
         return gotSlot;
 
     // resize the sprite to the requested size
-    block newPic = create_bitmap_ex(bitmap_color_depth(spriteset[gotSlot]), width, height);
+    IBitmap *newPic = Bitmap::CreateBitmap(width, height, spriteset[gotSlot]->GetColorDepth());
 
-    stretch_blit(spriteset[gotSlot], newPic,
-        0, 0, spritewidth[gotSlot], spriteheight[gotSlot],
-        0, 0, width, height);
+    newPic->StretchBlt(spriteset[gotSlot],
+        RectWH(0, 0, spritewidth[gotSlot], spriteheight[gotSlot]),
+        RectWH(0, 0, width, height));
 
     update_polled_stuff_if_runtime();
 
@@ -253,7 +256,7 @@ int RunAGSGame (char *newgame, unsigned int mode, int data) {
     if (csetlib(game_file_name,""))
         quitprintf("!RunAGSGame: unable to load new game file '%s'", game_file_name);
 
-    clear(abuf);
+    abuf->Clear();
     show_preload();
 
     if ((result = load_game_file ()) != 0) {
@@ -714,17 +717,17 @@ int SaveScreenShot(char*namm) {
 
     if (gfxDriver->RequiresFullRedrawEachFrame()) 
     {
-        BITMAP *buffer = create_bitmap_ex(32, scrnwid, scrnhit);
+        IBitmap *buffer = Bitmap::CreateBitmap(scrnwid, scrnhit, 32);
         gfxDriver->GetCopyOfScreenIntoBitmap(buffer);
 
-        if (save_bitmap(fileName, buffer, palette)!=0)
+		if (!Bitmap::SaveToFile(buffer, fileName, palette)!=0)
         {
-            destroy_bitmap(buffer);
+            delete buffer;
             return 0;
         }
-        destroy_bitmap(buffer);
+        delete buffer;
     }
-    else if (save_bitmap(fileName, virtual_screen, palette)!=0)
+	else if (!Bitmap::SaveToFile(virtual_screen, fileName, palette)!=0)
         return 0; // failed
 
     return 1;  // successful

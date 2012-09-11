@@ -19,6 +19,10 @@
 #include "debug/debug_log.h"
 #include "main/game_run.h"
 #include "ac/route_finder.h"
+#include "gfx/graphicsdriver.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::IBitmap;
 
 
 extern ScriptObject scrObj[MAX_INIT_SPR];
@@ -30,7 +34,7 @@ extern int loaded_game_file_version;
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern MoveList *mls;
 extern GameSetupStruct game;
-extern block walkable_areas_temp;
+extern IBitmap *walkable_areas_temp;
 extern IGraphicsDriver *gfxDriver;
 extern int offsetx,offsety;
 
@@ -364,8 +368,8 @@ void get_object_blocking_rect(int objid, int *x1, int *y1, int *width, int *y2) 
         cwidth += fromx;
         fromx = 0;
     }
-    if (fromx + cwidth >= convert_back_to_high_res(walkable_areas_temp->w))
-        cwidth = convert_back_to_high_res(walkable_areas_temp->w) - fromx;
+    if (fromx + cwidth >= convert_back_to_high_res(walkable_areas_temp->GetWidth()))
+        cwidth = convert_back_to_high_res(walkable_areas_temp->GetWidth()) - fromx;
 
     if (x1)
         *x1 = fromx;
@@ -392,9 +396,9 @@ int isposinbox(int mmx,int mmy,int lf,int tp,int rt,int bt) {
 
 // xx,yy is the position in room co-ordinates that we are checking
 // arx,ary is the sprite x/y co-ordinates
-int is_pos_in_sprite(int xx,int yy,int arx,int ary, block sprit, int spww,int sphh, int flipped) {
-    if (spww==0) spww = divide_down_coordinate(sprit->w) - 1;
-    if (sphh==0) sphh = divide_down_coordinate(sprit->h) - 1;
+int is_pos_in_sprite(int xx,int yy,int arx,int ary, IBitmap *sprit, int spww,int sphh, int flipped) {
+    if (spww==0) spww = divide_down_coordinate(sprit->GetWidth()) - 1;
+    if (sphh==0) sphh = divide_down_coordinate(sprit->GetHeight()) - 1;
 
     if (isposinbox(xx,yy,arx,ary,arx+spww,ary+sphh)==FALSE)
         return FALSE;
@@ -412,18 +416,18 @@ int is_pos_in_sprite(int xx,int yy,int arx,int ary, block sprit, int spww,int sp
             // calculations to compensate
             multiply_up_coordinates(&spww, &sphh);
 
-            if (spww != sprit->w)
-                xpos = (xpos * sprit->w) / spww;
-            if (sphh != sprit->h)
-                ypos = (ypos * sprit->h) / sphh;
+            if (spww != sprit->GetWidth())
+                xpos = (xpos * sprit->GetWidth()) / spww;
+            if (sphh != sprit->GetHeight())
+                ypos = (ypos * sprit->GetHeight()) / sphh;
         }
 
         if (flipped)
-            xpos = (sprit->w - 1) - xpos;
+            xpos = (sprit->GetWidth() - 1) - xpos;
 
         int gpcol = my_getpixel(sprit, xpos, ypos);
 
-        if ((gpcol == bitmap_mask_color(sprit)) || (gpcol == -1))
+        if ((gpcol == sprit->GetMaskColor()) || (gpcol == -1))
             return FALSE;
     }
     return TRUE;

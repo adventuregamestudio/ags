@@ -11,6 +11,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "util/datastream.h"
+
+using AGS::Common::CDataStream;
+using namespace AGS; // FIXME later
 
 #ifdef _MANAGED
 // ensure this doesn't get compiled to .NET IL
@@ -25,8 +29,8 @@ extern void quit(char *);
 
 int insert(int, int);
 void _delete(int);
-void lzwcompress(FILE *, FILE *);
-void lzwexpand(FILE *, FILE *);
+//void lzwcompress(FILE *, FILE *);
+//void lzwexpand(FILE *, FILE *);
 
 #define N 4096
 #define F 16
@@ -114,7 +118,7 @@ void _delete(int z)
   }
 }
 
-void lzwcompress(FILE * f, FILE * out)
+void lzwcompress(Common::CDataStream *lzw_in, Common::CDataStream *out)
 {
   int ch, i, run, len, match, size, mask;
   char buf[17];
@@ -135,7 +139,7 @@ void lzwcompress(FILE * f, FILE * out)
   buf[0] = 0;
   i = N - F - F;
 
-  for (len = 0; len < F && (ch = getc(f)) != -1; len++) {
+  for (len = 0; len < F && (ch = lzw_in->ReadByte()) != -1; len++) {
     lzbuffer[i + F] = ch;
     i = (i + 1) & (N - 1);
   }
@@ -143,7 +147,7 @@ void lzwcompress(FILE * f, FILE * out)
   run = len;
 
   do {
-    ch = getc(f);
+    ch = lzw_in->ReadByte();
     if (i >= N - F) {
       _delete(i + F - N);
       lzbuffer[i + F] = lzbuffer[i + F - N] = ch;
@@ -171,7 +175,7 @@ void lzwcompress(FILE * f, FILE * out)
       }
 
       if (!((mask += mask) & 0xFF)) {
-        fwrite(buf, size, 1, out);
+        out->WriteArray(buf, size, 1);
         outbytes += size;
         size = mask = 1;
         buf[0] = 0;
@@ -181,7 +185,7 @@ void lzwcompress(FILE * f, FILE * out)
   } while (len > 0);
 
   if (size > 1) {
-    fwrite(buf, size, 1, out);
+    out->WriteArray(buf, size, 1);
     outbytes += size;
   }
 
@@ -190,7 +194,7 @@ void lzwcompress(FILE * f, FILE * out)
 
 int expand_to_mem = 0;
 unsigned char *membfptr = NULL;
-void myputc(int ccc, FILE * ooo)
+void myputc(int ccc, CDataStream *out)
 {
   if (maxsize > 0) {
     putbytes++;
@@ -203,13 +207,10 @@ void myputc(int ccc, FILE * ooo)
     membfptr[0] = ccc;
     membfptr++;
   } else
-    fputc(ccc, ooo);
+    out->WriteInt8(ccc);
 }
 
-#undef putc
-#define putc myputc
-
-void lzwexpand(FILE * f, FILE * out)
+void lzwexpand(CDataStream *lzw_in, CDataStream *out)
 {
   int bits, ch, i, j, len, mask;
   char *lzbuffer;
@@ -223,32 +224,32 @@ void lzwexpand(FILE * f, FILE * out)
   i = N - F;
 
   // this end condition just checks for EOF, which is no good to us
-  while ((bits = getc(f)) != -1) {
+  while ((bits = lzw_in->ReadByte()) != -1) {
     for (mask = 0x01; mask & 0xFF; mask <<= 1) {
       if (bits & mask) {
         // MACPORT FIX: read to short and expand
         short jshort = 0;
-        fread(&jshort, sizeof(short), 1, f);
+        jshort = lzw_in->ReadInt16();
         j = jshort;
 
         len = ((j >> 12) & 15) + 3;
         j = (i - j - 1) & (N - 1);
 
         while (len--) {
-          putc(lzbuffer[i] = lzbuffer[j], out);
+          myputc(lzbuffer[i] = lzbuffer[j], out);
           j = (j + 1) & (N - 1);
           i = (i + 1) & (N - 1);
         }
       } else {
-        ch = getc(f);
-        putc(lzbuffer[i] = ch, out);
+        ch = lzw_in->ReadByte();
+        myputc(lzbuffer[i] = ch, out);
         i = (i + 1) & (N - 1);
       }
 
       if ((putbytes >= maxsize) && (maxsize > 0))
         break;
 
-      if ((feof(f)) && (maxsize > 0))
+      if ((lzw_in->EOS()) && (maxsize > 0))
         quit("Read error decompressing image - file is corrupt");
     }                           // end for mask
 
@@ -260,11 +261,11 @@ void lzwexpand(FILE * f, FILE * out)
   expand_to_mem = 0;
 }
 
-unsigned char *lzwexpand_to_mem(FILE * ii)
+unsigned char *lzwexpand_to_mem(Common::CDataStream *in)
 {
   unsigned char *membuff = (unsigned char *)malloc(maxsize + 10);
   expand_to_mem = 1;
   membfptr = membuff;
-  lzwexpand(ii, NULL);
+  lzwexpand(in, NULL);
   return membuff;
 }

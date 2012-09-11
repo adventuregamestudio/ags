@@ -93,9 +93,9 @@ int mousex=0,mousey=0,numcurso=-1,hotx=0,hoty=0;
 int boundx1=0,boundx2=99999,boundy1=0,boundy2=99999;
 int disable_mgetgraphpos = 0;
 char ignore_bounds = 0;
-block savebk,mousecurs[MAXCURSORS];
+IBitmap *savebk,mousecurs[MAXCURSORS];
 extern int vesa_xres,vesa_yres;
-//block ignore_mouseoff_bitmap = NULL;
+//IBitmap *ignore_mouseoff_bitmap = NULL;
 
 REGS urr;
 void mgetgraphpos() {
@@ -200,20 +200,20 @@ void mnewcursor(char cursno) {
   FILE*ou=fopen(cursf,"rb");
   if (ferror(ou)) { textmode(C80);  printf("Mouse Cursor File Not Found\n");
     exit(1); }
-  numcurso=fgetc(ou)-35;
-  for (f=0;f<783;f++) fgetc(ou);  // palette & stuff
+  numcurso=->ReadInt8(ou)-35;
+  for (f=0;f<783;f++) ->ReadInt8(ou);  // palette & stuff
   if (numcurso>MAXCURSORS) numcurso=MAXCURSORS;
 
 
   int hhht,wwwd;
   for (int za=0;za<numcurso;za++) {
-    wsetcolor(0); wbar(0,0,16,16);
-    fgetc(ou); fgetc(ou); fgetc(ou);
-    hhht=fgetc(ou)-35; fgetc(ou);
-    wwwd=fgetc(ou)-35; fgetc(ou);
+    wsetcolor(0); abuf->FillRect(CRect(0,0,16,16);
+    ->ReadInt8(ou); ->ReadInt8(ou); ->ReadInt8(ou);
+    hhht=->ReadInt8(ou)-35; ->ReadInt8(ou);
+    wwwd=->ReadInt8(ou)-35; ->ReadInt8(ou);
     for (b=0;b<hhht;b++) {
-      for (f=0;f<wwwd;f++) { wsetcolor(fgetc(ou)-35);
-	wputpixel(f,b);  }
+      for (f=0;f<wwwd;f++) { wsetcolor(->ReadInt8(ou)-35);
+	abuf->PutPixel(f,b);  }
       }
     mousecurs[za]=wnewblock(0,0,wwwd-1,hhht-1);
     }
@@ -229,24 +229,24 @@ void mloadwcursor(char*namm) { color dummypal[256];
 /*  color dummypal[256]; int f; FILE*ou;
   if (cliboffset(namm)>0) ou=fopen(lib_file_name,"rb");
   else ou=fopen(namm,"rb");
-  fseek(ou,((cliboffset(namm)>0) ? cliboffset(namm) : 0),SEEK_SET);
+  Seek(ou,((cliboffset(namm)>0) ? cliboffset(namm) : 0),SEEK_SET);
   if (ferror(ou)) { textmode(C80);  printf("Mouse Cursor File Not Found\n");
     exit(1); }
-  int vers=fgetc(ou);
-  for (f=0;f<782;f++) fgetc(ou);
-  if (vers>=4) numcurso=getw(ou)+1;
+  int vers=->ReadInt8(ou);
+  for (f=0;f<782;f++) ->ReadInt8(ou);
+  if (vers>=4) numcurso=->ReadInt32(ou)+1;
   else { textmode(C80); printf("Version 4.0 or later sprite file required.\n"); exit(3); }
   if (ferror(ou)) {  textmode(C80);  printf("I/O error.");    exit(2); }
   if (numcurso>MAXCURSORS) numcurso=MAXCURSORS;
 
   int hhht,wwwd,b;
   for (int za=0;za<numcurso;za++) {
-    if (getw(ou)==0) { continue; }
-    wwwd=getw(ou); hhht=getw(ou);
-    wsetcolor(0); wbar(0,0,wwwd,hhht);
+    if (->ReadInt32(ou)==0) { continue; }
+    wwwd=->ReadInt32(ou); hhht=->ReadInt32(ou);
+    wsetcolor(0); abuf->FillRect(CRect(0,0,wwwd,hhht);
     for (b=0;b<hhht;b++) {
-      for (f=0;f<wwwd;f++) { wsetcolor(fgetc(ou));
-	wputpixel(f,b);  }
+      for (f=0;f<wwwd;f++) { wsetcolor(->ReadInt8(ou));
+	abuf->PutPixel(f,b);  }
       }
     mousecurs[za]=wnewblock(0,0,wwwd-1,hhht-1);
     }

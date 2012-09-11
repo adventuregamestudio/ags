@@ -28,13 +28,19 @@
 #include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
+#include "util/datastream.h"
+#include "gfx/graphicsdriver.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::CDataStream;
+using AGS::Common::IBitmap;
 
 extern GameSetupStruct game;
 extern GameSetup usetup;
 extern int our_eip;
 extern IGraphicsDriver *gfxDriver;
 extern color palette[256];
-extern block virtual_screen;
+extern IBitmap *virtual_screen;
 
 #include <shlobj.h>
 #include <time.h>
@@ -105,7 +111,7 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual void UnRegisterGameWithGameExplorer();
   virtual int  ConvertKeycodeToScanCode(int keyCode);
 
-  virtual void ReadPluginsFromDisk(FILE *);
+  virtual void ReadPluginsFromDisk(CDataStream *in);
   virtual void StartPlugins();
   virtual int  RunPluginHooks(int event, long data);
   virtual void RunPluginInitGfxHooks(const char *driverName, void *data);
@@ -697,10 +703,8 @@ void AGSWin32::PlayVideo(const char *name, int skip, int flags) {
   }
 
   bool isError = false;
-  FILE *testFile = fopen(useloc, "rb");
-  if (testFile != NULL)
+  if (Common::File::TestReadFile(useloc))
   {
-    fclose(testFile);
     isError = (gfxDriver->PlayVideo(useloc, useSound, (VideoSkipType)skip, (flags > 0)) == 0);
   }
   else
@@ -769,8 +773,8 @@ void AGSWin32::ShutdownCDPlayer() {
   cd_exit();
 }
 
-void AGSWin32::ReadPluginsFromDisk(FILE *iii) {
-  pl_read_plugins_from_disk(iii);
+void AGSWin32::ReadPluginsFromDisk(CDataStream *in) {
+  pl_read_plugins_from_disk(in);
 }
 
 void AGSWin32::StartPlugins() {
@@ -843,7 +847,7 @@ LPDIRECTDRAWSURFACE2 IAGSEngine::GetBitmapSurface (BITMAP *bmp)
 
   BMP_EXTRA_INFO *bei = (BMP_EXTRA_INFO*)bmp->extra;
 
-  if (bmp == virtual_screen)
+  if (bmp == virtual_screen->GetBitmapObject())
     invalidate_screen();
 
   return bei->surf;

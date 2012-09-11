@@ -32,4 +32,60 @@ inline size_t get_padding(int previous_data_length)
     return 4 - (previous_data_length % 4);
 }
 
+#include "util/string.h"
+//#include "util/stream.h"
+
+namespace AGS
+{
+namespace Common
+{
+
+// Forward declarations
+class CFileStream;
+
+enum FileOpenMode
+{
+    kFile_Open,         // Open existing file
+    kFile_Create,       // Create new file, or open existing one
+    kFile_CreateAlways  // Always create a new file, replacing any existing one
+};
+
+enum FileWorkMode
+{
+    kFile_Read,
+    kFile_Write,
+    kFile_ReadWrite
+};
+
+namespace File
+{
+    // Tests if file could be opened for reading
+    bool        TestReadFile(const CString &filename);
+    // Create new empty file and deletes it; returns TRUE if was able to create file
+    bool        TestCreateFile(const CString &filename);
+    // Deletes existing file; returns TRUE if was able to delete one
+    bool        DeleteFile(const CString &filename);
+
+    CFileStream *OpenFile(const CString &filename, FileOpenMode open_mode, FileWorkMode work_mode);
+    // Convenience helpers
+    // Create a totally new file, overwrite existing one
+    inline CFileStream *CreateFile(const CString &filename)
+    {
+        return OpenFile(filename, kFile_CreateAlways, kFile_Write);
+    }
+    // Open existing file for reading
+    inline CFileStream *OpenFileRead(const CString &filename)
+    {
+        return OpenFile(filename, kFile_Open, kFile_Read);
+    }
+    // Open existing file for writing (append) or create if it does not exist
+    inline CFileStream *OpenFileWrite(const CString &filename)
+    {
+        return OpenFile(filename, kFile_Create, kFile_Write);
+    }
+}; // namespace File
+
+} // namespace Common
+} // namespace AGS
+
 #endif // __AGS_CN_UTIL__FILE_H

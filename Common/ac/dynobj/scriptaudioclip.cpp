@@ -1,33 +1,23 @@
 
 #include "ac/dynobj/scriptaudioclip.h"
+#include "util/datastream.h"
 
-void ScriptAudioClip::ReadFromFile(FILE *f)
+using AGS::Common::CDataStream;
+
+void ScriptAudioClip::ReadFromFile(CDataStream *in)
 {
     char padding[3] = {0,0,0};
 
-    id = getw(f);
-    fread(scriptName, sizeof(char), SCRIPTAUDIOCLIP_SCRIPTNAMELENGTH, f);
-    fread(fileName, sizeof(char), SCRIPTAUDIOCLIP_FILENAMELENGTH, f);
-    bundlingType = fgetc(f);
-    type = fgetc(f);
-    fileType = fgetc(f);
-    defaultRepeat = fgetc(f);
-    fgetc(f); // Padding so that the next short is aligned
-    defaultPriority = getshort(f);
-    defaultVolume = getshort(f);
-    fread(&padding, sizeof(char),
-       get_padding(SCRIPTAUDIOCLIP_SCRIPTNAMELENGTH + SCRIPTAUDIOCLIP_FILENAMELENGTH + 1), f);
-    reserved = getw(f);
+    id = in->ReadInt32();
+    in->Read(scriptName, SCRIPTAUDIOCLIP_SCRIPTNAMELENGTH);
+    in->Read(fileName, SCRIPTAUDIOCLIP_FILENAMELENGTH);
+    bundlingType = in->ReadInt8();
+    type = in->ReadInt8();
+    fileType = in->ReadInt8();
+    defaultRepeat = in->ReadInt8();
+    in->ReadInt8(); // Padding so that the next short is aligned
+    defaultPriority = in->ReadInt16();
+    defaultVolume = in->ReadInt16();
+    in->Read(&padding, get_padding(SCRIPTAUDIOCLIP_SCRIPTNAMELENGTH + SCRIPTAUDIOCLIP_FILENAMELENGTH + 1));
+    reserved = in->ReadInt32();
 }
-
-
-  int id;  // not used by editor, set in engine only
-  char scriptName[30];
-  char fileName[15];
-  char bundlingType;
-  char type;
-  char fileType;
-  char defaultRepeat;
-  short defaultPriority;
-  short defaultVolume;
-  int  reserved;

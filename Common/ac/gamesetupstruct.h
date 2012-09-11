@@ -77,36 +77,36 @@ struct GameSetupStruct: public GameSetupStructBase {
 
     void BuildAudioClipArray();
 
-    void ReadFromFile_Part1(FILE *f, GAME_STRUCT_READ_DATA &read_data);
-    void ReadFromFile_Part2(FILE *f, GAME_STRUCT_READ_DATA &read_data);
-    void ReadFromFile_Part3(FILE *f, GAME_STRUCT_READ_DATA &read_data);
+    void ReadFromFile_Part1(Common::CDataStream *in, GAME_STRUCT_READ_DATA &read_data);
+    void ReadFromFile_Part2(Common::CDataStream *in, GAME_STRUCT_READ_DATA &read_data);
+    void ReadFromFile_Part3(Common::CDataStream *in, GAME_STRUCT_READ_DATA &read_data);
     //--------------------------------------------------------------------
     // Do not call these directly
     //------------------------------
     // Part 1
-    void read_savegame_info(FILE *f, GAME_STRUCT_READ_DATA &read_data);
-    void read_font_flags(FILE *f, GAME_STRUCT_READ_DATA &read_data);
-    void read_sprite_flags(FILE *f, GAME_STRUCT_READ_DATA &read_data);
-    void read_invinfo(FILE *f, GAME_STRUCT_READ_DATA &read_data);
-    void read_cursors(FILE *f, GAME_STRUCT_READ_DATA &read_data);
-    void read_interaction_scripts(FILE *f, GAME_STRUCT_READ_DATA &read_data);
-    void read_words_dictionary(FILE *f, GAME_STRUCT_READ_DATA &read_data);
+    void read_savegame_info(Common::CDataStream *in, GAME_STRUCT_READ_DATA &read_data);
+    void read_font_flags(Common::CDataStream *in, GAME_STRUCT_READ_DATA &read_data);
+    void read_sprite_flags(Common::CDataStream *in, GAME_STRUCT_READ_DATA &read_data);
+    void read_invinfo(Common::CDataStream *in, GAME_STRUCT_READ_DATA &read_data);
+    void read_cursors(Common::CDataStream *in, GAME_STRUCT_READ_DATA &read_data);
+    void read_interaction_scripts(Common::CDataStream *in, GAME_STRUCT_READ_DATA &read_data);
+    void read_words_dictionary(Common::CDataStream *in, GAME_STRUCT_READ_DATA &read_data);
     //------------------------------
     // Part 2
-    void read_characters(FILE *f, GAME_STRUCT_READ_DATA &read_data);
-    void read_lipsync(FILE *f, GAME_STRUCT_READ_DATA &read_data);
-    void read_messages(FILE *f, GAME_STRUCT_READ_DATA &read_data);
+    void read_characters(Common::CDataStream *in, GAME_STRUCT_READ_DATA &read_data);
+    void read_lipsync(Common::CDataStream *in, GAME_STRUCT_READ_DATA &read_data);
+    void read_messages(Common::CDataStream *in, GAME_STRUCT_READ_DATA &read_data);
     //------------------------------
     // Part 3
-    void read_customprops(FILE *f, GAME_STRUCT_READ_DATA &read_data);
-    void read_audio(FILE *f, GAME_STRUCT_READ_DATA &read_data);
-    void read_room_names(FILE *f, GAME_STRUCT_READ_DATA &read_data);
+    void read_customprops(Common::CDataStream *in, GAME_STRUCT_READ_DATA &read_data);
+    void read_audio(Common::CDataStream *in, GAME_STRUCT_READ_DATA &read_data);
+    void read_room_names(Common::CDataStream *in, GAME_STRUCT_READ_DATA &read_data);
     //--------------------------------------------------------------------
 
     // Functions for reading and writing appropriate data from/to save game
-    void ReadFromSaveGame(FILE *f, char* gswas, ccScript* compsc, CharacterInfo* chwas,
+    void ReadFromSaveGame(Common::CDataStream *in, char* gswas, ccScript* compsc, CharacterInfo* chwas,
                                    WordsDictionary *olddict, char** mesbk);
-    void WriteForSaveGame(FILE *f);
+    void WriteForSaveGame(Common::CDataStream *out);
 };
 
 //=============================================================================

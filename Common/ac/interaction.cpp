@@ -4,6 +4,10 @@
 #include "ac/interaction.h"
 #include "ac/common.h"
 #include "util/string_utils.h"      // fputstring, etc
+#include "util/datastream.h"
+
+using AGS::Common::CDataStream;
+using AGS::Common::CString;
 
 InteractionVariable globalvars[MAX_GLOBAL_VARIABLES] = {{"Global 1", 0, 0}};
 int numGlobalVars = 1;
@@ -15,37 +19,39 @@ NewInteractionValue::NewInteractionValue() {
 }
 
 
-void NewInteractionValue::ReadFromFile(FILE *fp)
+void NewInteractionValue::ReadFromFile(CDataStream *in)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
-    fread(&valType, sizeof(char), 1, fp);
-    char pad[3]; fread(pad, sizeof(char), 3, fp);
-    val = getw(fp);
-    extra = getw(fp);
+    in->Read(&valType, 1);
+    char pad[3];
+    in->Read(pad, 3);
+    val = in->ReadInt32();
+    extra = in->ReadInt32();
 //#else
 //    throw "NewInteractionValue::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
 //#endif
 }
 
-void NewInteractionValue::WriteToFile(FILE *fp)
+void NewInteractionValue::WriteToFile(CDataStream *out)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
-    fwrite(&valType, sizeof(char), 1, fp);
-    char pad[3]; fwrite(pad, sizeof(char), 3, fp);
-    putw(val, fp);
-    putw(extra, fp);
+    out->Write(&valType, 1);
+    char pad[3];
+    out->Write(pad, 3);
+    out->WriteInt32(val);
+    out->WriteInt32(extra);
 //#else
 //    throw "NewInteractionValue::WriteToFile() is not implemented for little-endian platforms and should not be called.";
 //#endif
 }
 
 
-void InteractionVariable::ReadFromFile(FILE *fp)
+void InteractionVariable::ReadFromFile(CDataStream *in)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
-    fread(name, sizeof(char), 23, fp);
-    type = getc(fp);
-    value = getw(fp);
+    in->Read(name, 23);
+    type = in->ReadInt8();
+    value = in->ReadInt32();
 //#else
 //    throw "InteractionVariable::WriteToFile() is not implemented for little-endian platforms and should not be called.";
 //#endif
@@ -74,34 +80,34 @@ void NewInteractionCommand::remove () {
 
 void NewInteractionCommand::reset() { remove(); }
 
-void NewInteractionCommand::ReadFromFile(FILE *fp)
+void NewInteractionCommand::ReadFromFile(CDataStream *in)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
-    getw(fp); // skip the vtbl ptr
-    type = getw(fp);
+    in->ReadInt32(); // skip the vtbl ptr
+    type = in->ReadInt32();
     for (int i = 0; i < MAX_ACTION_ARGS; ++i)
     {
-        data[i].ReadFromFile(fp);
+        data[i].ReadFromFile(in);
     }
     // all that matters is whether or not these are null...
-    children = (NewInteractionAction *)(long)getw(fp);
-    parent = (NewInteractionCommandList *)(long)getw(fp);
+    children = (NewInteractionAction *) (long)in->ReadInt32();
+    parent = (NewInteractionCommandList *) (long)in->ReadInt32();
 //#else
 //    throw "NewInteractionCommand::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
 //#endif
 }
 
-void NewInteractionCommand::WriteToFile(FILE *fp)
+void NewInteractionCommand::WriteToFile(CDataStream *out)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
-    putw(0, fp); // write dummy vtbl ptr 
-    putw(type, fp);
+    out->WriteInt32(0); // write dummy vtbl ptr 
+    out->WriteInt32(type);
     for (int i = 0; i < MAX_ACTION_ARGS; ++i)
     {
-        data[i].WriteToFile(fp);
+        data[i].WriteToFile(out);
     }
-    putw((long)children, fp);
-    putw((long)parent, fp);
+    out->WriteInt32((long)children);
+    out->WriteInt32((long)parent);
 //#else
 //    throw "NewInteractionCommand::WriteToFile() is not implemented for little-endian platforms and should not be called.";
 //#endif
@@ -153,33 +159,33 @@ NewInteraction::~NewInteraction() {
     reset();
 }
 
-void NewInteraction::ReadFromFile(FILE *fp)
+void NewInteraction::ReadFromFile(CDataStream *in)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
     // it's all ints! <- JJS: No, it's not! There are pointer too.
 
-  numEvents = getw(fp);
-  fread(&eventTypes, sizeof(*eventTypes), MAX_NEWINTERACTION_EVENTS, fp);
-  fread(&timesRun, sizeof(*timesRun), MAX_NEWINTERACTION_EVENTS, fp);
+  numEvents = in->ReadInt32();
+  in->ReadArray(&eventTypes, sizeof(*eventTypes), MAX_NEWINTERACTION_EVENTS);
+  in->ReadArray(&timesRun, sizeof(*timesRun), MAX_NEWINTERACTION_EVENTS);
 
   for (int i = 0; i < MAX_NEWINTERACTION_EVENTS; i++)
-    response[i] = (NewInteractionCommandList*)getw(fp);
+    response[i] = (NewInteractionCommandList*)in->ReadInt32();
 
-//    fread(&numEvents, sizeof(int), sizeof(NewInteraction)/sizeof(int), fp);
+//    in->ReadArray(&numEvents, sizeof(int), sizeof(NewInteraction)/sizeof(int));
 //#else
 //    throw "NewInteraction::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
 //#endif
 }
-void NewInteraction::WriteToFile(FILE *fp)
+void NewInteraction::WriteToFile(CDataStream *out)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
 
-  putw(numEvents, fp);
-  fwrite(&eventTypes, sizeof(*eventTypes), MAX_NEWINTERACTION_EVENTS, fp);
-  fwrite(&timesRun, sizeof(*timesRun), MAX_NEWINTERACTION_EVENTS, fp);
+  out->WriteInt32(numEvents);
+  out->WriteArray(&eventTypes, sizeof(*eventTypes), MAX_NEWINTERACTION_EVENTS);
+  out->WriteArray(&timesRun, sizeof(*timesRun), MAX_NEWINTERACTION_EVENTS);
 
   for (int i = 0; i < MAX_NEWINTERACTION_EVENTS; i++)
-    putw((int)(response[i] != NULL), fp);
+    out->WriteInt32((int)(response[i] != NULL));
 
 //    fwrite(&numEvents, sizeof(int), sizeof(NewInteraction)/sizeof(int), fp);
 //#else
@@ -198,57 +204,57 @@ InteractionScripts::~InteractionScripts() {
 }
 
 
-void serialize_command_list (NewInteractionCommandList *nicl, FILE*ooo) {
+void serialize_command_list (NewInteractionCommandList *nicl, CDataStream *out) {
   if (nicl == NULL)
     return;
-  putw (nicl->numCommands, ooo);
-  putw (nicl->timesRun, ooo);
+  out->WriteInt32 (nicl->numCommands);
+  out->WriteInt32 (nicl->timesRun);
 //#ifdef ALLEGRO_BIG_ENDIAN
   for (int iteratorCount = 0; iteratorCount < nicl->numCommands; ++iteratorCount)
   {
-      nicl->command[iteratorCount].WriteToFile(ooo);
+      nicl->command[iteratorCount].WriteToFile(out);
   }
 //#else
-//  fwrite (&nicl->command[0], sizeof(NewInteractionCommand), nicl->numCommands, ooo);  
+//  out->WriteArray (&nicl->command[0], sizeof(NewInteractionCommand), nicl->numCommands);  
 //#endif  // ALLEGRO_BIG_ENDIAN
   for (int k = 0; k < nicl->numCommands; k++) {
     if (nicl->command[k].children != NULL)
-      serialize_command_list (nicl->command[k].get_child_list(), ooo);
+      serialize_command_list (nicl->command[k].get_child_list(), out);
   }
 }
 
-void serialize_new_interaction (NewInteraction *nint, FILE*ooo) {
+void serialize_new_interaction (NewInteraction *nint, CDataStream *out) {
   int a;
 
-  putw (1, ooo);  // Version
-  putw (nint->numEvents, ooo);
-  fwrite (&nint->eventTypes[0], sizeof(int), nint->numEvents, ooo);
+  out->WriteInt32 (1);  // Version
+  out->WriteInt32 (nint->numEvents);
+  out->WriteArrayOfInt32 (&nint->eventTypes[0], nint->numEvents);
 
   // 64 bit: The pointer is only checked against NULL to determine whether the event exists
   for (a = 0; a < nint->numEvents; a++)
-    putw ((long)nint->response[a], ooo);
+    out->WriteInt32 ((long)nint->response[a]);
 
   for (a = 0; a < nint->numEvents; a++) {
     if (nint->response[a] != NULL)
-      serialize_command_list (nint->response[a], ooo);
+      serialize_command_list (nint->response[a], out);
   }
 }
 
-NewInteractionCommandList *deserialize_command_list (FILE *ooo) {
+NewInteractionCommandList *deserialize_command_list (CDataStream *in) {
   NewInteractionCommandList *nicl = new NewInteractionCommandList;
-  nicl->numCommands = getw(ooo);
-  nicl->timesRun = getw(ooo);
+  nicl->numCommands = in->ReadInt32();
+  nicl->timesRun = in->ReadInt32();
 //#ifdef ALLEGRO_BIG_ENDIAN
   for (int iteratorCount = 0; iteratorCount < nicl->numCommands; ++iteratorCount)
   {
-      nicl->command[iteratorCount].ReadFromFile(ooo);
+      nicl->command[iteratorCount].ReadFromFile(in);
   }
 //#else
-//  fread (&nicl->command[0], sizeof(NewInteractionCommand), nicl->numCommands, ooo);  
+//  in->ReadArray (&nicl->command[0], sizeof(NewInteractionCommand), nicl->numCommands);  
 //#endif  // ALLEGRO_BIG_ENDIAN
   for (int k = 0; k < nicl->numCommands; k++) {
     if (nicl->command[k].children != NULL) {
-      nicl->command[k].children = deserialize_command_list (ooo);
+      nicl->command[k].children = deserialize_command_list (in);
     }
     nicl->command[k].parent = nicl;
   }
@@ -256,44 +262,44 @@ NewInteractionCommandList *deserialize_command_list (FILE *ooo) {
 }
 
 NewInteraction *nitemp;
-NewInteraction *deserialize_new_interaction (FILE *ooo) {
+NewInteraction *deserialize_new_interaction (CDataStream *in) {
   int a;
 
-  if (getw(ooo) != 1)
+  if (in->ReadInt32() != 1)
     return NULL;
   nitemp = new NewInteraction;
-  nitemp->numEvents = getw(ooo);
+  nitemp->numEvents = in->ReadInt32();
   if (nitemp->numEvents > MAX_NEWINTERACTION_EVENTS) {
     quit("Error: this interaction was saved with a newer version of AGS");
     return NULL;
   }
-  fread (&nitemp->eventTypes[0], sizeof(int), nitemp->numEvents, ooo);
-  //fread (&nitemp->response[0], sizeof(void*), nitemp->numEvents, ooo);
+  in->ReadArrayOfInt32 (&nitemp->eventTypes[0], nitemp->numEvents);
+  //in->ReadArray (&nitemp->response[0], sizeof(void*), nitemp->numEvents);
 
   // 64 bit: The pointer is only checked against NULL to determine whether the event exists
   for (a = 0; a < nitemp->numEvents; a++)
-    nitemp->response[a] = (NewInteractionCommandList*)getw(ooo);
+    nitemp->response[a] = (NewInteractionCommandList*)in->ReadInt32();
 
   for (a = 0; a < nitemp->numEvents; a++) {
     if (nitemp->response[a] != NULL)
-      nitemp->response[a] = deserialize_command_list (ooo);
+      nitemp->response[a] = deserialize_command_list (in);
     nitemp->timesRun[a] = 0;
   }
   return nitemp;
 }
 
-void deserialize_interaction_scripts(FILE *iii, InteractionScripts *scripts)
+void deserialize_interaction_scripts(CDataStream *in, InteractionScripts *scripts)
 {
-  int numEvents = getw(iii);
+  int numEvents = in->ReadInt32();
   if (numEvents > MAX_NEWINTERACTION_EVENTS)
     quit("Too many interaction script events");
   scripts->numEvents = numEvents;
 
-  char buffer[200];
+  CString buffer;
   for (int i = 0; i < numEvents; i++)
   {
-    fgetstring_limit(buffer, iii, sizeof(buffer));
-    scripts->scriptFuncNames[i] = new char[strlen(buffer) + 1];
+    buffer = in->ReadString(200);
+    scripts->scriptFuncNames[i] = new char[buffer.GetLength() + 1];
     strcpy(scripts->scriptFuncNames[i], buffer);
   }
 }

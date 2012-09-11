@@ -15,6 +15,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "util/file.h"
+#include "util/datastream.h"
+
+using AGS::Common::CDataStream;
 
 #if defined(ANDROID_VERSION) || defined(IOS_VERSION)
 #include <sys/stat.h>
@@ -124,13 +128,13 @@ void clib_decrypt_text(char *toenc)
   }
 }
 
-void fgetnulltermstring(char *sss, FILE *ddd, int bufsize) {
+void fgetnulltermstring(char *sss, CDataStream *ci_s, int bufsize) {
   int b = -1;
   do {
     if (b < bufsize - 1)
       b++;
-    sss[b] = fgetc(ddd);
-    if (feof(ddd))
+    sss[b] = ci_s->ReadInt8();
+    if (ci_s->EOS())
       return;
   } while (sss[b] != 0);
 }
@@ -139,9 +143,9 @@ extern "C"
 {
   long last_opened_size;
 
-  void fread_data_enc(void *data, int dataSize, int dataCount, FILE *ooo)
+  void fread_data_enc(void *data, int dataSize, int dataCount, CDataStream *ci_s)
   {
-    fread(data, dataSize, dataCount, ooo);
+    ci_s->ReadArray(data, dataSize, dataCount);
     unsigned char *dataChar = (unsigned char*)data;
     for (int i = 0; i < dataSize * dataCount; i++)
     {
@@ -149,59 +153,59 @@ extern "C"
     }
   }
 
-  void fgetstring_enc(char *sss, FILE *ooo, int maxLength) 
+  void fgetstring_enc(char *sss, CDataStream *ci_s, int maxLength) 
   {
     int i = 0;
     while ((i == 0) || (sss[i - 1] != 0))
     {
-      sss[i] = fgetc(ooo) - get_pseudo_rand();
+      sss[i] = ci_s->ReadInt8() - get_pseudo_rand();
 
       if (i < maxLength - 1)
         i++;
     }
   }
 
-  int getw_enc(FILE *ooo)
+  int getw_enc(CDataStream *ci_s)
   {
     int numberRead;
-    fread_data_enc(&numberRead, 4, 1, ooo);
+    fread_data_enc(&numberRead, 4, 1, ci_s);
     return numberRead;
   }
 
-  int read_new_new_enc_format_clib(MultiFileLibNew * mfl, FILE * wout, int libver)
+  int read_new_new_enc_format_clib(MultiFileLibNew * mfl, CDataStream *ci_s, int libver)
   {
     int aa;
-    int randSeed = getw(wout);
+    int randSeed = ci_s->ReadInt32();
     init_pseudo_rand_gen(randSeed + RAND_SEED_SALT);
-    mfl->num_data_files = getw_enc(wout);
+    mfl->num_data_files = getw_enc(ci_s);
     for (aa = 0; aa < mfl->num_data_files; aa++)
     {
-      fgetstring_enc(mfl->data_filenames[aa], wout, 50);
+      fgetstring_enc(mfl->data_filenames[aa], ci_s, 50);
     }
-    mfl->num_files = getw_enc(wout);
+    mfl->num_files = getw_enc(ci_s);
 
     if (mfl->num_files > MAX_FILES)
       return -1;
 
     for (aa = 0; aa < mfl->num_files; aa++)
     {
-      fgetstring_enc(mfl->filenames[aa], wout, 100);
+      fgetstring_enc(mfl->filenames[aa], ci_s, 100);
     }
-    fread_data_enc(&mfl->offset[0], sizeof(int), mfl->num_files, wout);
-    fread_data_enc(&mfl->length[0], sizeof(int), mfl->num_files, wout);
-    fread_data_enc(&mfl->file_datafile[0], 1, mfl->num_files, wout);
+    fread_data_enc(&mfl->offset[0], sizeof(int), mfl->num_files, ci_s);
+    fread_data_enc(&mfl->length[0], sizeof(int), mfl->num_files, ci_s);
+    fread_data_enc(&mfl->file_datafile[0], 1, mfl->num_files, ci_s);
     return 0;
   }
 
-  int read_new_new_format_clib(MultiFileLibNew * mfl, FILE * wout, int libver)
+  int read_new_new_format_clib(MultiFileLibNew * mfl, CDataStream *ci_s, int libver)
   {
     int aa;
-    mfl->num_data_files = getw(wout);
+    mfl->num_data_files = ci_s->ReadInt32();
     for (aa = 0; aa < mfl->num_data_files; aa++)
     {
-      fgetnulltermstring(mfl->data_filenames[aa], wout, 50);
+      fgetnulltermstring(mfl->data_filenames[aa], ci_s, 50);
     }
-    mfl->num_files = getw(wout);
+    mfl->num_files = ci_s->ReadInt32();
 
     if (mfl->num_files > MAX_FILES)
       return -1;
@@ -209,30 +213,30 @@ extern "C"
     for (aa = 0; aa < mfl->num_files; aa++)
     {
       short nameLength;
-      fread(&nameLength, 2, 1, wout);
+      nameLength = ci_s->ReadInt16();
       nameLength /= 5;
-      fread(mfl->filenames[aa], nameLength, 1, wout);
+      ci_s->ReadArray(mfl->filenames[aa], nameLength, 1);
       clib_decrypt_text(mfl->filenames[aa]);
     }
-    fread(&mfl->offset[0], sizeof(int), mfl->num_files, wout);
-    fread(&mfl->length[0], sizeof(int), mfl->num_files, wout);
-    fread(&mfl->file_datafile[0], 1, mfl->num_files, wout);
+    ci_s->ReadArrayOfInt32(&mfl->offset[0], mfl->num_files);
+    ci_s->ReadArrayOfInt32(&mfl->length[0], mfl->num_files);
+    ci_s->ReadArrayOfInt8((int8_t*)&mfl->file_datafile[0], mfl->num_files);
     return 0;
   }
 
-  int read_new_format_clib(MultiFileLib * mfl, FILE * wout, int libver)
+  int read_new_format_clib(MultiFileLib * mfl, CDataStream *ci_s, int libver)
   {
-    mfl->num_data_files = getw(wout);
-    fread(&mfl->data_filenames[0][0], 20, mfl->num_data_files, wout);
-    mfl->num_files = getw(wout);
+    mfl->num_data_files = ci_s->ReadInt32();
+    ci_s->ReadArray(&mfl->data_filenames[0][0], 20, mfl->num_data_files);
+    mfl->num_files = ci_s->ReadInt32();
 
     if (mfl->num_files > MAX_FILES)
       return -1;
 
-    fread(&mfl->filenames[0][0], 25, mfl->num_files, wout);
-    fread(&mfl->offset[0], sizeof(int), mfl->num_files, wout);
-    fread(&mfl->length[0], sizeof(int), mfl->num_files, wout);
-    fread(&mfl->file_datafile[0], 1, mfl->num_files, wout);
+    ci_s->ReadArray(&mfl->filenames[0][0], 25, mfl->num_files);
+    ci_s->ReadArrayOfInt32(&mfl->offset[0], mfl->num_files);
+    ci_s->ReadArrayOfInt32(&mfl->length[0], mfl->num_files);
+    ci_s->ReadArrayOfInt8((int8_t*)&mfl->file_datafile[0], mfl->num_files);
 
     if (libver >= 11)
     {
@@ -255,26 +259,27 @@ extern "C"
     strcpy(base_path, ".");
 
     int passwmodifier = 0, cc, aa;
-    FILE *fff = ci_fopen(namm, "rb");
-    if (fff == NULL)
+    CDataStream *ci_s = ci_fopen(namm, Common::kFile_Open, Common::kFile_Read);
+    if (ci_s == NULL)
       return -1;
 
     long absoffs = 0;
-    fread(&clbuff[0], 5, 1, fff);
+    ci_s->ReadArray(&clbuff[0], 5, 1);
 
     if (strncmp(clbuff, "CLIB", 4) != 0) {
-      fseek(fff, -12, SEEK_END);
-      fread(&clbuff[0], 12, 1, fff);
+        ci_s->Seek(Common::kSeekEnd, -12);
+      ci_s->ReadArray(&clbuff[0], 12, 1);
 
       if (strncmp(clbuff, clibendfilesig, 12) != 0)
         return -2;
 
-      fseek(fff, -16, SEEK_END);  // it's an appended-to-end-of-exe thing
-      fread(&absoffs, 4, 1, fff);
-      fseek(fff, absoffs + 5, SEEK_SET);
+      ci_s->Seek(Common::kSeekEnd, -16);  // it's an appended-to-end-of-exe thing
+      int debug_pos2 = ci_s->GetPosition();
+      absoffs = ci_s->ReadInt32();
+      ci_s->Seek(Common::kSeekBegin, absoffs + 5);
     }
 
-    int lib_version = fgetc(fff);
+    int lib_version = ci_s->ReadInt8();
     if ((lib_version != 6) && (lib_version != 10) &&
         (lib_version != 11) && (lib_version != 15) &&
         (lib_version != 20) && (lib_version != 21))
@@ -294,17 +299,17 @@ extern "C"
     }
 
     if (lib_version >= 10) {
-      if (fgetc(fff) != 0)
+      if (ci_s->ReadInt8() != 0)
         return -4;  // not first datafile in chain
 
       if (lib_version >= 21)
       {
-        if (read_new_new_enc_format_clib(&mflib, fff, lib_version))
+        if (read_new_new_enc_format_clib(&mflib, ci_s, lib_version))
           return -5;
       }
       else if (lib_version == 20)
       {
-        if (read_new_new_format_clib(&mflib, fff, lib_version))
+        if (read_new_new_format_clib(&mflib, ci_s, lib_version))
           return -5;
       }
       else 
@@ -312,7 +317,7 @@ extern "C"
         // PSP: Allocate struct on the heap to avoid overflowing the stack.
         MultiFileLib* mflibOld = (MultiFileLib*)malloc(sizeof(MultiFileLib));
 
-        if (read_new_format_clib(mflibOld, fff, lib_version))
+        if (read_new_format_clib(mflibOld, ci_s, lib_version))
           return -5;
         // convert to newer format
         mflib.num_files = mflibOld->num_files;
@@ -328,7 +333,7 @@ extern "C"
         free(mflibOld);
       }
 
-      fclose(fff);
+      delete ci_s;
       strcpy(lib_file_name, namm);
 
       // make a backup of the original file name
@@ -344,30 +349,30 @@ extern "C"
       return 0;
     }
 
-    passwmodifier = fgetc(fff);
-    fgetc(fff); // unused byte
+    passwmodifier = ci_s->ReadInt8();
+    ci_s->ReadInt8(); // unused byte
     mflib.num_data_files = 1;
     strcpy(mflib.data_filenames[0], namm);
 
     short tempshort;
-    fread(&tempshort, 2, 1, fff);
+    tempshort = ci_s->ReadInt16();
     mflib.num_files = tempshort;
 
     if (mflib.num_files > MAX_FILES)
       return -4;
 
-    fread(clbuff, 13, 1, fff);  // skip password dooberry
+    ci_s->ReadArray(clbuff, 13, 1);  // skip password dooberry
     for (aa = 0; aa < mflib.num_files; aa++) {
-      fread(&mflib.filenames[aa][0], 13, 1, fff);
+      ci_s->ReadArray(&mflib.filenames[aa][0], 13, 1);
       for (cc = 0; cc < (int)strlen(mflib.filenames[aa]); cc++)
         mflib.filenames[aa][cc] -= passwmodifier;
     }
-    fread(&mflib.length[0], 4, mflib.num_files, fff);
-    fseek(fff, 2 * mflib.num_files, SEEK_CUR);  // skip flags & ratio
+    ci_s->ReadArrayOfInt32(&mflib.length[0], mflib.num_files);
+    ci_s->Seek(Common::kSeekCurrent, 2 * mflib.num_files);  // skip flags & ratio
 
-    mflib.offset[0] = ftell(fff);
+    mflib.offset[0] = ci_s->GetPosition();
     strcpy(lib_file_name, namm);
-    fclose(fff);
+    delete ci_s;
 
     for (aa = 1; aa < mflib.num_files; aa++) {
       mflib.offset[aa] = mflib.offset[aa - 1] + mflib.length[aa - 1];
@@ -395,7 +400,7 @@ extern "C"
     return &mflib.filenames[index][0];
   }
 
-  int clibfindindex(char *fill)
+  int clibfindindex(const char *fill)
   {
     if (lib_file_name[0] == ' ')
       return -1;
@@ -408,7 +413,7 @@ extern "C"
     return -1;
   }
 
-  long clibfilesize(char *fill)
+  long clibfilesize(const char *fill)
   {
     int idxx = clibfindindex(fill);
     if (idxx >= 0)
@@ -416,7 +421,7 @@ extern "C"
     return -1;
   }
 
-  long cliboffset(char *fill)
+  long cliboffset(const char *fill)
   {
     int idxx = clibfindindex(fill);
     if (idxx >= 0)
@@ -443,8 +448,8 @@ extern "C"
     return NULL;
   }
 
-  FILE *tfil;
-  FILE *clibopenfile(char *filly, char *readmode)
+  CDataStream *tfil;
+  CDataStream *clibopenfile(const char *filly, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode)
   {
     int bb;
     for (bb = 0; bb < mflib.num_files; bb++) {
@@ -455,49 +460,50 @@ extern "C"
 #else
         sprintf(actfilename, "%s\\%s", base_path, mflib.data_filenames[mflib.file_datafile[bb]]);
 #endif
-        tfil = ci_fopen(actfilename, readmode);
+        tfil = ci_fopen(actfilename, open_mode, work_mode);
         if (tfil == NULL)
           return NULL;
-        fseek(tfil, mflib.offset[bb], SEEK_SET);
+        tfil->Seek(Common::kSeekBegin, mflib.offset[bb]);
         return tfil;
       }
     }
-    return ci_fopen(filly, readmode);
+    return ci_fopen(filly, open_mode, work_mode);
   }
 
 #define PR_DATAFIRST 1
 #define PR_FILEFIRST 2
   int cfopenpriority = PR_DATAFIRST;
 
-  FILE *clibfopen(char *filnamm, char *fmt)
+  CDataStream *clibfopen(const char *filnamm, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode)
   {
     last_opened_size = -1;
     if (cfopenpriority == PR_FILEFIRST) {
       // check for file, otherwise use datafile
-      if (fmt[0] != 'r') {
-        tfil = ci_fopen(filnamm, fmt);
+      if (open_mode != Common::kFile_Open || work_mode != Common::kFile_Read) {
+        tfil = ci_fopen(filnamm, open_mode, work_mode);
       } else {
-        tfil = ci_fopen(filnamm, fmt);
+        tfil = ci_fopen(filnamm, open_mode, work_mode);
 
         if ((tfil == NULL) && (lib_file_name[0] != ' ')) {
-          tfil = clibopenfile(filnamm, fmt);
+          tfil = clibopenfile(filnamm, open_mode, work_mode);
           last_opened_size = clibfilesize(filnamm);
         }
       }
 
     } else {
       // check datafile first, then scan directory
-      if ((cliboffset(filnamm) < 1) | (fmt[0] != 'r'))
-        tfil = ci_fopen(filnamm, fmt);
+        if ((cliboffset(filnamm) < 1) ||
+            (open_mode != Common::kFile_Open || work_mode != Common::kFile_Read))
+        tfil = ci_fopen(filnamm, open_mode, work_mode);
       else {
-        tfil = clibopenfile(filnamm, fmt);
+        tfil = clibopenfile(filnamm, open_mode, work_mode);
         last_opened_size = clibfilesize(filnamm);
       }
 
     }
 
     if ((last_opened_size < 0) && (tfil != NULL))
-      last_opened_size = filelength(fileno(tfil));
+      last_opened_size = tfil->GetLength();
 
     return tfil;
   }

@@ -11,14 +11,17 @@
 #include "ac/screenoverlay.h"
 #include "ac/string.h"
 #include "ac/spritecache.h"
+#include "gfx/bitmap.h"
 
+using AGS::Common::IBitmap;
+namespace Bitmap = AGS::Common::Bitmap;
 
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern int scrnwid,scrnhit;
 extern SpriteCache spriteset;
 extern GameSetupStruct game;
-extern block virtual_screen;
+extern IBitmap *virtual_screen;
 
 extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern int crovr_id;  // whether using SetTextOverlay or CreateTextOvelay
@@ -32,9 +35,9 @@ void RemoveOverlay(int ovrid) {
 int CreateGraphicOverlay(int xx,int yy,int slott,int trans) {
     multiply_up_coordinates(&xx, &yy);
 
-    block screeno=create_bitmap_ex(final_col_dep, spritewidth[slott],spriteheight[slott]);
+    IBitmap *screeno=Bitmap::CreateBitmap(spritewidth[slott],spriteheight[slott], final_col_dep);
     wsetscreen(screeno);
-    clear_to_color(screeno,bitmap_mask_color(screeno));
+    screeno->Clear(screeno->GetMaskColor());
     wputblock(0,0,spriteset[slott],trans);
 
     bool hasAlpha = (game.spriteflags[slott] & SPF_ALPHACHANNEL) != 0;

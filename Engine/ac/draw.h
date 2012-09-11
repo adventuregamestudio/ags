@@ -8,7 +8,10 @@
 #define __AGS_EE_AC__DRAW_H
 
 #include "ac/common_defines.h"
-#include "gfx/ali3d.h"
+//#include "gfx/ali3d.h"
+
+namespace AGS { namespace Engine { class IDriverDependantBitmap; }}
+using namespace AGS::Engine; // FIXME later
 
 // [IKM] personally I do not see much sense in this,
 // memcpyfast alias is used only once in the Engine
@@ -38,8 +41,8 @@ struct CachedActSpsData {
 void invalidate_screen();
 void mark_current_background_dirty();
 void invalidate_cached_walkbehinds();
-void put_sprite_256(int xxx,int yyy,block piccy);
-block recycle_bitmap(block bimp, int coldep, int wid, int hit);
+void put_sprite_256(int xxx,int yyy,Common::IBitmap *piccy);
+Common::IBitmap *recycle_bitmap(Common::IBitmap *bimp, int coldep, int wid, int hit);
 void push_screen ();
 void pop_screen();
 void update_screen();
@@ -48,17 +51,17 @@ void invalidate_rect(int x1, int y1, int x2, int y2);
 void render_graphics(IDriverDependantBitmap *extraBitmap = NULL, int extraX = 0, int extraY = 0);
 void construct_virtual_screen(bool fullRedraw) ;
 void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int baseline, int trans, int sprNum, bool isWalkBehind = false);
-void tint_image (block source, block dest, int red, int grn, int blu, int light_level, int luminance=255);
-void draw_sprite_support_alpha(int xpos, int ypos, block image, int slot);
-void render_to_screen(BITMAP *toRender, int atx, int aty);
+void tint_image (Common::IBitmap *source, Common::IBitmap *dest, int red, int grn, int blu, int light_level, int luminance=255);
+void draw_sprite_support_alpha(int xpos, int ypos, Common::IBitmap *image, int slot);
+void render_to_screen(Common::IBitmap *toRender, int atx, int aty);
 void draw_screen_callback();
 void write_screen();
 void GfxDriverOnInitCallback(void *data);
 bool GfxDriverNullSpriteCallback(int x, int y);
 void init_invalid_regions(int scrnHit);
-int get_screen_x_adjustment(BITMAP *checkFor);
-int get_screen_y_adjustment(BITMAP *checkFor);
-void putpixel_compensate (block onto, int xx,int yy, int col);
+int get_screen_x_adjustment(Common::IBitmap *checkFor);
+int get_screen_y_adjustment(Common::IBitmap *checkFor);
+void putpixel_compensate (Common::IBitmap *onto, int xx,int yy, int col);
 // create the actsps[aa] image with the object drawn correctly
 // returns 1 if nothing at all has changed and actsps is still
 // intact from last time; 0 otherwise
@@ -78,8 +81,8 @@ extern AGS_INLINE void multiply_up_coordinates_round_up(int *x, int *y);
 extern AGS_INLINE int divide_down_coordinate(int coord);
 extern AGS_INLINE int divide_down_coordinate_round_up(int coord);
 
-block convert_16_to_15(block iii);
-block convert_16_to_16bgr(block tempbl);
-block convert_32_to_32bgr(block tempbl);
+Common::IBitmap *convert_16_to_15(Common::IBitmap *iii);
+Common::IBitmap *convert_16_to_16bgr(Common::IBitmap *tempbl);
+Common::IBitmap *convert_32_to_32bgr(Common::IBitmap *tempbl);
 
 #endif // __AGS_EE_AC__DRAW_H

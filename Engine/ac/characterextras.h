@@ -10,6 +10,10 @@
 #include "ac/runtime_defines.h"
 #include "util/file.h"
 
+// Forward declaration
+namespace AGS { namespace Common { class CDataStream; } }
+using namespace AGS; // FIXME later
+
 struct CharacterExtras {
     // UGLY UGLY UGLY!! The CharacterInfo struct size is fixed because it's
     // used in the scripts, therefore overflowing stuff has to go here
@@ -25,8 +29,8 @@ struct CharacterExtras {
     char  slow_move_counter;
     short animwait;
 
-    void ReadFromFile(FILE *f);
-    void WriteToFile(FILE *f);
+    void ReadFromFile(Common::CDataStream *in);
+    void WriteToFile(Common::CDataStream *out);
 };
 
 #endif // __AGS_EE_AC__CHARACTEREXTRAS_H

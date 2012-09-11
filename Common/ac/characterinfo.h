@@ -4,6 +4,9 @@
 #include "ac/common_defines.h" // constants
 #include "util/file.h"
 
+namespace AGS { namespace Common { class CDataStream; } }
+using namespace AGS; // FIXME later
+
 #define MAX_INV             301
 #define CHF_MANUALSCALING   1
 #define CHF_FIXVIEW         2     // between SetCharView and ReleaseCharView
@@ -84,8 +87,8 @@ struct CharacterInfo {
 	void update_character_idle(CharacterExtras *chex, int &doing_nothing);
 	void update_character_follower(int &char_index, int &numSheep, int *followingAsSheep, int &doing_nothing);
 
-    void ReadFromFile(FILE *fp);
-    void WriteToFile(FILE *fp);
+    void ReadFromFile(Common::CDataStream *in);
+    void WriteToFile(Common::CDataStream *out);
 };
 
 

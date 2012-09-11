@@ -3,6 +3,9 @@
 
 #include "ac/common_defines.h" // PCKD
 
+namespace AGS { namespace Common { class CDataStream; } }
+using namespace AGS; // FIXME later
+
 #pragma pack(1)
 
 #define MSG_DISPLAYNEXT 1 // supercedes using alt-200 at end of message
@@ -11,7 +14,7 @@ struct MessageInfo {
     char  displayas  PCKD; // 0 = normal window, 1 = as speech
     char  flags      PCKD; // combination of MSG_xxx flags
 
-    void ReadFromFile(FILE *fp);
+    void ReadFromFile(Common::CDataStream *in);
 };
 
 #pragma pack()

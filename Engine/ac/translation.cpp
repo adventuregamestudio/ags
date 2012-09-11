@@ -9,6 +9,9 @@
 #include "ac/translation.h"
 #include "ac/tree_map.h"
 #include "util/misc.h"
+#include "util/datastream.h"
+
+using AGS::Common::CDataStream;
 
 extern GameSetup usetup;
 extern GameSetupStruct game;
@@ -39,7 +42,7 @@ bool init_translation (const char *lang) {
 
     transFileLoc = ci_find_file(usetup.data_files_dir, transFileName);
 
-    FILE *language_file = clibfopen(transFileLoc, "rb");
+    CDataStream *language_file = clibfopen(transFileLoc);
     free(transFileLoc);
 
     if (language_file == NULL) 
@@ -48,18 +51,18 @@ bool init_translation (const char *lang) {
         {
             // Just in case they're running in Debug, try compiled folder
             sprintf(transFileName, "Compiled\\%s.tra", lang);
-            language_file = clibfopen(transFileName, "rb");
+            language_file = clibfopen(transFileName);
         }
         if (language_file == NULL)
             return false;
     }
     // in case it's inside a library file, record the offset
-    lang_offs_start = ftell(language_file);
+    lang_offs_start = language_file->GetPosition();
 
     char transsig[16];
-    fread(transsig, 15, 1, language_file);
+    language_file->Read(transsig, 15);
     if (strcmp(transsig, "AGSTranslation") != 0) {
-        fclose(language_file);
+        delete language_file;
         return false;
     }
 
@@ -69,12 +72,12 @@ bool init_translation (const char *lang) {
     }
     transtree = new TreeMap();
 
-    while (!feof (language_file)) {
-        int blockType = getw(language_file);
+    while (!language_file->EOS()) {
+        int blockType = language_file->ReadInt32();
         if (blockType == -1)
             break;
         // MACPORT FIX 9/6/5: remove warning
-        /* int blockSize = */ getw(language_file);
+        /* int blockSize = */ language_file->ReadInt32();
 
         if (blockType == 1) {
             char original[STD_BUFFER_SIZE], translation[STD_BUFFER_SIZE];
@@ -83,7 +86,7 @@ bool init_translation (const char *lang) {
                 read_string_decrypt (language_file, translation);
                 if ((strlen (original) < 1) && (strlen(translation) < 1))
                     break;
-                if (feof (language_file))
+                if (language_file->EOS())
                     quit("!Language file is corrupt");
                 transtree->addText (original, translation);
             }
@@ -92,7 +95,7 @@ bool init_translation (const char *lang) {
         else if (blockType == 2) {
             int uidfrom;
             char wasgamename[100];
-            fread (&uidfrom, 4, 1, language_file);
+            uidfrom = language_file->ReadInt32();
             read_string_decrypt (language_file, wasgamename);
             if ((uidfrom != game.uniqueid) || (strcmp (wasgamename, game.gamename) != 0)) {
                 char quitmess[250];
@@ -100,20 +103,21 @@ bool init_translation (const char *lang) {
                     "!The translation file you have selected is not compatible with this game. "
                     "The translation is designed for '%s'. Make sure the translation was compiled by the original game author.",
                     wasgamename);
+                delete language_file;
                 quit(quitmess);
             }
         }
         else if (blockType == 3) {
             // game settings
-            int temp = getw(language_file);
+            int temp = language_file->ReadInt32();
             // normal font
             if (temp >= 0)
                 SetNormalFont (temp);
-            temp = getw(language_file);
+            temp = language_file->ReadInt32();
             // speech font
             if (temp >= 0)
                 SetSpeechFont (temp);
-            temp = getw(language_file);
+            temp = language_file->ReadInt32();
             // text direction
             if (temp == 1) {
                 play.text_align = SCALIGN_LEFT;
@@ -125,10 +129,10 @@ bool init_translation (const char *lang) {
             }
         }
         else
-            quit("Unknown block type in translation file.");
+            quit("Unknown IBitmap *type in translation file.");
     }
 
-    fclose (language_file);
+    delete language_file;
 
     if (transtree->text == NULL)
         quit("!The selected translation file was empty. The translation source may have been translated incorrectly or you may have generated a blank file.");

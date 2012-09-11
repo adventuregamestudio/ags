@@ -1,6 +1,6 @@
 #define USE_CLIB
-#include "ac/file.h"
 #include "util/wgt2allg.h"
+#include "ac/file.h"
 #include "ac/common.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
@@ -11,6 +11,10 @@
 #include "debug/debugger.h"
 #include "util/misc.h"
 #include "platform/base/agsplatformdriver.h"
+#include "util/clib32.h"
+#include "util/datastream.h"
+
+using AGS::Common::CDataStream;
 
 #ifdef WINDOWS_VERSION
 //#include <crtdbg.h>
@@ -38,18 +42,11 @@
 #endif  // WINDOWS_VERSION
 
 // ***** EXTERNS ****
-extern "C" {
-    extern int  csetlib(char*,char*);
-    extern FILE*clibfopen(char*,char*);
-    extern int  cfopenpriority;
-    extern long cliboffset(char*);
-}
 
 // override packfile functions to allow it to load from our
 // custom CLIB datafiles
 extern "C" {
 	PACKFILE*_my_temppack;
-	extern char* clibgetdatafile(char*);
 #if ALLEGRO_DATE > 19991010
 #define PFO_PARAM const char *
 #else
@@ -76,11 +73,9 @@ int File_Exists(const char *fnmm) {
   if (!validate_user_file_path(fnmm, fileToCheck, false))
     return 0;
 
-  FILE *iii = fopen(fileToCheck, "rb");
-  if (iii == NULL)
+  if (!Common::File::TestReadFile(fileToCheck))
     return 0;
 
-  fclose(iii);
   return 1;
 }
 
@@ -134,15 +129,15 @@ void File_ReadRawLine(sc_File *fil, char* buffer) {
   check_strlen(buffer);
   int i = 0;
   while (i < MAXSTRLEN - 1) {
-    buffer[i] = fgetc(fil->handle);
+    buffer[i] = fil->handle->ReadInt8();
     if (buffer[i] == 13) {
       // CR -- skip LF and abort
-      fgetc(fil->handle);
+      fil->handle->ReadInt8();
       break;
     }
     if (buffer[i] == 10)  // LF only -- abort
       break;
-    if (feof(fil->handle))  // EOF -- abort
+    if (fil->handle->EOS())  // EOF -- abort
       break;
     i++;
   }
@@ -161,16 +156,16 @@ void File_ReadString(sc_File *fil, char *toread) {
 
 const char* File_ReadStringBack(sc_File *fil) {
   check_valid_file_handle(fil->handle, "File.ReadStringBack");
-  if (feof(fil->handle)) {
+  if (fil->handle->EOS()) {
     return CreateNewScriptString("");
   }
 
-  int lle = getw(fil->handle);
+  int lle = fil->handle->ReadInt32();
   if ((lle >= 20000) || (lle < 1))
     quit("!File.ReadStringBack: file was not written by WriteString");
 
   char *retVal = (char*)malloc(lle);
-  fread(retVal, lle, 1, fil->handle);
+  fil->handle->Read(retVal, lle);
 
   return CreateNewScriptString(retVal, false);
 }
@@ -201,7 +196,8 @@ int File_GetError(sc_File *fil) {
 
 //=============================================================================
 
-
+// [IKM] NOTE: this function is used only by few media/audio units
+// TODO: find a way to hide allegro behind some interface/wrapper function
 #if ALLEGRO_DATE > 19991010
 PACKFILE *pack_fopen(const char *filnam1, const char *modd1) {
 #else
@@ -247,9 +243,7 @@ PACKFILE *pack_fopen(char *filnam1, char *modd1) {
   }
 
   // if the file exists, override the internal file
-  FILE *testf = fopen(filnam, "rb");
-  if (testf != NULL)
-    fclose(testf);
+  bool file_exists = Common::File::TestReadFile(filnam);
 
 #ifdef RTLD_NEXT
   static PACKFILE * (*__old_pack_fopen)(PFO_PARAM, PFO_PARAM) = NULL;
@@ -268,7 +262,7 @@ PACKFILE *pack_fopen(char *filnam1, char *modd1) {
   }
 #endif
 
-  if ((cliboffset(filnam)<1) || (testf != NULL)) {
+  if ((cliboffset(filnam)<1) || (file_exists)) {
     if (needsetback) csetlib(game_file_name,"");
     return __old_pack_fopen(filnam, modd);
   } 
@@ -308,9 +302,9 @@ void get_current_dir_path(char* buffer, const char *fileName)
     }
 }
 
-FILE*valid_handles[MAX_OPEN_SCRIPT_FILES+1];
+CDataStream *valid_handles[MAX_OPEN_SCRIPT_FILES+1];
 int num_open_script_files = 0;
-int check_valid_file_handle(FILE*hann, char*msg) {
+int check_valid_file_handle(CDataStream *hann, char*msg) {
   int aa;
   if (hann != NULL) {
     for (aa=0; aa < num_open_script_files; aa++) {

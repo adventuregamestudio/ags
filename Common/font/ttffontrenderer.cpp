@@ -7,17 +7,15 @@
 #include "alfont.h"
 #include "ac/gamestructdefines.h" //FONT_OUTLINE_AUTO
 #include "font/ttffontrenderer.h"
+#include "util/clib32.h"
+#include "util/datastream.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::IBitmap;
+using AGS::Common::CDataStream;
 
 // project-specific implementation
 extern bool ShouldAntiAliasText();
-
-extern "C"
-{
-  extern FILE *clibfopen(char *, char *);
-  extern long cliboffset(char *);
-  extern long clibfilesize(char *);
-  extern long last_opened_size;
-}
 
 #if defined(LINUX_VERSION) || defined(MAC_VERSION)
 #include <sys/stat.h>
@@ -68,17 +66,17 @@ int TTFFontRenderer::GetTextHeight(const char *text, int fontNumber)
   return alfont_text_height(get_ttf_block(fonts[fontNumber]));
 }
 
-void TTFFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour)
+void TTFFontRenderer::RenderText(const char *text, int fontNumber, IBitmap *destination, int x, int y, int colour)
 {
-  if (y > destination->cb)  // optimisation
+  if (y > destination->GetClip().Bottom)  // optimisation
     return;
 
   ALFONT_FONT *alfpt = get_ttf_block(fonts[fontNumber]);
   // Y - 1 because it seems to get drawn down a bit
-  if ((ShouldAntiAliasText()) && (bitmap_color_depth(abuf) > 8))
-    alfont_textout_aa(abuf, alfpt, text, x, y - 1, colour);
+  if ((ShouldAntiAliasText()) && (abuf->GetColorDepth() > 8))
+    alfont_textout_aa((BITMAP*)abuf->GetBitmapObject(), alfpt, text, x, y - 1, colour);
   else
-    alfont_textout(abuf, alfpt, text, x, y - 1, colour);
+    alfont_textout((BITMAP*)abuf->GetBitmapObject(), alfpt, text, x, y - 1, colour);
 }
 
 bool TTFFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
@@ -87,7 +85,7 @@ bool TTFFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
   sprintf(filnm, "agsfnt%d.ttf", fontNumber);
 
   // we read the font in manually to make it load from library file
-  FILE *reader = clibfopen(filnm, "rb");
+  CDataStream *reader = clibfopen(filnm);
   char *membuffer;
 
   if (reader == NULL)
@@ -98,12 +96,12 @@ bool TTFFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
   // if not in the library, get size manually
   if (lenof < 1)
   {
-	  lenof = _filelength(_fileno(reader));
+	  lenof = reader->GetLength();
   }
 
   membuffer = (char *)malloc(lenof);
-  fread(membuffer, lenof, 1, reader);
-  fclose(reader);
+  reader->ReadArray(membuffer, lenof, 1);
+  delete reader;
 
   ALFONT_FONT *alfptr = alfont_load_font_from_mem(membuffer, lenof);
   free(membuffer);

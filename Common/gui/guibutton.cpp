@@ -1,9 +1,14 @@
 
 #include <stdio.h>
+#include "util/wgt2allg.h"
 #include "gui/guibutton.h"
 #include "gui/guimain.h"
-#include "util/wgt2allg.h"
 #include "ac/spritecache.h"
+#include "util/datastream.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::CDataStream;
+using AGS::Common::IBitmap;
 
 extern SpriteCache spriteset;
 
@@ -13,29 +18,29 @@ DynamicArray<GUIButton> guibuts;
 //GUIButton guibuts[MAX_OBJ_EACH_TYPE];
 int numguibuts = 0;
 
-void GUIButton::WriteToFile(FILE * ooo)
+void GUIButton::WriteToFile(CDataStream *out)
 {
-  GUIObject::WriteToFile(ooo);
+  GUIObject::WriteToFile(out);
   // MACPORT FIXES: swap
-  fwrite(&pic, sizeof(int), 12, ooo);
-  fwrite(&text[0], sizeof(char), 50, ooo);
-  putw(textAlignment, ooo);
-  putw(reserved1, ooo);
+  out->WriteArrayOfInt32(&pic, 12);
+  out->Write(&text[0], 50);
+  out->WriteInt32(textAlignment);
+  out->WriteInt32(reserved1);
 }
 
-void GUIButton::ReadFromFile(FILE * ooo, int version)
+void GUIButton::ReadFromFile(CDataStream *in, int version)
 {
-  GUIObject::ReadFromFile(ooo, version);
+  GUIObject::ReadFromFile(in, version);
   // MACPORT FIXES: swap
-  fread(&pic, sizeof(int), 12, ooo);
-  fread(&text[0], sizeof(char), 50, ooo);
+  in->ReadArrayOfInt32(&pic, 12);
+  in->Read(&text[0], 50);
   if (textcol == 0)
     textcol = 16;
   usepic = pic;
 
   if (version >= 111) {
-    textAlignment = getw(ooo);
-    reserved1 = getw(ooo);
+    textAlignment = in->ReadInt32();
+    reserved1 = in->ReadInt32();
   }
   else {
     textAlignment = GBUT_ALIGN_TOPMIDDLE;
@@ -67,7 +72,7 @@ void GUIButton::Draw()
   if ((usepic > 0) && (pic > 0)) {
 
     if (flags & GUIF_CLIP)
-      set_clip_rect(abuf, x, y, x + wid - 1, y + hit - 1);
+      abuf->SetClip(CRect(x, y, x + wid - 1, y + hit - 1));
 
     if (spriteset[usepic] != NULL)
       draw_sprite_compensate(usepic, x, y, 1);
@@ -92,7 +97,7 @@ void GUIButton::Draw()
       }
 
       if (drawInv == 1)
-        stretch_sprite(abuf, spriteset[gui_inv_pic], x + 3, y + 3, wid - 6, hit - 6);
+        abuf->StretchBlt(spriteset[gui_inv_pic], RectWH(x + 3, y + 3, wid - 6, hit - 6), Common::kBitmap_Transparency);
       else if (drawInv == 2)
         draw_sprite_compensate(gui_inv_pic,
                                x + wid / 2 - get_adjusted_spritewidth(gui_inv_pic) / 2,
@@ -102,22 +107,22 @@ void GUIButton::Draw()
     if ((drawDisabled) && (gui_disabled_style == GUIDIS_GREYOUT)) {
       int col8 = get_col8_lookup(8);
       int jj, kk;             // darken the button when disabled
-      for (jj = 0; jj < spriteset[usepic]->w; jj++) {
-        for (kk = jj % 2; kk < spriteset[usepic]->h; kk += 2)
-          putpixel(abuf, x + jj, y + kk, col8);
+      for (jj = 0; jj < spriteset[usepic]->GetWidth(); jj++) {
+        for (kk = jj % 2; kk < spriteset[usepic]->GetHeight(); kk += 2)
+          abuf->PutPixel(x + jj, y + kk, col8);
       }
     }
 
-    set_clip(abuf, 0, 0, abuf->w - 1, abuf->h - 1);
+    abuf->SetClip(CRect(0, 0, abuf->GetWidth() - 1, abuf->GetHeight() - 1));
   } 
   else if (text[0] != 0) {
     // it's a text button
 
     wsetcolor(7);
-    wbar(x, y, x + wid - 1, y + hit - 1);
+    abuf->FillRect(CRect(x, y, x + wid - 1, y + hit - 1), currentcolor);
     if (flags & GUIF_DEFAULT) {
       wsetcolor(16);
-      wrectangle(x - 1, y - 1, x + wid, y + hit);
+      abuf->DrawRect(CRect(x - 1, y - 1, x + wid, y + hit), currentcolor);
     }
 
     if ((isover) && (ispushed))
@@ -128,8 +133,8 @@ void GUIButton::Draw()
     if (drawDisabled)
       wsetcolor(8);
 
-    wline(x, y + hit - 1, x + wid - 1, y + hit - 1);
-    wline(x + wid - 1, y, x + wid - 1, y + hit - 1);
+    abuf->DrawLine(CLine(x, y + hit - 1, x + wid - 1, y + hit - 1), currentcolor);
+    abuf->DrawLine(CLine(x + wid - 1, y, x + wid - 1, y + hit - 1), currentcolor);
     if ((isover) && (ispushed))
       wsetcolor(8);
     else
@@ -138,8 +143,8 @@ void GUIButton::Draw()
     if (drawDisabled)
       wsetcolor(8);
 
-    wline(x, y, x + wid - 1, y);
-    wline(x, y, x, y + hit - 1);
+    abuf->DrawLine(CLine(x, y, x + wid - 1, y), currentcolor);
+    abuf->DrawLine(CLine(x, y, x, y + hit - 1), currentcolor);
   }                           // end if text
 
   // Don't print text of (INV) (INVSHR) (INVNS)

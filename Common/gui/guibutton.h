@@ -37,8 +37,8 @@ struct GUIButton:public GUIObject
   int lclickdata, rclickdata;
   int textAlignment, reserved1;
 
-  virtual void WriteToFile(FILE * ooo);
-  virtual void ReadFromFile(FILE * ooo, int);
+  virtual void WriteToFile(Common::CDataStream *out);
+  virtual void ReadFromFile(Common::CDataStream *in, int);
   void Draw();
   void MouseUp();
 

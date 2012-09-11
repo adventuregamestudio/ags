@@ -1121,6 +1121,22 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="test"
+				>
+				<File
+					RelativePath="..\..\Engine\test\test_all.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\test\test_file.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\test\test_string.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -1687,6 +1703,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\gfx\ddb.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\gfx\gfxfilter.h"
 					>
 				</File>
@@ -1720,6 +1740,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\gfx\gfxfilterhelpers.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\graphicsdriver.h"
 					>
 				</File>
 				<File
@@ -2015,6 +2039,22 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="test"
+				>
+				<File
+					RelativePath="..\..\Engine\test\test_all.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\test\test_file.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\test\test_string.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Resource Files"
@@ -2089,18 +2129,6 @@
 		<Filter
 			Name="Library Sources"
 			>
-			<Filter
-				Name="aastr"
-				>
-				<File
-					RelativePath="..\..\Engine\libsrc\aastr-0.1.1\aastr.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\libsrc\aastr-0.1.1\aautil.c"
-					>
-				</File>
-			</Filter>
 			<Filter
 				Name="AllegroPatches"
 				>

@@ -9,6 +9,9 @@
 #endif
 #include "util/wgt2allg.h"
 #include "ac/gamesetupstruct.h"
+#include "util/filestream.h"
+
+using AGS::Common::CDataStream;
 
 //=============================================================================
 // AGS.Native-specific implementation split out of acfonts.cpp
@@ -33,13 +36,13 @@ int get_our_eip()
   return 0;
 }
 
-FILE *fopen_shared(char *filnamm, char *fmt)
+CDataStream *fopen_shared(char *filnamm, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode)
 {
-  return fopen(filnamm, fmt);
+  return Common::File::OpenFile(filnamm, open_mode, work_mode);
 }
 
-int flength_shared(FILE *ffi)
+int flength_shared(CDataStream *ffi)
 {
   // in the editor, we don't read from clib, only from disk
-  return filelength(fileno(ffi));
+  return ffi->GetLength();
 }

@@ -9,7 +9,7 @@
 
 struct SpriteListEntry {
     IDriverDependantBitmap *bmp;
-    block pic;
+    Common::IBitmap *pic;
     int baseline;
     int x,y;
     int transparent;

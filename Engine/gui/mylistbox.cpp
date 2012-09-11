@@ -6,6 +6,9 @@
 #include "ac/gamesetup.h"
 #include "gui/mylistbox.h"
 #include "gui/guidialoginternaldefs.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::IBitmap;
 
 extern GameSetup usetup;
 extern int mousex, mousey, numcurso, hotx, hoty;
@@ -42,29 +45,29 @@ extern int smcode;
   void MyListBox::draw()
   {
     wsetcolor(windowbackgroundcolor);
-    wbar(x, y, x + wid, y + hit);
+    abuf->FillRect(CRect(x, y, x + wid, y + hit), currentcolor);
     wsetcolor(0);
-    wrectangle(x, y, x + wid, y + hit);
+    abuf->DrawRect(CRect(x, y, x + wid, y + hit), currentcolor);
   
     int widwas = wid;
     wid -= ARROWWIDTH;
-    wline(x + wid, y, x + wid, y + hit);        // draw the up/down arrows
-    wline(x + wid, y + hit / 2, x + widwas, y + hit / 2);
+    abuf->DrawLine(CLine(x + wid, y, x + wid, y + hit), currentcolor);        // draw the up/down arrows
+    abuf->DrawLine(CLine(x + wid, y + hit / 2, x + widwas, y + hit / 2), currentcolor);
 
     int xmidd = x + wid + (widwas - wid) / 2;
     if (topitem < 1)
       wsetcolor(7);
 
-    wline(xmidd, y + 2, xmidd, y + 10); // up arrow
-    wline(xmidd - 1, y + 3, xmidd + 1, y + 3);
-    wline(xmidd - 2, y + 4, xmidd + 2, y + 4);
+    abuf->DrawLine(CLine(xmidd, y + 2, xmidd, y + 10), currentcolor); // up arrow
+    abuf->DrawLine(CLine(xmidd - 1, y + 3, xmidd + 1, y + 3), currentcolor);
+    abuf->DrawLine(CLine(xmidd - 2, y + 4, xmidd + 2, y + 4), currentcolor);
     wsetcolor(0);
     if (topitem + numonscreen >= items)
       wsetcolor(7);
 
-    wline(xmidd, y + hit - 10, xmidd, y + hit - 3);     // down arrow
-    wline(xmidd - 1, y + hit - 4, xmidd + 1, y + hit - 4);
-    wline(xmidd - 2, y + hit - 5, xmidd + 2, y + hit - 5);
+    abuf->DrawLine(CLine(xmidd, y + hit - 10, xmidd, y + hit - 3), currentcolor);     // down arrow
+    abuf->DrawLine(CLine(xmidd - 1, y + hit - 4, xmidd + 1, y + hit - 4), currentcolor);
+    abuf->DrawLine(CLine(xmidd - 2, y + hit - 5, xmidd + 2, y + hit - 5), currentcolor);
     wsetcolor(0);
 
     for (int tt = 0; tt < numonscreen; tt++) {
@@ -75,7 +78,7 @@ extern int smcode;
       int thisypos = y + 2 + tt * TEXT_HT;
       if (inum == selected) {
         wsetcolor(0);
-        wbar(x, thisypos, x + wid, thisypos + TEXT_HT - 1);
+        abuf->FillRect(CRect(x, thisypos, x + wid, thisypos + TEXT_HT - 1), currentcolor);
         wtextcolor(7);
       } else
         wtextcolor(0);

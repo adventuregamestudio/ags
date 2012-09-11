@@ -27,6 +27,6 @@ void allocate_memory_for_views(int viewCount);
 void precache_view(int view);
 void CheckViewFrame (int view, int loop, int frame);
 // draws a view frame, flipped if appropriate
-void DrawViewFrame(block target, ViewFrame *vframe, int x, int y);
+void DrawViewFrame(Common::IBitmap *target, ViewFrame *vframe, int x, int y);
 
 #endif // __AGS_EE_AC__VIEWFRAME_H

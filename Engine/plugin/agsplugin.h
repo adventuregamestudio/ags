@@ -11,6 +11,18 @@
 // the original agsplugin*.zip file and is totally unmodified.
 //
 
+//-----------------------------------------------------------------------------
+// [IKM] 2012-04-06
+//
+// A NOTE ON BITMAP CLASS
+//
+// We cannot use IBitmap in the plugin interfaces right so because that would
+// break backwards-compatiblity with previously created plugins. IBitmap may
+// only be used internally, in the IAGSEngine implementation, in a very limited
+// fashion.
+//
+//-----------------------------------------------------------------------------
+
 #ifndef _AGS_PLUGIN_H
 #define _AGS_PLUGIN_H
 
@@ -561,11 +573,14 @@ DLLEXPORT int    AGS_PluginV2 ( ) { return 1; }
 
 #endif // THIS_IS_THE_PLUGIN
 
+namespace AGS { namespace Common { class CDataStream; }}
+using namespace AGS; // FIXME later
+
 void pl_stop_plugins();
 void pl_startup_plugins();
 int  pl_run_plugin_hooks (int event, long data);
 void pl_run_plugin_init_gfx_hooks(const char *driverName, void *data);
 int  pl_run_plugin_debug_hooks (const char *scriptfile, int linenum);
-void pl_read_plugins_from_disk (FILE *iii);
+void pl_read_plugins_from_disk (Common::CDataStream *in);
 
 #endif

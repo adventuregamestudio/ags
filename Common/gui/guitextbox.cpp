@@ -1,27 +1,32 @@
 
 #include <stdio.h>
+#include "util/wgt2allg.h"
 #include "gui/guitextbox.h"
 #include "gui/guimain.h"
-#include "util/wgt2allg.h"
 #include "font/agsfontrenderer.h"	// fontRenderers;
+#include "util/datastream.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::CDataStream;
+using AGS::Common::IBitmap;
 
 DynamicArray<GUITextBox> guitext;
 int numguitext = 0;
 
-void GUITextBox::WriteToFile(FILE * ooo)
+void GUITextBox::WriteToFile(CDataStream *out)
 {
-  GUIObject::WriteToFile(ooo);
+  GUIObject::WriteToFile(out);
   // MACPORT FIXES: swap
-  fwrite(&text[0], sizeof(char), 200, ooo);
-  fwrite(&font, sizeof(int), 3, ooo);
+  out->Write(&text[0], 200);
+  out->WriteArrayOfInt32(&font, 3);
 }
 
-void GUITextBox::ReadFromFile(FILE * ooo, int version)
+void GUITextBox::ReadFromFile(CDataStream *in, int version)
 {
-  GUIObject::ReadFromFile(ooo, version);
+  GUIObject::ReadFromFile(in, version);
   // MACPORT FIXES: swap
-  fread(&text[0], sizeof(char), 200, ooo);
-  fread(&font, sizeof(int), 3, ooo);
+  in->Read(&text[0], 200);
+  in->ReadArrayOfInt32(&font, 3);
   if (textcol == 0)
     textcol = 16;
 }
@@ -33,9 +38,9 @@ void GUITextBox::Draw()
   wtextcolor(textcol);
   wsetcolor(textcol);
   if ((exflags & GTF_NOBORDER) == 0) {
-    wrectangle(x, y, x + wid - 1, y + hit - 1);
+    abuf->DrawRect(CRect(x, y, x + wid - 1, y + hit - 1), currentcolor);
     if (get_fixed_pixel_size(1) > 1)
-      wrectangle(x + 1, y + 1, x + wid - get_fixed_pixel_size(1), y + hit - get_fixed_pixel_size(1));
+      abuf->DrawRect(CRect(x + 1, y + 1, x + wid - get_fixed_pixel_size(1), y + hit - get_fixed_pixel_size(1)), currentcolor);
   }
 
   Draw_text_box_contents();

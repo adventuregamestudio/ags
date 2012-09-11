@@ -33,7 +33,14 @@
 #include "script/script.h"
 #include "script/script_runtime.h"
 #include "ac/spritecache.h"
+#include "util/datastream.h"
+#include "gfx/graphicsdriver.h"
+#include "gfx/bitmap.h"
 
+using AGS::Common::CDataStream;
+
+using AGS::Common::IBitmap;
+namespace Bitmap = AGS::Common::Bitmap;
 
 
 #if defined(BUILTIN_PLUGINS)
@@ -87,7 +94,7 @@ extern ccInstance *gameinst, *roominst;
 extern CharacterCache *charcache;
 extern ObjectCache objcache[MAX_INIT_SPR];
 extern MoveList *mls;
-extern block virtual_screen;
+extern IBitmap *virtual_screen;
 extern int numlines;
 extern char lines[MAXLINE][200];
 extern color palette[256];
@@ -161,19 +168,20 @@ const char* IAGSEngine::GetGraphicsDriverID()
     return gfxDriver->GetDriverID();
 }
 
-BITMAP * IAGSEngine::GetScreen () 
+BITMAP *IAGSEngine::GetScreen () 
 {
     if (!gfxDriver->UsesMemoryBackBuffer())
         quit("!This plugin is not compatible with the Direct3D driver.");
 
-    return screen;
+	return (BITMAP*)Bitmap::GetScreenBitmap()->GetBitmapObject();
 }
-BITMAP * IAGSEngine::GetVirtualScreen () 
+BITMAP *IAGSEngine::GetVirtualScreen () 
 {
     if (!gfxDriver->UsesMemoryBackBuffer())
         quit("!This plugin is not compatible with the Direct3D driver.");
 
-    return gfxDriver->GetMemoryBackBuffer();
+	// [IKM] Aaahh... this is very dangerous, but what can we do?
+	return (BITMAP*)gfxDriver->GetMemoryBackBuffer()->GetBitmapObject();
 }
 void IAGSEngine::RequestEventHook (int32 event) {
     if (event >= AGSE_TOOHIGH) 
@@ -239,7 +247,7 @@ unsigned char ** IAGSEngine::GetRawBitmapSurface (BITMAP *bmp) {
         quit("!IAGSEngine::GetRawBitmapSurface: invalid bitmap for access to surface");
     acquire_bitmap (bmp);
 
-    if (bmp == virtual_screen)
+	if (bmp == virtual_screen->GetBitmapObject())
         plugins[this->pluginId].invalidatedRegion = 0;
 
     return bmp->line;
@@ -247,7 +255,7 @@ unsigned char ** IAGSEngine::GetRawBitmapSurface (BITMAP *bmp) {
 void IAGSEngine::ReleaseBitmapSurface (BITMAP *bmp) {
     release_bitmap (bmp);
 
-    if (bmp == virtual_screen) {
+	if (bmp == virtual_screen->GetBitmapObject()) {
         // plugin does not manaually invalidate stuff, so
         // we must invalidate the whole screen to be safe
         if (!plugins[this->pluginId].invalidatedRegion)
@@ -268,7 +276,7 @@ int IAGSEngine::GetCurrentBackground () {
     return play.bg_frame;
 }
 BITMAP *IAGSEngine::GetBackgroundScene (int32 index) {
-    return thisroom.ebscene[index];
+    return (BITMAP*)thisroom.ebscene[index]->GetBitmapObject();
 }
 void IAGSEngine::GetBitmapDimensions (BITMAP *bmp, int32 *width, int32 *height, int32 *coldepth) {
     if (bmp == NULL)
@@ -281,6 +289,8 @@ void IAGSEngine::GetBitmapDimensions (BITMAP *bmp, int32 *width, int32 *height, 
     if (coldepth != NULL)
         coldepth[0] = bitmap_color_depth(bmp);
 }
+// [IKM] Interesting, why does AGS need those two functions?
+// Can it be that it was planned to change implementation in the future?
 int IAGSEngine::FRead (void *buffer, int32 len, int32 handle) {
     return fread (buffer, 1, len, (FILE*)handle);
 }
@@ -299,21 +309,22 @@ void IAGSEngine::DrawTextWrapped (int32 xx, int32 yy, int32 wid, int32 font, int
         draw_and_invalidate_text(xx, yy + texthit*i, font, lines[i]);
 }
 void IAGSEngine::SetVirtualScreen (BITMAP *bmp) {
-    wsetscreen (bmp);
+	// [IKM] Very, very dangerous :'(
+	wsetscreen_raw (bmp);
 }
 int IAGSEngine::LookupParserWord (const char *word) {
     return find_word_in_dictionary ((char*)word);
 }
 void IAGSEngine::BlitBitmap (int32 x, int32 y, BITMAP *bmp, int32 masked) {
-    wputblock (x, y, bmp, masked);
+    wputblock_raw (x, y, bmp, masked);
     invalidate_rect(x, y, x + bmp->w, y + bmp->h);
 }
 void IAGSEngine::BlitSpriteTranslucent(int32 x, int32 y, BITMAP *bmp, int32 trans) {
     set_trans_blender(0, 0, 0, trans);
-    draw_trans_sprite(abuf, bmp, x, y);
+	draw_trans_sprite((BITMAP*)abuf->GetBitmapObject(), bmp, x, y);
 }
 void IAGSEngine::BlitSpriteRotated(int32 x, int32 y, BITMAP *bmp, int32 angle) {
-    rotate_sprite(abuf, bmp, x, y, itofix(angle));
+    rotate_sprite((BITMAP*)abuf->GetBitmapObject(), bmp, x, y, itofix(angle));
 }
 
 extern void domouse(int);
@@ -378,6 +389,9 @@ AGSObject *IAGSEngine::GetObject (int32 num) {
     return (AGSObject*)&croom->obj[num];
 }
 BITMAP *IAGSEngine::CreateBlankBitmap (int32 width, int32 height, int32 coldep) {
+	// [IKM] We should not create IBitmap object here, because
+	// a) we are returning raw allegro bitmap and therefore loosing control over it
+	// b) plugin won't use IBitmap anyway
     BITMAP *tempb = create_bitmap_ex(coldep, width, height);
     clear_to_color(tempb, bitmap_mask_color(tempb));
     return tempb;
@@ -387,17 +401,17 @@ void IAGSEngine::FreeBitmap (BITMAP *tofree) {
         destroy_bitmap (tofree);
 }
 BITMAP *IAGSEngine::GetSpriteGraphic (int32 num) {
-    return spriteset[num];
+    return (BITMAP*)spriteset[num]->GetBitmapObject();
 }
 BITMAP *IAGSEngine::GetRoomMask (int32 index) {
     if (index == MASK_WALKABLE)
-        return thisroom.walls;
+        return (BITMAP*)thisroom.walls->GetBitmapObject();
     else if (index == MASK_WALKBEHIND)
-        return thisroom.object;
+        return (BITMAP*)thisroom.object->GetBitmapObject();
     else if (index == MASK_HOTSPOT)
-        return thisroom.lookat;
+        return (BITMAP*)thisroom.lookat->GetBitmapObject();
     else if (index == MASK_REGIONS)
-        return thisroom.regions;
+        return (BITMAP*)thisroom.regions->GetBitmapObject();
     else
         quit("!IAGSEngine::GetRoomMask: invalid mask requested");
     return NULL;
@@ -541,11 +555,11 @@ int IAGSEngine::CreateDynamicSprite(int32 coldepth, int32 width, int32 height) {
         quit("!IAGSEngine::CreateDynamicSprite: invalid width/height requested by plugin");
 
     // resize the sprite to the requested size
-    block newPic = create_bitmap_ex(coldepth, width, height);
+    IBitmap *newPic = Bitmap::CreateBitmap(width, height, coldepth);
     if (newPic == NULL)
         return 0;
 
-    clear_to_color(newPic, bitmap_mask_color(newPic));
+    newPic->Clear(newPic->GetMaskColor());
 
     // add it into the sprite set
     add_dynamic_sprite(gotSlot, newPic);
@@ -589,7 +603,7 @@ void IAGSEngine::NotifySpriteUpdated(int32 slot) {
     // wipe the character cache when we change rooms
     for (ff = 0; ff < game.numcharacters; ff++) {
         if ((charcache[ff].inUse) && (charcache[ff].sppic == slot)) {
-            destroy_bitmap (charcache[ff].image);
+            delete charcache[ff].image;
             charcache[ff].image = NULL;
             charcache[ff].inUse = 0;
         }
@@ -598,7 +612,7 @@ void IAGSEngine::NotifySpriteUpdated(int32 slot) {
     // clear the object cache
     for (ff = 0; ff < MAX_INIT_SPR; ff++) {
         if ((objcache[ff].image != NULL) && (objcache[ff].sppic == slot)) {
-            destroy_bitmap (objcache[ff].image);
+            delete objcache[ff].image;
             objcache[ff].image = NULL;
         }
     }
@@ -875,25 +889,29 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
     return false;
 }
 
-void pl_read_plugins_from_disk (FILE *iii) {
-    if (getw(iii) != 1)
+#include "util/datastream.h"
+
+using AGS::Common::CDataStream;
+
+void pl_read_plugins_from_disk (CDataStream *in) {
+    if (in->ReadInt32() != 1)
         quit("ERROR: unable to load game, invalid version of plugin data");
 
     int a, datasize;
     char buffer[200];
-    numPlugins = getw(iii);
+    numPlugins = in->ReadInt32();
 
     if (numPlugins > MAXPLUGINS)
         quit("Too many plugins used by this game");
 
     for (a = 0; a < numPlugins; a++) {
         // read the plugin name
-        fgetstring (buffer, iii);
-        datasize = getw(iii);
+        fgetstring (buffer, in);
+        datasize = in->ReadInt32();
 
         if (buffer[strlen(buffer) - 1] == '!') {
             // editor-only plugin, ignore it
-            fseek(iii, datasize, SEEK_CUR);
+            in->Seek(Common::kSeekCurrent, datasize);
             a--;
             numPlugins--;
             continue;
@@ -1054,7 +1072,7 @@ void pl_read_plugins_from_disk (FILE *iii) {
 
         if (datasize > 0) {
             apl->savedata = (char*)malloc(datasize);
-            fread (apl->savedata, datasize, 1, iii);
+            in->Read (apl->savedata, datasize);
         }
         apl->savedatasize = datasize;
         apl->eiface.pluginId = a;

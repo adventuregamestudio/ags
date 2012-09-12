@@ -37,13 +37,13 @@ void fwrite_script(ccScript*scri, DataStream *out) {
     if (scri->globaldatasize > 0)
         out->WriteArray(scri->globaldata,scri->globaldatasize,1);
     if (scri->codesize > 0)
-        out->WriteArrayOfIntPtr32((intptr_var_t*)scri->code,scri->codesize);
+        out->WriteArrayOfIntPtr32((intptr_t*)scri->code,scri->codesize);
     if (scri->stringssize > 0)
         out->WriteArray(scri->strings,scri->stringssize,1);
     out->WriteInt32(scri->numfixups);
     if (scri->numfixups > 0) {
         out->WriteArray(scri->fixuptypes,scri->numfixups,1);
-        out->WriteArrayOfIntPtr32((intptr_var_t*)scri->fixups,scri->numfixups);
+        out->WriteArrayOfIntPtr32((intptr_t*)scri->fixups,scri->numfixups);
     }
     out->WriteInt32(scri->numimports);
     for (n=0;n<scri->numimports;n++)
@@ -98,7 +98,7 @@ ccScript *fread_script(DataStream *in)
 
     // 64 bit: Read code into 8 byte array, necessary for being able to perform
     // relocations on the references.
-    in->ReadArrayOfIntPtr32((intptr_var_t*)scri->code, scri->codesize);
+    in->ReadArrayOfIntPtr32((intptr_t*)scri->code, scri->codesize);
     //int i;
     //for (i = 0; i < scri->codesize; i++)
     //  scri->code[i] = in->ReadInt32();
@@ -122,7 +122,7 @@ ccScript *fread_script(DataStream *in)
     in->Read(scri->fixuptypes, scri->numfixups);
 
     // 64 bit: Read fixups into 8 byte array too
-    in->ReadArrayOfIntPtr32((intptr_var_t*)scri->fixups, scri->numfixups);
+    in->ReadArrayOfIntPtr32((intptr_t*)scri->fixups, scri->numfixups);
     //int i;
     //for (i = 0; i < scri->numfixups; i++)
     //  scri->fixups[i] = in->ReadInt32();

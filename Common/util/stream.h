@@ -42,13 +42,13 @@ public:
 
     // Returns number of bytes read, or -1 if the end of stream was reached
     virtual int     Read(void *buffer, int size)        = 0;
-    // Returns a value of next byte read from stream cast to int or,
+    // Returns a value of next (unsigned) byte read from stream cast to int or,
     // or -1 if the end of stream was reached
     virtual int     ReadByte()                          = 0;
     // Returns number of bytes written, or -1 if the end of stream was reached
     virtual int     Write(const void *buffer, int size) = 0;
     // Returns value of byte written or -1 if the end of stream was reached
-    virtual int     WriteByte(byte b)                   = 0;
+    virtual int     WriteByte(uint8_t b)                = 0;
     virtual int     Seek(StreamSeek seek, int pos)      = 0;
 };
 

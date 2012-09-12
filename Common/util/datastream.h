@@ -93,10 +93,10 @@ public:
             ReadAndConvertArrayOfInt64(buffer, count) : ReadArray(buffer, sizeof(int64_t), count);
     }
     // Read array of pointers of build-dependent size
-    int ReadArrayOfIntPtr(intptr_var_t *buffer, int count);
+    int ReadArrayOfIntPtr(intptr_t *buffer, int count);
     // Helper function for easier compatibility with 64-bit platforms
     // reads 32-bit values and stores them in intptr_t array
-    int ReadArrayOfIntPtr32(intptr_var_t *buffer, int count);
+    int ReadArrayOfIntPtr32(intptr_t *buffer, int count);
 
     inline int WriteArrayOfInt8(const int8_t *buffer, int count)
     {
@@ -118,10 +118,10 @@ public:
             WriteAndConvertArrayOfInt64(buffer, count) : WriteArray(buffer, sizeof(int64_t), count);
     }
     // Write array of pointers of build-dependent size
-    int WriteArrayOfIntPtr(const intptr_var_t *buffer, int count);
+    int WriteArrayOfIntPtr(const intptr_t *buffer, int count);
     // Helper function for easier compatibility with 64-bit platforms,
     // writes intptr_t array elements as 32-bit values
-    int WriteArrayOfIntPtr32(const intptr_var_t *buffer, int count);
+    int WriteArrayOfIntPtr32(const intptr_t *buffer, int count);
 
     // Helper methods for reading and writing null-terminated string,
     // reading implies that string length is initially unknown.

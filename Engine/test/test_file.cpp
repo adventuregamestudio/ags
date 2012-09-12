@@ -55,7 +55,7 @@ void Test_File()
 
     out->WriteInt32(20);
 
-    intptr_var_t ptr32_array_out[4];
+    intptr_t ptr32_array_out[4];
     ptr32_array_out[0] = 0xABCDABCD;
     ptr32_array_out[1] = 0xFEDCFEDC;
     ptr32_array_out[2] = 0xFEEDBEEF;
@@ -89,7 +89,7 @@ void Test_File()
 
     int32_t int32val    = in->ReadInt32();
 
-    intptr_var_t ptr32_array_in[4];
+    intptr_t ptr32_array_in[4];
     in->ReadArrayOfIntPtr32(ptr32_array_in, 4);
 
     delete in;

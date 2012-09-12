@@ -106,12 +106,12 @@ int AlignedStream::Seek(StreamSeek seek, int pos)
 
 int AlignedStream::ReadByte()
 {
-    byte b = 0;
+    uint8_t b = 0;
     if (_stream)
     {
-        ReadPadding(sizeof(byte));
+        ReadPadding(sizeof(uint8_t));
         b = _stream->ReadByte();
-        _block += sizeof(byte);
+        _block += sizeof(uint8_t);
     }
     return b;
 }
@@ -188,13 +188,13 @@ String AlignedStream::ReadString(int max_chars)
     return "";
 }
 
-int AlignedStream::WriteByte(byte b)
+int AlignedStream::WriteByte(uint8_t b)
 {
     if (_stream)
     {
-        WritePadding(sizeof(byte));
+        WritePadding(sizeof(uint8_t));
         b = _stream->WriteByte(b);
-        _block += sizeof(byte);
+        _block += sizeof(uint8_t);
         return b;
     }
     return 0;

@@ -6,7 +6,6 @@
 #include "platform/base/agsplatformdriver.h"
 
 #if defined(WINDOWS_VERSION)
-#undef byte // fix to prevent conflicts with AGS byte
 #include <winalleg.h>
 #include <allegro/platform/aintwin.h>
 #include "gfx/ali3d.h"

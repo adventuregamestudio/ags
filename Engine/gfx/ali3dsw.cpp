@@ -32,7 +32,6 @@ using namespace AGS; // FIXME later
 #endif
 
 #ifdef _WIN32
-#undef byte // fix to prevent conflicts with AGS byte
 #include <winalleg.h>
 extern int dxmedia_play_video (const char*, bool, int, int);
 #include <ddraw.h>

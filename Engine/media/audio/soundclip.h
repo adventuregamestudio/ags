@@ -21,7 +21,6 @@
 #include <pthread.h>
 #elif defined(WINDOWS_VERSION)
 #define BITMAP WINDOWS_BITMAP   // std fix for possible conflict with allegro
-#undef byte // FIXME ugly temp fix to prevent conflict with windows declarations
 #include <windows.h>
 #undef BITMAP
 #endif

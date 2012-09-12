@@ -133,12 +133,12 @@ int FileStream::Read(void *buffer, int32_t size)
 {
     if (CanRead())
     {
-        return fread(buffer, sizeof(byte), size, _file);
+        return fread(buffer, sizeof(uint8_t), size, _file);
     }
     return 0;
 }
 
-int FileStream::WriteByte(byte val)
+int FileStream::WriteByte(uint8_t val)
 {
     if (CanWrite())
     {
@@ -178,7 +178,7 @@ int FileStream::Write(const void *buffer, int size)
 {
     if (CanWrite())
     {
-        return fwrite(buffer, sizeof(byte), size, _file);
+        return fwrite(buffer, sizeof(uint8_t), size, _file);
     }
     return 0;
 }

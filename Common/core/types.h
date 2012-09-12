@@ -57,27 +57,4 @@
 
 #endif // WINDOWS_VERSION
 
-// NOTE: if you get errors when compiling windows C headers related to 'byte'
-// symbol, ensure Windows headers are included BEFORE the AGS types.h, so that
-// AGS simply redefine byte symbol.
-#define byte         unsigned char
-
-//#define TEST_64BIT
-
-// special type for debugging 64-bit pointers on 32-bit build
-#if defined (AGS_64BIT)
-
-#define intptr_var_t   intptr_t
-
-#else // AGS_32BIT
-
-#if defined TEST_64BIT
-#define intptr_var_t   int64_t
-#else
-#define intptr_var_t   intptr_t
-#endif
-
-#endif // AGS_32BIT
-
-
 #endif // __AGS_CN_CORE__TYPES_H

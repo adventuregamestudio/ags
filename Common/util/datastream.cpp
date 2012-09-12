@@ -83,7 +83,7 @@ int DataStream::WriteString(const String &str)
     return 0;
 }
 
-int DataStream::ReadArrayOfIntPtr(intptr_var_t *buffer, int count)
+int DataStream::ReadArrayOfIntPtr(intptr_t *buffer, int count)
 {
 #if defined (AGS_64BIT) || defined (TEST_64BIT)
     return MustSwapBytes() ? ReadAndConvertArrayOfInt64(buffer, count) : ReadArrayOfInt64(buffer, count);
@@ -92,7 +92,7 @@ int DataStream::ReadArrayOfIntPtr(intptr_var_t *buffer, int count)
 #endif
 }
 
-int DataStream::ReadArrayOfIntPtr32(intptr_var_t *buffer, int count)
+int DataStream::ReadArrayOfIntPtr32(intptr_t *buffer, int count)
 {
     if (!CanRead())
     {
@@ -135,7 +135,7 @@ int DataStream::ReadArrayOfIntPtr32(intptr_var_t *buffer, int count)
     return count;
 }
 
-int DataStream::WriteArrayOfIntPtr(const intptr_var_t *buffer, int count)
+int DataStream::WriteArrayOfIntPtr(const intptr_t *buffer, int count)
 {
 #if defined (AGS_64BIT) || defined (TEST_64BIT)
     return MustSwapBytes() ? WriteAndConvertArrayOfInt64(buffer, count) : WriteArrayOfInt64(buffer, count);
@@ -144,7 +144,7 @@ int DataStream::WriteArrayOfIntPtr(const intptr_var_t *buffer, int count)
 #endif
 }
 
-int DataStream::WriteArrayOfIntPtr32(const intptr_var_t *buffer, int count)
+int DataStream::WriteArrayOfIntPtr32(const intptr_t *buffer, int count)
 {
     if (!CanWrite())
     {

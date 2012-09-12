@@ -114,8 +114,21 @@ void resetRoomStatuses()
             if ((room_statuses[i]->tsdata != NULL) && (room_statuses[i]->tsdatasize > 0))
                 free(room_statuses[i]->tsdata);
 
-            delete room_statuses[i];
-            room_statuses[i] = NULL;
+            // Don't delete the status on 2.x. The status struct contains NewInteraction
+            // pointer that are also referenced in the current room struct.
+            // If they are freed here this will lead to an access violation when the
+            // room unloading function tries to frees them.
+            if (loaded_game_file_version <= 32)
+            {
+                room_statuses[i]->tsdatasize = 0;
+                room_statuses[i]->tsdata = 0;
+                room_statuses[i]->beenhere = 0;
+            }
+            else
+            {
+                delete room_statuses[i];
+                room_statuses[i] = NULL;
+            }
         }
     }
 }

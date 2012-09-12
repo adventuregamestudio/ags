@@ -20,6 +20,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Ports", "Ports", "{4D28FFA8-F8AD-4F34-B908-F6E5BEDE8272}"
 	ProjectSection(SolutionItems) = preProject
 		..\Engine\Makefile = ..\Engine\Makefile
+		..\Engine\Makefile-defs.linux = ..\Engine\Makefile-defs.linux
+		..\Engine\Makefile-defs.osx = ..\Engine\Makefile-defs.osx
+		..\Engine\Makefile-objs = ..\Engine\Makefile-objs
 		..\Engine\Makefile.psp = ..\Engine\Makefile.psp
 	EndProjectSection
 EndProject

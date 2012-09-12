@@ -105,6 +105,8 @@ bool isRoomStatusValid(int room)
     return (room_statuses[room] != NULL);
 }
 
+extern int loaded_game_file_version;
+
 void resetRoomStatuses()
 {
     for (int i = 0; i < MAX_ROOMS; i++)

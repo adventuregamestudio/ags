@@ -15,7 +15,7 @@ void AnimatingGUIButton::ReadFromFile(DataStream *in)
     speed = in->ReadInt16();
     repeat = in->ReadInt16();
     wait = in->ReadInt16();
-    in->Seek(Common::kSeekCurrent, 3);
+    in->Seek(Common::kSeekCurrent, 2);
 }
 
 void AnimatingGUIButton::WriteToFile(DataStream *out)
@@ -30,5 +30,5 @@ void AnimatingGUIButton::WriteToFile(DataStream *out)
     out->WriteInt16(speed);
     out->WriteInt16(repeat);
     out->WriteInt16(wait);
-    out->Write(padding, sizeof(char));
+    out->Write(padding, 2);
 }

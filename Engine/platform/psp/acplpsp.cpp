@@ -56,7 +56,7 @@ struct AGSPSP : AGSPlatformDriver {
   virtual void WriteConsole(const char*, ...);
   virtual void ReplaceSpecialPaths(const char *sourcePath, char *destPath);
   virtual void WriteDebugString(const char* texx, ...);
-  virtual void ReadPluginsFromDisk(FILE *iii);
+  virtual void ReadPluginsFromDisk(AGS::Common::DataStream *iii);
   virtual void StartPlugins();
   virtual void ShutdownPlugins();
   virtual int RunPluginHooks(int event, long data);
@@ -562,7 +562,7 @@ void AGSPSP::ShutdownCDPlayer() {
 }
 
 
-void AGSPSP::ReadPluginsFromDisk(FILE *iii) {
+void AGSPSP::ReadPluginsFromDisk(AGS::Common::DataStream *iii) {
   pl_read_plugins_from_disk(iii);
 }
 

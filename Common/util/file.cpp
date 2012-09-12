@@ -1,4 +1,8 @@
 
+#if !defined(WINDOWS_VERSION)
+#include <unistd.h> // for unlink()
+#endif
+
 #include <errno.h>
 #include "util/file.h"
 
@@ -62,7 +66,11 @@ bool File::DeleteFile(const String &filename)
     if (unlink(filename) != 0)
     {
         int err;
+#if defined(WINDOWS_VERSION)
         _get_errno(&err);
+#else
+        err = errno;
+#endif
         if (err == EACCES)
         {
             return false;

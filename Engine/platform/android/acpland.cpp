@@ -44,7 +44,7 @@ struct AGSAndroid : AGSPlatformDriver {
   virtual void WriteConsole(const char*, ...);
   virtual void ReplaceSpecialPaths(const char *sourcePath, char *destPath);
   virtual void WriteDebugString(const char* texx, ...);
-  virtual void ReadPluginsFromDisk(FILE *iii);
+  virtual void ReadPluginsFromDisk(AGS::Common::DataStream *iii);
   virtual void StartPlugins();
   virtual void ShutdownPlugins();
   virtual int RunPluginHooks(int event, int data);
@@ -763,7 +763,7 @@ void AGSAndroid::ShutdownCDPlayer() {
   //cd_exit();
 }
 
-void AGSAndroid::ReadPluginsFromDisk(FILE *iii) {
+void AGSAndroid::ReadPluginsFromDisk(AGS::Common::DataStream *iii) {
   pl_read_plugins_from_disk(iii);
 }
 

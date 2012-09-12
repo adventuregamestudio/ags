@@ -31,7 +31,7 @@ struct AGSLinux : AGSPlatformDriver {
   virtual void WriteConsole(const char*, ...);
   virtual void WriteDebugString(const char* texx, ...);
   virtual void ReplaceSpecialPaths(const char*, char*);
-  virtual void ReadPluginsFromDisk(FILE *iii);
+  virtual void ReadPluginsFromDisk(AGS::Common::DataStream *iii);
   virtual void StartPlugins();
   virtual void ShutdownPlugins();
   virtual int RunPluginHooks(int event, long data);
@@ -153,7 +153,7 @@ void AGSLinux::ReplaceSpecialPaths(const char *sourcePath, char *destPath) {
   }
 }
 
-void AGSLinux::ReadPluginsFromDisk(FILE *iii) {
+void AGSLinux::ReadPluginsFromDisk(AGS::Common::DataStream *iii) {
   pl_read_plugins_from_disk(iii);
 }
 

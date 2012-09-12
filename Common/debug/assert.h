@@ -10,6 +10,8 @@
 #ifdef _DEBUG
 
 // TODO: revise this later (add platform-specific output maybe?)
+#if defined(WINDOWS_VERSION)
+
 inline void assert(bool expr)
 {
     if (!expr) {
@@ -27,6 +29,12 @@ inline void assert(bool expr, const char *err_msg)
         }
     }
 }
+
+#else // !WINDOWS_VERSION
+
+#include <assert.h>
+
+#endif
 
 #else // !_DEBUG
 

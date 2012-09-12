@@ -53,6 +53,13 @@ PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC glFramebufferRenderbufferEXT = 0;
 #elif defined(ANDROID_VERSION) || defined(LINUX_VERSION)
 #include "gfx/ali3d.h"
 #include <GLES/gl.h>
+#include "gfx/bitmap.h"
+#include "gfx/ddb.h"
+#include "gfx/graphicsdriver.h"
+
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
+using namespace AGS; // FIXME later
 
 #ifndef GL_GLEXT_PROTOTYPES
 #define GL_GLEXT_PROTOTYPES
@@ -118,6 +125,13 @@ const char* fbo_extension_string = "GL_OES_framebuffer_object";
 #elif defined(IOS_VERSION)
 #include "gfx/ali3d.h"
 #include <OpenGLES/ES1/gl.h>
+#include "gfx/bitmap.h"
+#include "gfx/ddb.h"
+#include "gfx/graphicsdriver.h"
+
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
+using namespace AGS; // FIXME later
 
 #ifndef GL_GLEXT_PROTOTYPES
 #define GL_GLEXT_PROTOTYPES

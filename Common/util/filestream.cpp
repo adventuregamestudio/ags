@@ -1,5 +1,8 @@
 
+#if defined(WINDOWS_VERSION)
 #include <io.h>
+#endif
+
 #include <stdio.h>
 #include "util/filestream.h"
 #include "util/math.h"
@@ -10,7 +13,7 @@ namespace Common
 {
 
 FileStream::FileStream(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode)
-    : DataStream(kDefaultSystemEndianess, kDefaultSystemEndianess)
+    : DataStream(kDefaultSystemEndianess, kLittleEndian)
     , _file(NULL)
     , _openMode(open_mode)
     , _workMode(work_mode)

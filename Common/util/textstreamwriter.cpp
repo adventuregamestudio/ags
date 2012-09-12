@@ -4,6 +4,10 @@
 #include "util/textstreamwriter.h"
 #include "util/stream.h"
 
+#if !defined(WINDOWS_VERSION)
+#define stricmp strcasecmp
+#endif
+
 namespace AGS
 {
 namespace Common
@@ -88,7 +92,8 @@ void TextStreamWriter::WriteFormat(const String &fmt, ...)
     String str;
     va_list argptr;
     va_start(argptr, fmt);
-    int need_length = _vscprintf(fmt.GetCStr(), argptr);
+    int need_length = vsnprintf(NULL, 0, fmt.GetCStr(), argptr);
+    va_start(argptr, fmt); // Reset argptr
     char *buffer    = str.GetBuffer(need_length);
     vsprintf(buffer, fmt.GetCStr(), argptr);
     va_end(argptr);

@@ -39,6 +39,7 @@
 //-----------------------------------------------------------------------------
 
 #include "script/ex_defines.h"
+#include "util/file.h" // for enum FileOpenMode
 
 //-------------------------------------------------------------
 void register_global_script_functions();

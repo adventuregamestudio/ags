@@ -17,12 +17,24 @@
 
 #if !defined (WINDOWS_VERSION)
 #include <stdint.h>
-#else  // WINDOWS_VERSION
+#include <cstdlib> // for size_t
+#include <limits.h> // for _WORDSIZE
+#include <endian.h>
+#endif
 
-#if defined (_WIN64) && !defined (AGS_64BIT)
+// Detect 64 bit environment
+#if defined (_WIN64) || (__WORDSIZE == 64)
 #define AGS_64BIT
 #endif
 
+// Detect endianess
+// The logic is inverted on purpose so that it assumes
+// little endian if the defines have not been set
+#if !(__BYTE_ORDER == __LITTLE_ENDIAN)
+#define AGS_BIGENDIAN
+#endif
+
+#if defined(WINDOWS_VERSION)
 #define int8_t       signed char
 #define uint8_t      unsigned char
 #define int16_t      signed short
@@ -43,12 +55,12 @@
 #define _INTPTR_T_DEFINED
 #define _UINTPTR_T_DEFINED
 
+#endif // WINDOWS_VERSION
+
 // NOTE: if you get errors when compiling windows C headers related to 'byte'
 // symbol, ensure Windows headers are included BEFORE the AGS types.h, so that
 // AGS simply redefine byte symbol.
 #define byte         unsigned char
-
-#endif // WINDOWS_VERSION
 
 //#define TEST_64BIT
 

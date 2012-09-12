@@ -12,7 +12,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
-#include "debug/Out.h"
+#include "debug/out.h"
 #include "debug/outputtarget.h"
 
 #define STD_BUFFER_SIZE 3000

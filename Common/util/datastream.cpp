@@ -1,4 +1,5 @@
 
+#include "core/types.h"
 #include "util/datastream.h"
 #include "util/math.h"
 
@@ -101,7 +102,7 @@ int DataStream::ReadArrayOfIntPtr32(intptr_var_t *buffer, int count)
     // Read 32-bit values to array; this will always be safe,
     // because array is either 32-bit or 64-bit; in the last
     // case only first half of array will be used.
-    count = ReadArrayOfInt32(buffer, count);
+    count = ReadArrayOfInt32((int32_t*)buffer, count);
 
     if (count < 0)
     {

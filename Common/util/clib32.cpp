@@ -17,6 +17,7 @@
 #include <string.h>
 #include "util/file.h"
 #include "util/datastream.h"
+#include "util/bbop.h"
 
 using AGS::Common::DataStream;
 
@@ -64,14 +65,6 @@ char clbuff[20];
 const int RAND_SEED_SALT = 9338638;  // must update editor agsnative.cpp if this changes
 #define MAX_FILES 10000
 #define MAXMULTIFILES 25
-
-#if defined(LINUX_VERSION) || defined(MAC_VERSION)
-static off_t filelength(int fd) {
-  struct stat st;
-  fstat(fd, &st);
-  return st.st_size;
-}
-#endif
 
 struct MultiFileLib
 {
@@ -162,6 +155,11 @@ extern "C"
 
       if (i < maxLength - 1)
         i++;
+      else
+      {
+        // Avoid an endless loop
+        break;
+      }
     }
   }
 
@@ -169,6 +167,11 @@ extern "C"
   {
     int numberRead;
     fread_data_enc(&numberRead, 4, 1, ci_s);
+
+#if defined(AGS_BIGENDIAN)
+    AGS::Common::BitByteOperations::SwapBytesInt32(numberRead);
+#endif
+
     return numberRead;
   }
 
@@ -191,9 +194,20 @@ extern "C"
     {
       fgetstring_enc(mfl->filenames[aa], ci_s, 100);
     }
-    fread_data_enc(&mfl->offset[0], sizeof(int), mfl->num_files, ci_s);
-    fread_data_enc(&mfl->length[0], sizeof(int), mfl->num_files, ci_s);
+
+    int i;
+    for (i = 0; i < mfl->num_files; i++)
+    {
+      mfl->offset[i] = getw_enc(ci_s);
+    }
+
+    for (i = 0; i < mfl->num_files; i++)
+    {
+      mfl->length[i] = getw_enc(ci_s);
+    }
+
     fread_data_enc(&mfl->file_datafile[0], 1, mfl->num_files, ci_s);
+
     return 0;
   }
 

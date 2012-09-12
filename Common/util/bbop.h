@@ -18,8 +18,11 @@ enum DataEndianess
 {
     kBigEndian,
     kLittleEndian,
-    // CHECKME later
+#if defined(AGS_BIGENDIAN)
+    kDefaultSystemEndianess = kBigEndian
+#else
     kDefaultSystemEndianess = kLittleEndian
+#endif
 };
 
 namespace BitByteOperations

@@ -35,6 +35,7 @@ void Test_File()
     out->WriteString("test.tmp");
 
     TTrickyAlignedData tricky_data_out;
+    memset(&tricky_data_out, 0xAA, sizeof(tricky_data_out));
     {
         tricky_data_out.a = 11;
         tricky_data_out.b = 12;
@@ -72,6 +73,7 @@ void Test_File()
     String str         = in->ReadString();
 
     TTrickyAlignedData tricky_data_in;
+    memset(&tricky_data_in, 0xAA, sizeof(tricky_data_out));
     {
         AlignedStream as(in, AGS::Common::kAligned_Read);
         tricky_data_in.a = as.ReadInt8();

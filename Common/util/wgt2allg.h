@@ -109,6 +109,8 @@ extern "C"
     extern int vesa_xres, vesa_yres;
     extern Common::Bitmap *abuf;
 
+// JJS: GFX_VGA define is unused in AGS but causes redifinition warnings
+/*
 #ifdef WINDOWS_VERSION
 #define GFX_VGA GFX_DIRECTX
 #endif
@@ -116,6 +118,7 @@ extern "C"
 #if defined(LINUX_VERSION) || defined(MAC_VERSION)
 #define GFX_VGA GFX_AUTODETECT
 #endif
+*/
 
     /*
     GCC from the Android NDK doesn't like allegro_init()

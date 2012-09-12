@@ -6,6 +6,10 @@
 #include "util/string.h"
 #include "util/math.h"
 
+#if !defined(WINDOWS_VERSION)
+#define stricmp strcasecmp
+#endif
+
 namespace AGS
 {
 namespace Common
@@ -191,7 +195,8 @@ void String::Format(const char *fcstr, ...)
     delete [] _cstr;
     va_list argptr;
     va_start(argptr, fcstr);
-    _length = _vscprintf(fcstr, argptr);
+    _length = vsnprintf(NULL, 0, fcstr, argptr);
+    va_start(argptr, fcstr); // Reset argptr
     _cstr = new char[_length + 1];
     vsprintf(_cstr, fcstr, argptr);
     _cstr[_length] = 0;
@@ -203,7 +208,8 @@ void String::Format(const char *fcstr, ...)
     String s;
     va_list argptr;
     va_start(argptr, fcstr);
-    s._length = _vscprintf(fcstr, argptr);
+    s._length = vsnprintf(NULL, 0, fcstr, argptr);
+    va_start(argptr, fcstr); // Reset argptr
     s._cstr = new char[s._length + 1];
     vsprintf(s._cstr, fcstr, argptr);
     s._cstr[s._length] = 0;

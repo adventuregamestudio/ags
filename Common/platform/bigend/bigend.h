@@ -14,7 +14,7 @@
 
 #ifdef ALLEGRO_BIG_ENDIAN
 
-#include <Allegro.h>
+#include <allegro.h>
 
 int         __int_swap_endian(int);
 short       __short_swap_endian(short);
@@ -37,7 +37,7 @@ size_t      __fwrite__lilendian(void const *, size_t size, size_t nmemb, FILE *)
 #define fread       __fread__bigendian
 #define fwrite      __fwrite__lilendian
 
-#endif  !__BIGEND_ORIGINAL_FILE_FUNCTIONS
+#endif  // !__BIGEND_ORIGINAL_FILE_FUNCTIONS
 
 #endif  // ALLEGRO_BIG_ENDIAN
 

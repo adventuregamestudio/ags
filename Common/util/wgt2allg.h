@@ -86,9 +86,9 @@ extern "C"
 
 //=============================================================================
 
-#ifdef USE_CLIB
-#include "util/clib32.h"
-#endif
+//#ifdef USE_CLIB
+//#include "util/clib32.h"
+//#endif
 
 #ifdef __cplusplus
 extern "C"

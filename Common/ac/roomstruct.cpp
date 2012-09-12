@@ -7,9 +7,9 @@
 #include "util/string_utils.h"      // fputstring, etc
 #include "util/compress.h"
 #include "util/file.h"
-#include "util/clib32.h"
 #include "util/datastream.h"
 #include "gfx/bitmap.h"
+#include "core/assetmanager.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -596,7 +596,7 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
 
   update_polled_stuff_if_runtime();
 
-  opty = clibfopen(files);
+  opty = Common::AssetManager::OpenAsset(files);
   if (opty == NULL) {
     char errbuffr[500];
     sprintf(errbuffr,"Load_room: Unable to load the room file '%s'\n"
@@ -697,7 +697,7 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
         fpos = load_lzw(opty, rstruc->ebscene[ct], rstruc->bpalettes[ct]);
         rstruc->ebscene[ct] = recalced;
       }
-//        opty = clibfopen(files, "rb");
+//        opty = Common::AssetManager::OpenAsset(files, "rb");
 //        Seek(opty, fpos, SEEK_SET);
     }
     else if (thisblock == BLOCKTYPE_PROPERTIES) {

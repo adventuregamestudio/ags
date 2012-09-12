@@ -10,6 +10,7 @@
 #include "ac/tree_map.h"
 #include "util/misc.h"
 #include "util/datastream.h"
+#include "core/assetmanager.h"
 
 using AGS::Common::DataStream;
 
@@ -42,7 +43,7 @@ bool init_translation (const char *lang) {
 
     transFileLoc = ci_find_file(usetup.data_files_dir, transFileName);
 
-    DataStream *language_file = clibfopen(transFileLoc);
+    DataStream *language_file = Common::AssetManager::OpenAsset(transFileLoc);
     free(transFileLoc);
 
     if (language_file == NULL) 
@@ -51,7 +52,7 @@ bool init_translation (const char *lang) {
         {
             // Just in case they're running in Debug, try compiled folder
             sprintf(transFileName, "Compiled\\%s.tra", lang);
-            language_file = clibfopen(transFileName);
+            language_file = Common::AssetManager::OpenAsset(transFileName);
         }
         if (language_file == NULL)
             return false;

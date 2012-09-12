@@ -13,7 +13,6 @@ bool ShouldAntiAliasText() { return (antiAliasFonts != 0); }
 
 int mousex, mousey;
 #include "util/wgt2allg.h"
-#include "util/clib32.h"
 #include "util/misc.h"
 #include "ac/spritecache.h"
 #include "ac/actiontype.h"
@@ -34,6 +33,7 @@ int mousex, mousey;
 #include "util/string_utils.h"    // fputstring, etc
 #include "util/filestream.h"
 #include "gfx/bitmap.h"
+#include "core/assetmanager.h"
 
 using AGS::Common::DataStream;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -375,22 +375,22 @@ int crop_sprite_edges(int numSprites, int *sprites, bool symmetric) {
 
 int extract_room_template_files(const char *templateFileName, int newRoomNumber) 
 {
-  if (csetlib((char*)templateFileName, "")) 
+  if (Common::AssetManager::SetDataFile((char*)templateFileName)) 
   {
     return 0;
   }
-  if (cliboffset((char*)ROOM_TEMPLATE_ID_FILE) < 1)
+  if (Common::AssetManager::GetAssetOffset((char*)ROOM_TEMPLATE_ID_FILE) < 1)
   {
-    csetlib(NULL, "");
+    Common::AssetManager::SetDataFile(NULL);
     return 0;
   }
 
-  int numFile = clibGetNumFiles();
+  int numFile = Common::AssetManager::GetAssetCount();
 
   for (int a = 0; a < numFile; a++) {
-    const char *thisFile = clibGetFileName(a);
+      const char *thisFile = Common::AssetManager::GetAssetFileByIndex(a);
     if (thisFile == NULL) {
-      csetlib(NULL, "");
+      Common::AssetManager::SetDataFile(NULL);
       return 0;
     }
 
@@ -398,7 +398,7 @@ int extract_room_template_files(const char *templateFileName, int newRoomNumber)
     if (stricmp(thisFile, ROOM_TEMPLATE_ID_FILE) == 0)
       continue;
 
-    DataStream *readin = clibfopen ((char*)thisFile);
+    DataStream *readin = Common::AssetManager::OpenAsset ((char*)thisFile);
     char outputName[MAX_PATH];
     const char *extension = strchr(thisFile, '.');
     sprintf(outputName, "room%d%s", newRoomNumber, extension);
@@ -407,10 +407,10 @@ int extract_room_template_files(const char *templateFileName, int newRoomNumber)
     {
       delete wrout;
       delete readin;
-      csetlib(NULL, "");
+      Common::AssetManager::SetDataFile(NULL);
       return 0;
     }
-    long size = clibfilesize((char*)thisFile);
+    long size = Common::AssetManager::GetAssetSize((char*)thisFile);
     char *membuff = (char*)malloc (size);
     readin->Read(membuff, size);
     wrout->Write (membuff, size );
@@ -419,29 +419,29 @@ int extract_room_template_files(const char *templateFileName, int newRoomNumber)
     free (membuff);
   }
 
-  csetlib(NULL, "");
+  Common::AssetManager::SetDataFile(NULL);
   return 1;
 }
 
 int extract_template_files(const char *templateFileName) 
 {
-  if (csetlib((char*)templateFileName, "")) 
+  if (Common::AssetManager::SetDataFile((char*)templateFileName)) 
   {
     return 0;
   }
   
-  if ((cliboffset((char*)old_editor_data_file) < 1) && (cliboffset((char*)new_editor_data_file) < 1))
+  if ((Common::AssetManager::GetAssetOffset((char*)old_editor_data_file) < 1) && (Common::AssetManager::GetAssetOffset((char*)new_editor_data_file) < 1))
   {
-    csetlib(NULL, "");
+    Common::AssetManager::SetDataFile(NULL);
     return 0;
   }
 
-  int numFile = clibGetNumFiles();
+  int numFile = Common::AssetManager::GetAssetCount();
 
   for (int a = 0; a < numFile; a++) {
-    const char *thisFile = clibGetFileName (a);
+    const char *thisFile = Common::AssetManager::GetAssetFileByIndex (a);
     if (thisFile == NULL) {
-      csetlib(NULL, "");
+      Common::AssetManager::SetDataFile(NULL);
       return 0;
     }
 
@@ -449,7 +449,7 @@ int extract_template_files(const char *templateFileName)
     if (stricmp(thisFile, TEMPLATE_LOCK_FILE) == 0)
       continue;
 
-    DataStream *readin = clibfopen ((char*)thisFile);
+    DataStream *readin = Common::AssetManager::OpenAsset ((char*)thisFile);
     DataStream *wrout = Common::File::CreateFile (thisFile);
     if ((wrout == NULL) && (strchr(thisFile, '\\') != NULL))
     {
@@ -462,10 +462,10 @@ int extract_template_files(const char *templateFileName)
     }
     if ((readin == NULL) || (wrout == NULL)) 
     {
-      csetlib(NULL, "");
+      Common::AssetManager::SetDataFile(NULL);
       return 0;
     }
-    long size = clibfilesize((char*)thisFile);
+    long size = Common::AssetManager::GetAssetSize((char*)thisFile);
     char *membuff = (char*)malloc (size);
     readin->Read (membuff, size);
     wrout->Write (membuff, size);
@@ -474,16 +474,17 @@ int extract_template_files(const char *templateFileName)
     free (membuff);
   }
 
-  csetlib(NULL, "");
+  Common::AssetManager::SetDataFile(NULL);
   return 1;
 }
 
 void extract_icon_from_template(char *iconName, char **iconDataBuffer, long *bufferSize)
 {
   // make sure we get the icon from the file
-  cfopenpriority = 1;
-  long sizey = clibfilesize(iconName);
-  DataStream* inpu = clibfopen (iconName);
+  Common::AssetManager::SetSearchPriority(Common::kAssetPriority_Data);
+  //cfopenpriority = 1; // PR_DATAFIRST
+  long sizey = Common::AssetManager::GetAssetSize(iconName);
+  DataStream* inpu = Common::AssetManager::OpenAsset (iconName);
   if ((inpu != NULL) && (sizey > 0))
   {
     char *iconbuffer = (char*)malloc(sizey);
@@ -498,51 +499,52 @@ void extract_icon_from_template(char *iconName, char **iconDataBuffer, long *buf
     *bufferSize = 0;
   }
   // restore to normal setting after NewGameChooser changes it
-  cfopenpriority = 2;
+  Common::AssetManager::SetSearchPriority(Common::kAssetPriority_File);
+  //cfopenpriority = 2; // PR_FILEFIRST
 }
 
 int load_template_file(const char *fileName, char **iconDataBuffer, long *iconDataSize, bool isRoomTemplate)
 {
-  if (csetlib((char*)fileName, "") == 0)
+  if (Common::AssetManager::SetDataFile((char*)fileName) == 0)
   {
     if (isRoomTemplate)
     {
-      if (cliboffset((char*)ROOM_TEMPLATE_ID_FILE) > 0)
+      if (Common::AssetManager::GetAssetOffset((char*)ROOM_TEMPLATE_ID_FILE) > 0)
       {
-        DataStream *inpu = clibfopen((char*)ROOM_TEMPLATE_ID_FILE);
+        DataStream *inpu = Common::AssetManager::OpenAsset((char*)ROOM_TEMPLATE_ID_FILE);
         if (inpu->ReadInt32() != ROOM_TEMPLATE_ID_FILE_SIGNATURE)
         {
           delete inpu;
-		  csetlib(NULL, "");
+		  Common::AssetManager::SetDataFile(NULL);
           return 0;
         }
         int roomNumber = inpu->ReadInt32();
         delete inpu;
         char iconName[MAX_PATH];
         sprintf(iconName, "room%d.ico", roomNumber);
-        if (cliboffset(iconName) > 0) 
+        if (Common::AssetManager::GetAssetOffset(iconName) > 0) 
         {
           extract_icon_from_template(iconName, iconDataBuffer, iconDataSize);
         }
-		    csetlib(NULL, "");
+		    Common::AssetManager::SetDataFile(NULL);
         return 1;
       }
-	  csetlib(NULL, "");
+	  Common::AssetManager::SetDataFile(NULL);
       return 0;
     }
-	  else if ((cliboffset((char*)old_editor_data_file) > 0) || (cliboffset((char*)new_editor_data_file) > 0))
+	  else if ((Common::AssetManager::GetAssetOffset((char*)old_editor_data_file) > 0) || (Common::AssetManager::GetAssetOffset((char*)new_editor_data_file) > 0))
 	  {
-      const char *oriname = clibgetoriginalfilename();
+      const char *oriname = Common::AssetManager::GetOriginalDataFile();
       if ((strstr(oriname, ".exe") != NULL) ||
           (strstr(oriname, ".dat") != NULL) ||
           (strstr(oriname, ".ags") != NULL)) 
       {
         // wasn't originally meant as a template
-		  csetlib(NULL, "");
+		  Common::AssetManager::SetDataFile(NULL);
 	      return 0;
       }
 
-	    DataStream *inpu = clibfopen((char*)old_editor_main_game_file);
+	    DataStream *inpu = Common::AssetManager::OpenAsset((char*)old_editor_main_game_file);
 	    if (inpu != NULL) 
 	    {
 		    inpu->Seek(Common::kSeekCurrent, 30);
@@ -551,21 +553,21 @@ int load_template_file(const char *fileName, char **iconDataBuffer, long *iconDa
 		    if (gameVersion != 32)
 		    {
 			    // older than 2.72 template
-				csetlib(NULL, "");
+				Common::AssetManager::SetDataFile(NULL);
 			    return 0;
 		    }
 	    }
 
       int useIcon = 0;
       char *iconName = "template.ico";
-      if (cliboffset (iconName) < 1)
+      if (Common::AssetManager::GetAssetOffset (iconName) < 1)
         iconName = "user.ico";
       // the file is a CLIB file, so let's extract the icon to display
-      if (cliboffset (iconName) > 0) 
+      if (Common::AssetManager::GetAssetOffset (iconName) > 0) 
       {
         extract_icon_from_template(iconName, iconDataBuffer, iconDataSize);
       }
-	    csetlib(NULL, "");
+	    Common::AssetManager::SetDataFile(NULL);
       return 1;
     }
   }
@@ -1205,6 +1207,8 @@ void new_font () {
 
 bool initialize_native()
 {
+    Common::AssetManager::CreateInstance();
+
   set_uformat(U_ASCII);  // required to stop ALFONT screwing up text
 	install_allegro(SYSTEM_NONE, &errno, atexit);
 	//set_gdi_color_format();
@@ -1231,6 +1235,7 @@ void shutdown_native()
 {
   shutdown_font_renderer();
 	allegro_exit();
+    Common::AssetManager::DestroyInstance();
 }
 
 void drawBlockScaledAt (int hdc, Common::Bitmap *todraw ,int x, int y, int scaleFactor) {
@@ -2413,16 +2418,16 @@ DataStream* find_file_in_path(char *buffer, const char *fileName)
 {
 	char tomake[MAX_PATH];
 	strcpy(tomake, fileName);
-	DataStream* iii = clibfopen(tomake);
+	DataStream* iii = Common::AssetManager::OpenAsset(tomake);
 	if (iii == NULL) {
 	  // try in the Audio folder if not found
 	  sprintf(tomake, "AudioCache\\%s", fileName);
-	  iii = clibfopen(tomake);
+	  iii = Common::AssetManager::OpenAsset(tomake);
 	}
 	if (iii == NULL) {
 	  // no? maybe Speech then, templates include this
 	  sprintf(tomake, "Speech\\%s", fileName);
-	  iii = clibfopen(tomake);
+	  iii = Common::AssetManager::OpenAsset(tomake);
 	}
 
 	if (buffer != NULL)
@@ -2438,7 +2443,8 @@ const char* make_data_file(int numFiles, char * const*fileNames, long splitSize,
   char tomake[MAX_PATH];
   ourlib.num_data_files = 0;
   ourlib.num_files = numFiles;
-  cfopenpriority = 2;
+  Common::AssetManager::SetSearchPriority(Common::kAssetPriority_File);
+  //cfopenpriority = 2; // PR_FILEFIRST
 
   int currentDataFile = 0;
   long sizeSoFar = 0;
@@ -4172,7 +4178,7 @@ System::String ^load_room_script(System::String ^fileName)
 	char roomFileNameBuffer[MAX_PATH];
 	ConvertStringToCharArray(fileName, roomFileNameBuffer);
 
-	DataStream *opty = clibfopen(roomFileNameBuffer);
+	DataStream *opty = Common::AssetManager::OpenAsset(roomFileNameBuffer);
 	if (opty == NULL) throw gcnew AGSEditorException("Unable to open room file");
 
 	short version = opty->ReadInt16();

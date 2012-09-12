@@ -14,7 +14,7 @@
 #include "alfont.h"
 #endif
 
-#include "util/clib32.h"
+#include "core/assetmanager.h"
 #include "util/datastream.h"
 
 using AGS::Common::DataStream;
@@ -41,13 +41,13 @@ DataStream *fopen_shared(char *filnamm,
                           Common::FileOpenMode open_mode,
                           Common::FileWorkMode work_mode)
 {
-  return clibfopen(filnamm, open_mode, work_mode);
+  return Common::AssetManager::OpenAsset(filnamm, open_mode, work_mode);
 }
 
 int flength_shared(DataStream *ffi)
 {
-  // clibfopen will have set last_opened_size
-  return last_opened_size;
+  // Common::AssetManager::OpenAsset will have set Common::AssetManager::GetLastAssetSize()
+  return Common::AssetManager::GetLastAssetSize();
 }
 
 void set_font_outline(int font_number, int outline_type)

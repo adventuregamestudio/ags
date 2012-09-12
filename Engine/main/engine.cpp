@@ -48,6 +48,7 @@
 #include "util/filestream.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
+#include "core/assetmanager.h"
 
 using AGS::Common::DataStream;
 using AGS::Common::Bitmap;
@@ -255,13 +256,13 @@ int engine_init_game_data_external(int argc,char*argv[])
     }
 #endif
 
-    errcod=csetlib(game_file_name,"");
+    errcod=Common::AssetManager::SetDataFile(game_file_name);
     if (errcod) {
         //sprintf(gamefilenamebuf,"%s\\ac2game.ags",usetup.data_files_dir);
         free(game_file_name);
         game_file_name = ci_find_file(usetup.data_files_dir, "ac2game.ags");
 
-        errcod = csetlib(game_file_name,"");
+        errcod = Common::AssetManager::SetDataFile(game_file_name);
     }
 
     return RETURN_CONTINUE;
@@ -333,7 +334,7 @@ int engine_init_game_data(int argc,char*argv[])
     initialise_game_file_name();
     if (game_file_name == NULL) return EXIT_NORMAL;
 
-    errcod = csetlib(game_file_name,"");  // assume it's appended to exe
+    errcod = Common::AssetManager::SetDataFile(game_file_name);  // assume it's appended to exe
 
     our_eip = -194;
     //  char gamefilenamebuf[200];
@@ -446,12 +447,12 @@ int engine_init_speech()
 
             write_log_debug("Initializing speech vox");
 
-            //if (csetlib(useloc,"")!=0) {
-            if (csetlib(speech_file,"")!=0) {
+            //if (Common::AssetManager::SetDataFile(useloc,"")!=0) {
+            if (Common::AssetManager::SetDataFile(speech_file)!=0) {
                 platform->DisplayAlert("Unable to initialize speech sample file - check for corruption and that\nit belongs to this game.\n");
                 return EXIT_NORMAL;
             }
-            DataStream *speechsync = clibfopen("syncdata.dat");
+            DataStream *speechsync = Common::AssetManager::OpenAsset("syncdata.dat");
             if (speechsync != NULL) {
                 // this game has voice lip sync
                 if (speechsync->ReadInt32() != 4)
@@ -474,7 +475,7 @@ int engine_init_speech()
                 }
                 delete speechsync;
             }
-            csetlib(game_file_name,"");
+            Common::AssetManager::SetDataFile(game_file_name);
             platform->WriteConsole("Speech sample file found and initialized.\n");
             play.want_speech=1;
         }
@@ -509,12 +510,12 @@ int engine_init_music()
 
         write_log_debug("Initializing audio vox");
 
-        //if (csetlib(useloc,"")!=0) {
-        if (csetlib(music_file,"")!=0) {
+        //if (Common::AssetManager::SetDataFile(useloc,"")!=0) {
+        if (Common::AssetManager::SetDataFile(music_file)!=0) {
             platform->DisplayAlert("Unable to initialize music library - check for corruption and that\nit belongs to this game.\n");
             return EXIT_NORMAL;
         }
-        csetlib(game_file_name,"");
+        Common::AssetManager::SetDataFile(game_file_name);
         platform->WriteConsole("Audio vox found and initialized.\n");
         play.seperate_music_lib = 1;
     }

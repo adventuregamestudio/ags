@@ -5,6 +5,7 @@
 #include "util/datastream.h"
 #include "gfx/bitmap.h"
 #include "gfx/allegrobitmap.h"
+#include "core/assetmanager.h"
 
 using AGS::Common::Bitmap;
 using AGS::Common::AllegroBitmap;
@@ -12,7 +13,7 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 using AGS::Common::DataStream;
 
-#define fopen clibfopen+++do_not_use!!!
+#define fopen +++do_not_use!!!+++
 
 #ifdef __cplusplus
 extern "C"
@@ -98,7 +99,7 @@ Bitmap *abuf;
   {
     int kk;
 
-    DataStream *in = clibfopen(filnam);
+    DataStream *in = Common::AssetManager::OpenAsset(filnam);
     if (in == NULL)
       return -1;
 
@@ -171,7 +172,7 @@ Bitmap *abuf;
   Bitmap *wloadblock(char *fill)
   {
     short widd, hitt;
-    DataStream *in = clibfopen(fill);
+    DataStream *in = Common::AssetManager::OpenAsset(fill);
     int ff;
 
     if (in == NULL)
@@ -194,7 +195,7 @@ Bitmap *abuf;
     char buff[20];
     int numspri = 0, vv, hh, wdd, htt;
 
-    DataStream *in = clibfopen(filnam);
+    DataStream *in = Common::AssetManager::OpenAsset(filnam);
     if (in == NULL)
       return -1;
 

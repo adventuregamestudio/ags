@@ -7,9 +7,9 @@
 #include "alfont.h"
 #include "ac/gamestructdefines.h" //FONT_OUTLINE_AUTO
 #include "font/ttffontrenderer.h"
-#include "util/clib32.h"
 #include "util/datastream.h"
 #include "gfx/bitmap.h"
+#include "core/assetmanager.h"
 
 using AGS::Common::Bitmap;
 using AGS::Common::DataStream;
@@ -85,13 +85,13 @@ bool TTFFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
   sprintf(filnm, "agsfnt%d.ttf", fontNumber);
 
   // we read the font in manually to make it load from library file
-  DataStream *reader = clibfopen(filnm);
+  DataStream *reader = Common::AssetManager::OpenAsset(filnm);
   char *membuffer;
 
   if (reader == NULL)
     return false;
 
-  long lenof = clibfilesize(filnm);
+  long lenof = Common::AssetManager::GetAssetSize(filnm);
 
   // if not in the library, get size manually
   if (lenof < 1)

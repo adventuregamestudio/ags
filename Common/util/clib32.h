@@ -2,6 +2,8 @@
 #ifndef __CLIB32_H
 #define __CLIB32_H
 
+#error Do not include clib32.h, use AssetManager instead (Common/core/assetmanager.h)
+
 #include "util/file.h"
 
 namespace AGS { namespace Common { class DataStream; } }

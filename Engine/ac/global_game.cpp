@@ -39,6 +39,7 @@
 #include "ac/spritecache.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
+#include "core/assetmanager.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -72,8 +73,6 @@ extern IGraphicsDriver *gfxDriver;
 extern int scrnwid,scrnhit;
 extern color palette[256];
 extern Bitmap *virtual_screen;
-
-extern "C" int csetlib(char *namm, char *passw);
 
 void GiveScore(int amnt) 
 {
@@ -253,7 +252,7 @@ int RunAGSGame (char *newgame, unsigned int mode, int data) {
 
     unload_game_file();
 
-    if (csetlib(game_file_name,""))
+    if (Common::AssetManager::SetDataFile(game_file_name))
         quitprintf("!RunAGSGame: unable to load new game file '%s'", game_file_name);
 
     abuf->Clear();

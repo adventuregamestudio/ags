@@ -27,8 +27,8 @@
 #include "ac/global_audio.h"
 #include "ac/roomstruct.h"
 #include <math.h>
-#include "util/clib32.h"
 #include "util/datastream.h"
+#include "core/assetmanager.h"
 
 using AGS::Common::DataStream;
 
@@ -136,7 +136,7 @@ const char* get_audio_clip_file_name(ScriptAudioClip *clip)
     if (game.audioClips[clip->id].bundlingType == AUCL_BUNDLE_EXE)
     {
         strcpy(acaudio_buffer, game.audioClips[clip->id].fileName);
-        DataStream *in = clibfopen(acaudio_buffer);
+        DataStream *in = Common::AssetManager::OpenAsset(acaudio_buffer);
         if (in != NULL)
         {
             // CHECKME: so, what was that? a file exists check?

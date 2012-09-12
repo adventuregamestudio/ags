@@ -21,15 +21,6 @@ inline void assert(bool expr)
     }
 }
 
-inline void assert(bool expr, const char *err_msg)
-{
-    if (!expr) {
-        _asm {
-            int 3
-        }
-    }
-}
-
 #else // !WINDOWS_VERSION
 
 #include <assert.h>
@@ -39,7 +30,6 @@ inline void assert(bool expr, const char *err_msg)
 #else // !_DEBUG
 
 #define assert(a)
-#define assert(a,b)
 
 #endif // !_DEBUG
 

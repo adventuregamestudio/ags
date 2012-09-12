@@ -11,8 +11,8 @@
 #include "debug/debugger.h"
 #include "util/misc.h"
 #include "platform/base/agsplatformdriver.h"
-#include "util/clib32.h"
 #include "util/datastream.h"
+#include "core/assetmanager.h"
 
 using AGS::Common::DataStream;
 
@@ -227,15 +227,15 @@ PACKFILE *pack_fopen(char *filnam1, char *modd1) {
 #else
     sprintf(useloc,"%s\\%s",usetup.data_files_dir,gfname);
 #endif
-    csetlib(useloc,"");*/
+    Common::AssetManager::SetDataFile(useloc);*/
     
     char *libname = ci_find_file(usetup.data_files_dir, gfname);
-    if (csetlib(libname,""))
+    if (Common::AssetManager::SetDataFile(libname))
     {
       // Hack for running in Debugger
       free(libname);
       libname = ci_find_file("Compiled", gfname);
-      csetlib(libname,"");
+      Common::AssetManager::SetDataFile(libname);
     }
     free(libname);
     
@@ -262,25 +262,25 @@ PACKFILE *pack_fopen(char *filnam1, char *modd1) {
   }
 #endif
 
-  if ((cliboffset(filnam)<1) || (file_exists)) {
-    if (needsetback) csetlib(game_file_name,"");
+  if ((Common::AssetManager::GetAssetOffset(filnam)<1) || (file_exists)) {
+    if (needsetback) Common::AssetManager::SetDataFile(game_file_name);
     return __old_pack_fopen(filnam, modd);
   } 
   else {
-    _my_temppack=__old_pack_fopen(clibgetdatafile(filnam), modd);
+    _my_temppack=__old_pack_fopen(Common::AssetManager::GetAssetFilePath(filnam), modd);
     if (_my_temppack == NULL)
-      quitprintf("pack_fopen: unable to change datafile: not found: %s", clibgetdatafile(filnam));
+      quitprintf("pack_fopen: unable to change datafile: not found: %s", Common::AssetManager::GetAssetFilePath(filnam));
 
-    pack_fseek(_my_temppack,cliboffset(filnam));
+    pack_fseek(_my_temppack,Common::AssetManager::GetAssetOffset(filnam));
     
 #if ALLEGRO_DATE < 20050101
-    _my_temppack->todo=clibfilesize(filnam);
+    _my_temppack->todo=Common::AssetManager::GetAssetSize(filnam);
 #else
-    _my_temppack->normal.todo = clibfilesize(filnam);
+    _my_temppack->normal.todo = Common::AssetManager::GetAssetSize(filnam);
 #endif
 
     if (needsetback)
-      csetlib(game_file_name,"");
+      Common::AssetManager::SetDataFile(game_file_name);
     return _my_temppack;
   }
 }

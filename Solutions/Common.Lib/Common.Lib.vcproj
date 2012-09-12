@@ -378,6 +378,14 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="core"
+				>
+				<File
+					RelativePath="..\..\Common\core\assetmanager.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -659,6 +667,10 @@
 			<Filter
 				Name="core"
 				>
+				<File
+					RelativePath="..\..\Common\core\assetmanager.h"
+					>
+				</File>
 				<File
 					RelativePath="..\..\Common\core\types.h"
 					>

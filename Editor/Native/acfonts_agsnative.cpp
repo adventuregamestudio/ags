@@ -11,7 +11,7 @@
 #include "ac/gamesetupstruct.h"
 #include "util/filestream.h"
 
-using AGS::Common::CDataStream;
+using AGS::Common::DataStream;
 
 //=============================================================================
 // AGS.Native-specific implementation split out of acfonts.cpp
@@ -36,12 +36,12 @@ int get_our_eip()
   return 0;
 }
 
-CDataStream *fopen_shared(char *filnamm, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode)
+DataStream *fopen_shared(char *filnamm, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode)
 {
   return Common::File::OpenFile(filnamm, open_mode, work_mode);
 }
 
-int flength_shared(CDataStream *ffi)
+int flength_shared(DataStream *ffi)
 {
   // in the editor, we don't read from clib, only from disk
   return ffi->GetLength();

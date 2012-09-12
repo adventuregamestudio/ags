@@ -28,8 +28,8 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameSetupStruct game;
 extern GameSetup usetup;
@@ -82,9 +82,9 @@ void script_debug(int cmdd,int dataa) {
     }
     else if (cmdd==2) 
     {  // show walkable areas from here
-        IBitmap *tempw=Bitmap::CreateBitmap(thisroom.walls->GetWidth(),thisroom.walls->GetHeight());
+        Bitmap *tempw=BitmapHelper::CreateBitmap(thisroom.walls->GetWidth(),thisroom.walls->GetHeight());
         tempw->Blit(prepare_walkable_areas(-1),0,0,0,0,tempw->GetWidth(),tempw->GetHeight());
-        IBitmap *stretched = Bitmap::CreateBitmap(scrnwid, scrnhit);
+        Bitmap *stretched = BitmapHelper::CreateBitmap(scrnwid, scrnhit);
         stretched->StretchBlt(tempw,
 			RectWH(-offsetx, -offsety, get_fixed_pixel_size(tempw->GetWidth()), get_fixed_pixel_size(tempw->GetHeight())),
 			Common::kBitmap_Transparency);
@@ -129,7 +129,7 @@ void script_debug(int cmdd,int dataa) {
             Display("Not currently moving.");
             return;
         }
-        IBitmap *tempw=Bitmap::CreateBitmap(thisroom.walls->GetWidth(),thisroom.walls->GetHeight());
+        Bitmap *tempw=BitmapHelper::CreateBitmap(thisroom.walls->GetWidth(),thisroom.walls->GetHeight());
         int mlsnum = game.chars[dataa].walking;
         if (game.chars[dataa].walking >= TURNING_AROUND)
             mlsnum %= TURNING_AROUND;
@@ -140,12 +140,12 @@ void script_debug(int cmdd,int dataa) {
             short srcy=short(cmls->pos[i] & 0x00ffff);
             short targetx=short((cmls->pos[i+1] >> 16) & 0x00ffff);
             short targety=short(cmls->pos[i+1] & 0x00ffff);
-            tempw->DrawLine(CLine(srcx, srcy, targetx, targety), get_col8_lookup(i+1));
+            tempw->DrawLine(Line(srcx, srcy, targetx, targety), get_col8_lookup(i+1));
         }
-		Bitmap::GetScreenBitmap()->StretchBlt(tempw,
+		BitmapHelper::GetScreenBitmap()->StretchBlt(tempw,
 			RectWH(-offsetx, -offsety, multiply_up_coordinate(tempw->GetWidth()), multiply_up_coordinate(tempw->GetHeight())),
 			Common::kBitmap_Transparency);
-        render_to_screen(Bitmap::GetScreenBitmap(), 0, 0);
+        render_to_screen(BitmapHelper::GetScreenBitmap(), 0, 0);
         delete tempw;
         while (!kbhit()) ;
         getch();

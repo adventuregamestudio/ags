@@ -13,7 +13,7 @@
 #ifndef __SPRCACHE_H
 #define __SPRCACHE_H
 
-namespace AGS { namespace Common { class CDataStream; } }
+namespace AGS { namespace Common { class DataStream; } }
 using namespace AGS; // FIXME later
 
 // We can't rely on offsets[slot]==0 because when the engine is running
@@ -30,8 +30,8 @@ public:
   int  loadSprite(int);
   void seekToSprite(int index);
   void precache(int);           // preloads and locks in memory
-  void set(int, Common::IBitmap *);
-  void setNonDiscardable(int, Common::IBitmap *);
+  void set(int, Common::Bitmap *);
+  void setNonDiscardable(int, Common::Bitmap *);
   void removeSprite(int, bool);
   void removeOldest();
   void reset();                 // wipes all data 
@@ -45,15 +45,15 @@ public:
   void detachFile();
   int  attachFile(const char *);
 
-  Common::IBitmap *operator[] (int index);
+  Common::Bitmap *operator[] (int index);
 
   long *offsets;
   long sprite0InitialOffset;
   long elements;                // size of offsets/images arrays
-  Common::IBitmap **images;
+  Common::Bitmap **images;
   int *sizes;
   unsigned char *flags;
-  Common::CDataStream *cache_stream;
+  Common::DataStream *cache_stream;
   bool spritesAreCompressed;
   long cachesize;               // size in bytes of currently cached images
   int *mrulist, *mrubacklink;
@@ -63,7 +63,7 @@ public:
   long lockedSize;              // size in bytes of currently locked images
 
 private:
-    void compressSprite(Common::IBitmap *sprite, Common::CDataStream *out);
+    void compressSprite(Common::Bitmap *sprite, Common::DataStream *out);
   bool loadSpriteIndexFile(int expectedFileID, long spr_initial_offs, short numspri);
 
   void initFile_adjustBuffers(short numspri);

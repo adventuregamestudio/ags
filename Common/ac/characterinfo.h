@@ -4,7 +4,7 @@
 #include "ac/common_defines.h" // constants
 #include "util/file.h"
 
-namespace AGS { namespace Common { class CDataStream; } }
+namespace AGS { namespace Common { class DataStream; } }
 using namespace AGS; // FIXME later
 
 #define MAX_INV             301
@@ -87,8 +87,8 @@ struct CharacterInfo {
 	void update_character_idle(CharacterExtras *chex, int &doing_nothing);
 	void update_character_follower(int &char_index, int &numSheep, int *followingAsSheep, int &doing_nothing);
 
-    void ReadFromFile(Common::CDataStream *in);
-    void WriteToFile(Common::CDataStream *out);
+    void ReadFromFile(Common::DataStream *in);
+    void WriteToFile(Common::DataStream *out);
 };
 
 

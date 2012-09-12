@@ -25,10 +25,10 @@
 #include "util/clib32.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
-using AGS::Common::CDataStream;
+using AGS::Common::DataStream;
 namespace File = AGS::Common::File;
 
 //#define DEBUG_SPRITECACHE
@@ -69,7 +69,7 @@ void SpriteCache::changeMaxSize(long maxElements) {
   }
   offsets = (long *)calloc(elements, sizeof(long));
   memset(offsets, 0, elements*sizeof(long));
-  images = (IBitmap **) calloc(elements, sizeof(IBitmap *));
+  images = (Bitmap **) calloc(elements, sizeof(Bitmap *));
   mrulist = (int *)calloc(elements, sizeof(int));
   mrubacklink = (int *)calloc(elements, sizeof(int));
   sizes = (int *)calloc(elements, sizeof(int));
@@ -110,12 +110,12 @@ void SpriteCache::reset()
   init();
 }
 
-void SpriteCache::set(int index, IBitmap *sprite)
+void SpriteCache::set(int index, Bitmap *sprite)
 {
   images[index] = sprite;
 }
 
-void SpriteCache::setNonDiscardable(int index, IBitmap *sprite)
+void SpriteCache::setNonDiscardable(int index, Bitmap *sprite)
 {
   images[index] = sprite;
   offsets[index] = SPRITE_LOCKED;
@@ -137,7 +137,7 @@ int SpriteCache::enlargeTo(long newsize) {
   int elementsWas = elements;
   elements = newsize;
   offsets = (long *)realloc(offsets, elements * sizeof(long));
-  images = (IBitmap **)realloc(images, elements * sizeof(IBitmap *));
+  images = (Bitmap **)realloc(images, elements * sizeof(Bitmap *));
   mrulist = (int *)realloc(mrulist, elements * sizeof(int));
   mrubacklink = (int *)realloc(mrubacklink, elements * sizeof(int));
   sizes = (int *)realloc(sizes, elements * sizeof(int));
@@ -185,7 +185,7 @@ int SpriteCache::doesSpriteExist(int index) {
   return 0;
 }
 
-IBitmap *SpriteCache::operator [] (int index)
+Bitmap *SpriteCache::operator [] (int index)
 {
   // invalid sprite slot
   if ((index < 0) || (index >= elements))
@@ -391,7 +391,7 @@ int SpriteCache::loadSprite(int index)
   spritewidth[index] = wdd;
   spriteheight[index] = htt;
 
-  images[index] = Bitmap::CreateBitmap(wdd, htt, coldep * 8);
+  images[index] = BitmapHelper::CreateBitmap(wdd, htt, coldep * 8);
   if (images[index] == NULL) {
     offsets[index] = 0;
     return 0;
@@ -446,7 +446,7 @@ int SpriteCache::loadSprite(int index)
 
 const char *spriteFileSig = " Sprite File ";
 
-void SpriteCache::compressSprite(IBitmap *sprite, CDataStream *out) {
+void SpriteCache::compressSprite(Bitmap *sprite, DataStream *out) {
 
   int depth = sprite->GetColorDepth() / 8;
 
@@ -467,7 +467,7 @@ void SpriteCache::compressSprite(IBitmap *sprite, CDataStream *out) {
 
 int SpriteCache::saveToFile(const char *filnam, int lastElement, bool compressOutput)
 {
-  CDataStream *output = Common::File::CreateFile(filnam);
+  DataStream *output = Common::File::CreateFile(filnam);
   if (output == NULL)
     return -1;
 
@@ -608,7 +608,7 @@ int SpriteCache::saveToFile(const char *filnam, int lastElement, bool compressOu
   delete output;
 
   // write the sprite index file
-  CDataStream *spindex_out = File::CreateFile(spindexfilename);
+  DataStream *spindex_out = File::CreateFile(spindexfilename);
   // write "SPRINDEX" id
   spindex_out->WriteArray(&spindexid[0], strlen(spindexid), 1);
   // write version (1)
@@ -755,7 +755,7 @@ bool SpriteCache::loadSpriteIndexFile(int expectedFileID, long spr_initial_offs,
 {
   short numspri_index = 0;
   int vv;
-  CDataStream *fidx = clibfopen((char*)spindexfilename);
+  DataStream *fidx = clibfopen((char*)spindexfilename);
   if (fidx == NULL) 
   {
     return false;

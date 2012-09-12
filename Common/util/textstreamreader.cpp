@@ -8,38 +8,38 @@ namespace AGS
 namespace Common
 {
 
-CTextStreamReader::CTextStreamReader(IStream *stream)
+TextStreamReader::TextStreamReader(Stream *stream)
     : _stream(stream)
 {
 }
 
-CTextStreamReader::~CTextStreamReader()
+TextStreamReader::~TextStreamReader()
 {
     // TODO: use shared ptr
     delete _stream;
 }
 
-bool CTextStreamReader::IsValid() const
+bool TextStreamReader::IsValid() const
 {
     return _stream && _stream->CanRead();
 }
 
-const IStream *CTextStreamReader::GetStream() const
+const Stream *TextStreamReader::GetStream() const
 {
     return _stream;
 }
 
-void CTextStreamReader::ReleaseStream()
+void TextStreamReader::ReleaseStream()
 {
     _stream = NULL;
 }
 
-bool CTextStreamReader::EOS() const
+bool TextStreamReader::EOS() const
 {
     return _stream ? _stream->EOS() : true;
 }
 
-char CTextStreamReader::ReadChar()
+char TextStreamReader::ReadChar()
 {
     if (_stream)
     {
@@ -55,14 +55,14 @@ char CTextStreamReader::ReadChar()
     return '\0';
 }
 
-CString CTextStreamReader::ReadString(int length)
+String TextStreamReader::ReadString(int length)
 {
     if (!_stream)
     {
         return "";
     }
 
-    CString str;
+    String str;
     char *buffer    = str.GetBuffer(length);
     int chars_read  = _stream->Read(buffer, length);
     str.ReleaseBuffer(chars_read);
@@ -70,7 +70,7 @@ CString CTextStreamReader::ReadString(int length)
     return str;
 }
 
-CString CTextStreamReader::ReadLine()
+String TextStreamReader::ReadLine()
 {
     // TODO
     // Probably it is possible to group DataStream::ReadString with this,
@@ -81,7 +81,7 @@ CString CTextStreamReader::ReadLine()
         return "";
     }
 
-    CString str;
+    String str;
     int chars_read_last = 0;
     int line_break_position = -1;
     // Read a chunk of memory to buffer and seek for null-terminator,
@@ -134,7 +134,7 @@ CString CTextStreamReader::ReadLine()
     // TODO: remove carriage-return characters
 }
 
-CString CTextStreamReader::ReadAll()
+String TextStreamReader::ReadAll()
 {
     if (_stream)
     {

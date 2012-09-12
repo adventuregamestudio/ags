@@ -18,7 +18,7 @@
 #include "util/file.h"
 #include "debug/outputtarget.h"
 
-namespace AGS { namespace Common { class CDataStream; } }
+namespace AGS { namespace Common { class DataStream; } }
 using namespace AGS; // FIXME later
 
 #ifdef DJGPP
@@ -65,7 +65,7 @@ struct AGSPlatformDriver
     virtual int  CDPlayerCommand(int cmdd, int datt) = 0;
     virtual void ShutdownCDPlayer() = 0;
 
-    virtual void ReadPluginsFromDisk(Common::CDataStream *in);
+    virtual void ReadPluginsFromDisk(Common::DataStream *in);
     virtual void StartPlugins();
     virtual int  RunPluginHooks(int event, long data);
     virtual void RunPluginInitGfxHooks(const char *driverName, void *data);

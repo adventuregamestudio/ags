@@ -7,10 +7,10 @@
 #include "cc_error.h"
 #include "util/datastream.h"
 
-using AGS::Common::CDataStream;
+using AGS::Common::DataStream;
 
 // [IKM] I reckon this function is almost identical to fgetstring in string_utils
-void freadstring(char **strptr, CDataStream *in)
+void freadstring(char **strptr, DataStream *in)
 {
     static char ibuffer[300];
     int idxx = 0;
@@ -27,7 +27,7 @@ void freadstring(char **strptr, CDataStream *in)
     strcpy(strptr[0], ibuffer);
 }
 
-void fwrite_script(ccScript*scri, CDataStream *out) {
+void fwrite_script(ccScript*scri, DataStream *out) {
     int n;
     out->Write(scfilesig,4);
     out->WriteInt32(SCOM_VERSION);
@@ -61,7 +61,7 @@ void fwrite_script(ccScript*scri, CDataStream *out) {
     out->WriteInt32(ENDFILESIG);
 }
 
-ccScript *fread_script(CDataStream *in)
+ccScript *fread_script(DataStream *in)
 {
   ccScript *scri = (ccScript *) malloc(sizeof(ccScript));
   scri->instances = 0;

@@ -24,7 +24,7 @@ prior express permission from Chris Jones.
 #include "script/cc_error.h"
 #include "util/datastream.h"
 
-using AGS::Common::CDataStream;
+using AGS::Common::DataStream;
 
 ICCStringClass *stringClassImpl = NULL;
 
@@ -63,12 +63,12 @@ void ccUnregisterAllObjects() {
 }
 
 // serialize all objects to disk
-void ccSerializeAllObjects(CDataStream *out) {
+void ccSerializeAllObjects(DataStream *out) {
     pool.WriteToDisk(out);
 }
 
 // un-serialise all objects (will remove all currently registered ones)
-int ccUnserializeAllObjects(CDataStream *in, ICCObjectReader *callback) {
+int ccUnserializeAllObjects(DataStream *in, ICCObjectReader *callback) {
     // un-register all existing objects, ready for the un-serialization
     ccUnregisterAllObjects();
     return pool.ReadFromDisk(in, callback);

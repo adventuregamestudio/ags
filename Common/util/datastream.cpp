@@ -7,24 +7,24 @@ namespace AGS
 namespace Common
 {
 
-CDataStream::CDataStream(DataEndianess caller_endianess, DataEndianess stream_endianess)
+DataStream::DataStream(DataEndianess caller_endianess, DataEndianess stream_endianess)
     : _callerEndianess(caller_endianess)
     , _streamEndianess(stream_endianess)
 {
 }
 
-CDataStream::~CDataStream()
+DataStream::~DataStream()
 {
 }
 
-CString CDataStream::ReadString(int max_chars)
+String DataStream::ReadString(int max_chars)
 {
     if (!CanRead())
     {
         return "";
     }
 
-    CString str;
+    String str;
     int chars_read_last = 0;
     int null_t_position = -1;
     // Read a chunk of memory to buffer and seek for null-terminator,
@@ -71,7 +71,7 @@ CString CDataStream::ReadString(int max_chars)
     return str;
 }
 
-int CDataStream::WriteString(const CString &str)
+int DataStream::WriteString(const String &str)
 {
     if (CanWrite())
     {
@@ -82,7 +82,7 @@ int CDataStream::WriteString(const CString &str)
     return 0;
 }
 
-int CDataStream::ReadArrayOfIntPtr(intptr_var_t *buffer, int count)
+int DataStream::ReadArrayOfIntPtr(intptr_var_t *buffer, int count)
 {
 #if defined (AGS_64BIT) || defined (TEST_64BIT)
     return MustSwapBytes() ? ReadAndConvertArrayOfInt64(buffer, count) : ReadArrayOfInt64(buffer, count);
@@ -91,7 +91,7 @@ int CDataStream::ReadArrayOfIntPtr(intptr_var_t *buffer, int count)
 #endif
 }
 
-int CDataStream::ReadArrayOfIntPtr32(intptr_var_t *buffer, int count)
+int DataStream::ReadArrayOfIntPtr32(intptr_var_t *buffer, int count)
 {
     if (!CanRead())
     {
@@ -134,7 +134,7 @@ int CDataStream::ReadArrayOfIntPtr32(intptr_var_t *buffer, int count)
     return count;
 }
 
-int CDataStream::WriteArrayOfIntPtr(const intptr_var_t *buffer, int count)
+int DataStream::WriteArrayOfIntPtr(const intptr_var_t *buffer, int count)
 {
 #if defined (AGS_64BIT) || defined (TEST_64BIT)
     return MustSwapBytes() ? WriteAndConvertArrayOfInt64(buffer, count) : WriteArrayOfInt64(buffer, count);
@@ -143,7 +143,7 @@ int CDataStream::WriteArrayOfIntPtr(const intptr_var_t *buffer, int count)
 #endif
 }
 
-int CDataStream::WriteArrayOfIntPtr32(const intptr_var_t *buffer, int count)
+int DataStream::WriteArrayOfIntPtr32(const intptr_var_t *buffer, int count)
 {
     if (!CanWrite())
     {
@@ -160,7 +160,7 @@ int CDataStream::WriteArrayOfIntPtr32(const intptr_var_t *buffer, int count)
     return elem;
 }
 
-int CDataStream::ReadAndConvertArrayOfInt16(int16_t *buffer, int count)
+int DataStream::ReadAndConvertArrayOfInt16(int16_t *buffer, int count)
 {
     if (!CanRead())
     {
@@ -175,7 +175,7 @@ int CDataStream::ReadAndConvertArrayOfInt16(int16_t *buffer, int count)
     return count;
 }
 
-int CDataStream::ReadAndConvertArrayOfInt32(int32_t *buffer, int count)
+int DataStream::ReadAndConvertArrayOfInt32(int32_t *buffer, int count)
 {
     if (!CanRead())
     {
@@ -190,7 +190,7 @@ int CDataStream::ReadAndConvertArrayOfInt32(int32_t *buffer, int count)
     return count;
 }
 
-int CDataStream::ReadAndConvertArrayOfInt64(int64_t *buffer, int count)
+int DataStream::ReadAndConvertArrayOfInt64(int64_t *buffer, int count)
 {
     if (!CanRead())
     {
@@ -205,7 +205,7 @@ int CDataStream::ReadAndConvertArrayOfInt64(int64_t *buffer, int count)
     return count;
 }
 
-int CDataStream::WriteAndConvertArrayOfInt16(const int16_t *buffer, int count)
+int DataStream::WriteAndConvertArrayOfInt16(const int16_t *buffer, int count)
 {
     if (!CanWrite())
     {
@@ -222,7 +222,7 @@ int CDataStream::WriteAndConvertArrayOfInt16(const int16_t *buffer, int count)
     return elem;
 }
 
-int CDataStream::WriteAndConvertArrayOfInt32(const int32_t *buffer, int count)
+int DataStream::WriteAndConvertArrayOfInt32(const int32_t *buffer, int count)
 {
     if (!CanWrite())
     {
@@ -239,7 +239,7 @@ int CDataStream::WriteAndConvertArrayOfInt32(const int32_t *buffer, int count)
     return elem;
 }
 
-int CDataStream::WriteAndConvertArrayOfInt64(const int64_t *buffer, int count)
+int DataStream::WriteAndConvertArrayOfInt64(const int64_t *buffer, int count)
 {
     if (!CanWrite())
     {

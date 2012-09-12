@@ -10,8 +10,8 @@ prior express permission from Chris Jones.
 
 #include <stdio.h>
 
-namespace AGS { namespace Common { class CDataStream; } }
-namespace AGS { namespace Common { class IBitmap; }}
+namespace AGS { namespace Common { class DataStream; } }
+namespace AGS { namespace Common { class Bitmap; }}
 using namespace AGS; // FIXME later
 
 // MACPORT FIX 9/6/05: removed far and put space after *
@@ -26,29 +26,29 @@ typedef unsigned char * __block;
 
 long csavecompressed(char *finam, __block tobesaved, color pala[256], long exto);
 
-void cpackbitl(unsigned char *line, int size, Common::CDataStream *out);
-void cpackbitl16(unsigned short *line, int size, Common::CDataStream *out);
-void cpackbitl32(unsigned int *line, int size, Common::CDataStream *out);
-int  cunpackbitl(unsigned char *line, int size, Common::CDataStream *in);
-int  cunpackbitl16(unsigned short *line, int size, Common::CDataStream *in);
-int  cunpackbitl32(unsigned int *line, int size, Common::CDataStream *in);
+void cpackbitl(unsigned char *line, int size, Common::DataStream *out);
+void cpackbitl16(unsigned short *line, int size, Common::DataStream *out);
+void cpackbitl32(unsigned int *line, int size, Common::DataStream *out);
+int  cunpackbitl(unsigned char *line, int size, Common::DataStream *in);
+int  cunpackbitl16(unsigned short *line, int size, Common::DataStream *in);
+int  cunpackbitl32(unsigned int *line, int size, Common::DataStream *in);
 
 //=============================================================================
 
 #if defined(LINUX_VERSION) || defined(MAC_VERSION) || defined(DJGPP) || defined(_MSC_VER)
 
-long save_lzw(char *fnn, Common::IBitmap *bmpp, color *pall, long offe);
+long save_lzw(char *fnn, Common::Bitmap *bmpp, color *pall, long offe);
 
-/*long load_lzw(char*fnn,Common::IBitmap*bmm,color*pall,long ooff);*/
-long load_lzw(Common::CDataStream *in, Common::IBitmap *bmm, color *pall);
-long savecompressed_allegro(char *fnn, Common::IBitmap *bmpp, color *pall, long write_at);
-long loadcompressed_allegro(Common::CDataStream *in, Common::IBitmap **bimpp, color *pall, long read_at);
+/*long load_lzw(char*fnn,Common::Bitmap*bmm,color*pall,long ooff);*/
+long load_lzw(Common::DataStream *in, Common::Bitmap *bmm, color *pall);
+long savecompressed_allegro(char *fnn, Common::Bitmap *bmpp, color *pall, long write_at);
+long loadcompressed_allegro(Common::DataStream *in, Common::Bitmap **bimpp, color *pall, long read_at);
 
 //extern char *lztempfnm;
-//extern Common::IBitmap *recalced;
+//extern Common::Bitmap *recalced;
 
 // returns bytes per pixel for bitmap's color depth
-int bmp_bpp(Common::IBitmap*bmpt);
+int bmp_bpp(Common::Bitmap*bmpt);
 
 #endif // LINUX_VERSION || MAC_VERSION || DJGPP || _MSC_VER
 

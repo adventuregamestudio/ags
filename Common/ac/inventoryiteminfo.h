@@ -1,7 +1,7 @@
 #ifndef __AC_INVENTORYITEMINFO_H
 #define __AC_INVENTORYITEMINFO_H
 
-namespace AGS { namespace Common { class CDataStream; } }
+namespace AGS { namespace Common { class DataStream; } }
 using namespace AGS; // FIXME later
 
 #define IFLG_STARTWITH 1
@@ -12,8 +12,8 @@ struct InventoryItemInfo {
     int  reserved[5];
     char flags;
 
-    void ReadFromFile(Common::CDataStream *in);
-    void WriteToFile(Common::CDataStream *out);
+    void ReadFromFile(Common::DataStream *in);
+    void WriteToFile(Common::DataStream *out);
 };
 
 #endif // __AC_INVENTORYITEMINFO_H

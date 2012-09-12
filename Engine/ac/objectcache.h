@@ -9,7 +9,7 @@
 
 // stores cached object info
 struct ObjectCache {
-    Common::IBitmap *image;
+    Common::Bitmap *image;
     int   sppic;
     short tintredwas, tintgrnwas, tintbluwas, tintamntwas, tintlightwas;
     short lightlevwas, mirroredWas, zoomWas;

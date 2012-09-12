@@ -9,8 +9,8 @@ namespace AGS
 namespace Common
 {
 
-CFileStream::CFileStream(const CString &file_name, FileOpenMode open_mode, FileWorkMode work_mode)
-    : CDataStream(kDefaultSystemEndianess, kDefaultSystemEndianess)
+FileStream::FileStream(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode)
+    : DataStream(kDefaultSystemEndianess, kDefaultSystemEndianess)
     , _file(NULL)
     , _openMode(open_mode)
     , _workMode(work_mode)
@@ -18,9 +18,9 @@ CFileStream::CFileStream(const CString &file_name, FileOpenMode open_mode, FileW
     Open(file_name, open_mode, work_mode);
 }
 
-CFileStream::CFileStream(const CString &file_name, FileOpenMode open_mode, FileWorkMode work_mode,
+FileStream::FileStream(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode,
             DataEndianess caller_endianess, DataEndianess stream_endianess)
-    : CDataStream(caller_endianess, stream_endianess)
+    : DataStream(caller_endianess, stream_endianess)
     , _file(NULL)
     , _openMode(open_mode)
     , _workMode(work_mode)
@@ -28,22 +28,22 @@ CFileStream::CFileStream(const CString &file_name, FileOpenMode open_mode, FileW
     Open(file_name, open_mode, work_mode);
 }
 
-CFileStream::~CFileStream()
+FileStream::~FileStream()
 {
     Close();
 }
 
-bool CFileStream::IsValid() const
+bool FileStream::IsValid() const
 {
     return _file != NULL;
 }
 
-bool CFileStream::EOS() const
+bool FileStream::EOS() const
 {
     return !IsValid() || feof(_file) != 0;
 }
 
-int CFileStream::GetLength() const
+int FileStream::GetLength() const
 {
     if (IsValid())
     {
@@ -53,27 +53,27 @@ int CFileStream::GetLength() const
     return 0;
 }
 
-int CFileStream::GetPosition() const
+int FileStream::GetPosition() const
 {
     return IsValid() ? ftell(_file) : 0;
 }
 
-bool CFileStream::CanRead() const
+bool FileStream::CanRead() const
 {
     return IsValid() && _workMode != kFile_Write;
 }
 
-bool CFileStream::CanWrite() const
+bool FileStream::CanWrite() const
 {
     return IsValid() && _workMode != kFile_Read;
 }
 
-bool CFileStream::CanSeek() const
+bool FileStream::CanSeek() const
 {
     return IsValid();
 }
 
-void CFileStream::Close()
+void FileStream::Close()
 {
     if (_file)
     {
@@ -82,7 +82,7 @@ void CFileStream::Close()
     _file = NULL;
 }
 
-int CFileStream::ReadByte()
+int FileStream::ReadByte()
 {
     if (CanRead())
     {
@@ -91,7 +91,7 @@ int CFileStream::ReadByte()
     return 0;
 }
 
-int16_t CFileStream::ReadInt16()
+int16_t FileStream::ReadInt16()
 {
     if (CanRead())
     {
@@ -103,7 +103,7 @@ int16_t CFileStream::ReadInt16()
     return 0;
 }
 
-int32_t CFileStream::ReadInt32()
+int32_t FileStream::ReadInt32()
 {
     if (CanRead())
     {
@@ -114,7 +114,7 @@ int32_t CFileStream::ReadInt32()
     return 0;
 }
 
-int64_t CFileStream::ReadInt64()
+int64_t FileStream::ReadInt64()
 {
     if (CanRead())
     {
@@ -126,7 +126,7 @@ int64_t CFileStream::ReadInt64()
     return 0;
 }
 
-int CFileStream::Read(void *buffer, int32_t size)
+int FileStream::Read(void *buffer, int32_t size)
 {
     if (CanRead())
     {
@@ -135,7 +135,7 @@ int CFileStream::Read(void *buffer, int32_t size)
     return 0;
 }
 
-int CFileStream::WriteByte(byte val)
+int FileStream::WriteByte(byte val)
 {
     if (CanWrite())
     {
@@ -144,7 +144,7 @@ int CFileStream::WriteByte(byte val)
     return 0;
 }
 
-void CFileStream::WriteInt16(int16_t val)
+void FileStream::WriteInt16(int16_t val)
 {
     if (CanWrite())
     {
@@ -153,7 +153,7 @@ void CFileStream::WriteInt16(int16_t val)
     }
 }
 
-void CFileStream::WriteInt32(int32_t val)
+void FileStream::WriteInt32(int32_t val)
 {
     if (CanWrite())
     {
@@ -162,7 +162,7 @@ void CFileStream::WriteInt32(int32_t val)
     }
 }
  
-void CFileStream::WriteInt64(int64_t val)
+void FileStream::WriteInt64(int64_t val)
 {
     if (CanWrite())
     {
@@ -171,7 +171,7 @@ void CFileStream::WriteInt64(int64_t val)
     }
 }
 
-int CFileStream::Write(const void *buffer, int size)
+int FileStream::Write(const void *buffer, int size)
 {
     if (CanWrite())
     {
@@ -180,7 +180,7 @@ int CFileStream::Write(const void *buffer, int size)
     return 0;
 }
 
-int CFileStream::Seek(StreamSeek seek, int pos)
+int FileStream::Seek(StreamSeek seek, int pos)
 {
     if (!CanSeek())
     {
@@ -199,9 +199,9 @@ int CFileStream::Seek(StreamSeek seek, int pos)
     return GetPosition();
 }
 
-void CFileStream::Open(const CString &file_name, FileOpenMode open_mode, FileWorkMode work_mode)
+void FileStream::Open(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode)
 {
-    CString mode;
+    String mode;
 
     if (open_mode == kFile_Open)
     {

@@ -11,7 +11,7 @@
 #include "media/audio/audio.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
+using AGS::Common::Bitmap;
 
 extern volatile int timerloop;
 
@@ -34,27 +34,27 @@ void MyPushButton::draw()
 {
     wtextcolor(0);
     wsetcolor(COL254);
-    abuf->FillRect(CRect(x, y, x + wid, y + hit), currentcolor);
+    abuf->FillRect(Rect(x, y, x + wid, y + hit), currentcolor);
     if (state == 0)
         wsetcolor(pushbuttondarkcolor);
     else
         wsetcolor(pushbuttonlightcolor);
 
-    abuf->DrawRect(CRect(x, y, x + wid, y + hit), currentcolor);
+    abuf->DrawRect(Rect(x, y, x + wid, y + hit), currentcolor);
     if (state == 0)
         wsetcolor(pushbuttonlightcolor);
     else
         wsetcolor(pushbuttondarkcolor);
 
-    abuf->DrawLine(CLine(x, y, x + wid - 1, y), currentcolor);
-    abuf->DrawLine(CLine(x, y, x, y + hit - 1), currentcolor);
+    abuf->DrawLine(Line(x, y, x + wid - 1, y), currentcolor);
+    abuf->DrawLine(Line(x, y, x, y + hit - 1), currentcolor);
     wouttextxy(x + (wid / 2 - wgettextwidth(text, cbuttfont) / 2), y + 2, cbuttfont, text);
     if (typeandflags & CNF_DEFAULT)
         wsetcolor(0);
     else
         wsetcolor(windowbackgroundcolor);
 
-    abuf->DrawRect(CRect(x - 1, y - 1, x + wid + 1, y + hit + 1), currentcolor);
+    abuf->DrawRect(Rect(x - 1, y - 1, x + wid + 1, y + hit + 1), currentcolor);
 }
 
 //extern const int LEFT;  // in mousew32

@@ -11,17 +11,17 @@
 #include "util/file.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
-using AGS::Common::CDataStream;
+using AGS::Common::Bitmap;
+using AGS::Common::DataStream;
 using namespace AGS; // FIXME later
 
 extern void set_our_eip(int eip);
 extern int  get_our_eip();
 
-extern CDataStream *fopen_shared(char *,
+extern DataStream *fopen_shared(char *,
                                  Common::FileOpenMode open_mode = Common::kFile_Open,
                                  Common::FileWorkMode work_mode = Common::kFile_Read);
-extern int flength_shared(CDataStream *ffi);
+extern int flength_shared(DataStream *ffi);
 
 
 // **** WFN Renderer ****
@@ -130,7 +130,7 @@ int WFNFontRenderer::GetTextHeight(const char *texx, int fontNumber)
   return highest * wtext_multiply;
 }
 
-void WFNFontRenderer::RenderText(const char *text, int fontNumber, IBitmap *destination, int x, int y, int colour)
+void WFNFontRenderer::RenderText(const char *text, int fontNumber, Bitmap *destination, int x, int y, int colour)
 {
   unsigned int ee;
 
@@ -176,7 +176,7 @@ int WFNFontRenderer::printchar(int xxx, int yyy, wgtfont foo, int charr)
     for (ss = 0; ss < charWidth; ss++) {
       if (((actdata[tt * bytewid + (ss / 8)] & (0x80 >> (ss % 8))) != 0)) {
         if (wtext_multiply > 1) {
-          abuf->FillRect(CRect(xxx + ss, yyy + tt, xxx + ss + (wtext_multiply - 1),
+          abuf->FillRect(Rect(xxx + ss, yyy + tt, xxx + ss + (wtext_multiply - 1),
                    yyy + tt + (wtext_multiply - 1)), textcol);
         } 
         else
@@ -196,7 +196,7 @@ int WFNFontRenderer::printchar(int xxx, int yyy, wgtfont foo, int charr)
 bool WFNFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
 {
   char filnm[20];
-  CDataStream *ffi = NULL;
+  DataStream *ffi = NULL;
   char mbuffer[16];
   long lenof;
 

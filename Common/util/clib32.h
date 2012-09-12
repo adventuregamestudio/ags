@@ -4,14 +4,14 @@
 
 #include "util/file.h"
 
-namespace AGS { namespace Common { class CDataStream; } }
+namespace AGS { namespace Common { class DataStream; } }
 using namespace AGS; // FIXME later
 
 extern "C"
 {
     int csetlib(char *namm, char *passw);
     char *clibgetdatafile(char *fill);
-    Common::CDataStream *clibfopen(const char *filnamm,
+    Common::DataStream *clibfopen(const char *filnamm,
         Common::FileOpenMode open_mode = Common::kFile_Open,
         Common::FileWorkMode work_mode = Common::kFile_Read);
     long cliboffset(const char *);

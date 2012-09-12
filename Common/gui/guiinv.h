@@ -25,8 +25,8 @@ struct GUIInv:public GUIObject
 
   int itemsPerLine, numLines;  // not persisted
 
-  virtual void WriteToFile(Common::CDataStream *out);
-  virtual void ReadFromFile(Common::CDataStream *in, int version);
+  virtual void WriteToFile(Common::DataStream *out);
+  virtual void ReadFromFile(Common::DataStream *in, int version);
 
   void CalculateNumCells();
 

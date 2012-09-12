@@ -7,7 +7,7 @@
 #include "ac/string.h"
 #include "util/filestream.h"
 
-using AGS::Common::CDataStream;
+using AGS::Common::DataStream;
 
 #ifdef WINDOWS_VERSION
 //#include <crtdbg.h>
@@ -35,10 +35,10 @@ using AGS::Common::CDataStream;
 #endif  // WINDOWS_VERSION
 
 extern int num_open_script_files;
-extern CDataStream *valid_handles[MAX_OPEN_SCRIPT_FILES+1];
+extern DataStream *valid_handles[MAX_OPEN_SCRIPT_FILES+1];
 
 
-CDataStream *FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode) {
+DataStream *FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode) {
   int useindx = 0;
   char fileToOpen[MAX_PATH];
 
@@ -67,22 +67,22 @@ CDataStream *FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::F
   return valid_handles[useindx];
 }
 
-void FileClose(CDataStream *hha) {
+void FileClose(DataStream *hha) {
   valid_handles[check_valid_file_handle(hha,"FileClose")] = NULL;
   delete hha;
   }
-void FileWrite(CDataStream *haa, const char *towrite) {
+void FileWrite(DataStream *haa, const char *towrite) {
   check_valid_file_handle(haa,"FileWrite");
   haa->WriteInt32(strlen(towrite)+1);
   haa->Write(towrite,strlen(towrite)+1);
   }
-void FileWriteRawLine(CDataStream *haa, const char*towrite) {
+void FileWriteRawLine(DataStream *haa, const char*towrite) {
   check_valid_file_handle(haa,"FileWriteRawLine");
   haa->Write(towrite,strlen(towrite));
   haa->WriteInt8 (13);
   haa->WriteInt8 (10);
   }
-void FileRead(CDataStream *haa,char*toread) {
+void FileRead(DataStream *haa,char*toread) {
   VALIDATE_STRING(toread);
   check_valid_file_handle(haa,"FileRead");
   if (haa->EOS()) {
@@ -93,34 +93,34 @@ void FileRead(CDataStream *haa,char*toread) {
   if ((lle>=200) | (lle<1)) quit("!FileRead: file was not written by FileWrite");
   haa->Read(toread,lle);
   }
-int FileIsEOF (CDataStream *haa) {
+int FileIsEOF (DataStream *haa) {
   check_valid_file_handle(haa,"FileIsEOF");
   if (haa->EOS())
     return 1;
 
   // TODO: stream errors
-  if (ferror (((Common::CFileStream*)haa)->GetHandle()))
+  if (ferror (((Common::FileStream*)haa)->GetHandle()))
     return 1;
 
   if (haa->GetPosition () >= haa->GetLength())
     return 1;
   return 0;
 }
-int FileIsError(CDataStream *haa) {
+int FileIsError(DataStream *haa) {
   check_valid_file_handle(haa,"FileIsError");
 
   // TODO: stream errors
-  if (ferror(((Common::CFileStream*)haa)->GetHandle()))
+  if (ferror(((Common::FileStream*)haa)->GetHandle()))
     return 1;
 
   return 0;
 }
-void FileWriteInt(CDataStream *haa,int into) {
+void FileWriteInt(DataStream *haa,int into) {
   check_valid_file_handle(haa,"FileWriteInt");
   haa->WriteInt8('I');
   haa->WriteInt32(into);
   }
-int FileReadInt(CDataStream *haa) {
+int FileReadInt(DataStream *haa) {
   check_valid_file_handle(haa,"FileReadInt");
   if (haa->EOS())
     return -1;
@@ -128,19 +128,19 @@ int FileReadInt(CDataStream *haa) {
     quit("!FileReadInt: File read back in wrong order");
   return haa->ReadInt32();
   }
-char FileReadRawChar(CDataStream *haa) {
+char FileReadRawChar(DataStream *haa) {
   check_valid_file_handle(haa,"FileReadRawChar");
   if (haa->EOS())
     return -1;
   return haa->ReadInt8();
   }
-int FileReadRawInt(CDataStream *haa) {
+int FileReadRawInt(DataStream *haa) {
   check_valid_file_handle(haa,"FileReadRawInt");
   if (haa->EOS())
     return -1;
   return haa->ReadInt32();
 }
-void FileWriteRawChar(CDataStream *haa, int chartoWrite) {
+void FileWriteRawChar(DataStream *haa, int chartoWrite) {
   check_valid_file_handle(haa,"FileWriteRawChar");
   if ((chartoWrite < 0) || (chartoWrite > 255))
     quit("!FileWriteRawChar: can only write values 0-255");

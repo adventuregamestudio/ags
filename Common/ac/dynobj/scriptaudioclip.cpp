@@ -2,9 +2,9 @@
 #include "ac/dynobj/scriptaudioclip.h"
 #include "util/datastream.h"
 
-using AGS::Common::CDataStream;
+using AGS::Common::DataStream;
 
-void ScriptAudioClip::ReadFromFile(CDataStream *in)
+void ScriptAudioClip::ReadFromFile(DataStream *in)
 {
     char padding[3] = {0,0,0};
 

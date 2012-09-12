@@ -6,11 +6,11 @@
 #include "gfx/bitmap.h"
 #include "gfx/allegrobitmap.h"
 
-using AGS::Common::IBitmap;
-using AGS::Common::CAllegroBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::Bitmap;
+using AGS::Common::AllegroBitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
-using AGS::Common::CDataStream;
+using AGS::Common::DataStream;
 
 #define fopen clibfopen+++do_not_use!!!
 
@@ -33,7 +33,7 @@ char password[16];
 char *wgtlibrary;
 int currentcolor;
 int vesa_xres, vesa_yres;
-IBitmap *abuf;
+Bitmap *abuf;
 
 /*
   GCC from the Android NDK doesn't like allegro_init()
@@ -65,22 +65,22 @@ IBitmap *abuf;
 #endif
 
 
-  void wsetscreen(IBitmap *nss)
+  void wsetscreen(Bitmap *nss)
   {
     if (nss == NULL)
-      abuf = Bitmap::GetScreenBitmap();
+      abuf = BitmapHelper::GetScreenBitmap();
     else
       abuf = nss;
   }
 
   // [IKM] A very, very dangerous stuff!
-  CAllegroBitmap wsetscreen_wrapper;
+  AllegroBitmap wsetscreen_wrapper;
   void wsetscreen_raw(BITMAP *nss)
   {
     wsetscreen_wrapper.WrapBitmapObject(nss);
 
     if (nss == NULL) {
-      abuf = Bitmap::GetScreenBitmap();
+      abuf = BitmapHelper::GetScreenBitmap();
 	}
 	else {
       abuf = &wsetscreen_wrapper;
@@ -98,7 +98,7 @@ IBitmap *abuf;
   {
     int kk;
 
-    CDataStream *in = clibfopen(filnam);
+    DataStream *in = clibfopen(filnam);
     if (in == NULL)
       return -1;
 
@@ -132,9 +132,9 @@ IBitmap *abuf;
     }
   }
 
-  IBitmap *tempbitm;
+  Bitmap *tempbitm;
 
-  IBitmap *wnewblock(int x1, int y1, int x2, int y2)
+  Bitmap *wnewblock(int x1, int y1, int x2, int y2)
   {
     int twid = (x2 - x1) + 1, thit = (y2 - y1) + 1;
 
@@ -144,7 +144,7 @@ IBitmap *abuf;
     if (thit < 1)
       thit = 1;
 
-    tempbitm = Bitmap::CreateBitmap(twid, thit);
+    tempbitm = BitmapHelper::CreateBitmap(twid, thit);
 
     if (tempbitm == NULL)
       return NULL;
@@ -168,10 +168,10 @@ IBitmap *abuf;
   }
   */
 
-  IBitmap *wloadblock(char *fill)
+  Bitmap *wloadblock(char *fill)
   {
     short widd, hitt;
-    CDataStream *in = clibfopen(fill);
+    DataStream *in = clibfopen(fill);
     int ff;
 
     if (in == NULL)
@@ -179,7 +179,7 @@ IBitmap *abuf;
 
     widd = in->ReadInt16();
     hitt = in->ReadInt16();
-    tempbitm = Bitmap::CreateBitmap(widd, hitt);
+    tempbitm = BitmapHelper::CreateBitmap(widd, hitt);
 
     for (ff = 0; ff < hitt; ff++)
       in->ReadArray(&tempbitm->GetScanLineForWriting(ff)[0], widd, 1);
@@ -188,13 +188,13 @@ IBitmap *abuf;
     return tempbitm;
   }
 
-  int wloadsprites(color * pall, char *filnam, IBitmap ** sarray, int strt, int eend)
+  int wloadsprites(color * pall, char *filnam, Bitmap ** sarray, int strt, int eend)
   {
     int vers;
     char buff[20];
     int numspri = 0, vv, hh, wdd, htt;
 
-    CDataStream *in = clibfopen(filnam);
+    DataStream *in = clibfopen(filnam);
     if (in == NULL)
       return -1;
 
@@ -240,7 +240,7 @@ IBitmap *abuf;
           in->Seek(Common::kSeekCurrent, wdd * htt);
         continue;
       }
-      sarray[vv] = Bitmap::CreateBitmap(wdd, htt, coldep * 8);
+      sarray[vv] = BitmapHelper::CreateBitmap(wdd, htt, coldep * 8);
 
       if (sarray[vv] == NULL) {
         delete in;
@@ -255,7 +255,7 @@ IBitmap *abuf;
   }
 
 
-  void wfreesprites(IBitmap ** blar, int stt, int end)
+  void wfreesprites(Bitmap ** blar, int stt, int end)
   {
     int hh;
 
@@ -267,7 +267,7 @@ IBitmap *abuf;
 
 
   /*
-  void wsavesprites_ex(color * pll, char *fnm, IBitmap ** spre, int strt, int eend, unsigned char *arry)
+  void wsavesprites_ex(color * pll, char *fnm, Bitmap ** spre, int strt, int eend, unsigned char *arry)
   {
     FILE *ooo = fopen(fnm, "wb");
     short topu = 4;
@@ -351,13 +351,13 @@ IBitmap *abuf;
     free(spriteoffs);
   }
 
-  void wsavesprites(color * pll, char *fnm, IBitmap ** spre, int strt, int eend)
+  void wsavesprites(color * pll, char *fnm, Bitmap ** spre, int strt, int eend)
   {
     wsavesprites_ex(pll, fnm, spre, strt, eend, NULL);
   }
 */
 
-  void wputblock(int xx, int yy, IBitmap *bll, int xray)
+  void wputblock(int xx, int yy, Bitmap *bll, int xray)
   {
     if (xray)
 		abuf->Blit(bll, xx, yy, Common::kBitmap_Transparency);
@@ -365,7 +365,7 @@ IBitmap *abuf;
       abuf->Blit(bll, 0, 0, xx, yy, bll->GetWidth(), bll->GetHeight());
   }
 
-  CAllegroBitmap wputblock_wrapper; // [IKM] argh! :[
+  AllegroBitmap wputblock_wrapper; // [IKM] argh! :[
   void wputblock_raw(int xx, int yy, BITMAP *bll, int xray)
   {
 	wputblock_wrapper.WrapBitmapObject(bll);
@@ -442,7 +442,7 @@ IBitmap *abuf;
 
   int __wremap_keep_transparent = 1;
 
-  void wremap(color * pal1, IBitmap *picc, color * pal2)
+  void wremap(color * pal1, Bitmap *picc, color * pal2)
   {
     int jj;
     unsigned char color_mapped_table[256];
@@ -476,7 +476,7 @@ IBitmap *abuf;
     }
   }
 
-  void wremapall(color * pal1, IBitmap *picc, color * pal2)
+  void wremapall(color * pal1, Bitmap *picc, color * pal2)
   {
     __wremap_keep_transparent--;
     wremap(pal1, picc, pal2);
@@ -525,13 +525,13 @@ IBitmap *abuf;
     return timm2 - timm1;
   }
 
-  void wcopyscreen(int x1, int y1, int x2, int y2, IBitmap *src, int dx, int dy, IBitmap *dest)
+  void wcopyscreen(int x1, int y1, int x2, int y2, Bitmap *src, int dx, int dy, Bitmap *dest)
   {
     if (src == NULL)
-      src = Bitmap::GetScreenBitmap();
+      src = BitmapHelper::GetScreenBitmap();
 
     if (dest == NULL)
-      dest = Bitmap::GetScreenBitmap();
+      dest = BitmapHelper::GetScreenBitmap();
 
     dest->Blit(src, x1, y1, dx, dy, (x2 - x1) + 1, (y2 - y1) + 1);
   }
@@ -540,13 +540,13 @@ IBitmap *abuf;
   void wbutt(int x1, int y1, int x2, int y2)
   {
     wsetcolor(254);
-    abuf->FillRect(CRect(x1, y1, x2, y2), currentcolor);
+    abuf->FillRect(Rect(x1, y1, x2, y2), currentcolor);
     wsetcolor(253);
     abuf->DrawLine(HLine(x1 - 1, x2 + 1, y1 - 1), currentcolor);
-    abuf->DrawLine(CLine(x1 - 1, y1 - 1, x1 - 1, y2 + 1), currentcolor);
+    abuf->DrawLine(Line(x1 - 1, y1 - 1, x1 - 1, y2 + 1), currentcolor);
     wsetcolor(255);
     abuf->DrawLine(HLine(x1 - 1, x2 + 1, y2 + 1), currentcolor);
-    abuf->DrawLine(CLine(x2 + 1, y1 - 1, x2 + 1, y2 + 1), currentcolor);
+    abuf->DrawLine(Line(x2 + 1, y1 - 1, x2 + 1, y2 + 1), currentcolor);
   }
 
 

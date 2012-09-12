@@ -31,8 +31,8 @@ prior express permission from Chris Jones.
 #include "util/datastream.h"
 #include "util/textstreamwriter.h"
 
-using AGS::Common::CDataStream;
-using AGS::Common::CTextStreamWriter;
+using AGS::Common::DataStream;
+using AGS::Common::TextStreamWriter;
 
 
 #ifdef AGS_BIG_ENDIAN
@@ -337,8 +337,8 @@ void dump_instruction(unsigned long *codeptr, int cps, int spp)
         return;
     }
 
-    CDataStream *data_s = ci_fopen("script.log", Common::kFile_Create, Common::kFile_Write);
-    CTextStreamWriter writer(data_s);
+    DataStream *data_s = ci_fopen("script.log", Common::kFile_Create, Common::kFile_Write);
+    TextStreamWriter writer(data_s);
     writer.WriteFormat("Line %3d, IP:%8d (SP:%8d) ", line_num, cps, spp);
 
     int l, thisop = codeptr[0] & INSTANCE_ID_REMOVEMASK, isreg = 0, t = 0;

@@ -4,9 +4,9 @@
 #include "roomstatus.h"
 #include "util/datastream.h"
 
-using AGS::Common::CDataStream;
+using AGS::Common::DataStream;
 
-void RoomStatus::ReadFromFile(CDataStream *in)
+void RoomStatus::ReadFromFile(DataStream *in)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
     beenhere = in->ReadInt32();
@@ -42,7 +42,7 @@ void RoomStatus::ReadFromFile(CDataStream *in)
 //    throw "RoomStatus::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
 //#endif
 }
-void RoomStatus::WriteToFile(CDataStream *out)
+void RoomStatus::WriteToFile(DataStream *out)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
     char pad[4];

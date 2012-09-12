@@ -16,7 +16,7 @@
 #include "gui/guidefines.h"
 #include "util/file.h"
 
-namespace AGS { namespace Common { class CDataStream; } }
+namespace AGS { namespace Common { class DataStream; } }
 using namespace AGS; // FIXME later
 
 #define GUIDIS_GREYOUT   1
@@ -66,8 +66,8 @@ struct GUIObject
       return 1;
     return 0;
   }
-  virtual void WriteToFile(Common::CDataStream *out);
-  virtual void ReadFromFile(Common::CDataStream *in, int version);
+  virtual void WriteToFile(Common::DataStream *out);
+  virtual void ReadFromFile(Common::DataStream *in, int version);
   // called when the control is resized
   virtual void Resized() { }
   virtual int  GetNumEvents() {

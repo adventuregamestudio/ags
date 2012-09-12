@@ -40,8 +40,8 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 #define ALLEGRO_KEYBOARD_HANDLER
 
@@ -71,7 +71,7 @@ extern char saveGameDirectory[260];
 extern IGraphicsDriver *gfxDriver;
 extern int scrnwid,scrnhit;
 extern color palette[256];
-extern IBitmap *virtual_screen;
+extern Bitmap *virtual_screen;
 
 extern "C" int csetlib(char *namm, char *passw);
 
@@ -166,7 +166,7 @@ int LoadSaveSlotScreenshot(int slnum, int width, int height) {
         return gotSlot;
 
     // resize the sprite to the requested size
-    IBitmap *newPic = Bitmap::CreateBitmap(width, height, spriteset[gotSlot]->GetColorDepth());
+    Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, spriteset[gotSlot]->GetColorDepth());
 
     newPic->StretchBlt(spriteset[gotSlot],
         RectWH(0, 0, spritewidth[gotSlot], spriteheight[gotSlot]),
@@ -717,17 +717,17 @@ int SaveScreenShot(char*namm) {
 
     if (gfxDriver->RequiresFullRedrawEachFrame()) 
     {
-        IBitmap *buffer = Bitmap::CreateBitmap(scrnwid, scrnhit, 32);
+        Bitmap *buffer = BitmapHelper::CreateBitmap(scrnwid, scrnhit, 32);
         gfxDriver->GetCopyOfScreenIntoBitmap(buffer);
 
-		if (!Bitmap::SaveToFile(buffer, fileName, palette)!=0)
+		if (!BitmapHelper::SaveToFile(buffer, fileName, palette)!=0)
         {
             delete buffer;
             return 0;
         }
         delete buffer;
     }
-	else if (!Bitmap::SaveToFile(virtual_screen, fileName, palette)!=0)
+	else if (!BitmapHelper::SaveToFile(virtual_screen, fileName, palette)!=0)
         return 0; // failed
 
     return 1;  // successful

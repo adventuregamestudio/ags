@@ -35,8 +35,8 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameSetupStruct game;
 extern GameState play;
@@ -50,8 +50,8 @@ extern GUIMain*guis;
 extern volatile int timerloop;
 extern AGSPlatformDriver *platform;
 extern int cur_mode,cur_cursor;
-extern IBitmap *virtual_screen;
-extern IBitmap *screenop;
+extern Bitmap *virtual_screen;
+extern Bitmap *screenop;
 extern IGraphicsDriver *gfxDriver;
 
 DialogTopic *dialog;
@@ -368,7 +368,7 @@ int write_dialog_options(int dlgxp, int curyp, int numdisp, int mouseison, int a
 void draw_gui_for_dialog_options(GUIMain *guib, int dlgxp, int dlgyp) {
   if (guib->bgcol != 0) {
     wsetcolor(guib->bgcol);
-    abuf->FillRect(CRect(dlgxp, dlgyp, dlgxp + guib->wid, dlgyp + guib->hit), currentcolor);
+    abuf->FillRect(Rect(dlgxp, dlgyp, dlgxp + guib->wid, dlgyp + guib->hit), currentcolor);
   }
   if (guib->bgpic > 0)
     put_sprite_256 (dlgxp, dlgyp, spriteset[guib->bgpic]);
@@ -403,7 +403,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
   int curswas=cur_cursor;
   int bullet_wid = 0, needheight;
   IDriverDependantBitmap *ddb = NULL;
-  IBitmap *subBitmap = NULL;
+  Bitmap *subBitmap = NULL;
   GUITextBox *parserInput = NULL;
   DialogTopic*dtop = NULL;
 
@@ -427,7 +427,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
 
   update_polled_stuff_if_runtime();
 
-  IBitmap *tempScrn = Bitmap::CreateBitmap(Bitmap::GetScreenBitmap()->GetWidth(), Bitmap::GetScreenBitmap()->GetHeight(), final_col_dep);
+  Bitmap *tempScrn = BitmapHelper::CreateBitmap(BitmapHelper::GetScreenBitmap()->GetWidth(), BitmapHelper::GetScreenBitmap()->GetHeight(), final_col_dep);
 
   set_mouse_cursor(CURS_ARROW);
 
@@ -460,7 +460,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
   // Don't display the options if there is only one and the parser
   // is not enabled.
   if ((numdisp > 1) || (parserInput != NULL) || (play.show_single_dialog_option)) {
-    wsetcolor(0); //abuf->FillRect(CRect(0,dlgyp-1,scrnwid-1,dlgyp+numdisp*txthit+1);
+    wsetcolor(0); //abuf->FillRect(Rect(0,dlgyp-1,scrnwid-1,dlgyp+numdisp*txthit+1);
     int areawid, is_textwindow = 0;
     int forecol = 14, savedwid;
 
@@ -513,7 +513,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
       areawid=scrnwid-5;
       GET_OPTIONS_HEIGHT
       dlgyp = scrnhit - needheight;
-      abuf->FillRect(CRect(0,dlgyp-1,scrnwid-1,scrnhit-1), currentcolor);
+      abuf->FillRect(Rect(0,dlgyp-1,scrnwid-1,scrnhit-1), currentcolor);
 
       dirtyx = 0;
       dirtyy = dlgyp - 1;
@@ -632,7 +632,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
         // fonts don't re-alias themselves
         if (game.options[OPT_DIALOGIFACE] == 0) {
           wsetcolor(16);
-          abuf->FillRect(CRect(0,dlgyp-1,scrnwid-1,scrnhit-1), currentcolor);
+          abuf->FillRect(Rect(0,dlgyp-1,scrnwid-1,scrnhit-1), currentcolor);
         }
         else {
           GUIMain* guib = &guis[game.options[OPT_DIALOGIFACE]];
@@ -672,7 +672,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
 
       /*if (curyp > scrnhit) {
         dlgyp = scrnhit - (curyp - dlgyp);
-        abuf->FillRect(CRect(0,dlgyp-1,scrnwid-1,scrnhit-1);
+        abuf->FillRect(Rect(0,dlgyp-1,scrnwid-1,scrnhit-1);
         goto redraw_options;
       }*/
       if (parserInput)

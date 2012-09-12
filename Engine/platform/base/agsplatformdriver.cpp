@@ -20,10 +20,10 @@
 #include "util/datastream.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::CDataStream;
-using AGS::Common::CString;
-using AGS::Common::IBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::DataStream;
+using AGS::Common::String;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 #if !defined(BSD_VERSION) && (defined(LINUX_VERSION) || defined(WINDOWS_VERSION))
 #include "libcda.h"
@@ -33,7 +33,7 @@ namespace Bitmap = AGS::Common::Bitmap;
 #define strnicmp strncasecmp
 #endif
 
-extern IBitmap *abuf; // in wgt2allg
+extern Bitmap *abuf; // in wgt2allg
 
 AGSPlatformDriver* AGSPlatformDriver::instance = NULL;
 AGSPlatformDriver *platform = NULL;
@@ -87,12 +87,12 @@ void AGSPlatformDriver::ReplaceSpecialPaths(const char *sourcePath, char *destPa
 
 }
 
-void AGSPlatformDriver::ReadPluginsFromDisk(CDataStream *in) {
+void AGSPlatformDriver::ReadPluginsFromDisk(DataStream *in) {
     if (in->ReadInt32() != 1)
         quit("ERROR: unable to load game, invalid version of plugin data");
 
     int numPlug = in->ReadInt32(), a, datasize;
-    CString buffer;
+    String buffer;
     for (a = 0; a < numPlug; a++) {
         // read the plugin name
         buffer = in->ReadString();
@@ -105,7 +105,7 @@ void AGSPlatformDriver::ReadPluginsFromDisk(CDataStream *in) {
 void AGSPlatformDriver::InitialiseAbufAtStartup()
 {
     // because loading the game file accesses abuf, it must exist
-    abuf = Bitmap::CreateBitmap(10,10,8);
+    abuf = BitmapHelper::CreateBitmap(10,10,8);
 }
 
 void AGSPlatformDriver::FinishedUsingGraphicsMode()

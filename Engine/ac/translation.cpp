@@ -11,7 +11,7 @@
 #include "util/misc.h"
 #include "util/datastream.h"
 
-using AGS::Common::CDataStream;
+using AGS::Common::DataStream;
 
 extern GameSetup usetup;
 extern GameSetupStruct game;
@@ -42,7 +42,7 @@ bool init_translation (const char *lang) {
 
     transFileLoc = ci_find_file(usetup.data_files_dir, transFileName);
 
-    CDataStream *language_file = clibfopen(transFileLoc);
+    DataStream *language_file = clibfopen(transFileLoc);
     free(transFileLoc);
 
     if (language_file == NULL) 
@@ -129,7 +129,7 @@ bool init_translation (const char *lang) {
             }
         }
         else
-            quit("Unknown IBitmap *type in translation file.");
+            quit("Unknown Bitmap *type in translation file.");
     }
 
     delete language_file;

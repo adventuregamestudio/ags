@@ -21,10 +21,10 @@ enum StreamSeek
     kSeekCurrent
 };
 
-class IStream
+class Stream
 {
 public:
-    virtual ~IStream(){}
+    virtual ~Stream(){}
 
     // Is stream valid (underlying data initialized properly)
     virtual bool    IsValid() const                     = 0;

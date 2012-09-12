@@ -15,8 +15,8 @@
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
 
-using AGS::Common::IBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 using namespace AGS; // FIXME later
 
 // Allegro and glext.h define these
@@ -382,9 +382,9 @@ public:
   virtual void SetCallbackForNullSprite(GFXDRV_CLIENTCALLBACKXY callback) { _nullSpriteCallback = callback; }
   virtual void UnInit();
   virtual void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse);
-  virtual IBitmap *ConvertBitmapToSupportedColourDepth(IBitmap *bitmap);
-  virtual IDriverDependantBitmap* CreateDDBFromBitmap(IBitmap *bitmap, bool hasAlpha, bool opaque);
-  virtual void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, IBitmap *bitmap, bool hasAlpha);
+  virtual Bitmap *ConvertBitmapToSupportedColourDepth(Bitmap *bitmap);
+  virtual IDriverDependantBitmap* CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque);
+  virtual void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha);
   virtual void DestroyDDB(IDriverDependantBitmap* bitmap);
   virtual void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap);
   virtual void ClearDrawList();
@@ -392,7 +392,7 @@ public:
   virtual void Render();
   virtual void Render(GlobalFlipType flip);
   virtual void SetRenderOffset(int x, int y);
-  virtual void GetCopyOfScreenIntoBitmap(IBitmap *destination);
+  virtual void GetCopyOfScreenIntoBitmap(Bitmap *destination);
   virtual void EnableVsyncBeforeRender(bool enabled) { }
   virtual void Vsync();
   virtual void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
@@ -405,8 +405,8 @@ public:
   virtual bool RequiresFullRedrawEachFrame() { return true; }
   virtual bool HasAcceleratedStretchAndFlip() { return true; }
   virtual bool UsesMemoryBackBuffer() { return false; }
-  virtual IBitmap *GetMemoryBackBuffer() { return NULL; }
-  virtual void SetMemoryBackBuffer(IBitmap *backBuffer) {  }
+  virtual Bitmap *GetMemoryBackBuffer() { return NULL; }
+  virtual void SetMemoryBackBuffer(Bitmap *backBuffer) {  }
   virtual void SetScreenTint(int red, int green, int blue);
 
   // Internal
@@ -441,7 +441,7 @@ private:
   bool _legacyPixelShader;
   float _pixelRenderOffset;
   volatile int *_loopTimer;
-  IBitmap *_screenTintLayer;
+  Bitmap *_screenTintLayer;
   OGLBitmap* _screenTintLayerDDB;
   SpriteDrawListEntry _screenTintSprite;
 
@@ -464,7 +464,7 @@ private:
   void InitOpenGl();
   void set_up_default_vertices();
   void AdjustSizeToNearestSupportedByCard(int *width, int *height);
-  void UpdateTextureRegion(TextureTile *tile, IBitmap *bitmap, OGLBitmap *target, bool hasAlpha);
+  void UpdateTextureRegion(TextureTile *tile, Bitmap *bitmap, OGLBitmap *target, bool hasAlpha);
   void do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
   bool IsModeSupported(int width, int height, int colDepth);
   void create_screen_tint_bitmap();
@@ -918,7 +918,7 @@ bool OGLGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
     return false;
   }
   // create dummy screen bitmap
-  Bitmap::SetScreenBitmap( ConvertBitmapToSupportedColourDepth(Bitmap::CreateBitmap(virtualWidth, virtualHeight, colourDepth)) );
+  BitmapHelper::SetScreenBitmap( ConvertBitmapToSupportedColourDepth(BitmapHelper::CreateBitmap(virtualWidth, virtualHeight, colourDepth)) );
 
   return true;
 }
@@ -947,7 +947,7 @@ void OGLGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colo
 
 }
 
-void OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(IBitmap *destination)
+void OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
 {
 #if defined(IOS_VERSION)
   ios_select_buffer();
@@ -967,7 +967,7 @@ void OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(IBitmap *destination)
     unsigned char* sourcePtr;
     unsigned char* destPtr;
     
-	IBitmap* retrieveInto = Bitmap::CreateBitmap(retrieve_width, retrieve_height, 32);
+	Bitmap* retrieveInto = BitmapHelper::CreateBitmap(retrieve_width, retrieve_height, 32);
 
     if (retrieveInto)
     {
@@ -1303,7 +1303,7 @@ __inline void get_pixel_if_not_transparent32(unsigned int *pixel, unsigned int *
   (((((a)&0xff)<<24)|(((b)&0xff)<<16)|(((g)&0xff)<<8)|((r)&0xff)))
 
 
-void OGLGraphicsDriver::UpdateTextureRegion(TextureTile *tile, IBitmap *bitmap, OGLBitmap *target, bool hasAlpha)
+void OGLGraphicsDriver::UpdateTextureRegion(TextureTile *tile, Bitmap *bitmap, OGLBitmap *target, bool hasAlpha)
 {
   int textureHeight = tile->height;
   int textureWidth = tile->width;
@@ -1444,17 +1444,17 @@ void OGLGraphicsDriver::UpdateTextureRegion(TextureTile *tile, IBitmap *bitmap, 
   free(origPtr);
 }
 
-void OGLGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, IBitmap *bitmap, bool hasAlpha)
+void OGLGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha)
 {
   OGLBitmap *target = (OGLBitmap*)bitmapToUpdate;
-  IBitmap *source = bitmap;
+  Bitmap *source = bitmap;
   if ((target->_width == bitmap->GetWidth()) &&
      (target->_height == bitmap->GetHeight()))
   {
     if (bitmap->GetColorDepth() != target->_colDepth)
     {
       //throw Ali3DException("Mismatched colour depths");
-      source = Bitmap::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 32);
+      source = BitmapHelper::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 32);
       source->Blit(bitmap, 0, 0, 0, 0, source->GetWidth(), source->GetHeight());
     }
 
@@ -1470,7 +1470,7 @@ void OGLGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpda
   }
 }
 
-IBitmap *OGLGraphicsDriver::ConvertBitmapToSupportedColourDepth(IBitmap *bitmap)
+Bitmap *OGLGraphicsDriver::ConvertBitmapToSupportedColourDepth(Bitmap *bitmap)
 {
    int colorConv = get_color_conversion();
    set_color_conversion(COLORCONV_KEEP_TRANS | COLORCONV_TOTAL);
@@ -1479,7 +1479,7 @@ IBitmap *OGLGraphicsDriver::ConvertBitmapToSupportedColourDepth(IBitmap *bitmap)
 /*   if ((colourDepth == 8) || (colourDepth == 16))
    {
      // Most 3D cards don't support 8-bit; and we need 15-bit colour
-     IBitmap* tempBmp = Bitmap::CreateBitmap_(15, bitmap->GetWidth(), bitmap->GetHeight());
+     Bitmap* tempBmp = BitmapHelper::CreateBitmap_(15, bitmap->GetWidth(), bitmap->GetHeight());
      Blit(bitmap, tempBmp, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
      destroy_bitmap(bitmap);
      set_color_conversion(colorConv);
@@ -1488,7 +1488,7 @@ IBitmap *OGLGraphicsDriver::ConvertBitmapToSupportedColourDepth(IBitmap *bitmap)
 */   if (colourDepth != 32)
    {
      // we need 32-bit colour
-     IBitmap *tempBmp = Bitmap::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 32);
+     Bitmap *tempBmp = BitmapHelper::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 32);
      tempBmp->Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
      delete bitmap;
      set_color_conversion(colorConv);
@@ -1526,16 +1526,16 @@ void OGLGraphicsDriver::AdjustSizeToNearestSupportedByCard(int *width, int *heig
 
 
 
-IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(IBitmap *bitmap, bool hasAlpha, bool opaque)
+IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque)
 {
   int allocatedWidth = bitmap->GetWidth();
   int allocatedHeight = bitmap->GetHeight();
-  IBitmap *tempBmp = NULL;
+  Bitmap *tempBmp = NULL;
   int colourDepth = bitmap->GetColorDepth();
 /*  if ((colourDepth == 8) || (colourDepth == 16))
   {
     // Most 3D cards don't support 8-bit; and we need 15-bit colour
-    tempBmp = Bitmap::CreateBitmap_(15, bitmap->GetWidth(), bitmap->GetHeight());
+    tempBmp = BitmapHelper::CreateBitmap_(15, bitmap->GetWidth(), bitmap->GetHeight());
     Blit(bitmap, tempBmp, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
     bitmap = tempBmp;
     colourDepth = 15;
@@ -1543,7 +1543,7 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(IBitmap *bitmap, 
 */  if (colourDepth != 32)
   {
     // we need 32-bit colour
-	tempBmp = Bitmap::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 32);
+	tempBmp = BitmapHelper::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 32);
     tempBmp->Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
     bitmap = tempBmp;
     colourDepth = 32;
@@ -1669,7 +1669,7 @@ void OGLGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   else if (_drawScreenCallback != NULL)
     _drawScreenCallback();
   
-  IBitmap *blackSquare = Bitmap::CreateBitmap(16, 16, 32);
+  Bitmap *blackSquare = BitmapHelper::CreateBitmap(16, 16, 32);
   blackSquare->Clear(makecol32(targetColourRed, targetColourGreen, targetColourBlue));
   IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, false, false);
   delete blackSquare;
@@ -1724,7 +1724,7 @@ void OGLGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
   else if (_drawScreenCallback != NULL)
     _drawScreenCallback();
   
-  IBitmap *blackSquare = Bitmap::CreateBitmap(16, 16, 32);
+  Bitmap *blackSquare = BitmapHelper::CreateBitmap(16, 16, 32);
   blackSquare->Clear();
   IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, false, false);
   delete blackSquare;
@@ -1781,7 +1781,7 @@ bool OGLGraphicsDriver::PlayVideo(const char *filename, bool useAVISound, VideoS
 
 void OGLGraphicsDriver::create_screen_tint_bitmap() 
 {
-	_screenTintLayer = Bitmap::CreateBitmap(16, 16, this->_newmode_depth);
+	_screenTintLayer = BitmapHelper::CreateBitmap(16, 16, this->_newmode_depth);
   _screenTintLayer = this->ConvertBitmapToSupportedColourDepth(_screenTintLayer);
   _screenTintLayerDDB = (OGLBitmap*)this->CreateDDBFromBitmap(_screenTintLayer, false, false);
   _screenTintSprite.bitmap = _screenTintLayerDDB;

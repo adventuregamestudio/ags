@@ -18,21 +18,21 @@ CLEAR that the code has been altered from the Standard Version.
 
 #include "gfx/gfxfilter_scalingallegro.h"
 
-namespace AGS { namespace Common { class IBitmap; }}
+namespace AGS { namespace Common { class Bitmap; }}
 using namespace AGS; // FIXME later
 
 struct Hq3xGFXFilter : public ScalingAllegroGFXFilter {
 private:
-    Common::IBitmap *realScreenBuffer;
+    Common::Bitmap *realScreenBuffer;
 
 public:
 
     Hq3xGFXFilter(bool justCheckingForSetup) : ScalingAllegroGFXFilter(3, justCheckingForSetup) { }
 
     virtual const char* Initialize(int width, int height, int colDepth);
-    virtual Common::IBitmap *ScreenInitialized(Common::IBitmap *screen, int fakeWidth, int fakeHeight);
-    virtual Common::IBitmap *ShutdownAndReturnRealScreen(Common::IBitmap *currentScreen);
-    virtual void RenderScreen(Common::IBitmap *toRender, int x, int y);
+    virtual Common::Bitmap *ScreenInitialized(Common::Bitmap *screen, int fakeWidth, int fakeHeight);
+    virtual Common::Bitmap *ShutdownAndReturnRealScreen(Common::Bitmap *currentScreen);
+    virtual void RenderScreen(Common::Bitmap *toRender, int x, int y);
     virtual const char *GetVersionBoxText();
     virtual const char *GetFilterID();
 };

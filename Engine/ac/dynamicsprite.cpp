@@ -22,8 +22,8 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameSetupStruct game;
 extern SpriteCache spriteset;
@@ -39,7 +39,7 @@ extern ObjectCache objcache[MAX_INIT_SPR];
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern int scrnwid,scrnhit;
 extern color palette[256];
-extern IBitmap *virtual_screen;
+extern Bitmap *virtual_screen;
 extern IGraphicsDriver *gfxDriver;
 
 char check_dynamic_sprites_at_exit = 1;
@@ -100,7 +100,7 @@ void DynamicSprite_Resize(ScriptDynamicSprite *sds, int width, int height) {
         quitprintf("!DynamicSprite.Resize: new size is too large: %d x %d", width, height);
 
     // resize the sprite to the requested size
-    IBitmap *newPic = Bitmap::CreateBitmap(width, height, spriteset[sds->slot]->GetColorDepth());
+    Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, spriteset[sds->slot]->GetColorDepth());
 
     newPic->StretchBlt(spriteset[sds->slot],
         RectWH(0, 0, spritewidth[sds->slot], spriteheight[sds->slot]),
@@ -119,7 +119,7 @@ void DynamicSprite_Flip(ScriptDynamicSprite *sds, int direction) {
         quit("!DynamicSprite.Flip: sprite has been deleted");
 
     // resize the sprite to the requested size
-    IBitmap *newPic = Bitmap::CreateBitmap(spritewidth[sds->slot], spriteheight[sds->slot], spriteset[sds->slot]->GetColorDepth());
+    Bitmap *newPic = BitmapHelper::CreateBitmap(spritewidth[sds->slot], spriteheight[sds->slot], spriteset[sds->slot]->GetColorDepth());
     newPic->Clear(newPic->GetMaskColor());
 
     if (direction == 1)
@@ -145,8 +145,8 @@ void DynamicSprite_CopyTransparencyMask(ScriptDynamicSprite *sds, int sourceSpri
         quit("!DynamicSprite.CopyTransparencyMask: sprites are not the same size");
     }
 
-    IBitmap *target = spriteset[sds->slot];
-    IBitmap *source = spriteset[sourceSprite];
+    Bitmap *target = spriteset[sds->slot];
+    Bitmap *source = spriteset[sourceSprite];
 
     if (target->GetColorDepth() != source->GetColorDepth())
     {
@@ -219,7 +219,7 @@ void DynamicSprite_ChangeCanvasSize(ScriptDynamicSprite *sds, int width, int hei
     multiply_up_coordinates(&x, &y);
     multiply_up_coordinates(&width, &height);
 
-    IBitmap *newPic = Bitmap::CreateBitmap(width, height, spriteset[sds->slot]->GetColorDepth());
+    Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, spriteset[sds->slot]->GetColorDepth());
     newPic->Clear(newPic->GetMaskColor());
     // blit it into the enlarged image
     newPic->Blit(spriteset[sds->slot], 0, 0, x, y, spritewidth[sds->slot], spriteheight[sds->slot]);
@@ -242,7 +242,7 @@ void DynamicSprite_Crop(ScriptDynamicSprite *sds, int x1, int y1, int width, int
     if ((width > spritewidth[sds->slot]) || (height > spriteheight[sds->slot]))
         quit("!DynamicSprite.Crop: requested to crop an area larger than the source");
 
-    IBitmap *newPic = Bitmap::CreateBitmap(width, height, spriteset[sds->slot]->GetColorDepth());
+    Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, spriteset[sds->slot]->GetColorDepth());
     // blit it cropped
     newPic->Blit(spriteset[sds->slot], x1, y1, 0, 0, newPic->GetWidth(), newPic->GetHeight());
 
@@ -281,7 +281,7 @@ void DynamicSprite_Rotate(ScriptDynamicSprite *sds, int angle, int width, int he
     angle = (angle * 256) / 360;
 
     // resize the sprite to the requested size
-    IBitmap *newPic = Bitmap::CreateBitmap(width, height, spriteset[sds->slot]->GetColorDepth());
+    Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, spriteset[sds->slot]->GetColorDepth());
     newPic->Clear(newPic->GetMaskColor());
 
     // rotate the sprite about its centre
@@ -297,8 +297,8 @@ void DynamicSprite_Rotate(ScriptDynamicSprite *sds, int angle, int width, int he
 
 void DynamicSprite_Tint(ScriptDynamicSprite *sds, int red, int green, int blue, int saturation, int luminance) 
 {
-    IBitmap *source = spriteset[sds->slot];
-    IBitmap *newPic = Bitmap::CreateBitmap(source->GetWidth(), source->GetHeight(), source->GetColorDepth());
+    Bitmap *source = spriteset[sds->slot];
+    Bitmap *newPic = BitmapHelper::CreateBitmap(source->GetWidth(), source->GetHeight(), source->GetColorDepth());
 
     tint_image(source, newPic, red, green, blue, saturation, (luminance * 25) / 10);
 
@@ -317,7 +317,7 @@ int DynamicSprite_SaveToFile(ScriptDynamicSprite *sds, const char* namm) {
     if (strchr(namm,'.') == NULL)
         strcat(fileName, ".bmp");
 
-	if (!Bitmap::SaveToFile(spriteset[sds->slot], fileName, palette))
+	if (!BitmapHelper::SaveToFile(spriteset[sds->slot], fileName, palette))
         return 0; // failed
 
     return 1;  // successful
@@ -355,18 +355,18 @@ ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height) {
     else
         height = multiply_up_coordinate(height);
 
-    IBitmap *newPic;
+    Bitmap *newPic;
     if (!gfxDriver->UsesMemoryBackBuffer()) 
     {
         // D3D driver
-        IBitmap *scrndump = Bitmap::CreateBitmap(scrnwid, scrnhit, final_col_dep);
+        Bitmap *scrndump = BitmapHelper::CreateBitmap(scrnwid, scrnhit, final_col_dep);
         gfxDriver->GetCopyOfScreenIntoBitmap(scrndump);
 
         update_polled_stuff_if_runtime();
 
         if ((scrnwid != width) || (scrnhit != height))
         {
-            newPic = Bitmap::CreateBitmap(width, height, final_col_dep);
+            newPic = BitmapHelper::CreateBitmap(width, height, final_col_dep);
             newPic->StretchBlt(scrndump,
                 RectWH(0, 0, scrndump->GetWidth(), scrndump->GetHeight()),
                 RectWH(0, 0, width, height));
@@ -380,7 +380,7 @@ ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height) {
     else
     {
         // resize the sprite to the requested size
-        newPic = Bitmap::CreateBitmap(width, height, virtual_screen->GetColorDepth());
+        newPic = BitmapHelper::CreateBitmap(width, height, virtual_screen->GetColorDepth());
 
         newPic->StretchBlt(virtual_screen,
             RectWH(0, 0, virtual_screen->GetWidth(), virtual_screen->GetHeight()),
@@ -402,7 +402,7 @@ ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite(int slot, int preser
         quitprintf("DynamicSprite.CreateFromExistingSprite: sprite %d does not exist", slot);
 
     // create a new sprite as a copy of the existing one
-    IBitmap *newPic = Bitmap::CreateBitmap(spritewidth[slot], spriteheight[slot], spriteset[slot]->GetColorDepth());
+    Bitmap *newPic = BitmapHelper::CreateBitmap(spritewidth[slot], spriteheight[slot], spriteset[slot]->GetColorDepth());
     if (newPic == NULL)
         return NULL;
 
@@ -432,7 +432,7 @@ ScriptDynamicSprite* DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface
 
     int colDepth = abuf->GetColorDepth();
 
-    IBitmap *newPic = Bitmap::CreateBitmap(width, height, colDepth);
+    Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, colDepth);
     if (newPic == NULL)
         return NULL;
 
@@ -452,7 +452,7 @@ ScriptDynamicSprite* DynamicSprite_Create(int width, int height, int alphaChanne
     if (gotSlot <= 0)
         return NULL;
 
-    IBitmap *newPic = Bitmap::CreateBitmap(width, height, final_col_dep);
+    Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, final_col_dep);
     if (newPic == NULL)
         return NULL;
     newPic->Clear(newPic->GetMaskColor());
@@ -495,7 +495,7 @@ ScriptDynamicSprite* DynamicSprite_CreateFromBackground(int frame, int x1, int y
         return NULL;
 
     // create a new sprite as a copy of the existing one
-    IBitmap *newPic = Bitmap::CreateBitmap(width, height, thisroom.ebscene[frame]->GetColorDepth());
+    Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, thisroom.ebscene[frame]->GetColorDepth());
     if (newPic == NULL)
         return NULL;
 
@@ -508,7 +508,7 @@ ScriptDynamicSprite* DynamicSprite_CreateFromBackground(int frame, int x1, int y
 
 //=============================================================================
 
-void add_dynamic_sprite(int gotSlot, IBitmap *redin, bool hasAlpha) {
+void add_dynamic_sprite(int gotSlot, Bitmap *redin, bool hasAlpha) {
 
   spriteset.set(gotSlot, redin);
 

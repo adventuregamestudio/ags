@@ -10,8 +10,8 @@
 #include "ac/point.h"
 #include "script/cc_script.h"       // ccScript
 
-namespace AGS { namespace Common { class CDataStream; } }
-namespace AGS { namespace Common { class IBitmap; }}
+namespace AGS { namespace Common { class DataStream; } }
+namespace AGS { namespace Common { class Bitmap; }}
 using namespace AGS; // FIXME later
 
 
@@ -31,15 +31,15 @@ struct sprstruc {
     short on      PCKD;
     sprstruc() { on = 0; }
 
-    void ReadFromFile(Common::CDataStream *in);
+    void ReadFromFile(Common::DataStream *in);
 };
 #pragma pack()
 
 #define NOT_VECTOR_SCALED -10000
 #define TINT_IS_ENABLED 0x80000000
 struct roomstruct {
-    Common::IBitmap *        walls, *object, *lookat;          // 'object' is the walk-behind
-    Common::IBitmap *        regions;
+    Common::Bitmap *        walls, *object, *lookat;          // 'object' is the walk-behind
+    Common::Bitmap *        regions;
     color         pal[256];
     short         numobj;                         // num hotspots, not sprites
     short         objyval[MAX_OBJ];               // baselines of walkbehind areas
@@ -97,7 +97,7 @@ struct roomstruct {
     int           cscriptsize;
     int           num_bscenes, bscene_anim_speed;
     int           bytes_per_pixel;
-    Common::IBitmap *        ebscene[MAX_BSCENE];
+    Common::Bitmap *        ebscene[MAX_BSCENE];
     color         bpalettes[MAX_BSCENE][256];
     InteractionVariable *localvars;
     int           numLocalVars;
@@ -129,7 +129,7 @@ struct roomstruct {
 struct room_file_header {
     short version PCKD;
 
-    void ReadFromFile(Common::CDataStream *in);
+    void ReadFromFile(Common::DataStream *in);
 };
 
 extern int _acroom_bpp;  // bytes per pixel of currently loading room
@@ -138,10 +138,10 @@ extern void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes);
 
 
 // Those are, in fact, are project-dependent and are implemented in runtime and AGS.Native
-extern void load_script_configuration(Common::CDataStream *in);
-extern void save_script_configuration(Common::CDataStream *out);
-extern void load_graphical_scripts(Common::CDataStream *in, roomstruct *);
-extern void save_graphical_scripts(Common::CDataStream *out, roomstruct *);
+extern void load_script_configuration(Common::DataStream *in);
+extern void save_script_configuration(Common::DataStream *out);
+extern void load_graphical_scripts(Common::DataStream *in, roomstruct *);
+extern void save_graphical_scripts(Common::DataStream *out, roomstruct *);
 //
 
 #endif // __AC_ROOMSTRUCT_H

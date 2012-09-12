@@ -7,12 +7,12 @@
 #include "gui/guimain.h"
 #include "util/datastream.h"
 
-using AGS::Common::CDataStream;
+using AGS::Common::DataStream;
 
 DynamicArray<GUILabel> guilabels;
 int numguilabels = 0;
 
-void GUILabel::WriteToFile(CDataStream *out)
+void GUILabel::WriteToFile(DataStream *out)
 {
   GUIObject::WriteToFile(out);
   // MACPORT FIXES: swap
@@ -22,7 +22,7 @@ void GUILabel::WriteToFile(CDataStream *out)
   out->WriteArrayOfInt32(&font, 3);
 }
 
-void GUILabel::ReadFromFile(CDataStream *in, int version)
+void GUILabel::ReadFromFile(DataStream *in, int version)
 {
   GUIObject::ReadFromFile(in, version);
 

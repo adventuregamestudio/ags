@@ -26,9 +26,9 @@
 #include "util/filestream.h"
 #include "util/textstreamreader.h"
 
-using AGS::Common::CDataStream;
-using AGS::Common::CTextStreamReader;
-using AGS::Common::CString;
+using AGS::Common::DataStream;
+using AGS::Common::TextStreamReader;
+using AGS::Common::String;
 
 extern GameSetup usetup;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
@@ -77,10 +77,10 @@ void INIgetdirec(char *wasgv, char *inifil) {
 }
 
 char *INIreaditem(const char *sectn, const char *entry) {
-    CDataStream *fin = Common::File::OpenFileRead(filetouse);
+    DataStream *fin = Common::File::OpenFileRead(filetouse);
     if (fin == NULL)
         return NULL;
-    CTextStreamReader reader(fin);
+    TextStreamReader reader(fin);
 
     //char templine[200];
     char wantsect[100];
@@ -88,7 +88,7 @@ char *INIreaditem(const char *sectn, const char *entry) {
 
     // NOTE: the string is used as a raw buffer down there;
     // FIXME that as soon as string class is optimized for common use
-    CString line;
+    String line;
 
     while (!reader.EOS()) {
         //fgets (templine, 199, fin);

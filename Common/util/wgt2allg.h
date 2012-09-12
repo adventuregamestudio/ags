@@ -43,7 +43,7 @@
 #include <osxalleg.h>
 #endif
 
-namespace AGS { namespace Common { class IBitmap; }}
+namespace AGS { namespace Common { class Bitmap; }}
 using namespace AGS; // FIXME later
 
 
@@ -107,7 +107,7 @@ extern "C"
     extern char *wgtlibrary;
     extern int currentcolor;
     extern int vesa_xres, vesa_yres;
-    extern Common::IBitmap *abuf;
+    extern Common::Bitmap *abuf;
 
 #ifdef WINDOWS_VERSION
 #define GFX_VGA GFX_DIRECTX
@@ -129,7 +129,7 @@ extern "C"
     extern int wgetmode();
 #endif
 
-    extern void wsetscreen(Common::IBitmap *nss);
+    extern void wsetscreen(Common::Bitmap *nss);
 	// CHECKME: temporary solution for plugin system
 	extern void wsetscreen_raw(BITMAP *nss);
     extern void wsetrgb(int coll, int r, int g, int b, color * pall);
@@ -137,23 +137,23 @@ extern "C"
 
     extern void wcolrotate(unsigned char start, unsigned char finish, int dir, color * pall);
 
-    extern Common::IBitmap *tempbitm;
-    extern Common::IBitmap *wnewblock(int x1, int y1, int x2, int y2);
+    extern Common::Bitmap *tempbitm;
+    extern Common::Bitmap *wnewblock(int x1, int y1, int x2, int y2);
 
     // [IKM] recreated these in platform/file unit
     /*
     extern short getshort(FILE * fff);
     extern void putshort(short num, FILE *fff);
     */
-    extern Common::IBitmap *wloadblock(char *fill);
+    extern Common::Bitmap *wloadblock(char *fill);
 
-    extern int wloadsprites(color * pall, char *filnam, Common::IBitmap ** sarray, int strt, int eend);
-    extern void wfreesprites(Common::IBitmap ** blar, int stt, int end);
+    extern int wloadsprites(color * pall, char *filnam, Common::Bitmap ** sarray, int strt, int eend);
+    extern void wfreesprites(Common::Bitmap ** blar, int stt, int end);
     /*
-    extern void wsavesprites_ex(color * pll, char *fnm, Common::IBitmap ** spre, int strt, int eend, unsigned char *arry);
-    extern void wsavesprites(color * pll, char *fnm, Common::IBitmap ** spre, int strt, int eend);
+    extern void wsavesprites_ex(color * pll, char *fnm, Common::Bitmap ** spre, int strt, int eend, unsigned char *arry);
+    extern void wsavesprites(color * pll, char *fnm, Common::Bitmap ** spre, int strt, int eend);
     */
-	extern void wputblock(int xx, int yy, Common::IBitmap *bll, int xray);
+	extern void wputblock(int xx, int yy, Common::Bitmap *bll, int xray);
 	// CHECKME: temporary solution for plugin system
 	extern void wputblock_raw(int xx, int yy, BITMAP *bll, int xray);
 
@@ -166,8 +166,8 @@ extern "C"
 
 
     extern int __wremap_keep_transparent;
-    extern void wremap(color * pal1, Common::IBitmap *picc, color * pal2);
-    extern void wremapall(color * pal1, Common::IBitmap *picc, color * pal2);
+    extern void wremap(color * pal1, Common::Bitmap *picc, color * pal2);
+    extern void wremapall(color * pal1, Common::Bitmap *picc, color * pal2);
 
     // library file functions
     extern void readheader();
@@ -182,7 +182,7 @@ extern "C"
 
     extern long wtimer(struct time tt1, struct time tt2);
 
-    extern void wcopyscreen(int x1, int y1, int x2, int y2, Common::IBitmap *src, int dx, int dy, Common::IBitmap *dest);
+    extern void wcopyscreen(int x1, int y1, int x2, int y2, Common::Bitmap *src, int dx, int dy, Common::Bitmap *dest);
 
 #ifdef __cplusplus
 }

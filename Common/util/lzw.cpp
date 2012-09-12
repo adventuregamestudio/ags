@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include "util/datastream.h"
 
-using AGS::Common::CDataStream;
+using AGS::Common::DataStream;
 using namespace AGS; // FIXME later
 
 #ifdef _MANAGED
@@ -118,7 +118,7 @@ void _delete(int z)
   }
 }
 
-void lzwcompress(Common::CDataStream *lzw_in, Common::CDataStream *out)
+void lzwcompress(Common::DataStream *lzw_in, Common::DataStream *out)
 {
   int ch, i, run, len, match, size, mask;
   char buf[17];
@@ -194,7 +194,7 @@ void lzwcompress(Common::CDataStream *lzw_in, Common::CDataStream *out)
 
 int expand_to_mem = 0;
 unsigned char *membfptr = NULL;
-void myputc(int ccc, CDataStream *out)
+void myputc(int ccc, DataStream *out)
 {
   if (maxsize > 0) {
     putbytes++;
@@ -210,7 +210,7 @@ void myputc(int ccc, CDataStream *out)
     out->WriteInt8(ccc);
 }
 
-void lzwexpand(CDataStream *lzw_in, CDataStream *out)
+void lzwexpand(DataStream *lzw_in, DataStream *out)
 {
   int bits, ch, i, j, len, mask;
   char *lzbuffer;
@@ -261,7 +261,7 @@ void lzwexpand(CDataStream *lzw_in, CDataStream *out)
   expand_to_mem = 0;
 }
 
-unsigned char *lzwexpand_to_mem(Common::CDataStream *in)
+unsigned char *lzwexpand_to_mem(Common::DataStream *in)
 {
   unsigned char *membuff = (unsigned char *)malloc(maxsize + 10);
   expand_to_mem = 1;

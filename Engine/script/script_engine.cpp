@@ -22,26 +22,26 @@ CLEAR that the code has been altered from the Standard Version.
 #include "ac/roomstruct.h"
 #include "util/filestream.h"
 
-using AGS::Common::CDataStream;
+using AGS::Common::DataStream;
 
 char *scripteditruntimecopr = "Script Editor v1.2 run-time component. (c) 1998 Chris Jones";
 
 #define SCRIPT_CONFIG_VERSION 1
 extern void quit(char *);
 
-long getlong(CDataStream *in)
+long getlong(DataStream *in)
 {
     long tmm;
     tmm = in->ReadInt32();
     return tmm;
 }
 
-void save_script_configuration(CDataStream *out)
+void save_script_configuration(DataStream *out)
 {
     quit("ScriptEdit: run-time version can't save");
 }
 
-void load_script_configuration(CDataStream *in)
+void load_script_configuration(DataStream *in)
 {
     int aa;
     if (getlong(in) != SCRIPT_CONFIG_VERSION)
@@ -54,7 +54,7 @@ void load_script_configuration(CDataStream *in)
     }
 }
 
-void save_graphical_scripts(CDataStream *out, roomstruct * rss)
+void save_graphical_scripts(DataStream *out, roomstruct * rss)
 {
     quit("ScriptEdit: run-time version can't save");
 }
@@ -62,7 +62,7 @@ void save_graphical_scripts(CDataStream *out, roomstruct * rss)
 char *scripttempn = "~acsc%d.tmp";
 extern int route_script_link();
 
-void load_graphical_scripts(CDataStream *in, roomstruct * rst)
+void load_graphical_scripts(DataStream *in, roomstruct * rst)
 {
     long ct;
 
@@ -82,7 +82,7 @@ void load_graphical_scripts(CDataStream *in, roomstruct * rst)
 
         char thisscn[20];
         sprintf(thisscn, scripttempn, ct);
-        CDataStream *te = Common::File::CreateFile(thisscn);
+        DataStream *te = Common::File::CreateFile(thisscn);
 
         char *scnf = (char *)malloc(lee);
         // MACPORT FIX: swap size and nmemb

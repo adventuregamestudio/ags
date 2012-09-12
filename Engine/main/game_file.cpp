@@ -39,9 +39,9 @@
 #include "util/datastream.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
+using AGS::Common::Bitmap;
 
-using AGS::Common::CDataStream;
+using AGS::Common::DataStream;
 /*
 
 Game data versions and changes:
@@ -134,9 +134,9 @@ extern char **characterScriptObjNames;
 extern char objectScriptObjNames[MAX_INIT_SPR][MAX_SCRIPT_NAME_LEN + 5];
 extern char **guiScriptObjNames;
 extern int actSpsCount;
-extern IBitmap **actsps;
+extern Bitmap **actsps;
 extern IDriverDependantBitmap* *actspsbmp;
-extern IBitmap **actspswb;
+extern Bitmap **actspswb;
 extern IDriverDependantBitmap* *actspswbbmp;
 extern CachedActSpsData* actspswbcache;
 
@@ -147,9 +147,9 @@ int psp_is_old_datafile = 0; // Set for 3.1.1 and 3.1.2 datafiles
 char* game_file_name = NULL;
 
 
-CDataStream * game_file_open()
+DataStream * game_file_open()
 {
-	CDataStream*in = clibfopen("game28.dta"); // 3.x data file name
+	DataStream*in = clibfopen("game28.dta"); // 3.x data file name
     if (in==NULL) {
         in = clibfopen("ac2game.dta"); // 2.x data file name
     }
@@ -157,7 +157,7 @@ CDataStream * game_file_open()
 	return in;
 }
 
-int game_file_read_version(CDataStream *in)
+int game_file_read_version(DataStream *in)
 {
 	char teststr[31];
 
@@ -201,7 +201,7 @@ int game_file_read_version(CDataStream *in)
 	return RETURN_CONTINUE;
 }
 
-void game_file_read_dialog_script(CDataStream *in)
+void game_file_read_dialog_script(DataStream *in)
 {
 	if (filever > 37) // 3.1.1+ dialog script
     {
@@ -215,7 +215,7 @@ void game_file_read_dialog_script(CDataStream *in)
     }
 }
 
-void game_file_read_script_modules(CDataStream *in)
+void game_file_read_script_modules(DataStream *in)
 {
 	if (filever >= 31) // 2.7.0+ script modules
     {
@@ -238,7 +238,7 @@ void game_file_read_script_modules(CDataStream *in)
     }
 }
 
-void game_file_read_views(CDataStream *in)
+void game_file_read_views(DataStream *in)
 {
 	if (filever > 32) // 3.x views
     {
@@ -283,7 +283,7 @@ void game_file_set_default_glmsg()
     set_default_glmsg (995, "Are you sure you want to quit?");
 }
 
-void game_file_read_dialogs(CDataStream *in)
+void game_file_read_dialogs(DataStream *in)
 {
 	dialog=(DialogTopic*)malloc(sizeof(DialogTopic)*game.numdialog+5);
 
@@ -373,7 +373,7 @@ void game_file_read_dialogs(CDataStream *in)
     }
 }
 
-void game_file_read_gui(CDataStream *in)
+void game_file_read_gui(DataStream *in)
 {
 	read_gui(in,guis,&game, &guis);
 
@@ -584,7 +584,7 @@ int load_game_file() {
 	// Start reading from file
 	//-----------------------------------------------------------
 
-    CDataStream *in = game_file_open();
+    DataStream *in = game_file_open();
 	if (in==NULL)
 		return -1;
 
@@ -645,9 +645,9 @@ int load_game_file() {
     charextra = (CharacterExtras*)calloc(game.numcharacters, sizeof(CharacterExtras));
     mls = (MoveList*)calloc(game.numcharacters + MAX_INIT_SPR + 1, sizeof(MoveList));
     actSpsCount = game.numcharacters + MAX_INIT_SPR + 2;
-    actsps = (IBitmap **)calloc(actSpsCount, sizeof(IBitmap *));
+    actsps = (Bitmap **)calloc(actSpsCount, sizeof(Bitmap *));
     actspsbmp = (IDriverDependantBitmap**)calloc(actSpsCount, sizeof(IDriverDependantBitmap*));
-    actspswb = (IBitmap **)calloc(actSpsCount, sizeof(IBitmap *));
+    actspswb = (Bitmap **)calloc(actSpsCount, sizeof(Bitmap *));
     actspswbbmp = (IDriverDependantBitmap**)calloc(actSpsCount, sizeof(IDriverDependantBitmap*));
     actspswbcache = (CachedActSpsData*)calloc(actSpsCount, sizeof(CachedActSpsData));
     game.charProps = (CustomProperties*)calloc(game.numcharacters, sizeof(CustomProperties));

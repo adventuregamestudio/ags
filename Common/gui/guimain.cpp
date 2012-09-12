@@ -18,9 +18,9 @@
 #include "util/datastream.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::CDataStream;
-using AGS::Common::IBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::DataStream;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern SpriteCache spriteset;
 
@@ -87,7 +87,7 @@ void GUIMain::SetTransparencyAsPercentage(int percent)
 	  this->transparency = ((100 - percent) * 25) / 10;
 }
 
-void GUIMain::ReadFromFile(CDataStream *in, int version)
+void GUIMain::ReadFromFile(DataStream *in, int version)
 {
   // read/write everything except drawOrder since
   // it will be regenerated
@@ -103,7 +103,7 @@ void GUIMain::ReadFromFile(CDataStream *in, int version)
   in->ReadArrayOfInt32(objrefptr, MAX_OBJS_ON_GUI);
 }
 
-void GUIMain::WriteToFile(CDataStream *out)
+void GUIMain::WriteToFile(DataStream *out)
 {
   out->Write(vtext, 40);
   out->WriteArrayOfInt32(&x, 27);
@@ -273,7 +273,7 @@ int GUIMain::is_mouse_on_gui()
 
 void GUIMain::draw_blob(int xp, int yp)
 {
-  abuf->FillRect(CRect(xp, yp, xp + get_fixed_pixel_size(1), yp + get_fixed_pixel_size(1)), currentcolor);
+  abuf->FillRect(Rect(xp, yp, xp + get_fixed_pixel_size(1), yp + get_fixed_pixel_size(1)), currentcolor);
 }
 
 void GUIMain::draw_at(int xx, int yy)
@@ -287,8 +287,8 @@ void GUIMain::draw_at(int xx, int yy)
   if ((wid < 1) || (hit < 1))
     return;
 
-  IBitmap *abufwas = abuf;
-  IBitmap *subbmp = Bitmap::CreateSubBitmap(abuf, RectWH(xx, yy, wid, hit));
+  Bitmap *abufwas = abuf;
+  Bitmap *subbmp = BitmapHelper::CreateSubBitmap(abuf, RectWH(xx, yy, wid, hit));
 
   SET_EIP(376)
   // stop border being transparent, if the whole GUI isn't
@@ -302,9 +302,9 @@ void GUIMain::draw_at(int xx, int yy)
   SET_EIP(377)
 
   if (fgcol != bgcol) {
-    abuf->DrawRect(CRect(0, 0, abuf->GetWidth() - 1, abuf->GetHeight() - 1), get_col8_lookup(fgcol));
+    abuf->DrawRect(Rect(0, 0, abuf->GetWidth() - 1, abuf->GetHeight() - 1), get_col8_lookup(fgcol));
     if (get_fixed_pixel_size(1) > 1)
-      abuf->DrawRect(CRect(1, 1, abuf->GetWidth() - 2, abuf->GetHeight() - 2), get_col8_lookup(fgcol));
+      abuf->DrawRect(Rect(1, 1, abuf->GetWidth() - 2, abuf->GetHeight() - 2), get_col8_lookup(fgcol));
   }
 
   SET_EIP(378)
@@ -476,7 +476,7 @@ void GUIMain::mouse_but_up()
 
 #define GUI_VERSION 115
 
-void read_gui(CDataStream *in, GUIMain * guiread, GameSetupStruct * gss, GUIMain** allocate)
+void read_gui(DataStream *in, GUIMain * guiread, GameSetupStruct * gss, GUIMain** allocate)
 {
   int gver, ee;
 
@@ -593,7 +593,7 @@ void read_gui(CDataStream *in, GUIMain * guiread, GameSetupStruct * gss, GUIMain
   guis_need_update = 1;
 }
 
-void write_gui(CDataStream *out, GUIMain * guiwrite, GameSetupStruct * gss)
+void write_gui(DataStream *out, GUIMain * guiwrite, GameSetupStruct * gss)
 {
   int ee;
 

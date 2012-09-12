@@ -11,27 +11,27 @@ namespace AGS
 namespace Common
 {
 
-CString::CString()
+String::String()
     : _cstr     (NULL)
     , _length   (0)
 {
 }
 
-CString::CString(const CString &str)
+String::String(const String &str)
     : _cstr     (NULL)
     , _length   (0)
 {
     *this = str;
 }
 
-CString::CString(const char *cstr)
+String::String(const char *cstr)
     : _cstr     (NULL)
     , _length   (0)
 {
     *this = cstr;
 }
 
-CString::CString(const char *cstr, int length)
+String::String(const char *cstr, int length)
     : _cstr     (NULL)
     , _length   (0)
 {
@@ -44,19 +44,19 @@ CString::CString(const char *cstr, int length)
     _cstr[_length] = 0;
 }
 
-CString::CString(char c, int count)
+String::String(char c, int count)
     : _cstr     (NULL)
     , _length   (0)
 {
     FillString(c, count);
 }
 
-CString::~CString()
+String::~String()
 {
     delete [] _cstr;
 }
 
-char *CString::GetBuffer(int length)
+char *String::GetBuffer(int length)
 {
     if (_length < length)
     {
@@ -69,7 +69,7 @@ char *CString::GetBuffer(int length)
     return _cstr;
 }
 
-void CString::ReleaseBuffer(int set_length)
+void String::ReleaseBuffer(int set_length)
 {
     // TODO
     // Should copy buffer contents to _cstr here
@@ -83,23 +83,23 @@ void CString::ReleaseBuffer(int set_length)
     }
 }
 
-int CString::Compare(const char *cstr) const
+int String::Compare(const char *cstr) const
 {
     return strcmp(_cstr, cstr);
 }
 
-int CString::CompareNoCase(const char *cstr) const
+int String::CompareNoCase(const char *cstr) const
 {
     return stricmp(_cstr, cstr);
 }
 
-int CString::CompareLeft(const char *cstr) const
+int String::CompareLeft(const char *cstr) const
 {
     int count = strlen(cstr);
     return strncmp(_cstr, cstr, count);
 }
 
-int CString::FindChar(char c) const
+int String::FindChar(char c) const
 {
     const char * p_str = strchr(_cstr, c);
     if (p_str)
@@ -109,13 +109,13 @@ int CString::FindChar(char c) const
     return p_str - _cstr;
 }
 
-void CString::FillString(char c, int count)
+void String::FillString(char c, int count)
 {
     SetLength(count);
     memset(_cstr, c, count);
 }
 
-void CString::Append(const char *cstr)
+void String::Append(const char *cstr)
 {
     int add_length = strlen(cstr);
     char *newcstr = new char[_length + add_length + 1];
@@ -127,7 +127,7 @@ void CString::Append(const char *cstr)
     _cstr = newcstr;
 }
 
-void CString::AppendChar(char c)
+void String::AppendChar(char c)
 {
     // Yeah yeah that's totally not optimal, but that's "basic version", remember?
     // (At this point only interface is important)
@@ -140,7 +140,7 @@ void CString::AppendChar(char c)
     _cstr = newcstr;
 }
 
-char CString::GetAt(int index) const
+char String::GetAt(int index) const
 {
     if (index < 0 || index >= _length)
     {
@@ -150,7 +150,7 @@ char CString::GetAt(int index) const
     return _cstr[index];
 }
 
-void CString::SetAt(int index, char c)
+void String::SetAt(int index, char c)
 {
     if (index < 0 || index >= _length)
     {
@@ -160,33 +160,33 @@ void CString::SetAt(int index, char c)
     _cstr[index] = c;
 }
 
-CString CString::Left(int count) const
+String String::Left(int count) const
 {
     count = Math::Min(count, _length);
-    return CString(_cstr, count);
+    return String(_cstr, count);
 }
 
-CString CString::Mid(int from) const
+String String::Mid(int from) const
 {
     int count = _length;
     Math::ClampLength(0, _length, from, count);
-    return CString(_cstr + from, count);
+    return String(_cstr + from, count);
 }
 
-CString CString::Mid(int from, int count) const
+String String::Mid(int from, int count) const
 {
     Math::ClampLength(0, _length, from, count);
-    return CString(_cstr + from, count);
+    return String(_cstr + from, count);
 }
 
-CString CString::Right(int count) const
+String String::Right(int count) const
 {
     count = Math::Min(count, _length);
     int from = _length - count;
-    return CString(_cstr + from, count);
+    return String(_cstr + from, count);
 }
 
-void CString::Format(const char *fcstr, ...)
+void String::Format(const char *fcstr, ...)
 {
     delete [] _cstr;
     va_list argptr;
@@ -198,9 +198,9 @@ void CString::Format(const char *fcstr, ...)
     va_end(argptr);
 }
 
-/*static*/ CString CString::MakeString(const char *fcstr, ...)
+/*static*/ String String::MakeString(const char *fcstr, ...)
 {
-    CString s;
+    String s;
     va_list argptr;
     va_start(argptr, fcstr);
     s._length = _vscprintf(fcstr, argptr);
@@ -211,7 +211,7 @@ void CString::Format(const char *fcstr, ...)
     return s;
 }
 
-int CString::ToInt() const
+int String::ToInt() const
 {
     if (!_length)
     {
@@ -221,7 +221,7 @@ int CString::ToInt() const
     return atoi(_cstr);
 }
 
-CString &CString::operator=(const CString& str)
+String &String::operator=(const String& str)
 {
     delete [] _cstr;
     _length = str._length;
@@ -234,7 +234,7 @@ CString &CString::operator=(const CString& str)
     return *this;
 }
 
-CString &CString::operator=(const char *cstr)
+String &String::operator=(const char *cstr)
 {
     delete [] _cstr;
     _length = cstr ? strlen(cstr) : 0;
@@ -247,7 +247,7 @@ CString &CString::operator=(const char *cstr)
     return *this;
 }
 
-void CString::SetLength(int new_length)
+void String::SetLength(int new_length)
 {
     if (_length == new_length)
     {

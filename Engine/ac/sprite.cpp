@@ -11,8 +11,8 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameSetupStruct game;
 extern int scrnwid,scrnhit;
@@ -49,7 +49,7 @@ void get_new_size_for_sprite (int ee, int ww, int hh, int &newwid, int &newhit) 
 
 // set any alpha-transparent pixels in the image to the appropriate
 // RGB mask value so that the blit calls work correctly
-void set_rgb_mask_using_alpha_channel(IBitmap *image)
+void set_rgb_mask_using_alpha_channel(Bitmap *image)
 {
     int x, y;
 
@@ -66,10 +66,10 @@ void set_rgb_mask_using_alpha_channel(IBitmap *image)
 }
 
 // from is a 32-bit RGBA image, to is a 15/16/24-bit destination image
-IBitmap *remove_alpha_channel(IBitmap *from) {
+Bitmap *remove_alpha_channel(Bitmap *from) {
     int depth = final_col_dep;
 
-    IBitmap *to = Bitmap::CreateBitmap(from->GetWidth(), from->GetHeight(),depth);
+    Bitmap *to = BitmapHelper::CreateBitmap(from->GetWidth(), from->GetHeight(),depth);
     int maskcol = to->GetMaskColor();
     int y,x;
     unsigned int c,b,g,r;
@@ -121,7 +121,7 @@ void pre_save_sprite(int ee) {
 }
 
 // these vars are global to help with debugging
-IBitmap *tmpdbl, *curspr;
+Bitmap *tmpdbl, *curspr;
 int newwid, newhit;
 void initialize_sprite (int ee) {
 
@@ -157,7 +157,7 @@ void initialize_sprite (int ee) {
         eip_guiobj = newwid;
 
         if ((newwid != curspr->GetWidth()) || (newhit != curspr->GetHeight())) {
-            tmpdbl = Bitmap::CreateBitmap(newwid,newhit,curspr->GetColorDepth());
+            tmpdbl = BitmapHelper::CreateBitmap(newwid,newhit,curspr->GetColorDepth());
             if (tmpdbl == NULL)
                 quit("Not enough memory to load sprite graphics");
             tmpdbl->Acquire ();
@@ -191,13 +191,13 @@ void initialize_sprite (int ee) {
             ((spcoldep == 16) && (final_col_dep > 16))) {
                 // 16-bit sprite in 32-bit game or vice versa - convert
                 // so that scaling and blit calls work properly
-                IBitmap *oldSprite = spriteset[ee];
-                IBitmap *newSprite;
+                Bitmap *oldSprite = spriteset[ee];
+                Bitmap *newSprite;
 
                 if (game.spriteflags[ee] & SPF_ALPHACHANNEL)
                     newSprite = remove_alpha_channel(oldSprite);
                 else {
-                    newSprite = Bitmap::CreateBitmap(spritewidth[ee], spriteheight[ee], final_col_dep);
+                    newSprite = BitmapHelper::CreateBitmap(spritewidth[ee], spriteheight[ee], final_col_dep);
                     newSprite->Blit(oldSprite, 0, 0, 0, 0, spritewidth[ee], spriteheight[ee]);
                 }
                 spriteset.set(ee, newSprite);
@@ -219,7 +219,7 @@ void initialize_sprite (int ee) {
 #ifdef USE_15BIT_FIX
         else if ((final_col_dep != game.color_depth*8) && (spcoldep == game.color_depth*8)) {
             // running in 15-bit mode with a 16-bit game, convert sprites
-            IBitmap *oldsprite = spriteset[ee];
+            Bitmap *oldsprite = spriteset[ee];
 
             if (game.spriteflags[ee] & SPF_ALPHACHANNEL)
                 // 32-to-24 with alpha channel

@@ -7,22 +7,22 @@
 #include "util/datastream.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::CDataStream;
-using AGS::Common::IBitmap;
+using AGS::Common::DataStream;
+using AGS::Common::Bitmap;
 
 extern SpriteCache spriteset;
 
 DynamicArray<GUISlider> guislider;
 int numguislider = 0;
 
-void GUISlider::WriteToFile(CDataStream *out)
+void GUISlider::WriteToFile(DataStream *out)
 {
   GUIObject::WriteToFile(out);
   // MACPORT FIX: swap
   out->WriteArrayOfInt32(&min, 7);
 }
 
-void GUISlider::ReadFromFile(CDataStream *in, int version)
+void GUISlider::ReadFromFile(DataStream *in, int version)
 {
   int sizeToRead = 4;
 
@@ -122,15 +122,15 @@ void GUISlider::Draw()
   else {
     // normal grey background
     wsetcolor(16);
-    abuf->FillRect(CRect(bartlx + 1, bartly + 1, barbrx - 1, barbry - 1), currentcolor);
+    abuf->FillRect(Rect(bartlx + 1, bartly + 1, barbrx - 1, barbry - 1), currentcolor);
 
     wsetcolor(8);
-    abuf->DrawLine(CLine(bartlx, bartly, bartlx, barbry), currentcolor);
-    abuf->DrawLine(CLine(bartlx, bartly, barbrx, bartly), currentcolor);
+    abuf->DrawLine(Line(bartlx, bartly, bartlx, barbry), currentcolor);
+    abuf->DrawLine(Line(bartlx, bartly, barbrx, bartly), currentcolor);
 
     wsetcolor(15);
-    abuf->DrawLine(CLine(barbrx, bartly + 1, barbrx, barbry), currentcolor);
-    abuf->DrawLine(CLine(bartlx, barbry, barbrx, barbry), currentcolor);
+    abuf->DrawLine(Line(barbrx, bartly + 1, barbrx, barbry), currentcolor);
+    abuf->DrawLine(Line(bartlx, barbry, barbrx, barbry), currentcolor);
   }
 
   if (handlepic > 0) {
@@ -146,15 +146,15 @@ void GUISlider::Draw()
   else {
     // normal grey tracker handle
     wsetcolor(7);
-    abuf->FillRect(CRect(handtlx, handtly, handbrx, handbry), currentcolor);
+    abuf->FillRect(Rect(handtlx, handtly, handbrx, handbry), currentcolor);
 
     wsetcolor(15);
-    abuf->DrawLine(CLine(handtlx, handtly, handbrx, handtly), currentcolor);
-    abuf->DrawLine(CLine(handtlx, handtly, handtlx, handbry), currentcolor);
+    abuf->DrawLine(Line(handtlx, handtly, handbrx, handtly), currentcolor);
+    abuf->DrawLine(Line(handtlx, handtly, handtlx, handbry), currentcolor);
 
     wsetcolor(16);
-    abuf->DrawLine(CLine(handbrx, handtly + 1, handbrx, handbry), currentcolor);
-    abuf->DrawLine(CLine(handtlx + 1, handbry, handbrx, handbry), currentcolor);
+    abuf->DrawLine(Line(handbrx, handtly + 1, handbrx, handbry), currentcolor);
+    abuf->DrawLine(Line(handtlx + 1, handbry, handbrx, handbry), currentcolor);
   }
 
   cached_handtlx = handtlx;

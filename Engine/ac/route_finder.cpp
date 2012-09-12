@@ -21,8 +21,8 @@
 #include <math.h>
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 #define MANOBJNUM 99
 
@@ -74,13 +74,13 @@ void init_pathfinder()
   pathbacky = (int *)malloc(sizeof(int) * MAXPATHBACK);
 }
 
-IBitmap *wallscreen;
+Bitmap *wallscreen;
 //#define DEBUG_PATHFINDER
 char *movelibcopyright = "PathFinder library v3.1 (c) 1998, 1999, 2001, 2002 Chris Jones.";
 int line_failed = 0;
 int lastcx, lastcy;
 
-// TODO: find a way to reimpl this with IBitmap
+// TODO: find a way to reimpl this with Bitmap
 void line_callback(BITMAP *bmpp, int x, int y, int d)
 {
 /*  if ((x>=320) | (y>=200) | (x<0) | (y<0)) line_failed=1;
@@ -137,7 +137,7 @@ int can_see_from(int x1, int y1, int x2, int y2)
   if ((x1 == x2) && (y1 == y2))
     return 1;
 
-  // TODO: need some way to use IBitmap with callback
+  // TODO: need some way to use Bitmap with callback
   do_line((BITMAP*)wallscreen->GetBitmapObject(), x1, y1, x2, y2, 0, line_callback);
   if (line_failed == 0)
     return 1;
@@ -145,7 +145,7 @@ int can_see_from(int x1, int y1, int x2, int y2)
   return 0;
 }
 
-int find_nearest_walkable_area(IBitmap *tempw, int fromX, int fromY, int toX, int toY, int destX, int destY, int granularity)
+int find_nearest_walkable_area(Bitmap *tempw, int fromX, int fromY, int toX, int toY, int destX, int destY, int granularity)
 {
   int ex, ey, nearest = 99999, thisis, nearx, neary;
   if (fromX < 0) fromX = 0;
@@ -181,7 +181,7 @@ int find_nearest_walkable_area(IBitmap *tempw, int fromX, int fromY, int toX, in
 
 #define MAX_GRANULARITY 3
 int walk_area_granularity[MAX_WALK_AREAS + 1];
-int is_route_possible(int fromx, int fromy, int tox, int toy, IBitmap *wss)
+int is_route_possible(int fromx, int fromy, int tox, int toy, Bitmap *wss)
 {
   wallscreen = wss;
   suggestx = -1;
@@ -193,7 +193,7 @@ int is_route_possible(int fromx, int fromy, int tox, int toy, IBitmap *wss)
   if (wallscreen->GetPixel(fromx, fromy) < 1)
     return 0;
 
-  IBitmap *tempw = Bitmap::CreateBitmap(wallscreen->GetWidth(), wallscreen->GetHeight(), 8);
+  Bitmap *tempw = BitmapHelper::CreateBitmap(wallscreen->GetWidth(), wallscreen->GetHeight(), 8);
 
   if (tempw == NULL)
     quit("no memory for route calculation");
@@ -288,7 +288,7 @@ int is_route_possible(int fromx, int fromy, int tox, int toy, IBitmap *wss)
   return 1;
 }
 
-extern IBitmap *mousecurs[10];
+extern Bitmap *mousecurs[10];
 int leftorright = 0;
 int nesting = 0;
 int pathbackstage = 0;
@@ -776,7 +776,7 @@ void calculate_move_stage(MoveList * mlsp, int aaa)
 
 #define MAKE_INTCOORD(x,y) (((unsigned short)x << 16) | ((unsigned short)y))
 
-int find_route(short srcx, short srcy, short xx, short yy, IBitmap *onscreen, int movlst, int nocross, int ignore_walls)
+int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int movlst, int nocross, int ignore_walls)
 {
 #ifdef DEBUG_PATHFINDER
   __wnormscreen();

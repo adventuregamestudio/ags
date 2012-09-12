@@ -14,17 +14,17 @@ namespace AGS
 namespace Common
 {
 
-class IStream;
+class Stream;
 
-class CTextStreamWriter
+class TextStreamWriter
 {
 public:
     // TODO: use shared ptr
-    CTextStreamWriter(IStream *stream);
-    virtual ~CTextStreamWriter();
+    TextStreamWriter(Stream *stream);
+    virtual ~TextStreamWriter();
 
     virtual bool    IsValid() const;
-    const IStream   *GetStream() const;
+    const Stream   *GetStream() const;
     // TODO: use shared ptr instead
     void            ReleaseStream();
 
@@ -33,15 +33,15 @@ public:
     // Write single character
     virtual void    WriteChar(char c);
     // Write string as a plain text (without null-terminator)
-    virtual void    WriteString(const CString &str);
+    virtual void    WriteString(const String &str);
     // Write string and add line break at the end
-    virtual void    WriteLine(const CString &str);
+    virtual void    WriteLine(const String &str);
     // Write formatted string (see *printf)
-    virtual void    WriteFormat(const CString &fmt, ...);
+    virtual void    WriteFormat(const String &fmt, ...);
     virtual void    WriteLineBreak();
 
 private:
-    IStream *_stream;
+    Stream *_stream;
 };
 
 } // namespace Common

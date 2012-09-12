@@ -8,7 +8,7 @@
 #include "script/cc_error.h"
 #include "util/datastream.h"
 
-using AGS::Common::CDataStream;
+using AGS::Common::DataStream;
 
 void ManagedObjectPool::ManagedObject::init(long theHandle, const char *theAddress, ICCDynamicObject *theCallback) {
     handle = theHandle;
@@ -188,7 +188,7 @@ int ManagedObjectPool::AddObject(const char *address, ICCDynamicObject *callback
     }
 }
 
-void ManagedObjectPool::WriteToDisk(CDataStream *out) {
+void ManagedObjectPool::WriteToDisk(DataStream *out) {
     int serializeBufferSize = SERIALIZE_BUFFER_SIZE;
     char *serializeBuffer = (char*)malloc(serializeBufferSize);
 
@@ -225,7 +225,7 @@ void ManagedObjectPool::WriteToDisk(CDataStream *out) {
     free(serializeBuffer);
 }
 
-int ManagedObjectPool::ReadFromDisk(CDataStream *in, ICCObjectReader *reader) {
+int ManagedObjectPool::ReadFromDisk(DataStream *in, ICCObjectReader *reader) {
     int serializeBufferSize = SERIALIZE_BUFFER_SIZE;
     char *serializeBuffer = (char*)malloc(serializeBufferSize);
     char typeNameBuffer[200];

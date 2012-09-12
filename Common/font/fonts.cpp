@@ -12,8 +12,8 @@
 #include "font/wfnfontrenderer.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern void set_our_eip(int eip);
 extern int  get_our_eip();

@@ -46,9 +46,9 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::CDataStream;
-using AGS::Common::IBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::DataStream;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 #if defined(MAC_VERSION) || defined(LINUX_VERSION)
 // for toupper
@@ -73,7 +73,7 @@ extern int done_es_error;
 extern int our_eip;
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern int scrnwid,scrnhit;
-extern IBitmap *walkareabackup, *walkable_areas_temp;
+extern Bitmap *walkareabackup, *walkable_areas_temp;
 extern ScriptObject scrObj[MAX_INIT_SPR];
 extern SpriteCache spriteset;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
@@ -90,21 +90,21 @@ extern int ccError;
 extern char ccErrorString[400];
 extern IDriverDependantBitmap* roomBackgroundBmp;
 extern IGraphicsDriver *gfxDriver;
-extern IBitmap *raw_saved_screen;
+extern Bitmap *raw_saved_screen;
 extern int actSpsCount;
-extern IBitmap **actsps;
+extern Bitmap **actsps;
 extern IDriverDependantBitmap* *actspsbmp;
-extern IBitmap **actspswb;
+extern Bitmap **actspswb;
 extern IDriverDependantBitmap* *actspswbbmp;
 extern CachedActSpsData* actspswbcache;
 extern color palette[256];
-extern IBitmap *virtual_screen;
-extern IBitmap *_old_screen;
-extern IBitmap *_sub_screen;
+extern Bitmap *virtual_screen;
+extern Bitmap *_old_screen;
+extern Bitmap *_sub_screen;
 extern int offsetx, offsety;
 extern int mouse_z_was;
 
-extern IBitmap **guibg;
+extern Bitmap **guibg;
 extern IDriverDependantBitmap **guibgbmp;
 
 RGB_MAP rgb_table;  // for 256-col antialiasing
@@ -185,7 +185,7 @@ const char* Room_GetMessages(int index) {
 
 //=============================================================================
 
-IBitmap *fix_bitmap_size(IBitmap *todubl) {
+Bitmap *fix_bitmap_size(Bitmap *todubl) {
     int oldw=todubl->GetWidth(), oldh=todubl->GetHeight();
     int newWidth = multiply_up_coordinate(thisroom.width);
     int newHeight = multiply_up_coordinate(thisroom.height);
@@ -193,10 +193,10 @@ IBitmap *fix_bitmap_size(IBitmap *todubl) {
     if ((oldw == newWidth) && (oldh == newHeight))
         return todubl;
 
-    //  IBitmap *tempb=Bitmap::CreateBitmap(scrnwid,scrnhit);
-    IBitmap *tempb=Bitmap::CreateBitmap(newWidth, newHeight, todubl->GetColorDepth());
-    tempb->SetClip(CRect(0,0,tempb->GetWidth()-1,tempb->GetHeight()-1));
-    todubl->SetClip(CRect(0,0,oldw-1,oldh-1));
+    //  Bitmap *tempb=BitmapHelper::CreateBitmap(scrnwid,scrnhit);
+    Bitmap *tempb=BitmapHelper::CreateBitmap(newWidth, newHeight, todubl->GetColorDepth());
+    tempb->SetClip(Rect(0,0,tempb->GetWidth()-1,tempb->GetHeight()-1));
+    todubl->SetClip(Rect(0,0,oldw-1,oldh-1));
     tempb->Clear();
     tempb->StretchBlt(todubl, RectWH(0,0,oldw,oldh), RectWH(0,0,tempb->GetWidth(),tempb->GetHeight()));
     delete todubl; todubl=tempb;
@@ -384,7 +384,7 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
     sprintf(rmfile,"room%d.crm",newnum);
     if (newnum == 0) {
         // support both room0.crm and intro.crm
-        CDataStream *inpu = clibfopen(rmfile);
+        DataStream *inpu = clibfopen(rmfile);
         if (inpu == NULL)
             strcpy(rmfile, "intro.crm");
         else
@@ -392,10 +392,10 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
     }
     // reset these back, because they might have been changed.
     delete thisroom.object;
-    thisroom.object=Bitmap::CreateBitmap(320,200);
+    thisroom.object=BitmapHelper::CreateBitmap(320,200);
 
     delete thisroom.ebscene[0];
-    thisroom.ebscene[0] = Bitmap::CreateBitmap(320,200);
+    thisroom.ebscene[0] = BitmapHelper::CreateBitmap(320,200);
 
     update_polled_stuff_if_runtime();
 
@@ -449,7 +449,7 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
         // convert down scenes from 16 to 15-bit if necessary
         if ((final_col_dep != game.color_depth*8) &&
             (thisroom.ebscene[cc]->GetColorDepth() == game.color_depth * 8)) {
-                IBitmap *oldblock = thisroom.ebscene[cc];
+                Bitmap *oldblock = thisroom.ebscene[cc];
                 thisroom.ebscene[cc] = convert_16_to_15(oldblock);
                 delete oldblock;
         }
@@ -476,7 +476,7 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
     if (usetup.want_letterbox) {
         int abscreen=0;
 
-        if (abuf==Bitmap::GetScreenBitmap()) abscreen=1;
+        if (abuf==BitmapHelper::GetScreenBitmap()) abscreen=1;
         else if (abuf==virtual_screen) abscreen=2;
         // if this is a 640x480 room and we're in letterbox mode, full-screen it
         int newScreenHeight = final_scrn_hit;
@@ -487,21 +487,21 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
 
         if (newScreenHeight == _sub_screen->GetHeight())
         {
-			Bitmap::SetScreenBitmap( _sub_screen );
+			BitmapHelper::SetScreenBitmap( _sub_screen );
         }
         else if (_sub_screen->GetWidth() != final_scrn_wid)
         {
             int subBitmapWidth = _sub_screen->GetWidth();
             delete _sub_screen;
-            _sub_screen = Bitmap::CreateSubBitmap(_old_screen, RectWH(_old_screen->GetWidth() / 2 - subBitmapWidth / 2, _old_screen->GetHeight() / 2 - newScreenHeight / 2, subBitmapWidth, newScreenHeight));
-            Bitmap::SetScreenBitmap( _sub_screen );
+            _sub_screen = BitmapHelper::CreateSubBitmap(_old_screen, RectWH(_old_screen->GetWidth() / 2 - subBitmapWidth / 2, _old_screen->GetHeight() / 2 - newScreenHeight / 2, subBitmapWidth, newScreenHeight));
+            BitmapHelper::SetScreenBitmap( _sub_screen );
         }
         else
         {
-            Bitmap::SetScreenBitmap( _old_screen );
+            BitmapHelper::SetScreenBitmap( _old_screen );
         }
 
-		scrnhit = Bitmap::GetScreenBitmap()->GetHeight();
+		scrnhit = BitmapHelper::GetScreenBitmap()->GetHeight();
         vesa_yres = scrnhit;
 
 #if defined(WINDOWS_VERSION) || defined(LINUX_VERSION) || defined(MAC_VERSION)
@@ -511,7 +511,7 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
         if (virtual_screen->GetHeight() != scrnhit) {
             int cdepth=virtual_screen->GetColorDepth();
             delete virtual_screen;
-            virtual_screen=Bitmap::CreateBitmap(scrnwid,scrnhit,cdepth);
+            virtual_screen=BitmapHelper::CreateBitmap(scrnwid,scrnhit,cdepth);
             virtual_screen->Clear();
             gfxDriver->SetMemoryBackBuffer(virtual_screen);
             //      ignore_mouseoff_bitmap = virtual_screen;
@@ -519,7 +519,7 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
 
         gfxDriver->SetRenderOffset(get_screen_x_adjustment(virtual_screen), get_screen_y_adjustment(virtual_screen));
 
-		if (abscreen==1) abuf=Bitmap::GetScreenBitmap();
+		if (abscreen==1) abuf=BitmapHelper::GetScreenBitmap();
         else if (abscreen==2) abuf=virtual_screen;
 
         update_polled_stuff_if_runtime();
@@ -535,12 +535,12 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
     // walkable_areas_temp is used by the pathfinder to generate a
     // copy of the walkable areas - allocate it here to save time later
     delete walkable_areas_temp;
-    walkable_areas_temp = Bitmap::CreateBitmap(thisroom.walls->GetWidth(), thisroom.walls->GetHeight(), 8);
+    walkable_areas_temp = BitmapHelper::CreateBitmap(thisroom.walls->GetWidth(), thisroom.walls->GetHeight(), 8);
 
     // Make a backup copy of the walkable areas prior to
     // any RemoveWalkableArea commands
     delete walkareabackup;
-    walkareabackup=Bitmap::CreateBitmap(thisroom.walls->GetWidth(),thisroom.walls->GetHeight());
+    walkareabackup=BitmapHelper::CreateBitmap(thisroom.walls->GetWidth(),thisroom.walls->GetHeight());
 
     our_eip=204;
     // copy the walls screen

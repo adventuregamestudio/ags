@@ -17,10 +17,10 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::CDataStream;
+using AGS::Common::DataStream;
 
-using AGS::Common::IBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern int loaded_game_file_version;
 extern GameSetup usetup;
@@ -30,10 +30,10 @@ extern GameState play;
 // defined in media/video/video.h
 extern int canabort, stretch_flc;
 extern short fliwidth,fliheight;
-extern IBitmap *hicol_buf;
-extern IBitmap *fli_buffer;
+extern Bitmap *hicol_buf;
+extern Bitmap *fli_buffer;
 extern IDriverDependantBitmap *fli_ddb;
-extern IBitmap *fli_target;
+extern Bitmap *fli_target;
 extern IGraphicsDriver *gfxDriver;
 
 // defined in ac_screen
@@ -68,7 +68,7 @@ void play_flc_file(int numb,int playflags) {
         clearScreenAtStart = 0;
 
     char flicnam[20]; sprintf(flicnam,"flic%d.flc",numb);
-    CDataStream*in=clibfopen(flicnam);
+    DataStream*in=clibfopen(flicnam);
     if (in==NULL) { sprintf(flicnam,"flic%d.fli",numb);
     in=clibfopen(flicnam); }
     if (in==NULL) {
@@ -80,7 +80,7 @@ void play_flc_file(int numb,int playflags) {
     fliheight = in->ReadInt16();
     delete in;
     if (game.color_depth > 1) {
-        hicol_buf=Bitmap::CreateBitmap(fliwidth,fliheight,final_col_dep);
+        hicol_buf=BitmapHelper::CreateBitmap(fliwidth,fliheight,final_col_dep);
         hicol_buf->Clear();
     }
     // override the stretch option if necessary
@@ -88,18 +88,18 @@ void play_flc_file(int numb,int playflags) {
         stretch_flc = 0;
     else if ((fliwidth > scrnwid) || (fliheight > scrnhit))
         stretch_flc = 1;
-    fli_buffer=Bitmap::CreateBitmap(fliwidth,fliheight,8); //640,400); //scrnwid,scrnhit);
+    fli_buffer=BitmapHelper::CreateBitmap(fliwidth,fliheight,8); //640,400); //scrnwid,scrnhit);
     if (fli_buffer==NULL) quit("Not enough memory to play animation");
     fli_buffer->Clear();
 
-	IBitmap *screen_bmp = Bitmap::GetScreenBitmap();
+	Bitmap *screen_bmp = BitmapHelper::GetScreenBitmap();
 
     if (clearScreenAtStart) {
 		screen_bmp->Clear();
         render_to_screen(screen_bmp, 0, 0);
     }
 
-    fli_target = Bitmap::CreateBitmap(screen_bmp->GetWidth(), screen_bmp->GetHeight(), final_col_dep);
+    fli_target = BitmapHelper::CreateBitmap(screen_bmp->GetWidth(), screen_bmp->GetHeight(), final_col_dep);
     fli_ddb = gfxDriver->CreateDDBFromBitmap(fli_target, false, true);
 
 	if (play_fli(flicnam,(BITMAP*)fli_buffer->GetBitmapObject(),0,fli_callback)==FLI_ERROR)

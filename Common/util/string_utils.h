@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-namespace AGS { namespace Common { class CDataStream; } }
+namespace AGS { namespace Common { class DataStream; } }
 using namespace AGS; // FIXME later
 
 #if defined(ANDROID_VERSION) || defined(IOS_VERSION)
@@ -33,9 +33,9 @@ void split_lines_leftright(const char *todis, int wii, int fonnt);
 //=============================================================================
 
 // FIXME: remove later when arrays of chars are replaced by string class
-void fputstring(const char *sss, Common::CDataStream *out);
-void fgetstring_limit(char *sss, Common::CDataStream *in, int bufsize);
-void fgetstring(char *sss, Common::CDataStream *in);
+void fputstring(const char *sss, Common::DataStream *out);
+void fgetstring_limit(char *sss, Common::DataStream *in, int bufsize);
+void fgetstring(char *sss, Common::DataStream *in);
 
 
 #endif // __AGS_CN_UTIL__STRINGUTILS_H

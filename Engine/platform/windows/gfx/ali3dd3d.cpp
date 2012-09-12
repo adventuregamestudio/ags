@@ -25,8 +25,8 @@
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
 
-using AGS::Common::IBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 using namespace AGS; // FIXME later
 
 extern int dxmedia_play_video_3d(const char*filename, IDirect3DDevice9 *device, bool useAVISound, int canskip, int stretch);
@@ -244,9 +244,9 @@ public:
   virtual void SetCallbackForNullSprite(GFXDRV_CLIENTCALLBACKXY callback) { _nullSpriteCallback = callback; }
   virtual void UnInit();
   virtual void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse);
-  virtual IBitmap *ConvertBitmapToSupportedColourDepth(IBitmap *bitmap);
-  virtual IDriverDependantBitmap* CreateDDBFromBitmap(IBitmap *bitmap, bool hasAlpha, bool opaque);
-  virtual void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, IBitmap *bitmap, bool hasAlpha);
+  virtual Bitmap *ConvertBitmapToSupportedColourDepth(Bitmap *bitmap);
+  virtual IDriverDependantBitmap* CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque);
+  virtual void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha);
   virtual void DestroyDDB(IDriverDependantBitmap* bitmap);
   virtual void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap);
   virtual void ClearDrawList();
@@ -254,7 +254,7 @@ public:
   virtual void Render();
   virtual void Render(GlobalFlipType flip);
   virtual void SetRenderOffset(int x, int y);
-  virtual void GetCopyOfScreenIntoBitmap(IBitmap *destination);
+  virtual void GetCopyOfScreenIntoBitmap(Bitmap *destination);
   virtual void EnableVsyncBeforeRender(bool enabled) { }
   virtual void Vsync();
   virtual void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
@@ -267,8 +267,8 @@ public:
   virtual bool RequiresFullRedrawEachFrame() { return true; }
   virtual bool HasAcceleratedStretchAndFlip() { return true; }
   virtual bool UsesMemoryBackBuffer() { return false; }
-  virtual IBitmap* GetMemoryBackBuffer() { return NULL; }
-  virtual void SetMemoryBackBuffer(IBitmap *backBuffer) {  }
+  virtual Bitmap* GetMemoryBackBuffer() { return NULL; }
+  virtual void SetMemoryBackBuffer(Bitmap *backBuffer) {  }
   virtual void SetScreenTint(int red, int green, int blue);
 
   // Internal
@@ -308,7 +308,7 @@ private:
   bool _legacyPixelShader;
   float _pixelRenderOffset;
   volatile int *_loopTimer;
-  IBitmap *_screenTintLayer;
+  Bitmap *_screenTintLayer;
   D3DBitmap* _screenTintLayerDDB;
   SpriteDrawListEntry _screenTintSprite;
 
@@ -324,7 +324,7 @@ private:
   void set_up_default_vertices();
   void make_translated_scaling_matrix(D3DMATRIX *matrix, float x, float y, float xScale, float yScale);
   void AdjustSizeToNearestSupportedByCard(int *width, int *height);
-  void UpdateTextureRegion(TextureTile *tile, IBitmap *bitmap, D3DBitmap *target, bool hasAlpha);
+  void UpdateTextureRegion(TextureTile *tile, Bitmap *bitmap, D3DBitmap *target, bool hasAlpha);
   void do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
   bool IsTextureFormatOk( D3DFORMAT TextureFormat, D3DFORMAT AdapterFormat );
   bool IsModeSupported(int width, int height, int colDepth);
@@ -996,8 +996,8 @@ bool D3DGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
     return false;
   }
   // create dummy screen bitmap
-  Bitmap::SetScreenBitmap(
-	  ConvertBitmapToSupportedColourDepth(Bitmap::CreateBitmap(virtualWidth, virtualHeight, colourDepth))
+  BitmapHelper::SetScreenBitmap(
+	  ConvertBitmapToSupportedColourDepth(BitmapHelper::CreateBitmap(virtualWidth, virtualHeight, colourDepth))
 	  );
   return true;
 }
@@ -1060,7 +1060,7 @@ void D3DGraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colo
   direct3ddevice->Clear(1, &rectToClear, D3DCLEAR_TARGET, colorDword, 0.5f, 0);
 }
 
-void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(IBitmap *destination)
+void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
 {
   D3DDISPLAYMODE displayMode;
   direct3ddevice->GetDisplayMode(0, &displayMode);
@@ -1094,22 +1094,22 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(IBitmap *destination)
       areaToCapture = &windowInfo.rcClient;
     }
 
-    IBitmap *finalImage = NULL;
+    Bitmap *finalImage = NULL;
 
     if (destination->GetColorDepth() != 32)
     {
       finalImage = destination;
-	  destination = Bitmap::CreateBitmap(destination->GetWidth(), destination->GetHeight(), 32);
+	  destination = BitmapHelper::CreateBitmap(destination->GetWidth(), destination->GetHeight(), 32);
     }
 
-    IBitmap *retrieveInto = destination;
+    Bitmap *retrieveInto = destination;
 
     if ((_newmode_width != _newmode_screen_width) ||
         (_newmode_height != _newmode_screen_height))
     {
       // in letterbox mode the screen is 640x480 but destination might only be 320x200
       // therefore calculate the size like this
-      retrieveInto = Bitmap::CreateBitmap(destination->GetWidth() * _newmode_screen_width / _newmode_width, 
+      retrieveInto = BitmapHelper::CreateBitmap(destination->GetWidth() * _newmode_screen_width / _newmode_width, 
                                           destination->GetHeight() * _newmode_screen_height / _newmode_height,
 										  32);
     }
@@ -1501,7 +1501,7 @@ __inline void get_pixel_if_not_transparent32(unsigned long *pixel, unsigned long
   }
 }
 
-void D3DGraphicsDriver::UpdateTextureRegion(TextureTile *tile, IBitmap *bitmap, D3DBitmap *target, bool hasAlpha)
+void D3DGraphicsDriver::UpdateTextureRegion(TextureTile *tile, Bitmap *bitmap, D3DBitmap *target, bool hasAlpha)
 {
   IDirect3DTexture9* newTexture = tile->texture;
 
@@ -1616,7 +1616,7 @@ void D3DGraphicsDriver::UpdateTextureRegion(TextureTile *tile, IBitmap *bitmap, 
   newTexture->UnlockRect(0);
 }
 
-void D3DGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, IBitmap *bitmap, bool hasAlpha)
+void D3DGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha)
 {
   D3DBitmap *target = (D3DBitmap*)bitmapToUpdate;
   if ((target->_width == bitmap->GetWidth()) &&
@@ -1636,7 +1636,7 @@ void D3DGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpda
   }
 }
 
-IBitmap *D3DGraphicsDriver::ConvertBitmapToSupportedColourDepth(IBitmap *bitmap)
+Bitmap *D3DGraphicsDriver::ConvertBitmapToSupportedColourDepth(Bitmap *bitmap)
 {
    int colorConv = get_color_conversion();
    set_color_conversion(COLORCONV_KEEP_TRANS | COLORCONV_TOTAL);
@@ -1645,7 +1645,7 @@ IBitmap *D3DGraphicsDriver::ConvertBitmapToSupportedColourDepth(IBitmap *bitmap)
    if ((colourDepth == 8) || (colourDepth == 16))
    {
      // Most 3D cards don't support 8-bit; and we need 15-bit colour
-     IBitmap *tempBmp = Bitmap::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 15);
+     Bitmap *tempBmp = BitmapHelper::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 15);
      tempBmp->Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
      delete bitmap;
      set_color_conversion(colorConv);
@@ -1654,7 +1654,7 @@ IBitmap *D3DGraphicsDriver::ConvertBitmapToSupportedColourDepth(IBitmap *bitmap)
    if (colourDepth == 24)
    {
      // we need 32-bit colour
-     IBitmap* tempBmp = Bitmap::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 32);
+     Bitmap* tempBmp = BitmapHelper::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 32);
      tempBmp->Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
      delete bitmap;
      set_color_conversion(colorConv);
@@ -1717,16 +1717,16 @@ bool D3DGraphicsDriver::IsTextureFormatOk( D3DFORMAT TextureFormat, D3DFORMAT Ad
     return SUCCEEDED( hr );
 }
 
-IDriverDependantBitmap* D3DGraphicsDriver::CreateDDBFromBitmap(IBitmap *bitmap, bool hasAlpha, bool opaque)
+IDriverDependantBitmap* D3DGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque)
 {
   int allocatedWidth = bitmap->GetWidth();
   int allocatedHeight = bitmap->GetHeight();
-  IBitmap *tempBmp = NULL;
+  Bitmap *tempBmp = NULL;
   int colourDepth = bitmap->GetColorDepth();
   if ((colourDepth == 8) || (colourDepth == 16))
   {
     // Most 3D cards don't support 8-bit; and we need 15-bit colour
-    tempBmp = Bitmap::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 15);
+    tempBmp = BitmapHelper::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 15);
     tempBmp->Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
     bitmap = tempBmp;
     colourDepth = 15;
@@ -1734,7 +1734,7 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateDDBFromBitmap(IBitmap *bitmap, 
   if (colourDepth == 24)
   {
     // we need 32-bit colour
-    tempBmp = Bitmap::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 32);
+    tempBmp = BitmapHelper::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 32);
     tempBmp->Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
     bitmap = tempBmp;
     colourDepth = 32;
@@ -1875,7 +1875,7 @@ void D3DGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, 
   else if (_drawScreenCallback != NULL)
     _drawScreenCallback();
   
-  IBitmap *blackSquare = Bitmap::CreateBitmap(16, 16, 32);
+  Bitmap *blackSquare = BitmapHelper::CreateBitmap(16, 16, 32);
   blackSquare->Clear(makecol32(targetColourRed, targetColourGreen, targetColourBlue));
   IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, false, false);
   delete blackSquare;
@@ -1930,7 +1930,7 @@ void D3DGraphicsDriver::BoxOutEffect(bool blackingOut, int speed, int delay)
   else if (_drawScreenCallback != NULL)
     _drawScreenCallback();
   
-  IBitmap *blackSquare = Bitmap::CreateBitmap(16, 16, 32);
+  Bitmap *blackSquare = BitmapHelper::CreateBitmap(16, 16, 32);
   blackSquare->Clear();
   IDriverDependantBitmap *d3db = this->CreateDDBFromBitmap(blackSquare, false, false);
   delete blackSquare;
@@ -1990,7 +1990,7 @@ bool D3DGraphicsDriver::PlayVideo(const char *filename, bool useAVISound, VideoS
 
 void D3DGraphicsDriver::create_screen_tint_bitmap() 
 {
-  _screenTintLayer = Bitmap::CreateBitmap(16, 16, this->_newmode_depth);
+  _screenTintLayer = BitmapHelper::CreateBitmap(16, 16, this->_newmode_depth);
   _screenTintLayer = this->ConvertBitmapToSupportedColourDepth(_screenTintLayer);
   _screenTintLayerDDB = (D3DBitmap*)this->CreateDDBFromBitmap(_screenTintLayer, false, false);
   _screenTintSprite.bitmap = _screenTintLayerDDB;

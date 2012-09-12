@@ -34,8 +34,8 @@
 #include "util/filestream.h"
 #include "util/textstreamwriter.h"
 
-using AGS::Common::CDataStream;
-using AGS::Common::CTextStreamWriter;
+using AGS::Common::DataStream;
+using AGS::Common::TextStreamWriter;
 
 extern char check_dynamic_sprites_at_exit;
 extern int displayed_room;
@@ -168,7 +168,7 @@ void debug_log(char*texx, ...) {
         //openmode = "wt";
         first_time = 0;
     }
-    CDataStream *outfil = Common::File::OpenFileWrite("warnings.log");
+    DataStream *outfil = Common::File::OpenFileWrite("warnings.log");
     if (outfil == NULL)
     {
         debug_write_console("* UNABLE TO WRITE TO WARNINGS.LOG");
@@ -176,7 +176,7 @@ void debug_log(char*texx, ...) {
     }
     else
     {
-        CTextStreamWriter writer(outfil);
+        TextStreamWriter writer(outfil);
         writer.WriteFormat("(in room %d): %s\n",displayed_room,displbuf);
     }
 }

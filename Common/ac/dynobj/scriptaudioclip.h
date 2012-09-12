@@ -9,7 +9,7 @@
 
 #include "util/file.h"
 
-namespace AGS { namespace Common { class CDataStream; } }
+namespace AGS { namespace Common { class DataStream; } }
 using namespace AGS; // FIXME later
 
 #define SCRIPTAUDIOCLIP_SCRIPTNAMELENGTH    30
@@ -26,7 +26,7 @@ struct ScriptAudioClip {
     short defaultVolume;
     int  reserved;
 
-    void ReadFromFile(Common::CDataStream *in);
+    void ReadFromFile(Common::DataStream *in);
 };
 
 #endif // __AGS_CN_DYNOBJ__SCRIPTAUDIOCLIP_H

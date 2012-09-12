@@ -9,38 +9,38 @@ namespace AGS
 namespace Common
 {
 
-CTextStreamWriter::CTextStreamWriter(IStream *stream)
+TextStreamWriter::TextStreamWriter(Stream *stream)
     : _stream(stream)
 {
 }
 
-CTextStreamWriter::~CTextStreamWriter()
+TextStreamWriter::~TextStreamWriter()
 {
     // TODO use shared ptr
     delete _stream;
 }
 
-bool CTextStreamWriter::IsValid() const
+bool TextStreamWriter::IsValid() const
 {
     return _stream && _stream->CanWrite();
 }
 
-const IStream *CTextStreamWriter::GetStream() const
+const Stream *TextStreamWriter::GetStream() const
 {
     return _stream;
 }
 
-void CTextStreamWriter::ReleaseStream()
+void TextStreamWriter::ReleaseStream()
 {
     _stream = NULL;
 }
 
-bool CTextStreamWriter::EOS() const
+bool TextStreamWriter::EOS() const
 {
     return _stream ? _stream->EOS() : true;
 }
 
-void CTextStreamWriter::WriteChar(char c)
+void TextStreamWriter::WriteChar(char c)
 {
     // Substitute line-feed character with platform-specific line break
     if (c == '\n')
@@ -55,7 +55,7 @@ void CTextStreamWriter::WriteChar(char c)
     }
 }
 
-void CTextStreamWriter::WriteString(const CString &str)
+void TextStreamWriter::WriteString(const String &str)
 {
     if (_stream)
     {
@@ -64,7 +64,7 @@ void CTextStreamWriter::WriteString(const CString &str)
     }
 }
 
-void CTextStreamWriter::WriteLine(const CString &str)
+void TextStreamWriter::WriteLine(const String &str)
 {
     if (!_stream)
     {
@@ -76,7 +76,7 @@ void CTextStreamWriter::WriteLine(const CString &str)
     WriteLineBreak();
 }
 
-void CTextStreamWriter::WriteFormat(const CString &fmt, ...)
+void TextStreamWriter::WriteFormat(const String &fmt, ...)
 {
     if (!_stream)
     {
@@ -85,7 +85,7 @@ void CTextStreamWriter::WriteFormat(const CString &fmt, ...)
 
     // TODO: replace line-feed characters in format string with platform-specific line break
 
-    CString str;
+    String str;
     va_list argptr;
     va_start(argptr, fmt);
     int need_length = _vscprintf(fmt.GetCStr(), argptr);
@@ -97,7 +97,7 @@ void CTextStreamWriter::WriteFormat(const CString &fmt, ...)
     WriteString(str);
 }
 
-void CTextStreamWriter::WriteLineBreak()
+void TextStreamWriter::WriteLineBreak()
 {
     if (_stream)
     {

@@ -17,8 +17,8 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern char ignore_bounds; // from mousew32
 extern IGraphicsDriver *gfxDriver;
@@ -34,7 +34,7 @@ extern GameSetup usetup;
 
 IDriverDependantBitmap *dialogBmp = NULL;
 int windowPosX, windowPosY, windowPosWidth, windowPosHeight;
-IBitmap *windowBuffer = NULL;
+Bitmap *windowBuffer = NULL;
 
 int windowbackgroundcolor = COL254, pushbuttondarkcolor = COL255;
 int pushbuttonlightcolor = COL253;
@@ -58,9 +58,9 @@ int controlid = 0;
 void __my_wbutt(int x1, int y1, int x2, int y2)
 {
     wsetcolor(COL254);            //wsetcolor(15);
-    abuf->FillRect(CRect(x1, y1, x2, y2), currentcolor);
+    abuf->FillRect(Rect(x1, y1, x2, y2), currentcolor);
     wsetcolor(0);
-    abuf->DrawRect(CRect(x1, y1, x2, y2), currentcolor);
+    abuf->DrawRect(Rect(x1, y1, x2, y2), currentcolor);
 }
 
 //-----------------------------------------------------------------------------
@@ -130,7 +130,7 @@ int WINAPI _export CSCIWaitMessage(CSCIMessage * cscim)
         }
     }
 
-    windowBuffer = Bitmap::CreateBitmap(windowPosWidth, windowPosHeight, abuf->GetColorDepth());
+    windowBuffer = BitmapHelper::CreateBitmap(windowPosWidth, windowPosHeight, abuf->GetColorDepth());
     windowBuffer = gfxDriver->ConvertBitmapToSupportedColourDepth(windowBuffer);
     dialogBmp = gfxDriver->CreateDDBFromBitmap(windowBuffer, false, true);
 

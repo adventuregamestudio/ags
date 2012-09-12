@@ -26,7 +26,7 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
+using AGS::Common::Bitmap;
 
 #define OVERLAPPING_OBJECT 1000
 
@@ -42,7 +42,7 @@ extern int displayed_room;
 extern SpriteCache spriteset;
 extern int offsetx, offsety;
 extern int actSpsCount;
-extern IBitmap **actsps;
+extern Bitmap **actsps;
 extern IDriverDependantBitmap* *actspsbmp;
 extern IGraphicsDriver *gfxDriver;
 
@@ -66,7 +66,7 @@ int GetObjectAt(int xx,int yy) {
         if (objs[aa].view >= 0)
             isflipped = views[objs[aa].view].loops[objs[aa].loop].frames[objs[aa].frame].flags & VFLG_FLIPSPRITE;
 
-        IBitmap *theImage = GetObjectImage(aa, &isflipped);
+        Bitmap *theImage = GetObjectImage(aa, &isflipped);
 
         if (is_pos_in_sprite(xx, yy, xxx, yyy - spHeight, theImage,
             spWidth, spHeight, isflipped) == FALSE)
@@ -240,7 +240,7 @@ void MergeObject(int obn) {
 
     construct_object_gfx(obn, NULL, &theHeight, true);
 
-    IBitmap *oldabuf = abuf;
+    Bitmap *oldabuf = abuf;
     abuf = thisroom.ebscene[play.bg_frame];
     if (abuf->GetColorDepth() != actsps[obn]->GetColorDepth())
         quit("!MergeObject: unable to merge object due to color depth differences");
@@ -412,7 +412,7 @@ int AreObjectsColliding(int obj1,int obj2) {
     return (AreThingsOverlapping(obj1 + OVERLAPPING_OBJECT, obj2 + OVERLAPPING_OBJECT)) ? 1 : 0;
 }
 
-int GetThingRect(int thing, Rect *rect) {
+int GetThingRect(int thing, _Rect *rect) {
     if (is_valid_character(thing)) {
         if (game.chars[thing].room != displayed_room)
             return 0;
@@ -439,7 +439,7 @@ int GetThingRect(int thing, Rect *rect) {
 }
 
 int AreThingsOverlapping(int thing1, int thing2) {
-    Rect r1, r2;
+    _Rect r1, r2;
     // get the bounding rectangles, and return 0 if the object/char
     // is currently turned off
     if (GetThingRect(thing1, &r1) == 0)
@@ -478,7 +478,7 @@ void GetObjectPropertyText (int item, const char *property, char *bufer) {
     get_text_property (&thisroom.objProps[item], property, bufer);
 }
 
-IBitmap *GetObjectImage(int obj, int *isFlipped) 
+Bitmap *GetObjectImage(int obj, int *isFlipped) 
 {
     if (!gfxDriver->HasAcceleratedStretchAndFlip())
     {

@@ -22,8 +22,8 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
-namespace Bitmap = Common::Bitmap;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = Common::BitmapHelper;
 
 extern GameSetupStruct game;
 extern roomstruct thisroom;
@@ -33,8 +33,8 @@ extern GameState play;
 extern color palette[256];
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
-extern IBitmap *temp_virtual;
-extern IBitmap *virtual_screen;
+extern Bitmap *temp_virtual;
+extern Bitmap *virtual_screen;
 extern volatile int timerloop;
 extern int scrnwid,scrnhit;
 extern color old_palette[256];
@@ -236,7 +236,7 @@ void process_event(EventHappened*evp) {
             theTransition = FADE_NORMAL;
         }
 
-		IBitmap *screen_bmp = Bitmap::GetScreenBitmap();
+		Bitmap *screen_bmp = BitmapHelper::GetScreenBitmap();
 
         if ((theTransition == FADE_INSTANT) || (play.screen_tint >= 0))
             wsetpalette(0,255,palette);

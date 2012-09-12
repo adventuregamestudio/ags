@@ -40,10 +40,10 @@
 #include <sys/stat.h>
 #endif
 
-namespace AGS { namespace Common { class CDataStream; } }
+namespace AGS { namespace Common { class DataStream; } }
 using namespace AGS; // FIXME later
 
-Common::CDataStream *ci_fopen(const char *file_name,
+Common::DataStream *ci_fopen(const char *file_name,
                              Common::FileOpenMode open_mode = Common::kFile_Open,
                              Common::FileWorkMode work_mode = Common::kFile_Read);
 char *ci_find_file(char *dir_name, char *file_name);

@@ -15,7 +15,7 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
+using AGS::Common::Bitmap;
 
 extern GameSetupStruct game;
 extern int scrnwid,scrnhit;
@@ -190,7 +190,7 @@ int find_overlay_of_type(int typ) {
     return -1;
 }
 
-int add_screen_overlay(int x,int y,int type,IBitmap *piccy, bool alphaChannel) {
+int add_screen_overlay(int x,int y,int type,Bitmap *piccy, bool alphaChannel) {
     if (numscreenover>=MAX_SCREEN_OVERLAYS)
         quit("too many screen overlays created");
     if (type==OVER_COMPLETE) is_complete_overlay++;

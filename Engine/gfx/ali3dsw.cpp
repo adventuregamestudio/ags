@@ -20,8 +20,8 @@
 
 #include <stdio.h>
 
-using AGS::Common::IBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 using namespace AGS; // FIXME later
 
 #if defined(PSP_VERSION)
@@ -41,7 +41,7 @@ typedef struct DDRAW_SURFACE {
    LPDIRECTDRAWSURFACE2 id;
    int flags;
    int lock_nesting;
-   IBitmap *parent_bmp;  
+   Bitmap *parent_bmp;  
    struct DDRAW_SURFACE *next;
    struct DDRAW_SURFACE *prev;
 } DDRAW_SURFACE;
@@ -53,7 +53,7 @@ extern "C" DDRAW_SURFACE *gfx_directx_primary_surface;
 #define MAX_DRAW_LIST_SIZE 200
 RGB faded_out_palette[256];
 
-void tint_image(IBitmap* srcimg, IBitmap* destimg, int red, int grn, int blu, int light_level, int luminance);
+void tint_image(Bitmap* srcimg, Bitmap* destimg, int red, int grn, int blu, int light_level, int luminance);
 unsigned long _trans_alpha_blender32(unsigned long x, unsigned long y, unsigned long n);
 
 class ALSoftwareBitmap : public IDriverDependantBitmap
@@ -72,7 +72,7 @@ public:
   virtual void SetLightLevel(int lightLevel)  { }
   virtual void SetTint(int red, int green, int blue, int tintSaturation) { }
 
-  IBitmap *_bmp;
+  Bitmap *_bmp;
   int _width, _height;
   int _colDepth;
   bool _flipped;
@@ -81,7 +81,7 @@ public:
   bool _hasAlpha;
   int _transparency;
 
-  ALSoftwareBitmap(IBitmap *bmp, bool opaque, bool hasAlpha)
+  ALSoftwareBitmap(Bitmap *bmp, bool opaque, bool hasAlpha)
   {
     _bmp = bmp;
     _width = bmp->GetWidth();
@@ -148,9 +148,9 @@ public:
   virtual void SetCallbackForNullSprite(GFXDRV_CLIENTCALLBACKXY callback) { _nullSpriteCallback = callback; }
   virtual void UnInit();
   virtual void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse);
-  virtual IBitmap *ConvertBitmapToSupportedColourDepth(IBitmap *bitmap);
-  virtual IDriverDependantBitmap* CreateDDBFromBitmap(IBitmap *bitmap, bool hasAlpha, bool opaque);
-  virtual void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, IBitmap *bitmap, bool hasAlpha);
+  virtual Bitmap *ConvertBitmapToSupportedColourDepth(Bitmap *bitmap);
+  virtual IDriverDependantBitmap* CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque);
+  virtual void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha);
   virtual void DestroyDDB(IDriverDependantBitmap* bitmap);
   virtual void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap);
   virtual void ClearDrawList();
@@ -158,7 +158,7 @@ public:
   virtual void RenderToBackBuffer();
   virtual void Render();
   virtual void Render(GlobalFlipType flip);
-  virtual void GetCopyOfScreenIntoBitmap(IBitmap *destination);
+  virtual void GetCopyOfScreenIntoBitmap(Bitmap *destination);
   virtual void FadeOut(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
   virtual void FadeIn(int speed, PALETTE pal, int targetColourRed, int targetColourGreen, int targetColourBlue);
   virtual void BoxOutEffect(bool blackingOut, int speed, int delay);
@@ -171,8 +171,8 @@ public:
   virtual bool RequiresFullRedrawEachFrame() { return false; }
   virtual bool HasAcceleratedStretchAndFlip() { return false; }
   virtual bool UsesMemoryBackBuffer() { return true; }
-  virtual IBitmap *GetMemoryBackBuffer() { return virtualScreen; }
-  virtual void SetMemoryBackBuffer(IBitmap *backBuffer) { virtualScreen = backBuffer; }
+  virtual Bitmap *GetMemoryBackBuffer() { return virtualScreen; }
+  virtual void SetMemoryBackBuffer(Bitmap *backBuffer) { virtualScreen = backBuffer; }
   virtual void SetScreenTint(int red, int green, int blue) { 
     _tint_red = red; _tint_green = green; _tint_blue = blue; }
   virtual ~ALSoftwareGraphicsDriver();
@@ -185,9 +185,9 @@ private:
   int _colorDepth;
   bool _windowed;
   bool _autoVsync;
-  IBitmap *_allegroScreenWrapper;
-  IBitmap *virtualScreen;
-  IBitmap *_spareTintingScreen;
+  Bitmap *_allegroScreenWrapper;
+  Bitmap *virtualScreen;
+  Bitmap *_spareTintingScreen;
   GFXDRV_CLIENTCALLBACK _callback;
   GFXDRV_CLIENTCALLBACK _drawScreenCallback;
   GFXDRV_CLIENTCALLBACKXY _nullSpriteCallback;
@@ -210,9 +210,9 @@ private:
   DDCAPS ddrawCaps;
 #endif
 
-  void draw_sprite_with_transparency(IBitmap *piccy, int xxx, int yyy, int transparency);
+  void draw_sprite_with_transparency(Bitmap *piccy, int xxx, int yyy, int transparency);
   void highcolor_fade_out(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
-  void highcolor_fade_in(IBitmap *bmp_orig, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
+  void highcolor_fade_in(Bitmap *bmp_orig, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
   void __fade_from_range(PALLETE source, PALLETE dest, int speed, int from, int to) ;
   void __fade_out_range(int speed, int from, int to, int targetColourRed, int targetColourGreen, int targetColourBlue) ;
   bool IsModeSupported(int driver, int width, int height, int colDepth);
@@ -335,17 +335,17 @@ bool ALSoftwareGraphicsDriver::Init(int width, int height, int colourDepth, bool
     // set_gfx_mode is an allegro function that creates screen bitmap;
     // following code assumes the screen is already created, therefore we should
     // ensure global bitmap wraps over existing allegro screen bitmap.
-    _allegroScreenWrapper = Bitmap::CreateRawObjectWrapper(screen);
-    Bitmap::SetScreenBitmap( _allegroScreenWrapper );
+    _allegroScreenWrapper = BitmapHelper::CreateRawObjectWrapper(screen);
+    BitmapHelper::SetScreenBitmap( _allegroScreenWrapper );
 
-    Bitmap::GetScreenBitmap()->Clear();
-    Bitmap::SetScreenBitmap( _filter->ScreenInitialized(Bitmap::GetScreenBitmap(), width, height) );
+    BitmapHelper::GetScreenBitmap()->Clear();
+    BitmapHelper::SetScreenBitmap( _filter->ScreenInitialized(BitmapHelper::GetScreenBitmap(), width, height) );
 
     // [IKM] 2012-09-07
     // At this point the wrapper we created is saved by filter for future reference,
     // therefore we should not delete it right away, but only at driver shutdown.
 
-    virtualScreen = Bitmap::GetScreenBitmap();
+    virtualScreen = BitmapHelper::GetScreenBitmap();
 
 #ifdef _WIN32
     if (!windowed)
@@ -398,8 +398,8 @@ void ALSoftwareGraphicsDriver::UnInit()
     _gfxModeList = NULL;
   }
 
-  if (Bitmap::GetScreenBitmap())
-   Bitmap::SetScreenBitmap( _filter->ShutdownAndReturnRealScreen(Bitmap::GetScreenBitmap()) );
+  if (BitmapHelper::GetScreenBitmap())
+   BitmapHelper::SetScreenBitmap( _filter->ShutdownAndReturnRealScreen(BitmapHelper::GetScreenBitmap()) );
 
   // [IKM] 2012-09-07
   // We do not need the wrapper any longer;
@@ -409,7 +409,7 @@ void ALSoftwareGraphicsDriver::UnInit()
   // Nullify the global screen object (for safety reasons); note this yet does
   // not change allegro screen pointer (at this moment it should point at the
   // original internally created allegro bitmap which will be destroyed by Allegro).
-  Bitmap::SetScreenBitmap(NULL);
+  BitmapHelper::SetScreenBitmap(NULL);
 
   // don't do anything else -- the main app may
   // already have called allegro_exit
@@ -445,18 +445,18 @@ void ALSoftwareGraphicsDriver::SetGamma(int newGamma)
 #endif
 }
 
-IBitmap *ALSoftwareGraphicsDriver::ConvertBitmapToSupportedColourDepth(IBitmap *bitmap)
+Bitmap *ALSoftwareGraphicsDriver::ConvertBitmapToSupportedColourDepth(Bitmap *bitmap)
 {
   return bitmap;
 }
 
-IDriverDependantBitmap* ALSoftwareGraphicsDriver::CreateDDBFromBitmap(IBitmap *bitmap, bool hasAlpha, bool opaque)
+IDriverDependantBitmap* ALSoftwareGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque)
 {
   ALSoftwareBitmap* newBitmap = new ALSoftwareBitmap(bitmap, opaque, hasAlpha);
   return newBitmap;
 }
 
-void ALSoftwareGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, IBitmap *bitmap, bool hasAlpha)
+void ALSoftwareGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha)
 {
   ALSoftwareBitmap* alSwBmp = (ALSoftwareBitmap*)bitmapToUpdate;
   alSwBmp->_bmp = bitmap;
@@ -487,7 +487,7 @@ void ALSoftwareGraphicsDriver::ClearDrawList()
   numToDraw = 0;
 }
 
-void ALSoftwareGraphicsDriver::draw_sprite_with_transparency(IBitmap *piccy, int xxx, int yyy, int transparency)
+void ALSoftwareGraphicsDriver::draw_sprite_with_transparency(Bitmap *piccy, int xxx, int yyy, int transparency)
 {
   int screen_depth = virtualScreen->GetColorDepth();
   int sprite_depth = piccy->GetColorDepth();
@@ -502,7 +502,7 @@ void ALSoftwareGraphicsDriver::draw_sprite_with_transparency(IBitmap *piccy, int
     }
     // 256-col spirte -> hi-color background, or
     // 16-bit sprite -> 32-bit background
-    IBitmap* hctemp=Bitmap::CreateBitmap(piccy->GetWidth(), piccy->GetHeight(), screen_depth);
+    Bitmap* hctemp=BitmapHelper::CreateBitmap(piccy->GetWidth(), piccy->GetHeight(), screen_depth);
     hctemp->Blit(piccy,0,0,0,0,hctemp->GetWidth(),hctemp->GetHeight());
     int bb,cc,mask_col = virtualScreen->GetMaskColor();
 
@@ -596,7 +596,7 @@ void ALSoftwareGraphicsDriver::RenderToBackBuffer()
     }
     if (_spareTintingScreen == NULL)
     {
-      _spareTintingScreen = Bitmap::CreateBitmap_(GetColorDepth(virtualScreen), virtualScreen->GetWidth(), virtualScreen->GetHeight());
+      _spareTintingScreen = BitmapHelper::CreateBitmap_(GetColorDepth(virtualScreen), virtualScreen->GetWidth(), virtualScreen->GetHeight());
     }
     tint_image(virtualScreen, _spareTintingScreen, _tint_red, _tint_green, _tint_blue, 100, 255);
     Blit(_spareTintingScreen, virtualScreen, 0, 0, 0, 0, _spareTintingScreen->GetWidth(), _spareTintingScreen->GetHeight());*/
@@ -628,7 +628,7 @@ void ALSoftwareGraphicsDriver::Vsync()
   vsync();
 }
 
-void ALSoftwareGraphicsDriver::GetCopyOfScreenIntoBitmap(IBitmap *destination)
+void ALSoftwareGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
 {
   _filter->GetCopyOfScreenIntoBitmap(destination);
 }
@@ -640,19 +640,19 @@ void ALSoftwareGraphicsDriver::GetCopyOfScreenIntoBitmap(IBitmap *destination)
 
 	Author: Matthew Leverton
 **/
-void ALSoftwareGraphicsDriver::highcolor_fade_in(IBitmap *currentVirtScreen, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
+void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *currentVirtScreen, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
 {
-   IBitmap *bmp_buff;
-   IBitmap *bmp_orig = currentVirtScreen;
+   Bitmap *bmp_buff;
+   Bitmap *bmp_orig = currentVirtScreen;
 
    if ((_global_y_offset != 0) || (_global_x_offset != 0))
    {
-     bmp_orig = Bitmap::CreateBitmap(_screenWidth, _screenHeight);
+     bmp_orig = BitmapHelper::CreateBitmap(_screenWidth, _screenHeight);
      bmp_orig->Clear();
      bmp_orig->Blit(currentVirtScreen, 0, 0, _global_x_offset, _global_y_offset, currentVirtScreen->GetWidth(), currentVirtScreen->GetHeight());
    }
 
-   bmp_buff = Bitmap::CreateBitmap(bmp_orig->GetWidth(), bmp_orig->GetHeight());
+   bmp_buff = BitmapHelper::CreateBitmap(bmp_orig->GetWidth(), bmp_orig->GetHeight());
    int clearColor = makecol_depth(bmp_buff->GetColorDepth(),
 				targetColourRed, targetColourGreen, targetColourBlue);
 
@@ -685,14 +685,14 @@ void ALSoftwareGraphicsDriver::highcolor_fade_in(IBitmap *currentVirtScreen, int
 
 void ALSoftwareGraphicsDriver::highcolor_fade_out(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)
 {
-    IBitmap *bmp_orig, *bmp_buff;
+    Bitmap *bmp_orig, *bmp_buff;
 
-    int clearColor = makecol_depth(Bitmap::GetScreenBitmap()->GetColorDepth(),
+    int clearColor = makecol_depth(BitmapHelper::GetScreenBitmap()->GetColorDepth(),
 				targetColourRed, targetColourGreen, targetColourBlue);
 
-    if ((bmp_orig = Bitmap::CreateBitmap(_screenWidth, _screenHeight)))
+    if ((bmp_orig = BitmapHelper::CreateBitmap(_screenWidth, _screenHeight)))
     {
-        if ((bmp_buff = Bitmap::CreateBitmap(bmp_orig->GetWidth(), bmp_orig->GetHeight())))
+        if ((bmp_buff = BitmapHelper::CreateBitmap(bmp_orig->GetWidth(), bmp_orig->GetHeight())))
         {
             int a;
             _filter->GetCopyOfScreenIntoBitmap(bmp_orig, false);
@@ -719,8 +719,8 @@ void ALSoftwareGraphicsDriver::highcolor_fade_out(int speed, int targetColourRed
         delete bmp_orig;
     }
 
-    Bitmap::GetScreenBitmap()->Clear(clearColor);
-	_filter->RenderScreen(Bitmap::GetScreenBitmap(), _global_x_offset, _global_y_offset);
+    BitmapHelper::GetScreenBitmap()->Clear(clearColor);
+	_filter->RenderScreen(BitmapHelper::GetScreenBitmap(), _global_x_offset, _global_y_offset);
 }
 /** END FADE.C **/
 

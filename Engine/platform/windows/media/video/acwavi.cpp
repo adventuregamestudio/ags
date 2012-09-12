@@ -18,8 +18,8 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 using namespace AGS; // FIXME later
 
 //link with the following libraries under project/settings/link...
@@ -32,7 +32,7 @@ extern int rec_kbhit();
 extern int rec_getch();
 extern void next_iteration();
 extern void update_music_volume();
-extern void render_to_screen(IBitmap *toRender, int atx, int aty);
+extern void render_to_screen(Bitmap *toRender, int atx, int aty);
 extern int crossFading, crossFadeStep;
 extern volatile char want_exit;
 extern IGraphicsDriver *gfxDriver;
@@ -49,7 +49,7 @@ volatile bool currentlyPaused = false;
 //DirectDrawEx Global interfaces
 extern "C" extern LPDIRECTDRAW2 directdraw;
 //extern "C" extern IUnknown* directsound;
-extern "C" extern IBitmap *gfx_directx_create_system_bitmap(int width, int height);
+extern "C" extern Bitmap *gfx_directx_create_system_bitmap(int width, int height);
 
 //Global MultiMedia streaming interfaces
 IMultiMediaStream		*g_pMMStream=NULL;
@@ -57,8 +57,8 @@ IMediaStream			*g_pPrimaryVidStream=NULL;
 IDirectDrawMediaStream	*g_pDDStream=NULL;
 IDirectDrawStreamSample *g_pSample=NULL;
 
-IBitmap *vscreen = NULL;
-IBitmap *vsMemory = NULL;
+Bitmap *vscreen = NULL;
+Bitmap *vsMemory = NULL;
 
 //Function prototypes
 HRESULT RenderFileToMMStream(LPCTSTR szFilename);	
@@ -93,13 +93,13 @@ typedef struct BMP_EXTRA_INFO {
    int lock_nesting;
 } BMP_EXTRA_INFO;
 
-LPDIRECTDRAWSURFACE get_bitmap_surface (IBitmap *bmp) {
+LPDIRECTDRAWSURFACE get_bitmap_surface (Bitmap *bmp) {
   BMP_EXTRA_INFO *bei = (BMP_EXTRA_INFO*)((BITMAP*)bmp->GetBitmapObject())->extra;
 
   // convert the DDSurface2 back to a standard DDSurface
   return (LPDIRECTDRAWSURFACE)bei->surf;
 }
-LPDIRECTDRAWSURFACE2 get_bitmap_surface2 (IBitmap *bmp) {
+LPDIRECTDRAWSURFACE2 get_bitmap_surface2 (Bitmap *bmp) {
   BMP_EXTRA_INFO *bei = (BMP_EXTRA_INFO*)((BITMAP*)bmp->GetBitmapObject())->extra;
 
   return bei->surf;
@@ -147,7 +147,7 @@ HRESULT InitRenderToSurface() {
     return E_FAIL;
   }
 
-  vsMemory = Bitmap::CreateBitmap(vscreen->GetWidth(), vscreen->GetHeight(), vscreen->GetColorDepth());
+  vsMemory = BitmapHelper::CreateBitmap(vscreen->GetWidth(), vscreen->GetHeight(), vscreen->GetColorDepth());
 
   IDirectDrawSurface *g_pDDSOffscreen;
   g_pDDSOffscreen = get_bitmap_surface (vscreen);
@@ -223,7 +223,7 @@ int newWidth, newHeight;
 
 //Perform frame by frame updates and blits. Set the stream 
 //state to STOP if there are no more frames to update.
-void RenderToSurface(IBitmap *vscreen) {
+void RenderToSurface(Bitmap *vscreen) {
   //update each frame
   if (g_pSample->Update(0, NULL, NULL, 0) != S_OK) {
     g_bAppactive = FALSE;
@@ -232,7 +232,7 @@ void RenderToSurface(IBitmap *vscreen) {
   else {
     g_bAppactive = TRUE;
     acquire_screen();
-	IBitmap *screen_bmp = Bitmap::GetScreenBitmap();
+	Bitmap *screen_bmp = BitmapHelper::GetScreenBitmap();
     // Because vscreen is a DX Video Bitmap, it can be stretched
     // onto the screen (also a Video Bmp) but not onto a memory
     // bitmap (which is what "screen" is when using gfx filters)
@@ -332,7 +332,7 @@ int dxmedia_play_video(const char* filename, bool pUseSound, int canskip, int st
   newWidth = vscreen->GetWidth();
   newHeight = vscreen->GetHeight();
 
-  IBitmap *screen_bmp = Bitmap::GetScreenBitmap();
+  Bitmap *screen_bmp = BitmapHelper::GetScreenBitmap();
 
   if ((stretch == 1) ||
 	  (vscreen->GetWidth() > screen_bmp->GetWidth()) ||
@@ -368,7 +368,7 @@ int dxmedia_play_video(const char* filename, bool pUseSound, int canskip, int st
   currentlyPlaying = true;
 
   gfxDriver->ClearDrawList();
-  IBitmap *savedBackBuffer = gfxDriver->GetMemoryBackBuffer();
+  Bitmap *savedBackBuffer = gfxDriver->GetMemoryBackBuffer();
   gfxDriver->SetMemoryBackBuffer(screen_bmp);
 
   while ((g_bAppactive) && (!want_exit)) {

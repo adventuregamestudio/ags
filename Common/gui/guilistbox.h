@@ -29,8 +29,8 @@ struct GUIListBox:public GUIObject
   int font, textcol, backcol, exflags;
   int selectedbgcol;
   int alignment, reserved1;
-  virtual void WriteToFile(Common::CDataStream *out);
-  virtual void ReadFromFile(Common::CDataStream *in, int version);
+  virtual void WriteToFile(Common::DataStream *out);
+  virtual void ReadFromFile(Common::DataStream *in, int version);
   int  AddItem(const char *toadd);
   int  InsertItem(int index, const char *toadd);
   void SetItemText(int index, const char *newtext);

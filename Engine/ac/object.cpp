@@ -22,7 +22,7 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
+using AGS::Common::Bitmap;
 
 
 extern ScriptObject scrObj[MAX_INIT_SPR];
@@ -34,7 +34,7 @@ extern int loaded_game_file_version;
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern MoveList *mls;
 extern GameSetupStruct game;
-extern IBitmap *walkable_areas_temp;
+extern Bitmap *walkable_areas_temp;
 extern IGraphicsDriver *gfxDriver;
 extern int offsetx,offsety;
 
@@ -396,7 +396,7 @@ int isposinbox(int mmx,int mmy,int lf,int tp,int rt,int bt) {
 
 // xx,yy is the position in room co-ordinates that we are checking
 // arx,ary is the sprite x/y co-ordinates
-int is_pos_in_sprite(int xx,int yy,int arx,int ary, IBitmap *sprit, int spww,int sphh, int flipped) {
+int is_pos_in_sprite(int xx,int yy,int arx,int ary, Bitmap *sprit, int spww,int sphh, int flipped) {
     if (spww==0) spww = divide_down_coordinate(sprit->GetWidth()) - 1;
     if (sphh==0) sphh = divide_down_coordinate(sprit->GetHeight()) - 1;
 

@@ -42,8 +42,8 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 #if defined(ANDROID_VERSION)
 #include <sys/stat.h>
@@ -125,19 +125,19 @@ IDriverDependantBitmap *debugConsole = NULL;
 // actsps is used for temporary storage of the bitamp image
 // of the latest version of the sprite
 int actSpsCount = 0;
-IBitmap **actsps;
+Bitmap **actsps;
 IDriverDependantBitmap* *actspsbmp;
 // temporary cache of walk-behind for this actsps image
-IBitmap **actspswb;
+Bitmap **actspswb;
 IDriverDependantBitmap* *actspswbbmp;
 CachedActSpsData* actspswbcache;
 
-IBitmap *virtual_screen;
+Bitmap *virtual_screen;
 
 bool current_background_is_dirty = false;
 
-IBitmap *_old_screen=NULL;
-IBitmap *_sub_screen=NULL;
+Bitmap *_old_screen=NULL;
+Bitmap *_sub_screen=NULL;
 
 int offsetx = 0, offsety = 0;
 
@@ -155,23 +155,23 @@ int thingsToDrawSize = 0;
 
 //GUIMain dummygui;
 //GUIButton dummyguicontrol;
-IBitmap **guibg = NULL;
+Bitmap **guibg = NULL;
 IDriverDependantBitmap **guibgbmp = NULL;
 
 
-IBitmap *debugConsoleBuffer = NULL;
+Bitmap *debugConsoleBuffer = NULL;
 
 // whether there are currently remnants of a DisplaySpeech
 int screen_is_dirty = 0;
 
-IBitmap *raw_saved_screen = NULL;
-IBitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
+Bitmap *raw_saved_screen = NULL;
+Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 
 
 // TODO: move to test unit
 #include "gfx/allegrobitmap.h"
-using AGS::Common::CAllegroBitmap;
-extern CAllegroBitmap *test_allegro_bitmap;
+using AGS::Common::AllegroBitmap;
+extern AllegroBitmap *test_allegro_bitmap;
 extern IDriverDependantBitmap *test_allegro_ddb;
 void allegro_bitmap_test_draw()
 {
@@ -179,7 +179,7 @@ void allegro_bitmap_test_draw()
 	{
 		wsetcolor(15);
 		test_allegro_bitmap->Clear(test_allegro_bitmap->GetMaskColor());
-		test_allegro_bitmap->FillRect(CRect(50,50,150,150), currentcolor);
+		test_allegro_bitmap->FillRect(Rect(50,50,150,150), currentcolor);
 
 		if (test_allegro_ddb == NULL) 
         {
@@ -203,14 +203,14 @@ extern "C" {
     AL_FUNC(GFX_VTABLE *, _get_vtable, (int color_depth));
 }
 
-IBitmap *convert_16_to_15(IBitmap *iii) {
+Bitmap *convert_16_to_15(Bitmap *iii) {
     //  int xx,yy,rpix;
     int iwid = iii->GetWidth(), ihit = iii->GetHeight();
     int x,y;
 
     if (iii->GetColorDepth() > 16) {
         // we want a 32-to-24 conversion
-        IBitmap *tempbl = Bitmap::CreateBitmap(iwid,ihit,final_col_dep);
+        Bitmap *tempbl = BitmapHelper::CreateBitmap(iwid,ihit,final_col_dep);
 
         if (final_col_dep < 24) {
             // 32-to-16
@@ -244,7 +244,7 @@ IBitmap *convert_16_to_15(IBitmap *iii) {
     unsigned short c,r,g,b;
     // we do this process manually - no allegro color conversion
     // because we store the RGB in a particular order in the data files
-    IBitmap *tempbl = Bitmap::CreateBitmap(iwid,ihit,15);
+    Bitmap *tempbl = BitmapHelper::CreateBitmap(iwid,ihit,15);
 
     GFX_VTABLE *vtable = _get_vtable(15);
 
@@ -284,7 +284,7 @@ IBitmap *convert_16_to_15(IBitmap *iii) {
 int _places_r = 3, _places_g = 2, _places_b = 3;
 
 // convert RGB to BGR for strange graphics cards
-IBitmap *convert_16_to_16bgr(IBitmap *tempbl) {
+Bitmap *convert_16_to_16bgr(Bitmap *tempbl) {
 
     int x,y;
     unsigned short c,r,g,b;
@@ -314,7 +314,7 @@ IBitmap *convert_16_to_16bgr(IBitmap *tempbl) {
 
 
 // PSP: convert 32 bit RGB to BGR.
-IBitmap *convert_32_to_32bgr(IBitmap *tempbl) {
+Bitmap *convert_32_to_32bgr(Bitmap *tempbl) {
 
     unsigned char* current = tempbl->GetScanLineForWriting(0);
 
@@ -456,7 +456,7 @@ void init_invalid_regions(int scrnHit) {
     _dirtyRowSize = scrnHit;
 }
 
-void update_invalid_region(int x, int y, IBitmap *src, IBitmap *dest) {
+void update_invalid_region(int x, int y, Bitmap *src, Bitmap *dest) {
     int i;
 
     // convert the offsets for the destination into
@@ -512,7 +512,7 @@ void update_invalid_region(int x, int y, IBitmap *src, IBitmap *dest) {
 }
 
 
-void update_invalid_region_and_reset(int x, int y, IBitmap *src, IBitmap *dest) {
+void update_invalid_region_and_reset(int x, int y, Bitmap *src, Bitmap *dest) {
 
     int i;
 
@@ -660,17 +660,17 @@ void mark_current_background_dirty()
     current_background_is_dirty = true;
 }
 
-int get_screen_y_adjustment(IBitmap *checkFor) {
+int get_screen_y_adjustment(Bitmap *checkFor) {
 
-	if ((Bitmap::GetScreenBitmap() == _sub_screen) && (checkFor->GetHeight() < final_scrn_hit))
+	if ((BitmapHelper::GetScreenBitmap() == _sub_screen) && (checkFor->GetHeight() < final_scrn_hit))
         return get_fixed_pixel_size(20);
 
     return 0;
 }
 
-int get_screen_x_adjustment(IBitmap *checkFor) {
+int get_screen_x_adjustment(Bitmap *checkFor) {
 
-	if ((Bitmap::GetScreenBitmap() == _sub_screen) && (checkFor->GetWidth() < final_scrn_wid))
+	if ((BitmapHelper::GetScreenBitmap() == _sub_screen) && (checkFor->GetWidth() < final_scrn_wid))
         return (final_scrn_wid - checkFor->GetWidth()) / 2;
 
     return 0;
@@ -698,7 +698,7 @@ void render_black_borders(int atx, int aty)
 }
 
 
-void render_to_screen(IBitmap *toRender, int atx, int aty) {
+void render_to_screen(Bitmap *toRender, int atx, int aty) {
 
     atx += get_screen_x_adjustment(toRender);
     aty += get_screen_y_adjustment(toRender);
@@ -800,19 +800,19 @@ void draw_screen_callback()
 
 
 
-void putpixel_compensate (IBitmap *onto, int xx,int yy, int col) {
+void putpixel_compensate (Bitmap *onto, int xx,int yy, int col) {
     if ((onto->GetColorDepth() == 32) && (col != 0)) {
         // ensure the alpha channel is preserved if it has one
         int alphaval = geta32(onto->GetPixel(xx, yy));
         col = makeacol32(getr32(col), getg32(col), getb32(col), alphaval);
     }
-    onto->FillRect(CRect(xx, yy, xx + get_fixed_pixel_size(1) - 1, yy + get_fixed_pixel_size(1) - 1), col);
+    onto->FillRect(Rect(xx, yy, xx + get_fixed_pixel_size(1) - 1, yy + get_fixed_pixel_size(1) - 1), col);
 }
 
 
 
 
-void draw_sprite_support_alpha(int xpos, int ypos, IBitmap *image, int slot) {
+void draw_sprite_support_alpha(int xpos, int ypos, Bitmap *image, int slot) {
 
     if ((game.spriteflags[slot] & SPF_ALPHACHANNEL) && (trans_mode == 0)) 
     {
@@ -827,7 +827,7 @@ void draw_sprite_support_alpha(int xpos, int ypos, IBitmap *image, int slot) {
 
 
 // Avoid freeing and reallocating the memory if possible
-IDriverDependantBitmap* recycle_ddb_bitmap(IDriverDependantBitmap *bimp, IBitmap *source, bool hasAlpha) {
+IDriverDependantBitmap* recycle_ddb_bitmap(IDriverDependantBitmap *bimp, Bitmap *source, bool hasAlpha) {
     if (bimp != NULL) {
         // same colour depth, width and height -> reuse
         if (((bimp->GetColorDepth() + 1) / 8 == bmp_bpp(source)) && 
@@ -851,7 +851,7 @@ void invalidate_cached_walkbehinds()
 // sort_out_walk_behinds: modifies the supplied sprite by overwriting parts
 // of it with transparent pixels where there are walk-behind areas
 // Returns whether any pixels were updated
-int sort_out_walk_behinds(IBitmap *sprit,int xx,int yy,int basel, IBitmap *copyPixelsFrom = NULL, IBitmap *checkPixelsFrom = NULL, int zoom=100) {
+int sort_out_walk_behinds(Bitmap *sprit,int xx,int yy,int basel, Bitmap *copyPixelsFrom = NULL, Bitmap *checkPixelsFrom = NULL, int zoom=100) {
     if (noWalkBehindsAtAll)
         return 0;
 
@@ -981,7 +981,7 @@ void sort_out_char_sprite_walk_behind(int actspsIndex, int xx, int yy, int basel
     {
         actspswb[actspsIndex] = recycle_bitmap(actspswb[actspsIndex], thisroom.ebscene[play.bg_frame]->GetColorDepth(), width, height);
 
-        IBitmap *wbSprite = actspswb[actspsIndex];
+        Bitmap *wbSprite = actspswb[actspsIndex];
         wbSprite->Clear(wbSprite->GetMaskColor());
 
         actspswbcache[actspsIndex].isWalkBehindHere = sort_out_walk_behinds(wbSprite, xx, yy, basel, thisroom.ebscene[play.bg_frame], actsps[actspsIndex], zoom);
@@ -1061,7 +1061,7 @@ extern int psp_gfx_renderer;
 extern int psp_gfx_super_sampling;
 #endif
 
-void put_sprite_256(int xxx,int yyy,IBitmap *piccy) {
+void put_sprite_256(int xxx,int yyy,Bitmap *piccy) {
 
     if (trans_mode >= 255) {
         // fully transparent, don't draw it at all
@@ -1085,7 +1085,7 @@ void put_sprite_256(int xxx,int yyy,IBitmap *piccy) {
             }
             // 256-col spirte -> hi-color background, or
             // 16-bit sprite -> 32-bit background
-            IBitmap *hctemp=Bitmap::CreateBitmap(piccy->GetWidth(), piccy->GetHeight(),screen_depth);
+            Bitmap *hctemp=BitmapHelper::CreateBitmap(piccy->GetWidth(), piccy->GetHeight(),screen_depth);
             hctemp->Blit(piccy,0,0,0,0,hctemp->GetWidth(),hctemp->GetHeight());
             int bb,cc,mask_col = abuf->GetMaskColor();
             if (piccy->GetColorDepth() == 8) {
@@ -1115,7 +1115,7 @@ void put_sprite_256(int xxx,int yyy,IBitmap *piccy) {
     trans_mode=0;
 }
 
-void repair_alpha_channel(IBitmap *dest, IBitmap *bgpic)
+void repair_alpha_channel(Bitmap *dest, Bitmap *bgpic)
 {
     // Repair the alpha channel, because sprites may have been drawn
     // over it by the buttons, etc
@@ -1209,7 +1209,7 @@ void draw_sprite_list() {
 }
 
 // Avoid freeing and reallocating the memory if possible
-IBitmap *recycle_bitmap(IBitmap *bimp, int coldep, int wid, int hit) {
+Bitmap *recycle_bitmap(Bitmap *bimp, int coldep, int wid, int hit) {
     if (bimp != NULL) {
         // same colour depth, width and height -> reuse
         if ((bimp->GetColorDepth() == coldep) && (bimp->GetWidth() == wid)
@@ -1218,7 +1218,7 @@ IBitmap *recycle_bitmap(IBitmap *bimp, int coldep, int wid, int hit) {
 
         delete bimp;
     }
-    bimp = Bitmap::CreateBitmap(wid, hit,coldep);
+    bimp = BitmapHelper::CreateBitmap(wid, hit,coldep);
     return bimp;
 }
 
@@ -1313,7 +1313,7 @@ void get_local_tint(int xpp, int ypp, int nolight,
 void apply_tint_or_light(int actspsindex, int light_level,
                          int tint_amount, int tint_red, int tint_green,
                          int tint_blue, int tint_light, int coldept,
-                         IBitmap *blitFrom) {
+                         Bitmap *blitFrom) {
 
  // In a 256-colour game, we cannot do tinting or lightening
  // (but we can do darkening, if light_level < 0)
@@ -1324,7 +1324,7 @@ void apply_tint_or_light(int actspsindex, int light_level,
 
  // we can only do tint/light if the colour depths match
  if (final_col_dep == actsps[actspsindex]->GetColorDepth()) {
-     IBitmap *oldwas;
+     Bitmap *oldwas;
      // if the caller supplied a source bitmap, ->Blit from it
      // (used as a speed optimisation where possible)
      if (blitFrom) 
@@ -1332,7 +1332,7 @@ void apply_tint_or_light(int actspsindex, int light_level,
      // otherwise, make a new target bmp
      else {
          oldwas = actsps[actspsindex];
-         actsps[actspsindex] = Bitmap::CreateBitmap(oldwas->GetWidth(), oldwas->GetHeight(), coldept);
+         actsps[actspsindex] = BitmapHelper::CreateBitmap(oldwas->GetWidth(), oldwas->GetHeight(), coldept);
      }
 
      if (tint_amount) {
@@ -1401,7 +1401,7 @@ int scale_and_flip_sprite(int useindx, int coldept, int zoom_level,
 
 
       if (isMirrored) {
-          IBitmap *tempspr = Bitmap::CreateBitmap(newwidth, newheight,coldept);
+          Bitmap *tempspr = BitmapHelper::CreateBitmap(newwidth, newheight,coldept);
           tempspr->Clear (actsps[useindx]->GetMaskColor());
           if ((IS_ANTIALIAS_SPRITES) && ((game.spriteflags[sppic] & SPF_ALPHACHANNEL) == 0))
               tempspr->AAStretchBlt (spriteset[sppic], RectWH(0, 0, newwidth, newheight), Common::kBitmap_Transparency);
@@ -1427,7 +1427,7 @@ int scale_and_flip_sprite(int useindx, int coldept, int zoom_level,
       ->AAStretchBlt(actsps[useindx],spriteset[sppic],0,0,newwidth,newheight);
       }
       else if (isMirrored) {
-      IBitmap *tempspr = Bitmap::CreateBitmap_ (coldept, newwidth, newheight);
+      Bitmap *tempspr = BitmapHelper::CreateBitmap_ (coldept, newwidth, newheight);
       ->Clear (tempspr, ->GetMaskColor(actsps[useindx]));
       ->StretchBlt (tempspr, spriteset[sppic], 0, 0, newwidth, newheight);
       ->FlipBlt(Common::kBitmap_HFlip, (actsps[useindx], tempspr, 0, 0);
@@ -1603,7 +1603,7 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
     }
 
     // direct read from source bitmap, where possible
-    IBitmap *comeFrom = NULL;
+    Bitmap *comeFrom = NULL;
     if (!actspsUsed)
         comeFrom = spriteset[objs[aa].num];
 
@@ -1721,7 +1721,7 @@ void prepare_objects_for_drawing() {
 
 // Draws srcimg onto destimg, tinting to the specified level
 // Totally overwrites the contents of the destination image
-void tint_image (IBitmap *srcimg, IBitmap *destimg, int red, int grn, int blu, int light_level, int luminance) {
+void tint_image (Bitmap *srcimg, Bitmap *destimg, int red, int grn, int blu, int light_level, int luminance) {
 
     if ((srcimg->GetColorDepth() != destimg->GetColorDepth()) ||
         (srcimg->GetColorDepth() <= 8)) {
@@ -1753,7 +1753,7 @@ void tint_image (IBitmap *srcimg, IBitmap *destimg, int red, int grn, int blu, i
         destimg->Blit(srcimg, 0, 0, 0, 0, srcimg->GetWidth(), srcimg->GetHeight());
         // Render the colourised image to a temporary bitmap,
         // then transparently draw it over the original image
-        IBitmap *finaltarget = Bitmap::CreateBitmap(srcimg->GetWidth(), srcimg->GetHeight(), srcimg->GetColorDepth());
+        Bitmap *finaltarget = BitmapHelper::CreateBitmap(srcimg->GetWidth(), srcimg->GetHeight(), srcimg->GetColorDepth());
         finaltarget->Clear(finaltarget->GetMaskColor());
         finaltarget->LitBlendBlt(srcimg, 0, 0, luminance);
 
@@ -1942,7 +1942,7 @@ void prepare_characters_for_drawing() {
             if (((light_level != 0) || (tint_amount != 0)) &&
                 (!gfxDriver->HasAcceleratedStretchAndFlip())) {
                     // apply the lightening or tinting
-                    IBitmap *comeFrom = NULL;
+                    Bitmap *comeFrom = NULL;
                     // if possible, direct read from the source image
                     if (!actspsUsed)
                         comeFrom = spriteset[sppic];
@@ -1957,7 +1957,7 @@ void prepare_characters_for_drawing() {
 
             // update the character cache with the new image
             charcache[aa].inUse = 1;
-            //charcache[aa].image = Bitmap::CreateBitmap_ (coldept, actsps[useindx]->GetWidth(), actsps[useindx]->GetHeight());
+            //charcache[aa].image = BitmapHelper::CreateBitmap_ (coldept, actsps[useindx]->GetWidth(), actsps[useindx]->GetHeight());
             charcache[aa].image = recycle_bitmap(charcache[aa].image, coldept, actsps[useindx]->GetWidth(), actsps[useindx]->GetHeight());
             charcache[aa].image->Blit (actsps[useindx], 0, 0, 0, 0, actsps[useindx]->GetWidth(), actsps[useindx]->GetHeight());
 
@@ -2121,15 +2121,15 @@ void draw_screen_background() {
 void draw_fps()
 {
     static IDriverDependantBitmap* ddb = NULL;
-    static IBitmap *fpsDisplay = NULL;
+    static Bitmap *fpsDisplay = NULL;
 
     if (fpsDisplay == NULL)
     {
-        fpsDisplay = Bitmap::CreateBitmap(get_fixed_pixel_size(100), (wgetfontheight(FONT_SPEECH) + get_fixed_pixel_size(5)), final_col_dep);
+        fpsDisplay = BitmapHelper::CreateBitmap(get_fixed_pixel_size(100), (wgetfontheight(FONT_SPEECH) + get_fixed_pixel_size(5)), final_col_dep);
         fpsDisplay = gfxDriver->ConvertBitmapToSupportedColourDepth(fpsDisplay);
     }
     fpsDisplay->Clear(fpsDisplay->GetMaskColor());
-    IBitmap *oldAbuf = abuf;
+    Bitmap *oldAbuf = abuf;
     abuf = fpsDisplay;
     char tbuffer[60];
     sprintf(tbuffer,"FPS: %d",fps);
@@ -2190,7 +2190,7 @@ void draw_screen_overlay() {
         }*/
         our_eip = 37;
         if (guis_need_update) {
-            IBitmap *abufwas = abuf;
+            Bitmap *abufwas = abuf;
             guis_need_update = 0;
             for (aa=0;aa<game.numgui;aa++) {
                 if (guis[aa].on<1) continue;
@@ -2359,7 +2359,7 @@ void GfxDriverOnInitCallback(void *data)
 
 
 int numOnStack = 0;
-IBitmap *screenstack[10];
+Bitmap *screenstack[10];
 void push_screen () {
     if (numOnStack >= 10)
         quit("!Too many push screen calls");
@@ -2419,12 +2419,12 @@ void update_screen() {
         int barheight = (DEBUG_CONSOLE_NUMLINES - 1) * txtheight + 4;
 
         if (debugConsoleBuffer == NULL)
-            debugConsoleBuffer = Bitmap::CreateBitmap(scrnwid, barheight,final_col_dep);
+            debugConsoleBuffer = BitmapHelper::CreateBitmap(scrnwid, barheight,final_col_dep);
 
         push_screen();
         abuf = debugConsoleBuffer;
         wsetcolor(15);
-        abuf->FillRect(CRect (0, 0, scrnwid - 1, barheight), currentcolor);
+        abuf->FillRect(Rect (0, 0, scrnwid - 1, barheight), currentcolor);
         wtextcolor(16);
         for (int jj = first_debug_line; jj != last_debug_line; jj = (jj + 1) % DEBUG_CONSOLE_NUMLINES) {
             wouttextxy(1, ypp, 0, debug_line[jj].text);

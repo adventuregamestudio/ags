@@ -4,11 +4,11 @@
 #include "util/file.h"
 #include "util/datastream.h"
 
-using AGS::Common::CDataStream;
+using AGS::Common::DataStream;
 
 MouseCursor::MouseCursor() { pic = 2054; hotx = 0; hoty = 0; name[0] = 0; flags = 0; view = -1; }
 
-void MouseCursor::ReadFromFile(CDataStream *in)
+void MouseCursor::ReadFromFile(DataStream *in)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
     pic = in->ReadInt32();
@@ -24,7 +24,7 @@ void MouseCursor::ReadFromFile(CDataStream *in)
 //#endif
 }
 
-void MouseCursor::WriteToFile(CDataStream *out)
+void MouseCursor::WriteToFile(DataStream *out)
 {
     char padding[3] = {0,0,0};
 

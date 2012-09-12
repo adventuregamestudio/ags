@@ -4,7 +4,7 @@
 #include "ac/common.h"    // quit()
 #include "util/datastream.h"
 
-using AGS::Common::CDataStream;
+using AGS::Common::DataStream;
 
 void PolyPoints::add_point(int xxx,int yyy) {
     x[numpoints] = xxx;
@@ -15,7 +15,7 @@ void PolyPoints::add_point(int xxx,int yyy) {
         quit("too many poly points added");
 }
 
-void PolyPoints::ReadFromFile(CDataStream *in)
+void PolyPoints::ReadFromFile(DataStream *in)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
     in->ReadArrayOfInt32(x, MAXPOINTS);

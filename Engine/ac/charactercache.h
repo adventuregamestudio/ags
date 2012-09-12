@@ -9,7 +9,7 @@
 
 // stores cached info about the character
 struct CharacterCache {
-    Common::IBitmap *image;
+    Common::Bitmap *image;
     int sppic;
     int scaling;
     int inUse;

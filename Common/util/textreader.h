@@ -14,21 +14,21 @@ namespace AGS
 namespace Common
 {
 
-class ITextReader
+class TextReader
 {
 public:
-    virtual ~ITextReader(){}
+    virtual ~TextReader(){}
 
     virtual bool IsValid() const            = 0;
 
     // Read single character
     virtual char    ReadChar()              = 0;
     // Read defined number of characters
-    virtual CString ReadString(int length)  = 0;
+    virtual String ReadString(int length)  = 0;
     // Read till line break
-    virtual CString ReadLine()              = 0;
+    virtual String ReadLine()              = 0;
     // Read till end of available data
-    virtual CString ReadAll()               = 0;
+    virtual String ReadAll()               = 0;
 };
 
 } // namespace Common

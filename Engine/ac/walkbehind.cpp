@@ -10,8 +10,8 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern roomstruct thisroom;
 extern GameState play;
@@ -32,14 +32,14 @@ void update_walk_behind_images()
 {
   int ee, rr;
   int bpp = (thisroom.ebscene[play.bg_frame]->GetColorDepth() + 7) / 8;
-  IBitmap *wbbmp;
+  Bitmap *wbbmp;
   for (ee = 1; ee < MAX_OBJ; ee++)
   {
     update_polled_stuff_if_runtime();
     
     if (walkBehindRight[ee] > 0)
     {
-      wbbmp = Bitmap::CreateBitmap( 
+      wbbmp = BitmapHelper::CreateBitmap( 
                                (walkBehindRight[ee] - walkBehindLeft[ee]) + 1,
                                (walkBehindBottom[ee] - walkBehindTop[ee]) + 1,
 							   thisroom.ebscene[play.bg_frame]->GetColorDepth());

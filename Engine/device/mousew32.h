@@ -38,4 +38,4 @@ extern int hotx, hoty;
 extern int disable_mgetgraphpos;
 extern char currentcursor;
 
-extern Common::IBitmap *mousecurs[MAXCURSORS];
+extern Common::Bitmap *mousecurs[MAXCURSORS];

@@ -1,7 +1,7 @@
 #ifndef __AC_AGSFONTRENDERER_H
 #define __AC_AGSFONTRENDERER_H
 
-namespace AGS { namespace Common { class IBitmap; }}
+namespace AGS { namespace Common { class Bitmap; }}
 using namespace AGS; // FIXME later
 
 //#include "ac/gamesetupstruct.h"	// constants
@@ -19,7 +19,7 @@ public:
   virtual bool SupportsExtendedCharacters(int fontNumber) = 0;
   virtual int GetTextWidth(const char *text, int fontNumber) = 0;
   virtual int GetTextHeight(const char *text, int fontNumber) = 0;
-  virtual void RenderText(const char *text, int fontNumber, Common::IBitmap *destination, int x, int y, int colour) = 0;
+  virtual void RenderText(const char *text, int fontNumber, Common::Bitmap *destination, int x, int y, int colour) = 0;
   virtual void AdjustYCoordinateForFont(int *ycoord, int fontNumber) = 0;
   virtual void EnsureTextValidForFont(char *text, int fontNumber) = 0;
 };

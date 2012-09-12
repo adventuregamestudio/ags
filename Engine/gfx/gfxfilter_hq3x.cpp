@@ -5,8 +5,8 @@
 #include "gfx/gfxfilterdefines.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 const char* Hq3xGFXFilter::Initialize(int width, int height, int colDepth) {
     if (colDepth < 32)
@@ -16,23 +16,23 @@ const char* Hq3xGFXFilter::Initialize(int width, int height, int colDepth) {
 }
 
 
-IBitmap* Hq3xGFXFilter::ScreenInitialized(IBitmap *screen, int fakeWidth, int fakeHeight) {
+Bitmap* Hq3xGFXFilter::ScreenInitialized(Bitmap *screen, int fakeWidth, int fakeHeight) {
     realScreen = screen;
-    realScreenBuffer = Bitmap::CreateBitmap(screen->GetWidth(), screen->GetHeight());
-    realScreenSizedBuffer = Bitmap::CreateBitmap(screen->GetWidth(), screen->GetHeight(), screen->GetColorDepth());
-    fakeScreen = Bitmap::CreateBitmap(fakeWidth, fakeHeight, screen->GetColorDepth());
+    realScreenBuffer = BitmapHelper::CreateBitmap(screen->GetWidth(), screen->GetHeight());
+    realScreenSizedBuffer = BitmapHelper::CreateBitmap(screen->GetWidth(), screen->GetHeight(), screen->GetColorDepth());
+    fakeScreen = BitmapHelper::CreateBitmap(fakeWidth, fakeHeight, screen->GetColorDepth());
     InitLUTs();
     return fakeScreen;
 }
 
-IBitmap *Hq3xGFXFilter::ShutdownAndReturnRealScreen(IBitmap *currentScreen) {
+Bitmap *Hq3xGFXFilter::ShutdownAndReturnRealScreen(Bitmap *currentScreen) {
     delete fakeScreen;
     delete realScreenBuffer;
     delete realScreenSizedBuffer;
     return realScreen;
 }
 
-void Hq3xGFXFilter::RenderScreen(IBitmap *toRender, int x, int y) {
+void Hq3xGFXFilter::RenderScreen(Bitmap *toRender, int x, int y) {
 
     realScreenBuffer->Acquire();
     hq3x_32(&toRender->GetScanLineForWriting(0)[0], &realScreenBuffer->GetScanLineForWriting(0)[0], toRender->GetWidth(), toRender->GetHeight(), realScreenBuffer->GetWidth() * BYTES_PER_PIXEL(realScreenBuffer->GetColorDepth()));

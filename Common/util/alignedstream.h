@@ -1,7 +1,7 @@
 
 //=============================================================================
 //
-// Class CAlignedStream
+// Class AlignedStream
 // A simple wrapper around stream that controls data padding.
 // 
 // Originally, a number of objects in AGS were read and written directly
@@ -10,13 +10,13 @@
 // be read having automatic data alignment in mind.
 //-----------------------------------------------------------------------------
 //
-// CAlignedStream uses the underlying stream, it overrides the reading and
+// AlignedStream uses the underlying stream, it overrides the reading and
 // writing, and inserts extra data padding when needed.
 //
 // Aligned stream works either in read or write mode, it cannot be opened in
 // combined mode.
 //
-// CAlignedStream does not support seek, hence moving stream pointer to random
+// AlignedStream does not support seek, hence moving stream pointer to random
 // position will break padding count logic.
 //
 // A Close() method must be called either explicitly by user or implicitly by
@@ -34,7 +34,7 @@ namespace AGS
 namespace Common
 {
 
-class CDataStream;
+class DataStream;
 
 enum AlignedStreamMode
 {
@@ -42,12 +42,12 @@ enum AlignedStreamMode
     kAligned_Write
 };
 
-class CAlignedStream : public IStream
+class AlignedStream : public Stream
 {
 public:
     // TODO: use shared ptr
-    CAlignedStream(CDataStream *stream, AlignedStreamMode mode, size_t alignment = sizeof(int32_t));
-    virtual ~CAlignedStream();
+    AlignedStream(DataStream *stream, AlignedStreamMode mode, size_t alignment = sizeof(int32_t));
+    virtual ~AlignedStream();
 
     // Is stream valid (underlying data initialized properly)
     virtual bool    IsValid() const;
@@ -81,7 +81,7 @@ public:
     virtual int64_t ReadInt64();
     virtual int     Read(void *buffer, int size);
     virtual int     ReadArray(void *buffer, int elem_size, int count);
-    virtual CString ReadString(int max_chars = 5000000);
+    virtual String ReadString(int max_chars = 5000000);
 
     virtual int     WriteByte(byte b);
     inline  void    WriteInt8(int8_t val)
@@ -93,7 +93,7 @@ public:
     virtual void    WriteInt64(int64_t val);
     virtual int     Write(const void *buffer, int size);
     virtual int     WriteArray(const void *buffer, int elem_size, int count);
-    virtual void    WriteString(const CString &str);
+    virtual void    WriteString(const String &str);
 
     virtual int     Seek(StreamSeek seek, int pos);
 
@@ -127,7 +127,7 @@ protected:
     void            WritePadding(size_t next_type);
 
 private:
-    CDataStream         *_stream;
+    DataStream         *_stream;
     AlignedStreamMode   _mode;
     size_t              _alignment;
     int64_t             _block;

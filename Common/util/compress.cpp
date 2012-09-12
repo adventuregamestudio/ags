@@ -33,12 +33,12 @@ prior express permission from Chris Jones.
 #include "util/datastream.h"
 #include "util/filestream.h"
 
-using AGS::Common::CDataStream;
+using AGS::Common::DataStream;
 
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 #if !defined(MAC_VERSION)
 typedef unsigned char * __block;
@@ -54,7 +54,7 @@ extern char lib_file_name[13];
 extern void domouse(int);
 extern "C"
 {
-  extern IBitmap *wnewblock(int, int, int, int);
+  extern Bitmap *wnewblock(int, int, int, int);
 }
 
 //#ifdef ALLEGRO_BIG_ENDIAN
@@ -80,7 +80,7 @@ long csavecompressed(char *, __block, color[256], long = 0);
 long cloadcompressed(char *, __block, color *, long = 0);
 #endif
 
-void cpackbitl(unsigned char *line, int size, CDataStream *out)
+void cpackbitl(unsigned char *line, int size, DataStream *out)
 {
   int cnt = 0;                  // bytes encoded
 
@@ -116,7 +116,7 @@ void cpackbitl(unsigned char *line, int size, CDataStream *out)
   } // end while
 }
 
-void cpackbitl16(unsigned short *line, int size, CDataStream *out)
+void cpackbitl16(unsigned short *line, int size, DataStream *out)
 {
   int cnt = 0;                  // bytes encoded
 
@@ -152,7 +152,7 @@ void cpackbitl16(unsigned short *line, int size, CDataStream *out)
   } // end while
 }
 
-void cpackbitl32(unsigned int *line, int size, CDataStream *out)
+void cpackbitl32(unsigned int *line, int size, DataStream *out)
 {
   int cnt = 0;                  // bytes encoded
 
@@ -191,7 +191,7 @@ void cpackbitl32(unsigned int *line, int size, CDataStream *out)
 
 long csavecompressed(char *finam, __block tobesaved, color pala[256], long exto)
 {
-  CDataStream *outpt;
+  DataStream *outpt;
 
   if (exto > 0) {
     outpt = ci_fopen(finam, Common::kFile_Create, Common::kFile_ReadWrite);
@@ -233,14 +233,14 @@ long csavecompressed(char *finam, __block tobesaved, color pala[256], long exto)
   return ofes;
 }
 
-int cunpackbitl(unsigned char *line, int size, CDataStream *in)
+int cunpackbitl(unsigned char *line, int size, DataStream *in)
 {
   int n = 0;                    // number of bytes decoded
 
   while (n < size) {
     int ix = in->ReadInt8();     // get index byte
     // TODO: revise when new error handling system is implemented
-    if (ferror(((Common::CFileStream*)in)->GetHandle()))
+    if (ferror(((Common::FileStream*)in)->GetHandle()))
       break;
 
     char cx = ix;
@@ -270,17 +270,17 @@ int cunpackbitl(unsigned char *line, int size, CDataStream *in)
   }
 
   // TODO: revise when new error handling system is implemented
-  return ferror(((Common::CFileStream*)in)->GetHandle());
+  return ferror(((Common::FileStream*)in)->GetHandle());
 }
 
-int cunpackbitl16(unsigned short *line, int size, CDataStream *in)
+int cunpackbitl16(unsigned short *line, int size, DataStream *in)
 {
   int n = 0;                    // number of bytes decoded
 
   while (n < size) {
     int ix = in->ReadInt8();     // get index byte
     // TODO: revise when new error handling system is implemented
-    if (ferror(((Common::CFileStream*)in)->GetHandle()))
+    if (ferror(((Common::FileStream*)in)->GetHandle()))
       break;
 
     char cx = ix;
@@ -310,17 +310,17 @@ int cunpackbitl16(unsigned short *line, int size, CDataStream *in)
   }
 
   // TODO: revise when new error handling system is implemented
-  return ferror(((Common::CFileStream*)in)->GetHandle());
+  return ferror(((Common::FileStream*)in)->GetHandle());
 }
 
-int cunpackbitl32(unsigned int *line, int size, CDataStream *in)
+int cunpackbitl32(unsigned int *line, int size, DataStream *in)
 {
   int n = 0;                    // number of bytes decoded
 
   while (n < size) {
     int ix = in->ReadInt8();     // get index byte
     // TODO: revise when new error handling system is implemented
-    if (ferror(((Common::CFileStream*)in)->GetHandle()))
+    if (ferror(((Common::FileStream*)in)->GetHandle()))
       break;
 
     char cx = ix;
@@ -350,7 +350,7 @@ int cunpackbitl32(unsigned int *line, int size, CDataStream *in)
   }
 
   // TODO: revise when new error handling system is implemented
-  return ferror(((Common::CFileStream*)in)->GetHandle());
+  return ferror(((Common::FileStream*)in)->GetHandle());
 }
 
 //=============================================================================
@@ -365,18 +365,18 @@ extern int _acroom_bpp;  // bytes per pixel of currently loading room
 
 
 char *lztempfnm = "~aclzw.tmp";
-IBitmap *recalced = NULL;
+Bitmap *recalced = NULL;
 
 // returns bytes per pixel for bitmap's color depth
-int bmp_bpp(IBitmap*bmpt) {
+int bmp_bpp(Bitmap*bmpt) {
   if (bmpt->GetColorDepth() == 15)
     return 2;
 
   return bmpt->GetColorDepth() / 8;
 }
 
-long save_lzw(char *fnn, IBitmap *bmpp, color *pall, long offe) {
-  CDataStream  *lz_temp_s, *out;
+long save_lzw(char *fnn, Bitmap *bmpp, color *pall, long offe) {
+  DataStream  *lz_temp_s, *out;
   long  fll, toret, gobacto;
 
   lz_temp_s = ci_fopen(lztempfnm, Common::kFile_CreateAlways, Common::kFile_Write);
@@ -408,12 +408,12 @@ long save_lzw(char *fnn, IBitmap *bmpp, color *pall, long offe) {
   return toret;
 }
 
-/*long load_lzw(char*fnn,IBitmap*bmm,color*pall,long ooff) {
+/*long load_lzw(char*fnn,Bitmap*bmm,color*pall,long ooff) {
   recalced=bmm;
   FILE*iii=clibfopen(fnn,"rb");
   Seek(iii,ooff,SEEK_SET);*/
 
-long load_lzw(CDataStream *in, Common::IBitmap *bmm, color *pall) {
+long load_lzw(DataStream *in, Common::Bitmap *bmm, color *pall) {
   int          uncompsiz, *loptr;
   unsigned char *membuffer;
   int           arin;
@@ -471,7 +471,7 @@ long load_lzw(CDataStream *in, Common::IBitmap *bmm, color *pall) {
 
   update_polled_stuff_if_runtime();
 
-  bmm = Bitmap::CreateBitmap((loptr[0] / _acroom_bpp), loptr[1], _acroom_bpp * 8);
+  bmm = BitmapHelper::CreateBitmap((loptr[0] / _acroom_bpp), loptr[1], _acroom_bpp * 8);
   if (bmm == NULL)
     quit("!load_room: not enough memory to load room background");
 
@@ -497,7 +497,7 @@ long load_lzw(CDataStream *in, Common::IBitmap *bmm, color *pall) {
   return uncompsiz;
 }
 
-long savecompressed_allegro(char *fnn, Common::IBitmap *bmpp, color *pall, long write_at) {
+long savecompressed_allegro(char *fnn, Common::Bitmap *bmpp, color *pall, long write_at) {
   unsigned char *wgtbl = (unsigned char *)malloc(bmpp->GetWidth() * bmpp->GetHeight() + 4);
   short         *sss = (short *)wgtbl;
   long          toret;
@@ -512,16 +512,16 @@ long savecompressed_allegro(char *fnn, Common::IBitmap *bmpp, color *pall, long 
   return toret;
 }
 
-long loadcompressed_allegro(CDataStream *in, Common::IBitmap **bimpp, color *pall, long read_at) {
+long loadcompressed_allegro(DataStream *in, Common::Bitmap **bimpp, color *pall, long read_at) {
   short widd,hitt;
   int   ii;
 
-  IBitmap *bim = *bimpp;
+  Bitmap *bim = *bimpp;
   delete bim;
 
   widd = in->ReadInt16();
   hitt = in->ReadInt16();
-  bim = Bitmap::CreateBitmap(widd, hitt, 8);
+  bim = BitmapHelper::CreateBitmap(widd, hitt, 8);
   if (bim == NULL)
     quit("!load_room: not enough memory to decompress masks");
   *bimpp = bim;

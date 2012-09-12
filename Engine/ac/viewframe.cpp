@@ -7,7 +7,7 @@
 #include "ac/spritecache.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
+using AGS::Common::Bitmap;
 
 extern GameSetupStruct game;
 extern ViewStruct*views;
@@ -141,7 +141,7 @@ void CheckViewFrame (int view, int loop, int frame) {
 }
 
 // draws a view frame, flipped if appropriate
-void DrawViewFrame(IBitmap *target, ViewFrame *vframe, int x, int y) {
+void DrawViewFrame(Bitmap *target, ViewFrame *vframe, int x, int y) {
     if (vframe->flags & VFLG_FLIPSPRITE)
         target->FlipBlt(spriteset[vframe->pic], x, y, Common::kBitmap_HFlip);
     else

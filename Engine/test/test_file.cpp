@@ -7,9 +7,9 @@
 #include "util/filestream.h"
 #include "debug/assert.h"
 
-using AGS::Common::CString;
-using AGS::Common::CDataStream;
-using AGS::Common::CAlignedStream;
+using AGS::Common::String;
+using AGS::Common::DataStream;
+using AGS::Common::AlignedStream;
 namespace File = AGS::Common::File;
 
 struct TTrickyAlignedData
@@ -28,7 +28,7 @@ void Test_File()
 {
     //-----------------------------------------------------
     // Operations
-    CDataStream *out = File::OpenFile("test.tmp", AGS::Common::kFile_CreateAlways, AGS::Common::kFile_Write);
+    DataStream *out = File::OpenFile("test.tmp", AGS::Common::kFile_CreateAlways, AGS::Common::kFile_Write);
 
     out->WriteInt16(10);
     out->WriteInt64(-20202);
@@ -65,15 +65,15 @@ void Test_File()
 
     //-------------------------------------------------------------------------
 
-    CDataStream *in = File::OpenFile("test.tmp", AGS::Common::kFile_Open, AGS::Common::kFile_Read);
+    DataStream *in = File::OpenFile("test.tmp", AGS::Common::kFile_Open, AGS::Common::kFile_Read);
 
     int16_t int16val    = in->ReadInt16();
     int64_t int64val    = in->ReadInt64();
-    CString str         = in->ReadString();
+    String str         = in->ReadString();
 
     TTrickyAlignedData tricky_data_in;
     {
-        CAlignedStream as(in, AGS::Common::kAligned_Read);
+        AlignedStream as(in, AGS::Common::kAligned_Read);
         tricky_data_in.a = as.ReadInt8();
         tricky_data_in.b = as.ReadInt32();
         tricky_data_in.c = as.ReadInt32();

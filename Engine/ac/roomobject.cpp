@@ -10,7 +10,7 @@
 #include "main/update.h"
 #include "util/datastream.h"
 
-using AGS::Common::CDataStream;
+using AGS::Common::DataStream;
 
 
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
@@ -118,7 +118,7 @@ void RoomObject::update_cycle_view_backwards()
       }
 }
 
-void RoomObject::ReadFromFile(CDataStream *in)
+void RoomObject::ReadFromFile(DataStream *in)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
     in->ReadArrayOfInt32(&x, 3);
@@ -130,7 +130,7 @@ void RoomObject::ReadFromFile(CDataStream *in)
 //    throw "RoomObject::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
 //#endif
 }
-void RoomObject::WriteToFile(CDataStream *out)
+void RoomObject::WriteToFile(DataStream *out)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
     out->WriteArrayOfInt32(&x, 3);

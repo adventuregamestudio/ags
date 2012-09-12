@@ -49,9 +49,9 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::CDataStream;
-using AGS::Common::IBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::DataStream;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 #if defined(MAC_VERSION) || (defined(LINUX_VERSION) && !defined(PSP_VERSION))
 #include <pthread.h>
@@ -88,12 +88,12 @@ extern int scrnwid,scrnhit;
 extern ScriptSystem scsystem;
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern IGraphicsDriver *gfxDriver;
-extern IBitmap *virtual_screen;
-extern IBitmap **actsps;
+extern Bitmap *virtual_screen;
+extern Bitmap **actsps;
 extern color palette[256];
 extern CharacterExtras *charextra;
 extern CharacterInfo*playerchar;
-extern IBitmap **guibg;
+extern Bitmap **guibg;
 extern IDriverDependantBitmap **guibgbmp;
 
 char *music_file;
@@ -431,7 +431,7 @@ int engine_init_speech()
         so that pack functions, etc. will have the right case later */
         speech_file = ci_find_file(usetup.data_files_dir, "speech.vox");
 
-        CDataStream *speech_s = ci_fopen(speech_file);
+        DataStream *speech_s = ci_fopen(speech_file);
 
         if (speech_s == NULL)
         {
@@ -451,7 +451,7 @@ int engine_init_speech()
                 platform->DisplayAlert("Unable to initialize speech sample file - check for corruption and that\nit belongs to this game.\n");
                 return EXIT_NORMAL;
             }
-            CDataStream *speechsync = clibfopen("syncdata.dat");
+            DataStream *speechsync = clibfopen("syncdata.dat");
             if (speechsync != NULL) {
                 // this game has voice lip sync
                 if (speechsync->ReadInt32() != 4)
@@ -494,7 +494,7 @@ int engine_init_music()
     /* Don't need to use ci_fopen here, because we've used ci_find_file to get
     the case insensitive matched filename already */
     // Use ci_fopen anyway because it can handle NULL filenames.
-    CDataStream *music_s = ci_fopen(music_file);
+    DataStream *music_s = ci_fopen(music_file);
 
     if (music_s == NULL)
     {
@@ -755,7 +755,7 @@ int check_write_access() {
   // The Save Game Dir is the only place that we should write to
   char tempPath[MAX_PATH];
   sprintf(tempPath, "%s""tmptest.tmp", saveGameDirectory);
-  CDataStream *temp_s = Common::File::CreateFile(tempPath);
+  DataStream *temp_s = Common::File::CreateFile(tempPath);
   if (!temp_s)
     return 0;
 
@@ -828,12 +828,12 @@ void engine_init_modxm_player()
 void show_preload () {
     // ** Do the preload graphic if available
     color temppal[256];
-	IBitmap *splashsc = Bitmap::CreateRawObjectOwner( load_pcx("preload.pcx",temppal) );
+	Bitmap *splashsc = BitmapHelper::CreateRawObjectOwner( load_pcx("preload.pcx",temppal) );
     if (splashsc != NULL) {
         if (splashsc->GetColorDepth() == 8)
             wsetpalette(0,255,temppal);
-		IBitmap *screen_bmp = Bitmap::GetScreenBitmap();
-        IBitmap *tsc = Bitmap::CreateBitmap(splashsc->GetWidth(),splashsc->GetHeight(),screen_bmp->GetColorDepth());
+		Bitmap *screen_bmp = BitmapHelper::GetScreenBitmap();
+        Bitmap *tsc = BitmapHelper::CreateBitmap(splashsc->GetWidth(),splashsc->GetHeight(),screen_bmp->GetColorDepth());
         tsc->Blit(splashsc,0,0,0,0,tsc->GetWidth(),tsc->GetHeight());
 		screen_bmp->Clear();
         screen_bmp->StretchBlt(tsc, RectWH(0, 0, scrnwid,scrnhit), Common::kBitmap_Transparency);
@@ -885,11 +885,11 @@ void engine_setup_screen()
 {
     write_log_debug("Set up screen");
 
-    virtual_screen=Bitmap::CreateBitmap(scrnwid,scrnhit,final_col_dep);
+    virtual_screen=BitmapHelper::CreateBitmap(scrnwid,scrnhit,final_col_dep);
     virtual_screen->Clear();
     gfxDriver->SetMemoryBackBuffer(virtual_screen);
     //  ignore_mouseoff_bitmap = virtual_screen;
-	abuf=Bitmap::GetScreenBitmap();
+	abuf=BitmapHelper::GetScreenBitmap();
     our_eip=-7;
 
     for (int ee = 0; ee < MAX_INIT_SPR + game.numcharacters; ee++)
@@ -967,7 +967,7 @@ void init_game_settings() {
         charextra[ee].animwait = 0;
     }
     // multiply up gui positions
-    guibg = (IBitmap **)malloc(sizeof(IBitmap *) * game.numgui);
+    guibg = (Bitmap **)malloc(sizeof(Bitmap *) * game.numgui);
     guibgbmp = (IDriverDependantBitmap**)malloc(sizeof(IDriverDependantBitmap*) * game.numgui);
     for (ee=0;ee<game.numgui;ee++) {
         guibg[ee] = NULL;
@@ -1236,14 +1236,14 @@ void engine_prepare_to_start_game()
 
 // TODO: move to test unit
 #include "gfx/allegrobitmap.h"
-using AGS::Common::CAllegroBitmap;
-CAllegroBitmap *test_allegro_bitmap;
+using AGS::Common::AllegroBitmap;
+AllegroBitmap *test_allegro_bitmap;
 IDriverDependantBitmap *test_allegro_ddb;
 void allegro_bitmap_test_init()
 {
 	test_allegro_bitmap = NULL;
 	// Switched the test off for now
-	//test_allegro_bitmap = CAllegroBitmap::CreateBitmap(320,200,32);
+	//test_allegro_bitmap = AllegroBitmap::CreateBitmap(320,200,32);
 }
 
 int initialize_engine(int argc,char*argv[])

@@ -6,9 +6,9 @@
 #include "util/file.h"
 #include "util/datastream.h"
 
-using AGS::Common::CDataStream;
+using AGS::Common::DataStream;
 
-void ViewFrame::ReadFromFile(CDataStream *in)
+void ViewFrame::ReadFromFile(DataStream *in)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
     pic = in->ReadInt32();
@@ -33,7 +33,7 @@ void ViewFrame::ReadFromFile(CDataStream *in)
 //#endif
 }
 
-void ViewFrame::WriteToFile(CDataStream *out)
+void ViewFrame::WriteToFile(DataStream *out)
 {
     char padding[3] = {0,0,0};
 
@@ -70,7 +70,7 @@ void ViewLoopNew::Dispose()
     }
 }
 
-void ViewLoopNew::WriteToFile(CDataStream *out)
+void ViewLoopNew::WriteToFile(DataStream *out)
 {
     out->WriteInt16(numFrames);
     out->WriteInt32(flags);
@@ -82,7 +82,7 @@ void ViewLoopNew::WriteToFile(CDataStream *out)
 }
 
 
-void ViewLoopNew::ReadFromFile(CDataStream *in)
+void ViewLoopNew::ReadFromFile(DataStream *in)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
 
@@ -132,7 +132,7 @@ void ViewStruct::Dispose()
     }
 }
 
-void ViewStruct::WriteToFile(CDataStream *out)
+void ViewStruct::WriteToFile(DataStream *out)
 {
     out->WriteInt16(numLoops);
     for (int i = 0; i < numLoops; i++)
@@ -141,7 +141,7 @@ void ViewStruct::WriteToFile(CDataStream *out)
     }
 }
 
-void ViewStruct::ReadFromFile(CDataStream *in)
+void ViewStruct::ReadFromFile(DataStream *in)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
     Initialize(in->ReadInt16()/*__getshort__bigendian(iii)*/);
@@ -155,7 +155,7 @@ void ViewStruct::ReadFromFile(CDataStream *in)
     }
 }
 
-void ViewStruct272::ReadFromFile(CDataStream *in)
+void ViewStruct272::ReadFromFile(DataStream *in)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
     numloops = in->ReadInt16();//__getshort__bigendian(fp);

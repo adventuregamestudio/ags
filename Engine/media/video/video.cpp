@@ -17,8 +17,8 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 
 extern GameSetupStruct game;
@@ -26,18 +26,18 @@ extern GameState play;
 extern IGraphicsDriver *gfxDriver;
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern int scrnwid,scrnhit;
-extern IBitmap *virtual_screen;
+extern Bitmap *virtual_screen;
 
 extern int psp_video_framedrop;
 
 
 // FLIC player start
-IBitmap *fli_buffer;
+Bitmap *fli_buffer;
 short fliwidth,fliheight;
 int canabort=0, stretch_flc = 1;
-IBitmap *hicol_buf=NULL;
+Bitmap *hicol_buf=NULL;
 IDriverDependantBitmap *fli_ddb;
-IBitmap *fli_target;
+Bitmap *fli_target;
 int fliTargetWidth, fliTargetHeight;
 int check_if_user_input_should_cancel_video()
 {
@@ -61,7 +61,7 @@ extern "C" int fli_callback() {
 #else
 int fli_callback(...) {
 #endif
-    IBitmap *usebuf = fli_buffer;
+    Bitmap *usebuf = fli_buffer;
 
     update_polled_stuff_and_crossfade ();
 
@@ -84,13 +84,13 @@ int fli_callback(...) {
 
 // FLIC player end
 
-// TODO: find a way to take IBitmap here?
+// TODO: find a way to take Bitmap here?
 int theora_playing_callback(BITMAP *theoraBuffer_raw)
 {
 	// [IKM] CHECKME later (need optimization / reimplementation)
 	// This is probably not a very good thing to do in a video callback...
 	// Good thing is that AllegroBitmap does not store much data on its own
-	IBitmap *theoraBuffer = Bitmap::CreateRawObjectWrapper(theoraBuffer_raw);
+	Bitmap *theoraBuffer = BitmapHelper::CreateRawObjectWrapper(theoraBuffer_raw);
 
     if (theoraBuffer == NULL)
     {
@@ -177,7 +177,7 @@ void calculate_destination_size_maintain_aspect_ratio(int vidWidth, int vidHeigh
 
 void play_theora_video(const char *name, int skip, int flags)
 {
-	apeg_set_display_depth(Bitmap::GetScreenBitmap()->GetColorDepth());
+	apeg_set_display_depth(BitmapHelper::GetScreenBitmap()->GetColorDepth());
     // we must disable length detection, otherwise it takes ages to start
     // playing if the file is large because it seeks through the whole thing
     apeg_disable_length_detection(TRUE);
@@ -204,7 +204,7 @@ void play_theora_video(const char *name, int skip, int flags)
     }
 
     fli_target = NULL;
-    //fli_buffer = Bitmap::CreateBitmap_(final_col_dep, videoWidth, videoHeight);
+    //fli_buffer = BitmapHelper::CreateBitmap_(final_col_dep, videoWidth, videoHeight);
     calculate_destination_size_maintain_aspect_ratio(videoWidth, videoHeight, &fliTargetWidth, &fliTargetHeight);
 
     if ((fliTargetWidth == videoWidth) && (fliTargetHeight == videoHeight) && (stretch_flc))
@@ -215,7 +215,7 @@ void play_theora_video(const char *name, int skip, int flags)
 
     if ((stretch_flc) && (!gfxDriver->HasAcceleratedStretchAndFlip()))
     {
-        fli_target = Bitmap::CreateBitmap(scrnwid, scrnhit, final_col_dep);
+        fli_target = BitmapHelper::CreateBitmap(scrnwid, scrnhit, final_col_dep);
         fli_target->Clear();
         fli_ddb = gfxDriver->CreateDDBFromBitmap(fli_target, false, true);
     }

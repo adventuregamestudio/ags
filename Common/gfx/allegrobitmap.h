@@ -19,23 +19,23 @@ namespace AGS
 namespace Common
 {
 
-class CAllegroBitmap : public IBitmap
+class AllegroBitmap : public Bitmap
 {
 public:
 	static const int32_t AlBmpSignature = MAKE_SIGNATURE('A','L','B','M');
 
-	static CAllegroBitmap *CreateBitmap(int width, int height, int color_depth = 0);
-	static CAllegroBitmap *CreateSubBitmap(IBitmap *src, const CRect &rc);
+	static AllegroBitmap *CreateBitmap(int width, int height, int color_depth = 0);
+	static AllegroBitmap *CreateSubBitmap(Bitmap *src, const Rect &rc);
 	// TODO: revise those functions later (currently needed in a few very specific cases)
 	// NOTE: the resulting object __owns__ bitmap data from now on
-	static CAllegroBitmap *CreateFromRawAllegroBitmap(void *bitmap_object);
+	static AllegroBitmap *CreateFromRawAllegroBitmap(void *bitmap_object);
 	// NOTE: the resulting object __does not own__ bitmap data
-	static CAllegroBitmap *WrapRawAllegroBitmap(void *bitmap_object);
-	static CAllegroBitmap *LoadFromFile(const char *filename);
-	static bool           SaveToFile(IBitmap *bitmap, const char *filename, const void *palette);
+	static AllegroBitmap *WrapRawAllegroBitmap(void *bitmap_object);
+	static AllegroBitmap *LoadFromFile(const char *filename);
+	static bool           SaveToFile(Bitmap *bitmap, const char *filename, const void *palette);
 
-	CAllegroBitmap();
-	virtual ~CAllegroBitmap();
+	AllegroBitmap();
+	virtual ~AllegroBitmap();
 
 	inline virtual int32_t GetClassType() const
 	{
@@ -65,8 +65,8 @@ public:
 	virtual const unsigned char *GetData() const;
 	virtual const unsigned char *GetScanLine(int index) const;
 
-	virtual void	SetClip(const CRect &rc);
-	virtual CRect	GetClip() const;
+	virtual void	SetClip(const Rect &rc);
+	virtual Rect	GetClip() const;
 
 	virtual void	SetMaskColor(color_t color);
 	virtual color_t	GetMaskColor() const;
@@ -86,34 +86,34 @@ public:
 	// Blitting operations (drawing one bitmap over another)
 	//=========================================================================
 	// Draw other bitmap over current one
-	virtual void	Blit(IBitmap *src, int dst_x, int dst_y, BitmapMaskOption mask = kBitmap_Copy);
-	virtual void	Blit(IBitmap *src, int src_x, int src_y, int dst_x, int dst_y, int width, int height, BitmapMaskOption mask = kBitmap_Copy);
+	virtual void	Blit(Bitmap *src, int dst_x, int dst_y, BitmapMaskOption mask = kBitmap_Copy);
+	virtual void	Blit(Bitmap *src, int src_x, int src_y, int dst_x, int dst_y, int width, int height, BitmapMaskOption mask = kBitmap_Copy);
 	// Copy other bitmap, stretching or shrinking its size to given values
-	virtual void	StretchBlt(IBitmap *src, const CRect &dst_rc, BitmapMaskOption mask = kBitmap_Copy);
-	virtual void	StretchBlt(IBitmap *src, const CRect &src_rc, const CRect &dst_rc, BitmapMaskOption mask = kBitmap_Copy);
+	virtual void	StretchBlt(Bitmap *src, const Rect &dst_rc, BitmapMaskOption mask = kBitmap_Copy);
+	virtual void	StretchBlt(Bitmap *src, const Rect &src_rc, const Rect &dst_rc, BitmapMaskOption mask = kBitmap_Copy);
 	// Antia-aliased stretch-blit
-	virtual void	AAStretchBlt(IBitmap *src, const CRect &dst_rc, BitmapMaskOption mask = kBitmap_Copy);
-	virtual void	AAStretchBlt(IBitmap *src, const CRect &src_rc, const CRect &dst_rc, BitmapMaskOption mask = kBitmap_Copy);
+	virtual void	AAStretchBlt(Bitmap *src, const Rect &dst_rc, BitmapMaskOption mask = kBitmap_Copy);
+	virtual void	AAStretchBlt(Bitmap *src, const Rect &src_rc, const Rect &dst_rc, BitmapMaskOption mask = kBitmap_Copy);
 	// TODO: find more general way to call these operations, probably require pointer to Blending data struct?
 	// Draw bitmap using translucency preset
-	virtual void	TransBlendBlt(IBitmap *src, int dst_x, int dst_y);
+	virtual void	TransBlendBlt(Bitmap *src, int dst_x, int dst_y);
 	// Draw bitmap using lighting preset
-	virtual void	LitBlendBlt(IBitmap *src, int dst_x, int dst_y, int light_amount);
+	virtual void	LitBlendBlt(Bitmap *src, int dst_x, int dst_y, int light_amount);
 	// TODO: generic "draw transformed" function? What about mask option?
-	virtual void	FlipBlt(IBitmap *src, int dst_x, int dst_y, BitmapFlip flip);
-	virtual void	RotateBlt(IBitmap *src, int dst_x, int dst_y, fixed_t angle);
-	virtual void	RotateBlt(IBitmap *src, int dst_x, int dst_y, int pivot_x, int pivot_y, fixed_t angle);
+	virtual void	FlipBlt(Bitmap *src, int dst_x, int dst_y, BitmapFlip flip);
+	virtual void	RotateBlt(Bitmap *src, int dst_x, int dst_y, fixed_t angle);
+	virtual void	RotateBlt(Bitmap *src, int dst_x, int dst_y, int pivot_x, int pivot_y, fixed_t angle);
 
 	//=========================================================================
 	// Vector drawing operations
 	//=========================================================================
 	virtual void	PutPixel(int x, int y, color_t color);
 	virtual int		GetPixel(int x, int y) const;
-	virtual void	DrawLine(const CLine &ln, color_t color);
-	virtual void	DrawTriangle(const CTriangle &tr, color_t color);
-	virtual void	DrawRect(const CRect &rc, color_t color);
-	virtual void	FillRect(const CRect &rc, color_t color);
-	virtual void	FillCircle(const CCircle &circle, color_t color);
+	virtual void	DrawLine(const Line &ln, color_t color);
+	virtual void	DrawTriangle(const Triangle &tr, color_t color);
+	virtual void	DrawRect(const Rect &rc, color_t color);
+	virtual void	FillRect(const Rect &rc, color_t color);
+	virtual void	FillCircle(const Circle &circle, color_t color);
 	virtual void	FloodFill(int x, int y, color_t color);
 
 private:
@@ -121,7 +121,7 @@ private:
 	// Creation and destruction
 	//=========================================================================
 	virtual bool	Create(int width, int height, int color_depth = 0);
-	virtual bool	CreateShared(IBitmap *src, int x, int y, int width, int height);
+	virtual bool	CreateShared(Bitmap *src, int x, int y, int width, int height);
 	virtual void	Destroy();
 
 	BITMAP			*_bitmap;

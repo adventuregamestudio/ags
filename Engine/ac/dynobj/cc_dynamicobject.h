@@ -16,7 +16,7 @@
 #include "util/file.h"
 
 // Forward declaration
-namespace AGS { namespace Common { class CDataStream; } }
+namespace AGS { namespace Common { class DataStream; } }
 using namespace AGS; // FIXME later
 
 
@@ -53,9 +53,9 @@ extern int   ccUnRegisterManagedObject(const void *object);
 // remove all registered objects
 extern void  ccUnregisterAllObjects();
 // serialize all objects to disk
-extern void  ccSerializeAllObjects(Common::CDataStream *out);
+extern void  ccSerializeAllObjects(Common::DataStream *out);
 // un-serialise all objects (will remove all currently registered ones)
-extern int   ccUnserializeAllObjects(Common::CDataStream *in, ICCObjectReader *callback);
+extern int   ccUnserializeAllObjects(Common::DataStream *in, ICCObjectReader *callback);
 // dispose the object if RefCount==0
 extern void  ccAttemptDisposeObject(long handle);
 // translate between object handles and memory addresses

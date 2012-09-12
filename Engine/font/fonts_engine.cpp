@@ -17,7 +17,7 @@
 #include "util/clib32.h"
 #include "util/datastream.h"
 
-using AGS::Common::CDataStream;
+using AGS::Common::DataStream;
 
 // For engine these are defined in ac.cpp
 extern int our_eip;
@@ -37,14 +37,14 @@ int get_our_eip()
   return our_eip;
 }
 
-CDataStream *fopen_shared(char *filnamm,
+DataStream *fopen_shared(char *filnamm,
                           Common::FileOpenMode open_mode,
                           Common::FileWorkMode work_mode)
 {
   return clibfopen(filnamm, open_mode, work_mode);
 }
 
-int flength_shared(CDataStream *ffi)
+int flength_shared(DataStream *ffi)
 {
   // clibfopen will have set last_opened_size
   return last_opened_size;

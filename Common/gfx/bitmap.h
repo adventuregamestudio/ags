@@ -8,14 +8,14 @@
 #define __AGS_CN_GFX__BITMAP_H
 
 // Move geometry classes to their related header
-struct CLine
+struct Line
 {
 	int X1;
 	int Y1;
 	int X2;
 	int Y2;
 
-	CLine()
+	Line()
 	{
 		X1 = 0;
 		Y1 = 0;
@@ -23,7 +23,7 @@ struct CLine
 		Y2 = 0;
 	}
 
-	CLine(int x1, int y1, int x2, int y2)
+	Line(int x1, int y1, int x2, int y2)
 	{
 		X1 = x1;
 		Y1 = y1;
@@ -33,24 +33,24 @@ struct CLine
 };
 
 // Helper factory functions
-inline CLine HLine(int x1, int x2, int y)
+inline Line HLine(int x1, int x2, int y)
 {
-	return CLine(x1, y, x2, y);
+	return Line(x1, y, x2, y);
 }
 
-inline CLine VLine(int x, int y1, int y2)
+inline Line VLine(int x, int y1, int y2)
 {
-	return CLine(x, y1, x, y2);
+	return Line(x, y1, x, y2);
 }
 
-struct CRect
+struct Rect
 {
 	int Left;
 	int Top;
 	int Right;
 	int Bottom;
 
-	CRect()
+	Rect()
 	{
 		Left	= 0;
 		Top		= 0;
@@ -58,7 +58,7 @@ struct CRect
 		Bottom	= 0;
 	}
 
-	CRect(int l, int t, int r, int b)
+	Rect(int l, int t, int r, int b)
 	{
 		Left	= l;
 		Top		= t;
@@ -78,12 +78,12 @@ struct CRect
 };
 
 // Helper factory function
-inline CRect RectWH(int x, int y, int width, int height)
+inline Rect RectWH(int x, int y, int width, int height)
 {
-	return CRect(x, y, x + width - 1, y + height - 1);
+	return Rect(x, y, x + width - 1, y + height - 1);
 }
 
-struct CTriangle
+struct Triangle
 {
 	int X1;
 	int Y1;
@@ -92,7 +92,7 @@ struct CTriangle
 	int X3;
 	int Y3;
 
-	CTriangle()
+	Triangle()
 	{
 		X1 = 0;
 		Y1 = 0;
@@ -102,7 +102,7 @@ struct CTriangle
 		Y3 = 0;
 	}
 
-	CTriangle(int x1, int y1, int x2, int y2, int x3, int y3)
+	Triangle(int x1, int y1, int x2, int y2, int x3, int y3)
 	{
 		X1 = x1;
 		Y1 = y2;
@@ -113,20 +113,20 @@ struct CTriangle
 	}
 };
 
-struct CCircle
+struct Circle
 {
 	int X;
 	int Y;
 	int Radius;
 
-	CCircle()
+	Circle()
 	{
 		X = 0;
 		Y = 0;
 		Radius = 0;
 	}
 
-	CCircle(int x, int y, int radius)
+	Circle(int x, int y, int radius)
 	{
 		X = x;
 		Y = y;
@@ -165,16 +165,16 @@ enum BitmapFlip
 	kBitmap_HVFlip
 };
 
-class IBitmap
+class Bitmap
 {
 public:
-	virtual ~IBitmap(){}
+	virtual ~Bitmap(){}
 
 	// Get implementation signature
 	virtual int32_t	GetClassType() const = 0;
 
 	// TODO: This is temporary solution for cases when we cannot replace
-	// use of raw BITMAP struct with IBitmap
+	// use of raw BITMAP struct with Bitmap
 	virtual void	*GetBitmapObject()		= 0;
 
 	// TODO: also add generic GetBitmapType returning combination of flags
@@ -207,8 +207,8 @@ public:
 	// Get scanline for direct reading
 	virtual const unsigned char *GetScanLine(int index) const = 0;
 
-	virtual void	SetClip(const CRect &rc) = 0;
-	virtual CRect	GetClip() const			= 0;
+	virtual void	SetClip(const Rect &rc) = 0;
+	virtual Rect	GetClip() const			= 0;
 
 	virtual void	SetMaskColor(color_t color) = 0;
 	virtual color_t	GetMaskColor() const	= 0;
@@ -234,23 +234,23 @@ public:
 	// Blitting operations (drawing one bitmap over another)
 	//=========================================================================
 	// Draw other bitmap over current one
-	virtual void	Blit(IBitmap *src, int dst_x, int dst_y, BitmapMaskOption mask = kBitmap_Copy) = 0;
-	virtual void	Blit(IBitmap *src, int src_x, int src_y, int dst_x, int dst_y, int width, int height, BitmapMaskOption mask = kBitmap_Copy) = 0;
+	virtual void	Blit(Bitmap *src, int dst_x, int dst_y, BitmapMaskOption mask = kBitmap_Copy) = 0;
+	virtual void	Blit(Bitmap *src, int src_x, int src_y, int dst_x, int dst_y, int width, int height, BitmapMaskOption mask = kBitmap_Copy) = 0;
 	// Copy other bitmap, stretching or shrinking its size to given values
-	virtual void	StretchBlt(IBitmap *src, const CRect &dst_rc, BitmapMaskOption mask = kBitmap_Copy) = 0;
-	virtual void	StretchBlt(IBitmap *src, const CRect &src_rc, const CRect &dst_rc, BitmapMaskOption mask = kBitmap_Copy) = 0;
+	virtual void	StretchBlt(Bitmap *src, const Rect &dst_rc, BitmapMaskOption mask = kBitmap_Copy) = 0;
+	virtual void	StretchBlt(Bitmap *src, const Rect &src_rc, const Rect &dst_rc, BitmapMaskOption mask = kBitmap_Copy) = 0;
 	// Antia-aliased stretch-blit
-	virtual void	AAStretchBlt(IBitmap *src, const CRect &dst_rc, BitmapMaskOption mask = kBitmap_Copy) = 0;
-	virtual void	AAStretchBlt(IBitmap *src, const CRect &src_rc, const CRect &dst_rc, BitmapMaskOption mask = kBitmap_Copy) = 0;
+	virtual void	AAStretchBlt(Bitmap *src, const Rect &dst_rc, BitmapMaskOption mask = kBitmap_Copy) = 0;
+	virtual void	AAStretchBlt(Bitmap *src, const Rect &src_rc, const Rect &dst_rc, BitmapMaskOption mask = kBitmap_Copy) = 0;
 	// TODO: find more general way to call these three operations, probably require pointer to Blending data struct?
 	// Draw bitmap using translucency preset
-	virtual void	TransBlendBlt(IBitmap *src, int dst_x, int dst_y) = 0;
+	virtual void	TransBlendBlt(Bitmap *src, int dst_x, int dst_y) = 0;
 	// Draw bitmap using lighting preset
-	virtual void	LitBlendBlt(IBitmap *src, int dst_x, int dst_y, int light_amount) = 0;
+	virtual void	LitBlendBlt(Bitmap *src, int dst_x, int dst_y, int light_amount) = 0;
 	// TODO: generic "draw transformed" function? What about mask option?
-	virtual void	FlipBlt(IBitmap *src, int dst_x, int dst_y, BitmapFlip flip) = 0;
-	virtual void	RotateBlt(IBitmap *src, int dst_x, int dst_y, fixed_t angle) = 0;
-	virtual void	RotateBlt(IBitmap *src, int dst_x, int dst_y, int pivot_x, int pivot_y, fixed_t angle) = 0;
+	virtual void	FlipBlt(Bitmap *src, int dst_x, int dst_y, BitmapFlip flip) = 0;
+	virtual void	RotateBlt(Bitmap *src, int dst_x, int dst_y, fixed_t angle) = 0;
+	virtual void	RotateBlt(Bitmap *src, int dst_x, int dst_y, int pivot_x, int pivot_y, fixed_t angle) = 0;
 
 	//=========================================================================
 	// Vector drawing operations
@@ -261,11 +261,11 @@ public:
     // done in such cases.
 	virtual void	PutPixel(int x, int y, color_t color)					= 0;
 	virtual int		GetPixel(int x, int y) const							= 0;
-	virtual void	DrawLine(const CLine &ln, color_t color)				= 0;
-	virtual void	DrawTriangle(const CTriangle &triangle, color_t color)	= 0;
-	virtual void	DrawRect(const CRect &rc, color_t color)				= 0;
-	virtual void	FillRect(const CRect &rc, color_t color)				= 0;
-	virtual void	FillCircle(const CCircle &circle, color_t color)		= 0;
+	virtual void	DrawLine(const Line &ln, color_t color)				= 0;
+	virtual void	DrawTriangle(const Triangle &triangle, color_t color)	= 0;
+	virtual void	DrawRect(const Rect &rc, color_t color)				= 0;
+	virtual void	FillRect(const Rect &rc, color_t color)				= 0;
+	virtual void	FillCircle(const Circle &circle, color_t color)		= 0;
 	virtual void	FloodFill(int x, int y, color_t color)					= 0;
 
 protected:
@@ -279,31 +279,31 @@ protected:
 	// revise this in future
 	virtual bool	Create(int width, int height, int color_depth = 0) = 0;
 	// Allow this object to share existing bitmap data
-	virtual bool	CreateShared(IBitmap *src, int x, int y, int width, int height) = 0;
+	virtual bool	CreateShared(Bitmap *src, int x, int y, int width, int height) = 0;
 	// Deallocate bitmap
 	virtual void	Destroy() = 0;
 };
 
 // TODO: revise this construction later
-namespace Bitmap
+namespace BitmapHelper
 {
-	IBitmap *CreateBitmap(int width, int height, int color_depth = 0);
-	IBitmap *CreateSubBitmap(IBitmap *src, const CRect &rc);
+	Bitmap *CreateBitmap(int width, int height, int color_depth = 0);
+	Bitmap *CreateSubBitmap(Bitmap *src, const Rect &rc);
 	// TODO: revise those functions later (currently needed in a few very specific cases)
 	// NOTE: the resulting object __owns__ bitmap data from now on
-	IBitmap *CreateRawObjectOwner(void *bitmap_object);
+	Bitmap *CreateRawObjectOwner(void *bitmap_object);
 	// NOTE: the resulting object __does not own__ bitmap data
-	IBitmap *CreateRawObjectWrapper(void *bitmap_object);
-	IBitmap *LoadFromFile(const char *filename);
-	bool	SaveToFile(IBitmap *bitmap, const char *filename, const void *palette);
+	Bitmap *CreateRawObjectWrapper(void *bitmap_object);
+	Bitmap *LoadFromFile(const char *filename);
+	bool	SaveToFile(Bitmap *bitmap, const char *filename, const void *palette);
 
 	// TODO: revise this later
 	// Getters and setters for screen bitmap
 	// Unfortunately some of the allegro functions require "screen" allegro bitmap,
-	// therefore we must set that pointer to something every time we assign an IBitmap
+	// therefore we must set that pointer to something every time we assign an Bitmap
 	// to screen.
-	IBitmap	*GetScreenBitmap();
-	void	SetScreenBitmap(IBitmap *bitmap);
+	Bitmap	*GetScreenBitmap();
+	void	SetScreenBitmap(Bitmap *bitmap);
 }
 
 } // namespace Common

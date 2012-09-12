@@ -11,8 +11,8 @@
 #include "util/datastream.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
-using AGS::Common::CDataStream;
+using AGS::Common::Bitmap;
+using AGS::Common::DataStream;
 
 // project-specific implementation
 extern bool ShouldAntiAliasText();
@@ -66,7 +66,7 @@ int TTFFontRenderer::GetTextHeight(const char *text, int fontNumber)
   return alfont_text_height(get_ttf_block(fonts[fontNumber]));
 }
 
-void TTFFontRenderer::RenderText(const char *text, int fontNumber, IBitmap *destination, int x, int y, int colour)
+void TTFFontRenderer::RenderText(const char *text, int fontNumber, Bitmap *destination, int x, int y, int colour)
 {
   if (y > destination->GetClip().Bottom)  // optimisation
     return;
@@ -85,7 +85,7 @@ bool TTFFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
   sprintf(filnm, "agsfnt%d.ttf", fontNumber);
 
   // we read the font in manually to make it load from library file
-  CDataStream *reader = clibfopen(filnm);
+  DataStream *reader = clibfopen(filnm);
   char *membuffer;
 
   if (reader == NULL)

@@ -33,7 +33,7 @@
 #include "device/mousew32.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
+using AGS::Common::Bitmap;
 
 
 /*
@@ -60,7 +60,7 @@ void msethotspot(int,int);   // Graphics mode only. Useful for crosshair.
 void msetgraphpos(int,int);
 
 extern char lib_file_name[13];
-extern void put_sprite_256(int, int, IBitmap *);
+extern void put_sprite_256(int, int, Bitmap *);
 
 char *mouselibcopyr = "MouseLib32 (c) 1994, 1998 Chris Jones";
 const int NONE = -1, LEFT = 0, RIGHT = 1, MIDDLE = 2;
@@ -71,7 +71,7 @@ int boundx1 = 0, boundx2 = 99999, boundy1 = 0, boundy2 = 99999;
 int disable_mgetgraphpos = 0;
 char ignore_bounds = 0;
 extern char alpha_blend_cursor ;
-IBitmap *savebk = NULL, *mousecurs[MAXCURSORS];
+Bitmap *savebk = NULL, *mousecurs[MAXCURSORS];
 extern int vesa_xres, vesa_yres;
 extern color palette[256];
 
@@ -160,7 +160,7 @@ void domouse(int str)
   if (mousey + pooh >= vesa_yres)
     pooh = vesa_yres - mousey;
 
-  abuf->SetClip(CRect(0, 0, vesa_xres - 1, vesa_yres - 1));
+  abuf->SetClip(Rect(0, 0, vesa_xres - 1, vesa_yres - 1));
   if ((str == 0) & (mouseturnedon == TRUE)) {
     if ((mousex != smx) | (mousey != smy)) {    // the mouse has moved
       wputblock(smx, smy, savebk, 0);

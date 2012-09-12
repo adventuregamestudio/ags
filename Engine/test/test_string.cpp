@@ -6,15 +6,15 @@
 #include "util/string.h"
 #include "debug/assert.h"
 
-using AGS::Common::CString;
+using AGS::Common::String;
 
 void Test_String()
 {
     //-----------------------------------------------------
     // Operations
-    CString s1;
-    CString s2 = "waddya want?";
-    CString s3 = "nothing at all";
+    String s1;
+    String s2 = "waddya want?";
+    String s3 = "nothing at all";
     s2.Append(s3);
     s1 = s3;
 
@@ -22,35 +22,35 @@ void Test_String()
     int s1_cmp_s3 = s1.Compare(s3);
     int s2_cmp_s3 = s2.Compare(s3);
 
-    CString s4 = s1;
+    String s4 = s1;
     s4.SetAt(8, 'b');
 
-    CString s_left = s4.Left(4);
-    CString s_mid1 = s4.Mid(4);
-    CString s_mid2 = s4.Mid(4, 4);
-    CString s_right = s4.Right(4);
+    String s_left = s4.Left(4);
+    String s_mid1 = s4.Mid(4);
+    String s_mid2 = s4.Mid(4, 4);
+    String s_right = s4.Right(4);
 
-    CString fmts;
+    String fmts;
     fmts.Format("Make %d me %.2f some %03d format, %s",
         1, 2.5, 22, "bro");
-    CString made_string = CString::MakeString("This is a %s test number %d", "string", 5);
+    String made_string = String::MakeString("This is a %s test number %d", "string", 5);
 
-    CString direct_write = "initial value";
+    String direct_write = "initial value";
     char * buff = direct_write.GetBuffer(100);
     char keep_buff[100];
     strcpy(keep_buff, buff);
     strcpy(buff, "new value new value new value");
     direct_write.ReleaseBuffer();
 
-    CString filled1('a',5);
-    CString filled2;
+    String filled1('a',5);
+    String filled2;
     filled2.FillString('b',6);
 
     int compare_left1 = made_string.CompareLeft("This is a string");
     int compare_left2 = made_string.CompareLeft("Ahis is a string");
 
     //char longBuf[260];
-    //CString str = "./";
+    //String str = "./";
     //sprintf(longBuf, "%s""agssave.%d%s", str, 999, "");
 
     //-----------------------------------------------------

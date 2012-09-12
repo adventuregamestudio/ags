@@ -6,8 +6,8 @@
 #include "util/string_utils.h"      // fputstring, etc
 #include "util/datastream.h"
 
-using AGS::Common::CDataStream;
-using AGS::Common::CString;
+using AGS::Common::DataStream;
+using AGS::Common::String;
 
 InteractionVariable globalvars[MAX_GLOBAL_VARIABLES] = {{"Global 1", 0, 0}};
 int numGlobalVars = 1;
@@ -19,7 +19,7 @@ NewInteractionValue::NewInteractionValue() {
 }
 
 
-void NewInteractionValue::ReadFromFile(CDataStream *in)
+void NewInteractionValue::ReadFromFile(DataStream *in)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
     in->Read(&valType, 1);
@@ -32,7 +32,7 @@ void NewInteractionValue::ReadFromFile(CDataStream *in)
 //#endif
 }
 
-void NewInteractionValue::WriteToFile(CDataStream *out)
+void NewInteractionValue::WriteToFile(DataStream *out)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
     out->Write(&valType, 1);
@@ -46,7 +46,7 @@ void NewInteractionValue::WriteToFile(CDataStream *out)
 }
 
 
-void InteractionVariable::ReadFromFile(CDataStream *in)
+void InteractionVariable::ReadFromFile(DataStream *in)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
     in->Read(name, 23);
@@ -80,7 +80,7 @@ void NewInteractionCommand::remove () {
 
 void NewInteractionCommand::reset() { remove(); }
 
-void NewInteractionCommand::ReadFromFile(CDataStream *in)
+void NewInteractionCommand::ReadFromFile(DataStream *in)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
     in->ReadInt32(); // skip the vtbl ptr
@@ -97,7 +97,7 @@ void NewInteractionCommand::ReadFromFile(CDataStream *in)
 //#endif
 }
 
-void NewInteractionCommand::WriteToFile(CDataStream *out)
+void NewInteractionCommand::WriteToFile(DataStream *out)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
     out->WriteInt32(0); // write dummy vtbl ptr 
@@ -159,7 +159,7 @@ NewInteraction::~NewInteraction() {
     reset();
 }
 
-void NewInteraction::ReadFromFile(CDataStream *in)
+void NewInteraction::ReadFromFile(DataStream *in)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
     // it's all ints! <- JJS: No, it's not! There are pointer too.
@@ -176,7 +176,7 @@ void NewInteraction::ReadFromFile(CDataStream *in)
 //    throw "NewInteraction::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
 //#endif
 }
-void NewInteraction::WriteToFile(CDataStream *out)
+void NewInteraction::WriteToFile(DataStream *out)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
 
@@ -204,7 +204,7 @@ InteractionScripts::~InteractionScripts() {
 }
 
 
-void serialize_command_list (NewInteractionCommandList *nicl, CDataStream *out) {
+void serialize_command_list (NewInteractionCommandList *nicl, DataStream *out) {
   if (nicl == NULL)
     return;
   out->WriteInt32 (nicl->numCommands);
@@ -223,7 +223,7 @@ void serialize_command_list (NewInteractionCommandList *nicl, CDataStream *out) 
   }
 }
 
-void serialize_new_interaction (NewInteraction *nint, CDataStream *out) {
+void serialize_new_interaction (NewInteraction *nint, DataStream *out) {
   int a;
 
   out->WriteInt32 (1);  // Version
@@ -240,7 +240,7 @@ void serialize_new_interaction (NewInteraction *nint, CDataStream *out) {
   }
 }
 
-NewInteractionCommandList *deserialize_command_list (CDataStream *in) {
+NewInteractionCommandList *deserialize_command_list (DataStream *in) {
   NewInteractionCommandList *nicl = new NewInteractionCommandList;
   nicl->numCommands = in->ReadInt32();
   nicl->timesRun = in->ReadInt32();
@@ -262,7 +262,7 @@ NewInteractionCommandList *deserialize_command_list (CDataStream *in) {
 }
 
 NewInteraction *nitemp;
-NewInteraction *deserialize_new_interaction (CDataStream *in) {
+NewInteraction *deserialize_new_interaction (DataStream *in) {
   int a;
 
   if (in->ReadInt32() != 1)
@@ -288,14 +288,14 @@ NewInteraction *deserialize_new_interaction (CDataStream *in) {
   return nitemp;
 }
 
-void deserialize_interaction_scripts(CDataStream *in, InteractionScripts *scripts)
+void deserialize_interaction_scripts(DataStream *in, InteractionScripts *scripts)
 {
   int numEvents = in->ReadInt32();
   if (numEvents > MAX_NEWINTERACTION_EVENTS)
     quit("Too many interaction script events");
   scripts->numEvents = numEvents;
 
-  CString buffer;
+  String buffer;
   for (int i = 0; i < numEvents; i++)
   {
     buffer = in->ReadString(200);

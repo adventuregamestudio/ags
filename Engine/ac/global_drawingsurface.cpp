@@ -15,10 +15,10 @@
 #include "ac/spritecache.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
-extern IBitmap *raw_saved_screen;
+extern Bitmap *raw_saved_screen;
 extern roomstruct thisroom;
 extern GameState play;
 extern int trans_mode;
@@ -30,25 +30,25 @@ extern GameSetupStruct game;
 extern int current_screen_resolution_multiplier;
 
 // Raw screen writing routines - similar to old CapturedStuff
-#define RAW_START() IBitmap *oldabuf=abuf; abuf=thisroom.ebscene[play.bg_frame]; play.raw_modified[play.bg_frame] = 1
+#define RAW_START() Bitmap *oldabuf=abuf; abuf=thisroom.ebscene[play.bg_frame]; play.raw_modified[play.bg_frame] = 1
 #define RAW_END() abuf = oldabuf
 // RawSaveScreen: copy the current screen to a backup bitmap
 void RawSaveScreen () {
     if (raw_saved_screen != NULL)
         delete raw_saved_screen;
-    IBitmap *source = thisroom.ebscene[play.bg_frame];
-    raw_saved_screen = Bitmap::CreateBitmap(source->GetWidth(), source->GetHeight());
+    Bitmap *source = thisroom.ebscene[play.bg_frame];
+    raw_saved_screen = BitmapHelper::CreateBitmap(source->GetWidth(), source->GetHeight());
     raw_saved_screen->Blit(source, 0, 0, 0, 0, source->GetWidth(), source->GetHeight());
 }
 // RawRestoreScreen: copy backup bitmap back to screen; we
-// deliberately don't free the IBitmap *cos they can multiple restore
+// deliberately don't free the Bitmap *cos they can multiple restore
 // and it gets freed on room exit anyway
 void RawRestoreScreen() {
     if (raw_saved_screen == NULL) {
         debug_log("RawRestoreScreen: unable to restore, since the screen hasn't been saved previously.");
         return;
     }
-    IBitmap *deston = thisroom.ebscene[play.bg_frame];
+    Bitmap *deston = thisroom.ebscene[play.bg_frame];
     deston->Blit(raw_saved_screen, 0, 0, 0, 0, deston->GetWidth(), deston->GetHeight());
     invalidate_screen();
     mark_current_background_dirty();
@@ -66,7 +66,7 @@ void RawRestoreScreenTinted(int red, int green, int blue, int opacity) {
 
     DEBUG_CONSOLE("RawRestoreTinted RGB(%d,%d,%d) %d%%", red, green, blue, opacity);
 
-    IBitmap *deston = thisroom.ebscene[play.bg_frame];
+    Bitmap *deston = thisroom.ebscene[play.bg_frame];
     tint_image(raw_saved_screen, deston, red, green, blue, opacity);
     invalidate_screen();
     mark_current_background_dirty();
@@ -221,7 +221,7 @@ void RawDrawImageResized(int xx, int yy, int gotSlot, int width, int height) {
     multiply_up_coordinates(&width, &height);
 
     // resize the sprite to the requested size
-    IBitmap *newPic = Bitmap::CreateBitmap(width, height, spriteset[gotSlot]->GetColorDepth());
+    Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, spriteset[gotSlot]->GetColorDepth());
 
     newPic->StretchBlt(spriteset[gotSlot],
         RectWH(0, 0, spritewidth[gotSlot], spriteheight[gotSlot]),
@@ -247,7 +247,7 @@ void RawDrawLine (int fromx, int fromy, int tox, int toy) {
     // draw a line thick enough to look the same at all resolutions
     for (ii = 0; ii < get_fixed_pixel_size(1); ii++) {
         for (jj = 0; jj < get_fixed_pixel_size(1); jj++)
-            thisroom.ebscene[play.bg_frame]->DrawLine (CLine(fromx+ii, fromy+jj, tox+ii, toy+jj), play.raw_color);
+            thisroom.ebscene[play.bg_frame]->DrawLine (Line(fromx+ii, fromy+jj, tox+ii, toy+jj), play.raw_color);
     }
     invalidate_screen();
     mark_current_background_dirty();
@@ -257,7 +257,7 @@ void RawDrawCircle (int xx, int yy, int rad) {
     rad = multiply_up_coordinate(rad);
 
     play.raw_modified[play.bg_frame] = 1;
-    thisroom.ebscene[play.bg_frame]->FillCircle(CCircle (xx, yy, rad), play.raw_color);
+    thisroom.ebscene[play.bg_frame]->FillCircle(Circle (xx, yy, rad), play.raw_color);
     invalidate_screen();
     mark_current_background_dirty();
 }
@@ -266,7 +266,7 @@ void RawDrawRectangle(int x1, int y1, int x2, int y2) {
     multiply_up_coordinates(&x1, &y1);
     multiply_up_coordinates_round_up(&x2, &y2);
 
-    thisroom.ebscene[play.bg_frame]->FillRect(CRect(x1,y1,x2,y2), play.raw_color);
+    thisroom.ebscene[play.bg_frame]->FillRect(Rect(x1,y1,x2,y2), play.raw_color);
     invalidate_screen();
     mark_current_background_dirty();
 }
@@ -276,7 +276,7 @@ void RawDrawTriangle(int x1, int y1, int x2, int y2, int x3, int y3) {
     multiply_up_coordinates(&x2, &y2);
     multiply_up_coordinates(&x3, &y3);
 
-    thisroom.ebscene[play.bg_frame]->DrawTriangle(CTriangle (x1,y1,x2,y2,x3,y3), play.raw_color);
+    thisroom.ebscene[play.bg_frame]->DrawTriangle(Triangle (x1,y1,x2,y2,x3,y3), play.raw_color);
     invalidate_screen();
     mark_current_background_dirty();
 }

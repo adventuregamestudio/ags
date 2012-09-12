@@ -20,13 +20,13 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameSetup usetup;
 extern GameSetupStruct game;
 extern GameState play;
-extern IBitmap *mousecurs[MAXCURSORS];
+extern Bitmap *mousecurs[MAXCURSORS];
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
 extern int guis_need_update;
@@ -39,9 +39,9 @@ int cur_mode,cur_cursor;
 int mouse_frame=0,mouse_delay=0;
 int lastmx=-1,lastmy=-1;
 char alpha_blend_cursor = 0;
-IBitmap *dotted_mouse_cursor = NULL;
+Bitmap *dotted_mouse_cursor = NULL;
 IDriverDependantBitmap *mouseCursor = NULL;
-IBitmap *blank_mouse_cursor = NULL;
+Bitmap *blank_mouse_cursor = NULL;
 
 // The Mouse:: functions are static so the script doesn't pass
 // in an object parameter
@@ -92,11 +92,11 @@ void set_mouse_cursor(int newcurs) {
         ((game.hotdot > 0) || (game.invhotdotsprite > 0)) ) {
             // If necessary, create a copy of the cursor and put the hotspot
             // dot onto it
-            dotted_mouse_cursor = Bitmap::CreateBitmap(mousecurs[0]->GetWidth(),mousecurs[0]->GetHeight(),mousecurs[0]->GetColorDepth());
+            dotted_mouse_cursor = BitmapHelper::CreateBitmap(mousecurs[0]->GetWidth(),mousecurs[0]->GetHeight(),mousecurs[0]->GetColorDepth());
             dotted_mouse_cursor->Blit (mousecurs[0], 0, 0, 0, 0, mousecurs[0]->GetWidth(), mousecurs[0]->GetHeight());
 
             if (game.invhotdotsprite > 0) {
-                IBitmap *abufWas = abuf;
+                Bitmap *abufWas = abuf;
                 abuf = dotted_mouse_cursor;
 
                 draw_sprite_support_alpha(
@@ -330,7 +330,7 @@ void set_new_cursor_graphic (int spriteslot) {
     {
         if (blank_mouse_cursor == NULL)
         {
-            blank_mouse_cursor = Bitmap::CreateBitmap(1, 1, final_col_dep);
+            blank_mouse_cursor = BitmapHelper::CreateBitmap(1, 1, final_col_dep);
             blank_mouse_cursor->Clear(blank_mouse_cursor->GetMaskColor());
         }
         mousecurs[0] = blank_mouse_cursor;

@@ -12,7 +12,7 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
+using AGS::Common::Bitmap;
 
 extern IGraphicsDriver *gfxDriver;
 extern GameSetup usetup;
@@ -22,9 +22,9 @@ extern char saveGameDirectory[260];
 extern char saveGameSuffix[MAX_SG_EXT_LENGTH + 1];
 
 // from gui/cscidialog
-extern IBitmap *windowBuffer;
+extern Bitmap *windowBuffer;
 extern int windowPosX, windowPosY, windowPosWidth, windowPosHeight;
-extern IBitmap *windowBuffer;
+extern Bitmap *windowBuffer;
 extern IDriverDependantBitmap *dialogBmp;
 
 #define MAXSAVEGAMES 20

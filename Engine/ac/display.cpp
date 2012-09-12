@@ -28,15 +28,15 @@
 #include "ac/spritecache.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameState play;
 extern GameSetupStruct game;
 extern GUIMain *guis;
 extern int longestline;
 extern int scrnwid,scrnhit;
-extern IBitmap *virtual_screen;
+extern Bitmap *virtual_screen;
 extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern volatile int timerloop;
 extern AGSPlatformDriver *platform;
@@ -59,7 +59,7 @@ TopBarSettings topBar;
 // create a new bitmap the size of the window before calling, and
 //   point abuf to it
 // returns text start x & y pos in parameters
-IBitmap *screenop = NULL;
+Bitmap *screenop = NULL;
 int wantFreeScreenop = 0;
 int texthit;
 
@@ -144,7 +144,7 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
     if (blocking < 2)
         remove_screen_overlay(OVER_TEXTMSG);
 
-    screenop = Bitmap::CreateBitmap((wii > 0) ? wii : 2, numlines*texthit + extraHeight, final_col_dep);
+    screenop = BitmapHelper::CreateBitmap((wii > 0) ? wii : 2, numlines*texthit + extraHeight, final_col_dep);
     wsetscreen(screenop);
     screenop->Clear(screenop->GetMaskColor());
 
@@ -482,7 +482,7 @@ int wgettextwidth_compensate(const char *tex, int font) {
 
 void do_corner(int sprn,int xx1,int yy1,int typx,int typy) {
     if (sprn<0) return;
-    IBitmap *thisone = spriteset[sprn];
+    Bitmap *thisone = spriteset[sprn];
     if (thisone == NULL)
         thisone = spriteset[0];
 
@@ -496,10 +496,10 @@ int get_but_pic(GUIMain*guo,int indx) {
 
 void draw_button_background(int xx1,int yy1,int xx2,int yy2,GUIMain*iep) {
     if (iep==NULL) {  // standard window
-        abuf->FillRect(CRect(xx1,yy1,xx2,yy2),get_col8_lookup(15));
-        abuf->DrawRect(CRect(xx1,yy1,xx2,yy2),get_col8_lookup(16));
-        /*    wsetcolor(opts.tws.backcol); abuf->FillRect(CRect(xx1,yy1,xx2,yy2);
-        wsetcolor(opts.tws.textcol); abuf->DrawRect(CRect(xx1+1,yy1+1,xx2-1,yy2-1);*/
+        abuf->FillRect(Rect(xx1,yy1,xx2,yy2),get_col8_lookup(15));
+        abuf->DrawRect(Rect(xx1,yy1,xx2,yy2),get_col8_lookup(16));
+        /*    wsetcolor(opts.tws.backcol); abuf->FillRect(Rect(xx1,yy1,xx2,yy2);
+        wsetcolor(opts.tws.textcol); abuf->DrawRect(Rect(xx1+1,yy1+1,xx2-1,yy2-1);*/
     }
     else {
         if (loaded_game_file_version < 25) // < 2.60
@@ -513,7 +513,7 @@ void draw_button_background(int xx1,int yy1,int xx2,int yy2,GUIMain*iep) {
         else wsetcolor(0); // black backrgnd behind picture
 
         if (iep->bgcol > 0)
-            abuf->FillRect(CRect(xx1,yy1,xx2,yy2), currentcolor);
+            abuf->FillRect(Rect(xx1,yy1,xx2,yy2), currentcolor);
 
         int leftRightWidth = spritewidth[get_but_pic(iep,4)];
         int topBottomHeight = spriteheight[get_but_pic(iep,6)];
@@ -532,7 +532,7 @@ void draw_button_background(int xx1,int yy1,int xx2,int yy2,GUIMain*iep) {
                 // edge
                 int bgoffsx = xx1 - leftRightWidth / 2;
                 int bgoffsy = yy1 - topBottomHeight / 2;
-                abuf->SetClip(CRect(bgoffsx, bgoffsy, xx2 + leftRightWidth / 2, yy2 + topBottomHeight / 2));
+                abuf->SetClip(Rect(bgoffsx, bgoffsy, xx2 + leftRightWidth / 2, yy2 + topBottomHeight / 2));
                 int bgfinishx = xx2;
                 int bgfinishy = yy2;
                 int bgoffsyStart = bgoffsy;
@@ -547,7 +547,7 @@ void draw_button_background(int xx1,int yy1,int xx2,int yy2,GUIMain*iep) {
                     bgoffsx += spritewidth[iep->bgpic];
                 }
                 // return to normal clipping rectangle
-                abuf->SetClip(CRect(0, 0, abuf->GetWidth() - 1, abuf->GetHeight() - 1));
+                abuf->SetClip(Rect(0, 0, abuf->GetWidth() - 1, abuf->GetHeight() - 1));
             }
         }
         int uu;
@@ -620,7 +620,7 @@ void draw_text_window(int*xins,int*yins,int*xx,int*yy,int*wii,int ovrheight, int
 
         if ((wantFreeScreenop > 0) && (screenop != NULL))
             delete screenop;
-        screenop = Bitmap::CreateBitmap(wii[0],ovrheight+6+spriteheight[tbnum]*2,final_col_dep);
+        screenop = BitmapHelper::CreateBitmap(wii[0],ovrheight+6+spriteheight[tbnum]*2,final_col_dep);
         screenop->Clear(screenop->GetMaskColor());
         wsetscreen(screenop);
         int xoffs=spritewidth[tbnum],yoffs=spriteheight[tbnum];
@@ -639,18 +639,18 @@ void draw_text_window_and_bar(int*xins,int*yins,int*xx,int*yy,int*wii,int ovrhei
     if ((topBar.wantIt) && (screenop != NULL)) {
         // top bar on the dialog window with character's name
         // create an enlarged window, then free the old one
-        IBitmap *newScreenop = Bitmap::CreateBitmap(screenop->GetWidth(), screenop->GetHeight() + topBar.height, final_col_dep);
+        Bitmap *newScreenop = BitmapHelper::CreateBitmap(screenop->GetWidth(), screenop->GetHeight() + topBar.height, final_col_dep);
         newScreenop->Blit(screenop, 0, 0, 0, topBar.height, screenop->GetWidth(), screenop->GetHeight());
         delete screenop;
         screenop = newScreenop;
         wsetscreen(screenop);
 
         // draw the top bar
-        screenop->FillRect(CRect(0, 0, screenop->GetWidth() - 1, topBar.height - 1), get_col8_lookup(play.top_bar_backcolor));
+        screenop->FillRect(Rect(0, 0, screenop->GetWidth() - 1, topBar.height - 1), get_col8_lookup(play.top_bar_backcolor));
         if (play.top_bar_backcolor != play.top_bar_bordercolor) {
             // draw the border
             for (int j = 0; j < multiply_up_coordinate(play.top_bar_borderwidth); j++)
-                screenop->DrawRect(CRect(j, j, screenop->GetWidth() - (j + 1), topBar.height - (j + 1)), get_col8_lookup(play.top_bar_bordercolor));
+                screenop->DrawRect(Rect(j, j, screenop->GetWidth() - (j + 1), topBar.height - (j + 1)), get_col8_lookup(play.top_bar_bordercolor));
         }
 
         int textcolwas = textcol;

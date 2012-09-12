@@ -25,8 +25,8 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 
 extern GameSetup usetup;
@@ -39,7 +39,7 @@ extern ScriptGUI *scrGui;
 extern GameSetupStruct game;
 extern CCGUIObject ccDynamicGUIObject;
 extern int scrnwid,scrnhit;
-extern IBitmap **guibg;
+extern Bitmap **guibg;
 extern IDriverDependantBitmap **guibgbmp;
 extern IGraphicsDriver *gfxDriver;
 
@@ -456,7 +456,7 @@ void recreate_guibg_image(GUIMain *tehgui)
 {
   int ifn = tehgui->guiId;
   delete guibg[ifn];
-  guibg[ifn] = Bitmap::CreateBitmap(tehgui->wid, tehgui->hit, final_col_dep);
+  guibg[ifn] = BitmapHelper::CreateBitmap(tehgui->wid, tehgui->hit, final_col_dep);
   if (guibg[ifn] == NULL)
     quit("SetGUISize: internal error: unable to reallocate gui cache");
   guibg[ifn] = gfxDriver->ConvertBitmapToSupportedColourDepth(guibg[ifn]);

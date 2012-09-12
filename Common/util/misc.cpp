@@ -31,7 +31,7 @@
 #include "util/misc.h"
 #include "util/filestream.h"
 
-using AGS::Common::CDataStream;
+using AGS::Common::DataStream;
 
 #if defined(MAC_VERSION) || defined(WINDOWS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
 #include <string.h>
@@ -151,12 +151,12 @@ char *ci_find_file(char *dir_name, char *file_name)
 
 
 /* Case Insensitive fopen */
-CDataStream *ci_fopen(const char *file_name, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode)
+DataStream *ci_fopen(const char *file_name, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode)
 {
 #if defined(WINDOWS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
   return Common::File::OpenFile(file_name, open_mode, work_mode);
 #else
-  CDataStream *fs = NULL;
+  DataStream *fs = NULL;
   char *fullpath = ci_find_file(NULL, file_name);
 
   /* If I didn't find a file, this could be writing a new file,

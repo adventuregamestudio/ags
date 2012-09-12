@@ -6,7 +6,7 @@
 #include "ac/common.h"		// quit()
 #include "util/datastream.h"
 
-using AGS::Common::CDataStream;
+using AGS::Common::DataStream;
 
 void GUIObject::init() {
   int jj;
@@ -23,7 +23,7 @@ int GUIObject::IsDisabled() {
   return 0;
 }
 
-void GUIObject::WriteToFile(CDataStream *out)
+void GUIObject::WriteToFile(DataStream *out)
 {
   // MACPORT FIX: swap
   out->WriteArrayOfInt32((int32_t*)&flags, BASEGOBJ_SIZE);
@@ -34,7 +34,7 @@ void GUIObject::WriteToFile(CDataStream *out)
     fputstring(eventHandlers[kk], out);
 }
 
-void GUIObject::ReadFromFile(CDataStream *in, int version)
+void GUIObject::ReadFromFile(DataStream *in, int version)
 {
   // MACPORT FIX: swap
   in->ReadArrayOfInt32((int32_t*)&flags, BASEGOBJ_SIZE);

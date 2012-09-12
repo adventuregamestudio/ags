@@ -4,8 +4,8 @@
 #include "gfx/gfxfilterdefines.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 ScalingAllegroGFXFilter::ScalingAllegroGFXFilter(int multiplier, bool justCheckingForSetup) : 
     AllegroGFXFilter(multiplier, justCheckingForSetup) {
@@ -13,14 +13,14 @@ ScalingAllegroGFXFilter::ScalingAllegroGFXFilter(int multiplier, bool justChecki
     lastBlitFrom = NULL;
 }
 
-IBitmap* ScalingAllegroGFXFilter::ScreenInitialized(IBitmap *screen, int fakeWidth, int fakeHeight) {
+Bitmap* ScalingAllegroGFXFilter::ScreenInitialized(Bitmap *screen, int fakeWidth, int fakeHeight) {
     realScreen = screen;
-    realScreenSizedBuffer = Bitmap::CreateBitmap(screen->GetWidth(), screen->GetHeight(), screen->GetColorDepth());
-    fakeScreen = Bitmap::CreateBitmap(fakeWidth, fakeHeight, screen->GetColorDepth());
+    realScreenSizedBuffer = BitmapHelper::CreateBitmap(screen->GetWidth(), screen->GetHeight(), screen->GetColorDepth());
+    fakeScreen = BitmapHelper::CreateBitmap(fakeWidth, fakeHeight, screen->GetColorDepth());
     return fakeScreen;
 }
 
-IBitmap *ScalingAllegroGFXFilter::ShutdownAndReturnRealScreen(IBitmap *currentScreen) {
+Bitmap *ScalingAllegroGFXFilter::ShutdownAndReturnRealScreen(Bitmap *currentScreen) {
     delete fakeScreen;
     delete realScreenSizedBuffer;
     fakeScreen = NULL;
@@ -28,7 +28,7 @@ IBitmap *ScalingAllegroGFXFilter::ShutdownAndReturnRealScreen(IBitmap *currentSc
     return realScreen;
 }
 
-void ScalingAllegroGFXFilter::RenderScreen(IBitmap *toRender, int x, int y) 
+void ScalingAllegroGFXFilter::RenderScreen(Bitmap *toRender, int x, int y) 
 {
     realScreen->StretchBlt(toRender, RectWH(0, 0, toRender->GetWidth(), toRender->GetHeight()),
 		RectWH(x * MULTIPLIER, y * MULTIPLIER, toRender->GetWidth() * MULTIPLIER, toRender->GetHeight() * MULTIPLIER));
@@ -37,7 +37,7 @@ void ScalingAllegroGFXFilter::RenderScreen(IBitmap *toRender, int x, int y)
     lastBlitFrom = toRender;
 }
 
-void ScalingAllegroGFXFilter::RenderScreenFlipped(IBitmap *toRender, int x, int y, int flipType) {
+void ScalingAllegroGFXFilter::RenderScreenFlipped(Bitmap *toRender, int x, int y, int flipType) {
 
     if (toRender == fakeScreen)
         return;
@@ -57,15 +57,15 @@ void ScalingAllegroGFXFilter::ClearRect(int x1, int y1, int x2, int y2, int colo
     y1 *= MULTIPLIER;
     x2 = x2 * MULTIPLIER + (MULTIPLIER - 1);
     y2 = y2 * MULTIPLIER + (MULTIPLIER - 1);
-    realScreen->FillRect(CRect(x1, y1, x2, y2), color);
+    realScreen->FillRect(Rect(x1, y1, x2, y2), color);
 }
 
- void ScalingAllegroGFXFilter::GetCopyOfScreenIntoBitmap(IBitmap *copyBitmap) 
+ void ScalingAllegroGFXFilter::GetCopyOfScreenIntoBitmap(Bitmap *copyBitmap) 
 {
     GetCopyOfScreenIntoBitmap(copyBitmap, true);
 }
 
-void ScalingAllegroGFXFilter::GetCopyOfScreenIntoBitmap(IBitmap *copyBitmap, bool copyWithYOffset)
+void ScalingAllegroGFXFilter::GetCopyOfScreenIntoBitmap(Bitmap *copyBitmap, bool copyWithYOffset)
 {
     if (!copyWithYOffset)
     {

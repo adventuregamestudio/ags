@@ -10,7 +10,7 @@
 #include "script/script.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
+using AGS::Common::Bitmap;
 
 extern roomstruct thisroom;
 extern RoomStatus*croom;

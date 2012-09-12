@@ -33,8 +33,8 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameSetup usetup;
 extern GameSetupStruct game;
@@ -54,8 +54,8 @@ extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern volatile int timerloop;
 extern IDriverDependantBitmap *blankImage;
 extern IDriverDependantBitmap *blankSidebarImage;
-extern IBitmap *_old_screen;
-extern IBitmap *_sub_screen;
+extern Bitmap *_old_screen;
+extern Bitmap *_sub_screen;
 extern int _places_r, _places_g, _places_b;
 
 int initasx,initasy;
@@ -536,7 +536,7 @@ void CreateBlankImage()
     // so it's the most likey place for a crash
     try
     {
-        IBitmap *blank = Bitmap::CreateBitmap(16, 16, final_col_dep);
+        Bitmap *blank = BitmapHelper::CreateBitmap(16, 16, final_col_dep);
         blank = gfxDriver->ConvertBitmapToSupportedColourDepth(blank);
         blank->Clear();
         blankImage = gfxDriver->CreateDDBFromBitmap(blank, false, true);
@@ -553,7 +553,7 @@ void CreateBlankImage()
 void engine_post_init_gfx_driver()
 {
     //screen = _filter->ScreenInitialized(screen, final_scrn_wid, final_scrn_hit);
-	_old_screen = Bitmap::GetScreenBitmap();
+	_old_screen = BitmapHelper::GetScreenBitmap();
 
     if (gfxDriver->HasAcceleratedStretchAndFlip()) 
     {
@@ -571,10 +571,10 @@ void engine_prepare_screen()
         initasx = final_scrn_wid;
         initasy = final_scrn_hit;
         _old_screen->Clear();
-		Bitmap::SetScreenBitmap(
-			Bitmap::CreateSubBitmap(_old_screen, RectWH(initasx / 2 - scrnwid / 2, initasy/2-scrnhit/2, scrnwid, scrnhit))
+		BitmapHelper::SetScreenBitmap(
+			BitmapHelper::CreateSubBitmap(_old_screen, RectWH(initasx / 2 - scrnwid / 2, initasy/2-scrnhit/2, scrnwid, scrnhit))
 			);
-		IBitmap *screen_bmp = Bitmap::GetScreenBitmap();
+		Bitmap *screen_bmp = BitmapHelper::GetScreenBitmap();
         _sub_screen=screen_bmp;
 
         scrnhit = screen_bmp->GetHeight();

@@ -4,7 +4,7 @@
 #include "util/file.h"
 
 // Forward declaration
-namespace AGS { namespace Common { class CDataStream; } }
+namespace AGS { namespace Common { class DataStream; } }
 using namespace AGS; // FIXME later
 
 #define AUCL_BUNDLE_EXE 1
@@ -26,8 +26,8 @@ struct AudioClipType {
     int crossfadeSpeed;
     int reservedForFuture;
 
-    void ReadFromFile(Common::CDataStream *in);
-    void WriteToFile(Common::CDataStream *out);
+    void ReadFromFile(Common::DataStream *in);
+    void WriteToFile(Common::DataStream *out);
 };
 
 #endif // __AC_AUDIOCLIPTYPE_H

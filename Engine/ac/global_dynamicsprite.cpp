@@ -9,8 +9,8 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern SpriteCache spriteset;
 extern IGraphicsDriver *gfxDriver;
@@ -20,7 +20,7 @@ int LoadImageFile(const char *filename) {
     char loadFromPath[MAX_PATH];
     get_current_dir_path(loadFromPath, filename);
 
-	IBitmap *loadedFile = Bitmap::LoadFromFile(loadFromPath);
+	Bitmap *loadedFile = BitmapHelper::LoadFromFile(loadFromPath);
 
     if (loadedFile == NULL)
         return 0;

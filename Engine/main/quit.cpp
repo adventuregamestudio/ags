@@ -34,8 +34,8 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameSetupStruct game;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
@@ -49,8 +49,8 @@ extern char check_dynamic_sprites_at_exit;
 extern int editor_debugging_initialized;
 extern IAGSEditorDebugger *editor_debugger;
 extern int need_to_stop_cd;
-extern IBitmap *_old_screen;
-extern IBitmap *_sub_screen;
+extern Bitmap *_old_screen;
+extern Bitmap *_sub_screen;
 extern int use_cdplayer;
 extern IGraphicsDriver *gfxDriver;
 
@@ -105,7 +105,7 @@ void quit_shutdown_platform(char *qmsg)
 
     // allegro_exit assumes screen is correct
 	if (_old_screen) {
-		Bitmap::SetScreenBitmap( _old_screen );
+		BitmapHelper::SetScreenBitmap( _old_screen );
 	}
 
     platform->FinishedUsingGraphicsMode();
@@ -238,8 +238,8 @@ void quit_delete_temp_files()
 
 // TODO: move to test unit
 #include "gfx/allegrobitmap.h"
-using AGS::Common::CAllegroBitmap;
-extern CAllegroBitmap *test_allegro_bitmap;
+using AGS::Common::AllegroBitmap;
+extern AllegroBitmap *test_allegro_bitmap;
 extern IDriverDependantBitmap *test_allegro_ddb;
 void allegro_bitmap_test_release()
 {

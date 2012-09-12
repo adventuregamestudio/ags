@@ -3,9 +3,9 @@
 #include "ac/gamesetupstructbase.h"
 #include "util/datastream.h"
 
-using AGS::Common::CDataStream;
+using AGS::Common::DataStream;
 
-void GameSetupStructBase::ReadFromFile(CDataStream *in)
+void GameSetupStructBase::ReadFromFile(DataStream *in)
 {
     //#ifdef ALLEGRO_BIG_ENDIAN
     in->Read(&gamename[0], 50);
@@ -51,7 +51,7 @@ void GameSetupStructBase::ReadFromFile(CDataStream *in)
     //#endif
 }
 
-void GameSetupStructBase::WriteToFile(CDataStream *out)
+void GameSetupStructBase::WriteToFile(DataStream *out)
 {
     out->Write(&gamename[0], 50);
     char padding[2];

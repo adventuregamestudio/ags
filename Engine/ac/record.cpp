@@ -17,7 +17,7 @@
 #include "device/mousew32.h"
 #include "util/filestream.h"
 
-using AGS::Common::CDataStream;
+using AGS::Common::DataStream;
 
 extern GameSetupStruct game;
 extern GameState play;
@@ -323,7 +323,7 @@ void start_recording() {
 }
 
 void start_replay_record () {
-    CDataStream *replay_s = Common::File::CreateFile(replayTempFile);
+    DataStream *replay_s = Common::File::CreateFile(replayTempFile);
     save_game_data (replay_s, NULL);
     delete replay_s;
     start_recording();
@@ -346,11 +346,11 @@ void stop_recording() {
         strchr (replayfile, '.')[0] = 0;
     strcat (replayfile, ".agr");
 
-    CDataStream *replay_out = Common::File::CreateFile(replayfile);
+    DataStream *replay_out = Common::File::CreateFile(replayfile);
     replay_out->Write ("AGSRecording", 12);
     fputstring (ACI_VERSION_TEXT, replay_out);
     int write_version = 2;
-    CDataStream *replay_temp_in = Common::File::OpenFileRead(replayTempFile);
+    DataStream *replay_temp_in = Common::File::OpenFileRead(replayTempFile);
     if (replay_temp_in) {
         // There was a save file created
         write_version = 3;
@@ -386,7 +386,7 @@ void stop_recording() {
 
 void start_playback()
 {
-    CDataStream *in = Common::File::OpenFileRead(replayfile);
+    DataStream *in = Common::File::OpenFileRead(replayfile);
     if (in != NULL) {
         char buffer [100];
         in->Read(buffer, 12);

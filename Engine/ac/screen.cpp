@@ -13,14 +13,14 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameSetupStruct game;
 extern GameState play;
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
-extern IBitmap *virtual_screen;
+extern Bitmap *virtual_screen;
 extern int scrnwid,scrnhit;
 
 void my_fade_in(PALLETE p, int speed) {
@@ -39,7 +39,7 @@ void my_fade_in(PALLETE p, int speed) {
 
 //#define _get_script_data_stack_size() (256*sizeof(int)+((int*)&scrpt[10*4])[0]+((int*)&scrpt[12*4])[0])
 //#define _get_script_data_stack_size(instac) ((int*)instac->code)[10]
-IBitmap *temp_virtual = NULL;
+Bitmap *temp_virtual = NULL;
 color old_palette[256];
 void current_fade_out_effect () {
     if (platform->RunPluginHooks(AGSE_TRANSITIONOUT, 0))
@@ -67,7 +67,7 @@ void current_fade_out_effect () {
     else 
     {
         get_palette(old_palette);
-        temp_virtual = Bitmap::CreateBitmap(virtual_screen->GetWidth(),virtual_screen->GetHeight(),abuf->GetColorDepth());
+        temp_virtual = BitmapHelper::CreateBitmap(virtual_screen->GetWidth(),virtual_screen->GetHeight(),abuf->GetColorDepth());
         //->Blit(abuf,temp_virtual,0,0,0,0,abuf->GetWidth(),abuf->GetHeight());
         gfxDriver->GetCopyOfScreenIntoBitmap(temp_virtual);
     }
@@ -81,14 +81,14 @@ IDriverDependantBitmap* prepare_screen_for_transition_in()
     temp_virtual = gfxDriver->ConvertBitmapToSupportedColourDepth(temp_virtual);
     if (temp_virtual->GetHeight() < scrnhit)
     {
-        IBitmap *enlargedBuffer = Bitmap::CreateBitmap(temp_virtual->GetWidth(), scrnhit, temp_virtual->GetColorDepth());
+        Bitmap *enlargedBuffer = BitmapHelper::CreateBitmap(temp_virtual->GetWidth(), scrnhit, temp_virtual->GetColorDepth());
         enlargedBuffer->Blit(temp_virtual, 0, 0, 0, (scrnhit - temp_virtual->GetHeight()) / 2, temp_virtual->GetWidth(), temp_virtual->GetHeight());
         delete temp_virtual;
         temp_virtual = enlargedBuffer;
     }
     else if (temp_virtual->GetHeight() > scrnhit)
     {
-        IBitmap *clippedBuffer = Bitmap::CreateBitmap(temp_virtual->GetWidth(), scrnhit, temp_virtual->GetColorDepth());
+        Bitmap *clippedBuffer = BitmapHelper::CreateBitmap(temp_virtual->GetWidth(), scrnhit, temp_virtual->GetColorDepth());
         clippedBuffer->Blit(temp_virtual, 0, (temp_virtual->GetHeight() - scrnhit) / 2, 0, 0, temp_virtual->GetWidth(), temp_virtual->GetHeight());
         delete temp_virtual;
         temp_virtual = clippedBuffer;

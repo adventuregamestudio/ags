@@ -4,7 +4,7 @@
 #include "util/file.h"
 
 // Forward declaration
-namespace AGS { namespace Common { class CDataStream; } }
+namespace AGS { namespace Common { class DataStream; } }
 using namespace AGS; // FIXME later
 
 #define AMBIENCE_FULL_DIST 25
@@ -18,8 +18,8 @@ struct AmbientSound {
 
     bool IsPlaying();
 
-    void ReadFromFile(Common::CDataStream *in);
-    void WriteToFile(Common::CDataStream *out);
+    void ReadFromFile(Common::DataStream *in);
+    void WriteToFile(Common::DataStream *out);
 };
 
 #endif // __AC_AMBIENTSOUND_H

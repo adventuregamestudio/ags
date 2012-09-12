@@ -13,7 +13,7 @@
 #include "ac/walkablearea.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
+using AGS::Common::Bitmap;
 
 extern roomstruct thisroom;
 extern GameState play;
@@ -23,7 +23,7 @@ extern int displayed_room;
 extern RoomStatus*croom;
 extern RoomObject*objs;
 
-IBitmap *walkareabackup=NULL, *walkable_areas_temp = NULL;
+Bitmap *walkareabackup=NULL, *walkable_areas_temp = NULL;
 
 void redo_walkable_areas() {
 
@@ -120,10 +120,10 @@ int is_point_in_rect(int x, int y, int left, int top, int right, int bottom) {
     return 0;
 }
 
-IBitmap *prepare_walkable_areas (int sourceChar) {
+Bitmap *prepare_walkable_areas (int sourceChar) {
     // copy the walkable areas to the temp bitmap
     walkable_areas_temp->Blit (thisroom.walls, 0,0,0,0,thisroom.walls->GetWidth(),thisroom.walls->GetHeight());
-    // if the character who's moving doesn't IBitmap *, don't bother checking
+    // if the character who's moving doesn't Bitmap *, don't bother checking
     if (sourceChar < 0) ;
     else if (game.chars[sourceChar].flags & CHF_NOBLOCKING)
         return walkable_areas_temp;

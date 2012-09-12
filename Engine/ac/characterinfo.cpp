@@ -18,7 +18,7 @@
 #include "main/update.h"
 #include "util/datastream.h"
 
-using AGS::Common::CDataStream;
+using AGS::Common::DataStream;
 
 extern ViewStruct*views;
 extern GameSetupStruct game;
@@ -496,7 +496,7 @@ void CharacterInfo::update_character_idle(CharacterExtras *chex, int &doing_noth
     }  // end do idle animation
 }
 
-void CharacterInfo::ReadFromFile(CDataStream *in)
+void CharacterInfo::ReadFromFile(DataStream *in)
 {
     int reserved[2];
 //#ifdef ALLEGRO_BIG_ENDIAN
@@ -553,7 +553,7 @@ void CharacterInfo::ReadFromFile(CDataStream *in)
 //#endif
 }
 
-void CharacterInfo::WriteToFile(CDataStream *out)
+void CharacterInfo::WriteToFile(DataStream *out)
 {
     char padding[3] = {0,0,0};
 

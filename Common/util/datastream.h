@@ -17,11 +17,11 @@ namespace AGS
 namespace Common
 {
 
-class CDataStream : public IStream
+class DataStream : public Stream
 {
 public:
-    CDataStream(DataEndianess caller_endianess, DataEndianess stream_endianess);
-    virtual ~CDataStream();
+    DataStream(DataEndianess caller_endianess, DataEndianess stream_endianess);
+    virtual ~DataStream();
 
     // Methods for reading basic types - implementation-specific
     inline  int8_t  ReadInt8()
@@ -132,10 +132,10 @@ public:
     // does not limit stream reading; the data will be read until null-
     // terminator or EOS is met, the buffer will contain only leftmost
     // part of the longer string that fits in.
-    virtual CString ReadString(int max_chars = 5000000);
+    virtual String ReadString(int max_chars = 5000000);
     // WriteString returns a length of string written,
     // or -1 if end of stream was reached
-    virtual int     WriteString(const CString &str);
+    virtual int     WriteString(const String &str);
 
 protected:
     DataEndianess _callerEndianess;

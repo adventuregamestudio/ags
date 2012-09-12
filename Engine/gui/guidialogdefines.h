@@ -86,7 +86,7 @@ struct CSCIMessage
 
 struct OnScreenWindow
 {
-    Common::IBitmap *buffer;
+    Common::Bitmap *buffer;
     int x, y;
     int oldtop;
 };

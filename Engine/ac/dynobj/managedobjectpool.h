@@ -3,7 +3,7 @@
 
 #include "ac/dynobj/cc_dynamicobject.h"   // ICCDynamicObject
 
-namespace AGS { namespace Common { class CDataStream; }}
+namespace AGS { namespace Common { class DataStream; }}
 using namespace AGS; // FIXME later
 
 #define OBJECT_CACHE_MAGIC_NUMBER 0xa30b
@@ -43,8 +43,8 @@ public:
     void RunGarbageCollectionIfAppropriate();
     void RunGarbageCollection();
     int AddObject(const char *address, ICCDynamicObject *callback, int useSlot = -1);
-    void WriteToDisk(Common::CDataStream *out);
-    int ReadFromDisk(Common::CDataStream *in, ICCObjectReader *reader);
+    void WriteToDisk(Common::DataStream *out);
+    int ReadFromDisk(Common::DataStream *in, ICCObjectReader *reader);
     void reset();
     ManagedObjectPool();
 

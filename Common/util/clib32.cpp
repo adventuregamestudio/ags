@@ -18,7 +18,7 @@
 #include "util/file.h"
 #include "util/datastream.h"
 
-using AGS::Common::CDataStream;
+using AGS::Common::DataStream;
 
 #if defined(ANDROID_VERSION) || defined(IOS_VERSION)
 #include <sys/stat.h>
@@ -128,7 +128,7 @@ void clib_decrypt_text(char *toenc)
   }
 }
 
-void fgetnulltermstring(char *sss, CDataStream *ci_s, int bufsize) {
+void fgetnulltermstring(char *sss, DataStream *ci_s, int bufsize) {
   int b = -1;
   do {
     if (b < bufsize - 1)
@@ -143,7 +143,7 @@ extern "C"
 {
   long last_opened_size;
 
-  void fread_data_enc(void *data, int dataSize, int dataCount, CDataStream *ci_s)
+  void fread_data_enc(void *data, int dataSize, int dataCount, DataStream *ci_s)
   {
     ci_s->ReadArray(data, dataSize, dataCount);
     unsigned char *dataChar = (unsigned char*)data;
@@ -153,7 +153,7 @@ extern "C"
     }
   }
 
-  void fgetstring_enc(char *sss, CDataStream *ci_s, int maxLength) 
+  void fgetstring_enc(char *sss, DataStream *ci_s, int maxLength) 
   {
     int i = 0;
     while ((i == 0) || (sss[i - 1] != 0))
@@ -165,14 +165,14 @@ extern "C"
     }
   }
 
-  int getw_enc(CDataStream *ci_s)
+  int getw_enc(DataStream *ci_s)
   {
     int numberRead;
     fread_data_enc(&numberRead, 4, 1, ci_s);
     return numberRead;
   }
 
-  int read_new_new_enc_format_clib(MultiFileLibNew * mfl, CDataStream *ci_s, int libver)
+  int read_new_new_enc_format_clib(MultiFileLibNew * mfl, DataStream *ci_s, int libver)
   {
     int aa;
     int randSeed = ci_s->ReadInt32();
@@ -197,7 +197,7 @@ extern "C"
     return 0;
   }
 
-  int read_new_new_format_clib(MultiFileLibNew * mfl, CDataStream *ci_s, int libver)
+  int read_new_new_format_clib(MultiFileLibNew * mfl, DataStream *ci_s, int libver)
   {
     int aa;
     mfl->num_data_files = ci_s->ReadInt32();
@@ -224,7 +224,7 @@ extern "C"
     return 0;
   }
 
-  int read_new_format_clib(MultiFileLib * mfl, CDataStream *ci_s, int libver)
+  int read_new_format_clib(MultiFileLib * mfl, DataStream *ci_s, int libver)
   {
     mfl->num_data_files = ci_s->ReadInt32();
     ci_s->ReadArray(&mfl->data_filenames[0][0], 20, mfl->num_data_files);
@@ -259,7 +259,7 @@ extern "C"
     strcpy(base_path, ".");
 
     int passwmodifier = 0, cc, aa;
-    CDataStream *ci_s = ci_fopen(namm, Common::kFile_Open, Common::kFile_Read);
+    DataStream *ci_s = ci_fopen(namm, Common::kFile_Open, Common::kFile_Read);
     if (ci_s == NULL)
       return -1;
 
@@ -448,8 +448,8 @@ extern "C"
     return NULL;
   }
 
-  CDataStream *tfil;
-  CDataStream *clibopenfile(const char *filly, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode)
+  DataStream *tfil;
+  DataStream *clibopenfile(const char *filly, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode)
   {
     int bb;
     for (bb = 0; bb < mflib.num_files; bb++) {
@@ -474,7 +474,7 @@ extern "C"
 #define PR_FILEFIRST 2
   int cfopenpriority = PR_DATAFIRST;
 
-  CDataStream *clibfopen(const char *filnamm, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode)
+  DataStream *clibfopen(const char *filnamm, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode)
   {
     last_opened_size = -1;
     if (cfopenpriority == PR_FILEFIRST) {

@@ -2,9 +2,9 @@
 #include "gui/animatingguibutton.h"
 #include "util/datastream.h"
 
-using AGS::Common::CDataStream;
+using AGS::Common::DataStream;
 
-void AnimatingGUIButton::ReadFromFile(CDataStream *in)
+void AnimatingGUIButton::ReadFromFile(DataStream *in)
 {
     buttonid = in->ReadInt16();
     ongui = in->ReadInt16();
@@ -18,7 +18,7 @@ void AnimatingGUIButton::ReadFromFile(CDataStream *in)
     in->Seek(Common::kSeekCurrent, 3);
 }
 
-void AnimatingGUIButton::WriteToFile(CDataStream *out)
+void AnimatingGUIButton::WriteToFile(DataStream *out)
 {
     char padding[3] = {0,0,0};
     out->WriteInt16(buttonid);

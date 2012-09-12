@@ -11,17 +11,17 @@
 #include "util/datastream.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
-using AGS::Common::CDataStream;
+using AGS::Common::DataStream;
 
-extern IBitmap *recalced;
+extern Bitmap *recalced;
 
-IBitmap *backups[5];
+Bitmap *backups[5];
 int _acroom_bpp = 1;  // bytes per pixel of currently loading room
 
-void sprstruc::ReadFromFile(Common::CDataStream *in)
+void sprstruc::ReadFromFile(Common::DataStream *in)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
     sprnum = in->ReadInt16();//__getshort__bigendian(fp);
@@ -78,11 +78,11 @@ roomstruct::roomstruct() {
 
 /*void roomstruct::allocall() {
 // These all get recreated when a room is loaded anyway
-walls = Bitmap::CreateBitmap_(8, 320, 200);
-object = Bitmap::CreateBitmap_(8, 320, 200);
-lookat = Bitmap::CreateBitmap_(8, 320, 200);
-bscene = Bitmap::CreateBitmap_(8, 320, 200);
-shading = Bitmap::CreateBitmap_(8, 320, 200);
+walls = BitmapHelper::CreateBitmap_(8, 320, 200);
+object = BitmapHelper::CreateBitmap_(8, 320, 200);
+lookat = BitmapHelper::CreateBitmap_(8, 320, 200);
+bscene = BitmapHelper::CreateBitmap_(8, 320, 200);
+shading = BitmapHelper::CreateBitmap_(8, 320, 200);
 
 if (shading == NULL)
 quit("roomstruct::allocall: out of memory");
@@ -124,7 +124,7 @@ freemessage();
 wfreeblock(object); wfreeblock(lookat);
 for (int f=0;f<nummes;f++) if (message[f]!=NULL) free(message[f]); }*/
 
-void room_file_header::ReadFromFile(CDataStream *in)
+void room_file_header::ReadFromFile(DataStream *in)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
     version = in->ReadInt16();//in->ReadInt16();__getshort__bigendian(fp);
@@ -136,7 +136,7 @@ void room_file_header::ReadFromFile(CDataStream *in)
 
 int usesmisccond = 0;
 
-void load_main_block(roomstruct *rstruc, char *files, CDataStream *in, room_file_header rfh) {
+void load_main_block(roomstruct *rstruc, char *files, DataStream *in, room_file_header rfh) {
   int   f, gsmod, NUMREAD;
   char  buffre[3000];
   long  tesl;
@@ -489,7 +489,7 @@ void load_main_block(roomstruct *rstruc, char *files, CDataStream *in, room_file
   if (rfh.version < 21) {
     // Old version - copy walkable areas to Regions
     if (rstruc->regions == NULL)
-      rstruc->regions = Bitmap::CreateBitmap(rstruc->walls->GetWidth(), rstruc->walls->GetHeight(), 8);
+      rstruc->regions = BitmapHelper::CreateBitmap(rstruc->walls->GetWidth(), rstruc->walls->GetHeight(), 8);
     rstruc->regions->Clear ();
 
     rstruc->regions->Blit (rstruc->walls, 0, 0, 0, 0, rstruc->regions->GetWidth(), rstruc->regions->GetHeight());
@@ -511,7 +511,7 @@ void load_main_block(roomstruct *rstruc, char *files, CDataStream *in, room_file
 
 extern bool load_room_is_version_bad(roomstruct *rstruc);
 void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
-  Common::CDataStream *opty; // CHECKME why "opty"??
+  Common::DataStream *opty; // CHECKME why "opty"??
   room_file_header  rfh;
   int i;
 
@@ -624,7 +624,7 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
 
   int   thisblock = 0;
   int   bloklen;
-  Common::CDataStream *optywas; // [IKM] what a mysterious variable... not used for anything sensible
+  Common::DataStream *optywas; // [IKM] what a mysterious variable... not used for anything sensible
                                // (and why "opty" ???)
 
   while (thisblock != BLOCKTYPE_EOF) {
@@ -703,12 +703,12 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
     else if (thisblock == BLOCKTYPE_PROPERTIES) {
       // Read custom properties
       if (opty->ReadInt32() != 1)
-        quit("LoadRoom: unknown Custom Properties IBitmap *encounreted");
+        quit("LoadRoom: unknown Custom Properties Bitmap *encounreted");
 
       int errors = 0, gg;
 
       if (rstruc->roomProps.UnSerialize (opty))
-        quit("LoadRoom: error reading custom properties IBitmap *");
+        quit("LoadRoom: error reading custom properties Bitmap *");
 
       for (gg = 0; gg < rstruc->numhotspots; gg++)
         errors += rstruc->hsProps[gg].UnSerialize (opty);
@@ -726,7 +726,7 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
     }
     else {
       char  tempbfr[90];
-      sprintf(tempbfr, "LoadRoom: unknown IBitmap *type %d encountered in '%s'", thisblock, files);
+      sprintf(tempbfr, "LoadRoom: unknown Bitmap *type %d encountered in '%s'", thisblock, files);
       quit(tempbfr);
     }
 

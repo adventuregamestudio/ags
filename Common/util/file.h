@@ -41,7 +41,7 @@ namespace Common
 {
 
 // Forward declarations
-class CFileStream;
+class FileStream;
 
 enum FileOpenMode
 {
@@ -60,26 +60,26 @@ enum FileWorkMode
 namespace File
 {
     // Tests if file could be opened for reading
-    bool        TestReadFile(const CString &filename);
+    bool        TestReadFile(const String &filename);
     // Create new empty file and deletes it; returns TRUE if was able to create file
-    bool        TestCreateFile(const CString &filename);
+    bool        TestCreateFile(const String &filename);
     // Deletes existing file; returns TRUE if was able to delete one
-    bool        DeleteFile(const CString &filename);
+    bool        DeleteFile(const String &filename);
 
-    CFileStream *OpenFile(const CString &filename, FileOpenMode open_mode, FileWorkMode work_mode);
+    FileStream *OpenFile(const String &filename, FileOpenMode open_mode, FileWorkMode work_mode);
     // Convenience helpers
     // Create a totally new file, overwrite existing one
-    inline CFileStream *CreateFile(const CString &filename)
+    inline FileStream *CreateFile(const String &filename)
     {
         return OpenFile(filename, kFile_CreateAlways, kFile_Write);
     }
     // Open existing file for reading
-    inline CFileStream *OpenFileRead(const CString &filename)
+    inline FileStream *OpenFileRead(const String &filename)
     {
         return OpenFile(filename, kFile_Open, kFile_Read);
     }
     // Open existing file for writing (append) or create if it does not exist
-    inline CFileStream *OpenFileWrite(const CString &filename)
+    inline FileStream *OpenFileWrite(const String &filename)
     {
         return OpenFile(filename, kFile_Create, kFile_Write);
     }

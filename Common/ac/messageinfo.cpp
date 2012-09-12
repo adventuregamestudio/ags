@@ -3,9 +3,9 @@
 #include "ac/messageinfo.h"
 #include "util/datastream.h"
 
-using AGS::Common::CDataStream;
+using AGS::Common::DataStream;
 
-void MessageInfo::ReadFromFile(CDataStream *in)
+void MessageInfo::ReadFromFile(DataStream *in)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
     displayas = in->ReadInt8();

@@ -2,9 +2,9 @@
 #include "ac/dialogtopic.h"
 #include "util/datastream.h"
 
-using AGS::Common::CDataStream;
+using AGS::Common::DataStream;
 
-void DialogTopic::ReadFromFile(CDataStream *in)
+void DialogTopic::ReadFromFile(DataStream *in)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
     in->ReadArray(optionnames, 150*sizeof(char), MAXTOPICOPTIONS);

@@ -18,12 +18,12 @@ CLEAR that the code has been altered from the Standard Version.
 
 #include "gfx/gfxfilter_scaling.h"
 
-namespace AGS { namespace Common { class IBitmap; }}
+namespace AGS { namespace Common { class Bitmap; }}
 using namespace AGS; // FIXME later
 
 struct AllegroGFXFilter : ScalingGFXFilter {
 protected:
-    Common::IBitmap *realScreen;
+    Common::Bitmap *realScreen;
     int lastBlitX;
     int lastBlitY;
 
@@ -32,13 +32,13 @@ public:
     AllegroGFXFilter(bool justCheckingForSetup);
     AllegroGFXFilter(int multiplier, bool justCheckingForSetup);
 
-    virtual Common::IBitmap *ScreenInitialized(Common::IBitmap *screen, int fakeWidth, int fakeHeight);
-    virtual Common::IBitmap *ShutdownAndReturnRealScreen(Common::IBitmap *currentScreen);
-    virtual void RenderScreen(Common::IBitmap *toRender, int x, int y);
-    virtual void RenderScreenFlipped(Common::IBitmap *toRender, int x, int y, int flipType);
+    virtual Common::Bitmap *ScreenInitialized(Common::Bitmap *screen, int fakeWidth, int fakeHeight);
+    virtual Common::Bitmap *ShutdownAndReturnRealScreen(Common::Bitmap *currentScreen);
+    virtual void RenderScreen(Common::Bitmap *toRender, int x, int y);
+    virtual void RenderScreenFlipped(Common::Bitmap *toRender, int x, int y, int flipType);
     virtual void ClearRect(int x1, int y1, int x2, int y2, int color);
-    virtual void GetCopyOfScreenIntoBitmap(Common::IBitmap *copyBitmap);
-    virtual void GetCopyOfScreenIntoBitmap(Common::IBitmap *copyBitmap, bool copyWithYOffset);
+    virtual void GetCopyOfScreenIntoBitmap(Common::Bitmap *copyBitmap);
+    virtual void GetCopyOfScreenIntoBitmap(Common::Bitmap *copyBitmap, bool copyWithYOffset);
 };
 
 #endif // __AC_ALLEGROGFXFILTER_H

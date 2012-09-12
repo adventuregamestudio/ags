@@ -15,13 +15,13 @@ namespace AGS
 namespace Common
 {
 
-class CFileStream : public CDataStream
+class FileStream : public DataStream
 {
 public:
-    CFileStream(const CString &file_name, FileOpenMode open_mode, FileWorkMode work_mode);
-    CFileStream(const CString &file_name, FileOpenMode open_mode, FileWorkMode work_mode,
+    FileStream(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode);
+    FileStream(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode,
         DataEndianess caller_endianess, DataEndianess stream_endianess);
-    virtual ~CFileStream();
+    virtual ~FileStream();
 
     // TODO
     // Temporary solution for cases when the code can't live without
@@ -61,7 +61,7 @@ public:
 
 protected:
 
-    void            Open(const CString &file_name, FileOpenMode open_mode, FileWorkMode work_mode);
+    void            Open(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode);
 
 private:
     FILE                *_file;

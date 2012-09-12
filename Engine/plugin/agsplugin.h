@@ -16,8 +16,8 @@
 //
 // A NOTE ON BITMAP CLASS
 //
-// We cannot use IBitmap in the plugin interfaces right so because that would
-// break backwards-compatiblity with previously created plugins. IBitmap may
+// We cannot use Bitmap in the plugin interfaces right so because that would
+// break backwards-compatiblity with previously created plugins. Bitmap may
 // only be used internally, in the IAGSEngine implementation, in a very limited
 // fashion.
 //
@@ -573,7 +573,7 @@ DLLEXPORT int    AGS_PluginV2 ( ) { return 1; }
 
 #endif // THIS_IS_THE_PLUGIN
 
-namespace AGS { namespace Common { class CDataStream; }}
+namespace AGS { namespace Common { class DataStream; }}
 using namespace AGS; // FIXME later
 
 void pl_stop_plugins();
@@ -581,6 +581,6 @@ void pl_startup_plugins();
 int  pl_run_plugin_hooks (int event, long data);
 void pl_run_plugin_init_gfx_hooks(const char *driverName, void *data);
 int  pl_run_plugin_debug_hooks (const char *scriptfile, int linenum);
-void pl_read_plugins_from_disk (Common::CDataStream *in);
+void pl_read_plugins_from_disk (Common::DataStream *in);
 
 #endif

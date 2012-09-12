@@ -8,7 +8,7 @@
 #include "ac/spritecache.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
+using AGS::Common::Bitmap;
 
 
 extern GameSetupStruct game;

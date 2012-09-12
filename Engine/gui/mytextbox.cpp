@@ -6,7 +6,7 @@
 #include "gui/guidialoginternaldefs.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
+using AGS::Common::Bitmap;
 
 extern GameSetup usetup;
 
@@ -29,9 +29,9 @@ MyTextBox::MyTextBox(int xx, int yy, int wii, char *tee)
 void MyTextBox::draw()
 {
     wsetcolor(windowbackgroundcolor);
-    abuf->FillRect(CRect(x, y, x + wid, y + hit), currentcolor);
+    abuf->FillRect(Rect(x, y, x + wid, y + hit), currentcolor);
     wsetcolor(0);
-    abuf->DrawRect(CRect(x, y, x + wid, y + hit), currentcolor);
+    abuf->DrawRect(Rect(x, y, x + wid, y + hit), currentcolor);
     wtextcolor(0);
     wouttextxy(x + 2, y + 1, cbuttfont, text);
 

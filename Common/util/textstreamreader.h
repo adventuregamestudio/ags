@@ -14,17 +14,17 @@ namespace AGS
 namespace Common
 {
 
-class IStream;
+class Stream;
 
-class CTextStreamReader : public ITextReader
+class TextStreamReader : public TextReader
 {
 public:
     // TODO: use shared ptr
-    CTextStreamReader(IStream *stream);
-    virtual ~CTextStreamReader();
+    TextStreamReader(Stream *stream);
+    virtual ~TextStreamReader();
 
     virtual bool    IsValid() const;
-    const IStream   *GetStream() const;
+    const Stream   *GetStream() const;
     // TODO: use shared ptr instead
     void            ReleaseStream();
 
@@ -33,14 +33,14 @@ public:
     // Read single character
     virtual char    ReadChar();
     // Read defined number of characters
-    virtual CString ReadString(int length);
+    virtual String ReadString(int length);
     // Read till line break
-    virtual CString ReadLine();
+    virtual String ReadLine();
     // Read till end of available data
-    virtual CString ReadAll();
+    virtual String ReadAll();
 
 private:
-    IStream *_stream;
+    Stream *_stream;
 };
 
 } // namespace Common

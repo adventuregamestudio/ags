@@ -6,12 +6,12 @@
 #include "gui/guimain.h"
 #include "util/datastream.h"
 
-using AGS::Common::CDataStream;
+using AGS::Common::DataStream;
 
 DynamicArray<GUIInv> guiinv;
 int numguiinv = 0;
 
-void GUIInv::WriteToFile(CDataStream *out)
+void GUIInv::WriteToFile(DataStream *out)
 {
 	GUIObject::WriteToFile(out);
 	out->WriteInt32(charId);
@@ -20,7 +20,7 @@ void GUIInv::WriteToFile(CDataStream *out)
 	out->WriteInt32(topIndex);
 }
 
-void GUIInv::ReadFromFile(CDataStream *in, int version)
+void GUIInv::ReadFromFile(DataStream *in, int version)
 {
 	GUIObject::ReadFromFile(in, version);
 	if (version >= 109) {

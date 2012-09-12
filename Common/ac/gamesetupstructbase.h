@@ -14,7 +14,7 @@
 #include "util/file.h"
 
 // Forward declaration
-namespace AGS { namespace Common { class CDataStream; } }
+namespace AGS { namespace Common { class DataStream; } }
 using namespace AGS; // FIXME later
 
 // This struct is written directly to the disk file // [IKM] not really anymore
@@ -53,8 +53,8 @@ struct GameSetupStructBase {
     CharacterInfo    *chars;
     ccScript         *compiled_script;
 
-    void ReadFromFile(Common::CDataStream *in);
-    void WriteToFile(Common::CDataStream *out);
+    void ReadFromFile(Common::DataStream *in);
+    void WriteToFile(Common::DataStream *out);
 };
 
 #endif // __AGS_CN_AC__GAMESETUPSTRUCTBASE_H

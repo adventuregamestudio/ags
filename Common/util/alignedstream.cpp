@@ -7,7 +7,7 @@ namespace AGS
 namespace Common
 {
 
-CAlignedStream::CAlignedStream(CDataStream *stream, AlignedStreamMode mode, size_t alignment)
+AlignedStream::AlignedStream(DataStream *stream, AlignedStreamMode mode, size_t alignment)
     : _stream(stream)
     , _mode(mode)
     , _alignment(alignment)
@@ -15,12 +15,12 @@ CAlignedStream::CAlignedStream(CDataStream *stream, AlignedStreamMode mode, size
 {
 }
 
-CAlignedStream::~CAlignedStream()
+AlignedStream::~AlignedStream()
 {
     Close();
 }
 
-void CAlignedStream::Close()
+void AlignedStream::Close()
 {
     if (!_stream)
     {
@@ -42,43 +42,43 @@ void CAlignedStream::Close()
     _stream = NULL;
 }
 
-bool CAlignedStream::IsValid() const
+bool AlignedStream::IsValid() const
 {
     return _stream && _stream->IsValid();
 }
 
-bool CAlignedStream::EOS() const
+bool AlignedStream::EOS() const
 {
     return _stream ? _stream->EOS() : true;
 }
 
-int CAlignedStream::GetLength() const
+int AlignedStream::GetLength() const
 {
     return _stream ? _stream->GetLength() : 0;
 }
 
-int CAlignedStream::GetPosition() const
+int AlignedStream::GetPosition() const
 {
     return _stream ? _stream->GetPosition() : 0;
 }
 
-bool CAlignedStream::CanRead() const
+bool AlignedStream::CanRead() const
 {
     return _stream ? (_mode == kAligned_Read && _stream->CanRead()) : false;
 }
 
-bool CAlignedStream::CanWrite() const
+bool AlignedStream::CanWrite() const
 {
     return _stream ? (_mode == kAligned_Write && _stream->CanWrite()) : false;
 }
 
-bool CAlignedStream::CanSeek() const
+bool AlignedStream::CanSeek() const
 {
     // Aligned stream does not support seeking, hence that will break padding count
     return false;
 }
 
-void CAlignedStream::ReleaseStream()
+void AlignedStream::ReleaseStream()
 {
     if (!_stream)
     {
@@ -98,13 +98,13 @@ void CAlignedStream::ReleaseStream()
     _stream = NULL;
 }
 
-int CAlignedStream::Seek(StreamSeek seek, int pos)
+int AlignedStream::Seek(StreamSeek seek, int pos)
 {
     // Not supported
     return 0;
 }
 
-int CAlignedStream::ReadByte()
+int AlignedStream::ReadByte()
 {
     byte b = 0;
     if (_stream)
@@ -116,7 +116,7 @@ int CAlignedStream::ReadByte()
     return b;
 }
 
-int16_t CAlignedStream::ReadInt16()
+int16_t AlignedStream::ReadInt16()
 {
     int16_t val = 0;
     if (_stream)
@@ -128,7 +128,7 @@ int16_t CAlignedStream::ReadInt16()
     return val;
 }
 
-int32_t CAlignedStream::ReadInt32()
+int32_t AlignedStream::ReadInt32()
 {
     int32_t val = 0;
     if (_stream)
@@ -140,7 +140,7 @@ int32_t CAlignedStream::ReadInt32()
     return val;
 }
 
-int64_t CAlignedStream::ReadInt64()
+int64_t AlignedStream::ReadInt64()
 {
     int64_t val = 0;
     if (_stream)
@@ -152,7 +152,7 @@ int64_t CAlignedStream::ReadInt64()
     return val;
 }
 
-int CAlignedStream::Read(void *buffer, int size)
+int AlignedStream::Read(void *buffer, int size)
 {
     if (_stream)
     {
@@ -164,7 +164,7 @@ int CAlignedStream::Read(void *buffer, int size)
     return 0;
 }
 
-int CAlignedStream::ReadArray(void *buffer, int elem_size, int count)
+int AlignedStream::ReadArray(void *buffer, int elem_size, int count)
 {
     if (_stream)
     {
@@ -176,9 +176,9 @@ int CAlignedStream::ReadArray(void *buffer, int elem_size, int count)
     return 0;
 }
 
-CString CAlignedStream::ReadString(int max_chars)
+String AlignedStream::ReadString(int max_chars)
 {
-    CString str;
+    String str;
     if (_stream)
     {
         ReadPadding(sizeof(char));
@@ -188,7 +188,7 @@ CString CAlignedStream::ReadString(int max_chars)
     return "";
 }
 
-int CAlignedStream::WriteByte(byte b)
+int AlignedStream::WriteByte(byte b)
 {
     if (_stream)
     {
@@ -200,7 +200,7 @@ int CAlignedStream::WriteByte(byte b)
     return 0;
 }
 
-void CAlignedStream::WriteInt16(int16_t val)
+void AlignedStream::WriteInt16(int16_t val)
 {
     if (_stream)
     {
@@ -210,7 +210,7 @@ void CAlignedStream::WriteInt16(int16_t val)
     }
 }
 
-void CAlignedStream::WriteInt32(int32_t val)
+void AlignedStream::WriteInt32(int32_t val)
 {
     if (_stream)
     {
@@ -220,7 +220,7 @@ void CAlignedStream::WriteInt32(int32_t val)
     }
 }
 
-void CAlignedStream::WriteInt64(int64_t val)
+void AlignedStream::WriteInt64(int64_t val)
 {
     if (_stream)
     {
@@ -230,7 +230,7 @@ void CAlignedStream::WriteInt64(int64_t val)
     }
 }
 
-int CAlignedStream::Write(const void *buffer, int size)
+int AlignedStream::Write(const void *buffer, int size)
 {
     if (_stream)
     {
@@ -242,7 +242,7 @@ int CAlignedStream::Write(const void *buffer, int size)
     return 0;
 }
 
-int CAlignedStream::WriteArray(const void *buffer, int elem_size, int count)
+int AlignedStream::WriteArray(const void *buffer, int elem_size, int count)
 {
     if (_stream)
     {
@@ -254,7 +254,7 @@ int CAlignedStream::WriteArray(const void *buffer, int elem_size, int count)
     return 0;
 }
 
-void CAlignedStream::WriteString(const CString &str)
+void AlignedStream::WriteString(const String &str)
 {
     if (_stream)
     {
@@ -264,7 +264,7 @@ void CAlignedStream::WriteString(const CString &str)
     }
 }
 
-void CAlignedStream::ReadPadding(size_t next_type)
+void AlignedStream::ReadPadding(size_t next_type)
 {
     if (!IsValid())
     {
@@ -288,7 +288,7 @@ void CAlignedStream::ReadPadding(size_t next_type)
     }
 }
 
-void CAlignedStream::WritePadding(size_t next_type)
+void AlignedStream::WritePadding(size_t next_type)
 {
     if (!IsValid())
     {

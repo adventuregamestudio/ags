@@ -5,8 +5,8 @@
 #include "util/filestream.h"
 #include "util/textstreamwriter.h"
 
-using AGS::Common::CDataStream;
-using AGS::Common::CTextStreamWriter;
+using AGS::Common::DataStream;
+using AGS::Common::TextStreamWriter;
 
 const char* SENT_MESSAGE_FILE_NAME = "dbgrecv.tmp";
 
@@ -30,7 +30,7 @@ bool FileBasedAGSDebugger::SendMessageToEditor(const char *message)
         platform->YieldCPU();
     }
 
-    CDataStream *out = Common::File::CreateFile(SENT_MESSAGE_FILE_NAME);
+    DataStream *out = Common::File::CreateFile(SENT_MESSAGE_FILE_NAME);
     // CHECKME: originally the file was opened as "wb" for some reason,
     // which means the message should be written as a binary array;
     // or shouldn't it?
@@ -46,7 +46,7 @@ bool FileBasedAGSDebugger::IsMessageAvailable()
 
 char* FileBasedAGSDebugger::GetNextMessage()
 {
-    CDataStream *in = Common::File::OpenFileRead("dbgsend.tmp");
+    DataStream *in = Common::File::OpenFileRead("dbgsend.tmp");
     if (in == NULL)
     {
         // check again, because the editor might have deleted the file in the meantime

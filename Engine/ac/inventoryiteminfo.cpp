@@ -3,9 +3,9 @@
 #include "ac/inventoryiteminfo.h"
 #include "util/datastream.h"
 
-using AGS::Common::CDataStream;
+using AGS::Common::DataStream;
 
-void InventoryItemInfo::ReadFromFile(CDataStream *in)
+void InventoryItemInfo::ReadFromFile(DataStream *in)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
     in->Read(name, 25);
@@ -22,7 +22,7 @@ void InventoryItemInfo::ReadFromFile(CDataStream *in)
 //#endif
 }
 
-void InventoryItemInfo::WriteToFile(CDataStream *out)
+void InventoryItemInfo::WriteToFile(DataStream *out)
 {
     char padding[3] = {0,0,0};
 

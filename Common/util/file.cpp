@@ -34,7 +34,7 @@ namespace AGS
 namespace Common
 {
 
-bool File::TestReadFile(const CString &filename)
+bool File::TestReadFile(const String &filename)
 {
     FILE *test_file = fopen(filename, "rb");
     if (test_file)
@@ -45,7 +45,7 @@ bool File::TestReadFile(const CString &filename)
     return false;
 }
 
-bool File::TestCreateFile(const CString &filename)
+bool File::TestCreateFile(const String &filename)
 {
     FILE *test_file = fopen(filename, "wb");
     if (test_file)
@@ -57,7 +57,7 @@ bool File::TestCreateFile(const CString &filename)
     return false;
 }
 
-bool File::DeleteFile(const CString &filename)
+bool File::DeleteFile(const String &filename)
 {
     if (unlink(filename) != 0)
     {
@@ -71,9 +71,9 @@ bool File::DeleteFile(const CString &filename)
     return true;
 }
 
-CFileStream *File::OpenFile(const CString &filename, FileOpenMode open_mode, FileWorkMode work_mode)
+FileStream *File::OpenFile(const String &filename, FileOpenMode open_mode, FileWorkMode work_mode)
 {
-    CFileStream *fs = new CFileStream(filename, open_mode, work_mode);
+    FileStream *fs = new FileStream(filename, open_mode, work_mode);
     if (!fs->IsValid())
     {
         delete fs;

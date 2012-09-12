@@ -7,13 +7,13 @@
 #include "util/datastream.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::CDataStream;
-using AGS::Common::IBitmap;
+using AGS::Common::DataStream;
+using AGS::Common::Bitmap;
 
 DynamicArray<GUITextBox> guitext;
 int numguitext = 0;
 
-void GUITextBox::WriteToFile(CDataStream *out)
+void GUITextBox::WriteToFile(DataStream *out)
 {
   GUIObject::WriteToFile(out);
   // MACPORT FIXES: swap
@@ -21,7 +21,7 @@ void GUITextBox::WriteToFile(CDataStream *out)
   out->WriteArrayOfInt32(&font, 3);
 }
 
-void GUITextBox::ReadFromFile(CDataStream *in, int version)
+void GUITextBox::ReadFromFile(DataStream *in, int version)
 {
   GUIObject::ReadFromFile(in, version);
   // MACPORT FIXES: swap
@@ -38,9 +38,9 @@ void GUITextBox::Draw()
   wtextcolor(textcol);
   wsetcolor(textcol);
   if ((exflags & GTF_NOBORDER) == 0) {
-    abuf->DrawRect(CRect(x, y, x + wid - 1, y + hit - 1), currentcolor);
+    abuf->DrawRect(Rect(x, y, x + wid - 1, y + hit - 1), currentcolor);
     if (get_fixed_pixel_size(1) > 1)
-      abuf->DrawRect(CRect(x + 1, y + 1, x + wid - get_fixed_pixel_size(1), y + hit - get_fixed_pixel_size(1)), currentcolor);
+      abuf->DrawRect(Rect(x + 1, y + 1, x + wid - get_fixed_pixel_size(1), y + hit - get_fixed_pixel_size(1)), currentcolor);
   }
 
   Draw_text_box_contents();

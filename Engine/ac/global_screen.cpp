@@ -17,8 +17,8 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameSetup usetup;
 extern GameState play;
@@ -59,7 +59,7 @@ void ShakeScreen(int severe) {
         return;
 
     int hh;
-    IBitmap *oldsc=abuf;
+    Bitmap *oldsc=abuf;
     severe = multiply_up_coordinate(severe);
 
     if (gfxDriver->RequiresFullRedrawEachFrame())
@@ -84,7 +84,7 @@ void ShakeScreen(int severe) {
     }
     else
     {
-        IBitmap *tty = Bitmap::CreateBitmap(scrnwid, scrnhit);
+        Bitmap *tty = BitmapHelper::CreateBitmap(scrnwid, scrnhit);
         gfxDriver->GetCopyOfScreenIntoBitmap(tty);
         for (hh=0;hh<40;hh++) {
             platform->Delay(50);

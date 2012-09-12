@@ -19,8 +19,8 @@
 #include "ac/spritecache.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern int guis_need_update;
 extern GameSetupStruct game;
@@ -29,7 +29,7 @@ extern CharacterExtras *charextra;
 extern ScriptInvItem scrInv[MAX_INV];
 extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 extern int scrnwid,scrnhit;
-extern IBitmap *virtual_screen;
+extern Bitmap *virtual_screen;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
 extern int mousex,mousey;
@@ -209,15 +209,15 @@ start_actinv:
     int windowyp=scrnhit/2-windowhit/2;
     int buttonyp=windowyp+windowhit-BUTTONAREAHEIGHT;
     wsetcolor(play.sierra_inv_color);
-    abuf->FillRect(CRect(windowxp,windowyp,windowxp+windowwid,windowyp+windowhit), currentcolor);
+    abuf->FillRect(Rect(windowxp,windowyp,windowxp+windowwid,windowyp+windowhit), currentcolor);
     wsetcolor(0); 
     int bartop = windowyp + get_fixed_pixel_size(2);
     int barxp = windowxp + get_fixed_pixel_size(2);
-    abuf->FillRect(CRect(barxp,bartop, windowxp + windowwid - get_fixed_pixel_size(2),buttonyp-1), currentcolor);
+    abuf->FillRect(Rect(barxp,bartop, windowxp + windowwid - get_fixed_pixel_size(2),buttonyp-1), currentcolor);
     for (ww = top_item; ww < numitems; ww++) {
         if (ww >= top_item + num_visible_items)
             break;
-        IBitmap *spof=spriteset[dii[ww].sprnum];
+        Bitmap *spof=spriteset[dii[ww].sprnum];
         wputblock(barxp+1+((ww-top_item)%4)*widest+widest/2-wgetblockwidth(spof)/2,
             bartop+1+((ww-top_item)/4)*highest+highest/2-wgetblockheight(spof)/2,spof,1);
     }
@@ -231,16 +231,16 @@ start_actinv:
 
     // Draw Up and Down buttons if required
     const int ARROWBUTTONWID = 11;
-    IBitmap *arrowblock = Bitmap::CreateBitmap (ARROWBUTTONWID, ARROWBUTTONWID);
+    Bitmap *arrowblock = BitmapHelper::CreateBitmap (ARROWBUTTONWID, ARROWBUTTONWID);
     arrowblock->Clear(arrowblock->GetMaskColor());
     int usecol;
     __my_setcolor(&usecol, 0);
     if (play.sierra_inv_color == 0)
         __my_setcolor(&usecol, 14);
 
-    arrowblock->DrawLine(CLine(ARROWBUTTONWID/2, 2, ARROWBUTTONWID-2, 9), usecol);
-    arrowblock->DrawLine(CLine(ARROWBUTTONWID/2, 2, 2, 9), usecol);
-    arrowblock->DrawLine(CLine(2, 9, ARROWBUTTONWID-2, 9), usecol);
+    arrowblock->DrawLine(Line(ARROWBUTTONWID/2, 2, ARROWBUTTONWID-2, 9), usecol);
+    arrowblock->DrawLine(Line(ARROWBUTTONWID/2, 2, 2, 9), usecol);
+    arrowblock->DrawLine(Line(2, 9, ARROWBUTTONWID-2, 9), usecol);
 	arrowblock->FloodFill(ARROWBUTTONWID/2, 4, usecol);
 
     if (top_item > 0)
@@ -361,12 +361,12 @@ start_actinv:
         int rectyp=bartop+1+((wasonitem - top_item)/4)*highest;
         if (wasonitem>=0) {
             wsetcolor(0);
-            abuf->DrawRect(CRect(rectxp,rectyp,rectxp+widest-1,rectyp+highest-1), currentcolor);
+            abuf->DrawRect(Rect(rectxp,rectyp,rectxp+widest-1,rectyp+highest-1), currentcolor);
         }
         if (isonitem>=0) { wsetcolor(14);//opts.invrectcol);
         rectxp=barxp+1+(isonitem%4)*widest;
         rectyp=bartop+1+((isonitem - top_item)/4)*highest;
-        abuf->DrawRect(CRect(rectxp,rectyp,rectxp+widest-1,rectyp+highest-1), currentcolor);
+        abuf->DrawRect(Rect(rectxp,rectyp,rectxp+widest-1,rectyp+highest-1), currentcolor);
         }
         domouse(1);
         }

@@ -6,7 +6,7 @@
 #include "util/string_utils.h"      // out->WriteString, etc
 #include "util/datastream.h"
 
-using AGS::Common::CDataStream;
+using AGS::Common::DataStream;
 
 // Find the index of the specified property
 int CustomPropertySchema::findProperty (const char *pname) {
@@ -52,7 +52,7 @@ CustomPropertySchema::CustomPropertySchema () {
 }
 
 // ** SCHEMA LOAD/SAVE FUNCTIONS
-void CustomPropertySchema::Serialize (CDataStream *out) {
+void CustomPropertySchema::Serialize (DataStream *out) {
     out->WriteInt32 (1);  // version 1 at present
     out->WriteInt32 (numProps);
     for (int jj = 0; jj < numProps; jj++) {
@@ -64,7 +64,7 @@ void CustomPropertySchema::Serialize (CDataStream *out) {
 
 }
 
-int CustomPropertySchema::UnSerialize (CDataStream *in) {
+int CustomPropertySchema::UnSerialize (DataStream *in) {
     if (in->ReadInt32() != 1)
         return -1;
     numProps = in->ReadInt32();
@@ -121,7 +121,7 @@ void CustomProperties::addProperty (const char *newname, const char *newval) {
 }
 
 // ** OBJECT PROPERTIES LOAD/SAVE FUNCTIONS
-void CustomProperties::Serialize (CDataStream *out) {
+void CustomProperties::Serialize (DataStream *out) {
     out->WriteInt32 (1);
     out->WriteInt32 (numProps);
     for (int ee = 0; ee < numProps; ee++) {
@@ -130,7 +130,7 @@ void CustomProperties::Serialize (CDataStream *out) {
     }
 }
 
-int CustomProperties::UnSerialize (CDataStream *in) {
+int CustomProperties::UnSerialize (DataStream *in) {
     if (in->ReadInt32() != 1)
         return -1;
     numProps = in->ReadInt32();

@@ -18,8 +18,8 @@
 #include "ac/spritecache.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::IBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameSetupStruct game;
 extern GameState play;
@@ -30,7 +30,7 @@ extern ObjectCache objcache[MAX_INIT_SPR];
 extern GUIMain*guis;
 extern SpriteCache spriteset;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
-extern IBitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
+extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 
 extern int current_screen_resolution_multiplier;
 extern int trans_mode;
@@ -159,13 +159,13 @@ void ScriptDrawingSurface::UnMultiplyThickness(int *valueToAdjust)
 
 ScriptDrawingSurface* DrawingSurface_CreateCopy(ScriptDrawingSurface *sds)
 {
-    IBitmap *sourceBitmap = sds->GetBitmapSurface();
+    Bitmap *sourceBitmap = sds->GetBitmapSurface();
 
     for (int i = 0; i < MAX_DYNAMIC_SURFACES; i++)
     {
         if (dynamicallyCreatedSurfaces[i] == NULL)
         {
-            dynamicallyCreatedSurfaces[i] = Bitmap::CreateBitmap(sourceBitmap->GetWidth(), sourceBitmap->GetHeight(), sourceBitmap->GetColorDepth());
+            dynamicallyCreatedSurfaces[i] = BitmapHelper::CreateBitmap(sourceBitmap->GetWidth(), sourceBitmap->GetHeight(), sourceBitmap->GetColorDepth());
             dynamicallyCreatedSurfaces[i]->Blit(sourceBitmap, 0, 0, 0, 0, sourceBitmap->GetWidth(), sourceBitmap->GetHeight());
             ScriptDrawingSurface *newSurface = new ScriptDrawingSurface();
             newSurface->dynamicSurfaceNumber = i;
@@ -184,7 +184,7 @@ void DrawingSurface_DrawSurface(ScriptDrawingSurface* target, ScriptDrawingSurfa
         quit("!DrawingSurface.DrawSurface: invalid parameter (transparency must be 0-99)");
 
     target->StartDrawing();
-    IBitmap *surfaceToDraw = source->GetBitmapSurface();
+    Bitmap *surfaceToDraw = source->GetBitmapSurface();
 
     if (surfaceToDraw == abuf)
         quit("!DrawingSurface.DrawSurface: cannot draw surface onto itself");
@@ -217,7 +217,7 @@ void DrawingSurface_DrawImage(ScriptDrawingSurface* sds, int xx, int yy, int slo
     if (trans == 100)
         return;
 
-    IBitmap *sourcePic = spriteset[slot];
+    Bitmap *sourcePic = spriteset[slot];
     bool needToFreeBitmap = false;
 
     if (width != SCR_NO_VALUE)
@@ -230,7 +230,7 @@ void DrawingSurface_DrawImage(ScriptDrawingSurface* sds, int xx, int yy, int slo
         sds->MultiplyCoordinates(&width, &height);
 
         // resize the sprite to the requested size
-        IBitmap *newPic = Bitmap::CreateBitmap(width, height, sourcePic->GetColorDepth());
+        Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, sourcePic->GetColorDepth());
 
         newPic->StretchBlt(sourcePic,
             RectWH(0, 0, spritewidth[slot], spriteheight[slot]),
@@ -334,7 +334,7 @@ void DrawingSurface_DrawCircle(ScriptDrawingSurface *sds, int x, int y, int radi
     sds->MultiplyThickness(&radius);
 
     sds->StartDrawing();
-    abuf->FillCircle(CCircle(x, y, radius), sds->currentColour);
+    abuf->FillCircle(Circle(x, y, radius), sds->currentColour);
     sds->FinishedDrawing();
 }
 
@@ -344,7 +344,7 @@ void DrawingSurface_DrawRectangle(ScriptDrawingSurface *sds, int x1, int y1, int
     sds->MultiplyCoordinates(&x2, &y2);
 
     sds->StartDrawing();
-    abuf->FillRect(CRect(x1,y1,x2,y2), sds->currentColour);
+    abuf->FillRect(Rect(x1,y1,x2,y2), sds->currentColour);
     sds->FinishedDrawing();
 }
 
@@ -355,7 +355,7 @@ void DrawingSurface_DrawTriangle(ScriptDrawingSurface *sds, int x1, int y1, int 
     sds->MultiplyCoordinates(&x3, &y3);
 
     sds->StartDrawing();
-    abuf->DrawTriangle(CTriangle(x1,y1,x2,y2,x3,y3), sds->currentColour);
+    abuf->DrawTriangle(Triangle(x1,y1,x2,y2,x3,y3), sds->currentColour);
     sds->FinishedDrawing();
 }
 
@@ -434,7 +434,7 @@ void DrawingSurface_DrawLine(ScriptDrawingSurface *sds, int fromx, int fromy, in
         for (jj = 0; jj < thickness; jj++)
         {
             yy = (jj - (thickness / 2));
-            abuf->DrawLine (CLine(fromx + xx, fromy + yy, tox + xx, toy + yy), sds->currentColour);
+            abuf->DrawLine (Line(fromx + xx, fromy + yy, tox + xx, toy + yy), sds->currentColour);
         }
     }
     sds->FinishedDrawing();

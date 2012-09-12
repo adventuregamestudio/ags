@@ -37,10 +37,10 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::CDataStream;
+using AGS::Common::DataStream;
 
-using AGS::Common::IBitmap;
-namespace Bitmap = AGS::Common::Bitmap;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 
 #if defined(BUILTIN_PLUGINS)
@@ -94,7 +94,7 @@ extern ccInstance *gameinst, *roominst;
 extern CharacterCache *charcache;
 extern ObjectCache objcache[MAX_INIT_SPR];
 extern MoveList *mls;
-extern IBitmap *virtual_screen;
+extern Bitmap *virtual_screen;
 extern int numlines;
 extern char lines[MAXLINE][200];
 extern color palette[256];
@@ -173,7 +173,7 @@ BITMAP *IAGSEngine::GetScreen ()
     if (!gfxDriver->UsesMemoryBackBuffer())
         quit("!This plugin is not compatible with the Direct3D driver.");
 
-	return (BITMAP*)Bitmap::GetScreenBitmap()->GetBitmapObject();
+	return (BITMAP*)BitmapHelper::GetScreenBitmap()->GetBitmapObject();
 }
 BITMAP *IAGSEngine::GetVirtualScreen () 
 {
@@ -389,9 +389,9 @@ AGSObject *IAGSEngine::GetObject (int32 num) {
     return (AGSObject*)&croom->obj[num];
 }
 BITMAP *IAGSEngine::CreateBlankBitmap (int32 width, int32 height, int32 coldep) {
-	// [IKM] We should not create IBitmap object here, because
+	// [IKM] We should not create Bitmap object here, because
 	// a) we are returning raw allegro bitmap and therefore loosing control over it
-	// b) plugin won't use IBitmap anyway
+	// b) plugin won't use Bitmap anyway
     BITMAP *tempb = create_bitmap_ex(coldep, width, height);
     clear_to_color(tempb, bitmap_mask_color(tempb));
     return tempb;
@@ -555,7 +555,7 @@ int IAGSEngine::CreateDynamicSprite(int32 coldepth, int32 width, int32 height) {
         quit("!IAGSEngine::CreateDynamicSprite: invalid width/height requested by plugin");
 
     // resize the sprite to the requested size
-    IBitmap *newPic = Bitmap::CreateBitmap(width, height, coldepth);
+    Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, coldepth);
     if (newPic == NULL)
         return 0;
 
@@ -891,9 +891,9 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
 
 #include "util/datastream.h"
 
-using AGS::Common::CDataStream;
+using AGS::Common::DataStream;
 
-void pl_read_plugins_from_disk (CDataStream *in) {
+void pl_read_plugins_from_disk (DataStream *in) {
     if (in->ReadInt32() != 1)
         quit("ERROR: unable to load game, invalid version of plugin data");
 

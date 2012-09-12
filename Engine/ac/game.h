@@ -19,7 +19,7 @@
 #include "util/file.h"
 
 // Forward declaration
-namespace AGS { namespace Common { class CDataStream; class CString; } }
+namespace AGS { namespace Common { class DataStream; class String; } }
 using namespace AGS; // FIXME later
 
 #define RAGMODE_PRESERVEGLOBALINT 1
@@ -118,17 +118,17 @@ int  load_game_file();
 void free_do_once_tokens();
 // Free all the memory associated with the game
 void unload_game_file();
-void save_game_data (Common::CDataStream *out, Common::IBitmap *screenshot);
+void save_game_data (Common::DataStream *out, Common::Bitmap *screenshot);
 void save_game(int slotn, const char*descript);
-int  restore_game_data (Common::CDataStream *in, const char *nametouse);
+int  restore_game_data (Common::DataStream *in, const char *nametouse);
 int  do_game_load(const char *nametouse, int slotNumber, char *descrp, int *wantShot);
 int  load_game(int slotn, char*descrp, int *wantShot);
-void serialize_bitmap(Common::IBitmap *thispic, Common::CDataStream *out);
-void safeguard_string (Common::CString &descript);
+void serialize_bitmap(Common::Bitmap *thispic, Common::DataStream *out);
+void safeguard_string (Common::String &descript);
 // On Windows we could just use IIDFromString but this is platform-independant
 void convert_guid_from_text_to_binary(const char *guidText, unsigned char *buffer);
-Common::IBitmap *read_serialized_bitmap(Common::CDataStream *in);
-long write_screen_shot_for_vista(Common::CDataStream *out, Common::IBitmap *screenshot);
+Common::Bitmap *read_serialized_bitmap(Common::DataStream *in);
+long write_screen_shot_for_vista(Common::DataStream *out, Common::Bitmap *screenshot);
 
 void start_skipping_cutscene ();
 void check_skip_cutscene_keypress (int kgn);

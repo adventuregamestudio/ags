@@ -16,15 +16,15 @@ namespace AGS
 namespace Common
 {
 
-class CString
+class String
 {
 public:
-    CString();
-    CString(const CString&);
-    CString(const char *cstr);
-    CString(const char *cstr, int length);
-    CString(char c, int count);
-    ~CString();
+    String();
+    String(const String&);
+    String(const char *cstr);
+    String(const char *cstr, int length);
+    String(char c, int count);
+    ~String();
 
     inline const char   *GetCStr() const
     {
@@ -57,13 +57,13 @@ public:
     char                GetAt(int index) const;
     void                SetAt(int index, char c);
 
-    CString             Left(int count) const;
-    CString             Mid(int from) const;
-    CString             Mid(int from, int count) const;
-    CString             Right(int count) const;
+    String             Left(int count) const;
+    String             Mid(int from) const;
+    String             Mid(int from, int count) const;
+    String             Right(int count) const;
 
     void                Format(const char *fcstr, ...);
-    static CString      MakeString(const char *fcstr, ...);
+    static String      MakeString(const char *fcstr, ...);
 
     int                 ToInt() const;
 
@@ -71,13 +71,13 @@ public:
     {
         return _cstr;
     }
-    CString &operator=(const CString&);
-    CString &operator=(const char *cstr);
+    String &operator=(const String&);
+    String &operator=(const char *cstr);
     inline char operator[](int index) const
     {
         return GetAt(index);
     }
-    inline bool operator==(const CString &str)
+    inline bool operator==(const String &str)
     {
         return Compare(str) == 0;
     }

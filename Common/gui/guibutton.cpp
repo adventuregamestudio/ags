@@ -7,8 +7,8 @@
 #include "util/datastream.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::CDataStream;
-using AGS::Common::IBitmap;
+using AGS::Common::DataStream;
+using AGS::Common::Bitmap;
 
 extern SpriteCache spriteset;
 
@@ -18,7 +18,7 @@ DynamicArray<GUIButton> guibuts;
 //GUIButton guibuts[MAX_OBJ_EACH_TYPE];
 int numguibuts = 0;
 
-void GUIButton::WriteToFile(CDataStream *out)
+void GUIButton::WriteToFile(DataStream *out)
 {
   GUIObject::WriteToFile(out);
   // MACPORT FIXES: swap
@@ -28,7 +28,7 @@ void GUIButton::WriteToFile(CDataStream *out)
   out->WriteInt32(reserved1);
 }
 
-void GUIButton::ReadFromFile(CDataStream *in, int version)
+void GUIButton::ReadFromFile(DataStream *in, int version)
 {
   GUIObject::ReadFromFile(in, version);
   // MACPORT FIXES: swap
@@ -72,7 +72,7 @@ void GUIButton::Draw()
   if ((usepic > 0) && (pic > 0)) {
 
     if (flags & GUIF_CLIP)
-      abuf->SetClip(CRect(x, y, x + wid - 1, y + hit - 1));
+      abuf->SetClip(Rect(x, y, x + wid - 1, y + hit - 1));
 
     if (spriteset[usepic] != NULL)
       draw_sprite_compensate(usepic, x, y, 1);
@@ -113,16 +113,16 @@ void GUIButton::Draw()
       }
     }
 
-    abuf->SetClip(CRect(0, 0, abuf->GetWidth() - 1, abuf->GetHeight() - 1));
+    abuf->SetClip(Rect(0, 0, abuf->GetWidth() - 1, abuf->GetHeight() - 1));
   } 
   else if (text[0] != 0) {
     // it's a text button
 
     wsetcolor(7);
-    abuf->FillRect(CRect(x, y, x + wid - 1, y + hit - 1), currentcolor);
+    abuf->FillRect(Rect(x, y, x + wid - 1, y + hit - 1), currentcolor);
     if (flags & GUIF_DEFAULT) {
       wsetcolor(16);
-      abuf->DrawRect(CRect(x - 1, y - 1, x + wid, y + hit), currentcolor);
+      abuf->DrawRect(Rect(x - 1, y - 1, x + wid, y + hit), currentcolor);
     }
 
     if ((isover) && (ispushed))
@@ -133,8 +133,8 @@ void GUIButton::Draw()
     if (drawDisabled)
       wsetcolor(8);
 
-    abuf->DrawLine(CLine(x, y + hit - 1, x + wid - 1, y + hit - 1), currentcolor);
-    abuf->DrawLine(CLine(x + wid - 1, y, x + wid - 1, y + hit - 1), currentcolor);
+    abuf->DrawLine(Line(x, y + hit - 1, x + wid - 1, y + hit - 1), currentcolor);
+    abuf->DrawLine(Line(x + wid - 1, y, x + wid - 1, y + hit - 1), currentcolor);
     if ((isover) && (ispushed))
       wsetcolor(8);
     else
@@ -143,8 +143,8 @@ void GUIButton::Draw()
     if (drawDisabled)
       wsetcolor(8);
 
-    abuf->DrawLine(CLine(x, y, x + wid - 1, y), currentcolor);
-    abuf->DrawLine(CLine(x, y, x, y + hit - 1), currentcolor);
+    abuf->DrawLine(Line(x, y, x + wid - 1, y), currentcolor);
+    abuf->DrawLine(Line(x, y, x, y + hit - 1), currentcolor);
   }                           // end if text
 
   // Don't print text of (INV) (INVSHR) (INVNS)

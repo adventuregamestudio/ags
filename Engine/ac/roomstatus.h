@@ -11,7 +11,7 @@
 #include "ac/interaction.h"
 
 // Forward declaration
-namespace AGS { namespace Common { class CDataStream; } }
+namespace AGS { namespace Common { class DataStream; } }
 using namespace AGS; // FIXME later
 
 // This struct is saved in the save games - it contains everything about
@@ -40,8 +40,8 @@ struct RoomStatus {
 
     RoomStatus() { beenhere=0; numobj=0; tsdatasize=0; tsdata=NULL; }
 
-    void ReadFromFile(Common::CDataStream *in);
-    void WriteToFile(Common::CDataStream *out);
+    void ReadFromFile(Common::DataStream *in);
+    void WriteToFile(Common::DataStream *out);
 };
 
 // Replaces all accesses to the roomstats array

@@ -444,7 +444,7 @@ void GameSetupStruct::ReadFromSaveGame(DataStream *in, char* gswas, ccScript* co
     for (int vv=0;vv<MAXGLOBALMES;vv++) messages[vv]=mesbk[vv];
 
     in->ReadArrayOfInt32(&options[0], OPT_HIGHESTOPTION+1);
-    options[OPT_LIPSYNCTEXT] = in->ReadInt8();
+    options[OPT_LIPSYNCTEXT] = in->ReadByte();
 
     //in->ReadArray(&chars[0],sizeof(CharacterInfo),numcharacters,f);
     for (bb = 0; bb < numcharacters; bb++)

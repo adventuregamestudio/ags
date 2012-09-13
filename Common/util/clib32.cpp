@@ -151,7 +151,7 @@ extern "C"
     int i = 0;
     while ((i == 0) || (sss[i - 1] != 0))
     {
-      sss[i] = ci_s->ReadInt8() - get_pseudo_rand();
+      sss[i] = ci_s->ReadByte() - get_pseudo_rand();
 
       if (i < maxLength - 1)
         i++;
@@ -293,7 +293,7 @@ extern "C"
       ci_s->Seek(Common::kSeekBegin, absoffs + 5);
     }
 
-    int lib_version = ci_s->ReadInt8();
+    int lib_version = ci_s->ReadByte();
     if ((lib_version != 6) && (lib_version != 10) &&
         (lib_version != 11) && (lib_version != 15) &&
         (lib_version != 20) && (lib_version != 21))
@@ -363,7 +363,7 @@ extern "C"
       return 0;
     }
 
-    passwmodifier = ci_s->ReadInt8();
+    passwmodifier = ci_s->ReadByte();
     ci_s->ReadInt8(); // unused byte
     mflib.num_data_files = 1;
     strcpy(mflib.data_filenames[0], namm);

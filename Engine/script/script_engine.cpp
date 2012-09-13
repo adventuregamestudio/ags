@@ -29,13 +29,6 @@ char *scripteditruntimecopr = "Script Editor v1.2 run-time component. (c) 1998 C
 #define SCRIPT_CONFIG_VERSION 1
 extern void quit(char *);
 
-long getlong(DataStream *in)
-{
-    long tmm;
-    tmm = in->ReadInt32();
-    return tmm;
-}
-
 void save_script_configuration(DataStream *out)
 {
     quit("ScriptEdit: run-time version can't save");
@@ -44,12 +37,12 @@ void save_script_configuration(DataStream *out)
 void load_script_configuration(DataStream *in)
 {
     int aa;
-    if (getlong(in) != SCRIPT_CONFIG_VERSION)
-        quit("ScriptEdit: invliad config version");
+    if (in->ReadInt32() != SCRIPT_CONFIG_VERSION)
+        quit("ScriptEdit: invalid config version");
 
-    int numvarnames = getlong(in);
+    int numvarnames = in->ReadInt32();
     for (aa = 0; aa < numvarnames; aa++) {
-        int lenoft = in->ReadInt8();
+        int lenoft = in->ReadByte();
         in->Seek(Common::kSeekCurrent, lenoft);
     }
 }

@@ -665,13 +665,13 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
       quit("Load_room: old room format. Please upgrade the room.");
 #endif
     else if (thisblock == BLOCKTYPE_OBJECTNAMES) {
-      if (opty->ReadInt8() != rstruc->numsprs)
+      if (opty->ReadByte() != rstruc->numsprs)
         quit("Load_room: inconsistent blocks for object names");
 
       opty->ReadArray(&rstruc->objectnames[0][0], MAXOBJNAMELEN, rstruc->numsprs);
     }
     else if (thisblock == BLOCKTYPE_OBJECTSCRIPTNAMES) {
-      if (opty->ReadInt8() != rstruc->numsprs)
+      if (opty->ReadByte() != rstruc->numsprs)
         quit("Load_room: inconsistent blocks for object script names");
 
       opty->ReadArray(&rstruc->objectscriptnames[0][0], MAX_SCRIPT_NAME_LEN, rstruc->numsprs);
@@ -680,8 +680,8 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
       int   ct;
       long  fpos;
 
-      rstruc->num_bscenes = opty->ReadInt8();
-      rstruc->bscene_anim_speed = opty->ReadInt8();
+      rstruc->num_bscenes = opty->ReadByte();
+      rstruc->bscene_anim_speed = opty->ReadByte();
 
       if (rfh.version >= 20)
         opty->Read(&rstruc->ebpalShared[0], rstruc->num_bscenes);

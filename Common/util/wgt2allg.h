@@ -162,6 +162,7 @@ extern "C"
 
     extern const int col_lookups[32];
 
+	// [IKM] 2012-09-13: this function is now defined in engine and editor separately
     extern void __my_setcolor(int *ctset, int newcol);
     extern void wsetcolor(int nval);
 

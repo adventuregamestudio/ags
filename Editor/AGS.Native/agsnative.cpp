@@ -1,5 +1,4 @@
 #define USE_CLIB
-#define SWAP_RB_HICOL  // win32 uses BGR not RGB
 #include <stdio.h>
 void ThrowManagedException(const char *message);
 #pragma unmanaged

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="AGS.Native"
 	ProjectGUID="{65A387AF-C78C-492B-AB93-E13C6090355D}"
 	RootNamespace="AGS.Native"
@@ -252,6 +252,10 @@
 			</File>
 			<File
 				RelativePath=".\agsnative.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\Native\color_native.cpp"
 				>
 			</File>
 			<File

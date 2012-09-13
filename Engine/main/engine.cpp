@@ -38,6 +38,7 @@
 #include "ac/dynobj/scriptsystem.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
+#include "font/agsfontrenderer.h"
 #include "main/config.h"
 #include "main/game_start.h"
 #include "main/graphics_mode.h"

@@ -66,9 +66,9 @@ int TTFFontRenderer::GetTextHeight(const char *text, int fontNumber)
   return alfont_text_height(get_ttf_block(fonts[fontNumber]));
 }
 
-void TTFFontRenderer::RenderText(const char *text, int fontNumber, Bitmap *destination, int x, int y, int colour)
+void TTFFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour)
 {
-  if (y > destination->GetClip().Bottom)  // optimisation
+  if (y > destination->cb)  // optimisation
     return;
 
   ALFONT_FONT *alfpt = get_ttf_block(fonts[fontNumber]);

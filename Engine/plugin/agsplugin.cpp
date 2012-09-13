@@ -101,6 +101,7 @@ extern color palette[256];
 extern int offsetx, offsety;
 extern PluginObjectReader pluginReaders[MAX_PLUGIN_OBJECT_READERS];
 extern int numPluginReaders;
+extern IAGSFontRenderer* fontRenderers[MAX_FONTS];
 
 // **************** PLUGIN IMPLEMENTATION ****************
 

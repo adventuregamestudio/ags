@@ -130,7 +130,7 @@ int WFNFontRenderer::GetTextHeight(const char *texx, int fontNumber)
   return highest * wtext_multiply;
 }
 
-void WFNFontRenderer::RenderText(const char *text, int fontNumber, Bitmap *destination, int x, int y, int colour)
+void WFNFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour)
 {
   unsigned int ee;
 

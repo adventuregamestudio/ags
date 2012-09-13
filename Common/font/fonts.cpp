@@ -70,7 +70,7 @@ void wouttextxy(int xxx, int yyy, int fontNumber, const char *texx)
 
   if (fontRenderers[fontNumber] != NULL)
   {
-    fontRenderers[fontNumber]->RenderText(texx, fontNumber, abuf, xxx, yyy, textcol);
+    fontRenderers[fontNumber]->RenderText(texx, fontNumber, (BITMAP*)abuf->GetBitmapObject(), xxx, yyy, textcol);
   }
 }
 

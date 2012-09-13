@@ -238,7 +238,7 @@ int cunpackbitl(unsigned char *line, int size, DataStream *in)
   int n = 0;                    // number of bytes decoded
 
   while (n < size) {
-    int ix = in->ReadInt8();     // get index byte
+    int ix = in->ReadByte();     // get index byte
     // TODO: revise when new error handling system is implemented
     if (ferror(((Common::FileStream*)in)->GetHandle()))
       break;
@@ -264,7 +264,7 @@ int cunpackbitl(unsigned char *line, int size, DataStream *in)
         if (n >= size)
           return -1;
 
-        line[n++] = in->ReadInt8();
+        line[n++] = in->ReadByte();
       }
     }
   }
@@ -278,7 +278,7 @@ int cunpackbitl16(unsigned short *line, int size, DataStream *in)
   int n = 0;                    // number of bytes decoded
 
   while (n < size) {
-    int ix = in->ReadInt8();     // get index byte
+    int ix = in->ReadByte();     // get index byte
     // TODO: revise when new error handling system is implemented
     if (ferror(((Common::FileStream*)in)->GetHandle()))
       break;
@@ -318,7 +318,7 @@ int cunpackbitl32(unsigned int *line, int size, DataStream *in)
   int n = 0;                    // number of bytes decoded
 
   while (n < size) {
-    int ix = in->ReadInt8();     // get index byte
+    int ix = in->ReadByte();     // get index byte
     // TODO: revise when new error handling system is implemented
     if (ferror(((Common::FileStream*)in)->GetHandle()))
       break;

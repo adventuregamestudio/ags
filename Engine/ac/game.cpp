@@ -1591,7 +1591,7 @@ void restore_game_spriteset(DataStream *in)
     // get serialized dynamic sprites
     int sprnum = in->ReadInt32();
     while (sprnum) {
-        unsigned char spriteflag = in->ReadInt8();
+        unsigned char spriteflag = in->ReadByte();
         add_dynamic_sprite(sprnum, read_serialized_bitmap(in));
         game.spriteflags[sprnum] = spriteflag;
         sprnum = in->ReadInt32();
@@ -1672,7 +1672,7 @@ void restore_game_room_state(DataStream *in, const char *nametouse)
     int beenhere;
     for (vv=0;vv<MAX_ROOMS;vv++)
     {
-        beenhere = in->ReadInt8();
+        beenhere = in->ReadByte();
         if (beenhere)
         {
             roomstat = getRoomStatus(vv);
@@ -2096,7 +2096,7 @@ int restore_game_data (DataStream *in, const char *nametouse) {
     //for (vv=0;vv<MAXGLOBALMES;vv++) game.messages[vv]=mesbk[vv];
     //
     //in->ReadArray(&game.options[0], sizeof(int), OPT_HIGHESTOPTION+1);
-    //game.options[OPT_LIPSYNCTEXT] = in->ReadInt8();
+    //game.options[OPT_LIPSYNCTEXT] = in->ReadByte();
     //
     //in->ReadArray(&game.chars[0],sizeof(CharacterInfo),game.numcharacters);
     //

@@ -6,8 +6,8 @@
 #include "gfx/bitmap.h"
 
 // win32 uses BGR not RGB
-#define SWAP_RB_HICOL_FOR_32to16
-#define SWAP_RB_HICOL_FOR_32to15
+#define SWAP_RB_HICOL_FOR_32to24_32
+#define SWAP_RB_HICOL_FOR_32to15_16
 
 void __my_setcolor(int *ctset, int newcol)
   {
@@ -18,7 +18,7 @@ void __my_setcolor(int *ctset, int newcol)
       ctset[0] = newcol;
     else if ((newcol >= 32) && (wantColDep > 16)) {
       // true-color
-#ifdef SWAP_RB_HICOL_FOR_32to16
+#ifdef SWAP_RB_HICOL_FOR_32to24_32
       ctset[0] = makeacol32(getb16(newcol), getg16(newcol), getr16(newcol), 255);
 #else
       ctset[0] = makeacol32(getr16(newcol), getg16(newcol), getb16(newcol), 255);
@@ -26,7 +26,7 @@ void __my_setcolor(int *ctset, int newcol)
     }
     else if (newcol >= 32) {
 
-#ifdef SWAP_RB_HICOL_FOR_32to15
+#ifdef SWAP_RB_HICOL_FOR_32to15_16
       ctset[0] = makecol16(getb16(newcol), getg16(newcol), getr16(newcol));
 #else
       // If it's 15-bit, convert the color

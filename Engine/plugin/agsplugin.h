@@ -290,8 +290,7 @@ public:
   virtual void Unserialize(int key, const char *serializedData, int dataSize) = 0;
 };
 
-/*
-#ifndef __ACRUNTIME_H
+// WARNING: this interface must correspond to IAGSFontRenderer declared in the Common
 class IAGSFontRenderer {
 public:
   virtual bool LoadFromDisk(int fontNumber, int fontSize) = 0;
@@ -303,9 +302,6 @@ public:
   virtual void AdjustYCoordinateForFont(int *ycoord, int fontNumber) = 0;
   virtual void EnsureTextValidForFont(char *text, int fontNumber) = 0;
 };
-#endif
-*/
-#include "font/agsfontrenderer.h"	// IAGSFontRenderer
 
 // The plugin-to-engine interface
 class IAGSEngine {

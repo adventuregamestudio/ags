@@ -4,6 +4,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "util/wgt2allg.h"
+#include "util/string_utils.h" //strlwr()
 #include "gui/guimain.h"
 #include "ac/common.h"	// quit()
 #include "ac/gamesetupstruct.h"

@@ -38,8 +38,9 @@ inline void assert(bool expr, const char *err_msg)
 
 #else // !_DEBUG
 
-#define assert(a)
-#define assert(a,b)
+// JJS: GCC has trouble with macro overloading
+inline void assert(bool expr) {}
+inline void assert(bool expr, const char *err_msg) {}
 
 #endif // !_DEBUG
 

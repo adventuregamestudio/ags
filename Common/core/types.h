@@ -19,7 +19,9 @@
 #include <stdint.h>
 #include <cstdlib> // for size_t
 #include <limits.h> // for _WORDSIZE
+#if !defined(PSP_VERSION)
 #include <endian.h>
+#endif
 #endif
 
 // Detect 64 bit environment

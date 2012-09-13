@@ -40,8 +40,8 @@ namespace BitByteOperations
     inline void SwapBytesInt64(int64_t &val)
     {
         val = ((val >> 56) & 0xFF) | ((val >> 40) & 0xFF00) | ((val >> 24) & 0xFF0000) |
-              ((val >> 8) & 0xFF000000) | ((val << 8) & 0xFF00000000) |
-              ((val << 24) & 0xFF0000000000) | ((val << 40) & 0xFF000000000000) | ((val << 56) & 0xFF00000000000000);
+              ((val >> 8) & 0xFF000000) | ((val << 8) & 0xFF00000000LL) |
+              ((val << 24) & 0xFF0000000000LL) | ((val << 40) & 0xFF000000000000LL) | ((val << 56) & 0xFF00000000000000LL);
     }
 
 } // namespace BitByteOperations

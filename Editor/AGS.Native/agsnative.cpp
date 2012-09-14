@@ -2269,9 +2269,10 @@ struct MultiFileLibNew {
   int  num_files;
   };
 MultiFileLibNew ourlib;
-static const char *tempSetting = "My\x1\xde\x4Jibzle";  // clib password
-extern void init_pseudo_rand_gen(int seed);
-extern int get_pseudo_rand();
+
+//static const char *tempSetting = "My\x1\xde\x4Jibzle";  // clib password
+//extern void init_pseudo_rand_gen(int seed);
+//extern int get_pseudo_rand();
 const int RAND_SEED_SALT = 9338638;  // must update clib32.cpp if this changes
 
 void fwrite_data_enc(const void *data, int dataSize, int dataCount, DataStream *ooo)
@@ -2279,7 +2280,7 @@ void fwrite_data_enc(const void *data, int dataSize, int dataCount, DataStream *
   const unsigned char *dataChar = (const unsigned char*)data;
   for (int i = 0; i < dataSize * dataCount; i++)
   {
-    ooo->WriteByte(dataChar[i] + get_pseudo_rand());
+    ooo->WriteByte(dataChar[i] + Common::AssetManager::GetNextPseudoRand());
   }
 }
 
@@ -2297,7 +2298,7 @@ void write_clib_header(DataStream*wout) {
   int ff;
   int randSeed = (int)time(NULL);
   wout->WriteInt32(randSeed - RAND_SEED_SALT);
-  init_pseudo_rand_gen(randSeed);
+  Common::AssetManager::InitPseudoRand(randSeed);
   putw_enc(ourlib.num_data_files, wout);
   for (ff = 0; ff < ourlib.num_data_files; ff++)
   {

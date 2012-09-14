@@ -282,10 +282,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\util\clib32.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Common\util\compress.cpp"
 					>
 				</File>
@@ -565,10 +561,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\util\bbop.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\util\clib32.h"
 					>
 				</File>
 				<File

@@ -28,6 +28,9 @@ namespace Common
 {
 
 class DataStream;
+struct Clib32Info;
+struct MultiFileLib;
+struct MultiFileLibNew;
 
 enum AssetsSearchPriority
 {
@@ -57,6 +60,8 @@ public:
     static int      GetAssetCount();
     static String   GetAssetFileByIndex(int index);
     static String   GetOriginalDataFile();
+    static void     InitPseudoRand(int seed);
+    static int      GetNextPseudoRand();
 
 
     static DataStream *OpenAsset(const String &asset_file,
@@ -69,9 +74,36 @@ public:
 private:
     AssetManager();
 
+    //=========================================================================
+    // Former clib32 functions
+    void init_pseudo_rand_gen(int seed);
+    int get_pseudo_rand();
+    void clib_decrypt_text(char *toenc);
+    void fgetnulltermstring(char *sss, DataStream *ci_s, int bufsize);
+    void fread_data_enc(void *data, int dataSize, int dataCount, DataStream *ci_s);
+    void fgetstring_enc(char *sss, DataStream *ci_s, int maxLength);
+    int getw_enc(DataStream *ci_s);
+    int read_new_new_enc_format_clib(MultiFileLibNew * mfl, DataStream *ci_s, int libver);
+    int read_new_new_format_clib(MultiFileLibNew * mfl, DataStream *ci_s, int libver);
+    int read_new_format_clib(MultiFileLib * mfl, DataStream *ci_s, int libver);
+    int csetlib(const char *namm, const char *passw);
+    int clibGetNumFiles();
+    const char *clibGetFileName(int index);
+    int clibfindindex(const char *fill);
+    long clibfilesize(const char *fill);
+    long cliboffset(const char *fill);
+    const char *clibgetoriginalfilename();
+    char *clibgetdatafile(const char *fill);
+    DataStream *clibopenfile(const char *filly, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode);
+    DataStream *clibfopen(const char *filnamm, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode);
+    //=========================================================================
+
     static AssetManager     *_theAssetManager;
     AssetsSearchPriority    _searchPriority;
     String                  _currentDataFile;
+
+    Clib32Info              &_clib32Info;
+    MultiFileLibNew         &_mflib;
 };
 
 } // namespace Common

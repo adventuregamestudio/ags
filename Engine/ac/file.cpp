@@ -230,7 +230,7 @@ PACKFILE *pack_fopen(char *filnam1, char *modd1) {
     Common::AssetManager::SetDataFile(useloc);*/
     
     char *libname = ci_find_file(usetup.data_files_dir, gfname);
-    if (Common::AssetManager::SetDataFile(libname))
+    if (Common::AssetManager::SetDataFile(libname) != Common::kAssetNoError)
     {
       // Hack for running in Debugger
       free(libname);

@@ -252,7 +252,7 @@ int RunAGSGame (char *newgame, unsigned int mode, int data) {
 
     unload_game_file();
 
-    if (Common::AssetManager::SetDataFile(game_file_name))
+    if (Common::AssetManager::SetDataFile(game_file_name) != Common::kAssetNoError)
         quitprintf("!RunAGSGame: unable to load new game file '%s'", game_file_name);
 
     abuf->Clear();

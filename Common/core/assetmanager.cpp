@@ -41,6 +41,29 @@ namespace Common
 #define PR_DATAFIRST 1
 #define PR_FILEFIRST 2
 
+// Information on single asset
+struct AssetInfo
+{
+    // A pair of filename and libuid is assumed to be unique in game scope
+    String      FileName;   // filename associated with asset
+    int32_t     LibUid;     // uid of library, containing this asset
+    int         Offset;     // asset's position in library file (in bytes)
+    int         Size;       // asset's size (in bytes)
+};
+
+// Information on multifile asset library
+struct AssetLibInfo
+{
+    int         PartCount;  // number of parts this library is split to
+    String      LibFileNames[MAXMULTIFILES]; // filename for each library part
+
+    // Library contents
+    int         AssetCount; // total number of assets in library
+    AssetInfo   AssetInfos[MAX_FILES]; // information on contained assets
+
+    void AssignFromMFL(const MultiFileLib &mflib);
+};
+
 struct Clib32Info
 {
     static const char *clib32copyright;
@@ -75,6 +98,23 @@ struct MultiFileLib
   char file_datafile[MAX_FILES];        // index of datafile for each file in split clib
 };
 
+void AssetLibInfo::AssignFromMFL(const MultiFileLib &mflib)
+{
+    PartCount = mflib.num_data_files;
+    for (int i = 0; i < PartCount; ++i)
+    {
+        LibFileNames[i] = mflib.data_filenames[i];
+    }
+    AssetCount = mflib.num_files;
+    for (int i = 0; i < AssetCount; ++i)
+    {
+        AssetInfos[i].FileName = mflib.filenames[i];
+        AssetInfos[i].LibUid = mflib.file_datafile[i];
+        AssetInfos[i].Offset = mflib.offset[i];
+        AssetInfos[i].Size = mflib.length[i];
+    }
+}
+
 AssetManager *AssetManager::_theAssetManager = NULL;
 
 /* static */ bool AssetManager::CreateInstance()
@@ -96,84 +136,67 @@ AssetManager *AssetManager::_theAssetManager = NULL;
 AssetManager::~AssetManager()
 {
     delete &_clib32Info;
-    delete &_mflib;
+    delete &_assetLib;
 }
 
 /* static */ bool AssetManager::SetSearchPriority(AssetSearchPriority priority)
 {
     assert(_theAssetManager != NULL);
-    if (_theAssetManager)
-    {
-        _theAssetManager->_searchPriority = priority;
-        switch (_theAssetManager->_searchPriority)
-        {
-        case kAssetPriorityData:
-            _theAssetManager->_clib32Info.cfopenpriority = PR_DATAFIRST;
-            break;
-        case kAssetPriorityFile:
-            _theAssetManager->_clib32Info.cfopenpriority = PR_FILEFIRST;
-            break;
-        default:
-            return false;
-        }
-        return true;
-    }
-    return false;
+    return _theAssetManager ? _theAssetManager->_SetSearchPriority(priority) : false;
 }
 
 /* static */ AssetSearchPriority AssetManager::GetSearchPriority()
 {
     assert(_theAssetManager != NULL);
-    return _theAssetManager ? _theAssetManager->_searchPriority : kAssetPriorityUndefined;
+    return _theAssetManager ? _theAssetManager->_GetSearchPriority() : kAssetPriorityUndefined;
 }
 
-/* static */ int AssetManager::SetDataFile(const String &data_file)
+/* static */ AssetError AssetManager::SetDataFile(const String &data_file)
 {
     assert(_theAssetManager != NULL);
-    return _theAssetManager ?
-        _theAssetManager->csetlib(data_file, "") : -1; // NOTE: passwords should be kept in AssetManager
+    return _theAssetManager ? _theAssetManager->_SetDataFile(data_file) : kAssetErrNoManager;
 }
 
 /* static */ String AssetManager::GetAssetFilePath(const String &asset_file)
 {
     assert(_theAssetManager != NULL);
-    return _theAssetManager->clibgetdatafile(asset_file);
+    return _theAssetManager ? _theAssetManager->_GetAssetFilePath(asset_file) : "";
 }
 
 /* static */ long AssetManager::GetAssetOffset(const String &asset_file)
 {
     assert(_theAssetManager != NULL);
-    return _theAssetManager ? _theAssetManager->cliboffset(asset_file) : 0;
+    return _theAssetManager ? _theAssetManager->_GetAssetOffset(asset_file) : 0;
 }
 
 /* static */ long AssetManager::GetAssetSize(const String &asset_file)
 {
     assert(_theAssetManager != NULL);
-    return _theAssetManager ? _theAssetManager->clibfilesize(asset_file) : 0;
+    return _theAssetManager ? _theAssetManager->_GetAssetSize(asset_file) : 0;
 }
 
 /* static */ long AssetManager::GetLastAssetSize()
 {
     assert(_theAssetManager != NULL);
-    return _theAssetManager ? _theAssetManager->_clib32Info.last_opened_size : 0;
+    return _theAssetManager ? _theAssetManager->_GetLastAssetSize() : 0;
 }
 
 /* static */ int AssetManager::GetAssetCount()
 {
     assert(_theAssetManager != NULL);
-    return _theAssetManager ? _theAssetManager->clibGetNumFiles() : 0;
+    return _theAssetManager ? _theAssetManager->_GetAssetCount() : 0;
 }
 
 /* static */ String AssetManager::GetAssetFileByIndex(int index)
 {
     assert(_theAssetManager != NULL);
-    return _theAssetManager ? _theAssetManager->clibGetFileName(index) : "";
+    return _theAssetManager ? _theAssetManager->_GetAssetFileByIndex(index) : "";
 }
 
 /* static */ String AssetManager::GetOriginalDataFile()
 {
     assert(_theAssetManager != NULL);
-    return _theAssetManager ? _theAssetManager->clibgetoriginalfilename() : "";
+    return _theAssetManager ? _theAssetManager->_GetOriginalDataFile() : "";
 }
 
 /* static */ void AssetManager::InitPseudoRand(int seed)
@@ -181,14 +204,14 @@ AssetManager::~AssetManager()
     assert(_theAssetManager != NULL);
     if (_theAssetManager)
     {
-        _theAssetManager->init_pseudo_rand_gen(seed);
+        _theAssetManager->_InitPseudoRand(seed);
     }
 }
 
 /* static */ int AssetManager::GetNextPseudoRand()
 {
     assert(_theAssetManager != NULL);
-    return _theAssetManager ? _theAssetManager->get_pseudo_rand() : 0;
+    return _theAssetManager ? _theAssetManager->_GetNextPseudoRand() : 0;
 }
 
 /* static */ DataStream *AssetManager::OpenAsset(const String &asset_file,
@@ -213,23 +236,107 @@ AssetManager::~AssetManager()
     {
         return NULL;
     }
-    if (_theAssetManager->_currentDataFile.Compare(data_file) != 0)
+    if (_theAssetManager->_SetDataFile(data_file) != 0)
     {
-        if (AssetManager::SetDataFile(data_file) != 0)
-        {
-            return NULL;
-        }
-        _theAssetManager->_currentDataFile = data_file;
+        return NULL;
     }
-    return _theAssetManager->clibfopen(asset_file, open_mode, work_mode);
+    return _theAssetManager->_OpenAsset(asset_file, open_mode, work_mode);
 }
 
 AssetManager::AssetManager()
     : _clib32Info(*new Clib32Info())
-    , _mflib(*new MultiFileLib())
+    , _assetLib(*new AssetLibInfo())
 {
     strcpy(_clib32Info.lib_file_name, " ");
     strcpy(_clib32Info.base_path, ".");
+}
+
+bool AssetManager::_SetSearchPriority(AssetSearchPriority priority)
+{
+    _searchPriority = priority;
+    switch (_searchPriority)
+    {
+    case kAssetPriorityData:
+        _clib32Info.cfopenpriority = PR_DATAFIRST;
+        break;
+    case kAssetPriorityFile:
+        _clib32Info.cfopenpriority = PR_FILEFIRST;
+        break;
+    default:
+        return false;
+    }
+    return true;
+}
+
+AssetSearchPriority AssetManager::_GetSearchPriority()
+{
+    return _searchPriority;
+}
+
+AssetError AssetManager::_SetDataFile(const String &data_file)
+{
+    if (_currentDataFile.Compare(data_file) == 0)
+    {
+        return kAssetNoError;
+    }
+    AssetError err = csetlib(data_file, "");
+    if (err == kAssetNoError)
+    {
+        _currentDataFile = data_file;
+    }
+    return err;
+}
+
+String AssetManager::_GetAssetFilePath(const String &asset_file)
+{
+    return clibgetdatafile(asset_file);
+}
+
+long AssetManager::_GetAssetOffset(const String &asset_file)
+{
+    return cliboffset(asset_file);
+}
+
+long AssetManager::_GetAssetSize(const String &asset_file)
+{
+    return clibfilesize(asset_file);
+}
+
+long AssetManager::_GetLastAssetSize()
+{
+    return _clib32Info.last_opened_size;
+}
+
+int AssetManager::_GetAssetCount()
+{
+    return clibGetNumFiles();
+}
+
+String AssetManager::_GetAssetFileByIndex(int index)
+{
+    return clibGetFileName(index);
+}
+
+String AssetManager::_GetOriginalDataFile()
+{
+    return clibgetoriginalfilename();
+}
+
+void AssetManager::_InitPseudoRand(int seed)
+{
+    init_pseudo_rand_gen(seed);
+}
+
+int AssetManager::_GetNextPseudoRand()
+{
+    return get_pseudo_rand();
+}
+
+DataStream *AssetManager::_OpenAsset(const String &asset_file,
+                       FileOpenMode open_mode,
+                       FileWorkMode work_mode)
+{
+    return clibfopen(asset_file, open_mode, work_mode);
 }
 
 //=============================================================================
@@ -564,35 +671,38 @@ AssetError AssetManager::csetlib(const char *namm, const char *passw)
     }
 
     AssetError err;
+    MultiFileLib *mflib = new MultiFileLib();
     if (lib_version >= 10)
     {
         // read newer clib versions (versions 10+)
-        err = read_ver10plus_format_clib(&_mflib, ci_s, lib_version);
+        err = read_ver10plus_format_clib(mflib, ci_s, lib_version);
     }
     else
     {
         // read older clib versions (versions 1 to 9)
-        err = read_ver1to9_format_clib(&_mflib, ci_s, lib_version);
+        err = read_ver1to9_format_clib(mflib, ci_s, lib_version);
     }
+    _assetLib.AssignFromMFL(*mflib);
+    delete mflib;
     // Finished reading clib
     delete ci_s;
 
     // set library filename
     strcpy(_clib32Info.lib_file_name, namm);
-    strcpy(_mflib.data_filenames[0], namm);
+    _assetLib.LibFileNames[0] = namm;
 
     // make a backup of the original file name
-    strcpy(_clib32Info.original_base_filename, _mflib.data_filenames[0]);
+    strcpy(_clib32Info.original_base_filename, _assetLib.LibFileNames[0]);
     strlwr(_clib32Info.original_base_filename);
     
     // apply absolute offset for the assets contained in base data file
     // (since only base data file may be EXE file, other clib parts are always on their own)
     if (abs_offset > 0)
     {
-        for (int i = 0; i < _mflib.num_files; i++) {
+        for (int i = 0; i < _assetLib.AssetCount; i++) {
             // correct offsets for EXE file
-            if (_mflib.file_datafile[i] == 0)
-                _mflib.offset[i] += abs_offset;
+            if (_assetLib.AssetInfos[i].LibUid == 0)
+                _assetLib.AssetInfos[i].Offset += abs_offset;
         }
     }
 
@@ -606,7 +716,7 @@ int AssetManager::clibGetNumFiles()
 {
     if (_clib32Info.lib_file_name[0] == ' ')
         return 0;
-    return _mflib.num_files;
+    return _assetLib.AssetCount;
 }
 
 //-----------------------------------------------------------------------------
@@ -617,10 +727,10 @@ const char *AssetManager::clibGetFileName(int index)
     if (_clib32Info.lib_file_name[0] == ' ')
         return NULL;
 
-    if ((index < 0) || (index >= _mflib.num_files))
+    if ((index < 0) || (index >= _assetLib.AssetCount))
         return NULL;
 
-    return &_mflib.filenames[index][0];
+    return _assetLib.AssetInfos[index].FileName;
 }
 
 //-----------------------------------------------------------------------------
@@ -632,8 +742,8 @@ int AssetManager::clibfindindex(const char *fill)
         return -1;
 
     int bb;
-    for (bb = 0; bb < _mflib.num_files; bb++) {
-        if (stricmp(_mflib.filenames[bb], fill) == 0)
+    for (bb = 0; bb < _assetLib.AssetCount; bb++) {
+        if (stricmp(_assetLib.AssetInfos[bb].FileName, fill) == 0)
             return bb;
     }
     return -1;
@@ -646,7 +756,7 @@ long AssetManager::clibfilesize(const char *fill)
 {
     int idxx = clibfindindex(fill);
     if (idxx >= 0)
-        return _mflib.length[idxx];
+        return _assetLib.AssetInfos[idxx].Size;
     return -1;
 }
 
@@ -657,7 +767,7 @@ long AssetManager::cliboffset(const char *fill)
 {
     int idxx = clibfindindex(fill);
     if (idxx >= 0)
-        return _mflib.offset[idxx];
+        return _assetLib.AssetInfos[idxx].Offset;
     return -1;
 }
 
@@ -676,9 +786,9 @@ char *AssetManager::clibgetdatafile(const char *fill)
     int idxx = clibfindindex(fill);
     if (idxx >= 0) {
 #if defined(LINUX_VERSION) || defined(MAC_VERSION) 
-        sprintf(_clib32Info.actfilename, "%s/%s", _clib32Info.base_path, _mflib.data_filenames[_mflib.file_datafile[idxx]]);
+        sprintf(_clib32Info.actfilename, "%s/%s", _clib32Info.base_path, _assetLib.LibFileNames[_assetLib.AssetInfos[idxx].LibUid]);
 #else
-        sprintf(_clib32Info.actfilename, "%s\\%s", _clib32Info.base_path, _mflib.data_filenames[_mflib.file_datafile[idxx]]);
+        sprintf(_clib32Info.actfilename, "%s\\%s", _clib32Info.base_path, _assetLib.LibFileNames[_assetLib.AssetInfos[idxx].LibUid]);
 #endif
         return &_clib32Info.actfilename[0];
     }
@@ -693,20 +803,20 @@ DataStream *AssetManager::clibopenfile(const char *filly, Common::FileOpenMode o
 {
     int bb;
     // search for the filename in the registered list
-    for (bb = 0; bb < _mflib.num_files; bb++) {
-        if (stricmp(_mflib.filenames[bb], filly) == 0) {
+    for (bb = 0; bb < _assetLib.AssetCount; bb++) {
+        if (stricmp(_assetLib.AssetInfos[bb].FileName, filly) == 0) {
             // file found: set a clib's part filename containing it
 #if defined(ANDROID_VERSION)
-            sprintf(_clib32Info.actfilename, "%s/%s", _clib32Info.base_path, _mflib.data_filenames[_mflib.file_datafile[bb]]);
+            sprintf(_clib32Info.actfilename, "%s/%s", _clib32Info.base_path, _assetLib.LibFileNames[_assetLib.AssetInfos[bb].LibUid]);
 #else
-            sprintf(_clib32Info.actfilename, "%s\\%s", _clib32Info.base_path, _mflib.data_filenames[_mflib.file_datafile[bb]]);
+            sprintf(_clib32Info.actfilename, "%s\\%s", _clib32Info.base_path, _assetLib.LibFileNames[_assetLib.AssetInfos[bb].LibUid]);
 #endif
             // open clib's datafile
             DataStream *tfil = ci_fopen(_clib32Info.actfilename, open_mode, work_mode);
             if (tfil == NULL)
                 return NULL; // failed to open
             // set stream ptr at the beginning of wanted section
-            tfil->Seek(Common::kSeekBegin, _mflib.offset[bb]);
+            tfil->Seek(Common::kSeekBegin, _assetLib.AssetInfos[bb].Offset);
             return tfil;
         }
     }

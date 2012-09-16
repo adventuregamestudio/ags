@@ -101,7 +101,7 @@ char *music_file;
 char *speech_file;
 WCHAR directoryPathBuffer[MAX_PATH];
 
-int errcod;
+Common::AssetError errcod;
 
 extern "C" HWND allegro_wnd;
 
@@ -257,7 +257,7 @@ int engine_init_game_data_external(int argc,char*argv[])
 #endif
 
     errcod=Common::AssetManager::SetDataFile(game_file_name);
-    if (errcod) {
+    if (errcod != Common::kAssetNoError) {
         //sprintf(gamefilenamebuf,"%s\\ac2game.ags",usetup.data_files_dir);
         free(game_file_name);
         game_file_name = ci_find_file(usetup.data_files_dir, "ac2game.ags");
@@ -341,7 +341,7 @@ int engine_init_game_data(int argc,char*argv[])
 
     int init_res = RETURN_CONTINUE;
 
-    if ((errcod!=0) && (change_to_game_dir == 0)) {
+    if ((errcod!=Common::kAssetNoError) && (change_to_game_dir == 0)) {
         // it's not, so look for the file
         init_res = engine_init_game_data_external(argc, argv);
     }
@@ -356,8 +356,8 @@ int engine_init_game_data(int argc,char*argv[])
 
     our_eip = -193;
 
-    if (errcod!=0) {  // there's a problem
-        if (errcod==-1) {  // file not found
+    if (errcod!=Common::kAssetNoError) {  // there's a problem
+        if (errcod==Common::kAssetErrNoLibFile) {  // file not found
             char emsg[STD_BUFFER_SIZE];
             sprintf (emsg,
                 "You must create and save a game first in the AGS Editor before you can use "
@@ -367,7 +367,7 @@ int engine_init_game_data(int argc,char*argv[])
                 "(Unable to find '%s')\n", argv[datafile_argv]);
             platform->DisplayAlert(emsg);
         }
-        else if (errcod==-4)
+        else if (errcod==Common::kAssetErrLibAssetCount)
             platform->DisplayAlert("ERROR: Too many files in data file.");
         else platform->DisplayAlert("ERROR: The file is corrupt. Make sure you have the correct version of the\n"
             "editor, and that this really is an AGS game.\n");
@@ -448,7 +448,7 @@ int engine_init_speech()
             write_log_debug("Initializing speech vox");
 
             //if (Common::AssetManager::SetDataFile(useloc,"")!=0) {
-            if (Common::AssetManager::SetDataFile(speech_file)!=0) {
+            if (Common::AssetManager::SetDataFile(speech_file)!=Common::kAssetNoError) {
                 platform->DisplayAlert("Unable to initialize speech sample file - check for corruption and that\nit belongs to this game.\n");
                 return EXIT_NORMAL;
             }
@@ -511,7 +511,7 @@ int engine_init_music()
         write_log_debug("Initializing audio vox");
 
         //if (Common::AssetManager::SetDataFile(useloc,"")!=0) {
-        if (Common::AssetManager::SetDataFile(music_file)!=0) {
+        if (Common::AssetManager::SetDataFile(music_file)!=Common::kAssetNoError) {
             platform->DisplayAlert("Unable to initialize music library - check for corruption and that\nit belongs to this game.\n");
             return EXIT_NORMAL;
         }

@@ -30,6 +30,7 @@ namespace Common
 class DataStream;
 struct Clib32Info;
 struct MultiFileLib;
+struct AssetLibInfo;
 
 enum AssetSearchPriority
 {
@@ -47,6 +48,7 @@ enum AssetError
     kAssetErrLibVersion     = -3, // library version unsupported
     kAssetErrNoLibBase      = -4, // file is not library base (head)
     kAssetErrLibAssetCount  = -5, // too many assets in library
+    kAssetErrNoManager      = -6, // asset manager not initialized
 };
 
 class AssetManager
@@ -61,7 +63,7 @@ public:
 
     // NOTE: this group of methods are only temporarily public
     // Return value is error code from clib32 -- for now
-    static int      SetDataFile(const String &data_file);
+    static AssetError SetDataFile(const String &data_file);
     static String   GetAssetFilePath(const String &asset_file);
     static long     GetAssetOffset(const String &asset_file);
     static long     GetAssetSize(const String &asset_file);
@@ -82,6 +84,23 @@ public:
 
 private:
     AssetManager();
+
+    bool     _SetSearchPriority(AssetSearchPriority priority);
+    AssetSearchPriority _GetSearchPriority();
+    AssetError _SetDataFile(const String &data_file);
+    String   _GetAssetFilePath(const String &asset_file);
+    long     _GetAssetOffset(const String &asset_file);
+    long     _GetAssetSize(const String &asset_file);
+    long     _GetLastAssetSize();
+    int      _GetAssetCount();
+    String   _GetAssetFileByIndex(int index);
+    String   _GetOriginalDataFile();
+    void     _InitPseudoRand(int seed);
+    int      _GetNextPseudoRand();
+
+    DataStream *_OpenAsset(const String &asset_file,
+        FileOpenMode open_mode = kFile_Open,
+        FileWorkMode work_mode = kFile_Read);
 
     //=========================================================================
     // Former clib32 functions
@@ -113,7 +132,7 @@ private:
     String                  _currentDataFile;
 
     Clib32Info              &_clib32Info;
-    MultiFileLib            &_mflib;
+    AssetLibInfo            &_assetLib;
 };
 
 } // namespace Common

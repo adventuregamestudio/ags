@@ -370,7 +370,7 @@ void GameSetupStruct::read_audio(Common::DataStream *in, GAME_STRUCT_READ_DATA &
 
         audioClipCount = 0;
 
-        if (Common::AssetManager::SetDataFile("music.vox") == 0)
+        if (Common::AssetManager::SetDataFile("music.vox") == Common::kAssetNoError)
             BuildAudioClipArray();
 
         Common::AssetManager::SetDataFile(read_data.game_file_name);

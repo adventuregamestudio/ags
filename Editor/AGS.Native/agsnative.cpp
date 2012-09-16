@@ -375,11 +375,11 @@ int crop_sprite_edges(int numSprites, int *sprites, bool symmetric) {
 
 int extract_room_template_files(const char *templateFileName, int newRoomNumber) 
 {
-  if (Common::AssetManager::SetDataFile((char*)templateFileName)) 
+    if (Common::AssetManager::SetDataFile(templateFileName) != Common::kAssetNoError) 
   {
     return 0;
   }
-  if (Common::AssetManager::GetAssetOffset((char*)ROOM_TEMPLATE_ID_FILE) < 1)
+  if (Common::AssetManager::GetAssetOffset(ROOM_TEMPLATE_ID_FILE) < 1)
   {
     Common::AssetManager::SetDataFile(NULL);
     return 0;
@@ -425,7 +425,7 @@ int extract_room_template_files(const char *templateFileName, int newRoomNumber)
 
 int extract_template_files(const char *templateFileName) 
 {
-  if (Common::AssetManager::SetDataFile((char*)templateFileName)) 
+  if (Common::AssetManager::SetDataFile(templateFileName) != Common::kAssetNoError) 
   {
     return 0;
   }
@@ -505,7 +505,7 @@ void extract_icon_from_template(char *iconName, char **iconDataBuffer, long *buf
 
 int load_template_file(const char *fileName, char **iconDataBuffer, long *iconDataSize, bool isRoomTemplate)
 {
-  if (Common::AssetManager::SetDataFile((char*)fileName) == 0)
+  if (Common::AssetManager::SetDataFile(fileName) == Common::kAssetNoError)
   {
     if (isRoomTemplate)
     {

@@ -481,7 +481,7 @@ int extract_template_files(const char *templateFileName)
 void extract_icon_from_template(char *iconName, char **iconDataBuffer, long *bufferSize)
 {
   // make sure we get the icon from the file
-  Common::AssetManager::SetSearchPriority(Common::kAssetPriority_Data);
+  Common::AssetManager::SetSearchPriority(Common::kAssetPriorityData);
   //cfopenpriority = 1; // PR_DATAFIRST
   long sizey = Common::AssetManager::GetAssetSize(iconName);
   DataStream* inpu = Common::AssetManager::OpenAsset (iconName);
@@ -499,7 +499,7 @@ void extract_icon_from_template(char *iconName, char **iconDataBuffer, long *buf
     *bufferSize = 0;
   }
   // restore to normal setting after NewGameChooser changes it
-  Common::AssetManager::SetSearchPriority(Common::kAssetPriority_File);
+  Common::AssetManager::SetSearchPriority(Common::kAssetPriorityFile);
   //cfopenpriority = 2; // PR_FILEFIRST
 }
 
@@ -2444,7 +2444,7 @@ const char* make_data_file(int numFiles, char * const*fileNames, long splitSize,
   char tomake[MAX_PATH];
   ourlib.num_data_files = 0;
   ourlib.num_files = numFiles;
-  Common::AssetManager::SetSearchPriority(Common::kAssetPriority_File);
+  Common::AssetManager::SetSearchPriority(Common::kAssetPriorityFile);
   //cfopenpriority = 2; // PR_FILEFIRST
 
   int currentDataFile = 0;

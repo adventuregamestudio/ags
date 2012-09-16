@@ -101,7 +101,7 @@ char psp_translation[] = "default";
 void main_pre_init()
 {
     our_eip = -999;
-    Common::AssetManager::SetSearchPriority(Common::kAssetPriority_File);
+    Common::AssetManager::SetSearchPriority(Common::kAssetPriorityFile);
     //cfopenpriority=2; // PR_FILEFIRST
     play.recording = 0;
     play.playback = 0;

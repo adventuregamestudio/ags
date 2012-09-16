@@ -30,14 +30,23 @@ namespace Common
 class DataStream;
 struct Clib32Info;
 struct MultiFileLib;
-struct MultiFileLibNew;
 
-enum AssetsSearchPriority
+enum AssetSearchPriority
 {
     // TODO: rename this to something more obvious
-    kAssetPriority_Undefined,
-    kAssetPriority_Data,
-    kAssetPriority_File
+    kAssetPriorityUndefined,
+    kAssetPriorityData,
+    kAssetPriorityFile
+};
+
+enum AssetError
+{
+    kAssetNoError           =  0,
+    kAssetErrNoLibFile      = -1, // library file not found or can't be read
+    kAssetErrNoLibSig       = -2, // library signature does not match
+    kAssetErrLibVersion     = -3, // library version unsupported
+    kAssetErrNoLibBase      = -4, // file is not library base (head)
+    kAssetErrLibAssetCount  = -5, // too many assets in library
 };
 
 class AssetManager
@@ -47,8 +56,8 @@ public:
     static void     DestroyInstance();
     ~AssetManager();
 
-    static bool     SetSearchPriority(AssetsSearchPriority priority);
-    static AssetsSearchPriority GetSearchPriority();
+    static bool     SetSearchPriority(AssetSearchPriority priority);
+    static AssetSearchPriority GetSearchPriority();
 
     // NOTE: this group of methods are only temporarily public
     // Return value is error code from clib32 -- for now
@@ -79,14 +88,15 @@ private:
     void init_pseudo_rand_gen(int seed);
     int get_pseudo_rand();
     void clib_decrypt_text(char *toenc);
-    void fgetnulltermstring(char *sss, DataStream *ci_s, int bufsize);
     void fread_data_enc(void *data, int dataSize, int dataCount, DataStream *ci_s);
     void fgetstring_enc(char *sss, DataStream *ci_s, int maxLength);
     int getw_enc(DataStream *ci_s);
-    int read_new_new_enc_format_clib(MultiFileLibNew * mfl, DataStream *ci_s, int libver);
-    int read_new_new_format_clib(MultiFileLibNew * mfl, DataStream *ci_s, int libver);
-    int read_new_format_clib(MultiFileLib * mfl, DataStream *ci_s, int libver);
-    int csetlib(const char *namm, const char *passw);
+    AssetError read_ver21plus_enc_format_clib(MultiFileLib * mfl, DataStream *ci_s, int lib_version);
+    AssetError read_ver20_format_clib(MultiFileLib * mfl, DataStream *ci_s, int lib_version);
+    AssetError read_ver10to19_format_clib(MultiFileLib * mfl, DataStream *ci_s, int lib_version);
+    AssetError read_ver10plus_format_clib(MultiFileLib * mfl, DataStream *ci_s, int lib_version);
+    AssetError read_ver1to9_format_clib(MultiFileLib * mfl, DataStream *ci_s, int lib_version);
+    AssetError csetlib(const char *namm, const char *passw);
     int clibGetNumFiles();
     const char *clibGetFileName(int index);
     int clibfindindex(const char *fill);
@@ -99,11 +109,11 @@ private:
     //=========================================================================
 
     static AssetManager     *_theAssetManager;
-    AssetsSearchPriority    _searchPriority;
+    AssetSearchPriority     _searchPriority;
     String                  _currentDataFile;
 
     Clib32Info              &_clib32Info;
-    MultiFileLibNew         &_mflib;
+    MultiFileLib            &_mflib;
 };
 
 } // namespace Common

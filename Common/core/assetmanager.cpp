@@ -66,18 +66,6 @@ const char *Clib32Info::clibpasswencstring = "My\x1\xde\x4Jibzle";
 struct MultiFileLib
 {
   int num_data_files;                   // number of clib parts
-  char data_filenames[MAXMULTIFILES][20]; // filename for each clib part
-  // current clib contents
-  int num_files;                        // total number of files
-  char filenames[MAX_FILES][25];        // existing file names
-  int offset[MAX_FILES];                // file offsets
-  int length[MAX_FILES];                // file lengths
-  char file_datafile[MAX_FILES];        // index of datafile for each file in split clib
-};
-
-struct MultiFileLibNew
-{
-  int num_data_files;                   // number of clib parts
   char data_filenames[MAXMULTIFILES][50]; // filename for each clib part
   // current clib contents
   int num_files;                        // total number of files
@@ -95,7 +83,7 @@ AssetManager *AssetManager::_theAssetManager = NULL;
     assert(_theAssetManager == NULL);
     delete _theAssetManager;
     _theAssetManager = new AssetManager();
-    _theAssetManager->SetSearchPriority(kAssetPriority_File);
+    _theAssetManager->SetSearchPriority(kAssetPriorityFile);
     return _theAssetManager != NULL; // well, we should return _something_
 }
 
@@ -111,7 +99,7 @@ AssetManager::~AssetManager()
     delete &_mflib;
 }
 
-/* static */ bool AssetManager::SetSearchPriority(AssetsSearchPriority priority)
+/* static */ bool AssetManager::SetSearchPriority(AssetSearchPriority priority)
 {
     assert(_theAssetManager != NULL);
     if (_theAssetManager)
@@ -119,10 +107,10 @@ AssetManager::~AssetManager()
         _theAssetManager->_searchPriority = priority;
         switch (_theAssetManager->_searchPriority)
         {
-        case kAssetPriority_Data:
+        case kAssetPriorityData:
             _theAssetManager->_clib32Info.cfopenpriority = PR_DATAFIRST;
             break;
-        case kAssetPriority_File:
+        case kAssetPriorityFile:
             _theAssetManager->_clib32Info.cfopenpriority = PR_FILEFIRST;
             break;
         default:
@@ -133,10 +121,10 @@ AssetManager::~AssetManager()
     return false;
 }
 
-/* static */ AssetsSearchPriority AssetManager::GetSearchPriority()
+/* static */ AssetSearchPriority AssetManager::GetSearchPriority()
 {
     assert(_theAssetManager != NULL);
-    return _theAssetManager ? _theAssetManager->_searchPriority : kAssetPriority_Undefined;
+    return _theAssetManager ? _theAssetManager->_searchPriority : kAssetPriorityUndefined;
 }
 
 /* static */ int AssetManager::SetDataFile(const String &data_file)
@@ -238,7 +226,7 @@ AssetManager::~AssetManager()
 
 AssetManager::AssetManager()
     : _clib32Info(*new Clib32Info())
-    , _mflib(*new MultiFileLibNew())
+    , _mflib(*new MultiFileLib())
 {
     strcpy(_clib32Info.lib_file_name, " ");
     strcpy(_clib32Info.base_path, ".");
@@ -291,18 +279,6 @@ void AssetManager::clib_decrypt_text(char *toenc)
     }
 }
 
-// this seems to be identical to generic fgetstring_limit
-void AssetManager::fgetnulltermstring(char *sss, DataStream *ci_s, int bufsize) {
-    int b = -1;
-    do {
-        if (b < bufsize - 1)
-            b++;
-        sss[b] = ci_s->ReadInt8();
-        if (ci_s->EOS())
-            return;
-    } while (sss[b] != 0);
-}
-
 void AssetManager::fread_data_enc(void *data, int dataSize, int dataCount, DataStream *ci_s)
 {
     ci_s->ReadArray(data, dataSize, dataCount);
@@ -343,37 +319,35 @@ int AssetManager::getw_enc(DataStream *ci_s)
 }
 
 //-----------------------------------------------------------------------------
-// read_new_new_enc_format_clib:
-//
-// reading clib info for versions 20+
+// reading clib info for versions 21+
 // note: everything is decrypted here using pseudo-rand numbers
 //-----------------------------------------------------------------------------
-int AssetManager::read_new_new_enc_format_clib(MultiFileLibNew * mfl, DataStream *ci_s, int libver)
+AssetError AssetManager::read_ver21plus_enc_format_clib(MultiFileLib * mfl, DataStream *ci_s, int libver)
 {
-    int aa;
+    int i;
+
     // init randomizer
     int randSeed = ci_s->ReadInt32();
     init_pseudo_rand_gen(randSeed + _clib32Info.RAND_SEED_SALT);
     // number of clib parts
     mfl->num_data_files = getw_enc(ci_s);
     // filenames for all clib parts
-    for (aa = 0; aa < mfl->num_data_files; aa++)
+    for (i = 0; i < mfl->num_data_files; i++)
     {
-        fgetstring_enc(mfl->data_filenames[aa], ci_s, 50);
+        fgetstring_enc(mfl->data_filenames[i], ci_s, 50);
     }
     // number of files in clib
     mfl->num_files = getw_enc(ci_s);
 
     if (mfl->num_files > MAX_FILES)
-        return -1; // too many files in clib, return error code
+        return kAssetErrLibAssetCount; // too many files in clib, return error code
 
     // read information on clib contents
-    for (aa = 0; aa < mfl->num_files; aa++)
+    for (i = 0; i < mfl->num_files; i++)
     {
-        fgetstring_enc(mfl->filenames[aa], ci_s, 100);
+        fgetstring_enc(mfl->filenames[i], ci_s, 100);
     }
 
-    int i;
     for (i = 0; i < mfl->num_files; i++)
     {
         mfl->offset[i] = getw_enc(ci_s);
@@ -386,52 +360,49 @@ int AssetManager::read_new_new_enc_format_clib(MultiFileLibNew * mfl, DataStream
 
     fread_data_enc(&mfl->file_datafile[0], 1, mfl->num_files, ci_s);
 
-    return 0;
+    return kAssetNoError;
 }
 
 //-----------------------------------------------------------------------------
-// read_new_new_enc_format_clib:
-//
 // reading clib info for version 20
 //-----------------------------------------------------------------------------
-int AssetManager::read_new_new_format_clib(MultiFileLibNew * mfl, DataStream *ci_s, int libver)
+AssetError AssetManager::read_ver20_format_clib(MultiFileLib * mfl, DataStream *ci_s, int lib_version)
 {
-    int aa;
+    int i;
+
     // number of clib parts
     mfl->num_data_files = ci_s->ReadInt32();
     // filenames for all clib parts
-    for (aa = 0; aa < mfl->num_data_files; aa++)
+    for (i = 0; i < mfl->num_data_files; i++)
     {
-        fgetnulltermstring(mfl->data_filenames[aa], ci_s, 50);
+        fgetstring_limit(mfl->data_filenames[i], ci_s, 50);
     }
     // number of files in clib
     mfl->num_files = ci_s->ReadInt32();
 
     if (mfl->num_files > MAX_FILES)
-        return -1; // too many files in clib, return error code
+        return kAssetErrLibAssetCount; // too many files in clib, return error code
 
     // read information on clib contents
-    for (aa = 0; aa < mfl->num_files; aa++)
+    for (i = 0; i < mfl->num_files; i++)
     {
         short nameLength;
         nameLength = ci_s->ReadInt16();
         nameLength /= 5;
-        ci_s->ReadArray(mfl->filenames[aa], nameLength, 1);
+        ci_s->Read(mfl->filenames[i], nameLength);
         // decrypt filenames
-        clib_decrypt_text(mfl->filenames[aa]);
+        clib_decrypt_text(mfl->filenames[i]);
     }
     ci_s->ReadArrayOfInt32(&mfl->offset[0], mfl->num_files);
     ci_s->ReadArrayOfInt32(&mfl->length[0], mfl->num_files);
     ci_s->ReadArrayOfInt8((int8_t*)&mfl->file_datafile[0], mfl->num_files);
-    return 0;
+    return kAssetNoError;
 }
 
 //-----------------------------------------------------------------------------
-// read_new_new_enc_format_clib:
-//
 // reading clib info for versions 10 to 19
 //-----------------------------------------------------------------------------
-int AssetManager::read_new_format_clib(MultiFileLib * mfl, DataStream *ci_s, int libver)
+AssetError AssetManager::read_ver10to19_format_clib(MultiFileLib * mfl, DataStream *ci_s, int lib_version)
 {
     // number of clib parts
     mfl->num_data_files = ci_s->ReadInt32();
@@ -441,7 +412,7 @@ int AssetManager::read_new_format_clib(MultiFileLib * mfl, DataStream *ci_s, int
     mfl->num_files = ci_s->ReadInt32();
 
     if (mfl->num_files > MAX_FILES)
-        return -1; // too many files in clib, return error code
+        return kAssetErrLibAssetCount; // too many files in clib, return error code
 
     // read information on clib contents
     ci_s->ReadArray(&mfl->filenames[0][0], 25, mfl->num_files);
@@ -449,20 +420,90 @@ int AssetManager::read_new_format_clib(MultiFileLib * mfl, DataStream *ci_s, int
     ci_s->ReadArrayOfInt32(&mfl->length[0], mfl->num_files);
     ci_s->ReadArrayOfInt8((int8_t*)&mfl->file_datafile[0], mfl->num_files);
 
-    if (libver >= 11)
+    if (lib_version >= 11)
     {
         // decrypt filenames
-        int aa;
-        for (aa = 0; aa < mfl->num_files; aa++)
-            clib_decrypt_text(mfl->filenames[aa]);
+        for (int i = 0; i < mfl->num_files; i++)
+            clib_decrypt_text(mfl->filenames[i]);
     }
-    return 0;
+    return kAssetNoError;
+}
+
+//-----------------------------------------------------------------------------
+// reading clib info for versions 10+ with support for multifile clib
+//-----------------------------------------------------------------------------
+AssetError AssetManager::read_ver10plus_format_clib(MultiFileLib * mfl, DataStream *ci_s, int lib_version)
+{
+    if (ci_s->ReadByte() != 0)
+        return kAssetErrNoLibBase;  // not first datafile in chain
+
+    if (lib_version >= 21)
+    {
+        // read new clib format with encoding support (versions 21+)
+        AssetError err = read_ver21plus_enc_format_clib(mfl, ci_s, lib_version);
+        if (err != kAssetNoError)
+            return err;
+    }
+    else if (lib_version == 20)
+    {
+        // read new clib format without encoding support (version 20)
+        AssetError err = read_ver20_format_clib(mfl, ci_s, lib_version);
+        if (err != kAssetNoError)
+            return err;
+    }
+    else 
+    {
+        // read older clib format (versions 10 to 19), the ones with shorter filenames
+        AssetError err = read_ver10to19_format_clib(mfl, ci_s, lib_version);
+        if (err != kAssetNoError)
+            return err;
+    }
+    // return success
+    return kAssetNoError;
+}
+
+//-----------------------------------------------------------------------------
+// reading clib info for versions 1 to 9 (single file clib)
+//-----------------------------------------------------------------------------
+AssetError AssetManager::read_ver1to9_format_clib(MultiFileLib * mfl, DataStream *ci_s, int lib_version)
+{
+    int i;
+
+    int passwmodifier = ci_s->ReadByte();
+    ci_s->ReadInt8(); // unused byte
+    mfl->num_data_files = 1;
+
+    mfl->num_files = ci_s->ReadInt16();
+    if (mfl->num_files > MAX_FILES)
+        return kAssetErrLibAssetCount; // too many files in clib, return error code
+
+    char clbuff[20];
+    ci_s->Read(clbuff, 13);  // skip password dooberry
+    // read information on contents
+    for (i = 0; i < mfl->num_files; i++) {
+        ci_s->Read(&mfl->filenames[i][0], 13); // CHECKME, is it really 13?
+        for (int j = 0; j < (int)strlen(mfl->filenames[i]); j++)
+            mfl->filenames[i][j] -= passwmodifier;
+    }
+    ci_s->ReadArrayOfInt32(&mfl->length[0], mfl->num_files);
+    ci_s->Seek(Common::kSeekCurrent, 2 * mfl->num_files);  // skip flags & ratio
+
+    mfl->offset[0] = ci_s->GetPosition();
+    // set offsets (assets are positioned in sequence)
+    for (i = 1; i < mfl->num_files; i++) {
+        mfl->offset[i] = mfl->offset[i - 1] + mfl->length[i - 1];
+        mfl->file_datafile[i] = 0;
+    }
+    mfl->file_datafile[0] = 0;
+
+    // return success
+    return kAssetNoError;
 }
 
 //-----------------------------------------------------------------------------
 // csetlib: set active multifile library, read info about its contents
 //-----------------------------------------------------------------------------
-int AssetManager::csetlib(const char *namm, const char *passw)
+AssetError AssetManager::csetlib(const char *namm, const char *passw)
 {
     // reset original base filename
     _clib32Info.original_base_filename[0] = 0;
@@ -471,44 +512,43 @@ int AssetManager::csetlib(const char *namm, const char *passw)
     if (namm == NULL) {
         _clib32Info.lib_file_name[0] = ' ';
         _clib32Info.lib_file_name[1] = 0;
-        return 0;
+        return kAssetNoError;
     }
     // base path is current directory
     strcpy(_clib32Info.base_path, ".");
 
-    int passwmodifier = 0, cc, aa;
     // open data library
     DataStream *ci_s = ci_fopen(namm, Common::kFile_Open, Common::kFile_Read);
     if (ci_s == NULL)
-        return -1; // can't be opened, return error code
+        return kAssetErrNoLibFile; // can't be opened, return error code
 
-    long absoffs = 0; // library offset in this file
+    long abs_offset = 0; // library offset in this file
     char clbuff[20];
     // check multifile lib signature at the beginning of file
-    ci_s->ReadArray(&clbuff[0], 5, 1);
+    ci_s->Read(&clbuff[0], 5);
     if (strncmp(clbuff, "CLIB", 4) != 0) {
 
         // signature not found, check signature at the end of file
         ci_s->Seek(Common::kSeekEnd, -12);
-        ci_s->ReadArray(&clbuff[0], 12, 1);
+        ci_s->Read(&clbuff[0], 12);
 
         // signature not found, return error code
         if (strncmp(clbuff, _clib32Info.clibendfilesig, 12) != 0)
-            return -2;
+            return kAssetErrNoLibSig;
 
         ci_s->Seek(Common::kSeekEnd, -16);  // it's an appended-to-end-of-exe thing
         int debug_pos2 = ci_s->GetPosition();
         // read multifile lib offset value
-        absoffs = ci_s->ReadInt32();
-        ci_s->Seek(Common::kSeekBegin, absoffs + 5);
+        abs_offset = ci_s->ReadInt32();
+        ci_s->Seek(Common::kSeekBegin, abs_offset + 5);
     }
 
     // read library header
-    int lib_version = ci_s->ReadInt8();
+    int lib_version = ci_s->ReadByte();
     if ((lib_version != 6) && (lib_version != 10) &&
         (lib_version != 11) && (lib_version != 15) &&
         (lib_version != 20) && (lib_version != 21))
-        return -3;  // unsupported version
+        return kAssetErrLibVersion;  // unsupported version
 
     const char *nammwas = namm;
     // remove slashes so that the lib name fits in the buffer
@@ -523,103 +563,40 @@ int AssetManager::csetlib(const char *namm, const char *passw)
             _clib32Info.base_path[strlen(_clib32Info.base_path) - 1] = 0;
     }
 
-    if (lib_version >= 10) {
+    AssetError err;
+    if (lib_version >= 10)
+    {
         // read newer clib versions (versions 10+)
-
-        if (ci_s->ReadInt8() != 0)
-            return -4;  // not first datafile in chain
-
-        if (lib_version >= 21)
-        {
-            // read new clib format with encoding support (versions 21+)
-            if (read_new_new_enc_format_clib(&_mflib, ci_s, lib_version))
-                return -5;
-        }
-        else if (lib_version == 20)
-        {
-            // read new clib format without encoding support (version 20)
-            if (read_new_new_format_clib(&_mflib, ci_s, lib_version))
-                return -5;
-        }
-        else 
-        {
-            // read older clib format (versions 10 to 19), the ones with shorter filenames
-            // PSP: Allocate struct on the heap to avoid overflowing the stack.
-            MultiFileLib* mflibOld = (MultiFileLib*)malloc(sizeof(MultiFileLib));
-
-            if (read_new_format_clib(mflibOld, ci_s, lib_version))
-                return -5;
-            // convert to newer format
-            _mflib.num_files = mflibOld->num_files;
-            _mflib.num_data_files = mflibOld->num_data_files;
-            memcpy(&_mflib.offset[0], &mflibOld->offset[0], sizeof(int) * _mflib.num_files);
-            memcpy(&_mflib.length[0], &mflibOld->length[0], sizeof(int) * _mflib.num_files);
-            memcpy(&_mflib.file_datafile[0], &mflibOld->file_datafile[0], sizeof(char) * _mflib.num_files);
-            for (aa = 0; aa < _mflib.num_data_files; aa++)
-                strcpy(_mflib.data_filenames[aa], mflibOld->data_filenames[aa]);
-            for (aa = 0; aa < _mflib.num_files; aa++)
-                strcpy(_mflib.filenames[aa], mflibOld->filenames[aa]);
-
-            free(mflibOld);
-        }
-
-        // clib loading completed
-        delete ci_s;
-
-        // set library filename
-        strcpy(_clib32Info.lib_file_name, namm);
-
-        // make a backup of the original file name
-        strcpy(_clib32Info.original_base_filename, _mflib.data_filenames[0]);
-        strlwr(_clib32Info.original_base_filename);
-
-        strcpy(_mflib.data_filenames[0], namm);
-        for (aa = 0; aa < _mflib.num_files; aa++) {
-            // correct offsets for EXE file
-            if (_mflib.file_datafile[aa] == 0)
-                _mflib.offset[aa] += absoffs;
-        }
-        // return success
-        return 0;
+        err = read_ver10plus_format_clib(&_mflib, ci_s, lib_version);
     }
-
-    // read oldest clib versions (versions 1 to 9), the ones without split clib
-
-    passwmodifier = ci_s->ReadInt8();
-    ci_s->ReadInt8(); // unused byte
-    _mflib.num_data_files = 1;
-    strcpy(_mflib.data_filenames[0], namm);
-
-    short tempshort;
-    tempshort = ci_s->ReadInt16();
-    _mflib.num_files = tempshort;
-
-    if (_mflib.num_files > MAX_FILES)
-        return -4; // too many files in clib, return error code
-
-    ci_s->ReadArray(clbuff, 13, 1);  // skip password dooberry
-    // read information on contents
-    for (aa = 0; aa < _mflib.num_files; aa++) {
-        ci_s->ReadArray(&_mflib.filenames[aa][0], 13, 1);
-        for (cc = 0; cc < (int)strlen(_mflib.filenames[aa]); cc++)
-            _mflib.filenames[aa][cc] -= passwmodifier;
+    else
+    {
+        // read older clib versions (versions 1 to 9)
+        err = read_ver1to9_format_clib(&_mflib, ci_s, lib_version);
     }
-    ci_s->ReadArrayOfInt32(&_mflib.length[0], _mflib.num_files);
-    ci_s->Seek(Common::kSeekCurrent, 2 * _mflib.num_files);  // skip flags & ratio
-
-    _mflib.offset[0] = ci_s->GetPosition();
-    strcpy(_clib32Info.lib_file_name, namm);
-    // loading clib completed
+    // Finished reading clib
     delete ci_s;
 
-    // fixup offsets
-    for (aa = 1; aa < _mflib.num_files; aa++) {
-        _mflib.offset[aa] = _mflib.offset[aa - 1] + _mflib.length[aa - 1];
-        _mflib.file_datafile[aa] = 0;
+    // set library filename
+    strcpy(_clib32Info.lib_file_name, namm);
+    strcpy(_mflib.data_filenames[0], namm);
+
+    // make a backup of the original file name
+    strcpy(_clib32Info.original_base_filename, _mflib.data_filenames[0]);
+    strlwr(_clib32Info.original_base_filename);
+    
+    // apply absolute offset for the assets contained in base data file
+    // (since only base data file may be EXE file, other clib parts are always on their own)
+    if (abs_offset > 0)
+    {
+        for (int i = 0; i < _mflib.num_files; i++) {
+            // correct offsets for EXE file
+            if (_mflib.file_datafile[i] == 0)
+                _mflib.offset[i] += abs_offset;
+        }
     }
-    _mflib.file_datafile[0] = 0;
-    // return success
-    return 0;
+
+    return err;
 }
 
 //-----------------------------------------------------------------------------

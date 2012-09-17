@@ -157,7 +157,7 @@ DataStream *ci_fopen(const char *file_name, Common::FileOpenMode open_mode, Comm
   return Common::File::OpenFile(file_name, open_mode, work_mode);
 #else
   DataStream *fs = NULL;
-  char *fullpath = ci_find_file(NULL, file_name);
+  char *fullpath = ci_find_file(NULL, (char*)file_name);
 
   /* If I didn't find a file, this could be writing a new file,
       so use whatever file_name they passed */

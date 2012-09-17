@@ -1,6 +1,6 @@
 
 #include "executingscript.h"
-#include "string.h"
+#include <string.h>
 #include "debug/debug_log.h"
 
 int ExecutingScript::queue_action(PostScriptAction act, int data, const char *aname) {

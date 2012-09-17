@@ -33,7 +33,7 @@
 #include <stdio.h>
 #include "util/file.h"
 
-#if defined(LINUX_VERSION)
+#if defined(LINUX_VERSION) || defined(MAC_VERSION)
 #include <unistd.h>
 #include <dirent.h>
 #include <string.h>

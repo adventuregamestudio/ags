@@ -49,6 +49,8 @@
 #include "util/filestream.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
+#include "util/misc.h"
+#include "../PSP/launcher/pe.h"
 
 using AGS::Common::DataStream;
 using AGS::Common::Bitmap;

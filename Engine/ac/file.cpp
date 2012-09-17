@@ -23,12 +23,11 @@ using AGS::Common::DataStream;
 
 #elif (defined(LINUX_VERSION) || defined(MAC_VERSION)) && !defined(PSP_VERSION)
 #include <dlfcn.h>
+#include <sys/stat.h>
 /*
 #include <sys/types.h>
-#include <sys/stat.h>
 #include <unistd.h>
 #include <dirent.h>
-#include "../PSP/launcher/pe.h"
 */
 
 #else   // it's DOS (DJGPP)
@@ -52,7 +51,7 @@ extern "C" {
 #else
 #define PFO_PARAM char *
 #endif
-#ifndef RTLD_NEXT
+#if !defined(AGS_RUNTIME_PATCH_ALLEGRO)
 	extern PACKFILE *__old_pack_fopen(PFO_PARAM,PFO_PARAM);
 #endif
 }
@@ -245,7 +244,7 @@ PACKFILE *pack_fopen(char *filnam1, char *modd1) {
   // if the file exists, override the internal file
   bool file_exists = Common::File::TestReadFile(filnam);
 
-#ifdef RTLD_NEXT
+#if defined(AGS_RUNTIME_PATCH_ALLEGRO)
   static PACKFILE * (*__old_pack_fopen)(PFO_PARAM, PFO_PARAM) = NULL;
   if(!__old_pack_fopen) {
     __old_pack_fopen = (PACKFILE* (*)(PFO_PARAM, PFO_PARAM))dlsym(RTLD_NEXT, "pack_fopen");

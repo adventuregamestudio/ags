@@ -21,7 +21,7 @@ extern "C" {
     char *strlwr(char *s);
 }
 #endif
-#if defined(ANDROID_VERSION) || defined(IOS_VERSION) || defined(LINUX_VERSION)
+#if defined(ANDROID_VERSION) || defined(IOS_VERSION) || defined(LINUX_VERSION) || defined(MAC_VERSION)
 #define stricmp strcasecmp
 #define strnicmp strncasecmp
 #endif

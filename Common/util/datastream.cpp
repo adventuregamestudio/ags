@@ -88,7 +88,7 @@ int DataStream::ReadArrayOfIntPtr(intptr_t *buffer, int count)
 #if defined (AGS_64BIT) || defined (TEST_64BIT)
     return MustSwapBytes() ? ReadAndConvertArrayOfInt64(buffer, count) : ReadArrayOfInt64(buffer, count);
 #else
-    return MustSwapBytes() ? ReadAndConvertArrayOfInt32(buffer, count) : ReadArrayOfInt32(buffer, count);
+    return MustSwapBytes() ? ReadAndConvertArrayOfInt32((int32_t*)buffer, count) : ReadArrayOfInt32((int32_t*)buffer, count);
 #endif
 }
 
@@ -140,7 +140,7 @@ int DataStream::WriteArrayOfIntPtr(const intptr_t *buffer, int count)
 #if defined (AGS_64BIT) || defined (TEST_64BIT)
     return MustSwapBytes() ? WriteAndConvertArrayOfInt64(buffer, count) : WriteArrayOfInt64(buffer, count);
 #else
-    return MustSwapBytes() ? WriteAndConvertArrayOfInt32(buffer, count) : WriteArrayOfInt32(buffer, count);
+    return MustSwapBytes() ? WriteAndConvertArrayOfInt32((const int32_t*)buffer, count) : WriteArrayOfInt32((const int32_t*)buffer, count);
 #endif
 }
 

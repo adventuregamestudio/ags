@@ -1,7 +1,7 @@
 #ifndef AGS_TOUCH_H
 #define AGS_TOUCH_H
 
-#include "../../Common/agsplugin.h"
+#include "plugin/agsplugin.h"
 
 namespace agstouch
 {

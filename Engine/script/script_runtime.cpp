@@ -30,6 +30,7 @@ prior express permission from Chris Jones.
 #include "util/misc.h"
 #include "util/datastream.h"
 #include "util/textstreamwriter.h"
+#include "util/bbop.h"
 
 using AGS::Common::DataStream;
 using AGS::Common::TextStreamWriter;
@@ -194,19 +195,18 @@ ccInstance *ccCreateInstanceEx(ccScript * scri, ccInstance * joined)
     case FIXUP_DATADATA:
         if (joined == NULL)
         {
-#ifdef AGS_BIG_ENDIAN
             // supposedly these are only used for strings...
-            long *dataPtr = (long *)(&cinst->globaldata[fixup]);
-            *dataPtr = __int_swap_endian(*dataPtr);
-#endif
-            long temp;
+
+            int32_t temp;
             memcpy(&temp, (char*)&(cinst->globaldata[fixup]), 4);
-            temp += (long)cinst->globaldata;
-            memcpy(&(cinst->globaldata[fixup]), &temp, 4);
-#ifdef AGS_BIG_ENDIAN
-            // leave the address swapped - will be read in and flipped every time
-            *dataPtr = __int_swap_endian(*dataPtr);
+#if defined(AGS_BIG_ENDIAN)
+            AGS::Common::BitByteOperations::SwapBytesInt32(temp);
 #endif
+            temp += (long)cinst->globaldata;
+#if defined(AGS_BIG_ENDIAN)
+            AGS::Common::BitByteOperations::SwapBytesInt32(temp);
+#endif
+            memcpy(&(cinst->globaldata[fixup]), &temp, 4);
         }
         break;
     case FIXUP_STACK:
@@ -612,32 +612,32 @@ int cc_run_code(ccInstance * inst, long curpc)
         // 64 bit: Memory reads are still 32 bit
         memset(&(inst->registers[arg1]), 0, sizeof(long));
         memcpy(&(inst->registers[arg1]), (char*)inst->registers[SREG_MAR], 4);
-#ifdef AGS_BIG_ENDIAN
+
+#if defined(AGS_BIG_ENDIAN)
+        if (gSpans.IsInSpan((char*)inst->registers[SREG_MAR]))
         {
-          // check if we're reading from the script's global data
-          // if so, swap endian
-          char *charPtr = (char *)inst->registers[SREG_MAR];
-          if (gSpans.IsInSpan(charPtr))
-          {
-            inst->registers[arg1] = __int_swap_endian(inst->registers[arg1]);
-          }
+          int32_t temp = inst->registers[arg1];
+          AGS::Common::BitByteOperations::SwapBytesInt32(temp);
+          inst->registers[arg1] = temp;
         }
 #endif
+
         break;
       case SCMD_MEMWRITE:
+#if defined(AGS_BIG_ENDIAN)
+        if (gSpans.IsInSpan((char*)inst->registers[SREG_MAR]))
+        {
+          int32_t temp = inst->registers[arg1];
+          AGS::Common::BitByteOperations::SwapBytesInt32(temp);
+          memcpy((char*)inst->registers[SREG_MAR], &temp, 4);
+        }
+        else
+        {
+          memcpy((char*)inst->registers[SREG_MAR], &(inst->registers[arg1]), 4);
+        }
+#else
         // 64 bit: Memory writes are still 32 bit
         memcpy((char*)inst->registers[SREG_MAR], &(inst->registers[arg1]), 4);
-#ifdef AGS_BIG_ENDIAN
-        {
-          // check if we're writing to the script's global data
-          // if so, swap endian
-          char *charPtr = (char *)inst->registers[SREG_MAR];
-          if (gSpans.IsInSpan(charPtr))
-          {
-            long *dataPtr = (long *)charPtr;
-            *dataPtr = __int_swap_endian(*dataPtr);
-          }
-        }
 #endif
         break;
       case SCMD_LOADSPOFFS:
@@ -778,17 +778,15 @@ int cc_run_code(ccInstance * inst, long curpc)
       case SCMD_MEMREADW:
         tshort = *((short *)inst->registers[SREG_MAR]);
         inst->registers[arg1] = tshort;
-#ifdef AGS_BIG_ENDIAN
+#if defined(AGS_BIG_ENDIAN)
+        if (gSpans.IsInSpan((char*)inst->registers[SREG_MAR]))
         {
-          // check if we're reading from the script's global data
-          // if so, swap endian
-          char *charPtr = (char *)inst->registers[SREG_MAR];
-          if (gSpans.IsInSpan(charPtr))
-          {
-            inst->registers[arg1] = __short_swap_endian(inst->registers[arg1]);
-          }
+          int16_t temp = inst->registers[arg1];
+          AGS::Common::BitByteOperations::SwapBytesInt16(temp);
+          inst->registers[arg1] = temp;
         }
 #endif
+
         break;
       case SCMD_MEMWRITEB:
         tbyte = (unsigned char)inst->registers[arg1];
@@ -797,16 +795,12 @@ int cc_run_code(ccInstance * inst, long curpc)
       case SCMD_MEMWRITEW:
         tshort = (short)inst->registers[arg1];
         *((short *)inst->registers[SREG_MAR]) = tshort;
-#ifdef AGS_BIG_ENDIAN
+#if defined(AGS_BIG_ENDIAN)
+        if (gSpans.IsInSpan((char*)inst->registers[SREG_MAR]))
         {
-          // check if we're writing to the script's global data
-          // if so, swap endian
-          char *charPtr = (char *)inst->registers[SREG_MAR];
-          if (gSpans.IsInSpan(charPtr))
-          {
-            short *dataPtr = (short *)charPtr;
-            *dataPtr = __short_swap_endian(*dataPtr);
-          }
+          int16_t temp = inst->registers[arg1];
+          AGS::Common::BitByteOperations::SwapBytesInt16(temp);
+          inst->registers[arg1] = temp;
         }
 #endif
         break;
@@ -844,6 +838,10 @@ int cc_run_code(ccInstance * inst, long curpc)
         break;
       case SCMD_JMP:
         inst->pc += arg1;
+        // JJS: FIXME! This is a hack to get 64 bit working again but the real
+        // issue is that arg1 sometimes has additional upper bits set
+        inst->pc &= 0xFFFFFFFF;
+
         if ((arg1 < 0) && (maxWhileLoops > 0) && (loopIterationCheckDisabled == 0)) {
           // Make sure it's not stuck in a While loop
           loopIterations ++;
@@ -1370,19 +1368,18 @@ void ccFlattenGlobalData(ccInstance * cinst)
     for (i = 0; i < scri->numfixups; i++) {
         long fixup = scri->fixups[i];
         if (scri->fixuptypes[i] == FIXUP_DATADATA) {
-#ifdef AGS_BIG_ENDIAN
             // supposedly these are only used for strings...
-            long *dataPtr = (long *)(&cinst->globaldata[fixup]);
-            *dataPtr = __int_swap_endian(*dataPtr);
-#endif
-            long temp;
+            int32_t temp;
             memcpy(&temp, (char*)&(cinst->globaldata[fixup]), 4);
-            temp -= (long)cinst->globaldata;
-            memcpy(&(cinst->globaldata[fixup]), &temp, 4);
-#ifdef AGS_BIG_ENDIAN
-            // leave the address swapped - will be read in and flipped every time
-            *dataPtr = __int_swap_endian(*dataPtr);
+
+#if defined(AGS_BIG_ENDIAN)
+            AGS::Common::BitByteOperations::SwapBytesInt32(temp);
 #endif
+            temp -= (long)cinst->globaldata;
+#if defined(AGS_BIG_ENDIAN)
+            AGS::Common::BitByteOperations::SwapBytesInt32(temp);
+#endif
+            memcpy(&(cinst->globaldata[fixup]), &temp, 4);
         }
     }
 
@@ -1401,19 +1398,17 @@ void ccUnFlattenGlobalData(ccInstance * cinst)
     for (i = 0; i < scri->numfixups; i++) {
         long fixup = scri->fixups[i];
         if (scri->fixuptypes[i] == FIXUP_DATADATA) {
-#ifdef AGS_BIG_ENDIAN
             // supposedly these are only used for strings...
-            long *dataPtr = (long *)(&cinst->globaldata[fixup]);
-            *dataPtr = __int_swap_endian(*dataPtr);
-#endif
-            long temp;
+            int32_t temp;
             memcpy(&temp, (char*)&(cinst->globaldata[fixup]), 4);
-            temp += (long)cinst->globaldata;
-            memcpy(&(cinst->globaldata[fixup]), &temp, 4);
-#ifdef AGS_BIG_ENDIAN
-            // leave the address swapped - will be read in and flipped every time
-            *dataPtr = __int_swap_endian(*dataPtr);
+#if defined(AGS_BIG_ENDIAN)
+            AGS::Common::BitByteOperations::SwapBytesInt32(temp);
 #endif
+            temp += (long)cinst->globaldata;
+#if defined(AGS_BIG_ENDIAN)
+            AGS::Common::BitByteOperations::SwapBytesInt32(temp);
+#endif
+            memcpy(&(cinst->globaldata[fixup]), &temp, 4);
         }
     }
 }

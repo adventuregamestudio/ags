@@ -18,7 +18,7 @@ enum DataEndianess
 {
     kBigEndian,
     kLittleEndian,
-#if defined(AGS_BIGENDIAN)
+#if defined(AGS_BIG_ENDIAN)
     kDefaultSystemEndianess = kBigEndian
 #else
     kDefaultSystemEndianess = kLittleEndian

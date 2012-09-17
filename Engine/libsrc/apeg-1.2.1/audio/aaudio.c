@@ -2,6 +2,7 @@
 
 #include "apeg.h"
 #include "mpg123.h"
+#include "mpeg1dec.h"
 
 
 int _apeg_audio_get_position(APEG_LAYER *layer)

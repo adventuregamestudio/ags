@@ -50,7 +50,6 @@ using AGS::Common::DataStream;
 #include "util/misc.h"
 
 #ifdef MAC_VERSION
-#include "macport.h"
 #include <sys/stat.h>
 #endif
 
@@ -168,7 +167,7 @@ extern "C"
     int numberRead;
     fread_data_enc(&numberRead, 4, 1, ci_s);
 
-#if defined(AGS_BIGENDIAN)
+#if defined(AGS_BIG_ENDIAN)
     AGS::Common::BitByteOperations::SwapBytesInt32(numberRead);
 #endif
 

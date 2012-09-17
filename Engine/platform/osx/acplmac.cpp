@@ -1,11 +1,18 @@
-#ifndef MAC_VERSION
+#if !defined(MAC_VERSION)
 #error This file should only be included on the Mac build
 #endif
 
 // ********* MacOS PLACEHOLDER DRIVER *********
 
-#include "acplatfm.h"
+#include "util/wgt2allg.h"
+#include "gfx/ali3d.h"
+#include "ac/runtime_defines.h"
+#include "platform/base/agsplatformdriver.h"
+#include "plugin/agsplugin.h"
+#include <libcda.h>
 
+#include <pwd.h>
+#include <sys/stat.h>
 
 bool PlayMovie(char const *name, int skipType);
 

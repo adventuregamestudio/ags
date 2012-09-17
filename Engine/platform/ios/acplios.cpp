@@ -2,7 +2,6 @@
 #error This file should only be included on the iOS build
 #endif
 
-#include "acplatfm.h"
 #include <stdio.h>
 #include <dirent.h>
 #include <sys/stat.h> 
@@ -10,7 +9,10 @@
 
 #include <allegro.h>
 #include "bigend.h"
-
+#include "platform/base/agsplatformdriver.h"
+#include "platform/base/override_defines.h"
+#include "ac/runtime_defines.h"
+#include "plugin/agsplugin.h"
 
 #define IOS_CONFIG_FILENAME "ios.cfg"
 

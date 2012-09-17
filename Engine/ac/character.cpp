@@ -50,6 +50,7 @@
 #include <math.h>
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
+#include "platform/base/override_defines.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;

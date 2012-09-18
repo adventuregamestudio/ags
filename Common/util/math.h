@@ -42,7 +42,7 @@ namespace Math
             length = 0;
         }
 
-        length = Min(length, height);
+        length = Min(length, height - from);
     }
 
 

@@ -481,8 +481,7 @@ int extract_template_files(const char *templateFileName)
 void extract_icon_from_template(char *iconName, char **iconDataBuffer, long *bufferSize)
 {
   // make sure we get the icon from the file
-  Common::AssetManager::SetSearchPriority(Common::kAssetPriorityData);
-  //cfopenpriority = 1; // PR_DATAFIRST
+  Common::AssetManager::SetSearchPriority(Common::kAssetPriorityLib);
   long sizey = Common::AssetManager::GetAssetSize(iconName);
   DataStream* inpu = Common::AssetManager::OpenAsset (iconName);
   if ((inpu != NULL) && (sizey > 0))
@@ -499,8 +498,7 @@ void extract_icon_from_template(char *iconName, char **iconDataBuffer, long *buf
     *bufferSize = 0;
   }
   // restore to normal setting after NewGameChooser changes it
-  Common::AssetManager::SetSearchPriority(Common::kAssetPriorityFile);
-  //cfopenpriority = 2; // PR_FILEFIRST
+  Common::AssetManager::SetSearchPriority(Common::kAssetPriorityDir);
 }
 
 int load_template_file(const char *fileName, char **iconDataBuffer, long *iconDataSize, bool isRoomTemplate)
@@ -534,7 +532,7 @@ int load_template_file(const char *fileName, char **iconDataBuffer, long *iconDa
     }
 	  else if ((Common::AssetManager::GetAssetOffset((char*)old_editor_data_file) > 0) || (Common::AssetManager::GetAssetOffset((char*)new_editor_data_file) > 0))
 	  {
-      const char *oriname = Common::AssetManager::GetOriginalDataFile();
+      Common::String oriname = Common::AssetManager::GetLibraryBaseFile();
       if ((strstr(oriname, ".exe") != NULL) ||
           (strstr(oriname, ".dat") != NULL) ||
           (strstr(oriname, ".ags") != NULL)) 
@@ -2444,8 +2442,7 @@ const char* make_data_file(int numFiles, char * const*fileNames, long splitSize,
   char tomake[MAX_PATH];
   ourlib.num_data_files = 0;
   ourlib.num_files = numFiles;
-  Common::AssetManager::SetSearchPriority(Common::kAssetPriorityFile);
-  //cfopenpriority = 2; // PR_FILEFIRST
+  Common::AssetManager::SetSearchPriority(Common::kAssetPriorityDir);
 
   int currentDataFile = 0;
   long sizeSoFar = 0;

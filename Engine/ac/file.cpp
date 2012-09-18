@@ -267,9 +267,9 @@ PACKFILE *pack_fopen(char *filnam1, char *modd1) {
     return __old_pack_fopen(filnam, modd);
   } 
   else {
-    _my_temppack=__old_pack_fopen(Common::AssetManager::GetAssetFilePath(filnam), modd);
+    _my_temppack=__old_pack_fopen(Common::AssetManager::GetLibraryForAsset(filnam), modd);
     if (_my_temppack == NULL)
-      quitprintf("pack_fopen: unable to change datafile: not found: %s", Common::AssetManager::GetAssetFilePath(filnam));
+      quitprintf("pack_fopen: unable to change datafile: not found: %s", Common::AssetManager::GetLibraryForAsset(filnam));
 
     pack_fseek(_my_temppack,Common::AssetManager::GetAssetOffset(filnam));
     

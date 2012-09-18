@@ -49,6 +49,7 @@ public:
     int                 CompareLeft(const char *cstr) const;
 
     int                 FindChar(char c) const;
+    int                 FindCharReverse(char c) const;
 
     void                FillString(char c, int count);
     void                Append(const char *cstr);
@@ -57,13 +58,16 @@ public:
     char                GetAt(int index) const;
     void                SetAt(int index, char c);
 
-    String             Left(int count) const;
-    String             Mid(int from) const;
-    String             Mid(int from, int count) const;
-    String             Right(int count) const;
+    String              ToLower() const;
+    String              ToUpper() const;
+
+    String              Left(int count) const;
+    String              Mid(int from) const;
+    String              Mid(int from, int count) const;
+    String              Right(int count) const;
 
     void                Format(const char *fcstr, ...);
-    static String      MakeString(const char *fcstr, ...);
+    static String       MakeString(const char *fcstr, ...);
 
     int                 ToInt() const;
 

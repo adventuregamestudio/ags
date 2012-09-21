@@ -23580,6 +23580,8 @@ void save_game_data (FILE *ooo, block screenshot) {
         if (roomstat->tsdatasize>0)
           fwrite(&roomstat->tsdata[0], 1, roomstat->tsdatasize, ooo);
       }
+      else
+        fputc (0, ooo);
     }
     else
       fputc (0, ooo);

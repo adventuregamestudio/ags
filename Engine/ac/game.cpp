@@ -1244,7 +1244,7 @@ void save_game_globalvars(DataStream *out)
     out->WriteInt32 (numGlobalVars);
     for (int i = 0; i < numGlobalVars; ++i)
     {
-        globalvars[i].ReadFromFile(out);
+        globalvars[i].WriteToFile(out);
     }
     //out->WriteArray (&globalvars[0], sizeof(InteractionVariable), numGlobalVars);
 }

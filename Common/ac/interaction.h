@@ -98,6 +98,7 @@ struct InteractionVariable {
     int  value;
 
     void ReadFromFile(Common::DataStream *in);
+    void WriteToFile(Common::DataStream *out);
 };
 extern InteractionVariable globalvars[];
 extern int numGlobalVars;

@@ -57,6 +57,12 @@ void InteractionVariable::ReadFromFile(DataStream *in)
 //#endif
 }
 
+void InteractionVariable::WriteToFile(Common::DataStream *out)
+{
+    out->Write(name, 23);
+    out->WriteInt8(type);
+    out->WriteInt32(value);
+}
 
 NewInteractionCommand::NewInteractionCommand() {
     type = 0;

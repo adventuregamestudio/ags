@@ -22,6 +22,7 @@ extern "C" {
 }
 #endif
 #if defined(ANDROID_VERSION) || defined(IOS_VERSION) || defined(LINUX_VERSION) || defined(MAC_VERSION)
+#undef stricmp
 #define stricmp strcasecmp
 #define strnicmp strncasecmp
 #endif

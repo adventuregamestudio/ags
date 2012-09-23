@@ -15,6 +15,10 @@
 #include <stdlib.h>
 #include "resource/resource.h"
 #include "gfx/gfxfilter.h"
+#include "util/filestream.h"
+
+using AGS::Common::DataStream;
+using namespace AGS; // FIXME later
 
 #define AL_ID(a,b,c,d)     (((a)<<24) | ((b)<<16) | ((c)<<8) | (d))
 
@@ -30,7 +34,7 @@
 
 extern "C" HWND allegro_wnd;
 extern int  INIreadint(const char*, const char*, int=0);
-extern void fgetstring_limit (char *, FILE *, int);
+extern void fgetstring_limit (char *, DataStream *, int);
 extern char* ac_config_file;
 const char*setupstring, *enginever;
 int curscrn=-1,csendto,curdigi=0,curmidi=0,windowed=0,useletterbox = 0;
@@ -94,28 +98,28 @@ void update_resolution_texts(HWND hDlg) {
 }
 
 void get_replay_name (const char *filename, char *namebuf) {
-  FILE *in = fopen(filename, "rb");
+  DataStream *in = Common::File::OpenFileRead(filename);
   if (in == NULL)
     return;
 
   char buffer [100];
-  fread (buffer, 12, 1, in);
+  in->Read (buffer, 12);
   buffer[12] = 0;
   if (strcmp (buffer, "AGSRecording") != 0) {
-    fclose (in);
+    delete in;
     return;
   }
 
   fgetstring_limit (buffer, in, 12);
   if (buffer[0] != '2')  {
     // very first alpha version, can't play it
-    fclose (in);
+    delete in;
     return;
   }
-  int replayver = getw(in);
+  int replayver = in->ReadInt32();
 
   if ((replayver < 1) || (replayver > 3)) {
-    fclose (in);
+    delete in;
     return;
   }
 
@@ -126,17 +130,17 @@ void get_replay_name (const char *filename, char *namebuf) {
   if (replayver == 1) {
     // first version didn't save info
     strcat (namebuf, "(unknown replay)");
-    fclose (in);
+    delete in;
     return;
   }
 
   fgetstring_limit (buffer, in, 99);
   // skip the UID
-  getw (in);
+  in->ReadInt32 ();
   strcat (namebuf, buffer);
   strcat (namebuf, " (");
   // skip the total time
-  int tottime = getw (in);
+  int tottime = in->ReadInt32 ();
   sprintf (&namebuf[strlen(namebuf)], "%02d:%02d:%02d)", tottime / 3600, (tottime % 3600) / 60, tottime % 60);
   // replay description, maybe we'll use this later
   fgetstring_limit (buffer, in, 99);
@@ -146,7 +150,7 @@ void get_replay_name (const char *filename, char *namebuf) {
 
   strcat (namebuf, ": ");
   strcat (namebuf, buffer);
-  fclose (in);
+  delete in;
 
 }
 
@@ -228,7 +232,7 @@ void update_gfx_filter_box_enabled(HWND hDlg)
 void InitializeDialog(HWND hDlg) {
   struct _finddata_t c_file;
   long hFile;
-  FILE *fhan;
+  //FILE *fhan;
   int idx;
   retrieve_filter_list(false);
 
@@ -361,11 +365,8 @@ void InitializeDialog(HWND hDlg) {
     SendDlgItemMessage(hDlg, IDC_REDUCESPR, BM_SETCHECK, BST_CHECKED,0);
 
   // if no speech pack, disable the checkbox
-  fhan = fopen("speech.vox", "rb");
-  if (fhan == NULL)
+  if (!Common::File::TestReadFile("speech.vox"))
     EnableWindow (GetDlgItem (hDlg, IDC_SPEECHPACK), FALSE);
-  else
-    fclose(fhan);
 
   if (INIreadint("disabled", "speechvox", 0) == 1)
     EnableWindow (GetDlgItem (hDlg, IDC_SPEECHPACK), FALSE);
@@ -572,9 +573,7 @@ LRESULT CALLBACK callback_settings(HWND hDlg, UINT message, WPARAM wParam, LPARA
 int acwsetup(const char*vername, const char*enbuild) {
   setupstring = vername;
   enginever = enbuild;
-  FILE*iiio=fopen(ac_config_file,"rt");
-  if (iiio!=NULL) {
-    fclose(iiio);
+  if (Common::File::TestReadFile(ac_config_file)) {
     curscrn=INIreadint("misc","screenres");
     if (curscrn > 1)
       curscrn = 1;

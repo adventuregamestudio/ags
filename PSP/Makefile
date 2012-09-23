@@ -1,4 +1,4 @@
-DISTRIB_NAME = AGS_Runtime_for_PSP_3.21_R8
+DISTRIB_NAME = AGS_Runtime_for_PSP_3.21_R9
 PSP_AGS_FOLDER = "j:/psp/game/ags"
 
 .PHONY: kernelprx exceptionprx launchereboot engineprx allplugins \
@@ -67,7 +67,7 @@ cleanengineprx:
 cleanallplugins:
 	@make clean -C "../Plugins" -f Makefile.psp
 
-distrib:
+distrib: all
 	@mkdir "dist" || true
 	@mkdir "dist/$(DISTRIB_NAME)" || true
 	@cp "bin/EBOOT.PBP" "dist/$(DISTRIB_NAME)/EBOOT.PBP"

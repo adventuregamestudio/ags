@@ -12,16 +12,21 @@
 #include "ac/global_mouse.h"
 #include "ac/global_screen.h"
 #include "ac/viewframe.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "gui/guibutton.h"
 #include "gui/guimain.h"
 #include "device/mousew32.h"
 #include "ac/spritecache.h"
+#include "gfx/graphicsdriver.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameSetup usetup;
 extern GameSetupStruct game;
 extern GameState play;
-extern block mousecurs[MAXCURSORS];
+extern Bitmap *mousecurs[MAXCURSORS];
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
 extern int guis_need_update;
@@ -34,9 +39,9 @@ int cur_mode,cur_cursor;
 int mouse_frame=0,mouse_delay=0;
 int lastmx=-1,lastmy=-1;
 char alpha_blend_cursor = 0;
-block dotted_mouse_cursor = NULL;
+Bitmap *dotted_mouse_cursor = NULL;
 IDriverDependantBitmap *mouseCursor = NULL;
-block blank_mouse_cursor = NULL;
+Bitmap *blank_mouse_cursor = NULL;
 
 // The Mouse:: functions are static so the script doesn't pass
 // in an object parameter
@@ -80,20 +85,18 @@ void set_mouse_cursor(int newcurs) {
     int hotspotx = game.mcurs[newcurs].hotx, hotspoty = game.mcurs[newcurs].hoty;
 
     set_new_cursor_graphic(game.mcurs[newcurs].pic);
-    if (dotted_mouse_cursor) {
-        wfreeblock (dotted_mouse_cursor);
-        dotted_mouse_cursor = NULL;
-    }
+    delete dotted_mouse_cursor;
+    dotted_mouse_cursor = NULL;
 
     if ((newcurs == MODE_USE) && (game.mcurs[newcurs].pic > 0) &&
         ((game.hotdot > 0) || (game.invhotdotsprite > 0)) ) {
             // If necessary, create a copy of the cursor and put the hotspot
             // dot onto it
-            dotted_mouse_cursor = create_bitmap_ex (bitmap_color_depth(mousecurs[0]), mousecurs[0]->w,mousecurs[0]->h);
-            blit (mousecurs[0], dotted_mouse_cursor, 0, 0, 0, 0, mousecurs[0]->w, mousecurs[0]->h);
+            dotted_mouse_cursor = BitmapHelper::CreateBitmap(mousecurs[0]->GetWidth(),mousecurs[0]->GetHeight(),mousecurs[0]->GetColorDepth());
+            dotted_mouse_cursor->Blit (mousecurs[0], 0, 0, 0, 0, mousecurs[0]->GetWidth(), mousecurs[0]->GetHeight());
 
             if (game.invhotdotsprite > 0) {
-                block abufWas = abuf;
+                Bitmap *abufWas = abuf;
                 abuf = dotted_mouse_cursor;
 
                 draw_sprite_support_alpha(
@@ -106,11 +109,11 @@ void set_mouse_cursor(int newcurs) {
             }
             else {
                 putpixel_compensate (dotted_mouse_cursor, hotspotx, hotspoty,
-                    (bitmap_color_depth(dotted_mouse_cursor) > 8) ? get_col8_lookup (game.hotdot) : game.hotdot);
+                    (dotted_mouse_cursor->GetColorDepth() > 8) ? get_col8_lookup (game.hotdot) : game.hotdot);
 
                 if (game.hotdotouter > 0) {
                     int outercol = game.hotdotouter;
-                    if (bitmap_color_depth (dotted_mouse_cursor) > 8)
+                    if (dotted_mouse_cursor->GetColorDepth () > 8)
                         outercol = get_col8_lookup(game.hotdotouter);
 
                     putpixel_compensate (dotted_mouse_cursor, hotspotx + get_fixed_pixel_size(1), hotspoty, outercol);
@@ -327,8 +330,8 @@ void set_new_cursor_graphic (int spriteslot) {
     {
         if (blank_mouse_cursor == NULL)
         {
-            blank_mouse_cursor = create_bitmap_ex(final_col_dep, 1, 1);
-            clear_to_color(blank_mouse_cursor, bitmap_mask_color(blank_mouse_cursor));
+            blank_mouse_cursor = BitmapHelper::CreateBitmap(1, 1, final_col_dep);
+            blank_mouse_cursor->Clear(blank_mouse_cursor->GetMaskColor());
         }
         mousecurs[0] = blank_mouse_cursor;
     }

@@ -4,6 +4,9 @@
 #include "gui/guimain.h"
 #include "util/string_utils.h"  // fputstring, etc
 #include "ac/common.h"		// quit()
+#include "util/datastream.h"
+
+using AGS::Common::DataStream;
 
 void GUIObject::init() {
   int jj;
@@ -20,23 +23,23 @@ int GUIObject::IsDisabled() {
   return 0;
 }
 
-void GUIObject::WriteToFile(FILE * ooo)
+void GUIObject::WriteToFile(DataStream *out)
 {
   // MACPORT FIX: swap
-  fwrite(&flags, sizeof(int), BASEGOBJ_SIZE, ooo);
-  fputstring(scriptName, ooo);
+  out->WriteArrayOfInt32((int32_t*)&flags, BASEGOBJ_SIZE);
+  fputstring(scriptName, out);
 
-  putw(GetNumEvents(), ooo);
+  out->WriteInt32(GetNumEvents());
   for (int kk = 0; kk < GetNumEvents(); kk++)
-    fputstring(eventHandlers[kk], ooo);
+    fputstring(eventHandlers[kk], out);
 }
 
-void GUIObject::ReadFromFile(FILE * ooo, int version)
+void GUIObject::ReadFromFile(DataStream *in, int version)
 {
   // MACPORT FIX: swap
-  fread(&flags, sizeof(int), BASEGOBJ_SIZE, ooo);
+  in->ReadArrayOfInt32((int32_t*)&flags, BASEGOBJ_SIZE);
   if (version >= 106)
-    fgetstring_limit(scriptName, ooo, MAX_GUIOBJ_SCRIPTNAME_LEN);
+    fgetstring_limit(scriptName, in, MAX_GUIOBJ_SCRIPTNAME_LEN);
   else
     scriptName[0] = 0;
 
@@ -45,12 +48,12 @@ void GUIObject::ReadFromFile(FILE * ooo, int version)
     eventHandlers[kk][0] = 0;
 
   if (version >= 108) {
-    int numev = getw(ooo);
+    int numev = in->ReadInt32();
     if (numev > GetNumEvents())
       quit("Error: too many control events, need newer version");
 
     // read in the event handler names
     for (kk = 0; kk < numev; kk++)
-      fgetstring_limit(eventHandlers[kk], ooo, MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
+      fgetstring_limit(eventHandlers[kk], in, MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
   }
 }

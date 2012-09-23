@@ -13,7 +13,11 @@
 #ifndef __CC_DYNAMICOBJECT_H
 #define __CC_DYNAMICOBJECT_H
 
-#include "platform/file.h"
+#include "util/file.h"
+
+// Forward declaration
+namespace AGS { namespace Common { class DataStream; } }
+using namespace AGS; // FIXME later
 
 
 // OBJECT-BASED SCRIPTING RUNTIME FUNCTIONS
@@ -49,9 +53,9 @@ extern int   ccUnRegisterManagedObject(const void *object);
 // remove all registered objects
 extern void  ccUnregisterAllObjects();
 // serialize all objects to disk
-extern void  ccSerializeAllObjects(FILE *output);
+extern void  ccSerializeAllObjects(Common::DataStream *out);
 // un-serialise all objects (will remove all currently registered ones)
-extern int   ccUnserializeAllObjects(FILE *input, ICCObjectReader *callback);
+extern int   ccUnserializeAllObjects(Common::DataStream *in, ICCObjectReader *callback);
 // dispose the object if RefCount==0
 extern void  ccAttemptDisposeObject(long handle);
 // translate between object handles and memory addresses

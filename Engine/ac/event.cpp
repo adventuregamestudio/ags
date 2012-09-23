@@ -15,9 +15,15 @@
 #include "ac/screen.h"
 #include "script/cc_error.h"
 #include "media/audio/audio.h"
-#include "platform/agsplatformdriver.h"
+#include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "script/script.h"
+#include "gfx/ddb.h"
+#include "gfx/graphicsdriver.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::Bitmap;
+namespace BitmapHelper = Common::BitmapHelper;
 
 extern GameSetupStruct game;
 extern roomstruct thisroom;
@@ -27,8 +33,8 @@ extern GameState play;
 extern color palette[256];
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
-extern block temp_virtual;
-extern block virtual_screen;
+extern Bitmap *temp_virtual;
+extern Bitmap *virtual_screen;
 extern volatile int timerloop;
 extern int scrnwid,scrnhit;
 extern color old_palette[256];
@@ -47,7 +53,7 @@ int eventClaimed = EVENT_NONE;
 char*tsnames[4]={NULL, REP_EXEC_NAME, "on_key_press","on_mouse_click"};
 
 
-int run_claimable_event(char *tsname, bool includeRoom, int numParams, int param1, int param2, bool *eventWasClaimed) {
+int run_claimable_event(char *tsname, bool includeRoom, int numParams, long param1, long param2, bool *eventWasClaimed) {
     *eventWasClaimed = true;
     // Run the room script function, and if it is not claimed,
     // then run the main one
@@ -230,6 +236,8 @@ void process_event(EventHappened*evp) {
             theTransition = FADE_NORMAL;
         }
 
+		Bitmap *screen_bmp = BitmapHelper::GetScreenBitmap();
+
         if ((theTransition == FADE_INSTANT) || (play.screen_tint >= 0))
             wsetpalette(0,255,palette);
         else if (theTransition == FADE_NORMAL)
@@ -249,21 +257,21 @@ void process_event(EventHappened*evp) {
             {
                 wsetpalette(0,255,palette);
                 gfxDriver->RenderToBackBuffer();
-                gfxDriver->SetMemoryBackBuffer(screen);
-                clear(screen);
-                render_to_screen(screen, 0, 0);
+				gfxDriver->SetMemoryBackBuffer(screen_bmp);
+                screen_bmp->Clear();
+                render_to_screen(screen_bmp, 0, 0);
 
                 int boxwid = get_fixed_pixel_size(16);
                 int boxhit = multiply_up_coordinate(GetMaxScreenHeight() / 20);
-                while (boxwid < screen->w) {
+                while (boxwid < screen_bmp->GetWidth()) {
                     timerloop = 0;
                     boxwid += get_fixed_pixel_size(16);
                     boxhit += multiply_up_coordinate(GetMaxScreenHeight() / 20);
                     int lxp = scrnwid / 2 - boxwid / 2, lyp = scrnhit / 2 - boxhit / 2;
                     gfxDriver->Vsync();
-                    blit(virtual_screen, screen, lxp, lyp, lxp, lyp,
+                    screen_bmp->Blit(virtual_screen, lxp, lyp, lxp, lyp,
                         boxwid, boxhit);
-                    render_to_screen(screen, 0, 0);
+                    render_to_screen(screen_bmp, 0, 0);
                     UPDATE_MP3
                         while (timerloop == 0) ;
                 }
@@ -291,16 +299,16 @@ void process_event(EventHappened*evp) {
                 {
                     // on last frame of fade (where transparency < 16), don't
                     // draw the old screen on top
-                    gfxDriver->DrawSprite(0, -(temp_virtual->h - virtual_screen->h), ddb);
+                    gfxDriver->DrawSprite(0, -(temp_virtual->GetHeight() - virtual_screen->GetHeight()), ddb);
                 }
-                render_to_screen(screen, 0, 0);
+				render_to_screen(screen_bmp, 0, 0);
                 update_polled_stuff_if_runtime();
                 while (timerloop == 0) ;
                 transparency -= 16;
             }
-            release_bitmap(temp_virtual);
+            temp_virtual->Release();
 
-            wfreeblock(temp_virtual);
+            delete temp_virtual;
             temp_virtual = NULL;
             wsetpalette(0,255,palette);
             gfxDriver->DestroyDDB(ddb);
@@ -321,23 +329,23 @@ void process_event(EventHappened*evp) {
                     wsetpalette(0,255,interpal);
                 }
                 // do the dissolving
-                int maskCol = bitmap_mask_color(temp_virtual);
+                int maskCol = temp_virtual->GetMaskColor();
                 for (bb=0;bb<scrnwid;bb+=4) {
                     for (cc=0;cc<scrnhit;cc+=4) {
-                        putpixel(temp_virtual, bb+pattern[aa]/4, cc+pattern[aa]%4, maskCol);
+                        temp_virtual->PutPixel(bb+pattern[aa]/4, cc+pattern[aa]%4, maskCol);
                     }
                 }
                 gfxDriver->UpdateDDBFromBitmap(ddb, temp_virtual, false);
                 invalidate_screen();
                 draw_screen_callback();
-                gfxDriver->DrawSprite(0, -(temp_virtual->h - virtual_screen->h), ddb);
-                render_to_screen(screen, 0, 0);
+                gfxDriver->DrawSprite(0, -(temp_virtual->GetHeight() - virtual_screen->GetHeight()), ddb);
+				render_to_screen(screen_bmp, 0, 0);
                 update_polled_stuff_if_runtime();
                 while (timerloop == 0) ;
             }
-            release_bitmap(temp_virtual);
+            temp_virtual->Release();
 
-            wfreeblock(temp_virtual);
+            delete temp_virtual;
             temp_virtual = NULL;
             wsetpalette(0,255,palette);
             gfxDriver->DestroyDDB(ddb);

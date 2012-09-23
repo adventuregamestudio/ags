@@ -4,11 +4,8 @@
 
 // Headers, as they are in acroom.cpp
 
-#include <stdio.h>  // needed for bigend
-// MACPORT FIX: endian support
-#include "platform/bigend.h"
-#include "util/misc.h"
 #include "util/wgt2allg.h"
+#include "util/misc.h"
 #include "ac/roomstruct.h"
 //
 

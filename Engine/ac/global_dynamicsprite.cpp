@@ -5,6 +5,12 @@
 #include "ac/dynamicsprite.h"
 #include "ac/file.h"
 #include "ac/spritecache.h"
+#include "ac/runtime_defines.h" //MAX_PATH
+#include "gfx/graphicsdriver.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern SpriteCache spriteset;
 extern IGraphicsDriver *gfxDriver;
@@ -14,7 +20,7 @@ int LoadImageFile(const char *filename) {
     char loadFromPath[MAX_PATH];
     get_current_dir_path(loadFromPath, filename);
 
-    block loadedFile = load_bitmap(loadFromPath, NULL);
+	Bitmap *loadedFile = BitmapHelper::LoadFromFile(loadFromPath);
 
     if (loadedFile == NULL)
         return 0;

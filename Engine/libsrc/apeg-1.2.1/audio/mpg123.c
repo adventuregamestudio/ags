@@ -14,6 +14,7 @@
 
 #include "apeg.h"
 #include "mpg123.h"
+#include "mpeg1dec.h"
 //#include "getbits.h"
 
 int _apeg_ignore_audio = FALSE;

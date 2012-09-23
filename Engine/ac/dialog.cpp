@@ -28,9 +28,15 @@
 #include "gui/guitextbox.h"
 #include "main/game_run.h"
 #include "media/audio/audio.h"
-#include "platform/agsplatformdriver.h"
+#include "platform/base/agsplatformdriver.h"
 #include "script/script.h"
 #include "ac/spritecache.h"
+#include "gfx/ddb.h"
+#include "gfx/graphicsdriver.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameSetupStruct game;
 extern GameState play;
@@ -44,8 +50,8 @@ extern GUIMain*guis;
 extern volatile int timerloop;
 extern AGSPlatformDriver *platform;
 extern int cur_mode,cur_cursor;
-extern block virtual_screen;
-extern block screenop;
+extern Bitmap *virtual_screen;
+extern Bitmap *screenop;
 extern IGraphicsDriver *gfxDriver;
 
 DialogTopic *dialog;
@@ -362,7 +368,7 @@ int write_dialog_options(int dlgxp, int curyp, int numdisp, int mouseison, int a
 void draw_gui_for_dialog_options(GUIMain *guib, int dlgxp, int dlgyp) {
   if (guib->bgcol != 0) {
     wsetcolor(guib->bgcol);
-    wbar(dlgxp, dlgyp, dlgxp + guib->wid, dlgyp + guib->hit);
+    abuf->FillRect(Rect(dlgxp, dlgyp, dlgxp + guib->wid, dlgyp + guib->hit), currentcolor);
   }
   if (guib->bgpic > 0)
     put_sprite_256 (dlgxp, dlgyp, spriteset[guib->bgpic]);
@@ -397,7 +403,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
   int curswas=cur_cursor;
   int bullet_wid = 0, needheight;
   IDriverDependantBitmap *ddb = NULL;
-  BITMAP *subBitmap = NULL;
+  Bitmap *subBitmap = NULL;
   GUITextBox *parserInput = NULL;
   DialogTopic*dtop = NULL;
 
@@ -421,7 +427,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
 
   update_polled_stuff_if_runtime();
 
-  block tempScrn = create_bitmap_ex(final_col_dep, screen->w, screen->h);
+  Bitmap *tempScrn = BitmapHelper::CreateBitmap(BitmapHelper::GetScreenBitmap()->GetWidth(), BitmapHelper::GetScreenBitmap()->GetHeight(), final_col_dep);
 
   set_mouse_cursor(CURS_ARROW);
 
@@ -454,14 +460,14 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
   // Don't display the options if there is only one and the parser
   // is not enabled.
   if ((numdisp > 1) || (parserInput != NULL) || (play.show_single_dialog_option)) {
-    wsetcolor(0); //wbar(0,dlgyp-1,scrnwid-1,dlgyp+numdisp*txthit+1);
+    wsetcolor(0); //abuf->FillRect(Rect(0,dlgyp-1,scrnwid-1,dlgyp+numdisp*txthit+1);
     int areawid, is_textwindow = 0;
     int forecol = 14, savedwid;
 
     int mouseison=-1,curyp;
     int mousewason=-10;
     int dirtyx = 0, dirtyy = 0;
-    int dirtywidth = virtual_screen->w, dirtyheight = virtual_screen->h;
+    int dirtywidth = virtual_screen->GetWidth(), dirtyheight = virtual_screen->GetHeight();
     bool usingCustomRendering = false;
 
     dlgxp = 1;
@@ -507,7 +513,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
       areawid=scrnwid-5;
       GET_OPTIONS_HEIGHT
       dlgyp = scrnhit - needheight;
-      wbar(0,dlgyp-1,scrnwid-1,scrnhit-1);
+      abuf->FillRect(Rect(0,dlgyp-1,scrnwid-1,scrnhit-1), currentcolor);
 
       dirtyx = 0;
       dirtyy = dlgyp - 1;
@@ -522,7 +528,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
     mouseison=-10;
     
     update_polled_stuff_if_runtime();
-    //blit(virtual_screen, tempScrn, 0, 0, 0, 0, screen->w, screen->h);
+    //->Blit(virtual_screen, tempScrn, 0, 0, 0, 0, screen->GetWidth(), screen->GetHeight());
     if (!play.mouse_cursor_hidden)
       domouse(1);
     update_polled_stuff_if_runtime();
@@ -538,7 +544,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
         multiply_up_coordinate(ccDialogOptionsRendering.height));
     }
 
-    clear_to_color(tempScrn, bitmap_mask_color(tempScrn));
+    tempScrn->Clear(tempScrn->GetMaskColor());
     wsetscreen(tempScrn);
 
     dlgxp = orixp;
@@ -565,7 +571,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
         curyp = multiply_up_coordinate(ccDialogOptionsRendering.parserTextboxY);
         areawid = multiply_up_coordinate(ccDialogOptionsRendering.parserTextboxWidth);
         if (areawid == 0)
-          areawid = tempScrn->w;
+          areawid = tempScrn->GetWidth();
       }
     }
     else if (is_textwindow) {
@@ -605,11 +611,11 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
 
       dirtyx = xspos;
       dirtyy = yspos;
-      dirtywidth = screenop->w;
-      dirtyheight = screenop->h;
+      dirtywidth = screenop->GetWidth();
+      dirtyheight = screenop->GetHeight();
 
       wputblock(xspos,yspos,screenop,1);
-      wfreeblock(screenop); screenop = NULL;
+      delete screenop; screenop = NULL;
 
       // Ignore the dialog_options_x/y offsets when using a text window
       txoffs += xspos;
@@ -626,7 +632,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
         // fonts don't re-alias themselves
         if (game.options[OPT_DIALOGIFACE] == 0) {
           wsetcolor(16);
-          wbar(0,dlgyp-1,scrnwid-1,scrnhit-1);
+          abuf->FillRect(Rect(0,dlgyp-1,scrnwid-1,scrnhit-1), currentcolor);
         }
         else {
           GUIMain* guib = &guis[game.options[OPT_DIALOGIFACE]];
@@ -666,7 +672,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
 
       /*if (curyp > scrnhit) {
         dlgyp = scrnhit - (curyp - dlgyp);
-        wbar(0,dlgyp-1,scrnwid-1,scrnhit-1);
+        abuf->FillRect(Rect(0,dlgyp-1,scrnwid-1,scrnhit-1);
         goto redraw_options;
       }*/
       if (parserInput)
@@ -696,19 +702,19 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
 
     update_polled_stuff_if_runtime();
 
-    subBitmap = recycle_bitmap(subBitmap, bitmap_color_depth(tempScrn), dirtywidth, dirtyheight);
+    subBitmap = recycle_bitmap(subBitmap, tempScrn->GetColorDepth(), dirtywidth, dirtyheight);
     subBitmap = gfxDriver->ConvertBitmapToSupportedColourDepth(subBitmap);
 
     update_polled_stuff_if_runtime();
 
     if (usingCustomRendering)
     {
-      blit(tempScrn, subBitmap, 0, 0, 0, 0, tempScrn->w, tempScrn->h);
-      invalidate_rect(dirtyx, dirtyy, dirtyx + subBitmap->w, dirtyy + subBitmap->h);
+      subBitmap->Blit(tempScrn, 0, 0, 0, 0, tempScrn->GetWidth(), tempScrn->GetHeight());
+      invalidate_rect(dirtyx, dirtyy, dirtyx + subBitmap->GetWidth(), dirtyy + subBitmap->GetHeight());
     }
     else
     {
-      blit(tempScrn, subBitmap, dirtyx, dirtyy, 0, 0, dirtywidth, dirtyheight);
+      subBitmap->Blit(tempScrn, dirtyx, dirtyy, 0, 0, dirtywidth, dirtyheight);
     }
 
     if ((ddb != NULL) && 
@@ -778,8 +784,8 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
       if (usingCustomRendering)
       {
         if ((mousex >= dirtyx) && (mousey >= dirtyy) &&
-            (mousex < dirtyx + tempScrn->w) &&
-            (mousey < dirtyy + tempScrn->h))
+            (mousex < dirtyx + tempScrn->GetWidth()) &&
+            (mousey < dirtyy + tempScrn->GetHeight()))
         {
           getDialogOptionUnderCursorFunc.param1 = &ccDialogOptionsRendering;
           run_function_on_non_blocking_thread(&getDialogOptionUnderCursorFunc);
@@ -908,15 +914,14 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
 
   if (ddb != NULL)
     gfxDriver->DestroyDDB(ddb);
-  if (subBitmap != NULL)
-    destroy_bitmap(subBitmap);
+  delete subBitmap;
 
   set_mouse_cursor(curswas);
   // In case it's the QFG4 style dialog, remove the black screen
   play.in_conversation--;
   remove_screen_overlay(OVER_COMPLETE);
 
-  wfreeblock(tempScrn);
+  delete tempScrn;
 
   if (chose != CHOSE_TEXTPARSER)
   {

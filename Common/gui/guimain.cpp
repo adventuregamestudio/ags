@@ -3,8 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "gui/guimain.h"
 #include "util/wgt2allg.h"
+#include "util/string_utils.h" //strlwr()
+#include "gui/guimain.h"
 #include "ac/common.h"	// quit()
 #include "ac/gamesetupstruct.h"
 #include "gui/guibutton.h"
@@ -15,6 +16,12 @@
 #include "gui/guilistbox.h"
 #include "font/fonts.h"
 #include "ac/spritecache.h"
+#include "util/datastream.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::DataStream;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern SpriteCache spriteset;
 
@@ -81,18 +88,34 @@ void GUIMain::SetTransparencyAsPercentage(int percent)
 	  this->transparency = ((100 - percent) * 25) / 10;
 }
 
-void GUIMain::ReadFromFile(FILE *fp, int version)
+void GUIMain::ReadFromFile(DataStream *in, int version)
 {
-    // read/write everything except drawOrder since
-    // it will be regenerated
-    fread(vtext, sizeof(char), 40, fp);
-    fread(&x, sizeof(int), 27 + 2*MAX_OBJS_ON_GUI, fp);
+  // read/write everything except drawOrder since
+  // it will be regenerated
+  in->Read(vtext, 40);
+  in->ReadArrayOfInt32(&x, 27);
+
+  // 64 bit fix: Read 4 byte int values into array of 8 byte long ints
+  in->ReadArrayOfIntPtr32((intptr_t*)objs, MAX_OBJS_ON_GUI);
+  //int i;
+  //for (i = 0; i < MAX_OBJS_ON_GUI; i++)
+  //  objs[i] = (GUIObject*)in->ReadInt32();
+
+  in->ReadArrayOfInt32(objrefptr, MAX_OBJS_ON_GUI);
 }
 
-void GUIMain::WriteToFile(FILE *fp)
+void GUIMain::WriteToFile(DataStream *out)
 {
-	fwrite(vtext, sizeof(char), 40, fp);
-	fwrite(&x, sizeof(int), 27 + 2*MAX_OBJS_ON_GUI, fp);
+  out->Write(vtext, 40);
+  out->WriteArrayOfInt32(&x, 27);
+
+  // 64 bit fix: Write 4 byte int values from array of 8 byte long ints
+  out->WriteArrayOfIntPtr32((intptr_t*)objs, MAX_OBJS_ON_GUI);
+  //int i;
+  //for (i = 0; i < MAX_OBJS_ON_GUI; i++)
+  //  out->WriteArray(&objs[i], 4, 1);
+
+  out->WriteArrayOfInt32((int32_t*)&objrefptr, MAX_OBJS_ON_GUI);
 }
 
 const char* GUIMain::get_objscript_name(const char *basedOn) {
@@ -251,7 +274,7 @@ int GUIMain::is_mouse_on_gui()
 
 void GUIMain::draw_blob(int xp, int yp)
 {
-  wbar(xp, yp, xp + get_fixed_pixel_size(1), yp + get_fixed_pixel_size(1));
+  abuf->FillRect(Rect(xp, yp, xp + get_fixed_pixel_size(1), yp + get_fixed_pixel_size(1)), currentcolor);
 }
 
 void GUIMain::draw_at(int xx, int yy)
@@ -265,8 +288,8 @@ void GUIMain::draw_at(int xx, int yy)
   if ((wid < 1) || (hit < 1))
     return;
 
-  block abufwas = abuf;
-  block subbmp = create_sub_bitmap(abuf, xx, yy, wid, hit);
+  Bitmap *abufwas = abuf;
+  Bitmap *subbmp = BitmapHelper::CreateSubBitmap(abuf, RectWH(xx, yy, wid, hit));
 
   SET_EIP(376)
   // stop border being transparent, if the whole GUI isn't
@@ -275,14 +298,14 @@ void GUIMain::draw_at(int xx, int yy)
 
   abuf = subbmp;
   if (bgcol != 0)
-    clear_to_color(abuf, get_col8_lookup(bgcol));
+    abuf->Clear(get_col8_lookup(bgcol));
 
   SET_EIP(377)
 
   if (fgcol != bgcol) {
-    rect(abuf, 0, 0, abuf->w - 1, abuf->h - 1, get_col8_lookup(fgcol));
+    abuf->DrawRect(Rect(0, 0, abuf->GetWidth() - 1, abuf->GetHeight() - 1), get_col8_lookup(fgcol));
     if (get_fixed_pixel_size(1) > 1)
-      rect(abuf, 1, 1, abuf->w - 2, abuf->h - 2, get_col8_lookup(fgcol));
+      abuf->DrawRect(Rect(1, 1, abuf->GetWidth() - 2, abuf->GetHeight() - 2), get_col8_lookup(fgcol));
   }
 
   SET_EIP(378)
@@ -321,18 +344,18 @@ void GUIMain::draw_at(int xx, int yy)
       int oo;  // draw a dotted outline round all objects
       wsetcolor(selectedColour);
       for (oo = 0; oo < objToDraw->wid; oo+=2) {
-        wputpixel(oo + objToDraw->x, objToDraw->y);
-        wputpixel(oo + objToDraw->x, objToDraw->y + objToDraw->hit - 1);
+        abuf->PutPixel(oo + objToDraw->x, objToDraw->y, currentcolor);
+        abuf->PutPixel(oo + objToDraw->x, objToDraw->y + objToDraw->hit - 1, currentcolor);
       }
       for (oo = 0; oo < objToDraw->hit; oo+=2) {
-        wputpixel(objToDraw->x, oo + objToDraw->y);
-        wputpixel(objToDraw->x + objToDraw->wid - 1, oo + objToDraw->y);
+        abuf->PutPixel(objToDraw->x, oo + objToDraw->y, currentcolor);
+        abuf->PutPixel(objToDraw->x + objToDraw->wid - 1, oo + objToDraw->y, currentcolor);
       }      
     }
   }
 
   SET_EIP(380)
-  destroy_bitmap(abuf);
+  delete abuf;
   abuf = abufwas;
 }
 
@@ -454,14 +477,14 @@ void GUIMain::mouse_but_up()
 
 #define GUI_VERSION 115
 
-void read_gui(FILE * iii, GUIMain * guiread, GameSetupStruct * gss, GUIMain** allocate)
+void read_gui(DataStream *in, GUIMain * guiread, GameSetupStruct * gss, GUIMain** allocate)
 {
   int gver, ee;
 
-  if (getw(iii) != (int)GUIMAGIC)
+  if (in->ReadInt32() != (int)GUIMAGIC)
     quit("read_gui: file is corrupt");
 
-  gver = getw(iii);
+  gver = in->ReadInt32();
   if (gver < 100) {
     gss->numgui = gver;
     gver = 0;
@@ -469,7 +492,7 @@ void read_gui(FILE * iii, GUIMain * guiread, GameSetupStruct * gss, GUIMain** al
   else if (gver > GUI_VERSION)
     quit("read_gui: this game requires a newer version of AGS");
   else
-    gss->numgui = getw(iii);
+    gss->numgui = in->ReadInt32();
 
   if ((gss->numgui < 0) || (gss->numgui > 1000))
     quit("read_gui: invalid number of GUIs, file corrupt?");
@@ -484,7 +507,7 @@ void read_gui(FILE * iii, GUIMain * guiread, GameSetupStruct * gss, GUIMain** al
   for (int iteratorCount = 0; iteratorCount < gss->numgui; ++iteratorCount)
   {
     guiread[iteratorCount].init();
-    guiread[iteratorCount].ReadFromFile(iii, gver);
+    guiread[iteratorCount].ReadFromFile(in, gver);
   }
 
   for (ee = 0; ee < gss->numgui; ee++) {
@@ -503,51 +526,51 @@ void read_gui(FILE * iii, GUIMain * guiread, GameSetupStruct * gss, GUIMain** al
   }
 
   // import the buttons
-  numguibuts = getw(iii);
+  numguibuts = in->ReadInt32();
   guibuts.SetSizeTo(numguibuts);
 
   for (ee = 0; ee < numguibuts; ee++)
-    guibuts[ee].ReadFromFile(iii, gver);
+    guibuts[ee].ReadFromFile(in, gver);
 
   // labels
-  numguilabels = getw(iii);
+  numguilabels = in->ReadInt32();
   guilabels.SetSizeTo(numguilabels);
 
   for (ee = 0; ee < numguilabels; ee++)
-    guilabels[ee].ReadFromFile(iii, gver);
+    guilabels[ee].ReadFromFile(in, gver);
 
   // inv controls
-  numguiinv = getw(iii);
+  numguiinv = in->ReadInt32();
   guiinv.SetSizeTo(numguiinv);
 
   for (ee = 0; ee < numguiinv; ee++)
-    guiinv[ee].ReadFromFile(iii, gver);
+    guiinv[ee].ReadFromFile(in, gver);
 
   if (gver >= 100) {
     // sliders
-    numguislider = getw(iii);
+    numguislider = in->ReadInt32();
     guislider.SetSizeTo(numguislider);
 
     for (ee = 0; ee < numguislider; ee++)
-      guislider[ee].ReadFromFile(iii, gver);
+      guislider[ee].ReadFromFile(in, gver);
   }
 
   if (gver >= 101) {
     // text boxes
-    numguitext = getw(iii);
+    numguitext = in->ReadInt32();
     guitext.SetSizeTo(numguitext);
 
     for (ee = 0; ee < numguitext; ee++)
-      guitext[ee].ReadFromFile(iii, gver);
+      guitext[ee].ReadFromFile(in, gver);
   }
 
   if (gver >= 102) {
     // list boxes
-    numguilist = getw(iii);
+    numguilist = in->ReadInt32();
     guilist.SetSizeTo(numguilist);
 
     for (ee = 0; ee < numguilist; ee++)
-      guilist[ee].ReadFromFile(iii, gver);
+      guilist[ee].ReadFromFile(in, gver);
   }
 
   // set up the reverse-lookup array
@@ -571,40 +594,40 @@ void read_gui(FILE * iii, GUIMain * guiread, GameSetupStruct * gss, GUIMain** al
   guis_need_update = 1;
 }
 
-void write_gui(FILE * ooo, GUIMain * guiwrite, GameSetupStruct * gss)
+void write_gui(DataStream *out, GUIMain * guiwrite, GameSetupStruct * gss)
 {
   int ee;
 
-  putw(GUIMAGIC, ooo);
-  putw(GUI_VERSION, ooo);
-  putw(gss->numgui, ooo);
+  out->WriteInt32(GUIMAGIC);
+  out->WriteInt32(GUI_VERSION);
+  out->WriteInt32(gss->numgui);
 
   for (int iteratorCount = 0; iteratorCount < gss->numgui; ++iteratorCount)
   {
-    guiwrite[iteratorCount].WriteToFile(ooo);
+    guiwrite[iteratorCount].WriteToFile(out);
   }
 
-  putw(numguibuts, ooo);
+  out->WriteInt32(numguibuts);
   for (ee = 0; ee < numguibuts; ee++)
-    guibuts[ee].WriteToFile(ooo);
+    guibuts[ee].WriteToFile(out);
 
-  putw(numguilabels, ooo);
+  out->WriteInt32(numguilabels);
   for (ee = 0; ee < numguilabels; ee++)
-    guilabels[ee].WriteToFile(ooo);
+    guilabels[ee].WriteToFile(out);
 
-  putw(numguiinv, ooo);
+  out->WriteInt32(numguiinv);
   for (ee = 0; ee < numguiinv; ee++)
-    guiinv[ee].WriteToFile(ooo);
+    guiinv[ee].WriteToFile(out);
 
-  putw(numguislider, ooo);
+  out->WriteInt32(numguislider);
   for (ee = 0; ee < numguislider; ee++)
-    guislider[ee].WriteToFile(ooo);
+    guislider[ee].WriteToFile(out);
 
-  putw(numguitext, ooo);
+  out->WriteInt32(numguitext);
   for (ee = 0; ee < numguitext; ee++)
-    guitext[ee].WriteToFile(ooo);
+    guitext[ee].WriteToFile(out);
 
-  putw(numguilist, ooo);
+  out->WriteInt32(numguilist);
   for (ee = 0; ee < numguilist; ee++)
-    guilist[ee].WriteToFile(ooo);
+    guilist[ee].WriteToFile(out);
 }

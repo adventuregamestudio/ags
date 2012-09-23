@@ -1,7 +1,7 @@
 
-#include "ac/datetime.h"
 #include "util/wgt2allg.h"
-#include "platform/agsplatformdriver.h"
+#include "ac/datetime.h"
+#include "platform/base/agsplatformdriver.h"
 
 ScriptDateTime* DateTime_Now_Core() {
     ScriptDateTime *sdt = new ScriptDateTime();

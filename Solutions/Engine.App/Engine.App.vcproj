@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="windows-1251"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Engine.App"
 	ProjectGUID="{49A909AF-49F3-451D-B6DF-839159E54A01}"
 	RootNamespace="EngineApp"
@@ -206,6 +206,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\character.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\characterextras.cpp"
 					>
 				</File>
 				<File
@@ -465,6 +469,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\movelist.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\object.cpp"
 					>
 				</File>
@@ -514,6 +522,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\screen.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\ac\screenoverlay.cpp"
 					>
 				</File>
 				<File
@@ -669,7 +681,7 @@
 				Name="gfx"
 				>
 				<File
-					RelativePath="..\..\Engine\gfx\ali3dd3d.cpp"
+					RelativePath="..\..\Engine\platform\windows\gfx\ali3dd3d.cpp"
 					>
 				</File>
 				<File
@@ -682,6 +694,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\gfx\blender.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\color_engine.cpp"
 					>
 				</File>
 				<File
@@ -724,6 +740,10 @@
 			<Filter
 				Name="gui"
 				>
+				<File
+					RelativePath="..\..\Engine\gui\animatingguibutton.cpp"
+					>
+				</File>
 				<File
 					RelativePath="..\..\Engine\gui\cscidialog.cpp"
 					>
@@ -972,11 +992,11 @@
 					Name="video"
 					>
 					<File
-						RelativePath="..\..\Engine\media\video\acwavi.cpp"
+						RelativePath="..\..\Engine\platform\windows\media\video\acwavi.cpp"
 						>
 					</File>
 					<File
-						RelativePath="..\..\Engine\media\video\acwavi3d.cpp"
+						RelativePath="..\..\Engine\platform\windows\media\video\acwavi3d.cpp"
 						>
 					</File>
 					<File
@@ -989,6 +1009,10 @@
 				Name="debug"
 				>
 				<File
+					RelativePath="..\..\Engine\debug\consoleoutputtarget.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\debug\debug.cpp"
 					>
 				</File>
@@ -997,7 +1021,11 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\debug\namedpipesagsdebugger.cpp"
+					RelativePath="..\..\Engine\platform\windows\debug\namedpipesagsdebugger.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\debug\rawfileoutputtarget.cpp"
 					>
 				</File>
 			</Filter>
@@ -1044,18 +1072,22 @@
 			<Filter
 				Name="platform"
 				>
-				<File
-					RelativePath="..\..\Engine\platform\windows\acplwin.cpp"
+				<Filter
+					Name="base"
 					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\platform\ags32bitosdriver.cpp"
+					<File
+						RelativePath="..\..\Engine\platform\base\agsplatformdriver.cpp"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="windows"
 					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\platform\agsplatformdriver.cpp"
-					>
-				</File>
+					<File
+						RelativePath="..\..\Engine\platform\windows\acplwin.cpp"
+						>
+					</File>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="plugin"
@@ -1093,16 +1125,28 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="test"
+				>
+				<File
+					RelativePath="..\..\Engine\test\test_all.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\test\test_file.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\test\test_string.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
-			<File
-				RelativePath="..\..\Engine\scrptrt.h"
-				>
-			</File>
 			<Filter
 				Name="ac"
 				>
@@ -1132,10 +1176,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\characterextras.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\characterinfo.h"
 					>
 				</File>
 				<File
@@ -1667,6 +1707,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\gfx\ddb.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\gfx\gfxfilter.h"
 					>
 				</File>
@@ -1700,6 +1744,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\gfx\gfxfilterhelpers.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\graphicsdriver.h"
 					>
 				</File>
 				<File
@@ -1750,18 +1798,18 @@
 			<Filter
 				Name="platform"
 				>
-				<File
-					RelativePath="..\..\Engine\platform\ags32bitosdriver.h"
+				<Filter
+					Name="base"
 					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\platform\agsplatformdriver.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\platform\override_defines.h"
-					>
-				</File>
+					<File
+						RelativePath="..\..\Engine\platform\base\agsplatformdriver.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\platform\base\override_defines.h"
+						>
+					</File>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="media"
@@ -1855,7 +1903,15 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\debug\debug.h"
+					RelativePath="..\..\Engine\debug\consoleoutputtarget.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\debug\debug_log.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\debug\debugger.h"
 					>
 				</File>
 				<File
@@ -1867,7 +1923,11 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\debug\namedpipesagsdebugger.h"
+					RelativePath="..\..\Engine\platform\windows\debug\namedpipesagsdebugger.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\debug\rawfileoutputtarget.h"
 					>
 				</File>
 			</Filter>
@@ -1983,6 +2043,22 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="test"
+				>
+				<File
+					RelativePath="..\..\Engine\test\test_all.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\test\test_file.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\test\test_string.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Resource Files"
@@ -2057,18 +2133,6 @@
 		<Filter
 			Name="Library Sources"
 			>
-			<Filter
-				Name="aastr"
-				>
-				<File
-					RelativePath="..\..\Engine\libsrc\aastr-0.1.1\aastr.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\libsrc\aastr-0.1.1\aautil.c"
-					>
-				</File>
-			</Filter>
 			<Filter
 				Name="AllegroPatches"
 				>
@@ -2390,6 +2454,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\ac\audiocliptype.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\characterinfo.h"
 					>
 				</File>
 				<File

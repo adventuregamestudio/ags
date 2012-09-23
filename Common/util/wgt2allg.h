@@ -35,7 +35,6 @@
 #include <io.h>
 #endif
 
-
 #include <stdarg.h>
 
 #ifdef WINDOWS_VERSION
@@ -44,21 +43,13 @@
 #include <osxalleg.h>
 #endif
 
-#include "platform/bigend.h"
+namespace AGS { namespace Common { class Bitmap; }}
+using namespace AGS; // FIXME later
 
-
-
-//#if !defined __WGT2ALLG_FUNC_H && !defined __WGT2ALLG_NOFUNC_H
-//#error Do not include wgt2allg.h directly, include either wgt2allg_func.h or wgt2allg_nofunc.h instead.
-//#endif
 
 #if defined WGT2ALLEGRO_NOFUNCTIONS
 #error WGT2ALLEGRO_NOFUNCTIONS macro is obsolete and should not be defined anymore.
 #endif
-
-
-
-typedef BITMAP *block;
 
 #if (WGTMAP_SIZE == 1)
 typedef unsigned char *wgtmap;
@@ -95,6 +86,10 @@ extern "C"
 
 //=============================================================================
 
+//#ifdef USE_CLIB
+//#include "util/clib32.h"
+//#endif
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -112,8 +107,10 @@ extern "C"
     extern char *wgtlibrary;
     extern int currentcolor;
     extern int vesa_xres, vesa_yres;
-    extern block abuf;
+    extern Common::Bitmap *abuf;
 
+// JJS: GFX_VGA define is unused in AGS but causes redifinition warnings
+/*
 #ifdef WINDOWS_VERSION
 #define GFX_VGA GFX_DIRECTX
 #endif
@@ -121,6 +118,7 @@ extern "C"
 #if defined(LINUX_VERSION) || defined(MAC_VERSION)
 #define GFX_VGA GFX_AUTODETECT
 #endif
+*/
 
     /*
     GCC from the Android NDK doesn't like allegro_init()
@@ -134,42 +132,37 @@ extern "C"
     extern int wgetmode();
 #endif
 
-#ifdef USE_CLIB
-    extern "C"
-    {
-        extern FILE *clibfopen(char *, char *);
-        extern long cliboffset(char *);
-        extern long clibfilesize(char *);
-        extern long last_opened_size;
-    }
-#endif
-
-    extern void wsetscreen(block nss);
+    extern void wsetscreen(Common::Bitmap *nss);
+	// CHECKME: temporary solution for plugin system
+	extern void wsetscreen_raw(BITMAP *nss);
     extern void wsetrgb(int coll, int r, int g, int b, color * pall);
     extern int wloadpalette(char *filnam, color * pall);
 
     extern void wcolrotate(unsigned char start, unsigned char finish, int dir, color * pall);
 
-    extern block tempbitm;
-    extern block wnewblock(int x1, int y1, int x2, int y2);
+    extern Common::Bitmap *tempbitm;
+    extern Common::Bitmap *wnewblock(int x1, int y1, int x2, int y2);
 
     // [IKM] recreated these in platform/file unit
     /*
     extern short getshort(FILE * fff);
     extern void putshort(short num, FILE *fff);
     */
-    extern block wloadblock(char *fill);
+    extern Common::Bitmap *wloadblock(char *fill);
 
-    extern int wloadsprites(color * pall, char *filnam, block * sarray, int strt, int eend);
-    extern void wfreesprites(block * blar, int stt, int end);
+    extern int wloadsprites(color * pall, char *filnam, Common::Bitmap ** sarray, int strt, int eend);
+    extern void wfreesprites(Common::Bitmap ** blar, int stt, int end);
     /*
-    extern void wsavesprites_ex(color * pll, char *fnm, block * spre, int strt, int eend, unsigned char *arry);
-    extern void wsavesprites(color * pll, char *fnm, block * spre, int strt, int eend);
+    extern void wsavesprites_ex(color * pll, char *fnm, Common::Bitmap ** spre, int strt, int eend, unsigned char *arry);
+    extern void wsavesprites(color * pll, char *fnm, Common::Bitmap ** spre, int strt, int eend);
     */
-    extern void wputblock(int xx, int yy, block bll, int xray);
+	extern void wputblock(int xx, int yy, Common::Bitmap *bll, int xray);
+	// CHECKME: temporary solution for plugin system
+	extern void wputblock_raw(int xx, int yy, BITMAP *bll, int xray);
 
     extern const int col_lookups[32];
 
+	// [IKM] 2012-09-13: this function is now defined in engine and editor separately
     extern void __my_setcolor(int *ctset, int newcol);
     extern void wsetcolor(int nval);
 
@@ -177,8 +170,8 @@ extern "C"
 
 
     extern int __wremap_keep_transparent;
-    extern void wremap(color * pal1, block picc, color * pal2);
-    extern void wremapall(color * pal1, block picc, color * pal2);
+    extern void wremap(color * pal1, Common::Bitmap *picc, color * pal2);
+    extern void wremapall(color * pal1, Common::Bitmap *picc, color * pal2);
 
     // library file functions
     extern void readheader();
@@ -193,7 +186,7 @@ extern "C"
 
     extern long wtimer(struct time tt1, struct time tt2);
 
-    extern void wcopyscreen(int x1, int y1, int x2, int y2, block src, int dx, int dy, block dest);
+    extern void wcopyscreen(int x1, int y1, int x2, int y2, Common::Bitmap *src, int dx, int dy, Common::Bitmap *dest);
 
 #ifdef __cplusplus
 }
@@ -220,8 +213,8 @@ extern "C"
 #define wfade_out(from, to, speed, pal) fade_out_range(5, from, to)
 #define wfastputpixel(x1, y1)           _putpixel(abuf, x1, y1, currentcolor)
 #define wfreeblock(bll)                 destroy_bitmap(bll)
-#define wgetblockheight(bll)            bll->h
-#define wgetblockwidth(bll)             bll->w
+#define wgetblockheight(bll)            bll->GetHeight()
+#define wgetblockwidth(bll)             bll->GetWidth()
 #define wgetpixel(xx, yy)               getpixel(abuf, xx, yy)
 #define whline(x1, x2, yy)              hline(abuf, x1, yy, x2, currentcolor)
 #define wline(x1, y1, x2, y2)           line(abuf,x1,y1,x2,y2,currentcolor)

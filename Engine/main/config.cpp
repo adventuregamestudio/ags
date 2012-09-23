@@ -22,6 +22,13 @@
 #include "main/mainheader.h"
 #include "main/config.h"
 #include "ac/spritecache.h"
+#include "platform/base/override_defines.h" //_getcwd()
+#include "util/filestream.h"
+#include "util/textstreamreader.h"
+
+using AGS::Common::DataStream;
+using AGS::Common::TextStreamReader;
+using AGS::Common::String;
 
 extern GameSetup usetup;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
@@ -70,34 +77,42 @@ void INIgetdirec(char *wasgv, char *inifil) {
 }
 
 char *INIreaditem(const char *sectn, const char *entry) {
-    FILE *fin = fopen(filetouse, "rt");
+    DataStream *fin = Common::File::OpenFileRead(filetouse);
     if (fin == NULL)
         return NULL;
+    TextStreamReader reader(fin);
 
-    char templine[200];
+    //char templine[200];
     char wantsect[100];
     sprintf (wantsect, "[%s]", sectn);
 
-    while (!feof(fin)) {
-        fgets (templine, 199, fin);
+    // NOTE: the string is used as a raw buffer down there;
+    // FIXME that as soon as string class is optimized for common use
+    String line;
+
+    while (!reader.EOS()) {
+        //fgets (templine, 199, fin);
+        line = reader.ReadLine();
+
         // find the section
-        if (strnicmp (wantsect, templine, strlen(wantsect)) == 0) {
-            while (!feof(fin)) {
+        if (strnicmp (wantsect, line.GetCStr(), strlen(wantsect)) == 0) {
+            while (!reader.EOS()) {
                 // we're in the right section, find the entry
-                fgets (templine, 199, fin);
-                if (templine[0] == '[')
+                //fgets (templine, 199, fin);
+                line = reader.ReadLine();
+                if (line[0] == '[')
                     break;
-                if (feof(fin))
+                if (reader.EOS())
                     break;
                 // Strip CRLF
-                char *lastchar = &templine[strlen(templine) -1];
+                char *lastchar = &line.GetBuffer()[line.GetLength() - 1];
                 while(*lastchar == '\r' || *lastchar == '\n') {
                     *lastchar = 0;
                     lastchar--;
                 }
                 // Have we found the entry?
-                if (strnicmp (templine, entry, strlen(entry)) == 0) {
-                    char *pptr = &templine[strlen(entry)];
+                if (strnicmp (line.GetCStr(), entry, strlen(entry)) == 0) {
+                    char *pptr = &line.GetBuffer()[strlen(entry)];
                     while ((pptr[0] == ' ') || (pptr[0] == '\t'))
                         pptr++;
                     if (pptr[0] == '=') {
@@ -106,14 +121,12 @@ char *INIreaditem(const char *sectn, const char *entry) {
                             pptr++;
                         char *toret = (char*)malloc (strlen(pptr) + 5);
                         strcpy (toret, pptr);
-                        fclose (fin);
                         return toret;
                     }
                 }
             }
         }
     }
-    fclose (fin);
     return NULL;
 }
 
@@ -132,8 +145,7 @@ void read_config_file(char *argv0) {
     // Try current directory for config first; else try exe dir
     strcpy (ac_conf_file_defname, "acsetup.cfg");
     ac_config_file = &ac_conf_file_defname[0];
-    FILE *ppp = fopen(ac_config_file, "rb");
-    if (ppp == NULL) {
+    if (!Common::File::TestReadFile(ac_config_file)) {
 
         strcpy(conffilebuf,argv0);
 
@@ -148,7 +160,6 @@ void read_config_file(char *argv0) {
         ac_config_file=&conffilebuf[0];
     }
     else {
-        fclose(ppp);
         // put the full path, or it gets written back to the Windows folder
         _getcwd (ac_config_file, 255);
         strcat (ac_config_file, "\\acsetup.cfg");
@@ -173,10 +184,8 @@ void read_config_file(char *argv0) {
         return;
     }
 
-    ppp=fopen(ac_config_file,"rt");
-    if (ppp!=NULL) {
+    if (Common::File::TestReadFile(ac_config_file)) {
         strcpy(filetouse,ac_config_file);
-        fclose(ppp);
 #ifndef WINDOWS_VERSION
         usetup.digicard=INIreadint("sound","digiid");
         usetup.midicard=INIreadint("sound","midiid");

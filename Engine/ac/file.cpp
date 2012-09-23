@@ -1,29 +1,33 @@
 #define USE_CLIB
-#include "ac/file.h"
 #include "util/wgt2allg.h"
+#include "ac/file.h"
 #include "ac/common.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/global_file.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
+#include "debug/debugger.h"
 #include "util/misc.h"
-#include "platform/agsplatformdriver.h"
+#include "platform/base/agsplatformdriver.h"
+#include "util/datastream.h"
+#include "core/assetmanager.h"
+
+using AGS::Common::DataStream;
 
 #ifdef WINDOWS_VERSION
 //#include <crtdbg.h>
 //#include "winalleg.h"
 //#include <shlwapi.h>
 
-#elif defined(LINUX_VERSION) || defined(MAC_VERSION)
+#elif (defined(LINUX_VERSION) || defined(MAC_VERSION)) && !defined(PSP_VERSION)
 #include <dlfcn.h>
+#include <sys/stat.h>
 /*
 #include <sys/types.h>
-#include <sys/stat.h>
 #include <unistd.h>
 #include <dirent.h>
-#include "../PSP/launcher/pe.h"
 */
 
 #else   // it's DOS (DJGPP)
@@ -37,24 +41,17 @@
 #endif  // WINDOWS_VERSION
 
 // ***** EXTERNS ****
-extern "C" {
-    extern int  csetlib(char*,char*);
-    extern FILE*clibfopen(char*,char*);
-    extern int  cfopenpriority;
-    extern long cliboffset(char*);
-}
 
 // override packfile functions to allow it to load from our
 // custom CLIB datafiles
 extern "C" {
 	PACKFILE*_my_temppack;
-	extern char* clibgetdatafile(char*);
 #if ALLEGRO_DATE > 19991010
 #define PFO_PARAM const char *
 #else
 #define PFO_PARAM char *
 #endif
-#ifndef RTLD_NEXT
+#if !defined(AGS_RUNTIME_PATCH_ALLEGRO)
 	extern PACKFILE *__old_pack_fopen(PFO_PARAM,PFO_PARAM);
 #endif
 }
@@ -75,11 +72,9 @@ int File_Exists(const char *fnmm) {
   if (!validate_user_file_path(fnmm, fileToCheck, false))
     return 0;
 
-  FILE *iii = fopen(fileToCheck, "rb");
-  if (iii == NULL)
+  if (!Common::File::TestReadFile(fileToCheck))
     return 0;
 
-  fclose(iii);
   return 1;
 }
 
@@ -133,15 +128,15 @@ void File_ReadRawLine(sc_File *fil, char* buffer) {
   check_strlen(buffer);
   int i = 0;
   while (i < MAXSTRLEN - 1) {
-    buffer[i] = fgetc(fil->handle);
+    buffer[i] = fil->handle->ReadInt8();
     if (buffer[i] == 13) {
       // CR -- skip LF and abort
-      fgetc(fil->handle);
+      fil->handle->ReadInt8();
       break;
     }
     if (buffer[i] == 10)  // LF only -- abort
       break;
-    if (feof(fil->handle))  // EOF -- abort
+    if (fil->handle->EOS())  // EOF -- abort
       break;
     i++;
   }
@@ -160,16 +155,16 @@ void File_ReadString(sc_File *fil, char *toread) {
 
 const char* File_ReadStringBack(sc_File *fil) {
   check_valid_file_handle(fil->handle, "File.ReadStringBack");
-  if (feof(fil->handle)) {
+  if (fil->handle->EOS()) {
     return CreateNewScriptString("");
   }
 
-  int lle = getw(fil->handle);
+  int lle = fil->handle->ReadInt32();
   if ((lle >= 20000) || (lle < 1))
     quit("!File.ReadStringBack: file was not written by WriteString");
 
   char *retVal = (char*)malloc(lle);
-  fread(retVal, lle, 1, fil->handle);
+  fil->handle->Read(retVal, lle);
 
   return CreateNewScriptString(retVal, false);
 }
@@ -200,7 +195,8 @@ int File_GetError(sc_File *fil) {
 
 //=============================================================================
 
-
+// [IKM] NOTE: this function is used only by few media/audio units
+// TODO: find a way to hide allegro behind some interface/wrapper function
 #if ALLEGRO_DATE > 19991010
 PACKFILE *pack_fopen(const char *filnam1, const char *modd1) {
 #else
@@ -230,15 +226,15 @@ PACKFILE *pack_fopen(char *filnam1, char *modd1) {
 #else
     sprintf(useloc,"%s\\%s",usetup.data_files_dir,gfname);
 #endif
-    csetlib(useloc,"");*/
+    Common::AssetManager::SetDataFile(useloc);*/
     
     char *libname = ci_find_file(usetup.data_files_dir, gfname);
-    if (csetlib(libname,""))
+    if (Common::AssetManager::SetDataFile(libname) != Common::kAssetNoError)
     {
       // Hack for running in Debugger
       free(libname);
       libname = ci_find_file("Compiled", gfname);
-      csetlib(libname,"");
+      Common::AssetManager::SetDataFile(libname);
     }
     free(libname);
     
@@ -246,11 +242,9 @@ PACKFILE *pack_fopen(char *filnam1, char *modd1) {
   }
 
   // if the file exists, override the internal file
-  FILE *testf = fopen(filnam, "rb");
-  if (testf != NULL)
-    fclose(testf);
+  bool file_exists = Common::File::TestReadFile(filnam);
 
-#ifdef RTLD_NEXT
+#if defined(AGS_RUNTIME_PATCH_ALLEGRO)
   static PACKFILE * (*__old_pack_fopen)(PFO_PARAM, PFO_PARAM) = NULL;
   if(!__old_pack_fopen) {
     __old_pack_fopen = (PACKFILE* (*)(PFO_PARAM, PFO_PARAM))dlsym(RTLD_NEXT, "pack_fopen");
@@ -267,25 +261,25 @@ PACKFILE *pack_fopen(char *filnam1, char *modd1) {
   }
 #endif
 
-  if ((cliboffset(filnam)<1) || (testf != NULL)) {
-    if (needsetback) csetlib(game_file_name,"");
+  if ((Common::AssetManager::GetAssetOffset(filnam)<1) || (file_exists)) {
+    if (needsetback) Common::AssetManager::SetDataFile(game_file_name);
     return __old_pack_fopen(filnam, modd);
   } 
   else {
-    _my_temppack=__old_pack_fopen(clibgetdatafile(filnam), modd);
+    _my_temppack=__old_pack_fopen(Common::AssetManager::GetLibraryForAsset(filnam), modd);
     if (_my_temppack == NULL)
-      quitprintf("pack_fopen: unable to change datafile: not found: %s", clibgetdatafile(filnam));
+      quitprintf("pack_fopen: unable to change datafile: not found: %s", Common::AssetManager::GetLibraryForAsset(filnam).GetCStr());
 
-    pack_fseek(_my_temppack,cliboffset(filnam));
+    pack_fseek(_my_temppack,Common::AssetManager::GetAssetOffset(filnam));
     
 #if ALLEGRO_DATE < 20050101
-    _my_temppack->todo=clibfilesize(filnam);
+    _my_temppack->todo=Common::AssetManager::GetAssetSize(filnam);
 #else
-    _my_temppack->normal.todo = clibfilesize(filnam);
+    _my_temppack->normal.todo = Common::AssetManager::GetAssetSize(filnam);
 #endif
 
     if (needsetback)
-      csetlib(game_file_name,"");
+      Common::AssetManager::SetDataFile(game_file_name);
     return _my_temppack;
   }
 }
@@ -307,9 +301,9 @@ void get_current_dir_path(char* buffer, const char *fileName)
     }
 }
 
-FILE*valid_handles[MAX_OPEN_SCRIPT_FILES+1];
+DataStream *valid_handles[MAX_OPEN_SCRIPT_FILES+1];
 int num_open_script_files = 0;
-int check_valid_file_handle(FILE*hann, char*msg) {
+int check_valid_file_handle(DataStream *hann, char*msg) {
   int aa;
   if (hann != NULL) {
     for (aa=0; aa < num_open_script_files; aa++) {

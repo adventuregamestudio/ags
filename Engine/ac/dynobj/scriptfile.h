@@ -9,14 +9,18 @@
 
 #include "ac/dynobj/cc_dynamicobject.h"
 
+namespace AGS { namespace Common { class DataStream; } }
+using namespace AGS; // FIXME later
+
 #define scFileRead   1
 #define scFileWrite  2
 #define scFileAppend 3
 
 struct sc_File : ICCDynamicObject {
-    FILE *handle;
+    Common::DataStream *handle;
 
-	static const char *fopenModes[];
+    static const Common::FileOpenMode fopenModes[];
+    static const Common::FileWorkMode fworkModes[];
 
     virtual int Dispose(const char *address, bool force);
 

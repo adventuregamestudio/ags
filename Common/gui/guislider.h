@@ -26,8 +26,8 @@ struct GUISlider:public GUIObject
   int cached_handtlx, cached_handbrx;
   int cached_handtly, cached_handbry;
 
-  virtual void WriteToFile(FILE *);
-  virtual void ReadFromFile(FILE *, int);
+  virtual void WriteToFile(Common::DataStream *out);
+  virtual void ReadFromFile(Common::DataStream *in, int version);
   void Draw();
   void MouseMove(int xp, int yp);
 

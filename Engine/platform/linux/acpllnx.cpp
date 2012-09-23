@@ -4,11 +4,17 @@
 
 // ********* LINUX PLACEHOLDER DRIVER *********
 
-#include "acplatfm.h"
+#include "util/wgt2allg.h"
+#include "gfx/ali3d.h"
+#include "ac/runtime_defines.h"
+#include "platform/base/agsplatformdriver.h"
+#include "plugin/agsplugin.h"
+#include <libcda.h>
+
 #include <pwd.h>
 #include <sys/stat.h>
 
-struct AGSLinux : AGS32BitOSDriver {
+struct AGSLinux : AGSPlatformDriver {
 
   virtual int  CDPlayerCommand(int cmdd, int datt);
   virtual void Delay(int millis);
@@ -23,11 +29,12 @@ struct AGSLinux : AGS32BitOSDriver {
   virtual void SetGameWindowIcon();
   virtual void ShutdownCDPlayer();
   virtual void WriteConsole(const char*, ...);
+  virtual void WriteDebugString(const char* texx, ...);
   virtual void ReplaceSpecialPaths(const char*, char*);
-  virtual void ReadPluginsFromDisk(FILE *iii);
+  virtual void ReadPluginsFromDisk(AGS::Common::DataStream *iii);
   virtual void StartPlugins();
   virtual void ShutdownPlugins();
-  virtual int RunPluginHooks(int event, int data);
+  virtual int RunPluginHooks(int event, long data);
   virtual void RunPluginInitGfxHooks(const char *driverName, void *data);
   virtual int RunPluginDebugHooks(const char *scriptfile, int linenum);
 };
@@ -35,6 +42,17 @@ struct AGSLinux : AGS32BitOSDriver {
 
 int AGSLinux::CDPlayerCommand(int cmdd, int datt) {
   return cd_player_control(cmdd, datt);
+}
+
+void AGSLinux::WriteDebugString(const char* texx, ...) {
+  char displbuf[STD_BUFFER_SIZE] = "AGS: ";
+  va_list ap;
+  va_start(ap,texx);
+  vsprintf(&displbuf[5],texx,ap);
+  va_end(ap);
+  strcat(displbuf, "\n");
+
+  printf(displbuf);
 }
 
 void AGSLinux::DisplayAlert(const char *text, ...) {
@@ -135,7 +153,7 @@ void AGSLinux::ReplaceSpecialPaths(const char *sourcePath, char *destPath) {
   }
 }
 
-void AGSLinux::ReadPluginsFromDisk(FILE *iii) {
+void AGSLinux::ReadPluginsFromDisk(AGS::Common::DataStream *iii) {
   pl_read_plugins_from_disk(iii);
 }
 
@@ -147,7 +165,7 @@ void AGSLinux::ShutdownPlugins() {
   pl_stop_plugins();
 }
 
-int AGSLinux::RunPluginHooks(int event, int data) {
+int AGSLinux::RunPluginHooks(int event, long data) {
   return pl_run_plugin_hooks(event, data);
 }
 

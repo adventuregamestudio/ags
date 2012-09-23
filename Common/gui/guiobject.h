@@ -14,7 +14,10 @@
 #define __AC_GUIOBJECT_H
 
 #include "gui/guidefines.h"
-#include "platform/file.h"
+#include "util/file.h"
+
+namespace AGS { namespace Common { class DataStream; } }
+using namespace AGS; // FIXME later
 
 #define GUIDIS_GREYOUT   1
 #define GUIDIS_BLACKOUT  2
@@ -63,9 +66,8 @@ struct GUIObject
       return 1;
     return 0;
   }
-  // we can't just fread/fwrite inherited objects because of vtbl, so use:
-  virtual void WriteToFile(FILE *);
-  virtual void ReadFromFile(FILE *, int);
+  virtual void WriteToFile(Common::DataStream *out);
+  virtual void ReadFromFile(Common::DataStream *in, int version);
   // called when the control is resized
   virtual void Resized() { }
   virtual int  GetNumEvents() {

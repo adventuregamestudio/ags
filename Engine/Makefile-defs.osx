@@ -1,0 +1,26 @@
+INCDIR = ../Engine ../Common ../Common/libinclude ../Plugins /sw/include /sw/lib/freetype2/include /sw/lib/freetype2/include/freetype2
+LIBDIR = /sw/lib /sw/lib/freetype2/lib
+CFLAGS = -m32 -O2 -g -Wfatal-errors -DNDEBUG -DAGS_RUNTIME_PATCH_ALLEGRO -DALLEGRO_STATICLINK -DTHIS_IS_THE_ENGINE -DMAC_VERSION -DDISABLE_MPEG_AUDIO -DBUILTIN_PLUGINS -DRTLD_NEXT
+CXXFLAGS = $(CFLAGS) -fno-rtti -Wno-write-strings
+ASFLAGS = $(CFLAGS)
+LIBS = -m32 -framework Cocoa -lalleg-main -lalleg -laldmb -ldumb -ltheora -logg -lvorbis -lvorbisfile -lfreetype -logg -lz -ldl -lpthread -lm -lc -lstdc++
+
+PREFIX = /usr/local
+CC = gcc
+CXX = g++
+AR = ar
+CFLAGS   := $(addprefix -I,$(INCDIR)) $(CFLAGS)
+CXXFLAGS := $(CFLAGS) $(CXXFLAGS)
+ASFLAGS  := $(CFLAGS) $(ASFLAGS)
+LDFLAGS  := $(addprefix -L,$(LIBDIR))
+
+BASE_PLATFORM = \
+platform/osx/acplmac.cpp \
+../OSX/libc.c \
+../PSP/launcher/pe.c
+
+COMMON_PLATFORM = \
+../Common/platform/osx/macport.cpp \
+../Common/platform/bigend/bigend.cpp
+
+CDA = 

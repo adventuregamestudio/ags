@@ -2,7 +2,10 @@
 #define __AC_CHARACTERINFO_H
 
 #include "ac/common_defines.h" // constants
-#include "platform/file.h"
+#include "util/file.h"
+
+namespace AGS { namespace Common { class DataStream; } }
+using namespace AGS; // FIXME later
 
 #define MAX_INV             301
 #define CHF_MANUALSCALING   1
@@ -84,7 +87,8 @@ struct CharacterInfo {
 	void update_character_idle(CharacterExtras *chex, int &doing_nothing);
 	void update_character_follower(int &char_index, int &numSheep, int *followingAsSheep, int &doing_nothing);
 
-    void ReadFromFile(FILE *fp);
+    void ReadFromFile(Common::DataStream *in);
+    void WriteToFile(Common::DataStream *out);
 };
 
 

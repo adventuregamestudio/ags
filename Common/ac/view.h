@@ -1,6 +1,9 @@
 #ifndef __AC_VIEW_H
 #define __AC_VIEW_H
 
+namespace AGS { namespace Common { class DataStream; } }
+using namespace AGS; // FIXME later
+
 #define VFLG_FLIPSPRITE 1
 
 struct ViewFrame {
@@ -12,7 +15,8 @@ struct ViewFrame {
     int   reserved_for_future[2];
     ViewFrame() { pic = 0; xoffs = 0; yoffs = 0; speed = 0; }
 
-    void ReadFromFile(FILE *fp);
+    void ReadFromFile(Common::DataStream *in);
+    void WriteToFile(Common::DataStream *out);
 };
 
 #define LOOPFLAG_RUNNEXTLOOP 1
@@ -27,8 +31,8 @@ struct ViewLoopNew
 
     void Initialize(int frameCount);
     void Dispose();
-    void WriteToFile(FILE *ooo);
-    void ReadFromFile(FILE *iii);
+    void WriteToFile(Common::DataStream *out);
+    void ReadFromFile(Common::DataStream *in);
 };
 
 struct ViewStruct
@@ -38,8 +42,8 @@ struct ViewStruct
 
     void Initialize(int loopCount);
     void Dispose();
-    void WriteToFile(FILE *ooo);
-    void ReadFromFile(FILE *iii);
+    void WriteToFile(Common::DataStream *out);
+    void ReadFromFile(Common::DataStream *in);
 };
 
 struct ViewStruct272 {
@@ -49,7 +53,7 @@ struct ViewStruct272 {
     ViewFrame frames[16][20];
     ViewStruct272() { numloops = 0; numframes[0] = 0; }
 
-    void ReadFromFile(FILE *fp);
+    void ReadFromFile(Common::DataStream *in);
 };
 
 void Convert272ViewsToNew (int numof, ViewStruct272 *oldv, ViewStruct *newv);

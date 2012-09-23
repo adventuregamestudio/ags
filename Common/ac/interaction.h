@@ -2,7 +2,11 @@
 #define __AC_INTERACTION_H
 
 #include "ac/common_defines.h" // macros, typedef
-#include "platform/file.h"
+#include "util/file.h"
+
+// Forward declaration
+namespace AGS { namespace Common { class DataStream; } }
+using namespace AGS; // FIXME later
 
 /* THE WAY THIS WORKS:
 *
@@ -33,8 +37,8 @@ struct NewInteractionValue {
 
     NewInteractionValue();
 
-    void ReadFromFile(FILE *fp);
-    void WriteToFile(FILE *fp);
+    void ReadFromFile(Common::DataStream *in);
+    void WriteToFile(Common::DataStream *out);
 };
 
 struct NewInteractionAction {
@@ -54,8 +58,8 @@ struct NewInteractionCommand: public NewInteractionAction {
 
     void reset();
 
-    void ReadFromFile(FILE *fp);
-    void WriteToFile(FILE *fp);
+    void ReadFromFile(Common::DataStream *in);
+    void WriteToFile(Common::DataStream *out);
 };
 
 struct NewInteractionCommandList : public NewInteractionAction {
@@ -83,8 +87,8 @@ struct NewInteraction {
     void reset();
     ~NewInteraction();
 
-    void ReadFromFile(FILE *fp);
-    void WriteToFile(FILE *fp);
+    void ReadFromFile(Common::DataStream *in);
+    void WriteToFile(Common::DataStream *out);
 };
 
 
@@ -93,7 +97,8 @@ struct InteractionVariable {
     char type;
     int  value;
 
-    void ReadFromFile(FILE *fp);
+    void ReadFromFile(Common::DataStream *in);
+    void WriteToFile(Common::DataStream *out);
 };
 extern InteractionVariable globalvars[];
 extern int numGlobalVars;
@@ -113,14 +118,14 @@ struct InteractionScripts {
 extern InteractionVariable globalvars[MAX_GLOBAL_VARIABLES];
 extern int numGlobalVars;
 
-extern void serialize_command_list (NewInteractionCommandList *nicl, FILE*ooo);
-extern void serialize_new_interaction (NewInteraction *nint, FILE*ooo);
-extern NewInteractionCommandList *deserialize_command_list (FILE *ooo);
+extern void serialize_command_list (NewInteractionCommandList *nicl, Common::DataStream *out);
+extern void serialize_new_interaction (NewInteraction *nint, Common::DataStream *out);
+extern NewInteractionCommandList *deserialize_command_list (Common::DataStream *out);
 
 extern NewInteraction *nitemp;
-extern NewInteraction *deserialize_new_interaction (FILE *ooo);
+extern NewInteraction *deserialize_new_interaction (Common::DataStream *in);
 
-extern void deserialize_interaction_scripts(FILE *iii, InteractionScripts *scripts);
+extern void deserialize_interaction_scripts(Common::DataStream *in, InteractionScripts *scripts);
 
 
 #endif // __AC_INTERACTION_H

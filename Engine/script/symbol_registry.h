@@ -38,8 +38,8 @@
 //
 //-----------------------------------------------------------------------------
 
-#include <stdio.h>
 #include "script/ex_defines.h"
+#include "util/file.h" // for enum FileOpenMode
 
 //-------------------------------------------------------------
 void register_global_script_functions();
@@ -925,6 +925,13 @@ int ViewFrame_GetFrame(ScriptViewFrame *svf);
 // Many of the following are backwards-compatibility functions
 //-----------------------------------------------------------------------------
 
+namespace AGS { namespace Common {
+    class DataStream; 
+    enum FileOpenMode;
+    enum FileWorkMode;
+}}
+using namespace AGS; // FIXME later
+
 void _sc_AbortGame(char*texx, ...);
 void SetActiveInventory(int iit);
 void add_inventory(int inum);
@@ -942,18 +949,18 @@ int AreObjectsColliding(int obj1,int obj2);
 int AreThingsOverlapping(int thing1, int thing2);
 int HasPlayerBeenInRoom(int roomnum);
 void CallRoomScript (int value);
-FILE* FileOpen(const char*fnmm, const char* mode);
-void FileClose(FILE*hha);
-void FileWrite(FILE*haa, const char *towrite);
-void FileWriteRawLine(FILE*haa, const char*towrite);
-void FileRead(FILE*haa,char*toread);
-int FileIsEOF (FILE *haa);
-int FileIsError(FILE *haa);
-void FileWriteInt(FILE*haa,int into);
-int FileReadInt(FILE*haa);
-char FileReadRawChar(FILE*haa);
-int FileReadRawInt(FILE*haa);
-void FileWriteRawChar(FILE *haa, int chartoWrite);
+Common::DataStream * FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode);
+void FileClose(Common::DataStream*hha);
+void FileWrite(Common::DataStream*haa, const char *towrite);
+void FileWriteRawLine(Common::DataStream*haa, const char*towrite);
+void FileRead(Common::DataStream*haa,char*toread);
+int FileIsEOF (Common::DataStream *haa);
+int FileIsError(Common::DataStream *haa);
+void FileWriteInt(Common::DataStream*haa,int into);
+int FileReadInt(Common::DataStream*haa);
+char FileReadRawChar(Common::DataStream*haa);
+int FileReadRawInt(Common::DataStream*haa);
+void FileWriteRawChar(Common::DataStream *haa, int chartoWrite);
 void FaceLocation(int cha, int xx, int yy);
 void FaceCharacter(int cha,int toface);
 void FadeIn(int sppd);

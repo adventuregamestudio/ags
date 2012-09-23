@@ -4,7 +4,7 @@
 #include "ac/common.h"
 #include "ac/view.h"
 #include "ac/gamesetupstruct.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "media/audio/audio.h"
 
 extern GameSetupStruct game;

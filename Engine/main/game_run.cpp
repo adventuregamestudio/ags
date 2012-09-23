@@ -41,7 +41,8 @@
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
 #include "ac/roomstruct.h"
-#include "debug/debug.h"
+#include "debug/debugger.h"
+#include "debug/debug_log.h"
 #include "gui/guiinv.h"
 #include "gui/guimain.h"
 #include "gui/guitextbox.h"
@@ -83,7 +84,7 @@ extern CharacterExtras *charextra;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
 extern int offsetx, offsety;
-extern unsigned long loopcounter,lastcounter;
+extern unsigned int loopcounter,lastcounter;
 extern volatile int timerloop;
 extern int cur_mode,cur_cursor;
 
@@ -91,7 +92,7 @@ extern int cur_mode,cur_cursor;
 int numEventsAtStartOfFunction;
 long t1;  // timer for FPS // ... 't1'... how very appropriate.. :)
 
-int user_disabled_for=0,user_disabled_data=0,user_disabled_data2=0;
+long user_disabled_for=0,user_disabled_data=0,user_disabled_data2=0;
 int user_disabled_data3=0;
 
 int restrict_until=0;
@@ -848,7 +849,7 @@ int main_game_loop() {
 }
 
 
-void main_loop_until(int untilwhat,int udata,int mousestuff) {
+void main_loop_until(int untilwhat,long udata,int mousestuff) {
     play.disabled_user_interface++;
     guis_need_update = 1;
     // Only change the mouse cursor if it hasn't been specifically changed first
@@ -864,7 +865,7 @@ void main_loop_until(int untilwhat,int udata,int mousestuff) {
 
 // This function is called from lot of various functions
 // in the game core, character, room object etc
-void do_main_cycle(int untilwhat,int daaa) {
+void do_main_cycle(int untilwhat,long daaa) {
   // blocking cutscene - end skipping
   EndSkippingUntilCharStops();
 

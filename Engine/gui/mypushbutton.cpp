@@ -9,6 +9,9 @@
 #include "gui/guidialoginternaldefs.h"
 #include "main/game_run.h"
 #include "media/audio/audio.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::Bitmap;
 
 extern volatile int timerloop;
 
@@ -31,27 +34,27 @@ void MyPushButton::draw()
 {
     wtextcolor(0);
     wsetcolor(COL254);
-    wbar(x, y, x + wid, y + hit);
+    abuf->FillRect(Rect(x, y, x + wid, y + hit), currentcolor);
     if (state == 0)
         wsetcolor(pushbuttondarkcolor);
     else
         wsetcolor(pushbuttonlightcolor);
 
-    wrectangle(x, y, x + wid, y + hit);
+    abuf->DrawRect(Rect(x, y, x + wid, y + hit), currentcolor);
     if (state == 0)
         wsetcolor(pushbuttonlightcolor);
     else
         wsetcolor(pushbuttondarkcolor);
 
-    wline(x, y, x + wid - 1, y);
-    wline(x, y, x, y + hit - 1);
+    abuf->DrawLine(Line(x, y, x + wid - 1, y), currentcolor);
+    abuf->DrawLine(Line(x, y, x, y + hit - 1), currentcolor);
     wouttextxy(x + (wid / 2 - wgettextwidth(text, cbuttfont) / 2), y + 2, cbuttfont, text);
     if (typeandflags & CNF_DEFAULT)
         wsetcolor(0);
     else
         wsetcolor(windowbackgroundcolor);
 
-    wrectangle(x - 1, y - 1, x + wid + 1, y + hit + 1);
+    abuf->DrawRect(Rect(x - 1, y - 1, x + wid + 1, y + hit + 1), currentcolor);
 }
 
 //extern const int LEFT;  // in mousew32

@@ -1,13 +1,13 @@
 
-#include "ac/button.h"
 #include "util/wgt2allg.h"
+#include "ac/button.h"
 #include "ac/common.h"
 #include "ac/view.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/global_translation.h"
 #include "ac/string.h"
 #include "ac/viewframe.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "gui/animatingguibutton.h"
 #include "gui/guimain.h"
 

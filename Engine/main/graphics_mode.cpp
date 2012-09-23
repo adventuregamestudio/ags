@@ -24,11 +24,17 @@
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/walkbehind.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
+#include "debug/debugger.h"
 #include "gui/guiinv.h"
 #include "gui/guimain.h"
 #include "main/graphics_mode.h"
-#include "platform/agsplatformdriver.h"
+#include "platform/base/agsplatformdriver.h"
+#include "gfx/graphicsdriver.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameSetup usetup;
 extern GameSetupStruct game;
@@ -48,8 +54,8 @@ extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern volatile int timerloop;
 extern IDriverDependantBitmap *blankImage;
 extern IDriverDependantBitmap *blankSidebarImage;
-extern block _old_screen;
-extern block _sub_screen;
+extern Bitmap *_old_screen;
+extern Bitmap *_sub_screen;
 extern int _places_r, _places_g, _places_b;
 
 int initasx,initasy;
@@ -530,12 +536,12 @@ void CreateBlankImage()
     // so it's the most likey place for a crash
     try
     {
-        BITMAP *blank = create_bitmap_ex(final_col_dep, 16, 16);
+        Bitmap *blank = BitmapHelper::CreateBitmap(16, 16, final_col_dep);
         blank = gfxDriver->ConvertBitmapToSupportedColourDepth(blank);
-        clear(blank);
+        blank->Clear();
         blankImage = gfxDriver->CreateDDBFromBitmap(blank, false, true);
         blankSidebarImage = gfxDriver->CreateDDBFromBitmap(blank, false, true);
-        destroy_bitmap(blank);
+        delete blank;
     }
     catch (Ali3DException gfxException)
     {
@@ -547,7 +553,7 @@ void CreateBlankImage()
 void engine_post_init_gfx_driver()
 {
     //screen = _filter->ScreenInitialized(screen, final_scrn_wid, final_scrn_hit);
-    _old_screen = screen;
+	_old_screen = BitmapHelper::GetScreenBitmap();
 
     if (gfxDriver->HasAcceleratedStretchAndFlip()) 
     {
@@ -564,17 +570,20 @@ void engine_prepare_screen()
     if ((final_scrn_hit != scrnhit) || (final_scrn_wid != scrnwid)) {
         initasx = final_scrn_wid;
         initasy = final_scrn_hit;
-        clear(_old_screen);
-        screen = create_sub_bitmap(_old_screen, initasx / 2 - scrnwid / 2, initasy/2-scrnhit/2, scrnwid, scrnhit);
-        _sub_screen=screen;
+        _old_screen->Clear();
+		BitmapHelper::SetScreenBitmap(
+			BitmapHelper::CreateSubBitmap(_old_screen, RectWH(initasx / 2 - scrnwid / 2, initasy/2-scrnhit/2, scrnwid, scrnhit))
+			);
+		Bitmap *screen_bmp = BitmapHelper::GetScreenBitmap();
+        _sub_screen=screen_bmp;
 
-        scrnhit = screen->h;
-        vesa_yres = screen->h;
-        scrnwid = screen->w;
-        vesa_xres = screen->w;
-        gfxDriver->SetMemoryBackBuffer(screen);
+        scrnhit = screen_bmp->GetHeight();
+        vesa_yres = screen_bmp->GetHeight();
+        scrnwid = screen_bmp->GetWidth();
+        vesa_xres = screen_bmp->GetWidth();
+		gfxDriver->SetMemoryBackBuffer(screen_bmp);
 
-        platform->WriteDebugString("Screen resolution: %d x %d; game resolution %d x %d", _old_screen->w, _old_screen->h, scrnwid, scrnhit);
+        platform->WriteDebugString("Screen resolution: %d x %d; game resolution %d x %d", _old_screen->GetWidth(), _old_screen->GetHeight(), scrnwid, scrnhit);
     }
 
 

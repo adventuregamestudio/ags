@@ -9,7 +9,10 @@
 
 #include "gfx/ali3d.h"
 
-void do_main_cycle(int untilwhat,int daaa);
+namespace AGS { namespace Engine { class IDriverDependantBitmap; }}
+using namespace AGS::Engine; // FIXME later
+
+void do_main_cycle(int untilwhat,long daaa);
 void mainloop(bool checkControls = false, IDriverDependantBitmap *extraBitmap = NULL, int extraX = 0, int extraY = 0);
 int  main_game_loop();
 int  wait_loop_still_valid();

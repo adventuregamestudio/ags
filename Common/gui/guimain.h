@@ -16,6 +16,10 @@
 #include "gui/guiobject.h"
 #include "ac/common_defines.h"       // AGS_INLINE
 
+// Forward declaration
+namespace AGS { namespace Common { class DataStream; } }
+using namespace AGS; // FIXME later
+
 // There were issues when including header caused conflicts
 struct GameSetupStruct;
 
@@ -81,8 +85,8 @@ struct GUIMain
 
   void FixupGuiName(char* name);
   void SetTransparencyAsPercentage(int percent);
-  void ReadFromFile(FILE *fp, int version);
-  void WriteToFile(FILE *fp);
+  void ReadFromFile(Common::DataStream *in, int version);
+  void WriteToFile(Common::DataStream *out);
 
 };
 
@@ -93,8 +97,8 @@ extern int gui_disabled_style;
 extern char lines[MAXLINE][200];
 extern int  numlines;
 
-extern void read_gui(FILE * iii, GUIMain * guiread, GameSetupStruct * gss, GUIMain** allocate = NULL);
-extern void write_gui(FILE * ooo, GUIMain * guiwrite, GameSetupStruct * gss);
+extern void read_gui(Common::DataStream *in, GUIMain * guiread, GameSetupStruct * gss, GUIMain** allocate = NULL);
+extern void write_gui(Common::DataStream *out, GUIMain * guiwrite, GameSetupStruct * gss);
 
 extern int loaded_game_file_version;
 extern int mousex, mousey;

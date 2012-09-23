@@ -1,6 +1,6 @@
 
-#include "ac/display.h"
 #include "util/wgt2allg.h"
+#include "ac/display.h"
 #include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "font/agsfontrenderer.h"
@@ -19,20 +19,24 @@
 #include "ac/screenoverlay.h"
 #include "ac/string.h"
 #include "ac/topbarsettings.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "gui/guibutton.h"
 #include "gui/guimain.h"
 #include "main/game_run.h"
 #include "media/audio/audio.h"
-#include "platform/agsplatformdriver.h"
+#include "platform/base/agsplatformdriver.h"
 #include "ac/spritecache.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameState play;
 extern GameSetupStruct game;
 extern GUIMain *guis;
 extern int longestline;
 extern int scrnwid,scrnhit;
-extern block virtual_screen;
+extern Bitmap *virtual_screen;
 extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern volatile int timerloop;
 extern AGSPlatformDriver *platform;
@@ -55,7 +59,7 @@ TopBarSettings topBar;
 // create a new bitmap the size of the window before calling, and
 //   point abuf to it
 // returns text start x & y pos in parameters
-block screenop = NULL;
+Bitmap *screenop = NULL;
 int wantFreeScreenop = 0;
 int texthit;
 
@@ -140,9 +144,9 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
     if (blocking < 2)
         remove_screen_overlay(OVER_TEXTMSG);
 
-    screenop = create_bitmap_ex(final_col_dep, (wii > 0) ? wii : 2, numlines*texthit + extraHeight);
+    screenop = BitmapHelper::CreateBitmap((wii > 0) ? wii : 2, numlines*texthit + extraHeight, final_col_dep);
     wsetscreen(screenop);
-    clear_to_color(screenop,bitmap_mask_color(screenop));
+    screenop->Clear(screenop->GetMaskColor());
 
     // inform draw_text_window to free the old bitmap
     wantFreeScreenop = 1;
@@ -478,7 +482,7 @@ int wgettextwidth_compensate(const char *tex, int font) {
 
 void do_corner(int sprn,int xx1,int yy1,int typx,int typy) {
     if (sprn<0) return;
-    block thisone = spriteset[sprn];
+    Bitmap *thisone = spriteset[sprn];
     if (thisone == NULL)
         thisone = spriteset[0];
 
@@ -492,10 +496,10 @@ int get_but_pic(GUIMain*guo,int indx) {
 
 void draw_button_background(int xx1,int yy1,int xx2,int yy2,GUIMain*iep) {
     if (iep==NULL) {  // standard window
-        rectfill(abuf,xx1,yy1,xx2,yy2,get_col8_lookup(15));
-        rect(abuf,xx1,yy1,xx2,yy2,get_col8_lookup(16));
-        /*    wsetcolor(opts.tws.backcol); wbar(xx1,yy1,xx2,yy2);
-        wsetcolor(opts.tws.textcol); wrectangle(xx1+1,yy1+1,xx2-1,yy2-1);*/
+        abuf->FillRect(Rect(xx1,yy1,xx2,yy2),get_col8_lookup(15));
+        abuf->DrawRect(Rect(xx1,yy1,xx2,yy2),get_col8_lookup(16));
+        /*    wsetcolor(opts.tws.backcol); abuf->FillRect(Rect(xx1,yy1,xx2,yy2);
+        wsetcolor(opts.tws.textcol); abuf->DrawRect(Rect(xx1+1,yy1+1,xx2-1,yy2-1);*/
     }
     else {
         if (loaded_game_file_version < 25) // < 2.60
@@ -509,15 +513,15 @@ void draw_button_background(int xx1,int yy1,int xx2,int yy2,GUIMain*iep) {
         else wsetcolor(0); // black backrgnd behind picture
 
         if (iep->bgcol > 0)
-            wbar(xx1,yy1,xx2,yy2);
+            abuf->FillRect(Rect(xx1,yy1,xx2,yy2), currentcolor);
 
         int leftRightWidth = spritewidth[get_but_pic(iep,4)];
         int topBottomHeight = spriteheight[get_but_pic(iep,6)];
         if (iep->bgpic>0) {
             if ((loaded_game_file_version <= 32) // 2.xx
-                && (spriteset[iep->bgpic]->w == 1)
-                && (spriteset[iep->bgpic]->h == 1) 
-                && (*((unsigned int*)spriteset[iep->bgpic]->dat) == 0x00FF00FF))
+                && (spriteset[iep->bgpic]->GetWidth() == 1)
+                && (spriteset[iep->bgpic]->GetHeight() == 1) 
+                && (*((unsigned int*)spriteset[iep->bgpic]->GetData()) == 0x00FF00FF))
             {
                 // Don't draw fully transparent dummy GUI backgrounds
             }
@@ -528,7 +532,7 @@ void draw_button_background(int xx1,int yy1,int xx2,int yy2,GUIMain*iep) {
                 // edge
                 int bgoffsx = xx1 - leftRightWidth / 2;
                 int bgoffsy = yy1 - topBottomHeight / 2;
-                set_clip(abuf, bgoffsx, bgoffsy, xx2 + leftRightWidth / 2, yy2 + topBottomHeight / 2);
+                abuf->SetClip(Rect(bgoffsx, bgoffsy, xx2 + leftRightWidth / 2, yy2 + topBottomHeight / 2));
                 int bgfinishx = xx2;
                 int bgfinishy = yy2;
                 int bgoffsyStart = bgoffsy;
@@ -543,7 +547,7 @@ void draw_button_background(int xx1,int yy1,int xx2,int yy2,GUIMain*iep) {
                     bgoffsx += spritewidth[iep->bgpic];
                 }
                 // return to normal clipping rectangle
-                set_clip(abuf, 0, 0, abuf->w - 1, abuf->h - 1);
+                abuf->SetClip(Rect(0, 0, abuf->GetWidth() - 1, abuf->GetHeight() - 1));
             }
         }
         int uu;
@@ -595,7 +599,7 @@ void draw_text_window(int*xins,int*yins,int*xx,int*yy,int*wii,int ovrheight, int
     if (ifnum <= 0) {
         if (ovrheight)
             quit("!Cannot use QFG4 style options without custom text window");
-        draw_button_background(0,0,abuf->w - 1,abuf->h - 1,NULL);
+        draw_button_background(0,0,abuf->GetWidth() - 1,abuf->GetHeight() - 1,NULL);
         wtextcolor(16);
         xins[0]=3;
         yins[0]=3;
@@ -615,12 +619,12 @@ void draw_text_window(int*xins,int*yins,int*xx,int*yy,int*wii,int ovrheight, int
             ovrheight = numlines*texthit;
 
         if ((wantFreeScreenop > 0) && (screenop != NULL))
-            destroy_bitmap(screenop);
-        screenop = create_bitmap_ex(final_col_dep,wii[0],ovrheight+6+spriteheight[tbnum]*2);
-        clear_to_color(screenop, bitmap_mask_color(screenop));
+            delete screenop;
+        screenop = BitmapHelper::CreateBitmap(wii[0],ovrheight+6+spriteheight[tbnum]*2,final_col_dep);
+        screenop->Clear(screenop->GetMaskColor());
         wsetscreen(screenop);
         int xoffs=spritewidth[tbnum],yoffs=spriteheight[tbnum];
-        draw_button_background(xoffs,yoffs,(abuf->w - xoffs) - 1,(abuf->h - yoffs) - 1,&guis[ifnum]);
+        draw_button_background(xoffs,yoffs,(abuf->GetWidth() - xoffs) - 1,(abuf->GetHeight() - yoffs) - 1,&guis[ifnum]);
         wtextcolor(guis[ifnum].fgcol);
         xins[0]=xoffs+3;
         yins[0]=yoffs+3;
@@ -635,23 +639,23 @@ void draw_text_window_and_bar(int*xins,int*yins,int*xx,int*yy,int*wii,int ovrhei
     if ((topBar.wantIt) && (screenop != NULL)) {
         // top bar on the dialog window with character's name
         // create an enlarged window, then free the old one
-        block newScreenop = create_bitmap_ex(final_col_dep, screenop->w, screenop->h + topBar.height);
-        blit(screenop, newScreenop, 0, 0, 0, topBar.height, screenop->w, screenop->h);
-        wfreeblock(screenop);
+        Bitmap *newScreenop = BitmapHelper::CreateBitmap(screenop->GetWidth(), screenop->GetHeight() + topBar.height, final_col_dep);
+        newScreenop->Blit(screenop, 0, 0, 0, topBar.height, screenop->GetWidth(), screenop->GetHeight());
+        delete screenop;
         screenop = newScreenop;
         wsetscreen(screenop);
 
         // draw the top bar
-        rectfill(screenop, 0, 0, screenop->w - 1, topBar.height - 1, get_col8_lookup(play.top_bar_backcolor));
+        screenop->FillRect(Rect(0, 0, screenop->GetWidth() - 1, topBar.height - 1), get_col8_lookup(play.top_bar_backcolor));
         if (play.top_bar_backcolor != play.top_bar_bordercolor) {
             // draw the border
             for (int j = 0; j < multiply_up_coordinate(play.top_bar_borderwidth); j++)
-                rect(screenop, j, j, screenop->w - (j + 1), topBar.height - (j + 1), get_col8_lookup(play.top_bar_bordercolor));
+                screenop->DrawRect(Rect(j, j, screenop->GetWidth() - (j + 1), topBar.height - (j + 1)), get_col8_lookup(play.top_bar_bordercolor));
         }
 
         int textcolwas = textcol;
         // draw the text
-        int textx = (screenop->w / 2) - wgettextwidth_compensate(topBar.text, topBar.font) / 2;
+        int textx = (screenop->GetWidth() / 2) - wgettextwidth_compensate(topBar.text, topBar.font) / 2;
         wtextcolor(play.top_bar_textcolor);
         wouttext_outline(textx, play.top_bar_borderwidth + get_fixed_pixel_size(1), topBar.font, topBar.text);
         // restore the current text colour

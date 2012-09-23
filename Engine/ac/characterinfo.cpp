@@ -1,8 +1,8 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "ac/characterinfo.h"
 #include "util/wgt2allg.h"
+#include "ac/characterinfo.h"
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/roomstruct.h"
@@ -13,9 +13,12 @@
 #include "ac/global_character.h"
 #include "ac/math.h"
 #include "ac/viewframe.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "main/maindefines_ex.h"	// RETURN_CONTINUE
 #include "main/update.h"
+#include "util/datastream.h"
+
+using AGS::Common::DataStream;
 
 extern ViewStruct*views;
 extern GameSetupStruct game;
@@ -24,7 +27,7 @@ extern GameState play;
 extern int char_speaking;
 extern roomstruct thisroom;
 extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
-extern unsigned long loopcounter;
+extern unsigned int loopcounter;
 
 #define Random __Rand
 
@@ -493,61 +496,116 @@ void CharacterInfo::update_character_idle(CharacterExtras *chex, int &doing_noth
     }  // end do idle animation
 }
 
-void CharacterInfo::ReadFromFile(FILE *fp)
+void CharacterInfo::ReadFromFile(DataStream *in)
 {
     int reserved[2];
 //#ifdef ALLEGRO_BIG_ENDIAN
-    defview = getw(fp);
-    talkview = getw(fp);
-    view = getw(fp);
-    room = getw(fp);
-    prevroom = getw(fp);
-    x = getw(fp);
-    y = getw(fp);
-    wait = getw(fp);
-    flags = getw(fp);
-    following = getshort(fp);//__getshort__bigendian(fp);
-    followinfo = getshort(fp);//__getshort__bigendian(fp);
-    idleview = getw(fp);
-    idletime = getshort(fp);//__getshort__bigendian(fp);
-    idleleft = getshort(fp);//__getshort__bigendian(fp);
-    transparency = getshort(fp);//__getshort__bigendian(fp);
-    baseline = getshort(fp);//__getshort__bigendian(fp);
-    activeinv = getw(fp);
-    talkcolor = getw(fp);
-    thinkview = getw(fp);
-    blinkview = getshort(fp);//__getshort__bigendian(fp);
-    blinkinterval = getshort(fp);//__getshort__bigendian(fp);
-    blinktimer = getshort(fp);//__getshort__bigendian(fp);
-    blinkframe = getshort(fp);//__getshort__bigendian(fp);
-    walkspeed_y = getshort(fp);//__getshort__bigendian(fp);
-    pic_yoffs = getshort(fp);//__getshort__bigendian(fp);
-    z = getw(fp);
-    reserved[0] = getw(fp);
-    reserved[1] = getw(fp);
-    blocking_width = getshort(fp);//__getshort__bigendian(fp);
-    blocking_height = getshort(fp);//__getshort__bigendian(fp);;
-    index_id = getw(fp);
-    pic_xoffs = getshort(fp);//__getshort__bigendian(fp);
-    walkwaitcounter = getshort(fp);//__getshort__bigendian(fp);
-    loop = getshort(fp);//__getshort__bigendian(fp);
-    frame = getshort(fp);//__getshort__bigendian(fp);
-    walking = getshort(fp);//__getshort__bigendian(fp);
-    animating = getshort(fp);//__getshort__bigendian(fp);
-    walkspeed = getshort(fp);//__getshort__bigendian(fp);
-    animspeed = getshort(fp);//__getshort__bigendian(fp);
-    fread(inv, sizeof(short), MAX_INV, fp);
-    actx = getshort(fp);//__getshort__bigendian(fp);
-    acty = getshort(fp);//__getshort__bigendian(fp);
-    fread(name, sizeof(char), 40, fp);
-    fread(scrname, sizeof(char), MAX_SCRIPT_NAME_LEN, fp);
-    on = getc(fp);
+    defview = in->ReadInt32();
+    talkview = in->ReadInt32();
+    view = in->ReadInt32();
+    room = in->ReadInt32();
+    prevroom = in->ReadInt32();
+    x = in->ReadInt32();
+    y = in->ReadInt32();
+    wait = in->ReadInt32();
+    flags = in->ReadInt32();
+    following = in->ReadInt16();//__getshort__bigendian(fp);
+    followinfo = in->ReadInt16();//__getshort__bigendian(fp);
+    idleview = in->ReadInt32();
+    idletime = in->ReadInt16();//__getshort__bigendian(fp);
+    idleleft = in->ReadInt16();//__getshort__bigendian(fp);
+    transparency = in->ReadInt16();//__getshort__bigendian(fp);
+    baseline = in->ReadInt16();//__getshort__bigendian(fp);
+    activeinv = in->ReadInt32();
+    talkcolor = in->ReadInt32();
+    thinkview = in->ReadInt32();
+    blinkview = in->ReadInt16();//__getshort__bigendian(fp);
+    blinkinterval = in->ReadInt16();//__getshort__bigendian(fp);
+    blinktimer = in->ReadInt16();//__getshort__bigendian(fp);
+    blinkframe = in->ReadInt16();//__getshort__bigendian(fp);
+    walkspeed_y = in->ReadInt16();//__getshort__bigendian(fp);
+    pic_yoffs = in->ReadInt16();//__getshort__bigendian(fp);
+    z = in->ReadInt32();
+    reserved[0] = in->ReadInt32();
+    reserved[1] = in->ReadInt32();
+    blocking_width = in->ReadInt16();//__getshort__bigendian(fp);
+    blocking_height = in->ReadInt16();//__getshort__bigendian(fp);;
+    index_id = in->ReadInt32();
+    pic_xoffs = in->ReadInt16();//__getshort__bigendian(fp);
+    walkwaitcounter = in->ReadInt16();//__getshort__bigendian(fp);
+    loop = in->ReadInt16();//__getshort__bigendian(fp);
+    frame = in->ReadInt16();//__getshort__bigendian(fp);
+    walking = in->ReadInt16();//__getshort__bigendian(fp);
+    animating = in->ReadInt16();//__getshort__bigendian(fp);
+    walkspeed = in->ReadInt16();//__getshort__bigendian(fp);
+    animspeed = in->ReadInt16();//__getshort__bigendian(fp);
+    in->ReadArrayOfInt16(inv, MAX_INV);
+    actx = in->ReadInt16();//__getshort__bigendian(fp);
+    acty = in->ReadInt16();//__getshort__bigendian(fp);
+    in->Read(name, 40);
+    in->Read(scrname, MAX_SCRIPT_NAME_LEN);
+    on = in->ReadInt8();
     // MAX_INV is odd, so need to sweep up padding
     // skip over padding that makes struct a multiple of 4 bytes long
-    fseek(fp, 4 - (((MAX_INV+2)*sizeof(short)+40+MAX_SCRIPT_NAME_LEN+1)%4), SEEK_CUR);
+    in->Seek(Common::kSeekCurrent, get_padding(((MAX_INV+2)*sizeof(short)+40+MAX_SCRIPT_NAME_LEN+1)));
 //#else
     //throw "CharacterInfo::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
 //#endif
+}
+
+void CharacterInfo::WriteToFile(DataStream *out)
+{
+    char padding[3] = {0,0,0};
+
+    out->WriteInt32(defview);
+    out->WriteInt32(talkview);
+    out->WriteInt32(view);
+    out->WriteInt32(room);
+    out->WriteInt32(prevroom);
+    out->WriteInt32(x);
+    out->WriteInt32(y);
+    out->WriteInt32(wait);
+    out->WriteInt32(flags);
+    out->WriteInt16(following);//__getshort__bigendian(fp);
+    out->WriteInt16(followinfo);//__getshort__bigendian(fp);
+    out->WriteInt32(idleview);
+    out->WriteInt16(idletime);//__getshort__bigendian(fp);
+    out->WriteInt16(idleleft);//__getshort__bigendian(fp);
+    out->WriteInt16(transparency);//__getshort__bigendian(fp);
+    out->WriteInt16(baseline);//__getshort__bigendian(fp);
+    out->WriteInt32(activeinv);
+    out->WriteInt32(talkcolor);
+    out->WriteInt32(thinkview);
+    out->WriteInt16(blinkview);//__getshort__bigendian(fp);
+    out->WriteInt16(blinkinterval);//__getshort__bigendian(fp);
+    out->WriteInt16(blinktimer);//__getshort__bigendian(fp);
+    out->WriteInt16(blinkframe);//__getshort__bigendian(fp);
+    out->WriteInt16(walkspeed_y);//__getshort__bigendian(fp);
+    out->WriteInt16(pic_yoffs);//__getshort__bigendian(fp);
+    out->WriteInt32(z);
+    out->WriteInt32(padding[0]);
+    out->WriteInt32(padding[1]);
+    out->WriteInt16(blocking_width);//__getshort__bigendian(fp);
+    out->WriteInt16(blocking_height);//__getshort__bigendian(fp);;
+    out->WriteInt32(index_id);
+    out->WriteInt16(pic_xoffs);//__getshort__bigendian(fp);
+    out->WriteInt16(walkwaitcounter);//__getshort__bigendian(fp);
+    out->WriteInt16(loop);//__getshort__bigendian(fp);
+    out->WriteInt16(frame);//__getshort__bigendian(fp);
+    out->WriteInt16(walking);//__getshort__bigendian(fp);
+    out->WriteInt16(animating);//__getshort__bigendian(fp);
+    out->WriteInt16(walkspeed);//__getshort__bigendian(fp);
+    out->WriteInt16(animspeed);//__getshort__bigendian(fp);
+    out->WriteArrayOfInt16(inv, MAX_INV);
+    out->WriteInt16(actx);//__getshort__bigendian(fp);
+    out->WriteInt16(acty);//__getshort__bigendian(fp);
+    out->Write(name, 40);
+    out->Write(scrname, MAX_SCRIPT_NAME_LEN);
+    out->WriteInt8(on);
+    // MAX_INV is odd, so need to sweep up padding
+    // skip over padding that makes struct a multiple of 4 bytes long
+    char long_padding[3];
+    out->Write(long_padding, get_padding((MAX_INV+2)*sizeof(short)+40+MAX_SCRIPT_NAME_LEN+1));
 }
 
 void ConvertOldCharacterToNew (OldCharacterInfo *oci, CharacterInfo *ci) {

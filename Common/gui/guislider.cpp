@@ -1,23 +1,28 @@
 
 #include <stdio.h>
+#include "util/wgt2allg.h"
 #include "gui/guislider.h"
 #include "gui/guimain.h"
-#include "util/wgt2allg.h"
 #include "ac/spritecache.h"
+#include "util/datastream.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::DataStream;
+using AGS::Common::Bitmap;
 
 extern SpriteCache spriteset;
 
 DynamicArray<GUISlider> guislider;
 int numguislider = 0;
 
-void GUISlider::WriteToFile(FILE * ooo)
+void GUISlider::WriteToFile(DataStream *out)
 {
-  GUIObject::WriteToFile(ooo);
+  GUIObject::WriteToFile(out);
   // MACPORT FIX: swap
-  fwrite(&min, sizeof(int), 7, ooo);
+  out->WriteArrayOfInt32(&min, 7);
 }
 
-void GUISlider::ReadFromFile(FILE * ooo, int version)
+void GUISlider::ReadFromFile(DataStream *in, int version)
 {
   int sizeToRead = 4;
 
@@ -29,8 +34,8 @@ void GUISlider::ReadFromFile(FILE * ooo, int version)
     bgimage = 0;
   }
 
-  GUIObject::ReadFromFile(ooo, version);
-  fread(&min, sizeof(int), sizeToRead, ooo);
+  GUIObject::ReadFromFile(in, version);
+  in->ReadArrayOfInt32(&min, sizeToRead);
 }
 
 void GUISlider::Draw()
@@ -117,15 +122,15 @@ void GUISlider::Draw()
   else {
     // normal grey background
     wsetcolor(16);
-    wbar(bartlx + 1, bartly + 1, barbrx - 1, barbry - 1);
+    abuf->FillRect(Rect(bartlx + 1, bartly + 1, barbrx - 1, barbry - 1), currentcolor);
 
     wsetcolor(8);
-    wline(bartlx, bartly, bartlx, barbry);
-    wline(bartlx, bartly, barbrx, bartly);
+    abuf->DrawLine(Line(bartlx, bartly, bartlx, barbry), currentcolor);
+    abuf->DrawLine(Line(bartlx, bartly, barbrx, bartly), currentcolor);
 
     wsetcolor(15);
-    wline(barbrx, bartly + 1, barbrx, barbry);
-    wline(bartlx, barbry, barbrx, barbry);
+    abuf->DrawLine(Line(barbrx, bartly + 1, barbrx, barbry), currentcolor);
+    abuf->DrawLine(Line(bartlx, barbry, barbrx, barbry), currentcolor);
   }
 
   if (handlepic > 0) {
@@ -141,15 +146,15 @@ void GUISlider::Draw()
   else {
     // normal grey tracker handle
     wsetcolor(7);
-    wbar(handtlx, handtly, handbrx, handbry);
+    abuf->FillRect(Rect(handtlx, handtly, handbrx, handbry), currentcolor);
 
     wsetcolor(15);
-    wline(handtlx, handtly, handbrx, handtly);
-    wline(handtlx, handtly, handtlx, handbry);
+    abuf->DrawLine(Line(handtlx, handtly, handbrx, handtly), currentcolor);
+    abuf->DrawLine(Line(handtlx, handtly, handtlx, handbry), currentcolor);
 
     wsetcolor(16);
-    wline(handbrx, handtly + 1, handbrx, handbry);
-    wline(handtlx + 1, handbry, handbrx, handbry);
+    abuf->DrawLine(Line(handbrx, handtly + 1, handbrx, handbry), currentcolor);
+    abuf->DrawLine(Line(handtlx + 1, handbry, handbrx, handbry), currentcolor);
   }
 
   cached_handtlx = handtlx;

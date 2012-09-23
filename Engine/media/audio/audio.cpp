@@ -21,11 +21,16 @@
 #include "ac/audioclip.h"
 #include "ac/gamesetup.h"
 #include "media/audio/sound.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
+#include "debug/debugger.h"
 #include "ac/common.h"
 #include "ac/global_audio.h"
 #include "ac/roomstruct.h"
 #include <math.h>
+#include "util/datastream.h"
+#include "core/assetmanager.h"
+
+using AGS::Common::DataStream;
 
 extern GameSetupStruct game;
 extern GameSetup usetup;
@@ -33,9 +38,6 @@ extern GameState play;
 extern roomstruct thisroom;
 extern CharacterInfo*playerchar;
 
-extern "C" {
-    extern FILE*clibfopen(char*,char*);
-}
 extern int psp_is_old_datafile;
 
 #if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
@@ -134,10 +136,11 @@ const char* get_audio_clip_file_name(ScriptAudioClip *clip)
     if (game.audioClips[clip->id].bundlingType == AUCL_BUNDLE_EXE)
     {
         strcpy(acaudio_buffer, game.audioClips[clip->id].fileName);
-        FILE *iii = clibfopen(acaudio_buffer, "rb");
-        if (iii != NULL)
+        DataStream *in = Common::AssetManager::OpenAsset(acaudio_buffer);
+        if (in != NULL)
         {
-            fclose(iii);
+            // CHECKME: so, what was that? a file exists check?
+            delete in;
             return &acaudio_buffer[0];
         }
     }

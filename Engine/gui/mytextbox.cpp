@@ -4,6 +4,9 @@
 #include "gfx/ali3d.h"
 #include "gui/mytextbox.h"
 #include "gui/guidialoginternaldefs.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::Bitmap;
 
 extern GameSetup usetup;
 
@@ -26,9 +29,9 @@ MyTextBox::MyTextBox(int xx, int yy, int wii, char *tee)
 void MyTextBox::draw()
 {
     wsetcolor(windowbackgroundcolor);
-    wbar(x, y, x + wid, y + hit);
+    abuf->FillRect(Rect(x, y, x + wid, y + hit), currentcolor);
     wsetcolor(0);
-    wrectangle(x, y, x + wid, y + hit);
+    abuf->DrawRect(Rect(x, y, x + wid, y + hit), currentcolor);
     wtextcolor(0);
     wouttextxy(x + 2, y + 1, cbuttfont, text);
 

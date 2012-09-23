@@ -6,8 +6,11 @@
 #include "ac/region.h"
 #include "ac/roomstatus.h"
 #include "ac/roomstruct.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "script/script.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::Bitmap;
 
 extern roomstruct thisroom;
 extern RoomStatus*croom;
@@ -21,16 +24,16 @@ int GetRegionAt (int xxx, int yyy) {
     xxx = convert_to_low_res(xxx);
     yyy = convert_to_low_res(yyy);
 
-    if (xxx >= thisroom.regions->w)
-        xxx = thisroom.regions->w - 1;
-    if (yyy >= thisroom.regions->h)
-        yyy = thisroom.regions->h - 1;
+    if (xxx >= thisroom.regions->GetWidth())
+        xxx = thisroom.regions->GetWidth() - 1;
+    if (yyy >= thisroom.regions->GetHeight())
+        yyy = thisroom.regions->GetHeight() - 1;
     if (xxx < 0)
         xxx = 0;
     if (yyy < 0)
         yyy = 0;
 
-    int hsthere = getpixel (thisroom.regions, xxx, yyy);
+    int hsthere = thisroom.regions->GetPixel (xxx, yyy);
     if (hsthere < 0)
         hsthere = 0;
 

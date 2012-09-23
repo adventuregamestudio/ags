@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+    <string-array name="screen_orientation">
+        <item>Off</item>
+        <item>Portrait</item>
+        <item>Landscape</item>
+    </string-array>
+
+    <string-array name="screen_orientation_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
+
+    <string-array name="game_language">
+        <item>Default</item>
+    </string-array>
+
+    <string-array name="game_language_values">
+        <item>default</item>
+    </string-array>	
+
+    <string-array name="renderer">
+        <item>Software</item>
+        <item>Hardware</item>
+        <item>Hardware (pixel perfect)</item>
+    </string-array>
+
+    <string-array name="renderer_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>	
+
+    <string-array name="screen_scaling">
+        <item>No scaling</item>
+        <item>Fullscreen (preserve AR)</item>
+        <item>Fullscreen (ignore AR)</item>
+    </string-array>
+
+    <string-array name="screen_scaling_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>	
+</resources>

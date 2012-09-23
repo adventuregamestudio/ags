@@ -2,10 +2,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "util/wgt2allg.h"
 #include "gui/guilistbox.h"
 #include "gui/guimain.h"
 #include "font/fonts.h"
-#include "util/wgt2allg.h"
+#include "util/datastream.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::DataStream;
+using AGS::Common::Bitmap;
 
 DynamicArray<GUIListBox> guilist;
 int numguilist = 0;
@@ -28,35 +33,35 @@ void GUIListBox::ChangeFont(int newfont) {
 	  num_items_fit = hit / rowheight;
 }
 
-void GUIListBox::WriteToFile(FILE * ooo)
+void GUIListBox::WriteToFile(DataStream *out)
 {
   int a;
 
-  GUIObject::WriteToFile(ooo);
+  GUIObject::WriteToFile(out);
   // MACPORT FIXES: swap
-  fwrite(&numItems, sizeof(int), 11, ooo);
-  putw(alignment, ooo);
-  putw(reserved1, ooo);
-  putw(selectedbgcol, ooo);
+  out->WriteArrayOfInt32(&numItems, 11);
+  out->WriteInt32(alignment);
+  out->WriteInt32(reserved1);
+  out->WriteInt32(selectedbgcol);
   for (a = 0; a < numItems; a++)
-    fwrite(&items[a][0], sizeof(char), strlen(items[a]) + 1, ooo);
+    out->Write(&items[a][0], strlen(items[a]) + 1);
 
   if (exflags & GLF_SGINDEXVALID)
-    fwrite(&saveGameIndex[0], sizeof(short), numItems, ooo);
+    out->WriteArrayOfInt16(&saveGameIndex[0], numItems);
 }
 
-void GUIListBox::ReadFromFile(FILE * ooo, int version)
+void GUIListBox::ReadFromFile(DataStream *in, int version)
 {
   int a, i;
   char tempbuf[300];
 
-  GUIObject::ReadFromFile(ooo, version);
+  GUIObject::ReadFromFile(in, version);
   // MACPORT FIXES: swap
-  fread(&numItems, sizeof(int), 11, ooo);
+  in->ReadArrayOfInt32(&numItems, 11);
 
   if (version >= 112) {
-    alignment = getw(ooo);
-    reserved1 = getw(ooo);
+    alignment = in->ReadInt32();
+    reserved1 = in->ReadInt32();
   }
   else {
     alignment = GALIGN_LEFT;
@@ -64,7 +69,7 @@ void GUIListBox::ReadFromFile(FILE * ooo, int version)
   }
 
   if (version >= 107) {
-    selectedbgcol = getw(ooo);
+    selectedbgcol = in->ReadInt32();
   }
   else {
     selectedbgcol = textcol;
@@ -74,7 +79,7 @@ void GUIListBox::ReadFromFile(FILE * ooo, int version)
 
   for (a = 0; a < numItems; a++) {
     i = 0;
-    while ((tempbuf[i] = fgetc(ooo)) != 0)
+    while ((tempbuf[i] = in->ReadInt8()) != 0)
       i++;
 
     items[a] = (char *)malloc(strlen(tempbuf) + 5);
@@ -83,7 +88,7 @@ void GUIListBox::ReadFromFile(FILE * ooo, int version)
   }
 
   if ((version >= 114) && (exflags & GLF_SGINDEXVALID)) {
-    fread(&saveGameIndex[0], sizeof(short), numItems, ooo);
+    in->ReadArrayOfInt16(&saveGameIndex[0], numItems);
   }
 
   if (textcol == 0)
@@ -186,9 +191,9 @@ void GUIListBox::Draw()
   wtextcolor(textcol);
   wsetcolor(textcol);
   if ((exflags & GLF_NOBORDER) == 0) {
-    wrectangle(x, y, x + wid + (pixel_size - 1), y + hit + (pixel_size - 1));
+    abuf->DrawRect(Rect(x, y, x + wid + (pixel_size - 1), y + hit + (pixel_size - 1)), currentcolor);
     if (pixel_size > 1)
-      wrectangle(x + 1, y + 1, x + wid, y + hit);
+      abuf->DrawRect(Rect(x + 1, y + 1, x + wid, y + hit), currentcolor);
   }
 
   int rightHandEdge = (x + wid) - pixel_size - 1;
@@ -199,21 +204,21 @@ void GUIListBox::Draw()
   // draw the scroll bar in if necessary
   if ((numItems > num_items_fit) && ((exflags & GLF_NOBORDER) == 0) && ((exflags & GLF_NOARROWS) == 0)) {
     int xstrt, ystrt;
-    wrectangle(x + wid - get_fixed_pixel_size(7), y, (x + (pixel_size - 1) + wid) - get_fixed_pixel_size(7), y + hit);
-    wrectangle(x + wid - get_fixed_pixel_size(7), y + hit / 2, x + wid, y + hit / 2 + (pixel_size - 1));
+    abuf->DrawRect(Rect(x + wid - get_fixed_pixel_size(7), y, (x + (pixel_size - 1) + wid) - get_fixed_pixel_size(7), y + hit), currentcolor);
+    abuf->DrawRect(Rect(x + wid - get_fixed_pixel_size(7), y + hit / 2, x + wid, y + hit / 2 + (pixel_size - 1)), currentcolor);
 
     xstrt = (x + wid - get_fixed_pixel_size(6)) + (pixel_size - 1);
     ystrt = (y + hit - 3) - get_fixed_pixel_size(5);
 
-    triangle(abuf, xstrt, ystrt, xstrt + get_fixed_pixel_size(4), ystrt, 
+    abuf->DrawTriangle(Triangle(xstrt, ystrt, xstrt + get_fixed_pixel_size(4), ystrt, 
              xstrt + get_fixed_pixel_size(2),
-             ystrt + get_fixed_pixel_size(5), get_col8_lookup(textcol));
+             ystrt + get_fixed_pixel_size(5)), get_col8_lookup(textcol));
 
     ystrt = y + 3;
-    triangle(abuf, xstrt, ystrt + get_fixed_pixel_size(5), 
+    abuf->DrawTriangle(Triangle(xstrt, ystrt + get_fixed_pixel_size(5), 
              xstrt + get_fixed_pixel_size(4), 
              ystrt + get_fixed_pixel_size(5),
-             xstrt + get_fixed_pixel_size(2), ystrt, get_col8_lookup(textcol));
+             xstrt + get_fixed_pixel_size(2), ystrt), get_col8_lookup(textcol));
 
     rightHandEdge -= get_fixed_pixel_size(7);
   }
@@ -237,7 +242,7 @@ void GUIListBox::Draw()
         if ((num_items_fit < numItems) && ((exflags & GLF_NOBORDER) == 0) && ((exflags & GLF_NOARROWS) == 0))
           stretchto -= get_fixed_pixel_size(7);
 
-        wbar(x + pixel_size, thisyp, stretchto, thisyp + rowheight - pixel_size);
+        abuf->FillRect(Rect(x + pixel_size, thisyp, stretchto, thisyp + rowheight - pixel_size), currentcolor);
       }
     }
     else

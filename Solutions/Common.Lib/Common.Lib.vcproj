@@ -158,6 +158,10 @@
 				Name="ac"
 				>
 				<File
+					RelativePath="..\..\Common\ac\audiocliptype.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\ac\common.cpp"
 					>
 				</File>
@@ -205,6 +209,14 @@
 					RelativePath="..\..\Common\ac\wordsdictionary.cpp"
 					>
 				</File>
+				<Filter
+					Name="dynobj"
+					>
+					<File
+						RelativePath="..\..\Common\ac\dynobj\scriptaudioclip.cpp"
+						>
+					</File>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="font"
@@ -263,26 +275,26 @@
 				</File>
 			</Filter>
 			<Filter
-				Name="platform"
-				>
-				<File
-					RelativePath="..\..\Common\platform\bigend.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\platform\file.cpp"
-					>
-				</File>
-			</Filter>
-			<Filter
 				Name="util"
 				>
 				<File
-					RelativePath="..\..\Common\util\clib32.cpp"
+					RelativePath="..\..\Common\util\alignedstream.cpp"
 					>
 				</File>
 				<File
 					RelativePath="..\..\Common\util\compress.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\datastream.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\file.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\filestream.cpp"
 					>
 				</File>
 				<File
@@ -294,7 +306,19 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\util\string.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\util\string_utils.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\textstreamreader.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\textstreamwriter.cpp"
 					>
 				</File>
 				<File
@@ -330,6 +354,34 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="debug"
+				>
+				<File
+					RelativePath="..\..\Common\debug\out.cpp"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="gfx"
+				>
+				<File
+					RelativePath="..\..\Common\gfx\allegrobitmap.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\gfx\bitmap.cpp"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="core"
+				>
+				<File
+					RelativePath="..\..\Common\core\assetmanager.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -345,6 +397,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\ac\audiocliptype.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\characterinfo.h"
 					>
 				</File>
 				<File
@@ -497,22 +553,30 @@
 				</File>
 			</Filter>
 			<Filter
-				Name="platform"
-				>
-				<File
-					RelativePath="..\..\Common\platform\bigend.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\platform\file.h"
-					>
-				</File>
-			</Filter>
-			<Filter
 				Name="util"
 				>
 				<File
+					RelativePath="..\..\Common\util\alignedstream.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\bbop.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\util\compress.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\datastream.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\file.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\filestream.h"
 					>
 				</File>
 				<File
@@ -520,11 +584,43 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\util\math.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\util\misc.h"
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\util\stream.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\string.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\util\string_utils.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\util\textfilestream.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\textreader.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\textstreamreader.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\textstreamwriter.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\textwriter.h"
 					>
 				</File>
 				<File
@@ -557,6 +653,62 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\script\script_common.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="core"
+				>
+				<File
+					RelativePath="..\..\Common\core\assetmanager.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\core\types.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="debug"
+				>
+				<File
+					RelativePath="..\..\Common\debug\assert.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\debug\out.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\debug\outputtarget.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="gfx"
+				>
+				<File
+					RelativePath="..\..\Common\gfx\allegrobitmap.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\gfx\bitmap.h"
+					>
+				</File>
+			</Filter>
+		</Filter>
+		<Filter
+			Name="Library Sources"
+			>
+			<Filter
+				Name="aastr"
+				>
+				<File
+					RelativePath="..\..\Common\libsrc\aastr-0.1.1\aastr.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\libsrc\aastr-0.1.1\aautil.c"
 					>
 				</File>
 			</Filter>

@@ -19,6 +19,11 @@
 #include "ac/common_defines.h"
 #include <string.h>
 #include <math.h>
+#include "gfx/bitmap.h"
+
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
+
 #define MANOBJNUM 99
 
 #define MAXPATHBACK 1000
@@ -69,13 +74,14 @@ void init_pathfinder()
   pathbacky = (int *)malloc(sizeof(int) * MAXPATHBACK);
 }
 
-block wallscreen;
+Bitmap *wallscreen;
 //#define DEBUG_PATHFINDER
 char *movelibcopyright = "PathFinder library v3.1 (c) 1998, 1999, 2001, 2002 Chris Jones.";
 int line_failed = 0;
 int lastcx, lastcy;
 
-void line_callback(block bmpp, int x, int y, int d)
+// TODO: find a way to reimpl this with Bitmap
+void line_callback(BITMAP *bmpp, int x, int y, int d)
 {
 /*  if ((x>=320) | (y>=200) | (x<0) | (y<0)) line_failed=1;
   else */ if (getpixel(bmpp, x, y) < 1)
@@ -131,26 +137,27 @@ int can_see_from(int x1, int y1, int x2, int y2)
   if ((x1 == x2) && (y1 == y2))
     return 1;
 
-  do_line(wallscreen, x1, y1, x2, y2, 0, line_callback);
+  // TODO: need some way to use Bitmap with callback
+  do_line((BITMAP*)wallscreen->GetBitmapObject(), x1, y1, x2, y2, 0, line_callback);
   if (line_failed == 0)
     return 1;
 
   return 0;
 }
 
-int find_nearest_walkable_area(block tempw, int fromX, int fromY, int toX, int toY, int destX, int destY, int granularity)
+int find_nearest_walkable_area(Bitmap *tempw, int fromX, int fromY, int toX, int toY, int destX, int destY, int granularity)
 {
   int ex, ey, nearest = 99999, thisis, nearx, neary;
   if (fromX < 0) fromX = 0;
   if (fromY < 0) fromY = 0;
-  if (toX >= tempw->w) toX = tempw->w - 1;
-  if (toY >= tempw->h) toY = tempw->h - 1;
+  if (toX >= tempw->GetWidth()) toX = tempw->GetWidth() - 1;
+  if (toY >= tempw->GetHeight()) toY = tempw->GetHeight() - 1;
 
   for (ex = fromX; ex < toX; ex += granularity) 
   {
     for (ey = fromY; ey < toY; ey += granularity) 
     {
-      if (tempw->line[ey][ex] != 232)
+      if (tempw->GetScanLine(ey)[ex] != 232)
         continue;
 
       thisis = (int)::sqrt((double)((ex - destX) * (ex - destX) + (ey - destY) * (ey - destY)));
@@ -174,26 +181,26 @@ int find_nearest_walkable_area(block tempw, int fromX, int fromY, int toX, int t
 
 #define MAX_GRANULARITY 3
 int walk_area_granularity[MAX_WALK_AREAS + 1];
-int is_route_possible(int fromx, int fromy, int tox, int toy, block wss)
+int is_route_possible(int fromx, int fromy, int tox, int toy, Bitmap *wss)
 {
   wallscreen = wss;
   suggestx = -1;
 
   // ensure it's a memory bitmap, so we can use direct access to line[] array
-  if ((wss == NULL) || (!is_memory_bitmap(wss)) || (bitmap_color_depth(wss) != 8))
+  if ((wss == NULL) || (!wss->IsMemoryBitmap()) || (wss->GetColorDepth() != 8))
     quit("is_route_possible: invalid walkable areas bitmap supplied");
 
-  if (getpixel(wallscreen, fromx, fromy) < 1)
+  if (wallscreen->GetPixel(fromx, fromy) < 1)
     return 0;
 
-  block tempw = create_bitmap_ex(8, wallscreen->w, wallscreen->h);
+  Bitmap *tempw = BitmapHelper::CreateBitmap(wallscreen->GetWidth(), wallscreen->GetHeight(), 8);
 
   if (tempw == NULL)
     quit("no memory for route calculation");
-  if (!is_memory_bitmap(tempw))
+  if (!tempw->IsMemoryBitmap())
     quit("tempw is not memory bitmap");
 
-  blit(wallscreen, tempw, 0, 0, 0, 0, tempw->w, tempw->h);
+  tempw->Blit(wallscreen, 0, 0, 0, 0, tempw->GetWidth(), tempw->GetHeight());
 
   int dd, ff;
   // initialize array for finding widths of walkable areas
@@ -204,9 +211,9 @@ int is_route_possible(int fromx, int fromy, int tox, int toy, block wss)
     walk_area_granularity[dd] = 0;
   }
 
-  for (ff = 0; ff < tempw->h; ff++) {
-    for (dd = 0; dd < tempw->w; dd++) {
-      thisar = tempw->line[ff][dd];
+  for (ff = 0; ff < tempw->GetHeight(); ff++) {
+    for (dd = 0; dd < tempw->GetWidth(); dd++) {
+      thisar = tempw->GetScanLine(ff)[dd];
       // count how high the area is at this point
       if ((thisar == lastarea) && (thisar > 0))
         inarow++;
@@ -221,11 +228,11 @@ int is_route_possible(int fromx, int fromy, int tox, int toy, block wss)
     }
   }
 
-  for (dd = 0; dd < tempw->w; dd++) {
-    for (ff = 0; ff < tempw->h; ff++) {
-      thisar = tempw->line[ff][dd];
+  for (dd = 0; dd < tempw->GetWidth(); dd++) {
+    for (ff = 0; ff < tempw->GetHeight(); ff++) {
+      thisar = tempw->GetScanLine(ff)[dd];
       if (thisar > 0)
-        putpixel(tempw, dd, ff, 1);
+        tempw->PutPixel(dd, ff, 1);
       // count how high the area is at this point
       if ((thisar == lastarea) && (thisar > 0))
         inarow++;
@@ -259,8 +266,8 @@ int is_route_possible(int fromx, int fromy, int tox, int toy, block wss)
   }
   walk_area_granularity[0] = MAX_GRANULARITY;
 
-  floodfill(tempw, fromx, fromy, 232);
-  if (getpixel(tempw, tox, toy) != 232) 
+  tempw->FloodFill(fromx, fromy, 232);
+  if (tempw->GetPixel(tox, toy) != 232) 
   {
     // Destination pixel is not walkable
     // Try the 100x100 square around the target first at 3-pixel granularity
@@ -270,18 +277,18 @@ int is_route_possible(int fromx, int fromy, int tox, int toy, block wss)
     if (!find_nearest_walkable_area(tempw, tryFirstX, tryFirstY, tryToX, tryToY, tox, toy, 3))
     {
       // Nothing found, sweep the whole room at 5 pixel granularity
-      find_nearest_walkable_area(tempw, 0, 0, tempw->w, tempw->h, tox, toy, 5);
+      find_nearest_walkable_area(tempw, 0, 0, tempw->GetWidth(), tempw->GetHeight(), tox, toy, 5);
     }
 
-    wfreeblock(tempw);
+    delete tempw;
     return 0;
   }
-  wfreeblock(tempw);
+  delete tempw;
 
   return 1;
 }
 
-extern block mousecurs[10];
+extern Bitmap *mousecurs[10];
 int leftorright = 0;
 int nesting = 0;
 int pathbackstage = 0;
@@ -349,8 +356,8 @@ try_again:
     return 0;
   }
 
-  if (((nextx < 0) | (nextx >= wallscreen->w) | (nexty < 0) | (nexty >= wallscreen->h)) ||
-      (getpixel(wallscreen, nextx, nexty) == 0) || ((beenhere[srcy][srcx] & (1 << trydir)) != 0)) {
+  if (((nextx < 0) | (nextx >= wallscreen->GetWidth()) | (nexty < 0) | (nexty >= wallscreen->GetHeight())) ||
+      (wallscreen->GetPixel(nextx, nexty) == 0) || ((beenhere[srcy][srcx] & (1 << trydir)) != 0)) {
 
     if (leftorright == 0) {
       trydir++;
@@ -389,13 +396,13 @@ try_again:
 #define CHECK_MIN(cellx, celly) { \
   if (beenhere[celly][cellx] == -1) {\
     adjcount = 0; \
-    if ((wallscreen->line[celly][cellx] != 0) && (beenhere[j][i]+modifier <= min)) {\
+    if ((wallscreen->GetScanLine(celly)[cellx] != 0) && (beenhere[j][i]+modifier <= min)) {\
       if (beenhere[j][i]+modifier < min) { \
         min = beenhere[j][i]+modifier; \
         numfound = 0; } \
       if (numfound < 40) { \
-        newcell[numfound] = (celly) * wallscreen->w + (cellx);\
-        cheapest[numfound] = j * wallscreen->w + i;\
+        newcell[numfound] = (celly) * wallscreen->GetWidth() + (cellx);\
+        cheapest[numfound] = j * wallscreen->GetWidth() + i;\
         numfound++; \
       }\
     } \
@@ -407,7 +414,7 @@ try_again:
 // and move a bit if this causes them to become non-walkable
 void round_down_coords(int &tmpx, int &tmpy)
 {
-  int startgran = walk_area_granularity[_getpixel(wallscreen, tmpx, tmpy)];
+  int startgran = walk_area_granularity[wallscreen->GetPixel(tmpx, tmpy)];
   tmpy = tmpy - tmpy % startgran;
 
   if (tmpy < 0)
@@ -417,12 +424,12 @@ void round_down_coords(int &tmpx, int &tmpy)
   if (tmpx < 0)
     tmpx = 0;
 
-  if (_getpixel(wallscreen, tmpx, tmpy) == 0) {
+  if (wallscreen->GetPixel(tmpx, tmpy) == 0) {
     tmpx += startgran;
-    if ((_getpixel(wallscreen, tmpx, tmpy) == 0) && (tmpy < wallscreen->h - startgran)) {
+    if ((wallscreen->GetPixel(tmpx, tmpy) == 0) && (tmpy < wallscreen->GetHeight() - startgran)) {
       tmpy += startgran;
 
-      if (_getpixel(wallscreen, tmpx, tmpy) == 0)
+      if (wallscreen->GetPixel(tmpx, tmpy) == 0)
         tmpx -= startgran;
     }
   }
@@ -436,8 +443,8 @@ int find_route_dijkstra(int fromx, int fromy, int destx, int desty)
   if (leftorright == 1)
     return 0;
 
-  for (i = 0; i < wallscreen->h; i++)
-    memset(&beenhere[i][0], 0xff, wallscreen->w * BEENHERE_SIZE);
+  for (i = 0; i < wallscreen->GetHeight(); i++)
+    memset(&beenhere[i][0], 0xff, wallscreen->GetWidth() * BEENHERE_SIZE);
 
   round_down_coords(fromx, fromy);
   beenhere[fromy][fromx] = 0;
@@ -450,12 +457,12 @@ int find_route_dijkstra(int fromx, int fromy, int destx, int desty)
     return 1;
   }
 
-  int allocsize = int (wallscreen->w) * int (wallscreen->h) * sizeof(int);
+  int allocsize = int (wallscreen->GetWidth()) * int (wallscreen->GetHeight()) * sizeof(int);
   int *parent = (int *)malloc(allocsize);
   int min = 999999, cheapest[40], newcell[40], replace[40];
   int *visited = (int *)malloc(MAX_TRAIL_LENGTH * sizeof(int));
   int iteration = 1;
-  visited[0] = fromy * wallscreen->w + fromx;
+  visited[0] = fromy * wallscreen->GetWidth() + fromx;
   parent[visited[0]] = -1;
 
 //  write_log("Pathfind starting");
@@ -481,9 +488,9 @@ int find_route_dijkstra(int fromx, int fromy, int destx, int desty)
       if (visited[n] == -1)
         continue;
 
-      i = visited[n] % wallscreen->w;
-      j = visited[n] / wallscreen->w;
-      granularity = walk_area_granularity[wallscreen->line[j][i]];
+      i = visited[n] % wallscreen->GetWidth();
+      j = visited[n] / wallscreen->GetWidth();
+      granularity = walk_area_granularity[wallscreen->GetScanLine(j)[i]];
       adjcount = 1;
 
 //    char tempb[200]; sprintf(tempb, "checking: %d,%d\n",i,j); write_log(tempb);
@@ -497,12 +504,12 @@ int find_route_dijkstra(int fromx, int fromy, int destx, int desty)
         CHECK_MIN(i, j - granularity)
       }
 
-      if (i < wallscreen->w - granularity) {
+      if (i < wallscreen->GetWidth() - granularity) {
         modifier = (destx > i) ? DIRECTION_BONUS : 0;
         CHECK_MIN(i + granularity, j)
       }
 
-      if (j < wallscreen->h - granularity) {
+      if (j < wallscreen->GetHeight() - granularity) {
         modifier = (desty > j) ? DIRECTION_BONUS : 0;
         CHECK_MIN(i, j + granularity)
       }
@@ -525,19 +532,19 @@ int find_route_dijkstra(int fromx, int fromy, int destx, int desty)
 
     totalfound += numfound;
     for (int p = 0; p < numfound; p++) {
-      newx = newcell[p] % wallscreen->w;
-      newy = newcell[p] / wallscreen->w;
-      beenhere[newy][newx] = beenhere[cheapest[p] / wallscreen->w][cheapest[p] % wallscreen->w] + 1;
-//      int wal = walk_area_granularity[getpixel(wallscreen, newx, newy)];
+      newx = newcell[p] % wallscreen->GetWidth();
+      newy = newcell[p] / wallscreen->GetWidth();
+      beenhere[newy][newx] = beenhere[cheapest[p] / wallscreen->GetWidth()][cheapest[p] % wallscreen->GetWidth()] + 1;
+//      int wal = walk_area_granularity[->GetPixel(wallscreen, newx, newy)];
 //      beenhere[newy - newy%wal][newx - newx%wal] = beenhere[newy][newx];
       parent[newcell[p]] = cheapest[p];
 
       // edges of screen pose a problem, so if current and dest are within
       // certain distance of the edge, say we've got it
-      if ((newx >= wallscreen->w - MAX_GRANULARITY) && (destx >= wallscreen->w - MAX_GRANULARITY))
+      if ((newx >= wallscreen->GetWidth() - MAX_GRANULARITY) && (destx >= wallscreen->GetWidth() - MAX_GRANULARITY))
         newx = destx;
 
-      if ((newy >= wallscreen->h - MAX_GRANULARITY) && (desty >= wallscreen->h - MAX_GRANULARITY))
+      if ((newy >= wallscreen->GetHeight() - MAX_GRANULARITY) && (desty >= wallscreen->GetHeight() - MAX_GRANULARITY))
         newy = desty;
 
       // Found the desination, abort loop
@@ -592,14 +599,14 @@ int find_route_dijkstra(int fromx, int fromy, int destx, int desty)
     if (on == -1)
       break;
 
-    newx = on % wallscreen->w;
-    newy = on / wallscreen->w;
+    newx = on % wallscreen->GetWidth();
+    newy = on / wallscreen->GetWidth();
     if ((newx >= destxlow) && (newx <= destxhi) && (newy >= destylow)
         && (newy <= destyhi))
       break;
 
-    pathbackx[pathbackstage] = on % wallscreen->w;
-    pathbacky[pathbackstage] = on / wallscreen->w;
+    pathbackx[pathbackstage] = on % wallscreen->GetWidth();
+    pathbacky[pathbackstage] = on / wallscreen->GetWidth();
     pathbackstage++;
     if (pathbackstage >= MAXPATHBACK) {
       free(parent);
@@ -612,7 +619,7 @@ int find_route_dijkstra(int fromx, int fromy, int destx, int desty)
 
 int __find_route(int srcx, int srcy, short *tox, short *toy, int noredx)
 {
-  if ((noredx == 0) && (getpixel(wallscreen, tox[0], toy[0]) == 0))
+  if ((noredx == 0) && (wallscreen->GetPixel(tox[0], toy[0]) == 0))
     return 0; // clicked on a wall
 
   int is_straight = 0;
@@ -658,7 +665,7 @@ findroutebk:
 
   // if the new pathfinder failed, try the old one
   pathbackstage = 0;
-  memset(&beenhere[0][0], 0, wallscreen->w * wallscreen->h * BEENHERE_SIZE);
+  memset(&beenhere[0][0], 0, wallscreen->GetWidth() * wallscreen->GetHeight() * BEENHERE_SIZE);
   if (try_this_square(srcx, srcy, tox[0], toy[0]) == 0)
     return 0;
 
@@ -769,7 +776,7 @@ void calculate_move_stage(MoveList * mlsp, int aaa)
 
 #define MAKE_INTCOORD(x,y) (((unsigned short)x << 16) | ((unsigned short)y))
 
-int find_route(short srcx, short srcy, short xx, short yy, block onscreen, int movlst, int nocross, int ignore_walls)
+int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int movlst, int nocross, int ignore_walls)
 {
 #ifdef DEBUG_PATHFINDER
   __wnormscreen();
@@ -778,10 +785,10 @@ int find_route(short srcx, short srcy, short xx, short yy, block onscreen, int m
   leftorright = 0;
   int aaa;
 
-  if (wallscreen->h > beenhere_array_size)
+  if (wallscreen->GetHeight() > beenhere_array_size)
   {
-    beenhere = (short**)realloc(beenhere, sizeof(short*) * wallscreen->h);
-    beenhere_array_size = wallscreen->h;
+    beenhere = (short**)realloc(beenhere, sizeof(short*) * wallscreen->GetHeight());
+    beenhere_array_size = wallscreen->GetHeight();
 
     if (beenhere == NULL)
       quit("insufficient memory to allocate pathfinder beenhere buffer");
@@ -797,10 +804,10 @@ int find_route(short srcx, short srcy, short xx, short yy, block onscreen, int m
     pathbackstage = 0;
   }
   else {
-    beenhere[0] = (short *)malloc((wallscreen->w) * (wallscreen->h) * BEENHERE_SIZE);
+    beenhere[0] = (short *)malloc((wallscreen->GetWidth()) * (wallscreen->GetHeight()) * BEENHERE_SIZE);
 
-    for (aaa = 1; aaa < wallscreen->h; aaa++)
-      beenhere[aaa] = beenhere[0] + aaa * (wallscreen->w);
+    for (aaa = 1; aaa < wallscreen->GetHeight(); aaa++)
+      beenhere[aaa] = beenhere[0] + aaa * (wallscreen->GetWidth());
 
     if (__find_route(srcx, srcy, &xx, &yy, nocross) == 0) {
       leftorright = 1;
@@ -838,7 +845,7 @@ stage_again:
     }
 
     if ((nearestpos == 0) && (can_see_from(srcx, srcy, xx, yy) == 0) &&
-        (srcx >= 0) && (srcy >= 0) && (srcx < wallscreen->w) && (srcy < wallscreen->h) && (pathbackstage > 0)) {
+        (srcx >= 0) && (srcy >= 0) && (srcx < wallscreen->GetWidth()) && (srcy < wallscreen->GetHeight()) && (pathbackstage > 0)) {
       // If we couldn't see anything, we're stuck in a corner so advance
       // to the next square anyway (but only if they're on the screen)
       nearestindx = pathbackstage - 1;

@@ -36,7 +36,9 @@
 #include "ac/viewframe.h"
 #include "ac/dynobj/scriptobject.h"
 #include "ac/dynobj/scriptsystem.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
+#include "debug/debugger.h"
+#include "font/agsfontrenderer.h"
 #include "main/config.h"
 #include "main/game_start.h"
 #include "main/graphics_mode.h"
@@ -44,6 +46,16 @@
 #include "main/main.h"
 #include "media/audio/sound.h"
 #include "ac/spritecache.h"
+#include "util/filestream.h"
+#include "gfx/graphicsdriver.h"
+#include "gfx/bitmap.h"
+#include "core/assetmanager.h"
+#include "util/misc.h"
+#include "../PSP/launcher/pe.h"
+
+using AGS::Common::DataStream;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 #if defined(MAC_VERSION) || (defined(LINUX_VERSION) && !defined(PSP_VERSION))
 #include <pthread.h>
@@ -61,7 +73,6 @@ extern int our_eip;
 extern volatile char want_exit, abort_engine;
 extern GameSetup usetup;
 extern GameSetupStruct game;
-extern RoomStatus *roomstats;
 extern int proper_exit;
 extern char pexbuf[STD_BUFFER_SIZE];
 extern char saveGameDirectory[260];
@@ -81,21 +92,21 @@ extern int scrnwid,scrnhit;
 extern ScriptSystem scsystem;
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern IGraphicsDriver *gfxDriver;
-extern block virtual_screen;
-extern block *actsps;
+extern Bitmap *virtual_screen;
+extern Bitmap **actsps;
 extern color palette[256];
 extern CharacterExtras *charextra;
 extern CharacterInfo*playerchar;
-extern block *guibg;
+extern Bitmap **guibg;
 extern IDriverDependantBitmap **guibgbmp;
 
 char *music_file;
 char *speech_file;
 WCHAR directoryPathBuffer[MAX_PATH];
 
-int errcod;
+Common::AssetError errcod;
 
-HWND allegro_wnd;
+extern "C" HWND allegro_wnd;
 
 
 
@@ -112,7 +123,7 @@ void engine_read_config(int argc,char*argv[])
 #define ALLEGRO_KEYBOARD_HANDLER
 // KEYBOARD HANDLER
 #if defined(LINUX_VERSION) || defined(MAC_VERSION)
-extern int myerrno;
+int myerrno;
 #else
 int errno;
 #define myerrno errno
@@ -248,13 +259,13 @@ int engine_init_game_data_external(int argc,char*argv[])
     }
 #endif
 
-    errcod=csetlib(game_file_name,"");
-    if (errcod) {
+    errcod=Common::AssetManager::SetDataFile(game_file_name);
+    if (errcod != Common::kAssetNoError) {
         //sprintf(gamefilenamebuf,"%s\\ac2game.ags",usetup.data_files_dir);
         free(game_file_name);
         game_file_name = ci_find_file(usetup.data_files_dir, "ac2game.ags");
 
-        errcod = csetlib(game_file_name,"");
+        errcod = Common::AssetManager::SetDataFile(game_file_name);
     }
 
     return RETURN_CONTINUE;
@@ -326,14 +337,14 @@ int engine_init_game_data(int argc,char*argv[])
     initialise_game_file_name();
     if (game_file_name == NULL) return EXIT_NORMAL;
 
-    errcod = csetlib(game_file_name,"");  // assume it's appended to exe
+    errcod = Common::AssetManager::SetDataFile(game_file_name);  // assume it's appended to exe
 
     our_eip = -194;
     //  char gamefilenamebuf[200];
 
     int init_res = RETURN_CONTINUE;
 
-    if ((errcod!=0) && (change_to_game_dir == 0)) {
+    if ((errcod!=Common::kAssetNoError) && (change_to_game_dir == 0)) {
         // it's not, so look for the file
         init_res = engine_init_game_data_external(argc, argv);
     }
@@ -348,8 +359,8 @@ int engine_init_game_data(int argc,char*argv[])
 
     our_eip = -193;
 
-    if (errcod!=0) {  // there's a problem
-        if (errcod==-1) {  // file not found
+    if (errcod!=Common::kAssetNoError) {  // there's a problem
+        if (errcod==Common::kAssetErrNoLibFile) {  // file not found
             char emsg[STD_BUFFER_SIZE];
             sprintf (emsg,
                 "You must create and save a game first in the AGS Editor before you can use "
@@ -359,7 +370,7 @@ int engine_init_game_data(int argc,char*argv[])
                 "(Unable to find '%s')\n", argv[datafile_argv]);
             platform->DisplayAlert(emsg);
         }
-        else if (errcod==-4)
+        else if (errcod==Common::kAssetErrLibAssetCount)
             platform->DisplayAlert("ERROR: Too many files in data file.");
         else platform->DisplayAlert("ERROR: The file is corrupt. Make sure you have the correct version of the\n"
             "editor, and that this really is an AGS game.\n");
@@ -412,72 +423,62 @@ int engine_check_memory()
 
 void engine_init_rooms()
 {
-    write_log_debug("Initializing rooms");
-
-    roomstats=(RoomStatus*)calloc(sizeof(RoomStatus),MAX_ROOMS);
-    for (int ee=0;ee<MAX_ROOMS;ee++) {
-        roomstats[ee].beenhere=0;
-        roomstats[ee].numobj=0;
-        roomstats[ee].tsdatasize=0;
-        roomstats[ee].tsdata=NULL;
-    }
+    // Obsolete now since room statuses are allocated only when needed
 }
 
 int engine_init_speech()
 {
     play.want_speech=-2;
 
-    FILE*ppp;
-
     if (usetup.no_speech_pack == 0) {
         /* Can't just use fopen here, since we need to change the filename
         so that pack functions, etc. will have the right case later */
         speech_file = ci_find_file(usetup.data_files_dir, "speech.vox");
 
-        ppp = ci_fopen(speech_file, "rb");
+        DataStream *speech_s = ci_fopen(speech_file);
 
-        if (ppp == NULL)
+        if (speech_s == NULL)
         {
             // In case they're running in debug, check Compiled folder
             free(speech_file);
             speech_file = ci_find_file("Compiled", "speech.vox");
-            ppp = ci_fopen(speech_file, "rb");
+            speech_s = ci_fopen(speech_file);
         }
 
-        if (ppp!=NULL) {
-            fclose(ppp);
+        if (speech_s) {
+            delete speech_s;
 
             write_log_debug("Initializing speech vox");
 
-            //if (csetlib(useloc,"")!=0) {
-            if (csetlib(speech_file,"")!=0) {
+            //if (Common::AssetManager::SetDataFile(useloc,"")!=0) {
+            if (Common::AssetManager::SetDataFile(speech_file)!=Common::kAssetNoError) {
                 platform->DisplayAlert("Unable to initialize speech sample file - check for corruption and that\nit belongs to this game.\n");
                 return EXIT_NORMAL;
             }
-            FILE *speechsync = clibfopen("syncdata.dat", "rb");
+            DataStream *speechsync = Common::AssetManager::OpenAsset("syncdata.dat");
             if (speechsync != NULL) {
                 // this game has voice lip sync
-                if (getw(speechsync) != 4)
+                if (speechsync->ReadInt32() != 4)
                 { 
                     // Don't display this warning.
                     // platform->DisplayAlert("Unknown speech lip sync format (might be from older or newer version); lip sync disabled");
                 }
                 else {
-                    numLipLines = getw(speechsync);
+                    numLipLines = speechsync->ReadInt32();
                     splipsync = (SpeechLipSyncLine*)malloc (sizeof(SpeechLipSyncLine) * numLipLines);
                     for (int ee = 0; ee < numLipLines; ee++)
                     {
-                        splipsync[ee].numPhenomes = getshort(speechsync);
-                        fread(splipsync[ee].filename, 1, 14, speechsync);
+                        splipsync[ee].numPhenomes = speechsync->ReadInt16();
+                        speechsync->Read(splipsync[ee].filename, 14);
                         splipsync[ee].endtimeoffs = (int*)malloc(splipsync[ee].numPhenomes * sizeof(int));
-                        fread(splipsync[ee].endtimeoffs, sizeof(int), splipsync[ee].numPhenomes, speechsync);
+                        speechsync->ReadArrayOfInt32(splipsync[ee].endtimeoffs, splipsync[ee].numPhenomes);
                         splipsync[ee].frame = (short*)malloc(splipsync[ee].numPhenomes * sizeof(short));
-                        fread(splipsync[ee].frame, sizeof(short), splipsync[ee].numPhenomes, speechsync);
+                        speechsync->ReadArrayOfInt16(splipsync[ee].frame, splipsync[ee].numPhenomes);
                     }
                 }
-                fclose (speechsync);
+                delete speechsync;
             }
-            csetlib(game_file_name,"");
+            Common::AssetManager::SetDataFile(game_file_name);
             platform->WriteConsole("Speech sample file found and initialized.\n");
             play.want_speech=1;
         }
@@ -488,7 +489,6 @@ int engine_init_speech()
 
 int engine_init_music()
 {
-    FILE*ppp;
     play.seperate_music_lib = 0;
 
     /* Can't just use fopen here, since we need to change the filename
@@ -498,27 +498,27 @@ int engine_init_music()
     /* Don't need to use ci_fopen here, because we've used ci_find_file to get
     the case insensitive matched filename already */
     // Use ci_fopen anyway because it can handle NULL filenames.
-    ppp = ci_fopen(music_file, "rb");
+    DataStream *music_s = ci_fopen(music_file);
 
-    if (ppp == NULL)
+    if (music_s == NULL)
     {
         // In case they're running in debug, check Compiled folder
         free(music_file);
         music_file = ci_find_file("Compiled", "audio.vox");
-        ppp = ci_fopen(music_file, "rb");
+        music_s = ci_fopen(music_file);
     }
 
-    if (ppp!=NULL) {
-        fclose(ppp);
+    if (music_s) {
+        delete music_s;
 
         write_log_debug("Initializing audio vox");
 
-        //if (csetlib(useloc,"")!=0) {
-        if (csetlib(music_file,"")!=0) {
+        //if (Common::AssetManager::SetDataFile(useloc,"")!=0) {
+        if (Common::AssetManager::SetDataFile(music_file)!=Common::kAssetNoError) {
             platform->DisplayAlert("Unable to initialize music library - check for corruption and that\nit belongs to this game.\n");
             return EXIT_NORMAL;
         }
-        csetlib(game_file_name,"");
+        Common::AssetManager::SetDataFile(game_file_name);
         platform->WriteConsole("Audio vox found and initialized.\n");
         play.seperate_music_lib = 1;
     }
@@ -759,14 +759,14 @@ int check_write_access() {
   // The Save Game Dir is the only place that we should write to
   char tempPath[MAX_PATH];
   sprintf(tempPath, "%s""tmptest.tmp", saveGameDirectory);
-  FILE *yy = fopen(tempPath, "wb");
-  if (yy == NULL)
+  DataStream *temp_s = Common::File::CreateFile(tempPath);
+  if (!temp_s)
     return 0;
 
   our_eip = -1896;
 
-  fwrite("just to test the drive free space", 30, 1, yy);
-  fclose(yy);
+  temp_s->Write("just to test the drive free space", 30);
+  delete temp_s;
 
   our_eip = -1897;
 
@@ -832,29 +832,30 @@ void engine_init_modxm_player()
 void show_preload () {
     // ** Do the preload graphic if available
     color temppal[256];
-    block splashsc = load_pcx("preload.pcx",temppal);
+	Bitmap *splashsc = BitmapHelper::CreateRawObjectOwner( load_pcx("preload.pcx",temppal) );
     if (splashsc != NULL) {
-        if (bitmap_color_depth(splashsc) == 8)
+        if (splashsc->GetColorDepth() == 8)
             wsetpalette(0,255,temppal);
-        block tsc = create_bitmap_ex(bitmap_color_depth(screen),splashsc->w,splashsc->h);
-        blit(splashsc,tsc,0,0,0,0,tsc->w,tsc->h);
-        clear(screen);
-        stretch_sprite(screen, tsc, 0, 0, scrnwid,scrnhit);
+		Bitmap *screen_bmp = BitmapHelper::GetScreenBitmap();
+        Bitmap *tsc = BitmapHelper::CreateBitmap(splashsc->GetWidth(),splashsc->GetHeight(),screen_bmp->GetColorDepth());
+        tsc->Blit(splashsc,0,0,0,0,tsc->GetWidth(),tsc->GetHeight());
+		screen_bmp->Clear();
+        screen_bmp->StretchBlt(tsc, RectWH(0, 0, scrnwid,scrnhit), Common::kBitmap_Transparency);
 
         gfxDriver->ClearDrawList();
 
         if (!gfxDriver->UsesMemoryBackBuffer())
         {
-            IDriverDependantBitmap *ddb = gfxDriver->CreateDDBFromBitmap(screen, false, true);
+            IDriverDependantBitmap *ddb = gfxDriver->CreateDDBFromBitmap(screen_bmp, false, true);
             gfxDriver->DrawSprite(0, 0, ddb);
-            render_to_screen(screen, 0, 0);
+            render_to_screen(screen_bmp, 0, 0);
             gfxDriver->DestroyDDB(ddb);
         }
         else
-            render_to_screen(screen, 0, 0);
+			render_to_screen(screen_bmp, 0, 0);
 
-        wfreeblock(splashsc);
-        wfreeblock(tsc);
+        delete splashsc;
+        delete tsc;
         platform->Delay(500);
     }
 }
@@ -888,11 +889,11 @@ void engine_setup_screen()
 {
     write_log_debug("Set up screen");
 
-    virtual_screen=create_bitmap_ex(final_col_dep,scrnwid,scrnhit);
-    clear(virtual_screen);
+    virtual_screen=BitmapHelper::CreateBitmap(scrnwid,scrnhit,final_col_dep);
+    virtual_screen->Clear();
     gfxDriver->SetMemoryBackBuffer(virtual_screen);
     //  ignore_mouseoff_bitmap = virtual_screen;
-    abuf=screen;
+	abuf=BitmapHelper::GetScreenBitmap();
     our_eip=-7;
 
     for (int ee = 0; ee < MAX_INIT_SPR + game.numcharacters; ee++)
@@ -940,7 +941,8 @@ void init_game_settings() {
 
     for (ee = 0; ee < MAX_INIT_SPR; ee++) {
         scrObj[ee].id = ee;
-        scrObj[ee].obj = NULL;
+        // 64 bit: Using the id instead
+        // scrObj[ee].obj = NULL;
     }
 
     for (ee=0;ee<game.numcharacters;ee++) {
@@ -969,13 +971,11 @@ void init_game_settings() {
         charextra[ee].animwait = 0;
     }
     // multiply up gui positions
-    guibg = (block*)malloc(sizeof(block) * game.numgui);
+    guibg = (Bitmap **)malloc(sizeof(Bitmap *) * game.numgui);
     guibgbmp = (IDriverDependantBitmap**)malloc(sizeof(IDriverDependantBitmap*) * game.numgui);
     for (ee=0;ee<game.numgui;ee++) {
+        guibg[ee] = NULL;
         guibgbmp[ee] = NULL;
-        GUIMain*cgp=&guis[ee];
-        guibg[ee] = create_bitmap_ex (final_col_dep, cgp->wid, cgp->hit);
-        guibg[ee] = gfxDriver->ConvertBitmapToSupportedColourDepth(guibg[ee]);
     }
 
     our_eip=-5;
@@ -1171,35 +1171,23 @@ void engine_init_game_shit()
 #if defined(PSP_VERSION)
 // PSP: Workaround for sound stuttering. Do sound updates in its own thread.
 int update_mp3_thread(SceSize args, void *argp)
-{
-  while (update_mp3_thread_running)
-  {
-    UPDATE_MP3_THREAD
-    sceKernelDelayThread(1000 * 50);
-  }
-  return 0;
-}
-#elif (defined(LINUX_VERSION) && !defined(PSP_VERSION)) || defined(MAC_VERSION)
+#elif (defined(LINUX_VERSION) || defined(MAC_VERSION))
 void* update_mp3_thread(void* arg)
-{
-  while (update_mp3_thread_running)
-  {
-    UPDATE_MP3_THREAD
-    usleep(1000 * 50);
-  }
-  pthread_exit(NULL);
-}
 #elif defined(WINDOWS_VERSION)
 DWORD WINAPI update_mp3_thread(LPVOID lpParam)
+#endif
 {
   while (update_mp3_thread_running)
   {
     UPDATE_MP3_THREAD
-    Sleep(50);
+    platform->Delay(50);
   }
+#if (defined(LINUX_VERSION) || defined(MAC_VERSION)) && !defined(PSP_VERSION)
+  pthread_exit(0);
+#else
   return 0;
-}
 #endif
+}
 
 void engine_start_multithreaded_audio()
 {
@@ -1248,6 +1236,18 @@ void engine_prepare_to_start_game()
     if (psp_load_latest_savegame)
         selectLatestSavegame();
 #endif
+}
+
+// TODO: move to test unit
+#include "gfx/allegrobitmap.h"
+using AGS::Common::AllegroBitmap;
+AllegroBitmap *test_allegro_bitmap;
+IDriverDependantBitmap *test_allegro_ddb;
+void allegro_bitmap_test_init()
+{
+	test_allegro_bitmap = NULL;
+	// Switched the test off for now
+	//test_allegro_bitmap = AllegroBitmap::CreateBitmap(320,200,32);
 }
 
 int initialize_engine(int argc,char*argv[])
@@ -1422,6 +1422,8 @@ int initialize_engine(int argc,char*argv[])
     engine_init_game_settings();
 
     engine_prepare_to_start_game();
+
+	allegro_bitmap_test_init();
 
     initialize_start_and_play_game(override_start_room, loadSaveGameOnStartup);
 

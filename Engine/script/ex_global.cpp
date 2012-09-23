@@ -10,10 +10,9 @@
 // version without screwing up the stack in previous versions
 // (just export both the ^n and the ^m as seperate funcs)
 
-#include "script/symbol_registry.h"
-#include <string.h>
 #include "util/wgt2allg.h"
 #include "ac/gamestate.h"
+#include "script/symbol_registry.h"
 
 void register_global_script_functions()
 {

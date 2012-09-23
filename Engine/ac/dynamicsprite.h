@@ -34,7 +34,7 @@ ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite_Old(int slot);
 ScriptDynamicSprite* DynamicSprite_CreateFromBackground(int frame, int x1, int y1, int width, int height);
 
 
-void	add_dynamic_sprite(int gotSlot, block redin, bool hasAlpha = false);
+void	add_dynamic_sprite(int gotSlot, Common::Bitmap *redin, bool hasAlpha = false);
 void	free_dynamic_sprite (int gotSlot);
 
 #endif // __AGS_EE_AC__DYNAMICSPRITE_H

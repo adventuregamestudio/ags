@@ -3,6 +3,9 @@
 
 #include "ac/dynobj/cc_dynamicobject.h"   // ICCDynamicObject
 
+namespace AGS { namespace Common { class DataStream; }}
+using namespace AGS; // FIXME later
+
 #define OBJECT_CACHE_MAGIC_NUMBER 0xa30b
 #define SERIALIZE_BUFFER_SIZE 10240
 const int ARRAY_INCREMENT_SIZE = 100;
@@ -40,8 +43,8 @@ public:
     void RunGarbageCollectionIfAppropriate();
     void RunGarbageCollection();
     int AddObject(const char *address, ICCDynamicObject *callback, int useSlot = -1);
-    void WriteToDisk(FILE *output);
-    int ReadFromDisk(FILE *input, ICCObjectReader *reader);
+    void WriteToDisk(Common::DataStream *out);
+    int ReadFromDisk(Common::DataStream *in, ICCObjectReader *reader);
     void reset();
     ManagedObjectPool();
 

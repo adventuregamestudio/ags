@@ -20,39 +20,34 @@ CLEAR that the code has been altered from the Standard Version.
 #include <stdlib.h>
 #include "util/wgt2allg.h"
 #include "ac/roomstruct.h"
-#include "platform/bigend.h"
+#include "util/filestream.h"
+
+using AGS::Common::DataStream;
 
 char *scripteditruntimecopr = "Script Editor v1.2 run-time component. (c) 1998 Chris Jones";
 
 #define SCRIPT_CONFIG_VERSION 1
 extern void quit(char *);
 
-long getlong(FILE * iii)
-{
-    long tmm;
-    fread(&tmm, 4, 1, iii);
-    return tmm;
-}
-
-void save_script_configuration(FILE * iii)
+void save_script_configuration(DataStream *out)
 {
     quit("ScriptEdit: run-time version can't save");
 }
 
-void load_script_configuration(FILE * iii)
+void load_script_configuration(DataStream *in)
 {
     int aa;
-    if (getlong(iii) != SCRIPT_CONFIG_VERSION)
-        quit("ScriptEdit: invliad config version");
+    if (in->ReadInt32() != SCRIPT_CONFIG_VERSION)
+        quit("ScriptEdit: invalid config version");
 
-    int numvarnames = getlong(iii);
+    int numvarnames = in->ReadInt32();
     for (aa = 0; aa < numvarnames; aa++) {
-        int lenoft = getc(iii);
-        fseek(iii, lenoft, SEEK_CUR);
+        int lenoft = in->ReadByte();
+        in->Seek(Common::kSeekCurrent, lenoft);
     }
 }
 
-void save_graphical_scripts(FILE * fff, roomstruct * rss)
+void save_graphical_scripts(DataStream *out, roomstruct * rss)
 {
     quit("ScriptEdit: run-time version can't save");
 }
@@ -60,10 +55,9 @@ void save_graphical_scripts(FILE * fff, roomstruct * rss)
 char *scripttempn = "~acsc%d.tmp";
 extern int route_script_link();
 
-void load_graphical_scripts(FILE * iii, roomstruct * rst)
+void load_graphical_scripts(DataStream *in, roomstruct * rst)
 {
     long ct;
-    FILE *te;
 
     if (route_script_link()) {
         quit("STOP IT.");
@@ -72,22 +66,22 @@ void load_graphical_scripts(FILE * iii, roomstruct * rst)
     }
 
     while (1) {
-        fread(&ct, 4, 1, iii);
-        if ((ct == -1) | (feof(iii) != 0))
+        ct = in->ReadInt32();
+        if ((ct == -1) | (in->EOS() != 0))
             break;
 
         long lee;
-        fread(&lee, 4, 1, iii);
+        lee = in->ReadInt32();
 
         char thisscn[20];
         sprintf(thisscn, scripttempn, ct);
-        te = fopen(thisscn, "wb");
+        DataStream *te = Common::File::CreateFile(thisscn);
 
         char *scnf = (char *)malloc(lee);
         // MACPORT FIX: swap size and nmemb
-        fread(scnf, sizeof(char), lee, iii);
-        fwrite(scnf, sizeof(char), lee, te);
-        fclose(te);
+        in->Read(scnf, lee);
+        te->Write(scnf, lee);
+        delete te;
 
         free(scnf);
     }

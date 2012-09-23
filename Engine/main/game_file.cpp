@@ -30,13 +30,19 @@
 #include "ac/viewframe.h"
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/all_scriptclasses.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "gui/guilabel.h"
 #include "main/main.h"
-#include "platform/agsplatformdriver.h"
+#include "platform/base/agsplatformdriver.h"
 #include "script/exports.h"
 #include "script/script.h"
+#include "util/datastream.h"
+#include "gfx/bitmap.h"
+#include "core/assetmanager.h"
 
+using AGS::Common::Bitmap;
+
+using AGS::Common::DataStream;
 /*
 
 Game data versions and changes:
@@ -129,9 +135,9 @@ extern char **characterScriptObjNames;
 extern char objectScriptObjNames[MAX_INIT_SPR][MAX_SCRIPT_NAME_LEN + 5];
 extern char **guiScriptObjNames;
 extern int actSpsCount;
-extern block *actsps;
+extern Bitmap **actsps;
 extern IDriverDependantBitmap* *actspsbmp;
-extern block *actspswb;
+extern Bitmap **actspswb;
 extern IDriverDependantBitmap* *actspswbbmp;
 extern CachedActSpsData* actspswbcache;
 
@@ -142,43 +148,43 @@ int psp_is_old_datafile = 0; // Set for 3.1.1 and 3.1.2 datafiles
 char* game_file_name = NULL;
 
 
-FILE * game_file_open()
+DataStream * game_file_open()
 {
-	FILE*iii = clibfopen("game28.dta", "rb"); // 3.x data file name
-    if (iii==NULL) {
-        iii = clibfopen("ac2game.dta", "rb"); // 2.x data file name
+	DataStream*in = Common::AssetManager::OpenAsset("game28.dta"); // 3.x data file name
+    if (in==NULL) {
+        in = Common::AssetManager::OpenAsset("ac2game.dta"); // 2.x data file name
     }
 
-	return iii;
+	return in;
 }
 
-int game_file_read_version(FILE*iii)
+int game_file_read_version(DataStream *in)
 {
 	char teststr[31];
 
 	teststr[30]=0;
-    fread(&teststr[0],30,1,iii);
-    filever=getw(iii);
+    in->Read(&teststr[0],30);
+    filever=in->ReadInt32();
 
     if (filever < 42) {
         // Allow loading of 2.x+ datafiles
         if (filever < 18) // < 2.5.0
         {
-            fclose(iii);
+            delete in;
             return -2;
         }
         psp_is_old_datafile = 1;
     }
 
-	int engineverlen = getw(iii);
+	int engineverlen = in->ReadInt32();
     char engineneeds[20];
     // MACPORT FIX 13/6/5: switch 'size' and 'nmemb' so it doesn't treat the string as an int
-    fread(&engineneeds[0], sizeof(char), engineverlen, iii);
+    in->Read(&engineneeds[0], engineverlen);
     engineneeds[engineverlen] = 0;
 
     if (filever > GAME_FILE_VERSION) {
         platform->DisplayAlert("This game requires a newer version of AGS (%s). It cannot be run.", engineneeds);
-        fclose(iii);
+        delete in;
         return -2;
     }
 
@@ -196,11 +202,11 @@ int game_file_read_version(FILE*iii)
 	return RETURN_CONTINUE;
 }
 
-void game_file_read_dialog_script(FILE*iii)
+void game_file_read_dialog_script(DataStream *in)
 {
 	if (filever > 37) // 3.1.1+ dialog script
     {
-        dialogScriptsScript = fread_script(iii);
+        dialogScriptsScript = fread_script(in);
         if (dialogScriptsScript == NULL)
             quit("Dialog scripts load failed; need newer version?");
     }
@@ -210,16 +216,16 @@ void game_file_read_dialog_script(FILE*iii)
     }
 }
 
-void game_file_read_script_modules(FILE*iii)
+void game_file_read_script_modules(DataStream *in)
 {
 	if (filever >= 31) // 2.7.0+ script modules
     {
-        numScriptModules = getw(iii);
+        numScriptModules = in->ReadInt32();
         if (numScriptModules > MAX_SCRIPT_MODULES)
             quit("too many script modules; need newer version?");
 
         for (int bb = 0; bb < numScriptModules; bb++) {
-            scriptModules[bb] = fread_script(iii);
+            scriptModules[bb] = fread_script(in);
             if (scriptModules[bb] == NULL)
                 quit("Script module load failure; need newer version?");
             moduleInst[bb] = NULL;
@@ -233,13 +239,13 @@ void game_file_read_script_modules(FILE*iii)
     }
 }
 
-void game_file_read_views(FILE*iii)
+void game_file_read_views(DataStream *in)
 {
 	if (filever > 32) // 3.x views
     {
         for (int iteratorCount = 0; iteratorCount < game.numviews; ++iteratorCount)
         {
-            views[iteratorCount].ReadFromFile(iii);
+            views[iteratorCount].ReadFromFile(in);
         }
     }
     else // 2.x views
@@ -247,7 +253,7 @@ void game_file_read_views(FILE*iii)
         ViewStruct272* oldv = (ViewStruct272*)calloc(game.numviews, sizeof(ViewStruct272));
         for (int iteratorCount = 0; iteratorCount < game.numviews; ++iteratorCount)
         {
-            oldv[iteratorCount].ReadFromFile(iii);
+            oldv[iteratorCount].ReadFromFile(in);
         }
         Convert272ViewsToNew(game.numviews, oldv, views);
         free(oldv);
@@ -278,17 +284,17 @@ void game_file_set_default_glmsg()
     set_default_glmsg (995, "Are you sure you want to quit?");
 }
 
-void game_file_read_dialogs(FILE*iii)
+void game_file_read_dialogs(DataStream *in)
 {
 	dialog=(DialogTopic*)malloc(sizeof(DialogTopic)*game.numdialog+5);
 
 //#ifdef ALLEGRO_BIG_ENDIAN
     for (int iteratorCount = 0; iteratorCount < game.numdialog; ++iteratorCount)
     {
-        dialog[iteratorCount].ReadFromFile(iii);
+        dialog[iteratorCount].ReadFromFile(in);
     }
 //#else
-//    fread(&dialog[0],sizeof(DialogTopic),game.numdialog,iii);  
+//    in->ReadArray(&dialog[0],sizeof(DialogTopic),game.numdialog);  
 //#endif
 
     if (filever <= 37) // Dialog script
@@ -299,11 +305,11 @@ void game_file_read_dialogs(FILE*iii)
         for (int i = 0; i < game.numdialog; i++)
         {
             old_dialog_scripts[i] = (unsigned char*)malloc(dialog[i].codesize);
-            fread(old_dialog_scripts[i], dialog[i].codesize, 1, iii);
+            in->Read(old_dialog_scripts[i], dialog[i].codesize);
 
             // Skip encrypted text script
-            unsigned int script_size = getw(iii);
-            fseek(iii, script_size, SEEK_CUR);
+            unsigned int script_size = in->ReadInt32();
+            in->Seek(Common::kSeekCurrent, script_size);
         }
 
         // Read the dialog lines
@@ -322,14 +328,14 @@ void game_file_read_dialogs(FILE*iii)
 
                 while (1)
                 {
-                    *nextchar = fgetc(iii);
+                    *nextchar = in->ReadInt8();
                     if (*nextchar == 0)
                         break;
 
                     if ((unsigned char)*nextchar == 0xEF)
                     {
                         end_reached = true;
-                        fseek(iii, -1, SEEK_CUR);
+                        in->Seek(Common::kSeekCurrent, -1);
                         break;
                     }
 
@@ -349,15 +355,15 @@ void game_file_read_dialogs(FILE*iii)
             // Encrypted text on > 2.60
             while (1)
             {
-                unsigned int newlen = getw(iii);
+                unsigned int newlen = in->ReadInt32();
                 if (newlen == 0xCAFEBEEF)  // GUI magic
                 {
-                    fseek(iii, -4, SEEK_CUR);
+                    in->Seek(Common::kSeekCurrent, -4);
                     break;
                 }
 
                 old_speech_lines[i] = (char*)malloc(newlen + 1);
-                fread(old_speech_lines[i], newlen, 1, iii);
+                in->Read(old_speech_lines[i], newlen);
                 old_speech_lines[i][newlen] = 0;
                 decrypt_text(old_speech_lines[i]);
 
@@ -368,9 +374,9 @@ void game_file_read_dialogs(FILE*iii)
     }
 }
 
-void game_file_read_gui(FILE*iii)
+void game_file_read_gui(DataStream *in)
 {
-	read_gui(iii,guis,&game, &guis);
+	read_gui(in,guis,&game, &guis);
 
     for (int bb = 0; bb < numguilabels; bb++) {
         // labels are not clickable by default
@@ -478,7 +484,8 @@ void init_and_register_guis()
 
 	scrGui = (ScriptGUI*)malloc(sizeof(ScriptGUI) * game.numgui);
     for (ee = 0; ee < game.numgui; ee++) {
-        scrGui[ee].gui = NULL;
+        // 64 bit: Using the id instead
+        // scrGui[ee].gui = NULL;
         scrGui[ee].id = -1;
     }
 
@@ -499,7 +506,8 @@ void init_and_register_guis()
         guiScriptObjNames[ee] = (char*)malloc(21);
         strcpy(guiScriptObjNames[ee], guis[ee].name);
 
-        scrGui[ee].gui = &guis[ee];
+        // 64 bit: Using the id instead
+        // scrGui[ee].gui = &guis[ee];
         scrGui[ee].id = ee;
 
         ccAddExternalSymbol(guiScriptObjNames[ee], &scrGui[ee]);
@@ -577,8 +585,8 @@ int load_game_file() {
 	// Start reading from file
 	//-----------------------------------------------------------
 
-    FILE*iii = game_file_open();
-	if (iii==NULL)
+    DataStream *in = game_file_open();
+	if (in==NULL)
 		return -1;
 
     our_eip=-18;
@@ -587,7 +595,7 @@ int load_game_file() {
 
     our_eip=-16;
 
-	res = game_file_read_version(iii);
+	res = game_file_read_version(in);
 	if (res != RETURN_CONTINUE) {
 		return res;
 	}
@@ -598,9 +606,9 @@ int load_game_file() {
 
 //#ifdef ALLEGRO_BIG_ENDIAN
     GameSetupStructBase *gameBase = (GameSetupStructBase *) &game;
-    gameBase->ReadFromFile(iii);
+    gameBase->ReadFromFile(in);
 //#else
-//    fread(&game, sizeof (GameSetupStructBase), 1, iii);
+//    in->ReadArray(&game, sizeof (GameSetupStructBase), 1);
 //#endif
 
     if (filever <= 37) // <= 3.1
@@ -619,28 +627,28 @@ int load_game_file() {
     read_data.game_file_name = game_file_name;
 
     //-----------------------------------------------------
-    game.ReadFromFile_Part1(iii, read_data);
+    game.ReadFromFile_Part1(in, read_data);
     //-----------------------------------------------------
 
     if (game.compiled_script == NULL)
         quit("No global script in game; data load error");
 
-    gamescript = fread_script(iii);
+    gamescript = fread_script(in);
     if (gamescript == NULL)
         quit("Global script load failed; need newer version?");
 
-    game_file_read_dialog_script(iii);
+    game_file_read_dialog_script(in);
 
-	game_file_read_script_modules(iii);
+	game_file_read_script_modules(in);
 
     our_eip=-15;
 
     charextra = (CharacterExtras*)calloc(game.numcharacters, sizeof(CharacterExtras));
     mls = (MoveList*)calloc(game.numcharacters + MAX_INIT_SPR + 1, sizeof(MoveList));
     actSpsCount = game.numcharacters + MAX_INIT_SPR + 2;
-    actsps = (block*)calloc(actSpsCount, sizeof(block));
+    actsps = (Bitmap **)calloc(actSpsCount, sizeof(Bitmap *));
     actspsbmp = (IDriverDependantBitmap**)calloc(actSpsCount, sizeof(IDriverDependantBitmap*));
-    actspswb = (block*)calloc(actSpsCount, sizeof(block));
+    actspswb = (Bitmap **)calloc(actSpsCount, sizeof(Bitmap *));
     actspswbbmp = (IDriverDependantBitmap**)calloc(actSpsCount, sizeof(IDriverDependantBitmap*));
     actspswbcache = (CachedActSpsData*)calloc(actSpsCount, sizeof(CachedActSpsData));
     game.charProps = (CustomProperties*)calloc(game.numcharacters, sizeof(CustomProperties));
@@ -648,41 +656,41 @@ int load_game_file() {
     allocate_memory_for_views(game.numviews);
     int iteratorCount = 0;
 
-	game_file_read_views(iii);
+	game_file_read_views(in);
 
     our_eip=-14;
 
     if (filever <= 19) // <= 2.1 skip unknown data
     {
-        int count = getw(iii);
-        fseek(iii, count * 0x204, SEEK_CUR);
+        int count = in->ReadInt32();
+        in->Seek(Common::kSeekCurrent, count * 0x204);
     }
 
     charcache = (CharacterCache*)calloc(1,sizeof(CharacterCache)*game.numcharacters+5);
     //-----------------------------------------------------
-    game.ReadFromFile_Part2(iii, read_data);
+    game.ReadFromFile_Part2(in, read_data);
     //-----------------------------------------------------
 
     game_file_set_default_glmsg();
     
     our_eip=-13;
 
-	game_file_read_dialogs(iii);
+	game_file_read_dialogs(in);
 
-	game_file_read_gui(iii);
+	game_file_read_gui(in);
 
     if (filever >= 25) // >= 2.60
     {
-        platform->ReadPluginsFromDisk(iii);
+        platform->ReadPluginsFromDisk(in);
     }
 
     //-----------------------------------------------------
-    game.ReadFromFile_Part3(iii, read_data);
+    game.ReadFromFile_Part3(in, read_data);
     //-----------------------------------------------------
 
     game_file_set_score_sound(read_data);
 
-	fclose(iii);
+	delete in;
 
 	//-----------------------------------------------------------
 	// Reading from file is finished here

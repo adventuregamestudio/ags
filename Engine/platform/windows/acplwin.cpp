@@ -26,15 +26,21 @@
 #include "ac/string.h"
 #include "main/engine.h"
 #include "media/audio/audio.h"
-#include "platform/ags32bitosdriver.h"
+#include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
+#include "util/datastream.h"
+#include "gfx/graphicsdriver.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::DataStream;
+using AGS::Common::Bitmap;
 
 extern GameSetupStruct game;
 extern GameSetup usetup;
 extern int our_eip;
 extern IGraphicsDriver *gfxDriver;
 extern color palette[256];
-extern block virtual_screen;
+extern Bitmap *virtual_screen;
 
 #include <shlobj.h>
 #include <time.h>
@@ -78,7 +84,7 @@ extern int acwsetup(const char*, const char*);
 extern void set_icon();
 extern char* game_file_name;
 
-struct AGSWin32 : AGS32BitOSDriver {
+struct AGSWin32 : AGSPlatformDriver {
   AGSWin32();
 
   virtual void AboutToQuitGame();
@@ -105,12 +111,17 @@ struct AGSWin32 : AGS32BitOSDriver {
   virtual void UnRegisterGameWithGameExplorer();
   virtual int  ConvertKeycodeToScanCode(int keyCode);
 
-  virtual void ReadPluginsFromDisk(FILE *);
+  virtual void ReadPluginsFromDisk(DataStream *in);
   virtual void StartPlugins();
-  virtual int  RunPluginHooks(int event, int data);
+  virtual int  RunPluginHooks(int event, long data);
   virtual void RunPluginInitGfxHooks(const char *driverName, void *data);
   virtual int  RunPluginDebugHooks(const char *scriptfile, int linenum);
   virtual void ShutdownPlugins();
+
+  //-----------------------------------------------
+  // IOutputTarget implementation
+  //-----------------------------------------------
+  virtual void Out(const char *sz_fullmsg);
 
 private:
   void add_game_to_game_explorer(IGameExplorer* pFwGameExplorer, GUID *guid, const char *guidAsText, bool allUsers);
@@ -692,10 +703,8 @@ void AGSWin32::PlayVideo(const char *name, int skip, int flags) {
   }
 
   bool isError = false;
-  FILE *testFile = fopen(useloc, "rb");
-  if (testFile != NULL)
+  if (Common::File::TestReadFile(useloc))
   {
-    fclose(testFile);
     isError = (gfxDriver->PlayVideo(useloc, useSound, (VideoSkipType)skip, (flags > 0)) == 0);
   }
   else
@@ -764,8 +773,8 @@ void AGSWin32::ShutdownCDPlayer() {
   cd_exit();
 }
 
-void AGSWin32::ReadPluginsFromDisk(FILE *iii) {
-  pl_read_plugins_from_disk(iii);
+void AGSWin32::ReadPluginsFromDisk(DataStream *in) {
+  pl_read_plugins_from_disk(in);
 }
 
 void AGSWin32::StartPlugins() {
@@ -776,7 +785,7 @@ void AGSWin32::ShutdownPlugins() {
   pl_stop_plugins();
 }
 
-int AGSWin32::RunPluginHooks(int event, int data) {
+int AGSWin32::RunPluginHooks(int event, long data) {
   return pl_run_plugin_hooks(event, data);
 }
 
@@ -812,6 +821,13 @@ AGSPlatformDriver* AGSPlatformDriver::GetDriver() {
   return instance;
 }
 
+//-----------------------------------------------
+// IOutputTarget implementation
+//-----------------------------------------------
+void AGSWin32::Out(const char *sz_fullmsg) {
+    this->WriteDebugString(sz_fullmsg);
+}
+
 
 // *********** WINDOWS-SPECIFIC PLUGIN API FUNCTIONS *************
 
@@ -831,7 +847,7 @@ LPDIRECTDRAWSURFACE2 IAGSEngine::GetBitmapSurface (BITMAP *bmp)
 
   BMP_EXTRA_INFO *bei = (BMP_EXTRA_INFO*)bmp->extra;
 
-  if (bmp == virtual_screen)
+  if (bmp == virtual_screen->GetBitmapObject())
     invalidate_screen();
 
   return bei->surf;

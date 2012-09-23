@@ -7,8 +7,8 @@
 #ifndef __AGS_EE_AC__GLOBALOBJECT_H
 #define __AGS_EE_AC__GLOBALOBJECT_H
 
-// Should be moved to math or some utils unit?
-struct Rect {
+// TODO: merge with other Rect declared in bitmap unit
+struct _Rect {
     int x1,y1,x2,y2;
 };
 
@@ -42,12 +42,12 @@ void SetObjectClickable (int cha, int clik);
 void SetObjectIgnoreWalkbehinds (int cha, int clik);
 void RunObjectInteraction (int aa, int mood);
 int  AreObjectsColliding(int obj1,int obj2);
-int  GetThingRect(int thing, Rect *rect);
+int  GetThingRect(int thing, _Rect *rect);
 int  AreThingsOverlapping(int thing1, int thing2);
 
 int  GetObjectProperty (int hss, const char *property);
 void GetObjectPropertyText (int item, const char *property, char *bufer);
 
-block GetObjectImage(int obj, int *isFlipped);
+Common::Bitmap *GetObjectImage(int obj, int *isFlipped);
 
 #endif // __AGS_EE_AC__GLOBALOBJECT_H

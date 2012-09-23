@@ -8,6 +8,11 @@
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "gui/cscidialog.h"
+#include <cctype> //isdigit()
+#include "gfx/graphicsdriver.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::Bitmap;
 
 extern IGraphicsDriver *gfxDriver;
 extern GameSetup usetup;
@@ -17,9 +22,9 @@ extern char saveGameDirectory[260];
 extern char saveGameSuffix[MAX_SG_EXT_LENGTH + 1];
 
 // from gui/cscidialog
-extern block windowBuffer;
+extern Bitmap *windowBuffer;
 extern int windowPosX, windowPosY, windowPosWidth, windowPosHeight;
-extern block windowBuffer;
+extern Bitmap *windowBuffer;
 extern IDriverDependantBitmap *dialogBmp;
 
 #define MAXSAVEGAMES 20
@@ -39,13 +44,13 @@ int myscrnwid = 320, myscrnhit = 200;
 
 void refresh_screen()
 {
-    blit(abuf, windowBuffer, windowPosX, windowPosY, 0, 0, windowPosWidth, windowPosHeight);
+    windowBuffer->Blit(abuf, windowPosX, windowPosY, 0, 0, windowPosWidth, windowPosHeight);
     gfxDriver->UpdateDDBFromBitmap(dialogBmp, windowBuffer, false);
 
     render_graphics(dialogBmp, windowPosX, windowPosY);
 
     // Copy it back, because the mouse will have been drawn on top
-    blit(windowBuffer, abuf, 0, 0, windowPosX, windowPosY, windowPosWidth, windowPosHeight);
+    abuf->Blit(windowBuffer, 0, 0, windowPosX, windowPosY, windowPosWidth, windowPosHeight);
 }
 
 int loadgamedialog()

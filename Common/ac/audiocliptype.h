@@ -1,6 +1,12 @@
 #ifndef __AC_AUDIOCLIPTYPE_H
 #define __AC_AUDIOCLIPTYPE_H
 
+#include "util/file.h"
+
+// Forward declaration
+namespace AGS { namespace Common { class DataStream; } }
+using namespace AGS; // FIXME later
+
 #define AUCL_BUNDLE_EXE 1
 #define AUCL_BUNDLE_VOX 2
 enum AudioFileType {
@@ -19,6 +25,9 @@ struct AudioClipType {
     int volume_reduction_while_speech_playing;
     int crossfadeSpeed;
     int reservedForFuture;
+
+    void ReadFromFile(Common::DataStream *in);
+    void WriteToFile(Common::DataStream *out);
 };
 
 #endif // __AC_AUDIOCLIPTYPE_H

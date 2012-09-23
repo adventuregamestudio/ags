@@ -14,17 +14,14 @@
 #include "alfont.h"
 #endif
 
+#include "core/assetmanager.h"
+#include "util/datastream.h"
+
+using AGS::Common::DataStream;
+
 // For engine these are defined in ac.cpp
 extern int our_eip;
 extern GameSetupStruct game;
-
-// For engine these are defined in clib32.cpp
-extern "C"
-{
-  extern FILE *clibfopen(char *, char *);
-  extern long last_opened_size;
-}
-//
 
 //=============================================================================
 // Engine-specific implementation split out of acfonts.cpp
@@ -40,15 +37,17 @@ int get_our_eip()
   return our_eip;
 }
 
-FILE *fopen_shared(char *filnamm, char *fmt)
+DataStream *fopen_shared(char *filnamm,
+                          Common::FileOpenMode open_mode,
+                          Common::FileWorkMode work_mode)
 {
-  return clibfopen(filnamm, fmt);
+  return Common::AssetManager::OpenAsset(filnamm, open_mode, work_mode);
 }
 
-int flength_shared(FILE *ffi)
+int flength_shared(DataStream *ffi)
 {
-  // clibfopen will have set last_opened_size
-  return last_opened_size;
+  // Common::AssetManager::OpenAsset will have set Common::AssetManager::GetLastAssetSize()
+  return Common::AssetManager::GetLastAssetSize();
 }
 
 void set_font_outline(int font_number, int outline_type)

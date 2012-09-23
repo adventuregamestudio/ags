@@ -1,6 +1,6 @@
 #define USE_CLIB
-#include "ac/global_game.h"
 #include "util/wgt2allg.h"
+#include "ac/global_game.h"
 #include "ac/common.h"
 #include "ac/view.h"
 #include "ac/character.h"
@@ -27,7 +27,8 @@
 #include "ac/roomstatus.h"
 #include "ac/roomstruct.h"
 #include "ac/string.h"
-#include "debug/debug.h"
+#include "debug/debugger.h"
+#include "debug/debug_log.h"
 #include "gui/guidialog.h"
 #include "main/engine.h"
 #include "main/game_start.h"
@@ -36,6 +37,12 @@
 #include "script/script.h"
 #include "script/script_runtime.h"
 #include "ac/spritecache.h"
+#include "gfx/graphicsdriver.h"
+#include "gfx/bitmap.h"
+#include "core/assetmanager.h"
+
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 #define ALLEGRO_KEYBOARD_HANDLER
 
@@ -65,9 +72,7 @@ extern char saveGameDirectory[260];
 extern IGraphicsDriver *gfxDriver;
 extern int scrnwid,scrnhit;
 extern color palette[256];
-extern block virtual_screen;
-
-extern "C" int csetlib(char *namm, char *passw);
+extern Bitmap *virtual_screen;
 
 void GiveScore(int amnt) 
 {
@@ -112,9 +117,7 @@ void DeleteSaveSlot (int slnum) {
         char thisname[260];
         for (int i = MAXSAVEGAMES; i > slnum; i--) {
             get_save_game_path(i, thisname);
-            FILE *fin = fopen (thisname, "rb");
-            if (fin != NULL) {
-                fclose (fin);
+            if (Common::File::TestReadFile(thisname)) {
                 // Rename the highest save game to fill in the gap
                 rename (thisname, nametouse);
                 break;
@@ -162,11 +165,11 @@ int LoadSaveSlotScreenshot(int slnum, int width, int height) {
         return gotSlot;
 
     // resize the sprite to the requested size
-    block newPic = create_bitmap_ex(bitmap_color_depth(spriteset[gotSlot]), width, height);
+    Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, spriteset[gotSlot]->GetColorDepth());
 
-    stretch_blit(spriteset[gotSlot], newPic,
-        0, 0, spritewidth[gotSlot], spriteheight[gotSlot],
-        0, 0, width, height);
+    newPic->StretchBlt(spriteset[gotSlot],
+        RectWH(0, 0, spritewidth[gotSlot], spriteheight[gotSlot]),
+        RectWH(0, 0, width, height));
 
     update_polled_stuff_if_runtime();
 
@@ -249,10 +252,10 @@ int RunAGSGame (char *newgame, unsigned int mode, int data) {
 
     unload_game_file();
 
-    if (csetlib(game_file_name,""))
+    if (Common::AssetManager::SetDataFile(game_file_name) != Common::kAssetNoError)
         quitprintf("!RunAGSGame: unable to load new game file '%s'", game_file_name);
 
-    clear(abuf);
+    abuf->Clear();
     show_preload();
 
     if ((result = load_game_file ()) != 0) {
@@ -713,17 +716,17 @@ int SaveScreenShot(char*namm) {
 
     if (gfxDriver->RequiresFullRedrawEachFrame()) 
     {
-        BITMAP *buffer = create_bitmap_ex(32, scrnwid, scrnhit);
+        Bitmap *buffer = BitmapHelper::CreateBitmap(scrnwid, scrnhit, 32);
         gfxDriver->GetCopyOfScreenIntoBitmap(buffer);
 
-        if (save_bitmap(fileName, buffer, palette)!=0)
+		if (!BitmapHelper::SaveToFile(buffer, fileName, palette)!=0)
         {
-            destroy_bitmap(buffer);
+            delete buffer;
             return 0;
         }
-        destroy_bitmap(buffer);
+        delete buffer;
     }
-    else if (save_bitmap(fileName, virtual_screen, palette)!=0)
+	else if (!BitmapHelper::SaveToFile(virtual_screen, fileName, palette)!=0)
         return 0; // failed
 
     return 1;  // successful
@@ -880,7 +883,7 @@ void scrWait(int nloops) {
 
     play.wait_counter = nloops;
     play.key_skip_wait = 0;
-    do_main_cycle(UNTIL_MOVEEND,(int)&play.wait_counter);
+    do_main_cycle(UNTIL_MOVEEND,(long)&play.wait_counter);
 }
 
 int WaitKey(int nloops) {
@@ -889,7 +892,7 @@ int WaitKey(int nloops) {
 
     play.wait_counter = nloops;
     play.key_skip_wait = 1;
-    do_main_cycle(UNTIL_MOVEEND,(int)&play.wait_counter);
+    do_main_cycle(UNTIL_MOVEEND,(long)&play.wait_counter);
     if (play.wait_counter < 0)
         return 1;
     return 0;
@@ -901,7 +904,7 @@ int WaitMouseKey(int nloops) {
 
     play.wait_counter = nloops;
     play.key_skip_wait = 3;
-    do_main_cycle(UNTIL_MOVEEND,(int)&play.wait_counter);
+    do_main_cycle(UNTIL_MOVEEND,(long)&play.wait_counter);
     if (play.wait_counter < 0)
         return 1;
     return 0;

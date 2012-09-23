@@ -27,12 +27,17 @@
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
 #include "debug/agseditordebugger.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "main/engine.h"
 #include "main/mainheader.h"
 #include "main/main.h"
-#include "platform/agsplatformdriver.h"
+#include "platform/base/agsplatformdriver.h"
 #include "ac/route_finder.h"
+#include "core/assetmanager.h"
+
+#ifdef _DEBUG
+#include "test/test_all.h"
+#endif
 
 #ifdef MAC_VERSION
 char dataDirectory[512];
@@ -54,8 +59,6 @@ LPWSTR *wArgv;
 #ifndef WINDOWS_VERSION
 char **global_argv = 0;
 #endif
-
-extern "C" int  cfopenpriority;
 
 
 extern GameSetup usetup;
@@ -98,7 +101,7 @@ char psp_translation[] = "default";
 void main_pre_init()
 {
     our_eip = -999;
-    cfopenpriority=2;
+    Common::AssetManager::SetSearchPriority(Common::kAssetPriorityDir);
     play.recording = 0;
     play.playback = 0;
     play.takeover_data = 0;
@@ -111,6 +114,7 @@ void main_create_platform_driver()
 
 void main_init()
 {
+    Common::AssetManager::CreateInstance();
     main_pre_init();
     main_create_platform_driver();
 }
@@ -296,6 +300,10 @@ int malloc_fail_handler(size_t amountwanted) {
 #endif
 
 int main(int argc,char*argv[]) { 
+
+#ifdef _DEBUG
+    Test_DoAllTests();
+#endif
     
     int res;
     main_init();
@@ -313,6 +321,7 @@ int main(int argc,char*argv[]) {
     if ((argc>1) && (argv[1][1]=='?'))
         return 0;
 
+    initialize_debug_system();
     write_log_debug("***** ENGINE STARTUP");
 
 #if defined(WINDOWS_VERSION)
@@ -341,8 +350,9 @@ int main(int argc,char*argv[]) {
 
     if (usetup.disable_exception_handling)
     {
-        initialize_engine(argc, argv);
+        int result = initialize_engine(argc, argv);
         platform->PostAllegroExit();
+        return result;
     }
     else
     {

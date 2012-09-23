@@ -2,7 +2,6 @@
 #error This file should only be included on the iOS build
 #endif
 
-#include "acplatfm.h"
 #include <stdio.h>
 #include <dirent.h>
 #include <sys/stat.h> 
@@ -10,7 +9,10 @@
 
 #include <allegro.h>
 #include "bigend.h"
-
+#include "platform/base/agsplatformdriver.h"
+#include "platform/base/override_defines.h"
+#include "ac/runtime_defines.h"
+#include "plugin/agsplugin.h"
 
 #define IOS_CONFIG_FILENAME "ios.cfg"
 
@@ -95,7 +97,7 @@ const int CONFIG_MOUSE_LONGCLICK = 20;
 
 
 
-struct AGSIOS : AGS32BitOSDriver {
+struct AGSIOS : AGSPlatformDriver {
 
   virtual int  CDPlayerCommand(int cmdd, int datt);
   virtual void Delay(int millis);
@@ -112,7 +114,7 @@ struct AGSIOS : AGS32BitOSDriver {
   virtual void WriteConsole(const char*, ...);
   virtual void ReplaceSpecialPaths(const char*, char*);
   virtual void WriteDebugString(const char* texx, ...);
-  virtual void ReadPluginsFromDisk(FILE *iii);
+  virtual void ReadPluginsFromDisk(AGS::Common::DataStream *iii);
   virtual void StartPlugins();
   virtual void ShutdownPlugins();
   virtual int RunPluginHooks(int event, int data);
@@ -683,7 +685,7 @@ void AGSIOS::ReplaceSpecialPaths(const char *sourcePath, char *destPath) {
 }
 
 
-void AGSIOS::ReadPluginsFromDisk(FILE *iii) {
+void AGSIOS::ReadPluginsFromDisk(AGS::Common::DataStream *iii) {
   pl_read_plugins_from_disk(iii);
 }
 

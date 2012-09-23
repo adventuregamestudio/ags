@@ -4,28 +4,30 @@
 #include <math.h>
 #include "gui/guiinv.h"
 #include "gui/guimain.h"
+#include "util/datastream.h"
 
+using AGS::Common::DataStream;
 
 DynamicArray<GUIInv> guiinv;
 int numguiinv = 0;
 
-void GUIInv::WriteToFile(FILE * ooo)
+void GUIInv::WriteToFile(DataStream *out)
 {
-	GUIObject::WriteToFile(ooo);
-	putw(charId, ooo);
-	putw(itemWidth, ooo);
-	putw(itemHeight, ooo);
-	putw(topIndex, ooo);
+	GUIObject::WriteToFile(out);
+	out->WriteInt32(charId);
+	out->WriteInt32(itemWidth);
+	out->WriteInt32(itemHeight);
+	out->WriteInt32(topIndex);
 }
 
-void GUIInv::ReadFromFile(FILE * ooo, int version)
+void GUIInv::ReadFromFile(DataStream *in, int version)
 {
-	GUIObject::ReadFromFile(ooo, version);
+	GUIObject::ReadFromFile(in, version);
 	if (version >= 109) {
-	  charId = getw(ooo);
-	  itemWidth = getw(ooo);
-	  itemHeight = getw(ooo);
-	  topIndex = getw(ooo);
+	  charId = in->ReadInt32();
+	  itemWidth = in->ReadInt32();
+	  itemHeight = in->ReadInt32();
+	  topIndex = in->ReadInt32();
 	}
 	else {
 	  charId = -1;

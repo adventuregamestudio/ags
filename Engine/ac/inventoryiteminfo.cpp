@@ -1,22 +1,38 @@
 
 #include <stdio.h>
 #include "ac/inventoryiteminfo.h"
+#include "util/datastream.h"
 
-void InventoryItemInfo::ReadFromFile(FILE *fp)
+using AGS::Common::DataStream;
+
+void InventoryItemInfo::ReadFromFile(DataStream *in)
 {
 //#ifdef ALLEGRO_BIG_ENDIAN
-    fread(name, sizeof(char), 25, fp);
-    fseek(fp, 3, SEEK_CUR);
-    pic = getw(fp);
-    // FIXME: there's no 'cursor' member, could this be cursorPic?
-    // cursor = getw(fp);
-    cursorPic = getw(fp);
-    hotx = getw(fp);
-    hoty = getw(fp);
-    fread(reserved, sizeof(int), 5, fp);
-    flags = getc(fp);
-    fseek(fp, 3, SEEK_CUR);
+    in->Read(name, 25);
+    in->Seek(Common::kSeekCurrent, 3);
+    pic = in->ReadInt32();
+    cursorPic = in->ReadInt32();
+    hotx = in->ReadInt32();
+    hoty = in->ReadInt32();
+    in->ReadArrayOfInt32(reserved, 5);
+    flags = in->ReadInt8();
+    in->Seek(Common::kSeekCurrent, 3);
 //#else
 //    throw "InventoryItemInfo::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
 //#endif
+}
+
+void InventoryItemInfo::WriteToFile(DataStream *out)
+{
+    char padding[3] = {0,0,0};
+
+    out->Write(name, 25);
+    out->Write(padding, 3);
+    out->WriteInt32(pic);
+    out->WriteInt32(cursorPic);
+    out->WriteInt32(hotx);
+    out->WriteInt32(hoty);
+    out->WriteArrayOfInt32(reserved, 5);
+    out->WriteInt8(flags);
+    out->Write(padding, 3);
 }

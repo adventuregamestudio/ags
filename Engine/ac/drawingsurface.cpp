@@ -13,9 +13,13 @@
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
 #include "ac/string.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "gui/guimain.h"
 #include "ac/spritecache.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameSetupStruct game;
 extern GameState play;
@@ -26,7 +30,7 @@ extern ObjectCache objcache[MAX_INIT_SPR];
 extern GUIMain*guis;
 extern SpriteCache spriteset;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
-extern block dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
+extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 
 extern int current_screen_resolution_multiplier;
 extern int trans_mode;
@@ -83,7 +87,7 @@ void DrawingSurface_Release(ScriptDrawingSurface* sds)
     }
     if (sds->dynamicSurfaceNumber >= 0)
     {
-        destroy_bitmap(dynamicallyCreatedSurfaces[sds->dynamicSurfaceNumber]);
+        delete dynamicallyCreatedSurfaces[sds->dynamicSurfaceNumber];
         dynamicallyCreatedSurfaces[sds->dynamicSurfaceNumber] = NULL;
         sds->dynamicSurfaceNumber = -1;
     }
@@ -155,14 +159,14 @@ void ScriptDrawingSurface::UnMultiplyThickness(int *valueToAdjust)
 
 ScriptDrawingSurface* DrawingSurface_CreateCopy(ScriptDrawingSurface *sds)
 {
-    BITMAP *sourceBitmap = sds->GetBitmapSurface();
+    Bitmap *sourceBitmap = sds->GetBitmapSurface();
 
     for (int i = 0; i < MAX_DYNAMIC_SURFACES; i++)
     {
         if (dynamicallyCreatedSurfaces[i] == NULL)
         {
-            dynamicallyCreatedSurfaces[i] = create_bitmap_ex(bitmap_color_depth(sourceBitmap), sourceBitmap->w, sourceBitmap->h);
-            blit(sourceBitmap, dynamicallyCreatedSurfaces[i], 0, 0, 0, 0, sourceBitmap->w, sourceBitmap->h);
+            dynamicallyCreatedSurfaces[i] = BitmapHelper::CreateBitmap(sourceBitmap->GetWidth(), sourceBitmap->GetHeight(), sourceBitmap->GetColorDepth());
+            dynamicallyCreatedSurfaces[i]->Blit(sourceBitmap, 0, 0, 0, 0, sourceBitmap->GetWidth(), sourceBitmap->GetHeight());
             ScriptDrawingSurface *newSurface = new ScriptDrawingSurface();
             newSurface->dynamicSurfaceNumber = i;
             newSurface->hasAlphaChannel = sds->hasAlphaChannel;
@@ -180,19 +184,19 @@ void DrawingSurface_DrawSurface(ScriptDrawingSurface* target, ScriptDrawingSurfa
         quit("!DrawingSurface.DrawSurface: invalid parameter (transparency must be 0-99)");
 
     target->StartDrawing();
-    BITMAP *surfaceToDraw = source->GetBitmapSurface();
+    Bitmap *surfaceToDraw = source->GetBitmapSurface();
 
     if (surfaceToDraw == abuf)
         quit("!DrawingSurface.DrawSurface: cannot draw surface onto itself");
 
     if (translev == 0) {
         // just draw it over the top, no transparency
-        blit(surfaceToDraw, abuf, 0, 0, 0, 0, surfaceToDraw->w, surfaceToDraw->h);
+        abuf->Blit(surfaceToDraw, 0, 0, 0, 0, surfaceToDraw->GetWidth(), surfaceToDraw->GetHeight());
         target->FinishedDrawing();
         return;
     }
 
-    if (bitmap_color_depth(surfaceToDraw) <= 8)
+    if (surfaceToDraw->GetColorDepth() <= 8)
         quit("!DrawingSurface.DrawSurface: 256-colour surfaces cannot be drawn transparently");
 
     // Draw it transparently
@@ -213,7 +217,7 @@ void DrawingSurface_DrawImage(ScriptDrawingSurface* sds, int xx, int yy, int slo
     if (trans == 100)
         return;
 
-    BITMAP *sourcePic = spriteset[slot];
+    Bitmap *sourcePic = spriteset[slot];
     bool needToFreeBitmap = false;
 
     if (width != SCR_NO_VALUE)
@@ -226,11 +230,11 @@ void DrawingSurface_DrawImage(ScriptDrawingSurface* sds, int xx, int yy, int slo
         sds->MultiplyCoordinates(&width, &height);
 
         // resize the sprite to the requested size
-        block newPic = create_bitmap_ex(bitmap_color_depth(sourcePic), width, height);
+        Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, sourcePic->GetColorDepth());
 
-        stretch_blit(sourcePic, newPic,
-            0, 0, spritewidth[slot], spriteheight[slot],
-            0, 0, width, height);
+        newPic->StretchBlt(sourcePic,
+            RectWH(0, 0, spritewidth[slot], spriteheight[slot]),
+            RectWH(0, 0, width, height));
 
         sourcePic = newPic;
         needToFreeBitmap = true;
@@ -240,8 +244,8 @@ void DrawingSurface_DrawImage(ScriptDrawingSurface* sds, int xx, int yy, int slo
     sds->StartDrawing();
     sds->MultiplyCoordinates(&xx, &yy);
 
-    if (bitmap_color_depth(sourcePic) != bitmap_color_depth(abuf)) {
-        debug_log("RawDrawImage: Sprite %d colour depth %d-bit not same as background depth %d-bit", slot, bitmap_color_depth(spriteset[slot]), bitmap_color_depth(abuf));
+    if (sourcePic->GetColorDepth() != abuf->GetColorDepth()) {
+        debug_log("RawDrawImage: Sprite %d colour depth %d-bit not same as background depth %d-bit", slot, spriteset[slot]->GetColorDepth(), abuf->GetColorDepth());
     }
 
     if (trans > 0)
@@ -254,7 +258,7 @@ void DrawingSurface_DrawImage(ScriptDrawingSurface* sds, int xx, int yy, int slo
     sds->FinishedDrawing();
 
     if (needToFreeBitmap)
-        destroy_bitmap(sourcePic);
+        delete sourcePic;
 }
 
 
@@ -266,7 +270,7 @@ void DrawingSurface_SetDrawingColor(ScriptDrawingSurface *sds, int newColour)
     sds->StartDrawing();
     if (newColour == SCR_COLOR_TRANSPARENT)
     {
-        sds->currentColour = bitmap_mask_color(abuf);
+        sds->currentColour = abuf->GetMaskColor();
     }
     else
     {
@@ -293,7 +297,7 @@ int DrawingSurface_GetUseHighResCoordinates(ScriptDrawingSurface *sds)
 int DrawingSurface_GetHeight(ScriptDrawingSurface *sds) 
 {
     sds->StartDrawing();
-    int height = abuf->h;
+    int height = abuf->GetHeight();
     sds->FinishedDrawingReadOnly();
     sds->UnMultiplyThickness(&height);
     return height;
@@ -302,7 +306,7 @@ int DrawingSurface_GetHeight(ScriptDrawingSurface *sds)
 int DrawingSurface_GetWidth(ScriptDrawingSurface *sds) 
 {
     sds->StartDrawing();
-    int width = abuf->w;
+    int width = abuf->GetWidth();
     sds->FinishedDrawingReadOnly();
     sds->UnMultiplyThickness(&width);
     return width;
@@ -314,13 +318,13 @@ void DrawingSurface_Clear(ScriptDrawingSurface *sds, int colour)
     int allegroColor;
     if ((colour == -SCR_NO_VALUE) || (colour == SCR_COLOR_TRANSPARENT))
     {
-        allegroColor = bitmap_mask_color(abuf);
+        allegroColor = abuf->GetMaskColor();
     }
     else
     {
         allegroColor = get_col8_lookup(colour);
     }
-    clear_to_color(abuf, allegroColor);
+    abuf->Clear(allegroColor);
     sds->FinishedDrawing();
 }
 
@@ -330,7 +334,7 @@ void DrawingSurface_DrawCircle(ScriptDrawingSurface *sds, int x, int y, int radi
     sds->MultiplyThickness(&radius);
 
     sds->StartDrawing();
-    circlefill(abuf, x, y, radius, sds->currentColour);
+    abuf->FillCircle(Circle(x, y, radius), sds->currentColour);
     sds->FinishedDrawing();
 }
 
@@ -340,7 +344,7 @@ void DrawingSurface_DrawRectangle(ScriptDrawingSurface *sds, int x1, int y1, int
     sds->MultiplyCoordinates(&x2, &y2);
 
     sds->StartDrawing();
-    rectfill(abuf, x1,y1,x2,y2, sds->currentColour);
+    abuf->FillRect(Rect(x1,y1,x2,y2), sds->currentColour);
     sds->FinishedDrawing();
 }
 
@@ -351,7 +355,7 @@ void DrawingSurface_DrawTriangle(ScriptDrawingSurface *sds, int x1, int y1, int 
     sds->MultiplyCoordinates(&x3, &y3);
 
     sds->StartDrawing();
-    triangle(abuf, x1,y1,x2,y2,x3,y3, sds->currentColour);
+    abuf->DrawTriangle(Triangle(x1,y1,x2,y2,x3,y3), sds->currentColour);
     sds->FinishedDrawing();
 }
 
@@ -368,7 +372,7 @@ void DrawingSurface_DrawString(ScriptDrawingSurface *sds, int xx, int yy, int fo
     sds->MultiplyCoordinates(&xx, &yy);
     sds->StartDrawing();
     wtexttransparent(TEXTFG);
-    if ((bitmap_color_depth(abuf) <= 8) && (play.raw_color > 255)) {
+    if ((abuf->GetColorDepth() <= 8) && (play.raw_color > 255)) {
         wtextcolor(1);
         debug_log ("RawPrint: Attempted to use hi-color on 256-col background");
     }
@@ -430,7 +434,7 @@ void DrawingSurface_DrawLine(ScriptDrawingSurface *sds, int fromx, int fromy, in
         for (jj = 0; jj < thickness; jj++)
         {
             yy = (jj - (thickness / 2));
-            line (abuf, fromx + xx, fromy + yy, tox + xx, toy + yy, sds->currentColour);
+            abuf->DrawLine (Line(fromx + xx, fromy + yy, tox + xx, toy + yy), sds->currentColour);
         }
     }
     sds->FinishedDrawing();
@@ -447,7 +451,7 @@ void DrawingSurface_DrawPixel(ScriptDrawingSurface *sds, int x, int y) {
     {
         for (jj = 0; jj < thickness; jj++)
         {
-            putpixel(abuf, x + ii, y + jj, sds->currentColour);
+            abuf->PutPixel(x + ii, y + jj, sds->currentColour);
         }
     }
     sds->FinishedDrawing();
@@ -456,9 +460,9 @@ void DrawingSurface_DrawPixel(ScriptDrawingSurface *sds, int x, int y) {
 int DrawingSurface_GetPixel(ScriptDrawingSurface *sds, int x, int y) {
     sds->MultiplyCoordinates(&x, &y);
     sds->StartDrawing();
-    unsigned int rawPixel = getpixel(abuf, x, y);
-    unsigned int maskColor = bitmap_mask_color(abuf);
-    int colDepth = bitmap_color_depth(abuf);
+    unsigned int rawPixel = abuf->GetPixel(x, y);
+    unsigned int maskColor = abuf->GetMaskColor();
+    int colDepth = abuf->GetColorDepth();
 
     if (rawPixel == maskColor)
     {

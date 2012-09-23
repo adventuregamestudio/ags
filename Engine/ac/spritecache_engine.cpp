@@ -12,7 +12,6 @@
 #include "util/wgt2allg.h"
 #include "ac/spritecache.h"
 #include "util/compress.h"
-#include "platform/bigend.h"
 //
 
 // For engine these are defined in ac.cpp

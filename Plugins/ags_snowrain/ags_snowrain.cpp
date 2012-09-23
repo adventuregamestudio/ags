@@ -877,6 +877,88 @@ void AGS_EngineInitGfx(const char *driverID, void *data)
 {
 }
 
+
+
+#if defined(WINDOWS_VERSION) && !defined(BUILTIN_PLUGINS)
+
+// ********************************************
+// ***********  Editor Interface  *************
+// ********************************************
+
+const char* scriptHeader =
+  "import void srSetSnowDriftSpeed(int, int);\r\n"
+  "import void srSetSnowDriftRange(int, int);\r\n"
+  "import void srSetSnowFallSpeed(int, int);\r\n"
+  "import void srChangeSnowAmount(int);\r\n"
+  "import void srSetSnowBaseline(int, int);\r\n"
+  "import void srChangeRainAmount(int);\r\n"
+  "import void srSetRainView(int, int, int, int);\r\n"
+  "import void srSetRainTransparency(int, int);\r\n"
+  "import void srSetSnowTransparency(int, int);\r\n"
+  "import void srSetSnowDefaultView(int, int);\r\n"
+  "import void srSetRainDefaultView(int, int);\r\n"
+  "import void srSetRainWindSpeed(int);\r\n"
+  "import void srSetSnowWindSpeed(int);\r\n"
+  "import void srSetWindSpeed(int);\r\n"
+  "import void srSetRainBaseline(int, int);\r\n"
+  "import void srSetBaseline(int, int);\r\n"
+  "import void srSetSnowAmount(int);\r\n"
+  "import void srSetRainAmount(int);\r\n"
+  "import void srSetRainFallSpeed(int, int);\r\n"
+  "import void srSetSnowView(int, int, int, int);\r\n";
+
+
+IAGSEditor* editor;
+
+
+LPCSTR AGS_GetPluginName(void)
+{
+  // Return the plugin description
+  return "Snow/Rain plugin recreation";
+}
+
+int  AGS_EditorStartup(IAGSEditor* lpEditor)
+{
+  // User has checked the plugin to use it in their game
+
+  // If it's an earlier version than what we need, abort.
+  if (lpEditor->version < 1)
+    return -1;
+
+  editor = lpEditor;
+  editor->RegisterScriptHeader(scriptHeader);
+
+  // Return 0 to indicate success
+  return 0;
+}
+
+void AGS_EditorShutdown()
+{
+  // User has un-checked the plugin from their game
+  editor->UnregisterScriptHeader(scriptHeader);
+}
+
+void AGS_EditorProperties(HWND parent)
+{
+  // User has chosen to view the Properties of the plugin
+  // We could load up an options dialog or something here instead
+  MessageBoxA(parent, "Snow/Rain plugin recreation by JJS", "About", MB_OK | MB_ICONINFORMATION);
+}
+
+int AGS_EditorSaveGame(char* buffer, int bufsize)
+{
+  // We don't want to save any persistent data
+  return 0;
+}
+
+void AGS_EditorLoadGame(char* buffer, int bufsize)
+{
+  // Nothing to load for this plugin
+}
+
+#endif
+
+
 #if defined(BUILTIN_PLUGINS)
 }
 #endif

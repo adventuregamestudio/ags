@@ -1,7 +1,7 @@
 
 #include <string.h>
-#include "script/script.h"
 #include "util/wgt2allg.h"
+#include "script/script.h"
 #include "ac/common.h"
 #include "ac/roomstruct.h"
 #include "ac/character.h"
@@ -26,10 +26,11 @@
 #include "ac/roomobject.h"
 #include "script/cc_error.h"
 #include "script/cc_options.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "main/game_run.h"
 #include "media/audio/audio.h"
 #include "script/script_runtime.h"
+#include "util/string_utils.h"
 
 extern GameSetupStruct game;
 extern GameState play;
@@ -75,7 +76,7 @@ char objectScriptObjNames[MAX_INIT_SPR][MAX_SCRIPT_NAME_LEN + 5];
 char **guiScriptObjNames = NULL;
 
 
-int run_text_script_iparam(ccInstance*sci,char*tsname,int iparam) {
+int run_text_script_iparam(ccInstance*sci,char*tsname,long iparam) {
     if ((strcmp(tsname, "on_key_press") == 0) || (strcmp(tsname, "on_mouse_click") == 0)) {
         bool eventWasClaimed;
         int toret = run_claimable_event(tsname, true, 1, iparam, 0, &eventWasClaimed);
@@ -134,7 +135,7 @@ void run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun) {
     _do_run_script_func_cant_block(roominstFork, funcToRun, &funcToRun->roomHasFunction);
 }
 
-int run_script_function_if_exist(ccInstance*sci,char*tsname,int numParam, int iparam, int iparam2, int iparam3) {
+int run_script_function_if_exist(ccInstance*sci,char*tsname,int numParam, long iparam, long iparam2, long iparam3) {
     int oldRestoreCount = gameHasBeenRestored;
     // First, save the current ccError state
     // This is necessary because we might be attempting
@@ -189,7 +190,7 @@ int run_script_function_if_exist(ccInstance*sci,char*tsname,int numParam, int ip
     return toret;
 }
 
-int run_text_script_2iparam(ccInstance*sci,char*tsname,int iparam,int param2) {
+int run_text_script_2iparam(ccInstance*sci,char*tsname,long iparam,long param2) {
     if (strcmp(tsname, "on_event") == 0) {
         bool eventWasClaimed;
         int toret = run_claimable_event(tsname, true, 2, iparam, param2, &eventWasClaimed);
@@ -693,7 +694,7 @@ int run_interaction_commandlist (NewInteractionCommandList *nicl, int *timesrun,
           MoveObject (IPARAM1, IPARAM2, IPARAM3, IPARAM4);
           // if they want to wait until finished, do so
           if (IPARAM5)
-              do_main_cycle(UNTIL_MOVEEND,(int)&objs[IPARAM1].moving);
+              do_main_cycle(UNTIL_MOVEEND,(long)&objs[IPARAM1].moving);
           break;
       case 15: // Object Off
           ObjectOff (IPARAM1);
@@ -772,12 +773,12 @@ int run_interaction_commandlist (NewInteractionCommandList *nicl, int *timesrun,
           break;
       case 34: // Run animation
           scAnimateCharacter(IPARAM1, IPARAM2, IPARAM3, 0);
-          do_main_cycle(UNTIL_SHORTIS0,(int)&game.chars[IPARAM1].animating);
+          do_main_cycle(UNTIL_SHORTIS0,(long)&game.chars[IPARAM1].animating);
           break;
       case 35: // Quick animation
           SetCharacterView (IPARAM1, IPARAM2);
           scAnimateCharacter(IPARAM1, IPARAM3, IPARAM4, 0);
-          do_main_cycle(UNTIL_SHORTIS0,(int)&game.chars[IPARAM1].animating);
+          do_main_cycle(UNTIL_SHORTIS0,(long)&game.chars[IPARAM1].animating);
           ReleaseCharacterView (IPARAM1);
           break;
       case 36: // Set idle animation

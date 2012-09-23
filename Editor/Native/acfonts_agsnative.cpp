@@ -2,17 +2,16 @@
 // Implementation from acfonts.cpp specific to AGS.Native library
 //
 
-// Headers, as they are in acfonts.cpp
 #pragma unmanaged
+
 #ifndef USE_ALFONT
 #define USE_ALFONT
 #endif
 #include "util/wgt2allg.h"
 #include "ac/gamesetupstruct.h"
+#include "util/filestream.h"
 
-#ifdef USE_ALFONT
-#include "alfont.h"
-#endif
+using AGS::Common::DataStream;
 
 //=============================================================================
 // AGS.Native-specific implementation split out of acfonts.cpp
@@ -37,13 +36,13 @@ int get_our_eip()
   return 0;
 }
 
-FILE *fopen_shared(char *filnamm, char *fmt)
+DataStream *fopen_shared(char *filnamm, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode)
 {
-  return fopen(filnamm, fmt);
+  return Common::File::OpenFile(filnamm, open_mode, work_mode);
 }
 
-int flength_shared(FILE *ffi)
+int flength_shared(DataStream *ffi)
 {
   // in the editor, we don't read from clib, only from disk
-  return filelength(fileno(ffi));
+  return ffi->GetLength();
 }

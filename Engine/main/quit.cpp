@@ -25,16 +25,22 @@
 #include "ac/roomstatus.h"
 #include "ac/translation.h"
 #include "debug/agseditordebugger.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
+#include "debug/debugger.h"
 #include "main/main.h"
 #include "main/mainheader.h"
 #include "main/quit.h"
 #include "ac/spritecache.h"
+#include "gfx/graphicsdriver.h"
+#include "gfx/bitmap.h"
+#include "core/assetmanager.h"
+
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameSetupStruct game;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
-extern RoomStatus *roomstats;
 extern RoomStatus troom;    // used for non-saveable rooms, eg. intro
 extern int our_eip;
 extern GameSetup usetup;
@@ -44,8 +50,8 @@ extern char check_dynamic_sprites_at_exit;
 extern int editor_debugging_initialized;
 extern IAGSEditorDebugger *editor_debugger;
 extern int need_to_stop_cd;
-extern block _old_screen;
-extern block _sub_screen;
+extern Bitmap *_old_screen;
+extern Bitmap *_sub_screen;
 extern int use_cdplayer;
 extern IGraphicsDriver *gfxDriver;
 
@@ -99,8 +105,9 @@ void quit_shutdown_platform(char *qmsg)
     quit_check_dynamic_sprites(qmsg);    
 
     // allegro_exit assumes screen is correct
-    if (_old_screen)
-        screen = _old_screen;
+	if (_old_screen) {
+		BitmapHelper::SetScreenBitmap( _old_screen );
+	}
 
     platform->FinishedUsingGraphicsMode();
 
@@ -124,7 +131,7 @@ void quit_shutdown_audio()
     remove_sound();
 }
 
-void quit_check_for_error_state(char *qmsg, char *alertis)
+void quit_check_for_error_state(char *&qmsg, char *alertis)
 {
     if (qmsg[0]=='|') ; //qmsg++;
     else if (qmsg[0]=='!') { 
@@ -164,10 +171,8 @@ void quit_check_for_error_state(char *qmsg, char *alertis)
 void quit_destroy_subscreen()
 {
     // close graphics mode (Win) or return to text mode (DOS)
-    if (_sub_screen) {
-        destroy_bitmap(_sub_screen);
-        _sub_screen = NULL;
-    }
+    delete _sub_screen;
+	_sub_screen = NULL;
 }
 
 void quit_shutdown_graphics()
@@ -206,7 +211,7 @@ void quit_release_gfx_driver()
 void quit_release_data()
 {
     // wipe all the interaction structs so they don't de-alloc the children twice
-    memset (&roomstats[0], 0, sizeof(RoomStatus) * MAX_ROOMS);
+    resetRoomStatuses();
     memset (&troom, 0, sizeof(RoomStatus));
 
     /*  _CrtMemState memstart;
@@ -232,6 +237,18 @@ void quit_delete_temp_files()
     al_findclose (&dfb);
 }
 
+// TODO: move to test unit
+#include "gfx/allegrobitmap.h"
+using AGS::Common::AllegroBitmap;
+extern AllegroBitmap *test_allegro_bitmap;
+extern IDriverDependantBitmap *test_allegro_ddb;
+void allegro_bitmap_test_release()
+{
+	delete test_allegro_bitmap;
+	if (test_allegro_ddb)
+		gfxDriver->DestroyDDB(test_allegro_ddb);
+}
+
 char return_to_roomedit[30] = "\0";
 char return_to_room[150] = "\0";
 // quit - exits the engine, shutting down everything gracefully
@@ -249,6 +266,8 @@ void quit(char*quitmsg) {
     strncpy(qmsgbufr, quitmsg, STD_BUFFER_SIZE);
     qmsgbufr[STD_BUFFER_SIZE - 1] = 0;
     char *qmsg = &qmsgbufr[0];
+
+	allegro_bitmap_test_release();
 
     handledErrorInEditor = false;
 
@@ -305,9 +324,13 @@ void quit(char*quitmsg) {
 
     quit_delete_temp_files();
 
+    Common::AssetManager::DestroyInstance();
+
     proper_exit=1;
 
     write_log_debug("***** ENGINE HAS SHUTDOWN");
+
+    shutdown_debug_system();
 
     our_eip = 9904;
     exit(EXIT_NORMAL);

@@ -16,8 +16,9 @@
 #include "ac/global_translation.h"
 #include "ac/string.h"
 #include "ac/spritecache.h"
+#include "gfx/bitmap.h"
 
-#include "platform/bigend.h"
+using AGS::Common::Bitmap;
 
 // For engine these are defined in ac.cpp
 extern int eip_guiobj;
@@ -101,7 +102,7 @@ void GUITextBox::Draw_text_box_contents()
     // draw a cursor
     startx = wgettextwidth(text, font) + x + 3;
     starty = y + 1 + wgettextheight("BigyjTEXT", font);
-    wrectangle(startx, starty, startx + get_fixed_pixel_size(5), starty + (get_fixed_pixel_size(1) - 1));
+    abuf->DrawRect(Rect(startx, starty, startx + get_fixed_pixel_size(5), starty + (get_fixed_pixel_size(1) - 1)), currentcolor);
   }
 }
 

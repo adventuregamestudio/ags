@@ -12,8 +12,13 @@
 #include "ac/roomstruct.h"
 #include "ac/runtime_defines.h"
 #include "ac/screen.h"
-#include "debug/debug.h"
-#include "platform/agsplatformdriver.h"
+#include "debug/debug_log.h"
+#include "platform/base/agsplatformdriver.h"
+#include "gfx/graphicsdriver.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameSetup usetup;
 extern GameState play;
@@ -22,7 +27,7 @@ extern roomstruct thisroom;
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
 extern color palette[256];
-extern unsigned long loopcounter;
+extern unsigned int loopcounter;
 
 int scrnwid,scrnhit;
 int current_screen_resolution_multiplier = 1;
@@ -54,7 +59,7 @@ void ShakeScreen(int severe) {
         return;
 
     int hh;
-    block oldsc=abuf;
+    Bitmap *oldsc=abuf;
     severe = multiply_up_coordinate(severe);
 
     if (gfxDriver->RequiresFullRedrawEachFrame())
@@ -79,7 +84,7 @@ void ShakeScreen(int severe) {
     }
     else
     {
-        block tty = create_bitmap(scrnwid, scrnhit);
+        Bitmap *tty = BitmapHelper::CreateBitmap(scrnwid, scrnhit);
         gfxDriver->GetCopyOfScreenIntoBitmap(tty);
         for (hh=0;hh<40;hh++) {
             platform->Delay(50);
@@ -93,7 +98,7 @@ void ShakeScreen(int severe) {
         }
         clear_letterbox_borders();
         render_to_screen(tty, 0, 0);
-        wfreeblock(tty);
+        delete tty;
     }
 
     abuf=oldsc;

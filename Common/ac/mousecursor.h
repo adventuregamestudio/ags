@@ -1,6 +1,9 @@
 #ifndef __AC_MOUSECURSOR_H
 #define __AC_MOUSECURSOR_H
 
+namespace AGS { namespace Common { class DataStream; } }
+using namespace AGS; // FIXME later
+
 #define MCF_ANIMMOVE 1
 #define MCF_DISABLED 2
 #define MCF_STANDARD 4
@@ -14,7 +17,8 @@ struct MouseCursor {
     char  flags;
     MouseCursor();
 
-    void ReadFromFile(FILE *fp);
+    void ReadFromFile(Common::DataStream *in);
+    void WriteToFile(Common::DataStream *out);
 };
 
 #endif // __AC_MOUSECURSOR_H

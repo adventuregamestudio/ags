@@ -2,14 +2,18 @@
 #error This file should only be included on the Android build
 #endif
 
-#include "acplatfm.h"
+#include <allegro.h>
+#include "platform/base/agsplatformdriver.h"
+#include "platform/base/override_defines.h"
+#include "ac/runtime_defines.h"
+#include "plugin/agsplugin.h"
 #include <stdio.h>
 #include <dirent.h>
 #include <sys/stat.h> 
 #include <ctype.h>
+#include <unistd.h>
 
-#include <allegro.h>
-#include "bigend.h"
+
 
 #include <jni.h>
 #include <android/log.h>
@@ -23,7 +27,7 @@ int INIreadint (const char *sectn, const char *item, int errornosect = 1);
 bool ReadConfiguration(char* filename, bool read_everything);
 void ResetConfiguration();
 
-struct AGSAndroid : AGS32BitOSDriver {
+struct AGSAndroid : AGSPlatformDriver {
 
   virtual int  CDPlayerCommand(int cmdd, int datt);
   virtual void Delay(int millis);
@@ -40,7 +44,7 @@ struct AGSAndroid : AGS32BitOSDriver {
   virtual void WriteConsole(const char*, ...);
   virtual void ReplaceSpecialPaths(const char *sourcePath, char *destPath);
   virtual void WriteDebugString(const char* texx, ...);
-  virtual void ReadPluginsFromDisk(FILE *iii);
+  virtual void ReadPluginsFromDisk(AGS::Common::DataStream *iii);
   virtual void StartPlugins();
   virtual void ShutdownPlugins();
   virtual int RunPluginHooks(int event, int data);
@@ -90,6 +94,7 @@ extern void PauseGame();
 extern void UnPauseGame();
 extern int main(int argc,char*argv[]);
 
+char android_app_directory[256];
 char psp_game_file_name[256];
 char* psp_game_file_name_pointer = psp_game_file_name;
 
@@ -432,7 +437,7 @@ JNIEXPORT void JNICALL
 
 
 JNIEXPORT jboolean JNICALL 
-  Java_com_bigbluecup_android_EngineGlue_startEngine(JNIEnv* env, jobject object, jclass stringclass, jstring filename, jstring directory, jboolean loadLastSave)
+  Java_com_bigbluecup_android_EngineGlue_startEngine(JNIEnv* env, jobject object, jclass stringclass, jstring filename, jstring directory, jstring appDirectory, jboolean loadLastSave)
 {
   // Get JNI interfaces.
   java_object = env->NewGlobalRef(object);
@@ -455,6 +460,11 @@ JNIEXPORT jboolean JNICALL
   const char* cdirectory = java_environment->GetStringUTFChars(directory, NULL);
   chdir(cdirectory);
   java_environment->ReleaseStringUTFChars(directory, cdirectory);
+
+  // Get the app directory (something like "/data/data/com.bigbluecup.android.launcher")
+  const char* cappDirectory = java_environment->GetStringUTFChars(appDirectory, NULL);
+  strcpy(android_app_directory, cappDirectory);
+  java_environment->ReleaseStringUTFChars(appDirectory, cappDirectory);
 
   // Reset configuration.
   ResetConfiguration();
@@ -753,7 +763,7 @@ void AGSAndroid::ShutdownCDPlayer() {
   //cd_exit();
 }
 
-void AGSAndroid::ReadPluginsFromDisk(FILE *iii) {
+void AGSAndroid::ReadPluginsFromDisk(AGS::Common::DataStream *iii) {
   pl_read_plugins_from_disk(iii);
 }
 

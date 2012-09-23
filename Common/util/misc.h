@@ -31,15 +31,21 @@
 #define __MISC_H
 
 #include <stdio.h>
+#include "util/file.h"
 
-#if defined(LINUX_VERSION)
+#if defined(LINUX_VERSION) || defined(MAC_VERSION)
 #include <unistd.h>
 #include <dirent.h>
 #include <string.h>
 #include <sys/stat.h>
 #endif
 
-FILE *ci_fopen(char *file_name, const char *mode);
+namespace AGS { namespace Common { class DataStream; } }
+using namespace AGS; // FIXME later
+
+Common::DataStream *ci_fopen(const char *file_name,
+                             Common::FileOpenMode open_mode = Common::kFile_Open,
+                             Common::FileWorkMode work_mode = Common::kFile_Read);
 char *ci_find_file(char *dir_name, char *file_name);
 
 

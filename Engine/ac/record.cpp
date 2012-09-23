@@ -15,12 +15,15 @@
 #include "util/string_utils.h"
 #include "gfx/gfxfilter.h"
 #include "device/mousew32.h"
+#include "util/filestream.h"
+
+using AGS::Common::DataStream;
 
 extern GameSetupStruct game;
 extern GameState play;
 extern int disable_mgetgraphpos;
 extern int mousex,mousey;
-extern unsigned long loopcounter,lastcounter;
+extern unsigned int loopcounter,lastcounter;
 extern volatile unsigned long globalTimerCounter;
 extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
 extern GFXFilter *filter;
@@ -320,9 +323,9 @@ void start_recording() {
 }
 
 void start_replay_record () {
-    FILE *ott = fopen(replayTempFile, "wb");
-    save_game_data (ott, NULL);
-    fclose (ott);
+    DataStream *replay_s = Common::File::CreateFile(replayTempFile);
+    save_game_data (replay_s, NULL);
+    delete replay_s;
     start_recording();
     play.recording = 1;
 }
@@ -343,39 +346,39 @@ void stop_recording() {
         strchr (replayfile, '.')[0] = 0;
     strcat (replayfile, ".agr");
 
-    FILE *ooo = fopen(replayfile, "wb");
-    fwrite ("AGSRecording", 12, 1, ooo);
-    fputstring (ACI_VERSION_TEXT, ooo);
+    DataStream *replay_out = Common::File::CreateFile(replayfile);
+    replay_out->Write ("AGSRecording", 12);
+    fputstring (ACI_VERSION_TEXT, replay_out);
     int write_version = 2;
-    FILE *fsr = fopen(replayTempFile, "rb");
-    if (fsr != NULL) {
+    DataStream *replay_temp_in = Common::File::OpenFileRead(replayTempFile);
+    if (replay_temp_in) {
         // There was a save file created
         write_version = 3;
     }
-    putw (write_version, ooo);
+    replay_out->WriteInt32 (write_version);
 
-    fputstring (game.gamename, ooo);
-    putw (game.uniqueid, ooo);
-    putw (replay_time, ooo);
-    fputstring (replaydesc, ooo);  // replay description, maybe we'll use this later
-    putw (play.randseed, ooo);
+    fputstring (game.gamename, replay_out);
+    replay_out->WriteInt32 (game.uniqueid);
+    replay_out->WriteInt32 (replay_time);
+    fputstring (replaydesc, replay_out);  // replay description, maybe we'll use this later
+    replay_out->WriteInt32 (play.randseed);
     if (write_version >= 3)
-        putw (recsize, ooo);
-    fwrite (recordbuffer, recsize, sizeof(short), ooo);
-    if (fsr != NULL) {
-        putw (1, ooo);  // yes there is a save present
-        int lenno = filelength(fileno(fsr));
+        replay_out->WriteInt32 (recsize);
+    replay_out->WriteArrayOfInt16 (recordbuffer, recsize);
+    if (replay_temp_in) {
+        replay_out->WriteInt32 (1);  // yes there is a save present
+        int lenno = replay_temp_in->GetLength();
         char *tbufr = (char*)malloc (lenno);
-        fread (tbufr, lenno, 1, fsr);
-        fwrite (tbufr, lenno, 1, ooo);
+        replay_temp_in->Read (tbufr, lenno);
+        replay_out->Write (tbufr, lenno);
         free (tbufr);
-        fclose (fsr);
+        delete replay_temp_in;
         unlink (replayTempFile);
     }
     else if (write_version >= 3) {
-        putw (0, ooo);
+        replay_out->WriteInt32 (0);
     }
-    fclose (ooo);
+    delete replay_out;
 
     free (recordbuffer);
     recordbuffer = NULL;
@@ -383,10 +386,10 @@ void stop_recording() {
 
 void start_playback()
 {
-    FILE *in = fopen(replayfile, "rb");
+    DataStream *in = Common::File::OpenFileRead(replayfile);
     if (in != NULL) {
         char buffer [100];
-        fread (buffer, 12, 1, in);
+        in->Read(buffer, 12);
         buffer[12] = 0;
         if (strcmp (buffer, "AGSRecording") != 0) {
             Display("ERROR: Invalid recorded data file");
@@ -412,32 +415,33 @@ void start_playback()
                 game.options[OPT_ALWAYSSPCH] = oldalways;
             }
 
-            int replayver = getw(in);
+            int replayver = in->ReadInt32();
 
             if ((replayver < 1) || (replayver > 3))
                 quit("!Unsupported Replay file version");
 
             if (replayver >= 2) {
                 fgetstring_limit (buffer, in, 99);
-                int uid = getw (in);
+                int uid = in->ReadInt32 ();
                 if ((strcmp (buffer, game.gamename) != 0) || (uid != game.uniqueid)) {
                     char msg[150];
                     sprintf (msg, "!This replay is meant for the game '%s' and will not work correctly with this game.", buffer);
+                    delete in;
                     quit (msg);
                 }
                 // skip the total time
-                getw (in);
+                in->ReadInt32 ();
                 // replay description, maybe we'll use this later
                 fgetstring_limit (buffer, in, 99);
             }
 
-            play.randseed = getw(in);
-            int flen = filelength(fileno(in)) - ftell (in);
+            play.randseed = in->ReadInt32();
+            int flen = in->GetLength() - in->GetPosition ();
             if (replayver >= 3) {
-                flen = getw(in) * sizeof(short);
+                flen = in->ReadInt32() * sizeof(short);
             }
             recordbuffer = (short*)malloc (flen);
-            fread (recordbuffer, flen, 1, in);
+            in->Read(recordbuffer, flen);
             srand (play.randseed);
             recbuffersize = flen / sizeof(short);
             recsize = 0;
@@ -445,14 +449,14 @@ void start_playback()
             replay_time = 0;
             replay_last_second = loopcounter;
             if (replayver >= 3) {
-                int issave = getw(in);
+                int issave = in->ReadInt32();
                 if (issave) {
                     if (restore_game_data (in, replayfile))
                         quit("!Error running replay... could be incorrect game version");
                     replay_last_second = loopcounter;
                 }
             }
-            fclose (in);
+            delete in;
         }
     }
     else // file not found

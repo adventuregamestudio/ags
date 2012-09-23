@@ -3,8 +3,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include "ac/customproperties.h"
-#include "util/string_utils.h"      // fputstring, etc
-#include "platform/bigend.h"                 // stricmp()
+#include "util/string_utils.h"      // out->WriteString, etc
+#include "util/datastream.h"
+
+using AGS::Common::DataStream;
 
 // Find the index of the specified property
 int CustomPropertySchema::findProperty (const char *pname) {
@@ -50,28 +52,28 @@ CustomPropertySchema::CustomPropertySchema () {
 }
 
 // ** SCHEMA LOAD/SAVE FUNCTIONS
-void CustomPropertySchema::Serialize (FILE *outto) {
-    putw (1, outto);  // version 1 at present
-    putw (numProps, outto);
+void CustomPropertySchema::Serialize (DataStream *out) {
+    out->WriteInt32 (1);  // version 1 at present
+    out->WriteInt32 (numProps);
     for (int jj = 0; jj < numProps; jj++) {
-        fputstring (propName[jj], outto);
-        fputstring (propDesc[jj], outto);
-        fputstring (defaultValue[jj], outto);
-        putw (propType[jj], outto);
+        out->WriteString (propName[jj]);
+        out->WriteString (propDesc[jj]);
+        out->WriteString (defaultValue[jj]);
+        out->WriteInt32 (propType[jj]);
     }
 
 }
 
-int CustomPropertySchema::UnSerialize (FILE *infrom) {
-    if (getw(infrom) != 1)
+int CustomPropertySchema::UnSerialize (DataStream *in) {
+    if (in->ReadInt32() != 1)
         return -1;
-    numProps = getw(infrom);
+    numProps = in->ReadInt32();
     for (int kk = 0; kk < numProps; kk++) {
         this->resetProperty (kk);
-        fgetstring_limit (propName[kk], infrom, 20);
-        fgetstring_limit (propDesc[kk], infrom, 100);
-        fgetstring_limit (defaultValue[kk], infrom, MAX_CUSTOM_PROPERTY_VALUE_LENGTH);
-        propType[kk] = getw(infrom);
+        fgetstring_limit (propName[kk], in, 20);
+        fgetstring_limit (propDesc[kk], in, 100);
+        fgetstring_limit (defaultValue[kk], in, MAX_CUSTOM_PROPERTY_VALUE_LENGTH);
+        propType[kk] = in->ReadInt32();
     }
 
     return 0;
@@ -119,24 +121,24 @@ void CustomProperties::addProperty (const char *newname, const char *newval) {
 }
 
 // ** OBJECT PROPERTIES LOAD/SAVE FUNCTIONS
-void CustomProperties::Serialize (FILE *outto) {
-    putw (1, outto);
-    putw (numProps, outto);
+void CustomProperties::Serialize (DataStream *out) {
+    out->WriteInt32 (1);
+    out->WriteInt32 (numProps);
     for (int ee = 0; ee < numProps; ee++) {
-        fputstring (propName[ee], outto);
-        fputstring (propVal[ee], outto);
+        out->WriteString (propName[ee]);
+        out->WriteString (propVal[ee]);
     }
 }
 
-int CustomProperties::UnSerialize (FILE *infrom) {
-    if (getw(infrom) != 1)
+int CustomProperties::UnSerialize (DataStream *in) {
+    if (in->ReadInt32() != 1)
         return -1;
-    numProps = getw(infrom);
+    numProps = in->ReadInt32();
     for (int ee = 0; ee < numProps; ee++) {
         propName[ee] = (char*)malloc(200);
         propVal[ee] = (char*)malloc(MAX_CUSTOM_PROPERTY_VALUE_LENGTH);
-        fgetstring_limit (propName[ee], infrom, 200);
-        fgetstring_limit (propVal[ee], infrom, MAX_CUSTOM_PROPERTY_VALUE_LENGTH);
+        fgetstring_limit (propName[ee], in, 200);
+        fgetstring_limit (propVal[ee], in, MAX_CUSTOM_PROPERTY_VALUE_LENGTH);
     }
     return 0;
 }

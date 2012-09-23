@@ -10,6 +10,10 @@
 #include "font/agsfontrenderer.h"
 #include "font/ttffontrenderer.h"
 #include "font/wfnfontrenderer.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern void set_our_eip(int eip);
 extern int  get_our_eip();
@@ -61,12 +65,12 @@ int wgettextheight(const char *text, int fontNumber)
 
 void wouttextxy(int xxx, int yyy, int fontNumber, const char *texx)
 {
-  if (yyy > abuf->cb)
+  if (yyy > abuf->GetClip().Bottom)
     return;                   // each char is clipped but this speeds it up
 
   if (fontRenderers[fontNumber] != NULL)
   {
-    fontRenderers[fontNumber]->RenderText(texx, fontNumber, abuf, xxx, yyy, textcol);
+    fontRenderers[fontNumber]->RenderText(texx, fontNumber, (BITMAP*)abuf->GetBitmapObject(), xxx, yyy, textcol);
   }
 }
 

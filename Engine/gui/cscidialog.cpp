@@ -14,6 +14,11 @@
 #include "gui/mycontrols.h"
 #include "main/game_run.h"
 #include "media/audio/audio.h"
+#include "gfx/graphicsdriver.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern char ignore_bounds; // from mousew32
 extern IGraphicsDriver *gfxDriver;
@@ -29,7 +34,7 @@ extern GameSetup usetup;
 
 IDriverDependantBitmap *dialogBmp = NULL;
 int windowPosX, windowPosY, windowPosWidth, windowPosHeight;
-block windowBuffer = NULL;
+Bitmap *windowBuffer = NULL;
 
 int windowbackgroundcolor = COL254, pushbuttondarkcolor = COL255;
 int pushbuttonlightcolor = COL253;
@@ -53,9 +58,9 @@ int controlid = 0;
 void __my_wbutt(int x1, int y1, int x2, int y2)
 {
     wsetcolor(COL254);            //wsetcolor(15);
-    wbar(x1, y1, x2, y2);
+    abuf->FillRect(Rect(x1, y1, x2, y2), currentcolor);
     wsetcolor(0);
-    wrectangle(x1, y1, x2, y2);
+    abuf->DrawRect(Rect(x1, y1, x2, y2), currentcolor);
 }
 
 //-----------------------------------------------------------------------------
@@ -107,7 +112,7 @@ void WINAPI _export CSCIEraseWindow(int handl)
     ignore_bounds--;
     topwindowhandle = oswi[handl].oldtop;
     wputblock(oswi[handl].x, oswi[handl].y, oswi[handl].buffer, 0);
-    wfreeblock(oswi[handl].buffer);
+    delete oswi[handl].buffer;
     //  domouse(1);
     oswi[handl].buffer = NULL;
     windowcount--;
@@ -125,7 +130,7 @@ int WINAPI _export CSCIWaitMessage(CSCIMessage * cscim)
         }
     }
 
-    windowBuffer = create_bitmap_ex(bitmap_color_depth(abuf), windowPosWidth, windowPosHeight);
+    windowBuffer = BitmapHelper::CreateBitmap(windowPosWidth, windowPosHeight, abuf->GetColorDepth());
     windowBuffer = gfxDriver->ConvertBitmapToSupportedColourDepth(windowBuffer);
     dialogBmp = gfxDriver->CreateDDBFromBitmap(windowBuffer, false, true);
 
@@ -181,7 +186,7 @@ int WINAPI _export CSCIWaitMessage(CSCIMessage * cscim)
 
     gfxDriver->DestroyDDB(dialogBmp);
     dialogBmp = NULL;
-    destroy_bitmap(windowBuffer);
+    delete windowBuffer;
     windowBuffer = NULL;
     return 0;
 }

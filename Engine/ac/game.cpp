@@ -46,7 +46,7 @@
 #include "ac/dynobj/all_scriptclasses.h"
 #include "script/cc_error.h"
 #include "util/string_utils.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "gui/animatingguibutton.h"
 #include "gui/guidialog.h"
 #include "main/main.h"
@@ -55,6 +55,13 @@
 #include "script/script.h"
 #include "script/script_runtime.h"
 #include "ac/spritecache.h"
+#include "util/filestream.h"
+#include "gfx/graphicsdriver.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::DataStream;
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 #if defined(LINUX_VERSION) || defined(MAC_VERSION)
 #include <sys/stat.h>                      //mkdir
@@ -62,7 +69,7 @@
 
 extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
 extern int time_between_timers;
-extern block virtual_screen;
+extern Bitmap *virtual_screen;
 extern int cur_mode,cur_cursor;
 extern SpeechLipSyncLine *splipsync;
 extern int numLipLines, curLipLine, curLipLinePhenome;
@@ -94,27 +101,26 @@ extern int psp_gfx_super_sampling;
 extern int obj_lowest_yp, char_lowest_yp;
 
 extern int actSpsCount;
-extern block *actsps;
+extern Bitmap **actsps;
 extern IDriverDependantBitmap* *actspsbmp;
 // temporary cache of walk-behind for this actsps image
-extern block *actspswb;
+extern Bitmap **actspswb;
 extern IDriverDependantBitmap* *actspswbbmp;
 extern CachedActSpsData* actspswbcache;
-extern block *guibg;
+extern Bitmap **guibg;
 extern IDriverDependantBitmap **guibgbmp;
 extern char transFileName[MAX_PATH];
 extern color palette[256];
 extern int offsetx,offsety;
-extern unsigned long loopcounter;
-extern block raw_saved_screen;
-extern block dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
+extern unsigned int loopcounter;
+extern Bitmap *raw_saved_screen;
+extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 extern IGraphicsDriver *gfxDriver;
 
 //=============================================================================
 GameState play;
 GameSetup usetup;
 GameSetupStruct game;
-RoomStatus *roomstats;
 RoomStatus troom;    // used for non-saveable rooms, eg. intro
 RoomObject*objs;
 RoomStatus*croom=NULL;
@@ -129,7 +135,7 @@ int in_new_room=0, new_room_was = 0;  // 1 in new room, 2 first time in new room
 int new_room_pos=0;
 int new_room_x = SCR_NO_VALUE, new_room_y = SCR_NO_VALUE;
 
-//block spriteset[MAX_SPRITES+1];
+//Bitmap *spriteset[MAX_SPRITES+1];
 //SpriteCache spriteset (MAX_SPRITES+1);
 // initially size 1, this will be increased by the initFile function
 int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
@@ -348,27 +354,24 @@ int Game_SetSaveGameDirectory(const char *newFolder) {
     strcpy(newFolderTempFile, newSaveGameDir);
     strcat(newFolderTempFile, "agstmp.tmp");
 
-    FILE *testTemp = fopen(newFolderTempFile, "wb");
-    if (testTemp == NULL) {
+    if (!Common::File::TestCreateFile(newFolderTempFile)) {
         return 0;
     }
-    fclose(testTemp);
-    unlink(newFolderTempFile);
 
     // copy the Restart Game file, if applicable
     char restartGamePath[260];
     sprintf(restartGamePath, "%s""agssave.%d%s", saveGameDirectory, RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix);
-    FILE *restartGameFile = fopen(restartGamePath, "rb");
+    DataStream *restartGameFile = Common::File::OpenFileRead(restartGamePath);
     if (restartGameFile != NULL) {
-        long fileSize = filelength(fileno(restartGameFile));
+        long fileSize = restartGameFile->GetLength();
         char *mbuffer = (char*)malloc(fileSize);
-        fread(mbuffer, fileSize, 1, restartGameFile);
-        fclose(restartGameFile);
+        restartGameFile->Read(mbuffer, fileSize);
+        delete restartGameFile;
 
         sprintf(restartGamePath, "%s""agssave.%d%s", newSaveGameDir, RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix);
-        restartGameFile = fopen(restartGamePath, "wb");
-        fwrite(mbuffer, fileSize, 1, restartGameFile);
-        fclose(restartGameFile);
+        restartGameFile = Common::File::CreateFile(restartGamePath);
+        restartGameFile->Write(mbuffer, fileSize);
+        delete restartGameFile;
         free(mbuffer);
     }
 
@@ -629,14 +632,7 @@ void unload_game_file() {
     free_do_once_tokens();
     free(play.gui_draw_order);
 
-    free (roomstats);
-    roomstats=(RoomStatus*)calloc(sizeof(RoomStatus),MAX_ROOMS);
-    for (ee=0;ee<MAX_ROOMS;ee++) {
-        roomstats[ee].beenhere=0;
-        roomstats[ee].numobj=0;
-        roomstats[ee].tsdatasize=0;
-        roomstats[ee].tsdata=NULL;
-    }
+    resetRoomStatuses();
 
 }
 
@@ -917,13 +913,13 @@ int Game_ChangeTranslation(const char *newFilename)
 char*sgsig="Adventure Game Studio saved game";
 int sgsiglen=32;
 
-void serialize_bitmap(block thispic, FILE*ooo) {
+void serialize_bitmap(Common::Bitmap *thispic, DataStream *out) {
     if (thispic != NULL) {
-        putw(thispic->w,ooo);
-        putw(thispic->h,ooo);
-        putw(bitmap_color_depth(thispic),ooo);
-        for (int cc=0;cc<thispic->h;cc++)
-            fwrite(&thispic->line[cc][0],thispic->w,bitmap_color_depth(thispic)/8,ooo);
+        out->WriteInt32(thispic->GetWidth());
+        out->WriteInt32(thispic->GetHeight());
+        out->WriteInt32(thispic->GetColorDepth());
+        for (int cc=0;cc<thispic->GetHeight();cc++)
+            out->WriteArray(&thispic->GetScanLine(cc)[0],thispic->GetWidth(),thispic->GetColorDepth()/8);
     }
 }
 
@@ -967,29 +963,29 @@ void convert_guid_from_text_to_binary(const char *guidText, unsigned char *buffe
     temp = buffer[6]; buffer[6] = buffer[7]; buffer[7] = temp;
 }
 
-block read_serialized_bitmap(FILE* ooo) {
-    block thispic;
-    int picwid = getw(ooo);
-    int pichit = getw(ooo);
-    int piccoldep = getw(ooo);
-    thispic = create_bitmap_ex(piccoldep,picwid,pichit);
+Bitmap *read_serialized_bitmap(DataStream *in) {
+    Bitmap *thispic;
+    int picwid = in->ReadInt32();
+    int pichit = in->ReadInt32();
+    int piccoldep = in->ReadInt32();
+    thispic = BitmapHelper::CreateBitmap(picwid,pichit,piccoldep);
     if (thispic == NULL)
         return NULL;
     for (int vv=0; vv < pichit; vv++)
-        fread(&thispic->line[vv][0], picwid, piccoldep/8, ooo);
+        in->ReadArray(&thispic->GetScanLineForWriting(vv)[0], picwid, piccoldep/8);
     return thispic;
 }
 
 
 
 
-long write_screen_shot_for_vista(FILE *ooo, block screenshot) 
+long write_screen_shot_for_vista(DataStream *out, Bitmap *screenshot) 
 {
     long fileSize = 0;
     char tempFileName[MAX_PATH];
     sprintf(tempFileName, "%s""_tmpscht.bmp", saveGameDirectory);
 
-    save_bitmap(tempFileName, screenshot, palette);
+	BitmapHelper::SaveToFile(screenshot, tempFileName, palette);
 
     update_polled_stuff_if_runtime();
 
@@ -998,83 +994,83 @@ long write_screen_shot_for_vista(FILE *ooo, block screenshot)
         fileSize = file_size(tempFileName);
         char *buffer = (char*)malloc(fileSize);
 
-        FILE *input = fopen(tempFileName, "rb");
-        fread(buffer, fileSize, 1, input);
-        fclose(input);
+        DataStream *temp_in = Common::File::OpenFileRead(tempFileName);
+        temp_in->Read(buffer, fileSize);
+        delete temp_in;
         unlink(tempFileName);
 
-        fwrite(buffer, fileSize, 1, ooo);
+        out->Write(buffer, fileSize);
         free(buffer);
     }
     return fileSize;
 }
 
 
-void save_game_screenshot(FILE *ooo, block &screenshot)
+void save_game_screenshot(DataStream *out, Bitmap *screenshot)
 {
     // store the screenshot at the start to make it easily accesible
-    putw((screenshot == NULL) ? 0 : 1, ooo);
+    out->WriteInt32((screenshot == NULL) ? 0 : 1);
 
     if (screenshot)
-        serialize_bitmap(screenshot, ooo);
+        serialize_bitmap(screenshot, out);
 }
 
-void save_game_header(FILE *ooo)
+void save_game_header(DataStream *out)
 {
-    fputstring(ACI_VERSION_TEXT, ooo);
-    fputstring(usetup.main_data_filename, ooo);
+    fputstring(ACI_VERSION_TEXT, out);
+    fputstring(usetup.main_data_filename, out);
 }
 
-void save_game_head_dynamic_values(FILE *ooo)
+void save_game_head_dynamic_values(DataStream *out)
 {
-    putw(scrnhit,ooo);
-    putw(final_col_dep, ooo);
-    putw(frames_per_second,ooo);
-    putw(cur_mode,ooo);
-    putw(cur_cursor,ooo);
-    putw(offsetx,ooo); putw(offsety,ooo);
-    putw(loopcounter,ooo);
+    out->WriteInt32(scrnhit);
+    out->WriteInt32(final_col_dep);
+    out->WriteInt32(frames_per_second);
+    out->WriteInt32(cur_mode);
+    out->WriteInt32(cur_cursor);
+    out->WriteInt32(offsetx); out->WriteInt32(offsety);
+    out->WriteInt32(loopcounter);
 }
 
-void save_game_spriteset(FILE *ooo)
+void save_game_spriteset(DataStream *out)
 {
-    putw(spriteset.elements, ooo);
+    out->WriteInt32(spriteset.elements);
     for (int bb = 1; bb < spriteset.elements; bb++) {
         if (game.spriteflags[bb] & SPF_DYNAMICALLOC) {
-            putw(bb, ooo);
-            fputc(game.spriteflags[bb], ooo);
-            serialize_bitmap(spriteset[bb], ooo);
+            out->WriteInt32(bb);
+            out->WriteInt8(game.spriteflags[bb]);
+            serialize_bitmap(spriteset[bb], out);
         }
     }
     // end of dynamic sprite list
-    putw(0, ooo);
+    out->WriteInt32(0);
 }
 
-void save_game_scripts(FILE *ooo)
+void save_game_scripts(DataStream *out)
 {
     // write the data segment of the global script
     int gdatasize=gameinst->globaldatasize;
-    putw(gdatasize,ooo);
+    out->WriteInt32(gdatasize);
     ccFlattenGlobalData (gameinst);
     // MACPORT FIX: just in case gdatasize is 2 or 4, don't want to swap endian
-    fwrite(&gameinst->globaldata[0], 1, gdatasize, ooo);
+    out->Write(&gameinst->globaldata[0], gdatasize);
     ccUnFlattenGlobalData (gameinst);
     // write the script modules data segments
-    putw(numScriptModules, ooo);
+    out->WriteInt32(numScriptModules);
     for (int bb = 0; bb < numScriptModules; bb++) {
         int glsize = moduleInst[bb]->globaldatasize;
-        putw(glsize, ooo);
+        out->WriteInt32(glsize);
         if (glsize > 0) {
             ccFlattenGlobalData(moduleInst[bb]);
-            fwrite(&moduleInst[bb]->globaldata[0], 1, glsize, ooo);
+            out->Write(&moduleInst[bb]->globaldata[0], glsize);
             ccUnFlattenGlobalData(moduleInst[bb]);
         }
     }
 }
 
-void save_game_room_state(FILE *ooo)
+void save_game_room_state(DataStream *out)
 {
-    putw(displayed_room, ooo);
+    out->WriteInt32(displayed_room);
     if (displayed_room >= 0) {
         // update the current room script's data segment copy
         if (roominst!=NULL)
@@ -1086,191 +1082,227 @@ void save_game_room_state(FILE *ooo)
     }
 
     // write the room state for all the rooms the player has been in
+    RoomStatus* roomstat;
     for (int bb = 0; bb < MAX_ROOMS; bb++) {
-        if (roomstats[bb].beenhere) {
-            fputc (1, ooo);
-            fwrite(&roomstats[bb],sizeof(RoomStatus),1,ooo);
-            if (roomstats[bb].tsdatasize>0)
-                fwrite(&roomstats[bb].tsdata[0], 1, roomstats[bb].tsdatasize, ooo);
+        if (isRoomStatusValid(bb))
+        {
+            roomstat = getRoomStatus(bb);
+            if (roomstat->beenhere) {
+                out->WriteInt8 (1);
+                roomstat->WriteToFile(out);
+                if (roomstat->tsdatasize>0)
+                    out->Write(&roomstat->tsdata[0], roomstat->tsdatasize);
+            }
+            else
+                out->WriteInt8 (0); // <--- [IKM] added by me, CHECKME if needed / works correctly
         }
         else
-            fputc (0, ooo);
+            out->WriteInt8 (0);
     }
 }
 
-void save_game_play_ex_data(FILE *ooo)
+void save_game_play_ex_data(DataStream *out)
 {
     for (int bb = 0; bb < play.num_do_once_tokens; bb++)
     {
-        fputstring(play.do_once_tokens[bb], ooo);
+        fputstring(play.do_once_tokens[bb], out);
     }
-    fwrite(&play.gui_draw_order[0], sizeof(int), game.numgui, ooo);
+    out->WriteArrayOfInt32(&play.gui_draw_order[0], game.numgui);
 }
 
-void save_game_movelist(FILE *ooo)
+void save_game_movelist(DataStream *out)
 {
-    fwrite(&mls[0],sizeof(MoveList), game.numcharacters + MAX_INIT_SPR + 1, ooo);
+    for (int i = 0; i < game.numcharacters + MAX_INIT_SPR + 1; ++i)
+    {
+        mls[i].WriteToFile(out);
+    }
+    //out->WriteArray(&mls[0],sizeof(MoveList), game.numcharacters + MAX_INIT_SPR + 1);
 }
 
-void save_game_charextras(FILE *ooo)
+void save_game_charextras(DataStream *out)
 {
-    fwrite(&charextra[0],sizeof(CharacterExtras),game.numcharacters,ooo);
+    for (int i = 0; i < game.numcharacters; ++i)
+    {
+        charextra[i].WriteToFile(out);
+    }
+    //out->WriteArray(&charextra[0],sizeof(CharacterExtras),game.numcharacters);
 }
 
-void save_game_palette(FILE *ooo)
+void save_game_palette(DataStream *out)
 {
-    fwrite(&palette[0],sizeof(color),256,ooo);
+    out->WriteArray(&palette[0],sizeof(color),256);
 }
 
-void save_game_dialogs(FILE *ooo)
+void save_game_dialogs(DataStream *out)
 {
     for (int bb=0;bb<game.numdialog;bb++)
-        fwrite(&dialog[bb].optionflags[0],sizeof(int),MAXTOPICOPTIONS,ooo);
+        out->WriteArrayOfInt32(&dialog[bb].optionflags[0],MAXTOPICOPTIONS);
 }
 
 // [IKM] yea, okay this is just plain silly name :)
-void save_game_more_dynamic_values(FILE *ooo)
+void save_game_more_dynamic_values(DataStream *out)
 {
-    putw(mouse_on_iface,ooo);
-    putw(mouse_on_iface_button,ooo);
-    putw(mouse_pushed_iface,ooo);
-    putw (ifacepopped, ooo);
-    putw(game_paused,ooo);
-    //putw(mi.trk,ooo);
+    out->WriteInt32(mouse_on_iface);
+    out->WriteInt32(mouse_on_iface_button);
+    out->WriteInt32(mouse_pushed_iface);
+    out->WriteInt32 (ifacepopped);
+    out->WriteInt32(game_paused);
+    //out->WriteInt32(mi.trk);
 }
 
-void save_game_gui(FILE *ooo)
+void save_game_gui(DataStream *out)
 {
-    write_gui(ooo,guis,&game);
-    putw(numAnimButs, ooo);
-    fwrite(&animbuts[0], sizeof(AnimatingGUIButton), numAnimButs, ooo);
+    write_gui(out,guis,&game);
+    out->WriteInt32(numAnimButs);
+    for (int i = 0; i < numAnimButs; ++i)
+    {
+        animbuts[i].WriteToFile(out);
+    }
+    //out->WriteArray(&animbuts[0], sizeof(AnimatingGUIButton), numAnimButs);
 }
 
-void save_game_audiocliptypes(FILE *ooo)
+void save_game_audiocliptypes(DataStream *out)
 {
-    putw(game.audioClipTypeCount, ooo);
-    fwrite(&game.audioClipTypes[0], sizeof(AudioClipType), game.audioClipTypeCount, ooo);
+    out->WriteInt32(game.audioClipTypeCount);
+    for (int i = 0; i < game.audioClipTypeCount; ++i)
+    {
+        game.audioClipTypes[i].WriteToFile(out);
+    }
+    //out->WriteArray(&game.audioClipTypes[0], sizeof(AudioClipType), game.audioClipTypeCount);
 }
 
-void save_game_thisroom(FILE *ooo)
+void save_game_thisroom(DataStream *out)
 {
-    fwrite(&thisroom.regionLightLevel[0],sizeof(short), MAX_REGIONS,ooo);
-    fwrite(&thisroom.regionTintLevel[0],sizeof(int), MAX_REGIONS,ooo);
-    fwrite(&thisroom.walk_area_zoom[0],sizeof(short), MAX_WALK_AREAS + 1, ooo);
-    fwrite(&thisroom.walk_area_zoom2[0],sizeof(short), MAX_WALK_AREAS + 1, ooo);
+    out->WriteArrayOfInt16(&thisroom.regionLightLevel[0],MAX_REGIONS);
+    out->WriteArrayOfInt32(&thisroom.regionTintLevel[0],MAX_REGIONS);
+    out->WriteArrayOfInt16(&thisroom.walk_area_zoom[0],MAX_WALK_AREAS + 1);
+    out->WriteArrayOfInt16(&thisroom.walk_area_zoom2[0],MAX_WALK_AREAS + 1);
 }
 
-void save_game_ambientsounds(FILE *ooo)
+void save_game_ambientsounds(DataStream *out)
 {
-    fwrite (&ambient[0], sizeof(AmbientSound), MAX_SOUND_CHANNELS, ooo);
+    for (int i = 0; i < MAX_SOUND_CHANNELS; ++i)
+    {
+        ambient[i].WriteToFile(out);
+    }
+    //out->WriteArray (&ambient[0], sizeof(AmbientSound), MAX_SOUND_CHANNELS);
 }
 
-void save_game_overlays(FILE *ooo)
+void save_game_overlays(DataStream *out)
 {
-    putw(numscreenover,ooo);
-    fwrite(&screenover[0],sizeof(ScreenOverlay),numscreenover,ooo);
+    out->WriteInt32(numscreenover);
+    for (int i = 0; i < numscreenover; ++i)
+    {
+        screenover[i].WriteToFile(out);
+    }
+    //out->WriteArray(&screenover[0],sizeof(ScreenOverlay),numscreenover);
     for (int bb=0;bb<numscreenover;bb++) {
-        serialize_bitmap (screenover[bb].pic, ooo);
+        serialize_bitmap (screenover[bb].pic, out);
     }
 }
 
-void save_game_dynamic_surfaces(FILE *ooo)
+void save_game_dynamic_surfaces(DataStream *out)
 {
     for (int bb = 0; bb < MAX_DYNAMIC_SURFACES; bb++)
     {
         if (dynamicallyCreatedSurfaces[bb] == NULL)
         {
-            fputc(0, ooo);
+            out->WriteInt8(0);
         }
         else
         {
-            fputc(1, ooo);
-            serialize_bitmap(dynamicallyCreatedSurfaces[bb], ooo);
+            out->WriteInt8(1);
+            serialize_bitmap(dynamicallyCreatedSurfaces[bb], out);
         }
     }
 }
 
-void save_game_displayed_room_status(FILE *ooo)
+void save_game_displayed_room_status(DataStream *out)
 {
     if (displayed_room >= 0) {
 
         for (int bb = 0; bb < MAX_BSCENE; bb++) {
             if (play.raw_modified[bb])
-                serialize_bitmap (thisroom.ebscene[bb], ooo);
+                serialize_bitmap (thisroom.ebscene[bb], out);
         }
 
-        putw ((raw_saved_screen == NULL) ? 0 : 1, ooo);
+        out->WriteInt32 ((raw_saved_screen == NULL) ? 0 : 1);
         if (raw_saved_screen)
-            serialize_bitmap (raw_saved_screen, ooo);
+            serialize_bitmap (raw_saved_screen, out);
 
         // save the current troom, in case they save in room 600 or whatever
-        fwrite(&troom,sizeof(RoomStatus),1,ooo);
+        troom.WriteToFile(out);
+        //out->WriteArray(&troom,sizeof(RoomStatus),1);
         if (troom.tsdatasize>0)
-            fwrite(&troom.tsdata[0],troom.tsdatasize,1,ooo);
+            out->Write(&troom.tsdata[0],troom.tsdatasize);
 
     }
 }
 
-void save_game_globalvars(FILE *ooo)
+void save_game_globalvars(DataStream *out)
 {
-    putw (numGlobalVars, ooo);
-    fwrite (&globalvars[0], sizeof(InteractionVariable), numGlobalVars, ooo);
+    out->WriteInt32 (numGlobalVars);
+    for (int i = 0; i < numGlobalVars; ++i)
+    {
+        globalvars[i].WriteToFile(out);
+    }
+    //out->WriteArray (&globalvars[0], sizeof(InteractionVariable), numGlobalVars);
 }
 
-void save_game_views(FILE *ooo)
+void save_game_views(DataStream *out)
 {
-    putw (game.numviews, ooo);
+    out->WriteInt32 (game.numviews);
     for (int bb = 0; bb < game.numviews; bb++) {
         for (int cc = 0; cc < views[bb].numLoops; cc++) {
             for (int dd = 0; dd < views[bb].loops[cc].numFrames; dd++)
             {
-                putw(views[bb].loops[cc].frames[dd].sound, ooo);
-                putw(views[bb].loops[cc].frames[dd].pic, ooo);
+                out->WriteInt32(views[bb].loops[cc].frames[dd].sound);
+                out->WriteInt32(views[bb].loops[cc].frames[dd].pic);
             }
         }
     }
 }
 
-void save_game_audioclips_and_crossfade(FILE *ooo)
+void save_game_audioclips_and_crossfade(DataStream *out)
 {
-    putw(game.audioClipCount, ooo);
+    out->WriteInt32(game.audioClipCount);
     for (int bb = 0; bb <= MAX_SOUND_CHANNELS; bb++)
     {
         if ((channels[bb] != NULL) && (channels[bb]->done == 0) && (channels[bb]->sourceClip != NULL))
         {
-            putw(((ScriptAudioClip*)channels[bb]->sourceClip)->id, ooo);
-            putw(channels[bb]->get_pos(), ooo);
-            putw(channels[bb]->priority, ooo);
-            putw(channels[bb]->repeat ? 1 : 0, ooo);
-            putw(channels[bb]->vol, ooo);
-            putw(channels[bb]->panning, ooo);
-            putw(channels[bb]->volAsPercentage, ooo);
-            putw(channels[bb]->panningAsPercentage, ooo);
+            out->WriteInt32(((ScriptAudioClip*)channels[bb]->sourceClip)->id);
+            out->WriteInt32(channels[bb]->get_pos());
+            out->WriteInt32(channels[bb]->priority);
+            out->WriteInt32(channels[bb]->repeat ? 1 : 0);
+            out->WriteInt32(channels[bb]->vol);
+            out->WriteInt32(channels[bb]->panning);
+            out->WriteInt32(channels[bb]->volAsPercentage);
+            out->WriteInt32(channels[bb]->panningAsPercentage);
         }
         else
         {
-            putw(-1, ooo);
+            out->WriteInt32(-1);
         }
     }
-    putw(crossFading, ooo);
-    putw(crossFadeVolumePerStep, ooo);
-    putw(crossFadeStep, ooo);
-    putw(crossFadeVolumeAtStart, ooo);
+    out->WriteInt32(crossFading);
+    out->WriteInt32(crossFadeVolumePerStep);
+    out->WriteInt32(crossFadeStep);
+    out->WriteInt32(crossFadeVolumeAtStart);
 }
 
 #define MAGICNUMBER 0xbeefcafe
 // Write the save game position to the file
-void save_game_data (FILE *ooo, block screenshot) {
+void save_game_data (DataStream *out, Bitmap *screenshot) {
 
     platform->RunPluginHooks(AGSE_PRESAVEGAME, 0);
-    putw(SGVERSION,ooo);
+    out->WriteInt32(SGVERSION);
 
-    save_game_screenshot(ooo, screenshot);
-    save_game_header(ooo);
-    save_game_head_dynamic_values(ooo);
-    save_game_spriteset(ooo);
-    save_game_scripts(ooo);
-    save_game_room_state(ooo);
+    save_game_screenshot(out, screenshot);
+    save_game_header(out);
+    save_game_head_dynamic_values(out);
+    save_game_spriteset(out);
+    save_game_scripts(out);
+    save_game_room_state(out);
 
     update_polled_stuff_if_runtime();
 
@@ -1280,93 +1312,94 @@ void save_game_data (FILE *ooo, block screenshot) {
     }
 
     //----------------------------------------------------------------
-    play.WriteToFile(ooo);
-    //fwrite(&play,sizeof(GameState),1,ooo);
+    play.WriteToFile(out);
+    //out->WriteArray(&play,sizeof(GameState),1);
 
-    save_game_play_ex_data(ooo);
+    save_game_play_ex_data(out);
     //----------------------------------------------------------------
 
-    save_game_movelist(ooo);
+    save_game_movelist(out);
 
-    ((GameSetupStructBase*)&game)->WriteToFile(ooo);
-    //fwrite(&game,sizeof(GameSetupStructBase),1,ooo);
+    ((GameSetupStructBase*)&game)->WriteToFile(out);
+    //out->WriteArray(&game,sizeof(GameSetupStructBase),1);
 
     //----------------------------------------------------------------
-    game.WriteForSaveGame(ooo);
-    //fwrite(&game.invinfo[0], sizeof(InventoryItemInfo), game.numinvitems, ooo);
-    //fwrite(&game.mcurs[0], sizeof(MouseCursor), game.numcursors, ooo);
+    game.WriteForSaveGame(out);
+    //out->WriteArray(&game.invinfo[0], sizeof(InventoryItemInfo), game.numinvitems);
+    //out->WriteArray(&game.mcurs[0], sizeof(MouseCursor), game.numcursors);
 
     //if (game.invScripts == NULL)
     //{
     //  for (bb = 0; bb < game.numinvitems; bb++)
-    //    fwrite (&game.intrInv[bb]->timesRun[0], sizeof (int), MAX_NEWINTERACTION_EVENTS, ooo);
+    //    out->WriteArray (&game.intrInv[bb]->timesRun[0], sizeof (int), MAX_NEWINTERACTION_EVENTS);
     //  for (bb = 0; bb < game.numcharacters; bb++)
-    //    fwrite (&game.intrChar[bb]->timesRun[0], sizeof (int), MAX_NEWINTERACTION_EVENTS, ooo); 
+    //    out->WriteArray (&game.intrChar[bb]->timesRun[0], sizeof (int), MAX_NEWINTERACTION_EVENTS); 
     //}
 
-    //fwrite (&game.options[0], sizeof(int), OPT_HIGHESTOPTION+1, ooo);
-    //fputc (game.options[OPT_LIPSYNCTEXT], ooo);
+    //out->WriteArray (&game.options[0], sizeof(int), OPT_HIGHESTOPTION+1);
+    //out->WriteInt8 (game.options[OPT_LIPSYNCTEXT]);
 
-    //fwrite(&game.chars[0],sizeof(CharacterInfo),game.numcharacters,ooo);
+    //out->WriteArray(&game.chars[0],sizeof(CharacterInfo),game.numcharacters);
     //----------------------------------------------------------------
 
-    save_game_charextras(ooo);
-    save_game_palette(ooo);
-    save_game_dialogs(ooo);
-    save_game_more_dynamic_values(ooo);
-    save_game_gui(ooo);
-    save_game_audiocliptypes(ooo);
-    save_game_thisroom(ooo);
-    save_game_ambientsounds(ooo);
-    save_game_overlays(ooo);
+    save_game_charextras(out);
+    save_game_palette(out);
+    save_game_dialogs(out);
+    save_game_more_dynamic_values(out);
+    save_game_gui(out);
+    save_game_audiocliptypes(out);
+    save_game_thisroom(out);
+    save_game_ambientsounds(out);
+    save_game_overlays(out);
 
     update_polled_stuff_if_runtime();
 
-    save_game_dynamic_surfaces(ooo);
+    save_game_dynamic_surfaces(out);
 
     update_polled_stuff_if_runtime();
 
-    save_game_displayed_room_status(ooo);
-    save_game_globalvars(ooo);
-    save_game_views(ooo);
+    save_game_displayed_room_status(out);
+    save_game_globalvars(out);
+    save_game_views(out);
 
-    putw (MAGICNUMBER+1, ooo);
+    out->WriteInt32 (MAGICNUMBER+1);
 
-    save_game_audioclips_and_crossfade(ooo);  
+    save_game_audioclips_and_crossfade(out);  
 
-    platform->RunPluginHooks(AGSE_SAVEGAME, (int)ooo);
-    putw (MAGICNUMBER, ooo);  // to verify the plugins
+    // [IKM] Plugins expect FILE pointer! // TODO something with this later...
+    platform->RunPluginHooks(AGSE_SAVEGAME, (long)((Common::FileStream*)out)->GetHandle());
+    out->WriteInt32 (MAGICNUMBER);  // to verify the plugins
 
     // save the room music volume
-    putw(thisroom.options[ST_VOLUME], ooo);
+    out->WriteInt32(thisroom.options[ST_VOLUME]);
 
-    ccSerializeAllObjects(ooo);
+    ccSerializeAllObjects(out);
 
-    putw(current_music_type, ooo);
+    out->WriteInt32(current_music_type);
 
     update_polled_stuff_if_runtime();
 }
 
-void create_savegame_screenshot(block &screenShot)
+void create_savegame_screenshot(Bitmap *&screenShot)
 {
     if (game.options[OPT_SAVESCREENSHOT]) {
         int usewid = multiply_up_coordinate(play.screenshot_width);
         int usehit = multiply_up_coordinate(play.screenshot_height);
-        if (usewid > virtual_screen->w)
-            usewid = virtual_screen->w;
-        if (usehit > virtual_screen->h)
-            usehit = virtual_screen->h;
+        if (usewid > virtual_screen->GetWidth())
+            usewid = virtual_screen->GetWidth();
+        if (usehit > virtual_screen->GetHeight())
+            usehit = virtual_screen->GetHeight();
 
         if ((play.screenshot_width < 16) || (play.screenshot_height < 16))
             quit("!Invalid game.screenshot_width/height, must be from 16x16 to screen res");
 
         if (gfxDriver->UsesMemoryBackBuffer())
         {
-            screenShot = create_bitmap_ex(bitmap_color_depth(virtual_screen), usewid, usehit);
+            screenShot = BitmapHelper::CreateBitmap(usewid, usehit, virtual_screen->GetColorDepth());
 
-            stretch_blit(virtual_screen, screenShot, 0, 0,
-                virtual_screen->w, virtual_screen->h, 0, 0,
-                screenShot->w, screenShot->h);
+            screenShot->StretchBlt(virtual_screen,
+				RectWH(0, 0, virtual_screen->GetWidth(), virtual_screen->GetHeight()),
+				RectWH(0, 0, screenShot->GetWidth(), screenShot->GetHeight()));
         }
         else
         {
@@ -1375,15 +1408,15 @@ void create_savegame_screenshot(block &screenShot)
 #else
             int color_depth = final_col_dep;
 #endif
-            block tempBlock = create_bitmap_ex(color_depth, virtual_screen->w, virtual_screen->h);
+            Bitmap *tempBlock = BitmapHelper::CreateBitmap(virtual_screen->GetWidth(), virtual_screen->GetHeight(), color_depth);
             gfxDriver->GetCopyOfScreenIntoBitmap(tempBlock);
 
-            screenShot = create_bitmap_ex(color_depth, usewid, usehit);
-            stretch_blit(tempBlock, screenShot, 0, 0,
-                tempBlock->w, tempBlock->h, 0, 0,
-                screenShot->w, screenShot->h);
+            screenShot = BitmapHelper::CreateBitmap(usewid, usehit, color_depth);
+            screenShot->StretchBlt(tempBlock,
+				RectWH(0, 0, tempBlock->GetWidth(), tempBlock->GetHeight()),
+				RectWH(0, 0, screenShot->GetWidth(), screenShot->GetHeight()));
 
-            destroy_bitmap(tempBlock);
+            delete tempBlock;
         }
     }
 }
@@ -1408,14 +1441,14 @@ void save_game(int slotn, const char*descript) {
     char nametouse[260];
     get_save_game_path(slotn, nametouse);
 
-    FILE *ooo = fopen(nametouse, "wb");
-    if (ooo == NULL)
+    DataStream *out = Common::File::CreateFile(nametouse);
+    if (out == NULL)
         quit("save_game: unable to open savegame file for writing");
 
     // Initialize and write Vista header
     RICH_GAME_MEDIA_HEADER vistaHeader;
     memset(&vistaHeader, 0, sizeof(RICH_GAME_MEDIA_HEADER));
-    memcpy(&vistaHeader.dwMagicNumber, RM_MAGICNUMBER, sizeof(long));
+    memcpy(&vistaHeader.dwMagicNumber, RM_MAGICNUMBER, sizeof(int));
     vistaHeader.dwHeaderVersion = 1;
     vistaHeader.dwHeaderSize = sizeof(RICH_GAME_MEDIA_HEADER);
     vistaHeader.dwThumbnailOffsetHigherDword = 0;
@@ -1431,16 +1464,16 @@ void save_game(int slotn, const char*descript) {
     // Started writing to the file here
 
     // Extended savegame info for Win Vista and higher
-    fwrite(&vistaHeader, sizeof(RICH_GAME_MEDIA_HEADER), 1, ooo);
+    out->Write(&vistaHeader, sizeof(RICH_GAME_MEDIA_HEADER));
 
     // Savegame signature
-    fwrite(sgsig,sgsiglen,1,ooo);
+    out->Write(sgsig,sgsiglen);
 
     safeguard_string ((unsigned char*)descript);
 
-    fputstring((char*)descript,ooo);
+    fputstring((char*)descript, out);
 
-    block screenShot = NULL;
+    Bitmap *screenShot = NULL;
 
     // Screenshot
     create_savegame_screenshot(screenShot);
@@ -1448,65 +1481,65 @@ void save_game(int slotn, const char*descript) {
     update_polled_stuff_if_runtime();
 
     // Actual dynamic game data is saved here
-    save_game_data(ooo, screenShot);
+    save_game_data(out, screenShot);
 
     // End writing to the file here
     //===================================================================
 
     if (screenShot != NULL)
     {
-        long screenShotOffset = ftell(ooo) - sizeof(RICH_GAME_MEDIA_HEADER);
-        long screenShotSize = write_screen_shot_for_vista(ooo, screenShot);
-        fclose(ooo);
+        int screenShotOffset = out->GetPosition() - sizeof(RICH_GAME_MEDIA_HEADER);
+        int screenShotSize = write_screen_shot_for_vista(out, screenShot);
+        delete out;
 
         update_polled_stuff_if_runtime();
 
-        ooo = fopen(nametouse, "r+b");
-        fseek(ooo, 12, SEEK_SET);
-        putw(screenShotOffset, ooo);
-        fseek(ooo, 4, SEEK_CUR);
-        putw(screenShotSize, ooo);
+        out = Common::File::OpenFile(nametouse, Common::kFile_Open, Common::kFile_ReadWrite);
+        out->Seek(Common::kSeekBegin, 12);
+        out->WriteInt32(screenShotOffset);
+        out->Seek(Common::kSeekCurrent, 4);
+        out->WriteInt32(screenShotSize);
     }
 
     if (screenShot != NULL)
         free(screenShot);
 
-    fclose(ooo);
+    delete out;
 }
 
 char rbuffer[200];
 
-void restore_game_screenshot(FILE *ooo)
+void restore_game_screenshot(DataStream *in)
 {
-    int isScreen = getw(ooo);
+    int isScreen = in->ReadInt32();
     if (isScreen) {
         // skip the screenshot
-        wfreeblock(read_serialized_bitmap(ooo));
+        delete read_serialized_bitmap(in); // [IKM] how very appropriate
     }
 }
 
-int restore_game_header(FILE *ooo)
+int restore_game_header(DataStream *in)
 {
-    fgetstring_limit(rbuffer, ooo, 200);
+    fgetstring_limit(rbuffer, in, 200);
     int vercmp = strcmp(rbuffer, ACI_VERSION_TEXT);
     if ((vercmp > 0) || (strcmp(rbuffer, LOWEST_SGVER_COMPAT) < 0) ||
         (strlen(rbuffer) > strlen(LOWEST_SGVER_COMPAT))) {
-            fclose(ooo);
+            delete in;
             return -4;
     }
-    fgetstring_limit (rbuffer, ooo, 180);
+    fgetstring_limit (rbuffer, in, 180);
     rbuffer[180] = 0;
     if (stricmp (rbuffer, usetup.main_data_filename)) {
-        fclose(ooo);
+        delete in;
         return -5;
     }
 
     return 0;
 }
 
-int restore_game_head_dynamic_values(FILE *ooo, int &sg_cur_mode, int &sg_cur_cursor)
+int restore_game_head_dynamic_values(DataStream *in, int &sg_cur_mode, int &sg_cur_cursor)
 {
-    int gamescrnhit = getw(ooo);
+    int gamescrnhit = in->ReadInt32();
     // a 320x240 game, they saved in a 320x200 room but try to restore
     // from within a 320x240 room, make it work
     if (final_scrn_hit == (gamescrnhit * 12) / 10)
@@ -1519,13 +1552,13 @@ int restore_game_head_dynamic_values(FILE *ooo, int &sg_cur_mode, int &sg_cur_cu
     if (gamescrnhit != scrnhit) {
         Display("This game was saved with the interpreter running at a different "
             "resolution. It cannot be restored.");
-        fclose(ooo);
+        delete in;
         return -6;
     }
 
-    if (getw(ooo) != final_col_dep) {
+    if (in->ReadInt32() != final_col_dep) {
         Display("This game was saved with the engine running at a different colour depth. It cannot be restored.");
-        fclose(ooo);
+        delete in;
         return -7;
     }
 
@@ -1533,17 +1566,17 @@ int restore_game_head_dynamic_values(FILE *ooo, int &sg_cur_mode, int &sg_cur_cu
 
     remove_screen_overlay(-1);
     is_complete_overlay=0; is_text_overlay=0;
-    set_game_speed(getw(ooo));
-    sg_cur_mode=getw(ooo);
-    sg_cur_cursor=getw(ooo);
-    offsetx = getw(ooo);
-    offsety = getw(ooo);
-    loopcounter = getw(ooo);
+    set_game_speed(in->ReadInt32());
+    sg_cur_mode=in->ReadInt32();
+    sg_cur_cursor=in->ReadInt32();
+    offsetx = in->ReadInt32();
+    offsety = in->ReadInt32();
+    loopcounter = in->ReadInt32();
 
     return 0;
 }
 
-void restore_game_spriteset(FILE *ooo)
+void restore_game_spriteset(DataStream *in)
 {
     for (int bb = 1; bb < spriteset.elements; bb++) {
         if (game.spriteflags[bb] & SPF_DYNAMICALLOC) {
@@ -1554,22 +1587,21 @@ void restore_game_spriteset(FILE *ooo)
     }
     // ensure the sprite set is at least as large as it was
     // when the game was saved
-    spriteset.enlargeTo(getw(ooo));
+    spriteset.enlargeTo(in->ReadInt32());
     // get serialized dynamic sprites
-    int sprnum = getw(ooo);
+    int sprnum = in->ReadInt32();
     while (sprnum) {
-        unsigned char spriteflag = fgetc(ooo);
-        add_dynamic_sprite(sprnum, read_serialized_bitmap(ooo));
+        unsigned char spriteflag = in->ReadByte();
+        add_dynamic_sprite(sprnum, read_serialized_bitmap(in));
         game.spriteflags[sprnum] = spriteflag;
-        sprnum = getw(ooo);
+        sprnum = in->ReadInt32();
     }
 }
 
 void restore_game_clean_gfx()
 {
     for (int vv = 0; vv < game.numgui; vv++) {
-        if (guibg[vv])
-            wfreeblock (guibg[vv]);
+        delete guibg[vv];
         guibg[vv] = NULL;
 
         if (guibgbmp[vv])
@@ -1597,86 +1629,73 @@ void restore_game_clean_scripts()
     }
 }
 
-void restore_game_scripts(FILE *ooo, int &gdatasize, char **newglobaldatabuffer, 
+void restore_game_scripts(DataStream *in, int &gdatasize, char **newglobaldatabuffer, 
                           char **scriptModuleDataBuffers, int *scriptModuleDataSize)
 {
     // read the global script data segment
-    gdatasize = getw(ooo);
+    gdatasize = in->ReadInt32();
     *newglobaldatabuffer = (char*)malloc(gdatasize);
-    fread(newglobaldatabuffer, sizeof(char), gdatasize, ooo);
-    //fread(&gameinst->globaldata[0],gdatasize,1,ooo);
+    in->Read(*newglobaldatabuffer, gdatasize);
+    //in->ReadArray(&gameinst->globaldata[0],gdatasize,1);
     //ccUnFlattenGlobalData (gameinst);
 
 
 
-    if (getw(ooo) != numScriptModules)
+    if (in->ReadInt32() != numScriptModules)
         quit("wrong script module count; cannot restore game");
     for (int vv = 0; vv < numScriptModules; vv++) {
-        scriptModuleDataSize[vv] = getw(ooo);
+        scriptModuleDataSize[vv] = in->ReadInt32();
         scriptModuleDataBuffers[vv] = (char*)malloc(scriptModuleDataSize[vv]);
-        fread(&scriptModuleDataBuffers[vv][0], sizeof(char), scriptModuleDataSize[vv], ooo);
+        in->Read(&scriptModuleDataBuffers[vv][0], scriptModuleDataSize[vv]);
     }
 }
 
-void restore_game_room_state(FILE *ooo, const char *nametouse)
+void restore_game_room_state(DataStream *in, const char *nametouse)
 {
     int vv;
 
-    displayed_room = getw(ooo);
+    displayed_room = in->ReadInt32();
 
     // now the rooms
-    for (vv=0;vv<MAX_ROOMS;vv++) {
-        if (roomstats[vv].tsdata==NULL) ;
-        else if (roomstats[vv].tsdatasize>0) {
-            free(roomstats[vv].tsdata);
-            roomstats[vv].tsdatasize=0; roomstats[vv].tsdata=NULL;
-        }
-        roomstats[vv].beenhere=0;
-    }
-    long gobackto=ftell(ooo);
-    fclose(ooo);
-    ooo=fopen(nametouse,"rb");
-    fseek(ooo,gobackto,SEEK_SET);
+    resetRoomStatuses();
+
+    // JJS: What was the point in closing and reopening the file?
+    /*
+    long gobackto = in->GetPosition();
+    delete in;
+    in = Common::File::OpenFileRead(nametouse);
+    in->Seek(Common::kSeekBegin, gobackto);
+    */
 
     // read the room state for all the rooms the player has been in
-    for (vv=0;vv<MAX_ROOMS;vv++) {
-        if ((roomstats[vv].tsdatasize>0) & (roomstats[vv].tsdata!=NULL))
-            free(roomstats[vv].tsdata);
-        roomstats[vv].tsdatasize=0;
-        roomstats[vv].tsdata=NULL;
-        roomstats[vv].beenhere = fgetc (ooo);
+    RoomStatus* roomstat;
+    int beenhere;
+    for (vv=0;vv<MAX_ROOMS;vv++)
+    {
+        beenhere = in->ReadByte();
+        if (beenhere)
+        {
+            roomstat = getRoomStatus(vv);
+            if ((roomstat->tsdatasize > 0) && (roomstat->tsdata != NULL))
+                free(roomstat->tsdata);
+            roomstat->tsdatasize = 0;
+            roomstat->tsdata = NULL;
+            roomstat->beenhere = beenhere;
 
-        if (roomstats[vv].beenhere) {
-            fread(&roomstats[vv],sizeof(RoomStatus),1,ooo);
-            if (roomstats[vv].tsdatasize>0) {
-                roomstats[vv].tsdata=(char*)malloc(roomstats[vv].tsdatasize+8);
-                fread(&roomstats[vv].tsdata[0],roomstats[vv].tsdatasize,1,ooo);
+            if (roomstat->beenhere)
+            {
+                roomstat->ReadFromFile(in);
+                if (roomstat->tsdatasize > 0)
+                {
+                    roomstat->tsdata=(char*)malloc(roomstat->tsdatasize + 8);  // JJS: Why allocate 8 additional bytes?
+                    in->Read(&roomstat->tsdata[0], roomstat->tsdatasize);
+                }
             }
         }
     }
-
-    /*  for (vv=0;vv<MAX_ROOMS;vv++) {
-    if ((roomstats[vv].tsdatasize>0) & (roomstats[vv].tsdata!=NULL))
-    free(roomstats[vv].tsdata);
-    roomstats[vv].tsdatasize=0;
-    roomstats[vv].tsdata=NULL;
-    }
-    int numtoread=getw(ooo);
-    if ((numtoread < 0) | (numtoread>MAX_ROOMS)) {
-    sprintf(rbuffer,"Save game has invalid value for rooms_entered: %d",numtoread);
-    quit(rbuffer);
-    }
-    fread(&roomstats[0],sizeof(RoomStatus),numtoread,ooo);
-    for (vv=0;vv<numtoread;vv++) {
-    if (roomstats[vv].tsdatasize>0) {
-    roomstats[vv].tsdata=(char*)malloc(roomstats[vv].tsdatasize+5);
-    fread(&roomstats[vv].tsdata[0],roomstats[vv].tsdatasize,1,ooo);
-    }
-    else roomstats[vv].tsdata=NULL;
-    }*/
 }
 
-void restore_game_play(FILE *ooo)
+void restore_game_play(DataStream *in)
 {
     int speech_was = play.want_speech, musicvox = play.seperate_music_lib;
     // preserve the replay settings
@@ -1689,11 +1708,11 @@ void restore_game_play(FILE *ooo)
 
     free_do_once_tokens();
 
-    //fread (&play, 76, 4, ooo);
-    //fread (((char*)&play) + 78*4, sizeof(GameState) - 78*4, 1, ooo);
+    //in->ReadArray (&play, 76, 4);
+    //in->ReadArray (((char*)&play) + 78*4, sizeof(GameState) - 78*4, 1);
 
-    //fread(&play,sizeof(GameState),1,ooo);
-    play.ReadFromFile(ooo);
+    //in->ReadArray(&play,sizeof(GameState),1);
+    play.ReadFromFile(in);
 
     // Preserve whether the music vox is available
     play.seperate_music_lib = musicvox;
@@ -1716,52 +1735,60 @@ void restore_game_play(FILE *ooo)
         play.do_once_tokens = (char**)malloc(sizeof(char*) * play.num_do_once_tokens);
         for (int bb = 0; bb < play.num_do_once_tokens; bb++)
         {
-            fgetstring_limit(rbuffer, ooo, 200);
+            fgetstring_limit(rbuffer, in, 200);
             play.do_once_tokens[bb] = (char*)malloc(strlen(rbuffer) + 1);
             strcpy(play.do_once_tokens[bb], rbuffer);
         }
     }
 
-    fread(&play.gui_draw_order[0], sizeof(int), game.numgui, ooo);
+    in->ReadArrayOfInt32(&play.gui_draw_order[0], game.numgui);
 }
 
-void restore_game_movelist(FILE *ooo)
+void restore_game_movelist(DataStream *in)
 {
-    fread(&mls[0],sizeof(MoveList), game.numcharacters + MAX_INIT_SPR + 1, ooo);
+    for (int i = 0; i < game.numcharacters + MAX_INIT_SPR + 1; ++i)
+    {
+        mls[i].ReadFromFile(in);
+    }
+    //in->ReadArray(&mls[0],sizeof(MoveList), game.numcharacters + MAX_INIT_SPR + 1);
 }
 
-void restore_game_charextras(FILE *ooo)
+void restore_game_charextras(DataStream *in)
 {
-    fread(&charextra[0],sizeof(CharacterExtras),game.numcharacters,ooo);
+    for (int i = 0; i < game.numcharacters; ++i)
+    {
+        charextra[i].ReadFromFile(in);
+    }
+    //in->ReadArray(&charextra[0],sizeof(CharacterExtras),game.numcharacters);
 }
 
-void restore_game_palette(FILE *ooo)
+void restore_game_palette(DataStream *in)
 {
-    fread(&palette[0],sizeof(color),256,ooo);
+    in->ReadArray(&palette[0],sizeof(color),256);
 }
 
-void restore_game_dialogs(FILE *ooo)
+void restore_game_dialogs(DataStream *in)
 {
     for (int vv=0;vv<game.numdialog;vv++)
-        fread(&dialog[vv].optionflags[0],sizeof(int),MAXTOPICOPTIONS,ooo);
+        in->ReadArrayOfInt32(&dialog[vv].optionflags[0],MAXTOPICOPTIONS);
 }
 
-void restore_game_more_dynamic_values(FILE *ooo)
+void restore_game_more_dynamic_values(DataStream *in)
 {
-    mouse_on_iface=getw(ooo);
-    mouse_on_iface_button=getw(ooo);
-    mouse_pushed_iface=getw(ooo);
-    ifacepopped = getw(ooo);
-    game_paused=getw(ooo);
+    mouse_on_iface=in->ReadInt32();
+    mouse_on_iface_button=in->ReadInt32();
+    mouse_pushed_iface=in->ReadInt32();
+    ifacepopped = in->ReadInt32();
+    game_paused=in->ReadInt32();
 }
 
-void restore_game_gui(FILE *ooo, int numGuisWas)
+void restore_game_gui(DataStream *in, int numGuisWas)
 {
     int vv;
     for (vv = 0; vv < game.numgui; vv++)
         unexport_gui_controls(vv);
 
-    read_gui(ooo,guis,&game);
+    read_gui(in,guis,&game);
 
     if (numGuisWas != game.numgui)
         quit("!Restore_Game: Game has changed (GUIs), unable to restore position");
@@ -1769,28 +1796,36 @@ void restore_game_gui(FILE *ooo, int numGuisWas)
     for (vv = 0; vv < game.numgui; vv++)
         export_gui_controls(vv);
 
-    numAnimButs = getw(ooo);
-    fread(&animbuts[0], sizeof(AnimatingGUIButton), numAnimButs, ooo);
+    numAnimButs = in->ReadInt32();
+    for (int i = 0; i < numAnimButs; ++i)
+    {
+        animbuts[i].ReadFromFile(in);
+    }
+    //in->ReadArray(&animbuts[0], sizeof(AnimatingGUIButton), numAnimButs);
 }
 
-void restore_game_audiocliptypes(FILE *ooo)
+void restore_game_audiocliptypes(DataStream *in)
 {
-    if (getw(ooo) != game.audioClipTypeCount)
+    if (in->ReadInt32() != game.audioClipTypeCount)
         quit("!Restore_Game: game has changed (audio types), unable to restore");
 
-    fread(&game.audioClipTypes[0], sizeof(AudioClipType), game.audioClipTypeCount, ooo);
+    for (int i = 0; i < game.audioClipTypeCount; ++i)
+    {
+        game.audioClipTypes[i].ReadFromFile(in);
+    }
+    //in->ReadArray(&game.audioClipTypes[0], sizeof(AudioClipType), game.audioClipTypeCount);
 }
 
-void restore_game_thisroom(FILE *ooo, short *saved_light_levels, int *saved_tint_levels,
+void restore_game_thisroom(DataStream *in, short *saved_light_levels, int *saved_tint_levels,
                            short *saved_zoom_levels1, short *saved_zoom_levels2)
 {
-    fread(&saved_light_levels[0], sizeof(short), MAX_REGIONS, ooo);
-    fread(&saved_tint_levels[0], sizeof(int), MAX_REGIONS, ooo);
-    fread(&saved_zoom_levels1[0],sizeof(short), MAX_WALK_AREAS + 1, ooo);
-    fread(&saved_zoom_levels2[0],sizeof(short), MAX_WALK_AREAS + 1, ooo);
+    in->ReadArrayOfInt16(&saved_light_levels[0],MAX_REGIONS);
+    in->ReadArrayOfInt32(&saved_tint_levels[0], MAX_REGIONS);
+    in->ReadArrayOfInt16(&saved_zoom_levels1[0],MAX_WALK_AREAS + 1);
+    in->ReadArrayOfInt16(&saved_zoom_levels2[0],MAX_WALK_AREAS + 1);
 }
 
-void restore_game_ambientsounds(FILE *ooo, int crossfadeInChannelWas, int crossfadeOutChannelWas,
+void restore_game_ambientsounds(DataStream *in, int crossfadeInChannelWas, int crossfadeOutChannelWas,
                                 int *doAmbient)
 {
     int bb;
@@ -1802,7 +1837,11 @@ void restore_game_ambientsounds(FILE *ooo, int crossfadeInChannelWas, int crossf
     play.crossfading_in_channel = crossfadeInChannelWas;
     play.crossfading_out_channel = crossfadeOutChannelWas;
 
-    fread(&ambient[0], sizeof(AmbientSound), MAX_SOUND_CHANNELS, ooo);
+    for (int i = 0; i < MAX_SOUND_CHANNELS; ++i)
+    {
+        ambient[i].ReadFromFile(in);
+    }
+    //in->ReadArray(&ambient[0], sizeof(AmbientSound), MAX_SOUND_CHANNELS);
 
     for (bb = 1; bb < MAX_SOUND_CHANNELS; bb++) {
         if (ambient[bb].channel == 0)
@@ -1814,37 +1853,41 @@ void restore_game_ambientsounds(FILE *ooo, int crossfadeInChannelWas, int crossf
     }
 }
 
-void restore_game_overlays(FILE *ooo)
+void restore_game_overlays(DataStream *in)
 {
-    numscreenover = getw(ooo);
-    fread(&screenover[0],sizeof(ScreenOverlay),numscreenover,ooo);
+    numscreenover = in->ReadInt32();
+    for (int i = 0; i < numscreenover; ++i)
+    {
+        screenover[i].ReadFromFile(in);
+    }
+    //in->ReadArray(&screenover[0],sizeof(ScreenOverlay),numscreenover);
     for (int bb=0;bb<numscreenover;bb++) {
         if (screenover[bb].pic != NULL)
         {
-            screenover[bb].pic = read_serialized_bitmap(ooo);
+            screenover[bb].pic = read_serialized_bitmap(in);
             screenover[bb].bmp = gfxDriver->CreateDDBFromBitmap(screenover[bb].pic, false);
         }
     }
 }
 
-void restore_game_dynamic_surfaces(FILE *ooo, block *dynamicallyCreatedSurfacesFromSaveGame)
+void restore_game_dynamic_surfaces(DataStream *in, Bitmap **dynamicallyCreatedSurfacesFromSaveGame)
 {
     // load into a temp array since ccUnserialiseObjects will destroy
     // it otherwise
     for (int bb = 0; bb < MAX_DYNAMIC_SURFACES; bb++)
     {
-        if (fgetc(ooo) == 0)
+        if (in->ReadInt8() == 0)
         {
             dynamicallyCreatedSurfacesFromSaveGame[bb] = NULL;
         }
         else
         {
-            dynamicallyCreatedSurfacesFromSaveGame[bb] = read_serialized_bitmap(ooo);
+            dynamicallyCreatedSurfacesFromSaveGame[bb] = read_serialized_bitmap(in);
         }
     }
 }
 
-void restore_game_displayed_room_status(FILE *ooo, block *newbscene)
+void restore_game_displayed_room_status(DataStream *in, Bitmap **newbscene)
 {
     int bb;
     for (bb = 0; bb < MAX_BSCENE; bb++)
@@ -1855,24 +1898,25 @@ void restore_game_displayed_room_status(FILE *ooo, block *newbscene)
         for (bb = 0; bb < MAX_BSCENE; bb++) {
             newbscene[bb] = NULL;
             if (play.raw_modified[bb]) {
-                newbscene[bb] = read_serialized_bitmap (ooo);
+                newbscene[bb] = read_serialized_bitmap (in);
             }
         }
-        bb = getw(ooo);
-        if (raw_saved_screen != NULL) {
-            wfreeblock(raw_saved_screen);
-            raw_saved_screen = NULL;
-        }
+        bb = in->ReadInt32();
+
+        delete raw_saved_screen;
+        raw_saved_screen = NULL;
+
         if (bb)
-            raw_saved_screen = read_serialized_bitmap(ooo);
+            raw_saved_screen = read_serialized_bitmap(in);
 
         if (troom.tsdata != NULL)
             free (troom.tsdata);
         // get the current troom, in case they save in room 600 or whatever
-        fread(&troom,sizeof(RoomStatus),1,ooo);
+        troom.ReadFromFile(in);
+        //in->ReadArray(&troom,sizeof(RoomStatus),1);
         if (troom.tsdatasize > 0) {
             troom.tsdata=(char*)malloc(troom.tsdatasize+5);
-            fread(&troom.tsdata[0],troom.tsdatasize,1,ooo);
+            in->Read(&troom.tsdata[0],troom.tsdatasize);
         }
         else
             troom.tsdata = NULL;
@@ -1880,35 +1924,38 @@ void restore_game_displayed_room_status(FILE *ooo, block *newbscene)
     }
 }
 
-void restore_game_globalvars(FILE *ooo)
+void restore_game_globalvars(DataStream *in)
 {
-    if (getw (ooo) != numGlobalVars) 
+    if (in->ReadInt32() != numGlobalVars) 
         quit("!Game has been modified since save; unable to restore game (GM01)");
 
-    fread (&globalvars[0], sizeof(InteractionVariable), numGlobalVars, ooo);
+    for (int i = 0; i < numGlobalVars; ++i)
+    {
+        globalvars[i].ReadFromFile(in);
+    }
 }
 
-void restore_game_views(FILE *ooo)
+void restore_game_views(DataStream *in)
 {
-    if (getw(ooo) != game.numviews)
+    if (in->ReadInt32() != game.numviews)
         quit("!Game has been modified since save; unable to restore (GV02)");
 
     for (int bb = 0; bb < game.numviews; bb++) {
         for (int cc = 0; cc < views[bb].numLoops; cc++) {
             for (int dd = 0; dd < views[bb].loops[cc].numFrames; dd++)
             {
-                views[bb].loops[cc].frames[dd].sound = getw(ooo);
-                views[bb].loops[cc].frames[dd].pic = getw(ooo);
+                views[bb].loops[cc].frames[dd].sound = in->ReadInt32();
+                views[bb].loops[cc].frames[dd].pic = in->ReadInt32();
             }
         }
     }
 }
 
-void restore_game_audioclips_and_crossfade(FILE *ooo, int crossfadeInChannelWas, int crossfadeOutChannelWas)
+void restore_game_audioclips_and_crossfade(DataStream *in, int crossfadeInChannelWas, int crossfadeOutChannelWas)
 {
     int bb;
 
-    if (getw(ooo) != game.audioClipCount)
+    if (in->ReadInt32() != game.audioClipCount)
         quit("Game has changed: different audio clip count");
 
     play.crossfading_in_channel = 0;
@@ -1917,20 +1964,20 @@ void restore_game_audioclips_and_crossfade(FILE *ooo, int crossfadeInChannelWas,
     for (bb = 0; bb <= MAX_SOUND_CHANNELS; bb++)
     {
         channelPositions[bb] = 0;
-        int audioClipIndex = getw(ooo);
+        int audioClipIndex = in->ReadInt32();
         if (audioClipIndex >= 0)
         {
             if (audioClipIndex >= game.audioClipCount)
                 quit("save game error: invalid audio clip index");
 
-            channelPositions[bb] = getw(ooo);
+            channelPositions[bb] = in->ReadInt32();
             if (channelPositions[bb] < 0) channelPositions[bb] = 0;
-            int priority = getw(ooo);
-            int repeat = getw(ooo);
-            int vol = getw(ooo);
-            int pan = getw(ooo);
-            int volAsPercent = getw(ooo);
-            int panAsPercent = getw(ooo);
+            int priority = in->ReadInt32();
+            int repeat = in->ReadInt32();
+            int vol = in->ReadInt32();
+            int pan = in->ReadInt32();
+            int volAsPercent = in->ReadInt32();
+            int panAsPercent = in->ReadInt32();
             play_audio_clip_on_channel(bb, &game.audioClips[audioClipIndex], priority, repeat, channelPositions[bb]);
             if (channels[bb] != NULL)
             {
@@ -1955,35 +2002,35 @@ void restore_game_audioclips_and_crossfade(FILE *ooo, int crossfadeInChannelWas,
             channels[bb]->seek(channelPositions[bb]);
         }
     }
-    crossFading = getw(ooo);
-    crossFadeVolumePerStep = getw(ooo);
-    crossFadeStep = getw(ooo);
-    crossFadeVolumeAtStart = getw(ooo);
+    crossFading = in->ReadInt32();
+    crossFadeVolumePerStep = in->ReadInt32();
+    crossFadeStep = in->ReadInt32();
+    crossFadeVolumeAtStart = in->ReadInt32();
 }
 
-int restore_game_data (FILE *ooo, const char *nametouse) {
+int restore_game_data (DataStream *in, const char *nametouse) {
 
     int bb, vv;
 
-    if (getw(ooo)!=SGVERSION) {
-        fclose(ooo);
+    if (in->ReadInt32()!=SGVERSION) {
+        delete in;
         return -3;
     }
 
-    restore_game_screenshot(ooo);
+    restore_game_screenshot(in);
 
-    int res = restore_game_header(ooo);
+    int res = restore_game_header(in);
     if (res != 0) {
         return res;
     }
 
     int sg_cur_mode = 0, sg_cur_cursor = 0;
-    res = restore_game_head_dynamic_values(ooo, /*out*/ sg_cur_mode, sg_cur_cursor);
+    res = restore_game_head_dynamic_values(in, /*out*/ sg_cur_mode, sg_cur_cursor);
     if (res != 0) {
         return res;
     }
 
-    restore_game_spriteset(ooo); 
+    restore_game_spriteset(in); 
 
     clear_music_cache();
     restore_game_clean_gfx();
@@ -1998,12 +2045,12 @@ int restore_game_data (FILE *ooo, const char *nametouse) {
     char*newglobaldatabuffer;
     char *scriptModuleDataBuffers[MAX_SCRIPT_MODULES];
     int scriptModuleDataSize[MAX_SCRIPT_MODULES];
-    restore_game_scripts(ooo, /*out*/ gdatasize,&newglobaldatabuffer, scriptModuleDataBuffers, scriptModuleDataSize);
-    restore_game_room_state(ooo, nametouse);
+    restore_game_scripts(in, /*out*/ gdatasize,&newglobaldatabuffer, scriptModuleDataBuffers, scriptModuleDataSize);
+    restore_game_room_state(in, nametouse);
 
-    restore_game_play(ooo);
+    restore_game_play(in);
 
-    restore_game_movelist(ooo);
+    restore_game_movelist(in);
 
     // save pointer members before reading
     char* gswas=game.globalscript;
@@ -2017,9 +2064,9 @@ int restore_game_data (FILE *ooo, const char *nametouse) {
     int numviewswas = game.numviews;
     int numGuisWas = game.numgui;
 
-    //fread(&game,sizeof(GameSetupStructBase),1,ooo);
+    //in->ReadArray(&game,sizeof(GameSetupStructBase),1);
     GameSetupStructBase *gameBase = (GameSetupStructBase *) &game;
-    gameBase->ReadFromFile(ooo);
+    gameBase->ReadFromFile(in);
 
     if (game.numdialog!=numdiwas)
         quit("!Restore_Game: Game has changed (dlg), unable to restore");
@@ -2028,17 +2075,17 @@ int restore_game_data (FILE *ooo, const char *nametouse) {
     if (game.numviews != numviewswas)
         quit("!Restore_Game: Game has changed (views), unable to restore position");
 
-    game.ReadFromSaveGame(ooo, gswas, compsc, chwas, olddict, mesbk); 
+    game.ReadFromSaveGame(in, gswas, compsc, chwas, olddict, mesbk); 
     //
-    //fread(&game.invinfo[0], sizeof(InventoryItemInfo), game.numinvitems, ooo);
-    //fread(&game.mcurs[0], sizeof(MouseCursor), game.numcursors, ooo);
+    //in->ReadArray(&game.invinfo[0], sizeof(InventoryItemInfo), game.numinvitems);
+    //in->ReadArray(&game.mcurs[0], sizeof(MouseCursor), game.numcursors);
     //
     //if (game.invScripts == NULL)
     //{
     //  for (bb = 0; bb < game.numinvitems; bb++)
-    //    fread (&game.intrInv[bb]->timesRun[0], sizeof (int), MAX_NEWINTERACTION_EVENTS, ooo);
+    //    in->ReadArray (&game.intrInv[bb]->timesRun[0], sizeof (int), MAX_NEWINTERACTION_EVENTS);
     //  for (bb = 0; bb < game.numcharacters; bb++)
-    //    fread (&game.intrChar[bb]->timesRun[0], sizeof (int), MAX_NEWINTERACTION_EVENTS, ooo);
+    //    in->ReadArray (&game.intrChar[bb]->timesRun[0], sizeof (int), MAX_NEWINTERACTION_EVENTS);
     //}
     //
     //// restore pointer members
@@ -2048,71 +2095,72 @@ int restore_game_data (FILE *ooo, const char *nametouse) {
     //game.dict = olddict;
     //for (vv=0;vv<MAXGLOBALMES;vv++) game.messages[vv]=mesbk[vv];
     //
-    //fread(&game.options[0], sizeof(int), OPT_HIGHESTOPTION+1, ooo);
-    //game.options[OPT_LIPSYNCTEXT] = fgetc(ooo);
+    //in->ReadArray(&game.options[0], sizeof(int), OPT_HIGHESTOPTION+1);
+    //game.options[OPT_LIPSYNCTEXT] = in->ReadByte();
     //
-    //fread(&game.chars[0],sizeof(CharacterInfo),game.numcharacters,ooo);
+    //in->ReadArray(&game.chars[0],sizeof(CharacterInfo),game.numcharacters);
     //
 
-    restore_game_charextras(ooo);
+    restore_game_charextras(in);
     if (roominst!=NULL) {  // so it doesn't overwrite the tsdata
         ccFreeInstance(roominstFork);
         ccFreeInstance(roominst); 
         roominstFork = NULL;
         roominst=NULL;
     }
-    restore_game_palette(ooo);
-    restore_game_dialogs(ooo);
-    restore_game_more_dynamic_values(ooo);
+    restore_game_palette(in);
+    restore_game_dialogs(in);
+    restore_game_more_dynamic_values(in);
 
-    restore_game_gui(ooo, numGuisWas);
-    restore_game_audiocliptypes(ooo);
+    restore_game_gui(in, numGuisWas);
+    restore_game_audiocliptypes(in);
 
     short saved_light_levels[MAX_REGIONS];
     int   saved_tint_levels[MAX_REGIONS];
     short saved_zoom_levels1[MAX_WALK_AREAS + 1];
     short saved_zoom_levels2[MAX_WALK_AREAS + 1];
-    restore_game_thisroom(ooo, saved_light_levels, saved_tint_levels, saved_zoom_levels1, saved_zoom_levels2);
+    restore_game_thisroom(in, saved_light_levels, saved_tint_levels, saved_zoom_levels1, saved_zoom_levels2);
 
     int crossfadeInChannelWas = play.crossfading_in_channel;
     int crossfadeOutChannelWas = play.crossfading_out_channel;
     int doAmbient[MAX_SOUND_CHANNELS];
-    restore_game_ambientsounds(ooo, crossfadeInChannelWas, crossfadeOutChannelWas, doAmbient);
-    restore_game_overlays(ooo);
+    restore_game_ambientsounds(in, crossfadeInChannelWas, crossfadeOutChannelWas, doAmbient);
+    restore_game_overlays(in);
 
     update_polled_stuff_if_runtime();
 
-    block dynamicallyCreatedSurfacesFromSaveGame[MAX_DYNAMIC_SURFACES];
-    restore_game_dynamic_surfaces(ooo, dynamicallyCreatedSurfacesFromSaveGame);
+    Bitmap *dynamicallyCreatedSurfacesFromSaveGame[MAX_DYNAMIC_SURFACES];
+    restore_game_dynamic_surfaces(in, dynamicallyCreatedSurfacesFromSaveGame);
 
     update_polled_stuff_if_runtime();
 
-    block newbscene[MAX_BSCENE];
-    restore_game_displayed_room_status(ooo, newbscene);
-    restore_game_globalvars(ooo);
-    restore_game_views(ooo);
+    Bitmap *newbscene[MAX_BSCENE];
+    restore_game_displayed_room_status(in, newbscene);
+    restore_game_globalvars(in);
+    restore_game_views(in);
 
-    if (getw(ooo) != MAGICNUMBER+1)
+    if (in->ReadInt32() != MAGICNUMBER+1)
         quit("!Game has been modified since save; unable to restore (GV03)");
 
-    restore_game_audioclips_and_crossfade(ooo, crossfadeInChannelWas, crossfadeOutChannelWas);
+    restore_game_audioclips_and_crossfade(in, crossfadeInChannelWas, crossfadeOutChannelWas);
 
     recache_queued_clips_after_loading_save_game();
 
-    platform->RunPluginHooks(AGSE_RESTOREGAME, (int)ooo);
-    if (getw(ooo) != (unsigned)MAGICNUMBER)
+    // [IKM] Plugins expect FILE pointer! // TODO something with this later
+    platform->RunPluginHooks(AGSE_RESTOREGAME, (long)((Common::FileStream*)in)->GetHandle());
+    if (in->ReadInt32() != (unsigned)MAGICNUMBER)
         quit("!One of the game plugins did not restore its game data correctly.");
 
     // save the new room music vol for later use
-    int newRoomVol = getw(ooo);
+    int newRoomVol = in->ReadInt32();
 
-    if (ccUnserializeAllObjects(ooo, &ccUnserializer))
+    if (ccUnserializeAllObjects(in, &ccUnserializer))
         quitprintf("LoadGame: Error during deserialization: %s", ccErrorString);
 
     // preserve legacy music type setting
-    current_music_type = getw(ooo);
+    current_music_type = in->ReadInt32();
 
-    fclose(ooo);
+    delete in;
 
     // restore these to the ones retrieved from the save game
     for (bb = 0; bb < MAX_DYNAMIC_SURFACES; bb++)
@@ -2185,7 +2233,7 @@ int restore_game_data (FILE *ooo, const char *nametouse) {
 
         for (bb = 0; bb < MAX_BSCENE; bb++) {
             if (newbscene[bb]) {
-                wfreeblock(thisroom.ebscene[bb]);
+                delete thisroom.ebscene[bb];
                 thisroom.ebscene[bb] = newbscene[bb];
             }
         }
@@ -2249,7 +2297,7 @@ int restore_game_data (FILE *ooo, const char *nametouse) {
     }
 
     for (vv = 0; vv < game.numgui; vv++) {
-        guibg[vv] = create_bitmap_ex (final_col_dep, guis[vv].wid, guis[vv].hit);
+        guibg[vv] = BitmapHelper::CreateBitmap (guis[vv].wid, guis[vv].hit, final_col_dep);
         guibg[vv] = gfxDriver->ConvertBitmapToSupportedColourDepth(guibg[vv]);
     }
 
@@ -2284,48 +2332,48 @@ int do_game_load(const char *nametouse, int slotNumber, char *descrp, int *wantS
 {
     gameHasBeenRestored++;
 
-    FILE*ooo=fopen(nametouse,"rb");
-    if (ooo==NULL)
+    DataStream *in = Common::File::OpenFileRead(nametouse);
+    if (in==NULL)
         return -1;
 
     // skip Vista header
-    fseek(ooo, sizeof(RICH_GAME_MEDIA_HEADER), SEEK_SET);
+    in->Seek(Common::kSeekBegin, sizeof(RICH_GAME_MEDIA_HEADER));
 
-    fread(rbuffer,sgsiglen,1,ooo);
+    in->Read(rbuffer,sgsiglen);
     rbuffer[sgsiglen]=0;
     if (strcmp(rbuffer,sgsig)!=0) {
         // not a save game
-        fclose(ooo);
+        delete in;
         return -2; 
     }
     int oldeip = our_eip;
     our_eip = 2050;
 
-    fgetstring_limit(rbuffer,ooo, 180);
+    fgetstring_limit(rbuffer,in, 180);
     rbuffer[180] = 0;
     safeguard_string ((unsigned char*)rbuffer);
 
     if (descrp!=NULL) {
         // just want slot description, so return
         strcpy(descrp,rbuffer);
-        fclose (ooo);
+        delete in;
         our_eip = oldeip;
         return 0;
     }
 
     if (wantShot != NULL) {
         // just want the screenshot
-        if (getw(ooo)!=SGVERSION) {
-            fclose(ooo);
+        if (in->ReadInt32()!=SGVERSION) {
+            delete in;
             return -3;
         }
-        int isScreen = getw(ooo);
+        int isScreen = in->ReadInt32();
         *wantShot = 0;
 
         if (isScreen) {
             int gotSlot = spriteset.findFreeSlot();
             // load the screenshot
-            block redin = read_serialized_bitmap(ooo);
+            Bitmap *redin = read_serialized_bitmap(in);
             if (gotSlot > 0) {
                 // add it into the sprite set
                 add_dynamic_sprite(gotSlot, gfxDriver->ConvertBitmapToSupportedColourDepth(redin));
@@ -2334,10 +2382,10 @@ int do_game_load(const char *nametouse, int slotNumber, char *descrp, int *wantS
             }
             else
             {
-                destroy_bitmap(redin);
+                delete redin;
             }
         }
-        fclose (ooo);
+        delete in;
         our_eip = oldeip;
         return 0;
     }
@@ -2345,7 +2393,7 @@ int do_game_load(const char *nametouse, int slotNumber, char *descrp, int *wantS
     our_eip = 2051;
 
     // do the actual restore
-    int ress = restore_game_data(ooo, nametouse);
+    int ress = restore_game_data(in, nametouse);
 
     our_eip = oldeip;
 
@@ -2450,7 +2498,7 @@ int __GetLocationType(int xxx,int yyy, int allowHotspot0) {
 
     multiply_up_coordinates(&xxx, &yyy);
 
-    int wbat = getpixel(thisroom.object, xxx, yyy);
+    int wbat = thisroom.object->GetPixel(xxx, yyy);
 
     if (wbat <= 0) wbat = 0;
     else wbat = croom->walkbehind_base[wbat];

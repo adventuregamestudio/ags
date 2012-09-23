@@ -1,17 +1,20 @@
 
-#include "ac/global_file.h"
 #include "util/wgt2allg.h"
+#include "ac/global_file.h"
 #include "ac/common.h"
 #include "ac/file.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
+#include "util/filestream.h"
+
+using AGS::Common::DataStream;
 
 #ifdef WINDOWS_VERSION
 //#include <crtdbg.h>
 //#include "winalleg.h"
 //#include <shlwapi.h>
 
-#elif defined(LINUX_VERSION) || defined(MAC_VERSION)
+#elif (defined(LINUX_VERSION) || defined(MAC_VERSION)) && !defined(PSP_VERSION)
 #include <dlfcn.h>
 /*
 #include <sys/types.h>
@@ -32,14 +35,15 @@
 #endif  // WINDOWS_VERSION
 
 extern int num_open_script_files;
-extern FILE*valid_handles[MAX_OPEN_SCRIPT_FILES+1];
+extern DataStream *valid_handles[MAX_OPEN_SCRIPT_FILES+1];
 
 
-FILE* FileOpen(const char*fnmm, const char* mode) {
+DataStream *FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode) {
   int useindx = 0;
   char fileToOpen[MAX_PATH];
 
-  if (!validate_user_file_path(fnmm, fileToOpen, strcmp(mode, "rb") != 0))
+  if (!validate_user_file_path(fnmm, fileToOpen,
+      (open_mode != Common::kFile_Open || work_mode != Common::kFile_Read)))
     return NULL;
 
   // find a free file handle to use
@@ -49,7 +53,7 @@ FILE* FileOpen(const char*fnmm, const char* mode) {
       break;
   }
 
-  valid_handles[useindx] = fopen(fileToOpen, mode);
+  valid_handles[useindx] = Common::File::OpenFile(fileToOpen, open_mode, work_mode);
 
   if (valid_handles[useindx] == NULL)
     return NULL;
@@ -63,77 +67,83 @@ FILE* FileOpen(const char*fnmm, const char* mode) {
   return valid_handles[useindx];
 }
 
-void FileClose(FILE*hha) {
+void FileClose(DataStream *hha) {
   valid_handles[check_valid_file_handle(hha,"FileClose")] = NULL;
-  fclose(hha);
+  delete hha;
   }
-void FileWrite(FILE*haa, const char *towrite) {
+void FileWrite(DataStream *haa, const char *towrite) {
   check_valid_file_handle(haa,"FileWrite");
-  putw(strlen(towrite)+1,haa);
-  fwrite(towrite,strlen(towrite)+1,1,haa);
+  haa->WriteInt32(strlen(towrite)+1);
+  haa->Write(towrite,strlen(towrite)+1);
   }
-void FileWriteRawLine(FILE*haa, const char*towrite) {
+void FileWriteRawLine(DataStream *haa, const char*towrite) {
   check_valid_file_handle(haa,"FileWriteRawLine");
-  fwrite(towrite,strlen(towrite),1,haa);
-  fputc (13, haa);
-  fputc (10, haa);
+  haa->Write(towrite,strlen(towrite));
+  haa->WriteInt8 (13);
+  haa->WriteInt8 (10);
   }
-void FileRead(FILE*haa,char*toread) {
+void FileRead(DataStream *haa,char*toread) {
   VALIDATE_STRING(toread);
   check_valid_file_handle(haa,"FileRead");
-  if (feof(haa)) {
+  if (haa->EOS()) {
     toread[0] = 0;
     return;
   }
-  int lle=getw(haa);
+  int lle=haa->ReadInt32();
   if ((lle>=200) | (lle<1)) quit("!FileRead: file was not written by FileWrite");
-  fread(toread,lle,1,haa);
+  haa->Read(toread,lle);
   }
-int FileIsEOF (FILE *haa) {
+int FileIsEOF (DataStream *haa) {
   check_valid_file_handle(haa,"FileIsEOF");
-  if (feof(haa))
+  if (haa->EOS())
     return 1;
-  if (ferror (haa))
+
+  // TODO: stream errors
+  if (ferror (((Common::FileStream*)haa)->GetHandle()))
     return 1;
-  if (ftell (haa) >= filelength (fileno(haa)))
+
+  if (haa->GetPosition () >= haa->GetLength())
     return 1;
   return 0;
 }
-int FileIsError(FILE *haa) {
+int FileIsError(DataStream *haa) {
   check_valid_file_handle(haa,"FileIsError");
-  if (ferror(haa))
+
+  // TODO: stream errors
+  if (ferror(((Common::FileStream*)haa)->GetHandle()))
     return 1;
+
   return 0;
 }
-void FileWriteInt(FILE*haa,int into) {
+void FileWriteInt(DataStream *haa,int into) {
   check_valid_file_handle(haa,"FileWriteInt");
-  fputc('I',haa);
-  putw(into,haa);
+  haa->WriteInt8('I');
+  haa->WriteInt32(into);
   }
-int FileReadInt(FILE*haa) {
+int FileReadInt(DataStream *haa) {
   check_valid_file_handle(haa,"FileReadInt");
-  if (feof(haa))
+  if (haa->EOS())
     return -1;
-  if (fgetc(haa)!='I')
+  if (haa->ReadInt8()!='I')
     quit("!FileReadInt: File read back in wrong order");
-  return getw(haa);
+  return haa->ReadInt32();
   }
-char FileReadRawChar(FILE*haa) {
+char FileReadRawChar(DataStream *haa) {
   check_valid_file_handle(haa,"FileReadRawChar");
-  if (feof(haa))
+  if (haa->EOS())
     return -1;
-  return fgetc(haa);
+  return haa->ReadInt8();
   }
-int FileReadRawInt(FILE*haa) {
+int FileReadRawInt(DataStream *haa) {
   check_valid_file_handle(haa,"FileReadRawInt");
-  if (feof(haa))
+  if (haa->EOS())
     return -1;
-  return getw(haa);
+  return haa->ReadInt32();
 }
-void FileWriteRawChar(FILE *haa, int chartoWrite) {
+void FileWriteRawChar(DataStream *haa, int chartoWrite) {
   check_valid_file_handle(haa,"FileWriteRawChar");
   if ((chartoWrite < 0) || (chartoWrite > 255))
     quit("!FileWriteRawChar: can only write values 0-255");
 
-  fputc(chartoWrite, haa);
+  haa->WriteInt8(chartoWrite);
 }

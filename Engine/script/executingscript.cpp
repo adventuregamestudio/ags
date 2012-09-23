@@ -1,7 +1,7 @@
 
-#include "string.h"
 #include "executingscript.h"
-#include "debug/debug.h"
+#include <string.h>
+#include "debug/debug_log.h"
 
 int ExecutingScript::queue_action(PostScriptAction act, int data, const char *aname) {
     if (numPostScriptActions >= MAX_QUEUED_ACTIONS)

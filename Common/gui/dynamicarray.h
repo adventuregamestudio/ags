@@ -14,6 +14,7 @@
 #define __AC_DYNAMICARRAY_H
 
 #include <cstdlib> //calloc()
+#include <cstring> //memcpy()
 
 template <typename T> struct DynamicArray {
 private:

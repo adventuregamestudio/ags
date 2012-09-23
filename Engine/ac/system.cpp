@@ -10,8 +10,9 @@
 #include "ac/string.h"
 #include "ac/system.h"
 #include "ac/dynobj/scriptsystem.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "main/main.h"
+#include "gfx/graphicsdriver.h"
 
 extern GameSetup usetup;
 extern GameState play;

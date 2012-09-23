@@ -1,8 +1,8 @@
 
 #include <string.h>
+#include "util/wgt2allg.h"
 #include "ac/textbox.h"
 #include "ac/common.h"
-#include "util/wgt2allg.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/string.h"
 

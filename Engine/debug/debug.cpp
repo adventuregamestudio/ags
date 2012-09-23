@@ -21,12 +21,21 @@
 #include "ac/common.h"
 #include "ac/roomstruct.h"
 #include "ac/runtime_defines.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
+#include "debug/debugger.h"
 #include "gui/dynamicarray.h"
+#include "debug/out.h"
+#include "debug/consoleoutputtarget.h"
+#include "debug/rawfileoutputtarget.h"
 #include "media/audio/audio.h"
 #include "script/script.h"
 #include "script/script_common.h"
 #include "script/cc_error.h"
+#include "util/filestream.h"
+#include "util/textstreamwriter.h"
+
+using AGS::Common::DataStream;
+using AGS::Common::TextStreamWriter;
 
 extern char check_dynamic_sprites_at_exit;
 extern int displayed_room;
@@ -48,7 +57,7 @@ HWND editor_window_handle = NULL;
 
 #ifdef WINDOWS_VERSION
 
-#include "debug/namedpipesagsdebugger.h"
+#include "platform/windows/debug/namedpipesagsdebugger.h"
 
 IAGSEditorDebugger *GetEditorDebugger(const char *instanceToken)
 {
@@ -70,6 +79,47 @@ DebugConsoleText debug_line[DEBUG_CONSOLE_NUMLINES];
 int first_debug_line = 0, last_debug_line = 0, display_console = 0;
 
 int fps=0,display_fps=0;
+
+namespace Out = AGS::Common::Out;
+
+enum
+{
+    TARGET_FILE,
+    TARGET_SYSTEMDEBUGGER,
+    TARGET_GAMECONSOLE,
+    TARGET_FILE_EXTRA_TEST,
+};
+
+void initialize_output_subsystem()
+{
+    Out::Init(0, NULL);
+	Out::AddOutputTarget(TARGET_FILE, new AGS::Engine::Out::CRawFileOutputTarget("agsgame.log"),
+        Out::kVerbose_NoDebug, false);
+    Out::AddOutputTarget(TARGET_SYSTEMDEBUGGER, AGSPlatformDriver::GetDriver(),
+        Out::kVerbose_WarnErrors, true);
+	Out::AddOutputTarget(TARGET_GAMECONSOLE, new AGS::Engine::Out::CConsoleOutputTarget(),
+        Out::kVerbose_Always, false);
+    Out::FPrint("Debug system: output subsystem initialized");
+}
+
+void initialize_debug_system()
+{
+    initialize_output_subsystem();
+
+    Out::FPrint("Debug system initialized");
+}
+
+void shutdown_output_subsystem()
+{
+    Out::FPrint("Debug system: shutting down output subsystem...");
+
+    Out::Shutdown();
+}
+
+void shutdown_debug_system()
+{
+    shutdown_output_subsystem();
+}
 
 void quitprintf(char*texx, ...) {
     char displbuf[STD_BUFFER_SIZE];
@@ -113,12 +163,12 @@ void debug_log(char*texx, ...) {
     quit(buffer2);
     }*/
 
-    char*openmode = "at";
+    //char*openmode = "at";
     if (first_time) {
-        openmode = "wt";
+        //openmode = "wt";
         first_time = 0;
     }
-    FILE*outfil = fopen("warnings.log",openmode);
+    DataStream *outfil = Common::File::OpenFileWrite("warnings.log");
     if (outfil == NULL)
     {
         debug_write_console("* UNABLE TO WRITE TO WARNINGS.LOG");
@@ -126,8 +176,8 @@ void debug_log(char*texx, ...) {
     }
     else
     {
-        fprintf(outfil,"(in room %d): %s\n",displayed_room,displbuf);
-        fclose(outfil);
+        TextStreamWriter writer(outfil);
+        writer.WriteFormat("(in room %d): %s\n",displayed_room,displbuf);
     }
 }
 

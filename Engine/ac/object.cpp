@@ -16,9 +16,13 @@
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
 #include "ac/walkablearea.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "main/game_run.h"
 #include "ac/route_finder.h"
+#include "gfx/graphicsdriver.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::Bitmap;
 
 
 extern ScriptObject scrObj[MAX_INIT_SPR];
@@ -30,7 +34,7 @@ extern int loaded_game_file_version;
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern MoveList *mls;
 extern GameSetupStruct game;
-extern block walkable_areas_temp;
+extern Bitmap *walkable_areas_temp;
 extern IGraphicsDriver *gfxDriver;
 extern int offsetx,offsety;
 
@@ -71,13 +75,12 @@ int Object_GetTransparency(ScriptObject *objj) {
     if (!is_valid_object(objj->id))
         quit("!Object.Transparent: invalid object number specified");
 
-    if (objj->obj->transparent == 0)
+    if (objs[objj->id].transparent == 0)
         return 0;
-    if (objj->obj->transparent == 255)
-        return 100;
+    if (objs[objj->id].transparent == 255)
+       return 100;
 
-    return 100 - ((objj->obj->transparent * 10) / 25);
-
+    return 100 - ((objs[objj->id].transparent * 10) / 25);
 }
 
 void Object_SetBaseline(ScriptObject *objj, int basel) {
@@ -132,21 +135,21 @@ void Object_SetVisible(ScriptObject *objj, int onoroff) {
 }
 
 int Object_GetView(ScriptObject *objj) {
-    if (objj->obj->view < 0)
+    if (objs[objj->id].view < 0)
         return 0;
-    return objj->obj->view + 1;
+    return objs[objj->id].view + 1;
 }
 
 int Object_GetLoop(ScriptObject *objj) {
-    if (objj->obj->view < 0)
+    if (objs[objj->id].view < 0)
         return 0;
-    return objj->obj->loop;
+    return objs[objj->id].loop;
 }
 
 int Object_GetFrame(ScriptObject *objj) {
-    if (objj->obj->view < 0)
+    if (objs[objj->id].view < 0)
         return 0;
-    return objj->obj->frame;
+    return objs[objj->id].frame;
 }
 
 int Object_GetVisible(ScriptObject *objj) {
@@ -187,11 +190,11 @@ void Object_SetPosition(ScriptObject *objj, int xx, int yy) {
 }
 
 void Object_SetX(ScriptObject *objj, int xx) {
-    SetObjectPosition(objj->id, xx, objj->obj->y);
+    SetObjectPosition(objj->id, xx, objs[objj->id].y);
 }
 
 void Object_SetY(ScriptObject *objj, int yy) {
-    SetObjectPosition(objj->id, objj->obj->x, yy);
+    SetObjectPosition(objj->id, objs[objj->id].x, yy);
 }
 
 void Object_GetName(ScriptObject *objj, char *buffer) {
@@ -216,7 +219,7 @@ void Object_Move(ScriptObject *objj, int x, int y, int speed, int blocking, int 
     move_object(objj->id, x, y, speed, direct);
 
     if ((blocking == BLOCKING) || (blocking == 1))
-        do_main_cycle(UNTIL_SHORTIS0,(int)&objj->obj->moving);
+        do_main_cycle(UNTIL_SHORTIS0,(long)&objs[objj->id].moving);
     else if ((blocking != IN_BACKGROUND) && (blocking != 0))
         quit("Object.Move: invalid BLOCKING paramter");
 }
@@ -229,7 +232,7 @@ int Object_GetClickable(ScriptObject *objj) {
     if (!is_valid_object(objj->id))
         quit("!Object.Clickable: Invalid object specified");
 
-    if (objj->obj->flags & OBJF_NOINTERACT)
+    if (objs[objj->id].flags & OBJF_NOINTERACT)
         return 0;
     return 1;
 }
@@ -238,9 +241,9 @@ void Object_SetIgnoreScaling(ScriptObject *objj, int newval) {
     if (!is_valid_object(objj->id))
         quit("!Object.IgnoreScaling: Invalid object specified");
 
-    objj->obj->flags &= ~OBJF_USEROOMSCALING;
+    objs[objj->id].flags &= ~OBJF_USEROOMSCALING;
     if (!newval)
-        objj->obj->flags |= OBJF_USEROOMSCALING;
+        objs[objj->id].flags |= OBJF_USEROOMSCALING;
 
     // clear the cache
     objcache[objj->id].ywas = -9999;
@@ -250,37 +253,37 @@ int Object_GetIgnoreScaling(ScriptObject *objj) {
     if (!is_valid_object(objj->id))
         quit("!Object.IgnoreScaling: Invalid object specified");
 
-    if (objj->obj->flags & OBJF_USEROOMSCALING)
+    if (objs[objj->id].flags & OBJF_USEROOMSCALING)
         return 0;
     return 1;
 }
 
 void Object_SetSolid(ScriptObject *objj, int solid) {
-    objj->obj->flags &= ~OBJF_SOLID;
+    objs[objj->id].flags &= ~OBJF_SOLID;
     if (solid)
-        objj->obj->flags |= OBJF_SOLID;
+      objs[objj->id].flags |= OBJF_SOLID;
 }
 
 int Object_GetSolid(ScriptObject *objj) {
-    if (objj->obj->flags & OBJF_SOLID)
+    if (objs[objj->id].flags & OBJF_SOLID)
         return 1;
     return 0;
 }
 
 void Object_SetBlockingWidth(ScriptObject *objj, int bwid) {
-    objj->obj->blocking_width = bwid;
+    objs[objj->id].blocking_width = bwid;
 }
 
 int Object_GetBlockingWidth(ScriptObject *objj) {
-    return objj->obj->blocking_width;
+    return objs[objj->id].blocking_width;
 }
 
 void Object_SetBlockingHeight(ScriptObject *objj, int bhit) {
-    objj->obj->blocking_height = bhit;
+    objs[objj->id].blocking_height = bhit;
 }
 
 int Object_GetBlockingHeight(ScriptObject *objj) {
-    return objj->obj->blocking_height;
+    return objs[objj->id].blocking_height;
 }
 
 int Object_GetID(ScriptObject *objj) {
@@ -295,7 +298,7 @@ int Object_GetIgnoreWalkbehinds(ScriptObject *chaa) {
     if (!is_valid_object(chaa->id))
         quit("!Object.IgnoreWalkbehinds: Invalid object specified");
 
-    if (chaa->obj->flags & OBJF_NOWALKBEHINDS)
+    if (objs[chaa->id].flags & OBJF_NOWALKBEHINDS)
         return 1;
     return 0;
 }
@@ -365,8 +368,8 @@ void get_object_blocking_rect(int objid, int *x1, int *y1, int *width, int *y2) 
         cwidth += fromx;
         fromx = 0;
     }
-    if (fromx + cwidth >= convert_back_to_high_res(walkable_areas_temp->w))
-        cwidth = convert_back_to_high_res(walkable_areas_temp->w) - fromx;
+    if (fromx + cwidth >= convert_back_to_high_res(walkable_areas_temp->GetWidth()))
+        cwidth = convert_back_to_high_res(walkable_areas_temp->GetWidth()) - fromx;
 
     if (x1)
         *x1 = fromx;
@@ -393,9 +396,9 @@ int isposinbox(int mmx,int mmy,int lf,int tp,int rt,int bt) {
 
 // xx,yy is the position in room co-ordinates that we are checking
 // arx,ary is the sprite x/y co-ordinates
-int is_pos_in_sprite(int xx,int yy,int arx,int ary, block sprit, int spww,int sphh, int flipped) {
-    if (spww==0) spww = divide_down_coordinate(sprit->w) - 1;
-    if (sphh==0) sphh = divide_down_coordinate(sprit->h) - 1;
+int is_pos_in_sprite(int xx,int yy,int arx,int ary, Bitmap *sprit, int spww,int sphh, int flipped) {
+    if (spww==0) spww = divide_down_coordinate(sprit->GetWidth()) - 1;
+    if (sphh==0) sphh = divide_down_coordinate(sprit->GetHeight()) - 1;
 
     if (isposinbox(xx,yy,arx,ary,arx+spww,ary+sphh)==FALSE)
         return FALSE;
@@ -413,18 +416,18 @@ int is_pos_in_sprite(int xx,int yy,int arx,int ary, block sprit, int spww,int sp
             // calculations to compensate
             multiply_up_coordinates(&spww, &sphh);
 
-            if (spww != sprit->w)
-                xpos = (xpos * sprit->w) / spww;
-            if (sphh != sprit->h)
-                ypos = (ypos * sprit->h) / sphh;
+            if (spww != sprit->GetWidth())
+                xpos = (xpos * sprit->GetWidth()) / spww;
+            if (sphh != sprit->GetHeight())
+                ypos = (ypos * sprit->GetHeight()) / sphh;
         }
 
         if (flipped)
-            xpos = (sprit->w - 1) - xpos;
+            xpos = (sprit->GetWidth() - 1) - xpos;
 
         int gpcol = my_getpixel(sprit, xpos, ypos);
 
-        if ((gpcol == bitmap_mask_color(sprit)) || (gpcol == -1))
+        if ((gpcol == sprit->GetMaskColor()) || (gpcol == -1))
             return FALSE;
     }
     return TRUE;

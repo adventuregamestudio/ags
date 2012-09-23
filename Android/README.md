@@ -49,6 +49,22 @@ source snapshot.
 
 
 
+##MIDI playback
+
+For midi music playback, you have to download GUS patches. We recommend
+"Richard Sanders's GUS patches" from this address:
+
+http://alleg.sourceforge.net/digmid.html
+
+A direct link is here:
+
+http://www.eglebbk.dds.nl/program/download/digmid.dat
+
+Rename that file to **patches.dat** and place it into the **ags**
+directory alongside your games.
+
+
+
 #Building the engine
 
 The Android app consists of three parts, each with different requirements:

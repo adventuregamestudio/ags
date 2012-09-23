@@ -176,7 +176,7 @@ int GetAlpha(int sprite, int x, int y){
     BITMAP *engineSprite = engine->GetSpriteGraphic(sprite);
     
     unsigned char **charbuffer = engine->GetRawBitmapSurface (engineSprite);
-    unsigned long **longbuffer = (unsigned long**)charbuffer;
+    unsigned int **longbuffer = (unsigned int**)charbuffer;
 
     int alpha = geta32(longbuffer[y][x]);
 
@@ -194,7 +194,7 @@ int PutAlpha(int sprite, int x, int y, int alpha){
     BITMAP *engineSprite = engine->GetSpriteGraphic(sprite);
     
     unsigned char **charbuffer = engine->GetRawBitmapSurface (engineSprite);
-    unsigned long **longbuffer = (unsigned long**)charbuffer;
+    unsigned int **longbuffer = (unsigned int**)charbuffer;
 
     
     int r = getr32(longbuffer[y][x]);
@@ -227,7 +227,7 @@ int HighPass(int sprite, int threshold){
 	engine->GetBitmapDimensions(src, &srcWidth, &srcHeight, NULL);
 
     unsigned char **srccharbuffer = engine->GetRawBitmapSurface (src);
-    unsigned long **srclongbuffer = (unsigned long**)srccharbuffer;
+    unsigned int **srclongbuffer = (unsigned int**)srccharbuffer;
     
         for (int y = 0; y<srcHeight; y++){ 
          
@@ -260,7 +260,7 @@ int Blur (int sprite, int radius) {
     engine->GetBitmapDimensions(src, &srcWidth, &srcHeight, NULL);
 
     unsigned char **srccharbuffer = engine->GetRawBitmapSurface (src);
-    unsigned long **srclongbuffer = (unsigned long**)srccharbuffer;
+    unsigned int **srclongbuffer = (unsigned int**)srccharbuffer;
     int negrad = -1 * radius;
     
     //use a 1Dimensional array since the array is on the free store, not the stack
@@ -438,10 +438,10 @@ int DrawSprite(int destination, int sprite, int x, int y, int DrawMode, int tran
     if (x > destWidth || y > destHeight || x + srcWidth < 0 || y + srcHeight < 0) return 1; // offscreen
     
     unsigned char **srccharbuffer = engine->GetRawBitmapSurface (src);
-    unsigned long **srclongbuffer = (unsigned long**)srccharbuffer;
+    unsigned int **srclongbuffer = (unsigned int**)srccharbuffer;
     
     unsigned char **destcharbuffer = engine->GetRawBitmapSurface (dest);
-    unsigned long **destlongbuffer = (unsigned long**)destcharbuffer;
+    unsigned int **destlongbuffer = (unsigned int**)destcharbuffer;
     
    
      
@@ -450,7 +450,7 @@ int DrawSprite(int destination, int sprite, int x, int y, int DrawMode, int tran
 
     int destx, desty; 
     int srcr, srcg, srcb, srca, destr, destg, destb, desta, finalr, finalg, finalb, finala;
-    unsigned long col;
+    unsigned int col;
     int starty = 0;
     int startx = 0;
 
@@ -719,17 +719,17 @@ int DrawAdd(int destination, int sprite, int x, int y, float scale){
     if (x > destWidth || y > destHeight) return 1; // offscreen
 
     unsigned char **srccharbuffer = engine->GetRawBitmapSurface (src);
-    unsigned long **srclongbuffer = (unsigned long**)srccharbuffer;
+    unsigned int **srclongbuffer = (unsigned int**)srccharbuffer;
     
     unsigned char **destcharbuffer = engine->GetRawBitmapSurface (dest);
-    unsigned long **destlongbuffer = (unsigned long**)destcharbuffer;
+    unsigned int **destlongbuffer = (unsigned int**)destcharbuffer;
     
     if (srcWidth + x > destWidth) srcWidth = destWidth - x - 1;
     if (srcHeight + y > destHeight) srcHeight = destHeight - y - 1;
 
     int destx, desty; 
     int srcr, srcg, srcb, srca, destr, destg, destb, desta, finalr, finalg, finalb, finala;
-    unsigned long col;
+    unsigned int col;
     int ycount = 0;
     int xcount = 0;
 
@@ -810,10 +810,10 @@ int DrawAlpha(int destination, int sprite, int x, int y, int trans)
     if (x > destWidth || y > destHeight) return 1; // offscreen
 
     unsigned char **srccharbuffer = engine->GetRawBitmapSurface (src);
-    unsigned long **srclongbuffer = (unsigned long**)srccharbuffer;
+    unsigned int **srclongbuffer = (unsigned int**)srccharbuffer;
     
     unsigned char **destcharbuffer = engine->GetRawBitmapSurface (dest);
-    unsigned long **destlongbuffer = (unsigned long**)destcharbuffer;
+    unsigned int **destlongbuffer = (unsigned int**)destcharbuffer;
     
     if (srcWidth + x > destWidth) srcWidth = destWidth - x - 1;
     if (srcHeight + y > destHeight) srcHeight = destHeight - y - 1;

@@ -3,6 +3,10 @@
 #include "gfx/gfxfilter_hq2x.h"
 #include "gfx/hq2x3x.h"
 #include "gfx/gfxfilterdefines.h"
+#include "gfx/bitmap.h"
+
+using AGS::Common::Bitmap;
+namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 const char* Hq2xGFXFilter::Initialize(int width, int height, int colDepth) {
     if (colDepth < 32)
@@ -12,29 +16,29 @@ const char* Hq2xGFXFilter::Initialize(int width, int height, int colDepth) {
 }
 
 
-BITMAP* Hq2xGFXFilter::ScreenInitialized(BITMAP *screen, int fakeWidth, int fakeHeight) {
+Bitmap* Hq2xGFXFilter::ScreenInitialized(Bitmap *screen, int fakeWidth, int fakeHeight) {
     realScreen = screen;
-    realScreenBuffer = create_bitmap(screen->w, screen->h);
-    realScreenSizedBuffer = create_bitmap_ex(bitmap_color_depth(screen), screen->w, screen->h);
-    fakeScreen = create_bitmap_ex(bitmap_color_depth(screen), fakeWidth, fakeHeight);
+    realScreenBuffer = BitmapHelper::CreateBitmap(screen->GetWidth(), screen->GetHeight());
+    realScreenSizedBuffer = BitmapHelper::CreateBitmap(screen->GetWidth(), screen->GetHeight(), screen->GetColorDepth());
+    fakeScreen = BitmapHelper::CreateBitmap(fakeWidth, fakeHeight, screen->GetColorDepth());
     InitLUTs();
     return fakeScreen;
 }
 
-BITMAP *Hq2xGFXFilter::ShutdownAndReturnRealScreen(BITMAP *currentScreen) {
-    destroy_bitmap(fakeScreen);
-    destroy_bitmap(realScreenBuffer);
-    destroy_bitmap(realScreenSizedBuffer);
+Bitmap *Hq2xGFXFilter::ShutdownAndReturnRealScreen(Bitmap *currentScreen) {
+    delete fakeScreen;
+    delete realScreenBuffer;
+    delete realScreenSizedBuffer;
     return realScreen;
 }
 
-void Hq2xGFXFilter::RenderScreen(BITMAP *toRender, int x, int y) {
+void Hq2xGFXFilter::RenderScreen(Bitmap *toRender, int x, int y) {
 
-    acquire_bitmap(realScreenBuffer);
-    hq2x_32(&toRender->line[0][0], &realScreenBuffer->line[0][0], toRender->w, toRender->h, realScreenBuffer->w * BYTES_PER_PIXEL(bitmap_color_depth(realScreenBuffer)));
-    release_bitmap(realScreenBuffer);
+    realScreenBuffer->Acquire();
+    hq2x_32(&toRender->GetScanLineForWriting(0)[0], &realScreenBuffer->GetScanLineForWriting(0)[0], toRender->GetWidth(), toRender->GetHeight(), realScreenBuffer->GetWidth() * BYTES_PER_PIXEL(realScreenBuffer->GetColorDepth()));
+    realScreenBuffer->Release();
 
-    blit(realScreenBuffer, realScreen, 0, 0, x * MULTIPLIER, y * MULTIPLIER, realScreen->w, realScreen->h);
+    realScreen->Blit(realScreenBuffer, 0, 0, x * MULTIPLIER, y * MULTIPLIER, realScreen->GetWidth(), realScreen->GetHeight());
 
     lastBlitFrom = toRender;
 }

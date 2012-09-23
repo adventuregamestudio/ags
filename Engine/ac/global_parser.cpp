@@ -1,4 +1,4 @@
-
+#include <cstring> //strcpy()
 #include "ac/global_parser.h"
 #include "ac/common.h"
 #include "ac/gamestate.h"

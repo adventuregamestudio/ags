@@ -2,6 +2,11 @@
 #include "util/wgt2allg.h"                           // exists()
 #include "debug/filebasedagsdebugger.h"
 #include "ac/file.h"                     // filelength()
+#include "util/filestream.h"
+#include "util/textstreamwriter.h"
+
+using AGS::Common::DataStream;
+using AGS::Common::TextStreamWriter;
 
 const char* SENT_MESSAGE_FILE_NAME = "dbgrecv.tmp";
 
@@ -22,12 +27,15 @@ bool FileBasedAGSDebugger::SendMessageToEditor(const char *message)
 {
     while (exists(SENT_MESSAGE_FILE_NAME))
     {
-        Sleep(1);
+        platform->YieldCPU();
     }
 
-    FILE *outt = fopen(SENT_MESSAGE_FILE_NAME, "wb");
-    fprintf(outt, message);
-    fclose(outt);
+    DataStream *out = Common::File::CreateFile(SENT_MESSAGE_FILE_NAME);
+    // CHECKME: originally the file was opened as "wb" for some reason,
+    // which means the message should be written as a binary array;
+    // or shouldn't it?
+    out->Write(message, strlen(message));
+    delete out;
     return true;
 }
 
@@ -38,16 +46,16 @@ bool FileBasedAGSDebugger::IsMessageAvailable()
 
 char* FileBasedAGSDebugger::GetNextMessage()
 {
-    FILE *inn = fopen("dbgsend.tmp", "rb");
-    if (inn == NULL)
+    DataStream *in = Common::File::OpenFileRead("dbgsend.tmp");
+    if (in == NULL)
     {
         // check again, because the editor might have deleted the file in the meantime
         return NULL;
     }
-    int fileSize = filelength(fileno(inn));
+    int fileSize = in->GetLength();
     char *msg = (char*)malloc(fileSize + 1);
-    fread(msg, fileSize, 1, inn);
-    fclose(inn);
+    in->Read(msg, fileSize);
+    delete in;
     unlink("dbgsend.tmp");
     msg[fileSize] = 0;
     return msg;

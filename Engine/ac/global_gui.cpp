@@ -10,7 +10,7 @@
 #include "ac/guicontrol.h"
 #include "ac/mouse.h"
 #include "ac/string.h"
-#include "debug/debug.h"
+#include "debug/debug_log.h"
 #include "gui/guimain.h"
 
 extern GameSetupStruct game;

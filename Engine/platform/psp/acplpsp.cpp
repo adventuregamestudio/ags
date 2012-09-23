@@ -3,7 +3,6 @@
 #endif
 
 
-#include "acplatfm.h"
 #include <pspsdk.h>
 #include <pspthreadman.h>
 #include <pspdebug.h>
@@ -11,12 +10,16 @@
 #include <pspctrl.h>
 #include <pspkernel.h>
 #include <psputility.h>
+#include <pspfpu.h>
 #include <stdio.h>
 #include <dirent.h>
 #include <sys/stat.h> 
 
 #include <allegro.h>
 
+#include "ac/runtime_defines.h"
+#include "platform/base/agsplatformdriver.h"
+#include "plugin/agsplugin.h"
 
 extern "C" {
 #include <systemctrl.h>
@@ -36,7 +39,7 @@ extern "C" void gprof_cleanup();
 #define PSP_CONFIG_FILENAME "psp.cfg"
 
 
-struct AGSPSP : AGS32BitOSDriver {
+struct AGSPSP : AGSPlatformDriver {
 
   virtual int  CDPlayerCommand(int cmdd, int datt);
   virtual void Delay(int millis);
@@ -53,10 +56,10 @@ struct AGSPSP : AGS32BitOSDriver {
   virtual void WriteConsole(const char*, ...);
   virtual void ReplaceSpecialPaths(const char *sourcePath, char *destPath);
   virtual void WriteDebugString(const char* texx, ...);
-  virtual void ReadPluginsFromDisk(FILE *iii);
+  virtual void ReadPluginsFromDisk(AGS::Common::DataStream *iii);
   virtual void StartPlugins();
   virtual void ShutdownPlugins();
-  virtual int RunPluginHooks(int event, int data);
+  virtual int RunPluginHooks(int event, long data);
   virtual void RunPluginInitGfxHooks(const char *driverName, void *data);
   virtual int RunPluginDebugHooks(const char *scriptfile, int linenum);
 };
@@ -559,7 +562,7 @@ void AGSPSP::ShutdownCDPlayer() {
 }
 
 
-void AGSPSP::ReadPluginsFromDisk(FILE *iii) {
+void AGSPSP::ReadPluginsFromDisk(AGS::Common::DataStream *iii) {
   pl_read_plugins_from_disk(iii);
 }
 
@@ -571,7 +574,7 @@ void AGSPSP::ShutdownPlugins() {
   pl_stop_plugins();
 }
 
-int AGSPSP::RunPluginHooks(int event, int data) {
+int AGSPSP::RunPluginHooks(int event, long data) {
   return pl_run_plugin_hooks(event, data);
 }
 
@@ -586,19 +589,27 @@ int AGSPSP::RunPluginDebugHooks(const char *scriptfile, int linenum) {
 
 AGSPlatformDriver* AGSPlatformDriver::GetDriver() {
   if (instance == NULL)
+  {
     instance = new AGSPSP();
 
-  // Setup the exception handler prx.
-  initExceptionHandler();
+    // Disable FPU exception.
+    // JJS: I only know of one case where this is relevant. In Ben Jordan 8 when
+    // going from the map to the library SCMD_FMULREG will be called with the
+    // floating point register containing NAN.
+    pspFpuSetEnable(0);
 
-  // Load the kernel module
-  pspSdkLoadStartModule("kernel.prx", PSP_MEMORY_PARTITION_KERNEL);
+    // Setup the exception handler prx.
+    initExceptionHandler();
 
-  // Set CPU speed to maximum here.
-  scePowerSetClockFrequency(333, 333, 166);
-  
-  // Initialize the game filename.
-  psp_initialize();
-  
+    // Load the kernel module
+    pspSdkLoadStartModule("kernel.prx", PSP_MEMORY_PARTITION_KERNEL);
+
+    // Set CPU speed to maximum here.
+    scePowerSetClockFrequency(333, 333, 166);
+
+    // Initialize the game filename.
+    psp_initialize();
+  }
+
   return instance;
 }

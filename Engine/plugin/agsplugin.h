@@ -11,10 +11,22 @@
 // the original agsplugin*.zip file and is totally unmodified.
 //
 
+//-----------------------------------------------------------------------------
+// [IKM] 2012-04-06
+//
+// A NOTE ON BITMAP CLASS
+//
+// We cannot use Bitmap in the plugin interfaces right so because that would
+// break backwards-compatiblity with previously created plugins. Bitmap may
+// only be used internally, in the IAGSEngine implementation, in a very limited
+// fashion.
+//
+//-----------------------------------------------------------------------------
+
 #ifndef _AGS_PLUGIN_H
 #define _AGS_PLUGIN_H
 
-#include "platform/file.h"
+#include "util/file.h"
 
 // If the plugin isn't using DDraw, don't require the headers
 #ifndef DIRECTDRAW_VERSION
@@ -278,8 +290,7 @@ public:
   virtual void Unserialize(int key, const char *serializedData, int dataSize) = 0;
 };
 
-/*
-#ifndef __ACRUNTIME_H
+// WARNING: this interface must correspond to IAGSFontRenderer declared in the Common
 class IAGSFontRenderer {
 public:
   virtual bool LoadFromDisk(int fontNumber, int fontSize) = 0;
@@ -291,9 +302,6 @@ public:
   virtual void AdjustYCoordinateForFont(int *ycoord, int fontNumber) = 0;
   virtual void EnsureTextValidForFont(char *text, int fontNumber) = 0;
 };
-#endif
-*/
-#include "font/agsfontrenderer.h"	// IAGSFontRenderer
 
 // The plugin-to-engine interface
 class IAGSEngine {
@@ -561,11 +569,14 @@ DLLEXPORT int    AGS_PluginV2 ( ) { return 1; }
 
 #endif // THIS_IS_THE_PLUGIN
 
+namespace AGS { namespace Common { class DataStream; }}
+using namespace AGS; // FIXME later
+
 void pl_stop_plugins();
 void pl_startup_plugins();
-int  pl_run_plugin_hooks (int event, int data);
+int  pl_run_plugin_hooks (int event, long data);
 void pl_run_plugin_init_gfx_hooks(const char *driverName, void *data);
 int  pl_run_plugin_debug_hooks (const char *scriptfile, int linenum);
-void pl_read_plugins_from_disk (FILE *iii);
+void pl_read_plugins_from_disk (Common::DataStream *in);
 
 #endif

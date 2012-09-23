@@ -16,6 +16,16 @@
 #define SCOM_VERSION 89
 #define SCOM_VERSIONSTR "0.89"
 
+// virtual CPU registers
+#define SREG_SP           1     // stack pointer
+#define SREG_MAR          2     // memory address register
+#define SREG_AX           3     // general purpose
+#define SREG_BX           4
+#define SREG_CX           5
+#define SREG_OP           6    // object pointer for member func calls
+#define SREG_DX           7
+#define CC_NUM_REGISTERS  8
+
 // virtual CPU commands
 #define SCMD_ADD          1     // reg1 += arg2
 #define SCMD_SUB          2     // reg1 -= arg2
@@ -106,12 +116,6 @@
 
 
 extern int currentline;
-
-// Internally used names for commands, registers
-extern const char *sccmdnames[];
-extern const char *regnames[];
-// Number of arguments for each command
-extern const short sccmdargs[];
 // Script file signature
 extern const char scfilesig[5];
 #define ENDFILESIG 0xbeefcafe

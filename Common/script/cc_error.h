@@ -13,7 +13,7 @@
 #ifndef __CC_ERROR_H
 #define __CC_ERROR_H
 
-#include "cc_instance.h"  // ccInstance
+#include "script/cc_script.h"
 
 extern void cc_error(char *, ...);
 
@@ -24,8 +24,5 @@ extern char ccErrorString[400]; // description of the error
 extern char ccErrorCallStack[400];
 extern bool ccErrorIsUserError;
 extern const char *ccCurScriptName; // name of currently compiling script
-
-extern void ccGetCallStack(ccInstance *inst, char *buffer, int maxLines);
-extern const char* ccGetSectionNameAtOffs(ccScript *scri, long offs);
 
 #endif // __CC_ERROR_H

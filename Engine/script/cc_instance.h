@@ -13,16 +13,9 @@
 #ifndef __CC_INSTANCE_H
 #define __CC_INSTANCE_H
 
-#include "cc_script.h"  // ccScript
+#include "script/script_common.h"
+#include "script/cc_script.h"  // ccScript
 
-#define SREG_SP           1     // stack pointer
-#define SREG_MAR          2     // memory address register
-#define SREG_AX           3     // general purpose
-#define SREG_BX           4
-#define SREG_CX           5
-#define SREG_OP           6    // object pointer for member func calls
-#define SREG_DX           7
-#define CC_NUM_REGISTERS  8
 #define INSTF_SHAREDATA   1
 #define INSTF_ABORTED     2
 #define INSTF_FREE        4
@@ -66,14 +59,8 @@ struct ccInstance
 #endif
 };
 
-// [IKM] 2012-06-12
-// This function was implemented in csrun.cpp and probably (not completely sure yet)
-// belongs to runtime only, but it is referenced in cc_error() function which, by-turn,
-// is referenced by AGS.Native.
-// Hence I am moving it here until more elegant solution is found.
-
 // returns the currently executing instance, or NULL if none
 extern ccInstance *ccGetCurrentInstance(void);
-extern ccInstance *current_instance; // should not be exposed this way, temporary solution
+void ccGetCallStack(ccInstance *inst, char *buffer, int maxLines);
 
-#endif
+#endif // __CC_INSTANCE_H

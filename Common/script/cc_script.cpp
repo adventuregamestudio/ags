@@ -228,3 +228,19 @@ void ccFreeScript(ccScript * ccs)
     ccs->numexports = 0;
     ccs->numSections = 0;
 }
+
+const char* ccGetSectionNameAtOffs(ccScript *scri, long offs) {
+
+    int i;
+    for (i = 0; i < scri->numSections; i++) {
+        if (scri->sectionOffsets[i] < offs)
+            continue;
+        break;
+    }
+
+    // if no sections in script, return unknown
+    if (i == 0)
+        return "(unknown section)";
+
+    return scri->sectionNames[i - 1];
+}

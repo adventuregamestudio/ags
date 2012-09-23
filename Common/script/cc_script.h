@@ -18,8 +18,6 @@
 namespace AGS { namespace Common { class DataStream; } }
 using namespace AGS; // FIXME later
 
-
-
 struct ccScript
 {
     char *globaldata;
@@ -54,5 +52,6 @@ extern ccScript *fread_script(Common::DataStream *in);
 // free the memory occupied by the script - do NOT attempt to run the
 // script after calling this function
 extern void ccFreeScript(ccScript *);
+extern const char* ccGetSectionNameAtOffs(ccScript *scri, long offs);
 
 #endif // __CC_SCRIPT_H

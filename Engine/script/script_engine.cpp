@@ -21,6 +21,8 @@ CLEAR that the code has been altered from the Standard Version.
 #include "util/wgt2allg.h"
 #include "ac/roomstruct.h"
 #include "util/filestream.h"
+#include "script/cc_instance.h"
+#include "script/cc_error.h"
 
 using AGS::Common::DataStream;
 
@@ -28,6 +30,18 @@ char *scripteditruntimecopr = "Script Editor v1.2 run-time component. (c) 1998 C
 
 #define SCRIPT_CONFIG_VERSION 1
 extern void quit(char *);
+extern int currentline; // in script/script_common
+
+void cc_error_at_line(char *buffer, const char *error_msg)
+{
+    if (ccGetCurrentInstance() == NULL) {
+        sprintf(ccErrorString, "Error (line %d): %s", currentline, error_msg);
+    }
+    else {
+        sprintf(ccErrorString, "Error: %s\n", error_msg);
+        ccGetCallStack(ccGetCurrentInstance(), ccErrorCallStack, 5);
+    }
+}
 
 void save_script_configuration(DataStream *out)
 {

@@ -5,6 +5,7 @@
 #include <string.h>
 #include "util/string.h"
 #include "util/math.h"
+#include <allegro.h> // for strlwr() on Linux
 
 #if !defined(WINDOWS_VERSION)
 #define stricmp strcasecmp

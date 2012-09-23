@@ -131,7 +131,7 @@ char *ci_find_file(char *dir_name, char *file_name)
       if (strcasecmp(filename, entry->d_name) == 0) {
 #ifdef _DEBUG
         fprintf(stderr, "ci_find_file: Looked for %s in rough %s, found diamond %s.\n", filename, directory, entry->d_name);
-#endif _DEBUG
+#endif // _DEBUG
         diamond = (char *)malloc(strlen(directory) + strlen(entry->d_name) + 2);
         append_filename(diamond, directory, entry->d_name, strlen(directory) + strlen(entry->d_name) + 2);
         break;

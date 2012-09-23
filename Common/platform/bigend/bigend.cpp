@@ -152,4 +152,4 @@ size_t __fwrite__lilendian(void const *ptr, size_t size, size_t nmemb, FILE *fp)
 //-----------------------------------------------------------------
 #undef __BIGEND_ORIGINAL_FILE_FUNCTIONS
 
-#endif ALLEGRO_BIG_ENDIAN
+#endif // ALLEGRO_BIG_ENDIAN

@@ -14,25 +14,37 @@ OBJS = $(OBJS_C:.c=.o)
 OBJS_COMMON_CPP = $(COMMON) $(COMMON_PLATFORM)
 OBJS_COMMON = $(OBJS_COMMON_CPP:.cpp=.o)
 
-all: ags
+.PHONY: printflags clean install uninstall rebuild
+
+all: printflags ags
 
 ags: $(OBJS) common.a 
-	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS) $(LIBS)
+	@echo "Linking engine..."
+	@$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS) $(LIBS)
 
 common.a: $(OBJS_COMMON)
-	$(AR) rcs $@ $^
-%.o: %.m
-	$(CC) $(CFLAGS) -c -o $@ $<
+	@echo "Linking common library..."
+	@$(AR) rcs $@ $^
 
-%.o: %.mm
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+%.o: %.c
+	@echo $@
+	@$(CC) $(CFLAGS) -c -o $@ $<
 
-.PHONY: clean install uninstall rebuild
+%.o: %.cpp
+	@echo $@
+	@$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+printflags:
+	@echo "CFLAGS =" $(CFLAGS) "\n"
+	@echo "CXXFLAGS =" $(CXXFLAGS) "\n"
+	@echo "LDFLAGS =" $(LDFLAGS) "\n"
+	@echo "LIBS =" $(LIBS) "\n"
 
 rebuild: clean all
 
 clean:
-	rm -f ags common.a $(OBJS) $(OBJS_COMMON)
+	@echo "Cleaning..."
+	@rm -f ags common.a $(OBJS) $(OBJS_COMMON)
 
 install: ags
 	mkdir -p $(PREFIX)/bin

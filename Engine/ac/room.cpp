@@ -45,6 +45,7 @@
 #include "util/datastream.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
+#include "core/assetmanager.h"
 
 using AGS::Common::DataStream;
 using AGS::Common::Bitmap;
@@ -384,7 +385,7 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
     sprintf(rmfile,"room%d.crm",newnum);
     if (newnum == 0) {
         // support both room0.crm and intro.crm
-        DataStream *inpu = clibfopen(rmfile);
+        DataStream *inpu = Common::AssetManager::OpenAsset(rmfile);
         if (inpu == NULL)
             strcpy(rmfile, "intro.crm");
         else

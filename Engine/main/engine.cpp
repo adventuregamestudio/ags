@@ -49,6 +49,7 @@
 #include "util/filestream.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
+#include "core/assetmanager.h"
 #include "util/misc.h"
 #include "../PSP/launcher/pe.h"
 
@@ -103,7 +104,7 @@ char *music_file;
 char *speech_file;
 WCHAR directoryPathBuffer[MAX_PATH];
 
-int errcod;
+Common::AssetError errcod;
 
 extern "C" HWND allegro_wnd;
 
@@ -258,13 +259,13 @@ int engine_init_game_data_external(int argc,char*argv[])
     }
 #endif
 
-    errcod=csetlib(game_file_name,"");
-    if (errcod) {
+    errcod=Common::AssetManager::SetDataFile(game_file_name);
+    if (errcod != Common::kAssetNoError) {
         //sprintf(gamefilenamebuf,"%s\\ac2game.ags",usetup.data_files_dir);
         free(game_file_name);
         game_file_name = ci_find_file(usetup.data_files_dir, "ac2game.ags");
 
-        errcod = csetlib(game_file_name,"");
+        errcod = Common::AssetManager::SetDataFile(game_file_name);
     }
 
     return RETURN_CONTINUE;
@@ -336,14 +337,14 @@ int engine_init_game_data(int argc,char*argv[])
     initialise_game_file_name();
     if (game_file_name == NULL) return EXIT_NORMAL;
 
-    errcod = csetlib(game_file_name,"");  // assume it's appended to exe
+    errcod = Common::AssetManager::SetDataFile(game_file_name);  // assume it's appended to exe
 
     our_eip = -194;
     //  char gamefilenamebuf[200];
 
     int init_res = RETURN_CONTINUE;
 
-    if ((errcod!=0) && (change_to_game_dir == 0)) {
+    if ((errcod!=Common::kAssetNoError) && (change_to_game_dir == 0)) {
         // it's not, so look for the file
         init_res = engine_init_game_data_external(argc, argv);
     }
@@ -358,8 +359,8 @@ int engine_init_game_data(int argc,char*argv[])
 
     our_eip = -193;
 
-    if (errcod!=0) {  // there's a problem
-        if (errcod==-1) {  // file not found
+    if (errcod!=Common::kAssetNoError) {  // there's a problem
+        if (errcod==Common::kAssetErrNoLibFile) {  // file not found
             char emsg[STD_BUFFER_SIZE];
             sprintf (emsg,
                 "You must create and save a game first in the AGS Editor before you can use "
@@ -369,7 +370,7 @@ int engine_init_game_data(int argc,char*argv[])
                 "(Unable to find '%s')\n", argv[datafile_argv]);
             platform->DisplayAlert(emsg);
         }
-        else if (errcod==-4)
+        else if (errcod==Common::kAssetErrLibAssetCount)
             platform->DisplayAlert("ERROR: Too many files in data file.");
         else platform->DisplayAlert("ERROR: The file is corrupt. Make sure you have the correct version of the\n"
             "editor, and that this really is an AGS game.\n");
@@ -449,12 +450,12 @@ int engine_init_speech()
 
             write_log_debug("Initializing speech vox");
 
-            //if (csetlib(useloc,"")!=0) {
-            if (csetlib(speech_file,"")!=0) {
+            //if (Common::AssetManager::SetDataFile(useloc,"")!=0) {
+            if (Common::AssetManager::SetDataFile(speech_file)!=Common::kAssetNoError) {
                 platform->DisplayAlert("Unable to initialize speech sample file - check for corruption and that\nit belongs to this game.\n");
                 return EXIT_NORMAL;
             }
-            DataStream *speechsync = clibfopen("syncdata.dat");
+            DataStream *speechsync = Common::AssetManager::OpenAsset("syncdata.dat");
             if (speechsync != NULL) {
                 // this game has voice lip sync
                 if (speechsync->ReadInt32() != 4)
@@ -477,7 +478,7 @@ int engine_init_speech()
                 }
                 delete speechsync;
             }
-            csetlib(game_file_name,"");
+            Common::AssetManager::SetDataFile(game_file_name);
             platform->WriteConsole("Speech sample file found and initialized.\n");
             play.want_speech=1;
         }
@@ -512,12 +513,12 @@ int engine_init_music()
 
         write_log_debug("Initializing audio vox");
 
-        //if (csetlib(useloc,"")!=0) {
-        if (csetlib(music_file,"")!=0) {
+        //if (Common::AssetManager::SetDataFile(useloc,"")!=0) {
+        if (Common::AssetManager::SetDataFile(music_file)!=Common::kAssetNoError) {
             platform->DisplayAlert("Unable to initialize music library - check for corruption and that\nit belongs to this game.\n");
             return EXIT_NORMAL;
         }
-        csetlib(game_file_name,"");
+        Common::AssetManager::SetDataFile(game_file_name);
         platform->WriteConsole("Audio vox found and initialized.\n");
         play.seperate_music_lib = 1;
     }

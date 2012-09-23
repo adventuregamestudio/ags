@@ -38,6 +38,7 @@
 #include "script/script.h"
 #include "util/datastream.h"
 #include "gfx/bitmap.h"
+#include "core/assetmanager.h"
 
 using AGS::Common::Bitmap;
 
@@ -149,9 +150,9 @@ char* game_file_name = NULL;
 
 DataStream * game_file_open()
 {
-	DataStream*in = clibfopen("game28.dta"); // 3.x data file name
+	DataStream*in = Common::AssetManager::OpenAsset("game28.dta"); // 3.x data file name
     if (in==NULL) {
-        in = clibfopen("ac2game.dta"); // 2.x data file name
+        in = Common::AssetManager::OpenAsset("ac2game.dta"); // 2.x data file name
     }
 
 	return in;

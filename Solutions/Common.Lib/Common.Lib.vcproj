@@ -282,10 +282,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\util\clib32.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Common\util\compress.cpp"
 					>
 				</File>
@@ -375,6 +371,14 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\gfx\bitmap.cpp"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="core"
+				>
+				<File
+					RelativePath="..\..\Common\core\assetmanager.cpp"
 					>
 				</File>
 			</Filter>
@@ -560,10 +564,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\util\clib32.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Common\util\compress.h"
 					>
 				</File>
@@ -659,6 +659,10 @@
 			<Filter
 				Name="core"
 				>
+				<File
+					RelativePath="..\..\Common\core\assetmanager.h"
+					>
+				</File>
 				<File
 					RelativePath="..\..\Common\core\types.h"
 					>

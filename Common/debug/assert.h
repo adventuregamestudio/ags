@@ -21,15 +21,6 @@ inline void assert(bool expr)
     }
 }
 
-inline void assert(bool expr, const char *err_msg)
-{
-    if (!expr) {
-        _asm {
-            int 3
-        }
-    }
-}
-
 #else // !WINDOWS_VERSION
 
 #include <assert.h>
@@ -40,7 +31,6 @@ inline void assert(bool expr, const char *err_msg)
 
 // JJS: GCC has trouble with macro overloading
 inline void assert(bool expr) {}
-inline void assert(bool expr, const char *err_msg) {}
 
 #endif // !_DEBUG
 

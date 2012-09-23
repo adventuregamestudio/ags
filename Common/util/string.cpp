@@ -89,16 +89,19 @@ void String::ReleaseBuffer(int set_length)
 
 int String::Compare(const char *cstr) const
 {
+    if (!_cstr) return -1; // CHECKME
     return strcmp(_cstr, cstr);
 }
 
 int String::CompareNoCase(const char *cstr) const
 {
+    if (!_cstr) return -1; // CHECKME
     return stricmp(_cstr, cstr);
 }
 
 int String::CompareLeft(const char *cstr) const
 {
+    if (!_cstr) return -1; // CHECKME
     int count = strlen(cstr);
     return strncmp(_cstr, cstr, count);
 }
@@ -106,7 +109,17 @@ int String::CompareLeft(const char *cstr) const
 int String::FindChar(char c) const
 {
     const char * p_str = strchr(_cstr, c);
-    if (p_str)
+    if (!p_str)
+    {
+        return -1;
+    }
+    return p_str - _cstr;
+}
+
+int String::FindCharReverse(char c) const
+{
+    const char * p_str = strrchr(_cstr, c);
+    if (!p_str)
     {
         return -1;
     }
@@ -162,6 +175,26 @@ void String::SetAt(int index, char c)
     }
 
     _cstr[index] = c;
+}
+
+String String::ToLower() const
+{
+    String s(*this);
+    if (s._cstr)
+    {
+        strlwr(s._cstr);
+    }
+    return s;
+}
+
+String String::ToUpper() const
+{
+    String s(*this);
+    if (s._cstr)
+    {
+        strupr(s._cstr);
+    }
+    return s;    
 }
 
 String String::Left(int count) const

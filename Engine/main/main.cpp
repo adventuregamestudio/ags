@@ -33,6 +33,7 @@
 #include "main/main.h"
 #include "platform/base/agsplatformdriver.h"
 #include "ac/route_finder.h"
+#include "core/assetmanager.h"
 
 #ifdef _DEBUG
 #include "test/test_all.h"
@@ -58,8 +59,6 @@ LPWSTR *wArgv;
 #ifndef WINDOWS_VERSION
 char **global_argv = 0;
 #endif
-
-extern "C" int  cfopenpriority;
 
 
 extern GameSetup usetup;
@@ -102,7 +101,7 @@ char psp_translation[] = "default";
 void main_pre_init()
 {
     our_eip = -999;
-    cfopenpriority=2;
+    Common::AssetManager::SetSearchPriority(Common::kAssetPriorityDir);
     play.recording = 0;
     play.playback = 0;
     play.takeover_data = 0;
@@ -115,6 +114,7 @@ void main_create_platform_driver()
 
 void main_init()
 {
+    Common::AssetManager::CreateInstance();
     main_pre_init();
     main_create_platform_driver();
 }

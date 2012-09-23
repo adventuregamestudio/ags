@@ -16,6 +16,7 @@
 #include "util/datastream.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
+#include "core/assetmanager.h"
 
 using AGS::Common::DataStream;
 
@@ -68,9 +69,9 @@ void play_flc_file(int numb,int playflags) {
         clearScreenAtStart = 0;
 
     char flicnam[20]; sprintf(flicnam,"flic%d.flc",numb);
-    DataStream*in=clibfopen(flicnam);
+    DataStream*in=Common::AssetManager::OpenAsset(flicnam);
     if (in==NULL) { sprintf(flicnam,"flic%d.fli",numb);
-    in=clibfopen(flicnam); }
+    in=Common::AssetManager::OpenAsset(flicnam); }
     if (in==NULL) {
         debug_log("FLIC animation FLIC%d.FLC not found",numb);
         return;

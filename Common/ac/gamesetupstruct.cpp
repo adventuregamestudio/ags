@@ -5,6 +5,7 @@
 #include "util/string_utils.h"      // fputstring, etc
 #include "util/string.h"
 #include "util/datastream.h"
+#include "core/assetmanager.h"
 
 using AGS::Common::DataStream;
 using AGS::Common::String;
@@ -13,23 +14,17 @@ using AGS::Common::String;
 // Create the missing audioClips data structure for 3.1.x games.
 // This is done by going through the data files and adding all music*.*
 // and sound*.* files to it.
-extern "C" {
-    extern int csetlib(char *namm, char *passw);
-    extern int clibGetNumFiles();
-    extern char *clibGetFileName(int index);
-}
-
 void GameSetupStruct::BuildAudioClipArray()
 {
     char temp_name[30];
     int temp_number;
     char temp_extension[10];
 
-    int number_of_files = clibGetNumFiles();
+    int number_of_files = Common::AssetManager::GetAssetCount();
     int i;
     for (i = 0; i < number_of_files; i++)
     {
-        if (sscanf(clibGetFileName(i), "%5s%d.%3s", temp_name, &temp_number, temp_extension) == 3)
+        if (sscanf(Common::AssetManager::GetAssetFileByIndex(i), "%5s%d.%3s", temp_name, &temp_number, temp_extension) == 3)
         {
             if (stricmp(temp_name, "music") == 0)
             {
@@ -375,10 +370,10 @@ void GameSetupStruct::read_audio(Common::DataStream *in, GAME_STRUCT_READ_DATA &
 
         audioClipCount = 0;
 
-        if (csetlib("music.vox", "") == 0)
+        if (Common::AssetManager::SetDataFile("music.vox") == Common::kAssetNoError)
             BuildAudioClipArray();
 
-        csetlib(read_data.game_file_name, "");
+        Common::AssetManager::SetDataFile(read_data.game_file_name);
         BuildAudioClipArray();
 
         audioClips = (ScriptAudioClip*)realloc(audioClips, audioClipCount * sizeof(ScriptAudioClip));

@@ -33,6 +33,7 @@
 #include "ac/spritecache.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
+#include "core/assetmanager.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -322,6 +323,8 @@ void quit(char*quitmsg) {
     quit_print_last_fps(qmsg);
 
     quit_delete_temp_files();
+
+    Common::AssetManager::DestroyInstance();
 
     proper_exit=1;
 

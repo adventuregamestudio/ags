@@ -22,8 +22,8 @@
 #include "util/compress.h"
 #include "util/file.h"
 #include "util/filestream.h"
-#include "util/clib32.h"
 #include "gfx/bitmap.h"
+#include "core/assetmanager.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -644,7 +644,7 @@ int SpriteCache::initFile(const char *filnam)
     offsets[vv] = 0;
   }
 
-  cache_stream = clibfopen((char *)filnam);
+  cache_stream = Common::AssetManager::OpenAsset((char *)filnam);
   if (cache_stream == NULL)
     return -1;
 
@@ -755,7 +755,7 @@ bool SpriteCache::loadSpriteIndexFile(int expectedFileID, long spr_initial_offs,
 {
   short numspri_index = 0;
   int vv;
-  DataStream *fidx = clibfopen((char*)spindexfilename);
+  DataStream *fidx = Common::AssetManager::OpenAsset((char*)spindexfilename);
   if (fidx == NULL) 
   {
     return false;
@@ -835,7 +835,7 @@ void SpriteCache::detachFile() {
 }
 
 int SpriteCache::attachFile(const char *filename) {
-  cache_stream = clibfopen((char *)filename);
+  cache_stream = Common::AssetManager::OpenAsset((char *)filename);
   if (cache_stream == NULL)
     return -1;
   return 0;

@@ -206,7 +206,7 @@ void game_file_read_dialog_script(DataStream *in)
 {
 	if (filever > 37) // 3.1.1+ dialog script
     {
-        dialogScriptsScript = fread_script(in);
+        dialogScriptsScript = ccScript::CreateFromStream(in);
         if (dialogScriptsScript == NULL)
             quit("Dialog scripts load failed; need newer version?");
     }
@@ -225,7 +225,7 @@ void game_file_read_script_modules(DataStream *in)
             quit("too many script modules; need newer version?");
 
         for (int bb = 0; bb < numScriptModules; bb++) {
-            scriptModules[bb] = fread_script(in);
+            scriptModules[bb] = ccScript::CreateFromStream(in);
             if (scriptModules[bb] == NULL)
                 quit("Script module load failure; need newer version?");
             moduleInst[bb] = NULL;
@@ -633,7 +633,7 @@ int load_game_file() {
     if (game.compiled_script == NULL)
         quit("No global script in game; data load error");
 
-    gamescript = fread_script(in);
+    gamescript = ccScript::CreateFromStream(in);
     if (gamescript == NULL)
         quit("Global script load failed; need newer version?");
 

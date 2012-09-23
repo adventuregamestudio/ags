@@ -43,15 +43,17 @@ struct ccScript
     long *sectionOffsets;
     int numSections;
     int capacitySections;
-};
 
-// write the script to disk (after compiling)
-extern void fwrite_script(ccScript *, Common::DataStream *out);
-// read back a script written with fwrite_script
-extern ccScript *fread_script(Common::DataStream *in);
-// free the memory occupied by the script - do NOT attempt to run the
-// script after calling this function
-extern void ccFreeScript(ccScript *);
-extern const char* ccGetSectionNameAtOffs(ccScript *scri, long offs);
+    static ccScript *CreateFromStream(Common::DataStream *in);
+
+    // write the script to disk (after compiling)
+    void        Write(Common::DataStream *out);
+    // read back a script written with Write
+    bool        Read(Common::DataStream *in);
+    // free the memory occupied by the script - do NOT attempt to run the
+    // script after calling this function
+    void        Free();
+    const char* GetSectionName(long offset);
+};
 
 #endif // __CC_SCRIPT_H

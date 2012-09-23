@@ -30,7 +30,7 @@ namespace AGS
 			{
 				if (_compiledScript != NULL)
 				{
-					ccFreeScript(_compiledScript);
+					_compiledScript->Free();
 					_compiledScript = NULL;
 				}
 			}

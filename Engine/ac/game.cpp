@@ -529,7 +529,7 @@ void unload_game_file() {
         gameinst = NULL;
     }
 
-    ccFreeScript (gamescript);
+    gamescript->Free();
     gamescript = NULL;
 
     if ((dialogScriptsInst != NULL) && (dialogScriptsInst->pc != 0))
@@ -542,14 +542,14 @@ void unload_game_file() {
 
     if (dialogScriptsScript != NULL)
     {
-        ccFreeScript(dialogScriptsScript);
+        dialogScriptsScript->Free();
         dialogScriptsScript = NULL;
     }
 
     for (ee = 0; ee < numScriptModules; ee++) {
         ccFreeInstance(moduleInstFork[ee]);
         ccFreeInstance(moduleInst[ee]);
-        ccFreeScript(scriptModules[ee]);
+        scriptModules[ee]->Free();
     }
     numScriptModules = 0;
 

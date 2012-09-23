@@ -27,44 +27,54 @@ void freadstring(char **strptr, DataStream *in)
     strcpy(strptr[0], ibuffer);
 }
 
-void fwrite_script(ccScript*scri, DataStream *out) {
+ccScript *ccScript::CreateFromStream(Common::DataStream *in)
+{
+    ccScript *scri = (ccScript *) malloc(sizeof(ccScript));
+    if (!scri->Read(in))
+    {
+        free(scri);
+        return NULL;
+    }
+    return scri;
+}
+
+void ccScript::Write(DataStream *out) {
     int n;
     out->Write(scfilesig,4);
     out->WriteInt32(SCOM_VERSION);
-    out->WriteInt32(scri->globaldatasize);
-    out->WriteInt32(scri->codesize);
-    out->WriteInt32(scri->stringssize);
-    if (scri->globaldatasize > 0)
-        out->WriteArray(scri->globaldata,scri->globaldatasize,1);
-    if (scri->codesize > 0)
-        out->WriteArrayOfIntPtr32((intptr_t*)scri->code,scri->codesize);
-    if (scri->stringssize > 0)
-        out->WriteArray(scri->strings,scri->stringssize,1);
-    out->WriteInt32(scri->numfixups);
-    if (scri->numfixups > 0) {
-        out->WriteArray(scri->fixuptypes,scri->numfixups,1);
-        out->WriteArrayOfIntPtr32((intptr_t*)scri->fixups,scri->numfixups);
+    out->WriteInt32(globaldatasize);
+    out->WriteInt32(codesize);
+    out->WriteInt32(stringssize);
+    if (globaldatasize > 0)
+        out->WriteArray(globaldata,globaldatasize,1);
+    if (codesize > 0)
+        out->WriteArrayOfIntPtr32((intptr_t*)code,codesize);
+    if (stringssize > 0)
+        out->WriteArray(strings,stringssize,1);
+    out->WriteInt32(numfixups);
+    if (numfixups > 0) {
+        out->WriteArray(fixuptypes,numfixups,1);
+        out->WriteArrayOfIntPtr32((intptr_t*)fixups,numfixups);
     }
-    out->WriteInt32(scri->numimports);
-    for (n=0;n<scri->numimports;n++)
-        out->WriteArray(scri->imports[n],strlen(scri->imports[n])+1,1);
-    out->WriteInt32(scri->numexports);
-    for (n=0;n<scri->numexports;n++) {
-        out->WriteArray(scri->exports[n],strlen(scri->exports[n])+1,1);
-        out->WriteInt32(scri->export_addr[n]);
+    out->WriteInt32(numimports);
+    for (n=0;n<numimports;n++)
+        out->WriteArray(imports[n],strlen(imports[n])+1,1);
+    out->WriteInt32(numexports);
+    for (n=0;n<numexports;n++) {
+        out->WriteArray(exports[n],strlen(exports[n])+1,1);
+        out->WriteInt32(export_addr[n]);
     }
-    out->WriteInt32(scri->numSections);
-    for (n = 0; n < scri->numSections; n++) {
-        out->WriteArray(scri->sectionNames[n], strlen(scri->sectionNames[n]) + 1, 1);
-        out->WriteInt32(scri->sectionOffsets[n]);
+    out->WriteInt32(numSections);
+    for (n = 0; n < numSections; n++) {
+        out->WriteArray(sectionNames[n], strlen(sectionNames[n]) + 1, 1);
+        out->WriteInt32(sectionOffsets[n]);
     }
     out->WriteInt32(ENDFILESIG);
 }
 
-ccScript *fread_script(DataStream *in)
+bool ccScript::Read(DataStream *in)
 {
-  ccScript *scri = (ccScript *) malloc(sizeof(ccScript));
-  scri->instances = 0;
+  instances = 0;
   int n;
   char gotsig[5];
   currentline = -1;
@@ -75,165 +85,165 @@ ccScript *fread_script(DataStream *in)
   int fileVer = in->ReadInt32();
 
   if ((strcmp(gotsig, scfilesig) != 0) || (fileVer > SCOM_VERSION)) {
-    cc_error("file was not written by fwrite_script or seek position is incorrect");
-    free(scri);
-    return NULL;
+    cc_error("file was not written by ccScript::Write or seek position is incorrect");
+    return false;
   }
 
-  scri->globaldatasize = in->ReadInt32();
-  scri->codesize = in->ReadInt32();
-  scri->stringssize = in->ReadInt32();
+  globaldatasize = in->ReadInt32();
+  codesize = in->ReadInt32();
+  stringssize = in->ReadInt32();
 
-  if (scri->globaldatasize > 0) {
-    scri->globaldata = (char *)malloc(scri->globaldatasize);
+  if (globaldatasize > 0) {
+    globaldata = (char *)malloc(globaldatasize);
     // MACPORT FIX: swap
-    in->Read(scri->globaldata, scri->globaldatasize);
+    in->Read(globaldata, globaldatasize);
   }
   else
-    scri->globaldata = NULL;
+    globaldata = NULL;
 
-  if (scri->codesize > 0) {
-    scri->code = (long *)malloc(scri->codesize * sizeof(long));
+  if (codesize > 0) {
+    code = (long *)malloc(codesize * sizeof(long));
     // MACPORT FIX: swap
 
     // 64 bit: Read code into 8 byte array, necessary for being able to perform
     // relocations on the references.
-    in->ReadArrayOfIntPtr32((intptr_t*)scri->code, scri->codesize);
+    in->ReadArrayOfIntPtr32((intptr_t*)code, codesize);
     //int i;
-    //for (i = 0; i < scri->codesize; i++)
-    //  scri->code[i] = in->ReadInt32();
+    //for (i = 0; i < codesize; i++)
+    //  code[i] = in->ReadInt32();
   }
   else
-    scri->code = NULL;
+    code = NULL;
 
-  if (scri->stringssize > 0) {
-    scri->strings = (char *)malloc(scri->stringssize);
+  if (stringssize > 0) {
+    strings = (char *)malloc(stringssize);
     // MACPORT FIX: swap
-    in->Read(scri->strings, scri->stringssize);
+    in->Read(strings, stringssize);
   } 
   else
-    scri->strings = NULL;
+    strings = NULL;
 
-  scri->numfixups = in->ReadInt32();
-  if (scri->numfixups > 0) {
-    scri->fixuptypes = (char *)malloc(scri->numfixups);
-    scri->fixups = (long *)malloc(scri->numfixups * sizeof(long));
+  numfixups = in->ReadInt32();
+  if (numfixups > 0) {
+    fixuptypes = (char *)malloc(numfixups);
+    fixups = (long *)malloc(numfixups * sizeof(long));
     // MACPORT FIX: swap 'size' and 'nmemb'
-    in->Read(scri->fixuptypes, scri->numfixups);
+    in->Read(fixuptypes, numfixups);
 
     // 64 bit: Read fixups into 8 byte array too
-    in->ReadArrayOfIntPtr32((intptr_t*)scri->fixups, scri->numfixups);
+    in->ReadArrayOfIntPtr32((intptr_t*)fixups, numfixups);
     //int i;
-    //for (i = 0; i < scri->numfixups; i++)
-    //  scri->fixups[i] = in->ReadInt32();
+    //for (i = 0; i < numfixups; i++)
+    //  fixups[i] = in->ReadInt32();
   }
   else {
-    scri->fixups = NULL;
-    scri->fixuptypes = NULL;
+    fixups = NULL;
+    fixuptypes = NULL;
   }
 
-  scri->numimports = in->ReadInt32();
+  numimports = in->ReadInt32();
 
-  scri->imports = (char**)malloc(sizeof(char*) * scri->numimports);
-  for (n = 0; n < scri->numimports; n++)
-    freadstring(&scri->imports[n], in);
+  imports = (char**)malloc(sizeof(char*) * numimports);
+  for (n = 0; n < numimports; n++)
+    freadstring(&imports[n], in);
 
-  scri->numexports = in->ReadInt32();
-  scri->exports = (char**)malloc(sizeof(char*) * scri->numexports);
-  scri->export_addr = (long*)malloc(sizeof(long) * scri->numexports);
-  for (n = 0; n < scri->numexports; n++) {
-    freadstring(&scri->exports[n], in);
-    scri->export_addr[n] = in->ReadInt32();
+  numexports = in->ReadInt32();
+  exports = (char**)malloc(sizeof(char*) * numexports);
+  export_addr = (long*)malloc(sizeof(long) * numexports);
+  for (n = 0; n < numexports; n++) {
+    freadstring(&exports[n], in);
+    export_addr[n] = in->ReadInt32();
   }
 
   if (fileVer >= 83) {
     // read in the Sections
-    scri->numSections = in->ReadInt32();
-    scri->sectionNames = (char**)malloc(scri->numSections * sizeof(char*));
-    scri->sectionOffsets = (long*)malloc(scri->numSections * sizeof(long));
-    for (n = 0; n < scri->numSections; n++) {
-      freadstring(&scri->sectionNames[n], in);
-      scri->sectionOffsets[n] = in->ReadInt32();
+    numSections = in->ReadInt32();
+    sectionNames = (char**)malloc(numSections * sizeof(char*));
+    sectionOffsets = (long*)malloc(numSections * sizeof(long));
+    for (n = 0; n < numSections; n++) {
+      freadstring(&sectionNames[n], in);
+      sectionOffsets[n] = in->ReadInt32();
     }
   }
   else
   {
-    scri->numSections = 0;
-    scri->sectionNames = NULL;
-    scri->sectionOffsets = NULL;
+    numSections = 0;
+    sectionNames = NULL;
+    sectionOffsets = NULL;
   }
 
   if (in->ReadInt32() != ENDFILESIG) {
     cc_error("internal error rebuilding script");
-    free(scri);
-    return NULL;
+    return false;
   }
-  return scri;
+  return true;
 }
 
-void ccFreeScript(ccScript * ccs)
+void ccScript::Free()
 {
-    if (ccs->globaldata != NULL)
-        free(ccs->globaldata);
+    if (globaldata != NULL)
+        free(globaldata);
 
-    if (ccs->code != NULL)
-        free(ccs->code);
+    if (code != NULL)
+        free(code);
 
-    if (ccs->strings != NULL)
-        free(ccs->strings);
+    if (strings != NULL)
+        free(strings);
 
-    if (ccs->fixups != NULL && ccs->numfixups > 0)
-        free(ccs->fixups);
+    if (fixups != NULL && numfixups > 0)
+        free(fixups);
 
-    if (ccs->fixuptypes != NULL && ccs->numfixups > 0)
-        free(ccs->fixuptypes);
+    if (fixuptypes != NULL && numfixups > 0)
+        free(fixuptypes);
 
-    ccs->globaldata = NULL;
-    ccs->code = NULL;
-    ccs->strings = NULL;
-    ccs->fixups = NULL;
-    ccs->fixuptypes = NULL;
+    globaldata = NULL;
+    code = NULL;
+    strings = NULL;
+    fixups = NULL;
+    fixuptypes = NULL;
 
     int aa;
-    for (aa = 0; aa < ccs->numimports; aa++) {
-        if (ccs->imports[aa] != NULL)
-            free(ccs->imports[aa]);
+    for (aa = 0; aa < numimports; aa++) {
+        if (imports[aa] != NULL)
+            free(imports[aa]);
     }
 
-    for (aa = 0; aa < ccs->numexports; aa++)
-        free(ccs->exports[aa]);
+    for (aa = 0; aa < numexports; aa++)
+        free(exports[aa]);
 
-    for (aa = 0; aa < ccs->numSections; aa++)
-        free(ccs->sectionNames[aa]);
+    for (aa = 0; aa < numSections; aa++)
+        free(sectionNames[aa]);
 
-    if (ccs->sectionNames != NULL)
+    if (sectionNames != NULL)
     {
-        free(ccs->sectionNames);
-        free(ccs->sectionOffsets);
-        ccs->sectionNames = NULL;
-        ccs->sectionOffsets = NULL;
+        free(sectionNames);
+        free(sectionOffsets);
+        sectionNames = NULL;
+        sectionOffsets = NULL;
     }
 
 
-    if (ccs->imports != NULL)
+    if (imports != NULL)
     {
-        free(ccs->imports);
-        free(ccs->exports);
-        free(ccs->export_addr);
-        ccs->imports = NULL;
-        ccs->exports = NULL;
-        ccs->export_addr = NULL;
+        free(imports);
+        free(exports);
+        free(export_addr);
+        imports = NULL;
+        exports = NULL;
+        export_addr = NULL;
     }
-    ccs->numimports = 0;
-    ccs->numexports = 0;
-    ccs->numSections = 0;
+    numimports = 0;
+    numexports = 0;
+    numSections = 0;
+
+    // CHECKME -- how is the ccScript object itself being deallocated?
 }
 
-const char* ccGetSectionNameAtOffs(ccScript *scri, long offs) {
+const char* ccScript::GetSectionName(long offs) {
 
     int i;
-    for (i = 0; i < scri->numSections; i++) {
-        if (scri->sectionOffsets[i] < offs)
+    for (i = 0; i < numSections; i++) {
+        if (sectionOffsets[i] < offs)
             continue;
         break;
     }
@@ -242,5 +252,5 @@ const char* ccGetSectionNameAtOffs(ccScript *scri, long offs) {
     if (i == 0)
         return "(unknown section)";
 
-    return scri->sectionNames[i - 1];
+    return sectionNames[i - 1];
 }

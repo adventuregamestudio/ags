@@ -101,7 +101,7 @@ namespace AGS
 			  {
 				  if (scrpt != NULL) 
 				  {
-					  ccFreeScript(scrpt);
+					  scrpt->Free();
 				  }
 				  throw exceptionToThrow;
 			  }

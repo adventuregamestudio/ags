@@ -465,7 +465,7 @@ void scriptDebugHook (ccInstance *ccinst, int linenum) {
         return;
     }
 
-    const char *scriptName = ccGetSectionNameAtOffs(ccinst->runningInst->instanceof, ccinst->pc);
+    const char *scriptName = ccinst->runningInst->instanceof->GetSectionName(ccinst->pc);
 
     for (int i = 0; i < numBreakpoints; i++)
     {

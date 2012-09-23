@@ -24,7 +24,6 @@
 #include "util/misc.h"
 
 #ifdef MAC_VERSION
-#include "macport.h"
 #include <sys/stat.h>
 #endif
 
@@ -716,7 +715,7 @@ int32_t AssetManager::ReadEncInt32(DataStream *ci_s)
 {
     int numberRead;
     ReadEncArray(&numberRead, 4, 1, ci_s);
-#if defined(AGS_BIGENDIAN)
+#if defined(AGS_BIG_ENDIAN)
     AGS::Common::BitByteOperations::SwapBytesInt32(numberRead);
 #endif
     return numberRead;
@@ -727,7 +726,7 @@ void AssetManager::ReadEncString(char *buffer, int maxLength, DataStream *ci_s)
     int i = 0;
     while ((i == 0) || (buffer[i - 1] != 0))
     {
-        buffer[i] = ci_s->ReadInt8() - _GetNextPseudoRand();
+        buffer[i] = ci_s->ReadByte() - _GetNextPseudoRand();
         if (i < maxLength - 1)
         {
             i++;

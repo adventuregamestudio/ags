@@ -46,7 +46,6 @@ namespace Common
 {
 
 class DataStream;
-struct Clib32Info;
 struct MultiFileLib;
 struct AssetLibInfo;
 struct AssetInfo;

@@ -206,7 +206,7 @@ InteractionScripts::InteractionScripts() {
 
 InteractionScripts::~InteractionScripts() {
     for (int i = 0; i < numEvents; i++)
-        delete scriptFuncNames[i];
+        delete[] scriptFuncNames[i];
 }
 
 

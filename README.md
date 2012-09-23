@@ -7,17 +7,17 @@ Licensed under the Artistic License 2.0, see License.txt in the Engine folder.
 
 To get started with the AGS engine, see the platform specific instructions or forum threads:
 
--    [Android](https://github.com/adventuregamestudio/ags/blob/main/Android/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/yabb/index.php?topic=44768.0))
--    [iOS](https://github.com/adventuregamestudio/ags/blob/main/iOS/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/yabb/index.php?topic=46040.0))
--    [Linux](https://github.com/adventuregamestudio/ags/blob/main/debian/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/yabb/index.php?topic=46152.0))
+-    [Android](https://github.com/adventuregamestudio/ags/blob/main/Android/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=44768.0))
+-    [iOS](https://github.com/adventuregamestudio/ags/blob/main/iOS/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=46040.0))
+-    [Linux](https://github.com/adventuregamestudio/ags/blob/main/debian/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=46152.0))
 -    Mac OS X
--    [PSP](https://github.com/adventuregamestudio/ags/blob/main/PSP/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/yabb/index.php?topic=43998.0))
--    Windows
+-    [PSP](https://github.com/adventuregamestudio/ags/blob/main/PSP/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=43998.0))
+-    Windows ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=46847.0))
 
 
 ##Issue tracker
 
-Please report bugs and feature requests at the [AGS Issue Tracker](http://www.adventuregamestudio.co.uk/yabb/index.php?action=projects)!
+Please report bugs and feature requests at the [AGS Issue Tracker](http://www.adventuregamestudio.co.uk/forums/index.php?action=projects)!
 
 ## Contributing
 

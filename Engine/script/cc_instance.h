@@ -15,6 +15,7 @@
 
 #include "script/script_common.h"
 #include "script/cc_script.h"  // ccScript
+#include "script/nonblockingscriptfunction.h"
 
 #define INSTF_SHAREDATA   1
 #define INSTF_ABORTED     2
@@ -22,6 +23,13 @@
 #define INSTF_RUNNING     8   // set by main code to confirm script isn't stuck
 #define CC_STACK_SIZE     (1000 * sizeof(long))
 #define MAX_CALL_STACK    100
+
+// 256 because we use 8 bits to hold instance number
+#define MAX_LOADED_INSTANCES 256
+
+#define INSTANCE_ID_SHIFT 24
+#define INSTANCE_ID_MASK  0x00000ff
+#define INSTANCE_ID_REMOVEMASK 0x00ffffff
 
 // Running instance of the script
 struct ccInstance
@@ -57,10 +65,44 @@ struct ccInstance
     int stackSizes[CC_STACK_SIZE];
     int stackSizeIndex;
 #endif
-};
 
-// returns the currently executing instance, or NULL if none
-extern ccInstance *ccGetCurrentInstance(void);
-void ccGetCallStack(ccInstance *inst, char *buffer, int maxLines);
+    // returns the currently executing instance, or NULL if none
+    static ccInstance *GetCurrentInstance(void);
+    // create a runnable instance of the supplied script
+    static ccInstance *CreateFromScript(ccScript *script);
+    static ccInstance *CreateEx(ccScript * scri, ccInstance * joined);
+    // free the memory associated with the instance
+    void    Free();
+
+    // create a runnable instance of the same script, sharing global memory
+    ccInstance *Fork();
+    // call an exported function in the script (2nd arg is number of params)
+    int     CallScriptFunction(char *, long, ...);
+    // specifies that when the current function returns to the script, it
+    // will stop and return from CallInstance
+    void    Abort();
+    // aborts instance, then frees the memory later when it is done with
+    void    AbortAndDestroy();
+    
+    int     PrepareTextScript(char**tsname);
+    int     Run(long curpc);
+    int     RunScriptFunctionIfExists(char*tsname,int numParam, long iparam, long iparam2, long iparam3 = 0);
+    int     RunTextScript(char*tsname);
+    int     RunTextScriptIParam(char*tsname, long iparam);
+    int     RunTextScript2IParam(char*tsname,long iparam,long param2);
+    void    DoRunScriptFuncCantBlock(NonBlockingScriptFunction* funcToRun, bool *hasTheFunc);
+    
+    void    GetScriptName(char *curScrName);
+    // get the address of an exported variable in the script
+    char    *GetSymbolAddress(char *);
+    void    DumpInstruction(unsigned long *codeptr, int cps, int spp);
+    void    GetCallStack(char *buffer, int maxLines);
+
+    // changes all pointer variables (ie. strings) to have the relative address, to allow
+    // the data segment to be saved to disk
+    void    FlattenGlobalData();
+    // restores the pointers after a save
+    void    UnFlattenGlobalData();
+};
 
 #endif // __CC_INSTANCE_H

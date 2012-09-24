@@ -64,7 +64,7 @@ int run_claimable_event(char *tsname, bool includeRoom, int numParams, long para
     int toret;
 
     if (includeRoom) {
-        toret = run_script_function_if_exist(roominst, tsname, numParams, param1, param2);
+        toret = roominst->RunScriptFunctionIfExists(tsname, numParams, param1, param2);
 
         if (eventClaimed == EVENT_CLAIMED) {
             eventClaimed = eventClaimedOldValue;
@@ -74,7 +74,7 @@ int run_claimable_event(char *tsname, bool includeRoom, int numParams, long para
 
     // run script modules
     for (int kk = 0; kk < numScriptModules; kk++) {
-        toret = run_script_function_if_exist(moduleInst[kk], tsname, numParams, param1, param2);
+        toret = moduleInst[kk]->RunScriptFunctionIfExists(tsname, numParams, param1, param2);
 
         if (eventClaimed == EVENT_CLAIMED) {
             eventClaimed = eventClaimedOldValue;
@@ -93,7 +93,7 @@ void run_on_event (int evtype, int wparam) {
         curscript->run_another("#on_event", evtype, wparam);
     }
     else
-        run_text_script_2iparam(gameinst,"on_event", evtype, wparam);
+        gameinst->RunTextScript2IParam("on_event", evtype, wparam);
 }
 
 void run_room_event(int id) {
@@ -143,13 +143,13 @@ void process_event(EventHappened*evp) {
                 curscript->run_another(nameToExec, evp->data2, 0);
             }
             else
-                resl=run_text_script_iparam(gameinst,tsnames[evp->data1],evp->data2);
+                resl=gameinst->RunTextScriptIParam(tsnames[evp->data1],evp->data2);
         }
         else {
             if (inside_script)
                 curscript->run_another (tsnames[evp->data1], 0, 0);
             else
-                resl=run_text_script(gameinst,tsnames[evp->data1]);
+                resl=gameinst->RunTextScript(tsnames[evp->data1]);
         }
         //    Display("relt: %d err:%d",resl,scErrorNo);
     }

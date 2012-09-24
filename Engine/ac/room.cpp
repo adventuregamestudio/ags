@@ -214,9 +214,9 @@ void save_room_data_segment () {
     croom->tsdatasize = roominst->globaldatasize;
     if (croom->tsdatasize > 0) {
         croom->tsdata=(char*)malloc(croom->tsdatasize+10);
-        ccFlattenGlobalData (roominst);
+        roominst->FlattenGlobalData ();
         memcpy(croom->tsdata,&roominst->globaldata[0],croom->tsdatasize);
-        ccUnFlattenGlobalData (roominst);
+        roominst->UnFlattenGlobalData ();
     }
 
 }
@@ -253,8 +253,8 @@ void unload_old_room() {
     if (croom==NULL) ;
     else if (roominst!=NULL) {
         save_room_data_segment();
-        ccFreeInstance(roominstFork);
-        ccFreeInstance(roominst);
+        roominstFork->Free();
+        roominst->Free();
         roominstFork = NULL;
         roominst=NULL;
     }
@@ -770,7 +770,7 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
             if (croom->tsdatasize != roominst->globaldatasize)
                 quit("room script data segment size has changed");
             memcpy(&roominst->globaldata[0],croom->tsdata,croom->tsdatasize);
-            ccUnFlattenGlobalData (roominst);
+            roominst->UnFlattenGlobalData ();
         }
     }
     our_eip=207;
@@ -1027,7 +1027,7 @@ void check_new_room() {
 void compile_room_script() {
     ccError = 0;
 
-    roominst = ccCreateInstance(thisroom.compiled_script);
+    roominst = ccInstance::CreateFromScript(thisroom.compiled_script);
 
     if ((ccError!=0) || (roominst==NULL)) {
         char thiserror[400];
@@ -1035,7 +1035,7 @@ void compile_room_script() {
         quit(thiserror);
     }
 
-    roominstFork = ccForkInstance(roominst);
+    roominstFork = roominst->Fork();
     if (roominstFork == NULL)
         quitprintf("Unable to create forked room instance: %s", ccErrorString);
 

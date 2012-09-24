@@ -521,10 +521,10 @@ void unload_game_file() {
 
     if ((gameinst != NULL) && (gameinst->pc != 0))
         quit("Error: unload_game called while script still running");
-    //ccAbortAndDestroyInstance (gameinst);
+    //->AbortAndDestroy (gameinst);
     else {
-        ccFreeInstance(gameinstFork);
-        ccFreeInstance(gameinst);
+        gameinstFork->Free();
+        gameinst->Free();
         gameinstFork = NULL;
         gameinst = NULL;
     }
@@ -536,7 +536,7 @@ void unload_game_file() {
         quit("Error: unload_game called while dialog script still running");
     else if (dialogScriptsInst != NULL)
     {
-        ccFreeInstance(dialogScriptsInst);
+        dialogScriptsInst->Free();
         dialogScriptsInst = NULL;
     }
 
@@ -547,8 +547,8 @@ void unload_game_file() {
     }
 
     for (ee = 0; ee < numScriptModules; ee++) {
-        ccFreeInstance(moduleInstFork[ee]);
-        ccFreeInstance(moduleInst[ee]);
+        moduleInstFork[ee]->Free();
+        moduleInst[ee]->Free();
         scriptModules[ee]->Free();
     }
     numScriptModules = 0;
@@ -1051,19 +1051,19 @@ void save_game_scripts(DataStream *out)
     // write the data segment of the global script
     int gdatasize=gameinst->globaldatasize;
     out->WriteInt32(gdatasize);
-    ccFlattenGlobalData (gameinst);
+    gameinst->FlattenGlobalData ();
     // MACPORT FIX: just in case gdatasize is 2 or 4, don't want to swap endian
     out->Write(&gameinst->globaldata[0], gdatasize);
-    ccUnFlattenGlobalData (gameinst);
+    gameinst->UnFlattenGlobalData ();
     // write the script modules data segments
     out->WriteInt32(numScriptModules);
     for (int bb = 0; bb < numScriptModules; bb++) {
         int glsize = moduleInst[bb]->globaldatasize;
         out->WriteInt32(glsize);
         if (glsize > 0) {
-            ccFlattenGlobalData(moduleInst[bb]);
+            moduleInst[bb]->FlattenGlobalData();
             out->Write(&moduleInst[bb]->globaldata[0], glsize);
-            ccUnFlattenGlobalData(moduleInst[bb]);
+            moduleInst[bb]->UnFlattenGlobalData();
         }
     }
 }
@@ -1612,19 +1612,19 @@ void restore_game_clean_gfx()
 
 void restore_game_clean_scripts()
 {
-    ccFreeInstance(gameinstFork);
-    ccFreeInstance(gameinst);
+    gameinstFork->Free();
+    gameinst->Free();
     gameinstFork = NULL;
     gameinst = NULL;
     for (int vv = 0; vv < numScriptModules; vv++) {
-        ccFreeInstance(moduleInstFork[vv]);
-        ccFreeInstance(moduleInst[vv]);
+        moduleInstFork[vv]->Free();
+        moduleInst[vv]->Free();
         moduleInst[vv] = NULL;
     }
 
     if (dialogScriptsInst != NULL)
     {
-        ccFreeInstance(dialogScriptsInst);
+        dialogScriptsInst->Free();
         dialogScriptsInst = NULL;
     }
 }
@@ -1637,7 +1637,7 @@ void restore_game_scripts(DataStream *in, int &gdatasize, char **newglobaldatabu
     *newglobaldatabuffer = (char*)malloc(gdatasize);
     in->Read(*newglobaldatabuffer, gdatasize);
     //in->ReadArray(&gameinst->globaldata[0],gdatasize,1);
-    //ccUnFlattenGlobalData (gameinst);
+    //->UnFlattenGlobalData (gameinst);
 
 
 
@@ -2103,8 +2103,8 @@ int restore_game_data (DataStream *in, const char *nametouse) {
 
     restore_game_charextras(in);
     if (roominst!=NULL) {  // so it doesn't overwrite the tsdata
-        ccFreeInstance(roominstFork);
-        ccFreeInstance(roominst); 
+        roominstFork->Free();
+        roominst->Free(); 
         roominstFork = NULL;
         roominst=NULL;
     }
@@ -2177,7 +2177,7 @@ int restore_game_data (DataStream *in, const char *nametouse) {
     // read the global data into the newly created script
     memcpy(&gameinst->globaldata[0], newglobaldatabuffer, gdatasize);
     free(newglobaldatabuffer);
-    ccUnFlattenGlobalData(gameinst);
+    gameinst->UnFlattenGlobalData();
 
     // restore the script module data
     for (bb = 0; bb < numScriptModules; bb++) {
@@ -2185,7 +2185,7 @@ int restore_game_data (DataStream *in, const char *nametouse) {
             quit("!Restore Game: script module global data changed, unable to restore");
         memcpy(&moduleInst[bb]->globaldata[0], scriptModuleDataBuffers[bb], scriptModuleDataSize[bb]);
         free(scriptModuleDataBuffers[bb]);
-        ccUnFlattenGlobalData(moduleInst[bb]);
+        moduleInst[bb]->UnFlattenGlobalData();
     }
 
 

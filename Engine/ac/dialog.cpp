@@ -167,7 +167,7 @@ int run_dialog_script(DialogTopic*dtpp, int dialogID, int offse, int optionIndex
   {
     char funcName[100];
     sprintf(funcName, "_run_dialog%d", dialogID);
-    run_text_script_iparam(dialogScriptsInst, funcName, optionIndex);
+    dialogScriptsInst->RunTextScriptIParam(funcName, optionIndex);
     result = dialogScriptsInst->returnValue;
   }
   else

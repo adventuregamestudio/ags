@@ -237,7 +237,7 @@ int RunAGSGame (char *newgame, unsigned int mode, int data) {
 
         if (inside_script) {
             curscript->queue_action(ePSARunAGSGame, mode | RAGMODE_LOADNOW, "RunAGSGame");
-            ccAbortInstance (ccGetCurrentInstance ());
+            ccInstance::GetCurrentInstance()->Abort();
         }
         else
             load_new_game = mode | RAGMODE_LOADNOW;

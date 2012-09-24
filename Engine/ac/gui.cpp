@@ -228,7 +228,7 @@ void remove_popup_interface(int ifacenum) {
 void process_interface_click(int ifce, int btn, int mbut) {
     if (btn < 0) {
         // click on GUI background
-        run_text_script_2iparam(gameinst, guis[ifce].clickEventHandler, (long)&scrGui[ifce], mbut);
+        gameinst->RunTextScript2IParam(guis[ifce].clickEventHandler, (long)&scrGui[ifce], mbut);
         return;
     }
 
@@ -252,15 +252,15 @@ void process_interface_click(int ifce, int btn, int mbut) {
         // otherwise, run interface_click
         if ((theObj->GetNumEvents() > 0) &&
             (theObj->eventHandlers[0][0] != 0) &&
-            (ccGetSymbolAddr(gameinst, theObj->eventHandlers[0]) != NULL)) {
+            (gameinst->GetSymbolAddress(theObj->eventHandlers[0]) != NULL)) {
                 // control-specific event handler
                 if (strchr(theObj->GetEventArgs(0), ',') != NULL)
-                    run_text_script_2iparam(gameinst, theObj->eventHandlers[0], (long)theObj, mbut);
+                    gameinst->RunTextScript2IParam(theObj->eventHandlers[0], (long)theObj, mbut);
                 else
-                    run_text_script_iparam(gameinst, theObj->eventHandlers[0], (long)theObj);
+                    gameinst->RunTextScriptIParam(theObj->eventHandlers[0], (long)theObj);
         }
         else
-            run_text_script_2iparam(gameinst,"interface_click",ifce,btn);
+            gameinst->RunTextScript2IParam("interface_click",ifce,btn);
     }
 }
 

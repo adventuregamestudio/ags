@@ -595,7 +595,7 @@ int IAGSEngine::CallGameScriptFunction(const char *name, int32 globalScript, int
     if (!globalScript)
         toRun = roominst;
 
-    int toret = run_script_function_if_exist(toRun, (char*)name, numArgs, arg1, arg2, arg3);
+    int toret = toRun->RunScriptFunctionIfExists((char*)name, numArgs, arg1, arg2, arg3);
     return toret;
 }
 

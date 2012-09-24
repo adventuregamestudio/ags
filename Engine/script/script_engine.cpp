@@ -34,12 +34,12 @@ extern int currentline; // in script/script_common
 
 void cc_error_at_line(char *buffer, const char *error_msg)
 {
-    if (ccGetCurrentInstance() == NULL) {
+    if (ccInstance::GetCurrentInstance() == NULL) {
         sprintf(ccErrorString, "Error (line %d): %s", currentline, error_msg);
     }
     else {
         sprintf(ccErrorString, "Error: %s\n", error_msg);
-        ccGetCallStack(ccGetCurrentInstance(), ccErrorCallStack, 5);
+        ccInstance::GetCurrentInstance()->GetCallStack(ccErrorCallStack, 5);
     }
 }
 

@@ -323,7 +323,7 @@ void check_controls() {
             wasbutdown=aa+1;
         }
         else setevent(EV_TEXTSCRIPT,TS_MCLICK,aa+1);
-        //    else run_text_script_iparam(gameinst,"on_mouse_click",aa+1);
+        //    else RunTextScriptIParam(gameinst,"on_mouse_click",aa+1);
     }
     aa = check_mouse_wheel();
     if (aa < 0)
@@ -485,7 +485,7 @@ void check_controls() {
                 setevent(EV_TEXTSCRIPT,TS_KEYPRESS,kgn);
             }
         }
-        //    run_text_script_iparam(gameinst,"on_key_press",kgn);
+        //    RunTextScriptIParam(gameinst,"on_key_press",kgn);
     }
 
     if ((IsInterfaceEnabled()) && (IsGamePaused() == 0) &&

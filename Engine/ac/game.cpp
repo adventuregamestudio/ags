@@ -1502,7 +1502,7 @@ void save_game(int slotn, const char*descript) {
     }
 
     if (screenShot != NULL)
-        free(screenShot);
+        delete screenShot;
 
     delete out;
 }

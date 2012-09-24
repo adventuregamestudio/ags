@@ -414,9 +414,21 @@ int SpriteCache::loadSprite(int index)
     }
   }
   else {
-    for (hh = 0; hh < htt; hh++)
-      // MACPORT FIX: size and nmemb split
-      cache_stream->ReadArray(&images[index]->GetScanLineForWriting(hh)[0], coldep, wdd);
+    if (coldep == 1)
+    {
+      for (hh = 0; hh < htt; hh++)
+        cache_stream->ReadArray(&images[index]->GetScanLineForWriting(hh)[0], coldep, wdd);
+    }
+    else if (coldep == 2)
+    {
+      for (hh = 0; hh < htt; hh++)
+        cache_stream->ReadArrayOfInt16((int16_t*)&images[index]->GetScanLineForWriting(hh)[0], wdd);
+    }
+    else
+    {
+      for (hh = 0; hh < htt; hh++)
+        cache_stream->ReadArrayOfInt32((int32_t*)&images[index]->GetScanLineForWriting(hh)[0], wdd);
+    }
   }
 
   lastLoad = index;

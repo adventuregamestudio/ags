@@ -777,16 +777,13 @@ int cc_run_code(ccInstance * inst, long curpc)
         break;
       case SCMD_MEMREADW:
         tshort = *((short *)inst->registers[SREG_MAR]);
-        inst->registers[arg1] = tshort;
 #if defined(AGS_BIG_ENDIAN)
         if (gSpans.IsInSpan((char*)inst->registers[SREG_MAR]))
         {
-          int16_t temp = inst->registers[arg1];
-          AGS::Common::BitByteOperations::SwapBytesInt16(temp);
-          inst->registers[arg1] = temp;
+          AGS::Common::BitByteOperations::SwapBytesInt16(tshort);
         }
 #endif
-
+        inst->registers[arg1] = tshort;
         break;
       case SCMD_MEMWRITEB:
         tbyte = (unsigned char)inst->registers[arg1];
@@ -794,15 +791,13 @@ int cc_run_code(ccInstance * inst, long curpc)
         break;
       case SCMD_MEMWRITEW:
         tshort = (short)inst->registers[arg1];
-        *((short *)inst->registers[SREG_MAR]) = tshort;
 #if defined(AGS_BIG_ENDIAN)
         if (gSpans.IsInSpan((char*)inst->registers[SREG_MAR]))
         {
-          int16_t temp = inst->registers[arg1];
-          AGS::Common::BitByteOperations::SwapBytesInt16(temp);
-          inst->registers[arg1] = temp;
+          AGS::Common::BitByteOperations::SwapBytesInt16(tshort);
         }
 #endif
+        *((short *)inst->registers[SREG_MAR]) = tshort;
         break;
       case SCMD_JZ:
         if (inst->registers[SREG_AX] == 0)

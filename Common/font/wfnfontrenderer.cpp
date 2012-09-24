@@ -63,10 +63,16 @@ unsigned char* psp_get_char(wgtfont foon, int thisCharacter)
 
   //tabaddr = (unsigned short *)&foon[tabaddr[0]];     // get address table
   memcpy(&tabaddr_value, tabaddr_ptr, 2);
+#if defined (AGS_BIG_ENDIAN)
+  AGS::Common::BitByteOperations::SwapBytesInt16(tabaddr_value);
+#endif
   tabaddr_ptr = (unsigned char*)&foon[tabaddr_value];
 
   //tabaddr = (unsigned short *)&foon[tabaddr[(unsigned char)charr]];      // use table to find character
   memcpy(&tabaddr_value, &tabaddr_ptr[thisCharacter*2], 2);
+#if defined (AGS_BIG_ENDIAN)
+  AGS::Common::BitByteOperations::SwapBytesInt16(tabaddr_value);
+#endif
 
   return (unsigned char*)&foon[tabaddr_value];
 }
@@ -84,23 +90,16 @@ int WFNFontRenderer::GetTextWidth(const char *texx, int fontNumber)
   {
     thisCharacter = texx[dd];
     if ( !extendedCharacters[fontNumber] && (thisCharacter >= 128) )  thisCharacter = '?';
-#ifdef ALLEGRO_BIG_ENDIAN
-    unsigned short *tabaddr; // [IKM] 2012-06-13: added by guess, just to make this compile
-    tabaddr = (unsigned short *)&foon[15];
-    tabaddr = (unsigned short *)&foon[__short_swap_endian(tabaddr[0])];     // get address table
-    tabaddr = (unsigned short *)&foon[__short_swap_endian(tabaddr[thisCharacter])];      // use table to find character
-    totlen += __short_swap_endian(tabaddr[0]);
-#else
-    //tabaddr = (unsigned short *)&foon[15];
-    //tabaddr = (unsigned short *)&foon[tabaddr[0]];     // get address table
-    //tabaddr = (unsigned short *)&foon[tabaddr[thisCharacter]];      // use table to find character
+
     unsigned char* fontaddr = psp_get_char(foon, (unsigned char)thisCharacter);
 
     unsigned short tabaddr_d;
     memcpy(&tabaddr_d, (unsigned char*)((long)fontaddr + 0), 2);
+#if defined (AGS_BIG_ENDIAN)
+  AGS::Common::BitByteOperations::SwapBytesInt16(tabaddr_d);
+#endif
 
     totlen += tabaddr_d;
-#endif
   }
   return totlen * wtext_multiply;
 }
@@ -117,22 +116,16 @@ int WFNFontRenderer::GetTextHeight(const char *texx, int fontNumber)
   {
     thisCharacter = texx[dd];
     if ( !extendedCharacters[fontNumber] && (thisCharacter >= 128) )  thisCharacter = '?';
-#ifdef ALLEGRO_BIG_ENDIAN
-    unsigned short *tabaddr; // [IKM] 2012-06-13: added by guess, just to make this compile
-    tabaddr = (unsigned short *)&foon[15];
-    tabaddr = (unsigned short *)&foon[__short_swap_endian(tabaddr[0])];     // get address table
-    tabaddr = (unsigned short *)&foon[__short_swap_endian(tabaddr[thisCharacter])];      // use table to find character
-    totlen += __short_swap_endian(tabaddr[0]);
-#else
-    //tabaddr = (unsigned short *)&foon[15];
-    //tabaddr = (unsigned short *)&foon[tabaddr[0]];     // get address table
-    //tabaddr = (unsigned short *)&foon[tabaddr[thisCharacter]];      // use table to find character
+
     unsigned char* fontaddr = psp_get_char(foon, (unsigned char)thisCharacter);
     unsigned short tabaddr_d;
     memcpy(&tabaddr_d, (unsigned char*)((long)fontaddr + 2), 2);
+#if defined (AGS_BIG_ENDIAN)
+  AGS::Common::BitByteOperations::SwapBytesInt16(tabaddr_d);
+#endif
 
     int charHeight = tabaddr_d;
-#endif
+
     if (charHeight > highest)
       highest = charHeight;
   }
@@ -162,30 +155,25 @@ int WFNFontRenderer::printchar(int xxx, int yyy, int fontNumber, int charr)
   if ( !extendedCharacters[fontNumber] && ((unsigned char)charr >= 128) ) 
     charr = '?';
 
-#ifdef ALLEGRO_BIG_ENDIAN
-  unsigned short *tabaddr; // [IKM] 2012-06-13: added by guess, just to make this compile
-  tabaddr = (unsigned short *)&foo[__short_swap_endian(tabaddr[0])];
-  tabaddr = (unsigned short *)&foo[__short_swap_endian(tabaddr[(unsigned char)charr])];
-  int charWidth = __short_swap_endian(tabaddr[0]);
-  int charHeight = __short_swap_endian(tabaddr[1]);
-  actdata = (unsigned char *)&tabaddr[2];
-#else
   
-  //tabaddr = (unsigned short *)&foo[tabaddr[0]];        // get address table
-  //tabaddr = (unsigned short *)&foo[tabaddr[(unsigned char)charr]];    // use table to find character (MUST BE UNSIGNED! - Alan)
   unsigned char* tabaddr = psp_get_char(foo, (unsigned char)charr);
 
   unsigned short tabaddr_d;
   //int charWidth = tabaddr[0];
   memcpy(&tabaddr_d, (unsigned char*)((long)tabaddr), 2);
+#if defined (AGS_BIG_ENDIAN)
+  AGS::Common::BitByteOperations::SwapBytesInt16(tabaddr_d);
+#endif
   int charWidth = tabaddr_d;
 
   //int charHeight = tabaddr[1];
   memcpy(&tabaddr_d, (unsigned char*)((long)tabaddr + 2), 2);
+#if defined (AGS_BIG_ENDIAN)
+  AGS::Common::BitByteOperations::SwapBytesInt16(tabaddr_d);
+#endif
   int charHeight = tabaddr_d;
 
-  actdata = (unsigned char *)&tabaddr[2*2];  // [AlanDrake] 2012-07-03: moved here because I doubt that 2*2 will work for big endian
-#endif
+  actdata = (unsigned char *)&tabaddr[2*2];
   bytewid = ((charWidth - 1) / 8) + 1;
 
   // MACPORT FIX: switch now using charWidth and charHeight

@@ -527,7 +527,11 @@ AssetError AssetManager::ReadAssetLibV10(MultiFileLib * mfl, DataStream *ci_s, i
     }
 
     // read information on clib contents
-    ci_s->ReadArray(&mfl->filenames[0][0], 25, mfl->num_files);
+
+    // filename array is only 25 chars long in this format version
+    for (int i = 0; i < mfl->num_files; i++)
+      ci_s->ReadArray(&mfl->filenames[i][0], 25, 1);
+
     ci_s->ReadArrayOfInt32(&mfl->offset[0], mfl->num_files);
     ci_s->ReadArrayOfInt32(&mfl->length[0], mfl->num_files);
     ci_s->ReadArrayOfInt8((int8_t*)&mfl->file_datafile[0], mfl->num_files);
@@ -741,6 +745,7 @@ void AssetManager::ReadEncString(char *buffer, int maxLength, DataStream *ci_s)
 
 void AssetManager::DecryptText(char *text, int length)
 {
+/*
     int adx = 0;
     for (int i = 0; i < length; ++i)
     {
@@ -750,7 +755,29 @@ void AssetManager::DecryptText(char *text, int length)
             adx = 0;
         }
     }
+*/
+  int adx = 0;
+
+  while (1)
+  {
+    text[0] -= _encryptionString[adx];
+    if (text[0] == 0)
+    {
+      break;
+    }
+
+    adx++;
+    text++;
+
+    if (adx > 10)
+    {
+      adx = 0;
+    }
+  }
+
 }
+
+
 
 } // namespace AGS
 } // namespace Common

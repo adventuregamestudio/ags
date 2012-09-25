@@ -284,7 +284,7 @@ void post_script_cleanup() {
     ExecutingScript copyof = scripts[num_scripts-1];
     //  write_log("Instance finished.");
     if (scripts[num_scripts-1].forked)
-        scripts[num_scripts-1].inst->Free();
+        delete scripts[num_scripts-1].inst;
     num_scripts--;
     inside_script--;
 

@@ -291,4 +291,3 @@ void ccCompiledScript::shutdown() {
     Free();
     free_extra();
 }
-

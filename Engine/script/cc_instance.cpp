@@ -25,6 +25,16 @@
 using AGS::Common::DataStream;
 using AGS::Common::TextStreamWriter;
 
+extern ccInstance *loadedInstances[MAX_LOADED_INSTANCES]; // in script/script_runtime
+extern void nullfree(void *data); // in script/script_runtime
+extern int gameHasBeenRestored; // in ac/game
+extern ExecutingScript*curscript; // in script/script
+extern int guis_need_update; // in gui/guimain
+extern int displayed_room; // in ac/game
+extern roomstruct thisroom; // ac/game
+extern int maxWhileLoops;
+extern new_line_hook_type new_line_hook;
+
 // Internally used names for commands, registers
 const char *sccmdnames[] = {
     "NULL", "$add", "$sub", "$$mov", "memwritelit", "ret", "$mov",
@@ -61,166 +71,234 @@ const short sccmdargs[] = {
 
 ccInstance *current_instance;
 
+
+
 ccInstance *ccInstance::GetCurrentInstance()
 {
     return current_instance;
 }
 
-void ccInstance::GetCallStack(char *buffer, int maxLines) {
-
-    // FIXME: check ptr prior to function call instead
-    if (this == NULL) {
-        // not in a script, no call stack
-        buffer[0] = 0;
-        return;
-    }
-
-    sprintf(buffer, "in \"%s\", line %d\n", runningInst->instanceof->GetSectionName(pc), line_number);
-
-    char lineBuffer[300];
-    int linesDone = 0;
-    for (int j = callStackSize - 1; (j >= 0) && (linesDone < maxLines); j--, linesDone++) {
-        sprintf(lineBuffer, "from \"%s\", line %d\n",
-            callStackCodeInst[j]->instanceof->GetSectionName(callStackAddr[j]), callStackLineNumber[j]);
-        strcat(buffer, lineBuffer);
-        if (linesDone == maxLines - 1)
-            strcat(buffer, "(and more...)\n");
-    }
-
+ccInstance *ccInstance::CreateFromScript(ccScript * scri)
+{
+    return CreateEx(scri, NULL);
 }
 
-int ccInstance::RunTextScriptIParam(char*tsname,long iparam) {
-    if ((strcmp(tsname, "on_key_press") == 0) || (strcmp(tsname, "on_mouse_click") == 0)) {
-        bool eventWasClaimed;
-        int toret = run_claimable_event(tsname, true, 1, iparam, 0, &eventWasClaimed);
-
-        if (eventWasClaimed)
-            return toret;
+ccInstance *ccInstance::CreateEx(ccScript * scri, ccInstance * joined)
+{
+    // allocate and copy all the memory with data, code and strings across
+    ccInstance *cinst = new ccInstance();
+    if (!cinst->_Create(scri, joined))
+    {
+        delete cinst;
+        return NULL;
     }
 
-    return RunScriptFunctionIfExists(tsname, 1, iparam, 0);
+    return cinst;
 }
 
-extern int gameHasBeenRestored; // in ac/game
-extern ExecutingScript*curscript; // in script/script
+ccInstance::ccInstance()
+{
+    flags               = 0;
+    globaldata          = NULL;
+    globaldatasize      = 0;
+    code                = NULL;
+    runningInst         = NULL;
+    codesize            = 0;
+    strings             = NULL;
+    stringssize         = 0;
+    exportaddr          = NULL;
+    stack               = NULL;
+    stacksize           = 0;
+    pc                  = 0;
+    line_number         = 0;
+    instanceof          = NULL;
+    callStackSize       = 0;
+    loadedInstanceId    = 0;
+    returnValue         = 0;
 
-int ccInstance::RunScriptFunctionIfExists(char*tsname,int numParam, long iparam, long iparam2, long iparam3) {
-    int oldRestoreCount = gameHasBeenRestored;
-    // First, save the current ccError state
-    // This is necessary because we might be attempting
-    // to run Script B, while Script A is still running in the
-    // background.
-    // If CallInstance here has an error, it would otherwise
-    // also abort Script A because ccError is a global variable.
-    int cachedCcError = ccError;
+#if defined(AGS_64BIT)
+    stackSizeIndex      = 0;
+#endif
+}
+
+ccInstance::~ccInstance()
+{
+    Free();
+}
+
+ccInstance *ccInstance::Fork()
+{
+    return CreateEx(instanceof, this);
+}
+
+void ccInstance::Abort()
+{
+    if ((this != NULL) && (pc != 0))
+        flags |= INSTF_ABORTED;
+}
+
+void ccInstance::AbortAndDestroy()
+{
+    if (this != NULL) {
+        Abort();
+        flags |= INSTF_FREE;
+    }
+}
+
+int ccInstance::CallScriptFunction(char *funcname, long numargs, ...)
+{
     ccError = 0;
+    currentline = 0;
 
-    int toret = PrepareTextScript(&tsname);
-    if (toret) {
-        ccError = cachedCcError;
-        return -18;
+    if ((numargs >= 20) || (numargs < 0)) {
+        cc_error("too many arguments to function");
+        return -3;
     }
 
-    // Clear the error message
-    ccErrorString[0] = 0;
-
-    if (numParam == 0) 
-        toret = curscript->inst->CallScriptFunction(tsname,numParam);
-    else if (numParam == 1)
-        toret = curscript->inst->CallScriptFunction(tsname,numParam, iparam);
-    else if (numParam == 2)
-        toret = curscript->inst->CallScriptFunction(tsname,numParam,iparam, iparam2);
-    else if (numParam == 3)
-        toret = curscript->inst->CallScriptFunction(tsname,numParam,iparam, iparam2, iparam3);
-    else
-        quit("Too many parameters to RunScriptFunctionIfExists");
-
-    // 100 is if Aborted (eg. because we are LoadAGSGame'ing)
-    if ((toret != 0) && (toret != -2) && (toret != 100)) {
-        quit_with_script_error(tsname);
+    if (pc != 0) {
+        cc_error("instance already being executed");
+        return -4;
     }
 
-    post_script_cleanup_stack++;
+    long startat = -1;
+    int k;
+    char mangledName[200];
+    sprintf(mangledName, "%s$", funcname);
 
-    if (post_script_cleanup_stack > 50)
-        quitprintf("!post_script_cleanup call stack exceeded: possible recursive function call? running %s", tsname);
+    for (k = 0; k < instanceof->numexports; k++) {
+        char *thisExportName = instanceof->exports[k];
+        int match = 0;
 
-    post_script_cleanup();
-
-    post_script_cleanup_stack--;
-
-    // restore cached error state
-    ccError = cachedCcError;
-
-    // if the game has been restored, ensure that any further scripts are not run
-    if ((oldRestoreCount != gameHasBeenRestored) && (eventClaimed == EVENT_INPROGRESS))
-        eventClaimed = EVENT_CLAIMED;
-
-    return toret;
-}
-
-extern int guis_need_update; // in gui/guimain
-
-int ccInstance::RunTextScript2IParam(char*tsname,long iparam,long param2) {
-    if (strcmp(tsname, "on_event") == 0) {
-        bool eventWasClaimed;
-        int toret = run_claimable_event(tsname, true, 2, iparam, param2, &eventWasClaimed);
-
-        if (eventWasClaimed)
-            return toret;
-    }
-
-    // response to a button click, better update guis
-    if (strnicmp(tsname, "interface_click", 15) == 0)
-        guis_need_update = 1;
-
-    int toret = RunScriptFunctionIfExists(tsname, 2, iparam, param2);
-
-    // tsname is no longer valid, because RunScriptFunctionIfExists might
-    // have restored a save game and freed the memory. Therefore don't 
-    // attempt any strcmp's here
-    tsname = NULL;
-
-    return toret;
-}
-
-extern int displayed_room; // in ac/game
-
-int ccInstance::RunTextScript(char*tsname) {
-    if (strcmp(tsname, REP_EXEC_NAME) == 0) {
-        // run module rep_execs
-        int room_changes_was = play.room_changes;
-        int restore_game_count_was = gameHasBeenRestored;
-
-        for (int kk = 0; kk < numScriptModules; kk++) {
-            if (moduleRepExecAddr[kk] != NULL)
-                moduleInst[kk]->RunScriptFunctionIfExists(tsname, 0, 0, 0);
-
-            if ((room_changes_was != play.room_changes) ||
-                (restore_game_count_was != gameHasBeenRestored))
-                return 0;
+        // check for a mangled name match
+        if (strncmp(thisExportName, mangledName, strlen(mangledName)) == 0) {
+            // found, compare the number of parameters
+            char *numParams = thisExportName + strlen(mangledName);
+            if (atoi(numParams) != numargs) {
+                cc_error("wrong number of parameters to exported function '%s' (expected %d, supplied %d)", funcname, atoi(numParams), numargs);
+                return -1;
+            }
+            match = 1;
+        }
+        // check for an exact match (if the script was compiled with
+        // an older version)
+        if ((match == 1) || (strcmp(thisExportName, funcname) == 0)) {
+            long etype = (instanceof->export_addr[k] >> 24L) & 0x000ff;
+            if (etype != EXPORT_FUNCTION) {
+                cc_error("symbol is not a function");
+                return -1;
+            }
+            startat = (instanceof->export_addr[k] & 0x00ffffff);
+            break;
         }
     }
 
-    int toret = RunScriptFunctionIfExists(tsname, 0, 0, 0);
-    if ((toret == -18) && (this == roominst)) {
-        // functions in room script must exist
-        quitprintf("prepare_script: error %d (%s) trying to run '%s'   (Room %d)",toret,ccErrorString,tsname, displayed_room);
+    if (startat < 0) {
+        cc_error("function '%s' not found", funcname);
+        return -2;
     }
-    return toret;
+
+    long tempstack[20];
+    int tssize = 1;
+    tempstack[0] = 0;             // return address on stack
+    if (numargs > 0) {
+        va_list ap;
+        va_start(ap, numargs);
+        while (tssize <= numargs) {
+            tempstack[tssize] = va_arg(ap, long);
+            tssize++;
+        }
+        va_end(ap);
+    }
+    numargs++;                    // account for return address
+    flags &= ~INSTF_ABORTED;
+
+    // object pointer needs to start zeroed
+    registers[SREG_OP] = 0;
+
+    ccInstance* currentInstanceWas = current_instance;
+    long stoffs = 0;
+    for (tssize = numargs - 1; tssize >= 0; tssize--) {
+        memcpy(&stack[stoffs], &tempstack[tssize], sizeof(long));
+        stoffs += sizeof(long);
+    }
+    registers[SREG_SP] = (long)(&stack[0]);
+    registers[SREG_SP] += (numargs * sizeof(long));
+    runningInst = this;
+
+#if defined(AGS_64BIT)
+    // 64 bit: Initialize array for stack variable sizes with the argument values
+    stackSizeIndex = 0;
+    int i;
+    for (i = 0; i < numargs; i++)
+    {
+        stackSizes[stackSizeIndex] = -1;
+        stackSizeIndex++;
+    }
+#endif
+
+    int reterr = Run(startat);
+    registers[SREG_SP] -= (numargs - 1) * sizeof(long);
+    pc = 0;
+    current_instance = currentInstanceWas;
+
+    // NOTE that if proper multithreading is added this will need
+    // to be reconsidered, since the GC could be run in the middle 
+    // of a RET from a function or something where there is an 
+    // object with ref count 0 that is in use
+    pool.RunGarbageCollectionIfAppropriate();
+
+    if (new_line_hook)
+        new_line_hook(NULL, 0);
+
+    if (reterr)
+        return -6;
+
+    if (flags & INSTF_ABORTED) {
+        flags &= ~INSTF_ABORTED;
+
+        if (flags & INSTF_FREE)
+            Free();
+        return 100;
+    }
+
+    if (registers[SREG_SP] != (long)&stack[0]) {
+        cc_error("stack pointer was not zero at completion of script");
+        return -5;
+    }
+    return ccError;
 }
 
-extern roomstruct thisroom; // ac/game
+void ccInstance::DoRunScriptFuncCantBlock(NonBlockingScriptFunction* funcToRun, bool *hasTheFunc) {
+    if (!hasTheFunc[0])
+        return;
 
-void ccInstance::GetScriptName(char *curScrName) {
-    if (this == NULL)
-        strcpy (curScrName, "Not in a script");
-    else if (instanceof == gamescript)
-        strcpy (curScrName, "Global script");
-    else if (instanceof == thisroom.compiled_script)
-        sprintf (curScrName, "Room %d script", displayed_room);
+    no_blocking_functions++;
+    int result;
+
+    if (funcToRun->numParameters == 0)
+        result = CallScriptFunction((char*)funcToRun->functionName, 0);
+    else if (funcToRun->numParameters == 1)
+        result = CallScriptFunction((char*)funcToRun->functionName, 1, funcToRun->param1);
+    else if (funcToRun->numParameters == 2)
+        result = CallScriptFunction((char*)funcToRun->functionName, 2, funcToRun->param1, funcToRun->param2);
     else
-        strcpy (curScrName, "Unknown script");
+        quit("->DoRunScriptFuncCantBlock called with too many parameters");
+
+    if (result == -2) {
+        // the function doens't exist, so don't try and run it again
+        hasTheFunc[0] = false;
+    }
+    else if ((result != 0) && (result != 100)) {
+        quit_with_script_error(funcToRun->functionName);
+    }
+    else
+    {
+        funcToRun->atLeastOneImplementationExists = true;
+    }
+    // this might be nested, so don't disrupt blocked scripts
+    ccErrorString[0] = 0;
+    ccError = 0;
+    no_blocking_functions--;
 }
 
 char scfunctionname[30];
@@ -261,332 +339,6 @@ int ccInstance::PrepareTextScript(char**tsname) {
     return 0;
 }
 
-void ccInstance::DoRunScriptFuncCantBlock(NonBlockingScriptFunction* funcToRun, bool *hasTheFunc) {
-    if (!hasTheFunc[0])
-        return;
-
-    no_blocking_functions++;
-    int result;
-
-    if (funcToRun->numParameters == 0)
-        result = CallScriptFunction((char*)funcToRun->functionName, 0);
-    else if (funcToRun->numParameters == 1)
-        result = CallScriptFunction((char*)funcToRun->functionName, 1, funcToRun->param1);
-    else if (funcToRun->numParameters == 2)
-        result = CallScriptFunction((char*)funcToRun->functionName, 2, funcToRun->param1, funcToRun->param2);
-    else
-        quit("->DoRunScriptFuncCantBlock called with too many parameters");
-
-    if (result == -2) {
-        // the function doens't exist, so don't try and run it again
-        hasTheFunc[0] = false;
-    }
-    else if ((result != 0) && (result != 100)) {
-        quit_with_script_error(funcToRun->functionName);
-    }
-    else
-    {
-        funcToRun->atLeastOneImplementationExists = true;
-    }
-    // this might be nested, so don't disrupt blocked scripts
-    ccErrorString[0] = 0;
-    ccError = 0;
-    no_blocking_functions--;
-}
-
-extern ccInstance *loadedInstances[MAX_LOADED_INSTANCES]; // in script/script_runtime
-extern void nullfree(void *data); // in script/script_runtime
-
-ccInstance *ccInstance::CreateEx(ccScript * scri, ccInstance * joined)
-{
-    int i;
-
-    currentline = -1;
-    if ((scri == NULL) && (joined != NULL))
-        scri = joined->instanceof;
-
-    if (scri == NULL) {
-        cc_error("null pointer passed");
-        return NULL;
-    }
-
-    // allocate and copy all the memory with data, code and strings across
-    ccInstance *cinst = (ccInstance *) malloc(sizeof(ccInstance));
-    cinst->instanceof = NULL;
-    cinst->exportaddr = NULL;
-    cinst->callStackSize = 0;
-
-    if (joined != NULL) {
-        // share memory space with an existing instance (ie. this is a thread/fork)
-        cinst->globaldatasize = joined->globaldatasize;
-        cinst->globaldata = joined->globaldata;
-    } 
-    else {
-        // create own memory space
-        cinst->globaldatasize = scri->globaldatasize;
-        if (cinst->globaldatasize > 0) {
-            cinst->globaldata = (char *)malloc(cinst->globaldatasize);
-            memcpy(cinst->globaldata, scri->globaldata, cinst->globaldatasize);
-        }
-        else
-            cinst->globaldata = NULL;
-    }
-    cinst->codesize = scri->codesize;
-
-    if (cinst->codesize > 0) {
-        cinst->code = (unsigned long *)malloc(cinst->codesize * sizeof(long));
-        memcpy(cinst->code, scri->code, cinst->codesize * sizeof(long));
-    }
-    else
-        cinst->code = NULL;
-    // just use the pointer to the strings since they don't change
-    cinst->strings = scri->strings;
-    cinst->stringssize = scri->stringssize;
-    // create a stack
-    cinst->stacksize = CC_STACK_SIZE;
-    cinst->stack = (char *)malloc(cinst->stacksize);
-    if (cinst->stack == NULL) {
-        cc_error("not enough memory to allocate stack");
-        return NULL;
-    }
-
-    // find a LoadedInstance slot for it
-    for (i = 0; i < MAX_LOADED_INSTANCES; i++) {
-        if (loadedInstances[i] == NULL) {
-            loadedInstances[i] = cinst;
-            cinst->loadedInstanceId = i;
-            break;
-        }
-        if (i == MAX_LOADED_INSTANCES - 1) {
-            cc_error("too many active instances");
-            cinst->Free();
-            return NULL;
-        }
-    }
-
-    // set up the initial registers to zero
-    memset(&cinst->registers[0], 0, sizeof(long) * CC_NUM_REGISTERS);
-
-    // find the real address of all the imports
-    long *import_addrs = (long *)malloc(scri->numimports * sizeof(long));
-    if (scri->numimports == 0)
-        import_addrs = NULL;
-
-    for (i = 0; i < scri->numimports; i++) {
-        // MACPORT FIX 9/6/5: changed from NULL TO 0
-        if (scri->imports[i] == 0) {
-            import_addrs[i] = NULL;
-            continue;
-        }
-        import_addrs[i] = (long)simp.get_addr_of(scri->imports[i]);
-        if (import_addrs[i] == NULL) {
-            nullfree(import_addrs);
-            cc_error("unresolved import '%s'", scri->imports[i]);
-            cinst->Free();
-            return NULL;
-        }
-    }
-
-    // perform the fixups
-    for (i = 0; i < scri->numfixups; i++) {
-        long fixup = scri->fixups[i];
-        switch (scri->fixuptypes[i]) {
-    case FIXUP_GLOBALDATA:
-        cinst->code[fixup] += (long)&cinst->globaldata[0];
-        break;
-    case FIXUP_FUNCTION:
-        //      cinst->code[fixup] += (long)&cinst->code[0];
-        break;
-    case FIXUP_STRING:
-        cinst->code[fixup] += (long)&cinst->strings[0];
-        break;
-    case FIXUP_IMPORT: {
-        unsigned long setTo = import_addrs[cinst->code[fixup]];
-        ccInstance *scriptImp = simp.is_script_import(scri->imports[cinst->code[fixup]]);
-        // If the call is to another script function (in a different
-        // instance), replace the call with CALLAS so it doesn't do
-        // a real x86 JMP to the instruction
-        if (scriptImp != NULL) {
-            if (cinst->code[fixup + 1] == SCMD_CALLEXT) {
-                // save the instance ID in the top 4 bits of the instruction
-                cinst->code[fixup + 1] = SCMD_CALLAS;
-                cinst->code[fixup + 1] |= ((unsigned long)scriptImp->loadedInstanceId) << INSTANCE_ID_SHIFT;
-            }
-        }
-        cinst->code[fixup] = setTo;
-        break;
-                       }
-    case FIXUP_DATADATA:
-        if (joined == NULL)
-        {
-            // supposedly these are only used for strings...
-
-            int32_t temp;
-            memcpy(&temp, (char*)&(cinst->globaldata[fixup]), 4);
-#if defined(AGS_BIG_ENDIAN)
-            AGS::Common::BitByteOperations::SwapBytesInt32(temp);
-#endif
-            temp += (long)cinst->globaldata;
-#if defined(AGS_BIG_ENDIAN)
-            AGS::Common::BitByteOperations::SwapBytesInt32(temp);
-#endif
-            memcpy(&(cinst->globaldata[fixup]), &temp, 4);
-        }
-        break;
-    case FIXUP_STACK:
-        cinst->code[fixup] += (long)&cinst->stack[0];
-        break;
-    default:
-        nullfree(import_addrs);
-        cc_error("internal fixup index error");
-        cinst->Free();
-        return NULL;
-        }
-    }
-    nullfree(import_addrs);
-
-    cinst->exportaddr = (char**)malloc(sizeof(char*) * scri->numexports);
-
-    // find the real address of the exports
-    for (i = 0; i < scri->numexports; i++) {
-        long etype = (scri->export_addr[i] >> 24L) & 0x000ff;
-        long eaddr = (scri->export_addr[i] & 0x00ffffff);
-        if (etype == EXPORT_FUNCTION)
-            cinst->exportaddr[i] = (char *)(eaddr * sizeof(long) + (long)(&cinst->code[0]));
-        else if (etype == EXPORT_DATA)
-            cinst->exportaddr[i] = eaddr + (&cinst->globaldata[0]);
-        else {
-            cc_error("internal export fixup error");
-            cinst->Free();
-            return NULL;
-        }
-    }
-    cinst->instanceof = scri;
-    cinst->pc = 0;
-    cinst->flags = 0;
-    if (joined != NULL)
-        cinst->flags = INSTF_SHAREDATA;
-    scri->instances++;
-
-    if ((scri->instances == 1) && (ccGetOption(SCOPT_AUTOIMPORT) != 0)) {
-        // import all the exported stuff from this script
-        for (i = 0; i < scri->numexports; i++) {
-            if (simp.add(scri->exports[i], cinst->exportaddr[i], cinst)) {
-                cinst->Free();
-                cc_error("Export table overflow at '%s'", scri->exports[i]);
-                return NULL;
-            }
-        }
-    }
-
-#ifdef AGS_BIG_ENDIAN
-    gSpans.AddSpan(Span((char *)cinst->globaldata, cinst->globaldatasize));
-#endif
-
-    return cinst;
-}
-
-ccInstance *ccInstance::CreateFromScript(ccScript * scri)
-{
-    return CreateEx(scri, NULL);
-}
-
-ccInstance *ccInstance::Fork()
-{
-    return CreateEx(instanceof, this);
-}
-
-void ccInstance::Free()
-{
-    if (instanceof != NULL) {
-        instanceof->instances--;
-        if (instanceof->instances == 0) {
-            simp.remove_range((char *)&globaldata[0], globaldatasize);
-            simp.remove_range((char *)&code[0], codesize * sizeof(long));
-        }
-    }
-
-    // remove from the Active Instances list
-    if (loadedInstances[loadedInstanceId] == this)
-        loadedInstances[loadedInstanceId] = NULL;
-
-#ifdef AGS_BIG_ENDIAN
-    gSpans.RemoveSpan(Span((char *)globaldata, globaldatasize));
-#endif
-
-    if ((flags & INSTF_SHAREDATA) == 0)
-        nullfree(globaldata);
-
-    nullfree(code);
-    strings = NULL;
-    nullfree(stack);
-    nullfree(exportaddr);
-    free(this);
-}
-
-// get a pointer to a variable or function exported by the script
-char *ccInstance::GetSymbolAddress(char *symname)
-{
-    int k;
-    char altName[200];
-    sprintf(altName, "%s$", symname);
-
-    for (k = 0; k < instanceof->numexports; k++) {
-        if (strcmp(instanceof->exports[k], symname) == 0)
-            return exportaddr[k];
-        // mangled function name
-        if (strncmp(instanceof->exports[k], altName, strlen(altName)) == 0)
-            return exportaddr[k];
-    }
-    return NULL;
-}
-
-
-extern new_line_hook_type new_line_hook;
-
-void ccInstance::DumpInstruction(unsigned long *codeptr, int cps, int spp)
-{
-    static int line_num = 0;
-
-    if (codeptr[0] == SCMD_LINENUM) {
-        line_num = codeptr[1];
-        return;
-    }
-
-    DataStream *data_s = ci_fopen("script.log", Common::kFile_Create, Common::kFile_Write);
-    TextStreamWriter writer(data_s);
-    writer.WriteFormat("Line %3d, IP:%8d (SP:%8d) ", line_num, cps, spp);
-
-    int l, thisop = codeptr[0] & INSTANCE_ID_REMOVEMASK, isreg = 0, t = 0;
-    const char *toprint = sccmdnames[thisop];
-    if (toprint[0] == '$') {
-        isreg = 1;
-        toprint++;
-    }
-
-    if (toprint[0] == '$') {
-        isreg |= 2;
-        toprint++;
-    }
-    writer.WriteString(toprint);
-
-    for (l = 0; l < sccmdargs[thisop]; l++) {
-        t++;
-        if (l > 0)
-            writer.WriteChar(',');
-
-        if ((l == 0) && (isreg & 1))
-            writer.WriteFormat(" %s", regnames[codeptr[t]]);
-        else if ((l == 1) && (isreg & 2))
-            writer.WriteFormat(" %s", regnames[codeptr[t]]);
-        else
-            // MACPORT FIX 9/6/5: changed %d to %ld
-            writer.WriteFormat(" %ld", codeptr[t]);
-    }
-    writer.WriteLineBreak();
-    // the writer will delete data stream internally
-}
-
 #define CHECK_STACK \
     if ((registers[SREG_SP] - ((long)&stack[0])) >= CC_STACK_SIZE) { \
     cc_error("stack overflow"); \
@@ -612,9 +364,6 @@ void ccInstance::DumpInstruction(unsigned long *codeptr, int cps, int spp)
     callStackSize--;\
     line_number = callStackLineNumber[callStackSize];\
     currentline = line_number
-
-
-extern int maxWhileLoops;
 
 #define MAX_FUNC_PARAMS 20
 #define MAXNEST 50  // number of recursive function calls allowed
@@ -1349,142 +1098,213 @@ int ccInstance::Run(long curpc)
     }
 }
 
-int ccInstance::CallScriptFunction(char *funcname, long numargs, ...)
-{
+int ccInstance::RunScriptFunctionIfExists(char*tsname,int numParam, long iparam, long iparam2, long iparam3) {
+    int oldRestoreCount = gameHasBeenRestored;
+    // First, save the current ccError state
+    // This is necessary because we might be attempting
+    // to run Script B, while Script A is still running in the
+    // background.
+    // If CallInstance here has an error, it would otherwise
+    // also abort Script A because ccError is a global variable.
+    int cachedCcError = ccError;
     ccError = 0;
-    currentline = 0;
 
-    if ((numargs >= 20) || (numargs < 0)) {
-        cc_error("too many arguments to function");
-        return -3;
+    int toret = PrepareTextScript(&tsname);
+    if (toret) {
+        ccError = cachedCcError;
+        return -18;
     }
 
-    if (pc != 0) {
-        cc_error("instance already being executed");
-        return -4;
+    // Clear the error message
+    ccErrorString[0] = 0;
+
+    if (numParam == 0) 
+        toret = curscript->inst->CallScriptFunction(tsname,numParam);
+    else if (numParam == 1)
+        toret = curscript->inst->CallScriptFunction(tsname,numParam, iparam);
+    else if (numParam == 2)
+        toret = curscript->inst->CallScriptFunction(tsname,numParam,iparam, iparam2);
+    else if (numParam == 3)
+        toret = curscript->inst->CallScriptFunction(tsname,numParam,iparam, iparam2, iparam3);
+    else
+        quit("Too many parameters to RunScriptFunctionIfExists");
+
+    // 100 is if Aborted (eg. because we are LoadAGSGame'ing)
+    if ((toret != 0) && (toret != -2) && (toret != 100)) {
+        quit_with_script_error(tsname);
     }
 
-    long startat = -1;
+    post_script_cleanup_stack++;
+
+    if (post_script_cleanup_stack > 50)
+        quitprintf("!post_script_cleanup call stack exceeded: possible recursive function call? running %s", tsname);
+
+    post_script_cleanup();
+
+    post_script_cleanup_stack--;
+
+    // restore cached error state
+    ccError = cachedCcError;
+
+    // if the game has been restored, ensure that any further scripts are not run
+    if ((oldRestoreCount != gameHasBeenRestored) && (eventClaimed == EVENT_INPROGRESS))
+        eventClaimed = EVENT_CLAIMED;
+
+    return toret;
+}
+
+int ccInstance::RunTextScript(char*tsname) {
+    if (strcmp(tsname, REP_EXEC_NAME) == 0) {
+        // run module rep_execs
+        int room_changes_was = play.room_changes;
+        int restore_game_count_was = gameHasBeenRestored;
+
+        for (int kk = 0; kk < numScriptModules; kk++) {
+            if (moduleRepExecAddr[kk] != NULL)
+                moduleInst[kk]->RunScriptFunctionIfExists(tsname, 0, 0, 0);
+
+            if ((room_changes_was != play.room_changes) ||
+                (restore_game_count_was != gameHasBeenRestored))
+                return 0;
+        }
+    }
+
+    int toret = RunScriptFunctionIfExists(tsname, 0, 0, 0);
+    if ((toret == -18) && (this == roominst)) {
+        // functions in room script must exist
+        quitprintf("prepare_script: error %d (%s) trying to run '%s'   (Room %d)",toret,ccErrorString,tsname, displayed_room);
+    }
+    return toret;
+}
+
+int ccInstance::RunTextScriptIParam(char*tsname,long iparam) {
+    if ((strcmp(tsname, "on_key_press") == 0) || (strcmp(tsname, "on_mouse_click") == 0)) {
+        bool eventWasClaimed;
+        int toret = run_claimable_event(tsname, true, 1, iparam, 0, &eventWasClaimed);
+
+        if (eventWasClaimed)
+            return toret;
+    }
+
+    return RunScriptFunctionIfExists(tsname, 1, iparam, 0);
+}
+
+int ccInstance::RunTextScript2IParam(char*tsname,long iparam,long param2) {
+    if (strcmp(tsname, "on_event") == 0) {
+        bool eventWasClaimed;
+        int toret = run_claimable_event(tsname, true, 2, iparam, param2, &eventWasClaimed);
+
+        if (eventWasClaimed)
+            return toret;
+    }
+
+    // response to a button click, better update guis
+    if (strnicmp(tsname, "interface_click", 15) == 0)
+        guis_need_update = 1;
+
+    int toret = RunScriptFunctionIfExists(tsname, 2, iparam, param2);
+
+    // tsname is no longer valid, because RunScriptFunctionIfExists might
+    // have restored a save game and freed the memory. Therefore don't 
+    // attempt any strcmp's here
+    tsname = NULL;
+
+    return toret;
+}
+
+void ccInstance::GetCallStack(char *buffer, int maxLines) {
+
+    // FIXME: check ptr prior to function call instead
+    if (this == NULL) {
+        // not in a script, no call stack
+        buffer[0] = 0;
+        return;
+    }
+
+    sprintf(buffer, "in \"%s\", line %d\n", runningInst->instanceof->GetSectionName(pc), line_number);
+
+    char lineBuffer[300];
+    int linesDone = 0;
+    for (int j = callStackSize - 1; (j >= 0) && (linesDone < maxLines); j--, linesDone++) {
+        sprintf(lineBuffer, "from \"%s\", line %d\n",
+            callStackCodeInst[j]->instanceof->GetSectionName(callStackAddr[j]), callStackLineNumber[j]);
+        strcat(buffer, lineBuffer);
+        if (linesDone == maxLines - 1)
+            strcat(buffer, "(and more...)\n");
+    }
+}
+
+void ccInstance::GetScriptName(char *curScrName) {
+    if (this == NULL)
+        strcpy (curScrName, "Not in a script");
+    else if (instanceof == gamescript)
+        strcpy (curScrName, "Global script");
+    else if (instanceof == thisroom.compiled_script)
+        sprintf (curScrName, "Room %d script", displayed_room);
+    else
+        strcpy (curScrName, "Unknown script");
+}
+
+// get a pointer to a variable or function exported by the script
+char *ccInstance::GetSymbolAddress(char *symname)
+{
     int k;
-    char mangledName[200];
-    sprintf(mangledName, "%s$", funcname);
+    char altName[200];
+    sprintf(altName, "%s$", symname);
 
     for (k = 0; k < instanceof->numexports; k++) {
-        char *thisExportName = instanceof->exports[k];
-        int match = 0;
-
-        // check for a mangled name match
-        if (strncmp(thisExportName, mangledName, strlen(mangledName)) == 0) {
-            // found, compare the number of parameters
-            char *numParams = thisExportName + strlen(mangledName);
-            if (atoi(numParams) != numargs) {
-                cc_error("wrong number of parameters to exported function '%s' (expected %d, supplied %d)", funcname, atoi(numParams), numargs);
-                return -1;
-            }
-            match = 1;
-        }
-        // check for an exact match (if the script was compiled with
-        // an older version)
-        if ((match == 1) || (strcmp(thisExportName, funcname) == 0)) {
-            long etype = (instanceof->export_addr[k] >> 24L) & 0x000ff;
-            if (etype != EXPORT_FUNCTION) {
-                cc_error("symbol is not a function");
-                return -1;
-            }
-            startat = (instanceof->export_addr[k] & 0x00ffffff);
-            break;
-        }
+        if (strcmp(instanceof->exports[k], symname) == 0)
+            return exportaddr[k];
+        // mangled function name
+        if (strncmp(instanceof->exports[k], altName, strlen(altName)) == 0)
+            return exportaddr[k];
     }
-
-    if (startat < 0) {
-        cc_error("function '%s' not found", funcname);
-        return -2;
-    }
-
-    long tempstack[20];
-    int tssize = 1;
-    tempstack[0] = 0;             // return address on stack
-    if (numargs > 0) {
-        va_list ap;
-        va_start(ap, numargs);
-        while (tssize <= numargs) {
-            tempstack[tssize] = va_arg(ap, long);
-            tssize++;
-        }
-        va_end(ap);
-    }
-    numargs++;                    // account for return address
-    flags &= ~INSTF_ABORTED;
-
-    // object pointer needs to start zeroed
-    registers[SREG_OP] = 0;
-
-    ccInstance* currentInstanceWas = current_instance;
-    long stoffs = 0;
-    for (tssize = numargs - 1; tssize >= 0; tssize--) {
-        memcpy(&stack[stoffs], &tempstack[tssize], sizeof(long));
-        stoffs += sizeof(long);
-    }
-    registers[SREG_SP] = (long)(&stack[0]);
-    registers[SREG_SP] += (numargs * sizeof(long));
-    runningInst = this;
-
-#if defined(AGS_64BIT)
-    // 64 bit: Initialize array for stack variable sizes with the argument values
-    stackSizeIndex = 0;
-    int i;
-    for (i = 0; i < numargs; i++)
-    {
-        stackSizes[stackSizeIndex] = -1;
-        stackSizeIndex++;
-    }
-#endif
-
-    int reterr = Run(startat);
-    registers[SREG_SP] -= (numargs - 1) * sizeof(long);
-    pc = 0;
-    current_instance = currentInstanceWas;
-
-    // NOTE that if proper multithreading is added this will need
-    // to be reconsidered, since the GC could be run in the middle 
-    // of a RET from a function or something where there is an 
-    // object with ref count 0 that is in use
-    pool.RunGarbageCollectionIfAppropriate();
-
-    if (new_line_hook)
-        new_line_hook(NULL, 0);
-
-    if (reterr)
-        return -6;
-
-    if (flags & INSTF_ABORTED) {
-        flags &= ~INSTF_ABORTED;
-
-        if (flags & INSTF_FREE)
-            Free();
-        return 100;
-    }
-
-    if (registers[SREG_SP] != (long)&stack[0]) {
-        cc_error("stack pointer was not zero at completion of script");
-        return -5;
-    }
-    return ccError;
+    return NULL;
 }
 
-void ccInstance::Abort()
+void ccInstance::DumpInstruction(unsigned long *codeptr, int cps, int spp)
 {
-    if ((this != NULL) && (pc != 0))
-        flags |= INSTF_ABORTED;
+    static int line_num = 0;
+
+    if (codeptr[0] == SCMD_LINENUM) {
+        line_num = codeptr[1];
+        return;
+    }
+
+    DataStream *data_s = ci_fopen("script.log", Common::kFile_Create, Common::kFile_Write);
+    TextStreamWriter writer(data_s);
+    writer.WriteFormat("Line %3d, IP:%8d (SP:%8d) ", line_num, cps, spp);
+
+    int l, thisop = codeptr[0] & INSTANCE_ID_REMOVEMASK, isreg = 0, t = 0;
+    const char *toprint = sccmdnames[thisop];
+    if (toprint[0] == '$') {
+        isreg = 1;
+        toprint++;
+    }
+
+    if (toprint[0] == '$') {
+        isreg |= 2;
+        toprint++;
+    }
+    writer.WriteString(toprint);
+
+    for (l = 0; l < sccmdargs[thisop]; l++) {
+        t++;
+        if (l > 0)
+            writer.WriteChar(',');
+
+        if ((l == 0) && (isreg & 1))
+            writer.WriteFormat(" %s", regnames[codeptr[t]]);
+        else if ((l == 1) && (isreg & 2))
+            writer.WriteFormat(" %s", regnames[codeptr[t]]);
+        else
+            // MACPORT FIX 9/6/5: changed %d to %ld
+            writer.WriteFormat(" %ld", codeptr[t]);
+    }
+    writer.WriteLineBreak();
+    // the writer will delete data stream internally
 }
 
-void ccInstance::AbortAndDestroy()
-{
-    if (this != NULL) {
-        Abort();
-        flags |= INSTF_FREE;
-    }
-}
 // changes all pointer variables (ie. strings) to have the relative address, to allow
 // the data segment to be saved to disk
 void ccInstance::FlattenGlobalData()
@@ -1542,4 +1362,207 @@ void ccInstance::UnFlattenGlobalData()
             memcpy(&(globaldata[fixup]), &temp, 4);
         }
     }
+}
+
+bool ccInstance::_Create(ccScript * scri, ccInstance * joined)
+{
+    int i;
+    currentline = -1;
+    if ((scri == NULL) && (joined != NULL))
+        scri = joined->instanceof;
+
+    if (scri == NULL) {
+        cc_error("null pointer passed");
+        return false;
+    }
+
+    if (joined != NULL) {
+        // share memory space with an existing instance (ie. this is a thread/fork)
+        globaldatasize = joined->globaldatasize;
+        globaldata = joined->globaldata;
+    } 
+    else {
+        // create own memory space
+        globaldatasize = scri->globaldatasize;
+        if (globaldatasize > 0) {
+            globaldata = (char *)malloc(globaldatasize);
+            memcpy(globaldata, scri->globaldata, globaldatasize);
+        }
+        else
+            globaldata = NULL;
+    }
+    codesize = scri->codesize;
+
+    if (codesize > 0) {
+        code = (unsigned long *)malloc(codesize * sizeof(long));
+        memcpy(code, scri->code, codesize * sizeof(long));
+    }
+    else
+        code = NULL;
+    // just use the pointer to the strings since they don't change
+    strings = scri->strings;
+    stringssize = scri->stringssize;
+    // create a stack
+    stacksize = CC_STACK_SIZE;
+    stack = (char *)malloc(stacksize);
+    if (stack == NULL) {
+        cc_error("not enough memory to allocate stack");
+        return false;
+    }
+
+    // find a LoadedInstance slot for it
+    for (i = 0; i < MAX_LOADED_INSTANCES; i++) {
+        if (loadedInstances[i] == NULL) {
+            loadedInstances[i] = this;
+            loadedInstanceId = i;
+            break;
+        }
+        if (i == MAX_LOADED_INSTANCES - 1) {
+            cc_error("too many active instances");
+            return false;
+        }
+    }
+
+    // set up the initial registers to zero
+    memset(&registers[0], 0, sizeof(long) * CC_NUM_REGISTERS);
+
+    // find the real address of all the imports
+    long *import_addrs = (long *)malloc(scri->numimports * sizeof(long));
+    if (scri->numimports == 0)
+        import_addrs = NULL;
+
+    for (i = 0; i < scri->numimports; i++) {
+        // MACPORT FIX 9/6/5: changed from NULL TO 0
+        if (scri->imports[i] == 0) {
+            import_addrs[i] = NULL;
+            continue;
+        }
+        import_addrs[i] = (long)simp.get_addr_of(scri->imports[i]);
+        if (import_addrs[i] == NULL) {
+            nullfree(import_addrs);
+            cc_error("unresolved import '%s'", scri->imports[i]);
+            return false;
+        }
+    }
+
+    // perform the fixups
+    for (i = 0; i < scri->numfixups; i++) {
+        long fixup = scri->fixups[i];
+        switch (scri->fixuptypes[i]) {
+    case FIXUP_GLOBALDATA:
+        code[fixup] += (long)&globaldata[0];
+        break;
+    case FIXUP_FUNCTION:
+        //      code[fixup] += (long)&code[0];
+        break;
+    case FIXUP_STRING:
+        code[fixup] += (long)&strings[0];
+        break;
+    case FIXUP_IMPORT: {
+        unsigned long setTo = import_addrs[code[fixup]];
+        ccInstance *scriptImp = simp.is_script_import(scri->imports[code[fixup]]);
+        // If the call is to another script function (in a different
+        // instance), replace the call with CALLAS so it doesn't do
+        // a real x86 JMP to the instruction
+        if (scriptImp != NULL) {
+            if (code[fixup + 1] == SCMD_CALLEXT) {
+                // save the instance ID in the top 4 bits of the instruction
+                code[fixup + 1] = SCMD_CALLAS;
+                code[fixup + 1] |= ((unsigned long)scriptImp->loadedInstanceId) << INSTANCE_ID_SHIFT;
+            }
+        }
+        code[fixup] = setTo;
+        break;
+                       }
+    case FIXUP_DATADATA:
+        if (joined == NULL)
+        {
+            // supposedly these are only used for strings...
+
+            int32_t temp;
+            memcpy(&temp, (char*)&(globaldata[fixup]), 4);
+#if defined(AGS_BIG_ENDIAN)
+            AGS::Common::BitByteOperations::SwapBytesInt32(temp);
+#endif
+            temp += (long)globaldata;
+#if defined(AGS_BIG_ENDIAN)
+            AGS::Common::BitByteOperations::SwapBytesInt32(temp);
+#endif
+            memcpy(&(globaldata[fixup]), &temp, 4);
+        }
+        break;
+    case FIXUP_STACK:
+        code[fixup] += (long)&stack[0];
+        break;
+    default:
+        nullfree(import_addrs);
+        cc_error("internal fixup index error");
+        return false;
+        }
+    }
+    nullfree(import_addrs);
+
+    exportaddr = (char**)malloc(sizeof(char*) * scri->numexports);
+
+    // find the real address of the exports
+    for (i = 0; i < scri->numexports; i++) {
+        long etype = (scri->export_addr[i] >> 24L) & 0x000ff;
+        long eaddr = (scri->export_addr[i] & 0x00ffffff);
+        if (etype == EXPORT_FUNCTION)
+            exportaddr[i] = (char *)(eaddr * sizeof(long) + (long)(&code[0]));
+        else if (etype == EXPORT_DATA)
+            exportaddr[i] = eaddr + (&globaldata[0]);
+        else {
+            cc_error("internal export fixup error");
+            return false;
+        }
+    }
+    instanceof = scri;
+    pc = 0;
+    flags = 0;
+    if (joined != NULL)
+        flags = INSTF_SHAREDATA;
+    scri->instances++;
+
+    if ((scri->instances == 1) && (ccGetOption(SCOPT_AUTOIMPORT) != 0)) {
+        // import all the exported stuff from this script
+        for (i = 0; i < scri->numexports; i++) {
+            if (simp.add(scri->exports[i], exportaddr[i], this)) {
+                cc_error("Export table overflow at '%s'", scri->exports[i]);
+                return false;
+            }
+        }
+    }
+
+#ifdef AGS_BIG_ENDIAN
+    gSpans.AddSpan(Span((char *)globaldata, globaldatasize));
+#endif
+    return true;
+}
+
+void ccInstance::Free()
+{
+    if (instanceof != NULL) {
+        instanceof->instances--;
+        if (instanceof->instances == 0) {
+            simp.remove_range((char *)&globaldata[0], globaldatasize);
+            simp.remove_range((char *)&code[0], codesize * sizeof(long));
+        }
+    }
+
+    // remove from the Active Instances list
+    if (loadedInstances[loadedInstanceId] == this)
+        loadedInstances[loadedInstanceId] = NULL;
+
+#ifdef AGS_BIG_ENDIAN
+    gSpans.RemoveSpan(Span((char *)globaldata, globaldatasize));
+#endif
+
+    if ((flags & INSTF_SHAREDATA) == 0)
+        nullfree(globaldata);
+
+    nullfree(code);
+    strings = NULL;
+    nullfree(stack);
+    nullfree(exportaddr);
 }

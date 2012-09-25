@@ -523,33 +523,33 @@ void unload_game_file() {
         quit("Error: unload_game called while script still running");
     //->AbortAndDestroy (gameinst);
     else {
-        gameinstFork->Free();
-        gameinst->Free();
+        delete gameinstFork;
+        delete gameinst;
         gameinstFork = NULL;
         gameinst = NULL;
     }
 
-    gamescript->Free();
+    delete gamescript;
     gamescript = NULL;
 
     if ((dialogScriptsInst != NULL) && (dialogScriptsInst->pc != 0))
         quit("Error: unload_game called while dialog script still running");
     else if (dialogScriptsInst != NULL)
     {
-        dialogScriptsInst->Free();
+        delete dialogScriptsInst;
         dialogScriptsInst = NULL;
     }
 
     if (dialogScriptsScript != NULL)
     {
-        dialogScriptsScript->Free();
+        delete dialogScriptsScript;
         dialogScriptsScript = NULL;
     }
 
     for (ee = 0; ee < numScriptModules; ee++) {
-        moduleInstFork[ee]->Free();
-        moduleInst[ee]->Free();
-        scriptModules[ee]->Free();
+        delete moduleInstFork[ee];
+        delete moduleInst[ee];
+        delete scriptModules[ee];
     }
     numScriptModules = 0;
 
@@ -1612,19 +1612,19 @@ void restore_game_clean_gfx()
 
 void restore_game_clean_scripts()
 {
-    gameinstFork->Free();
-    gameinst->Free();
+    delete gameinstFork;
+    delete gameinst;
     gameinstFork = NULL;
     gameinst = NULL;
     for (int vv = 0; vv < numScriptModules; vv++) {
-        moduleInstFork[vv]->Free();
-        moduleInst[vv]->Free();
+        delete moduleInstFork[vv];
+        delete moduleInst[vv];
         moduleInst[vv] = NULL;
     }
 
     if (dialogScriptsInst != NULL)
     {
-        dialogScriptsInst->Free();
+        delete dialogScriptsInst;
         dialogScriptsInst = NULL;
     }
 }
@@ -2103,8 +2103,8 @@ int restore_game_data (DataStream *in, const char *nametouse) {
 
     restore_game_charextras(in);
     if (roominst!=NULL) {  // so it doesn't overwrite the tsdata
-        roominstFork->Free();
-        roominst->Free(); 
+        delete roominstFork;
+        delete roominst; 
         roominstFork = NULL;
         roominst=NULL;
     }

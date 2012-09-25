@@ -521,10 +521,9 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
     rstruc->scripts = NULL;
   }
 
-  if (rstruc->compiled_script != NULL)
-    rstruc->compiled_script->Free();
-
+  delete rstruc->compiled_script;
   rstruc->compiled_script = NULL;
+
   if (rstruc->num_bscenes > 1) {
     int ff;
 

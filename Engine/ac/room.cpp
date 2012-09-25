@@ -253,8 +253,8 @@ void unload_old_room() {
     if (croom==NULL) ;
     else if (roominst!=NULL) {
         save_room_data_segment();
-        roominstFork->Free();
-        roominst->Free();
+        delete roominstFork;
+        delete roominst;
         roominstFork = NULL;
         roominst=NULL;
     }

@@ -20,6 +20,7 @@ using namespace AGS; // FIXME later
 
 struct ccScript
 {
+public:
     char *globaldata;
     long globaldatasize;
     long *code;
@@ -46,14 +47,18 @@ struct ccScript
 
     static ccScript *CreateFromStream(Common::DataStream *in);
 
+    ccScript();
+    virtual ~ccScript(); // there are few derived classes, so dtor should be virtual
     // write the script to disk (after compiling)
     void        Write(Common::DataStream *out);
     // read back a script written with Write
     bool        Read(Common::DataStream *in);
+    const char* GetSectionName(long offset);
+
+protected:
     // free the memory occupied by the script - do NOT attempt to run the
     // script after calling this function
     void        Free();
-    const char* GetSectionName(long offset);
 };
 
 #endif // __CC_SCRIPT_H

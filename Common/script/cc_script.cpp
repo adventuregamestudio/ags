@@ -29,13 +29,43 @@ void freadstring(char **strptr, DataStream *in)
 
 ccScript *ccScript::CreateFromStream(Common::DataStream *in)
 {
-    ccScript *scri = (ccScript *) malloc(sizeof(ccScript));
+    ccScript *scri = new ccScript();
     if (!scri->Read(in))
     {
-        free(scri);
+        delete scri;
         return NULL;
     }
     return scri;
+}
+
+ccScript::ccScript()
+{
+    globaldata          = NULL;
+    globaldatasize      = 0;
+    code                = NULL;
+    codesize            = 0;
+    strings             = NULL;
+    stringssize         = 0;
+    fixuptypes          = NULL;
+    fixups              = NULL;
+    numfixups           = 0;
+    importsCapacity     = 0;
+    imports             = NULL;
+    numimports          = 0;
+    exportsCapacity     = 0;
+    exports             = NULL;
+    export_addr         = NULL;
+    numexports          = 0;
+    instances           = 0;
+    sectionNames        = NULL;
+    sectionOffsets      = NULL;
+    numSections         = 0;
+    capacitySections    = 0;
+}
+
+ccScript::~ccScript()
+{
+    Free();
 }
 
 void ccScript::Write(DataStream *out) {
@@ -222,7 +252,6 @@ void ccScript::Free()
         sectionOffsets = NULL;
     }
 
-
     if (imports != NULL)
     {
         free(imports);
@@ -235,8 +264,6 @@ void ccScript::Free()
     numimports = 0;
     numexports = 0;
     numSections = 0;
-
-    // CHECKME -- how is the ccScript object itself being deallocated?
 }
 
 const char* ccScript::GetSectionName(long offs) {

@@ -34,6 +34,7 @@
 // Running instance of the script
 struct ccInstance
 {
+public:
     long flags;
     char *globaldata;
     long globaldatasize;
@@ -71,38 +72,43 @@ struct ccInstance
     // create a runnable instance of the supplied script
     static ccInstance *CreateFromScript(ccScript *script);
     static ccInstance *CreateEx(ccScript * scri, ccInstance * joined);
-    // free the memory associated with the instance
-    void    Free();
 
+    ccInstance();
+    ~ccInstance();
     // create a runnable instance of the same script, sharing global memory
     ccInstance *Fork();
-    // call an exported function in the script (2nd arg is number of params)
-    int     CallScriptFunction(char *, long, ...);
     // specifies that when the current function returns to the script, it
     // will stop and return from CallInstance
     void    Abort();
     // aborts instance, then frees the memory later when it is done with
     void    AbortAndDestroy();
     
+    // call an exported function in the script (2nd arg is number of params)
+    int     CallScriptFunction(char *, long, ...);
+    void    DoRunScriptFuncCantBlock(NonBlockingScriptFunction* funcToRun, bool *hasTheFunc);
     int     PrepareTextScript(char**tsname);
     int     Run(long curpc);
     int     RunScriptFunctionIfExists(char*tsname,int numParam, long iparam, long iparam2, long iparam3 = 0);
     int     RunTextScript(char*tsname);
     int     RunTextScriptIParam(char*tsname, long iparam);
     int     RunTextScript2IParam(char*tsname,long iparam,long param2);
-    void    DoRunScriptFuncCantBlock(NonBlockingScriptFunction* funcToRun, bool *hasTheFunc);
     
+    void    GetCallStack(char *buffer, int maxLines);
     void    GetScriptName(char *curScrName);
     // get the address of an exported variable in the script
     char    *GetSymbolAddress(char *);
     void    DumpInstruction(unsigned long *codeptr, int cps, int spp);
-    void    GetCallStack(char *buffer, int maxLines);
 
     // changes all pointer variables (ie. strings) to have the relative address, to allow
     // the data segment to be saved to disk
     void    FlattenGlobalData();
     // restores the pointers after a save
     void    UnFlattenGlobalData();
+
+protected:
+    bool    _Create(ccScript * scri, ccInstance * joined);
+    // free the memory associated with the instance
+    void    Free();
 };
 
 #endif // __CC_INSTANCE_H

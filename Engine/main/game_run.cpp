@@ -731,6 +731,10 @@ void mainloop(bool checkControls, IDriverDependantBitmap *extraBitmap, int extra
 
     game_loop_check_replay_record();
 
+    // Immediately start the next frame if we are skipping a cutscene
+    if (play.fast_forward)
+      return;
+
     our_eip=72;
 
     game_loop_update_fps();

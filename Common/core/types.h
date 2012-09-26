@@ -7,6 +7,8 @@
 #ifndef __AGS_CN_CORE__TYPES_H
 #define __AGS_CN_CORE__TYPES_H
 
+#include "endianness.h"
+
 #if defined (_WINDOWS) && !defined (WINDOWS_VERSION)
 #define WINDOWS_VERSION
 #endif
@@ -19,28 +21,12 @@
 #include <stdint.h>
 #include <cstdlib> // for size_t
 #include <limits.h> // for _WORDSIZE
-#if defined(LINUX_VERSION)
-#include <endian.h>
-#endif
 #endif
 
 // Detect 64 bit environment
 #if defined (_WIN64) || (__WORDSIZE == 64)
 #define AGS_64BIT
 #endif
-
-// Detect endianess on Linux
-// The logic is inverted on purpose so that it assumes
-// little endian if the defines have not been set
-#if !(__BYTE_ORDER == __LITTLE_ENDIAN)
-#define AGS_BIG_ENDIAN
-#endif
-
-// Detect endianess on Mac
-#if defined (__BIG_ENDIAN__) && !defined (AGS_BIG_ENDIAN)
-#define AGS_BIG_ENDIAN
-#endif
-
 
 #if defined(WINDOWS_VERSION)
 #define int8_t       signed char

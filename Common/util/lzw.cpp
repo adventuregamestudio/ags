@@ -21,7 +21,7 @@ using namespace AGS; // FIXME later
 #pragma unmanaged
 #endif
 
-#if !defined(LINUX_VERSION) && !defined(MAC_VERSION)
+#if defined (WINDOWS_VERSION)
 #include <io.h>
 #endif
 

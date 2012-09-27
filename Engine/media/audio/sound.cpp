@@ -41,7 +41,7 @@ CLEAR that the code has been altered from the Standard Version.
 int numSoundChannels = 8;
 
 
-#if defined(MAC_VERSION) || defined(LINUX_VERSION)
+#if !defined (WINDOWS_VERSION)
 // for toupper
 #include <ctype.h>
 #endif

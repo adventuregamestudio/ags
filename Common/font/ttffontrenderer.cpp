@@ -17,7 +17,7 @@ using AGS::Common::DataStream;
 // project-specific implementation
 extern bool ShouldAntiAliasText();
 
-#if defined(LINUX_VERSION) || defined(MAC_VERSION)
+#if !defined (WINDOWS_VERSION)
 #include <sys/stat.h>
 #define _fileno fileno
 off_t _filelength(int fd) {

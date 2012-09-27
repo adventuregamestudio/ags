@@ -105,20 +105,17 @@ extern IAGSFontRenderer* fontRenderers[MAX_FONTS];
 
 // **************** PLUGIN IMPLEMENTATION ****************
 
-#if defined(LINUX_VERSION) || defined(WINDOWS_VERSION) || defined(MAC_VERSION)
+#if defined (PSP_VERSION)
+typedef SceUID HINSTANCE;
+typedef void * LPDIRECTDRAW2;
+typedef void * LPDIRECTDRAWSURFACE2;
 
-#if defined(MAC_VERSION) || (defined(LINUX_VERSION) && !defined(PSP_VERSION))
+#elif !defined (WINDOWS_VERSION)
 #include <dlfcn.h>
 #define LoadLibrary(name) dlopen(name, RTLD_LOCAL)
 #define FreeLibrary dlclose
 #define GetProcAddress dlsym
 typedef void * HINSTANCE;
-typedef void * LPDIRECTDRAW2;
-typedef void * LPDIRECTDRAWSURFACE2;
-#endif
-
-#ifdef PSP_VERSION
-typedef SceUID HINSTANCE;
 typedef void * LPDIRECTDRAW2;
 typedef void * LPDIRECTDRAWSURFACE2;
 #endif
@@ -1082,4 +1079,3 @@ void pl_read_plugins_from_disk (DataStream *in) {
     }
 
 }
-#endif

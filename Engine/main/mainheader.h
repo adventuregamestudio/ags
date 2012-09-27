@@ -27,10 +27,6 @@
 #include "media/audio/audio.h"
 #include "media/audio/soundcache.h"
 
-#ifdef LINUX_VERSION
-#include "../PSP/launcher/pe.h"
-#endif
-
 #ifdef WINDOWS_VERSION
 #include <shlwapi.h>
 //#include <crtdbg.h>
@@ -39,7 +35,7 @@
 // ???
 #endif
 
-#if !defined(LINUX_VERSION) && !defined(MAC_VERSION)
+#if defined (WINDOWS_VERSION)
 #include <process.h>
 #endif
 

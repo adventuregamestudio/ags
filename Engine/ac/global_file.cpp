@@ -9,31 +9,6 @@
 
 using AGS::Common::DataStream;
 
-#ifdef WINDOWS_VERSION
-//#include <crtdbg.h>
-//#include "winalleg.h"
-//#include <shlwapi.h>
-
-#elif (defined(LINUX_VERSION) || defined(MAC_VERSION)) && !defined(PSP_VERSION)
-#include <dlfcn.h>
-/*
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <dirent.h>
-#include "../PSP/launcher/pe.h"
-*/
-
-#else   // it's DOS (DJGPP)
-
-//#include "sys/exceptn.h"
-
-//int sys_getch() {
-//    return getch();
-//}
-
-#endif  // WINDOWS_VERSION
-
 extern int num_open_script_files;
 extern DataStream *valid_handles[MAX_OPEN_SCRIPT_FILES+1];
 

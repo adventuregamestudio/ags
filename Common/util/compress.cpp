@@ -340,8 +340,6 @@ int cunpackbitl32(unsigned int *line, int size, DataStream *in)
 //=============================================================================
 
 
-#if defined(LINUX_VERSION) || defined(MAC_VERSION) || defined(DJGPP) || defined(_MSC_VER)
-
 //extern void lzwcompress(FILE * f, FILE * out);
 //extern unsigned char *lzwexpand_to_mem(FILE * ii);
 extern long outbytes, maxsize, putbytes;
@@ -522,4 +520,3 @@ long loadcompressed_allegro(DataStream *in, Common::Bitmap **bimpp, color *pall,
 }
 
 
-#endif // LINUX_VERSION || MAC_VERSION || DJGPP || _MSC_VER

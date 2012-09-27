@@ -31,8 +31,6 @@ int  cunpackbitl32(unsigned int *line, int size, Common::DataStream *in);
 
 //=============================================================================
 
-#if defined(LINUX_VERSION) || defined(MAC_VERSION) || defined(DJGPP) || defined(_MSC_VER)
-
 long save_lzw(char *fnn, Common::Bitmap *bmpp, color *pall, long offe);
 
 /*long load_lzw(char*fnn,Common::Bitmap*bmm,color*pall,long ooff);*/
@@ -45,7 +43,5 @@ long loadcompressed_allegro(Common::DataStream *in, Common::Bitmap **bimpp, colo
 
 // returns bytes per pixel for bitmap's color depth
 int bmp_bpp(Common::Bitmap*bmpt);
-
-#endif // LINUX_VERSION || MAC_VERSION || DJGPP || _MSC_VER
 
 #endif // __AC_COMPRESS_H

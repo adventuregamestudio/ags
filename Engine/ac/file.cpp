@@ -16,29 +16,10 @@
 
 using AGS::Common::DataStream;
 
-#ifdef WINDOWS_VERSION
-//#include <crtdbg.h>
-//#include "winalleg.h"
-//#include <shlwapi.h>
-
-#elif (defined(LINUX_VERSION) || defined(MAC_VERSION)) && !defined(PSP_VERSION)
+#if defined (AGS_RUNTIME_PATCH_ALLEGRO)
 #include <dlfcn.h>
-#include <sys/stat.h>
-/*
-#include <sys/types.h>
-#include <unistd.h>
-#include <dirent.h>
-*/
+#endif // AGS_RUNTIME_PATCH_ALLEGRO
 
-#else   // it's DOS (DJGPP)
-
-//#include "sys/exceptn.h"
-
-//int sys_getch() {
-//    return getch();
-//}
-
-#endif  // WINDOWS_VERSION
 
 // ***** EXTERNS ****
 
@@ -334,7 +315,7 @@ bool validate_user_file_path(const char *fnmm, char *output, bool currentDirOnly
       sprintf(output, "%s/%s", appDataDir, game.saveGameFolderName);
       fix_filename_slashes(output);
       mkdir(output
-#if defined(LINUX_VERSION) || defined(MAC_VERSION)
+#if !defined (WINDOWS_VERSION)
                   , 0755
 #endif
       );

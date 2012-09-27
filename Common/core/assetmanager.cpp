@@ -5,27 +5,18 @@
 #include "debug/assert.h"
 #include "util/datastream.h"
 
-#if defined(ANDROID_VERSION) || defined(IOS_VERSION)
-#include <sys/stat.h>
-#endif
-
-#if defined(LINUX_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
+#if defined (WINDOWS_VERSION)
+#include <io.h>
+#else
+//#include "djcompat.h"
+#include "allegro.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #endif
 
-#if !defined(LINUX_VERSION) && !defined(MAC_VERSION)
-#include <io.h>
-#else
-//#include "djcompat.h"
-#include "allegro.h"
-#endif
 #include "util/misc.h"
 
-#ifdef MAC_VERSION
-#include <sys/stat.h>
-#endif
 
 #include "util/string_utils.h"
 
@@ -634,10 +625,10 @@ String AssetManager::MakeLibraryFileNameForAsset(const AssetInfo *asset)
 {
     // deduce asset library file containing this asset
     String lib_filename;
-#if defined(LINUX_VERSION) || defined(MAC_VERSION) 
-    lib_filename.Format("%s/%s", _assetLib.BasePath.GetCStr(), _assetLib.LibFileNames[asset->LibUid].GetCStr());
-#else
+#if defined (WINDOWS_VERSION)
     lib_filename.Format("%s\\%s",_assetLib.BasePath.GetCStr(), _assetLib.LibFileNames[asset->LibUid].GetCStr());
+#else
+    lib_filename.Format("%s/%s", _assetLib.BasePath.GetCStr(), _assetLib.LibFileNames[asset->LibUid].GetCStr());
 #endif
     return lib_filename;
 }

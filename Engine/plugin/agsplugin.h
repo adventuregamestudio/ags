@@ -63,7 +63,7 @@ typedef int HWND;
 #endif
 
 // DOS engine doesn't know about stdcall / neither does Linux version
-#if defined(DJGPP) || defined(LINUX_VERSION) || defined(MAC_VERSION)
+#if !defined (WINDOWS_VERSION)
 #define __stdcall
 #endif
 

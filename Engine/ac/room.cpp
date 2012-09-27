@@ -51,7 +51,7 @@ using AGS::Common::DataStream;
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
-#if defined(MAC_VERSION) || defined(LINUX_VERSION)
+#if !defined (WINDOWS_VERSION)
 // for toupper
 #include <ctype.h>
 #endif
@@ -505,9 +505,7 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
 		scrnhit = BitmapHelper::GetScreenBitmap()->GetHeight();
         vesa_yres = scrnhit;
 
-#if defined(WINDOWS_VERSION) || defined(LINUX_VERSION) || defined(MAC_VERSION)
         filter->SetMouseArea(0,0, scrnwid-1, vesa_yres-1);
-#endif
 
         if (virtual_screen->GetHeight() != scrnhit) {
             int cdepth=virtual_screen->GetColorDepth();

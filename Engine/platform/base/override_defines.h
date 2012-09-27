@@ -22,17 +22,9 @@
 #define tanh(a) vfpu_tanhf(a)
 #endif
 
-#ifdef WINDOWS_VERSION
-// nothing
-#elif defined(LINUX_VERSION) || defined(MAC_VERSION)
-
+#if !defined (WINDOWS_VERSION)
 #define HWND long
 #define _getcwd getcwd
-
-#else   // it's DOS (DJGPP)
-
-#define _getcwd getcwd
-
 #endif
 
 #endif // __AGS_EE_PLATFORM__OVERRIDE_DEFINES_H

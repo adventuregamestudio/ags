@@ -218,11 +218,9 @@ void read_config_file(char *argv0) {
             usetup.midicard = MIDI_AUTODETECT;
 #endif
 
-#if defined(WINDOWS_VERSION) || defined(LINUX_VERSION) || defined(MAC_VERSION)
         usetup.windowed = INIreadint("misc","windowed");
         if (usetup.windowed < 0)
             usetup.windowed = 0;
-#endif
 
         usetup.refresh = INIreadint ("misc", "refresh", 0);
         usetup.enable_antialiasing = INIreadint ("misc", "antialias", 0);
@@ -254,13 +252,13 @@ void read_config_file(char *argv0) {
         if (usetup.data_files_dir == NULL)
             usetup.data_files_dir = ".";
         // strip any trailing slash
-#if defined(LINUX_VERSION) || defined(MAC_VERSION)
-        if (usetup.data_files_dir[strlen(usetup.data_files_dir)-1] == '/')
-            usetup.data_files_dir[strlen(usetup.data_files_dir)-1] = 0;
-#else
+#if defined (WINDOWS_VERSION)
         if ((strlen(usetup.data_files_dir) < 4) && (usetup.data_files_dir[1] == ':'))
         { }  // if the path is just  d:\  don't strip the slash
         else if (usetup.data_files_dir[strlen(usetup.data_files_dir)-1] == '\\')
+            usetup.data_files_dir[strlen(usetup.data_files_dir)-1] = 0;
+#else
+        if (usetup.data_files_dir[strlen(usetup.data_files_dir)-1] == '/')
             usetup.data_files_dir[strlen(usetup.data_files_dir)-1] = 0;
 #endif
 
@@ -275,10 +273,10 @@ void read_config_file(char *argv0) {
         usetup.gfxFilterID = INIreaditem("misc", "gfxfilter");
 #endif
 
-#if defined(LINUX_VERSION) || defined(MAC_VERSION)
-        usetup.gfxDriverID = "DX5";
-#else
+#if defined (WINDOWS_VERSION)
         usetup.gfxDriverID = INIreaditem("misc", "gfxdriver");
+#else
+        usetup.gfxDriverID = "DX5";
 #endif
 
         usetup.translation = INIreaditem ("language", "translation");

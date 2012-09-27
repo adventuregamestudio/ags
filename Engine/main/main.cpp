@@ -248,16 +248,16 @@ void change_to_directory_of_file(LPCWSTR fileName)
     WCHAR wcbuffer[MAX_PATH];
     StrCpyW(wcbuffer, fileName);
 
-#if defined(LINUX_VERSION) || defined(MAC_VERSION)
-    if (strrchr(wcbuffer, '/') != NULL) {
-        strrchr(wcbuffer, '/')[0] = 0;
-        chdir(wcbuffer);
-    }
-#else
+#if defined (WINDOWS_VERSION)
     LPWSTR backSlashAt = StrRChrW(wcbuffer, NULL, L'\\');
     if (backSlashAt != NULL) {
         wcbuffer[wcslen(wcbuffer) - wcslen(backSlashAt)] = L'\0';
         SetCurrentDirectoryW(wcbuffer);
+    }
+#else
+    if (strrchr(wcbuffer, '/') != NULL) {
+        strrchr(wcbuffer, '/')[0] = 0;
+        chdir(wcbuffer);
     }
 #endif
 }
@@ -360,6 +360,6 @@ int main(int argc,char*argv[]) {
     }
 }
 
-#if defined(WINDOWS_VERSION) || defined(LINUX_VERSION) || defined(MAC_VERSION)
+#if !defined (DOS_VERSION)
 END_OF_MAIN()
 #endif

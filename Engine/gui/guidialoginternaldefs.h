@@ -8,7 +8,7 @@
 
 #include "gui/guidialogdefines.h"
 
-#if defined(DJGPP) || defined(LINUX_VERSION) || defined(MAC_VERSION)
+#if !defined (WINDOWS_VERSION)
 #define _getcwd getcwd
 #endif
 

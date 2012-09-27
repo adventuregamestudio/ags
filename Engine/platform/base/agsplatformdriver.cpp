@@ -25,7 +25,7 @@ using AGS::Common::String;
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
-#if (defined(LINUX_VERSION) || defined(WINDOWS_VERSION))
+#if defined (AGS_HAS_CD_AUDIO)
 #include "libcda.h"
 #endif
 

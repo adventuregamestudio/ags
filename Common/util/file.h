@@ -12,7 +12,7 @@
 #include <stdio.h>
 // TODO: other platforms?
 
-#if defined(LINUX_VERSION) || defined(MAC_VERSION)
+#if !defined (WINDOWS_VERSION)
 long int filelength(int fhandle);
 #endif
 

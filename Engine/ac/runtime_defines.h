@@ -114,7 +114,7 @@
 #define MAX_PATH 260
 #endif
 
-#if defined(LINUX_VERSION) || defined(MAC_VERSION)
+#if !defined (WINDOWS_VERSION)
 #define HWND long
 #endif
 

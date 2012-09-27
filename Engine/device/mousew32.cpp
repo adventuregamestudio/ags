@@ -12,7 +12,7 @@
   prior express permission from Chris Jones.
 */
 
-#if !defined(LINUX_VERSION) && !defined(MAC_VERSION)
+#if defined (WINDOWS_VERSION)
 #include <dos.h>
 #include <conio.h>
 #include <process.h>
@@ -21,9 +21,6 @@
 #include <stdio.h>
 
 #include "util/wgt2allg.h"
-#if !defined(WINDOWS_VERSION) && !defined(LINUX_VERSION) && !defined(MAC_VERSION)
-#error This is the Windows 32-bit version
-#endif
 
 #ifndef TRUE
 #define TRUE 1

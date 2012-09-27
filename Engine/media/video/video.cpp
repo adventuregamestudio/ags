@@ -56,10 +56,10 @@ int check_if_user_input_should_cancel_video()
 
 #if defined(WINDOWS_VERSION)
 int __cdecl fli_callback() {
-#elif defined(LINUX_VERSION) || defined(MAC_VERSION)
-extern "C" int fli_callback() {
-#else
+#elif defined(DOS_VERSION)
 int fli_callback(...) {
+#else
+extern "C" int fli_callback() {
 #endif
     Bitmap *usebuf = fli_buffer;
 

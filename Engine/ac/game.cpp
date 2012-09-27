@@ -63,7 +63,7 @@ using AGS::Common::DataStream;
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
-#if defined(LINUX_VERSION) || defined(MAC_VERSION)
+#if !defined (WINDOWS_VERSION)
 #include <sys/stat.h>                      //mkdir
 #endif
 
@@ -342,10 +342,10 @@ int Game_SetSaveGameDirectory(const char *newFolder) {
     platform->ReplaceSpecialPaths(newFolder, newSaveGameDir);
     fix_filename_slashes(newSaveGameDir);
 
-#if defined(LINUX_VERSION) || defined(MAC_VERSION)
-    mkdir(newSaveGameDir, 0);
-#else
+#if defined (WINDOWS_VERSION)
     mkdir(newSaveGameDir);
+#else
+    mkdir(newSaveGameDir, 0);
 #endif
 
     put_backslash(newSaveGameDir);

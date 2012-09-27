@@ -8,10 +8,10 @@
 #define MUS_OGG  5
 
 #ifndef PSP_NO_MOD_PLAYBACK
-#if (defined(LINUX_VERSION) || defined(WINDOWS_VERSION) || defined(MAC_VERSION))
-#define DUMB_MOD_PLAYER
-#else
+#if defined (DOS_VERSION)
 #define JGMOD_MOD_PLAYER
+#else
+#define DUMB_MOD_PLAYER
 #endif
 #endif
 

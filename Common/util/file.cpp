@@ -6,7 +6,7 @@
 #include <errno.h>
 #include "util/file.h"
 
-#if defined(LINUX_VERSION) || defined(MAC_VERSION)
+#if !defined (WINDOWS_VERSION)
 #include <sys/stat.h>
 long int filelength(int fhandle)
 {

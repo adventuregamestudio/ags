@@ -49,7 +49,7 @@ PFNGLGENERATEMIPMAPEXTPROC glGenerateMipmapEXT = 0;
 PFNGLFRAMEBUFFERTEXTURE2DEXTPROC glFramebufferTexture2DEXT = 0;
 PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC glFramebufferRenderbufferEXT = 0;
 
-#elif defined(ANDROID_VERSION) || defined(LINUX_VERSION)
+#elif defined(ANDROID_VERSION)
 #include "gfx/ali3d.h"
 #include <GLES/gl.h>
 #include "gfx/bitmap.h"

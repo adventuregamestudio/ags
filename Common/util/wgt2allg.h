@@ -30,7 +30,7 @@
 #include "allegro.h"
 #endif
 
-#if !defined(LINUX_VERSION) && !defined(MAC_VERSION)
+#if defined (WINDOWS_VERSION)
 #include <dos.h>
 #include <io.h>
 #endif
@@ -67,13 +67,11 @@ extern "C"
 {
 #endif
 
-#if defined(WINDOWS_VERSION) || defined(LINUX_VERSION) || defined(MAC_VERSION)
 #include <time.h>
   struct time
   {
     int ti_hund, ti_sec, ti_min, ti_hour;
   };
-#endif
 
 #define is_ttf(fontptr)  (fontptr[0] == 'T')
 
@@ -126,7 +124,7 @@ extern "C"
     extern void vga256();
     */
 
-#if (!defined(WINDOWS_VERSION) && !defined(LINUX_VERSION) && !defined(MAC_VERSION))
+#if defined (DOS_VERSION)
     extern union REGS r;
     extern void wsetmode(int nnn);
     extern int wgetmode();
@@ -180,9 +178,7 @@ extern "C"
 
     extern int checkpassword(char *passw); // 0 = incorrect   ! = 0 correct
 
-#if defined(WINDOWS_VERSION) || defined(LINUX_VERSION) || defined(MAC_VERSION)
     extern void gettime(struct time *tpt);
-#endif
 
     extern long wtimer(struct time tt1, struct time tt2);
 

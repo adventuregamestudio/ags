@@ -49,7 +49,7 @@ Bitmap *abuf;
   }
   */
 
-#if (!defined(WINDOWS_VERSION) && !defined(LINUX_VERSION) && !defined(MAC_VERSION))
+#if defined (UNUSED_CODE)
   union REGS r;
   void wsetmode(int nnn)
   {
@@ -457,7 +457,6 @@ Bitmap *abuf;
   }
 
 
-#if defined(WINDOWS_VERSION) || defined(LINUX_VERSION) || defined(MAC_VERSION)
   void gettime(struct time *tpt)
   {
     time_t ltt;
@@ -470,7 +469,6 @@ Bitmap *abuf;
     tpt->ti_hour = tis->tm_hour;
     tpt->ti_hund = 0;
   }
-#endif
 
   long wtimer(struct time tt1, struct time tt2)
   {

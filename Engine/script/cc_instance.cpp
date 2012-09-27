@@ -53,6 +53,8 @@ const char *sccmdnames[] = {
 
 const char *regnames[] = { "null", "sp", "mar", "ax", "bx", "cx", "op", "dx" };
 
+const char *fixupnames[] = { "null", "fix_gldata", "fix_func", "fix_string", "fix_import", "fix_datadata", "fix_stack" };
+
 // Number of arguments for each command
 const short sccmdargs[] = {
     0, 2, 2, 2, 2, 0, 2,
@@ -115,6 +117,11 @@ ccInstance::ccInstance()
     callStackSize       = 0;
     loadedInstanceId    = 0;
     returnValue         = 0;
+
+    code_helpers        = NULL;
+    codehelpers_capacity= 0;
+    num_codehelpers     = 0;
+    codehelper_index    = 0;
 
 #if defined(AGS_64BIT)
     stackSizeIndex      = 0;
@@ -406,22 +413,55 @@ int ccInstance::Run(long curpc)
     float *freg1, *freg2;
     ccInstance *codeInst = runningInst;
     unsigned long thisInstruction;
+    unsigned long thisInstructionInstanceId;
     int write_debug_dump = ccGetOption(SCOPT_DEBUGRUN);
 
+    codehelper_index = -1;
+    // [IKM] having those as stand-alone vars is a temporary solution
+    const CodeHelper *op_helper;
+    const CodeHelper *arg1_helper;
+    const CodeHelper *arg2_helper;
+
     while (1) {
-        thisInstruction = codeInst->code[pc] & INSTANCE_ID_REMOVEMASK;
+        // [IKM] we save instance id bytes for a little while
+        // in case one of the real-time fixups will want to know them
+        thisInstruction = codeInst->code[pc];
+
         if (write_debug_dump)
+            // FIXME: this will write non-fixuped values
             DumpInstruction(&codeInst->code[pc], pc, registers[SREG_SP]);
 
         // save the arguments for quick access
+        // [IKM] and prepare code helpers
+        op_helper = codeInst->GetCodeHelper(pc);
+        arg1_helper = NULL;
+        arg2_helper = NULL;
         if (pc != (codeInst->codesize - 1)) {
             arg1 = codeInst->code[pc + 1];
             freg1 = (float*)&registers[arg1];
+            arg1_helper = codeInst->GetCodeHelper(pc + 1);
             if (pc != (codeInst->codesize - 2)) {
                 arg2 = codeInst->code[pc + 2];
                 freg2 = (float*)&registers[arg2];
+                arg2_helper = codeInst->GetCodeHelper(pc + 2);
             }
         }
+
+        if (op_helper)
+        {
+            codeInst->FixupInstruction(*op_helper, thisInstruction);
+        }
+        if (arg1_helper)
+        {
+            codeInst->FixupArgument(*arg1_helper, arg1);
+        }
+        if (arg2_helper)
+        {
+            codeInst->FixupArgument(*arg2_helper, arg2);
+        }
+
+        thisInstructionInstanceId = (thisInstruction >> INSTANCE_ID_SHIFT) & INSTANCE_ID_MASK;
+        thisInstruction &= INSTANCE_ID_REMOVEMASK; // now this is pure instruction code
 
         switch (thisInstruction) {
       case SCMD_LINENUM:
@@ -894,7 +934,8 @@ int ccInstance::Run(long curpc)
           ccInstance *wasRunning = runningInst;
 
           // extract the instance ID
-          unsigned long instId = (codeInst->code[pc] >> INSTANCE_ID_SHIFT) & INSTANCE_ID_MASK;
+          unsigned long instId = thisInstructionInstanceId;
+              //(codeInst->code[pc] >> INSTANCE_ID_SHIFT) & INSTANCE_ID_MASK;
           // determine the offset into the code of the instance we want
           runningInst = loadedInstances[instId];
           unsigned long callAddr = registers[arg1] - (unsigned long)(&runningInst->code[0]);
@@ -1000,6 +1041,7 @@ int ccInstance::Run(long curpc)
       case SCMD_NEWARRAY:
           {
               int arg3 = codeInst->code[pc + 3];
+              // FIXME!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Code helper here?
               int numElements = registers[arg1];
               if ((numElements < 1) || (numElements > 1000000))
               {
@@ -1393,12 +1435,17 @@ bool ccInstance::_Create(ccScript * scri, ccInstance * joined)
     }
     codesize = scri->codesize;
 
+    /*  // [IKM] 2012-09-26:
+        // Do not allocate its own copy of code.
     if (codesize > 0) {
         code = (unsigned long *)malloc(codesize * sizeof(long));
         memcpy(code, scri->code, codesize * sizeof(long));
     }
     else
         code = NULL;
+    */
+    code = (unsigned long*)scri->code; // CHECKME later
+
     // just use the pointer to the strings since they don't change
     strings = scri->strings;
     stringssize = scri->stringssize;
@@ -1445,7 +1492,73 @@ bool ccInstance::_Create(ccScript * scri, ccInstance * joined)
         }
     }
 
-    // perform the fixups
+    /* // [IKM] 2012-09-26:
+       // Do not perform most fixups at startup, store fixup data instead
+       // for real-time fixups during instance run.
+       */
+    // So far the helpers are needed only for fixups, but FIXUP_IMPORT may
+    // change two code values; here we assume the worst possible scenario
+    // (until dynamic lists are implemented in AGS base source)
+    codehelpers_capacity = scri->numfixups << 1;
+    code_helpers = new CodeHelper[codehelpers_capacity];
+    codehelper_index = -1;
+    for (i = 0; i < scri->numfixups; ++i)
+    {
+        codehelper_index++;
+        long fixup = scri->fixups[i];
+        code_helpers[codehelper_index].code_index = fixup;
+        code_helpers[codehelper_index].fixup_type = scri->fixuptypes[i];
+        switch (scri->fixuptypes[i])
+        {
+        case FIXUP_GLOBALDATA:
+        case FIXUP_FUNCTION:
+        case FIXUP_STRING:
+        case FIXUP_STACK:
+            break; // do nothing yet
+        case FIXUP_IMPORT:
+            // save the import's address
+            {
+                // The code slot actually contains a script-relative index of import;
+                // here it is translated to an actual import (address and type)
+                code_helpers[codehelper_index].import_address = import_addrs[code[fixup]];
+                ccInstance *scriptImp = simp.is_script_import(scri->imports[code[fixup]]);
+                // If the call is to another script function next CALLEXT
+                // must be replaced with CALLAS
+                if (scriptImp != NULL && (code[fixup + 1] == SCMD_CALLEXT))
+                {
+                    codehelper_index++;
+                    code_helpers[codehelper_index].code_index = fixup + 1;
+                    code_helpers[codehelper_index].fixup_type = FIXUP_IMPORT;
+                    code_helpers[codehelper_index].import_inst_id = ((unsigned long)scriptImp->loadedInstanceId);
+                }
+            }
+            break;
+        case FIXUP_DATADATA:
+            // this is original fixup behavior;
+            // instance still has its own copy of globaldata
+            if (joined == NULL)
+            {
+                // supposedly these are only used for strings...
+                int32_t temp;
+                memcpy(&temp, (char*)&(globaldata[fixup]), 4);
+#if defined(AGS_BIG_ENDIAN)
+                AGS::Common::BitByteOperations::SwapBytesInt32(temp);
+#endif
+                temp += (long)globaldata;
+#if defined(AGS_BIG_ENDIAN)
+                AGS::Common::BitByteOperations::SwapBytesInt32(temp);
+#endif
+                memcpy(&(globaldata[fixup]), &temp, 4);
+            }
+            break;
+        default:
+            nullfree(import_addrs);
+            cc_error("internal fixup index error: %d", scri->fixuptypes[i]);
+            return false;
+        }
+    }
+    num_codehelpers = codehelper_index + 1;
+    /*
     for (i = 0; i < scri->numfixups; i++) {
         long fixup = scri->fixups[i];
         switch (scri->fixuptypes[i]) {
@@ -1500,6 +1613,7 @@ bool ccInstance::_Create(ccScript * scri, ccInstance * joined)
         return false;
         }
     }
+    */
     nullfree(import_addrs);
 
     exportaddr = (char**)malloc(sizeof(char*) * scri->numexports);
@@ -1561,8 +1675,147 @@ void ccInstance::Free()
     if ((flags & INSTF_SHAREDATA) == 0)
         nullfree(globaldata);
 
-    nullfree(code);
+    // [IKM] 2012-09-26: ccInstance share ccScript code now
+    // and should not free it, only ccScript object should
+    //nullfree(code);
     strings = NULL;
     nullfree(stack);
     nullfree(exportaddr);
+
+    delete [] code_helpers;
+}
+
+const CodeHelper *ccInstance::GetCodeHelper(long at_pc)
+{
+    if (!num_codehelpers)
+    {
+        return NULL;
+    }
+    else if (code_helpers[0].code_index > at_pc)
+    {
+        codehelper_index = -1;
+        return NULL;
+    } 
+    else if (code_helpers[num_codehelpers - 1].code_index < at_pc)
+    {
+        codehelper_index = num_codehelpers - 1;
+        return NULL;
+    }
+
+    //
+    // What we are going to do is to set code helper index either
+    // at helper which corresponds to given program counter, or
+    // at helper which corresponds to closest previous program counter.
+    //
+
+    // If index is out of range, set it to valid element to start with
+    if (codehelper_index < 0)
+    {
+        codehelper_index = 0;
+    }
+    else if (codehelper_index >= num_codehelpers)
+    {
+        codehelper_index = num_codehelpers - 1;
+    }
+
+    // We take into consideration the fact that in most usual case
+    // the program counter advances forward by 1-3 slots each time
+    // an operation and arguments are being read, so at first we just
+    // move helper index one step forward, to save time.
+    if (codehelper_index != num_codehelpers - 1 &&
+        at_pc > code_helpers[codehelper_index].code_index)
+    {
+        codehelper_index++;
+        if (at_pc < code_helpers[codehelper_index].code_index)
+        {
+            // Jumped over pc, rewind and return nothing
+            codehelper_index--;
+            return NULL;
+        }
+    }
+
+    // No luck? Do a binary search.
+    if (at_pc != code_helpers[codehelper_index].code_index)
+    {
+        int first   = 0;
+        int last    = num_codehelpers;
+        int mid;
+        while (first < last)
+        {
+            mid = first + ((last - first) >> 1);
+            if (at_pc <= code_helpers[mid].code_index)
+            {
+                last = mid;
+            }
+            else
+            {
+                first = mid + 1;
+            }
+        }
+        codehelper_index = last;
+    }
+
+    if (at_pc == code_helpers[codehelper_index].code_index)
+    {
+        return &code_helpers[codehelper_index];
+    }
+    // Since we just did binary search we should be as close to pc
+    // as possible; therefore if we have jumped over pc, rewind one
+    // step back and stay: this will put code helper index just
+    // before the pc and we may benefit from the fast check next time.
+    if (at_pc < code_helpers[codehelper_index].code_index)
+    {
+        codehelper_index--;
+    }
+    return NULL;
+}
+
+void ccInstance::FixupInstruction(const CodeHelper &helper, unsigned long &instruction)
+{
+    // There are not so much acceptable variants here
+    if (helper.fixup_type == FIXUP_IMPORT)
+    {
+        if (instruction == SCMD_CALLEXT) {
+            // save the instance ID in the top 4 bits of the instruction
+            instruction = SCMD_CALLAS;
+            instruction |= ((unsigned long)helper.import_inst_id) << INSTANCE_ID_SHIFT;
+            return;
+        }
+    }
+
+    const char *cmd_name = sccmdnames[instruction];
+    while (cmd_name[0] == '$')
+    {
+        cmd_name++;
+    }
+    cc_error("unexpected instruction/fixup pair: %s - %s", cmd_name, fixupnames[helper.fixup_type]);
+}
+
+void ccInstance::FixupArgument(const CodeHelper &helper, long &argument)
+{
+    switch (helper.fixup_type)
+    {
+    case FIXUP_GLOBALDATA:
+        argument += (long)&globaldata[0];
+        break;
+    case FIXUP_FUNCTION:
+        // originally commented --
+        //      code[fixup] += (long)&code[0];
+        break;
+    case FIXUP_STRING:
+        argument += (long)&strings[0];
+        break;
+    case FIXUP_IMPORT:
+        argument = helper.import_address;
+        break;
+    case FIXUP_DATADATA:
+        // fixup is being made at instance init
+        break;
+    case FIXUP_STACK:
+        argument += (long)&stack[0];
+        break;
+    default:
+        cc_error("internal fixup index error: %d", helper.fixup_type);
+        break;
+    }
 }

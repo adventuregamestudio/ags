@@ -31,6 +31,24 @@
 #define INSTANCE_ID_MASK  0x00000ff
 #define INSTANCE_ID_REMOVEMASK 0x00ffffff
 
+struct ccInstance;
+
+struct CodeHelper
+{
+    CodeHelper()
+    {
+        code_index      = 0;
+        fixup_type      = 0;
+        import_inst_id  = 0;
+        import_address  = 0;        
+    }
+
+    long            code_index;
+    int             fixup_type;
+    unsigned long   import_inst_id;
+    intptr_t        import_address;
+};
+
 // Running instance of the script
 struct ccInstance
 {
@@ -56,6 +74,11 @@ public:
     int  callStackSize;
     int  loadedInstanceId;
     int  returnValue;
+
+    CodeHelper  *code_helpers;
+    int  codehelpers_capacity;
+    int  num_codehelpers;
+    int  codehelper_index;
 
 #if defined(AGS_64BIT)
     // 64 bit: Variables to keep track of the size of the variables on the stack.
@@ -109,6 +132,10 @@ protected:
     bool    _Create(ccScript * scri, ccInstance * joined);
     // free the memory associated with the instance
     void    Free();
+
+    const CodeHelper *GetCodeHelper(long at_pc);
+    void    FixupInstruction(const CodeHelper &helper, unsigned long &instruction);
+    void    FixupArgument(const CodeHelper &helper, long &argument);
 };
 
 #endif // __CC_INSTANCE_H

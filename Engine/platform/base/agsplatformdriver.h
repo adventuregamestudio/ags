@@ -83,7 +83,7 @@ private:
     static AGSPlatformDriver *instance;
 };
 
-#if !defined(ANDROID_VERSION) && !defined(PSP_VERSION) && !defined(DOS_VERSION) && !defined(BSD_VERSION) && !defined(MAC_VERSION)
+#if !defined(ANDROID_VERSION) && !defined(PSP_VERSION) && !defined(DOS_VERSION) && !defined(MAC_VERSION)
 int cd_player_init();
 int cd_player_control(int cmdd, int datt);
 #endif

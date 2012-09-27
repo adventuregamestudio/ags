@@ -1,4 +1,4 @@
-#if !defined(BSD_VERSION) && !defined(LINUX_VERSION)
+#if !defined(LINUX_VERSION)
 #error This file should only be included on the Linux or BSD build
 #endif
 

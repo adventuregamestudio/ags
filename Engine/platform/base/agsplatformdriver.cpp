@@ -25,7 +25,7 @@ using AGS::Common::String;
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
-#if !defined(BSD_VERSION) && (defined(LINUX_VERSION) || defined(WINDOWS_VERSION))
+#if (defined(LINUX_VERSION) || defined(WINDOWS_VERSION))
 #include "libcda.h"
 #endif
 
@@ -128,7 +128,7 @@ void AGSPlatformDriver::Out(const char *sz_fullmsg) {
 
 // ********** CD Player Functions common to Win and Linux ********
 
-#if !defined(ANDROID_VERSION) && !defined(PSP_VERSION) && !defined(DOS_VERSION) && !defined(BSD_VERSION) && !defined(MAC_VERSION)
+#if !defined(ANDROID_VERSION) && !defined(PSP_VERSION) && !defined(DOS_VERSION) && !defined(MAC_VERSION)
 
 // from ac_cdplayer
 extern int use_cdplayer;
@@ -176,4 +176,4 @@ int cd_player_control(int cmdd, int datt) {
     return 0;
 }
 
-#endif // #if !defined(ANDROID_VERSION) && !defined(PSP_VERSION) && !defined(DOS_VERSION) && !defined(BSD_VERSION) && !defined(MAC_VERSION)
+#endif // #if !defined(ANDROID_VERSION) && !defined(PSP_VERSION) && !defined(DOS_VERSION) && !defined(MAC_VERSION)

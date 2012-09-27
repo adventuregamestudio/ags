@@ -313,11 +313,9 @@ int main(int argc,char*argv[]) {
         return res;
     }
 
-    // [IKM] For some bizzare reason this function is a part of routefnd module;
-    // I cannot just move it here, because it references certain variables from
-    // that module and so probably somehow related to it, in a logical or maybe
-    // philosophical way, I just cannot figure out what at the time being.
-    print_welcome_text(AC_VERSION_TEXT,ACI_VERSION_TEXT);
+    printf("Adventure Creator v%sInterpreter\n"
+      "Copyright (c) 1999-2001 Chris Jones\n" "ACI version %s\n", AC_VERSION_TEXT, ACI_VERSION_TEXT);
+
     if ((argc>1) && (argv[1][1]=='?'))
         return 0;
 

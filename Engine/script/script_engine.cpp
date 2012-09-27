@@ -53,17 +53,10 @@ void save_graphical_scripts(DataStream *out, roomstruct * rss)
 }
 
 char *scripttempn = "~acsc%d.tmp";
-extern int route_script_link();
 
 void load_graphical_scripts(DataStream *in, roomstruct * rst)
 {
     long ct;
-
-    if (route_script_link()) {
-        quit("STOP IT.");
-        exit(767);
-        abort();
-    }
 
     while (1) {
         ct = in->ReadInt32();

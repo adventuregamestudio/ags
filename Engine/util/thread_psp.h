@@ -52,7 +52,8 @@ public:
   {
     if ((_thread > -1) && (!_running))
     {
-      SceUID result = sceKernelStartThread(_thread, sizeof(this), this);
+      PSPThread* thisPointer = this;
+      SceUID result = sceKernelStartThread(_thread, sizeof(this), &thisPointer);
 
       _running = (result > -1);
       return _running;
@@ -90,8 +91,8 @@ private:
 
   static int _thread_start(SceSize args, void *argp)
   {
-    AGSThreadEntry entry = ((PSPThread *)argp)->_entry;
-    bool *looping = &((PSPThread *)argp)->_looping;
+    AGSThreadEntry entry = (*(PSPThread **)argp)->_entry;
+    bool *looping = &(*(PSPThread **)argp)->_looping;
 
     do
     {

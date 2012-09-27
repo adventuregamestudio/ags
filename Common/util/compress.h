@@ -15,14 +15,10 @@ namespace AGS { namespace Common { class Bitmap; }}
 using namespace AGS; // FIXME later
 
 // MACPORT FIX 9/6/05: removed far and put space after *
-#if !defined(MAC_VERSION)
-typedef unsigned char * __block;
-#else
 #ifdef __block
 #undef __block
-#define __block unsigned char*
 #endif
-#endif
+typedef unsigned char * __block;
 
 long csavecompressed(char *finam, __block tobesaved, color pala[256], long exto);
 

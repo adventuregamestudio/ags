@@ -53,10 +53,8 @@ SOUNDCLIP::SOUNDCLIP() {
     ySource = -1;
     maximumPossibleDistanceAway = 0;
     directionalVolModifier = 0;
-    createMutex();
 }
 
 SOUNDCLIP::~SOUNDCLIP()
 {
-    destroyMutex();
 }

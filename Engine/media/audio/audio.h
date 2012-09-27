@@ -17,6 +17,7 @@ CLEAR that the code has been altered from the Standard Version.
 #include "ac/dynobj/scriptaudiochannel.h"
 #include "media/audio/ambientsound.h"
 #include "media/audio/soundclip.h"
+#include "util/thread.h"
 
 void        calculate_reserved_channel_count();
 void        register_audio_script_objects();
@@ -80,6 +81,7 @@ SOUNDCLIP * load_music_from_disk(int mnum, bool doRepeat);
 void        play_new_music(int mnum, SOUNDCLIP *music);
 void        newmusic(int mnum);
 
+extern AGS::Engine::Thread audioThread;
 
 
 extern volatile int psp_audio_multithreaded;    // needed for UPDATE_MP3 macro

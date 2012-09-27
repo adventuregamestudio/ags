@@ -13,17 +13,8 @@
 #ifndef __AC_SOUNDCLIP_H
 #define __AC_SOUNDCLIP_H
 
-#if defined(PSP_VERSION)
-#include <pspsdk.h>
-#include <pspkernel.h>
-#include <pspthreadman.h>
-#elif defined(LINUX_VERSION) || defined(MAC_VERSION)
-#include <pthread.h>
-#elif defined(WINDOWS_VERSION)
-#define BITMAP WINDOWS_BITMAP   // std fix for possible conflict with allegro
-#include <windows.h>
 #undef BITMAP
-#endif
+#include "util/mutex.h"
 
 struct SOUNDCLIP
 {
@@ -43,14 +34,7 @@ struct SOUNDCLIP
     bool repeat;
     void *sourceClip;
     bool ready;
-
-#if defined(PSP_VERSION)
-    SceUID mutex;
-#elif defined(LINUX_VERSION) || defined(MAC_VERSION)
-    pthread_mutex_t mutex;
-#elif defined(WINDOWS_VERSION)
-    HANDLE mutex;
-#endif
+    AGS::Engine::Mutex _mutex;
 
     virtual int poll() = 0;
     virtual void destroy() = 0;
@@ -73,50 +57,6 @@ struct SOUNDCLIP
 
     SOUNDCLIP();
     ~SOUNDCLIP();
-
-    inline void createMutex()
-    {
-#if defined(PSP_VERSION)
-        mutex = sceKernelCreateSema("SoundMutex", 0, 1, 1, 0);
-#elif defined(LINUX_VERSION) || defined(MAC_VERSION)
-        pthread_mutex_init(&mutex, NULL);
-#elif defined(WINDOWS_VERSION)
-        mutex = CreateMutex(NULL, FALSE, NULL); 
-#endif
-    }
-
-    inline void lockMutex()
-    {
-#if defined(PSP_VERSION)
-        sceKernelWaitSema(mutex, 1, 0);
-#elif defined(LINUX_VERSION) || defined(MAC_VERSION)
-        pthread_mutex_lock(&mutex);
-#elif defined(WINDOWS_VERSION)
-        WaitForSingleObject(mutex, INFINITE);
-#endif
-    }
-
-    inline void releaseMutex()
-    {
-#if defined(PSP_VERSION)
-        sceKernelSignalSema(mutex, 1);
-#elif defined(LINUX_VERSION) || defined(MAC_VERSION)
-        pthread_mutex_unlock(&mutex);
-#elif defined(WINDOWS_VERSION)
-        ReleaseMutex(mutex);
-#endif
-    }
-
-    inline void destroyMutex()
-    {
-#if defined(PSP_VERSION)
-        sceKernelDeleteSema(mutex);
-#elif defined(LINUX_VERSION) || defined(MAC_VERSION)
-        pthread_mutex_destroy(&mutex);
-#elif defined(WINDOWS_VERSION)
-        CloseHandle(mutex); 
-#endif
-    }
 };
 
 

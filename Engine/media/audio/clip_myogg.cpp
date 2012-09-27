@@ -13,16 +13,16 @@ extern "C" {
 
 int MYOGG::poll()
 {
-    lockMutex();
+    _mutex.Lock();
 
     if (done)
     {
-        releaseMutex();
+        _mutex.Unlock();
         return done;
     }
     if (paused)
     {
-        releaseMutex();
+        _mutex.Unlock();
         return 0;
     }
 
@@ -47,7 +47,7 @@ int MYOGG::poll()
     }
     else get_pos_ms();  // call this to keep the last_but_one stuff up to date
 
-    releaseMutex();
+    _mutex.Unlock();
 
     return done;
 }
@@ -66,7 +66,7 @@ void MYOGG::set_volume(int newvol)
 
 void MYOGG::destroy()
 {
-    lockMutex();
+    _mutex.Lock();
 
     if (!done)
         alogg_stop_oggstream(stream);
@@ -80,7 +80,7 @@ void MYOGG::destroy()
 
     done = 1;
 
-    releaseMutex();
+    _mutex.Unlock();
 }
 
 void MYOGG::seek(int pos)

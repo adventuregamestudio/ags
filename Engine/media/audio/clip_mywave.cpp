@@ -7,16 +7,16 @@
 
 int MYWAVE::poll()
 {
-    lockMutex();
+    _mutex.Lock();
 
     if (wave == NULL)
     {
-        releaseMutex();
+        _mutex.Unlock();
         return 1;
     }
     if (paused)
     {
-        releaseMutex();
+        _mutex.Unlock();
         return 0;
     }
 
@@ -29,7 +29,7 @@ int MYWAVE::poll()
     if (voice_get_position(voice) < 0)
         done = 1;
 
-    releaseMutex();
+    _mutex.Unlock();
 
     return done;
 }
@@ -48,14 +48,14 @@ void MYWAVE::set_volume(int newvol)
 
 void MYWAVE::destroy()
 {
-    lockMutex();
+    _mutex.Lock();
 
     // Stop sound and decrease reference count.
     stop_sample(wave);
     sound_cache_free((char*)wave, true);
     wave = NULL;
 
-    releaseMutex();
+    _mutex.Unlock();
 }
 
 void MYWAVE::seek(int pos)

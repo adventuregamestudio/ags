@@ -9,16 +9,16 @@
 
 int MYMP3::poll()
 {
-    lockMutex();
+    _mutex.Lock();
 
     if (done)
     {
-        releaseMutex();
+        _mutex.Unlock();
         return done;
     }
     if (paused)
     {
-        releaseMutex();
+        _mutex.Unlock();
         return 0;
     }
 
@@ -39,7 +39,7 @@ int MYMP3::poll()
     if (almp3_poll_mp3stream(stream) == ALMP3_POLL_PLAYJUSTFINISHED)
         done = 1;
 
-    releaseMutex();
+    _mutex.Unlock();
 
     return done;
 }
@@ -59,7 +59,7 @@ void MYMP3::set_volume(int newvol)
 
 void MYMP3::destroy()
 {
-    lockMutex();
+    _mutex.Lock();
 
     if (!done)
         almp3_stop_mp3stream(stream);
@@ -74,7 +74,7 @@ void MYMP3::destroy()
     buffer = NULL;
     pack_fclose(in);
 
-    releaseMutex();
+    _mutex.Unlock();
 }
 
 void MYMP3::seek(int pos)

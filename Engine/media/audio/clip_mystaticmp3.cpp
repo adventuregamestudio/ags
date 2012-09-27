@@ -11,7 +11,7 @@ extern int our_eip;
 
 int MYSTATICMP3::poll()
 {
-    lockMutex();
+    _mutex.Lock();
 
     int oldeip = our_eip;
     our_eip = 5997;
@@ -24,7 +24,7 @@ int MYSTATICMP3::poll()
     }
     our_eip = oldeip;
 
-    releaseMutex();
+    _mutex.Unlock();
 
     return done;
 }
@@ -44,7 +44,7 @@ void MYSTATICMP3::set_volume(int newvol)
 
 void MYSTATICMP3::destroy()
 {
-    lockMutex();
+    _mutex.Lock();
 
     if (tune != NULL) {
         almp3_stop_mp3(tune);
@@ -55,7 +55,7 @@ void MYSTATICMP3::destroy()
         sound_cache_free(mp3buffer, false);
     }
 
-    releaseMutex();
+    _mutex.Unlock();
 }
 
 void MYSTATICMP3::seek(int pos)

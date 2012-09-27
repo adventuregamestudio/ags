@@ -15,7 +15,7 @@ extern int use_extra_sound_offset;  // defined in ac.cpp
 
 int MYSTATICOGG::poll()
 {
-    lockMutex();
+    _mutex.Lock();
 
     if ((tune == NULL) || (!ready))
         ; // Do nothing
@@ -25,7 +25,7 @@ int MYSTATICOGG::poll()
     }
     else get_pos();  // call this to keep the last_but_one stuff up to date
 
-    releaseMutex();
+    _mutex.Unlock();
 
     return done;
 }
@@ -44,7 +44,7 @@ void MYSTATICOGG::set_volume(int newvol)
 
 void MYSTATICOGG::destroy()
 {
-    lockMutex();
+    _mutex.Lock();
 
     if (tune != NULL) {
         alogg_stop_ogg(tune);
@@ -56,7 +56,7 @@ void MYSTATICOGG::destroy()
         sound_cache_free(mp3buffer, false);
     }
 
-    releaseMutex();
+    _mutex.Unlock();
 }
 
 void MYSTATICOGG::seek(int pos)

@@ -50,6 +50,7 @@ CCAudioClip ccDynamicAudioClip;
 char acaudio_buffer[256];
 int reserved_channel_count = 0;
 
+AGS::Engine::Thread audioThread;
 
 void calculate_reserved_channel_count()
 {

@@ -29,10 +29,6 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 #include "libcda.h"
 #endif
 
-#if defined(LINUX_VERSION) || defined(MAC_VERSION)
-#define strnicmp strncasecmp
-#endif
-
 extern Bitmap *abuf; // in wgt2allg
 
 AGSPlatformDriver* AGSPlatformDriver::instance = NULL;

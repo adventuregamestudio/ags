@@ -1,6 +1,5 @@
 
 #include "ac/string.h"
-#include "util/wgt2allg.h"  //strupr and strlwr on Linux
 #include "ac/common.h"
 #include "ac/display.h"
 #include "ac/gamesetupstruct.h"
@@ -16,11 +15,6 @@ extern int  numlines;
 extern GameSetupStruct game;
 extern GameState play;
 extern int longestline;
-
-#ifdef WINDOWS_VERSION
-#define strlwr _strlwr
-#define strupr _strupr
-#endif
 
 int String_IsNullOrEmpty(const char *thisString) 
 {

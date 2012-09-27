@@ -28,9 +28,6 @@
 
 #define HWND long
 #define _getcwd getcwd
-#define strnicmp strncasecmp
-#undef stricmp
-#define stricmp strcasecmp
 
 #else   // it's DOS (DJGPP)
 

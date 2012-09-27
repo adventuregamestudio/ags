@@ -12,6 +12,7 @@
 #include "ac/gamestructdefines.h"
 #include "script/cc_script.h"           // ccScript
 #include "util/file.h"
+#include "util/wgt2allg.h"
 
 // Forward declaration
 namespace AGS { namespace Common { class DataStream; } }

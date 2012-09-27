@@ -4,10 +4,6 @@
 #include "util/textstreamwriter.h"
 #include "util/stream.h"
 
-#if !defined(WINDOWS_VERSION)
-#define stricmp strcasecmp
-#endif
-
 namespace AGS
 {
 namespace Common

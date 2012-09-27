@@ -13,6 +13,7 @@
 #include "platform/base/override_defines.h"
 #include "ac/runtime_defines.h"
 #include "plugin/agsplugin.h"
+#include "util/string_utils.h"
 
 #define IOS_CONFIG_FILENAME "ios.cfg"
 

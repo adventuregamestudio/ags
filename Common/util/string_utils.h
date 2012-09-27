@@ -13,19 +13,25 @@
 namespace AGS { namespace Common { class DataStream; } }
 using namespace AGS; // FIXME later
 
-#if defined(ANDROID_VERSION) || defined(IOS_VERSION)
-// Some Android defines that are needed in multiple files.
-#include <wchar.h>
-extern "C" {
-    char *strupr(char *s);
-    char *strlwr(char *s);
-}
+#if !defined (WINDOWS_VERSION)
+
+#if !defined (strlwr)
+extern "C" char *strlwr(char *s);
 #endif
-#if defined(ANDROID_VERSION) || defined(IOS_VERSION) || defined(LINUX_VERSION) || defined(MAC_VERSION)
-#undef stricmp
+
+#if !defined (strupr)
+extern "C" char *strupr(char *s);
+#endif
+
+#if !defined (stricmp)
 #define stricmp strcasecmp
+#endif
+
+#if !defined (strnicmp)
 #define strnicmp strncasecmp
 #endif
+
+#endif // !WINDOWS_VERSION
 
 void removeBackslashBracket(char *lbuffer);
 // Break up the text into lines, using normal Western left-right style

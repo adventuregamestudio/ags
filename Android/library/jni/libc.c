@@ -1,5 +1,6 @@
 // Functions missing in the Android Standard C library.
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <wchar.h>
 #include <string.h>

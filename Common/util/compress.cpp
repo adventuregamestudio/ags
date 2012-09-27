@@ -23,13 +23,6 @@ prior express permission from Chris Jones.
 
 #include "util/misc.h"
 
-#if !defined(LINUX_VERSION) && !defined(MAC_VERSION)
-#ifndef VS2005
-#include <alloc.h>
-#endif
-#include <conio.h>
-#endif
-
 #include "util/datastream.h"
 #include "util/filestream.h"
 
@@ -39,15 +32,6 @@ using AGS::Common::DataStream;
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
-
-#if !defined(MAC_VERSION)
-typedef unsigned char * __block;
-#else
-#ifdef __block
-#undef __block
-#define __block unsigned char*
-#endif
-#endif
 
 extern long cliboffset(const char *);
 extern char lib_file_name[13];

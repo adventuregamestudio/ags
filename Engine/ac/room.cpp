@@ -458,7 +458,7 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
             thisroom.ebscene[cc] = convert_16_to_16bgr (thisroom.ebscene[cc]);
 #endif
 
-#if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(PSP_VERSION)
+#if defined (AGS_INVERTED_COLOR_ORDER)
         // PSP: Convert 32 bit backgrounds.
         if (thisroom.ebscene[cc]->GetColorDepth() == 32)
             thisroom.ebscene[cc] = convert_32_to_32bgr(thisroom.ebscene[cc]);

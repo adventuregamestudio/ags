@@ -206,7 +206,7 @@ void initialize_sprite (int ee) {
         }
         else if ((spcoldep == 32) && (final_col_dep == 32))
         {
-#if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(PSP_VERSION)
+#if defined (AGS_INVERTED_COLOR_ORDER)
             // PSP: Convert to BGR color order.
             spriteset.set(ee, convert_32_to_32bgr(spriteset[ee]));
 #endif

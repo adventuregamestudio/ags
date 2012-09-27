@@ -1,5 +1,5 @@
-#if !defined(LINUX_VERSION)
-#error This file should only be included on the Linux or BSD build
+#if !defined(PSP_VERSION)
+#error This file should only be included on the PSP build
 #endif
 
 

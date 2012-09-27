@@ -57,11 +57,6 @@ using AGS::Common::DataStream;
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
-#if defined(MAC_VERSION) || (defined(LINUX_VERSION) && !defined(PSP_VERSION))
-#include <pthread.h>
-pthread_t soundthread;
-#endif
-
 #ifndef WINDOWS_VERSION
 extern char **global_argv;
 #endif
@@ -217,7 +212,7 @@ int engine_init_game_data_external(int argc,char*argv[])
 {
     game_file_name = ci_find_file(usetup.data_files_dir, usetup.main_data_filename);
 
-#if !defined(WINDOWS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION) && !defined(IOS_VERSION)
+#if defined (LINUX_VERSION) || defined (MAC_VERSION)
     // Search the exe files for the game data
     if ((game_file_name == NULL) || (access(game_file_name, F_OK) != 0))
     {

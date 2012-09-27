@@ -128,7 +128,7 @@ void AGSPlatformDriver::Out(const char *sz_fullmsg) {
 
 // ********** CD Player Functions common to Win and Linux ********
 
-#if !defined(ANDROID_VERSION) && !defined(PSP_VERSION) && !defined(DOS_VERSION) && !defined(MAC_VERSION)
+#if defined (AGS_HAS_CD_AUDIO)
 
 // from ac_cdplayer
 extern int use_cdplayer;
@@ -176,4 +176,4 @@ int cd_player_control(int cmdd, int datt) {
     return 0;
 }
 
-#endif // #if !defined(ANDROID_VERSION) && !defined(PSP_VERSION) && !defined(DOS_VERSION) && !defined(MAC_VERSION)
+#endif // AGS_HAS_CD_AUDIO

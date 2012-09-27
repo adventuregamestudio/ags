@@ -33,7 +33,7 @@
 
 using AGS::Common::DataStream;
 
-#if defined(MAC_VERSION) || defined(WINDOWS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
+#if !defined (AGS_CASE_SENSITIVE_FILESYSTEM)
 #include <string.h>
 /* File Name Concatenator basically on Windows / DOS */
 char *ci_find_file(char *dir_name, char *file_name)
@@ -153,7 +153,7 @@ char *ci_find_file(char *dir_name, char *file_name)
 /* Case Insensitive fopen */
 DataStream *ci_fopen(const char *file_name, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode)
 {
-#if defined(WINDOWS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
+#if !defined (AGS_CASE_SENSITIVE_FILESYSTEM)
   return Common::File::OpenFile(file_name, open_mode, work_mode);
 #else
   DataStream *fs = NULL;

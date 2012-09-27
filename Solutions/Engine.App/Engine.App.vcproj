@@ -42,7 +42,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="&quot;$(SolutionDir)\..\Common&quot;;&quot;$(SolutionDir)\..\Common\libinclude&quot;;&quot;$(SolutionDir)\..\Engine&quot;;&quot;$(SolutionDir)\..\Plugins&quot;;&quot;$(SolutionDir)\..\Windows\include&quot;"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;VS2005;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;THIS_IS_THE_ENGINE;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;BUILTIN_PLUGINS"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;VS2005;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;THIS_IS_THE_ENGINE;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;BUILTIN_PLUGINS;AGS_HAS_CD_AUDIO"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -2056,6 +2056,50 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\test\test_string.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="util"
+				>
+				<File
+					RelativePath="..\..\Engine\util\mutex.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\util\mutex_base.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\util\mutex_psp.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\util\mutex_pthread.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\util\mutex_wii.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\util\mutex_windows.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\util\thread.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\util\thread_psp.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\util\thread_pthread.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\util\thread_windows.h"
 					>
 				</File>
 			</Filter>

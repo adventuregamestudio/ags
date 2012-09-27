@@ -664,6 +664,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\core\endianness.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\core\types.h"
 					>
 				</File>

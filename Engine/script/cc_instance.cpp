@@ -1844,8 +1844,8 @@ void ccInstance::FixupInstruction(const CodeHelper &helper, CodeInstruction &ins
     {
         if (instruction.Code == SCMD_CALLEXT) {
             // save the instance ID in the top 4 bits of the instruction
-            instruction.Code = SCMD_CALLAS;
-            instruction.Code |= ((unsigned long)helper.import_inst_id) << INSTANCE_ID_SHIFT;
+            instruction.Code        = SCMD_CALLAS;
+            instruction.InstanceId  = helper.import_inst_id;
             return;
         }
     }

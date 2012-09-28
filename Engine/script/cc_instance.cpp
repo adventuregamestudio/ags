@@ -394,7 +394,6 @@ int ccInstance::Run(long curpc)
     // Needed to avoid unaligned variable access.
     long temp_variable;
 
-    long arg1, arg2;
     char *mptr;
     unsigned char tbyte;
     short tshort;
@@ -412,58 +411,33 @@ int ccInstance::Run(long curpc)
     current_instance = this;
     float *freg1, *freg2;
     ccInstance *codeInst = runningInst;
-    unsigned long thisInstruction;
-    unsigned long thisInstructionInstanceId;
     int write_debug_dump = ccGetOption(SCOPT_DEBUGRUN);
+	CodeOperation codeOp;
 
     codehelper_index = -1;
-    // [IKM] having those as stand-alone vars is a temporary solution
-    const CodeHelper *op_helper;
-    const CodeHelper *arg1_helper;
-    const CodeHelper *arg2_helper;
 
     while (1) {
-        // [IKM] we save instance id bytes for a little while
-        // in case one of the real-time fixups will want to know them
-        thisInstruction = codeInst->code[pc];
-
         if (write_debug_dump)
             // FIXME: this will write non-fixuped values
             DumpInstruction(&codeInst->code[pc], pc, registers[SREG_SP]);
 
+		if (!codeInst->ReadOperation(codeOp, pc))
+        {
+            return -1;
+        }
+
         // save the arguments for quick access
-        // [IKM] and prepare code helpers
-        op_helper = codeInst->GetCodeHelper(pc);
-        arg1_helper = NULL;
-        arg2_helper = NULL;
-        if (pc != (codeInst->codesize - 1)) {
-            arg1 = codeInst->code[pc + 1];
-            freg1 = (float*)&registers[arg1];
-            arg1_helper = codeInst->GetCodeHelper(pc + 1);
-            if (pc != (codeInst->codesize - 2)) {
-                arg2 = codeInst->code[pc + 2];
-                freg2 = (float*)&registers[arg2];
-                arg2_helper = codeInst->GetCodeHelper(pc + 2);
+        long &arg1 = codeOp.Args[0].Value;
+        long &arg2 = codeOp.Args[1].Value;
+        long &arg3 = codeOp.Args[2].Value;
+        if (codeOp.ArgCount > 0) {
+            freg1 = (float*)&registers[codeOp.Args[0].Value]; // [IKM] this is crazy... what is the guarantee that was register index and not some literal?!
+            if (codeOp.ArgCount > 1) {
+                freg2 = (float*)&registers[codeOp.Args[1].Value];
             }
         }
 
-        if (op_helper)
-        {
-            codeInst->FixupInstruction(*op_helper, thisInstruction);
-        }
-        if (arg1_helper)
-        {
-            codeInst->FixupArgument(*arg1_helper, arg1);
-        }
-        if (arg2_helper)
-        {
-            codeInst->FixupArgument(*arg2_helper, arg2);
-        }
-
-        thisInstructionInstanceId = (thisInstruction >> INSTANCE_ID_SHIFT) & INSTANCE_ID_MASK;
-        thisInstruction &= INSTANCE_ID_REMOVEMASK; // now this is pure instruction code
-
-        switch (thisInstruction) {
+        switch (codeOp.Instruction.Code) {
       case SCMD_LINENUM:
           line_number = arg1;
           currentline = arg1;
@@ -686,7 +660,7 @@ int ccInstance::Run(long curpc)
 
           PUSH_CALL_STACK;
 
-          temp_variable = pc + sccmdargs[thisInstruction] + 1;
+          temp_variable = pc + sccmdargs[codeOp.Instruction.Code] + 1;
           memcpy((char*)registers[SREG_SP], &temp_variable, sizeof(long));
 
           registers[SREG_SP] += sizeof(long);
@@ -934,7 +908,7 @@ int ccInstance::Run(long curpc)
           ccInstance *wasRunning = runningInst;
 
           // extract the instance ID
-          unsigned long instId = thisInstructionInstanceId;
+          unsigned long instId = codeOp.Instruction.InstanceId;
               //(codeInst->code[pc] >> INSTANCE_ID_SHIFT) & INSTANCE_ID_MASK;
           // determine the offset into the code of the instance we want
           runningInst = loadedInstances[instId];
@@ -1040,8 +1014,7 @@ int ccInstance::Run(long curpc)
           break;
       case SCMD_NEWARRAY:
           {
-              int arg3 = codeInst->code[pc + 3];
-              // FIXME!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Code helper here?
+              //int arg3 = codeInst->code[pc + 3];
               int numElements = registers[arg1];
               if ((numElements < 1) || (numElements > 1000000))
               {
@@ -1129,14 +1102,14 @@ int ccInstance::Run(long curpc)
               loopIterationCheckDisabled++;
           break;
       default:
-          cc_error("invalid instruction %d found in code stream", thisInstruction);
+          cc_error("invalid instruction %d found in code stream", codeOp.Instruction.Code);
           return -1;
         }
 
         if (flags & INSTF_ABORTED)
             return 0;
 
-        pc += sccmdargs[thisInstruction] + 1;
+        pc += sccmdargs[codeOp.Instruction.Code] + 1;
     }
 }
 
@@ -1685,6 +1658,39 @@ void ccInstance::Free()
     delete [] code_helpers;
 }
 
+bool ccInstance::ReadOperation(CodeOperation &op, long at_pc)
+{
+	op.Instruction.Code			= code[at_pc];
+	op.Instruction.InstanceId	= (op.Instruction.Code >> INSTANCE_ID_SHIFT) & INSTANCE_ID_MASK;
+	op.Instruction.Code		   &= INSTANCE_ID_REMOVEMASK; // now this is pure instruction code
+
+	int want_args = sccmdargs[op.Instruction.Code];
+    if (at_pc + want_args >= codesize)
+    {
+        cc_error("unexpected end of code data at %d", at_pc + want_args);
+        return false;
+    }
+    op.ArgCount = want_args;
+
+    const CodeHelper *helper = GetCodeHelper(at_pc);
+    if (helper)
+    {
+        FixupInstruction(*helper, op.Instruction);
+    }
+
+    for (int i = 0; i < op.ArgCount; ++i)
+    {
+        op.Args[i].Value    = code[at_pc + i + 1];
+        helper              = GetCodeHelper(at_pc + i + 1);
+        if (helper)
+        {
+            FixupArgument(*helper, op.Args[i]);
+        }
+    }
+
+    return true;
+}
+
 const CodeHelper *ccInstance::GetCodeHelper(long at_pc)
 {
     if (!num_codehelpers)
@@ -1770,20 +1776,20 @@ const CodeHelper *ccInstance::GetCodeHelper(long at_pc)
     return NULL;
 }
 
-void ccInstance::FixupInstruction(const CodeHelper &helper, unsigned long &instruction)
+void ccInstance::FixupInstruction(const CodeHelper &helper, CodeInstruction &instruction)
 {
     // There are not so much acceptable variants here
     if (helper.fixup_type == FIXUP_IMPORT)
     {
-        if (instruction == SCMD_CALLEXT) {
+        if (instruction.Code == SCMD_CALLEXT) {
             // save the instance ID in the top 4 bits of the instruction
-            instruction = SCMD_CALLAS;
-            instruction |= ((unsigned long)helper.import_inst_id) << INSTANCE_ID_SHIFT;
+            instruction.Code = SCMD_CALLAS;
+            instruction.Code |= ((unsigned long)helper.import_inst_id) << INSTANCE_ID_SHIFT;
             return;
         }
     }
 
-    const char *cmd_name = sccmdnames[instruction];
+    const char *cmd_name = sccmdnames[instruction.Code];
     while (cmd_name[0] == '$')
     {
         cmd_name++;
@@ -1791,28 +1797,28 @@ void ccInstance::FixupInstruction(const CodeHelper &helper, unsigned long &instr
     cc_error("unexpected instruction/fixup pair: %s - %s", cmd_name, fixupnames[helper.fixup_type]);
 }
 
-void ccInstance::FixupArgument(const CodeHelper &helper, long &argument)
+void ccInstance::FixupArgument(const CodeHelper &helper, CodeArgument &argument)
 {
     switch (helper.fixup_type)
     {
     case FIXUP_GLOBALDATA:
-        argument += (long)&globaldata[0];
+        argument.Value += (long)&globaldata[0];
         break;
     case FIXUP_FUNCTION:
         // originally commented --
         //      code[fixup] += (long)&code[0];
         break;
     case FIXUP_STRING:
-        argument += (long)&strings[0];
+        argument.Value += (long)&strings[0];
         break;
     case FIXUP_IMPORT:
-        argument = helper.import_address;
+        argument.Value = helper.import_address;
         break;
     case FIXUP_DATADATA:
         // fixup is being made at instance init
         break;
     case FIXUP_STACK:
-        argument += (long)&stack[0];
+        argument.Value += (long)&stack[0];
         break;
     default:
         cc_error("internal fixup index error: %d", helper.fixup_type);

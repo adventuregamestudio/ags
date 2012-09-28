@@ -49,6 +49,43 @@ struct CodeHelper
     intptr_t        import_address;
 };
 
+struct CodeInstruction
+{
+	CodeInstruction()
+	{
+		Code		= 0;
+		InstanceId	= 0;
+	}
+
+	long	Code;
+	long	InstanceId;
+};
+
+struct CodeArgument
+{
+	CodeArgument()
+		: FValue((float&)Value)
+	{
+		Value		= 0;
+	}
+
+	long	Value;		// generic Value
+	float	&FValue;	// access Value as float type
+};
+
+
+struct CodeOperation
+{
+	CodeOperation()
+	{
+		ArgCount = 0;
+	}
+
+	CodeInstruction	Instruction;
+	CodeArgument	Args[MAX_SCMD_ARGS];
+	int				ArgCount;
+};
+
 // Running instance of the script
 struct ccInstance
 {
@@ -133,9 +170,11 @@ protected:
     // free the memory associated with the instance
     void    Free();
 
-    const CodeHelper *GetCodeHelper(long at_pc);
-    void    FixupInstruction(const CodeHelper &helper, unsigned long &instruction);
-    void    FixupArgument(const CodeHelper &helper, long &argument);
+	bool    ReadOperation(CodeOperation &op, long at_pc);
+
+    const   CodeHelper *GetCodeHelper(long at_pc);
+    void    FixupInstruction(const CodeHelper &helper, CodeInstruction &instruction);
+    void    FixupArgument(const CodeHelper &helper, CodeArgument &argument);
 };
 
 #endif // __CC_INSTANCE_H

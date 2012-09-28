@@ -100,7 +100,7 @@
 #define SCMD_DYNAMICBOUNDS 71   // check reg1 is between 0 and m[MAR-4]
 #define SCMD_NEWARRAY     72    // reg1 = new array of reg1 elements, each of size arg2 (arg3=managed type?)
 
-
+#define MAX_SCMD_ARGS     3     // maximal possible number of arguments
 
 #define EXPORT_FUNCTION   1
 #define EXPORT_DATA       2

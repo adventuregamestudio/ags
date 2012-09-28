@@ -35,41 +35,102 @@ extern roomstruct thisroom; // ac/game
 extern int maxWhileLoops;
 extern new_line_hook_type new_line_hook;
 
-// Internally used names for commands, registers
-const char *sccmdnames[] = {
-    "NULL", "$add", "$sub", "$$mov", "memwritelit", "ret", "$mov",
-    "$memread", "$memwrite", "$$mul", "$$div", "$$add", "$$sub", "$$bit_and", "$$bit_or",
-    "$$cmp", "$$ncmp", "$$gt", "$$lt", "$$gte", "$$lte", "$$and", "$$or",
-    "$call", "$memread.b", "$memread.w", "$memwrite.b", "$memwrite.w", "jz",
-    "$push", "$pop", "jmp", "$mul", "$farcall", "$farpush", "farsubsp", "sourceline",
-    "$callscr", "thisaddr", "setfuncargs", "$$mod", "$$xor", "$not",
-    "$$shl", "$$shr", "$callobj", "$checkbounds", "$memwrite.ptr",
-    "$memread.ptr", "memwrite.ptr.0", "$meminit.ptr", "load.sp.offs",
-    "checknull.ptr", "$f.add", "$f.sub", "$$f.mul", "$$f.div", "$$f.add",
-    "$$f.sub", "$$f.gt", "$$f.lt", "$$f.gte", "$$f.lte",
-    "zeromem", "$newstring", "$$strcmp", "$$strnotcmp", "$checknull",
-    "loopcheckoff", "memwrite.ptr.0.nd", "jnz", "$dynamicbounds", "$newarray"
+struct ScriptCommandInfo
+{
+    ScriptCommandInfo(long code, const char *cmdname, int arg_count, ScriptValueType param_type)
+    {
+        Code        = code;
+        CmdName     = cmdname;
+        ArgCount    = arg_count;
+        ParamType   = param_type;
+    }
+
+    long            Code;
+    const char      *CmdName;
+    int             ArgCount;
+    ScriptValueType ParamType;
+};
+
+const ScriptCommandInfo sccmd_info[CC_NUM_SCCMDS] =
+{
+    ScriptCommandInfo( 0                    , "NULL"                , 0, kScValUndefined ),
+    ScriptCommandInfo( SCMD_ADD             , "$add"                , 2, kScValGeneric ),
+    ScriptCommandInfo( SCMD_SUB             , "$sub"                , 2, kScValGeneric ),
+    ScriptCommandInfo( SCMD_REGTOREG        , "$$mov"               , 2, kScValGeneric ),
+    ScriptCommandInfo( SCMD_WRITELIT        , "memwritelit"         , 2, kScValGeneric ),
+    ScriptCommandInfo( SCMD_RET             , "ret"                 , 0, kScValGeneric ),
+    ScriptCommandInfo( SCMD_LITTOREG        , "$mov"                , 2, kScValGeneric ),
+    ScriptCommandInfo( SCMD_MEMREAD         , "$memread"            , 1, kScValGeneric ),
+    ScriptCommandInfo( SCMD_MEMWRITE        , "$memwrite"           , 1, kScValGeneric ),
+    ScriptCommandInfo( SCMD_MULREG          , "$$mul"               , 2, kScValGeneric ),
+    ScriptCommandInfo( SCMD_DIVREG          , "$$div"               , 2, kScValGeneric ),
+    ScriptCommandInfo( SCMD_ADDREG          , "$$add"               , 2, kScValGeneric ),
+    ScriptCommandInfo( SCMD_SUBREG          , "$$sub"               , 2, kScValGeneric ),
+    ScriptCommandInfo( SCMD_BITAND          , "$$bit_and"           , 2, kScValGeneric ),
+    ScriptCommandInfo( SCMD_BITOR           , "$$bit_or"            , 2, kScValGeneric ),
+    ScriptCommandInfo( SCMD_ISEQUAL         , "$$cmp"               , 2, kScValGeneric ),
+    ScriptCommandInfo( SCMD_NOTEQUAL        , "$$ncmp"              , 2, kScValGeneric ),
+    ScriptCommandInfo( SCMD_GREATER         , "$$gt"                , 2, kScValGeneric ),
+    ScriptCommandInfo( SCMD_LESSTHAN        , "$$lt"                , 2, kScValGeneric ),
+    ScriptCommandInfo( SCMD_GTE             , "$$gte"               , 2, kScValGeneric ),
+    ScriptCommandInfo( SCMD_LTE             , "$$lte"               , 2, kScValGeneric ),
+    ScriptCommandInfo( SCMD_AND             , "$$and"               , 2, kScValGeneric ),
+    ScriptCommandInfo( SCMD_OR              , "$$or"                , 2, kScValGeneric ),
+    ScriptCommandInfo( SCMD_CALL            , "$call"               , 1, kScValGeneric ),
+    ScriptCommandInfo( SCMD_MEMREADB        , "$memread.b"          , 1, kScValGeneric ),
+    ScriptCommandInfo( SCMD_MEMREADW        , "$memread.w"          , 1, kScValGeneric ),
+    ScriptCommandInfo( SCMD_MEMWRITEB       , "$memwrite.b"         , 1, kScValGeneric ),
+    ScriptCommandInfo( SCMD_MEMWRITEW       , "$memwrite.w"         , 1, kScValGeneric ),
+    ScriptCommandInfo( SCMD_JZ              , "jz"                  , 1, kScValGeneric ),
+    ScriptCommandInfo( SCMD_PUSHREG         , "$push"               , 1, kScValGeneric ),
+    ScriptCommandInfo( SCMD_POPREG          , "$pop"                , 1, kScValGeneric ),
+    ScriptCommandInfo( SCMD_JMP             , "jmp"                 , 1, kScValGeneric ),
+    ScriptCommandInfo( SCMD_MUL             , "$mul"                , 2, kScValGeneric ),
+    ScriptCommandInfo( SCMD_CALLEXT         , "$farcall"            , 1, kScValGeneric ),
+    ScriptCommandInfo( SCMD_PUSHREAL        , "$farpush"            , 1, kScValGeneric ),
+    ScriptCommandInfo( SCMD_SUBREALSTACK    , "farsubsp"            , 1, kScValGeneric ),
+    ScriptCommandInfo( SCMD_LINENUM         , "sourceline"          , 1, kScValGeneric ),
+    ScriptCommandInfo( SCMD_CALLAS          , "$callscr"            , 1, kScValGeneric ),
+    ScriptCommandInfo( SCMD_THISBASE        , "thisaddr"            , 1, kScValGeneric ),
+    ScriptCommandInfo( SCMD_NUMFUNCARGS     , "setfuncargs"         , 1, kScValGeneric ),
+    ScriptCommandInfo( SCMD_MODREG          , "$$mod"               , 2, kScValGeneric ),
+    ScriptCommandInfo( SCMD_XORREG          , "$$xor"               , 2, kScValGeneric ),
+    ScriptCommandInfo( SCMD_NOTREG          , "$not"                , 1, kScValGeneric ),
+    ScriptCommandInfo( SCMD_SHIFTLEFT       , "$$shl"               , 2, kScValGeneric ),
+    ScriptCommandInfo( SCMD_SHIFTRIGHT      , "$$shr"               , 2, kScValGeneric ),
+    ScriptCommandInfo( SCMD_CALLOBJ         , "$callobj"            , 1, kScValGeneric ),
+    ScriptCommandInfo( SCMD_CHECKBOUNDS     , "$checkbounds"        , 2, kScValGeneric ),
+    ScriptCommandInfo( SCMD_MEMWRITEPTR     , "$memwrite.ptr"       , 1, kScValGeneric ),
+    ScriptCommandInfo( SCMD_MEMREADPTR      , "$memread.ptr"        , 1, kScValGeneric ),
+    ScriptCommandInfo( SCMD_MEMZEROPTR      , "memwrite.ptr.0"      , 0, kScValGeneric ),
+    ScriptCommandInfo( SCMD_MEMINITPTR      , "$meminit.ptr"        , 1, kScValGeneric ),
+    ScriptCommandInfo( SCMD_LOADSPOFFS      , "load.sp.offs"        , 1, kScValGeneric ),
+    ScriptCommandInfo( SCMD_CHECKNULL       , "checknull.ptr"       , 0, kScValGeneric ),
+    ScriptCommandInfo( SCMD_FADD            , "$f.add"              , 2, kScValGeneric ),
+    ScriptCommandInfo( SCMD_FSUB            , "$f.sub"              , 2, kScValGeneric ),
+    ScriptCommandInfo( SCMD_FMULREG         , "$$f.mul"             , 2, kScValGeneric ),
+    ScriptCommandInfo( SCMD_FDIVREG         , "$$f.div"             , 2, kScValGeneric ),
+    ScriptCommandInfo( SCMD_FADDREG         , "$$f.add"             , 2, kScValGeneric ),
+    ScriptCommandInfo( SCMD_FSUBREG         , "$$f.sub"             , 2, kScValGeneric ),
+    ScriptCommandInfo( SCMD_FGREATER        , "$$f.gt"              , 2, kScValGeneric ),
+    ScriptCommandInfo( SCMD_FLESSTHAN       , "$$f.lt"              , 2, kScValGeneric ),
+    ScriptCommandInfo( SCMD_FGTE            , "$$f.gte"             , 2, kScValGeneric ),
+    ScriptCommandInfo( SCMD_FLTE            , "$$f.lte"             , 2, kScValGeneric ),
+    ScriptCommandInfo( SCMD_ZEROMEMORY      , "zeromem"             , 1, kScValGeneric ),
+    ScriptCommandInfo( SCMD_CREATESTRING    , "$newstring"          , 1, kScValGeneric ),
+    ScriptCommandInfo( SCMD_STRINGSEQUAL    , "$$strcmp"            , 2, kScValGeneric ),
+    ScriptCommandInfo( SCMD_STRINGSNOTEQ    , "$$strnotcmp"         , 2, kScValGeneric ),
+    ScriptCommandInfo( SCMD_CHECKNULLREG    , "$checknull"          , 1, kScValGeneric ),
+    ScriptCommandInfo( SCMD_LOOPCHECKOFF    , "loopcheckoff"        , 0, kScValGeneric ),
+    ScriptCommandInfo( SCMD_MEMZEROPTRND    , "memwrite.ptr.0.nd"   , 0, kScValGeneric ),
+    ScriptCommandInfo( SCMD_JNZ             , "jnz"                 , 1, kScValGeneric ),
+    ScriptCommandInfo( SCMD_DYNAMICBOUNDS   , "$dynamicbounds"      , 1, kScValGeneric ),
+    ScriptCommandInfo( SCMD_NEWARRAY        , "$newarray"           , 3, kScValGeneric ),
 };
 
 const char *regnames[] = { "null", "sp", "mar", "ax", "bx", "cx", "op", "dx" };
 
 const char *fixupnames[] = { "null", "fix_gldata", "fix_func", "fix_string", "fix_import", "fix_datadata", "fix_stack" };
-
-// Number of arguments for each command
-const short sccmdargs[] = {
-    0, 2, 2, 2, 2, 0, 2,
-    1, 1, 2, 2, 2, 2, 2, 2,
-    2, 2, 2, 2, 2, 2, 2, 2,
-    1, 1, 1, 1, 1, 1,
-    1, 1, 1, 2, 1, 1, 1, 1,
-    1, 1, 1, 2, 2, 1,
-    2, 2, 1, 2, 1,
-    1, 0, 1, 1,
-    0, 2, 2, 2, 2, 2,
-    2, 2, 2, 2, 2,
-    1, 1, 2, 2, 1,
-    0, 0, 1, 1, 3
-};
 
 ccInstance *current_instance;
 
@@ -660,7 +721,7 @@ int ccInstance::Run(long curpc)
 
           PUSH_CALL_STACK;
 
-          temp_variable = pc + sccmdargs[codeOp.Instruction.Code] + 1;
+          temp_variable = pc + sccmd_info[codeOp.Instruction.Code].ArgCount + 1;
           memcpy((char*)registers[SREG_SP], &temp_variable, sizeof(long));
 
           registers[SREG_SP] += sizeof(long);
@@ -1109,7 +1170,7 @@ int ccInstance::Run(long curpc)
         if (flags & INSTF_ABORTED)
             return 0;
 
-        pc += sccmdargs[codeOp.Instruction.Code] + 1;
+        pc += sccmd_info[codeOp.Instruction.Code].ArgCount + 1;
     }
 }
 
@@ -1291,7 +1352,7 @@ void ccInstance::DumpInstruction(unsigned long *codeptr, int cps, int spp)
     writer.WriteFormat("Line %3d, IP:%8d (SP:%8d) ", line_num, cps, spp);
 
     int l, thisop = codeptr[0] & INSTANCE_ID_REMOVEMASK, isreg = 0, t = 0;
-    const char *toprint = sccmdnames[thisop];
+    const char *toprint = sccmd_info[thisop].CmdName;
     if (toprint[0] == '$') {
         isreg = 1;
         toprint++;
@@ -1303,7 +1364,7 @@ void ccInstance::DumpInstruction(unsigned long *codeptr, int cps, int spp)
     }
     writer.WriteString(toprint);
 
-    for (l = 0; l < sccmdargs[thisop]; l++) {
+    for (l = 0; l < sccmd_info[thisop].ArgCount; l++) {
         t++;
         if (l > 0)
             writer.WriteChar(',');
@@ -1664,7 +1725,7 @@ bool ccInstance::ReadOperation(CodeOperation &op, long at_pc)
 	op.Instruction.InstanceId	= (op.Instruction.Code >> INSTANCE_ID_SHIFT) & INSTANCE_ID_MASK;
 	op.Instruction.Code		   &= INSTANCE_ID_REMOVEMASK; // now this is pure instruction code
 
-	int want_args = sccmdargs[op.Instruction.Code];
+    int want_args = sccmd_info[op.Instruction.Code].ArgCount;
     if (at_pc + want_args >= codesize)
     {
         cc_error("unexpected end of code data at %d", at_pc + want_args);
@@ -1789,7 +1850,7 @@ void ccInstance::FixupInstruction(const CodeHelper &helper, CodeInstruction &ins
         }
     }
 
-    const char *cmd_name = sccmdnames[instruction.Code];
+    const char *cmd_name = sccmd_info[instruction.Code].CmdName;
     while (cmd_name[0] == '$')
     {
         cmd_name++;

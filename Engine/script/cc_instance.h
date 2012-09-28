@@ -33,6 +33,14 @@
 
 struct ccInstance;
 
+enum ScriptValueType
+{
+    kScValUndefined,    // to detect errors
+    kScValGeneric,      // as long
+    kScValInteger,      // as strictly 32-bit integer (for integer math)
+    kScValFloat,        // as float (for floating point math)
+};
+
 struct CodeHelper
 {
     CodeHelper()

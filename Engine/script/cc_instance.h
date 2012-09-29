@@ -32,6 +32,7 @@
 #define INSTANCE_ID_REMOVEMASK 0x00ffffff
 
 struct ccInstance;
+struct ScriptImport;
 
 enum ScriptValueType
 {
@@ -46,15 +47,11 @@ struct CodeHelper
     CodeHelper()
     {
         code_index      = 0;
-        fixup_type      = 0;
-        import_inst_id  = 0;
-        import_address  = 0;        
+        fixup_type      = 0;     
     }
 
     long            code_index;
-    int             fixup_type;
-    unsigned long   import_inst_id;
-    intptr_t        import_address;
+    char            fixup_type;
 };
 
 struct CodeInstruction
@@ -120,6 +117,10 @@ public:
     int  loadedInstanceId;
     int  returnValue;
 
+    // array of real import indexes used in script
+    int  *resolved_imports;
+    int  numimports;
+
     CodeHelper  *code_helpers;
     int  codehelpers_capacity;
     int  num_codehelpers;
@@ -178,6 +179,7 @@ protected:
     // free the memory associated with the instance
     void    Free();
 
+    bool    ResolveScriptImports(ccScript * scri);
 	bool    ReadOperation(CodeOperation &op, long at_pc);
 
     const   CodeHelper *GetCodeHelper(long at_pc);

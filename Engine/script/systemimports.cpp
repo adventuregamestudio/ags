@@ -88,6 +88,24 @@ void SystemImports::remove(const char *nameToRemove) {
     }*/
 }
 
+const ScriptImport *SystemImports::getByName(const char *name)
+{
+    int o = get_index_of(name);
+    if (o < 0)
+        return NULL;
+
+    return &imports[o];
+}
+
+const ScriptImport *SystemImports::getByIndex(int index)
+{
+    if (index < 0 || index > numimports)
+    {
+        return NULL;
+    }
+    return &imports[index];
+}
+/*
 void *SystemImports::get_addr_of(const char *namw)
 {
     int o = get_index_of(namw);
@@ -96,7 +114,7 @@ void *SystemImports::get_addr_of(const char *namw)
 
     return imports[o].Ptr;
 }
-
+*/
 int SystemImports::get_index_of(const char *namw)
 {
     int bestMatch = -1;
@@ -135,6 +153,7 @@ int SystemImports::get_index_of(const char *namw)
     return -1;
 }
 
+/*
 ccInstance* SystemImports::is_script_import(const char *namw)
 {
     if (namw == NULL) {
@@ -147,6 +166,7 @@ ccInstance* SystemImports::is_script_import(const char *namw)
 
     return imports[idx].InstancePtr;
 }
+*/
 
 // Remove all symbols whose addresses are in the supplied range
 void SystemImports::remove_range(void *from, unsigned long dist)

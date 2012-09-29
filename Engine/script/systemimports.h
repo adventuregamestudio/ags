@@ -18,9 +18,10 @@ struct ScriptImport
 {
     ScriptImport()
     {
-        Type    = kScImportUndefined;
-        Name    = NULL;
-        Ptr     = NULL;
+        Type        = kScImportUndefined;
+        Name        = NULL;
+        Ptr         = NULL;
+        InstancePtr = NULL;
     }
 
     ScriptImportType    Type;
@@ -32,9 +33,6 @@ struct ScriptImport
 struct SystemImports
 {
 private:
-    //char **name;
-    //char **addr;
-    //ccInstance **isScriptImp;
     ScriptImport *imports;
     int numimports;
     int bufferSize;
@@ -43,9 +41,11 @@ private:
 public:
     int  add(ScriptImportType type, const char *name, void *ptr, ccInstance *inst);
     void remove(const char *name);
-    void *get_addr_of(const char *name);
+    const ScriptImport *getByName(const char *name);
     int  get_index_of(const char *name);
-    ccInstance* is_script_import(const char *name);
+    const ScriptImport *getByIndex(int index);
+    //void *get_addr_of(const char *name);
+    //ccInstance* is_script_import(const char *name);
     void remove_range(void *from_ptr, unsigned long dist);
     void clear() {
         numimports = 0;
@@ -58,9 +58,6 @@ public:
         numimports  = 0;
         bufferSize  = 0;
         imports     = NULL;
-        //name = NULL;
-        //addr = NULL;
-        //isScriptImp = NULL;
     }
 };
 

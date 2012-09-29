@@ -88,7 +88,12 @@ void nullfree(void *data)
 
 void *ccGetSymbolAddress(char *namof)
 {
-    return simp.get_addr_of(namof);
+    const ScriptImport *import = simp.getByName(namof);
+    if (import)
+    {
+        return import->Ptr;
+    }
+    return NULL;
 }
 
 new_line_hook_type new_line_hook = NULL;

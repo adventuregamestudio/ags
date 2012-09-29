@@ -1478,7 +1478,7 @@ bool ccInstance::_Create(ccScript * scri, ccInstance * joined)
     else
         code = NULL;
     */
-    code = (unsigned long*)scri->code; // CHECKME later
+    code = (unsigned long*)scri->code; // CHECKME later why different types
 
     // just use the pointer to the strings since they don't change
     strings = scri->strings;
@@ -1507,23 +1507,9 @@ bool ccInstance::_Create(ccScript * scri, ccInstance * joined)
     // set up the initial registers to zero
     memset(&registers[0], 0, sizeof(long) * CC_NUM_REGISTERS);
 
-    // find the real address of all the imports
-    long *import_addrs = (long *)malloc(scri->numimports * sizeof(long));
-    if (scri->numimports == 0)
-        import_addrs = NULL;
-
-    for (i = 0; i < scri->numimports; i++) {
-        // MACPORT FIX 9/6/5: changed from NULL TO 0
-        if (scri->imports[i] == 0) {
-            import_addrs[i] = NULL;
-            continue;
-        }
-        import_addrs[i] = (long)simp.get_addr_of(scri->imports[i]);
-        if (import_addrs[i] == NULL) {
-            nullfree(import_addrs);
-            cc_error("unresolved import '%s'", scri->imports[i]);
-            return false;
-        }
+    if (!ResolveScriptImports(scri))
+    {
+        return false;
     }
 
     /* // [IKM] 2012-09-26:
@@ -1550,12 +1536,12 @@ bool ccInstance::_Create(ccScript * scri, ccInstance * joined)
         case FIXUP_STACK:
             break; // do nothing yet
         case FIXUP_IMPORT:
-            // save the import's address
+            // we do not need to save import's address now when we have
+            // resolved imports kept so far as instance exists, but we
+            // must fixup the following instruction in certain case
             {
-                // The code slot actually contains a script-relative index of import;
-                // here it is translated to an actual import (address and type)
-                code_helpers[codehelper_index].import_address = import_addrs[code[fixup]];
-                ccInstance *scriptImp = simp.is_script_import(scri->imports[code[fixup]]);
+                int import_index = resolved_imports[code[fixup]];
+                ccInstance *scriptImp = simp.getByIndex(import_index)->InstancePtr;
                 // If the call is to another script function next CALLEXT
                 // must be replaced with CALLAS
                 if (scriptImp != NULL && (code[fixup + 1] == SCMD_CALLEXT))
@@ -1563,7 +1549,6 @@ bool ccInstance::_Create(ccScript * scri, ccInstance * joined)
                     codehelper_index++;
                     code_helpers[codehelper_index].code_index = fixup + 1;
                     code_helpers[codehelper_index].fixup_type = FIXUP_IMPORT;
-                    code_helpers[codehelper_index].import_inst_id = ((unsigned long)scriptImp->loadedInstanceId);
                 }
             }
             break;
@@ -1586,7 +1571,6 @@ bool ccInstance::_Create(ccScript * scri, ccInstance * joined)
             }
             break;
         default:
-            nullfree(import_addrs);
             cc_error("internal fixup index error: %d", scri->fixuptypes[i]);
             return false;
         }
@@ -1648,7 +1632,6 @@ bool ccInstance::_Create(ccScript * scri, ccInstance * joined)
         }
     }
     */
-    nullfree(import_addrs);
 
     exportaddr = (char**)malloc(sizeof(char*) * scri->numexports);
 
@@ -1716,7 +1699,43 @@ void ccInstance::Free()
     nullfree(stack);
     nullfree(exportaddr);
 
+    delete [] resolved_imports;
     delete [] code_helpers;
+}
+
+bool ccInstance::ResolveScriptImports(ccScript * scri)
+{
+    // When the import is referenced in code, it's being addressed
+    // by it's index in the script imports array. That index is
+    // NOT unique and relative to script only.
+    // Script keeps information of used imports as an array of
+    // names.
+    // To allow real-time import use we should put resolved imports
+    // to the array keeping the order of their names in script's
+    // array of names.
+
+    // resolve all imports referenced in the script
+    numimports = scri->numimports;
+    if (numimports == 0)
+    {
+        resolved_imports = NULL;
+        return false;
+    }
+    resolved_imports = new int[numimports];
+
+    for (int i = 0; i < scri->numimports; ++i) {
+        // MACPORT FIX 9/6/5: changed from NULL TO 0
+        if (scri->imports[i] == 0) {
+            continue;
+        }
+
+        resolved_imports[i] = simp.get_index_of(scri->imports[i]);
+        if (resolved_imports[i] < 0) {
+            cc_error("unresolved import '%s'", scri->imports[i]);
+            return false;
+        }
+    }
+    return true;
 }
 
 bool ccInstance::ReadOperation(CodeOperation &op, long at_pc)
@@ -1845,7 +1864,11 @@ void ccInstance::FixupInstruction(const CodeHelper &helper, CodeInstruction &ins
         if (instruction.Code == SCMD_CALLEXT) {
             // save the instance ID in the top 4 bits of the instruction
             instruction.Code        = SCMD_CALLAS;
-            instruction.InstanceId  = helper.import_inst_id;
+            // take the import index from the previous code value
+            // CHECKME later if there's more elegant solution?
+            // we could store the import index in CodeHelper struct but that would mean using more memory for nothing
+            long import_index       = resolved_imports[code[helper.code_index - 1]];
+            instruction.InstanceId  = (unsigned long)simp.getByIndex(import_index)->InstancePtr->loadedInstanceId;
             return;
         }
     }
@@ -1873,7 +1896,10 @@ void ccInstance::FixupArgument(const CodeHelper &helper, CodeArgument &argument)
         argument.Value += (long)&strings[0];
         break;
     case FIXUP_IMPORT:
-        argument.Value = helper.import_address;
+        {
+            long import_index = resolved_imports[code[helper.code_index]];
+            argument.Value = (intptr_t)simp.getByIndex(import_index)->Ptr;
+        }
         break;
     case FIXUP_DATADATA:
         // fixup is being made at instance init

@@ -691,14 +691,14 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
                 objectScriptObjNames[cc][1] = toupper(objectScriptObjNames[cc][1]);
         }
 
-        ccAddExternalSymbol(objectScriptObjNames[cc], &scrObj[cc]);
+        ccAddExternalObject(objectScriptObjNames[cc], &scrObj[cc]);
     }
 
     for (cc = 0; cc < MAX_HOTSPOTS; cc++) {
         if (thisroom.hotspotScriptNames[cc][0] == 0)
             continue;
 
-        ccAddExternalSymbol(thisroom.hotspotScriptNames[cc], &scrHotspot[cc]);
+        ccAddExternalObject(thisroom.hotspotScriptNames[cc], &scrHotspot[cc]);
     }
 
     our_eip=206;

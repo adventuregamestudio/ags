@@ -159,7 +159,7 @@ const char* IAGSEngine::GetEngineVersion () {
     return get_engine_version();
 }
 void IAGSEngine::RegisterScriptFunction (const char*name, void*addy) {
-    ccAddExternalSymbol ((char*)name, addy);
+    ccAddExternalStaticFunction ((char*)name, addy);
 }
 const char* IAGSEngine::GetGraphicsDriverID()
 {

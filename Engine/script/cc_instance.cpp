@@ -1675,7 +1675,7 @@ bool ccInstance::_Create(ccScript * scri, ccInstance * joined)
     if ((scri->instances == 1) && (ccGetOption(SCOPT_AUTOIMPORT) != 0)) {
         // import all the exported stuff from this script
         for (i = 0; i < scri->numexports; i++) {
-            if (simp.add(scri->exports[i], exportaddr[i], this)) {
+            if (!ccAddExternalScriptSymbol(scri->exports[i], exportaddr[i], this)) {
                 cc_error("Export table overflow at '%s'", scri->exports[i]);
                 return false;
             }

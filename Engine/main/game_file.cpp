@@ -428,7 +428,7 @@ void init_and_register_characters()
         characterScriptObjNames[ee] = (char*)malloc(strlen(game.chars[ee].scrname) + 5);
         strcpy(characterScriptObjNames[ee], game.chars[ee].scrname);
 
-        ccAddExternalSymbol(characterScriptObjNames[ee], &game.chars[ee]);
+        ccAddExternalObject(characterScriptObjNames[ee], &game.chars[ee]);
     }
 }
 
@@ -461,7 +461,7 @@ void init_and_register_invitems()
         ccRegisterManagedObject(&scrInv[ee], &ccDynamicInv);
 
         if (game.invScriptNames[ee][0] != 0)
-            ccAddExternalSymbol(game.invScriptNames[ee], &scrInv[ee]);
+            ccAddExternalObject(game.invScriptNames[ee], &scrInv[ee]);
     }
 }
 
@@ -474,7 +474,7 @@ void init_and_register_dialogs()
         ccRegisterManagedObject(&scrDialog[ee], &ccDynamicDialog);
 
         if (game.dialogScriptNames[ee][0] != 0)
-            ccAddExternalSymbol(game.dialogScriptNames[ee], &scrDialog[ee]);
+            ccAddExternalObject(game.dialogScriptNames[ee], &scrDialog[ee]);
     }
 }
 
@@ -510,7 +510,7 @@ void init_and_register_guis()
         // scrGui[ee].gui = &guis[ee];
         scrGui[ee].id = ee;
 
-        ccAddExternalSymbol(guiScriptObjNames[ee], &scrGui[ee]);
+        ccAddExternalObject(guiScriptObjNames[ee], &scrGui[ee]);
         ccRegisterManagedObject(&scrGui[ee], &ccDynamicGUI);
     }
 
@@ -563,15 +563,15 @@ void init_and_register_game_objects()
     long dorsHandle = ccRegisterManagedObject(dialogOptionsRenderingSurface, dialogOptionsRenderingSurface);
     ccAddObjectReference(dorsHandle);
 
-    ccAddExternalSymbol("character",&game.chars[0]);
+    ccAddExternalObject("character",&game.chars[0]);
     setup_player_character(game.playercharacter);
-    ccAddExternalSymbol("player", &_sc_PlayerCharPtr);
-    ccAddExternalSymbol("object",&scrObj[0]);
-    ccAddExternalSymbol("gui",&scrGui[0]);
-    ccAddExternalSymbol("hotspot",&scrHotspot[0]);
-    ccAddExternalSymbol("region",&scrRegion[0]);
-    ccAddExternalSymbol("inventory",&scrInv[0]);
-    ccAddExternalSymbol("dialog", &scrDialog[0]);
+    ccAddExternalObject("player", &_sc_PlayerCharPtr);
+    ccAddExternalObject("object",&scrObj[0]);
+    ccAddExternalObject("gui",&scrGui[0]);
+    ccAddExternalObject("hotspot",&scrHotspot[0]);
+    ccAddExternalObject("region",&scrRegion[0]);
+    ccAddExternalObject("inventory",&scrInv[0]);
+    ccAddExternalObject("dialog", &scrDialog[0]);
 }
 
 int load_game_file() {

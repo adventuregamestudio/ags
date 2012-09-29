@@ -15,24 +15,24 @@
 
 void register_string_script_functions()
 {
-	scAdd_External_Symbol("String::IsNullOrEmpty^1", (void*)String_IsNullOrEmpty);
-	scAdd_External_Symbol("String::Append^1", (void*)String_Append);
-	scAdd_External_Symbol("String::AppendChar^1", (void*)String_AppendChar);
-	scAdd_External_Symbol("String::CompareTo^2", (void*)String_CompareTo);
-	scAdd_External_Symbol("String::Contains^1", (void*)StrContains);
-	scAdd_External_Symbol("String::Copy^0", (void*)String_Copy);
-	scAdd_External_Symbol("String::EndsWith^2", (void*)String_EndsWith);
-	scAdd_External_Symbol("String::Format^101", (void*)String_Format);
-	scAdd_External_Symbol("String::IndexOf^1", (void*)StrContains);
-	scAdd_External_Symbol("String::LowerCase^0", (void*)String_LowerCase);
-	scAdd_External_Symbol("String::Replace^3", (void*)String_Replace);
-	scAdd_External_Symbol("String::ReplaceCharAt^2", (void*)String_ReplaceCharAt);
-	scAdd_External_Symbol("String::StartsWith^2", (void*)String_StartsWith);
-	scAdd_External_Symbol("String::Substring^2", (void*)String_Substring);
-	scAdd_External_Symbol("String::Truncate^1", (void*)String_Truncate);
-	scAdd_External_Symbol("String::UpperCase^0", (void*)String_UpperCase);
-	scAdd_External_Symbol("String::get_AsFloat", (void*)StringToFloat);
-	scAdd_External_Symbol("String::get_AsInt", (void*)StringToInt);
-	scAdd_External_Symbol("String::geti_Chars", (void*)String_GetChars);
-	scAdd_External_Symbol("String::get_Length", (void*)strlen);
+	ccAddExternalObjectFunction("String::IsNullOrEmpty^1", (void*)String_IsNullOrEmpty);
+	ccAddExternalObjectFunction("String::Append^1", (void*)String_Append);
+	ccAddExternalObjectFunction("String::AppendChar^1", (void*)String_AppendChar);
+	ccAddExternalObjectFunction("String::CompareTo^2", (void*)String_CompareTo);
+	ccAddExternalObjectFunction("String::Contains^1", (void*)StrContains);
+	ccAddExternalObjectFunction("String::Copy^0", (void*)String_Copy);
+	ccAddExternalObjectFunction("String::EndsWith^2", (void*)String_EndsWith);
+	ccAddExternalObjectFunction("String::Format^101", (void*)String_Format);
+	ccAddExternalObjectFunction("String::IndexOf^1", (void*)StrContains);
+	ccAddExternalObjectFunction("String::LowerCase^0", (void*)String_LowerCase);
+	ccAddExternalObjectFunction("String::Replace^3", (void*)String_Replace);
+	ccAddExternalObjectFunction("String::ReplaceCharAt^2", (void*)String_ReplaceCharAt);
+	ccAddExternalObjectFunction("String::StartsWith^2", (void*)String_StartsWith);
+	ccAddExternalObjectFunction("String::Substring^2", (void*)String_Substring);
+	ccAddExternalObjectFunction("String::Truncate^1", (void*)String_Truncate);
+	ccAddExternalObjectFunction("String::UpperCase^0", (void*)String_UpperCase);
+	ccAddExternalObjectFunction("String::get_AsFloat", (void*)StringToFloat);
+	ccAddExternalObjectFunction("String::get_AsInt", (void*)StringToInt);
+	ccAddExternalObjectFunction("String::geti_Chars", (void*)String_GetChars);
+	ccAddExternalObjectFunction("String::get_Length", (void*)strlen);
 }

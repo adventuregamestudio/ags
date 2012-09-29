@@ -350,7 +350,7 @@ void export_gui_controls(int ee) {
 
     for (int ff = 0; ff < guis[ee].numobjs; ff++) {
         if (guis[ee].objs[ff]->scriptName[0] != 0)
-            ccAddExternalSymbol(guis[ee].objs[ff]->scriptName, guis[ee].objs[ff]);
+            ccAddExternalObject(guis[ee].objs[ff]->scriptName, guis[ee].objs[ff]);
 
         ccRegisterManagedObject(guis[ee].objs[ff], &ccDynamicGUIObject);
     }

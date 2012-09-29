@@ -4,23 +4,49 @@
 #include "script/cc_instance.h"    // ccInstance
 #include "script/cc_treemap.h"     // ccTreeMap
 
+enum ScriptImportType
+{
+    kScImportUndefined,         // to detect errors
+    kScImportData,              // for direct engine memory access (TODO: unsupport later!)
+    kScImportStaticFunction,    // a static function
+    kScImportObject,            // script object
+    kScImportObjectFunction,    // script object member function, gets 'this' pointer
+    kScImportScriptData,        // script function or variable
+};
+
+struct ScriptImport
+{
+    ScriptImport()
+    {
+        Type    = kScImportUndefined;
+        Name    = NULL;
+        Ptr     = NULL;
+    }
+
+    ScriptImportType    Type;
+    const char          *Name;          // import's uid
+    void                *Ptr;           // object or function pointer
+    ccInstance          *InstancePtr;   // script instance
+};
+
 struct SystemImports
 {
 private:
-    char **name;
-    char **addr;
-    ccInstance **isScriptImp;
+    //char **name;
+    //char **addr;
+    //ccInstance **isScriptImp;
+    ScriptImport *imports;
     int numimports;
     int bufferSize;
     ccTreeMap btree;
 
 public:
-    int  add(char *, char *, ccInstance*);
-    void remove(char *);
-    char *get_addr_of(char *);
-    int  get_index_of(char *);
-    ccInstance* is_script_import(char *);
-    void remove_range(char *, unsigned long);
+    int  add(ScriptImportType type, const char *name, void *ptr, ccInstance *inst);
+    void remove(const char *name);
+    void *get_addr_of(const char *name);
+    int  get_index_of(const char *name);
+    ccInstance* is_script_import(const char *name);
+    void remove_range(void *from_ptr, unsigned long dist);
     void clear() {
         numimports = 0;
         btree.clear();
@@ -29,11 +55,12 @@ public:
 
     SystemImports()
     {
-        numimports = 0;
-        bufferSize = 0;
-        name = NULL;
-        addr = NULL;
-        isScriptImp = NULL;
+        numimports  = 0;
+        bufferSize  = 0;
+        imports     = NULL;
+        //name = NULL;
+        //addr = NULL;
+        //isScriptImp = NULL;
     }
 };
 

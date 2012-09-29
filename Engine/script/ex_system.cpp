@@ -14,25 +14,25 @@
 
 void register_system_script_functions()
 {
-	scAdd_External_Symbol("System::get_CapsLock", (void *)System_GetCapsLock);
-	scAdd_External_Symbol("System::get_ColorDepth", (void *)System_GetColorDepth);
-	scAdd_External_Symbol("System::get_Gamma", (void *)System_GetGamma);
-	scAdd_External_Symbol("System::set_Gamma", (void *)System_SetGamma);
-	scAdd_External_Symbol("System::get_HardwareAcceleration", (void *)System_GetHardwareAcceleration);
-	scAdd_External_Symbol("System::get_NumLock", (void *)System_GetNumLock);
-	scAdd_External_Symbol("System::set_NumLock", (void *)System_SetNumLock);
-	scAdd_External_Symbol("System::get_OperatingSystem", (void *)System_GetOS);
-	scAdd_External_Symbol("System::get_ScreenHeight", (void *)System_GetScreenHeight);
-	scAdd_External_Symbol("System::get_ScreenWidth", (void *)System_GetScreenWidth);
-	scAdd_External_Symbol("System::get_ScrollLock", (void *)System_GetScrollLock);
-	scAdd_External_Symbol("System::get_SupportsGammaControl", (void *)System_GetSupportsGammaControl);
-	scAdd_External_Symbol("System::get_Version", (void *)System_GetVersion);
-	scAdd_External_Symbol("SystemInfo::get_Version", (void *)System_GetVersion);
-	scAdd_External_Symbol("System::get_ViewportHeight", (void *)System_GetViewportHeight);
-	scAdd_External_Symbol("System::get_ViewportWidth", (void *)System_GetViewportWidth);
-	scAdd_External_Symbol("System::get_Volume",(void *)System_GetVolume);
-	scAdd_External_Symbol("System::set_Volume",(void *)System_SetVolume);
-	scAdd_External_Symbol("System::get_VSync", (void *)System_GetVsync);
-	scAdd_External_Symbol("System::set_VSync", (void *)System_SetVsync);
-	scAdd_External_Symbol("System::get_Windowed", (void *)System_GetWindowed);
+	ccAddExternalStaticFunction("System::get_CapsLock", (void *)System_GetCapsLock);
+	ccAddExternalStaticFunction("System::get_ColorDepth", (void *)System_GetColorDepth);
+	ccAddExternalStaticFunction("System::get_Gamma", (void *)System_GetGamma);
+	ccAddExternalStaticFunction("System::set_Gamma", (void *)System_SetGamma);
+	ccAddExternalStaticFunction("System::get_HardwareAcceleration", (void *)System_GetHardwareAcceleration);
+	ccAddExternalStaticFunction("System::get_NumLock", (void *)System_GetNumLock);
+	ccAddExternalStaticFunction("System::set_NumLock", (void *)System_SetNumLock);
+	ccAddExternalStaticFunction("System::get_OperatingSystem", (void *)System_GetOS);
+	ccAddExternalStaticFunction("System::get_ScreenHeight", (void *)System_GetScreenHeight);
+	ccAddExternalStaticFunction("System::get_ScreenWidth", (void *)System_GetScreenWidth);
+	ccAddExternalStaticFunction("System::get_ScrollLock", (void *)System_GetScrollLock);
+	ccAddExternalStaticFunction("System::get_SupportsGammaControl", (void *)System_GetSupportsGammaControl);
+	ccAddExternalStaticFunction("System::get_Version", (void *)System_GetVersion);
+	ccAddExternalStaticFunction("SystemInfo::get_Version", (void *)System_GetVersion);
+	ccAddExternalStaticFunction("System::get_ViewportHeight", (void *)System_GetViewportHeight);
+	ccAddExternalStaticFunction("System::get_ViewportWidth", (void *)System_GetViewportWidth);
+	ccAddExternalStaticFunction("System::get_Volume",(void *)System_GetVolume);
+	ccAddExternalStaticFunction("System::set_Volume",(void *)System_SetVolume);
+	ccAddExternalStaticFunction("System::get_VSync", (void *)System_GetVsync);
+	ccAddExternalStaticFunction("System::set_VSync", (void *)System_SetVsync);
+	ccAddExternalStaticFunction("System::get_Windowed", (void *)System_GetWindowed);
 }

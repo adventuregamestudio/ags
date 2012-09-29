@@ -25,7 +25,7 @@ namespace AGS.Editor
                 }
             }
 
-            foreach (InventoryItem item in game.InventoryItems)
+            foreach (InventoryItem item in game.RootInventoryItemFolder.AllItemsFlat)
             {
                 if (item.Image == spriteNumber)
                 {
@@ -44,7 +44,7 @@ namespace AGS.Editor
                 usageReport.AppendLine("Inventory hotspot dot");
             }
 
-            foreach (GUI gui in game.GUIs)
+            foreach (GUI gui in game.RootGUIFolder.AllItemsFlat)
             {
                 if (gui.BackgroundImage == spriteNumber)
                 {
@@ -53,9 +53,9 @@ namespace AGS.Editor
 
                 foreach (GUIControl control in gui.Controls)
                 {
-                    if (control is GUIButton)
-                    {
-                        GUIButton button = (GUIButton)control;
+                    GUIButton button = control as GUIButton;
+                    if (button != null)
+                    {                        
                         if ((button.Image == spriteNumber) ||
                             (button.MouseoverImage == spriteNumber) ||
                             (button.PushedImage == spriteNumber))
@@ -63,11 +63,13 @@ namespace AGS.Editor
                             usageReport.AppendLine("GUI button " + control.Name + " on GUI " + gui.Name);
                         }
                     }
-                    if ((control is GUISlider) && (((GUISlider)control).HandleImage == spriteNumber))
+                    GUISlider slider = control as GUISlider;
+                    if ((slider != null) && (slider.HandleImage == spriteNumber))
                     {
                         usageReport.AppendLine("GUI slider " + control.Name + " on GUI " + gui.Name);
                     }
-                    if ((control is GUITextWindowEdge) && (((GUITextWindowEdge)control).Image == spriteNumber))
+                    GUITextWindowEdge edge = control as GUITextWindowEdge;
+                    if ((edge != null) && (edge.Image == spriteNumber))
                     {
                         usageReport.AppendLine("Text window edge " + control.Name + " on GUI " + gui.Name);
                     }

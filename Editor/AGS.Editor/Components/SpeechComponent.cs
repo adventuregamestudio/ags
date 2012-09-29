@@ -13,9 +13,9 @@ namespace AGS.Editor.Components
 {
     class SpeechComponent : BaseComponent
     {
-        private const string PAM_FILE_FILTER = "Speech\\*.pam";
+        private static readonly string PAM_FILE_FILTER = "Speech" + Path.DirectorySeparatorChar + "*.pam";
         private const string LIP_SYNC_DATA_OUTPUT = "syncdata.dat";
-        private const string SPEECH_VOX_FILE_NAME = AGSEditor.OUTPUT_DIRECTORY + "\\speech.vox";
+        private static readonly string SPEECH_VOX_FILE_NAME = Path.Combine(AGSEditor.OUTPUT_DIRECTORY, "speech.vox");
 
         private Dictionary<string, DateTime> _speechVoxStatus = new Dictionary<string, DateTime>();
 		private Dictionary<string, DateTime> _pamFileStatus = new Dictionary<string, DateTime>();
@@ -32,10 +32,10 @@ namespace AGS.Editor.Components
         {
             if (_agsEditor.CurrentGame.Settings.BinaryFilesInSourceControl)
             {
-                Utilities.AddAllMatchingFiles(fileNames, "Speech\\*.ogg", true);
-                Utilities.AddAllMatchingFiles(fileNames, "Speech\\*.mp3", true);
-                Utilities.AddAllMatchingFiles(fileNames, "Speech\\*.wav", true);
-                Utilities.AddAllMatchingFiles(fileNames, "Speech\\*.pam", true);
+                Utilities.AddAllMatchingFiles(fileNames, "Speech" + Path.DirectorySeparatorChar + "*.ogg", true);
+                Utilities.AddAllMatchingFiles(fileNames, "Speech" + Path.DirectorySeparatorChar + "*.mp3", true);
+                Utilities.AddAllMatchingFiles(fileNames, "Speech" + Path.DirectorySeparatorChar + "*.wav", true);
+                Utilities.AddAllMatchingFiles(fileNames, "Speech" + Path.DirectorySeparatorChar + "*.pam", true);
             }
         }
 
@@ -200,9 +200,9 @@ namespace AGS.Editor.Components
         {
             List<string> files = new List<string>();
             Utilities.AddAllMatchingFiles(files, LIP_SYNC_DATA_OUTPUT);
-            Utilities.AddAllMatchingFiles(files, "Speech\\*.mp3");
-            Utilities.AddAllMatchingFiles(files, "Speech\\*.ogg");
-            Utilities.AddAllMatchingFiles(files, "Speech\\*.wav");
+            Utilities.AddAllMatchingFiles(files, "Speech" + Path.DirectorySeparatorChar + "*.mp3");
+            Utilities.AddAllMatchingFiles(files, "Speech" + Path.DirectorySeparatorChar + "*.ogg");
+            Utilities.AddAllMatchingFiles(files, "Speech" + Path.DirectorySeparatorChar + "*.wav");
             return files.ToArray();
         }
 

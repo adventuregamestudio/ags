@@ -8,10 +8,10 @@ using AGS.Types;
 
 namespace AGS.Editor.Components
 {
-    class GlobalVariablesComponent : BaseComponent
+    class GlobalVariablesComponent : BaseComponent, IGlobalVariablesController
     {
         private const string TOP_LEVEL_COMMAND_ID = "GlobalVariables";
-        private const string GLOBAL_VARS_HEADER_FILE_NAME = "_GlobalVariables.ash";
+        public const string GLOBAL_VARS_HEADER_FILE_NAME = "_GlobalVariables.ash";
         private const string GLOBAL_VARS_SCRIPT_FILE_NAME = "_GlobalVariables.asc";
         private const string ICON_KEY = "GlobalVarsIcon";
         
@@ -31,6 +31,12 @@ namespace AGS.Editor.Components
             _editor.GlobalVariableChanged += new GlobalVariablesEditor.GlobalVariableChangedHandler(_editor_GlobalVariableChanged);
             _agsEditor.GetScriptHeaderList += new GetScriptHeaderListHandler(_agsEditor_GetScriptHeaderList);
             _agsEditor.GetScriptModuleList += new GetScriptModuleListHandler(_agsEditor_GetScriptModuleList);
+        }
+
+        public void SelectGlobalVariable(string variableName)
+        {
+            ShowGlobalVariablesPane(TOP_LEVEL_COMMAND_ID);
+            _editor.SelectGlobalVariable(variableName);
         }
 
         private void _editor_GlobalVariableChanged()
@@ -118,12 +124,18 @@ namespace AGS.Editor.Components
 
         public override void CommandClick(string controlID)
         {
+            ShowGlobalVariablesPane(controlID);
+		}
+
+        private void ShowGlobalVariablesPane(string controlID)
+        {
             if (_document.Control.IsDisposed)
             {
                 RecreateDocument();
             }
+            _document.TreeNodeID = controlID;
             _guiController.AddOrShowPane(_document);
-		}
+        }
 
         public override void RefreshDataFromGame()
         {

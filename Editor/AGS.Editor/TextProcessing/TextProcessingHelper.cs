@@ -9,7 +9,7 @@ namespace AGS.Editor
     {
         public static void ProcessAllGameText(IGameTextProcessor processor, Game game, CompileMessages errors)
         {
-            foreach (Dialog dialog in game.Dialogs)
+            foreach (Dialog dialog in game.RootDialogFolder.AllItemsFlat)
             {
                 foreach (DialogOption option in dialog.Options)
                 {
@@ -19,40 +19,42 @@ namespace AGS.Editor
                 dialog.Script = processor.ProcessText(dialog.Script, GameTextType.DialogScript);
             }
 
-            foreach (Script script in game.Scripts)
-            {
-                if (!script.IsHeader)
+            foreach (ScriptAndHeader script in game.RootScriptFolder.AllItemsFlat)
+            {                                
+                string newScript = processor.ProcessText(script.Script.Text, GameTextType.Script);
+                if (newScript != script.Script.Text)
                 {
-                    string newScript = processor.ProcessText(script.Text, GameTextType.Script);
-                    if (newScript != script.Text)
-                    {
-                        // Only cause it to flag Modified if we changed it
-                        script.Text = newScript;
-                    }
-                }
+                    // Only cause it to flag Modified if we changed it
+                    script.Script.Text = newScript;
+                }                
             }
 
-            foreach (GUI gui in game.GUIs)
+            foreach (GUI gui in game.RootGUIFolder.AllItemsFlat)
             {
                 foreach (GUIControl control in gui.Controls)
                 {
-                    if (control is GUILabel)
+                    GUILabel label = control as GUILabel;
+                    if (label != null)
                     {
-                        ((GUILabel)control).Text = processor.ProcessText(((GUILabel)control).Text, GameTextType.ItemDescription);
+                        label.Text = processor.ProcessText(label.Text, GameTextType.ItemDescription);
                     }
-                    else if (control is GUIButton)
+                    else
                     {
-						((GUIButton)control).Text = processor.ProcessText(((GUIButton)control).Text, GameTextType.ItemDescription);
+                        GUIButton button = control as GUIButton;
+                        if (button != null)
+                        {
+                            button.Text = processor.ProcessText(button.Text, GameTextType.ItemDescription);
+                        }
                     }
                 }
             }
 
-            foreach (Character character in game.Characters)
+            foreach (Character character in game.RootCharacterFolder.AllItemsFlat)
             {
                 character.RealName = processor.ProcessText(character.RealName, GameTextType.ItemDescription);
             }
 
-            foreach (InventoryItem item in game.InventoryItems)
+            foreach (InventoryItem item in game.RootInventoryItemFolder.AllItemsFlat)
             {
                 item.Description = processor.ProcessText(item.Description, GameTextType.ItemDescription);
             }

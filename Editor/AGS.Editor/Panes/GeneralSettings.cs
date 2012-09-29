@@ -67,11 +67,11 @@ namespace AGS.Editor
             int newWidth = AGS.Types.Utilities.GetGameResolutionWidth(newResolution);
             int newHeight = AGS.Types.Utilities.GetGameResolutionHeight(newResolution);
 
-            foreach (GUI gui in Factory.AGSEditor.CurrentGame.GUIs)
+            foreach (GUI gui in Factory.AGSEditor.CurrentGame.RootGUIFolder.AllItemsFlat)
             {
-                if (gui is NormalGUI)
-                {
-                    NormalGUI theGui = (NormalGUI)gui;
+                NormalGUI theGui = gui as NormalGUI;
+                if (theGui != null)
+                {                    
                     theGui.Width = Math.Max((theGui.Width * newWidth) / oldWidth, 1);
                     theGui.Height = Math.Max((theGui.Height * newHeight) / oldHeight, 1);
                     theGui.Left = (theGui.Left * newWidth) / oldWidth;

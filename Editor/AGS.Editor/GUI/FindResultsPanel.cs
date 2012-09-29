@@ -18,8 +18,7 @@ namespace AGS.Editor
 
         public FindResultsPanel()
         {
-            InitializeComponent();
-            btnClose.Image = Resources.ResourceManager.GetBitmap("CloseButtonSmall.ico");
+            InitializeComponent();            
         }
 
 		public void SetImageList(ImageList list)
@@ -44,8 +43,8 @@ namespace AGS.Editor
                 {
                     lvwResults.Items[0].Selected = true;
                 }
-
-                lblTitle.Text = string.Format("Find Symbol Results - {0} matches found", Results.Count);
+                
+                Text = string.Format("Find Symbol Results - {0} matches found", Results.Count);
             }
         }
 

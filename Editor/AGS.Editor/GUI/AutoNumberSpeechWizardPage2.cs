@@ -12,7 +12,7 @@ namespace AGS.Editor
 {
     public partial class AutoNumberSpeechWizardPage2 : WizardPage
     {
-        public AutoNumberSpeechWizardPage2(IList<Character> characters)
+        public AutoNumberSpeechWizardPage2(IEnumerable<Character> characters)
         {
             InitializeComponent();
             cmbWhichCharacter.Items.Add("Re-number everything");

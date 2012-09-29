@@ -101,10 +101,10 @@ namespace AGS.Editor.Components
                 sb.AppendFormat("Sprite folders:\t{0}\n", numSpriteFolders);
 
                 sb.AppendFormat("Total views:\t{0}\n", game.ViewCount);
-                sb.AppendFormat("Total GUIs:\t{0}\n", game.GUIs.Count);
-                sb.AppendFormat("Inventory Items:\t{0} / {1}\n", game.InventoryItems.Count, Game.MAX_INV_ITEMS);
-                sb.AppendFormat("Characters:\t{0}\n", game.Characters.Count);
-                sb.AppendFormat("Dialog topics:\t{0} / {1}\n", game.Dialogs.Count, Game.MAX_DIALOGS);
+                sb.AppendFormat("Total GUIs:\t{0}\n", game.RootGUIFolder.GetAllItemsCount());
+                sb.AppendFormat("Inventory Items:\t{0} / {1}\n", game.RootInventoryItemFolder.GetAllItemsCount(), Game.MAX_INV_ITEMS);
+                sb.AppendFormat("Characters:\t{0}\n", game.RootCharacterFolder.GetAllItemsCount());
+                sb.AppendFormat("Dialog topics:\t{0} / {1}\n", game.RootDialogFolder.GetAllItemsCount(), Game.MAX_DIALOGS);
 
                 _guiController.ShowMessage(sb.ToString(), MessageBoxIcon.Information);
             }

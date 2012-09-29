@@ -450,11 +450,11 @@ namespace AGS.Editor
 
         private void SetDefaultLayout()
         {
-            this.projectPanel.Show();
-            this.propertiesPanel.Show();
             this.pnlCallStack.Show(mainContainer, DockState.DockBottom);
             this.pnlFindResults.Show(pnlCallStack.Pane, pnlCallStack);
-            this.pnlOutput.Show(pnlCallStack.Pane, pnlFindResults);
+            this.pnlOutput.Show(pnlCallStack.Pane, pnlFindResults);            
+            this.projectPanel.Show();
+            this.propertiesPanel.Show();                        
         }
 
         private void propertyObjectCombo_SelectedIndexChanged(object sender, EventArgs e)

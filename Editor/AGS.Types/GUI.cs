@@ -9,7 +9,7 @@ namespace AGS.Types
 {
     [Serializable]
     [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]
-    public abstract class GUI
+    public abstract class GUI : IToXml
     {
         public const int MAX_CONTROLS_PER_GUI = 30;
         protected const int MAX_NAME_LENGTH = 15;

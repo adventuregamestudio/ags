@@ -15,7 +15,7 @@ namespace AGS.Editor
         public event MessageReceivedHandler MessageReceived;
 
         private const string DIRECTORY_FOR_FILES = ".";
-        private const string SEND_MESSAGE_FILE = DIRECTORY_FOR_FILES + "\\dbgsend.tmp";
+        private static readonly string SEND_MESSAGE_FILE = Path.Combine(DIRECTORY_FOR_FILES, "dbgsend.tmp");
         private const string RECIEVE_MESSAGE_FILE = "dbgrecv.tmp";
 
         private FileSystemWatcher _watcher;

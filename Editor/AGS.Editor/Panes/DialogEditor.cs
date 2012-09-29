@@ -19,6 +19,7 @@ namespace AGS.Editor
         private const string REPLACE_COMMAND = "ScriptReplace";
         private const string FIND_ALL_COMMAND = "ScriptFindAll";
         private const string REPLACE_ALL_COMMAND = "ScriptReplaceAll";
+        private const string GOTO_LINE_COMMAND = "ScriptGotoLine";
 
         private Dialog _dialog;
         private List<DialogOptionEditor> _optionPanes = new List<DialogOptionEditor>();
@@ -40,6 +41,7 @@ namespace AGS.Editor
             _extraMenu.Commands.Add(MenuCommand.Separator);
             _extraMenu.Commands.Add(new MenuCommand(FIND_ALL_COMMAND, "Find All...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.F, "FindMenuIcon"));
             _extraMenu.Commands.Add(new MenuCommand(REPLACE_ALL_COMMAND, "Replace All...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.E));
+            _extraMenu.Commands.Add(new MenuCommand(GOTO_LINE_COMMAND, "Go To Line...", System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.G));
 
             scintillaEditor.SetAsDialog();
             scintillaEditor.AutoCompleteEnabled = true;
@@ -125,12 +127,23 @@ namespace AGS.Editor
                     scintillaEditor.FindNextOccurrence(_lastSearchText, _lastCaseSensitive, true);
                 }
             }
+            else if (command == GOTO_LINE_COMMAND)
+            {
+                GotoLineDialog gotoLineDialog = new GotoLineDialog 
+                {
+                    Minimum = 0,
+                    Maximum = scintillaEditor.LineCount,
+                    LineNumber = scintillaEditor.CurrentLine
+                };
+                if (gotoLineDialog.ShowDialog() != DialogResult.OK) return;
+                scintillaEditor.GoToLine(gotoLineDialog.LineNumber); 
+            }
         }
 
         private String BuildCharacterKeywords()
         {
             StringBuilder sb = new StringBuilder(300);
-            foreach(Character c in _agsEditor.CurrentGame.Characters)
+            foreach (Character c in _agsEditor.CurrentGame.RootCharacterFolder.AllItemsFlat)
             {
                 sb.Append(c.ScriptName.TrimStart('c') + " ");
                 sb.Append(c.ScriptName.TrimStart('c').ToLower() + " ");

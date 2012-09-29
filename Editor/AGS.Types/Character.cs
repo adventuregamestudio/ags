@@ -8,7 +8,7 @@ using System.Drawing;
 namespace AGS.Types
 {
     [PropertyTab(typeof(PropertyTabInteractions), PropertyTabScope.Component)]
-    public class Character : ICustomTypeDescriptor
+    public class Character : ICustomTypeDescriptor, IToXml
     {
         public const string PROPERTY_NAME_SCRIPTNAME = "ScriptName";
         public const int NARRATOR_CHARACTER_ID = 999;

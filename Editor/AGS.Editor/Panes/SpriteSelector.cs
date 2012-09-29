@@ -1002,12 +1002,12 @@ namespace AGS.Editor
                     Bitmap bmp = Factory.NativeProxy.GetBitmapForSprite(sprite.Number, sprite.Width, sprite.Height);
                     if ((sprite.ColorDepth < 32) && (!sprite.AlphaChannel))
                     {
-                        bmp.Save(string.Format("{0}\\spr{1:00000}.bmp", exportToFolder, sprite.Number), ImageFormat.Bmp);
+                        bmp.Save(string.Format("{0}{1}spr{2:00000}.bmp", exportToFolder, Path.DirectorySeparatorChar, sprite.Number), ImageFormat.Bmp);
                     }
                     else
                     {
                         // export 32-bit images as PNG so no alpha channel is lost
-                        bmp.Save(string.Format("{0}\\spr{1:00000}.png", exportToFolder, sprite.Number), ImageFormat.Png);
+                        bmp.Save(string.Format("{0}{1}spr{2:00000}.png", exportToFolder, Path.DirectorySeparatorChar, sprite.Number), ImageFormat.Png);
                     }
                     bmp.Dispose();
                 }

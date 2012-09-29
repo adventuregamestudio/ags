@@ -13,6 +13,8 @@ namespace AGS.Editor
 		public delegate void DropHereDelegate(ProjectTreeItem source, ProjectTreeItem target);
 
         public bool AllowLabelEdit = false;
+        public bool AllowDoubleClickWhenExpanding = false;
+        public bool ExpandOnDragHover = false;        
         public PropertyInfo LabelTextProperty;
         public PropertyInfo LabelTextDescriptionProperty;
         public object LabelTextDataSource;

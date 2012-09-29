@@ -395,7 +395,7 @@ namespace AGS.Editor
 
             _snappedx = -1;
             _snappedy = -1;
-            if (!Factory.NativeProxy.IsControlPressed())
+            if (!Utilities.IsControlPressed())
             {
                 foreach (GUIControl _gc in normalGui.Controls)
                 {
@@ -519,7 +519,7 @@ namespace AGS.Editor
 
             if (controlFound != null)
             {
-                if (Factory.NativeProxy.IsControlPressed())
+                if (Utilities.IsControlPressed())
                 {
                     if (_selected.Contains(controlFound) && _selected.Count > 1)
                     {
@@ -562,7 +562,7 @@ namespace AGS.Editor
                     _selectedControl = controlFound;
                 }
             }
-            else if (!Factory.NativeProxy.IsControlPressed())
+            else if (!Utilities.IsControlPressed())
             {
                 _selected.Clear();
                 _selectedControl = null;

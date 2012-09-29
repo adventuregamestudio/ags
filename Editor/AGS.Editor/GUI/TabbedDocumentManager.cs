@@ -19,21 +19,24 @@ namespace AGS.Editor
         public event ActiveDocumentChangeHandler ActiveDocumentChanged;
         public event ActiveDocumentChangeHandler ActiveDocumentChanging;
 
+        private delegate void DocumentsTitledChangedHandler();
+
         private const int TAB_HEIGHT = 18;
         private const string MENU_ITEM_CLOSE = "Close";
         private const string MENU_ITEM_CLOSE_ALL_BUT_THIS = "CloseAllOthers";
+        private const string MENU_ITEM_NAVIGATE = "Navigate";
 
         private ContentDocument _currentPane;
         private List<ContentDocument> _panes;
         private List<ContentDocument> _panesInOrderUsed;
 		//private System.Drawing.Font _selectedPaneFont = new System.Drawing.Font("Tahoma", 8, FontStyle.Bold);
 		//private System.Drawing.Font _unselectedPaneFont = new System.Drawing.Font("Tahoma", 8, FontStyle.Regular);
-        private DockPanel _dockPanel;
+        private IDockingPanel _dockPanel;
         
         public TabbedDocumentManager(DockPanel dockPanel)
             :this()
         {
-            _dockPanel = dockPanel;            
+            _dockPanel = new DockingPanel(dockPanel);            
         }
 
         public void Init()
@@ -89,14 +92,20 @@ namespace AGS.Editor
 
         public void DocumentTitlesChanged()
         {
+            if (Factory.GUIController.InvokeRequired)
+            {
+                Factory.GUIController.Invoke(new DocumentsTitledChangedHandler(DocumentTitlesChanged));
+                return;
+            }
+
             foreach (ContentDocument document in _panes)
             {
-                document.Control.Text = document.Name;
+                document.Control.DockingContainer.Text = document.Name;
             }
             RefreshWindowsMenu();
             if (ActiveDocument != null)
             {
-                ActiveDocument.Control.Refresh();
+                ActiveDocument.Control.DockingContainer.Refresh();                
             }
         }
 
@@ -108,12 +117,12 @@ namespace AGS.Editor
         private void SetIcon(ContentDocument pane)
         {
             if (string.IsNullOrEmpty(pane.IconKey))
-                pane.Control.Icon = Factory.GUIController.MainIcon;
+                pane.Control.DockingContainer.Icon = Factory.GUIController.MainIcon;
             else
             {
                 Image iconImage = 
                     Factory.GUIController.ImageList.Images[pane.IconKey];
-                pane.Control.Icon = Utilities.ImageToIcon(iconImage);                    
+                pane.Control.DockingContainer.Icon = Utilities.ImageToIcon(iconImage);                    
             }
         }
 
@@ -146,21 +155,17 @@ namespace AGS.Editor
                     _currentPane.Control.WindowDeactivated();
                 }
                 _currentPane = pane;
-                //UpdateSize(pane);
-                //contentPane1.Controls.Clear();
-                //contentPane1.Controls.Add(pane.Control);
-                AttachTabContextMenu(pane);
-                pane.Control.Text = pane.Name;
-                DockData dockData = GetDockData(pane);
-                if (dockData.Location != Rectangle.Empty &&
-                    dockData.DockState == DockState.Float)
-                {
-                    pane.Control.Show(_dockPanel, dockData.Location);
-                }                
-                pane.Control.Show(_dockPanel, dockData.DockState);
                 
-                //tabsPanel.Invalidate();
-                pane.Control.Focus();
+                AttachTabContextMenu(pane);
+                pane.Control.DockingContainer.Text = pane.Name;
+                DockData dockData = GetDockData(pane);
+                if (pane.Control.DockingContainer == null || pane.Control.DockingContainer.IsDisposed)
+                {
+                    pane.Control.DockingContainer = new DockingContainer(pane.Control);                    
+                }                
+                pane.Control.DockingContainer.Show(_dockPanel, dockData);
+
+                pane.Control.DockingContainer.Focus();
                 pane.Control.WindowActivated();
             }
 
@@ -176,48 +181,50 @@ namespace AGS.Editor
         private DockData GetDockData(ContentDocument pane)
         {
             if (pane.PreferredDockData != null) return pane.PreferredDockData;
-            DockState dockState = pane.Control.DockState == DockState.Unknown ||
-                    pane.Control.DockState == DockState.Hidden ?
-                    DockState.Document : pane.Control.DockState;
+            DockingState dockState = pane.Control.DockingContainer.DockState == DockingState.Unknown ||
+                    pane.Control.DockingContainer.DockState == DockingState.Hidden ?
+                    DockingState.Document : pane.Control.DockingContainer.DockState;
             return new DockData(dockState, Rectangle.Empty);
         }
 
         public void AddDocument(ContentDocument pane)
         {
-            /*if (_panes.Count == 0)
-            {
-                contentPane1.Visible = true;
-                tabsPanel.Visible = true;
-                this.BackColor = Color.FromKnownColor(KnownColor.Control);
-            }*/
             pane.Visible = true;
             pane.Control.Tag = pane;
-            pane.Control.DockStateChanged += Document_DockStateChanged;
+            if (pane.Control.DockingContainer == null || pane.Control.DockingContainer.IsDisposed)
+            {
+                pane.Control.DockingContainer = new DockingContainer(pane.Control);                
+            }            
+            pane.Control.DockingContainer.DockStateChanged += Document_DockStateChanged;
             _panes.Insert(0, pane);
-            _panesInOrderUsed.Insert(0, pane);
-            //tabsPanel.Invalidate();
+            _panesInOrderUsed.Insert(0, pane);            
         }
 
         void Document_DockStateChanged(object sender, EventArgs e)
         {
             if (_dockPanel.IsDisposed) return;
-            EditorContentPanel panel = (EditorContentPanel)sender;
+            DockingContainer dockingContainer = (DockingContainer)sender;
+            EditorContentPanel panel = dockingContainer.Panel;
             ContentDocument docToRemove = null;
-            if (panel.DockState == DockState.Unknown)
+            if (panel.DockingContainer.DockState == DockingState.Unknown ||
+                panel.DockingContainer.DockState == DockingState.Hidden)
             {
                 foreach (ContentDocument document in _panes)
                 {
                     if (document.Control == panel)
                     {
-                        docToRemove = document;
+                        if (dockingContainer.IsShowing) dockingContainer.IsShowing = false;
+                        else docToRemove = document;
                         break;
                     }
                 }
             }
+            
             if (docToRemove != null)
             {
                 RemoveDocument(docToRemove);
             }
+            else panel.DockingContainer.Refresh();
         }
 
         public void RemoveAllDocumentsExcept(ContentDocument pane)
@@ -237,7 +244,7 @@ namespace AGS.Editor
                     }
                     else
                     {
-                        doc.Control.Hide();
+                        doc.Control.DockingContainer.Hide();
                         doc.Visible = false;                        
                     }
                 }
@@ -274,10 +281,10 @@ namespace AGS.Editor
             {
                 return;
             }
-            if (pane.Control.DockState != DockState.Hidden &&
-                pane.Control.DockState != DockState.Unknown)
+            if (pane.Control.DockingContainer.DockState != DockingState.Hidden &&
+                pane.Control.DockingContainer.DockState != DockingState.Unknown)
             {
-                pane.Control.Hide();
+                pane.Control.DockingContainer.Hide();
             }
             
             pane.Visible = false;
@@ -293,18 +300,14 @@ namespace AGS.Editor
                 else
                 {
                     _currentPane = null;
-                    //contentPane1.Controls.Clear();
-                    //pane.Control.Hide();
-                    //ShowControlAsEmpty();
-
+                    
                     if (ActiveDocumentChanged != null)
                     {
                         ActiveDocumentChanged(null);
                     }
                     RefreshWindowsMenu();            
                 }
-            }
-            //tabsPanel.Invalidate();
+            }            
         }
 
         private int _flipThroughPanesIndex = 0;
@@ -477,7 +480,11 @@ namespace AGS.Editor
             menu.Tag = document;
             menu.Items.Add(new ToolStripMenuItem("Close", null, onClick, MENU_ITEM_CLOSE));
             menu.Items.Add(new ToolStripMenuItem("Close all others", null, onClick, MENU_ITEM_CLOSE_ALL_BUT_THIS));
-            document.Control.TabPageContextMenuStrip = menu;
+            if (document.TreeNodeID != null)
+            {
+                menu.Items.Add(new ToolStripMenuItem("Navigate (In Tree)", null, onClick, MENU_ITEM_NAVIGATE));
+            }
+            document.Control.DockingContainer.TabPageContextMenuStrip = menu;
         }
 
         private void TreeContextMenuEventHandler(object sender, EventArgs e)
@@ -494,6 +501,11 @@ namespace AGS.Editor
                 {
                     RemoveAllDocumentsExcept(document);
                 }
+            }
+            else if (item.Name == MENU_ITEM_NAVIGATE)
+            {
+                Factory.GUIController.ProjectTree.SelectNode(null, document.TreeNodeID);
+ 
             }
         }
 

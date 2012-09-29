@@ -44,8 +44,8 @@ namespace AGS.Editor.Components
                 newItem.Name = "Cursor" + newItem.ID;
                 items.Add(newItem);
                 _guiController.ProjectTree.StartFromNode(this, TOP_LEVEL_COMMAND_ID);
-                _guiController.ProjectTree.AddTreeLeaf(this, "Cur" + newItem.ID, newItem.ID.ToString() + ": " + newItem.Name, "CursorIcon");
-                _guiController.ProjectTree.SelectNode(this, "Cur" + newItem.ID);
+                _guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(newItem), newItem.ID.ToString() + ": " + newItem.Name, "CursorIcon");
+                _guiController.ProjectTree.SelectNode(this, GetNodeID(newItem));
 				ShowOrAddPane(newItem);
             }
             else if (controlID == COMMAND_DELETE_ITEM)
@@ -89,6 +89,7 @@ namespace AGS.Editor.Components
                 _documents[chosenCursor] = document;
                 document.SelectedPropertyGridObject = chosenCursor;
 			}
+            document.TreeNodeID = GetNodeID(chosenCursor);
             _guiController.AddOrShowPane(document);
 			_guiController.ShowCuppit("The Cursor Editor allows you to set up the various mouse cursors used in the game. You can probably just leave the default ones for now, unless you want some specialist cursor modes.", "Cursors introduction");
 		}
@@ -147,19 +148,24 @@ namespace AGS.Editor.Components
             RePopulateTreeView();
         }
 
+        private string GetNodeID(MouseCursor cursor)
+        {
+            return "Cur" + cursor.ID;
+        }
+
         private void RePopulateTreeView()
         {
             _guiController.ProjectTree.RemoveAllChildNodes(this, TOP_LEVEL_COMMAND_ID);
             _guiController.ProjectTree.StartFromNode(this, TOP_LEVEL_COMMAND_ID);
             foreach (MouseCursor item in _agsEditor.CurrentGame.Cursors)
             {
-                _guiController.ProjectTree.AddTreeLeaf(this, "Cur" + item.ID, item.ID.ToString() + ": " + item.Name, "CursorIcon");
+                _guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(item), item.ID.ToString() + ": " + item.Name, "CursorIcon");
             }
 
             if (_documents.ContainsValue(_guiController.ActivePane))
             {
                 CursorEditor editor = (CursorEditor)_guiController.ActivePane.Control;
-                _guiController.ProjectTree.SelectNode(this, "Cur" + editor.ItemToEdit.ID);
+                _guiController.ProjectTree.SelectNode(this, GetNodeID(editor.ItemToEdit));
             }
             else if (_agsEditor.CurrentGame.Cursors.Count > 0)
             {

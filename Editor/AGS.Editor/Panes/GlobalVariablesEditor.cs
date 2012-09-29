@@ -40,6 +40,19 @@ namespace AGS.Editor
             lvwWords.Sort();
         }
 
+        public void SelectGlobalVariable(string variableName)
+        {
+            ListViewItem item = lvwWords.FindItemWithText(variableName);
+            if (item == null)
+            {
+                Factory.GUIController.ShowMessage("Did not find " + variableName + "!", MessageBoxIcon.Exclamation);
+                return;
+            }
+            lvwWords.FocusedItem = item;
+            lvwWords.TopItem = item;
+            item.Selected = true;
+        }
+
         protected override string OnGetHelpKeyword()
         {
             return "Global variables";

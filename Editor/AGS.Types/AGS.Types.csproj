@@ -54,10 +54,6 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
-    <Reference Include="WeifenLuo.WinFormsUI.Docking, Version=2.5.0.15095, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\References\WeifenLuo.WinFormsUI.Docking.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Attributes\AGSNoSerializeAttribute.cs" />
@@ -83,7 +79,7 @@
     <Compile Include="EditorFeatures\BeforeShowContextMenuEventArgs.cs" />
     <Compile Include="EditorFeatures\ContentDocument.cs" />
     <Compile Include="EditorFeatures\EditorContentPanel.cs">
-      <SubType>Form</SubType>
+      <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="EditorFeatures\GetAboutDialogTextEventArgs.cs" />
     <Compile Include="EditorFeatures\GetScriptHeaderListEventArgs.cs" />
@@ -157,7 +153,6 @@
     <Compile Include="PropertyGridExtras\ViewUIEditor.cs" />
     <Compile Include="Room.cs" />
     <Compile Include="RoomHotspot.cs" />
-    <Compile Include="RoomList.cs" />
     <Compile Include="RoomMessage.cs" />
     <Compile Include="RoomObject.cs" />
     <Compile Include="RoomRegion.cs" />
@@ -224,6 +219,8 @@
     <Compile Include="AGSColor.cs" />
     <Compile Include="AudioClipType.cs" />
     <Compile Include="BaseFolderCollection.cs" />
+    <Compile Include="CharacterFolder.cs" />
+    <Compile Include="DialogFolder.cs" />
     <Compile Include="EditorFeatures\AutoComplete\ScriptTokenReference.cs" />
     <Compile Include="EditorFeatures\DockData.cs" />
     <Compile Include="Enums\AudioClipFileType.cs" />
@@ -231,17 +228,29 @@
     <Compile Include="Enums\AudioFileBundlingType.cs" />
     <Compile Include="Enums\InheritableBool.cs" />
     <Compile Include="Enums\LookInDocumentType.cs" />
+    <Compile Include="GUIFolder.cs" />
+    <Compile Include="Interfaces\Docking\IDockingContent.cs" />
+    <Compile Include="Interfaces\Docking\IDockingPane.cs" />
+    <Compile Include="Interfaces\Docking\IDockingPanel.cs" />
+    <Compile Include="Interfaces\Docking\IFloatWindow.cs" />
     <Compile Include="Interfaces\IColorMapper.cs" />
+    <Compile Include="Interfaces\Docking\IDockingContainer.cs" />
+    <Compile Include="Interfaces\IGlobalVariablesController.cs" />
     <Compile Include="Interfaces\IProjectTreeSingleClickHandler.cs" />
     <Compile Include="Interfaces\IScript.cs" />
     <Compile Include="Interfaces\IScriptEditor.cs" />
     <Compile Include="Interfaces\ISourceControlProvider.cs" />
+    <Compile Include="Interfaces\ISpriteController.cs" />
     <Compile Include="Interfaces\IToXml.cs" />
+    <Compile Include="InventoryItemFolder.cs" />
     <Compile Include="PropertyGridExtras\AudioClipTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\AudioClipTypeTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\BaseListSelectTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\FontTypeConverter.cs" />
     <Compile Include="PropertyGridExtras\RoomListTypeConverter.cs" />
+    <Compile Include="ScriptAndHeader.cs" />
+    <Compile Include="ScriptFolder.cs" />
+    <Compile Include="UnloadedRoomFolder.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

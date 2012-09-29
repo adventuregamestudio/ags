@@ -45,6 +45,7 @@ namespace AGS.Editor.Components
             {
                 RecreateDocument();
             }
+            _document.TreeNodeID = controlID;
             _guiController.AddOrShowPane(_document);
 			_guiController.ShowCuppit("Use the Text Parser if you want to have the player type commands in to the game. This is fairly advanced stuff, so I'd recommend you start off with a point-and-click interface.", "Text Parser introduction");
 		}

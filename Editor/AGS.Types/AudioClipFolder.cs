@@ -71,6 +71,14 @@ namespace AGS.Types
             return allClips;
         }
 
+        public override AudioClipFolder CreateChildFolder(string name)
+        {
+            AudioClipFolder childFolder = new AudioClipFolder(name);
+            childFolder.DefaultType = DefaultType;
+            childFolder.DefaultBundlingType = DefaultBundlingType;
+            return childFolder;
+        }        
+
         private void AddAllClipsFromThisAndSubFoldersToList(List<AudioClip> clipList)
         {
             clipList.AddRange(this.Items);

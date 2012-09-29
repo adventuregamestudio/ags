@@ -17,8 +17,7 @@ namespace AGS.Editor
 
         public OutputPanel()
         {
-            InitializeComponent();
-            btnClose.Image = Resources.ResourceManager.GetBitmap("CloseButtonSmall.ico");
+            InitializeComponent();            
         }
 
 		public void SetImageList(ImageList list)

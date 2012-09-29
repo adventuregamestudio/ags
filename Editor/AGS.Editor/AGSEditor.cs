@@ -44,8 +44,8 @@ namespace AGS.Editor
         public const string SPRITE_FILE_NAME = "acsprset.spr";
         public const string SPRITE_INDEX_FILE_NAME = "sprindex.dat";
 		public const string LATEST_XML_VERSION = "3.0.3.2";
-        public const int    LATEST_XML_VERSION_INDEX = 6;
-        public const string AUDIO_VOX_FILE_NAME = OUTPUT_DIRECTORY + "\\audio.vox";
+        public const int    LATEST_XML_VERSION_INDEX = 7;
+        public static readonly string AUDIO_VOX_FILE_NAME = OUTPUT_DIRECTORY + Path.DirectorySeparatorChar + "audio.vox";
 
         private const string USER_DATA_FILE_NAME = GAME_FILE_NAME + USER_DATA_FILE_SUFFIX;
         private const string USER_DATA_FILE_SUFFIX = ".user";
@@ -134,7 +134,7 @@ namespace AGS.Editor
 		{
 			get
 			{
-				return OUTPUT_DIRECTORY + "\\" + this.BaseGameFileName + ".exe";
+				return Path.Combine(OUTPUT_DIRECTORY, this.BaseGameFileName + ".exe");
 			}
 		}
 
@@ -142,7 +142,7 @@ namespace AGS.Editor
 		{
 			get
 			{
-				return DEBUG_OUTPUT_DIRECTORY + "\\" + this.BaseGameFileName + ".exe";
+				return Path.Combine(DEBUG_OUTPUT_DIRECTORY, this.BaseGameFileName + ".exe");
 			}
 		}
 
@@ -252,12 +252,12 @@ namespace AGS.Editor
                 files.Add(SPRITE_INDEX_FILE_NAME);
             }
 
-            foreach (Script script in _game.Scripts)
+            foreach (Script script in _game.RootScriptFolder.AllScriptsFlat)
             {
                 files.Add(script.FileName);
             }
 
-            foreach (UnloadedRoom room in _game.Rooms)
+            foreach (UnloadedRoom room in _game.RootRoomFolder.AllItemsFlat)
             {
                 files.Add(room.FileName);
                 files.Add(room.ScriptFileName);
@@ -344,11 +344,11 @@ namespace AGS.Editor
         public List<IScript> GetAllScripts(bool includeDialogs)
         {
             List<IScript> scripts = new List<IScript>();
-            foreach (Script script in _game.Scripts)
+            foreach (Script script in _game.RootScriptFolder.AllScriptsFlat)
             {
                 scripts.Add(script);
             }
-            foreach (IRoom room in _game.Rooms)
+            foreach (IRoom room in _game.RootRoomFolder.AllItemsFlat)
             {
                 if (room.Script == null)
                 {
@@ -360,7 +360,7 @@ namespace AGS.Editor
             }
             if (includeDialogs)
             {
-                foreach (Dialog dialog in _game.Dialogs)
+                foreach (Dialog dialog in _game.RootDialogFolder.AllItemsFlat)
                 {
                     scripts.Add(dialog);
                 }
@@ -372,12 +372,9 @@ namespace AGS.Editor
         {
             List<Script> scripts = GetInternalScriptHeaders();
 
-            foreach (Script script in _game.Scripts)
+            foreach (ScriptAndHeader script in _game.RootScriptFolder.AllItemsFlat)
             {
-                if (script.IsHeader)
-                {
-                    scripts.Add(script);
-                }
+                scripts.Add(script.Header);                
             }
             return scripts;
         }
@@ -683,12 +680,9 @@ namespace AGS.Editor
 
             RegenerateScriptHeader(null);
             
-            foreach (Script script in newGame.Scripts)
+            foreach (ScriptAndHeader script in newGame.RootScriptFolder.AllItemsFlat)
             {
-                if (script.IsHeader)
-                {
-                    AutoComplete.ConstructCache(script);
-                }
+                AutoComplete.ConstructCache(script.Header);               
             }
 
 			Factory.GUIController.ProjectTree.CollapseAll();
@@ -810,7 +804,7 @@ namespace AGS.Editor
             DialogScriptConverter dialogConverter = new DialogScriptConverter();
             string dialogScriptsText = dialogConverter.ConvertGameDialogScripts(_game, errors, rebuildAll);
             Script dialogScripts = new Script(Script.DIALOG_SCRIPTS_FILE_NAME, dialogScriptsText, false);
-            Script globalScript = _game.Scripts.GetScriptByFilename(Script.GLOBAL_SCRIPT_FILE_NAME);
+            Script globalScript = _game.RootScriptFolder.GetScriptByFileName(Script.GLOBAL_SCRIPT_FILE_NAME, true);
             if (!System.Text.RegularExpressions.Regex.IsMatch(globalScript.Text, @"function\s+dialog_request\s*\("))
             {
                 // A dialog_request must exist in the global script, otherwise
@@ -840,17 +834,11 @@ namespace AGS.Editor
                     _game.ScriptsToCompile.Add(script);
                 }
 
-                foreach (Script script in _game.Scripts)
+                foreach (ScriptAndHeader scripts in _game.RootScriptFolder.AllItemsFlat)
                 {
-					if (script.IsHeader)
-                    {
-                        headers.Add(script);
-                    }
-                    else
-                    {
-						CompileScript(script, headers, errors, false);
-                        _game.ScriptsToCompile.Add(script);
-                    }
+                    headers.Add(scripts.Header);
+                    CompileScript(scripts.Script, headers, errors, false);
+                    _game.ScriptsToCompile.Add(scripts.Script);					
                 }
 
                 CompileScript(dialogScripts, headers, errors, false);
@@ -997,7 +985,7 @@ namespace AGS.Editor
 			}
 
 			if ((_game.Settings.DialogOptionsGUI < 0) ||
-				(_game.Settings.DialogOptionsGUI >= _game.GUIs.Count))
+				(_game.Settings.DialogOptionsGUI >= _game.RootGUIFolder.GetAllItemsCount()))
 			{
 				if (_game.Settings.DialogOptionsGUI != 0)
 				{
@@ -1005,7 +993,7 @@ namespace AGS.Editor
 				}
 			}
 
-			foreach (Character character in _game.Characters)
+			foreach (Character character in _game.RootCharacterFolder.AllItemsFlat)
 			{
 				AGS.Types.View view = _game.FindViewByID(character.NormalView);
 				if (view == null)
@@ -1018,12 +1006,13 @@ namespace AGS.Editor
 				}
 			}
 
-			foreach (GUI gui in _game.GUIs)
+			foreach (GUI gui in _game.RootGUIFolder.AllItemsFlat)
 			{
-				if (gui is NormalGUI)
+                NormalGUI normalGui = gui as NormalGUI;
+                if (normalGui != null)
 				{
-					if ((((NormalGUI)gui).Width > _game.MinRoomWidth) ||
-					    (((NormalGUI)gui).Height > _game.MinRoomHeight))
+                    if ((normalGui.Width > _game.MinRoomWidth) ||
+                        (normalGui.Height > _game.MinRoomHeight))
 					{
 						errors.Add(new CompileWarning("GUI " + gui.Name + " is larger than the screen size and may cause errors in the game."));
 					}
@@ -1097,7 +1086,7 @@ namespace AGS.Editor
 		{
 			string gameRoot = Path.GetPathRoot(_game.DirectoryPath).ToUpper();
             if (gameRoot.StartsWith(@"\\"))
-            {
+            {                
                 // network share, we can't check free space
                 return true;
             }
@@ -1283,7 +1272,7 @@ namespace AGS.Editor
 
                 foreach (Plugin plugin in _game.Plugins)
                 {
-                    File.Copy(Path.Combine(this.EditorDirectory, plugin.FileName), DEBUG_OUTPUT_DIRECTORY + "\\" + plugin.FileName, true);
+                    File.Copy(Path.Combine(this.EditorDirectory, plugin.FileName), Path.Combine(DEBUG_OUTPUT_DIRECTORY, plugin.FileName), true);
                 }
             }
             catch (Exception ex)
@@ -1333,7 +1322,7 @@ namespace AGS.Editor
 
                 foreach (Plugin plugin in _game.Plugins)
                 {
-                    File.Copy(Path.Combine(this.EditorDirectory, plugin.FileName), OUTPUT_DIRECTORY + "\\" + plugin.FileName, true);
+                    File.Copy(Path.Combine(this.EditorDirectory, plugin.FileName), Path.Combine(OUTPUT_DIRECTORY, plugin.FileName), true);
                 }
             }
             catch (Exception ex)
@@ -1386,7 +1375,7 @@ namespace AGS.Editor
             Utilities.AddAllMatchingFiles(files, "agsfnt*.ttf");
             Utilities.AddAllMatchingFiles(files, "agsfnt*.wfn");
             Utilities.AddAllMatchingFiles(files, SPRITE_FILE_NAME);
-            foreach (UnloadedRoom room in _game.Rooms)
+            foreach (UnloadedRoom room in _game.RootRoomFolder.AllItemsFlat)
             {
                 if (File.Exists(room.FileName))
                 {
@@ -1461,7 +1450,7 @@ namespace AGS.Editor
                 PreSaveGame(evArgs);
             }
 
-            foreach (Script script in _game.Scripts)
+            foreach (Script script in _game.RootScriptFolder.AllScriptsFlat)
             {
                 if (script.Modified)
                 {

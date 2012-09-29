@@ -126,7 +126,7 @@ void quit_shutdown_audio()
 #endif
 
     // Quit the sound thread.
-    update_mp3_thread_running = false;
+    audioThread.Stop();
 
     remove_sound();
 }

@@ -4,6 +4,9 @@
 #include "media/audio/audiointernaldefs.h"
 #include "ac/common.h"               // quit()
 
+#include "platform/base/agsplatformdriver.h"
+
+
 extern "C" {
     extern int alogg_is_end_of_oggstream(ALOGG_OGGSTREAM *ogg);
     extern int alogg_is_end_of_ogg(ALOGG_OGG *ogg);
@@ -14,6 +17,12 @@ extern "C" {
 int MYOGG::poll()
 {
     _mutex.Lock();
+
+    if (!done && _destroyThis)
+    {
+      internal_destroy();
+      _destroyThis = false;
+    }
 
     if (done)
     {
@@ -64,10 +73,8 @@ void MYOGG::set_volume(int newvol)
     alogg_adjust_oggstream(stream, newvol, panning, 1000);
 }
 
-void MYOGG::destroy()
+void MYOGG::internal_destroy()
 {
-    _mutex.Lock();
-
     if (!done)
         alogg_stop_oggstream(stream);
 
@@ -78,9 +85,23 @@ void MYOGG::destroy()
     buffer = NULL;
     pack_fclose(in);
 
+    _destroyThis = false;
     done = 1;
+}
+
+void MYOGG::destroy()
+{
+    _mutex.Lock();
+
+    if (psp_audio_multithreaded)
+      _destroyThis = true;
+    else
+      internal_destroy();
 
     _mutex.Unlock();
+
+    while (!done)
+      AGSPlatformDriver::GetDriver()->YieldCPU();
 }
 
 void MYOGG::seek(int pos)
@@ -155,7 +176,9 @@ void MYOGG::restart()
         alogg_play_oggstream(stream, MP3CHUNKSIZE, vol, panning);
         done = 0;
         paused = 0;
-        poll();
+        
+        if (!psp_audio_multithreaded)
+          poll();
     }
 }
 
@@ -174,7 +197,9 @@ int MYOGG::get_sound_type() {
 int MYOGG::play() {
     alogg_play_oggstream(stream, MP3CHUNKSIZE, (vol > 230) ? vol : vol + 20, panning);
 
-    poll();
+    if (!psp_audio_multithreaded)
+      poll();
+
     return 1;
 }
 

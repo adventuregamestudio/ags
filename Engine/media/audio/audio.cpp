@@ -734,7 +734,6 @@ int crossFading = 0, crossFadeVolumePerStep = 0, crossFadeStep = 0;
 int crossFadeVolumeAtStart = 0;
 SOUNDCLIP *cachedQueuedMusic = NULL;
 
-volatile bool update_mp3_thread_running = false;
 int musicPollIterator; // long name so it doesn't interfere with anything else
 
 volatile int mvolcounter = 0;
@@ -861,11 +860,12 @@ extern int frames_per_second;
 
 void update_polled_stuff(bool checkForDebugMessages) {
     UPDATE_MP3
-
+/*
         if (want_exit) {
             want_exit = 0;
             quit("||exit!");
         }
+*/
         if (mvolcounter > update_music_at) {
             update_music_volume();
             apply_volume_drop_modifier(false);

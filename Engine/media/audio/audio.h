@@ -93,8 +93,6 @@ extern volatile int psp_audio_multithreaded;    // needed for UPDATE_MP3 macro
 //#define UPDATE_MP3 update_polled_stuff_if_runtime();
 
 // PSP: Update in thread if wanted.
-//extern volatile int psp_audio_multithreaded;
-extern volatile bool update_mp3_thread_running;
 extern int musicPollIterator; // long name so it doesn't interfere with anything else
 extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1]; // needed for UPDATE_MP3_THREAD macro
 extern volatile int switching_away_from_game;

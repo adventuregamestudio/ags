@@ -4,6 +4,8 @@
 #include "media/audio/audiointernaldefs.h"
 #include "media/audio/soundcache.h"
 
+#include "platform/base/agsplatformdriver.h"
+
 extern "C" {
     extern int alogg_is_end_of_oggstream(ALOGG_OGGSTREAM *ogg);
     extern int alogg_is_end_of_ogg(ALOGG_OGG *ogg);
@@ -16,6 +18,12 @@ extern int use_extra_sound_offset;  // defined in ac.cpp
 int MYSTATICOGG::poll()
 {
     _mutex.Lock();
+
+    if (tune && !done && _destroyThis)
+    {
+      internal_destroy();
+      _destroyThis = false;
+    }
 
     if ((tune == NULL) || (!ready))
         ; // Do nothing
@@ -42,21 +50,35 @@ void MYSTATICOGG::set_volume(int newvol)
     }
 }
 
-void MYSTATICOGG::destroy()
+void MYSTATICOGG::internal_destroy()
 {
-    _mutex.Lock();
-
     if (tune != NULL) {
-        alogg_stop_ogg(tune);
-        alogg_destroy_ogg(tune);
-        tune = NULL;
-    }
+            alogg_stop_ogg(tune);
+            alogg_destroy_ogg(tune);
+            tune = NULL;
+        }
 
     if (mp3buffer != NULL) {
         sound_cache_free(mp3buffer, false);
     }
 
+    _destroyThis = false;
+    done = 1;
+}
+
+void MYSTATICOGG::destroy()
+{
+    _mutex.Lock();
+
+    if (psp_audio_multithreaded)
+      _destroyThis = true;
+    else
+      internal_destroy();
+
     _mutex.Unlock();
+
+    while (!done)
+      AGSPlatformDriver::GetDriver()->YieldCPU();
 }
 
 void MYSTATICOGG::seek(int pos)
@@ -136,7 +158,9 @@ void MYSTATICOGG::restart()
         last_but_one = 0;
         last_but_one_but_one = 0;
         done = 0;
-        poll();
+
+        if (!psp_audio_multithreaded)
+          poll();
     }
 }
 
@@ -172,7 +196,9 @@ int MYSTATICOGG::play_from(int position)
     if (position > 0)
         alogg_seek_abs_msecs_ogg(tune, position);
 
-    poll();
+    if (!psp_audio_multithreaded)
+      poll();
+
     return 1;
 }
 

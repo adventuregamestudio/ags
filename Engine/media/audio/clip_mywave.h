@@ -15,6 +15,8 @@ struct MYWAVE:public SOUNDCLIP
 
     void set_volume(int newvol);
 
+    void internal_destroy();
+
     void destroy();
 
     void seek(int pos);

@@ -53,6 +53,7 @@ SOUNDCLIP::SOUNDCLIP() {
     ySource = -1;
     maximumPossibleDistanceAway = 0;
     directionalVolModifier = 0;
+    _destroyThis = false;
 }
 
 SOUNDCLIP::~SOUNDCLIP()

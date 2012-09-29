@@ -5,9 +5,18 @@
 #include "media/audio/audiointernaldefs.h"
 #include "media/audio/soundcache.h"
 
+#include "platform/base/agsplatformdriver.h"
+
+
 int MYWAVE::poll()
 {
     _mutex.Lock();
+
+    if (!done && _destroyThis)
+    {
+      internal_destroy();
+      _destroyThis = false;
+    }
 
     if (wave == NULL)
     {
@@ -46,16 +55,30 @@ void MYWAVE::set_volume(int newvol)
     }
 }
 
-void MYWAVE::destroy()
+void MYWAVE::internal_destroy()
 {
-    _mutex.Lock();
-
     // Stop sound and decrease reference count.
     stop_sample(wave);
     sound_cache_free((char*)wave, true);
     wave = NULL;
 
+    _destroyThis = false;
+    done = 1;
+}
+
+void MYWAVE::destroy()
+{
+    _mutex.Lock();
+
+    if (psp_audio_multithreaded)
+      _destroyThis = true;
+    else
+      internal_destroy();
+
     _mutex.Unlock();
+
+    while (!done)
+      AGSPlatformDriver::GetDriver()->YieldCPU();
 }
 
 void MYWAVE::seek(int pos)

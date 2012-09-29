@@ -103,7 +103,10 @@ SOUNDCLIP *my_load_mp3(const char *filname, int voll)
     pack_fread(tmpbuffer, thistune->chunksize, mp3in);
 
     thistune->buffer = (char *)tmpbuffer;
+
+    _mp3_mutex.Lock();
     thistune->stream = almp3_create_mp3stream(tmpbuffer, thistune->chunksize, (mp3in->todo < 1));
+    _mp3_mutex.Unlock();
 
     if (thistune->stream == NULL) {
         free(tmpbuffer);
@@ -135,7 +138,10 @@ SOUNDCLIP *my_load_static_mp3(const char *filname, int voll, bool loop)
     thismp3->vol = voll;
     thismp3->mp3buffer = NULL;
     thismp3->repeat = loop;
+
+    _mp3_mutex.Lock();
     thismp3->tune = almp3_create_mp3(mp3buffer, muslen);
+    _mp3_mutex.Unlock();
     thismp3->done = 0;
     thismp3->ready = true;
 

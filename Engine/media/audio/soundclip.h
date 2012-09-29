@@ -16,8 +16,13 @@
 #undef BITMAP
 #include "util/mutex.h"
 
+// JJS: This is needed for the derieved classes
+extern volatile int psp_audio_multithreaded;
+
 struct SOUNDCLIP
 {
+     bool _destroyThis;
+
     int done;
     int priority;
     int soundType;

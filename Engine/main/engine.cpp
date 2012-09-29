@@ -1382,8 +1382,6 @@ int initialize_engine(int argc,char*argv[])
 
     initialize_start_and_play_game(override_start_room, loadSaveGameOnStartup);
 
-    update_mp3_thread_running = false;
-
     quit("|bye!");
     return 0;
 }

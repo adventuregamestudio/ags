@@ -508,8 +508,10 @@ AssetError AssetManager::ReadAssetLibV10(MultiFileLib * mfl, DataStream *ci_s, i
 {
     // number of clib parts
     mfl->num_data_files = ci_s->ReadInt32();
-    // filenames for all clib parts
-    ci_s->ReadArray(&mfl->data_filenames[0][0], 20, mfl->num_data_files);
+    // filenames for all clib parts; filename array is only 20 chars long in this format version
+    for (int i = 0; i < mfl->num_data_files; i++)
+      ci_s->ReadArray(&mfl->data_filenames[i][0], 20, 1);
+
     // number of files in clib
     mfl->num_files = ci_s->ReadInt32();
     if (mfl->num_files > MAX_FILES)

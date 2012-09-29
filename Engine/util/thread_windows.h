@@ -76,6 +76,9 @@ public:
       }
 
       CloseHandle(_thread);
+
+      _running = false;
+      _thread = NULL;
       return true;
     }
     else

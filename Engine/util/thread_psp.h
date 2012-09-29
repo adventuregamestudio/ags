@@ -74,6 +74,7 @@ public:
         sceKernelWaitThreadEnd(_thread, 0);
       }
 
+      _running = false;
       return (sceKernelTerminateDeleteThread(_thread) > -1);
     }
     else

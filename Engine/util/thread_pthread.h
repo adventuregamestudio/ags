@@ -70,6 +70,7 @@ public:
 
       pthread_join(_thread, NULL);
 
+      _running = false;
       return true;
     }
     else

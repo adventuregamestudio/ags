@@ -49,7 +49,7 @@ public:
   {
     if (!_running)
     {
-      _running = (pthread_create(&_thread, NULL, _thread_start, this) != 0);
+      _running = (pthread_create(&_thread, NULL, _thread_start, this) == 0);
 
       return _running;
     }

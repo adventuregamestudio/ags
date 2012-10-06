@@ -1,6 +1,6 @@
 #Adventure Game Studio
 
-Licensed under the Artistic License 2.0, see License.txt in the Engine folder.
+Licensed under the Artistic License 2.0, see License.txt.
 
 
 ##Engine instructions

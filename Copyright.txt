@@ -2,7 +2,8 @@ Adventure Game Studio (AGS)
 Copyright (C) 1999-2012 by the following:
 
 Chris Jones
-Tzachs Shabtay
+Steve McCrea
+Tzach Shabtay
 Bernhard Rosenkraenzer
 Jochen Schleu
 Ivan Mogilko

@@ -1,6 +1,20 @@
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// http://www.opensource.org/licenses/artistic-license-2.0.php
+//
+//=============================================================================
+//
 // VMR9Graph.h: interface for the CVMR9Graph class.
 //
-//////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 #if !defined(AFX_VMR9GRAPH_H__449FDB5B_6719_4134_B5A7_B651C08D109E__INCLUDED_)
 #define AFX_VMR9GRAPH_H__449FDB5B_6719_4134_B5A7_B651C08D109E__INCLUDED_

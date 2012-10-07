@@ -1,16 +1,16 @@
-/* Adventure Creator v2 Run-time engine
-   Started 27-May-99 (c) 1999-2011 Chris Jones
-
-  Adventure Game Studio source code Copyright 1999-2011 Chris Jones.
-  All rights reserved.
-
-  The AGS Editor Source Code is provided under the Artistic License 2.0
-  http://www.opensource.org/licenses/artistic-license-2.0.php
-
-  You MAY NOT compile your own builds of the engine without making it EXPLICITLY
-  CLEAR that the code has been altered from the Standard Version.
-
-*/
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// http://www.opensource.org/licenses/artistic-license-2.0.php
+//
+//=============================================================================
 
 //
 // Engine initialization

@@ -1,16 +1,25 @@
-/* MOUSELIBW32.CPP
-
-    Library of mouse functions for graphics and text mode
-
-    (c) 1994 Chris Jones
-
-    Win32 (allegro) update (c) 1999 Chris Jones
-
-    This is UNPUBLISHED PROPRIETARY SOURCE CODE;
-    the contents of this file may not be disclosed to third parties,
-    copied or duplicated in any form, in whole or in part, without
-    prior express permission from Chris Jones.
-*/
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// http://www.opensource.org/licenses/artistic-license-2.0.php
+//
+//=============================================================================
+//
+// MOUSELIBW32.CPP
+//
+// Library of mouse functions for graphics and text mode
+//
+// (c) 1994 Chris Jones
+// Win32 (allegro) update (c) 1999 Chris Jones
+//
+//=============================================================================
 
 #define MAXCURSORS 20
 

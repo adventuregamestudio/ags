@@ -913,6 +913,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\script\runtimescriptvalue.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\script\script.cpp"
 					>
 				</File>
@@ -1780,6 +1784,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\script\nonblockingscriptfunction.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\script\runtimescriptvalue.h"
 					>
 				</File>
 				<File

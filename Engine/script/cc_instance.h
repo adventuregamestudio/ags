@@ -16,6 +16,9 @@
 #include "script/script_common.h"
 #include "script/cc_script.h"  // ccScript
 #include "script/nonblockingscriptfunction.h"
+#include "script/runtimescriptvalue.h"
+
+namespace AGS { namespace Common { class DataStream; }; };
 
 #define INSTF_SHAREDATA   1
 #define INSTF_ABORTED     2
@@ -34,14 +37,6 @@
 struct ccInstance;
 struct ScriptImport;
 
-enum ScriptValueType
-{
-    kScValUndefined,    // to detect errors
-    kScValGeneric,      // as long
-    kScValInteger,      // as strictly 32-bit integer (for integer math)
-    kScValFloat,        // as float (for floating point math)
-};
-
 struct CodeHelper
 {
     CodeHelper()
@@ -54,41 +49,28 @@ struct CodeHelper
     char            fixup_type;
 };
 
-struct CodeInstruction
+struct ScriptInstruction
 {
-	CodeInstruction()
-	{
-		Code		= 0;
-		InstanceId	= 0;
-	}
+    ScriptInstruction()
+    {
+        Code		= 0;
+        InstanceId	= 0;
+    }
 
-	long	Code;
-	long	InstanceId;
+    long	Code;
+    long	InstanceId;
 };
 
-struct CodeArgument
+struct ScriptOperation
 {
-	CodeArgument()
-		: FValue((float&)Value)
-	{
-		Value		= 0;
-	}
-
-	long	Value;		// generic Value
-	float	&FValue;	// access Value as float type
-};
-
-
-struct CodeOperation
-{
-	CodeOperation()
+	ScriptOperation()
 	{
 		ArgCount = 0;
 	}
 
-	CodeInstruction	Instruction;
-	CodeArgument	Args[MAX_SCMD_ARGS];
-	int				ArgCount;
+	ScriptInstruction   Instruction;
+	RuntimeScriptValue	Args[MAX_SCMD_ARGS];
+	int				    ArgCount;
 };
 
 // Running instance of the script
@@ -106,7 +88,7 @@ public:
     char **exportaddr;  // real pointer to export
     char *stack;
     long stacksize;
-    long registers[CC_NUM_REGISTERS];
+    RuntimeScriptValue registers[CC_NUM_REGISTERS];
     long pc;                        // program counter
     long line_number;               // source code line number
     ccScript *instanceof;
@@ -168,6 +150,9 @@ public:
     char    *GetSymbolAddress(char *);
     void    DumpInstruction(unsigned long *codeptr, int cps, int spp);
 
+    void    ReadGlobalData(Common::DataStream *in);
+    void    WriteGlobalData(Common::DataStream *out);
+    
     // changes all pointer variables (ie. strings) to have the relative address, to allow
     // the data segment to be saved to disk
     void    FlattenGlobalData();
@@ -180,11 +165,11 @@ protected:
     void    Free();
 
     bool    ResolveScriptImports(ccScript * scri);
-	bool    ReadOperation(CodeOperation &op, long at_pc);
+	bool    ReadOperation(ScriptOperation &op, long at_pc);
 
     const   CodeHelper *GetCodeHelper(long at_pc);
-    void    FixupInstruction(const CodeHelper &helper, CodeInstruction &instruction);
-    void    FixupArgument(const CodeHelper &helper, CodeArgument &argument);
+    void    FixupInstruction(const CodeHelper &helper, ScriptInstruction &instruction);
+    void    FixupArgument(const CodeHelper &helper, RuntimeScriptValue &argument);
 };
 
 #endif // __CC_INSTANCE_H

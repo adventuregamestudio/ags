@@ -61,7 +61,7 @@
 #define SCMD_MUL          32    // reg1 *= arg2
 #define SCMD_CALLEXT      33    // call external (imported) function reg1
 #define SCMD_PUSHREAL     34    // push reg1 onto real stack
-#define SCMD_SUBREALSTACK 35
+#define SCMD_SUBREALSTACK 35    // decrement stack ptr by literal
 #define SCMD_LINENUM      36    // debug info - source code line number
 #define SCMD_CALLAS       37    // call external script function
 #define SCMD_THISBASE     38    // current relative address

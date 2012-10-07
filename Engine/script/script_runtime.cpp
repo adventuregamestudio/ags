@@ -119,62 +119,80 @@ void ccSetDebugHook(new_line_hook_type jibble)
 }
 
 // parm list is backwards (last arg is parms[0])
-int call_function(long addr, int numparm, long *parms, int offset)
+int call_function(long addr, int numparm, RuntimeScriptValue *parms, int offset)
 {
+    if (!addr)
+    {
+        cc_error("null function pointer in call_function");
+        return -1;
+    }
+    if (numparm > 0 && !parms)
+    {
+        cc_error("invalid parameters array in call_function");
+        return -1;
+    }
+
     parms += offset;
+
+    long parm_value[9];
+    for (int i = 0; i < numparm; ++i)
+    {
+        // CHECKME: can this be stack ptr?
+        parm_value[i] = (long)parms[i].GetLong();
+    }
 
     if (numparm == 1) {
         int (*fparam) (long);
         fparam = (int (*)(long))addr;
-        return fparam(parms[0]);
+        return fparam(parm_value[0]);
     }
 
     if (numparm == 2) {
         int (*fparam) (long, long);
         fparam = (int (*)(long, long))addr;
-        return fparam(parms[1], parms[0]);
+        return fparam(parm_value[1], parm_value[0]);
     }
 
     if (numparm == 3) {
         int (*fparam) (long, long, long);
         fparam = (int (*)(long, long, long))addr;
-        return fparam(parms[2], parms[1], parms[0]);
+        return fparam(parm_value[2], parm_value[1], parm_value[0]);
     }
 
     if (numparm == 4) {
         int (*fparam) (long, long, long, long);
         fparam = (int (*)(long, long, long, long))addr;
-        return fparam(parms[3], parms[2], parms[1], parms[0]);
+        return fparam(parm_value[3], parm_value[2], parm_value[1], parm_value[0]);
     }
 
     if (numparm == 5) {
         int (*fparam) (long, long, long, long, long);
         fparam = (int (*)(long, long, long, long, long))addr;
-        return fparam(parms[4], parms[3], parms[2], parms[1], parms[0]);
+        return fparam(parm_value[4], parm_value[3], parm_value[2], parm_value[1], parm_value[0]);
     }
 
     if (numparm == 6) {
         int (*fparam) (long, long, long, long, long, long);
         fparam = (int (*)(long, long, long, long, long, long))addr;
-        return fparam(parms[5], parms[4], parms[3], parms[2], parms[1], parms[0]);
+        return fparam(parm_value[5], parm_value[4], parm_value[3], parm_value[2], parm_value[1], parm_value[0]);
     }
 
     if (numparm == 7) {
         int (*fparam) (long, long, long, long, long, long, long);
         fparam = (int (*)(long, long, long, long, long, long, long))addr;
-        return fparam(parms[6], parms[5], parms[4], parms[3], parms[2], parms[1], parms[0]);
+        return fparam(parm_value[6], parm_value[5], parm_value[4], parm_value[3], parm_value[2], parm_value[1], parm_value[0]);
     }
 
     if (numparm == 8) {
         int (*fparam) (long, long, long, long, long, long, long, long);
         fparam = (int (*)(long, long, long, long, long, long, long, long))addr;
-        return fparam(parms[7], parms[6], parms[5], parms[4], parms[3], parms[2], parms[1], parms[0]);
+        return fparam(parm_value[7], parm_value[6], parm_value[5], parm_value[4], parm_value[3], parm_value[2], parm_value[1], parm_value[0]);
     }
 
     if (numparm == 9) {
         int (*fparam) (long, long, long, long, long, long, long, long, long);
         fparam = (int (*)(long, long, long, long, long, long, long, long, long))addr;
-        return fparam(parms[8], parms[7], parms[6], parms[5], parms[4], parms[3], parms[2], parms[1], parms[0]);
+        return fparam(parm_value[8], parm_value[7], parm_value[6], parm_value[5], parm_value[4], parm_value[3], parm_value[2], parm_value[1], parm_value[0]);
     }
 
     cc_error("too many arguments in call to function");

@@ -684,10 +684,12 @@ int ccInstance::Run(long curpc)
           reg1.SetInt(reg1.GetInt() / reg2.GetInt());
           break;
       case SCMD_ADDREG:
-          reg1.SetInt(reg1.GetInt() + reg2.GetInt());
+          // This may be pointer arithmetics!
+          reg1 += reg2;
           break;
       case SCMD_SUBREG:
-          reg1.SetInt(reg1.GetInt() - reg2.GetInt());
+          // This may be pointer arithmetics!
+          reg1 -= reg2;
           break;
       case SCMD_BITAND:
           reg1.SetInt(reg1.GetInt() & reg2.GetInt());

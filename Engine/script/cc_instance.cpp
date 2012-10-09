@@ -566,13 +566,13 @@ int ccInstance::Run(long curpc)
           switch (arg1.GetLong())
           {
           case sizeof(char):
-              arg2.WriteByteToAddr(registers[SREG_MAR]);
+              registers[SREG_MAR].WriteByte(arg2.GetInt());
               break;
           case sizeof(int16_t):
-              arg2.WriteInt16ToAddr(registers[SREG_MAR]);
+              registers[SREG_MAR].WriteInt16(arg2.GetInt());
               break;
           case sizeof(int32_t):
-              arg2.WriteToAddr(registers[SREG_MAR]);
+              registers[SREG_MAR].WriteInt32(arg2.GetInt());
               break;
           default:
               cc_error("unexpected data size for WRITELIT op: %d", arg1.GetLong());
@@ -606,7 +606,7 @@ int ccInstance::Run(long curpc)
           // 64 bit: Memory reads are still 32 bit
           //memset(&(reg1), 0, sizeof(long));
           //memcpy(&(reg1), (char*)registers[SREG_MAR], 4);
-          reg1.ReadFromAddr(registers[SREG_MAR]);
+          reg1 = registers[SREG_MAR].ReadValue();
 
           // FIXME AGS_BIG_ENDIAN
 #if defined(AGS_BIG_ENDIAN)
@@ -636,7 +636,7 @@ int ccInstance::Run(long curpc)
 #else
           // 64 bit: Memory writes are still 32 bit
           //memcpy((char*)registers[SREG_MAR], &(reg1), 4);
-          reg1.WriteToAddr(registers[SREG_MAR]);
+          registers[SREG_MAR].WriteValue(reg1);
 #endif
           break;
       case SCMD_LOADSPOFFS:
@@ -744,9 +744,8 @@ int ccInstance::Run(long curpc)
 
           PUSH_CALL_STACK;
 
-          temp_variable.SetLong( pc + sccmd_info[codeOp.Instruction.Code].ArgCount + 1 );
           //memcpy((char*)registers[SREG_SP], &temp_variable, sizeof(intptr_t));
-          temp_variable.WriteToAddr(registers[SREG_SP]);
+          registers[SREG_SP].WriteInt32( pc + sccmd_info[codeOp.Instruction.Code].ArgCount + 1 );
 
           registers[SREG_SP] += sizeof(long);
 
@@ -777,7 +776,7 @@ int ccInstance::Run(long curpc)
           // Take the data address from reg[MAR] and copy byte to reg[arg1]
           //tbyte = *((unsigned char *)registers[SREG_MAR]);
           //reg1 = tbyte;
-          reg1.ReadByteFromAddr(registers[SREG_MAR]);
+          reg1.SetInt(registers[SREG_MAR].ReadByte());
           break;
       case SCMD_MEMREADW:
           // Take the data address from reg[MAR] and copy int16_t to reg[arg1]
@@ -790,13 +789,13 @@ int ccInstance::Run(long curpc)
           }
 #endif
           //reg1 = tshort;
-          reg1.ReadInt16FromAddr(registers[SREG_MAR]);
+          reg1.SetInt(registers[SREG_MAR].ReadInt16());
           break;
       case SCMD_MEMWRITEB:
           // Take the data address from reg[MAR] and copy there byte from reg[arg1]
           //tbyte = (unsigned char)reg1;
           //*((unsigned char *)registers[SREG_MAR]) = tbyte;
-          reg1.WriteByteToAddr(registers[SREG_MAR]);
+          registers[SREG_MAR].WriteByte(reg1.GetInt());
           break;
       case SCMD_MEMWRITEW:
           // Take the data address from reg[MAR] and copy there int16_t from reg[arg1]
@@ -809,7 +808,7 @@ int ccInstance::Run(long curpc)
           }
 #endif
           //*((short *)registers[SREG_MAR]) = tshort;
-          reg1.WriteInt16ToAddr(registers[SREG_MAR]);
+          registers[SREG_MAR].WriteInt16(reg1.GetInt());
           break;
       case SCMD_JZ:
           if (registers[SREG_AX] == 0)
@@ -829,7 +828,7 @@ int ccInstance::Run(long curpc)
 
           // Push reg[arg1] value to the stack
           //memcpy((char*)registers[SREG_SP], &reg1, sizeof(long));
-          reg1.WriteToAddr(registers[SREG_SP]);
+          registers[SREG_SP].WriteValue(reg1);
           registers[SREG_SP] += sizeof(long);
           CHECK_STACK
               break;
@@ -844,7 +843,7 @@ int ccInstance::Run(long curpc)
 
           registers[SREG_SP] -= sizeof(long);
           //memcpy(&reg1, (char*)registers[SREG_SP], sizeof(long));
-          reg1.ReadFromAddr(registers[SREG_SP]);
+          reg1 = registers[SREG_SP].ReadValue();
           break;
       case SCMD_JMP:
           pc += arg1.GetLong();
@@ -893,10 +892,9 @@ int ccInstance::Run(long curpc)
       case SCMD_MEMREADPTR: {
           ccError = 0;
 
-          RuntimeScriptValue handle;
           //memcpy(&handle, (char*)(registers[SREG_MAR]), 4);
-          handle.ReadFromAddr(registers[SREG_MAR]);
-          reg1.SetLong( (long)ccGetObjectAddressFromHandle(handle.GetLong()) );
+          long handle = registers[SREG_MAR].ReadInt32();
+          reg1.SetLong( (long)ccGetObjectAddressFromHandle(handle) );
 
           // if error occurred, cc_error will have been set
           if (ccError)
@@ -904,65 +902,57 @@ int ccInstance::Run(long curpc)
           break; }
       case SCMD_MEMWRITEPTR: {
 
-          RuntimeScriptValue handle;
           //memcpy(&handle, (char*)(registers[SREG_MAR]), 4);
-          handle.ReadFromAddr(registers[SREG_MAR]);
+          long handle = registers[SREG_MAR].ReadInt32();
 
-          RuntimeScriptValue newHandle;
-          newHandle.SetLong( ccGetObjectHandleFromAddress((char*)reg1.GetLong()) );
+          long newHandle = ccGetObjectHandleFromAddress((char*)reg1.GetLong());
           if (newHandle == -1)
               return -1;
 
           if (handle != newHandle) {
-              ccReleaseObjectReference(handle.GetLong());
-              ccAddObjectReference(newHandle.GetLong());
+              ccReleaseObjectReference(handle);
+              ccAddObjectReference(newHandle);
               //memcpy(((char*)registers[SREG_MAR]), &newHandle, 4);
-              newHandle.WriteToAddr(registers[SREG_MAR]);
+              registers[SREG_MAR].WriteInt32(newHandle);
           }
           break;
                              }
       case SCMD_MEMINITPTR: { 
           // like memwriteptr, but doesn't attempt to free the old one
 
-          RuntimeScriptValue handle;
           //memcpy(&handle, ((char*)registers[SREG_MAR]), 4);
-          handle.ReadFromAddr(registers[SREG_MAR]);
+          long handle = registers[SREG_MAR].ReadInt32();
 
-          RuntimeScriptValue newHandle;
-          newHandle.SetLong( ccGetObjectHandleFromAddress((char*)reg1.GetLong()) );
+          long newHandle = ccGetObjectHandleFromAddress((char*)reg1.GetLong());
           if (newHandle == -1)
               return -1;
 
-          ccAddObjectReference(newHandle.GetLong());
+          ccAddObjectReference(newHandle);
           //memcpy(((char*)registers[SREG_MAR]), &newHandle, 4);
-          newHandle.WriteToAddr(registers[SREG_MAR]);
+          registers[SREG_MAR].WriteInt32(newHandle);
           break;
                             }
       case SCMD_MEMZEROPTR: {
-          RuntimeScriptValue handle;
           //memcpy(&handle, ((char*)registers[SREG_MAR]), 4);
-          handle.ReadFromAddr(registers[SREG_MAR]);
-          ccReleaseObjectReference(handle.GetLong());
+          long handle = registers[SREG_MAR].ReadInt32();
+          ccReleaseObjectReference(handle);
           //memset(((char*)registers[SREG_MAR]), 0, 4);
-          handle.SetLong(0);
-          handle.WriteToAddr(registers[SREG_MAR]);
+          registers[SREG_MAR].WriteInt32(0);
           break;
                             }
       case SCMD_MEMZEROPTRND: {
-          RuntimeScriptValue handle;
           //memcpy(&handle, ((char*)registers[SREG_MAR]), 4);
-          handle.ReadFromAddr(registers[SREG_MAR]);
+          long handle = registers[SREG_MAR].ReadInt32();
 
           // don't do the Dispose check for the object being returned -- this is
           // for returning a String (or other pointer) from a custom function.
           // Note: we might be freeing a dynamic array which contains the DisableDispose
           // object, that will be handled inside the recursive call to SubRef.
           pool.disableDisposeForObject = (const char*)registers[SREG_AX].GetLong();
-          ccReleaseObjectReference(handle.GetLong());
+          ccReleaseObjectReference(handle);
           pool.disableDisposeForObject = NULL;
           //memset(((char*)registers[SREG_MAR]), 0, 4);
-          handle.SetLong(0);
-          handle.WriteToAddr(registers[SREG_MAR]);
+          registers[SREG_MAR].WriteInt32(0);
           break;
                               }
       case SCMD_CHECKNULL:
@@ -994,7 +984,7 @@ int ccInstance::Run(long curpc)
           for (int i = startArg; i < callstacksize; ++i) {
               // 64 bit: Arguments are pushed as 64 bit values
               //memcpy((char*)registers[SREG_SP], &(callstack[aa]), sizeof(long));
-              callstack[i].WriteToAddr(registers[SREG_SP]);
+              registers[SREG_SP].WriteValue(callstack[i]);
               registers[SREG_SP] += sizeof(long);
 
 #if defined(AGS_64BIT)
@@ -1005,8 +995,7 @@ int ccInstance::Run(long curpc)
 
           // 0, so that the cc_run_code returns
           //memset((char*)registers[SREG_SP], 0, sizeof(long));
-          temp_variable.SetLong(0);
-          temp_variable.WriteToAddr(registers[SREG_SP]);
+          registers[SREG_SP].WriteInt32(0);
 
           long oldstack = registers[SREG_SP].GetLong();
           registers[SREG_SP] += sizeof(long);

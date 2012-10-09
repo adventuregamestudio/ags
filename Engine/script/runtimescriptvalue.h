@@ -173,15 +173,17 @@ public:
         return Value <= val;
     }
 
-    // Helper functions for reading or writing values, stored
-    // in this Runtime Value, from/to address, stored in other
-    // Runtime Value. Copy implementation depends on value types.
-    bool ReadByteFromAddr(const RuntimeScriptValue &src);
-    bool ReadInt16FromAddr(const RuntimeScriptValue &src);
-    bool ReadFromAddr(const RuntimeScriptValue &src);
-    bool WriteByteToAddr(RuntimeScriptValue &dest) const;
-    bool WriteInt16ToAddr(RuntimeScriptValue &dest) const;
-    bool WriteToAddr(RuntimeScriptValue &dest) const;
+    // Helper functions for reading or writing values from/to
+    // object, referenced by this Runtime Value.
+    // Copy implementation depends on value type.
+    uint8_t     ReadByte();
+    uint16_t    ReadInt16();
+    uint32_t    ReadInt32();
+    RuntimeScriptValue ReadValue();
+    bool        WriteByte(uint8_t val);
+    bool        WriteInt16(uint16_t val);
+    bool        WriteInt32(uint32_t val);
+    bool        WriteValue(const RuntimeScriptValue &rval);
 };
 
 #endif // __AGS_EE_SCRIPT__RUNTIMESCRIPTVALUE_H

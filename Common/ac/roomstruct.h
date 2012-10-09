@@ -118,9 +118,9 @@ struct roomstruct {
     CustomProperties roomProps;
     CustomProperties hsProps[MAX_HOTSPOTS];
     int           gameId;
-    int           lastLoadNumHotspots;
-    int           lastLoadNumObjects;
-    int           lastLoadNumRegions;
+    int           lastLoadNumHotspots; // Janet: Apparently unused
+    int           lastLoadNumObjects; // Janet: Apparently unused
+    int           lastLoadNumRegions; // Janet: Apparently unused
 
     roomstruct();
     //void allocall();

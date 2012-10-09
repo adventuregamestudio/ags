@@ -574,7 +574,7 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
   }
   if (rstruc->hotspotScripts != NULL)
   {
-	  for (i = 0; i < rstruc->lastLoadNumHotspots; i++)
+	  for (i = 0; i < rstruc->numhotspots; i++)
 	  {
 		  delete rstruc->hotspotScripts[i];
 	  }
@@ -583,7 +583,7 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
   }
   if (rstruc->objectScripts != NULL)
   {
-	  for (i = 0; i < rstruc->lastLoadNumObjects; i++)
+	  for (i = 0; i < rstruc->numsprs; i++)
 	  {
 		  delete rstruc->objectScripts[i];
 	  }
@@ -592,7 +592,7 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
   }
   if (rstruc->regionScripts != NULL)
   {
-	  for (i = 0; i < rstruc->lastLoadNumRegions; i++)
+	  for (i = 0; i < rstruc->numRegions; i++)
 	  {
 		  delete rstruc->regionScripts[i];
 	  }

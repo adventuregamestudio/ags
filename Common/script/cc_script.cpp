@@ -240,4 +240,6 @@ void ccFreeScript(ccScript * ccs)
     ccs->numimports = 0;
     ccs->numexports = 0;
     ccs->numSections = 0;
+    
+    free(ccs);
 }

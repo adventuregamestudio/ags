@@ -49,7 +49,11 @@ int MYWAVE::poll()
     }
 
     if (voice_get_position(voice) < 0)
+    {
         done = 1;
+        if (psp_audio_multithreaded)
+            internal_destroy();
+    }
 
     _mutex.Unlock();
 

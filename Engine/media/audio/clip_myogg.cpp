@@ -66,6 +66,8 @@ int MYOGG::poll()
     }
     if (alogg_poll_oggstream(stream) == ALOGG_POLL_PLAYJUSTFINISHED) {
         done = 1;
+        if (psp_audio_multithreaded)
+            internal_destroy();
     }
     else get_pos_ms();  // call this to keep the last_but_one stuff up to date
 

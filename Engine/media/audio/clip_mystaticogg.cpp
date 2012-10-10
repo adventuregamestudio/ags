@@ -42,7 +42,11 @@ int MYSTATICOGG::poll()
         ; // Do nothing
     else if (alogg_poll_ogg(tune) == ALOGG_POLL_PLAYJUSTFINISHED) {
         if (!repeat)
+        {
             done = 1;
+            if (psp_audio_multithreaded)
+                internal_destroy();
+        }
     }
     else get_pos();  // call this to keep the last_but_one stuff up to date
 

@@ -47,7 +47,11 @@ int MYSTATICMP3::poll()
         ;
     else if (almp3_poll_mp3(tune) == ALMP3_POLL_PLAYJUSTFINISHED) {
         if (!repeat)
+        {
             done = 1;
+            if (psp_audio_multithreaded)
+                internal_destroy();
+        }
     }
     our_eip = oldeip;
 

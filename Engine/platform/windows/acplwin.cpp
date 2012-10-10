@@ -114,13 +114,6 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual void UnRegisterGameWithGameExplorer();
   virtual int  ConvertKeycodeToScanCode(int keyCode);
 
-  virtual void ReadPluginsFromDisk(DataStream *in);
-  virtual void StartPlugins();
-  virtual int  RunPluginHooks(int event, long data);
-  virtual void RunPluginInitGfxHooks(const char *driverName, void *data);
-  virtual int  RunPluginDebugHooks(const char *scriptfile, int linenum);
-  virtual void ShutdownPlugins();
-
   //-----------------------------------------------
   // IOutputTarget implementation
   //-----------------------------------------------
@@ -774,30 +767,6 @@ void AGSWin32::WriteDebugString(const char* texx, ...) {
 
 void AGSWin32::ShutdownCDPlayer() {
   cd_exit();
-}
-
-void AGSWin32::ReadPluginsFromDisk(DataStream *in) {
-  pl_read_plugins_from_disk(in);
-}
-
-void AGSWin32::StartPlugins() {
-  pl_startup_plugins();
-}
-
-void AGSWin32::ShutdownPlugins() {
-  pl_stop_plugins();
-}
-
-int AGSWin32::RunPluginHooks(int event, long data) {
-  return pl_run_plugin_hooks(event, data);
-}
-
-void AGSWin32::RunPluginInitGfxHooks(const char *driverName, void *data) {
-  pl_run_plugin_init_gfx_hooks(driverName, data);
-}
-
-int AGSWin32::RunPluginDebugHooks(const char *scriptfile, int linenum) {
-  return pl_run_plugin_debug_hooks(scriptfile, linenum);
 }
 
 extern "C" const unsigned char hw_to_mycode[256];

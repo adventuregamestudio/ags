@@ -47,12 +47,7 @@ struct AGSMac : AGSPlatformDriver {
   virtual void ShutdownCDPlayer();
   virtual void WriteConsole(const char*, ...);
   virtual void ReplaceSpecialPaths(const char*, char*);  
-  virtual void ReadPluginsFromDisk(AGS::Common::DataStream *iii);
-  virtual void StartPlugins();
-  virtual void ShutdownPlugins();
-  virtual int RunPluginHooks(int event, int data);
-  virtual void RunPluginInitGfxHooks(const char *driverName, void *data);
-  virtual int RunPluginDebugHooks(const char *scriptfile, int linenum);
+  virtual void WriteDebugString(const char* texx, ...);
 };
 
 void AGSMac::ReplaceSpecialPaths(const char *sourcePath, char *destPath) {
@@ -116,6 +111,17 @@ void AGSMac::SetGameWindowIcon() {
   // do nothing
 }
 
+void AGSMac::WriteDebugString(const char* texx, ...) {
+  char displbuf[STD_BUFFER_SIZE] = "AGS: ";
+  va_list ap;
+  va_start(ap,texx);
+  vsprintf(&displbuf[5],texx,ap);
+  va_end(ap);
+  strcat(displbuf, "\n");
+
+  printf(displbuf);
+}
+
 void AGSMac::WriteConsole(const char *text, ...) {
   char displbuf[2000];
   va_list ap;
@@ -133,28 +139,4 @@ AGSPlatformDriver* AGSPlatformDriver::GetDriver() {
   if (instance == NULL)
     instance = new AGSMac();
   return instance;
-}
-
-void AGSMac::ReadPluginsFromDisk(AGS::Common::DataStream *iii) {
-  pl_read_plugins_from_disk(iii);
-}
-
-void AGSMac::StartPlugins() {
-  pl_startup_plugins();
-}
-
-void AGSMac::ShutdownPlugins() {
-  pl_stop_plugins();
-}
-
-int AGSMac::RunPluginHooks(int event, int data) {
-  return pl_run_plugin_hooks(event, data);
-}
-
-void AGSMac::RunPluginInitGfxHooks(const char *driverName, void *data) {
-  pl_run_plugin_init_gfx_hooks(driverName, data);
-}
-
-int AGSMac::RunPluginDebugHooks(const char *scriptfile, int linenum) {
-  return pl_run_plugin_debug_hooks(scriptfile, linenum);
 }

@@ -129,12 +129,6 @@ struct AGSIOS : AGSPlatformDriver {
   virtual void WriteConsole(const char*, ...);
   virtual void ReplaceSpecialPaths(const char*, char*);
   virtual void WriteDebugString(const char* texx, ...);
-  virtual void ReadPluginsFromDisk(AGS::Common::DataStream *iii);
-  virtual void StartPlugins();
-  virtual void ShutdownPlugins();
-  virtual int RunPluginHooks(int event, int data);
-  virtual void RunPluginInitGfxHooks(const char *driverName, void *data);
-  virtual int RunPluginDebugHooks(const char *scriptfile, int linenum);
 };
 
 
@@ -697,29 +691,4 @@ void AGSIOS::ReplaceSpecialPaths(const char *sourcePath, char *destPath) {
   else {
     strcpy(destPath, sourcePath);
   }
-}
-
-
-void AGSIOS::ReadPluginsFromDisk(AGS::Common::DataStream *iii) {
-  pl_read_plugins_from_disk(iii);
-}
-
-void AGSIOS::StartPlugins() {
-  pl_startup_plugins();
-}
-
-void AGSIOS::ShutdownPlugins() {
-  pl_stop_plugins();
-}
-
-int AGSIOS::RunPluginHooks(int event, int data) {
-  return pl_run_plugin_hooks(event, data);
-}
-
-void AGSIOS::RunPluginInitGfxHooks(const char *driverName, void *data) {
-  pl_run_plugin_init_gfx_hooks(driverName, data);
-}
-
-int AGSIOS::RunPluginDebugHooks(const char *scriptfile, int linenum) {
-  return pl_run_plugin_debug_hooks(scriptfile, linenum);
 }

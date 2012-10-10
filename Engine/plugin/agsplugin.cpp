@@ -85,9 +85,6 @@ extern "C"
 #endif
 
 
-#if defined(ANDROID_VERSION)
-extern char android_app_directory[256];
-#endif
 
 extern IGraphicsDriver *gfxDriver;
 extern int scrnwid,scrnhit;
@@ -118,24 +115,16 @@ extern IAGSFontRenderer* fontRenderers[MAX_FONTS];
 
 // **************** PLUGIN IMPLEMENTATION ****************
 
-#if defined (PSP_VERSION)
-typedef SceUID HINSTANCE;
-typedef void * LPDIRECTDRAW2;
-typedef void * LPDIRECTDRAWSURFACE2;
 
-#elif !defined (WINDOWS_VERSION)
-#include <dlfcn.h>
-#define LoadLibrary(name) dlopen(name, RTLD_LOCAL)
-#define FreeLibrary dlclose
-#define GetProcAddress dlsym
-typedef void * HINSTANCE;
-typedef void * LPDIRECTDRAW2;
-typedef void * LPDIRECTDRAWSURFACE2;
-#endif
+#include "util/library.h"
+
+
+
 
 struct EnginePlugin {
     char        filename[50];
-    HINSTANCE   dllHandle;
+    AGS::Engine::Library   library;
+    bool       available;
     char       *savedata;
     int         savedatasize;
     int         wantHook;
@@ -150,11 +139,11 @@ struct EnginePlugin {
 
     EnginePlugin() {
         filename[0] = 0;
-        dllHandle = 0;
         wantHook = 0;
         invalidatedRegion = 0;
         savedata = NULL;
         builtin = false;
+        available = false;
     }
 };
 #define MAXPLUGINS 20
@@ -774,14 +763,14 @@ IAGSFontRenderer* IAGSEngine::ReplaceFontRenderer(int fontNumber, IAGSFontRender
 }
 
 
-// *********** Windows & Mac plugin implementation **********
+// *********** General plugin implementation **********
 
 void pl_stop_plugins() {
     int a;
     ccSetDebugHook(NULL);
 
     for (a = 0; a < numPlugins; a++) {
-        if (plugins[a].dllHandle != 0) {
+        if (plugins[a].available) {
             if (plugins[a].engineShutdown != NULL)
                 plugins[a].engineShutdown();
             plugins[a].wantHook = 0;
@@ -790,11 +779,7 @@ void pl_stop_plugins() {
                 plugins[a].savedata = NULL;
             }
             if (!plugins[a].builtin) {
-#if defined(PSP_VERSION)
-                sceKernelUnloadModule(plugins[a].dllHandle);
-#else
-                FreeLibrary (plugins[a].dllHandle);
-#endif
+              plugins[a].library.Unload();
             }
         }
     }
@@ -804,7 +789,7 @@ void pl_stop_plugins() {
 void pl_startup_plugins() {
     int i;
     for (i = 0; i < numPlugins; i++) {
-        if (plugins[i].dllHandle != 0)
+        if (plugins[i].available)
             plugins[i].engineStartup (&plugins[i].eiface);
     }
 }
@@ -856,7 +841,7 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         apl->onEvent = agsflashlight::AGS_EngineOnEvent;
         apl->debugHook = agsflashlight::AGS_EngineDebugHook;
         apl->initGfxHook = agsflashlight::AGS_EngineInitGfx;
-        apl->dllHandle = (HINSTANCE)1;
+        apl->available = true;
         apl->builtin = true;
         return true;
     }
@@ -867,7 +852,7 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         apl->onEvent = agsblend::AGS_EngineOnEvent;
         apl->debugHook = agsblend::AGS_EngineDebugHook;
         apl->initGfxHook = agsblend::AGS_EngineInitGfx;
-        apl->dllHandle = (HINSTANCE)1;
+        apl->available = true;
         apl->builtin = true;
         return true;
     }
@@ -878,7 +863,7 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         apl->onEvent = ags_snowrain::AGS_EngineOnEvent;
         apl->debugHook = ags_snowrain::AGS_EngineDebugHook;
         apl->initGfxHook = ags_snowrain::AGS_EngineInitGfx;
-        apl->dllHandle = (HINSTANCE)1;
+        apl->available = true;
         apl->builtin = true;
         return true;
     }
@@ -890,13 +875,14 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         apl->onEvent = agstouch::AGS_EngineOnEvent;
         apl->debugHook = agstouch::AGS_EngineDebugHook;
         apl->initGfxHook = agstouch::AGS_EngineInitGfx;
-        apl->dllHandle = (HINSTANCE)1;
+        apl->available = true;
         apl->builtin = true;
         return true;
     }
 #endif // IOS_VERSION
 #endif // BUILTIN_PLUGINS
 
+    AGS::Common::Out::FPrint("No built-in plugin found. Plugin loading failed!");
     return false;
 }
 
@@ -934,151 +920,36 @@ void pl_read_plugins_from_disk (DataStream *in) {
 
         // load the actual plugin from disk
         EnginePlugin *apl = &plugins[a];
-        strcpy (apl->filename, buffer);
-#if defined(MAC_VERSION)
-        // Compatibility with the old SnowRain module
-        if (stricmp(apl->filename, "ags_SnowRain20.dll") == 0)
-            strcpy(apl->filename, "ags_snowrain.dll");
+        strncpy(apl->filename, buffer, strlen(buffer) - strlen(".dll"));
 
-        // replace .dll with .dylib
-        char *extPos = strcasestr(apl->filename, ".dll");
-        if (extPos)
+        // Compatibility with the old SnowRain module
+        if (stricmp(apl->filename, "ags_SnowRain20") == 0)
+            strcpy(apl->filename, "ags_snowrain");
+
+        if (apl->library.Load(apl->filename))
         {
-            strcpy(extPos, ".dylib");
+          AGS::Common::Out::FPrint("Plugin loading succeeded, resolving imports...");
+
+          if (apl->library.GetFunctionAddress("AGS_PluginV2") == NULL) {
+              sprintf(buffer, "Plugin '%s' is an old incompatible version.", apl->filename);
+              quit(buffer);
+          }
+          apl->engineStartup = (void(*)(IAGSEngine*))apl->library.GetFunctionAddress("AGS_EngineStartup");
+          apl->engineShutdown = (void(*)())apl->library.GetFunctionAddress("AGS_EngineShutdown");
+
+          if (apl->engineStartup == NULL) {
+              sprintf(buffer, "Plugin '%s' is not a valid AGS plugin (no engine startup entry point)", apl->filename);
+              quit(buffer);
+          }
+          apl->onEvent = (int(*)(int,int))apl->library.GetFunctionAddress("AGS_EngineOnEvent");
+          apl->debugHook = (int(*)(const char*,int,int))apl->library.GetFunctionAddress("AGS_EngineDebugHook");
+          apl->initGfxHook = (void(*)(const char*, void*))apl->library.GetFunctionAddress("AGS_EngineInitGfx");
         }
         else
         {
-            strcat(apl->filename, ".dylib");
-        }
-        apl->dllHandle = LoadLibrary(apl->filename);
-        if (apl->dllHandle == NULL)
-        {
-            // no dylib in the game directory
-            // try to load dylib from application directory
-            char caDylib[512];
-            sprintf(caDylib, "%s/%s", appDirectory, apl->filename);
-            apl->dllHandle = LoadLibrary(caDylib);
-            if (apl->dllHandle == NULL)
-            {
-                if (!pl_use_builtin_plugin(apl))
-                    continue;
-            }
-        }
-#elif defined(ANDROID_VERSION)
-        char library_name[200];
-
-        // Compatibility with the old SnowRain module
-        if (stricmp(apl->filename, "ags_SnowRain20.dll") == 0)
-            strcpy(apl->filename, "ags_snowrain.dll");
-
-        strlwr(apl->filename);
-
-        sprintf(library_name, "%s/lib/lib%s", android_app_directory, apl->filename);
-        strcpy(&library_name[strlen(library_name) - 4], ".so");
-
-        apl->dllHandle = dlopen(library_name, RTLD_LAZY);
-
-        if (apl->dllHandle == NULL)
-        {
-            if (!pl_use_builtin_plugin(apl))
-                continue;
-        }
-
-#elif defined(PSP_VERSION)
-        char module_name[50];
-
-        // Compatibility with the old SnowRain module
-        if (stricmp(apl->filename, "ags_SnowRain20.dll") == 0)
-            strcpy(apl->filename, "ags_snowrain.dll");
-
-        strlwr(apl->filename);
-
-        strcpy(module_name, apl->filename);
-        module_name[strlen(module_name) - 4] = '\0';
-
-        strcpy(&apl->filename[strlen(apl->filename) - 4], ".prx");
-        printf("loading plugin %s, %s\n", apl->filename, module_name);
-
-        if ((apl->dllHandle = pspSdkLoadStartModule(apl->filename, PSP_MEMORY_PARTITION_USER)) < 0)
-        {
-            char file_name[53];
-            strcpy(file_name, "../");
-            strcat(file_name, apl->filename);
-            apl->dllHandle = pspSdkLoadStartModule(file_name, PSP_MEMORY_PARTITION_USER);
-        }
-
-        if (apl->dllHandle < 0)
-        {
-            apl->dllHandle = NULL; // dllhandle contains an error code at this point, set it to NULL for the engine
-            if (!pl_use_builtin_plugin(apl))
-                continue;
-        }
-#elif defined(LINUX_VERSION)
-        // Compatibility with the old SnowRain module
-        if (stricmp(apl->filename, "ags_SnowRain20.dll") == 0)
-            strcpy(apl->filename, "ags_snowrain.dll");
-
-        // replace .dll with .so
-        char *extPos = strcasestr(apl->filename, ".dll");
-        if (extPos)
-        {
-            strcpy(extPos, ".so");
-        }
-        else
-        {
-            strcat(apl->filename, ".so");
-        }
-        apl->dllHandle = LoadLibrary(apl->filename);
-        if (apl->dllHandle == NULL)
-        {
-            if (!pl_use_builtin_plugin(apl))
-                continue;
-        }
-#else
-        apl->dllHandle = LoadLibrary (apl->filename);
-        if (apl->dllHandle == NULL)
-        {
-            if (!pl_use_builtin_plugin(apl))
-                continue;
-        }
-#endif
-
-        else
-        {
-
-#if defined(PSP_VERSION)
-            if (kernel_sctrlHENFindFunction(module_name, module_name, 0x960C49BD) == 0) {
-                sprintf(buffer, "Plugin '%s' is an old incompatible version.", apl->filename);
-                quit(buffer);
-            }
-
-            apl->engineStartup = (void(*)(IAGSEngine*))kernel_sctrlHENFindFunction(module_name, module_name, 0x0F13D9E8); // AGS_EngineStartup
-            apl->engineShutdown = (void(*)())kernel_sctrlHENFindFunction(module_name, module_name, 0x2F131C76); // AGS_EngineShutdown
-
-            if (apl->engineStartup == NULL) {
-                sprintf(buffer, "Plugin '%s' is not a valid AGS plugin (no engine startup entry point)", apl->filename);
-                quit(buffer);
-            }
-
-            apl->onEvent = (int(*)(int,int))kernel_sctrlHENFindFunction(module_name, module_name, 0xE3DFFC5A); // AGS_EngineOnEvent
-            apl->debugHook = (int(*)(const char*,int,int))kernel_sctrlHENFindFunction(module_name, module_name, 0xC37D6879); // AGS_EngineDebugHook
-            apl->initGfxHook = (void(*)(const char*, void*))kernel_sctrlHENFindFunction(module_name, module_name, 0xA428D254); // AGS_EngineInitGfx
-#else
-            if (GetProcAddress (apl->dllHandle, "AGS_PluginV2") == NULL) {
-                sprintf(buffer, "Plugin '%s' is an old incompatible version.", apl->filename);
-                quit(buffer);
-            }
-            apl->engineStartup = (void(*)(IAGSEngine*))GetProcAddress (apl->dllHandle, "AGS_EngineStartup");
-            apl->engineShutdown = (void(*)())GetProcAddress (apl->dllHandle, "AGS_EngineShutdown");
-
-            if (apl->engineStartup == NULL) {
-                sprintf(buffer, "Plugin '%s' is not a valid AGS plugin (no engine startup entry point)", apl->filename);
-                quit(buffer);
-            }
-            apl->onEvent = (int(*)(int,int))GetProcAddress (apl->dllHandle, "AGS_EngineOnEvent");
-            apl->debugHook = (int(*)(const char*,int,int))GetProcAddress (apl->dllHandle, "AGS_EngineDebugHook");
-            apl->initGfxHook = (void(*)(const char*, void*))GetProcAddress (apl->dllHandle, "AGS_EngineInitGfx");
-#endif
+          AGS::Common::Out::FPrint("Plugin loading failed, trying built-in plugins...");
+          if (!pl_use_builtin_plugin(apl))
+              continue;
         }
 
         if (datasize > 0) {
@@ -1089,6 +960,8 @@ void pl_read_plugins_from_disk (DataStream *in) {
         apl->eiface.pluginId = a;
         apl->eiface.version = 24;
         apl->wantHook = 0;
+
+        apl->available = true;
     }
 
 }

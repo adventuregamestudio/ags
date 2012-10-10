@@ -24,6 +24,7 @@
 #include "util/string_utils.h"
 #include "util/datastream.h"
 #include "gfx/bitmap.h"
+#include "plugin/agsplugin.h"
 
 using AGS::Common::DataStream;
 using AGS::Common::String;
@@ -41,11 +42,6 @@ AGSPlatformDriver *platform = NULL;
 
 // ******** DEFAULT IMPLEMENTATIONS *******
 
-int  AGSPlatformDriver::RunPluginDebugHooks(const char *scriptfile, int linenum) { return 0; }
-void AGSPlatformDriver::RunPluginInitGfxHooks(const char *driverName, void *data) { }
-void AGSPlatformDriver::ShutdownPlugins() { }
-void AGSPlatformDriver::StartPlugins() { }
-int  AGSPlatformDriver::RunPluginHooks(int event, long data) { return 0; }
 void AGSPlatformDriver::WriteDebugString(const char*, ...) { }
 void AGSPlatformDriver::AboutToQuitGame() { }
 void AGSPlatformDriver::PostAllegroInit(bool windowed) { }
@@ -88,19 +84,42 @@ void AGSPlatformDriver::ReplaceSpecialPaths(const char *sourcePath, char *destPa
 
 }
 
-void AGSPlatformDriver::ReadPluginsFromDisk(DataStream *in) {
-    if (in->ReadInt32() != 1)
-        quit("ERROR: unable to load game, invalid version of plugin data");
+void AGSPlatformDriver::ReadPluginsFromDisk(AGS::Common::DataStream *iii) {
+#if 1
+  pl_read_plugins_from_disk(iii);
+#else
+  if (iii->ReadInt32() != 1)
+      quit("ERROR: unable to load game, invalid version of plugin data");
 
-    int numPlug = in->ReadInt32(), a, datasize;
-    String buffer;
-    for (a = 0; a < numPlug; a++) {
-        // read the plugin name
-        buffer = in->ReadString();
-        datasize = in->ReadInt32();
-        in->Seek (Common::kSeekCurrent, datasize);
-    }
+  int numPlug = iii->ReadInt32(), a, datasize;
+  String buffer;
+  for (a = 0; a < numPlug; a++) {
+      // read the plugin name
+      buffer = iii->ReadString();
+      datasize = iii->ReadInt32();
+      iii->Seek (Common::kSeekCurrent, datasize);
+  }
+#endif
+}
 
+void AGSPlatformDriver::StartPlugins() {
+  pl_startup_plugins();
+}
+
+void AGSPlatformDriver::ShutdownPlugins() {
+  pl_stop_plugins();
+}
+
+int AGSPlatformDriver::RunPluginHooks(int event, long data) {
+  return pl_run_plugin_hooks(event, data);
+}
+
+void AGSPlatformDriver::RunPluginInitGfxHooks(const char *driverName, void *data) {
+  pl_run_plugin_init_gfx_hooks(driverName, data);
+}
+
+int AGSPlatformDriver::RunPluginDebugHooks(const char *scriptfile, int linenum) {
+  return pl_run_plugin_debug_hooks(scriptfile, linenum);
 }
 
 void AGSPlatformDriver::InitialiseAbufAtStartup()

@@ -39,9 +39,10 @@
 #include "test/test_all.h"
 #endif
 
+char appDirectory[512]; // Needed for library loading
+
 #ifdef MAC_VERSION
 char dataDirectory[512];
-char appDirectory[512];
 extern "C"
 {
     int osx_sys_question(const char *msg, const char *but1, const char *but2);
@@ -271,9 +272,7 @@ void main_set_gamedir(int argc,char*argv[])
         change_to_directory_of_file(wArgv[0]);
     }
 
-#ifdef MAC_VERSION
     getcwd(appDirectory, 512);
-#endif
 
     //if (change_to_game_dir == 1)  {
     if (datafile_argv > 0) {

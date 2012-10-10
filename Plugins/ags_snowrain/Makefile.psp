@@ -1,5 +1,6 @@
 TARGET = ags_snowrain
-OBJS = psp.o ags_snowrain.o
+include Makefile-objs
+OBJS += psp.o
 
 BUILD_PRX = 1
 PRX_EXPORTS = exports.exp

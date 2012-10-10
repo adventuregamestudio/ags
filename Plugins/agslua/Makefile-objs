@@ -1,0 +1,14 @@
+OBJS = agslua/agslua/agslua_autogen.o \
+agslua/agslua/AGSLua_Main.o \
+agslua/agslua/AGSManagedObjects.o \
+agslua/agslua/AGSStructFields.o \
+agslua/agslua/CompressedLuaChunks.o \
+agslua/agslua/Internal.o \
+agslua/agslua/LuaCustomisation.o \
+agslua/agslua/LuaFromAGS.o \
+agslua/agslua/LuaValueList.o \
+agslua/agslua/SerializeLuaUniverse.o \
+agslua/agslua/DLLStuff.o \
+agslua/agslua/pluto.o \
+agslua/agslua/pdep.o \
+agslua/agslua/lzio.o

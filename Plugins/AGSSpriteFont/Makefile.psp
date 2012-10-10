@@ -1,12 +1,6 @@
 TARGET = agsspritefont
-OBJS = psp.o \
-AGSSpriteFont/AGSSpriteFont.o \
-AGSSpriteFont/CharacterEntry.o \
-AGSSpriteFont/color.o \
-AGSSpriteFont/SpriteFont.o \
-AGSSpriteFont/SpriteFontRenderer.o \
-AGSSpriteFont/VariableWidthFont.o \
-AGSSpriteFont/VariableWidthSpriteFont.o
+include Makefile-objs
+OBJS += psp.o
 
 BUILD_PRX = 1
 PRX_EXPORTS = exports.exp

@@ -1,5 +1,6 @@
 TARGET = agsflashlight
-OBJS = psp.o agsflashlight.o
+include Makefile-objs
+OBJS += psp.o
 
 BUILD_PRX = 1
 PRX_EXPORTS = exports.exp

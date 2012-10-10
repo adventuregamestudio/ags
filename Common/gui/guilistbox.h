@@ -91,6 +91,12 @@ struct GUIListBox:public GUIObject
     reset();
   }
 
+  virtual ~GUIListBox()
+  {
+    for (int i = 0; i < numItems; i++)
+      free(items[i]);
+  }
+
 private:
   int numItemsTemp;
 

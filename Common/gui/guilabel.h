@@ -68,6 +68,12 @@ public:
     reset();
   }
 
+  virtual ~GUILabel()
+  {
+    if (textBufferLen > 0)
+      free(text);
+  }
+
 private:
   void Draw_replace_macro_tokens(char *oritext, char *text);
   void Draw_split_lines(char *teptr, int wid, int font, int &numlines);

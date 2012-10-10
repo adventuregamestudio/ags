@@ -53,6 +53,7 @@ namespace Common
 
 	AllegroBitmap *bitmap = new AllegroBitmap();
 	bitmap->_bitmap = (BITMAP*)bitmap_object;
+	bitmap->_isDataOwner = true;
 	return bitmap;
 }
 

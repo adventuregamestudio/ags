@@ -41,21 +41,25 @@ int MYSTATICMP3::poll()
     int oldeip = our_eip;
     our_eip = 5997;
     
-    _mp3_mutex.Lock();
-
     if ((tune == NULL) || (!ready))
         ;
-    else if (almp3_poll_mp3(tune) == ALMP3_POLL_PLAYJUSTFINISHED) {
+    else 
+    {
+      _mp3_mutex.Lock();
+      int result = almp3_poll_mp3(tune);
+      _mp3_mutex.Unlock();
+
+      if (result == ALMP3_POLL_PLAYJUSTFINISHED)
+      {
         if (!repeat)
         {
             done = 1;
             if (psp_audio_multithreaded)
                 internal_destroy();
         }
+      }
     }
     our_eip = oldeip;
-
-    _mp3_mutex.Unlock();
 
     _mutex.Unlock();
 

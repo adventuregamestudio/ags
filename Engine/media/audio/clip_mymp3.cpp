@@ -65,13 +65,15 @@ int MYMP3::poll()
     }
 
     _mp3_mutex.Lock();
-    if (almp3_poll_mp3stream(stream) == ALMP3_POLL_PLAYJUSTFINISHED)
+    int result = almp3_poll_mp3stream(stream);
+    _mp3_mutex.Unlock();
+
+    if (result == ALMP3_POLL_PLAYJUSTFINISHED)
     {
         done = 1;
         if (psp_audio_multithreaded)
             internal_destroy();
     }
-    _mp3_mutex.Unlock();
 
     _mutex.Unlock();
 

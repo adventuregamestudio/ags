@@ -119,7 +119,7 @@ void ccSetDebugHook(new_line_hook_type jibble)
 }
 
 // parm list is backwards (last arg is parms[0])
-int call_function(long addr, int numparm, RuntimeScriptValue *parms, int offset)
+int call_function(long addr, int numparm, const RuntimeScriptValue *parms, int offset)
 {
     if (!addr)
     {
@@ -137,8 +137,25 @@ int call_function(long addr, int numparm, RuntimeScriptValue *parms, int offset)
     long parm_value[9];
     for (int i = 0; i < numparm; ++i)
     {
-        // CHECKME: can this be stack ptr?
-        parm_value[i] = (long)parms[i].GetLong();
+        const RuntimeScriptValue *real_param;
+        if (parms[i].GetType() == kScValStackPtr)
+        {
+            // There's at least one known case when this may be a stack pointer:
+            // AGS 2.x style local strings that have their address pushed to stack
+            // after array of chars; in the new interpreter implementation we push
+            // these addresses as runtime values of stack ptr type to keep correct
+            // value size.
+            // It is not a good idea to pass stack ptr to function, pass the value
+            // it points to instead.
+            real_param = parms[i].GetStackEntry();
+        }
+        else
+        {
+            real_param = &parms[i];
+        }
+
+        // NOTE: in case of generic type this will return just Value
+        parm_value[i] = (intptr_t)real_param->GetDataPtrWithOffset();
     }
 
     if (numparm == 1) {

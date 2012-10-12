@@ -170,7 +170,9 @@ ccInstance::ccInstance()
     stringssize         = 0;
     exportaddr          = NULL;
     stack               = NULL;
-    stacksize           = 0;
+    num_stackentries    = 0;
+    stackdata           = NULL;
+    stackdatasize       = 0;
     pc                  = 0;
     line_number         = 0;
     instanceof          = NULL;
@@ -283,13 +285,14 @@ int ccInstance::CallScriptFunction(char *funcname, long numargs, ...)
     registers[SREG_OP].SetLong(0);
 
     ccInstance* currentInstanceWas = current_instance;
-    long stoffs = 0;
+    //long stoffs = 0;
+    registers[SREG_SP].SetStackPtr( &stack[0] );
+    stackdata_ptr = stackdata;
     for (tssize = numargs - 1; tssize >= 0; tssize--) {
-        memcpy(&stack[stoffs], &tempstack[tssize], sizeof(long));
-        stoffs += sizeof(long);
+        //memcpy(&stack[stoffs], &tempstack[tssize], sizeof(long));
+        //stoffs += sizeof(long);
+        PushValueToStack(RuntimeScriptValue().SetLong(tempstack[tssize]));
     }
-    registers[SREG_SP].SetLong( (long)(&stack[0]) );
-    registers[SREG_SP] += (numargs * sizeof(long));
     runningInst = this;
 
 #if defined(AGS_64BIT)
@@ -304,7 +307,7 @@ int ccInstance::CallScriptFunction(char *funcname, long numargs, ...)
 #endif
 
     int reterr = Run(startat);
-    registers[SREG_SP] -= (numargs - 1) * sizeof(long);
+    PopValuesFromStack(numargs - 1);
     pc = 0;
     current_instance = currentInstanceWas;
 
@@ -328,7 +331,7 @@ int ccInstance::CallScriptFunction(char *funcname, long numargs, ...)
         return 100;
     }
 
-    if (registers[SREG_SP] != (long)&stack[0]) {
+    if (registers[SREG_SP].GetStackEntry() != &stack[0]) {
         cc_error("stack pointer was not zero at completion of script");
         return -5;
     }
@@ -407,7 +410,7 @@ int ccInstance::PrepareTextScript(char**tsname) {
 }
 
 #define CHECK_STACK \
-    if ((registers[SREG_SP].GetLong() - ((long)&stack[0])) >= CC_STACK_SIZE) { \
+    if ((registers[SREG_SP].GetStackEntry() - &stack[0]) >= CC_STACK_SIZE) { \
     cc_error("stack overflow"); \
     return -1; \
     }
@@ -501,6 +504,7 @@ int ccInstance::Run(long curpc)
               new_line_hook(this, currentline);
           break;
       case SCMD_ADD:
+          // FIXME AGS_64BIT
 #if defined(AGS_64BIT)
           // 64 bit: Keeping track of the stack variables
           if (arg1 == SREG_SP)
@@ -509,11 +513,29 @@ int ccInstance::Run(long curpc)
               stackSizeIndex++;
           }
 #endif
-
-          reg1 += arg2;
+          // If the the register is SREG_SP, we are allocating new variable on the stack
+          if (arg1.GetLong() == SREG_SP)
+          {
+            // Only allocate new data if current stack entry is invalid;
+            // in some cases this may be advancing over value that was written by MEMWRITE*
+            if (reg1.GetStackEntry()->IsValid())
+            {
+              // TODO: perhaps should add a flag here to ensure this happens only after MEMWRITE-ing to stack
+              registers[SREG_SP].SetStackPtr(registers[SREG_SP].GetStackEntry() + 1); // TODO: optimize with ++?
+            }
+            else
+            {
+              PushDataToStack(arg2.GetLong());
+            }
+          }
+          else
+          {
+            reg1 += arg2;
+          }
           CHECK_STACK 
               break;
       case SCMD_SUB:
+          // FIXME AGS_64BIT
 #if defined(AGS_64BIT)
           // 64 bit: Rewrite the offset so that it doesn't point inside a variable on the stack.
           // AGS 2.x games also perform relative stack access by copying SREG_SP to SREG_MAR
@@ -548,7 +570,27 @@ int ccInstance::Run(long curpc)
           else
               reg1 -= arg2;
 #else
-          reg1 -= arg2;
+          if (reg1.GetType() == kScValStackPtr)
+          {
+            // If this is SREG_SP, this is stack pop, which frees local variables;
+            // Other than SREG_SP this may be AGS 2.x method to offset stack in SREG_MAR;
+            // quote JJS:
+            // // AGS 2.x games also perform relative stack access by copying SREG_SP to SREG_MAR
+            // // and then subtracting from that.
+            if (arg1.GetLong() == SREG_SP)
+            {
+                PopDataFromStack(arg2.GetLong());
+            }
+            else
+            {
+                // This is practically LOADSPOFFS
+                reg1 = GetStackPtrOffsetRw(arg2.GetLong());
+            }
+          }
+          else
+          {
+            reg1 -= arg2;
+          }
 #endif  
           break;
       case SCMD_REGTOREG:
@@ -572,7 +614,8 @@ int ccInstance::Run(long curpc)
               registers[SREG_MAR].WriteInt16(arg2.GetInt());
               break;
           case sizeof(int32_t):
-              registers[SREG_MAR].WriteInt32(arg2.GetInt());
+              // We do not know if this is math integer or some pointer, etc
+              registers[SREG_MAR].WriteValue(arg2);
               break;
           default:
               cc_error("unexpected data size for WRITELIT op: %d", arg1.GetLong());
@@ -580,16 +623,18 @@ int ccInstance::Run(long curpc)
           }
           break;
       case SCMD_RET:
+          {
           if (loopIterationCheckDisabled > 0)
               loopIterationCheckDisabled--;
 
-          registers[SREG_SP] -= sizeof(long);
+          RuntimeScriptValue rval = PopValueFromStack(); //-= sizeof(long);
+          // FIXME AGS_64BIT
 #if defined(AGS_64BIT)
           stackSizeIndex--;
 #endif
-
           curnest--;
-          memcpy(&(pc), (char*)registers[SREG_SP].GetLong(), sizeof(long));
+          //memcpy(&(pc), (char*)registers[SREG_SP].GetLong(), sizeof(long));
+          pc = rval.GetInt();//registers[SREG_SP].ReadInt32();
           if (pc == 0)
           {
               returnValue = registers[SREG_AX].GetInt();
@@ -598,6 +643,7 @@ int ccInstance::Run(long curpc)
           current_instance = this;
           POP_CALL_STACK;
           continue;                 // continue so that the PC doesn't get overwritten
+          }
       case SCMD_LITTOREG:
           reg1 = arg2;
           break;
@@ -640,6 +686,7 @@ int ccInstance::Run(long curpc)
 #endif
           break;
       case SCMD_LOADSPOFFS:
+          // FIXME AGS_64BIT
 #if defined(AGS_64BIT)
           // 64 bit: Rewrite offset so that it doesn't point inside a variable
           original_sp_diff = arg1;
@@ -667,21 +714,22 @@ int ccInstance::Run(long curpc)
 
           registers[SREG_MAR] = registers[SREG_SP] - new_sp_diff;
 #else
-          registers[SREG_MAR].SetLong( registers[SREG_SP].GetLong() - arg1.GetLong() );
+          //registers[SREG_MAR].SetLong( registers[SREG_SP].GetLong() - arg1.GetLong() );
+          registers[SREG_MAR] = GetStackPtrOffsetRw(arg1.GetLong());
 #endif
           break;
 
           // 64 bit: Force 32 bit math
 
       case SCMD_MULREG:
-          reg1.SetInt(reg1.GetInt() * reg2.GetInt());
+          reg1.SetInt32(reg1.GetInt() * reg2.GetInt());
           break;
       case SCMD_DIVREG:
           if (reg2 == 0) {
               cc_error("!Integer divide by zero");
               return -1;
           } 
-          reg1.SetInt(reg1.GetInt() / reg2.GetInt());
+          reg1.SetInt32(reg1.GetInt() / reg2.GetInt());
           break;
       case SCMD_ADDREG:
           // This may be pointer arithmetics!
@@ -692,44 +740,44 @@ int ccInstance::Run(long curpc)
           reg1 -= reg2;
           break;
       case SCMD_BITAND:
-          reg1.SetInt(reg1.GetInt() & reg2.GetInt());
+          reg1.SetInt32(reg1.GetInt() & reg2.GetInt());
           break;
       case SCMD_BITOR:
-          reg1.SetInt(reg1.GetInt() | reg2.GetInt());
+          reg1.SetInt32(reg1.GetInt() | reg2.GetInt());
           break;
       case SCMD_ISEQUAL:
-          reg1.SetInt(reg1.GetInt() == reg2.GetInt());
+          reg1.SetInt32(reg1.GetInt() == reg2.GetInt());
           break;
       case SCMD_NOTEQUAL:
-          reg1.SetInt(reg1.GetInt() != reg2.GetInt());
+          reg1.SetInt32(reg1.GetInt() != reg2.GetInt());
           break;
       case SCMD_GREATER:
-          reg1.SetInt(reg1.GetInt() > reg2.GetInt());
+          reg1.SetInt32(reg1.GetInt() > reg2.GetInt());
           break;
       case SCMD_LESSTHAN:
-          reg1.SetInt(reg1.GetInt() < reg2.GetInt());
+          reg1.SetInt32(reg1.GetInt() < reg2.GetInt());
           break;
       case SCMD_GTE:
-          reg1.SetInt(reg1.GetInt() >= reg2.GetInt());
+          reg1.SetInt32(reg1.GetInt() >= reg2.GetInt());
           break;
       case SCMD_LTE:
-          reg1.SetInt(reg1.GetInt() <= reg2.GetInt());
+          reg1.SetInt32(reg1.GetInt() <= reg2.GetInt());
           break;
       case SCMD_AND:
-          reg1.SetInt(reg1.GetInt() && reg2.GetInt());
+          reg1.SetInt32(reg1.GetInt() && reg2.GetInt());
           break;
       case SCMD_OR:
-          reg1.SetInt(reg1.GetInt() || reg2.GetInt());
+          reg1.SetInt32(reg1.GetInt() || reg2.GetInt());
           break;
       case SCMD_XORREG:
-          reg1.SetInt(reg1.GetInt() ^ reg2.GetInt());
+          reg1.SetInt32(reg1.GetInt() ^ reg2.GetInt());
           break;
       case SCMD_MODREG:
           if (reg2 == 0) {
               cc_error("!Integer divide by zero");
               return -1;
           } 
-          reg1.SetInt(reg1.GetInt() % reg2.GetInt());
+          reg1.SetInt32(reg1.GetInt() % reg2.GetInt());
           break;
       case SCMD_NOTREG:
           reg1 = !(reg1);
@@ -745,10 +793,9 @@ int ccInstance::Run(long curpc)
           PUSH_CALL_STACK;
 
           //memcpy((char*)registers[SREG_SP], &temp_variable, sizeof(intptr_t));
-          registers[SREG_SP].WriteInt32( pc + sccmd_info[codeOp.Instruction.Code].ArgCount + 1 );
+          PushValueToStack(RuntimeScriptValue().SetInt32(pc + sccmd_info[codeOp.Instruction.Code].ArgCount + 1));
 
-          registers[SREG_SP] += sizeof(long);
-
+          // FIXME AGS_64BIT
 #if defined(AGS_64BIT)
           stackSizes[stackSizeIndex] = -1;
           stackSizeIndex++;
@@ -776,7 +823,7 @@ int ccInstance::Run(long curpc)
           // Take the data address from reg[MAR] and copy byte to reg[arg1]
           //tbyte = *((unsigned char *)registers[SREG_MAR]);
           //reg1 = tbyte;
-          reg1.SetInt(registers[SREG_MAR].ReadByte());
+          reg1.SetInt8(registers[SREG_MAR].ReadByte());
           break;
       case SCMD_MEMREADW:
           // Take the data address from reg[MAR] and copy int16_t to reg[arg1]
@@ -789,7 +836,7 @@ int ccInstance::Run(long curpc)
           }
 #endif
           //reg1 = tshort;
-          reg1.SetInt(registers[SREG_MAR].ReadInt16());
+          reg1.SetInt16(registers[SREG_MAR].ReadInt16());
           break;
       case SCMD_MEMWRITEB:
           // Take the data address from reg[MAR] and copy there byte from reg[arg1]
@@ -819,6 +866,7 @@ int ccInstance::Run(long curpc)
               pc += arg1.GetLong();
           break;
       case SCMD_PUSHREG:
+          // FIXME AGS_64BIT
 #if defined(AGS_64BIT)
           // 64 bit: Registers are pushed as 8 byte values. Their size is set to "-1" so that
           // they can be identified later.
@@ -828,11 +876,11 @@ int ccInstance::Run(long curpc)
 
           // Push reg[arg1] value to the stack
           //memcpy((char*)registers[SREG_SP], &reg1, sizeof(long));
-          registers[SREG_SP].WriteValue(reg1);
-          registers[SREG_SP] += sizeof(long);
+          PushValueToStack(reg1);
           CHECK_STACK
               break;
       case SCMD_POPREG:
+          // FIXME AGS_64BIT
 #if defined(AGS_64BIT)
           // 64 bit: Registers are pushed as 8 byte values
           if (stackSizes[stackSizeIndex - 1] != -1)
@@ -840,10 +888,8 @@ int ccInstance::Run(long curpc)
 
           stackSizeIndex--;
 #endif
-
-          registers[SREG_SP] -= sizeof(long);
           //memcpy(&reg1, (char*)registers[SREG_SP], sizeof(long));
-          reg1 = registers[SREG_SP].ReadValue();
+          reg1 = PopValueFromStack();//registers[SREG_SP].ReadValue();
           break;
       case SCMD_JMP:
           pc += arg1.GetLong();
@@ -876,10 +922,11 @@ int ccInstance::Run(long curpc)
           break;
       case SCMD_DYNAMICBOUNDS:
           {
-              long upperBoundInBytes = *((long *)(registers[SREG_MAR].GetLong() - 4));
+              // CHECKME!! what types of data may reg[MAR] point to?
+              long upperBoundInBytes = *((long *)(registers[SREG_MAR].GetDataPtrWithOffset() - 4));
               if ((reg1 < 0) ||
                   (reg1 >= upperBoundInBytes)) {
-                      long upperBound = *((long *)(registers[SREG_MAR].GetLong() - 8)) & (~ARRAY_MANAGED_TYPE_FLAG);
+                      long upperBound = *((long *)(registers[SREG_MAR].GetDataPtrWithOffset() - 8)) & (~ARRAY_MANAGED_TYPE_FLAG);
                       int elementSize = (upperBoundInBytes / upperBound);
                       cc_error("!Array index out of bounds (index: %d, bounds: 0..%d)", reg1.GetLong() / elementSize, upperBound - 1);
                       return -1;
@@ -905,7 +952,8 @@ int ccInstance::Run(long curpc)
           //memcpy(&handle, (char*)(registers[SREG_MAR]), 4);
           long handle = registers[SREG_MAR].ReadInt32();
 
-          long newHandle = ccGetObjectHandleFromAddress((char*)reg1.GetLong());
+          // CHECKME!! what type of data may reg1 point to?
+          long newHandle = ccGetObjectHandleFromAddress((char*)reg1.GetDataPtrWithOffset());
           if (newHandle == -1)
               return -1;
 
@@ -923,7 +971,8 @@ int ccInstance::Run(long curpc)
           //memcpy(&handle, ((char*)registers[SREG_MAR]), 4);
           long handle = registers[SREG_MAR].ReadInt32();
 
-          long newHandle = ccGetObjectHandleFromAddress((char*)reg1.GetLong());
+          // CHECKME!! what type of data may reg1 point to?
+          long newHandle = ccGetObjectHandleFromAddress((char*)reg1.GetDataPtrWithOffset());
           if (newHandle == -1)
               return -1;
 
@@ -948,7 +997,8 @@ int ccInstance::Run(long curpc)
           // for returning a String (or other pointer) from a custom function.
           // Note: we might be freeing a dynamic array which contains the DisableDispose
           // object, that will be handled inside the recursive call to SubRef.
-          pool.disableDisposeForObject = (const char*)registers[SREG_AX].GetLong();
+          // CHECKME!! what type of data may reg1 point to?
+          pool.disableDisposeForObject = (const char*)registers[SREG_AX].GetDataPtrWithOffset();
           ccReleaseObjectReference(handle);
           pool.disableDisposeForObject = NULL;
           //memset(((char*)registers[SREG_MAR]), 0, 4);
@@ -984,9 +1034,9 @@ int ccInstance::Run(long curpc)
           for (int i = startArg; i < callstacksize; ++i) {
               // 64 bit: Arguments are pushed as 64 bit values
               //memcpy((char*)registers[SREG_SP], &(callstack[aa]), sizeof(long));
-              registers[SREG_SP].WriteValue(callstack[i]);
-              registers[SREG_SP] += sizeof(long);
+              PushValueToStack(callstack[i]);
 
+              // FIXME AGS_64BIT
 #if defined(AGS_64BIT)
               stackSizes[stackSizeIndex] = -1;//sizeof(long);
               stackSizeIndex++;
@@ -995,12 +1045,11 @@ int ccInstance::Run(long curpc)
 
           // 0, so that the cc_run_code returns
           //memset((char*)registers[SREG_SP], 0, sizeof(long));
-          registers[SREG_SP].WriteInt32(0);
-
-          long oldstack = registers[SREG_SP].GetLong();
-          registers[SREG_SP] += sizeof(long);
+          RuntimeScriptValue oldstack = registers[SREG_SP];
+          PushValueToStack(RuntimeScriptValue().SetInt32(0));
           CHECK_STACK
 
+              // FIXME AGS_64BIT
 #if defined(AGS_64BIT)
               stackSizes[stackSizeIndex] = -1;//sizeof(long);
           stackSizeIndex++;
@@ -1014,6 +1063,7 @@ int ccInstance::Run(long curpc)
               //(codeInst->code[pc] >> INSTANCE_ID_SHIFT) & INSTANCE_ID_MASK;
           // determine the offset into the code of the instance we want
           runningInst = loadedInstances[instId];
+          // FIXME later: use different getter
           unsigned long callAddr = reg1.GetLong() - (unsigned long)(&runningInst->code[0]);
           if (callAddr % 4 != 0) {
               cc_error("call address not aligned");
@@ -1029,7 +1079,7 @@ int ccInstance::Run(long curpc)
           if (flags & INSTF_ABORTED)
               return 0;
 
-          if (oldstack != registers[SREG_SP].GetLong()) {
+          if (oldstack != registers[SREG_SP]) {
               cc_error("stack corrupt after function call");
               return -1;
           }
@@ -1057,15 +1107,18 @@ int ccInstance::Run(long curpc)
               call_uses_object = 1;
               next_call_needs_object = 0;
               callstack[callstacksize] = registers[SREG_OP];
-              registers[SREG_AX].SetInt(
+              registers[SREG_AX].SetInt32(
+                  // FIXME later: use different getter
                   call_function(reg1.GetLong(), num_args_to_func + 1, callstack, callstacksize - num_args_to_func) );
           }
           else if (num_args_to_func == 0) {
+              // FIXME later: use different getter
               realfunc = (int (*)())reg1.GetLong();
-              registers[SREG_AX].SetInt( realfunc() );
+              registers[SREG_AX].SetInt32( realfunc() );
           } 
           else
-              registers[SREG_AX].SetInt(
+              registers[SREG_AX].SetInt32(
+              // FIXME later: use different getter
                     call_function(reg1.GetLong(), num_args_to_func, callstack, callstacksize - num_args_to_func) );
 
           if (ccError)
@@ -1090,7 +1143,8 @@ int ccInstance::Run(long curpc)
           break;
       case SCMD_SUBREALSTACK:
           if (was_just_callas >= 0) {
-              registers[SREG_SP] -= arg1.GetLong() * sizeof(long);
+              PopValuesFromStack(arg1.GetLong()); // -= arg1.GetLong() * sizeof(long);
+              // FIXME AGS_64BIT
 #if defined(AGS_64BIT)
               stackSizeIndex -= arg1;
 #endif
@@ -1108,10 +1162,10 @@ int ccInstance::Run(long curpc)
           next_call_needs_object = 1;
           break;
       case SCMD_SHIFTLEFT:
-          reg1.SetInt(reg1.GetInt() << reg2.GetInt());
+          reg1.SetInt32(reg1.GetInt() << reg2.GetInt());
           break;
       case SCMD_SHIFTRIGHT:
-          reg1.SetInt(reg1.GetInt() >> reg2.GetInt());
+          reg1.SetInt32(reg1.GetInt() >> reg2.GetInt());
           break;
       case SCMD_THISBASE:
           thisbase[curnest] = arg1.GetLong();
@@ -1164,30 +1218,45 @@ int ccInstance::Run(long curpc)
           reg1.SetFloat(reg1.GetFloat() <= reg2.GetFloat());
           break;
       case SCMD_ZEROMEMORY:
-          mptr = (char *)(registers[SREG_MAR].GetLong());
-          if (registers[SREG_MAR].GetLong() == registers[SREG_SP].GetLong()) {
+          // Check if we are zeroing at stack tail
+          if (registers[SREG_MAR] == registers[SREG_SP]) {
               // creating a local variable -- check the stack to ensure no mem overrun
-              int currentStackSize = registers[SREG_SP].GetLong() - ((long)&stack[0]);
-              if (currentStackSize + arg1.GetLong() >= CC_STACK_SIZE) {
-                  cc_error("stack overflow, attempted grow to %d bytes", currentStackSize + arg1.GetLong());
+              int currentStackSize = registers[SREG_SP].GetStackEntry() - &stack[0];
+              int currentDataSize = stackdata_ptr - stackdata;
+              //if (currentStackSize + arg1.GetLong() >= CC_STACK_SIZE) {
+                  //cc_error("stack overflow, attempted grow to %d bytes", currentStackSize + arg1.GetLong());
+              if (currentStackSize + 1 >= CC_STACK_SIZE ||
+                  currentDataSize + arg1.GetLong() >= CC_STACK_DATA_SIZE)
+              {
+                  cc_error("stack overflow, attempted grow to %d bytes", currentDataSize + arg1.GetLong());
                   return -1;
               }
+              // NOTE: according to compiler's logic, this is always followed
+              // by SCMD_ADD, and that is where the data is "allocated", here we
+              // just clean the place.
+              // CHECKME -- since we zero memory in PushDataToStack anyway, this is not needed at all?
+              memset(stackdata_ptr, 0, arg1.GetLong());
           }
-          memset(&mptr[0], 0, arg1.GetLong());
+          else
+          {
+            // CHECKME: this should never happen?
+            mptr = (char *)(registers[SREG_MAR].GetLong());
+            memset(&mptr[0], 0, arg1.GetLong());
+          }
           break;
       case SCMD_CREATESTRING:
           if (stringClassImpl == NULL) {
               cc_error("No string class implementation set, but opcode was used");
               return -1;
           }
-          reg1.SetLong( (long)stringClassImpl->CreateString((const char *)(reg1.GetLong())) );
+          reg1.SetLong( (long)stringClassImpl->CreateString((const char *)(reg1.GetDataPtrWithOffset())) );
           break;
       case SCMD_STRINGSEQUAL:
           if ((reg1 == 0) || (reg2 == 0)) {
               cc_error("!Null pointer referenced");
               return -1;
           }
-          if (strcmp((const char*)reg1.GetLong(), (const char*)reg2.GetLong()) == 0)
+          if (strcmp((const char*)reg1.GetDataPtrWithOffset(), (const char*)reg2.GetDataPtrWithOffset()) == 0)
               reg1.SetLong( 1 );
           else
               reg1.SetLong( 0 );
@@ -1197,7 +1266,7 @@ int ccInstance::Run(long curpc)
               cc_error("!Null pointer referenced");
               return -1;
           }
-          if (strcmp((const char*)reg1.GetLong(), (const char*)reg2.GetLong()) != 0)
+          if (strcmp((const char*)reg1.GetDataPtrWithOffset(), (const char*)reg2.GetDataPtrWithOffset()) != 0)
               reg1.SetLong( 1 );
           else
               reg1.SetLong( 0 );
@@ -1530,9 +1599,14 @@ bool ccInstance::_Create(ccScript * scri, ccInstance * joined)
     strings = scri->strings;
     stringssize = scri->stringssize;
     // create a stack
-    stacksize = CC_STACK_SIZE;
-    stack = (char *)malloc(stacksize);
-    if (stack == NULL) {
+    stackdatasize = CC_STACK_SIZE * sizeof(long);
+    //stack = (char *)malloc(stacksize);
+    // This is quite a random choice; there's no way to deduce number of stack
+    // entries needed without knowing amount of local variables (at least)
+    num_stackentries = CC_STACK_SIZE;
+    stack       = new RuntimeScriptValue[num_stackentries];
+    stackdata   = new char[stackdatasize];
+    if (stack == NULL || stackdata == NULL) {
         cc_error("not enough memory to allocate stack");
         return false;
     }
@@ -1746,7 +1820,11 @@ void ccInstance::Free()
     // and should not free it, only ccScript object should
     //nullfree(code);
     strings = NULL;
-    nullfree(stack);
+
+    //nullfree(stack);
+    delete [] stack;
+    delete [] stackdata;
+
     nullfree(exportaddr);
 
     delete [] resolved_imports;
@@ -1954,11 +2032,169 @@ void ccInstance::FixupArgument(const CodeHelper &helper, RuntimeScriptValue &arg
     case FIXUP_DATADATA:
         // fixup is being made at instance init
         break;
-    case FIXUP_STACK:
-        argument += (long)&stack[0];
+    case FIXUP_STACK: {
+        //argument += (long)&stack[0];
+        argument = GetStackPtrOffsetFw(argument.GetLong());
+        }
         break;
     default:
         cc_error("internal fixup index error: %d", helper.fixup_type);
         break;
     }
+}
+
+//-----------------------------------------------------------------------------
+
+void ccInstance::PushValueToStack(const RuntimeScriptValue &rval)
+{
+    if (registers[SREG_SP].GetStackEntry()->IsValid())
+    {
+        cc_error("internal error: valid data beyond stack ptr");
+        return;
+    }
+    // Write value to the stack tail and advance stack ptr
+    // NOTE: we cannot just WriteValue here because when a Value is pushed to the stack,
+    // script assumes that it is always 4 bytes and uses that size when calculating
+    // offsets to local variables;
+    // Therefore if pushed value is of integer type, we should rather use WriteInt32
+    // (for int8, int16 and int32).
+    if (rval.GetType() == kScValInteger)
+    {
+        registers[SREG_SP].WriteInt32(rval.GetInt());
+    }
+    else
+    {
+        registers[SREG_SP].WriteValue(rval);
+    }
+    registers[SREG_SP].SetStackPtr(registers[SREG_SP].GetStackEntry() + 1); // TODO: optimize with ++?
+}
+
+void ccInstance::PushDataToStack(int num_bytes)
+{
+    if (registers[SREG_SP].GetStackEntry()->IsValid())
+    {
+        cc_error("internal error: valid data beyond stack ptr");
+        return;
+    }
+    // Zero memory, assign pointer to data block to the stack tail, advance both stack ptr and stack data ptr
+    memset(stackdata_ptr, 0, num_bytes);
+    registers[SREG_SP].GetStackEntry()->SetDataPtr(stackdata_ptr, num_bytes);
+    stackdata_ptr += num_bytes;
+    registers[SREG_SP].SetStackPtr(registers[SREG_SP].GetStackEntry() + 1); // TODO: optimize with ++?
+}
+
+RuntimeScriptValue ccInstance::PopValueFromStack()
+{
+    if (registers[SREG_SP].GetStackEntry()->IsValid())
+    {
+        cc_error("internal error: valid data beyond stack ptr");
+        return RuntimeScriptValue();
+    }
+    // rewind stack ptr to the last valid value, decrement stack data ptr if needed and invalidate the stack tail
+    registers[SREG_SP].SetStackPtr(registers[SREG_SP].GetStackEntry() - 1); // TODO: optimize with --?
+    RuntimeScriptValue rval = *registers[SREG_SP].GetStackEntry();
+    if (rval.GetType() == kScValDataPtr)
+    {
+        stackdata_ptr -= rval.GetSize();
+    }
+    registers[SREG_SP].GetStackEntry()->Invalidate();
+    return rval;
+}
+
+void ccInstance::PopValuesFromStack(int num_entries = 1)
+{
+    if (registers[SREG_SP].GetStackEntry()->IsValid())
+    {
+        cc_error("internal error: valid data beyond stack ptr");
+        return;
+    }
+    for (int i = 0; i < num_entries; ++i)
+    {
+        // rewind stack ptr to the last valid value, decrement stack data ptr if needed and invalidate the stack tail
+        registers[SREG_SP].SetStackPtr(registers[SREG_SP].GetStackEntry() - 1); // TODO: optimize with --?
+        if (registers[SREG_SP].GetStackEntry()->GetType() == kScValDataPtr)
+        {
+            stackdata_ptr -= registers[SREG_SP].GetStackEntry()->GetSize();
+        }
+        registers[SREG_SP].GetStackEntry()->Invalidate();
+    }
+}
+
+void ccInstance::PopDataFromStack(int num_bytes)
+{
+    if (registers[SREG_SP].GetStackEntry()->IsValid())
+    {
+        cc_error("internal error: valid data beyond stack ptr");
+        return;
+    }
+    long total_pop = 0;
+    while (total_pop < num_bytes)
+    {
+        // rewind stack ptr to the last valid value, decrement stack data ptr if needed and invalidate the stack tail
+        registers[SREG_SP].SetStackPtr(registers[SREG_SP].GetStackEntry() - 1); // TODO: optimize with --?
+        // remember popped bytes count
+        total_pop += registers[SREG_SP].GetStackEntry()->GetSize();
+        if (registers[SREG_SP].GetStackEntry()->GetType() == kScValDataPtr)
+        {
+            stackdata_ptr -= registers[SREG_SP].GetStackEntry()->GetSize();
+        }
+        registers[SREG_SP].GetStackEntry()->Invalidate();
+    }
+    if (total_pop > num_bytes)
+    {
+        cc_error("stack pointer points inside local variable after pop, stack corrupted?");
+    }
+}
+
+RuntimeScriptValue ccInstance::GetStackPtrOffsetFw(int fw_offset)
+{
+    long total_off = 0;
+    RuntimeScriptValue *stack_entry = &stack[0];
+    while (total_off < fw_offset)
+    {
+        if (stack_entry->GetSize() > 0)
+        {
+            total_off += stack_entry->GetSize();
+        }
+        stack_entry++;
+    }
+    RuntimeScriptValue stack_ptr;
+    stack_ptr.SetStackPtr(stack_entry);
+    if (total_off > fw_offset)
+    {
+        // Forward offset should always set ptr at the beginning of stack entry
+        cc_error("trying to access stack data inside stack entry, stack corrupted?");
+    }
+    return stack_ptr;
+}
+
+RuntimeScriptValue ccInstance::GetStackPtrOffsetRw(int rw_offset)
+{
+    if (registers[SREG_SP].GetStackEntry()->IsValid())
+    {
+        cc_error("internal error: valid data beyond stack ptr");
+        return RuntimeScriptValue();
+    }
+    long total_off = 0;
+    RuntimeScriptValue *stack_entry = registers[SREG_SP].GetStackEntry();
+    while (total_off < rw_offset)
+    {
+        stack_entry--;
+        total_off += stack_entry->GetSize();
+    }
+    RuntimeScriptValue stack_ptr;
+    stack_ptr.SetStackPtr(stack_entry);
+    if (total_off > rw_offset)
+    {
+        // Could be accessing array element, so state error only if stack entry does not refer to data array
+        if (stack_entry->GetType() == kScValDataPtr)
+        {
+            stack_ptr += total_off - rw_offset;
+        }
+        else
+        {
+            cc_error("trying to access stack data inside stack entry, stack corrupted?");
+        }
+    }
+    return stack_ptr;
 }

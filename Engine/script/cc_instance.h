@@ -20,12 +20,13 @@
 
 namespace AGS { namespace Common { class DataStream; }; };
 
-#define INSTF_SHAREDATA   1
-#define INSTF_ABORTED     2
-#define INSTF_FREE        4
-#define INSTF_RUNNING     8   // set by main code to confirm script isn't stuck
-#define CC_STACK_SIZE     (1000 * sizeof(long))
-#define MAX_CALL_STACK    100
+#define INSTF_SHAREDATA     1
+#define INSTF_ABORTED       2
+#define INSTF_FREE          4
+#define INSTF_RUNNING       8   // set by main code to confirm script isn't stuck
+#define CC_STACK_SIZE       1000 // * sizeof(long))
+#define CC_STACK_DATA_SIZE  (1000 * sizeof(long))
+#define MAX_CALL_STACK      100
 
 // 256 because we use 8 bits to hold instance number
 #define MAX_LOADED_INSTANCES 256
@@ -86,8 +87,14 @@ public:
     char *strings;
     long stringssize;
     char **exportaddr;  // real pointer to export
-    char *stack;
-    long stacksize;
+    RuntimeScriptValue *stack;
+    int  num_stackentries;
+    // An array for keeping stack data; stack entries reference unknown data from here
+    // TODO: probably change to dynamic array later
+    char *stackdata;    // for storing stack data of unknown type
+    char *stackdata_ptr;// works similar to original stack pointer, points to the next unused byte in stack data array
+    long stackdatasize; // conventional size of stack data in bytes
+    //
     RuntimeScriptValue registers[CC_NUM_REGISTERS];
     long pc;                        // program counter
     long line_number;               // source code line number
@@ -167,9 +174,28 @@ protected:
     bool    ResolveScriptImports(ccScript * scri);
 	bool    ReadOperation(ScriptOperation &op, long at_pc);
 
+    // Runtime fixups
     const   CodeHelper *GetCodeHelper(long at_pc);
     void    FixupInstruction(const CodeHelper &helper, ScriptInstruction &instruction);
     void    FixupArgument(const CodeHelper &helper, RuntimeScriptValue &argument);
+
+    // Stack processing
+    // Push writes new value and increments stack ptr;
+    // stack ptr now points to the __next empty__ entry
+    void    PushValueToStack(const RuntimeScriptValue &rval);
+    void    PushDataToStack(int num_bytes);
+    // Pop decrements stack ptr, returns last stored value and invalidates! stack tail;
+    // stack ptr now points to the __next empty__ entry
+    RuntimeScriptValue PopValueFromStack();
+    // helper function to pop & dump several values
+    void    PopValuesFromStack(int num_entries);
+    void    PopDataFromStack(int num_bytes);
+    // Return stack ptr at given offset from stack head;
+    // Offset is in data bytes; program stack ptr is __not__ changed
+    RuntimeScriptValue GetStackPtrOffsetFw(int fw_offset);
+    // Return stack ptr at given offset from stack tail;
+    // Offset is in data bytes; program stack ptr is __not__ changed
+    RuntimeScriptValue GetStackPtrOffsetRw(int rw_offset);
 };
 
 #endif // __CC_INSTANCE_H

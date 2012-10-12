@@ -14,6 +14,8 @@ enum ScriptValueType
     kScValGeneric,      // as long
     kScValInteger,      // as strictly 32-bit integer (for integer math)
     kScValFloat,        // as float (for floating point math)
+    kScValStackPtr,     // as a pointer to stack
+    kScValDataPtr,      // as a pointer to randomly sized data (usually array)
 };
 
 struct RuntimeScriptValue
@@ -23,6 +25,8 @@ public:
     {
         Type        = kScValUndefined;
         Value		= 0;
+        Ptr         = NULL;
+        Size        = 0;
     }
 
 private:
@@ -33,8 +37,22 @@ private:
         int32_t     IValue; // access Value as int32 type
         float	    FValue;	// access Value as float type
     };
+    union
+    {
+        char                *Ptr;   // generic data pointer
+        RuntimeScriptValue  *RValue;// access ptr as a pointer to Runtime Value
+    };
+    // The "real" size of data, either one stored in Value variable,
+    // or the one referenced by Ptr.
+    // For stored pointers Size is always 4 both for x32 and x64 builds,
+    // for the sake of cross-platform compatibility.
+    int             Size;
 
 public:
+    inline bool IsValid() const
+    {
+        return Type != kScValUndefined;
+    }
     inline ScriptValueType GetType() const
     {
         return Type;
@@ -54,25 +72,87 @@ public:
     }
     inline bool AsBool() const
     {
-        return Value != 0;
+        return Value != 0 || Ptr != 0;
+    }
+    inline char *GetDataPtr() const
+    {
+        return Ptr;
+    }
+    inline char* GetDataPtrWithOffset() const
+    {
+        return Ptr + Value;
+    }
+    inline RuntimeScriptValue *GetStackEntry() const
+    {
+        return RValue;
+    }
+    inline int GetSize() const
+    {
+        return Size;
     }
 
-    inline RuntimeScriptValue &SetLong(intptr_t val)
+    inline RuntimeScriptValue &Invalidate()
     {
-        Type = kScValGeneric;
-        Value = val;
+        Type    = kScValUndefined;
+        Value   = 0;
+        Ptr     = NULL;
+        Size    = 0;
         return *this;
     }
-    inline RuntimeScriptValue &SetInt(int32_t val)
+    inline RuntimeScriptValue &SetLong(intptr_t val)
     {
-        Type = kScValInteger;
-        IValue = val;
+        Type    = kScValGeneric;
+        Value   = val;
+        Ptr     = NULL;
+        Size    = 4;
+        return *this;
+    }
+    inline RuntimeScriptValue &SetInt8(char val)
+    {
+        Type    = kScValInteger;
+        IValue  = val;
+        Ptr     = NULL;
+        Size    = 1;
+        return *this;
+    }
+    inline RuntimeScriptValue &SetInt16(int16_t val)
+    {
+        Type    = kScValInteger;
+        IValue  = val;
+        Ptr     = NULL;
+        Size    = 2;
+        return *this;
+    }
+    inline RuntimeScriptValue &SetInt32(int32_t val)
+    {
+        Type    = kScValInteger;
+        IValue  = val;
+        Ptr     = NULL;
+        Size    = 4;
         return *this;
     }
     inline RuntimeScriptValue &SetFloat(float val)
     {
-        Type = kScValFloat;
-        FValue = val;
+        Type    = kScValFloat;
+        FValue  = val;
+        Ptr     = NULL;
+        Size    = 4;
+        return *this;
+    }
+    inline RuntimeScriptValue &SetStackPtr(RuntimeScriptValue *stack_entry)
+    {
+        Type    = kScValStackPtr;
+        Value   = 0;
+        RValue  = stack_entry;
+        Size    = 4;
+        return *this;
+    }
+    inline RuntimeScriptValue &SetDataPtr(char *data, int size)
+    {
+        Type    = kScValDataPtr;
+        Value   = 0;
+        Ptr     = data;
+        Size    = size;
         return *this;
     }
 
@@ -133,11 +213,11 @@ public:
 
     inline bool operator ==(const RuntimeScriptValue &rval)
     {
-        return Value == rval.Value;
+        return Type == rval.Type && Ptr == rval.Ptr && Value == rval.Value;
     }
     inline bool operator !=(const RuntimeScriptValue &rval)
     {
-        return Value != rval.Value;
+        return !(*this == rval);
     }
     inline bool operator >(const RuntimeScriptValue &rval) const
     {
@@ -177,12 +257,12 @@ public:
     // object, referenced by this Runtime Value.
     // Copy implementation depends on value type.
     uint8_t     ReadByte();
-    uint16_t    ReadInt16();
-    uint32_t    ReadInt32();
+    int16_t     ReadInt16();
+    int32_t     ReadInt32();
     RuntimeScriptValue ReadValue();
     bool        WriteByte(uint8_t val);
-    bool        WriteInt16(uint16_t val);
-    bool        WriteInt32(uint32_t val);
+    bool        WriteInt16(int16_t val);
+    bool        WriteInt32(int32_t val);
     bool        WriteValue(const RuntimeScriptValue &rval);
 };
 

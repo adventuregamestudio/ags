@@ -1,14 +1,17 @@
-/*
-Adventure Game Studio source code Copyright 1999-2011 Chris Jones.
-All rights reserved.
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// http://www.opensource.org/licenses/artistic-license-2.0.php
+//
+//=============================================================================
 
-The AGS Editor Source Code is provided under the Artistic License 2.0
-http://www.opensource.org/licenses/artistic-license-2.0.php
-
-You MAY NOT compile your own builds of the engine without making it EXPLICITLY
-CLEAR that the code has been altered from the Standard Version.
-
-*/
 #ifndef __AC_AUDIO_H
 #define __AC_AUDIO_H
 
@@ -17,6 +20,7 @@ CLEAR that the code has been altered from the Standard Version.
 #include "ac/dynobj/scriptaudiochannel.h"
 #include "media/audio/ambientsound.h"
 #include "media/audio/soundclip.h"
+#include "util/thread.h"
 
 void        calculate_reserved_channel_count();
 void        register_audio_script_objects();
@@ -80,6 +84,7 @@ SOUNDCLIP * load_music_from_disk(int mnum, bool doRepeat);
 void        play_new_music(int mnum, SOUNDCLIP *music);
 void        newmusic(int mnum);
 
+extern AGS::Engine::Thread audioThread;
 
 
 extern volatile int psp_audio_multithreaded;    // needed for UPDATE_MP3 macro
@@ -91,8 +96,6 @@ extern volatile int psp_audio_multithreaded;    // needed for UPDATE_MP3 macro
 //#define UPDATE_MP3 update_polled_stuff_if_runtime();
 
 // PSP: Update in thread if wanted.
-//extern volatile int psp_audio_multithreaded;
-extern volatile bool update_mp3_thread_running;
 extern int musicPollIterator; // long name so it doesn't interfere with anything else
 extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1]; // needed for UPDATE_MP3_THREAD macro
 extern volatile int switching_away_from_game;

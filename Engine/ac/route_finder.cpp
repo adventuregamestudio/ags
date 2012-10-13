@@ -1,16 +1,22 @@
-/*
-  PathFinder v2.00 (AC2 customized version)
-  (c) 1998-99 Chris Jones
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// http://www.opensource.org/licenses/artistic-license-2.0.php
+//
+//=============================================================================
+//
+// PathFinder v2.00 (AC2 customized version)
+// (c) 1998-99 Chris Jones
+//
+//=============================================================================
 
-  Adventure Game Studio source code Copyright 1999-2011 Chris Jones.
-  All rights reserved.
-
-  The AGS Editor Source Code is provided under the Artistic License 2.0
-  http://www.opensource.org/licenses/artistic-license-2.0.php
-
-  You MAY NOT compile your own builds of the engine without making it EXPLICITLY
-  CLEAR that the code has been altered from the Standard Version.
-*/
 #include "util/wgt2allg.h"
 #include "ac/route_finder.h"
 #include "ac/common.h"   // quit()
@@ -29,38 +35,12 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 #define MAXPATHBACK 1000
 int *pathbackx, *pathbacky;
 int waspossible = 1;
-int routex1, routey1;
 int suggestx, suggesty;
 fixed move_speed_x, move_speed_y;
-
-// Why is this in routefnd?
-char ac_engine_copyright[]="Adventure Game Studio engine & tools (c) 1999-2000 by Chris Jones.";
 
 extern void Display(char *, ...);
 extern void write_log(char *);
 extern void update_polled_stuff_if_runtime();
-
-#define COPYRIGHT_CRC 172668
-// stupid name, to deter hackers
-int get_route_composition()
-{
-  int aaa, crctotal = 0;
-  for (aaa = 0; aaa < 66; aaa++) {
-    crctotal += ac_engine_copyright[aaa] * (aaa + 1);
-  }
-  return crctotal;
-}
-
-int route_script_link()
-{
-  if (COPYRIGHT_CRC != get_route_composition())
-    return 1;
-  if (routex1 != -10)
-    return 1;
-  return 0;
-}
-
-#define get_copyright_crc get_route_composition
 
 extern MoveList *mls;
 extern "C"
@@ -96,37 +76,6 @@ void line_callback(BITMAP *bmpp, int x, int y, int d)
 #ifdef _MSC_VER
 extern void winalert(char *, ...);
 #endif
-// whether the message has been printed, deter hackers
-int walk_area_zone5 = 0;
-
-void print_welcome_text(char *verno, char *aciverno)
-{
-#ifndef _MSC_VER
-  printf("Adventure Creator v%sInterpreter\n"
-         "Copyright (c) 1999-2001 Chris Jones\n" "ACI version %s\n", verno, aciverno);
-#endif
-
-  walk_area_zone5 = 1633;
-  if (strcmp(ac_engine_copyright, "Adventure Game Studio engine & tools (c) 1999-2000 by Chris Jones.") != 0) {
-    quit("Don't screw with my name.");
-    exit(77);
-    abort();
-  }
-
-  if (strlen(ac_engine_copyright) != 66) {
-    quit("Leave my name alone.");
-    exit(88);
-    abort();
-  }
-
-  if (get_copyright_crc() != COPYRIGHT_CRC) {
-    quit("Nice try.");
-    exit(89);
-    abort();
-  }
-
-  routex1 = -10;
-}
 
 int can_see_from(int x1, int y1, int x2, int y2)
 {
@@ -627,11 +576,6 @@ int __find_route(int srcx, int srcy, short *tox, short *toy, int noredx)
     is_straight = 1;
 
   pathbackstage = 0;
-  if (routex1 != -10) {
-    quit("Don't even try it.");
-    exit(99);
-    abort();
-  }
 
   if (leftorright == 0) {
     waspossible = 1;
@@ -815,12 +759,6 @@ int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int
         pathbackstage = -1;
     }
     free(beenhere[0]);
-  }
-
-  if ((get_copyright_crc() != COPYRIGHT_CRC) || (walk_area_zone5 != 1633)) {
-    quit("My name is there for all to see.");
-    exit(95);
-    abort();
   }
 
   if (pathbackstage >= 0) {

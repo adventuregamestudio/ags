@@ -8,7 +8,7 @@ using AGS.Types;
 
 namespace AGS.Editor.Components
 {
-    class SpriteManagerComponent : BaseComponent
+    class SpriteManagerComponent : BaseComponent, ISpriteController
     {
         private const string TOP_LEVEL_COMMAND_ID = "SpriteManager";
         private const string ICON_KEY = "SpriteManagerIcon";
@@ -53,10 +53,16 @@ namespace AGS.Editor.Components
                 Init();
                 RefreshDataFromGame();
             }
+            _editorPane.TreeNodeID = controlID;
             _guiController.AddOrShowPane(_editorPane);
             _sprEditor.PopulatePropertyGrid();
 			_guiController.ShowCuppit("The Sprite Manager is where you import all your graphics, except room backgrounds. Once your images are in the sprite manager, they can be used across the game. Right-click in the main Sprite Manager window to try it out.", "Sprite Manager introduction");
 		}
+
+        public void Refresh()
+        {
+            RefreshDataFromGame();
+        }
 
         public override void RefreshDataFromGame()
         {

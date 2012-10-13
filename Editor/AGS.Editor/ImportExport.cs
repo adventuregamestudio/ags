@@ -177,8 +177,8 @@ namespace AGS.Editor
 
         public static void CreateInteractionScripts(Game game, CompileMessages errors)
         {
-            Script theScript = game.Scripts.GetScriptByFilename(Script.GLOBAL_SCRIPT_FILE_NAME);
-            foreach (InventoryItem item in game.InventoryItems)
+            Script theScript = game.RootScriptFolder.GetScriptByFileName(Script.GLOBAL_SCRIPT_FILE_NAME, true);
+            foreach (InventoryItem item in game.RootInventoryItemFolder.AllItemsFlat)
             {
                 if (item.Name.Length < 1)
                 {
@@ -186,7 +186,7 @@ namespace AGS.Editor
                 }
 				CreateScriptsForInteraction(item.Name, theScript, item.Interactions, errors);
             }
-            foreach (Character character in game.Characters)
+            foreach (Character character in game.RootCharacterFolder.AllItemsFlat)
             {
                 if (character.ScriptName.Length < 1)
                 {
@@ -240,7 +240,7 @@ namespace AGS.Editor
             {
                 throw new AGS.Types.InvalidDataException("This game is from an unsupported version of AGS. This editor can only import games saved with AGS 2.72.");
             }
-            game.Scripts.Clear();
+            game.RootScriptFolder.Clear();
 
             Script globalScript, scriptHeader;
             ReadGlobalScriptAndScriptHeader(reader, game, out globalScript, out scriptHeader);
@@ -272,18 +272,19 @@ namespace AGS.Editor
 
                 int uniqueKey = reader.ReadInt32();
 
-                game.Scripts.Add(new Script("Module" + i + ".ash", moduleHeader, name, description, author, moduleVersion, uniqueKey, true));
-                game.Scripts.Add(new Script("Module" + i + ".asc", moduleScript, name, description, author, moduleVersion, uniqueKey, false));
+                ScriptAndHeader scripts = new ScriptAndHeader(
+                        new Script("Module" + i + ".ash", moduleHeader, name, description, author, moduleVersion, uniqueKey, true),
+                        new Script("Module" + i + ".asc", moduleScript, name, description, author, moduleVersion, uniqueKey, false));
+                game.RootScriptFolder.Items.Add(scripts);
 
                 int permissions = reader.ReadInt32();
                 int weAreOwner = reader.ReadInt32();
             }
 
-            game.Scripts.Add(scriptHeader);
-            game.Scripts.Add(globalScript);
+            game.RootScriptFolder.Items.Add(new ScriptAndHeader(scriptHeader, globalScript));            
 
             // Ensure that all .asc/.ash files are saved
-            foreach (Script script in game.Scripts)
+            foreach (Script script in game.RootScriptFolder.AllScriptsFlat)
             {
                 script.Modified = true;
             }
@@ -464,7 +465,7 @@ namespace AGS.Editor
 
                     UnloadedRoom newUnloadedRoom = new UnloadedRoom(roomNumber);
                     rooms.Add(roomNumber, newUnloadedRoom);
-                    game.Rooms.Add(newUnloadedRoom);
+                    game.RootRoomFolder.Items.Add(newUnloadedRoom);
                 }
                 else
                 {
@@ -472,7 +473,7 @@ namespace AGS.Editor
                 }
             }
 
-            ((List<IRoom>)game.Rooms).Sort();
+            game.RootRoomFolder.Sort(false);
 
             int roomCount = reader.ReadInt32();
             for (int i = 0; i < roomCount; i++)

@@ -1,18 +1,12 @@
 TARGET = agsspritefont
-OBJS = psp.o \
-AGSSpriteFont/AGSSpriteFont.o \
-AGSSpriteFont/CharacterEntry.o \
-AGSSpriteFont/color.o \
-AGSSpriteFont/SpriteFont.o \
-AGSSpriteFont/SpriteFontRenderer.o \
-AGSSpriteFont/VariableWidthFont.o \
-AGSSpriteFont/VariableWidthSpriteFont.o
+include Makefile-objs
+OBJS += psp.o
 
 BUILD_PRX = 1
 PRX_EXPORTS = exports.exp
 
 INCDIR = ../../Engine ../../Common
-CFLAGS = -O2 -G0 -g -Wall -DTHIS_IS_THE_PLUGIN -DPSP_VERSION -DLINUX_VERSION -DPLUGIN_MODULE_NAME="\"$(TARGET)\""
+CFLAGS = -O2 -G0 -g -Wall -DTHIS_IS_THE_PLUGIN -DPSP_VERSION -DPLUGIN_MODULE_NAME="\"$(TARGET)\""
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)
 LDFLAGS = -mno-crt0 -nostartfiles -Wl,--allow-multiple-definition

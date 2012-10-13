@@ -126,7 +126,7 @@ namespace AGS.Editor
 			if (i == characterName.Length)
 			{
 				int charId = int.Parse(characterName);
-				if ((charId >= 0) && (charId < _game.Characters.Count))
+				if ((charId >= 0) && (charId < _game.RootCharacterFolder.GetAllItemsCount()))
 				{
 					return charId;
 				}

@@ -1,9 +1,16 @@
-/*
-This is UNPUBLISHED PROPRIETARY SOURCE CODE;
-the contents of this file may not be disclosed to third parties,
-copied or duplicated in any form, in whole or in part, without
-prior express permission from Chris Jones.
-*/
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// http://www.opensource.org/licenses/artistic-license-2.0.php
+//
+//=============================================================================
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,13 +30,6 @@ prior express permission from Chris Jones.
 
 #include "util/misc.h"
 
-#if !defined(LINUX_VERSION) && !defined(MAC_VERSION)
-#ifndef VS2005
-#include <alloc.h>
-#endif
-#include <conio.h>
-#endif
-
 #include "util/datastream.h"
 #include "util/filestream.h"
 
@@ -39,15 +39,6 @@ using AGS::Common::DataStream;
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
-
-#if !defined(MAC_VERSION)
-typedef unsigned char * __block;
-#else
-#ifdef __block
-#undef __block
-#define __block unsigned char*
-#endif
-#endif
 
 extern long cliboffset(const char *);
 extern char lib_file_name[13];
@@ -356,8 +347,6 @@ int cunpackbitl32(unsigned int *line, int size, DataStream *in)
 //=============================================================================
 
 
-#if defined(LINUX_VERSION) || defined(MAC_VERSION) || defined(DJGPP) || defined(_MSC_VER)
-
 //extern void lzwcompress(FILE * f, FILE * out);
 //extern unsigned char *lzwexpand_to_mem(FILE * ii);
 extern long outbytes, maxsize, putbytes;
@@ -538,4 +527,3 @@ long loadcompressed_allegro(DataStream *in, Common::Bitmap **bimpp, color *pall,
 }
 
 
-#endif // LINUX_VERSION || MAC_VERSION || DJGPP || _MSC_VER

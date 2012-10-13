@@ -1,15 +1,23 @@
-/*
-** WGT -> Allegro portability interface
-** Copyright (C) 1998, Chris Jones
-** All Rights Reserved.
-**
-** This is UNPUBLISHED PROPRIETARY SOURCE CODE;
-** the contents of this file may not be disclosed to third parties,
-** copied or duplicated in any form, in whole or in part, without
-** prior express permission from Chris Jones.
-**
-** wsavesprites and wloadsprites are hi-color compliant
-*/
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// http://www.opensource.org/licenses/artistic-license-2.0.php
+//
+//=============================================================================
+//
+// WGT -> Allegro portability interface
+//
+// wsavesprites and wloadsprites are hi-color compliant
+//
+//=============================================================================
+
 #define _WGT45_
 
 #ifndef __WGT4_H
@@ -30,7 +38,7 @@
 #include "allegro.h"
 #endif
 
-#if !defined(LINUX_VERSION) && !defined(MAC_VERSION)
+#if defined (WINDOWS_VERSION)
 #include <dos.h>
 #include <io.h>
 #endif
@@ -67,13 +75,11 @@ extern "C"
 {
 #endif
 
-#if defined(WINDOWS_VERSION) || defined(LINUX_VERSION) || defined(MAC_VERSION)
 #include <time.h>
   struct time
   {
     int ti_hund, ti_sec, ti_min, ti_hour;
   };
-#endif
 
 #define is_ttf(fontptr)  (fontptr[0] == 'T')
 
@@ -126,7 +132,7 @@ extern "C"
     extern void vga256();
     */
 
-#if (!defined(WINDOWS_VERSION) && !defined(LINUX_VERSION) && !defined(MAC_VERSION))
+#if defined (DOS_VERSION)
     extern union REGS r;
     extern void wsetmode(int nnn);
     extern int wgetmode();
@@ -180,9 +186,7 @@ extern "C"
 
     extern int checkpassword(char *passw); // 0 = incorrect   ! = 0 correct
 
-#if defined(WINDOWS_VERSION) || defined(LINUX_VERSION) || defined(MAC_VERSION)
     extern void gettime(struct time *tpt);
-#endif
 
     extern long wtimer(struct time tt1, struct time tt2);
 

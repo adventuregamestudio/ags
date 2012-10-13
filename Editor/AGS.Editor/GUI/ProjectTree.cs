@@ -22,6 +22,10 @@ namespace AGS.Editor
         private TreeNode _lastAddedNode = null;
 		private DateTime _expandedAtTime = DateTime.MinValue;
         private string _selectedNode;
+        private Color? _treeNodesBackgroundColor;
+        private TreeNode _dropHoveredNode;
+        private DateTime _timeOfDragDropHoverStart;
+
 
         public ProjectTree(TreeView projectTree)
         {
@@ -48,14 +52,14 @@ namespace AGS.Editor
 
 		private void _projectTree_BeforeCollapse(object sender, TreeViewCancelEventArgs e)
 		{
-			_expandedAtTime = DateTime.Now;
+            _expandedAtTime = DateTime.Now;
 		}
 
 		private void _projectTree_BeforeExpand(object sender, TreeViewCancelEventArgs e)
 		{
-			_expandedAtTime	= DateTime.Now;
+            _expandedAtTime = DateTime.Now;
 		}
-
+        
 		public void CollapseAll()
 		{
 			_projectTree.CollapseAll();
@@ -325,9 +329,16 @@ namespace AGS.Editor
 			return DateTime.Now.Subtract(_expandedAtTime) <= TimeSpan.FromMilliseconds(200);
 		}
 
+        private bool HasANodeBeenHoveredEnoughForExpanding()
+        {
+            return DateTime.Now.Subtract(_timeOfDragDropHoverStart) >= TimeSpan.FromMilliseconds(500);
+        }
+
         private void projectTree_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
         {
-			if (!HasANodeJustBeenExpanded())
+            ProjectTreeItem treeItem = e.Node.Tag as ProjectTreeItem;
+            bool acceptDoubleClickWhenExpanding = (treeItem != null && treeItem.AllowDoubleClickWhenExpanding);
+			if (acceptDoubleClickWhenExpanding || !HasANodeJustBeenExpanded())
 			{
 				ProcessClickOnNode(e.Node.Name, MouseButtons.Left);
 			}
@@ -410,6 +421,36 @@ namespace AGS.Editor
 			}
 		}
 
+        private void HighlightNodeAndExpandIfNeeded(ProjectTreeItem item)
+        {
+            TreeNode treeNode = item.TreeNode;
+            if (_treeNodesBackgroundColor == null)
+            {
+                _treeNodesBackgroundColor = treeNode.BackColor;
+            }
+
+            if (treeNode != _dropHoveredNode)
+            {
+                treeNode.BackColor = Color.LightGray;
+                ClearHighlightNode();
+                _dropHoveredNode = treeNode;
+                _timeOfDragDropHoverStart = DateTime.Now;
+            }
+            else if (item.ExpandOnDragHover && HasANodeBeenHoveredEnoughForExpanding())
+            {
+                treeNode.Expand();
+            }
+        }
+
+        private void ClearHighlightNode()
+        {
+            if (_dropHoveredNode != null)
+            {
+                _dropHoveredNode.BackColor = _treeNodesBackgroundColor.Value;
+                _dropHoveredNode = null;
+            }
+        }
+
 		private void projectTree_DragOver(object sender, DragEventArgs e)
 		{
 			e.Effect = DragDropEffects.None;
@@ -426,11 +467,13 @@ namespace AGS.Editor
 					{
 						throw new AGSEditorException("Node has not populated CanDropHere handler for draggable node");
 					}
-					if (source.CanDropHere(source, target))
-					{
-						e.Effect = DragDropEffects.Move;
-					}
-
+                    if (source.CanDropHere(source, target))
+                    {
+                        HighlightNodeAndExpandIfNeeded(target);
+                        e.Effect = DragDropEffects.Move;
+                    }
+                    else ClearHighlightNode();
+                    
 					// auto-scroll the tree when move the mouse to top/bottom
 					if (locationInControl.Y < 30)
 					{
@@ -452,6 +495,7 @@ namespace AGS.Editor
 
 		private void projectTree_DragDrop(object sender, DragEventArgs e)
 		{
+            ClearHighlightNode();
 			ProjectTreeItem source = (ProjectTreeItem)e.Data.GetData(typeof(ProjectTreeItem));
 			Point locationInControl = _projectTree.PointToClient(new Point(e.X, e.Y));
 			TreeNode dragTarget = _projectTree.HitTest(locationInControl).Node;

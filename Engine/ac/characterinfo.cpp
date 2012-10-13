@@ -1,3 +1,16 @@
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// http://www.opensource.org/licenses/artistic-license-2.0.php
+//
+//=============================================================================
 
 #include <stdio.h>
 #include <string.h>
@@ -498,7 +511,7 @@ void CharacterInfo::update_character_idle(CharacterExtras *chex, int &doing_noth
 
 void CharacterInfo::ReadFromFile(DataStream *in)
 {
-    int reserved[2];
+    int16_t reserved;
 //#ifdef ALLEGRO_BIG_ENDIAN
     defview = in->ReadInt32();
     talkview = in->ReadInt32();
@@ -526,8 +539,9 @@ void CharacterInfo::ReadFromFile(DataStream *in)
     walkspeed_y = in->ReadInt16();//__getshort__bigendian(fp);
     pic_yoffs = in->ReadInt16();//__getshort__bigendian(fp);
     z = in->ReadInt32();
-    reserved[0] = in->ReadInt32();
-    reserved[1] = in->ReadInt32();
+    walkwait = in->ReadInt32();
+    speech_anim_speed = in->ReadInt16();
+    reserved = in->ReadInt16();
     blocking_width = in->ReadInt16();//__getshort__bigendian(fp);
     blocking_height = in->ReadInt16();//__getshort__bigendian(fp);;
     index_id = in->ReadInt32();

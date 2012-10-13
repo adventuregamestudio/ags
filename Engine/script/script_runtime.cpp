@@ -1,19 +1,28 @@
-/*
-C-Script run-time interpreter (c) 2001 Chris Jones
-
-You must DISABLE OPTIMIZATIONS AND REGISTER VARIABLES in your compiler
-when compiling this, or strange results can happen.
-
-There is a problem with importing functions on 16-bit compilers: the
-script system assumes that all parameters are passed as 4 bytes, which
-ints are not on 16-bit systems. Be sure to define all parameters as longs,
-or join the 21st century and switch to DJGPP or Visual C++.
-
-This is UNPUBLISHED PROPRIETARY SOURCE CODE;
-the contents of this file may not be disclosed to third parties,
-copied or duplicated in any form, in whole or in part, without
-prior express permission from Chris Jones.
-*/
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// http://www.opensource.org/licenses/artistic-license-2.0.php
+//
+//=============================================================================
+//
+// C-Script run-time interpreter (c) 2001 Chris Jones
+//
+// You must DISABLE OPTIMIZATIONS AND REGISTER VARIABLES in your compiler
+// when compiling this, or strange results can happen.
+//
+// There is a problem with importing functions on 16-bit compilers: the
+// script system assumes that all parameters are passed as 4 bytes, which
+// ints are not on 16-bit systems. Be sure to define all parameters as longs,
+// or join the 21st century and switch to DJGPP or Visual C++.
+//
+//=============================================================================
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,16 +1,16 @@
-/* Adventure Creator v2 Run-time engine
-   Started 27-May-99 (c) 1999-2011 Chris Jones
-
-  Adventure Game Studio source code Copyright 1999-2011 Chris Jones.
-  All rights reserved.
-
-  The AGS Editor Source Code is provided under the Artistic License 2.0
-  http://www.opensource.org/licenses/artistic-license-2.0.php
-
-  You MAY NOT compile your own builds of the engine without making it EXPLICITLY
-  CLEAR that the code has been altered from the Standard Version.
-
-*/
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// http://www.opensource.org/licenses/artistic-license-2.0.php
+//
+//=============================================================================
 
 //
 // Game configuration
@@ -218,11 +218,9 @@ void read_config_file(char *argv0) {
             usetup.midicard = MIDI_AUTODETECT;
 #endif
 
-#if defined(WINDOWS_VERSION) || defined(LINUX_VERSION) || defined(MAC_VERSION)
         usetup.windowed = INIreadint("misc","windowed");
         if (usetup.windowed < 0)
             usetup.windowed = 0;
-#endif
 
         usetup.refresh = INIreadint ("misc", "refresh", 0);
         usetup.enable_antialiasing = INIreadint ("misc", "antialias", 0);
@@ -254,13 +252,13 @@ void read_config_file(char *argv0) {
         if (usetup.data_files_dir == NULL)
             usetup.data_files_dir = ".";
         // strip any trailing slash
-#if defined(LINUX_VERSION) || defined(MAC_VERSION)
-        if (usetup.data_files_dir[strlen(usetup.data_files_dir)-1] == '/')
-            usetup.data_files_dir[strlen(usetup.data_files_dir)-1] = 0;
-#else
+#if defined (WINDOWS_VERSION)
         if ((strlen(usetup.data_files_dir) < 4) && (usetup.data_files_dir[1] == ':'))
         { }  // if the path is just  d:\  don't strip the slash
         else if (usetup.data_files_dir[strlen(usetup.data_files_dir)-1] == '\\')
+            usetup.data_files_dir[strlen(usetup.data_files_dir)-1] = 0;
+#else
+        if (usetup.data_files_dir[strlen(usetup.data_files_dir)-1] == '/')
             usetup.data_files_dir[strlen(usetup.data_files_dir)-1] = 0;
 #endif
 
@@ -275,10 +273,10 @@ void read_config_file(char *argv0) {
         usetup.gfxFilterID = INIreaditem("misc", "gfxfilter");
 #endif
 
-#if defined(LINUX_VERSION) || defined(MAC_VERSION)
-        usetup.gfxDriverID = "DX5";
-#else
+#if defined (WINDOWS_VERSION)
         usetup.gfxDriverID = INIreaditem("misc", "gfxdriver");
+#else
+        usetup.gfxDriverID = "DX5";
 #endif
 
         usetup.translation = INIreaditem ("language", "translation");

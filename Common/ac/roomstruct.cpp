@@ -1,3 +1,16 @@
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// http://www.opensource.org/licenses/artistic-license-2.0.php
+//
+//=============================================================================
 
 #include <stdio.h>
 #include "util/wgt2allg.h"
@@ -560,7 +573,7 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
   }
   if (rstruc->hotspotScripts != NULL)
   {
-	  for (i = 0; i < rstruc->lastLoadNumHotspots; i++)
+	  for (i = 0; i < rstruc->numhotspots; i++)
 	  {
 		  delete rstruc->hotspotScripts[i];
 	  }
@@ -569,7 +582,7 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
   }
   if (rstruc->objectScripts != NULL)
   {
-	  for (i = 0; i < rstruc->lastLoadNumObjects; i++)
+	  for (i = 0; i < rstruc->numsprs; i++)
 	  {
 		  delete rstruc->objectScripts[i];
 	  }
@@ -578,7 +591,7 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
   }
   if (rstruc->regionScripts != NULL)
   {
-	  for (i = 0; i < rstruc->lastLoadNumRegions; i++)
+	  for (i = 0; i < rstruc->numRegions; i++)
 	  {
 		  delete rstruc->regionScripts[i];
 	  }

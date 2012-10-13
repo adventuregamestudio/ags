@@ -1,3 +1,16 @@
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// http://www.opensource.org/licenses/artistic-license-2.0.php
+//
+//=============================================================================
 
 #include <string.h>
 #include <stdlib.h>
@@ -5,27 +18,18 @@
 #include "debug/assert.h"
 #include "util/datastream.h"
 
-#if defined(ANDROID_VERSION) || defined(IOS_VERSION)
-#include <sys/stat.h>
-#endif
-
-#if defined(LINUX_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
+#if defined (WINDOWS_VERSION)
+#include <io.h>
+#else
+//#include "djcompat.h"
+#include "allegro.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #endif
 
-#if !defined(LINUX_VERSION) && !defined(MAC_VERSION)
-#include <io.h>
-#else
-//#include "djcompat.h"
-#include "allegro.h"
-#endif
 #include "util/misc.h"
 
-#ifdef MAC_VERSION
-#include <sys/stat.h>
-#endif
 
 #include "util/string_utils.h"
 
@@ -517,8 +521,10 @@ AssetError AssetManager::ReadAssetLibV10(MultiFileLib * mfl, DataStream *ci_s, i
 {
     // number of clib parts
     mfl->num_data_files = ci_s->ReadInt32();
-    // filenames for all clib parts
-    ci_s->ReadArray(&mfl->data_filenames[0][0], 20, mfl->num_data_files);
+    // filenames for all clib parts; filename array is only 20 chars long in this format version
+    for (int i = 0; i < mfl->num_data_files; i++)
+      ci_s->ReadArray(&mfl->data_filenames[i][0], 20, 1);
+
     // number of files in clib
     mfl->num_files = ci_s->ReadInt32();
     if (mfl->num_files > MAX_FILES)
@@ -634,10 +640,10 @@ String AssetManager::MakeLibraryFileNameForAsset(const AssetInfo *asset)
 {
     // deduce asset library file containing this asset
     String lib_filename;
-#if defined(LINUX_VERSION) || defined(MAC_VERSION) 
-    lib_filename.Format("%s/%s", _assetLib.BasePath.GetCStr(), _assetLib.LibFileNames[asset->LibUid].GetCStr());
-#else
+#if defined (WINDOWS_VERSION)
     lib_filename.Format("%s\\%s",_assetLib.BasePath.GetCStr(), _assetLib.LibFileNames[asset->LibUid].GetCStr());
+#else
+    lib_filename.Format("%s/%s", _assetLib.BasePath.GetCStr(), _assetLib.LibFileNames[asset->LibUid].GetCStr());
 #endif
     return lib_filename;
 }

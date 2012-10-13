@@ -474,8 +474,13 @@ namespace AGS.Editor
 
 		private bool DoesThisPanelHaveFocus()
 		{
+            return this.ActiveControl != null && this.ActiveControl.Focused;
+            /*if (Utilities.IsMonoRunning())
+            {
+                return this.ActiveControl.Focused;
+            }
 			Control focused = Utilities.GetControlThatHasFocus();
-			return (focused == this.ActiveControl);
+			return (focused == this.ActiveControl);*/
 		}
 
 		private bool ProcessZoomAndPanKeyPresses(Keys keyData)

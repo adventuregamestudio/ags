@@ -1,0 +1,7 @@
+OBJS = AGSSpriteFont/AGSSpriteFont.o \
+AGSSpriteFont/CharacterEntry.o \
+AGSSpriteFont/color.o \
+AGSSpriteFont/SpriteFont.o \
+AGSSpriteFont/SpriteFontRenderer.o \
+AGSSpriteFont/VariableWidthFont.o \
+AGSSpriteFont/VariableWidthSpriteFont.o

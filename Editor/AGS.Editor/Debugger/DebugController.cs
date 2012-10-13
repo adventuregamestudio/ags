@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Xml;
+using System.Windows.Forms;
 
 namespace AGS.Editor
 {
@@ -164,7 +165,15 @@ namespace AGS.Editor
             ChangeDebugState(DebugState.Running);
             if (_engineWindowHandle != IntPtr.Zero)
             {
-                NativeProxy.SetForegroundWindow(_engineWindowHandle);
+                if (Utilities.IsMonoRunning())
+                {
+                    //Is there any way of doing this in mono? I couldn't find any.
+                    //I guess the user will have to bring the game back to focus by himself...                    
+                }
+                else
+                {
+                    NativeProxy.SetForegroundWindow(_engineWindowHandle);
+                }
             }
             _communicator.SendMessage("<Engine Command=\"" + command + "\" />");
         }

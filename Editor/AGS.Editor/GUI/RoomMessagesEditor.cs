@@ -25,7 +25,7 @@ namespace AGS.Editor
                 AddMessageToList(message);
             }
             cmbDisplayAs.Items.Add("Normal text");
-            foreach (Character ch in Factory.AGSEditor.CurrentGame.Characters)
+            foreach (Character ch in Factory.AGSEditor.CurrentGame.RootCharacterFolder.AllItemsFlat)
             {
                 cmbDisplayAs.Items.Add("Character " + ch.RealName);
             }

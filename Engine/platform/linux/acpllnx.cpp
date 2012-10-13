@@ -1,4 +1,18 @@
-#if !defined(BSD_VERSION) && !defined(LINUX_VERSION)
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// http://www.opensource.org/licenses/artistic-license-2.0.php
+//
+//=============================================================================
+
+#if !defined(LINUX_VERSION)
 #error This file should only be included on the Linux or BSD build
 #endif
 
@@ -31,12 +45,6 @@ struct AGSLinux : AGSPlatformDriver {
   virtual void WriteConsole(const char*, ...);
   virtual void WriteDebugString(const char* texx, ...);
   virtual void ReplaceSpecialPaths(const char*, char*);
-  virtual void ReadPluginsFromDisk(AGS::Common::DataStream *iii);
-  virtual void StartPlugins();
-  virtual void ShutdownPlugins();
-  virtual int RunPluginHooks(int event, long data);
-  virtual void RunPluginInitGfxHooks(const char *driverName, void *data);
-  virtual int RunPluginDebugHooks(const char *scriptfile, int linenum);
 };
 
 
@@ -151,28 +159,4 @@ void AGSLinux::ReplaceSpecialPaths(const char *sourcePath, char *destPath) {
   } else {
     strcpy(destPath, sourcePath);
   }
-}
-
-void AGSLinux::ReadPluginsFromDisk(AGS::Common::DataStream *iii) {
-  pl_read_plugins_from_disk(iii);
-}
-
-void AGSLinux::StartPlugins() {
-  pl_startup_plugins();
-}
-
-void AGSLinux::ShutdownPlugins() {
-  pl_stop_plugins();
-}
-
-int AGSLinux::RunPluginHooks(int event, long data) {
-  return pl_run_plugin_hooks(event, data);
-}
-
-void AGSLinux::RunPluginInitGfxHooks(const char *driverName, void *data) {
-  pl_run_plugin_init_gfx_hooks(driverName, data);
-}
-
-int AGSLinux::RunPluginDebugHooks(const char *scriptfile, int linenum) {
-  return pl_run_plugin_debug_hooks(scriptfile, linenum);
 }

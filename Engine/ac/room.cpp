@@ -1,3 +1,17 @@
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// http://www.opensource.org/licenses/artistic-license-2.0.php
+//
+//=============================================================================
+
 #define USE_CLIB
 #include "util/wgt2allg.h"
 #include "util/string_utils.h" //strlwr()
@@ -51,7 +65,7 @@ using AGS::Common::DataStream;
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
-#if defined(MAC_VERSION) || defined(LINUX_VERSION)
+#if !defined (WINDOWS_VERSION)
 // for toupper
 #include <ctype.h>
 #endif
@@ -458,7 +472,7 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
             thisroom.ebscene[cc] = convert_16_to_16bgr (thisroom.ebscene[cc]);
 #endif
 
-#if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(PSP_VERSION)
+#if defined (AGS_INVERTED_COLOR_ORDER)
         // PSP: Convert 32 bit backgrounds.
         if (thisroom.ebscene[cc]->GetColorDepth() == 32)
             thisroom.ebscene[cc] = convert_32_to_32bgr(thisroom.ebscene[cc]);
@@ -505,9 +519,7 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
 		scrnhit = BitmapHelper::GetScreenBitmap()->GetHeight();
         vesa_yres = scrnhit;
 
-#if defined(WINDOWS_VERSION) || defined(LINUX_VERSION) || defined(MAC_VERSION)
         filter->SetMouseArea(0,0, scrnwid-1, vesa_yres-1);
-#endif
 
         if (virtual_screen->GetHeight() != scrnhit) {
             int cdepth=virtual_screen->GetColorDepth();

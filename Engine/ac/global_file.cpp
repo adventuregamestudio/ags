@@ -1,3 +1,16 @@
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// http://www.opensource.org/licenses/artistic-license-2.0.php
+//
+//=============================================================================
 
 #include "util/wgt2allg.h"
 #include "ac/global_file.h"
@@ -8,31 +21,6 @@
 #include "util/filestream.h"
 
 using AGS::Common::DataStream;
-
-#ifdef WINDOWS_VERSION
-//#include <crtdbg.h>
-//#include "winalleg.h"
-//#include <shlwapi.h>
-
-#elif (defined(LINUX_VERSION) || defined(MAC_VERSION)) && !defined(PSP_VERSION)
-#include <dlfcn.h>
-/*
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <dirent.h>
-#include "../PSP/launcher/pe.h"
-*/
-
-#else   // it's DOS (DJGPP)
-
-//#include "sys/exceptn.h"
-
-//int sys_getch() {
-//    return getch();
-//}
-
-#endif  // WINDOWS_VERSION
 
 extern int num_open_script_files;
 extern DataStream *valid_handles[MAX_OPEN_SCRIPT_FILES+1];

@@ -154,7 +154,7 @@ namespace AGS.Editor
             if (xmlVersionIndex < 2)
             {
                 // Upgrade old games to use the Anti-Glide Mode setting
-                foreach (Character character in game.Characters)
+                foreach (Character character in game.RootCharacterFolder.AllItemsFlat)
                 {
                     character.MovementLinkedToAnimation = game.Settings.AntiGlideMode;
                 }
@@ -163,7 +163,7 @@ namespace AGS.Editor
             if (xmlVersionIndex < 3)
             {
                 // Upgrade old games to flatten the dialog scripts
-                foreach (Dialog dialog in game.Dialogs)
+                foreach (Dialog dialog in game.RootDialogFolder.AllItemsFlat)
                 {
                     dialog.Script = RemoveAllLeadingSpacesFromLines(dialog.Script);
                 }
@@ -314,7 +314,7 @@ namespace AGS.Editor
 
 			AppendFontsToHeader(sb, game.Fonts);
 
-            AppendCharactersToHeader(sb, game.Characters, game);
+            AppendCharactersToHeader(sb, game.RootCharacterFolder, game);
 
             AppendAudioClipTypesToHeader(sb, game.AudioClipTypes);
 
@@ -449,13 +449,14 @@ namespace AGS.Editor
             }
         }
 
-        private void AppendCharactersToHeader(StringBuilder sb, IList<Character> characters, Game game)
+        private void AppendCharactersToHeader(StringBuilder sb, CharacterFolder characters, Game game)
         {
-            if (characters.Count > 0)
+            int charactersCount = characters.GetAllItemsCount();
+            if (charactersCount > 0)
             {
-                sb.AppendLine(string.Format("import Character character[{0}];", characters.Count));
+                sb.AppendLine(string.Format("import Character character[{0}];", charactersCount));
 
-                foreach (Character character in characters)
+                foreach (Character character in characters.AllItemsFlat)
                 {
                     if (character.ScriptName.StartsWith("c") &&
                         (character.ScriptName.Length > 1))

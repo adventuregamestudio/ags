@@ -1,16 +1,21 @@
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// http://www.opensource.org/licenses/artistic-license-2.0.php
+//
+//=============================================================================
 //
 // AGS Plugin interface header file
-// (c) 2002-2005 Chris Jones
-// All rights reserved
 //
 // #define THIS_IS_THE_PLUGIN beforehand if including from the plugin
 //
-//
-// This one file of the AGS source code is open source and may be
-// distributed freely, so long as it is always distributed within
-// the original agsplugin*.zip file and is totally unmodified.
-//
-
 //-----------------------------------------------------------------------------
 // [IKM] 2012-04-06
 //
@@ -63,7 +68,7 @@ typedef int HWND;
 #endif
 
 // DOS engine doesn't know about stdcall / neither does Linux version
-#if defined(DJGPP) || defined(LINUX_VERSION) || defined(MAC_VERSION)
+#if !defined (WINDOWS_VERSION)
 #define __stdcall
 #endif
 

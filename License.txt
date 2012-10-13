@@ -1,5 +1,4 @@
 Adventure Game Studio Source Code
-Copyright (c) 2006-2010 Chris Jones
 ------------------------------------------------------
 
 The AGS Source Code is provided under the Artistic License 2.0, which is
@@ -7,11 +6,11 @@ included below.
 
 For the avoidance of doubt, in the license text below:
 
-"Package" means the Adventure Game Studio Source Code, as provided for
-download from the AGS Website and must always be accompanied by this license.
+"Package" means the Adventure Game Studio Source Code, which must always be
+accompanied by this license.
 
-"Copyright Holder" means Chris Jones, who is the original author and copyright
-holder of the AGS Editor Source Code.
+"Copyright Holder" means the copyright holders listed in the file Copyright.txt.
+The original author of the AGS Source Code is Chris Jones.
 
 
 ------------------------------------------------------

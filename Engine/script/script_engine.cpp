@@ -1,21 +1,26 @@
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// http://www.opensource.org/licenses/artistic-license-2.0.php
+//
+//=============================================================================
+//
+// Script Editor run-time engine component (c) 1998 Chris Jones
+// script chunk format:
+// 00h  1 dword  version - should be 2
+// 04h  1 dword  sizeof(scriptblock)
+// 08h  1 dword  number of ScriptBlocks
+// 0Ch  n STRUCTs ScriptBlocks
+//
+//=============================================================================
 
-/* 
-Script Editor run-time engine component (c) 1998 Chris Jones
-script chunk format:
-00h  1 dword  version - should be 2
-04h  1 dword  sizeof(scriptblock)
-08h  1 dword  number of ScriptBlocks
-0Ch  n STRUCTs ScriptBlocks
-
-Adventure Game Studio source code Copyright 1999-2011 Chris Jones.
-All rights reserved.
-
-The AGS Editor Source Code is provided under the Artistic License 2.0
-http://www.opensource.org/licenses/artistic-license-2.0.php
-
-You MAY NOT compile your own builds of the engine without making it EXPLICITLY
-CLEAR that the code has been altered from the Standard Version.
-*/
 #include <stdio.h>
 #include <stdlib.h>
 #include "util/wgt2allg.h"
@@ -67,17 +72,10 @@ void save_graphical_scripts(DataStream *out, roomstruct * rss)
 }
 
 char *scripttempn = "~acsc%d.tmp";
-extern int route_script_link();
 
 void load_graphical_scripts(DataStream *in, roomstruct * rst)
 {
     long ct;
-
-    if (route_script_link()) {
-        quit("STOP IT.");
-        exit(767);
-        abort();
-    }
 
     while (1) {
         ct = in->ReadInt32();

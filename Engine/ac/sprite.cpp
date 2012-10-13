@@ -1,3 +1,16 @@
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// http://www.opensource.org/licenses/artistic-license-2.0.php
+//
+//=============================================================================
 
 #include "util/wgt2allg.h"
 #include "gfx/ali3d.h"
@@ -206,7 +219,7 @@ void initialize_sprite (int ee) {
         }
         else if ((spcoldep == 32) && (final_col_dep == 32))
         {
-#if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(PSP_VERSION)
+#if defined (AGS_INVERTED_COLOR_ORDER)
             // PSP: Convert to BGR color order.
             spriteset.set(ee, convert_32_to_32bgr(spriteset[ee]));
 #endif

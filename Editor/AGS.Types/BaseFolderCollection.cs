@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
 using System.Xml;
+using System.Windows.Forms;
 
 namespace AGS.Types
 {
@@ -10,23 +11,26 @@ namespace AGS.Types
     /// Base class for items which are maintained in a folder structure,
     /// like Views and AudioClips.
     /// </summary>
-    /// <typeparam name="T">type of the item, eg. View</typeparam>
-    /// <typeparam name="U">type of the folder, eg. ViewFolder</typeparam>
-    public abstract class BaseFolderCollection<T,U> : IToXml where T : IToXml where U : IToXml
+    /// <typeparam name="TFolderItem">type of the item, eg. View</typeparam>
+    /// <typeparam name="TFolder">type of the folder, eg. ViewFolder</typeparam>
+    public abstract class BaseFolderCollection<TFolderItem, TFolder> : IToXml
+        where TFolderItem : IToXml
+        where TFolder : BaseFolderCollection<TFolderItem, TFolder>
     {
-        protected abstract U CreateFolder(XmlNode node);
-        protected abstract T CreateItem(XmlNode node);
+        public abstract TFolder CreateChildFolder(string name);
+        protected abstract TFolder CreateFolder(XmlNode node);
+        protected abstract TFolderItem CreateItem(XmlNode node);
         protected virtual void ToXmlExtend(XmlTextWriter writer) { }
 
+        protected delegate bool EqualsDelegate<TId>(TFolderItem folderItem, TId id);        
+
         private string _name;
-        protected List<U> _subFolders;
-        protected List<T> _items;
+        protected List<TFolder> _subFolders;
+        protected List<TFolderItem> _items;
 
         public BaseFolderCollection(string name)
         {
-            _name = name;
-            _items = new List<T>();
-            _subFolders = new List<U>();
+            Init(name);            
         }
 
         [AGSNoSerialize]
@@ -45,26 +49,47 @@ namespace AGS.Types
 
         [AGSNoSerialize]
         [Browsable(false)]
-        public IList<U> SubFolders
+        public IList<TFolder> SubFolders
         {
             get { return _subFolders; }
         }
 
         [AGSNoSerialize]
         [Browsable(false)]
-        public IList<T> Items
+        public IList<TFolderItem> Items
         {
             get { return _items; }
         }
 
+        protected virtual string RootNodeName { get { return null; } }
+
+        public IEnumerable<TFolderItem> AllItemsFlat
+        {
+            get
+            {
+                foreach (TFolder subFolder in this.SubFolders)
+                {
+                    foreach (TFolderItem item in subFolder.AllItemsFlat)
+                    {
+                        yield return item;
+                    }
+                }
+ 
+                foreach (TFolderItem item in _items)
+                {
+                    yield return item;
+                }               
+            }
+        }
+
         private string XmlFolderNodeName
         { 
-            get { return typeof(U).Name; } 
+            get { return typeof(TFolder).Name; } 
         }
 
         private string XmlItemListNodeName
         {
-            get { return typeof(T).Name + "s"; }
+            get { return typeof(TFolderItem).Name + "s"; }
         }
 
         public BaseFolderCollection(XmlNode node)
@@ -73,9 +98,34 @@ namespace AGS.Types
             {
                 throw new InvalidDataException("Incorrect node passed to " + this.XmlFolderNodeName);
             }
-            _name = node.Attributes["Name"].InnerText;
-            _items = new List<T>();
-            _subFolders = new List<U>();
+            FromXml(node);
+        }
+
+        public BaseFolderCollection(XmlNode node, XmlNode parentNodeForBackwardsCompatability)
+        {
+            if (node == null || node.Name != this.XmlFolderNodeName)
+            {
+                FromXmlBackwardsCompatability(parentNodeForBackwardsCompatability);                
+            }
+            else FromXml(node);
+        }
+
+        protected virtual void FromXmlBackwardsCompatability(XmlNode parentNodeForBackwardsCompatability)
+        {
+            //Either override this method in your Folder class to support backwards compatability,
+            //or use the constructor with the backwards support.
+            throw new InvalidDataException("Backwards compatabilty not supported on this type!");
+        }
+
+        protected void Init(string name)
+        {
+            _name = name;
+            Clear();
+        }
+
+        private void FromXml(XmlNode node)
+        {
+            Init(node.Attributes["Name"].InnerText);            
 
             foreach (XmlNode childNode in SerializeUtils.GetChildNodes(node, "SubFolders"))
             {
@@ -88,20 +138,60 @@ namespace AGS.Types
             }
         }
 
+        public void Clear()
+        {
+            _items = new List<TFolderItem>();
+            _subFolders = new List<TFolder>();
+        }
+
+        public bool MoveFolderUp(TFolder folder)
+        {
+            int folderIndex = _subFolders.IndexOf(folder);
+            if (folderIndex == -1)
+            {
+                foreach (TFolder subFolder in _subFolders)
+                {
+                    if (subFolder.MoveFolderUp(folder)) return true;
+                }
+                return false;
+            }
+            if (folderIndex == 0) return true;
+            _subFolders.RemoveAt(folderIndex);
+            _subFolders.Insert(folderIndex - 1, folder);
+            return true;
+        }
+
+        public bool MoveFolderDown(TFolder folder)
+        {
+            int folderIndex = _subFolders.IndexOf(folder);
+            if (folderIndex == -1)
+            {
+                foreach (TFolder subFolder in _subFolders)
+                {
+                    if (subFolder.MoveFolderDown(folder)) return true;
+                }
+                return false;
+            }
+            if (folderIndex == _subFolders.Count - 1) return true;
+            _subFolders.RemoveAt(folderIndex);
+            _subFolders.Insert(folderIndex + 1, folder);
+            return true;
+        }
+
         public void ToXml(XmlTextWriter writer)
         {
             writer.WriteStartElement(this.XmlFolderNodeName);
             writer.WriteAttributeString("Name", _name);
 
             writer.WriteStartElement("SubFolders");
-            foreach (U folder in _subFolders)
+            foreach (TFolder folder in _subFolders)
             {
                 folder.ToXml(writer);
             }
             writer.WriteEndElement();
 
             writer.WriteStartElement(this.XmlItemListNodeName);
-            foreach (T view in _items)
+            foreach (TFolderItem view in _items)
             {
                 view.ToXml(writer);
             }
@@ -110,6 +200,60 @@ namespace AGS.Types
             ToXmlExtend(writer);
 
             writer.WriteEndElement();
+        }
+
+        public int GetAllItemsCount()
+        {
+            int count = _items.Count;
+            foreach (TFolder subFolder in _subFolders)
+            {
+                count += subFolder.GetAllItemsCount();
+            }
+            return count;
+        }
+
+        public void Sort(bool recursive)
+        {
+            _items.Sort();
+            if (recursive)
+            {
+                foreach (TFolder subFolder in _subFolders)
+                {
+                    subFolder.Sort(recursive); 
+                }
+            }
+        }
+        
+        protected TFolderItem FindItem<TId>(EqualsDelegate<TId> isItem, TId id, bool recursive)
+        {
+            foreach (TFolderItem item in _items)
+            {
+                if (isItem(item, id))                
+                {
+                    return item;
+                }
+            }
+
+            if (recursive)
+            {
+                foreach (TFolder subFolder in this.SubFolders)
+                {
+                    TFolderItem found = subFolder.FindItem<TId>(isItem, id, recursive);
+                    if (found != null)
+                    {
+                        return found;
+                    }
+                }
+            }
+            return default(TFolderItem);
+        }
+
+        public void RunActionOnAllFolderItems(Action<TFolderItem> action)
+        {
+            foreach (TFolderItem item in AllItemsFlat)            
+            {
+                action(item);
+            }            
         }
     }
 }

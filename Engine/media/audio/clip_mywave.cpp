@@ -1,3 +1,16 @@
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// http://www.opensource.org/licenses/artistic-license-2.0.php
+//
+//=============================================================================
 
 #include "util/wgt2allg.h"
 #include "media/audio/audiodefines.h"
@@ -5,18 +18,27 @@
 #include "media/audio/audiointernaldefs.h"
 #include "media/audio/soundcache.h"
 
+#include "platform/base/agsplatformdriver.h"
+
+
 int MYWAVE::poll()
 {
-    lockMutex();
+    _mutex.Lock();
+
+    if (!done && _destroyThis)
+    {
+      internal_destroy();
+      _destroyThis = false;
+    }
 
     if (wave == NULL)
     {
-        releaseMutex();
+        _mutex.Unlock();
         return 1;
     }
     if (paused)
     {
-        releaseMutex();
+        _mutex.Unlock();
         return 0;
     }
 
@@ -27,9 +49,13 @@ int MYWAVE::poll()
     }
 
     if (voice_get_position(voice) < 0)
+    {
         done = 1;
+        if (psp_audio_multithreaded)
+            internal_destroy();
+    }
 
-    releaseMutex();
+    _mutex.Unlock();
 
     return done;
 }
@@ -46,16 +72,30 @@ void MYWAVE::set_volume(int newvol)
     }
 }
 
-void MYWAVE::destroy()
+void MYWAVE::internal_destroy()
 {
-    lockMutex();
-
     // Stop sound and decrease reference count.
     stop_sample(wave);
     sound_cache_free((char*)wave, true);
     wave = NULL;
 
-    releaseMutex();
+    _destroyThis = false;
+    done = 1;
+}
+
+void MYWAVE::destroy()
+{
+    _mutex.Lock();
+
+    if (psp_audio_multithreaded)
+      _destroyThis = true;
+    else
+      internal_destroy();
+
+    _mutex.Unlock();
+
+    while (!done)
+      AGSPlatformDriver::GetDriver()->YieldCPU();
 }
 
 void MYWAVE::seek(int pos)

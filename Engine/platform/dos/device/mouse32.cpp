@@ -1,17 +1,32 @@
-/* MOUSELIB.CPP
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// http://www.opensource.org/licenses/artistic-license-2.0.php
+//
+//=============================================================================
+//
+// MOUSELIB.CPP
+//
+// Library of mouse functions for graphics and text mode
+// (c) 1994 Chris Jones
+//
+// PLEASE NOTE: Running this program in the TC++ editor will NOT show
+// a mouse cursor in text mode. You must compile it and then exit from
+// the editor for the program to work properly.
+//
+// ADDITIONAL NOTE: These functions work only when compiled to a OBJ
+// file and linked with another program (#include the CMOUSE.H file).
+// Just add MOUSELIB.CPP to the project.
+//
+//=============================================================================
 
-Library of mouse functions for graphics and text mode
-
-(c) 1994 Chris Jones
-
-.    PLEASE NOTE: Running this program in the TC++ editor will NOT show
-.    a mouse cursor in text mode. You must compile it and then exit from
-.    the editor for the program to work properly.
-
-.    ADDITIONAL NOTE: These functions work only when compiled to a OBJ
-.    file and linked with another program (#include the CMOUSE.H file).
-.    Just add MOUSELIB.CPP to the project.
-*/
 #ifndef __GNUC__
 #error This is the 32-bit version
 #endif

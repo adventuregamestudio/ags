@@ -1,14 +1,17 @@
-/*
-  Adventure Game Studio source code Copyright 1999-2011 Chris Jones.
-  All rights reserved.
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// http://www.opensource.org/licenses/artistic-license-2.0.php
+//
+//=============================================================================
 
-  The AGS Editor Source Code is provided under the Artistic License 2.0
-  http://www.opensource.org/licenses/artistic-license-2.0.php
-
-  You MAY NOT compile your own builds of the engine without making it EXPLICITLY
-  CLEAR that the code has been altered from the Standard Version.
-
-*/
 #ifndef WINDOWS_VERSION
 #error This file should only be included on the Windows build
 #endif
@@ -110,13 +113,6 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual void RegisterGameWithGameExplorer();
   virtual void UnRegisterGameWithGameExplorer();
   virtual int  ConvertKeycodeToScanCode(int keyCode);
-
-  virtual void ReadPluginsFromDisk(DataStream *in);
-  virtual void StartPlugins();
-  virtual int  RunPluginHooks(int event, long data);
-  virtual void RunPluginInitGfxHooks(const char *driverName, void *data);
-  virtual int  RunPluginDebugHooks(const char *scriptfile, int linenum);
-  virtual void ShutdownPlugins();
 
   //-----------------------------------------------
   // IOutputTarget implementation
@@ -771,30 +767,6 @@ void AGSWin32::WriteDebugString(const char* texx, ...) {
 
 void AGSWin32::ShutdownCDPlayer() {
   cd_exit();
-}
-
-void AGSWin32::ReadPluginsFromDisk(DataStream *in) {
-  pl_read_plugins_from_disk(in);
-}
-
-void AGSWin32::StartPlugins() {
-  pl_startup_plugins();
-}
-
-void AGSWin32::ShutdownPlugins() {
-  pl_stop_plugins();
-}
-
-int AGSWin32::RunPluginHooks(int event, long data) {
-  return pl_run_plugin_hooks(event, data);
-}
-
-void AGSWin32::RunPluginInitGfxHooks(const char *driverName, void *data) {
-  pl_run_plugin_init_gfx_hooks(driverName, data);
-}
-
-int AGSWin32::RunPluginDebugHooks(const char *scriptfile, int linenum) {
-  return pl_run_plugin_debug_hooks(scriptfile, linenum);
 }
 
 extern "C" const unsigned char hw_to_mycode[256];

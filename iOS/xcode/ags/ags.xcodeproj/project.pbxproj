@@ -26,6 +26,7 @@
 		6041A86A1552E63B00596310 /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 6041A8691552E63B00596310 /* Icon.png */; };
 		6041A8881552E89E00596310 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 6041A8871552E89E00596310 /* libz.dylib */; };
 		6041A8981552E8C400596310 /* libbz2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 6041A8971552E8C400596310 /* libbz2.dylib */; };
+		6080428E1614DE8F00D33732 /* assetmanager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6080428D1614DE8F00D33732 /* assetmanager.cpp */; };
 		60844EAD1573943400003ED0 /* MainWindow-iPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = 60844EAC1573943400003ED0 /* MainWindow-iPad.xib */; };
 		608498E6155CDF6400121EFE /* Icon-72.png in Resources */ = {isa = PBXBuildFile; fileRef = 608498E5155CDF6400121EFE /* Icon-72.png */; };
 		608498E8155CDF7000121EFE /* Icon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 608498E7155CDF7000121EFE /* Icon@2x.png */; };
@@ -76,17 +77,9 @@
 		60CA3A81160713D300CFB3BD /* guiobject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA39F3160713D300CFB3BD /* guiobject.cpp */; };
 		60CA3A82160713D300CFB3BD /* guislider.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA39F5160713D300CFB3BD /* guislider.cpp */; };
 		60CA3A83160713D300CFB3BD /* guitextbox.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA39F7160713D300CFB3BD /* guitextbox.cpp */; };
-		60CA3A84160713D300CFB3BD /* config_types.h.in in Resources */ = {isa = PBXBuildFile; fileRef = 60CA3A11160713D300CFB3BD /* config_types.h.in */; };
-		60CA3A85160713D300CFB3BD /* MAKEFILE.AM in Resources */ = {isa = PBXBuildFile; fileRef = 60CA3A13160713D300CFB3BD /* MAKEFILE.AM */; };
-		60CA3A86160713D300CFB3BD /* MAKEFILE.IN in Resources */ = {isa = PBXBuildFile; fileRef = 60CA3A14160713D300CFB3BD /* MAKEFILE.IN */; };
-		60CA3A87160713D300CFB3BD /* Makefile.am in Resources */ = {isa = PBXBuildFile; fileRef = 60CA3A19160713D300CFB3BD /* Makefile.am */; };
-		60CA3A88160713D300CFB3BD /* Makefile.in in Resources */ = {isa = PBXBuildFile; fileRef = 60CA3A1A160713D300CFB3BD /* Makefile.in */; };
-		60CA3A89160713D300CFB3BD /* Makefile.am in Resources */ = {isa = PBXBuildFile; fileRef = 60CA3A20160713D300CFB3BD /* Makefile.am */; };
-		60CA3A8A160713D300CFB3BD /* Makefile.in in Resources */ = {isa = PBXBuildFile; fileRef = 60CA3A21160713D300CFB3BD /* Makefile.in */; };
 		60CA3A8B160713D300CFB3BD /* AAROT.c in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3A26160713D300CFB3BD /* AAROT.c */; };
 		60CA3A8C160713D300CFB3BD /* aastr.c in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3A27160713D300CFB3BD /* aastr.c */; };
 		60CA3A8D160713D300CFB3BD /* aautil.c in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3A29160713D300CFB3BD /* aautil.c */; };
-		60CA3A8E160713D300CFB3BD /* vssver2.scc in Resources */ = {isa = PBXBuildFile; fileRef = 60CA3A2B160713D300CFB3BD /* vssver2.scc */; };
 		60CA3A92160713D300CFB3BD /* bigend.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3A34160713D300CFB3BD /* bigend.cpp */; };
 		60CA3A93160713D300CFB3BD /* macport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3A37160713D300CFB3BD /* macport.cpp */; };
 		60CA3A94160713D300CFB3BD /* cc_error.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3A3A160713D300CFB3BD /* cc_error.cpp */; };
@@ -96,7 +89,6 @@
 		60CA3A98160713D300CFB3BD /* cc_treemap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3A42160713D300CFB3BD /* cc_treemap.cpp */; };
 		60CA3A99160713D300CFB3BD /* script_common.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3A44160713D300CFB3BD /* script_common.cpp */; };
 		60CA3A9A160713D300CFB3BD /* alignedstream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3A47160713D300CFB3BD /* alignedstream.cpp */; };
-		60CA3A9B160713D300CFB3BD /* clib32.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3A4A160713D300CFB3BD /* clib32.cpp */; };
 		60CA3A9C160713D300CFB3BD /* compress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3A4C160713D300CFB3BD /* compress.cpp */; };
 		60CA3A9D160713D300CFB3BD /* datastream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3A4E160713D300CFB3BD /* datastream.cpp */; };
 		60CA3A9E160713D300CFB3BD /* file.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3A50160713D300CFB3BD /* file.cpp */; };
@@ -254,10 +246,6 @@
 		60CA3DD5160713FF00CFB3BD /* mytextbox.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3BFB160713FE00CFB3BD /* mytextbox.cpp */; };
 		60CA3DD6160713FF00CFB3BD /* newcontrol.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3BFD160713FE00CFB3BD /* newcontrol.cpp */; };
 		60CA3DD8160713FF00CFB3BD /* alfont.c in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3C02160713FE00CFB3BD /* alfont.c */; };
-		60CA3DD9160713FF00CFB3BD /* ALFONT.txt in Resources */ = {isa = PBXBuildFile; fileRef = 60CA3C03160713FE00CFB3BD /* ALFONT.txt */; };
-		60CA3DDA160713FF00CFB3BD /* AUTHORS.txt in Resources */ = {isa = PBXBuildFile; fileRef = 60CA3C04160713FE00CFB3BD /* AUTHORS.txt */; };
-		60CA3DDB160713FF00CFB3BD /* FTL.txt in Resources */ = {isa = PBXBuildFile; fileRef = 60CA3C05160713FE00CFB3BD /* FTL.txt */; };
-		60CA3DDC160713FF00CFB3BD /* README.txt in Resources */ = {isa = PBXBuildFile; fileRef = 60CA3C06160713FE00CFB3BD /* README.txt */; };
 		60CA3DE5160713FF00CFB3BD /* almp3.c in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3C13160713FE00CFB3BD /* almp3.c */; };
 		60CA3DE6160713FF00CFB3BD /* common.c in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3C16160713FE00CFB3BD /* common.c */; };
 		60CA3DE7160713FF00CFB3BD /* dct64_i386.c in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3C17160713FE00CFB3BD /* dct64_i386.c */; };
@@ -265,12 +253,9 @@
 		60CA3DE9160713FF00CFB3BD /* interface.c in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3C1A160713FE00CFB3BD /* interface.c */; };
 		60CA3DEA160713FF00CFB3BD /* layer2.c in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3C1C160713FE00CFB3BD /* layer2.c */; };
 		60CA3DEB160713FF00CFB3BD /* layer3.c in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3C1D160713FE00CFB3BD /* layer3.c */; };
-		60CA3DEC160713FF00CFB3BD /* README in Resources */ = {isa = PBXBuildFile; fileRef = 60CA3C20160713FE00CFB3BD /* README */; };
 		60CA3DED160713FF00CFB3BD /* tabinit.c in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3C21160713FE00CFB3BD /* tabinit.c */; };
-		60CA3DEE160713FF00CFB3BD /* vssver2.scc in Resources */ = {isa = PBXBuildFile; fileRef = 60CA3C22160713FE00CFB3BD /* vssver2.scc */; };
 		60CA3DEF160713FF00CFB3BD /* alogg.c in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3C24160713FE00CFB3BD /* alogg.c */; };
 		60CA3DF0160713FF00CFB3BD /* adisplay.c in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3C26160713FE00CFB3BD /* adisplay.c */; };
-		60CA3DF1160713FF00CFB3BD /* apeg.txt in Resources */ = {isa = PBXBuildFile; fileRef = 60CA3C27160713FE00CFB3BD /* apeg.txt */; };
 		60CA3DF3160713FF00CFB3BD /* apegcommon.c in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3C2A160713FE00CFB3BD /* apegcommon.c */; };
 		60CA3DF4160713FF00CFB3BD /* dct64.c in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3C2B160713FE00CFB3BD /* dct64.c */; };
 		60CA3DF5160713FF00CFB3BD /* decode_1to1.c in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3C2C160713FE00CFB3BD /* decode_1to1.c */; };
@@ -282,7 +267,6 @@
 		60CA3DFC160713FF00CFB3BD /* readers.c in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3C33160713FE00CFB3BD /* readers.c */; };
 		60CA3DFD160713FF00CFB3BD /* tabinit.c in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3C34160713FE00CFB3BD /* tabinit.c */; };
 		60CA3DFE160713FF00CFB3BD /* vbrhead.c in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3C35160713FE00CFB3BD /* vbrhead.c */; };
-		60CA3DFF160713FF00CFB3BD /* vssver2.scc in Resources */ = {isa = PBXBuildFile; fileRef = 60CA3C36160713FE00CFB3BD /* vssver2.scc */; };
 		60CA3E00160713FF00CFB3BD /* getbits.c in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3C37160713FE00CFB3BD /* getbits.c */; };
 		60CA3E01160713FF00CFB3BD /* getblk.c in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3C38160713FE00CFB3BD /* getblk.c */; };
 		60CA3E02160713FF00CFB3BD /* gethdr.c in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3C39160713FE00CFB3BD /* gethdr.c */; };
@@ -292,7 +276,6 @@
 		60CA3E06160713FF00CFB3BD /* mpeg1dec.c in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3C3D160713FE00CFB3BD /* mpeg1dec.c */; };
 		60CA3E07160713FF00CFB3BD /* ogg.c in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3C3E160713FE00CFB3BD /* ogg.c */; };
 		60CA3E08160713FF00CFB3BD /* recon.c in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3C3F160713FE00CFB3BD /* recon.c */; };
-		60CA3E09160713FF00CFB3BD /* vssver2.scc in Resources */ = {isa = PBXBuildFile; fileRef = 60CA3C40160713FE00CFB3BD /* vssver2.scc */; };
 		60CA3E46160713FF00CFB3BD /* config.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3C86160713FF00CFB3BD /* config.cpp */; };
 		60CA3E47160713FF00CFB3BD /* engine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3C88160713FF00CFB3BD /* engine.cpp */; };
 		60CA3E48160713FF00CFB3BD /* game_file.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3C8A160713FF00CFB3BD /* game_file.cpp */; };
@@ -324,14 +307,6 @@
 		60CA3E74160713FF00CFB3BD /* agsplugin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3CE7160713FF00CFB3BD /* agsplugin.cpp */; };
 		60CA3E75160713FF00CFB3BD /* global_plugin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3CE9160713FF00CFB3BD /* global_plugin.cpp */; };
 		60CA3E76160713FF00CFB3BD /* pluginobjectreader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3CEA160713FF00CFB3BD /* pluginobjectreader.cpp */; };
-		60CA3E77160713FF00CFB3BD /* CompileShader.bat in Resources */ = {isa = PBXBuildFile; fileRef = 60CA3CED160713FF00CFB3BD /* CompileShader.bat */; };
-		60CA3E78160713FF00CFB3BD /* DefaultGDF.gdf.xml in Resources */ = {isa = PBXBuildFile; fileRef = 60CA3CEE160713FF00CFB3BD /* DefaultGDF.gdf.xml */; };
-		60CA3E79160713FF00CFB3BD /* game-1.ICO in Resources */ = {isa = PBXBuildFile; fileRef = 60CA3CEF160713FF00CFB3BD /* game-1.ICO */; };
-		60CA3E7A160713FF00CFB3BD /* tintshader.fx in Resources */ = {isa = PBXBuildFile; fileRef = 60CA3CF1160713FF00CFB3BD /* tintshader.fx */; };
-		60CA3E7B160713FF00CFB3BD /* tintshader.fxo in Resources */ = {isa = PBXBuildFile; fileRef = 60CA3CF2160713FF00CFB3BD /* tintshader.fxo */; };
-		60CA3E7C160713FF00CFB3BD /* tintshaderLegacy.fx in Resources */ = {isa = PBXBuildFile; fileRef = 60CA3CF3160713FF00CFB3BD /* tintshaderLegacy.fx */; };
-		60CA3E7D160713FF00CFB3BD /* tintshaderLegacy.fxo in Resources */ = {isa = PBXBuildFile; fileRef = 60CA3CF4160713FF00CFB3BD /* tintshaderLegacy.fxo */; };
-		60CA3E7E160713FF00CFB3BD /* version.rc in Resources */ = {isa = PBXBuildFile; fileRef = 60CA3CF5160713FF00CFB3BD /* version.rc */; };
 		60CA3E7F160713FF00CFB3BD /* executingscript.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3CF7160713FF00CFB3BD /* executingscript.cpp */; };
 		60CA3E80160713FF00CFB3BD /* exports.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3CF9160713FF00CFB3BD /* exports.cpp */; };
 		60CA3E81160713FF00CFB3BD /* ex_audio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3CFB160713FF00CFB3BD /* ex_audio.cpp */; };
@@ -400,6 +375,8 @@
 		6041A8691552E63B00596310 /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
 		6041A8871552E89E00596310 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
 		6041A8971552E8C400596310 /* libbz2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libbz2.dylib; path = usr/lib/libbz2.dylib; sourceTree = SDKROOT; };
+		6080428C1614DE8900D33732 /* assetmanager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = assetmanager.h; sourceTree = "<group>"; };
+		6080428D1614DE8F00D33732 /* assetmanager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = assetmanager.cpp; sourceTree = "<group>"; };
 		60844EAC1573943400003ED0 /* MainWindow-iPad.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = "MainWindow-iPad.xib"; path = "Resources-iPad/MainWindow-iPad.xib"; sourceTree = "<group>"; };
 		608498E5155CDF6400121EFE /* Icon-72.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-72.png"; sourceTree = "<group>"; };
 		608498E7155CDF7000121EFE /* Icon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon@2x.png"; sourceTree = "<group>"; };
@@ -567,8 +544,6 @@
 		60CA3A47160713D300CFB3BD /* alignedstream.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = alignedstream.cpp; sourceTree = "<group>"; };
 		60CA3A48160713D300CFB3BD /* alignedstream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = alignedstream.h; sourceTree = "<group>"; };
 		60CA3A49160713D300CFB3BD /* bbop.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bbop.h; sourceTree = "<group>"; };
-		60CA3A4A160713D300CFB3BD /* clib32.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = clib32.cpp; sourceTree = "<group>"; };
-		60CA3A4B160713D300CFB3BD /* clib32.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = clib32.h; sourceTree = "<group>"; };
 		60CA3A4C160713D300CFB3BD /* compress.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = compress.cpp; sourceTree = "<group>"; };
 		60CA3A4D160713D300CFB3BD /* compress.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = compress.h; sourceTree = "<group>"; };
 		60CA3A4E160713D300CFB3BD /* datastream.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = datastream.cpp; sourceTree = "<group>"; };
@@ -1353,6 +1328,8 @@
 		60CA39D0160713D200CFB3BD /* core */ = {
 			isa = PBXGroup;
 			children = (
+				6080428D1614DE8F00D33732 /* assetmanager.cpp */,
+				6080428C1614DE8900D33732 /* assetmanager.h */,
 				60CA39D1160713D200CFB3BD /* types.h */,
 			);
 			path = core;
@@ -1563,8 +1540,6 @@
 				60CA3A47160713D300CFB3BD /* alignedstream.cpp */,
 				60CA3A48160713D300CFB3BD /* alignedstream.h */,
 				60CA3A49160713D300CFB3BD /* bbop.h */,
-				60CA3A4A160713D300CFB3BD /* clib32.cpp */,
-				60CA3A4B160713D300CFB3BD /* clib32.h */,
 				60CA3A4C160713D300CFB3BD /* compress.cpp */,
 				60CA3A4D160713D300CFB3BD /* compress.h */,
 				60CA3A4E160713D300CFB3BD /* datastream.cpp */,
@@ -2360,31 +2335,6 @@
 				608498E8155CDF7000121EFE /* Icon@2x.png in Resources */,
 				60BC89A8155E969700807358 /* iTunesArtwork in Resources */,
 				60844EAD1573943400003ED0 /* MainWindow-iPad.xib in Resources */,
-				60CA3A84160713D300CFB3BD /* config_types.h.in in Resources */,
-				60CA3A85160713D300CFB3BD /* MAKEFILE.AM in Resources */,
-				60CA3A86160713D300CFB3BD /* MAKEFILE.IN in Resources */,
-				60CA3A87160713D300CFB3BD /* Makefile.am in Resources */,
-				60CA3A88160713D300CFB3BD /* Makefile.in in Resources */,
-				60CA3A89160713D300CFB3BD /* Makefile.am in Resources */,
-				60CA3A8A160713D300CFB3BD /* Makefile.in in Resources */,
-				60CA3A8E160713D300CFB3BD /* vssver2.scc in Resources */,
-				60CA3DD9160713FF00CFB3BD /* ALFONT.txt in Resources */,
-				60CA3DDA160713FF00CFB3BD /* AUTHORS.txt in Resources */,
-				60CA3DDB160713FF00CFB3BD /* FTL.txt in Resources */,
-				60CA3DDC160713FF00CFB3BD /* README.txt in Resources */,
-				60CA3DEC160713FF00CFB3BD /* README in Resources */,
-				60CA3DEE160713FF00CFB3BD /* vssver2.scc in Resources */,
-				60CA3DF1160713FF00CFB3BD /* apeg.txt in Resources */,
-				60CA3DFF160713FF00CFB3BD /* vssver2.scc in Resources */,
-				60CA3E09160713FF00CFB3BD /* vssver2.scc in Resources */,
-				60CA3E77160713FF00CFB3BD /* CompileShader.bat in Resources */,
-				60CA3E78160713FF00CFB3BD /* DefaultGDF.gdf.xml in Resources */,
-				60CA3E79160713FF00CFB3BD /* game-1.ICO in Resources */,
-				60CA3E7A160713FF00CFB3BD /* tintshader.fx in Resources */,
-				60CA3E7B160713FF00CFB3BD /* tintshader.fxo in Resources */,
-				60CA3E7C160713FF00CFB3BD /* tintshaderLegacy.fx in Resources */,
-				60CA3E7D160713FF00CFB3BD /* tintshaderLegacy.fxo in Resources */,
-				60CA3E7E160713FF00CFB3BD /* version.rc in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2456,7 +2406,6 @@
 				60CA3A98160713D300CFB3BD /* cc_treemap.cpp in Sources */,
 				60CA3A99160713D300CFB3BD /* script_common.cpp in Sources */,
 				60CA3A9A160713D300CFB3BD /* alignedstream.cpp in Sources */,
-				60CA3A9B160713D300CFB3BD /* clib32.cpp in Sources */,
 				60CA3A9C160713D300CFB3BD /* compress.cpp in Sources */,
 				60CA3A9D160713D300CFB3BD /* datastream.cpp in Sources */,
 				60CA3A9E160713D300CFB3BD /* file.cpp in Sources */,
@@ -2731,6 +2680,7 @@
 				60898DCA160785CB009E152F /* gfxfilter_hq2x.cpp in Sources */,
 				60898DCC160785DD009E152F /* gfxfilter_hq3x.cpp in Sources */,
 				60898DD6160787FF009E152F /* hq2x3x.cpp in Sources */,
+				6080428E1614DE8F00D33732 /* assetmanager.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2795,7 +2745,7 @@
 					USE_TREMOR,
 					DISABLE_MPEG_AUDIO,
 					THIS_IS_THE_ENGINE,
-					MAC_VERSION,
+					AGS_INVERTED_COLOR_ORDER,
 					IOS_VERSION,
 					BUILTIN_PLUGINS,
 					DEBUG,
@@ -2832,7 +2782,7 @@
 					USE_TREMOR,
 					DISABLE_MPEG_AUDIO,
 					THIS_IS_THE_ENGINE,
-					MAC_VERSION,
+					AGS_INVERTED_COLOR_ORDER,
 					IOS_VERSION,
 					BUILTIN_PLUGINS,
 				);

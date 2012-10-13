@@ -14,6 +14,11 @@
 
 EAGLView* eaglview;
 
+// From agsViewController.mm
+extern int mouse_position_x;
+extern int mouse_position_y;
+
+
 void ios_swap_buffers()
 {
 	if (eaglview)
@@ -97,6 +102,8 @@ extern void ios_initialize_renderer(int w, int h);
 		glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &framebufferHeight);
 		
 		ios_initialize_renderer(framebufferWidth, framebufferHeight);
+		mouse_position_x = framebufferWidth / 2;
+		mouse_position_y = framebufferHeight / 2;
 		
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, colorRenderbuffer);
 		

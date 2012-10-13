@@ -1,8 +1,9 @@
 TARGET = agsblend
-OBJS = psp.o AGSBlend.o
+include Makefile-objs
+OBJS += psp.o
 
 INCDIR = ../../Engine ../../Common
-CFLAGS = -O2 -G0 -Wall -DPSP_VERSION -DLINUX_VERSION -DPLUGIN_MODULE_NAME="\"$(TARGET)\""
+CFLAGS = -O2 -G0 -Wall -DPSP_VERSION -DPLUGIN_MODULE_NAME="\"$(TARGET)\""
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)
 LDFLAGS = -mno-crt0 -nostartfiles

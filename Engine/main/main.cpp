@@ -1,16 +1,16 @@
-/* Adventure Creator v2 Run-time engine
-   Started 27-May-99 (c) 1999-2011 Chris Jones
-
-  Adventure Game Studio source code Copyright 1999-2011 Chris Jones.
-  All rights reserved.
-
-  The AGS Editor Source Code is provided under the Artistic License 2.0
-  http://www.opensource.org/licenses/artistic-license-2.0.php
-
-  You MAY NOT compile your own builds of the engine without making it EXPLICITLY
-  CLEAR that the code has been altered from the Standard Version.
-
-*/
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// http://www.opensource.org/licenses/artistic-license-2.0.php
+//
+//=============================================================================
 
 //
 // Entry point of the application here.
@@ -39,9 +39,10 @@
 #include "test/test_all.h"
 #endif
 
+char appDirectory[512]; // Needed for library loading
+
 #ifdef MAC_VERSION
 char dataDirectory[512];
-char appDirectory[512];
 extern "C"
 {
     int osx_sys_question(const char *msg, const char *but1, const char *but2);
@@ -248,16 +249,16 @@ void change_to_directory_of_file(LPCWSTR fileName)
     WCHAR wcbuffer[MAX_PATH];
     StrCpyW(wcbuffer, fileName);
 
-#if defined(LINUX_VERSION) || defined(MAC_VERSION)
-    if (strrchr(wcbuffer, '/') != NULL) {
-        strrchr(wcbuffer, '/')[0] = 0;
-        chdir(wcbuffer);
-    }
-#else
+#if defined (WINDOWS_VERSION)
     LPWSTR backSlashAt = StrRChrW(wcbuffer, NULL, L'\\');
     if (backSlashAt != NULL) {
         wcbuffer[wcslen(wcbuffer) - wcslen(backSlashAt)] = L'\0';
         SetCurrentDirectoryW(wcbuffer);
+    }
+#else
+    if (strrchr(wcbuffer, '/') != NULL) {
+        strrchr(wcbuffer, '/')[0] = 0;
+        chdir(wcbuffer);
     }
 #endif
 }
@@ -271,9 +272,7 @@ void main_set_gamedir(int argc,char*argv[])
         change_to_directory_of_file(wArgv[0]);
     }
 
-#ifdef MAC_VERSION
     getcwd(appDirectory, 512);
-#endif
 
     //if (change_to_game_dir == 1)  {
     if (datafile_argv > 0) {
@@ -313,11 +312,9 @@ int main(int argc,char*argv[]) {
         return res;
     }
 
-    // [IKM] For some bizzare reason this function is a part of routefnd module;
-    // I cannot just move it here, because it references certain variables from
-    // that module and so probably somehow related to it, in a logical or maybe
-    // philosophical way, I just cannot figure out what at the time being.
-    print_welcome_text(AC_VERSION_TEXT,ACI_VERSION_TEXT);
+    printf("Adventure Creator v%sInterpreter\n"
+      "Copyright (c) 1999-2001 Chris Jones\n" "ACI version %s\n", AC_VERSION_TEXT, ACI_VERSION_TEXT);
+
     if ((argc>1) && (argv[1][1]=='?'))
         return 0;
 
@@ -360,6 +357,6 @@ int main(int argc,char*argv[]) {
     }
 }
 
-#if defined(WINDOWS_VERSION) || defined(LINUX_VERSION) || defined(MAC_VERSION)
+#if !defined (DOS_VERSION)
 END_OF_MAIN()
 #endif

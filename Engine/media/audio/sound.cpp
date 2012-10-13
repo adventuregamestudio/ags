@@ -1,15 +1,21 @@
-/*
-ACSOUND - AGS sound system wrapper
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// http://www.opensource.org/licenses/artistic-license-2.0.php
+//
+//=============================================================================
+//
+// ACSOUND - AGS sound system wrapper
+//
+//=============================================================================
 
-Adventure Game Studio source code Copyright 1999-2011 Chris Jones.
-All rights reserved.
-
-The AGS Editor Source Code is provided under the Artistic License 2.0
-http://www.opensource.org/licenses/artistic-license-2.0.php
-
-You MAY NOT compile your own builds of the engine without making it EXPLICITLY
-CLEAR that the code has been altered from the Standard Version.
-*/
 #include "util/wgt2allg.h"
 #include "media/audio/audiodefines.h"
 #include "media/audio/sound.h"
@@ -41,7 +47,7 @@ CLEAR that the code has been altered from the Standard Version.
 int numSoundChannels = 8;
 
 
-#if defined(MAC_VERSION) || defined(LINUX_VERSION)
+#if !defined (WINDOWS_VERSION)
 // for toupper
 #include <ctype.h>
 #endif
@@ -103,7 +109,10 @@ SOUNDCLIP *my_load_mp3(const char *filname, int voll)
     pack_fread(tmpbuffer, thistune->chunksize, mp3in);
 
     thistune->buffer = (char *)tmpbuffer;
+
+    _mp3_mutex.Lock();
     thistune->stream = almp3_create_mp3stream(tmpbuffer, thistune->chunksize, (mp3in->todo < 1));
+    _mp3_mutex.Unlock();
 
     if (thistune->stream == NULL) {
         free(tmpbuffer);
@@ -135,7 +144,10 @@ SOUNDCLIP *my_load_static_mp3(const char *filname, int voll, bool loop)
     thismp3->vol = voll;
     thismp3->mp3buffer = NULL;
     thismp3->repeat = loop;
+
+    _mp3_mutex.Lock();
     thismp3->tune = almp3_create_mp3(mp3buffer, muslen);
+    _mp3_mutex.Unlock();
     thismp3->done = 0;
     thismp3->ready = true;
 

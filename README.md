@@ -1,6 +1,6 @@
 #Adventure Game Studio
 
-Licensed under the Artistic License 2.0, see License.txt in the Engine folder.
+Licensed under the Artistic License 2.0, see License.txt.
 
 
 ##Engine instructions
@@ -44,6 +44,13 @@ following restrictions:
     with the same engine version.
 -   Games that depend on plugins for which there is no platform-independent
     replacement will not load.
+
+##Changes from Chris Jones' version of AGS
+
+This version of AGS contains changes from the version published by Chris Jones.
+The run-time engine was ported to Android, iOS, Linux, Mac OS X and PSP and a refactoring effort is under way.
+A detailed documentation of the changes is provided in the form of the git log of this git repository
+(https://github.com/adventuregamestudio/ags).
 
 ##Credits:
 

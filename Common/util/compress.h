@@ -1,9 +1,16 @@
-/*
-This is UNPUBLISHED PROPRIETARY SOURCE CODE;
-the contents of this file may not be disclosed to third parties,
-copied or duplicated in any form, in whole or in part, without
-prior express permission from Chris Jones.
-*/
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// http://www.opensource.org/licenses/artistic-license-2.0.php
+//
+//=============================================================================
 
 #ifndef __AC_COMPRESS_H
 #define __AC_COMPRESS_H
@@ -15,14 +22,10 @@ namespace AGS { namespace Common { class Bitmap; }}
 using namespace AGS; // FIXME later
 
 // MACPORT FIX 9/6/05: removed far and put space after *
-#if !defined(MAC_VERSION)
-typedef unsigned char * __block;
-#else
 #ifdef __block
 #undef __block
-#define __block unsigned char*
 #endif
-#endif
+typedef unsigned char * __block;
 
 long csavecompressed(char *finam, __block tobesaved, color pala[256], long exto);
 
@@ -34,8 +37,6 @@ int  cunpackbitl16(unsigned short *line, int size, Common::DataStream *in);
 int  cunpackbitl32(unsigned int *line, int size, Common::DataStream *in);
 
 //=============================================================================
-
-#if defined(LINUX_VERSION) || defined(MAC_VERSION) || defined(DJGPP) || defined(_MSC_VER)
 
 long save_lzw(char *fnn, Common::Bitmap *bmpp, color *pall, long offe);
 
@@ -49,7 +50,5 @@ long loadcompressed_allegro(Common::DataStream *in, Common::Bitmap **bimpp, colo
 
 // returns bytes per pixel for bitmap's color depth
 int bmp_bpp(Common::Bitmap*bmpt);
-
-#endif // LINUX_VERSION || MAC_VERSION || DJGPP || _MSC_VER
 
 #endif // __AC_COMPRESS_H

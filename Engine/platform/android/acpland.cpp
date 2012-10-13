@@ -1,3 +1,17 @@
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// http://www.opensource.org/licenses/artistic-license-2.0.php
+//
+//=============================================================================
+
 #if !defined(ANDROID_VERSION)
 #error This file should only be included on the Android build
 #endif
@@ -12,6 +26,7 @@
 #include <sys/stat.h> 
 #include <ctype.h>
 #include <unistd.h>
+#include "util/string_utils.h"
 
 
 
@@ -44,12 +59,6 @@ struct AGSAndroid : AGSPlatformDriver {
   virtual void WriteConsole(const char*, ...);
   virtual void ReplaceSpecialPaths(const char *sourcePath, char *destPath);
   virtual void WriteDebugString(const char* texx, ...);
-  virtual void ReadPluginsFromDisk(AGS::Common::DataStream *iii);
-  virtual void StartPlugins();
-  virtual void ShutdownPlugins();
-  virtual int RunPluginHooks(int event, int data);
-  virtual void RunPluginInitGfxHooks(const char *driverName, void *data);
-  virtual int RunPluginDebugHooks(const char *scriptfile, int linenum);
 };
 
 
@@ -761,30 +770,6 @@ void AGSAndroid::WriteConsole(const char *text, ...) {
 
 void AGSAndroid::ShutdownCDPlayer() {
   //cd_exit();
-}
-
-void AGSAndroid::ReadPluginsFromDisk(AGS::Common::DataStream *iii) {
-  pl_read_plugins_from_disk(iii);
-}
-
-void AGSAndroid::StartPlugins() {
-  pl_startup_plugins();
-}
-
-void AGSAndroid::ShutdownPlugins() {
-  pl_stop_plugins();
-}
-
-int AGSAndroid::RunPluginHooks(int event, int data) {
-  return pl_run_plugin_hooks(event, data);
-}
-
-void AGSAndroid::RunPluginInitGfxHooks(const char *driverName, void *data) {
-  pl_run_plugin_init_gfx_hooks(driverName, data);
-}
-
-int AGSAndroid::RunPluginDebugHooks(const char *scriptfile, int linenum) {
-  return pl_run_plugin_debug_hooks(scriptfile, linenum);
 }
 
 AGSPlatformDriver* AGSPlatformDriver::GetDriver() {

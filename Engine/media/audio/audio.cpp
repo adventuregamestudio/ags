@@ -1,14 +1,16 @@
-/*
-  Adventure Game Studio source code Copyright 1999-2011 Chris Jones.
-  All rights reserved.
-
-  The AGS Editor Source Code is provided under the Artistic License 2.0
-  http://www.opensource.org/licenses/artistic-license-2.0.php
-
-  You MAY NOT compile your own builds of the engine without making it EXPLICITLY
-  CLEAR that the code has been altered from the Standard Version.
-
-*/
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// http://www.opensource.org/licenses/artistic-license-2.0.php
+//
+//=============================================================================
 
 #include "util/wgt2allg.h"
 #include "media/audio/audio.h"
@@ -50,6 +52,7 @@ CCAudioClip ccDynamicAudioClip;
 char acaudio_buffer[256];
 int reserved_channel_count = 0;
 
+AGS::Engine::Thread audioThread;
 
 void calculate_reserved_channel_count()
 {
@@ -733,7 +736,6 @@ int crossFading = 0, crossFadeVolumePerStep = 0, crossFadeStep = 0;
 int crossFadeVolumeAtStart = 0;
 SOUNDCLIP *cachedQueuedMusic = NULL;
 
-volatile bool update_mp3_thread_running = false;
 int musicPollIterator; // long name so it doesn't interfere with anything else
 
 volatile int mvolcounter = 0;
@@ -860,11 +862,12 @@ extern int frames_per_second;
 
 void update_polled_stuff(bool checkForDebugMessages) {
     UPDATE_MP3
-
+/*
         if (want_exit) {
             want_exit = 0;
             quit("||exit!");
         }
+*/
         if (mvolcounter > update_music_at) {
             update_music_volume();
             apply_volume_drop_modifier(false);

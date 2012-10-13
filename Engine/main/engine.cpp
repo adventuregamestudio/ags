@@ -1,16 +1,16 @@
-/* Adventure Creator v2 Run-time engine
-   Started 27-May-99 (c) 1999-2011 Chris Jones
-
-  Adventure Game Studio source code Copyright 1999-2011 Chris Jones.
-  All rights reserved.
-
-  The AGS Editor Source Code is provided under the Artistic License 2.0
-  http://www.opensource.org/licenses/artistic-license-2.0.php
-
-  You MAY NOT compile your own builds of the engine without making it EXPLICITLY
-  CLEAR that the code has been altered from the Standard Version.
-
-*/
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// http://www.opensource.org/licenses/artistic-license-2.0.php
+//
+//=============================================================================
 
 //
 // Engine initialization
@@ -56,11 +56,6 @@
 using AGS::Common::DataStream;
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
-
-#if defined(MAC_VERSION) || (defined(LINUX_VERSION) && !defined(PSP_VERSION))
-#include <pthread.h>
-pthread_t soundthread;
-#endif
 
 #ifndef WINDOWS_VERSION
 extern char **global_argv;
@@ -122,7 +117,7 @@ void engine_read_config(int argc,char*argv[])
 
 #define ALLEGRO_KEYBOARD_HANDLER
 // KEYBOARD HANDLER
-#if defined(LINUX_VERSION) || defined(MAC_VERSION)
+#if !defined (WINDOWS_VERSION)
 int myerrno;
 #else
 int errno;
@@ -181,7 +176,7 @@ void engine_setup_window()
 
 int engine_check_run_setup(int argc,char*argv[])
 {
-#if !defined(LINUX_VERSION) && !defined(MAC_VERSION)
+#if defined (WINDOWS_VERSION)
     // check if Setup needs to be run instead
     if (argc>1) {
         if (stricmp(argv[1],"--setup")==0) { 
@@ -190,10 +185,6 @@ int engine_check_run_setup(int argc,char*argv[])
             if (!platform->RunSetup())
                 return EXIT_NORMAL;
 
-#ifndef WINDOWS_VERSION
-#define _spawnl spawnl
-#define _P_OVERLAY P_OVERLAY
-#endif
             // Just re-reading the config file seems to cause a caching
             // problem on Win9x, so let's restart the process.
             allegro_exit();
@@ -221,7 +212,7 @@ int engine_init_game_data_external(int argc,char*argv[])
 {
     game_file_name = ci_find_file(usetup.data_files_dir, usetup.main_data_filename);
 
-#if !defined(WINDOWS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION) && !defined(IOS_VERSION)
+#if defined (LINUX_VERSION) || defined (MAC_VERSION)
     // Search the exe files for the game data
     if ((game_file_name == NULL) || (access(game_file_name, F_OK) != 0))
     {
@@ -1151,10 +1142,10 @@ void engine_init_game_shit()
     if (usetup.windowed)
         scsystem.windowed = 1;
 
-#if defined(WINDOWS_VERSION) || defined(LINUX_VERSION) || defined(MAC_VERSION)
-    filter->SetMouseArea(0, 0, scrnwid-1, scrnhit-1);
-#else
+#if defined (DOS_VERSION)
     filter->SetMouseArea(0,0,BASEWIDTH-1,BASEHEIGHT-1);
+#else
+    filter->SetMouseArea(0, 0, scrnwid-1, scrnhit-1);
 #endif
     //  mloadwcursor("mouse.spr");
     //mousecurs[0]=spriteset[2054];
@@ -1168,61 +1159,25 @@ void engine_init_game_shit()
     gfxDriver->SetRenderOffset(get_screen_x_adjustment(virtual_screen), get_screen_y_adjustment(virtual_screen));
 }
 
-#if defined(PSP_VERSION)
-// PSP: Workaround for sound stuttering. Do sound updates in its own thread.
-int update_mp3_thread(SceSize args, void *argp)
-#elif (defined(LINUX_VERSION) || defined(MAC_VERSION))
-void* update_mp3_thread(void* arg)
-#elif defined(WINDOWS_VERSION)
-DWORD WINAPI update_mp3_thread(LPVOID lpParam)
-#endif
+void update_mp3_thread()
 {
-  while (update_mp3_thread_running)
-  {
-    UPDATE_MP3_THREAD
-    platform->Delay(50);
-  }
-#if (defined(LINUX_VERSION) || defined(MAC_VERSION)) && !defined(PSP_VERSION)
-  pthread_exit(0);
-#else
-  return 0;
-#endif
+  UPDATE_MP3_THREAD
+  platform->Delay(50);
 }
 
 void engine_start_multithreaded_audio()
 {
-    // PSP: Initialize the sound cache.
-    clear_sound_cache();
+  // PSP: Initialize the sound cache.
+  clear_sound_cache();
 
-    // Create sound update thread. This is a workaround for sound stuttering.
-    if (psp_audio_multithreaded)
+  // Create sound update thread. This is a workaround for sound stuttering.
+  if (psp_audio_multithreaded)
+  {
+    if (!audioThread.CreateAndStart(update_mp3_thread, true))
     {
-#if defined(PSP_VERSION)
-        update_mp3_thread_running = true;
-        SceUID thid = sceKernelCreateThread("update_mp3_thread", update_mp3_thread, 0x20, 0xFA0, THREAD_ATTR_USER, 0);
-        if (thid > -1)
-            thid = sceKernelStartThread(thid, 0, 0);
-        else
-        {
-            update_mp3_thread_running = false;
-            psp_audio_multithreaded = 0;
-        }
-#elif (defined(LINUX_VERSION) && !defined(PSP_VERSION)) || defined(MAC_VERSION)
-        update_mp3_thread_running = true;
-        if (pthread_create(&soundthread, NULL, update_mp3_thread, NULL) != 0)
-        {
-            update_mp3_thread_running = false;
-            psp_audio_multithreaded = 0;
-        }
-#elif defined(WINDOWS_VERSION)
-        update_mp3_thread_running = true;
-        if (CreateThread(NULL, 0, update_mp3_thread, NULL, 0, NULL) == NULL)
-        {
-            update_mp3_thread_running = false;
-            psp_audio_multithreaded = 0;
-        }
-#endif
+      psp_audio_multithreaded = 0;
     }
+  }
 }
 
 void engine_prepare_to_start_game()
@@ -1426,8 +1381,6 @@ int initialize_engine(int argc,char*argv[])
 	allegro_bitmap_test_init();
 
     initialize_start_and_play_game(override_start_room, loadSaveGameOnStartup);
-
-    update_mp3_thread_running = false;
 
     quit("|bye!");
     return 0;

@@ -456,7 +456,11 @@ namespace AGS.Editor
         {
             return _native.TransformStringToBytes(text);
         }
-
+        
+        /*/// <summary>
+        /// Obsolete: Use Utilities.IsShiftPressed instead
+        /// </summary>
+        /// <returns></returns>
         public bool IsShiftPressed()
         {
             if ((GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0)
@@ -466,6 +470,10 @@ namespace AGS.Editor
             return false;
         }
 
+        /// <summary>
+        /// Obsolete: Use Utilities.IsControlPressed instead
+        /// </summary>
+        /// <returns></returns>
         public bool IsControlPressed()
         {
             if ((GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0)
@@ -473,7 +481,7 @@ namespace AGS.Editor
                 return true;
             }
             return false;
-        }
+        }*/
 
         public void Dispose()
         {

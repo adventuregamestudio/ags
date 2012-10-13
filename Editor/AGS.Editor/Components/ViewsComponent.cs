@@ -5,6 +5,7 @@ using System.Text;
 using System.Xml;
 using AGS.Types;
 using AGS.Editor.Resources;
+using AGS.Editor.TextProcessing;
 
 namespace AGS.Editor.Components
 {
@@ -13,6 +14,7 @@ namespace AGS.Editor.Components
         private const string COMMAND_NEW_VIEW = "NewView";
         private const string COMMAND_RENAME = "RenameView";
 		private const string COMMAND_DELETE = "DeleteView";
+        private const string COMMAND_FIND_ALL_USAGES = "FindAllUsages";
         private const string ICON_KEY = "ViewsIcon";
         
         private Dictionary<View, ContentDocument> _documents;
@@ -50,37 +52,36 @@ namespace AGS.Editor.Components
 					}
 					else
 					{
-                        ViewFolder parentFolder = this.FindFolderThatContainsItem(_agsEditor.CurrentGame.RootViewFolder, viewToDelete);
-						parentFolder.Views.Remove(viewToDelete);
-						MarkViewAsDeleted(viewToDelete);
-
-						RePopulateTreeView(GetNodeIDForFolder(parentFolder));
-                        _guiController.ProjectTree.ExpandNode(this, GetNodeIDForFolder(parentFolder));
+                        DeleteSingleItem(viewToDelete);                        
                     }
 				}
 			}
-			else if (controlID == COMMAND_NEW_VIEW)
-			{
-				View newView = new View();
-				newView.ID = _agsEditor.CurrentGame.FindAndAllocateAvailableViewID();
-				newView.Name = "View" + newView.ID;
-				_folders[_rightClickedID].Views.Add(newView);
+            else if (controlID == COMMAND_FIND_ALL_USAGES)
+            {
+                FindAllUsages findAllUsages = new FindAllUsages(null, null, null, _agsEditor);
+                View viewToFind = _items[_rightClickedID];
+                findAllUsages.Find(null, viewToFind.Name);
+            }
+            else if (controlID == COMMAND_NEW_VIEW)
+            {
+                View newView = new View();
+                newView.ID = _agsEditor.CurrentGame.FindAndAllocateAvailableViewID();
+                newView.Name = "View" + newView.ID;
 
-				_guiController.ProjectTree.StartFromNode(this, _rightClickedID);
-				string newNodeID = AddTreeNodeForItem(newView);
-				ShowOrAddPane(newView);
-				_guiController.ProjectTree.BeginLabelEdit(this, newNodeID);
-			}
+                string newNodeID = AddSingleItem(newView);
+                ShowOrAddPane(newView);
+                _guiController.ProjectTree.BeginLabelEdit(this, newNodeID);
+            }
             else if (controlID == COMMAND_RENAME)
             {
                 _guiController.ProjectTree.BeginLabelEdit(this, _rightClickedID);
             }
             else if ((!controlID.StartsWith(NODE_ID_PREFIX_FOLDER)) &&
-					 (controlID != TOP_LEVEL_COMMAND_ID))
-			{
-				View chosenItem = _items[controlID];
-				ShowOrAddPane(chosenItem);
-			}
+                     (controlID != TOP_LEVEL_COMMAND_ID))
+            {
+                View chosenItem = _items[controlID];
+                ShowOrAddPane(chosenItem);
+            }
         }
 
 		private void MarkViewAsDeleted(View viewToDelete)
@@ -117,19 +118,6 @@ namespace AGS.Editor.Components
 			return null;
 		}
 
-		private void MarkAllViewsInFolderAsDeleted(ViewFolder folder)
-		{
-			foreach (View view in folder.Views)
-			{
-				MarkViewAsDeleted(view);
-			}
-
-			foreach (ViewFolder subFolder in folder.SubFolders)
-			{
-				MarkAllViewsInFolderAsDeleted(subFolder);
-			}
-		}
-
 		private void ShowOrAddPane(View chosenItem)
 		{
             ContentDocument document;
@@ -141,6 +129,7 @@ namespace AGS.Editor.Components
                 _documents[chosenItem] = document;
                 document.SelectedPropertyGridObject = chosenItem;
 			}
+            document.TreeNodeID = GetNodeIDForView(chosenItem);
             _guiController.AddOrShowPane(document);
 			_guiController.ShowCuppit("Views are how you set up animations in AGS. Each View contains a set of related animations, each of which is a Loop consisting of several Frames.\nFor character walking animations, a view consists of one loop for each direction.", "Views introduction");
 		}
@@ -201,6 +190,8 @@ namespace AGS.Editor.Components
             {
                 menu.Add(new MenuCommand(COMMAND_RENAME, "Rename", null));
 				menu.Add(new MenuCommand(COMMAND_DELETE, "Delete", null));
+                View view = _items[_rightClickedID];
+                menu.Add(new MenuCommand(COMMAND_FIND_ALL_USAGES, "Find all usages of " + view.Name, null));
             }
             return menu;
         }
@@ -235,7 +226,7 @@ namespace AGS.Editor.Components
 			StringBuilder usageReport = new StringBuilder(5000);
 			Game game = Factory.AGSEditor.CurrentGame;
 
-			foreach (Character character in game.Characters)
+            foreach (Character character in game.RootCharacterFolder.AllItemsFlat)
 			{
 				string charText = "character " + character.ID + " (" + character.RealName + ")";
 
@@ -315,14 +306,9 @@ namespace AGS.Editor.Components
             return true;
         }
 
-        protected override void DeleteResourcesUsedByFolder(ViewFolder folder)
+        protected override void DeleteResourcesUsedByItem(View item)
         {
-            MarkAllViewsInFolderAsDeleted(folder);
-        }
-
-        protected override ViewFolder CreateFolderObject(string name, ViewFolder parentFolder)
-        {
-            return new ViewFolder(name);
+            MarkViewAsDeleted(item);
         }
 
         protected override string GetFolderDeleteConfirmationText()

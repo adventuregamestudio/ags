@@ -1,3 +1,16 @@
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// http://www.opensource.org/licenses/artistic-license-2.0.php
+//
+//=============================================================================
 
 #include "media/audio/audiodefines.h"
 
@@ -7,24 +20,36 @@
 #include "media/audio/audiointernaldefs.h"
 #include "ac/common.h"               // quit()
 
+#include "platform/base/agsplatformdriver.h"
+
+
 int MYMP3::poll()
 {
-    lockMutex();
+    _mutex.Lock();
+
+    if (!done && _destroyThis)
+    {
+      internal_destroy();
+      _destroyThis = false;
+    }
 
     if (done)
     {
-        releaseMutex();
+        _mutex.Unlock();
         return done;
     }
     if (paused)
     {
-        releaseMutex();
+        _mutex.Unlock();
         return 0;
     }
 
     if (!done) {
         // update the buffer
+        _mp3_mutex.Lock();
         char *tempbuf = (char *)almp3_get_mp3stream_buffer(stream);
+        _mp3_mutex.Unlock();
+
         if (tempbuf != NULL) {
             int free_val = -1;
             if (chunksize > in->todo) {
@@ -32,14 +57,25 @@ int MYMP3::poll()
                 free_val = chunksize;
             }
             pack_fread(tempbuf, chunksize, in);
+
+            _mp3_mutex.Lock();
             almp3_free_mp3stream_buffer(stream, free_val);
+            _mp3_mutex.Unlock();
         }
     }
 
-    if (almp3_poll_mp3stream(stream) == ALMP3_POLL_PLAYJUSTFINISHED)
-        done = 1;
+    _mp3_mutex.Lock();
+    int result = almp3_poll_mp3stream(stream);
+    _mp3_mutex.Unlock();
 
-    releaseMutex();
+    if (result == ALMP3_POLL_PLAYJUSTFINISHED)
+    {
+        done = 1;
+        if (psp_audio_multithreaded)
+            internal_destroy();
+    }
+
+    _mutex.Unlock();
 
     return done;
 }
@@ -54,27 +90,48 @@ void MYMP3::set_volume(int newvol)
     vol = newvol;
     newvol += volModifier + directionalVolModifier;
     if (newvol < 0) newvol = 0;
+
+    _mp3_mutex.Lock();
     almp3_adjust_mp3stream(stream, newvol, panning, 1000);
+    _mp3_mutex.Unlock();
 }
 
-void MYMP3::destroy()
+void MYMP3::internal_destroy()
 {
-    lockMutex();
+    _mp3_mutex.Lock();
 
     if (!done)
         almp3_stop_mp3stream(stream);
 
     almp3_destroy_mp3stream(stream);
+
+    _mp3_mutex.Unlock();
+
     stream = NULL;
 
     if (buffer != NULL)
         free(buffer);
 
-    done = 1;
     buffer = NULL;
     pack_fclose(in);
 
-    releaseMutex();
+    _destroyThis = false;
+    done = 1;
+}
+
+void MYMP3::destroy()
+{
+    _mutex.Lock();
+
+    if (psp_audio_multithreaded)
+      _destroyThis = true;
+    else
+      internal_destroy();
+
+    _mutex.Unlock();
+
+    while (!done)
+      AGSPlatformDriver::GetDriver()->YieldCPU();
 }
 
 void MYMP3::seek(int pos)
@@ -90,28 +147,41 @@ int MYMP3::get_pos()
 
 int MYMP3::get_pos_ms()
 {
-    return almp3_get_pos_msecs_mp3stream(stream);
+    _mp3_mutex.Lock();
+    int result = almp3_get_pos_msecs_mp3stream(stream);
+    _mp3_mutex.Unlock();
+    return result;
 }
 
 int MYMP3::get_length_ms()
 {
-    return almp3_get_length_msecs_mp3stream(stream, filesize);
+    _mp3_mutex.Lock();
+    int result = almp3_get_length_msecs_mp3stream(stream, filesize);
+    _mp3_mutex.Unlock();
+    return result;
 }
 
 void MYMP3::restart()
 {
     if (stream != NULL) {
         // need to reset file pointer for this to work
+        _mp3_mutex.Lock();
         almp3_play_mp3stream(stream, MP3CHUNKSIZE, vol, panning);
+        _mp3_mutex.Unlock();
         done = 0;
         paused = 0;
-        poll();
+
+        if (!psp_audio_multithreaded)
+          poll();
     }
 }
 
 int MYMP3::get_voice()
 {
+    _mp3_mutex.Lock();
     AUDIOSTREAM *ast = almp3_get_audiostream_mp3stream(stream);
+    _mp3_mutex.Unlock();
+
     if (ast)
         return ast->voice;
     return -1;
@@ -122,8 +192,12 @@ int MYMP3::get_sound_type() {
 }
 
 int MYMP3::play() {
+    _mp3_mutex.Lock();
     almp3_play_mp3stream(stream, chunksize, (vol > 230) ? vol : vol + 20, panning);
-    poll();
+    _mp3_mutex.Unlock();
+
+    if (!psp_audio_multithreaded)
+      poll();
 
     return 1;
 }

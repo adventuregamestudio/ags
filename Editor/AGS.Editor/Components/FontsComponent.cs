@@ -50,8 +50,8 @@ namespace AGS.Editor.Components
                 Utilities.CopyFont(0, newItem.ID);
                 Factory.NativeProxy.GameSettingsChanged(_agsEditor.CurrentGame);
                 _guiController.ProjectTree.StartFromNode(this, TOP_LEVEL_COMMAND_ID);
-                _guiController.ProjectTree.AddTreeLeaf(this, "Fnt" + newItem.ID, newItem.ID.ToString() + ": " + newItem.Name, "FontIcon");
-                _guiController.ProjectTree.SelectNode(this, "Fnt" + newItem.ID);
+                _guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(newItem), newItem.ID.ToString() + ": " + newItem.Name, "FontIcon");
+                _guiController.ProjectTree.SelectNode(this, GetNodeID(newItem));
 				ShowOrAddPane(newItem);
                 FontTypeConverter.SetFontList(_agsEditor.CurrentGame.Fonts);
             }
@@ -114,6 +114,7 @@ namespace AGS.Editor.Components
                 _documents[chosenFont] = document;
                 document.SelectedPropertyGridObject = chosenFont;
 			}
+            document.TreeNodeID = GetNodeID(chosenFont);
             _guiController.AddOrShowPane(document);
 			_guiController.ShowCuppit("The Font Editor allows you to import fonts into your game. Windows TTF fonts are supported, as are SCI fonts which can be created with Radiant FontEdit.", "Fonts introduction");
 		}
@@ -167,19 +168,24 @@ namespace AGS.Editor.Components
             FontTypeConverter.SetFontList(_agsEditor.CurrentGame.Fonts);
         }
 
+        private string GetNodeID(AGS.Types.Font item)
+        {
+            return "Fnt" + item.ID;
+        }
+
         private void RePopulateTreeView()
         {
             _guiController.ProjectTree.RemoveAllChildNodes(this, TOP_LEVEL_COMMAND_ID);
             _guiController.ProjectTree.StartFromNode(this, TOP_LEVEL_COMMAND_ID);
             foreach (AGS.Types.Font item in _agsEditor.CurrentGame.Fonts)
             {
-                _guiController.ProjectTree.AddTreeLeaf(this, "Fnt" + item.ID, item.ID.ToString() + ": " + item.Name, "FontIcon");
+                _guiController.ProjectTree.AddTreeLeaf(this, GetNodeID(item), item.ID.ToString() + ": " + item.Name, "FontIcon");
             }
 
             if (_documents.ContainsValue(_guiController.ActivePane))
             {
                 FontEditor editor = (FontEditor)_guiController.ActivePane.Control;
-                _guiController.ProjectTree.SelectNode(this, "Fnt" + editor.ItemToEdit.ID);
+                _guiController.ProjectTree.SelectNode(this, GetNodeID(editor.ItemToEdit));
             }
             else if (_agsEditor.CurrentGame.Fonts.Count > 0)
             {

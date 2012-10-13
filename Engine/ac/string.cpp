@@ -1,6 +1,18 @@
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// http://www.opensource.org/licenses/artistic-license-2.0.php
+//
+//=============================================================================
 
 #include "ac/string.h"
-#include "util/wgt2allg.h"  //strupr and strlwr on Linux
 #include "ac/common.h"
 #include "ac/display.h"
 #include "ac/gamesetupstruct.h"
@@ -16,11 +28,6 @@ extern int  numlines;
 extern GameSetupStruct game;
 extern GameState play;
 extern int longestline;
-
-#ifdef WINDOWS_VERSION
-#define strlwr _strlwr
-#define strupr _strupr
-#endif
 
 int String_IsNullOrEmpty(const char *thisString) 
 {

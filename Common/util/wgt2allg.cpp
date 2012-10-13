@@ -1,3 +1,16 @@
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// http://www.opensource.org/licenses/artistic-license-2.0.php
+//
+//=============================================================================
 
 #define USE_CLIB
 #include "util/wgt2allg.h"
@@ -49,7 +62,7 @@ Bitmap *abuf;
   }
   */
 
-#if (!defined(WINDOWS_VERSION) && !defined(LINUX_VERSION) && !defined(MAC_VERSION))
+#if defined (UNUSED_CODE)
   union REGS r;
   void wsetmode(int nnn)
   {
@@ -457,7 +470,6 @@ Bitmap *abuf;
   }
 
 
-#if defined(WINDOWS_VERSION) || defined(LINUX_VERSION) || defined(MAC_VERSION)
   void gettime(struct time *tpt)
   {
     time_t ltt;
@@ -470,7 +482,6 @@ Bitmap *abuf;
     tpt->ti_hour = tis->tm_hour;
     tpt->ti_hund = 0;
   }
-#endif
 
   long wtimer(struct time tt1, struct time tt2)
   {

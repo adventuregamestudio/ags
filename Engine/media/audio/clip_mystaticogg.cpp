@@ -1,8 +1,23 @@
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// http://www.opensource.org/licenses/artistic-license-2.0.php
+//
+//=============================================================================
 
 #include "media/audio/audiodefines.h"
 #include "media/audio/clip_mystaticogg.h"
 #include "media/audio/audiointernaldefs.h"
 #include "media/audio/soundcache.h"
+
+#include "platform/base/agsplatformdriver.h"
 
 extern "C" {
     extern int alogg_is_end_of_oggstream(ALOGG_OGGSTREAM *ogg);
@@ -15,17 +30,27 @@ extern int use_extra_sound_offset;  // defined in ac.cpp
 
 int MYSTATICOGG::poll()
 {
-    lockMutex();
+    _mutex.Lock();
+
+    if (tune && !done && _destroyThis)
+    {
+      internal_destroy();
+      _destroyThis = false;
+    }
 
     if ((tune == NULL) || (!ready))
         ; // Do nothing
     else if (alogg_poll_ogg(tune) == ALOGG_POLL_PLAYJUSTFINISHED) {
         if (!repeat)
+        {
             done = 1;
+            if (psp_audio_multithreaded)
+                internal_destroy();
+        }
     }
     else get_pos();  // call this to keep the last_but_one stuff up to date
 
-    releaseMutex();
+    _mutex.Unlock();
 
     return done;
 }
@@ -42,21 +67,35 @@ void MYSTATICOGG::set_volume(int newvol)
     }
 }
 
-void MYSTATICOGG::destroy()
+void MYSTATICOGG::internal_destroy()
 {
-    lockMutex();
-
     if (tune != NULL) {
-        alogg_stop_ogg(tune);
-        alogg_destroy_ogg(tune);
-        tune = NULL;
-    }
+            alogg_stop_ogg(tune);
+            alogg_destroy_ogg(tune);
+            tune = NULL;
+        }
 
     if (mp3buffer != NULL) {
         sound_cache_free(mp3buffer, false);
     }
 
-    releaseMutex();
+    _destroyThis = false;
+    done = 1;
+}
+
+void MYSTATICOGG::destroy()
+{
+    _mutex.Lock();
+
+    if (psp_audio_multithreaded)
+      _destroyThis = true;
+    else
+      internal_destroy();
+
+    _mutex.Unlock();
+
+    while (!done)
+      AGSPlatformDriver::GetDriver()->YieldCPU();
 }
 
 void MYSTATICOGG::seek(int pos)
@@ -136,7 +175,9 @@ void MYSTATICOGG::restart()
         last_but_one = 0;
         last_but_one_but_one = 0;
         done = 0;
-        poll();
+
+        if (!psp_audio_multithreaded)
+          poll();
     }
 }
 
@@ -172,7 +213,9 @@ int MYSTATICOGG::play_from(int position)
     if (position > 0)
         alogg_seek_abs_msecs_ogg(tune, position);
 
-    poll();
+    if (!psp_audio_multithreaded)
+      poll();
+
     return 1;
 }
 

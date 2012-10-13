@@ -1,4 +1,15 @@
-
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// http://www.opensource.org/licenses/artistic-license-2.0.php
+//
 //=============================================================================
 //
 // Asset manager class fore reading and writing game resources
@@ -17,24 +28,16 @@
 // all files of certain type (perhaps, filtered and ordered by their id).
 //
 //=============================================================================
-// ORIGINAL COPYRIGHT:
+//
+// CLIB32 - DJGPP implemention of the CLIB reader.
+//
+// 22/12/02 - Shawn's Linux changes approved and integrated - CJ
+//
+// v1.2 (Apr'01)  added support for new multi-file CLIB version 10 files
+// v1.1 (Jul'99)  added support for appended-to-exe data files
+//
 //=============================================================================
 
-/* CLIB32 - DJGPP implemention of the CLIB reader.
-(c) 1998-99 Chris Jones
-
-22/12/02 - Shawn's Linux changes approved and integrated - CJ
-
-v1.2 (Apr'01)  added support for new multi-file CLIB version 10 files
-v1.1 (Jul'99)  added support for appended-to-exe data files
-
-This is UNPUBLISHED PROPRIETARY SOURCE CODE;
-the contents of this file may not be disclosed to third parties,
-copied or duplicated in any form, in whole or in part, without
-prior express permission from Chris Jones.
-*/
-
-//=============================================================================
 #ifndef __AGS_CN_CORE__ASSETMANAGER_H
 #define __AGS_CN_CORE__ASSETMANAGER_H
 

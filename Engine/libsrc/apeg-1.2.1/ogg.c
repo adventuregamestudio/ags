@@ -3,7 +3,7 @@
 #include "apeg.h"
 #include "mpeg1dec.h"
 
-#if !defined(LINUX_VERSION) && !defined(MAC_VERSION)
+#if defined (WINDOWS_VERSION)
 #define int64_t __int64
 #endif
 

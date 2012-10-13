@@ -230,7 +230,7 @@ namespace AGS.Editor
 
         private Character FindCharacterWithName(string characterName)
         {
-            foreach (Character character in _game.Characters)
+            foreach (Character character in _game.RootCharacterFolder.AllItemsFlat)
             {
                 if (character.ScriptName.ToLower() == characterName)
                 {

@@ -1,16 +1,21 @@
-/*
-  AGS Platform-specific functions
+//=============================================================================
+//
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// http://www.opensource.org/licenses/artistic-license-2.0.php
+//
+//=============================================================================
+//
+// AGS Platform-specific functions
+//
+//=============================================================================
 
-  Adventure Game Studio source code Copyright 1999-2011 Chris Jones.
-  All rights reserved.
-
-  The AGS Editor Source Code is provided under the Artistic License 2.0
-  http://www.opensource.org/licenses/artistic-license-2.0.php
-
-  You MAY NOT compile your own builds of the engine without making it EXPLICITLY
-  CLEAR that the code has been altered from the Standard Version.
-
-*/
 #include <stdio.h>
 #include <string.h>
 #include "util/wgt2allg.h"
@@ -19,18 +24,15 @@
 #include "util/string_utils.h"
 #include "util/datastream.h"
 #include "gfx/bitmap.h"
+#include "plugin/agsplugin.h"
 
 using AGS::Common::DataStream;
 using AGS::Common::String;
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
-#if !defined(BSD_VERSION) && (defined(LINUX_VERSION) || defined(WINDOWS_VERSION))
+#if defined (AGS_HAS_CD_AUDIO)
 #include "libcda.h"
-#endif
-
-#if defined(LINUX_VERSION) || defined(MAC_VERSION)
-#define strnicmp strncasecmp
 #endif
 
 extern Bitmap *abuf; // in wgt2allg
@@ -40,11 +42,6 @@ AGSPlatformDriver *platform = NULL;
 
 // ******** DEFAULT IMPLEMENTATIONS *******
 
-int  AGSPlatformDriver::RunPluginDebugHooks(const char *scriptfile, int linenum) { return 0; }
-void AGSPlatformDriver::RunPluginInitGfxHooks(const char *driverName, void *data) { }
-void AGSPlatformDriver::ShutdownPlugins() { }
-void AGSPlatformDriver::StartPlugins() { }
-int  AGSPlatformDriver::RunPluginHooks(int event, long data) { return 0; }
 void AGSPlatformDriver::WriteDebugString(const char*, ...) { }
 void AGSPlatformDriver::AboutToQuitGame() { }
 void AGSPlatformDriver::PostAllegroInit(bool windowed) { }
@@ -87,19 +84,42 @@ void AGSPlatformDriver::ReplaceSpecialPaths(const char *sourcePath, char *destPa
 
 }
 
-void AGSPlatformDriver::ReadPluginsFromDisk(DataStream *in) {
-    if (in->ReadInt32() != 1)
-        quit("ERROR: unable to load game, invalid version of plugin data");
+void AGSPlatformDriver::ReadPluginsFromDisk(AGS::Common::DataStream *iii) {
+#if 1
+  pl_read_plugins_from_disk(iii);
+#else
+  if (iii->ReadInt32() != 1)
+      quit("ERROR: unable to load game, invalid version of plugin data");
 
-    int numPlug = in->ReadInt32(), a, datasize;
-    String buffer;
-    for (a = 0; a < numPlug; a++) {
-        // read the plugin name
-        buffer = in->ReadString();
-        datasize = in->ReadInt32();
-        in->Seek (Common::kSeekCurrent, datasize);
-    }
+  int numPlug = iii->ReadInt32(), a, datasize;
+  String buffer;
+  for (a = 0; a < numPlug; a++) {
+      // read the plugin name
+      buffer = iii->ReadString();
+      datasize = iii->ReadInt32();
+      iii->Seek (Common::kSeekCurrent, datasize);
+  }
+#endif
+}
 
+void AGSPlatformDriver::StartPlugins() {
+  pl_startup_plugins();
+}
+
+void AGSPlatformDriver::ShutdownPlugins() {
+  pl_stop_plugins();
+}
+
+int AGSPlatformDriver::RunPluginHooks(int event, long data) {
+  return pl_run_plugin_hooks(event, data);
+}
+
+void AGSPlatformDriver::RunPluginInitGfxHooks(const char *driverName, void *data) {
+  pl_run_plugin_init_gfx_hooks(driverName, data);
+}
+
+int AGSPlatformDriver::RunPluginDebugHooks(const char *scriptfile, int linenum) {
+  return pl_run_plugin_debug_hooks(scriptfile, linenum);
 }
 
 void AGSPlatformDriver::InitialiseAbufAtStartup()
@@ -132,7 +152,7 @@ void AGSPlatformDriver::Out(const char *sz_fullmsg) {
 
 // ********** CD Player Functions common to Win and Linux ********
 
-#if !defined(ANDROID_VERSION) && !defined(PSP_VERSION) && !defined(DOS_VERSION) && !defined(BSD_VERSION) && !defined(MAC_VERSION)
+#if defined (AGS_HAS_CD_AUDIO)
 
 // from ac_cdplayer
 extern int use_cdplayer;
@@ -180,4 +200,4 @@ int cd_player_control(int cmdd, int datt) {
     return 0;
 }
 
-#endif // #if !defined(ANDROID_VERSION) && !defined(PSP_VERSION) && !defined(DOS_VERSION) && !defined(BSD_VERSION) && !defined(MAC_VERSION)
+#endif // AGS_HAS_CD_AUDIO

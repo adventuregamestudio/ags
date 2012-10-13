@@ -492,9 +492,10 @@ int ccInstance::Run(long curpc)
         RuntimeScriptValue &reg2 = 
             registers[arg2.GetLong() >= 0 && arg2.GetLong() < CC_NUM_REGISTERS ? arg2.GetLong() : 0];
 
-        // TODO!!!
-        //if (write_debug_dump)
-        //DumpInstruction(&codeInst->code[pc], pc, registers[SREG_SP]);
+        if (write_debug_dump)
+        {
+            DumpInstruction(codeOp);
+        }
 
         switch (codeOp.Instruction.Code) {
       case SCMD_LINENUM:
@@ -1451,50 +1452,48 @@ char *ccInstance::GetSymbolAddress(char *symname)
     return NULL;
 }
 
-/*
-void ccInstance::DumpInstruction(unsigned long *codeptr, int cps, int spp)
+void ccInstance::DumpInstruction(const ScriptOperation &op)
 {
+    // line_num local var should be shared between all the instances
     static int line_num = 0;
 
-    if (codeptr[0] == SCMD_LINENUM) {
-        line_num = codeptr[1];
+    if (op.Instruction.Code == SCMD_LINENUM) {
+        line_num = op.Args[0].GetLong();
         return;
     }
 
     DataStream *data_s = ci_fopen("script.log", Common::kFile_Create, Common::kFile_Write);
     TextStreamWriter writer(data_s);
-    writer.WriteFormat("Line %3d, IP:%8d (SP:%8d) ", line_num, cps, spp);
+    writer.WriteFormat("Line %3d, IP:%8d (SP:%8d) ", line_num, pc, (intptr_t)registers[SREG_SP].GetStackEntry());
 
-    int l, thisop = codeptr[0] & INSTANCE_ID_REMOVEMASK, isreg = 0, t = 0;
-    const char *toprint = sccmd_info[thisop].CmdName;
+    const ScriptCommandInfo &cmd_info = sccmd_info[op.Instruction.Code];
+    int isreg;
+    const char *toprint = cmd_info.CmdName;
     if (toprint[0] == '$') {
         isreg = 1;
         toprint++;
     }
-
     if (toprint[0] == '$') {
         isreg |= 2;
         toprint++;
     }
     writer.WriteString(toprint);
 
-    for (l = 0; l < sccmd_info[thisop].ArgCount; l++) {
-        t++;
-        if (l > 0)
+    for (int i = 0; i < cmd_info.ArgCount; ++i) {
+        if (i > 0)
             writer.WriteChar(',');
 
-        if ((l == 0) && (isreg & 1))
-            writer.WriteFormat(" %s", regnames[codeptr[t]]);
-        else if ((l == 1) && (isreg & 2))
-            writer.WriteFormat(" %s", regnames[codeptr[t]]);
+        if ((i == 0) && (isreg & 1))
+            writer.WriteFormat(" %s", regnames[op.Args[i].GetLong()]);
+        else if ((i == 1) && (isreg & 2))
+            writer.WriteFormat(" %s", regnames[op.Args[i].GetLong()]);
         else
             // MACPORT FIX 9/6/5: changed %d to %ld
-            writer.WriteFormat(" %ld", codeptr[t]);
+            writer.WriteFormat(" %ld", op.Args[i].GetDataPtrWithOffset());
     }
     writer.WriteLineBreak();
     // the writer will delete data stream internally
 }
-*/
 
 // changes all pointer variables (ie. strings) to have the relative address, to allow
 // the data segment to be saved to disk

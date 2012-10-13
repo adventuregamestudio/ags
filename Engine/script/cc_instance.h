@@ -155,7 +155,7 @@ public:
     void    GetScriptName(char *curScrName);
     // get the address of an exported variable in the script
     char    *GetSymbolAddress(char *);
-    void    DumpInstruction(unsigned long *codeptr, int cps, int spp);
+    void    DumpInstruction(const ScriptOperation &op);
 
     void    ReadGlobalData(Common::DataStream *in);
     void    WriteGlobalData(Common::DataStream *out);

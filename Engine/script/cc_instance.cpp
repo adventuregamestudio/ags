@@ -35,97 +35,110 @@ extern roomstruct thisroom; // ac/game
 extern int maxWhileLoops;
 extern new_line_hook_type new_line_hook;
 
+enum ScriptOpArgIsReg
+{
+    kScOpNoArgIsReg     = 0,
+    kScOpArg1IsReg      = 0x0001,
+    kScOpArg2IsReg      = 0x0002,
+    kScOpArg3IsReg      = 0x0004,
+    kScOpOneArgIsReg    = kScOpArg1IsReg,
+    kScOpTwoArgsAreReg  = kScOpArg1IsReg | kScOpArg2IsReg,
+    kScOpTreeArgsAreReg = kScOpArg1IsReg | kScOpArg2IsReg | kScOpArg3IsReg
+};
+
 struct ScriptCommandInfo
 {
-    ScriptCommandInfo(long code, const char *cmdname, int arg_count, ScriptValueType param_type)
+    ScriptCommandInfo(long code, const char *cmdname, int arg_count, ScriptOpArgIsReg arg_is_reg)
     {
         Code        = code;
         CmdName     = cmdname;
         ArgCount    = arg_count;
-        ParamType   = param_type;
+        ArgIsReg[0] = (arg_is_reg & kScOpArg1IsReg) != 0;
+        ArgIsReg[1] = (arg_is_reg & kScOpArg2IsReg) != 0;
+        ArgIsReg[2] = (arg_is_reg & kScOpArg3IsReg) != 0;
     }
 
-    long            Code;
-    const char      *CmdName;
-    int             ArgCount;
-    ScriptValueType ParamType;
+    long                Code;
+    const char          *CmdName;
+    int                 ArgCount;
+    bool                ArgIsReg[3];
 };
 
 const ScriptCommandInfo sccmd_info[CC_NUM_SCCMDS] =
 {
-    ScriptCommandInfo( 0                    , "NULL"                , 0, kScValUndefined ),
-    ScriptCommandInfo( SCMD_ADD             , "$add"                , 2, kScValGeneric ),
-    ScriptCommandInfo( SCMD_SUB             , "$sub"                , 2, kScValGeneric ),
-    ScriptCommandInfo( SCMD_REGTOREG        , "$$mov"               , 2, kScValGeneric ),
-    ScriptCommandInfo( SCMD_WRITELIT        , "memwritelit"         , 2, kScValGeneric ),
-    ScriptCommandInfo( SCMD_RET             , "ret"                 , 0, kScValGeneric ),
-    ScriptCommandInfo( SCMD_LITTOREG        , "$mov"                , 2, kScValGeneric ),
-    ScriptCommandInfo( SCMD_MEMREAD         , "$memread"            , 1, kScValGeneric ),
-    ScriptCommandInfo( SCMD_MEMWRITE        , "$memwrite"           , 1, kScValGeneric ),
-    ScriptCommandInfo( SCMD_MULREG          , "$$mul"               , 2, kScValGeneric ),
-    ScriptCommandInfo( SCMD_DIVREG          , "$$div"               , 2, kScValGeneric ),
-    ScriptCommandInfo( SCMD_ADDREG          , "$$add"               , 2, kScValGeneric ),
-    ScriptCommandInfo( SCMD_SUBREG          , "$$sub"               , 2, kScValGeneric ),
-    ScriptCommandInfo( SCMD_BITAND          , "$$bit_and"           , 2, kScValGeneric ),
-    ScriptCommandInfo( SCMD_BITOR           , "$$bit_or"            , 2, kScValGeneric ),
-    ScriptCommandInfo( SCMD_ISEQUAL         , "$$cmp"               , 2, kScValGeneric ),
-    ScriptCommandInfo( SCMD_NOTEQUAL        , "$$ncmp"              , 2, kScValGeneric ),
-    ScriptCommandInfo( SCMD_GREATER         , "$$gt"                , 2, kScValGeneric ),
-    ScriptCommandInfo( SCMD_LESSTHAN        , "$$lt"                , 2, kScValGeneric ),
-    ScriptCommandInfo( SCMD_GTE             , "$$gte"               , 2, kScValGeneric ),
-    ScriptCommandInfo( SCMD_LTE             , "$$lte"               , 2, kScValGeneric ),
-    ScriptCommandInfo( SCMD_AND             , "$$and"               , 2, kScValGeneric ),
-    ScriptCommandInfo( SCMD_OR              , "$$or"                , 2, kScValGeneric ),
-    ScriptCommandInfo( SCMD_CALL            , "$call"               , 1, kScValGeneric ),
-    ScriptCommandInfo( SCMD_MEMREADB        , "$memread.b"          , 1, kScValGeneric ),
-    ScriptCommandInfo( SCMD_MEMREADW        , "$memread.w"          , 1, kScValGeneric ),
-    ScriptCommandInfo( SCMD_MEMWRITEB       , "$memwrite.b"         , 1, kScValGeneric ),
-    ScriptCommandInfo( SCMD_MEMWRITEW       , "$memwrite.w"         , 1, kScValGeneric ),
-    ScriptCommandInfo( SCMD_JZ              , "jz"                  , 1, kScValGeneric ),
-    ScriptCommandInfo( SCMD_PUSHREG         , "$push"               , 1, kScValGeneric ),
-    ScriptCommandInfo( SCMD_POPREG          , "$pop"                , 1, kScValGeneric ),
-    ScriptCommandInfo( SCMD_JMP             , "jmp"                 , 1, kScValGeneric ),
-    ScriptCommandInfo( SCMD_MUL             , "$mul"                , 2, kScValGeneric ),
-    ScriptCommandInfo( SCMD_CALLEXT         , "$farcall"            , 1, kScValGeneric ),
-    ScriptCommandInfo( SCMD_PUSHREAL        , "$farpush"            , 1, kScValGeneric ),
-    ScriptCommandInfo( SCMD_SUBREALSTACK    , "farsubsp"            , 1, kScValGeneric ),
-    ScriptCommandInfo( SCMD_LINENUM         , "sourceline"          , 1, kScValGeneric ),
-    ScriptCommandInfo( SCMD_CALLAS          , "$callscr"            , 1, kScValGeneric ),
-    ScriptCommandInfo( SCMD_THISBASE        , "thisaddr"            , 1, kScValGeneric ),
-    ScriptCommandInfo( SCMD_NUMFUNCARGS     , "setfuncargs"         , 1, kScValGeneric ),
-    ScriptCommandInfo( SCMD_MODREG          , "$$mod"               , 2, kScValGeneric ),
-    ScriptCommandInfo( SCMD_XORREG          , "$$xor"               , 2, kScValGeneric ),
-    ScriptCommandInfo( SCMD_NOTREG          , "$not"                , 1, kScValGeneric ),
-    ScriptCommandInfo( SCMD_SHIFTLEFT       , "$$shl"               , 2, kScValGeneric ),
-    ScriptCommandInfo( SCMD_SHIFTRIGHT      , "$$shr"               , 2, kScValGeneric ),
-    ScriptCommandInfo( SCMD_CALLOBJ         , "$callobj"            , 1, kScValGeneric ),
-    ScriptCommandInfo( SCMD_CHECKBOUNDS     , "$checkbounds"        , 2, kScValGeneric ),
-    ScriptCommandInfo( SCMD_MEMWRITEPTR     , "$memwrite.ptr"       , 1, kScValGeneric ),
-    ScriptCommandInfo( SCMD_MEMREADPTR      , "$memread.ptr"        , 1, kScValGeneric ),
-    ScriptCommandInfo( SCMD_MEMZEROPTR      , "memwrite.ptr.0"      , 0, kScValGeneric ),
-    ScriptCommandInfo( SCMD_MEMINITPTR      , "$meminit.ptr"        , 1, kScValGeneric ),
-    ScriptCommandInfo( SCMD_LOADSPOFFS      , "load.sp.offs"        , 1, kScValGeneric ),
-    ScriptCommandInfo( SCMD_CHECKNULL       , "checknull.ptr"       , 0, kScValGeneric ),
-    ScriptCommandInfo( SCMD_FADD            , "$f.add"              , 2, kScValGeneric ),
-    ScriptCommandInfo( SCMD_FSUB            , "$f.sub"              , 2, kScValGeneric ),
-    ScriptCommandInfo( SCMD_FMULREG         , "$$f.mul"             , 2, kScValGeneric ),
-    ScriptCommandInfo( SCMD_FDIVREG         , "$$f.div"             , 2, kScValGeneric ),
-    ScriptCommandInfo( SCMD_FADDREG         , "$$f.add"             , 2, kScValGeneric ),
-    ScriptCommandInfo( SCMD_FSUBREG         , "$$f.sub"             , 2, kScValGeneric ),
-    ScriptCommandInfo( SCMD_FGREATER        , "$$f.gt"              , 2, kScValGeneric ),
-    ScriptCommandInfo( SCMD_FLESSTHAN       , "$$f.lt"              , 2, kScValGeneric ),
-    ScriptCommandInfo( SCMD_FGTE            , "$$f.gte"             , 2, kScValGeneric ),
-    ScriptCommandInfo( SCMD_FLTE            , "$$f.lte"             , 2, kScValGeneric ),
-    ScriptCommandInfo( SCMD_ZEROMEMORY      , "zeromem"             , 1, kScValGeneric ),
-    ScriptCommandInfo( SCMD_CREATESTRING    , "$newstring"          , 1, kScValGeneric ),
-    ScriptCommandInfo( SCMD_STRINGSEQUAL    , "$$strcmp"            , 2, kScValGeneric ),
-    ScriptCommandInfo( SCMD_STRINGSNOTEQ    , "$$strnotcmp"         , 2, kScValGeneric ),
-    ScriptCommandInfo( SCMD_CHECKNULLREG    , "$checknull"          , 1, kScValGeneric ),
-    ScriptCommandInfo( SCMD_LOOPCHECKOFF    , "loopcheckoff"        , 0, kScValGeneric ),
-    ScriptCommandInfo( SCMD_MEMZEROPTRND    , "memwrite.ptr.0.nd"   , 0, kScValGeneric ),
-    ScriptCommandInfo( SCMD_JNZ             , "jnz"                 , 1, kScValGeneric ),
-    ScriptCommandInfo( SCMD_DYNAMICBOUNDS   , "$dynamicbounds"      , 1, kScValGeneric ),
-    ScriptCommandInfo( SCMD_NEWARRAY        , "$newarray"           , 3, kScValGeneric ),
+    ScriptCommandInfo( 0                    , "NULL"              , 0, kScOpNoArgIsReg ),
+    ScriptCommandInfo( SCMD_ADD             , "add"               , 2, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_SUB             , "sub"               , 2, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_REGTOREG        , "mov"               , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_WRITELIT        , "memwritelit"       , 2, kScOpNoArgIsReg ),
+    ScriptCommandInfo( SCMD_RET             , "ret"               , 0, kScOpNoArgIsReg ),
+    ScriptCommandInfo( SCMD_LITTOREG        , "mov"               , 2, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_MEMREAD         , "memread"           , 1, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_MEMWRITE        , "memwrite"          , 1, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_MULREG          , "mul"               , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_DIVREG          , "div"               , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_ADDREG          , "add"               , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_SUBREG          , "sub"               , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_BITAND          , "bit_and"           , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_BITOR           , "bit_or"            , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_ISEQUAL         , "cmp"               , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_NOTEQUAL        , "ncmp"              , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_GREATER         , "gt"                , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_LESSTHAN        , "lt"                , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_GTE             , "gte"               , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_LTE             , "lte"               , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_AND             , "and"               , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_OR              , "or"                , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_CALL            , "call"              , 1, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_MEMREADB        , "memread.b"         , 1, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_MEMREADW        , "memread.w"         , 1, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_MEMWRITEB       , "memwrite.b"        , 1, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_MEMWRITEW       , "memwrite.w"        , 1, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_JZ              , "jz"                , 1, kScOpNoArgIsReg ),
+    ScriptCommandInfo( SCMD_PUSHREG         , "push"              , 1, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_POPREG          , "pop"               , 1, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_JMP             , "jmp"               , 1, kScOpNoArgIsReg ),
+    ScriptCommandInfo( SCMD_MUL             , "mul"               , 2, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_CALLEXT         , "farcall"           , 1, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_PUSHREAL        , "farpush"           , 1, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_SUBREALSTACK    , "farsubsp"          , 1, kScOpNoArgIsReg ),
+    ScriptCommandInfo( SCMD_LINENUM         , "sourceline"        , 1, kScOpNoArgIsReg ),
+    ScriptCommandInfo( SCMD_CALLAS          , "callscr"           , 1, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_THISBASE        , "thisaddr"          , 1, kScOpNoArgIsReg ),
+    ScriptCommandInfo( SCMD_NUMFUNCARGS     , "setfuncargs"       , 1, kScOpNoArgIsReg ),
+    ScriptCommandInfo( SCMD_MODREG          , "mod"               , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_XORREG          , "xor"               , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_NOTREG          , "not"               , 1, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_SHIFTLEFT       , "shl"               , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_SHIFTRIGHT      , "shr"               , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_CALLOBJ         , "callobj"           , 1, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_CHECKBOUNDS     , "checkbounds"       , 2, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_MEMWRITEPTR     , "memwrite.ptr"      , 1, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_MEMREADPTR      , "memread.ptr"       , 1, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_MEMZEROPTR      , "memwrite.ptr.0"    , 0, kScOpNoArgIsReg ),
+    ScriptCommandInfo( SCMD_MEMINITPTR      , "meminit.ptr"       , 1, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_LOADSPOFFS      , "load.sp.offs"      , 1, kScOpNoArgIsReg ),
+    ScriptCommandInfo( SCMD_CHECKNULL       , "checknull.ptr"     , 0, kScOpNoArgIsReg ),
+    ScriptCommandInfo( SCMD_FADD            , "f.add"             , 2, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_FSUB            , "f.sub"             , 2, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_FMULREG         , "f.mul"             , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_FDIVREG         , "f.div"             , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_FADDREG         , "f.add"             , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_FSUBREG         , "f.sub"             , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_FGREATER        , "f.gt"              , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_FLESSTHAN       , "f.lt"              , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_FGTE            , "f.gte"             , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_FLTE            , "f.lte"             , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_ZEROMEMORY      , "zeromem"           , 1, kScOpNoArgIsReg ),
+    ScriptCommandInfo( SCMD_CREATESTRING    , "newstring"         , 1, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_STRINGSEQUAL    , "strcmp"            , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_STRINGSNOTEQ    , "strnotcmp"         , 2, kScOpTwoArgsAreReg ),
+    ScriptCommandInfo( SCMD_CHECKNULLREG    , "checknull"         , 1, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_LOOPCHECKOFF    , "loopcheckoff"      , 0, kScOpNoArgIsReg ),
+    ScriptCommandInfo( SCMD_MEMZEROPTRND    , "memwrite.ptr.0.nd" , 0, kScOpNoArgIsReg ),
+    ScriptCommandInfo( SCMD_JNZ             , "jnz"               , 1, kScOpNoArgIsReg ),
+    ScriptCommandInfo( SCMD_DYNAMICBOUNDS   , "dynamicbounds"     , 1, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_NEWARRAY        , "newarray"          , 3, kScOpOneArgIsReg ),
 };
 
 const char *regnames[] = { "null", "sp", "mar", "ax", "bx", "cx", "op", "dx" };
@@ -184,10 +197,6 @@ ccInstance::ccInstance()
     codehelpers_capacity= 0;
     num_codehelpers     = 0;
     codehelper_index    = 0;
-
-#if defined(AGS_64BIT)
-    stackSizeIndex      = 0;
-#endif
 }
 
 ccInstance::~ccInstance()
@@ -285,26 +294,12 @@ int ccInstance::CallScriptFunction(char *funcname, long numargs, ...)
     registers[SREG_OP].SetLong(0);
 
     ccInstance* currentInstanceWas = current_instance;
-    //long stoffs = 0;
     registers[SREG_SP].SetStackPtr( &stack[0] );
     stackdata_ptr = stackdata;
     for (tssize = numargs - 1; tssize >= 0; tssize--) {
-        //memcpy(&stack[stoffs], &tempstack[tssize], sizeof(long));
-        //stoffs += sizeof(long);
         PushValueToStack(RuntimeScriptValue().SetLong(tempstack[tssize]));
     }
     runningInst = this;
-
-#if defined(AGS_64BIT)
-    // 64 bit: Initialize array for stack variable sizes with the argument values
-    stackSizeIndex = 0;
-    int i;
-    for (i = 0; i < numargs; i++)
-    {
-        stackSizes[stackSizeIndex] = -1;
-        stackSizeIndex++;
-    }
-#endif
 
     int reterr = Run(startat);
     PopValuesFromStack(numargs - 1);
@@ -442,13 +437,6 @@ int ccInstance::Run(long curpc)
     pc = curpc;
     returnValue = -1;
 
-#if defined(AGS_64BIT)
-    // 64 bit: For dealing with the stack
-    int original_sp_diff = 0;
-    int new_sp_diff = 0;
-    int sp_index = 0;
-#endif
-
     if ((curpc < 0) || (curpc >= runningInst->codesize)) {
         cc_error("specified code offset is not valid");
         return -1;
@@ -505,15 +493,6 @@ int ccInstance::Run(long curpc)
               new_line_hook(this, currentline);
           break;
       case SCMD_ADD:
-          // FIXME AGS_64BIT
-#if defined(AGS_64BIT)
-          // 64 bit: Keeping track of the stack variables
-          if (arg1 == SREG_SP)
-          {
-              stackSizes[stackSizeIndex] = arg2;
-              stackSizeIndex++;
-          }
-#endif
           // If the the register is SREG_SP, we are allocating new variable on the stack
           if (arg1.GetLong() == SREG_SP)
           {
@@ -536,41 +515,6 @@ int ccInstance::Run(long curpc)
           CHECK_STACK 
               break;
       case SCMD_SUB:
-          // FIXME AGS_64BIT
-#if defined(AGS_64BIT)
-          // 64 bit: Rewrite the offset so that it doesn't point inside a variable on the stack.
-          // AGS 2.x games also perform relative stack access by copying SREG_SP to SREG_MAR
-          // and then subtracting from that.
-          if ((arg1 == SREG_SP) || ((arg1 == SREG_MAR) && (registers[SREG_MAR] == registers[SREG_SP])))
-          {
-              int orig_sub = arg2;
-              int new_sub = 0;
-              int temp_index = stackSizeIndex;
-              while (orig_sub > 0)
-              {
-                  if (temp_index < 1)
-                      cc_error("Subtracting from stack variable would underflow stack. Stack corrupted?");
-
-                  if (stackSizes[temp_index - 1] == -1)
-                  {
-                      orig_sub -= 4;
-                      new_sub += sizeof(long);
-                  }
-                  else
-                  {
-                      orig_sub -= stackSizes[temp_index - 1];
-                      new_sub += stackSizes[temp_index - 1];
-                  }
-                  temp_index--;
-              }
-              if (arg1 == SREG_SP)
-                  stackSizeIndex = temp_index;
-
-              reg1 -= new_sub;
-          }
-          else
-              reg1 -= arg2;
-#else
           if (reg1.GetType() == kScValStackPtr)
           {
             // If this is SREG_SP, this is stack pop, which frees local variables;
@@ -592,16 +536,12 @@ int ccInstance::Run(long curpc)
           {
             reg1 -= arg2;
           }
-#endif  
           break;
       case SCMD_REGTOREG:
           reg2 = reg1;
           break;
       case SCMD_WRITELIT:
           // Take the data address from reg[MAR] and copy there arg1 bytes from arg2 address
-          //// poss something dodgy about this routine
-          //mptr = (char *)(registers[SREG_MAR]);
-          //memcpy(&mptr[0], &arg2, arg1);
           //
           // NOTE: since it reads directly from arg2 (which was long),
           // written value may normally be only up to 4 bytes large;
@@ -628,14 +568,9 @@ int ccInstance::Run(long curpc)
           if (loopIterationCheckDisabled > 0)
               loopIterationCheckDisabled--;
 
-          RuntimeScriptValue rval = PopValueFromStack(); //-= sizeof(long);
-          // FIXME AGS_64BIT
-#if defined(AGS_64BIT)
-          stackSizeIndex--;
-#endif
+          RuntimeScriptValue rval = PopValueFromStack();
           curnest--;
-          //memcpy(&(pc), (char*)registers[SREG_SP].GetLong(), sizeof(long));
-          pc = rval.GetInt();//registers[SREG_SP].ReadInt32();
+          pc = rval.GetInt();
           if (pc == 0)
           {
               returnValue = registers[SREG_AX].GetInt();
@@ -651,8 +586,6 @@ int ccInstance::Run(long curpc)
       case SCMD_MEMREAD:
           // Take the data address from reg[MAR] and copy int32_t to reg[arg1]
           // 64 bit: Memory reads are still 32 bit
-          //memset(&(reg1), 0, sizeof(long));
-          //memcpy(&(reg1), (char*)registers[SREG_MAR], 4);
           reg1 = registers[SREG_MAR].ReadValue();
 
           // FIXME AGS_BIG_ENDIAN
@@ -682,46 +615,14 @@ int ccInstance::Run(long curpc)
           }
 #else
           // 64 bit: Memory writes are still 32 bit
-          //memcpy((char*)registers[SREG_MAR], &(reg1), 4);
           registers[SREG_MAR].WriteValue(reg1);
 #endif
           break;
       case SCMD_LOADSPOFFS:
-          // FIXME AGS_64BIT
-#if defined(AGS_64BIT)
-          // 64 bit: Rewrite offset so that it doesn't point inside a variable
-          original_sp_diff = arg1;
-          new_sp_diff = 0;
-          sp_index = stackSizeIndex - 1;
-
-          while (original_sp_diff > 0)
-          {
-              if (stackSizes[sp_index] == -1)
-              {
-                  original_sp_diff -= 4;
-                  new_sp_diff += sizeof(long);//stackSizes[sp_index];
-                  sp_index--;
-              }
-              else
-              {
-                  original_sp_diff -= stackSizes[sp_index];
-                  new_sp_diff += stackSizes[sp_index];
-                  sp_index--;
-              }
-          }
-
-          if (sp_index < -1)
-              cc_error("Stack offset cannot be rewritten. Stack corrupted?");
-
-          registers[SREG_MAR] = registers[SREG_SP] - new_sp_diff;
-#else
-          //registers[SREG_MAR].SetLong( registers[SREG_SP].GetLong() - arg1.GetLong() );
           registers[SREG_MAR] = GetStackPtrOffsetRw(arg1.GetLong());
-#endif
           break;
 
           // 64 bit: Force 32 bit math
-
       case SCMD_MULREG:
           reg1.SetInt32(reg1.GetInt() * reg2.GetInt());
           break;
@@ -793,14 +694,7 @@ int ccInstance::Run(long curpc)
 
           PUSH_CALL_STACK;
 
-          //memcpy((char*)registers[SREG_SP], &temp_variable, sizeof(intptr_t));
           PushValueToStack(RuntimeScriptValue().SetInt32(pc + sccmd_info[codeOp.Instruction.Code].ArgCount + 1));
-
-          // FIXME AGS_64BIT
-#if defined(AGS_64BIT)
-          stackSizes[stackSizeIndex] = -1;
-          stackSizeIndex++;
-#endif
 
           if (thisbase[curnest] == 0)
               pc = reg1.GetLong();
@@ -822,13 +716,10 @@ int ccInstance::Run(long curpc)
               continue;
       case SCMD_MEMREADB:
           // Take the data address from reg[MAR] and copy byte to reg[arg1]
-          //tbyte = *((unsigned char *)registers[SREG_MAR]);
-          //reg1 = tbyte;
           reg1.SetInt8(registers[SREG_MAR].ReadByte());
           break;
       case SCMD_MEMREADW:
           // Take the data address from reg[MAR] and copy int16_t to reg[arg1]
-          //tshort = *((short *)registers[SREG_MAR]);
           // FIXME AGS_BIG_ENDIAN
 #if defined(AGS_BIG_ENDIAN)
           if (gSpans.IsInSpan((char*)registers[SREG_MAR]))
@@ -836,18 +727,14 @@ int ccInstance::Run(long curpc)
               AGS::Common::BitByteOperations::SwapBytesInt16(tshort);
           }
 #endif
-          //reg1 = tshort;
           reg1.SetInt16(registers[SREG_MAR].ReadInt16());
           break;
       case SCMD_MEMWRITEB:
           // Take the data address from reg[MAR] and copy there byte from reg[arg1]
-          //tbyte = (unsigned char)reg1;
-          //*((unsigned char *)registers[SREG_MAR]) = tbyte;
           registers[SREG_MAR].WriteByte(reg1.GetInt());
           break;
       case SCMD_MEMWRITEW:
           // Take the data address from reg[MAR] and copy there int16_t from reg[arg1]
-          //tshort = (short)reg1;
           // FIXME AGS_BIG_ENDIAN
 #if defined(AGS_BIG_ENDIAN)
           if (gSpans.IsInSpan((char*)registers[SREG_MAR]))
@@ -855,7 +742,6 @@ int ccInstance::Run(long curpc)
               AGS::Common::BitByteOperations::SwapBytesInt16(tshort);
           }
 #endif
-          //*((short *)registers[SREG_MAR]) = tshort;
           registers[SREG_MAR].WriteInt16(reg1.GetInt());
           break;
       case SCMD_JZ:
@@ -867,30 +753,12 @@ int ccInstance::Run(long curpc)
               pc += arg1.GetLong();
           break;
       case SCMD_PUSHREG:
-          // FIXME AGS_64BIT
-#if defined(AGS_64BIT)
-          // 64 bit: Registers are pushed as 8 byte values. Their size is set to "-1" so that
-          // they can be identified later.
-          stackSizes[stackSizeIndex] = -1;
-          stackSizeIndex++;
-#endif
-
           // Push reg[arg1] value to the stack
-          //memcpy((char*)registers[SREG_SP], &reg1, sizeof(long));
           PushValueToStack(reg1);
           CHECK_STACK
               break;
       case SCMD_POPREG:
-          // FIXME AGS_64BIT
-#if defined(AGS_64BIT)
-          // 64 bit: Registers are pushed as 8 byte values
-          if (stackSizes[stackSizeIndex - 1] != -1)
-              cc_error("Trying to pop value that was not pushed. Stack corrupted?");
-
-          stackSizeIndex--;
-#endif
-          //memcpy(&reg1, (char*)registers[SREG_SP], sizeof(long));
-          reg1 = PopValueFromStack();//registers[SREG_SP].ReadValue();
+          reg1 = PopValueFromStack();
           break;
       case SCMD_JMP:
           pc += arg1.GetLong();
@@ -940,7 +808,6 @@ int ccInstance::Run(long curpc)
       case SCMD_MEMREADPTR: {
           ccError = 0;
 
-          //memcpy(&handle, (char*)(registers[SREG_MAR]), 4);
           long handle = registers[SREG_MAR].ReadInt32();
           reg1.SetLong( (long)ccGetObjectAddressFromHandle(handle) );
 
@@ -950,7 +817,6 @@ int ccInstance::Run(long curpc)
           break; }
       case SCMD_MEMWRITEPTR: {
 
-          //memcpy(&handle, (char*)(registers[SREG_MAR]), 4);
           long handle = registers[SREG_MAR].ReadInt32();
 
           // CHECKME!! what type of data may reg1 point to?
@@ -961,7 +827,6 @@ int ccInstance::Run(long curpc)
           if (handle != newHandle) {
               ccReleaseObjectReference(handle);
               ccAddObjectReference(newHandle);
-              //memcpy(((char*)registers[SREG_MAR]), &newHandle, 4);
               registers[SREG_MAR].WriteInt32(newHandle);
           }
           break;
@@ -969,7 +834,6 @@ int ccInstance::Run(long curpc)
       case SCMD_MEMINITPTR: { 
           // like memwriteptr, but doesn't attempt to free the old one
 
-          //memcpy(&handle, ((char*)registers[SREG_MAR]), 4);
           long handle = registers[SREG_MAR].ReadInt32();
 
           // CHECKME!! what type of data may reg1 point to?
@@ -978,20 +842,16 @@ int ccInstance::Run(long curpc)
               return -1;
 
           ccAddObjectReference(newHandle);
-          //memcpy(((char*)registers[SREG_MAR]), &newHandle, 4);
           registers[SREG_MAR].WriteInt32(newHandle);
           break;
                             }
       case SCMD_MEMZEROPTR: {
-          //memcpy(&handle, ((char*)registers[SREG_MAR]), 4);
           long handle = registers[SREG_MAR].ReadInt32();
           ccReleaseObjectReference(handle);
-          //memset(((char*)registers[SREG_MAR]), 0, 4);
           registers[SREG_MAR].WriteInt32(0);
           break;
                             }
       case SCMD_MEMZEROPTRND: {
-          //memcpy(&handle, ((char*)registers[SREG_MAR]), 4);
           long handle = registers[SREG_MAR].ReadInt32();
 
           // don't do the Dispose check for the object being returned -- this is
@@ -1002,7 +862,6 @@ int ccInstance::Run(long curpc)
           pool.disableDisposeForObject = (const char*)registers[SREG_AX].GetDataPtrWithOffset();
           ccReleaseObjectReference(handle);
           pool.disableDisposeForObject = NULL;
-          //memset(((char*)registers[SREG_MAR]), 0, 4);
           registers[SREG_MAR].WriteInt32(0);
           break;
                               }
@@ -1034,34 +893,19 @@ int ccInstance::Run(long curpc)
 
           for (int i = startArg; i < callstacksize; ++i) {
               // 64 bit: Arguments are pushed as 64 bit values
-              //memcpy((char*)registers[SREG_SP], &(callstack[aa]), sizeof(long));
               PushValueToStack(callstack[i]);
-
-              // FIXME AGS_64BIT
-#if defined(AGS_64BIT)
-              stackSizes[stackSizeIndex] = -1;//sizeof(long);
-              stackSizeIndex++;
-#endif
           }
 
           // 0, so that the cc_run_code returns
-          //memset((char*)registers[SREG_SP], 0, sizeof(long));
           RuntimeScriptValue oldstack = registers[SREG_SP];
           PushValueToStack(RuntimeScriptValue().SetInt32(0));
           CHECK_STACK
-
-              // FIXME AGS_64BIT
-#if defined(AGS_64BIT)
-              stackSizes[stackSizeIndex] = -1;//sizeof(long);
-          stackSizeIndex++;
-#endif
 
           int oldpc = pc;
           ccInstance *wasRunning = runningInst;
 
           // extract the instance ID
           unsigned long instId = codeOp.Instruction.InstanceId;
-              //(codeInst->code[pc] >> INSTANCE_ID_SHIFT) & INSTANCE_ID_MASK;
           // determine the offset into the code of the instance we want
           runningInst = loadedInstances[instId];
           // FIXME later: use different getter
@@ -1144,11 +988,7 @@ int ccInstance::Run(long curpc)
           break;
       case SCMD_SUBREALSTACK:
           if (was_just_callas >= 0) {
-              PopValuesFromStack(arg1.GetLong()); // -= arg1.GetLong() * sizeof(long);
-              // FIXME AGS_64BIT
-#if defined(AGS_64BIT)
-              stackSizeIndex -= arg1;
-#endif
+              PopValuesFromStack(arg1.GetLong());
               was_just_callas = -1;
           }
           callstacksize -= arg1.GetLong();
@@ -1173,7 +1013,6 @@ int ccInstance::Run(long curpc)
           break;
       case SCMD_NEWARRAY:
           {
-              //int arg3 = codeInst->code[pc + 3];
               int numElements = reg1.GetLong();
               if ((numElements < 1) || (numElements > 1000000))
               {
@@ -1224,8 +1063,6 @@ int ccInstance::Run(long curpc)
               // creating a local variable -- check the stack to ensure no mem overrun
               int currentStackSize = registers[SREG_SP].GetStackEntry() - &stack[0];
               int currentDataSize = stackdata_ptr - stackdata;
-              //if (currentStackSize + arg1.GetLong() >= CC_STACK_SIZE) {
-                  //cc_error("stack overflow, attempted grow to %d bytes", currentStackSize + arg1.GetLong());
               if (currentStackSize + 1 >= CC_STACK_SIZE ||
                   currentDataSize + arg1.GetLong() >= CC_STACK_DATA_SIZE)
               {
@@ -1457,7 +1294,8 @@ void ccInstance::DumpInstruction(const ScriptOperation &op)
     // line_num local var should be shared between all the instances
     static int line_num = 0;
 
-    if (op.Instruction.Code == SCMD_LINENUM) {
+    if (op.Instruction.Code == SCMD_LINENUM)
+    {
         line_num = op.Args[0].GetLong();
         return;
     }
@@ -1467,29 +1305,23 @@ void ccInstance::DumpInstruction(const ScriptOperation &op)
     writer.WriteFormat("Line %3d, IP:%8d (SP:%8d) ", line_num, pc, (intptr_t)registers[SREG_SP].GetStackEntry());
 
     const ScriptCommandInfo &cmd_info = sccmd_info[op.Instruction.Code];
-    int isreg;
-    const char *toprint = cmd_info.CmdName;
-    if (toprint[0] == '$') {
-        isreg = 1;
-        toprint++;
-    }
-    if (toprint[0] == '$') {
-        isreg |= 2;
-        toprint++;
-    }
-    writer.WriteString(toprint);
+    writer.WriteString(cmd_info.CmdName);
 
-    for (int i = 0; i < cmd_info.ArgCount; ++i) {
+    for (int i = 0; i < cmd_info.ArgCount; ++i)
+    {
         if (i > 0)
+        {
             writer.WriteChar(',');
-
-        if ((i == 0) && (isreg & 1))
+        }
+        if (cmd_info.ArgIsReg[i])
+        {
             writer.WriteFormat(" %s", regnames[op.Args[i].GetLong()]);
-        else if ((i == 1) && (isreg & 2))
-            writer.WriteFormat(" %s", regnames[op.Args[i].GetLong()]);
+        }
         else
+        {
             // MACPORT FIX 9/6/5: changed %d to %ld
             writer.WriteFormat(" %ld", op.Args[i].GetDataPtrWithOffset());
+        }
     }
     writer.WriteLineBreak();
     // the writer will delete data stream internally
@@ -1582,16 +1414,6 @@ bool ccInstance::_Create(ccScript * scri, ccInstance * joined)
             globaldata = NULL;
     }
     codesize = scri->codesize;
-
-    /*  // [IKM] 2012-09-26:
-        // Do not allocate its own copy of code.
-    if (codesize > 0) {
-        code = (unsigned long *)malloc(codesize * sizeof(long));
-        memcpy(code, scri->code, codesize * sizeof(long));
-    }
-    else
-        code = NULL;
-    */
     code = (unsigned long*)scri->code; // CHECKME later why different types
 
     // just use the pointer to the strings since they don't change
@@ -1599,7 +1421,6 @@ bool ccInstance::_Create(ccScript * scri, ccInstance * joined)
     stringssize = scri->stringssize;
     // create a stack
     stackdatasize = CC_STACK_SIZE * sizeof(long);
-    //stack = (char *)malloc(stacksize);
     // This is quite a random choice; there's no way to deduce number of stack
     // entries needed without knowing amount of local variables (at least)
     num_stackentries = CC_STACK_SIZE;
@@ -1631,130 +1452,19 @@ bool ccInstance::_Create(ccScript * scri, ccInstance * joined)
         return false;
     }
 
-    /* // [IKM] 2012-09-26:
-       // Do not perform most fixups at startup, store fixup data instead
-       // for real-time fixups during instance run.
-       */
-    // So far the helpers are needed only for fixups, but FIXUP_IMPORT may
-    // change two code values; here we assume the worst possible scenario
-    // (until dynamic lists are implemented in AGS base source)
-    codehelpers_capacity = scri->numfixups << 1;
-    code_helpers = new CodeHelper[codehelpers_capacity];
-    codehelper_index = -1;
-    for (i = 0; i < scri->numfixups; ++i)
+    // If the instance was forked out, do not perform fixup
+    if (!joined)
     {
-        long fixup = scri->fixups[i];
-        if (scri->fixuptypes[i] != FIXUP_DATADATA)
-        {
-            codehelper_index++;
-            code_helpers[codehelper_index].code_index = fixup;
-            code_helpers[codehelper_index].fixup_type = scri->fixuptypes[i];
-        }
-
-        switch (scri->fixuptypes[i])
-        {
-        case FIXUP_GLOBALDATA:
-        case FIXUP_FUNCTION:
-        case FIXUP_STRING:
-        case FIXUP_STACK:
-            break; // do nothing yet
-        case FIXUP_IMPORT:
-            // we do not need to save import's address now when we have
-            // resolved imports kept so far as instance exists, but we
-            // must fixup the following instruction in certain case
-            {
-                int import_index = resolved_imports[code[fixup]];
-                ccInstance *scriptImp = simp.getByIndex(import_index)->InstancePtr;
-                // If the call is to another script function next CALLEXT
-                // must be replaced with CALLAS
-                if (scriptImp != NULL && (code[fixup + 1] == SCMD_CALLEXT))
-                {
-                    codehelper_index++;
-                    code_helpers[codehelper_index].code_index = fixup + 1;
-                    code_helpers[codehelper_index].fixup_type = FIXUP_IMPORT;
-                }
-            }
-            break;
-        case FIXUP_DATADATA:
-            // this is original fixup behavior;
-            // instance still has its own copy of globaldata
-            if (joined == NULL)
-            {
-                // supposedly these are only used for strings...
-                int32_t temp;
-                memcpy(&temp, (char*)&(globaldata[fixup]), 4);
-#if defined(AGS_BIG_ENDIAN)
-                AGS::Common::BitByteOperations::SwapBytesInt32(temp);
-#endif
-                temp += (long)globaldata;
-#if defined(AGS_BIG_ENDIAN)
-                AGS::Common::BitByteOperations::SwapBytesInt32(temp);
-#endif
-                memcpy(&(globaldata[fixup]), &temp, 4);
-            }
-            break;
-        default:
-            cc_error("internal fixup index error: %d", scri->fixuptypes[i]);
-            return false;
-        }
+        FixupGlobalData(scri);
     }
-    num_codehelpers = codehelper_index + 1;
-    /*
-    for (i = 0; i < scri->numfixups; i++) {
-        long fixup = scri->fixups[i];
-        switch (scri->fixuptypes[i]) {
-    case FIXUP_GLOBALDATA:
-        code[fixup] += (long)&globaldata[0];
-        break;
-    case FIXUP_FUNCTION:
-        //      code[fixup] += (long)&code[0];
-        break;
-    case FIXUP_STRING:
-        code[fixup] += (long)&strings[0];
-        break;
-    case FIXUP_IMPORT: {
-        unsigned long setTo = import_addrs[code[fixup]];
-        ccInstance *scriptImp = simp.is_script_import(scri->imports[code[fixup]]);
-        // If the call is to another script function (in a different
-        // instance), replace the call with CALLAS so it doesn't do
-        // a real x86 JMP to the instruction
-        if (scriptImp != NULL) {
-            if (code[fixup + 1] == SCMD_CALLEXT) {
-                // save the instance ID in the top 4 bits of the instruction
-                code[fixup + 1] = SCMD_CALLAS;
-                code[fixup + 1] |= ((unsigned long)scriptImp->loadedInstanceId) << INSTANCE_ID_SHIFT;
-            }
-        }
-        code[fixup] = setTo;
-        break;
-                       }
-    case FIXUP_DATADATA:
-        if (joined == NULL)
-        {
-            // supposedly these are only used for strings...
 
-            int32_t temp;
-            memcpy(&temp, (char*)&(globaldata[fixup]), 4);
-#if defined(AGS_BIG_ENDIAN)
-            AGS::Common::BitByteOperations::SwapBytesInt32(temp);
-#endif
-            temp += (long)globaldata;
-#if defined(AGS_BIG_ENDIAN)
-            AGS::Common::BitByteOperations::SwapBytesInt32(temp);
-#endif
-            memcpy(&(globaldata[fixup]), &temp, 4);
-        }
-        break;
-    case FIXUP_STACK:
-        code[fixup] += (long)&stack[0];
-        break;
-    default:
-        nullfree(import_addrs);
-        cc_error("internal fixup index error");
+    // [IKM] 2012-09-26:
+    // Do not perform most fixups at startup, store fixup data instead
+    // for real-time fixups during instance run.
+    if (!CreateCodeHelpers(scri))
+    {
         return false;
-        }
     }
-    */
 
     exportaddr = (char**)malloc(sizeof(char*) * scri->numexports);
 
@@ -1815,12 +1525,8 @@ void ccInstance::Free()
     if ((flags & INSTF_SHAREDATA) == 0)
         nullfree(globaldata);
 
-    // [IKM] 2012-09-26: ccInstance share ccScript code now
-    // and should not free it, only ccScript object should
-    //nullfree(code);
     strings = NULL;
 
-    //nullfree(stack);
     delete [] stack;
     delete [] stackdata;
 
@@ -1862,6 +1568,87 @@ bool ccInstance::ResolveScriptImports(ccScript * scri)
             return false;
         }
     }
+    return true;
+}
+
+bool ccInstance::FixupGlobalData(ccScript * scri)
+{
+    // This is original fixup behavior;
+    // instance still has its own copy of globaldata
+
+    for (int i = 0; i < scri->numfixups; ++i)
+    {
+        if (scri->fixuptypes[i] != FIXUP_DATADATA)
+        {
+            continue;
+        }
+
+        long fixup = scri->fixups[i];
+        // supposedly these are only used for strings...
+        int32_t temp;
+        memcpy(&temp, (char*)&(globaldata[fixup]), 4);
+#if defined(AGS_BIG_ENDIAN)
+        AGS::Common::BitByteOperations::SwapBytesInt32(temp);
+#endif
+        temp += (long)globaldata;
+#if defined(AGS_BIG_ENDIAN)
+        AGS::Common::BitByteOperations::SwapBytesInt32(temp);
+#endif
+        memcpy(&(globaldata[fixup]), &temp, 4);
+    }
+    return true;
+}
+
+bool ccInstance::CreateCodeHelpers(ccScript * scri)
+{
+    // So far the helpers are needed only for fixups, but FIXUP_IMPORT may
+    // change two code values; here we assume the worst possible scenario
+    // (until dynamic lists are implemented in AGS base source)
+    codehelpers_capacity = scri->numfixups << 1;
+    code_helpers = new CodeHelper[codehelpers_capacity];
+    codehelper_index = -1;
+    for (int i = 0; i < scri->numfixups; ++i)
+    {
+        if (scri->fixuptypes[i] == FIXUP_DATADATA)
+        {
+            continue;
+        }
+
+        long fixup = scri->fixups[i];
+        codehelper_index++;
+        code_helpers[codehelper_index].code_index = fixup;
+        code_helpers[codehelper_index].fixup_type = scri->fixuptypes[i];
+
+        switch (scri->fixuptypes[i])
+        {
+        case FIXUP_GLOBALDATA:
+        case FIXUP_FUNCTION:
+        case FIXUP_STRING:
+        case FIXUP_STACK:
+            break; // do nothing yet
+        case FIXUP_IMPORT:
+            // we do not need to save import's address now when we have
+            // resolved imports kept so far as instance exists, but we
+            // must fixup the following instruction in certain case
+            {
+                int import_index = resolved_imports[code[fixup]];
+                ccInstance *scriptImp = simp.getByIndex(import_index)->InstancePtr;
+                // If the call is to another script function next CALLEXT
+                // must be replaced with CALLAS
+                if (scriptImp != NULL && (code[fixup + 1] == SCMD_CALLEXT))
+                {
+                    codehelper_index++;
+                    code_helpers[codehelper_index].code_index = fixup + 1;
+                    code_helpers[codehelper_index].fixup_type = FIXUP_IMPORT;
+                }
+            }
+            break;
+        default:
+            cc_error("internal fixup index error: %d", scri->fixuptypes[i]);
+            return false;
+        }
+    }
+    num_codehelpers = codehelper_index + 1;
     return true;
 }
 
@@ -2032,7 +1819,6 @@ void ccInstance::FixupArgument(const CodeHelper &helper, RuntimeScriptValue &arg
         // fixup is being made at instance init
         break;
     case FIXUP_STACK: {
-        //argument += (long)&stack[0];
         argument = GetStackPtrOffsetFw(argument.GetLong());
         }
         break;

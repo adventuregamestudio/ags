@@ -24,7 +24,7 @@ namespace AGS { namespace Common { class DataStream; }; };
 #define INSTF_ABORTED       2
 #define INSTF_FREE          4
 #define INSTF_RUNNING       8   // set by main code to confirm script isn't stuck
-#define CC_STACK_SIZE       1000 // * sizeof(long))
+#define CC_STACK_SIZE       1000
 #define CC_STACK_DATA_SIZE  (1000 * sizeof(long))
 #define MAX_CALL_STACK      100
 
@@ -115,16 +115,6 @@ public:
     int  num_codehelpers;
     int  codehelper_index;
 
-#if defined(AGS_64BIT)
-    // 64 bit: Variables to keep track of the size of the variables on the stack.
-    // This is necessary because the compiled code accesses values on the stack with
-    // absolute offsets that don't take into account the 8 byte long pointers on
-    // 64 bit systems. These variables help with rewriting the offsets for the
-    // modified stack.
-    int stackSizes[CC_STACK_SIZE];
-    int stackSizeIndex;
-#endif
-
     // returns the currently executing instance, or NULL if none
     static ccInstance *GetCurrentInstance(void);
     // create a runnable instance of the supplied script
@@ -156,9 +146,6 @@ public:
     // get the address of an exported variable in the script
     char    *GetSymbolAddress(char *);
     void    DumpInstruction(const ScriptOperation &op);
-
-    void    ReadGlobalData(Common::DataStream *in);
-    void    WriteGlobalData(Common::DataStream *out);
     
     // changes all pointer variables (ie. strings) to have the relative address, to allow
     // the data segment to be saved to disk
@@ -172,6 +159,8 @@ protected:
     void    Free();
 
     bool    ResolveScriptImports(ccScript * scri);
+    bool    FixupGlobalData(ccScript * scri);
+    bool    CreateCodeHelpers(ccScript * scri);
 	bool    ReadOperation(ScriptOperation &op, long at_pc);
 
     // Runtime fixups

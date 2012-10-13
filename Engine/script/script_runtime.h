@@ -24,7 +24,6 @@ prior express permission from Chris Jones.
 // ************ SCRIPT LOADING AND RUNNING FUNCTIONS ************
 
 // give the script access to a variable or function in your program
-//extern void ccAddExternalSymbol(char *, void *);
 extern bool ccAddExternalData(const char *name, void *ptr);
 extern bool ccAddExternalStaticFunction(const char *name, void *ptr);
 extern bool ccAddExternalObject(const char *name, void *ptr);

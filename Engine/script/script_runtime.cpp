@@ -34,13 +34,6 @@ extern ccInstance *current_instance; // in script/cc_instance
 Spans gSpans;
 #endif
 
-/*
-void ccAddExternalSymbol(char *namof, void *addrof)
-{
-    simp.add(namof, (char *)addrof, NULL);
-}
-*/
-
 bool ccAddExternalData(const char *name, void *ptr)
 {
     return simp.add(kScImportData, name, ptr, NULL) == 0;

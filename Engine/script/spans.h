@@ -1,4 +1,6 @@
 
+// [IKM] 2012-10-14:
+// This is probably obsolete now, with the fixes made to script interpreter
 #ifdef AGS_BIG_ENDIAN
 #include <list>
 #include <algorithm>

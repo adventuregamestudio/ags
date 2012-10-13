@@ -30,10 +30,6 @@ prior express permission from Chris Jones.
 
 extern ccInstance *current_instance; // in script/cc_instance
 
-#ifdef AGS_BIG_ENDIAN
-Spans gSpans;
-#endif
-
 bool ccAddExternalData(const char *name, void *ptr)
 {
     return simp.add(kScImportData, name, ptr, NULL) == 0;

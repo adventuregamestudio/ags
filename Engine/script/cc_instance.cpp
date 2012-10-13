@@ -585,38 +585,11 @@ int ccInstance::Run(long curpc)
           break;
       case SCMD_MEMREAD:
           // Take the data address from reg[MAR] and copy int32_t to reg[arg1]
-          // 64 bit: Memory reads are still 32 bit
           reg1 = registers[SREG_MAR].ReadValue();
-
-          // FIXME AGS_BIG_ENDIAN
-#if defined(AGS_BIG_ENDIAN)
-          if (gSpans.IsInSpan((char*)registers[SREG_MAR]))
-          {
-              int32_t temp = reg1;
-              AGS::Common::BitByteOperations::SwapBytesInt32(temp);
-              reg1 = temp;
-          }
-#endif
-
           break;
       case SCMD_MEMWRITE:
           // Take the data address from reg[MAR] and copy there int32_t from reg[arg1]
-          // FIXME AGS_BIG_ENDIAN
-#if defined(AGS_BIG_ENDIAN)
-          if (gSpans.IsInSpan((char*)registers[SREG_MAR]))
-          {
-              int32_t temp = reg1;
-              AGS::Common::BitByteOperations::SwapBytesInt32(temp);
-              memcpy((char*)registers[SREG_MAR], &temp, 4);
-          }
-          else
-          {
-              memcpy((char*)registers[SREG_MAR], &(reg1), 4);
-          }
-#else
-          // 64 bit: Memory writes are still 32 bit
           registers[SREG_MAR].WriteValue(reg1);
-#endif
           break;
       case SCMD_LOADSPOFFS:
           registers[SREG_MAR] = GetStackPtrOffsetRw(arg1.GetLong());
@@ -720,13 +693,6 @@ int ccInstance::Run(long curpc)
           break;
       case SCMD_MEMREADW:
           // Take the data address from reg[MAR] and copy int16_t to reg[arg1]
-          // FIXME AGS_BIG_ENDIAN
-#if defined(AGS_BIG_ENDIAN)
-          if (gSpans.IsInSpan((char*)registers[SREG_MAR]))
-          {
-              AGS::Common::BitByteOperations::SwapBytesInt16(tshort);
-          }
-#endif
           reg1.SetInt16(registers[SREG_MAR].ReadInt16());
           break;
       case SCMD_MEMWRITEB:
@@ -735,13 +701,6 @@ int ccInstance::Run(long curpc)
           break;
       case SCMD_MEMWRITEW:
           // Take the data address from reg[MAR] and copy there int16_t from reg[arg1]
-          // FIXME AGS_BIG_ENDIAN
-#if defined(AGS_BIG_ENDIAN)
-          if (gSpans.IsInSpan((char*)registers[SREG_MAR]))
-          {
-              AGS::Common::BitByteOperations::SwapBytesInt16(tshort);
-          }
-#endif
           registers[SREG_MAR].WriteInt16(reg1.GetInt());
           break;
       case SCMD_JZ:
@@ -1497,10 +1456,6 @@ bool ccInstance::_Create(ccScript * scri, ccInstance * joined)
             }
         }
     }
-
-#ifdef AGS_BIG_ENDIAN
-    gSpans.AddSpan(Span((char *)globaldata, globaldatasize));
-#endif
     return true;
 }
 
@@ -1517,10 +1472,6 @@ void ccInstance::Free()
     // remove from the Active Instances list
     if (loadedInstances[loadedInstanceId] == this)
         loadedInstances[loadedInstanceId] = NULL;
-
-#ifdef AGS_BIG_ENDIAN
-    gSpans.RemoveSpan(Span((char *)globaldata, globaldatasize));
-#endif
 
     if ((flags & INSTF_SHAREDATA) == 0)
         nullfree(globaldata);
@@ -1800,7 +1751,7 @@ void ccInstance::FixupArgument(const CodeHelper &helper, RuntimeScriptValue &arg
     switch (helper.fixup_type)
     {
     case FIXUP_GLOBALDATA:
-        argument += (long)&globaldata[0];
+        argument.SetGlobalData((long)&globaldata[0] + argument.GetLong());
         break;
     case FIXUP_FUNCTION:
         // originally commented --

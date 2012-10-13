@@ -16,6 +16,8 @@ enum ScriptValueType
     kScValFloat,        // as float (for floating point math)
     kScValStackPtr,     // as a pointer to stack
     kScValDataPtr,      // as a pointer to randomly sized data (usually array)
+    kScValGlobalData,   // a workaround for big endian builds (maybe temporary);
+                        // works exactly as kScValGeneric for the rest
 };
 
 struct RuntimeScriptValue
@@ -153,6 +155,15 @@ public:
         Value   = 0;
         Ptr     = data;
         Size    = size;
+        return *this;
+    }
+    // A workaround for big endian builds (maybe temporary)
+    inline RuntimeScriptValue &SetGlobalData(intptr_t val)
+    {
+        Type    = kScValGlobalData;
+        Value   = val;
+        Ptr     = NULL;
+        Size    = 4;
         return *this;
     }
 

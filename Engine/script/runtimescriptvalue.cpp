@@ -36,6 +36,14 @@ int16_t RuntimeScriptValue::ReadInt16()
             return RValue->GetInt(); // get RValue as int
         }
     }
+#if defined(AGS_BIG_ENDIAN)
+    else if (this->Type == kScValGlobalData)
+    {
+        int16_t temp = *((int16_t*)this->GetDataPtrWithOffset());
+        AGS::Common::BitByteOperations::SwapBytesInt16(temp);
+        return temp;
+    }
+#endif // AGS_BIG_ENDIAN
     return *((int16_t*)this->GetDataPtrWithOffset());
 }
 
@@ -52,6 +60,14 @@ int32_t RuntimeScriptValue::ReadInt32()
             return RValue->GetInt(); // get RValue as int
         }
     }
+#if defined(AGS_BIG_ENDIAN)
+    else if (this->Type == kScValGlobalData)
+    {
+        int32_t temp = *((int32_t*)this->GetDataPtrWithOffset());
+        AGS::Common::BitByteOperations::SwapBytesInt32(temp);
+        return temp;
+    }
+#endif // AGS_BIG_ENDIAN
     return *((int32_t*)this->GetDataPtrWithOffset());
 }
 
@@ -69,8 +85,17 @@ RuntimeScriptValue RuntimeScriptValue::ReadValue()
             rval = *RValue;
         }
     }
+#if defined(AGS_BIG_ENDIAN)
+    else if (this->Type == kScValGlobalData)
+    {
+        int32_t temp = *((int32_t*)this->GetDataPtrWithOffset());
+        AGS::Common::BitByteOperations::SwapBytesInt32(temp);
+        rval.SetLong(temp);
+    }
+#endif // AGS_BIG_ENDIAN
     else
     {
+        // 64 bit: Memory reads are still 32 bit
         rval.SetLong(*(int32_t*)GetDataPtrWithOffset());
     }
     return rval;
@@ -109,6 +134,13 @@ bool RuntimeScriptValue::WriteInt16(int16_t val)
             RValue->SetInt16(val); // set RValue as int
         }
     }
+#if defined(AGS_BIG_ENDIAN)
+    else if (this->Type == kScValGlobalData)
+    {
+        AGS::Common::BitByteOperations::SwapBytesInt16(val);
+        *((int16_t*)GetDataPtrWithOffset()) = val;
+    }
+#endif // AGS_BIG_ENDIAN
     else
     {
         *((int16_t*)GetDataPtrWithOffset()) = val;
@@ -129,6 +161,13 @@ bool RuntimeScriptValue::WriteInt32(int32_t val)
             RValue->SetInt32(val); // set RValue as int
         }
     }
+#if defined(AGS_BIG_ENDIAN)
+    else if (this->Type == kScValGlobalData)
+    {
+        AGS::Common::BitByteOperations::SwapBytesInt32(val);
+        *((int32_t*)GetDataPtrWithOffset()) = val;
+    }
+#endif // AGS_BIG_ENDIAN
     else
     {
         *((int32_t*)GetDataPtrWithOffset()) = val;
@@ -149,9 +188,18 @@ bool RuntimeScriptValue::WriteValue(const RuntimeScriptValue &rval)
             *RValue = rval;
         }
     }
+#if defined(AGS_BIG_ENDIAN)
+    else if (this->Type == kScValGlobalData)
+    {
+        int32_t temp = rval.GetLong();
+        AGS::Common::BitByteOperations::SwapBytesInt32(temp);
+        *((int32_t*)GetDataPtrWithOffset()) = temp;
+    }
+#endif // AGS_BIG_ENDIAN
     else
     {
-        *((uint32_t*)GetDataPtrWithOffset()) = rval.GetLong();
+        // 64 bit: Memory writes are still 32 bit
+        *((int32_t*)GetDataPtrWithOffset()) = rval.GetLong();
     }
     return true;
 }

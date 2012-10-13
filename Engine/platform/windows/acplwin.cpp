@@ -618,7 +618,11 @@ void AGSWin32::DisplaySwitchIn() {
 }
 
 int AGSWin32::CDPlayerCommand(int cmdd, int datt) {
+#if defined (AGS_HAS_CD_AUDIO)
   return cd_player_control(cmdd, datt);
+#else
+  return -1;
+#endif
 }
 
 void AGSWin32::DisplayAlert(const char *text, ...) {
@@ -679,7 +683,11 @@ eScriptSystemOSID AGSWin32::GetSystemOSID() {
 }
 
 int AGSWin32::InitializeCDPlayer() {
+#if defined (AGS_HAS_CD_AUDIO)
   return cd_player_init();
+#else
+  return -1;
+#endif
 }
 
 void AGSWin32::PlayVideo(const char *name, int skip, int flags) {

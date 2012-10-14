@@ -12,7 +12,7 @@
 //
 //=============================================================================
 //
-// 'C'-style script compiler
+// 'C'-style script interpreter
 //
 //=============================================================================
 
@@ -43,18 +43,6 @@ namespace AGS { namespace Common { class DataStream; }; };
 
 struct ccInstance;
 struct ScriptImport;
-
-struct CodeHelper
-{
-    CodeHelper()
-    {
-        code_index      = 0;
-        fixup_type      = 0;     
-    }
-
-    long            code_index;
-    char            fixup_type;
-};
 
 struct ScriptInstruction
 {
@@ -116,10 +104,7 @@ public:
     int  *resolved_imports;
     int  numimports;
 
-    CodeHelper  *code_helpers;
-    int  codehelpers_capacity;
-    int  num_codehelpers;
-    int  codehelper_index;
+    char *code_fixups;
 
     // returns the currently executing instance, or NULL if none
     static ccInstance *GetCurrentInstance(void);
@@ -166,13 +151,12 @@ protected:
 
     bool    ResolveScriptImports(ccScript * scri);
     bool    FixupGlobalData(ccScript * scri);
-    bool    CreateCodeHelpers(ccScript * scri);
+    bool    CreateRuntimeCodeFixups(ccScript * scri);
 	bool    ReadOperation(ScriptOperation &op, long at_pc);
 
     // Runtime fixups
-    const   CodeHelper *GetCodeHelper(long at_pc);
-    void    FixupInstruction(const CodeHelper &helper, ScriptInstruction &instruction);
-    void    FixupArgument(const CodeHelper &helper, RuntimeScriptValue &argument);
+    void    FixupInstruction(long code_index, char fixup_type, ScriptInstruction &instruction);
+    void    FixupArgument(long code_index, char fixup_type, RuntimeScriptValue &argument);
 
     // Stack processing
     // Push writes new value and increments stack ptr;

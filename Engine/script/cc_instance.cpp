@@ -206,10 +206,7 @@ ccInstance::ccInstance()
     loadedInstanceId    = 0;
     returnValue         = 0;
 
-    code_helpers        = NULL;
-    codehelpers_capacity= 0;
-    num_codehelpers     = 0;
-    codehelper_index    = 0;
+    code_fixups         = NULL;
 }
 
 ccInstance::~ccInstance()
@@ -474,8 +471,6 @@ int ccInstance::Run(long curpc)
     ccInstance *codeInst = runningInst;
     int write_debug_dump = ccGetOption(SCOPT_DEBUGRUN);
 	ScriptOperation codeOp;
-
-    codehelper_index = -1;
 
     while (1) {
 
@@ -1433,7 +1428,7 @@ bool ccInstance::_Create(ccScript * scri, ccInstance * joined)
     // [IKM] 2012-09-26:
     // Do not perform most fixups at startup, store fixup data instead
     // for real-time fixups during instance run.
-    if (!CreateCodeHelpers(scri))
+    if (!CreateRuntimeCodeFixups(scri))
     {
         return false;
     }
@@ -1497,7 +1492,7 @@ void ccInstance::Free()
     nullfree(exportaddr);
 
     delete [] resolved_imports;
-    delete [] code_helpers;
+    delete [] code_fixups;
 }
 
 bool ccInstance::ResolveScriptImports(ccScript * scri)
@@ -1563,14 +1558,12 @@ bool ccInstance::FixupGlobalData(ccScript * scri)
     return true;
 }
 
-bool ccInstance::CreateCodeHelpers(ccScript * scri)
+bool ccInstance::CreateRuntimeCodeFixups(ccScript * scri)
 {
     // So far the helpers are needed only for fixups, but FIXUP_IMPORT may
-    // change two code values; here we assume the worst possible scenario
-    // (until dynamic lists are implemented in AGS base source)
-    codehelpers_capacity = scri->numfixups << 1;
-    code_helpers = new CodeHelper[codehelpers_capacity];
-    codehelper_index = -1;
+    // change two code values
+    code_fixups = new char[scri->codesize];
+    memset(code_fixups, 0, scri->codesize);
     for (int i = 0; i < scri->numfixups; ++i)
     {
         if (scri->fixuptypes[i] == FIXUP_DATADATA)
@@ -1579,9 +1572,7 @@ bool ccInstance::CreateCodeHelpers(ccScript * scri)
         }
 
         long fixup = scri->fixups[i];
-        codehelper_index++;
-        code_helpers[codehelper_index].code_index = fixup;
-        code_helpers[codehelper_index].fixup_type = scri->fixuptypes[i];
+        code_fixups[fixup] = scri->fixuptypes[i];
 
         switch (scri->fixuptypes[i])
         {
@@ -1601,9 +1592,7 @@ bool ccInstance::CreateCodeHelpers(ccScript * scri)
                 // must be replaced with CALLAS
                 if (scriptImp != NULL && (code[fixup + 1] == SCMD_CALLEXT))
                 {
-                    codehelper_index++;
-                    code_helpers[codehelper_index].code_index = fixup + 1;
-                    code_helpers[codehelper_index].fixup_type = FIXUP_IMPORT;
+                    code_fixups[fixup + 1] = FIXUP_IMPORT;
                 }
             }
             break;
@@ -1612,7 +1601,6 @@ bool ccInstance::CreateCodeHelpers(ccScript * scri)
             return false;
         }
     }
-    num_codehelpers = codehelper_index + 1;
     return true;
 }
 
@@ -1630,122 +1618,35 @@ bool ccInstance::ReadOperation(ScriptOperation &op, long at_pc)
     }
     op.ArgCount = want_args;
 
-    const CodeHelper *helper = GetCodeHelper(at_pc);
-    if (helper)
+    char fixup = code_fixups[at_pc];
+    if (fixup > 0)
     {
-        FixupInstruction(*helper, op.Instruction);
+        FixupInstruction(at_pc, fixup, op.Instruction);
     }
 
     for (int i = 0; i < op.ArgCount; ++i)
     {
         op.Args[i].SetLong( code[at_pc + i + 1] );
-        helper              = GetCodeHelper(at_pc + i + 1);
-        if (helper)
+        fixup = code_fixups[at_pc + i + 1];
+        if (fixup > 0)
         {
-            FixupArgument(*helper, op.Args[i]);
+            FixupArgument(at_pc + i + 1, fixup, op.Args[i]);
         }
     }
 
     return true;
 }
 
-const CodeHelper *ccInstance::GetCodeHelper(long at_pc)
-{
-    if (!num_codehelpers)
-    {
-        return NULL;
-    }
-    else if (code_helpers[0].code_index > at_pc)
-    {
-        codehelper_index = -1;
-        return NULL;
-    } 
-    else if (code_helpers[num_codehelpers - 1].code_index < at_pc)
-    {
-        codehelper_index = num_codehelpers - 1;
-        return NULL;
-    }
-
-    //
-    // What we are going to do is to set code helper index either
-    // at helper which corresponds to given program counter, or
-    // at helper which corresponds to closest previous program counter.
-    //
-
-    // If index is out of range, set it to valid element to start with
-    if (codehelper_index < 0)
-    {
-        codehelper_index = 0;
-    }
-    else if (codehelper_index >= num_codehelpers)
-    {
-        codehelper_index = num_codehelpers - 1;
-    }
-
-    // We take into consideration the fact that in most usual case
-    // the program counter advances forward by 1-3 slots each time
-    // an operation and arguments are being read, so at first we just
-    // move helper index one step forward, to save time.
-    if (codehelper_index != num_codehelpers - 1 &&
-        at_pc > code_helpers[codehelper_index].code_index)
-    {
-        codehelper_index++;
-        if (at_pc < code_helpers[codehelper_index].code_index)
-        {
-            // Jumped over pc, rewind and return nothing
-            codehelper_index--;
-            return NULL;
-        }
-    }
-
-    // No luck? Do a binary search.
-    if (at_pc != code_helpers[codehelper_index].code_index)
-    {
-        int first   = 0;
-        int last    = num_codehelpers;
-        int mid;
-        while (first < last)
-        {
-            mid = first + ((last - first) >> 1);
-            if (at_pc <= code_helpers[mid].code_index)
-            {
-                last = mid;
-            }
-            else
-            {
-                first = mid + 1;
-            }
-        }
-        codehelper_index = last;
-    }
-
-    if (at_pc == code_helpers[codehelper_index].code_index)
-    {
-        return &code_helpers[codehelper_index];
-    }
-    // Since we just did binary search we should be as close to pc
-    // as possible; therefore if we have jumped over pc, rewind one
-    // step back and stay: this will put code helper index just
-    // before the pc and we may benefit from the fast check next time.
-    if (at_pc < code_helpers[codehelper_index].code_index)
-    {
-        codehelper_index--;
-    }
-    return NULL;
-}
-
-void ccInstance::FixupInstruction(const CodeHelper &helper, ScriptInstruction &instruction)
+void ccInstance::FixupInstruction(long code_index, char fixup_type, ScriptInstruction &instruction)
 {
     // There are not so much acceptable variants here
-    if (helper.fixup_type == FIXUP_IMPORT)
+    if (fixup_type == FIXUP_IMPORT)
     {
         if (instruction.Code == SCMD_CALLEXT) {
             // save the instance ID in the top 4 bits of the instruction
             instruction.Code        = SCMD_CALLAS;
             // take the import index from the previous code value
-            // CHECKME later if there's more elegant solution?
-            // we could store the import index in CodeHelper struct but that would mean using more memory for nothing
-            long import_index       = resolved_imports[code[helper.code_index - 1]];
+            long import_index       = resolved_imports[code[code_index - 1]];
             instruction.InstanceId  = (unsigned long)simp.getByIndex(import_index)->InstancePtr->loadedInstanceId;
             return;
         }
@@ -1756,12 +1657,12 @@ void ccInstance::FixupInstruction(const CodeHelper &helper, ScriptInstruction &i
     {
         cmd_name++;
     }
-    cc_error("unexpected instruction/fixup pair: %s - %s", cmd_name, fixupnames[helper.fixup_type]);
+    cc_error("unexpected instruction/fixup pair: %s - %s", cmd_name, fixupnames[fixup_type]);
 }
 
-void ccInstance::FixupArgument(const CodeHelper &helper, RuntimeScriptValue &argument)
+void ccInstance::FixupArgument(long code_index, char fixup_type, RuntimeScriptValue &argument)
 {
-    switch (helper.fixup_type)
+    switch (fixup_type)
     {
     case FIXUP_GLOBALDATA:
         argument.SetGlobalData((long)&globaldata[0] + argument.GetLong());
@@ -1775,7 +1676,7 @@ void ccInstance::FixupArgument(const CodeHelper &helper, RuntimeScriptValue &arg
         break;
     case FIXUP_IMPORT:
         {
-            long import_index = resolved_imports[code[helper.code_index]];
+            long import_index = resolved_imports[code[code_index]];
             argument.SetLong( (intptr_t)simp.getByIndex(import_index)->Ptr );
         }
         break;
@@ -1787,7 +1688,7 @@ void ccInstance::FixupArgument(const CodeHelper &helper, RuntimeScriptValue &arg
         }
         break;
     default:
-        cc_error("internal fixup index error: %d", helper.fixup_type);
+        cc_error("internal fixup index error: %d", fixup_type);
         break;
     }
 }

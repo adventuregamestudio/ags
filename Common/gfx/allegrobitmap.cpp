@@ -492,7 +492,7 @@ int AllegroBitmap::GetPixel(int x, int y) const
 {
     if (x < 0 || x >= _bitmap->w || y < 0 || y >= _bitmap->h)
     {
-        return 0;
+        return -1; // Allegros getpixel() implementation returns -1 in this case
     }
 
 	switch (bitmap_color_depth(_bitmap))

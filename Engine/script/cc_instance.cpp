@@ -1414,23 +1414,25 @@ bool ccInstance::_Create(ccScript * scri, ccInstance * joined)
     // set up the initial registers to zero
     memset(&registers[0], 0, sizeof(long) * CC_NUM_REGISTERS);
 
-    if (!ResolveScriptImports(scri))
+    if (joined)
     {
-        return false;
+        resolved_imports = joined->resolved_imports;
+        code_fixups = joined->code_fixups;
     }
-
-    // If the instance was forked out, do not perform fixup
-    if (!joined)
+    else
     {
+        if (!ResolveScriptImports(scri))
+        {
+            return false;
+        }
         FixupGlobalData(scri);
-    }
-
-    // [IKM] 2012-09-26:
-    // Do not perform most fixups at startup, store fixup data instead
-    // for real-time fixups during instance run.
-    if (!CreateRuntimeCodeFixups(scri))
-    {
-        return false;
+        // [IKM] 2012-09-26:
+        // Do not perform most fixups at startup, store fixup data instead
+        // for real-time fixups during instance run.
+        if (!CreateRuntimeCodeFixups(scri))
+        {
+            return false;
+        }
     }
 
     exportaddr = (char**)malloc(sizeof(char*) * scri->numexports);
@@ -1491,8 +1493,11 @@ void ccInstance::Free()
 
     nullfree(exportaddr);
 
-    delete [] resolved_imports;
-    delete [] code_fixups;
+    if ((flags & INSTF_SHAREDATA) == 0)
+    {
+        delete [] resolved_imports;
+        delete [] code_fixups;
+    }
 }
 
 bool ccInstance::ResolveScriptImports(ccScript * scri)

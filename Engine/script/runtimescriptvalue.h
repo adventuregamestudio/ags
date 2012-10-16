@@ -215,11 +215,11 @@ public:
     }
     inline bool operator ==(intptr_t val)
     {
-        return Value == val;
+        return (intptr_t)(Ptr + Value) == val;
     }
     inline bool operator !=(intptr_t val)
     {
-        return Value != val;
+        return (intptr_t)(Ptr + Value) != val;
     }
 
     inline bool operator ==(const RuntimeScriptValue &rval)

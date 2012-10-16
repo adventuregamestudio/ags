@@ -1060,13 +1060,13 @@ diff -Naur src/android/agfx.c src/android/agfx.c
 +{
 +   GFX_VTABLE* vtable = _get_vtable(color_depth);
 +
-+   android_screen_width = w;
-+   android_screen_height = h;
-+   android_screen_color_depth = color_depth;
-+
 +   /* Do the final screen blit to a 32 bit bitmap in palette mode */
 +   if (color_depth == 8)
 +      color_depth = 32;
++
++   android_screen_width = w;
++   android_screen_height = h;
++   android_screen_color_depth = color_depth;
 +
 +   displayed_video_bitmap = create_bitmap_ex(color_depth, w, h);
 +   gfx_android_enable_acceleration(vtable);

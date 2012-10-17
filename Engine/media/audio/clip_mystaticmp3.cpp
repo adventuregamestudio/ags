@@ -129,9 +129,7 @@ int MYSTATICMP3::get_pos()
 
 int MYSTATICMP3::get_pos_ms()
 {
-    _mp3_mutex.Lock();
     int result = get_pos();
-    _mp3_mutex.Unlock();
     return result;
 }
 

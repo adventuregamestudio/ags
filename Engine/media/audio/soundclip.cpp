@@ -67,6 +67,7 @@ SOUNDCLIP::SOUNDCLIP() {
     maximumPossibleDistanceAway = 0;
     directionalVolModifier = 0;
     _destroyThis = false;
+    _playing = false;
 }
 
 SOUNDCLIP::~SOUNDCLIP()

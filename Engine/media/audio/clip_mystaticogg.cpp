@@ -87,7 +87,7 @@ void MYSTATICOGG::destroy()
 {
     _mutex.Lock();
 
-    if (psp_audio_multithreaded)
+    if (psp_audio_multithreaded && _playing)
       _destroyThis = true;
     else
       internal_destroy();
@@ -220,6 +220,7 @@ int MYSTATICOGG::play_from(int position)
 }
 
 int MYSTATICOGG::play() {
+    _playing = true;
     return play_from(0);
 }
 

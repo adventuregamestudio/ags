@@ -101,7 +101,7 @@ void MYSTATICMP3::destroy()
 {
     _mutex.Lock();
 
-    if (psp_audio_multithreaded)
+    if (psp_audio_multithreaded && _playing)
       _destroyThis = true;
     else
       internal_destroy();
@@ -186,6 +186,7 @@ int MYSTATICMP3::play() {
     if (!psp_audio_multithreaded)
       poll();
 
+    _playing = true;
     return 1;
 }
 

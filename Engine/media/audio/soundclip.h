@@ -27,7 +27,8 @@ extern volatile int psp_audio_multithreaded;
 
 struct SOUNDCLIP
 {
-     bool _destroyThis;
+    bool _destroyThis;
+    bool _playing;
 
     int done;
     int priority;

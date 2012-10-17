@@ -89,7 +89,7 @@ void TextStreamWriter::WriteLine(const String &str)
     WriteLineBreak();
 }
 
-void TextStreamWriter::WriteFormat(const String &fmt, ...)
+void TextStreamWriter::WriteFormat(const char *fmt, ...)
 {
     if (!_stream)
     {
@@ -101,10 +101,10 @@ void TextStreamWriter::WriteFormat(const String &fmt, ...)
     String str;
     va_list argptr;
     va_start(argptr, fmt);
-    int need_length = vsnprintf(NULL, 0, fmt.GetCStr(), argptr);
+    int need_length = vsnprintf(NULL, 0, fmt, argptr);
     va_start(argptr, fmt); // Reset argptr
     char *buffer    = str.GetBuffer(need_length);
-    vsprintf(buffer, fmt.GetCStr(), argptr);
+    vsprintf(buffer, fmt, argptr);
     va_end(argptr);
     str.ReleaseBuffer();
 

@@ -39,7 +39,7 @@ public:
     // Write string and add line break at the end
     virtual void    WriteLine(const String &str)           = 0;
     // Write formatted string (see *printf)
-    virtual void    WriteFormat(const String &fmt, ...)    = 0;
+    virtual void    WriteFormat(const char *fmt, ...)    = 0;
     virtual void    WriteLineBreak()                        = 0;
 };
 

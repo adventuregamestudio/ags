@@ -61,6 +61,8 @@ Variable number of sprites.
 
 Encrypted global messages and dialogs.
 26 : 2.6.1
+
+Wait() must be called with parameter > 0
 27 : 2.6.2
 
 Script modules. Fixes bug in the inventory display.

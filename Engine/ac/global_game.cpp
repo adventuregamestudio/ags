@@ -892,7 +892,7 @@ void SetGraphicalVariable (const char *varName, int p_value) {
 }
 
 void scrWait(int nloops) {
-    if (nloops < 1)
+    if ((nloops < 1) && (loaded_game_file_version >= 27)) // 2.62+
         quit("!Wait: must wait at least 1 loop");
 
     play.wait_counter = nloops;
@@ -901,7 +901,7 @@ void scrWait(int nloops) {
 }
 
 int WaitKey(int nloops) {
-    if (nloops < 1)
+    if ((nloops < 1) && (loaded_game_file_version >= 27)) // 2.62+
         quit("!WaitKey: must wait at least 1 loop");
 
     play.wait_counter = nloops;
@@ -913,7 +913,7 @@ int WaitKey(int nloops) {
 }
 
 int WaitMouseKey(int nloops) {
-    if (nloops < 1)
+    if ((nloops < 1) && (loaded_game_file_version >= 27)) // 2.62+
         quit("!WaitMouseKey: must wait at least 1 loop");
 
     play.wait_counter = nloops;

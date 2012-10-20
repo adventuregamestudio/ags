@@ -53,6 +53,7 @@ public:
     long SubRef(long handle);
     long AddressToHandle(const char *addr);
     const char* HandleToAddress(long handle);
+    void HandleToAddressAndManager(long handle, void *&object, ICCDynamicObject *&manager);
     int RemoveObject(const char *address);
     void RunGarbageCollectionIfAppropriate();
     void RunGarbageCollection();

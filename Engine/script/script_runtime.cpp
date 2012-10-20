@@ -41,27 +41,27 @@ extern ccInstance *current_instance; // in script/cc_instance
 
 bool ccAddExternalData(const char *name, void *ptr)
 {
-    return simp.add(kScImportData, name, ptr, NULL) == 0;
+    return simp.add(kScImportData, name, ptr, NULL, NULL) == 0;
 }
 
 bool ccAddExternalStaticFunction(const char *name, void *ptr)
 {
-    return simp.add(kScImportStaticFunction, name, ptr, NULL) == 0;
+    return simp.add(kScImportStaticFunction, name, ptr, NULL, NULL) == 0;
 }
 
-bool ccAddExternalObject(const char *name, void *ptr)
+bool ccAddExternalDynamicObject(const char *name, void *ptr, ICCDynamicObject *manager)
 {
-    return simp.add(kScImportObject, name, ptr, NULL) == 0;
+    return simp.add(kScImportDynamicObject, name, ptr, manager, NULL) == 0;
 }
 
 bool ccAddExternalObjectFunction(const char *name, void *ptr)
 {
-    return simp.add(kScImportObjectFunction, name, ptr, NULL) == 0;
+    return simp.add(kScImportObjectFunction, name, ptr, NULL, NULL) == 0;
 }
 
 bool ccAddExternalScriptSymbol(const char *name, void *ptr, ccInstance *inst)
 {
-    return simp.add(kScImportScriptData, name, ptr, inst) == 0;
+    return simp.add(kScImportScriptData, name, ptr, NULL, inst) == 0;
 }
 
 void ccRemoveExternalSymbol(const char *namof)

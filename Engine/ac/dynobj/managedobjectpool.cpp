@@ -131,6 +131,18 @@ const char* ManagedObjectPool::HandleToAddress(long handle) {
     return objects[handle].addr;
 }
 
+void ManagedObjectPool::HandleToAddressAndManager(long handle, void *&object, ICCDynamicObject *&manager) {
+    object = NULL;
+    manager = NULL;
+    // this function is called often (whenever a pointer is used)
+    if ((handle < 1) || (handle >= arrayAllocLimit))
+        return;
+    if (objects[handle].handle == 0)
+        return;
+    object = (void*)objects[handle].addr;
+    manager = objects[handle].callback;
+}
+
 int ManagedObjectPool::RemoveObject(const char *address) {
     long handl = AddressToHandle(address);
     if (handl == 0)

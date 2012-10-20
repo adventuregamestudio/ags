@@ -130,6 +130,19 @@ const char *ccGetObjectAddressFromHandle(long handle) {
     return addr;
 }
 
+void ccGetObjectAddressAndManagerFromHandle(long handle, void *&object, ICCDynamicObject *&manager)
+{
+    if (handle == 0) {
+        object = NULL;
+        manager = NULL;
+        return;
+    }
+    pool.HandleToAddressAndManager(handle, object, manager);
+    if (object == NULL) {
+        cc_error("Error retrieving pointer: invalid handle %d", handle);
+    }
+}
+
 int ccAddObjectReference(long handle) {
     if (handle == 0)
         return 0;

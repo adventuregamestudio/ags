@@ -181,7 +181,7 @@ bool RuntimeScriptValue::WriteValue(const RuntimeScriptValue &rval)
     {
         if (RValue->Type == kScValDataPtr)
         {
-            *(int32_t*)(RValue->GetDataPtrWithOffset() + this->Value) = rval.GetInt();
+            *(int32_t*)(RValue->GetDataPtrWithOffset() + this->Value) = (intptr_t)rval.GetDataPtrWithOffset();
         }
         else
         {
@@ -191,7 +191,7 @@ bool RuntimeScriptValue::WriteValue(const RuntimeScriptValue &rval)
 #if defined(AGS_BIG_ENDIAN)
     else if (this->Type == kScValGlobalData)
     {
-        int32_t temp = rval.GetLong();
+        int32_t temp = rval.GetDataPtrWithOffset();
         AGS::Common::BitByteOperations::SwapBytesInt32(temp);
         *((int32_t*)GetDataPtrWithOffset()) = temp;
     }
@@ -199,7 +199,7 @@ bool RuntimeScriptValue::WriteValue(const RuntimeScriptValue &rval)
     else
     {
         // 64 bit: Memory writes are still 32 bit
-        *((int32_t*)GetDataPtrWithOffset()) = rval.GetLong();
+        *((int32_t*)GetDataPtrWithOffset()) = (intptr_t)rval.GetDataPtrWithOffset();
     }
     return true;
 }

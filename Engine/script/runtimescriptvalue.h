@@ -7,6 +7,9 @@
 #define __AGS_EE_SCRIPT__RUNTIMESCRIPTVALUE_H
 
 #include "core/types.h"
+#include "debug/assert.h"
+
+struct ICCDynamicObject;
 
 enum ScriptValueType
 {
@@ -18,6 +21,7 @@ enum ScriptValueType
     kScValDataPtr,      // as a pointer to randomly sized data (usually array)
     kScValGlobalData,   // a workaround for big endian builds (maybe temporary);
                         // works exactly as kScValGeneric for the rest
+    kScValDynamicObject,// as a pointer to managed script object
 };
 
 struct RuntimeScriptValue
@@ -28,6 +32,7 @@ public:
         Type        = kScValUndefined;
         Value		= 0;
         Ptr         = NULL;
+        MgrPtr      = NULL;
         Size        = 0;
     }
 
@@ -43,6 +48,13 @@ private:
     {
         char                *Ptr;   // generic data pointer
         RuntimeScriptValue  *RValue;// access ptr as a pointer to Runtime Value
+    };
+    // TODO: separation to Ptr and MgrPtr is only needed so far as there's
+    // a separation between Script*, Dynamic* and game entity classes.
+    union
+    {
+        void                *MgrPtr;// generic object manager pointer
+        ICCDynamicObject    *DynMgr;// dynamic object manager;
     };
     // The "real" size of data, either one stored in Value variable,
     // or the one referenced by Ptr.
@@ -88,6 +100,10 @@ public:
     {
         return RValue;
     }
+    inline ICCDynamicObject *GetDynamicManager() const
+    {
+        return DynMgr;
+    }
     inline int GetSize() const
     {
         return Size;
@@ -98,6 +114,7 @@ public:
         Type    = kScValUndefined;
         Value   = 0;
         Ptr     = NULL;
+        MgrPtr  = NULL;
         Size    = 0;
         return *this;
     }
@@ -106,6 +123,7 @@ public:
         Type    = kScValGeneric;
         Value   = val;
         Ptr     = NULL;
+        MgrPtr  = NULL;
         Size    = 4;
         return *this;
     }
@@ -114,6 +132,7 @@ public:
         Type    = kScValInteger;
         IValue  = val;
         Ptr     = NULL;
+        MgrPtr  = NULL;
         Size    = 1;
         return *this;
     }
@@ -122,6 +141,7 @@ public:
         Type    = kScValInteger;
         IValue  = val;
         Ptr     = NULL;
+        MgrPtr  = NULL;
         Size    = 2;
         return *this;
     }
@@ -130,6 +150,7 @@ public:
         Type    = kScValInteger;
         IValue  = val;
         Ptr     = NULL;
+        MgrPtr  = NULL;
         Size    = 4;
         return *this;
     }
@@ -138,6 +159,7 @@ public:
         Type    = kScValFloat;
         FValue  = val;
         Ptr     = NULL;
+        MgrPtr  = NULL;
         Size    = 4;
         return *this;
     }
@@ -146,6 +168,7 @@ public:
         Type    = kScValStackPtr;
         Value   = 0;
         RValue  = stack_entry;
+        MgrPtr  = NULL;
         Size    = 4;
         return *this;
     }
@@ -154,6 +177,7 @@ public:
         Type    = kScValDataPtr;
         Value   = 0;
         Ptr     = data;
+        MgrPtr  = NULL;
         Size    = size;
         return *this;
     }
@@ -163,6 +187,16 @@ public:
         Type    = kScValGlobalData;
         Value   = val;
         Ptr     = NULL;
+        MgrPtr  = NULL;
+        Size    = 4;
+        return *this;
+    }
+    inline RuntimeScriptValue &SetDynamicObject(void *object, ICCDynamicObject *manager)
+    {
+        Type    = kScValDynamicObject;
+        Value   = 0;
+        Ptr     = (char*)object;
+        DynMgr  = manager;
         Size    = 4;
         return *this;
     }
@@ -224,7 +258,9 @@ public:
 
     inline bool operator ==(const RuntimeScriptValue &rval)
     {
-        return Type == rval.Type && Ptr == rval.Ptr && Value == rval.Value;
+        return (Type == rval.Type && Ptr == rval.Ptr && Value == rval.Value) ||
+            // FIXME later: temporary workaround for dynamic object addresses
+            GetDataPtrWithOffset() == rval.GetDataPtrWithOffset();
     }
     inline bool operator !=(const RuntimeScriptValue &rval)
     {

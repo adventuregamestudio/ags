@@ -18,12 +18,14 @@
 #include "script/cc_instance.h"    // ccInstance
 #include "script/cc_treemap.h"     // ccTreeMap
 
+struct ICCDynamicObject;
+
 enum ScriptImportType
 {
     kScImportUndefined,         // to detect errors
     kScImportData,              // for direct engine memory access (TODO: unsupport later!)
     kScImportStaticFunction,    // a static function
-    kScImportObject,            // script object
+    kScImportDynamicObject,     // script object
     kScImportObjectFunction,    // script object member function, gets 'this' pointer
     kScImportScriptData,        // script function or variable
 };
@@ -35,12 +37,20 @@ struct ScriptImport
         Type        = kScImportUndefined;
         Name        = NULL;
         Ptr         = NULL;
+        DynMgr      = NULL;
         InstancePtr = NULL;
     }
 
     ScriptImportType    Type;
     const char          *Name;          // import's uid
     void                *Ptr;           // object or function pointer
+    // TODO: separation to Ptr and MgrPtr is only needed so far as there's
+    // a separation between Script*, Dynamic* and game entity classes.
+    union
+    {
+        void                *MgrPtr;        // generic object manager pointer
+        ICCDynamicObject    *DynMgr;        // dynamic object manager;
+    };
     ccInstance          *InstancePtr;   // script instance
 };
 
@@ -53,7 +63,7 @@ private:
     ccTreeMap btree;
 
 public:
-    int  add(ScriptImportType type, const char *name, void *ptr, ccInstance *inst);
+    int  add(ScriptImportType type, const char *name, void *ptr, void *manager, ccInstance *inst);
     void remove(const char *name);
     const ScriptImport *getByName(const char *name);
     int  get_index_of(const char *name);

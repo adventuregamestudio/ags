@@ -77,7 +77,7 @@ void register_audio_script_objects()
     {
         game.audioClips[ee].id = ee;
         ccRegisterManagedObject(&game.audioClips[ee], &ccDynamicAudioClip);
-        ccAddExternalObject(game.audioClips[ee].scriptName, &game.audioClips[ee]);
+        ccAddExternalDynamicObject(game.audioClips[ee].scriptName, &game.audioClips[ee], &ccDynamicAudioClip);
     }
 
     calculate_reserved_channel_count();

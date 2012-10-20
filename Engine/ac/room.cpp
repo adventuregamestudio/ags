@@ -60,6 +60,7 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 #include "core/assetmanager.h"
+#include "ac/dynobj/all_dynamicclasses.h"
 
 using AGS::Common::DataStream;
 using AGS::Common::Bitmap;
@@ -121,6 +122,9 @@ extern int mouse_z_was;
 
 extern Bitmap **guibg;
 extern IDriverDependantBitmap **guibgbmp;
+
+extern CCHotspot ccDynamicHotspot;
+extern CCObject ccDynamicObject;
 
 RGB_MAP rgb_table;  // for 256-col antialiasing
 int new_room_flags=0;
@@ -703,14 +707,14 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
                 objectScriptObjNames[cc][1] = toupper(objectScriptObjNames[cc][1]);
         }
 
-        ccAddExternalObject(objectScriptObjNames[cc], &scrObj[cc]);
+        ccAddExternalDynamicObject(objectScriptObjNames[cc], &scrObj[cc], &ccDynamicObject);
     }
 
     for (cc = 0; cc < MAX_HOTSPOTS; cc++) {
         if (thisroom.hotspotScriptNames[cc][0] == 0)
             continue;
 
-        ccAddExternalObject(thisroom.hotspotScriptNames[cc], &scrHotspot[cc]);
+        ccAddExternalDynamicObject(thisroom.hotspotScriptNames[cc], &scrHotspot[cc], &ccDynamicHotspot);
     }
 
     our_eip=206;

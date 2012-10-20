@@ -67,6 +67,7 @@ extern void  ccAttemptDisposeObject(long handle);
 // translate between object handles and memory addresses
 extern long  ccGetObjectHandleFromAddress(const char *address);
 extern const char *ccGetObjectAddressFromHandle(long handle);
+extern void  ccGetObjectAddressAndManagerFromHandle(long handle, void *&object, ICCDynamicObject *&manager);
 
 extern int ccAddObjectReference(long handle);
 extern int ccReleaseObjectReference(long handle);

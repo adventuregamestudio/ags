@@ -46,14 +46,16 @@ break;
 
 }*/
 
-int SystemImports::add(ScriptImportType type, const char *namm, void *add, ccInstance *anotherscr = NULL)
+int SystemImports::add(ScriptImportType type, const char *namm, void *add, void *manager, ccInstance *anotherscr = NULL)
 {
     int ixof;
 
     if ((ixof = get_index_of(namm)) >= 0) {
         // Only allow override if not a script-exported function
         if (anotherscr == NULL) {
+            imports[ixof].Type = type;
             imports[ixof].Ptr = add;
+            imports[ixof].MgrPtr = manager;
             imports[ixof].InstancePtr = anotherscr;
         }
         return 0;
@@ -77,7 +79,9 @@ int SystemImports::add(ScriptImportType type, const char *namm, void *add, ccIns
 
     btree.addEntry(namm, ixof);
     imports[ixof].Name          = namm; // TODO: rather make a string copy here for safety reasons
+    imports[ixof].Type          = type;
     imports[ixof].Ptr           = add;
+    imports[ixof].MgrPtr        = manager;
     imports[ixof].InstancePtr   = anotherscr;
 
     if (ixof == numimports)

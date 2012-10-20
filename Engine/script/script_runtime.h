@@ -30,12 +30,14 @@
 #include "script/cc_script.h"      // ccScript
 #include "script/cc_instance.h"    // ccInstance
 
+struct ICCDynamicObject;
+
 // ************ SCRIPT LOADING AND RUNNING FUNCTIONS ************
 
 // give the script access to a variable or function in your program
 extern bool ccAddExternalData(const char *name, void *ptr);
 extern bool ccAddExternalStaticFunction(const char *name, void *ptr);
-extern bool ccAddExternalObject(const char *name, void *ptr);
+extern bool ccAddExternalDynamicObject(const char *name, void *ptr, ICCDynamicObject *manager);
 extern bool ccAddExternalObjectFunction(const char *name, void *ptr);
 extern bool ccAddExternalScriptSymbol(const char *name, void *ptr, ccInstance *inst);
 // remove the script access to a variable or function in your program

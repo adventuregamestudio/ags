@@ -34,6 +34,7 @@
 #include "util/datastream.h"
 #include "util/misc.h"
 #include "util/textstreamwriter.h"
+#include "ac/dynobj/scriptstring.h"
 
 using AGS::Common::DataStream;
 using AGS::Common::TextStreamWriter;
@@ -47,6 +48,8 @@ extern int displayed_room; // in ac/game
 extern roomstruct thisroom; // ac/game
 extern int maxWhileLoops;
 extern new_line_hook_type new_line_hook;
+
+extern ScriptString myScriptStringImpl;
 
 enum ScriptOpArgIsReg
 {
@@ -301,7 +304,7 @@ int ccInstance::CallScriptFunction(char *funcname, long numargs, ...)
     flags &= ~INSTF_ABORTED;
 
     // object pointer needs to start zeroed
-    registers[SREG_OP].SetLong(0);
+    registers[SREG_OP].SetDynamicObject(0, NULL);
 
     ccInstance* currentInstanceWas = current_instance;
     registers[SREG_SP].SetStackPtr( &stack[0] );
@@ -484,9 +487,9 @@ int ccInstance::Run(long curpc)
         RuntimeScriptValue &arg2 = codeOp.Args[1];
         RuntimeScriptValue &arg3 = codeOp.Args[2];
         RuntimeScriptValue &reg1 = 
-            registers[arg1.GetLong() >= 0 && arg1.GetLong() < CC_NUM_REGISTERS ? arg1.GetLong() : 0];
+            registers[arg1.GetInt() >= 0 && arg1.GetInt() < CC_NUM_REGISTERS ? arg1.GetInt() : 0];
         RuntimeScriptValue &reg2 = 
-            registers[arg2.GetLong() >= 0 && arg2.GetLong() < CC_NUM_REGISTERS ? arg2.GetLong() : 0];
+            registers[arg2.GetInt() >= 0 && arg2.GetInt() < CC_NUM_REGISTERS ? arg2.GetInt() : 0];
 
         if (write_debug_dump)
         {
@@ -629,10 +632,10 @@ int ccInstance::Run(long curpc)
           reg1.SetInt32(reg1.GetInt() | reg2.GetInt());
           break;
       case SCMD_ISEQUAL:
-          reg1.SetInt32(reg1.GetInt() == reg2.GetInt());
+          reg1.SetInt32(reg1 == reg2);
           break;
       case SCMD_NOTEQUAL:
-          reg1.SetInt32(reg1.GetInt() != reg2.GetInt());
+          reg1.SetInt32(reg1 != reg2);
           break;
       case SCMD_GREATER:
           reg1.SetInt32(reg1.GetInt() > reg2.GetInt());
@@ -776,7 +779,10 @@ int ccInstance::Run(long curpc)
           ccError = 0;
 
           long handle = registers[SREG_MAR].ReadInt32();
-          reg1.SetLong( (long)ccGetObjectAddressFromHandle(handle) );
+          void *object;
+          ICCDynamicObject *manager;
+          ccGetObjectAddressAndManagerFromHandle(handle, object, manager);
+          reg1.SetDynamicObject( object, manager );
 
           // if error occurred, cc_error will have been set
           if (ccError)
@@ -787,6 +793,10 @@ int ccInstance::Run(long curpc)
           long handle = registers[SREG_MAR].ReadInt32();
 
           // CHECKME!! what type of data may reg1 point to?
+          // FIXME: GetDataPtrWithOffset should not be used here; instead GetDataPtr should.
+          // However it is possible that reg1 holds value from global var or returned
+          // from function, hence it stores object address in Value rather than Ptr;
+          // as soon as those two cases are resolved, this call should be fixed too.
           long newHandle = ccGetObjectHandleFromAddress((char*)reg1.GetDataPtrWithOffset());
           if (newHandle == -1)
               return -1;
@@ -800,9 +810,6 @@ int ccInstance::Run(long curpc)
                              }
       case SCMD_MEMINITPTR: { 
           // like memwriteptr, but doesn't attempt to free the old one
-
-          long handle = registers[SREG_MAR].ReadInt32();
-
           // CHECKME!! what type of data may reg1 point to?
           long newHandle = ccGetObjectHandleFromAddress((char*)reg1.GetDataPtrWithOffset());
           if (newHandle == -1)
@@ -919,17 +926,17 @@ int ccInstance::Run(long curpc)
               call_uses_object = 1;
               next_call_needs_object = 0;
               callstack[callstacksize] = registers[SREG_OP];
-              registers[SREG_AX].SetInt32(
+              registers[SREG_AX].SetLong(
                   // FIXME later: use different getter
                   call_function(reg1.GetLong(), num_args_to_func + 1, callstack, callstacksize - num_args_to_func) );
           }
           else if (num_args_to_func == 0) {
               // FIXME later: use different getter
               realfunc = (int (*)())reg1.GetLong();
-              registers[SREG_AX].SetInt32( realfunc() );
+              registers[SREG_AX].SetLong( realfunc() );
           } 
           else
-              registers[SREG_AX].SetInt32(
+              registers[SREG_AX].SetLong(
               // FIXME later: use different getter
                     call_function(reg1.GetLong(), num_args_to_func, callstack, callstacksize - num_args_to_func) );
 
@@ -986,8 +993,9 @@ int ccInstance::Run(long curpc)
                   cc_error("invalid size for dynamic array; requested: %d, range: 1..1000000", numElements);
                   return -1;
               }
-              reg1.SetLong(
-                  (long)ccGetObjectAddressFromHandle(globalDynamicArray.Create(numElements, arg2.GetLong(), (arg3 == 1))) );
+              reg1.SetDynamicObject(
+                  (void*)ccGetObjectAddressFromHandle(globalDynamicArray.Create(numElements, arg2.GetLong(), (arg3 == 1))),
+                  &globalDynamicArray);
               break;
           }
       case SCMD_FADD:
@@ -1054,7 +1062,9 @@ int ccInstance::Run(long curpc)
               cc_error("No string class implementation set, but opcode was used");
               return -1;
           }
-          reg1.SetLong( (long)stringClassImpl->CreateString((const char *)(reg1.GetDataPtrWithOffset())) );
+          reg1.SetDynamicObject(
+              (void*)stringClassImpl->CreateString((const char *)(reg1.GetDataPtrWithOffset())),
+              &myScriptStringImpl);
           break;
       case SCMD_STRINGSEQUAL:
           if ((reg1 == 0) || (reg2 == 0)) {
@@ -1411,9 +1421,6 @@ bool ccInstance::_Create(ccScript * scri, ccInstance * joined)
         }
     }
 
-    // set up the initial registers to zero
-    memset(&registers[0], 0, sizeof(long) * CC_NUM_REGISTERS);
-
     if (joined)
     {
         resolved_imports = joined->resolved_imports;
@@ -1682,7 +1689,15 @@ void ccInstance::FixupArgument(long code_index, char fixup_type, RuntimeScriptVa
     case FIXUP_IMPORT:
         {
             long import_index = resolved_imports[code[code_index]];
-            argument.SetLong( (intptr_t)simp.getByIndex(import_index)->Ptr );
+            const ScriptImport *import = simp.getByIndex(import_index);
+            if (import->Type == kScImportDynamicObject)
+            {
+                argument.SetDynamicObject( import->Ptr, import->DynMgr );
+            }
+            else
+            {
+                argument.SetLong( (intptr_t)import->Ptr );
+            }
         }
         break;
     case FIXUP_DATADATA:

@@ -567,7 +567,7 @@ ALFONT_FONT *alfont_load_font(const char *filepathname) {
   alfont_set_char_extra_spacing(font, 0);
 
   //Initial Font attribute
-  font->language="";		   /* Initial Language */
+  font->language=NULL;		   /* Initial Language */
   font->type=0;				   /* Initial Code Convert */
   font->outline_top=0;		   /* Initial Font top outline width */
   font->outline_bottom=0;	   /* Initial Font bottom outline width */
@@ -647,7 +647,7 @@ ALFONT_FONT *alfont_load_font_from_mem(const char *data, int data_len) {
   alfont_set_char_extra_spacing(font, 0);
 
   //Initial Font attribute
-  font->language="";		   /* Initial Language */
+  font->language=NULL;		   /* Initial Language */
   font->type=0;				   /* Initial Code Convert */
   font->outline_top=0;		   /* Initial Font top outline width */
   font->outline_bottom=0;	   /* Initial Font bottom outline width */
@@ -4927,7 +4927,7 @@ void alfont_set_language(ALFONT_FONT *f, const char *language) {
   }
   else
   {
-	f->language=(char *)malloc(strlen(language)*sizeof(char));
+	f->language=(char *)malloc((strlen(language)+1)*sizeof(char));
 	strcpy(f->language,language);
   }
 }

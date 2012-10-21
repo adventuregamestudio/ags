@@ -32,7 +32,8 @@ void RoomStatus::ReadFromFile(DataStream *in)
     // might need to skip 2 if MAX_FLAGS is odd
     in->Seek(Common::kSeekCurrent, 2*(MAX_FLAGS%2));
     tsdatasize = in->ReadInt32();
-    tsdata = (char *) in->ReadInt32();
+    in->ReadInt32(); // FOR BACKWARD COMPATIBILITY OF SAVEGAMES
+    tsdata = NULL;
     for (int i = 0; i < MAX_HOTSPOTS; ++i)
     {
         intrHotspot[i].ReadFromFile(in);
@@ -69,7 +70,7 @@ void RoomStatus::WriteToFile(DataStream *out)
     // might need to skip 2 if MAX_FLAGS is odd
     out->Write(pad, 2*(MAX_FLAGS%2));
     out->WriteInt32(tsdatasize);
-    out->WriteInt32((int)tsdata);
+    out->WriteInt32(0); // FOR BACKWARD COMPATIBILITY OF SAVEGAMES
     for (int i = 0; i < MAX_HOTSPOTS; ++i)
     {
         intrHotspot[i].WriteToFile(out);

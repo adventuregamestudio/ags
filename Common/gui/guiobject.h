@@ -115,6 +115,8 @@ struct GUIObject
       flags |= GUIF_NOCLICKS;
   }
 
+  virtual ~GUIObject() {}
+
 protected:
   const char *supportedEvents[MAX_GUIOBJ_EVENTS];
   const char *supportedEventArgs[MAX_GUIOBJ_EVENTS];

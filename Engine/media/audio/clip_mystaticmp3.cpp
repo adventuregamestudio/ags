@@ -91,6 +91,7 @@ void MYSTATICMP3::internal_destroy()
   }
   if (mp3buffer != NULL) {
       sound_cache_free(mp3buffer, false);
+      mp3buffer = NULL;
   }
 
   _destroyThis = false;

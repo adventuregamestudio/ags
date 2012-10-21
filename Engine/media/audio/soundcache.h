@@ -30,12 +30,11 @@
 typedef struct
 {
     char* file_name;
-    int number;
-    int free;
     unsigned int last_used;
     unsigned int size;
     char* data;
     int reference;
+    bool is_wave;
 } sound_cache_entry_t;
 
 extern int psp_use_sound_cache;

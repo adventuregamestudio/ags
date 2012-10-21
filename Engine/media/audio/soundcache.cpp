@@ -205,11 +205,16 @@ char* get_cached_sound(const char* filename, bool is_wave, long* size)
         printf("..loading cached in slot %d\n", i);
 #endif	
 
-        if (sound_cache_entries[i].data)
-            free(sound_cache_entries[i].data);
+        if (sound_cache_entries[i].data) {
+	    if (sound_cache_entries[i].is_wave)
+                destroy_sample((SAMPLE*)sound_cache_entries[i].data);
+            else
+                free(sound_cache_entries[i].data);
+	}
 
         sound_cache_entries[i].size = *size;
         sound_cache_entries[i].data = newdata;
+        sound_cache_entries[i].is_wave = is_wave;
 
         if (sound_cache_entries[i].file_name)
             free(sound_cache_entries[i].file_name);

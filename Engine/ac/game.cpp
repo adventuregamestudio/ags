@@ -2008,9 +2008,6 @@ void restore_game_audioclips_and_crossfade(DataStream *in, int crossfadeInChanne
 
     // If there were synced audio tracks, the time taken to load in the
     // different channels will have thrown them out of sync, so re-time it
-    //
-    // CRASHES AUDIO THREAD THAT'S PLAYING THE CHANNEL AT THE SAME TIME.
-    //
     for (bb = 0; bb <= MAX_SOUND_CHANNELS; bb++)
     {
         if ((channelPositions[bb] > 0) && (channels[bb] != NULL) && (channels[bb]->done == 0))

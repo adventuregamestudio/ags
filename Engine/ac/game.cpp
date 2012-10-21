@@ -2011,13 +2011,13 @@ void restore_game_audioclips_and_crossfade(DataStream *in, int crossfadeInChanne
     //
     // CRASHES AUDIO THREAD THAT'S PLAYING THE CHANNEL AT THE SAME TIME.
     //
-    // for (bb = 0; bb <= MAX_SOUND_CHANNELS; bb++)
-    // {
-    //     if ((channelPositions[bb] > 0) && (channels[bb] != NULL) && (channels[bb]->done == 0))
-    //     {
-    // 	    channels[bb]->seek(channelPositions[bb]);
-    //     }
-    // }
+    for (bb = 0; bb <= MAX_SOUND_CHANNELS; bb++)
+    {
+        if ((channelPositions[bb] > 0) && (channels[bb] != NULL) && (channels[bb]->done == 0))
+        {
+    	    channels[bb]->seek(channelPositions[bb]);
+        }
+    }
     crossFading = in->ReadInt32();
     crossFadeVolumePerStep = in->ReadInt32();
     crossFadeStep = in->ReadInt32();

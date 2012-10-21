@@ -2160,7 +2160,7 @@ void draw_fps()
     gfxDriver->DrawSprite(1, yp, ddb);
     invalidate_sprite(1, yp, ddb);
 
-    sprintf(tbuffer,"Loop %ld", loopcounter);
+    sprintf(tbuffer,"Loop %u", loopcounter);
     draw_and_invalidate_text(get_fixed_pixel_size(250), yp, FONT_SPEECH,tbuffer);
 }
 

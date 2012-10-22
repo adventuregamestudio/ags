@@ -91,6 +91,7 @@ void MYSTATICMP3::internal_destroy()
   }
   if (mp3buffer != NULL) {
       sound_cache_free(mp3buffer, false);
+      mp3buffer = NULL;
   }
 
   _destroyThis = false;
@@ -110,6 +111,10 @@ void MYSTATICMP3::destroy()
 
     while (!done)
       AGSPlatformDriver::GetDriver()->YieldCPU();
+
+    // Allow the last poll cycle to finish.
+    _mutex.Lock();
+    _mutex.Unlock();
 }
 
 void MYSTATICMP3::seek(int pos)

@@ -21,10 +21,12 @@
 
 #include "gfx/gfxfilter.h"
 
+struct MouseGetPosCallbackImpl;
+
 struct ScalingGFXFilter : public GFXFilter {
 protected:
     int MULTIPLIER;
-    void *mouseCallbackPtr;
+    MouseGetPosCallbackImpl *mouseCallbackPtr;
 
     char filterName[100];
     char filterID[15];

@@ -70,13 +70,14 @@ void MYSTATICOGG::set_volume(int newvol)
 void MYSTATICOGG::internal_destroy()
 {
     if (tune != NULL) {
-            alogg_stop_ogg(tune);
-            alogg_destroy_ogg(tune);
-            tune = NULL;
-        }
+        alogg_stop_ogg(tune);
+        alogg_destroy_ogg(tune);
+        tune = NULL;
+    }
 
     if (mp3buffer != NULL) {
         sound_cache_free(mp3buffer, false);
+        mp3buffer = NULL;
     }
 
     _destroyThis = false;
@@ -96,14 +97,22 @@ void MYSTATICOGG::destroy()
 
     while (!done)
       AGSPlatformDriver::GetDriver()->YieldCPU();
+
+    // Allow the last poll cycle to finish.
+    _mutex.Lock();
+    _mutex.Unlock();
 }
 
 void MYSTATICOGG::seek(int pos)
 {
+    if (psp_audio_multithreaded)
+      _mutex.Lock();
     // we stop and restart it because otherwise the buffer finishes
     // playing first and the seek isn't quite accurate
     alogg_stop_ogg(tune);
     play_from(pos);
+    if (psp_audio_multithreaded)
+      _mutex.Unlock();
 }
 
 int MYSTATICOGG::get_pos()

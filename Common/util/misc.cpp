@@ -80,8 +80,8 @@ char *ci_find_file(char *dir_name, char *file_name)
 
   if (dir_name == NULL) {
     char  *match = NULL;
-    int   match_len = NULL;
-    int   dir_len = NULL;
+    int   match_len;
+    int   dir_len;
 
     match = get_filename(file_name);
     if (match == NULL)

@@ -28,7 +28,8 @@ void QueuedAudioItem::ReadFromFile(DataStream *in)
     priority = in->ReadInt16();
     repeat = in->ReadBool();
     in->Read(&padding, 3); // <-- padding
-    cachedClip = (SOUNDCLIP*)in->ReadInt32();
+    in->ReadInt32(); // FOR BACKWARD COMPATIBILITY OF SAVEGAMES
+    cachedClip = NULL;
 }
 
 void QueuedAudioItem::WriteToFile(DataStream *out)
@@ -38,5 +39,5 @@ void QueuedAudioItem::WriteToFile(DataStream *out)
     out->WriteInt16(priority);
     out->WriteBool(repeat);
     out->Write(&padding, 3); // <-- padding
-    out->WriteInt32((int32)cachedClip);
+    out->WriteInt32(0); // FOR BACKWARD COMPATIBILITY OF SAVEGAMES
 }

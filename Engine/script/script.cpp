@@ -307,8 +307,8 @@ int run_interaction_script(InteractionScripts *nint, int evnt, int chkAny, int i
         else {
             // Other (room script)
             if (inside_script) {
-                char funcName[60];
-                sprintf(funcName, "|%s", nint->scriptFuncNames[evnt]);
+                char funcName[MAX_FUNCTION_NAME_LEN+1];
+                snprintf(funcName, MAX_FUNCTION_NAME_LEN, "|%s", nint->scriptFuncNames[evnt]);
                 curscript->run_another (funcName, 0, 0);
             }
             else
@@ -409,14 +409,14 @@ void get_script_name(ccInstance *rinst, char *curScrName) {
 //=============================================================================
 
 
-char bname[40],bne[40];
+char bname[MAX_FUNCTION_NAME_LEN+1],bne[MAX_FUNCTION_NAME_LEN+1];
 char* make_ts_func_name(char*base,int iii,int subd) {
-    sprintf(bname,base,iii);
-    sprintf(bne,"%s_%c",bname,subd+'a');
+    snprintf(bname,MAX_FUNCTION_NAME_LEN,base,iii);
+    snprintf(bne,MAX_FUNCTION_NAME_LEN,"%s_%c",bname,subd+'a');
     return &bne[0];
 }
 
-char scfunctionname[30];
+char scfunctionname[MAX_FUNCTION_NAME_LEN + 1];
 int prepare_text_script(ccInstance*sci,char**tsname) {
     ccError=0;
     if (sci==NULL) return -1;
@@ -445,7 +445,7 @@ int prepare_text_script(ccInstance*sci,char**tsname) {
     if (num_scripts >= MAX_SCRIPT_AT_ONCE)
         quit("too many nested text script instances created");
     // in case script_run_another is the function name, take a backup
-    strcpy(scfunctionname,tsname[0]);
+    strncpy(scfunctionname,tsname[0],MAX_FUNCTION_NAME_LEN);
     tsname[0]=&scfunctionname[0];
     update_script_mouse_coords();
     inside_script++;
@@ -529,8 +529,8 @@ void post_script_cleanup() {
     int jj;
     for (jj = 0; jj < copyof.numanother; jj++) {
         old_room_number = displayed_room;
-        char runnext[40];
-        strcpy(runnext,copyof.script_run_another[jj]);
+        char runnext[MAX_FUNCTION_NAME_LEN+1];
+        strncpy(runnext,copyof.script_run_another[jj], MAX_FUNCTION_NAME_LEN);
         copyof.script_run_another[jj][0]=0;
         if (runnext[0]=='#')
             run_text_script_2iparam(gameinst,&runnext[1],copyof.run_another_p1[jj],copyof.run_another_p2[jj]);
@@ -647,9 +647,9 @@ int run_interaction_commandlist (NewInteractionCommandList *nicl, int *timesrun,
                   else {
                       // Other (room script)
                       if (inside_script) {
-                          char funcName[60];
+                          char funcName[MAX_FUNCTION_NAME_LEN+1];
                           strcpy(funcName,"|");
-                          strcat(funcName,make_ts_func_name(evblockbasename,evblocknum,nicl->command[i].data[0].val));
+                          strncat(funcName,make_ts_func_name(evblockbasename,evblocknum,nicl->command[i].data[0].val),MAX_FUNCTION_NAME_LEN-1);
                           curscript->run_another (funcName, 0, 0);
                       }
                       else
@@ -884,37 +884,4 @@ void run_unhandled_event (int evnt) {
             run_text_script_2iparam(gameinst,"unhandled_event",evtype,evnt);
     }
 
-}
-
-
-//
-// [IKM] 2012-06-22: this does not seem to be used anywhere; obsolete code?
-//
-//char*ac_default_header=NULL,*temphdr=NULL;
-char ac_default_header[15000]; // this is not used anywhere (?)
-char temphdr[10000];
-
-void setup_exports(char*expfrom) {
-    char namof[30]="\0"; temphdr[0]=0;
-    while (expfrom[0]!=0) {
-        expfrom=strstr(expfrom,"function ");
-        if (expfrom==NULL) break;
-        if (expfrom[-1]!=10) { expfrom++; continue; }
-        expfrom+=9;
-        int iid=0;
-        while (expfrom[iid]!='(') { namof[iid]=expfrom[iid]; iid++; }
-        namof[iid]=0;
-        strcat(temphdr,"export ");
-        strcat(temphdr,namof);
-        strcat(temphdr,";\r\n");
-    }
-    int aa;
-    for (aa=0;aa<game.numcharacters-1;aa++) {
-        if (game.chars[aa].scrname[0]==0) continue;
-        strcat(temphdr,"#define ");
-        strcat(temphdr,game.chars[aa].scrname);
-        strcat(temphdr," ");
-        char*ptro=&temphdr[strlen(temphdr)];
-        sprintf(ptro,"%d\r\n",aa);
-    }
 }

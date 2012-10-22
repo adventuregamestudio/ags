@@ -204,7 +204,7 @@ public:
   AGSIFUNC(void) RegisterScriptHeader (const char *header);
   // de-register a script header (pass same pointer as when added)
   AGSIFUNC(void) UnregisterScriptHeader (const char *header);
-
+  virtual ~IAGSEditor();
 };
 
 
@@ -258,11 +258,13 @@ public:
   // serialize the object into BUFFER (which is BUFSIZE bytes)
   // return number of bytes used
   virtual int Serialize(const char *address, char *buffer, int bufsize) = 0;
+  virtual ~IAGSScriptManagedObject() {}
 };
 
 class IAGSManagedObjectReader {
 public:
   virtual void Unserialize(int key, const char *serializedData, int dataSize) = 0;
+  virtual ~IAGSManagedObjectReader() {}
 };
 
 // The plugin-to-engine interface
@@ -481,6 +483,7 @@ public:
   AGSIFUNC(void)   GetMovementPathWaypointLocation(int32 pathId, int32 waypoint, int32 *x, int32 *y);
   // get the speeds of the specified waypoint
   AGSIFUNC(void)   GetMovementPathWaypointSpeed(int32 pathId, int32 waypoint, int32 *xSpeed, int32 *ySpeed);
+  virtual ~IAGSEngine() {}
 };
 
 #ifdef THIS_IS_THE_PLUGIN

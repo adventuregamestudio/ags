@@ -2012,7 +2012,7 @@ void restore_game_audioclips_and_crossfade(DataStream *in, int crossfadeInChanne
     {
         if ((channelPositions[bb] > 0) && (channels[bb] != NULL) && (channels[bb]->done == 0))
         {
-            channels[bb]->seek(channelPositions[bb]);
+    	    channels[bb]->seek(channelPositions[bb]);
         }
     }
     crossFading = in->ReadInt32();

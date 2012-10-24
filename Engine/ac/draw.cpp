@@ -462,7 +462,7 @@ int IRSpan::mergeSpan(int tx1, int tx2) {
 void init_invalid_regions(int scrnHit) {
     numDirtyRegions = WHOLESCREENDIRTY;
     dirtyRow = (IRRow*)malloc(sizeof(IRRow) * scrnHit);
-    memset(dirtyRow, 0, sizeof(dirtyRow) * scrnHit);
+    memset(dirtyRow, 0, sizeof(IRRow) * scrnHit);
 
     for (int e = 0; e < scrnHit; e++)
         dirtyRow[e].numSpans = 0;
@@ -2160,7 +2160,7 @@ void draw_fps()
     gfxDriver->DrawSprite(1, yp, ddb);
     invalidate_sprite(1, yp, ddb);
 
-    sprintf(tbuffer,"Loop %ld", loopcounter);
+    sprintf(tbuffer,"Loop %u", loopcounter);
     draw_and_invalidate_text(get_fixed_pixel_size(250), yp, FONT_SPEECH,tbuffer);
 }
 

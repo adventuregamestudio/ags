@@ -53,7 +53,7 @@ void ExecutingScript::run_another (char *namm, int p1, int p2) {
         run_another_p2[numanother - 1]);*/
     }
     int thisslot = numanother - 1;
-    strcpy(script_run_another[thisslot], namm);
+    strncpy(script_run_another[thisslot], namm, MAX_FUNCTION_NAME_LEN);
     run_another_p1[thisslot] = p1;
     run_another_p2[thisslot] = p2;
 }

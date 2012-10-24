@@ -308,7 +308,7 @@ int run_interaction_script(InteractionScripts *nint, int evnt, int chkAny, int i
             // Other (room script)
             if (inside_script) {
                 char funcName[MAX_FUNCTION_NAME_LEN+1];
-                snprintf(funcName, MAX_FUNCTION_NAME_LEN "|%s", nint->scriptFuncNames[evnt]);
+                snprintf(funcName, MAX_FUNCTION_NAME_LEN, "|%s", nint->scriptFuncNames[evnt]);
                 curscript->run_another (funcName, 0, 0);
             }
             else

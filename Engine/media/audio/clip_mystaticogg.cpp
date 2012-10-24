@@ -96,14 +96,22 @@ void MYSTATICOGG::destroy()
 
     while (!done)
       AGSPlatformDriver::GetDriver()->YieldCPU();
+
+    // Allow the last poll cycle to finish.
+    _mutex.Lock();
+    _mutex.Unlock();
 }
 
 void MYSTATICOGG::seek(int pos)
 {
+    if (psp_audio_multithreaded)
+      _mutex.Lock();  
     // we stop and restart it because otherwise the buffer finishes
     // playing first and the seek isn't quite accurate
     alogg_stop_ogg(tune);
     play_from(pos);
+    if (psp_audio_multithreaded)
+      _mutex.Unlock();
 }
 
 int MYSTATICOGG::get_pos()

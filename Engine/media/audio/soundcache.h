@@ -36,6 +36,7 @@ typedef struct
     unsigned int size;
     char* data;
     int reference;
+    bool is_wave;
 } sound_cache_entry_t;
 
 extern int psp_use_sound_cache;

@@ -70,13 +70,14 @@ void MYSTATICOGG::set_volume(int newvol)
 void MYSTATICOGG::internal_destroy()
 {
     if (tune != NULL) {
-            alogg_stop_ogg(tune);
-            alogg_destroy_ogg(tune);
-            tune = NULL;
-        }
+        alogg_stop_ogg(tune);
+        alogg_destroy_ogg(tune);
+        tune = NULL;
+    }
 
     if (mp3buffer != NULL) {
         sound_cache_free(mp3buffer, false);
+        mp3buffer = NULL;
     }
 
     _destroyThis = false;

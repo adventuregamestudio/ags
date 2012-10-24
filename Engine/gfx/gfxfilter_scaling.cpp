@@ -30,7 +30,7 @@ ScalingGFXFilter::ScalingGFXFilter(int multiplier, bool justCheckingForSetup) : 
 
 const char* ScalingGFXFilter::Initialize(int width, int height, int colDepth) {
     mouseCallbackPtr = new MouseGetPosCallbackImpl(this);
-    msetcallback((MouseGetPosCallbackImpl*)mouseCallbackPtr);
+    msetcallback(mouseCallbackPtr);
     return NULL;
 }
 

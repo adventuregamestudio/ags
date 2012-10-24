@@ -278,7 +278,7 @@ void SpriteCache::removeOldest()
     if (cachesize > 0)
     {
       char msgg[150];
-      sprintf(msgg, "!!!! SPRITE CACHE ERROR: Sprite cache should be empty, but still has %d bytes", cachesize);
+      sprintf(msgg, "!!!! SPRITE CACHE ERROR: Sprite cache should be empty, but still has %ld bytes", cachesize);
       write_log(msgg);
     }
     mrulist[liststart] = 0;

@@ -109,7 +109,7 @@ String TextStreamReader::ReadLine()
         // CHECKME: is finding '\n' is enough to deduce line end?
         // Should it be strict "\r\n" instead? Or platform-dependant line-break?
         int c;
-        for (int c = 0; c < chars_read_last && *seek_ptr != '\n'; ++c, ++seek_ptr);
+        for (c = 0; c < chars_read_last && *seek_ptr != '\n'; ++c, ++seek_ptr);
 
         int append_length = 0;
         int str_len = str.GetLength();

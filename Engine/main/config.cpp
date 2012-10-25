@@ -109,9 +109,8 @@ char *INIreaditem(const char *sectn, const char *entry) {
                 char *lastchar = &firstchar[line.GetLength() - 1];
                 while(*lastchar == '\r' || *lastchar == '\n') {
                     *lastchar = 0;
-		    if (lastchar == firstchar) {
-		      break;
-		    }
+                    if (lastchar == firstchar)
+                        break;
                     lastchar--;
                 }
                 // Have we found the entry?

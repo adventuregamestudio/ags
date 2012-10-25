@@ -34,7 +34,10 @@ enum PostScriptAction {
 
 #define MAX_QUEUED_SCRIPTS 4
 #define MAX_QUEUED_ACTIONS 5
+<<<<<<< HEAD
 // 30 should be enough, make it 60 for safety.
+=======
+>>>>>>> functionname_len
 #define MAX_FUNCTION_NAME_LEN 60
 struct ExecutingScript {
     ccInstance *inst;

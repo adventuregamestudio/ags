@@ -416,7 +416,7 @@ char* make_ts_func_name(char*base,int iii,int subd) {
     return &bne[0];
 }
 
-char scfunctionname[MAX_FUNCTION_NAME_LEN + 1];
+char scfunctionname[MAX_FUNCTION_NAME_LEN+1];
 int prepare_text_script(ccInstance*sci,char**tsname) {
     ccError=0;
     if (sci==NULL) return -1;
@@ -530,7 +530,7 @@ void post_script_cleanup() {
     for (jj = 0; jj < copyof.numanother; jj++) {
         old_room_number = displayed_room;
         char runnext[MAX_FUNCTION_NAME_LEN+1];
-        strncpy(runnext,copyof.script_run_another[jj], MAX_FUNCTION_NAME_LEN);
+        strncpy(runnext,copyof.script_run_another[jj],MAX_FUNCTION_NAME_LEN);
         copyof.script_run_another[jj][0]=0;
         if (runnext[0]=='#')
             run_text_script_2iparam(gameinst,&runnext[1],copyof.run_another_p1[jj],copyof.run_another_p2[jj]);

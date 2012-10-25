@@ -4927,7 +4927,7 @@ void alfont_set_language(ALFONT_FONT *f, const char *language) {
   }
   else
   {
-	f->language=(char *)malloc((strlen(language)+1)*sizeof(char));
+        f->language=(char *)malloc((strlen(language) + 1)*sizeof(char));
 	strcpy(f->language,language);
   }
 }

@@ -61,7 +61,12 @@ MYWAVE *thiswave;
 SOUNDCLIP *my_load_wave(const char *filename, int voll, int loop)
 {
 #ifdef MAC_VERSION
-    SAMPLE *new_sample = load_wav(filename);
+    SAMPLE *new_sample = NULL;
+    PACKFILE* wavin = pack_fopen(filename, "rb");
+    if (wavin != NULL) {
+      new_sample = load_wav_pf(wavin);
+      pack_fclose(wavin);
+    }
 #else
     // Load via soundcache.
     long dummy;

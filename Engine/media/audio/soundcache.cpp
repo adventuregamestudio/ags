@@ -122,12 +122,17 @@ char* get_cached_sound(const char* filename, bool is_wave, long* size)
     }
 
     // Not found
-    PACKFILE *mp3in;
-    SAMPLE* wave;
+    PACKFILE *mp3in = NULL;
+    SAMPLE* wave = NULL;
 
     if (is_wave)
     {
-        wave = load_sample(filename);
+        PACKFILE *wavin = pack_fopen(filename, "rb");
+        if (wavin != NULL)
+        {
+            wave = load_wav_pf(wavin);
+            pack_fclose(wavin);
+        }
     }  
     else
     {

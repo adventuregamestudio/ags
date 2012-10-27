@@ -3,7 +3,7 @@
 
 #include <jni.h>
 #include <android/log.h>
-#include "../PSP/launcher/pe.h"
+#include "../Engine/platform/util/pe.h"
 
 void android_debug_printf(char* format, ...)
 {

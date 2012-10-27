@@ -30,7 +30,6 @@
 		60844EAD1573943400003ED0 /* MainWindow-iPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = 60844EAC1573943400003ED0 /* MainWindow-iPad.xib */; };
 		608498E6155CDF6400121EFE /* Icon-72.png in Resources */ = {isa = PBXBuildFile; fileRef = 608498E5155CDF6400121EFE /* Icon-72.png */; };
 		608498E8155CDF7000121EFE /* Icon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 608498E7155CDF7000121EFE /* Icon@2x.png */; };
-		60898C2616077992009E152F /* libc.c in Sources */ = {isa = PBXBuildFile; fileRef = 60898C2516077992009E152F /* libc.c */; };
 		60898D05160779DB009E152F /* AGSBlend.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60898C2D160779D9009E152F /* AGSBlend.cpp */; };
 		60898D10160779DB009E152F /* agsflashlight.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60898C3A160779D9009E152F /* agsflashlight.cpp */; };
 		60898D79160779DB009E152F /* AGSSpriteFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60898CCD160779DA009E152F /* AGSSpriteFont.cpp */; };
@@ -47,6 +46,7 @@
 		60898DCA160785CB009E152F /* gfxfilter_hq2x.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60898DC9160785CB009E152F /* gfxfilter_hq2x.cpp */; };
 		60898DCC160785DD009E152F /* gfxfilter_hq3x.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60898DCB160785DD009E152F /* gfxfilter_hq3x.cpp */; };
 		60898DD6160787FF009E152F /* hq2x3x.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60898DD4160787FF009E152F /* hq2x3x.cpp */; };
+		608B4E57163BF27B00547FAA /* libc.c in Sources */ = {isa = PBXBuildFile; fileRef = 608B4E56163BF27B00547FAA /* libc.c */; };
 		60BC89A8155E969700807358 /* iTunesArtwork in Resources */ = {isa = PBXBuildFile; fileRef = 60BC89A7155E969700807358 /* iTunesArtwork */; };
 		60CA3A66160713D300CFB3BD /* audiocliptype.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA39AB160713D200CFB3BD /* audiocliptype.cpp */; };
 		60CA3A67160713D300CFB3BD /* common.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA39AE160713D200CFB3BD /* common.cpp */; };
@@ -380,7 +380,6 @@
 		60844EAC1573943400003ED0 /* MainWindow-iPad.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = "MainWindow-iPad.xib"; path = "Resources-iPad/MainWindow-iPad.xib"; sourceTree = "<group>"; };
 		608498E5155CDF6400121EFE /* Icon-72.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-72.png"; sourceTree = "<group>"; };
 		608498E7155CDF7000121EFE /* Icon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon@2x.png"; sourceTree = "<group>"; };
-		60898C2516077992009E152F /* libc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = libc.c; path = ../../../Android/library/jni/libc.c; sourceTree = SOURCE_ROOT; };
 		60898C2D160779D9009E152F /* AGSBlend.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AGSBlend.cpp; sourceTree = "<group>"; };
 		60898C2F160779D9009E152F /* agsblend.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = agsblend.h; sourceTree = "<group>"; };
 		60898C3A160779D9009E152F /* agsflashlight.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = agsflashlight.cpp; sourceTree = "<group>"; };
@@ -407,6 +406,7 @@
 		60898DC9160785CB009E152F /* gfxfilter_hq2x.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gfxfilter_hq2x.cpp; sourceTree = "<group>"; };
 		60898DCB160785DD009E152F /* gfxfilter_hq3x.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gfxfilter_hq3x.cpp; sourceTree = "<group>"; };
 		60898DD4160787FF009E152F /* hq2x3x.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = hq2x3x.cpp; sourceTree = "<group>"; };
+		608B4E56163BF27B00547FAA /* libc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = libc.c; path = util/libc.c; sourceTree = "<group>"; };
 		60BC89A7155E969700807358 /* iTunesArtwork */ = {isa = PBXFileReference; lastKnownFileType = file; path = iTunesArtwork; sourceTree = "<group>"; };
 		60CA39AA160713D200CFB3BD /* animationstruct.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = animationstruct.h; sourceTree = "<group>"; };
 		60CA39AB160713D200CFB3BD /* audiocliptype.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audiocliptype.cpp; sourceTree = "<group>"; };
@@ -1104,7 +1104,6 @@
 			isa = PBXGroup;
 			children = (
 				60898C2B160779D9009E152F /* Plugins */,
-				60898C2516077992009E152F /* libc.c */,
 				60CA3AA7160713FD00CFB3BD /* Engine */,
 				60CA39A8160713D200CFB3BD /* Common */,
 				080E96DDFE201D6D7F000001 /* Classes */,
@@ -1252,6 +1251,14 @@
 				60898DD4160787FF009E152F /* hq2x3x.cpp */,
 			);
 			path = hq2x;
+			sourceTree = "<group>";
+		};
+		608B4E301632BAE800547FAA /* util */ = {
+			isa = PBXGroup;
+			children = (
+				608B4E56163BF27B00547FAA /* libc.c */,
+			);
+			name = util;
 			sourceTree = "<group>";
 		};
 		60CA39A8160713D200CFB3BD /* Common */ = {
@@ -2161,6 +2168,7 @@
 		60CA3CC7160713FF00CFB3BD /* platform */ = {
 			isa = PBXGroup;
 			children = (
+				608B4E301632BAE800547FAA /* util */,
 				60CA3CCA160713FF00CFB3BD /* base */,
 				60CA3CD3160713FF00CFB3BD /* ios */,
 			);
@@ -2663,7 +2671,6 @@
 				60CA3EA4160713FF00CFB3BD /* test_all.cpp in Sources */,
 				60CA3EA5160713FF00CFB3BD /* test_file.cpp in Sources */,
 				60CA3EA6160713FF00CFB3BD /* test_string.cpp in Sources */,
-				60898C2616077992009E152F /* libc.c in Sources */,
 				60898D05160779DB009E152F /* AGSBlend.cpp in Sources */,
 				60898D10160779DB009E152F /* agsflashlight.cpp in Sources */,
 				60898D79160779DB009E152F /* AGSSpriteFont.cpp in Sources */,
@@ -2681,6 +2688,7 @@
 				60898DCC160785DD009E152F /* gfxfilter_hq3x.cpp in Sources */,
 				60898DD6160787FF009E152F /* hq2x3x.cpp in Sources */,
 				6080428E1614DE8F00D33732 /* assetmanager.cpp in Sources */,
+				608B4E57163BF27B00547FAA /* libc.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

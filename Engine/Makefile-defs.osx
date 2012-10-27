@@ -16,8 +16,8 @@ LDFLAGS  := $(addprefix -L,$(LIBDIR))
 
 BASE_PLATFORM = \
 platform/osx/acplmac.cpp \
-../OSX/libc.c \
-../PSP/launcher/pe.c
+platform/util/libc.c \
+platform/util/pe.c
 
 COMMON_PLATFORM = \
 ../Common/platform/osx/macport.cpp \

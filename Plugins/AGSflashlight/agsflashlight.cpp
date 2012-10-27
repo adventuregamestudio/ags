@@ -44,9 +44,9 @@ const unsigned int Version = 1;
 const unsigned int SaveMagic = Magic + Version;
 const float PI = 3.14159265f;
 
-long int screen_width = 320;
-long int screen_height = 200;
-long int screen_color_depth = 16;
+int screen_width = 320;
+int screen_height = 200;
+int screen_color_depth = 16;
 
 IAGSEngine* engine;
 
@@ -216,7 +216,7 @@ void DrawTint()
   BITMAP* screen = engine->GetVirtualScreen();
   unsigned short* destpixel = *(unsigned short**)engine->GetRawBitmapSurface(screen);
 
-  long red, blue, green, alpha;
+  int32 red, blue, green, alpha;
 
   for (y = 0; y < screen_height; y++)
   {
@@ -421,7 +421,7 @@ void CreateLightBitmap()
 
    if (g_FlashlightFollowMouse)
    {
-	   engine->GetMousePosition((long int*)&g_FlashlightX, (long int*)&g_FlashlightY);
+	   engine->GetMousePosition(&g_FlashlightX, &g_FlashlightY);
    }
    else if (g_FollowCharacter != NULL)
    {

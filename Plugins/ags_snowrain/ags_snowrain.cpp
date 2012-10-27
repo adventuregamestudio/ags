@@ -43,9 +43,9 @@ const unsigned int Version = 1;
 const unsigned int SaveMagic = Magic + Version;
 const float PI = 3.14159265f;
 
-long int screen_width = 320;
-long int screen_height = 200;
-long int screen_color_depth = 32;
+int screen_width = 320;
+int screen_height = 200;
+int screen_color_depth = 32;
 
 IAGSEngine* engine;
 

@@ -38,6 +38,7 @@ public:
   virtual void RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour) = 0;
   virtual void AdjustYCoordinateForFont(int *ycoord, int fontNumber) = 0;
   virtual void EnsureTextValidForFont(char *text, int fontNumber) = 0;
+  virtual ~IAGSFontRenderer() { }
 };
 
 extern IAGSFontRenderer* fontRenderers[MAX_FONTS];

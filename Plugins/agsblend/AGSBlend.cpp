@@ -222,7 +222,7 @@ int xytolocale(int x, int y, int width){
 int HighPass(int sprite, int threshold){
     
     BITMAP* src = engine->GetSpriteGraphic(sprite);
-    long srcWidth, srcHeight;
+    int srcWidth, srcHeight;
     
 	engine->GetBitmapDimensions(src, &srcWidth, &srcHeight, NULL);
 
@@ -256,7 +256,7 @@ int Blur (int sprite, int radius) {
              
     BITMAP* src = engine->GetSpriteGraphic(sprite);
     
-	long srcWidth, srcHeight;
+    int srcWidth, srcHeight;
     engine->GetBitmapDimensions(src, &srcWidth, &srcHeight, NULL);
 
     unsigned char **srccharbuffer = engine->GetRawBitmapSurface (src);
@@ -427,7 +427,7 @@ int Clamp(int val, int min, int max){
 int DrawSprite(int destination, int sprite, int x, int y, int DrawMode, int trans){
     
     trans = 100 - trans;
-    long srcWidth, srcHeight, destWidth, destHeight;
+    int srcWidth, srcHeight, destWidth, destHeight;
     
     BITMAP* src = engine->GetSpriteGraphic(sprite);
     BITMAP* dest = engine->GetSpriteGraphic(destination);
@@ -708,7 +708,7 @@ int DrawSprite(int destination, int sprite, int x, int y, int DrawMode, int tran
 int DrawAdd(int destination, int sprite, int x, int y, float scale){
   
 	    
-    long srcWidth, srcHeight, destWidth, destHeight;
+    int srcWidth, srcHeight, destWidth, destHeight;
     
     BITMAP* src = engine->GetSpriteGraphic(sprite);
     BITMAP* dest = engine->GetSpriteGraphic(destination);
@@ -799,7 +799,7 @@ int DrawAlpha(int destination, int sprite, int x, int y, int trans)
     
     trans = 100 - trans;
     
-    long srcWidth, srcHeight, destWidth, destHeight;
+    int srcWidth, srcHeight, destWidth, destHeight;
     
     BITMAP* src = engine->GetSpriteGraphic(sprite);
     BITMAP* dest = engine->GetSpriteGraphic(destination);

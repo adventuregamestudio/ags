@@ -885,36 +885,3 @@ void run_unhandled_event (int evnt) {
     }
 
 }
-
-
-//
-// [IKM] 2012-06-22: this does not seem to be used anywhere; obsolete code?
-//
-//char*ac_default_header=NULL,*temphdr=NULL;
-char ac_default_header[15000]; // this is not used anywhere (?)
-char temphdr[10000];
-
-void setup_exports(char*expfrom) {
-    char namof[30]="\0"; temphdr[0]=0;
-    while (expfrom[0]!=0) {
-        expfrom=strstr(expfrom,"function ");
-        if (expfrom==NULL) break;
-        if (expfrom[-1]!=10) { expfrom++; continue; }
-        expfrom+=9;
-        int iid=0;
-        while (expfrom[iid]!='(') { namof[iid]=expfrom[iid]; iid++; }
-        namof[iid]=0;
-        strcat(temphdr,"export ");
-        strcat(temphdr,namof);
-        strcat(temphdr,";\r\n");
-    }
-    int aa;
-    for (aa=0;aa<game.numcharacters-1;aa++) {
-        if (game.chars[aa].scrname[0]==0) continue;
-        strcat(temphdr,"#define ");
-        strcat(temphdr,game.chars[aa].scrname);
-        strcat(temphdr," ");
-        char*ptro=&temphdr[strlen(temphdr)];
-        sprintf(ptro,"%d\r\n",aa);
-    }
-}

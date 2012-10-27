@@ -209,8 +209,10 @@ void GameState::ReadFromFile(DataStream *in)
     gamma_adjustment = in->ReadInt32();
     temporarily_turned_off_character = in->ReadInt16();
     inv_backwards_compatibility = in->ReadInt16();
-    gui_draw_order = (int*)in->ReadInt32();
-    do_once_tokens = (char**)in->ReadInt32();
+    in->ReadInt32(); // FOR BACKWARD COMPATIBILITY
+    in->ReadInt32(); // OF SAVEGAMES
+    gui_draw_order = NULL;
+    do_once_tokens = NULL;
     num_do_once_tokens = in->ReadInt32();
     text_min_display_time_ms = in->ReadInt32();
     ignore_user_input_after_text_timeout_ms = in->ReadInt32();
@@ -418,8 +420,8 @@ void GameState::WriteToFile(DataStream *out)
     out->WriteInt32( gamma_adjustment);
     out->WriteInt16(temporarily_turned_off_character);
     out->WriteInt16(inv_backwards_compatibility);
-    out->WriteInt32((int32)gui_draw_order);
-    out->WriteInt32((int32)do_once_tokens);
+    out->WriteInt32( 0); // FOR BACKWARD COMPATIBILITY
+    out->WriteInt32( 0); // OF SAVEGAMES
     out->WriteInt32( num_do_once_tokens);
     out->WriteInt32( text_min_display_time_ms);
     out->WriteInt32( ignore_user_input_after_text_timeout_ms);

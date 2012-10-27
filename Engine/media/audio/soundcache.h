@@ -30,8 +30,6 @@
 typedef struct
 {
     char* file_name;
-    int number;
-    int free;
     unsigned int last_used;
     unsigned int size;
     char* data;

@@ -81,7 +81,8 @@ void register_global_script_functions()
 	scAdd_External_Symbol("FileClose",(void *)FileClose);
 	scAdd_External_Symbol("FileIsEOF",(void *)FileIsEOF);
 	scAdd_External_Symbol("FileIsError",(void *)FileIsError);
-	scAdd_External_Symbol("FileOpen",(void *)FileOpen);
+    // NOTE: FileOpenCMode is a backwards-compatible replacement for old-style global script function FileOpen
+	scAdd_External_Symbol("FileOpen",(void *)FileOpenCMode);
 	scAdd_External_Symbol("FileRead",(void *)FileRead);
 	scAdd_External_Symbol("FileReadInt",(void *)FileReadInt);
 	scAdd_External_Symbol("FileReadRawChar",(void *)FileReadRawChar);

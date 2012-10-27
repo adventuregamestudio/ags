@@ -77,6 +77,9 @@ namespace File
     // Deletes existing file; returns TRUE if was able to delete one
     bool        DeleteFile(const String &filename);
 
+    // Sets FileOpenMode and FileWorkMode values corresponding to C-style file open mode string
+    bool        GetFileModesFromCMode(const String &cmode, FileOpenMode &open_mode, FileWorkMode &work_mode);
+
     FileStream *OpenFile(const String &filename, FileOpenMode open_mode, FileWorkMode work_mode);
     // Convenience helpers
     // Create a totally new file, overwrite existing one

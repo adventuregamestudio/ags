@@ -24,6 +24,8 @@ namespace AGS { namespace Common { class DataStream; } }
 using namespace AGS; // FIXME later
 
 Common::DataStream *FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode);
+// NOTE: FileOpenCMode is a backwards-compatible replacement for old-style global script function FileOpen
+Common::DataStream *FileOpenCMode(const char*fnmm, const char* cmode);
 void  FileClose(Common::DataStream *hha);
 void  FileWrite(Common::DataStream *haa, const char *towrite);
 void  FileWriteRawLine(Common::DataStream *haa, const char*towrite);

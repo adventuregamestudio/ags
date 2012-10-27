@@ -960,7 +960,7 @@ int AreObjectsColliding(int obj1,int obj2);
 int AreThingsOverlapping(int thing1, int thing2);
 int HasPlayerBeenInRoom(int roomnum);
 void CallRoomScript (int value);
-Common::DataStream * FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode);
+Common::DataStream * FileOpenCMode(const char*fnmm, const char* cmode);
 void FileClose(Common::DataStream*hha);
 void FileWrite(Common::DataStream*haa, const char *towrite);
 void FileWriteRawLine(Common::DataStream*haa, const char*towrite);

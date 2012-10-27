@@ -92,6 +92,50 @@ bool File::DeleteFile(const String &filename)
     return true;
 }
 
+bool File::GetFileModesFromCMode(const String &cmode, FileOpenMode &open_mode, FileWorkMode &work_mode)
+{
+    // We do not test for 'b' and 't' here, because text mode reading/writing should be done with
+    // the use of ITextReader and ITextWriter implementations.
+    // The number of supported variants here is quite limited due the restrictions AGS makes on them.
+    bool read_base_mode = false;
+    // Default mode is open/read for safety reasons
+    open_mode = kFile_Open;
+    work_mode = kFile_Read;
+    for (int c = 0; c < cmode.GetLength(); ++c)
+    {
+        if (read_base_mode)
+        {
+            if (cmode[c] == '+')
+            {
+                work_mode = kFile_ReadWrite;
+            }
+            break;
+        }
+        else
+        {
+            if (cmode[c] == 'r')
+            {
+                open_mode = kFile_Open;
+                work_mode = kFile_Read;
+                read_base_mode = true;
+            }
+            else if (cmode[c] == 'a')
+            {
+                open_mode = kFile_Create;
+                work_mode = kFile_Write;
+                read_base_mode = true;
+            }
+            else if (cmode[c] == 'w')
+            {
+                open_mode = kFile_CreateAlways;
+                work_mode = kFile_Write;
+                read_base_mode = true;
+            }
+        }
+    }
+    return read_base_mode;
+}
+
 FileStream *File::OpenFile(const String &filename, FileOpenMode open_mode, FileWorkMode work_mode)
 {
     FileStream *fs = new FileStream(filename, open_mode, work_mode);

@@ -111,6 +111,10 @@ void MYSTATICMP3::destroy()
 
     while (!done)
       AGSPlatformDriver::GetDriver()->YieldCPU();
+
+    // Allow the last poll cycle to finish.
+    _mutex.Lock();
+    _mutex.Unlock();
 }
 
 void MYSTATICMP3::seek(int pos)

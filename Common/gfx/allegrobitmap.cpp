@@ -186,15 +186,14 @@ const unsigned char *AllegroBitmap::GetScanLine(int index) const
 
 void AllegroBitmap::SetClip(const Rect &rc)
 {
-	_bitmap->cl = rc.Left;
-	_bitmap->cr = rc.Right;
-	_bitmap->ct = rc.Top;
-	_bitmap->cb = rc.Bottom;
+	set_clip(_bitmap, rc.Left, rc.Top, rc.Right, rc.Bottom);
 }
 
 Rect AllegroBitmap::GetClip() const
 {
-	return Rect(_bitmap->cl, _bitmap->ct, _bitmap->cr, _bitmap->cb);
+	Rect temp;
+	get_clip_rect(_bitmap, &temp.Left, &temp.Top, &temp.Right, &temp.Bottom);
+	return temp;
 }
 
 void AllegroBitmap::SetMaskColor(color_t color)

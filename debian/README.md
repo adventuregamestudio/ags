@@ -31,25 +31,45 @@ Please take note of the usage instructions at the end of this document.
 
 #Building a Debian/Ubuntu package of AGS
 Building a package is the preferred way to install software on
-Debian/Ubuntu. 
+Debian/Ubuntu. This is how it's done.
 
+Install the build dependencies:
 
-##Getting and updating the sources
+    sudo apt-get install git debhelper pkg-config liballegro4.2-dev libaldmb1-dev libfreetype6-dev libtheora-dev libvorbis-dev libogg-dev
 
-###First time
+Download the sources with git and change into the **ags** directory:
+
     git clone git://github.com/adventuregamestudio/ags.git
     cd ags
+
+Build the package and install it with gdebi:
+
+    fakeroot debian/rules binary
+    sudo gdebi ../ags_3.21.1115~JJS-1_i386.deb
+
+#Workaround: 32 bit AGS on 64 bit system
+The 64 bit version of AGS causes problems on some systems, namely frequent
+random crashes. Until this is resolved, a workaround is to use a 32 bit version
+of AGS on a 64 bit system.
+The development versions of Debian and Ubuntu support parallel
+installation of both 32 and 64 bit versions of all required libraries
+(multiarch), so you can build a 32 bit AGS to use on your 64 bit system.
+This part works only on Debian sid and wheezy and Ubuntu quantal.
+If you observe this problem and are able to help resolve it, that would be great.
+
+Download the sources with git and change into the **ags** directory:
+
+    git clone git://github.com/adventuregamestudio/ags.git
+    cd ags
+
+##Matching working directory and orig tarball
+To build the package, it is required that there is an "orig tarball"
+that has the same content as the working directory. This tarball is generated
+from the git content with
+
     debian/rules get-orig-source
 
-###Updating (with clean working directory)
-    git pull
-    debian/rules get-orig-source
-
-###Matching working directory and orig tarball
-To build the package, it is important that the working directory has
-the same content as the tarball that is created from the git content
-with `debian/rules get-orig-source`.
-
+The working directory must have the same content as git, i.e. be "clean".
 To ensure this, check if the working directory is clean with
 
     git status
@@ -66,37 +86,11 @@ If there are still untracked files, delete them manually.
 
 Run `debian/rules get-orig-source` every time the sources change. If
 you want to change the sources yourself, you have to commit the
-changes to git before running `debian/rules get-orig-source` and
-building the package.
+changes to git, then run `debian/rules get-orig-source`, then
+build the package.
 
 
 ##Building the package
-There are two possibilities here. Normally you should go with
-*Native AGS package*.
-However, there is still the possibility that that AGS crashes randomly
-on 64 bit systems. We are not able to reproduce this reliably.
-If you observe this problem and are able to help resolve it, that would be great.
-Otherwise, there is a workaround that is described in the section
-*32 bit AGS on 64 bit system* below.
-
-###Native AGS package
-So you want to build on a 32 bit system or a 64 bit AGS on a 64 bit system.
-
-Install build dependencies and devscripts:
-
-    sudo apt-get install devscripts debhelper pkg-config liballegro4.2-dev libaldmb1-dev libfreetype6-dev libtheora-dev libvorbis-dev libogg-dev
-
-Build the package and install it and its dependencies with gdebi:
-
-    cd ags
-    debuild
-    sudo gdebi ../ags_3.21.1115~JJS-1_i386.deb
-
-###32 bit AGS on 64 bit system
-The development versions of Debian and Ubuntu support parallel
-installation of both 32 and 64 bit versions of all required libraries
-(multiarch), so you can build a 32 bit AGS to use on your 64 bit system.
-This part works only on Debian sid and wheezy and Ubuntu quantal.
 
 Enable multiarch:
 

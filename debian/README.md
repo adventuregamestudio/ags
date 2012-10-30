@@ -45,7 +45,7 @@ Download the sources with git and change into the **ags** directory:
 Build the package and install it with gdebi:
 
     fakeroot debian/rules binary
-    sudo gdebi ../ags_3.21.1115~JJS-1_i386.deb
+    sudo gdebi ../ags_3.21.1115~JJS-1_*.deb
 
 #Workaround: 32 bit AGS on 64 bit system
 The 64 bit version of AGS causes problems on some systems, namely frequent

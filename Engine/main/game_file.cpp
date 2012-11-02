@@ -67,6 +67,7 @@ GetRegionAt() clips the input values to the screen size
 27 : 2.6.2
 
 Script modules. Fixes bug in the inventory display.
+Clickable GUI is selected with regard for the drawing order
 31 : 2.7.0
 32 : 2.7.2
 

@@ -63,6 +63,7 @@ Encrypted global messages and dialogs.
 26 : 2.6.1
 
 Wait() must be called with parameter > 0
+GetRegionAt() clips the input values to the screen size
 27 : 2.6.2
 
 Script modules. Fixes bug in the inventory display.

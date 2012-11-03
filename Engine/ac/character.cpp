@@ -138,7 +138,7 @@ void Character_AddInventory(CharacterInfo *chaa, ScriptInvItem *invi, int addInd
             if (charextra[charid].invorder[ee] == inum) {
                 // They already have the item, so don't add it to the list
                 if (chaa == playerchar)
-                    run_on_event (GE_ADD_INV, inum);
+                    run_on_event (GE_ADD_INV, RuntimeScriptValue().SetInt32(inum));
                 return;
             }
         }
@@ -162,7 +162,7 @@ void Character_AddInventory(CharacterInfo *chaa, ScriptInvItem *invi, int addInd
     charextra[charid].invorder_count++;
     guis_need_update = 1;
     if (chaa == playerchar)
-        run_on_event (GE_ADD_INV, inum);
+        run_on_event (GE_ADD_INV, RuntimeScriptValue().SetInt32(inum));
 
 }
 
@@ -647,7 +647,7 @@ void Character_LoseInventory(CharacterInfo *chap, ScriptInvItem *invi) {
     guis_need_update = 1;
 
     if (chap == playerchar)
-        run_on_event (GE_LOSE_INV, inum);
+        run_on_event (GE_LOSE_INV, RuntimeScriptValue().SetInt32(inum));
 }
 
 void Character_PlaceOnWalkableArea(CharacterInfo *chap) 

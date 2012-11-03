@@ -2420,7 +2420,7 @@ int do_game_load(const char *nametouse, int slotNumber, char *descrp, int *wantS
     if (ress)
         return ress;
 
-    run_on_event (GE_RESTORE_GAME, slotNumber);
+    run_on_event (GE_RESTORE_GAME, RuntimeScriptValue().SetInt32(slotNumber));
 
     // ensure keyboard buffer is clean
     // use the raw versions rather than the rec_ versions so we don't

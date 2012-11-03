@@ -37,6 +37,8 @@
 #include "script/script_runtime.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
+#include "ac/dynobj/cc_gui.h"
+#include "ac/dynobj/cc_guiobject.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -55,6 +57,9 @@ extern int scrnwid,scrnhit;
 extern Bitmap **guibg;
 extern IDriverDependantBitmap **guibgbmp;
 extern IGraphicsDriver *gfxDriver;
+
+extern CCGUI ccDynamicGUI;
+extern CCGUIObject ccDynamicGUIObject;
 
 
 int ifacepopped=-1;  // currently displayed pop-up GUI (-1 if none)
@@ -241,7 +246,9 @@ void remove_popup_interface(int ifacenum) {
 void process_interface_click(int ifce, int btn, int mbut) {
     if (btn < 0) {
         // click on GUI background
-        gameinst->RunTextScript2IParam(guis[ifce].clickEventHandler, (long)&scrGui[ifce], mbut);
+        gameinst->RunTextScript2IParam(guis[ifce].clickEventHandler,
+            RuntimeScriptValue().SetDynamicObject(&scrGui[ifce], &ccDynamicGUI),
+            RuntimeScriptValue().SetInt32(mbut));
         return;
     }
 
@@ -268,12 +275,17 @@ void process_interface_click(int ifce, int btn, int mbut) {
             (gameinst->GetSymbolAddress(theObj->eventHandlers[0]) != NULL)) {
                 // control-specific event handler
                 if (strchr(theObj->GetEventArgs(0), ',') != NULL)
-                    gameinst->RunTextScript2IParam(theObj->eventHandlers[0], (long)theObj, mbut);
+                    gameinst->RunTextScript2IParam(theObj->eventHandlers[0],
+                        RuntimeScriptValue().SetDynamicObject(theObj, &ccDynamicGUIObject),
+                        RuntimeScriptValue().SetInt32(mbut));
                 else
-                    gameinst->RunTextScriptIParam(theObj->eventHandlers[0], (long)theObj);
+                    gameinst->RunTextScriptIParam(theObj->eventHandlers[0],
+                        RuntimeScriptValue().SetDynamicObject(theObj, &ccDynamicGUIObject));
         }
         else
-            gameinst->RunTextScript2IParam("interface_click",ifce,btn);
+            gameinst->RunTextScript2IParam("interface_click",
+                RuntimeScriptValue().SetInt32(ifce),
+                RuntimeScriptValue().SetInt32(btn));
     }
 }
 

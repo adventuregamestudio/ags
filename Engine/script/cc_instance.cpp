@@ -35,6 +35,7 @@
 #include "util/misc.h"
 #include "util/textstreamwriter.h"
 #include "ac/dynobj/scriptstring.h"
+#include "debug/assert.h"
 
 using AGS::Common::DataStream;
 using AGS::Common::TextStreamWriter;
@@ -162,6 +163,12 @@ const char *regnames[] = { "null", "sp", "mar", "ax", "bx", "cx", "op", "dx" };
 const char *fixupnames[] = { "null", "fix_gldata", "fix_func", "fix_string", "fix_import", "fix_datadata", "fix_stack" };
 
 ccInstance *current_instance;
+// [IKM] 2012-10-21:
+// NOTE: This is temporary solution (*sigh*, one of many) which allows certain
+// exported functions return value as a RuntimeScriptValue object;
+// this is made so because I do not want to change all exported functions'
+// return value at once.
+RuntimeScriptValue GlobalReturnValue;
 
 
 ccInstance *ccInstance::GetCurrentInstance()
@@ -236,10 +243,16 @@ void ccInstance::AbortAndDestroy()
     }
 }
 
-int ccInstance::CallScriptFunction(char *funcname, long numargs, ...)
+int ccInstance::CallScriptFunction(char *funcname, long numargs, RuntimeScriptValue *params)
 {
     ccError = 0;
     currentline = 0;
+
+    if (numargs > 0 && !params)
+    {
+        cc_error("internal error in ccInstance::CallScriptFunction");
+        return -1; // TODO: correct error value
+    }
 
     if ((numargs >= 20) || (numargs < 0)) {
         cc_error("too many arguments to function");
@@ -288,19 +301,7 @@ int ccInstance::CallScriptFunction(char *funcname, long numargs, ...)
         return -2;
     }
 
-    long tempstack[20];
-    int tssize = 1;
-    tempstack[0] = 0;             // return address on stack
-    if (numargs > 0) {
-        va_list ap;
-        va_start(ap, numargs);
-        while (tssize <= numargs) {
-            tempstack[tssize] = va_arg(ap, long);
-            tssize++;
-        }
-        va_end(ap);
-    }
-    numargs++;                    // account for return address
+    //numargs++;                    // account for return address
     flags &= ~INSTF_ABORTED;
 
     // object pointer needs to start zeroed
@@ -309,13 +310,16 @@ int ccInstance::CallScriptFunction(char *funcname, long numargs, ...)
     ccInstance* currentInstanceWas = current_instance;
     registers[SREG_SP].SetStackPtr( &stack[0] );
     stackdata_ptr = stackdata;
-    for (tssize = numargs - 1; tssize >= 0; tssize--) {
-        PushValueToStack(RuntimeScriptValue().SetLong(tempstack[tssize]));
+    // NOTE: Pushing parameters to stack in reverse order
+    for (int i = numargs - 1; i >= 0; --i)
+    {
+        PushValueToStack(params[i]);
     }
+    PushValueToStack(RuntimeScriptValue().SetInt32(0)); // return address on stack
     runningInst = this;
 
     int reterr = Run(startat);
-    PopValuesFromStack(numargs - 1);
+    PopValuesFromStack(numargs);
     pc = 0;
     current_instance = currentInstanceWas;
 
@@ -353,12 +357,10 @@ void ccInstance::DoRunScriptFuncCantBlock(NonBlockingScriptFunction* funcToRun, 
     no_blocking_functions++;
     int result;
 
-    if (funcToRun->numParameters == 0)
-        result = CallScriptFunction((char*)funcToRun->functionName, 0);
-    else if (funcToRun->numParameters == 1)
-        result = CallScriptFunction((char*)funcToRun->functionName, 1, funcToRun->param1);
-    else if (funcToRun->numParameters == 2)
-        result = CallScriptFunction((char*)funcToRun->functionName, 2, funcToRun->param1, funcToRun->param2);
+    if (funcToRun->numParameters < 3)
+    {
+        result = CallScriptFunction((char*)funcToRun->functionName, funcToRun->numParameters, funcToRun->params);
+    }
     else
         quit("DoRunScriptFuncCantBlock called with too many parameters");
 
@@ -792,6 +794,11 @@ int ccInstance::Run(long curpc)
 
           long handle = registers[SREG_MAR].ReadInt32();
 
+          if (reg1.GetType() != kScValDynamicObject)
+          {
+              //assert(0);
+          }
+
           // CHECKME!! what type of data may reg1 point to?
           // FIXME: GetDataPtrWithOffset should not be used here; instead GetDataPtr should.
           // However it is possible that reg1 holds value from global var or returned
@@ -809,6 +816,10 @@ int ccInstance::Run(long curpc)
           break;
                              }
       case SCMD_MEMINITPTR: { 
+          if (reg1.GetType() != kScValDynamicObject)
+          {
+              //assert(0);
+          }
           // like memwriteptr, but doesn't attempt to free the old one
           // CHECKME!! what type of data may reg1 point to?
           long newHandle = ccGetObjectHandleFromAddress((char*)reg1.GetDataPtrWithOffset());
@@ -919,6 +930,8 @@ int ccInstance::Run(long curpc)
           if (num_args_to_func < 0)
               num_args_to_func = callstacksize;
 
+          GlobalReturnValue.Invalidate();
+          long return_value;
           if (next_call_needs_object) {
               // member function call
               // use the callstack +1 size allocation to squeeze
@@ -926,19 +939,28 @@ int ccInstance::Run(long curpc)
               call_uses_object = 1;
               next_call_needs_object = 0;
               callstack[callstacksize] = registers[SREG_OP];
-              registers[SREG_AX].SetLong(
+              return_value = 
                   // FIXME later: use different getter
-                  call_function(reg1.GetLong(), num_args_to_func + 1, callstack, callstacksize - num_args_to_func) );
+                  call_function(reg1.GetLong(), num_args_to_func + 1, callstack, callstacksize - num_args_to_func);
           }
           else if (num_args_to_func == 0) {
               // FIXME later: use different getter
               realfunc = (int (*)())reg1.GetLong();
-              registers[SREG_AX].SetLong( realfunc() );
+              return_value = realfunc();
           } 
           else
-              registers[SREG_AX].SetLong(
+              return_value =
               // FIXME later: use different getter
-                    call_function(reg1.GetLong(), num_args_to_func, callstack, callstacksize - num_args_to_func) );
+                    call_function(reg1.GetLong(), num_args_to_func, callstack, callstacksize - num_args_to_func);
+
+          if (GlobalReturnValue.IsValid())
+          {
+            registers[SREG_AX] = GlobalReturnValue;
+          }
+          else
+          {
+            registers[SREG_AX].SetLong(return_value);
+          }
 
           if (ccError)
               return -1;
@@ -1071,20 +1093,17 @@ int ccInstance::Run(long curpc)
               cc_error("!Null pointer referenced");
               return -1;
           }
-          if (strcmp((const char*)reg1.GetDataPtrWithOffset(), (const char*)reg2.GetDataPtrWithOffset()) == 0)
-              reg1.SetLong( 1 );
-          else
-              reg1.SetLong( 0 );
+          reg1.SetAsBool(
+            strcmp((const char*)reg1.GetDataPtrWithOffset(), (const char*)reg2.GetDataPtrWithOffset()) == 0 );
+          
           break;
       case SCMD_STRINGSNOTEQ:
           if ((reg1 == 0) || (reg2 == 0)) {
               cc_error("!Null pointer referenced");
               return -1;
           }
-          if (strcmp((const char*)reg1.GetDataPtrWithOffset(), (const char*)reg2.GetDataPtrWithOffset()) != 0)
-              reg1.SetLong( 1 );
-          else
-              reg1.SetLong( 0 );
+          reg1.SetAsBool(
+              strcmp((const char*)reg1.GetDataPtrWithOffset(), (const char*)reg2.GetDataPtrWithOffset()) != 0 );
           break;
       case SCMD_LOOPCHECKOFF:
           if (loopIterationCheckDisabled == 0)
@@ -1102,7 +1121,7 @@ int ccInstance::Run(long curpc)
     }
 }
 
-int ccInstance::RunScriptFunctionIfExists(char*tsname,int numParam, long iparam, long iparam2, long iparam3) {
+int ccInstance::RunScriptFunctionIfExists(char*tsname,int numParam, RuntimeScriptValue *params) {
     int oldRestoreCount = gameHasBeenRestored;
     // First, save the current ccError state
     // This is necessary because we might be attempting
@@ -1122,14 +1141,10 @@ int ccInstance::RunScriptFunctionIfExists(char*tsname,int numParam, long iparam,
     // Clear the error message
     ccErrorString[0] = 0;
 
-    if (numParam == 0) 
-        toret = curscript->inst->CallScriptFunction(tsname,numParam);
-    else if (numParam == 1)
-        toret = curscript->inst->CallScriptFunction(tsname,numParam, iparam);
-    else if (numParam == 2)
-        toret = curscript->inst->CallScriptFunction(tsname,numParam,iparam, iparam2);
-    else if (numParam == 3)
-        toret = curscript->inst->CallScriptFunction(tsname,numParam,iparam, iparam2, iparam3);
+    if (numParam < 3)
+    {
+        toret = curscript->inst->CallScriptFunction(tsname,numParam, params);
+    }
     else
         quit("Too many parameters to RunScriptFunctionIfExists");
 
@@ -1165,7 +1180,7 @@ int ccInstance::RunTextScript(char*tsname) {
 
         for (int kk = 0; kk < numScriptModules; kk++) {
             if (moduleRepExecAddr[kk] != NULL)
-                moduleInst[kk]->RunScriptFunctionIfExists(tsname, 0, 0, 0);
+                moduleInst[kk]->RunScriptFunctionIfExists(tsname, 0, NULL);
 
             if ((room_changes_was != play.room_changes) ||
                 (restore_game_count_was != gameHasBeenRestored))
@@ -1173,7 +1188,7 @@ int ccInstance::RunTextScript(char*tsname) {
         }
     }
 
-    int toret = RunScriptFunctionIfExists(tsname, 0, 0, 0);
+    int toret = RunScriptFunctionIfExists(tsname, 0, NULL);
     if ((toret == -18) && (this == roominst)) {
         // functions in room script must exist
         quitprintf("prepare_script: error %d (%s) trying to run '%s'   (Room %d)",toret,ccErrorString,tsname, displayed_room);
@@ -1181,22 +1196,26 @@ int ccInstance::RunTextScript(char*tsname) {
     return toret;
 }
 
-int ccInstance::RunTextScriptIParam(char*tsname,long iparam) {
+int ccInstance::RunTextScriptIParam(char*tsname,RuntimeScriptValue &iparam) {
     if ((strcmp(tsname, "on_key_press") == 0) || (strcmp(tsname, "on_mouse_click") == 0)) {
         bool eventWasClaimed;
-        int toret = run_claimable_event(tsname, true, 1, iparam, 0, &eventWasClaimed);
+        int toret = run_claimable_event(tsname, true, 1, &iparam, &eventWasClaimed);
 
         if (eventWasClaimed)
             return toret;
     }
 
-    return RunScriptFunctionIfExists(tsname, 1, iparam, 0);
+    return RunScriptFunctionIfExists(tsname, 1, &iparam);
 }
 
-int ccInstance::RunTextScript2IParam(char*tsname,long iparam,long param2) {
+int ccInstance::RunTextScript2IParam(char*tsname,RuntimeScriptValue &iparam, RuntimeScriptValue &param2) {
+    RuntimeScriptValue params[2];
+    params[0] = iparam;
+    params[1] = param2;
+
     if (strcmp(tsname, "on_event") == 0) {
         bool eventWasClaimed;
-        int toret = run_claimable_event(tsname, true, 2, iparam, param2, &eventWasClaimed);
+        int toret = run_claimable_event(tsname, true, 2, params, &eventWasClaimed);
 
         if (eventWasClaimed)
             return toret;
@@ -1206,7 +1225,7 @@ int ccInstance::RunTextScript2IParam(char*tsname,long iparam,long param2) {
     if (strnicmp(tsname, "interface_click", 15) == 0)
         guis_need_update = 1;
 
-    int toret = RunScriptFunctionIfExists(tsname, 2, iparam, param2);
+    int toret = RunScriptFunctionIfExists(tsname, 2, params);
 
     // tsname is no longer valid, because RunScriptFunctionIfExists might
     // have restored a save game and freed the memory. Therefore don't 

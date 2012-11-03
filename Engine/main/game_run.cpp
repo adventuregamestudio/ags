@@ -287,7 +287,7 @@ void check_controls() {
             break;
         }
 
-        run_on_event(GE_GUI_MOUSEUP, wasongui);
+        run_on_event(GE_GUI_MOUSEUP, RuntimeScriptValue().SetInt32(wasongui));
     }
 
     aa=mgetbutton();
@@ -317,7 +317,7 @@ void check_controls() {
                 if ((guis[mongu].mousedownon < 0) && (guis[mongu].clickEventHandler[0] != 0))
                     setevent(EV_IFACECLICK, mongu, -1, aa + 1);
 
-                run_on_event(GE_GUI_MOUSEDOWN, mongu);
+                run_on_event(GE_GUI_MOUSEDOWN, RuntimeScriptValue().SetInt32(mongu));
             }
             wasongui=mongu;
             wasbutdown=aa+1;

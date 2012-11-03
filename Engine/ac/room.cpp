@@ -957,7 +957,7 @@ void new_room(int newnum,CharacterInfo*forchar) {
     // player leaves screen event
     run_room_event(8);
     // Run the global OnRoomLeave event
-    run_on_event (GE_LEAVE_ROOM, displayed_room);
+    run_on_event (GE_LEAVE_ROOM, RuntimeScriptValue().SetInt32(displayed_room));
 
     platform->RunPluginHooks(AGSE_LEAVEROOM, displayed_room);
 

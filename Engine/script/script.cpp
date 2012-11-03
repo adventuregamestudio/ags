@@ -91,7 +91,7 @@ char **guiScriptObjNames = NULL;
 
 int run_dialog_request (int parmtr) {
     play.stop_dialog_at_end = DIALOG_RUNNING;
-    gameinst->RunTextScriptIParam("dialog_request", parmtr);
+    gameinst->RunTextScriptIParam("dialog_request", RuntimeScriptValue().SetInt32(parmtr));
 
     if (play.stop_dialog_at_end == DIALOG_STOP) {
         play.stop_dialog_at_end = DIALOG_NONE;
@@ -211,7 +211,7 @@ int run_interaction_script(InteractionScripts *nint, int evnt, int chkAny, int i
         if ((strstr(evblockbasename,"character")!=0) || (strstr(evblockbasename,"inventory")!=0)) {
             // Character or Inventory (global script)
             if (inside_script) 
-                curscript->run_another (nint->scriptFuncNames[evnt], 0, 0);
+                curscript->run_another (nint->scriptFuncNames[evnt], RuntimeScriptValue(), RuntimeScriptValue() /*0, 0*/);
             else gameinst->RunTextScript(nint->scriptFuncNames[evnt]);
         }
         else {
@@ -219,7 +219,7 @@ int run_interaction_script(InteractionScripts *nint, int evnt, int chkAny, int i
             if (inside_script) {
                 char funcName[60];
                 sprintf(funcName, "|%s", nint->scriptFuncNames[evnt]);
-                curscript->run_another (funcName, 0, 0);
+                curscript->run_another (funcName, RuntimeScriptValue(), RuntimeScriptValue() /*0, 0*/);
             }
             else
                 roominst->RunTextScript(nint->scriptFuncNames[evnt]);
@@ -445,7 +445,7 @@ int run_interaction_commandlist (NewInteractionCommandList *nicl, int *timesrun,
                       char *torun = make_ts_func_name(evblockbasename,evblocknum,nicl->command[i].data[0].val);
                       // we are already inside the mouseclick event of the script, can't nest calls
                       if (inside_script) 
-                          curscript->run_another (torun, 0, 0);
+                          curscript->run_another (torun, RuntimeScriptValue(), RuntimeScriptValue() /*0, 0*/);
                       else gameinst->RunTextScript(torun);
                   }
                   else {
@@ -454,7 +454,7 @@ int run_interaction_commandlist (NewInteractionCommandList *nicl, int *timesrun,
                           char funcName[60];
                           strcpy(funcName,"|");
                           strcat(funcName,make_ts_func_name(evblockbasename,evblocknum,nicl->command[i].data[0].val));
-                          curscript->run_another (funcName, 0, 0);
+                          curscript->run_another (funcName, RuntimeScriptValue(), RuntimeScriptValue() /*0, 0*/);
                       }
                       else
                           roominst->RunTextScript(make_ts_func_name(evblockbasename,evblocknum,nicl->command[i].data[0].val));
@@ -683,9 +683,9 @@ void run_unhandled_event (int evnt) {
         can_run_delayed_command();
 
         if (inside_script)
-            curscript->run_another ("#unhandled_event", evtype, evnt);
+            curscript->run_another ("#unhandled_event", RuntimeScriptValue().SetInt32(evtype), RuntimeScriptValue().SetInt32(evnt));
         else
-            gameinst->RunTextScript2IParam("unhandled_event",evtype,evnt);
+            gameinst->RunTextScript2IParam("unhandled_event",RuntimeScriptValue().SetInt32(evtype),RuntimeScriptValue().SetInt32(evnt));
     }
 }
 

@@ -96,7 +96,7 @@ void GiveScore(int amnt)
     if ((amnt > 0) && (play.score_sound >= 0))
         play_audio_clip_by_index(play.score_sound);
 
-    run_on_event (GE_GOT_SCORE, amnt);
+    run_on_event (GE_GOT_SCORE, RuntimeScriptValue().SetInt32(amnt));
 }
 
 void restart_game() {

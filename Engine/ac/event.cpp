@@ -66,7 +66,7 @@ int eventClaimed = EVENT_NONE;
 char*tsnames[4]={NULL, REP_EXEC_NAME, "on_key_press","on_mouse_click"};
 
 
-int run_claimable_event(char *tsname, bool includeRoom, int numParams, long param1, long param2, bool *eventWasClaimed) {
+int run_claimable_event(char *tsname, bool includeRoom, int numParams, RuntimeScriptValue *params, bool *eventWasClaimed) {
     *eventWasClaimed = true;
     // Run the room script function, and if it is not claimed,
     // then run the main one
@@ -77,7 +77,7 @@ int run_claimable_event(char *tsname, bool includeRoom, int numParams, long para
     int toret;
 
     if (includeRoom) {
-        toret = roominst->RunScriptFunctionIfExists(tsname, numParams, param1, param2);
+        toret = roominst->RunScriptFunctionIfExists(tsname, numParams, params);
 
         if (eventClaimed == EVENT_CLAIMED) {
             eventClaimed = eventClaimedOldValue;
@@ -87,7 +87,7 @@ int run_claimable_event(char *tsname, bool includeRoom, int numParams, long para
 
     // run script modules
     for (int kk = 0; kk < numScriptModules; kk++) {
-        toret = moduleInst[kk]->RunScriptFunctionIfExists(tsname, numParams, param1, param2);
+        toret = moduleInst[kk]->RunScriptFunctionIfExists(tsname, numParams, params);
 
         if (eventClaimed == EVENT_CLAIMED) {
             eventClaimed = eventClaimedOldValue;
@@ -100,13 +100,13 @@ int run_claimable_event(char *tsname, bool includeRoom, int numParams, long para
     return 0;
 }
 
-// runs the global script on_event fnuction
-void run_on_event (int evtype, int wparam) {
+// runs the global script on_event function
+void run_on_event (int evtype, RuntimeScriptValue &wparam) {
     if (inside_script) {
-        curscript->run_another("#on_event", evtype, wparam);
+        curscript->run_another("#on_event", RuntimeScriptValue().SetInt32(evtype), wparam);
     }
     else
-        gameinst->RunTextScript2IParam("on_event", evtype, wparam);
+        gameinst->RunTextScript2IParam("on_event", RuntimeScriptValue().SetInt32(evtype), wparam);
 }
 
 void run_room_event(int id) {
@@ -122,15 +122,15 @@ void run_room_event(int id) {
     }
 }
 
-void run_event_block_inv(int invNum, int aaa) {
+void run_event_block_inv(int invNum, int event) {
     evblockbasename="inventory%d";
     if (game.invScripts != NULL)
     {
-        run_interaction_script(game.invScripts[invNum], aaa);
+        run_interaction_script(game.invScripts[invNum], event);
     }
     else 
     {
-        run_interaction_event(game.intrInv[invNum], aaa);
+        run_interaction_event(game.intrInv[invNum], event);
     }
 
 }
@@ -153,14 +153,14 @@ void process_event(EventHappened*evp) {
             if (inside_script) {
                 char nameToExec[50];
                 sprintf (nameToExec, "!%s", tsnames[evp->data1]);
-                curscript->run_another(nameToExec, evp->data2, 0);
+                curscript->run_another(nameToExec, RuntimeScriptValue().SetInt32(evp->data2), RuntimeScriptValue() /*0*/);
             }
             else
-                resl=gameinst->RunTextScriptIParam(tsnames[evp->data1],evp->data2);
+                resl=gameinst->RunTextScriptIParam(tsnames[evp->data1],RuntimeScriptValue().SetInt32(evp->data2));
         }
         else {
             if (inside_script)
-                curscript->run_another (tsnames[evp->data1], 0, 0);
+                curscript->run_another (tsnames[evp->data1], RuntimeScriptValue(), RuntimeScriptValue() /*0, 0*/);
             else
                 resl=gameinst->RunTextScript(tsnames[evp->data1]);
         }
@@ -196,7 +196,7 @@ void process_event(EventHappened*evp) {
             evblockbasename="room";
             if (evp->data3 == 5) {
                 in_enters_screen ++;
-                run_on_event (GE_ENTER_ROOM, displayed_room);
+                run_on_event (GE_ENTER_ROOM, RuntimeScriptValue().SetInt32(displayed_room));
 
             }
             //platform->WriteDebugString("Running room interaction, event %d", evp->data3);

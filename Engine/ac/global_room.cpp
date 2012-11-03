@@ -167,7 +167,7 @@ void CallRoomScript (int value) {
         quit("!CallRoomScript: not inside a script???");
 
     play.roomscript_finished = 0;
-    curscript->run_another("$on_call", value, 0);
+    curscript->run_another("$on_call", RuntimeScriptValue().SetInt32(value), RuntimeScriptValue() /*0*/);
 }
 
 int HasBeenToRoom (int roomnum) {

@@ -7,7 +7,6 @@
 #define __AGS_EE_SCRIPT__RUNTIMESCRIPTVALUE_H
 
 #include "core/types.h"
-#include "debug/assert.h"
 
 struct ICCDynamicObject;
 
@@ -162,6 +161,10 @@ public:
         MgrPtr  = NULL;
         Size    = 4;
         return *this;
+    }
+    inline RuntimeScriptValue &SetAsBool(bool val)
+    {
+        return SetInt32(val ? 1 : 0);
     }
     inline RuntimeScriptValue &SetStackPtr(RuntimeScriptValue *stack_entry)
     {

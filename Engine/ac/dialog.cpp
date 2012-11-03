@@ -180,7 +180,7 @@ int run_dialog_script(DialogTopic*dtpp, int dialogID, int offse, int optionIndex
   {
     char funcName[100];
     sprintf(funcName, "_run_dialog%d", dialogID);
-    dialogScriptsInst->RunTextScriptIParam(funcName, optionIndex);
+    dialogScriptsInst->RunTextScriptIParam(funcName, RuntimeScriptValue().SetInt32(optionIndex));
     result = dialogScriptsInst->returnValue;
   }
   else
@@ -394,7 +394,7 @@ bool get_custom_dialog_options_dimensions(int dlgnum)
   ccDialogOptionsRendering.Reset();
   ccDialogOptionsRendering.dialogID = dlgnum;
 
-  getDialogOptionsDimensionsFunc.param1 = &ccDialogOptionsRendering;
+  getDialogOptionsDimensionsFunc.params[0].SetDynamicObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
   run_function_on_non_blocking_thread(&getDialogOptionsDimensionsFunc);
 
   if ((ccDialogOptionsRendering.width > 0) &&
@@ -572,7 +572,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
       dialogOptionsRenderingSurface->linkedBitmapOnly = tempScrn;
       dialogOptionsRenderingSurface->hasAlphaChannel = false;
 
-      renderDialogOptionsFunc.param1 = &ccDialogOptionsRendering;
+      renderDialogOptionsFunc.params[0].SetDynamicObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
       run_function_on_non_blocking_thread(&renderDialogOptionsFunc);
 
       if (!ccDialogOptionsRendering.surfaceAccessed)
@@ -800,7 +800,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
             (mousex < dirtyx + tempScrn->GetWidth()) &&
             (mousey < dirtyy + tempScrn->GetHeight()))
         {
-          getDialogOptionUnderCursorFunc.param1 = &ccDialogOptionsRendering;
+          getDialogOptionUnderCursorFunc.params[0].SetDynamicObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
           run_function_on_non_blocking_thread(&getDialogOptionUnderCursorFunc);
 
           if (!getDialogOptionUnderCursorFunc.atLeastOneImplementationExists)
@@ -842,8 +842,8 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
         {
           if (usingCustomRendering)
           {
-            runDialogOptionMouseClickHandlerFunc.param1 = &ccDialogOptionsRendering;
-            runDialogOptionMouseClickHandlerFunc.param2 = (void*)(mouseButtonPressed + 1);
+            runDialogOptionMouseClickHandlerFunc.params[0].SetDynamicObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+            runDialogOptionMouseClickHandlerFunc.params[1].SetInt32(mouseButtonPressed + 1);
             run_function_on_non_blocking_thread(&runDialogOptionMouseClickHandlerFunc);
 
             if (runDialogOptionMouseClickHandlerFunc.atLeastOneImplementationExists)
@@ -871,8 +871,8 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
         int mouseWheelTurn = check_mouse_wheel();
         if (mouseWheelTurn != 0)
         {
-            runDialogOptionMouseClickHandlerFunc.param1 = &ccDialogOptionsRendering;
-            runDialogOptionMouseClickHandlerFunc.param2 = (void*)((mouseWheelTurn < 0) ? 9 : 8);
+            runDialogOptionMouseClickHandlerFunc.params[0].SetDynamicObject(&ccDialogOptionsRendering, &ccDialogOptionsRendering);
+            runDialogOptionMouseClickHandlerFunc.params[1].SetInt32((mouseWheelTurn < 0) ? 9 : 8);
             run_function_on_non_blocking_thread(&runDialogOptionMouseClickHandlerFunc);
 
             if (runDialogOptionMouseClickHandlerFunc.atLeastOneImplementationExists)

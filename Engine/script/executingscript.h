@@ -42,13 +42,13 @@ struct ExecutingScript {
     int  postScriptActionData[MAX_QUEUED_ACTIONS];
     int  numPostScriptActions;
     char script_run_another[MAX_QUEUED_SCRIPTS][30];
-    int  run_another_p1[MAX_QUEUED_SCRIPTS];
-    int  run_another_p2[MAX_QUEUED_SCRIPTS];
+    RuntimeScriptValue run_another_p1[MAX_QUEUED_SCRIPTS];
+    RuntimeScriptValue run_another_p2[MAX_QUEUED_SCRIPTS];
     int  numanother;
     char forked;
 
     int queue_action(PostScriptAction act, int data, const char *aname);
-    void run_another (char *namm, int p1, int p2);
+    void run_another (char *namm, RuntimeScriptValue &p1, RuntimeScriptValue &p2);
     void init();
     ExecutingScript();
 };

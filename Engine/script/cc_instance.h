@@ -22,7 +22,6 @@
 #include "script/script_common.h"
 #include "script/cc_script.h"  // ccScript
 #include "script/nonblockingscriptfunction.h"
-#include "script/runtimescriptvalue.h"
 
 namespace AGS { namespace Common { class DataStream; }; };
 
@@ -123,14 +122,14 @@ public:
     void    AbortAndDestroy();
     
     // call an exported function in the script (2nd arg is number of params)
-    int     CallScriptFunction(char *, long, ...);
+    int     CallScriptFunction(char *funcname, long num_params, RuntimeScriptValue *params);
     void    DoRunScriptFuncCantBlock(NonBlockingScriptFunction* funcToRun, bool *hasTheFunc);
     int     PrepareTextScript(char**tsname);
     int     Run(long curpc);
-    int     RunScriptFunctionIfExists(char*tsname,int numParam, long iparam, long iparam2, long iparam3 = 0);
+    int     RunScriptFunctionIfExists(char*tsname,int numParam, RuntimeScriptValue *params);
     int     RunTextScript(char*tsname);
-    int     RunTextScriptIParam(char*tsname, long iparam);
-    int     RunTextScript2IParam(char*tsname,long iparam,long param2);
+    int     RunTextScriptIParam(char*tsname, RuntimeScriptValue &iparam);
+    int     RunTextScript2IParam(char*tsname,RuntimeScriptValue &iparam, RuntimeScriptValue &param2);
     
     void    GetCallStack(char *buffer, int maxLines);
     void    GetScriptName(char *curScrName);

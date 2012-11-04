@@ -792,14 +792,24 @@ int ccInstance::Run(long curpc)
       case SCMD_MEMWRITEPTR: {
 
           long handle = registers[SREG_MAR].ReadInt32();
+          char *address = NULL;
 
-          if (reg1.GetType() != kScValDynamicObject && reg1.GetLong() != 0)
+          if (reg1.GetType() == kScValStaticObject)
+          {
+              // Could be a global static array of game entities
+              address = reg1.GetDataPtrWithOffset();
+          }
+          else if (reg1.GetType() == kScValDynamicObject)
+          {
+              address = reg1.GetDataPtr();
+          }
+          else if (!reg1.IsNull())
           {
               cc_error("internal error: MEMWRITEPTR argument is not dynamic object");
               return -1;
           }
 
-          long newHandle = ccGetObjectHandleFromAddress((char*)reg1.GetDataPtr());
+          long newHandle = ccGetObjectHandleFromAddress(address);
           if (newHandle == -1)
               return -1;
 
@@ -811,13 +821,24 @@ int ccInstance::Run(long curpc)
           break;
                              }
       case SCMD_MEMINITPTR: { 
-          if (reg1.GetType() != kScValDynamicObject && reg1.GetLong() != 0)
+          char *address = NULL;
+
+          if (reg1.GetType() == kScValStaticObject)
+          {
+              // Could be a global static array of game entities
+              address = reg1.GetDataPtrWithOffset();
+          }
+          else if (reg1.GetType() == kScValDynamicObject)
+          {
+              address = reg1.GetDataPtr();
+          }
+          else if (!reg1.IsNull())
           {
               cc_error("internal error: SCMD_MEMINITPTR argument is not dynamic object");
               return -1;
           }
           // like memwriteptr, but doesn't attempt to free the old one
-          long newHandle = ccGetObjectHandleFromAddress((char*)reg1.GetDataPtr());
+          long newHandle = ccGetObjectHandleFromAddress(address);
           if (newHandle == -1)
               return -1;
 
@@ -1707,6 +1728,10 @@ void ccInstance::FixupArgument(long code_index, char fixup_type, RuntimeScriptVa
             if (import->Type == kScImportDynamicObject)
             {
                 argument.SetDynamicObject( import->Ptr, import->DynMgr );
+            }
+            else if (import->Type == kScImportStaticObject)
+            {
+                argument.SetStaticObject( import->Ptr, import->StcMgr );
             }
             else
             {

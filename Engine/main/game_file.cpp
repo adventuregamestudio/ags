@@ -39,6 +39,7 @@
 #include "util/datastream.h"
 #include "gfx/bitmap.h"
 #include "core/assetmanager.h"
+#include "ac/statobj/agsstaticobject.h"
 
 using AGS::Common::Bitmap;
 
@@ -141,6 +142,7 @@ extern Bitmap **actspswb;
 extern IDriverDependantBitmap* *actspswbbmp;
 extern CachedActSpsData* actspswbcache;
 
+extern AGSStaticObject GlobalStaticManager;
 
 int filever;
 // PSP specific variables:
@@ -563,15 +565,15 @@ void init_and_register_game_objects()
     long dorsHandle = ccRegisterManagedObject(dialogOptionsRenderingSurface, dialogOptionsRenderingSurface);
     ccAddObjectReference(dorsHandle);
 
-    ccAddExternalData("character",&game.chars[0]);
+    ccAddExternalStaticObject("character",&game.chars[0], &GlobalStaticManager);
     setup_player_character(game.playercharacter);
-    ccAddExternalData("player", &_sc_PlayerCharPtr);
-    ccAddExternalData("object",&scrObj[0]);
-    ccAddExternalData("gui",&scrGui[0]);
-    ccAddExternalData("hotspot",&scrHotspot[0]);
-    ccAddExternalData("region",&scrRegion[0]);
-    ccAddExternalData("inventory",&scrInv[0]);
-    ccAddExternalData("dialog", &scrDialog[0]);
+    ccAddExternalStaticObject("player", &_sc_PlayerCharPtr, &GlobalStaticManager);
+    ccAddExternalStaticObject("object",&scrObj[0], &GlobalStaticManager);
+    ccAddExternalStaticObject("gui",&scrGui[0], &GlobalStaticManager);
+    ccAddExternalStaticObject("hotspot",&scrHotspot[0], &GlobalStaticManager);
+    ccAddExternalStaticObject("region",&scrRegion[0], &GlobalStaticManager);
+    ccAddExternalStaticObject("inventory",&scrInv[0], &GlobalStaticManager);
+    ccAddExternalStaticObject("dialog", &scrDialog[0], &GlobalStaticManager);
 }
 
 int load_game_file() {

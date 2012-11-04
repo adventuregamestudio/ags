@@ -24,6 +24,9 @@
 #include "util/wgt2allg.h"
 #include "ac/gamestate.h"
 #include "script/symbol_registry.h"
+#include "ac/statobj/agsstaticobject.h"
+
+extern AGSStaticObject GlobalStaticManager;
 
 void register_global_script_functions()
 {
@@ -391,10 +394,10 @@ void register_global_script_functions()
 	ccAddExternalStaticFunction("WaitKey",(void *)WaitKey);
 	ccAddExternalStaticFunction("WaitMouseKey",(void *)WaitMouseKey);
 
-	ccAddExternalData("game",&play);
-	ccAddExternalData("gs_globals",&play.globalvars[0]);
-	ccAddExternalData("mouse",&scmouse);
-	ccAddExternalData("palette",&palette[0]);
-	ccAddExternalData("system",&scsystem);
-	ccAddExternalData("savegameindex",&play.filenumbers[0]);
+	ccAddExternalStaticObject("game",&play, &GlobalStaticManager);
+	ccAddExternalStaticObject("gs_globals",&play.globalvars[0], &GlobalStaticManager);
+	ccAddExternalStaticObject("mouse",&scmouse, &GlobalStaticManager);
+	ccAddExternalStaticObject("palette",&palette[0], &GlobalStaticManager);
+	ccAddExternalStaticObject("system",&scsystem, &GlobalStaticManager);
+	ccAddExternalStaticObject("savegameindex",&play.filenumbers[0], &GlobalStaticManager);
 }

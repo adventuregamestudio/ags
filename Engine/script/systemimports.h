@@ -19,13 +19,15 @@
 #include "script/cc_treemap.h"     // ccTreeMap
 
 struct ICCDynamicObject;
+struct ICCStaticObject;
 
 enum ScriptImportType
 {
     kScImportUndefined,         // to detect errors
-    kScImportData,              // for direct engine memory access (TODO: unsupport later!)
+    //kScImportData,            // for direct engine memory access (TODO: unsupport later!)
     kScImportStaticFunction,    // a static function
-    kScImportDynamicObject,     // script object
+    kScImportStaticObject,      // static script object
+    kScImportDynamicObject,     // dynamic script object
     kScImportObjectFunction,    // script object member function, gets 'this' pointer
     kScImportScriptData,        // script function or variable
 };
@@ -49,7 +51,8 @@ struct ScriptImport
     union
     {
         void                *MgrPtr;        // generic object manager pointer
-        ICCDynamicObject    *DynMgr;        // dynamic object manager;
+        ICCDynamicObject    *DynMgr;        // dynamic object manager
+        ICCStaticObject     *StcMgr;        // static object manager
     };
     ccInstance          *InstancePtr;   // script instance
 };

@@ -36,17 +36,25 @@
 #include "ac/dynobj/managedobjectpool.h"
 #include "script/spans.h"
 #include "script/systemimports.h"
+#include "ac/statobj/staticobject.h"
 
 extern ccInstance *current_instance; // in script/cc_instance
 
+/*
 bool ccAddExternalData(const char *name, void *ptr)
 {
     return simp.add(kScImportData, name, ptr, NULL, NULL) == 0;
 }
+*/
 
 bool ccAddExternalStaticFunction(const char *name, void *ptr)
 {
     return simp.add(kScImportStaticFunction, name, ptr, NULL, NULL) == 0;
+}
+
+bool ccAddExternalStaticObject(const char *name, void *ptr, ICCStaticObject *manager)
+{
+    return simp.add(kScImportStaticObject, name, ptr, manager, NULL) == 0;
 }
 
 bool ccAddExternalDynamicObject(const char *name, void *ptr, ICCDynamicObject *manager)

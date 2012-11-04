@@ -189,6 +189,10 @@
 				Name="ac"
 				>
 				<File
+					RelativePath="..\..\Engine\ac\statobj\agsstaticobject.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\audiochannel.cpp"
 					>
 				</File>
@@ -1687,6 +1691,18 @@
 					</File>
 					<File
 						RelativePath="..\..\Engine\ac\dynobj\scriptviewframe.h"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="statobj"
+					>
+					<File
+						RelativePath="..\..\Engine\ac\statobj\agsstaticobject.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\statobj\staticobject.h"
 						>
 					</File>
 				</Filter>

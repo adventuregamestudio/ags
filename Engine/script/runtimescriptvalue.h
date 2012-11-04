@@ -8,6 +8,7 @@
 
 #include "core/types.h"
 
+struct ICCStaticObject;
 struct ICCDynamicObject;
 
 enum ScriptValueType
@@ -20,6 +21,7 @@ enum ScriptValueType
     kScValDataPtr,      // as a pointer to randomly sized data (usually array)
     kScValGlobalData,   // a workaround for big endian builds (maybe temporary);
                         // works exactly as kScValGeneric for the rest
+    kScValStaticObject, // as a pointer to static global script object
     kScValDynamicObject,// as a pointer to managed script object
 };
 
@@ -53,6 +55,7 @@ private:
     union
     {
         void                *MgrPtr;// generic object manager pointer
+        ICCStaticObject     *StcMgr;// static object manager;
         ICCDynamicObject    *DynMgr;// dynamic object manager;
     };
     // The "real" size of data, either one stored in Value variable,
@@ -65,6 +68,10 @@ public:
     inline bool IsValid() const
     {
         return Type != kScValUndefined;
+    }
+    inline bool IsNull() const
+    {
+        return Value == 0 && Ptr == 0;
     }
     inline ScriptValueType GetType() const
     {
@@ -200,6 +207,15 @@ public:
         Value   = 0;
         Ptr     = (char*)object;
         DynMgr  = manager;
+        Size    = 4;
+        return *this;
+    }
+    inline RuntimeScriptValue &SetStaticObject(void *object, ICCStaticObject *manager)
+    {
+        Type    = kScValStaticObject;
+        Value   = 0;
+        Ptr     = (char*)object;
+        StcMgr  = manager;
         Size    = 4;
         return *this;
     }

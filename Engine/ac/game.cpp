@@ -932,7 +932,20 @@ void serialize_bitmap(Common::Bitmap *thispic, DataStream *out) {
         out->WriteInt32(thispic->GetHeight());
         out->WriteInt32(thispic->GetColorDepth());
         for (int cc=0;cc<thispic->GetHeight();cc++)
-            out->WriteArray(&thispic->GetScanLine(cc)[0],thispic->GetWidth(),thispic->GetColorDepth()/8);
+        {
+          switch (thispic->GetColorDepth())
+          {
+          case 8:
+            out->WriteArray(&thispic->GetScanLine(cc)[0], thispic->GetWidth(), 1);
+            break;
+          case 16:
+            out->WriteArrayOfInt16((const int16_t*)&thispic->GetScanLine(cc)[0], thispic->GetWidth());
+            break;
+          case 32:
+            out->WriteArrayOfInt32((const int32_t*)&thispic->GetScanLine(cc)[0], thispic->GetWidth());
+            break;
+          }
+        }
     }
 }
 
@@ -985,7 +998,21 @@ Bitmap *read_serialized_bitmap(DataStream *in) {
     if (thispic == NULL)
         return NULL;
     for (int vv=0; vv < pichit; vv++)
-        in->ReadArray(&thispic->GetScanLineForWriting(vv)[0], picwid, piccoldep/8);
+    {
+      switch (piccoldep)
+      {
+      case 8:
+        in->ReadArray(thispic->GetScanLineForWriting(vv), picwid, 1);
+        break;
+      case 16:
+        in->ReadArrayOfInt16((int16_t*)thispic->GetScanLineForWriting(vv), picwid);
+        break;
+      case 32:
+        in->ReadArrayOfInt32((int32_t*)thispic->GetScanLineForWriting(vv), picwid);
+        break;
+      }
+    }
+
     return thispic;
 }
 

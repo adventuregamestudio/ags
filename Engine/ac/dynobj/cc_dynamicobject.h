@@ -38,6 +38,18 @@ struct ICCDynamicObject {
     // serialize the object into BUFFER (which is BUFSIZE bytes)
     // return number of bytes used
     virtual int Serialize(const char *address, char *buffer, int bufsize) = 0;
+
+    // Legacy support for reading and writing object values by their relative offset
+    virtual void    Read(const char *address, int offset, void *dest, int size) = 0;
+    virtual uint8_t ReadInt8(const char *address, long offset)                  = 0;
+    virtual int16_t ReadInt16(const char *address, long offset)                 = 0;
+    virtual int32_t ReadInt32(const char *address, long offset)                 = 0;
+    virtual float   ReadFloat(const char *address, long offset)                 = 0;
+    virtual void    Write(const char *address, int offset, void *src, int size) = 0;
+    virtual void    WriteInt8(const char *address, long offset, uint8_t val)    = 0;
+    virtual void    WriteInt16(const char *address, long offset, int16_t val)   = 0;
+    virtual void    WriteInt32(const char *address, long offset, int32_t val)   = 0;
+    virtual void    WriteFloat(const char *address, long offset, float val)     = 0;
 };
 
 struct ICCObjectReader {

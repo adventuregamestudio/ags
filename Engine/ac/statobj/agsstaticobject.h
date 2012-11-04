@@ -22,6 +22,18 @@
 
 struct AGSStaticObject : public ICCStaticObject {
     virtual ~AGSStaticObject(){}
+
+    // Legacy support for reading and writing object values by their relative offset
+    virtual void    Read(const char *address, int offset, void *dest, int size);
+    virtual uint8_t ReadInt8(const char *address, long offset);
+    virtual int16_t ReadInt16(const char *address, long offset);
+    virtual int32_t ReadInt32(const char *address, long offset);
+    virtual float   ReadFloat(const char *address, long offset);
+    virtual void    Write(const char *address, int offset, void *src, int size);
+    virtual void    WriteInt8(const char *address, long offset, uint8_t val);
+    virtual void    WriteInt16(const char *address, long offset, int16_t val);
+    virtual void    WriteInt32(const char *address, long offset, int32_t val);
+    virtual void    WriteFloat(const char *address, long offset, float val);
 };
 
 extern AGSStaticObject GlobalStaticManager;

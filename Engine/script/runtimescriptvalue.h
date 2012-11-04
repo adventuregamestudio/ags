@@ -106,6 +106,10 @@ public:
     {
         return RValue;
     }
+    inline ICCStaticObject *GetStaticManager() const
+    {
+        return StcMgr;
+    }
     inline ICCDynamicObject *GetDynamicManager() const
     {
         return DynMgr;

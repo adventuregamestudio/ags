@@ -26,7 +26,7 @@ extern GameSetupStruct game;
 // ** LABEL FUNCTIONS
 
 const char* Label_GetText_New(GUILabel *labl) {
-    return CreateNewScriptString(labl->GetText());
+    return CreateNewScriptStringAsRetVal(labl->GetText());
 }
 
 void Label_GetText(GUILabel *labl, char *buffer) {

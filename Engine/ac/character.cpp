@@ -55,6 +55,9 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 #include "platform/base/override_defines.h"
+#include "script/runtimescriptvalue.h"
+#include "ac/dynobj/cc_character.h"
+#include "ac/dynobj/cc_inventory.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -87,6 +90,9 @@ extern int scrnwid,scrnhit;
 extern int current_screen_resolution_multiplier;
 extern int cur_mode;
 extern int screen_is_dirty;
+extern RuntimeScriptValue GlobalReturnValue;
+extern CCCharacter ccDynamicCharacter;
+extern CCInventory ccDynamicInv;
 
 //--------------------------------
 
@@ -710,6 +716,7 @@ ScriptOverlay* Character_SayBackground(CharacterInfo *chaa, const char *texx) {
     int handl = ccRegisterManagedObject(scOver, scOver);
     screenover[ovri].associatedOverlayHandle = handl;
 
+    GlobalReturnValue.SetDynamicObject(scOver, scOver);
     return scOver;
 }
 
@@ -962,7 +969,7 @@ void Character_GetPropertyText(CharacterInfo *chaa, const char *property, char *
     get_text_property(&game.charProps[chaa->index_id], property, bufer);
 }
 const char* Character_GetTextProperty(CharacterInfo *chaa, const char *property) {
-    return get_text_property_dynamic_string(&game.charProps[chaa->index_id], property);
+    return get_text_property_dynamic_string_as_ret_val(&game.charProps[chaa->index_id], property);
 }
 
 ScriptInvItem* Character_GetActiveInventory(CharacterInfo *chaa) {
@@ -970,6 +977,7 @@ ScriptInvItem* Character_GetActiveInventory(CharacterInfo *chaa) {
     if (chaa->activeinv <= 0)
         return NULL;
 
+    GlobalReturnValue.SetDynamicObject(&scrInv[chaa->activeinv], &ccDynamicInv);
     return &scrInv[chaa->activeinv];
 }
 
@@ -1251,7 +1259,7 @@ int Character_GetMoving(CharacterInfo *chaa) {
 }
 
 const char* Character_GetName(CharacterInfo *chaa) {
-    return CreateNewScriptString(chaa->name);
+    return CreateNewScriptStringAsRetVal(chaa->name);
 }
 
 void Character_SetName(CharacterInfo *chaa, const char *newName) {
@@ -2088,6 +2096,7 @@ CharacterInfo *GetCharacterAtLocation(int xx, int yy) {
     int hsnum = GetCharacterAt(xx, yy);
     if (hsnum < 0)
         return NULL;
+    GlobalReturnValue.SetDynamicObject(&game.chars[hsnum], &ccDynamicCharacter);
     return &game.chars[hsnum];
 }
 

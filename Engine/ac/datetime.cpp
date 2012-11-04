@@ -15,6 +15,9 @@
 #include "util/wgt2allg.h"
 #include "ac/datetime.h"
 #include "platform/base/agsplatformdriver.h"
+#include "script/runtimescriptvalue.h"
+
+extern RuntimeScriptValue GlobalReturnValue;
 
 ScriptDateTime* DateTime_Now_Core() {
     ScriptDateTime *sdt = new ScriptDateTime();
@@ -28,6 +31,7 @@ ScriptDateTime* DateTime_Now_Core() {
 ScriptDateTime* DateTime_Now() {
     ScriptDateTime *sdt = DateTime_Now_Core();
     ccRegisterManagedObject(sdt, sdt);
+    GlobalReturnValue.SetDynamicObject(sdt, sdt);
     return sdt;
 }
 

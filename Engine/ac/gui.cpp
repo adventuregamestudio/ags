@@ -39,6 +39,7 @@
 #include "gfx/bitmap.h"
 #include "ac/dynobj/cc_gui.h"
 #include "ac/dynobj/cc_guiobject.h"
+#include "script/runtimescriptvalue.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -60,6 +61,7 @@ extern IGraphicsDriver *gfxDriver;
 
 extern CCGUI ccDynamicGUI;
 extern CCGUIObject ccDynamicGUIObject;
+extern RuntimeScriptValue GlobalReturnValue;
 
 
 int ifacepopped=-1;  // currently displayed pop-up GUI (-1 if none)
@@ -176,6 +178,7 @@ int GUI_GetID(ScriptGUI *tehgui) {
 GUIObject* GUI_GetiControls(ScriptGUI *tehgui, int idx) {
   if ((idx < 0) || (idx >= guis[tehgui->id].numobjs))
     return NULL;
+  GlobalReturnValue.SetDynamicObject(guis[tehgui->id].objs[idx], &ccDynamicGUIObject);
   return guis[tehgui->id].objs[idx];
 }
 
@@ -222,6 +225,7 @@ ScriptGUI *GetGUIAtLocation(int xx, int yy) {
     int guiid = GetGUIAt(xx, yy);
     if (guiid < 0)
         return NULL;
+    GlobalReturnValue.SetDynamicObject(&scrGui[guiid],&ccDynamicGUI);
     return &scrGui[guiid];
 }
 

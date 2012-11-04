@@ -19,6 +19,8 @@
 #include "media/audio/audio.h"
 #include "ac/spritecache.h"
 #include "gfx/bitmap.h"
+#include "script/runtimescriptvalue.h"
+#include "ac/dynobj/cc_audioclip.h"
 
 using AGS::Common::Bitmap;
 
@@ -26,6 +28,8 @@ extern GameSetupStruct game;
 extern ViewStruct*views;
 extern int psp_is_old_datafile;
 extern SpriteCache spriteset;
+extern RuntimeScriptValue GlobalReturnValue;
+extern CCAudioClip ccDynamicAudioClip;
 
 
 int ViewFrame_GetFlipped(ScriptViewFrame *svf) {
@@ -48,6 +52,7 @@ ScriptAudioClip* ViewFrame_GetLinkedAudio(ScriptViewFrame *svf)
   if (soundIndex < 0)
     return NULL;
 
+  GlobalReturnValue.SetDynamicObject(&game.audioClips[soundIndex], &ccDynamicAudioClip);
   return &game.audioClips[soundIndex];
 }
 

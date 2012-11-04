@@ -141,7 +141,7 @@ const char* Dialog_GetOptionText(ScriptDialog *sd, int option)
 
   option--;
 
-  return CreateNewScriptString(get_translation(dialog[sd->id].optionnames[option]));
+  return CreateNewScriptStringAsRetVal(get_translation(dialog[sd->id].optionnames[option]));
 }
 
 int Dialog_GetID(ScriptDialog *sd) {

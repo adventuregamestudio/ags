@@ -35,7 +35,6 @@
 #include "util/misc.h"
 #include "util/textstreamwriter.h"
 #include "ac/dynobj/scriptstring.h"
-#include "debug/assert.h"
 
 using AGS::Common::DataStream;
 using AGS::Common::TextStreamWriter;
@@ -794,17 +793,13 @@ int ccInstance::Run(long curpc)
 
           long handle = registers[SREG_MAR].ReadInt32();
 
-          if (reg1.GetType() != kScValDynamicObject)
+          if (reg1.GetType() != kScValDynamicObject && reg1.GetLong() != 0)
           {
-              //assert(0);
+              cc_error("internal error: MEMWRITEPTR argument is not dynamic object");
+              return -1;
           }
 
-          // CHECKME!! what type of data may reg1 point to?
-          // FIXME: GetDataPtrWithOffset should not be used here; instead GetDataPtr should.
-          // However it is possible that reg1 holds value from global var or returned
-          // from function, hence it stores object address in Value rather than Ptr;
-          // as soon as those two cases are resolved, this call should be fixed too.
-          long newHandle = ccGetObjectHandleFromAddress((char*)reg1.GetDataPtrWithOffset());
+          long newHandle = ccGetObjectHandleFromAddress((char*)reg1.GetDataPtr());
           if (newHandle == -1)
               return -1;
 
@@ -816,13 +811,13 @@ int ccInstance::Run(long curpc)
           break;
                              }
       case SCMD_MEMINITPTR: { 
-          if (reg1.GetType() != kScValDynamicObject)
+          if (reg1.GetType() != kScValDynamicObject && reg1.GetLong() != 0)
           {
-              //assert(0);
+              cc_error("internal error: SCMD_MEMINITPTR argument is not dynamic object");
+              return -1;
           }
           // like memwriteptr, but doesn't attempt to free the old one
-          // CHECKME!! what type of data may reg1 point to?
-          long newHandle = ccGetObjectHandleFromAddress((char*)reg1.GetDataPtrWithOffset());
+          long newHandle = ccGetObjectHandleFromAddress((char*)reg1.GetDataPtr());
           if (newHandle == -1)
               return -1;
 

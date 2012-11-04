@@ -22,12 +22,16 @@
 #include "ac/roomstatus.h"
 #include "ac/string.h"
 #include "gfx/bitmap.h"
+#include "script/runtimescriptvalue.h"
+#include "ac/dynobj/cc_hotspot.h"
 
 using AGS::Common::Bitmap;
 
 extern roomstruct thisroom;
 extern RoomStatus*croom;
 extern ScriptHotspot scrHotspot[MAX_HOTSPOTS];
+extern CCHotspot ccDynamicHotspot;
+extern RuntimeScriptValue GlobalReturnValue;
 
 void Hotspot_SetEnabled(ScriptHotspot *hss, int newval) {
     if (newval)
@@ -54,9 +58,13 @@ int Hotspot_GetWalkToY(ScriptHotspot *hss) {
 
 ScriptHotspot *GetHotspotAtLocation(int xx, int yy) {
     int hsnum = GetHotspotAt(xx, yy);
+    ScriptHotspot *ret_hotspot;
     if (hsnum <= 0)
-        return &scrHotspot[0];
-    return &scrHotspot[hsnum];
+        ret_hotspot = &scrHotspot[0];
+    else
+        ret_hotspot = &scrHotspot[hsnum];
+    GlobalReturnValue.SetDynamicObject(ret_hotspot, &ccDynamicHotspot);
+    return ret_hotspot;
 }
 
 void Hotspot_GetName(ScriptHotspot *hss, char *buffer) {
@@ -64,7 +72,7 @@ void Hotspot_GetName(ScriptHotspot *hss, char *buffer) {
 }
 
 const char* Hotspot_GetName_New(ScriptHotspot *hss) {
-    return CreateNewScriptString(get_translation(thisroom.hotspotnames[hss->id]));
+    return CreateNewScriptStringAsRetVal(get_translation(thisroom.hotspotnames[hss->id]));
 }
 
 void Hotspot_RunInteraction (ScriptHotspot *hss, int mood) {
@@ -77,10 +85,11 @@ int Hotspot_GetProperty (ScriptHotspot *hss, const char *property) {
 
 void Hotspot_GetPropertyText (ScriptHotspot *hss, const char *property, char *bufer) {
     get_text_property (&thisroom.hsProps[hss->id], property, bufer);
+
 }
 
 const char* Hotspot_GetTextProperty(ScriptHotspot *hss, const char *property) {
-    return get_text_property_dynamic_string(&thisroom.hsProps[hss->id], property);
+    return get_text_property_dynamic_string_as_ret_val(&thisroom.hsProps[hss->id], property);
 }
 
 int get_hotspot_at(int xpp,int ypp) {

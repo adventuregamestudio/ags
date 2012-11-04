@@ -71,6 +71,7 @@
 #include "util/filestream.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
+#include "script/runtimescriptvalue.h"
 
 using AGS::Common::DataStream;
 using AGS::Common::Bitmap;
@@ -129,6 +130,7 @@ extern unsigned int loopcounter;
 extern Bitmap *raw_saved_screen;
 extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 extern IGraphicsDriver *gfxDriver;
+extern RuntimeScriptValue GlobalReturnValue;
 
 //=============================================================================
 GameState play;
@@ -397,7 +399,9 @@ int Game_SetSaveGameDirectory(const char *newFolder) {
 const char* Game_GetSaveSlotDescription(int slnum) {
     char buffer[STD_BUFFER_SIZE];
     if (load_game(slnum, buffer, NULL) == 0)
-        return CreateNewScriptString(buffer);
+    {
+        return CreateNewScriptStringAsRetVal(buffer);
+    }
     return NULL;
 }
 
@@ -658,7 +662,7 @@ const char* Game_GetGlobalStrings(int index) {
     if ((index < 0) || (index >= MAXGLOBALSTRINGS))
         quit("!Game.GlobalStrings: invalid index");
 
-    return CreateNewScriptString(play.globalstrings[index]);
+    return CreateNewScriptStringAsRetVal(play.globalstrings[index]);
 }
 
 
@@ -757,6 +761,7 @@ ScriptViewFrame* Game_GetViewFrame(int viewNumber, int loopNumber, int frame) {
 
     ScriptViewFrame *sdt = new ScriptViewFrame(viewNumber - 1, loopNumber, frame);
     ccRegisterManagedObject(sdt, sdt);
+    GlobalReturnValue.SetDynamicObject(sdt,sdt);
     return sdt;
 }
 
@@ -813,11 +818,11 @@ void Game_SetIgnoreUserInputAfterTextTimeoutMs(int newValueMs)
 }
 
 const char *Game_GetFileName() {
-    return CreateNewScriptString(usetup.main_data_filename);
+    return CreateNewScriptStringAsRetVal(usetup.main_data_filename);
 }
 
 const char *Game_GetName() {
-    return CreateNewScriptString(play.game_name);
+    return CreateNewScriptStringAsRetVal(play.game_name);
 }
 
 void Game_SetName(const char *newName) {
@@ -866,13 +871,13 @@ int Game_GetColorFromRGB(int red, int grn, int blu) {
 const char* Game_InputBox(const char *msg) {
     char buffer[STD_BUFFER_SIZE];
     sc_inputbox(msg, buffer);
-    return CreateNewScriptString(buffer);
+    return CreateNewScriptStringAsRetVal(buffer);
 }
 
 const char* Game_GetLocationName(int x, int y) {
     char buffer[STD_BUFFER_SIZE];
     GetLocationName(x, y, buffer);
-    return CreateNewScriptString(buffer);
+    return CreateNewScriptStringAsRetVal(buffer);
 }
 
 const char* Game_GetGlobalMessages(int index) {
@@ -882,7 +887,7 @@ const char* Game_GetGlobalMessages(int index) {
     char buffer[STD_BUFFER_SIZE];
     buffer[0] = 0;
     replace_tokens(get_translation(get_global_message(index)), buffer, STD_BUFFER_SIZE);
-    return CreateNewScriptString(buffer);
+    return CreateNewScriptStringAsRetVal(buffer);
 }
 
 int Game_GetSpeechFont() {
@@ -895,7 +900,7 @@ int Game_GetNormalFont() {
 const char* Game_GetTranslationFilename() {
     char buffer[STD_BUFFER_SIZE];
     GetTranslationName(buffer);
-    return CreateNewScriptString(buffer);
+    return CreateNewScriptStringAsRetVal(buffer);
 }
 
 int Game_ChangeTranslation(const char *newFilename)

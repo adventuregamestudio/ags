@@ -889,6 +889,14 @@ int cc_run_code(ccInstance * inst, long curpc)
 
         int handle;
         memcpy(&handle, (char*)(inst->registers[SREG_MAR]), 4);
+
+#if defined(AGS_BIG_ENDIAN)
+        if (gSpans.IsInSpan((char*)inst->registers[SREG_MAR]))
+        {
+          AGS::Common::BitByteOperations::SwapBytesInt32(handle);
+        }
+#endif
+
         inst->registers[arg1] = (long)ccGetObjectAddressFromHandle(handle);
 
         // if error occurred, cc_error will have been set
@@ -900,6 +908,13 @@ int cc_run_code(ccInstance * inst, long curpc)
         int handle;
         memcpy(&handle, (char*)(inst->registers[SREG_MAR]), 4);
 
+#if defined(AGS_BIG_ENDIAN)
+        if (gSpans.IsInSpan((char*)inst->registers[SREG_MAR]))
+        {
+          AGS::Common::BitByteOperations::SwapBytesInt32(handle);
+        }
+#endif
+
         int newHandle = ccGetObjectHandleFromAddress((char*)inst->registers[arg1]);
         if (newHandle == -1)
           return -1;
@@ -907,6 +922,14 @@ int cc_run_code(ccInstance * inst, long curpc)
         if (handle != newHandle) {
           ccReleaseObjectReference(handle);
           ccAddObjectReference(newHandle);
+
+#if defined(AGS_BIG_ENDIAN)
+        if (gSpans.IsInSpan((char*)inst->registers[SREG_MAR]))
+        {
+          AGS::Common::BitByteOperations::SwapBytesInt32(newHandle);
+        }
+#endif
+
           memcpy(((char*)inst->registers[SREG_MAR]), &newHandle, 4);
         }
         break;
@@ -917,17 +940,40 @@ int cc_run_code(ccInstance * inst, long curpc)
         int handle;
         memcpy(&handle, ((char*)inst->registers[SREG_MAR]), 4);
 
+#if defined(AGS_BIG_ENDIAN)
+        if (gSpans.IsInSpan((char*)inst->registers[SREG_MAR]))
+        {
+          AGS::Common::BitByteOperations::SwapBytesInt32(handle);
+        }
+#endif
+
         int newHandle = ccGetObjectHandleFromAddress((char*)inst->registers[arg1]);
         if (newHandle == -1)
           return -1;
 
         ccAddObjectReference(newHandle);
+
+#if defined(AGS_BIG_ENDIAN)
+        if (gSpans.IsInSpan((char*)inst->registers[SREG_MAR]))
+        {
+          AGS::Common::BitByteOperations::SwapBytesInt32(newHandle);
+        }
+#endif
+
         memcpy(((char*)inst->registers[SREG_MAR]), &newHandle, 4);
         break;
       }
       case SCMD_MEMZEROPTR: {
         int handle;
         memcpy(&handle, ((char*)inst->registers[SREG_MAR]), 4);
+
+#if defined(AGS_BIG_ENDIAN)
+        if (gSpans.IsInSpan((char*)inst->registers[SREG_MAR]))
+        {
+          AGS::Common::BitByteOperations::SwapBytesInt32(handle);
+        }
+#endif
+
         ccReleaseObjectReference(handle);
         memset(((char*)inst->registers[SREG_MAR]), 0, 4);
 
@@ -936,6 +982,13 @@ int cc_run_code(ccInstance * inst, long curpc)
       case SCMD_MEMZEROPTRND: {
         int handle;
         memcpy(&handle, ((char*)inst->registers[SREG_MAR]), 4);
+
+#if defined(AGS_BIG_ENDIAN)
+        if (gSpans.IsInSpan((char*)inst->registers[SREG_MAR]))
+        {
+          AGS::Common::BitByteOperations::SwapBytesInt32(handle);
+        }
+#endif
 
         // don't do the Dispose check for the object being returned -- this is
         // for returning a String (or other pointer) from a custom function.

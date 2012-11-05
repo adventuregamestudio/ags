@@ -569,7 +569,9 @@ void init_and_register_game_objects()
 
     ccAddExternalSymbol("character",&game.chars[0]);
     setup_player_character(game.playercharacter);
-    ccAddExternalSymbol("player", &_sc_PlayerCharPtr);
+    if (loaded_game_file_version >= 27) {
+        ccAddExternalSymbol("player", &_sc_PlayerCharPtr);
+    }
     ccAddExternalSymbol("object",&scrObj[0]);
     ccAddExternalSymbol("gui",&scrGui[0]);
     ccAddExternalSymbol("hotspot",&scrHotspot[0]);

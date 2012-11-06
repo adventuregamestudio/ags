@@ -7,7 +7,7 @@ VERSION := $(shell dpkg-parsechangelog | grep -x "Version:.*" | sed 's@Version: 
 MAKE = make --directory=Engine --file=Makefile.linux
 
 %:
-	dh $@
+	dh $@ --parallel
 
 override_dh_auto_clean:
 	$(MAKE) clean

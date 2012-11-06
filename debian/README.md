@@ -26,9 +26,6 @@ can be installed with
 
     sudo make --directory=Engine --file=Makefile.linux install
 
-Please take note of the usage instructions at the end of this document.
-
-
 #Building a Debian/Ubuntu package of AGS
 Building a package is the preferred way to install software on
 Debian/Ubuntu. This is how it's done.
@@ -46,6 +43,31 @@ Build the package and install it with gdebi:
 
     fakeroot debian/rules binary
     sudo gdebi ../ags_3.21.1115~JJS-1_*.deb
+
+#Using the engine
+To start an AGS game, just run ags with the game directory or the game
+file as parameter, e.g.
+
+    ags /path/to/game/
+
+or
+
+    ags game.exe
+
+The configuration file **acsetup.cfg** in the game directory will be used
+if present. Sometimes a configuration file coming with a game can cause problems,
+so if a game doesn't start, try deleting **acsetup.cfg** first.
+
+For midi music playback, you have to download GUS patches. We recommend
+"Richard Sanders's GUS patches" from this address:
+
+http://alleg.sourceforge.net/digmid.html
+
+A direct link is here:
+
+http://www.eglebbk.dds.nl/program/download/digmid.dat
+
+Rename that file to **patches.dat** and place it directly into your home folder.
 
 #Workaround: 32 bit AGS on 64 bit system
 The 64 bit version of AGS causes problems on some systems, namely frequent
@@ -114,30 +136,3 @@ Build the package with pbuilder and install it and its dependencies with gdebi:
     cd ags
     pdebuild
     sudo gdebi /var/cache/pbuilder/result/ags_3.21.1115~JJS-1_i386.deb
-
-
-#Using the engine
-
-To start an AGS game, just run ags with the game directory or the game
-file as parameter, e.g.
-
-    ags /path/to/game/
-
-or
-
-    ags game.exe
-
-The configuration file **acsetup.cfg** in the game directory will be used
-if present. Sometimes a configuration file coming with a game can cause problems,
-so if a game doesn't start, try deleting **acsetup.cfg** first.
-
-For midi music playback, you have to download GUS patches. We recommend
-"Richard Sanders's GUS patches" from this address:
-
-http://alleg.sourceforge.net/digmid.html
-
-A direct link is here:
-
-http://www.eglebbk.dds.nl/program/download/digmid.dat
-
-Rename that file to **patches.dat** and place it directly into your home folder.

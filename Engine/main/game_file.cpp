@@ -67,7 +67,8 @@ GetRegionAt() clips the input values to the screen size
 27 : 2.6.2
 
 Script modules. Fixes bug in the inventory display.
-Clickable GUI is selected with regard for the drawing order
+Clickable GUI is selected with regard for the drawing order.
+Pointer to the "player" variable is now accessed via a dynamic object.
 31 : 2.7.0
 32 : 2.7.2
 
@@ -569,7 +570,9 @@ void init_and_register_game_objects()
 
     ccAddExternalSymbol("character",&game.chars[0]);
     setup_player_character(game.playercharacter);
-    ccAddExternalSymbol("player", &_sc_PlayerCharPtr);
+    if (loaded_game_file_version >= 31) {
+        ccAddExternalSymbol("player", &_sc_PlayerCharPtr);
+    }
     ccAddExternalSymbol("object",&scrObj[0]);
     ccAddExternalSymbol("gui",&scrGui[0]);
     ccAddExternalSymbol("hotspot",&scrHotspot[0]);

@@ -2010,7 +2010,7 @@ void setup_player_character(int charid) {
     game.playercharacter = charid;
     playerchar = &game.chars[charid];
     _sc_PlayerCharPtr = ccGetObjectHandleFromAddress((char*)playerchar);
-    if (loaded_game_file_version < 27) {
+    if (loaded_game_file_version < 31) {
         ccAddExternalSymbol("player", playerchar);
     }
 }

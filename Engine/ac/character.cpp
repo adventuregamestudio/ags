@@ -55,6 +55,7 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 #include "platform/base/override_defines.h"
+#include "script/script_runtime.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -2009,6 +2010,9 @@ void setup_player_character(int charid) {
     game.playercharacter = charid;
     playerchar = &game.chars[charid];
     _sc_PlayerCharPtr = ccGetObjectHandleFromAddress((char*)playerchar);
+    if (loaded_game_file_version < 31) {
+        ccAddExternalSymbol("player", playerchar);
+    }
 }
 
 void animate_character(CharacterInfo *chap, int loopn,int sppd,int rept, int noidleoverride, int direction) {

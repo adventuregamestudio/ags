@@ -186,14 +186,14 @@ ccInstance* SystemImports::is_script_import(const char *namw)
 */
 
 // Remove all symbols whose addresses are in the supplied range
-void SystemImports::remove_range(void *from, unsigned long dist)
+void SystemImports::remove_range(void *from, intptr_t dist)
 {
-    unsigned long startaddr = (unsigned long)from;
+    intptr_t startaddr = (intptr_t)from;
     for (int o = 0; o < numimports; o++) {
         if (imports[o].Name == NULL)
             continue;
 
-        unsigned long thisaddr = (unsigned long)imports[o].Ptr;
+        intptr_t thisaddr = (intptr_t)imports[o].Ptr;
         if ((thisaddr >= startaddr) && (thisaddr < startaddr + dist)) {
             btree.removeEntry(imports[o].Name);
             imports[o].Name = NULL;

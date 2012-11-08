@@ -73,7 +73,7 @@ public:
     const ScriptImport *getByIndex(int index);
     //void *get_addr_of(const char *name);
     //ccInstance* is_script_import(const char *name);
-    void remove_range(void *from_ptr, unsigned long dist);
+    void remove_range(void *from_ptr, intptr_t dist);
     void clear() {
         numimports = 0;
         btree.clear();

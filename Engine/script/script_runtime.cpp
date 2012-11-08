@@ -125,7 +125,7 @@ void ccSetDebugHook(new_line_hook_type jibble)
 }
 
 // parm list is backwards (last arg is parms[0])
-int call_function(long addr, int numparm, const RuntimeScriptValue *parms, int offset)
+int call_function(intptr_t addr, int numparm, const RuntimeScriptValue *parms, int offset)
 {
     if (!addr)
     {

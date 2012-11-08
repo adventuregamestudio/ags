@@ -14,7 +14,7 @@ struct ICCDynamicObject;
 enum ScriptValueType
 {
     kScValUndefined,    // to detect errors
-    kScValGeneric,      // as long
+    kScValGeneric,      // as long (intptr_t)
     kScValInteger,      // as strictly 32-bit integer (for integer math)
     kScValFloat,        // as float (for floating point math)
     kScValStackPtr,     // as a pointer to stack
@@ -306,19 +306,19 @@ public:
         return Value <= rval.Value;
     }
 
-    inline bool operator >(long val) const
+    inline bool operator >(intptr_t val) const
     {
         return Value > val;
     }
-    inline bool operator <(long val) const
+    inline bool operator <(intptr_t val) const
     {
         return Value < val;
     }
-    inline bool operator >=(long val) const
+    inline bool operator >=(intptr_t val) const
     {
         return Value >= val;
     }
-    inline bool operator <=(long val) const
+    inline bool operator <=(intptr_t val) const
     {
         return Value <= val;
     }

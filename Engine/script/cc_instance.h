@@ -30,7 +30,7 @@ namespace AGS { namespace Common { class DataStream; }; };
 #define INSTF_FREE          4
 #define INSTF_RUNNING       8   // set by main code to confirm script isn't stuck
 #define CC_STACK_SIZE       1000
-#define CC_STACK_DATA_SIZE  (1000 * sizeof(long))
+#define CC_STACK_DATA_SIZE  (1000 * sizeof(int32_t))
 #define MAX_CALL_STACK      100
 
 // 256 because we use 8 bits to hold instance number
@@ -51,8 +51,8 @@ struct ScriptInstruction
         InstanceId	= 0;
     }
 
-    long	Code;
-    long	InstanceId;
+    int32_t	Code;
+    int32_t	InstanceId;
 };
 
 struct ScriptOperation
@@ -71,14 +71,14 @@ struct ScriptOperation
 struct ccInstance
 {
 public:
-    long flags;
+    int32_t flags;
     char *globaldata;
-    long globaldatasize;
-    unsigned long *code;
+    int32_t globaldatasize;
+    intptr_t *code;
     ccInstance *runningInst;  // might point to another instance if in far call
-    long codesize;
+    int32_t codesize;
     char *strings;
-    long stringssize;
+    int32_t stringssize;
     char **exportaddr;  // real pointer to export
     RuntimeScriptValue *stack;
     int  num_stackentries;
@@ -86,14 +86,14 @@ public:
     // TODO: probably change to dynamic array later
     char *stackdata;    // for storing stack data of unknown type
     char *stackdata_ptr;// works similar to original stack pointer, points to the next unused byte in stack data array
-    long stackdatasize; // conventional size of stack data in bytes
+    int32_t stackdatasize; // conventional size of stack data in bytes
     //
     RuntimeScriptValue registers[CC_NUM_REGISTERS];
-    long pc;                        // program counter
-    long line_number;               // source code line number
+    int32_t pc;                     // program counter
+    int32_t line_number;            // source code line number
     ccScript *instanceof;
-    long callStackLineNumber[MAX_CALL_STACK];
-    long callStackAddr[MAX_CALL_STACK];
+    int32_t callStackLineNumber[MAX_CALL_STACK];
+    int32_t callStackAddr[MAX_CALL_STACK];
     ccInstance *callStackCodeInst[MAX_CALL_STACK];
     int  callStackSize;
     int  loadedInstanceId;
@@ -122,10 +122,10 @@ public:
     void    AbortAndDestroy();
     
     // call an exported function in the script (2nd arg is number of params)
-    int     CallScriptFunction(char *funcname, long num_params, RuntimeScriptValue *params);
+    int     CallScriptFunction(char *funcname, int32_t num_params, RuntimeScriptValue *params);
     void    DoRunScriptFuncCantBlock(NonBlockingScriptFunction* funcToRun, bool *hasTheFunc);
     int     PrepareTextScript(char**tsname);
-    int     Run(long curpc);
+    int     Run(int32_t curpc);
     int     RunScriptFunctionIfExists(char*tsname,int numParam, RuntimeScriptValue *params);
     int     RunTextScript(char*tsname);
     int     RunTextScriptIParam(char*tsname, RuntimeScriptValue &iparam);
@@ -151,11 +151,11 @@ protected:
     bool    ResolveScriptImports(ccScript * scri);
     bool    FixupGlobalData(ccScript * scri);
     bool    CreateRuntimeCodeFixups(ccScript * scri);
-	bool    ReadOperation(ScriptOperation &op, long at_pc);
+	bool    ReadOperation(ScriptOperation &op, int32_t at_pc);
 
     // Runtime fixups
-    void    FixupInstruction(long code_index, char fixup_type, ScriptInstruction &instruction);
-    void    FixupArgument(long code_index, char fixup_type, RuntimeScriptValue &argument);
+    void    FixupInstruction(int32_t code_index, char fixup_type, ScriptInstruction &instruction);
+    void    FixupArgument(int32_t code_index, char fixup_type, RuntimeScriptValue &argument);
 
     // Stack processing
     // Push writes new value and increments stack ptr;

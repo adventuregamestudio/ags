@@ -145,7 +145,7 @@ bool ccScript::Read(DataStream *in)
     globaldata = NULL;
 
   if (codesize > 0) {
-    code = (long *)malloc(codesize * sizeof(long));
+    code = (intptr_t *)malloc(codesize * sizeof(intptr_t));
     // MACPORT FIX: swap
 
     // 64 bit: Read code into 8 byte array, necessary for being able to perform
@@ -169,7 +169,7 @@ bool ccScript::Read(DataStream *in)
   numfixups = in->ReadInt32();
   if (numfixups > 0) {
     fixuptypes = (char *)malloc(numfixups);
-    fixups = (long *)malloc(numfixups * sizeof(long));
+    fixups = (int32_t *)malloc(numfixups * sizeof(int32_t));
     // MACPORT FIX: swap 'size' and 'nmemb'
     in->Read(fixuptypes, numfixups);
 
@@ -192,7 +192,7 @@ bool ccScript::Read(DataStream *in)
 
   numexports = in->ReadInt32();
   exports = (char**)malloc(sizeof(char*) * numexports);
-  export_addr = (long*)malloc(sizeof(long) * numexports);
+  export_addr = (int32_t*)malloc(sizeof(int32_t) * numexports);
   for (n = 0; n < numexports; n++) {
     freadstring(&exports[n], in);
     export_addr[n] = in->ReadInt32();
@@ -202,7 +202,7 @@ bool ccScript::Read(DataStream *in)
     // read in the Sections
     numSections = in->ReadInt32();
     sectionNames = (char**)malloc(numSections * sizeof(char*));
-    sectionOffsets = (long*)malloc(numSections * sizeof(long));
+    sectionOffsets = (int32_t*)malloc(numSections * sizeof(int32_t));
     for (n = 0; n < numSections; n++) {
       freadstring(&sectionNames[n], in);
       sectionOffsets[n] = in->ReadInt32();
@@ -279,7 +279,7 @@ void ccScript::Free()
     numSections = 0;
 }
 
-const char* ccScript::GetSectionName(long offs) {
+const char* ccScript::GetSectionName(int32_t offs) {
 
     int i;
     for (i = 0; i < numSections; i++) {

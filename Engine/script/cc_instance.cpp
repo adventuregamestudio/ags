@@ -64,7 +64,7 @@ enum ScriptOpArgIsReg
 
 struct ScriptCommandInfo
 {
-    ScriptCommandInfo(long code, const char *cmdname, int arg_count, ScriptOpArgIsReg arg_is_reg)
+    ScriptCommandInfo(int32_t code, const char *cmdname, int arg_count, ScriptOpArgIsReg arg_is_reg)
     {
         Code        = code;
         CmdName     = cmdname;
@@ -74,7 +74,7 @@ struct ScriptCommandInfo
         ArgIsReg[2] = (arg_is_reg & kScOpArg3IsReg) != 0;
     }
 
-    long                Code;
+    int32_t             Code;
     const char          *CmdName;
     int                 ArgCount;
     bool                ArgIsReg[3];
@@ -242,7 +242,7 @@ void ccInstance::AbortAndDestroy()
     }
 }
 
-int ccInstance::CallScriptFunction(char *funcname, long numargs, RuntimeScriptValue *params)
+int ccInstance::CallScriptFunction(char *funcname, int32_t numargs, RuntimeScriptValue *params)
 {
     ccError = 0;
     currentline = 0;
@@ -263,7 +263,7 @@ int ccInstance::CallScriptFunction(char *funcname, long numargs, RuntimeScriptVa
         return -4;
     }
 
-    long startat = -1;
+    int32_t startat = -1;
     int k;
     char mangledName[200];
     sprintf(mangledName, "%s$", funcname);
@@ -285,7 +285,7 @@ int ccInstance::CallScriptFunction(char *funcname, long numargs, RuntimeScriptVa
         // check for an exact match (if the script was compiled with
         // an older version)
         if ((match == 1) || (strcmp(thisExportName, funcname) == 0)) {
-            long etype = (instanceof->export_addr[k] >> 24L) & 0x000ff;
+            int32_t etype = (instanceof->export_addr[k] >> 24L) & 0x000ff;
             if (etype != EXPORT_FUNCTION) {
                 cc_error("symbol is not a function");
                 return -1;
@@ -446,7 +446,7 @@ int ccInstance::PrepareTextScript(char**tsname) {
 
 #define MAX_FUNC_PARAMS 20
 #define MAXNEST 50  // number of recursive function calls allowed
-int ccInstance::Run(long curpc)
+int ccInstance::Run(int32_t curpc)
 {
     pc = curpc;
     returnValue = -1;
@@ -462,7 +462,7 @@ int ccInstance::Run(long curpc)
     char *mptr;
     int (*realfunc) ();
     RuntimeScriptValue callstack[MAX_FUNC_PARAMS + 1];
-    long thisbase[MAXNEST], funcstart[MAXNEST];
+    int32_t thisbase[MAXNEST], funcstart[MAXNEST];
     int callstacksize = 0, was_just_callas = -1;
     int curnest = 0;
     int loopIterations = 0;
@@ -499,14 +499,14 @@ int ccInstance::Run(long curpc)
 
         switch (codeOp.Instruction.Code) {
       case SCMD_LINENUM:
-          line_number = arg1.GetLong();
-          currentline = arg1.GetLong();
+          line_number = arg1.GetInt32();
+          currentline = arg1.GetInt32();
           if (new_line_hook)
               new_line_hook(this, currentline);
           break;
       case SCMD_ADD:
           // If the the register is SREG_SP, we are allocating new variable on the stack
-          if (arg1.GetLong() == SREG_SP)
+          if (arg1.GetInt32() == SREG_SP)
           {
             // Only allocate new data if current stack entry is invalid;
             // in some cases this may be advancing over value that was written by MEMWRITE*
@@ -534,7 +534,7 @@ int ccInstance::Run(long curpc)
             // quote JJS:
             // // AGS 2.x games also perform relative stack access by copying SREG_SP to SREG_MAR
             // // and then subtracting from that.
-            if (arg1.GetLong() == SREG_SP)
+            if (arg1.GetInt32() == SREG_SP)
             {
                 PopDataFromStack(arg2.GetLong());
             }
@@ -555,10 +555,11 @@ int ccInstance::Run(long curpc)
       case SCMD_WRITELIT:
           // Take the data address from reg[MAR] and copy there arg1 bytes from arg2 address
           //
-          // NOTE: since it reads directly from arg2 (which was long),
-          // written value may normally be only up to 4 bytes large;
+          // NOTE: since it reads directly from arg2 (which originally was
+          // long, or rather int32 due x32 build), written value may normally
+          // be only up to 4 bytes large;
           // I guess that's an obsolete way to do WRITE, WRITEW and WRITEB
-          switch (arg1.GetLong())
+          switch (arg1.GetInt32())
           {
           case sizeof(char):
               registers[SREG_MAR].WriteByte(arg2.GetInt());
@@ -571,7 +572,7 @@ int ccInstance::Run(long curpc)
               registers[SREG_MAR].WriteValue(arg2);
               break;
           default:
-              cc_error("unexpected data size for WRITELIT op: %d", arg1.GetLong());
+              cc_error("unexpected data size for WRITELIT op: %d", arg1.GetInt32());
               break;
           }
           break;
@@ -604,7 +605,7 @@ int ccInstance::Run(long curpc)
           registers[SREG_MAR].WriteValue(reg1);
           break;
       case SCMD_LOADSPOFFS:
-          registers[SREG_MAR] = GetStackPtrOffsetRw(arg1.GetLong());
+          registers[SREG_MAR] = GetStackPtrOffsetRw(arg1.GetInt32());
           break;
 
           // 64 bit: Force 32 bit math
@@ -682,10 +683,10 @@ int ccInstance::Run(long curpc)
           PushValueToStack(RuntimeScriptValue().SetInt32(pc + sccmd_info[codeOp.Instruction.Code].ArgCount + 1));
 
           if (thisbase[curnest] == 0)
-              pc = reg1.GetLong();
+              pc = reg1.GetInt32();
           else {
               pc = funcstart[curnest];
-              pc += (reg1.GetLong() - thisbase[curnest]);
+              pc += (reg1.GetInt32() - thisbase[curnest]);
           }
 
           if (next_call_needs_object)  // is this right?
@@ -717,11 +718,11 @@ int ccInstance::Run(long curpc)
           break;
       case SCMD_JZ:
           if (registers[SREG_AX] == 0)
-              pc += arg1.GetLong();
+              pc += arg1.GetInt32();
           break;
       case SCMD_JNZ:
           if (registers[SREG_AX] != 0)
-              pc += arg1.GetLong();
+              pc += arg1.GetInt32();
           break;
       case SCMD_PUSHREG:
           // Push reg[arg1] value to the stack
@@ -732,12 +733,12 @@ int ccInstance::Run(long curpc)
           reg1 = PopValueFromStack();
           break;
       case SCMD_JMP:
-          pc += arg1.GetLong();
+          pc += arg1.GetInt32();
           // JJS: FIXME! This is a hack to get 64 bit working again but the real
           // issue is that arg1 sometimes has additional upper bits set
           pc &= 0xFFFFFFFF;
 
-          if ((arg1.GetLong() < 0) && (maxWhileLoops > 0) && (loopIterationCheckDisabled == 0)) {
+          if ((arg1.GetInt32() < 0) && (maxWhileLoops > 0) && (loopIterationCheckDisabled == 0)) {
               // Make sure it's not stuck in a While loop
               loopIterations ++;
               if (flags & INSTF_RUNNING) {
@@ -756,19 +757,19 @@ int ccInstance::Run(long curpc)
       case SCMD_CHECKBOUNDS:
           if ((reg1 < 0) ||
               (reg1 >= arg2)) {
-                  cc_error("!Array index out of bounds (index: %d, bounds: 0..%d)", reg1.GetLong(), arg2.GetLong() - 1);
+                  cc_error("!Array index out of bounds (index: %d, bounds: 0..%d)", reg1.GetInt32(), arg2.GetInt32() - 1);
                   return -1;
           }
           break;
       case SCMD_DYNAMICBOUNDS:
           {
               // CHECKME!! what types of data may reg[MAR] point to?
-              long upperBoundInBytes = *((long *)(registers[SREG_MAR].GetDataPtrWithOffset() - 4));
+              int32_t upperBoundInBytes = *((int32_t *)(registers[SREG_MAR].GetDataPtrWithOffset() - 4));
               if ((reg1 < 0) ||
                   (reg1 >= upperBoundInBytes)) {
-                      long upperBound = *((long *)(registers[SREG_MAR].GetDataPtrWithOffset() - 8)) & (~ARRAY_MANAGED_TYPE_FLAG);
+                      int32_t upperBound = *((int32_t *)(registers[SREG_MAR].GetDataPtrWithOffset() - 8)) & (~ARRAY_MANAGED_TYPE_FLAG);
                       int elementSize = (upperBoundInBytes / upperBound);
-                      cc_error("!Array index out of bounds (index: %d, bounds: 0..%d)", reg1.GetLong() / elementSize, upperBound - 1);
+                      cc_error("!Array index out of bounds (index: %d, bounds: 0..%d)", reg1.GetInt32() / elementSize, upperBound - 1);
                       return -1;
               }
               break;
@@ -779,7 +780,7 @@ int ccInstance::Run(long curpc)
       case SCMD_MEMREADPTR: {
           ccError = 0;
 
-          long handle = registers[SREG_MAR].ReadInt32();
+          int32_t handle = registers[SREG_MAR].ReadInt32();
           void *object;
           ICCDynamicObject *manager;
           ccGetObjectAddressAndManagerFromHandle(handle, object, manager);
@@ -791,7 +792,7 @@ int ccInstance::Run(long curpc)
           break; }
       case SCMD_MEMWRITEPTR: {
 
-          long handle = registers[SREG_MAR].ReadInt32();
+          int32_t handle = registers[SREG_MAR].ReadInt32();
           char *address = NULL;
 
           if (reg1.GetType() == kScValStaticObject)
@@ -809,7 +810,7 @@ int ccInstance::Run(long curpc)
               return -1;
           }
 
-          long newHandle = ccGetObjectHandleFromAddress(address);
+          int32_t newHandle = ccGetObjectHandleFromAddress(address);
           if (newHandle == -1)
               return -1;
 
@@ -838,7 +839,7 @@ int ccInstance::Run(long curpc)
               return -1;
           }
           // like memwriteptr, but doesn't attempt to free the old one
-          long newHandle = ccGetObjectHandleFromAddress(address);
+          int32_t newHandle = ccGetObjectHandleFromAddress(address);
           if (newHandle == -1)
               return -1;
 
@@ -847,13 +848,13 @@ int ccInstance::Run(long curpc)
           break;
                             }
       case SCMD_MEMZEROPTR: {
-          long handle = registers[SREG_MAR].ReadInt32();
+          int32_t handle = registers[SREG_MAR].ReadInt32();
           ccReleaseObjectReference(handle);
           registers[SREG_MAR].WriteInt32(0);
           break;
                             }
       case SCMD_MEMZEROPTRND: {
-          long handle = registers[SREG_MAR].ReadInt32();
+          int32_t handle = registers[SREG_MAR].ReadInt32();
 
           // don't do the Dispose check for the object being returned -- this is
           // for returning a String (or other pointer) from a custom function.
@@ -879,7 +880,7 @@ int ccInstance::Run(long curpc)
           }
           break;
       case SCMD_NUMFUNCARGS:
-          num_args_to_func = arg1.GetLong();
+          num_args_to_func = arg1.GetInt32();
           break;
       case SCMD_CALLAS:{
           PUSH_CALL_STACK;
@@ -906,18 +907,18 @@ int ccInstance::Run(long curpc)
           ccInstance *wasRunning = runningInst;
 
           // extract the instance ID
-          unsigned long instId = codeOp.Instruction.InstanceId;
+          int32_t instId = codeOp.Instruction.InstanceId;
           // determine the offset into the code of the instance we want
           runningInst = loadedInstances[instId];
           // FIXME later: use different getter
-          unsigned long callAddr = reg1.GetLong() - (unsigned long)(&runningInst->code[0]);
+          intptr_t callAddr = reg1.GetLong() - (intptr_t)(&runningInst->code[0]);
           if (callAddr % 4 != 0) {
               cc_error("call address not aligned");
               return -1;
           }
-          callAddr /= sizeof(long);
+          callAddr /= sizeof(intptr_t); // size of ccScript::code elements
 
-          if (Run(callAddr))
+          if (Run((int32_t)callAddr))
               return -1;
 
           runningInst = wasRunning;
@@ -947,7 +948,7 @@ int ccInstance::Run(long curpc)
               num_args_to_func = callstacksize;
 
           GlobalReturnValue.Invalidate();
-          long return_value;
+          int32_t return_value;
           if (next_call_needs_object) {
               // member function call
               // use the callstack +1 size allocation to squeeze
@@ -975,7 +976,7 @@ int ccInstance::Run(long curpc)
           }
           else
           {
-            registers[SREG_AX].SetLong(return_value);
+            registers[SREG_AX].SetInt32(return_value);
           }
 
           if (ccError)
@@ -1000,10 +1001,10 @@ int ccInstance::Run(long curpc)
           break;
       case SCMD_SUBREALSTACK:
           if (was_just_callas >= 0) {
-              PopValuesFromStack(arg1.GetLong());
+              PopValuesFromStack(arg1.GetInt32());
               was_just_callas = -1;
           }
-          callstacksize -= arg1.GetLong();
+          callstacksize -= arg1.GetInt32();
           break;
       case SCMD_CALLOBJ:
           // set the OP register
@@ -1021,18 +1022,18 @@ int ccInstance::Run(long curpc)
           reg1.SetInt32(reg1.GetInt() >> reg2.GetInt());
           break;
       case SCMD_THISBASE:
-          thisbase[curnest] = arg1.GetLong();
+          thisbase[curnest] = arg1.GetInt32();
           break;
       case SCMD_NEWARRAY:
           {
-              int numElements = reg1.GetLong();
+              int numElements = reg1.GetInt32();
               if ((numElements < 1) || (numElements > 1000000))
               {
                   cc_error("invalid size for dynamic array; requested: %d, range: 1..1000000", numElements);
                   return -1;
               }
               reg1.SetDynamicObject(
-                  (void*)ccGetObjectAddressFromHandle(globalDynamicArray.Create(numElements, arg2.GetLong(), (arg3 == 1))),
+                  (void*)ccGetObjectAddressFromHandle(globalDynamicArray.Create(numElements, arg2.GetInt32(), (arg3 == 1))),
                   &globalDynamicArray);
               break;
           }
@@ -1077,22 +1078,22 @@ int ccInstance::Run(long curpc)
               int currentStackSize = registers[SREG_SP].GetStackEntry() - &stack[0];
               int currentDataSize = stackdata_ptr - stackdata;
               if (currentStackSize + 1 >= CC_STACK_SIZE ||
-                  currentDataSize + arg1.GetLong() >= CC_STACK_DATA_SIZE)
+                  currentDataSize + arg1.GetInt32() >= CC_STACK_DATA_SIZE)
               {
-                  cc_error("stack overflow, attempted grow to %d bytes", currentDataSize + arg1.GetLong());
+                  cc_error("stack overflow, attempted grow to %d bytes", currentDataSize + arg1.GetInt32());
                   return -1;
               }
               // NOTE: according to compiler's logic, this is always followed
               // by SCMD_ADD, and that is where the data is "allocated", here we
               // just clean the place.
               // CHECKME -- since we zero memory in PushDataToStack anyway, this is not needed at all?
-              memset(stackdata_ptr, 0, arg1.GetLong());
+              memset(stackdata_ptr, 0, arg1.GetInt32());
           }
           else
           {
             // CHECKME: this should never happen?
             mptr = (char *)(registers[SREG_MAR].GetLong());
-            memset(&mptr[0], 0, arg1.GetLong());
+            memset(&mptr[0], 0, arg1.GetInt32());
           }
           break;
       case SCMD_CREATESTRING:
@@ -1308,7 +1309,7 @@ void ccInstance::DumpInstruction(const ScriptOperation &op)
 
     if (op.Instruction.Code == SCMD_LINENUM)
     {
-        line_num = op.Args[0].GetLong();
+        line_num = op.Args[0].GetInt32();
         return;
     }
 
@@ -1327,7 +1328,7 @@ void ccInstance::DumpInstruction(const ScriptOperation &op)
         }
         if (cmd_info.ArgIsReg[i])
         {
-            writer.WriteFormat(" %s", regnames[op.Args[i].GetLong()]);
+            writer.WriteFormat(" %s", regnames[op.Args[i].GetInt32()]);
         }
         else
         {
@@ -1351,16 +1352,16 @@ void ccInstance::FlattenGlobalData()
 
     // perform the fixups
     for (i = 0; i < scri->numfixups; i++) {
-        long fixup = scri->fixups[i];
+        int32_t fixup = scri->fixups[i];
         if (scri->fixuptypes[i] == FIXUP_DATADATA) {
             // supposedly these are only used for strings...
-            int32_t temp;
+            intptr_t temp;
             memcpy(&temp, (char*)&(globaldata[fixup]), 4);
 
 #if defined(AGS_BIG_ENDIAN)
             AGS::Common::BitByteOperations::SwapBytesInt32(temp);
 #endif
-            temp -= (long)globaldata;
+            temp -= (intptr_t)globaldata;
 #if defined(AGS_BIG_ENDIAN)
             AGS::Common::BitByteOperations::SwapBytesInt32(temp);
 #endif
@@ -1381,15 +1382,15 @@ void ccInstance::UnFlattenGlobalData()
 
     // perform the fixups
     for (i = 0; i < scri->numfixups; i++) {
-        long fixup = scri->fixups[i];
+        int32_t fixup = scri->fixups[i];
         if (scri->fixuptypes[i] == FIXUP_DATADATA) {
             // supposedly these are only used for strings...
-            int32_t temp;
+            intptr_t temp;
             memcpy(&temp, (char*)&(globaldata[fixup]), 4);
 #if defined(AGS_BIG_ENDIAN)
             AGS::Common::BitByteOperations::SwapBytesInt32(temp);
 #endif
-            temp += (long)globaldata;
+            temp += (intptr_t)globaldata;
 #if defined(AGS_BIG_ENDIAN)
             AGS::Common::BitByteOperations::SwapBytesInt32(temp);
 #endif
@@ -1426,13 +1427,13 @@ bool ccInstance::_Create(ccScript * scri, ccInstance * joined)
             globaldata = NULL;
     }
     codesize = scri->codesize;
-    code = (unsigned long*)scri->code; // CHECKME later why different types
+    code = scri->code;
 
     // just use the pointer to the strings since they don't change
     strings = scri->strings;
     stringssize = scri->stringssize;
     // create a stack
-    stackdatasize = CC_STACK_SIZE * sizeof(long);
+    stackdatasize = CC_STACK_DATA_SIZE;
     // This is quite a random choice; there's no way to deduce number of stack
     // entries needed without knowing amount of local variables (at least)
     num_stackentries = CC_STACK_SIZE;
@@ -1481,12 +1482,12 @@ bool ccInstance::_Create(ccScript * scri, ccInstance * joined)
 
     // find the real address of the exports
     for (i = 0; i < scri->numexports; i++) {
-        long etype = (scri->export_addr[i] >> 24L) & 0x000ff;
-        long eaddr = (scri->export_addr[i] & 0x00ffffff);
+        int32_t etype = (scri->export_addr[i] >> 24L) & 0x000ff;
+        int32_t eaddr = (scri->export_addr[i] & 0x00ffffff);
         if (etype == EXPORT_FUNCTION)
-            exportaddr[i] = (char *)(eaddr * sizeof(long) + (long)(&code[0]));
+            exportaddr[i] = (char *)((intptr_t)eaddr * sizeof(intptr_t) + (intptr_t)(&code[0]));
         else if (etype == EXPORT_DATA)
-            exportaddr[i] = eaddr + (&globaldata[0]);
+            exportaddr[i] = (intptr_t)eaddr + (&globaldata[0]);
         else {
             cc_error("internal export fixup error");
             return false;
@@ -1517,7 +1518,7 @@ void ccInstance::Free()
         instanceof->instances--;
         if (instanceof->instances == 0) {
             simp.remove_range((char *)&globaldata[0], globaldatasize);
-            simp.remove_range((char *)&code[0], codesize * sizeof(long));
+            simp.remove_range((char *)&code[0], codesize * sizeof(intptr_t));
         }
     }
 
@@ -1589,14 +1590,14 @@ bool ccInstance::FixupGlobalData(ccScript * scri)
             continue;
         }
 
-        long fixup = scri->fixups[i];
+        int32_t fixup = scri->fixups[i];
         // supposedly these are only used for strings...
-        int32_t temp;
+        intptr_t temp;
         memcpy(&temp, (char*)&(globaldata[fixup]), 4);
 #if defined(AGS_BIG_ENDIAN)
         AGS::Common::BitByteOperations::SwapBytesInt32(temp);
 #endif
-        temp += (long)globaldata;
+        temp += (intptr_t)globaldata;
 #if defined(AGS_BIG_ENDIAN)
         AGS::Common::BitByteOperations::SwapBytesInt32(temp);
 #endif
@@ -1618,7 +1619,7 @@ bool ccInstance::CreateRuntimeCodeFixups(ccScript * scri)
             continue;
         }
 
-        long fixup = scri->fixups[i];
+        int32_t fixup = scri->fixups[i];
         code_fixups[fixup] = scri->fixuptypes[i];
 
         switch (scri->fixuptypes[i])
@@ -1651,7 +1652,7 @@ bool ccInstance::CreateRuntimeCodeFixups(ccScript * scri)
     return true;
 }
 
-bool ccInstance::ReadOperation(ScriptOperation &op, long at_pc)
+bool ccInstance::ReadOperation(ScriptOperation &op, int32_t at_pc)
 {
 	op.Instruction.Code			= code[at_pc];
 	op.Instruction.InstanceId	= (op.Instruction.Code >> INSTANCE_ID_SHIFT) & INSTANCE_ID_MASK;
@@ -1684,7 +1685,7 @@ bool ccInstance::ReadOperation(ScriptOperation &op, long at_pc)
     return true;
 }
 
-void ccInstance::FixupInstruction(long code_index, char fixup_type, ScriptInstruction &instruction)
+void ccInstance::FixupInstruction(int32_t code_index, char fixup_type, ScriptInstruction &instruction)
 {
     // There are not so much acceptable variants here
     if (fixup_type == FIXUP_IMPORT)
@@ -1693,8 +1694,8 @@ void ccInstance::FixupInstruction(long code_index, char fixup_type, ScriptInstru
             // save the instance ID in the top 4 bits of the instruction
             instruction.Code        = SCMD_CALLAS;
             // take the import index from the previous code value
-            long import_index       = resolved_imports[code[code_index - 1]];
-            instruction.InstanceId  = (unsigned long)simp.getByIndex(import_index)->InstancePtr->loadedInstanceId;
+            int32_t import_index    = resolved_imports[code[code_index - 1]];
+            instruction.InstanceId  = simp.getByIndex(import_index)->InstancePtr->loadedInstanceId;
             return;
         }
     }
@@ -1707,23 +1708,23 @@ void ccInstance::FixupInstruction(long code_index, char fixup_type, ScriptInstru
     cc_error("unexpected instruction/fixup pair: %s - %s", cmd_name, fixupnames[fixup_type]);
 }
 
-void ccInstance::FixupArgument(long code_index, char fixup_type, RuntimeScriptValue &argument)
+void ccInstance::FixupArgument(int32_t code_index, char fixup_type, RuntimeScriptValue &argument)
 {
     switch (fixup_type)
     {
     case FIXUP_GLOBALDATA:
-        argument.SetGlobalData((long)&globaldata[0] + argument.GetLong());
+        argument.SetGlobalData((intptr_t)&globaldata[0] + argument.GetLong());
         break;
     case FIXUP_FUNCTION:
         // originally commented --
         //      code[fixup] += (long)&code[0];
         break;
     case FIXUP_STRING:
-        argument += (long)&strings[0];
+        argument += (intptr_t)&strings[0];
         break;
     case FIXUP_IMPORT:
         {
-            long import_index = resolved_imports[code[code_index]];
+            int32_t import_index = resolved_imports[code[code_index]];
             const ScriptImport *import = simp.getByIndex(import_index);
             if (import->Type == kScImportDynamicObject)
             {
@@ -1743,7 +1744,7 @@ void ccInstance::FixupArgument(long code_index, char fixup_type, RuntimeScriptVa
         // fixup is being made at instance init
         break;
     case FIXUP_STACK: {
-        argument = GetStackPtrOffsetFw(argument.GetLong());
+        argument = GetStackPtrOffsetFw(argument.GetInt32());
         }
         break;
     default:
@@ -1836,7 +1837,7 @@ void ccInstance::PopDataFromStack(int num_bytes)
         cc_error("internal error: valid data beyond stack ptr");
         return;
     }
-    long total_pop = 0;
+    int32_t total_pop = 0;
     while (total_pop < num_bytes)
     {
         // rewind stack ptr to the last valid value, decrement stack data ptr if needed and invalidate the stack tail
@@ -1857,7 +1858,7 @@ void ccInstance::PopDataFromStack(int num_bytes)
 
 RuntimeScriptValue ccInstance::GetStackPtrOffsetFw(int fw_offset)
 {
-    long total_off = 0;
+    int32_t total_off = 0;
     RuntimeScriptValue *stack_entry = &stack[0];
     while (total_off < fw_offset)
     {
@@ -1884,7 +1885,7 @@ RuntimeScriptValue ccInstance::GetStackPtrOffsetRw(int rw_offset)
         cc_error("internal error: valid data beyond stack ptr");
         return RuntimeScriptValue();
     }
-    long total_off = 0;
+    int32_t total_off = 0;
     RuntimeScriptValue *stack_entry = registers[SREG_SP].GetStackEntry();
     while (total_off < rw_offset)
     {

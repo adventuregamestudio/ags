@@ -19,7 +19,7 @@ uint8_t RuntimeScriptValue::ReadByte()
         }
         else
         {
-            return RValue->GetInt(); // get RValue as int
+            return RValue->GetInt32(); // get RValue as int
         }
     }
     else if (this->Type == kScValStaticObject)
@@ -43,7 +43,7 @@ int16_t RuntimeScriptValue::ReadInt16()
         }
         else
         {
-            return RValue->GetInt(); // get RValue as int
+            return RValue->GetInt32(); // get RValue as int
         }
     }
 #if defined(AGS_BIG_ENDIAN)
@@ -75,7 +75,7 @@ int32_t RuntimeScriptValue::ReadInt32()
         }
         else
         {
-            return RValue->GetInt(); // get RValue as int
+            return RValue->GetInt32(); // get RValue as int
         }
     }
 #if defined(AGS_BIG_ENDIAN)

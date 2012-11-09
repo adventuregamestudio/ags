@@ -106,7 +106,7 @@ extern CCInventory ccDynamicInv;
 
 CharacterExtras *charextra;
 CharacterInfo*playerchar;
-long _sc_PlayerCharPtr = 0;
+int32_t _sc_PlayerCharPtr = 0;
 int char_lowest_yp;
 
 // Sierra-style speech settings

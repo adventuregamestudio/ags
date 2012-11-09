@@ -80,9 +80,9 @@ int ccCompiledScript::add_string(char*strr) {
     stringssize += strlen(strr) + 1;
     return toret;
 }
-void ccCompiledScript::add_fixup(long locc, char ftype) {
+void ccCompiledScript::add_fixup(int32_t locc, char ftype) {
     fixuptypes = (char*)realloc(fixuptypes, numfixups + 5);
-    fixups = (long*)realloc(fixups, (numfixups * sizeof(long)) + 10);
+    fixups = (int32_t*)realloc(fixups, (numfixups * sizeof(int32_t)) + 10);
     fixuptypes[numfixups] = ftype;
     fixups[numfixups] = locc;
     numfixups++;
@@ -183,7 +183,7 @@ int ccCompiledScript::add_new_export(char*namm,int etype,long eoffs, int numArgs
     {
         exportsCapacity += 1000;
         exports = (char**)realloc(exports, sizeof(char*) * exportsCapacity);
-        export_addr = (long*)realloc(export_addr, sizeof(long) * exportsCapacity);
+        export_addr = (int32_t*)realloc(export_addr, sizeof(int32_t) * exportsCapacity);
     }
     if (eoffs >= 0x00ffffff) {
         cc_error("export offset too high; script data size too large?");
@@ -218,11 +218,11 @@ void ccCompiledScript::flush_line_numbers() {
         write_code(linum);
     }
 }
-void ccCompiledScript::write_code(long byy) {
+void ccCompiledScript::write_code(intptr_t byy) {
     flush_line_numbers();
     if (codesize >= codeallocated - 2) {
         codeallocated += 500;
-        code = (long*)realloc(code,codeallocated*sizeof(long));
+        code = (intptr_t*)realloc(code,codeallocated*sizeof(intptr_t));
     }
     code[codesize] = byy;
     codesize++;
@@ -236,7 +236,7 @@ const char* ccCompiledScript::start_new_section(const char *name) {
         {
             capacitySections += 100;
             sectionNames = (char**)realloc(sectionNames, sizeof(char*) * capacitySections);
-            sectionOffsets = (long*)realloc(sectionOffsets, sizeof(long) * capacitySections);
+            sectionOffsets = (int32_t*)realloc(sectionOffsets, sizeof(int32_t) * capacitySections);
         }
         sectionNames[numSections] = (char*)malloc(strlen(name) + 1);
         strcpy(sectionNames[numSections], name);

@@ -56,7 +56,7 @@ extern int scrnwid,scrnhit;
 // defined in character unit
 extern CharacterExtras *charextra;
 extern CharacterInfo*playerchar;
-extern long _sc_PlayerCharPtr;
+extern int32_t _sc_PlayerCharPtr;
 extern CharacterInfo*playerchar;
 
 

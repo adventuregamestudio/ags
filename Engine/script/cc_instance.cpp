@@ -488,9 +488,9 @@ int ccInstance::Run(int32_t curpc)
         RuntimeScriptValue &arg2 = codeOp.Args[1];
         RuntimeScriptValue &arg3 = codeOp.Args[2];
         RuntimeScriptValue &reg1 = 
-            registers[arg1.GetInt() >= 0 && arg1.GetInt() < CC_NUM_REGISTERS ? arg1.GetInt() : 0];
+            registers[arg1.GetInt32() >= 0 && arg1.GetInt32() < CC_NUM_REGISTERS ? arg1.GetInt32() : 0];
         RuntimeScriptValue &reg2 = 
-            registers[arg2.GetInt() >= 0 && arg2.GetInt() < CC_NUM_REGISTERS ? arg2.GetInt() : 0];
+            registers[arg2.GetInt32() >= 0 && arg2.GetInt32() < CC_NUM_REGISTERS ? arg2.GetInt32() : 0];
 
         if (write_debug_dump)
         {
@@ -562,10 +562,10 @@ int ccInstance::Run(int32_t curpc)
           switch (arg1.GetInt32())
           {
           case sizeof(char):
-              registers[SREG_MAR].WriteByte(arg2.GetInt());
+              registers[SREG_MAR].WriteByte(arg2.GetInt32());
               break;
           case sizeof(int16_t):
-              registers[SREG_MAR].WriteInt16(arg2.GetInt());
+              registers[SREG_MAR].WriteInt16(arg2.GetInt32());
               break;
           case sizeof(int32_t):
               // We do not know if this is math integer or some pointer, etc
@@ -583,10 +583,10 @@ int ccInstance::Run(int32_t curpc)
 
           RuntimeScriptValue rval = PopValueFromStack();
           curnest--;
-          pc = rval.GetInt();
+          pc = rval.GetInt32();
           if (pc == 0)
           {
-              returnValue = registers[SREG_AX].GetInt();
+              returnValue = registers[SREG_AX].GetInt32();
               return 0;
           }
           current_instance = this;
@@ -610,14 +610,14 @@ int ccInstance::Run(int32_t curpc)
 
           // 64 bit: Force 32 bit math
       case SCMD_MULREG:
-          reg1.SetInt32(reg1.GetInt() * reg2.GetInt());
+          reg1.SetInt32(reg1.GetInt32() * reg2.GetInt32());
           break;
       case SCMD_DIVREG:
           if (reg2 == 0) {
               cc_error("!Integer divide by zero");
               return -1;
           } 
-          reg1.SetInt32(reg1.GetInt() / reg2.GetInt());
+          reg1.SetInt32(reg1.GetInt32() / reg2.GetInt32());
           break;
       case SCMD_ADDREG:
           // This may be pointer arithmetics!
@@ -628,10 +628,10 @@ int ccInstance::Run(int32_t curpc)
           reg1 -= reg2;
           break;
       case SCMD_BITAND:
-          reg1.SetInt32(reg1.GetInt() & reg2.GetInt());
+          reg1.SetInt32(reg1.GetInt32() & reg2.GetInt32());
           break;
       case SCMD_BITOR:
-          reg1.SetInt32(reg1.GetInt() | reg2.GetInt());
+          reg1.SetInt32(reg1.GetInt32() | reg2.GetInt32());
           break;
       case SCMD_ISEQUAL:
           reg1.SetInt32(reg1 == reg2);
@@ -640,32 +640,32 @@ int ccInstance::Run(int32_t curpc)
           reg1.SetInt32(reg1 != reg2);
           break;
       case SCMD_GREATER:
-          reg1.SetInt32(reg1.GetInt() > reg2.GetInt());
+          reg1.SetInt32(reg1.GetInt32() > reg2.GetInt32());
           break;
       case SCMD_LESSTHAN:
-          reg1.SetInt32(reg1.GetInt() < reg2.GetInt());
+          reg1.SetInt32(reg1.GetInt32() < reg2.GetInt32());
           break;
       case SCMD_GTE:
-          reg1.SetInt32(reg1.GetInt() >= reg2.GetInt());
+          reg1.SetInt32(reg1.GetInt32() >= reg2.GetInt32());
           break;
       case SCMD_LTE:
-          reg1.SetInt32(reg1.GetInt() <= reg2.GetInt());
+          reg1.SetInt32(reg1.GetInt32() <= reg2.GetInt32());
           break;
       case SCMD_AND:
-          reg1.SetInt32(reg1.GetInt() && reg2.GetInt());
+          reg1.SetInt32(reg1.GetInt32() && reg2.GetInt32());
           break;
       case SCMD_OR:
-          reg1.SetInt32(reg1.GetInt() || reg2.GetInt());
+          reg1.SetInt32(reg1.GetInt32() || reg2.GetInt32());
           break;
       case SCMD_XORREG:
-          reg1.SetInt32(reg1.GetInt() ^ reg2.GetInt());
+          reg1.SetInt32(reg1.GetInt32() ^ reg2.GetInt32());
           break;
       case SCMD_MODREG:
           if (reg2 == 0) {
               cc_error("!Integer divide by zero");
               return -1;
           } 
-          reg1.SetInt32(reg1.GetInt() % reg2.GetInt());
+          reg1.SetInt32(reg1.GetInt32() % reg2.GetInt32());
           break;
       case SCMD_NOTREG:
           reg1 = !(reg1);
@@ -710,11 +710,11 @@ int ccInstance::Run(int32_t curpc)
           break;
       case SCMD_MEMWRITEB:
           // Take the data address from reg[MAR] and copy there byte from reg[arg1]
-          registers[SREG_MAR].WriteByte(reg1.GetInt());
+          registers[SREG_MAR].WriteByte(reg1.GetInt32());
           break;
       case SCMD_MEMWRITEW:
           // Take the data address from reg[MAR] and copy there int16_t from reg[arg1]
-          registers[SREG_MAR].WriteInt16(reg1.GetInt());
+          registers[SREG_MAR].WriteInt16(reg1.GetInt32());
           break;
       case SCMD_JZ:
           if (registers[SREG_AX] == 0)
@@ -1016,10 +1016,10 @@ int ccInstance::Run(int32_t curpc)
           next_call_needs_object = 1;
           break;
       case SCMD_SHIFTLEFT:
-          reg1.SetInt32(reg1.GetInt() << reg2.GetInt());
+          reg1.SetInt32(reg1.GetInt32() << reg2.GetInt32());
           break;
       case SCMD_SHIFTRIGHT:
-          reg1.SetInt32(reg1.GetInt() >> reg2.GetInt());
+          reg1.SetInt32(reg1.GetInt32() >> reg2.GetInt32());
           break;
       case SCMD_THISBASE:
           thisbase[curnest] = arg1.GetInt32();
@@ -1770,7 +1770,7 @@ void ccInstance::PushValueToStack(const RuntimeScriptValue &rval)
     // (for int8, int16 and int32).
     if (rval.GetType() == kScValInteger)
     {
-        registers[SREG_SP].WriteInt32(rval.GetInt());
+        registers[SREG_SP].WriteInt32(rval.GetInt32());
     }
     else
     {

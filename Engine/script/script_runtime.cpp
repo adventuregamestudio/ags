@@ -140,7 +140,7 @@ int call_function(intptr_t addr, int numparm, const RuntimeScriptValue *parms, i
 
     parms += offset;
 
-    long parm_value[9];
+    intptr_t parm_value[9];
     for (int i = 0; i < numparm; ++i)
     {
         const RuntimeScriptValue *real_param;
@@ -164,57 +164,88 @@ int call_function(intptr_t addr, int numparm, const RuntimeScriptValue *parms, i
         parm_value[i] = (intptr_t)real_param->GetDataPtrWithOffset();
     }
 
+    //
+    // AN IMPORTANT NOTE ON PARAM TYPE
+    // of 2012-11-10
+    //
+    // Here we are sending parameters of type intptr_t to registered
+    // function of unknown kind. Intptr_t is 32-bit for x32 build and
+    // 64-bit for x64 build.
+    // The exported functions usually have two types of parameters:
+    // pointer and 'int' (32-bit). For x32 build those two have the
+    // same size, but for x64 build first has 64-bit size while the
+    // second remains 32-bit.
+    // In formal case that would cause 'overflow' - function will
+    // receive more data than needed (written to stack), with some
+    // values shifted further by 32 bits.
+    //
+    // Upon testing, however, it was revealed that AMD64 processor,
+    // the only platform we support x64 Linux AGS build on, treats
+    // all the function parameters pushed to stack as 64-bit values
+    // (few first parameters are sent via registers, and hence are
+    // least concern anyway). Therefore, no 'overflow' occurs, and
+    // 64-bit values are being effectively truncated to 32-bit
+    // integers in the callee.
+    //
+    // While this is, again - formally, quite unreliable, it was
+    // decided to leave this situation without fix for the time
+    // being. There are some possible solutions, but all of them
+    // require much extra work, something programmers do not like :P.
+    //
+    // This could be redone later, when an actual need arises.
+    //
+
     if (numparm == 1) {
-        int (*fparam) (long);
-        fparam = (int (*)(long))addr;
+        int (*fparam) (intptr_t);
+        fparam = (int (*)(intptr_t))addr;
         return fparam(parm_value[0]);
     }
 
     if (numparm == 2) {
-        int (*fparam) (long, long);
-        fparam = (int (*)(long, long))addr;
+        int (*fparam) (intptr_t, intptr_t);
+        fparam = (int (*)(intptr_t, intptr_t))addr;
         return fparam(parm_value[1], parm_value[0]);
     }
 
     if (numparm == 3) {
-        int (*fparam) (long, long, long);
-        fparam = (int (*)(long, long, long))addr;
+        int (*fparam) (intptr_t, intptr_t, intptr_t);
+        fparam = (int (*)(intptr_t, intptr_t, intptr_t))addr;
         return fparam(parm_value[2], parm_value[1], parm_value[0]);
     }
 
     if (numparm == 4) {
-        int (*fparam) (long, long, long, long);
-        fparam = (int (*)(long, long, long, long))addr;
+        int (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t);
+        fparam = (int (*)(intptr_t, intptr_t, intptr_t, intptr_t))addr;
         return fparam(parm_value[3], parm_value[2], parm_value[1], parm_value[0]);
     }
 
     if (numparm == 5) {
-        int (*fparam) (long, long, long, long, long);
-        fparam = (int (*)(long, long, long, long, long))addr;
+        int (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
+        fparam = (int (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))addr;
         return fparam(parm_value[4], parm_value[3], parm_value[2], parm_value[1], parm_value[0]);
     }
 
     if (numparm == 6) {
-        int (*fparam) (long, long, long, long, long, long);
-        fparam = (int (*)(long, long, long, long, long, long))addr;
+        int (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
+        fparam = (int (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))addr;
         return fparam(parm_value[5], parm_value[4], parm_value[3], parm_value[2], parm_value[1], parm_value[0]);
     }
 
     if (numparm == 7) {
-        int (*fparam) (long, long, long, long, long, long, long);
-        fparam = (int (*)(long, long, long, long, long, long, long))addr;
+        int (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
+        fparam = (int (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))addr;
         return fparam(parm_value[6], parm_value[5], parm_value[4], parm_value[3], parm_value[2], parm_value[1], parm_value[0]);
     }
 
     if (numparm == 8) {
-        int (*fparam) (long, long, long, long, long, long, long, long);
-        fparam = (int (*)(long, long, long, long, long, long, long, long))addr;
+        int (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
+        fparam = (int (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))addr;
         return fparam(parm_value[7], parm_value[6], parm_value[5], parm_value[4], parm_value[3], parm_value[2], parm_value[1], parm_value[0]);
     }
 
     if (numparm == 9) {
-        int (*fparam) (long, long, long, long, long, long, long, long, long);
-        fparam = (int (*)(long, long, long, long, long, long, long, long, long))addr;
+        int (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
+        fparam = (int (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))addr;
         return fparam(parm_value[8], parm_value[7], parm_value[6], parm_value[5], parm_value[4], parm_value[3], parm_value[2], parm_value[1], parm_value[0]);
     }
 

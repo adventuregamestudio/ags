@@ -75,14 +75,14 @@ char *scripttempn = "~acsc%d.tmp";
 
 void load_graphical_scripts(DataStream *in, roomstruct * rst)
 {
-    long ct;
+    int32_t ct;
 
     while (1) {
         ct = in->ReadInt32();
         if ((ct == -1) | (in->EOS() != 0))
             break;
 
-        long lee;
+        int32_t lee;
         lee = in->ReadInt32();
 
         char thisscn[20];

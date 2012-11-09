@@ -82,7 +82,7 @@ public:
     {
         return Value;
     }
-    inline int32_t GetInt() const
+    inline int32_t GetInt32() const
     {
         return IValue;
     }

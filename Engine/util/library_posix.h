@@ -92,6 +92,10 @@ public:
     {
       return (dlclose(_library) == 0);
     }
+    else
+    {
+      return true;
+    }
   }
 
   void *GetFunctionAddress(AGS::Common::String functionName)

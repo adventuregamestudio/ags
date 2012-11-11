@@ -9,6 +9,7 @@
 #include "core/types.h"
 
 struct ICCStaticObject;
+struct StaticArray;
 struct ICCDynamicObject;
 
 enum ScriptValueType
@@ -22,6 +23,7 @@ enum ScriptValueType
     kScValGlobalData,   // a workaround for big endian builds (maybe temporary);
                         // works exactly as kScValGeneric for the rest
     kScValStaticObject, // as a pointer to static global script object
+    kScValStaticArray,  // as a pointer to static global array (of static or dynamic objects)
     kScValDynamicObject,// as a pointer to managed script object
 };
 
@@ -55,8 +57,9 @@ private:
     union
     {
         void                *MgrPtr;// generic object manager pointer
-        ICCStaticObject     *StcMgr;// static object manager;
-        ICCDynamicObject    *DynMgr;// dynamic object manager;
+        ICCStaticObject     *StcMgr;// static object manager
+        StaticArray         *StcArr;// static array manager
+        ICCDynamicObject    *DynMgr;// dynamic object manager
     };
     // The "real" size of data, either one stored in Value variable,
     // or the one referenced by Ptr.
@@ -109,6 +112,10 @@ public:
     inline ICCStaticObject *GetStaticManager() const
     {
         return StcMgr;
+    }
+    inline StaticArray *GetStaticArray() const
+    {
+        return StcArr;
     }
     inline ICCDynamicObject *GetDynamicManager() const
     {
@@ -205,21 +212,30 @@ public:
         Size    = 4;
         return *this;
     }
-    inline RuntimeScriptValue &SetDynamicObject(void *object, ICCDynamicObject *manager)
-    {
-        Type    = kScValDynamicObject;
-        Value   = 0;
-        Ptr     = (char*)object;
-        DynMgr  = manager;
-        Size    = 4;
-        return *this;
-    }
     inline RuntimeScriptValue &SetStaticObject(void *object, ICCStaticObject *manager)
     {
         Type    = kScValStaticObject;
         Value   = 0;
         Ptr     = (char*)object;
         StcMgr  = manager;
+        Size    = 4;
+        return *this;
+    }
+    inline RuntimeScriptValue &SetStaticArray(void *object, StaticArray *manager)
+    {
+        Type    = kScValStaticArray;
+        Value   = 0;
+        Ptr     = (char*)object;
+        StcArr  = manager;
+        Size    = 4;
+        return *this;
+    }
+    inline RuntimeScriptValue &SetDynamicObject(void *object, ICCDynamicObject *manager)
+    {
+        Type    = kScValDynamicObject;
+        Value   = 0;
+        Ptr     = (char*)object;
+        DynMgr  = manager;
         Size    = 4;
         return *this;
     }

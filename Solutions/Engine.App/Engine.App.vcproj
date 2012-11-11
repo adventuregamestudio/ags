@@ -683,6 +683,10 @@
 						RelativePath="..\..\Engine\ac\statobj\agsstaticobject.cpp"
 						>
 					</File>
+					<File
+						RelativePath="..\..\Engine\ac\statobj\staticarray.cpp"
+						>
+					</File>
 				</Filter>
 			</Filter>
 			<Filter
@@ -1703,6 +1707,10 @@
 					>
 					<File
 						RelativePath="..\..\Engine\ac\statobj\agsstaticobject.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\statobj\staticarray.h"
 						>
 					</File>
 					<File

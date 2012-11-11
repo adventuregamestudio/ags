@@ -35,6 +35,7 @@
 #include "util/misc.h"
 #include "util/textstreamwriter.h"
 #include "ac/dynobj/scriptstring.h"
+#include "ac/statobj/staticarray.h"
 
 using AGS::Common::DataStream;
 using AGS::Common::TextStreamWriter;
@@ -795,10 +796,9 @@ int ccInstance::Run(int32_t curpc)
           int32_t handle = registers[SREG_MAR].ReadInt32();
           char *address = NULL;
 
-          if (reg1.GetType() == kScValStaticObject)
+          if (reg1.GetType() == kScValStaticArray)
           {
-              // Could be a global static array of game entities
-              address = reg1.GetDataPtrWithOffset();
+              address = (char*)reg1.GetStaticArray()->GetElementPtr(reg1.GetDataPtr(), reg1.GetLong());
           }
           else if (reg1.GetType() == kScValDynamicObject)
           {
@@ -1726,13 +1726,17 @@ void ccInstance::FixupArgument(int32_t code_index, char fixup_type, RuntimeScrip
         {
             int32_t import_index = resolved_imports[code[code_index]];
             const ScriptImport *import = simp.getByIndex(import_index);
-            if (import->Type == kScImportDynamicObject)
-            {
-                argument.SetDynamicObject( import->Ptr, import->DynMgr );
-            }
-            else if (import->Type == kScImportStaticObject)
+            if (import->Type == kScImportStaticObject)
             {
                 argument.SetStaticObject( import->Ptr, import->StcMgr );
+            }
+            else if (import->Type == kScImportStaticArray)
+            {
+                argument.SetStaticArray( import->Ptr, import->StcArr );
+            }
+            else if (import->Type == kScImportDynamicObject)
+            {
+                argument.SetDynamicObject( import->Ptr, import->DynMgr );
             }
             else
             {

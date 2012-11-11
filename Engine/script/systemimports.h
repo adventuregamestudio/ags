@@ -24,9 +24,9 @@ struct ICCStaticObject;
 enum ScriptImportType
 {
     kScImportUndefined,         // to detect errors
-    //kScImportData,            // for direct engine memory access (TODO: unsupport later!)
     kScImportStaticFunction,    // a static function
     kScImportStaticObject,      // static script object
+    kScImportStaticArray,       // static array (of either static or dynamic objects)
     kScImportDynamicObject,     // dynamic script object
     kScImportObjectFunction,    // script object member function, gets 'this' pointer
     kScImportScriptData,        // script function or variable
@@ -51,8 +51,9 @@ struct ScriptImport
     union
     {
         void                *MgrPtr;        // generic object manager pointer
-        ICCDynamicObject    *DynMgr;        // dynamic object manager
         ICCStaticObject     *StcMgr;        // static object manager
+        StaticArray         *StcArr;        // static object manager
+        ICCDynamicObject    *DynMgr;        // dynamic object manager
     };
     ccInstance          *InstancePtr;   // script instance
 };

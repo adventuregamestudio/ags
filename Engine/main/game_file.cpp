@@ -40,6 +40,7 @@
 #include "gfx/bitmap.h"
 #include "core/assetmanager.h"
 #include "ac/statobj/agsstaticobject.h"
+#include "ac/statobj/staticarray.h"
 
 using AGS::Common::Bitmap;
 
@@ -143,6 +144,14 @@ extern IDriverDependantBitmap* *actspswbbmp;
 extern CachedActSpsData* actspswbcache;
 
 extern AGSStaticObject GlobalStaticManager;
+
+StaticArray StaticCharacterArray;
+StaticArray StaticObjectArray;
+StaticArray StaticGUIArray;
+StaticArray StaticHotspotArray;
+StaticArray StaticRegionArray;
+StaticArray StaticInventoryArray;
+StaticArray StaticDialogArray;
 
 int filever;
 // PSP specific variables:
@@ -565,15 +574,23 @@ void init_and_register_game_objects()
     long dorsHandle = ccRegisterManagedObject(dialogOptionsRenderingSurface, dialogOptionsRenderingSurface);
     ccAddObjectReference(dorsHandle);
 
-    ccAddExternalStaticObject("character",&game.chars[0], &GlobalStaticManager);
+    StaticCharacterArray.Create(&ccDynamicCharacter, sizeof(CharacterInfo), sizeof(CharacterInfo));
+    StaticObjectArray.Create(&ccDynamicObject, sizeof(ScriptObject), sizeof(ScriptObject));
+    StaticGUIArray.Create(&ccDynamicGUI, sizeof(ScriptGUI), sizeof(ScriptGUI));
+    StaticHotspotArray.Create(&ccDynamicHotspot, sizeof(ScriptHotspot), sizeof(ScriptHotspot));
+    StaticRegionArray.Create(&ccDynamicRegion, sizeof(ScriptRegion), sizeof(ScriptRegion));
+    StaticInventoryArray.Create(&ccDynamicInv, sizeof(ScriptInvItem), sizeof(ScriptInvItem));
+    StaticDialogArray.Create(&ccDynamicDialog, sizeof(ScriptDialog), sizeof(ScriptDialog));
+
+    ccAddExternalStaticArray("character",&game.chars[0], &StaticCharacterArray);
     setup_player_character(game.playercharacter);
     ccAddExternalStaticObject("player", &_sc_PlayerCharPtr, &GlobalStaticManager);
-    ccAddExternalStaticObject("object",&scrObj[0], &GlobalStaticManager);
-    ccAddExternalStaticObject("gui",&scrGui[0], &GlobalStaticManager);
-    ccAddExternalStaticObject("hotspot",&scrHotspot[0], &GlobalStaticManager);
-    ccAddExternalStaticObject("region",&scrRegion[0], &GlobalStaticManager);
-    ccAddExternalStaticObject("inventory",&scrInv[0], &GlobalStaticManager);
-    ccAddExternalStaticObject("dialog", &scrDialog[0], &GlobalStaticManager);
+    ccAddExternalStaticArray("object",&scrObj[0], &StaticObjectArray);
+    ccAddExternalStaticArray("gui",&scrGui[0], &StaticGUIArray);
+    ccAddExternalStaticArray("hotspot",&scrHotspot[0], &StaticHotspotArray);
+    ccAddExternalStaticArray("region",&scrRegion[0], &StaticRegionArray);
+    ccAddExternalStaticArray("inventory",&scrInv[0], &StaticInventoryArray);
+    ccAddExternalStaticArray("dialog", &scrDialog[0], &StaticDialogArray);
 }
 
 int load_game_file() {

@@ -40,13 +40,6 @@
 
 extern ccInstance *current_instance; // in script/cc_instance
 
-/*
-bool ccAddExternalData(const char *name, void *ptr)
-{
-    return simp.add(kScImportData, name, ptr, NULL, NULL) == 0;
-}
-*/
-
 bool ccAddExternalStaticFunction(const char *name, void *ptr)
 {
     return simp.add(kScImportStaticFunction, name, ptr, NULL, NULL) == 0;
@@ -55,6 +48,11 @@ bool ccAddExternalStaticFunction(const char *name, void *ptr)
 bool ccAddExternalStaticObject(const char *name, void *ptr, ICCStaticObject *manager)
 {
     return simp.add(kScImportStaticObject, name, ptr, manager, NULL) == 0;
+}
+
+bool ccAddExternalStaticArray(const char *name, void *ptr, StaticArray *array_mgr)
+{
+    return simp.add(kScImportStaticArray, name, ptr, array_mgr, NULL) == 0;
 }
 
 bool ccAddExternalDynamicObject(const char *name, void *ptr, ICCDynamicObject *manager)

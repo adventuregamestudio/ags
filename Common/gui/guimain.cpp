@@ -381,15 +381,32 @@ int GUIMain::find_object_under_mouse(int extrawid, bool mustBeClickable)
 {
   int aa;
 
-  for (aa = numobjs - 1; aa >= 0; aa--) {
-    int objNum = drawOrder[aa];
+  if (loaded_game_file_version <= 27)
+  {
+    // Ignore draw order on 2.6.2 and lower
+    for (aa = 0; aa < numobjs; aa++) {
+      int objNum = aa;
 
-    if (!objs[objNum]->IsVisible())
-      continue;
-    if ((!objs[objNum]->IsClickable()) && (mustBeClickable))
-      continue;
-    if (objs[objNum]->IsOverControl(mousex, mousey, extrawid))
-      return objNum;
+      if (!objs[objNum]->IsVisible())
+        continue;
+      if ((!objs[objNum]->IsClickable()) && (mustBeClickable))
+        continue;
+      if (objs[objNum]->IsOverControl(mousex, mousey, extrawid))
+        return objNum;
+    }
+  }
+  else
+  {
+    for (aa = numobjs - 1; aa >= 0; aa--) {
+      int objNum = drawOrder[aa];
+
+      if (!objs[objNum]->IsVisible())
+        continue;
+      if ((!objs[objNum]->IsClickable()) && (mustBeClickable))
+        continue;
+      if (objs[objNum]->IsOverControl(mousex, mousey, extrawid))
+        return objNum;
+    }
   }
 
   return -1;

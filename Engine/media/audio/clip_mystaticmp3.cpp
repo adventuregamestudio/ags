@@ -91,6 +91,7 @@ void MYSTATICMP3::internal_destroy()
   }
   if (mp3buffer != NULL) {
       sound_cache_free(mp3buffer, false);
+      mp3buffer = NULL;
   }
 
   _destroyThis = false;
@@ -101,7 +102,7 @@ void MYSTATICMP3::destroy()
 {
     _mutex.Lock();
 
-    if (psp_audio_multithreaded)
+    if (psp_audio_multithreaded && _playing)
       _destroyThis = true;
     else
       internal_destroy();
@@ -110,6 +111,10 @@ void MYSTATICMP3::destroy()
 
     while (!done)
       AGSPlatformDriver::GetDriver()->YieldCPU();
+
+    // Allow the last poll cycle to finish.
+    _mutex.Lock();
+    _mutex.Unlock();
 }
 
 void MYSTATICMP3::seek(int pos)
@@ -129,9 +134,7 @@ int MYSTATICMP3::get_pos()
 
 int MYSTATICMP3::get_pos_ms()
 {
-    _mp3_mutex.Lock();
     int result = get_pos();
-    _mp3_mutex.Unlock();
     return result;
 }
 
@@ -186,6 +189,7 @@ int MYSTATICMP3::play() {
     if (!psp_audio_multithreaded)
       poll();
 
+    _playing = true;
     return 1;
 }
 

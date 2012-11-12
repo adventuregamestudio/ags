@@ -58,6 +58,7 @@
 #include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_character.h"
 #include "ac/dynobj/cc_inventory.h"
+#include "script/script_runtime.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -400,7 +401,7 @@ void Character_FaceLocation(CharacterInfo *char1, int xx, int yy, int blockingSt
                 start_character_turning (char1, useloop, no_diagonal);
 
                 if ((blockingStyle == BLOCKING) || (blockingStyle == 1))
-                    do_main_cycle(UNTIL_MOVEEND,(int)&char1->walking);
+                    do_main_cycle(UNTIL_MOVEEND,(long)&char1->walking);
             }
             else
                 char1->loop = useloop;
@@ -945,7 +946,7 @@ void Character_WalkStraight(CharacterInfo *chaa, int xx, int yy, int blocking) {
     walk_character(chaa->index_id, movetox, movetoy, 1, true);
 
     if ((blocking == BLOCKING) || (blocking == 1))
-        do_main_cycle(UNTIL_MOVEEND,(int)&chaa->walking);
+        do_main_cycle(UNTIL_MOVEEND,(long)&chaa->walking);
     else if ((blocking != IN_BACKGROUND) && (blocking != 0))
         quit("!Character.Walk: Blocking must be BLOCKING or IN_BACKGRUOND");
 
@@ -1935,7 +1936,7 @@ void walk_or_move_character(CharacterInfo *chaa, int x, int y, int blocking, int
         quit("!Character.Walk: Direct must be ANYWHERE or WALKABLE_AREAS");
 
     if ((blocking == BLOCKING) || (blocking == 1))
-        do_main_cycle(UNTIL_MOVEEND,(int)&chaa->walking);
+        do_main_cycle(UNTIL_MOVEEND,(long)&chaa->walking);
     else if ((blocking != IN_BACKGROUND) && (blocking != 0))
         quit("!Character.Walk: Blocking must be BLOCKING or IN_BACKGRUOND");
 
@@ -2017,6 +2018,9 @@ void setup_player_character(int charid) {
     game.playercharacter = charid;
     playerchar = &game.chars[charid];
     _sc_PlayerCharPtr = ccGetObjectHandleFromAddress((char*)playerchar);
+    if (loaded_game_file_version < 31) {
+        ccAddExternalDynamicObject("player", playerchar, &ccDynamicCharacter);
+    }
 }
 
 void animate_character(CharacterInfo *chap, int loopn,int sppd,int rept, int noidleoverride, int direction) {

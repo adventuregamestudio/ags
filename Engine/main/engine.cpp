@@ -51,7 +51,7 @@
 #include "gfx/bitmap.h"
 #include "core/assetmanager.h"
 #include "util/misc.h"
-#include "../PSP/launcher/pe.h"
+#include "platform/util/pe.h"
 
 using AGS::Common::DataStream;
 using AGS::Common::Bitmap;

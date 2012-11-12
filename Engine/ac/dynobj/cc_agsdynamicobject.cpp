@@ -13,8 +13,10 @@
 //=============================================================================
 
 #include <string.h>
+#include "core/types.h"
 #include "ac/dynobj/cc_agsdynamicobject.h"
 #include "ac/common.h"               // quit()
+#include "util/bbop.h"
 
 // *** The script serialization routines for built-in types
 
@@ -32,6 +34,9 @@ void AGSCCDynamicObject::SerializeInt(int val) {
     char *chptr = &serbuffer[bytesSoFar];
     int *iptr = (int*)chptr;
     *iptr = val;
+#if defined (AGS_BIG_ENDIAN)
+    AGS::Common::BitByteOperations::SwapBytesInt32(*iptr);
+#endif
     bytesSoFar += 4;
 }
 
@@ -51,8 +56,11 @@ int AGSCCDynamicObject::UnserializeInt() {
 
     char *chptr = &serbuffer[bytesSoFar];
     bytesSoFar += 4;
-    int *iptr = (int*)chptr;
-    return *iptr;
+    int value = *((int*)chptr);
+#if defined (AGS_BIG_ENDIAN)
+    AGS::Common::BitByteOperations::SwapBytesInt32(value);
+#endif
+    return value;
 }
 
 void AGSCCDynamicObject::Read(const char *address, intptr_t offset, void *dest, int size)

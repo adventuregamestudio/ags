@@ -119,15 +119,15 @@ void VariableWidthSpriteFontRenderer::RenderText(const char *text, int fontNumbe
 void VariableWidthSpriteFontRenderer::Draw(BITMAP *src, BITMAP *dest, int destx, int desty, int srcx, int srcy, int width, int height)
 {
 
-	long srcWidth, srcHeight, destWidth, destHeight, srcColDepth, destColDepth;
+	int srcWidth, srcHeight, destWidth, destHeight, srcColDepth, destColDepth;
 
 	unsigned char **srccharbuffer = _engine->GetRawBitmapSurface (src); //8bit
 	unsigned short **srcshortbuffer = (unsigned short**)srccharbuffer; //16bit;
-    unsigned long **srclongbuffer = (unsigned long**)srccharbuffer; //32bit
+    unsigned int **srclongbuffer = (unsigned int**)srccharbuffer; //32bit
 
 	unsigned char **destcharbuffer = _engine->GetRawBitmapSurface (dest); //8bit
 	unsigned short **destshortbuffer = (unsigned short**)destcharbuffer; //16bit;
-    unsigned long **destlongbuffer = (unsigned long**)destcharbuffer; //32bit
+    unsigned int **destlongbuffer = (unsigned int**)destcharbuffer; //32bit
 
 	int transColor = _engine->GetBitmapTransparentColor(src);
 

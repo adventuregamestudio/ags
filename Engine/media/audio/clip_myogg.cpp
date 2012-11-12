@@ -108,7 +108,7 @@ void MYOGG::destroy()
 {
     _mutex.Lock();
 
-    if (psp_audio_multithreaded)
+    if (psp_audio_multithreaded && _playing)
       _destroyThis = true;
     else
       internal_destroy();
@@ -214,6 +214,8 @@ int MYOGG::play() {
 
     if (!psp_audio_multithreaded)
       poll();
+
+    _playing = true;
 
     return 1;
 }

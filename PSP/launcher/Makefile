@@ -1,6 +1,6 @@
 TARGET = agslauncher
 
-OBJS = main.o pe.o ../kernel/kernel.o
+OBJS = main.o ../../Engine/platform/util/pe.o ../kernel/kernel.o
 
 CFLAGS = -O2 -g -G0 -msingle-float -ffast-math -Wall
 CXXFLAGS = $(CFLAGS) -fno-rtti -Wno-write-strings -fomit-frame-pointer

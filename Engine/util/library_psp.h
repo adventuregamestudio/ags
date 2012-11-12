@@ -73,6 +73,10 @@ public:
     {
       return (sceKernelUnloadModule(_library) > -1);
     }
+    else
+    {
+      return true;
+    }
   }
 
   void *GetFunctionAddress(AGS::Common::String functionName)

@@ -122,12 +122,17 @@ char* get_cached_sound(const char* filename, bool is_wave, long* size)
     }
 
     // Not found
-    PACKFILE *mp3in;
-    SAMPLE* wave;
+    PACKFILE *mp3in = NULL;
+    SAMPLE* wave = NULL;
 
     if (is_wave)
     {
-        wave = load_sample(filename);
+        PACKFILE *wavin = pack_fopen(filename, "rb");
+        if (wavin != NULL)
+        {
+            wave = load_wav_pf(wavin);
+            pack_fclose(wavin);
+        }
     }  
     else
     {
@@ -205,9 +210,13 @@ char* get_cached_sound(const char* filename, bool is_wave, long* size)
         printf("..loading cached in slot %d\n", i);
 #endif	
 
-        if (sound_cache_entries[i].data)
-            free(sound_cache_entries[i].data);
-
+        if (sound_cache_entries[i].data) {
+            if (sound_cache_entries[i].is_wave)
+                destroy_sample((SAMPLE*)sound_cache_entries[i].data);
+            else
+                free(sound_cache_entries[i].data);
+	}
+	
         sound_cache_entries[i].size = *size;
         sound_cache_entries[i].data = newdata;
 
@@ -217,6 +226,7 @@ char* get_cached_sound(const char* filename, bool is_wave, long* size)
         strcpy(sound_cache_entries[i].file_name, filename);
         sound_cache_entries[i].reference = 1;
         sound_cache_entries[i].last_used = sound_cache_counter++;
+        sound_cache_entries[i].is_wave = is_wave;
 
         _sound_cache_mutex.Unlock();
         return sound_cache_entries[i].data;	

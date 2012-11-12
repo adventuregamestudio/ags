@@ -515,9 +515,12 @@ void draw_button_background(int xx1,int yy1,int xx2,int yy2,GUIMain*iep) {
         wsetcolor(opts.tws.textcol); abuf->DrawRect(Rect(xx1+1,yy1+1,xx2-1,yy2-1);*/
     }
     else {
-        if (loaded_game_file_version < 25) // < 2.60
+        if (loaded_game_file_version < 27) // < 2.62
         {
             // Color 0 wrongly shows as transparent instead of black
+            // From the changelog of 2.62:
+            //  - Fixed text windows getting a black background if colour 0 was
+            //    specified, rather than being transparent.
             if (iep->bgcol == 0)
                 iep->bgcol = 16;
         }

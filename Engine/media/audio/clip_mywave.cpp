@@ -87,7 +87,7 @@ void MYWAVE::destroy()
 {
     _mutex.Lock();
 
-    if (psp_audio_multithreaded)
+    if (psp_audio_multithreaded && _playing)
       _destroyThis = true;
     else
       internal_destroy();
@@ -147,6 +147,8 @@ int MYWAVE::get_sound_type() {
 
 int MYWAVE::play() {
     voice = play_sample(wave, vol, panning, 1000, repeat);
+
+    _playing = true;
 
     return 1;
 }

@@ -217,8 +217,8 @@ int run_interaction_script(InteractionScripts *nint, int evnt, int chkAny, int i
         else {
             // Other (room script)
             if (inside_script) {
-                char funcName[60];
-                sprintf(funcName, "|%s", nint->scriptFuncNames[evnt]);
+                char funcName[MAX_FUNCTION_NAME_LEN+1];
+                snprintf(funcName, MAX_FUNCTION_NAME_LEN, "|%s", nint->scriptFuncNames[evnt]);
                 curscript->run_another (funcName, RuntimeScriptValue(), RuntimeScriptValue() /*0, 0*/);
             }
             else
@@ -284,10 +284,10 @@ void cancel_all_scripts() {
 //=============================================================================
 
 
-char bname[40],bne[40];
+char bname[MAX_FUNCTION_NAME_LEN+1],bne[MAX_FUNCTION_NAME_LEN+1];
 char* make_ts_func_name(char*base,int iii,int subd) {
-    sprintf(bname,base,iii);
-    sprintf(bne,"%s_%c",bname,subd+'a');
+    snprintf(bname,MAX_FUNCTION_NAME_LEN,base,iii);
+    snprintf(bne,MAX_FUNCTION_NAME_LEN,"%s_%c",bname,subd+'a');
     return &bne[0];
 }
 
@@ -366,8 +366,8 @@ void post_script_cleanup() {
     int jj;
     for (jj = 0; jj < copyof.numanother; jj++) {
         old_room_number = displayed_room;
-        char runnext[40];
-        strcpy(runnext,copyof.script_run_another[jj]);
+        char runnext[MAX_FUNCTION_NAME_LEN+1];
+        strncpy(runnext,copyof.script_run_another[jj],MAX_FUNCTION_NAME_LEN);
         copyof.script_run_another[jj][0]=0;
         if (runnext[0]=='#')
             gameinst->RunTextScript2IParam(&runnext[1],copyof.run_another_p1[jj],copyof.run_another_p2[jj]);
@@ -451,9 +451,9 @@ int run_interaction_commandlist (NewInteractionCommandList *nicl, int *timesrun,
                   else {
                       // Other (room script)
                       if (inside_script) {
-                          char funcName[60];
+                          char funcName[MAX_FUNCTION_NAME_LEN+1];
                           strcpy(funcName,"|");
-                          strcat(funcName,make_ts_func_name(evblockbasename,evblocknum,nicl->command[i].data[0].val));
+                          strncat(funcName,make_ts_func_name(evblockbasename,evblocknum,nicl->command[i].data[0].val),MAX_FUNCTION_NAME_LEN-1);
                           curscript->run_another (funcName, RuntimeScriptValue(), RuntimeScriptValue() /*0, 0*/);
                       }
                       else

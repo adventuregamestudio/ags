@@ -23,8 +23,8 @@ LDFLAGS  := -Wl,--as-needed $(addprefix -L,$(LIBDIR))
 
 BASE_PLATFORM = \
 platform/linux/acpllnx.cpp \
-../PSP/launcher/pe.c \
-../Android/library/jni/libc.c
+platform/util/pe.c \
+platform/util/libc.c
 
 COMMON_PLATFORM = \
 ../Common/platform/bigend/bigend.cpp

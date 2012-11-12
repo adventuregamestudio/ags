@@ -26,7 +26,24 @@ extern int num_open_script_files;
 extern DataStream *valid_handles[MAX_OPEN_SCRIPT_FILES+1];
 
 
-DataStream *FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode) {
+DataStream *FileOpenCMode(const char*fnmm, const char* cmode)
+{
+  Common::FileOpenMode open_mode;
+  Common::FileWorkMode work_mode;
+  // NOTE: here we ignore the text-mode flag. AGS 2.62 did not let
+  // game devs to open files in text mode. The file reading and
+  // writing logic in AGS makes extra control characters added for
+  // security reasons, and FileWriteRawLine adds CR/LF to the end
+  // of string on its own.
+  if (!Common::File::GetFileModesFromCMode(cmode, open_mode, work_mode))
+  {
+      return NULL;
+  }
+  return FileOpen(fnmm, open_mode, work_mode);
+}
+
+DataStream *FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode)
+{
   int useindx = 0;
   char fileToOpen[MAX_PATH];
 

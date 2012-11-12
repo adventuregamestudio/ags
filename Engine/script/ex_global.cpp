@@ -84,7 +84,8 @@ void register_global_script_functions()
 	ccAddExternalStaticFunction("FileClose",(void *)FileClose);
 	ccAddExternalStaticFunction("FileIsEOF",(void *)FileIsEOF);
 	ccAddExternalStaticFunction("FileIsError",(void *)FileIsError);
-	ccAddExternalStaticFunction("FileOpen",(void *)FileOpen);
+    // NOTE: FileOpenCMode is a backwards-compatible replacement for old-style global script function FileOpen
+	ccAddExternalStaticFunction("FileOpen",(void *)FileOpenCMode);
 	ccAddExternalStaticFunction("FileRead",(void *)FileRead);
 	ccAddExternalStaticFunction("FileReadInt",(void *)FileReadInt);
 	ccAddExternalStaticFunction("FileReadRawChar",(void *)FileReadRawChar);

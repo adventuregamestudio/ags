@@ -59,6 +59,10 @@ public:
     {
       return (FreeLibrary(_library) == 0);
     }
+    else
+    {
+      return true;
+    }
   }
 
   void *GetFunctionAddress(AGS::Common::String functionName)

@@ -14,7 +14,7 @@
 #include <unistd.h>
 
 #include "../kernel/kernel.h"
-#include "pe.h"
+#include "../../Engine/platform/util/pe.h"
 
 
 PSP_MODULE_INFO("launcher", 0, 1, 1);

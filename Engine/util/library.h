@@ -57,7 +57,8 @@ public:
    || defined(ANDROID_VERSION)
 #include "library_posix.h"
 
-#elif defined(IOS_VERSION)
+#elif defined(IOS_VERSION) \
+   || defined(WII_VERSION)
 #include "library_dummy.h"
 
 #endif

@@ -23,15 +23,15 @@ namespace Engine
 {
 
 
-class WiiMutex : Mutex
+class WiiMutex : BaseMutex
 {
 public:
-  inline Mutex()
+  inline WiiMutex()
   {
     LWP_MutexInit(&_mutex, 0);
   }
 
-  inline ~Mutex()
+  inline ~WiiMutex()
   {
     Unlock();
     LWP_MutexDestroy(_mutex);

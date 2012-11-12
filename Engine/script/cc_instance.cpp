@@ -381,7 +381,7 @@ void ccInstance::DoRunScriptFuncCantBlock(NonBlockingScriptFunction* funcToRun, 
     no_blocking_functions--;
 }
 
-char scfunctionname[30];
+char scfunctionname[MAX_FUNCTION_NAME_LEN+1];
 int ccInstance::PrepareTextScript(char**tsname) {
     ccError=0;
     if (this==NULL) return -1;
@@ -410,7 +410,7 @@ int ccInstance::PrepareTextScript(char**tsname) {
     if (num_scripts >= MAX_SCRIPT_AT_ONCE)
         quit("too many nested text script instances created");
     // in case script_run_another is the function name, take a backup
-    strcpy(scfunctionname,tsname[0]);
+    strncpy(scfunctionname,tsname[0],MAX_FUNCTION_NAME_LEN);
     tsname[0]=&scfunctionname[0];
     update_script_mouse_coords();
     inside_script++;
@@ -1275,12 +1275,12 @@ void ccInstance::GetCallStack(char *buffer, int maxLines) {
         return;
     }
 
-    sprintf(buffer, "in \"%s\", line %d\n", runningInst->instanceof->GetSectionName(pc), line_number);
+    sprintf(buffer, "in \"%s\", line %ld\n", runningInst->instanceof->GetSectionName(pc), line_number);
 
     char lineBuffer[300];
     int linesDone = 0;
     for (int j = callStackSize - 1; (j >= 0) && (linesDone < maxLines); j--, linesDone++) {
-        sprintf(lineBuffer, "from \"%s\", line %d\n",
+        sprintf(lineBuffer, "from \"%s\", line %ld\n",
             callStackCodeInst[j]->instanceof->GetSectionName(callStackAddr[j]), callStackLineNumber[j]);
         strcat(buffer, lineBuffer);
         if (linesDone == maxLines - 1)

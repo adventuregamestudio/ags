@@ -168,7 +168,6 @@ int DataStream::WriteArrayOfIntPtr32(const intptr_t *buffer, int count)
     for (elem = 0; elem < count && !EOS(); ++elem, ++buffer)
     {
         int32_t val = (int32_t)*buffer;
-        ConvertInt32(val);
         WriteInt32(val);
     }
     return elem;
@@ -230,7 +229,6 @@ int DataStream::WriteAndConvertArrayOfInt16(const int16_t *buffer, int count)
     for (elem = 0; elem < count && !EOS(); ++elem, ++buffer)
     {
         int16_t val = *buffer;
-        BBOp::SwapBytesInt16(val);
         WriteInt16(val);
     }
     return elem;
@@ -247,7 +245,6 @@ int DataStream::WriteAndConvertArrayOfInt32(const int32_t *buffer, int count)
     for (elem = 0; elem < count && !EOS(); ++elem, ++buffer)
     {
         int32_t val = *buffer;
-        BBOp::SwapBytesInt32(val);
         WriteInt32(val);
     }
     return elem;
@@ -264,7 +261,6 @@ int DataStream::WriteAndConvertArrayOfInt64(const int64_t *buffer, int count)
     for (elem = 0; elem < count && !EOS(); ++elem, ++buffer)
     {
         int64_t val = *buffer;
-        BBOp::SwapBytesInt64(val);
         WriteInt64(val);
     }
     return elem;

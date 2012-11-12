@@ -63,9 +63,15 @@ Variable number of sprites.
 
 Encrypted global messages and dialogs.
 26 : 2.6.1
+
+Wait() must be called with parameter > 0
+GetRegionAt() clips the input values to the screen size
+Color 0 now means transparent instead of black for text windows
 27 : 2.6.2
 
 Script modules. Fixes bug in the inventory display.
+Clickable GUI is selected with regard for the drawing order.
+Pointer to the "player" variable is now accessed via a dynamic object.
 31 : 2.7.0
 32 : 2.7.2
 
@@ -584,7 +590,9 @@ void init_and_register_game_objects()
 
     ccAddExternalStaticArray("character",&game.chars[0], &StaticCharacterArray);
     setup_player_character(game.playercharacter);
-    ccAddExternalStaticObject("player", &_sc_PlayerCharPtr, &GlobalStaticManager);
+    if (loaded_game_file_version >= 31) {
+        ccAddExternalStaticObject("player", &_sc_PlayerCharPtr, &GlobalStaticManager);
+    }
     ccAddExternalStaticArray("object",&scrObj[0], &StaticObjectArray);
     ccAddExternalStaticArray("gui",&scrGui[0], &StaticGUIArray);
     ccAddExternalStaticArray("hotspot",&scrHotspot[0], &StaticHotspotArray);

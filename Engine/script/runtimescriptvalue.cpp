@@ -125,7 +125,7 @@ RuntimeScriptValue RuntimeScriptValue::ReadValue()
     }
     else if (this->Type == kScValDynamicObject)
     {
-        rval.SetLong(this->GetDynamicManager()->ReadInt16(this->Ptr, this->Value));
+        rval.SetLong(this->GetDynamicManager()->ReadInt32(this->Ptr, this->Value));
     }
     else
     {

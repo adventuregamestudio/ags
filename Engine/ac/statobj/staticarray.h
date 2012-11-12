@@ -30,6 +30,14 @@ public:
     void Create(ICCStaticObject *stcmgr, int elem_legacy_size, int elem_real_size, int elem_count = -1 /*unknown*/);
     void Create(ICCDynamicObject *dynmgr, int elem_legacy_size, int elem_real_size, int elem_count = -1 /*unknown*/);
 
+    inline ICCStaticObject *GetStaticManager() const
+    {
+        return _staticMgr;
+    }
+    inline ICCDynamicObject *GetDynamicManager() const
+    {
+        return _dynamicMgr;
+    }
     // Legacy support for reading and writing object values by their relative offset
     virtual const char *GetElementPtr(const char *address, intptr_t legacy_offset);
 

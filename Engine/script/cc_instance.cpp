@@ -1012,7 +1012,21 @@ int ccInstance::Run(int32_t curpc)
               cc_error("!Null pointer referenced");
               return -1;
           }
-          registers[SREG_OP] = reg1;
+          if (reg1.GetType() == kScValDynamicObject)
+          {
+              registers[SREG_OP] = reg1;
+          }
+          else if (reg1.GetType() == kScValStaticArray && reg1.GetStaticArray()->GetDynamicManager())
+          {
+              registers[SREG_OP].SetDynamicObject(
+                  (char*)reg1.GetStaticArray()->GetElementPtr(reg1.GetDataPtr(), reg1.GetLong()),
+                  reg1.GetStaticArray()->GetDynamicManager());
+          }
+          else
+          {
+              cc_error("internal error: SCMD_CALLOBJ argument is not dynamic object");
+              return -1;
+          }
           next_call_needs_object = 1;
           break;
       case SCMD_SHIFTLEFT:

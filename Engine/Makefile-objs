@@ -2,6 +2,7 @@
 BASE_subdirs = \
 ac \
 ac/dynobj \
+ac/statobj \
 debug \
 device \
 font \

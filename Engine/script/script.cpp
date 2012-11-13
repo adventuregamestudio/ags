@@ -207,11 +207,13 @@ int run_interaction_script(InteractionScripts *nint, int evnt, int chkAny, int i
 
     int room_was = play.room_changes;
 
+    RuntimeScriptValue rval_null;
+
     UPDATE_MP3
         if ((strstr(evblockbasename,"character")!=0) || (strstr(evblockbasename,"inventory")!=0)) {
             // Character or Inventory (global script)
             if (inside_script) 
-                curscript->run_another (nint->scriptFuncNames[evnt], RuntimeScriptValue(), RuntimeScriptValue() /*0, 0*/);
+                curscript->run_another (nint->scriptFuncNames[evnt], rval_null, rval_null /*0, 0*/);
             else gameinst->RunTextScript(nint->scriptFuncNames[evnt]);
         }
         else {
@@ -219,7 +221,7 @@ int run_interaction_script(InteractionScripts *nint, int evnt, int chkAny, int i
             if (inside_script) {
                 char funcName[MAX_FUNCTION_NAME_LEN+1];
                 snprintf(funcName, MAX_FUNCTION_NAME_LEN, "|%s", nint->scriptFuncNames[evnt]);
-                curscript->run_another (funcName, RuntimeScriptValue(), RuntimeScriptValue() /*0, 0*/);
+                curscript->run_another (funcName, rval_null, rval_null /*0, 0*/);
             }
             else
                 roominst->RunTextScript(nint->scriptFuncNames[evnt]);
@@ -439,13 +441,14 @@ int run_interaction_commandlist (NewInteractionCommandList *nicl, int *timesrun,
       case 1:  // Run script
           { 
               TempEip tempip(4001);
+              RuntimeScriptValue rval_null;
               UPDATE_MP3
                   if ((strstr(evblockbasename,"character")!=0) || (strstr(evblockbasename,"inventory")!=0)) {
                       // Character or Inventory (global script)
                       char *torun = make_ts_func_name(evblockbasename,evblocknum,nicl->command[i].data[0].val);
                       // we are already inside the mouseclick event of the script, can't nest calls
                       if (inside_script) 
-                          curscript->run_another (torun, RuntimeScriptValue(), RuntimeScriptValue() /*0, 0*/);
+                          curscript->run_another (torun, rval_null, rval_null /*0, 0*/);
                       else gameinst->RunTextScript(torun);
                   }
                   else {
@@ -454,7 +457,7 @@ int run_interaction_commandlist (NewInteractionCommandList *nicl, int *timesrun,
                           char funcName[MAX_FUNCTION_NAME_LEN+1];
                           strcpy(funcName,"|");
                           strncat(funcName,make_ts_func_name(evblockbasename,evblocknum,nicl->command[i].data[0].val),MAX_FUNCTION_NAME_LEN-1);
-                          curscript->run_another (funcName, RuntimeScriptValue(), RuntimeScriptValue() /*0, 0*/);
+                          curscript->run_another (funcName, rval_null, rval_null /*0, 0*/);
                       }
                       else
                           roominst->RunTextScript(make_ts_func_name(evblockbasename,evblocknum,nicl->command[i].data[0].val));

@@ -147,20 +147,21 @@ void setevent(int evtyp,int ev1,int ev2,int ev3) {
 }
 
 void process_event(EventHappened*evp) {
+    RuntimeScriptValue rval_null;
     if (evp->type==EV_TEXTSCRIPT) {
         int resl=0; ccError=0;
         if (evp->data2 > -1000) {
             if (inside_script) {
                 char nameToExec[50];
                 sprintf (nameToExec, "!%s", tsnames[evp->data1]);
-                curscript->run_another(nameToExec, RuntimeScriptValue().SetInt32(evp->data2), RuntimeScriptValue() /*0*/);
+                curscript->run_another(nameToExec, RuntimeScriptValue().SetInt32(evp->data2), rval_null /*0*/);
             }
             else
                 resl=gameinst->RunTextScriptIParam(tsnames[evp->data1],RuntimeScriptValue().SetInt32(evp->data2));
         }
         else {
             if (inside_script)
-                curscript->run_another (tsnames[evp->data1], RuntimeScriptValue(), RuntimeScriptValue() /*0, 0*/);
+                curscript->run_another (tsnames[evp->data1], rval_null, rval_null /*0, 0*/);
             else
                 resl=gameinst->RunTextScript(tsnames[evp->data1]);
         }

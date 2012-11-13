@@ -30,7 +30,7 @@ void StaticArray::Create(ICCDynamicObject *dynmgr, int elem_legacy_size, int ele
     _elemCount      = elem_count;
 }
 
-const char *StaticArray::GetElementPtr(const char *address, int legacy_offset)
+const char *StaticArray::GetElementPtr(const char *address, intptr_t legacy_offset)
 {
     return address + (legacy_offset / _elemLegacySize) * _elemRealSize;
 }

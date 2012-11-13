@@ -36,6 +36,7 @@
 #include "util/textstreamwriter.h"
 #include "ac/dynobj/scriptstring.h"
 #include "ac/statobj/staticarray.h"
+#include "util/string_utils.h" // linux strnicmp definition
 
 using AGS::Common::DataStream;
 using AGS::Common::TextStreamWriter;
@@ -1275,12 +1276,12 @@ void ccInstance::GetCallStack(char *buffer, int maxLines) {
         return;
     }
 
-    sprintf(buffer, "in \"%s\", line %ld\n", runningInst->instanceof->GetSectionName(pc), line_number);
+    sprintf(buffer, "in \"%s\", line %d\n", runningInst->instanceof->GetSectionName(pc), line_number);
 
     char lineBuffer[300];
     int linesDone = 0;
     for (int j = callStackSize - 1; (j >= 0) && (linesDone < maxLines); j--, linesDone++) {
-        sprintf(lineBuffer, "from \"%s\", line %ld\n",
+        sprintf(lineBuffer, "from \"%s\", line %d\n",
             callStackCodeInst[j]->instanceof->GetSectionName(callStackAddr[j]), callStackLineNumber[j]);
         strcat(buffer, lineBuffer);
         if (linesDone == maxLines - 1)

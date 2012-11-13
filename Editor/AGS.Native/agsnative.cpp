@@ -1691,8 +1691,8 @@ void free_script_module(int index) {
   free(scModules[index].description);
   free(scModules[index].script);
   free(scModules[index].scriptHeader);
-  if (scModules[index].compiled != NULL)
-    scModules[index].compiled->Free();
+  delete scModules[index].compiled;
+  scModules[index].compiled = NULL;
 }
 
 void free_script_modules() {

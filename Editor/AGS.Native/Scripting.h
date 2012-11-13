@@ -28,11 +28,8 @@ namespace AGS
 
 			!CompiledScript()
 			{
-				if (_compiledScript != NULL)
-				{
-					_compiledScript->Free();
-					_compiledScript = NULL;
-				}
+				delete _compiledScript;
+				_compiledScript = NULL;
 			}
 		};
 	}

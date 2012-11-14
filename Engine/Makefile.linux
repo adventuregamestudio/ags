@@ -41,6 +41,8 @@ CXXFLAGS := $(CFLAGS) $(CXXFLAGS)
 ASFLAGS  := $(CFLAGS) $(ASFLAGS)
 LDFLAGS  := -Wl,--as-needed $(addprefix -L,$(LIBDIR))
 
+-include config.mak
+
 all: ags
 
 ags: $(OBJS)

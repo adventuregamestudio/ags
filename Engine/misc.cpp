@@ -33,116 +33,114 @@
 #if defined(MAC_VERSION) || defined(WINDOWS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
 #include <string.h>
 /* File Name Concatenator basically on Windows / DOS */
-char *ci_find_file(char *dir_name, char *file_name)
-{
-  char  *diamond = NULL;
+char *ci_find_file(char *dir_name, char *file_name) {
+	char  *diamond = 0;
 
-  if (dir_name == NULL && file_name == NULL)
-      return NULL;
+	if (!file_name)
+		return 0;
+	size_t l = strlen(file_name);
 
-  if (dir_name == NULL) {
-    diamond = (char *)malloc(strlen(file_name) + 3);
-    strcpy(diamond, file_name);
-  } else {
-    diamond = (char *)malloc(strlen(dir_name) + strlen(file_name) + 2);
-    append_filename(diamond, dir_name, file_name, strlen(dir_name) + strlen(file_name) + 2);
-  }
-  fix_filename_case(diamond);
-  fix_filename_slashes(diamond);
-  return diamond;
+	if (!dir_name) {
+		diamond = (char *)malloc(l + 3);
+		strcpy(diamond, file_name);
+	} else {
+		size_t d = strlen(dir_name);
+		diamond = (char *)malloc(d + l + 2);
+		append_filename(diamond, dir_name, file_name, d + l + 2);
+	}
+	fix_filename_case(diamond);
+	fix_filename_slashes(diamond);
+	return diamond;
 }
 
 #else
 /* Case Insensitive File Find */
-char *ci_find_file(char *dir_name, char *file_name)
-{
-  struct stat   statbuf;
-  struct dirent *entry = NULL;
-  DIR           *rough = NULL;
-  DIR           *prevdir = NULL;
-  char          *diamond = NULL;
-  char          *directory = NULL;
-  char          *filename = NULL;
+char *ci_find_file(char *dir_name, char *file_name) {
+	struct stat   statbuf;
+	struct dirent *entry = NULL;
+	DIR           *rough = NULL;
+	DIR           *prevdir = NULL;
+	char          *diamond = NULL;
+	char          *directory = NULL;
+	char          *filename = NULL;
 
-  if (dir_name == NULL && file_name == NULL)
-      return NULL;
+	if (!file_name) return 0;
 
-  if (!(dir_name == NULL)) {
-    fix_filename_case(dir_name);
-    fix_filename_slashes(dir_name);
-  }
+	if (dir_name) {
+		fix_filename_case(dir_name);
+		fix_filename_slashes(dir_name);
+	}
 
-  fix_filename_case(file_name);
-  fix_filename_slashes(file_name);
+	fix_filename_case(file_name);
+	fix_filename_slashes(file_name);
 
-  if (dir_name == NULL) {
-    char  *match = NULL;
-    int   match_len = NULL;
-    int   dir_len = NULL;
+	if (!dir_name) {
+		char  *match = 0;
+		int   match_len = 0;
+		int   dir_len = 0;
 
-    match = get_filename(file_name);
-    if (match == NULL)
-      return NULL;
+		match = get_filename(file_name);
+		if (!match) return 0;
 
-    match_len = strlen(match);
-    dir_len = (match - file_name);
+		match_len = strlen(match);
+		dir_len = (match - file_name);
 
-    if (dir_len == 0) {
-      directory = (char *)malloc(2);
-      strcpy(directory,".");
-    } else {
-      directory = (char *)malloc(dir_len + 1);
-      strncpy(directory, file_name, dir_len);
-      directory[dir_len] = '\0';
-    }
+		if (dir_len == 0) {
+			directory = (char *)malloc(2);
+			strcpy(directory,".");
+		} else {
+			directory = (char *)malloc(dir_len + 1);
+			strncpy(directory, file_name, dir_len);
+			directory[dir_len] = '\0';
+		}
 
-    filename = (char *)malloc(match_len + 1);
-    strncpy(filename, match, match_len);
-    filename[match_len] = '\0';
-  } else {
-    directory = (char *)malloc(strlen(dir_name) + 1);
-    strcpy(directory, dir_name);
-    
-    filename = (char *)malloc(strlen(file_name) + 1);
-    strcpy(filename, file_name);
-  }
+		filename = (char *)malloc(match_len + 1);
+		strncpy(filename, match, match_len);
+		filename[match_len] = '\0';
+	} else {
+		directory = (char *)malloc(strlen(dir_name) + 1);
+		strcpy(directory, dir_name);
+		
+		filename = (char *)malloc(strlen(file_name) + 1);
+		strcpy(filename, file_name);
+	}
 
-  if ((prevdir = opendir(".")) == NULL) {
-    fprintf(stderr, "ci_find_file: cannot open current working directory\n");
-    return NULL;
-  }
+	if (!(prevdir = opendir("."))) {
+		fprintf(stderr, "ci_find_file: cannot open current working directory\n");
+		return NULL;
+	}
 
-  if (chdir(directory) == -1) {
-    fprintf(stderr, "ci_find_file: cannot change to directory: %s\n", directory);
-    return NULL;
-  }
-  
-  if ((rough = opendir(directory)) == NULL) {
-    fprintf(stderr, "ci_find_file: cannot open directory: %s\n", directory);
-    return NULL;
-  }
+	if (chdir(directory) == -1) {
+		fprintf(stderr, "ci_find_file: cannot change to directory: %s\n", directory);
+		return NULL;
+	}
+	
+	if (!(rough = opendir(directory))) {
+		fprintf(stderr, "ci_find_file: cannot open directory: %s\n", directory);
+		return NULL;
+	}
 
-  while ((entry = readdir(rough)) != NULL) {
-    lstat(entry->d_name, &statbuf);
-    if (S_ISREG(statbuf.st_mode) || S_ISLNK(statbuf.st_mode)) {
-      if (strcasecmp(filename, entry->d_name) == 0) {
-#ifdef _DEBUG
-        fprintf(stderr, "ci_find_file: Looked for %s in rough %s, found diamond %s.\n", filename, directory, entry->d_name);
-#endif _DEBUG
-        diamond = (char *)malloc(strlen(directory) + strlen(entry->d_name) + 2);
-        append_filename(diamond, directory, entry->d_name, strlen(directory) + strlen(entry->d_name) + 2);
-        break;
-      }
-    }
-  }
-  closedir(rough);
+	while ((entry = readdir(rough)) != NULL) {
+		lstat(entry->d_name, &statbuf);
+		if (S_ISREG(statbuf.st_mode) || S_ISLNK(statbuf.st_mode)) {
+			if (strcasecmp(filename, entry->d_name) == 0) {
+			#ifdef _DEBUG
+				fprintf(stderr, "ci_find_file: Looked for %s in rough %s, found diamond %s.\n", filename, directory, entry->d_name);
+			#endif
+				diamond = (char *)malloc(strlen(directory) + strlen(entry->d_name) + 2);
+				append_filename(diamond, directory, entry->d_name, strlen(directory) + strlen(entry->d_name) + 2);
+				break;
+			}
+		}
+	}
+	closedir(rough);
 
-  fchdir(dirfd(prevdir));
-  closedir(prevdir);
+	fchdir(dirfd(prevdir));
+	closedir(prevdir);
 
-  free(directory);
-  free(filename);
-  return diamond;
+	free(directory);
+	free(filename);
+	return diamond;
 }
 #endif
 
@@ -151,28 +149,22 @@ char *ci_find_file(char *dir_name, char *file_name)
 FILE *ci_fopen(char *file_name, const char *mode)
 {
 #if defined(WINDOWS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
-  // Don't pass a NULL pointer to newlib on the PSP.
-  if (file_name == NULL)
-  {
-    return NULL;
-  }
-  else
-  {
-    return fopen(file_name, mode);
-  }
+	// Don't pass a NULL pointer to newlib on the PSP.
+	if (!file_name) return 0;
+	else return fopen(file_name, mode);
 #else
-  FILE *fd;
-  char *fullpath = ci_find_file(NULL, file_name);
+	FILE *fd;
+	char *fullpath = ci_find_file(NULL, file_name);
 
-  /* If I didn't find a file, this could be writing a new file,
-      so use whatever file_name they passed */
-  if (fullpath == NULL) {
-    return fopen(file_name, mode);
-  } else {
-    fd = fopen(fullpath, mode);
-    free(fullpath);
-  }
+	/* If I didn't find a file, this could be writing a new file,
+	so use whatever file_name they passed */
+	if (!fullpath)
+		return fopen(file_name, mode);
+	else {
+		fd = fopen(fullpath, mode);
+		free(fullpath);
+	}
 
-  return fd;
+	return fd;
 #endif
 }

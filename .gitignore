@@ -2,6 +2,7 @@
 *.ncb
 *.suo
 *.vcproj.*.user
+*.o
 Engine/acwin___Win32_DebugWorking
 Editor/AGS.Controls/bin
 Editor/AGS.Controls/obj

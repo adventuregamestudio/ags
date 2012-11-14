@@ -91,13 +91,13 @@ void ccScript::Write(DataStream *out) {
     if (globaldatasize > 0)
         out->WriteArray(globaldata,globaldatasize,1);
     if (codesize > 0)
-        out->WriteArrayOfIntPtr32((intptr_t*)code,codesize);
+        out->WriteArrayOfIntPtr32(code,codesize);
     if (stringssize > 0)
         out->WriteArray(strings,stringssize,1);
     out->WriteInt32(numfixups);
     if (numfixups > 0) {
         out->WriteArray(fixuptypes,numfixups,1);
-        out->WriteArrayOfIntPtr32((intptr_t*)fixups,numfixups);
+        out->WriteArrayOfInt32(fixups,numfixups);
     }
     out->WriteInt32(numimports);
     for (n=0;n<numimports;n++)
@@ -150,10 +150,7 @@ bool ccScript::Read(DataStream *in)
 
     // 64 bit: Read code into 8 byte array, necessary for being able to perform
     // relocations on the references.
-    in->ReadArrayOfIntPtr32((intptr_t*)code, codesize);
-    //int i;
-    //for (i = 0; i < codesize; i++)
-    //  code[i] = in->ReadInt32();
+    in->ReadArrayOfIntPtr32(code, codesize);
   }
   else
     code = NULL;
@@ -172,12 +169,7 @@ bool ccScript::Read(DataStream *in)
     fixups = (int32_t *)malloc(numfixups * sizeof(int32_t));
     // MACPORT FIX: swap 'size' and 'nmemb'
     in->Read(fixuptypes, numfixups);
-
-    // 64 bit: Read fixups into 8 byte array too
-    in->ReadArrayOfIntPtr32((intptr_t*)fixups, numfixups);
-    //int i;
-    //for (i = 0; i < numfixups; i++)
-    //  fixups[i] = in->ReadInt32();
+    in->ReadArrayOfInt32(fixups, numfixups);
   }
   else {
     fixups = NULL;

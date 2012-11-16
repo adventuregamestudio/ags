@@ -21,6 +21,7 @@
 struct ICCDynamicObject;
 struct ICCStaticObject;
 
+// TODO: unite these with Runtime Value types (since they cover too many similar types)
 enum ScriptImportType
 {
     kScImportUndefined,         // to detect errors

@@ -15,6 +15,8 @@ struct ICCDynamicObject;
 enum ScriptValueType
 {
     kScValUndefined,    // to detect errors
+    // TODO: the 'generic' type should be eventually made obsolete, since
+    // it practically means 'something we do not know what'
     kScValGeneric,      // as long (intptr_t)
     kScValInteger,      // as strictly 32-bit integer (for integer math)
     kScValFloat,        // as float (for floating point math)
@@ -25,6 +27,8 @@ enum ScriptValueType
     kScValStaticObject, // as a pointer to static global script object
     kScValStaticArray,  // as a pointer to static global array (of static or dynamic objects)
     kScValDynamicObject,// as a pointer to managed script object
+    kScValScriptData    // an import from another script;
+                        // at the moment used only for CALLOBJ arg type check
 };
 
 struct RuntimeScriptValue
@@ -236,6 +240,15 @@ public:
         Value   = 0;
         Ptr     = (char*)object;
         DynMgr  = manager;
+        Size    = 4;
+        return *this;
+    }
+    inline RuntimeScriptValue &SetScriptData(intptr_t val)
+    {
+        Type    = kScValScriptData;
+        Value   = val;
+        Ptr     = NULL;
+        MgrPtr  = NULL;
         Size    = 4;
         return *this;
     }

@@ -1017,7 +1017,8 @@ int ccInstance::Run(int32_t curpc)
               // This might be an object of USER-DEFINED type, calling its MEMBER-FUNCTION.
               // Note, that this is the only case known when such object is written into reg[SREG_OP];
               // in any other case that would count as error.
-              reg1.GetType() == kScValGlobalData || reg1.GetType() == kScValStackPtr
+              reg1.GetType() == kScValGlobalData || reg1.GetType() == kScValStackPtr ||
+              reg1.GetType() == kScValScriptData
               )
           {
               registers[SREG_OP] = reg1;
@@ -1758,6 +1759,10 @@ void ccInstance::FixupArgument(int32_t code_index, char fixup_type, RuntimeScrip
             {
                 argument.SetDynamicObject( import->Ptr, import->DynMgr );
             }
+            else if (import->Type == kScImportScriptData)
+            {
+                argument.SetScriptData( (intptr_t)import->Ptr );
+            }
             else
             {
                 argument.SetLong( (intptr_t)import->Ptr );
@@ -1787,7 +1792,7 @@ void ccInstance::PushValueToStack(const RuntimeScriptValue &rval)
         return;
     }
     // Write value to the stack tail and advance stack ptr
-    // NOTE: we cannot just WriteValue here because when a Value is pushed to the stack,
+    // NOTE: we cannot just WriteValue here because when an integer is pushed to the stack,
     // script assumes that it is always 4 bytes and uses that size when calculating
     // offsets to local variables;
     // Therefore if pushed value is of integer type, we should rather use WriteInt32

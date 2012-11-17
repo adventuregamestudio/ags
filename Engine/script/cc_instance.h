@@ -36,9 +36,9 @@ namespace AGS { namespace Common { class DataStream; }; };
 // 256 because we use 8 bits to hold instance number
 #define MAX_LOADED_INSTANCES 256
 
-#define INSTANCE_ID_SHIFT 24
-#define INSTANCE_ID_MASK  0x00000ff
-#define INSTANCE_ID_REMOVEMASK 0x00ffffff
+#define INSTANCE_ID_SHIFT 24LL
+#define INSTANCE_ID_MASK  0x00000000000000ffLL
+#define INSTANCE_ID_REMOVEMASK 0x0000000000ffffffLL
 
 struct ccInstance;
 struct ScriptImport;

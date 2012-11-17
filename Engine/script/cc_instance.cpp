@@ -757,8 +757,8 @@ int ccInstance::Run(int32_t curpc)
           reg1 *= arg2;
           break;
       case SCMD_CHECKBOUNDS:
-          if ((reg1 < 0) ||
-              (reg1 >= arg2)) {
+          if ((reg1.GetInt32() < 0) ||
+              (reg1.GetInt32() >= arg2.GetInt32())) {
                   cc_error("!Array index out of bounds (index: %d, bounds: 0..%d)", reg1.GetInt32(), arg2.GetInt32() - 1);
                   return -1;
           }
@@ -767,8 +767,8 @@ int ccInstance::Run(int32_t curpc)
           {
               // CHECKME!! what types of data may reg[MAR] point to?
               int32_t upperBoundInBytes = *((int32_t *)(registers[SREG_MAR].GetDataPtrWithOffset() - 4));
-              if ((reg1 < 0) ||
-                  (reg1 >= upperBoundInBytes)) {
+              if ((reg1.GetInt32() < 0) ||
+                  (reg1.GetInt32() >= upperBoundInBytes)) {
                       int32_t upperBound = *((int32_t *)(registers[SREG_MAR].GetDataPtrWithOffset() - 8)) & (~ARRAY_MANAGED_TYPE_FLAG);
                       int elementSize = (upperBoundInBytes / upperBound);
                       cc_error("!Array index out of bounds (index: %d, bounds: 0..%d)", reg1.GetInt32() / elementSize, upperBound - 1);
@@ -797,7 +797,7 @@ int ccInstance::Run(int32_t curpc)
           int32_t handle = registers[SREG_MAR].ReadInt32();
           char *address = NULL;
 
-          if (reg1.GetType() == kScValStaticArray)
+          if (reg1.GetType() == kScValStaticArray && reg1.GetStaticArray()->GetDynamicManager())
           {
               address = (char*)reg1.GetStaticArray()->GetElementPtr(reg1.GetDataPtr(), reg1.GetLong());
           }
@@ -825,10 +825,9 @@ int ccInstance::Run(int32_t curpc)
       case SCMD_MEMINITPTR: { 
           char *address = NULL;
 
-          if (reg1.GetType() == kScValStaticObject)
+          if (reg1.GetType() == kScValStaticArray && reg1.GetStaticArray()->GetDynamicManager())
           {
-              // Could be a global static array of game entities
-              address = reg1.GetDataPtrWithOffset();
+              address = (char*)reg1.GetStaticArray()->GetElementPtr(reg1.GetDataPtr(), reg1.GetLong());
           }
           else if (reg1.GetType() == kScValDynamicObject)
           {
@@ -1053,16 +1052,15 @@ int ccInstance::Run(int32_t curpc)
                   cc_error("invalid size for dynamic array; requested: %d, range: 1..1000000", numElements);
                   return -1;
               }
-              reg1.SetDynamicObject(
-                  (void*)ccGetObjectAddressFromHandle(globalDynamicArray.Create(numElements, arg2.GetInt32(), (arg3 == 1))),
-                  &globalDynamicArray);
+              int32_t handle = globalDynamicArray.Create(numElements, arg2.GetInt32(), arg3.AsBool());
+              reg1.SetDynamicObject((void*)ccGetObjectAddressFromHandle(handle), &globalDynamicArray);
               break;
           }
       case SCMD_FADD:
-          reg1.SetFloat(reg1.GetFloat() + arg2.GetFloat());
+          reg1.SetFloat(reg1.GetFloat() + arg2.GetInt32()); // arg2 was used as int here originally
           break;
       case SCMD_FSUB:
-          reg1.SetFloat(reg1.GetFloat() - arg2.GetFloat());
+          reg1.SetFloat(reg1.GetFloat() - arg2.GetInt32()); // arg2 was used as int here originally
           break;
       case SCMD_FMULREG:
           reg1.SetFloat(reg1.GetFloat() * reg2.GetFloat());
@@ -1081,16 +1079,16 @@ int ccInstance::Run(int32_t curpc)
           reg1.SetFloat(reg1.GetFloat() - reg2.GetFloat());
           break;
       case SCMD_FGREATER:
-          reg1.SetFloat(reg1.GetFloat() > reg2.GetFloat());
+          reg1.SetFloat(reg1.GetFloat() > reg2.GetFloat() ? 1.0 : 0.0);
           break;
       case SCMD_FLESSTHAN:
-          reg1.SetFloat(reg1.GetFloat() < reg2.GetFloat());
+          reg1.SetFloat(reg1.GetFloat() < reg2.GetFloat() ? 1.0 : 0.0);
           break;
       case SCMD_FGTE:
-          reg1.SetFloat(reg1.GetFloat() >= reg2.GetFloat());
+          reg1.SetFloat(reg1.GetFloat() >= reg2.GetFloat() ? 1.0 : 0.0);
           break;
       case SCMD_FLTE:
-          reg1.SetFloat(reg1.GetFloat() <= reg2.GetFloat());
+          reg1.SetFloat(reg1.GetFloat() <= reg2.GetFloat() ? 1.0 : 0.0);
           break;
       case SCMD_ZEROMEMORY:
           // Check if we are zeroing at stack tail
@@ -1376,7 +1374,7 @@ void ccInstance::FlattenGlobalData()
         int32_t fixup = scri->fixups[i];
         if (scri->fixuptypes[i] == FIXUP_DATADATA) {
             // supposedly these are only used for strings...
-            intptr_t temp;
+            intptr_t temp = 0;
             memcpy(&temp, (char*)&(globaldata[fixup]), 4);
 
 #if defined(AGS_BIG_ENDIAN)
@@ -1406,7 +1404,7 @@ void ccInstance::UnFlattenGlobalData()
         int32_t fixup = scri->fixups[i];
         if (scri->fixuptypes[i] == FIXUP_DATADATA) {
             // supposedly these are only used for strings...
-            intptr_t temp;
+            intptr_t temp = 0;
             memcpy(&temp, (char*)&(globaldata[fixup]), 4);
 #if defined(AGS_BIG_ENDIAN)
             AGS::Common::BitByteOperations::SwapBytesInt32(temp);
@@ -1613,7 +1611,7 @@ bool ccInstance::FixupGlobalData(ccScript * scri)
 
         int32_t fixup = scri->fixups[i];
         // supposedly these are only used for strings...
-        intptr_t temp;
+        intptr_t temp = 0;
         memcpy(&temp, (char*)&(globaldata[fixup]), 4);
 #if defined(AGS_BIG_ENDIAN)
         AGS::Common::BitByteOperations::SwapBytesInt32(temp);
@@ -1695,7 +1693,7 @@ bool ccInstance::ReadOperation(ScriptOperation &op, int32_t at_pc)
 
     for (int i = 0; i < op.ArgCount; ++i)
     {
-        op.Args[i].SetLong( code[at_pc + i + 1] );
+        op.Args[i].SetLong( code[at_pc + i + 1] & 0xFFFFFFFF );
         fixup = code_fixups[at_pc + i + 1];
         if (fixup > 0)
         {

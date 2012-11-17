@@ -104,7 +104,7 @@ RuntimeScriptValue RuntimeScriptValue::ReadValue()
     {
         if (RValue->Type == kScValDataPtr)
         {
-            rval.SetLong(*(int32_t*)(RValue->GetDataPtrWithOffset() + this->Value));
+            rval.SetInt32(*(int32_t*)(RValue->GetDataPtrWithOffset() + this->Value));
         }
         else
         {
@@ -116,21 +116,21 @@ RuntimeScriptValue RuntimeScriptValue::ReadValue()
     {
         int32_t temp = *((int32_t*)this->GetDataPtrWithOffset());
         AGS::Common::BitByteOperations::SwapBytesInt32(temp);
-        rval.SetLong(temp);
+        rval.SetInt32(temp);
     }
 #endif // AGS_BIG_ENDIAN
     else if (this->Type == kScValStaticObject || this->Type == kScValStaticArray)
     {
-        rval.SetLong(this->GetStaticManager()->ReadInt32(this->Ptr, this->Value));
+        rval.SetInt32(this->GetStaticManager()->ReadInt32(this->Ptr, this->Value));
     }
     else if (this->Type == kScValDynamicObject)
     {
-        rval.SetLong(this->GetDynamicManager()->ReadInt32(this->Ptr, this->Value));
+        rval.SetInt32(this->GetDynamicManager()->ReadInt32(this->Ptr, this->Value));
     }
     else
     {
         // 64 bit: Memory reads are still 32 bit
-        rval.SetLong(*(int32_t*)GetDataPtrWithOffset());
+        rval.SetInt32(*(int32_t*)GetDataPtrWithOffset());
     }
     return rval;
 }
@@ -265,7 +265,7 @@ bool RuntimeScriptValue::WriteValue(const RuntimeScriptValue &rval)
     else
     {
         // 64 bit: Memory writes are still 32 bit
-        *((int32_t*)GetDataPtrWithOffset()) = (intptr_t)rval.GetDataPtrWithOffset();
+        *((int32_t*)GetDataPtrWithOffset()) = (int32_t)rval.GetDataPtrWithOffset();
     }
     return true;
 }

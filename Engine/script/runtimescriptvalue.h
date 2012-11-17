@@ -151,6 +151,7 @@ public:
     inline RuntimeScriptValue &SetInt8(char val)
     {
         Type    = kScValInteger;
+        Value   = 0; // zero intptr_t value for 64-bit build's safety
         IValue  = val;
         Ptr     = NULL;
         MgrPtr  = NULL;
@@ -160,6 +161,7 @@ public:
     inline RuntimeScriptValue &SetInt16(int16_t val)
     {
         Type    = kScValInteger;
+        Value   = 0; // zero intptr_t value for 64-bit build's safety
         IValue  = val;
         Ptr     = NULL;
         MgrPtr  = NULL;
@@ -169,6 +171,7 @@ public:
     inline RuntimeScriptValue &SetInt32(int32_t val)
     {
         Type    = kScValInteger;
+        Value   = 0; // zero intptr_t value for 64-bit build's safety
         IValue  = val;
         Ptr     = NULL;
         MgrPtr  = NULL;
@@ -178,6 +181,7 @@ public:
     inline RuntimeScriptValue &SetFloat(float val)
     {
         Type    = kScValFloat;
+        Value   = 0; // zero intptr_t value for 64-bit build's safety
         FValue  = val;
         Ptr     = NULL;
         MgrPtr  = NULL;
@@ -255,7 +259,7 @@ public:
 
     inline RuntimeScriptValue operator !() const
     {
-        return RuntimeScriptValue().SetLong(AsBool() ? 0 : 1);
+        return RuntimeScriptValue().SetAsBool(!AsBool());
     }
 
     inline RuntimeScriptValue &operator +=(const RuntimeScriptValue &rval)
@@ -317,39 +321,6 @@ public:
     inline bool operator !=(const RuntimeScriptValue &rval)
     {
         return !(*this == rval);
-    }
-    inline bool operator >(const RuntimeScriptValue &rval) const
-    {
-        return Value > rval.Value;
-    }
-    inline bool operator <(const RuntimeScriptValue &rval) const
-    {
-        return Value < rval.Value;
-    }
-    inline bool operator >=(const RuntimeScriptValue &rval) const
-    {
-        return Value >= rval.Value;
-    }
-    inline bool operator <=(const RuntimeScriptValue &rval) const
-    {
-        return Value <= rval.Value;
-    }
-
-    inline bool operator >(intptr_t val) const
-    {
-        return Value > val;
-    }
-    inline bool operator <(intptr_t val) const
-    {
-        return Value < val;
-    }
-    inline bool operator >=(intptr_t val) const
-    {
-        return Value >= val;
-    }
-    inline bool operator <=(intptr_t val) const
-    {
-        return Value <= val;
     }
 
     // Helper functions for reading or writing values from/to

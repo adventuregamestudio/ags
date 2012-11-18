@@ -72,7 +72,10 @@ const char* String_Truncate(const char *thisString, int length) {
         quit("!String.Truncate: invalid length");
 
     if (length >= (int)strlen(thisString))
+    {
+        GlobalReturnValue.SetDynamicObject((void*)thisString, &myScriptStringImpl);
         return thisString;
+    }
 
     char *buffer = (char*)malloc(length + 1);
     strncpy(buffer, thisString, length);

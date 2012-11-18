@@ -78,7 +78,18 @@ public:
     }
     inline bool IsNull() const
     {
-        return Value == 0 && Ptr == 0;
+        if (Type == kScValInteger)
+        {
+          return IValue == 0;
+        }
+        else if (Type == kScValFloat)
+        {
+          return FValue == 0.0;
+        }
+        else
+        {
+          return Value == 0 && Ptr == 0;
+        }
     }
     inline ScriptValueType GetType() const
     {
@@ -99,7 +110,7 @@ public:
     }
     inline bool AsBool() const
     {
-        return Value != 0 || Ptr != 0;
+        return !IsNull();
     }
     inline char *GetDataPtr() const
     {
@@ -303,20 +314,23 @@ public:
         Value /= val;
         return *this;
     }
-    inline bool operator ==(intptr_t val)
-    {
-        return (intptr_t)(Ptr + Value) == val;
-    }
-    inline bool operator !=(intptr_t val)
-    {
-        return (intptr_t)(Ptr + Value) != val;
-    }
 
     inline bool operator ==(const RuntimeScriptValue &rval)
     {
-        return (Type == rval.Type && Ptr == rval.Ptr && Value == rval.Value) ||
-            // FIXME later: temporary workaround for dynamic object addresses
-            GetDataPtrWithOffset() == rval.GetDataPtrWithOffset();
+        if (Type == kScValInteger)
+        {
+            return IValue == rval.IValue;
+        }
+        else if (Type == kScValFloat)
+        {
+            // As of current implementation, this branch has little chance to run,
+            // because floats are usually being compared by treating them as int32.
+            return FValue == rval.FValue;
+        }
+        else
+        {
+            return GetDataPtrWithOffset() == rval.GetDataPtrWithOffset();
+        }
     }
     inline bool operator !=(const RuntimeScriptValue &rval)
     {

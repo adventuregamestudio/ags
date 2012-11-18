@@ -615,7 +615,7 @@ int ccInstance::Run(int32_t curpc)
           reg1.SetInt32(reg1.GetInt32() * reg2.GetInt32());
           break;
       case SCMD_DIVREG:
-          if (reg2 == 0) {
+          if (reg2.GetInt32() == 0) {
               cc_error("!Integer divide by zero");
               return -1;
           } 
@@ -636,34 +636,34 @@ int ccInstance::Run(int32_t curpc)
           reg1.SetInt32(reg1.GetInt32() | reg2.GetInt32());
           break;
       case SCMD_ISEQUAL:
-          reg1.SetInt32(reg1 == reg2);
+          reg1.SetAsBool(reg1 == reg2);
           break;
       case SCMD_NOTEQUAL:
-          reg1.SetInt32(reg1 != reg2);
+          reg1.SetAsBool(reg1 != reg2);
           break;
       case SCMD_GREATER:
-          reg1.SetInt32(reg1.GetInt32() > reg2.GetInt32());
+          reg1.SetAsBool(reg1.GetInt32() > reg2.GetInt32());
           break;
       case SCMD_LESSTHAN:
-          reg1.SetInt32(reg1.GetInt32() < reg2.GetInt32());
+          reg1.SetAsBool(reg1.GetInt32() < reg2.GetInt32());
           break;
       case SCMD_GTE:
-          reg1.SetInt32(reg1.GetInt32() >= reg2.GetInt32());
+          reg1.SetAsBool(reg1.GetInt32() >= reg2.GetInt32());
           break;
       case SCMD_LTE:
-          reg1.SetInt32(reg1.GetInt32() <= reg2.GetInt32());
+          reg1.SetAsBool(reg1.GetInt32() <= reg2.GetInt32());
           break;
       case SCMD_AND:
-          reg1.SetInt32(reg1.GetInt32() && reg2.GetInt32());
+          reg1.SetAsBool(reg1.GetInt32() && reg2.GetInt32());
           break;
       case SCMD_OR:
-          reg1.SetInt32(reg1.GetInt32() || reg2.GetInt32());
+          reg1.SetAsBool(reg1.GetInt32() || reg2.GetInt32());
           break;
       case SCMD_XORREG:
           reg1.SetInt32(reg1.GetInt32() ^ reg2.GetInt32());
           break;
       case SCMD_MODREG:
-          if (reg2 == 0) {
+          if (reg2.GetInt32() == 0) {
               cc_error("!Integer divide by zero");
               return -1;
           } 
@@ -719,11 +719,11 @@ int ccInstance::Run(int32_t curpc)
           registers[SREG_MAR].WriteInt16(reg1.GetInt32());
           break;
       case SCMD_JZ:
-          if (registers[SREG_AX] == 0)
+          if (registers[SREG_AX].IsNull())
               pc += arg1.GetInt32();
           break;
       case SCMD_JNZ:
-          if (registers[SREG_AX] != 0)
+          if (!registers[SREG_AX].IsNull())
               pc += arg1.GetInt32();
           break;
       case SCMD_PUSHREG:
@@ -736,9 +736,6 @@ int ccInstance::Run(int32_t curpc)
           break;
       case SCMD_JMP:
           pc += arg1.GetInt32();
-          // JJS: FIXME! This is a hack to get 64 bit working again but the real
-          // issue is that arg1 sometimes has additional upper bits set
-          pc &= 0xFFFFFFFF;
 
           if ((arg1.GetInt32() < 0) && (maxWhileLoops > 0) && (loopIterationCheckDisabled == 0)) {
               // Make sure it's not stuck in a While loop
@@ -805,6 +802,7 @@ int ccInstance::Run(int32_t curpc)
           {
               address = reg1.GetDataPtr();
           }
+          // There's one possible case when the reg1 is 0, which means writing nullptr
           else if (!reg1.IsNull())
           {
               cc_error("internal error: MEMWRITEPTR argument is not dynamic object");
@@ -833,6 +831,7 @@ int ccInstance::Run(int32_t curpc)
           {
               address = reg1.GetDataPtr();
           }
+          // There's one possible case when the reg1 is 0, which means writing nullptr
           else if (!reg1.IsNull())
           {
               cc_error("internal error: SCMD_MEMINITPTR argument is not dynamic object");
@@ -868,13 +867,13 @@ int ccInstance::Run(int32_t curpc)
           break;
                               }
       case SCMD_CHECKNULL:
-          if (registers[SREG_MAR] == 0) {
+          if (registers[SREG_MAR].IsNull()) {
               cc_error("!Null pointer referenced");
               return -1;
           }
           break;
       case SCMD_CHECKNULLREG:
-          if (reg1 == 0) {
+          if (reg1.IsNull()) {
               cc_error("!Null string referenced");
               return -1;
           }
@@ -1008,7 +1007,7 @@ int ccInstance::Run(int32_t curpc)
           break;
       case SCMD_CALLOBJ:
           // set the OP register
-          if (reg1 == 0) {
+          if (reg1.IsNull()) {
               cc_error("!Null pointer referenced");
               return -1;
           }
@@ -1030,7 +1029,7 @@ int ccInstance::Run(int32_t curpc)
           }
           else
           {
-              cc_error("internal error: SCMD_CALLOBJ argument is not dynamic object");
+              cc_error("internal error: SCMD_CALLOBJ argument is not an object of built-in or user-defined type");
               return -1;
           }
           next_call_needs_object = 1;
@@ -1125,7 +1124,7 @@ int ccInstance::Run(int32_t curpc)
               &myScriptStringImpl);
           break;
       case SCMD_STRINGSEQUAL:
-          if ((reg1 == 0) || (reg2 == 0)) {
+          if ((reg1.IsNull()) || (reg2.IsNull())) {
               cc_error("!Null pointer referenced");
               return -1;
           }
@@ -1134,7 +1133,7 @@ int ccInstance::Run(int32_t curpc)
           
           break;
       case SCMD_STRINGSNOTEQ:
-          if ((reg1 == 0) || (reg2 == 0)) {
+          if ((reg1.IsNull()) || (reg2.IsNull())) {
               cc_error("!Null pointer referenced");
               return -1;
           }
@@ -1693,11 +1692,17 @@ bool ccInstance::ReadOperation(ScriptOperation &op, int32_t at_pc)
 
     for (int i = 0; i < op.ArgCount; ++i)
     {
-        op.Args[i].SetLong( code[at_pc + i + 1] & 0xFFFFFFFF );
         fixup = code_fixups[at_pc + i + 1];
         if (fixup > 0)
         {
+            // could be relative pointer or import address
+            op.Args[i].SetLong( code[at_pc + i + 1] );
             FixupArgument(at_pc + i + 1, fixup, op.Args[i]);
+        }
+        else
+        {
+            // should be a numeric literal (int32 or float)
+            op.Args[i].SetInt32( (int32_t)code[at_pc + i + 1] );
         }
     }
 

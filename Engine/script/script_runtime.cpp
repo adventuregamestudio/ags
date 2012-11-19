@@ -42,32 +42,32 @@ extern ccInstance *current_instance; // in script/cc_instance
 
 bool ccAddExternalStaticFunction(const char *name, void *ptr)
 {
-    return simp.add(kScImportStaticFunction, name, ptr, NULL, NULL) == 0;
+    return simp.add(kScValStaticFunction, name, ptr, NULL, NULL) == 0;
 }
 
 bool ccAddExternalStaticObject(const char *name, void *ptr, ICCStaticObject *manager)
 {
-    return simp.add(kScImportStaticObject, name, ptr, manager, NULL) == 0;
+    return simp.add(kScValStaticObject, name, ptr, manager, NULL) == 0;
 }
 
 bool ccAddExternalStaticArray(const char *name, void *ptr, StaticArray *array_mgr)
 {
-    return simp.add(kScImportStaticArray, name, ptr, array_mgr, NULL) == 0;
+    return simp.add(kScValStaticArray, name, ptr, array_mgr, NULL) == 0;
 }
 
 bool ccAddExternalDynamicObject(const char *name, void *ptr, ICCDynamicObject *manager)
 {
-    return simp.add(kScImportDynamicObject, name, ptr, manager, NULL) == 0;
+    return simp.add(kScValDynamicObject, name, ptr, manager, NULL) == 0;
 }
 
 bool ccAddExternalObjectFunction(const char *name, void *ptr)
 {
-    return simp.add(kScImportObjectFunction, name, ptr, NULL, NULL) == 0;
+    return simp.add(kScValObjectFunction, name, ptr, NULL, NULL) == 0;
 }
 
 bool ccAddExternalScriptSymbol(const char *name, void *ptr, ccInstance *inst)
 {
-    return simp.add(kScImportScriptData, name, ptr, NULL, inst) == 0;
+    return simp.add(kScValScriptData, name, ptr, NULL, inst) == 0;
 }
 
 void ccRemoveExternalSymbol(const char *namof)

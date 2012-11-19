@@ -1750,19 +1750,19 @@ void ccInstance::FixupArgument(int32_t code_index, char fixup_type, RuntimeScrip
         {
             int32_t import_index = resolved_imports[code[code_index]];
             const ScriptImport *import = simp.getByIndex(import_index);
-            if (import->Type == kScImportStaticObject)
+            if (import->Type == kScValStaticObject)
             {
                 argument.SetStaticObject( import->Ptr, import->StcMgr );
             }
-            else if (import->Type == kScImportStaticArray)
+            else if (import->Type == kScValStaticArray)
             {
                 argument.SetStaticArray( import->Ptr, import->StcArr );
             }
-            else if (import->Type == kScImportDynamicObject)
+            else if (import->Type == kScValDynamicObject)
             {
                 argument.SetDynamicObject( import->Ptr, import->DynMgr );
             }
-            else if (import->Type == kScImportScriptData)
+            else if (import->Type == kScValScriptData)
             {
                 argument.SetScriptData( (intptr_t)import->Ptr );
             }

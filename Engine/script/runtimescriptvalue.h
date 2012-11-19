@@ -19,15 +19,19 @@ enum ScriptValueType
     // it practically means 'something we do not know what'
     kScValGeneric,      // as long (intptr_t)
     kScValInteger,      // as strictly 32-bit integer (for integer math)
-    kScValFloat,        // as float (for floating point math)
+    kScValFloat,        // as float (for floating point math), 32-bit
     kScValStackPtr,     // as a pointer to stack
     kScValDataPtr,      // as a pointer to randomly sized data (usually array)
-    kScValGlobalData,   // a workaround for big endian builds (maybe temporary);
-                        // works exactly as kScValGeneric for the rest
+    kScValGlobalData,   // a pointer to global data; at the moment serves only as
+                        // a workaround for big endian builds (maybe temporary);
+                        // works similarly to kScValDataPtr for the rest
     kScValStaticObject, // as a pointer to static global script object
     kScValStaticArray,  // as a pointer to static global array (of static or dynamic objects)
     kScValDynamicObject,// as a pointer to managed script object
-    kScValScriptData    // an import from another script;
+    kScValStaticFunction,// as a pointer to static function
+    kScValObjectFunction,// as a pointer to object member function, gets object pointer as
+                        // first parameter
+    kScValScriptData    // an import from another script, could be object or function ptr;
                         // at the moment used only for CALLOBJ arg type check
 };
 

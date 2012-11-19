@@ -21,30 +21,18 @@
 struct ICCDynamicObject;
 struct ICCStaticObject;
 
-// TODO: unite these with Runtime Value types (since they cover too many similar types)
-enum ScriptImportType
-{
-    kScImportUndefined,         // to detect errors
-    kScImportStaticFunction,    // a static function
-    kScImportStaticObject,      // static script object
-    kScImportStaticArray,       // static array (of either static or dynamic objects)
-    kScImportDynamicObject,     // dynamic script object
-    kScImportObjectFunction,    // script object member function, gets 'this' pointer
-    kScImportScriptData,        // script function or variable
-};
-
 struct ScriptImport
 {
     ScriptImport()
     {
-        Type        = kScImportUndefined;
+        Type        = kScValUndefined;
         Name        = NULL;
         Ptr         = NULL;
         DynMgr      = NULL;
         InstancePtr = NULL;
     }
 
-    ScriptImportType    Type;
+    ScriptValueType     Type;
     const char          *Name;          // import's uid
     void                *Ptr;           // object or function pointer
     // TODO: separation to Ptr and MgrPtr is only needed so far as there's
@@ -68,7 +56,7 @@ private:
     ccTreeMap btree;
 
 public:
-    int  add(ScriptImportType type, const char *name, void *ptr, void *manager, ccInstance *inst);
+    int  add(ScriptValueType type, const char *name, void *ptr, void *manager, ccInstance *inst);
     void remove(const char *name);
     const ScriptImport *getByName(const char *name);
     int  get_index_of(const char *name);

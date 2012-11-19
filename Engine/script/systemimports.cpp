@@ -46,7 +46,7 @@ break;
 
 }*/
 
-int SystemImports::add(ScriptImportType type, const char *namm, void *add, void *manager, ccInstance *anotherscr = NULL)
+int SystemImports::add(ScriptValueType type, const char *namm, void *add, void *manager, ccInstance *anotherscr = NULL)
 {
     int ixof;
 

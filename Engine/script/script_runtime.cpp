@@ -159,7 +159,8 @@ int call_function(intptr_t addr, int numparm, const RuntimeScriptValue *parms, i
         }
 
         // NOTE: in case of generic type this will return just Value
-        parm_value[i] = (intptr_t)real_param->GetDataPtrWithOffset();
+        // FIXME this bs!!!
+        parm_value[i] = (intptr_t)real_param->GetPtrWithOffset();
     }
 
     //
@@ -178,19 +179,22 @@ int call_function(intptr_t addr, int numparm, const RuntimeScriptValue *parms, i
     // values shifted further by 32 bits.
     //
     // Upon testing, however, it was revealed that AMD64 processor,
-    // the only platform we support x64 Linux AGS build on, treats
-    // all the function parameters pushed to stack as 64-bit values
-    // (few first parameters are sent via registers, and hence are
-    // least concern anyway). Therefore, no 'overflow' occurs, and
-    // 64-bit values are being effectively truncated to 32-bit
+    // the only platform we support x64 Linux AGS build on right now,
+    // treats all the function parameters pushed to stack as 64-bit
+    // values (few first parameters are sent via registers, and hence
+    // are least concern anyway). Therefore, no 'overflow' occurs,
+    // and 64-bit values are being effectively truncated to 32-bit
     // integers in the callee.
     //
-    // While this is, again - formally, quite unreliable, it was
-    // decided to leave this situation without fix for the time
-    // being. There are some possible solutions, but all of them
-    // require much extra work, something programmers do not like :P.
+    // Since this is still quite unreliable, this should be
+    // reimplemented when there's enough free time available for
+    // developers both for coding & testing.
     //
-    // This could be redone later, when an actual need arises.
+    // Most basic idea is to pass array of RuntimeScriptValue
+    // objects (that hold type description) and get same RSV as a
+    // return result. Keep in mind, though, that this solution will
+    // require fixing ALL exported functions, so a good amount of
+    // time and energy should be allocated for this task.
     //
 
     if (numparm == 1) {

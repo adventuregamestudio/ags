@@ -595,9 +595,9 @@ int IAGSEngine::CallGameScriptFunction(const char *name, int32 globalScript, int
         toRun = roominst;
 
     RuntimeScriptValue params[3];
-    params[0].SetLong(arg1);
-    params[1].SetLong(arg2);
-    params[2].SetLong(arg3);
+    params[0].SetInt32(arg1);
+    params[1].SetInt32(arg2);
+    params[2].SetInt32(arg3);
     int toret = toRun->RunScriptFunctionIfExists((char*)name, numArgs, params);
     return toret;
 }
@@ -669,7 +669,7 @@ void IAGSEngine::QueueGameScriptFunction(const char *name, int32 globalScript, i
     }
     strcat(scNameToRun, name);
 
-    curscript->run_another(scNameToRun, RuntimeScriptValue().SetLong(arg1), RuntimeScriptValue().SetLong(arg2));
+    curscript->run_another(scNameToRun, RuntimeScriptValue().SetInt32(arg1), RuntimeScriptValue().SetInt32(arg2));
 }
 
 int IAGSEngine::RegisterManagedObject(const void *object, IAGSScriptManagedObject *callback) {

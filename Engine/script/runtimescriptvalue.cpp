@@ -9,13 +9,15 @@
 // distinguish Runtime Values.
 //
 
+// TODO: test again if stack entry really can hold an offset itself
+
 uint8_t RuntimeScriptValue::ReadByte()
 {
     if (this->Type == kScValStackPtr)
     {
         if (RValue->Type == kScValDataPtr)
         {
-            return *(uint8_t*)(RValue->GetDataPtrWithOffset() + this->Value);
+            return *(uint8_t*)(RValue->GetPtrWithOffset() + this->IValue);
         }
         else
         {
@@ -24,13 +26,13 @@ uint8_t RuntimeScriptValue::ReadByte()
     }
     else if (this->Type == kScValStaticObject || this->Type == kScValStaticArray)
     {
-        return this->GetStaticManager()->ReadInt8(this->Ptr, this->Value);
+        return this->GetStaticManager()->ReadInt8(this->Ptr, this->IValue);
     }
     else if (this->Type == kScValDynamicObject)
     {
-        return this->GetDynamicManager()->ReadInt8(this->Ptr, this->Value);
+        return this->GetDynamicManager()->ReadInt8(this->Ptr, this->IValue);
     }
-    return *((uint8_t*)this->GetDataPtrWithOffset());
+    return *((uint8_t*)this->GetPtrWithOffset());
 }
 
 int16_t RuntimeScriptValue::ReadInt16()
@@ -39,7 +41,7 @@ int16_t RuntimeScriptValue::ReadInt16()
     {
         if (RValue->Type == kScValDataPtr)
         {
-            return *(int16_t*)(RValue->GetDataPtrWithOffset() + this->Value);
+            return *(int16_t*)(RValue->GetPtrWithOffset() + this->IValue);
         }
         else
         {
@@ -49,20 +51,20 @@ int16_t RuntimeScriptValue::ReadInt16()
 #if defined(AGS_BIG_ENDIAN)
     else if (this->Type == kScValGlobalData)
     {
-        int16_t temp = *((int16_t*)this->GetDataPtrWithOffset());
+        int16_t temp = *((int16_t*)this->GetPtrWithOffset());
         AGS::Common::BitByteOperations::SwapBytesInt16(temp);
         return temp;
     }
 #endif // AGS_BIG_ENDIAN
     else if (this->Type == kScValStaticObject || this->Type == kScValStaticArray)
     {
-        return this->GetStaticManager()->ReadInt16(this->Ptr, this->Value);
+        return this->GetStaticManager()->ReadInt16(this->Ptr, this->IValue);
     }
     else if (this->Type == kScValDynamicObject)
     {
-        return this->GetDynamicManager()->ReadInt16(this->Ptr, this->Value);
+        return this->GetDynamicManager()->ReadInt16(this->Ptr, this->IValue);
     }
-    return *((int16_t*)this->GetDataPtrWithOffset());
+    return *((int16_t*)this->GetPtrWithOffset());
 }
 
 int32_t RuntimeScriptValue::ReadInt32()
@@ -71,7 +73,7 @@ int32_t RuntimeScriptValue::ReadInt32()
     {
         if (RValue->Type == kScValDataPtr)
         {
-            return *(int32_t*)(RValue->GetDataPtrWithOffset() + this->Value);
+            return *(int32_t*)(RValue->GetPtrWithOffset() + this->IValue);
         }
         else
         {
@@ -81,22 +83,25 @@ int32_t RuntimeScriptValue::ReadInt32()
 #if defined(AGS_BIG_ENDIAN)
     else if (this->Type == kScValGlobalData)
     {
-        int32_t temp = *((int32_t*)this->GetDataPtrWithOffset());
+        int32_t temp = *((int32_t*)this->GetPtrWithOffset());
         AGS::Common::BitByteOperations::SwapBytesInt32(temp);
         return temp;
     }
 #endif // AGS_BIG_ENDIAN
     else if (this->Type == kScValStaticObject || this->Type == kScValStaticArray)
     {
-        return this->GetStaticManager()->ReadInt32(this->Ptr, this->Value);
+        return this->GetStaticManager()->ReadInt32(this->Ptr, this->IValue);
     }
     else if (this->Type == kScValDynamicObject)
     {
-        return this->GetDynamicManager()->ReadInt32(this->Ptr, this->Value);
+        return this->GetDynamicManager()->ReadInt32(this->Ptr, this->IValue);
     }
-    return *((int32_t*)this->GetDataPtrWithOffset());
+    return *((int32_t*)this->GetPtrWithOffset());
 }
 
+// FIXME: find out all certain cases when we are reading a pointer and store it
+// as 32-bit value here. There should be a solution to distinct these cases and
+// store value differently, otherwise it won't work for 64-bit build.
 RuntimeScriptValue RuntimeScriptValue::ReadValue()
 {
     RuntimeScriptValue rval;
@@ -104,7 +109,7 @@ RuntimeScriptValue RuntimeScriptValue::ReadValue()
     {
         if (RValue->Type == kScValDataPtr)
         {
-            rval.SetInt32(*(int32_t*)(RValue->GetDataPtrWithOffset() + this->Value));
+            rval.SetInt32(*(int32_t*)(RValue->GetPtrWithOffset() + this->IValue));
         }
         else
         {
@@ -114,23 +119,23 @@ RuntimeScriptValue RuntimeScriptValue::ReadValue()
 #if defined(AGS_BIG_ENDIAN)
     else if (this->Type == kScValGlobalData)
     {
-        int32_t temp = *((int32_t*)this->GetDataPtrWithOffset());
+        int32_t temp = *((int32_t*)this->GetPtrWithOffset());
         AGS::Common::BitByteOperations::SwapBytesInt32(temp);
         rval.SetInt32(temp);
     }
 #endif // AGS_BIG_ENDIAN
     else if (this->Type == kScValStaticObject || this->Type == kScValStaticArray)
     {
-        rval.SetInt32(this->GetStaticManager()->ReadInt32(this->Ptr, this->Value));
+        rval.SetInt32(this->GetStaticManager()->ReadInt32(this->Ptr, this->IValue));
     }
     else if (this->Type == kScValDynamicObject)
     {
-        rval.SetInt32(this->GetDynamicManager()->ReadInt32(this->Ptr, this->Value));
+        rval.SetInt32(this->GetDynamicManager()->ReadInt32(this->Ptr, this->IValue));
     }
     else
     {
         // 64 bit: Memory reads are still 32 bit
-        rval.SetInt32(*(int32_t*)GetDataPtrWithOffset());
+        rval.SetInt32(*(int32_t*)this->GetPtrWithOffset());
     }
     return rval;
 }
@@ -141,7 +146,7 @@ bool RuntimeScriptValue::WriteByte(uint8_t val)
     {
         if (RValue->Type == kScValDataPtr)
         {
-            *(uint8_t*)(RValue->GetDataPtrWithOffset() + this->Value) = val;
+            *(uint8_t*)(RValue->GetPtrWithOffset() + this->IValue) = val;
         }
         else
         {
@@ -150,15 +155,15 @@ bool RuntimeScriptValue::WriteByte(uint8_t val)
     }
     else if (this->Type == kScValStaticObject || this->Type == kScValStaticArray)
     {
-        this->GetStaticManager()->WriteInt8(this->Ptr, this->Value, val);
+        this->GetStaticManager()->WriteInt8(this->Ptr, this->IValue, val);
     }
     else if (this->Type == kScValDynamicObject)
     {
-        this->GetDynamicManager()->WriteInt8(this->Ptr, this->Value, val);
+        this->GetDynamicManager()->WriteInt8(this->Ptr, this->IValue, val);
     }
     else
     {
-        *((uint8_t*)GetDataPtrWithOffset()) = val;
+        *((uint8_t*)this->GetPtrWithOffset()) = val;
     }
     return true;
 }
@@ -169,7 +174,7 @@ bool RuntimeScriptValue::WriteInt16(int16_t val)
     {
         if (RValue->Type == kScValDataPtr)
         {
-            *(int16_t*)(RValue->GetDataPtrWithOffset() + this->Value) = val;
+            *(int16_t*)(RValue->GetPtrWithOffset() + this->IValue) = val;
         }
         else
         {
@@ -180,20 +185,20 @@ bool RuntimeScriptValue::WriteInt16(int16_t val)
     else if (this->Type == kScValGlobalData)
     {
         AGS::Common::BitByteOperations::SwapBytesInt16(val);
-        *((int16_t*)GetDataPtrWithOffset()) = val;
+        *((int16_t*)GetPtrWithOffset()) = val;
     }
 #endif // AGS_BIG_ENDIAN
     else if (this->Type == kScValStaticObject || this->Type == kScValStaticArray)
     {
-        this->GetStaticManager()->WriteInt16(this->Ptr, this->Value, val);
+        this->GetStaticManager()->WriteInt16(this->Ptr, this->IValue, val);
     }
     else if (this->Type == kScValDynamicObject)
     {
-        this->GetDynamicManager()->WriteInt16(this->Ptr, this->Value, val);
+        this->GetDynamicManager()->WriteInt16(this->Ptr, this->IValue, val);
     }
     else
     {
-        *((int16_t*)GetDataPtrWithOffset()) = val;
+        *((int16_t*)this->GetPtrWithOffset()) = val;
     }
     return true;
 }
@@ -204,7 +209,7 @@ bool RuntimeScriptValue::WriteInt32(int32_t val)
     {
         if (RValue->Type == kScValDataPtr)
         {
-            *(int32_t*)(RValue->GetDataPtrWithOffset() + this->Value) = val;
+            *(int32_t*)(RValue->GetPtrWithOffset() + this->IValue) = val;
         }
         else
         {
@@ -215,31 +220,36 @@ bool RuntimeScriptValue::WriteInt32(int32_t val)
     else if (this->Type == kScValGlobalData)
     {
         AGS::Common::BitByteOperations::SwapBytesInt32(val);
-        *((int32_t*)GetDataPtrWithOffset()) = val;
+        *((int32_t*)GetPtrWithOffset()) = val;
     }
 #endif // AGS_BIG_ENDIAN
     else if (this->Type == kScValStaticObject || this->Type == kScValStaticArray)
     {
-        this->GetStaticManager()->WriteInt32(this->Ptr, this->Value, val);
+        this->GetStaticManager()->WriteInt32(this->Ptr, this->IValue, val);
     }
     else if (this->Type == kScValDynamicObject)
     {
-        this->GetDynamicManager()->WriteInt32(this->Ptr, this->Value, val);
+        this->GetDynamicManager()->WriteInt32(this->Ptr, this->IValue, val);
     }
     else
     {
-        *((int32_t*)GetDataPtrWithOffset()) = val;
+        *((int32_t*)this->GetPtrWithOffset()) = val;
     }
     return true;
 }
 
+// FIXME: make a type check here to find out if we are actually writing a
+// pointer, and not int32 (which could be common too).
+// If that is a pointer we are writing here, it won't work for 64-bit build
+// as it is now. A solution should be implemented, depending on each distinct
+// case.
 bool RuntimeScriptValue::WriteValue(const RuntimeScriptValue &rval)
 {
     if (this->Type == kScValStackPtr)
     {
         if (RValue->Type == kScValDataPtr)
         {
-            *(int32_t*)(RValue->GetDataPtrWithOffset() + this->Value) = (intptr_t)rval.GetDataPtrWithOffset();
+            *(int32_t*)(RValue->GetPtrWithOffset() + this->IValue) = (int32_t)rval.GetPtrWithOffset();
         }
         else
         {
@@ -249,23 +259,23 @@ bool RuntimeScriptValue::WriteValue(const RuntimeScriptValue &rval)
 #if defined(AGS_BIG_ENDIAN)
     else if (this->Type == kScValGlobalData)
     {
-        int32_t temp = rval.GetDataPtrWithOffset();
+        int32_t temp = rval.GetPtrWithOffset();
         AGS::Common::BitByteOperations::SwapBytesInt32(temp);
-        *((int32_t*)GetDataPtrWithOffset()) = temp;
+        *((int32_t*)GetPtrWithOffset()) = temp;
     }
 #endif // AGS_BIG_ENDIAN
     else if (this->Type == kScValStaticObject || this->Type == kScValStaticArray)
     {
-        this->GetStaticManager()->WriteInt32(this->Ptr, this->Value, (intptr_t)rval.GetDataPtrWithOffset());
+        this->GetStaticManager()->WriteInt32(this->Ptr, this->IValue, (int32_t)rval.GetPtrWithOffset());
     }
     else if (this->Type == kScValDynamicObject)
     {
-        this->GetDynamicManager()->WriteInt32(this->Ptr, this->Value, (intptr_t)rval.GetDataPtrWithOffset());
+        this->GetDynamicManager()->WriteInt32(this->Ptr, this->IValue, (int32_t)rval.GetPtrWithOffset());
     }
     else
     {
         // 64 bit: Memory writes are still 32 bit
-        *((int32_t*)GetDataPtrWithOffset()) = (int32_t)rval.GetDataPtrWithOffset();
+        *((int32_t*)this->GetPtrWithOffset()) = (int32_t)rval.GetPtrWithOffset();
     }
     return true;
 }

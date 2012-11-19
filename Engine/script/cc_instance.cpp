@@ -461,7 +461,6 @@ int ccInstance::Run(int32_t curpc)
     // Needed to avoid unaligned variable access.
     RuntimeScriptValue temp_variable;
 
-    char *mptr;
     int (*realfunc) ();
     RuntimeScriptValue callstack[MAX_FUNC_PARAMS + 1];
     int32_t thisbase[MAXNEST], funcstart[MAXNEST];
@@ -503,6 +502,10 @@ int ccInstance::Run(int32_t curpc)
       case SCMD_LINENUM:
           line_number = arg1.GetInt32();
           currentline = arg1.GetInt32();
+          if (currentline <= 25 && curpc == 2057)
+          {
+              int woot = 0;
+          }
           if (new_line_hook)
               new_line_hook(this, currentline);
           break;
@@ -519,7 +522,7 @@ int ccInstance::Run(int32_t curpc)
             }
             else
             {
-              PushDataToStack(arg2.GetLong());
+              PushDataToStack(arg2.GetInt32());
             }
           }
           else
@@ -538,12 +541,12 @@ int ccInstance::Run(int32_t curpc)
             // // and then subtracting from that.
             if (arg1.GetInt32() == SREG_SP)
             {
-                PopDataFromStack(arg2.GetLong());
+                PopDataFromStack(arg2.GetInt32());
             }
             else
             {
                 // This is practically LOADSPOFFS
-                reg1 = GetStackPtrOffsetRw(arg2.GetLong());
+                reg1 = GetStackPtrOffsetRw(arg2.GetInt32());
             }
           }
           else
@@ -636,28 +639,28 @@ int ccInstance::Run(int32_t curpc)
           reg1.SetInt32(reg1.GetInt32() | reg2.GetInt32());
           break;
       case SCMD_ISEQUAL:
-          reg1.SetAsBool(reg1 == reg2);
+          reg1.SetInt32AsBool(reg1 == reg2);
           break;
       case SCMD_NOTEQUAL:
-          reg1.SetAsBool(reg1 != reg2);
+          reg1.SetInt32AsBool(reg1 != reg2);
           break;
       case SCMD_GREATER:
-          reg1.SetAsBool(reg1.GetInt32() > reg2.GetInt32());
+          reg1.SetInt32AsBool(reg1.GetInt32() > reg2.GetInt32());
           break;
       case SCMD_LESSTHAN:
-          reg1.SetAsBool(reg1.GetInt32() < reg2.GetInt32());
+          reg1.SetInt32AsBool(reg1.GetInt32() < reg2.GetInt32());
           break;
       case SCMD_GTE:
-          reg1.SetAsBool(reg1.GetInt32() >= reg2.GetInt32());
+          reg1.SetInt32AsBool(reg1.GetInt32() >= reg2.GetInt32());
           break;
       case SCMD_LTE:
-          reg1.SetAsBool(reg1.GetInt32() <= reg2.GetInt32());
+          reg1.SetInt32AsBool(reg1.GetInt32() <= reg2.GetInt32());
           break;
       case SCMD_AND:
-          reg1.SetAsBool(reg1.GetInt32() && reg2.GetInt32());
+          reg1.SetInt32AsBool(reg1.GetInt32() && reg2.GetInt32());
           break;
       case SCMD_OR:
-          reg1.SetAsBool(reg1.GetInt32() || reg2.GetInt32());
+          reg1.SetInt32AsBool(reg1.GetInt32() || reg2.GetInt32());
           break;
       case SCMD_XORREG:
           reg1.SetInt32(reg1.GetInt32() ^ reg2.GetInt32());
@@ -762,11 +765,13 @@ int ccInstance::Run(int32_t curpc)
           break;
       case SCMD_DYNAMICBOUNDS:
           {
-              // CHECKME!! what types of data may reg[MAR] point to?
-              int32_t upperBoundInBytes = *((int32_t *)(registers[SREG_MAR].GetDataPtrWithOffset() - 4));
+              // TODO: test reg[MAR] type here;
+              // That might be dynamic object, but also a non-managed dynamic array, "allocated"
+              // on global or local memspace (buffer)
+              int32_t upperBoundInBytes = *((int32_t *)(registers[SREG_MAR].GetPtrWithOffset() - 4));
               if ((reg1.GetInt32() < 0) ||
                   (reg1.GetInt32() >= upperBoundInBytes)) {
-                      int32_t upperBound = *((int32_t *)(registers[SREG_MAR].GetDataPtrWithOffset() - 8)) & (~ARRAY_MANAGED_TYPE_FLAG);
+                      int32_t upperBound = *((int32_t *)(registers[SREG_MAR].GetPtrWithOffset() - 8)) & (~ARRAY_MANAGED_TYPE_FLAG);
                       int elementSize = (upperBoundInBytes / upperBound);
                       cc_error("!Array index out of bounds (index: %d, bounds: 0..%d)", reg1.GetInt32() / elementSize, upperBound - 1);
                       return -1;
@@ -796,11 +801,11 @@ int ccInstance::Run(int32_t curpc)
 
           if (reg1.GetType() == kScValStaticArray && reg1.GetStaticArray()->GetDynamicManager())
           {
-              address = (char*)reg1.GetStaticArray()->GetElementPtr(reg1.GetDataPtr(), reg1.GetLong());
+              address = (char*)reg1.GetStaticArray()->GetElementPtr(reg1.GetPtr(), reg1.GetInt32());
           }
           else if (reg1.GetType() == kScValDynamicObject)
           {
-              address = reg1.GetDataPtr();
+              address = reg1.GetPtr();
           }
           // There's one possible case when the reg1 is 0, which means writing nullptr
           else if (!reg1.IsNull())
@@ -825,11 +830,11 @@ int ccInstance::Run(int32_t curpc)
 
           if (reg1.GetType() == kScValStaticArray && reg1.GetStaticArray()->GetDynamicManager())
           {
-              address = (char*)reg1.GetStaticArray()->GetElementPtr(reg1.GetDataPtr(), reg1.GetLong());
+              address = (char*)reg1.GetStaticArray()->GetElementPtr(reg1.GetPtr(), reg1.GetInt32());
           }
           else if (reg1.GetType() == kScValDynamicObject)
           {
-              address = reg1.GetDataPtr();
+              address = reg1.GetPtr();
           }
           // There's one possible case when the reg1 is 0, which means writing nullptr
           else if (!reg1.IsNull())
@@ -860,7 +865,7 @@ int ccInstance::Run(int32_t curpc)
           // Note: we might be freeing a dynamic array which contains the DisableDispose
           // object, that will be handled inside the recursive call to SubRef.
           // CHECKME!! what type of data may reg1 point to?
-          pool.disableDisposeForObject = (const char*)registers[SREG_AX].GetDataPtrWithOffset();
+          pool.disableDisposeForObject = (const char*)registers[SREG_AX].GetPtr();
           ccReleaseObjectReference(handle);
           pool.disableDisposeForObject = NULL;
           registers[SREG_MAR].WriteInt32(0);
@@ -909,8 +914,7 @@ int ccInstance::Run(int32_t curpc)
           int32_t instId = codeOp.Instruction.InstanceId;
           // determine the offset into the code of the instance we want
           runningInst = loadedInstances[instId];
-          // FIXME later: use different getter
-          intptr_t callAddr = reg1.GetLong() - (intptr_t)(&runningInst->code[0]);
+          intptr_t callAddr = reg1.GetPtr() - (char*)&runningInst->code[0];
           if (callAddr % 4 != 0) {
               cc_error("call address not aligned");
               return -1;
@@ -957,17 +961,17 @@ int ccInstance::Run(int32_t curpc)
               callstack[callstacksize] = registers[SREG_OP];
               return_value = 
                   // FIXME later: use different getter
-                  call_function(reg1.GetLong(), num_args_to_func + 1, callstack, callstacksize - num_args_to_func);
+                  call_function((intptr_t)reg1.GetPtr(), num_args_to_func + 1, callstack, callstacksize - num_args_to_func);
           }
           else if (num_args_to_func == 0) {
               // FIXME later: use different getter
-              realfunc = (int (*)())reg1.GetLong();
+              realfunc = (int (*)())reg1.GetPtr();
               return_value = realfunc();
           } 
           else
               return_value =
               // FIXME later: use different getter
-                    call_function(reg1.GetLong(), num_args_to_func, callstack, callstacksize - num_args_to_func);
+                    call_function((intptr_t)reg1.GetPtr(), num_args_to_func, callstack, callstacksize - num_args_to_func);
 
           if (GlobalReturnValue.IsValid())
           {
@@ -1024,7 +1028,7 @@ int ccInstance::Run(int32_t curpc)
           else if (reg1.GetType() == kScValStaticArray && reg1.GetStaticArray()->GetDynamicManager())
           {
               registers[SREG_OP].SetDynamicObject(
-                  (char*)reg1.GetStaticArray()->GetElementPtr(reg1.GetDataPtr(), reg1.GetLong()),
+                  (char*)reg1.GetStaticArray()->GetElementPtr(reg1.GetPtr(), reg1.GetInt32()),
                   reg1.GetStaticArray()->GetDynamicManager());
           }
           else
@@ -1051,7 +1055,7 @@ int ccInstance::Run(int32_t curpc)
                   cc_error("invalid size for dynamic array; requested: %d, range: 1..1000000", numElements);
                   return -1;
               }
-              int32_t handle = globalDynamicArray.Create(numElements, arg2.GetInt32(), arg3.AsBool());
+              int32_t handle = globalDynamicArray.Create(numElements, arg2.GetInt32(), arg3.GetAsBool());
               reg1.SetDynamicObject((void*)ccGetObjectAddressFromHandle(handle), &globalDynamicArray);
               break;
           }
@@ -1078,16 +1082,16 @@ int ccInstance::Run(int32_t curpc)
           reg1.SetFloat(reg1.GetFloat() - reg2.GetFloat());
           break;
       case SCMD_FGREATER:
-          reg1.SetFloat(reg1.GetFloat() > reg2.GetFloat() ? 1.0 : 0.0);
+          reg1.SetFloatAsBool(reg1.GetFloat() > reg2.GetFloat());
           break;
       case SCMD_FLESSTHAN:
-          reg1.SetFloat(reg1.GetFloat() < reg2.GetFloat() ? 1.0 : 0.0);
+          reg1.SetFloatAsBool(reg1.GetFloat() < reg2.GetFloat());
           break;
       case SCMD_FGTE:
-          reg1.SetFloat(reg1.GetFloat() >= reg2.GetFloat() ? 1.0 : 0.0);
+          reg1.SetFloatAsBool(reg1.GetFloat() >= reg2.GetFloat());
           break;
       case SCMD_FLTE:
-          reg1.SetFloat(reg1.GetFloat() <= reg2.GetFloat() ? 1.0 : 0.0);
+          reg1.SetFloatAsBool(reg1.GetFloat() <= reg2.GetFloat());
           break;
       case SCMD_ZEROMEMORY:
           // Check if we are zeroing at stack tail
@@ -1109,9 +1113,9 @@ int ccInstance::Run(int32_t curpc)
           }
           else
           {
-            // CHECKME: this should never happen?
-            mptr = (char *)(registers[SREG_MAR].GetLong());
-            memset(&mptr[0], 0, arg1.GetInt32());
+            cc_error("internal error: stack tail address expected on SCMD_ZEROMEMORY instruction, reg[MAR] type is %d",
+				registers[SREG_MAR].GetType());
+            return -1;
           }
           break;
       case SCMD_CREATESTRING:
@@ -1119,8 +1123,10 @@ int ccInstance::Run(int32_t curpc)
               cc_error("No string class implementation set, but opcode was used");
               return -1;
           }
+          // TODO: test reg1 type;
+          // Might be local, global memory, and dynamic object too?
           reg1.SetDynamicObject(
-              (void*)stringClassImpl->CreateString((const char *)(reg1.GetDataPtrWithOffset())),
+              (void*)stringClassImpl->CreateString((const char *)(reg1.GetPtrWithOffset())),
               &myScriptStringImpl);
           break;
       case SCMD_STRINGSEQUAL:
@@ -1128,8 +1134,8 @@ int ccInstance::Run(int32_t curpc)
               cc_error("!Null pointer referenced");
               return -1;
           }
-          reg1.SetAsBool(
-            strcmp((const char*)reg1.GetDataPtrWithOffset(), (const char*)reg2.GetDataPtrWithOffset()) == 0 );
+          reg1.SetInt32AsBool(
+            strcmp((const char*)reg1.GetPtrWithOffset(), (const char*)reg2.GetPtrWithOffset()) == 0 );
           
           break;
       case SCMD_STRINGSNOTEQ:
@@ -1137,8 +1143,8 @@ int ccInstance::Run(int32_t curpc)
               cc_error("!Null pointer referenced");
               return -1;
           }
-          reg1.SetAsBool(
-              strcmp((const char*)reg1.GetDataPtrWithOffset(), (const char*)reg2.GetDataPtrWithOffset()) != 0 );
+          reg1.SetInt32AsBool(
+              strcmp((const char*)reg1.GetPtrWithOffset(), (const char*)reg2.GetPtrWithOffset()) != 0 );
           break;
       case SCMD_LOOPCHECKOFF:
           if (loopIterationCheckDisabled == 0)
@@ -1351,7 +1357,8 @@ void ccInstance::DumpInstruction(const ScriptOperation &op)
         else
         {
             // MACPORT FIX 9/6/5: changed %d to %ld
-            writer.WriteFormat(" %ld", op.Args[i].GetDataPtrWithOffset());
+            // FIXME: check type and write appropriate values
+            writer.WriteFormat(" %ld", op.Args[i].GetPtrWithOffset());
         }
     }
     writer.WriteLineBreak();
@@ -1690,19 +1697,19 @@ bool ccInstance::ReadOperation(ScriptOperation &op, int32_t at_pc)
         FixupInstruction(at_pc, fixup, op.Instruction);
     }
 
-    for (int i = 0; i < op.ArgCount; ++i)
+    at_pc++;
+    for (int i = 0; i < op.ArgCount; ++i, ++at_pc)
     {
-        fixup = code_fixups[at_pc + i + 1];
+        fixup = code_fixups[at_pc];
         if (fixup > 0)
         {
             // could be relative pointer or import address
-            op.Args[i].SetLong( code[at_pc + i + 1] );
-            FixupArgument(at_pc + i + 1, fixup, op.Args[i]);
+            FixupArgument(code[at_pc], fixup, op.Args[i]);
         }
         else
         {
             // should be a numeric literal (int32 or float)
-            op.Args[i].SetInt32( (int32_t)code[at_pc + i + 1] );
+            op.Args[i].SetInt32( (int32_t)code[at_pc] );
         }
     }
 
@@ -1715,7 +1722,6 @@ void ccInstance::FixupInstruction(int32_t code_index, char fixup_type, ScriptIns
     if (fixup_type == FIXUP_IMPORT)
     {
         if (instruction.Code == SCMD_CALLEXT) {
-            // save the instance ID in the top 4 bits of the instruction
             instruction.Code        = SCMD_CALLAS;
             // take the import index from the previous code value
             int32_t import_index    = resolved_imports[code[code_index - 1]];
@@ -1732,51 +1738,53 @@ void ccInstance::FixupInstruction(int32_t code_index, char fixup_type, ScriptIns
     cc_error("unexpected instruction/fixup pair: %s - %s", cmd_name, fixupnames[fixup_type]);
 }
 
-void ccInstance::FixupArgument(int32_t code_index, char fixup_type, RuntimeScriptValue &argument)
+void ccInstance::FixupArgument(intptr_t code_value, char fixup_type, RuntimeScriptValue &argument)
 {
     switch (fixup_type)
     {
     case FIXUP_GLOBALDATA:
-        argument.SetGlobalData((intptr_t)&globaldata[0] + argument.GetLong());
+        argument.SetGlobalData(&globaldata[0] + code_value);
         break;
     case FIXUP_FUNCTION:
-        // originally commented --
+        // originally commented -- CHECKME: could this be used in very old versions of AGS?
         //      code[fixup] += (long)&code[0];
+        // This is a program counter value, presumably will be used as SCMD_CALL argument
+        argument.SetInt32((int32_t)code_value);
         break;
     case FIXUP_STRING:
-        argument += (intptr_t)&strings[0];
+        argument.SetStringLiteral(&strings[0] + code_value);
         break;
     case FIXUP_IMPORT:
         {
-            int32_t import_index = resolved_imports[code[code_index]];
+            int32_t import_index = resolved_imports[code_value];
             const ScriptImport *import = simp.getByIndex(import_index);
-            if (import->Type == kScValStaticObject)
+            switch (import->Type)
             {
+            case kScValStaticObject:
                 argument.SetStaticObject( import->Ptr, import->StcMgr );
-            }
-            else if (import->Type == kScValStaticArray)
-            {
+                break;
+            case kScValStaticArray:
                 argument.SetStaticArray( import->Ptr, import->StcArr );
-            }
-            else if (import->Type == kScValDynamicObject)
-            {
+                break;
+            case kScValDynamicObject:
                 argument.SetDynamicObject( import->Ptr, import->DynMgr );
-            }
-            else if (import->Type == kScValScriptData)
-            {
-                argument.SetScriptData( (intptr_t)import->Ptr );
-            }
-            else
-            {
-                argument.SetLong( (intptr_t)import->Ptr );
-            }
+                break;
+            case kScValStaticFunction:
+                argument.SetStaticFunction( import->Ptr );
+                break;
+            case kScValObjectFunction:
+                argument.SetObjectFunction( import->Ptr );
+                break;
+            case kScValScriptData:
+                argument.SetScriptData( (char*)import->Ptr );
+                break;
+            default:
+                cc_error("unexpected import type: %d", import->Type);
+			}
         }
         break;
-    case FIXUP_DATADATA:
-        // fixup is being made at instance init
-        break;
     case FIXUP_STACK: {
-        argument = GetStackPtrOffsetFw(argument.GetInt32());
+        argument = GetStackPtrOffsetFw((int32_t)code_value);
         }
         break;
     default:
@@ -1811,7 +1819,7 @@ void ccInstance::PushValueToStack(const RuntimeScriptValue &rval)
     registers[SREG_SP].SetStackPtr(registers[SREG_SP].GetStackEntry() + 1); // TODO: optimize with ++?
 }
 
-void ccInstance::PushDataToStack(int num_bytes)
+void ccInstance::PushDataToStack(int32_t num_bytes)
 {
     if (registers[SREG_SP].GetStackEntry()->IsValid())
     {
@@ -1843,7 +1851,7 @@ RuntimeScriptValue ccInstance::PopValueFromStack()
     return rval;
 }
 
-void ccInstance::PopValuesFromStack(int num_entries = 1)
+void ccInstance::PopValuesFromStack(int32_t num_entries = 1)
 {
     if (registers[SREG_SP].GetStackEntry()->IsValid())
     {
@@ -1862,7 +1870,7 @@ void ccInstance::PopValuesFromStack(int num_entries = 1)
     }
 }
 
-void ccInstance::PopDataFromStack(int num_bytes)
+void ccInstance::PopDataFromStack(int32_t num_bytes)
 {
     if (registers[SREG_SP].GetStackEntry()->IsValid())
     {
@@ -1888,7 +1896,7 @@ void ccInstance::PopDataFromStack(int num_bytes)
     }
 }
 
-RuntimeScriptValue ccInstance::GetStackPtrOffsetFw(int fw_offset)
+RuntimeScriptValue ccInstance::GetStackPtrOffsetFw(int32_t fw_offset)
 {
     int32_t total_off = 0;
     RuntimeScriptValue *stack_entry = &stack[0];
@@ -1910,7 +1918,7 @@ RuntimeScriptValue ccInstance::GetStackPtrOffsetFw(int fw_offset)
     return stack_ptr;
 }
 
-RuntimeScriptValue ccInstance::GetStackPtrOffsetRw(int rw_offset)
+RuntimeScriptValue ccInstance::GetStackPtrOffsetRw(int32_t rw_offset)
 {
     if (registers[SREG_SP].GetStackEntry()->IsValid())
     {

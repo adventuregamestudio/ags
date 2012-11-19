@@ -155,25 +155,25 @@ protected:
 
     // Runtime fixups
     void    FixupInstruction(int32_t code_index, char fixup_type, ScriptInstruction &instruction);
-    void    FixupArgument(int32_t code_index, char fixup_type, RuntimeScriptValue &argument);
+    void    FixupArgument(intptr_t code_value, char fixup_type, RuntimeScriptValue &argument);
 
     // Stack processing
     // Push writes new value and increments stack ptr;
     // stack ptr now points to the __next empty__ entry
     void    PushValueToStack(const RuntimeScriptValue &rval);
-    void    PushDataToStack(int num_bytes);
+    void    PushDataToStack(int32_t num_bytes);
     // Pop decrements stack ptr, returns last stored value and invalidates! stack tail;
     // stack ptr now points to the __next empty__ entry
     RuntimeScriptValue PopValueFromStack();
     // helper function to pop & dump several values
-    void    PopValuesFromStack(int num_entries);
-    void    PopDataFromStack(int num_bytes);
+    void    PopValuesFromStack(int32_t num_entries);
+    void    PopDataFromStack(int32_t num_bytes);
     // Return stack ptr at given offset from stack head;
     // Offset is in data bytes; program stack ptr is __not__ changed
-    RuntimeScriptValue GetStackPtrOffsetFw(int fw_offset);
+    RuntimeScriptValue GetStackPtrOffsetFw(int32_t fw_offset);
     // Return stack ptr at given offset from stack tail;
     // Offset is in data bytes; program stack ptr is __not__ changed
-    RuntimeScriptValue GetStackPtrOffsetRw(int rw_offset);
+    RuntimeScriptValue GetStackPtrOffsetRw(int32_t rw_offset);
 };
 
 #endif // __CC_INSTANCE_H

@@ -502,10 +502,6 @@ int ccInstance::Run(int32_t curpc)
       case SCMD_LINENUM:
           line_number = arg1.GetInt32();
           currentline = arg1.GetInt32();
-          if (currentline <= 25 && curpc == 2057)
-          {
-              int woot = 0;
-          }
           if (new_line_hook)
               new_line_hook(this, currentline);
           break;

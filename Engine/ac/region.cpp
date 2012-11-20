@@ -35,8 +35,8 @@ extern RuntimeScriptValue GlobalReturnValue;
 
 ScriptRegion *GetRegionAtLocation(int xx, int yy) {
     int hsnum = GetRegionAt(xx, yy);
-    if (hsnum <= 0)
-        return &scrRegion[0];
+    if (hsnum < 0)
+        hsnum = 0;
     GlobalReturnValue.SetDynamicObject(&scrRegion[hsnum], &ccDynamicRegion);
     return &scrRegion[hsnum];
 }

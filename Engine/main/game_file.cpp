@@ -136,7 +136,7 @@ extern ccScript* dialogScriptsScript;
 extern ccScript *scriptModules[MAX_SCRIPT_MODULES];
 extern ccInstance *moduleInst[MAX_SCRIPT_MODULES];
 extern ccInstance *moduleInstFork[MAX_SCRIPT_MODULES];
-extern char *moduleRepExecAddr[MAX_SCRIPT_MODULES];
+extern RuntimeScriptValue moduleRepExecAddr[MAX_SCRIPT_MODULES];
 extern int numScriptModules;
 extern GameState play;
 extern char **characterScriptObjNames;
@@ -247,7 +247,7 @@ void game_file_read_script_modules(DataStream *in)
                 quit("Script module load failure; need newer version?");
             moduleInst[bb] = NULL;
             moduleInstFork[bb] = NULL;
-            moduleRepExecAddr[bb] = NULL;
+            moduleRepExecAddr[bb].Invalidate();
         }
     }
     else

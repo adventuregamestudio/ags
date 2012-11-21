@@ -81,7 +81,7 @@ ScriptSystem scsystem;
 ccScript *scriptModules[MAX_SCRIPT_MODULES];
 ccInstance *moduleInst[MAX_SCRIPT_MODULES];
 ccInstance *moduleInstFork[MAX_SCRIPT_MODULES];
-char *moduleRepExecAddr[MAX_SCRIPT_MODULES];
+RuntimeScriptValue moduleRepExecAddr[MAX_SCRIPT_MODULES];
 int numScriptModules = 0;
 
 char **characterScriptObjNames = NULL;

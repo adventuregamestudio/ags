@@ -209,7 +209,7 @@ ccInstance::ccInstance()
     codesize            = 0;
     strings             = NULL;
     stringssize         = 0;
-    exportaddr          = NULL;
+    exports             = NULL;
     stack               = NULL;
     num_stackentries    = 0;
     stackdata           = NULL;
@@ -390,7 +390,7 @@ char scfunctionname[MAX_FUNCTION_NAME_LEN+1];
 int ccInstance::PrepareTextScript(char**tsname) {
     ccError=0;
     if (this==NULL) return -1;
-    if (GetSymbolAddress(tsname[0]) == NULL) {
+    if (GetSymbolAddress(tsname[0]).IsNull()) {
         strcpy (ccErrorString, "no such function in script");
         return -2;
     }
@@ -915,7 +915,7 @@ int ccInstance::Run(int32_t curpc)
           // determine the offset into the code of the instance we want
           runningInst = loadedInstances[instId];
           intptr_t callAddr = reg1.GetPtr() - (char*)&runningInst->code[0];
-          if (callAddr % 4 != 0) {
+          if (callAddr % sizeof(intptr_t) != 0) {
               cc_error("call address not aligned");
               return -1;
           }
@@ -1019,8 +1019,7 @@ int ccInstance::Run(int32_t curpc)
               // This might be an object of USER-DEFINED type, calling its MEMBER-FUNCTION.
               // Note, that this is the only case known when such object is written into reg[SREG_OP];
               // in any other case that would count as error.
-              reg1.GetType() == kScValGlobalVar || reg1.GetType() == kScValStackPtr ||
-              reg1.GetType() == kScValScriptData
+              reg1.GetType() == kScValGlobalVar || reg1.GetType() == kScValStackPtr
               )
           {
               registers[SREG_OP] = reg1;
@@ -1220,7 +1219,7 @@ int ccInstance::RunTextScript(char*tsname) {
         int restore_game_count_was = gameHasBeenRestored;
 
         for (int kk = 0; kk < numScriptModules; kk++) {
-            if (moduleRepExecAddr[kk] != NULL)
+            if (!moduleRepExecAddr[kk].IsNull())
                 moduleInst[kk]->RunScriptFunctionIfExists(tsname, 0, NULL);
 
             if ((room_changes_was != play.room_changes) ||
@@ -1310,20 +1309,21 @@ void ccInstance::GetScriptName(char *curScrName) {
 }
 
 // get a pointer to a variable or function exported by the script
-char *ccInstance::GetSymbolAddress(char *symname)
+RuntimeScriptValue ccInstance::GetSymbolAddress(char *symname)
 {
     int k;
     char altName[200];
     sprintf(altName, "%s$", symname);
+    RuntimeScriptValue rval_null;
 
     for (k = 0; k < instanceof->numexports; k++) {
         if (strcmp(instanceof->exports[k], symname) == 0)
-            return exportaddr[k];
+            return exports[k];
         // mangled function name
         if (strncmp(instanceof->exports[k], altName, strlen(altName)) == 0)
-            return exportaddr[k];
+            return exports[k];
     }
-    return NULL;
+    return rval_null;
 }
 
 void ccInstance::DumpInstruction(const ScriptOperation &op)
@@ -1450,16 +1450,31 @@ bool ccInstance::_Create(ccScript * scri, ccInstance * joined)
         }
     }
 
-    exportaddr = (char**)malloc(sizeof(char*) * scri->numexports);
+    exports = new RuntimeScriptValue[scri->numexports];
 
     // find the real address of the exports
     for (i = 0; i < scri->numexports; i++) {
         int32_t etype = (scri->export_addr[i] >> 24L) & 0x000ff;
         int32_t eaddr = (scri->export_addr[i] & 0x00ffffff);
         if (etype == EXPORT_FUNCTION)
-            exportaddr[i] = (char *)((intptr_t)eaddr * sizeof(intptr_t) + (intptr_t)(&code[0]));
+        {
+            // NOTE: unfortunately, there seems to be no way to know if
+            // that's an extender function that expects object pointer
+            exports[i].SetStaticFunction((void *)((intptr_t)eaddr * sizeof(intptr_t) + (intptr_t)(&code[0])));
+        }
         else if (etype == EXPORT_DATA)
-            exportaddr[i] = (intptr_t)eaddr + (&globaldata[0]);
+        {
+            ScriptVariable *gl_var = FindGlobalVar(eaddr);
+            if (gl_var)
+            {
+                exports[i].SetGlobalVar(&gl_var->RValue);
+            }
+            else
+            {
+                cc_error("cannot resolve global variable, key = %d", eaddr);
+                return false;
+            }
+        }
         else {
             cc_error("internal export fixup error");
             return false;
@@ -1475,7 +1490,7 @@ bool ccInstance::_Create(ccScript * scri, ccInstance * joined)
     if ((scri->instances == 1) && (ccGetOption(SCOPT_AUTOIMPORT) != 0)) {
         // import all the exported stuff from this script
         for (i = 0; i < scri->numexports; i++) {
-            if (!ccAddExternalScriptSymbol(scri->exports[i], exportaddr[i], this)) {
+            if (!ccAddExternalScriptSymbol(scri->exports[i], &exports[i], this)) {
                 cc_error("Export table overflow at '%s'", scri->exports[i]);
                 return false;
             }
@@ -1509,7 +1524,7 @@ void ccInstance::Free()
     delete [] stack;
     delete [] stackdata;
 
-    nullfree(exportaddr);
+    delete [] exports;
 
     if ((flags & INSTF_SHAREDATA) == 0)
     {
@@ -1561,6 +1576,8 @@ bool ccInstance::ResolveScriptImports(ccScript * scri)
 bool ccInstance::CreateGlobalVars(ccScript * scri)
 {
     ScriptVariable glvar;
+
+    // Step One: deduce global variables from fixups
     for (int i = 0; i < scri->numfixups; ++i)
     {
         switch (scri->fixuptypes[i])
@@ -1595,23 +1612,41 @@ bool ccInstance::CreateGlobalVars(ccScript * scri)
             continue;
         }
 
-        int index;
-        if (!FindGlobalVar(glvar.ScAddress, &index))
+        if (!TryAddGlobalVar(glvar) && scri->fixuptypes[i] == FIXUP_DATADATA)
         {
-            AddGlobalVar(glvar, index);
+            // CHECKME: probably replace with mere warning in the log?
+            cc_error("old-style global string was not properly registered");
+            return false;
         }
-        else
+    }
+
+    // Step Two: deduce global variables from exports
+    for (int i = 0; i < scri->numexports; ++i)
+    {
+        int32_t etype = (scri->export_addr[i] >> 24L) & 0x000ff;
+        int32_t eaddr = (scri->export_addr[i] & 0x00ffffff);
+        if (etype == EXPORT_DATA)
         {
-            if (scri->fixuptypes[i] == FIXUP_DATADATA)
-            {
-                // CHECKME: probably replace with mere warning in the log?
-                cc_error("old-style global string was not properly registered");
-                return false;
-            }
+            // NOTE: old-style strings could not be exported in AGS,
+            // no need to worry about these here
+            glvar.ScAddress = eaddr;
+            glvar.RValue.SetData(globaldata + glvar.ScAddress, 0);
+            TryAddGlobalVar(glvar);
         }
     }
 
     return true;
+}
+
+bool ccInstance::TryAddGlobalVar(const ScriptVariable &glvar)
+{
+    int index;
+    if (!FindGlobalVar(glvar.ScAddress, &index))
+    {
+        AddGlobalVar(glvar, index);
+        return true;
+    }
+    return false;
 }
 
 // TODO: use bsearch routine from Array or Map class, when we put one in use
@@ -1619,7 +1654,7 @@ ScriptVariable *ccInstance::FindGlobalVar(int32_t var_addr, int *pindex)
 {
     if (pindex)
     {
-        *pindex = 0;
+        *pindex = -1;
     }
 
     if (!num_globalvars)
@@ -1800,7 +1835,14 @@ void ccInstance::FixupArgument(intptr_t code_value, char fixup_type, RuntimeScri
     case FIXUP_GLOBALDATA:
         {
             ScriptVariable *gl_var = FindGlobalVar((int32_t)code_value);
-            argument.SetGlobalVar(&gl_var->RValue);
+            if (gl_var)
+            {
+                argument.SetGlobalVar(&gl_var->RValue);
+            }
+            else
+            {
+                cc_error("cannot resolve global variable, key = %d", (int32_t)code_value);
+            }
         }
         break;
     case FIXUP_FUNCTION:
@@ -1833,8 +1875,11 @@ void ccInstance::FixupArgument(intptr_t code_value, char fixup_type, RuntimeScri
             case kScValObjectFunction:
                 argument.SetObjectFunction( import->Ptr );
                 break;
-            case kScValScriptData:
-                argument.SetScriptData( (char*)import->Ptr );
+            case kScValScriptExport:
+                if (import->Ptr)
+                {
+                    argument = *(RuntimeScriptValue*)(import->Ptr);
+                }
                 break;
             default:
                 cc_error("unexpected import type: %d", import->Type);
@@ -1846,7 +1891,7 @@ void ccInstance::FixupArgument(intptr_t code_value, char fixup_type, RuntimeScri
         }
         break;
     default:
-        cc_error("internal fixup index error: %d", fixup_type);
+        cc_error("internal fixup type error: %d", fixup_type);
         break;
     }
 }

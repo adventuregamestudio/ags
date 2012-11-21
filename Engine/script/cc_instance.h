@@ -94,7 +94,7 @@ public:
     int32_t codesize;
     char *strings;
     int32_t stringssize;
-    char **exportaddr;  // real pointer to export
+    RuntimeScriptValue *exports;
     RuntimeScriptValue *stack;
     int  num_stackentries;
     // An array for keeping stack data; stack entries reference unknown data from here
@@ -149,7 +149,7 @@ public:
     void    GetCallStack(char *buffer, int maxLines);
     void    GetScriptName(char *curScrName);
     // get the address of an exported variable in the script
-    char    *GetSymbolAddress(char *);
+    RuntimeScriptValue GetSymbolAddress(char *);
     void    DumpInstruction(const ScriptOperation &op);
 
 protected:
@@ -159,6 +159,7 @@ protected:
 
     bool    ResolveScriptImports(ccScript * scri);
     bool    CreateGlobalVars(ccScript * scri);
+    bool    TryAddGlobalVar(const ScriptVariable &glvar);
     ScriptVariable *FindGlobalVar(int32_t var_addr, int *pindex = NULL);
     void    AddGlobalVar(const ScriptVariable &glvar, int at_index);
     bool    CreateRuntimeCodeFixups(ccScript * scri);

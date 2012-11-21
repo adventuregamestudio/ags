@@ -276,7 +276,7 @@ void process_interface_click(int ifce, int btn, int mbut) {
         // otherwise, run interface_click
         if ((theObj->GetNumEvents() > 0) &&
             (theObj->eventHandlers[0][0] != 0) &&
-            (gameinst->GetSymbolAddress(theObj->eventHandlers[0]) != NULL)) {
+            (!gameinst->GetSymbolAddress(theObj->eventHandlers[0]).IsNull())) {
                 // control-specific event handler
                 if (strchr(theObj->GetEventArgs(0), ',') != NULL)
                     gameinst->RunTextScript2IParam(theObj->eventHandlers[0],

@@ -29,8 +29,7 @@ enum ScriptValueType
     kScValStaticFunction,// as a pointer to static function
     kScValObjectFunction,// as a pointer to object member function, gets object pointer as
                         // first parameter
-    kScValScriptData    // an import from another script, could be object or function ptr;
-                        // at the moment used only for CALLOBJ arg type check
+    kScValScriptExport  // as a pointer to script export
 };
 
 struct RuntimeScriptValue
@@ -276,15 +275,6 @@ public:
         Type    = kScValObjectFunction;
         IValue  = 0;
         Ptr     = (char*)pfn;
-        MgrPtr  = NULL;
-        Size    = 4;
-        return *this;
-    }
-    inline RuntimeScriptValue &SetScriptData(char *data)
-    {
-        Type    = kScValScriptData;
-        IValue  = 0;
-        Ptr     = data;
         MgrPtr  = NULL;
         Size    = 4;
         return *this;

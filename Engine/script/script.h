@@ -72,7 +72,7 @@ extern ScriptSystem scsystem;
 extern ccScript *scriptModules[MAX_SCRIPT_MODULES];
 extern ccInstance *moduleInst[MAX_SCRIPT_MODULES];
 extern ccInstance *moduleInstFork[MAX_SCRIPT_MODULES];
-extern char *moduleRepExecAddr[MAX_SCRIPT_MODULES];
+extern RuntimeScriptValue moduleRepExecAddr[MAX_SCRIPT_MODULES];
 extern int numScriptModules;
 
 extern char **characterScriptObjNames;

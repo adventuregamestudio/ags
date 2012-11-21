@@ -65,9 +65,9 @@ bool ccAddExternalObjectFunction(const char *name, void *ptr)
     return simp.add(kScValObjectFunction, name, ptr, NULL, NULL) == 0;
 }
 
-bool ccAddExternalScriptSymbol(const char *name, void *ptr, ccInstance *inst)
+bool ccAddExternalScriptSymbol(const char *name, RuntimeScriptValue *prval, ccInstance *inst)
 {
-    return simp.add(kScValScriptData, name, ptr, NULL, inst) == 0;
+    return simp.add(kScValScriptExport, name, prval, NULL, inst) == 0;
 }
 
 void ccRemoveExternalSymbol(const char *namof)

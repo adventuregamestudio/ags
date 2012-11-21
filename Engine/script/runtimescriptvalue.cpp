@@ -11,11 +11,13 @@
 
 // TODO: test again if stack entry really can hold an offset itself
 
+// TODO: use endian-agnostic method to access global vars
+
 uint8_t RuntimeScriptValue::ReadByte()
 {
-    if (this->Type == kScValStackPtr)
+    if (this->Type == kScValStackPtr || this->Type == kScValGlobalVar)
     {
-        if (RValue->Type == kScValDataPtr)
+        if (RValue->Type == kScValData)
         {
             return *(uint8_t*)(RValue->GetPtrWithOffset() + this->IValue);
         }
@@ -39,7 +41,7 @@ int16_t RuntimeScriptValue::ReadInt16()
 {
     if (this->Type == kScValStackPtr)
     {
-        if (RValue->Type == kScValDataPtr)
+        if (RValue->Type == kScValData)
         {
             return *(int16_t*)(RValue->GetPtrWithOffset() + this->IValue);
         }
@@ -48,14 +50,21 @@ int16_t RuntimeScriptValue::ReadInt16()
             return RValue->GetInt32(); // get RValue as int
         }
     }
-#if defined(AGS_BIG_ENDIAN)
-    else if (this->Type == kScValGlobalData)
+    else if (this->Type == kScValGlobalVar)
     {
-        int16_t temp = *((int16_t*)this->GetPtrWithOffset());
-        AGS::Common::BitByteOperations::SwapBytesInt16(temp);
-        return temp;
+        if (RValue->Type == kScValData)
+        {
+            int16_t temp = *(int16_t*)(RValue->GetPtrWithOffset() + this->IValue);
+#if defined(AGS_BIG_ENDIAN)
+            AGS::Common::BitByteOperations::SwapBytesInt16(temp);
+#endif
+            return temp;
+        }
+        else
+        {
+            return RValue->GetInt32(); // get RValue as int
+        }
     }
-#endif // AGS_BIG_ENDIAN
     else if (this->Type == kScValStaticObject || this->Type == kScValStaticArray)
     {
         return this->GetStaticManager()->ReadInt16(this->Ptr, this->IValue);
@@ -71,7 +80,7 @@ int32_t RuntimeScriptValue::ReadInt32()
 {
     if (this->Type == kScValStackPtr)
     {
-        if (RValue->Type == kScValDataPtr)
+        if (RValue->Type == kScValData)
         {
             return *(int32_t*)(RValue->GetPtrWithOffset() + this->IValue);
         }
@@ -80,14 +89,21 @@ int32_t RuntimeScriptValue::ReadInt32()
             return RValue->GetInt32(); // get RValue as int
         }
     }
-#if defined(AGS_BIG_ENDIAN)
-    else if (this->Type == kScValGlobalData)
+    else if (this->Type == kScValGlobalVar)
     {
-        int32_t temp = *((int32_t*)this->GetPtrWithOffset());
-        AGS::Common::BitByteOperations::SwapBytesInt32(temp);
-        return temp;
+        if (RValue->Type == kScValData)
+        {
+            int32_t temp = *(int32_t*)(RValue->GetPtrWithOffset() + this->IValue);
+#if defined(AGS_BIG_ENDIAN)
+            AGS::Common::BitByteOperations::SwapBytesInt32(temp);
+#endif
+            return temp;
+        }
+        else
+        {
+            return RValue->GetInt32(); // get RValue as int
+        }
     }
-#endif // AGS_BIG_ENDIAN
     else if (this->Type == kScValStaticObject || this->Type == kScValStaticArray)
     {
         return this->GetStaticManager()->ReadInt32(this->Ptr, this->IValue);
@@ -107,7 +123,7 @@ RuntimeScriptValue RuntimeScriptValue::ReadValue()
     RuntimeScriptValue rval;
     if (this->Type == kScValStackPtr)
     {
-        if (RValue->Type == kScValDataPtr)
+        if (RValue->Type == kScValData)
         {
             rval.SetInt32(*(int32_t*)(RValue->GetPtrWithOffset() + this->IValue));
         }
@@ -116,14 +132,21 @@ RuntimeScriptValue RuntimeScriptValue::ReadValue()
             rval = *RValue;
         }
     }
-#if defined(AGS_BIG_ENDIAN)
-    else if (this->Type == kScValGlobalData)
+    else if (this->Type == kScValGlobalVar)
     {
-        int32_t temp = *((int32_t*)this->GetPtrWithOffset());
-        AGS::Common::BitByteOperations::SwapBytesInt32(temp);
-        rval.SetInt32(temp);
+        if (RValue->Type == kScValData)
+        {
+            int32_t temp = *(int32_t*)(RValue->GetPtrWithOffset() + this->IValue);
+#if defined(AGS_BIG_ENDIAN)
+            AGS::Common::BitByteOperations::SwapBytesInt32(temp);
+#endif
+            rval.SetInt32(temp);
+        }
+        else
+        {
+            rval = *RValue;
+        }
     }
-#endif // AGS_BIG_ENDIAN
     else if (this->Type == kScValStaticObject || this->Type == kScValStaticArray)
     {
         rval.SetInt32(this->GetStaticManager()->ReadInt32(this->Ptr, this->IValue));
@@ -142,9 +165,9 @@ RuntimeScriptValue RuntimeScriptValue::ReadValue()
 
 bool RuntimeScriptValue::WriteByte(uint8_t val)
 {
-    if (this->Type == kScValStackPtr)
+    if (this->Type == kScValStackPtr || this->Type == kScValGlobalVar)
     {
-        if (RValue->Type == kScValDataPtr)
+        if (RValue->Type == kScValData)
         {
             *(uint8_t*)(RValue->GetPtrWithOffset() + this->IValue) = val;
         }
@@ -172,7 +195,7 @@ bool RuntimeScriptValue::WriteInt16(int16_t val)
 {
     if (this->Type == kScValStackPtr)
     {
-        if (RValue->Type == kScValDataPtr)
+        if (RValue->Type == kScValData)
         {
             *(int16_t*)(RValue->GetPtrWithOffset() + this->IValue) = val;
         }
@@ -181,13 +204,20 @@ bool RuntimeScriptValue::WriteInt16(int16_t val)
             RValue->SetInt16(val); // set RValue as int
         }
     }
-#if defined(AGS_BIG_ENDIAN)
-    else if (this->Type == kScValGlobalData)
+    else if (this->Type == kScValGlobalVar)
     {
-        AGS::Common::BitByteOperations::SwapBytesInt16(val);
-        *((int16_t*)GetPtrWithOffset()) = val;
+        if (RValue->Type == kScValData)
+        {
+#if defined(AGS_BIG_ENDIAN)
+            AGS::Common::BitByteOperations::SwapBytesInt16(val);
+#endif
+            *(int16_t*)(RValue->GetPtrWithOffset() + this->IValue) = val;
+        }
+        else
+        {
+            RValue->SetInt16(val); // set RValue as int
+        }
     }
-#endif // AGS_BIG_ENDIAN
     else if (this->Type == kScValStaticObject || this->Type == kScValStaticArray)
     {
         this->GetStaticManager()->WriteInt16(this->Ptr, this->IValue, val);
@@ -207,7 +237,7 @@ bool RuntimeScriptValue::WriteInt32(int32_t val)
 {
     if (this->Type == kScValStackPtr)
     {
-        if (RValue->Type == kScValDataPtr)
+        if (RValue->Type == kScValData)
         {
             *(int32_t*)(RValue->GetPtrWithOffset() + this->IValue) = val;
         }
@@ -216,13 +246,20 @@ bool RuntimeScriptValue::WriteInt32(int32_t val)
             RValue->SetInt32(val); // set RValue as int
         }
     }
-#if defined(AGS_BIG_ENDIAN)
-    else if (this->Type == kScValGlobalData)
+    else if (this->Type == kScValGlobalVar)
     {
-        AGS::Common::BitByteOperations::SwapBytesInt32(val);
-        *((int32_t*)GetPtrWithOffset()) = val;
+        if (RValue->Type == kScValData)
+        {
+#if defined(AGS_BIG_ENDIAN)
+            AGS::Common::BitByteOperations::SwapBytesInt32(val);
+#endif
+            *(int32_t*)(RValue->GetPtrWithOffset() + this->IValue) = val;
+        }
+        else
+        {
+            RValue->SetInt32(val); // set RValue as int
+        }
     }
-#endif // AGS_BIG_ENDIAN
     else if (this->Type == kScValStaticObject || this->Type == kScValStaticArray)
     {
         this->GetStaticManager()->WriteInt32(this->Ptr, this->IValue, val);
@@ -247,7 +284,7 @@ bool RuntimeScriptValue::WriteValue(const RuntimeScriptValue &rval)
 {
     if (this->Type == kScValStackPtr)
     {
-        if (RValue->Type == kScValDataPtr)
+        if (RValue->Type == kScValData)
         {
             *(int32_t*)(RValue->GetPtrWithOffset() + this->IValue) = (int32_t)rval.GetPtrWithOffset();
         }
@@ -256,14 +293,21 @@ bool RuntimeScriptValue::WriteValue(const RuntimeScriptValue &rval)
             *RValue = rval;
         }
     }
-#if defined(AGS_BIG_ENDIAN)
-    else if (this->Type == kScValGlobalData)
+    else if (this->Type == kScValGlobalVar)
     {
-        int32_t temp = rval.GetPtrWithOffset();
-        AGS::Common::BitByteOperations::SwapBytesInt32(temp);
-        *((int32_t*)GetPtrWithOffset()) = temp;
+        if (RValue->Type == kScValData)
+        {
+            int32_t val = (int32_t)rval.GetPtrWithOffset();
+#if defined(AGS_BIG_ENDIAN)
+            AGS::Common::BitByteOperations::SwapBytesInt32(val);
+#endif
+            *(int32_t*)(RValue->GetPtrWithOffset() + this->IValue) = val;
+        }
+        else
+        {
+            *RValue = rval;
+        }
     }
-#endif // AGS_BIG_ENDIAN
     else if (this->Type == kScValStaticObject || this->Type == kScValStaticArray)
     {
         this->GetStaticManager()->WriteInt32(this->Ptr, this->IValue, (int32_t)rval.GetPtrWithOffset());

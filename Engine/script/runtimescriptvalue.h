@@ -18,12 +18,11 @@ enum ScriptValueType
     kScValInteger,      // as strictly 32-bit integer (for integer math)
     kScValFloat,        // as float (for floating point math), 32-bit
     kScValStackPtr,     // as a pointer to stack entry
-    kScValDataPtr,      // as a pointer to randomly sized data (usually array)
-    kScValGlobalData,   // a pointer to global data; at the moment serves only as
-                        // a workaround for big endian builds (maybe temporary);
-                        // works similarly to kScValDataPtr for the rest
-    kScValStringLiteral,// as a pointer to literal string (array of chars);
-                        // works similarly to kScValDataPtr, but provides distinct type check
+    kScValData,         // as a container for randomly sized data (usually array)
+    kScValGlobalVar,    // as a pointer to script variable; used only for global vars,
+                        // as pointer to local vars must have StackPtr type so that the
+                        // stack allocation could work
+    kScValStringLiteral,// as a pointer to literal string (array of chars)
     kScValStaticObject, // as a pointer to static global script object
     kScValStaticArray,  // as a pointer to static global array (of static or dynamic objects)
     kScValDynamicObject,// as a pointer to managed script object
@@ -208,21 +207,20 @@ public:
         Size    = 4;
         return *this;
     }
-    inline RuntimeScriptValue &SetDataPtr(char *data, int size)
+    inline RuntimeScriptValue &SetData(char *data, int size)
     {
-        Type    = kScValDataPtr;
+        Type    = kScValData;
         IValue  = 0;
         Ptr     = data;
         MgrPtr  = NULL;
         Size    = size;
         return *this;
     }
-    // TODO: learn if the global data size could be unambiguously deduced
-    inline RuntimeScriptValue &SetGlobalData(char *data)
+    inline RuntimeScriptValue &SetGlobalVar(RuntimeScriptValue *glvar_value)
     {
-        Type    = kScValGlobalData;
+        Type    = kScValGlobalVar;
         IValue  = 0;
-        Ptr     = data;
+        RValue  = glvar_value;
         MgrPtr  = NULL;
         Size    = 4;
         return *this;

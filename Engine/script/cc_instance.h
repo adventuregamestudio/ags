@@ -67,11 +67,26 @@ struct ScriptOperation
 	int				    ArgCount;
 };
 
+struct ScriptVariable
+{
+    ScriptVariable()
+    {
+        ScAddress   = -1; // address = 0 is valid one, -1 means undefined
+    }
+
+    int32_t             ScAddress;  // original 32-bit relative data address, written in compiled script;
+                                    // if we are to use Map or HashMap, this could be used as Key
+    RuntimeScriptValue  RValue;
+};
+
 // Running instance of the script
 struct ccInstance
 {
 public:
     int32_t flags;
+    ScriptVariable *globalvars;
+    int num_globalvars;
+    int num_globalvar_slots;
     char *globaldata;
     int32_t globaldatasize;
     intptr_t *code;
@@ -136,12 +151,6 @@ public:
     // get the address of an exported variable in the script
     char    *GetSymbolAddress(char *);
     void    DumpInstruction(const ScriptOperation &op);
-    
-    // changes all pointer variables (ie. strings) to have the relative address, to allow
-    // the data segment to be saved to disk
-    void    FlattenGlobalData();
-    // restores the pointers after a save
-    void    UnFlattenGlobalData();
 
 protected:
     bool    _Create(ccScript * scri, ccInstance * joined);
@@ -149,7 +158,9 @@ protected:
     void    Free();
 
     bool    ResolveScriptImports(ccScript * scri);
-    bool    FixupGlobalData(ccScript * scri);
+    bool    CreateGlobalVars(ccScript * scri);
+    ScriptVariable *FindGlobalVar(int32_t var_addr, int *pindex = NULL);
+    void    AddGlobalVar(const ScriptVariable &glvar, int at_index);
     bool    CreateRuntimeCodeFixups(ccScript * scri);
 	bool    ReadOperation(ScriptOperation &op, int32_t at_pc);
 

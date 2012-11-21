@@ -234,9 +234,7 @@ void save_room_data_segment () {
     croom->tsdatasize = roominst->globaldatasize;
     if (croom->tsdatasize > 0) {
         croom->tsdata=(char*)malloc(croom->tsdatasize+10);
-        roominst->FlattenGlobalData ();
         memcpy(croom->tsdata,&roominst->globaldata[0],croom->tsdatasize);
-        roominst->UnFlattenGlobalData ();
     }
 
 }
@@ -788,7 +786,6 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
             if (croom->tsdatasize != roominst->globaldatasize)
                 quit("room script data segment size has changed");
             memcpy(&roominst->globaldata[0],croom->tsdata,croom->tsdatasize);
-            roominst->UnFlattenGlobalData ();
         }
     }
     our_eip=207;

@@ -35,6 +35,7 @@
 #include "util/misc.h"
 #include "util/textstreamwriter.h"
 #include "ac/dynobj/scriptstring.h"
+#include "ac/statobj/agsstaticobject.h"
 #include "ac/statobj/staticarray.h"
 #include "util/string_utils.h" // linux strnicmp definition
 
@@ -198,6 +199,9 @@ ccInstance *ccInstance::CreateEx(ccScript * scri, ccInstance * joined)
 ccInstance::ccInstance()
 {
     flags               = 0;
+    globalvars          = NULL;
+    num_globalvars      = 0;
+    num_globalvar_slots = 0;
     globaldata          = NULL;
     globaldatasize      = 0;
     code                = NULL;
@@ -1015,7 +1019,7 @@ int ccInstance::Run(int32_t curpc)
               // This might be an object of USER-DEFINED type, calling its MEMBER-FUNCTION.
               // Note, that this is the only case known when such object is written into reg[SREG_OP];
               // in any other case that would count as error.
-              reg1.GetType() == kScValGlobalData || reg1.GetType() == kScValStackPtr ||
+              reg1.GetType() == kScValGlobalVar || reg1.GetType() == kScValStackPtr ||
               reg1.GetType() == kScValScriptData
               )
           {
@@ -1361,65 +1365,6 @@ void ccInstance::DumpInstruction(const ScriptOperation &op)
     // the writer will delete data stream internally
 }
 
-// changes all pointer variables (ie. strings) to have the relative address, to allow
-// the data segment to be saved to disk
-void ccInstance::FlattenGlobalData()
-{
-    ccScript *scri = instanceof;
-    int i;
-
-    if (flags & INSTF_SHAREDATA)
-        return;
-
-    // perform the fixups
-    for (i = 0; i < scri->numfixups; i++) {
-        int32_t fixup = scri->fixups[i];
-        if (scri->fixuptypes[i] == FIXUP_DATADATA) {
-            // supposedly these are only used for strings...
-            intptr_t temp = 0;
-            memcpy(&temp, (char*)&(globaldata[fixup]), 4);
-
-#if defined(AGS_BIG_ENDIAN)
-            AGS::Common::BitByteOperations::SwapBytesInt32(temp);
-#endif
-            temp -= (intptr_t)globaldata;
-#if defined(AGS_BIG_ENDIAN)
-            AGS::Common::BitByteOperations::SwapBytesInt32(temp);
-#endif
-            memcpy(&(globaldata[fixup]), &temp, 4);
-        }
-    }
-
-}
-
-// restores the pointers after a save
-void ccInstance::UnFlattenGlobalData()
-{
-    ccScript *scri = instanceof;
-    int i;
-
-    if (flags & INSTF_SHAREDATA)
-        return;
-
-    // perform the fixups
-    for (i = 0; i < scri->numfixups; i++) {
-        int32_t fixup = scri->fixups[i];
-        if (scri->fixuptypes[i] == FIXUP_DATADATA) {
-            // supposedly these are only used for strings...
-            intptr_t temp = 0;
-            memcpy(&temp, (char*)&(globaldata[fixup]), 4);
-#if defined(AGS_BIG_ENDIAN)
-            AGS::Common::BitByteOperations::SwapBytesInt32(temp);
-#endif
-            temp += (intptr_t)globaldata;
-#if defined(AGS_BIG_ENDIAN)
-            AGS::Common::BitByteOperations::SwapBytesInt32(temp);
-#endif
-            memcpy(&(globaldata[fixup]), &temp, 4);
-        }
-    }
-}
-
 bool ccInstance::_Create(ccScript * scri, ccInstance * joined)
 {
     int i;
@@ -1434,11 +1379,14 @@ bool ccInstance::_Create(ccScript * scri, ccInstance * joined)
 
     if (joined != NULL) {
         // share memory space with an existing instance (ie. this is a thread/fork)
+        globalvars = joined->globalvars;
+        num_globalvars = joined->num_globalvars;
         globaldatasize = joined->globaldatasize;
         globaldata = joined->globaldata;
     } 
     else {
         // create own memory space
+        // NOTE: globalvars are created in CreateGlobalVars()
         globaldatasize = scri->globaldatasize;
         if (globaldatasize > 0) {
             globaldata = (char *)malloc(globaldatasize);
@@ -1489,7 +1437,10 @@ bool ccInstance::_Create(ccScript * scri, ccInstance * joined)
         {
             return false;
         }
-        FixupGlobalData(scri);
+        if (!CreateGlobalVars(scri))
+        {
+            return false;
+        }
         // [IKM] 2012-09-26:
         // Do not perform most fixups at startup, store fixup data instead
         // for real-time fixups during instance run.
@@ -1548,7 +1499,10 @@ void ccInstance::Free()
         loadedInstances[loadedInstanceId] = NULL;
 
     if ((flags & INSTF_SHAREDATA) == 0)
+    {
+        delete [] globalvars;
         nullfree(globaldata);
+    }
 
     strings = NULL;
 
@@ -1599,38 +1553,143 @@ bool ccInstance::ResolveScriptImports(ccScript * scri)
     return true;
 }
 
-bool ccInstance::FixupGlobalData(ccScript * scri)
+// TODO: it is possible to deduce global var's size at start with
+// certain accuracy after all global vars are registered. Each
+// global var's size would be limited by closest next var's ScAddress
+// and globaldatasize.
+// TODO: rework this routine by the use of normal Array or Map class
+bool ccInstance::CreateGlobalVars(ccScript * scri)
 {
-    // This is original fixup behavior;
-    // instance still has its own copy of globaldata
-
+    ScriptVariable glvar;
     for (int i = 0; i < scri->numfixups; ++i)
     {
-        if (scri->fixuptypes[i] != FIXUP_DATADATA)
+        switch (scri->fixuptypes[i])
         {
+        case FIXUP_GLOBALDATA:
+            // GLOBALDATA fixup takes relative address of global data element from code array;
+            // this is the address of actual data
+            glvar.ScAddress = (int32_t)code[scri->fixups[i]];
+            glvar.RValue.SetData(globaldata + glvar.ScAddress, 0);
+            break;
+        case FIXUP_DATADATA:
+            {
+            // DATADATA fixup takes relative address of global data element from fixups array;
+            // this is the address of element, which stores address of actual data
+            glvar.ScAddress = scri->fixups[i];
+            int32_t data_addr = *(int32_t*)&globaldata[glvar.ScAddress];
+#if defined(AGS_BIG_ENDIAN)
+            AGS::Common::BitByteOperations::SwapBytesInt32(data_addr);
+#endif // AGS_BIG_ENDIAN
+            if (glvar.ScAddress - data_addr != 200 /* size of old AGS string */)
+            {
+                // CHECKME: probably replace with mere warning in the log?
+                cc_error("unexpected old-style string's alignment");
+                return false;
+            }
+            // TODO: register this explicitly as a string instead (can do this later)
+            glvar.RValue.SetStaticObject(globaldata + data_addr, &GlobalStaticManager);
+            }
+            break;
+        default:
+            // other fixups are of no use here
             continue;
         }
 
-        int32_t fixup = scri->fixups[i];
-        // supposedly these are only used for strings...
-        intptr_t temp = 0;
-        memcpy(&temp, (char*)&(globaldata[fixup]), 4);
-#if defined(AGS_BIG_ENDIAN)
-        AGS::Common::BitByteOperations::SwapBytesInt32(temp);
-#endif
-        temp += (intptr_t)globaldata;
-#if defined(AGS_BIG_ENDIAN)
-        AGS::Common::BitByteOperations::SwapBytesInt32(temp);
-#endif
-        memcpy(&(globaldata[fixup]), &temp, 4);
+        int index;
+        if (!FindGlobalVar(glvar.ScAddress, &index))
+        {
+            AddGlobalVar(glvar, index);
+        }
+        else
+        {
+            if (scri->fixuptypes[i] == FIXUP_DATADATA)
+            {
+                // CHECKME: probably replace with mere warning in the log?
+                cc_error("old-style global string was not properly registered");
+                return false;
+            }
+        }
     }
+
     return true;
+}
+
+// TODO: use bsearch routine from Array or Map class, when we put one in use
+ScriptVariable *ccInstance::FindGlobalVar(int32_t var_addr, int *pindex)
+{
+    if (pindex)
+    {
+        *pindex = 0;
+    }
+
+    if (!num_globalvars)
+    {
+        return NULL;
+    }
+
+    if (var_addr >= globaldatasize)
+    {
+        return NULL;
+    }
+
+    int first   = 0;
+    int last    = num_globalvars;
+    int mid;
+    while (first < last)
+    {
+        mid = first + ((last - first) >> 1);
+        if (var_addr <= globalvars[mid].ScAddress)
+        {
+            last = mid;
+        }
+        else
+        {
+            first = mid + 1;
+        }
+    }
+
+    if (pindex)
+    {
+        *pindex = last;
+    }
+
+    if (last < num_globalvars && globalvars[last].ScAddress == var_addr)
+    {
+        return &globalvars[last];
+    }
+    return NULL;
+}
+
+void ccInstance::AddGlobalVar(const ScriptVariable &glvar, int at_index)
+{
+    if (at_index < 0 || at_index > num_globalvars)
+    {
+        at_index = num_globalvars;
+    }
+
+    // FIXME: some hardcore vector emulation here :/
+    if (num_globalvars == num_globalvar_slots)
+    {
+        num_globalvar_slots = num_globalvars + 100;
+        ScriptVariable *new_arr = new ScriptVariable[num_globalvar_slots];
+        if (num_globalvars > 0)
+        {
+            memcpy(new_arr, globalvars, num_globalvars * sizeof(ScriptVariable));
+        }
+        delete [] globalvars;
+        globalvars = new_arr;
+    }
+
+    if (at_index < num_globalvars)
+    {
+        memmove(globalvars + at_index + 1, globalvars + at_index, (num_globalvars - at_index) * sizeof(ScriptVariable));
+    }
+    globalvars[at_index] = glvar;
+    num_globalvars++;
 }
 
 bool ccInstance::CreateRuntimeCodeFixups(ccScript * scri)
 {
-    // So far the helpers are needed only for fixups, but FIXUP_IMPORT may
-    // change two code values
     code_fixups = new char[scri->codesize];
     memset(code_fixups, 0, scri->codesize);
     for (int i = 0; i < scri->numfixups; ++i)
@@ -1739,7 +1798,10 @@ void ccInstance::FixupArgument(intptr_t code_value, char fixup_type, RuntimeScri
     switch (fixup_type)
     {
     case FIXUP_GLOBALDATA:
-        argument.SetGlobalData(&globaldata[0] + code_value);
+        {
+            ScriptVariable *gl_var = FindGlobalVar((int32_t)code_value);
+            argument.SetGlobalVar(&gl_var->RValue);
+        }
         break;
     case FIXUP_FUNCTION:
         // originally commented -- CHECKME: could this be used in very old versions of AGS?
@@ -1824,7 +1886,7 @@ void ccInstance::PushDataToStack(int32_t num_bytes)
     }
     // Zero memory, assign pointer to data block to the stack tail, advance both stack ptr and stack data ptr
     memset(stackdata_ptr, 0, num_bytes);
-    registers[SREG_SP].GetStackEntry()->SetDataPtr(stackdata_ptr, num_bytes);
+    registers[SREG_SP].GetStackEntry()->SetData(stackdata_ptr, num_bytes);
     stackdata_ptr += num_bytes;
     registers[SREG_SP].SetStackPtr(registers[SREG_SP].GetStackEntry() + 1); // TODO: optimize with ++?
 }
@@ -1839,7 +1901,7 @@ RuntimeScriptValue ccInstance::PopValueFromStack()
     // rewind stack ptr to the last valid value, decrement stack data ptr if needed and invalidate the stack tail
     registers[SREG_SP].SetStackPtr(registers[SREG_SP].GetStackEntry() - 1); // TODO: optimize with --?
     RuntimeScriptValue rval = *registers[SREG_SP].GetStackEntry();
-    if (rval.GetType() == kScValDataPtr)
+    if (rval.GetType() == kScValData)
     {
         stackdata_ptr -= rval.GetSize();
     }
@@ -1858,7 +1920,7 @@ void ccInstance::PopValuesFromStack(int32_t num_entries = 1)
     {
         // rewind stack ptr to the last valid value, decrement stack data ptr if needed and invalidate the stack tail
         registers[SREG_SP].SetStackPtr(registers[SREG_SP].GetStackEntry() - 1); // TODO: optimize with --?
-        if (registers[SREG_SP].GetStackEntry()->GetType() == kScValDataPtr)
+        if (registers[SREG_SP].GetStackEntry()->GetType() == kScValData)
         {
             stackdata_ptr -= registers[SREG_SP].GetStackEntry()->GetSize();
         }
@@ -1880,7 +1942,7 @@ void ccInstance::PopDataFromStack(int32_t num_bytes)
         registers[SREG_SP].SetStackPtr(registers[SREG_SP].GetStackEntry() - 1); // TODO: optimize with --?
         // remember popped bytes count
         total_pop += registers[SREG_SP].GetStackEntry()->GetSize();
-        if (registers[SREG_SP].GetStackEntry()->GetType() == kScValDataPtr)
+        if (registers[SREG_SP].GetStackEntry()->GetType() == kScValData)
         {
             stackdata_ptr -= registers[SREG_SP].GetStackEntry()->GetSize();
         }
@@ -1933,7 +1995,7 @@ RuntimeScriptValue ccInstance::GetStackPtrOffsetRw(int32_t rw_offset)
     if (total_off > rw_offset)
     {
         // Could be accessing array element, so state error only if stack entry does not refer to data array
-        if (stack_entry->GetType() == kScValDataPtr)
+        if (stack_entry->GetType() == kScValData)
         {
             stack_ptr += total_off - rw_offset;
         }

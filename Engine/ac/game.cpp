@@ -1096,19 +1096,15 @@ void save_game_scripts(DataStream *out)
     // write the data segment of the global script
     int gdatasize=gameinst->globaldatasize;
     out->WriteInt32(gdatasize);
-    gameinst->FlattenGlobalData ();
     // MACPORT FIX: just in case gdatasize is 2 or 4, don't want to swap endian
     out->Write(&gameinst->globaldata[0], gdatasize);
-    gameinst->UnFlattenGlobalData ();
     // write the script modules data segments
     out->WriteInt32(numScriptModules);
     for (int bb = 0; bb < numScriptModules; bb++) {
         int glsize = moduleInst[bb]->globaldatasize;
         out->WriteInt32(glsize);
         if (glsize > 0) {
-            moduleInst[bb]->FlattenGlobalData();
             out->Write(&moduleInst[bb]->globaldata[0], glsize);
-            moduleInst[bb]->UnFlattenGlobalData();
         }
     }
 }
@@ -2222,7 +2218,6 @@ int restore_game_data (DataStream *in, const char *nametouse) {
     // read the global data into the newly created script
     memcpy(&gameinst->globaldata[0], newglobaldatabuffer, gdatasize);
     free(newglobaldatabuffer);
-    gameinst->UnFlattenGlobalData();
 
     // restore the script module data
     for (bb = 0; bb < numScriptModules; bb++) {
@@ -2230,7 +2225,6 @@ int restore_game_data (DataStream *in, const char *nametouse) {
             quit("!Restore Game: script module global data changed, unable to restore");
         memcpy(&moduleInst[bb]->globaldata[0], scriptModuleDataBuffers[bb], scriptModuleDataSize[bb]);
         free(scriptModuleDataBuffers[bb]);
-        moduleInst[bb]->UnFlattenGlobalData();
     }
 
 

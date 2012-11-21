@@ -339,20 +339,7 @@ public:
 
     inline bool operator ==(const RuntimeScriptValue &rval)
     {
-        if (Type == kScValInteger)
-        {
-            return IValue == rval.IValue;
-        }
-        else if (Type == kScValFloat)
-        {
-            // As of current implementation, this branch has little chance to run,
-            // because floats are usually being compared by treating them as int32.
-            return FValue == rval.FValue;
-        }
-        else
-        {
-            return Ptr == rval.Ptr && IValue == rval.IValue;
-        }
+        return Ptr == rval.Ptr && IValue == rval.IValue;
     }
     inline bool operator !=(const RuntimeScriptValue &rval)
     {

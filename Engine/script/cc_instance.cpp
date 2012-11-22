@@ -1504,8 +1504,7 @@ void ccInstance::Free()
     if (instanceof != NULL) {
         instanceof->instances--;
         if (instanceof->instances == 0) {
-            simp.remove_range((char *)&globaldata[0], globaldatasize);
-            simp.remove_range((char *)&code[0], codesize * sizeof(intptr_t));
+            simp.remove_range((char *)&exports[0], instanceof->numexports * sizeof(RuntimeScriptValue));
         }
     }
 

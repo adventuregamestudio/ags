@@ -1490,7 +1490,7 @@ bool ccInstance::_Create(ccScript * scri, ccInstance * joined)
     if ((scri->instances == 1) && (ccGetOption(SCOPT_AUTOIMPORT) != 0)) {
         // import all the exported stuff from this script
         for (i = 0; i < scri->numexports; i++) {
-            if (!ccAddExternalScriptSymbol(scri->exports[i], &exports[i], this)) {
+            if (!ccAddExternalScriptSymbol(scri->exports[i], exports[i], this)) {
                 cc_error("Export table overflow at '%s'", scri->exports[i]);
                 return false;
             }
@@ -1504,7 +1504,8 @@ void ccInstance::Free()
     if (instanceof != NULL) {
         instanceof->instances--;
         if (instanceof->instances == 0) {
-            simp.remove_range((char *)&exports[0], instanceof->numexports * sizeof(RuntimeScriptValue));
+            //simp.remove_range((char *)&exports[0], instanceof->numexports * sizeof(RuntimeScriptValue));
+            simp.RemoveScriptExports(this);
         }
     }
 
@@ -1857,32 +1858,14 @@ void ccInstance::FixupArgument(intptr_t code_value, char fixup_type, RuntimeScri
         {
             int32_t import_index = resolved_imports[code_value];
             const ScriptImport *import = simp.getByIndex(import_index);
-            switch (import->Type)
+            if (import)
             {
-            case kScValStaticObject:
-                argument.SetStaticObject( import->Ptr, import->StcMgr );
-                break;
-            case kScValStaticArray:
-                argument.SetStaticArray( import->Ptr, import->StcArr );
-                break;
-            case kScValDynamicObject:
-                argument.SetDynamicObject( import->Ptr, import->DynMgr );
-                break;
-            case kScValStaticFunction:
-                argument.SetStaticFunction( import->Ptr );
-                break;
-            case kScValObjectFunction:
-                argument.SetObjectFunction( import->Ptr );
-                break;
-            case kScValScriptExport:
-                if (import->Ptr)
-                {
-                    argument = *(RuntimeScriptValue*)(import->Ptr);
-                }
-                break;
-            default:
-                cc_error("unexpected import type: %d", import->Type);
-			}
+                argument = import->Value;
+            }
+            else
+            {
+                cc_error("cannot resolve import, key = %ld", code_value);
+            }
         }
         break;
     case FIXUP_STACK: {

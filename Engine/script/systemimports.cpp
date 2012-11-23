@@ -46,16 +46,14 @@ break;
 
 }*/
 
-int SystemImports::add(ScriptValueType type, const char *namm, void *add, void *manager, ccInstance *anotherscr = NULL)
+int SystemImports::add(const char *name, const RuntimeScriptValue &value, ccInstance *anotherscr)
 {
     int ixof;
 
-    if ((ixof = get_index_of(namm)) >= 0) {
+    if ((ixof = get_index_of(name)) >= 0) {
         // Only allow override if not a script-exported function
         if (anotherscr == NULL) {
-            imports[ixof].Type = type;
-            imports[ixof].Ptr = add;
-            imports[ixof].MgrPtr = manager;
+            imports[ixof].Value = value;
             imports[ixof].InstancePtr = anotherscr;
         }
         return 0;
@@ -77,11 +75,9 @@ int SystemImports::add(ScriptValueType type, const char *namm, void *add, void *
         this->imports = (ScriptImport*)realloc(this->imports, sizeof(ScriptImport) * this->bufferSize);
     }
 
-    btree.addEntry(namm, ixof);
-    imports[ixof].Name          = namm; // TODO: rather make a string copy here for safety reasons
-    imports[ixof].Type          = type;
-    imports[ixof].Ptr           = add;
-    imports[ixof].MgrPtr        = manager;
+    btree.addEntry(name, ixof);
+    imports[ixof].Name          = name; // TODO: rather make a string copy here for safety reasons
+    imports[ixof].Value         = value;
     imports[ixof].InstancePtr   = anotherscr;
 
     if (ixof == numimports)
@@ -95,7 +91,7 @@ void SystemImports::remove(const char *nameToRemove) {
         return;
     btree.removeEntry(imports[idx].Name);
     imports[idx].Name = NULL;
-    imports[idx].Ptr = NULL;
+    imports[idx].Value.Invalidate();
     imports[idx].InstancePtr = NULL;
     /*numimports--;
     for (int ii = idx; ii < numimports; ii++) {
@@ -186,6 +182,7 @@ ccInstance* SystemImports::is_script_import(const char *namw)
 */
 
 // Remove all symbols whose addresses are in the supplied range
+/*
 void SystemImports::remove_range(void *from, intptr_t dist)
 {
     intptr_t startaddr = (intptr_t)from;
@@ -193,11 +190,11 @@ void SystemImports::remove_range(void *from, intptr_t dist)
         if (imports[o].Name == NULL)
             continue;
 
-        intptr_t thisaddr = (intptr_t)imports[o].Ptr;
+        intptr_t thisaddr = (intptr_t)imports[o].Value.GetPtr();
         if ((thisaddr >= startaddr) && (thisaddr < startaddr + dist)) {
             btree.removeEntry(imports[o].Name);
             imports[o].Name = NULL;
-            imports[o].Ptr = NULL;
+            imports[o].Value.Invalidate();
             imports[o].InstancePtr = 0;
             /*numimports--;
             for (int p = o; p < numimports; p++) {
@@ -205,7 +202,30 @@ void SystemImports::remove_range(void *from, intptr_t dist)
             addr[p] = addr[p + 1];
             isScriptImp[p] = isScriptImp[p + 1];
             }
-            o--;*/
+            o--;*//*
+        }
+    }
+}
+*/
+
+void SystemImports::RemoveScriptExports(ccInstance *inst)
+{
+    if (!inst)
+    {
+        return;
+    }
+
+    for (int i = 0; i < numimports; ++i)
+    {
+        if (imports[i].Name == NULL)
+            continue;
+
+        if (imports[i].InstancePtr == inst)
+        {
+            btree.removeEntry(imports[i].Name);
+            imports[i].Name = NULL;
+            imports[i].Value.Invalidate();
+            imports[i].InstancePtr = 0;
         }
     }
 }

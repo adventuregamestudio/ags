@@ -25,25 +25,12 @@ struct ScriptImport
 {
     ScriptImport()
     {
-        Type        = kScValUndefined;
         Name        = NULL;
-        Ptr         = NULL;
-        DynMgr      = NULL;
         InstancePtr = NULL;
     }
 
-    ScriptValueType     Type;
     const char          *Name;          // import's uid
-    void                *Ptr;           // object or function pointer
-    // TODO: separation to Ptr and MgrPtr is only needed so far as there's
-    // a separation between Script*, Dynamic* and game entity classes.
-    union
-    {
-        void                *MgrPtr;        // generic object manager pointer
-        ICCStaticObject     *StcMgr;        // static object manager
-        StaticArray         *StcArr;        // static object manager
-        ICCDynamicObject    *DynMgr;        // dynamic object manager
-    };
+    RuntimeScriptValue  Value;
     ccInstance          *InstancePtr;   // script instance
 };
 
@@ -56,14 +43,15 @@ private:
     ccTreeMap btree;
 
 public:
-    int  add(ScriptValueType type, const char *name, void *ptr, void *manager, ccInstance *inst);
+    int  add(const char *name, const RuntimeScriptValue &value, ccInstance *inst);
     void remove(const char *name);
     const ScriptImport *getByName(const char *name);
     int  get_index_of(const char *name);
     const ScriptImport *getByIndex(int index);
     //void *get_addr_of(const char *name);
     //ccInstance* is_script_import(const char *name);
-    void remove_range(void *from_ptr, intptr_t dist);
+    //void remove_range(void *from_ptr, intptr_t dist);
+    void RemoveScriptExports(ccInstance *inst);
     void clear() {
         numimports = 0;
         btree.clear();

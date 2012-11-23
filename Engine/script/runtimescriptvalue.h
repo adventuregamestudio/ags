@@ -29,7 +29,6 @@ enum ScriptValueType
     kScValStaticFunction,// as a pointer to static function
     kScValObjectFunction,// as a pointer to object member function, gets object pointer as
                         // first parameter
-    kScValScriptExport  // as a pointer to script export
 };
 
 struct RuntimeScriptValue

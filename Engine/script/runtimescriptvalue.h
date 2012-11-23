@@ -84,18 +84,7 @@ public:
     }
     inline bool IsNull() const
     {
-        if (Type == kScValInteger)
-        {
-          return IValue == 0;
-        }
-        else if (Type == kScValFloat)
-        {
-          return FValue == 0.0;
-        }
-        else
-        {
-          return Ptr == 0;
-        }
+        return Ptr == 0 && IValue == 0;
     }
     inline ScriptValueType GetType() const
     {
@@ -328,7 +317,7 @@ public:
 
     inline bool operator ==(const RuntimeScriptValue &rval)
     {
-        return Ptr == rval.Ptr && IValue == rval.IValue;
+        return ((intptr_t)Ptr + (intptr_t)IValue) == ((intptr_t)rval.Ptr + (intptr_t)rval.IValue);
     }
     inline bool operator !=(const RuntimeScriptValue &rval)
     {

@@ -42,9 +42,9 @@ public:
     // Is end of stream
     virtual bool    EOS() const                         = 0;
     // Total length of stream (if known)
-    virtual int     GetLength() const                   = 0;
+    virtual size_t  GetLength() const                   = 0;
     // Current position (if known)
-    virtual int     GetPosition() const                 = 0;
+    virtual size_t  GetPosition() const                 = 0;
     virtual bool    CanRead() const                     = 0;
     virtual bool    CanWrite() const                    = 0;
     virtual bool    CanSeek() const                     = 0;
@@ -52,15 +52,15 @@ public:
     virtual void    Close()                             = 0;
 
     // Returns number of bytes read, or -1 if the end of stream was reached
-    virtual int     Read(void *buffer, int size)        = 0;
+    virtual size_t  Read(void *buffer, size_t size)        = 0;
     // Returns a value of next (unsigned) byte read from stream cast to int or,
     // or -1 if the end of stream was reached
     virtual int     ReadByte()                          = 0;
     // Returns number of bytes written, or -1 if the end of stream was reached
-    virtual int     Write(const void *buffer, int size) = 0;
+    virtual size_t  Write(const void *buffer, size_t size) = 0;
     // Returns value of byte written or -1 if the end of stream was reached
     virtual int     WriteByte(uint8_t b)                = 0;
-    virtual int     Seek(StreamSeek seek, int pos)      = 0;
+    virtual size_t  Seek(StreamSeek seek, int pos)      = 0;
 };
 
 } // namespace Common

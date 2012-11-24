@@ -63,7 +63,23 @@ void Test_File()
         tricky_data_out.g[2] = 20;
         tricky_data_out.g[3] = 21;
         memset(tricky_data_out.h, 0, 13 * sizeof(short));
+#if defined (TEST_BIGENDIAN)
+        TTrickyAlignedData bigend_data = tricky_data_out;
+        AGS::Common::BitByteOperations::SwapBytesInt32(bigend_data.b);
+        AGS::Common::BitByteOperations::SwapBytesInt32(bigend_data.c);
+        for (int i = 0; i < 3; ++i)
+        {
+            AGS::Common::BitByteOperations::SwapBytesInt16(bigend_data.d[i]);
+        }
+        AGS::Common::BitByteOperations::SwapBytesInt32(bigend_data.e);
+        for (int i = 0; i < 4; ++i)
+        {
+            AGS::Common::BitByteOperations::SwapBytesInt32(bigend_data.g[i]);
+        }
+        out->Write(&bigend_data, sizeof(TTrickyAlignedData));
+#else
         out->Write(&tricky_data_out, sizeof(TTrickyAlignedData));
+#endif
     }
 
     out->WriteInt32(20);
@@ -107,6 +123,8 @@ void Test_File()
 
     delete in;
 
+    File::DeleteFile("test.tmp");
+
     //-----------------------------------------------------
     // Assertions
     assert(int16val == 10);
@@ -119,6 +137,8 @@ void Test_File()
     assert(ptr32_array_in[1] == 0xFEDCFEDC);
     assert(ptr32_array_in[2] == 0xFEEDBEEF);
     assert(ptr32_array_in[3] == 0xBEEFFEED);
+
+    assert(!File::TestReadFile("test.tmp"));
 }
 
 #endif // _DEBUG

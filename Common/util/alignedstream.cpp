@@ -65,12 +65,12 @@ bool AlignedStream::EOS() const
     return _stream ? _stream->EOS() : true;
 }
 
-int AlignedStream::GetLength() const
+size_t AlignedStream::GetLength() const
 {
     return _stream ? _stream->GetLength() : 0;
 }
 
-int AlignedStream::GetPosition() const
+size_t AlignedStream::GetPosition() const
 {
     return _stream ? _stream->GetPosition() : 0;
 }
@@ -111,7 +111,7 @@ void AlignedStream::ReleaseStream()
     _stream = NULL;
 }
 
-int AlignedStream::Seek(StreamSeek seek, int pos)
+size_t AlignedStream::Seek(StreamSeek seek, int pos)
 {
     // Not supported
     return 0;
@@ -165,7 +165,7 @@ int64_t AlignedStream::ReadInt64()
     return val;
 }
 
-int AlignedStream::Read(void *buffer, int size)
+size_t AlignedStream::Read(void *buffer, size_t size)
 {
     if (_stream)
     {
@@ -177,11 +177,11 @@ int AlignedStream::Read(void *buffer, int size)
     return 0;
 }
 
-int AlignedStream::ReadArray(void *buffer, int elem_size, int count)
+size_t AlignedStream::ReadArray(void *buffer, size_t elem_size, size_t count)
 {
     if (_stream)
     {
-        ReadPadding(sizeof(elem_size));
+        ReadPadding(elem_size);
         count = _stream->ReadArray(buffer, elem_size, count);
         _block += count * elem_size;
         return count;
@@ -189,7 +189,43 @@ int AlignedStream::ReadArray(void *buffer, int elem_size, int count)
     return 0;
 }
 
-String AlignedStream::ReadString(int max_chars)
+size_t AlignedStream::ReadArrayOfInt16(int16_t *buffer, size_t count)
+{
+    if (_stream)
+    {
+        ReadPadding(sizeof(int16_t));
+        count = _stream->ReadArrayOfInt16(buffer, count);
+        _block += count * sizeof(int16_t);
+        return count;
+    }
+    return 0;
+}
+
+size_t AlignedStream::ReadArrayOfInt32(int32_t *buffer, size_t count)
+{
+    if (_stream)
+    {
+        ReadPadding(sizeof(int32_t));
+        count = _stream->ReadArrayOfInt32(buffer, count);
+        _block += count * sizeof(int32_t);
+        return count;
+    }
+    return 0;
+}
+
+size_t AlignedStream::ReadArrayOfInt64(int64_t *buffer, size_t count)
+{
+    if (_stream)
+    {
+        ReadPadding(sizeof(int64_t));
+        count = _stream->ReadArrayOfInt64(buffer, count);
+        _block += count * sizeof(int64_t);
+        return count;
+    }
+    return 0;
+}
+
+String AlignedStream::ReadString(size_t max_chars)
 {
     String str;
     if (_stream)
@@ -213,37 +249,43 @@ int AlignedStream::WriteByte(uint8_t b)
     return 0;
 }
 
-void AlignedStream::WriteInt16(int16_t val)
+size_t AlignedStream::WriteInt16(int16_t val)
 {
     if (_stream)
     {
         WritePadding(sizeof(int16_t));
-        _stream->WriteInt16(val);
+        size_t size = _stream->WriteInt16(val);
         _block += sizeof(int16_t);
+        return size;
     }
+    return 0;
 }
 
-void AlignedStream::WriteInt32(int32_t val)
+size_t AlignedStream::WriteInt32(int32_t val)
 {
     if (_stream)
     {
         WritePadding(sizeof(int32_t));
-        _stream->WriteInt32(val);
+        size_t size = _stream->WriteInt32(val);
         _block += sizeof(int32_t);
+        return size;
     }
+    return 0;
 }
 
-void AlignedStream::WriteInt64(int64_t val)
+size_t AlignedStream::WriteInt64(int64_t val)
 {
     if (_stream)
     {
         WritePadding(sizeof(int64_t));
-        _stream->WriteInt64(val);
+        size_t size = _stream->WriteInt64(val);
         _block += sizeof(int64_t);
+        return size;
     }
+    return 0;
 }
 
-int AlignedStream::Write(const void *buffer, int size)
+size_t AlignedStream::Write(const void *buffer, size_t size)
 {
     if (_stream)
     {
@@ -255,11 +297,11 @@ int AlignedStream::Write(const void *buffer, int size)
     return 0;
 }
 
-int AlignedStream::WriteArray(const void *buffer, int elem_size, int count)
+size_t AlignedStream::WriteArray(const void *buffer, size_t elem_size, size_t count)
 {
     if (_stream)
     {
-        WritePadding(sizeof(elem_size));
+        WritePadding(elem_size);
         count = _stream->WriteArray(buffer, elem_size, count);
         _block += count * elem_size;
         return count;
@@ -267,14 +309,52 @@ int AlignedStream::WriteArray(const void *buffer, int elem_size, int count)
     return 0;
 }
 
-void AlignedStream::WriteString(const String &str)
+size_t AlignedStream::WriteArrayOfInt16(const int16_t *buffer, size_t count)
+{
+    if (_stream)
+    {
+        WritePadding(sizeof(int16_t));
+        count = _stream->WriteArrayOfInt16(buffer, count);
+        _block += count * sizeof(int16_t);
+        return count;
+    }
+    return 0;
+}
+
+size_t AlignedStream::WriteArrayOfInt32(const int32_t *buffer, int count)
+{
+    if (_stream)
+    {
+        WritePadding(sizeof(int32_t));
+        count = _stream->WriteArrayOfInt32(buffer, count);
+        _block += count * sizeof(int32_t);
+        return count;
+    }
+    return 0;
+}
+
+size_t AlignedStream::WriteArrayOfInt64(const int64_t *buffer, int count)
+{
+    if (_stream)
+    {
+        WritePadding(sizeof(int64_t));
+        count = _stream->WriteArrayOfInt64(buffer, count);
+        _block += count * sizeof(int64_t);
+        return count;
+    }
+    return 0;
+}
+
+size_t AlignedStream::WriteString(const String &str)
 {
     if (_stream)
     {
         WritePadding(sizeof(char));
-        _stream->WriteString(str);
+        size_t size = _stream->WriteString(str);
         _block += str.GetLength() + 1;
+        return size;
     }
+    return 0;
 }
 
 void AlignedStream::ReadPadding(size_t next_type)

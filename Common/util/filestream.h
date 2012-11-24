@@ -47,9 +47,9 @@ public:
     // Is end of stream
     virtual bool    EOS() const;
     // Total length of stream (if known)
-    virtual int     GetLength() const;
+    virtual size_t  GetLength() const;
     // Current position (if known)
-    virtual int     GetPosition() const;
+    virtual size_t  GetPosition() const;
     virtual bool    CanRead() const;
     virtual bool    CanWrite() const;
     virtual bool    CanSeek() const;
@@ -57,18 +57,11 @@ public:
     virtual void    Close();
 
     virtual int     ReadByte();
-    virtual int16_t ReadInt16();
-    virtual int32_t ReadInt32();
-    virtual int64_t ReadInt64();
-    virtual int     Read(void *buffer, int size);
-
+    virtual size_t  Read(void *buffer, size_t size);
     virtual int     WriteByte(uint8_t b);
-    virtual void    WriteInt16(int16_t val);
-    virtual void    WriteInt32(int32_t val);
-    virtual void    WriteInt64(int64_t val);
-    virtual int     Write(const void *buffer, int size);
+    virtual size_t  Write(const void *buffer, size_t size);
 
-    virtual int     Seek(StreamSeek seek, int pos);
+    virtual size_t  Seek(StreamSeek seek, int pos);
 
 protected:
 

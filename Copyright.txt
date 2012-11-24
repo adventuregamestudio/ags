@@ -8,3 +8,7 @@ Bernhard Rosenkraenzer
 Jochen Schleu
 Ivan Mogilko
 Janet Gilbert
+
+Members of development team would like to thank:
+
+Alyssa Milburn and Nick Sonneveld, for inspiration and ideas on refactoring AGS Engine

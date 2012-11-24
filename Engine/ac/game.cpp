@@ -244,6 +244,7 @@ int Game_IsAudioPlaying(int audioType)
     for (int aa = 0; aa < MAX_SOUND_CHANNELS; aa++)
     {
         ScriptAudioClip *clip = AudioChannel_GetPlayingClip(&scrAudioChannel[aa]);
+        GlobalReturnValue.Invalidate();
         if (clip != NULL) 
         {
             if ((clip->type == audioType) || (audioType == SCR_NO_VALUE))

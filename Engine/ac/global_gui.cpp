@@ -25,10 +25,12 @@
 #include "ac/string.h"
 #include "debug/debug_log.h"
 #include "gui/guimain.h"
+#include "script/runtimescriptvalue.h"
 
 extern GameSetupStruct game;
 extern GUIMain*guis;
 extern ScriptGUI *scrGui;
+extern RuntimeScriptValue GlobalReturnValue;
 
 int IsGUIOn (int guinum) {
     if ((guinum < 0) || (guinum >= game.numgui))
@@ -209,6 +211,7 @@ int IsInterfaceEnabled() {
 
 int GetGUIObjectAt (int xx, int yy) {
     GUIObject *toret = GetGUIControlAtLocation(xx, yy);
+    GlobalReturnValue.Invalidate();
     if (toret == NULL)
         return -1;
 

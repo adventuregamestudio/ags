@@ -49,6 +49,7 @@
 #include "util/datastream.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
+#include "script/runtimescriptvalue.h"
 
 using AGS::Common::DataStream;
 
@@ -112,6 +113,7 @@ extern int offsetx, offsety;
 extern PluginObjectReader pluginReaders[MAX_PLUGIN_OBJECT_READERS];
 extern int numPluginReaders;
 extern IAGSFontRenderer* fontRenderers[MAX_FONTS];
+extern RuntimeScriptValue GlobalReturnValue;
 
 // **************** PLUGIN IMPLEMENTATION ****************
 
@@ -673,6 +675,7 @@ void IAGSEngine::QueueGameScriptFunction(const char *name, int32 globalScript, i
 }
 
 int IAGSEngine::RegisterManagedObject(const void *object, IAGSScriptManagedObject *callback) {
+    GlobalReturnValue.SetDynamicObject((void*)object, (ICCDynamicObject*)callback);
     return ccRegisterManagedObject(object, (ICCDynamicObject*)callback);
 }
 
@@ -694,6 +697,7 @@ void IAGSEngine::AddManagedObjectReader(const char *typeName, IAGSManagedObjectR
 }
 
 void IAGSEngine::RegisterUnserializedObject(int key, const void *object, IAGSScriptManagedObject *callback) {
+    GlobalReturnValue.SetDynamicObject((void*)object, (ICCDynamicObject*)callback);
     ccRegisterUnserializedObject(key, object, (ICCDynamicObject*)callback);
 }
 
@@ -702,11 +706,15 @@ int IAGSEngine::GetManagedObjectKeyByAddress(const char *address) {
 }
 
 void* IAGSEngine::GetManagedObjectAddressByKey(int key) {
-    return (void*)ccGetObjectAddressFromHandle(key);
+    void *object;
+    ICCDynamicObject *manager;
+    ccGetObjectAddressAndManagerFromHandle(key, object, manager);
+    GlobalReturnValue.SetDynamicObject(object, manager);
+    return object;
 }
 
 const char* IAGSEngine::CreateScriptString(const char *fromText) {
-    return CreateNewScriptString(fromText);
+    return CreateNewScriptStringAsRetVal(fromText);
 }
 
 int IAGSEngine::IncrementManagedObjectRefCount(const char *address) {

@@ -133,26 +133,18 @@ void RoomObject::update_cycle_view_backwards()
 
 void RoomObject::ReadFromFile(DataStream *in)
 {
-//#ifdef ALLEGRO_BIG_ENDIAN
     in->ReadArrayOfInt32(&x, 3);
     in->ReadArrayOfInt16(&tint_r, 15);
     in->ReadArrayOfInt8((int8_t*)&cycling, 4);
     in->ReadArrayOfInt16(&blocking_width, 2);
     in->Seek(Common::kSeekCurrent, 2);
-//#else
-//    throw "RoomObject::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
-//#endif
 }
 void RoomObject::WriteToFile(DataStream *out)
 {
-//#ifdef ALLEGRO_BIG_ENDIAN
     out->WriteArrayOfInt32(&x, 3);
     out->WriteArrayOfInt16(&tint_r, 15);
     out->WriteArrayOfInt8((int8_t*)&cycling, 4);
     out->WriteArrayOfInt16(&blocking_width, 2);
     out->WriteInt8(0);
     out->WriteInt8(0);
-//#else
-//    throw "RoomObject::WriteToFile() is not implemented for little-endian platforms and should not be called.";
-//#endif
 }

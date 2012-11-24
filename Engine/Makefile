@@ -11,7 +11,7 @@ OBJS_C_CPP = $(ALFONT) $(ALMP3) $(ALOGG) $(APEG) $(AASTR) $(HQ2X3X) $(CDA) $(PLU
 OBJS_C = $(OBJS_C_CPP:.cpp=.o)
 OBJS = $(OBJS_C:.c=.o)
 
-OBJS_COMMON_CPP = $(COMMON) $(COMMON_PLATFORM)
+OBJS_COMMON_CPP = $(COMMON)
 OBJS_COMMON = $(OBJS_COMMON_CPP:.cpp=.o)
 
 .PHONY: printflags clean install uninstall rebuild

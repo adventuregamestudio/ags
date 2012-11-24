@@ -20,7 +20,7 @@ platform/psp/acplpsp.cpp \
 ../PSP/malloc/malloc.c
 
 include Makefile-objs
-OBJS_C_CPP = $(ALFONT) $(ALMP3) $(ALOGG) $(APEG) $(AASTR) $(BASE) $(BASE_PLATFORM) $(COMMON) $(COMMON_PLATFORM)
+OBJS_C_CPP = $(ALFONT) $(ALMP3) $(ALOGG) $(APEG) $(AASTR) $(BASE) $(BASE_PLATFORM) $(COMMON)
 
 ifeq ($(WITH_BUILTIN_PLUGINS), 1)
 OBJS += $(PLUGINS)

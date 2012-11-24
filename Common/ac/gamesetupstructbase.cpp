@@ -20,7 +20,6 @@ using AGS::Common::DataStream;
 
 void GameSetupStructBase::ReadFromFile(DataStream *in)
 {
-    //#ifdef ALLEGRO_BIG_ENDIAN
     in->Read(&gamename[0], 50);
     in->Seek(Common::kSeekCurrent, 2);    // skip the array padding
     in->ReadArrayOfInt32(options, 100);
@@ -31,7 +30,7 @@ void GameSetupStructBase::ReadFromFile(DataStream *in)
     numcharacters = in->ReadInt32();
     playercharacter = in->ReadInt32();
     totalscore = in->ReadInt32();
-    numinvitems = in->ReadInt16();//__getshort__bigendian(fp);
+    numinvitems = in->ReadInt16();
     in->Seek(Common::kSeekCurrent, 2);    // skip the padding
     numdialog = in->ReadInt32();
     numdlgmessage = in->ReadInt32();
@@ -39,8 +38,8 @@ void GameSetupStructBase::ReadFromFile(DataStream *in)
     color_depth = in->ReadInt32();
     target_win = in->ReadInt32();
     dialog_bullet = in->ReadInt32();
-    hotdot = in->ReadInt16();//__getshort__bigendian(fp);
-    hotdotouter = in->ReadInt16();//__getshort__bigendian(fp);
+    hotdot = in->ReadInt16();
+    hotdotouter = in->ReadInt16();
     uniqueid = in->ReadInt32();
     numgui = in->ReadInt32();
     numcursors = in->ReadInt32();
@@ -59,9 +58,6 @@ void GameSetupStructBase::ReadFromFile(DataStream *in)
     globalscript = (char *) in->ReadInt32();
     chars = (CharacterInfo *) in->ReadInt32();
     compiled_script = (ccScript *) in->ReadInt32();
-    //#else
-    //    throw "GameSetupStructBase::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
-    //#endif
 }
 
 void GameSetupStructBase::WriteToFile(DataStream *out)
@@ -77,7 +73,7 @@ void GameSetupStructBase::WriteToFile(DataStream *out)
     out->WriteInt32(numcharacters);
     out->WriteInt32(playercharacter);
     out->WriteInt32(totalscore);
-    out->WriteInt16(numinvitems);//__getshort__bigendian(fp);
+    out->WriteInt16(numinvitems);
     out->Write(&padding, 2);    // skip the padding
     out->WriteInt32(numdialog);
     out->WriteInt32(numdlgmessage);
@@ -85,8 +81,8 @@ void GameSetupStructBase::WriteToFile(DataStream *out)
     out->WriteInt32(color_depth);
     out->WriteInt32(target_win);
     out->WriteInt32(dialog_bullet);
-    out->WriteInt16(hotdot);//__getshort__bigendian(fp);
-    out->WriteInt16(hotdotouter);//__getshort__bigendian(fp);
+    out->WriteInt16(hotdot);
+    out->WriteInt16(hotdotouter);
     out->WriteInt32(uniqueid);
     out->WriteInt32(numgui);
     out->WriteInt32(numcursors);

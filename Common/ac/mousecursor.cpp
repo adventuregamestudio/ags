@@ -23,18 +23,14 @@ MouseCursor::MouseCursor() { pic = 2054; hotx = 0; hoty = 0; name[0] = 0; flags 
 
 void MouseCursor::ReadFromFile(DataStream *in)
 {
-//#ifdef ALLEGRO_BIG_ENDIAN
     pic = in->ReadInt32();
-    hotx = in->ReadInt16();//__getshort__bigendian(fp);
-    hoty = in->ReadInt16();//__getshort__bigendian(fp);
-    view = in->ReadInt16();//__getshort__bigendian(fp);
+    hotx = in->ReadInt16();
+    hoty = in->ReadInt16();
+    view = in->ReadInt16();
     // may need to read padding?
     in->Read(name, 10);
     flags = in->ReadInt8();
     in->Seek(Common::kSeekCurrent, 3);
-//#else
-//    throw "MouseCursor::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
-//#endif
 }
 
 void MouseCursor::WriteToFile(DataStream *out)

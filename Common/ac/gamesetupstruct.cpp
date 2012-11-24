@@ -148,28 +148,21 @@ void GameSetupStruct::read_sprite_flags(Common::DataStream *in, GAME_STRUCT_READ
 
 void GameSetupStruct::read_invinfo(Common::DataStream *in, GAME_STRUCT_READ_DATA &read_data)
 {
-    //#ifdef ALLEGRO_BIG_ENDIAN
     for (int iteratorCount = 0; iteratorCount < numinvitems; ++iteratorCount)
     {
         invinfo[iteratorCount].ReadFromFile(in);
     }
-    //#else
-    //    in->ReadArray(&invinfo[0], sizeof(InventoryItemInfo), numinvitems);
-    //#endif
 }
 
 void GameSetupStruct::read_cursors(Common::DataStream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     if (numcursors > MAX_CURSOR)
         quit("Too many cursors: need newer AGS version");
-    //#ifdef ALLEGRO_BIG_ENDIAN
+
     for (int iteratorCount = 0; iteratorCount < numcursors; ++iteratorCount)
     {
         mcurs[iteratorCount].ReadFromFile(in);
     }
-    //#else
-    //    in->ReadArray(&mcurs[0], sizeof(MouseCursor), numcursors);
-    //#endif
 
     if (read_data.filever <= 32) // 2.x
     {
@@ -236,14 +229,11 @@ void GameSetupStruct::read_words_dictionary(Common::DataStream *in, GAME_STRUCT_
 void GameSetupStruct::read_characters(Common::DataStream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     chars=(CharacterInfo*)calloc(1,sizeof(CharacterInfo)*numcharacters+5);
-    //#ifdef ALLEGRO_BIG_ENDIAN
+
     for (int iteratorCount = 0; iteratorCount < numcharacters; ++iteratorCount)
     {
         chars[iteratorCount].ReadFromFile(in);
     }
-    //#else
-    //    in->ReadArray(&chars[0],sizeof(CharacterInfo),numcharacters,in);  
-    //#endif
 
     //charcache = (CharacterCache*)calloc(1,sizeof(CharacterCache)*numcharacters+5);
 

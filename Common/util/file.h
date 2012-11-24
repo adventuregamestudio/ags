@@ -27,14 +27,6 @@
 long int filelength(int fhandle);
 #endif
 
-#if defined ALLEGRO_BIG_ENDIAN
-#include "platform/bigend/bigend.h"
-#else
-// Two functions to match those defined by bigend version by McCrea
-short int   getshort(FILE *);
-void        putshort(short int, FILE *);
-#endif // !ALLEGRO_BIG_ENDIAN
-
 // Get required padding length when reading/writing a structure
 // same way as if it was written as an object in whole;
 // result could be from 0 to 3 inclusive.
@@ -44,7 +36,6 @@ inline size_t get_padding(int previous_data_length)
 }
 
 #include "util/string.h"
-//#include "util/stream.h"
 
 namespace AGS
 {

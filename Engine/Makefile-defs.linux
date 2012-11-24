@@ -26,7 +26,4 @@ platform/linux/acpllnx.cpp \
 platform/util/pe.c \
 platform/util/libc.c
 
-COMMON_PLATFORM = \
-../Common/platform/bigend/bigend.cpp
-
 CDA = libsrc/libcda-0.5/linux.c

@@ -21,7 +21,6 @@ using AGS::Common::DataStream;
 
 void RoomStatus::ReadFromFile(DataStream *in)
 {
-//#ifdef ALLEGRO_BIG_ENDIAN
     beenhere = in->ReadInt32();
     numobj = in->ReadInt32();
     for (int i = 0; i < MAX_INIT_SPR; ++i)
@@ -51,13 +50,9 @@ void RoomStatus::ReadFromFile(DataStream *in)
     in->ReadArrayOfInt16(walkbehind_base, MAX_OBJ);
     in->Seek(Common::kSeekCurrent, get_padding(MAX_HOTSPOTS+MAX_REGIONS+2*MAX_OBJ));
     in->ReadArrayOfInt32(interactionVariableValues, MAX_GLOBAL_VARIABLES);
-//#else
-//    throw "RoomStatus::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
-//#endif
 }
 void RoomStatus::WriteToFile(DataStream *out)
 {
-//#ifdef ALLEGRO_BIG_ENDIAN
     char pad[4];
     out->WriteInt32(beenhere);
     out->WriteInt32(numobj);
@@ -88,9 +83,6 @@ void RoomStatus::WriteToFile(DataStream *out)
     out->WriteArrayOfInt16(walkbehind_base, MAX_OBJ);
     out->Write(pad, get_padding(MAX_HOTSPOTS+MAX_REGIONS+2*MAX_OBJ));
     out->WriteArrayOfInt32(interactionVariableValues,MAX_GLOBAL_VARIABLES);
-//#else
-//    throw "RoomStatus::WriteToFile() is not implemented for little-endian platforms and should not be called.";
-//#endif
 }
 
 // JJS: Replacement for the global roomstats array in the original engine.

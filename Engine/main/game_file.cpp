@@ -294,14 +294,10 @@ void game_file_read_dialogs(DataStream *in)
 {
 	dialog=(DialogTopic*)malloc(sizeof(DialogTopic)*game.numdialog+5);
 
-//#ifdef ALLEGRO_BIG_ENDIAN
     for (int iteratorCount = 0; iteratorCount < game.numdialog; ++iteratorCount)
     {
         dialog[iteratorCount].ReadFromFile(in);
     }
-//#else
-//    in->ReadArray(&dialog[0],sizeof(DialogTopic),game.numdialog);  
-//#endif
 
     if (filever <= 37) // Dialog script
     {
@@ -612,12 +608,8 @@ int load_game_file() {
     game.invScripts = NULL;
     memset(&game.spriteflags[0], 0, MAX_SPRITES);
 
-//#ifdef ALLEGRO_BIG_ENDIAN
     GameSetupStructBase *gameBase = (GameSetupStructBase *) &game;
     gameBase->ReadFromFile(in);
-//#else
-//    in->ReadArray(&game, sizeof (GameSetupStructBase), 1);
-//#endif
 
     if (filever <= 37) // <= 3.1
     {

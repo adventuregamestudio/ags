@@ -63,7 +63,7 @@ void Test_File()
         tricky_data_out.g[2] = 20;
         tricky_data_out.g[3] = 21;
         memset(tricky_data_out.h, 0, 13 * sizeof(short));
-#if defined (AGS_BIG_ENDIAN) || defined (TEST_BIGENDIAN)
+#if defined (TEST_BIGENDIAN)
         TTrickyAlignedData bigend_data = tricky_data_out;
         AGS::Common::BitByteOperations::SwapBytesInt32(bigend_data.b);
         AGS::Common::BitByteOperations::SwapBytesInt32(bigend_data.c);

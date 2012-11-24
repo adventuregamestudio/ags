@@ -65,9 +65,9 @@ public:
     // Is end of stream
     virtual bool    EOS() const;
     // Total length of stream (if known)
-    virtual int     GetLength() const;
+    virtual size_t  GetLength() const;
     // Current position (if known)
-    virtual int     GetPosition() const;
+    virtual size_t  GetPosition() const;
     virtual bool    CanRead() const;
     virtual bool    CanWrite() const;
     virtual bool    CanSeek() const;
@@ -87,51 +87,33 @@ public:
     {
         return ReadByte();
     }
-    virtual int16_t ReadInt16();
-    virtual int32_t ReadInt32();
-    virtual int64_t ReadInt64();
-    virtual int     Read(void *buffer, int size);
-    virtual int     ReadArray(void *buffer, int elem_size, int count);
-    virtual String ReadString(int max_chars = 5000000);
+    int16_t ReadInt16();
+    int32_t ReadInt32();
+    int64_t ReadInt64();
+    virtual size_t  Read(void *buffer, size_t size);
+    size_t  ReadArray(void *buffer, size_t elem_size, size_t count);
+    virtual String  ReadString(size_t max_chars = 5000000);
 
     virtual int     WriteByte(uint8_t b);
     inline  void    WriteInt8(int8_t val)
     {
         WriteByte(val);
     }
-    virtual void    WriteInt16(int16_t val);
-    virtual void    WriteInt32(int32_t val);
-    virtual void    WriteInt64(int64_t val);
-    virtual int     Write(const void *buffer, int size);
-    virtual int     WriteArray(const void *buffer, int elem_size, int count);
-    virtual void    WriteString(const String &str);
+    size_t  WriteInt16(int16_t val);
+    size_t  WriteInt32(int32_t val);
+    size_t  WriteInt64(int64_t val);
+    virtual size_t  Write(const void *buffer, size_t size);
+    size_t  WriteArray(const void *buffer, size_t elem_size, size_t count);
+    size_t  WriteString(const String &str);
 
-    virtual int     Seek(StreamSeek seek, int pos);
+    virtual size_t  Seek(StreamSeek seek, int pos);
 
-    inline int ReadArrayOfInt16(int16_t *buffer, int count)
-    {
-        return ReadArray(buffer, sizeof(int16_t), count);
-    }
-    inline int ReadArrayOfInt32(int32_t *buffer, int count)
-    {
-        return ReadArray(buffer, sizeof(int32_t), count);
-    }
-    inline int ReadArrayOfInt64(int64_t *buffer, int count)
-    {
-        return ReadArray(buffer, sizeof(int64_t), count);
-    }
-    inline int WriteArrayOfInt16(const int16_t *buffer, int count)
-    {
-        return WriteArray(buffer, sizeof(int16_t), count);
-    }
-    inline int WriteArrayOfInt32(const int32_t *buffer, int count)
-    {
-        return WriteArray(buffer, sizeof(int32_t), count);
-    }
-    inline int WriteArrayOfInt64(const int64_t *buffer, int count)
-    {
-        return WriteArray(buffer, sizeof(int64_t), count);
-    }
+    size_t ReadArrayOfInt16(int16_t *buffer, size_t count);
+    size_t ReadArrayOfInt32(int32_t *buffer, size_t count);
+    size_t ReadArrayOfInt64(int64_t *buffer, size_t count);
+    size_t WriteArrayOfInt16(const int16_t *buffer, size_t count);
+    size_t WriteArrayOfInt32(const int32_t *buffer, int count);
+    size_t WriteArrayOfInt64(const int64_t *buffer, int count);
 
 protected:
     void            ReadPadding(size_t next_type);

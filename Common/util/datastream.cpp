@@ -85,7 +85,7 @@ String DataStream::ReadString(int max_chars)
     return str;
 }
 
-int DataStream::WriteString(const String &str)
+size_t DataStream::WriteString(const String &str)
 {
     if (CanWrite())
     {
@@ -96,7 +96,7 @@ int DataStream::WriteString(const String &str)
     return 0;
 }
 
-int DataStream::ReadArrayOfIntPtr(intptr_t *buffer, int count)
+size_t DataStream::ReadArrayOfIntPtr(intptr_t *buffer, size_t count)
 {
 #if defined (AGS_64BIT) || defined (TEST_64BIT)
     return MustSwapBytes() ? ReadAndConvertArrayOfInt64(buffer, count) : ReadArrayOfInt64(buffer, count);
@@ -105,21 +105,16 @@ int DataStream::ReadArrayOfIntPtr(intptr_t *buffer, int count)
 #endif
 }
 
-int DataStream::ReadArrayOfIntPtr32(intptr_t *buffer, int count)
+size_t DataStream::ReadArrayOfIntPtr32(intptr_t *buffer, size_t count)
 {
-    if (!CanRead())
-    {
-        return 0;
-    }
-
     // Read 32-bit values to array; this will always be safe,
     // because array is either 32-bit or 64-bit; in the last
     // case only first half of array will be used.
     count = ReadArrayOfInt32((int32_t*)buffer, count);
 
-    if (count < 0)
+    if (count == 0)
     {
-        return -1;
+        return 0;
     }
 
 #if defined (AGS_64BIT) || defined (TEST_64BIT)
@@ -148,7 +143,7 @@ int DataStream::ReadArrayOfIntPtr32(intptr_t *buffer, int count)
     return count;
 }
 
-int DataStream::WriteArrayOfIntPtr(const intptr_t *buffer, int count)
+size_t DataStream::WriteArrayOfIntPtr(const intptr_t *buffer, size_t count)
 {
 #if defined (AGS_64BIT) || defined (TEST_64BIT)
     return MustSwapBytes() ? WriteAndConvertArrayOfInt64(buffer, count) : WriteArrayOfInt64(buffer, count);
@@ -157,113 +152,155 @@ int DataStream::WriteArrayOfIntPtr(const intptr_t *buffer, int count)
 #endif
 }
 
-int DataStream::WriteArrayOfIntPtr32(const intptr_t *buffer, int count)
+size_t DataStream::WriteArrayOfIntPtr32(const intptr_t *buffer, size_t count)
 {
     if (!CanWrite())
     {
         return 0;
     }
 
-    int elem;
+    size_t elem;
     for (elem = 0; elem < count && !EOS(); ++elem, ++buffer)
     {
         int32_t val = (int32_t)*buffer;
-        WriteInt32(val);
+        if (WriteInt32(val) < sizeof(int32_t))
+        {
+            break;
+        }
     }
     return elem;
 }
 
-int DataStream::ReadAndConvertArrayOfInt16(int16_t *buffer, int count)
+size_t DataStream::ReadAndConvertArrayOfInt16(int16_t *buffer, size_t count)
 {
-    if (!CanRead())
-    {
-        return 0;
-    }
-
     count = ReadArray(buffer, sizeof(int16_t), count);
-    for (int i = 0; i < count; ++i, ++buffer)
+    for (size_t i = 0; i < count; ++i, ++buffer)
     {
         BBOp::SwapBytesInt16(*buffer);
     }
     return count;
 }
 
-int DataStream::ReadAndConvertArrayOfInt32(int32_t *buffer, int count)
+size_t DataStream::ReadAndConvertArrayOfInt32(int32_t *buffer, size_t count)
 {
-    if (!CanRead())
-    {
-        return 0;
-    }
-
     count = ReadArray(buffer, sizeof(int32_t), count);
-    for (int i = 0; i < count; ++i, ++buffer)
+    for (size_t i = 0; i < count; ++i, ++buffer)
     {
         BBOp::SwapBytesInt32(*buffer);
     }
     return count;
 }
 
-int DataStream::ReadAndConvertArrayOfInt64(int64_t *buffer, int count)
+size_t DataStream::ReadAndConvertArrayOfInt64(int64_t *buffer, size_t count)
 {
-    if (!CanRead())
-    {
-        return 0;
-    }
-
     count = ReadArray(buffer, sizeof(int64_t), count);
-    for (int i = 0; i < count; ++i, ++buffer)
+    for (size_t i = 0; i < count; ++i, ++buffer)
     {
         BBOp::SwapBytesInt64(*buffer);
     }
     return count;
 }
 
-int DataStream::WriteAndConvertArrayOfInt16(const int16_t *buffer, int count)
+size_t DataStream::WriteAndConvertArrayOfInt16(const int16_t *buffer, size_t count)
 {
     if (!CanWrite())
     {
         return 0;
     }
 
-    int elem;
+    size_t elem;
     for (elem = 0; elem < count && !EOS(); ++elem, ++buffer)
     {
         int16_t val = *buffer;
-        WriteInt16(val);
+        ConvertInt16(val);
+        if (Write(&val, sizeof(int16_t)) < sizeof(int16_t))
+        {
+            break;
+        }
     }
     return elem;
 }
 
-int DataStream::WriteAndConvertArrayOfInt32(const int32_t *buffer, int count)
+size_t DataStream::WriteAndConvertArrayOfInt32(const int32_t *buffer, size_t count)
 {
     if (!CanWrite())
     {
         return 0;
     }
 
-    int elem;
+    size_t elem;
     for (elem = 0; elem < count && !EOS(); ++elem, ++buffer)
     {
         int32_t val = *buffer;
-        WriteInt32(val);
+        ConvertInt32(val);
+        if (Write(&val, sizeof(int32_t)) < sizeof(int32_t))
+        {
+            break;
+        }
     }
     return elem;
 }
 
-int DataStream::WriteAndConvertArrayOfInt64(const int64_t *buffer, int count)
+size_t DataStream::WriteAndConvertArrayOfInt64(const int64_t *buffer, size_t count)
 {
     if (!CanWrite())
     {
         return 0;
     }
 
-    int elem;
+    size_t elem;
     for (elem = 0; elem < count && !EOS(); ++elem, ++buffer)
     {
         int64_t val = *buffer;
-        WriteInt64(val);
+        ConvertInt64(val);
+        if (Write(&val, sizeof(int64_t)) < sizeof(int64_t))
+        {
+            break;
+        }
     }
     return elem;
+}
+
+int16_t DataStream::ReadInt16()
+{
+    int16_t val = 0;
+    Read(&val, sizeof(int16_t));
+    ConvertInt16(val);
+    return val;
+}
+
+int32_t DataStream::ReadInt32()
+{
+    int32_t val = 0;
+    Read(&val, sizeof(int32_t));
+    ConvertInt32(val);
+    return val;
+}
+
+int64_t DataStream::ReadInt64()
+{
+    int64_t val = 0;
+    Read(&val, sizeof(int64_t));
+    ConvertInt64(val);
+    return val;
+}
+
+size_t DataStream::WriteInt16(int16_t val)
+{
+    ConvertInt16(val);
+    return Write(&val, sizeof(int16_t));
+}
+
+size_t DataStream::WriteInt32(int32_t val)
+{
+    ConvertInt32(val);
+    return Write(&val, sizeof(int32_t));
+}
+
+size_t DataStream::WriteInt64(int64_t val)
+{
+    ConvertInt64(val);
+    return Write(&val, sizeof(int64_t));
 }
 
 } // namespace Common

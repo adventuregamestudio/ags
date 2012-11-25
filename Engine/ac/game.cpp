@@ -1504,7 +1504,7 @@ void save_game(int slotn, const char*descript) {
     // Started writing to the file here
 
     // Extended savegame info for Win Vista and higher
-    out->Write(&vistaHeader, sizeof(RICH_GAME_MEDIA_HEADER));
+    vistaHeader.WriteToFile(out);
 
     // Savegame signature
     out->Write(sgsig,sgsiglen);

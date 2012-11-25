@@ -381,7 +381,7 @@ int GUIMain::find_object_under_mouse(int extrawid, bool mustBeClickable)
 {
   int aa;
 
-  if (loaded_game_file_version <= 27)
+  if (loaded_game_file_version <= kGameVersion_262)
   {
     // Ignore draw order on 2.6.2 and lower
     for (aa = 0; aa < numobjs; aa++) {
@@ -549,7 +549,7 @@ void read_gui(DataStream *in, GUIMain * guiread, GameSetupStruct * gss, GUIMain*
     if (gver < 105)
       guiread[ee].zorder = ee;
 
-    if (loaded_game_file_version <= 32) // Fix names for 2.x: "GUI" -> "gGui"
+    if (loaded_game_file_version <= kGameVersion_272) // Fix names for 2.x: "GUI" -> "gGui"
         guiread->FixupGuiName(guiread[ee].name);
 
     guiread[ee].guiId = ee;

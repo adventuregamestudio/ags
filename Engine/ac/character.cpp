@@ -257,7 +257,7 @@ void Character_ChangeRoom(CharacterInfo *chaa, int room, int x, int y) {
     if ((x != SCR_NO_VALUE) && (y != SCR_NO_VALUE)) {
         new_room_pos = 0;
 
-        if (loaded_game_file_version <= 32)
+        if (loaded_game_file_version <= kGameVersion_272)
         {
             // Set position immediately on 2.x.
             chaa->x = x;
@@ -328,7 +328,7 @@ void Character_FaceLocation(CharacterInfo *char1, int xx, int yy, int blockingSt
 
     // Use a different logic on 2.x. This fixes some edge cases where
     // FaceLocation() is used to select a specific loop.
-    if (loaded_game_file_version <= 32)
+    if (loaded_game_file_version <= kGameVersion_272)
     {
         bool can_right = ((views[char1->view].numLoops >= 3) && (views[char1->view].loops[2].numFrames > 0));
         bool can_left = ((views[char1->view].numLoops >= 2) && (views[char1->view].loops[1].numFrames > 0));
@@ -733,7 +733,7 @@ void Character_SetAsPlayer(CharacterInfo *chaa) {
     // Ignore invalid room numbers for the character and just place him in
     // the current room for 2.x. Following script calls to NewRoom() will
     // make sure this still works as intended.
-    if ((loaded_game_file_version <= 32) && (playerchar->room < 0))
+    if ((loaded_game_file_version <= kGameVersion_272) && (playerchar->room < 0))
         playerchar->room = displayed_room;
 
     if (displayed_room != playerchar->room)
@@ -1670,7 +1670,7 @@ void fix_player_sprite(MoveList*cmls,CharacterInfo*chinf) {
     no_diagonal = useDiagonal (chinf);
 
     // Different logic for 2.x.
-    if (loaded_game_file_version <= 32)
+    if (loaded_game_file_version <= kGameVersion_272)
     {
         bool can_right = ((views[chinf->view].numLoops >= 3) && (views[chinf->view].loops[2].numFrames > 0));
         bool can_left = ((views[chinf->view].numLoops >= 2) && (views[chinf->view].loops[1].numFrames > 0));
@@ -2010,7 +2010,7 @@ void setup_player_character(int charid) {
     game.playercharacter = charid;
     playerchar = &game.chars[charid];
     _sc_PlayerCharPtr = ccGetObjectHandleFromAddress((char*)playerchar);
-    if (loaded_game_file_version < 31) {
+    if (loaded_game_file_version < kGameVersion_270) {
         ccAddExternalSymbol("player", playerchar);
     }
 }
@@ -2681,7 +2681,7 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
         speakingChar->view=oldview;
 
         // Don't reset the loop in 2.x games
-        if (loaded_game_file_version > 32)
+        if (loaded_game_file_version > kGameVersion_272)
             speakingChar->loop = oldloop;
 
         speakingChar->animating=0;

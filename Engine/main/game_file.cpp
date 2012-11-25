@@ -43,49 +43,6 @@
 using AGS::Common::Bitmap;
 
 using AGS::Common::DataStream;
-/*
-
-Game data versions and changes:
--------------------------------
-
-12 : 2.3 + 2.4
-
-Versions above are incompatible at the moment.
-
-19 : 2.5.1
-22 : 2.5.5
-
-Variable number of sprites.
-24 : 2.5.6
-25 : 2.6.0
-
-Encrypted global messages and dialogs.
-26 : 2.6.1
-
-Wait() must be called with parameter > 0
-GetRegionAt() clips the input values to the screen size
-Color 0 now means transparent instead of black for text windows
-27 : 2.6.2
-
-Script modules. Fixes bug in the inventory display.
-Clickable GUI is selected with regard for the drawing order.
-Pointer to the "player" variable is now accessed via a dynamic object.
-31 : 2.7.0
-32 : 2.7.2
-
-Interactions are now scripts. The number for "not set" changed from 0 to -1 for
-a lot of variables (views, sounds).
-37 : 3.0 + 3.1.0
-
-Dialogs are now scripts. New character animation speed.
-39 : 3.1.1
-40 : 3.1.2
-
-Audio clips
-41 : 3.2.0
-42 : 3.2.1
-
-*/
 
 extern int engineNeedsAsInt; // defined in ac_game
 extern char saveGameSuffix[MAX_SG_EXT_LENGTH + 1];
@@ -148,7 +105,7 @@ extern IDriverDependantBitmap* *actspswbbmp;
 extern CachedActSpsData* actspswbcache;
 
 
-int filever;
+GameDataVersion filever;
 // PSP specific variables:
 int psp_is_old_datafile = 0; // Set for 3.1.1 and 3.1.2 datafiles
 char* game_file_name = NULL;
@@ -170,11 +127,11 @@ int game_file_read_version(DataStream *in)
 
 	teststr[30]=0;
     in->Read(&teststr[0],30);
-    filever=in->ReadInt32();
+    filever=(GameDataVersion)in->ReadInt32();
 
-    if (filever < 42) {
+    if (filever < kGameVersion_321) {
         // Allow loading of 2.x+ datafiles
-        if (filever < 18) // < 2.5.0
+        if (filever < kGameVersion_250) // < 2.5.0
         {
             delete in;
             return -2;
@@ -188,7 +145,7 @@ int game_file_read_version(DataStream *in)
     in->Read(&engineneeds[0], engineverlen);
     engineneeds[engineverlen] = 0;
 
-    if (filever > GAME_FILE_VERSION) {
+    if (filever > kGameVersion_Current) {
         platform->DisplayAlert("This game requires a newer version of AGS (%s). It cannot be run.", engineneeds);
         delete in;
         return -2;
@@ -210,7 +167,7 @@ int game_file_read_version(DataStream *in)
 
 void game_file_read_dialog_script(DataStream *in)
 {
-	if (filever > 37) // 3.1.1+ dialog script
+	if (filever > kGameVersion_310) // 3.1.1+ dialog script
     {
         dialogScriptsScript = fread_script(in);
         if (dialogScriptsScript == NULL)
@@ -224,7 +181,7 @@ void game_file_read_dialog_script(DataStream *in)
 
 void game_file_read_script_modules(DataStream *in)
 {
-	if (filever >= 31) // 2.7.0+ script modules
+	if (filever >= kGameVersion_270) // 2.7.0+ script modules
     {
         numScriptModules = in->ReadInt32();
         if (numScriptModules > MAX_SCRIPT_MODULES)
@@ -247,7 +204,7 @@ void game_file_read_script_modules(DataStream *in)
 
 void game_file_read_views(DataStream *in)
 {
-	if (filever > 32) // 3.x views
+	if (filever > kGameVersion_272) // 3.x views
     {
         for (int iteratorCount = 0; iteratorCount < game.numviews; ++iteratorCount)
         {
@@ -299,7 +256,7 @@ void game_file_read_dialogs(DataStream *in)
         dialog[iteratorCount].ReadFromFile(in);
     }
 
-    if (filever <= 37) // Dialog script
+    if (filever <= kGameVersion_300) // Dialog script
     {
         old_dialog_scripts = (unsigned char**)malloc(game.numdialog * sizeof(unsigned char**));
 
@@ -318,7 +275,7 @@ void game_file_read_dialogs(DataStream *in)
         old_speech_lines = (char**)malloc(10000 * sizeof(char**));
         i = 0;
 
-        if (filever <= 25)
+        if (filever <= kGameVersion_260)
         {
             // Plain text on <= 2.60
             char buffer[1000];
@@ -390,7 +347,7 @@ void game_file_read_gui(DataStream *in)
 
 void game_file_set_score_sound(GameSetupStruct::GAME_STRUCT_READ_DATA &read_data)
 {
-    if (read_data.filever >= 41) {
+    if (read_data.filever >= kGameVersion_320) {
         play.score_sound = read_data.score_sound;
     }
     else {
@@ -567,7 +524,7 @@ void init_and_register_game_objects()
 
     ccAddExternalSymbol("character",&game.chars[0]);
     setup_player_character(game.playercharacter);
-    if (loaded_game_file_version >= 31) {
+    if (loaded_game_file_version >= kGameVersion_270) {
         ccAddExternalSymbol("player", &_sc_PlayerCharPtr);
     }
     ccAddExternalSymbol("object",&scrObj[0]);
@@ -611,7 +568,7 @@ int load_game_file() {
     GameSetupStructBase *gameBase = (GameSetupStructBase *) &game;
     gameBase->ReadFromFile(in);
 
-    if (filever <= 37) // <= 3.1
+    if (filever <= kGameVersion_300) // <= 3.1
     {
         // Fix animation speed for old formats
         game.options[OPT_OLDTALKANIMSPD] = 1;
@@ -660,7 +617,7 @@ int load_game_file() {
 
     our_eip=-14;
 
-    if (filever <= 19) // <= 2.1 skip unknown data
+    if (filever <= kGameVersion_251) // <= 2.1 skip unknown data
     {
         int count = in->ReadInt32();
         in->Seek(Common::kSeekCurrent, count * 0x204);
@@ -679,7 +636,7 @@ int load_game_file() {
 
 	game_file_read_gui(in);
 
-    if (filever >= 25) // >= 2.60
+    if (filever >= kGameVersion_260) // >= 2.60
     {
         platform->ReadPluginsFromDisk(in);
     }

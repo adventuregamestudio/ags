@@ -113,7 +113,7 @@ void GameSetupStruct::ReadFromFile_Part3(Common::DataStream *in, GAME_STRUCT_REA
 
 void GameSetupStruct::read_savegame_info(Common::DataStream *in, GAME_STRUCT_READ_DATA &read_data)
 {
-    if (read_data.filever > 32) // only 3.x
+    if (read_data.filever > kGameVersion_272) // only 3.x
     {
         in->Read(&guid[0], MAX_GUID_LENGTH);
         in->Read(&saveGameFileExtension[0], MAX_SG_EXT_LENGTH);
@@ -135,7 +135,7 @@ void GameSetupStruct::read_font_flags(Common::DataStream *in, GAME_STRUCT_READ_D
 void GameSetupStruct::read_sprite_flags(Common::DataStream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     int numToRead;
-    if (read_data.filever < 24)
+    if (read_data.filever < kGameVersion_256)
         numToRead = 6000; // Fixed number of sprites on < 2.56
     else
         numToRead = in->ReadInt32();
@@ -164,7 +164,7 @@ void GameSetupStruct::read_cursors(Common::DataStream *in, GAME_STRUCT_READ_DATA
         mcurs[iteratorCount].ReadFromFile(in);
     }
 
-    if (read_data.filever <= 32) // 2.x
+    if (read_data.filever <= kGameVersion_272) // 2.x
     {
         // Change cursor.view from 0 to -1 for non-animating cursors.
         int i;
@@ -180,7 +180,7 @@ void GameSetupStruct::read_interaction_scripts(Common::DataStream *in, GAME_STRU
 {
     numGlobalVars = 0;
 
-    if (read_data.filever > 32) // 3.x
+    if (read_data.filever > kGameVersion_272) // 3.x
     {
         int bb;
 
@@ -237,7 +237,7 @@ void GameSetupStruct::read_characters(Common::DataStream *in, GAME_STRUCT_READ_D
 
     //charcache = (CharacterCache*)calloc(1,sizeof(CharacterCache)*numcharacters+5);
 
-    if (read_data.filever <= 32) // fixup charakter script names for 2.x (EGO -> cEgo)
+    if (read_data.filever <= kGameVersion_272) // fixup charakter script names for 2.x (EGO -> cEgo)
     {
         char tempbuffer[200];
         for (int i = 0; i < numcharacters; i++)
@@ -250,7 +250,7 @@ void GameSetupStruct::read_characters(Common::DataStream *in, GAME_STRUCT_READ_D
         }
     }
 
-    if (read_data.filever <= 37) // fix character walk speed for < 3.1.1
+    if (read_data.filever <= kGameVersion_300) // fix character walk speed for < 3.1.1
     {
         for (int i = 0; i < numcharacters; i++)
         {
@@ -262,7 +262,7 @@ void GameSetupStruct::read_characters(Common::DataStream *in, GAME_STRUCT_READ_D
 
 void GameSetupStruct::read_lipsync(Common::DataStream *in, GAME_STRUCT_READ_DATA &read_data)
 {
-    if (read_data.filever > 19) // > 2.1
+    if (read_data.filever > kGameVersion_251) // > 2.1
         in->ReadArray(&lipSyncFrameLetters[0][0], MAXLIPSYNCFRAMES, 50);
 }
 
@@ -272,7 +272,7 @@ void GameSetupStruct::read_messages(Common::DataStream *in, GAME_STRUCT_READ_DAT
         if (messages[ee]==NULL) continue;
         messages[ee]=(char*)malloc(500);
 
-        if (read_data.filever < 26) // Global messages are not encrypted on < 2.61
+        if (read_data.filever < kGameVersion_261) // Global messages are not encrypted on < 2.61
         {
             char* nextchar = messages[ee];
 
@@ -294,7 +294,7 @@ void GameSetupStruct::read_messages(Common::DataStream *in, GAME_STRUCT_READ_DAT
 
 void GameSetupStruct::read_customprops(Common::DataStream *in, GAME_STRUCT_READ_DATA &read_data)
 {
-    if (read_data.filever >= 25) // >= 2.60
+    if (read_data.filever >= kGameVersion_260) // >= 2.60
     {
         if (propSchema.UnSerialize(in))
             quit("load room: unable to deserialize prop schema");
@@ -324,7 +324,7 @@ void GameSetupStruct::read_customprops(Common::DataStream *in, GAME_STRUCT_READ_
 void GameSetupStruct::read_audio(Common::DataStream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     int i;
-    if (read_data.filever >= 41)
+    if (read_data.filever >= kGameVersion_320)
     {
         audioClipTypeCount = in->ReadInt32();
 
@@ -389,7 +389,7 @@ void GameSetupStruct::read_audio(Common::DataStream *in, GAME_STRUCT_READ_DATA &
 
 void GameSetupStruct::read_room_names(DataStream *in, GAME_STRUCT_READ_DATA &read_data)
 {
-    if ((read_data.filever >= 36) && (options[OPT_DEBUGMODE] != 0))
+    if ((read_data.filever >= kGameVersion_pre300) && (options[OPT_DEBUGMODE] != 0))
     {
         roomCount = in->ReadInt32();
         roomNumbers = (int*)malloc(roomCount * sizeof(int));

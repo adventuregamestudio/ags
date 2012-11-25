@@ -48,7 +48,6 @@ extern RoomObject*objs;
 extern ViewStruct*views;
 extern GameSetupStruct game;
 extern ObjectCache objcache[MAX_INIT_SPR];
-extern int loaded_game_file_version;
 extern roomstruct thisroom;
 extern CharacterInfo*playerchar;
 extern int displayed_room;
@@ -162,7 +161,7 @@ void SetObjectFrame(int obn,int viw,int lop,int fra) {
     if (objs[obn].frame >= views[viw].loops[objs[obn].loop].numFrames)
         objs[obn].frame = 0;
 
-    if (loaded_game_file_version > 32) // Skip check on 2.x
+    if (loaded_game_file_version > kGameVersion_272) // Skip check on 2.x
     {
         if (views[viw].loops[objs[obn].loop].numFrames == 0) 
             quit("!SetObjectFrame: specified loop has no frames");

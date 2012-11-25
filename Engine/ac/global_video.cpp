@@ -37,7 +37,6 @@ using AGS::Common::DataStream;
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
-extern int loaded_game_file_version;
 extern GameSetup usetup;
 extern GameSetupStruct game;
 extern GameState play;
@@ -59,7 +58,7 @@ void play_flc_file(int numb,int playflags) {
     color oldpal[256];
 
     // AGS 2.x: If the screen is faded out, fade in again when playing a movie.
-    if (loaded_game_file_version <= 32)
+    if (loaded_game_file_version <= kGameVersion_272)
         play.screen_is_faded_out = 0;
 
     if (play.fast_forward)

@@ -14,7 +14,8 @@
 
 #include <string.h> // memset
 #include <stdlib.h> // free
-#include "roomstatus.h"
+#include "ac/common.h"
+#include "ac/roomstatus.h"
 #include "util/datastream.h"
 
 using AGS::Common::DataStream;
@@ -110,8 +111,6 @@ bool isRoomStatusValid(int room)
     return (room_statuses[room] != NULL);
 }
 
-extern int loaded_game_file_version;
-
 void resetRoomStatuses()
 {
     for (int i = 0; i < MAX_ROOMS; i++)
@@ -125,7 +124,7 @@ void resetRoomStatuses()
             // pointer that are also referenced in the current room struct.
             // If they are freed here this will lead to an access violation when the
             // room unloading function tries to frees them.
-            if (loaded_game_file_version <= 32)
+            if (loaded_game_file_version <= kGameVersion_272)
             {
                 room_statuses[i]->tsdatasize = 0;
                 room_statuses[i]->tsdata = 0;

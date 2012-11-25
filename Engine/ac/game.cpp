@@ -141,7 +141,7 @@ roomstruct thisroom;
 
 volatile int switching_away_from_game = 0;
 volatile char want_exit = 0, abort_engine = 0;
-int loaded_game_file_version = 0;
+GameDataVersion loaded_game_file_version = kGameVersion_Undefined;
 int frames_per_second=40;
 int displayed_room=-10,starting_room = -1;
 int in_new_room=0, new_room_was = 0;  // 1 in new room, 2 first time in new room, 3 loading saved game

@@ -420,6 +420,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\ac\game_version.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\ac\gamesetupstruct.h"
 					>
 				</File>

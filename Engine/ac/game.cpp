@@ -1209,7 +1209,9 @@ void save_game_gui(DataStream *out)
     {
         animbuts[i].WriteToFile(out);
     }
-    //out->WriteArray(&animbuts[0], sizeof(AnimatingGUIButton), numAnimButs);
+    int padding = get_padding(sizeof(AnimatingGUIButton) * numAnimButs);
+    char pad_buf[3] = {0,0,0};
+    out->Write(pad_buf, padding);
 }
 
 void save_game_audiocliptypes(DataStream *out)
@@ -1831,7 +1833,8 @@ void restore_game_gui(DataStream *in, int numGuisWas)
     {
         animbuts[i].ReadFromFile(in);
     }
-    //in->ReadArray(&animbuts[0], sizeof(AnimatingGUIButton), numAnimButs);
+    int padding = get_padding(sizeof(AnimatingGUIButton) * numAnimButs);
+    in->Seek(Common::kSeekCurrent, padding);
 }
 
 void restore_game_audiocliptypes(DataStream *in)
@@ -1843,7 +1846,6 @@ void restore_game_audiocliptypes(DataStream *in)
     {
         game.audioClipTypes[i].ReadFromFile(in);
     }
-    //in->ReadArray(&game.audioClipTypes[0], sizeof(AudioClipType), game.audioClipTypeCount);
 }
 
 void restore_game_thisroom(DataStream *in, short *saved_light_levels, int *saved_tint_levels,

@@ -32,7 +32,7 @@ long int filelength(int fhandle);
 // result could be from 0 to 3 inclusive.
 inline size_t get_padding(int previous_data_length)
 {
-    return 4 - (previous_data_length % 4);
+    return (previous_data_length % 4) ? 4 - (previous_data_length % 4) : 0;
 }
 
 #include "util/string.h"

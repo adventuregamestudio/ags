@@ -962,7 +962,7 @@ void do_conversation(int dlgnum)
   EndSkippingUntilCharStops();
 
   // AGS 2.x always makes the mouse cursor visible when displaying a dialog.
-  if (loaded_game_file_version <= 32)
+  if (loaded_game_file_version <= kGameVersion_272)
     play.mouse_cursor_hidden = 0;
 
   int dlgnum_was = dlgnum;

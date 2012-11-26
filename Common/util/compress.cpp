@@ -48,17 +48,6 @@ extern "C"
   extern Bitmap *wnewblock(int, int, int, int);
 }
 
-//#ifdef ALLEGRO_BIG_ENDIAN
-//#define ->WriteInt16 __putshort__lilendian
-//#define ->ReadInt16 __getshort__bigendian
-//#else
-//extern "C"
-//{
-  //extern void ->WriteInt16(short, FILE *);
-  //extern short ->ReadInt16(FILE *);
-//}
-//#endif
-
 #ifndef __WGT4_H
 struct color
 {
@@ -422,39 +411,6 @@ long load_lzw(DataStream *in, Common::Bitmap *bmm, color *pall) {
 
   loptr = (int *)&membuffer[0];
   membuffer += 8;
-#ifdef ALLEGRO_BIG_ENDIAN
-  loptr[0] = __int_swap_endian(loptr[0]);
-  loptr[1] = __int_swap_endian(loptr[1]);
-  int bitmapNumPixels = loptr[0]*loptr[1]/_acroom_bpp;
-  switch (_acroom_bpp) // bytes per pixel!
-  {
-    case 1:
-    {
-      // all done
-      break;
-    }
-    case 2:
-    {
-      short *sp = (short *)membuffer;
-      for (int i = 0; i < bitmapNumPixels; ++i)
-      {
-        sp[i] = __short_swap_endian(sp[i]);
-      }
-      // all done
-      break;
-    }
-    case 4:
-    {
-      int *ip = (int *)membuffer;
-      for (int i = 0; i < bitmapNumPixels; ++i)
-      {
-        ip[i] = __int_swap_endian(ip[i]);
-      }
-      // all done
-      break;
-    }
-  }
-#endif // ALLEGRO_BIG_ENDIAN
 
   delete bmm;
 

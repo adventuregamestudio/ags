@@ -156,10 +156,6 @@ void write_dictionary (WordsDictionary *dict, DataStream *out) {
   out->WriteInt32(dict->num_words);
   for (ii = 0; ii < dict->num_words; ii++) {
     write_string_encrypt (out, dict->word[ii]);
-//#ifdef ALLEGRO_BIG_ENDIAN
     out->WriteInt16(dict->wordnum[ii]);//__putshort__lilendian(dict->wordnum[ii], writeto);
-//#else
-//    ->WriteArray(&dict->wordnum[ii], sizeof(short), 1, writeto);
-//#endif
   }
 }

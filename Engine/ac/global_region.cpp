@@ -29,7 +29,6 @@ extern roomstruct thisroom;
 extern RoomStatus*croom;
 extern char*evblockbasename;
 extern int evblocknum;
-extern int loaded_game_file_version;
 
 int GetRegionAt (int xxx, int yyy) {
     // if the co-ordinates are off the edge of the screen,
@@ -38,7 +37,7 @@ int GetRegionAt (int xxx, int yyy) {
     xxx = convert_to_low_res(xxx);
     yyy = convert_to_low_res(yyy);
 
-    if (loaded_game_file_version >= 27) // Version 2.6.2+
+    if (loaded_game_file_version >= kGameVersion_262) // Version 2.6.2+
     {
         if (xxx >= thisroom.regions->GetWidth())
             xxx = thisroom.regions->GetWidth() - 1;

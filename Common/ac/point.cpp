@@ -30,11 +30,7 @@ void PolyPoints::add_point(int xxx,int yyy) {
 
 void PolyPoints::ReadFromFile(DataStream *in)
 {
-//#ifdef ALLEGRO_BIG_ENDIAN
     in->ReadArrayOfInt32(x, MAXPOINTS);
     in->ReadArrayOfInt32(y, MAXPOINTS);
     numpoints = in->ReadInt32();
-//#else
-//    throw "PolyPoints::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
-//#endif
 }

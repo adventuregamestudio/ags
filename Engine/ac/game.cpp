@@ -26,6 +26,7 @@
 #include "ac/draw.h"
 #include "ac/dynamicsprite.h"
 #include "ac/event.h"
+#include "ac/file.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -57,6 +58,7 @@
 #include "ac/translation.h"
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/all_scriptclasses.h"
+#include "debug/out.h"
 #include "script/cc_error.h"
 #include "util/string_utils.h"
 #include "debug/debug_log.h"
@@ -73,6 +75,7 @@
 #include "gfx/bitmap.h"
 #include "script/runtimescriptvalue.h"
 
+using AGS::Common::String;
 using AGS::Common::DataStream;
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -143,7 +146,7 @@ roomstruct thisroom;
 
 volatile int switching_away_from_game = 0;
 volatile char want_exit = 0, abort_engine = 0;
-int loaded_game_file_version = 0;
+GameDataVersion loaded_game_file_version = kGameVersion_Undefined;
 int frames_per_second=40;
 int displayed_room=-10,starting_room = -1;
 int in_new_room=0, new_room_was = 0;  // 1 in new room, 2 first time in new room, 3 loading saved game
@@ -338,10 +341,13 @@ void restore_after_dialog() {
 
 
 
-void get_save_game_path(int slotNum, char *buffer) {
-    strcpy(buffer, saveGameDirectory);
-    sprintf(&buffer[strlen(buffer)], sgnametemplate, slotNum);
-    strcat(buffer, saveGameSuffix);
+String get_save_game_path(int slotNum) {
+    String filename;
+    filename.Format(sgnametemplate, slotNum);
+    String path = saveGameDirectory;
+    path.Append(filename);
+    path.Append(saveGameSuffix);
+    return path;
 }
 
 
@@ -398,10 +404,10 @@ int Game_SetSaveGameDirectory(const char *newFolder) {
 
 
 const char* Game_GetSaveSlotDescription(int slnum) {
-    char buffer[STD_BUFFER_SIZE];
-    if (load_game(slnum, buffer, NULL) == 0)
+    String description;
+    if (read_savedgame_description(get_save_game_path(slnum), description) == 0)
     {
-        return CreateNewScriptStringAsRetVal(buffer);
+        return CreateNewScriptStringAsRetVal(description);
     }
     return NULL;
 }
@@ -410,7 +416,7 @@ const char* Game_GetSaveSlotDescription(int slnum) {
 
 
 int load_game_and_print_error(int toload) {
-    int ecret = load_game(toload, NULL, NULL);
+    int ecret = load_game(toload);
     if (ecret < 0) {
         // disable speech in case there are dynamic graphics that
         // have been freed
@@ -942,6 +948,9 @@ void serialize_bitmap(Common::Bitmap *thispic, DataStream *out) {
           switch (thispic->GetColorDepth())
           {
           case 8:
+          // CHECKME: originally, AGS does not use real BPP here, but simply divides color depth by 8;
+          // therefore 15-bit bitmaps are saved only partially? is this a bug? or?
+          case 15:
             out->WriteArray(&thispic->GetScanLine(cc)[0], thispic->GetWidth(), 1);
             break;
           case 16:
@@ -1008,6 +1017,8 @@ Bitmap *read_serialized_bitmap(DataStream *in) {
       switch (piccoldep)
       {
       case 8:
+      // CHECKME: originally, AGS does not use real BPP here, but simply divides color depth by 8
+      case 15:
         in->ReadArray(thispic->GetScanLineForWriting(vv), picwid, 1);
         break;
       case 16:
@@ -1200,7 +1211,9 @@ void save_game_gui(DataStream *out)
     {
         animbuts[i].WriteToFile(out);
     }
-    //out->WriteArray(&animbuts[0], sizeof(AnimatingGUIButton), numAnimButs);
+    int padding = get_padding(sizeof(AnimatingGUIButton) * numAnimButs);
+    char pad_buf[3] = {0,0,0};
+    out->Write(pad_buf, padding);
 }
 
 void save_game_audiocliptypes(DataStream *out)
@@ -1363,26 +1376,9 @@ void save_game_data (DataStream *out, Bitmap *screenshot) {
     save_game_movelist(out);
 
     ((GameSetupStructBase*)&game)->WriteToFile(out);
-    //out->WriteArray(&game,sizeof(GameSetupStructBase),1);
 
     //----------------------------------------------------------------
     game.WriteForSaveGame(out);
-    //out->WriteArray(&game.invinfo[0], sizeof(InventoryItemInfo), game.numinvitems);
-    //out->WriteArray(&game.mcurs[0], sizeof(MouseCursor), game.numcursors);
-
-    //if (game.invScripts == NULL)
-    //{
-    //  for (bb = 0; bb < game.numinvitems; bb++)
-    //    out->WriteArray (&game.intrInv[bb]->timesRun[0], sizeof (int), MAX_NEWINTERACTION_EVENTS);
-    //  for (bb = 0; bb < game.numcharacters; bb++)
-    //    out->WriteArray (&game.intrChar[bb]->timesRun[0], sizeof (int), MAX_NEWINTERACTION_EVENTS); 
-    //}
-
-    //out->WriteArray (&game.options[0], sizeof(int), OPT_HIGHESTOPTION+1);
-    //out->WriteInt8 (game.options[OPT_LIPSYNCTEXT]);
-
-    //out->WriteArray(&game.chars[0],sizeof(CharacterInfo),game.numcharacters);
-    //----------------------------------------------------------------
 
     save_game_charextras(out);
     save_game_palette(out);
@@ -1480,8 +1476,8 @@ void save_game(int slotn, const char*descript) {
     }
 
     VALIDATE_STRING(descript);
-    char nametouse[260];
-    get_save_game_path(slotn, nametouse);
+    String nametouse;
+    nametouse = get_save_game_path(slotn);
 
     DataStream *out = Common::File::CreateFile(nametouse);
     if (out == NULL)
@@ -1506,7 +1502,7 @@ void save_game(int slotn, const char*descript) {
     // Started writing to the file here
 
     // Extended savegame info for Win Vista and higher
-    out->Write(&vistaHeader, sizeof(RICH_GAME_MEDIA_HEADER));
+    vistaHeader.WriteToFile(out);
 
     // Savegame signature
     out->Write(sgsig,sgsiglen);
@@ -1551,13 +1547,13 @@ void save_game(int slotn, const char*descript) {
 
 char rbuffer[200];
 
-void restore_game_screenshot(DataStream *in)
+Bitmap *restore_game_screenshot(DataStream *in)
 {
     int isScreen = in->ReadInt32();
     if (isScreen) {
-        // skip the screenshot
-        delete read_serialized_bitmap(in); // [IKM] how very appropriate
+        return read_serialized_bitmap(in);
     }
+    return NULL;
 }
 
 int restore_game_header(DataStream *in)
@@ -1566,13 +1562,11 @@ int restore_game_header(DataStream *in)
     int vercmp = strcmp(rbuffer, ACI_VERSION_TEXT);
     if ((vercmp > 0) || (strcmp(rbuffer, LOWEST_SGVER_COMPAT) < 0) ||
         (strlen(rbuffer) > strlen(LOWEST_SGVER_COMPAT))) {
-            delete in;
             return -4;
     }
     fgetstring_limit (rbuffer, in, 180);
     rbuffer[180] = 0;
     if (stricmp (rbuffer, usetup.main_data_filename)) {
-        delete in;
         return -5;
     }
 
@@ -1594,13 +1588,11 @@ int restore_game_head_dynamic_values(DataStream *in, int &sg_cur_mode, int &sg_c
     if (gamescrnhit != scrnhit) {
         Display("This game was saved with the interpreter running at a different "
             "resolution. It cannot be restored.");
-        delete in;
         return -6;
     }
 
     if (in->ReadInt32() != final_col_dep) {
         Display("This game was saved with the engine running at a different colour depth. It cannot be restored.");
-        delete in;
         return -7;
     }
 
@@ -1843,7 +1835,8 @@ void restore_game_gui(DataStream *in, int numGuisWas)
     {
         animbuts[i].ReadFromFile(in);
     }
-    //in->ReadArray(&animbuts[0], sizeof(AnimatingGUIButton), numAnimButs);
+    int padding = get_padding(sizeof(AnimatingGUIButton) * numAnimButs);
+    in->Seek(Common::kSeekCurrent, padding);
 }
 
 void restore_game_audiocliptypes(DataStream *in)
@@ -1855,7 +1848,6 @@ void restore_game_audiocliptypes(DataStream *in)
     {
         game.audioClipTypes[i].ReadFromFile(in);
     }
-    //in->ReadArray(&game.audioClipTypes[0], sizeof(AudioClipType), game.audioClipTypeCount);
 }
 
 void restore_game_thisroom(DataStream *in, short *saved_light_levels, int *saved_tint_levels,
@@ -2054,20 +2046,8 @@ int restore_game_data (DataStream *in, const char *nametouse) {
 
     int bb, vv;
 
-    if (in->ReadInt32()!=SGVERSION) {
-        delete in;
-        return -3;
-    }
-
-    restore_game_screenshot(in);
-
-    int res = restore_game_header(in);
-    if (res != 0) {
-        return res;
-    }
-
     int sg_cur_mode = 0, sg_cur_cursor = 0;
-    res = restore_game_head_dynamic_values(in, /*out*/ sg_cur_mode, sg_cur_cursor);
+    int res = restore_game_head_dynamic_values(in, /*out*/ sg_cur_mode, sg_cur_cursor);
     if (res != 0) {
         return res;
     }
@@ -2201,8 +2181,6 @@ int restore_game_data (DataStream *in, const char *nametouse) {
 
     // preserve legacy music type setting
     current_music_type = in->ReadInt32();
-
-    delete in;
 
     // restore these to the ones retrieved from the save game
     for (bb = 0; bb < MAX_DYNAMIC_SURFACES; bb++)
@@ -2367,85 +2345,147 @@ int restore_game_data (DataStream *in, const char *nametouse) {
 }
 
 int gameHasBeenRestored = 0;
+int oldeip;
 
-int do_game_load(const char *nametouse, int slotNumber, char *descrp, int *wantShot)
+DataStream *open_savedgame(const char *savedgame, int &error_code)
 {
-    gameHasBeenRestored++;
-
-    DataStream *in = Common::File::OpenFileRead(nametouse);
-    if (in==NULL)
-        return -1;
+    error_code = 0;
+    DataStream *in = Common::File::OpenFileRead(savedgame);
+    if (!in)
+    {
+        error_code = -1;
+        return in;
+    }
 
     // skip Vista header
-    in->Seek(Common::kSeekBegin, sizeof(RICH_GAME_MEDIA_HEADER));
+    RICH_GAME_MEDIA_HEADER rich_media_header;
+    rich_media_header.ReadFromFile(in);
 
-    in->Read(rbuffer,sgsiglen);
-    rbuffer[sgsiglen]=0;
-    if (strcmp(rbuffer,sgsig)!=0) {
+    // check saved game signature
+    in->Read(rbuffer, sgsiglen);
+    rbuffer[sgsiglen] = 0;
+    if (strcmp(rbuffer, sgsig) != 0) {
         // not a save game
         delete in;
-        return -2; 
+        error_code = -2;
+        return NULL;
     }
+
     int oldeip = our_eip;
     our_eip = 2050;
 
-    fgetstring_limit(rbuffer,in, 180);
+    // read description
+    fgetstring_limit(rbuffer, in, 180);
     rbuffer[180] = 0;
     safeguard_string ((unsigned char*)rbuffer);
 
-    if (descrp!=NULL) {
-        // just want slot description, so return
-        strcpy(descrp,rbuffer);
+    // check saved game format version
+    if (in->ReadInt32() != SGVERSION) {
         delete in;
-        our_eip = oldeip;
-        return 0;
+        error_code = -3;
+        return NULL;
     }
 
-    if (wantShot != NULL) {
-        // just want the screenshot
-        if (in->ReadInt32()!=SGVERSION) {
-            delete in;
-            return -3;
-        }
-        int isScreen = in->ReadInt32();
-        *wantShot = 0;
+    return in;
+}
 
-        if (isScreen) {
-            int gotSlot = spriteset.findFreeSlot();
-            // load the screenshot
-            Bitmap *redin = read_serialized_bitmap(in);
-            if (gotSlot > 0) {
-                // add it into the sprite set
-                add_dynamic_sprite(gotSlot, gfxDriver->ConvertBitmapToSupportedColourDepth(redin));
-
-                *wantShot = gotSlot;
-            }
-            else
-            {
-                delete redin;
-            }
-        }
-        delete in;
+int read_savedgame_description(const String &savedgame, String &description)
+{
+    int error_code;
+    // yeah, I know what you think... this will be remade someday
+    delete open_savedgame(savedgame, error_code);
+    if (error_code == 0)
+    {
+        description = rbuffer;
         our_eip = oldeip;
-        return 0;
+    }
+    return error_code;
+}
+
+int read_savedgame_screenshot(const String &savedgame, int &want_shot)
+{
+    want_shot = 0;
+
+    int error_code;
+    DataStream *in = open_savedgame(savedgame, error_code);
+    if (!in)
+    {
+        return error_code;
+    }
+
+    Bitmap *screenshot = restore_game_screenshot(in);
+    if (screenshot)
+    {
+        int slot = spriteset.findFreeSlot();
+        if (slot > 0)
+        {
+            // add it into the sprite set
+            add_dynamic_sprite(slot, gfxDriver->ConvertBitmapToSupportedColourDepth(screenshot));
+            want_shot = slot;
+        }
+        else
+        {
+            delete screenshot;
+        }
+    }
+
+    delete in;
+    our_eip = oldeip;
+    return 0;
+}
+
+int load_game(int slotNumber)
+{
+    return load_game(get_save_game_path(slotNumber), slotNumber);
+}
+
+int load_game(const Common::String &path, int slotNumber)
+{
+    gameHasBeenRestored++;
+
+    int error_code;
+    DataStream *in = open_savedgame(path, error_code);
+    if (!in)
+    {
+        return error_code;
     }
 
     our_eip = 2051;
 
-    // do the actual restore
-    int ress = restore_game_data(in, nametouse);
+    delete restore_game_screenshot(in);  // [IKM] how very appropriate
 
-    our_eip = oldeip;
+    error_code = restore_game_header(in);
 
-    if (ress == -5) {
-        // saved in different game
-        RunAGSGame (rbuffer, 0, 0);
-        load_new_game_restore = slotNumber;
-        return 0;
+    // saved in different game
+    if (error_code == -5) {
+        // [IKM] 2012-11-26: this is a workaround, indeed.
+        // Try to find wanted game's executable; if it does not exist,
+        // continue loading savedgame in current game, and pray for the best
+        get_current_dir_path(gamefilenamebuf, rbuffer);
+        if (Common::File::TestReadFile(gamefilenamebuf))
+        {
+            delete in;
+            RunAGSGame (rbuffer, 0, 0);
+            load_new_game_restore = slotNumber;
+            return 0;
+        }
+        Common::Out::FPrint("WARNING: the saved game '%s' references game file '%s', but it cannot be found in the current directory.", path.GetCStr(), gamefilenamebuf);
+        Common::Out::FPrint("Trying to restore in the running game instead.");
+    }
+    else if (error_code != 0) {
+        delete in;
+        return error_code;
     }
 
-    if (ress)
-        return ress;
+    // do the actual restore
+    error_code = restore_game_data(in, path);
+    delete in;
+    our_eip = oldeip;
+
+    if (error_code)
+    {
+        return error_code;
+    }
 
     run_on_event (GE_RESTORE_GAME, RuntimeScriptValue().SetInt32(slotNumber));
 
@@ -2453,15 +2493,7 @@ int do_game_load(const char *nametouse, int slotNumber, char *descrp, int *wantS
     // use the raw versions rather than the rec_ versions so we don't
     // interfere with the replay sync
     while (keypressed()) readkey();
-
     return 0;
-}
-
-int load_game(int slotn, char*descrp, int *wantShot) {
-    char nametouse[260];
-    get_save_game_path(slotn, nametouse);
-
-    return do_game_load(nametouse, slotn, descrp, wantShot);
 }
 
 void start_skipping_cutscene () {

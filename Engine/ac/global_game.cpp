@@ -55,6 +55,7 @@
 #include "gfx/bitmap.h"
 #include "core/assetmanager.h"
 
+using AGS::Common::String;
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
@@ -106,7 +107,7 @@ void restart_game() {
         return;
     }
     int errcod;
-    if ((errcod = load_game(RESTART_POINT_SAVE_GAME_NUMBER, NULL, NULL))!=0)
+    if ((errcod = load_game(RESTART_POINT_SAVE_GAME_NUMBER))!=0)
         quitprintf("unable to restart game (error:%s)", load_game_errors[-errcod]);
 
 }
@@ -120,17 +121,17 @@ void RestoreGameSlot(int slnum) {
         curscript->queue_action(ePSARestoreGame, slnum, "RestoreGameSlot");
         return;
     }
-    load_game(slnum, NULL, NULL);
+    load_game(slnum);
 }
 
 void DeleteSaveSlot (int slnum) {
-    char nametouse[260];
-    get_save_game_path(slnum, nametouse);
+    String nametouse;
+    nametouse = get_save_game_path(slnum);
     unlink (nametouse);
     if ((slnum >= 1) && (slnum <= MAXSAVEGAMES)) {
-        char thisname[260];
+        String thisname;
         for (int i = MAXSAVEGAMES; i > slnum; i--) {
-            get_save_game_path(i, thisname);
+            thisname = get_save_game_path(i);
             if (Common::File::TestReadFile(thisname)) {
                 // Rename the highest save game to fill in the gap
                 rename (thisname, nametouse);
@@ -159,8 +160,12 @@ int IsGamePaused() {
 
 int GetSaveSlotDescription(int slnum,char*desbuf) {
     VALIDATE_STRING(desbuf);
-    if (load_game(slnum, desbuf, NULL) == 0)
+    String description;
+    if (read_savedgame_description(get_save_game_path(slnum), description) == 0)
+    {
+        strcpy(desbuf, description);
         return 1;
+    }
     sprintf(desbuf,"INVALID SLOT %d", slnum);
     return 0;
 }
@@ -169,7 +174,7 @@ int LoadSaveSlotScreenshot(int slnum, int width, int height) {
     int gotSlot;
     multiply_up_coordinates(&width, &height);
 
-    if (load_game(slnum, NULL, &gotSlot) != 0)
+    if (read_savedgame_screenshot(get_save_game_path(slnum), gotSlot) != 0)
         return 0;
 
     if (gotSlot == 0)
@@ -290,7 +295,7 @@ int RunAGSGame (char *newgame, unsigned int mode, int data) {
     play.screen_is_faded_out = 1;
 
     if (load_new_game_restore >= 0) {
-        load_game (load_new_game_restore, NULL, NULL);
+        load_game (load_new_game_restore);
         load_new_game_restore = -1;
     }
     else
@@ -892,7 +897,7 @@ void SetGraphicalVariable (const char *varName, int p_value) {
 }
 
 void scrWait(int nloops) {
-    if ((nloops < 1) && (loaded_game_file_version >= 27)) // 2.62+
+    if ((nloops < 1) && (loaded_game_file_version >= kGameVersion_262)) // 2.62+
         quit("!Wait: must wait at least 1 loop");
 
     play.wait_counter = nloops;
@@ -901,7 +906,7 @@ void scrWait(int nloops) {
 }
 
 int WaitKey(int nloops) {
-    if ((nloops < 1) && (loaded_game_file_version >= 27)) // 2.62+
+    if ((nloops < 1) && (loaded_game_file_version >= kGameVersion_262)) // 2.62+
         quit("!WaitKey: must wait at least 1 loop");
 
     play.wait_counter = nloops;
@@ -913,7 +918,7 @@ int WaitKey(int nloops) {
 }
 
 int WaitMouseKey(int nloops) {
-    if ((nloops < 1) && (loaded_game_file_version >= 27)) // 2.62+
+    if ((nloops < 1) && (loaded_game_file_version >= kGameVersion_262)) // 2.62+
         quit("!WaitMouseKey: must wait at least 1 loop");
 
     play.wait_counter = nloops;

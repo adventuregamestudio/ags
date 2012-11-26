@@ -34,40 +34,28 @@ NewInteractionValue::NewInteractionValue() {
 
 void NewInteractionValue::ReadFromFile(DataStream *in)
 {
-//#ifdef ALLEGRO_BIG_ENDIAN
     in->Read(&valType, 1);
     char pad[3];
     in->Read(pad, 3);
     val = in->ReadInt32();
     extra = in->ReadInt32();
-//#else
-//    throw "NewInteractionValue::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
-//#endif
 }
 
 void NewInteractionValue::WriteToFile(DataStream *out)
 {
-//#ifdef ALLEGRO_BIG_ENDIAN
     out->Write(&valType, 1);
     char pad[3];
     out->Write(pad, 3);
     out->WriteInt32(val);
     out->WriteInt32(extra);
-//#else
-//    throw "NewInteractionValue::WriteToFile() is not implemented for little-endian platforms and should not be called.";
-//#endif
 }
 
 
 void InteractionVariable::ReadFromFile(DataStream *in)
 {
-//#ifdef ALLEGRO_BIG_ENDIAN
     in->Read(name, 23);
     type = in->ReadInt8();
     value = in->ReadInt32();
-//#else
-//    throw "InteractionVariable::WriteToFile() is not implemented for little-endian platforms and should not be called.";
-//#endif
 }
 
 void InteractionVariable::WriteToFile(Common::DataStream *out)
@@ -101,7 +89,6 @@ void NewInteractionCommand::reset() { remove(); }
 
 void NewInteractionCommand::ReadFromFile(DataStream *in)
 {
-//#ifdef ALLEGRO_BIG_ENDIAN
     in->ReadInt32(); // skip the vtbl ptr
     type = in->ReadInt32();
     for (int i = 0; i < MAX_ACTION_ARGS; ++i)
@@ -111,14 +98,10 @@ void NewInteractionCommand::ReadFromFile(DataStream *in)
     // all that matters is whether or not these are null...
     children = (NewInteractionAction *) (long)in->ReadInt32();
     parent = (NewInteractionCommandList *) (long)in->ReadInt32();
-//#else
-//    throw "NewInteractionCommand::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
-//#endif
 }
 
 void NewInteractionCommand::WriteToFile(DataStream *out)
 {
-//#ifdef ALLEGRO_BIG_ENDIAN
     out->WriteInt32(0); // write dummy vtbl ptr 
     out->WriteInt32(type);
     for (int i = 0; i < MAX_ACTION_ARGS; ++i)
@@ -127,9 +110,6 @@ void NewInteractionCommand::WriteToFile(DataStream *out)
     }
     out->WriteInt32((long)children);
     out->WriteInt32((long)parent);
-//#else
-//    throw "NewInteractionCommand::WriteToFile() is not implemented for little-endian platforms and should not be called.";
-//#endif
 }
 
 NewInteractionCommandList::NewInteractionCommandList () {
@@ -180,7 +160,6 @@ NewInteraction::~NewInteraction() {
 
 void NewInteraction::ReadFromFile(DataStream *in)
 {
-//#ifdef ALLEGRO_BIG_ENDIAN
     // it's all ints! <- JJS: No, it's not! There are pointer too.
 
   numEvents = in->ReadInt32();
@@ -191,14 +170,9 @@ void NewInteraction::ReadFromFile(DataStream *in)
     response[i] = (NewInteractionCommandList*)in->ReadInt32();
 
 //    in->ReadArray(&numEvents, sizeof(int), sizeof(NewInteraction)/sizeof(int));
-//#else
-//    throw "NewInteraction::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
-//#endif
 }
 void NewInteraction::WriteToFile(DataStream *out)
 {
-//#ifdef ALLEGRO_BIG_ENDIAN
-
   out->WriteInt32(numEvents);
   out->WriteArray(&eventTypes, sizeof(*eventTypes), MAX_NEWINTERACTION_EVENTS);
   out->WriteArray(&timesRun, sizeof(*timesRun), MAX_NEWINTERACTION_EVENTS);
@@ -207,9 +181,6 @@ void NewInteraction::WriteToFile(DataStream *out)
     out->WriteInt32((int)(response[i] != NULL));
 
 //    fwrite(&numEvents, sizeof(int), sizeof(NewInteraction)/sizeof(int), fp);
-//#else
-//    throw "NewInteraction::WriteToFile() is not implemented for little-endian platforms and should not be called.";
-//#endif
 }
 
 
@@ -228,14 +199,10 @@ void serialize_command_list (NewInteractionCommandList *nicl, DataStream *out) {
     return;
   out->WriteInt32 (nicl->numCommands);
   out->WriteInt32 (nicl->timesRun);
-//#ifdef ALLEGRO_BIG_ENDIAN
   for (int iteratorCount = 0; iteratorCount < nicl->numCommands; ++iteratorCount)
   {
       nicl->command[iteratorCount].WriteToFile(out);
   }
-//#else
-//  out->WriteArray (&nicl->command[0], sizeof(NewInteractionCommand), nicl->numCommands);  
-//#endif  // ALLEGRO_BIG_ENDIAN
   for (int k = 0; k < nicl->numCommands; k++) {
     if (nicl->command[k].children != NULL)
       serialize_command_list (nicl->command[k].get_child_list(), out);
@@ -263,14 +230,10 @@ NewInteractionCommandList *deserialize_command_list (DataStream *in) {
   NewInteractionCommandList *nicl = new NewInteractionCommandList;
   nicl->numCommands = in->ReadInt32();
   nicl->timesRun = in->ReadInt32();
-//#ifdef ALLEGRO_BIG_ENDIAN
   for (int iteratorCount = 0; iteratorCount < nicl->numCommands; ++iteratorCount)
   {
       nicl->command[iteratorCount].ReadFromFile(in);
   }
-//#else
-//  in->ReadArray (&nicl->command[0], sizeof(NewInteractionCommand), nicl->numCommands);  
-//#endif  // ALLEGRO_BIG_ENDIAN
   for (int k = 0; k < nicl->numCommands; k++) {
     if (nicl->command[k].children != NULL) {
       nicl->command[k].children = deserialize_command_list (in);

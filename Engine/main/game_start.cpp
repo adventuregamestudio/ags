@@ -90,7 +90,7 @@ void start_game_load_savegame_on_startup()
             sscanf(sgName, "agssave.%03d", &saveGameNumber);
         }
         current_fade_out_effect();
-        int loadGameErrorCode = do_game_load(loadSaveGameOnStartup, saveGameNumber, NULL, NULL);
+        int loadGameErrorCode = load_game(loadSaveGameOnStartup, saveGameNumber);
         if (loadGameErrorCode)
         {
             quitprintf("Unable to resume the save game. Try starting the game over. (Error: %s)", load_game_errors[-loadGameErrorCode]);

@@ -102,7 +102,6 @@ extern int  numlines;
 extern void read_gui(Common::DataStream *in, GUIMain * guiread, GameSetupStruct * gss, GUIMain** allocate = NULL);
 extern void write_gui(Common::DataStream *out, GUIMain * guiwrite, GameSetupStruct * gss);
 
-extern int loaded_game_file_version;
 extern int mousex, mousey;
 
 extern int get_adjusted_spritewidth(int spr);

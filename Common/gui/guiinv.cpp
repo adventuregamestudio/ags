@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include "ac/common.h"
 #include "gui/guiinv.h"
 #include "gui/guimain.h"
 #include "util/datastream.h"
@@ -49,7 +50,7 @@ void GUIInv::ReadFromFile(DataStream *in, int version)
 	  topIndex = 0;
 	}
 
-	if (loaded_game_file_version >= 31) // 2.70
+	if (loaded_game_file_version >= kGameVersion_270)
 	{
 	  // ensure that some items are visible
 	  if (itemWidth > wid)
@@ -62,7 +63,7 @@ void GUIInv::ReadFromFile(DataStream *in, int version)
 }
 
 void GUIInv::CalculateNumCells() {
-  if (loaded_game_file_version >= 31) // 2.70
+  if (loaded_game_file_version >= kGameVersion_270)
   {
     itemsPerLine = wid / multiply_up_coordinate(itemWidth);
     numLines = hit / multiply_up_coordinate(itemHeight);

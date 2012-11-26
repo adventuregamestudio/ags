@@ -501,6 +501,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\richgamemedia.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\room.cpp"
 					>
 				</File>

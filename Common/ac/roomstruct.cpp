@@ -36,21 +36,17 @@ int _acroom_bpp = 1;  // bytes per pixel of currently loading room
 
 void sprstruc::ReadFromFile(Common::DataStream *in)
 {
-//#ifdef ALLEGRO_BIG_ENDIAN
-    sprnum = in->ReadInt16();//__getshort__bigendian(fp);
-    x = in->ReadInt16();//__getshort__bigendian(fp);
-    y = in->ReadInt16();//__getshort__bigendian(fp);
-    room = in->ReadInt16();//__getshort__bigendian(fp);
-    on = in->ReadInt16();//__getshort__bigendian(fp);
-//#else
-//    throw "sprstruc::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
-//#endif
+    sprnum = in->ReadInt16();
+    x = in->ReadInt16();
+    y = in->ReadInt16();
+    room = in->ReadInt16();
+    on = in->ReadInt16();
 }
 
 roomstruct::roomstruct() {
     ebscene[0] = NULL; walls = NULL; object = NULL; lookat = NULL; nummes = 0;
     left = 0; right = 317; top = 40; bottom = 199; numobj = MAX_OBJ; numsprs = 0; password[0] = 0;
-    wasversion = ROOM_FILE_VERSION; numanims = 0; regions = NULL; numwalkareas = 0;
+    wasversion = kRoomVersion_Current; numanims = 0; regions = NULL; numwalkareas = 0;
     numhotspots = 0;
     memset(&objbaseline[0], 0xff, sizeof(int) * MAX_INIT_SPR);
     memset(&objectFlags[0], 0, sizeof(short) * MAX_INIT_SPR);
@@ -139,11 +135,7 @@ for (int f=0;f<nummes;f++) if (message[f]!=NULL) free(message[f]); }*/
 
 void room_file_header::ReadFromFile(DataStream *in)
 {
-//#ifdef ALLEGRO_BIG_ENDIAN
-    version = in->ReadInt16();//in->ReadInt16();__getshort__bigendian(fp);
-//#else
-//    throw "room_file_header::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
-//#endif
+    version = in->ReadInt16();
 }
 
 
@@ -209,13 +201,9 @@ void load_main_block(roomstruct *rstruc, char *files, DataStream *in, room_file_
 	if (rstruc->numhotspots > MAX_HOTSPOTS)
 		quit("room has too many hotspots: need newer version of AGS?");
 
-//#ifdef ALLEGRO_BIG_ENDIAN
     // Points are a pair of shorts
     // [IKM] TODO: read/write member for _Point?
     in->ReadArrayOfInt16((int16_t*)&rstruc->hswalkto[0], 2*rstruc->numhotspots);
-//#else
-//    in->ReadArray(&rstruc->hswalkto[0], sizeof(_Point), rstruc->numhotspots);
-//#endif
 
 	for (f = 0; f < rstruc->numhotspots; f++)
 	{
@@ -237,15 +225,10 @@ void load_main_block(roomstruct *rstruc, char *files, DataStream *in, room_file_
     in->ReadArray(&rstruc->hotspotScriptNames[0], MAX_SCRIPT_NAME_LEN, rstruc->numhotspots);
     
   rstruc->numwalkareas = in->ReadInt32();
-  // MACPORT FIX: read polypoints
-//#ifdef ALLEGRO_BIG_ENDIAN
   for (int iteratorCount = 0; iteratorCount < rstruc->numwalkareas; ++iteratorCount)
   {
       rstruc->wallpoints[iteratorCount].ReadFromFile(in);
   }
-//#else
-//  in->ReadArray(&rstruc->wallpoints[0], sizeof(PolyPoints), rstruc->numwalkareas);
-//#endif
   
   update_polled_stuff_if_runtime();
 
@@ -255,28 +238,20 @@ void load_main_block(roomstruct *rstruc, char *files, DataStream *in, room_file_
   rstruc->right = in->ReadInt16();
 
   rstruc->numsprs = in->ReadInt16();
-  // MACPORT FIX: read sprstrucs
-//#ifdef ALLEGRO_BIG_ENDIAN
   for (int iteratorCount = 0; iteratorCount < rstruc->numsprs; ++iteratorCount)
   {
       rstruc->sprs[iteratorCount].ReadFromFile(in);
   }
-//#else
-//  in->ReadArray(&rstruc->sprs[0], sizeof(sprstruc), rstruc->numsprs);
-//#endif
 
   if (rfh.version >= 19) {
     rstruc->numLocalVars = in->ReadInt32();
     if (rstruc->numLocalVars > 0) {
       rstruc->localvars = (InteractionVariable*)malloc (sizeof(InteractionVariable) * rstruc->numLocalVars);
-//#ifdef ALLEGRO_BIG_ENDIAN
+
       for (int iteratorCount = 0; iteratorCount < rstruc->numLocalVars; ++iteratorCount)
       {
           rstruc->localvars[iteratorCount].ReadFromFile(in);
       }
-//#else
-//      in->Read (&rstruc->localvars[0], sizeof(InteractionVariable), rstruc->numLocalVars);
-//#endif
     }
   }
   
@@ -414,16 +389,12 @@ void load_main_block(roomstruct *rstruc, char *files, DataStream *in, room_file_
     rstruc->gameId = in->ReadInt32();
 
   if (rfh.version >= 3)
-//#ifdef ALLEGRO_BIG_ENDIAN
   {
       for (int iteratorCount = 0; iteratorCount < rstruc->nummes; ++iteratorCount)
       {
           rstruc->msgi[iteratorCount].ReadFromFile(in);
       }
   }
-//#else
-    //in->ReadArray(&rstruc->msgi[0], sizeof(MessageInfo), rstruc->nummes);
-//#endif
   else
     memset(&rstruc->msgi[0], 0, sizeof(MessageInfo) * MAXMESS);
 
@@ -619,11 +590,7 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
   }
   update_polled_stuff_if_runtime();  // it can take a while to load the file sometimes
 
-//#ifdef ALLEGRO_BIG_ENDIAN
   rfh.ReadFromFile(opty);
-//#else
-//  in->ReadArray(&rfh, sizeof(rfh), 1);  
-//#endif
   //fclose(opty);
   rstruc->wasversion = rfh.version;
 

@@ -87,7 +87,7 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
     texthit = wgetfontheight(usingfont);
 
     // AGS 2.x: If the screen is faded out, fade in again when displaying a message box.
-    if (!asspch && (loaded_game_file_version <= 32))
+    if (!asspch && (loaded_game_file_version <= kGameVersion_272))
         play.screen_is_faded_out = 0;
 
     // if it's a normal message box and the game was being skipped,
@@ -515,7 +515,7 @@ void draw_button_background(int xx1,int yy1,int xx2,int yy2,GUIMain*iep) {
         wsetcolor(opts.tws.textcol); abuf->DrawRect(Rect(xx1+1,yy1+1,xx2-1,yy2-1);*/
     }
     else {
-        if (loaded_game_file_version < 27) // < 2.62
+        if (loaded_game_file_version < kGameVersion_262) // < 2.62
         {
             // Color 0 wrongly shows as transparent instead of black
             // From the changelog of 2.62:
@@ -534,7 +534,7 @@ void draw_button_background(int xx1,int yy1,int xx2,int yy2,GUIMain*iep) {
         int leftRightWidth = spritewidth[get_but_pic(iep,4)];
         int topBottomHeight = spriteheight[get_but_pic(iep,6)];
         if (iep->bgpic>0) {
-            if ((loaded_game_file_version <= 32) // 2.xx
+            if ((loaded_game_file_version <= kGameVersion_272) // 2.xx
                 && (spriteset[iep->bgpic]->GetWidth() == 1)
                 && (spriteset[iep->bgpic]->GetHeight() == 1) 
                 && (*((unsigned int*)spriteset[iep->bgpic]->GetData()) == 0x00FF00FF))

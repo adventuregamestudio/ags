@@ -25,6 +25,7 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 
+using AGS::Common::String;
 using AGS::Common::Bitmap;
 
 extern IGraphicsDriver *gfxDriver;
@@ -94,7 +95,8 @@ int loadgamedialog()
           lpTemp = NULL;
         else {
           toret = filenumbers[cursel];
-          get_save_game_path(toret, bufTemp);
+          String path = get_save_game_path(toret);
+          strcpy(bufTemp, path);
           lpTemp = &bufTemp[0];
         }
       } else if (mes.id == ctrlcancel) {
@@ -212,7 +214,8 @@ int savegamedialog()
             quit("Save game directory overflow");
 
           toret = highestnum + 1;
-          get_save_game_path(toret, bufTemp);
+          String path = get_save_game_path(toret);
+          strcpy(bufTemp, path);
         } 
         else {
           toret = filenumbers[cursell];
@@ -220,7 +223,10 @@ int savegamedialog()
         }
 
         if (bufTemp[0] == 0)
-          get_save_game_path(toret, bufTemp);
+        {
+          String path = get_save_game_path(toret);
+          strcpy(bufTemp, path);
+        }
 
         lpTemp = &bufTemp[0];
         lpTemp2 = &buffer2[0];
@@ -275,13 +281,13 @@ void preparesavegamelist(int ctrllist)
     const char *numberExtension = strstr(ffb.name, ".0") + 1;
     int sgNumber = atoi(numberExtension);
 
-    char thisGamePath[260];
-    get_save_game_path(sgNumber, thisGamePath);
+    String thisGamePath = get_save_game_path(sgNumber);
 
     // get description
-    load_game(sgNumber, buff, NULL);
+    String description;
+    read_savedgame_description(thisGamePath, description);
 
-    CSCISendControlMessage(ctrllist, CLB_ADDITEM, 0, (long)&buff[0]);
+    CSCISendControlMessage(ctrllist, CLB_ADDITEM, 0, (long)description.GetCStr());
     // Select the first item
     CSCISendControlMessage(ctrllist, CLB_SETCURSEL, 0, 0);
     filenumbers[numsaves] = sgNumber;

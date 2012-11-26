@@ -19,8 +19,4 @@ platform/osx/acplmac.cpp \
 platform/util/libc.c \
 platform/util/pe.c
 
-COMMON_PLATFORM = \
-../Common/platform/osx/macport.cpp \
-../Common/platform/bigend/bigend.cpp
-
 CDA = 

@@ -45,7 +45,6 @@ extern RoomStatus*croom;
 extern RoomObject*objs;
 extern roomstruct thisroom;
 extern ObjectCache objcache[MAX_INIT_SPR];
-extern int loaded_game_file_version;
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern MoveList *mls;
 extern GameSetupStruct game;
@@ -327,7 +326,7 @@ void move_object(int objj,int tox,int toy,int spee,int ignwal) {
         quit("!MoveObject: invalid object number");
 
     // AGS <= 2.61 uses MoveObject with spp=-1 internally instead of SetObjectPosition
-    if ((loaded_game_file_version <= 26) && (spee == -1))
+    if ((loaded_game_file_version <= kGameVersion_261) && (spee == -1))
     {
         objs[objj].x = tox;
         objs[objj].y = toy;

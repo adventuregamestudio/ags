@@ -14,14 +14,14 @@
 
 #include <string.h> // memset
 #include <stdlib.h> // free
-#include "roomstatus.h"
+#include "ac/common.h"
+#include "ac/roomstatus.h"
 #include "util/datastream.h"
 
 using AGS::Common::DataStream;
 
 void RoomStatus::ReadFromFile(DataStream *in)
 {
-//#ifdef ALLEGRO_BIG_ENDIAN
     beenhere = in->ReadInt32();
     numobj = in->ReadInt32();
     for (int i = 0; i < MAX_INIT_SPR; ++i)
@@ -51,13 +51,9 @@ void RoomStatus::ReadFromFile(DataStream *in)
     in->ReadArrayOfInt16(walkbehind_base, MAX_OBJ);
     in->Seek(Common::kSeekCurrent, get_padding(MAX_HOTSPOTS+MAX_REGIONS+2*MAX_OBJ));
     in->ReadArrayOfInt32(interactionVariableValues, MAX_GLOBAL_VARIABLES);
-//#else
-//    throw "RoomStatus::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
-//#endif
 }
 void RoomStatus::WriteToFile(DataStream *out)
 {
-//#ifdef ALLEGRO_BIG_ENDIAN
     char pad[4];
     out->WriteInt32(beenhere);
     out->WriteInt32(numobj);
@@ -88,9 +84,6 @@ void RoomStatus::WriteToFile(DataStream *out)
     out->WriteArrayOfInt16(walkbehind_base, MAX_OBJ);
     out->Write(pad, get_padding(MAX_HOTSPOTS+MAX_REGIONS+2*MAX_OBJ));
     out->WriteArrayOfInt32(interactionVariableValues,MAX_GLOBAL_VARIABLES);
-//#else
-//    throw "RoomStatus::WriteToFile() is not implemented for little-endian platforms and should not be called.";
-//#endif
 }
 
 // JJS: Replacement for the global roomstats array in the original engine.
@@ -118,8 +111,6 @@ bool isRoomStatusValid(int room)
     return (room_statuses[room] != NULL);
 }
 
-extern int loaded_game_file_version;
-
 void resetRoomStatuses()
 {
     for (int i = 0; i < MAX_ROOMS; i++)
@@ -133,7 +124,7 @@ void resetRoomStatuses()
             // pointer that are also referenced in the current room struct.
             // If they are freed here this will lead to an access violation when the
             // room unloading function tries to frees them.
-            if (loaded_game_file_version <= 32)
+            if (loaded_game_file_version <= kGameVersion_272)
             {
                 room_statuses[i]->tsdatasize = 0;
                 room_statuses[i]->tsdata = 0;

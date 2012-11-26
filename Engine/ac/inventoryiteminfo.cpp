@@ -20,7 +20,6 @@ using AGS::Common::DataStream;
 
 void InventoryItemInfo::ReadFromFile(DataStream *in)
 {
-//#ifdef ALLEGRO_BIG_ENDIAN
     in->Read(name, 25);
     in->Seek(Common::kSeekCurrent, 3);
     pic = in->ReadInt32();
@@ -30,9 +29,6 @@ void InventoryItemInfo::ReadFromFile(DataStream *in)
     in->ReadArrayOfInt32(reserved, 5);
     flags = in->ReadInt8();
     in->Seek(Common::kSeekCurrent, 3);
-//#else
-//    throw "InventoryItemInfo::ReadFromFile() is not implemented for little-endian platforms and should not be called.";
-//#endif
 }
 
 void InventoryItemInfo::WriteToFile(DataStream *out)

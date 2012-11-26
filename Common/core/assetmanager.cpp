@@ -338,11 +338,6 @@ DataStream *AssetManager::_OpenAsset(const String &asset_name,
 AssetError AssetManager::RegisterAssetLib(const String &data_file, const String &password)
 {
     _assetLib.Unload();
-    // if no lib name, reset current lib name and return
-    if (data_file.IsEmpty())
-    {
-        return kAssetNoError;
-    }
     // base path is current directory
     _assetLib.BasePath = ".";
 

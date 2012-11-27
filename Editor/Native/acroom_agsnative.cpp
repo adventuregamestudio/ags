@@ -11,5 +11,5 @@
 
 bool load_room_is_version_bad(roomstruct *rstruc)
 {
-  return ((rstruc->wasversion < 15) || (rstruc->wasversion > ROOM_FILE_VERSION));
+    return ((rstruc->wasversion < 15) || (rstruc->wasversion > kRoomVersion_Current));
 }

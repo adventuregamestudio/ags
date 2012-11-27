@@ -1973,7 +1973,7 @@ void save_room(const char *files, roomstruct rstruc) {
   DataStream       *opty;
   room_file_header  rfh;
 
-  if (rstruc.wasversion < ROOM_FILE_VERSION)
+  if (rstruc.wasversion < kRoomVersion_Current)
     quit("save_room: can no longer save old format rooms");
 
   if (rstruc.wasversion < 9) {
@@ -2227,7 +2227,7 @@ void save_room(const char *files, roomstruct rstruc) {
 
 void save_room_file(const char*rtsa) 
 {
-  thisroom.wasversion=ROOM_FILE_VERSION;
+  thisroom.wasversion=kRoomVersion_Current;
   copy_room_palette_to_global_palette();
   
   thisroom.password[0] = 0;
@@ -5267,5 +5267,5 @@ void update_polled_stuff_if_runtime()
 // [IKM] 2012-06-07
 // Had to copy this variable definition from Engine/ac.cpp, since it is required in acgui.cpp // GUIInv::CalculateNumCells()
 // due JJS's compatiblity fix for 2.70.
-// This *must* be not less than 31, otherwise function will work in backward-compatibility mode.
-int loaded_game_file_version = 31;
+// This *must* be not less than 31 (v270), otherwise function will work in backward-compatibility mode.
+GameDataVersion loaded_game_file_version = kGameVersion_270;

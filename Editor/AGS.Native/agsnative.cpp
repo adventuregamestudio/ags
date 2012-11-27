@@ -3812,7 +3812,7 @@ Game^ load_old_game_dta_file(const char *fileName)
 		game->OldInteractionVariables->Add(intVar);
 	}
 	
-	AGS::Types::ViewFolder ^viewFolder = gcnew AGS::Types::ViewFolder();
+    AGS::Types::IViewFolder ^viewFolder = AGS::Types::FolderHelper::CreateDefaultViewFolder();
 	for (i = 0; i < thisgame.numviews; i++) 
 	{
 		AGS::Types::View ^view = gcnew AGS::Types::View();
@@ -3848,7 +3848,7 @@ Game^ load_old_game_dta_file(const char *fileName)
 
 		viewFolder->Views->Add(view);
 	}
-	game->RootViewFolder = viewFolder;
+    AGS::Types::FolderHelper::SetRootViewFolder(game, viewFolder);
 
 	for (i = 0; i < thisgame.numcharacters; i++) 
 	{
@@ -4559,6 +4559,8 @@ void save_crm_file(Room ^room)
 	}
 }
 
+// [IKM] 2012-11-13: code moved to AGS.Types.FolderHelper
+/*
 static int CountViews(ViewFolder ^folder) 
 {
 	int highestViewNumber = 0;
@@ -4579,44 +4581,54 @@ static int CountViews(ViewFolder ^folder)
 	}
 	return highestViewNumber;
 }
+*/
 
-static void ConvertViewsToDTAFormat(ViewFolder ^folder, Game ^game) 
+ref class ManagedViewProcessing
 {
-	for each (ViewFolder ^subFolder in folder->SubFolders)
-	{
-		ConvertViewsToDTAFormat(subFolder, game);
-	}
+public:
+    static void ConvertViewsToDTAFormat(IViewFolder ^folder, Game ^game) 
+    {
+        /*
+	    for each (ViewFolder ^subFolder in folder->SubFolders)
+	    {
+		    ConvertViewsToDTAFormat(subFolder, game);
+	    }
+        */
+        AGS::Types::FolderHelper::ViewFolderProcessing ^del = 
+            gcnew AGS::Types::FolderHelper::ViewFolderProcessing(ConvertViewsToDTAFormat);
+        AGS::Types::FolderHelper::ForEachViewFolder(folder, game, del);
 
-	for each (View ^view in folder->Views)
-	{
-		int i = view->ID - 1;
-		ConvertStringToCharArray(view->Name, thisgame.viewNames[i], MAXVIEWNAMELENGTH);
+	    for each (View ^view in folder->Views)
+	    {
+		    int i = view->ID - 1;
+		    ConvertStringToCharArray(view->Name, thisgame.viewNames[i], MAXVIEWNAMELENGTH);
 
-		newViews[i].Initialize(view->Loops->Count);
-		for (int j = 0; j < newViews[i].numLoops; j++) 
-		{
-      newViews[i].loops[j].Initialize(view->Loops[j]->Frames->Count);
-			for (int k = 0; k < newViews[i].loops[j].numFrames; k++) 
-			{
-				AGS::Types::ViewFrame ^frame = view->Loops[j]->Frames[k];
-        int frameSound = -1;
-        if (frame->Sound > 0) 
-          frameSound = game->GetAudioArrayIndexFromAudioClipIndex(frame->Sound);
+		    newViews[i].Initialize(view->Loops->Count);
+		    for (int j = 0; j < newViews[i].numLoops; j++) 
+		    {
+          newViews[i].loops[j].Initialize(view->Loops[j]->Frames->Count);
+			    for (int k = 0; k < newViews[i].loops[j].numFrames; k++) 
+			    {
+				    AGS::Types::ViewFrame ^frame = view->Loops[j]->Frames[k];
+            int frameSound = -1;
+            if (frame->Sound > 0) 
+              frameSound = game->GetAudioArrayIndexFromAudioClipIndex(frame->Sound);
 
-				newViews[i].loops[j].frames[k].flags = (frame->Flipped) ? VFLG_FLIPSPRITE : 0;
-				newViews[i].loops[j].frames[k].pic = frame->Image;
-        newViews[i].loops[j].frames[k].sound = frameSound;
-				newViews[i].loops[j].frames[k].speed = frame->Delay;
-			}
-			
-			if (view->Loops[j]->RunNextLoop)
-			{
-        newViews[i].loops[j].flags = LOOPFLAG_RUNNEXTLOOP;
-			}
-		}
+				    newViews[i].loops[j].frames[k].flags = (frame->Flipped) ? VFLG_FLIPSPRITE : 0;
+				    newViews[i].loops[j].frames[k].pic = frame->Image;
+            newViews[i].loops[j].frames[k].sound = frameSound;
+				    newViews[i].loops[j].frames[k].speed = frame->Delay;
+			    }
+    			
+			    if (view->Loops[j]->RunNextLoop)
+			    {
+            newViews[i].loops[j].flags = LOOPFLAG_RUNNEXTLOOP;
+			    }
+		    }
 
-	}
-}
+	    }
+    }
+};
 
 void write_compiled_script(DataStream *ooo, Script ^script)
 {
@@ -4937,13 +4949,13 @@ void save_game_to_dta_file(Game^ game, const char *fileName)
 	}
 
 	// ** Views **
-	int viewCount = CountViews(game->RootViewFolder);
+    int viewCount = AGS::Types::FolderHelper::CountViews(AGS::Types::FolderHelper::GetRootViewFolder(game));
 
 	thisgame.numviews = viewCount;
   allocate_memory_for_views(viewCount);
   numNewViews = viewCount;
 
-	ConvertViewsToDTAFormat(game->RootViewFolder, game);
+  ManagedViewProcessing::ConvertViewsToDTAFormat(AGS::Types::FolderHelper::GetRootViewFolder(game), game);
 
 	// ** Characters **
 	thisgame.numcharacters = game->Characters->Count;

@@ -228,6 +228,7 @@
     <Compile Include="Enums\AudioFileBundlingType.cs" />
     <Compile Include="Enums\InheritableBool.cs" />
     <Compile Include="Enums\LookInDocumentType.cs" />
+    <Compile Include="FolderHelper.cs" />
     <Compile Include="GUIFolder.cs" />
     <Compile Include="Interfaces\Docking\IDockingContent.cs" />
     <Compile Include="Interfaces\Docking\IDockingPane.cs" />

@@ -23,8 +23,6 @@
 using AGS::Common::DataStream;
 using AGS::Common::Bitmap;
 
-extern SpriteCache spriteset;
-
 DynamicArray<GUISlider> guislider;
 int numguislider = 0;
 

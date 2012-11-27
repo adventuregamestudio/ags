@@ -46,7 +46,7 @@ long savecompressed_allegro(char *fnn, Common::Bitmap *bmpp, color *pall, long w
 long loadcompressed_allegro(Common::DataStream *in, Common::Bitmap **bimpp, color *pall, long read_at);
 
 //extern char *lztempfnm;
-//extern Common::Bitmap *recalced;
+extern Common::Bitmap *recalced;
 
 // returns bytes per pixel for bitmap's color depth
 int bmp_bpp(Common::Bitmap*bmpt);

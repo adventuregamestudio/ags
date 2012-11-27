@@ -15,12 +15,14 @@
 #ifndef __AC_COMMON_H
 #define __AC_COMMON_H
 
+#include "ac/common_defines.h"
 #include "ac/game_version.h"
 
-// quit() and update_polled_stuff_if_runtime() are the project-dependent functions,
-// they are defined both in Engine.App and AGS.Native.
+// These are the project-dependent functions, they are defined both in Engine.App and AGS.Native.
 void quit(char *);
 void update_polled_stuff_if_runtime();
+void set_our_eip(int eip);
+int  get_our_eip();
 
 extern char *croom_h_copyright;
 extern char *game_file_sig;

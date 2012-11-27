@@ -19,6 +19,7 @@
 #include "util/wgt2allg.h"
 #include "alfont.h"
 
+#include "ac/common.h"
 #include "font/fonts.h"
 #include "font/agsfontrenderer.h"
 #include "font/ttffontrenderer.h"
@@ -27,10 +28,6 @@
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
-
-extern void set_our_eip(int eip);
-extern int  get_our_eip();
-
 
 int texttrans = 0;
 int textcol;

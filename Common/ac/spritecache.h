@@ -76,4 +76,6 @@ private:
   void initFile_initNullSpriteParams(int vv);
 };
 
+extern SpriteCache spriteset;
+
 #endif // __SPRCACHE_H

@@ -24,4 +24,6 @@ using namespace AGS; // FIXME later
 void lzwcompress(Common::DataStream *lzw_in, Common::DataStream *out);
 unsigned char *lzwexpand_to_mem(Common::DataStream *in);
 
+extern long outbytes, maxsize, putbytes;
+
 #endif // __AGS_CN_UTIL__LZW_H

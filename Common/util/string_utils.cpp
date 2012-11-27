@@ -29,11 +29,11 @@ void removeBackslashBracket(char *lbuffer) {
     }
 }
 
-extern char lines[MAXLINE][200];
-extern int  numlines;
+char lines[MAXLINE][200];
+int  numlines;
 
+// Project-dependant implementation
 extern int wgettextwidth_compensate(const char *tex, int font);
-extern void quit(char * message) ;
 
 // Break up the text into lines, using normal Western left-right style
 void split_lines_leftright(const char *todis, int wii, int fonnt) {

@@ -19,6 +19,7 @@
 #include "util/wgt2allg.h"
 #include "alfont.h"
 
+#include "ac/common.h"
 #include "font/wfnfontrenderer.h"
 #include "util/datastream.h"
 #include "util/file.h"
@@ -27,9 +28,6 @@
 using AGS::Common::Bitmap;
 using AGS::Common::DataStream;
 using namespace AGS; // FIXME later
-
-extern void set_our_eip(int eip);
-extern int  get_our_eip();
 
 extern DataStream *fopen_shared(char *,
                                  Common::FileOpenMode open_mode = Common::kFile_Open,

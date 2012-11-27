@@ -36,12 +36,7 @@ using AGS::Common::DataStream;
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
-extern SpriteCache spriteset;
-
-
 char GUIMain::oNameBuffer[20];
-char lines[MAXLINE][200];
-int  numlines;
 
 int guis_need_update = 1;
 int all_buttons_disabled = 0, gui_inv_pic = -1;

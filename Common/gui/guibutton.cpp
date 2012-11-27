@@ -23,9 +23,6 @@
 using AGS::Common::DataStream;
 using AGS::Common::Bitmap;
 
-extern SpriteCache spriteset;
-
-
 
 DynamicArray<GUIButton> guibuts;
 //GUIButton guibuts[MAX_OBJ_EACH_TYPE];

@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include "util/wgt2allg.h"
 #include "ac/common.h"	// quit()
+#include "ac/roomstruct.h"
 #include "util/compress.h"
 #include "util/lzw.h"
 #include "util/misc.h"
@@ -39,14 +40,6 @@ using AGS::Common::DataStream;
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
-
-extern long cliboffset(const char *);
-extern char lib_file_name[13];
-extern void domouse(int);
-extern "C"
-{
-  extern Bitmap *wnewblock(int, int, int, int);
-}
 
 #ifndef __WGT4_H
 struct color
@@ -334,13 +327,6 @@ int cunpackbitl32(unsigned int *line, int size, DataStream *in)
 }
 
 //=============================================================================
-
-
-//extern void lzwcompress(FILE * f, FILE * out);
-//extern unsigned char *lzwexpand_to_mem(FILE * ii);
-extern long outbytes, maxsize, putbytes;
-extern int _acroom_bpp;  // bytes per pixel of currently loading room
-
 
 char *lztempfnm = "~aclzw.tmp";
 Bitmap *recalced = NULL;

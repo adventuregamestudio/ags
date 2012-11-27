@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "ac/common.h"
 #include "util/datastream.h"
 
 using AGS::Common::DataStream;
@@ -34,12 +35,8 @@ using namespace AGS; // FIXME later
 #include <io.h>
 #endif
 
-extern void quit(char *);
-
 int insert(int, int);
 void _delete(int);
-//void lzwcompress(FILE *, FILE *);
-//void lzwexpand(FILE *, FILE *);
 
 #define N 4096
 #define F 16

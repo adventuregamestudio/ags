@@ -29,8 +29,6 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 using AGS::Common::DataStream;
 
-extern Bitmap *recalced;
-
 Bitmap *backups[5];
 int _acroom_bpp = 1;  // bytes per pixel of currently loading room
 
@@ -493,7 +491,9 @@ void load_main_block(roomstruct *rstruc, char *files, DataStream *in, room_file_
   }
 }
 
+// CHECKME: Has slightly different implementations in Engine and Editor
 extern bool load_room_is_version_bad(roomstruct *rstruc);
+
 void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
   Common::DataStream *opty; // CHECKME why "opty"??
   room_file_header  rfh;

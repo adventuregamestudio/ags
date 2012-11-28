@@ -680,6 +680,18 @@
 						>
 					</File>
 				</Filter>
+				<Filter
+					Name="statobj"
+					>
+					<File
+						RelativePath="..\..\Engine\ac\statobj\agsstaticobject.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\statobj\staticarray.cpp"
+						>
+					</File>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="gfx"
@@ -784,6 +796,10 @@
 			<Filter
 				Name="script"
 				>
+				<File
+					RelativePath="..\..\Engine\script\cc_instance.cpp"
+					>
+				</File>
 				<File
 					RelativePath="..\..\Engine\script\ex_audio.cpp"
 					>
@@ -910,6 +926,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\script\exports.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\script\runtimescriptvalue.cpp"
 					>
 				</File>
 				<File
@@ -1686,6 +1706,22 @@
 						>
 					</File>
 				</Filter>
+				<Filter
+					Name="statobj"
+					>
+					<File
+						RelativePath="..\..\Engine\ac\statobj\agsstaticobject.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\statobj\staticarray.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\Engine\ac\statobj\staticobject.h"
+						>
+					</File>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="plugin"
@@ -1763,6 +1799,10 @@
 				Name="script"
 				>
 				<File
+					RelativePath="..\..\Engine\script\cc_instance.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\script\ex_defines.h"
 					>
 				</File>
@@ -1776,6 +1816,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\script\nonblockingscriptfunction.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\script\runtimescriptvalue.h"
 					>
 				</File>
 				<File

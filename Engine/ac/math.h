@@ -18,16 +18,18 @@
 #ifndef __AGS_EE_AC__MATH_H
 #define __AGS_EE_AC__MATH_H
 
+#include "core/types.h"
+
 // MACPORT FIX 9/6/5: undef M_PI first
 #undef M_PI
-#define M_PI 3.14159265358979323846
+#define M_PI 3.14159265358979323846F
 
 // unfortunately MSVC and GCC automatically push floats as doubles
 // to functions, thus we need to manually access it as 32-bit
-#define SCRIPT_FLOAT(x) long __script_float##x
+#define SCRIPT_FLOAT(x) int32_t __script_float##x
 #define INIT_SCRIPT_FLOAT(x) float x; memcpy(&x, &__script_float##x, sizeof(float))
-#define FLOAT_RETURN_TYPE long
-#define RETURN_FLOAT(x) long __ret##x; memcpy(&__ret##x, &x, sizeof(float)); return __ret##x
+#define FLOAT_RETURN_TYPE int32_t
+#define RETURN_FLOAT(x) int32_t __ret##x; memcpy(&__ret##x, &x, sizeof(float)); return __ret##x
 
 enum RoundDirections {
     eRoundDown = 0,

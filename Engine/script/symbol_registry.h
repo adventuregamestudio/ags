@@ -651,8 +651,8 @@ void ListBox_ScrollUp(GUIListBox *listbox);
 //-----------------------------------------------------------------------------
 // unfortunately MSVC and GCC automatically push floats as doubles
 // to functions, thus we need to manually access it as 32-bit
-#define SCRIPT_FLOAT(x) long __script_float##x
-#define FLOAT_RETURN_TYPE long
+#define SCRIPT_FLOAT(x) int32_t __script_float##x
+#define FLOAT_RETURN_TYPE int32_t
 
 FLOAT_RETURN_TYPE Math_Cos(SCRIPT_FLOAT(value));
 FLOAT_RETURN_TYPE Math_Sin(SCRIPT_FLOAT(value));

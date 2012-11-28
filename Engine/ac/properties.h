@@ -23,5 +23,6 @@
 int get_int_property (CustomProperties *cprop, const char *property);
 void get_text_property (CustomProperties *cprop, const char *property, char *bufer);
 const char* get_text_property_dynamic_string(CustomProperties *cprop, const char *property);
+const char* get_text_property_dynamic_string_as_ret_val(CustomProperties *cprop, const char *property);
 
 #endif // __AGS_EE_AC__PROPERTIES_H

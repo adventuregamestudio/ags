@@ -49,6 +49,7 @@
 #include "util/datastream.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
+#include "script/runtimescriptvalue.h"
 
 using AGS::Common::DataStream;
 
@@ -112,6 +113,7 @@ extern int offsetx, offsety;
 extern PluginObjectReader pluginReaders[MAX_PLUGIN_OBJECT_READERS];
 extern int numPluginReaders;
 extern IAGSFontRenderer* fontRenderers[MAX_FONTS];
+extern RuntimeScriptValue GlobalReturnValue;
 
 // **************** PLUGIN IMPLEMENTATION ****************
 
@@ -158,7 +160,7 @@ const char* IAGSEngine::GetEngineVersion () {
     return get_engine_version();
 }
 void IAGSEngine::RegisterScriptFunction (const char*name, void*addy) {
-    ccAddExternalSymbol ((char*)name, addy);
+    ccAddExternalStaticFunction ((char*)name, addy);
 }
 const char* IAGSEngine::GetGraphicsDriverID()
 {
@@ -594,7 +596,11 @@ int IAGSEngine::CallGameScriptFunction(const char *name, int32 globalScript, int
     if (!globalScript)
         toRun = roominst;
 
-    int toret = run_script_function_if_exist(toRun, (char*)name, numArgs, arg1, arg2, arg3);
+    RuntimeScriptValue params[3];
+    params[0].SetInt32(arg1);
+    params[1].SetInt32(arg2);
+    params[2].SetInt32(arg3);
+    int toret = toRun->RunScriptFunctionIfExists((char*)name, numArgs, params);
     return toret;
 }
 
@@ -665,10 +671,11 @@ void IAGSEngine::QueueGameScriptFunction(const char *name, int32 globalScript, i
     }
     strcat(scNameToRun, name);
 
-    curscript->run_another(scNameToRun, arg1, arg2);
+    curscript->run_another(scNameToRun, RuntimeScriptValue().SetInt32(arg1), RuntimeScriptValue().SetInt32(arg2));
 }
 
 int IAGSEngine::RegisterManagedObject(const void *object, IAGSScriptManagedObject *callback) {
+    GlobalReturnValue.SetDynamicObject((void*)object, (ICCDynamicObject*)callback);
     return ccRegisterManagedObject(object, (ICCDynamicObject*)callback);
 }
 
@@ -690,6 +697,7 @@ void IAGSEngine::AddManagedObjectReader(const char *typeName, IAGSManagedObjectR
 }
 
 void IAGSEngine::RegisterUnserializedObject(int key, const void *object, IAGSScriptManagedObject *callback) {
+    GlobalReturnValue.SetDynamicObject((void*)object, (ICCDynamicObject*)callback);
     ccRegisterUnserializedObject(key, object, (ICCDynamicObject*)callback);
 }
 
@@ -698,11 +706,15 @@ int IAGSEngine::GetManagedObjectKeyByAddress(const char *address) {
 }
 
 void* IAGSEngine::GetManagedObjectAddressByKey(int key) {
-    return (void*)ccGetObjectAddressFromHandle(key);
+    void *object;
+    ICCDynamicObject *manager;
+    ccGetObjectAddressAndManagerFromHandle(key, object, manager);
+    GlobalReturnValue.SetDynamicObject(object, manager);
+    return object;
 }
 
 const char* IAGSEngine::CreateScriptString(const char *fromText) {
-    return CreateNewScriptString(fromText);
+    return CreateNewScriptStringAsRetVal(fromText);
 }
 
 int IAGSEngine::IncrementManagedObjectRefCount(const char *address) {

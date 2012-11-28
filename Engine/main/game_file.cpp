@@ -39,6 +39,8 @@
 #include "util/datastream.h"
 #include "gfx/bitmap.h"
 #include "core/assetmanager.h"
+#include "ac/statobj/agsstaticobject.h"
+#include "ac/statobj/staticarray.h"
 
 using AGS::Common::Bitmap;
 
@@ -91,7 +93,7 @@ extern ccScript* dialogScriptsScript;
 extern ccScript *scriptModules[MAX_SCRIPT_MODULES];
 extern ccInstance *moduleInst[MAX_SCRIPT_MODULES];
 extern ccInstance *moduleInstFork[MAX_SCRIPT_MODULES];
-extern char *moduleRepExecAddr[MAX_SCRIPT_MODULES];
+extern RuntimeScriptValue moduleRepExecAddr[MAX_SCRIPT_MODULES];
 extern int numScriptModules;
 extern GameState play;
 extern char **characterScriptObjNames;
@@ -104,6 +106,15 @@ extern Bitmap **actspswb;
 extern IDriverDependantBitmap* *actspswbbmp;
 extern CachedActSpsData* actspswbcache;
 
+extern AGSStaticObject GlobalStaticManager;
+
+StaticArray StaticCharacterArray;
+StaticArray StaticObjectArray;
+StaticArray StaticGUIArray;
+StaticArray StaticHotspotArray;
+StaticArray StaticRegionArray;
+StaticArray StaticInventoryArray;
+StaticArray StaticDialogArray;
 
 GameDataVersion filever;
 // PSP specific variables:
@@ -169,7 +180,7 @@ void game_file_read_dialog_script(DataStream *in)
 {
 	if (filever > kGameVersion_310) // 3.1.1+ dialog script
     {
-        dialogScriptsScript = fread_script(in);
+        dialogScriptsScript = ccScript::CreateFromStream(in);
         if (dialogScriptsScript == NULL)
             quit("Dialog scripts load failed; need newer version?");
     }
@@ -188,12 +199,12 @@ void game_file_read_script_modules(DataStream *in)
             quit("too many script modules; need newer version?");
 
         for (int bb = 0; bb < numScriptModules; bb++) {
-            scriptModules[bb] = fread_script(in);
+            scriptModules[bb] = ccScript::CreateFromStream(in);
             if (scriptModules[bb] == NULL)
                 quit("Script module load failure; need newer version?");
             moduleInst[bb] = NULL;
             moduleInstFork[bb] = NULL;
-            moduleRepExecAddr[bb] = NULL;
+            moduleRepExecAddr[bb].Invalidate();
         }
     }
     else
@@ -387,7 +398,7 @@ void init_and_register_characters()
         characterScriptObjNames[ee] = (char*)malloc(strlen(game.chars[ee].scrname) + 5);
         strcpy(characterScriptObjNames[ee], game.chars[ee].scrname);
 
-        ccAddExternalSymbol(characterScriptObjNames[ee], &game.chars[ee]);
+        ccAddExternalDynamicObject(characterScriptObjNames[ee], &game.chars[ee], &ccDynamicCharacter);
     }
 }
 
@@ -420,7 +431,7 @@ void init_and_register_invitems()
         ccRegisterManagedObject(&scrInv[ee], &ccDynamicInv);
 
         if (game.invScriptNames[ee][0] != 0)
-            ccAddExternalSymbol(game.invScriptNames[ee], &scrInv[ee]);
+            ccAddExternalDynamicObject(game.invScriptNames[ee], &scrInv[ee], &ccDynamicInv);
     }
 }
 
@@ -433,7 +444,7 @@ void init_and_register_dialogs()
         ccRegisterManagedObject(&scrDialog[ee], &ccDynamicDialog);
 
         if (game.dialogScriptNames[ee][0] != 0)
-            ccAddExternalSymbol(game.dialogScriptNames[ee], &scrDialog[ee]);
+            ccAddExternalDynamicObject(game.dialogScriptNames[ee], &scrDialog[ee], &ccDynamicDialog);
     }
 }
 
@@ -469,7 +480,7 @@ void init_and_register_guis()
         // scrGui[ee].gui = &guis[ee];
         scrGui[ee].id = ee;
 
-        ccAddExternalSymbol(guiScriptObjNames[ee], &scrGui[ee]);
+        ccAddExternalDynamicObject(guiScriptObjNames[ee], &scrGui[ee], &ccDynamicGUI);
         ccRegisterManagedObject(&scrGui[ee], &ccDynamicGUI);
     }
 
@@ -522,17 +533,25 @@ void init_and_register_game_objects()
     long dorsHandle = ccRegisterManagedObject(dialogOptionsRenderingSurface, dialogOptionsRenderingSurface);
     ccAddObjectReference(dorsHandle);
 
-    ccAddExternalSymbol("character",&game.chars[0]);
+    StaticCharacterArray.Create(&ccDynamicCharacter, sizeof(CharacterInfo), sizeof(CharacterInfo));
+    StaticObjectArray.Create(&ccDynamicObject, sizeof(ScriptObject), sizeof(ScriptObject));
+    StaticGUIArray.Create(&ccDynamicGUI, sizeof(ScriptGUI), sizeof(ScriptGUI));
+    StaticHotspotArray.Create(&ccDynamicHotspot, sizeof(ScriptHotspot), sizeof(ScriptHotspot));
+    StaticRegionArray.Create(&ccDynamicRegion, sizeof(ScriptRegion), sizeof(ScriptRegion));
+    StaticInventoryArray.Create(&ccDynamicInv, sizeof(ScriptInvItem), sizeof(ScriptInvItem));
+    StaticDialogArray.Create(&ccDynamicDialog, sizeof(ScriptDialog), sizeof(ScriptDialog));
+
+    ccAddExternalStaticArray("character",&game.chars[0], &StaticCharacterArray);
     setup_player_character(game.playercharacter);
     if (loaded_game_file_version >= kGameVersion_270) {
-        ccAddExternalSymbol("player", &_sc_PlayerCharPtr);
+        ccAddExternalStaticObject("player", &_sc_PlayerCharPtr, &GlobalStaticManager);
     }
-    ccAddExternalSymbol("object",&scrObj[0]);
-    ccAddExternalSymbol("gui",&scrGui[0]);
-    ccAddExternalSymbol("hotspot",&scrHotspot[0]);
-    ccAddExternalSymbol("region",&scrRegion[0]);
-    ccAddExternalSymbol("inventory",&scrInv[0]);
-    ccAddExternalSymbol("dialog", &scrDialog[0]);
+    ccAddExternalStaticArray("object",&scrObj[0], &StaticObjectArray);
+    ccAddExternalStaticArray("gui",&scrGui[0], &StaticGUIArray);
+    ccAddExternalStaticArray("hotspot",&scrHotspot[0], &StaticHotspotArray);
+    ccAddExternalStaticArray("region",&scrRegion[0], &StaticRegionArray);
+    ccAddExternalStaticArray("inventory",&scrInv[0], &StaticInventoryArray);
+    ccAddExternalStaticArray("dialog", &scrDialog[0], &StaticDialogArray);
 }
 
 int load_game_file() {
@@ -590,7 +609,7 @@ int load_game_file() {
     if (game.compiled_script == NULL)
         quit("No global script in game; data load error");
 
-    gamescript = fread_script(in);
+    gamescript = ccScript::CreateFromStream(in);
     if (gamescript == NULL)
         quit("Global script load failed; need newer version?");
 

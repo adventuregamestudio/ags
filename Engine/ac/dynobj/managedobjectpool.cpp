@@ -23,7 +23,7 @@
 
 using AGS::Common::DataStream;
 
-void ManagedObjectPool::ManagedObject::init(long theHandle, const char *theAddress, ICCDynamicObject *theCallback) {
+void ManagedObjectPool::ManagedObject::init(int32_t theHandle, const char *theAddress, ICCDynamicObject *theCallback) {
     handle = theHandle;
     addr = theAddress;
     callback = theCallback;
@@ -95,15 +95,15 @@ void ManagedObjectPool::ManagedObject::SubRefNoDispose() {
 #endif
 }
 
-long ManagedObjectPool::AddRef(long handle) {
+int32_t ManagedObjectPool::AddRef(int32_t handle) {
         return objects[handle].AddRef();
 }
 
-int ManagedObjectPool::CheckDispose(long handle) {
+int ManagedObjectPool::CheckDispose(int32_t handle) {
     return objects[handle].CheckDispose();
 }
 
-long ManagedObjectPool::SubRef(long handle) {
+int32_t ManagedObjectPool::SubRef(int32_t handle) {
     if ((disableDisposeForObject != NULL) && 
         (objects[handle].addr == disableDisposeForObject))
         objects[handle].SubRefNoDispose();
@@ -112,7 +112,7 @@ long ManagedObjectPool::SubRef(long handle) {
     return objects[handle].refCount;
 }
 
-long ManagedObjectPool::AddressToHandle(const char *addr) {
+int32_t ManagedObjectPool::AddressToHandle(const char *addr) {
     // this function is only called when a pointer is set
     // SLOW LOOP ALERT, improve at some point
     for (int kk = 1; kk < arrayAllocLimit; kk++) {
@@ -122,7 +122,7 @@ long ManagedObjectPool::AddressToHandle(const char *addr) {
     return 0;
 }
 
-const char* ManagedObjectPool::HandleToAddress(long handle) {
+const char* ManagedObjectPool::HandleToAddress(int32_t handle) {
     // this function is called often (whenever a pointer is used)
     if ((handle < 1) || (handle >= arrayAllocLimit))
         return NULL;
@@ -131,8 +131,20 @@ const char* ManagedObjectPool::HandleToAddress(long handle) {
     return objects[handle].addr;
 }
 
+void ManagedObjectPool::HandleToAddressAndManager(int32_t handle, void *&object, ICCDynamicObject *&manager) {
+    object = NULL;
+    manager = NULL;
+    // this function is called often (whenever a pointer is used)
+    if ((handle < 1) || (handle >= arrayAllocLimit))
+        return;
+    if (objects[handle].handle == 0)
+        return;
+    object = (void*)objects[handle].addr;
+    manager = objects[handle].callback;
+}
+
 int ManagedObjectPool::RemoveObject(const char *address) {
-    long handl = AddressToHandle(address);
+    int32_t handl = AddressToHandle(address);
     if (handl == 0)
         return 0;
 

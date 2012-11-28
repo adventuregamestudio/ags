@@ -194,7 +194,7 @@ void debug_write_console (char *msg, ...) {
     displbuf[99] = 0;
 
     strcpy (debug_line[last_debug_line].text, displbuf);
-    ccInstance*curinst = ccGetCurrentInstance();
+    ccInstance*curinst = ccInstance::GetCurrentInstance();
     if (curinst != NULL) {
         char scriptname[20];
         if (curinst->instanceof == gamescript)
@@ -220,7 +220,7 @@ void debug_write_console (char *msg, ...) {
 
 
 const char *get_cur_script(int numberOfLinesOfCallStack) {
-    ccGetCallStack(ccGetCurrentInstance(), pexbuf, numberOfLinesOfCallStack);
+    ccInstance::GetCurrentInstance()->GetCallStack(pexbuf, numberOfLinesOfCallStack);
 
     if (pexbuf[0] == 0)
         strcpy(pexbuf, ccErrorCallStack);
@@ -448,7 +448,7 @@ void scriptDebugHook (ccInstance *ccinst, int linenum) {
     if (pluginsWantingDebugHooks > 0) {
         // a plugin is handling the debugging
         char scname[40];
-        get_script_name(ccinst, scname);
+        ccinst->GetScriptName(scname);
         platform->RunPluginDebugHooks(scname, linenum);
         return;
     }
@@ -468,7 +468,7 @@ void scriptDebugHook (ccInstance *ccinst, int linenum) {
         return;
     }
 
-    const char *scriptName = ccGetSectionNameAtOffs(ccinst->runningInst->instanceof, ccinst->pc);
+    const char *scriptName = ccinst->runningInst->instanceof->GetSectionName(ccinst->pc);
 
     for (int i = 0; i < numBreakpoints; i++)
     {

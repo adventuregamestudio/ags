@@ -24,41 +24,47 @@
 namespace AGS { namespace Common { class DataStream; } }
 using namespace AGS; // FIXME later
 
-
-
 struct ccScript
 {
+public:
     char *globaldata;
-    long globaldatasize;
-    long *code;
-    long codesize;
+    int32_t globaldatasize;
+    intptr_t *code;
+    int32_t codesize;
     char *strings;
-    long stringssize;
+    int32_t stringssize;
     char *fixuptypes;             // global data/string area/ etc
-    long *fixups;                 // code array index to fixup (in longs)
+    int32_t *fixups;              // code array index to fixup (in ints)
     int numfixups;
     int importsCapacity;
     char **imports;
     int numimports;
     int exportsCapacity;
     char **exports;   // names of exports
-    long *export_addr;        // high byte is type; low 24-bits are offset
+    int32_t *export_addr; // high byte is type; low 24-bits are offset
     int numexports;
     int instances;
     // 'sections' allow the interpreter to find out which bit
     // of the code came from header files, and which from the main file
     char **sectionNames;
-    long *sectionOffsets;
+    int32_t *sectionOffsets;
     int numSections;
     int capacitySections;
-};
 
-// write the script to disk (after compiling)
-extern void fwrite_script(ccScript *, Common::DataStream *out);
-// read back a script written with fwrite_script
-extern ccScript *fread_script(Common::DataStream *in);
-// free the memory occupied by the script - do NOT attempt to run the
-// script after calling this function
-extern void ccFreeScript(ccScript *);
+    static ccScript *CreateFromStream(Common::DataStream *in);
+
+    ccScript();
+    virtual ~ccScript(); // there are few derived classes, so dtor should be virtual
+    // write the script to disk (after compiling)
+    void        Write(Common::DataStream *out);
+    // read back a script written with Write
+    bool        Read(Common::DataStream *in);
+    const char* GetSectionName(int32_t offset);
+
+protected:
+    // free the memory occupied by the script - do NOT attempt to run the
+    // script after calling this function
+    void        Free();
+};
 
 #endif // __CC_SCRIPT_H

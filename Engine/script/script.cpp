@@ -81,7 +81,7 @@ ScriptSystem scsystem;
 ccScript *scriptModules[MAX_SCRIPT_MODULES];
 ccInstance *moduleInst[MAX_SCRIPT_MODULES];
 ccInstance *moduleInstFork[MAX_SCRIPT_MODULES];
-char *moduleRepExecAddr[MAX_SCRIPT_MODULES];
+RuntimeScriptValue moduleRepExecAddr[MAX_SCRIPT_MODULES];
 int numScriptModules = 0;
 
 char **characterScriptObjNames = NULL;
@@ -89,21 +89,9 @@ char objectScriptObjNames[MAX_INIT_SPR][MAX_SCRIPT_NAME_LEN + 5];
 char **guiScriptObjNames = NULL;
 
 
-int run_text_script_iparam(ccInstance*sci,char*tsname,long iparam) {
-    if ((strcmp(tsname, "on_key_press") == 0) || (strcmp(tsname, "on_mouse_click") == 0)) {
-        bool eventWasClaimed;
-        int toret = run_claimable_event(tsname, true, 1, iparam, 0, &eventWasClaimed);
-
-        if (eventWasClaimed)
-            return toret;
-    }
-
-    return run_script_function_if_exist(sci, tsname, 1, iparam, 0);
-}
-
 int run_dialog_request (int parmtr) {
     play.stop_dialog_at_end = DIALOG_RUNNING;
-    run_text_script_iparam(gameinst, "dialog_request", parmtr);
+    gameinst->RunTextScriptIParam("dialog_request", RuntimeScriptValue().SetInt32(parmtr));
 
     if (play.stop_dialog_at_end == DIALOG_STOP) {
         play.stop_dialog_at_end = DIALOG_NONE;
@@ -134,96 +122,18 @@ void run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun) {
     // run modules
     // modules need a forkedinst for this to work
     for (int kk = 0; kk < numScriptModules; kk++) {
-        _do_run_script_func_cant_block(moduleInstFork[kk], funcToRun, &funcToRun->moduleHasFunction[kk]);
+        moduleInstFork[kk]->DoRunScriptFuncCantBlock(funcToRun, &funcToRun->moduleHasFunction[kk]);
 
         if (room_changes_was != play.room_changes)
             return;
     }
 
-    _do_run_script_func_cant_block(gameinstFork, funcToRun, &funcToRun->globalScriptHasFunction);
+    gameinstFork->DoRunScriptFuncCantBlock(funcToRun, &funcToRun->globalScriptHasFunction);
 
     if (room_changes_was != play.room_changes)
         return;
 
-    _do_run_script_func_cant_block(roominstFork, funcToRun, &funcToRun->roomHasFunction);
-}
-
-int run_script_function_if_exist(ccInstance*sci,char*tsname,int numParam, long iparam, long iparam2, long iparam3) {
-    int oldRestoreCount = gameHasBeenRestored;
-    // First, save the current ccError state
-    // This is necessary because we might be attempting
-    // to run Script B, while Script A is still running in the
-    // background.
-    // If CallInstance here has an error, it would otherwise
-    // also abort Script A because ccError is a global variable.
-    int cachedCcError = ccError;
-    ccError = 0;
-
-    int toret = prepare_text_script(sci,&tsname);
-    if (toret) {
-        ccError = cachedCcError;
-        return -18;
-    }
-
-    // Clear the error message
-    ccErrorString[0] = 0;
-
-    if (numParam == 0) 
-        toret = ccCallInstance(curscript->inst,tsname,numParam);
-    else if (numParam == 1)
-        toret = ccCallInstance(curscript->inst,tsname,numParam, iparam);
-    else if (numParam == 2)
-        toret = ccCallInstance(curscript->inst,tsname,numParam,iparam, iparam2);
-    else if (numParam == 3)
-        toret = ccCallInstance(curscript->inst,tsname,numParam,iparam, iparam2, iparam3);
-    else
-        quit("Too many parameters to run_script_function_if_exist");
-
-    // 100 is if Aborted (eg. because we are LoadAGSGame'ing)
-    if ((toret != 0) && (toret != -2) && (toret != 100)) {
-        quit_with_script_error(tsname);
-    }
-
-    post_script_cleanup_stack++;
-
-    if (post_script_cleanup_stack > 50)
-        quitprintf("!post_script_cleanup call stack exceeded: possible recursive function call? running %s", tsname);
-
-    post_script_cleanup();
-
-    post_script_cleanup_stack--;
-
-    // restore cached error state
-    ccError = cachedCcError;
-
-    // if the game has been restored, ensure that any further scripts are not run
-    if ((oldRestoreCount != gameHasBeenRestored) && (eventClaimed == EVENT_INPROGRESS))
-        eventClaimed = EVENT_CLAIMED;
-
-    return toret;
-}
-
-int run_text_script_2iparam(ccInstance*sci,char*tsname,long iparam,long param2) {
-    if (strcmp(tsname, "on_event") == 0) {
-        bool eventWasClaimed;
-        int toret = run_claimable_event(tsname, true, 2, iparam, param2, &eventWasClaimed);
-
-        if (eventWasClaimed)
-            return toret;
-    }
-
-    // response to a button click, better update guis
-    if (strnicmp(tsname, "interface_click", 15) == 0)
-        guis_need_update = 1;
-
-    int toret = run_script_function_if_exist(sci, tsname, 2, iparam, param2);
-
-    // tsname is no longer valid, because run_script_function_if_exist might
-    // have restored a save game and freed the memory. Therefore don't 
-    // attempt any strcmp's here
-    tsname = NULL;
-
-    return toret;
+    roominstFork->DoRunScriptFuncCantBlock(funcToRun, &funcToRun->roomHasFunction);
 }
 
 //-----------------------------------------------------------
@@ -297,22 +207,24 @@ int run_interaction_script(InteractionScripts *nint, int evnt, int chkAny, int i
 
     int room_was = play.room_changes;
 
+    RuntimeScriptValue rval_null;
+
     UPDATE_MP3
         if ((strstr(evblockbasename,"character")!=0) || (strstr(evblockbasename,"inventory")!=0)) {
             // Character or Inventory (global script)
             if (inside_script) 
-                curscript->run_another (nint->scriptFuncNames[evnt], 0, 0);
-            else run_text_script(gameinst, nint->scriptFuncNames[evnt]);
+                curscript->run_another (nint->scriptFuncNames[evnt], rval_null, rval_null /*0, 0*/);
+            else gameinst->RunTextScript(nint->scriptFuncNames[evnt]);
         }
         else {
             // Other (room script)
             if (inside_script) {
                 char funcName[MAX_FUNCTION_NAME_LEN+1];
                 snprintf(funcName, MAX_FUNCTION_NAME_LEN, "|%s", nint->scriptFuncNames[evnt]);
-                curscript->run_another (funcName, 0, 0);
+                curscript->run_another (funcName, rval_null, rval_null /*0, 0*/);
             }
             else
-                run_text_script(roominst, nint->scriptFuncNames[evnt]);
+                roominst->RunTextScript(nint->scriptFuncNames[evnt]);
         }
         UPDATE_MP3
 
@@ -324,54 +236,30 @@ int run_interaction_script(InteractionScripts *nint, int evnt, int chkAny, int i
         return retval;
 }
 
-int run_text_script(ccInstance*sci,char*tsname) {
-    if (strcmp(tsname, REP_EXEC_NAME) == 0) {
-        // run module rep_execs
-        int room_changes_was = play.room_changes;
-        int restore_game_count_was = gameHasBeenRestored;
-
-        for (int kk = 0; kk < numScriptModules; kk++) {
-            if (moduleRepExecAddr[kk] != NULL)
-                run_script_function_if_exist(moduleInst[kk], tsname, 0, 0, 0);
-
-            if ((room_changes_was != play.room_changes) ||
-                (restore_game_count_was != gameHasBeenRestored))
-                return 0;
-        }
-    }
-
-    int toret = run_script_function_if_exist(sci, tsname, 0, 0, 0);
-    if ((toret == -18) && (sci == roominst)) {
-        // functions in room script must exist
-        quitprintf("prepare_script: error %d (%s) trying to run '%s'   (Room %d)",toret,ccErrorString,tsname, displayed_room);
-    }
-    return toret;
-}
-
 int create_global_script() {
     ccSetOption(SCOPT_AUTOIMPORT, 1);
     for (int kk = 0; kk < numScriptModules; kk++) {
-        moduleInst[kk] = ccCreateInstance(scriptModules[kk]);
+        moduleInst[kk] = ccInstance::CreateFromScript(scriptModules[kk]);
         if (moduleInst[kk] == NULL)
             return -3;
         // create a forked instance for rep_exec_always
-        moduleInstFork[kk] = ccForkInstance(moduleInst[kk]);
+        moduleInstFork[kk] = moduleInst[kk]->Fork();
         if (moduleInstFork[kk] == NULL)
             return -3;
 
-        moduleRepExecAddr[kk] = ccGetSymbolAddr(moduleInst[kk], REP_EXEC_NAME);
+        moduleRepExecAddr[kk] = moduleInst[kk]->GetSymbolAddress(REP_EXEC_NAME);
     }
-    gameinst = ccCreateInstance(gamescript);
+    gameinst = ccInstance::CreateFromScript(gamescript);
     if (gameinst == NULL)
         return -3;
     // create a forked instance for rep_exec_always
-    gameinstFork = ccForkInstance(gameinst);
+    gameinstFork = gameinst->Fork();
     if (gameinstFork == NULL)
         return -3;
 
     if (dialogScriptsScript != NULL)
     {
-        dialogScriptsInst = ccCreateInstance(dialogScriptsScript);
+        dialogScriptsInst = ccInstance::CreateFromScript(dialogScriptsScript);
         if (dialogScriptsInst == NULL)
             return -3;
     }
@@ -385,25 +273,14 @@ void cancel_all_scripts() {
 
     for (aa = 0; aa < num_scripts; aa++) {
         if (scripts[aa].forked)
-            ccAbortAndDestroyInstance(scripts[aa].inst);
+            scripts[aa].inst->AbortAndDestroy();
         else
-            ccAbortInstance(scripts[aa].inst);
+            scripts[aa].inst->Abort();
         scripts[aa].numanother = 0;
     }
     num_scripts = 0;
-    /*  if (gameinst!=NULL) ccAbortInstance(gameinst);
-    if (roominst!=NULL) ccAbortInstance(roominst);*/
-}
-
-void get_script_name(ccInstance *rinst, char *curScrName) {
-    if (rinst == NULL)
-        strcpy (curScrName, "Not in a script");
-    else if (rinst->instanceof == gamescript)
-        strcpy (curScrName, "Global script");
-    else if (rinst->instanceof == thisroom.compiled_script)
-        sprintf (curScrName, "Room %d script", displayed_room);
-    else
-        strcpy (curScrName, "Unknown script");
+    /*  if (gameinst!=NULL) ->Abort(gameinst);
+    if (roominst!=NULL) ->Abort(roominst);*/
 }
 
 //=============================================================================
@@ -416,51 +293,13 @@ char* make_ts_func_name(char*base,int iii,int subd) {
     return &bne[0];
 }
 
-char scfunctionname[MAX_FUNCTION_NAME_LEN+1];
-int prepare_text_script(ccInstance*sci,char**tsname) {
-    ccError=0;
-    if (sci==NULL) return -1;
-    if (ccGetSymbolAddr(sci,tsname[0]) == NULL) {
-        strcpy (ccErrorString, "no such function in script");
-        return -2;
-    }
-    if (sci->pc!=0) {
-        strcpy(ccErrorString,"script is already in execution");
-        return -3;
-    }
-    scripts[num_scripts].init();
-    scripts[num_scripts].inst = sci;
-    /*  char tempb[300];
-    sprintf(tempb,"Creating script instance for '%s' room %d",tsname[0],displayed_room);
-    write_log(tempb);*/
-    if (sci->pc != 0) {
-        //    write_log("Forking instance");
-        scripts[num_scripts].inst = ccForkInstance(sci);
-        if (scripts[num_scripts].inst == NULL)
-            quit("unable to fork instance for secondary script");
-        scripts[num_scripts].forked = 1;
-    }
-    curscript = &scripts[num_scripts];
-    num_scripts++;
-    if (num_scripts >= MAX_SCRIPT_AT_ONCE)
-        quit("too many nested text script instances created");
-    // in case script_run_another is the function name, take a backup
-    strncpy(scfunctionname,tsname[0],MAX_FUNCTION_NAME_LEN);
-    tsname[0]=&scfunctionname[0];
-    update_script_mouse_coords();
-    inside_script++;
-    //  aborted_ip=0;
-    //  abort_executor=0;
-    return 0;
-}
-
 void post_script_cleanup() {
     // should do any post-script stuff here, like go to new room
     if (ccError) quit(ccErrorString);
     ExecutingScript copyof = scripts[num_scripts-1];
     //  write_log("Instance finished.");
     if (scripts[num_scripts-1].forked)
-        ccFreeInstance(scripts[num_scripts-1].inst);
+        delete scripts[num_scripts-1].inst;
     num_scripts--;
     inside_script--;
 
@@ -533,19 +372,19 @@ void post_script_cleanup() {
         strncpy(runnext,copyof.script_run_another[jj],MAX_FUNCTION_NAME_LEN);
         copyof.script_run_another[jj][0]=0;
         if (runnext[0]=='#')
-            run_text_script_2iparam(gameinst,&runnext[1],copyof.run_another_p1[jj],copyof.run_another_p2[jj]);
+            gameinst->RunTextScript2IParam(&runnext[1],copyof.run_another_p1[jj],copyof.run_another_p2[jj]);
         else if (runnext[0]=='!')
-            run_text_script_iparam(gameinst,&runnext[1],copyof.run_another_p1[jj]);
+            gameinst->RunTextScriptIParam(&runnext[1],copyof.run_another_p1[jj]);
         else if (runnext[0]=='|')
-            run_text_script(roominst,&runnext[1]);
+            roominst->RunTextScript(&runnext[1]);
         else if (runnext[0]=='%')
-            run_text_script_2iparam(roominst, &runnext[1], copyof.run_another_p1[jj], copyof.run_another_p2[jj]);
+            roominst->RunTextScript2IParam(&runnext[1], copyof.run_another_p1[jj], copyof.run_another_p2[jj]);
         else if (runnext[0]=='$') {
-            run_text_script_iparam(roominst,&runnext[1],copyof.run_another_p1[jj]);
+            roominst->RunTextScriptIParam(&runnext[1],copyof.run_another_p1[jj]);
             play.roomscript_finished = 1;
         }
         else
-            run_text_script(gameinst,runnext);
+            gameinst->RunTextScript(runnext);
 
         // if they've changed rooms, cancel any further pending scripts
         if ((displayed_room != old_room_number) || (load_new_game))
@@ -558,39 +397,6 @@ void post_script_cleanup() {
 void quit_with_script_error(const char *functionName)
 {
     quitprintf("%sError running function '%s':\n%s", (ccErrorIsUserError ? "!" : ""), functionName, ccErrorString);
-}
-
-void _do_run_script_func_cant_block(ccInstance *forkedinst, NonBlockingScriptFunction* funcToRun, bool *hasTheFunc) {
-    if (!hasTheFunc[0])
-        return;
-
-    no_blocking_functions++;
-    int result;
-
-    if (funcToRun->numParameters == 0)
-        result = ccCallInstance(forkedinst, (char*)funcToRun->functionName, 0);
-    else if (funcToRun->numParameters == 1)
-        result = ccCallInstance(forkedinst, (char*)funcToRun->functionName, 1, funcToRun->param1);
-    else if (funcToRun->numParameters == 2)
-        result = ccCallInstance(forkedinst, (char*)funcToRun->functionName, 2, funcToRun->param1, funcToRun->param2);
-    else
-        quit("_do_run_script_func_cant_block called with too many parameters");
-
-    if (result == -2) {
-        // the function doens't exist, so don't try and run it again
-        hasTheFunc[0] = false;
-    }
-    else if ((result != 0) && (result != 100)) {
-        quit_with_script_error(funcToRun->functionName);
-    }
-    else
-    {
-        funcToRun->atLeastOneImplementationExists = true;
-    }
-    // this might be nested, so don't disrupt blocked scripts
-    ccErrorString[0] = 0;
-    ccError = 0;
-    no_blocking_functions--;
 }
 
 int get_nivalue (NewInteractionCommandList *nic, int idx, int parm) {
@@ -635,14 +441,15 @@ int run_interaction_commandlist (NewInteractionCommandList *nicl, int *timesrun,
       case 1:  // Run script
           { 
               TempEip tempip(4001);
+              RuntimeScriptValue rval_null;
               UPDATE_MP3
                   if ((strstr(evblockbasename,"character")!=0) || (strstr(evblockbasename,"inventory")!=0)) {
                       // Character or Inventory (global script)
                       char *torun = make_ts_func_name(evblockbasename,evblocknum,nicl->command[i].data[0].val);
                       // we are already inside the mouseclick event of the script, can't nest calls
                       if (inside_script) 
-                          curscript->run_another (torun, 0, 0);
-                      else run_text_script(gameinst,torun);
+                          curscript->run_another (torun, rval_null, rval_null /*0, 0*/);
+                      else gameinst->RunTextScript(torun);
                   }
                   else {
                       // Other (room script)
@@ -650,10 +457,10 @@ int run_interaction_commandlist (NewInteractionCommandList *nicl, int *timesrun,
                           char funcName[MAX_FUNCTION_NAME_LEN+1];
                           strcpy(funcName,"|");
                           strncat(funcName,make_ts_func_name(evblockbasename,evblocknum,nicl->command[i].data[0].val),MAX_FUNCTION_NAME_LEN-1);
-                          curscript->run_another (funcName, 0, 0);
+                          curscript->run_another (funcName, rval_null, rval_null /*0, 0*/);
                       }
                       else
-                          run_text_script(roominst,make_ts_func_name(evblockbasename,evblocknum,nicl->command[i].data[0].val));
+                          roominst->RunTextScript(make_ts_func_name(evblockbasename,evblocknum,nicl->command[i].data[0].val));
                   }
                   UPDATE_MP3
                       break;
@@ -879,11 +686,10 @@ void run_unhandled_event (int evnt) {
         can_run_delayed_command();
 
         if (inside_script)
-            curscript->run_another ("#unhandled_event", evtype, evnt);
+            curscript->run_another ("#unhandled_event", RuntimeScriptValue().SetInt32(evtype), RuntimeScriptValue().SetInt32(evnt));
         else
-            run_text_script_2iparam(gameinst,"unhandled_event",evtype,evnt);
+            gameinst->RunTextScript2IParam("unhandled_event",RuntimeScriptValue().SetInt32(evtype),RuntimeScriptValue().SetInt32(evnt));
     }
-
 }
 
 

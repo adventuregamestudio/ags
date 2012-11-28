@@ -25,18 +25,18 @@
 
 void register_invwindow_script_functions()
 {
-	scAdd_External_Symbol("InvWindow::ScrollDown^0", (void *)InvWindow_ScrollDown);
-	scAdd_External_Symbol("InvWindow::ScrollUp^0", (void *)InvWindow_ScrollUp);
-	scAdd_External_Symbol("InvWindow::get_CharacterToUse", (void *)InvWindow_GetCharacterToUse);
-	scAdd_External_Symbol("InvWindow::set_CharacterToUse", (void *)InvWindow_SetCharacterToUse);
-	scAdd_External_Symbol("InvWindow::geti_ItemAtIndex", (void *)InvWindow_GetItemAtIndex);
-	scAdd_External_Symbol("InvWindow::get_ItemCount", (void *)InvWindow_GetItemCount);
-	scAdd_External_Symbol("InvWindow::get_ItemHeight", (void *)InvWindow_GetItemHeight);
-	scAdd_External_Symbol("InvWindow::set_ItemHeight", (void *)InvWindow_SetItemHeight);
-	scAdd_External_Symbol("InvWindow::get_ItemWidth", (void *)InvWindow_GetItemWidth);
-	scAdd_External_Symbol("InvWindow::set_ItemWidth", (void *)InvWindow_SetItemWidth);
-	scAdd_External_Symbol("InvWindow::get_ItemsPerRow", (void *)InvWindow_GetItemsPerRow);
-	scAdd_External_Symbol("InvWindow::get_RowCount", (void *)InvWindow_GetRowCount);
-	scAdd_External_Symbol("InvWindow::get_TopItem", (void *)InvWindow_GetTopItem);
-	scAdd_External_Symbol("InvWindow::set_TopItem", (void *)InvWindow_SetTopItem);
+	ccAddExternalObjectFunction("InvWindow::ScrollDown^0", (void *)InvWindow_ScrollDown);
+	ccAddExternalObjectFunction("InvWindow::ScrollUp^0", (void *)InvWindow_ScrollUp);
+	ccAddExternalObjectFunction("InvWindow::get_CharacterToUse", (void *)InvWindow_GetCharacterToUse);
+	ccAddExternalObjectFunction("InvWindow::set_CharacterToUse", (void *)InvWindow_SetCharacterToUse);
+	ccAddExternalObjectFunction("InvWindow::geti_ItemAtIndex", (void *)InvWindow_GetItemAtIndex);
+	ccAddExternalObjectFunction("InvWindow::get_ItemCount", (void *)InvWindow_GetItemCount);
+	ccAddExternalObjectFunction("InvWindow::get_ItemHeight", (void *)InvWindow_GetItemHeight);
+	ccAddExternalObjectFunction("InvWindow::set_ItemHeight", (void *)InvWindow_SetItemHeight);
+	ccAddExternalObjectFunction("InvWindow::get_ItemWidth", (void *)InvWindow_GetItemWidth);
+	ccAddExternalObjectFunction("InvWindow::set_ItemWidth", (void *)InvWindow_SetItemWidth);
+	ccAddExternalObjectFunction("InvWindow::get_ItemsPerRow", (void *)InvWindow_GetItemsPerRow);
+	ccAddExternalObjectFunction("InvWindow::get_RowCount", (void *)InvWindow_GetRowCount);
+	ccAddExternalObjectFunction("InvWindow::get_TopItem", (void *)InvWindow_GetTopItem);
+	ccAddExternalObjectFunction("InvWindow::set_TopItem", (void *)InvWindow_SetTopItem);
 }

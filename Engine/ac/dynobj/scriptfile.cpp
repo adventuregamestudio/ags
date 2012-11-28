@@ -53,3 +53,48 @@ void sc_File::Close() {
 sc_File::sc_File() {
     handle = NULL;
 }
+
+
+void sc_File::Read(const char *address, intptr_t offset, void *dest, int size)
+{
+}
+
+uint8_t sc_File::ReadInt8(const char *address, intptr_t offset)
+{
+    return 0;
+}
+
+int16_t sc_File::ReadInt16(const char *address, intptr_t offset)
+{
+    return 0;
+}
+
+int32_t sc_File::ReadInt32(const char *address, intptr_t offset)
+{
+    return 0;
+}
+
+float sc_File::ReadFloat(const char *address, intptr_t offset)
+{
+    return 0.0;
+}
+
+void sc_File::Write(const char *address, intptr_t offset, void *src, int size)
+{
+}
+
+void sc_File::WriteInt8(const char *address, intptr_t offset, uint8_t val)
+{
+}
+
+void sc_File::WriteInt16(const char *address, intptr_t offset, int16_t val)
+{
+}
+
+void sc_File::WriteInt32(const char *address, intptr_t offset, int32_t val)
+{
+}
+
+void sc_File::WriteFloat(const char *address, intptr_t offset, float val)
+{
+}

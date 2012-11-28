@@ -26,6 +26,8 @@
 #include "util/wgt2allg.h"
 #include "ac/roomstruct.h"
 #include "util/filestream.h"
+#include "script/cc_instance.h"
+#include "script/cc_error.h"
 
 using AGS::Common::DataStream;
 
@@ -33,6 +35,18 @@ char *scripteditruntimecopr = "Script Editor v1.2 run-time component. (c) 1998 C
 
 #define SCRIPT_CONFIG_VERSION 1
 extern void quit(char *);
+extern int currentline; // in script/script_common
+
+void cc_error_at_line(char *buffer, const char *error_msg)
+{
+    if (ccInstance::GetCurrentInstance() == NULL) {
+        sprintf(ccErrorString, "Error (line %d): %s", currentline, error_msg);
+    }
+    else {
+        sprintf(ccErrorString, "Error: %s\n", error_msg);
+        ccInstance::GetCurrentInstance()->GetCallStack(ccErrorCallStack, 5);
+    }
+}
 
 void save_script_configuration(DataStream *out)
 {
@@ -61,14 +75,14 @@ char *scripttempn = "~acsc%d.tmp";
 
 void load_graphical_scripts(DataStream *in, roomstruct * rst)
 {
-    long ct;
+    int32_t ct;
 
     while (1) {
         ct = in->ReadInt32();
         if ((ct == -1) | (in->EOS() != 0))
             break;
 
-        long lee;
+        int32_t lee;
         lee = in->ReadInt32();
 
         char thisscn[20];

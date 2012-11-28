@@ -55,6 +55,9 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 #include "platform/base/override_defines.h"
+#include "script/runtimescriptvalue.h"
+#include "ac/dynobj/cc_character.h"
+#include "ac/dynobj/cc_inventory.h"
 #include "script/script_runtime.h"
 
 using AGS::Common::Bitmap;
@@ -88,6 +91,9 @@ extern int scrnwid,scrnhit;
 extern int current_screen_resolution_multiplier;
 extern int cur_mode;
 extern int screen_is_dirty;
+extern RuntimeScriptValue GlobalReturnValue;
+extern CCCharacter ccDynamicCharacter;
+extern CCInventory ccDynamicInv;
 
 //--------------------------------
 
@@ -101,7 +107,7 @@ extern int screen_is_dirty;
 
 CharacterExtras *charextra;
 CharacterInfo*playerchar;
-long _sc_PlayerCharPtr = 0;
+int32_t _sc_PlayerCharPtr = 0;
 int char_lowest_yp;
 
 // Sierra-style speech settings
@@ -139,7 +145,7 @@ void Character_AddInventory(CharacterInfo *chaa, ScriptInvItem *invi, int addInd
             if (charextra[charid].invorder[ee] == inum) {
                 // They already have the item, so don't add it to the list
                 if (chaa == playerchar)
-                    run_on_event (GE_ADD_INV, inum);
+                    run_on_event (GE_ADD_INV, RuntimeScriptValue().SetInt32(inum));
                 return;
             }
         }
@@ -163,7 +169,7 @@ void Character_AddInventory(CharacterInfo *chaa, ScriptInvItem *invi, int addInd
     charextra[charid].invorder_count++;
     guis_need_update = 1;
     if (chaa == playerchar)
-        run_on_event (GE_ADD_INV, inum);
+        run_on_event (GE_ADD_INV, RuntimeScriptValue().SetInt32(inum));
 
 }
 
@@ -648,7 +654,7 @@ void Character_LoseInventory(CharacterInfo *chap, ScriptInvItem *invi) {
     guis_need_update = 1;
 
     if (chap == playerchar)
-        run_on_event (GE_LOSE_INV, inum);
+        run_on_event (GE_LOSE_INV, RuntimeScriptValue().SetInt32(inum));
 }
 
 void Character_PlaceOnWalkableArea(CharacterInfo *chap) 
@@ -711,6 +717,7 @@ ScriptOverlay* Character_SayBackground(CharacterInfo *chaa, const char *texx) {
     int handl = ccRegisterManagedObject(scOver, scOver);
     screenover[ovri].associatedOverlayHandle = handl;
 
+    GlobalReturnValue.SetDynamicObject(scOver, scOver);
     return scOver;
 }
 
@@ -963,7 +970,7 @@ void Character_GetPropertyText(CharacterInfo *chaa, const char *property, char *
     get_text_property(&game.charProps[chaa->index_id], property, bufer);
 }
 const char* Character_GetTextProperty(CharacterInfo *chaa, const char *property) {
-    return get_text_property_dynamic_string(&game.charProps[chaa->index_id], property);
+    return get_text_property_dynamic_string_as_ret_val(&game.charProps[chaa->index_id], property);
 }
 
 ScriptInvItem* Character_GetActiveInventory(CharacterInfo *chaa) {
@@ -971,6 +978,7 @@ ScriptInvItem* Character_GetActiveInventory(CharacterInfo *chaa) {
     if (chaa->activeinv <= 0)
         return NULL;
 
+    GlobalReturnValue.SetDynamicObject(&scrInv[chaa->activeinv], &ccDynamicInv);
     return &scrInv[chaa->activeinv];
 }
 
@@ -1252,7 +1260,7 @@ int Character_GetMoving(CharacterInfo *chaa) {
 }
 
 const char* Character_GetName(CharacterInfo *chaa) {
-    return CreateNewScriptString(chaa->name);
+    return CreateNewScriptStringAsRetVal(chaa->name);
 }
 
 void Character_SetName(CharacterInfo *chaa, const char *newName) {
@@ -2011,7 +2019,7 @@ void setup_player_character(int charid) {
     playerchar = &game.chars[charid];
     _sc_PlayerCharPtr = ccGetObjectHandleFromAddress((char*)playerchar);
     if (loaded_game_file_version < kGameVersion_270) {
-        ccAddExternalSymbol("player", playerchar);
+        ccAddExternalDynamicObject("player", playerchar, &ccDynamicCharacter);
     }
 }
 
@@ -2092,6 +2100,7 @@ CharacterInfo *GetCharacterAtLocation(int xx, int yy) {
     int hsnum = GetCharacterAt(xx, yy);
     if (hsnum < 0)
         return NULL;
+    GlobalReturnValue.SetDynamicObject(&game.chars[hsnum], &ccDynamicCharacter);
     return &game.chars[hsnum];
 }
 

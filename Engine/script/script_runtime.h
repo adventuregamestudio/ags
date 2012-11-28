@@ -30,47 +30,34 @@
 #include "script/cc_script.h"      // ccScript
 #include "script/cc_instance.h"    // ccInstance
 
+struct ICCStaticObject;
+struct ICCDynamicObject;
+struct StaticArray;
+
 // ************ SCRIPT LOADING AND RUNNING FUNCTIONS ************
 
 // give the script access to a variable or function in your program
-extern void ccAddExternalSymbol(char *, void *);
+extern bool ccAddExternalStaticFunction(const char *name, void *ptr);
+extern bool ccAddExternalStaticObject(const char *name, void *ptr, ICCStaticObject *manager);
+extern bool ccAddExternalStaticArray(const char *name, void *ptr, StaticArray *array_mgr);
+extern bool ccAddExternalDynamicObject(const char *name, void *ptr, ICCDynamicObject *manager);
+extern bool ccAddExternalObjectFunction(const char *name, void *ptr);
+extern bool ccAddExternalScriptSymbol(const char *name, const RuntimeScriptValue &prval, ccInstance *inst);
 // remove the script access to a variable or function in your program
-extern void ccRemoveExternalSymbol(char *);
+extern void ccRemoveExternalSymbol(const char *);
 // removes all external symbols, allowing you to start from scratch
 extern void ccRemoveAllSymbols();
 
-// create a runnable instance of the supplied script
-extern ccInstance *ccCreateInstance(ccScript *);
-// create a runnable instance of the same script, sharing global memory
-extern ccInstance *ccForkInstance(ccInstance *);
-// free the memory associated with the instance
-extern void ccFreeInstance(ccInstance *);
-
 // get the address of an exported variable in the script
-extern char *ccGetSymbolAddr(ccInstance *, char *);
 extern void *ccGetSymbolAddress(char *namof);
 
-// call an exported function in the script (3rd arg is number of params)
-extern int ccCallInstance(ccInstance *, char *, long, ...);
-// specifies that when the current function returns to the script, it
-// will stop and return from CallInstance
-extern void ccAbortInstance(ccInstance *);
-// aborts instance, then frees the memory later when it is done with
-extern void ccAbortAndDestroyInstance(ccInstance *);
+// DEBUG HOOK
+typedef void (*new_line_hook_type) (ccInstance *, int);
+extern void ccSetDebugHook(new_line_hook_type jibble);
+#endif
 
 // Set the number of while loop iterations that aborts the script
 extern void ccSetScriptAliveTimer (int);
 // reset the current while loop counter
 extern void ccNotifyScriptStillAlive ();
-
-// DEBUG HOOK
-typedef void (*new_line_hook_type) (ccInstance *, int);
-extern void ccSetDebugHook(new_line_hook_type jibble);
-
-// changes all pointer variables (ie. strings) to have the relative address, to allow
-// the data segment to be saved to disk
-void ccFlattenGlobalData(ccInstance * cinst);
-// restores the pointers after a save
-void ccUnFlattenGlobalData(ccInstance * cinst);
-
-#endif
+extern int call_function(intptr_t addr, int numparm, const RuntimeScriptValue *parms, int offset);

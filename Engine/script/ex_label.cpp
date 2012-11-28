@@ -25,12 +25,12 @@
 
 void register_label_script_functions()
 {
-	scAdd_External_Symbol("Label::GetText^1", (void *)Label_GetText);
-	scAdd_External_Symbol("Label::SetText^1", (void *)Label_SetText);
-	scAdd_External_Symbol("Label::get_Font", (void *)Label_GetFont);
-	scAdd_External_Symbol("Label::set_Font", (void *)Label_SetFont);
-	scAdd_External_Symbol("Label::get_Text", (void *)Label_GetText_New);
-	scAdd_External_Symbol("Label::set_Text", (void *)Label_SetText);
-	scAdd_External_Symbol("Label::get_TextColor", (void *)Label_GetColor);
-	scAdd_External_Symbol("Label::set_TextColor", (void *)Label_SetColor);
+	ccAddExternalObjectFunction("Label::GetText^1", (void *)Label_GetText);
+	ccAddExternalObjectFunction("Label::SetText^1", (void *)Label_SetText);
+	ccAddExternalObjectFunction("Label::get_Font", (void *)Label_GetFont);
+	ccAddExternalObjectFunction("Label::set_Font", (void *)Label_SetFont);
+	ccAddExternalObjectFunction("Label::get_Text", (void *)Label_GetText_New);
+	ccAddExternalObjectFunction("Label::set_Text", (void *)Label_SetText);
+	ccAddExternalObjectFunction("Label::get_TextColor", (void *)Label_GetColor);
+	ccAddExternalObjectFunction("Label::set_TextColor", (void *)Label_SetColor);
 }

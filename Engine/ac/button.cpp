@@ -72,7 +72,7 @@ void Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat) 
 }
 
 const char* Button_GetText_New(GUIButton *butt) {
-    return CreateNewScriptString(butt->text);
+    return CreateNewScriptStringAsRetVal(butt->text);
 }
 
 void Button_GetText(GUIButton *butt, char *buffer) {

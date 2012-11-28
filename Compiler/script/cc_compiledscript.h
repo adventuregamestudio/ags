@@ -22,12 +22,12 @@ struct ccCompiledScript: public ccScript {
     void free_extra();
     int  add_global(int,char*);
     int  add_string(char*);
-    void add_fixup(long,char);
+    void add_fixup(int32_t,char);
     void fixup_previous(char);
     int  add_new_function(char*, int *idx);
     int  add_new_import(char*);
     int  add_new_export(char*,int,long, int);
-    void write_code(long);
+    void write_code(intptr_t);
     void set_line_number(int nlum) { next_line=nlum; }
     void flush_line_numbers();
     int  remove_any_import(char*, SymbolDef *oldSym);

@@ -33,7 +33,7 @@ int Parser_FindWordID(const char *wordToFind)
 const char* Parser_SaidUnknownWord() {
     if (play.bad_parsed_word[0] == 0)
         return NULL;
-    return CreateNewScriptString(play.bad_parsed_word);
+    return CreateNewScriptStringAsRetVal(play.bad_parsed_word);
 }
 
 void ParseText (char*text) {

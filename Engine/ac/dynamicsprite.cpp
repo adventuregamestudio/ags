@@ -34,6 +34,7 @@
 #include "platform/base/override_defines.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
+#include "script/runtimescriptvalue.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -54,6 +55,7 @@ extern int scrnwid,scrnhit;
 extern color palette[256];
 extern Bitmap *virtual_screen;
 extern IGraphicsDriver *gfxDriver;
+extern RuntimeScriptValue GlobalReturnValue;
 
 char check_dynamic_sprites_at_exit = 1;
 
@@ -75,6 +77,7 @@ ScriptDrawingSurface* DynamicSprite_GetDrawingSurface(ScriptDynamicSprite *dss)
         surface->hasAlphaChannel = true;
 
     ccRegisterManagedObject(surface, surface);
+    GlobalReturnValue.SetDynamicObject(surface, surface);
     return surface;
 }
 
@@ -339,7 +342,9 @@ int DynamicSprite_SaveToFile(ScriptDynamicSprite *sds, const char* namm) {
 ScriptDynamicSprite* DynamicSprite_CreateFromSaveGame(int sgslot, int width, int height) {
     int slotnum = LoadSaveSlotScreenshot(sgslot, width, height);
     if (slotnum) {
-        return new ScriptDynamicSprite(slotnum);
+        ScriptDynamicSprite *new_spr = new ScriptDynamicSprite(slotnum);
+        GlobalReturnValue.SetDynamicObject(new_spr, new_spr);
+        return new_spr;
     }
     return NULL;
 }
@@ -347,7 +352,9 @@ ScriptDynamicSprite* DynamicSprite_CreateFromSaveGame(int sgslot, int width, int
 ScriptDynamicSprite* DynamicSprite_CreateFromFile(const char *filename) {
     int slotnum = LoadImageFile(filename);
     if (slotnum) {
-        return new ScriptDynamicSprite(slotnum);
+        ScriptDynamicSprite *new_spr = new ScriptDynamicSprite(slotnum);
+        GlobalReturnValue.SetDynamicObject(new_spr, new_spr);
+        return new_spr;
     }
     return NULL;
 }
@@ -402,7 +409,9 @@ ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height) {
 
     // replace the bitmap in the sprite set
     add_dynamic_sprite(gotSlot, gfxDriver->ConvertBitmapToSupportedColourDepth(newPic));
-    return new ScriptDynamicSprite(gotSlot);
+    ScriptDynamicSprite *new_spr = new ScriptDynamicSprite(gotSlot);
+    GlobalReturnValue.SetDynamicObject(new_spr, new_spr);
+    return new_spr;
 }
 
 ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite(int slot, int preserveAlphaChannel) {
@@ -425,7 +434,9 @@ ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite(int slot, int preser
 
     // replace the bitmap in the sprite set
     add_dynamic_sprite(gotSlot, newPic, hasAlpha);
-    return new ScriptDynamicSprite(gotSlot);
+    ScriptDynamicSprite *new_spr = new ScriptDynamicSprite(gotSlot);
+    GlobalReturnValue.SetDynamicObject(new_spr, new_spr);
+    return new_spr;
 }
 
 ScriptDynamicSprite* DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface *sds, int x, int y, int width, int height) 
@@ -454,7 +465,9 @@ ScriptDynamicSprite* DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface
     sds->FinishedDrawingReadOnly();
 
     add_dynamic_sprite(gotSlot, newPic, (sds->hasAlphaChannel != 0));
-    return new ScriptDynamicSprite(gotSlot);
+    ScriptDynamicSprite *new_spr = new ScriptDynamicSprite(gotSlot);
+    GlobalReturnValue.SetDynamicObject(new_spr, new_spr);
+    return new_spr;
 }
 
 ScriptDynamicSprite* DynamicSprite_Create(int width, int height, int alphaChannel) 
@@ -474,7 +487,9 @@ ScriptDynamicSprite* DynamicSprite_Create(int width, int height, int alphaChanne
         alphaChannel = false;
 
     add_dynamic_sprite(gotSlot, gfxDriver->ConvertBitmapToSupportedColourDepth(newPic), alphaChannel != 0);
-    return new ScriptDynamicSprite(gotSlot);
+    ScriptDynamicSprite *new_spr = new ScriptDynamicSprite(gotSlot);
+    GlobalReturnValue.SetDynamicObject(new_spr, new_spr);
+    return new_spr;
 }
 
 ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite_Old(int slot) 
@@ -516,7 +531,9 @@ ScriptDynamicSprite* DynamicSprite_CreateFromBackground(int frame, int x1, int y
 
     // replace the bitmap in the sprite set
     add_dynamic_sprite(gotSlot, newPic);
-    return new ScriptDynamicSprite(gotSlot);
+    ScriptDynamicSprite *new_spr = new ScriptDynamicSprite(gotSlot);
+    GlobalReturnValue.SetDynamicObject(new_spr, new_spr);
+    return new_spr;
 }
 
 //=============================================================================

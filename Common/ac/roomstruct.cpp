@@ -505,10 +505,9 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
     rstruc->scripts = NULL;
   }
 
-  if (rstruc->compiled_script != NULL)
-    ccFreeScript(rstruc->compiled_script);
-
+  delete rstruc->compiled_script;
   rstruc->compiled_script = NULL;
+
   if (rstruc->num_bscenes > 1) {
     int ff;
 
@@ -634,7 +633,7 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
         rstruc->scripts[hh] += passwencstring[hh % 11];
     }
     else if (thisblock == BLOCKTYPE_COMPSCRIPT3) {
-      rstruc->compiled_script = fread_script(opty);
+      rstruc->compiled_script = ccScript::CreateFromStream(opty);
       if (rstruc->compiled_script == NULL)
         quit("Load_room: Script load failed; need newer version?");
     }

@@ -17,8 +17,12 @@
 #include "ac/gamesetupstruct.h"
 #include "ac/properties.h"
 #include "ac/string.h"
+#include "ac/dynobj/scriptstring.h"
+#include "script/runtimescriptvalue.h"
 
 extern GameSetupStruct game;
+extern ScriptString myScriptStringImpl;
+extern RuntimeScriptValue GlobalReturnValue;
 
 // begin custom property functions
 
@@ -71,4 +75,10 @@ const char* get_text_property_dynamic_string(CustomProperties *cprop, const char
     }
 
     return CreateNewScriptString(valtemp);
+}
+
+const char* get_text_property_dynamic_string_as_ret_val(CustomProperties *cprop, const char *property) {
+    const char *prop_str = get_text_property_dynamic_string(cprop, property);
+    GlobalReturnValue.SetDynamicObject((void*)prop_str, &myScriptStringImpl);
+    return prop_str;
 }

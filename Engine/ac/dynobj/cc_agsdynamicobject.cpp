@@ -12,6 +12,7 @@
 //
 //=============================================================================
 
+#include <string.h>
 #include "core/types.h"
 #include "ac/dynobj/cc_agsdynamicobject.h"
 #include "ac/common.h"               // quit()
@@ -60,4 +61,54 @@ int AGSCCDynamicObject::UnserializeInt() {
     AGS::Common::BitByteOperations::SwapBytesInt32(value);
 #endif
     return value;
+}
+
+void AGSCCDynamicObject::Read(const char *address, intptr_t offset, void *dest, int size)
+{
+    memcpy(dest, address + offset, size);
+}
+
+uint8_t AGSCCDynamicObject::ReadInt8(const char *address, intptr_t offset)
+{
+    return *(uint8_t*)(address + offset);
+}
+
+int16_t AGSCCDynamicObject::ReadInt16(const char *address, intptr_t offset)
+{
+    return *(int16_t*)(address + offset);
+}
+
+int32_t AGSCCDynamicObject::ReadInt32(const char *address, intptr_t offset)
+{
+    return *(int32_t*)(address + offset);
+}
+
+float AGSCCDynamicObject::ReadFloat(const char *address, intptr_t offset)
+{
+    return *(float*)(address + offset);
+}
+
+void AGSCCDynamicObject::Write(const char *address, intptr_t offset, void *src, int size)
+{
+    memcpy((void*)(address + offset), src, size);
+}
+
+void AGSCCDynamicObject::WriteInt8(const char *address, intptr_t offset, uint8_t val)
+{
+    *(uint8_t*)(address + offset) = val;
+}
+
+void AGSCCDynamicObject::WriteInt16(const char *address, intptr_t offset, int16_t val)
+{
+    *(int16_t*)(address + offset) = val;
+}
+
+void AGSCCDynamicObject::WriteInt32(const char *address, intptr_t offset, int32_t val)
+{
+    *(int32_t*)(address + offset) = val;
+}
+
+void AGSCCDynamicObject::WriteFloat(const char *address, intptr_t offset, float val)
+{
+    *(float*)(address + offset) = val;
 }

@@ -59,6 +59,8 @@ int insert(int i, int run)
   int c, j, k, l, n, match;
   int *p;
 
+  c = NIL;
+
   k = l = 1;
   match = THRESHOLD - 1;
   p = &root[(unsigned char)lzbuffer[i]];

@@ -447,7 +447,7 @@ void my_sprintf(char *buffer, const char *fmt, va_list ap) {
         strncpy(fmtstring, curptr, (endptr - curptr));
         fmtstring[endptr - curptr] = 0;
 
-        unsigned int theArg = va_arg(ap, unsigned int);
+        unsigned long theArg = va_arg(ap, unsigned long);
 
         // use sprintf to parse the actual %02d type thing
         if (endptr[-1] == 'f') {

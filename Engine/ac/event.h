@@ -19,6 +19,7 @@
 #define __AGS_EE_AC__EVENT_H
 
 #include "ac/runtime_defines.h"
+#include "script/runtimescriptvalue.h"
 
 // parameters to run_on_event
 #define GE_LEAVE_ROOM 1
@@ -50,11 +51,11 @@ struct EventHappened {
     int player;
 };
 
-int run_claimable_event(char *tsname, bool includeRoom, int numParams, long param1, long param2, bool *eventWasClaimed);
+int run_claimable_event(char *tsname, bool includeRoom, int numParams, RuntimeScriptValue *params, bool *eventWasClaimed);
 // runs the global script on_event fnuction
-void run_on_event (int evtype, int wparam);
+void run_on_event (int evtype, RuntimeScriptValue &wparam);
 void run_room_event(int id);
-void run_event_block_inv(int invNum, int aaa);
+void run_event_block_inv(int invNum, int event);
 // event list functions
 void setevent(int evtyp,int ev1=0,int ev2=-1000,int ev3=0);
 void process_event(EventHappened*evp);

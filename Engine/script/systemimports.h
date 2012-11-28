@@ -18,23 +18,40 @@
 #include "script/cc_instance.h"    // ccInstance
 #include "script/cc_treemap.h"     // ccTreeMap
 
+struct ICCDynamicObject;
+struct ICCStaticObject;
+
+struct ScriptImport
+{
+    ScriptImport()
+    {
+        Name        = NULL;
+        InstancePtr = NULL;
+    }
+
+    const char          *Name;          // import's uid
+    RuntimeScriptValue  Value;
+    ccInstance          *InstancePtr;   // script instance
+};
+
 struct SystemImports
 {
 private:
-    char **name;
-    char **addr;
-    ccInstance **isScriptImp;
+    ScriptImport *imports;
     int numimports;
     int bufferSize;
     ccTreeMap btree;
 
 public:
-    int  add(char *, char *, ccInstance*);
-    void remove(char *);
-    char *get_addr_of(char *);
-    int  get_index_of(char *);
-    ccInstance* is_script_import(char *);
-    void remove_range(char *, unsigned long);
+    int  add(const char *name, const RuntimeScriptValue &value, ccInstance *inst);
+    void remove(const char *name);
+    const ScriptImport *getByName(const char *name);
+    int  get_index_of(const char *name);
+    const ScriptImport *getByIndex(int index);
+    //void *get_addr_of(const char *name);
+    //ccInstance* is_script_import(const char *name);
+    //void remove_range(void *from_ptr, intptr_t dist);
+    void RemoveScriptExports(ccInstance *inst);
     void clear() {
         numimports = 0;
         btree.clear();
@@ -43,11 +60,9 @@ public:
 
     SystemImports()
     {
-        numimports = 0;
-        bufferSize = 0;
-        name = NULL;
-        addr = NULL;
-        isScriptImp = NULL;
+        numimports  = 0;
+        bufferSize  = 0;
+        imports     = NULL;
     }
 };
 

@@ -22,6 +22,16 @@
 #define SCOM_VERSION 89
 #define SCOM_VERSIONSTR "0.89"
 
+// virtual CPU registers
+#define SREG_SP           1     // stack pointer
+#define SREG_MAR          2     // memory address register
+#define SREG_AX           3     // general purpose
+#define SREG_BX           4
+#define SREG_CX           5
+#define SREG_OP           6    // object pointer for member func calls
+#define SREG_DX           7
+#define CC_NUM_REGISTERS  8
+
 // virtual CPU commands
 #define SCMD_ADD          1     // reg1 += arg2
 #define SCMD_SUB          2     // reg1 -= arg2
@@ -57,7 +67,7 @@
 #define SCMD_MUL          32    // reg1 *= arg2
 #define SCMD_CALLEXT      33    // call external (imported) function reg1
 #define SCMD_PUSHREAL     34    // push reg1 onto real stack
-#define SCMD_SUBREALSTACK 35
+#define SCMD_SUBREALSTACK 35    // decrement stack ptr by literal
 #define SCMD_LINENUM      36    // debug info - source code line number
 #define SCMD_CALLAS       37    // call external script function
 #define SCMD_THISBASE     38    // current relative address
@@ -96,7 +106,8 @@
 #define SCMD_DYNAMICBOUNDS 71   // check reg1 is between 0 and m[MAR-4]
 #define SCMD_NEWARRAY     72    // reg1 = new array of reg1 elements, each of size arg2 (arg3=managed type?)
 
-
+#define CC_NUM_SCCMDS     73
+#define MAX_SCMD_ARGS     3     // maximal possible number of arguments
 
 #define EXPORT_FUNCTION   1
 #define EXPORT_DATA       2
@@ -112,12 +123,6 @@
 
 
 extern int currentline;
-
-// Internally used names for commands, registers
-extern const char *sccmdnames[];
-extern const char *regnames[];
-// Number of arguments for each command
-extern const short sccmdargs[];
 // Script file signature
 extern const char scfilesig[5];
 #define ENDFILESIG 0xbeefcafe

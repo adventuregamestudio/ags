@@ -44,7 +44,7 @@ int ExecutingScript::queue_action(PostScriptAction act, int data, const char *an
     return numPostScriptActions - 1;
 }
 
-void ExecutingScript::run_another (char *namm, int p1, int p2) {
+void ExecutingScript::run_another (char *namm, RuntimeScriptValue &p1, RuntimeScriptValue &p2) {
     if (numanother < MAX_QUEUED_SCRIPTS)
         numanother++;
     else {

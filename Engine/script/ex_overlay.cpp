@@ -25,13 +25,13 @@
 
 void register_overlay_script_functions()
 {
-	scAdd_External_Symbol("Overlay::CreateGraphical^4", (void *)Overlay_CreateGraphical);
-	scAdd_External_Symbol("Overlay::CreateTextual^106", (void *)Overlay_CreateTextual);
-	scAdd_External_Symbol("Overlay::SetText^104", (void *)Overlay_SetText);
-	scAdd_External_Symbol("Overlay::Remove^0", (void *)Overlay_Remove);
-	scAdd_External_Symbol("Overlay::get_Valid", (void *)Overlay_GetValid);
-	scAdd_External_Symbol("Overlay::get_X", (void *)Overlay_GetX);
-	scAdd_External_Symbol("Overlay::set_X", (void *)Overlay_SetX);
-	scAdd_External_Symbol("Overlay::get_Y", (void *)Overlay_GetY);
-	scAdd_External_Symbol("Overlay::set_Y", (void *)Overlay_SetY);
+	ccAddExternalStaticFunction("Overlay::CreateGraphical^4", (void *)Overlay_CreateGraphical);
+	ccAddExternalStaticFunction("Overlay::CreateTextual^106", (void *)Overlay_CreateTextual);
+	ccAddExternalObjectFunction("Overlay::SetText^104", (void *)Overlay_SetText);
+	ccAddExternalObjectFunction("Overlay::Remove^0", (void *)Overlay_Remove);
+	ccAddExternalObjectFunction("Overlay::get_Valid", (void *)Overlay_GetValid);
+	ccAddExternalObjectFunction("Overlay::get_X", (void *)Overlay_GetX);
+	ccAddExternalObjectFunction("Overlay::set_X", (void *)Overlay_SetX);
+	ccAddExternalObjectFunction("Overlay::get_Y", (void *)Overlay_GetY);
+	ccAddExternalObjectFunction("Overlay::set_Y", (void *)Overlay_SetY);
 }

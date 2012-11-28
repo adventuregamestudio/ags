@@ -44,6 +44,7 @@ int StrContains (const char *s1, const char *s2);
 //=============================================================================
 
 const char* CreateNewScriptString(const char *fromText, bool reAllocate = true);
+const char* CreateNewScriptStringAsRetVal(const char *fromText, bool reAllocate = true);
 void split_lines_rightleft (char *todis, int wii, int fonnt);
 char *reverse_text(char *text);
 void wouttext_reverseifnecessary(int x, int y, int font, char *text);

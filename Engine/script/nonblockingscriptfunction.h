@@ -19,13 +19,15 @@
 #define __AGS_EE_SCRIPT__NONBLOCKINGSCRIPTFUNCTION_H
 
 #include "ac/runtime_defines.h"
+#include "script/runtimescriptvalue.h"
 
 struct NonBlockingScriptFunction
 {
     const char* functionName;
     int numParameters;
-    void* param1;
-    void* param2;
+    //void* param1;
+    //void* param2;
+    RuntimeScriptValue params[2];
     bool roomHasFunction;
     bool globalScriptHasFunction;
     bool moduleHasFunction[MAX_SCRIPT_MODULES];

@@ -43,6 +43,18 @@ struct sc_File : ICCDynamicObject {
     void Close();
 
     sc_File();
+
+    // Legacy support for reading and writing object values by their relative offset
+    virtual void    Read(const char *address, intptr_t offset, void *dest, int size);
+    virtual uint8_t ReadInt8(const char *address, intptr_t offset);
+    virtual int16_t ReadInt16(const char *address, intptr_t offset);
+    virtual int32_t ReadInt32(const char *address, intptr_t offset);
+    virtual float   ReadFloat(const char *address, intptr_t offset);
+    virtual void    Write(const char *address, intptr_t offset, void *src, int size);
+    virtual void    WriteInt8(const char *address, intptr_t offset, uint8_t val);
+    virtual void    WriteInt16(const char *address, intptr_t offset, int16_t val);
+    virtual void    WriteInt32(const char *address, intptr_t offset, int32_t val);
+    virtual void    WriteFloat(const char *address, intptr_t offset, float val);
 };
 
 #endif // __AGS_EE_DYNOBJ__SCRIPTFILE_H

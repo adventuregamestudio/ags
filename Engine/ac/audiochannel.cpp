@@ -18,9 +18,13 @@
 #include "debug/debug_log.h"
 #include "ac/gamestate.h"
 #include "media/audio/audio.h"
+#include "script/runtimescriptvalue.h"
+#include "ac/dynobj/cc_audioclip.h"
 
 extern GameState play;
 extern roomstruct thisroom;
+extern RuntimeScriptValue GlobalReturnValue;
+extern CCAudioClip ccDynamicAudioClip;
 
 int AudioChannel_GetID(ScriptAudioChannel *channel)
 {
@@ -70,6 +74,7 @@ ScriptAudioClip* AudioChannel_GetPlayingClip(ScriptAudioChannel *channel)
     if ((channels[channel->id] != NULL) &&
         (channels[channel->id]->done == 0))
     {
+        GlobalReturnValue.SetDynamicObject(channels[channel->id]->sourceClip, &ccDynamicAudioClip);
         return (ScriptAudioClip*)channels[channel->id]->sourceClip;
     }
     return NULL;

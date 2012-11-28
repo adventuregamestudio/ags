@@ -27,7 +27,7 @@ namespace Common
 
 class Stream;
 
-class TextStreamWriter
+class TextStreamWriter : public TextWriter
 {
 public:
     // TODO: use shared ptr

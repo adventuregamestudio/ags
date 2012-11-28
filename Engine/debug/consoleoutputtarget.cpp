@@ -58,7 +58,7 @@ void CConsoleOutputTarget::Out(const char *sz_fullmsg)
     displbuf[99] = 0;
 
     strcpy (debug_line[last_debug_line].text, displbuf);
-    ccInstance*curinst = ccGetCurrentInstance();
+    ccInstance*curinst = ccInstance::GetCurrentInstance();
     if (curinst != NULL) {
         char scriptname[20];
         if (curinst->instanceof == gamescript)

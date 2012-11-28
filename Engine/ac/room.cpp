@@ -60,6 +60,7 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 #include "core/assetmanager.h"
+#include "ac/dynobj/all_dynamicclasses.h"
 
 using AGS::Common::DataStream;
 using AGS::Common::Bitmap;
@@ -122,6 +123,10 @@ extern int mouse_z_was;
 extern Bitmap **guibg;
 extern IDriverDependantBitmap **guibgbmp;
 
+extern CCHotspot ccDynamicHotspot;
+extern CCObject ccDynamicObject;
+extern RuntimeScriptValue GlobalReturnValue;
+
 RGB_MAP rgb_table;  // for 256-col antialiasing
 int new_room_flags=0;
 int gs_to_newroom=-1;
@@ -143,6 +148,7 @@ ScriptDrawingSurface* Room_GetDrawingSurfaceForBackground(int backgroundNumber)
     ScriptDrawingSurface *surface = new ScriptDrawingSurface();
     surface->roomBackgroundNumber = backgroundNumber;
     ccRegisterManagedObject(surface, surface);
+    GlobalReturnValue.SetDynamicObject(surface, surface);
     return surface;
 }
 
@@ -184,7 +190,7 @@ int Room_GetMusicOnLoad() {
 }
 
 const char* Room_GetTextProperty(const char *property) {
-    return get_text_property_dynamic_string(&thisroom.roomProps, property);
+    return get_text_property_dynamic_string_as_ret_val(&thisroom.roomProps, property);
 }
 
 const char* Room_GetMessages(int index) {
@@ -194,7 +200,7 @@ const char* Room_GetMessages(int index) {
     char buffer[STD_BUFFER_SIZE];
     buffer[0]=0;
     replace_tokens(get_translation(thisroom.message[index]), buffer, STD_BUFFER_SIZE);
-    return CreateNewScriptString(buffer);
+    return CreateNewScriptStringAsRetVal(buffer);
 }
 
 
@@ -228,9 +234,7 @@ void save_room_data_segment () {
     croom->tsdatasize = roominst->globaldatasize;
     if (croom->tsdatasize > 0) {
         croom->tsdata=(char*)malloc(croom->tsdatasize+10);
-        ccFlattenGlobalData (roominst);
         memcpy(croom->tsdata,&roominst->globaldata[0],croom->tsdatasize);
-        ccUnFlattenGlobalData (roominst);
     }
 
 }
@@ -267,8 +271,8 @@ void unload_old_room() {
     if (croom==NULL) ;
     else if (roominst!=NULL) {
         save_room_data_segment();
-        ccFreeInstance(roominstFork);
-        ccFreeInstance(roominst);
+        delete roominstFork;
+        delete roominst;
         roominstFork = NULL;
         roominst=NULL;
     }
@@ -703,14 +707,14 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
                 objectScriptObjNames[cc][1] = toupper(objectScriptObjNames[cc][1]);
         }
 
-        ccAddExternalSymbol(objectScriptObjNames[cc], &scrObj[cc]);
+        ccAddExternalDynamicObject(objectScriptObjNames[cc], &scrObj[cc], &ccDynamicObject);
     }
 
     for (cc = 0; cc < MAX_HOTSPOTS; cc++) {
         if (thisroom.hotspotScriptNames[cc][0] == 0)
             continue;
 
-        ccAddExternalSymbol(thisroom.hotspotScriptNames[cc], &scrHotspot[cc]);
+        ccAddExternalDynamicObject(thisroom.hotspotScriptNames[cc], &scrHotspot[cc], &ccDynamicHotspot);
     }
 
     our_eip=206;
@@ -782,7 +786,6 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
             if (croom->tsdatasize != roominst->globaldatasize)
                 quit("room script data segment size has changed");
             memcpy(&roominst->globaldata[0],croom->tsdata,croom->tsdatasize);
-            ccUnFlattenGlobalData (roominst);
         }
     }
     our_eip=207;
@@ -953,7 +956,7 @@ void new_room(int newnum,CharacterInfo*forchar) {
     // player leaves screen event
     run_room_event(8);
     // Run the global OnRoomLeave event
-    run_on_event (GE_LEAVE_ROOM, displayed_room);
+    run_on_event (GE_LEAVE_ROOM, RuntimeScriptValue().SetInt32(displayed_room));
 
     platform->RunPluginHooks(AGSE_LEAVEROOM, displayed_room);
 
@@ -1039,7 +1042,7 @@ void check_new_room() {
 void compile_room_script() {
     ccError = 0;
 
-    roominst = ccCreateInstance(thisroom.compiled_script);
+    roominst = ccInstance::CreateFromScript(thisroom.compiled_script);
 
     if ((ccError!=0) || (roominst==NULL)) {
         char thiserror[400];
@@ -1047,7 +1050,7 @@ void compile_room_script() {
         quit(thiserror);
     }
 
-    roominstFork = ccForkInstance(roominst);
+    roominstFork = roominst->Fork();
     if (roominstFork == NULL)
         quitprintf("Unable to create forked room instance: %s", ccErrorString);
 

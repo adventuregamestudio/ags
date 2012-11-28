@@ -19,6 +19,8 @@
 #include "ac/roomstruct.h"
 #include "ac/global_region.h"
 #include "ac/roomstatus.h"
+#include "ac/dynobj/cc_region.h"
+#include "script/runtimescriptvalue.h"
 
 
 extern ScriptRegion scrRegion[MAX_REGIONS];
@@ -27,12 +29,15 @@ extern RoomStatus*croom;
 extern GameSetupStruct game;
 extern COLOR_MAP maincoltable;
 extern color palette[256];
+extern CCRegion ccDynamicRegion;
+extern RuntimeScriptValue GlobalReturnValue;
 
 
 ScriptRegion *GetRegionAtLocation(int xx, int yy) {
     int hsnum = GetRegionAt(xx, yy);
-    if (hsnum <= 0)
-        return &scrRegion[0];
+    if (hsnum < 0)
+        hsnum = 0;
+    GlobalReturnValue.SetDynamicObject(&scrRegion[hsnum], &ccDynamicRegion);
     return &scrRegion[hsnum];
 }
 

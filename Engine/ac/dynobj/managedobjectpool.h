@@ -27,12 +27,12 @@ const int GARBAGE_COLLECTION_INTERVAL = 100;
 
 struct ManagedObjectPool {
     struct ManagedObject {
-        long handle;
+        int32_t handle;
         const char *addr;
         ICCDynamicObject * callback;
         int  refCount;
 
-        void init(long theHandle, const char *theAddress, ICCDynamicObject *theCallback);
+        void init(int32_t theHandle, const char *theAddress, ICCDynamicObject *theCallback);
         int remove(bool force);
         int AddRef();
         int CheckDispose();
@@ -48,11 +48,12 @@ private:
 
 public:
 
-    long AddRef(long handle);
-    int CheckDispose(long handle);
-    long SubRef(long handle);
-    long AddressToHandle(const char *addr);
-    const char* HandleToAddress(long handle);
+    int32_t AddRef(int32_t handle);
+    int CheckDispose(int32_t handle);
+    int32_t SubRef(int32_t handle);
+    int32_t AddressToHandle(const char *addr);
+    const char* HandleToAddress(int32_t handle);
+    void HandleToAddressAndManager(int32_t handle, void *&object, ICCDynamicObject *&manager);
     int RemoveObject(const char *address);
     void RunGarbageCollectionIfAppropriate();
     void RunGarbageCollection();

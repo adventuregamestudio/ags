@@ -25,19 +25,19 @@
 
 void register_inventoryitem_script_functions()
 {
-	scAdd_External_Symbol("InventoryItem::GetAtScreenXY^2", (void *)GetInvAtLocation);
-	scAdd_External_Symbol("InventoryItem::IsInteractionAvailable^1", (void *)InventoryItem_CheckInteractionAvailable);
-	scAdd_External_Symbol("InventoryItem::GetName^1", (void *)InventoryItem_GetName);
-	scAdd_External_Symbol("InventoryItem::GetProperty^1", (void *)InventoryItem_GetProperty);
-	scAdd_External_Symbol("InventoryItem::GetPropertyText^2", (void *)InventoryItem_GetPropertyText);
-	scAdd_External_Symbol("InventoryItem::GetTextProperty^1",(void *)InventoryItem_GetTextProperty);
-	scAdd_External_Symbol("InventoryItem::RunInteraction^1", (void *)InventoryItem_RunInteraction);
-	scAdd_External_Symbol("InventoryItem::SetName^1", (void *)InventoryItem_SetName);
-	scAdd_External_Symbol("InventoryItem::get_CursorGraphic", (void *)InventoryItem_GetCursorGraphic);
-	scAdd_External_Symbol("InventoryItem::set_CursorGraphic", (void *)InventoryItem_SetCursorGraphic);
-	scAdd_External_Symbol("InventoryItem::get_Graphic", (void *)InventoryItem_GetGraphic);
-	scAdd_External_Symbol("InventoryItem::set_Graphic", (void *)InventoryItem_SetGraphic);
-	scAdd_External_Symbol("InventoryItem::get_ID", (void *)InventoryItem_GetID);
-	scAdd_External_Symbol("InventoryItem::get_Name", (void *)InventoryItem_GetName_New);
-	scAdd_External_Symbol("InventoryItem::set_Name", (void *)InventoryItem_SetName);
+	ccAddExternalStaticFunction("InventoryItem::GetAtScreenXY^2", (void *)GetInvAtLocation);
+	ccAddExternalObjectFunction("InventoryItem::IsInteractionAvailable^1", (void *)InventoryItem_CheckInteractionAvailable);
+	ccAddExternalObjectFunction("InventoryItem::GetName^1", (void *)InventoryItem_GetName);
+	ccAddExternalObjectFunction("InventoryItem::GetProperty^1", (void *)InventoryItem_GetProperty);
+	ccAddExternalObjectFunction("InventoryItem::GetPropertyText^2", (void *)InventoryItem_GetPropertyText);
+	ccAddExternalObjectFunction("InventoryItem::GetTextProperty^1",(void *)InventoryItem_GetTextProperty);
+	ccAddExternalObjectFunction("InventoryItem::RunInteraction^1", (void *)InventoryItem_RunInteraction);
+	ccAddExternalObjectFunction("InventoryItem::SetName^1", (void *)InventoryItem_SetName);
+	ccAddExternalObjectFunction("InventoryItem::get_CursorGraphic", (void *)InventoryItem_GetCursorGraphic);
+	ccAddExternalObjectFunction("InventoryItem::set_CursorGraphic", (void *)InventoryItem_SetCursorGraphic);
+	ccAddExternalObjectFunction("InventoryItem::get_Graphic", (void *)InventoryItem_GetGraphic);
+	ccAddExternalObjectFunction("InventoryItem::set_Graphic", (void *)InventoryItem_SetGraphic);
+	ccAddExternalObjectFunction("InventoryItem::get_ID", (void *)InventoryItem_GetID);
+	ccAddExternalObjectFunction("InventoryItem::get_Name", (void *)InventoryItem_GetName_New);
+	ccAddExternalObjectFunction("InventoryItem::set_Name", (void *)InventoryItem_SetName);
 }

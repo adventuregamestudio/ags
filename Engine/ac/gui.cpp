@@ -37,6 +37,9 @@
 #include "script/script_runtime.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
+#include "ac/dynobj/cc_gui.h"
+#include "ac/dynobj/cc_guiobject.h"
+#include "script/runtimescriptvalue.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -55,6 +58,10 @@ extern int scrnwid,scrnhit;
 extern Bitmap **guibg;
 extern IDriverDependantBitmap **guibgbmp;
 extern IGraphicsDriver *gfxDriver;
+
+extern CCGUI ccDynamicGUI;
+extern CCGUIObject ccDynamicGUIObject;
+extern RuntimeScriptValue GlobalReturnValue;
 
 
 int ifacepopped=-1;  // currently displayed pop-up GUI (-1 if none)
@@ -171,6 +178,7 @@ int GUI_GetID(ScriptGUI *tehgui) {
 GUIObject* GUI_GetiControls(ScriptGUI *tehgui, int idx) {
   if ((idx < 0) || (idx >= guis[tehgui->id].numobjs))
     return NULL;
+  GlobalReturnValue.SetDynamicObject(guis[tehgui->id].objs[idx], &ccDynamicGUIObject);
   return guis[tehgui->id].objs[idx];
 }
 
@@ -217,6 +225,7 @@ ScriptGUI *GetGUIAtLocation(int xx, int yy) {
     int guiid = GetGUIAt(xx, yy);
     if (guiid < 0)
         return NULL;
+    GlobalReturnValue.SetDynamicObject(&scrGui[guiid],&ccDynamicGUI);
     return &scrGui[guiid];
 }
 
@@ -241,7 +250,9 @@ void remove_popup_interface(int ifacenum) {
 void process_interface_click(int ifce, int btn, int mbut) {
     if (btn < 0) {
         // click on GUI background
-        run_text_script_2iparam(gameinst, guis[ifce].clickEventHandler, (long)&scrGui[ifce], mbut);
+        gameinst->RunTextScript2IParam(guis[ifce].clickEventHandler,
+            RuntimeScriptValue().SetDynamicObject(&scrGui[ifce], &ccDynamicGUI),
+            RuntimeScriptValue().SetInt32(mbut));
         return;
     }
 
@@ -265,15 +276,20 @@ void process_interface_click(int ifce, int btn, int mbut) {
         // otherwise, run interface_click
         if ((theObj->GetNumEvents() > 0) &&
             (theObj->eventHandlers[0][0] != 0) &&
-            (ccGetSymbolAddr(gameinst, theObj->eventHandlers[0]) != NULL)) {
+            (!gameinst->GetSymbolAddress(theObj->eventHandlers[0]).IsNull())) {
                 // control-specific event handler
                 if (strchr(theObj->GetEventArgs(0), ',') != NULL)
-                    run_text_script_2iparam(gameinst, theObj->eventHandlers[0], (long)theObj, mbut);
+                    gameinst->RunTextScript2IParam(theObj->eventHandlers[0],
+                        RuntimeScriptValue().SetDynamicObject(theObj, &ccDynamicGUIObject),
+                        RuntimeScriptValue().SetInt32(mbut));
                 else
-                    run_text_script_iparam(gameinst, theObj->eventHandlers[0], (long)theObj);
+                    gameinst->RunTextScriptIParam(theObj->eventHandlers[0],
+                        RuntimeScriptValue().SetDynamicObject(theObj, &ccDynamicGUIObject));
         }
         else
-            run_text_script_2iparam(gameinst,"interface_click",ifce,btn);
+            gameinst->RunTextScript2IParam("interface_click",
+                RuntimeScriptValue().SetInt32(ifce),
+                RuntimeScriptValue().SetInt32(btn));
     }
 }
 
@@ -363,7 +379,7 @@ void export_gui_controls(int ee) {
 
     for (int ff = 0; ff < guis[ee].numobjs; ff++) {
         if (guis[ee].objs[ff]->scriptName[0] != 0)
-            ccAddExternalSymbol(guis[ee].objs[ff]->scriptName, guis[ee].objs[ff]);
+            ccAddExternalDynamicObject(guis[ee].objs[ff]->scriptName, guis[ee].objs[ff], &ccDynamicGUIObject);
 
         ccRegisterManagedObject(guis[ee].objs[ff], &ccDynamicGUIObject);
     }

@@ -31,6 +31,9 @@
 #include "platform/base/agsplatformdriver.h"
 #include "ac/spritecache.h"
 #include "gfx/bitmap.h"
+#include "script/runtimescriptvalue.h"
+#include "ac/dynobj/cc_character.h"
+#include "ac/dynobj/cc_inventory.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -50,6 +53,9 @@ extern volatile int timerloop;
 extern int evblocknum;
 extern CharacterInfo*playerchar;
 extern AGSPlatformDriver *platform;
+extern CCCharacter ccDynamicCharacter;
+extern CCInventory ccDynamicInv;
+extern RuntimeScriptValue GlobalReturnValue;
 
 int in_inv_screen = 0, inv_screen_newroom = -1;
 
@@ -70,6 +76,7 @@ CharacterInfo* InvWindow_GetCharacterToUse(GUIInv *guii) {
   if (guii->charId < 0)
     return NULL;
 
+  GlobalReturnValue.SetDynamicObject(&game.chars[guii->charId], &ccDynamicCharacter);
   return &game.chars[guii->charId];
 }
 
@@ -135,6 +142,7 @@ void InvWindow_ScrollUp(GUIInv *guii) {
 ScriptInvItem* InvWindow_GetItemAtIndex(GUIInv *guii, int index) {
   if ((index < 0) || (index >= charextra[guii->CharToDisplay()].invorder_count))
     return NULL;
+  GlobalReturnValue.SetDynamicObject(&scrInv[charextra[guii->CharToDisplay()].invorder[index]], &ccDynamicInv);
   return &scrInv[charextra[guii->CharToDisplay()].invorder[index]];
 }
 

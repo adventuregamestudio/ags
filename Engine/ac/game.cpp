@@ -73,6 +73,7 @@
 #include "util/filestream.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
+#include "script/runtimescriptvalue.h"
 
 using AGS::Common::String;
 using AGS::Common::DataStream;
@@ -132,6 +133,7 @@ extern unsigned int loopcounter;
 extern Bitmap *raw_saved_screen;
 extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 extern IGraphicsDriver *gfxDriver;
+extern RuntimeScriptValue GlobalReturnValue;
 
 //=============================================================================
 GameState play;
@@ -245,6 +247,7 @@ int Game_IsAudioPlaying(int audioType)
     for (int aa = 0; aa < MAX_SOUND_CHANNELS; aa++)
     {
         ScriptAudioClip *clip = AudioChannel_GetPlayingClip(&scrAudioChannel[aa]);
+        GlobalReturnValue.Invalidate();
         if (clip != NULL) 
         {
             if ((clip->type == audioType) || (audioType == SCR_NO_VALUE))
@@ -403,7 +406,9 @@ int Game_SetSaveGameDirectory(const char *newFolder) {
 const char* Game_GetSaveSlotDescription(int slnum) {
     String description;
     if (read_savedgame_description(get_save_game_path(slnum), description) == 0)
-        return CreateNewScriptString(description);
+    {
+        return CreateNewScriptStringAsRetVal(description);
+    }
     return NULL;
 }
 
@@ -540,35 +545,35 @@ void unload_game_file() {
 
     if ((gameinst != NULL) && (gameinst->pc != 0))
         quit("Error: unload_game called while script still running");
-    //ccAbortAndDestroyInstance (gameinst);
+    //->AbortAndDestroy (gameinst);
     else {
-        ccFreeInstance(gameinstFork);
-        ccFreeInstance(gameinst);
+        delete gameinstFork;
+        delete gameinst;
         gameinstFork = NULL;
         gameinst = NULL;
     }
 
-    ccFreeScript (gamescript);
+    delete gamescript;
     gamescript = NULL;
 
     if ((dialogScriptsInst != NULL) && (dialogScriptsInst->pc != 0))
         quit("Error: unload_game called while dialog script still running");
     else if (dialogScriptsInst != NULL)
     {
-        ccFreeInstance(dialogScriptsInst);
+        delete dialogScriptsInst;
         dialogScriptsInst = NULL;
     }
 
     if (dialogScriptsScript != NULL)
     {
-        ccFreeScript(dialogScriptsScript);
+        delete dialogScriptsScript;
         dialogScriptsScript = NULL;
     }
 
     for (ee = 0; ee < numScriptModules; ee++) {
-        ccFreeInstance(moduleInstFork[ee]);
-        ccFreeInstance(moduleInst[ee]);
-        ccFreeScript(scriptModules[ee]);
+        delete moduleInstFork[ee];
+        delete moduleInst[ee];
+        delete scriptModules[ee];
     }
     numScriptModules = 0;
 
@@ -664,7 +669,7 @@ const char* Game_GetGlobalStrings(int index) {
     if ((index < 0) || (index >= MAXGLOBALSTRINGS))
         quit("!Game.GlobalStrings: invalid index");
 
-    return CreateNewScriptString(play.globalstrings[index]);
+    return CreateNewScriptStringAsRetVal(play.globalstrings[index]);
 }
 
 
@@ -763,6 +768,7 @@ ScriptViewFrame* Game_GetViewFrame(int viewNumber, int loopNumber, int frame) {
 
     ScriptViewFrame *sdt = new ScriptViewFrame(viewNumber - 1, loopNumber, frame);
     ccRegisterManagedObject(sdt, sdt);
+    GlobalReturnValue.SetDynamicObject(sdt,sdt);
     return sdt;
 }
 
@@ -819,11 +825,11 @@ void Game_SetIgnoreUserInputAfterTextTimeoutMs(int newValueMs)
 }
 
 const char *Game_GetFileName() {
-    return CreateNewScriptString(usetup.main_data_filename);
+    return CreateNewScriptStringAsRetVal(usetup.main_data_filename);
 }
 
 const char *Game_GetName() {
-    return CreateNewScriptString(play.game_name);
+    return CreateNewScriptStringAsRetVal(play.game_name);
 }
 
 void Game_SetName(const char *newName) {
@@ -872,13 +878,13 @@ int Game_GetColorFromRGB(int red, int grn, int blu) {
 const char* Game_InputBox(const char *msg) {
     char buffer[STD_BUFFER_SIZE];
     sc_inputbox(msg, buffer);
-    return CreateNewScriptString(buffer);
+    return CreateNewScriptStringAsRetVal(buffer);
 }
 
 const char* Game_GetLocationName(int x, int y) {
     char buffer[STD_BUFFER_SIZE];
     GetLocationName(x, y, buffer);
-    return CreateNewScriptString(buffer);
+    return CreateNewScriptStringAsRetVal(buffer);
 }
 
 const char* Game_GetGlobalMessages(int index) {
@@ -888,7 +894,7 @@ const char* Game_GetGlobalMessages(int index) {
     char buffer[STD_BUFFER_SIZE];
     buffer[0] = 0;
     replace_tokens(get_translation(get_global_message(index)), buffer, STD_BUFFER_SIZE);
-    return CreateNewScriptString(buffer);
+    return CreateNewScriptStringAsRetVal(buffer);
 }
 
 int Game_GetSpeechFont() {
@@ -901,7 +907,7 @@ int Game_GetNormalFont() {
 const char* Game_GetTranslationFilename() {
     char buffer[STD_BUFFER_SIZE];
     GetTranslationName(buffer);
-    return CreateNewScriptString(buffer);
+    return CreateNewScriptStringAsRetVal(buffer);
 }
 
 int Game_ChangeTranslation(const char *newFilename)
@@ -1102,19 +1108,15 @@ void save_game_scripts(DataStream *out)
     // write the data segment of the global script
     int gdatasize=gameinst->globaldatasize;
     out->WriteInt32(gdatasize);
-    ccFlattenGlobalData (gameinst);
     // MACPORT FIX: just in case gdatasize is 2 or 4, don't want to swap endian
     out->Write(&gameinst->globaldata[0], gdatasize);
-    ccUnFlattenGlobalData (gameinst);
     // write the script modules data segments
     out->WriteInt32(numScriptModules);
     for (int bb = 0; bb < numScriptModules; bb++) {
         int glsize = moduleInst[bb]->globaldatasize;
         out->WriteInt32(glsize);
         if (glsize > 0) {
-            ccFlattenGlobalData(moduleInst[bb]);
             out->Write(&moduleInst[bb]->globaldata[0], glsize);
-            ccUnFlattenGlobalData(moduleInst[bb]);
         }
     }
 }
@@ -1644,19 +1646,19 @@ void restore_game_clean_gfx()
 
 void restore_game_clean_scripts()
 {
-    ccFreeInstance(gameinstFork);
-    ccFreeInstance(gameinst);
+    delete gameinstFork;
+    delete gameinst;
     gameinstFork = NULL;
     gameinst = NULL;
     for (int vv = 0; vv < numScriptModules; vv++) {
-        ccFreeInstance(moduleInstFork[vv]);
-        ccFreeInstance(moduleInst[vv]);
+        delete moduleInstFork[vv];
+        delete moduleInst[vv];
         moduleInst[vv] = NULL;
     }
 
     if (dialogScriptsInst != NULL)
     {
-        ccFreeInstance(dialogScriptsInst);
+        delete dialogScriptsInst;
         dialogScriptsInst = NULL;
     }
 }
@@ -1669,7 +1671,7 @@ void restore_game_scripts(DataStream *in, int &gdatasize, char **newglobaldatabu
     *newglobaldatabuffer = (char*)malloc(gdatasize);
     in->Read(*newglobaldatabuffer, gdatasize);
     //in->ReadArray(&gameinst->globaldata[0],gdatasize,1);
-    //ccUnFlattenGlobalData (gameinst);
+    //->UnFlattenGlobalData (gameinst);
 
 
 
@@ -2123,8 +2125,8 @@ int restore_game_data (DataStream *in, const char *nametouse) {
 
     restore_game_charextras(in);
     if (roominst!=NULL) {  // so it doesn't overwrite the tsdata
-        ccFreeInstance(roominstFork);
-        ccFreeInstance(roominst); 
+        delete roominstFork;
+        delete roominst; 
         roominstFork = NULL;
         roominst=NULL;
     }
@@ -2195,7 +2197,6 @@ int restore_game_data (DataStream *in, const char *nametouse) {
     // read the global data into the newly created script
     memcpy(&gameinst->globaldata[0], newglobaldatabuffer, gdatasize);
     free(newglobaldatabuffer);
-    ccUnFlattenGlobalData(gameinst);
 
     // restore the script module data
     for (bb = 0; bb < numScriptModules; bb++) {
@@ -2203,7 +2204,6 @@ int restore_game_data (DataStream *in, const char *nametouse) {
             quit("!Restore Game: script module global data changed, unable to restore");
         memcpy(&moduleInst[bb]->globaldata[0], scriptModuleDataBuffers[bb], scriptModuleDataSize[bb]);
         free(scriptModuleDataBuffers[bb]);
-        ccUnFlattenGlobalData(moduleInst[bb]);
     }
 
 
@@ -2487,7 +2487,7 @@ int load_game(const Common::String &path, int slotNumber)
         return error_code;
     }
 
-    run_on_event (GE_RESTORE_GAME, slotNumber);
+    run_on_event (GE_RESTORE_GAME, RuntimeScriptValue().SetInt32(slotNumber));
 
     // ensure keyboard buffer is clean
     // use the raw versions rather than the rec_ versions so we don't

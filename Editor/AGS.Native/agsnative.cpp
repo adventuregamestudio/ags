@@ -1432,7 +1432,7 @@ void load_script_modules_compiled(DataStream *inn) {
   scModules = (ScriptModule*)realloc(scModules, sizeof(ScriptModule) * numScriptModules);
   for (int i = 0; i < numScriptModules; i++) {
     scModules[i].init();
-    scModules[i].compiled = fread_script(inn);
+    scModules[i].compiled = ccScript::CreateFromStream(inn);
   }
 
 }
@@ -1602,7 +1602,7 @@ const char *load_dta_file_into_thisgame(const char *fileName)
   thisgame.globalscript = NULL;
 
   if (thisgame.compiled_script != NULL)
-    thisgame.compiled_script = fread_script(iii);
+    thisgame.compiled_script = ccScript::CreateFromStream(iii);
 
   load_script_modules_compiled(iii);
 
@@ -1691,8 +1691,8 @@ void free_script_module(int index) {
   free(scModules[index].description);
   free(scModules[index].script);
   free(scModules[index].scriptHeader);
-  if (scModules[index].compiled != NULL)
-    ccFreeScript(scModules[index].compiled);
+  delete scModules[index].compiled;
+  scModules[index].compiled = NULL;
 }
 
 void free_script_modules() {
@@ -2139,7 +2139,7 @@ void save_room(const char *files, roomstruct rstruc) {
       lee = 0;
       leeat = opty->GetPosition();
       opty->WriteInt32(lee);
-      fwrite_script(rstruc.compiled_script, opty);
+      rstruc.compiled_script->Write(opty);
      
       wasat = opty->GetPosition();
       opty->Seek(Common::kSeekBegin, leeat);
@@ -4637,7 +4637,7 @@ void write_compiled_script(DataStream *ooo, Script ^script)
 		throw gcnew CompileError(String::Format("Script has not been compiled: {0}", script->FileName));
 	}
 
-	fwrite_script(((AGS::Native::CompiledScript^)script->CompiledData)->Data, ooo);
+	((AGS::Native::CompiledScript^)script->CompiledData)->Data->Write(ooo);
 }
 
 void serialize_interaction_scripts(Interactions ^interactions, DataStream *ooo)

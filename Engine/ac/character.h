@@ -193,7 +193,7 @@ int update_lip_sync(int talkview, int talkloop, int *talkframeptr);
 
 extern CharacterInfo*playerchar;
 extern CharacterExtras *charextra;
-extern long _sc_PlayerCharPtr;
+extern int32_t _sc_PlayerCharPtr;
 
 // order of loops to turn character in circle from down to down
 extern int turnlooporder[8];

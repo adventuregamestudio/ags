@@ -25,12 +25,12 @@
 
 void register_textbox_script_functions()
 {
-	scAdd_External_Symbol("TextBox::GetText^1", (void *)TextBox_GetText);
-	scAdd_External_Symbol("TextBox::SetText^1", (void *)TextBox_SetText);
-	scAdd_External_Symbol("TextBox::get_Font", (void *)TextBox_GetFont);
-	scAdd_External_Symbol("TextBox::set_Font", (void *)TextBox_SetFont);
-	scAdd_External_Symbol("TextBox::get_Text", (void *)TextBox_GetText_New);
-	scAdd_External_Symbol("TextBox::set_Text", (void *)TextBox_SetText);
-	scAdd_External_Symbol("TextBox::get_TextColor", (void *)TextBox_GetTextColor);
-	scAdd_External_Symbol("TextBox::set_TextColor", (void *)TextBox_SetTextColor);
+	ccAddExternalObjectFunction("TextBox::GetText^1", (void *)TextBox_GetText);
+	ccAddExternalObjectFunction("TextBox::SetText^1", (void *)TextBox_SetText);
+	ccAddExternalObjectFunction("TextBox::get_Font", (void *)TextBox_GetFont);
+	ccAddExternalObjectFunction("TextBox::set_Font", (void *)TextBox_SetFont);
+	ccAddExternalObjectFunction("TextBox::get_Text", (void *)TextBox_GetText_New);
+	ccAddExternalObjectFunction("TextBox::set_Text", (void *)TextBox_SetText);
+	ccAddExternalObjectFunction("TextBox::get_TextColor", (void *)TextBox_GetTextColor);
+	ccAddExternalObjectFunction("TextBox::set_TextColor", (void *)TextBox_SetTextColor);
 }

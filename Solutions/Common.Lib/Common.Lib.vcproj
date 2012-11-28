@@ -334,10 +334,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\script\cc_instance.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Common\script\cc_options.cpp"
 					>
 				</File>
@@ -637,10 +633,6 @@
 				>
 				<File
 					RelativePath="..\..\Common\script\cc_error.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\script\cc_instance.h"
 					>
 				</File>
 				<File

@@ -28,7 +28,6 @@
 #include "script/executingscript.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
-#include "script/spans.h"
 #include "script/systemimports.h"
 #include "util/bbop.h"
 #include "util/datastream.h"

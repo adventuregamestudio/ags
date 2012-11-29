@@ -34,7 +34,6 @@
 #include "script/cc_options.h"
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/managedobjectpool.h"
-#include "script/spans.h"
 #include "script/systemimports.h"
 #include "ac/statobj/staticobject.h"
 

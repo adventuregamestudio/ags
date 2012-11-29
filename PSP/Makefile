@@ -76,7 +76,8 @@ distrib: all
 	@cp "bin/exception.prx" "dist/$(DISTRIB_NAME)/exception.prx"
 	@cp "bin/psp.cfg" "dist/$(DISTRIB_NAME)/psp.cfg"
 	@cp "readme.md" "dist/$(DISTRIB_NAME)/readme.txt"
-	@cp "../Engine/License.txt" "dist/$(DISTRIB_NAME)/License.txt"
+	@cp "../License.txt" "dist/$(DISTRIB_NAME)/License.txt"
+	@cp "../Copyright.txt" "dist/$(DISTRIB_NAME)/License.txt"
 	@make distrib -C "../Plugins" -f Makefile.psp
 
 clean:

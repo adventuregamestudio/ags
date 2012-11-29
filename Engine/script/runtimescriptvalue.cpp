@@ -3,6 +3,7 @@
 #include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_dynamicobject.h"
 #include "ac/statobj/staticobject.h"
+#include "util/bbop.h"
 
 //
 // NOTE to future optimizers: I am using 'this' ptr here to better

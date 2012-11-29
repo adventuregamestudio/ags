@@ -47,6 +47,9 @@ There is an xcode 3.2.6 project in the <SOURCE>/iOS/xcode directory. It requires
 iOS SDK 4.x. The project should build on Snow Leopard or Lion with either xcode 3.x
 or 4.x.
 
+iOS SDK 6: The armv7s architecture must be removed from the build targets because
+only armv7 libraries are included with this source code.
+
 
 ##Native 3rd party libraries
 
@@ -57,7 +60,8 @@ Change to the <SOURCE>/iOS/buildlibs directory and run
 
     ./buildall.sh
 
-This will download, patch, build and properly install the required libraries.
+This will download, patch, build and properly install the required libraries for
+armv6, armv7 and i386 architecture. No armv7s libraries are built.
 
 
 

@@ -80,10 +80,7 @@
 		60CA3A8B160713D300CFB3BD /* AAROT.c in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3A26160713D300CFB3BD /* AAROT.c */; };
 		60CA3A8C160713D300CFB3BD /* aastr.c in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3A27160713D300CFB3BD /* aastr.c */; };
 		60CA3A8D160713D300CFB3BD /* aautil.c in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3A29160713D300CFB3BD /* aautil.c */; };
-		60CA3A92160713D300CFB3BD /* bigend.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3A34160713D300CFB3BD /* bigend.cpp */; };
-		60CA3A93160713D300CFB3BD /* macport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3A37160713D300CFB3BD /* macport.cpp */; };
 		60CA3A94160713D300CFB3BD /* cc_error.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3A3A160713D300CFB3BD /* cc_error.cpp */; };
-		60CA3A95160713D300CFB3BD /* cc_instance.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3A3C160713D300CFB3BD /* cc_instance.cpp */; };
 		60CA3A96160713D300CFB3BD /* cc_options.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3A3E160713D300CFB3BD /* cc_options.cpp */; };
 		60CA3A97160713D300CFB3BD /* cc_script.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3A40160713D300CFB3BD /* cc_script.cpp */; };
 		60CA3A98160713D300CFB3BD /* cc_treemap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3A42160713D300CFB3BD /* cc_treemap.cpp */; };
@@ -347,6 +344,12 @@
 		60CA3EA5160713FF00CFB3BD /* test_file.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3D29160713FF00CFB3BD /* test_file.cpp */; };
 		60CA3EA6160713FF00CFB3BD /* test_string.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA3D2B160713FF00CFB3BD /* test_string.cpp */; };
 		60CE9D9C155272CD00A52D5A /* libfreetype.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 60CE9D9B155272CD00A52D5A /* libfreetype.a */; };
+		60DC154116675B2B002D0474 /* cc_error_engine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60DC153D16675B2B002D0474 /* cc_error_engine.cpp */; };
+		60DC154216675B2B002D0474 /* cc_instance.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60DC153F16675B2B002D0474 /* cc_instance.cpp */; };
+		60DC154316675B2B002D0474 /* runtimescriptvalue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60DC154016675B2B002D0474 /* runtimescriptvalue.cpp */; };
+		60DC154A16675B70002D0474 /* richgamemedia.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60DC154916675B70002D0474 /* richgamemedia.cpp */; };
+		60DC155816675BBF002D0474 /* agsstaticobject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60DC155116675BBE002D0474 /* agsstaticobject.cpp */; };
+		60DC155A16675BBF002D0474 /* staticarray.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60DC155416675BBE002D0474 /* staticarray.cpp */; };
 		60F49A4A155131E500A07887 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 60F49A49155131E500A07887 /* AudioToolbox.framework */; };
 /* End PBXBuildFile section */
 
@@ -525,14 +528,8 @@
 		60CA3A29160713D300CFB3BD /* aautil.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = aautil.c; sourceTree = "<group>"; };
 		60CA3A2A160713D300CFB3BD /* aautil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = aautil.h; sourceTree = "<group>"; };
 		60CA3A2B160713D300CFB3BD /* vssver2.scc */ = {isa = PBXFileReference; lastKnownFileType = file; path = vssver2.scc; sourceTree = "<group>"; };
-		60CA3A34160713D300CFB3BD /* bigend.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = bigend.cpp; sourceTree = "<group>"; };
-		60CA3A35160713D300CFB3BD /* bigend.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bigend.h; sourceTree = "<group>"; };
-		60CA3A37160713D300CFB3BD /* macport.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = macport.cpp; sourceTree = "<group>"; };
-		60CA3A38160713D300CFB3BD /* macport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = macport.h; sourceTree = "<group>"; };
 		60CA3A3A160713D300CFB3BD /* cc_error.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = cc_error.cpp; sourceTree = "<group>"; };
 		60CA3A3B160713D300CFB3BD /* cc_error.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cc_error.h; sourceTree = "<group>"; };
-		60CA3A3C160713D300CFB3BD /* cc_instance.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = cc_instance.cpp; sourceTree = "<group>"; };
-		60CA3A3D160713D300CFB3BD /* cc_instance.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cc_instance.h; sourceTree = "<group>"; };
 		60CA3A3E160713D300CFB3BD /* cc_options.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = cc_options.cpp; sourceTree = "<group>"; };
 		60CA3A3F160713D300CFB3BD /* cc_options.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cc_options.h; sourceTree = "<group>"; };
 		60CA3A40160713D300CFB3BD /* cc_script.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = cc_script.cpp; sourceTree = "<group>"; };
@@ -1050,6 +1047,17 @@
 		60CA3D2B160713FF00CFB3BD /* test_string.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = test_string.cpp; sourceTree = "<group>"; };
 		60CA3D2C160713FF00CFB3BD /* test_string.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = test_string.h; sourceTree = "<group>"; };
 		60CE9D9B155272CD00A52D5A /* libfreetype.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfreetype.a; path = ../../nativelibs/fat/lib/libfreetype.a; sourceTree = SOURCE_ROOT; };
+		60DC153C16675B07002D0474 /* cc_instance.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cc_instance.h; sourceTree = "<group>"; };
+		60DC153D16675B2B002D0474 /* cc_error_engine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = cc_error_engine.cpp; sourceTree = "<group>"; };
+		60DC153E16675B2B002D0474 /* runtimescriptvalue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = runtimescriptvalue.h; sourceTree = "<group>"; };
+		60DC153F16675B2B002D0474 /* cc_instance.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = cc_instance.cpp; sourceTree = "<group>"; };
+		60DC154016675B2B002D0474 /* runtimescriptvalue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = runtimescriptvalue.cpp; sourceTree = "<group>"; };
+		60DC154916675B70002D0474 /* richgamemedia.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = richgamemedia.cpp; sourceTree = "<group>"; };
+		60DC155116675BBE002D0474 /* agsstaticobject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = agsstaticobject.cpp; sourceTree = "<group>"; };
+		60DC155216675BBE002D0474 /* agsstaticobject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = agsstaticobject.h; sourceTree = "<group>"; };
+		60DC155416675BBE002D0474 /* staticarray.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = staticarray.cpp; sourceTree = "<group>"; };
+		60DC155516675BBE002D0474 /* staticarray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = staticarray.h; sourceTree = "<group>"; };
+		60DC155716675BBF002D0474 /* staticobject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = staticobject.h; sourceTree = "<group>"; };
 		60F49A49155131E500A07887 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		8D1107310486CEB800E47090 /* ags-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "ags-Info.plist"; plistStructureDefinitionIdentifier = "com.apple.xcode.plist.structure-definition.iphone.info-plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -1272,7 +1280,6 @@
 				60CA39E6160713D200CFB3BD /* gui */,
 				60CA39F9160713D300CFB3BD /* libinclude */,
 				60CA3A24160713D300CFB3BD /* libsrc */,
-				60CA3A32160713D300CFB3BD /* platform */,
 				60CA3A39160713D300CFB3BD /* script */,
 				60CA3A46160713D300CFB3BD /* util */,
 			);
@@ -1495,40 +1502,11 @@
 			path = "aastr-0.1.1";
 			sourceTree = "<group>";
 		};
-		60CA3A32160713D300CFB3BD /* platform */ = {
-			isa = PBXGroup;
-			children = (
-				60CA3A33160713D300CFB3BD /* bigend */,
-				60CA3A36160713D300CFB3BD /* osx */,
-			);
-			path = platform;
-			sourceTree = "<group>";
-		};
-		60CA3A33160713D300CFB3BD /* bigend */ = {
-			isa = PBXGroup;
-			children = (
-				60CA3A34160713D300CFB3BD /* bigend.cpp */,
-				60CA3A35160713D300CFB3BD /* bigend.h */,
-			);
-			path = bigend;
-			sourceTree = "<group>";
-		};
-		60CA3A36160713D300CFB3BD /* osx */ = {
-			isa = PBXGroup;
-			children = (
-				60CA3A37160713D300CFB3BD /* macport.cpp */,
-				60CA3A38160713D300CFB3BD /* macport.h */,
-			);
-			path = osx;
-			sourceTree = "<group>";
-		};
 		60CA3A39160713D300CFB3BD /* script */ = {
 			isa = PBXGroup;
 			children = (
 				60CA3A3A160713D300CFB3BD /* cc_error.cpp */,
 				60CA3A3B160713D300CFB3BD /* cc_error.h */,
-				60CA3A3C160713D300CFB3BD /* cc_instance.cpp */,
-				60CA3A3D160713D300CFB3BD /* cc_instance.h */,
 				60CA3A3E160713D300CFB3BD /* cc_options.cpp */,
 				60CA3A3F160713D300CFB3BD /* cc_options.h */,
 				60CA3A40160713D300CFB3BD /* cc_script.cpp */,
@@ -1603,6 +1581,8 @@
 		60CA3AA8160713FD00CFB3BD /* ac */ = {
 			isa = PBXGroup;
 			children = (
+				60DC155016675BBE002D0474 /* statobj */,
+				60DC154916675B70002D0474 /* richgamemedia.cpp */,
 				60CA3AA9160713FD00CFB3BD /* audiochannel.cpp */,
 				60CA3AAA160713FD00CFB3BD /* audiochannel.h */,
 				60CA3AAB160713FD00CFB3BD /* audioclip.cpp */,
@@ -2224,6 +2204,11 @@
 		60CA3CF6160713FF00CFB3BD /* script */ = {
 			isa = PBXGroup;
 			children = (
+				60DC153D16675B2B002D0474 /* cc_error_engine.cpp */,
+				60DC153E16675B2B002D0474 /* runtimescriptvalue.h */,
+				60DC153F16675B2B002D0474 /* cc_instance.cpp */,
+				60DC154016675B2B002D0474 /* runtimescriptvalue.cpp */,
+				60DC153C16675B07002D0474 /* cc_instance.h */,
 				60CA3CF7160713FF00CFB3BD /* executingscript.cpp */,
 				60CA3CF8160713FF00CFB3BD /* executingscript.h */,
 				60CA3CF9160713FF00CFB3BD /* exports.cpp */,
@@ -2284,6 +2269,18 @@
 				60CA3D2C160713FF00CFB3BD /* test_string.h */,
 			);
 			path = test;
+			sourceTree = "<group>";
+		};
+		60DC155016675BBE002D0474 /* statobj */ = {
+			isa = PBXGroup;
+			children = (
+				60DC155116675BBE002D0474 /* agsstaticobject.cpp */,
+				60DC155216675BBE002D0474 /* agsstaticobject.h */,
+				60DC155416675BBE002D0474 /* staticarray.cpp */,
+				60DC155516675BBE002D0474 /* staticarray.h */,
+				60DC155716675BBF002D0474 /* staticobject.h */,
+			);
+			path = statobj;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -2405,10 +2402,7 @@
 				60CA3A8B160713D300CFB3BD /* AAROT.c in Sources */,
 				60CA3A8C160713D300CFB3BD /* aastr.c in Sources */,
 				60CA3A8D160713D300CFB3BD /* aautil.c in Sources */,
-				60CA3A92160713D300CFB3BD /* bigend.cpp in Sources */,
-				60CA3A93160713D300CFB3BD /* macport.cpp in Sources */,
 				60CA3A94160713D300CFB3BD /* cc_error.cpp in Sources */,
-				60CA3A95160713D300CFB3BD /* cc_instance.cpp in Sources */,
 				60CA3A96160713D300CFB3BD /* cc_options.cpp in Sources */,
 				60CA3A97160713D300CFB3BD /* cc_script.cpp in Sources */,
 				60CA3A98160713D300CFB3BD /* cc_treemap.cpp in Sources */,
@@ -2689,6 +2683,12 @@
 				60898DD6160787FF009E152F /* hq2x3x.cpp in Sources */,
 				6080428E1614DE8F00D33732 /* assetmanager.cpp in Sources */,
 				608B4E57163BF27B00547FAA /* libc.c in Sources */,
+				60DC154116675B2B002D0474 /* cc_error_engine.cpp in Sources */,
+				60DC154216675B2B002D0474 /* cc_instance.cpp in Sources */,
+				60DC154316675B2B002D0474 /* runtimescriptvalue.cpp in Sources */,
+				60DC154A16675B70002D0474 /* richgamemedia.cpp in Sources */,
+				60DC155816675BBF002D0474 /* agsstaticobject.cpp in Sources */,
+				60DC155A16675BBF002D0474 /* staticarray.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -50,6 +50,7 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 #include "script/runtimescriptvalue.h"
+#include "debug/out.h"
 
 using AGS::Common::DataStream;
 

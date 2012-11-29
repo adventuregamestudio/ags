@@ -22,7 +22,6 @@
 #include <ctype.h>
 
 #include <allegro.h>
-#include "bigend.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/override_defines.h"
 #include "ac/runtime_defines.h"

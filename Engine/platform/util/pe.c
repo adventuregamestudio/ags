@@ -182,7 +182,7 @@ int getVersionString(char* version_data, unsigned int size, char* buffer, char* 
       current += (2 + 2 * strlen(temp));
   
       // Next value is 32 bit aligned
-      current = (char*)((unsigned int)(current + 3) & (~3));
+      current = (char*)((unsigned long)(current + 3) & (~3));
     
       // Read value
       fillBufferFromWidechar((unsigned short*)current, buffer);
@@ -193,7 +193,7 @@ int getVersionString(char* version_data, unsigned int size, char* buffer, char* 
       current += (header->wLength - sizeof(STRINGFILEINFO_HEADER));
   
     // Next value is 32 bit aligned
-    current = (char*)((unsigned int)(current + 3) & (~3));
+    current = (char*)((unsigned long)(current + 3) & (~3));
   }
 
   return 0;

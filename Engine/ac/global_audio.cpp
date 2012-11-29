@@ -139,12 +139,16 @@ int PlaySoundEx(int val1, int channel) {
         return -1;
 
     // that sound is already in memory, play it
-    if ((last_sound_played[channel] == val1) && (channels[channel] != NULL)) {
-        DEBUG_CONSOLE("Playing sound %d on channel %d; cached", val1, channel);
-        channels[channel]->restart();
-        channels[channel]->set_volume (play.sound_volume);
-        return channel;
+    if (!psp_audio_multithreaded)
+    {
+        if ((last_sound_played[channel] == val1) && (channels[channel] != NULL)) {
+            DEBUG_CONSOLE("Playing sound %d on channel %d; cached", val1, channel);
+            channels[channel]->restart();
+            channels[channel]->set_volume (play.sound_volume);
+            return channel;
+        }
     }
+
     // free the old sound
     stop_and_destroy_channel (channel);
     DEBUG_CONSOLE("Playing sound %d on channel %d", val1, channel);

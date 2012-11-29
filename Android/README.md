@@ -69,10 +69,12 @@ directory alongside your games.
 
 The Android app consists of three parts, each with different requirements:
 
--   Java app: only needs the Android SDK for Windows, Linux or Mac
+-   Java app: needs the Android SDK for Windows, Linux or Mac
 -   Native engine library: needs the Android NDK for Windows, Linux or Mac
 -   Native 3rd party libraries: needs the Android NDK for Linux
 
+To only build the app, first follow the "Native engine library" and then the "Java app"
+instructions below.
 
 ##Java app
 
@@ -86,8 +88,6 @@ The easiest way to build the app is to create an Android project in Eclipse. Cho
 
 
 ##Native engine library
-
-You don't have to build this yourself unless you want to change the source code of the engine.
 
 This is the main AGS engine code. It must be compiled using the Android NDK. This can
 simply be done by running

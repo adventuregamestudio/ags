@@ -291,7 +291,20 @@ bool RuntimeScriptValue::WriteValue(const RuntimeScriptValue &rval)
         }
         else
         {
-            *RValue = rval;
+            // NOTE: we cannot just WriteValue here because when an integer
+            // is pushed to the stack, script assumes that it is always 4
+            // bytes and uses that size when calculating offsets to local
+            // variables;
+            // Therefore if pushed value is of integer type, we should rather
+            // act as WriteInt32 (for int8, int16 and int32).
+            if (rval.GetType() == kScValInteger)
+            {
+                RValue->SetInt32(rval.GetInt32());
+            }
+            else
+            {
+                *RValue = rval;
+            }
         }
     }
     else if (this->Type == kScValGlobalVar)

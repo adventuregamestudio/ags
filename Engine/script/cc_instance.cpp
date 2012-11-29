@@ -1887,19 +1887,7 @@ void ccInstance::PushValueToStack(const RuntimeScriptValue &rval)
         return;
     }
     // Write value to the stack tail and advance stack ptr
-    // NOTE: we cannot just WriteValue here because when an integer is pushed to the stack,
-    // script assumes that it is always 4 bytes and uses that size when calculating
-    // offsets to local variables;
-    // Therefore if pushed value is of integer type, we should rather use WriteInt32
-    // (for int8, int16 and int32).
-    if (rval.GetType() == kScValInteger)
-    {
-        registers[SREG_SP].WriteInt32(rval.GetInt32());
-    }
-    else
-    {
-        registers[SREG_SP].WriteValue(rval);
-    }
+    registers[SREG_SP].WriteValue(rval);
     registers[SREG_SP].SetStackPtr(registers[SREG_SP].GetStackEntry() + 1); // TODO: optimize with ++?
 }
 
@@ -1997,7 +1985,7 @@ RuntimeScriptValue ccInstance::GetStackPtrOffsetFw(int32_t fw_offset)
     if (total_off > fw_offset)
     {
         // Forward offset should always set ptr at the beginning of stack entry
-        cc_error("trying to access stack data inside stack entry, stack corrupted?");
+        cc_error("stack offset forward: trying to access stack data inside stack entry, stack corrupted?");
     }
     return stack_ptr;
 }
@@ -2027,7 +2015,7 @@ RuntimeScriptValue ccInstance::GetStackPtrOffsetRw(int32_t rw_offset)
         }
         else
         {
-            cc_error("trying to access stack data inside stack entry, stack corrupted?");
+            cc_error("stack offset backward: trying to access stack data inside stack entry, stack corrupted?");
         }
     }
     return stack_ptr;

@@ -1,0 +1,56 @@
+
+
+///////////////////////////////////////////////////////////////////////////////
+// GOALS:
+///////////////////////////////////////////////////////////////////////////////
+
+1. Separate underlying utility libraries from the project, make them static libraries.
+
+
+2. Replace direct use of Allegro and other third-party libs with use of interfaces.
+[2012-12-01] Bitmaps done, what's left:
+- general graphics functions,
+- allegro fonts,
+- mouse & keyboard control
+- audio.
+
+
+3. Separate any platform-dependant code from engine core, move it to platform-specific
+code units, probably hide beyond interfaces.
+
+
+4. Free engine data structures from the size/data offset restrictions.
+
+    Blocking problems:
+    4.1. Many structures are read/written by script runtime directly, variables being
+    accessed by offsets, arrays of game objects return elements by offset which depends
+    on object's size (? - need checking). See p.5.
+    4.2. Backwards compatibility! The structures must know how to read data of older
+    versions. See p.6.
+    
+    After this is done the engine classes could be altered any way we please.
+[2012-12-01] Still blocked by script interpreter and plugin interface.
+
+
+5. Alter script runtime (interpreter) so that it substitutes direct access to game objects
+by offset with something else, like add get/set methods to classes that read/write certain
+variables deducted by given "legacy" offset.
+Either do that "on run", or convert old script's byte-code to newer version on load.
+[2012-12-01] Very good progress with script interpreter, but there're still couple of
+tasks to finish.
+
+
+
+6. All structs and classes should be able to read/write their states in two cases:
+loading/saving game data and loading/saving running game state (savegame).
+They should be able to detect older version of data format and make appropriate
+conversions.
+
+
+
+7. Utility classes for safer code:
+    7.1. String
+    7.2. Array/pointer array/list
+    7.3. File
+    7.4. Stream (and descendants like FileStream)
+         with support for explicitly defined endianess and padding control (for backward-compatible reading)

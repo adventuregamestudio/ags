@@ -14,6 +14,8 @@ OBJS = $(OBJS_C:.c=.o)
 OBJS_COMMON_CPP = $(COMMON)
 OBJS_COMMON = $(OBJS_COMMON_CPP:.cpp=.o)
 
+-include config.mak
+
 .PHONY: printflags clean install uninstall rebuild
 
 all: printflags ags

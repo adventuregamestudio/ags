@@ -254,6 +254,10 @@ AssetSearchPriority AssetManager::_GetSearchPriority()
 
 AssetError AssetManager::_SetDataFile(const String &data_file)
 {
+    if (data_file.IsEmpty())
+    {
+        return kAssetErrNoLibFile;
+    }
     if (_assetLib.BaseFileName.Compare(data_file) == 0)
     {
         return kAssetNoError;
@@ -264,6 +268,10 @@ AssetError AssetManager::_SetDataFile(const String &data_file)
 
 String AssetManager::_GetLibraryForAsset(const String &asset_name)
 {
+    if (asset_name.IsEmpty())
+    {
+        return "";
+    }
     AssetInfo *asset = FindAssetByFileName(asset_name);
     if (!asset)
     {
@@ -276,6 +284,10 @@ String AssetManager::_GetLibraryForAsset(const String &asset_name)
 
 long AssetManager::_GetAssetOffset(const String &asset_name)
 {
+    if (asset_name.IsEmpty())
+    {
+        return -1;
+    }
     AssetInfo *asset = FindAssetByFileName(asset_name);
     if (asset)
     {
@@ -286,6 +298,10 @@ long AssetManager::_GetAssetOffset(const String &asset_name)
 
 long AssetManager::_GetAssetSize(const String &asset_name)
 {
+    if (asset_name.IsEmpty())
+    {
+        return -1;
+    }
     AssetInfo *asset = FindAssetByFileName(asset_name);
     if (asset)
     {

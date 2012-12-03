@@ -21,7 +21,6 @@
 
 #include "util/bbop.h"
 #include "util/stream.h"
-#include "util/string.h"
 
 namespace AGS
 {
@@ -133,17 +132,6 @@ public:
     // Helper function for easier compatibility with 64-bit platforms,
     // writes intptr_t array elements as 32-bit values
     size_t WriteArrayOfIntPtr32(const intptr_t *buffer, size_t count);
-
-    // Helper methods for reading and writing null-terminated string,
-    // reading implies that string length is initially unknown.
-    //
-    // max_chars parameter determine the buffer size limit, however it
-    // does not limit stream reading; the data will be read until null-
-    // terminator or EOS is met, the buffer will contain only leftmost
-    // part of the longer string that fits in.
-    String  ReadString(int max_chars = 5000000);
-    // WriteString returns a length of bytes written
-    size_t  WriteString(const String &str);
 
 protected:
     DataEndianess _callerEndianess;

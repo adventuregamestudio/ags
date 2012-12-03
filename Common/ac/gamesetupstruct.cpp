@@ -398,7 +398,7 @@ void GameSetupStruct::read_room_names(DataStream *in, GAME_STRUCT_READ_DATA &rea
         for (int bb = 0; bb < roomCount; bb++)
         {
             roomNumbers[bb] = in->ReadInt32();
-            pexbuf = in->ReadString(STD_BUFFER_SIZE);
+            pexbuf.Read(in, STD_BUFFER_SIZE);
             roomNames[bb] = (char*)malloc(pexbuf.GetLength() + 1);
             strcpy(roomNames[bb], pexbuf);
         }

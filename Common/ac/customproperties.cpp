@@ -19,6 +19,7 @@
 #include "util/string_utils.h"      // out->WriteString, etc
 #include "util/datastream.h"
 
+using AGS::Common::String;
 using AGS::Common::DataStream;
 
 // Find the index of the specified property
@@ -69,12 +70,11 @@ void CustomPropertySchema::Serialize (DataStream *out) {
     out->WriteInt32 (1);  // version 1 at present
     out->WriteInt32 (numProps);
     for (int jj = 0; jj < numProps; jj++) {
-        out->WriteString (propName[jj]);
-        out->WriteString (propDesc[jj]);
-        out->WriteString (defaultValue[jj]);
+        String::WriteString (propName[jj], out);
+        String::WriteString (propDesc[jj], out);
+        String::WriteString (defaultValue[jj], out);
         out->WriteInt32 (propType[jj]);
     }
-
 }
 
 int CustomPropertySchema::UnSerialize (DataStream *in) {
@@ -138,8 +138,8 @@ void CustomProperties::Serialize (DataStream *out) {
     out->WriteInt32 (1);
     out->WriteInt32 (numProps);
     for (int ee = 0; ee < numProps; ee++) {
-        out->WriteString (propName[ee]);
-        out->WriteString (propVal[ee]);
+        String::WriteString (propName[ee], out);
+        String::WriteString (propVal[ee], out);
     }
 }
 

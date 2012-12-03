@@ -280,7 +280,7 @@ void deserialize_interaction_scripts(DataStream *in, InteractionScripts *scripts
   String buffer;
   for (int i = 0; i < numEvents; i++)
   {
-    buffer = in->ReadString(200);
+    buffer.Read(in, 200);
     scripts->scriptFuncNames[i] = new char[buffer.GetLength() + 1];
     strcpy(scripts->scriptFuncNames[i], buffer);
   }

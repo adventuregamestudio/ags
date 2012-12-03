@@ -98,17 +98,16 @@ void TextStreamWriter::WriteFormat(const char *fmt, ...)
 
     // TODO: replace line-feed characters in format string with platform-specific line break
 
-    String str;
     va_list argptr;
     va_start(argptr, fmt);
     int need_length = vsnprintf(NULL, 0, fmt, argptr);
     va_start(argptr, fmt); // Reset argptr
-    char *buffer    = str.GetBuffer(need_length);
+    char *buffer    = new char[need_length];
     vsprintf(buffer, fmt, argptr);
     va_end(argptr);
-    str.ReleaseBuffer();
 
-    WriteString(str);
+    _stream->Write(buffer, need_length);
+    delete [] buffer;
 }
 
 void TextStreamWriter::WriteLineBreak()

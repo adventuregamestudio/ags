@@ -104,18 +104,9 @@ char *INIreaditem(const char *sectn, const char *entry) {
                     break;
                 if (reader.EOS())
                     break;
-                // Strip CRLF
-                char *firstchar = line.GetBuffer();
-                char *lastchar = &firstchar[line.GetLength() - 1];
-                while(*lastchar == '\r' || *lastchar == '\n') {
-                    *lastchar = 0;
-                    if (lastchar == firstchar)
-                        break;
-                    lastchar--;
-                }
                 // Have we found the entry?
                 if (strnicmp (line.GetCStr(), entry, strlen(entry)) == 0) {
-                    char *pptr = &line.GetBuffer()[strlen(entry)];
+                    const char *pptr = &line.GetCStr()[strlen(entry)];
                     while ((pptr[0] == ' ') || (pptr[0] == '\t'))
                         pptr++;
                     if (pptr[0] == '=') {

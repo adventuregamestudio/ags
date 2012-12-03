@@ -395,26 +395,15 @@ AssetError AssetManager::RegisterAssetLib(const String &data_file, const String 
     String nammwas = data_file;
     String data_file_fixed = data_file;
     // TODO: this algorythm should be in path/string utils
-    int c = data_file_fixed.FindCharReverse('\\');
-    if (c >= 0)
-    {
-        data_file_fixed = data_file_fixed.Mid(c + 1);
-    }
-    c = data_file_fixed.FindCharReverse('/');
-    if (c >= 0)
-    {
-        data_file_fixed = data_file_fixed.Mid(c + 1);
-    }
-
+    data_file_fixed.TruncateToRightSection('\\');
+    data_file_fixed.TruncateToRightSection('/');
     if (data_file_fixed.Compare(nammwas) != 0)
     {
         // store complete path
         _assetLib.BasePath = nammwas;
-        _assetLib.BasePath = _assetLib.BasePath.Left(nammwas.GetLength() - data_file_fixed.GetLength());
-        if ((_assetLib.BasePath[_assetLib.BasePath.GetLength() - 1] == '\\') || (_assetLib.BasePath[_assetLib.BasePath.GetLength() - 1] == '/'))
-        {
-            _assetLib.BasePath = _assetLib.BasePath.Left(_assetLib.BasePath.GetLength() - 1);
-        }
+        _assetLib.BasePath.TruncateLeft(nammwas.GetLength() - data_file_fixed.GetLength());
+        _assetLib.BasePath.TrimRight('\\');
+        _assetLib.BasePath.TrimRight('/');
     }
 
     AssetError err;
@@ -438,7 +427,7 @@ AssetError AssetManager::RegisterAssetLib(const String &data_file, const String 
     _assetLib.LibFileNames[0] = data_file_fixed;
     // make a backup of the original file name
     _assetLib.BaseFileName = _assetLib.LibFileNames[0];
-    _assetLib.BaseFileName = _assetLib.BaseFileName.ToLower();
+    _assetLib.BaseFileName.MakeLower();
 
     // apply absolute offset for the assets contained in base data file
     // (since only base data file may be EXE file, other clib parts are always on their own)

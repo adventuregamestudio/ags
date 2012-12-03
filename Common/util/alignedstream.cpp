@@ -225,18 +225,6 @@ size_t AlignedStream::ReadArrayOfInt64(int64_t *buffer, size_t count)
     return 0;
 }
 
-String AlignedStream::ReadString(size_t max_chars)
-{
-    String str;
-    if (_stream)
-    {
-        ReadPadding(sizeof(char));
-        str = _stream->ReadString(max_chars);
-        _block += str.GetLength() + 1; // TODO: the 1 last byte is not guaranteed here, do otherwise
-    }
-    return "";
-}
-
 int AlignedStream::WriteByte(uint8_t b)
 {
     if (_stream)
@@ -341,18 +329,6 @@ size_t AlignedStream::WriteArrayOfInt64(const int64_t *buffer, int count)
         count = _stream->WriteArrayOfInt64(buffer, count);
         _block += count * sizeof(int64_t);
         return count;
-    }
-    return 0;
-}
-
-size_t AlignedStream::WriteString(const String &str)
-{
-    if (_stream)
-    {
-        WritePadding(sizeof(char));
-        size_t size = _stream->WriteString(str);
-        _block += str.GetLength() + 1;
-        return size;
     }
     return 0;
 }

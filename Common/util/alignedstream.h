@@ -38,7 +38,6 @@
 #define __AGS_CN_UTIL__ALIGNEDSTREAM_H
 
 #include "util/stream.h"
-#include "util/string.h"
 
 namespace AGS
 {
@@ -92,7 +91,6 @@ public:
     int64_t ReadInt64();
     virtual size_t  Read(void *buffer, size_t size);
     size_t  ReadArray(void *buffer, size_t elem_size, size_t count);
-    virtual String  ReadString(size_t max_chars = 5000000);
 
     virtual int     WriteByte(uint8_t b);
     inline  void    WriteInt8(int8_t val)
@@ -104,7 +102,6 @@ public:
     size_t  WriteInt64(int64_t val);
     virtual size_t  Write(const void *buffer, size_t size);
     size_t  WriteArray(const void *buffer, size_t elem_size, size_t count);
-    size_t  WriteString(const String &str);
 
     virtual size_t  Seek(StreamSeek seek, int pos);
 

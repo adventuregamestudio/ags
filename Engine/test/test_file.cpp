@@ -45,7 +45,10 @@ void Test_File()
 
     out->WriteInt16(10);
     out->WriteInt64(-20202);
-    out->WriteString("test.tmp");
+    String::WriteString("test.tmp", out);
+    String very_long_string;
+    very_long_string.FillString('a', 10000);
+    very_long_string.Write(out);
 
     TTrickyAlignedData tricky_data_out;
     memset(&tricky_data_out, 0xAA, sizeof(tricky_data_out));
@@ -99,7 +102,8 @@ void Test_File()
 
     int16_t int16val    = in->ReadInt16();
     int64_t int64val    = in->ReadInt64();
-    String str         = in->ReadString();
+    String str1         = String::FromStream(out);
+    String str2         = String::FromStream(out);
 
     TTrickyAlignedData tricky_data_in;
     memset(&tricky_data_in, 0xAA, sizeof(tricky_data_out));
@@ -129,7 +133,8 @@ void Test_File()
     // Assertions
     assert(int16val == 10);
     assert(int64val == -20202);
-    assert(strcmp(str.GetCStr(), "test.tmp") == 0);
+    assert(strcmp(str1, "test.tmp") == 0);
+    assert(strcmp(str2, very_long_string) == 0);
     assert(memcmp(&tricky_data_in, &tricky_data_out, sizeof(TTrickyAlignedData)) == 0);
     assert(int32val == 20);
 

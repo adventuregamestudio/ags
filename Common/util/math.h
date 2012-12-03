@@ -53,6 +53,7 @@ namespace Math
             length = 0;
         }
 
+        length = Max(length, 0);
         length = Min(length, height - from);
     }
 

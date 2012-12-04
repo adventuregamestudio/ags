@@ -35,9 +35,9 @@ void Test_String()
         int cap1 = s1.GetCapacity();
         assert(cap1 == s1.GetLength());
 
-        s2.TruncateLeft(10);
+        s2.TruncateToLeft(10);
         assert(cap1 == s2.GetCapacity());
-        s3.TruncateRight(10);
+        s3.TruncateToRight(10);
         assert(cap1 == s3.GetCapacity());
         assert(s1.GetRefCount() == 1);
 
@@ -52,6 +52,16 @@ void Test_String()
         assert(40 == s3.GetCapacity());
         s3.Append("1234567890123");
         assert(60 == s3.GetCapacity());
+
+        String s4 = "12345678901234567890";
+        const char *cstr = s4.GetCStr();
+        s4.ClipLeft(10);
+        assert(s4.GetCStr() == cstr + 10);
+        s4.Prepend("12345");
+        assert(s4.GetCStr() == cstr + 5);
+        s4.Append("12345");
+        assert(s4.GetCStr() == cstr);
+        assert(strcmp(s4, "12345123456789012345") == 0);
     }
 
     // Test Compare
@@ -188,6 +198,67 @@ void Test_String()
         assert(strcmp(s1, "a string to enlarge - make it bigger! much much bigger!") == 0);
     }
 
+    // Test Clip
+    {
+        String str1 = "long truncateable string";
+        String str2 = str1;
+        String str3 = str1;
+        String str4 = str1;
+        String str5 = str1;
+
+        str1.ClipLeft(4);
+        str2.ClipRight(6);
+        str3.ClipMid(5, 12);
+        str4.ClipMid(5, 0);
+        str5.ClipMid(-1);
+        assert(strcmp(str1, " truncateable string") == 0);
+        assert(strcmp(str2, "long truncateable ") == 0);
+        assert(strcmp(str3, "long  string") == 0);
+        assert(strcmp(str4, "long truncateable string") == 0);
+        assert(strcmp(str5, "") == 0);
+    }
+
+    // Test ClipSection
+    {
+        String str1 = "C:\\Games\\AGS\\MyNewGame";
+        String str2 = str1;
+        String str3 = str1;
+        String str4 = str1;
+        String str5 = str1;
+        String str6 = str1;
+        String str7 = str1;
+        String str8 = str1;
+        String str9 = str1;
+        String str10 = str1;
+        String str11 = str1;
+        String str12 = str1;
+
+        str1.ClipLeftSection('\\');
+        str2.ClipLeftSection('\\', false);
+        str3.ClipRightSection('\\');
+        str4.ClipRightSection('\\', false);
+        str5.ClipSection('\\', 1, 3);
+        str6.ClipSection('\\', 1, 3, false, false);
+        str7.ClipSection('|', 1, 3);
+        str8.ClipSection('\\', 0, 3);
+        str9.ClipSection('\\', 1, 4);
+        str10.ClipSection('\\', 3, 1);
+        str11.ClipSection('\\', 3, 3);
+        str12.ClipSection('\\', 3, 3, false, false);
+        assert(strcmp(str1, "Games\\AGS\\MyNewGame") == 0);
+        assert(strcmp(str2, "\\Games\\AGS\\MyNewGame") == 0);
+        assert(strcmp(str3, "C:\\Games\\AGS") == 0);
+        assert(strcmp(str4, "C:\\Games\\AGS\\") == 0);
+        assert(strcmp(str5, "C:MyNewGame") == 0);
+        assert(strcmp(str6, "C:\\\\MyNewGame") == 0);
+        assert(strcmp(str7, "C:\\Games\\AGS\\MyNewGame") == 0);
+        assert(strcmp(str8, "MyNewGame") == 0);
+        assert(strcmp(str9, "C:") == 0);
+        assert(strcmp(str10, "C:\\Games\\AGS\\MyNewGame") == 0);
+        assert(strcmp(str11, "C:\\Games\\AGSMyNewGame") == 0);
+        assert(strcmp(str12, "C:\\Games\\AGS\\MyNewGame") == 0);
+    }
+
     // Test making new string
     {
         String s1 = "we have some string here";
@@ -215,6 +286,19 @@ void Test_String()
         s3.MakeUpper();
         assert(strcmp(s2, "this string is twisted") == 0);
         assert(strcmp(s3, "THIS STRING IS TWISTED") == 0);
+    }
+
+    // Test Prepend
+    {
+        String s1 = "- a string to enlarge";
+        s1.Prepend("make it bigger ");
+        assert(strcmp(s1, "make it bigger - a string to enlarge") == 0);
+        s1.PrependChar('!');
+        assert(strcmp(s1, "!make it bigger - a string to enlarge") == 0);
+        s1.PrependChar(' ');
+        assert(strcmp(s1, " !make it bigger - a string to enlarge") == 0);
+        s1.Prepend("much much bigger!");
+        assert(strcmp(s1, "much much bigger! !make it bigger - a string to enlarge") == 0);
     }
 
     // Test SetAt
@@ -260,11 +344,11 @@ void Test_String()
         String str4 = str1;
         String str5 = str1;
 
-        str1.TruncateLeft(4);
-        str2.TruncateRight(6);
-        str3.TruncateMid(5, 12);
-        str4.TruncateMid(5, 0);
-        str5.TruncateMid(-1);
+        str1.TruncateToLeft(4);
+        str2.TruncateToRight(6);
+        str3.TruncateToMid(5, 12);
+        str4.TruncateToMid(5, 0);
+        str5.TruncateToMid(-1);
         assert(strcmp(str1, "long") == 0);
         assert(strcmp(str2, "string") == 0);
         assert(strcmp(str3, "truncateable") == 0);

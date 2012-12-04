@@ -21,7 +21,6 @@
 #include "util/string_utils.h"
 #include "util/math.h"
 
-
 namespace AGS
 {
 namespace Common
@@ -340,6 +339,129 @@ void String::AppendChar(char c)
     }
 }
 
+void String::ClipLeft(int count)
+{
+    if (_meta && _meta->Length > 0 && count > 0)
+    {
+        count = Math::Min(count, _meta->Length);
+        BecomeUnique();
+        _meta->Length -= count;
+        _meta->CStr += count;
+    }
+}
+
+void String::ClipMid(int from, int count)
+{
+    if (_meta && _meta->Length > 0)
+    {
+        count = count >= 0 ? count : _meta->Length - from;
+        Math::ClampLength(0, _meta->Length, from, count);
+        if (count > 0)
+        {
+            BecomeUnique();
+            if (!from)
+            {
+                _meta->Length -= count;
+                _meta->CStr += count;
+            }
+            else if (from + count == _meta->Length)
+            {
+                _meta->Length -= count;
+                _meta->CStr[_meta->Length] = 0;
+            }
+            else
+            {
+                char *cstr_mid = _meta->CStr + from;
+                memmove(cstr_mid, _meta->CStr + from + count, _meta->Length - from - count + 1);
+                _meta->Length -= count;
+            }
+        }
+    }
+}
+
+void String::ClipRight(int count)
+{
+    if (_meta && count > 0)
+    {
+        count = Math::Min(count, GetLength());
+        BecomeUnique();
+        _meta->Length -= count;
+        _meta->CStr[_meta->Length] = 0;
+    }
+}
+
+void String::ClipLeftSection(char separator, bool extract_separator)
+{
+    if (_meta && separator)
+    {
+        int slice_at = FindChar(separator);
+        if (slice_at >= 0)
+        {
+            ClipLeft(extract_separator ? slice_at + 1 : slice_at);
+        }
+    }
+}
+
+void String::ClipRightSection(char separator, bool extract_separator)
+{
+    if (_meta && separator)
+    {
+        int slice_at = FindCharReverse(separator);
+        if (slice_at >= 0)
+        {
+            ClipRight(extract_separator ? _meta->Length - slice_at : _meta->Length - slice_at - 1);
+        }
+    }
+}
+
+void String::ClipSection(char separator, int first, int last,
+                              bool extract_first_sep, bool extract_last_sep)
+{
+    if (!_meta || !separator)
+    {
+        return;
+    }
+
+    int slice_from = -1;
+    int slice_to = _meta->Length;
+    int slice_at = -1;
+    int sep_count = 0;
+    do
+    {
+        slice_at = FindChar(separator, slice_at + 1);
+        if (slice_at < 0)
+        {
+            break;
+        }
+        sep_count++;
+        if (sep_count == first)
+        {
+            slice_from = extract_first_sep ? slice_at : slice_at + 1;
+            if (slice_to < _meta->Length)
+            {
+                break;
+            }
+        }
+        if (sep_count == last)
+        {
+            slice_to = extract_last_sep ? slice_at : slice_at - 1;
+            if (slice_from >= 0)
+            {
+                break;
+            }
+        }
+    }
+    while (slice_at < _meta->Length);
+
+    if ((slice_from > 0 || slice_to < _meta->Length) &&
+        slice_from <= slice_to && first <= last)
+    {
+        slice_from = slice_from >= 0 ? slice_from : 0;
+        slice_to = slice_to < _meta->Length ? slice_to : _meta->Length - 1;
+        ClipMid(slice_from, slice_to - slice_from + 1);
+    }
+}
+
 void String::Empty()
 {
     if (_meta)
@@ -396,6 +518,33 @@ void String::MakeUpper()
         strupr(_meta->CStr);
     }
 }
+
+void String::Prepend(const char *cstr)
+{
+    if (cstr)
+    {
+        int length = strlen(cstr);
+        if (length > 0)
+        {
+            ReserveAndShift(true, length);
+            memcpy(_meta->CStr - length, cstr, length);
+            _meta->Length += length;
+            _meta->CStr -= length;
+        }
+    }
+}
+
+void String::PrependChar(char c)
+{
+    if (c)
+    {
+        ReserveAndShift(true, 1);
+        _meta->Length++;
+        _meta->CStr--;
+        _meta->CStr[0] = c;
+    }
+}
+
 
 void String::SetAt(int index, char c)
 {
@@ -474,7 +623,7 @@ void String::TrimRight(char c)
     }
 }
 
-void String::TruncateLeft(int count)
+void String::TruncateToLeft(int count)
 {
     if (_meta && count > 0)
     {
@@ -488,7 +637,7 @@ void String::TruncateLeft(int count)
     }
 }
 
-void String::TruncateMid(int from, int count)
+void String::TruncateToMid(int from, int count)
 {
     if (_meta)
     {
@@ -504,7 +653,7 @@ void String::TruncateMid(int from, int count)
     }
 }
 
-void String::TruncateRight(int count)
+void String::TruncateToRight(int count)
 {
     if (_meta && count > 0)
     {
@@ -525,7 +674,7 @@ void String::TruncateToLeftSection(char separator, bool extract_separator)
         int slice_at = FindChar(separator);
         if (slice_at >= 0)
         {
-            TruncateLeft(extract_separator ? slice_at : slice_at + 1);
+            TruncateToLeft(extract_separator ? slice_at : slice_at + 1);
         }
     }
 }
@@ -537,7 +686,7 @@ void String::TruncateToRightSection(char separator, bool extract_separator)
         int slice_at = FindCharReverse(separator);
         if (slice_at >= 0)
         {
-            TruncateRight(extract_separator ? _meta->Length - slice_at - 1 : _meta->Length - slice_at);
+            TruncateToRight(extract_separator ? _meta->Length - slice_at - 1 : _meta->Length - slice_at);
         }
     }
 }
@@ -565,28 +714,33 @@ void String::TruncateToSection(char separator, int first, int last,
         if (sep_count == first)
         {
             slice_from = extract_first_sep ? slice_at + 1 : slice_at;
+            if (slice_to < _meta->Length)
+            {
+                break;
+            }
         }
         if (sep_count == last)
         {
-            slice_to = extract_last_sep ? slice_at : slice_at + 1;
+            slice_to = extract_last_sep ? slice_at - 1 : slice_at;
+            if (slice_from >= 0)
+            {
+                break;
+            }
         }
     }
     while (slice_at < _meta->Length);
 
     if (slice_from > 0 || slice_to < _meta->Length)
     {
-        if (slice_from >= slice_to || first > last)
+        if (slice_from > slice_to || first > last)
         {
             Empty();
         }
         else
         {
-            BecomeUnique();
             slice_from = slice_from >= 0 ? slice_from : 0;
-            slice_to < _meta->Length ? slice_to : _meta->Length - 1;
-            _meta->Length = slice_to - slice_from;
-            _meta->CStr += slice_from;
-            _meta->CStr[_meta->Length] = 0;
+            slice_to = slice_to < _meta->Length ? slice_to : _meta->Length - 1;
+            TruncateToMid(slice_from, slice_to - slice_from + 1);
         }
     }
 }
@@ -611,6 +765,45 @@ String &String::operator=(const char *cstr)
     return *this;
 }
 
+void String::Create(int max_length)
+{
+    _data = new char[sizeof(String::Header) + max_length + 1];
+    _meta->RefCount = 1;
+    _meta->Capacity = max_length;
+    _meta->Length = 0;
+    _meta->CStr = _data + sizeof(String::Header);
+    _meta->CStr[_meta->Length] = 0;
+}
+
+void String::Copy(int max_length, int offset)
+{
+    if (!_meta)
+    {
+        return;
+    }
+
+    char *new_data = new char[sizeof(String::Header) + max_length + 1];
+    // remember, that _meta->CStr may point to any address in buffer
+    char *cstr_head = new_data + sizeof(String::Header) + offset;
+    memcpy(new_data, _data, sizeof(String::Header));
+    int copy_length = Math::Min(_meta->Length, max_length);
+    memcpy(cstr_head, _meta->CStr, copy_length);
+    Release();
+    _data = new_data;
+    _meta->RefCount = 1;
+    _meta->Capacity = max_length;
+    _meta->Length = copy_length;
+    _meta->CStr = cstr_head;
+    _meta->CStr[_meta->Length] = 0;
+}
+
+void String::Align(int offset)
+{
+    char *cstr_head = _data + sizeof(String::Header) + offset;
+    memmove(cstr_head, _meta->CStr, _meta->Length + 1);
+    _meta->CStr = cstr_head;
+}
+
 void String::Release()
 {
     if (_meta)
@@ -622,38 +815,6 @@ void String::Release()
         }
     }
     _data = NULL;
-}
-
-void String::Create(int max_length)
-{
-    _data = new char[sizeof(String::Header) + max_length + 1];
-    _meta->RefCount = 1;
-    _meta->Capacity = max_length;
-    _meta->Length = 0;
-    _meta->CStr = _data + sizeof(String::Header);
-    _meta->CStr[_meta->Length] = 0;
-}
-
-void String::Copy(int max_length)
-{
-    if (!_meta)
-    {
-        return;
-    }
-
-    char *new_data = new char[sizeof(String::Header) + max_length + 1];
-    // remember, that _meta->CStr may point to any address in buffer
-    char *cstr_head = new_data + sizeof(String::Header);
-    memcpy(new_data, _data, sizeof(String::Header));
-    int copy_length = Math::Min(_meta->Length, max_length);
-    memcpy(cstr_head, _meta->CStr, copy_length);
-    Release();
-    _data = new_data;
-    _meta->RefCount = 1;
-    _meta->Capacity = max_length;
-    _meta->Length = copy_length;
-    _meta->CStr = cstr_head;
-    _meta->CStr[_meta->Length] = 0;
 }
 
 void String::BecomeUnique()
@@ -673,22 +834,20 @@ void String::ReserveAndShift(bool left, int more_length)
         {
             // grow by 50% or at least to total_size
             int grow_length = _meta->Capacity + (_meta->Capacity >> 1);
-            Copy(Math::Max(total_length, grow_length));
+            Copy(Math::Max(total_length, grow_length), left ? more_length : 0);
         }
         else
         {
             // make sure we make use of all of our space
-            char *cstr_head = _data + sizeof(String::Header);
+            const char *cstr_head = _data + sizeof(String::Header);
             int free_space = left ?
                 _meta->CStr - cstr_head :
                 (cstr_head + _meta->Capacity) - (_meta->CStr + _meta->Length);
             if (free_space < more_length)
             {
-                cstr_head = left ?
+                Align((left ?
                     _meta->CStr + (more_length - free_space) :
-                    _meta->CStr - (more_length - free_space);
-                memmove(cstr_head, _meta->CStr, _meta->Length + 1);
-                _meta->CStr = cstr_head;
+                    _meta->CStr - (more_length - free_space)) - cstr_head);
             }
         }
     }

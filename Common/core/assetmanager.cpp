@@ -401,7 +401,7 @@ AssetError AssetManager::RegisterAssetLib(const String &data_file, const String 
     {
         // store complete path
         _assetLib.BasePath = nammwas;
-        _assetLib.BasePath.TruncateLeft(nammwas.GetLength() - data_file_fixed.GetLength());
+        _assetLib.BasePath.TruncateToLeft(nammwas.GetLength() - data_file_fixed.GetLength());
         _assetLib.BasePath.TrimRight('\\');
         _assetLib.BasePath.TrimRight('/');
     }

@@ -174,6 +174,20 @@ public:
     void    Append(const char *cstr);
     // Add single character at string's end
     void    AppendChar(char c);
+    // Clip* methods decrease the string, removing defined part
+    // Cuts off leftmost N characters
+    void    ClipLeft(int count);
+    // Cuts out N characters starting from given index
+    void    ClipMid(int from, int count = -1);
+    // Cuts off rightmost N characters
+    void    ClipRight(int count);
+    // Cuts off leftmost part, separated by the given char
+    void    ClipLeftSection(char separator, bool extract_separator = true);
+    // Cuts off rightmost part, separated by the given char
+    void    ClipRightSection(char separator, bool extract_separator = true);
+    // Cuts out the section between Xth and Yth appearance of the given character
+    void    ClipSection(char separator, int first, int last,
+                              bool extract_first_sep = true, bool extract_last_sep = true);
     // Sets string length to zero
     void    Empty();
     // Makes a new string by filling N chars with certain value
@@ -184,6 +198,11 @@ public:
     void    MakeLower();
     // Convert string to uppercase equivalent
     void    MakeUpper();
+    // Prepend* methods add content before the string's head, increasing its length
+    // Add C-string before string's head
+    void    Prepend(const char *cstr);
+    // Add single character before string's head
+    void    PrependChar(char c);
     // Overwrite the Nth character of the string; does not change string's length
     void    SetAt(int index, char c);
     // Makes a new string by copying up to N chars from C-string
@@ -198,11 +217,11 @@ public:
     void    TrimRight(char c = 0);
     // Truncate* methods decrease the string to the part of itself
     // Truncate the string to the leftmost N characters
-    void    TruncateLeft(int count);
+    void    TruncateToLeft(int count);
     // Truncate the string to the middle N characters
-    void    TruncateMid(int from, int count = -1);
+    void    TruncateToMid(int from, int count = -1);
     // Truncate the string to the rightmost N characters
-    void    TruncateRight(int count);
+    void    TruncateToRight(int count);
     // Truncate the string to the leftmost part, separated by the given char
     void    TruncateToLeftSection(char separator, bool extract_separator = true);
     // Truncate the string to the rightmost part, separated by the given char
@@ -238,14 +257,17 @@ public:
     }
 
 private:
+    // Creates new empty string with buffer enough to fit given length
+    void    Create(int buffer_length);
+    // Release string and copy data to the new buffer
+    void    Copy(int buffer_length, int offset = 0);
+    // Aligns data at given offset
+    void    Align(int offset);
+
     // Decrement ref counter and zero pointers, deallocate data if must.
     // Release() should be called only when buffer is not needed anymore;
     // if string must be truncated to zero length, call Empty() instead.
     void    Release();
-    // Creates new empty string with buffer enough to fit given length
-    void    Create(int buffer_length);
-    // Release string and copy data to the new buffer
-    void    Copy(int buffer_length);
     // Ensure this string is a compact independent copy, with ref counter = 1
     void    BecomeUnique();
     // Ensure this string is independent, and there's enough space before

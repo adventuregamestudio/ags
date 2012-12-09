@@ -250,12 +250,12 @@ void read_config_file(char *argv0) {
         AGS::Common::Path::FixupPath(usetup.data_files_dir);
 #if defined (WINDOWS_VERSION)
         // if the path is just x:\ don't strip the slash
-        if (!(usetup.data_files_dir->GetLength() < 4 && usetup.data_files_dir[1] == ':'))
+        if (!(usetup.data_files_dir.GetLength() < 4 && usetup.data_files_dir[1] == ':'))
         {
-            usetup.data_files_dir->TrimRight('/');
+            usetup.data_files_dir.TrimRight('/');
         }
 #else
-        usetup.data_files_dir->TrimRight('/');
+        usetup.data_files_dir.TrimRight('/');
 #endif
         usetup.main_data_filename = INIreaditem ("misc", "datafile");
 

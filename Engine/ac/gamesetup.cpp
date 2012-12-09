@@ -26,8 +26,6 @@ GameSetup::GameSetup()
     force_hicolor_mode = 0;
     disable_exception_handling = 0;
     enable_side_borders = 1;
-    data_files_dir = NULL;
-    main_data_filename = "ac2game.dat";
     base_width = 320;
     base_height = 200;
     gfxFilterID = NULL;

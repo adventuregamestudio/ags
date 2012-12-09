@@ -139,6 +139,12 @@ AssetManager::~AssetManager()
     return _theAssetManager ? _theAssetManager->_GetSearchPriority() : kAssetPriorityUndefined;
 }
 
+/* static */ bool AssetManager::IsDataFile(const String &data_file)
+{
+    assert(_theAssetManager != NULL);
+    return _theAssetManager ? _theAssetManager->_IsDataFile(data_file) : false;
+}
+
 /* static */ AssetError AssetManager::SetDataFile(const String &data_file)
 {
     assert(_theAssetManager != NULL);
@@ -250,6 +256,39 @@ bool AssetManager::_SetSearchPriority(AssetSearchPriority priority)
 AssetSearchPriority AssetManager::_GetSearchPriority()
 {
     return _searchPriority;
+}
+
+bool AssetManager::_IsDataFile(const String &data_file)
+{
+    if (data_file.IsEmpty())
+    {
+        return false;
+    }
+
+    // open data library
+    DataStream *ci_s = ci_fopen(data_file, Common::kFile_Open, Common::kFile_Read);
+    if (ci_s == NULL)
+    {
+        return false;
+    }
+
+    long abs_offset = 0; // library offset in this file
+    char clbuff[20];
+    // check multifile lib signature at the beginning of file
+    ci_s->Read(&clbuff[0], 5);
+    if (strncmp(clbuff, _libHeadSig /*"CLIB"*/, 4) != 0)
+    {
+        // signature not found, check signature at the end of file
+        ci_s->Seek(Common::kSeekEnd, -12);
+        ci_s->Read(&clbuff[0], 12);
+        // signature not found, return error code
+        if (strncmp(clbuff, _libTailSig, 12) != 0)
+        {
+            return false;
+        }
+    }
+    delete ci_s;
+    return true;
 }
 
 AssetError AssetManager::_SetDataFile(const String &data_file)

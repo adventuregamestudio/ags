@@ -50,7 +50,7 @@ using AGS::Common::DataStream;
 #if !defined (AGS_CASE_SENSITIVE_FILESYSTEM)
 #include <string.h>
 /* File Name Concatenator basically on Windows / DOS */
-char *ci_find_file(char *dir_name, char *file_name)
+char *ci_find_file(const char *dir_name, const char *file_name)
 {
   char  *diamond = NULL;
 
@@ -71,7 +71,7 @@ char *ci_find_file(char *dir_name, char *file_name)
 
 #else
 /* Case Insensitive File Find */
-char *ci_find_file(char *dir_name, char *file_name)
+char *ci_find_file(const char *dir_name, const char *file_name)
 {
   struct stat   statbuf;
   struct dirent *entry = NULL;

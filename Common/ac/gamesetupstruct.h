@@ -79,7 +79,7 @@ struct GameSetupStruct: public GameSetupStructBase {
         // in
         int  filever;
         int  max_audio_types;
-        char *game_file_name;
+        AGS::Common::String game_file_name;
 
         // out
         char *saveGameSuffix;

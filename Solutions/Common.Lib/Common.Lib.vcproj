@@ -290,6 +290,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\util\directory.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\util\file.cpp"
 					>
 				</File>
@@ -303,6 +307,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\util\misc.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\path.cpp"
 					>
 				</File>
 				<File
@@ -572,6 +580,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\util\directory.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\util\file.h"
 					>
 				</File>
@@ -589,6 +601,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\util\misc.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\path.h"
 					>
 				</File>
 				<File

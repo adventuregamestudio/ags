@@ -12,16 +12,32 @@
 //
 //=============================================================================
 //
-//
+// Platform-independent Directory functions
 //
 //=============================================================================
-#ifndef __AGS_EE_MAIN__GAMEFILE_H
-#define __AGS_EE_MAIN__GAMEFILE_H
+#ifndef __AGS_CN_UTIL__DIRECTORY_H
+#define __AGS_CN_UTIL__DIRECTORY_H
 
 #include "util/string.h"
 
-void set_default_glmsg (int msgnum, const char* val);
+#if defined (WINDOWS_VERSION)
+#undef GetCurrentDirectory  // undef the declaration from winbase.h
+#endif
 
-extern AGS::Common::String game_file_name;
+namespace AGS
+{
+namespace Common
+{
 
-#endif // __AGS_EE_MAIN__GAMEFILE_H
+namespace Directory
+{
+    // Sets current working directory, returns the resulting path
+    String SetCurrentDirectory(const String &path);
+    // Gets current working directory
+    String GetCurrentDirectory();
+} // namespace Directory
+
+} // namespace Common
+} // namespace AGS
+
+#endif // __AGS_CN_UTIL__DIRECTORY_H

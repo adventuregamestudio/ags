@@ -52,7 +52,12 @@
 #include "core/assetmanager.h"
 #include "util/misc.h"
 #include "platform/util/pe.h"
+#include "util/directory.h"
+#include "util/path.h"
+#include "main/game_file.h"
+#include "debug/out.h"
 
+using AGS::Common::String;
 using AGS::Common::DataStream;
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -61,8 +66,6 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 extern char **global_argv;
 #endif
 
-
-extern char* game_file_name;
 extern char check_dynamic_sprites_at_exit;
 extern int our_eip;
 extern volatile char want_exit, abort_engine;
@@ -97,7 +100,6 @@ extern IDriverDependantBitmap **guibgbmp;
 
 char *music_file;
 char *speech_file;
-WCHAR directoryPathBuffer[MAX_PATH];
 
 Common::AssetError errcod;
 
@@ -208,90 +210,12 @@ void engine_force_window()
         usetup.windowed = 0;
 }
 
-int engine_init_game_data_external(int argc,char*argv[])
+void init_game_file_name_from_cmdline()
 {
-    game_file_name = ci_find_file(usetup.data_files_dir, usetup.main_data_filename);
-
-#if defined (LINUX_VERSION) || defined (MAC_VERSION)
-    // Search the exe files for the game data
-    if ((game_file_name == NULL) || (access(game_file_name, F_OK) != 0))
-    {
-        DIR* fd = NULL;
-        struct dirent* entry = NULL;
-        version_info_t version_info;
-
-        if ((fd = opendir(".")))
-        {
-            while ((entry = readdir(fd)))
-            {
-                // Exclude the setup program
-                if (stricmp(entry->d_name, "winsetup.exe") == 0)
-                    continue;
-
-                // Filename must be >= 4 chars long
-                int length = strlen(entry->d_name);
-                if (length < 4)
-                    continue;
-
-                if (stricmp(&(entry->d_name[length - 4]), ".exe") == 0)
-                {
-                    if (!getVersionInformation(entry->d_name, &version_info))
-                        continue;
-                    if (strcmp(version_info.internal_name, "acwin") == 0)
-                    {
-                        game_file_name = (char*)malloc(strlen(entry->d_name) + 1);
-                        strcpy(game_file_name, entry->d_name);
-                        break;
-                    }
-                }
-            }
-            closedir(fd);
-        }
-    }
-#endif
-
-    errcod=Common::AssetManager::SetDataFile(game_file_name);
-    if (errcod != Common::kAssetNoError) {
-        //sprintf(gamefilenamebuf,"%s\\ac2game.ags",usetup.data_files_dir);
-        free(game_file_name);
-        game_file_name = ci_find_file(usetup.data_files_dir, "ac2game.ags");
-
-        errcod = Common::AssetManager::SetDataFile(game_file_name);
-    }
-
-    return RETURN_CONTINUE;
-}
-
-int engine_init_game_data_internal(int argc,char*argv[])
-{
-    usetup.main_data_filename = get_filename(game_file_name);
-
-    if (((strchr(game_file_name, '/') != NULL) ||
-        (strchr(game_file_name, '\\') != NULL)) &&
-        (stricmp(usetup.data_files_dir, ".") == 0)) {
-            // there is a path in the game file name (and the user
-            // has not specified another one)
-            // save the path, so that it can load the VOX files, etc
-            usetup.data_files_dir = (char*)malloc(strlen(game_file_name) + 1);
-            strcpy(usetup.data_files_dir, game_file_name);
-
-            if (strrchr(usetup.data_files_dir, '/') != NULL)
-                strrchr(usetup.data_files_dir, '/')[0] = 0;
-            else if (strrchr(usetup.data_files_dir, '\\') != NULL)
-                strrchr(usetup.data_files_dir, '\\')[0] = 0;
-            else {
-                platform->DisplayAlert("Error processing game file name: slash but no slash");
-                return EXIT_NORMAL;
-            }
-    }
-
-    return RETURN_CONTINUE;
-}
-
-void initialise_game_file_name()
-{
+    game_file_name.Empty();
 #ifdef WINDOWS_VERSION
     WCHAR buffer[MAX_PATH];
+    WCHAR directoryPathBuffer[MAX_PATH];
     LPCWSTR dataFilePath = wArgv[datafile_argv];
     // Hack for Windows in case there are unicode chars in the path.
     // The normal argv[] array has ????? instead of the unicode chars
@@ -307,17 +231,169 @@ void initialise_game_file_name()
     if (GetShortPathNameW(dataFilePath, directoryPathBuffer, MAX_PATH) == 0)
     {
         platform->DisplayAlert("Unable to determine startup path: GetShortPathNameW failed. The specified game file might be missing.");
-        game_file_name = NULL;
         return;
     }
-    game_file_name = (char*)malloc(MAX_PATH);
-    WideCharToMultiByte(CP_ACP, 0, directoryPathBuffer, -1, game_file_name, MAX_PATH, NULL, NULL);
+    char *buf = new char[MAX_PATH];
+    WideCharToMultiByte(CP_ACP, 0, directoryPathBuffer, -1, buf, MAX_PATH, NULL, NULL);
+    game_file_name = buf;
+    delete [] buf;
 #elif defined(PSP_VERSION) || defined(ANDROID_VERSION) || defined(IOS_VERSION)
     game_file_name = psp_game_file_name;
 #else
-    game_file_name = (char*)malloc(MAX_PATH);
-    strcpy(game_file_name, get_filename(global_argv[datafile_argv]));
+    game_file_name = global_argv[datafile_argv];
 #endif
+    AGS::Common::Path::FixupPath(game_file_name);
+}
+
+String find_game_data_in_directory(const char *path)
+{
+    String found_data_file;
+    // TODO: find a way to make this platform-agnostic way
+    // using find-file interface or something
+#if defined (LINUX_VERSION) || defined (MAC_VERSION)
+    DIR* fd = NULL;
+    struct dirent* entry = NULL;
+    version_info_t version_info;
+
+    if ((fd = opendir(path)))
+    {
+        while ((entry = readdir(fd)))
+        {
+            // Filename must be >= 4 chars long
+            int length = strlen(entry->d_name);
+            if (length < 4)
+            {
+                continue;
+            }
+
+            // Exclude the setup program
+            if (stricmp(entry->d_name, "winsetup.exe") == 0)
+            {
+                continue;
+            }
+
+            if (stricmp(&(entry->d_name[length - 4]), ".exe") == 0)
+            {
+                if (!getVersionInformation(entry->d_name, &version_info))
+                    continue;
+                if (strcmp(version_info.internal_name, "acwin") == 0)
+                {
+                    if (AGS::Common::AssetManager::IsDataFile(entry->d_name))
+                    {
+                        found_data_file = entry->d_name;
+                        break;
+                    }
+                }
+            }
+            else if (stricmp(&(entry->d_name[length - 4]), ".ags") == 0 ||
+                stricmp(entry->d_name, "ac2game.dat") == 0)
+            {
+                if (AGS::Common::AssetManager::IsDataFile(entry->d_name))
+                {
+                    found_data_file = entry->d_name;
+                    break;
+                }
+            }
+        }
+        closedir(fd);
+    }
+#elif defined (WINDOWS_VERSION)
+    String path_mask = path;
+    path_mask.Append("/*");
+    WIN32_FIND_DATAA file_data;
+    HANDLE find_handle = FindFirstFileA(path_mask, &file_data);
+    if (find_handle >= 0)
+    {
+        do
+        {
+            // Filename must be >= 4 chars long
+            int length = strlen(file_data.cFileName);
+            if (length < 4)
+            {
+                continue;
+            }
+
+            // Exclude the setup program
+            if (strcmp(file_data.cFileName, "winsetup.exe") == 0)
+            {
+                continue;
+            }
+
+            if (strcmp(&(file_data.cFileName[length - 4]), ".exe") == 0 ||
+                strcmp(&(file_data.cFileName[length - 4]), ".ags") == 0 ||
+                strcmp(file_data.cFileName, "ac2game.dat") == 0)
+            {
+                if (AGS::Common::AssetManager::IsDataFile(file_data.cFileName))
+                {
+                    found_data_file = file_data.cFileName;
+                    break;
+                }
+            }
+        }
+        while (FindNextFileA(find_handle, &file_data) != FALSE);
+        FindClose(find_handle);
+    }
+#else
+    // TODO ??? (PSP, ANDROID)
+#endif
+    AGS::Common::Path::FixupPath(found_data_file);
+    return found_data_file;
+}
+
+extern char appDirectory[512];
+void initialise_game_file_name()
+{
+    // 1. From command line argument
+    if (datafile_argv > 0)
+    {
+        // set game_file_name from cmd arg (do any convertions if needed)
+        init_game_file_name_from_cmdline();
+        if (game_file_name.GetLast() == '/')
+        {
+            // if it is not a file, assume it is a directory and seek for data file
+            game_file_name = find_game_data_in_directory(game_file_name);
+        }
+    }
+    // 2. From setup
+    else if (!usetup.main_data_filename.IsEmpty())
+    {
+        game_file_name = usetup.main_data_filename;
+        AGS::Common::Path::FixupPath(game_file_name);
+    }
+    // 3. Look in known locations
+    else
+    {
+        // 3.1. Look for attachment in the running executable
+        //
+        // set game_file_name from cmd arg (do any convertions if needed)
+        // this will use argument zero, the executable's name
+        init_game_file_name_from_cmdline();
+        if (!game_file_name.IsEmpty() && Common::AssetManager::IsDataFile(game_file_name))
+        {
+            return;
+        }
+        // 3.2 Look in current directory
+        String cur_dir = AGS::Common::Directory::GetCurrentDirectory();
+        game_file_name = find_game_data_in_directory(cur_dir);
+        if (!game_file_name.IsEmpty())
+        {
+            return;
+        }
+        // 3.3 Look in executable's directory (if it's different from current dir)
+        if (AGS::Common::Path::ComparePaths(appDirectory, cur_dir))
+        {
+            game_file_name = find_game_data_in_directory(appDirectory);
+        }
+    }
+    if (game_file_name.IsEmpty())
+    {
+        AGS::Common::Out::FPrint("Game data file could not be found\n");
+    }
+    else
+    {
+        game_file_name = AGS::Common::Path::MakeAbsolutePath(game_file_name);
+        AGS::Common::Out::FPrint("Game data file: %s\n", game_file_name.GetCStr());
+    }
 }
 
 int engine_init_game_data(int argc,char*argv[])
@@ -326,46 +402,55 @@ int engine_init_game_data(int argc,char*argv[])
 
     // initialize the data file
     initialise_game_file_name();
-    if (game_file_name == NULL) return EXIT_NORMAL;
-
-    errcod = Common::AssetManager::SetDataFile(game_file_name);  // assume it's appended to exe
+    errcod = Common::AssetManager::SetDataFile(game_file_name);
 
     our_eip = -194;
-    //  char gamefilenamebuf[200];
-
-    int init_res = RETURN_CONTINUE;
-
-    if ((errcod!=Common::kAssetNoError) && (change_to_game_dir == 0)) {
-        // it's not, so look for the file
-        init_res = engine_init_game_data_external(argc, argv);
-    }
-    else {
-        // set the data filename to the EXE name
-        int res = engine_init_game_data_internal(argc, argv);
-    }
-
-    if (init_res != RETURN_CONTINUE) {
-        return init_res;
-    }
-
     our_eip = -193;
 
-    if (errcod!=Common::kAssetNoError) {  // there's a problem
-        if (errcod==Common::kAssetErrNoLibFile) {  // file not found
-            char emsg[STD_BUFFER_SIZE];
-            sprintf (emsg,
+    if (errcod!=Common::kAssetNoError)
+    {  // there's a problem
+        char emsg[STD_BUFFER_SIZE];
+        if (errcod==Common::kAssetErrNoLibFile)
+        {  // file not found
+            sprintf(emsg,
                 "You must create and save a game first in the AGS Editor before you can use "
                 "this engine.\n\n"
                 "If you have just downloaded AGS, you are probably running the wrong executable.\n"
-                "Run AGSEditor.exe to launch the editor.\n\n"
-                "(Unable to find '%s')\n", argv[datafile_argv]);
-            platform->DisplayAlert(emsg);
+                "Run AGSEditor.exe to launch the editor.\n\n");
+            int len = strlen(emsg);
+            if (game_file_name.IsEmpty())
+            {
+                sprintf(emsg + len, "(Unable to find game data file in any of the known locations.)\n");
+            }
+            else
+            {
+                sprintf(emsg + len, "(Unable to find or open '%s'.)\n", game_file_name.GetCStr());
+            }
         }
         else if (errcod==Common::kAssetErrLibAssetCount)
-            platform->DisplayAlert("ERROR: Too many files in data file.");
-        else platform->DisplayAlert("ERROR: The file is corrupt. Make sure you have the correct version of the\n"
-            "editor, and that this really is an AGS game.\n");
+        {
+            sprintf(emsg, "ERROR: Too many files in data file.\n\n%s\n", game_file_name.GetCStr());
+        }
+        else
+        {
+            sprintf(emsg, "ERROR: The file is corrupt. Make sure you have the correct version of the "
+                "editor, and that this really is an AGS game.\n\n%s\n", game_file_name.GetCStr());
+        }
+        platform->DisplayAlert(emsg);
         return EXIT_NORMAL;
+    }
+
+    // Save data file name and data folder
+    usetup.main_data_filename = get_filename(game_file_name);
+    // There is a path in the game file name (and the user/ has not specified
+    // another one) save the path, so that it can load the VOX files, etc
+    if (usetup.data_files_dir.Compare(".") == 0)
+    {
+        int ichar = game_file_name.FindCharReverse('/');
+        if (ichar >= 0)
+        {
+            usetup.data_files_dir = game_file_name.Left(ichar);
+        }
     }
 
     return RETURN_CONTINUE;
@@ -628,14 +713,6 @@ void atexit_handler() {
 
     if (!(speech_file == NULL))
         free(speech_file);
-
-    // Deliberately commented out, because chances are game_file_name
-    // was not allocated on the heap, it points to argv[0] or
-    // the gamefilenamebuf memory
-    // It will get freed by the system anyway, leaving it in can
-    // cause a crash on exit
-    /*if (!(game_file_name == NULL))
-    free(game_file_name);*/
 }
 
 void engine_init_exit_handler()

@@ -43,8 +43,8 @@
 #include "ac/statobj/staticarray.h"
 
 using AGS::Common::Bitmap;
-
 using AGS::Common::DataStream;
+using AGS::Common::String;
 
 extern int engineNeedsAsInt; // defined in ac_game
 extern char saveGameSuffix[MAX_SG_EXT_LENGTH + 1];
@@ -119,7 +119,7 @@ StaticArray StaticDialogArray;
 GameDataVersion filever;
 // PSP specific variables:
 int psp_is_old_datafile = 0; // Set for 3.1.1 and 3.1.2 datafiles
-char* game_file_name = NULL;
+String game_file_name;
 
 
 DataStream * game_file_open()

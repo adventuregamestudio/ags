@@ -12,11 +12,13 @@
 //
 //=============================================================================
 
-#if !defined(WINDOWS_VERSION)
+#if defined(WINDOWS_VERSION)
+#include <io.h>
+#else
 #include <unistd.h> // for unlink()
 #endif
-
 #include <errno.h>
+
 #include "util/file.h"
 
 #if !defined (WINDOWS_VERSION)

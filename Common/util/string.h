@@ -133,6 +133,7 @@ public:
     int     FindCharReverse(char c, int from = -1) const;
 
     char    GetAt(int index) const;
+    char    GetLast() const;
 
     //-------------------------------------------------------------------------
     // Value cast methods
@@ -203,6 +204,8 @@ public:
     void    Prepend(const char *cstr);
     // Add single character before string's head
     void    PrependChar(char c);
+    // Replaces all occurences of one character with another character
+    void    Replace(char what, char with);
     // Overwrite the Nth character of the string; does not change string's length
     void    SetAt(int index, char c);
     // Makes a new string by copying up to N chars from C-string

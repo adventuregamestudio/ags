@@ -12,9 +12,7 @@
 //
 //=============================================================================
 //
-// Platform-independent FILE interface
-//
-// TODO: abstract interface wrapper around file handle
+// Platform-independent File functions
 //
 //=============================================================================
 #ifndef __AGS_CN_UTIL__FILE_H
@@ -88,7 +86,7 @@ namespace File
     {
         return OpenFile(filename, kFile_Create, kFile_Write);
     }
-}; // namespace File
+} // namespace File
 
 } // namespace Common
 } // namespace AGS

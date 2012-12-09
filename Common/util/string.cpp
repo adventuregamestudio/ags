@@ -229,6 +229,11 @@ char String::GetAt(int index) const
     return (index >= 0 && index < GetLength()) ? _meta->CStr[index] : 0;
 }
 
+char String::GetLast() const
+{
+    return (_meta && _meta->Length > 0) ? _meta->CStr[_meta->Length - 1] : 0;
+}
+
 int String::ToInt() const
 {
     return atoi(GetCStr());
@@ -545,6 +550,22 @@ void String::PrependChar(char c)
     }
 }
 
+void String::Replace(char what, char with)
+{
+    if (_meta && what && with && what != with)
+    {
+        BecomeUnique();
+        char *rep_ptr = _meta->CStr;
+        while (*rep_ptr)
+        {
+            if (*rep_ptr == what)
+            {
+                *rep_ptr = with;
+            }
+            rep_ptr++;
+        }
+    }
+}
 
 void String::SetAt(int index, char c)
 {

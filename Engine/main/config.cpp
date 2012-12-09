@@ -25,6 +25,7 @@
 #include "platform/base/override_defines.h" //_getcwd()
 #include "util/filestream.h"
 #include "util/textstreamreader.h"
+#include "util/path.h"
 
 using AGS::Common::DataStream;
 using AGS::Common::TextStreamReader;
@@ -164,7 +165,6 @@ void read_config_file(char *argv0) {
     // set default dir if no config file
     usetup.data_files_dir = ".";
     usetup.translation = NULL;
-    usetup.main_data_filename = "ac2game.dat";
 #ifdef WINDOWS_VERSION
     usetup.digicard = DIGI_DIRECTAMX(0);
 #endif
@@ -243,22 +243,21 @@ void read_config_file(char *argv0) {
             usetup.no_speech_pack = 0;
 
         usetup.data_files_dir = INIreaditem("misc","datadir");
-        if (usetup.data_files_dir == NULL)
+        if (usetup.data_files_dir.IsEmpty())
             usetup.data_files_dir = ".";
         // strip any trailing slash
+        // TODO: move this to Path namespace later
+        AGS::Common::Path::FixupPath(usetup.data_files_dir);
 #if defined (WINDOWS_VERSION)
-        if ((strlen(usetup.data_files_dir) < 4) && (usetup.data_files_dir[1] == ':'))
-        { }  // if the path is just  d:\  don't strip the slash
-        else if (usetup.data_files_dir[strlen(usetup.data_files_dir)-1] == '\\')
-            usetup.data_files_dir[strlen(usetup.data_files_dir)-1] = 0;
+        // if the path is just x:\ don't strip the slash
+        if (!(usetup.data_files_dir->GetLength() < 4 && usetup.data_files_dir[1] == ':'))
+        {
+            usetup.data_files_dir->TrimRight('/');
+        }
 #else
-        if (usetup.data_files_dir[strlen(usetup.data_files_dir)-1] == '/')
-            usetup.data_files_dir[strlen(usetup.data_files_dir)-1] = 0;
+        usetup.data_files_dir->TrimRight('/');
 #endif
-
         usetup.main_data_filename = INIreaditem ("misc", "datafile");
-        if (usetup.main_data_filename == NULL)
-            usetup.main_data_filename = "ac2game.dat";
 
 #if defined(IOS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
         // PSP: No graphic filters are available.

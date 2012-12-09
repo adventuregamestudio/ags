@@ -60,7 +60,7 @@ using namespace AGS; // FIXME later
 Common::DataStream *ci_fopen(const char *file_name,
                              Common::FileOpenMode open_mode = Common::kFile_Open,
                              Common::FileWorkMode work_mode = Common::kFile_Read);
-char *ci_find_file(char *dir_name, char *file_name);
+char *ci_find_file(const char *dir_name, const char *file_name);
 
 
 #endif  // __MISC_H

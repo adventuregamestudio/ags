@@ -27,6 +27,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "util/datastream.h"
 #include "core/assetmanager.h"
+#include "main/game_file.h"
 
 using AGS::Common::DataStream;
 
@@ -57,7 +58,6 @@ extern char saveGameDirectory[260];
 extern AGSPlatformDriver *platform;
 extern RuntimeScriptValue GlobalReturnValue;
 
-extern char* game_file_name;
 extern int MAXSTRLEN;
 
 // object-based File routines

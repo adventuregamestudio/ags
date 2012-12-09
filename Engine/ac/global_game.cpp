@@ -54,6 +54,7 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 #include "core/assetmanager.h"
+#include "main/game_file.h"
 
 using AGS::Common::String;
 using AGS::Common::Bitmap;
@@ -72,7 +73,6 @@ extern SpriteCache spriteset;
 extern int frames_per_second;
 extern int time_between_timers;
 extern char gamefilenamebuf[200];
-extern char* game_file_name;
 extern GameSetup usetup;
 extern unsigned int load_new_game;
 extern int load_new_game_restore;
@@ -249,7 +249,7 @@ int RunAGSGame (char *newgame, unsigned int mode, int data) {
     if ((mode & RAGMODE_LOADNOW) == 0) {
         // need to copy, since the script gets destroyed
         get_current_dir_path(gamefilenamebuf, newgame);
-        game_file_name = &gamefilenamebuf[0];
+        game_file_name = gamefilenamebuf;
         usetup.main_data_filename = game_file_name;
         play.takeover_data = data;
         load_new_game_restore = -1;
@@ -272,7 +272,7 @@ int RunAGSGame (char *newgame, unsigned int mode, int data) {
     unload_game_file();
 
     if (Common::AssetManager::SetDataFile(game_file_name) != Common::kAssetNoError)
-        quitprintf("!RunAGSGame: unable to load new game file '%s'", game_file_name);
+        quitprintf("!RunAGSGame: unable to load new game file '%s'", game_file_name.GetCStr());
 
     abuf->Clear();
     show_preload();

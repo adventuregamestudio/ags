@@ -140,7 +140,7 @@ int call_function(intptr_t addr, int numparm, const RuntimeScriptValue *parms, i
     intptr_t parm_value[9];
     for (int i = 0; i < numparm; ++i)
     {
-        const RuntimeScriptValue *real_param;
+        RuntimeScriptValue real_param;
         if (parms[i].GetType() == kScValStackPtr)
         {
             // There's at least one known case when this may be a stack pointer:
@@ -150,16 +150,22 @@ int call_function(intptr_t addr, int numparm, const RuntimeScriptValue *parms, i
             // value size.
             // It is not a good idea to pass stack ptr to function, pass the value
             // it points to instead.
-            real_param = parms[i].GetStackEntry();
+            real_param = *parms[i].GetStackEntry();
+            real_param += parms[i].GetInt32(); // offset
+        }
+        else if (parms[i].GetType() == kScValGlobalVar)
+        {
+            real_param = *parms[i].GetGlobalVar();
+            real_param += parms[i].GetInt32(); // offset
         }
         else
         {
-            real_param = &parms[i];
+            real_param = parms[i];
         }
 
         // NOTE: in case of generic type this will return just Value
         // FIXME this bs!!!
-        parm_value[i] = (intptr_t)real_param->GetPtrWithOffset();
+        parm_value[i] = (intptr_t)real_param.GetPtrWithOffset();
     }
 
     //

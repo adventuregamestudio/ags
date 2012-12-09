@@ -115,6 +115,10 @@ public:
     {
         return RValue;
     }
+    inline RuntimeScriptValue *GetGlobalVar() const
+    {
+        return RValue;
+    }
     inline ICCStaticObject *GetStaticManager() const
     {
         return StcMgr;

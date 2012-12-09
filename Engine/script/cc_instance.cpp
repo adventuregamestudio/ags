@@ -1611,12 +1611,7 @@ bool ccInstance::CreateGlobalVars(ccScript * scri)
             continue;
         }
 
-        if (!TryAddGlobalVar(glvar) && scri->fixuptypes[i] == FIXUP_DATADATA)
-        {
-            // CHECKME: probably replace with mere warning in the log?
-            cc_error("old-style global string was not properly registered");
-            return false;
-        }
+        TryAddGlobalVar(glvar);
     }
 
     // Step Two: deduce global variables from exports

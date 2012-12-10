@@ -140,32 +140,17 @@ int call_function(intptr_t addr, int numparm, const RuntimeScriptValue *parms, i
     intptr_t parm_value[9];
     for (int i = 0; i < numparm; ++i)
     {
-        RuntimeScriptValue real_param;
-        if (parms[i].GetType() == kScValStackPtr)
+        switch (parms[i].GetType())
         {
-            // There's at least one known case when this may be a stack pointer:
-            // AGS 2.x style local strings that have their address pushed to stack
-            // after array of chars; in the new interpreter implementation we push
-            // these addresses as runtime values of stack ptr type to keep correct
-            // value size.
-            // It is not a good idea to pass stack ptr to function, pass the value
-            // it points to instead.
-            real_param = *parms[i].GetStackEntry();
-            real_param += parms[i].GetInt32(); // offset
+        case kScValInteger:
+        case kScValFloat:   // AGS passes floats, copying their values into long variable
+            parm_value[i] = (intptr_t)parms[i].GetInt32();
+            break;
+            break;
+        default:
+            parm_value[i] = (intptr_t)parms[i].GetPtrWithOffset();
+            break;
         }
-        else if (parms[i].GetType() == kScValGlobalVar)
-        {
-            real_param = *parms[i].GetGlobalVar();
-            real_param += parms[i].GetInt32(); // offset
-        }
-        else
-        {
-            real_param = parms[i];
-        }
-
-        // NOTE: in case of generic type this will return just Value
-        // FIXME this bs!!!
-        parm_value[i] = (intptr_t)real_param.GetPtrWithOffset();
     }
 
     //
@@ -201,6 +186,12 @@ int call_function(intptr_t addr, int numparm, const RuntimeScriptValue *parms, i
     // require fixing ALL exported functions, so a good amount of
     // time and energy should be allocated for this task.
     //
+
+    if (numparm == 0) {
+        int (*fparam) ();
+        fparam = (int (*)())addr;
+        return fparam();
+    }
 
     if (numparm == 1) {
         int (*fparam) (intptr_t);

@@ -119,6 +119,12 @@ public:
     {
         return RValue;
     }
+    inline RuntimeScriptValue GetRValueWithOffset() const
+    {
+        RuntimeScriptValue rval = RValue ? *RValue : RuntimeScriptValue();
+        rval += IValue;
+        return rval;
+    }
     inline ICCStaticObject *GetStaticManager() const
     {
         return StcMgr;

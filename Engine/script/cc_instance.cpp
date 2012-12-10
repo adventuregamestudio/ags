@@ -171,6 +171,21 @@ ccInstance *current_instance;
 // return value at once.
 RuntimeScriptValue GlobalReturnValue;
 
+// Function call stack is used to temporarily store
+// values before passing them to script function
+// TODO: stack class
+#define MAX_FUNC_PARAMS 20
+struct FunctionCallStack
+{
+    FunctionCallStack()
+    {
+        Count = 0;
+    }
+
+    RuntimeScriptValue  Entries[MAX_FUNC_PARAMS + 1];
+    int                 Count;
+};
+
 
 ccInstance *ccInstance::GetCurrentInstance()
 {
@@ -449,7 +464,6 @@ int ccInstance::PrepareTextScript(char**tsname) {
     line_number = callStackLineNumber[callStackSize];\
     currentline = line_number
 
-#define MAX_FUNC_PARAMS 20
 #define MAXNEST 50  // number of recursive function calls allowed
 int ccInstance::Run(int32_t curpc)
 {
@@ -464,10 +478,8 @@ int ccInstance::Run(int32_t curpc)
     // Needed to avoid unaligned variable access.
     RuntimeScriptValue temp_variable;
 
-    int (*realfunc) ();
-    RuntimeScriptValue callstack[MAX_FUNC_PARAMS + 1];
     int32_t thisbase[MAXNEST], funcstart[MAXNEST];
-    int callstacksize = 0, was_just_callas = -1;
+    was_just_callas = -1;
     int curnest = 0;
     int loopIterations = 0;
     int num_args_to_func = -1;
@@ -479,6 +491,8 @@ int ccInstance::Run(int32_t curpc)
     ccInstance *codeInst = runningInst;
     int write_debug_dump = ccGetOption(SCOPT_DEBUGRUN);
 	ScriptOperation codeOp;
+
+    FunctionCallStack func_callstack;
 
     while (1) {
 
@@ -894,11 +908,11 @@ int ccInstance::Run(int32_t curpc)
           // contain 2 calls worth of parameters, so only
           // push args for this call
           if (num_args_to_func >= 0)
-              startArg = callstacksize - num_args_to_func;
+              startArg = func_callstack.Count - num_args_to_func;
 
-          for (int i = startArg; i < callstacksize; ++i) {
+          for (int i = startArg; i < func_callstack.Count; ++i) {
               // 64 bit: Arguments are pushed as 64 bit values
-              PushValueToStack(callstack[i]);
+              PushValueToStack(PeekFuncCallStack(func_callstack, i));
           }
 
           // 0, so that the cc_run_code returns
@@ -937,7 +951,7 @@ int ccInstance::Run(int32_t curpc)
               next_call_needs_object = 0;
 
           pc = oldpc;
-          was_just_callas = callstacksize;
+          was_just_callas = func_callstack.Count;
           num_args_to_func = -1;
           POP_CALL_STACK;
           break;
@@ -947,30 +961,22 @@ int ccInstance::Run(int32_t curpc)
           // CallScriptFunction to a real 'C' code function
           was_just_callas = -1;
           if (num_args_to_func < 0)
-              num_args_to_func = callstacksize;
+              num_args_to_func = func_callstack.Count;
 
           GlobalReturnValue.Invalidate();
           int32_t return_value;
           if (next_call_needs_object) {
               // member function call
-              // use the callstack +1 size allocation to squeeze
+              // use the func_callstack +1 size allocation to squeeze
               // the object address on as the last parameter
               call_uses_object = 1;
               next_call_needs_object = 0;
-              callstack[callstacksize] = registers[SREG_OP];
-              return_value = 
-                  // FIXME later: use different getter
-                  call_function((intptr_t)reg1.GetPtr(), num_args_to_func + 1, callstack, callstacksize - num_args_to_func);
-          }
-          else if (num_args_to_func == 0) {
-              // FIXME later: use different getter
-              realfunc = (int (*)())reg1.GetPtr();
-              return_value = realfunc();
-          } 
-          else
-              return_value =
-              // FIXME later: use different getter
-                    call_function((intptr_t)reg1.GetPtr(), num_args_to_func, callstack, callstacksize - num_args_to_func);
+              PushToFuncCallStack(func_callstack, registers[SREG_OP]);
+              num_args_to_func++;
+          }          
+
+          return_value =
+              call_function((intptr_t)reg1.GetPtr(), num_args_to_func, func_callstack.Entries, func_callstack.Count - num_args_to_func);
 
           if (GlobalReturnValue.IsValid())
           {
@@ -985,7 +991,8 @@ int ccInstance::Run(int32_t curpc)
               return -1;
 
           if (call_uses_object) {
-              // Pop OP?
+              PopFromFuncCallStack(func_callstack, 1);
+              call_uses_object = 0;
           }
 
           current_instance = this;
@@ -993,20 +1000,10 @@ int ccInstance::Run(int32_t curpc)
           break;
                          }
       case SCMD_PUSHREAL:
-          //        printf("pushing arg%d as %ld\n",callstacksize,reg1);
-          if (callstacksize >= MAX_FUNC_PARAMS) {
-              cc_error("CallScriptFunction stack overflow");
-              return -1;
-          }
-          callstack[callstacksize] = reg1;
-          callstacksize++;
+          PushToFuncCallStack(func_callstack, reg1);
           break;
       case SCMD_SUBREALSTACK:
-          if (was_just_callas >= 0) {
-              PopValuesFromStack(arg1.GetInt32());
-              was_just_callas = -1;
-          }
-          callstacksize -= arg1.GetInt32();
+          PopFromFuncCallStack(func_callstack, arg1.GetInt32());
           break;
       case SCMD_CALLOBJ:
           // set the OP register
@@ -2014,4 +2011,54 @@ RuntimeScriptValue ccInstance::GetStackPtrOffsetRw(int32_t rw_offset)
         }
     }
     return stack_ptr;
+}
+
+void ccInstance::PushToFuncCallStack(FunctionCallStack &func_callstack, const RuntimeScriptValue &rval)
+{
+    if (func_callstack.Count >= MAX_FUNC_PARAMS)
+    {
+        cc_error("CallScriptFunction stack overflow");
+        return;
+    }
+
+    // NOTE: There's at least one known case when this may be a stack pointer:
+    // AGS 2.x style local strings that have their address pushed to stack
+    // after array of chars; in the new interpreter implementation we push
+    // these addresses as runtime values of stack ptr type to keep correct
+    // value size.
+    if (rval.GetType() == kScValStackPtr ||
+        rval.GetType() == kScValGlobalVar)
+    {
+        func_callstack.Entries[func_callstack.Count] = rval.GetRValueWithOffset();
+    }
+    else
+    {
+        func_callstack.Entries[func_callstack.Count] = rval;
+    }
+    func_callstack.Count++;
+}
+
+void ccInstance::PopFromFuncCallStack(FunctionCallStack &func_callstack, int32_t num_entries)
+{
+    if (func_callstack.Count == 0)
+    {
+        cc_error("CallScriptFunction stack underflow");
+        return;
+    }
+
+    if (was_just_callas >= 0)
+    {
+        PopValuesFromStack(num_entries);
+        was_just_callas = -1;
+    }
+    func_callstack.Count -= num_entries;
+}
+
+RuntimeScriptValue ccInstance::PeekFuncCallStack(FunctionCallStack &func_callstack, int32_t entry_index)
+{
+    if (entry_index >= 0 && entry_index < func_callstack.Count)
+    {
+        return func_callstack.Entries[entry_index];
+    }
+    return RuntimeScriptValue();
 }

@@ -79,6 +79,8 @@ struct ScriptVariable
     RuntimeScriptValue  RValue;
 };
 
+struct FunctionCallStack;
+
 // Running instance of the script
 struct ccInstance
 {
@@ -107,12 +109,15 @@ public:
     int32_t pc;                     // program counter
     int32_t line_number;            // source code line number
     ccScript *instanceof;
+    int  loadedInstanceId;
+    int  returnValue;
+
+    int  callStackSize;
     int32_t callStackLineNumber[MAX_CALL_STACK];
     int32_t callStackAddr[MAX_CALL_STACK];
     ccInstance *callStackCodeInst[MAX_CALL_STACK];
-    int  callStackSize;
-    int  loadedInstanceId;
-    int  returnValue;
+
+    int was_just_callas;
 
     // array of real import indexes used in script
     int  *resolved_imports;
@@ -186,6 +191,11 @@ protected:
     // Return stack ptr at given offset from stack tail;
     // Offset is in data bytes; program stack ptr is __not__ changed
     RuntimeScriptValue GetStackPtrOffsetRw(int32_t rw_offset);
+
+    // Function call stack processing
+    void    PushToFuncCallStack(FunctionCallStack &func_callstack, const RuntimeScriptValue &rval);
+    void    PopFromFuncCallStack(FunctionCallStack &func_callstack, int32_t num_entries);
+    RuntimeScriptValue PeekFuncCallStack(FunctionCallStack &func_callstack, int32_t entry_index);
 };
 
 #endif // __CC_INSTANCE_H

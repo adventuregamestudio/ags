@@ -1456,7 +1456,7 @@ bool ccInstance::_Create(ccScript * scri, ccInstance * joined)
         {
             // NOTE: unfortunately, there seems to be no way to know if
             // that's an extender function that expects object pointer
-            exports[i].SetStaticFunction((void *)((intptr_t)eaddr * sizeof(intptr_t) + (intptr_t)(&code[0])));
+            exports[i].SetCodePtr((char *)((intptr_t)eaddr * sizeof(intptr_t) + (char*)(&code[0])));
         }
         else if (etype == EXPORT_DATA)
         {

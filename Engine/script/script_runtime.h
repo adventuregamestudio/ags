@@ -37,14 +37,14 @@ struct StaticArray;
 // ************ SCRIPT LOADING AND RUNNING FUNCTIONS ************
 
 // give the script access to a variable or function in your program
-extern bool ccAddExternalStaticFunction(const char *name, void *ptr);
+extern bool ccAddExternalStaticFunction(const char *name, ScriptAPIFunction *pfn);
 extern bool ccAddExternalStaticObject(const char *name, void *ptr, ICCStaticObject *manager);
 extern bool ccAddExternalStaticArray(const char *name, void *ptr, StaticArray *array_mgr);
 extern bool ccAddExternalDynamicObject(const char *name, void *ptr, ICCDynamicObject *manager);
-extern bool ccAddExternalObjectFunction(const char *name, void *ptr);
+extern bool ccAddExternalObjectFunction(const char *name, ScriptAPIFunction *pfn);
 extern bool ccAddExternalScriptSymbol(const char *name, const RuntimeScriptValue &prval, ccInstance *inst);
 // remove the script access to a variable or function in your program
-extern void ccRemoveExternalSymbol(const char *);
+extern void ccRemoveExternalSymbol(const char *name);
 // removes all external symbols, allowing you to start from scratch
 extern void ccRemoveAllSymbols();
 

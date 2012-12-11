@@ -39,9 +39,9 @@
 
 extern ccInstance *current_instance; // in script/cc_instance
 
-bool ccAddExternalStaticFunction(const char *name, void *ptr)
+bool ccAddExternalStaticFunction(const char *name, ScriptAPIFunction *pfn)
 {
-    return simp.add(name, RuntimeScriptValue().SetStaticFunction(ptr), NULL) == 0;
+    return simp.add(name, RuntimeScriptValue().SetStaticFunction(pfn), NULL) == 0;
 }
 
 bool ccAddExternalStaticObject(const char *name, void *ptr, ICCStaticObject *manager)
@@ -59,9 +59,9 @@ bool ccAddExternalDynamicObject(const char *name, void *ptr, ICCDynamicObject *m
     return simp.add(name, RuntimeScriptValue().SetDynamicObject(ptr, manager), NULL) == 0;
 }
 
-bool ccAddExternalObjectFunction(const char *name, void *ptr)
+bool ccAddExternalObjectFunction(const char *name, ScriptAPIFunction *pfn)
 {
-    return simp.add(name, RuntimeScriptValue().SetObjectFunction(ptr), NULL) == 0;
+    return simp.add(name, RuntimeScriptValue().SetObjectFunction(pfn), NULL) == 0;
 }
 
 bool ccAddExternalScriptSymbol(const char *name, const RuntimeScriptValue &prval, ccInstance *inst)

@@ -1,12 +1,24 @@
 //=============================================================================
 //
+// Adventure Game Studio (AGS)
+//
+// Copyright (C) 1999-2011 Chris Jones and 2011-20xx others
+// The full list of copyright holders can be found in the Copyright.txt
+// file, which is part of this source code distribution.
+//
+// The AGS source code is provided under the Artistic License 2.0.
+// A copy of this license can be found in the file License.txt and at
+// http://www.opensource.org/licenses/artistic-license-2.0.php
+//
+//=============================================================================
+//
 // Runtime script value struct
 //
 //=============================================================================
 #ifndef __AGS_EE_SCRIPT__RUNTIMESCRIPTVALUE_H
 #define __AGS_EE_SCRIPT__RUNTIMESCRIPTVALUE_H
 
-#include "core/types.h"
+#include "script/script_api.h"
 
 struct ICCStaticObject;
 struct StaticArray;
@@ -29,6 +41,7 @@ enum ScriptValueType
     kScValStaticFunction,// as a pointer to static function
     kScValObjectFunction,// as a pointer to object member function, gets object pointer as
                         // first parameter
+    kScValCodePtr,      // as a pointer to element in byte-code array
 };
 
 struct RuntimeScriptValue
@@ -58,6 +71,7 @@ private:
     {
         char                *Ptr;   // generic data pointer
         RuntimeScriptValue  *RValue;// access ptr as a pointer to Runtime Value
+        ScriptAPIFunction   *Pfn;   // access ptr as a pointer to Script API Function
     };
     // TODO: separation to Ptr and MgrPtr is only needed so far as there's
     // a separation between Script*, Dynamic* and game entity classes.
@@ -124,6 +138,10 @@ public:
         RuntimeScriptValue rval = RValue ? *RValue : RuntimeScriptValue();
         rval += IValue;
         return rval;
+    }
+    inline ScriptAPIFunction *GetFuncPtr() const
+    {
+        return Pfn;
     }
     inline ICCStaticObject *GetStaticManager() const
     {
@@ -259,20 +277,29 @@ public:
         Size    = 4;
         return *this;
     }
-    inline RuntimeScriptValue &SetStaticFunction(void *pfn)
+    inline RuntimeScriptValue &SetStaticFunction(ScriptAPIFunction *pfn)
     {
         Type    = kScValStaticFunction;
         IValue  = 0;
-        Ptr     = (char*)pfn;
+        Pfn     = pfn;
         MgrPtr  = NULL;
         Size    = 4;
         return *this;
     }
-    inline RuntimeScriptValue &SetObjectFunction(void *pfn)
+    inline RuntimeScriptValue &SetObjectFunction(ScriptAPIFunction *pfn)
     {
         Type    = kScValObjectFunction;
         IValue  = 0;
-        Ptr     = (char*)pfn;
+        Pfn     = pfn;
+        MgrPtr  = NULL;
+        Size    = 4;
+        return *this;
+    }
+    inline RuntimeScriptValue &SetCodePtr(char *ptr)
+    {
+        Type    = kScValCodePtr;
+        IValue  = 0;
+        Ptr     = ptr;
         MgrPtr  = NULL;
         Size    = 4;
         return *this;

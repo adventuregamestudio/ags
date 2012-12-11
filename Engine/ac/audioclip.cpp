@@ -73,3 +73,66 @@ ScriptAudioChannel* AudioClip_PlayQueued(ScriptAudioClip *clip, int priority, in
     GlobalReturnValue.SetDynamicObject(sc_ch, &ccDynamicAudio);
     return sc_ch;
 }
+
+//=============================================================================
+//
+// Script API Functions
+//
+//=============================================================================
+
+#include "debug/out.h"
+#include "script/script_api.h"
+#include "script/script_runtime.h"
+
+// int | ScriptAudioClip *clip
+RuntimeScriptValue Sc_AudioClip_GetFileType(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptAudioClip, AudioClip_GetFileType)
+}
+
+// int | ScriptAudioClip *clip
+RuntimeScriptValue Sc_AudioClip_GetType(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptAudioClip, AudioClip_GetType)
+}
+
+// int | ScriptAudioClip *clip
+RuntimeScriptValue Sc_AudioClip_GetIsAvailable(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptAudioClip, AudioClip_GetIsAvailable)
+}
+
+// void | ScriptAudioClip *clip
+RuntimeScriptValue Sc_AudioClip_Stop(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID(ScriptAudioClip, AudioClip_Stop)
+}
+
+// ScriptAudioChannel* | ScriptAudioClip *clip, int priority, int repeat
+RuntimeScriptValue Sc_AudioClip_Play(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ_PINT2(ScriptAudioClip, ScriptAudioChannel, ccDynamicAudio, AudioClip_Play)
+}
+
+// ScriptAudioChannel* | ScriptAudioClip *clip, int position, int priority, int repeat
+RuntimeScriptValue Sc_AudioClip_PlayFrom(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ_PINT3(ScriptAudioClip, ScriptAudioChannel, ccDynamicAudio, AudioClip_PlayFrom)
+}
+
+// ScriptAudioChannel* | ScriptAudioClip *clip, int priority, int repeat
+RuntimeScriptValue Sc_AudioClip_PlayQueued(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ_PINT2(ScriptAudioClip, ScriptAudioChannel, ccDynamicAudio, AudioClip_PlayQueued)
+}
+
+void RegisterAudioClipAPI()
+{
+    ccAddExternalObjectFunction("AudioClip::Play^2",            Sc_AudioClip_Play);
+    ccAddExternalObjectFunction("AudioClip::PlayFrom^3",        Sc_AudioClip_PlayFrom);
+    ccAddExternalObjectFunction("AudioClip::PlayQueued^2",      Sc_AudioClip_PlayQueued);
+    ccAddExternalObjectFunction("AudioClip::Stop^0",            Sc_AudioClip_Stop);
+    ccAddExternalObjectFunction("AudioClip::get_FileType",      Sc_AudioClip_GetFileType);
+    ccAddExternalObjectFunction("AudioClip::get_IsAvailable",   Sc_AudioClip_GetIsAvailable);
+    ccAddExternalObjectFunction("AudioClip::get_Type",          Sc_AudioClip_GetType);
+}

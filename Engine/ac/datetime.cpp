@@ -62,3 +62,73 @@ int DateTime_GetSecond(ScriptDateTime *sdt) {
 int DateTime_GetRawTime(ScriptDateTime *sdt) {
     return sdt->rawUnixTime;
 }
+
+//=============================================================================
+//
+// Script API Functions
+//
+//=============================================================================
+
+#include "debug/out.h"
+#include "script/script_api.h"
+#include "script/script_runtime.h"
+
+// ScriptDateTime* ()
+RuntimeScriptValue Sc_DateTime_Now(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO(ScriptDateTime, DateTime_Now)
+}
+
+// int (ScriptDateTime *sdt)
+RuntimeScriptValue Sc_DateTime_GetYear(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptDateTime, DateTime_GetYear)
+}
+
+// int (ScriptDateTime *sdt)
+RuntimeScriptValue Sc_DateTime_GetMonth(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptDateTime, DateTime_GetMonth)
+}
+
+// int (ScriptDateTime *sdt)
+RuntimeScriptValue Sc_DateTime_GetDayOfMonth(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptDateTime, DateTime_GetDayOfMonth)
+}
+
+// int (ScriptDateTime *sdt)
+RuntimeScriptValue Sc_DateTime_GetHour(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptDateTime, DateTime_GetHour)
+}
+
+// int (ScriptDateTime *sdt)
+RuntimeScriptValue Sc_DateTime_GetMinute(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptDateTime, DateTime_GetMinute)
+}
+
+// int (ScriptDateTime *sdt)
+RuntimeScriptValue Sc_DateTime_GetSecond(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptDateTime, DateTime_GetSecond)
+}
+
+// int (ScriptDateTime *sdt)
+RuntimeScriptValue Sc_DateTime_GetRawTime(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptDateTime, DateTime_GetRawTime)
+}
+
+void RegisterDateTimeAPI()
+{
+    ccAddExternalObjectFunction("DateTime::get_Now",        Sc_DateTime_Now);
+    ccAddExternalObjectFunction("DateTime::get_DayOfMonth", Sc_DateTime_GetDayOfMonth);
+    ccAddExternalObjectFunction("DateTime::get_Hour",       Sc_DateTime_GetHour);
+    ccAddExternalObjectFunction("DateTime::get_Minute",     Sc_DateTime_GetMinute);
+    ccAddExternalObjectFunction("DateTime::get_Month",      Sc_DateTime_GetMonth);
+    ccAddExternalObjectFunction("DateTime::get_RawTime",    Sc_DateTime_GetRawTime);
+    ccAddExternalObjectFunction("DateTime::get_Second",     Sc_DateTime_GetSecond);
+    ccAddExternalObjectFunction("DateTime::get_Year",       Sc_DateTime_GetYear);
+}

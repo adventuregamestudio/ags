@@ -25,11 +25,6 @@
 
 void register_audio_script_functions()
 {
-    ccAddExternalStaticFunction("Game::IsAudioPlaying^1",(void *)Game_IsAudioPlaying);
-    ccAddExternalStaticFunction("Game::SetAudioTypeSpeechVolumeDrop^2", (void*)Game_SetAudioTypeSpeechVolumeDrop);
-    ccAddExternalStaticFunction("Game::SetAudioTypeVolume^3", (void*)Game_SetAudioTypeVolume);
-    ccAddExternalStaticFunction("Game::StopAudio^1",(void *)Game_StopAudio);
-
     ccAddExternalStaticFunction("System::get_AudioChannelCount", (void*)System_GetAudioChannelCount);
     ccAddExternalStaticFunction("System::geti_AudioChannels", (void*)System_GetAudioChannels);
 }

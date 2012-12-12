@@ -217,7 +217,7 @@ int GetGlobalInt(int index) {
     return play.globalscriptvars[index];
 }
 
-void SetGlobalString (int index, char *newval) {
+void SetGlobalString (int index, const char *newval) {
     if ((index<0) | (index >= MAXGLOBALSTRINGS))
         quit("!SetGlobalString: invalid index");
     DEBUG_CONSOLE("GlobalString %d set to '%s'", index, newval);

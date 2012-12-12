@@ -32,7 +32,7 @@ void UnPauseGame();
 int  IsGamePaused();
 void SetGlobalInt(int index,int valu);
 int  GetGlobalInt(int index);
-void SetGlobalString (int index, char *newval);
+void SetGlobalString (int index, const char *newval);
 void GetGlobalString (int index, char *strval);
 int  RunAGSGame (char *newgame, unsigned int mode, int data);
 int  GetGameParameter (int parm, int data1, int data2, int data3);

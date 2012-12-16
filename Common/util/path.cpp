@@ -53,6 +53,9 @@ String MakeAbsolutePath(const String &path)
     {
         abs_path = long_path_buffer;
     }
+#elif defined (PSP_VERSION)
+    // FIXME: Properly construct a full PSP path
+    return path;
 #endif
     char buf[512];
     canonicalize_filename(buf, abs_path, 512);

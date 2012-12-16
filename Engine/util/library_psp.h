@@ -60,7 +60,8 @@ public:
     }
 
     // The PSP module and PSP library name are assumed to be the same as the file name
-    _moduleName = libraryName.ToLower();
+    _moduleName = libraryName;
+    _moduleName.MakeLower();
 
     AGS::Common::Out::FPrint("Result is %s %d", _moduleName.GetCStr(), _library);
 

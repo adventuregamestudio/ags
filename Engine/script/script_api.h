@@ -67,6 +67,16 @@ typedef RuntimeScriptValue ScriptAPIFunction(void *self, RuntimeScriptValue *par
     FUNCTION(params[0].GetInt32(), params[1].GetInt32(), params[2].GetInt32()); \
     return RuntimeScriptValue();
 
+#define API_SCALL_VOID_PINT4(FUNCTION) \
+    ASSERT_PARAM_COUNT(FUNCTION, 4) \
+    FUNCTION(params[0].GetInt32(), params[1].GetInt32(), params[2].GetInt32(), params[3].GetInt32()); \
+    return RuntimeScriptValue();
+
+#define API_SCALL_VOID_PINT5(FUNCTION) \
+    ASSERT_PARAM_COUNT(FUNCTION, 5) \
+    FUNCTION(params[0].GetInt32(), params[1].GetInt32(), params[2].GetInt32(), params[3].GetInt32(), , params[4].GetInt32()); \
+    return RuntimeScriptValue();
+
 #define API_SCALL_VOID_PINT_POBJ(FUNCTION, P1CLASS) \
     ASSERT_PARAM_COUNT(FUNCTION, 2) \
     FUNCTION(params[0].GetInt32(), (P1CLASS*)params[1].GetPtr()); \
@@ -240,6 +250,22 @@ typedef RuntimeScriptValue ScriptAPIFunction(void *self, RuntimeScriptValue *par
 #define API_OBJCALL_INT_POBJ(CLASS, METHOD, P1CLASS) \
     ASSERT_OBJ_PARAM_COUNT(METHOD, 1) \
     return RuntimeScriptValue().SetInt32(METHOD((CLASS*)self, (P1CLASS*)params[0].GetPtr()));
+
+#define API_OBJCALL_INT_POBJ_PINT(CLASS, METHOD, P1CLASS) \
+    ASSERT_OBJ_PARAM_COUNT(METHOD, 2) \
+    return RuntimeScriptValue().SetInt32(METHOD((CLASS*)self, (P1CLASS*)params[0].GetPtr(), params[1].GetInt32()));
+
+#define API_OBJCALL_INT_POBJ_PBOOL(CLASS, METHOD, P1CLASS) \
+    ASSERT_OBJ_PARAM_COUNT(METHOD, 2) \
+    return RuntimeScriptValue().SetInt32(METHOD((CLASS*)self, (P1CLASS*)params[0].GetPtr(), params[1].GetAsBool()));
+
+#define API_OBJCALL_OBJ_POBJ2_PINT(CLASS, RET_CLASS, RET_MGR, METHOD, P1CLASS, P2CLASS) \
+    ASSERT_OBJ_PARAM_COUNT(METHOD, 3) \
+    return RuntimeScriptValue().SetDynamicObject((void*)METHOD((CLASS*)self, (P1CLASS*)params[0].GetPtr(), (P2CLASS*)params[1].GetPtr(), params[2].GetInt32()), &RET_MGR);
+
+#define API_OBJCALL_OBJ_POBJ2_PBOOL(CLASS, RET_CLASS, RET_MGR, METHOD, P1CLASS, P2CLASS) \
+    ASSERT_OBJ_PARAM_COUNT(METHOD, 3) \
+    return RuntimeScriptValue().SetDynamicObject((void*)METHOD((CLASS*)self, (P1CLASS*)params[0].GetPtr(), (P2CLASS*)params[1].GetPtr(), params[2].GetAsBool()), &RET_MGR);
 
 #define API_OBJCALL_OBJ(CLASS, RET_CLASS, RET_MGR, METHOD) \
     ASSERT_SELF(METHOD) \

@@ -25,8 +25,5 @@
 
 void register_parser_script_functions()
 {
-	ccAddExternalStaticFunction("Parser::FindWordID^1",(void *)Parser_FindWordID);
-	ccAddExternalStaticFunction("Parser::ParseText^1",(void *)ParseText);
-	ccAddExternalStaticFunction("Parser::SaidUnknownWord^0",(void *)Parser_SaidUnknownWord);
-	ccAddExternalStaticFunction("Parser::Said^1",(void *)Said);
+	
 }

@@ -457,3 +457,354 @@ int check_click_on_object(int xx,int yy,int mood) {
     RunObjectInteraction(aa, mood);
     return 1;
 }
+
+//=============================================================================
+//
+// Script API Functions
+//
+//=============================================================================
+
+#include "debug/out.h"
+#include "script/script_api.h"
+#include "script/script_runtime.h"
+#include "ac/dynobj/scriptstring.h"
+
+extern ScriptString myScriptStringImpl;
+
+// void (ScriptObject *objj, int loop, int delay, int repeat, int blocking, int direction)
+RuntimeScriptValue Sc_Object_Animate(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT5(ScriptObject, Object_Animate)
+}
+
+// int (ScriptObject *objj, ScriptObject *obj2)
+RuntimeScriptValue Sc_Object_IsCollidingWithObject(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT_POBJ(ScriptObject, Object_IsCollidingWithObject, ScriptObject)
+}
+
+// void (ScriptObject *objj, char *buffer)
+RuntimeScriptValue Sc_Object_GetName(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_POBJ(ScriptObject, Object_GetName, char)
+}
+
+// int (ScriptObject *objj, const char *property)
+RuntimeScriptValue Sc_Object_GetProperty(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT_POBJ(ScriptObject, Object_GetProperty, const char)
+}
+
+// void (ScriptObject *objj, const char *property, char *bufer)
+RuntimeScriptValue Sc_Object_GetPropertyText(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_POBJ2(ScriptObject, Object_GetPropertyText, const char, char)
+}
+
+//const char* (ScriptObject *objj, const char *property)
+RuntimeScriptValue Sc_Object_GetTextProperty(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ_POBJ(ScriptObject, const char, myScriptStringImpl, Object_GetTextProperty, const char)
+}
+
+// void (ScriptObject *objj)
+RuntimeScriptValue Sc_Object_MergeIntoBackground(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID(ScriptObject, Object_MergeIntoBackground)
+}
+
+// void (ScriptObject *objj, int x, int y, int speed, int blocking, int direct)
+RuntimeScriptValue Sc_Object_Move(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT5(ScriptObject, Object_Move)
+}
+
+// void (ScriptObject *objj)
+RuntimeScriptValue Sc_Object_RemoveTint(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID(ScriptObject, Object_RemoveTint)
+}
+
+// void (ScriptObject *objj, int mode)
+RuntimeScriptValue Sc_Object_RunInteraction(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_RunInteraction)
+}
+
+// void (ScriptObject *objj, int xx, int yy)
+RuntimeScriptValue Sc_Object_SetPosition(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT2(ScriptObject, Object_SetPosition)
+}
+
+// void (ScriptObject *objj, int view, int loop, int frame)
+RuntimeScriptValue Sc_Object_SetView(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT3(ScriptObject, Object_SetView)
+}
+
+// void (ScriptObject *objj)
+RuntimeScriptValue Sc_Object_StopAnimating(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID(ScriptObject, Object_StopAnimating)
+}
+
+// void (ScriptObject *objj)
+RuntimeScriptValue Sc_Object_StopMoving(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID(ScriptObject, Object_StopMoving)
+}
+
+// void (ScriptObject *objj, int red, int green, int blue, int saturation, int luminance)
+RuntimeScriptValue Sc_Object_Tint(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT5(ScriptObject, Object_Tint)
+}
+
+// ScriptObject *(int xx, int yy)
+RuntimeScriptValue Sc_GetObjectAtLocation(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT2(ScriptObject, ccDynamicObject, GetObjectAtLocation)
+}
+
+// int (ScriptObject *objj)
+RuntimeScriptValue Sc_Object_GetAnimating(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetAnimating)
+}
+
+// int (ScriptObject *objj)
+RuntimeScriptValue Sc_Object_GetBaseline(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetBaseline)
+}
+
+// void (ScriptObject *objj, int basel)
+RuntimeScriptValue Sc_Object_SetBaseline(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetBaseline)
+}
+
+// int (ScriptObject *objj)
+RuntimeScriptValue Sc_Object_GetBlockingHeight(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetBlockingHeight)
+}
+
+// void (ScriptObject *objj, int bhit)
+RuntimeScriptValue Sc_Object_SetBlockingHeight(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetBlockingHeight)
+}
+
+// int (ScriptObject *objj)
+RuntimeScriptValue Sc_Object_GetBlockingWidth(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetBlockingWidth)
+}
+
+// void (ScriptObject *objj, int bwid)
+RuntimeScriptValue Sc_Object_SetBlockingWidth(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetBlockingWidth)
+}
+
+// int (ScriptObject *objj)
+RuntimeScriptValue Sc_Object_GetClickable(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetClickable)
+}
+
+// void (ScriptObject *objj, int clik)
+RuntimeScriptValue Sc_Object_SetClickable(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetClickable)
+}
+
+// int (ScriptObject *objj)
+RuntimeScriptValue Sc_Object_GetFrame(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetFrame)
+}
+
+// int (ScriptObject *objj)
+RuntimeScriptValue Sc_Object_GetGraphic(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetGraphic)
+}
+
+// void (ScriptObject *objj, int slott)
+RuntimeScriptValue Sc_Object_SetGraphic(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetGraphic)
+}
+
+// int (ScriptObject *objj)
+RuntimeScriptValue Sc_Object_GetID(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetID)
+}
+
+// int (ScriptObject *objj)
+RuntimeScriptValue Sc_Object_GetIgnoreScaling(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetIgnoreScaling)
+}
+
+// void (ScriptObject *objj, int newval)
+RuntimeScriptValue Sc_Object_SetIgnoreScaling(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetIgnoreScaling)
+}
+
+// int (ScriptObject *chaa)
+RuntimeScriptValue Sc_Object_GetIgnoreWalkbehinds(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetIgnoreWalkbehinds)
+}
+
+// void (ScriptObject *chaa, int clik)
+RuntimeScriptValue Sc_Object_SetIgnoreWalkbehinds(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetIgnoreWalkbehinds)
+}
+
+// int (ScriptObject *objj)
+RuntimeScriptValue Sc_Object_GetLoop(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetLoop)
+}
+
+// int (ScriptObject *objj)
+RuntimeScriptValue Sc_Object_GetMoving(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetMoving)
+}
+
+// const char* (ScriptObject *objj)
+RuntimeScriptValue Sc_Object_GetName_New(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(ScriptObject, const char, myScriptStringImpl, Object_GetName_New)
+}
+
+// int (ScriptObject *objj)
+RuntimeScriptValue Sc_Object_GetSolid(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetSolid)
+}
+
+// void (ScriptObject *objj, int solid)
+RuntimeScriptValue Sc_Object_SetSolid(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetSolid)
+}
+
+// int (ScriptObject *objj)
+RuntimeScriptValue Sc_Object_GetTransparency(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetTransparency)
+}
+
+// void (ScriptObject *objj, int trans)
+RuntimeScriptValue Sc_Object_SetTransparency(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetTransparency)
+}
+
+// int (ScriptObject *objj)
+RuntimeScriptValue Sc_Object_GetView(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetView)
+}
+
+// int (ScriptObject *objj)
+RuntimeScriptValue Sc_Object_GetVisible(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetVisible)
+}
+
+// void (ScriptObject *objj, int onoroff)
+RuntimeScriptValue Sc_Object_SetVisible(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetVisible)
+}
+
+// int (ScriptObject *objj)
+RuntimeScriptValue Sc_Object_GetX(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetX)
+}
+
+// void (ScriptObject *objj, int xx)
+RuntimeScriptValue Sc_Object_SetX(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetX)
+}
+
+// int (ScriptObject *objj)
+RuntimeScriptValue Sc_Object_GetY(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptObject, Object_GetY)
+}
+
+// void (ScriptObject *objj, int yy)
+RuntimeScriptValue Sc_Object_SetY(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetY)
+}
+
+
+
+void RegisterObjectAPI()
+{
+    ccAddExternalObjectFunction("Object::Animate^5",                Sc_Object_Animate);
+    ccAddExternalObjectFunction("Object::IsCollidingWithObject^1",  Sc_Object_IsCollidingWithObject);
+    ccAddExternalObjectFunction("Object::GetName^1",                Sc_Object_GetName);
+    ccAddExternalObjectFunction("Object::GetProperty^1",            Sc_Object_GetProperty);
+    ccAddExternalObjectFunction("Object::GetPropertyText^2",        Sc_Object_GetPropertyText);
+    ccAddExternalObjectFunction("Object::GetTextProperty^1",        Sc_Object_GetTextProperty);
+    ccAddExternalObjectFunction("Object::MergeIntoBackground^0",    Sc_Object_MergeIntoBackground);
+    ccAddExternalObjectFunction("Object::Move^5",                   Sc_Object_Move);
+    ccAddExternalObjectFunction("Object::RemoveTint^0",             Sc_Object_RemoveTint);
+    ccAddExternalObjectFunction("Object::RunInteraction^1",         Sc_Object_RunInteraction);
+    ccAddExternalObjectFunction("Object::SetPosition^2",            Sc_Object_SetPosition);
+    ccAddExternalObjectFunction("Object::SetView^3",                Sc_Object_SetView);
+    ccAddExternalObjectFunction("Object::StopAnimating^0",          Sc_Object_StopAnimating);
+    ccAddExternalObjectFunction("Object::StopMoving^0",             Sc_Object_StopMoving);
+    ccAddExternalObjectFunction("Object::Tint^5",                   Sc_Object_Tint);
+
+    // static
+    ccAddExternalStaticFunction("Object::GetAtScreenXY^2",          Sc_GetObjectAtLocation);
+
+    ccAddExternalObjectFunction("Object::get_Animating",            Sc_Object_GetAnimating);
+    ccAddExternalObjectFunction("Object::get_Baseline",             Sc_Object_GetBaseline);
+    ccAddExternalObjectFunction("Object::set_Baseline",             Sc_Object_SetBaseline);
+    ccAddExternalObjectFunction("Object::get_BlockingHeight",       Sc_Object_GetBlockingHeight);
+    ccAddExternalObjectFunction("Object::set_BlockingHeight",       Sc_Object_SetBlockingHeight);
+    ccAddExternalObjectFunction("Object::get_BlockingWidth",        Sc_Object_GetBlockingWidth);
+    ccAddExternalObjectFunction("Object::set_BlockingWidth",        Sc_Object_SetBlockingWidth);
+    ccAddExternalObjectFunction("Object::get_Clickable",            Sc_Object_GetClickable);
+    ccAddExternalObjectFunction("Object::set_Clickable",            Sc_Object_SetClickable);
+    ccAddExternalObjectFunction("Object::get_Frame",                Sc_Object_GetFrame);
+    ccAddExternalObjectFunction("Object::get_Graphic",              Sc_Object_GetGraphic);
+    ccAddExternalObjectFunction("Object::set_Graphic",              Sc_Object_SetGraphic);
+    ccAddExternalObjectFunction("Object::get_ID",                   Sc_Object_GetID);
+    ccAddExternalObjectFunction("Object::get_IgnoreScaling",        Sc_Object_GetIgnoreScaling);
+    ccAddExternalObjectFunction("Object::set_IgnoreScaling",        Sc_Object_SetIgnoreScaling);
+    ccAddExternalObjectFunction("Object::get_IgnoreWalkbehinds",    Sc_Object_GetIgnoreWalkbehinds);
+    ccAddExternalObjectFunction("Object::set_IgnoreWalkbehinds",    Sc_Object_SetIgnoreWalkbehinds);
+    ccAddExternalObjectFunction("Object::get_Loop",                 Sc_Object_GetLoop);
+    ccAddExternalObjectFunction("Object::get_Moving",               Sc_Object_GetMoving);
+    ccAddExternalObjectFunction("Object::get_Name",                 Sc_Object_GetName_New);
+    ccAddExternalObjectFunction("Object::get_Solid",                Sc_Object_GetSolid);
+    ccAddExternalObjectFunction("Object::set_Solid",                Sc_Object_SetSolid);
+    ccAddExternalObjectFunction("Object::get_Transparency",         Sc_Object_GetTransparency);
+    ccAddExternalObjectFunction("Object::set_Transparency",         Sc_Object_SetTransparency);
+    ccAddExternalObjectFunction("Object::get_View",                 Sc_Object_GetView);
+    ccAddExternalObjectFunction("Object::get_Visible",              Sc_Object_GetVisible);
+    ccAddExternalObjectFunction("Object::set_Visible",              Sc_Object_SetVisible);
+    ccAddExternalObjectFunction("Object::get_X",                    Sc_Object_GetX);
+    ccAddExternalObjectFunction("Object::set_X",                    Sc_Object_SetX);
+    ccAddExternalObjectFunction("Object::get_Y",                    Sc_Object_GetY);
+    ccAddExternalObjectFunction("Object::set_Y",                    Sc_Object_SetY);
+}

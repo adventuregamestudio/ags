@@ -25,6 +25,4 @@
 
 void register_audio_script_functions()
 {
-    ccAddExternalStaticFunction("System::get_AudioChannelCount", (void*)System_GetAudioChannelCount);
-    ccAddExternalStaticFunction("System::geti_AudioChannels", (void*)System_GetAudioChannels);
 }

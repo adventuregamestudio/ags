@@ -25,22 +25,5 @@
 
 void register_math_script_functions()
 {
-	ccAddExternalStaticFunction("Maths::ArcCos^1", (void*)Math_ArcCos);
-	ccAddExternalStaticFunction("Maths::ArcSin^1", (void*)Math_ArcSin);
-	ccAddExternalStaticFunction("Maths::ArcTan^1", (void*)Math_ArcTan);
-	ccAddExternalStaticFunction("Maths::ArcTan2^2", (void*)Math_ArcTan2);
-	ccAddExternalStaticFunction("Maths::Cos^1", (void*)Math_Cos);
-	ccAddExternalStaticFunction("Maths::Cosh^1", (void*)Math_Cosh);
-	ccAddExternalStaticFunction("Maths::DegreesToRadians^1", (void*)Math_DegreesToRadians);
-	ccAddExternalStaticFunction("Maths::Exp^1", (void*)Math_Exp);
-	ccAddExternalStaticFunction("Maths::Log^1", (void*)Math_Log);
-	ccAddExternalStaticFunction("Maths::Log10^1", (void*)Math_Log10);
-	ccAddExternalStaticFunction("Maths::RadiansToDegrees^1", (void*)Math_RadiansToDegrees);
-	ccAddExternalStaticFunction("Maths::RaiseToPower^2", (void*)Math_RaiseToPower);
-	ccAddExternalStaticFunction("Maths::Sin^1", (void*)Math_Sin);
-	ccAddExternalStaticFunction("Maths::Sinh^1", (void*)Math_Sinh);
-	ccAddExternalStaticFunction("Maths::Sqrt^1", (void*)Math_Sqrt);
-	ccAddExternalStaticFunction("Maths::Tan^1", (void*)Math_Tan);
-	ccAddExternalStaticFunction("Maths::Tanh^1", (void*)Math_Tanh);
-	ccAddExternalStaticFunction("Maths::get_Pi", (void*)Math_GetPi);
+	
 }

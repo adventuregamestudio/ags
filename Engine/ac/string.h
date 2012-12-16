@@ -38,7 +38,7 @@ const char* String_LowerCase(const char *thisString);
 const char* String_UpperCase(const char *thisString);
 const char* String_Format(const char *texx, ...);
 int String_GetChars(const char *texx, int index);
-int StringToInt(char*stino);
+int StringToInt(const char*stino);
 int StrContains (const char *s1, const char *s2);
 
 //=============================================================================

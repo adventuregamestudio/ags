@@ -174,3 +174,176 @@ void System_SetVolume(int newvol)
         }
     }
 }
+
+//=============================================================================
+//
+// Script API Functions
+//
+//=============================================================================
+
+#include "debug/out.h"
+#include "script/script_api.h"
+#include "script/script_runtime.h"
+#include "ac/dynobj/scriptstring.h"
+
+extern ScriptString myScriptStringImpl;
+
+// int ()
+RuntimeScriptValue Sc_System_GetAudioChannelCount(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(System_GetAudioChannelCount)
+}
+
+// ScriptAudioChannel* (int index)
+RuntimeScriptValue Sc_System_GetAudioChannels(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT(ScriptAudioChannel, ccDynamicAudio, System_GetAudioChannels)
+}
+
+// int ()
+RuntimeScriptValue Sc_System_GetCapsLock(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(System_GetCapsLock)
+}
+
+// int ()
+RuntimeScriptValue Sc_System_GetColorDepth(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(System_GetColorDepth)
+}
+
+// int ()
+RuntimeScriptValue Sc_System_GetGamma(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(System_GetGamma)
+}
+
+// void (int newValue)
+RuntimeScriptValue Sc_System_SetGamma(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(System_SetGamma)
+}
+
+// int () 
+RuntimeScriptValue Sc_System_GetHardwareAcceleration(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(System_GetHardwareAcceleration)
+}
+
+// int ()
+RuntimeScriptValue Sc_System_GetNumLock(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(System_GetNumLock)
+}
+
+// void (int newValue)
+RuntimeScriptValue Sc_System_SetNumLock(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(System_SetNumLock)
+}
+
+// int ()
+RuntimeScriptValue Sc_System_GetOS(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(System_GetOS)
+}
+
+// int ()
+RuntimeScriptValue Sc_System_GetScreenHeight(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(System_GetScreenHeight)
+}
+
+// int ()
+RuntimeScriptValue Sc_System_GetScreenWidth(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(System_GetScreenWidth)
+}
+
+// int ()
+RuntimeScriptValue Sc_System_GetScrollLock(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(System_GetScrollLock)
+}
+
+// int ()
+RuntimeScriptValue Sc_System_GetSupportsGammaControl(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(System_GetSupportsGammaControl)
+}
+
+// const char *()
+RuntimeScriptValue Sc_System_GetVersion(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ(const char, myScriptStringImpl, System_GetVersion)
+}
+
+// int ()
+RuntimeScriptValue Sc_System_GetViewportHeight(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(System_GetViewportHeight)
+}
+
+// int ()
+RuntimeScriptValue Sc_System_GetViewportWidth(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(System_GetViewportWidth)
+}
+
+// int ()
+RuntimeScriptValue Sc_System_GetVolume(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(System_GetVolume)
+}
+
+// void (int newvol)
+RuntimeScriptValue Sc_System_SetVolume(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(System_SetVolume)
+}
+
+// int ()
+RuntimeScriptValue Sc_System_GetVsync(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(System_GetVsync)
+}
+
+// void (int newValue)
+RuntimeScriptValue Sc_System_SetVsync(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(System_SetVsync)
+}
+
+// int ()
+RuntimeScriptValue Sc_System_GetWindowed(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(System_GetWindowed)
+}
+
+
+void RegisterSystemAPI()
+{
+    ccAddExternalStaticFunction("System::get_AudioChannelCount",    Sc_System_GetAudioChannelCount);
+    ccAddExternalStaticFunction("System::geti_AudioChannels",       Sc_System_GetAudioChannels);
+    ccAddExternalStaticFunction("System::get_CapsLock",             Sc_System_GetCapsLock);
+    ccAddExternalStaticFunction("System::get_ColorDepth",           Sc_System_GetColorDepth);
+    ccAddExternalStaticFunction("System::get_Gamma",                Sc_System_GetGamma);
+    ccAddExternalStaticFunction("System::set_Gamma",                Sc_System_SetGamma);
+    ccAddExternalStaticFunction("System::get_HardwareAcceleration", Sc_System_GetHardwareAcceleration);
+    ccAddExternalStaticFunction("System::get_NumLock",              Sc_System_GetNumLock);
+    ccAddExternalStaticFunction("System::set_NumLock",              Sc_System_SetNumLock);
+    ccAddExternalStaticFunction("System::get_OperatingSystem",      Sc_System_GetOS);
+    ccAddExternalStaticFunction("System::get_ScreenHeight",         Sc_System_GetScreenHeight);
+    ccAddExternalStaticFunction("System::get_ScreenWidth",          Sc_System_GetScreenWidth);
+    ccAddExternalStaticFunction("System::get_ScrollLock",           Sc_System_GetScrollLock);
+    ccAddExternalStaticFunction("System::get_SupportsGammaControl", Sc_System_GetSupportsGammaControl);
+    ccAddExternalStaticFunction("System::get_Version",              Sc_System_GetVersion);
+    ccAddExternalStaticFunction("SystemInfo::get_Version",          Sc_System_GetVersion);
+    ccAddExternalStaticFunction("System::get_ViewportHeight",       Sc_System_GetViewportHeight);
+    ccAddExternalStaticFunction("System::get_ViewportWidth",        Sc_System_GetViewportWidth);
+    ccAddExternalStaticFunction("System::get_Volume",               Sc_System_GetVolume);
+    ccAddExternalStaticFunction("System::set_Volume",               Sc_System_SetVolume);
+    ccAddExternalStaticFunction("System::get_VSync",                Sc_System_GetVsync);
+    ccAddExternalStaticFunction("System::set_VSync",                Sc_System_SetVsync);
+    ccAddExternalStaticFunction("System::get_Windowed",             Sc_System_GetWindowed);
+}

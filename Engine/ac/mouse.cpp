@@ -383,3 +383,146 @@ int find_next_enabled_cursor(int startwith) {
 
     return testing;
 }
+
+
+//=============================================================================
+//
+// Script API Functions
+//
+//=============================================================================
+
+#include "debug/out.h"
+#include "script/script_api.h"
+#include "script/script_runtime.h"
+#include "ac/global_game.h"
+
+// void  (int curs, int newslot)
+RuntimeScriptValue Sc_ChangeCursorGraphic(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT2(ChangeCursorGraphic)
+}
+
+// void  (int curs, int x, int y)
+RuntimeScriptValue Sc_ChangeCursorHotspot(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT3(ChangeCursorHotspot)
+}
+
+// void (int curs, int newview)
+RuntimeScriptValue Sc_Mouse_ChangeModeView(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT2(Mouse_ChangeModeView)
+}
+
+// void (int modd)
+RuntimeScriptValue Sc_disable_cursor_mode(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(disable_cursor_mode)
+}
+
+// void (int modd)
+RuntimeScriptValue Sc_enable_cursor_mode(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(enable_cursor_mode)
+}
+
+// int (int curs)
+RuntimeScriptValue Sc_Mouse_GetModeGraphic(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(Mouse_GetModeGraphic)
+}
+
+// int (int which)
+RuntimeScriptValue Sc_IsButtonDown(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(IsButtonDown)
+}
+
+// void ();
+RuntimeScriptValue Sc_SaveCursorForLocationChange(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID(SaveCursorForLocationChange)
+}
+
+// void  ()
+RuntimeScriptValue Sc_SetNextCursor(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID(SetNextCursor)
+}
+
+// void  (int x1, int y1, int x2, int y2)
+RuntimeScriptValue Sc_SetMouseBounds(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT4(SetMouseBounds)
+}
+
+// void  (int newx, int newy)
+RuntimeScriptValue Sc_SetMousePosition(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT2(SetMousePosition)
+}
+
+// void ()
+RuntimeScriptValue Sc_RefreshMouse(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID(RefreshMouse)
+}
+
+// void ()
+RuntimeScriptValue Sc_set_default_cursor(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID(set_default_cursor)
+}
+
+// void (int newcurs)
+RuntimeScriptValue Sc_set_mouse_cursor(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(set_mouse_cursor)
+}
+
+// int ()
+RuntimeScriptValue Sc_GetCursorMode(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(GetCursorMode)
+}
+
+// void (int newmode)
+RuntimeScriptValue Sc_set_cursor_mode(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(set_cursor_mode)
+}
+
+// int ()
+RuntimeScriptValue Sc_Mouse_GetVisible(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Mouse_GetVisible)
+}
+
+// void (int isOn)
+RuntimeScriptValue Sc_Mouse_SetVisible(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Mouse_SetVisible)
+}
+
+
+void RegisterMouseAPI()
+{
+    ccAddExternalStaticFunction("Mouse::ChangeModeGraphic^2",       Sc_ChangeCursorGraphic);
+    ccAddExternalStaticFunction("Mouse::ChangeModeHotspot^3",       Sc_ChangeCursorHotspot);
+    ccAddExternalStaticFunction("Mouse::ChangeModeView^2",          Sc_Mouse_ChangeModeView);
+    ccAddExternalStaticFunction("Mouse::DisableMode^1",             Sc_disable_cursor_mode);
+    ccAddExternalStaticFunction("Mouse::EnableMode^1",              Sc_enable_cursor_mode);
+    ccAddExternalStaticFunction("Mouse::GetModeGraphic^1",          Sc_Mouse_GetModeGraphic);
+    ccAddExternalStaticFunction("Mouse::IsButtonDown^1",            Sc_IsButtonDown);
+    ccAddExternalStaticFunction("Mouse::SaveCursorUntilItLeaves^0", Sc_SaveCursorForLocationChange);
+    ccAddExternalStaticFunction("Mouse::SelectNextMode^0",          Sc_SetNextCursor);
+    ccAddExternalStaticFunction("Mouse::SetBounds^4",               Sc_SetMouseBounds);
+    ccAddExternalStaticFunction("Mouse::SetPosition^2",             Sc_SetMousePosition);
+    ccAddExternalStaticFunction("Mouse::Update^0",                  Sc_RefreshMouse);
+    ccAddExternalStaticFunction("Mouse::UseDefaultGraphic^0",       Sc_set_default_cursor);
+    ccAddExternalStaticFunction("Mouse::UseModeGraphic^1",          Sc_set_mouse_cursor);
+    ccAddExternalStaticFunction("Mouse::get_Mode",                  Sc_GetCursorMode);
+    ccAddExternalStaticFunction("Mouse::set_Mode",                  Sc_set_cursor_mode);
+    ccAddExternalStaticFunction("Mouse::get_Visible",               Sc_Mouse_GetVisible);
+    ccAddExternalStaticFunction("Mouse::set_Visible",               Sc_Mouse_SetVisible);
+}

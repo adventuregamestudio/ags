@@ -1086,3 +1086,105 @@ void on_background_frame_change () {
     if (game.color_depth == 1)
         bg_just_changed = 1;
 }
+
+//=============================================================================
+//
+// Script API Functions
+//
+//=============================================================================
+
+#include "debug/out.h"
+#include "script/script_api.h"
+#include "script/script_runtime.h"
+#include "ac/dynobj/scriptstring.h"
+
+extern ScriptString myScriptStringImpl;
+
+// ScriptDrawingSurface* (int backgroundNumber)
+RuntimeScriptValue Sc_Room_GetDrawingSurfaceForBackground(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO_PINT(ScriptDrawingSurface, Room_GetDrawingSurfaceForBackground)
+}
+
+// const char* (const char *property)
+RuntimeScriptValue Sc_Room_GetTextProperty(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_POBJ(const char, myScriptStringImpl, Room_GetTextProperty, const char)
+}
+
+// int ()
+RuntimeScriptValue Sc_Room_GetBottomEdge(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Room_GetBottomEdge)
+}
+
+// int ()
+RuntimeScriptValue Sc_Room_GetColorDepth(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Room_GetColorDepth)
+}
+
+// int ()
+RuntimeScriptValue Sc_Room_GetHeight(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Room_GetHeight)
+}
+
+// int ()
+RuntimeScriptValue Sc_Room_GetLeftEdge(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Room_GetLeftEdge)
+}
+
+// const char* (int index)
+RuntimeScriptValue Sc_Room_GetMessages(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT(const char, myScriptStringImpl, Room_GetMessages)
+}
+
+// int ()
+RuntimeScriptValue Sc_Room_GetMusicOnLoad(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Room_GetMusicOnLoad)
+}
+
+// int ()
+RuntimeScriptValue Sc_Room_GetObjectCount(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Room_GetObjectCount)
+}
+
+// int ()
+RuntimeScriptValue Sc_Room_GetRightEdge(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Room_GetRightEdge)
+}
+
+// int ()
+RuntimeScriptValue Sc_Room_GetTopEdge(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Room_GetTopEdge)
+}
+
+// int ()
+RuntimeScriptValue Sc_Room_GetWidth(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Room_GetWidth)
+}
+
+
+void RegisterRoomAPI()
+{
+    ccAddExternalStaticFunction("Room::GetDrawingSurfaceForBackground^1",   Sc_Room_GetDrawingSurfaceForBackground);
+    ccAddExternalStaticFunction("Room::GetTextProperty^1",                  Sc_Room_GetTextProperty);
+    ccAddExternalStaticFunction("Room::get_BottomEdge",                     Sc_Room_GetBottomEdge);
+    ccAddExternalStaticFunction("Room::get_ColorDepth",                     Sc_Room_GetColorDepth);
+    ccAddExternalStaticFunction("Room::get_Height",                         Sc_Room_GetHeight);
+    ccAddExternalStaticFunction("Room::get_LeftEdge",                       Sc_Room_GetLeftEdge);
+    ccAddExternalStaticFunction("Room::geti_Messages",                      Sc_Room_GetMessages);
+    ccAddExternalStaticFunction("Room::get_MusicOnLoad",                    Sc_Room_GetMusicOnLoad);
+    ccAddExternalStaticFunction("Room::get_ObjectCount",                    Sc_Room_GetObjectCount);
+    ccAddExternalStaticFunction("Room::get_RightEdge",                      Sc_Room_GetRightEdge);
+    ccAddExternalStaticFunction("Room::get_TopEdge",                        Sc_Room_GetTopEdge);
+    ccAddExternalStaticFunction("Room::get_Width",                          Sc_Room_GetWidth);
+}

@@ -273,3 +273,83 @@ void get_overlay_position(int overlayidx, int *x, int *y) {
     *x = tdxp;
     *y = tdyp;
 }
+
+//=============================================================================
+//
+// Script API Functions
+//
+//=============================================================================
+
+#include "debug/out.h"
+#include "script/script_api.h"
+#include "script/script_runtime.h"
+
+// ScriptOverlay* (int x, int y, int slot, int transparent)
+RuntimeScriptValue Sc_Overlay_CreateGraphical(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO_PINT4(ScriptOverlay, Overlay_CreateGraphical)
+}
+
+// ScriptOverlay* (int x, int y, int width, int font, int colour, const char* text, ...)
+RuntimeScriptValue Sc_Overlay_CreateTextual(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    // TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    return RuntimeScriptValue();
+}
+
+// void Overlay_SetText(ScriptOverlay *scover, int wii, int fontid, int clr, char*texx, ...)
+RuntimeScriptValue Sc_Overlay_SetText(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    // TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    return RuntimeScriptValue();
+}
+
+// void (ScriptOverlay *sco)
+RuntimeScriptValue Sc_Overlay_Remove(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID(ScriptOverlay, Overlay_Remove)
+}
+
+// int (ScriptOverlay *scover)
+RuntimeScriptValue Sc_Overlay_GetValid(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptOverlay, Overlay_GetValid)
+}
+
+// int (ScriptOverlay *scover)
+RuntimeScriptValue Sc_Overlay_GetX(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptOverlay, Overlay_GetX)
+}
+
+// void (ScriptOverlay *scover, int newx)
+RuntimeScriptValue Sc_Overlay_SetX(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetX)
+}
+
+// int (ScriptOverlay *scover)
+RuntimeScriptValue Sc_Overlay_GetY(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptOverlay, Overlay_GetY)
+}
+
+// void (ScriptOverlay *scover, int newy)
+RuntimeScriptValue Sc_Overlay_SetY(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetY)
+}
+
+
+void RegisterOverlayAPI()
+{
+    ccAddExternalStaticFunction("Overlay::CreateGraphical^4",   Sc_Overlay_CreateGraphical);
+    ccAddExternalStaticFunction("Overlay::CreateTextual^106",   Sc_Overlay_CreateTextual);
+    ccAddExternalObjectFunction("Overlay::SetText^104",         Sc_Overlay_SetText);
+    ccAddExternalObjectFunction("Overlay::Remove^0",            Sc_Overlay_Remove);
+    ccAddExternalObjectFunction("Overlay::get_Valid",           Sc_Overlay_GetValid);
+    ccAddExternalObjectFunction("Overlay::get_X",               Sc_Overlay_GetX);
+    ccAddExternalObjectFunction("Overlay::set_X",               Sc_Overlay_SetX);
+    ccAddExternalObjectFunction("Overlay::get_Y",               Sc_Overlay_GetY);
+    ccAddExternalObjectFunction("Overlay::set_Y",               Sc_Overlay_SetY);
+}

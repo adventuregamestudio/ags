@@ -200,7 +200,7 @@ int String_GetChars(const char *texx, int index) {
     return texx[index];
 }
 
-int StringToInt(char*stino) {
+int StringToInt(const char*stino) {
     return atoi(stino);
 }
 
@@ -478,4 +478,155 @@ void my_sprintf(char *buffer, const char *fmt, va_list ap) {
         curptr = endptr;
     }
     buffer[bufidx] = 0;
+}
+
+//=============================================================================
+//
+// Script API Functions
+//
+//=============================================================================
+
+#include "debug/out.h"
+#include "script/script_api.h"
+#include "script/script_runtime.h"
+#include "ac/math.h"
+
+// int (const char *thisString)
+RuntimeScriptValue Sc_String_IsNullOrEmpty(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(const char, String_IsNullOrEmpty)
+}
+
+// const char* (const char *thisString, const char *extrabit)
+RuntimeScriptValue Sc_String_Append(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ_POBJ(const char, const char, myScriptStringImpl, String_Append, const char)
+}
+
+// const char* (const char *thisString, char extraOne)
+RuntimeScriptValue Sc_String_AppendChar(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ_PINT(const char, const char, myScriptStringImpl, String_AppendChar)
+}
+
+// int (const char *thisString, const char *otherString, bool caseSensitive)
+RuntimeScriptValue Sc_String_CompareTo(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT_POBJ_PBOOL(const char, String_CompareTo, const char)
+}
+
+// int  (const char *s1, const char *s2)
+RuntimeScriptValue Sc_StrContains(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT_POBJ(const char, StrContains, const char)
+}
+
+// const char* (const char *srcString)
+RuntimeScriptValue Sc_String_Copy(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(const char, const char, myScriptStringImpl, String_Copy)
+}
+
+// int (const char *thisString, const char *checkForString, bool caseSensitive)
+RuntimeScriptValue Sc_String_EndsWith(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT_POBJ_PBOOL(const char, String_EndsWith, const char)
+}
+
+// const char* String_Format(const char *texx, ...)
+RuntimeScriptValue Sc_String_Format(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    // TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    return RuntimeScriptValue();
+}
+
+// const char* (const char *thisString)
+RuntimeScriptValue Sc_String_LowerCase(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(const char, const char, myScriptStringImpl, String_LowerCase)
+}
+
+// const char* (const char *thisString, const char *lookForText, const char *replaceWithText, bool caseSensitive)
+RuntimeScriptValue Sc_String_Replace(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ_POBJ2_PBOOL(const char, const char, myScriptStringImpl, String_Replace, const char, const char)
+}
+
+// const char* (const char *thisString, int index, char newChar)
+RuntimeScriptValue Sc_String_ReplaceCharAt(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ_PINT2(const char, const char, myScriptStringImpl, String_ReplaceCharAt)
+}
+
+// int (const char *thisString, const char *checkForString, bool caseSensitive)
+RuntimeScriptValue Sc_String_StartsWith(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT_POBJ_PBOOL(const char, String_StartsWith, const char)
+}
+
+// const char* (const char *thisString, int index, int length)
+RuntimeScriptValue Sc_String_Substring(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ_PINT2(const char, const char, myScriptStringImpl, String_Substring)
+}
+
+// const char* (const char *thisString, int length)
+RuntimeScriptValue Sc_String_Truncate(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ_PINT(const char, const char, myScriptStringImpl, String_Truncate)
+}
+
+// const char* (const char *thisString)
+RuntimeScriptValue Sc_String_UpperCase(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(const char, const char, myScriptStringImpl, String_UpperCase)
+}
+
+// FLOAT_RETURN_TYPE (const char *theString);
+RuntimeScriptValue Sc_StringToFloat(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(const char, StringToFloat)
+}
+
+// int (char*stino)
+RuntimeScriptValue Sc_StringToInt(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(const char, StringToInt)
+}
+
+// int (const char *texx, int index)
+RuntimeScriptValue Sc_String_GetChars(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT_PINT(const char, String_GetChars)
+}
+
+RuntimeScriptValue Sc_strlen(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    ASSERT_SELF(strlen)
+    return RuntimeScriptValue().SetInt32(strlen((const char*)self));
+}
+
+
+void RegisterStringAPI()
+{
+    ccAddExternalObjectFunction("String::IsNullOrEmpty^1",  Sc_String_IsNullOrEmpty);
+    ccAddExternalObjectFunction("String::Append^1",         Sc_String_Append);
+    ccAddExternalObjectFunction("String::AppendChar^1",     Sc_String_AppendChar);
+    ccAddExternalObjectFunction("String::CompareTo^2",      Sc_String_CompareTo);
+    ccAddExternalObjectFunction("String::Contains^1",       Sc_StrContains);
+    ccAddExternalObjectFunction("String::Copy^0",           Sc_String_Copy);
+    ccAddExternalObjectFunction("String::EndsWith^2",       Sc_String_EndsWith);
+    ccAddExternalObjectFunction("String::Format^101",       Sc_String_Format);
+    ccAddExternalObjectFunction("String::IndexOf^1",        Sc_StrContains);
+    ccAddExternalObjectFunction("String::LowerCase^0",      Sc_String_LowerCase);
+    ccAddExternalObjectFunction("String::Replace^3",        Sc_String_Replace);
+    ccAddExternalObjectFunction("String::ReplaceCharAt^2",  Sc_String_ReplaceCharAt);
+    ccAddExternalObjectFunction("String::StartsWith^2",     Sc_String_StartsWith);
+    ccAddExternalObjectFunction("String::Substring^2",      Sc_String_Substring);
+    ccAddExternalObjectFunction("String::Truncate^1",       Sc_String_Truncate);
+    ccAddExternalObjectFunction("String::UpperCase^0",      Sc_String_UpperCase);
+    ccAddExternalObjectFunction("String::get_AsFloat",      Sc_StringToFloat);
+    ccAddExternalObjectFunction("String::get_AsInt",        Sc_StringToInt);
+    ccAddExternalObjectFunction("String::geti_Chars",       Sc_String_GetChars);
+    ccAddExternalObjectFunction("String::get_Length",       Sc_strlen);
 }

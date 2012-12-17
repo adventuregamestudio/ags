@@ -723,8 +723,11 @@ ScriptOverlay* Character_SayBackground(CharacterInfo *chaa, const char *texx) {
 
 void Character_SetAsPlayer(CharacterInfo *chaa) {
 
-    // set to same character, so ignore
-    if (game.playercharacter == chaa->index_id)
+    // Set to same character, so ignore.
+    // But only on versions > 2.61. The relevant entry in the 2.62 changelog is:
+    //  - Fixed SetPlayerCharacter to do nothing at all if you pass the current
+    //    player character to it (previously it was resetting the inventory layout)
+    if ((loaded_game_file_version > kGameVersion_261) && (game.playercharacter == chaa->index_id))
         return;
 
     setup_player_character(chaa->index_id);

@@ -20,11 +20,13 @@
 #define __AGS_EE_SCRIPT__SCRIPTAPI_H
 
 #include "core/types.h"
+#include "ac/statobj/agsstaticobject.h"
 
 struct RuntimeScriptValue;
 
 // TODO: replace void* with base object class when possible; also put array class for parameters
-typedef RuntimeScriptValue ScriptAPIFunction(void *self, RuntimeScriptValue *params, int32_t param_count);
+typedef RuntimeScriptValue ScriptAPIFunction(RuntimeScriptValue *params, int32_t param_count);
+typedef RuntimeScriptValue ScriptAPIObjectFunction(void *self, RuntimeScriptValue *params, int32_t param_count);
 
 // Helper macros for script functions
 #define ASSERT_SELF(METHOD) \
@@ -74,7 +76,12 @@ typedef RuntimeScriptValue ScriptAPIFunction(void *self, RuntimeScriptValue *par
 
 #define API_SCALL_VOID_PINT5(FUNCTION) \
     ASSERT_PARAM_COUNT(FUNCTION, 5) \
-    FUNCTION(params[0].GetInt32(), params[1].GetInt32(), params[2].GetInt32(), params[3].GetInt32(), , params[4].GetInt32()); \
+    FUNCTION(params[0].GetInt32(), params[1].GetInt32(), params[2].GetInt32(), params[3].GetInt32(), params[4].GetInt32()); \
+    return RuntimeScriptValue();
+
+#define API_SCALL_VOID_PINT6(FUNCTION) \
+    ASSERT_PARAM_COUNT(FUNCTION, 6) \
+    FUNCTION(params[0].GetInt32(), params[1].GetInt32(), params[2].GetInt32(), params[3].GetInt32(), params[4].GetInt32(), params[5].GetInt32()); \
     return RuntimeScriptValue();
 
 #define API_SCALL_VOID_PINT_POBJ(FUNCTION, P1CLASS) \
@@ -82,9 +89,44 @@ typedef RuntimeScriptValue ScriptAPIFunction(void *self, RuntimeScriptValue *par
     FUNCTION(params[0].GetInt32(), (P1CLASS*)params[1].GetPtr()); \
     return RuntimeScriptValue();
 
+#define API_SCALL_VOID_PINT_POBJ2(FUNCTION, P1CLASS, P2CLASS) \
+    ASSERT_PARAM_COUNT(FUNCTION, 3) \
+    FUNCTION(params[0].GetInt32(), (P1CLASS*)params[1].GetPtr(), (P2CLASS*)params[2].GetPtr()); \
+    return RuntimeScriptValue();
+
+#define API_SCALL_VOID_PINT2_POBJ(FUNCTION, P1CLASS) \
+    ASSERT_PARAM_COUNT(FUNCTION, 3) \
+    FUNCTION(params[0].GetInt32(), params[1].GetInt32(), (P1CLASS*)params[2].GetPtr()); \
+    return RuntimeScriptValue();
+
+#define API_SCALL_VOID_PINT3_POBJ_PINT(FUNCTION, P1CLASS) \
+    ASSERT_PARAM_COUNT(FUNCTION, 5) \
+    FUNCTION(params[0].GetInt32(), params[1].GetInt32(), params[2].GetInt32(), (P1CLASS*)params[3].GetPtr(), params[4].GetInt32()); \
+    return RuntimeScriptValue();
+
+#define API_SCALL_VOID_PINT4_POBJ(FUNCTION, P1CLASS) \
+    ASSERT_PARAM_COUNT(FUNCTION, 5) \
+    FUNCTION(params[0].GetInt32(), params[1].GetInt32(), params[2].GetInt32(), params[3].GetInt32(), (P1CLASS*)params[4].GetPtr()); \
+    return RuntimeScriptValue();
+
 #define API_SCALL_VOID_POBJ(FUNCTION, P1CLASS) \
     ASSERT_PARAM_COUNT(FUNCTION, 1) \
     FUNCTION((P1CLASS*)params[0].GetPtr()); \
+    return RuntimeScriptValue();
+
+#define API_SCALL_VOID_POBJ_PINT(FUNCTION, P1CLASS) \
+    ASSERT_PARAM_COUNT(FUNCTION, 2) \
+    FUNCTION((P1CLASS*)params[0].GetPtr(), params[1].GetInt32()); \
+    return RuntimeScriptValue();
+
+#define API_SCALL_VOID_POBJ_PINT2(FUNCTION, P1CLASS) \
+    ASSERT_PARAM_COUNT(FUNCTION, 3) \
+    FUNCTION((P1CLASS*)params[0].GetPtr(), params[1].GetInt32(), params[2].GetInt32()); \
+    return RuntimeScriptValue();
+
+#define API_SCALL_VOID_POBJ2(FUNCTION, P1CLASS, P2CLASS) \
+    ASSERT_PARAM_COUNT(FUNCTION, 2) \
+    FUNCTION((P1CLASS*)params[0].GetPtr(), (P2CLASS*)params[1].GetPtr()); \
     return RuntimeScriptValue();
 
 #define API_SCALL_INT(FUNCTION) \
@@ -102,12 +144,35 @@ typedef RuntimeScriptValue ScriptAPIFunction(void *self, RuntimeScriptValue *par
     ASSERT_PARAM_COUNT(FUNCTION, 3) \
     return RuntimeScriptValue().SetInt32(FUNCTION(params[0].GetInt32(), params[1].GetInt32(), params[2].GetInt32()));
 
+#define API_SCALL_INT_PINT4(FUNCTION) \
+    ASSERT_PARAM_COUNT(FUNCTION, 4) \
+    return RuntimeScriptValue().SetInt32(FUNCTION(params[0].GetInt32(), params[1].GetInt32(), params[2].GetInt32(), params[3].GetInt32()));
+
+#define API_SCALL_INT_PINT5(FUNCTION) \
+    ASSERT_PARAM_COUNT(FUNCTION, 5) \
+    return RuntimeScriptValue().SetInt32(FUNCTION(params[0].GetInt32(), params[1].GetInt32(), params[2].GetInt32(), params[3].GetInt32(), params[4].GetInt32()));
+
 #define API_SCALL_INT_POBJ(FUNCTION, P1CLASS) \
     ASSERT_PARAM_COUNT(FUNCTION, 1) \
     return RuntimeScriptValue().SetInt32(FUNCTION((P1CLASS*)params[0].GetPtr()));
 
+#define API_SCALL_INT_POBJ_PINT(FUNCTION, P1CLASS) \
+    ASSERT_PARAM_COUNT(FUNCTION, 2) \
+    return RuntimeScriptValue().SetInt32(FUNCTION((P1CLASS*)params[0].GetPtr(), params[1].GetInt32()));
+
+#define API_SCALL_INT_POBJ_PINT2(FUNCTION, P1CLASS) \
+    ASSERT_PARAM_COUNT(FUNCTION, 3) \
+    return RuntimeScriptValue().SetInt32(FUNCTION((P1CLASS*)params[0].GetPtr(), params[1].GetInt32(), params[2].GetInt32()));
+
+#define API_SCALL_INT_POBJ2(FUNCTION, P1CLASS, P2CLASS) \
+    ASSERT_PARAM_COUNT(FUNCTION, 2) \
+    return RuntimeScriptValue().SetInt32(FUNCTION((P1CLASS*)params[0].GetPtr(), (P2CLASS*)params[1].GetPtr()));
+
+#define API_SCALL_INT_PINT_POBJ(FUNCTION, P1CLASS) \
+    ASSERT_PARAM_COUNT(FUNCTION, 2) \
+    return RuntimeScriptValue().SetInt32(FUNCTION(params[0].GetInt32(), (P1CLASS*)params[1].GetPtr()));
+
 #define API_SCALL_OBJ(RET_CLASS, RET_MGR, FUNCTION) \
-    ASSERT_SELF(FUNCTION) \
     return RuntimeScriptValue().SetDynamicObject((void*)(RET_CLASS*)FUNCTION(), &RET_MGR);
 
 #define API_SCALL_OBJ_PINT(RET_CLASS, RET_MGR, FUNCTION) \
@@ -118,12 +183,15 @@ typedef RuntimeScriptValue ScriptAPIFunction(void *self, RuntimeScriptValue *par
     ASSERT_PARAM_COUNT(FUNCTION, 2) \
     return RuntimeScriptValue().SetDynamicObject((void*)(RET_CLASS*)FUNCTION(params[0].GetInt32(), params[1].GetInt32()), &RET_MGR);
 
+#define API_SCALL_OBJ_PINT3_POBJ(RET_CLASS, RET_MGR, FUNCTION, P1CLASS) \
+    ASSERT_PARAM_COUNT(FUNCTION, 4) \
+    return RuntimeScriptValue().SetDynamicObject((void*)(RET_CLASS*)FUNCTION(params[0].GetInt32(), params[1].GetInt32(), params[2].GetInt32(), (P1CLASS*)params[3].GetPtr()), &RET_MGR);
+
 #define API_SCALL_OBJ_POBJ(RET_CLASS, RET_MGR, FUNCTION, P1CLASS) \
     ASSERT_PARAM_COUNT(FUNCTION, 1) \
     return RuntimeScriptValue().SetDynamicObject((void*)(RET_CLASS*)FUNCTION((P1CLASS*)params[0].GetPtr()), &RET_MGR);
 
 #define API_SCALL_OBJAUTO(RET_CLASS, FUNCTION) \
-    ASSERT_SELF(FUNCTION) \
     RET_CLASS* ret_obj = FUNCTION(); \
     return RuntimeScriptValue().SetDynamicObject(ret_obj, ret_obj);
 
@@ -166,6 +234,12 @@ typedef RuntimeScriptValue ScriptAPIFunction(void *self, RuntimeScriptValue *par
     ASSERT_PARAM_COUNT(FUNCTION, 5) \
     RET_CLASS* ret_obj = FUNCTION((P1CLASS*)params[0].GetPtr(), params[1].GetInt32(), params[2].GetInt32(), params[3].GetInt32(), params[4].GetInt32()); \
     return RuntimeScriptValue().SetDynamicObject(ret_obj, ret_obj);
+
+
+#define API_SCALL_STOBJ_POBJ2(RET_CLASS, FUNCTION, P1CLASS, P2CLASS) \
+    ASSERT_PARAM_COUNT(FUNCTION, 2) \
+    RET_CLASS* ret_obj = FUNCTION((P1CLASS*)params[0].GetPtr(), (P2CLASS*)params[1].GetPtr()); \
+    return RuntimeScriptValue().SetStaticObject(ret_obj, &GlobalStaticManager);
 
 //-----------------------------------------------------------------------------
 // Calls to object functions

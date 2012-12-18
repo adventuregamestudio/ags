@@ -232,7 +232,7 @@ void GetGlobalString (int index, char *strval) {
     strcpy (strval, play.globalstrings[index]);
 }
 
-int RunAGSGame (char *newgame, unsigned int mode, int data) {
+int RunAGSGame (const char *newgame, unsigned int mode, int data) {
 
     can_run_delayed_command();
 
@@ -725,7 +725,7 @@ int IsKeyPressed (int keycode) {
 #endif
 }
 
-int SaveScreenShot(char*namm) {
+int SaveScreenShot(const char*namm) {
     char fileName[MAX_PATH];
 
     if (strchr(namm,'.') == NULL)

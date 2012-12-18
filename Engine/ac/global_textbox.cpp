@@ -46,7 +46,7 @@ void GetTextBoxText(int guin, int objn, char*txbuf) {
     TextBox_GetText(guisl, txbuf);
 }
 
-void SetTextBoxText(int guin, int objn, char*txbuf) {
+void SetTextBoxText(int guin, int objn, const char* txbuf) {
     if ((guin<0) | (guin>=game.numgui)) quit("!SetTextBoxText: invalid GUI number");
     if ((objn<0) | (objn>=guis[guin].numobjs)) quit("!SetTextBoxText: invalid object number");
     if (guis[guin].get_control_type(objn)!=GOBJ_TEXTBOX)

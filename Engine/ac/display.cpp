@@ -365,7 +365,7 @@ void _display_at(int xx,int yy,int wii,char*todis,int blocking,int asspch, int i
 
 int   source_text_length = -1;
 
-int GetTextDisplayTime (char *text, int canberel) {
+int GetTextDisplayTime (const char *text, int canberel) {
     int uselen = strlen(text);
 
     int fpstimer = frames_per_second;

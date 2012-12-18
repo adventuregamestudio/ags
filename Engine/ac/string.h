@@ -48,7 +48,7 @@ const char* CreateNewScriptStringAsRetVal(const char *fromText, bool reAllocate 
 void split_lines_rightleft (char *todis, int wii, int fonnt);
 char *reverse_text(char *text);
 void wouttext_reverseifnecessary(int x, int y, int font, char *text);
-void break_up_text_into_lines(int wii,int fonnt,char*todis);
+void break_up_text_into_lines(int wii,int fonnt, const char*todis);
 void check_strlen(char*ptt);
 void my_strncpy(char *dest, const char *src, int len);
 void my_sprintf(char *buffer, const char *fmt, va_list ap);

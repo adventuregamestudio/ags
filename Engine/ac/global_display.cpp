@@ -49,7 +49,7 @@ void Display(char*texx, ...) {
     DisplayAtY (-1, displbuf);
 }
 
-void DisplayTopBar(int ypos, int ttexcol, int backcol, char *title, char*texx, ...) {
+void DisplayTopBar(int ypos, int ttexcol, int backcol, const char *title, const char*texx, ...) {
 
     strcpy(topBar.text, get_translation(title));
 
@@ -83,7 +83,7 @@ void DisplayTopBar(int ypos, int ttexcol, int backcol, char *title, char*texx, .
 }
 
 // Display a room/global message in the bar
-void DisplayMessageBar(int ypos, int ttexcol, int backcol, char *title, int msgnum) {
+void DisplayMessageBar(int ypos, int ttexcol, int backcol, const char *title, int msgnum) {
     char msgbufr[3001];
     get_message_text(msgnum, msgbufr);
     DisplayTopBar(ypos, ttexcol, backcol, title, "%s", msgbufr);
@@ -154,7 +154,7 @@ void DisplayAt(int xxp,int yyp,int widd,char*texx, ...) {
     _display_at(xxp,yyp,widd,displbuf,1,0, 0, 0, false);
 }
 
-void DisplayAtY (int ypos, char *texx) {
+void DisplayAtY (int ypos, const char *texx) {
     if ((ypos < -1) || (ypos >= GetMaxScreenHeight()))
         quitprintf("!DisplayAtY: invalid Y co-ordinate supplied (used: %d; valid: 0..%d)", ypos, GetMaxScreenHeight());
 

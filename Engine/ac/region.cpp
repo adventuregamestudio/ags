@@ -125,7 +125,7 @@ void generate_light_table() {
 #include "script/script_runtime.h"
 
 // ScriptRegion *(int xx, int yy)
-RuntimeScriptValue Sc_GetRegionAtLocation(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_GetRegionAtLocation(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJ_PINT2(ScriptRegion, ccDynamicRegion, GetRegionAtLocation)
 }

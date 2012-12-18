@@ -696,49 +696,49 @@ RuntimeScriptValue Sc_DynamicSprite_GetWidth(void *self, RuntimeScriptValue *par
 }
 
 // ScriptDynamicSprite* (int sgslot, int width, int height)
-RuntimeScriptValue Sc_DynamicSprite_Create(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DynamicSprite_Create(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJAUTO_PINT3(ScriptDynamicSprite, DynamicSprite_CreateFromSaveGame)
 }
 
 // ScriptDynamicSprite* (int frame, int x1, int y1, int width, int height)
-RuntimeScriptValue Sc_DynamicSprite_CreateFromBackground(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DynamicSprite_CreateFromBackground(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJAUTO_PINT5(ScriptDynamicSprite, DynamicSprite_CreateFromBackground)
 }
 
 // ScriptDynamicSprite* (ScriptDrawingSurface *sds, int x, int y, int width, int height)
-RuntimeScriptValue Sc_DynamicSprite_CreateFromDrawingSurface(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DynamicSprite_CreateFromDrawingSurface(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJAUTO_POBJ_PINT4(ScriptDynamicSprite, DynamicSprite_CreateFromDrawingSurface, ScriptDrawingSurface)
 }
 
 // ScriptDynamicSprite* (int slot)
-RuntimeScriptValue Sc_DynamicSprite_CreateFromExistingSprite_Old(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DynamicSprite_CreateFromExistingSprite_Old(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJAUTO_PINT(ScriptDynamicSprite, DynamicSprite_CreateFromExistingSprite_Old)
 }
 
 // ScriptDynamicSprite* (int slot, int preserveAlphaChannel)
-RuntimeScriptValue Sc_DynamicSprite_CreateFromExistingSprite(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DynamicSprite_CreateFromExistingSprite(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJAUTO_PINT2(ScriptDynamicSprite, DynamicSprite_CreateFromExistingSprite)
 }
 
 // ScriptDynamicSprite* (const char *filename)
-RuntimeScriptValue Sc_DynamicSprite_CreateFromFile(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DynamicSprite_CreateFromFile(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJAUTO_POBJ(ScriptDynamicSprite, DynamicSprite_CreateFromFile, const char)
 }
 
 // ScriptDynamicSprite* (int sgslot, int width, int height)
-RuntimeScriptValue Sc_DynamicSprite_CreateFromSaveGame(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DynamicSprite_CreateFromSaveGame(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJAUTO_PINT3(ScriptDynamicSprite, DynamicSprite_CreateFromSaveGame)
 }
 
 // ScriptDynamicSprite* (int width, int height)
-RuntimeScriptValue Sc_DynamicSprite_CreateFromScreenShot(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DynamicSprite_CreateFromScreenShot(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJAUTO_PINT2(ScriptDynamicSprite, DynamicSprite_CreateFromScreenShot)
 }

@@ -71,7 +71,8 @@ private:
     {
         char                *Ptr;   // generic data pointer
         RuntimeScriptValue  *RValue;// access ptr as a pointer to Runtime Value
-        ScriptAPIFunction   *Pfn;   // access ptr as a pointer to Script API Function
+        ScriptAPIFunction   *SPfn;  // access ptr as a pointer to Script API Static Function
+        ScriptAPIObjectFunction *ObjPfn; // access ptr as a pointer to Script API Object Function
     };
     // TODO: separation to Ptr and MgrPtr is only needed so far as there's
     // a separation between Script*, Dynamic* and game entity classes.
@@ -139,9 +140,13 @@ public:
         rval += IValue;
         return rval;
     }
-    inline ScriptAPIFunction *GetFuncPtr() const
+    inline ScriptAPIFunction *GetStaticFuncPtr() const
     {
-        return Pfn;
+        return SPfn;
+    }
+    inline ScriptAPIObjectFunction *GetObjectFunctionPtr() const
+    {
+        return ObjPfn;
     }
     inline ICCStaticObject *GetStaticManager() const
     {
@@ -281,16 +286,16 @@ public:
     {
         Type    = kScValStaticFunction;
         IValue  = 0;
-        Pfn     = pfn;
+        SPfn    = pfn;
         MgrPtr  = NULL;
         Size    = 4;
         return *this;
     }
-    inline RuntimeScriptValue &SetObjectFunction(ScriptAPIFunction *pfn)
+    inline RuntimeScriptValue &SetObjectFunction(ScriptAPIObjectFunction *pfn)
     {
         Type    = kScValObjectFunction;
         IValue  = 0;
-        Pfn     = pfn;
+        ObjPfn  = pfn;
         MgrPtr  = NULL;
         Size    = 4;
         return *this;

@@ -189,133 +189,133 @@ void System_SetVolume(int newvol)
 extern ScriptString myScriptStringImpl;
 
 // int ()
-RuntimeScriptValue Sc_System_GetAudioChannelCount(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_System_GetAudioChannelCount(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(System_GetAudioChannelCount)
 }
 
 // ScriptAudioChannel* (int index)
-RuntimeScriptValue Sc_System_GetAudioChannels(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_System_GetAudioChannels(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJ_PINT(ScriptAudioChannel, ccDynamicAudio, System_GetAudioChannels)
 }
 
 // int ()
-RuntimeScriptValue Sc_System_GetCapsLock(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_System_GetCapsLock(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(System_GetCapsLock)
 }
 
 // int ()
-RuntimeScriptValue Sc_System_GetColorDepth(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_System_GetColorDepth(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(System_GetColorDepth)
 }
 
 // int ()
-RuntimeScriptValue Sc_System_GetGamma(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_System_GetGamma(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(System_GetGamma)
 }
 
 // void (int newValue)
-RuntimeScriptValue Sc_System_SetGamma(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_System_SetGamma(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT(System_SetGamma)
 }
 
 // int () 
-RuntimeScriptValue Sc_System_GetHardwareAcceleration(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_System_GetHardwareAcceleration(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(System_GetHardwareAcceleration)
 }
 
 // int ()
-RuntimeScriptValue Sc_System_GetNumLock(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_System_GetNumLock(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(System_GetNumLock)
 }
 
 // void (int newValue)
-RuntimeScriptValue Sc_System_SetNumLock(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_System_SetNumLock(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT(System_SetNumLock)
 }
 
 // int ()
-RuntimeScriptValue Sc_System_GetOS(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_System_GetOS(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(System_GetOS)
 }
 
 // int ()
-RuntimeScriptValue Sc_System_GetScreenHeight(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_System_GetScreenHeight(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(System_GetScreenHeight)
 }
 
 // int ()
-RuntimeScriptValue Sc_System_GetScreenWidth(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_System_GetScreenWidth(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(System_GetScreenWidth)
 }
 
 // int ()
-RuntimeScriptValue Sc_System_GetScrollLock(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_System_GetScrollLock(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(System_GetScrollLock)
 }
 
 // int ()
-RuntimeScriptValue Sc_System_GetSupportsGammaControl(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_System_GetSupportsGammaControl(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(System_GetSupportsGammaControl)
 }
 
 // const char *()
-RuntimeScriptValue Sc_System_GetVersion(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_System_GetVersion(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJ(const char, myScriptStringImpl, System_GetVersion)
 }
 
 // int ()
-RuntimeScriptValue Sc_System_GetViewportHeight(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_System_GetViewportHeight(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(System_GetViewportHeight)
 }
 
 // int ()
-RuntimeScriptValue Sc_System_GetViewportWidth(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_System_GetViewportWidth(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(System_GetViewportWidth)
 }
 
 // int ()
-RuntimeScriptValue Sc_System_GetVolume(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_System_GetVolume(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(System_GetVolume)
 }
 
 // void (int newvol)
-RuntimeScriptValue Sc_System_SetVolume(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_System_SetVolume(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT(System_SetVolume)
 }
 
 // int ()
-RuntimeScriptValue Sc_System_GetVsync(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_System_GetVsync(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(System_GetVsync)
 }
 
 // void (int newValue)
-RuntimeScriptValue Sc_System_SetVsync(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_System_SetVsync(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT(System_SetVsync)
 }
 
 // int ()
-RuntimeScriptValue Sc_System_GetWindowed(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_System_GetWindowed(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(System_GetWindowed)
 }

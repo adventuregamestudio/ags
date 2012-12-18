@@ -74,7 +74,7 @@ int DateTime_GetRawTime(ScriptDateTime *sdt) {
 #include "script/script_runtime.h"
 
 // ScriptDateTime* ()
-RuntimeScriptValue Sc_DateTime_Now(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DateTime_Now(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJAUTO(ScriptDateTime, DateTime_Now)
 }
@@ -123,7 +123,7 @@ RuntimeScriptValue Sc_DateTime_GetRawTime(void *self, RuntimeScriptValue *params
 
 void RegisterDateTimeAPI()
 {
-    ccAddExternalObjectFunction("DateTime::get_Now",        Sc_DateTime_Now);
+    ccAddExternalStaticFunction("DateTime::get_Now",        Sc_DateTime_Now);
     ccAddExternalObjectFunction("DateTime::get_DayOfMonth", Sc_DateTime_GetDayOfMonth);
     ccAddExternalObjectFunction("DateTime::get_Hour",       Sc_DateTime_GetHour);
     ccAddExternalObjectFunction("DateTime::get_Minute",     Sc_DateTime_GetMinute);

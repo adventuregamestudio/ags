@@ -17,6 +17,8 @@
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
+namespace AGS { namespace Common { class Bitmap; }}
+
 struct ScriptDrawingSurface : AGSCCDynamicObject {
     int roomBackgroundNumber;
     int dynamicSpriteNumber;

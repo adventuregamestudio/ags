@@ -59,7 +59,7 @@ bool ccAddExternalDynamicObject(const char *name, void *ptr, ICCDynamicObject *m
     return simp.add(name, RuntimeScriptValue().SetDynamicObject(ptr, manager), NULL) == 0;
 }
 
-bool ccAddExternalObjectFunction(const char *name, ScriptAPIFunction *pfn)
+bool ccAddExternalObjectFunction(const char *name, ScriptAPIObjectFunction *pfn)
 {
     return simp.add(name, RuntimeScriptValue().SetObjectFunction(pfn), NULL) == 0;
 }

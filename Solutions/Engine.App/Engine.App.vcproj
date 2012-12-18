@@ -269,6 +269,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\global_api.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\global_audio.cpp"
 					>
 				</File>

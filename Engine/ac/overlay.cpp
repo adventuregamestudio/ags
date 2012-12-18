@@ -285,13 +285,13 @@ void get_overlay_position(int overlayidx, int *x, int *y) {
 #include "script/script_runtime.h"
 
 // ScriptOverlay* (int x, int y, int slot, int transparent)
-RuntimeScriptValue Sc_Overlay_CreateGraphical(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Overlay_CreateGraphical(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJAUTO_PINT4(ScriptOverlay, Overlay_CreateGraphical)
 }
 
 // ScriptOverlay* (int x, int y, int width, int font, int colour, const char* text, ...)
-RuntimeScriptValue Sc_Overlay_CreateTextual(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Overlay_CreateTextual(RuntimeScriptValue *params, int32_t param_count)
 {
     // TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     return RuntimeScriptValue();

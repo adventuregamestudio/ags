@@ -562,7 +562,7 @@ RuntimeScriptValue Sc_Object_Tint(void *self, RuntimeScriptValue *params, int32_
 }
 
 // ScriptObject *(int xx, int yy)
-RuntimeScriptValue Sc_GetObjectAtLocation(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_GetObjectAtLocation(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJ_PINT2(ScriptObject, ccDynamicObject, GetObjectAtLocation)
 }

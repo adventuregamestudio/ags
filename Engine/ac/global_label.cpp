@@ -35,7 +35,7 @@ void SetLabelColor(int guin,int objn, int colr) {
     Label_SetColor(guil, colr);
 }
 
-void SetLabelText(int guin,int objn,char*newtx) {
+void SetLabelText(int guin,int objn, const char*newtx) {
     VALIDATE_STRING(newtx);
     if ((guin<0) | (guin>=game.numgui)) quit("!SetLabelText: invalid GUI number");
     if ((objn<0) | (objn>=guis[guin].numobjs)) quit("!SetLabelTexT: invalid object number");

@@ -36,14 +36,14 @@ const char* Parser_SaidUnknownWord() {
     return CreateNewScriptStringAsRetVal(play.bad_parsed_word);
 }
 
-void ParseText (char*text) {
+void ParseText (const char*text) {
     parse_sentence (text, &play.num_parsed_words, play.parsed_words, NULL, 0);
 }
 
 // Said: call with argument for example "get apple"; we then check
 // word by word if it matches (using dictonary ID equivalence to match
 // synonyms). Returns 1 if it does, 0 if not.
-int Said (char*checkwords) {
+int Said (const char*checkwords) {
     int numword = 0;
     short words[MAX_PARSED_WORDS];
     return parse_sentence (checkwords, &numword, &words[0], play.parsed_words, play.num_parsed_words);
@@ -301,25 +301,25 @@ int parse_sentence (char*text, int *numwords, short*wordarray, short*compareto, 
 extern ScriptString myScriptStringImpl;
 
 // int (const char *wordToFind)
-RuntimeScriptValue Sc_Parser_FindWordID(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Parser_FindWordID(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_POBJ(Parser_FindWordID, const char)
 }
 
 // void  (char*text)
-RuntimeScriptValue Sc_ParseText(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_ParseText(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_POBJ(ParseText, /*const*/ char)
 }
 
 // const char* ()
-RuntimeScriptValue Sc_Parser_SaidUnknownWord(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Parser_SaidUnknownWord(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJ(const char, myScriptStringImpl, Parser_SaidUnknownWord)
 }
 
 // int  (char*checkwords)
-RuntimeScriptValue Sc_Said(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Said(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_POBJ(Said, /*const*/ char)
 }

@@ -300,7 +300,7 @@ void split_lines_rightleft (char *todis, int wii, int fonnt) {
         prevline[0] = prevlwas;
 }
 
-char *reverse_text(char *text) {
+char *reverse_text(const char *text) {
     int stlen = strlen(text), rr;
     char *backwards = (char*)malloc(stlen + 1);
     for (rr = 0; rr < stlen; rr++)
@@ -323,7 +323,7 @@ void wouttext_reverseifnecessary(int x, int y, int font, char *text) {
         free(backwards);
 }
 
-void break_up_text_into_lines(int wii,int fonnt,char*todis) {
+void break_up_text_into_lines(int wii,int fonnt, const char*todis) {
     if (fonnt == -1)
         fonnt = play.normal_font;
 

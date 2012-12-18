@@ -373,19 +373,19 @@ bool validate_user_file_path(const char *fnmm, char *output, bool currentDirOnly
 extern ScriptString myScriptStringImpl;
 
 // int (const char *fnmm)
-RuntimeScriptValue Sc_File_Delete(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_File_Delete(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_POBJ(File_Delete, const char)
 }
 
 // int (const char *fnmm)
-RuntimeScriptValue Sc_File_Exists(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_File_Exists(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_POBJ(File_Exists, const char)
 }
 
 // void *(const char *fnmm, int mode)
-RuntimeScriptValue Sc_sc_OpenFile(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_sc_OpenFile(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJAUTO_POBJ_PINT(sc_File, sc_OpenFile, const char)
 }
@@ -477,8 +477,8 @@ RuntimeScriptValue Sc_File_GetError(void *self, RuntimeScriptValue *params, int3
 
 void RegisterFileAPI()
 {
-    ccAddExternalObjectFunction("File::Delete^1",           Sc_File_Delete);
-    ccAddExternalObjectFunction("File::Exists^1",           Sc_File_Exists);
+    ccAddExternalStaticFunction("File::Delete^1",           Sc_File_Delete);
+    ccAddExternalStaticFunction("File::Exists^1",           Sc_File_Exists);
     ccAddExternalStaticFunction("File::Open^2",             Sc_sc_OpenFile);
     ccAddExternalObjectFunction("File::Close^0",            Sc_File_Close);
     ccAddExternalObjectFunction("File::ReadInt^0",          Sc_File_ReadInt);

@@ -356,7 +356,7 @@ void SetMusicRepeat(int loopflag) {
     play.music_repeat=loopflag;
 }
 
-void PlayMP3File (char *filename) {
+void PlayMP3File (const char *filename) {
     if (strlen(filename) >= PLAYMP3FILE_MAX_FILENAME_LEN)
         quit("!PlayMP3File: filename too long");
 

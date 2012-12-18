@@ -537,7 +537,7 @@ void DisplayThought(int chid, const char*texx, ...) {
     _DisplayThoughtCore(chid, displbuf);
 }
 
-void __sc_displayspeech(int chid,char*texx, ...) {
+void __sc_displayspeech(int chid, const char*texx, ...) {
     if ((chid<0) || (chid>=game.numcharacters))
         quit("!DisplaySpeech: invalid character specified");
 
@@ -553,13 +553,13 @@ void __sc_displayspeech(int chid,char*texx, ...) {
 
 // **** THIS IS UNDOCUMENTED BECAUSE IT DOESN'T WORK PROPERLY
 // **** AT 640x400 AND DOESN'T USE THE RIGHT SPEECH STYLE
-void DisplaySpeechAt (int xx, int yy, int wii, int aschar, char*spch) {
+void DisplaySpeechAt (int xx, int yy, int wii, int aschar, const char*spch) {
     multiply_up_coordinates(&xx, &yy);
     wii = multiply_up_coordinate(wii);
     _displayspeech (get_translation(spch), aschar, xx, yy, wii, 0);
 }
 
-int DisplaySpeechBackground(int charid,char*speel) {
+int DisplaySpeechBackground(int charid, const char*speel) {
     // remove any previous background speech for this character
     int cc;
     for (cc = 0; cc < numscreenover; cc++) {

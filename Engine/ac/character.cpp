@@ -3019,7 +3019,7 @@ RuntimeScriptValue Sc_Character_WalkStraight(void *self, RuntimeScriptValue *par
 }
 
 // CharacterInfo *(int xx, int yy)
-RuntimeScriptValue Sc_GetCharacterAtLocation(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_GetCharacterAtLocation(RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJ_PINT2(CharacterInfo, ccDynamicCharacter, GetCharacterAtLocation)
 }

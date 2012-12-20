@@ -39,6 +39,7 @@ enum ScriptValueType
     kScValStaticArray,  // as a pointer to static global array (of static or dynamic objects)
     kScValDynamicObject,// as a pointer to managed script object
     kScValStaticFunction,// as a pointer to static function
+    kScValPluginFunction,// temporary workaround for plugins (unsafe function ptr)
     kScValObjectFunction,// as a pointer to object member function, gets object pointer as
                         // first parameter
     kScValCodePtr,      // as a pointer to element in byte-code array
@@ -140,7 +141,7 @@ public:
         rval += IValue;
         return rval;
     }
-    inline ScriptAPIFunction *GetStaticFuncPtr() const
+    inline ScriptAPIFunction *GetStaticFunctionPtr() const
     {
         return SPfn;
     }
@@ -287,6 +288,15 @@ public:
         Type    = kScValStaticFunction;
         IValue  = 0;
         SPfn    = pfn;
+        MgrPtr  = NULL;
+        Size    = 4;
+        return *this;
+    }
+    inline RuntimeScriptValue &SetPluginFunction(void *pfn)
+    {
+        Type    = kScValPluginFunction;
+        IValue  = 0;
+        Ptr     = (char*)pfn;
         MgrPtr  = NULL;
         Size    = 4;
         return *this;

@@ -38,6 +38,8 @@ struct StaticArray;
 
 // give the script access to a variable or function in your program
 extern bool ccAddExternalStaticFunction(const char *name, ScriptAPIFunction *pfn);
+// temporary workaround for plugins
+extern bool ccAddExternalPluginFunction(const char *name, void *pfn);
 extern bool ccAddExternalStaticObject(const char *name, void *ptr, ICCStaticObject *manager);
 extern bool ccAddExternalStaticArray(const char *name, void *ptr, StaticArray *array_mgr);
 extern bool ccAddExternalDynamicObject(const char *name, void *ptr, ICCDynamicObject *manager);
@@ -60,4 +62,5 @@ extern void ccSetDebugHook(new_line_hook_type jibble);
 extern void ccSetScriptAliveTimer (int);
 // reset the current while loop counter
 extern void ccNotifyScriptStillAlive ();
-extern int call_function(intptr_t addr, int numparm, const RuntimeScriptValue *parms, int offset);
+// for calling exported plugin functions old-style
+extern int call_function(intptr_t addr, int numparm, const RuntimeScriptValue *parms);

@@ -167,8 +167,7 @@ ccInstance *current_instance;
 // [IKM] 2012-10-21:
 // NOTE: This is temporary solution (*sigh*, one of many) which allows certain
 // exported functions return value as a RuntimeScriptValue object;
-// this is made so because I do not want to change all exported functions'
-// return value at once.
+// Of 2012-12-20: now used only for plugin exports
 RuntimeScriptValue GlobalReturnValue;
 
 // Function call stack is used to temporarily store
@@ -492,7 +491,9 @@ int ccInstance::Run(int32_t curpc)
     int write_debug_dump = ccGetOption(SCOPT_DEBUGRUN);
 	ScriptOperation codeOp;
 
+    // TODO: use deque instead of reverting from stack to straight array
     FunctionCallStack func_callstack;
+    RuntimeScriptValue func_param_array[MAX_FUNC_PARAMS];
 
     while (1) {
 
@@ -957,44 +958,70 @@ int ccInstance::Run(int32_t curpc)
           break;
                        }
       case SCMD_CALLEXT: {
-          int call_uses_object = 0;
           // CallScriptFunction to a real 'C' code function
           was_just_callas = -1;
           if (num_args_to_func < 0)
-              num_args_to_func = func_callstack.Count;
-
-          GlobalReturnValue.Invalidate();
-          int32_t return_value;
-          if (next_call_needs_object) {
-              // member function call
-              // use the func_callstack +1 size allocation to squeeze
-              // the object address on as the last parameter
-              call_uses_object = 1;
-              next_call_needs_object = 0;
-              PushToFuncCallStack(func_callstack, registers[SREG_OP]);
-              num_args_to_func++;
-          }          
-
-          return_value =
-              call_function((intptr_t)reg1.GetPtr(), num_args_to_func, func_callstack.Entries, func_callstack.Count - num_args_to_func);
-
-          if (GlobalReturnValue.IsValid())
           {
-            registers[SREG_AX] = GlobalReturnValue;
+            num_args_to_func = func_callstack.Count;
+          }
+
+          RuntimeScriptValue return_value;
+          for (int i = 0; i < num_args_to_func; ++i)
+          {
+            func_param_array[i] = PeekFuncCallStack(func_callstack, func_callstack.Count - 1 - i);
+          }
+
+          if (next_call_needs_object)
+          {
+            // member function call
+            next_call_needs_object = 0;
+            if (reg1.GetType() == kScValObjectFunction)
+            {
+              RuntimeScriptValue obj_rval = registers[SREG_OP];
+              if (obj_rval.GetType() == kScValStackPtr ||
+                  obj_rval.GetType() == kScValGlobalVar)
+              {
+                  obj_rval = obj_rval.GetRValueWithOffset();
+              }
+              return_value = reg1.GetObjectFunctionPtr()(obj_rval.GetPtr(), func_param_array, num_args_to_func);
+            }
+            else
+            {
+              cc_error("invalid pointer type for object function call: %d", reg1.GetType());
+            }
+          }
+          else if (reg1.GetType() == kScValStaticFunction)
+          {
+            return_value = reg1.GetStaticFunctionPtr()(func_param_array, num_args_to_func);
+          }
+          else if (reg1.GetType() == kScValPluginFunction)
+          {
+            GlobalReturnValue.Invalidate();
+            int32_t int_ret_val = call_function((intptr_t)reg1.GetPtr(), num_args_to_func, func_param_array);
+            if (GlobalReturnValue.IsValid())
+            {
+              return_value = GlobalReturnValue;
+            }
+            else
+            {
+              return_value.SetInt32(int_ret_val);
+            }
+          }
+          else if (reg1.GetType() == kScValObjectFunction)
+          {
+            cc_error("unexpected object function pointer on SCMD_CALLEXT");
           }
           else
           {
-            registers[SREG_AX].SetInt32(return_value);
+            cc_error("invalid pointer type for function call: %d", reg1.GetType());
           }
 
           if (ccError)
-              return -1;
-
-          if (call_uses_object) {
-              PopFromFuncCallStack(func_callstack, 1);
-              call_uses_object = 0;
+          {
+            return -1;
           }
 
+          registers[SREG_AX] = return_value;
           current_instance = this;
           num_args_to_func = -1;
           break;

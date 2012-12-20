@@ -3101,3 +3101,13 @@ void RegisterGameAPI()
     ccAddExternalStaticFunction("Game::get_UseNativeCoordinates",               Sc_Game_GetUseNativeCoordinates);
     ccAddExternalStaticFunction("Game::get_ViewCount",                          Sc_Game_GetViewCount);
 }
+
+void RegisterStaticObjects()
+{
+    ccAddExternalStaticObject("game",&play, &GlobalStaticManager);
+	ccAddExternalStaticObject("gs_globals",&play.globalvars[0], &GlobalStaticManager);
+	ccAddExternalStaticObject("mouse",&scmouse, &GlobalStaticManager);
+	ccAddExternalStaticObject("palette",&palette[0], &GlobalStaticManager);
+	ccAddExternalStaticObject("system",&scsystem, &GlobalStaticManager);
+	ccAddExternalStaticObject("savegameindex",&play.filenumbers[0], &GlobalStaticManager);
+}

@@ -98,3 +98,106 @@ int get_hotspot_at(int xpp,int ypp) {
     if (croom->hotspot_enabled[onhs]==0) return 0;
     return onhs;
 }
+
+//=============================================================================
+//
+// Script API Functions
+//
+//=============================================================================
+
+#include "debug/out.h"
+#include "script/script_api.h"
+#include "script/script_runtime.h"
+#include "ac/dynobj/scriptstring.h"
+
+extern ScriptString myScriptStringImpl;
+
+// ScriptHotspot *(int xx, int yy)
+RuntimeScriptValue Sc_GetHotspotAtLocation(RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT2(ScriptHotspot, ccDynamicHotspot, GetHotspotAtLocation)
+}
+
+// void (ScriptHotspot *hss, char *buffer)
+RuntimeScriptValue Sc_Hotspot_GetName(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_POBJ(ScriptHotspot, Hotspot_GetName, char)
+}
+
+// int  (ScriptHotspot *hss, const char *property)
+RuntimeScriptValue Sc_Hotspot_GetProperty(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT_POBJ(ScriptHotspot, Hotspot_GetProperty, const char)
+}
+
+// void  (ScriptHotspot *hss, const char *property, char *bufer)
+RuntimeScriptValue Sc_Hotspot_GetPropertyText(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_POBJ2(ScriptHotspot, Hotspot_GetPropertyText, const char, char)
+}
+
+// const char* (ScriptHotspot *hss, const char *property)
+RuntimeScriptValue Sc_Hotspot_GetTextProperty(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ_POBJ(ScriptHotspot, const char, myScriptStringImpl, Hotspot_GetTextProperty, const char)
+}
+
+// void  (ScriptHotspot *hss, int mood)
+RuntimeScriptValue Sc_Hotspot_RunInteraction(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptHotspot, Hotspot_RunInteraction)
+}
+
+// int (ScriptHotspot *hss)
+RuntimeScriptValue Sc_Hotspot_GetEnabled(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptHotspot, Hotspot_GetEnabled)
+}
+
+// void (ScriptHotspot *hss, int newval)
+RuntimeScriptValue Sc_Hotspot_SetEnabled(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptHotspot, Hotspot_SetEnabled)
+}
+
+// int (ScriptHotspot *hss)
+RuntimeScriptValue Sc_Hotspot_GetID(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptHotspot, Hotspot_GetID)
+}
+
+// const char* (ScriptHotspot *hss)
+RuntimeScriptValue Sc_Hotspot_GetName_New(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(ScriptHotspot, const char, myScriptStringImpl, Hotspot_GetName_New)
+}
+
+// int (ScriptHotspot *hss)
+RuntimeScriptValue Sc_Hotspot_GetWalkToX(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptHotspot, Hotspot_GetWalkToX)
+}
+
+// int (ScriptHotspot *hss)
+RuntimeScriptValue Sc_Hotspot_GetWalkToY(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptHotspot, Hotspot_GetWalkToY)
+}
+
+
+
+void RegisterHotspotAPI()
+{
+    ccAddExternalStaticFunction("Hotspot::GetAtScreenXY^2",     Sc_GetHotspotAtLocation);
+    ccAddExternalObjectFunction("Hotspot::GetName^1",           Sc_Hotspot_GetName);
+    ccAddExternalObjectFunction("Hotspot::GetProperty^1",       Sc_Hotspot_GetProperty);
+    ccAddExternalObjectFunction("Hotspot::GetPropertyText^2",   Sc_Hotspot_GetPropertyText);
+    ccAddExternalObjectFunction("Hotspot::GetTextProperty^1",   Sc_Hotspot_GetTextProperty);
+    ccAddExternalObjectFunction("Hotspot::RunInteraction^1",    Sc_Hotspot_RunInteraction);
+    ccAddExternalObjectFunction("Hotspot::get_Enabled",         Sc_Hotspot_GetEnabled);
+    ccAddExternalObjectFunction("Hotspot::set_Enabled",         Sc_Hotspot_SetEnabled);
+    ccAddExternalObjectFunction("Hotspot::get_ID",              Sc_Hotspot_GetID);
+    ccAddExternalObjectFunction("Hotspot::get_Name",            Sc_Hotspot_GetName_New);
+    ccAddExternalObjectFunction("Hotspot::get_WalkToX",         Sc_Hotspot_GetWalkToX);
+    ccAddExternalObjectFunction("Hotspot::get_WalkToY",         Sc_Hotspot_GetWalkToY);
+}

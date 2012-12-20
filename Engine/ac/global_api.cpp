@@ -168,17 +168,9 @@ RuntimeScriptValue Sc_ChangeCharacterView(RuntimeScriptValue *params, int32_t pa
     API_SCALL_VOID_PINT2(ChangeCharacterView)
 }
 
-// void  (int curs, int newslot)
-RuntimeScriptValue Sc_ChangeCursorGraphic(RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2(ChangeCursorGraphic)
-}
+extern RuntimeScriptValue Sc_ChangeCursorGraphic(RuntimeScriptValue *params, int32_t param_count);
 
-// void  (int curs, int x, int y)
-RuntimeScriptValue Sc_ChangeCursorHotspot(RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT3(ChangeCursorHotspot)
-}
+extern RuntimeScriptValue Sc_ChangeCursorHotspot(RuntimeScriptValue *params, int32_t param_count);
 
 // void ()
 RuntimeScriptValue Sc_ClaimEvent(RuntimeScriptValue *params, int32_t param_count)
@@ -223,11 +215,7 @@ RuntimeScriptValue Sc_free_dynamic_sprite(RuntimeScriptValue *params, int32_t pa
     API_SCALL_VOID_PINT(free_dynamic_sprite)
 }
 
-// void (int modd)
-RuntimeScriptValue Sc_disable_cursor_mode(RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(disable_cursor_mode)
-}
+extern RuntimeScriptValue Sc_disable_cursor_mode(RuntimeScriptValue *params, int32_t param_count);
 
 // void (int alsoEffects)
 RuntimeScriptValue Sc_DisableGroundLevelAreas(RuntimeScriptValue *params, int32_t param_count)
@@ -324,11 +312,7 @@ RuntimeScriptValue Sc_DisplayTopBar(RuntimeScriptValue *params, int32_t param_co
     return RuntimeScriptValue();
 }
 
-// void (int modd)
-RuntimeScriptValue Sc_enable_cursor_mode(RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(enable_cursor_mode)
-}
+extern RuntimeScriptValue Sc_enable_cursor_mode(RuntimeScriptValue *params, int32_t param_count);
 
 // void ()
 RuntimeScriptValue Sc_EnableGroundLevelAreas(RuntimeScriptValue *params, int32_t param_count)
@@ -522,11 +506,7 @@ RuntimeScriptValue Sc_GetCurrentMusic(RuntimeScriptValue *params, int32_t param_
     API_SCALL_INT(GetCurrentMusic);
 }
 
-// int ()
-RuntimeScriptValue Sc_GetCursorMode(RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT(GetCursorMode);
-}
+extern RuntimeScriptValue Sc_GetCursorMode(RuntimeScriptValue *params, int32_t param_count);
 
 // int  (int dlg, int opt)
 RuntimeScriptValue Sc_GetDialogOption(RuntimeScriptValue *params, int32_t param_count)
@@ -876,11 +856,7 @@ RuntimeScriptValue Sc_sc_invscreen(RuntimeScriptValue *params, int32_t param_cou
     API_SCALL_VOID(sc_invscreen)
 }
 
-// int (int which)
-RuntimeScriptValue Sc_IsButtonDown(RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_PINT(IsButtonDown);
-}
+extern RuntimeScriptValue Sc_IsButtonDown(RuntimeScriptValue *params, int32_t param_count);
 
 // int (int chan)
 RuntimeScriptValue Sc_IsChannelPlaying(RuntimeScriptValue *params, int32_t param_count)
@@ -1170,11 +1146,7 @@ RuntimeScriptValue Sc_ObjectOn(RuntimeScriptValue *params, int32_t param_count)
     API_SCALL_VOID_PINT(ObjectOn)
 }
 
-// void  (char*text)
-RuntimeScriptValue Sc_ParseText(RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_POBJ(ParseText, const char)
-}
+extern RuntimeScriptValue Sc_ParseText(RuntimeScriptValue *params, int32_t param_count);
 
 // void ()
 RuntimeScriptValue Sc_PauseGame(RuntimeScriptValue *params, int32_t param_count)
@@ -1363,11 +1335,7 @@ RuntimeScriptValue Sc_RawSetColorRGB(RuntimeScriptValue *params, int32_t param_c
     API_SCALL_VOID_PINT3(RawSetColorRGB)
 }
 
-// void ()
-RuntimeScriptValue Sc_RefreshMouse(RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID(RefreshMouse)
-}
+extern RuntimeScriptValue Sc_RefreshMouse(RuntimeScriptValue *params, int32_t param_count);
 
 // void (int chat)
 RuntimeScriptValue Sc_ReleaseCharacterView(RuntimeScriptValue *params, int32_t param_count)
@@ -1472,11 +1440,7 @@ RuntimeScriptValue Sc_RunRegionInteraction(RuntimeScriptValue *params, int32_t p
     API_SCALL_VOID_PINT2(RunRegionInteraction)
 }
 
-// int  (char*checkwords)
-RuntimeScriptValue Sc_Said(RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_INT_POBJ(Said, const char)
-}
+extern RuntimeScriptValue Sc_Said(RuntimeScriptValue *params, int32_t param_count);
 
 // int  (char*buffer)
 RuntimeScriptValue Sc_SaidUnknownWord(RuntimeScriptValue *params, int32_t param_count)
@@ -1484,11 +1448,7 @@ RuntimeScriptValue Sc_SaidUnknownWord(RuntimeScriptValue *params, int32_t param_
     API_SCALL_INT_POBJ(SaidUnknownWord, char)
 }
 
-// void ()
-RuntimeScriptValue Sc_SaveCursorForLocationChange(RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID(SaveCursorForLocationChange)
-}
+extern RuntimeScriptValue Sc_SaveCursorForLocationChange(RuntimeScriptValue *params, int32_t param_count);
 
 // void ()
 RuntimeScriptValue Sc_save_game_dialog(RuntimeScriptValue *params, int32_t param_count)
@@ -1664,17 +1624,8 @@ RuntimeScriptValue Sc_SetCharacterViewOffset(RuntimeScriptValue *params, int32_t
     API_SCALL_VOID_PINT4(SetCharacterViewOffset)
 }
 
-// void (int newmode)
-RuntimeScriptValue Sc_set_cursor_mode(RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(set_cursor_mode)
-}
-
-// void ()
-RuntimeScriptValue Sc_set_default_cursor(RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID(set_default_cursor)
-}
+extern RuntimeScriptValue Sc_set_cursor_mode(RuntimeScriptValue *params, int32_t param_count);
+extern RuntimeScriptValue Sc_set_default_cursor(RuntimeScriptValue *params, int32_t param_count);
 
 // void (int dlg,int opt,int onoroff)
 RuntimeScriptValue Sc_SetDialogOption(RuntimeScriptValue *params, int32_t param_count)
@@ -1718,11 +1669,7 @@ RuntimeScriptValue Sc_SetGlobalInt(RuntimeScriptValue *params, int32_t param_cou
     API_SCALL_VOID_PINT2(SetGlobalInt)
 }
 
-// void  (int index, const char *newval)
-RuntimeScriptValue Sc_SetGlobalString(RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT_POBJ(SetGlobalString, const char)
-}
+extern RuntimeScriptValue Sc_SetGlobalString(RuntimeScriptValue *params, int32_t param_count);
 
 // void  (const char *varName, int p_value)
 RuntimeScriptValue Sc_SetGraphicalVariable(RuntimeScriptValue *params, int32_t param_count)
@@ -1820,23 +1767,9 @@ RuntimeScriptValue Sc_SetLabelText(RuntimeScriptValue *params, int32_t param_cou
     API_SCALL_VOID_PINT2_POBJ(SetLabelText, const char)
 }
 
-// void  (int x1, int y1, int x2, int y2)
-RuntimeScriptValue Sc_SetMouseBounds(RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT4(SetMouseBounds)
-}
-
-// void (int newcurs)
-RuntimeScriptValue Sc_set_mouse_cursor(RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(set_mouse_cursor)
-}
-
-// void  (int newx, int newy)
-RuntimeScriptValue Sc_SetMousePosition(RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT2(SetMousePosition)
-}
+extern RuntimeScriptValue Sc_SetMouseBounds(RuntimeScriptValue *params, int32_t param_count);
+extern RuntimeScriptValue Sc_set_mouse_cursor(RuntimeScriptValue *params, int32_t param_count);
+extern RuntimeScriptValue Sc_SetMousePosition(RuntimeScriptValue *params, int32_t param_count);
 
 // void  (int mode)
 RuntimeScriptValue Sc_SetMultitasking(RuntimeScriptValue *params, int32_t param_count)
@@ -1862,11 +1795,7 @@ RuntimeScriptValue Sc_SetMusicVolume(RuntimeScriptValue *params, int32_t param_c
     API_SCALL_VOID_PINT(SetMusicVolume)
 }
 
-// void  ()
-RuntimeScriptValue Sc_SetNextCursor(RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID(SetNextCursor)
-}
+extern RuntimeScriptValue Sc_SetNextCursor(RuntimeScriptValue *params, int32_t param_count);
 
 // void (int newtrans)
 RuntimeScriptValue Sc_SetNextScreenTransition(RuntimeScriptValue *params, int32_t param_count)
@@ -1874,11 +1803,7 @@ RuntimeScriptValue Sc_SetNextScreenTransition(RuntimeScriptValue *params, int32_
     API_SCALL_VOID_PINT(SetNextScreenTransition)
 }
 
-// void  (int fontnum)
-RuntimeScriptValue Sc_SetNormalFont(RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(SetNormalFont)
-}
+extern RuntimeScriptValue Sc_SetNormalFont(RuntimeScriptValue *params, int32_t param_count);
 
 // void  (int obn, int basel)
 RuntimeScriptValue Sc_SetObjectBaseline(RuntimeScriptValue *params, int32_t param_count)
@@ -1982,11 +1907,7 @@ RuntimeScriptValue Sc_SetSoundVolume(RuntimeScriptValue *params, int32_t param_c
     API_SCALL_VOID_PINT(SetSoundVolume)
 }
 
-// void  (int fontnum)
-RuntimeScriptValue Sc_SetSpeechFont(RuntimeScriptValue *params, int32_t param_count)
-{
-    API_SCALL_VOID_PINT(SetSpeechFont)
-}
+extern RuntimeScriptValue Sc_SetSpeechFont(RuntimeScriptValue *params, int32_t param_count);
 
 // void  (int newstyle)
 RuntimeScriptValue Sc_SetSpeechStyle(RuntimeScriptValue *params, int32_t param_count)

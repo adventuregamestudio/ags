@@ -534,7 +534,7 @@ RuntimeScriptValue Sc_String_EndsWith(void *self, RuntimeScriptValue *params, in
 }
 
 // const char* String_Format(const char *texx, ...)
-RuntimeScriptValue Sc_String_Format(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_String_Format(RuntimeScriptValue *params, int32_t param_count)
 {
     // TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     return RuntimeScriptValue();
@@ -616,7 +616,7 @@ void RegisterStringAPI()
     ccAddExternalObjectFunction("String::Contains^1",       Sc_StrContains);
     ccAddExternalObjectFunction("String::Copy^0",           Sc_String_Copy);
     ccAddExternalObjectFunction("String::EndsWith^2",       Sc_String_EndsWith);
-    ccAddExternalObjectFunction("String::Format^101",       Sc_String_Format);
+    ccAddExternalStaticFunction("String::Format^101",       Sc_String_Format);
     ccAddExternalObjectFunction("String::IndexOf^1",        Sc_StrContains);
     ccAddExternalObjectFunction("String::LowerCase^0",      Sc_String_LowerCase);
     ccAddExternalObjectFunction("String::Replace^3",        Sc_String_Replace);

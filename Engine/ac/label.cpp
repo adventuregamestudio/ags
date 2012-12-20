@@ -66,3 +66,72 @@ void Label_SetFont(GUILabel *guil, int fontnum) {
         guis_need_update = 1;
     }
 }
+
+//=============================================================================
+//
+// Script API Functions
+//
+//=============================================================================
+
+#include "debug/out.h"
+#include "script/script_api.h"
+#include "script/script_runtime.h"
+#include "ac/dynobj/scriptstring.h"
+
+extern ScriptString myScriptStringImpl;
+
+// void (GUILabel *labl, char *buffer)
+RuntimeScriptValue Sc_Label_GetText(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_POBJ(GUILabel, Label_GetText, char)
+}
+
+// void (GUILabel *labl, const char *newtx)
+RuntimeScriptValue Sc_Label_SetText(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_POBJ(GUILabel, Label_SetText, const char)
+}
+
+// int (GUILabel *labl)
+RuntimeScriptValue Sc_Label_GetFont(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUILabel, Label_GetFont)
+}
+
+// void (GUILabel *guil, int fontnum)
+RuntimeScriptValue Sc_Label_SetFont(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUILabel, Label_SetFont)
+}
+
+// const char* (GUILabel *labl)
+RuntimeScriptValue Sc_Label_GetText_New(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(GUILabel, const char, myScriptStringImpl, Label_GetText_New)
+}
+
+// int (GUILabel *labl)
+RuntimeScriptValue Sc_Label_GetColor(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUILabel, Label_GetColor)
+}
+
+// void (GUILabel *labl, int colr)
+RuntimeScriptValue Sc_Label_SetColor(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUILabel, Label_SetColor)
+}
+
+
+
+void RegisterLabelBoxAPI()
+{
+    ccAddExternalObjectFunction("Label::GetText^1",     Sc_Label_GetText);
+    ccAddExternalObjectFunction("Label::SetText^1",     Sc_Label_SetText);
+    ccAddExternalObjectFunction("Label::get_Font",      Sc_Label_GetFont);
+    ccAddExternalObjectFunction("Label::set_Font",      Sc_Label_SetFont);
+    ccAddExternalObjectFunction("Label::get_Text",      Sc_Label_GetText_New);
+    ccAddExternalObjectFunction("Label::set_Text",      Sc_Label_SetText);
+    ccAddExternalObjectFunction("Label::get_TextColor", Sc_Label_GetColor);
+    ccAddExternalObjectFunction("Label::set_TextColor", Sc_Label_SetColor);
+}

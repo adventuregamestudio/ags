@@ -16,39 +16,75 @@
 //
 //=============================================================================
 
-#include "script/symbol_registry.h"
+extern void RegisterAudioChannelAPI();
+extern void RegisterAudioClipAPI();
+extern void RegisterButtonAPI();
+extern void RegisterCharacterAPI();
+extern void RegisterDateTimeAPI();
+extern void RegisterDialogAPI();
+extern void RegisterDialogOptionsRenderingAPI();
+extern void RegisterDrawingSurfaceAPI();
+extern void RegisterDynamicSpriteAPI();
+extern void RegisterFileAPI();
+extern void RegisterGameAPI();
+extern void RegisterGlobalAPI();
+extern void RegisterGUIAPI();
+extern void RegisterGUIControlAPI();
+extern void RegisterHotspotAPI();
+extern void RegisterInventoryItemAPI();
+extern void RegisterInventoryWindowAPI();
+extern void RegisterLabelBoxAPI();
+extern void RegisterListBoxAPI();
+extern void RegisterMathAPI();
+extern void RegisterMouseAPI();
+extern void RegisterObjectAPI();
+extern void RegisterOverlayAPI();
+extern void RegisterParserAPI();
+extern void RegisterRegionAPI();
+extern void RegisterRoomAPI();
+extern void RegisterSliderAPI();
+extern void RegisterStringAPI();
+extern void RegisterSystemAPI();
+extern void RegisterTextBoxAPI();
+extern void RegisterViewFrameAPI();
 
-void setup_script_exports() {
+extern void RegisterBuiltInPluginAPI();
+extern void RegisterStaticObjects();
 
-    register_audio_script_functions();
-    register_button_script_functions();
-    register_character_script_functions();
-    register_datetime_script_functions();
-    register_dialog_script_functions();
-    register_drawingsurface_script_functions();
-    register_dynamicsprite_script_functions();
-    register_file_script_functions();
-    register_game_script_functions();
-    register_gui_script_functions();
-    register_guicontrol_script_functions();
-    register_hotspot_script_functions();
-    register_inventoryitem_script_functions();
-    register_invwindow_script_functions();
-    register_label_script_functions();
-    register_listbox_script_functions();
-    register_math_script_functions();
-    register_mouse_script_functions();
-    register_object_script_functions();
-    register_overlay_script_functions();
-    register_parser_script_functions();
-    register_region_script_functions();
-    register_room_script_functions();
-    register_slider_script_functions();
-    register_string_script_functions();
-    register_system_script_functions();
-    register_textbox_script_functions();
-    register_viewframe_script_functions();
-    //-------------------------------------------------------------
-    register_global_script_functions();
-    register_builtin_plugins_script_functions();
+void setup_script_exports()
+{
+    RegisterAudioChannelAPI();
+    RegisterAudioClipAPI();
+    RegisterButtonAPI();
+    RegisterCharacterAPI();
+    RegisterDateTimeAPI();
+    RegisterDialogAPI();
+    RegisterDialogOptionsRenderingAPI();
+    RegisterDrawingSurfaceAPI();
+    RegisterDynamicSpriteAPI();
+    RegisterFileAPI();
+    RegisterGameAPI();
+    RegisterGlobalAPI();
+    RegisterGUIAPI();
+    RegisterGUIControlAPI();
+    RegisterHotspotAPI();
+    RegisterInventoryItemAPI();
+    RegisterInventoryWindowAPI();
+    RegisterLabelBoxAPI();
+    RegisterListBoxAPI();
+    RegisterMathAPI();
+    RegisterMouseAPI();
+    RegisterObjectAPI();
+    RegisterOverlayAPI();
+    RegisterParserAPI();
+    RegisterRegionAPI();
+    RegisterRoomAPI();
+    RegisterSliderAPI();
+    RegisterStringAPI();
+    RegisterSystemAPI();
+    RegisterTextBoxAPI();
+    RegisterViewFrameAPI();
+
+    RegisterBuiltInPluginAPI();
+    RegisterStaticObjects();
 }

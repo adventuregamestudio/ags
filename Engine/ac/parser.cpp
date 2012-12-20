@@ -36,14 +36,14 @@ const char* Parser_SaidUnknownWord() {
     return CreateNewScriptStringAsRetVal(play.bad_parsed_word);
 }
 
-void ParseText (const char*text) {
+void ParseText (char*text) {
     parse_sentence (text, &play.num_parsed_words, play.parsed_words, NULL, 0);
 }
 
 // Said: call with argument for example "get apple"; we then check
 // word by word if it matches (using dictonary ID equivalence to match
 // synonyms). Returns 1 if it does, 0 if not.
-int Said (const char*checkwords) {
+int Said (char*checkwords) {
     int numword = 0;
     short words[MAX_PARSED_WORDS];
     return parse_sentence (checkwords, &numword, &words[0], play.parsed_words, play.num_parsed_words);

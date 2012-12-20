@@ -229,3 +229,208 @@ void GUIControl_BringToFront(GUIObject *guio) {
   if (guis[guio->guin].bring_to_front(guio->objn))
     guis_need_update = 1;
 }
+
+//=============================================================================
+//
+// Script API Functions
+//
+//=============================================================================
+
+#include "debug/out.h"
+#include "script/script_api.h"
+#include "script/script_runtime.h"
+
+// void (GUIObject *guio)
+RuntimeScriptValue Sc_GUIControl_BringToFront(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID(GUIObject, GUIControl_BringToFront)
+}
+
+// GUIObject *(int xx, int yy)
+RuntimeScriptValue Sc_GetGUIControlAtLocation(RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT2(GUIObject, ccDynamicGUIObject, GetGUIControlAtLocation)
+}
+
+// void (GUIObject *guio)
+RuntimeScriptValue Sc_GUIControl_SendToBack(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID(GUIObject, GUIControl_SendToBack)
+}
+
+// void (GUIObject *guio, int xx, int yy)
+RuntimeScriptValue Sc_GUIControl_SetPosition(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT2(GUIObject, GUIControl_SetPosition)
+}
+
+// void (GUIObject *guio, int newwid, int newhit)
+RuntimeScriptValue Sc_GUIControl_SetSize(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT2(GUIObject, GUIControl_SetSize)
+}
+
+// GUIButton* (GUIObject *guio)
+RuntimeScriptValue Sc_GUIControl_GetAsButton(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(GUIObject, GUIButton, ccDynamicGUI, GUIControl_GetAsButton)
+}
+
+// GUIInv* (GUIObject *guio)
+RuntimeScriptValue Sc_GUIControl_GetAsInvWindow(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(GUIObject, GUIInv, ccDynamicGUI, GUIControl_GetAsInvWindow)
+}
+
+// GUILabel* (GUIObject *guio)
+RuntimeScriptValue Sc_GUIControl_GetAsLabel(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(GUIObject, GUILabel, ccDynamicGUI, GUIControl_GetAsLabel)
+}
+
+// GUIListBox* (GUIObject *guio)
+RuntimeScriptValue Sc_GUIControl_GetAsListBox(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(GUIObject, GUIListBox, ccDynamicGUI, GUIControl_GetAsListBox)
+}
+
+// GUISlider* (GUIObject *guio)
+RuntimeScriptValue Sc_GUIControl_GetAsSlider(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(GUIObject, GUISlider, ccDynamicGUI, GUIControl_GetAsSlider)
+}
+
+// GUITextBox* (GUIObject *guio)
+RuntimeScriptValue Sc_GUIControl_GetAsTextBox(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(GUIObject, GUITextBox, ccDynamicGUI, GUIControl_GetAsTextBox)
+}
+
+// int (GUIObject *guio)
+RuntimeScriptValue Sc_GUIControl_GetClickable(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUIObject, GUIControl_GetClickable)
+}
+
+// void (GUIObject *guio, int enabled)
+RuntimeScriptValue Sc_GUIControl_SetClickable(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUIObject, GUIControl_SetClickable)
+}
+
+// int (GUIObject *guio)
+RuntimeScriptValue Sc_GUIControl_GetEnabled(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUIObject, GUIControl_GetEnabled)
+}
+
+// void (GUIObject *guio, int enabled)
+RuntimeScriptValue Sc_GUIControl_SetEnabled(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUIObject, GUIControl_SetEnabled)
+}
+
+// int (GUIObject *guio)
+RuntimeScriptValue Sc_GUIControl_GetHeight(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUIObject, GUIControl_GetHeight)
+}
+
+// void (GUIObject *guio, int newhit)
+RuntimeScriptValue Sc_GUIControl_SetHeight(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUIObject, GUIControl_SetHeight)
+}
+
+// int (GUIObject *guio)
+RuntimeScriptValue Sc_GUIControl_GetID(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUIObject, GUIControl_GetID)
+}
+
+// ScriptGUI* (GUIObject *guio)
+RuntimeScriptValue Sc_GUIControl_GetOwningGUI(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(GUIObject, ScriptGUI, ccDynamicGUI, GUIControl_GetOwningGUI)
+}
+
+// int (GUIObject *guio)
+RuntimeScriptValue Sc_GUIControl_GetVisible(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUIObject, GUIControl_GetVisible)
+}
+
+// void (GUIObject *guio, int visible)
+RuntimeScriptValue Sc_GUIControl_SetVisible(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUIObject, GUIControl_SetVisible)
+}
+
+// int (GUIObject *guio)
+RuntimeScriptValue Sc_GUIControl_GetWidth(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUIObject, GUIControl_GetWidth)
+}
+
+// void (GUIObject *guio, int newwid)
+RuntimeScriptValue Sc_GUIControl_SetWidth(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUIObject, GUIControl_SetWidth)
+}
+
+// int (GUIObject *guio)
+RuntimeScriptValue Sc_GUIControl_GetX(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUIObject, GUIControl_GetX)
+}
+
+// void (GUIObject *guio, int xx)
+RuntimeScriptValue Sc_GUIControl_SetX(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUIObject, GUIControl_SetX)
+}
+
+// int (GUIObject *guio)
+RuntimeScriptValue Sc_GUIControl_GetY(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUIObject, GUIControl_GetY)
+}
+
+// void (GUIObject *guio, int yy)
+RuntimeScriptValue Sc_GUIControl_SetY(void *self, RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUIObject, GUIControl_SetY)
+}
+
+
+
+void RegisterGUIControlAPI()
+{
+    ccAddExternalObjectFunction("GUIControl::BringToFront^0",   Sc_GUIControl_BringToFront);
+    ccAddExternalStaticFunction("GUIControl::GetAtScreenXY^2",  Sc_GetGUIControlAtLocation);
+    ccAddExternalObjectFunction("GUIControl::SendToBack^0",     Sc_GUIControl_SendToBack);
+    ccAddExternalObjectFunction("GUIControl::SetPosition^2",    Sc_GUIControl_SetPosition);
+    ccAddExternalObjectFunction("GUIControl::SetSize^2",        Sc_GUIControl_SetSize);
+    ccAddExternalObjectFunction("GUIControl::get_AsButton",     Sc_GUIControl_GetAsButton);
+    ccAddExternalObjectFunction("GUIControl::get_AsInvWindow",  Sc_GUIControl_GetAsInvWindow);
+    ccAddExternalObjectFunction("GUIControl::get_AsLabel",      Sc_GUIControl_GetAsLabel);
+    ccAddExternalObjectFunction("GUIControl::get_AsListBox",    Sc_GUIControl_GetAsListBox);
+    ccAddExternalObjectFunction("GUIControl::get_AsSlider",     Sc_GUIControl_GetAsSlider);
+    ccAddExternalObjectFunction("GUIControl::get_AsTextBox",    Sc_GUIControl_GetAsTextBox);
+    ccAddExternalObjectFunction("GUIControl::get_Clickable",    Sc_GUIControl_GetClickable);
+    ccAddExternalObjectFunction("GUIControl::set_Clickable",    Sc_GUIControl_SetClickable);
+    ccAddExternalObjectFunction("GUIControl::get_Enabled",      Sc_GUIControl_GetEnabled);
+    ccAddExternalObjectFunction("GUIControl::set_Enabled",      Sc_GUIControl_SetEnabled);
+    ccAddExternalObjectFunction("GUIControl::get_Height",       Sc_GUIControl_GetHeight);
+    ccAddExternalObjectFunction("GUIControl::set_Height",       Sc_GUIControl_SetHeight);
+    ccAddExternalObjectFunction("GUIControl::get_ID",           Sc_GUIControl_GetID);
+    ccAddExternalObjectFunction("GUIControl::get_OwningGUI",    Sc_GUIControl_GetOwningGUI);
+    ccAddExternalObjectFunction("GUIControl::get_Visible",      Sc_GUIControl_GetVisible);
+    ccAddExternalObjectFunction("GUIControl::set_Visible",      Sc_GUIControl_SetVisible);
+    ccAddExternalObjectFunction("GUIControl::get_Width",        Sc_GUIControl_GetWidth);
+    ccAddExternalObjectFunction("GUIControl::set_Width",        Sc_GUIControl_SetWidth);
+    ccAddExternalObjectFunction("GUIControl::get_X",            Sc_GUIControl_GetX);
+    ccAddExternalObjectFunction("GUIControl::set_X",            Sc_GUIControl_SetX);
+    ccAddExternalObjectFunction("GUIControl::get_Y",            Sc_GUIControl_GetY);
+    ccAddExternalObjectFunction("GUIControl::set_Y",            Sc_GUIControl_SetY);
+}

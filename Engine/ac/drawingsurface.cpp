@@ -559,7 +559,8 @@ RuntimeScriptValue Sc_DrawingSurface_DrawRectangle(void *self, RuntimeScriptValu
 // void (ScriptDrawingSurface *sds, int xx, int yy, int font, const char* texx, ...)
 RuntimeScriptValue Sc_DrawingSurface_DrawString(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    // TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    API_OBJCALL_SCRIPT_SPRINTF(DrawingSurface_DrawString, 4)
+    DrawingSurface_DrawString((ScriptDrawingSurface*)self, params[0].GetInt32(), params[1].GetInt32(), params[2].GetInt32(), "%s", scsf_buffer);
     return RuntimeScriptValue();
 }
 

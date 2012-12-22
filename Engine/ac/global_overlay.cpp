@@ -69,7 +69,7 @@ int CreateTextOverlayCore(int xx, int yy, int wii, int fontid, int clr, const ch
     return _display_main(xx,yy,wii, (char*)tex, blcode,fontid,-clr, 0, allowShrink, false);
 }
 
-int CreateTextOverlay(int xx,int yy,int wii,int fontid,int clr,char*texx, ...) {
+int CreateTextOverlay(int xx,int yy,int wii,int fontid,int clr, const char*texx, ...) {
     char displbuf[STD_BUFFER_SIZE];
     va_list ap;
     va_start(ap,texx);
@@ -88,7 +88,7 @@ int CreateTextOverlay(int xx,int yy,int wii,int fontid,int clr,char*texx, ...) {
     return CreateTextOverlayCore(xx, yy, wii, fontid, clr, displbuf, allowShrink);
 }
 
-void SetTextOverlay(int ovrid,int xx,int yy,int wii,int fontid,int clr,char*texx,...) {
+void SetTextOverlay(int ovrid,int xx,int yy,int wii,int fontid,int clr, const char*texx,...) {
     char displbuf[STD_BUFFER_SIZE];
     va_list ap;
     va_start(ap,texx);

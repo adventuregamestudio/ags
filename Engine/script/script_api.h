@@ -28,6 +28,10 @@ struct RuntimeScriptValue;
 typedef RuntimeScriptValue ScriptAPIFunction(RuntimeScriptValue *params, int32_t param_count);
 typedef RuntimeScriptValue ScriptAPIObjectFunction(void *self, RuntimeScriptValue *params, int32_t param_count);
 
+// Sprintf that takes script values as arguments
+const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format, RuntimeScriptValue *args, int32_t argc);
+extern char ScSfBuffer[3000];
+
 // Helper macros for script functions
 #define ASSERT_SELF(METHOD) \
     if (!self) \
@@ -46,6 +50,17 @@ typedef RuntimeScriptValue ScriptAPIObjectFunction(void *self, RuntimeScriptValu
 #define ASSERT_OBJ_PARAM_COUNT(METHOD, X) \
     ASSERT_SELF(METHOD) \
     ASSERT_PARAM_COUNT(METHOD, X)
+
+//-----------------------------------------------------------------------------
+// Calls to ScriptSprintf
+
+#define API_SCALL_SCRIPT_SPRINTF(FUNCTION, PARAM_COUNT) \
+    ASSERT_PARAM_COUNT(FUNCTION, PARAM_COUNT) \
+    const char *scsf_buffer = ScriptSprintf(ScSfBuffer, 3000, params[PARAM_COUNT - 1].GetPtr(), params + PARAM_COUNT, param_count - PARAM_COUNT);
+
+#define API_OBJCALL_SCRIPT_SPRINTF(METHOD, PARAM_COUNT) \
+    ASSERT_OBJ_PARAM_COUNT(METHOD, PARAM_COUNT) \
+    const char *scsf_buffer = ScriptSprintf(ScSfBuffer, 3000, params[PARAM_COUNT - 1].GetPtr(), params + PARAM_COUNT, param_count - PARAM_COUNT);
 
 //-----------------------------------------------------------------------------
 // Calls to static functions

@@ -40,7 +40,7 @@ extern int scrnwid,scrnhit;
 extern GameSetupStruct game;
 extern int screen_is_dirty;
 
-void Display(char*texx, ...) {
+void Display(const char*texx, ...) {
     char displbuf[STD_BUFFER_SIZE];
     va_list ap;
     va_start(ap,texx);
@@ -139,7 +139,7 @@ void DisplayMessage(int msnum) {
     DisplayMessageAtY (msnum, -1);
 }
 
-void DisplayAt(int xxp,int yyp,int widd,char*texx, ...) {
+void DisplayAt(int xxp,int yyp,int widd, const char*texx, ...) {
     char displbuf[STD_BUFFER_SIZE];
     va_list ap;
     va_start(ap,texx);

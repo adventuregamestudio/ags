@@ -73,7 +73,7 @@ void GetMessageText (int msg, char *buffer);
 void SetSpeechFont (int fontnum);
 void SetNormalFont (int fontnum);
 
-void _sc_AbortGame(char*texx, ...);
+void _sc_AbortGame(const char*texx, ...);
 
 int GetGraphicalVariable (const char *varName);
 void SetGraphicalVariable (const char *varName, int p_value);

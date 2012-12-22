@@ -2938,10 +2938,11 @@ RuntimeScriptValue Sc_Character_RunInteraction(void *self, RuntimeScriptValue *p
     API_OBJCALL_VOID_PINT(CharacterInfo, Character_RunInteraction)
 }
 
-// void Character_Say(CharacterInfo *chaa, const char *texx, ...)
+// void (CharacterInfo *chaa, const char *texx, ...)
 RuntimeScriptValue Sc_Character_Say(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    // TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    API_OBJCALL_SCRIPT_SPRINTF(Character_Say, 1)
+    Character_Say((CharacterInfo*)self, "%s", scsf_buffer);
     return RuntimeScriptValue();
 }
 
@@ -2987,10 +2988,11 @@ RuntimeScriptValue Sc_Character_StopMoving(void *self, RuntimeScriptValue *param
     API_OBJCALL_VOID(CharacterInfo, Character_StopMoving)
 }
 
-// void Character_Think(CharacterInfo *chaa, const char *texx, ...)
+// void (CharacterInfo *chaa, const char *texx, ...)
 RuntimeScriptValue Sc_Character_Think(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    // TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    API_OBJCALL_SCRIPT_SPRINTF(Character_Think, 1)
+    Character_Think((CharacterInfo*)self, "%s", scsf_buffer);
     return RuntimeScriptValue();
 }
 

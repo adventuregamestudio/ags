@@ -533,11 +533,11 @@ RuntimeScriptValue Sc_String_EndsWith(void *self, RuntimeScriptValue *params, in
     API_OBJCALL_INT_POBJ_PBOOL(const char, String_EndsWith, const char)
 }
 
-// const char* String_Format(const char *texx, ...)
+// const char* (const char *texx, ...)
 RuntimeScriptValue Sc_String_Format(RuntimeScriptValue *params, int32_t param_count)
 {
-    // TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    return RuntimeScriptValue();
+    API_SCALL_SCRIPT_SPRINTF(String_Format, 1)
+    return RuntimeScriptValue().SetDynamicObject((void*)String_Format("%s", scsf_buffer), &myScriptStringImpl);
 }
 
 // const char* (const char *thisString)

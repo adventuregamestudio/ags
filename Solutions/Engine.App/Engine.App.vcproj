@@ -821,6 +821,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\script\script_api.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\script\script_engine.cpp"
 					>
 				</File>
@@ -1042,6 +1046,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\test\test_file.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\test\test_sprintf.cpp"
 					>
 				</File>
 				<File

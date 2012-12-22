@@ -132,7 +132,7 @@ void RawSetColorRGB(int red, int grn, int blu) {
 
     play.raw_color = makecol_depth(thisroom.ebscene[play.bg_frame]->GetColorDepth(), red, grn, blu);
 }
-void RawPrint (int xx, int yy, char*texx, ...) {
+void RawPrint (int xx, int yy, const char*texx, ...) {
     char displbuf[STD_BUFFER_SIZE];
     va_list ap;
     va_start(ap,texx);

@@ -864,7 +864,7 @@ void SetNormalFont (int fontnum) {
     play.normal_font = fontnum;
 }
 
-void _sc_AbortGame(char*texx, ...) {
+void _sc_AbortGame(const char*texx, ...) {
     char displbuf[STD_BUFFER_SIZE] = "!?";
     va_list ap;
     va_start(ap,texx);

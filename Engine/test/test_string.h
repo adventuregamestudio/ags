@@ -14,6 +14,7 @@
 
 #ifdef _DEBUG
 
+void Test_ScriptSprintf();
 void Test_String();
 
 #endif // _DEBUG

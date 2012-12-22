@@ -53,7 +53,7 @@ void Overlay_Remove(ScriptOverlay *sco) {
     sco->Remove();
 }
 
-void Overlay_SetText(ScriptOverlay *scover, int wii, int fontid, int clr, char*texx, ...) {
+void Overlay_SetText(ScriptOverlay *scover, int wii, int fontid, int clr, const char*texx, ...) {
     char displbuf[STD_BUFFER_SIZE];
     va_list ap;
     va_start(ap,texx);
@@ -293,14 +293,17 @@ RuntimeScriptValue Sc_Overlay_CreateGraphical(RuntimeScriptValue *params, int32_
 // ScriptOverlay* (int x, int y, int width, int font, int colour, const char* text, ...)
 RuntimeScriptValue Sc_Overlay_CreateTextual(RuntimeScriptValue *params, int32_t param_count)
 {
-    // TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    return RuntimeScriptValue();
+    API_SCALL_SCRIPT_SPRINTF(Overlay_CreateTextual, 6)
+    ScriptOverlay *overlay = Overlay_CreateTextual(params[0].GetInt32(), params[1].GetInt32(), params[2].GetInt32(),
+                                                   params[3].GetInt32(), params[4].GetInt32(), "%s", scsf_buffer);
+    return RuntimeScriptValue().SetDynamicObject(overlay, overlay);
 }
 
-// void Overlay_SetText(ScriptOverlay *scover, int wii, int fontid, int clr, char*texx, ...)
+// void (ScriptOverlay *scover, int wii, int fontid, int clr, char*texx, ...)
 RuntimeScriptValue Sc_Overlay_SetText(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    // TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    API_OBJCALL_SCRIPT_SPRINTF(Overlay_SetText, 4)
+    Overlay_SetText((ScriptOverlay*)self, params[0].GetInt32(), params[1].GetInt32(), params[2].GetInt32(), "%s", scsf_buffer);
     return RuntimeScriptValue();
 }
 

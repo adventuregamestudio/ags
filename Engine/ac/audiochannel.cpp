@@ -252,7 +252,7 @@ RuntimeScriptValue Sc_AudioChannel_SetVolume(void *self, RuntimeScriptValue *par
 // void | ScriptAudioChannel *channel
 RuntimeScriptValue Sc_AudioChannel_Stop(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID(ScriptAudioChannel, AudioChannel_Stop)
+    API_OBJCALL_VOID(ScriptAudioChannel, AudioChannel_Stop);
 }
 
 // void | ScriptAudioChannel *channel, int newPosition

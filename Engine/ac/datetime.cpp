@@ -76,49 +76,49 @@ int DateTime_GetRawTime(ScriptDateTime *sdt) {
 // ScriptDateTime* ()
 RuntimeScriptValue Sc_DateTime_Now(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJAUTO(ScriptDateTime, DateTime_Now)
+    API_SCALL_OBJAUTO(ScriptDateTime, DateTime_Now);
 }
 
 // int (ScriptDateTime *sdt)
 RuntimeScriptValue Sc_DateTime_GetYear(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptDateTime, DateTime_GetYear)
+    API_OBJCALL_INT(ScriptDateTime, DateTime_GetYear);
 }
 
 // int (ScriptDateTime *sdt)
 RuntimeScriptValue Sc_DateTime_GetMonth(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptDateTime, DateTime_GetMonth)
+    API_OBJCALL_INT(ScriptDateTime, DateTime_GetMonth);
 }
 
 // int (ScriptDateTime *sdt)
 RuntimeScriptValue Sc_DateTime_GetDayOfMonth(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptDateTime, DateTime_GetDayOfMonth)
+    API_OBJCALL_INT(ScriptDateTime, DateTime_GetDayOfMonth);
 }
 
 // int (ScriptDateTime *sdt)
 RuntimeScriptValue Sc_DateTime_GetHour(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptDateTime, DateTime_GetHour)
+    API_OBJCALL_INT(ScriptDateTime, DateTime_GetHour);
 }
 
 // int (ScriptDateTime *sdt)
 RuntimeScriptValue Sc_DateTime_GetMinute(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptDateTime, DateTime_GetMinute)
+    API_OBJCALL_INT(ScriptDateTime, DateTime_GetMinute);
 }
 
 // int (ScriptDateTime *sdt)
 RuntimeScriptValue Sc_DateTime_GetSecond(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptDateTime, DateTime_GetSecond)
+    API_OBJCALL_INT(ScriptDateTime, DateTime_GetSecond);
 }
 
 // int (ScriptDateTime *sdt)
 RuntimeScriptValue Sc_DateTime_GetRawTime(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptDateTime, DateTime_GetRawTime)
+    API_OBJCALL_INT(ScriptDateTime, DateTime_GetRawTime);
 }
 
 void RegisterDateTimeAPI()

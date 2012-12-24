@@ -511,55 +511,55 @@ int DrawingSurface_GetPixel(ScriptDrawingSurface *sds, int x, int y) {
 // void (ScriptDrawingSurface *sds, int colour)
 RuntimeScriptValue Sc_DrawingSurface_Clear(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(ScriptDrawingSurface, DrawingSurface_Clear)
+    API_OBJCALL_VOID_PINT(ScriptDrawingSurface, DrawingSurface_Clear);
 }
 
 // ScriptDrawingSurface* (ScriptDrawingSurface *sds)
 RuntimeScriptValue Sc_DrawingSurface_CreateCopy(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJAUTO(ScriptDrawingSurface, ScriptDrawingSurface, DrawingSurface_CreateCopy)
+    API_OBJCALL_OBJAUTO(ScriptDrawingSurface, ScriptDrawingSurface, DrawingSurface_CreateCopy);
 }
 
 // void (ScriptDrawingSurface *sds, int x, int y, int radius)
 RuntimeScriptValue Sc_DrawingSurface_DrawCircle(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT3(ScriptDrawingSurface, DrawingSurface_DrawCircle)
+    API_OBJCALL_VOID_PINT3(ScriptDrawingSurface, DrawingSurface_DrawCircle);
 }
 
 // void (ScriptDrawingSurface* sds, int xx, int yy, int slot, int trans, int width, int height)
 RuntimeScriptValue Sc_DrawingSurface_DrawImage(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT6(ScriptDrawingSurface, DrawingSurface_DrawImage)
+    API_OBJCALL_VOID_PINT6(ScriptDrawingSurface, DrawingSurface_DrawImage);
 }
 
 // void (ScriptDrawingSurface *sds, int fromx, int fromy, int tox, int toy, int thickness)
 RuntimeScriptValue Sc_DrawingSurface_DrawLine(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT5(ScriptDrawingSurface, DrawingSurface_DrawLine)
+    API_OBJCALL_VOID_PINT5(ScriptDrawingSurface, DrawingSurface_DrawLine);
 }
 
 // void (ScriptDrawingSurface *sds, int xx, int yy, int wid, int font, int msgm)
 RuntimeScriptValue Sc_DrawingSurface_DrawMessageWrapped(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT5(ScriptDrawingSurface, DrawingSurface_DrawMessageWrapped)
+    API_OBJCALL_VOID_PINT5(ScriptDrawingSurface, DrawingSurface_DrawMessageWrapped);
 }
 
 // void (ScriptDrawingSurface *sds, int x, int y)
 RuntimeScriptValue Sc_DrawingSurface_DrawPixel(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT2(ScriptDrawingSurface, DrawingSurface_DrawPixel)
+    API_OBJCALL_VOID_PINT2(ScriptDrawingSurface, DrawingSurface_DrawPixel);
 }
 
 // void (ScriptDrawingSurface *sds, int x1, int y1, int x2, int y2)
 RuntimeScriptValue Sc_DrawingSurface_DrawRectangle(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT4(ScriptDrawingSurface, DrawingSurface_DrawRectangle)
+    API_OBJCALL_VOID_PINT4(ScriptDrawingSurface, DrawingSurface_DrawRectangle);
 }
 
 // void (ScriptDrawingSurface *sds, int xx, int yy, int font, const char* texx, ...)
 RuntimeScriptValue Sc_DrawingSurface_DrawString(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_SCRIPT_SPRINTF(DrawingSurface_DrawString, 4)
+    API_OBJCALL_SCRIPT_SPRINTF(DrawingSurface_DrawString, 4);
     DrawingSurface_DrawString((ScriptDrawingSurface*)self, params[0].GetInt32(), params[1].GetInt32(), params[2].GetInt32(), "%s", scsf_buffer);
     return RuntimeScriptValue();
 }
@@ -567,67 +567,67 @@ RuntimeScriptValue Sc_DrawingSurface_DrawString(void *self, RuntimeScriptValue *
 // void (ScriptDrawingSurface *sds, int xx, int yy, int wid, int font, int alignment, const char *msg)
 RuntimeScriptValue Sc_DrawingSurface_DrawStringWrapped(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT5_POBJ(ScriptDrawingSurface, DrawingSurface_DrawStringWrapped, const char)
+    API_OBJCALL_VOID_PINT5_POBJ(ScriptDrawingSurface, DrawingSurface_DrawStringWrapped, const char);
 }
 
 // void (ScriptDrawingSurface* target, ScriptDrawingSurface* source, int translev)
 RuntimeScriptValue Sc_DrawingSurface_DrawSurface(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ_PINT(ScriptDrawingSurface, DrawingSurface_DrawSurface, ScriptDrawingSurface)
+    API_OBJCALL_VOID_POBJ_PINT(ScriptDrawingSurface, DrawingSurface_DrawSurface, ScriptDrawingSurface);
 }
 
 // void (ScriptDrawingSurface *sds, int x1, int y1, int x2, int y2, int x3, int y3)
 RuntimeScriptValue Sc_DrawingSurface_DrawTriangle(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT6(ScriptDrawingSurface, DrawingSurface_DrawTriangle)
+    API_OBJCALL_VOID_PINT6(ScriptDrawingSurface, DrawingSurface_DrawTriangle);
 }
 
 // int (ScriptDrawingSurface *sds, int x, int y)
 RuntimeScriptValue Sc_DrawingSurface_GetPixel(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT_PINT2(ScriptDrawingSurface, DrawingSurface_GetPixel)
+    API_OBJCALL_INT_PINT2(ScriptDrawingSurface, DrawingSurface_GetPixel);
 }
 
 // void (ScriptDrawingSurface* sds)
 RuntimeScriptValue Sc_DrawingSurface_Release(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID(ScriptDrawingSurface, DrawingSurface_Release)
+    API_OBJCALL_VOID(ScriptDrawingSurface, DrawingSurface_Release);
 }
 
 // int (ScriptDrawingSurface *sds)
 RuntimeScriptValue Sc_DrawingSurface_GetDrawingColor(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptDrawingSurface, DrawingSurface_GetDrawingColor)
+    API_OBJCALL_INT(ScriptDrawingSurface, DrawingSurface_GetDrawingColor);
 }
 
 // void (ScriptDrawingSurface *sds, int newColour)
 RuntimeScriptValue Sc_DrawingSurface_SetDrawingColor(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(ScriptDrawingSurface, DrawingSurface_SetDrawingColor)
+    API_OBJCALL_VOID_PINT(ScriptDrawingSurface, DrawingSurface_SetDrawingColor);
 }
 
 // int (ScriptDrawingSurface *sds)
 RuntimeScriptValue Sc_DrawingSurface_GetHeight(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptDrawingSurface, DrawingSurface_GetHeight)
+    API_OBJCALL_INT(ScriptDrawingSurface, DrawingSurface_GetHeight);
 }
 
 // int (ScriptDrawingSurface *sds)
 RuntimeScriptValue Sc_DrawingSurface_GetUseHighResCoordinates(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptDrawingSurface, DrawingSurface_GetUseHighResCoordinates)
+    API_OBJCALL_INT(ScriptDrawingSurface, DrawingSurface_GetUseHighResCoordinates);
 }
 
 // void (ScriptDrawingSurface *sds, int highRes)
 RuntimeScriptValue Sc_DrawingSurface_SetUseHighResCoordinates(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(ScriptDrawingSurface, DrawingSurface_SetUseHighResCoordinates)
+    API_OBJCALL_VOID_PINT(ScriptDrawingSurface, DrawingSurface_SetUseHighResCoordinates);
 }
 
 // int (ScriptDrawingSurface *sds)
 RuntimeScriptValue Sc_DrawingSurface_GetWidth(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptDrawingSurface, DrawingSurface_GetWidth)
+    API_OBJCALL_INT(ScriptDrawingSurface, DrawingSurface_GetWidth);
 }
 
 void RegisterDrawingSurfaceAPI()

@@ -303,25 +303,25 @@ extern ScriptString myScriptStringImpl;
 // int (const char *wordToFind)
 RuntimeScriptValue Sc_Parser_FindWordID(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_POBJ(Parser_FindWordID, const char)
+    API_SCALL_INT_POBJ(Parser_FindWordID, const char);
 }
 
 // void  (char*text)
 RuntimeScriptValue Sc_ParseText(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_POBJ(ParseText, /*const*/ char)
+    API_SCALL_VOID_POBJ(ParseText, /*const*/ char);
 }
 
 // const char* ()
 RuntimeScriptValue Sc_Parser_SaidUnknownWord(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ(const char, myScriptStringImpl, Parser_SaidUnknownWord)
+    API_SCALL_OBJ(const char, myScriptStringImpl, Parser_SaidUnknownWord);
 }
 
 // int  (char*checkwords)
 RuntimeScriptValue Sc_Said(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_POBJ(Said, /*const*/ char)
+    API_SCALL_INT_POBJ(Said, /*const*/ char);
 }
 
 

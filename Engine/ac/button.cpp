@@ -264,103 +264,103 @@ extern ScriptString myScriptStringImpl;
 // void | GUIButton *butt, int view, int loop, int speed, int repeat
 RuntimeScriptValue Sc_Button_Animate(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT4(GUIButton, Button_Animate)
+    API_OBJCALL_VOID_PINT4(GUIButton, Button_Animate);
 }
 
 // const char* | GUIButton *butt
 RuntimeScriptValue Sc_Button_GetText_New(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ(GUIButton, const char, myScriptStringImpl, Button_GetText_New)
+    API_OBJCALL_OBJ(GUIButton, const char, myScriptStringImpl, Button_GetText_New);
 }
 
 // void | GUIButton *butt, char *buffer
 RuntimeScriptValue Sc_Button_GetText(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ(GUIButton, Button_GetText, char)
+    API_OBJCALL_VOID_POBJ(GUIButton, Button_GetText, char);
 }
 
 // void | GUIButton *butt, const char *newtx
 RuntimeScriptValue Sc_Button_SetText(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ(GUIButton, Button_SetText, const char)
+    API_OBJCALL_VOID_POBJ(GUIButton, Button_SetText, const char);
 }
 
 // void | GUIButton *butt, int newFont
 RuntimeScriptValue Sc_Button_SetFont(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(GUIButton, Button_SetFont)
+    API_OBJCALL_VOID_PINT(GUIButton, Button_SetFont);
 }
 
 // int | GUIButton *butt
 RuntimeScriptValue Sc_Button_GetFont(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUIButton, Button_GetFont)
+    API_OBJCALL_INT(GUIButton, Button_GetFont);
 }
 
 // int | GUIButton *butt
 RuntimeScriptValue Sc_Button_GetClipImage(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUIButton, Button_GetClipImage)
+    API_OBJCALL_INT(GUIButton, Button_GetClipImage);
 }
 
 // void | GUIButton *butt, int newval
 RuntimeScriptValue Sc_Button_SetClipImage(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(GUIButton, Button_SetClipImage)
+    API_OBJCALL_VOID_PINT(GUIButton, Button_SetClipImage);
 }
 
 // int | GUIButton *butt
 RuntimeScriptValue Sc_Button_GetGraphic(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUIButton, Button_GetGraphic)
+    API_OBJCALL_INT(GUIButton, Button_GetGraphic);
 }
 
 // int | GUIButton *butt
 RuntimeScriptValue Sc_Button_GetMouseOverGraphic(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUIButton, Button_GetMouseOverGraphic)
+    API_OBJCALL_INT(GUIButton, Button_GetMouseOverGraphic);
 }
 
 // void | GUIButton *guil, int slotn
 RuntimeScriptValue Sc_Button_SetMouseOverGraphic(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(GUIButton, Button_SetMouseOverGraphic)
+    API_OBJCALL_VOID_PINT(GUIButton, Button_SetMouseOverGraphic);
 }
 
 // int | GUIButton *butt
 RuntimeScriptValue Sc_Button_GetNormalGraphic(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUIButton, Button_GetNormalGraphic)
+    API_OBJCALL_INT(GUIButton, Button_GetNormalGraphic);
 }
 
 // void | GUIButton *guil, int slotn
 RuntimeScriptValue Sc_Button_SetNormalGraphic(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(GUIButton, Button_SetNormalGraphic)
+    API_OBJCALL_VOID_PINT(GUIButton, Button_SetNormalGraphic);
 }
 
 // int | GUIButton *butt
 RuntimeScriptValue Sc_Button_GetPushedGraphic(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUIButton, Button_GetPushedGraphic)
+    API_OBJCALL_INT(GUIButton, Button_GetPushedGraphic);
 }
 
 // void | GUIButton *guil, int slotn
 RuntimeScriptValue Sc_Button_SetPushedGraphic(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(GUIButton, Button_SetPushedGraphic)
+    API_OBJCALL_VOID_PINT(GUIButton, Button_SetPushedGraphic);
 }
 
 // int | GUIButton *butt
 RuntimeScriptValue Sc_Button_GetTextColor(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUIButton, Button_GetTextColor)
+    API_OBJCALL_INT(GUIButton, Button_GetTextColor);
 }
 
 // void | GUIButton *butt, int newcol
 RuntimeScriptValue Sc_Button_SetTextColor(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(GUIButton, Button_SetTextColor)
+    API_OBJCALL_VOID_PINT(GUIButton, Button_SetTextColor);
 }
 
 void RegisterButtonAPI()

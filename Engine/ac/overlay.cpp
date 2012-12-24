@@ -287,13 +287,13 @@ void get_overlay_position(int overlayidx, int *x, int *y) {
 // ScriptOverlay* (int x, int y, int slot, int transparent)
 RuntimeScriptValue Sc_Overlay_CreateGraphical(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJAUTO_PINT4(ScriptOverlay, Overlay_CreateGraphical)
+    API_SCALL_OBJAUTO_PINT4(ScriptOverlay, Overlay_CreateGraphical);
 }
 
 // ScriptOverlay* (int x, int y, int width, int font, int colour, const char* text, ...)
 RuntimeScriptValue Sc_Overlay_CreateTextual(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_SCRIPT_SPRINTF(Overlay_CreateTextual, 6)
+    API_SCALL_SCRIPT_SPRINTF(Overlay_CreateTextual, 6);
     ScriptOverlay *overlay = Overlay_CreateTextual(params[0].GetInt32(), params[1].GetInt32(), params[2].GetInt32(),
                                                    params[3].GetInt32(), params[4].GetInt32(), "%s", scsf_buffer);
     return RuntimeScriptValue().SetDynamicObject(overlay, overlay);
@@ -302,7 +302,7 @@ RuntimeScriptValue Sc_Overlay_CreateTextual(RuntimeScriptValue *params, int32_t 
 // void (ScriptOverlay *scover, int wii, int fontid, int clr, char*texx, ...)
 RuntimeScriptValue Sc_Overlay_SetText(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_SCRIPT_SPRINTF(Overlay_SetText, 4)
+    API_OBJCALL_SCRIPT_SPRINTF(Overlay_SetText, 4);
     Overlay_SetText((ScriptOverlay*)self, params[0].GetInt32(), params[1].GetInt32(), params[2].GetInt32(), "%s", scsf_buffer);
     return RuntimeScriptValue();
 }
@@ -310,37 +310,37 @@ RuntimeScriptValue Sc_Overlay_SetText(void *self, RuntimeScriptValue *params, in
 // void (ScriptOverlay *sco)
 RuntimeScriptValue Sc_Overlay_Remove(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID(ScriptOverlay, Overlay_Remove)
+    API_OBJCALL_VOID(ScriptOverlay, Overlay_Remove);
 }
 
 // int (ScriptOverlay *scover)
 RuntimeScriptValue Sc_Overlay_GetValid(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptOverlay, Overlay_GetValid)
+    API_OBJCALL_INT(ScriptOverlay, Overlay_GetValid);
 }
 
 // int (ScriptOverlay *scover)
 RuntimeScriptValue Sc_Overlay_GetX(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptOverlay, Overlay_GetX)
+    API_OBJCALL_INT(ScriptOverlay, Overlay_GetX);
 }
 
 // void (ScriptOverlay *scover, int newx)
 RuntimeScriptValue Sc_Overlay_SetX(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetX)
+    API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetX);
 }
 
 // int (ScriptOverlay *scover)
 RuntimeScriptValue Sc_Overlay_GetY(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptOverlay, Overlay_GetY)
+    API_OBJCALL_INT(ScriptOverlay, Overlay_GetY);
 }
 
 // void (ScriptOverlay *scover, int newy)
 RuntimeScriptValue Sc_Overlay_SetY(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetY)
+    API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetY);
 }
 
 

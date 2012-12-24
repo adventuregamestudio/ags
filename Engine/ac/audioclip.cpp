@@ -87,43 +87,43 @@ ScriptAudioChannel* AudioClip_PlayQueued(ScriptAudioClip *clip, int priority, in
 // int | ScriptAudioClip *clip
 RuntimeScriptValue Sc_AudioClip_GetFileType(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptAudioClip, AudioClip_GetFileType)
+    API_OBJCALL_INT(ScriptAudioClip, AudioClip_GetFileType);
 }
 
 // int | ScriptAudioClip *clip
 RuntimeScriptValue Sc_AudioClip_GetType(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptAudioClip, AudioClip_GetType)
+    API_OBJCALL_INT(ScriptAudioClip, AudioClip_GetType);
 }
 
 // int | ScriptAudioClip *clip
 RuntimeScriptValue Sc_AudioClip_GetIsAvailable(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptAudioClip, AudioClip_GetIsAvailable)
+    API_OBJCALL_INT(ScriptAudioClip, AudioClip_GetIsAvailable);
 }
 
 // void | ScriptAudioClip *clip
 RuntimeScriptValue Sc_AudioClip_Stop(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID(ScriptAudioClip, AudioClip_Stop)
+    API_OBJCALL_VOID(ScriptAudioClip, AudioClip_Stop);
 }
 
 // ScriptAudioChannel* | ScriptAudioClip *clip, int priority, int repeat
 RuntimeScriptValue Sc_AudioClip_Play(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ_PINT2(ScriptAudioClip, ScriptAudioChannel, ccDynamicAudio, AudioClip_Play)
+    API_OBJCALL_OBJ_PINT2(ScriptAudioClip, ScriptAudioChannel, ccDynamicAudio, AudioClip_Play);
 }
 
 // ScriptAudioChannel* | ScriptAudioClip *clip, int position, int priority, int repeat
 RuntimeScriptValue Sc_AudioClip_PlayFrom(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ_PINT3(ScriptAudioClip, ScriptAudioChannel, ccDynamicAudio, AudioClip_PlayFrom)
+    API_OBJCALL_OBJ_PINT3(ScriptAudioClip, ScriptAudioChannel, ccDynamicAudio, AudioClip_PlayFrom);
 }
 
 // ScriptAudioChannel* | ScriptAudioClip *clip, int priority, int repeat
 RuntimeScriptValue Sc_AudioClip_PlayQueued(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ_PINT2(ScriptAudioClip, ScriptAudioChannel, ccDynamicAudio, AudioClip_PlayQueued)
+    API_OBJCALL_OBJ_PINT2(ScriptAudioClip, ScriptAudioChannel, ccDynamicAudio, AudioClip_PlayQueued);
 }
 
 void RegisterAudioClipAPI()

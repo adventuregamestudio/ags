@@ -98,31 +98,31 @@ RuntimeScriptValue Sc_TextBox_SetText(void *self, RuntimeScriptValue *params, in
 // int (GUITextBox *guit)
 RuntimeScriptValue Sc_TextBox_GetFont(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUITextBox, TextBox_GetFont)
+    API_OBJCALL_INT(GUITextBox, TextBox_GetFont);
 }
 
 // void (GUITextBox *guit, int fontnum)
 RuntimeScriptValue Sc_TextBox_SetFont(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(GUITextBox, TextBox_SetFont)
+    API_OBJCALL_VOID_PINT(GUITextBox, TextBox_SetFont);
 }
 
 // const char* (GUITextBox *texbox)
 RuntimeScriptValue Sc_TextBox_GetText_New(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ(GUITextBox, const char *, myScriptStringImpl, TextBox_GetText_New)
+    API_OBJCALL_OBJ(GUITextBox, const char *, myScriptStringImpl, TextBox_GetText_New);
 }
 
 // int (GUITextBox *guit)
 RuntimeScriptValue Sc_TextBox_GetTextColor(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUITextBox, TextBox_GetTextColor)
+    API_OBJCALL_INT(GUITextBox, TextBox_GetTextColor);
 }
 
 // void (GUITextBox *guit, int colr)
 RuntimeScriptValue Sc_TextBox_SetTextColor(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(GUITextBox, TextBox_SetTextColor)
+    API_OBJCALL_VOID_PINT(GUITextBox, TextBox_SetTextColor);
 }
 
 

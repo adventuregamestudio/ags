@@ -1082,55 +1082,55 @@ extern ScriptString myScriptStringImpl;
 // int (ScriptDialog *sd)
 RuntimeScriptValue Sc_Dialog_GetID(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptDialog, Dialog_GetID)
+    API_OBJCALL_INT(ScriptDialog, Dialog_GetID);
 }
 
 // int (ScriptDialog *sd)
 RuntimeScriptValue Sc_Dialog_GetOptionCount(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptDialog, Dialog_GetOptionCount)
+    API_OBJCALL_INT(ScriptDialog, Dialog_GetOptionCount);
 }
 
 // int (ScriptDialog *sd)
 RuntimeScriptValue Sc_Dialog_GetShowTextParser(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptDialog, Dialog_GetShowTextParser)
+    API_OBJCALL_INT(ScriptDialog, Dialog_GetShowTextParser);
 }
 
 // int (ScriptDialog *sd, int sayChosenOption)
 RuntimeScriptValue Sc_Dialog_DisplayOptions(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT_PINT(ScriptDialog, Dialog_DisplayOptions)
+    API_OBJCALL_INT_PINT(ScriptDialog, Dialog_DisplayOptions);
 }
 
 // int (ScriptDialog *sd, int option)
 RuntimeScriptValue Sc_Dialog_GetOptionState(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT_PINT(ScriptDialog, Dialog_GetOptionState)
+    API_OBJCALL_INT_PINT(ScriptDialog, Dialog_GetOptionState);
 }
 
 // const char* (ScriptDialog *sd, int option)
 RuntimeScriptValue Sc_Dialog_GetOptionText(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ_PINT(ScriptDialog, const char, myScriptStringImpl, Dialog_GetOptionText)
+    API_OBJCALL_OBJ_PINT(ScriptDialog, const char, myScriptStringImpl, Dialog_GetOptionText);
 }
 
 // int (ScriptDialog *sd, int option)
 RuntimeScriptValue Sc_Dialog_HasOptionBeenChosen(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT_PINT(ScriptDialog, Dialog_HasOptionBeenChosen)
+    API_OBJCALL_INT_PINT(ScriptDialog, Dialog_HasOptionBeenChosen);
 }
 
 // void (ScriptDialog *sd, int option, int newState)
 RuntimeScriptValue Sc_Dialog_SetOptionState(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT2(ScriptDialog, Dialog_SetOptionState)
+    API_OBJCALL_VOID_PINT2(ScriptDialog, Dialog_SetOptionState);
 }
 
 // void (ScriptDialog *sd)
 RuntimeScriptValue Sc_Dialog_Start(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID(ScriptDialog, Dialog_Start)
+    API_OBJCALL_VOID(ScriptDialog, Dialog_Start);
 }
 
 void RegisterDialogAPI()

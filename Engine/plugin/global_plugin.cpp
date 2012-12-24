@@ -171,241 +171,241 @@ void SetFlashlightInt5(int Param1, int Param2, int Param3, int Param4, int Param
 // void ()
 RuntimeScriptValue Sc_ScriptStub_ShellExecute(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID(ScriptStub_ShellExecute)
+    API_SCALL_VOID(ScriptStub_ShellExecute);
 }
 
 // void (int min_value, int max_value)
 RuntimeScriptValue Sc_srSetSnowDriftRange(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT2(srSetSnowDriftRange)
+    API_SCALL_VOID_PINT2(srSetSnowDriftRange);
 }
 
 // void (int min_value, int max_value)
 RuntimeScriptValue Sc_srSetSnowDriftSpeed(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT2(srSetSnowDriftSpeed)
+    API_SCALL_VOID_PINT2(srSetSnowDriftSpeed);
 }
 
 // void (int min_value, int max_value)
 RuntimeScriptValue Sc_srSetSnowFallSpeed(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT2(srSetSnowFallSpeed)
+    API_SCALL_VOID_PINT2(srSetSnowFallSpeed);
 }
 
 // void (int amount)
 RuntimeScriptValue Sc_srChangeSnowAmount(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT(srChangeSnowAmount)
+    API_SCALL_VOID_PINT(srChangeSnowAmount);
 }
 
 // void (int top, int bottom)
 RuntimeScriptValue Sc_srSetSnowBaseline(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT2(srSetSnowBaseline)
+    API_SCALL_VOID_PINT2(srSetSnowBaseline);
 }
 
 // void (int min_value, int max_value)
 RuntimeScriptValue Sc_srSetSnowTransparency(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT2(srSetSnowTransparency)
+    API_SCALL_VOID_PINT2(srSetSnowTransparency);
 }
 
 // void (int view, int loop)
 RuntimeScriptValue Sc_srSetSnowDefaultView(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT2(srSetSnowDefaultView)
+    API_SCALL_VOID_PINT2(srSetSnowDefaultView);
 }
 
 // void (int value)
 RuntimeScriptValue Sc_srSetSnowWindSpeed(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT(srSetSnowWindSpeed)
+    API_SCALL_VOID_PINT(srSetSnowWindSpeed);
 }
 
 // void (int amount)
 RuntimeScriptValue Sc_srSetSnowAmount(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT(srSetSnowAmount)
+    API_SCALL_VOID_PINT(srSetSnowAmount);
 }
 
 // void (int kind_id, int event, int view, int loop)
 RuntimeScriptValue Sc_srSetSnowView(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT4(srSetSnowView)
+    API_SCALL_VOID_PINT4(srSetSnowView);
 }
 
 // void (int amount)
 RuntimeScriptValue Sc_srChangeRainAmount(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT(srChangeRainAmount)
+    API_SCALL_VOID_PINT(srChangeRainAmount);
 }
 
 // void (int kind_id, int event, int view, int loop)
 RuntimeScriptValue Sc_srSetRainView(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT4(srSetRainView)
+    API_SCALL_VOID_PINT4(srSetRainView);
 }
 
 // void (int view, int loop)
 RuntimeScriptValue Sc_srSetRainDefaultView(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT2(srSetRainDefaultView)
+    API_SCALL_VOID_PINT2(srSetRainDefaultView);
 }
 
 // void (int min_value, int max_value)
 RuntimeScriptValue Sc_srSetRainTransparency(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT2(srSetRainTransparency)
+    API_SCALL_VOID_PINT2(srSetRainTransparency);
 }
 
 // void (int value)
 RuntimeScriptValue Sc_srSetRainWindSpeed(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT(srSetRainWindSpeed)
+    API_SCALL_VOID_PINT(srSetRainWindSpeed);
 }
 
 // void (int top, int bottom)
 RuntimeScriptValue Sc_srSetRainBaseline(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT2(srSetRainBaseline)
+    API_SCALL_VOID_PINT2(srSetRainBaseline);
 }
 
 // void (int amount)
 RuntimeScriptValue Sc_srSetRainAmount(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT(srSetRainAmount)
+    API_SCALL_VOID_PINT(srSetRainAmount);
 }
 
 // void (int min_value, int max_value)
 RuntimeScriptValue Sc_srSetRainFallSpeed(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT2(srSetRainFallSpeed)
+    API_SCALL_VOID_PINT2(srSetRainFallSpeed);
 }
 
 // void (int value)
 RuntimeScriptValue Sc_srSetWindSpeed(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT(srSetWindSpeed)
+    API_SCALL_VOID_PINT(srSetWindSpeed);
 }
 
 // void (int top, int bottom)
 RuntimeScriptValue Sc_srSetBaseline(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT2(srSetBaseline)
+    API_SCALL_VOID_PINT2(srSetBaseline);
 }
 
 // int ()
 RuntimeScriptValue Sc_JoystickCount(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT(JoystickCount)
+    API_SCALL_INT(JoystickCount);
 }
 
 // int (int a)
 RuntimeScriptValue Sc_Joystick_Open(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT(Joystick_Open)
+    API_SCALL_INT_PINT(Joystick_Open);
 }
 
 // int (int a)
 RuntimeScriptValue Sc_Joystick_IsButtonDown(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT(Joystick_IsButtonDown)
+    API_SCALL_INT_PINT(Joystick_IsButtonDown);
 }
 
 // void (int a)
 RuntimeScriptValue Sc_Joystick_EnableEvents(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT(Joystick_EnableEvents)
+    API_SCALL_VOID_PINT(Joystick_EnableEvents);
 }
 
 // void ()
 RuntimeScriptValue Sc_Joystick_DisableEvents(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID(Joystick_DisableEvents)
+    API_SCALL_VOID(Joystick_DisableEvents);
 }
 
 // void (int a)
 RuntimeScriptValue Sc_Joystick_Click(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT(Joystick_Click)
+    API_SCALL_VOID_PINT(Joystick_Click);
 }
 
 // int ()
 RuntimeScriptValue Sc_Joystick_Valid(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT(Joystick_Valid)
+    API_SCALL_INT(Joystick_Valid);
 }
 
 // int ()
 RuntimeScriptValue Sc_Joystick_Unplugged(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT(Joystick_Unplugged)
+    API_SCALL_INT(Joystick_Unplugged);
 }
 
 // int (int destination, int sprite, int x, int y, int transparency)
 RuntimeScriptValue Sc_DrawAlpha(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT5(DrawAlpha)
+    API_SCALL_INT_PINT5(DrawAlpha);
 }
 
 // int (int sprite, int x, int y)
 RuntimeScriptValue Sc_GetAlpha(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT3(GetAlpha)
+    API_SCALL_INT_PINT3(GetAlpha);
 }
 
 // int (int sprite, int x, int y, int alpha)
 RuntimeScriptValue Sc_PutAlpha(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT4(PutAlpha)
+    API_SCALL_INT_PINT4(PutAlpha);
 }
 
 // int (int sprite, int radius)
 RuntimeScriptValue Sc_Blur(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT2(Blur)
+    API_SCALL_INT_PINT2(Blur);
 }
 
 // int (int sprite, int threshold)
 RuntimeScriptValue Sc_HighPass(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT2(HighPass)
+    API_SCALL_INT_PINT2(HighPass);
 }
 
 // int (int destination, int sprite, int x, int y, float scale)
 RuntimeScriptValue Sc_DrawAdd(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT4_PFLOAT(DrawAdd)
+    API_SCALL_INT_PINT4_PFLOAT(DrawAdd);
 }
 
 // int ()
 RuntimeScriptValue Sc_GetFlashlightInt(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT(GetFlashlightInt)
+    API_SCALL_INT(GetFlashlightInt);
 }
 
 // void (int Param1)
 RuntimeScriptValue Sc_SetFlashlightInt1(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT(SetFlashlightInt1)
+    API_SCALL_VOID_PINT(SetFlashlightInt1);
 }
 
 // void (int Param1, int Param2)
 RuntimeScriptValue Sc_SetFlashlightInt2(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT2(SetFlashlightInt2)
+    API_SCALL_VOID_PINT2(SetFlashlightInt2);
 }
 
 // void (int Param1, int Param2, int Param3)
 RuntimeScriptValue Sc_SetFlashlightInt3(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT3(SetFlashlightInt3)
+    API_SCALL_VOID_PINT3(SetFlashlightInt3);
 }
 
 // void (int Param1, int Param2, int Param3, int Param4, int Param5)
 RuntimeScriptValue Sc_SetFlashlightInt5(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT5(SetFlashlightInt5)
+    API_SCALL_VOID_PINT5(SetFlashlightInt5);
 }
 
 

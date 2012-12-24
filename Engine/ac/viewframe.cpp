@@ -179,66 +179,66 @@ void DrawViewFrame(Bitmap *target, ViewFrame *vframe, int x, int y) {
 // int (ScriptViewFrame *svf)
 RuntimeScriptValue Sc_ViewFrame_GetFlipped(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptViewFrame, ViewFrame_GetFlipped)
+    API_OBJCALL_INT(ScriptViewFrame, ViewFrame_GetFlipped);
 }
 
 // int (ScriptViewFrame *svf)
 RuntimeScriptValue Sc_ViewFrame_GetFrame(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptViewFrame, ViewFrame_GetFrame)
+    API_OBJCALL_INT(ScriptViewFrame, ViewFrame_GetFrame);
 }
 // int (ScriptViewFrame *svf)
 RuntimeScriptValue Sc_ViewFrame_GetGraphic(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptViewFrame, ViewFrame_GetGraphic)
+    API_OBJCALL_INT(ScriptViewFrame, ViewFrame_GetGraphic);
 }
 
 // void (ScriptViewFrame *svf, int newPic)
 RuntimeScriptValue Sc_ViewFrame_SetGraphic(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(ScriptViewFrame, ViewFrame_SetGraphic)
+    API_OBJCALL_VOID_PINT(ScriptViewFrame, ViewFrame_SetGraphic);
 }
 
 // ScriptAudioClip* (ScriptViewFrame *svf)
 RuntimeScriptValue Sc_ViewFrame_GetLinkedAudio(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ(ScriptViewFrame, ScriptAudioClip, ccDynamicAudioClip, ViewFrame_GetLinkedAudio)
+    API_OBJCALL_OBJ(ScriptViewFrame, ScriptAudioClip, ccDynamicAudioClip, ViewFrame_GetLinkedAudio);
 }
 
 // void (ScriptViewFrame *svf, ScriptAudioClip* clip)
 RuntimeScriptValue Sc_ViewFrame_SetLinkedAudio(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ(ScriptViewFrame, ViewFrame_SetLinkedAudio, ScriptAudioClip)
+    API_OBJCALL_VOID_POBJ(ScriptViewFrame, ViewFrame_SetLinkedAudio, ScriptAudioClip);
 }
 
 // int (ScriptViewFrame *svf)
 RuntimeScriptValue Sc_ViewFrame_GetLoop(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptViewFrame, ViewFrame_GetLoop)
+    API_OBJCALL_INT(ScriptViewFrame, ViewFrame_GetLoop);
 }
 
 // int (ScriptViewFrame *svf)
 RuntimeScriptValue Sc_ViewFrame_GetSound(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptViewFrame, ViewFrame_GetSound)
+    API_OBJCALL_INT(ScriptViewFrame, ViewFrame_GetSound);
 }
 
 // void (ScriptViewFrame *svf, int newSound)
 RuntimeScriptValue Sc_ViewFrame_SetSound(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(ScriptViewFrame, ViewFrame_SetSound)
+    API_OBJCALL_VOID_PINT(ScriptViewFrame, ViewFrame_SetSound);
 }
 
 // int (ScriptViewFrame *svf)
 RuntimeScriptValue Sc_ViewFrame_GetSpeed(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptViewFrame, ViewFrame_GetSpeed)
+    API_OBJCALL_INT(ScriptViewFrame, ViewFrame_GetSpeed);
 }
 
 // int (ScriptViewFrame *svf)
 RuntimeScriptValue Sc_ViewFrame_GetView(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptViewFrame, ViewFrame_GetView)
+    API_OBJCALL_INT(ScriptViewFrame, ViewFrame_GetView);
 }
 
 

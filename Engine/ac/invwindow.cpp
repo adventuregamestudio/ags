@@ -427,85 +427,85 @@ int invscreen() {
 // void (GUIInv *guii)
 RuntimeScriptValue Sc_InvWindow_ScrollDown(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID(GUIInv, InvWindow_ScrollDown)
+    API_OBJCALL_VOID(GUIInv, InvWindow_ScrollDown);
 }
 
 // void (GUIInv *guii)
 RuntimeScriptValue Sc_InvWindow_ScrollUp(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID(GUIInv, InvWindow_ScrollUp)
+    API_OBJCALL_VOID(GUIInv, InvWindow_ScrollUp);
 }
 
 // CharacterInfo* (GUIInv *guii)
 RuntimeScriptValue Sc_InvWindow_GetCharacterToUse(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ(GUIInv, CharacterInfo, ccDynamicCharacter, InvWindow_GetCharacterToUse)
+    API_OBJCALL_OBJ(GUIInv, CharacterInfo, ccDynamicCharacter, InvWindow_GetCharacterToUse);
 }
 
 // void (GUIInv *guii, CharacterInfo *chaa)
 RuntimeScriptValue Sc_InvWindow_SetCharacterToUse(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ(GUIInv, InvWindow_SetCharacterToUse, CharacterInfo)
+    API_OBJCALL_VOID_POBJ(GUIInv, InvWindow_SetCharacterToUse, CharacterInfo);
 }
 
 // ScriptInvItem* (GUIInv *guii, int index)
 RuntimeScriptValue Sc_InvWindow_GetItemAtIndex(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ_PINT(GUIInv, ScriptInvItem, ccDynamicInv, InvWindow_GetItemAtIndex)
+    API_OBJCALL_OBJ_PINT(GUIInv, ScriptInvItem, ccDynamicInv, InvWindow_GetItemAtIndex);
 }
 
 // int (GUIInv *guii)
 RuntimeScriptValue Sc_InvWindow_GetItemCount(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUIInv, InvWindow_GetItemCount)
+    API_OBJCALL_INT(GUIInv, InvWindow_GetItemCount);
 }
 
 // int (GUIInv *guii)
 RuntimeScriptValue Sc_InvWindow_GetItemHeight(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUIInv, InvWindow_GetItemHeight)
+    API_OBJCALL_INT(GUIInv, InvWindow_GetItemHeight);
 }
 
 // void (GUIInv *guii, int newhit)
 RuntimeScriptValue Sc_InvWindow_SetItemHeight(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(GUIInv, InvWindow_SetItemHeight)
+    API_OBJCALL_VOID_PINT(GUIInv, InvWindow_SetItemHeight);
 }
 
 // int (GUIInv *guii)
 RuntimeScriptValue Sc_InvWindow_GetItemWidth(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUIInv, InvWindow_GetItemWidth)
+    API_OBJCALL_INT(GUIInv, InvWindow_GetItemWidth);
 }
 
 // void (GUIInv *guii, int newwidth)
 RuntimeScriptValue Sc_InvWindow_SetItemWidth(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(GUIInv, InvWindow_SetItemWidth)
+    API_OBJCALL_VOID_PINT(GUIInv, InvWindow_SetItemWidth);
 }
 
 // int (GUIInv *guii)
 RuntimeScriptValue Sc_InvWindow_GetItemsPerRow(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUIInv, InvWindow_GetItemsPerRow)
+    API_OBJCALL_INT(GUIInv, InvWindow_GetItemsPerRow);
 }
 
 // int (GUIInv *guii)
 RuntimeScriptValue Sc_InvWindow_GetRowCount(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUIInv, InvWindow_GetRowCount)
+    API_OBJCALL_INT(GUIInv, InvWindow_GetRowCount);
 }
 
 // int (GUIInv *guii)
 RuntimeScriptValue Sc_InvWindow_GetTopItem(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUIInv, InvWindow_GetTopItem)
+    API_OBJCALL_INT(GUIInv, InvWindow_GetTopItem);
 }
 
 // void (GUIInv *guii, int topitem)
 RuntimeScriptValue Sc_InvWindow_SetTopItem(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(GUIInv, InvWindow_SetTopItem)
+    API_OBJCALL_VOID_PINT(GUIInv, InvWindow_SetTopItem);
 }
 
 

@@ -399,109 +399,109 @@ int find_next_enabled_cursor(int startwith) {
 // void  (int curs, int newslot)
 RuntimeScriptValue Sc_ChangeCursorGraphic(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT2(ChangeCursorGraphic)
+    API_SCALL_VOID_PINT2(ChangeCursorGraphic);
 }
 
 // void  (int curs, int x, int y)
 RuntimeScriptValue Sc_ChangeCursorHotspot(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT3(ChangeCursorHotspot)
+    API_SCALL_VOID_PINT3(ChangeCursorHotspot);
 }
 
 // void (int curs, int newview)
 RuntimeScriptValue Sc_Mouse_ChangeModeView(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT2(Mouse_ChangeModeView)
+    API_SCALL_VOID_PINT2(Mouse_ChangeModeView);
 }
 
 // void (int modd)
 RuntimeScriptValue Sc_disable_cursor_mode(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT(disable_cursor_mode)
+    API_SCALL_VOID_PINT(disable_cursor_mode);
 }
 
 // void (int modd)
 RuntimeScriptValue Sc_enable_cursor_mode(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT(enable_cursor_mode)
+    API_SCALL_VOID_PINT(enable_cursor_mode);
 }
 
 // int (int curs)
 RuntimeScriptValue Sc_Mouse_GetModeGraphic(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT(Mouse_GetModeGraphic)
+    API_SCALL_INT_PINT(Mouse_GetModeGraphic);
 }
 
 // int (int which)
 RuntimeScriptValue Sc_IsButtonDown(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_PINT(IsButtonDown)
+    API_SCALL_INT_PINT(IsButtonDown);
 }
 
 // void ();
 RuntimeScriptValue Sc_SaveCursorForLocationChange(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID(SaveCursorForLocationChange)
+    API_SCALL_VOID(SaveCursorForLocationChange);
 }
 
 // void  ()
 RuntimeScriptValue Sc_SetNextCursor(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID(SetNextCursor)
+    API_SCALL_VOID(SetNextCursor);
 }
 
 // void  (int x1, int y1, int x2, int y2)
 RuntimeScriptValue Sc_SetMouseBounds(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT4(SetMouseBounds)
+    API_SCALL_VOID_PINT4(SetMouseBounds);
 }
 
 // void  (int newx, int newy)
 RuntimeScriptValue Sc_SetMousePosition(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT2(SetMousePosition)
+    API_SCALL_VOID_PINT2(SetMousePosition);
 }
 
 // void ()
 RuntimeScriptValue Sc_RefreshMouse(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID(RefreshMouse)
+    API_SCALL_VOID(RefreshMouse);
 }
 
 // void ()
 RuntimeScriptValue Sc_set_default_cursor(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID(set_default_cursor)
+    API_SCALL_VOID(set_default_cursor);
 }
 
 // void (int newcurs)
 RuntimeScriptValue Sc_set_mouse_cursor(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT(set_mouse_cursor)
+    API_SCALL_VOID_PINT(set_mouse_cursor);
 }
 
 // int ()
 RuntimeScriptValue Sc_GetCursorMode(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT(GetCursorMode)
+    API_SCALL_INT(GetCursorMode);
 }
 
 // void (int newmode)
 RuntimeScriptValue Sc_set_cursor_mode(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT(set_cursor_mode)
+    API_SCALL_VOID_PINT(set_cursor_mode);
 }
 
 // int ()
 RuntimeScriptValue Sc_Mouse_GetVisible(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT(Mouse_GetVisible)
+    API_SCALL_INT(Mouse_GetVisible);
 }
 
 // void (int isOn)
 RuntimeScriptValue Sc_Mouse_SetVisible(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT(Mouse_SetVisible)
+    API_SCALL_VOID_PINT(Mouse_SetVisible);
 }
 
 

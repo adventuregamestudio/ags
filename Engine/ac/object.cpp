@@ -474,283 +474,283 @@ extern ScriptString myScriptStringImpl;
 // void (ScriptObject *objj, int loop, int delay, int repeat, int blocking, int direction)
 RuntimeScriptValue Sc_Object_Animate(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT5(ScriptObject, Object_Animate)
+    API_OBJCALL_VOID_PINT5(ScriptObject, Object_Animate);
 }
 
 // int (ScriptObject *objj, ScriptObject *obj2)
 RuntimeScriptValue Sc_Object_IsCollidingWithObject(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT_POBJ(ScriptObject, Object_IsCollidingWithObject, ScriptObject)
+    API_OBJCALL_INT_POBJ(ScriptObject, Object_IsCollidingWithObject, ScriptObject);
 }
 
 // void (ScriptObject *objj, char *buffer)
 RuntimeScriptValue Sc_Object_GetName(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ(ScriptObject, Object_GetName, char)
+    API_OBJCALL_VOID_POBJ(ScriptObject, Object_GetName, char);
 }
 
 // int (ScriptObject *objj, const char *property)
 RuntimeScriptValue Sc_Object_GetProperty(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT_POBJ(ScriptObject, Object_GetProperty, const char)
+    API_OBJCALL_INT_POBJ(ScriptObject, Object_GetProperty, const char);
 }
 
 // void (ScriptObject *objj, const char *property, char *bufer)
 RuntimeScriptValue Sc_Object_GetPropertyText(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ2(ScriptObject, Object_GetPropertyText, const char, char)
+    API_OBJCALL_VOID_POBJ2(ScriptObject, Object_GetPropertyText, const char, char);
 }
 
 //const char* (ScriptObject *objj, const char *property)
 RuntimeScriptValue Sc_Object_GetTextProperty(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ_POBJ(ScriptObject, const char, myScriptStringImpl, Object_GetTextProperty, const char)
+    API_OBJCALL_OBJ_POBJ(ScriptObject, const char, myScriptStringImpl, Object_GetTextProperty, const char);
 }
 
 // void (ScriptObject *objj)
 RuntimeScriptValue Sc_Object_MergeIntoBackground(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID(ScriptObject, Object_MergeIntoBackground)
+    API_OBJCALL_VOID(ScriptObject, Object_MergeIntoBackground);
 }
 
 // void (ScriptObject *objj, int x, int y, int speed, int blocking, int direct)
 RuntimeScriptValue Sc_Object_Move(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT5(ScriptObject, Object_Move)
+    API_OBJCALL_VOID_PINT5(ScriptObject, Object_Move);
 }
 
 // void (ScriptObject *objj)
 RuntimeScriptValue Sc_Object_RemoveTint(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID(ScriptObject, Object_RemoveTint)
+    API_OBJCALL_VOID(ScriptObject, Object_RemoveTint);
 }
 
 // void (ScriptObject *objj, int mode)
 RuntimeScriptValue Sc_Object_RunInteraction(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(ScriptObject, Object_RunInteraction)
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_RunInteraction);
 }
 
 // void (ScriptObject *objj, int xx, int yy)
 RuntimeScriptValue Sc_Object_SetPosition(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT2(ScriptObject, Object_SetPosition)
+    API_OBJCALL_VOID_PINT2(ScriptObject, Object_SetPosition);
 }
 
 // void (ScriptObject *objj, int view, int loop, int frame)
 RuntimeScriptValue Sc_Object_SetView(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT3(ScriptObject, Object_SetView)
+    API_OBJCALL_VOID_PINT3(ScriptObject, Object_SetView);
 }
 
 // void (ScriptObject *objj)
 RuntimeScriptValue Sc_Object_StopAnimating(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID(ScriptObject, Object_StopAnimating)
+    API_OBJCALL_VOID(ScriptObject, Object_StopAnimating);
 }
 
 // void (ScriptObject *objj)
 RuntimeScriptValue Sc_Object_StopMoving(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID(ScriptObject, Object_StopMoving)
+    API_OBJCALL_VOID(ScriptObject, Object_StopMoving);
 }
 
 // void (ScriptObject *objj, int red, int green, int blue, int saturation, int luminance)
 RuntimeScriptValue Sc_Object_Tint(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT5(ScriptObject, Object_Tint)
+    API_OBJCALL_VOID_PINT5(ScriptObject, Object_Tint);
 }
 
 // ScriptObject *(int xx, int yy)
 RuntimeScriptValue Sc_GetObjectAtLocation(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_PINT2(ScriptObject, ccDynamicObject, GetObjectAtLocation)
+    API_SCALL_OBJ_PINT2(ScriptObject, ccDynamicObject, GetObjectAtLocation);
 }
 
 // int (ScriptObject *objj)
 RuntimeScriptValue Sc_Object_GetAnimating(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptObject, Object_GetAnimating)
+    API_OBJCALL_INT(ScriptObject, Object_GetAnimating);
 }
 
 // int (ScriptObject *objj)
 RuntimeScriptValue Sc_Object_GetBaseline(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptObject, Object_GetBaseline)
+    API_OBJCALL_INT(ScriptObject, Object_GetBaseline);
 }
 
 // void (ScriptObject *objj, int basel)
 RuntimeScriptValue Sc_Object_SetBaseline(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetBaseline)
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetBaseline);
 }
 
 // int (ScriptObject *objj)
 RuntimeScriptValue Sc_Object_GetBlockingHeight(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptObject, Object_GetBlockingHeight)
+    API_OBJCALL_INT(ScriptObject, Object_GetBlockingHeight);
 }
 
 // void (ScriptObject *objj, int bhit)
 RuntimeScriptValue Sc_Object_SetBlockingHeight(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetBlockingHeight)
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetBlockingHeight);
 }
 
 // int (ScriptObject *objj)
 RuntimeScriptValue Sc_Object_GetBlockingWidth(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptObject, Object_GetBlockingWidth)
+    API_OBJCALL_INT(ScriptObject, Object_GetBlockingWidth);
 }
 
 // void (ScriptObject *objj, int bwid)
 RuntimeScriptValue Sc_Object_SetBlockingWidth(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetBlockingWidth)
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetBlockingWidth);
 }
 
 // int (ScriptObject *objj)
 RuntimeScriptValue Sc_Object_GetClickable(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptObject, Object_GetClickable)
+    API_OBJCALL_INT(ScriptObject, Object_GetClickable);
 }
 
 // void (ScriptObject *objj, int clik)
 RuntimeScriptValue Sc_Object_SetClickable(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetClickable)
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetClickable);
 }
 
 // int (ScriptObject *objj)
 RuntimeScriptValue Sc_Object_GetFrame(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptObject, Object_GetFrame)
+    API_OBJCALL_INT(ScriptObject, Object_GetFrame);
 }
 
 // int (ScriptObject *objj)
 RuntimeScriptValue Sc_Object_GetGraphic(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptObject, Object_GetGraphic)
+    API_OBJCALL_INT(ScriptObject, Object_GetGraphic);
 }
 
 // void (ScriptObject *objj, int slott)
 RuntimeScriptValue Sc_Object_SetGraphic(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetGraphic)
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetGraphic);
 }
 
 // int (ScriptObject *objj)
 RuntimeScriptValue Sc_Object_GetID(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptObject, Object_GetID)
+    API_OBJCALL_INT(ScriptObject, Object_GetID);
 }
 
 // int (ScriptObject *objj)
 RuntimeScriptValue Sc_Object_GetIgnoreScaling(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptObject, Object_GetIgnoreScaling)
+    API_OBJCALL_INT(ScriptObject, Object_GetIgnoreScaling);
 }
 
 // void (ScriptObject *objj, int newval)
 RuntimeScriptValue Sc_Object_SetIgnoreScaling(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetIgnoreScaling)
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetIgnoreScaling);
 }
 
 // int (ScriptObject *chaa)
 RuntimeScriptValue Sc_Object_GetIgnoreWalkbehinds(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptObject, Object_GetIgnoreWalkbehinds)
+    API_OBJCALL_INT(ScriptObject, Object_GetIgnoreWalkbehinds);
 }
 
 // void (ScriptObject *chaa, int clik)
 RuntimeScriptValue Sc_Object_SetIgnoreWalkbehinds(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetIgnoreWalkbehinds)
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetIgnoreWalkbehinds);
 }
 
 // int (ScriptObject *objj)
 RuntimeScriptValue Sc_Object_GetLoop(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptObject, Object_GetLoop)
+    API_OBJCALL_INT(ScriptObject, Object_GetLoop);
 }
 
 // int (ScriptObject *objj)
 RuntimeScriptValue Sc_Object_GetMoving(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptObject, Object_GetMoving)
+    API_OBJCALL_INT(ScriptObject, Object_GetMoving);
 }
 
 // const char* (ScriptObject *objj)
 RuntimeScriptValue Sc_Object_GetName_New(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ(ScriptObject, const char, myScriptStringImpl, Object_GetName_New)
+    API_OBJCALL_OBJ(ScriptObject, const char, myScriptStringImpl, Object_GetName_New);
 }
 
 // int (ScriptObject *objj)
 RuntimeScriptValue Sc_Object_GetSolid(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptObject, Object_GetSolid)
+    API_OBJCALL_INT(ScriptObject, Object_GetSolid);
 }
 
 // void (ScriptObject *objj, int solid)
 RuntimeScriptValue Sc_Object_SetSolid(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetSolid)
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetSolid);
 }
 
 // int (ScriptObject *objj)
 RuntimeScriptValue Sc_Object_GetTransparency(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptObject, Object_GetTransparency)
+    API_OBJCALL_INT(ScriptObject, Object_GetTransparency);
 }
 
 // void (ScriptObject *objj, int trans)
 RuntimeScriptValue Sc_Object_SetTransparency(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetTransparency)
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetTransparency);
 }
 
 // int (ScriptObject *objj)
 RuntimeScriptValue Sc_Object_GetView(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptObject, Object_GetView)
+    API_OBJCALL_INT(ScriptObject, Object_GetView);
 }
 
 // int (ScriptObject *objj)
 RuntimeScriptValue Sc_Object_GetVisible(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptObject, Object_GetVisible)
+    API_OBJCALL_INT(ScriptObject, Object_GetVisible);
 }
 
 // void (ScriptObject *objj, int onoroff)
 RuntimeScriptValue Sc_Object_SetVisible(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetVisible)
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetVisible);
 }
 
 // int (ScriptObject *objj)
 RuntimeScriptValue Sc_Object_GetX(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptObject, Object_GetX)
+    API_OBJCALL_INT(ScriptObject, Object_GetX);
 }
 
 // void (ScriptObject *objj, int xx)
 RuntimeScriptValue Sc_Object_SetX(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetX)
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetX);
 }
 
 // int (ScriptObject *objj)
 RuntimeScriptValue Sc_Object_GetY(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(ScriptObject, Object_GetY)
+    API_OBJCALL_INT(ScriptObject, Object_GetY);
 }
 
 // void (ScriptObject *objj, int yy)
 RuntimeScriptValue Sc_Object_SetY(void *self, RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetY)
+    API_OBJCALL_VOID_PINT(ScriptObject, Object_SetY);
 }
 
 

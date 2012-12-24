@@ -61,4 +61,3 @@ extern void ccSetScriptAliveTimer (int);
 // reset the current while loop counter
 extern void ccNotifyScriptStillAlive ();
 extern int call_function(intptr_t addr, int numparm, const RuntimeScriptValue *parms, int offset);
-extern void nullfree(void *data);

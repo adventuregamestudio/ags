@@ -59,9 +59,9 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 
 #if defined(BUILTIN_PLUGINS)
-#include "AGSflashlight/agsflashlight.h"
-#include "agsblend/agsblend.h"
-#include "ags_snowrain/ags_snowrain.h"
+#include "../Plugins/AGSflashlight/agsflashlight.h"
+#include "../Plugins/agsblend/agsblend.h"
+#include "../Plugins/ags_snowrain/ags_snowrain.h"
 #if defined(IOS_VERSION)
 #include "../Plugins/agstouch/agstouch.h"
 #endif // IOS_VERSION
@@ -337,7 +337,8 @@ void IAGSEngine::PollSystem () {
 
     NEXT_ITERATION();
     domouse(DOMOUSE_NOCURSOR);
-    update_polled_stuff(true);
+    if (!psp_audio_multithreaded)
+      update_polled_stuff(true);
     int mbut = mgetbutton();
     if (mbut > NONE)
         pl_run_plugin_hooks (AGSE_MOUSECLICK, mbut);

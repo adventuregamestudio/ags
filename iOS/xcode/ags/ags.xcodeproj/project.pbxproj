@@ -26,6 +26,8 @@
 		6041A86A1552E63B00596310 /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 6041A8691552E63B00596310 /* Icon.png */; };
 		6041A8881552E89E00596310 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 6041A8871552E89E00596310 /* libz.dylib */; };
 		6041A8981552E8C400596310 /* libbz2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 6041A8971552E8C400596310 /* libbz2.dylib */; };
+		60661BB316847C3C0005B5CD /* directory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60661BAF16847C3C0005B5CD /* directory.cpp */; };
+		60661BB416847C3C0005B5CD /* path.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60661BB216847C3C0005B5CD /* path.cpp */; };
 		6080428E1614DE8F00D33732 /* assetmanager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6080428D1614DE8F00D33732 /* assetmanager.cpp */; };
 		60844EAD1573943400003ED0 /* MainWindow-iPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = 60844EAC1573943400003ED0 /* MainWindow-iPad.xib */; };
 		608498E6155CDF6400121EFE /* Icon-72.png in Resources */ = {isa = PBXBuildFile; fileRef = 608498E5155CDF6400121EFE /* Icon-72.png */; };
@@ -378,6 +380,10 @@
 		6041A8691552E63B00596310 /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
 		6041A8871552E89E00596310 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
 		6041A8971552E8C400596310 /* libbz2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libbz2.dylib; path = usr/lib/libbz2.dylib; sourceTree = SDKROOT; };
+		60661BAF16847C3C0005B5CD /* directory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = directory.cpp; sourceTree = "<group>"; };
+		60661BB016847C3C0005B5CD /* directory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = directory.h; sourceTree = "<group>"; };
+		60661BB116847C3C0005B5CD /* path.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = path.h; sourceTree = "<group>"; };
+		60661BB216847C3C0005B5CD /* path.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = path.cpp; sourceTree = "<group>"; };
 		6080428C1614DE8900D33732 /* assetmanager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = assetmanager.h; sourceTree = "<group>"; };
 		6080428D1614DE8F00D33732 /* assetmanager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = assetmanager.cpp; sourceTree = "<group>"; };
 		60844EAC1573943400003ED0 /* MainWindow-iPad.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = "MainWindow-iPad.xib"; path = "Resources-iPad/MainWindow-iPad.xib"; sourceTree = "<group>"; };
@@ -1522,6 +1528,10 @@
 		60CA3A46160713D300CFB3BD /* util */ = {
 			isa = PBXGroup;
 			children = (
+				60661BAF16847C3C0005B5CD /* directory.cpp */,
+				60661BB016847C3C0005B5CD /* directory.h */,
+				60661BB116847C3C0005B5CD /* path.h */,
+				60661BB216847C3C0005B5CD /* path.cpp */,
 				60CA3A47160713D300CFB3BD /* alignedstream.cpp */,
 				60CA3A48160713D300CFB3BD /* alignedstream.h */,
 				60CA3A49160713D300CFB3BD /* bbop.h */,
@@ -2689,6 +2699,8 @@
 				60DC154A16675B70002D0474 /* richgamemedia.cpp in Sources */,
 				60DC155816675BBF002D0474 /* agsstaticobject.cpp in Sources */,
 				60DC155A16675BBF002D0474 /* staticarray.cpp in Sources */,
+				60661BB316847C3C0005B5CD /* directory.cpp in Sources */,
+				60661BB416847C3C0005B5CD /* path.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

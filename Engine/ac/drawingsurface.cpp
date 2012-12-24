@@ -45,7 +45,6 @@ extern GUIMain*guis;
 extern SpriteCache spriteset;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
-extern RuntimeScriptValue GlobalReturnValue;
 
 extern int current_screen_resolution_multiplier;
 extern int trans_mode;
@@ -186,7 +185,6 @@ ScriptDrawingSurface* DrawingSurface_CreateCopy(ScriptDrawingSurface *sds)
             newSurface->dynamicSurfaceNumber = i;
             newSurface->hasAlphaChannel = sds->hasAlphaChannel;
             ccRegisterManagedObject(newSurface, newSurface);
-            GlobalReturnValue.SetDynamicObject(newSurface, newSurface);
             return newSurface;
         }
     }

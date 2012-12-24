@@ -56,7 +56,6 @@ extern GameSetup usetup;
 extern GameSetupStruct game;
 extern char saveGameDirectory[260];
 extern AGSPlatformDriver *platform;
-extern RuntimeScriptValue GlobalReturnValue;
 
 extern int MAXSTRLEN;
 
@@ -96,7 +95,6 @@ void *sc_OpenFile(const char *fnmm, int mode) {
     return 0;
   }
   ccRegisterManagedObject(scf, scf);
-  GlobalReturnValue.SetDynamicObject(scf, scf);
   return scf;
 }
 
@@ -143,7 +141,7 @@ void File_ReadRawLine(sc_File *fil, char* buffer) {
 const char* File_ReadRawLineBack(sc_File *fil) {
   char readbuffer[MAX_MAXSTRLEN + 1];
   File_ReadRawLine(fil, readbuffer);
-  return CreateNewScriptStringAsRetVal(readbuffer);
+  return CreateNewScriptString(readbuffer);
 }
 
 void File_ReadString(sc_File *fil, char *toread) {
@@ -153,7 +151,7 @@ void File_ReadString(sc_File *fil, char *toread) {
 const char* File_ReadStringBack(sc_File *fil) {
   check_valid_file_handle(fil->handle, "File.ReadStringBack");
   if (fil->handle->EOS()) {
-    return CreateNewScriptStringAsRetVal("");
+    return CreateNewScriptString("");
   }
 
   int lle = fil->handle->ReadInt32();
@@ -163,7 +161,7 @@ const char* File_ReadStringBack(sc_File *fil) {
   char *retVal = (char*)malloc(lle);
   fil->handle->Read(retVal, lle);
 
-  return CreateNewScriptStringAsRetVal(retVal, false);
+  return CreateNewScriptString(retVal, false);
 }
 
 int File_ReadInt(sc_File *fil) {

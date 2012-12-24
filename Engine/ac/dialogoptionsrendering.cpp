@@ -22,7 +22,6 @@
 
 extern ScriptDialog scrDialog[MAX_DIALOG];
 extern DialogTopic *dialog;
-extern RuntimeScriptValue GlobalReturnValue;
 extern CCDialog ccDynamicDialog;
 
 // ** SCRIPT DIALOGOPTIONSRENDERING OBJECT
@@ -99,14 +98,12 @@ void DialogOptionsRendering_SetParserTextboxWidth(ScriptDialogOptionsRendering *
 
 ScriptDialog* DialogOptionsRendering_GetDialogToRender(ScriptDialogOptionsRendering *dlgOptRender)
 {
-    GlobalReturnValue.SetDynamicObject(&scrDialog[dlgOptRender->dialogID], &ccDynamicDialog);
     return &scrDialog[dlgOptRender->dialogID];
 }
 
 ScriptDrawingSurface* DialogOptionsRendering_GetSurface(ScriptDialogOptionsRendering *dlgOptRender)
 {
     dlgOptRender->surfaceAccessed = true;
-    GlobalReturnValue.SetDynamicObject(dlgOptRender->surfaceToRenderTo, dlgOptRender->surfaceToRenderTo);
     return dlgOptRender->surfaceToRenderTo;
 }
 

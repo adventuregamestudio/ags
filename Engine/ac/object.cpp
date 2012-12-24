@@ -51,7 +51,6 @@ extern GameSetupStruct game;
 extern Bitmap *walkable_areas_temp;
 extern IGraphicsDriver *gfxDriver;
 extern int offsetx,offsety;
-extern RuntimeScriptValue GlobalReturnValue;
 extern CCObject ccDynamicObject;
 
 
@@ -63,7 +62,6 @@ ScriptObject *GetObjectAtLocation(int xx, int yy) {
     int hsnum = GetObjectAt(xx, yy);
     if (hsnum < 0)
         return NULL;
-    GlobalReturnValue.SetDynamicObject(&scrObj[hsnum], &ccDynamicObject);
     return &scrObj[hsnum];
 }
 
@@ -222,7 +220,7 @@ const char* Object_GetName_New(ScriptObject *objj) {
     if (!is_valid_object(objj->id))
         quit("!Object.Name: invalid object number");
 
-    return CreateNewScriptStringAsRetVal(get_translation(thisroom.objectnames[objj->id]));
+    return CreateNewScriptString(get_translation(thisroom.objectnames[objj->id]));
 }
 
 void Object_Move(ScriptObject *objj, int x, int y, int speed, int blocking, int direct) {
@@ -368,7 +366,7 @@ void Object_GetPropertyText(ScriptObject *objj, const char *property, char *bufe
     GetObjectPropertyText(objj->id, property, bufer);
 }
 const char* Object_GetTextProperty(ScriptObject *objj, const char *property) {
-    return get_text_property_dynamic_string_as_ret_val(&thisroom.objProps[objj->id], property);
+    return get_text_property_dynamic_string(&thisroom.objProps[objj->id], property);
 }
 
 void get_object_blocking_rect(int objid, int *x1, int *y1, int *width, int *y2) {

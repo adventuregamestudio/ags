@@ -31,7 +31,6 @@
 
 extern GUIMain*guis;
 extern ScriptGUI*scrGui;
-extern RuntimeScriptValue GlobalReturnValue;
 extern CCGUI ccDynamicGUI;
 extern CCGUIObject ccDynamicGUIObject;
 
@@ -51,7 +50,6 @@ GUIObject *GetGUIControlAtLocation(int xx, int yy) {
     if (toret < 0)
         return NULL;
 
-    GlobalReturnValue.SetDynamicObject(guis[guinum].objs[toret], &ccDynamicGUIObject);
     return guis[guinum].objs[toret];
 }
 
@@ -111,7 +109,6 @@ int GUIControl_GetID(GUIObject *guio) {
 }
 
 ScriptGUI* GUIControl_GetOwningGUI(GUIObject *guio) {
-  GlobalReturnValue.SetDynamicObject(&scrGui[guio->guin], &ccDynamicGUI);
   return &scrGui[guio->guin];
 }
 
@@ -119,7 +116,6 @@ GUIButton* GUIControl_GetAsButton(GUIObject *guio) {
   if (guis[guio->guin].get_control_type(guio->objn) != GOBJ_BUTTON)
     return NULL;
 
-  GlobalReturnValue.SetDynamicObject(guio, &ccDynamicGUIObject);
   return (GUIButton*)guio;
 }
 
@@ -127,7 +123,6 @@ GUIInv* GUIControl_GetAsInvWindow(GUIObject *guio) {
   if (guis[guio->guin].get_control_type(guio->objn) != GOBJ_INVENTORY)
     return NULL;
 
-  GlobalReturnValue.SetDynamicObject(guio, &ccDynamicGUIObject);
   return (GUIInv*)guio;
 }
 
@@ -135,7 +130,6 @@ GUILabel* GUIControl_GetAsLabel(GUIObject *guio) {
   if (guis[guio->guin].get_control_type(guio->objn) != GOBJ_LABEL)
     return NULL;
 
-  GlobalReturnValue.SetDynamicObject(guio, &ccDynamicGUIObject);
   return (GUILabel*)guio;
 }
 
@@ -143,7 +137,6 @@ GUIListBox* GUIControl_GetAsListBox(GUIObject *guio) {
   if (guis[guio->guin].get_control_type(guio->objn) != GOBJ_LISTBOX)
     return NULL;
 
-  GlobalReturnValue.SetDynamicObject(guio, &ccDynamicGUIObject);
   return (GUIListBox*)guio;
 }
 
@@ -151,7 +144,6 @@ GUISlider* GUIControl_GetAsSlider(GUIObject *guio) {
   if (guis[guio->guin].get_control_type(guio->objn) != GOBJ_SLIDER)
     return NULL;
 
-  GlobalReturnValue.SetDynamicObject(guio, &ccDynamicGUIObject);
   return (GUISlider*)guio;
 }
 
@@ -159,7 +151,6 @@ GUITextBox* GUIControl_GetAsTextBox(GUIObject *guio) {
   if (guis[guio->guin].get_control_type(guio->objn) != GOBJ_TEXTBOX)
     return NULL;
 
-  GlobalReturnValue.SetDynamicObject(guio, &ccDynamicGUIObject);
   return (GUITextBox*)guio;
 }
 

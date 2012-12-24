@@ -40,7 +40,6 @@ extern int face_talking;
 extern ViewStruct*views;
 extern CharacterExtras *charextra;
 extern IGraphicsDriver *gfxDriver;
-extern RuntimeScriptValue GlobalReturnValue;
 
 
 
@@ -131,7 +130,6 @@ ScriptOverlay* Overlay_CreateGraphical(int x, int y, int slot, int transparent) 
     sco->isBackgroundSpeech = 0;
 
     ccRegisterManagedObject(sco, sco);
-    GlobalReturnValue.SetDynamicObject(sco, sco);
     return sco;
 }
 
@@ -155,7 +153,6 @@ ScriptOverlay* Overlay_CreateTextual(int x, int y, int width, int font, int colo
     sco->isBackgroundSpeech = 0;
 
     ccRegisterManagedObject(sco, sco);
-    GlobalReturnValue.SetDynamicObject(sco, sco);
     return sco;
 }
 

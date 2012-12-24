@@ -22,7 +22,6 @@
 
 extern GameSetupStruct game;
 extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
-extern RuntimeScriptValue GlobalReturnValue;
 extern CCAudioChannel ccDynamicAudio;
 
 int AudioClip_GetFileType(ScriptAudioClip *clip)
@@ -56,21 +55,18 @@ void AudioClip_Stop(ScriptAudioClip *clip)
 ScriptAudioChannel* AudioClip_Play(ScriptAudioClip *clip, int priority, int repeat)
 {
     ScriptAudioChannel *sc_ch = play_audio_clip(clip, priority, repeat, 0, false);
-    GlobalReturnValue.SetDynamicObject(sc_ch, &ccDynamicAudio);
     return sc_ch;
 }
 
 ScriptAudioChannel* AudioClip_PlayFrom(ScriptAudioClip *clip, int position, int priority, int repeat)
 {
     ScriptAudioChannel *sc_ch = play_audio_clip(clip, priority, repeat, position, false);
-    GlobalReturnValue.SetDynamicObject(sc_ch, &ccDynamicAudio);
     return sc_ch;
 }
 
 ScriptAudioChannel* AudioClip_PlayQueued(ScriptAudioClip *clip, int priority, int repeat)
 {
     ScriptAudioChannel *sc_ch = play_audio_clip(clip, priority, repeat, 0, true);
-    GlobalReturnValue.SetDynamicObject(sc_ch, &ccDynamicAudio);
     return sc_ch;
 }
 

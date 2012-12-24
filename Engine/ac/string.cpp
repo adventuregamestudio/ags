@@ -29,7 +29,6 @@ extern int  numlines;
 extern GameSetupStruct game;
 extern GameState play;
 extern int longestline;
-extern RuntimeScriptValue GlobalReturnValue;
 extern ScriptString myScriptStringImpl;
 
 int String_IsNullOrEmpty(const char *thisString) 
@@ -41,20 +40,20 @@ int String_IsNullOrEmpty(const char *thisString)
 }
 
 const char* String_Copy(const char *srcString) {
-    return CreateNewScriptStringAsRetVal(srcString);
+    return CreateNewScriptString(srcString);
 }
 
 const char* String_Append(const char *thisString, const char *extrabit) {
     char *buffer = (char*)malloc(strlen(thisString) + strlen(extrabit) + 1);
     strcpy(buffer, thisString);
     strcat(buffer, extrabit);
-    return CreateNewScriptStringAsRetVal(buffer, false);
+    return CreateNewScriptString(buffer, false);
 }
 
 const char* String_AppendChar(const char *thisString, char extraOne) {
     char *buffer = (char*)malloc(strlen(thisString) + 2);
     sprintf(buffer, "%s%c", thisString, extraOne);
-    return CreateNewScriptStringAsRetVal(buffer, false);
+    return CreateNewScriptString(buffer, false);
 }
 
 const char* String_ReplaceCharAt(const char *thisString, int index, char newChar) {
@@ -64,7 +63,7 @@ const char* String_ReplaceCharAt(const char *thisString, int index, char newChar
     char *buffer = (char*)malloc(strlen(thisString) + 1);
     strcpy(buffer, thisString);
     buffer[index] = newChar;
-    return CreateNewScriptStringAsRetVal(buffer, false);
+    return CreateNewScriptString(buffer, false);
 }
 
 const char* String_Truncate(const char *thisString, int length) {
@@ -73,14 +72,13 @@ const char* String_Truncate(const char *thisString, int length) {
 
     if (length >= (int)strlen(thisString))
     {
-        GlobalReturnValue.SetDynamicObject((void*)thisString, &myScriptStringImpl);
         return thisString;
     }
 
     char *buffer = (char*)malloc(length + 1);
     strncpy(buffer, thisString, length);
     buffer[length] = 0;
-    return CreateNewScriptStringAsRetVal(buffer, false);
+    return CreateNewScriptString(buffer, false);
 }
 
 const char* String_Substring(const char *thisString, int index, int length) {
@@ -92,7 +90,7 @@ const char* String_Substring(const char *thisString, int index, int length) {
     char *buffer = (char*)malloc(length + 1);
     strncpy(buffer, &thisString[index], length);
     buffer[length] = 0;
-    return CreateNewScriptStringAsRetVal(buffer, false);
+    return CreateNewScriptString(buffer, false);
 }
 
 int String_CompareTo(const char *thisString, const char *otherString, bool caseSensitive) {
@@ -166,21 +164,21 @@ const char* String_Replace(const char *thisString, const char *lookForText, cons
 
     resultBuffer[outputSize] = 0;
 
-    return CreateNewScriptStringAsRetVal(resultBuffer, true);
+    return CreateNewScriptString(resultBuffer, true);
 }
 
 const char* String_LowerCase(const char *thisString) {
     char *buffer = (char*)malloc(strlen(thisString) + 1);
     strcpy(buffer, thisString);
     strlwr(buffer);
-    return CreateNewScriptStringAsRetVal(buffer, false);
+    return CreateNewScriptString(buffer, false);
 }
 
 const char* String_UpperCase(const char *thisString) {
     char *buffer = (char*)malloc(strlen(thisString) + 1);
     strcpy(buffer, thisString);
     strupr(buffer);
-    return CreateNewScriptStringAsRetVal(buffer, false);
+    return CreateNewScriptString(buffer, false);
 }
 
 const char* String_Format(const char *texx, ...) {
@@ -191,7 +189,7 @@ const char* String_Format(const char *texx, ...) {
     my_sprintf(displbuf, get_translation(texx), ap);
     va_end(ap);
 
-    return CreateNewScriptStringAsRetVal(displbuf);
+    return CreateNewScriptString(displbuf);
 }
 
 int String_GetChars(const char *texx, int index) {
@@ -244,13 +242,6 @@ const char *CreateNewScriptString(const char *fromText, bool reAllocate) {
     write_log(buffer);*/
 
     return str->text;
-}
-
-const char* CreateNewScriptStringAsRetVal(const char *fromText, bool reAllocate)
-{
-    const char *new_str = CreateNewScriptString(fromText, reAllocate);
-    GlobalReturnValue.SetDynamicObject((void*)new_str, &myScriptStringImpl);
-    return new_str;
 }
 
 void split_lines_rightleft (char *todis, int wii, int fonnt) {

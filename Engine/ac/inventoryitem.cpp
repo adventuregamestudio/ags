@@ -31,7 +31,6 @@ extern ScriptInvItem scrInv[MAX_INV];
 extern int cur_cursor;
 extern CharacterInfo*playerchar;
 extern CCInventory ccDynamicInv;
-extern RuntimeScriptValue GlobalReturnValue;
 
 
 void InventoryItem_SetCursorGraphic(ScriptInvItem *iitem, int newSprite) 
@@ -60,7 +59,6 @@ ScriptInvItem *GetInvAtLocation(int xx, int yy) {
   int hsnum = GetInvAt(xx, yy);
   if (hsnum <= 0)
     return NULL;
-  GlobalReturnValue.SetDynamicObject(&scrInv[hsnum], &ccDynamicInv);
   return &scrInv[hsnum];
 }
 
@@ -69,7 +67,7 @@ void InventoryItem_GetName(ScriptInvItem *iitem, char *buff) {
 }
 
 const char* InventoryItem_GetName_New(ScriptInvItem *invitem) {
-  return CreateNewScriptStringAsRetVal(get_translation(game.invinfo[invitem->id].name));
+  return CreateNewScriptString(get_translation(game.invinfo[invitem->id].name));
 }
 
 int InventoryItem_GetGraphic(ScriptInvItem *iitem) {
@@ -93,7 +91,7 @@ void InventoryItem_GetPropertyText(ScriptInvItem *scii, const char *property, ch
 }
 
 const char* InventoryItem_GetTextProperty(ScriptInvItem *scii, const char *property) {
-    return get_text_property_dynamic_string_as_ret_val(&game.invProps[scii->id], property);
+    return get_text_property_dynamic_string(&game.invProps[scii->id], property);
 }
 
 //=============================================================================

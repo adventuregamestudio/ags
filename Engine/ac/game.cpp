@@ -133,7 +133,6 @@ extern unsigned int loopcounter;
 extern Bitmap *raw_saved_screen;
 extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 extern IGraphicsDriver *gfxDriver;
-extern RuntimeScriptValue GlobalReturnValue;
 
 //=============================================================================
 GameState play;
@@ -247,7 +246,6 @@ int Game_IsAudioPlaying(int audioType)
     for (int aa = 0; aa < MAX_SOUND_CHANNELS; aa++)
     {
         ScriptAudioClip *clip = AudioChannel_GetPlayingClip(&scrAudioChannel[aa]);
-        GlobalReturnValue.Invalidate();
         if (clip != NULL) 
         {
             if ((clip->type == audioType) || (audioType == SCR_NO_VALUE))
@@ -407,7 +405,7 @@ const char* Game_GetSaveSlotDescription(int slnum) {
     String description;
     if (read_savedgame_description(get_save_game_path(slnum), description) == 0)
     {
-        return CreateNewScriptStringAsRetVal(description);
+        return CreateNewScriptString(description);
     }
     return NULL;
 }
@@ -669,7 +667,7 @@ const char* Game_GetGlobalStrings(int index) {
     if ((index < 0) || (index >= MAXGLOBALSTRINGS))
         quit("!Game.GlobalStrings: invalid index");
 
-    return CreateNewScriptStringAsRetVal(play.globalstrings[index]);
+    return CreateNewScriptString(play.globalstrings[index]);
 }
 
 
@@ -768,7 +766,6 @@ ScriptViewFrame* Game_GetViewFrame(int viewNumber, int loopNumber, int frame) {
 
     ScriptViewFrame *sdt = new ScriptViewFrame(viewNumber - 1, loopNumber, frame);
     ccRegisterManagedObject(sdt, sdt);
-    GlobalReturnValue.SetDynamicObject(sdt,sdt);
     return sdt;
 }
 
@@ -825,11 +822,11 @@ void Game_SetIgnoreUserInputAfterTextTimeoutMs(int newValueMs)
 }
 
 const char *Game_GetFileName() {
-    return CreateNewScriptStringAsRetVal(usetup.main_data_filename);
+    return CreateNewScriptString(usetup.main_data_filename);
 }
 
 const char *Game_GetName() {
-    return CreateNewScriptStringAsRetVal(play.game_name);
+    return CreateNewScriptString(play.game_name);
 }
 
 void Game_SetName(const char *newName) {
@@ -878,13 +875,13 @@ int Game_GetColorFromRGB(int red, int grn, int blu) {
 const char* Game_InputBox(const char *msg) {
     char buffer[STD_BUFFER_SIZE];
     sc_inputbox(msg, buffer);
-    return CreateNewScriptStringAsRetVal(buffer);
+    return CreateNewScriptString(buffer);
 }
 
 const char* Game_GetLocationName(int x, int y) {
     char buffer[STD_BUFFER_SIZE];
     GetLocationName(x, y, buffer);
-    return CreateNewScriptStringAsRetVal(buffer);
+    return CreateNewScriptString(buffer);
 }
 
 const char* Game_GetGlobalMessages(int index) {
@@ -894,7 +891,7 @@ const char* Game_GetGlobalMessages(int index) {
     char buffer[STD_BUFFER_SIZE];
     buffer[0] = 0;
     replace_tokens(get_translation(get_global_message(index)), buffer, STD_BUFFER_SIZE);
-    return CreateNewScriptStringAsRetVal(buffer);
+    return CreateNewScriptString(buffer);
 }
 
 int Game_GetSpeechFont() {
@@ -907,7 +904,7 @@ int Game_GetNormalFont() {
 const char* Game_GetTranslationFilename() {
     char buffer[STD_BUFFER_SIZE];
     GetTranslationName(buffer);
-    return CreateNewScriptStringAsRetVal(buffer);
+    return CreateNewScriptString(buffer);
 }
 
 int Game_ChangeTranslation(const char *newFilename)

@@ -163,7 +163,7 @@ const char* ListBox_GetItems(GUIListBox *listbox, int index) {
   if ((index < 0) || (index >= listbox->numItems))
     quit("!ListBox.Items: invalid index specified");
 
-  return CreateNewScriptStringAsRetVal(listbox->items[index]);
+  return CreateNewScriptString(listbox->items[index]);
 }
 
 void ListBox_SetItemText(GUIListBox *listbox, int index, const char *newtext) {

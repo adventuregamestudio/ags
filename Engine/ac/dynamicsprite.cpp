@@ -55,7 +55,6 @@ extern int scrnwid,scrnhit;
 extern color palette[256];
 extern Bitmap *virtual_screen;
 extern IGraphicsDriver *gfxDriver;
-extern RuntimeScriptValue GlobalReturnValue;
 
 char check_dynamic_sprites_at_exit = 1;
 
@@ -77,7 +76,6 @@ ScriptDrawingSurface* DynamicSprite_GetDrawingSurface(ScriptDynamicSprite *dss)
         surface->hasAlphaChannel = true;
 
     ccRegisterManagedObject(surface, surface);
-    GlobalReturnValue.SetDynamicObject(surface, surface);
     return surface;
 }
 
@@ -343,7 +341,6 @@ ScriptDynamicSprite* DynamicSprite_CreateFromSaveGame(int sgslot, int width, int
     int slotnum = LoadSaveSlotScreenshot(sgslot, width, height);
     if (slotnum) {
         ScriptDynamicSprite *new_spr = new ScriptDynamicSprite(slotnum);
-        GlobalReturnValue.SetDynamicObject(new_spr, new_spr);
         return new_spr;
     }
     return NULL;
@@ -353,7 +350,6 @@ ScriptDynamicSprite* DynamicSprite_CreateFromFile(const char *filename) {
     int slotnum = LoadImageFile(filename);
     if (slotnum) {
         ScriptDynamicSprite *new_spr = new ScriptDynamicSprite(slotnum);
-        GlobalReturnValue.SetDynamicObject(new_spr, new_spr);
         return new_spr;
     }
     return NULL;
@@ -410,7 +406,6 @@ ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height) {
     // replace the bitmap in the sprite set
     add_dynamic_sprite(gotSlot, gfxDriver->ConvertBitmapToSupportedColourDepth(newPic));
     ScriptDynamicSprite *new_spr = new ScriptDynamicSprite(gotSlot);
-    GlobalReturnValue.SetDynamicObject(new_spr, new_spr);
     return new_spr;
 }
 
@@ -435,7 +430,6 @@ ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite(int slot, int preser
     // replace the bitmap in the sprite set
     add_dynamic_sprite(gotSlot, newPic, hasAlpha);
     ScriptDynamicSprite *new_spr = new ScriptDynamicSprite(gotSlot);
-    GlobalReturnValue.SetDynamicObject(new_spr, new_spr);
     return new_spr;
 }
 
@@ -466,7 +460,6 @@ ScriptDynamicSprite* DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface
 
     add_dynamic_sprite(gotSlot, newPic, (sds->hasAlphaChannel != 0));
     ScriptDynamicSprite *new_spr = new ScriptDynamicSprite(gotSlot);
-    GlobalReturnValue.SetDynamicObject(new_spr, new_spr);
     return new_spr;
 }
 
@@ -488,7 +481,6 @@ ScriptDynamicSprite* DynamicSprite_Create(int width, int height, int alphaChanne
 
     add_dynamic_sprite(gotSlot, gfxDriver->ConvertBitmapToSupportedColourDepth(newPic), alphaChannel != 0);
     ScriptDynamicSprite *new_spr = new ScriptDynamicSprite(gotSlot);
-    GlobalReturnValue.SetDynamicObject(new_spr, new_spr);
     return new_spr;
 }
 
@@ -532,7 +524,6 @@ ScriptDynamicSprite* DynamicSprite_CreateFromBackground(int frame, int x1, int y
     // replace the bitmap in the sprite set
     add_dynamic_sprite(gotSlot, newPic);
     ScriptDynamicSprite *new_spr = new ScriptDynamicSprite(gotSlot);
-    GlobalReturnValue.SetDynamicObject(new_spr, new_spr);
     return new_spr;
 }
 

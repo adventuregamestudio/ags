@@ -125,7 +125,6 @@ extern IDriverDependantBitmap **guibgbmp;
 
 extern CCHotspot ccDynamicHotspot;
 extern CCObject ccDynamicObject;
-extern RuntimeScriptValue GlobalReturnValue;
 
 RGB_MAP rgb_table;  // for 256-col antialiasing
 int new_room_flags=0;
@@ -148,7 +147,6 @@ ScriptDrawingSurface* Room_GetDrawingSurfaceForBackground(int backgroundNumber)
     ScriptDrawingSurface *surface = new ScriptDrawingSurface();
     surface->roomBackgroundNumber = backgroundNumber;
     ccRegisterManagedObject(surface, surface);
-    GlobalReturnValue.SetDynamicObject(surface, surface);
     return surface;
 }
 
@@ -190,7 +188,7 @@ int Room_GetMusicOnLoad() {
 }
 
 const char* Room_GetTextProperty(const char *property) {
-    return get_text_property_dynamic_string_as_ret_val(&thisroom.roomProps, property);
+    return get_text_property_dynamic_string(&thisroom.roomProps, property);
 }
 
 const char* Room_GetMessages(int index) {
@@ -200,7 +198,7 @@ const char* Room_GetMessages(int index) {
     char buffer[STD_BUFFER_SIZE];
     buffer[0]=0;
     replace_tokens(get_translation(thisroom.message[index]), buffer, STD_BUFFER_SIZE);
-    return CreateNewScriptStringAsRetVal(buffer);
+    return CreateNewScriptString(buffer);
 }
 
 

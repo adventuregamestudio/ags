@@ -26,7 +26,7 @@ extern GameSetupStruct game;
 // ** TEXT BOX FUNCTIONS
 
 const char* TextBox_GetText_New(GUITextBox *texbox) {
-    return CreateNewScriptStringAsRetVal(texbox->text);
+    return CreateNewScriptString(texbox->text);
 }
 
 void TextBox_GetText(GUITextBox *texbox, char *buffer) {

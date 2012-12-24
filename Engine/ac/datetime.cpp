@@ -17,8 +17,6 @@
 #include "platform/base/agsplatformdriver.h"
 #include "script/runtimescriptvalue.h"
 
-extern RuntimeScriptValue GlobalReturnValue;
-
 ScriptDateTime* DateTime_Now_Core() {
     ScriptDateTime *sdt = new ScriptDateTime();
     sdt->rawUnixTime = time(NULL);
@@ -31,7 +29,6 @@ ScriptDateTime* DateTime_Now_Core() {
 ScriptDateTime* DateTime_Now() {
     ScriptDateTime *sdt = DateTime_Now_Core();
     ccRegisterManagedObject(sdt, sdt);
-    GlobalReturnValue.SetDynamicObject(sdt, sdt);
     return sdt;
 }
 

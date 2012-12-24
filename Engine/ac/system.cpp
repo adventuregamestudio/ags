@@ -36,7 +36,6 @@ extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern ScriptSystem scsystem;
 extern int scrnwid,scrnhit;
 extern IGraphicsDriver *gfxDriver;
-extern RuntimeScriptValue GlobalReturnValue;
 extern CCAudioChannel ccDynamicAudio;
 
 
@@ -65,7 +64,7 @@ int System_GetViewportWidth() {
 }
 
 const char *System_GetVersion() {
-    return CreateNewScriptStringAsRetVal(ACI_VERSION_TEXT);
+    return CreateNewScriptString(ACI_VERSION_TEXT);
 }
 
 int System_GetHardwareAcceleration() 
@@ -144,7 +143,6 @@ ScriptAudioChannel* System_GetAudioChannels(int index)
     if ((index < 0) || (index >= MAX_SOUND_CHANNELS))
         quit("!System.AudioChannels: invalid sound channel index");
 
-    GlobalReturnValue.SetDynamicObject(&scrAudioChannel[index], &ccDynamicAudio);
     return &scrAudioChannel[index];
 }
 

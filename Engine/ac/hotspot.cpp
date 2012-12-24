@@ -31,7 +31,6 @@ extern roomstruct thisroom;
 extern RoomStatus*croom;
 extern ScriptHotspot scrHotspot[MAX_HOTSPOTS];
 extern CCHotspot ccDynamicHotspot;
-extern RuntimeScriptValue GlobalReturnValue;
 
 void Hotspot_SetEnabled(ScriptHotspot *hss, int newval) {
     if (newval)
@@ -63,7 +62,6 @@ ScriptHotspot *GetHotspotAtLocation(int xx, int yy) {
         ret_hotspot = &scrHotspot[0];
     else
         ret_hotspot = &scrHotspot[hsnum];
-    GlobalReturnValue.SetDynamicObject(ret_hotspot, &ccDynamicHotspot);
     return ret_hotspot;
 }
 
@@ -72,7 +70,7 @@ void Hotspot_GetName(ScriptHotspot *hss, char *buffer) {
 }
 
 const char* Hotspot_GetName_New(ScriptHotspot *hss) {
-    return CreateNewScriptStringAsRetVal(get_translation(thisroom.hotspotnames[hss->id]));
+    return CreateNewScriptString(get_translation(thisroom.hotspotnames[hss->id]));
 }
 
 void Hotspot_RunInteraction (ScriptHotspot *hss, int mood) {
@@ -89,7 +87,7 @@ void Hotspot_GetPropertyText (ScriptHotspot *hss, const char *property, char *bu
 }
 
 const char* Hotspot_GetTextProperty(ScriptHotspot *hss, const char *property) {
-    return get_text_property_dynamic_string_as_ret_val(&thisroom.hsProps[hss->id], property);
+    return get_text_property_dynamic_string(&thisroom.hsProps[hss->id], property);
 }
 
 int get_hotspot_at(int xpp,int ypp) {

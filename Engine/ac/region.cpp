@@ -30,14 +30,12 @@ extern GameSetupStruct game;
 extern COLOR_MAP maincoltable;
 extern color palette[256];
 extern CCRegion ccDynamicRegion;
-extern RuntimeScriptValue GlobalReturnValue;
 
 
 ScriptRegion *GetRegionAtLocation(int xx, int yy) {
     int hsnum = GetRegionAt(xx, yy);
     if (hsnum < 0)
         hsnum = 0;
-    GlobalReturnValue.SetDynamicObject(&scrRegion[hsnum], &ccDynamicRegion);
     return &scrRegion[hsnum];
 }
 

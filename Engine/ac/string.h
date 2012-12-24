@@ -50,6 +50,5 @@ void wouttext_reverseifnecessary(int x, int y, int font, char *text);
 void break_up_text_into_lines(int wii,int fonnt, const char*todis);
 void check_strlen(char*ptt);
 void my_strncpy(char *dest, const char *src, int len);
-void my_sprintf(char *buffer, const char *fmt, va_list ap);
 
 #endif // __AGS_EE_AC__STRING_H

@@ -136,7 +136,7 @@ void RawPrint (int xx, int yy, const char*texx, ...) {
     char displbuf[STD_BUFFER_SIZE];
     va_list ap;
     va_start(ap,texx);
-    my_sprintf(displbuf,get_translation(texx),ap);
+    vsprintf(displbuf, get_translation(texx), ap);
     va_end(ap);
     // don't use wtextcolor because it will do a 16->32 conversion
     textcol = play.raw_color;

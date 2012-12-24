@@ -186,7 +186,7 @@ const char* String_Format(const char *texx, ...) {
 
     va_list ap;
     va_start(ap,texx);
-    my_sprintf(displbuf, get_translation(texx), ap);
+    vsprintf(displbuf, get_translation(texx), ap);
     va_end(ap);
 
     return CreateNewScriptString(displbuf);
@@ -376,99 +376,6 @@ void my_strncpy(char *dest, const char *src, int len) {
     }
     else
         strcpy(dest, src);
-}
-
-// Custom printf, needed because floats are pushed as 8 bytes
-void my_sprintf(char *buffer, const char *fmt, va_list ap) {
-    int bufidx = 0;
-    const char *curptr = fmt;
-    const char *endptr;
-    char spfbuffer[STD_BUFFER_SIZE];
-    char fmtstring[100];
-    int numargs = -1;
-
-    while (1) {
-        // copy across everything until the next % (or end of string)
-        endptr = strchr(curptr, '%');
-        if (endptr == NULL)
-            endptr = &curptr[strlen(curptr)];
-        while (curptr < endptr) {
-            buffer[bufidx] = *curptr;
-            curptr++;
-            bufidx++;
-        }
-        // at this point, curptr and endptr should be equal and pointing
-        // to the % or \0
-        if (*curptr == 0)
-            break;
-        if (curptr[1] == '%') {
-            // "%%", so just write a % to the output
-            buffer[bufidx] = '%';
-            bufidx++;
-            curptr += 2;
-            continue;
-        }
-        // find the end of the % clause
-        while ((*endptr != 'd') && (*endptr != 'f') && (*endptr != 'c') &&
-            (*endptr != 0) && (*endptr != 's') && (*endptr != 'x') &&
-            (*endptr != 'X'))
-            endptr++;
-
-        if (numargs >= 0) {
-            numargs--;
-            // if there are not enough arguments, just copy the %d
-            // to the output string rather than trying to format it
-            if (numargs < 0)
-                endptr = &curptr[strlen(curptr)];
-        }
-
-        if (*endptr == 0) {
-            // something like %p which we don't support, so just write
-            // the % to the output
-            buffer[bufidx] = '%';
-            bufidx++;
-            curptr++;
-            continue;
-        }
-        // move endptr to 1 after the end character
-        endptr++;
-
-        // copy the %d or whatever
-        strncpy(fmtstring, curptr, (endptr - curptr));
-        fmtstring[endptr - curptr] = 0;
-
-        intptr_t theArg = va_arg(ap, intptr_t);
-
-        // use sprintf to parse the actual %02d type thing
-        if (endptr[-1] == 'f') {
-            // floats are pushed as 8-bytes, so ensure that it knows this is a float
-            float floatArg;
-            memcpy(&floatArg, &theArg, sizeof(float));
-            sprintf(spfbuffer, fmtstring, floatArg);
-        }
-        else if ((theArg == (intptr_t)buffer) && (endptr[-1] == 's'))
-            quit("Cannot use destination as argument to StrFormat");
-        else if ((theArg < 0x10000) && (endptr[-1] == 's'))
-            quit("!One of the string arguments supplied was not a string");
-        else if (endptr[-1] == 's')
-        {
-            strncpy(spfbuffer, (const char*)theArg, STD_BUFFER_SIZE);
-            spfbuffer[STD_BUFFER_SIZE - 1] = 0;
-        }
-        else 
-            sprintf(spfbuffer, fmtstring, theArg);
-
-        // use the formatted text
-        buffer[bufidx] = 0;
-
-        if (bufidx + strlen(spfbuffer) >= STD_BUFFER_SIZE)
-            quitprintf("!String.Format: buffer overrun: maximum formatted string length %d chars, this string: %d chars", STD_BUFFER_SIZE, bufidx + strlen(spfbuffer));
-
-        strcat(buffer, spfbuffer);
-        bufidx += strlen(spfbuffer);
-        curptr = endptr;
-    }
-    buffer[bufidx] = 0;
 }
 
 //=============================================================================

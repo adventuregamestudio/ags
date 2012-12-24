@@ -44,7 +44,7 @@ void Display(const char*texx, ...) {
     char displbuf[STD_BUFFER_SIZE];
     va_list ap;
     va_start(ap,texx);
-    my_sprintf(displbuf, get_translation(texx), ap);
+    vsprintf(displbuf, get_translation(texx), ap);
     va_end(ap);
     DisplayAtY (-1, displbuf);
 }
@@ -56,7 +56,7 @@ void DisplayTopBar(int ypos, int ttexcol, int backcol, const char *title, const 
     char displbuf[3001];
     va_list ap;
     va_start(ap,texx);
-    my_sprintf(displbuf, get_translation(texx), ap);
+    vsprintf(displbuf, get_translation(texx), ap);
     va_end(ap);
 
     if (ypos > 0)
@@ -143,7 +143,7 @@ void DisplayAt(int xxp,int yyp,int widd, const char*texx, ...) {
     char displbuf[STD_BUFFER_SIZE];
     va_list ap;
     va_start(ap,texx);
-    my_sprintf(displbuf, get_translation(texx), ap);
+    vsprintf(displbuf, get_translation(texx), ap);
     va_end(ap);
 
     multiply_up_coordinates(&xxp, &yyp);

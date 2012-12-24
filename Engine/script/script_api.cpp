@@ -88,6 +88,7 @@ const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format, c
             *(fmt_bufptr++) = '%';
             snprintf_res = 0;
             fmt_done = kFormatParseNone;
+            const RuntimeScriptValue &arg = args[arg_idx];
 
             // Parse placeholder
             while (*(++fmt_ptr) && fmt_done == kFormatParseNone && fmt_bufptr != fmt_bufendptr)
@@ -104,7 +105,7 @@ const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format, c
                 case 'c':
                     // Print integer
                     *fmt_bufptr = 0;
-                    snprintf_res = snprintf(out_ptr, avail_outbuf, fmtbuf, args[arg_idx].GetInt32());
+                    snprintf_res = snprintf(out_ptr, avail_outbuf, fmtbuf, arg.GetInt32());
                     fmt_done = kFormatParseArgument;
                     break;
                 case 'e':
@@ -117,14 +118,25 @@ const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format, c
                 case 'A':
                     // Print float
                     *fmt_bufptr = 0;
-                    snprintf_res = snprintf(out_ptr, avail_outbuf, fmtbuf, args[arg_idx].GetFloat());
+                    snprintf_res = snprintf(out_ptr, avail_outbuf, fmtbuf, arg.GetFloat());
                     fmt_done = kFormatParseArgument;
                     break;
                 case 's':
-                case 'P':
+                    if (!arg.GetPtr())
+                    {
+                        cc_error("ScriptSprintf: argument %d is expected to be a string, but it is null pointer", arg_idx);
+                        return "";
+                    }
+                    if (arg.GetPtr() == buffer)
+                    {
+                        cc_error("ScriptSprintf: argument %d is a pointer to output buffer", arg_idx);
+                        return "";
+                    }
+                    // fall through intended ---
+                case 'p':
                     // Print string, or pointer value
                     *fmt_bufptr = 0;
-                    snprintf_res = snprintf(out_ptr, avail_outbuf, fmtbuf, args[arg_idx].GetPtr());
+                    snprintf_res = snprintf(out_ptr, avail_outbuf, fmtbuf, arg.GetPtr());
                     fmt_done = kFormatParseArgument;
                     break;
                 case '%':

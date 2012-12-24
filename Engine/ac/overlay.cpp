@@ -56,7 +56,7 @@ void Overlay_SetText(ScriptOverlay *scover, int wii, int fontid, int clr, const 
     char displbuf[STD_BUFFER_SIZE];
     va_list ap;
     va_start(ap,texx);
-    my_sprintf(displbuf,get_translation(texx),ap);
+    vsprintf(displbuf,get_translation(texx),ap);
     va_end(ap);
 
     int ovri=find_overlay_of_type(scover->overlayId);
@@ -139,7 +139,7 @@ ScriptOverlay* Overlay_CreateTextual(int x, int y, int width, int font, int colo
     char displbuf[STD_BUFFER_SIZE];
     va_list ap;
     va_start(ap,text);
-    my_sprintf(displbuf,get_translation(text),ap);
+    vsprintf(displbuf,get_translation(text),ap);
     va_end(ap);
 
     multiply_up_coordinates(&x, &y);

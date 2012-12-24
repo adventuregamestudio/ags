@@ -868,7 +868,7 @@ void _sc_AbortGame(const char*texx, ...) {
     char displbuf[STD_BUFFER_SIZE] = "!?";
     va_list ap;
     va_start(ap,texx);
-    my_sprintf(&displbuf[2], get_translation(texx), ap);
+    vsprintf(&displbuf[2], get_translation(texx), ap);
     va_end(ap);
 
     quit(displbuf);

@@ -73,7 +73,7 @@ int CreateTextOverlay(int xx,int yy,int wii,int fontid,int clr, const char*texx,
     char displbuf[STD_BUFFER_SIZE];
     va_list ap;
     va_start(ap,texx);
-    my_sprintf(displbuf,get_translation(texx),ap);
+    vsprintf(displbuf, get_translation(texx), ap);
     va_end(ap);
 
     int allowShrink = 0;
@@ -92,7 +92,7 @@ void SetTextOverlay(int ovrid,int xx,int yy,int wii,int fontid,int clr, const ch
     char displbuf[STD_BUFFER_SIZE];
     va_list ap;
     va_start(ap,texx);
-    my_sprintf(displbuf,get_translation(texx),ap);
+    vsprintf(displbuf, get_translation(texx), ap);
     va_end(ap);
     RemoveOverlay(ovrid);
     crovr_id=ovrid;

@@ -688,7 +688,7 @@ void Character_Say(CharacterInfo *chaa, const char *texx, ...) {
     char displbuf[STD_BUFFER_SIZE];
     va_list ap;
     va_start(ap,texx);
-    my_sprintf(displbuf,get_translation(texx),ap);
+    vsprintf(displbuf, get_translation(texx), ap);
     va_end(ap);
 
     _DisplaySpeechCore(chaa->index_id, displbuf);
@@ -881,7 +881,7 @@ void Character_Think(CharacterInfo *chaa, const char *texx, ...) {
     char displbuf[STD_BUFFER_SIZE];
     va_list ap;
     va_start(ap,texx);
-    my_sprintf(displbuf,get_translation(texx),ap);
+    vsprintf(displbuf, get_translation(texx), ap);
     va_end(ap);
 
     _DisplayThoughtCore(chaa->index_id, displbuf);

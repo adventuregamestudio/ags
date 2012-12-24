@@ -78,7 +78,7 @@ void _sc_sprintf(char*destt, const char*texx, ...) {
     check_strlen(destt);
     va_list ap;
     va_start(ap,texx);
-    my_sprintf(displbuf, get_translation(texx), ap);
+    vsprintf(displbuf, get_translation(texx), ap);
     va_end(ap);
 
     my_strncpy(destt, displbuf, MAXSTRLEN - 1);

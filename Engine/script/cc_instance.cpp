@@ -42,7 +42,6 @@ using AGS::Common::DataStream;
 using AGS::Common::TextStreamWriter;
 
 extern ccInstance *loadedInstances[MAX_LOADED_INSTANCES]; // in script/script_runtime
-extern void nullfree(void *data); // in script/script_runtime
 extern int gameHasBeenRestored; // in ac/game
 extern ExecutingScript*curscript; // in script/script
 extern int guis_need_update; // in gui/guimain
@@ -1382,20 +1381,28 @@ bool ccInstance::_Create(ccScript * scri, ccInstance * joined)
         num_globalvars = joined->num_globalvars;
         globaldatasize = joined->globaldatasize;
         globaldata = joined->globaldata;
+        codesize = joined->codesize;
+        code = joined->code;
     } 
     else {
         // create own memory space
         // NOTE: globalvars are created in CreateGlobalVars()
         globaldatasize = scri->globaldatasize;
-        if (globaldatasize > 0) {
+        globaldata = NULL;
+        if (globaldatasize > 0)
+        {
             globaldata = (char *)malloc(globaldatasize);
             memcpy(globaldata, scri->globaldata, globaldatasize);
         }
-        else
-            globaldata = NULL;
+
+        codesize = scri->codesize;
+        code = NULL;
+        if (codesize > 0)
+        {
+            code = (intptr_t*)malloc(codesize * sizeof(intptr_t));
+            memcpy(code, scri->code, codesize * sizeof(intptr_t));
+        }
     }
-    codesize = scri->codesize;
-    code = scri->code;
 
     // just use the pointer to the strings since they don't change
     strings = scri->strings;
@@ -1440,9 +1447,6 @@ bool ccInstance::_Create(ccScript * scri, ccInstance * joined)
         {
             return false;
         }
-        // [IKM] 2012-09-26:
-        // Do not perform most fixups at startup, store fixup data instead
-        // for real-time fixups during instance run.
         if (!CreateRuntimeCodeFixups(scri))
         {
             return false;
@@ -1516,7 +1520,11 @@ void ccInstance::Free()
     {
         delete [] globalvars;
         nullfree(globaldata);
+        nullfree(code);
     }
+
+    globaldata = NULL;
+    code = NULL;
 
     strings = NULL;
 
@@ -1734,17 +1742,32 @@ bool ccInstance::CreateRuntimeCodeFixups(ccScript * scri)
         switch (scri->fixuptypes[i])
         {
         case FIXUP_GLOBALDATA:
+            {
+                ScriptVariable *gl_var = FindGlobalVar((int32_t)code[fixup]);
+                if (!gl_var)
+                {
+                    cc_error("cannot resolve global variable, key = %d", (int32_t)code[fixup]);
+                    return false;
+                }
+                code[fixup] = (intptr_t)gl_var;
+            }
+            break;
         case FIXUP_FUNCTION:
         case FIXUP_STRING:
         case FIXUP_STACK:
             break; // do nothing yet
         case FIXUP_IMPORT:
-            // we do not need to save import's address now when we have
-            // resolved imports kept so far as instance exists, but we
-            // must fixup the following instruction in certain case
             {
                 int import_index = resolved_imports[code[fixup]];
-                ccInstance *scriptImp = simp.getByIndex(import_index)->InstancePtr;
+                const ScriptImport *import = simp.getByIndex(import_index);
+                if (!import)
+                {
+                    cc_error("cannot resolve import, key = %d", import_index);
+                    return false;
+                }
+
+                code[fixup] = (intptr_t)import;
+                ccInstance *scriptImp = import->InstancePtr;
                 // If the call is to another script function next CALLEXT
                 // must be replaced with CALLAS
                 if (scriptImp != NULL && (code[fixup + 1] == SCMD_CALLEXT))
@@ -1807,9 +1830,9 @@ void ccInstance::FixupInstruction(int32_t code_index, char fixup_type, ScriptIns
     {
         if (instruction.Code == SCMD_CALLEXT) {
             instruction.Code        = SCMD_CALLAS;
-            // take the import index from the previous code value
-            int32_t import_index    = resolved_imports[code[code_index - 1]];
-            instruction.InstanceId  = simp.getByIndex(import_index)->InstancePtr->loadedInstanceId;
+            // take the import address from the previous code value
+            const ScriptImport *import = (const ScriptImport*)code[code_index - 1];
+            instruction.InstanceId  = import->InstancePtr->loadedInstanceId;
             return;
         }
     }
@@ -1828,15 +1851,8 @@ void ccInstance::FixupArgument(intptr_t code_value, char fixup_type, RuntimeScri
     {
     case FIXUP_GLOBALDATA:
         {
-            ScriptVariable *gl_var = FindGlobalVar((int32_t)code_value);
-            if (gl_var)
-            {
-                argument.SetGlobalVar(&gl_var->RValue);
-            }
-            else
-            {
-                cc_error("cannot resolve global variable, key = %d", (int32_t)code_value);
-            }
+            ScriptVariable *gl_var = (ScriptVariable*)code_value;
+            argument.SetGlobalVar(&gl_var->RValue);
         }
         break;
     case FIXUP_FUNCTION:
@@ -1850,20 +1866,13 @@ void ccInstance::FixupArgument(intptr_t code_value, char fixup_type, RuntimeScri
         break;
     case FIXUP_IMPORT:
         {
-            int32_t import_index = resolved_imports[code_value];
-            const ScriptImport *import = simp.getByIndex(import_index);
-            if (import)
-            {
-                argument = import->Value;
-            }
-            else
-            {
-                cc_error("cannot resolve import, key = %ld", code_value);
-            }
+            const ScriptImport *import = (const ScriptImport*)code_value;
+            argument = import->Value;
         }
         break;
-    case FIXUP_STACK: {
-        argument = GetStackPtrOffsetFw((int32_t)code_value);
+    case FIXUP_STACK:
+        {
+            argument = GetStackPtrOffsetFw((int32_t)code_value);
         }
         break;
     default:

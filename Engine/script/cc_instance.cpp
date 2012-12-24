@@ -182,11 +182,11 @@ struct FunctionCallStack
         Count = 0;
     }
 
-    inline RuntimeScriptValue *GetHead()
+    inline const RuntimeScriptValue *GetHead() const
     {
         return &Entries[Head];
     }
-    inline RuntimeScriptValue *GetTail()
+    inline const RuntimeScriptValue *GetTail() const
     {
         return &Entries[Head + Count];
     }
@@ -914,8 +914,8 @@ int ccInstance::Run(int32_t curpc)
           // If there are nested CALLAS calls, the stack might
           // contain 2 calls worth of parameters, so only
           // push args for this call
-          const RuntimeScriptValue *head = func_callstack.GetHead();
-          for (RuntimeScriptValue *prval = func_callstack.GetTail(); prval > head; --prval)
+          for (const RuntimeScriptValue *prval = func_callstack.GetTail(), *head = func_callstack.GetHead();
+               prval > head; --prval)
           {
               PushValueToStack(*prval);
           }

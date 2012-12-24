@@ -169,241 +169,241 @@ void SetFlashlightInt5(int Param1, int Param2, int Param3, int Param4, int Param
 #include "script/script_runtime.h"
 
 // void ()
-RuntimeScriptValue Sc_ScriptStub_ShellExecute(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_ScriptStub_ShellExecute(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID(ScriptStub_ShellExecute);
 }
 
 // void (int min_value, int max_value)
-RuntimeScriptValue Sc_srSetSnowDriftRange(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_srSetSnowDriftRange(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT2(srSetSnowDriftRange);
 }
 
 // void (int min_value, int max_value)
-RuntimeScriptValue Sc_srSetSnowDriftSpeed(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_srSetSnowDriftSpeed(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT2(srSetSnowDriftSpeed);
 }
 
 // void (int min_value, int max_value)
-RuntimeScriptValue Sc_srSetSnowFallSpeed(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_srSetSnowFallSpeed(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT2(srSetSnowFallSpeed);
 }
 
 // void (int amount)
-RuntimeScriptValue Sc_srChangeSnowAmount(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_srChangeSnowAmount(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT(srChangeSnowAmount);
 }
 
 // void (int top, int bottom)
-RuntimeScriptValue Sc_srSetSnowBaseline(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_srSetSnowBaseline(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT2(srSetSnowBaseline);
 }
 
 // void (int min_value, int max_value)
-RuntimeScriptValue Sc_srSetSnowTransparency(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_srSetSnowTransparency(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT2(srSetSnowTransparency);
 }
 
 // void (int view, int loop)
-RuntimeScriptValue Sc_srSetSnowDefaultView(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_srSetSnowDefaultView(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT2(srSetSnowDefaultView);
 }
 
 // void (int value)
-RuntimeScriptValue Sc_srSetSnowWindSpeed(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_srSetSnowWindSpeed(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT(srSetSnowWindSpeed);
 }
 
 // void (int amount)
-RuntimeScriptValue Sc_srSetSnowAmount(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_srSetSnowAmount(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT(srSetSnowAmount);
 }
 
 // void (int kind_id, int event, int view, int loop)
-RuntimeScriptValue Sc_srSetSnowView(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_srSetSnowView(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT4(srSetSnowView);
 }
 
 // void (int amount)
-RuntimeScriptValue Sc_srChangeRainAmount(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_srChangeRainAmount(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT(srChangeRainAmount);
 }
 
 // void (int kind_id, int event, int view, int loop)
-RuntimeScriptValue Sc_srSetRainView(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_srSetRainView(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT4(srSetRainView);
 }
 
 // void (int view, int loop)
-RuntimeScriptValue Sc_srSetRainDefaultView(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_srSetRainDefaultView(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT2(srSetRainDefaultView);
 }
 
 // void (int min_value, int max_value)
-RuntimeScriptValue Sc_srSetRainTransparency(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_srSetRainTransparency(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT2(srSetRainTransparency);
 }
 
 // void (int value)
-RuntimeScriptValue Sc_srSetRainWindSpeed(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_srSetRainWindSpeed(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT(srSetRainWindSpeed);
 }
 
 // void (int top, int bottom)
-RuntimeScriptValue Sc_srSetRainBaseline(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_srSetRainBaseline(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT2(srSetRainBaseline);
 }
 
 // void (int amount)
-RuntimeScriptValue Sc_srSetRainAmount(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_srSetRainAmount(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT(srSetRainAmount);
 }
 
 // void (int min_value, int max_value)
-RuntimeScriptValue Sc_srSetRainFallSpeed(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_srSetRainFallSpeed(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT2(srSetRainFallSpeed);
 }
 
 // void (int value)
-RuntimeScriptValue Sc_srSetWindSpeed(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_srSetWindSpeed(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT(srSetWindSpeed);
 }
 
 // void (int top, int bottom)
-RuntimeScriptValue Sc_srSetBaseline(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_srSetBaseline(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT2(srSetBaseline);
 }
 
 // int ()
-RuntimeScriptValue Sc_JoystickCount(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_JoystickCount(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(JoystickCount);
 }
 
 // int (int a)
-RuntimeScriptValue Sc_Joystick_Open(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Joystick_Open(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT(Joystick_Open);
 }
 
 // int (int a)
-RuntimeScriptValue Sc_Joystick_IsButtonDown(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Joystick_IsButtonDown(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT(Joystick_IsButtonDown);
 }
 
 // void (int a)
-RuntimeScriptValue Sc_Joystick_EnableEvents(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Joystick_EnableEvents(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT(Joystick_EnableEvents);
 }
 
 // void ()
-RuntimeScriptValue Sc_Joystick_DisableEvents(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Joystick_DisableEvents(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID(Joystick_DisableEvents);
 }
 
 // void (int a)
-RuntimeScriptValue Sc_Joystick_Click(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Joystick_Click(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT(Joystick_Click);
 }
 
 // int ()
-RuntimeScriptValue Sc_Joystick_Valid(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Joystick_Valid(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(Joystick_Valid);
 }
 
 // int ()
-RuntimeScriptValue Sc_Joystick_Unplugged(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Joystick_Unplugged(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(Joystick_Unplugged);
 }
 
 // int (int destination, int sprite, int x, int y, int transparency)
-RuntimeScriptValue Sc_DrawAlpha(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DrawAlpha(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT5(DrawAlpha);
 }
 
 // int (int sprite, int x, int y)
-RuntimeScriptValue Sc_GetAlpha(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_GetAlpha(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT3(GetAlpha);
 }
 
 // int (int sprite, int x, int y, int alpha)
-RuntimeScriptValue Sc_PutAlpha(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_PutAlpha(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT4(PutAlpha);
 }
 
 // int (int sprite, int radius)
-RuntimeScriptValue Sc_Blur(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Blur(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT2(Blur);
 }
 
 // int (int sprite, int threshold)
-RuntimeScriptValue Sc_HighPass(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_HighPass(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT2(HighPass);
 }
 
 // int (int destination, int sprite, int x, int y, float scale)
-RuntimeScriptValue Sc_DrawAdd(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DrawAdd(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT4_PFLOAT(DrawAdd);
 }
 
 // int ()
-RuntimeScriptValue Sc_GetFlashlightInt(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_GetFlashlightInt(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(GetFlashlightInt);
 }
 
 // void (int Param1)
-RuntimeScriptValue Sc_SetFlashlightInt1(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_SetFlashlightInt1(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT(SetFlashlightInt1);
 }
 
 // void (int Param1, int Param2)
-RuntimeScriptValue Sc_SetFlashlightInt2(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_SetFlashlightInt2(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT2(SetFlashlightInt2);
 }
 
 // void (int Param1, int Param2, int Param3)
-RuntimeScriptValue Sc_SetFlashlightInt3(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_SetFlashlightInt3(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT3(SetFlashlightInt3);
 }
 
 // void (int Param1, int Param2, int Param3, int Param4, int Param5)
-RuntimeScriptValue Sc_SetFlashlightInt5(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_SetFlashlightInt5(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PINT5(SetFlashlightInt5);
 }

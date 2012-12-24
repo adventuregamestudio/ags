@@ -227,109 +227,109 @@ int __Rand(int upto) {
 #include "script/script_runtime.h"
 
 // FLOAT_RETURN_TYPE (SCRIPT_FLOAT(value))
-RuntimeScriptValue Sc_Math_ArcCos(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Math_ArcCos(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT(Math_ArcCos);
 }
 
 // FLOAT_RETURN_TYPE (SCRIPT_FLOAT(value))
-RuntimeScriptValue Sc_Math_ArcSin(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Math_ArcSin(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT(Math_ArcSin);
 }
 
 // FLOAT_RETURN_TYPE (SCRIPT_FLOAT(value))
-RuntimeScriptValue Sc_Math_ArcTan(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Math_ArcTan(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT(Math_ArcTan);
 }
 
 // FLOAT_RETURN_TYPE (SCRIPT_FLOAT(yval), SCRIPT_FLOAT(xval))
-RuntimeScriptValue Sc_Math_ArcTan2(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Math_ArcTan2(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT2(Math_ArcTan2);
 }
 
 // FLOAT_RETURN_TYPE (SCRIPT_FLOAT(value))
-RuntimeScriptValue Sc_Math_Cos(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Math_Cos(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT(Math_Cos);
 }
 
 // FLOAT_RETURN_TYPE (SCRIPT_FLOAT(num))
-RuntimeScriptValue Sc_Math_Cosh(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Math_Cosh(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT(Math_Cosh);
 }
 
 // FLOAT_RETURN_TYPE (SCRIPT_FLOAT(value))
-RuntimeScriptValue Sc_Math_DegreesToRadians(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Math_DegreesToRadians(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT(Math_DegreesToRadians);
 }
 
 // FLOAT_RETURN_TYPE (SCRIPT_FLOAT(num))
-RuntimeScriptValue Sc_Math_Exp(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Math_Exp(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT(Math_Exp);
 }
 
 // FLOAT_RETURN_TYPE (SCRIPT_FLOAT(num))
-RuntimeScriptValue Sc_Math_Log(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Math_Log(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT(Math_Log);
 }
 
 // FLOAT_RETURN_TYPE (SCRIPT_FLOAT(num))
-RuntimeScriptValue Sc_Math_Log10(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Math_Log10(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT(Math_Log10);
 }
 
 // FLOAT_RETURN_TYPE (SCRIPT_FLOAT(value))
-RuntimeScriptValue Sc_Math_RadiansToDegrees(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Math_RadiansToDegrees(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT(Math_RadiansToDegrees);
 }
 
 // FLOAT_RETURN_TYPE (SCRIPT_FLOAT(base), SCRIPT_FLOAT(exp))
-RuntimeScriptValue Sc_Math_RaiseToPower(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Math_RaiseToPower(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT2(Math_RaiseToPower);
 }
 
 // FLOAT_RETURN_TYPE (SCRIPT_FLOAT(value))
-RuntimeScriptValue Sc_Math_Sin(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Math_Sin(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT(Math_Sin);
 }
 
 // FLOAT_RETURN_TYPE (SCRIPT_FLOAT(num))
-RuntimeScriptValue Sc_Math_Sinh(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Math_Sinh(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT(Math_Sinh);
 }
 
 // FLOAT_RETURN_TYPE (SCRIPT_FLOAT(value))
-RuntimeScriptValue Sc_Math_Sqrt(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Math_Sqrt(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT(Math_Sqrt);
 }
 
 // FLOAT_RETURN_TYPE (SCRIPT_FLOAT(value))
-RuntimeScriptValue Sc_Math_Tan(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Math_Tan(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT(Math_Tan);
 }
 
 // FLOAT_RETURN_TYPE (SCRIPT_FLOAT(num))
-RuntimeScriptValue Sc_Math_Tanh(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Math_Tanh(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT_PINT(Math_Tanh);
 }
 
 // FLOAT_RETURN_TYPE ()
-RuntimeScriptValue Sc_Math_GetPi(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Math_GetPi(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(Math_GetPi);
 }

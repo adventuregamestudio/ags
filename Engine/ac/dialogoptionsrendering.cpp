@@ -135,109 +135,109 @@ void DialogOptionsRendering_SetActiveOptionID(ScriptDialogOptionsRendering *dlgO
 #include "script/script_runtime.h"
 
 // int (ScriptDialogOptionsRendering *dlgOptRender)
-RuntimeScriptValue Sc_DialogOptionsRendering_GetActiveOptionID(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DialogOptionsRendering_GetActiveOptionID(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptDialogOptionsRendering, DialogOptionsRendering_GetActiveOptionID);
 }
 
 // void (ScriptDialogOptionsRendering *dlgOptRender, int activeOptionID)
-RuntimeScriptValue Sc_DialogOptionsRendering_SetActiveOptionID(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DialogOptionsRendering_SetActiveOptionID(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptDialogOptionsRendering, DialogOptionsRendering_SetActiveOptionID);
 }
 
 // ScriptDialog* (ScriptDialogOptionsRendering *dlgOptRender)
-RuntimeScriptValue Sc_DialogOptionsRendering_GetDialogToRender(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DialogOptionsRendering_GetDialogToRender(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_OBJ(ScriptDialogOptionsRendering, ScriptDialog, ccDynamicDialog, DialogOptionsRendering_GetDialogToRender);
 }
 
 // int (ScriptDialogOptionsRendering *dlgOptRender)
-RuntimeScriptValue Sc_DialogOptionsRendering_GetHeight(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DialogOptionsRendering_GetHeight(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptDialogOptionsRendering, DialogOptionsRendering_GetHeight);
 }
 
 // void (ScriptDialogOptionsRendering *dlgOptRender, int newHeight)
-RuntimeScriptValue Sc_DialogOptionsRendering_SetHeight(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DialogOptionsRendering_SetHeight(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptDialogOptionsRendering, DialogOptionsRendering_SetHeight);
 }
 
 // int (ScriptDialogOptionsRendering *dlgOptRender)
-RuntimeScriptValue Sc_DialogOptionsRendering_GetParserTextboxX(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DialogOptionsRendering_GetParserTextboxX(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptDialogOptionsRendering, DialogOptionsRendering_GetParserTextboxX);
 }
 
 // void (ScriptDialogOptionsRendering *dlgOptRender, int newX)
-RuntimeScriptValue Sc_DialogOptionsRendering_SetParserTextboxX(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DialogOptionsRendering_SetParserTextboxX(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptDialogOptionsRendering, DialogOptionsRendering_SetParserTextboxX);
 }
 
 // int (ScriptDialogOptionsRendering *dlgOptRender)
-RuntimeScriptValue Sc_DialogOptionsRendering_GetParserTextboxY(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DialogOptionsRendering_GetParserTextboxY(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptDialogOptionsRendering, DialogOptionsRendering_GetParserTextboxY);
 }
 
 // void (ScriptDialogOptionsRendering *dlgOptRender, int newY)
-RuntimeScriptValue Sc_DialogOptionsRendering_SetParserTextboxY(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DialogOptionsRendering_SetParserTextboxY(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptDialogOptionsRendering, DialogOptionsRendering_SetParserTextboxY);
 }
 
 // int (ScriptDialogOptionsRendering *dlgOptRender)
-RuntimeScriptValue Sc_DialogOptionsRendering_GetParserTextboxWidth(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DialogOptionsRendering_GetParserTextboxWidth(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptDialogOptionsRendering, DialogOptionsRendering_GetParserTextboxWidth);
 }
 
 // void (ScriptDialogOptionsRendering *dlgOptRender, int newWidth)
-RuntimeScriptValue Sc_DialogOptionsRendering_SetParserTextboxWidth(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DialogOptionsRendering_SetParserTextboxWidth(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptDialogOptionsRendering, DialogOptionsRendering_SetParserTextboxWidth);
 }
 
 // ScriptDrawingSurface* (ScriptDialogOptionsRendering *dlgOptRender)
-RuntimeScriptValue Sc_DialogOptionsRendering_GetSurface(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DialogOptionsRendering_GetSurface(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_OBJAUTO(ScriptDialogOptionsRendering, ScriptDrawingSurface, DialogOptionsRendering_GetSurface);
 }
 
 // int (ScriptDialogOptionsRendering *dlgOptRender)
-RuntimeScriptValue Sc_DialogOptionsRendering_GetWidth(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DialogOptionsRendering_GetWidth(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptDialogOptionsRendering, DialogOptionsRendering_GetWidth);
 }
 
 // void (ScriptDialogOptionsRendering *dlgOptRender, int newWidth)
-RuntimeScriptValue Sc_DialogOptionsRendering_SetWidth(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DialogOptionsRendering_SetWidth(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptDialogOptionsRendering, DialogOptionsRendering_SetWidth);
 }
 
 // int (ScriptDialogOptionsRendering *dlgOptRender)
-RuntimeScriptValue Sc_DialogOptionsRendering_GetX(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DialogOptionsRendering_GetX(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptDialogOptionsRendering, DialogOptionsRendering_GetX);
 }
 
 // void (ScriptDialogOptionsRendering *dlgOptRender, int newX)
-RuntimeScriptValue Sc_DialogOptionsRendering_SetX(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DialogOptionsRendering_SetX(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptDialogOptionsRendering, DialogOptionsRendering_SetX);
 }
 
 // int (ScriptDialogOptionsRendering *dlgOptRender)
-RuntimeScriptValue Sc_DialogOptionsRendering_GetY(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DialogOptionsRendering_GetY(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptDialogOptionsRendering, DialogOptionsRendering_GetY);
 }
 
 // void (ScriptDialogOptionsRendering *dlgOptRender, int newY)
-RuntimeScriptValue Sc_DialogOptionsRendering_SetY(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DialogOptionsRendering_SetY(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptDialogOptionsRendering, DialogOptionsRendering_SetY);
 }

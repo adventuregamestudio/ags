@@ -25,11 +25,11 @@
 struct RuntimeScriptValue;
 
 // TODO: replace void* with base object class when possible; also put array class for parameters
-typedef RuntimeScriptValue ScriptAPIFunction(RuntimeScriptValue *params, int32_t param_count);
-typedef RuntimeScriptValue ScriptAPIObjectFunction(void *self, RuntimeScriptValue *params, int32_t param_count);
+typedef RuntimeScriptValue ScriptAPIFunction(const RuntimeScriptValue *params, int32_t param_count);
+typedef RuntimeScriptValue ScriptAPIObjectFunction(void *self, const RuntimeScriptValue *params, int32_t param_count);
 
 // Sprintf that takes script values as arguments
-const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format, RuntimeScriptValue *args, int32_t argc);
+const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format, const RuntimeScriptValue *args, int32_t argc);
 extern char ScSfBuffer[3000];
 
 // Helper macros for script functions

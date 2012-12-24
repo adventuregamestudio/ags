@@ -1101,73 +1101,73 @@ void on_background_frame_change () {
 extern ScriptString myScriptStringImpl;
 
 // ScriptDrawingSurface* (int backgroundNumber)
-RuntimeScriptValue Sc_Room_GetDrawingSurfaceForBackground(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Room_GetDrawingSurfaceForBackground(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJAUTO_PINT(ScriptDrawingSurface, Room_GetDrawingSurfaceForBackground);
 }
 
 // const char* (const char *property)
-RuntimeScriptValue Sc_Room_GetTextProperty(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Room_GetTextProperty(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJ_POBJ(const char, myScriptStringImpl, Room_GetTextProperty, const char);
 }
 
 // int ()
-RuntimeScriptValue Sc_Room_GetBottomEdge(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Room_GetBottomEdge(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(Room_GetBottomEdge);
 }
 
 // int ()
-RuntimeScriptValue Sc_Room_GetColorDepth(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Room_GetColorDepth(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(Room_GetColorDepth);
 }
 
 // int ()
-RuntimeScriptValue Sc_Room_GetHeight(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Room_GetHeight(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(Room_GetHeight);
 }
 
 // int ()
-RuntimeScriptValue Sc_Room_GetLeftEdge(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Room_GetLeftEdge(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(Room_GetLeftEdge);
 }
 
 // const char* (int index)
-RuntimeScriptValue Sc_Room_GetMessages(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Room_GetMessages(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_OBJ_PINT(const char, myScriptStringImpl, Room_GetMessages);
 }
 
 // int ()
-RuntimeScriptValue Sc_Room_GetMusicOnLoad(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Room_GetMusicOnLoad(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(Room_GetMusicOnLoad);
 }
 
 // int ()
-RuntimeScriptValue Sc_Room_GetObjectCount(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Room_GetObjectCount(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(Room_GetObjectCount);
 }
 
 // int ()
-RuntimeScriptValue Sc_Room_GetRightEdge(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Room_GetRightEdge(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(Room_GetRightEdge);
 }
 
 // int ()
-RuntimeScriptValue Sc_Room_GetTopEdge(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Room_GetTopEdge(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(Room_GetTopEdge);
 }
 
 // int ()
-RuntimeScriptValue Sc_Room_GetWidth(RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Room_GetWidth(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(Room_GetWidth);
 }

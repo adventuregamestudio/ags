@@ -35,7 +35,7 @@ enum FormatParseResult
     kFormatParseLiteralPercent,
 };
 
-const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format, RuntimeScriptValue *args, int32_t argc)
+const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format, const RuntimeScriptValue *args, int32_t argc)
 {
     if (!buffer)
     {

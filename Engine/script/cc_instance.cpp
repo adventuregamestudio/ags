@@ -914,8 +914,8 @@ int ccInstance::Run(int32_t curpc)
           // If there are nested CALLAS calls, the stack might
           // contain 2 calls worth of parameters, so only
           // push args for this call
-          for (const RuntimeScriptValue *prval = func_callstack.GetTail(), *head = func_callstack.GetHead();
-               prval > head; --prval)
+          for (const RuntimeScriptValue *prval = func_callstack.GetHead() + num_args_to_func;
+               prval > func_callstack.GetHead(); --prval)
           {
               PushValueToStack(*prval);
           }

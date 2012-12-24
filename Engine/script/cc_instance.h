@@ -195,7 +195,6 @@ protected:
     // Function call stack processing
     void    PushToFuncCallStack(FunctionCallStack &func_callstack, const RuntimeScriptValue &rval);
     void    PopFromFuncCallStack(FunctionCallStack &func_callstack, int32_t num_entries);
-    RuntimeScriptValue PeekFuncCallStack(FunctionCallStack &func_callstack, int32_t entry_index);
 };
 
 #endif // __CC_INSTANCE_H

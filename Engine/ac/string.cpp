@@ -492,9 +492,9 @@ void my_sprintf(char *buffer, const char *fmt, va_list ap) {
 #include "ac/math.h"
 
 // int (const char *thisString)
-RuntimeScriptValue Sc_String_IsNullOrEmpty(void *self, RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_String_IsNullOrEmpty(RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(const char, String_IsNullOrEmpty);
+    API_SCALL_INT_POBJ(String_IsNullOrEmpty, const char);
 }
 
 // const char* (const char *thisString, const char *extrabit)
@@ -609,7 +609,7 @@ RuntimeScriptValue Sc_strlen(void *self, RuntimeScriptValue *params, int32_t par
 
 void RegisterStringAPI()
 {
-    ccAddExternalObjectFunction("String::IsNullOrEmpty^1",  Sc_String_IsNullOrEmpty);
+    ccAddExternalStaticFunction("String::IsNullOrEmpty^1",  Sc_String_IsNullOrEmpty);
     ccAddExternalObjectFunction("String::Append^1",         Sc_String_Append);
     ccAddExternalObjectFunction("String::AppendChar^1",     Sc_String_AppendChar);
     ccAddExternalObjectFunction("String::CompareTo^2",      Sc_String_CompareTo);

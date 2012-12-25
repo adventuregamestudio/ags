@@ -301,7 +301,7 @@ RuntimeScriptValue Sc_DisplaySpeechAt(const RuntimeScriptValue *params, int32_t 
 // int (int charid,char*speel)
 RuntimeScriptValue Sc_DisplaySpeechBackground(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT_POBJ(DisplaySpeechBackground, const char);
+    API_SCALL_INT_PINT_POBJ(DisplaySpeechBackground, const char);
 }
 
 // void (int chid, const char*texx, ...)

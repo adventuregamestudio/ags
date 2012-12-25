@@ -49,6 +49,7 @@ roomstruct::roomstruct() {
     memset(&objbaseline[0], 0xff, sizeof(int) * MAX_INIT_SPR);
     memset(&objectFlags[0], 0, sizeof(short) * MAX_INIT_SPR);
     width = 320; height = 200; scripts = NULL; compiled_script = NULL;
+    compiled_script_shared = false;
     cscriptsize = 0;
     memset(&walk_area_zoom[0], 0, sizeof(short) * (MAX_WALK_AREAS + 1));
     memset(&walk_area_light[0], 0, sizeof(short) * (MAX_WALK_AREAS + 1));
@@ -505,8 +506,12 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
     rstruc->scripts = NULL;
   }
 
-  delete rstruc->compiled_script;
+  if (!rstruc->compiled_script_shared)
+  {
+    delete rstruc->compiled_script;
+  }
   rstruc->compiled_script = NULL;
+  rstruc->compiled_script_shared = false;
 
   if (rstruc->num_bscenes > 1) {
     int ff;
@@ -634,6 +639,7 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
     }
     else if (thisblock == BLOCKTYPE_COMPSCRIPT3) {
       rstruc->compiled_script = ccScript::CreateFromStream(opty);
+      rstruc->compiled_script_shared = false;
       if (rstruc->compiled_script == NULL)
         quit("Load_room: Script load failed; need newer version?");
     }

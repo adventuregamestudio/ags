@@ -4542,6 +4542,7 @@ void save_crm_file(Room ^room)
 
 	thisroom.scripts = NULL;
 	thisroom.compiled_script = ((AGS::Native::CompiledScript^)room->Script->CompiledData)->Data;
+    thisroom.compiled_script_shared = true;
 
 	char roomFileNameBuffer[MAX_PATH];
 	ConvertStringToCharArray(room->FileName, roomFileNameBuffer);

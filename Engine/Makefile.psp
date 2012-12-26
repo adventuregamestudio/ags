@@ -17,7 +17,8 @@ BASE_PLATFORM = \
 platform/psp/acplpsp.cpp \
 ../PSP/kernel/kernel.c \
 ../PSP/exception/utility/exception.c \
-../PSP/malloc/malloc.c
+../PSP/malloc/malloc.c \
+../PSP/suspend/suspend.c
 
 include Makefile-objs
 OBJS_C_CPP = $(ALFONT) $(ALMP3) $(ALOGG) $(APEG) $(AASTR) $(BASE) $(BASE_PLATFORM) $(COMMON)

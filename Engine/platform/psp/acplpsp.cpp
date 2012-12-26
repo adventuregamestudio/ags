@@ -43,6 +43,7 @@ extern "C" {
 #include "../PSP/kernel/kernel.h"
 }
 #include "../PSP/malloc/malloc_p5.h"
+#include "../PSP/suspend/suspend.h"
 
 
 #ifdef PSP_ENABLE_PROFILING
@@ -580,6 +581,9 @@ AGSPlatformDriver* AGSPlatformDriver::GetDriver() {
     // going from the map to the library SCMD_FMULREG will be called with the
     // floating point register containing NAN.
     pspFpuSetEnable(0);
+
+    // Setup the power callback
+    suspend_init();
 
     // Setup the exception handler prx.
     initExceptionHandler();

@@ -158,6 +158,7 @@ struct roomstruct {
     short         walk_area_bottom[MAX_WALK_AREAS + 1];  // bottom YP of area
     char          *scripts;
     ccScript      *compiled_script;
+    bool          compiled_script_shared;
     int           cscriptsize;
     int           num_bscenes, bscene_anim_speed;
     int           bytes_per_pixel;

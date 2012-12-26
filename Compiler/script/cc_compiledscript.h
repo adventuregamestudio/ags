@@ -44,7 +44,7 @@ struct ccCompiledScript: public ccScript {
     void pop_reg(int regg);
 
     ccCompiledScript();
-    ~ccCompiledScript();
+    virtual ~ccCompiledScript();
 };
 
 #endif // __CC_COMPILEDSCRIPT_H

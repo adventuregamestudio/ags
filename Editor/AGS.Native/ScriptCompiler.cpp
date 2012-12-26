@@ -99,10 +99,7 @@ namespace AGS
 
 			  if (exceptionToThrow != nullptr) 
 			  {
-				  if (scrpt != NULL) 
-				  {
-					  scrpt->Free();
-				  }
+				  delete scrpt;
 				  throw exceptionToThrow;
 			  }
 

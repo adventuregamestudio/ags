@@ -102,8 +102,8 @@ void Test_File()
 
     int16_t int16val    = in->ReadInt16();
     int64_t int64val    = in->ReadInt64();
-    String str1         = String::FromStream(out);
-    String str2         = String::FromStream(out);
+    String str1         = String::FromStream(in);
+    String str2         = String::FromStream(in);
 
     TTrickyAlignedData tricky_data_in;
     memset(&tricky_data_in, 0xAA, sizeof(tricky_data_out));

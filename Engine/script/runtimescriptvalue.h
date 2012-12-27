@@ -135,12 +135,6 @@ public:
     {
         return RValue;
     }
-    inline RuntimeScriptValue GetRValueWithOffset() const
-    {
-        RuntimeScriptValue rval = RValue ? *RValue : RuntimeScriptValue();
-        rval += IValue;
-        return rval;
-    }
     inline ScriptAPIFunction *GetStaticFunctionPtr() const
     {
         return SPfn;
@@ -387,6 +381,10 @@ public:
     bool        WriteInt16(int16_t val);
     bool        WriteInt32(int32_t val);
     bool        WriteValue(const RuntimeScriptValue &rval);
+
+    // Convert to most simple pointer type by resolving RValue ptrs and applying offsets;
+    // non pointer types are left unmodified
+    RuntimeScriptValue &DirectPtr();
 };
 
 #endif // __AGS_EE_SCRIPT__RUNTIMESCRIPTVALUE_H

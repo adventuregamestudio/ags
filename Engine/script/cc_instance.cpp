@@ -182,11 +182,11 @@ struct FunctionCallStack
         Count = 0;
     }
 
-    inline const RuntimeScriptValue *GetHead() const
+    inline RuntimeScriptValue *GetHead()
     {
         return &Entries[Head];
     }
-    inline const RuntimeScriptValue *GetTail() const
+    inline RuntimeScriptValue *GetTail()
     {
         return &Entries[Head + Count];
     }
@@ -486,7 +486,7 @@ int ccInstance::Run(int32_t curpc)
     }
 
     int32_t thisbase[MAXNEST], funcstart[MAXNEST];
-    was_just_callas = -1;
+    int was_just_callas = -1;
     int curnest = 0;
     int loopIterations = 0;
     int num_args_to_func = -1;
@@ -969,6 +969,13 @@ int ccInstance::Run(int32_t curpc)
             num_args_to_func = func_callstack.Count;
           }
 
+          // Convert pointer arguments to simple types
+          for (RuntimeScriptValue *prval = func_callstack.GetHead() + num_args_to_func;
+              prval > func_callstack.GetHead(); --prval)
+          {
+              prval->DirectPtr();
+          }
+
           RuntimeScriptValue return_value;
 
           if (next_call_needs_object)
@@ -978,11 +985,7 @@ int ccInstance::Run(int32_t curpc)
             if (reg1.GetType() == kScValObjectFunction)
             {
               RuntimeScriptValue obj_rval = registers[SREG_OP];
-              if (obj_rval.GetType() == kScValStackPtr ||
-                  obj_rval.GetType() == kScValGlobalVar)
-              {
-                  obj_rval = obj_rval.GetRValueWithOffset();
-              }
+              obj_rval.DirectPtr();
               return_value = reg1.GetObjectFunctionPtr()(obj_rval.GetPtr(), func_callstack.GetHead() + 1, num_args_to_func);
             }
             else
@@ -1031,6 +1034,11 @@ int ccInstance::Run(int32_t curpc)
           break;
       case SCMD_SUBREALSTACK:
           PopFromFuncCallStack(func_callstack, arg1.GetInt32());
+          if (was_just_callas >= 0)
+          {
+              PopValuesFromStack(arg1.GetInt32());
+              was_just_callas = -1;
+          }
           break;
       case SCMD_CALLOBJ:
           // set the OP register
@@ -2044,24 +2052,11 @@ void ccInstance::PushToFuncCallStack(FunctionCallStack &func_callstack, const Ru
 {
     if (func_callstack.Count >= MAX_FUNC_PARAMS)
     {
-        cc_error("CallScriptFunction stack overflow");
+        cc_error("function callstack overflow");
         return;
     }
 
-    // NOTE: There's at least one known case when this may be a stack pointer:
-    // AGS 2.x style local strings that have their address pushed to stack
-    // after array of chars; in the new interpreter implementation we push
-    // these addresses as runtime values of stack ptr type to keep correct
-    // value size.
-    if (rval.GetType() == kScValStackPtr ||
-        rval.GetType() == kScValGlobalVar)
-    {
-        func_callstack.Entries[func_callstack.Head] = rval.GetRValueWithOffset();
-    }
-    else
-    {
-        func_callstack.Entries[func_callstack.Head] = rval;
-    }
+    func_callstack.Entries[func_callstack.Head] = rval;
     func_callstack.Head--;
     func_callstack.Count++;
 }
@@ -2070,15 +2065,10 @@ void ccInstance::PopFromFuncCallStack(FunctionCallStack &func_callstack, int32_t
 {
     if (func_callstack.Count == 0)
     {
-        cc_error("CallScriptFunction stack underflow");
+        cc_error("function callstack underflow");
         return;
     }
 
-    if (was_just_callas >= 0)
-    {
-        PopValuesFromStack(num_entries);
-        was_just_callas = -1;
-    }
     func_callstack.Head += num_entries;
     func_callstack.Count -= num_entries;
 }

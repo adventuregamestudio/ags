@@ -5,6 +5,8 @@
 #include "ac/statobj/staticobject.h"
 #include "util/bbop.h"
 
+#include <string.h> // for memcpy()
+
 //
 // NOTE to future optimizers: I am using 'this' ptr here to better
 // distinguish Runtime Values.
@@ -94,7 +96,15 @@ int32_t RuntimeScriptValue::ReadInt32()
     {
         if (RValue->Type == kScValData)
         {
-            int32_t temp = *(int32_t*)(RValue->GetPtrWithOffset() + this->IValue);
+            int32_t temp;
+
+#if defined(AGS_STRICT_ALIGNMENT)
+            char *source = RValue->GetPtrWithOffset() + this->IValue;
+            memcpy(&temp, source, sizeof(int32_t));
+#else
+            temp = *(int32_t*)(RValue->GetPtrWithOffset() + this->IValue);
+#endif
+
 #if defined(AGS_BIG_ENDIAN)
             AGS::Common::BitByteOperations::SwapBytesInt32(temp);
 #endif
@@ -137,7 +147,15 @@ RuntimeScriptValue RuntimeScriptValue::ReadValue()
     {
         if (RValue->Type == kScValData)
         {
-            int32_t temp = *(int32_t*)(RValue->GetPtrWithOffset() + this->IValue);
+            int32_t temp;
+
+#if defined(AGS_STRICT_ALIGNMENT)
+            char *source = RValue->GetPtrWithOffset() + this->IValue;
+            memcpy(&temp, source, sizeof(int32_t));
+#else
+            temp = *(int32_t*)(RValue->GetPtrWithOffset() + this->IValue);
+#endif
+
 #if defined(AGS_BIG_ENDIAN)
             AGS::Common::BitByteOperations::SwapBytesInt32(temp);
 #endif
@@ -254,7 +272,13 @@ bool RuntimeScriptValue::WriteInt32(int32_t val)
 #if defined(AGS_BIG_ENDIAN)
             AGS::Common::BitByteOperations::SwapBytesInt32(val);
 #endif
+
+#if defined(AGS_STRICT_ALIGNMENT)
+            char *destination = RValue->GetPtrWithOffset() + this->IValue;
+            memcpy(destination, &val, sizeof(int32_t));
+#else
             *(int32_t*)(RValue->GetPtrWithOffset() + this->IValue) = val;
+#endif
         }
         else
         {
@@ -315,7 +339,13 @@ bool RuntimeScriptValue::WriteValue(const RuntimeScriptValue &rval)
 #if defined(AGS_BIG_ENDIAN)
             AGS::Common::BitByteOperations::SwapBytesInt32(val);
 #endif
+
+#if defined(AGS_STRICT_ALIGNMENT)
+            char *destination = RValue->GetPtrWithOffset() + this->IValue;
+            memcpy(destination, &val, sizeof(int32_t));
+#else
             *(int32_t*)(RValue->GetPtrWithOffset() + this->IValue) = val;
+#endif
         }
         else
         {

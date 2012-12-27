@@ -288,6 +288,5 @@ void ccCompiledScript::free_extra() {
     numfunctions=0;
 }
 void ccCompiledScript::shutdown() {
-    Free();
     free_extra();
 }

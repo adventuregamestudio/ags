@@ -56,7 +56,7 @@ void ccSetSoftwareVersion(const char *versionNumber) {
 
 ccScript* ccCompileText(const char *texo, const char *scriptName) {
     int t;
-    ccCompiledScript *cctemp = (ccCompiledScript*)malloc(sizeof(ccCompiledScript));
+    ccCompiledScript *cctemp = new ccCompiledScript();
     cctemp->init();
 
     sym.reset();
@@ -88,7 +88,7 @@ ccScript* ccCompileText(const char *texo, const char *scriptName) {
 
     if (ccError) {
         cctemp->shutdown();
-        free(cctemp);
+        delete cctemp;
         return NULL;
     }
 

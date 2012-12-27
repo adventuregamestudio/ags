@@ -101,9 +101,9 @@ char *INIreaditem(const char *sectn, const char *entry) {
                 // we're in the right section, find the entry
                 //fgets (templine, 199, fin);
                 line = reader.ReadLine();
+                if (line.IsEmpty())
+                    continue;
                 if (line[0] == '[')
-                    break;
-                if (reader.EOS())
                     break;
                 // Have we found the entry?
                 if (strnicmp (line.GetCStr(), entry, strlen(entry)) == 0) {

@@ -34,6 +34,9 @@
 
 using AGS::Common::DataStream;
 
+AGS::Engine::Mutex _audio_mutex;
+volatile bool _audio_doing_crossfade;
+
 extern GameSetupStruct game;
 extern GameSetup usetup;
 extern GameState play;
@@ -348,7 +351,9 @@ void queue_audio_clip_to_play(ScriptAudioClip *clip, int priority, int repeat)
         play.new_music_queue[play.new_music_queue_size].cachedClip = cachedClip;
         play.new_music_queue_size++;
     }
-    update_polled_stuff(false);
+    
+    if (!psp_audio_multithreaded)
+      update_polled_stuff(false);
 }
 
 ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *clip, int priority, int repeat, int fromOffset, SOUNDCLIP *soundfx)
@@ -834,7 +839,8 @@ int calculate_max_volume() {
 
 void update_polled_stuff_if_runtime()
 {
-    update_polled_stuff(true);
+    if (!psp_audio_multithreaded)
+      update_polled_stuff(true);
 }
 
 // add/remove the volume drop to the audio channels while speech is playing
@@ -883,7 +889,12 @@ void update_polled_stuff(bool checkForDebugMessages) {
 // Update the music, and advance the crossfade on a step
 // (this should only be called once per game loop)
 void update_polled_stuff_and_crossfade () {
-    update_polled_stuff_if_runtime ();
+   
+  update_polled_stuff_if_runtime ();
+
+    _audio_mutex.Lock();
+
+    _audio_doing_crossfade = true;
 
     audio_update_polled_stuff();
 
@@ -915,6 +926,9 @@ void update_polled_stuff_and_crossfade () {
         }
     }
 
+    _audio_doing_crossfade = false;
+
+    _audio_mutex.Unlock();
 }
 
 

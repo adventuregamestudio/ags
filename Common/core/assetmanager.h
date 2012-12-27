@@ -98,10 +98,11 @@ public:
     static int          GetNextPseudoRand();
 
 
-    static DataStream *OpenAsset(const String &asset_name,
+    static bool         DoesAssetExist(const String &asset_name);
+    static DataStream   *OpenAsset(const String &asset_name,
                                    FileOpenMode open_mode = kFile_Open,
                                    FileWorkMode work_mode = kFile_Read);
-    static DataStream *OpenAsset(const String &data_file, const String &asset_name,
+    static DataStream   *OpenAsset(const String &data_file, const String &asset_name,
                                    FileOpenMode open_mode = kFile_Open,
                                    FileWorkMode work_mode = kFile_Read);
 
@@ -131,6 +132,7 @@ private:
     AssetError  ReadAssetLibV20(MultiFileLib * mfl, DataStream *ci_s, int lib_version);
     AssetError  ReadAssetLibV21(MultiFileLib * mfl, DataStream *ci_s, int lib_version);
 
+    bool        _DoesAssetExist(const String &asset_name);
     DataStream *_OpenAsset(const String &asset_name,
         FileOpenMode open_mode = kFile_Open,
         FileWorkMode work_mode = kFile_Read);

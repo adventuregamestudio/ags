@@ -49,6 +49,7 @@ roomstruct::roomstruct() {
     memset(&objbaseline[0], 0xff, sizeof(int) * MAX_INIT_SPR);
     memset(&objectFlags[0], 0, sizeof(short) * MAX_INIT_SPR);
     width = 320; height = 200; scripts = NULL; compiled_script = NULL;
+    compiled_script_shared = false;
     cscriptsize = 0;
     memset(&walk_area_zoom[0], 0, sizeof(short) * (MAX_WALK_AREAS + 1));
     memset(&walk_area_light[0], 0, sizeof(short) * (MAX_WALK_AREAS + 1));
@@ -133,13 +134,12 @@ for (int f=0;f<nummes;f++) if (message[f]!=NULL) free(message[f]); }*/
 
 void room_file_header::ReadFromFile(DataStream *in)
 {
-    version = in->ReadInt16();
+    version = (RoomFileVersion)in->ReadInt16();
 }
-
 
 int usesmisccond = 0;
 
-void load_main_block(roomstruct *rstruc, char *files, DataStream *in, room_file_header rfh) {
+void load_main_block(roomstruct *rstruc, const char *files, DataStream *in, room_file_header rfh) {
   int   f, gsmod, NUMREAD;
   char  buffre[3000];
   long  tesl;
@@ -175,7 +175,7 @@ void load_main_block(roomstruct *rstruc, char *files, DataStream *in, room_file_
   memset(&rstruc->objcond[0], 0, sizeof(EventBlock) * MAX_INIT_SPR);
   memset(&rstruc->misccond, 0, sizeof(EventBlock));*/
 
-  if (rfh.version >= 12)
+  if (rfh.version >= kRoomVersion_208)
     _acroom_bpp = in->ReadInt32();
   else
     _acroom_bpp = 1;
@@ -206,7 +206,7 @@ void load_main_block(roomstruct *rstruc, char *files, DataStream *in, room_file_
 	for (f = 0; f < rstruc->numhotspots; f++)
 	{
 		free(rstruc->hotspotnames[f]);
-		if (rfh.version >= 28)
+		if (rfh.version >= kRoomVersion_303a)
 		{
 			fgetstring_limit(buffre, in, 2999);
 			rstruc->hotspotnames[f] = (char*)malloc(strlen(buffre) + 1);
@@ -215,11 +215,11 @@ void load_main_block(roomstruct *rstruc, char *files, DataStream *in, room_file_
 		else
 		{
 			rstruc->hotspotnames[f] = (char*)malloc(30);
-			in->ReadArray(rstruc->hotspotnames[f], 30, 1);
+			in->Read(rstruc->hotspotnames[f], 30);
 		}
 	}
 
-  if (rfh.version >= 24)
+  if (rfh.version >= kRoomVersion_270)
     in->ReadArray(&rstruc->hotspotScriptNames[0], MAX_SCRIPT_NAME_LEN, rstruc->numhotspots);
     
   rstruc->numwalkareas = in->ReadInt32();
@@ -241,7 +241,7 @@ void load_main_block(roomstruct *rstruc, char *files, DataStream *in, room_file_
       rstruc->sprs[iteratorCount].ReadFromFile(in);
   }
 
-  if (rfh.version >= 19) {
+  if (rfh.version >= kRoomVersion_253) {
     rstruc->numLocalVars = in->ReadInt32();
     if (rstruc->numLocalVars > 0) {
       rstruc->localvars = (InteractionVariable*)malloc (sizeof(InteractionVariable) * rstruc->numLocalVars);
@@ -255,7 +255,7 @@ void load_main_block(roomstruct *rstruc, char *files, DataStream *in, room_file_
   
   rstruc->numRegions = 0;
 
-  if (rfh.version >= 15) {
+  if (rfh.version >= kRoomVersion_241) {
     if ((rstruc->numhotspots > MAX_HOTSPOTS) || (rstruc->numsprs > MAX_INIT_SPR))
       quit("load_room: room file created with newer version (too many hotspots/objects)");
 
@@ -266,7 +266,7 @@ void load_main_block(roomstruct *rstruc, char *files, DataStream *in, room_file_
         rstruc->intrHotspot[f] = NULL;
       }
 
-	  if (rfh.version < 26) 
+	  if (rfh.version < kRoomVersion_300a) 
 	  {
 		  if (f < rstruc->numhotspots)
 			rstruc->intrHotspot[f] = deserialize_new_interaction (in);
@@ -281,7 +281,7 @@ void load_main_block(roomstruct *rstruc, char *files, DataStream *in, room_file_
         rstruc->intrObject[f] = NULL;
       }
 
-	  if (rfh.version < 26) 
+	  if (rfh.version < kRoomVersion_300a) 
 	  {
 		  if (f < rstruc->numsprs)
 			rstruc->intrObject[f] = deserialize_new_interaction (in);
@@ -290,7 +290,7 @@ void load_main_block(roomstruct *rstruc, char *files, DataStream *in, room_file_
 	  }
     }
 
-	if (rfh.version < 26) 
+	if (rfh.version < kRoomVersion_300a) 
 	{
 	    delete rstruc->intrRoom;
 		rstruc->intrRoom = deserialize_new_interaction (in);
@@ -302,12 +302,12 @@ void load_main_block(roomstruct *rstruc, char *files, DataStream *in, room_file_
       rstruc->intrRegion[f] = new NewInteraction();
     }
 
-    if (rfh.version >= 21) {
+    if (rfh.version >= kRoomVersion_255b) {
       rstruc->numRegions = in->ReadInt32();
       if (rstruc->numRegions > MAX_REGIONS)
         quit("load_room: needs newer version of AGS - too many regions");
 
-  	  if (rfh.version < 26) 
+  	  if (rfh.version < kRoomVersion_300a) 
 	  {
         for (f = 0; f < rstruc->numRegions; f++) {
           delete rstruc->intrRegion[f];
@@ -316,7 +316,7 @@ void load_main_block(roomstruct *rstruc, char *files, DataStream *in, room_file_
       }
     }
 
-	if (rfh.version >= 26)
+	if (rfh.version >= kRoomVersion_300a)
 	{
 	  rstruc->hotspotScripts = new InteractionScripts*[rstruc->numhotspots];
 	  rstruc->objectScripts = new InteractionScripts*[rstruc->numsprs];
@@ -340,32 +340,32 @@ void load_main_block(roomstruct *rstruc, char *files, DataStream *in, room_file_
 	}
   }
 
-  if (rfh.version >= 9) {
+  if (rfh.version >= kRoomVersion_200_alpha) {
     in->ReadArrayOfInt32(&rstruc->objbaseline[0], rstruc->numsprs);
     rstruc->width = in->ReadInt16();
     rstruc->height = in->ReadInt16(); 
   }
 
-  if (rfh.version >= 23)
+  if (rfh.version >= kRoomVersion_262)
     in->ReadArrayOfInt16(&rstruc->objectFlags[0], rstruc->numsprs);
 
-  if (rfh.version >= 11)
+  if (rfh.version >= kRoomVersion_200_final)
     rstruc->resolution = in->ReadInt16();
 
   int num_walk_areas = MAX_WALK_AREAS;
-  if (rfh.version >= 14)
+  if (rfh.version >= kRoomVersion_240)
     num_walk_areas = in->ReadInt32();
     
   if (num_walk_areas > MAX_WALK_AREAS + 1)
     quit("load_room: Too many walkable areas, need newer version");
 
-  if (rfh.version >= 10)
+  if (rfh.version >= kRoomVersion_200_alpha7)
     in->ReadArrayOfInt16(&rstruc->walk_area_zoom[0], num_walk_areas);
 
-  if (rfh.version >= 13)
+  if (rfh.version >= kRoomVersion_214)
     in->ReadArrayOfInt16(&rstruc->walk_area_light[0], num_walk_areas);
 
-  if (rfh.version >= 18) {
+  if (rfh.version >= kRoomVersion_251) {
     in->ReadArrayOfInt16(&rstruc->walk_area_zoom2[0], num_walk_areas);
     in->ReadArrayOfInt16(&rstruc->walk_area_top[0], num_walk_areas);
     in->ReadArrayOfInt16(&rstruc->walk_area_bottom[0], num_walk_areas);
@@ -379,14 +379,14 @@ void load_main_block(roomstruct *rstruc, char *files, DataStream *in, room_file_
     }
   }
 
-  in->ReadArray(&rstruc->password[0], 11, 1);
-  in->ReadArray(&rstruc->options[0], 10, 1);
+  in->Read(&rstruc->password[0], 11);
+  in->Read(&rstruc->options[0], 10);
   rstruc->nummes = in->ReadInt16();
 
-  if (rfh.version >= 25)
+  if (rfh.version >= kRoomVersion_272)
     rstruc->gameId = in->ReadInt32();
 
-  if (rfh.version >= 3)
+  if (rfh.version >= kRoomVersion_pre114_3)
   {
       for (int iteratorCount = 0; iteratorCount < rstruc->nummes; ++iteratorCount)
       {
@@ -397,7 +397,7 @@ void load_main_block(roomstruct *rstruc, char *files, DataStream *in, room_file_
     memset(&rstruc->msgi[0], 0, sizeof(MessageInfo) * MAXMESS);
 
   for (f = 0;f < rstruc->nummes; f++) {
-    if (rfh.version >= 22)
+    if (rfh.version >= kRoomVersion_261)
       read_string_decrypt(in, buffre);
     else
       fgetstring_limit(buffre, in, 2999);
@@ -412,10 +412,11 @@ void load_main_block(roomstruct *rstruc, char *files, DataStream *in, room_file_
   }
 
   rstruc->numanims = 0;
-  if (rfh.version >= 6) {
+  if (rfh.version >= kRoomVersion_pre114_6) {
     rstruc->numanims = in->ReadInt16();
 
     if (rstruc->numanims > 0)
+        // [IKM] CHECKME later: this will cause trouble if structure changes
         in->Seek (Common::kSeekCurrent, sizeof(FullAnimation) * rstruc->numanims);
 //      in->ReadArray(&rstruc->anims[0], sizeof(FullAnimation), rstruc->numanims);
   }
@@ -424,35 +425,35 @@ void load_main_block(roomstruct *rstruc, char *files, DataStream *in, room_file_
     memset(&rstruc->anims[0], 0, sizeof(FullAnimation) * MAXANIMS);
   }
 
-  if ((rfh.version >= 4) && (rfh.version < 16)) {
+  if ((rfh.version >= kRoomVersion_pre114_4) && (rfh.version < kRoomVersion_250a)) {
     load_script_configuration(in);
     load_graphical_scripts(in, rstruc);
   }
 
-  if (rfh.version >= 8)
+  if (rfh.version >= kRoomVersion_114)
     in->ReadArrayOfInt16(&rstruc->shadinginfo[0], 16);
 
-  if (rfh.version >= 21) {
+  if (rfh.version >= kRoomVersion_255b) {
     in->ReadArrayOfInt16 (&rstruc->regionLightLevel[0], rstruc->numRegions);
     in->ReadArrayOfInt32 (&rstruc->regionTintLevel[0], rstruc->numRegions);
   }
 
   update_polled_stuff_if_runtime();
 
-  if (rfh.version >= 5) {
+  if (rfh.version >= kRoomVersion_pre114_5) {
     tesl = load_lzw(in, rstruc->ebscene[0], rstruc->pal);
     rstruc->ebscene[0] = recalced;
   }
   else
     tesl = loadcompressed_allegro(in, &rstruc->ebscene[0], rstruc->pal, in->GetPosition());
 
-  if ((rstruc->ebscene[0]->GetWidth() > 320) & (rfh.version < 11))
+  if ((rstruc->ebscene[0]->GetWidth() > 320) & (rfh.version < kRoomVersion_200_final))
     rstruc->resolution = 2;
 
   update_polled_stuff_if_runtime();
-  if (rfh.version >= 21)
+  if (rfh.version >= kRoomVersion_255b)
     tesl = loadcompressed_allegro(in, &rstruc->regions, rstruc->pal, tesl);
-  else if (rfh.version >= 8) {
+  else if (rfh.version >= kRoomVersion_114) {
     tesl = loadcompressed_allegro(in, &rstruc->regions, rstruc->pal, tesl);
     // an old version - ->Clear the 'shadow' area into a blank regions bmp
     delete rstruc->regions;
@@ -468,7 +469,7 @@ void load_main_block(roomstruct *rstruc, char *files, DataStream *in, room_file_
   update_polled_stuff_if_runtime();
   tesl = loadcompressed_allegro(in, &rstruc->lookat, rstruc->pal, tesl);
 
-  if (rfh.version < 21) {
+  if (rfh.version < kRoomVersion_255b) {
     // Old version - copy walkable areas to Regions
     if (rstruc->regions == NULL)
       rstruc->regions = BitmapHelper::CreateBitmap(rstruc->walls->GetWidth(), rstruc->walls->GetHeight(), 8);
@@ -481,7 +482,7 @@ void load_main_block(roomstruct *rstruc, char *files, DataStream *in, room_file_
     }
   }
 
-  if (rfh.version < 9) {
+  if (rfh.version < kRoomVersion_200_alpha) {
     for (f = 0; f < 11; f++)
       rstruc->password[f] += 60;
   }
@@ -491,10 +492,9 @@ void load_main_block(roomstruct *rstruc, char *files, DataStream *in, room_file_
   }
 }
 
-// CHECKME: Has slightly different implementations in Engine and Editor
 extern bool load_room_is_version_bad(roomstruct *rstruc);
 
-void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
+void load_room(const char *files, roomstruct *rstruc, bool gameIsHighRes) {
   Common::DataStream *opty; // CHECKME why "opty"??
   room_file_header  rfh;
   int i;
@@ -505,8 +505,12 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
     rstruc->scripts = NULL;
   }
 
-  delete rstruc->compiled_script;
+  if (!rstruc->compiled_script_shared)
+  {
+    delete rstruc->compiled_script;
+  }
   rstruc->compiled_script = NULL;
+  rstruc->compiled_script_shared = false;
 
   if (rstruc->num_bscenes > 1) {
     int ff;
@@ -603,8 +607,6 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
 
   int   thisblock = 0;
   int   bloklen;
-  Common::DataStream *optywas; // [IKM] what a mysterious variable... not used for anything sensible
-                               // (and why "opty" ???)
 
   while (thisblock != BLOCKTYPE_EOF) {
     update_polled_stuff_if_runtime();
@@ -615,7 +617,6 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
 
     bloklen = opty->ReadInt32();
     bloklen += opty->GetPosition();  // make it the new position for after block read
-    optywas = opty;
 
     if (thisblock == BLOCKTYPE_MAIN)
       load_main_block(rstruc, files, opty, rfh);
@@ -634,6 +635,7 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
     }
     else if (thisblock == BLOCKTYPE_COMPSCRIPT3) {
       rstruc->compiled_script = ccScript::CreateFromStream(opty);
+      rstruc->compiled_script_shared = false;
       if (rstruc->compiled_script == NULL)
         quit("Load_room: Script load failed; need newer version?");
     }
@@ -662,7 +664,7 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
       rstruc->num_bscenes = opty->ReadByte();
       rstruc->bscene_anim_speed = opty->ReadByte();
 
-      if (rfh.version >= 20)
+      if (rfh.version >= kRoomVersion_255a)
         opty->Read(&rstruc->ebpalShared[0], rstruc->num_bscenes);
       else
         memset (&rstruc->ebpalShared[0], 0, rstruc->num_bscenes);
@@ -719,7 +721,7 @@ void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes) {
 
   delete opty;
 
-  if ((rfh.version < 29) && (gameIsHighRes))
+  if ((rfh.version < kRoomVersion_303b) && (gameIsHighRes))
   {
 	  // Pre-3.0.3, multiply up co-ordinates
       // If you change this, also change convert_room_coordinates_to_low_res

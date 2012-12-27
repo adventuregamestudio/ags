@@ -62,8 +62,9 @@
 #include "core/assetmanager.h"
 #include "ac/dynobj/all_dynamicclasses.h"
 
-using AGS::Common::DataStream;
 using AGS::Common::Bitmap;
+using AGS::Common::DataStream;
+using AGS::Common::String;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 #if !defined (WINDOWS_VERSION)
@@ -387,25 +388,26 @@ extern int convert_16bit_bgr;
 
 #define NO_GAME_ID_IN_ROOM_FILE 16325
 // forchar = playerchar on NewRoom, or NULL if restore saved game
-void load_new_room(int newnum,CharacterInfo*forchar) {
+void load_new_room(int newnum, CharacterInfo*forchar) {
 
     platform->WriteDebugString("Loading room %d", newnum);
 
-    char rmfile[20];
+    String room_filename;
     int cc;
     done_es_error = 0;
     play.room_changes ++;
     set_color_depth(8);
     displayed_room=newnum;
 
-    sprintf(rmfile,"room%d.crm",newnum);
+    room_filename.Format("room%d.crm", newnum);
     if (newnum == 0) {
         // support both room0.crm and intro.crm
-        DataStream *inpu = Common::AssetManager::OpenAsset(rmfile);
-        if (inpu == NULL)
-            strcpy(rmfile, "intro.crm");
-        else
-            delete inpu; // [IKM] How very appropriate
+        // 2.70: Renamed intro.crm to room0.crm, to stop it causing confusion
+        if (loaded_game_file_version < kGameVersion_270 && Common::AssetManager::DoesAssetExist("intro.crm") ||
+            loaded_game_file_version >= kGameVersion_270 && !Common::AssetManager::DoesAssetExist(room_filename))
+        {
+            room_filename = "intro.crm";
+        }
     }
     // reset these back, because they might have been changed.
     delete thisroom.object;
@@ -419,11 +421,11 @@ void load_new_room(int newnum,CharacterInfo*forchar) {
     // load the room from disk
     our_eip=200;
     thisroom.gameId = NO_GAME_ID_IN_ROOM_FILE;
-    load_room(rmfile, &thisroom, (game.default_resolution > 2));
+    load_room(room_filename, &thisroom, (game.default_resolution > 2));
 
     if ((thisroom.gameId != NO_GAME_ID_IN_ROOM_FILE) &&
         (thisroom.gameId != game.uniqueid)) {
-            quitprintf("!Unable to load '%s'. This room file is assigned to a different game.", rmfile);
+            quitprintf("!Unable to load '%s'. This room file is assigned to a different game.", room_filename.GetCStr());
     }
 
     if ((game.default_resolution > 2) && (game.options[OPT_NATIVECOORDINATES] == 0))

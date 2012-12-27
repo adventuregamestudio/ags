@@ -54,10 +54,14 @@ using namespace AGS; // FIXME later
 enum RoomFileVersion
 {
     kRoomVersion_Undefined  = 0,
+    kRoomVersion_pre114_3   = 3,  // exact version unknown
+    kRoomVersion_pre114_4   = 4,  // exact version unknown
+    kRoomVersion_pre114_5   = 5,  // exact version unknown
+    kRoomVersion_pre114_6   = 6,  // exact version unknown
     kRoomVersion_114        = 8,
-    kRoomVersion_200a       = 9,
-    kRoomVersion_200b       = 10,
-    kRoomVersion_200c       = 11,
+    kRoomVersion_200_alpha  = 9,
+    kRoomVersion_200_alpha7 = 10,
+    kRoomVersion_200_final  = 11,
     kRoomVersion_208        = 12,
     kRoomVersion_214        = 13,
     kRoomVersion_240        = 14,
@@ -158,6 +162,7 @@ struct roomstruct {
     short         walk_area_bottom[MAX_WALK_AREAS + 1];  // bottom YP of area
     char          *scripts;
     ccScript      *compiled_script;
+    bool          compiled_script_shared;
     int           cscriptsize;
     int           num_bscenes, bscene_anim_speed;
     int           bytes_per_pixel;
@@ -191,14 +196,13 @@ struct roomstruct {
 #define BLOCKTYPE_EOF         0xff
 
 struct room_file_header {
-    short version PCKD;
-
+    RoomFileVersion version;
     void ReadFromFile(Common::DataStream *in);
 };
 
 extern int _acroom_bpp;  // bytes per pixel of currently loading room
 
-extern void load_room(char *files, roomstruct *rstruc, bool gameIsHighRes);
+extern void load_room(const char *files, roomstruct *rstruc, bool gameIsHighRes);
 
 
 // Those are, in fact, are project-dependent and are implemented in runtime and AGS.Native

@@ -43,7 +43,7 @@ public:
   {
     _looping = looping;
     _entry = entryPoint;
-    _thread = sceKernelCreateThread("ags", _thread_start, 0x20, 0xFA0, THREAD_ATTR_USER, 0);
+    _thread = sceKernelCreateThread("ags", _thread_start, 0x20, 0x10000, THREAD_ATTR_USER, 0);
 
     return (_thread > -1);
   }

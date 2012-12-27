@@ -41,6 +41,7 @@ Encrypted global messages and dialogs.
 Wait() must be called with parameter > 0
 GetRegionAt() clips the input values to the screen size
 Color 0 now means transparent instead of black for text windows
+SetPlayerCharacter() does nothing if the new character is already the player character.
 27 : 2.6.2
 
 Script modules. Fixes bug in the inventory display.

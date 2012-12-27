@@ -17,7 +17,8 @@ BASE_PLATFORM = \
 platform/psp/acplpsp.cpp \
 ../PSP/kernel/kernel.c \
 ../PSP/exception/utility/exception.c \
-../PSP/malloc/malloc.c
+../PSP/malloc/malloc.c \
+../PSP/suspend/suspend.c
 
 include Makefile-objs
 OBJS_C_CPP = $(ALFONT) $(ALMP3) $(ALOGG) $(APEG) $(AASTR) $(BASE) $(BASE_PLATFORM) $(COMMON)
@@ -32,7 +33,7 @@ OBJS = $(OBJS_C:.c=.o)
 
 INCDIR = ../Common ../Common/libinclude $(shell psp-config --pspdev-path)/psp/include/freetype2
 LIBDIR = ../PSP/lib
-CFLAGS = -O2 -g -G0 -msingle-float -ffast-math -Wfatal-errors -DALLEGRO_STATICLINK -DAGS_INVERTED_COLOR_ORDER -DTHIS_IS_THE_ENGINE -DPSP_VERSION -DDISABLE_MPEG_AUDIO -DUSE_TREMOR
+CFLAGS = -O2 -g -G0 -msingle-float -ffast-math -Wfatal-errors -DALLEGRO_STATICLINK -DAGS_STRICT_ALIGNMENT -DAGS_INVERTED_COLOR_ORDER -DTHIS_IS_THE_ENGINE -DPSP_VERSION -DDISABLE_MPEG_AUDIO -DUSE_TREMOR
 CXXFLAGS = $(CFLAGS) -fno-rtti -Wno-write-strings
 ASFLAGS = $(CFLAGS)
 LIBS = -lalleg -lalleg-main -lfreetype -lz -lvorbisidec -ltheoradec -logg -lc -lstdc++ -lm

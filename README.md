@@ -10,7 +10,7 @@ To get started with the AGS engine, see the platform specific instructions or fo
 -    [Android](https://github.com/adventuregamestudio/ags/blob/master/Android/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=44768.0))
 -    [iOS](https://github.com/adventuregamestudio/ags/blob/master/iOS/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=46040.0))
 -    [Linux](https://github.com/adventuregamestudio/ags/blob/master/debian/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=46152.0))
--    [Mac OS X](https://github.com/adventuregamestudio/ags/blob/master/OSX/README.md)
+-    [Mac OS X](https://github.com/adventuregamestudio/ags/blob/master/OSX/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=47264.0))
 -    [PSP](https://github.com/adventuregamestudio/ags/blob/master/PSP/README.md) ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=43998.0))
 -    Windows ([Forum thread](http://www.adventuregamestudio.co.uk/forums/index.php?topic=46847.0))
 

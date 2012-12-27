@@ -137,9 +137,11 @@ char* get_cached_sound(const char* filename, bool is_wave, long* size)
     else
     {
         mp3in = pack_fopen(filename, "rb");
-        _sound_cache_mutex.Unlock();
         if (mp3in == NULL)
+        {
+            _sound_cache_mutex.Unlock();
             return NULL;
+        }
     }
 
     // Find free slot

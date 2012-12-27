@@ -13,6 +13,7 @@ OBJS = $(OBJS_C:.c=.o)
 
 OBJS_COMMON_CPP = $(COMMON)
 OBJS_COMMON = $(OBJS_COMMON_CPP:.cpp=.o)
+DEPFILES = $(OBJS:.o=.d) $(OBJS_COMMON:.o=.d)
 
 -include config.mak
 
@@ -28,13 +29,15 @@ common.a: $(OBJS_COMMON)
 	@echo "Linking common library..."
 	@$(AR) rcs $@ $^
 
+-include $(DEPFILES)
+
 %.o: %.c
 	@echo $@
-	@$(CC) $(CFLAGS) -c -o $@ $<
+	@$(CC) $(CFLAGS) -MD -c -o $@ $<
 
 %.o: %.cpp
 	@echo $@
-	@$(CXX) $(CXXFLAGS) -c -o $@ $<
+	@$(CXX) $(CXXFLAGS) -MD -c -o $@ $<
 
 printflags:
 	@echo "CFLAGS =" $(CFLAGS) "\n"
@@ -46,7 +49,7 @@ rebuild: clean all
 
 clean:
 	@echo "Cleaning..."
-	@rm -f ags common.a $(OBJS) $(OBJS_COMMON)
+	@rm -f ags common.a $(OBJS) $(OBJS_COMMON) $(DEPFILES)
 
 install: ags
 	mkdir -p $(PREFIX)/bin

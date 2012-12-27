@@ -24,6 +24,7 @@
 
 // JJS: This is needed for the derieved classes
 extern volatile int psp_audio_multithreaded;
+extern volatile bool _audio_doing_crossfade;
 
 struct SOUNDCLIP
 {

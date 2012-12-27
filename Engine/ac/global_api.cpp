@@ -349,7 +349,7 @@ RuntimeScriptValue Sc_EnableRegion(const RuntimeScriptValue *params, int32_t par
 // int  ()
 RuntimeScriptValue Sc_EndCutscene(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID(EndCutscene);
+    API_SCALL_INT(EndCutscene);
 }
 
 // void (int cha,int toface)
@@ -1663,7 +1663,7 @@ RuntimeScriptValue Sc_SetFrameSound(const RuntimeScriptValue *params, int32_t pa
 // int  (int opt, int setting)
 RuntimeScriptValue Sc_SetGameOption(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT2(SetGameOption);
+    API_SCALL_INT_PINT2(SetGameOption);
 }
 
 // void (int newspd)

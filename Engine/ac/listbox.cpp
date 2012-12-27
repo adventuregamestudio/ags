@@ -327,7 +327,7 @@ RuntimeScriptValue Sc_ListBox_FillDirList(void *self, const RuntimeScriptValue *
 // int (GUIListBox *listbox)
 RuntimeScriptValue Sc_ListBox_FillSaveGameList(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID(GUIListBox, ListBox_FillSaveGameList);
+    API_OBJCALL_INT(GUIListBox, ListBox_FillSaveGameList);
 }
 
 // int (GUIListBox *listbox, int x, int y)

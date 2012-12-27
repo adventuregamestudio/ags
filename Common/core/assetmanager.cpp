@@ -17,6 +17,7 @@
 #include "core/assetmanager.h"
 #include "debug/assert.h"
 #include "util/datastream.h"
+#include "util/file.h"
 
 #if defined (WINDOWS_VERSION)
 #include <io.h>
@@ -208,6 +209,16 @@ AssetManager::~AssetManager()
     return _theAssetManager ? _theAssetManager->_GetNextPseudoRand() : 0;
 }
 
+/* static */ bool AssetManager::DoesAssetExist(const String &asset_name)
+{
+    assert(_theAssetManager != NULL);
+    if (!_theAssetManager)
+    {
+        return NULL;
+    }
+    return _theAssetManager->_DoesAssetExist(asset_name);
+}
+
 /* static */ DataStream *AssetManager::OpenAsset(const String &asset_name,
                                                   FileOpenMode open_mode,
                                                   FileWorkMode work_mode)
@@ -381,6 +392,12 @@ int AssetManager::_GetNextPseudoRand()
 {
     return( ((_lastRandValue = _lastRandValue * 214013L
         + 2531011L) >> 16) & 0x7fff );
+}
+
+bool AssetManager::_DoesAssetExist(const String &asset_name)
+{
+    return FindAssetByFileName(asset_name) != NULL ||
+        File::TestReadFile(asset_name);
 }
 
 DataStream *AssetManager::_OpenAsset(const String &asset_name,

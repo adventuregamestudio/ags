@@ -69,6 +69,16 @@ http://www.eglebbk.dds.nl/program/download/digmid.dat
 
 Rename that file to **patches.dat** and place it directly into your home folder.
 
+#Debugging
+When using the Debian/Ubuntu package, the package ags-dbg_*.deb containing debugging
+symbols is created alongside ags_*.deb. The build date and the name of the
+last git commit at the time of building are stored in the package description,
+which can be viewed with
+
+    apt-cache show ags
+
+This information should be included in bug reports.
+
 #Workaround: 32 bit AGS on 64 bit Debian/Ubuntu
 In the past AGS worked only on 32 bit architectures, so it was necessary to compile
 a 32 bit version on 64 bit systems. This is not necessary anymore, but these

@@ -32,7 +32,7 @@ Debian/Ubuntu. This is how it's done.
 
 Install the build dependencies:
 
-    sudo apt-get install git debhelper pkg-config liballegro4.2-dev libaldmb1-dev libfreetype6-dev libtheora-dev libvorbis-dev libogg-dev
+    sudo apt-get install git debhelper build-essential pkg-config liballegro4.2-dev libaldmb1-dev libfreetype6-dev libtheora-dev libvorbis-dev libogg-dev
 
 Download the sources with git and change into the **ags** directory:
 
@@ -69,15 +69,15 @@ http://www.eglebbk.dds.nl/program/download/digmid.dat
 
 Rename that file to **patches.dat** and place it directly into your home folder.
 
-#Workaround: 32 bit AGS on 64 bit system
-The 64 bit version of AGS causes problems on some systems, namely frequent
-random crashes. Until this is resolved, a workaround is to use a 32 bit version
-of AGS on a 64 bit system.
+#Workaround: 32 bit AGS on 64 bit Debian/Ubuntu
+In the past AGS worked only on 32 bit architectures, so it was necessary to compile
+a 32 bit version on 64 bit systems. This is not necessary anymore, but these
+instructions are kept for reference and may be helpful for debugging etc.
+
 The development versions of Debian and Ubuntu support parallel
 installation of both 32 and 64 bit versions of all required libraries
 (multiarch), so you can build a 32 bit AGS to use on your 64 bit system.
 This part works only on Debian sid and wheezy and Ubuntu quantal.
-If you observe this problem and are able to help resolve it, that would be great.
 
 Download the sources with git and change into the **ags** directory:
 

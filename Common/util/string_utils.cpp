@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include <string.h>
 #include "gui/guidefines.h"
 #include "util/string_utils.h"
 #include "util/datastream.h"

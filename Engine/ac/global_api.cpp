@@ -65,6 +65,7 @@
 #include "ac/parser.h"
 #include "ac/string.h"
 #include "media/audio/audio.h"
+#include "util/string_utils.h"
 
 using AGS::Common::DataStream;
 

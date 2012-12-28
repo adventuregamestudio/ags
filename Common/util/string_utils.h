@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 #include <stdarg.h>
+#include <string.h>
 
 namespace AGS { namespace Common { class DataStream; } }
 using namespace AGS; // FIXME later

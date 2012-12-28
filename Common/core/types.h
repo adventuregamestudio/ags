@@ -28,6 +28,7 @@
 #define NULL 0
 #endif
 
+#include <stddef.h>
 #if !defined (WINDOWS_VERSION)
 #include <stdint.h>
 #include <cstdlib> // for size_t

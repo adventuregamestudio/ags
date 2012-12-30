@@ -135,12 +135,18 @@ extern void ios_initialize_renderer(int w, int h);
 }
 
 
-extern int is_in_foreground;
+extern volatile int is_in_foreground;
+extern volatile int drawing_in_progress;
 
 - (void)setFramebuffer
 {
 	while (!is_in_foreground)
+	{
+		//printf("looping in background\n");
 		usleep(1000 * 1000);
+	}
+
+	drawing_in_progress = 1;
 
 	if (changedOrientation)
 	{
@@ -169,6 +175,8 @@ extern int is_in_foreground;
 		
 		[context presentRenderbuffer:GL_RENDERBUFFER];
 	}
+
+	drawing_in_progress = 0;
 }
 
 - (void)layoutSubviews

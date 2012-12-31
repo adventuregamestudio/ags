@@ -272,6 +272,20 @@ void ccInstance::AbortAndDestroy()
     }
 }
 
+#define ASSERT_STACK_SPACE_AVAILABLE(N) \
+    if (registers[SREG_SP].GetStackEntry() + N - &stack[0] >= CC_STACK_SIZE) \
+    { \
+        cc_error("stack overflow"); \
+        return -1; \
+    }
+
+#define ASSERT_STACK_SIZE(N) \
+    if (registers[SREG_SP].GetStackEntry() - N < &stack[0]) \
+    { \
+        cc_error("stack underflow"); \
+        return -1; \
+    }
+
 int ccInstance::CallScriptFunction(char *funcname, int32_t numargs, RuntimeScriptValue *params)
 {
     ccError = 0;
@@ -340,14 +354,20 @@ int ccInstance::CallScriptFunction(char *funcname, int32_t numargs, RuntimeScrip
     registers[SREG_SP].SetStackPtr( &stack[0] );
     stackdata_ptr = stackdata;
     // NOTE: Pushing parameters to stack in reverse order
+    ASSERT_STACK_SPACE_AVAILABLE(numargs + 1 /* return address */)
     for (int i = numargs - 1; i >= 0; --i)
     {
         PushValueToStack(params[i]);
     }
     PushValueToStack(RuntimeScriptValue().SetInt32(0)); // return address on stack
+    if (ccError)
+    {
+        return -1;
+    }
     runningInst = this;
 
     int reterr = Run(startat);
+    ASSERT_STACK_SIZE(numargs);
     PopValuesFromStack(numargs);
     pc = 0;
     current_instance = currentInstanceWas;
@@ -448,12 +468,6 @@ int ccInstance::PrepareTextScript(char**tsname) {
     return 0;
 }
 
-#define CHECK_STACK \
-    if ((registers[SREG_SP].GetStackEntry() - &stack[0]) >= CC_STACK_SIZE) { \
-    cc_error("stack overflow"); \
-    return -1; \
-    }
-
 // Macros to maintain the call stack
 #define PUSH_CALL_STACK \
     if (callStackSize >= MAX_CALL_STACK) { \
@@ -535,6 +549,7 @@ int ccInstance::Run(int32_t curpc)
           {
             // Only allocate new data if current stack entry is invalid;
             // in some cases this may be advancing over value that was written by MEMWRITE*
+            ASSERT_STACK_SPACE_AVAILABLE(1);
             if (reg1.GetStackEntry()->IsValid())
             {
               // TODO: perhaps should add a flag here to ensure this happens only after MEMWRITE-ing to stack
@@ -543,14 +558,17 @@ int ccInstance::Run(int32_t curpc)
             else
             {
               PushDataToStack(arg2.GetInt32());
+              if (ccError)
+              {
+                  return -1;
+              }
             }
           }
           else
           {
             reg1 += arg2;
           }
-          CHECK_STACK 
-              break;
+          break;
       case SCMD_SUB:
           if (reg1.GetType() == kScValStackPtr)
           {
@@ -567,6 +585,10 @@ int ccInstance::Run(int32_t curpc)
             {
                 // This is practically LOADSPOFFS
                 reg1 = GetStackPtrOffsetRw(arg2.GetInt32());
+            }
+            if (ccError)
+            {
+                return -1;
             }
           }
           else
@@ -606,6 +628,7 @@ int ccInstance::Run(int32_t curpc)
           if (loopIterationCheckDisabled > 0)
               loopIterationCheckDisabled--;
 
+          ASSERT_STACK_SIZE(1);
           RuntimeScriptValue rval = PopValueFromStack();
           curnest--;
           pc = rval.GetInt32();
@@ -616,7 +639,7 @@ int ccInstance::Run(int32_t curpc)
           }
           current_instance = this;
           POP_CALL_STACK;
-          continue;                 // continue so that the PC doesn't get overwritten
+          continue; // continue so that the PC doesn't get overwritten
           }
       case SCMD_LITTOREG:
           reg1 = arg2;
@@ -631,6 +654,10 @@ int ccInstance::Run(int32_t curpc)
           break;
       case SCMD_LOADSPOFFS:
           registers[SREG_MAR] = GetStackPtrOffsetRw(arg1.GetInt32());
+          if (ccError)
+          {
+              return -1;
+          }
           break;
 
           // 64 bit: Force 32 bit math
@@ -705,7 +732,12 @@ int ccInstance::Run(int32_t curpc)
 
           PUSH_CALL_STACK;
 
+          ASSERT_STACK_SPACE_AVAILABLE(1);
           PushValueToStack(RuntimeScriptValue().SetInt32(pc + sccmd_info[codeOp.Instruction.Code].ArgCount + 1));
+          if (ccError)
+          {
+              return -1;
+          }
 
           if (thisbase[curnest] == 0)
               pc = reg1.GetInt32();
@@ -723,8 +755,7 @@ int ccInstance::Run(int32_t curpc)
           curnest++;
           thisbase[curnest] = 0;
           funcstart[curnest] = pc;
-          CHECK_STACK
-              continue;
+          continue; // continue so that the PC doesn't get overwritten
       case SCMD_MEMREADB:
           // Take the data address from reg[MAR] and copy byte to reg[arg1]
           reg1.SetInt8(registers[SREG_MAR].ReadByte());
@@ -751,10 +782,15 @@ int ccInstance::Run(int32_t curpc)
           break;
       case SCMD_PUSHREG:
           // Push reg[arg1] value to the stack
+          ASSERT_STACK_SPACE_AVAILABLE(1);
           PushValueToStack(reg1);
-          CHECK_STACK
-              break;
+          if (ccError)
+          {
+              return -1;
+          }
+          break;
       case SCMD_POPREG:
+          ASSERT_STACK_SIZE(1);
           reg1 = PopValueFromStack();
           break;
       case SCMD_JMP:
@@ -914,6 +950,7 @@ int ccInstance::Run(int32_t curpc)
           // If there are nested CALLAS calls, the stack might
           // contain 2 calls worth of parameters, so only
           // push args for this call
+          ASSERT_STACK_SPACE_AVAILABLE(num_args_to_func + 1 /* return address */);
           for (const RuntimeScriptValue *prval = func_callstack.GetHead() + num_args_to_func;
                prval > func_callstack.GetHead(); --prval)
           {
@@ -923,7 +960,10 @@ int ccInstance::Run(int32_t curpc)
           // 0, so that the cc_run_code returns
           RuntimeScriptValue oldstack = registers[SREG_SP];
           PushValueToStack(RuntimeScriptValue().SetInt32(0));
-          CHECK_STACK
+          if (ccError)
+          {
+              return -1;
+          }
 
           int oldpc = pc;
           ccInstance *wasRunning = runningInst;
@@ -1036,6 +1076,7 @@ int ccInstance::Run(int32_t curpc)
           PopFromFuncCallStack(func_callstack, arg1.GetInt32());
           if (was_just_callas >= 0)
           {
+              ASSERT_STACK_SIZE(arg1.GetInt32());
               PopValuesFromStack(arg1.GetInt32());
               was_just_callas = -1;
           }
@@ -1908,6 +1949,11 @@ void ccInstance::FixupArgument(intptr_t code_value, char fixup_type, RuntimeScri
 
 void ccInstance::PushValueToStack(const RuntimeScriptValue &rval)
 {
+    if (!rval.IsValid())
+    {
+        cc_error("internal error: undefined value pushed to stack");
+        return;
+    }
     if (registers[SREG_SP].GetStackEntry()->IsValid())
     {
         cc_error("internal error: valid data beyond stack ptr");
@@ -1934,11 +1980,6 @@ void ccInstance::PushDataToStack(int32_t num_bytes)
 
 RuntimeScriptValue ccInstance::PopValueFromStack()
 {
-    if (registers[SREG_SP].GetStackEntry()->IsValid())
-    {
-        cc_error("internal error: valid data beyond stack ptr");
-        return RuntimeScriptValue();
-    }
     // rewind stack ptr to the last valid value, decrement stack data ptr if needed and invalidate the stack tail
     registers[SREG_SP].SetStackPtr(registers[SREG_SP].GetStackEntry() - 1); // TODO: optimize with --?
     RuntimeScriptValue rval = *registers[SREG_SP].GetStackEntry();
@@ -1952,11 +1993,6 @@ RuntimeScriptValue ccInstance::PopValueFromStack()
 
 void ccInstance::PopValuesFromStack(int32_t num_entries = 1)
 {
-    if (registers[SREG_SP].GetStackEntry()->IsValid())
-    {
-        cc_error("internal error: valid data beyond stack ptr");
-        return;
-    }
     for (int i = 0; i < num_entries; ++i)
     {
         // rewind stack ptr to the last valid value, decrement stack data ptr if needed and invalidate the stack tail
@@ -1971,13 +2007,8 @@ void ccInstance::PopValuesFromStack(int32_t num_entries = 1)
 
 void ccInstance::PopDataFromStack(int32_t num_bytes)
 {
-    if (registers[SREG_SP].GetStackEntry()->IsValid())
-    {
-        cc_error("internal error: valid data beyond stack ptr");
-        return;
-    }
     int32_t total_pop = 0;
-    while (total_pop < num_bytes)
+    while (total_pop < num_bytes && registers[SREG_SP].GetStackEntry() > &stack[0])
     {
         // rewind stack ptr to the last valid value, decrement stack data ptr if needed and invalidate the stack tail
         registers[SREG_SP].SetStackPtr(registers[SREG_SP].GetStackEntry() - 1); // TODO: optimize with --?
@@ -1989,7 +2020,11 @@ void ccInstance::PopDataFromStack(int32_t num_bytes)
         }
         registers[SREG_SP].GetStackEntry()->Invalidate();
     }
-    if (total_pop > num_bytes)
+    if (total_pop < num_bytes)
+    {
+        cc_error("stack underflow");
+    }
+    else if (total_pop > num_bytes)
     {
         cc_error("stack pointer points inside local variable after pop, stack corrupted?");
     }
@@ -1999,13 +2034,18 @@ RuntimeScriptValue ccInstance::GetStackPtrOffsetFw(int32_t fw_offset)
 {
     int32_t total_off = 0;
     RuntimeScriptValue *stack_entry = &stack[0];
-    while (total_off < fw_offset)
+    while (total_off < fw_offset && stack_entry - &stack[0] < CC_STACK_SIZE )
     {
         if (stack_entry->GetSize() > 0)
         {
             total_off += stack_entry->GetSize();
         }
         stack_entry++;
+    }
+    if (total_off < fw_offset)
+    {
+        cc_error("accessing address beyond stack's tail");
+        return RuntimeScriptValue();
     }
     RuntimeScriptValue stack_ptr;
     stack_ptr.SetStackPtr(stack_entry);
@@ -2019,17 +2059,17 @@ RuntimeScriptValue ccInstance::GetStackPtrOffsetFw(int32_t fw_offset)
 
 RuntimeScriptValue ccInstance::GetStackPtrOffsetRw(int32_t rw_offset)
 {
-    if (registers[SREG_SP].GetStackEntry()->IsValid())
-    {
-        cc_error("internal error: valid data beyond stack ptr");
-        return RuntimeScriptValue();
-    }
     int32_t total_off = 0;
     RuntimeScriptValue *stack_entry = registers[SREG_SP].GetStackEntry();
-    while (total_off < rw_offset)
+    while (total_off < rw_offset && stack_entry >= &stack[0])
     {
         stack_entry--;
         total_off += stack_entry->GetSize();
+    }
+    if (total_off < rw_offset)
+    {
+        cc_error("accessing address before stack's head");
+        return RuntimeScriptValue();
     }
     RuntimeScriptValue stack_ptr;
     stack_ptr.SetStackPtr(stack_entry);

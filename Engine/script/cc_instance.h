@@ -29,7 +29,7 @@ namespace AGS { namespace Common { class DataStream; }; };
 #define INSTF_ABORTED       2
 #define INSTF_FREE          4
 #define INSTF_RUNNING       8   // set by main code to confirm script isn't stuck
-#define CC_STACK_SIZE       1000
+#define CC_STACK_SIZE       250
 #define CC_STACK_DATA_SIZE  (1000 * sizeof(int32_t))
 #define MAX_CALL_STACK      100
 

@@ -46,10 +46,12 @@
 #define ALLEGRO_HAVE_SYS_TIME_H 1
 #define ALLEGRO_HAVE_SYS_STAT_H 1
 
+#define ALLEGRO_HAVE_LIBPTHREAD 1
+
 /* Describe this platform */
 #define ALLEGRO_PLATFORM_STR  "iOS"
 #define ALLEGRO_USE_CONSTRUCTOR
-
+#define ALLEGRO_MULTITHREADED
 #define ALLEGRO_LITTLE_ENDIAN
 
 /* Provide implementations of missing definitions */

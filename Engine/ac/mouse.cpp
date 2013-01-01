@@ -339,7 +339,9 @@ void update_cached_mouse_cursor()
 void set_new_cursor_graphic (int spriteslot) {
     mousecurs[0] = spriteset[spriteslot];
 
-    if ((spriteslot < 1) || (mousecurs[0] == NULL))
+    // It looks like spriteslot 0 can be used in games with version 2.72 and lower.
+    // The NULL check should ensure that the sprite is valid anyway.
+    if (((spriteslot < 1) && (loaded_game_file_version > kGameVersion_272)) || (mousecurs[0] == NULL))
     {
         if (blank_mouse_cursor == NULL)
         {

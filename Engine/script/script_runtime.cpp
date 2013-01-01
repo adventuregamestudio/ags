@@ -94,7 +94,7 @@ void *ccGetSymbolAddress(char *namof)
     const ScriptImport *import = simp.getByName(namof);
     if (import)
     {
-        return import->Value.GetPtr();
+        return import->Value.Ptr;
     }
     return NULL;
 }
@@ -141,7 +141,7 @@ int call_function(intptr_t addr, int numparm, const RuntimeScriptValue *parms, i
     for (int i = 0; i < numparm; ++i)
     {
         RuntimeScriptValue real_param;
-        if (parms[i].GetType() == kScValStackPtr)
+        if (parms[i].Type == kScValStackPtr || parms[i].Type == kScValGlobalVar)
         {
             // There's at least one known case when this may be a stack pointer:
             // AGS 2.x style local strings that have their address pushed to stack
@@ -150,13 +150,8 @@ int call_function(intptr_t addr, int numparm, const RuntimeScriptValue *parms, i
             // value size.
             // It is not a good idea to pass stack ptr to function, pass the value
             // it points to instead.
-            real_param = *parms[i].GetStackEntry();
-            real_param += parms[i].GetInt32(); // offset
-        }
-        else if (parms[i].GetType() == kScValGlobalVar)
-        {
-            real_param = *parms[i].GetGlobalVar();
-            real_param += parms[i].GetInt32(); // offset
+            real_param = *parms[i].RValue;
+            real_param.IValue += parms[i].IValue; // offset
         }
         else
         {

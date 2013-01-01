@@ -43,7 +43,6 @@ public:
         Size        = 0;
     }
 
-private:
     ScriptValueType Type;
     // The 32-bit value used for integer/float math and for storing
     // variable/element offset relative to object (and array) address
@@ -77,7 +76,6 @@ private:
     // and x64 builds, so that the script is interpreted correctly.
     int             Size;
 
-public:
     inline bool IsValid() const
     {
         return Type != kScValUndefined;
@@ -86,56 +84,16 @@ public:
     {
         return Ptr == 0 && IValue == 0;
     }
-    inline ScriptValueType GetType() const
-    {
-        return Type;
-    }
-
-    inline int32_t GetInt32() const
-    {
-        return IValue;
-    }
-    inline float GetFloat() const
-    {
-        return FValue;
-    }
+    
     inline bool GetAsBool() const
     {
         return !IsNull();
-    }
-    inline char *GetPtr() const
-    {
-        return Ptr;
     }
     inline char* GetPtrWithOffset() const
     {
         return Ptr + IValue;
     }
-    inline RuntimeScriptValue *GetStackEntry() const
-    {
-        return RValue;
-    }
-    inline RuntimeScriptValue *GetGlobalVar() const
-    {
-        return RValue;
-    }
-    inline ICCStaticObject *GetStaticManager() const
-    {
-        return StcMgr;
-    }
-    inline StaticArray *GetStaticArray() const
-    {
-        return StcArr;
-    }
-    inline ICCDynamicObject *GetDynamicManager() const
-    {
-        return DynMgr;
-    }
-    inline int GetSize() const
-    {
-        return Size;
-    }
-
+    
     inline RuntimeScriptValue &Invalidate()
     {
         Type    = kScValUndefined;
@@ -275,48 +233,6 @@ public:
     inline RuntimeScriptValue operator !() const
     {
         return RuntimeScriptValue().SetInt32AsBool(!GetAsBool());
-    }
-
-    inline RuntimeScriptValue &operator +=(const RuntimeScriptValue &rval)
-    {
-        IValue += rval.IValue;
-        return *this;
-    }
-    inline RuntimeScriptValue &operator -=(const RuntimeScriptValue &rval)
-    {
-        IValue -= rval.IValue;
-        return *this;
-    }
-    inline RuntimeScriptValue &operator *=(const RuntimeScriptValue &rval)
-    {
-        IValue *= rval.IValue;
-        return *this;
-    }
-    inline RuntimeScriptValue &operator /=(const RuntimeScriptValue &rval)
-    {
-        IValue /= rval.IValue;
-        return *this;
-    }
-
-    inline RuntimeScriptValue &operator +=(intptr_t val)
-    {
-        IValue += val;
-        return *this;
-    }
-    inline RuntimeScriptValue &operator -=(intptr_t val)
-    {
-        IValue -= val;
-        return *this;
-    }
-    inline RuntimeScriptValue &operator *=(intptr_t val)
-    {
-        IValue *= val;
-        return *this;
-    }
-    inline RuntimeScriptValue &operator /=(intptr_t val)
-    {
-        IValue /= val;
-        return *this;
     }
 
     inline bool operator ==(const RuntimeScriptValue &rval)

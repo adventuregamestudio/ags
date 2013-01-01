@@ -166,8 +166,7 @@ protected:
 	bool    ReadOperation(ScriptOperation &op, int32_t at_pc);
 
     // Runtime fixups
-    void    FixupInstruction(int32_t code_index, char fixup_type, ScriptInstruction &instruction);
-    void    FixupArgument(intptr_t code_value, char fixup_type, RuntimeScriptValue &argument);
+    bool    FixupArgument(intptr_t code_value, char fixup_type, RuntimeScriptValue &argument);
 
     // Stack processing
     // Push writes new value and increments stack ptr;

@@ -38,19 +38,17 @@ const char* String_LowerCase(const char *thisString);
 const char* String_UpperCase(const char *thisString);
 const char* String_Format(const char *texx, ...);
 int String_GetChars(const char *texx, int index);
-int StringToInt(char*stino);
+int StringToInt(const char*stino);
 int StrContains (const char *s1, const char *s2);
 
 //=============================================================================
 
 const char* CreateNewScriptString(const char *fromText, bool reAllocate = true);
-const char* CreateNewScriptStringAsRetVal(const char *fromText, bool reAllocate = true);
 void split_lines_rightleft (char *todis, int wii, int fonnt);
-char *reverse_text(char *text);
+char *reverse_text(const char *text);
 void wouttext_reverseifnecessary(int x, int y, int font, char *text);
-void break_up_text_into_lines(int wii,int fonnt,char*todis);
+void break_up_text_into_lines(int wii,int fonnt, const char*todis);
 void check_strlen(char*ptt);
 void my_strncpy(char *dest, const char *src, int len);
-void my_sprintf(char *buffer, const char *fmt, va_list ap);
 
 #endif // __AGS_EE_AC__STRING_H

@@ -18,6 +18,8 @@
 #ifndef __AGS_EE_AC__MOUSE_H
 #define __AGS_EE_AC__MOUSE_H
 
+#include "ac/dynobj/scriptmouse.h"
+
 #define DOMOUSE_NOCURSOR 5
 // are these mouse buttons? ;/
 // note: also defined in ac_cscidialog as const ints
@@ -61,6 +63,8 @@ void update_inv_cursor(int invnum);
 void update_cached_mouse_cursor();
 void set_new_cursor_graphic (int spriteslot);
 int find_next_enabled_cursor(int startwith);
+
+extern ScriptMouse scmouse;
 
 
 #endif // __AGS_EE_AC__MOUSE_H

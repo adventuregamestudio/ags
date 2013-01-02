@@ -21,7 +21,7 @@
 #include "ac/dynobj/scriptoverlay.h"
 
 void Overlay_Remove(ScriptOverlay *sco);
-void Overlay_SetText(ScriptOverlay *scover, int wii, int fontid, int clr, char*texx, ...);
+void Overlay_SetText(ScriptOverlay *scover, int wii, int fontid, int clr, const char*texx, ...);
 int  Overlay_GetX(ScriptOverlay *scover);
 void Overlay_SetX(ScriptOverlay *scover, int newx);
 int  Overlay_GetY(ScriptOverlay *scover);

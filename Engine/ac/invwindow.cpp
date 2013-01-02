@@ -55,7 +55,6 @@ extern CharacterInfo*playerchar;
 extern AGSPlatformDriver *platform;
 extern CCCharacter ccDynamicCharacter;
 extern CCInventory ccDynamicInv;
-extern RuntimeScriptValue GlobalReturnValue;
 
 int in_inv_screen = 0, inv_screen_newroom = -1;
 
@@ -76,7 +75,6 @@ CharacterInfo* InvWindow_GetCharacterToUse(GUIInv *guii) {
   if (guii->charId < 0)
     return NULL;
 
-  GlobalReturnValue.SetDynamicObject(&game.chars[guii->charId], &ccDynamicCharacter);
   return &game.chars[guii->charId];
 }
 
@@ -142,7 +140,6 @@ void InvWindow_ScrollUp(GUIInv *guii) {
 ScriptInvItem* InvWindow_GetItemAtIndex(GUIInv *guii, int index) {
   if ((index < 0) || (index >= charextra[guii->CharToDisplay()].invorder_count))
     return NULL;
-  GlobalReturnValue.SetDynamicObject(&scrInv[charextra[guii->CharToDisplay()].invorder[index]], &ccDynamicInv);
   return &scrInv[charextra[guii->CharToDisplay()].invorder[index]];
 }
 
@@ -412,4 +409,118 @@ int invscreen() {
     guis_need_update = 1;
     set_cursor_mode(MODE_USE);
     return selt;
+}
+
+//=============================================================================
+//
+// Script API Functions
+//
+//=============================================================================
+
+#include "debug/out.h"
+#include "script/script_api.h"
+#include "script/script_runtime.h"
+
+// void (GUIInv *guii)
+RuntimeScriptValue Sc_InvWindow_ScrollDown(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID(GUIInv, InvWindow_ScrollDown);
+}
+
+// void (GUIInv *guii)
+RuntimeScriptValue Sc_InvWindow_ScrollUp(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID(GUIInv, InvWindow_ScrollUp);
+}
+
+// CharacterInfo* (GUIInv *guii)
+RuntimeScriptValue Sc_InvWindow_GetCharacterToUse(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(GUIInv, CharacterInfo, ccDynamicCharacter, InvWindow_GetCharacterToUse);
+}
+
+// void (GUIInv *guii, CharacterInfo *chaa)
+RuntimeScriptValue Sc_InvWindow_SetCharacterToUse(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_POBJ(GUIInv, InvWindow_SetCharacterToUse, CharacterInfo);
+}
+
+// ScriptInvItem* (GUIInv *guii, int index)
+RuntimeScriptValue Sc_InvWindow_GetItemAtIndex(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ_PINT(GUIInv, ScriptInvItem, ccDynamicInv, InvWindow_GetItemAtIndex);
+}
+
+// int (GUIInv *guii)
+RuntimeScriptValue Sc_InvWindow_GetItemCount(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUIInv, InvWindow_GetItemCount);
+}
+
+// int (GUIInv *guii)
+RuntimeScriptValue Sc_InvWindow_GetItemHeight(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUIInv, InvWindow_GetItemHeight);
+}
+
+// void (GUIInv *guii, int newhit)
+RuntimeScriptValue Sc_InvWindow_SetItemHeight(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUIInv, InvWindow_SetItemHeight);
+}
+
+// int (GUIInv *guii)
+RuntimeScriptValue Sc_InvWindow_GetItemWidth(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUIInv, InvWindow_GetItemWidth);
+}
+
+// void (GUIInv *guii, int newwidth)
+RuntimeScriptValue Sc_InvWindow_SetItemWidth(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUIInv, InvWindow_SetItemWidth);
+}
+
+// int (GUIInv *guii)
+RuntimeScriptValue Sc_InvWindow_GetItemsPerRow(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUIInv, InvWindow_GetItemsPerRow);
+}
+
+// int (GUIInv *guii)
+RuntimeScriptValue Sc_InvWindow_GetRowCount(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUIInv, InvWindow_GetRowCount);
+}
+
+// int (GUIInv *guii)
+RuntimeScriptValue Sc_InvWindow_GetTopItem(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUIInv, InvWindow_GetTopItem);
+}
+
+// void (GUIInv *guii, int topitem)
+RuntimeScriptValue Sc_InvWindow_SetTopItem(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUIInv, InvWindow_SetTopItem);
+}
+
+
+
+void RegisterInventoryWindowAPI()
+{
+    ccAddExternalObjectFunction("InvWindow::ScrollDown^0",          Sc_InvWindow_ScrollDown);
+    ccAddExternalObjectFunction("InvWindow::ScrollUp^0",            Sc_InvWindow_ScrollUp);
+    ccAddExternalObjectFunction("InvWindow::get_CharacterToUse",    Sc_InvWindow_GetCharacterToUse);
+    ccAddExternalObjectFunction("InvWindow::set_CharacterToUse",    Sc_InvWindow_SetCharacterToUse);
+    ccAddExternalObjectFunction("InvWindow::geti_ItemAtIndex",      Sc_InvWindow_GetItemAtIndex);
+    ccAddExternalObjectFunction("InvWindow::get_ItemCount",         Sc_InvWindow_GetItemCount);
+    ccAddExternalObjectFunction("InvWindow::get_ItemHeight",        Sc_InvWindow_GetItemHeight);
+    ccAddExternalObjectFunction("InvWindow::set_ItemHeight",        Sc_InvWindow_SetItemHeight);
+    ccAddExternalObjectFunction("InvWindow::get_ItemWidth",         Sc_InvWindow_GetItemWidth);
+    ccAddExternalObjectFunction("InvWindow::set_ItemWidth",         Sc_InvWindow_SetItemWidth);
+    ccAddExternalObjectFunction("InvWindow::get_ItemsPerRow",       Sc_InvWindow_GetItemsPerRow);
+    ccAddExternalObjectFunction("InvWindow::get_RowCount",          Sc_InvWindow_GetRowCount);
+    ccAddExternalObjectFunction("InvWindow::get_TopItem",           Sc_InvWindow_GetTopItem);
+    ccAddExternalObjectFunction("InvWindow::set_TopItem",           Sc_InvWindow_SetTopItem);
 }

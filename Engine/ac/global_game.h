@@ -32,9 +32,9 @@ void UnPauseGame();
 int  IsGamePaused();
 void SetGlobalInt(int index,int valu);
 int  GetGlobalInt(int index);
-void SetGlobalString (int index, char *newval);
+void SetGlobalString (int index, const char *newval);
 void GetGlobalString (int index, char *strval);
-int  RunAGSGame (char *newgame, unsigned int mode, int data);
+int  RunAGSGame (const char *newgame, unsigned int mode, int data);
 int  GetGameParameter (int parm, int data1, int data2, int data3);
 void QuitGame(int dialog);
 void SetRestartPoint();
@@ -62,7 +62,7 @@ void GetLocationName(int xxx,int yyy,char*tempo);
 
 int IsKeyPressed (int keycode);
 
-int SaveScreenShot(char*namm);
+int SaveScreenShot(const char*namm);
 void SetMultitasking (int mode);
 
 void ProcessClick(int xx,int yy,int mood);
@@ -73,7 +73,7 @@ void GetMessageText (int msg, char *buffer);
 void SetSpeechFont (int fontnum);
 void SetNormalFont (int fontnum);
 
-void _sc_AbortGame(char*texx, ...);
+void _sc_AbortGame(const char*texx, ...);
 
 int GetGraphicalVariable (const char *varName);
 void SetGraphicalVariable (const char *varName, int p_value);

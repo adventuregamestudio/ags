@@ -28,7 +28,6 @@ extern GameSetupStruct game;
 extern ViewStruct*views;
 extern int psp_is_old_datafile;
 extern SpriteCache spriteset;
-extern RuntimeScriptValue GlobalReturnValue;
 extern CCAudioClip ccDynamicAudioClip;
 
 
@@ -52,7 +51,6 @@ ScriptAudioClip* ViewFrame_GetLinkedAudio(ScriptViewFrame *svf)
   if (soundIndex < 0)
     return NULL;
 
-  GlobalReturnValue.SetDynamicObject(&game.audioClips[soundIndex], &ccDynamicAudioClip);
   return &game.audioClips[soundIndex];
 }
 
@@ -164,4 +162,95 @@ void DrawViewFrame(Bitmap *target, ViewFrame *vframe, int x, int y) {
         target->FlipBlt(spriteset[vframe->pic], x, y, Common::kBitmap_HFlip);
     else
         target->Blit(spriteset[vframe->pic], x, y, Common::kBitmap_Transparency);
+}
+
+//=============================================================================
+//
+// Script API Functions
+//
+//=============================================================================
+
+#include "debug/out.h"
+#include "script/script_api.h"
+#include "script/script_runtime.h"
+
+// int (ScriptViewFrame *svf)
+RuntimeScriptValue Sc_ViewFrame_GetFlipped(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptViewFrame, ViewFrame_GetFlipped);
+}
+
+// int (ScriptViewFrame *svf)
+RuntimeScriptValue Sc_ViewFrame_GetFrame(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptViewFrame, ViewFrame_GetFrame);
+}
+// int (ScriptViewFrame *svf)
+RuntimeScriptValue Sc_ViewFrame_GetGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptViewFrame, ViewFrame_GetGraphic);
+}
+
+// void (ScriptViewFrame *svf, int newPic)
+RuntimeScriptValue Sc_ViewFrame_SetGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptViewFrame, ViewFrame_SetGraphic);
+}
+
+// ScriptAudioClip* (ScriptViewFrame *svf)
+RuntimeScriptValue Sc_ViewFrame_GetLinkedAudio(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_OBJ(ScriptViewFrame, ScriptAudioClip, ccDynamicAudioClip, ViewFrame_GetLinkedAudio);
+}
+
+// void (ScriptViewFrame *svf, ScriptAudioClip* clip)
+RuntimeScriptValue Sc_ViewFrame_SetLinkedAudio(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_POBJ(ScriptViewFrame, ViewFrame_SetLinkedAudio, ScriptAudioClip);
+}
+
+// int (ScriptViewFrame *svf)
+RuntimeScriptValue Sc_ViewFrame_GetLoop(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptViewFrame, ViewFrame_GetLoop);
+}
+
+// int (ScriptViewFrame *svf)
+RuntimeScriptValue Sc_ViewFrame_GetSound(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptViewFrame, ViewFrame_GetSound);
+}
+
+// void (ScriptViewFrame *svf, int newSound)
+RuntimeScriptValue Sc_ViewFrame_SetSound(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptViewFrame, ViewFrame_SetSound);
+}
+
+// int (ScriptViewFrame *svf)
+RuntimeScriptValue Sc_ViewFrame_GetSpeed(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptViewFrame, ViewFrame_GetSpeed);
+}
+
+// int (ScriptViewFrame *svf)
+RuntimeScriptValue Sc_ViewFrame_GetView(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptViewFrame, ViewFrame_GetView);
+}
+
+
+void RegisterViewFrameAPI()
+{
+    ccAddExternalObjectFunction("ViewFrame::get_Flipped",       Sc_ViewFrame_GetFlipped);
+    ccAddExternalObjectFunction("ViewFrame::get_Frame",         Sc_ViewFrame_GetFrame);
+    ccAddExternalObjectFunction("ViewFrame::get_Graphic",       Sc_ViewFrame_GetGraphic);
+    ccAddExternalObjectFunction("ViewFrame::set_Graphic",       Sc_ViewFrame_SetGraphic);
+    ccAddExternalObjectFunction("ViewFrame::get_LinkedAudio",   Sc_ViewFrame_GetLinkedAudio);
+    ccAddExternalObjectFunction("ViewFrame::set_LinkedAudio",   Sc_ViewFrame_SetLinkedAudio);
+    ccAddExternalObjectFunction("ViewFrame::get_Loop",          Sc_ViewFrame_GetLoop);
+    ccAddExternalObjectFunction("ViewFrame::get_Sound",         Sc_ViewFrame_GetSound);
+    ccAddExternalObjectFunction("ViewFrame::set_Sound",         Sc_ViewFrame_SetSound);
+    ccAddExternalObjectFunction("ViewFrame::get_Speed",         Sc_ViewFrame_GetSpeed);
+    ccAddExternalObjectFunction("ViewFrame::get_View",          Sc_ViewFrame_GetView);
 }

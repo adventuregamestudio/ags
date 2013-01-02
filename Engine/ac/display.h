@@ -23,7 +23,7 @@
 int  _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,int asspch, int isThought, int allowShrink, bool overlayPositionFixed);
 void _display_at(int xx,int yy,int wii,char*todis,int blocking,int asspch, int isThought, int allowShrink, bool overlayPositionFixed);
 bool ShouldAntiAliasText();
-int GetTextDisplayTime (char *text, int canberel=0);
+int GetTextDisplayTime (const char *text, int canberel=0);
 void wouttext_outline(int xxp, int yyp, int usingfont, char*texx);
 void wouttext_aligned (int usexp, int yy, int oriwid, int usingfont, const char *text, int align);
 int wgetfontheight(int font);

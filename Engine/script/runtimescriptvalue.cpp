@@ -26,16 +26,16 @@ uint8_t RuntimeScriptValue::ReadByte()
         }
         else
         {
-            return RValue->GetInt32(); // get RValue as int
+            return RValue->IValue; // get RValue as int
         }
     }
     else if (this->Type == kScValStaticObject || this->Type == kScValStaticArray)
     {
-        return this->GetStaticManager()->ReadInt8(this->Ptr, this->IValue);
+        return this->StcMgr->ReadInt8(this->Ptr, this->IValue);
     }
     else if (this->Type == kScValDynamicObject)
     {
-        return this->GetDynamicManager()->ReadInt8(this->Ptr, this->IValue);
+        return this->DynMgr->ReadInt8(this->Ptr, this->IValue);
     }
     return *((uint8_t*)this->GetPtrWithOffset());
 }
@@ -50,7 +50,7 @@ int16_t RuntimeScriptValue::ReadInt16()
         }
         else
         {
-            return RValue->GetInt32(); // get RValue as int
+            return RValue->IValue; // get RValue as int
         }
     }
     else if (this->Type == kScValGlobalVar)
@@ -65,16 +65,16 @@ int16_t RuntimeScriptValue::ReadInt16()
         }
         else
         {
-            return RValue->GetInt32(); // get RValue as int
+            return RValue->IValue; // get RValue as int
         }
     }
     else if (this->Type == kScValStaticObject || this->Type == kScValStaticArray)
     {
-        return this->GetStaticManager()->ReadInt16(this->Ptr, this->IValue);
+        return this->StcMgr->ReadInt16(this->Ptr, this->IValue);
     }
     else if (this->Type == kScValDynamicObject)
     {
-        return this->GetDynamicManager()->ReadInt16(this->Ptr, this->IValue);
+        return this->DynMgr->ReadInt16(this->Ptr, this->IValue);
     }
     return *((int16_t*)this->GetPtrWithOffset());
 }
@@ -89,7 +89,7 @@ int32_t RuntimeScriptValue::ReadInt32()
         }
         else
         {
-            return RValue->GetInt32(); // get RValue as int
+            return RValue->IValue; // get RValue as int
         }
     }
     else if (this->Type == kScValGlobalVar)
@@ -112,16 +112,16 @@ int32_t RuntimeScriptValue::ReadInt32()
         }
         else
         {
-            return RValue->GetInt32(); // get RValue as int
+            return RValue->IValue; // get RValue as int
         }
     }
     else if (this->Type == kScValStaticObject || this->Type == kScValStaticArray)
     {
-        return this->GetStaticManager()->ReadInt32(this->Ptr, this->IValue);
+        return this->StcMgr->ReadInt32(this->Ptr, this->IValue);
     }
     else if (this->Type == kScValDynamicObject)
     {
-        return this->GetDynamicManager()->ReadInt32(this->Ptr, this->IValue);
+        return this->DynMgr->ReadInt32(this->Ptr, this->IValue);
     }
     return *((int32_t*)this->GetPtrWithOffset());
 }
@@ -168,11 +168,11 @@ RuntimeScriptValue RuntimeScriptValue::ReadValue()
     }
     else if (this->Type == kScValStaticObject || this->Type == kScValStaticArray)
     {
-        rval.SetInt32(this->GetStaticManager()->ReadInt32(this->Ptr, this->IValue));
+        rval.SetInt32(this->StcMgr->ReadInt32(this->Ptr, this->IValue));
     }
     else if (this->Type == kScValDynamicObject)
     {
-        rval.SetInt32(this->GetDynamicManager()->ReadInt32(this->Ptr, this->IValue));
+        rval.SetInt32(this->DynMgr->ReadInt32(this->Ptr, this->IValue));
     }
     else
     {
@@ -197,11 +197,11 @@ bool RuntimeScriptValue::WriteByte(uint8_t val)
     }
     else if (this->Type == kScValStaticObject || this->Type == kScValStaticArray)
     {
-        this->GetStaticManager()->WriteInt8(this->Ptr, this->IValue, val);
+        this->StcMgr->WriteInt8(this->Ptr, this->IValue, val);
     }
     else if (this->Type == kScValDynamicObject)
     {
-        this->GetDynamicManager()->WriteInt8(this->Ptr, this->IValue, val);
+        this->DynMgr->WriteInt8(this->Ptr, this->IValue, val);
     }
     else
     {
@@ -239,11 +239,11 @@ bool RuntimeScriptValue::WriteInt16(int16_t val)
     }
     else if (this->Type == kScValStaticObject || this->Type == kScValStaticArray)
     {
-        this->GetStaticManager()->WriteInt16(this->Ptr, this->IValue, val);
+        this->StcMgr->WriteInt16(this->Ptr, this->IValue, val);
     }
     else if (this->Type == kScValDynamicObject)
     {
-        this->GetDynamicManager()->WriteInt16(this->Ptr, this->IValue, val);
+        this->DynMgr->WriteInt16(this->Ptr, this->IValue, val);
     }
     else
     {
@@ -287,11 +287,11 @@ bool RuntimeScriptValue::WriteInt32(int32_t val)
     }
     else if (this->Type == kScValStaticObject || this->Type == kScValStaticArray)
     {
-        this->GetStaticManager()->WriteInt32(this->Ptr, this->IValue, val);
+        this->StcMgr->WriteInt32(this->Ptr, this->IValue, val);
     }
     else if (this->Type == kScValDynamicObject)
     {
-        this->GetDynamicManager()->WriteInt32(this->Ptr, this->IValue, val);
+        this->DynMgr->WriteInt32(this->Ptr, this->IValue, val);
     }
     else
     {
@@ -321,9 +321,9 @@ bool RuntimeScriptValue::WriteValue(const RuntimeScriptValue &rval)
             // variables;
             // Therefore if pushed value is of integer type, we should rather
             // act as WriteInt32 (for int8, int16 and int32).
-            if (rval.GetType() == kScValInteger)
+            if (rval.Type == kScValInteger)
             {
-                RValue->SetInt32(rval.GetInt32());
+                RValue->SetInt32(rval.IValue);
             }
             else
             {
@@ -354,11 +354,11 @@ bool RuntimeScriptValue::WriteValue(const RuntimeScriptValue &rval)
     }
     else if (this->Type == kScValStaticObject || this->Type == kScValStaticArray)
     {
-        this->GetStaticManager()->WriteInt32(this->Ptr, this->IValue, (int32_t)rval.GetPtrWithOffset());
+        this->StcMgr->WriteInt32(this->Ptr, this->IValue, (int32_t)rval.GetPtrWithOffset());
     }
     else if (this->Type == kScValDynamicObject)
     {
-        this->GetDynamicManager()->WriteInt32(this->Ptr, this->IValue, (int32_t)rval.GetPtrWithOffset());
+        this->DynMgr->WriteInt32(this->Ptr, this->IValue, (int32_t)rval.GetPtrWithOffset());
     }
     else
     {

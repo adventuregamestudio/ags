@@ -99,7 +99,7 @@ void *ccGetSymbolAddress(char *namof)
     const ScriptImport *import = simp.getByName(namof);
     if (import)
     {
-        return import->Value.GetPtr();
+        return import->Value.Ptr;
     }
     return NULL;
 }
@@ -142,11 +142,11 @@ int call_function(intptr_t addr, int numparm, const RuntimeScriptValue *parms)
     intptr_t parm_value[9];
     for (int i = 0; i < numparm; ++i)
     {
-        switch (parms[i].GetType())
+        switch (parms[i].Type)
         {
         case kScValInteger:
         case kScValFloat:   // AGS passes floats, copying their values into long variable
-            parm_value[i] = (intptr_t)parms[i].GetInt32();
+            parm_value[i] = (intptr_t)parms[i].IValue;
             break;
             break;
         default:

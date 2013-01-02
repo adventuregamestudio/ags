@@ -191,8 +191,8 @@ RuntimeScriptValue Sc_CreateTextOverlay(const RuntimeScriptValue *params, int32_
 {
     API_SCALL_SCRIPT_SPRINTF(CreateTextOverlay, 6);
     return RuntimeScriptValue().SetInt32(
-        CreateTextOverlay(params[0].GetInt32(), params[1].GetInt32(), params[2].GetInt32(),
-            params[3].GetInt32(), params[4].GetInt32(), "%s", scsf_buffer));
+        CreateTextOverlay(params[0].IValue, params[1].IValue, params[2].IValue,
+            params[3].IValue, params[4].IValue, "%s", scsf_buffer));
 }
 
 // void (int strt,int eend)
@@ -257,7 +257,7 @@ RuntimeScriptValue Sc_Display(const RuntimeScriptValue *params, int32_t param_co
 RuntimeScriptValue Sc_DisplayAt(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_SCRIPT_SPRINTF(DisplayAt, 4);
-    DisplayAt(params[0].GetInt32(), params[1].GetInt32(), params[2].GetInt32(), "%s", scsf_buffer);
+    DisplayAt(params[0].IValue, params[1].IValue, params[2].IValue, "%s", scsf_buffer);
     return RuntimeScriptValue();
 }
 
@@ -289,7 +289,7 @@ RuntimeScriptValue Sc_DisplayMessageBar(const RuntimeScriptValue *params, int32_
 RuntimeScriptValue Sc_sc_displayspeech(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_SCRIPT_SPRINTF(DisplayAt, 2);
-    __sc_displayspeech(params[0].GetInt32(), "%s", scsf_buffer);
+    __sc_displayspeech(params[0].IValue, "%s", scsf_buffer);
     return RuntimeScriptValue();
 }
 
@@ -309,7 +309,7 @@ RuntimeScriptValue Sc_DisplaySpeechBackground(const RuntimeScriptValue *params, 
 RuntimeScriptValue Sc_DisplayThought(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_SCRIPT_SPRINTF(DisplayThought, 2);
-    DisplayThought(params[0].GetInt32(), "%s", scsf_buffer);
+    DisplayThought(params[0].IValue, "%s", scsf_buffer);
     return RuntimeScriptValue();
 }
 
@@ -317,7 +317,7 @@ RuntimeScriptValue Sc_DisplayThought(const RuntimeScriptValue *params, int32_t p
 RuntimeScriptValue Sc_DisplayTopBar(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_SCRIPT_SPRINTF(DisplayTopBar, 5);
-    DisplayTopBar(params[0].GetInt32(), params[1].GetInt32(), params[2].GetInt32(), params[3].GetPtr(), "%s", scsf_buffer);
+    DisplayTopBar(params[0].IValue, params[1].IValue, params[2].IValue, params[3].Ptr, "%s", scsf_buffer);
     return RuntimeScriptValue();
 }
 
@@ -1305,7 +1305,7 @@ RuntimeScriptValue Sc_RawDrawTriangle(const RuntimeScriptValue *params, int32_t 
 RuntimeScriptValue Sc_RawPrint(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_SCRIPT_SPRINTF(RawPrint, 3);
-    RawPrint(params[0].GetInt32(), params[1].GetInt32(), "%s", scsf_buffer);
+    RawPrint(params[0].IValue, params[1].IValue, "%s", scsf_buffer);
     return RuntimeScriptValue();
 }
 
@@ -1953,8 +1953,8 @@ RuntimeScriptValue Sc_SetTextBoxText(const RuntimeScriptValue *params, int32_t p
 RuntimeScriptValue Sc_SetTextOverlay(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_SCRIPT_SPRINTF(SetTextOverlay, 7);
-    SetTextOverlay(params[0].GetInt32(), params[1].GetInt32(), params[2].GetInt32(), params[3].GetInt32(),
-                   params[5].GetInt32(), params[6].GetInt32(), "%s", scsf_buffer);
+    SetTextOverlay(params[0].IValue, params[1].IValue, params[2].IValue, params[3].IValue,
+                   params[5].IValue, params[6].IValue, "%s", scsf_buffer);
     return RuntimeScriptValue();
 }
 
@@ -2094,7 +2094,7 @@ RuntimeScriptValue Sc_sc_strcpy(const RuntimeScriptValue *params, int32_t param_
 RuntimeScriptValue Sc_sc_sprintf(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_SCRIPT_SPRINTF(_sc_sprintf, 2);
-    _sc_sprintf(params[0].GetPtr(), "%s", scsf_buffer);
+    _sc_sprintf(params[0].Ptr, "%s", scsf_buffer);
     return RuntimeScriptValue();
 }
 

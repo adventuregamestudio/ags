@@ -291,8 +291,8 @@ RuntimeScriptValue Sc_Overlay_CreateGraphical(const RuntimeScriptValue *params, 
 RuntimeScriptValue Sc_Overlay_CreateTextual(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_SCRIPT_SPRINTF(Overlay_CreateTextual, 6);
-    ScriptOverlay *overlay = Overlay_CreateTextual(params[0].GetInt32(), params[1].GetInt32(), params[2].GetInt32(),
-                                                   params[3].GetInt32(), params[4].GetInt32(), "%s", scsf_buffer);
+    ScriptOverlay *overlay = Overlay_CreateTextual(params[0].IValue, params[1].IValue, params[2].IValue,
+                                                   params[3].IValue, params[4].IValue, "%s", scsf_buffer);
     return RuntimeScriptValue().SetDynamicObject(overlay, overlay);
 }
 
@@ -300,7 +300,7 @@ RuntimeScriptValue Sc_Overlay_CreateTextual(const RuntimeScriptValue *params, in
 RuntimeScriptValue Sc_Overlay_SetText(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_SCRIPT_SPRINTF(Overlay_SetText, 4);
-    Overlay_SetText((ScriptOverlay*)self, params[0].GetInt32(), params[1].GetInt32(), params[2].GetInt32(), "%s", scsf_buffer);
+    Overlay_SetText((ScriptOverlay*)self, params[0].IValue, params[1].IValue, params[2].IValue, "%s", scsf_buffer);
     return RuntimeScriptValue();
 }
 

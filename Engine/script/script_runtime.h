@@ -64,3 +64,4 @@ extern void ccSetScriptAliveTimer (int);
 extern void ccNotifyScriptStillAlive ();
 // for calling exported plugin functions old-style
 extern int call_function(intptr_t addr, int numparm, const RuntimeScriptValue *parms);
+extern void nullfree(void *data); // in script/script_runtime

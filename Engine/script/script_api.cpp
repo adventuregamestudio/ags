@@ -105,7 +105,7 @@ const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format, c
                 case 'c':
                     // Print integer
                     *fmt_bufptr = 0;
-                    snprintf_res = snprintf(out_ptr, avail_outbuf, fmtbuf, arg.GetInt32());
+                    snprintf_res = snprintf(out_ptr, avail_outbuf, fmtbuf, arg.IValue);
                     fmt_done = kFormatParseArgument;
                     break;
                 case 'e':
@@ -118,16 +118,16 @@ const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format, c
                 case 'A':
                     // Print float
                     *fmt_bufptr = 0;
-                    snprintf_res = snprintf(out_ptr, avail_outbuf, fmtbuf, arg.GetFloat());
+                    snprintf_res = snprintf(out_ptr, avail_outbuf, fmtbuf, arg.FValue);
                     fmt_done = kFormatParseArgument;
                     break;
                 case 's':
-                    if (!arg.GetPtr())
+                    if (!arg.Ptr)
                     {
                         cc_error("ScriptSprintf: argument %d is expected to be a string, but it is null pointer", arg_idx);
                         return "";
                     }
-                    if (arg.GetPtr() == buffer)
+                    if (arg.Ptr == buffer)
                     {
                         cc_error("ScriptSprintf: argument %d is a pointer to output buffer", arg_idx);
                         return "";
@@ -136,7 +136,7 @@ const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format, c
                 case 'p':
                     // Print string, or pointer value
                     *fmt_bufptr = 0;
-                    snprintf_res = snprintf(out_ptr, avail_outbuf, fmtbuf, arg.GetPtr());
+                    snprintf_res = snprintf(out_ptr, avail_outbuf, fmtbuf, arg.Ptr);
                     fmt_done = kFormatParseArgument;
                     break;
                 case '%':

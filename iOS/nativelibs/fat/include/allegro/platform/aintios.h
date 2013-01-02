@@ -20,6 +20,11 @@
 #ifndef AINTIOS_H
 #define AINTIOS_H
 
+AL_FUNC(void *, _ios_create_mutex, (void));
+AL_FUNC(void, _ios_destroy_mutex, (void *handle));
+AL_FUNC(void, _ios_lock_mutex, (void *handle));
+AL_FUNC(void, _ios_unlock_mutex, (void *handle));
+
 void ios_mouse_setup(int left, int right, int top, int bottom, float scaling_x, float scaling_y);
 
 #endif

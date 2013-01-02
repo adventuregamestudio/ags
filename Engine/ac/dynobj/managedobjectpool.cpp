@@ -115,9 +115,15 @@ int32_t ManagedObjectPool::SubRef(int32_t handle) {
 int32_t ManagedObjectPool::AddressToHandle(const char *addr) {
     // this function is only called when a pointer is set
     // SLOW LOOP ALERT, improve at some point
-    for (int kk = 1; kk < arrayAllocLimit; kk++) {
-        if (objects[kk].addr == addr)
-            return objects[kk].handle;
+    // [IKM] 2013-01-01: search in reverse order, as suggested by rofl0r:
+    // it appears that, statistically, the given address is more often
+    // located closer to the end of the managed array.
+    for (size_t i = numObjects - 1; i >= 1; --i)
+    {
+        if (objects[i].addr == addr)
+        {
+            return objects[i].handle;
+        }
     }
     return 0;
 }

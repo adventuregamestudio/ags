@@ -20,6 +20,9 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Adventure Game Studio runtime engine
  AGS is an adventure game engine with many games available.
+ .
+ Package built on ${buildinfo:Date}
+ using git ${buildinfo:Git-Object}.
 
 Package: ags-dbg
 Architecture: any
@@ -32,3 +35,6 @@ Description: Adventure Game Studio runtime engine (debugging symbols)
  AGS is an adventure game engine with many games available.
  .
  This package contains the debugging symbols for ags.
+ .
+ Package built on ${buildinfo:Date}
+ using git ${buildinfo:Git-Object}.

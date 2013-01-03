@@ -686,10 +686,10 @@ RuntimeScriptValue Sc_DynamicSprite_GetWidth(void *self, const RuntimeScriptValu
     API_OBJCALL_INT(ScriptDynamicSprite, DynamicSprite_GetWidth);
 }
 
-// ScriptDynamicSprite* (int sgslot, int width, int height)
+// ScriptDynamicSprite* (int width, int height, int alphaChannel)
 RuntimeScriptValue Sc_DynamicSprite_Create(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJAUTO_PINT3(ScriptDynamicSprite, DynamicSprite_CreateFromSaveGame);
+    API_SCALL_OBJAUTO_PINT3(ScriptDynamicSprite, DynamicSprite_Create);
 }
 
 // ScriptDynamicSprite* (int frame, int x1, int y1, int width, int height)

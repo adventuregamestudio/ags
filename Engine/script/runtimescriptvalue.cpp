@@ -367,3 +367,20 @@ bool RuntimeScriptValue::WriteValue(const RuntimeScriptValue &rval)
     }
     return true;
 }
+
+RuntimeScriptValue &RuntimeScriptValue::DirectPtr()
+{
+    while (Type == kScValGlobalVar || Type == kScValStackPtr)
+    {
+        int ival = IValue;
+        *this = *RValue;
+        IValue += ival;
+    }
+
+    if (Ptr)
+    {
+        Ptr += IValue;
+        IValue = 0;
+    }
+    return *this;
+}

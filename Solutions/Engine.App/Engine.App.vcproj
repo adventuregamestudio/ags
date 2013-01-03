@@ -269,6 +269,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\global_api.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\global_audio.cpp"
 					>
 				</File>
@@ -801,126 +805,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\script\ex_audio.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\script\ex_builtin_plugins.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\script\ex_button.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\script\ex_character.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\script\ex_datetime.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\script\ex_dialog.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\script\ex_drawingsurface.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\script\ex_dynamicsprite.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\script\ex_file.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\script\ex_game.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\script\ex_global.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\script\ex_gui.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\script\ex_guicontrol.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\script\ex_hotspot.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\script\ex_inventoryitem.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\script\ex_invwindow.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\script\ex_label.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\script\ex_listbox.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\script\ex_math.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\script\ex_mouse.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\script\ex_object.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\script\ex_overlay.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\script\ex_parser.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\script\ex_region.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\script\ex_room.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\script\ex_slider.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\script\ex_string.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\script\ex_system.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\script\ex_textbox.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\script\ex_viewframe.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\script\executingscript.cpp"
 					>
 				</File>
@@ -934,6 +818,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\script\script.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\script\script_api.cpp"
 					>
 				</File>
 				<File
@@ -1158,6 +1046,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\test\test_file.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\test\test_sprintf.cpp"
 					>
 				</File>
 				<File
@@ -1803,10 +1695,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\script\ex_defines.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\script\executingscript.h"
 					>
 				</File>
@@ -1827,15 +1715,11 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\script\script_api.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\script\script_runtime.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\script\spans.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\script\symbol_registry.h"
 					>
 				</File>
 				<File

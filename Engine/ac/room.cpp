@@ -126,7 +126,6 @@ extern IDriverDependantBitmap **guibgbmp;
 
 extern CCHotspot ccDynamicHotspot;
 extern CCObject ccDynamicObject;
-extern RuntimeScriptValue GlobalReturnValue;
 
 RGB_MAP rgb_table;  // for 256-col antialiasing
 int new_room_flags=0;
@@ -149,7 +148,6 @@ ScriptDrawingSurface* Room_GetDrawingSurfaceForBackground(int backgroundNumber)
     ScriptDrawingSurface *surface = new ScriptDrawingSurface();
     surface->roomBackgroundNumber = backgroundNumber;
     ccRegisterManagedObject(surface, surface);
-    GlobalReturnValue.SetDynamicObject(surface, surface);
     return surface;
 }
 
@@ -191,7 +189,7 @@ int Room_GetMusicOnLoad() {
 }
 
 const char* Room_GetTextProperty(const char *property) {
-    return get_text_property_dynamic_string_as_ret_val(&thisroom.roomProps, property);
+    return get_text_property_dynamic_string(&thisroom.roomProps, property);
 }
 
 const char* Room_GetMessages(int index) {
@@ -201,7 +199,7 @@ const char* Room_GetMessages(int index) {
     char buffer[STD_BUFFER_SIZE];
     buffer[0]=0;
     replace_tokens(get_translation(thisroom.message[index]), buffer, STD_BUFFER_SIZE);
-    return CreateNewScriptStringAsRetVal(buffer);
+    return CreateNewScriptString(buffer);
 }
 
 
@@ -1087,4 +1085,106 @@ void on_background_frame_change () {
     // close as possible to the screen update to prevent flicker problem)
     if (game.color_depth == 1)
         bg_just_changed = 1;
+}
+
+//=============================================================================
+//
+// Script API Functions
+//
+//=============================================================================
+
+#include "debug/out.h"
+#include "script/script_api.h"
+#include "script/script_runtime.h"
+#include "ac/dynobj/scriptstring.h"
+
+extern ScriptString myScriptStringImpl;
+
+// ScriptDrawingSurface* (int backgroundNumber)
+RuntimeScriptValue Sc_Room_GetDrawingSurfaceForBackground(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO_PINT(ScriptDrawingSurface, Room_GetDrawingSurfaceForBackground);
+}
+
+// const char* (const char *property)
+RuntimeScriptValue Sc_Room_GetTextProperty(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_POBJ(const char, myScriptStringImpl, Room_GetTextProperty, const char);
+}
+
+// int ()
+RuntimeScriptValue Sc_Room_GetBottomEdge(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Room_GetBottomEdge);
+}
+
+// int ()
+RuntimeScriptValue Sc_Room_GetColorDepth(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Room_GetColorDepth);
+}
+
+// int ()
+RuntimeScriptValue Sc_Room_GetHeight(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Room_GetHeight);
+}
+
+// int ()
+RuntimeScriptValue Sc_Room_GetLeftEdge(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Room_GetLeftEdge);
+}
+
+// const char* (int index)
+RuntimeScriptValue Sc_Room_GetMessages(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT(const char, myScriptStringImpl, Room_GetMessages);
+}
+
+// int ()
+RuntimeScriptValue Sc_Room_GetMusicOnLoad(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Room_GetMusicOnLoad);
+}
+
+// int ()
+RuntimeScriptValue Sc_Room_GetObjectCount(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Room_GetObjectCount);
+}
+
+// int ()
+RuntimeScriptValue Sc_Room_GetRightEdge(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Room_GetRightEdge);
+}
+
+// int ()
+RuntimeScriptValue Sc_Room_GetTopEdge(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Room_GetTopEdge);
+}
+
+// int ()
+RuntimeScriptValue Sc_Room_GetWidth(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Room_GetWidth);
+}
+
+
+void RegisterRoomAPI()
+{
+    ccAddExternalStaticFunction("Room::GetDrawingSurfaceForBackground^1",   Sc_Room_GetDrawingSurfaceForBackground);
+    ccAddExternalStaticFunction("Room::GetTextProperty^1",                  Sc_Room_GetTextProperty);
+    ccAddExternalStaticFunction("Room::get_BottomEdge",                     Sc_Room_GetBottomEdge);
+    ccAddExternalStaticFunction("Room::get_ColorDepth",                     Sc_Room_GetColorDepth);
+    ccAddExternalStaticFunction("Room::get_Height",                         Sc_Room_GetHeight);
+    ccAddExternalStaticFunction("Room::get_LeftEdge",                       Sc_Room_GetLeftEdge);
+    ccAddExternalStaticFunction("Room::geti_Messages",                      Sc_Room_GetMessages);
+    ccAddExternalStaticFunction("Room::get_MusicOnLoad",                    Sc_Room_GetMusicOnLoad);
+    ccAddExternalStaticFunction("Room::get_ObjectCount",                    Sc_Room_GetObjectCount);
+    ccAddExternalStaticFunction("Room::get_RightEdge",                      Sc_Room_GetRightEdge);
+    ccAddExternalStaticFunction("Room::get_TopEdge",                        Sc_Room_GetTopEdge);
+    ccAddExternalStaticFunction("Room::get_Width",                          Sc_Room_GetWidth);
 }

@@ -133,7 +133,6 @@ extern unsigned int loopcounter;
 extern Bitmap *raw_saved_screen;
 extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 extern IGraphicsDriver *gfxDriver;
-extern RuntimeScriptValue GlobalReturnValue;
 
 //=============================================================================
 GameState play;
@@ -247,7 +246,6 @@ int Game_IsAudioPlaying(int audioType)
     for (int aa = 0; aa < MAX_SOUND_CHANNELS; aa++)
     {
         ScriptAudioClip *clip = AudioChannel_GetPlayingClip(&scrAudioChannel[aa]);
-        GlobalReturnValue.Invalidate();
         if (clip != NULL) 
         {
             if ((clip->type == audioType) || (audioType == SCR_NO_VALUE))
@@ -259,7 +257,7 @@ int Game_IsAudioPlaying(int audioType)
     return 0;
 }
 
-void Game_SetAudioTypeSpeechVolumeDrop(int audioType, int volumeDrop) 
+void Game_SetAudioTypeSpeechVolumeDrop(int audioType, int volumeDrop)
 {
     if ((audioType < 0) || (audioType >= game.audioClipTypeCount))
         quit("!Game.SetAudioTypeVolume: invalid audio type");
@@ -407,7 +405,7 @@ const char* Game_GetSaveSlotDescription(int slnum) {
     String description;
     if (read_savedgame_description(get_save_game_path(slnum), description) == 0)
     {
-        return CreateNewScriptStringAsRetVal(description);
+        return CreateNewScriptString(description);
     }
     return NULL;
 }
@@ -669,7 +667,7 @@ const char* Game_GetGlobalStrings(int index) {
     if ((index < 0) || (index >= MAXGLOBALSTRINGS))
         quit("!Game.GlobalStrings: invalid index");
 
-    return CreateNewScriptStringAsRetVal(play.globalstrings[index]);
+    return CreateNewScriptString(play.globalstrings[index]);
 }
 
 
@@ -768,11 +766,10 @@ ScriptViewFrame* Game_GetViewFrame(int viewNumber, int loopNumber, int frame) {
 
     ScriptViewFrame *sdt = new ScriptViewFrame(viewNumber - 1, loopNumber, frame);
     ccRegisterManagedObject(sdt, sdt);
-    GlobalReturnValue.SetDynamicObject(sdt,sdt);
     return sdt;
 }
 
-int Game_DoOnceOnly(const char *token) 
+int Game_DoOnceOnly(const char *token)
 {
     if (strlen(token) > 199)
         quit("!Game.DoOnceOnly: token length cannot be more than 200 chars");
@@ -825,11 +822,11 @@ void Game_SetIgnoreUserInputAfterTextTimeoutMs(int newValueMs)
 }
 
 const char *Game_GetFileName() {
-    return CreateNewScriptStringAsRetVal(usetup.main_data_filename);
+    return CreateNewScriptString(usetup.main_data_filename);
 }
 
 const char *Game_GetName() {
-    return CreateNewScriptStringAsRetVal(play.game_name);
+    return CreateNewScriptString(play.game_name);
 }
 
 void Game_SetName(const char *newName) {
@@ -878,13 +875,13 @@ int Game_GetColorFromRGB(int red, int grn, int blu) {
 const char* Game_InputBox(const char *msg) {
     char buffer[STD_BUFFER_SIZE];
     sc_inputbox(msg, buffer);
-    return CreateNewScriptStringAsRetVal(buffer);
+    return CreateNewScriptString(buffer);
 }
 
 const char* Game_GetLocationName(int x, int y) {
     char buffer[STD_BUFFER_SIZE];
     GetLocationName(x, y, buffer);
-    return CreateNewScriptStringAsRetVal(buffer);
+    return CreateNewScriptString(buffer);
 }
 
 const char* Game_GetGlobalMessages(int index) {
@@ -894,7 +891,7 @@ const char* Game_GetGlobalMessages(int index) {
     char buffer[STD_BUFFER_SIZE];
     buffer[0] = 0;
     replace_tokens(get_translation(get_global_message(index)), buffer, STD_BUFFER_SIZE);
-    return CreateNewScriptStringAsRetVal(buffer);
+    return CreateNewScriptString(buffer);
 }
 
 int Game_GetSpeechFont() {
@@ -907,7 +904,7 @@ int Game_GetNormalFont() {
 const char* Game_GetTranslationFilename() {
     char buffer[STD_BUFFER_SIZE];
     GetTranslationName(buffer);
-    return CreateNewScriptStringAsRetVal(buffer);
+    return CreateNewScriptString(buffer);
 }
 
 int Game_ChangeTranslation(const char *newFilename)
@@ -2763,4 +2760,351 @@ InteractionVariable *FindGraphicalVariable(const char *varName) {
             return &thisroom.localvars[ii];
     }
     return NULL;
+}
+
+//=============================================================================
+//
+// Script API Functions
+//
+//=============================================================================
+
+#include "debug/out.h"
+#include "script/script_api.h"
+#include "script/script_runtime.h"
+
+// int  (int audioType);
+RuntimeScriptValue Sc_Game_IsAudioPlaying(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(Game_IsAudioPlaying);
+}
+
+// void (int audioType, int volumeDrop)
+RuntimeScriptValue Sc_Game_SetAudioTypeSpeechVolumeDrop(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT2(Game_SetAudioTypeSpeechVolumeDrop);
+}
+
+// void (int audioType, int volume, int changeType)
+RuntimeScriptValue Sc_Game_SetAudioTypeVolume(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT3(Game_SetAudioTypeVolume);
+}
+
+// void (int audioType)
+RuntimeScriptValue Sc_Game_StopAudio(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Game_StopAudio);
+}
+
+// int (const char *newFilename)
+RuntimeScriptValue Sc_Game_ChangeTranslation(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_POBJ(Game_ChangeTranslation, const char);
+}
+
+// int (const char *token)
+RuntimeScriptValue Sc_Game_DoOnceOnly(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_POBJ(Game_DoOnceOnly, const char);
+}
+
+// int (int red, int grn, int blu)
+RuntimeScriptValue Sc_Game_GetColorFromRGB(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT3(Game_GetColorFromRGB);
+}
+
+// int (int viewNumber, int loopNumber)
+RuntimeScriptValue Sc_Game_GetFrameCountForLoop(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT2(Game_GetFrameCountForLoop);
+}
+
+// const char* (int x, int y)
+RuntimeScriptValue Sc_Game_GetLocationName(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT2(const char, myScriptStringImpl, Game_GetLocationName);
+}
+
+// int (int viewNumber)
+RuntimeScriptValue Sc_Game_GetLoopCountForView(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(Game_GetLoopCountForView);
+}
+
+// int ()
+RuntimeScriptValue Sc_Game_GetMODPattern(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Game_GetMODPattern);
+}
+
+// int (int viewNumber, int loopNumber)
+RuntimeScriptValue Sc_Game_GetRunNextSettingForLoop(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT2(Game_GetRunNextSettingForLoop);
+}
+
+// const char* (int slnum)
+RuntimeScriptValue Sc_Game_GetSaveSlotDescription(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT(const char, myScriptStringImpl, Game_GetSaveSlotDescription);
+}
+
+// ScriptViewFrame* (int viewNumber, int loopNumber, int frame)
+RuntimeScriptValue Sc_Game_GetViewFrame(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO_PINT3(ScriptViewFrame, Game_GetViewFrame);
+}
+
+// const char* (const char *msg)
+RuntimeScriptValue Sc_Game_InputBox(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_POBJ(const char, myScriptStringImpl, Game_InputBox, const char);
+}
+
+// int (const char *newFolder)
+RuntimeScriptValue Sc_Game_SetSaveGameDirectory(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_POBJ(Game_SetSaveGameDirectory, const char);
+}
+
+// void (int evenAmbient);
+RuntimeScriptValue Sc_StopAllSounds(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(StopAllSounds);
+}
+
+// int ()
+RuntimeScriptValue Sc_Game_GetCharacterCount(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Game_GetCharacterCount);
+}
+
+// int ()
+RuntimeScriptValue Sc_Game_GetDialogCount(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Game_GetDialogCount);
+}
+
+// const char *()
+RuntimeScriptValue Sc_Game_GetFileName(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ(const char, myScriptStringImpl, Game_GetFileName);
+}
+
+// int ()
+RuntimeScriptValue Sc_Game_GetFontCount(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Game_GetFontCount);
+}
+
+// const char* (int index)
+RuntimeScriptValue Sc_Game_GetGlobalMessages(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT(const char, myScriptStringImpl, Game_GetGlobalMessages);
+}
+
+// const char* (int index)
+RuntimeScriptValue Sc_Game_GetGlobalStrings(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ_PINT(const char, myScriptStringImpl, Game_GetGlobalStrings);
+}
+
+// void  (int index, char *newval);
+RuntimeScriptValue Sc_SetGlobalString(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT_POBJ(SetGlobalString, const char);
+}
+
+// int Game_GetGUICount()
+RuntimeScriptValue Sc_Game_GetGUICount(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Game_GetFontCount);
+}
+
+// int ()
+RuntimeScriptValue Sc_Game_GetIgnoreUserInputAfterTextTimeoutMs(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Game_GetIgnoreUserInputAfterTextTimeoutMs);
+}
+
+// void (int newValueMs)
+RuntimeScriptValue Sc_Game_SetIgnoreUserInputAfterTextTimeoutMs(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Game_SetIgnoreUserInputAfterTextTimeoutMs);
+}
+
+// int ()
+RuntimeScriptValue Sc_Game_GetInSkippableCutscene(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Game_GetInSkippableCutscene);
+}
+
+// int ()
+RuntimeScriptValue Sc_Game_GetInventoryItemCount(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Game_GetInventoryItemCount);
+}
+
+// int ()
+RuntimeScriptValue Sc_Game_GetMinimumTextDisplayTimeMs(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Game_GetMinimumTextDisplayTimeMs);
+}
+
+// void (int newTextMinTime)
+RuntimeScriptValue Sc_Game_SetMinimumTextDisplayTimeMs(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Game_SetMinimumTextDisplayTimeMs);
+}
+
+// int ()
+RuntimeScriptValue Sc_Game_GetMouseCursorCount(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Game_GetMouseCursorCount);
+}
+
+// const char *()
+RuntimeScriptValue Sc_Game_GetName(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ(const char, myScriptStringImpl, Game_GetName);
+}
+
+// void (const char *newName)
+RuntimeScriptValue Sc_Game_SetName(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_POBJ(Game_SetName, const char);
+}
+
+// int ()
+RuntimeScriptValue Sc_Game_GetNormalFont(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Game_GetNormalFont);
+}
+
+// void  (int fontnum);
+RuntimeScriptValue Sc_SetNormalFont(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(SetNormalFont);
+}
+
+// int ()
+RuntimeScriptValue Sc_Game_GetSkippingCutscene(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Game_GetSkippingCutscene);
+}
+
+// int ()
+RuntimeScriptValue Sc_Game_GetSpeechFont(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Game_GetSpeechFont);
+}
+
+// void  (int fontnum);
+RuntimeScriptValue Sc_SetSpeechFont(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(SetSpeechFont);
+}
+
+// int (int spriteNum)
+RuntimeScriptValue Sc_Game_GetSpriteWidth(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(Game_GetSpriteWidth);
+}
+
+// int (int spriteNum)
+RuntimeScriptValue Sc_Game_GetSpriteHeight(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(Game_GetSpriteHeight);
+}
+
+// int ()
+RuntimeScriptValue Sc_Game_GetTextReadingSpeed(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Game_GetTextReadingSpeed);
+}
+
+// void (int newTextSpeed)
+RuntimeScriptValue Sc_Game_SetTextReadingSpeed(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(Game_SetTextReadingSpeed);
+}
+
+// const char* ()
+RuntimeScriptValue Sc_Game_GetTranslationFilename(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ(const char, myScriptStringImpl, Game_GetTranslationFilename);
+}
+
+// int ()
+RuntimeScriptValue Sc_Game_GetUseNativeCoordinates(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Game_GetUseNativeCoordinates);
+}
+
+// int ()
+RuntimeScriptValue Sc_Game_GetViewCount(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Game_GetViewCount);
+}
+
+
+void RegisterGameAPI()
+{
+    ccAddExternalStaticFunction("Game::IsAudioPlaying^1",                       Sc_Game_IsAudioPlaying);
+    ccAddExternalStaticFunction("Game::SetAudioTypeSpeechVolumeDrop^2",         Sc_Game_SetAudioTypeSpeechVolumeDrop);
+    ccAddExternalStaticFunction("Game::SetAudioTypeVolume^3",                   Sc_Game_SetAudioTypeVolume);
+    ccAddExternalStaticFunction("Game::StopAudio^1",                            Sc_Game_StopAudio);
+    ccAddExternalStaticFunction("Game::ChangeTranslation^1",                    Sc_Game_ChangeTranslation);
+    ccAddExternalStaticFunction("Game::DoOnceOnly^1",                           Sc_Game_DoOnceOnly);
+    ccAddExternalStaticFunction("Game::GetColorFromRGB^3",                      Sc_Game_GetColorFromRGB);
+    ccAddExternalStaticFunction("Game::GetFrameCountForLoop^2",                 Sc_Game_GetFrameCountForLoop);
+    ccAddExternalStaticFunction("Game::GetLocationName^2",                      Sc_Game_GetLocationName);
+    ccAddExternalStaticFunction("Game::GetLoopCountForView^1",                  Sc_Game_GetLoopCountForView);
+    ccAddExternalStaticFunction("Game::GetMODPattern^0",                        Sc_Game_GetMODPattern);
+    ccAddExternalStaticFunction("Game::GetRunNextSettingForLoop^2",             Sc_Game_GetRunNextSettingForLoop);
+    ccAddExternalStaticFunction("Game::GetSaveSlotDescription^1",               Sc_Game_GetSaveSlotDescription);
+    ccAddExternalStaticFunction("Game::GetViewFrame^3",                         Sc_Game_GetViewFrame);
+    ccAddExternalStaticFunction("Game::InputBox^1",                             Sc_Game_InputBox);
+    ccAddExternalStaticFunction("Game::SetSaveGameDirectory^1",                 Sc_Game_SetSaveGameDirectory);
+    ccAddExternalStaticFunction("Game::StopSound^1",                            Sc_StopAllSounds);
+    ccAddExternalStaticFunction("Game::get_CharacterCount",                     Sc_Game_GetCharacterCount);
+    ccAddExternalStaticFunction("Game::get_DialogCount",                        Sc_Game_GetDialogCount);
+    ccAddExternalStaticFunction("Game::get_FileName",                           Sc_Game_GetFileName);
+    ccAddExternalStaticFunction("Game::get_FontCount",                          Sc_Game_GetFontCount);
+    ccAddExternalStaticFunction("Game::geti_GlobalMessages",                    Sc_Game_GetGlobalMessages);
+    ccAddExternalStaticFunction("Game::geti_GlobalStrings",                     Sc_Game_GetGlobalStrings);
+    ccAddExternalStaticFunction("Game::seti_GlobalStrings",                     Sc_SetGlobalString);
+    ccAddExternalStaticFunction("Game::get_GUICount",                           Sc_Game_GetGUICount);
+    ccAddExternalStaticFunction("Game::get_IgnoreUserInputAfterTextTimeoutMs",  Sc_Game_GetIgnoreUserInputAfterTextTimeoutMs);
+    ccAddExternalStaticFunction("Game::set_IgnoreUserInputAfterTextTimeoutMs",  Sc_Game_SetIgnoreUserInputAfterTextTimeoutMs);
+    ccAddExternalStaticFunction("Game::get_InSkippableCutscene",                Sc_Game_GetInSkippableCutscene);
+    ccAddExternalStaticFunction("Game::get_InventoryItemCount",                 Sc_Game_GetInventoryItemCount);
+    ccAddExternalStaticFunction("Game::get_MinimumTextDisplayTimeMs",           Sc_Game_GetMinimumTextDisplayTimeMs);
+    ccAddExternalStaticFunction("Game::set_MinimumTextDisplayTimeMs",           Sc_Game_SetMinimumTextDisplayTimeMs);
+    ccAddExternalStaticFunction("Game::get_MouseCursorCount",                   Sc_Game_GetMouseCursorCount);
+    ccAddExternalStaticFunction("Game::get_Name",                               Sc_Game_GetName);
+    ccAddExternalStaticFunction("Game::set_Name",                               Sc_Game_SetName);
+    ccAddExternalStaticFunction("Game::get_NormalFont",                         Sc_Game_GetNormalFont);
+    ccAddExternalStaticFunction("Game::set_NormalFont",                         Sc_SetNormalFont);
+    ccAddExternalStaticFunction("Game::get_SkippingCutscene",                   Sc_Game_GetSkippingCutscene);
+    ccAddExternalStaticFunction("Game::get_SpeechFont",                         Sc_Game_GetSpeechFont);
+    ccAddExternalStaticFunction("Game::set_SpeechFont",                         Sc_SetSpeechFont);
+    ccAddExternalStaticFunction("Game::geti_SpriteWidth",                       Sc_Game_GetSpriteWidth);
+    ccAddExternalStaticFunction("Game::geti_SpriteHeight",                      Sc_Game_GetSpriteHeight);
+    ccAddExternalStaticFunction("Game::get_TextReadingSpeed",                   Sc_Game_GetTextReadingSpeed);
+    ccAddExternalStaticFunction("Game::set_TextReadingSpeed",                   Sc_Game_SetTextReadingSpeed);
+    ccAddExternalStaticFunction("Game::get_TranslationFilename",                Sc_Game_GetTranslationFilename);
+    ccAddExternalStaticFunction("Game::get_UseNativeCoordinates",               Sc_Game_GetUseNativeCoordinates);
+    ccAddExternalStaticFunction("Game::get_ViewCount",                          Sc_Game_GetViewCount);
+}
+
+void RegisterStaticObjects()
+{
+    ccAddExternalStaticObject("game",&play, &GlobalStaticManager);
+	ccAddExternalStaticObject("gs_globals",&play.globalvars[0], &GlobalStaticManager);
+	ccAddExternalStaticObject("mouse",&scmouse, &GlobalStaticManager);
+	ccAddExternalStaticObject("palette",&palette[0], &GlobalStaticManager);
+	ccAddExternalStaticObject("system",&scsystem, &GlobalStaticManager);
+	ccAddExternalStaticObject("savegameindex",&play.filenumbers[0], &GlobalStaticManager);
 }

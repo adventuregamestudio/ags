@@ -23,7 +23,7 @@
 
 extern int MAXSTRLEN;
 
-int StrGetCharAt (char *strin, int posn) {
+int StrGetCharAt (const char *strin, int posn) {
     if ((posn < 0) || (posn >= (int)strlen(strin)))
         return 0;
     return strin[posn];
@@ -38,7 +38,7 @@ void StrSetCharAt (char *strin, int posn, int nchar) {
     strin[posn] = nchar;
 }
 
-void _sc_strcat(char*s1,char*s2) {
+void _sc_strcat(char*s1, const char*s2) {
     // make sure they don't try to append a char to the string
     VALIDATE_STRING (s2);
     check_strlen(s1);
@@ -47,7 +47,7 @@ void _sc_strcat(char*s1,char*s2) {
     my_strncpy(&s1[strlen(s1)], s2, mosttocopy);
 }
 
-void _sc_strcpy(char*s1,char*s2) {
+void _sc_strcpy(char*s1, const char*s2) {
     check_strlen(s1);
     my_strncpy(s1, s2, MAXSTRLEN - 1);
 }
@@ -72,13 +72,13 @@ int _sc_stricmp (char *s1, char *s2) {
 return stricmp (get_translation (s1), get_translation(s2));
 }*/
 
-void _sc_sprintf(char*destt,char*texx, ...) {
+void _sc_sprintf(char*destt, const char*texx, ...) {
     char displbuf[STD_BUFFER_SIZE];
     VALIDATE_STRING(destt);
     check_strlen(destt);
     va_list ap;
     va_start(ap,texx);
-    my_sprintf(displbuf, get_translation(texx), ap);
+    vsprintf(displbuf, get_translation(texx), ap);
     va_end(ap);
 
     my_strncpy(destt, displbuf, MAXSTRLEN - 1);

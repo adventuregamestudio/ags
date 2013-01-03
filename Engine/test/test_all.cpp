@@ -19,6 +19,7 @@
 
 void Test_DoAllTests()
 {
+    Test_ScriptSprintf();
     Test_String();
     Test_File();
 }

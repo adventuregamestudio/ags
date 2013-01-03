@@ -33,7 +33,7 @@ int Parser_FindWordID(const char *wordToFind)
 const char* Parser_SaidUnknownWord() {
     if (play.bad_parsed_word[0] == 0)
         return NULL;
-    return CreateNewScriptStringAsRetVal(play.bad_parsed_word);
+    return CreateNewScriptString(play.bad_parsed_word);
 }
 
 void ParseText (char*text) {
@@ -137,6 +137,9 @@ int parse_sentence (char*text, int *numwords, short*wordarray, short*compareto, 
     numwords[0] = 0;
     if (compareto == NULL)
         play.bad_parsed_word[0] = 0;
+    // [IKM] Now, this is extremely not smart; this string could come
+    // from anywhere, including script data, and we are changing it here
+    // FIXME!!!
     strlwr(text);
     while (1) {
         if ((compareto != NULL) && (compareto[comparing] == RESTOFLINE))
@@ -282,4 +285,51 @@ int parse_sentence (char*text, int *numwords, short*wordarray, short*compareto, 
     if (comparing < comparetonum)
         return 0;
     return 1;
+}
+
+//=============================================================================
+//
+// Script API Functions
+//
+//=============================================================================
+
+#include "debug/out.h"
+#include "script/script_api.h"
+#include "script/script_runtime.h"
+#include "ac/dynobj/scriptstring.h"
+
+extern ScriptString myScriptStringImpl;
+
+// int (const char *wordToFind)
+RuntimeScriptValue Sc_Parser_FindWordID(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_POBJ(Parser_FindWordID, const char);
+}
+
+// void  (char*text)
+RuntimeScriptValue Sc_ParseText(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_POBJ(ParseText, /*const*/ char);
+}
+
+// const char* ()
+RuntimeScriptValue Sc_Parser_SaidUnknownWord(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJ(const char, myScriptStringImpl, Parser_SaidUnknownWord);
+}
+
+// int  (char*checkwords)
+RuntimeScriptValue Sc_Said(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_POBJ(Said, /*const*/ char);
+}
+
+
+
+void RegisterParserAPI()
+{
+    ccAddExternalStaticFunction("Parser::FindWordID^1",     Sc_Parser_FindWordID);
+    ccAddExternalStaticFunction("Parser::ParseText^1",      Sc_ParseText);
+    ccAddExternalStaticFunction("Parser::SaidUnknownWord^0",Sc_Parser_SaidUnknownWord);
+    ccAddExternalStaticFunction("Parser::Said^1",           Sc_Said);
 }

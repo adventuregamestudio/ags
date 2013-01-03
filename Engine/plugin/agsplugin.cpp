@@ -51,6 +51,7 @@
 #include "gfx/bitmap.h"
 #include "script/runtimescriptvalue.h"
 #include "debug/out.h"
+#include "ac/dynobj/scriptstring.h"
 
 using AGS::Common::DataStream;
 
@@ -115,6 +116,7 @@ extern PluginObjectReader pluginReaders[MAX_PLUGIN_OBJECT_READERS];
 extern int numPluginReaders;
 extern IAGSFontRenderer* fontRenderers[MAX_FONTS];
 extern RuntimeScriptValue GlobalReturnValue;
+extern ScriptString myScriptStringImpl;
 
 // **************** PLUGIN IMPLEMENTATION ****************
 
@@ -161,7 +163,7 @@ const char* IAGSEngine::GetEngineVersion () {
     return get_engine_version();
 }
 void IAGSEngine::RegisterScriptFunction (const char*name, void*addy) {
-    ccAddExternalStaticFunction ((char*)name, addy);
+    ccAddExternalPluginFunction ((char*)name, addy);
 }
 const char* IAGSEngine::GetGraphicsDriverID()
 {
@@ -716,7 +718,9 @@ void* IAGSEngine::GetManagedObjectAddressByKey(int key) {
 }
 
 const char* IAGSEngine::CreateScriptString(const char *fromText) {
-    return CreateNewScriptStringAsRetVal(fromText);
+    const char *string = CreateNewScriptString(fromText);
+    GlobalReturnValue.SetDynamicObject((void*)string, &myScriptStringImpl);
+    return string;
 }
 
 int IAGSEngine::IncrementManagedObjectRefCount(const char *address) {

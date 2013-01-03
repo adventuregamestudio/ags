@@ -39,9 +39,14 @@
 
 extern ccInstance *current_instance; // in script/cc_instance
 
-bool ccAddExternalStaticFunction(const char *name, void *ptr)
+bool ccAddExternalStaticFunction(const char *name, ScriptAPIFunction *pfn)
 {
-    return simp.add(name, RuntimeScriptValue().SetStaticFunction(ptr), NULL) == 0;
+    return simp.add(name, RuntimeScriptValue().SetStaticFunction(pfn), NULL) == 0;
+}
+
+bool ccAddExternalPluginFunction(const char *name, void *pfn)
+{
+    return simp.add(name, RuntimeScriptValue().SetPluginFunction(pfn), NULL) == 0;
 }
 
 bool ccAddExternalStaticObject(const char *name, void *ptr, ICCStaticObject *manager)
@@ -59,9 +64,9 @@ bool ccAddExternalDynamicObject(const char *name, void *ptr, ICCDynamicObject *m
     return simp.add(name, RuntimeScriptValue().SetDynamicObject(ptr, manager), NULL) == 0;
 }
 
-bool ccAddExternalObjectFunction(const char *name, void *ptr)
+bool ccAddExternalObjectFunction(const char *name, ScriptAPIObjectFunction *pfn)
 {
-    return simp.add(name, RuntimeScriptValue().SetObjectFunction(ptr), NULL) == 0;
+    return simp.add(name, RuntimeScriptValue().SetObjectFunction(pfn), NULL) == 0;
 }
 
 bool ccAddExternalScriptSymbol(const char *name, const RuntimeScriptValue &prval, ccInstance *inst)
@@ -121,8 +126,7 @@ void ccSetDebugHook(new_line_hook_type jibble)
     new_line_hook = jibble;
 }
 
-// parm list is backwards (last arg is parms[0])
-int call_function(intptr_t addr, int numparm, const RuntimeScriptValue *parms, int offset)
+int call_function(intptr_t addr, int numparm, const RuntimeScriptValue *parms)
 {
     if (!addr)
     {
@@ -135,37 +139,29 @@ int call_function(intptr_t addr, int numparm, const RuntimeScriptValue *parms, i
         return -1;
     }
 
-    parms += offset;
-
     intptr_t parm_value[9];
     for (int i = 0; i < numparm; ++i)
     {
-        RuntimeScriptValue real_param;
-        if (parms[i].Type == kScValStackPtr || parms[i].Type == kScValGlobalVar)
+        switch (parms[i].Type)
         {
-            // There's at least one known case when this may be a stack pointer:
-            // AGS 2.x style local strings that have their address pushed to stack
-            // after array of chars; in the new interpreter implementation we push
-            // these addresses as runtime values of stack ptr type to keep correct
-            // value size.
-            // It is not a good idea to pass stack ptr to function, pass the value
-            // it points to instead.
-            real_param = *parms[i].RValue;
-            real_param.IValue += parms[i].IValue; // offset
+        case kScValInteger:
+        case kScValFloat:   // AGS passes floats, copying their values into long variable
+            parm_value[i] = (intptr_t)parms[i].IValue;
+            break;
+            break;
+        default:
+            parm_value[i] = (intptr_t)parms[i].GetPtrWithOffset();
+            break;
         }
-        else
-        {
-            real_param = parms[i];
-        }
-
-        // NOTE: in case of generic type this will return just Value
-        // FIXME this bs!!!
-        parm_value[i] = (intptr_t)real_param.GetPtrWithOffset();
     }
 
     //
     // AN IMPORTANT NOTE ON PARAM TYPE
     // of 2012-11-10
+    //
+    //// NOTE of 2012-12-20:
+    //// Everything said below is applicable only for calling
+    //// exported plugin functions.
     //
     // Here we are sending parameters of type intptr_t to registered
     // function of unknown kind. Intptr_t is 32-bit for x32 build and
@@ -197,58 +193,68 @@ int call_function(intptr_t addr, int numparm, const RuntimeScriptValue *parms, i
     // time and energy should be allocated for this task.
     //
 
-    if (numparm == 1) {
-        int (*fparam) (intptr_t);
-        fparam = (int (*)(intptr_t))addr;
-        return fparam(parm_value[0]);
-    }
-
-    if (numparm == 2) {
-        int (*fparam) (intptr_t, intptr_t);
-        fparam = (int (*)(intptr_t, intptr_t))addr;
-        return fparam(parm_value[1], parm_value[0]);
-    }
-
-    if (numparm == 3) {
-        int (*fparam) (intptr_t, intptr_t, intptr_t);
-        fparam = (int (*)(intptr_t, intptr_t, intptr_t))addr;
-        return fparam(parm_value[2], parm_value[1], parm_value[0]);
-    }
-
-    if (numparm == 4) {
-        int (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t);
-        fparam = (int (*)(intptr_t, intptr_t, intptr_t, intptr_t))addr;
-        return fparam(parm_value[3], parm_value[2], parm_value[1], parm_value[0]);
-    }
-
-    if (numparm == 5) {
-        int (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
-        fparam = (int (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))addr;
-        return fparam(parm_value[4], parm_value[3], parm_value[2], parm_value[1], parm_value[0]);
-    }
-
-    if (numparm == 6) {
-        int (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
-        fparam = (int (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))addr;
-        return fparam(parm_value[5], parm_value[4], parm_value[3], parm_value[2], parm_value[1], parm_value[0]);
-    }
-
-    if (numparm == 7) {
-        int (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
-        fparam = (int (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))addr;
-        return fparam(parm_value[6], parm_value[5], parm_value[4], parm_value[3], parm_value[2], parm_value[1], parm_value[0]);
-    }
-
-    if (numparm == 8) {
-        int (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
-        fparam = (int (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))addr;
-        return fparam(parm_value[7], parm_value[6], parm_value[5], parm_value[4], parm_value[3], parm_value[2], parm_value[1], parm_value[0]);
-    }
-
-    if (numparm == 9) {
-        int (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
-        fparam = (int (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))addr;
-        return fparam(parm_value[8], parm_value[7], parm_value[6], parm_value[5], parm_value[4], parm_value[3], parm_value[2], parm_value[1], parm_value[0]);
+    switch (numparm)
+    {
+    case 0:
+        {
+            int (*fparam) ();
+            fparam = (int (*)())addr;
+            return fparam();
+        }
+    case 1:
+        {
+            int (*fparam) (intptr_t);
+            fparam = (int (*)(intptr_t))addr;
+            return fparam(parm_value[0]);
+        }
+    case 2:
+        {
+            int (*fparam) (intptr_t, intptr_t);
+            fparam = (int (*)(intptr_t, intptr_t))addr;
+            return fparam(parm_value[0], parm_value[1]);
+        }
+    case 3:
+        {
+            int (*fparam) (intptr_t, intptr_t, intptr_t);
+            fparam = (int (*)(intptr_t, intptr_t, intptr_t))addr;
+            return fparam(parm_value[0], parm_value[1], parm_value[2]);
+        }
+    case 4:
+        {
+            int (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t);
+            fparam = (int (*)(intptr_t, intptr_t, intptr_t, intptr_t))addr;
+            return fparam(parm_value[0], parm_value[1], parm_value[2], parm_value[3]);
+        }
+    case 5:
+        {
+            int (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
+            fparam = (int (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))addr;
+            return fparam(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4]);
+        }
+    case 6:
+        {
+            int (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
+            fparam = (int (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))addr;
+            return fparam(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4], parm_value[5]);
+        }
+    case 7:
+        {
+            int (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
+            fparam = (int (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))addr;
+            return fparam(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4], parm_value[5], parm_value[6]);
+        }
+    case 8:
+        {
+            int (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
+            fparam = (int (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))addr;
+            return fparam(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4], parm_value[5], parm_value[6], parm_value[7]);
+        }
+    case 9:
+        {
+            int (*fparam) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
+            fparam = (int (*)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t))addr;
+            return fparam(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4], parm_value[5], parm_value[6], parm_value[7], parm_value[8]);
+        }
     }
 
     cc_error("too many arguments in call to function");

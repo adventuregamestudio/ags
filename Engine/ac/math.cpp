@@ -214,3 +214,145 @@ int __Rand(int upto) {
         quit("!Random: invalid parameter passed -- must be at least 0.");
     return rand()%upto;
 }
+
+
+//=============================================================================
+//
+// Script API Functions
+//
+//=============================================================================
+
+#include "debug/out.h"
+#include "script/script_api.h"
+#include "script/script_runtime.h"
+
+// FLOAT_RETURN_TYPE (SCRIPT_FLOAT(value))
+RuntimeScriptValue Sc_Math_ArcCos(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(Math_ArcCos);
+}
+
+// FLOAT_RETURN_TYPE (SCRIPT_FLOAT(value))
+RuntimeScriptValue Sc_Math_ArcSin(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(Math_ArcSin);
+}
+
+// FLOAT_RETURN_TYPE (SCRIPT_FLOAT(value))
+RuntimeScriptValue Sc_Math_ArcTan(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(Math_ArcTan);
+}
+
+// FLOAT_RETURN_TYPE (SCRIPT_FLOAT(yval), SCRIPT_FLOAT(xval))
+RuntimeScriptValue Sc_Math_ArcTan2(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT2(Math_ArcTan2);
+}
+
+// FLOAT_RETURN_TYPE (SCRIPT_FLOAT(value))
+RuntimeScriptValue Sc_Math_Cos(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(Math_Cos);
+}
+
+// FLOAT_RETURN_TYPE (SCRIPT_FLOAT(num))
+RuntimeScriptValue Sc_Math_Cosh(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(Math_Cosh);
+}
+
+// FLOAT_RETURN_TYPE (SCRIPT_FLOAT(value))
+RuntimeScriptValue Sc_Math_DegreesToRadians(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(Math_DegreesToRadians);
+}
+
+// FLOAT_RETURN_TYPE (SCRIPT_FLOAT(num))
+RuntimeScriptValue Sc_Math_Exp(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(Math_Exp);
+}
+
+// FLOAT_RETURN_TYPE (SCRIPT_FLOAT(num))
+RuntimeScriptValue Sc_Math_Log(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(Math_Log);
+}
+
+// FLOAT_RETURN_TYPE (SCRIPT_FLOAT(num))
+RuntimeScriptValue Sc_Math_Log10(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(Math_Log10);
+}
+
+// FLOAT_RETURN_TYPE (SCRIPT_FLOAT(value))
+RuntimeScriptValue Sc_Math_RadiansToDegrees(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(Math_RadiansToDegrees);
+}
+
+// FLOAT_RETURN_TYPE (SCRIPT_FLOAT(base), SCRIPT_FLOAT(exp))
+RuntimeScriptValue Sc_Math_RaiseToPower(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT2(Math_RaiseToPower);
+}
+
+// FLOAT_RETURN_TYPE (SCRIPT_FLOAT(value))
+RuntimeScriptValue Sc_Math_Sin(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(Math_Sin);
+}
+
+// FLOAT_RETURN_TYPE (SCRIPT_FLOAT(num))
+RuntimeScriptValue Sc_Math_Sinh(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(Math_Sinh);
+}
+
+// FLOAT_RETURN_TYPE (SCRIPT_FLOAT(value))
+RuntimeScriptValue Sc_Math_Sqrt(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(Math_Sqrt);
+}
+
+// FLOAT_RETURN_TYPE (SCRIPT_FLOAT(value))
+RuntimeScriptValue Sc_Math_Tan(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(Math_Tan);
+}
+
+// FLOAT_RETURN_TYPE (SCRIPT_FLOAT(num))
+RuntimeScriptValue Sc_Math_Tanh(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_PINT(Math_Tanh);
+}
+
+// FLOAT_RETURN_TYPE ()
+RuntimeScriptValue Sc_Math_GetPi(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Math_GetPi);
+}
+
+
+void RegisterMathAPI()
+{
+    ccAddExternalStaticFunction("Maths::ArcCos^1",              Sc_Math_ArcCos);
+    ccAddExternalStaticFunction("Maths::ArcSin^1",              Sc_Math_ArcSin);
+    ccAddExternalStaticFunction("Maths::ArcTan^1",              Sc_Math_ArcTan);
+    ccAddExternalStaticFunction("Maths::ArcTan2^2",             Sc_Math_ArcTan2);
+    ccAddExternalStaticFunction("Maths::Cos^1",                 Sc_Math_Cos);
+    ccAddExternalStaticFunction("Maths::Cosh^1",                Sc_Math_Cosh);
+    ccAddExternalStaticFunction("Maths::DegreesToRadians^1",    Sc_Math_DegreesToRadians);
+    ccAddExternalStaticFunction("Maths::Exp^1",                 Sc_Math_Exp);
+    ccAddExternalStaticFunction("Maths::Log^1",                 Sc_Math_Log);
+    ccAddExternalStaticFunction("Maths::Log10^1",               Sc_Math_Log10);
+    ccAddExternalStaticFunction("Maths::RadiansToDegrees^1",    Sc_Math_RadiansToDegrees);
+    ccAddExternalStaticFunction("Maths::RaiseToPower^2",        Sc_Math_RaiseToPower);
+    ccAddExternalStaticFunction("Maths::Sin^1",                 Sc_Math_Sin);
+    ccAddExternalStaticFunction("Maths::Sinh^1",                Sc_Math_Sinh);
+    ccAddExternalStaticFunction("Maths::Sqrt^1",                Sc_Math_Sqrt);
+    ccAddExternalStaticFunction("Maths::Tan^1",                 Sc_Math_Tan);
+    ccAddExternalStaticFunction("Maths::Tanh^1",                Sc_Math_Tanh);
+    ccAddExternalStaticFunction("Maths::get_Pi",                Sc_Math_GetPi);
+}

@@ -87,7 +87,7 @@ void MYWAVE::destroy()
 {
     _mutex.Lock();
 
-    if (psp_audio_multithreaded && _playing)
+    if (psp_audio_multithreaded && _playing && !_audio_doing_crossfade)
       _destroyThis = true;
     else
       internal_destroy();

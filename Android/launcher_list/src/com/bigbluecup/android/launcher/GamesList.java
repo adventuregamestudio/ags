@@ -58,6 +58,9 @@ public class GamesList extends ListActivity
 		SharedPreferences settings = getSharedPreferences("gameslist", 0);
 		baseDirectory = settings.getString("baseDirectory", Environment.getExternalStorageDirectory() + "/ags");
 
+		if (!baseDirectory.startsWith("/"))
+			baseDirectory = "/" + baseDirectory;
+
 		// Build game list
 		buildGamesList();
 		
@@ -102,6 +105,10 @@ public class GamesList extends ListActivity
 				{
 					Editable value = input.getText();
 					baseDirectory = value.toString();
+					// The launcher will accept paths that don't start with a slash, but
+					// the engine cannot find the game later.
+					if (!baseDirectory.startsWith("/"))
+						baseDirectory = "/" + baseDirectory;
 					buildGamesList();
 				}
 			});

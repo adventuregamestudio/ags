@@ -1969,6 +1969,9 @@ diff -Naur src/ios/isound.c src/ios/isound.c
 +   dataFormat.mBitsPerChannel = _sound_bits;
 +   dataFormat.mReserved = 0;
 +
++   if (_mixer_init(SAMPLES_PER_BUFFER * 2, _sound_freq, _sound_stereo, (_sound_bits == 16), &digi_ios.voices))
++      return -1;
++
 +   AudioQueueNewOutput(&dataFormat, digi_ios_audio_callback, NULL, NULL, NULL, 0, &ios_queue);
 +
 +   for (i = 0; i < 3; i++)
@@ -1982,9 +1985,6 @@ diff -Naur src/ios/isound.c src/ios/isound.c
 +   ios_audio_playing = 1;
 +
 +   AudioQueueStart(ios_queue, NULL);
-+
-+   if (_mixer_init(SAMPLES_PER_BUFFER * 2, _sound_freq, _sound_stereo, (_sound_bits == 16), &digi_ios.voices))
-+      return -1;
 +
 +   return 0;
 +}

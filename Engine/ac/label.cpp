@@ -134,4 +134,15 @@ void RegisterLabelBoxAPI()
     ccAddExternalObjectFunction("Label::set_Text",      Sc_Label_SetText);
     ccAddExternalObjectFunction("Label::get_TextColor", Sc_Label_GetColor);
     ccAddExternalObjectFunction("Label::set_TextColor", Sc_Label_SetColor);
+
+    /* ----------------------- Registering unsafe exports for plugins -----------------------*/
+
+    ccAddExternalFunctionForPlugin("Label::GetText^1",     Label_GetText);
+    ccAddExternalFunctionForPlugin("Label::SetText^1",     Label_SetText);
+    ccAddExternalFunctionForPlugin("Label::get_Font",      Label_GetFont);
+    ccAddExternalFunctionForPlugin("Label::set_Font",      Label_SetFont);
+    ccAddExternalFunctionForPlugin("Label::get_Text",      Label_GetText_New);
+    ccAddExternalFunctionForPlugin("Label::set_Text",      Label_SetText);
+    ccAddExternalFunctionForPlugin("Label::get_TextColor", Label_GetColor);
+    ccAddExternalFunctionForPlugin("Label::set_TextColor", Label_SetColor);
 }

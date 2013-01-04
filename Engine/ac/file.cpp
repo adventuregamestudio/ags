@@ -492,4 +492,24 @@ void RegisterFileAPI()
     ccAddExternalObjectFunction("File::WriteString^1",      Sc_File_WriteString);
     ccAddExternalObjectFunction("File::get_EOF",            Sc_File_GetEOF);
     ccAddExternalObjectFunction("File::get_Error",          Sc_File_GetError);
+
+    /* ----------------------- Registering unsafe exports for plugins -----------------------*/
+
+    ccAddExternalFunctionForPlugin("File::Delete^1",           File_Delete);
+    ccAddExternalFunctionForPlugin("File::Exists^1",           File_Exists);
+    ccAddExternalFunctionForPlugin("File::Open^2",             sc_OpenFile);
+    ccAddExternalFunctionForPlugin("File::Close^0",            File_Close);
+    ccAddExternalFunctionForPlugin("File::ReadInt^0",          File_ReadInt);
+    ccAddExternalFunctionForPlugin("File::ReadRawChar^0",      File_ReadRawChar);
+    ccAddExternalFunctionForPlugin("File::ReadRawInt^0",       File_ReadRawInt);
+    ccAddExternalFunctionForPlugin("File::ReadRawLine^1",      File_ReadRawLine);
+    ccAddExternalFunctionForPlugin("File::ReadRawLineBack^0",  File_ReadRawLineBack);
+    ccAddExternalFunctionForPlugin("File::ReadString^1",       File_ReadString);
+    ccAddExternalFunctionForPlugin("File::ReadStringBack^0",   File_ReadStringBack);
+    ccAddExternalFunctionForPlugin("File::WriteInt^1",         File_WriteInt);
+    ccAddExternalFunctionForPlugin("File::WriteRawChar^1",     File_WriteRawChar);
+    ccAddExternalFunctionForPlugin("File::WriteRawLine^1",     File_WriteRawLine);
+    ccAddExternalFunctionForPlugin("File::WriteString^1",      File_WriteString);
+    ccAddExternalFunctionForPlugin("File::get_EOF",            File_GetEOF);
+    ccAddExternalFunctionForPlugin("File::get_Error",          File_GetError);
 }

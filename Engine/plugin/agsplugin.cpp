@@ -446,7 +446,7 @@ int IAGSEngine::GetWalkbehindBaseline (int32 wa) {
     return croom->walkbehind_base[wa];
 }
 void* IAGSEngine::GetScriptFunctionAddress (const char *funcName) {
-    return ccGetSymbolAddress ((char*)funcName);
+    return ccGetSymbolAddressForPlugin ((char*)funcName);
 }
 int IAGSEngine::GetBitmapTransparentColor(BITMAP *bmp) {
     return bitmap_mask_color (bmp);

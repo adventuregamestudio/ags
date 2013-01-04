@@ -424,4 +424,34 @@ void RegisterGUIControlAPI()
     ccAddExternalObjectFunction("GUIControl::set_X",            Sc_GUIControl_SetX);
     ccAddExternalObjectFunction("GUIControl::get_Y",            Sc_GUIControl_GetY);
     ccAddExternalObjectFunction("GUIControl::set_Y",            Sc_GUIControl_SetY);
+
+    /* ----------------------- Registering unsafe exports for plugins -----------------------*/
+
+    ccAddExternalFunctionForPlugin("GUIControl::BringToFront^0",   GUIControl_BringToFront);
+    ccAddExternalFunctionForPlugin("GUIControl::GetAtScreenXY^2",  GetGUIControlAtLocation);
+    ccAddExternalFunctionForPlugin("GUIControl::SendToBack^0",     GUIControl_SendToBack);
+    ccAddExternalFunctionForPlugin("GUIControl::SetPosition^2",    GUIControl_SetPosition);
+    ccAddExternalFunctionForPlugin("GUIControl::SetSize^2",        GUIControl_SetSize);
+    ccAddExternalFunctionForPlugin("GUIControl::get_AsButton",     GUIControl_GetAsButton);
+    ccAddExternalFunctionForPlugin("GUIControl::get_AsInvWindow",  GUIControl_GetAsInvWindow);
+    ccAddExternalFunctionForPlugin("GUIControl::get_AsLabel",      GUIControl_GetAsLabel);
+    ccAddExternalFunctionForPlugin("GUIControl::get_AsListBox",    GUIControl_GetAsListBox);
+    ccAddExternalFunctionForPlugin("GUIControl::get_AsSlider",     GUIControl_GetAsSlider);
+    ccAddExternalFunctionForPlugin("GUIControl::get_AsTextBox",    GUIControl_GetAsTextBox);
+    ccAddExternalFunctionForPlugin("GUIControl::get_Clickable",    GUIControl_GetClickable);
+    ccAddExternalFunctionForPlugin("GUIControl::set_Clickable",    GUIControl_SetClickable);
+    ccAddExternalFunctionForPlugin("GUIControl::get_Enabled",      GUIControl_GetEnabled);
+    ccAddExternalFunctionForPlugin("GUIControl::set_Enabled",      GUIControl_SetEnabled);
+    ccAddExternalFunctionForPlugin("GUIControl::get_Height",       GUIControl_GetHeight);
+    ccAddExternalFunctionForPlugin("GUIControl::set_Height",       GUIControl_SetHeight);
+    ccAddExternalFunctionForPlugin("GUIControl::get_ID",           GUIControl_GetID);
+    ccAddExternalFunctionForPlugin("GUIControl::get_OwningGUI",    GUIControl_GetOwningGUI);
+    ccAddExternalFunctionForPlugin("GUIControl::get_Visible",      GUIControl_GetVisible);
+    ccAddExternalFunctionForPlugin("GUIControl::set_Visible",      GUIControl_SetVisible);
+    ccAddExternalFunctionForPlugin("GUIControl::get_Width",        GUIControl_GetWidth);
+    ccAddExternalFunctionForPlugin("GUIControl::set_Width",        GUIControl_SetWidth);
+    ccAddExternalFunctionForPlugin("GUIControl::get_X",            GUIControl_GetX);
+    ccAddExternalFunctionForPlugin("GUIControl::set_X",            GUIControl_SetX);
+    ccAddExternalFunctionForPlugin("GUIControl::get_Y",            GUIControl_GetY);
+    ccAddExternalFunctionForPlugin("GUIControl::set_Y",            GUIControl_SetY);
 }

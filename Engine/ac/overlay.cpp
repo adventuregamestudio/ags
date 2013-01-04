@@ -340,6 +340,32 @@ RuntimeScriptValue Sc_Overlay_SetY(void *self, const RuntimeScriptValue *params,
     API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetY);
 }
 
+//=============================================================================
+//
+// Exclusive API for Plugins
+//
+//=============================================================================
+
+// ScriptOverlay* (int x, int y, int width, int font, int colour, const char* text, ...)
+ScriptOverlay* ScPl_Overlay_CreateTextual(int x, int y, int width, int font, int colour, const char *text, ...)
+{
+    va_list arg_ptr;
+    va_start(arg_ptr, text);
+    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, text, arg_ptr);
+    va_end(arg_ptr);
+    return Overlay_CreateTextual(x, y, width, font, colour, "%s", scsf_buffer);
+}
+
+// void (ScriptOverlay *scover, int wii, int fontid, int clr, char*texx, ...)
+void ScPl_Overlay_SetText(ScriptOverlay *scover, int wii, int fontid, int clr, char *texx, ...)
+{
+    va_list arg_ptr;
+    va_start(arg_ptr, texx);
+    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, texx, arg_ptr);
+    va_end(arg_ptr);
+    Overlay_SetText(scover, wii, fontid, clr, "%s", scsf_buffer);
+}
+
 
 void RegisterOverlayAPI()
 {
@@ -352,4 +378,16 @@ void RegisterOverlayAPI()
     ccAddExternalObjectFunction("Overlay::set_X",               Sc_Overlay_SetX);
     ccAddExternalObjectFunction("Overlay::get_Y",               Sc_Overlay_GetY);
     ccAddExternalObjectFunction("Overlay::set_Y",               Sc_Overlay_SetY);
+
+    /* ----------------------- Registering unsafe exports for plugins -----------------------*/
+
+    ccAddExternalFunctionForPlugin("Overlay::CreateGraphical^4",   Overlay_CreateGraphical);
+    ccAddExternalFunctionForPlugin("Overlay::CreateTextual^106",   ScPl_Overlay_CreateTextual);
+    ccAddExternalFunctionForPlugin("Overlay::SetText^104",         ScPl_Overlay_SetText);
+    ccAddExternalFunctionForPlugin("Overlay::Remove^0",            Overlay_Remove);
+    ccAddExternalFunctionForPlugin("Overlay::get_Valid",           Overlay_GetValid);
+    ccAddExternalFunctionForPlugin("Overlay::get_X",               Overlay_GetX);
+    ccAddExternalFunctionForPlugin("Overlay::set_X",               Overlay_SetX);
+    ccAddExternalFunctionForPlugin("Overlay::get_Y",               Overlay_GetY);
+    ccAddExternalFunctionForPlugin("Overlay::set_Y",               Overlay_SetY);
 }

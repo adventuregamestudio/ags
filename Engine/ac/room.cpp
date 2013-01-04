@@ -1187,4 +1187,19 @@ void RegisterRoomAPI()
     ccAddExternalStaticFunction("Room::get_RightEdge",                      Sc_Room_GetRightEdge);
     ccAddExternalStaticFunction("Room::get_TopEdge",                        Sc_Room_GetTopEdge);
     ccAddExternalStaticFunction("Room::get_Width",                          Sc_Room_GetWidth);
+
+    /* ----------------------- Registering unsafe exports for plugins -----------------------*/
+
+    ccAddExternalFunctionForPlugin("Room::GetDrawingSurfaceForBackground^1",   Room_GetDrawingSurfaceForBackground);
+    ccAddExternalFunctionForPlugin("Room::GetTextProperty^1",                  Room_GetTextProperty);
+    ccAddExternalFunctionForPlugin("Room::get_BottomEdge",                     Room_GetBottomEdge);
+    ccAddExternalFunctionForPlugin("Room::get_ColorDepth",                     Room_GetColorDepth);
+    ccAddExternalFunctionForPlugin("Room::get_Height",                         Room_GetHeight);
+    ccAddExternalFunctionForPlugin("Room::get_LeftEdge",                       Room_GetLeftEdge);
+    ccAddExternalFunctionForPlugin("Room::geti_Messages",                      Room_GetMessages);
+    ccAddExternalFunctionForPlugin("Room::get_MusicOnLoad",                    Room_GetMusicOnLoad);
+    ccAddExternalFunctionForPlugin("Room::get_ObjectCount",                    Room_GetObjectCount);
+    ccAddExternalFunctionForPlugin("Room::get_RightEdge",                      Room_GetRightEdge);
+    ccAddExternalFunctionForPlugin("Room::get_TopEdge",                        Room_GetTopEdge);
+    ccAddExternalFunctionForPlugin("Room::get_Width",                          Room_GetWidth);
 }

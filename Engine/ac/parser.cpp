@@ -332,4 +332,11 @@ void RegisterParserAPI()
     ccAddExternalStaticFunction("Parser::ParseText^1",      Sc_ParseText);
     ccAddExternalStaticFunction("Parser::SaidUnknownWord^0",Sc_Parser_SaidUnknownWord);
     ccAddExternalStaticFunction("Parser::Said^1",           Sc_Said);
+
+    /* ----------------------- Registering unsafe exports for plugins -----------------------*/
+
+    ccAddExternalFunctionForPlugin("Parser::FindWordID^1",     Parser_FindWordID);
+    ccAddExternalFunctionForPlugin("Parser::ParseText^1",      ParseText);
+    ccAddExternalFunctionForPlugin("Parser::SaidUnknownWord^0",Parser_SaidUnknownWord);
+    ccAddExternalFunctionForPlugin("Parser::Said^1",           Said);
 }

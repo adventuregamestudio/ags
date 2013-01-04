@@ -207,4 +207,19 @@ void RegisterSliderAPI()
     ccAddExternalObjectFunction("Slider::set_Min",                  Sc_Slider_SetMin);
     ccAddExternalObjectFunction("Slider::get_Value",                Sc_Slider_GetValue);
     ccAddExternalObjectFunction("Slider::set_Value",                Sc_Slider_SetValue);
+
+    /* ----------------------- Registering unsafe exports for plugins -----------------------*/
+
+    ccAddExternalFunctionForPlugin("Slider::get_BackgroundGraphic",    Slider_GetBackgroundGraphic);
+    ccAddExternalFunctionForPlugin("Slider::set_BackgroundGraphic",    Slider_SetBackgroundGraphic);
+    ccAddExternalFunctionForPlugin("Slider::get_HandleGraphic",        Slider_GetHandleGraphic);
+    ccAddExternalFunctionForPlugin("Slider::set_HandleGraphic",        Slider_SetHandleGraphic);
+    ccAddExternalFunctionForPlugin("Slider::get_HandleOffset",         Slider_GetHandleOffset);
+    ccAddExternalFunctionForPlugin("Slider::set_HandleOffset",         Slider_SetHandleOffset);
+    ccAddExternalFunctionForPlugin("Slider::get_Max",                  Slider_GetMax);
+    ccAddExternalFunctionForPlugin("Slider::set_Max",                  Slider_SetMax);
+    ccAddExternalFunctionForPlugin("Slider::get_Min",                  Slider_GetMin);
+    ccAddExternalFunctionForPlugin("Slider::set_Min",                  Slider_SetMin);
+    ccAddExternalFunctionForPlugin("Slider::get_Value",                Slider_GetValue);
+    ccAddExternalFunctionForPlugin("Slider::set_Value",                Slider_SetValue);
 }

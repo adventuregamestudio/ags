@@ -104,6 +104,21 @@ void *ccGetSymbolAddress(char *namof)
     return NULL;
 }
 
+bool ccAddExternalFunctionForPlugin(const char *name, void *pfn)
+{
+    return simp_for_plugin.add(name, RuntimeScriptValue().SetPluginFunction(pfn), NULL) == 0;
+}
+
+void *ccGetSymbolAddressForPlugin(char *namof)
+{
+    const ScriptImport *import = simp_for_plugin.getByName(namof);
+    if (import)
+    {
+        return import->Value.Ptr;
+    }
+    return NULL;
+}
+
 new_line_hook_type new_line_hook = NULL;
 
 char ccRunnerCopyright[] = "ScriptExecuter32 v" SCOM_VERSIONSTR " (c) 2001 Chris Jones";

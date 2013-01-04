@@ -805,4 +805,54 @@ void RegisterObjectAPI()
     ccAddExternalObjectFunction("Object::set_X",                    Sc_Object_SetX);
     ccAddExternalObjectFunction("Object::get_Y",                    Sc_Object_GetY);
     ccAddExternalObjectFunction("Object::set_Y",                    Sc_Object_SetY);
+
+    /* ----------------------- Registering unsafe exports for plugins -----------------------*/
+
+    ccAddExternalFunctionForPlugin("Object::Animate^5",                Object_Animate);
+    ccAddExternalFunctionForPlugin("Object::IsCollidingWithObject^1",  Object_IsCollidingWithObject);
+    ccAddExternalFunctionForPlugin("Object::GetName^1",                Object_GetName);
+    ccAddExternalFunctionForPlugin("Object::GetProperty^1",            Object_GetProperty);
+    ccAddExternalFunctionForPlugin("Object::GetPropertyText^2",        Object_GetPropertyText);
+    ccAddExternalFunctionForPlugin("Object::GetTextProperty^1",        Object_GetTextProperty);
+    ccAddExternalFunctionForPlugin("Object::MergeIntoBackground^0",    Object_MergeIntoBackground);
+    ccAddExternalFunctionForPlugin("Object::Move^5",                   Object_Move);
+    ccAddExternalFunctionForPlugin("Object::RemoveTint^0",             Object_RemoveTint);
+    ccAddExternalFunctionForPlugin("Object::RunInteraction^1",         Object_RunInteraction);
+    ccAddExternalFunctionForPlugin("Object::SetPosition^2",            Object_SetPosition);
+    ccAddExternalFunctionForPlugin("Object::SetView^3",                Object_SetView);
+    ccAddExternalFunctionForPlugin("Object::StopAnimating^0",          Object_StopAnimating);
+    ccAddExternalFunctionForPlugin("Object::StopMoving^0",             Object_StopMoving);
+    ccAddExternalFunctionForPlugin("Object::Tint^5",                   Object_Tint);
+    ccAddExternalFunctionForPlugin("Object::GetAtScreenXY^2",          GetObjectAtLocation);
+    ccAddExternalFunctionForPlugin("Object::get_Animating",            Object_GetAnimating);
+    ccAddExternalFunctionForPlugin("Object::get_Baseline",             Object_GetBaseline);
+    ccAddExternalFunctionForPlugin("Object::set_Baseline",             Object_SetBaseline);
+    ccAddExternalFunctionForPlugin("Object::get_BlockingHeight",       Object_GetBlockingHeight);
+    ccAddExternalFunctionForPlugin("Object::set_BlockingHeight",       Object_SetBlockingHeight);
+    ccAddExternalFunctionForPlugin("Object::get_BlockingWidth",        Object_GetBlockingWidth);
+    ccAddExternalFunctionForPlugin("Object::set_BlockingWidth",        Object_SetBlockingWidth);
+    ccAddExternalFunctionForPlugin("Object::get_Clickable",            Object_GetClickable);
+    ccAddExternalFunctionForPlugin("Object::set_Clickable",            Object_SetClickable);
+    ccAddExternalFunctionForPlugin("Object::get_Frame",                Object_GetFrame);
+    ccAddExternalFunctionForPlugin("Object::get_Graphic",              Object_GetGraphic);
+    ccAddExternalFunctionForPlugin("Object::set_Graphic",              Object_SetGraphic);
+    ccAddExternalFunctionForPlugin("Object::get_ID",                   Object_GetID);
+    ccAddExternalFunctionForPlugin("Object::get_IgnoreScaling",        Object_GetIgnoreScaling);
+    ccAddExternalFunctionForPlugin("Object::set_IgnoreScaling",        Object_SetIgnoreScaling);
+    ccAddExternalFunctionForPlugin("Object::get_IgnoreWalkbehinds",    Object_GetIgnoreWalkbehinds);
+    ccAddExternalFunctionForPlugin("Object::set_IgnoreWalkbehinds",    Object_SetIgnoreWalkbehinds);
+    ccAddExternalFunctionForPlugin("Object::get_Loop",                 Object_GetLoop);
+    ccAddExternalFunctionForPlugin("Object::get_Moving",               Object_GetMoving);
+    ccAddExternalFunctionForPlugin("Object::get_Name",                 Object_GetName_New);
+    ccAddExternalFunctionForPlugin("Object::get_Solid",                Object_GetSolid);
+    ccAddExternalFunctionForPlugin("Object::set_Solid",                Object_SetSolid);
+    ccAddExternalFunctionForPlugin("Object::get_Transparency",         Object_GetTransparency);
+    ccAddExternalFunctionForPlugin("Object::set_Transparency",         Object_SetTransparency);
+    ccAddExternalFunctionForPlugin("Object::get_View",                 Object_GetView);
+    ccAddExternalFunctionForPlugin("Object::get_Visible",              Object_GetVisible);
+    ccAddExternalFunctionForPlugin("Object::set_Visible",              Object_SetVisible);
+    ccAddExternalFunctionForPlugin("Object::get_X",                    Object_GetX);
+    ccAddExternalFunctionForPlugin("Object::set_X",                    Object_SetX);
+    ccAddExternalFunctionForPlugin("Object::get_Y",                    Object_GetY);
+    ccAddExternalFunctionForPlugin("Object::set_Y",                    Object_SetY);
 }

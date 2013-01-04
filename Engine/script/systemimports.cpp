@@ -28,6 +28,7 @@ struct CompareStringsPartial : ICompareStrings {
 CompareStringsPartial ccCompareStringsPartial;
 
 SystemImports simp;
+SystemImports simp_for_plugin;
 
 int SystemImports::add(const char *name, const RuntimeScriptValue &value, ccInstance *anotherscr)
 {

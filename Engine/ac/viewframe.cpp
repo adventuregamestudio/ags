@@ -253,4 +253,18 @@ void RegisterViewFrameAPI()
     ccAddExternalObjectFunction("ViewFrame::set_Sound",         Sc_ViewFrame_SetSound);
     ccAddExternalObjectFunction("ViewFrame::get_Speed",         Sc_ViewFrame_GetSpeed);
     ccAddExternalObjectFunction("ViewFrame::get_View",          Sc_ViewFrame_GetView);
+
+    /* ----------------------- Registering unsafe exports for plugins -----------------------*/
+
+    ccAddExternalFunctionForPlugin("ViewFrame::get_Flipped",       ViewFrame_GetFlipped);
+    ccAddExternalFunctionForPlugin("ViewFrame::get_Frame",         ViewFrame_GetFrame);
+    ccAddExternalFunctionForPlugin("ViewFrame::get_Graphic",       ViewFrame_GetGraphic);
+    ccAddExternalFunctionForPlugin("ViewFrame::set_Graphic",       ViewFrame_SetGraphic);
+    ccAddExternalFunctionForPlugin("ViewFrame::get_LinkedAudio",   ViewFrame_GetLinkedAudio);
+    ccAddExternalFunctionForPlugin("ViewFrame::set_LinkedAudio",   ViewFrame_SetLinkedAudio);
+    ccAddExternalFunctionForPlugin("ViewFrame::get_Loop",          ViewFrame_GetLoop);
+    ccAddExternalFunctionForPlugin("ViewFrame::get_Sound",         ViewFrame_GetSound);
+    ccAddExternalFunctionForPlugin("ViewFrame::set_Sound",         ViewFrame_SetSound);
+    ccAddExternalFunctionForPlugin("ViewFrame::get_Speed",         ViewFrame_GetSpeed);
+    ccAddExternalFunctionForPlugin("ViewFrame::get_View",          ViewFrame_GetView);
 }

@@ -19,6 +19,7 @@
 #ifndef __AGS_EE_SCRIPT__SCRIPTAPI_H
 #define __AGS_EE_SCRIPT__SCRIPTAPI_H
 
+#include <stdarg.h>
 #include "core/types.h"
 #include "ac/statobj/agsstaticobject.h"
 
@@ -30,6 +31,9 @@ typedef RuntimeScriptValue ScriptAPIObjectFunction(void *self, const RuntimeScri
 
 // Sprintf that takes script values as arguments
 const char *ScriptSprintf(char *buffer, size_t buf_length, const char *format, const RuntimeScriptValue *args, int32_t argc);
+// Variadic sprintf (needed, because all arguments are pushed as pointer-sized values). Currently used only when plugin calls
+// exported engine function. Should be removed when this plugin issue is resolved.
+const char *ScriptVSprintf(char *buffer, size_t buf_length, const char *format, va_list &arg_ptr);
 extern char ScSfBuffer[3000];
 
 // Helper macros for script functions

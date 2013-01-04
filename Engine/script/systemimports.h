@@ -67,5 +67,8 @@ public:
 };
 
 extern SystemImports simp;
+// This is to register symbols exclusively for plugins, to allow them
+// perform old style unsafe function calls
+extern SystemImports simp_for_plugin;
 
 #endif  // __CC_SYSTEMIMPORTS_H

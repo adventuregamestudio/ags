@@ -259,4 +259,25 @@ void RegisterDialogOptionsRenderingAPI()
     ccAddExternalObjectFunction("DialogOptionsRenderingInfo::set_X",                Sc_DialogOptionsRendering_SetX);
     ccAddExternalObjectFunction("DialogOptionsRenderingInfo::get_Y",                Sc_DialogOptionsRendering_GetY);
     ccAddExternalObjectFunction("DialogOptionsRenderingInfo::set_Y",                Sc_DialogOptionsRendering_SetY);
+
+    /* ----------------------- Registering unsafe exports for plugins -----------------------*/
+
+    ccAddExternalFunctionForPlugin("DialogOptionsRenderingInfo::get_ActiveOptionID",   DialogOptionsRendering_GetActiveOptionID);
+    ccAddExternalFunctionForPlugin("DialogOptionsRenderingInfo::set_ActiveOptionID",   DialogOptionsRendering_SetActiveOptionID);
+    ccAddExternalFunctionForPlugin("DialogOptionsRenderingInfo::get_DialogToRender",   DialogOptionsRendering_GetDialogToRender);
+    ccAddExternalFunctionForPlugin("DialogOptionsRenderingInfo::get_Height",           DialogOptionsRendering_GetHeight);
+    ccAddExternalFunctionForPlugin("DialogOptionsRenderingInfo::set_Height",           DialogOptionsRendering_SetHeight);
+    ccAddExternalFunctionForPlugin("DialogOptionsRenderingInfo::get_ParserTextBoxX",   DialogOptionsRendering_GetParserTextboxX);
+    ccAddExternalFunctionForPlugin("DialogOptionsRenderingInfo::set_ParserTextBoxX",   DialogOptionsRendering_SetParserTextboxX);
+    ccAddExternalFunctionForPlugin("DialogOptionsRenderingInfo::get_ParserTextBoxY",   DialogOptionsRendering_GetParserTextboxY);
+    ccAddExternalFunctionForPlugin("DialogOptionsRenderingInfo::set_ParserTextBoxY",   DialogOptionsRendering_SetParserTextboxY);
+    ccAddExternalFunctionForPlugin("DialogOptionsRenderingInfo::get_ParserTextBoxWidth", DialogOptionsRendering_GetParserTextboxWidth);
+    ccAddExternalFunctionForPlugin("DialogOptionsRenderingInfo::set_ParserTextBoxWidth", DialogOptionsRendering_SetParserTextboxWidth);
+    ccAddExternalFunctionForPlugin("DialogOptionsRenderingInfo::get_Surface",          DialogOptionsRendering_GetSurface);
+    ccAddExternalFunctionForPlugin("DialogOptionsRenderingInfo::get_Width",            DialogOptionsRendering_GetWidth);
+    ccAddExternalFunctionForPlugin("DialogOptionsRenderingInfo::set_Width",            DialogOptionsRendering_SetWidth);
+    ccAddExternalFunctionForPlugin("DialogOptionsRenderingInfo::get_X",                DialogOptionsRendering_GetX);
+    ccAddExternalFunctionForPlugin("DialogOptionsRenderingInfo::set_X",                DialogOptionsRendering_SetX);
+    ccAddExternalFunctionForPlugin("DialogOptionsRenderingInfo::get_Y",                DialogOptionsRendering_GetY);
+    ccAddExternalFunctionForPlugin("DialogOptionsRenderingInfo::set_Y",                DialogOptionsRendering_SetY);
 }

@@ -383,4 +383,25 @@ void RegisterButtonAPI()
 	ccAddExternalObjectFunction("Button::set_Text",             Sc_Button_SetText);
 	ccAddExternalObjectFunction("Button::get_TextColor",        Sc_Button_GetTextColor);
 	ccAddExternalObjectFunction("Button::set_TextColor",        Sc_Button_SetTextColor);
+
+    /* ----------------------- Registering unsafe exports for plugins -----------------------*/
+
+    ccAddExternalFunctionForPlugin("Button::Animate^4",            Button_Animate);
+    ccAddExternalFunctionForPlugin("Button::GetText^1",            Button_GetText);
+    ccAddExternalFunctionForPlugin("Button::SetText^1",            Button_SetText);
+    ccAddExternalFunctionForPlugin("Button::get_ClipImage",        Button_GetClipImage);
+    ccAddExternalFunctionForPlugin("Button::set_ClipImage",        Button_SetClipImage);
+    ccAddExternalFunctionForPlugin("Button::get_Font",             Button_GetFont);
+    ccAddExternalFunctionForPlugin("Button::set_Font",             Button_SetFont);
+    ccAddExternalFunctionForPlugin("Button::get_Graphic",          Button_GetGraphic);
+    ccAddExternalFunctionForPlugin("Button::get_MouseOverGraphic", Button_GetMouseOverGraphic);
+    ccAddExternalFunctionForPlugin("Button::set_MouseOverGraphic", Button_SetMouseOverGraphic);
+    ccAddExternalFunctionForPlugin("Button::get_NormalGraphic",    Button_GetNormalGraphic);
+    ccAddExternalFunctionForPlugin("Button::set_NormalGraphic",    Button_SetNormalGraphic);
+    ccAddExternalFunctionForPlugin("Button::get_PushedGraphic",    Button_GetPushedGraphic);
+    ccAddExternalFunctionForPlugin("Button::set_PushedGraphic",    Button_SetPushedGraphic);
+    ccAddExternalFunctionForPlugin("Button::get_Text",             Button_GetText_New);
+    ccAddExternalFunctionForPlugin("Button::set_Text",             Button_SetText);
+    ccAddExternalFunctionForPlugin("Button::get_TextColor",        Button_GetTextColor);
+    ccAddExternalFunctionForPlugin("Button::set_TextColor",        Button_SetTextColor);
 }

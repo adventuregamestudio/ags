@@ -1362,7 +1362,6 @@ RuntimeScriptValue Sc_ReleaseViewport(const RuntimeScriptValue *params, int32_t 
 // void (int obj)
 RuntimeScriptValue Sc_RemoveObjectTint(const RuntimeScriptValue *params, int32_t param_count)
 {
-
     API_SCALL_VOID_PINT(RemoveObjectTint);
 }
 
@@ -2176,6 +2175,112 @@ RuntimeScriptValue Sc_WaitMouseKey(const RuntimeScriptValue *params, int32_t par
     API_SCALL_INT_PINT(WaitMouseKey);
 }
 
+//=============================================================================
+//
+// Exclusive API for Plugins
+//
+//=============================================================================
+
+// void (char*texx, ...)
+void ScPl_sc_AbortGame(const char *texx, ...)
+{
+    va_list arg_ptr;
+    va_start(arg_ptr, texx);
+    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, texx, arg_ptr);
+    va_end(arg_ptr);
+    _sc_AbortGame("%s", scsf_buffer);
+}
+
+// int (int xx,int yy,int wii,int fontid,int clr,char*texx, ...)
+int ScPl_CreateTextOverlay(int xx, int yy, int wii, int fontid, int clr, char *texx, ...)
+{
+    va_list arg_ptr;
+    va_start(arg_ptr, texx);
+    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, texx, arg_ptr);
+    va_end(arg_ptr);
+    return CreateTextOverlay(xx, yy, wii, fontid, clr, "%s", scsf_buffer);
+}
+
+// void (char*texx, ...)
+void ScPl_Display(char *texx, ...)
+{
+    va_list arg_ptr;
+    va_start(arg_ptr, texx);
+    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, texx, arg_ptr);
+    va_end(arg_ptr);
+    Display("%s", scsf_buffer);
+}
+
+// void (int xxp,int yyp,int widd,char*texx, ...)
+void ScPl_DisplayAt(int xxp, int yyp, int widd, char *texx, ...)
+{
+    va_list arg_ptr;
+    va_start(arg_ptr, texx);
+    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, texx, arg_ptr);
+    va_end(arg_ptr);
+    DisplayAt(xxp, yyp, widd, "%s", scsf_buffer);
+}
+
+// void (int chid,char*texx, ...)
+void ScPl_sc_displayspeech(int chid, char *texx, ...)
+{
+    va_list arg_ptr;
+    va_start(arg_ptr, texx);
+    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, texx, arg_ptr);
+    va_end(arg_ptr);
+    __sc_displayspeech(chid, "%s", scsf_buffer);
+}
+
+// void (int chid, const char*texx, ...)
+void ScPl_DisplayThought(int chid, const char *texx, ...)
+{
+    va_list arg_ptr;
+    va_start(arg_ptr, texx);
+    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, texx, arg_ptr);
+    va_end(arg_ptr);
+    DisplayThought(chid, "%s", scsf_buffer);
+}
+
+// void (int ypos, int ttexcol, int backcol, char *title, char*texx, ...)
+void ScPl_DisplayTopBar(int ypos, int ttexcol, int backcol, char *title, char *texx, ...)
+{
+    va_list arg_ptr;
+    va_start(arg_ptr, texx);
+    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, texx, arg_ptr);
+    va_end(arg_ptr);
+    DisplayTopBar(ypos, ttexcol, backcol, title, "%s", scsf_buffer);
+}
+
+// void  (int xx, int yy, char*texx, ...)
+void ScPl_RawPrint(int xx, int yy, char *texx, ...)
+{
+    va_list arg_ptr;
+    va_start(arg_ptr, texx);
+    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, texx, arg_ptr);
+    va_end(arg_ptr);
+    RawPrint(xx, yy, "%s", scsf_buffer);
+}
+
+// void (int ovrid,int xx,int yy,int wii,int fontid,int clr,char*texx,...)
+void ScPl_SetTextOverlay(int ovrid, int xx, int yy, int wii, int fontid, int clr, char*texx,...)
+{
+    va_list arg_ptr;
+    va_start(arg_ptr, texx);
+    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, texx, arg_ptr);
+    va_end(arg_ptr);
+    SetTextOverlay(ovrid, xx, yy, wii, fontid, clr, "%s", scsf_buffer);
+}
+
+// void (char*destt, const char*texx, ...);
+void ScPl_sc_sprintf(char *destt, const char *texx, ...)
+{
+    va_list arg_ptr;
+    va_start(arg_ptr, texx);
+    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, texx, arg_ptr);
+    va_end(arg_ptr);
+    _sc_sprintf(destt, "%s", scsf_buffer);
+}
+
 
 void RegisterGlobalAPI()
 {
@@ -2543,4 +2648,371 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("Wait",                     Sc_scrWait);
 	ccAddExternalStaticFunction("WaitKey",                  Sc_WaitKey);
 	ccAddExternalStaticFunction("WaitMouseKey",             Sc_WaitMouseKey);
+
+    /* ----------------------- Registering unsafe exports for plugins -----------------------*/
+
+    ccAddExternalFunctionForPlugin("AbortGame",                ScPl_sc_AbortGame);
+    ccAddExternalFunctionForPlugin("AddInventory",             add_inventory);
+    ccAddExternalFunctionForPlugin("AddInventoryToCharacter",  AddInventoryToCharacter);
+    ccAddExternalFunctionForPlugin("AnimateButton",            AnimateButton);
+    ccAddExternalFunctionForPlugin("AnimateCharacter",         scAnimateCharacter);
+    ccAddExternalFunctionForPlugin("AnimateCharacterEx",       AnimateCharacterEx);
+    ccAddExternalFunctionForPlugin("AnimateObject",            AnimateObject);
+    ccAddExternalFunctionForPlugin("AnimateObjectEx",          AnimateObjectEx);
+    ccAddExternalFunctionForPlugin("AreCharactersColliding",   AreCharactersColliding);
+    ccAddExternalFunctionForPlugin("AreCharObjColliding",      AreCharObjColliding);
+    ccAddExternalFunctionForPlugin("AreObjectsColliding",      AreObjectsColliding);
+    ccAddExternalFunctionForPlugin("AreThingsOverlapping",     AreThingsOverlapping);
+    ccAddExternalFunctionForPlugin("CallRoomScript",           CallRoomScript);
+    ccAddExternalFunctionForPlugin("CDAudio",                  cd_manager);
+    ccAddExternalFunctionForPlugin("CentreGUI",                CentreGUI);
+    ccAddExternalFunctionForPlugin("ChangeCharacterView",      ChangeCharacterView);
+    ccAddExternalFunctionForPlugin("ChangeCursorGraphic",      ChangeCursorGraphic);
+    ccAddExternalFunctionForPlugin("ChangeCursorHotspot",      ChangeCursorHotspot);
+    ccAddExternalFunctionForPlugin("ClaimEvent",               ClaimEvent);
+    ccAddExternalFunctionForPlugin("CreateGraphicOverlay",     CreateGraphicOverlay);
+    ccAddExternalFunctionForPlugin("CreateTextOverlay",        ScPl_CreateTextOverlay);
+    ccAddExternalFunctionForPlugin("CyclePalette",             CyclePalette);
+    ccAddExternalFunctionForPlugin("Debug",                    script_debug);
+    ccAddExternalFunctionForPlugin("DeleteSaveSlot",           DeleteSaveSlot);
+    ccAddExternalFunctionForPlugin("DeleteSprite",             free_dynamic_sprite);
+    ccAddExternalFunctionForPlugin("DisableCursorMode",        disable_cursor_mode);
+    ccAddExternalFunctionForPlugin("DisableGroundLevelAreas",  DisableGroundLevelAreas);
+    ccAddExternalFunctionForPlugin("DisableHotspot",           DisableHotspot);
+    ccAddExternalFunctionForPlugin("DisableInterface",         DisableInterface);
+    ccAddExternalFunctionForPlugin("DisableRegion",            DisableRegion);
+    ccAddExternalFunctionForPlugin("Display",                  ScPl_Display);
+    ccAddExternalFunctionForPlugin("DisplayAt",                ScPl_DisplayAt);
+    ccAddExternalFunctionForPlugin("DisplayAtY",               DisplayAtY);
+    ccAddExternalFunctionForPlugin("DisplayMessage",           DisplayMessage);
+    ccAddExternalFunctionForPlugin("DisplayMessageAtY",        DisplayMessageAtY);
+    ccAddExternalFunctionForPlugin("DisplayMessageBar",        DisplayMessageBar);
+    ccAddExternalFunctionForPlugin("DisplaySpeech",            ScPl_sc_displayspeech);
+    ccAddExternalFunctionForPlugin("DisplaySpeechAt",          DisplaySpeechAt);
+    ccAddExternalFunctionForPlugin("DisplaySpeechBackground",  DisplaySpeechBackground);
+    ccAddExternalFunctionForPlugin("DisplayThought",           ScPl_DisplayThought);
+    ccAddExternalFunctionForPlugin("DisplayTopBar",            ScPl_DisplayTopBar);
+    ccAddExternalFunctionForPlugin("EnableCursorMode",         enable_cursor_mode);
+    ccAddExternalFunctionForPlugin("EnableGroundLevelAreas",   EnableGroundLevelAreas);
+    ccAddExternalFunctionForPlugin("EnableHotspot",            EnableHotspot);
+    ccAddExternalFunctionForPlugin("EnableInterface",          EnableInterface);
+    ccAddExternalFunctionForPlugin("EnableRegion",             EnableRegion);
+    ccAddExternalFunctionForPlugin("EndCutscene",              EndCutscene);
+    ccAddExternalFunctionForPlugin("FaceCharacter",            FaceCharacter);
+    ccAddExternalFunctionForPlugin("FaceLocation",             FaceLocation);
+    ccAddExternalFunctionForPlugin("FadeIn",                   FadeIn);
+    ccAddExternalFunctionForPlugin("FadeOut",                  my_fade_out);
+    ccAddExternalFunctionForPlugin("FileClose",                FileClose);
+    ccAddExternalFunctionForPlugin("FileIsEOF",                FileIsEOF);
+    ccAddExternalFunctionForPlugin("FileIsError",              FileIsError);
+    // NOTE: FileOpenCMode is a backwards-compatible replacement for old-style global script function FileOpen
+    ccAddExternalFunctionForPlugin("FileOpen",                 FileOpenCMode);
+    ccAddExternalFunctionForPlugin("FileRead",                 FileRead);
+    ccAddExternalFunctionForPlugin("FileReadInt",              FileReadInt);
+    ccAddExternalFunctionForPlugin("FileReadRawChar",          FileReadRawChar);
+    ccAddExternalFunctionForPlugin("FileReadRawInt",           FileReadRawInt);
+    ccAddExternalFunctionForPlugin("FileWrite",                FileWrite);
+    ccAddExternalFunctionForPlugin("FileWriteInt",             FileWriteInt);
+    ccAddExternalFunctionForPlugin("FileWriteRawChar",         FileWriteRawChar);
+    ccAddExternalFunctionForPlugin("FileWriteRawLine",         FileWriteRawLine);
+    ccAddExternalFunctionForPlugin("FindGUIID",                FindGUIID);
+    ccAddExternalFunctionForPlugin("FlipScreen",               FlipScreen);
+    ccAddExternalFunctionForPlugin("FloatToInt",               FloatToInt);
+    ccAddExternalFunctionForPlugin("FollowCharacter",          FollowCharacter);
+    ccAddExternalFunctionForPlugin("FollowCharacterEx",        FollowCharacterEx);
+    ccAddExternalFunctionForPlugin("GetBackgroundFrame",       GetBackgroundFrame);
+    ccAddExternalFunctionForPlugin("GetButtonPic",             GetButtonPic);
+    ccAddExternalFunctionForPlugin("GetCharacterAt",           GetCharacterAt);
+    ccAddExternalFunctionForPlugin("GetCharacterProperty",     GetCharacterProperty);
+    ccAddExternalFunctionForPlugin("GetCharacterPropertyText", GetCharacterPropertyText);
+    ccAddExternalFunctionForPlugin("GetCurrentMusic",          GetCurrentMusic);
+    ccAddExternalFunctionForPlugin("GetCursorMode",            GetCursorMode);
+    ccAddExternalFunctionForPlugin("GetDialogOption",          GetDialogOption);
+    ccAddExternalFunctionForPlugin("GetGameOption",            GetGameOption);
+    ccAddExternalFunctionForPlugin("GetGameParameter",         GetGameParameter);
+    ccAddExternalFunctionForPlugin("GetGameSpeed",             GetGameSpeed);
+    ccAddExternalFunctionForPlugin("GetGlobalInt",             GetGlobalInt);
+    ccAddExternalFunctionForPlugin("GetGlobalString",          GetGlobalString);
+    ccAddExternalFunctionForPlugin("GetGraphicalVariable",     GetGraphicalVariable);
+    ccAddExternalFunctionForPlugin("GetGUIAt",                 GetGUIAt);
+    ccAddExternalFunctionForPlugin("GetGUIObjectAt",           GetGUIObjectAt);
+    ccAddExternalFunctionForPlugin("GetHotspotAt",             GetHotspotAt);
+    ccAddExternalFunctionForPlugin("GetHotspotName",           GetHotspotName);
+    ccAddExternalFunctionForPlugin("GetHotspotPointX",         GetHotspotPointX);
+    ccAddExternalFunctionForPlugin("GetHotspotPointY",         GetHotspotPointY);
+    ccAddExternalFunctionForPlugin("GetHotspotProperty",       GetHotspotProperty);
+    ccAddExternalFunctionForPlugin("GetHotspotPropertyText",   GetHotspotPropertyText);
+    ccAddExternalFunctionForPlugin("GetInvAt",                 GetInvAt);
+    ccAddExternalFunctionForPlugin("GetInvGraphic",            GetInvGraphic);
+    ccAddExternalFunctionForPlugin("GetInvName",               GetInvName);
+    ccAddExternalFunctionForPlugin("GetInvProperty",           GetInvProperty);
+    ccAddExternalFunctionForPlugin("GetInvPropertyText",       GetInvPropertyText);
+    //ccAddExternalFunctionForPlugin("GetLanguageString",      GetLanguageString);
+    ccAddExternalFunctionForPlugin("GetLocationName",          GetLocationName);
+    ccAddExternalFunctionForPlugin("GetLocationType",          GetLocationType);
+    ccAddExternalFunctionForPlugin("GetMessageText",           GetMessageText);
+    ccAddExternalFunctionForPlugin("GetMIDIPosition",          GetMIDIPosition);
+    ccAddExternalFunctionForPlugin("GetMP3PosMillis",          GetMP3PosMillis);
+    ccAddExternalFunctionForPlugin("GetObjectAt",              GetObjectAt);
+    ccAddExternalFunctionForPlugin("GetObjectBaseline",        GetObjectBaseline);
+    ccAddExternalFunctionForPlugin("GetObjectGraphic",         GetObjectGraphic);
+    ccAddExternalFunctionForPlugin("GetObjectName",            GetObjectName);
+    ccAddExternalFunctionForPlugin("GetObjectProperty",        GetObjectProperty);
+    ccAddExternalFunctionForPlugin("GetObjectPropertyText",    GetObjectPropertyText);
+    ccAddExternalFunctionForPlugin("GetObjectX",               GetObjectX);
+    ccAddExternalFunctionForPlugin("GetObjectY",               GetObjectY);
+    //  ccAddExternalFunctionForPlugin("GetPalette",           scGetPal);
+    ccAddExternalFunctionForPlugin("GetPlayerCharacter",       GetPlayerCharacter);
+    ccAddExternalFunctionForPlugin("GetRawTime",               GetRawTime);
+    ccAddExternalFunctionForPlugin("GetRegionAt",              GetRegionAt);
+    ccAddExternalFunctionForPlugin("GetRoomProperty",          GetRoomProperty);
+    ccAddExternalFunctionForPlugin("GetRoomPropertyText",      GetRoomPropertyText);
+    ccAddExternalFunctionForPlugin("GetSaveSlotDescription",   GetSaveSlotDescription);
+    ccAddExternalFunctionForPlugin("GetScalingAt",             GetScalingAt);
+    ccAddExternalFunctionForPlugin("GetSliderValue",           GetSliderValue);
+    ccAddExternalFunctionForPlugin("GetTextBoxText",           GetTextBoxText);
+    ccAddExternalFunctionForPlugin("GetTextHeight",            GetTextHeight);
+    ccAddExternalFunctionForPlugin("GetTextWidth",             GetTextWidth);
+    ccAddExternalFunctionForPlugin("GetTime",                  sc_GetTime);
+    ccAddExternalFunctionForPlugin("GetTranslation",           get_translation);
+    ccAddExternalFunctionForPlugin("GetTranslationName",       GetTranslationName);
+    ccAddExternalFunctionForPlugin("GetViewportX",             GetViewportX);
+    ccAddExternalFunctionForPlugin("GetViewportY",             GetViewportY);
+    ccAddExternalFunctionForPlugin("GetWalkableAreaAt",        GetWalkableAreaAt);
+    ccAddExternalFunctionForPlugin("GiveScore",                GiveScore);
+    ccAddExternalFunctionForPlugin("HasPlayerBeenInRoom",      HasPlayerBeenInRoom);
+    ccAddExternalFunctionForPlugin("HideMouseCursor",          HideMouseCursor);
+    ccAddExternalFunctionForPlugin("InputBox",                 sc_inputbox);
+    ccAddExternalFunctionForPlugin("InterfaceOff",             InterfaceOff);
+    ccAddExternalFunctionForPlugin("InterfaceOn",              InterfaceOn);
+    ccAddExternalFunctionForPlugin("IntToFloat",               IntToFloat);
+    ccAddExternalFunctionForPlugin("InventoryScreen",          sc_invscreen);
+    ccAddExternalFunctionForPlugin("IsButtonDown",             IsButtonDown);
+    ccAddExternalFunctionForPlugin("IsChannelPlaying",         IsChannelPlaying);
+    ccAddExternalFunctionForPlugin("IsGamePaused",             IsGamePaused);
+    ccAddExternalFunctionForPlugin("IsGUIOn",                  IsGUIOn);
+    ccAddExternalFunctionForPlugin("IsInteractionAvailable",   IsInteractionAvailable);
+    ccAddExternalFunctionForPlugin("IsInventoryInteractionAvailable", IsInventoryInteractionAvailable);
+    ccAddExternalFunctionForPlugin("IsInterfaceEnabled",       IsInterfaceEnabled);
+    ccAddExternalFunctionForPlugin("IsKeyPressed",             IsKeyPressed);
+    ccAddExternalFunctionForPlugin("IsMusicPlaying",           IsMusicPlaying);
+    ccAddExternalFunctionForPlugin("IsMusicVoxAvailable",      IsMusicVoxAvailable);
+    ccAddExternalFunctionForPlugin("IsObjectAnimating",        IsObjectAnimating);
+    ccAddExternalFunctionForPlugin("IsObjectMoving",           IsObjectMoving);
+    ccAddExternalFunctionForPlugin("IsObjectOn",               IsObjectOn);
+    ccAddExternalFunctionForPlugin("IsOverlayValid",           IsOverlayValid);
+    ccAddExternalFunctionForPlugin("IsSoundPlaying",           IsSoundPlaying);
+    ccAddExternalFunctionForPlugin("IsTimerExpired",           IsTimerExpired);
+    ccAddExternalFunctionForPlugin("IsTranslationAvailable",   IsTranslationAvailable);
+    ccAddExternalFunctionForPlugin("IsVoxAvailable",           IsVoxAvailable);
+    ccAddExternalFunctionForPlugin("ListBoxAdd",               ListBoxAdd);
+    ccAddExternalFunctionForPlugin("ListBoxClear",             ListBoxClear);
+    ccAddExternalFunctionForPlugin("ListBoxDirList",           ListBoxDirList);
+    ccAddExternalFunctionForPlugin("ListBoxGetItemText",       ListBoxGetItemText);
+    ccAddExternalFunctionForPlugin("ListBoxGetNumItems",       ListBoxGetNumItems);
+    ccAddExternalFunctionForPlugin("ListBoxGetSelected",       ListBoxGetSelected);
+    ccAddExternalFunctionForPlugin("ListBoxRemove",            ListBoxRemove);
+    ccAddExternalFunctionForPlugin("ListBoxSaveGameList",      ListBoxSaveGameList);
+    ccAddExternalFunctionForPlugin("ListBoxSetSelected",       ListBoxSetSelected);
+    ccAddExternalFunctionForPlugin("ListBoxSetTopItem",        ListBoxSetTopItem);
+    ccAddExternalFunctionForPlugin("LoadImageFile",            LoadImageFile);
+    ccAddExternalFunctionForPlugin("LoadSaveSlotScreenshot",   LoadSaveSlotScreenshot);
+    ccAddExternalFunctionForPlugin("LoseInventory",            lose_inventory);
+    ccAddExternalFunctionForPlugin("LoseInventoryFromCharacter", LoseInventoryFromCharacter);
+    ccAddExternalFunctionForPlugin("MergeObject",              MergeObject);
+    ccAddExternalFunctionForPlugin("MoveCharacter",            MoveCharacter);
+    ccAddExternalFunctionForPlugin("MoveCharacterBlocking",    MoveCharacterBlocking);
+    ccAddExternalFunctionForPlugin("MoveCharacterDirect",      MoveCharacterDirect);
+    ccAddExternalFunctionForPlugin("MoveCharacterPath",        MoveCharacterPath);
+    ccAddExternalFunctionForPlugin("MoveCharacterStraight",    MoveCharacterStraight);
+    ccAddExternalFunctionForPlugin("MoveCharacterToHotspot",   MoveCharacterToHotspot);
+    ccAddExternalFunctionForPlugin("MoveCharacterToObject",    MoveCharacterToObject);
+    ccAddExternalFunctionForPlugin("MoveObject",               MoveObject);
+    ccAddExternalFunctionForPlugin("MoveObjectDirect",         MoveObjectDirect);
+    ccAddExternalFunctionForPlugin("MoveOverlay",              MoveOverlay);
+    ccAddExternalFunctionForPlugin("MoveToWalkableArea",       MoveToWalkableArea);
+    ccAddExternalFunctionForPlugin("NewRoom",                  NewRoom);
+    ccAddExternalFunctionForPlugin("NewRoomEx",                NewRoomEx);
+    ccAddExternalFunctionForPlugin("NewRoomNPC",               NewRoomNPC);
+    ccAddExternalFunctionForPlugin("ObjectOff",                ObjectOff);
+    ccAddExternalFunctionForPlugin("ObjectOn",                 ObjectOn);
+    ccAddExternalFunctionForPlugin("ParseText",                ParseText);
+    ccAddExternalFunctionForPlugin("PauseGame",                PauseGame);
+    ccAddExternalFunctionForPlugin("PlayAmbientSound",         PlayAmbientSound);
+    ccAddExternalFunctionForPlugin("PlayFlic",                 play_flc_file);
+    ccAddExternalFunctionForPlugin("PlayMP3File",              PlayMP3File);
+    ccAddExternalFunctionForPlugin("PlayMusic",                PlayMusicResetQueue);
+    ccAddExternalFunctionForPlugin("PlayMusicQueued",          PlayMusicQueued);
+    ccAddExternalFunctionForPlugin("PlaySilentMIDI",           PlaySilentMIDI);
+    ccAddExternalFunctionForPlugin("PlaySound",                play_sound);
+    ccAddExternalFunctionForPlugin("PlaySoundEx",              PlaySoundEx);
+    ccAddExternalFunctionForPlugin("PlaySpeech",               __scr_play_speech);
+    ccAddExternalFunctionForPlugin("PlayVideo",                scrPlayVideo);
+    ccAddExternalFunctionForPlugin("ProcessClick",             ProcessClick);
+    ccAddExternalFunctionForPlugin("QuitGame",                 QuitGame);
+    ccAddExternalFunctionForPlugin("Random",                   __Rand);
+    ccAddExternalFunctionForPlugin("RawClearScreen",           RawClear);
+    ccAddExternalFunctionForPlugin("RawDrawCircle",            RawDrawCircle);
+    ccAddExternalFunctionForPlugin("RawDrawFrameTransparent",  RawDrawFrameTransparent);
+    ccAddExternalFunctionForPlugin("RawDrawImage",             RawDrawImage);
+    ccAddExternalFunctionForPlugin("RawDrawImageOffset",       RawDrawImageOffset);
+    ccAddExternalFunctionForPlugin("RawDrawImageResized",      RawDrawImageResized);
+    ccAddExternalFunctionForPlugin("RawDrawImageTransparent",  RawDrawImageTransparent);
+    ccAddExternalFunctionForPlugin("RawDrawLine",              RawDrawLine);
+    ccAddExternalFunctionForPlugin("RawDrawRectangle",         RawDrawRectangle);
+    ccAddExternalFunctionForPlugin("RawDrawTriangle",          RawDrawTriangle);
+    ccAddExternalFunctionForPlugin("RawPrint",                 ScPl_RawPrint);
+    ccAddExternalFunctionForPlugin("RawPrintMessageWrapped",   RawPrintMessageWrapped);
+    ccAddExternalFunctionForPlugin("RawRestoreScreen",         RawRestoreScreen);
+    ccAddExternalFunctionForPlugin("RawRestoreScreenTinted",   RawRestoreScreenTinted);
+    ccAddExternalFunctionForPlugin("RawSaveScreen",            RawSaveScreen);
+    ccAddExternalFunctionForPlugin("RawSetColor",              RawSetColor);
+    ccAddExternalFunctionForPlugin("RawSetColorRGB",           RawSetColorRGB);
+    ccAddExternalFunctionForPlugin("RefreshMouse",             RefreshMouse);
+    ccAddExternalFunctionForPlugin("ReleaseCharacterView",     ReleaseCharacterView);
+    ccAddExternalFunctionForPlugin("ReleaseViewport",          ReleaseViewport);
+    ccAddExternalFunctionForPlugin("RemoveObjectTint",         RemoveObjectTint);
+    ccAddExternalFunctionForPlugin("RemoveOverlay",            RemoveOverlay);
+    ccAddExternalFunctionForPlugin("RemoveWalkableArea",       RemoveWalkableArea);
+    ccAddExternalFunctionForPlugin("ResetRoom",                ResetRoom);
+    ccAddExternalFunctionForPlugin("RestartGame",              restart_game);
+    ccAddExternalFunctionForPlugin("RestoreGameDialog",        restore_game_dialog);
+    ccAddExternalFunctionForPlugin("RestoreGameSlot",          RestoreGameSlot);
+    ccAddExternalFunctionForPlugin("RestoreWalkableArea",      RestoreWalkableArea);
+    ccAddExternalFunctionForPlugin("RunAGSGame",               RunAGSGame);
+    ccAddExternalFunctionForPlugin("RunCharacterInteraction",  RunCharacterInteraction);
+    ccAddExternalFunctionForPlugin("RunDialog",                RunDialog);
+    ccAddExternalFunctionForPlugin("RunHotspotInteraction",    RunHotspotInteraction);
+    ccAddExternalFunctionForPlugin("RunInventoryInteraction",  RunInventoryInteraction);
+    ccAddExternalFunctionForPlugin("RunObjectInteraction",     RunObjectInteraction);
+    ccAddExternalFunctionForPlugin("RunRegionInteraction",     RunRegionInteraction);
+    ccAddExternalFunctionForPlugin("Said",                     Said);
+    ccAddExternalFunctionForPlugin("SaidUnknownWord",          SaidUnknownWord);
+    ccAddExternalFunctionForPlugin("SaveCursorForLocationChange", SaveCursorForLocationChange);
+    ccAddExternalFunctionForPlugin("SaveGameDialog",           save_game_dialog);
+    ccAddExternalFunctionForPlugin("SaveGameSlot",             save_game);
+    ccAddExternalFunctionForPlugin("SaveScreenShot",           SaveScreenShot);
+    ccAddExternalFunctionForPlugin("SeekMIDIPosition",         SeekMIDIPosition);
+    ccAddExternalFunctionForPlugin("SeekMODPattern",           SeekMODPattern);
+    ccAddExternalFunctionForPlugin("SeekMP3PosMillis",         SeekMP3PosMillis);
+    ccAddExternalFunctionForPlugin("SetActiveInventory",       SetActiveInventory);
+    ccAddExternalFunctionForPlugin("SetAmbientTint",           SetAmbientTint);
+    ccAddExternalFunctionForPlugin("SetAreaLightLevel",        SetAreaLightLevel);
+    ccAddExternalFunctionForPlugin("SetAreaScaling",           SetAreaScaling);
+    ccAddExternalFunctionForPlugin("SetBackgroundFrame",       SetBackgroundFrame);
+    ccAddExternalFunctionForPlugin("SetButtonPic",             SetButtonPic);
+    ccAddExternalFunctionForPlugin("SetButtonText",            SetButtonText);
+    ccAddExternalFunctionForPlugin("SetChannelVolume",         SetChannelVolume);
+    ccAddExternalFunctionForPlugin("SetCharacterBaseline",     SetCharacterBaseline);
+    ccAddExternalFunctionForPlugin("SetCharacterClickable",    SetCharacterClickable);
+    ccAddExternalFunctionForPlugin("SetCharacterFrame",        SetCharacterFrame);
+    ccAddExternalFunctionForPlugin("SetCharacterIdle",         SetCharacterIdle);
+    ccAddExternalFunctionForPlugin("SetCharacterIgnoreLight",  SetCharacterIgnoreLight);
+    ccAddExternalFunctionForPlugin("SetCharacterIgnoreWalkbehinds", SetCharacterIgnoreWalkbehinds);
+    ccAddExternalFunctionForPlugin("SetCharacterProperty",     SetCharacterProperty);
+    ccAddExternalFunctionForPlugin("SetCharacterBlinkView",    SetCharacterBlinkView);
+    ccAddExternalFunctionForPlugin("SetCharacterSpeechView",   SetCharacterSpeechView);
+    ccAddExternalFunctionForPlugin("SetCharacterSpeed",        SetCharacterSpeed);
+    ccAddExternalFunctionForPlugin("SetCharacterSpeedEx",      SetCharacterSpeedEx);
+    ccAddExternalFunctionForPlugin("SetCharacterTransparency", SetCharacterTransparency);
+    ccAddExternalFunctionForPlugin("SetCharacterView",         SetCharacterView);
+    ccAddExternalFunctionForPlugin("SetCharacterViewEx",       SetCharacterViewEx);
+    ccAddExternalFunctionForPlugin("SetCharacterViewOffset",   SetCharacterViewOffset);
+    ccAddExternalFunctionForPlugin("SetCursorMode",            set_cursor_mode);
+    ccAddExternalFunctionForPlugin("SetDefaultCursor",         set_default_cursor);
+    ccAddExternalFunctionForPlugin("SetDialogOption",          SetDialogOption);
+    ccAddExternalFunctionForPlugin("SetDigitalMasterVolume",   SetDigitalMasterVolume);
+    ccAddExternalFunctionForPlugin("SetFadeColor",             SetFadeColor);
+    ccAddExternalFunctionForPlugin("SetFrameSound",            SetFrameSound);
+    ccAddExternalFunctionForPlugin("SetGameOption",            SetGameOption);
+    ccAddExternalFunctionForPlugin("SetGameSpeed",             SetGameSpeed);
+    ccAddExternalFunctionForPlugin("SetGlobalInt",             SetGlobalInt);
+    ccAddExternalFunctionForPlugin("SetGlobalString",          SetGlobalString);
+    ccAddExternalFunctionForPlugin("SetGraphicalVariable",     SetGraphicalVariable);
+    ccAddExternalFunctionForPlugin("SetGUIBackgroundPic",      SetGUIBackgroundPic);
+    ccAddExternalFunctionForPlugin("SetGUIClickable",          SetGUIClickable);
+    ccAddExternalFunctionForPlugin("SetGUIObjectEnabled",      SetGUIObjectEnabled);
+    ccAddExternalFunctionForPlugin("SetGUIObjectPosition",     SetGUIObjectPosition);
+    ccAddExternalFunctionForPlugin("SetGUIObjectSize",         SetGUIObjectSize);
+    ccAddExternalFunctionForPlugin("SetGUIPosition",           SetGUIPosition);
+    ccAddExternalFunctionForPlugin("SetGUISize",               SetGUISize);
+    ccAddExternalFunctionForPlugin("SetGUITransparency",       SetGUITransparency);
+    ccAddExternalFunctionForPlugin("SetGUIZOrder",             SetGUIZOrder);
+    ccAddExternalFunctionForPlugin("SetInvItemName",           SetInvItemName);
+    ccAddExternalFunctionForPlugin("SetInvItemPic",            set_inv_item_pic);
+    ccAddExternalFunctionForPlugin("SetInvDimensions",         SetInvDimensions);
+    ccAddExternalFunctionForPlugin("SetLabelColor",            SetLabelColor);
+    ccAddExternalFunctionForPlugin("SetLabelFont",             SetLabelFont);
+    ccAddExternalFunctionForPlugin("SetLabelText",             SetLabelText);
+    ccAddExternalFunctionForPlugin("SetMouseBounds",           SetMouseBounds);
+    ccAddExternalFunctionForPlugin("SetMouseCursor",           set_mouse_cursor);
+    ccAddExternalFunctionForPlugin("SetMousePosition",         SetMousePosition);
+    ccAddExternalFunctionForPlugin("SetMultitaskingMode",      SetMultitasking);
+    ccAddExternalFunctionForPlugin("SetMusicMasterVolume",     SetMusicMasterVolume);
+    ccAddExternalFunctionForPlugin("SetMusicRepeat",           SetMusicRepeat);
+    ccAddExternalFunctionForPlugin("SetMusicVolume",           SetMusicVolume);
+    ccAddExternalFunctionForPlugin("SetNextCursorMode",        SetNextCursor);
+    ccAddExternalFunctionForPlugin("SetNextScreenTransition",  SetNextScreenTransition);
+    ccAddExternalFunctionForPlugin("SetNormalFont",            SetNormalFont);
+    ccAddExternalFunctionForPlugin("SetObjectBaseline",        SetObjectBaseline);
+    ccAddExternalFunctionForPlugin("SetObjectClickable",       SetObjectClickable);
+    ccAddExternalFunctionForPlugin("SetObjectFrame",           SetObjectFrame);
+    ccAddExternalFunctionForPlugin("SetObjectGraphic",         SetObjectGraphic);
+    ccAddExternalFunctionForPlugin("SetObjectIgnoreWalkbehinds", SetObjectIgnoreWalkbehinds);
+    ccAddExternalFunctionForPlugin("SetObjectPosition",        SetObjectPosition);
+    ccAddExternalFunctionForPlugin("SetObjectTint",            SetObjectTint);
+    ccAddExternalFunctionForPlugin("SetObjectTransparency",    SetObjectTransparency);
+    ccAddExternalFunctionForPlugin("SetObjectView",            SetObjectView);
+    //  ccAddExternalFunctionForPlugin("SetPalette",           scSetPal);
+    ccAddExternalFunctionForPlugin("SetPalRGB",                SetPalRGB);
+    ccAddExternalFunctionForPlugin("SetPlayerCharacter",       SetPlayerCharacter);
+    ccAddExternalFunctionForPlugin("SetRegionTint",            SetRegionTint);
+    ccAddExternalFunctionForPlugin("SetRestartPoint",          SetRestartPoint);
+    ccAddExternalFunctionForPlugin("SetScreenTransition",      SetScreenTransition);
+    ccAddExternalFunctionForPlugin("SetSkipSpeech",            SetSkipSpeech);
+    ccAddExternalFunctionForPlugin("SetSliderValue",           SetSliderValue);
+    ccAddExternalFunctionForPlugin("SetSoundVolume",           SetSoundVolume);
+    ccAddExternalFunctionForPlugin("SetSpeechFont",            SetSpeechFont);
+    ccAddExternalFunctionForPlugin("SetSpeechStyle",           SetSpeechStyle);
+    ccAddExternalFunctionForPlugin("SetSpeechVolume",          SetSpeechVolume);
+    ccAddExternalFunctionForPlugin("SetTalkingColor",          SetTalkingColor);
+    ccAddExternalFunctionForPlugin("SetTextBoxFont",           SetTextBoxFont);
+    ccAddExternalFunctionForPlugin("SetTextBoxText",           SetTextBoxText);
+    ccAddExternalFunctionForPlugin("SetTextOverlay",           ScPl_SetTextOverlay);
+    ccAddExternalFunctionForPlugin("SetTextWindowGUI",         SetTextWindowGUI);
+    ccAddExternalFunctionForPlugin("SetTimer",                 script_SetTimer);
+    ccAddExternalFunctionForPlugin("SetViewport",              SetViewport);
+    ccAddExternalFunctionForPlugin("SetVoiceMode",             SetVoiceMode);
+    ccAddExternalFunctionForPlugin("SetWalkBehindBase",        SetWalkBehindBase);
+    ccAddExternalFunctionForPlugin("ShakeScreen",              ShakeScreen);
+    ccAddExternalFunctionForPlugin("ShakeScreenBackground",    ShakeScreenBackground);
+    ccAddExternalFunctionForPlugin("ShowMouseCursor",          ShowMouseCursor);
+    ccAddExternalFunctionForPlugin("SkipUntilCharacterStops",  SkipUntilCharacterStops);
+    ccAddExternalFunctionForPlugin("StartCutscene",            StartCutscene);
+    ccAddExternalFunctionForPlugin("StartRecording",           scStartRecording);
+    ccAddExternalFunctionForPlugin("StopAmbientSound",         StopAmbientSound);
+    ccAddExternalFunctionForPlugin("StopChannel",              stop_and_destroy_channel);
+    ccAddExternalFunctionForPlugin("StopDialog",               StopDialog);
+    ccAddExternalFunctionForPlugin("StopMoving",               StopMoving);
+    ccAddExternalFunctionForPlugin("StopMusic",                scr_StopMusic);
+    ccAddExternalFunctionForPlugin("StopObjectMoving",         StopObjectMoving);
+    ccAddExternalFunctionForPlugin("StrCat",                   _sc_strcat);
+    ccAddExternalFunctionForPlugin("StrCaseComp",              stricmp);
+    ccAddExternalFunctionForPlugin("StrComp",                  strcmp);
+    ccAddExternalFunctionForPlugin("StrContains",              StrContains);
+    ccAddExternalFunctionForPlugin("StrCopy",                  _sc_strcpy);
+    ccAddExternalFunctionForPlugin("StrFormat",                ScPl_sc_sprintf);
+    ccAddExternalFunctionForPlugin("StrGetCharAt",             StrGetCharAt);
+    ccAddExternalFunctionForPlugin("StringToInt",              StringToInt);
+    ccAddExternalFunctionForPlugin("StrLen",                   strlen);
+    ccAddExternalFunctionForPlugin("StrSetCharAt",             StrSetCharAt);
+    ccAddExternalFunctionForPlugin("StrToLowerCase",           _sc_strlower);
+    ccAddExternalFunctionForPlugin("StrToUpperCase",           _sc_strupper);
+    ccAddExternalFunctionForPlugin("TintScreen",               TintScreen);
+    ccAddExternalFunctionForPlugin("UnPauseGame",              UnPauseGame);
+    ccAddExternalFunctionForPlugin("UpdateInventory",          update_invorder);
+    ccAddExternalFunctionForPlugin("UpdatePalette",            UpdatePalette);
+    ccAddExternalFunctionForPlugin("Wait",                     scrWait);
+    ccAddExternalFunctionForPlugin("WaitKey",                  WaitKey);
+    ccAddExternalFunctionForPlugin("WaitMouseKey",             WaitMouseKey);
 }

@@ -217,4 +217,20 @@ void RegisterRegionAPI()
     ccAddExternalObjectFunction("Region::get_TintGreen",        Sc_Region_GetTintGreen);
     ccAddExternalObjectFunction("Region::get_TintRed",          Sc_Region_GetTintRed);
     ccAddExternalObjectFunction("Region::get_TintSaturation",   Sc_Region_GetTintSaturation);
+
+    /* ----------------------- Registering unsafe exports for plugins -----------------------*/
+
+    ccAddExternalFunctionForPlugin("Region::GetAtRoomXY^2",        GetRegionAtLocation);
+    ccAddExternalFunctionForPlugin("Region::Tint^4",               Region_Tint);
+    ccAddExternalFunctionForPlugin("Region::RunInteraction^1",     Region_RunInteraction);
+    ccAddExternalFunctionForPlugin("Region::get_Enabled",          Region_GetEnabled);
+    ccAddExternalFunctionForPlugin("Region::set_Enabled",          Region_SetEnabled);
+    ccAddExternalFunctionForPlugin("Region::get_ID",               Region_GetID);
+    ccAddExternalFunctionForPlugin("Region::get_LightLevel",       Region_GetLightLevel);
+    ccAddExternalFunctionForPlugin("Region::set_LightLevel",       Region_SetLightLevel);
+    ccAddExternalFunctionForPlugin("Region::get_TintEnabled",      Region_GetTintEnabled);
+    ccAddExternalFunctionForPlugin("Region::get_TintBlue",         Region_GetTintBlue);
+    ccAddExternalFunctionForPlugin("Region::get_TintGreen",        Region_GetTintGreen);
+    ccAddExternalFunctionForPlugin("Region::get_TintRed",          Region_GetTintRed);
+    ccAddExternalFunctionForPlugin("Region::get_TintSaturation",   Region_GetTintSaturation);
 }

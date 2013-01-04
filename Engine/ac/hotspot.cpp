@@ -198,4 +198,19 @@ void RegisterHotspotAPI()
     ccAddExternalObjectFunction("Hotspot::get_Name",            Sc_Hotspot_GetName_New);
     ccAddExternalObjectFunction("Hotspot::get_WalkToX",         Sc_Hotspot_GetWalkToX);
     ccAddExternalObjectFunction("Hotspot::get_WalkToY",         Sc_Hotspot_GetWalkToY);
+
+    /* ----------------------- Registering unsafe exports for plugins -----------------------*/
+
+    ccAddExternalFunctionForPlugin("Hotspot::GetAtScreenXY^2",     GetHotspotAtLocation);
+    ccAddExternalFunctionForPlugin("Hotspot::GetName^1",           Hotspot_GetName);
+    ccAddExternalFunctionForPlugin("Hotspot::GetProperty^1",       Hotspot_GetProperty);
+    ccAddExternalFunctionForPlugin("Hotspot::GetPropertyText^2",   Hotspot_GetPropertyText);
+    ccAddExternalFunctionForPlugin("Hotspot::GetTextProperty^1",   Hotspot_GetTextProperty);
+    ccAddExternalFunctionForPlugin("Hotspot::RunInteraction^1",    Hotspot_RunInteraction);
+    ccAddExternalFunctionForPlugin("Hotspot::get_Enabled",         Hotspot_GetEnabled);
+    ccAddExternalFunctionForPlugin("Hotspot::set_Enabled",         Hotspot_SetEnabled);
+    ccAddExternalFunctionForPlugin("Hotspot::get_ID",              Hotspot_GetID);
+    ccAddExternalFunctionForPlugin("Hotspot::get_Name",            Hotspot_GetName_New);
+    ccAddExternalFunctionForPlugin("Hotspot::get_WalkToX",         Hotspot_GetWalkToX);
+    ccAddExternalFunctionForPlugin("Hotspot::get_WalkToY",         Hotspot_GetWalkToY);
 }

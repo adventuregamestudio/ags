@@ -3097,6 +3097,55 @@ void RegisterGameAPI()
     ccAddExternalStaticFunction("Game::get_TranslationFilename",                Sc_Game_GetTranslationFilename);
     ccAddExternalStaticFunction("Game::get_UseNativeCoordinates",               Sc_Game_GetUseNativeCoordinates);
     ccAddExternalStaticFunction("Game::get_ViewCount",                          Sc_Game_GetViewCount);
+
+    /* ----------------------- Registering unsafe exports for plugins -----------------------*/
+
+    ccAddExternalFunctionForPlugin("Game::IsAudioPlaying^1",                       Game_IsAudioPlaying);
+    ccAddExternalFunctionForPlugin("Game::SetAudioTypeSpeechVolumeDrop^2",         Game_SetAudioTypeSpeechVolumeDrop);
+    ccAddExternalFunctionForPlugin("Game::SetAudioTypeVolume^3",                   Game_SetAudioTypeVolume);
+    ccAddExternalFunctionForPlugin("Game::StopAudio^1",                            Game_StopAudio);
+    ccAddExternalFunctionForPlugin("Game::ChangeTranslation^1",                    Game_ChangeTranslation);
+    ccAddExternalFunctionForPlugin("Game::DoOnceOnly^1",                           Game_DoOnceOnly);
+    ccAddExternalFunctionForPlugin("Game::GetColorFromRGB^3",                      Game_GetColorFromRGB);
+    ccAddExternalFunctionForPlugin("Game::GetFrameCountForLoop^2",                 Game_GetFrameCountForLoop);
+    ccAddExternalFunctionForPlugin("Game::GetLocationName^2",                      Game_GetLocationName);
+    ccAddExternalFunctionForPlugin("Game::GetLoopCountForView^1",                  Game_GetLoopCountForView);
+    ccAddExternalFunctionForPlugin("Game::GetMODPattern^0",                        Game_GetMODPattern);
+    ccAddExternalFunctionForPlugin("Game::GetRunNextSettingForLoop^2",             Game_GetRunNextSettingForLoop);
+    ccAddExternalFunctionForPlugin("Game::GetSaveSlotDescription^1",               Game_GetSaveSlotDescription);
+    ccAddExternalFunctionForPlugin("Game::GetViewFrame^3",                         Game_GetViewFrame);
+    ccAddExternalFunctionForPlugin("Game::InputBox^1",                             Game_InputBox);
+    ccAddExternalFunctionForPlugin("Game::SetSaveGameDirectory^1",                 Game_SetSaveGameDirectory);
+    ccAddExternalFunctionForPlugin("Game::StopSound^1",                            StopAllSounds);
+    ccAddExternalFunctionForPlugin("Game::get_CharacterCount",                     Game_GetCharacterCount);
+    ccAddExternalFunctionForPlugin("Game::get_DialogCount",                        Game_GetDialogCount);
+    ccAddExternalFunctionForPlugin("Game::get_FileName",                           Game_GetFileName);
+    ccAddExternalFunctionForPlugin("Game::get_FontCount",                          Game_GetFontCount);
+    ccAddExternalFunctionForPlugin("Game::geti_GlobalMessages",                    Game_GetGlobalMessages);
+    ccAddExternalFunctionForPlugin("Game::geti_GlobalStrings",                     Game_GetGlobalStrings);
+    ccAddExternalFunctionForPlugin("Game::seti_GlobalStrings",                     SetGlobalString);
+    ccAddExternalFunctionForPlugin("Game::get_GUICount",                           Game_GetGUICount);
+    ccAddExternalFunctionForPlugin("Game::get_IgnoreUserInputAfterTextTimeoutMs",  Game_GetIgnoreUserInputAfterTextTimeoutMs);
+    ccAddExternalFunctionForPlugin("Game::set_IgnoreUserInputAfterTextTimeoutMs",  Game_SetIgnoreUserInputAfterTextTimeoutMs);
+    ccAddExternalFunctionForPlugin("Game::get_InSkippableCutscene",                Game_GetInSkippableCutscene);
+    ccAddExternalFunctionForPlugin("Game::get_InventoryItemCount",                 Game_GetInventoryItemCount);
+    ccAddExternalFunctionForPlugin("Game::get_MinimumTextDisplayTimeMs",           Game_GetMinimumTextDisplayTimeMs);
+    ccAddExternalFunctionForPlugin("Game::set_MinimumTextDisplayTimeMs",           Game_SetMinimumTextDisplayTimeMs);
+    ccAddExternalFunctionForPlugin("Game::get_MouseCursorCount",                   Game_GetMouseCursorCount);
+    ccAddExternalFunctionForPlugin("Game::get_Name",                               Game_GetName);
+    ccAddExternalFunctionForPlugin("Game::set_Name",                               Game_SetName);
+    ccAddExternalFunctionForPlugin("Game::get_NormalFont",                         Game_GetNormalFont);
+    ccAddExternalFunctionForPlugin("Game::set_NormalFont",                         SetNormalFont);
+    ccAddExternalFunctionForPlugin("Game::get_SkippingCutscene",                   Game_GetSkippingCutscene);
+    ccAddExternalFunctionForPlugin("Game::get_SpeechFont",                         Game_GetSpeechFont);
+    ccAddExternalFunctionForPlugin("Game::set_SpeechFont",                         SetSpeechFont);
+    ccAddExternalFunctionForPlugin("Game::geti_SpriteWidth",                       Game_GetSpriteWidth);
+    ccAddExternalFunctionForPlugin("Game::geti_SpriteHeight",                      Game_GetSpriteHeight);
+    ccAddExternalFunctionForPlugin("Game::get_TextReadingSpeed",                   Game_GetTextReadingSpeed);
+    ccAddExternalFunctionForPlugin("Game::set_TextReadingSpeed",                   Game_SetTextReadingSpeed);
+    ccAddExternalFunctionForPlugin("Game::get_TranslationFilename",                Game_GetTranslationFilename);
+    ccAddExternalFunctionForPlugin("Game::get_UseNativeCoordinates",               Game_GetUseNativeCoordinates);
+    ccAddExternalFunctionForPlugin("Game::get_ViewCount",                          Game_GetViewCount);
 }
 
 void RegisterStaticObjects()

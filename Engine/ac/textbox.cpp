@@ -136,4 +136,15 @@ void RegisterTextBoxAPI()
     ccAddExternalObjectFunction("TextBox::set_Text",        Sc_TextBox_SetText);
     ccAddExternalObjectFunction("TextBox::get_TextColor",   Sc_TextBox_GetTextColor);
     ccAddExternalObjectFunction("TextBox::set_TextColor",   Sc_TextBox_SetTextColor);
+
+    /* ----------------------- Registering unsafe exports for plugins -----------------------*/
+
+    ccAddExternalFunctionForPlugin("TextBox::GetText^1",       TextBox_GetText);
+    ccAddExternalFunctionForPlugin("TextBox::SetText^1",       TextBox_SetText);
+    ccAddExternalFunctionForPlugin("TextBox::get_Font",        TextBox_GetFont);
+    ccAddExternalFunctionForPlugin("TextBox::set_Font",        TextBox_SetFont);
+    ccAddExternalFunctionForPlugin("TextBox::get_Text",        TextBox_GetText_New);
+    ccAddExternalFunctionForPlugin("TextBox::set_Text",        TextBox_SetText);
+    ccAddExternalFunctionForPlugin("TextBox::get_TextColor",   TextBox_GetTextColor);
+    ccAddExternalFunctionForPlugin("TextBox::set_TextColor",   TextBox_SetTextColor);
 }

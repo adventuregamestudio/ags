@@ -1144,4 +1144,16 @@ void RegisterDialogAPI()
     ccAddExternalObjectFunction("Dialog::HasOptionBeenChosen^1", Sc_Dialog_HasOptionBeenChosen);
     ccAddExternalObjectFunction("Dialog::SetOptionState^2",     Sc_Dialog_SetOptionState);
     ccAddExternalObjectFunction("Dialog::Start^0",              Sc_Dialog_Start);
+
+    /* ----------------------- Registering unsafe exports for plugins -----------------------*/
+
+    ccAddExternalFunctionForPlugin("Dialog::get_ID",               Dialog_GetID);
+    ccAddExternalFunctionForPlugin("Dialog::get_OptionCount",      Dialog_GetOptionCount);
+    ccAddExternalFunctionForPlugin("Dialog::get_ShowTextParser",   Dialog_GetShowTextParser);
+    ccAddExternalFunctionForPlugin("Dialog::DisplayOptions^1",     Dialog_DisplayOptions);
+    ccAddExternalFunctionForPlugin("Dialog::GetOptionState^1",     Dialog_GetOptionState);
+    ccAddExternalFunctionForPlugin("Dialog::GetOptionText^1",      Dialog_GetOptionText);
+    ccAddExternalFunctionForPlugin("Dialog::HasOptionBeenChosen^1", Dialog_HasOptionBeenChosen);
+    ccAddExternalFunctionForPlugin("Dialog::SetOptionState^2",     Dialog_SetOptionState);
+    ccAddExternalFunctionForPlugin("Dialog::Start^0",              Dialog_Start);
 }

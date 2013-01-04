@@ -3481,6 +3481,32 @@ RuntimeScriptValue Sc_Character_SetZ(void *self, const RuntimeScriptValue *param
     API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetZ);
 }
 
+//=============================================================================
+//
+// Exclusive API for Plugins
+//
+//=============================================================================
+
+// void (CharacterInfo *chaa, const char *texx, ...)
+void ScPl_Character_Say(CharacterInfo *chaa, const char *texx, ...)
+{
+    va_list arg_ptr;
+    va_start(arg_ptr, texx);
+    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, texx, arg_ptr);
+    va_end(arg_ptr);
+    Character_Say(chaa, "%s", scsf_buffer);
+}
+
+// void (CharacterInfo *chaa, const char *texx, ...)
+void ScPl_Character_Think(CharacterInfo *chaa, const char *texx, ...)
+{
+    va_list arg_ptr;
+    va_start(arg_ptr, texx);
+    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, texx, arg_ptr);
+    va_end(arg_ptr);
+    Character_Think(chaa, "%s", scsf_buffer);
+}
+
 void RegisterCharacterAPI()
 {
     ccAddExternalObjectFunction("Character::AddInventory^2",            Sc_Character_AddInventory);
@@ -3607,4 +3633,129 @@ void RegisterCharacterAPI()
 	ccAddExternalObjectFunction("Character::set_Z",                     Sc_Character_SetZ);
 	ccAddExternalObjectFunction("Character::get_z",                     Sc_Character_GetZ);
 	ccAddExternalObjectFunction("Character::set_z",                     Sc_Character_SetZ);
+
+    /* ----------------------- Registering unsafe exports for plugins -----------------------*/
+
+    ccAddExternalFunctionForPlugin("Character::AddInventory^2",            Character_AddInventory);
+    ccAddExternalFunctionForPlugin("Character::AddWaypoint^2",             Character_AddWaypoint);
+    ccAddExternalFunctionForPlugin("Character::Animate^5",                 Character_Animate);
+    ccAddExternalFunctionForPlugin("Character::ChangeRoom^3",              Character_ChangeRoom);
+    ccAddExternalFunctionForPlugin("Character::ChangeRoomAutoPosition^2",  Character_ChangeRoomAutoPosition);
+    ccAddExternalFunctionForPlugin("Character::ChangeView^1",              Character_ChangeView);
+    ccAddExternalFunctionForPlugin("Character::FaceCharacter^2",           Character_FaceCharacter);
+    ccAddExternalFunctionForPlugin("Character::FaceLocation^3",            Character_FaceLocation);
+    ccAddExternalFunctionForPlugin("Character::FaceObject^2",              Character_FaceObject);
+    ccAddExternalFunctionForPlugin("Character::FollowCharacter^3",         Character_FollowCharacter);
+    ccAddExternalFunctionForPlugin("Character::GetProperty^1",             Character_GetProperty);
+    ccAddExternalFunctionForPlugin("Character::GetPropertyText^2",         Character_GetPropertyText);
+    ccAddExternalFunctionForPlugin("Character::GetTextProperty^1",         Character_GetTextProperty);
+    ccAddExternalFunctionForPlugin("Character::HasInventory^1",            Character_HasInventory);
+    ccAddExternalFunctionForPlugin("Character::IsCollidingWithChar^1",     Character_IsCollidingWithChar);
+    ccAddExternalFunctionForPlugin("Character::IsCollidingWithObject^1",   Character_IsCollidingWithObject);
+    ccAddExternalFunctionForPlugin("Character::LockView^1",                Character_LockView);
+    ccAddExternalFunctionForPlugin("Character::LockViewAligned^3",         Character_LockViewAligned);
+    ccAddExternalFunctionForPlugin("Character::LockViewFrame^3",           Character_LockViewFrame);
+    ccAddExternalFunctionForPlugin("Character::LockViewOffset^3",          Character_LockViewOffset);
+    ccAddExternalFunctionForPlugin("Character::LoseInventory^1",           Character_LoseInventory);
+    ccAddExternalFunctionForPlugin("Character::Move^4",                    Character_Move);
+    ccAddExternalFunctionForPlugin("Character::PlaceOnWalkableArea^0",     Character_PlaceOnWalkableArea);
+    ccAddExternalFunctionForPlugin("Character::RemoveTint^0",              Character_RemoveTint);
+    ccAddExternalFunctionForPlugin("Character::RunInteraction^1",          Character_RunInteraction);
+    ccAddExternalFunctionForPlugin("Character::Say^101",                   ScPl_Character_Say);
+    ccAddExternalFunctionForPlugin("Character::SayAt^4",                   Character_SayAt);
+    ccAddExternalFunctionForPlugin("Character::SayBackground^1",           Character_SayBackground);
+    ccAddExternalFunctionForPlugin("Character::SetAsPlayer^0",             Character_SetAsPlayer);
+    ccAddExternalFunctionForPlugin("Character::SetIdleView^2",             Character_SetIdleView);
+    //ccAddExternalFunctionForPlugin("Character::SetOption^2",             Character_SetOption);
+    ccAddExternalFunctionForPlugin("Character::SetWalkSpeed^2",            Character_SetSpeed);
+    ccAddExternalFunctionForPlugin("Character::StopMoving^0",              Character_StopMoving);
+    ccAddExternalFunctionForPlugin("Character::Think^101",                 ScPl_Character_Think);
+    ccAddExternalFunctionForPlugin("Character::Tint^5",                    Character_Tint);
+    ccAddExternalFunctionForPlugin("Character::UnlockView^0",              Character_UnlockView);
+    ccAddExternalFunctionForPlugin("Character::Walk^4",                    Character_Walk);
+    ccAddExternalFunctionForPlugin("Character::WalkStraight^3",            Character_WalkStraight);
+    ccAddExternalFunctionForPlugin("Character::GetAtScreenXY^2",           GetCharacterAtLocation);
+    ccAddExternalFunctionForPlugin("Character::get_ActiveInventory",       Character_GetActiveInventory);
+    ccAddExternalFunctionForPlugin("Character::set_ActiveInventory",       Character_SetActiveInventory);
+    ccAddExternalFunctionForPlugin("Character::get_Animating",             Character_GetAnimating);
+    ccAddExternalFunctionForPlugin("Character::get_AnimationSpeed",        Character_GetAnimationSpeed);
+    ccAddExternalFunctionForPlugin("Character::set_AnimationSpeed",        Character_SetAnimationSpeed);
+    ccAddExternalFunctionForPlugin("Character::get_Baseline",              Character_GetBaseline);
+    ccAddExternalFunctionForPlugin("Character::set_Baseline",              Character_SetBaseline);
+    ccAddExternalFunctionForPlugin("Character::get_BlinkInterval",         Character_GetBlinkInterval);
+    ccAddExternalFunctionForPlugin("Character::set_BlinkInterval",         Character_SetBlinkInterval);
+    ccAddExternalFunctionForPlugin("Character::get_BlinkView",             Character_GetBlinkView);
+    ccAddExternalFunctionForPlugin("Character::set_BlinkView",             Character_SetBlinkView);
+    ccAddExternalFunctionForPlugin("Character::get_BlinkWhileThinking",    Character_GetBlinkWhileThinking);
+    ccAddExternalFunctionForPlugin("Character::set_BlinkWhileThinking",    Character_SetBlinkWhileThinking);
+    ccAddExternalFunctionForPlugin("Character::get_BlockingHeight",        Character_GetBlockingHeight);
+    ccAddExternalFunctionForPlugin("Character::set_BlockingHeight",        Character_SetBlockingHeight);
+    ccAddExternalFunctionForPlugin("Character::get_BlockingWidth",         Character_GetBlockingWidth);
+    ccAddExternalFunctionForPlugin("Character::set_BlockingWidth",         Character_SetBlockingWidth);
+    ccAddExternalFunctionForPlugin("Character::get_Clickable",             Character_GetClickable);
+    ccAddExternalFunctionForPlugin("Character::set_Clickable",             Character_SetClickable);
+    ccAddExternalFunctionForPlugin("Character::get_DiagonalLoops",         Character_GetDiagonalWalking);
+    ccAddExternalFunctionForPlugin("Character::set_DiagonalLoops",         Character_SetDiagonalWalking);
+    ccAddExternalFunctionForPlugin("Character::get_Frame",                 Character_GetFrame);
+    ccAddExternalFunctionForPlugin("Character::set_Frame",                 Character_SetFrame);
+    ccAddExternalFunctionForPlugin("Character::get_HasExplicitTint",       Character_GetHasExplicitTint);
+    ccAddExternalFunctionForPlugin("Character::get_ID",                    Character_GetID);
+    ccAddExternalFunctionForPlugin("Character::get_IdleView",              Character_GetIdleView);
+    ccAddExternalFunctionForPlugin("Character::geti_InventoryQuantity",    Character_GetIInventoryQuantity);
+    ccAddExternalFunctionForPlugin("Character::seti_InventoryQuantity",    Character_SetIInventoryQuantity);
+    ccAddExternalFunctionForPlugin("Character::get_IgnoreLighting",        Character_GetIgnoreLighting);
+    ccAddExternalFunctionForPlugin("Character::set_IgnoreLighting",        Character_SetIgnoreLighting);
+    ccAddExternalFunctionForPlugin("Character::get_IgnoreScaling",         Character_GetIgnoreScaling);
+    ccAddExternalFunctionForPlugin("Character::set_IgnoreScaling",         Character_SetIgnoreScaling);
+    ccAddExternalFunctionForPlugin("Character::get_IgnoreWalkbehinds",     Character_GetIgnoreWalkbehinds);
+    ccAddExternalFunctionForPlugin("Character::set_IgnoreWalkbehinds",     Character_SetIgnoreWalkbehinds);
+    ccAddExternalFunctionForPlugin("Character::get_Loop",                  Character_GetLoop);
+    ccAddExternalFunctionForPlugin("Character::set_Loop",                  Character_SetLoop);
+    ccAddExternalFunctionForPlugin("Character::get_ManualScaling",         Character_GetIgnoreScaling);
+    ccAddExternalFunctionForPlugin("Character::set_ManualScaling",         Character_SetManualScaling);
+    ccAddExternalFunctionForPlugin("Character::get_MovementLinkedToAnimation",Character_GetMovementLinkedToAnimation);
+    ccAddExternalFunctionForPlugin("Character::set_MovementLinkedToAnimation",Character_SetMovementLinkedToAnimation);
+    ccAddExternalFunctionForPlugin("Character::get_Moving",                Character_GetMoving);
+    ccAddExternalFunctionForPlugin("Character::get_Name",                  Character_GetName);
+    ccAddExternalFunctionForPlugin("Character::set_Name",                  Character_SetName);
+    ccAddExternalFunctionForPlugin("Character::get_NormalView",            Character_GetNormalView);
+    ccAddExternalFunctionForPlugin("Character::get_PreviousRoom",          Character_GetPreviousRoom);
+    ccAddExternalFunctionForPlugin("Character::get_Room",                  Character_GetRoom);
+    ccAddExternalFunctionForPlugin("Character::get_ScaleMoveSpeed",        Character_GetScaleMoveSpeed);
+    ccAddExternalFunctionForPlugin("Character::set_ScaleMoveSpeed",        Character_SetScaleMoveSpeed);
+    ccAddExternalFunctionForPlugin("Character::get_ScaleVolume",           Character_GetScaleVolume);
+    ccAddExternalFunctionForPlugin("Character::set_ScaleVolume",           Character_SetScaleVolume);
+    ccAddExternalFunctionForPlugin("Character::get_Scaling",               Character_GetScaling);
+    ccAddExternalFunctionForPlugin("Character::set_Scaling",               Character_SetScaling);
+    ccAddExternalFunctionForPlugin("Character::get_Solid",                 Character_GetSolid);
+    ccAddExternalFunctionForPlugin("Character::set_Solid",                 Character_SetSolid);
+    ccAddExternalFunctionForPlugin("Character::get_Speaking",              Character_GetSpeaking);
+    ccAddExternalFunctionForPlugin("Character::get_SpeakingFrame",         Character_GetSpeakingFrame);
+    ccAddExternalFunctionForPlugin("Character::get_SpeechAnimationDelay",  GetCharacterSpeechAnimationDelay);
+    ccAddExternalFunctionForPlugin("Character::set_SpeechAnimationDelay",  Character_SetSpeechAnimationDelay);
+    ccAddExternalFunctionForPlugin("Character::get_SpeechColor",           Character_GetSpeechColor);
+    ccAddExternalFunctionForPlugin("Character::set_SpeechColor",           Character_SetSpeechColor);
+    ccAddExternalFunctionForPlugin("Character::get_SpeechView",            Character_GetSpeechView);
+    ccAddExternalFunctionForPlugin("Character::set_SpeechView",            Character_SetSpeechView);
+    ccAddExternalFunctionForPlugin("Character::get_ThinkView",             Character_GetThinkView);
+    ccAddExternalFunctionForPlugin("Character::set_ThinkView",             Character_SetThinkView);
+    ccAddExternalFunctionForPlugin("Character::get_Transparency",          Character_GetTransparency);
+    ccAddExternalFunctionForPlugin("Character::set_Transparency",          Character_SetTransparency);
+    ccAddExternalFunctionForPlugin("Character::get_TurnBeforeWalking",     Character_GetTurnBeforeWalking);
+    ccAddExternalFunctionForPlugin("Character::set_TurnBeforeWalking",     Character_SetTurnBeforeWalking);
+    ccAddExternalFunctionForPlugin("Character::get_View",                  Character_GetView);
+    ccAddExternalFunctionForPlugin("Character::get_WalkSpeedX",            Character_GetWalkSpeedX);
+    ccAddExternalFunctionForPlugin("Character::get_WalkSpeedY",            Character_GetWalkSpeedY);
+    ccAddExternalFunctionForPlugin("Character::get_X",                     Character_GetX);
+    ccAddExternalFunctionForPlugin("Character::set_X",                     Character_SetX);
+    ccAddExternalFunctionForPlugin("Character::get_x",                     Character_GetX);
+    ccAddExternalFunctionForPlugin("Character::set_x",                     Character_SetX);
+    ccAddExternalFunctionForPlugin("Character::get_Y",                     Character_GetY);
+    ccAddExternalFunctionForPlugin("Character::set_Y",                     Character_SetY);
+    ccAddExternalFunctionForPlugin("Character::get_y",                     Character_GetY);
+    ccAddExternalFunctionForPlugin("Character::set_y",                     Character_SetY);
+    ccAddExternalFunctionForPlugin("Character::get_Z",                     Character_GetZ);
+    ccAddExternalFunctionForPlugin("Character::set_Z",                     Character_SetZ);
+    ccAddExternalFunctionForPlugin("Character::get_z",                     Character_GetZ);
+    ccAddExternalFunctionForPlugin("Character::set_z",                     Character_SetZ);
 }

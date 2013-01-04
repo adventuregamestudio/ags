@@ -223,4 +223,22 @@ void RegisterInventoryItemAPI()
     ccAddExternalObjectFunction("InventoryItem::get_ID",                    Sc_InventoryItem_GetID);
     ccAddExternalObjectFunction("InventoryItem::get_Name",                  Sc_InventoryItem_GetName_New);
     ccAddExternalObjectFunction("InventoryItem::set_Name",                  Sc_InventoryItem_SetName);
+
+    /* ----------------------- Registering unsafe exports for plugins -----------------------*/
+
+    ccAddExternalFunctionForPlugin("InventoryItem::GetAtScreenXY^2",           GetInvAtLocation);
+    ccAddExternalFunctionForPlugin("InventoryItem::IsInteractionAvailable^1",  InventoryItem_CheckInteractionAvailable);
+    ccAddExternalFunctionForPlugin("InventoryItem::GetName^1",                 InventoryItem_GetName);
+    ccAddExternalFunctionForPlugin("InventoryItem::GetProperty^1",             InventoryItem_GetProperty);
+    ccAddExternalFunctionForPlugin("InventoryItem::GetPropertyText^2",         InventoryItem_GetPropertyText);
+    ccAddExternalFunctionForPlugin("InventoryItem::GetTextProperty^1",         InventoryItem_GetTextProperty);
+    ccAddExternalFunctionForPlugin("InventoryItem::RunInteraction^1",          InventoryItem_RunInteraction);
+    ccAddExternalFunctionForPlugin("InventoryItem::SetName^1",                 InventoryItem_SetName);
+    ccAddExternalFunctionForPlugin("InventoryItem::get_CursorGraphic",         InventoryItem_GetCursorGraphic);
+    ccAddExternalFunctionForPlugin("InventoryItem::set_CursorGraphic",         InventoryItem_SetCursorGraphic);
+    ccAddExternalFunctionForPlugin("InventoryItem::get_Graphic",               InventoryItem_GetGraphic);
+    ccAddExternalFunctionForPlugin("InventoryItem::set_Graphic",               InventoryItem_SetGraphic);
+    ccAddExternalFunctionForPlugin("InventoryItem::get_ID",                    InventoryItem_GetID);
+    ccAddExternalFunctionForPlugin("InventoryItem::get_Name",                  InventoryItem_GetName_New);
+    ccAddExternalFunctionForPlugin("InventoryItem::set_Name",                  InventoryItem_SetName);
 }

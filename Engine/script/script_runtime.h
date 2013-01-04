@@ -53,6 +53,11 @@ extern void ccRemoveAllSymbols();
 // get the address of an exported variable in the script
 extern void *ccGetSymbolAddress(char *namof);
 
+// registering functions, compatible with old unsafe call style;
+// this is to be used solely by plugins until plugin inteface is redone
+extern bool ccAddExternalFunctionForPlugin(const char *name, void *pfn);
+extern void *ccGetSymbolAddressForPlugin(char *namof);
+
 // DEBUG HOOK
 typedef void (*new_line_hook_type) (ccInstance *, int);
 extern void ccSetDebugHook(new_line_hook_type jibble);

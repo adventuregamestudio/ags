@@ -351,7 +351,7 @@ ScriptOverlay* ScPl_Overlay_CreateTextual(int x, int y, int width, int font, int
 {
     va_list arg_ptr;
     va_start(arg_ptr, text);
-    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, text, arg_ptr);
+    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, get_translation(text), arg_ptr);
     va_end(arg_ptr);
     return Overlay_CreateTextual(x, y, width, font, colour, "%s", scsf_buffer);
 }
@@ -361,7 +361,7 @@ void ScPl_Overlay_SetText(ScriptOverlay *scover, int wii, int fontid, int clr, c
 {
     va_list arg_ptr;
     va_start(arg_ptr, texx);
-    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, texx, arg_ptr);
+    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, get_translation(texx), arg_ptr);
     va_end(arg_ptr);
     Overlay_SetText(scover, wii, fontid, clr, "%s", scsf_buffer);
 }

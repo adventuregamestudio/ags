@@ -60,11 +60,11 @@ extern char ScSfBuffer[3000];
 
 #define API_SCALL_SCRIPT_SPRINTF(FUNCTION, PARAM_COUNT) \
     ASSERT_PARAM_COUNT(FUNCTION, PARAM_COUNT) \
-    const char *scsf_buffer = ScriptSprintf(ScSfBuffer, 3000, params[PARAM_COUNT - 1].Ptr, params + PARAM_COUNT, param_count - PARAM_COUNT)
+    const char *scsf_buffer = ScriptSprintf(ScSfBuffer, 3000, get_translation(params[PARAM_COUNT - 1].Ptr), params + PARAM_COUNT, param_count - PARAM_COUNT)
 
 #define API_OBJCALL_SCRIPT_SPRINTF(METHOD, PARAM_COUNT) \
     ASSERT_OBJ_PARAM_COUNT(METHOD, PARAM_COUNT) \
-    const char *scsf_buffer = ScriptSprintf(ScSfBuffer, 3000, params[PARAM_COUNT - 1].Ptr, params + PARAM_COUNT, param_count - PARAM_COUNT)
+    const char *scsf_buffer = ScriptSprintf(ScSfBuffer, 3000, get_translation(params[PARAM_COUNT - 1].Ptr), params + PARAM_COUNT, param_count - PARAM_COUNT)
 
 //-----------------------------------------------------------------------------
 // Calls to static functions

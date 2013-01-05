@@ -3492,7 +3492,7 @@ void ScPl_Character_Say(CharacterInfo *chaa, const char *texx, ...)
 {
     va_list arg_ptr;
     va_start(arg_ptr, texx);
-    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, texx, arg_ptr);
+    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, get_translation(texx), arg_ptr);
     va_end(arg_ptr);
     Character_Say(chaa, "%s", scsf_buffer);
 }
@@ -3502,7 +3502,7 @@ void ScPl_Character_Think(CharacterInfo *chaa, const char *texx, ...)
 {
     va_list arg_ptr;
     va_start(arg_ptr, texx);
-    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, texx, arg_ptr);
+    const char *scsf_buffer = ScriptVSprintf(ScSfBuffer, 3000, get_translation(texx), arg_ptr);
     va_end(arg_ptr);
     Character_Think(chaa, "%s", scsf_buffer);
 }

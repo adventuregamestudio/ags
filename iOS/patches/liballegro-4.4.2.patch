@@ -2220,8 +2220,8 @@ diff -Naur src/ios/ithreads.c src/ios/ithreads.c
 +}
 diff -Naur src/ios/itimer.c src/ios/itimer.c
 --- src/ios/itimer.c	Thu Jan  1 00:00:00 1970
-+++ src/ios/itimer.c	Sun Dec 30 08:54:00 2012
-@@ -0,0 +1,228 @@
++++ src/ios/itimer.c	Sun Jan  6 15:23:07 2013
+@@ -0,0 +1,232 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
 + *        \ \ \\ \\//\ \ \//\ \      __     __   _ __   ___
@@ -2321,6 +2321,10 @@ diff -Naur src/ios/itimer.c src/ios/itimer.c
 +      interval = USEC_TO_TIMER((new_time.tv_sec - old_time.tv_sec) * 1000000L
 +			       + (new_time.tv_usec - old_time.tv_usec));
 +      old_time = new_time;
++
++      /* If the app is sent to the background, a long time will have elapsed on return. */
++      if ((interval < 0) || (interval > 0x8000 * 100))
++         interval = 0x8000;
 +
 +      /* Handle a tick.  */
 +      interval = _handle_timer_tick(interval);

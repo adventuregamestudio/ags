@@ -48,6 +48,10 @@
     <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AGS.Native, Version=0.0.0.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\References\AGS.Native.dll</HintPath>
+    </Reference>
     <Reference Include="irrKlang.NET2.0, Version=1.1.3.0, Culture=neutral, PublicKeyToken=a854741bd80517c7, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\References\irrKlang.NET2.0.dll</HintPath>
@@ -332,10 +336,6 @@
     <ProjectReference Include="..\AGS.CScript.Compiler\AGS.CScript.Compiler.csproj">
       <Project>{4771753A-641D-49B1-8096-0B431EAC413E}</Project>
       <Name>AGS.CScript.Compiler</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\AGS.Native\NativeDLL.vcproj">
-      <Project>{65A387AF-C78C-492B-AB93-E13C6090355D}</Project>
-      <Name>AGS.Native</Name>
     </ProjectReference>
     <ProjectReference Include="..\AGS.Types\AGS.Types.csproj">
       <Project>{3EBBEDAB-214C-4201-BB5A-5152D56908DD}</Project>

@@ -1889,7 +1889,7 @@ const char* load_room_file(const char*rtlo) {
 
   load_room((char*)rtlo, &thisroom, (thisgame.default_resolution > 2));
 
-  if (thisroom.wasversion < 17) 
+  if (thisroom.wasversion < kRoomVersion_250b) 
   {
 	  return "This room was saved with an old version of the editor and cannot be opened. Use AGS 2.72 to upgrade this room file.";
   }
@@ -1976,7 +1976,7 @@ void save_room(const char *files, roomstruct rstruc) {
   if (rstruc.wasversion < kRoomVersion_Current)
     quit("save_room: can no longer save old format rooms");
 
-  if (rstruc.wasversion < 9) {
+  if (rstruc.wasversion < kRoomVersion_200_alpha) {
     for (f = 0; f < 11; f++)
       rstruc.password[f] -= 60;
   }
@@ -1988,7 +1988,7 @@ void save_room(const char *files, roomstruct rstruc) {
   if (opty == NULL)
     quit("save_room: unable to open room file for writing.");
 
-  rfh.version = rstruc.wasversion; //ROOM_FILE_VERSION;
+  rfh.version = (RoomFileVersion)rstruc.wasversion; //ROOM_FILE_VERSION;
   opty->WriteArray(&rfh,sizeof(room_file_header),1);
 
   if (rfh.version >= 5) {
@@ -4293,7 +4293,7 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 		char jibbledScriptName[50] = "\0";
 		if (strlen(thisroom.objectscriptnames[i]) > 0) 
 		{
-			if (thisroom.wasversion < 26)
+			if (thisroom.wasversion < kRoomVersion_300a)
 			{
 				sprintf(jibbledScriptName, "o%s", thisroom.objectscriptnames[i]);
 				strlwr(jibbledScriptName);
@@ -4310,7 +4310,7 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 		obj->Image = thisroom.sprs[i].sprnum;
 		obj->StartX = thisroom.sprs[i].x;
 		obj->StartY = thisroom.sprs[i].y;
-    if (thisroom.wasversion <= 26)
+    if (thisroom.wasversion <= kRoomVersion_300a)
       obj->StartY += GetSpriteHeight(thisroom.sprs[i].sprnum);
 		obj->Visible = (thisroom.sprs[i].on != 0);
 		obj->Baseline = thisroom.objbaseline[i];
@@ -4320,7 +4320,7 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 		obj->UseRoomAreaLighting = ((thisroom.objectFlags[i] & OBJF_USEREGIONTINTS) != 0);
 		ConvertCustomProperties(obj->Properties, &thisroom.objProps[i]);
 
-		if (thisroom.wasversion < 26)
+		if (thisroom.wasversion < kRoomVersion_300a)
 		{
 			char scriptFuncPrefix[100];
 			sprintf(scriptFuncPrefix, "object%d_", i);
@@ -4343,7 +4343,7 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 		hotspot->WalkToPoint = Point(thisroom.hswalkto[i].x, thisroom.hswalkto[i].y);
 		ConvertCustomProperties(hotspot->Properties, &thisroom.hsProps[i]);
 
-		if (thisroom.wasversion < 26)
+		if (thisroom.wasversion < kRoomVersion_300a)
 		{
 			char scriptFuncPrefix[100];
 			sprintf(scriptFuncPrefix, "hotspot%d_", i);
@@ -4391,7 +4391,7 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 		area->RedTint = thisroom.regionTintLevel[i] & 0x00ff;
 		area->TintSaturation = (thisroom.regionLightLevel[i] > 0) ? thisroom.regionLightLevel[i] : 50;
 
-		if (thisroom.wasversion < 26)
+		if (thisroom.wasversion < kRoomVersion_300a)
 		{
 			char scriptFuncPrefix[100];
 			sprintf(scriptFuncPrefix, "region%d_", i);
@@ -4412,7 +4412,7 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 
 	ConvertCustomProperties(room->Properties, &thisroom.roomProps);
 
-	if (thisroom.wasversion < 26)
+	if (thisroom.wasversion < kRoomVersion_300a)
 	{
 		ConvertInteractions(room->Interactions, thisroom.intrRoom, "room_", nullptr, 0);
 	}

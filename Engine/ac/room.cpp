@@ -621,7 +621,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             croom->obj[cc].x=thisroom.sprs[cc].x;
             croom->obj[cc].y=thisroom.sprs[cc].y;
 
-            if (thisroom.wasversion <= 26)
+            if (thisroom.wasversion <= kRoomVersion_300a)
                 croom->obj[cc].y += divide_down_coordinate(spriteheight[thisroom.sprs[cc].sprnum]);
 
             croom->obj[cc].num=thisroom.sprs[cc].sprnum;
@@ -695,7 +695,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         if (thisroom.objectscriptnames[cc][0] == 0)
             continue;
 
-        if (thisroom.wasversion >= 26) 
+        if (thisroom.wasversion >= kRoomVersion_300a) 
         {
             strcpy(objectScriptObjNames[cc], thisroom.objectscriptnames[cc]);
         }

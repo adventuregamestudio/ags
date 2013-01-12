@@ -17,6 +17,7 @@
 //Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 #include <stdlib.h>
+#include "core/types.h"
 
 static int   LUT16to32[65536];
 static int   RGBtoYUV[65536];
@@ -152,7 +153,7 @@ inline bool Diff(unsigned int w1, unsigned int w2)
            ( abs((YUV1 & Vmask) - (YUV2 & Vmask)) > trV ) );
 }
 
-#define INPUT_IMAGE_PIXEL_SIZE unsigned long
+#define INPUT_IMAGE_PIXEL_SIZE uint32_t
 #define INPUT_IMAGE_PIXEL_SIZE_IN_BYTES sizeof(INPUT_IMAGE_PIXEL_SIZE)
 
 void hq2x_32( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int BpL )

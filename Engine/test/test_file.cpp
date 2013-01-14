@@ -35,6 +35,21 @@ struct TTrickyAlignedData
     char    f[17];
     int     g[4];
     short   h[13];
+    char    i[3];
+    short   j;
+    int     k;
+    short   l;
+    short   m;
+    int     n;
+    int64_t i64a;
+    char    o;
+    int64_t i64b;
+    short   p;
+    int64_t i64c;
+    short   q;
+    short   r;
+    int64_t i64d;
+    char    final;
 };
 
 void Test_File()
@@ -66,6 +81,23 @@ void Test_File()
         tricky_data_out.g[2] = 20;
         tricky_data_out.g[3] = 21;
         memset(tricky_data_out.h, 0, 13 * sizeof(short));
+        tricky_data_out.i[0] = 22;
+        tricky_data_out.i[1] = 23;
+        tricky_data_out.i[2] = 24;
+        tricky_data_out.j = 25;
+        tricky_data_out.k = 26;
+        tricky_data_out.l = 27;
+        tricky_data_out.m = 28;
+        tricky_data_out.n = 29;
+        tricky_data_out.i64a = 30;
+        tricky_data_out.o = 31;
+        tricky_data_out.i64b = 32;
+        tricky_data_out.p = 33;
+        tricky_data_out.i64c = 34;
+        tricky_data_out.q = 35;
+        tricky_data_out.r = 36;
+        tricky_data_out.i64d = 37;
+        tricky_data_out.final = 38;
 #if defined (TEST_BIGENDIAN)
         TTrickyAlignedData bigend_data = tricky_data_out;
         AGS::Common::BitByteOperations::SwapBytesInt32(bigend_data.b);
@@ -106,7 +138,7 @@ void Test_File()
     String str2         = String::FromStream(in);
 
     TTrickyAlignedData tricky_data_in;
-    memset(&tricky_data_in, 0xAA, sizeof(tricky_data_out));
+    memset(&tricky_data_in, 0xAA, sizeof(tricky_data_in));
     {
         AlignedStream as(in, AGS::Common::kAligned_Read);
         tricky_data_in.a = as.ReadInt8();
@@ -117,6 +149,21 @@ void Test_File()
         as.Read(tricky_data_in.f, 17);
         as.ReadArrayOfInt32(tricky_data_in.g, 4);
         as.ReadArrayOfInt16(tricky_data_in.h, 13);
+        as.Read(tricky_data_in.i, 3);
+        tricky_data_in.j = as.ReadInt16();
+        tricky_data_in.k = as.ReadInt32();
+        tricky_data_in.l = as.ReadInt16();
+        tricky_data_in.m = as.ReadInt16();
+        tricky_data_in.n = as.ReadInt32();
+        tricky_data_in.i64a = as.ReadInt64();
+        tricky_data_in.o = as.ReadInt8();
+        tricky_data_in.i64b = as.ReadInt64();
+        tricky_data_in.p = as.ReadInt16();
+        tricky_data_in.i64c = as.ReadInt64();
+        tricky_data_in.q = as.ReadInt16();
+        tricky_data_in.r = as.ReadInt16();
+        tricky_data_in.i64d = as.ReadInt64();
+        tricky_data_in.final = as.ReadInt8();
     }
 
     int32_t int32val    = in->ReadInt32();

@@ -30,9 +30,6 @@
 // AlignedStream does not support seek, hence moving stream pointer to random
 // position will break padding count logic.
 //
-// A Close() method must be called either explicitly by user or implicitly by
-// stream destructor in order to read/write remaining padding bytes.
-//
 //=============================================================================
 #ifndef __AGS_CN_UTIL__ALIGNEDSTREAM_H
 #define __AGS_CN_UTIL__ALIGNEDSTREAM_H
@@ -53,9 +50,13 @@ enum AlignedStreamMode
 class AlignedStream : public ProxyStream
 {
 public:
-    AlignedStream(Stream *stream, AlignedStreamMode mode, size_t alignment = sizeof(int32_t),
-        ObjectOwnershipPolicy stream_ownership_policy = kReleaseAfterUse);
+    AlignedStream(Stream *stream, AlignedStreamMode mode,
+                  ObjectOwnershipPolicy stream_ownership_policy = kReleaseAfterUse,
+                  size_t base_alignment = sizeof(int16_t));
     virtual ~AlignedStream();
+
+    // Read/Write cumulated padding and reset block counter
+    void            Reset();
 
     virtual void    Close();
 
@@ -88,10 +89,14 @@ public:
 protected:
     void            ReadPadding(size_t next_type);
     void            WritePadding(size_t next_type);
+    void            FinalizeBlock();
 
 private:
+    static const size_t LargestPossibleType = sizeof(int64_t);
+
     AlignedStreamMode   _mode;
-    size_t              _alignment;
+    size_t              _baseAlignment;
+    size_t              _maxAlignment;
     int64_t             _block;
     int8_t              _paddingBuffer[sizeof(int64_t)];
 };

@@ -14,17 +14,19 @@
 
 #include "util/alignedstream.h"
 #include "util/datastream.h"
+#include "util/math.h"
 
 namespace AGS
 {
 namespace Common
 {
 
-AlignedStream::AlignedStream(Stream *stream, AlignedStreamMode mode, size_t alignment,
-                             ObjectOwnershipPolicy stream_ownership_policy)
+AlignedStream::AlignedStream(Stream *stream, AlignedStreamMode mode, ObjectOwnershipPolicy stream_ownership_policy,
+                             size_t base_alignment)
     : ProxyStream(stream, stream_ownership_policy)
     , _mode(mode)
-    , _alignment(alignment)
+    , _baseAlignment(base_alignment)
+    , _maxAlignment(0)
     , _block(0)
 {
 }
@@ -34,6 +36,16 @@ AlignedStream::~AlignedStream()
     Close();
 }
 
+void AlignedStream::Reset()
+{
+    if (!_stream)
+    {
+        return;
+    }
+
+    FinalizeBlock();
+}
+
 void AlignedStream::Close()
 {
     if (!_stream)
@@ -41,16 +53,7 @@ void AlignedStream::Close()
         return;
     }
 
-    // Force the stream to read or write remaining padding to match the alignment
-    if (_mode == kAligned_Read)
-    {
-        ReadPadding(_alignment);
-    }
-    else if (_mode == kAligned_Write)
-    {
-        WritePadding(_alignment);
-    }
-
+    FinalizeBlock();
     ProxyStream::Close();
 }
 
@@ -299,20 +302,31 @@ void AlignedStream::ReadPadding(size_t next_type)
         return;
     }
 
+    if (next_type == 0)
+    {
+        return;
+    }
+
     // The next is going to be evenly aligned data type,
     // therefore a padding check must be made
-    if (next_type % _alignment == 0)
+    if (next_type % _baseAlignment == 0)
     {
-        int pad = _block % _alignment;
+        int pad = _block % next_type;
         // Read padding only if have to
         if (pad)
         {
             // We do not know and should not care if the underlying stream
             // supports seek, so use read to skip the padding instead.
-            _stream->Read(_paddingBuffer, _alignment - pad);
+            _stream->Read(_paddingBuffer, next_type - pad);
+            _block += next_type - pad;
         }
+
+        _maxAlignment = Math::Max(_maxAlignment, next_type);
         // Data is evenly aligned now
-        _block = 0;
+        if (_block % LargestPossibleType == 0)
+        {
+            _block = 0;
+        }
     }
 }
 
@@ -323,19 +337,51 @@ void AlignedStream::WritePadding(size_t next_type)
         return;
     }
 
+    if (next_type == 0)
+    {
+        return;
+    }
+
     // The next is going to be evenly aligned data type,
     // therefore a padding check must be made
-    if (next_type % _alignment == 0)
+    if (next_type % _baseAlignment == 0)
     {
-        int pad = _block % _alignment;
+        int pad = _block % next_type;
         // Write padding only if have to
         if (pad)
         {
-            _stream->Write(_paddingBuffer, _alignment - pad);
+            _stream->Write(_paddingBuffer, next_type - pad);
+            _block += next_type - pad;
         }
+
+        _maxAlignment = Math::Max(_maxAlignment, next_type);
         // Data is evenly aligned now
-        _block = 0;
+        if (_block % LargestPossibleType == 0)
+        {
+            _block = 0;
+        }
     }
+}
+
+void AlignedStream::FinalizeBlock()
+{
+    if (!IsValid())
+    {
+        return;
+    }
+
+    // Force the stream to read or write remaining padding to match the alignment
+    if (_mode == kAligned_Read)
+    {
+        ReadPadding(_maxAlignment);
+    }
+    else if (_mode == kAligned_Write)
+    {
+        WritePadding(_maxAlignment);
+    }
+
+    _maxAlignment = 0;
+    _block = 0;
 }
 
 } // namespace Common

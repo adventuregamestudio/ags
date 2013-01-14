@@ -26,8 +26,8 @@ namespace Common
 {
 
 FileStream::FileStream(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode,
-            DataEndianess caller_endianess, DataEndianess stream_endianess)
-    : DataStream(caller_endianess, stream_endianess)
+            DataEndianess stream_endianess)
+    : DataStream(stream_endianess)
     , _file(NULL)
     , _openMode(open_mode)
     , _workMode(work_mode)

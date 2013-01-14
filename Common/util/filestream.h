@@ -30,7 +30,6 @@ class FileStream : public DataStream
 {
 public:
     FileStream(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode,
-        DataEndianess caller_endianess = kDefaultSystemEndianess,
         DataEndianess stream_endianess = kLittleEndian);
     virtual ~FileStream();
 

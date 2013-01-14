@@ -21,9 +21,8 @@ namespace AGS
 namespace Common
 {
 
-DataStream::DataStream(DataEndianess caller_endianess, DataEndianess stream_endianess)
-    : _callerEndianess(caller_endianess)
-    , _streamEndianess(stream_endianess)
+DataStream::DataStream(DataEndianess stream_endianess)
+    : _streamEndianess(stream_endianess)
 {
 }
 
@@ -97,7 +96,7 @@ size_t DataStream::ReadArrayOfIntPtr32(intptr_t *buffer, size_t count)
         {
             // Ensure correct endianess-dependent positions; note that the
             // value bytes are already properly set by ReadArrayOfInt32
-            if (_callerEndianess == kBigEndian)
+            if (kDefaultSystemEndianess == kBigEndian)
             {
                 *buffer = ((int64_t)*buffer32) << 32;
             }

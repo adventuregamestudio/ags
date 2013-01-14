@@ -31,8 +31,7 @@ namespace Common
 class DataStream : public Stream
 {
 public:
-    DataStream(DataEndianess caller_endianess = kDefaultSystemEndianess,
-               DataEndianess stream_endianess = kLittleEndian);
+    DataStream(DataEndianess stream_endianess = kLittleEndian);
     virtual ~DataStream();
 
     virtual int16_t ReadInt16();
@@ -99,7 +98,6 @@ public:
     virtual size_t ReadArrayOfIntPtr32(intptr_t *buffer, size_t count);
 
 protected:
-    DataEndianess _callerEndianess;
     DataEndianess _streamEndianess;
 
     // Helper methods for reading/writing arrays of basic types and
@@ -113,7 +111,7 @@ protected:
 
     inline bool MustSwapBytes()
     {
-        return _callerEndianess != _streamEndianess;
+        return kDefaultSystemEndianess != _streamEndianess;
     }
 
     inline void ConvertInt16(int16_t &val)

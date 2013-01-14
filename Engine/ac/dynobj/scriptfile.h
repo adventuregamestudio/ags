@@ -20,7 +20,7 @@
 
 #include "ac/dynobj/cc_dynamicobject.h"
 
-namespace AGS { namespace Common { class DataStream; } }
+namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
 #define scFileRead   1
@@ -28,7 +28,7 @@ using namespace AGS; // FIXME later
 #define scFileAppend 3
 
 struct sc_File : ICCDynamicObject {
-    Common::DataStream *handle;
+    Common::Stream *handle;
 
     static const Common::FileOpenMode fopenModes[];
     static const Common::FileWorkMode fworkModes[];

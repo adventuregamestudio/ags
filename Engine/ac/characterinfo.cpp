@@ -31,7 +31,7 @@
 #include "main/update.h"
 #include "util/datastream.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
 extern ViewStruct*views;
 extern GameSetupStruct game;
@@ -509,7 +509,7 @@ void CharacterInfo::update_character_idle(CharacterExtras *chex, int &doing_noth
     }  // end do idle animation
 }
 
-void CharacterInfo::ReadFromFile(DataStream *in)
+void CharacterInfo::ReadFromFile(Stream *in)
 {
     int16_t reserved;
     defview = in->ReadInt32();
@@ -563,7 +563,7 @@ void CharacterInfo::ReadFromFile(DataStream *in)
     in->Seek(Common::kSeekCurrent, get_padding(((MAX_INV+2)*sizeof(short)+40+MAX_SCRIPT_NAME_LEN+1)));
 }
 
-void CharacterInfo::WriteToFile(DataStream *out)
+void CharacterInfo::WriteToFile(Stream *out)
 {
     char padding[3] = {0,0,0};
 

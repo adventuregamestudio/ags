@@ -16,12 +16,12 @@
 #include "ac/common_defines.h"
 #include "util/datastream.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
 // [IKM] 2012-07-02: these functions are used during load/save game,
 // and read/written as-is, hence cachedClip pointer should be serialized
 // simply like pointer (although that probably does not mean much sense?)
-void QueuedAudioItem::ReadFromFile(DataStream *in)
+void QueuedAudioItem::ReadFromFile(Stream *in)
 {
     char padding[3] = {0,0,0};
     audioClipIndex = in->ReadInt16();
@@ -31,7 +31,7 @@ void QueuedAudioItem::ReadFromFile(DataStream *in)
     cachedClip = (SOUNDCLIP*)in->ReadInt32();
 }
 
-void QueuedAudioItem::WriteToFile(DataStream *out)
+void QueuedAudioItem::WriteToFile(Stream *out)
 {
     char padding[3] = {0,0,0};
     out->WriteInt16(audioClipIndex);

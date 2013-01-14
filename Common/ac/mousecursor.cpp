@@ -17,11 +17,11 @@
 #include "util/file.h"
 #include "util/datastream.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
 MouseCursor::MouseCursor() { pic = 2054; hotx = 0; hoty = 0; name[0] = 0; flags = 0; view = -1; }
 
-void MouseCursor::ReadFromFile(DataStream *in)
+void MouseCursor::ReadFromFile(Stream *in)
 {
     pic = in->ReadInt32();
     hotx = in->ReadInt16();
@@ -33,7 +33,7 @@ void MouseCursor::ReadFromFile(DataStream *in)
     in->Seek(Common::kSeekCurrent, 3);
 }
 
-void MouseCursor::WriteToFile(DataStream *out)
+void MouseCursor::WriteToFile(Stream *out)
 {
     char padding[3] = {0,0,0};
 

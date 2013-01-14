@@ -15,9 +15,9 @@
 #include "ac/audiocliptype.h"
 #include "util/datastream.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
-void AudioClipType::ReadFromFile(DataStream *in)
+void AudioClipType::ReadFromFile(Stream *in)
 {
     id = in->ReadInt32();
     reservedChannels = in->ReadInt32();
@@ -26,7 +26,7 @@ void AudioClipType::ReadFromFile(DataStream *in)
     reservedForFuture = in->ReadInt32();
 }
 
-void AudioClipType::WriteToFile(DataStream *out)
+void AudioClipType::WriteToFile(Stream *out)
 {
     out->WriteInt32(id);
     out->WriteInt32(reservedChannels);

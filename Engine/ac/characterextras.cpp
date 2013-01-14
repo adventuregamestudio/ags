@@ -15,9 +15,9 @@
 #include "ac/characterextras.h"
 #include "util/datastream.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
-void CharacterExtras::ReadFromFile(DataStream *in)
+void CharacterExtras::ReadFromFile(Stream *in)
 {
     in->ReadArrayOfInt16(invorder, MAX_INVORDER);
     invorder_count = in->ReadInt16();
@@ -36,7 +36,7 @@ void CharacterExtras::ReadFromFile(DataStream *in)
     animwait = in->ReadInt16();
 }
 
-void CharacterExtras::WriteToFile(DataStream *out)
+void CharacterExtras::WriteToFile(Stream *out)
 {
     char padding[3] = {0,0,0};
     out->WriteArrayOfInt16(invorder, MAX_INVORDER);

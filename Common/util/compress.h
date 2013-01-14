@@ -17,7 +17,7 @@
 
 #include <stdio.h>
 
-namespace AGS { namespace Common { class DataStream; } }
+namespace AGS { namespace Common { class Stream; } }
 namespace AGS { namespace Common { class Bitmap; }}
 using namespace AGS; // FIXME later
 
@@ -29,21 +29,21 @@ typedef unsigned char * __block;
 
 long csavecompressed(char *finam, __block tobesaved, color pala[256], long exto);
 
-void cpackbitl(unsigned char *line, int size, Common::DataStream *out);
-void cpackbitl16(unsigned short *line, int size, Common::DataStream *out);
-void cpackbitl32(unsigned int *line, int size, Common::DataStream *out);
-int  cunpackbitl(unsigned char *line, int size, Common::DataStream *in);
-int  cunpackbitl16(unsigned short *line, int size, Common::DataStream *in);
-int  cunpackbitl32(unsigned int *line, int size, Common::DataStream *in);
+void cpackbitl(unsigned char *line, int size, Common::Stream *out);
+void cpackbitl16(unsigned short *line, int size, Common::Stream *out);
+void cpackbitl32(unsigned int *line, int size, Common::Stream *out);
+int  cunpackbitl(unsigned char *line, int size, Common::Stream *in);
+int  cunpackbitl16(unsigned short *line, int size, Common::Stream *in);
+int  cunpackbitl32(unsigned int *line, int size, Common::Stream *in);
 
 //=============================================================================
 
 long save_lzw(char *fnn, Common::Bitmap *bmpp, color *pall, long offe);
 
 /*long load_lzw(char*fnn,Common::Bitmap*bmm,color*pall,long ooff);*/
-long load_lzw(Common::DataStream *in, Common::Bitmap *bmm, color *pall);
+long load_lzw(Common::Stream *in, Common::Bitmap *bmm, color *pall);
 long savecompressed_allegro(char *fnn, Common::Bitmap *bmpp, color *pall, long write_at);
-long loadcompressed_allegro(Common::DataStream *in, Common::Bitmap **bimpp, color *pall, long read_at);
+long loadcompressed_allegro(Common::Stream *in, Common::Bitmap **bimpp, color *pall, long read_at);
 
 //extern char *lztempfnm;
 extern Common::Bitmap *recalced;

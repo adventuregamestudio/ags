@@ -17,7 +17,7 @@
 
 #include "ac/common_defines.h" // PCKD
 
-namespace AGS { namespace Common { class DataStream; } }
+namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
 #pragma pack(1)
@@ -28,7 +28,7 @@ struct MessageInfo {
     char  displayas  PCKD; // 0 = normal window, 1 = as speech
     char  flags      PCKD; // combination of MSG_xxx flags
 
-    void ReadFromFile(Common::DataStream *in);
+    void ReadFromFile(Common::Stream *in);
 };
 
 #pragma pack()

@@ -20,12 +20,12 @@
 #include "gui/guimain.h"
 #include "util/datastream.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
 DynamicArray<GUIInv> guiinv;
 int numguiinv = 0;
 
-void GUIInv::WriteToFile(DataStream *out)
+void GUIInv::WriteToFile(Stream *out)
 {
 	GUIObject::WriteToFile(out);
 	out->WriteInt32(charId);
@@ -34,7 +34,7 @@ void GUIInv::WriteToFile(DataStream *out)
 	out->WriteInt32(topIndex);
 }
 
-void GUIInv::ReadFromFile(DataStream *in, int version)
+void GUIInv::ReadFromFile(Stream *in, int version)
 {
 	GUIObject::ReadFromFile(in, version);
 	if (version >= 109) {

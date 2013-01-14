@@ -21,7 +21,7 @@
 #include "debug/assert.h"
 
 using AGS::Common::String;
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 using AGS::Common::AlignedStream;
 namespace File = AGS::Common::File;
 
@@ -41,7 +41,7 @@ void Test_File()
 {
     //-----------------------------------------------------
     // Operations
-    DataStream *out = File::OpenFile("test.tmp", AGS::Common::kFile_CreateAlways, AGS::Common::kFile_Write);
+    Stream *out = File::OpenFile("test.tmp", AGS::Common::kFile_CreateAlways, AGS::Common::kFile_Write);
 
     out->WriteInt16(10);
     out->WriteInt64(-20202);
@@ -98,7 +98,7 @@ void Test_File()
 
     //-------------------------------------------------------------------------
 
-    DataStream *in = File::OpenFile("test.tmp", AGS::Common::kFile_Open, AGS::Common::kFile_Read);
+    Stream *in = File::OpenFile("test.tmp", AGS::Common::kFile_Open, AGS::Common::kFile_Read);
 
     int16_t int16val    = in->ReadInt16();
     int64_t int64val    = in->ReadInt64();

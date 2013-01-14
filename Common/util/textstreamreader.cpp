@@ -81,7 +81,7 @@ String TextStreamReader::ReadString(int length)
 String TextStreamReader::ReadLine()
 {
     // TODO
-    // Probably it is possible to group DataStream::ReadString with this,
+    // Probably it is possible to group Stream::ReadString with this,
     // both use similar algorythm, difference is only in terminator chars
 
     if (!_stream)

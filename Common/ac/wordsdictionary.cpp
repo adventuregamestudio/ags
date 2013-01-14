@@ -22,7 +22,7 @@
 #include "util/string_utils.h"
 #include "util/datastream.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
 void WordsDictionary::allocate_memory(int wordCount)
 {
@@ -98,7 +98,7 @@ void decrypt_text(char*toenc) {
   }
 }
 
-void read_string_decrypt(DataStream *in, char *sss) {
+void read_string_decrypt(Stream *in, char *sss) {
   int newlen = in->ReadInt32();
   if ((newlen < 0) || (newlen > 5000000))
     quit("ReadString: file is corrupt");
@@ -109,7 +109,7 @@ void read_string_decrypt(DataStream *in, char *sss) {
   decrypt_text(sss);
 }
 
-void read_dictionary (WordsDictionary *dict, DataStream *out) {
+void read_dictionary (WordsDictionary *dict, Stream *out) {
   int ii;
 
   dict->allocate_memory(out->ReadInt32());
@@ -119,7 +119,7 @@ void read_dictionary (WordsDictionary *dict, DataStream *out) {
   }
 }
 
-void freadmissout(short *pptr, DataStream *in) {
+void freadmissout(short *pptr, Stream *in) {
   in->ReadArrayOfInt16(&pptr[0], 5);
   in->ReadArrayOfInt16(&pptr[7], NUM_CONDIT - 7);
   pptr[5] = pptr[6] = 0;
@@ -141,7 +141,7 @@ void encrypt_text(char *toenc) {
   }
 }
 
-void write_string_encrypt(DataStream *out, char *sss) {
+void write_string_encrypt(Stream *out, char *sss) {
   int stlent = (int)strlen(sss) + 1;
 
   out->WriteInt32(stlent);
@@ -150,7 +150,7 @@ void write_string_encrypt(DataStream *out, char *sss) {
   decrypt_text(sss);
 }
 
-void write_dictionary (WordsDictionary *dict, DataStream *out) {
+void write_dictionary (WordsDictionary *dict, Stream *out) {
   int ii;
 
   out->WriteInt32(dict->num_words);

@@ -24,7 +24,7 @@ using AGS::Common::Bitmap;
 using AGS::Common::AllegroBitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
 #define fopen +++do_not_use!!!+++
 
@@ -112,7 +112,7 @@ Bitmap *abuf;
   {
     int kk;
 
-    DataStream *in = Common::AssetManager::OpenAsset(filnam);
+    Stream *in = Common::AssetManager::OpenAsset(filnam);
     if (in == NULL)
       return -1;
 
@@ -185,7 +185,7 @@ Bitmap *abuf;
   Bitmap *wloadblock(char *fill)
   {
     short widd, hitt;
-    DataStream *in = Common::AssetManager::OpenAsset(fill);
+    Stream *in = Common::AssetManager::OpenAsset(fill);
     int ff;
 
     if (in == NULL)
@@ -208,7 +208,7 @@ Bitmap *abuf;
     char buff[20];
     int numspri = 0, vv, hh, wdd, htt;
 
-    DataStream *in = Common::AssetManager::OpenAsset(filnam);
+    Stream *in = Common::AssetManager::OpenAsset(filnam);
     if (in == NULL)
       return -1;
 

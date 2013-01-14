@@ -22,7 +22,7 @@
 #include "util/datastream.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 using AGS::Common::Bitmap;
 
 DynamicArray<GUIListBox> guilist;
@@ -46,7 +46,7 @@ void GUIListBox::ChangeFont(int newfont) {
 	  num_items_fit = hit / rowheight;
 }
 
-void GUIListBox::WriteToFile(DataStream *out)
+void GUIListBox::WriteToFile(Stream *out)
 {
   int a;
 
@@ -63,7 +63,7 @@ void GUIListBox::WriteToFile(DataStream *out)
     out->WriteArrayOfInt16(&saveGameIndex[0], numItems);
 }
 
-void GUIListBox::ReadFromFile(DataStream *in, int version)
+void GUIListBox::ReadFromFile(Stream *in, int version)
 {
   int a, i;
   char tempbuf[300];

@@ -16,9 +16,9 @@
 #include "ac/inventoryiteminfo.h"
 #include "util/datastream.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
-void InventoryItemInfo::ReadFromFile(DataStream *in)
+void InventoryItemInfo::ReadFromFile(Stream *in)
 {
     in->Read(name, 25);
     in->Seek(Common::kSeekCurrent, 3);
@@ -31,7 +31,7 @@ void InventoryItemInfo::ReadFromFile(DataStream *in)
     in->Seek(Common::kSeekCurrent, 3);
 }
 
-void InventoryItemInfo::WriteToFile(DataStream *out)
+void InventoryItemInfo::WriteToFile(Stream *out)
 {
     char padding[3] = {0,0,0};
 

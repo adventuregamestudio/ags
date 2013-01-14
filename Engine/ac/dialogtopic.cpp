@@ -15,9 +15,9 @@
 #include "ac/dialogtopic.h"
 #include "util/datastream.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
-void DialogTopic::ReadFromFile(DataStream *in)
+void DialogTopic::ReadFromFile(Stream *in)
 {
     in->ReadArray(optionnames, 150*sizeof(char), MAXTOPICOPTIONS);
     in->ReadArrayOfInt32(optionflags, MAXTOPICOPTIONS);

@@ -19,7 +19,7 @@
 #include "util/string_utils.h"      // fputstring, etc
 #include "util/datastream.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 using AGS::Common::String;
 
 InteractionVariable globalvars[MAX_GLOBAL_VARIABLES] = {{"Global 1", 0, 0}};
@@ -32,7 +32,7 @@ NewInteractionValue::NewInteractionValue() {
 }
 
 
-void NewInteractionValue::ReadFromFile(DataStream *in)
+void NewInteractionValue::ReadFromFile(Stream *in)
 {
     in->Read(&valType, 1);
     char pad[3];
@@ -41,7 +41,7 @@ void NewInteractionValue::ReadFromFile(DataStream *in)
     extra = in->ReadInt32();
 }
 
-void NewInteractionValue::WriteToFile(DataStream *out)
+void NewInteractionValue::WriteToFile(Stream *out)
 {
     out->Write(&valType, 1);
     char pad[3];
@@ -51,14 +51,14 @@ void NewInteractionValue::WriteToFile(DataStream *out)
 }
 
 
-void InteractionVariable::ReadFromFile(DataStream *in)
+void InteractionVariable::ReadFromFile(Stream *in)
 {
     in->Read(name, 23);
     type = in->ReadInt8();
     value = in->ReadInt32();
 }
 
-void InteractionVariable::WriteToFile(Common::DataStream *out)
+void InteractionVariable::WriteToFile(Common::Stream *out)
 {
     out->Write(name, 23);
     out->WriteInt8(type);
@@ -87,7 +87,7 @@ void NewInteractionCommand::remove () {
 
 void NewInteractionCommand::reset() { remove(); }
 
-void NewInteractionCommand::ReadFromFile(DataStream *in)
+void NewInteractionCommand::ReadFromFile(Stream *in)
 {
     in->ReadInt32(); // skip the vtbl ptr
     type = in->ReadInt32();
@@ -100,7 +100,7 @@ void NewInteractionCommand::ReadFromFile(DataStream *in)
     parent = (NewInteractionCommandList *) (long)in->ReadInt32();
 }
 
-void NewInteractionCommand::WriteToFile(DataStream *out)
+void NewInteractionCommand::WriteToFile(Stream *out)
 {
     out->WriteInt32(0); // write dummy vtbl ptr 
     out->WriteInt32(type);
@@ -158,7 +158,7 @@ NewInteraction::~NewInteraction() {
     reset();
 }
 
-void NewInteraction::ReadFromFile(DataStream *in)
+void NewInteraction::ReadFromFile(Stream *in)
 {
     // it's all ints! <- JJS: No, it's not! There are pointer too.
 
@@ -171,7 +171,7 @@ void NewInteraction::ReadFromFile(DataStream *in)
 
 //    in->ReadArray(&numEvents, sizeof(int), sizeof(NewInteraction)/sizeof(int));
 }
-void NewInteraction::WriteToFile(DataStream *out)
+void NewInteraction::WriteToFile(Stream *out)
 {
   out->WriteInt32(numEvents);
   out->WriteArray(&eventTypes, sizeof(*eventTypes), MAX_NEWINTERACTION_EVENTS);
@@ -194,7 +194,7 @@ InteractionScripts::~InteractionScripts() {
 }
 
 
-void serialize_command_list (NewInteractionCommandList *nicl, DataStream *out) {
+void serialize_command_list (NewInteractionCommandList *nicl, Stream *out) {
   if (nicl == NULL)
     return;
   out->WriteInt32 (nicl->numCommands);
@@ -209,7 +209,7 @@ void serialize_command_list (NewInteractionCommandList *nicl, DataStream *out) {
   }
 }
 
-void serialize_new_interaction (NewInteraction *nint, DataStream *out) {
+void serialize_new_interaction (NewInteraction *nint, Stream *out) {
   int a;
 
   out->WriteInt32 (1);  // Version
@@ -226,7 +226,7 @@ void serialize_new_interaction (NewInteraction *nint, DataStream *out) {
   }
 }
 
-NewInteractionCommandList *deserialize_command_list (DataStream *in) {
+NewInteractionCommandList *deserialize_command_list (Stream *in) {
   NewInteractionCommandList *nicl = new NewInteractionCommandList;
   nicl->numCommands = in->ReadInt32();
   nicl->timesRun = in->ReadInt32();
@@ -244,7 +244,7 @@ NewInteractionCommandList *deserialize_command_list (DataStream *in) {
 }
 
 NewInteraction *nitemp;
-NewInteraction *deserialize_new_interaction (DataStream *in) {
+NewInteraction *deserialize_new_interaction (Stream *in) {
   int a;
 
   if (in->ReadInt32() != 1)
@@ -270,7 +270,7 @@ NewInteraction *deserialize_new_interaction (DataStream *in) {
   return nitemp;
 }
 
-void deserialize_interaction_scripts(DataStream *in, InteractionScripts *scripts)
+void deserialize_interaction_scripts(Stream *in, InteractionScripts *scripts)
 {
   int numEvents = in->ReadInt32();
   if (numEvents > MAX_NEWINTERACTION_EVENTS)

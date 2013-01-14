@@ -34,7 +34,7 @@ int mousex, mousey;
 #include "gfx/bitmap.h"
 #include "core/assetmanager.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 //-----------------------------------------------------------------------------
@@ -53,7 +53,7 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 extern void Cstretch_blit(BITMAP *src, BITMAP *dst, int sx, int sy, int sw, int sh, int dx, int dy, int dw, int dh);
 extern void Cstretch_sprite(BITMAP *dst, BITMAP *src, int x, int y, int w, int h);
 
-void serialize_room_interactions(DataStream *);
+void serialize_room_interactions(Stream *);
 
 inline void Cstretch_blit(Common::Bitmap *src, Common::Bitmap *dst, int sx, int sy, int sw, int sh, int dx, int dy, int dw, int dh)
 {
@@ -397,11 +397,11 @@ int extract_room_template_files(const char *templateFileName, int newRoomNumber)
     if (stricmp(thisFile, ROOM_TEMPLATE_ID_FILE) == 0)
       continue;
 
-    DataStream *readin = Common::AssetManager::OpenAsset ((char*)thisFile);
+    Stream *readin = Common::AssetManager::OpenAsset ((char*)thisFile);
     char outputName[MAX_PATH];
     const char *extension = strchr(thisFile, '.');
     sprintf(outputName, "room%d%s", newRoomNumber, extension);
-    DataStream *wrout = Common::File::CreateFile(outputName);
+    Stream *wrout = Common::File::CreateFile(outputName);
     if ((readin == NULL) || (wrout == NULL)) 
     {
       delete wrout;
@@ -448,8 +448,8 @@ int extract_template_files(const char *templateFileName)
     if (stricmp(thisFile, TEMPLATE_LOCK_FILE) == 0)
       continue;
 
-    DataStream *readin = Common::AssetManager::OpenAsset ((char*)thisFile);
-    DataStream *wrout = Common::File::CreateFile (thisFile);
+    Stream *readin = Common::AssetManager::OpenAsset ((char*)thisFile);
+    Stream *wrout = Common::File::CreateFile (thisFile);
     if ((wrout == NULL) && (strchr(thisFile, '\\') != NULL))
     {
       // an old template with Music/Sound folder, create the folder
@@ -482,7 +482,7 @@ void extract_icon_from_template(char *iconName, char **iconDataBuffer, long *buf
   // make sure we get the icon from the file
   Common::AssetManager::SetSearchPriority(Common::kAssetPriorityLib);
   long sizey = Common::AssetManager::GetAssetSize(iconName);
-  DataStream* inpu = Common::AssetManager::OpenAsset (iconName);
+  Stream* inpu = Common::AssetManager::OpenAsset (iconName);
   if ((inpu != NULL) && (sizey > 0))
   {
     char *iconbuffer = (char*)malloc(sizey);
@@ -508,7 +508,7 @@ int load_template_file(const char *fileName, char **iconDataBuffer, long *iconDa
     {
       if (Common::AssetManager::GetAssetOffset((char*)ROOM_TEMPLATE_ID_FILE) > 0)
       {
-        DataStream *inpu = Common::AssetManager::OpenAsset((char*)ROOM_TEMPLATE_ID_FILE);
+        Stream *inpu = Common::AssetManager::OpenAsset((char*)ROOM_TEMPLATE_ID_FILE);
         if (inpu->ReadInt32() != ROOM_TEMPLATE_ID_FILE_SIGNATURE)
         {
           delete inpu;
@@ -541,7 +541,7 @@ int load_template_file(const char *fileName, char **iconDataBuffer, long *iconDa
 	      return 0;
       }
 
-	    DataStream *inpu = Common::AssetManager::OpenAsset((char*)old_editor_main_game_file);
+	    Stream *inpu = Common::AssetManager::OpenAsset((char*)old_editor_main_game_file);
 	    if (inpu != NULL) 
 	    {
 		    inpu->Seek(Common::kSeekCurrent, 30);
@@ -965,7 +965,7 @@ void update_font_sizes() {
 const char* import_sci_font(const char*fnn,int fslot) {
   char wgtfontname[100];
   sprintf(wgtfontname,"agsfnt%d.wfn",fslot);
-  DataStream*iii=Common::File::OpenFileRead(fnn);
+  Stream*iii=Common::File::OpenFileRead(fnn);
   if (iii==NULL) {
     return "File not found";
   }
@@ -981,7 +981,7 @@ const char* import_sci_font(const char*fnn,int fslot) {
   int lineHeight = iii->ReadInt16();
   short theiroffs[0x80];
   iii->ReadArrayOfInt16(theiroffs,0x80);
-  DataStream*ooo=Common::File::CreateFile(wgtfontname);
+  Stream*ooo=Common::File::CreateFile(wgtfontname);
   ooo->Write("WGT Font File  ",15);
   ooo->WriteInt16(0);  // will be table address
   short coffsets[0x80];
@@ -1426,7 +1426,7 @@ bool reload_font(int curFont)
   return wloadfont_size(curFont, fsize);
 }
 
-void load_script_modules_compiled(DataStream *inn) {
+void load_script_modules_compiled(Stream *inn) {
 
   numScriptModules = inn->ReadInt32();
   scModules = (ScriptModule*)realloc(scModules, sizeof(ScriptModule) * numScriptModules);
@@ -1437,7 +1437,7 @@ void load_script_modules_compiled(DataStream *inn) {
 
 }
 
-void read_dialogs(DataStream*iii, int filever, bool encrypted) {
+void read_dialogs(Stream*iii, int filever, bool encrypted) {
   int bb;
   dialog = (DialogTopic*)malloc(sizeof(DialogTopic) * thisgame.numdialog);
   iii->ReadArray(&dialog[0],sizeof(DialogTopic),thisgame.numdialog);
@@ -1486,7 +1486,7 @@ struct PluginData
 PluginData thisgamePlugins[MAX_PLUGINS];
 int numThisgamePlugins = 0;
 
-void write_plugins_to_disk (DataStream *ooo) {
+void write_plugins_to_disk (Stream *ooo) {
   int a;
   // version of plugin saving format
   ooo->WriteInt32 (1);
@@ -1508,7 +1508,7 @@ void write_plugins_to_disk (DataStream *ooo) {
   }
 }
 
-const char * read_plugins_from_disk (DataStream *iii) {
+const char * read_plugins_from_disk (Stream *iii) {
   if (iii->ReadInt32() != 1) {
     return "ERROR: unable to load game, invalid version of plugin data";
   }
@@ -1550,7 +1550,7 @@ void allocate_memory_for_views(int viewCount)
 const char *load_dta_file_into_thisgame(const char *fileName)
 {
   int bb;
-  DataStream*iii=Common::File::OpenFileRead(fileName);
+  Stream*iii=Common::File::OpenFileRead(fileName);
   if (iii == NULL)
     return "Unable to open file";
 
@@ -1970,7 +1970,7 @@ void calculate_walkable_areas () {
 void save_room(const char *files, roomstruct rstruc) {
   int               f;
   long              xoff, tesl;
-  DataStream       *opty;
+  Stream       *opty;
   room_file_header  rfh;
 
   if (rstruc.wasversion < kRoomVersion_Current)
@@ -2272,7 +2272,7 @@ MultiFileLibNew ourlib;
 //extern int get_pseudo_rand();
 const int RAND_SEED_SALT = 9338638;  // must update clib32.cpp if this changes
 
-void fwrite_data_enc(const void *data, int dataSize, int dataCount, DataStream *ooo)
+void fwrite_data_enc(const void *data, int dataSize, int dataCount, Stream *ooo)
 {
   const unsigned char *dataChar = (const unsigned char*)data;
   for (int i = 0; i < dataSize * dataCount; i++)
@@ -2281,17 +2281,17 @@ void fwrite_data_enc(const void *data, int dataSize, int dataCount, DataStream *
   }
 }
 
-void fputstring_enc(const char *sss, DataStream *ooo) 
+void fputstring_enc(const char *sss, Stream *ooo) 
 {
   fwrite_data_enc(sss, 1, strlen(sss) + 1, ooo);
 }
 
-void putw_enc(int numberToWrite, DataStream *ooo)
+void putw_enc(int numberToWrite, Stream *ooo)
 {
   fwrite_data_enc(&numberToWrite, 4, 1, ooo);
 }
 
-void write_clib_header(DataStream*wout) {
+void write_clib_header(Stream*wout) {
   int ff;
   int randSeed = (int)time(NULL);
   wout->WriteInt32(randSeed - RAND_SEED_SALT);
@@ -2313,7 +2313,7 @@ void write_clib_header(DataStream*wout) {
 
 
 #define CHUNKSIZE 256000
-int copy_file_across(DataStream*inlibb,DataStream*coppy,long leftforthis) {
+int copy_file_across(Stream*inlibb,Stream*coppy,long leftforthis) {
   int success = 1;
   char*diskbuffer=(char*)malloc(CHUNKSIZE+10);
   while (leftforthis>0) {
@@ -2361,7 +2361,7 @@ const char* make_old_style_data_file(const char* dataFileName, int numfile, char
 		ThrowManagedException(buffer);
     }
 
-    DataStream*ddd = Common::File::OpenFileRead(filenames[a]);
+    Stream*ddd = Common::File::OpenFileRead(filenames[a]);
     if (ddd==NULL) { 
       filesizes[a] = 0;
       continue;
@@ -2373,7 +2373,7 @@ const char* make_old_style_data_file(const char* dataFileName, int numfile, char
       writefname[a][bb] += passwmod;
   }
   // write the header
-  DataStream*wout=Common::File::CreateFile(dataFileName);
+  Stream*wout=Common::File::CreateFile(dataFileName);
   wout->Write("CLIB\x1a",5);
   wout->WriteByte(6);  // version
   wout->WriteByte(passwmod);  // password modifier
@@ -2387,7 +2387,7 @@ const char* make_old_style_data_file(const char* dataFileName, int numfile, char
   // now copy the data
   for (a=0;a<numfile;a++) {
 
-	DataStream*iii = Common::File::OpenFileRead(filenames[a]);
+	Stream*iii = Common::File::OpenFileRead(filenames[a]);
     if (iii==NULL) {
       errorMsg = "unable to add one of the files to data file.";
       continue;
@@ -2412,11 +2412,11 @@ const char* make_old_style_data_file(const char* dataFileName, int numfile, char
   return errorMsg;
 }
 
-DataStream* find_file_in_path(char *buffer, const char *fileName)
+Stream* find_file_in_path(char *buffer, const char *fileName)
 {
 	char tomake[MAX_PATH];
 	strcpy(tomake, fileName);
-	DataStream* iii = Common::AssetManager::OpenAsset(tomake);
+	Stream* iii = Common::AssetManager::OpenAsset(tomake);
 	if (iii == NULL) {
 	  // try in the Audio folder if not found
 	  sprintf(tomake, "AudioCache\\%s", fileName);
@@ -2437,7 +2437,7 @@ DataStream* find_file_in_path(char *buffer, const char *fileName)
 const char* make_data_file(int numFiles, char * const*fileNames, long splitSize, const char *baseFileName, bool makeFileNameAssumptionsForEXE)
 {
   int a,b;
-  DataStream*wout;
+  Stream*wout;
   char tomake[MAX_PATH];
   ourlib.num_data_files = 0;
   ourlib.num_files = numFiles;
@@ -2466,7 +2466,7 @@ const char* make_data_file(int numFiles, char * const*fileNames, long splitSize,
 		  }
 	  }
 	  long thisFileSize = 0;
-	  DataStream *tf = Common::File::OpenFileRead(fileNames[a]);
+	  Stream *tf = Common::File::OpenFileRead(fileNames[a]);
 	  thisFileSize = tf->GetLength();
 	  delete tf;
 	  
@@ -2530,7 +2530,7 @@ const char* make_data_file(int numFiles, char * const*fileNames, long splitSize,
   // write the correct amount of data
   for (b = 0; b < ourlib.num_files; b++) 
   {
-	DataStream *iii = find_file_in_path(tomake, ourlib.filenames[b]);
+	Stream *iii = find_file_in_path(tomake, ourlib.filenames[b]);
 	if (iii != NULL)
 	{
 		delete iii;
@@ -2575,7 +2575,7 @@ const char* make_data_file(int numFiles, char * const*fileNames, long splitSize,
       if (ourlib.file_datafile[b] == a) {
         ourlib.offset[b] = wout->GetPosition() - startOffset;
 
-		DataStream *iii = find_file_in_path(NULL, ourlib.filenames[b]);
+		Stream *iii = find_file_in_path(NULL, ourlib.filenames[b]);
         if (iii == NULL) {
           delete wout;
           unlink(outputFileName);
@@ -4175,7 +4175,7 @@ System::String ^load_room_script(System::String ^fileName)
 	char roomFileNameBuffer[MAX_PATH];
 	ConvertStringToCharArray(fileName, roomFileNameBuffer);
 
-	DataStream *opty = Common::AssetManager::OpenAsset(roomFileNameBuffer);
+	Stream *opty = Common::AssetManager::OpenAsset(roomFileNameBuffer);
 	if (opty == NULL) throw gcnew AGSEditorException("Unable to open room file");
 
 	short version = opty->ReadInt16();
@@ -4631,7 +4631,7 @@ public:
     }
 };
 
-void write_compiled_script(DataStream *ooo, Script ^script)
+void write_compiled_script(Stream *ooo, Script ^script)
 {
 	if (script->CompiledData == nullptr)
 	{
@@ -4641,7 +4641,7 @@ void write_compiled_script(DataStream *ooo, Script ^script)
 	((AGS::Native::CompiledScript^)script->CompiledData)->Data->Write(ooo);
 }
 
-void serialize_interaction_scripts(Interactions ^interactions, DataStream *ooo)
+void serialize_interaction_scripts(Interactions ^interactions, Stream *ooo)
 {
 	char textBuffer[256];
 	ooo->WriteInt32(interactions->ScriptFunctionNames->Length);
@@ -4659,7 +4659,7 @@ void serialize_interaction_scripts(Interactions ^interactions, DataStream *ooo)
 	}
 }
 
-void serialize_room_interactions(DataStream *ooo) 
+void serialize_room_interactions(Stream *ooo) 
 {
 	Room ^roomBeingSaved = TempDataStorage::RoomBeingSaved;
 	serialize_interaction_scripts(roomBeingSaved->Interactions, ooo);
@@ -4683,7 +4683,7 @@ void save_thisgame_to_file(const char *fileName, Game ^game)
   char textBuffer[500];
 	int bb;
 
-	DataStream*ooo = Common::File::CreateFile(fileName);
+	Stream*ooo = Common::File::CreateFile(fileName);
 	if (ooo == NULL) 
 	{
 		throw gcnew CompileError(String::Format("Cannot open file {0} for writing", gcnew String(fileName)));
@@ -5217,19 +5217,19 @@ void quit(char * message)
 
 // ** GRAPHICAL SCRIPT LOAD/SAVE ROUTINES ** //
 
-long getlong(DataStream*iii) {
+long getlong(Stream*iii) {
   long tmm;
   tmm = iii->ReadInt32();
   return tmm;
 }
 
-void save_script_configuration(DataStream*iii) {
+void save_script_configuration(Stream*iii) {
   // no variable names
   iii->WriteInt32 (1);
   iii->WriteInt32 (0);
 }
 
-void load_script_configuration(DataStream*iii) { int aa;
+void load_script_configuration(Stream*iii) { int aa;
   if (getlong(iii)!=1) quit("ScriptEdit: invliad config version");
   int numvarnames=getlong(iii);
   for (aa=0;aa<numvarnames;aa++) {
@@ -5238,13 +5238,13 @@ void load_script_configuration(DataStream*iii) { int aa;
   }
 }
 
-void save_graphical_scripts(DataStream*fff,roomstruct*rss) {
+void save_graphical_scripts(Stream*fff,roomstruct*rss) {
   // no script
   fff->WriteInt32 (-1);
 }
 
 char*scripttempn="~acsc%d.tmp";
-void load_graphical_scripts(DataStream*iii,roomstruct*rst) {
+void load_graphical_scripts(Stream*iii,roomstruct*rst) {
   long ct;
   bool doneMsg = false;
   while (1) {

@@ -16,9 +16,9 @@
 #include "ac/movelist.h"
 #include "util/datastream.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
-void MoveList::ReadFromFile(DataStream *in)
+void MoveList::ReadFromFile(Stream *in)
 {
     char padding[3] = {0,0,0};
     in->ReadArrayOfInt32(pos, MAXNEEDSTAGES);
@@ -36,7 +36,7 @@ void MoveList::ReadFromFile(DataStream *in)
     in->Read(padding, 2);
 }
 
-void MoveList::WriteToFile(DataStream *out)
+void MoveList::WriteToFile(Stream *out)
 {
     char padding[3] = {0,0,0};
     out->WriteArrayOfInt32(pos, MAXNEEDSTAGES);

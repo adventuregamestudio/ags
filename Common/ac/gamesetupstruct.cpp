@@ -20,7 +20,7 @@
 #include "util/datastream.h"
 #include "core/assetmanager.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 using AGS::Common::String;
 
 
@@ -83,7 +83,7 @@ void GameSetupStruct::BuildAudioClipArray()
 }
 
 
-void GameSetupStruct::ReadFromFile_Part1(Common::DataStream *in, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::ReadFromFile_Part1(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     read_savegame_info(in, read_data);
     read_font_flags(in, read_data);
@@ -94,14 +94,14 @@ void GameSetupStruct::ReadFromFile_Part1(Common::DataStream *in, GAME_STRUCT_REA
     read_words_dictionary(in, read_data);
 }
 
-void GameSetupStruct::ReadFromFile_Part2(Common::DataStream *in, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::ReadFromFile_Part2(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
 {
    read_characters(in, read_data);
    read_lipsync(in, read_data);
    read_messages(in, read_data);
 }
 
-void GameSetupStruct::ReadFromFile_Part3(Common::DataStream *in, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::ReadFromFile_Part3(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     read_customprops(in, read_data);
     read_audio(in, read_data);
@@ -111,7 +111,7 @@ void GameSetupStruct::ReadFromFile_Part3(Common::DataStream *in, GAME_STRUCT_REA
 //-----------------------------------------------------------------------------
 // Reading Part 1
 
-void GameSetupStruct::read_savegame_info(Common::DataStream *in, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_savegame_info(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     if (read_data.filever > kGameVersion_272) // only 3.x
     {
@@ -126,13 +126,13 @@ void GameSetupStruct::read_savegame_info(Common::DataStream *in, GAME_STRUCT_REA
     }
 }
 
-void GameSetupStruct::read_font_flags(Common::DataStream *in, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_font_flags(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     in->Read(&fontflags[0], numfonts);
     in->Read(&fontoutline[0], numfonts);
 }
 
-void GameSetupStruct::read_sprite_flags(Common::DataStream *in, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_sprite_flags(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     int numToRead;
     if (read_data.filever < kGameVersion_256)
@@ -146,7 +146,7 @@ void GameSetupStruct::read_sprite_flags(Common::DataStream *in, GAME_STRUCT_READ
     in->Read(&spriteflags[0], numToRead);
 }
 
-void GameSetupStruct::read_invinfo(Common::DataStream *in, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_invinfo(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     for (int iteratorCount = 0; iteratorCount < numinvitems; ++iteratorCount)
     {
@@ -154,7 +154,7 @@ void GameSetupStruct::read_invinfo(Common::DataStream *in, GAME_STRUCT_READ_DATA
     }
 }
 
-void GameSetupStruct::read_cursors(Common::DataStream *in, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_cursors(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     if (numcursors > MAX_CURSOR)
         quit("Too many cursors: need newer AGS version");
@@ -176,7 +176,7 @@ void GameSetupStruct::read_cursors(Common::DataStream *in, GAME_STRUCT_READ_DATA
     }
 }
 
-void GameSetupStruct::read_interaction_scripts(Common::DataStream *in, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_interaction_scripts(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     numGlobalVars = 0;
 
@@ -215,7 +215,7 @@ void GameSetupStruct::read_interaction_scripts(Common::DataStream *in, GAME_STRU
     }
 }
 
-void GameSetupStruct::read_words_dictionary(Common::DataStream *in, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_words_dictionary(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     if (dict != NULL) {
         dict = (WordsDictionary*)malloc(sizeof(WordsDictionary));
@@ -226,7 +226,7 @@ void GameSetupStruct::read_words_dictionary(Common::DataStream *in, GAME_STRUCT_
 //-----------------------------------------------------------------------------
 // Reading Part 2
 
-void GameSetupStruct::read_characters(Common::DataStream *in, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_characters(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     chars=(CharacterInfo*)calloc(1,sizeof(CharacterInfo)*numcharacters+5);
 
@@ -260,13 +260,13 @@ void GameSetupStruct::read_characters(Common::DataStream *in, GAME_STRUCT_READ_D
     }
 }
 
-void GameSetupStruct::read_lipsync(Common::DataStream *in, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_lipsync(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     if (read_data.filever > kGameVersion_251) // > 2.1
         in->ReadArray(&lipSyncFrameLetters[0][0], MAXLIPSYNCFRAMES, 50);
 }
 
-void GameSetupStruct::read_messages(Common::DataStream *in, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_messages(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     for (int ee=0;ee<MAXGLOBALMES;ee++) {
         if (messages[ee]==NULL) continue;
@@ -292,7 +292,7 @@ void GameSetupStruct::read_messages(Common::DataStream *in, GAME_STRUCT_READ_DAT
 //-----------------------------------------------------------------------------
 // Reading Part 3
 
-void GameSetupStruct::read_customprops(Common::DataStream *in, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_customprops(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     if (read_data.filever >= kGameVersion_260) // >= 2.60
     {
@@ -321,7 +321,7 @@ void GameSetupStruct::read_customprops(Common::DataStream *in, GAME_STRUCT_READ_
     }
 }
 
-void GameSetupStruct::read_audio(Common::DataStream *in, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_audio(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     int i;
     if (read_data.filever >= kGameVersion_320)
@@ -387,7 +387,7 @@ void GameSetupStruct::read_audio(Common::DataStream *in, GAME_STRUCT_READ_DATA &
 // it is unknown if this should be defined for all solution, or only runtime
 #define STD_BUFFER_SIZE 3000
 
-void GameSetupStruct::read_room_names(DataStream *in, GAME_STRUCT_READ_DATA &read_data)
+void GameSetupStruct::read_room_names(Stream *in, GAME_STRUCT_READ_DATA &read_data)
 {
     if ((read_data.filever >= kGameVersion_pre300) && (options[OPT_DEBUGMODE] != 0))
     {
@@ -409,7 +409,7 @@ void GameSetupStruct::read_room_names(DataStream *in, GAME_STRUCT_READ_DATA &rea
     }
 }
 
-void GameSetupStruct::ReadFromSaveGame(DataStream *in, char* gswas, ccScript* compsc, CharacterInfo* chwas,
+void GameSetupStruct::ReadFromSaveGame(Stream *in, char* gswas, ccScript* compsc, CharacterInfo* chwas,
                                        WordsDictionary *olddict, char** mesbk)
 {
     int bb;
@@ -451,7 +451,7 @@ void GameSetupStruct::ReadFromSaveGame(DataStream *in, char* gswas, ccScript* co
     }
 }
 
-void GameSetupStruct::WriteForSaveGame(DataStream *out)
+void GameSetupStruct::WriteForSaveGame(Stream *out)
 {
     // [IKM] No padding here! -- this data was originally written exactly as done here
     //

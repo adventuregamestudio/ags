@@ -21,7 +21,7 @@
 #include "script/cc_error.h"
 #include "util/datastream.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
 void ManagedObjectPool::ManagedObject::init(int32_t theHandle, const char *theAddress, ICCDynamicObject *theCallback) {
     handle = theHandle;
@@ -219,7 +219,7 @@ int ManagedObjectPool::AddObject(const char *address, ICCDynamicObject *callback
     }
 }
 
-void ManagedObjectPool::WriteToDisk(DataStream *out) {
+void ManagedObjectPool::WriteToDisk(Stream *out) {
     int serializeBufferSize = SERIALIZE_BUFFER_SIZE;
     char *serializeBuffer = (char*)malloc(serializeBufferSize);
 
@@ -256,7 +256,7 @@ void ManagedObjectPool::WriteToDisk(DataStream *out) {
     free(serializeBuffer);
 }
 
-int ManagedObjectPool::ReadFromDisk(DataStream *in, ICCObjectReader *reader) {
+int ManagedObjectPool::ReadFromDisk(Stream *in, ICCObjectReader *reader) {
     int serializeBufferSize = SERIALIZE_BUFFER_SIZE;
     char *serializeBuffer = (char*)malloc(serializeBufferSize);
     char typeNameBuffer[200];

@@ -26,8 +26,8 @@ private:
 public:
   int font, textcol, align;
 
-  virtual void WriteToFile(Common::DataStream *out);
-  virtual void ReadFromFile(Common::DataStream *in, int version);
+  virtual void WriteToFile(Common::Stream *out);
+  virtual void ReadFromFile(Common::Stream *in, int version);
   void Draw();
   void printtext_align(int yy, char *teptr);
   void SetText(const char *newText);

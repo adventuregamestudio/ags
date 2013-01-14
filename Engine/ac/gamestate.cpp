@@ -18,7 +18,7 @@
 #include "util/string_utils.h"
 #include "util/datastream.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
 //
 // [IKM] What must be kept in mind: in previous versions of AGS
@@ -32,7 +32,7 @@ using AGS::Common::DataStream;
 
 extern GameSetupStruct game;
 
-void GameState::ReadFromFile(DataStream *in)
+void GameState::ReadFromFile(Stream *in)
 {
     char padding[3] = {0,0,0}; // to align data
 
@@ -218,7 +218,7 @@ void GameState::ReadFromFile(DataStream *in)
     in->ReadArrayOfInt32(default_audio_type_volumes, MAX_AUDIO_TYPES);
 }
 
-void GameState::WriteToFile(DataStream *out)
+void GameState::WriteToFile(Stream *out)
 {
     //-------------------------------------------------
     // [IKM] 2012-07-02 : on padding.

@@ -67,7 +67,7 @@
 #include "media/audio/audio.h"
 #include "util/string_utils.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
 #include "ac/dynobj/scriptstring.h"
 extern ScriptString myScriptStringImpl;
@@ -377,76 +377,76 @@ RuntimeScriptValue Sc_my_fade_out(const RuntimeScriptValue *params, int32_t para
     API_SCALL_VOID_PINT(my_fade_out);
 }
 
-// void (DataStream *hha)
+// void (Stream *hha)
 RuntimeScriptValue Sc_FileClose(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_POBJ(FileClose, DataStream);
+    API_SCALL_VOID_POBJ(FileClose, Stream);
 }
 
-// int  (DataStream *haa)
+// int  (Stream *haa)
 RuntimeScriptValue Sc_FileIsEOF(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_POBJ(FileIsEOF, DataStream);
+    API_SCALL_INT_POBJ(FileIsEOF, Stream);
 }
 
-// int (DataStream *haa)
+// int (Stream *haa)
 RuntimeScriptValue Sc_FileIsError(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_POBJ(FileIsError, DataStream);
+    API_SCALL_INT_POBJ(FileIsError, Stream);
 }
 
-// DataStream *(const char*fnmm, const char* cmode)
+// Stream *(const char*fnmm, const char* cmode)
 RuntimeScriptValue Sc_FileOpenCMode(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_STOBJ_POBJ2(DataStream, FileOpenCMode, const char, const char);
+    API_SCALL_STOBJ_POBJ2(Stream, FileOpenCMode, const char, const char);
 }
 
-// void (DataStream *haa,char*toread)
+// void (Stream *haa,char*toread)
 RuntimeScriptValue Sc_FileRead(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_POBJ2(FileRead, DataStream, char);
+    API_SCALL_VOID_POBJ2(FileRead, Stream, char);
 }
 
-// int (DataStream *haa)
+// int (Stream *haa)
 RuntimeScriptValue Sc_FileReadInt(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_POBJ(FileReadInt, DataStream);
+    API_SCALL_INT_POBJ(FileReadInt, Stream);
 }
 
-// char (DataStream *haa)
+// char (Stream *haa)
 RuntimeScriptValue Sc_FileReadRawChar(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_POBJ(FileReadRawChar, DataStream);
+    API_SCALL_INT_POBJ(FileReadRawChar, Stream);
 }
 
-// int (DataStream *haa)
+// int (Stream *haa)
 RuntimeScriptValue Sc_FileReadRawInt(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_POBJ(FileReadRawInt, DataStream);
+    API_SCALL_INT_POBJ(FileReadRawInt, Stream);
 }
 
-// void (DataStream *haa, const char *towrite)
+// void (Stream *haa, const char *towrite)
 RuntimeScriptValue Sc_FileWrite(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_POBJ2(FileWrite, DataStream, const char);
+    API_SCALL_VOID_POBJ2(FileWrite, Stream, const char);
 }
 
-// void (DataStream *haa,int into)
+// void (Stream *haa,int into)
 RuntimeScriptValue Sc_FileWriteInt(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_POBJ_PINT(FileWriteInt, DataStream);
+    API_SCALL_VOID_POBJ_PINT(FileWriteInt, Stream);
 }
 
-// void (DataStream *haa, int chartoWrite)
+// void (Stream *haa, int chartoWrite)
 RuntimeScriptValue Sc_FileWriteRawChar(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_POBJ_PINT(FileWriteRawChar, DataStream);
+    API_SCALL_VOID_POBJ_PINT(FileWriteRawChar, Stream);
 }
 
-// void (DataStream *haa, const char*towrite)
+// void (Stream *haa, const char*towrite)
 RuntimeScriptValue Sc_FileWriteRawLine(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_POBJ2(FileWriteRawLine, DataStream, const char);
+    API_SCALL_VOID_POBJ2(FileWriteRawLine, Stream, const char);
 }
 
 // int  (const char* GUIName)

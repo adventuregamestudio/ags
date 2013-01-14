@@ -16,9 +16,9 @@
 #include "ac/messageinfo.h"
 #include "util/datastream.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
-void MessageInfo::ReadFromFile(DataStream *in)
+void MessageInfo::ReadFromFile(Stream *in)
 {
     displayas = in->ReadInt8();
     flags = in->ReadInt8();

@@ -18,9 +18,9 @@
 #include "ac/roomstatus.h"
 #include "util/datastream.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
-void RoomStatus::ReadFromFile(DataStream *in)
+void RoomStatus::ReadFromFile(Stream *in)
 {
     beenhere = in->ReadInt32();
     numobj = in->ReadInt32();
@@ -52,7 +52,7 @@ void RoomStatus::ReadFromFile(DataStream *in)
     in->Seek(Common::kSeekCurrent, get_padding(MAX_HOTSPOTS+MAX_REGIONS+2*MAX_OBJ));
     in->ReadArrayOfInt32(interactionVariableValues, MAX_GLOBAL_VARIABLES);
 }
-void RoomStatus::WriteToFile(DataStream *out)
+void RoomStatus::WriteToFile(Stream *out)
 {
     char pad[4];
     out->WriteInt32(beenhere);

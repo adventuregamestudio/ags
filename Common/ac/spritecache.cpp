@@ -34,7 +34,7 @@
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 namespace File = AGS::Common::File;
 
 //#define DEBUG_SPRITECACHE
@@ -463,7 +463,7 @@ int SpriteCache::loadSprite(int index)
 
 const char *spriteFileSig = " Sprite File ";
 
-void SpriteCache::compressSprite(Bitmap *sprite, DataStream *out) {
+void SpriteCache::compressSprite(Bitmap *sprite, Stream *out) {
 
   int depth = sprite->GetColorDepth() / 8;
 
@@ -484,7 +484,7 @@ void SpriteCache::compressSprite(Bitmap *sprite, DataStream *out) {
 
 int SpriteCache::saveToFile(const char *filnam, int lastElement, bool compressOutput)
 {
-  DataStream *output = Common::File::CreateFile(filnam);
+  Stream *output = Common::File::CreateFile(filnam);
   if (output == NULL)
     return -1;
 
@@ -625,7 +625,7 @@ int SpriteCache::saveToFile(const char *filnam, int lastElement, bool compressOu
   delete output;
 
   // write the sprite index file
-  DataStream *spindex_out = File::CreateFile(spindexfilename);
+  Stream *spindex_out = File::CreateFile(spindexfilename);
   // write "SPRINDEX" id
   spindex_out->WriteArray(&spindexid[0], strlen(spindexid), 1);
   // write version (1)
@@ -772,7 +772,7 @@ bool SpriteCache::loadSpriteIndexFile(int expectedFileID, long spr_initial_offs,
 {
   short numspri_index = 0;
   int vv;
-  DataStream *fidx = Common::AssetManager::OpenAsset((char*)spindexfilename);
+  Stream *fidx = Common::AssetManager::OpenAsset((char*)spindexfilename);
   if (fidx == NULL) 
   {
     return false;

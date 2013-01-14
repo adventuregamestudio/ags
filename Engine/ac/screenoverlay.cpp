@@ -16,9 +16,9 @@
 #include "screenoverlay.h"
 #include "util/datastream.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
-void ScreenOverlay::ReadFromFile(DataStream *in)
+void ScreenOverlay::ReadFromFile(Stream *in)
 {
     // Skipping bmp and pic pointer values
     in->ReadInt32();
@@ -34,7 +34,7 @@ void ScreenOverlay::ReadFromFile(DataStream *in)
     in->Seek(Common::kSeekCurrent, get_padding(sizeof(int8_t) * 2));
 }
 
-void ScreenOverlay::WriteToFile(DataStream *out)
+void ScreenOverlay::WriteToFile(Stream *out)
 {
     char padding[3] = {0,0,0};
     // Writing bitmap "pointers" to correspond to full structure writing

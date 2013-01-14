@@ -53,7 +53,7 @@
 #include "debug/out.h"
 #include "ac/dynobj/scriptstring.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -906,9 +906,9 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
 
 #include "util/datastream.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
-void pl_read_plugins_from_disk (DataStream *in) {
+void pl_read_plugins_from_disk (Stream *in) {
     if (in->ReadInt32() != 1)
         quit("ERROR: unable to load game, invalid version of plugin data");
 

@@ -23,7 +23,7 @@
 #include "main/update.h"
 #include "util/datastream.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
 
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
@@ -131,7 +131,7 @@ void RoomObject::update_cycle_view_backwards()
       }
 }
 
-void RoomObject::ReadFromFile(DataStream *in)
+void RoomObject::ReadFromFile(Stream *in)
 {
     in->ReadArrayOfInt32(&x, 3);
     in->ReadArrayOfInt16(&tint_r, 15);
@@ -139,7 +139,7 @@ void RoomObject::ReadFromFile(DataStream *in)
     in->ReadArrayOfInt16(&blocking_width, 2);
     in->Seek(Common::kSeekCurrent, 2);
 }
-void RoomObject::WriteToFile(DataStream *out)
+void RoomObject::WriteToFile(Stream *out)
 {
     out->WriteArrayOfInt32(&x, 3);
     out->WriteArrayOfInt16(&tint_r, 15);

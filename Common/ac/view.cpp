@@ -19,9 +19,9 @@
 #include "util/file.h"
 #include "util/datastream.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
-void ViewFrame::ReadFromFile(DataStream *in)
+void ViewFrame::ReadFromFile(Stream *in)
 {
     pic = in->ReadInt32();
     xoffs = in->ReadInt16();
@@ -34,7 +34,7 @@ void ViewFrame::ReadFromFile(DataStream *in)
     reserved_for_future[1] = in->ReadInt32();
 }
 
-void ViewFrame::WriteToFile(DataStream *out)
+void ViewFrame::WriteToFile(Stream *out)
 {
     char padding[3] = {0,0,0};
 
@@ -71,7 +71,7 @@ void ViewLoopNew::Dispose()
     }
 }
 
-void ViewLoopNew::WriteToFile(DataStream *out)
+void ViewLoopNew::WriteToFile(Stream *out)
 {
     out->WriteInt16(numFrames);
     out->WriteInt32(flags);
@@ -83,7 +83,7 @@ void ViewLoopNew::WriteToFile(DataStream *out)
 }
 
 
-void ViewLoopNew::ReadFromFile(DataStream *in)
+void ViewLoopNew::ReadFromFile(Stream *in)
 {
     Initialize(in->ReadInt16());
     flags = in->ReadInt32();
@@ -116,7 +116,7 @@ void ViewStruct::Dispose()
     }
 }
 
-void ViewStruct::WriteToFile(DataStream *out)
+void ViewStruct::WriteToFile(Stream *out)
 {
     out->WriteInt16(numLoops);
     for (int i = 0; i < numLoops; i++)
@@ -125,7 +125,7 @@ void ViewStruct::WriteToFile(DataStream *out)
     }
 }
 
-void ViewStruct::ReadFromFile(DataStream *in)
+void ViewStruct::ReadFromFile(Stream *in)
 {
     Initialize(in->ReadInt16());
 
@@ -135,7 +135,7 @@ void ViewStruct::ReadFromFile(DataStream *in)
     }
 }
 
-void ViewStruct272::ReadFromFile(DataStream *in)
+void ViewStruct272::ReadFromFile(Stream *in)
 {
     numloops = in->ReadInt16();
     for (int i = 0; i < 16; ++i)

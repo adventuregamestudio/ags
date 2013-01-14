@@ -29,7 +29,7 @@
 #include "core/assetmanager.h"
 #include "main/game_file.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
 #if defined (AGS_RUNTIME_PATCH_ALLEGRO)
 #include <dlfcn.h>
@@ -296,9 +296,9 @@ void get_current_dir_path(char* buffer, const char *fileName)
     }
 }
 
-DataStream *valid_handles[MAX_OPEN_SCRIPT_FILES+1];
+Stream *valid_handles[MAX_OPEN_SCRIPT_FILES+1];
 int num_open_script_files = 0;
-int check_valid_file_handle(DataStream *hann, char*msg) {
+int check_valid_file_handle(Stream *hann, char*msg) {
   int aa;
   if (hann != NULL) {
     for (aa=0; aa < num_open_script_files; aa++) {

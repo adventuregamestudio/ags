@@ -43,7 +43,7 @@
 #include "ac/statobj/staticarray.h"
 
 using AGS::Common::Bitmap;
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 using AGS::Common::String;
 
 extern int engineNeedsAsInt; // defined in ac_game
@@ -122,9 +122,9 @@ int psp_is_old_datafile = 0; // Set for 3.1.1 and 3.1.2 datafiles
 String game_file_name;
 
 
-DataStream * game_file_open()
+Stream * game_file_open()
 {
-	DataStream*in = Common::AssetManager::OpenAsset("game28.dta"); // 3.x data file name
+	Stream*in = Common::AssetManager::OpenAsset("game28.dta"); // 3.x data file name
     if (in==NULL) {
         in = Common::AssetManager::OpenAsset("ac2game.dta"); // 2.x data file name
     }
@@ -132,7 +132,7 @@ DataStream * game_file_open()
 	return in;
 }
 
-int game_file_read_version(DataStream *in)
+int game_file_read_version(Stream *in)
 {
 	char teststr[31];
 
@@ -176,7 +176,7 @@ int game_file_read_version(DataStream *in)
 	return RETURN_CONTINUE;
 }
 
-void game_file_read_dialog_script(DataStream *in)
+void game_file_read_dialog_script(Stream *in)
 {
 	if (filever > kGameVersion_310) // 3.1.1+ dialog script
     {
@@ -190,7 +190,7 @@ void game_file_read_dialog_script(DataStream *in)
     }
 }
 
-void game_file_read_script_modules(DataStream *in)
+void game_file_read_script_modules(Stream *in)
 {
 	if (filever >= kGameVersion_270) // 2.7.0+ script modules
     {
@@ -213,7 +213,7 @@ void game_file_read_script_modules(DataStream *in)
     }
 }
 
-void game_file_read_views(DataStream *in)
+void game_file_read_views(Stream *in)
 {
 	if (filever > kGameVersion_272) // 3.x views
     {
@@ -258,7 +258,7 @@ void game_file_set_default_glmsg()
     set_default_glmsg (995, "Are you sure you want to quit?");
 }
 
-void game_file_read_dialogs(DataStream *in)
+void game_file_read_dialogs(Stream *in)
 {
 	dialog=(DialogTopic*)malloc(sizeof(DialogTopic)*game.numdialog+5);
 
@@ -344,7 +344,7 @@ void game_file_read_dialogs(DataStream *in)
     }
 }
 
-void game_file_read_gui(DataStream *in)
+void game_file_read_gui(Stream *in)
 {
 	read_gui(in,guis,&game, &guis);
 
@@ -565,7 +565,7 @@ int load_game_file() {
 	// Start reading from file
 	//-----------------------------------------------------------
 
-    DataStream *in = game_file_open();
+    Stream *in = game_file_open();
 	if (in==NULL)
 		return -1;
 

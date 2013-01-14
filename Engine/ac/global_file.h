@@ -20,22 +20,22 @@
 
 #include "util/file.h"
 
-namespace AGS { namespace Common { class DataStream; } }
+namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
-Common::DataStream *FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode);
+Common::Stream *FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode);
 // NOTE: FileOpenCMode is a backwards-compatible replacement for old-style global script function FileOpen
-Common::DataStream *FileOpenCMode(const char*fnmm, const char* cmode);
-void  FileClose(Common::DataStream *hha);
-void  FileWrite(Common::DataStream *haa, const char *towrite);
-void  FileWriteRawLine(Common::DataStream *haa, const char*towrite);
-void  FileRead(Common::DataStream *haa,char*toread);
-int   FileIsEOF (Common::DataStream *haa);
-int   FileIsError(Common::DataStream *haa);
-void  FileWriteInt(Common::DataStream *haa,int into);
-int   FileReadInt(Common::DataStream *haa);
-char  FileReadRawChar(Common::DataStream *haa);
-int   FileReadRawInt(Common::DataStream *haa);
-void  FileWriteRawChar(Common::DataStream *haa, int chartoWrite);
+Common::Stream *FileOpenCMode(const char*fnmm, const char* cmode);
+void  FileClose(Common::Stream *hha);
+void  FileWrite(Common::Stream *haa, const char *towrite);
+void  FileWriteRawLine(Common::Stream *haa, const char*towrite);
+void  FileRead(Common::Stream *haa,char*toread);
+int   FileIsEOF (Common::Stream *haa);
+int   FileIsError(Common::Stream *haa);
+void  FileWriteInt(Common::Stream *haa,int into);
+int   FileReadInt(Common::Stream *haa);
+char  FileReadRawChar(Common::Stream *haa);
+int   FileReadRawInt(Common::Stream *haa);
+void  FileWriteRawChar(Common::Stream *haa, int chartoWrite);
 
 #endif // __AGS_EE_AC__GLOBALFILE_H

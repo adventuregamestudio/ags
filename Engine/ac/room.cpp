@@ -63,7 +63,7 @@
 #include "ac/dynobj/all_dynamicclasses.h"
 
 using AGS::Common::Bitmap;
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 using AGS::Common::String;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 

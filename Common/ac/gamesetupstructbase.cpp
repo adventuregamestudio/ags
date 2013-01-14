@@ -16,9 +16,9 @@
 #include "ac/gamesetupstructbase.h"
 #include "util/datastream.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
-void GameSetupStructBase::ReadFromFile(DataStream *in)
+void GameSetupStructBase::ReadFromFile(Stream *in)
 {
     in->Read(&gamename[0], 50);
     in->Seek(Common::kSeekCurrent, 2);    // skip the array padding
@@ -60,7 +60,7 @@ void GameSetupStructBase::ReadFromFile(DataStream *in)
     compiled_script = (ccScript *) in->ReadInt32();
 }
 
-void GameSetupStructBase::WriteToFile(DataStream *out)
+void GameSetupStructBase::WriteToFile(Stream *out)
 {
     out->Write(&gamename[0], 50);
     char padding[2];

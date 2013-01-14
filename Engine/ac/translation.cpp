@@ -26,7 +26,7 @@
 #include "util/datastream.h"
 #include "core/assetmanager.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
 extern GameSetup usetup;
 extern GameSetupStruct game;
@@ -57,7 +57,7 @@ bool init_translation (const char *lang) {
 
     transFileLoc = ci_find_file(usetup.data_files_dir, transFileName);
 
-    DataStream *language_file = Common::AssetManager::OpenAsset(transFileLoc);
+    Stream *language_file = Common::AssetManager::OpenAsset(transFileLoc);
     free(transFileLoc);
 
     if (language_file == NULL) 

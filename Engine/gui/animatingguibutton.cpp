@@ -15,9 +15,9 @@
 #include "gui/animatingguibutton.h"
 #include "util/datastream.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
-void AnimatingGUIButton::ReadFromFile(DataStream *in)
+void AnimatingGUIButton::ReadFromFile(Stream *in)
 {
     buttonid = in->ReadInt16();
     ongui = in->ReadInt16();
@@ -30,7 +30,7 @@ void AnimatingGUIButton::ReadFromFile(DataStream *in)
     wait = in->ReadInt16();
 }
 
-void AnimatingGUIButton::WriteToFile(DataStream *out)
+void AnimatingGUIButton::WriteToFile(Stream *out)
 {
     out->WriteInt16(buttonid);
     out->WriteInt16(ongui);

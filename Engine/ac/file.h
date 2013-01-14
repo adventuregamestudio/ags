@@ -39,7 +39,7 @@ int		File_GetEOF(sc_File *fil);
 int		File_GetError(sc_File *fil);
 
 void	get_current_dir_path(char* buffer, const char *fileName);
-int		check_valid_file_handle(Common::DataStream *hann, char*msg);
+int		check_valid_file_handle(Common::Stream *hann, char*msg);
 bool	validate_user_file_path(const char *fnmm, char *output, bool currentDirOnly);
 
 #endif // __AGS_EE_AC__FILE_H

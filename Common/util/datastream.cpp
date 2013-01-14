@@ -31,13 +31,46 @@ DataStream::~DataStream()
 {
 }
 
-size_t DataStream::ReadArrayOfIntPtr(intptr_t *buffer, size_t count)
+int16_t DataStream::ReadInt16()
 {
-#if defined (AGS_64BIT) || defined (TEST_64BIT)
-    return MustSwapBytes() ? ReadAndConvertArrayOfInt64(buffer, count) : ReadArrayOfInt64(buffer, count);
-#else
-    return MustSwapBytes() ? ReadAndConvertArrayOfInt32((int32_t*)buffer, count) : ReadArrayOfInt32((int32_t*)buffer, count);
-#endif
+    int16_t val = 0;
+    Read(&val, sizeof(int16_t));
+    ConvertInt16(val);
+    return val;
+}
+
+int32_t DataStream::ReadInt32()
+{
+    int32_t val = 0;
+    Read(&val, sizeof(int32_t));
+    ConvertInt32(val);
+    return val;
+}
+
+int64_t DataStream::ReadInt64()
+{
+    int64_t val = 0;
+    Read(&val, sizeof(int64_t));
+    ConvertInt64(val);
+    return val;
+}
+
+size_t DataStream::WriteInt16(int16_t val)
+{
+    ConvertInt16(val);
+    return Write(&val, sizeof(int16_t));
+}
+
+size_t DataStream::WriteInt32(int32_t val)
+{
+    ConvertInt32(val);
+    return Write(&val, sizeof(int32_t));
+}
+
+size_t DataStream::WriteInt64(int64_t val)
+{
+    ConvertInt64(val);
+    return Write(&val, sizeof(int64_t));
 }
 
 size_t DataStream::ReadArrayOfIntPtr32(intptr_t *buffer, size_t count)
@@ -76,34 +109,6 @@ size_t DataStream::ReadArrayOfIntPtr32(intptr_t *buffer, size_t count)
     }
 #endif // AGS_64BIT
     return count;
-}
-
-size_t DataStream::WriteArrayOfIntPtr(const intptr_t *buffer, size_t count)
-{
-#if defined (AGS_64BIT) || defined (TEST_64BIT)
-    return MustSwapBytes() ? WriteAndConvertArrayOfInt64(buffer, count) : WriteArrayOfInt64(buffer, count);
-#else
-    return MustSwapBytes() ? WriteAndConvertArrayOfInt32((const int32_t*)buffer, count) : WriteArrayOfInt32((const int32_t*)buffer, count);
-#endif
-}
-
-size_t DataStream::WriteArrayOfIntPtr32(const intptr_t *buffer, size_t count)
-{
-    if (!CanWrite())
-    {
-        return 0;
-    }
-
-    size_t elem;
-    for (elem = 0; elem < count && !EOS(); ++elem, ++buffer)
-    {
-        int32_t val = (int32_t)*buffer;
-        if (WriteInt32(val) < sizeof(int32_t))
-        {
-            break;
-        }
-    }
-    return elem;
 }
 
 size_t DataStream::ReadAndConvertArrayOfInt16(int16_t *buffer, size_t count)
@@ -194,48 +199,6 @@ size_t DataStream::WriteAndConvertArrayOfInt64(const int64_t *buffer, size_t cou
         }
     }
     return elem;
-}
-
-int16_t DataStream::ReadInt16()
-{
-    int16_t val = 0;
-    Read(&val, sizeof(int16_t));
-    ConvertInt16(val);
-    return val;
-}
-
-int32_t DataStream::ReadInt32()
-{
-    int32_t val = 0;
-    Read(&val, sizeof(int32_t));
-    ConvertInt32(val);
-    return val;
-}
-
-int64_t DataStream::ReadInt64()
-{
-    int64_t val = 0;
-    Read(&val, sizeof(int64_t));
-    ConvertInt64(val);
-    return val;
-}
-
-size_t DataStream::WriteInt16(int16_t val)
-{
-    ConvertInt16(val);
-    return Write(&val, sizeof(int16_t));
-}
-
-size_t DataStream::WriteInt32(int32_t val)
-{
-    ConvertInt32(val);
-    return Write(&val, sizeof(int32_t));
-}
-
-size_t DataStream::WriteInt64(int64_t val)
-{
-    ConvertInt64(val);
-    return Write(&val, sizeof(int64_t));
 }
 
 } // namespace Common

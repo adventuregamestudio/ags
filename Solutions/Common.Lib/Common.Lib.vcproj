@@ -314,6 +314,14 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\util\proxystream.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\util\stream.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\util\string.cpp"
 					>
 				</File>
@@ -608,6 +616,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\util\proxystream.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\util\stream.h"
 					>
 				</File>
@@ -709,6 +721,14 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\gfx\bitmap.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="api"
+				>
+				<File
+					RelativePath="..\..\Common\api\stream_api.h"
 					>
 				</File>
 			</Filter>

@@ -117,7 +117,6 @@ void Test_File()
         as.Read(tricky_data_in.f, 17);
         as.ReadArrayOfInt32(tricky_data_in.g, 4);
         as.ReadArrayOfInt16(tricky_data_in.h, 13);
-        as.ReleaseStream(); // releasing filestream so that it won't be deleted
     }
 
     int32_t int32val    = in->ReadInt32();

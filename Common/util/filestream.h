@@ -29,10 +29,12 @@ namespace Common
 class FileStream : public DataStream
 {
 public:
-    FileStream(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode);
     FileStream(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode,
-        DataEndianess caller_endianess, DataEndianess stream_endianess);
+        DataEndianess caller_endianess = kDefaultSystemEndianess,
+        DataEndianess stream_endianess = kLittleEndian);
     virtual ~FileStream();
+
+    virtual void    Close();
 
     // TODO
     // Temporary solution for cases when the code can't live without
@@ -54,17 +56,14 @@ public:
     virtual bool    CanWrite() const;
     virtual bool    CanSeek() const;
 
-    virtual void    Close();
-
-    virtual int     ReadByte();
     virtual size_t  Read(void *buffer, size_t size);
-    virtual int     WriteByte(uint8_t b);
+    virtual int32_t ReadByte();
     virtual size_t  Write(const void *buffer, size_t size);
+    virtual int32_t WriteByte(uint8_t b);
 
     virtual size_t  Seek(StreamSeek seek, int pos);
 
 protected:
-
     void            Open(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode);
 
 private:

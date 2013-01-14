@@ -25,15 +25,6 @@ namespace AGS
 namespace Common
 {
 
-FileStream::FileStream(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode)
-    : DataStream(kDefaultSystemEndianess, kLittleEndian)
-    , _file(NULL)
-    , _openMode(open_mode)
-    , _workMode(work_mode)
-{
-    Open(file_name, open_mode, work_mode);
-}
-
 FileStream::FileStream(const String &file_name, FileOpenMode open_mode, FileWorkMode work_mode,
             DataEndianess caller_endianess, DataEndianess stream_endianess)
     : DataStream(caller_endianess, stream_endianess)
@@ -47,6 +38,15 @@ FileStream::FileStream(const String &file_name, FileOpenMode open_mode, FileWork
 FileStream::~FileStream()
 {
     Close();
+}
+
+void FileStream::Close()
+{
+    if (_file)
+    {
+        fclose(_file);
+    }
+    _file = NULL;
 }
 
 bool FileStream::IsValid() const
@@ -95,24 +95,6 @@ bool FileStream::CanSeek() const
     return IsValid();
 }
 
-void FileStream::Close()
-{
-    if (_file)
-    {
-        fclose(_file);
-    }
-    _file = NULL;
-}
-
-int FileStream::ReadByte()
-{
-    if (CanRead())
-    {
-        return fgetc(_file);
-    }
-    return -1;
-}
-
 size_t FileStream::Read(void *buffer, size_t size)
 {
     if (CanRead())
@@ -122,11 +104,11 @@ size_t FileStream::Read(void *buffer, size_t size)
     return 0;
 }
 
-int FileStream::WriteByte(uint8_t val)
+int32_t FileStream::ReadByte()
 {
-    if (CanWrite())
+    if (CanRead())
     {
-        return fputc(val, _file);
+        return fgetc(_file);
     }
     return -1;
 }
@@ -138,6 +120,15 @@ size_t FileStream::Write(const void *buffer, size_t size)
         return fwrite(buffer, sizeof(uint8_t), size, _file);
     }
     return 0;
+}
+
+int32_t FileStream::WriteByte(uint8_t val)
+{
+    if (CanWrite())
+    {
+        return fputc(val, _file);
+    }
+    return -1;
 }
 
 size_t FileStream::Seek(StreamSeek seek, int pos)

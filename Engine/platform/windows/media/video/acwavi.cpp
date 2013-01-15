@@ -155,7 +155,7 @@ HRESULT InitRenderToSurface() {
   rect.right = ddsd.dwWidth;
 
   if (vscreen == NULL)
-    vscreen = gfx_directx_create_system_bitmap(ddsd.dwWidth, ddsd.dwHeight);
+    vscreen = BitmapHelper::CreateRawObjectOwner(gfx_directx_create_system_bitmap(ddsd.dwWidth, ddsd.dwHeight));
 
   if (vscreen == NULL) {
     strcpy(lastError, "Unable to create the DX Video System Bitmap");

@@ -119,3 +119,15 @@ LOCAL_LDFLAGS   := -Wl,-L$(ADDITIONAL_LIBRARY_PATH)/lib,--allow-multiple-definit
 
 include $(BUILD_SHARED_LIBRARY)
 
+
+# Parallax plugin
+include $(CLEAR_VARS)
+
+LOCAL_MODULE    := ags_parallax
+LOCAL_SRC_FILES := ../Plugins/ags_parallax/ags_parallax.cpp
+LOCAL_CFLAGS    := -O2 -g -ffast-math -fsigned-char -Wall -Wfatal-errors -DLINUX_VERSION -DANDROID_VERSION -I$(AGS_COMMON_PATH)
+LOCAL_CXXFLAGS  := $(LOCAL_CFLAGS) -Wno-write-strings
+LOCAL_LDLIBS    := -Wl,-Bstatic -lstdc++ -Wl,-Bdynamic -lc -lm
+LOCAL_LDFLAGS   :=
+
+include $(BUILD_SHARED_LIBRARY)

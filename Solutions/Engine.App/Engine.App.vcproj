@@ -2406,6 +2406,10 @@
 			Name="Plugins"
 			>
 			<File
+				RelativePath="..\..\Plugins\ags_parallax\ags_parallax.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\Plugins\ags_snowrain\ags_snowrain.cpp"
 				>
 			</File>

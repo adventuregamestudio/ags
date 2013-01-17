@@ -32,6 +32,7 @@
 		60844EAD1573943400003ED0 /* MainWindow-iPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = 60844EAC1573943400003ED0 /* MainWindow-iPad.xib */; };
 		608498E6155CDF6400121EFE /* Icon-72.png in Resources */ = {isa = PBXBuildFile; fileRef = 608498E5155CDF6400121EFE /* Icon-72.png */; };
 		608498E8155CDF7000121EFE /* Icon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 608498E7155CDF7000121EFE /* Icon@2x.png */; };
+		608778491699CE4600015533 /* ags_parallax.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 608778481699CE4600015533 /* ags_parallax.cpp */; };
 		608781951695922900AC84FE /* global_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 608781941695922900AC84FE /* global_api.cpp */; };
 		608781A21695925A00AC84FE /* script_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 608781A11695925A00AC84FE /* script_api.cpp */; };
 		60898D05160779DB009E152F /* AGSBlend.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60898C2D160779D9009E152F /* AGSBlend.cpp */; };
@@ -361,6 +362,8 @@
 		60844EAC1573943400003ED0 /* MainWindow-iPad.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = "MainWindow-iPad.xib"; path = "Resources-iPad/MainWindow-iPad.xib"; sourceTree = "<group>"; };
 		608498E5155CDF6400121EFE /* Icon-72.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-72.png"; sourceTree = "<group>"; };
 		608498E7155CDF7000121EFE /* Icon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon@2x.png"; sourceTree = "<group>"; };
+		608778471699CE4600015533 /* ags_parallax.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ags_parallax.h; path = ags_parallax/ags_parallax.h; sourceTree = "<group>"; };
+		608778481699CE4600015533 /* ags_parallax.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ags_parallax.cpp; path = ags_parallax/ags_parallax.cpp; sourceTree = "<group>"; };
 		608781941695922900AC84FE /* global_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = global_api.cpp; sourceTree = "<group>"; };
 		608781A01695925A00AC84FE /* script_api.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = script_api.h; sourceTree = "<group>"; };
 		608781A11695925A00AC84FE /* script_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = script_api.cpp; sourceTree = "<group>"; };
@@ -1124,9 +1127,19 @@
 			name = "Resources-iPad";
 			sourceTree = "<group>";
 		};
+		608778461699CE3000015533 /* ags_parallax */ = {
+			isa = PBXGroup;
+			children = (
+				608778471699CE4600015533 /* ags_parallax.h */,
+				608778481699CE4600015533 /* ags_parallax.cpp */,
+			);
+			name = ags_parallax;
+			sourceTree = "<group>";
+		};
 		60898C2B160779D9009E152F /* Plugins */ = {
 			isa = PBXGroup;
 			children = (
+				608778461699CE3000015533 /* ags_parallax */,
 				60898C2C160779D9009E152F /* agsblend */,
 				60898C39160779D9009E152F /* AGSflashlight */,
 				60898CCB160779DA009E152F /* AGSSpriteFont */,
@@ -2585,6 +2598,7 @@
 				60661BB416847C3C0005B5CD /* path.cpp in Sources */,
 				608781951695922900AC84FE /* global_api.cpp in Sources */,
 				608781A21695925A00AC84FE /* script_api.cpp in Sources */,
+				608778491699CE4600015533 /* ags_parallax.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

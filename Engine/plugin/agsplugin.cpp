@@ -63,6 +63,7 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 #include "../Plugins/AGSflashlight/agsflashlight.h"
 #include "../Plugins/agsblend/agsblend.h"
 #include "../Plugins/ags_snowrain/ags_snowrain.h"
+#include "../Plugins/ags_parallax/ags_parallax.h"
 #if defined(IOS_VERSION)
 #include "../Plugins/agstouch/agstouch.h"
 #endif // IOS_VERSION
@@ -881,6 +882,17 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         apl->onEvent = ags_snowrain::AGS_EngineOnEvent;
         apl->debugHook = ags_snowrain::AGS_EngineDebugHook;
         apl->initGfxHook = ags_snowrain::AGS_EngineInitGfx;
+        apl->available = true;
+        apl->builtin = true;
+        return true;
+    }
+    else if (strncmp(apl->filename, "ags_parallax", strlen("ags_parallax")) == 0)
+    {
+        apl->engineStartup = ags_parallax::AGS_EngineStartup;
+        apl->engineShutdown = ags_parallax::AGS_EngineShutdown;
+        apl->onEvent = ags_parallax::AGS_EngineOnEvent;
+        apl->debugHook = ags_parallax::AGS_EngineDebugHook;
+        apl->initGfxHook = ags_parallax::AGS_EngineInitGfx;
         apl->available = true;
         apl->builtin = true;
         return true;

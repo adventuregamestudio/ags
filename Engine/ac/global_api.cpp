@@ -1953,7 +1953,7 @@ RuntimeScriptValue Sc_SetTextOverlay(const RuntimeScriptValue *params, int32_t p
 {
     API_SCALL_SCRIPT_SPRINTF(SetTextOverlay, 7);
     SetTextOverlay(params[0].IValue, params[1].IValue, params[2].IValue, params[3].IValue,
-                   params[5].IValue, params[6].IValue, "%s", scsf_buffer);
+                   params[4].IValue, params[5].IValue, "%s", scsf_buffer);
     return RuntimeScriptValue();
 }
 

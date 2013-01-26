@@ -13,7 +13,7 @@
 //=============================================================================
 
 #include "util/alignedstream.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 #include "util/math.h"
 
 namespace AGS

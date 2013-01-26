@@ -29,7 +29,7 @@
 #endif
 
 #include "core/assetmanager.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 
 using AGS::Common::Stream;
 

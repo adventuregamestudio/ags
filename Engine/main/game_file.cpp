@@ -36,7 +36,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "script/exports.h"
 #include "script/script.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 #include "gfx/bitmap.h"
 #include "core/assetmanager.h"
 #include "ac/statobj/agsstaticobject.h"

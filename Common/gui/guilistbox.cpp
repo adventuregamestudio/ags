@@ -19,7 +19,7 @@
 #include "gui/guilistbox.h"
 #include "gui/guimain.h"
 #include "font/fonts.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 #include "gfx/bitmap.h"
 
 using AGS::Common::Stream;

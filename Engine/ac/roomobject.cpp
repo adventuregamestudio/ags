@@ -21,7 +21,7 @@
 #include "ac/runtime_defines.h"
 #include "ac/viewframe.h"
 #include "main/update.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 
 using AGS::Common::Stream;
 

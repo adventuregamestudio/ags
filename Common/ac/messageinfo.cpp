@@ -14,7 +14,7 @@
 
 #include <stdio.h>
 #include "ac/messageinfo.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 
 using AGS::Common::Stream;
 

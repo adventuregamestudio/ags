@@ -13,7 +13,7 @@
 //=============================================================================
 
 #include "ac/dialogtopic.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 
 using AGS::Common::Stream;
 

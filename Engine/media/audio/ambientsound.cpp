@@ -15,7 +15,7 @@
 #include "media/audio/ambientsound.h"
 #include "media/audio/audiodefines.h"
 #include "media/audio/soundclip.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 
 using AGS::Common::Stream;
 

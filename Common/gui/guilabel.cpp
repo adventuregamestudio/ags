@@ -18,7 +18,7 @@
 #include "util/wgt2allg.h"
 #include "gui/guilabel.h"
 #include "gui/guimain.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 
 using AGS::Common::Stream;
 

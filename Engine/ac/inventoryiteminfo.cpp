@@ -14,7 +14,7 @@
 
 #include <stdio.h>
 #include "ac/inventoryiteminfo.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 
 using AGS::Common::Stream;
 

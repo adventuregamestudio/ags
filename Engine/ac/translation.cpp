@@ -23,7 +23,7 @@
 #include "ac/translation.h"
 #include "ac/tree_map.h"
 #include "util/misc.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 #include "core/assetmanager.h"
 
 using AGS::Common::Stream;

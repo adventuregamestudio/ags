@@ -32,7 +32,7 @@
 
 #include "util/misc.h"
 
-#include "util/datastream.h"
+#include "util/stream.h"
 #include "util/filestream.h"
 
 using AGS::Common::Stream;

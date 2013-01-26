@@ -15,7 +15,7 @@
 #include <stdio.h>
 #include "ac/mousecursor.h"
 #include "util/file.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 
 using AGS::Common::Stream;
 

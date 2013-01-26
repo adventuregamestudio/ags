@@ -22,7 +22,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "ac/common.h"
 #include "util/string_utils.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 #include "gfx/bitmap.h"
 #include "plugin/agsplugin.h"
 

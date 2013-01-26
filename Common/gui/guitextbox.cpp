@@ -17,7 +17,7 @@
 #include "gui/guitextbox.h"
 #include "gui/guimain.h"
 #include "font/agsfontrenderer.h"	// fontRenderers;
-#include "util/datastream.h"
+#include "util/stream.h"
 #include "gfx/bitmap.h"
 
 using AGS::Common::Stream;

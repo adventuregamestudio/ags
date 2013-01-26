@@ -25,7 +25,7 @@
 #include "debug/debugger.h"
 #include "util/misc.h"
 #include "platform/base/agsplatformdriver.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 #include "core/assetmanager.h"
 #include "main/game_file.h"
 

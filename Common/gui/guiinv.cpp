@@ -18,7 +18,7 @@
 #include "ac/common.h"
 #include "gui/guiinv.h"
 #include "gui/guimain.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 
 using AGS::Common::Stream;
 

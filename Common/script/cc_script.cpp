@@ -18,7 +18,7 @@
 #include "cc_script.h"
 #include "script/script_common.h"      // SCOM_VERSION, scfilesig
 #include "cc_error.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 
 using AGS::Common::Stream;
 

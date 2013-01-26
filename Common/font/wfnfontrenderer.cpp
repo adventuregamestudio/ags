@@ -21,7 +21,7 @@
 
 #include "ac/common.h"
 #include "font/wfnfontrenderer.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 #include "util/file.h"
 #include "gfx/bitmap.h"
 

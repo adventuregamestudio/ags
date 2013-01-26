@@ -15,7 +15,7 @@
 #define USE_CLIB
 #include "util/wgt2allg.h"
 #include "util/file.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 #include "gfx/bitmap.h"
 #include "gfx/allegrobitmap.h"
 #include "core/assetmanager.h"

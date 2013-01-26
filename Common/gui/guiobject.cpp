@@ -17,7 +17,7 @@
 #include "gui/guimain.h"
 #include "util/string_utils.h"  // fputstring, etc
 #include "ac/common.h"		// quit()
-#include "util/datastream.h"
+#include "util/stream.h"
 
 using AGS::Common::Stream;
 

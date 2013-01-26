@@ -29,7 +29,7 @@
 #include "ac/global_audio.h"
 #include "ac/roomstruct.h"
 #include <math.h>
-#include "util/datastream.h"
+#include "util/stream.h"
 #include "core/assetmanager.h"
 
 using AGS::Common::Stream;

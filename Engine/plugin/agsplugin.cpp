@@ -46,7 +46,7 @@
 #include "script/script.h"
 #include "script/script_runtime.h"
 #include "ac/spritecache.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 #include "script/runtimescriptvalue.h"
@@ -904,7 +904,7 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
     return false;
 }
 
-#include "util/datastream.h"
+#include "util/stream.h"
 
 using AGS::Common::Stream;
 

@@ -17,7 +17,7 @@
 #include <string.h>
 #include "ac/customproperties.h"
 #include "util/string_utils.h"      // out->WriteString, etc
-#include "util/datastream.h"
+#include "util/stream.h"
 
 using AGS::Common::String;
 using AGS::Common::Stream;

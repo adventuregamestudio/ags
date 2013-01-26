@@ -27,7 +27,7 @@
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "media/video/video.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 #include "core/assetmanager.h"

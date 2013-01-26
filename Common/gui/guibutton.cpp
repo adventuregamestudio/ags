@@ -17,7 +17,7 @@
 #include "gui/guibutton.h"
 #include "gui/guimain.h"
 #include "ac/spritecache.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 #include "gfx/bitmap.h"
 
 using AGS::Common::Stream;

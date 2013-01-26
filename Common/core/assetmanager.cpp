@@ -16,7 +16,7 @@
 #include <stdlib.h>
 #include "core/assetmanager.h"
 #include "debug/assert.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 #include "util/file.h"
 
 #if defined (WINDOWS_VERSION)

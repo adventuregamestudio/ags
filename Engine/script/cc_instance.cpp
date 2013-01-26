@@ -30,7 +30,7 @@
 #include "script/script_runtime.h"
 #include "script/systemimports.h"
 #include "util/bbop.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 #include "util/misc.h"
 #include "util/textstreamwriter.h"
 #include "ac/dynobj/scriptstring.h"

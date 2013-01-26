@@ -14,7 +14,7 @@
 
 #include "util/wgt2allg.h"
 #include "ac/movelist.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 
 using AGS::Common::Stream;
 

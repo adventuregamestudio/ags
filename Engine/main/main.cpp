@@ -138,10 +138,22 @@ int main_preprocess_cmdline(int argc,char*argv[])
 extern char return_to_roomedit[30];
 extern char return_to_room[150];
 
+void main_print_help() {
+    printf("\nUsage: ags [<options>] <gamefile or directory>\n\n"
+           "Options:\n"
+           "-windowed           Set display mode to windowed\n"
+           "-fullscreen         Set display mode to fullscreen\n"
+           "-hicolor            Enable 16bit colors\n"
+           "-letterbox          Enable letterbox mode\n"
+           "--help              Print this help message\n");
+}
+
 int main_process_cmdline(int argc,char*argv[])
 {
     for (int ee=1;ee<argc;ee++) {
-        if (argv[ee][1]=='?') return 0;
+        if (stricmp(argv[ee],"--help") == 0 || argv[ee][1]=='?') {
+            return 0;
+        }
         if (stricmp(argv[ee],"-shelllaunch") == 0)
             change_to_game_dir = 1;
         else if (stricmp(argv[ee],"-updatereg") == 0)
@@ -315,8 +327,10 @@ int main(int argc,char*argv[]) {
     printf("Adventure Creator v%sInterpreter\n"
       "Copyright (c) 1999-2001 Chris Jones\n" "ACI version %s\n", AC_VERSION_TEXT, ACI_VERSION_TEXT);
 
-    if ((argc>1) && (argv[1][1]=='?'))
+    if ((argc>1) && (stricmp(argv[1],"--help") == 0 || argv[1][1]=='?')) {
+        main_print_help();
         return 0;
+    }
 
     initialize_debug_system();
     write_log_debug("***** ENGINE STARTUP");

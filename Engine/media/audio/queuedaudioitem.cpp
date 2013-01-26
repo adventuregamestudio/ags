@@ -23,20 +23,16 @@ using AGS::Common::Stream;
 // simply like pointer (although that probably does not mean much sense?)
 void QueuedAudioItem::ReadFromFile(Stream *in)
 {
-    char padding[3] = {0,0,0};
     audioClipIndex = in->ReadInt16();
     priority = in->ReadInt16();
     repeat = in->ReadBool();
-    in->Read(&padding, 3); // <-- padding
     cachedClip = (SOUNDCLIP*)in->ReadInt32();
 }
 
 void QueuedAudioItem::WriteToFile(Stream *out)
 {
-    char padding[3] = {0,0,0};
     out->WriteInt16(audioClipIndex);
     out->WriteInt16(priority);
     out->WriteBool(repeat);
-    out->Write(&padding, 3); // <-- padding
     out->WriteInt32((int32)cachedClip);
 }

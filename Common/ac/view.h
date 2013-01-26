@@ -45,8 +45,10 @@ struct ViewLoopNew
 
     void Initialize(int frameCount);
     void Dispose();
-    void WriteToFile(Common::Stream *out);
-    void ReadFromFile(Common::Stream *in);
+    void WriteToFile_v321(Common::Stream *out);
+    void ReadFromFile_v321(Common::Stream *in);
+    void WriteFrames_Aligned(Common::Stream *out);
+    void ReadFrames_Aligned(Common::Stream *in);
 };
 
 struct ViewStruct

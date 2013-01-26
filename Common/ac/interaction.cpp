@@ -17,8 +17,9 @@
 #include "ac/interaction.h"
 #include "ac/common.h"
 #include "util/string_utils.h"      // fputstring, etc
-#include "util/datastream.h"
+#include "util/alignedstream.h"
 
+using AGS::Common::AlignedStream;
 using AGS::Common::Stream;
 using AGS::Common::String;
 
@@ -35,8 +36,6 @@ NewInteractionValue::NewInteractionValue() {
 void NewInteractionValue::ReadFromFile(Stream *in)
 {
     in->Read(&valType, 1);
-    char pad[3];
-    in->Read(pad, 3);
     val = in->ReadInt32();
     extra = in->ReadInt32();
 }
@@ -44,8 +43,6 @@ void NewInteractionValue::ReadFromFile(Stream *in)
 void NewInteractionValue::WriteToFile(Stream *out)
 {
     out->Write(&valType, 1);
-    char pad[3];
-    out->Write(pad, 3);
     out->WriteInt32(val);
     out->WriteInt32(extra);
 }
@@ -87,27 +84,41 @@ void NewInteractionCommand::remove () {
 
 void NewInteractionCommand::reset() { remove(); }
 
-void NewInteractionCommand::ReadFromFile(Stream *in)
+void NewInteractionCommand::ReadNewInteractionValues_Aligned(Stream *in)
+{
+    AlignedStream align_s(in, Common::kAligned_Read);
+    for (int i = 0; i < MAX_ACTION_ARGS; ++i)
+    {
+        data[i].ReadFromFile(&align_s);
+        align_s.Reset();
+    }
+}
+
+void NewInteractionCommand::ReadFromFile_v321(Stream *in)
 {
     in->ReadInt32(); // skip the vtbl ptr
     type = in->ReadInt32();
-    for (int i = 0; i < MAX_ACTION_ARGS; ++i)
-    {
-        data[i].ReadFromFile(in);
-    }
+    ReadNewInteractionValues_Aligned(in);
     // all that matters is whether or not these are null...
     children = (NewInteractionAction *) (long)in->ReadInt32();
     parent = (NewInteractionCommandList *) (long)in->ReadInt32();
 }
 
-void NewInteractionCommand::WriteToFile(Stream *out)
+void NewInteractionCommand::WriteNewInteractionValues_Aligned(Stream *out)
+{
+    AlignedStream align_s(out, Common::kAligned_Write);
+    for (int i = 0; i < MAX_ACTION_ARGS; ++i)
+    {
+        data[i].WriteToFile(&align_s);
+        align_s.Reset();
+    }
+}
+
+void NewInteractionCommand::WriteToFile_v321(Stream *out)
 {
     out->WriteInt32(0); // write dummy vtbl ptr 
     out->WriteInt32(type);
-    for (int i = 0; i < MAX_ACTION_ARGS; ++i)
-    {
-        data[i].WriteToFile(out);
-    }
+    WriteNewInteractionValues_Aligned(out);
     out->WriteInt32((long)children);
     out->WriteInt32((long)parent);
 }
@@ -131,6 +142,26 @@ void NewInteractionCommandList::reset () {
   }
   numCommands = 0;
   timesRun = 0;
+}
+
+void NewInteractionCommandList::ReadInteractionCommands_Aligned(Stream *in)
+{
+    AlignedStream align_s(in, Common::kAligned_Read);
+    for (int iteratorCount = 0; iteratorCount < numCommands; ++iteratorCount)
+    {
+        command[iteratorCount].ReadFromFile_v321(&align_s);
+        align_s.Reset();
+    }
+}
+
+void NewInteractionCommandList::WriteInteractionCommands_Aligned(Stream *out)
+{
+    AlignedStream align_s(out, Common::kAligned_Write);
+    for (int iteratorCount = 0; iteratorCount < numCommands; ++iteratorCount)
+    {
+        command[iteratorCount].WriteToFile_v321(&align_s);
+        align_s.Reset();
+    }
 }
 
 NewInteraction::NewInteraction() { 
@@ -193,16 +224,14 @@ InteractionScripts::~InteractionScripts() {
         delete[] scriptFuncNames[i];
 }
 
-
 void serialize_command_list (NewInteractionCommandList *nicl, Stream *out) {
   if (nicl == NULL)
     return;
   out->WriteInt32 (nicl->numCommands);
   out->WriteInt32 (nicl->timesRun);
-  for (int iteratorCount = 0; iteratorCount < nicl->numCommands; ++iteratorCount)
-  {
-      nicl->command[iteratorCount].WriteToFile(out);
-  }
+
+  nicl->WriteInteractionCommands_Aligned(out);
+
   for (int k = 0; k < nicl->numCommands; k++) {
     if (nicl->command[k].children != NULL)
       serialize_command_list (nicl->command[k].get_child_list(), out);
@@ -230,10 +259,9 @@ NewInteractionCommandList *deserialize_command_list (Stream *in) {
   NewInteractionCommandList *nicl = new NewInteractionCommandList;
   nicl->numCommands = in->ReadInt32();
   nicl->timesRun = in->ReadInt32();
-  for (int iteratorCount = 0; iteratorCount < nicl->numCommands; ++iteratorCount)
-  {
-      nicl->command[iteratorCount].ReadFromFile(in);
-  }
+
+  nicl->ReadInteractionCommands_Aligned(in);
+
   for (int k = 0; k < nicl->numCommands; k++) {
     if (nicl->command[k].children != NULL) {
       nicl->command[k].children = deserialize_command_list (in);

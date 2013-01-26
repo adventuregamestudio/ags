@@ -30,11 +30,15 @@ struct CharacterExtras {
     // used in the scripts, therefore overflowing stuff has to go here
     short invorder[MAX_INVORDER];
     short invorder_count;
-    short width,height;
+    short width;
+    short height;
     short zoom;
-    short xwas, ywas;
-    short tint_r, tint_g;
-    short tint_b, tint_level;
+    short xwas;
+    short ywas;
+    short tint_r;
+    short tint_g;
+    short tint_b;
+    short tint_level;
     short tint_light;
     char  process_idle_this_time;
     char  slow_move_counter;

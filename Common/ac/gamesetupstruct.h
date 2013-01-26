@@ -98,26 +98,35 @@ struct GameSetupStruct: public GameSetupStructBase {
     void read_savegame_info(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
     void read_font_flags(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
     void read_sprite_flags(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
-    void read_invinfo(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
     void read_cursors(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
     void read_interaction_scripts(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
     void read_words_dictionary(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
+
+    void ReadInvInfo_Aligned(Common::Stream *in);
+    void WriteInvInfo_Aligned(Common::Stream *out);
+    void ReadMouseCursors_Aligned(Common::Stream *in);
+    void WriteMouseCursors_Aligned(Common::Stream *out);
     //------------------------------
     // Part 2
     void read_characters(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
     void read_lipsync(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
     void read_messages(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
+
+    void ReadCharacters_Aligned(Common::Stream *in);
+    void WriteCharacters_Aligned(Common::Stream *out);
     //------------------------------
     // Part 3
     void read_customprops(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
     void read_audio(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
     void read_room_names(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data);
+
+    void ReadAudioClips_Aligned(Common::Stream *in);
     //--------------------------------------------------------------------
 
     // Functions for reading and writing appropriate data from/to save game
-    void ReadFromSaveGame(Common::Stream *in, char* gswas, ccScript* compsc, CharacterInfo* chwas,
+    void ReadFromSaveGame_v321(Common::Stream *in, char* gswas, ccScript* compsc, CharacterInfo* chwas,
                                    WordsDictionary *olddict, char** mesbk);
-    void WriteForSaveGame(Common::Stream *out);
+    void WriteForSaveGame_v321(Common::Stream *out);
 };
 
 //=============================================================================

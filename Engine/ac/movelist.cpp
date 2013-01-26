@@ -20,7 +20,6 @@ using AGS::Common::Stream;
 
 void MoveList::ReadFromFile(Stream *in)
 {
-    char padding[3] = {0,0,0};
     in->ReadArrayOfInt32(pos, MAXNEEDSTAGES);
     numstage = in->ReadInt32();
     in->ReadArrayOfInt32(xpermove, MAXNEEDSTAGES);
@@ -33,12 +32,10 @@ void MoveList::ReadFromFile(Stream *in)
     lasty = in->ReadInt32();
     doneflag = in->ReadInt8();
     direct = in->ReadInt8();
-    in->Read(padding, 2);
 }
 
 void MoveList::WriteToFile(Stream *out)
 {
-    char padding[3] = {0,0,0};
     out->WriteArrayOfInt32(pos, MAXNEEDSTAGES);
     out->WriteInt32(numstage);
     out->WriteArrayOfInt32(xpermove, MAXNEEDSTAGES);
@@ -51,5 +48,4 @@ void MoveList::WriteToFile(Stream *out)
     out->WriteInt32(lasty);
     out->WriteInt8(doneflag);
     out->WriteInt8(direct);
-    out->Write(padding, 2);
 }

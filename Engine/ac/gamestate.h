@@ -178,8 +178,10 @@ struct GameState {
     unsigned long ignore_user_input_until_time;
     int   default_audio_type_volumes[MAX_AUDIO_TYPES];
 
-    void ReadFromFile(Common::Stream *in);
-    void WriteToFile(Common::Stream *out);
+    void ReadFromFile_v321(Common::Stream *in);
+    void WriteToFile_v321(Common::Stream *out);
+    void ReadQueuedAudioItems_Aligned(Common::Stream *in);
+    void WriteQueuedAudioItems_Aligned(Common::Stream *out);
 };
 
 #endif // __AC_GAMESTATE_H

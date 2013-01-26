@@ -16,8 +16,9 @@
 #include "ac/gamestate.h"
 #include "ac/gamesetupstruct.h"
 #include "util/string_utils.h"
-#include "util/datastream.h"
+#include "util/alignedstream.h"
 
+using AGS::Common::AlignedStream;
 using AGS::Common::Stream;
 
 //
@@ -32,10 +33,8 @@ using AGS::Common::Stream;
 
 extern GameSetupStruct game;
 
-void GameState::ReadFromFile(Stream *in)
+void GameState::ReadFromFile_v321(Stream *in)
 {
-    char padding[3] = {0,0,0}; // to align data
-
     score = in->ReadInt32();
     usedmode = in->ReadInt32();
     disabled_user_interface = in->ReadInt32();
@@ -116,7 +115,6 @@ void GameState::ReadFromFile(Stream *in)
     recording = in->ReadInt32();   // user is recording their moves
     playback = in->ReadInt32();    // playing back recording
     gamestep = in->ReadInt16();    // step number for matching recordings
-    in->Read(&padding, 2); // <-- padding
     randseed = in->ReadInt32();    // random seed
     player_on_region = in->ReadInt32();    // player's current region
     screen_is_faded_out = in->ReadInt32(); // the screen is currently black
@@ -129,7 +127,6 @@ void GameState::ReadFromFile(Stream *in)
     mboundx2 = in->ReadInt16();
     mboundy1 = in->ReadInt16();
     mboundy2 = in->ReadInt16();
-    in->Read(&padding, 2); // <-- padding
     fade_effect = in->ReadInt32();
     bg_frame_locked = in->ReadInt32();
     in->ReadArrayOfInt32(globalscriptvars, MAXGSVALUES);
@@ -151,14 +148,12 @@ void GameState::ReadFromFile(Stream *in)
     normal_font = in->ReadInt32();
     speech_font = in->ReadInt32();
     key_skip_wait = in->ReadInt8();
-    in->Read(&padding, 3); // <-- padding
     swap_portrait_lastchar = in->ReadInt32();
     seperate_music_lib = in->ReadInt32();
     in_conversation = in->ReadInt32();
     screen_tint = in->ReadInt32();
     num_parsed_words = in->ReadInt32();
     in->ReadArrayOfInt16( parsed_words, MAX_PARSED_WORDS);
-    in->Read(&padding, 2); // <-- padding
     in->Read( bad_parsed_word, 100);
     raw_color = in->ReadInt32();
     in->ReadArrayOfInt32( raw_modified, MAX_BSCENE);
@@ -183,7 +178,6 @@ void GameState::ReadFromFile(Stream *in)
     restore_cursor_mode_to = in->ReadInt32();
     restore_cursor_image_to = in->ReadInt32();
     music_queue_size = in->ReadInt16();
-    in->Read(&padding, 2); // <-- padding
     in->ReadArrayOfInt16( music_queue, MAX_QUEUED_MUSIC);
     new_music_queue_size = in->ReadInt16();
     crossfading_out_channel = in->ReadInt16();
@@ -194,10 +188,7 @@ void GameState::ReadFromFile(Stream *in)
     crossfade_in_volume_per_step = in->ReadInt16();
     crossfade_final_volume_in = in->ReadInt16();
 
-    for (int i = 0; i < MAX_QUEUED_MUSIC; ++i)
-    {
-        new_music_queue[i].ReadFromFile(in);
-    }
+    ReadQueuedAudioItems_Aligned(in);
 
     in->Read(takeover_from, 50);
     in->Read(playmp3file_name, PLAYMP3FILE_MAX_FILENAME_LEN);
@@ -218,33 +209,8 @@ void GameState::ReadFromFile(Stream *in)
     in->ReadArrayOfInt32(default_audio_type_volumes, MAX_AUDIO_TYPES);
 }
 
-void GameState::WriteToFile(Stream *out)
+void GameState::WriteToFile_v321(Stream *out)
 {
-    //-------------------------------------------------
-    // [IKM] 2012-07-02 : on padding.
-    //
-    // Basically we may need to add 1-3 bytes after writing any data which size
-    // value is not a multiple of 4 (x86 architecture word size)
-    //
-    // Example:
-    //   write short (2 bytes)
-    //   write short (2 bytes)
-    //   write short (2 bytes)
-    //   write int32 (4 bytes) <--- we need 2 more bytes BEFORE this one to make data properly aligned
-    // or
-    //   write array of 31 chars
-    //   write int32 (4 bytes) <--- we need 1 more byte BEFORE this one
-    //
-    // Why do we need all this? For backwards compatibility.
-    // Originally AGS saves most structs plainly as a single data piece, like
-    //
-    //  fwrite(&play,sizeof(GameState),1,ooo);
-    //
-    // which aligns data on its own. Here we have to do that manually.
-    //
-    //-------------------------------------------------
-    char padding[3] = {0,0,0}; // to align data
-
     out->WriteInt32(score);
     out->WriteInt32(usedmode);
     out->WriteInt32(disabled_user_interface);
@@ -325,7 +291,6 @@ void GameState::WriteToFile(Stream *out)
     out->WriteInt32( recording);   // user is recording their moves
     out->WriteInt32( playback);    // playing back recording
     out->WriteInt16(gamestep);    // step number for matching recordings
-    out->Write(&padding, 2); // <-- padding
     out->WriteInt32(randseed);    // random seed
     out->WriteInt32( player_on_region);    // player's current region
     out->WriteInt32( screen_is_faded_out); // the screen is currently black
@@ -338,7 +303,6 @@ void GameState::WriteToFile(Stream *out)
     out->WriteInt16(mboundx2);
     out->WriteInt16(mboundy1);
     out->WriteInt16(mboundy2);
-    out->Write(&padding, 2); // <-- padding
     out->WriteInt32( fade_effect);
     out->WriteInt32( bg_frame_locked);
     out->WriteArrayOfInt32(globalscriptvars, MAXGSVALUES);
@@ -360,14 +324,12 @@ void GameState::WriteToFile(Stream *out)
     out->WriteInt32( normal_font);
     out->WriteInt32( speech_font);
     out->WriteInt8( key_skip_wait);
-    out->Write(&padding, 3); // <-- padding
     out->WriteInt32( swap_portrait_lastchar);
     out->WriteInt32( seperate_music_lib);
     out->WriteInt32( in_conversation);
     out->WriteInt32( screen_tint);
     out->WriteInt32( num_parsed_words);
     out->WriteArrayOfInt16( parsed_words, MAX_PARSED_WORDS);
-    out->Write(&padding, 2); // <-- padding
     out->Write( bad_parsed_word, 100);
     out->WriteInt32( raw_color);
     out->WriteArrayOfInt32( raw_modified, MAX_BSCENE);
@@ -392,7 +354,6 @@ void GameState::WriteToFile(Stream *out)
     out->WriteInt32( restore_cursor_mode_to);
     out->WriteInt32( restore_cursor_image_to);
     out->WriteInt16( music_queue_size);
-    out->Write(&padding, 2); // <-- padding
     out->WriteArrayOfInt16( music_queue, MAX_QUEUED_MUSIC);
     out->WriteInt16( new_music_queue_size);
     out->WriteInt16( crossfading_out_channel);
@@ -403,10 +364,7 @@ void GameState::WriteToFile(Stream *out)
     out->WriteInt16( crossfade_in_volume_per_step);
     out->WriteInt16( crossfade_final_volume_in);
 
-    for (int i = 0; i < MAX_QUEUED_MUSIC; ++i)
-    {
-        new_music_queue[i].WriteToFile(out);
-    }
+    WriteQueuedAudioItems_Aligned(out);
 
     out->Write(takeover_from, 50);
     out->Write(playmp3file_name, PLAYMP3FILE_MAX_FILENAME_LEN);
@@ -425,4 +383,24 @@ void GameState::WriteToFile(Stream *out)
     out->WriteInt32( ignore_user_input_after_text_timeout_ms);
     out->WriteInt32( ignore_user_input_until_time);
     out->WriteArrayOfInt32(default_audio_type_volumes, MAX_AUDIO_TYPES);
+}
+
+void GameState::ReadQueuedAudioItems_Aligned(Common::Stream *in)
+{
+    AlignedStream align_s(in, Common::kAligned_Read);
+    for (int i = 0; i < MAX_QUEUED_MUSIC; ++i)
+    {
+        new_music_queue[i].ReadFromFile(&align_s);
+        align_s.Reset();
+    }
+}
+
+void GameState::WriteQueuedAudioItems_Aligned(Common::Stream *out)
+{
+    AlignedStream align_s(out, Common::kAligned_Write);
+    for (int i = 0; i < MAX_QUEUED_MUSIC; ++i)
+    {
+        new_music_queue[i].WriteToFile(&align_s);
+        align_s.Reset();
+    }
 }

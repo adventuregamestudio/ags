@@ -38,7 +38,6 @@ void CharacterExtras::ReadFromFile(Stream *in)
 
 void CharacterExtras::WriteToFile(Stream *out)
 {
-    char padding[3] = {0,0,0};
     out->WriteArrayOfInt16(invorder, MAX_INVORDER);
     out->WriteInt16(invorder_count);
     out->WriteInt16(width);

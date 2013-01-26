@@ -74,7 +74,10 @@
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 #include "script/runtimescriptvalue.h"
+#include "util/alignedstream.h"
+#include "main/game_file.h"
 
+using AGS::Common::AlignedStream;
 using AGS::Common::String;
 using AGS::Common::Stream;
 using AGS::Common::Bitmap;
@@ -1030,9 +1033,6 @@ Bitmap *read_serialized_bitmap(Stream *in) {
     return thispic;
 }
 
-
-
-
 long write_screen_shot_for_vista(Stream *out, Bitmap *screenshot) 
 {
     long fileSize = 0;
@@ -1118,6 +1118,12 @@ void save_game_scripts(Stream *out)
     }
 }
 
+void WriteRoomStatus_Aligned(RoomStatus *roomstat, Stream *out)
+{
+    AlignedStream align_s(out, Common::kAligned_Write);
+    roomstat->WriteToFile_v321(&align_s);
+}
+
 void save_game_room_state(Stream *out)
 {
     out->WriteInt32(displayed_room);
@@ -1139,7 +1145,7 @@ void save_game_room_state(Stream *out)
             roomstat = getRoomStatus(bb);
             if (roomstat->beenhere) {
                 out->WriteInt8 (1);
-                roomstat->WriteToFile(out);
+                WriteRoomStatus_Aligned(roomstat, out);
                 if (roomstat->tsdatasize>0)
                     out->Write(&roomstat->tsdata[0], roomstat->tsdatasize);
             }
@@ -1160,22 +1166,24 @@ void save_game_play_ex_data(Stream *out)
     out->WriteArrayOfInt32(&play.gui_draw_order[0], game.numgui);
 }
 
-void save_game_movelist(Stream *out)
+void WriteMoveList_Aligned(Stream *out)
 {
+    AlignedStream align_s(out, Common::kAligned_Write);
     for (int i = 0; i < game.numcharacters + MAX_INIT_SPR + 1; ++i)
     {
-        mls[i].WriteToFile(out);
+        mls[i].WriteToFile(&align_s);
+        align_s.Reset();
     }
-    //out->WriteArray(&mls[0],sizeof(MoveList), game.numcharacters + MAX_INIT_SPR + 1);
 }
 
-void save_game_charextras(Stream *out)
+void WriteCharacterExtras_Aligned(Stream *out)
 {
+    AlignedStream align_s(out, Common::kAligned_Write);
     for (int i = 0; i < game.numcharacters; ++i)
     {
-        charextra[i].WriteToFile(out);
+        charextra[i].WriteToFile(&align_s);
+        align_s.Reset();
     }
-    //out->WriteArray(&charextra[0],sizeof(CharacterExtras),game.numcharacters);
 }
 
 void save_game_palette(Stream *out)
@@ -1200,17 +1208,21 @@ void save_game_more_dynamic_values(Stream *out)
     //out->WriteInt32(mi.trk);
 }
 
+void WriteAnimatedButtons_Aligned(Stream *out)
+{
+    AlignedStream align_s(out, Common::kAligned_Write);
+    for (int i = 0; i < numAnimButs; ++i)
+    {
+        animbuts[i].WriteToFile(&align_s);
+        align_s.Reset();
+    }
+}
+
 void save_game_gui(Stream *out)
 {
     write_gui(out,guis,&game);
     out->WriteInt32(numAnimButs);
-    for (int i = 0; i < numAnimButs; ++i)
-    {
-        animbuts[i].WriteToFile(out);
-    }
-    int padding = get_padding(sizeof(AnimatingGUIButton) * numAnimButs);
-    char pad_buf[3] = {0,0,0};
-    out->Write(pad_buf, padding);
+    WriteAnimatedButtons_Aligned(out);
 }
 
 void save_game_audiocliptypes(Stream *out)
@@ -1220,7 +1232,6 @@ void save_game_audiocliptypes(Stream *out)
     {
         game.audioClipTypes[i].WriteToFile(out);
     }
-    //out->WriteArray(&game.audioClipTypes[0], sizeof(AudioClipType), game.audioClipTypeCount);
 }
 
 void save_game_thisroom(Stream *out)
@@ -1240,14 +1251,20 @@ void save_game_ambientsounds(Stream *out)
     //out->WriteArray (&ambient[0], sizeof(AmbientSound), MAX_SOUND_CHANNELS);
 }
 
+void WriteOverlays_Aligned(Stream *out)
+{
+    AlignedStream align_s(out, Common::kAligned_Write);
+    for (int i = 0; i < numscreenover; ++i)
+    {
+        screenover[i].WriteToFile(&align_s);
+        align_s.Reset();
+    }
+}
+
 void save_game_overlays(Stream *out)
 {
     out->WriteInt32(numscreenover);
-    for (int i = 0; i < numscreenover; ++i)
-    {
-        screenover[i].WriteToFile(out);
-    }
-    //out->WriteArray(&screenover[0],sizeof(ScreenOverlay),numscreenover);
+    WriteOverlays_Aligned(out);
     for (int bb=0;bb<numscreenover;bb++) {
         serialize_bitmap (screenover[bb].pic, out);
     }
@@ -1283,7 +1300,7 @@ void save_game_displayed_room_status(Stream *out)
             serialize_bitmap (raw_saved_screen, out);
 
         // save the current troom, in case they save in room 600 or whatever
-        troom.WriteToFile(out);
+        WriteRoomStatus_Aligned(&troom, out);
         //out->WriteArray(&troom,sizeof(RoomStatus),1);
         if (troom.tsdatasize>0)
             out->Write(&troom.tsdata[0],troom.tsdatasize);
@@ -1342,6 +1359,12 @@ void save_game_audioclips_and_crossfade(Stream *out)
     out->WriteInt32(crossFadeVolumeAtStart);
 }
 
+void WriteGameState_Aligned(Stream *out)
+{
+    AlignedStream align_s(out, Common::kAligned_Write);
+    play.WriteToFile_v321(&align_s);
+}
+
 #define MAGICNUMBER 0xbeefcafe
 // Write the save game position to the file
 void save_game_data (Stream *out, Bitmap *screenshot) {
@@ -1364,20 +1387,19 @@ void save_game_data (Stream *out, Bitmap *screenshot) {
     }
 
     //----------------------------------------------------------------
-    play.WriteToFile(out);
-    //out->WriteArray(&play,sizeof(GameState),1);
+    WriteGameState_Aligned(out);
 
     save_game_play_ex_data(out);
     //----------------------------------------------------------------
 
-    save_game_movelist(out);
+    WriteMoveList_Aligned(out);
 
-    ((GameSetupStructBase*)&game)->WriteToFile(out);
+    WriteGameSetupStructBase_Aligned(out);
 
     //----------------------------------------------------------------
-    game.WriteForSaveGame(out);
+    game.WriteForSaveGame_v321(out);
 
-    save_game_charextras(out);
+    WriteCharacterExtras_Aligned(out);
     save_game_palette(out);
     save_game_dialogs(out);
     save_game_more_dynamic_values(out);
@@ -1667,11 +1689,6 @@ void restore_game_scripts(Stream *in, int &gdatasize, char **newglobaldatabuffer
     gdatasize = in->ReadInt32();
     *newglobaldatabuffer = (char*)malloc(gdatasize);
     in->Read(*newglobaldatabuffer, gdatasize);
-    //in->ReadArray(&gameinst->globaldata[0],gdatasize,1);
-    //->UnFlattenGlobalData (gameinst);
-
-
-
     if (in->ReadInt32() != numScriptModules)
         quit("wrong script module count; cannot restore game");
     for (int vv = 0; vv < numScriptModules; vv++) {
@@ -1679,6 +1696,12 @@ void restore_game_scripts(Stream *in, int &gdatasize, char **newglobaldatabuffer
         scriptModuleDataBuffers[vv] = (char*)malloc(scriptModuleDataSize[vv]);
         in->Read(&scriptModuleDataBuffers[vv][0], scriptModuleDataSize[vv]);
     }
+}
+
+void ReadRoomStatus_Aligned(RoomStatus *roomstat, Stream *in)
+{
+    AlignedStream align_s(in, Common::kAligned_Read);
+    roomstat->ReadFromFile_v321(&align_s);
 }
 
 void restore_game_room_state(Stream *in, const char *nametouse)
@@ -1689,14 +1712,6 @@ void restore_game_room_state(Stream *in, const char *nametouse)
 
     // now the rooms
     resetRoomStatuses();
-
-    // JJS: What was the point in closing and reopening the file?
-    /*
-    long gobackto = in->GetPosition();
-    delete in;
-    in = Common::File::OpenFileRead(nametouse);
-    in->Seek(Common::kSeekBegin, gobackto);
-    */
 
     // read the room state for all the rooms the player has been in
     RoomStatus* roomstat;
@@ -1715,7 +1730,7 @@ void restore_game_room_state(Stream *in, const char *nametouse)
 
             if (roomstat->beenhere)
             {
-                roomstat->ReadFromFile(in);
+                ReadRoomStatus_Aligned(roomstat, in);
                 if (roomstat->tsdatasize > 0)
                 {
                     roomstat->tsdata=(char*)malloc(roomstat->tsdatasize + 8);  // JJS: Why allocate 8 additional bytes?
@@ -1724,6 +1739,12 @@ void restore_game_room_state(Stream *in, const char *nametouse)
             }
         }
     }
+}
+
+void ReadGameState_Aligned(Stream *in)
+{
+    AlignedStream align_s(in, Common::kAligned_Read);
+    play.ReadFromFile_v321(&align_s);
 }
 
 void restore_game_play(Stream *in)
@@ -1739,11 +1760,7 @@ void restore_game_play(Stream *in)
 
     free_do_once_tokens();
 
-    //in->ReadArray (&play, 76, 4);
-    //in->ReadArray (((char*)&play) + 78*4, sizeof(GameState) - 78*4, 1);
-
-    //in->ReadArray(&play,sizeof(GameState),1);
-    play.ReadFromFile(in);
+    ReadGameState_Aligned(in);
 
     // Preserve whether the music vox is available
     play.seperate_music_lib = musicvox;
@@ -1775,22 +1792,24 @@ void restore_game_play(Stream *in)
     in->ReadArrayOfInt32(&play.gui_draw_order[0], game.numgui);
 }
 
-void restore_game_movelist(Stream *in)
+void ReadMoveList_Aligned(Stream *in)
 {
+    AlignedStream align_s(in, Common::kAligned_Read);
     for (int i = 0; i < game.numcharacters + MAX_INIT_SPR + 1; ++i)
     {
-        mls[i].ReadFromFile(in);
+        mls[i].ReadFromFile(&align_s);
+        align_s.Reset();
     }
-    //in->ReadArray(&mls[0],sizeof(MoveList), game.numcharacters + MAX_INIT_SPR + 1);
 }
 
-void restore_game_charextras(Stream *in)
+void ReadCharacterExtras_Aligned(Stream *in)
 {
+    AlignedStream align_s(in, Common::kAligned_Read);
     for (int i = 0; i < game.numcharacters; ++i)
     {
-        charextra[i].ReadFromFile(in);
+        charextra[i].ReadFromFile(&align_s);
+        align_s.Reset();
     }
-    //in->ReadArray(&charextra[0],sizeof(CharacterExtras),game.numcharacters);
 }
 
 void restore_game_palette(Stream *in)
@@ -1813,6 +1832,16 @@ void restore_game_more_dynamic_values(Stream *in)
     game_paused=in->ReadInt32();
 }
 
+void ReadAnimatedButtons_Aligned(Stream *in)
+{
+    AlignedStream align_s(in, Common::kAligned_Read);
+    for (int i = 0; i < numAnimButs; ++i)
+    {
+        animbuts[i].ReadFromFile(&align_s);
+        align_s.Reset();
+    }
+}
+
 void restore_game_gui(Stream *in, int numGuisWas)
 {
     int vv;
@@ -1828,12 +1857,7 @@ void restore_game_gui(Stream *in, int numGuisWas)
         export_gui_controls(vv);
 
     numAnimButs = in->ReadInt32();
-    for (int i = 0; i < numAnimButs; ++i)
-    {
-        animbuts[i].ReadFromFile(in);
-    }
-    int padding = get_padding(sizeof(AnimatingGUIButton) * numAnimButs);
-    in->Seek(Common::kSeekCurrent, padding);
+    ReadAnimatedButtons_Aligned(in);
 }
 
 void restore_game_audiocliptypes(Stream *in)
@@ -1872,7 +1896,6 @@ void restore_game_ambientsounds(Stream *in, int crossfadeInChannelWas, int cross
     {
         ambient[i].ReadFromFile(in);
     }
-    //in->ReadArray(&ambient[0], sizeof(AmbientSound), MAX_SOUND_CHANNELS);
 
     for (bb = 1; bb < MAX_SOUND_CHANNELS; bb++) {
         if (ambient[bb].channel == 0)
@@ -1884,14 +1907,20 @@ void restore_game_ambientsounds(Stream *in, int crossfadeInChannelWas, int cross
     }
 }
 
+void ReadOverlays_Aligned(Stream *in)
+{
+    AlignedStream align_s(in, Common::kAligned_Read);
+    for (int i = 0; i < numscreenover; ++i)
+    {
+        screenover[i].ReadFromFile(&align_s);
+        align_s.Reset();
+    }
+}
+
 void restore_game_overlays(Stream *in)
 {
     numscreenover = in->ReadInt32();
-    for (int i = 0; i < numscreenover; ++i)
-    {
-        screenover[i].ReadFromFile(in);
-    }
-    //in->ReadArray(&screenover[0],sizeof(ScreenOverlay),numscreenover);
+    ReadOverlays_Aligned(in);
     for (int bb=0;bb<numscreenover;bb++) {
         if (screenover[bb].pic != NULL)
         {
@@ -1942,9 +1971,10 @@ void restore_game_displayed_room_status(Stream *in, Bitmap **newbscene)
 
         if (troom.tsdata != NULL)
             free (troom.tsdata);
+        
         // get the current troom, in case they save in room 600 or whatever
-        troom.ReadFromFile(in);
-        //in->ReadArray(&troom,sizeof(RoomStatus),1);
+        ReadRoomStatus_Aligned(&troom, in);
+        
         if (troom.tsdatasize > 0) {
             troom.tsdata=(char*)malloc(troom.tsdatasize+5);
             in->Read(&troom.tsdata[0],troom.tsdatasize);
@@ -2069,7 +2099,7 @@ int restore_game_data (Stream *in, const char *nametouse) {
 
     restore_game_play(in);
 
-    restore_game_movelist(in);
+    ReadMoveList_Aligned(in);
 
     // save pointer members before reading
     char* gswas=game.globalscript;
@@ -2079,13 +2109,12 @@ int restore_game_data (Stream *in, const char *nametouse) {
     char* mesbk[MAXGLOBALMES];
     int numchwas = game.numcharacters;
     for (vv=0;vv<MAXGLOBALMES;vv++) mesbk[vv]=game.messages[vv];
-    int numdiwas = game.numdialog, numinvwas = game.numinvitems;
+    int numdiwas = game.numdialog;
+    int numinvwas = game.numinvitems;
     int numviewswas = game.numviews;
     int numGuisWas = game.numgui;
 
-    //in->ReadArray(&game,sizeof(GameSetupStructBase),1);
-    GameSetupStructBase *gameBase = (GameSetupStructBase *) &game;
-    gameBase->ReadFromFile(in);
+    ReadGameSetupStructBase_Aligned(in);
 
     if (game.numdialog!=numdiwas)
         quit("!Restore_Game: Game has changed (dlg), unable to restore");
@@ -2094,7 +2123,7 @@ int restore_game_data (Stream *in, const char *nametouse) {
     if (game.numviews != numviewswas)
         quit("!Restore_Game: Game has changed (views), unable to restore position");
 
-    game.ReadFromSaveGame(in, gswas, compsc, chwas, olddict, mesbk); 
+    game.ReadFromSaveGame_v321(in, gswas, compsc, chwas, olddict, mesbk); 
     //
     //in->ReadArray(&game.invinfo[0], sizeof(InventoryItemInfo), game.numinvitems);
     //in->ReadArray(&game.mcurs[0], sizeof(MouseCursor), game.numcursors);
@@ -2120,7 +2149,7 @@ int restore_game_data (Stream *in, const char *nametouse) {
     //in->ReadArray(&game.chars[0],sizeof(CharacterInfo),game.numcharacters);
     //
 
-    restore_game_charextras(in);
+    ReadCharacterExtras_Aligned(in);
     if (roominst!=NULL) {  // so it doesn't overwrite the tsdata
         delete roominstFork;
         delete roominst; 
@@ -2344,6 +2373,12 @@ int restore_game_data (Stream *in, const char *nametouse) {
 int gameHasBeenRestored = 0;
 int oldeip;
 
+void ReadRichMediaHeader_Aligned(RICH_GAME_MEDIA_HEADER &rich_media_header, Stream *in)
+{
+    AlignedStream align_s(in, Common::kAligned_Read);
+    rich_media_header.ReadFromFile(&align_s);
+}
+
 Stream *open_savedgame(const char *savedgame, int &error_code)
 {
     error_code = 0;
@@ -2356,7 +2391,7 @@ Stream *open_savedgame(const char *savedgame, int &error_code)
 
     // skip Vista header
     RICH_GAME_MEDIA_HEADER rich_media_header;
-    rich_media_header.ReadFromFile(in);
+    ReadRichMediaHeader_Aligned(rich_media_header, in);
 
     // check saved game signature
     in->Read(rbuffer, sgsiglen);

@@ -25,14 +25,6 @@
 long int filelength(int fhandle);
 #endif
 
-// Get required padding length when reading/writing a structure
-// same way as if it was written as an object in whole;
-// result could be from 0 to 3 inclusive.
-inline size_t get_padding(int previous_data_length)
-{
-    return (previous_data_length % 4) ? 4 - (previous_data_length % 4) : 0;
-}
-
 #include "util/string.h"
 
 namespace AGS

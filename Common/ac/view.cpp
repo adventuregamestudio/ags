@@ -17,8 +17,9 @@
 #include "ac/view.h"
 #include "util/wgt2allg.h"
 #include "util/file.h"
-#include "util/datastream.h"
+#include "util/alignedstream.h"
 
+using AGS::Common::AlignedStream;
 using AGS::Common::Stream;
 
 void ViewFrame::ReadFromFile(Stream *in)
@@ -27,7 +28,6 @@ void ViewFrame::ReadFromFile(Stream *in)
     xoffs = in->ReadInt16();
     yoffs = in->ReadInt16();
     speed = in->ReadInt16();
-    in->Seek(Common::kSeekCurrent, 2);
     flags = in->ReadInt32();
     sound = in->ReadInt32();
     reserved_for_future[0] = in->ReadInt32();
@@ -36,13 +36,10 @@ void ViewFrame::ReadFromFile(Stream *in)
 
 void ViewFrame::WriteToFile(Stream *out)
 {
-    char padding[3] = {0,0,0};
-
     out->WriteInt32(pic);
     out->WriteInt16(xoffs);
     out->WriteInt16(yoffs);
     out->WriteInt16(speed);
-    out->Write(padding, 2);
     out->WriteInt32(flags);
     out->WriteInt32(sound);
     out->WriteInt32(reserved_for_future[0]);
@@ -71,31 +68,42 @@ void ViewLoopNew::Dispose()
     }
 }
 
-void ViewLoopNew::WriteToFile(Stream *out)
+void ViewLoopNew::WriteToFile_v321(Stream *out)
 {
     out->WriteInt16(numFrames);
     out->WriteInt32(flags);
-    for (int i = 0; i < numFrames; ++i)
-    {
-        frames[i].WriteToFile(out);
-    }
-    //out->WriteArray(frames, sizeof(ViewFrame), numFrames);
+    WriteFrames_Aligned(out);
 }
 
+void ViewLoopNew::WriteFrames_Aligned(Stream *out)
+{
+    AlignedStream align_s(out, Common::kAligned_Write);
+    for (int i = 0; i < numFrames; ++i)
+    {
+        frames[i].WriteToFile(&align_s);
+        align_s.Reset();
+    }
+}
 
-void ViewLoopNew::ReadFromFile(Stream *in)
+void ViewLoopNew::ReadFromFile_v321(Stream *in)
 {
     Initialize(in->ReadInt16());
     flags = in->ReadInt32();
-
-    for (int i = 0; i < numFrames; ++i)
-    {
-        frames[i].ReadFromFile(in);
-    }
+    ReadFrames_Aligned(in);
 
     // an extra frame is allocated in memory to prevent
     // crashes with empty loops -- set its picture to teh BLUE CUP!!
     frames[numFrames].pic = 0;
+}
+
+void ViewLoopNew::ReadFrames_Aligned(Stream *in)
+{
+    AlignedStream align_s(in, Common::kAligned_Read);
+    for (int i = 0; i < numFrames; ++i)
+    {
+        frames[i].ReadFromFile(&align_s);
+        align_s.Reset();
+    }
 }
 
 void ViewStruct::Initialize(int loopCount)
@@ -121,7 +129,7 @@ void ViewStruct::WriteToFile(Stream *out)
     out->WriteInt16(numLoops);
     for (int i = 0; i < numLoops; i++)
     {
-        loops[i].WriteToFile(out);
+        loops[i].WriteToFile_v321(out);
     }
 }
 
@@ -131,7 +139,7 @@ void ViewStruct::ReadFromFile(Stream *in)
 
     for (int i = 0; i < numLoops; i++)
     {
-        loops[i].ReadFromFile(in);
+        loops[i].ReadFromFile_v321(in);
     }
 }
 
@@ -142,8 +150,6 @@ void ViewStruct272::ReadFromFile(Stream *in)
     {
         numframes[i] = in->ReadInt16();
     }
-    // skip padding if there is any
-    in->Seek(Common::kSeekCurrent, 2*(2 - ((16+1)%2)));
     in->ReadArrayOfInt32(loopflags, 16);
     for (int j = 0; j < 16; ++j)
     {

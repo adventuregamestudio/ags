@@ -27,21 +27,16 @@ void MouseCursor::ReadFromFile(Stream *in)
     hotx = in->ReadInt16();
     hoty = in->ReadInt16();
     view = in->ReadInt16();
-    // may need to read padding?
     in->Read(name, 10);
     flags = in->ReadInt8();
-    in->Seek(Common::kSeekCurrent, 3);
 }
 
 void MouseCursor::WriteToFile(Stream *out)
 {
-    char padding[3] = {0,0,0};
-
     out->WriteInt32(pic);
     out->WriteInt16(hotx);
     out->WriteInt16(hoty);
     out->WriteInt16(view);
     out->Write(name, 10);
     out->WriteInt8(flags);
-    out->Write(padding, 3);
 }

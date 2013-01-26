@@ -72,8 +72,10 @@ struct NewInteractionCommand: public NewInteractionAction {
 
     void reset();
 
-    void ReadFromFile(Common::Stream *in);
-    void WriteToFile(Common::Stream *out);
+    void ReadFromFile_v321(Common::Stream *in);
+    void WriteToFile_v321(Common::Stream *out);
+    void ReadNewInteractionValues_Aligned(Common::Stream *in);
+    void WriteNewInteractionValues_Aligned(Common::Stream *out);
 };
 
 struct NewInteractionCommandList : public NewInteractionAction {
@@ -83,6 +85,9 @@ struct NewInteractionCommandList : public NewInteractionAction {
 
     NewInteractionCommandList ();
     void reset();
+
+    void ReadInteractionCommands_Aligned(Common::Stream *in);
+    void WriteInteractionCommands_Aligned(Common::Stream *out);
 };
 
 struct NewInteraction {
@@ -134,11 +139,11 @@ extern int numGlobalVars;
 
 extern void serialize_command_list (NewInteractionCommandList *nicl, Common::Stream *out);
 extern void serialize_new_interaction (NewInteraction *nint, Common::Stream *out);
-extern NewInteractionCommandList *deserialize_command_list (Common::Stream *out);
 
-extern NewInteraction *nitemp;
+extern NewInteractionCommandList *deserialize_command_list (Common::Stream *out);
 extern NewInteraction *deserialize_new_interaction (Common::Stream *in);
 
+extern NewInteraction *nitemp;
 extern void deserialize_interaction_scripts(Common::Stream *in, InteractionScripts *scripts);
 
 

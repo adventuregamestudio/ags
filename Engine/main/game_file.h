@@ -22,6 +22,9 @@
 
 void set_default_glmsg (int msgnum, const char* val);
 
+extern void ReadGameSetupStructBase_Aligned(Common::Stream *in);
+extern void WriteGameSetupStructBase_Aligned(Common::Stream *out);
+
 extern AGS::Common::String game_file_name;
 
 #endif // __AGS_EE_MAIN__GAMEFILE_H

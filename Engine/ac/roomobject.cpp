@@ -137,14 +137,12 @@ void RoomObject::ReadFromFile(Stream *in)
     in->ReadArrayOfInt16(&tint_r, 15);
     in->ReadArrayOfInt8((int8_t*)&cycling, 4);
     in->ReadArrayOfInt16(&blocking_width, 2);
-    in->Seek(Common::kSeekCurrent, 2);
 }
+
 void RoomObject::WriteToFile(Stream *out)
 {
     out->WriteArrayOfInt32(&x, 3);
     out->WriteArrayOfInt16(&tint_r, 15);
     out->WriteArrayOfInt8((int8_t*)&cycling, 4);
     out->WriteArrayOfInt16(&blocking_width, 2);
-    out->WriteInt8(0);
-    out->WriteInt8(0);
 }

@@ -51,8 +51,10 @@ struct RoomStatus {
 
     RoomStatus() { beenhere=0; numobj=0; tsdatasize=0; tsdata=NULL; }
 
-    void ReadFromFile(Common::Stream *in);
-    void WriteToFile(Common::Stream *out);
+    void ReadFromFile_v321(Common::Stream *in);
+    void WriteToFile_v321(Common::Stream *out);
+    void ReadRoomObjects_Aligned(Common::Stream *in);
+    void WriteRoomObjects_Aligned(Common::Stream *out);
 };
 
 // Replaces all accesses to the roomstats array

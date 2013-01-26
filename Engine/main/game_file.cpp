@@ -41,7 +41,9 @@
 #include "core/assetmanager.h"
 #include "ac/statobj/agsstaticobject.h"
 #include "ac/statobj/staticarray.h"
+#include "util/alignedstream.h"
 
+using AGS::Common::AlignedStream;
 using AGS::Common::Bitmap;
 using AGS::Common::Stream;
 using AGS::Common::String;
@@ -213,6 +215,16 @@ void game_file_read_script_modules(Stream *in)
     }
 }
 
+void ReadViewStruct272_Aligned(ViewStruct272* oldv, Stream *in)
+{
+    AlignedStream align_s(in, Common::kAligned_Read);
+    for (int iteratorCount = 0; iteratorCount < game.numviews; ++iteratorCount)
+    {
+        oldv[iteratorCount].ReadFromFile(&align_s);
+        align_s.Reset();
+    }
+}
+
 void game_file_read_views(Stream *in)
 {
 	if (filever > kGameVersion_272) // 3.x views
@@ -225,10 +237,7 @@ void game_file_read_views(Stream *in)
     else // 2.x views
     {
         ViewStruct272* oldv = (ViewStruct272*)calloc(game.numviews, sizeof(ViewStruct272));
-        for (int iteratorCount = 0; iteratorCount < game.numviews; ++iteratorCount)
-        {
-            oldv[iteratorCount].ReadFromFile(in);
-        }
+        ReadViewStruct272_Aligned(oldv, in);
         Convert272ViewsToNew(game.numviews, oldv, views);
         free(oldv);
     }
@@ -554,6 +563,20 @@ void init_and_register_game_objects()
     ccAddExternalStaticArray("dialog", &scrDialog[0], &StaticDialogArray);
 }
 
+void ReadGameSetupStructBase_Aligned(Stream *in)
+{
+    GameSetupStructBase *gameBase = (GameSetupStructBase *) &game;
+    AlignedStream align_s(in, Common::kAligned_Read);
+    gameBase->ReadFromFile(&align_s);
+}
+
+void WriteGameSetupStructBase_Aligned(Stream *out)
+{
+    GameSetupStructBase *gameBase = (GameSetupStructBase *) &game;
+    AlignedStream align_s(out, Common::kAligned_Write);
+    gameBase->WriteToFile(&align_s);
+}
+
 int load_game_file() {
 
 	int res;    
@@ -584,8 +607,7 @@ int load_game_file() {
     game.invScripts = NULL;
     memset(&game.spriteflags[0], 0, MAX_SPRITES);
 
-    GameSetupStructBase *gameBase = (GameSetupStructBase *) &game;
-    gameBase->ReadFromFile(in);
+    ReadGameSetupStructBase_Aligned(in);
 
     if (filever <= kGameVersion_300) // <= 3.1
     {

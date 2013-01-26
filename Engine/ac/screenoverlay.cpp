@@ -31,12 +31,10 @@ void ScreenOverlay::ReadFromFile(Stream *in)
     associatedOverlayHandle = in->ReadInt32();
     hasAlphaChannel = in->ReadBool();
     positionRelativeToScreen = in->ReadBool();
-    in->Seek(Common::kSeekCurrent, get_padding(sizeof(int8_t) * 2));
 }
 
 void ScreenOverlay::WriteToFile(Stream *out)
 {
-    char padding[3] = {0,0,0};
     // Writing bitmap "pointers" to correspond to full structure writing
     out->WriteInt32(0);
     out->WriteInt32(0);
@@ -48,5 +46,4 @@ void ScreenOverlay::WriteToFile(Stream *out)
     out->WriteInt32(associatedOverlayHandle);
     out->WriteBool(hasAlphaChannel);
     out->WriteBool(positionRelativeToScreen);
-    out->Write(padding, get_padding(sizeof(int8_t) * 2));
 }

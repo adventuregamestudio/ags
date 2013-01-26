@@ -324,8 +324,9 @@ int main(int argc,char*argv[]) {
         return res;
     }
 
-    printf("Adventure Creator v%sInterpreter\n"
-      "Copyright (c) 1999-2001 Chris Jones\n" "ACI version %s\n", AC_VERSION_TEXT, ACI_VERSION_TEXT);
+    printf("Adventure Game Studio v%sInterpreter\n"
+           "Copyright (c) 1999-2011 Chris Jones and 2011-20xx others\n"
+           "ACI version %s\n", AC_VERSION_TEXT, ACI_VERSION_TEXT);
 
     if ((argc>1) && (stricmp(argv[1],"--help") == 0 || argv[1][1]=='?')) {
         main_print_help();

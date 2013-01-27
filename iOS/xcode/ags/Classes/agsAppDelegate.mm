@@ -11,6 +11,8 @@
 volatile int is_in_foreground = 1;
 volatile int drawing_in_progress = 0;
 
+extern "C" void ios_resume_sound();
+
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
 	[[UIApplication sharedApplication] setIdleTimerDisabled:YES];
@@ -31,6 +33,7 @@ volatile int drawing_in_progress = 0;
 - (void)applicationDidBecomeActive:(UIApplication *)application
 {
 	is_in_foreground = 1;
+	ios_resume_sound();
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application

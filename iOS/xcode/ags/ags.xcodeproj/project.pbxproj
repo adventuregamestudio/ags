@@ -2681,6 +2681,10 @@
 				);
 				LIBRARY_SEARCH_PATHS = "${SOURCE_ROOT}/../../nativelibs/fat/lib";
 				OTHER_CODE_SIGN_FLAGS = "-gta";
+				OTHER_CPLUSPLUSFLAGS = (
+					"-fpermissive",
+					"$(OTHER_CFLAGS)",
+				);
 				PREBINDING = NO;
 				PROVISIONING_PROFILE = "";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";

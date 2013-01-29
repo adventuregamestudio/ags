@@ -153,7 +153,7 @@ void main_print_help() {
 
 int main_process_cmdline(int argc,char*argv[])
 {
-    force_gfxfilter[0] = '0';
+    force_gfxfilter[0] = '\0';
 
     for (int ee=1;ee<argc;ee++) {
         if (stricmp(argv[ee],"--help") == 0 || argv[ee][1]=='?') {

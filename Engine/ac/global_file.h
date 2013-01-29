@@ -23,19 +23,21 @@
 namespace AGS { namespace Common { class DataStream; } }
 using namespace AGS; // FIXME later
 
-Common::DataStream *FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode);
+int32_t FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode);
 // NOTE: FileOpenCMode is a backwards-compatible replacement for old-style global script function FileOpen
-Common::DataStream *FileOpenCMode(const char*fnmm, const char* cmode);
-void  FileClose(Common::DataStream *hha);
-void  FileWrite(Common::DataStream *haa, const char *towrite);
-void  FileWriteRawLine(Common::DataStream *haa, const char*towrite);
-void  FileRead(Common::DataStream *haa,char*toread);
-int   FileIsEOF (Common::DataStream *haa);
-int   FileIsError(Common::DataStream *haa);
-void  FileWriteInt(Common::DataStream *haa,int into);
-int   FileReadInt(Common::DataStream *haa);
-char  FileReadRawChar(Common::DataStream *haa);
-int   FileReadRawInt(Common::DataStream *haa);
-void  FileWriteRawChar(Common::DataStream *haa, int chartoWrite);
+int32_t FileOpenCMode(const char*fnmm, const char* cmode);
+void  FileClose(int32_t handle);
+void  FileWrite(int32_t handle, const char *towrite);
+void  FileWriteRawLine(int32_t handle, const char*towrite);
+void  FileRead(int32_t handle,char*toread);
+int   FileIsEOF (int32_t handle);
+int   FileIsError(int32_t handle);
+void  FileWriteInt(int32_t handle,int into);
+int   FileReadInt(int32_t handle);
+char  FileReadRawChar(int32_t handle);
+int   FileReadRawInt(int32_t handle);
+void  FileWriteRawChar(int32_t handle, int chartoWrite);
+
+Common::DataStream *GetValidFileStream(int32_t handle);
 
 #endif // __AGS_EE_AC__GLOBALFILE_H

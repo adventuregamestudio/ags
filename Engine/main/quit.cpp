@@ -258,7 +258,7 @@ char return_to_room[150] = "\0";
 // message. If it begins with anything else, it is treated as an internal
 // error.
 // "!|" is a special code used to mean that the player has aborted (Alt+X)
-void quit(char*quitmsg) {
+void quit(const char *quitmsg) {
 
     // Need to copy it in case it's from a plugin (since we're
     // about to free plugins)

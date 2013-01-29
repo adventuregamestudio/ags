@@ -916,10 +916,6 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
     return false;
 }
 
-#include "util/datastream.h"
-
-using AGS::Common::DataStream;
-
 void pl_read_plugins_from_disk (DataStream *in) {
     if (in->ReadInt32() != 1)
         quit("ERROR: unable to load game, invalid version of plugin data");

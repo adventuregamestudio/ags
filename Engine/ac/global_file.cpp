@@ -26,7 +26,7 @@ extern int num_open_script_files;
 extern DataStream *valid_handles[MAX_OPEN_SCRIPT_FILES+1];
 
 
-DataStream *FileOpenCMode(const char*fnmm, const char* cmode)
+int32_t FileOpenCMode(const char*fnmm, const char* cmode)
 {
   Common::FileOpenMode open_mode;
   Common::FileWorkMode work_mode;
@@ -37,19 +37,19 @@ DataStream *FileOpenCMode(const char*fnmm, const char* cmode)
   // of string on its own.
   if (!Common::File::GetFileModesFromCMode(cmode, open_mode, work_mode))
   {
-      return NULL;
+      return -1;
   }
   return FileOpen(fnmm, open_mode, work_mode);
 }
 
-DataStream *FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode)
+int32_t FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode)
 {
   int useindx = 0;
   char fileToOpen[MAX_PATH];
 
   if (!validate_user_file_path(fnmm, fileToOpen,
       (open_mode != Common::kFile_Open || work_mode != Common::kFile_Read)))
-    return NULL;
+    return -1;
 
   // find a free file handle to use
   for (useindx = 0; useindx < num_open_script_files; useindx++) 
@@ -61,7 +61,7 @@ DataStream *FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::Fi
   valid_handles[useindx] = Common::File::OpenFile(fileToOpen, open_mode, work_mode);
 
   if (valid_handles[useindx] == NULL)
-    return NULL;
+    return -1;
 
   if (useindx >= num_open_script_files) 
   {
@@ -69,86 +69,99 @@ DataStream *FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::Fi
       quit("!FileOpen: tried to open more than 10 files simultaneously - close some first");
     num_open_script_files++;
   }
-  return valid_handles[useindx];
+  return useindx;
 }
 
-void FileClose(DataStream *hha) {
-  valid_handles[check_valid_file_handle(hha,"FileClose")] = NULL;
-  delete hha;
+void FileClose(int32_t handle) {
+  DataStream *stream = check_valid_file_handle_int32(handle,"FileClose");
+  if (stream)
+  {
+    valid_handles[handle] = NULL;
   }
-void FileWrite(DataStream *haa, const char *towrite) {
-  check_valid_file_handle(haa,"FileWrite");
-  haa->WriteInt32(strlen(towrite)+1);
-  haa->Write(towrite,strlen(towrite)+1);
+  delete stream;
   }
-void FileWriteRawLine(DataStream *haa, const char*towrite) {
-  check_valid_file_handle(haa,"FileWriteRawLine");
-  haa->Write(towrite,strlen(towrite));
-  haa->WriteInt8 (13);
-  haa->WriteInt8 (10);
+void FileWrite(int32_t handle, const char *towrite) {
+  DataStream *out = check_valid_file_handle_int32(handle,"FileWrite");
+  out->WriteInt32(strlen(towrite)+1);
+  out->Write(towrite,strlen(towrite)+1);
   }
-void FileRead(DataStream *haa,char*toread) {
+void FileWriteRawLine(int32_t handle, const char*towrite) {
+  DataStream *out = check_valid_file_handle_int32(handle,"FileWriteRawLine");
+  out->Write(towrite,strlen(towrite));
+  out->WriteInt8 (13);
+  out->WriteInt8 (10);
+  }
+void FileRead(int32_t handle,char*toread) {
   VALIDATE_STRING(toread);
-  check_valid_file_handle(haa,"FileRead");
-  if (haa->EOS()) {
+  DataStream *in = check_valid_file_handle_int32(handle,"FileRead");
+  if (in->EOS()) {
     toread[0] = 0;
     return;
   }
-  int lle=haa->ReadInt32();
+  int lle=in->ReadInt32();
   if ((lle>=200) | (lle<1)) quit("!FileRead: file was not written by FileWrite");
-  haa->Read(toread,lle);
+  in->Read(toread,lle);
   }
-int FileIsEOF (DataStream *haa) {
-  check_valid_file_handle(haa,"FileIsEOF");
-  if (haa->EOS())
+int FileIsEOF (int32_t handle) {
+  DataStream *stream = check_valid_file_handle_int32(handle,"FileIsEOF");
+  if (stream->EOS())
     return 1;
 
   // TODO: stream errors
-  if (ferror (((Common::FileStream*)haa)->GetHandle()))
+  if (ferror (((Common::FileStream*)stream)->GetHandle()))
     return 1;
 
-  if (haa->GetPosition () >= haa->GetLength())
+  if (stream->GetPosition () >= stream->GetLength())
     return 1;
   return 0;
 }
-int FileIsError(DataStream *haa) {
-  check_valid_file_handle(haa,"FileIsError");
+int FileIsError(int32_t handle) {
+  DataStream *stream = check_valid_file_handle_int32(handle,"FileIsError");
 
   // TODO: stream errors
-  if (ferror(((Common::FileStream*)haa)->GetHandle()))
+  if (ferror(((Common::FileStream*)stream)->GetHandle()))
     return 1;
 
   return 0;
 }
-void FileWriteInt(DataStream *haa,int into) {
-  check_valid_file_handle(haa,"FileWriteInt");
-  haa->WriteInt8('I');
-  haa->WriteInt32(into);
+void FileWriteInt(int32_t handle,int into) {
+  DataStream *out = check_valid_file_handle_int32(handle,"FileWriteInt");
+  out->WriteInt8('I');
+  out->WriteInt32(into);
   }
-int FileReadInt(DataStream *haa) {
-  check_valid_file_handle(haa,"FileReadInt");
-  if (haa->EOS())
+int FileReadInt(int32_t handle) {
+  DataStream *in = check_valid_file_handle_int32(handle,"FileReadInt");
+  if (in->EOS())
     return -1;
-  if (haa->ReadInt8()!='I')
+  if (in->ReadInt8()!='I')
     quit("!FileReadInt: File read back in wrong order");
-  return haa->ReadInt32();
+  return in->ReadInt32();
   }
-char FileReadRawChar(DataStream *haa) {
-  check_valid_file_handle(haa,"FileReadRawChar");
-  if (haa->EOS())
+char FileReadRawChar(int32_t handle) {
+  DataStream *in = check_valid_file_handle_int32(handle,"FileReadRawChar");
+  if (in->EOS())
     return -1;
-  return haa->ReadInt8();
+  return in->ReadInt8();
   }
-int FileReadRawInt(DataStream *haa) {
-  check_valid_file_handle(haa,"FileReadRawInt");
-  if (haa->EOS())
+int FileReadRawInt(int32_t handle) {
+  DataStream *in = check_valid_file_handle_int32(handle,"FileReadRawInt");
+  if (in->EOS())
     return -1;
-  return haa->ReadInt32();
+  return in->ReadInt32();
 }
-void FileWriteRawChar(DataStream *haa, int chartoWrite) {
-  check_valid_file_handle(haa,"FileWriteRawChar");
+void FileWriteRawChar(int32_t handle, int chartoWrite) {
+  DataStream *out = check_valid_file_handle_int32(handle,"FileWriteRawChar");
   if ((chartoWrite < 0) || (chartoWrite > 255))
     quit("!FileWriteRawChar: can only write values 0-255");
 
-  haa->WriteInt8(chartoWrite);
+  out->WriteInt8(chartoWrite);
+}
+
+DataStream *GetValidFileStream(int32_t handle)
+{
+    if (handle >= 0 && handle < num_open_script_files)
+    {
+        return valid_handles[handle];
+    }
+    return NULL;
 }

@@ -19,7 +19,7 @@
 #include "ac/game_version.h"
 
 // These are the project-dependent functions, they are defined both in Engine.App and AGS.Native.
-void quit(char *);
+void quit(const char *);
 void update_polled_stuff_if_runtime();
 void set_our_eip(int eip);
 int  get_our_eip();

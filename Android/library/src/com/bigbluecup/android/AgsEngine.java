@@ -264,33 +264,37 @@ public class AgsEngine extends Activity
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item)
 	{
+		int id = item.getItemId();
+
 		// This must be if-else instead of switch-case because it is in a library
-		if (item.getItemId() == R.id.key_f1)
+		if (id == R.id.key_f1)
 			glue.keyboardEvent(0x1000 + 47, 0, false);
-		else if (item.getItemId() == R.id.key_f2)
+		else if (id == R.id.key_f2)
 			glue.keyboardEvent(0x1000 + 48, 0, false);
-		else if (item.getItemId() == R.id.key_f3)
+		else if (id == R.id.key_f3)
 			glue.keyboardEvent(0x1000 + 49, 0, false);
-		else if (item.getItemId() == R.id.key_f4)
+		else if (id == R.id.key_f4)
 			glue.keyboardEvent(0x1000 + 50, 0, false);
-		else if (item.getItemId() == R.id.key_f5)
+		else if (id == R.id.key_f5)
 			glue.keyboardEvent(0x1000 + 51, 0, false);
-		else if (item.getItemId() == R.id.key_f6)
+		else if (id == R.id.key_f6)
 			glue.keyboardEvent(0x1000 + 52, 0, false);
-		else if (item.getItemId() == R.id.key_f7)
+		else if (id == R.id.key_f7)
 			glue.keyboardEvent(0x1000 + 53, 0, false);
-		else if (item.getItemId() == R.id.key_f8)
+		else if (id == R.id.key_f8)
 			glue.keyboardEvent(0x1000 + 54, 0, false);
-		else if (item.getItemId() == R.id.key_f9)
+		else if (id == R.id.key_f9)
 			glue.keyboardEvent(0x1000 + 55, 0, false);
-		else if (item.getItemId() == R.id.key_f10)
+		else if (id == R.id.key_f10)
 			glue.keyboardEvent(0x1000 + 56, 0, false);
-		else if (item.getItemId() == R.id.key_f11)
+		else if (id == R.id.key_f11)
 			glue.keyboardEvent(0x1000 + 57, 0, false);
-		else if (item.getItemId() == R.id.key_f12)
+		else if (id == R.id.key_f12)
 			glue.keyboardEvent(0x1000 + 58, 0, false);
-		else if (item.getItemId() == R.id.exitgame)
+		else if (id == R.id.exitgame)
 			showExitConfirmation();
+		else if (id == R.id.toggle_keyboard)
+			toggleKeyboard();
 		else
 			return super.onOptionsItemSelected(item);
 		
@@ -325,8 +329,7 @@ public class AgsEngine extends Activity
 				if ((key == KeyEvent.KEYCODE_MENU) && ((ev.getFlags() & 0x80) > 0)) // FLAG_LONG_PRESS
 				{
 					ignoreNextActionUp_Menu = true;
-					InputMethodManager manager = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-					manager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+					toggleKeyboard();
 				}
 				
 				if (key == KeyEvent.KEYCODE_VOLUME_UP)
@@ -378,7 +381,14 @@ public class AgsEngine extends Activity
 		return isInGame;
 	}
 
-	
+
+	private void toggleKeyboard()
+	{
+		InputMethodManager manager = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+		manager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+	}
+
+
 	// Exit confirmation dialog displayed when hitting the "back" button
 	private void showExitConfirmation()
 	{

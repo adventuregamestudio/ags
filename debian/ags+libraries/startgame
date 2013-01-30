@@ -1,0 +1,15 @@
+#!/bin/sh
+SCRIPTPATH="$(dirname $(readlink -f $0))"
+
+if test "x$@" = "x-h" -o "x$@" = "x--help"
+  then
+    echo "Usage:" "$(basename $(readlink -f $0))" "[<ags options>]"
+    echo ""
+fi
+
+if test $(uname -m) = x86_64
+  then
+    ALLEGRO_MODULES="$SCRIPTPATH/data/lib64" "$SCRIPTPATH/data/ags64" "$@" "$SCRIPTPATH/data/"
+  else
+    ALLEGRO_MODULES="$SCRIPTPATH/data/lib32" "$SCRIPTPATH/data/ags32" "$@" "$SCRIPTPATH/data/"
+fi

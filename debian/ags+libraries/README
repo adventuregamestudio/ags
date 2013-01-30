@@ -1,0 +1,13 @@
+This archive includes Linux binaries of AGS and all required shared
+libraries, for the i386 and amd64 architectures. It can be used to create
+game releases for Linux that should work on most modern Linux systems.
+
+To create a game release, copy the game into the "data" directory. Now it
+should be possible to start the game using the script "startgame". This
+script may be renamed to the name of the game.
+
+For games using MIDI music, a patches file has to be included.
+(Todo: make sure it is found.)
+
+This bundle was created using the script debian/make_ags+libraries.sh from
+the AGS repository at https://github.com/adventuregamestudio/ags

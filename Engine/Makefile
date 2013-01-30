@@ -57,3 +57,7 @@ install: ags
 
 uninstall:
 	rm -f $(PREFIX)/bin/ags
+
+strip:
+	@echo Stripping debug information from binaries
+	@strip ags

@@ -334,9 +334,20 @@ int main(int argc,char*argv[]) {
         return res;
     }
 
+    #ifdef BUILD_STR
+	char build_str[50];
+	char* build_id = BUILD_STR;
+	
+	strcpy(build_str,"(Build: ");
+	strcat(build_str,build_id);
+	strcat(build_str,")");
+    #else
+	char* build_str = "";
+    #endif
+
     printf("Adventure Game Studio v%sInterpreter\n"
            "Copyright (c) 1999-2011 Chris Jones and 2011-20xx others\n"
-           "ACI version %s\n", AC_VERSION_TEXT, ACI_VERSION_TEXT);
+           "ACI version %s %s\n", AC_VERSION_TEXT, ACI_VERSION_TEXT, build_str);
 
     if ((argc>1) && (stricmp(argv[1],"--help") == 0 || argv[1][1]=='?')) {
         main_print_help();

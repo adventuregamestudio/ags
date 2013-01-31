@@ -40,10 +40,10 @@ common.a: $(OBJS_COMMON)
 	@$(CXX) $(CXXFLAGS) -MD -c -o $@ $<
 
 printflags:
-	@echo "CFLAGS =" $(CFLAGS) "\n"
-	@echo "CXXFLAGS =" $(CXXFLAGS) "\n"
-	@echo "LDFLAGS =" $(LDFLAGS) "\n"
-	@echo "LIBS =" $(LIBS) "\n"
+	@echo "CFLAGS =" $(CFLAGS)
+	@echo "CXXFLAGS =" $(CXXFLAGS)
+	@echo "LDFLAGS =" $(LDFLAGS)
+	@echo "LIBS =" $(LIBS)
 
 rebuild: clean all
 

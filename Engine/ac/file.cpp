@@ -121,7 +121,7 @@ void File_WriteRawLine(sc_File *fil, const char *towrite) {
 }
 
 void File_ReadRawLine(sc_File *fil, char* buffer) {
-  DataStream *in = check_valid_file_handle_int32(fil->handle, "File.ReadRawLine");
+  DataStream *in = get_valid_file_stream_from_handle(fil->handle, "File.ReadRawLine");
   check_strlen(buffer);
   int i = 0;
   while (i < MAXSTRLEN - 1) {
@@ -151,7 +151,7 @@ void File_ReadString(sc_File *fil, char *toread) {
 }
 
 const char* File_ReadStringBack(sc_File *fil) {
-  DataStream *in = check_valid_file_handle_int32(fil->handle, "File.ReadStringBack");
+  DataStream *in = get_valid_file_stream_from_handle(fil->handle, "File.ReadStringBack");
   if (in->EOS()) {
     return CreateNewScriptString("");
   }
@@ -179,13 +179,13 @@ int File_ReadRawInt(sc_File *fil) {
 }
 
 int File_GetEOF(sc_File *fil) {
-  if (fil->handle == NULL)
+  if (fil->handle <= 0)
     return 1;
   return FileIsEOF(fil->handle);
 }
 
 int File_GetError(sc_File *fil) {
-  if (fil->handle == NULL)
+  if (fil->handle <= 0)
     return 1;
   return FileIsError(fil->handle);
 }
@@ -298,37 +298,50 @@ void get_current_dir_path(char* buffer, const char *fileName)
     }
 }
 
-DataStream *valid_handles[MAX_OPEN_SCRIPT_FILES+1];
+ScriptFileHandle valid_handles[MAX_OPEN_SCRIPT_FILES + 1];
+// [IKM] NOTE: this is not precisely the number of files opened at this moment,
+// but rather maximal number of handles that were used simultaneously during game run
 int num_open_script_files = 0;
-int check_valid_file_handle_ptr(Common::DataStream *stream_ptr, const char *operation_name)
+ScriptFileHandle *check_valid_file_handle_ptr(Common::DataStream *stream_ptr, const char *operation_name)
 {
   if (stream_ptr)
   {
-      for (int handle = 0; handle < num_open_script_files; ++handle)
+      for (int i = 0; i < num_open_script_files; ++i)
       {
-          if (stream_ptr == valid_handles[handle])
+          if (stream_ptr == valid_handles[i].stream)
           {
-              return handle;
+              return &valid_handles[i];
           }
       }
   }
 
   String exmsg = String::FromFormat("!%s: invalid file handle; file not previously opened or has been closed", operation_name);
   quit(exmsg);
-  return -1;
+  return NULL;
 }
 
-Common::DataStream *check_valid_file_handle_int32(int32_t handle, const char *operation_name)
+ScriptFileHandle *check_valid_file_handle_int32(int32_t handle, const char *operation_name)
 {
-  if (handle >= 0 && handle < num_open_script_files &&
-      valid_handles[handle])
+  if (handle > 0)
   {
-      return valid_handles[handle];
+    for (int i = 0; i < num_open_script_files; ++i)
+    {
+        if (handle == valid_handles[i].handle)
+        {
+            return &valid_handles[i];
+        }
+    }
   }
 
   String exmsg = String::FromFormat("!%s: invalid file handle; file not previously opened or has been closed", operation_name);
   quit(exmsg);
   return NULL;
+}
+
+DataStream *get_valid_file_stream_from_handle(int32_t handle, const char *operation_name)
+{
+    ScriptFileHandle *sc_handle = check_valid_file_handle_int32(handle, operation_name);
+    return sc_handle ? sc_handle->stream : NULL;
 }
 
 bool validate_user_file_path(const char *fnmm, char *output, bool currentDirOnly)

@@ -38,20 +38,20 @@ int sc_File::Serialize(const char *address, char *buffer, int bufsize) {
 
 int sc_File::OpenFile(const char *filename, int mode) {
   handle = FileOpen(filename, fopenModes[mode], fworkModes[mode]);
-  if (handle < 0)
+  if (handle <= 0)
       return 0;
   return 1;
 }
 
 void sc_File::Close() {
-  if (handle >= 0) {
+  if (handle > 0) {
     FileClose(handle);
-    handle = -1;
+    handle = 0;
   }
 }
 
 sc_File::sc_File() {
-    handle = -1;
+    handle = 0;
 }
 
 

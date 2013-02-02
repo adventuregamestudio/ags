@@ -38,6 +38,4 @@ char  FileReadRawChar(int32_t handle);
 int   FileReadRawInt(int32_t handle);
 void  FileWriteRawChar(int32_t handle, int chartoWrite);
 
-Common::DataStream *GetValidFileStream(int32_t handle);
-
 #endif // __AGS_EE_AC__GLOBALFILE_H

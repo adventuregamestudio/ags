@@ -54,6 +54,10 @@ or
 
     ags game.exe
 
+To view some possible command line options, use
+
+    ags --help
+
 The configuration file **acsetup.cfg** in the game directory will be used
 if present. Sometimes a configuration file coming with a game can cause problems,
 so if a game doesn't start, try deleting **acsetup.cfg** first.

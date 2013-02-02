@@ -77,6 +77,7 @@ extern char editor_debugger_instance_token[100];
 
 
 // Startup flags, set from parameters to engine
+char force_gfxfilter[50];
 int datafile_argv=0, change_to_game_dir = 0, force_window = 0;
 int override_start_room = 0, force_16bit = 0;
 bool justRegisterGame = false;
@@ -138,10 +139,26 @@ int main_preprocess_cmdline(int argc,char*argv[])
 extern char return_to_roomedit[30];
 extern char return_to_room[150];
 
+void main_print_help() {
+    printf("\nUsage: ags [<options>] [<gamefile or directory>]\n\n"
+           "Options:\n"
+           "-windowed            Set display mode to windowed\n"
+           "-fullscreen          Set display mode to fullscreen\n"
+           "-hicolor             Enable 16bit colors\n"
+           "-letterbox           Enable letterbox mode\n"
+           "-gfxfilter <filter>  Enable graphics filter, where <filter> can be\n"
+           "                     StdScale2, StdScale3, StdScale4, Hq2x or Hq3x\n"
+           "--help               Print this help message\n");
+}
+
 int main_process_cmdline(int argc,char*argv[])
 {
+    force_gfxfilter[0] = '\0';
+
     for (int ee=1;ee<argc;ee++) {
-        if (argv[ee][1]=='?') return 0;
+        if (stricmp(argv[ee],"--help") == 0 || argv[ee][1]=='?') {
+            return 0;
+        }
         if (stricmp(argv[ee],"-shelllaunch") == 0)
             change_to_game_dir = 1;
         else if (stricmp(argv[ee],"-updatereg") == 0)
@@ -158,6 +175,11 @@ int main_process_cmdline(int argc,char*argv[])
             play.recording = 1;
         else if (stricmp(argv[ee],"-playback") == 0)
             play.playback = 1;
+        else if ((stricmp(argv[ee],"-gfxfilter") == 0) && (argc > ee + 1))
+        {
+            strncpy(force_gfxfilter, argv[ee + 1], 49);
+            ee++;
+        }
 #ifdef _DEBUG
         else if ((stricmp(argv[ee],"--startr") == 0) && (ee < argc-1)) {
             override_start_room = atoi(argv[ee+1]);
@@ -312,11 +334,14 @@ int main(int argc,char*argv[]) {
         return res;
     }
 
-    printf("Adventure Creator v%sInterpreter\n"
-      "Copyright (c) 1999-2001 Chris Jones\n" "ACI version %s\n", AC_VERSION_TEXT, ACI_VERSION_TEXT);
+    printf("Adventure Game Studio v%sInterpreter\n"
+           "Copyright (c) 1999-2011 Chris Jones and 2011-20xx others\n"
+           "ACI version %s\n", AC_VERSION_TEXT, ACI_VERSION_TEXT);
 
-    if ((argc>1) && (argv[1][1]=='?'))
+    if ((argc>1) && (stricmp(argv[1],"--help") == 0 || argv[1][1]=='?')) {
+        main_print_help();
         return 0;
+    }
 
     initialize_debug_system();
     write_log_debug("***** ENGINE STARTUP");

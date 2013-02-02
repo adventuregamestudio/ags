@@ -34,7 +34,7 @@ using AGS::Common::Stream;
 char *scripteditruntimecopr = "Script Editor v1.2 run-time component. (c) 1998 Chris Jones";
 
 #define SCRIPT_CONFIG_VERSION 1
-extern void quit(char *);
+extern void quit(const char *);
 extern int currentline; // in script/script_common
 
 void cc_error_at_line(char *buffer, const char *error_msg)

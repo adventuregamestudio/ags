@@ -18,7 +18,7 @@
 #include "script/systemimports.h"
 
 
-extern void quit(char *);
+extern void quit(const char *);
 
 struct CompareStringsPartial : ICompareStrings {
     virtual int compare(const char *left, const char *right) {

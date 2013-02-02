@@ -302,7 +302,7 @@ String find_game_data_in_directory(const char *path)
     path_mask.Append("/*");
     WIN32_FIND_DATAA file_data;
     HANDLE find_handle = FindFirstFileA(path_mask, &file_data);
-    if (find_handle >= 0)
+    if (find_handle != INVALID_HANDLE_VALUE)
     {
         do
         {

@@ -24,6 +24,9 @@
 		</activity>
 		
         <activity android:configChanges="orientation|keyboardHidden|screenSize" android:name="com.bigbluecup.android.AgsEngine">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+			</intent-filter>
         </activity>
 		
     </application>

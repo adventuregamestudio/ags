@@ -28,8 +28,10 @@
 #include "util/stream.h"
 #include "core/assetmanager.h"
 #include "main/game_file.h"
+#include "util/string.h"
 
 using AGS::Common::Stream;
+using AGS::Common::String;
 
 #if defined (AGS_RUNTIME_PATCH_ALLEGRO)
 #include <dlfcn.h>
@@ -119,19 +121,19 @@ void File_WriteRawLine(sc_File *fil, const char *towrite) {
 }
 
 void File_ReadRawLine(sc_File *fil, char* buffer) {
-  check_valid_file_handle(fil->handle, "File.ReadRawLine");
+  Stream *in = get_valid_file_stream_from_handle(fil->handle, "File.ReadRawLine");
   check_strlen(buffer);
   int i = 0;
   while (i < MAXSTRLEN - 1) {
-    buffer[i] = fil->handle->ReadInt8();
+    buffer[i] = in->ReadInt8();
     if (buffer[i] == 13) {
       // CR -- skip LF and abort
-      fil->handle->ReadInt8();
+      in->ReadInt8();
       break;
     }
     if (buffer[i] == 10)  // LF only -- abort
       break;
-    if (fil->handle->EOS())  // EOF -- abort
+    if (in->EOS())  // EOF -- abort
       break;
     i++;
   }
@@ -149,17 +151,17 @@ void File_ReadString(sc_File *fil, char *toread) {
 }
 
 const char* File_ReadStringBack(sc_File *fil) {
-  check_valid_file_handle(fil->handle, "File.ReadStringBack");
-  if (fil->handle->EOS()) {
+  Stream *in = get_valid_file_stream_from_handle(fil->handle, "File.ReadStringBack");
+  if (in->EOS()) {
     return CreateNewScriptString("");
   }
 
-  int lle = fil->handle->ReadInt32();
+  int lle = in->ReadInt32();
   if ((lle >= 20000) || (lle < 1))
     quit("!File.ReadStringBack: file was not written by WriteString");
 
   char *retVal = (char*)malloc(lle);
-  fil->handle->Read(retVal, lle);
+  in->Read(retVal, lle);
 
   return CreateNewScriptString(retVal, false);
 }
@@ -177,13 +179,13 @@ int File_ReadRawInt(sc_File *fil) {
 }
 
 int File_GetEOF(sc_File *fil) {
-  if (fil->handle == NULL)
+  if (fil->handle <= 0)
     return 1;
   return FileIsEOF(fil->handle);
 }
 
 int File_GetError(sc_File *fil) {
-  if (fil->handle == NULL)
+  if (fil->handle <= 0)
     return 1;
   return FileIsError(fil->handle);
 }
@@ -296,21 +298,51 @@ void get_current_dir_path(char* buffer, const char *fileName)
     }
 }
 
-Stream *valid_handles[MAX_OPEN_SCRIPT_FILES+1];
+ScriptFileHandle valid_handles[MAX_OPEN_SCRIPT_FILES + 1];
+// [IKM] NOTE: this is not precisely the number of files opened at this moment,
+// but rather maximal number of handles that were used simultaneously during game run
 int num_open_script_files = 0;
-int check_valid_file_handle(Stream *hann, char*msg) {
-  int aa;
-  if (hann != NULL) {
-    for (aa=0; aa < num_open_script_files; aa++) {
-      if (hann == valid_handles[aa])
-        return aa;
+ScriptFileHandle *check_valid_file_handle_ptr(Common::Stream *stream_ptr, const char *operation_name)
+{
+  if (stream_ptr)
+  {
+      for (int i = 0; i < num_open_script_files; ++i)
+      {
+          if (stream_ptr == valid_handles[i].stream)
+          {
+              return &valid_handles[i];
+          }
+      }
+  }
+
+  String exmsg = String::FromFormat("!%s: invalid file handle; file not previously opened or has been closed", operation_name);
+  quit(exmsg);
+  return NULL;
+}
+
+ScriptFileHandle *check_valid_file_handle_int32(int32_t handle, const char *operation_name)
+{
+  if (handle > 0)
+  {
+    for (int i = 0; i < num_open_script_files; ++i)
+    {
+        if (handle == valid_handles[i].handle)
+        {
+            return &valid_handles[i];
+        }
     }
   }
-  char exmsg[100];
-  sprintf(exmsg,"!%s: invalid file handle; file not previously opened or has been closed",msg);
+
+  String exmsg = String::FromFormat("!%s: invalid file handle; file not previously opened or has been closed", operation_name);
   quit(exmsg);
-  return -1;
-  }
+  return NULL;
+}
+
+Stream *get_valid_file_stream_from_handle(int32_t handle, const char *operation_name)
+{
+    ScriptFileHandle *sc_handle = check_valid_file_handle_int32(handle, operation_name);
+    return sc_handle ? sc_handle->stream : NULL;
+}
 
 bool validate_user_file_path(const char *fnmm, char *output, bool currentDirOnly)
 {

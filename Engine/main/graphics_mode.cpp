@@ -46,6 +46,7 @@ extern DynamicArray<GUIInv> guiinv;
 extern int numguiinv;
 extern int scrnwid,scrnhit;
 extern int current_screen_resolution_multiplier;
+extern char force_gfxfilter[50];
 extern int force_letterbox;
 extern AGSPlatformDriver *platform;
 extern int force_16bit;
@@ -298,9 +299,17 @@ int engine_init_gfx_filters()
 {
     write_log_debug("Init gfx filters");
 
-    if (initialize_graphics_filter(usetup.gfxFilterID, initasx, initasy, firstDepth))
-    {
-        return EXIT_NORMAL;
+    if (force_gfxfilter[0]) {
+        if (initialize_graphics_filter(force_gfxfilter, initasx, initasy, firstDepth))
+        {
+            return EXIT_NORMAL;
+        }
+    }
+    else {
+        if (initialize_graphics_filter(usetup.gfxFilterID, initasx, initasy, firstDepth))
+        {
+            return EXIT_NORMAL;
+        }
     }
 
     return RETURN_CONTINUE;

@@ -1,0 +1,5 @@
+Authors
+-------
+
+Javier Gonzalez - Made the main API and ported the decoder to
+                  make it able to be used in Allegro and DOS programs

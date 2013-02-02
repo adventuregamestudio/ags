@@ -1820,7 +1820,7 @@ diff -Naur src/ios/imouse.c src/ios/imouse.c
 diff -Naur src/ios/isound.c src/ios/isound.c
 --- src/ios/isound.c	Thu Jan  1 00:00:00 1970
 +++ src/ios/isound.c	Sun Dec 30 08:53:59 2012
-@@ -0,0 +1,174 @@
+@@ -0,0 +1,223 @@
 +/*         ______   ___    ___
 + *        /\  _  \ /\_ \  /\_ \
 + *        \ \ \\ \\//\ \ \//\ \      __     __   _ __   ___
@@ -1856,14 +1856,18 @@ diff -Naur src/ios/isound.c src/ios/isound.c
 +static int digi_ios_detect(int);
 +static int digi_ios_init(int, int);
 +static void digi_ios_exit(int);
++static void ios_start_audio_queue();
 +
 +static short sound_buffer[2][SAMPLES_PER_BUFFER][2];
 +int curr_buffer = 0;
 +
 +AudioQueueRef ios_queue;
 +AudioQueueBufferRef ios_queue_buffer[3];
++AudioStreamBasicDescription ios_data_format;
 +
-+int ios_audio_playing = 0;
++volatile int ios_audio_playing = 0;
++volatile int ios_audio_interrupted = 0;
++volatile int ios_audio_must_restart = 0;
 +
 +DIGI_DRIVER digi_ios =
 +{
@@ -1929,11 +1933,36 @@ diff -Naur src/ios/isound.c src/ios/isound.c
 +}
 +
 +
++void ios_resume_sound()
++{
++   if (ios_audio_must_restart)
++   {
++      ios_audio_must_restart = 0;
++      AudioQueueStart(ios_queue, NULL);
++   }
++}
++
++
++void digi_ios_interruption_handler(void *inUserData, UInt32 interruptionState) 
++{
++   if (interruptionState == kAudioSessionBeginInterruption) 
++   {
++      ios_audio_interrupted = 1;
++      AudioQueueStop(ios_queue, 1);
++   }
++   else if (interruptionState == kAudioSessionEndInterruption)
++   {
++      ios_audio_interrupted = 0;
++      ios_start_audio_queue();
++   }
++}
++
++
 +void digi_ios_audio_callback(void* inUserData, AudioQueueRef inAQ, AudioQueueBufferRef inBuffer)
 +{
 +   void* bufptr = &sound_buffer[curr_buffer];
 +   
-+   if (!ios_audio_playing)
++   if (!ios_audio_playing || ios_audio_interrupted)
 +      return;
 +
 +   /* Asks to the Allegro mixer to fill the buffer */
@@ -1948,31 +1977,13 @@ diff -Naur src/ios/isound.c src/ios/isound.c
 +}
 +
 +
-+static int digi_ios_init(int input, int voices)
++extern volatile int is_in_foreground;
++
++static void ios_start_audio_queue()
 +{
 +   int i;
-+   AudioStreamBasicDescription dataFormat;
-+
-+   _sound_bits = 16;
-+   _sound_stereo = TRUE;
-+   _sound_freq = 44100;  
-+  
-+   digi_ios.voices = voices;
-+
-+   dataFormat.mSampleRate = _sound_freq;    
-+   dataFormat.mFormatID = kAudioFormatLinearPCM;
-+   dataFormat.mFormatFlags = kLinearPCMFormatFlagIsSignedInteger | kLinearPCMFormatFlagIsPacked;
-+   dataFormat.mBytesPerPacket = 4;
-+   dataFormat.mFramesPerPacket = 1;
-+   dataFormat.mBytesPerFrame = 4;
-+   dataFormat.mChannelsPerFrame = (_sound_stereo ? 2 : 1);
-+   dataFormat.mBitsPerChannel = _sound_bits;
-+   dataFormat.mReserved = 0;
-+
-+   if (_mixer_init(SAMPLES_PER_BUFFER * 2, _sound_freq, _sound_stereo, (_sound_bits == 16), &digi_ios.voices))
-+      return -1;
-+
-+   AudioQueueNewOutput(&dataFormat, digi_ios_audio_callback, NULL, NULL, NULL, 0, &ios_queue);
++   
++   AudioQueueNewOutput(&ios_data_format, digi_ios_audio_callback, NULL, NULL, NULL, 0, &ios_queue);
 +
 +   for (i = 0; i < 3; i++)
 +   {
@@ -1984,7 +1995,45 @@ diff -Naur src/ios/isound.c src/ios/isound.c
 +
 +   ios_audio_playing = 1;
 +
-+   AudioQueueStart(ios_queue, NULL);
++   /* Error -12985 happens if the app is currently in the background.
++      The most likely cause for this is that an interrupting event
++      (like a phone call or an alarm) occured and the user dismissed it
++      by pressing the power button. This calls the audio resume callback
++      but the app is already in the background. Set a flag so that audio
++      gets restarted after the app has come to the foreground. */
++   if (AudioQueueStart(ios_queue, NULL) == -12985)
++   {
++      ios_audio_must_restart = 1;
++   }
++}
++
++
++static int digi_ios_init(int input, int voices)
++{
++   _sound_bits = 16;
++   _sound_stereo = TRUE;
++   _sound_freq = 44100;  
++  
++   digi_ios.voices = voices;
++
++   ios_data_format.mSampleRate = _sound_freq;    
++   ios_data_format.mFormatID = kAudioFormatLinearPCM;
++   ios_data_format.mFormatFlags = kLinearPCMFormatFlagIsSignedInteger | kLinearPCMFormatFlagIsPacked;
++   ios_data_format.mBytesPerPacket = 4;
++   ios_data_format.mFramesPerPacket = 1;
++   ios_data_format.mBytesPerFrame = 4;
++   ios_data_format.mChannelsPerFrame = (_sound_stereo ? 2 : 1);
++   ios_data_format.mBitsPerChannel = _sound_bits;
++   ios_data_format.mReserved = 0;
++
++   if (_mixer_init(SAMPLES_PER_BUFFER * 2, _sound_freq, _sound_stereo, (_sound_bits == 16), &digi_ios.voices))
++      return -1;
++
++#ifndef __i386__
++   AudioSessionInitialize(NULL, NULL, digi_ios_interruption_handler, NULL);
++#endif
++
++   ios_start_audio_queue();
 +
 +   return 0;
 +}
@@ -1995,6 +2044,7 @@ diff -Naur src/ios/isound.c src/ios/isound.c
 +   ios_audio_playing = 0;
 +   AudioQueueStop(ios_queue, 0);
 +}
++
 diff -Naur src/ios/isystem.c src/ios/isystem.c
 --- src/ios/isystem.c	Thu Jan  1 00:00:00 1970
 +++ src/ios/isystem.c	Sun Dec 30 09:15:48 2012

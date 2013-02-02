@@ -1,0 +1,380 @@
+
+                           AllegroOGG v1.0.3
+                          ===================
+
+                  AllegroOGG (c) 2002 Javier Gonzalez
+
+          OGG Decoder part of Ogg Vorbis (Xiph.org Foundation)
+
+
+#include <std_disclaimer.h>
+
+
+   "I do not accept responsibility for any effects, adverse or otherwise, 
+    that this code may have on you, your computer, your sanity, your dog, 
+    and anything else that you can think of. Use it at your own risk."
+
+
+
+See README.txt for a general introduction, copyright details, and 
+information about how to install AllegroOGG.
+
+
+
+Using AllegroOGG
+----------------
+
+   To be able to use AllegroOGG with your program, you just need (once
+   compiled the library) to link the generated lib with your program
+   (remember that since this lib relies on allegro, you need to add
+   alogg *before* alleg) and include the header "alogg.h", available in
+   the lib and include directories respectively. 
+
+
+Reference
+---------
+
+   Note parameters are marked between ' ' markers.
+
+
+   Differences between ALOGG_OGG and ALOGG_OGGSTREAM:
+     There are three ways to open ogg data:
+       1) Using ALOGG_OGG and alogg_create_ogg_from_file() has the pros
+          that it won't need to load the whole file in mem and that will
+          read chunks when needed, and also that you will be able to seek,
+          get total length, but has the cons that only for work
+          individual files containing only ogg data, this is, doesn't work
+          for your own file format.
+       2) Using ALOGG_OGG and alogg_create_ogg_from_buffer() has the pros
+          that you will be able to seek, get the total length and use your
+          own file format, but has the cons that you will need to load the
+          whole ogg data into memory.
+       3) Using ALOGG_OGGSTREAM has the pros that you won't need to load the
+          whole file in mem and that will read chunks when needed, and also
+          that you will be able to use your own file format (even get data
+          on the fly, like for example from a network), but has the cons
+          that you won't be able to seek or get the total length.
+       All of them support getting the current position though.
+
+
+   ALOGG_OGG *alogg_create_ogg_from_file(FILE *f);
+      Creates an ALOGG_OGG which you'll have to pass to all the other
+      functions, where 'f' is the file pointer that must be already opened.
+      Note you aren't supposed to close this file until you have destroyed
+      the ALOGG_OGG.
+
+     return values:
+      NULL if there ocurred an error (mostly an invalid ogg data was passed).
+      Other value ( != NULL ) otherwise.
+
+
+   ALOGG_OGG *alogg_create_ogg_from_buffer(void *data, int data_len);
+      Creates an ALOGG_OGG which you'll have to pass to all the other
+      functions, where 'data' will be a pointer to the buffer containing
+      the ogg data and 'data_len' the size of this buffer. Note you aren't
+      supposed to free this buffer until you have destroyed the ALOGG_OGG.
+
+     return values:
+      NULL if there ocurred an error (mostly an invalid ogg data was passed).
+      Other value ( != NULL ) otherwise.
+
+
+   void alogg_destroy_ogg(ALOGG_OGG *ogg);
+      Destroys the ALOGG_OGG automatically stopping it. Note this function
+      check if the 'ogg' pointer is pointing to NULL, so for example this:
+         ALOGG_OGG *ogg = NULL;
+         destroy_ogg(ogg);
+      won't crash the program.
+
+
+   int alogg_play_ogg(ALOGG_OGG *ogg, int buffer_len, int vol, int pan);
+      Plays the 'ogg' ALOGG_OGG with the given volume 'vol' (from 0 to 255)
+      and panning 'pan' (from 0 to 255, where 0 is full left and 255 is
+      full right). 'buffer_len' is the desired size in bytes of the
+      buffer where the decoded data will be stored. The bigger, the less
+      you'll have to poll the OGG, but the more time you will have to wait
+      in order to hear the song start playing. Note that due to some
+      ogg format limitations, the internal (and real) buffer will be
+      an aproximation to the 'buffer_len' given. A 'buffer_len' size between
+      16384 and 32768 bytes (16kb and 32kb) will do in most cases.
+
+     return values:
+      ALOGG_OK if no problems.
+      ALOGG_PLAY_BUFFERTOOSMALL if the given 'buffer_len' was not big enough.
+
+     special note:
+      This function also works like a "resume" function, since it
+      won't rewind the ALOGG_OGG automatically. Note that once the ALOGG_OGG
+      has reached the end when playing, it will rewind though, stoping the
+      ALOGG_OGG if the loop flag was set at FALSE (see alogg_play_ex_ogg())
+      or continuing playing it if it was set at TRUE. Also note that this
+      automatically stops decoding.
+
+
+   int alogg_play_ex_ogg(ALOGG_OGG *ogg, int buffer_len, int vol, int pan, int speed, int loop);
+      See alogg_play_ogg(). The only new is the 'speed' that will play the
+      ALOGG_OGG at a given speed (being 1000 = normal speed, 2000 = twice
+      fast, 500 = half speed and so on) and a loop flag that can be set to
+      not stop the ALOGG_OGG when it has reached the end, but continue it
+      playing from the start.
+
+     return values:
+      See alogg_play_ogg().
+
+     special note:
+      See alogg_play_ogg(). Note that you can change speed, pan, volume, etc
+      values to the ALOGG_OGG many times, but you will need to stop it first.
+
+
+   void alogg_stop_ogg(ALOGG_OGG *ogg);
+      Stops the ALOGG_OGG if it was playing.
+
+     special note:
+      This function also works like a "pause" function, since it won't
+      rewind it automatically.
+
+
+   void alogg_adjust_ogg(ALOGG_OGG *ogg, int vol, int pan, int speed, int loop);
+      Adjust the ALOGG_OGG parameters when it is already playing.
+
+
+   void alogg_rewind_ogg(ALOGG_OGG *ogg);
+      Rewinds the ALOGG_OGG to its start.
+
+     special note:
+      This function won't automatically stop the ALOGG_OGG if it was
+      already playing.
+
+
+   void alogg_seek_abs_msecs_ogg(ALOGG_OGG *ogg, int msecs);
+   void alogg_seek_abs_secs_ogg(ALOGG_OGG *ogg, int secs);
+   void alogg_seek_abs_bytes_ogg(ALOGG_OGG *ogg, int bytes);
+      Does an absolute seek (from start of the ogg), given the new
+      position either in msecs, secs or bytes.
+
+     special note:
+      This function won't stop the ALOGG_OGG if it was already playing.
+      
+
+   void alogg_seek_rel_msecs_ogg(ALOGG_OGG *ogg, int msec);
+   void alogg_seek_rel_secs_ogg(ALOGG_OGG *ogg, int sec);
+   void alogg_seek_rel_bytes_ogg(ALOGG_OGG *ogg, int bytes);
+      Does a relative seek (from current position), given the new
+      position either in msecs, secs or bytes.
+
+     special note:
+      This function won't stop the ALOGG_OGG if it was already playing.
+
+
+   int alogg_poll_ogg(ALOGG_OGG *ogg);
+      This functions needs to be called in order to keep the ALOGG_OGG
+      playing properly, since the oggs need to be decoded at real time
+      (either that, or to a huge memory buffer).
+
+     return values:
+      ALOGG_OK if there were no error.
+      ALOGG_POLL_PLAYJUSTFINISHED (only once) when the file has JUST
+        finished playing.
+      ALOGG_POLL_NOTPLAYING if the file is not playing.
+      ALOGG_POLL_FRAMECORRUPT if one of the frames is corrupt.
+      ALOGG_POLL_INTERNALERROR if an internal error happened.
+
+    special note:
+      If you don't want (or can't) poll all the time, you can use
+      automatic polling (see below), but I don't recommend this since
+      this can be very unstable, specially under DOS (altought I've
+      never experienced such problems myself, but better warn ;).
+
+
+   void alogg_start_autopoll_ogg(ALOGG_OGG *ogg, int speed);
+      Creates an allegro interrupt that will call poll for this ALOGG_OGG
+      each 'speed' msecs. This frees you from calling polling yourself,
+      but I recommend this only in the case you can't call poll (because
+      of the nature of your program) yourself at regular intervals.
+
+
+   void alogg_stop_autopoll_ogg(ALOGG_OGG *ogg);
+      Destroys the allegro interrupt for that ALOGG_OGG.
+
+
+   int alogg_get_pos_msecs_ogg(ALOGG_OGG *ogg);
+   int alogg_get_pos_secs_ogg(ALOGG_OGG *ogg);
+   int alogg_get_pos_bytes_ogg(ALOGG_OGG *ogg);
+      Returns the ALOGG_OGG current position either in msecs, secs
+      or bytes.
+
+
+   int alogg_get_length_secs_ogg(ALOGG_OGG *ogg);
+   int alogg_get_length_msecs_ogg(ALOGG_OGG *ogg);
+   int alogg_get_length_bytes_ogg(ALOGG_OGG *ogg);
+      Returns the ALOGG_OGG length either in msecs, secs or bytes.
+
+
+   int alogg_get_bitrate_ogg(ALOGG_OGG *ogg);
+      Returns the ALOGG_OGG bitrate in bits per second, NOT in kbits. That's
+      for example 128000, 64000, 96000, etc.
+
+
+   int alogg_get_wave_bits_ogg(ALOGG_OGG *ogg);
+   int alogg_get_wave_is_stereo_ogg(ALOGG_OGG *ogg);
+   int alogg_get_wave_freq_ogg(ALOGG_OGG *ogg);
+      Returns info about the wave.
+
+
+   SAMPLE *alogg_create_sample_from_ogg(ALOGG_OGG *ogg);
+      Decodes the given ALOGG_OGG into an Allegro SAMPLE structure. Please
+      note for big oggs this function could generate a HUGE SAMPLE, so it
+      is only recommended for very small oggs like sound effects.
+
+     return values:
+      NULL on error.
+      otherwise not NULL.
+
+
+   void *alogg_get_output_wave_ogg(ALOGG_OGG *ogg, int *buffer_size);
+      Returns a pointer to the piece of wave decoded after each poll, and
+      the size of this buffer as well in 'buffer_size' (in bytes). Note this
+      function will NOT automatically convert from unsinged to signed 16 bit
+      data using the Allegro format instead of the standard format, so this
+      data cannot be saved directly into a WAV for example without
+      modifications. Also note in order for this function to work, the
+      ALOGG_OGG needs to BE playing.
+
+     return values:
+      NULL if there is no wave being decoded.
+      Else the buffer with the wave data.
+
+
+   int alogg_is_playing_ogg(ALOGG_OGG *ogg);
+      Returns TRUE if the ALOGG_OGG is currently being played or FALSE
+      if it is not.
+
+
+   int alogg_is_looping_ogg(ALOGG_OGG *ogg);
+   void alogg_set_loop_ogg(ALOGG_OGG *ogg, int loop);
+      Self explanatory. Note these functions only work when the ALOGG_OGG
+      is playing.
+
+
+   AUDIOSTREAM *alogg_get_audiostream_ogg(ALOGG_OGG *ogg);
+      Returns the allegro AUDIOSTREAM currently being used by the ALOGG_OGG.
+
+
+
+   ALOGG_OGGSTREAM *alogg_create_oggstream(void *first_data_buffer, int data_buffer_len, int last_block);
+      See alogg_create_ogg(). The only difference is that 'first_data_buffer'
+      contains the very first buffer of len 'data_buffer_len' that you will
+      have to give to the OGGSTREAM periodically. If after this data, there
+      won't be more (this is, this was the last buffer to be processed),
+      pass TRUE to 'last_block'.
+
+
+   void alogg_destroy_oggstream(ALOGG_OGGSTREAM *ogg);
+      See alogg_destroy_ogg().
+
+
+   int alogg_play_oggstream(ALOGG_OGGSTREAM *ogg, int buffer_len, int vol, int pan);
+      See alogg_play_ex_oggstream().
+
+
+   int alogg_play_ex_oggstream(ALOGG_OGGSTREAM *ogg, int buffer_len, int vol, int pan, int speed);
+      See alogg_play_ex_ogg(). The only difference is that here is no 'loop'
+      parameter. To loop an ALOGG_OGGSTREAM just destroy the ALOGG_OGGSTREAM
+      and recreate it (or pass data continuosly).
+
+
+   void alogg_stop_oggstream(ALOGG_OGGSTREAM *ogg);
+      See alogg_stop_ogg().
+
+
+   void alogg_adjust_oggstream(ALOGG_OGGSTREAM *ogg, int vol, int pan, int speed);
+      Adjust the ALOGG_OGGSTREAM parameters when it is already playing.
+      Note it doesn't include the parameter loop because ALOGG_OGGSTREAMs are
+      always looping (or better said, they don't have two points to loop
+      from/to).
+
+
+   int alogg_poll_oggstream(ALOGG_OGGSTREAM *ogg);
+      See alogg_poll_ogg().
+
+     return values:
+      ALOGG_OK if there were no error.
+      ALOGG_POLL_PLAYJUSTFINISHED (only once) when the file has JUST
+        finished playing.
+      ALOGG_POLL_NOTPLAYING if the file is not playing.
+      ALOGG_POLL_FRAMECORRUPT if one of the frames is corrupt.
+      ALOGG_POLL_BUFFERUNDERUN if the buffer was exhausted.
+      ALOGG_POLL_INTERNALERROR if an internal error happened.
+
+
+   void alogg_start_autopoll_oggstream(ALOGG_OGGSTREAM *ogg, int speed);
+      See alogg_start_autopoll_ogg(). Note I discourage the use of this
+      function with ALOGG_OGGSTREAMs since in anyway you'll have to use
+      alogg_get_oggstream_buffer() to send data periodically.
+
+
+   void alogg_stop_autopoll_oggstream(ALOGG_OGGSTREAM *ogg);
+      See alogg_stop_autopoll_ogg().
+
+
+   void *alogg_get_oggstream_buffer(ALOGG_OGGSTREAM *ogg);
+      If the return value is not NULL, it will return a buffer that you'll
+      have to fill with 'buffer_data_len' (from create_oggstream) bytes MAX
+      of new data. You will need to use free_oggstream_buffer() when you
+      are finished with it.
+
+     return values:
+      NULL if it doesn't need any data yet.
+      Else the buffer to be filled.
+
+
+   void alogg_free_oggstream_buffer(ALOGG_OGGSTREAM *ogg, int bytes_used);
+      Use whenever you are finished with the buffer returned by
+      alogg_get_oggstream_buffer(). If 'bytes_used' is -1 it will use
+      the full buffer and that will mean this is not the last block
+      of data, else if 'bytes_used' is a number, it will indicate
+      that this is the last buffer and the number of bytes to use from that
+      last block. Once this buffer has been played and processed,
+      alogg_poll_ogg_stream() will return ALOGG_POLL_JUSTFINISHED.
+
+
+   int alogg_get_pos_msecs_oggstream(ALOGG_OGGSTREAM *ogg);
+   int alogg_get_pos_secs_oggstream(ALOGG_OGGSTREAM *ogg);
+   int alogg_get_pos_bytes_oggstream(ALOGG_OGGSTREAM *ogg);
+   int alogg_get_bitrate_oggstream(ALOGG_OGGSTREAM *ogg);
+      See their ALOGG_OGG equals.
+
+   int alogg_get_wave_bits_oggstream(ALOGG_OGGSTREAM *ogg);
+   int alogg_get_wave_is_stereo_oggstream(ALOGG_OGGSTREAM *ogg);
+   int alogg_get_wave_freq_oggstream(ALOGG_OGGSTREAM *ogg);
+      Returns info about the wave.
+
+
+   void *alogg_get_output_wave_oggstream(ALOGG_OGGSTREAM *ogg, int *buffer_size);
+      Returns a pointer to the piece of wave decoded after each poll, and
+      the size of this buffer as well in 'buffer_size' (in bytes). Note this
+      function will NOT automatically convert from unsinged to signed 16 bit
+      data using the Allegro format instead of the standard format, so this
+      data cannot be saved directly into a WAV for example without
+      modifications. Also note in order for this function to work, the
+      ALOGG_OGGSTREAM needs to BE playing.
+
+     return values:
+      NULL if there is no wave being decoded.
+      Else the buffer with the wave data.
+
+
+   int alogg_is_playing_oggstream(ALOGG_OGGSTREAM *ogg);
+      Returns TRUE if the ALOGG_OGGSTREAM is currently being played or FALSE
+      if it is not.
+
+
+   AUDIOSTREAM *alogg_get_audiostream_oggstream(ALOGG_OGGSTREAM *ogg);
+      Returns the allegro AUDIOSTREAM currently being used by the
+      ALOGG_OGGSTREAM.
+      Note that when the ALOGG_OGGSTREAM isn't being played most probably
+      it will return NULL.
+
+
+   I hope these docs are useful to you.
+

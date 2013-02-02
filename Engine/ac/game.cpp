@@ -2951,10 +2951,10 @@ RuntimeScriptValue Sc_SetGlobalString(const RuntimeScriptValue *params, int32_t 
     API_SCALL_VOID_PINT_POBJ(SetGlobalString, const char);
 }
 
-// int Game_GetGUICount()
+// int ()
 RuntimeScriptValue Sc_Game_GetGUICount(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT(Game_GetFontCount);
+    API_SCALL_INT(Game_GetGUICount);
 }
 
 // int ()

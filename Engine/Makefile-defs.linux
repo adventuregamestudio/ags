@@ -20,6 +20,10 @@ override CXXFLAGS += $(CFLAGS)
 override ASFLAGS  += $(CFLAGS)
 override LDFLAGS  += -Wl,--as-needed $(addprefix -L,$(LIBDIR))
 
+ifneq (,$(RPATH))
+  override LDFLAGS  += -Wl,-rpath,'$$ORIGIN/$(RPATH)'
+endif
+
 BASE_PLATFORM = \
 platform/linux/acpllnx.cpp \
 platform/util/pe.c \

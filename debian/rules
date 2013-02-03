@@ -7,6 +7,11 @@ VERSION := $(shell dpkg-parsechangelog | grep -x "Version:.*" | sed 's@Version: 
 MAKE = make --directory=Engine
 GENCONTROL_SUBSTVARS = -Vbuildinfo:Date="$(shell date -R)" -Vbuildinfo:Git-Object="$(shell git show HEAD | head -n1)"
 
+ifneq (,$(filter rpath=%,$(DEB_BUILD_OPTIONS)))
+  RPATH = $(patsubst rpath=%,%,$(filter rpath=%,$(DEB_BUILD_OPTIONS)))
+  export RPATH
+endif
+
 %:
 	dh $@ --parallel
 

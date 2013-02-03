@@ -19,6 +19,9 @@
 		</activity>
 		
 		<activity android:configChanges="orientation|keyboardHidden|screenSize" android:name="com.bigbluecup.android.PreferencesActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+			</intent-filter>
 		</activity>
         <activity android:name="com.bigbluecup.android.CreditsActivity">
 		</activity>

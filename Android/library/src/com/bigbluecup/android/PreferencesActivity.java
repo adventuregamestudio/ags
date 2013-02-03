@@ -1,5 +1,7 @@
 package com.bigbluecup.android;
 
+import java.io.File;
+
 import android.content.SharedPreferences.Editor;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -14,6 +16,7 @@ public class PreferencesActivity extends PreferenceActivity
 {
 	private String gameName;
 	private String gameFilename;
+	private String gamePath;
 	private String baseDirectory;
 	private boolean isGlobalConfig;
 	private String translations[];
@@ -53,13 +56,20 @@ public class PreferencesActivity extends PreferenceActivity
 		{
 			setTitle("Global preferences");
 			configureForGlobalPreferences();
+			gamePath = baseDirectory;
 		}
 		else
 		{
 			setTitle(gameName);
+			File f = new File(gameFilename);
+			File g = f.getParentFile();
+			if (g != null)
+				gamePath = g.getPath();
+			else
+				gamePath = baseDirectory;
 		}
 		
-		boolean hasCustomConfig = readConfigFile(baseDirectory + '/' + gameName);
+		boolean hasCustomConfig = readConfigFile(gamePath);
 
 		if (!isGlobalConfig)
 		{

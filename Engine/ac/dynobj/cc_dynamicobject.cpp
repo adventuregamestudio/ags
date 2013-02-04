@@ -32,9 +32,9 @@
 #include "ac/dynobj/cc_dynamicobject.h"
 #include "ac/dynobj/managedobjectpool.h"
 #include "script/cc_error.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
 ICCStringClass *stringClassImpl = NULL;
 
@@ -73,12 +73,12 @@ void ccUnregisterAllObjects() {
 }
 
 // serialize all objects to disk
-void ccSerializeAllObjects(DataStream *out) {
+void ccSerializeAllObjects(Stream *out) {
     pool.WriteToDisk(out);
 }
 
 // un-serialise all objects (will remove all currently registered ones)
-int ccUnserializeAllObjects(DataStream *in, ICCObjectReader *callback) {
+int ccUnserializeAllObjects(Stream *in, ICCObjectReader *callback) {
     // un-register all existing objects, ready for the un-serialization
     ccUnregisterAllObjects();
     return pool.ReadFromDisk(in, callback);

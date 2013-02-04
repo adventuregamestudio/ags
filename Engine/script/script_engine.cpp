@@ -29,7 +29,7 @@
 #include "script/cc_instance.h"
 #include "script/cc_error.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
 char *scripteditruntimecopr = "Script Editor v1.2 run-time component. (c) 1998 Chris Jones";
 
@@ -48,12 +48,12 @@ void cc_error_at_line(char *buffer, const char *error_msg)
     }
 }
 
-void save_script_configuration(DataStream *out)
+void save_script_configuration(Stream *out)
 {
     quit("ScriptEdit: run-time version can't save");
 }
 
-void load_script_configuration(DataStream *in)
+void load_script_configuration(Stream *in)
 {
     int aa;
     if (in->ReadInt32() != SCRIPT_CONFIG_VERSION)
@@ -66,14 +66,14 @@ void load_script_configuration(DataStream *in)
     }
 }
 
-void save_graphical_scripts(DataStream *out, roomstruct * rss)
+void save_graphical_scripts(Stream *out, roomstruct * rss)
 {
     quit("ScriptEdit: run-time version can't save");
 }
 
 char *scripttempn = "~acsc%d.tmp";
 
-void load_graphical_scripts(DataStream *in, roomstruct * rst)
+void load_graphical_scripts(Stream *in, roomstruct * rst)
 {
     int32_t ct;
 
@@ -87,7 +87,7 @@ void load_graphical_scripts(DataStream *in, roomstruct * rst)
 
         char thisscn[20];
         sprintf(thisscn, scripttempn, ct);
-        DataStream *te = Common::File::CreateFile(thisscn);
+        Stream *te = Common::File::CreateFile(thisscn);
 
         char *scnf = (char *)malloc(lee);
         // MACPORT FIX: swap size and nmemb

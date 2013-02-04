@@ -20,12 +20,12 @@
 #include "alfont.h"
 #include "ac/gamestructdefines.h" //FONT_OUTLINE_AUTO
 #include "font/ttffontrenderer.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 #include "gfx/bitmap.h"
 #include "core/assetmanager.h"
 
 using AGS::Common::Bitmap;
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
 // project-specific implementation
 extern bool ShouldAntiAliasText();
@@ -98,7 +98,7 @@ bool TTFFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
   sprintf(filnm, "agsfnt%d.ttf", fontNumber);
 
   // we read the font in manually to make it load from library file
-  DataStream *reader = Common::AssetManager::OpenAsset(filnm);
+  Stream *reader = Common::AssetManager::OpenAsset(filnm);
   char *membuffer;
 
   if (reader == NULL)

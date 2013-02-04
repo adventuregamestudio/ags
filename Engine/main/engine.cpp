@@ -58,7 +58,7 @@
 #include "debug/out.h"
 
 using AGS::Common::String;
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
@@ -511,7 +511,7 @@ int engine_init_speech()
         so that pack functions, etc. will have the right case later */
         speech_file = ci_find_file(usetup.data_files_dir, "speech.vox");
 
-        DataStream *speech_s = ci_fopen(speech_file);
+        Stream *speech_s = ci_fopen(speech_file);
 
         if (speech_s == NULL)
         {
@@ -531,7 +531,7 @@ int engine_init_speech()
                 platform->DisplayAlert("Unable to initialize speech sample file - check for corruption and that\nit belongs to this game.\n");
                 return EXIT_NORMAL;
             }
-            DataStream *speechsync = Common::AssetManager::OpenAsset("syncdata.dat");
+            Stream *speechsync = Common::AssetManager::OpenAsset("syncdata.dat");
             if (speechsync != NULL) {
                 // this game has voice lip sync
                 if (speechsync->ReadInt32() != 4)
@@ -574,7 +574,7 @@ int engine_init_music()
     /* Don't need to use ci_fopen here, because we've used ci_find_file to get
     the case insensitive matched filename already */
     // Use ci_fopen anyway because it can handle NULL filenames.
-    DataStream *music_s = ci_fopen(music_file);
+    Stream *music_s = ci_fopen(music_file);
 
     if (music_s == NULL)
     {
@@ -827,7 +827,7 @@ int check_write_access() {
   // The Save Game Dir is the only place that we should write to
   char tempPath[MAX_PATH];
   sprintf(tempPath, "%s""tmptest.tmp", saveGameDirectory);
-  DataStream *temp_s = Common::File::CreateFile(tempPath);
+  Stream *temp_s = Common::File::CreateFile(tempPath);
   if (!temp_s)
     return 0;
 

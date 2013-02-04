@@ -15,9 +15,9 @@
 #include <stdio.h>
 #include "ac/point.h"
 #include "ac/common.h"    // quit()
-#include "util/datastream.h"
+#include "util/stream.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
 void PolyPoints::add_point(int xxx,int yyy) {
     x[numpoints] = xxx;
@@ -28,7 +28,7 @@ void PolyPoints::add_point(int xxx,int yyy) {
         quit("too many poly points added");
 }
 
-void PolyPoints::ReadFromFile(DataStream *in)
+void PolyPoints::ReadFromFile(Stream *in)
 {
     in->ReadArrayOfInt32(x, MAXPOINTS);
     in->ReadArrayOfInt32(y, MAXPOINTS);

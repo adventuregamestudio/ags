@@ -46,14 +46,14 @@
 #include "script/script.h"
 #include "script/script_runtime.h"
 #include "ac/spritecache.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 #include "script/runtimescriptvalue.h"
 #include "debug/out.h"
 #include "ac/dynobj/scriptstring.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -916,7 +916,7 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
     return false;
 }
 
-void pl_read_plugins_from_disk (DataStream *in) {
+void pl_read_plugins_from_disk (Stream *in) {
     if (in->ReadInt32() != 1)
         quit("ERROR: unable to load game, invalid version of plugin data");
 

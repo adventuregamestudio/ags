@@ -20,7 +20,7 @@
 
 #include "util/file.h"
 
-namespace AGS { namespace Common { class DataStream; } }
+namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
 int32_t FileOpen(const char*fnmm, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode);

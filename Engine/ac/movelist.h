@@ -16,7 +16,7 @@
 #define __AC_MOVE_H
 
 // Forward declaration
-namespace AGS { namespace Common { class DataStream; } }
+namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
 #define MAXNEEDSTAGES 40
@@ -30,7 +30,7 @@ struct MoveList {
     char  doneflag;
     char  direct;  // MoveCharDirect was used or not
 
-    void ReadFromFile(Common::DataStream *in);
-    void WriteToFile(Common::DataStream *out);
+    void ReadFromFile(Common::Stream *in);
+    void WriteToFile(Common::Stream *out);
 };
 #endif // __AC_MOVE_H

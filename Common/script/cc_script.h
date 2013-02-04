@@ -21,7 +21,7 @@
 
 #include "util/file.h"
 
-namespace AGS { namespace Common { class DataStream; } }
+namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
 struct ccScript
@@ -51,14 +51,14 @@ public:
     int numSections;
     int capacitySections;
 
-    static ccScript *CreateFromStream(Common::DataStream *in);
+    static ccScript *CreateFromStream(Common::Stream *in);
 
     ccScript();
     virtual ~ccScript(); // there are few derived classes, so dtor should be virtual
     // write the script to disk (after compiling)
-    void        Write(Common::DataStream *out);
+    void        Write(Common::Stream *out);
     // read back a script written with Write
-    bool        Read(Common::DataStream *in);
+    bool        Read(Common::Stream *in);
     const char* GetSectionName(int32_t offset);
 
 protected:

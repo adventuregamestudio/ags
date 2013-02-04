@@ -14,11 +14,11 @@
 
 #include "util/wgt2allg.h"
 #include "screenoverlay.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
-void ScreenOverlay::ReadFromFile(DataStream *in)
+void ScreenOverlay::ReadFromFile(Stream *in)
 {
     // Skipping bmp and pic pointer values
     in->ReadInt32();
@@ -31,12 +31,10 @@ void ScreenOverlay::ReadFromFile(DataStream *in)
     associatedOverlayHandle = in->ReadInt32();
     hasAlphaChannel = in->ReadBool();
     positionRelativeToScreen = in->ReadBool();
-    in->Seek(Common::kSeekCurrent, get_padding(sizeof(int8_t) * 2));
 }
 
-void ScreenOverlay::WriteToFile(DataStream *out)
+void ScreenOverlay::WriteToFile(Stream *out)
 {
-    char padding[3] = {0,0,0};
     // Writing bitmap "pointers" to correspond to full structure writing
     out->WriteInt32(0);
     out->WriteInt32(0);
@@ -48,5 +46,4 @@ void ScreenOverlay::WriteToFile(DataStream *out)
     out->WriteInt32(associatedOverlayHandle);
     out->WriteBool(hasAlphaChannel);
     out->WriteBool(positionRelativeToScreen);
-    out->Write(padding, get_padding(sizeof(int8_t) * 2));
 }

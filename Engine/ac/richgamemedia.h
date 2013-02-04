@@ -24,7 +24,7 @@
 #define RM_MAGICNUMBER  "RGMH"
 
 // Forward declaration
-namespace AGS { namespace Common { class DataStream; } }
+namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
 #pragma pack(push)
@@ -43,8 +43,8 @@ typedef struct _RICH_GAME_MEDIA_HEADER
     unsigned short szLevelName[RM_MAXLENGTH];
     unsigned short szComments[RM_MAXLENGTH];
 
-    void ReadFromFile(Common::DataStream *in);
-    void WriteToFile(Common::DataStream *out);
+    void ReadFromFile(Common::Stream *in);
+    void WriteToFile(Common::Stream *out);
 } RICH_GAME_MEDIA_HEADER;
 #pragma pack(pop)
 

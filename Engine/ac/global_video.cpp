@@ -27,12 +27,12 @@
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "media/video/video.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 #include "core/assetmanager.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -82,7 +82,7 @@ void play_flc_file(int numb,int playflags) {
         clearScreenAtStart = 0;
 
     char flicnam[20]; sprintf(flicnam,"flic%d.flc",numb);
-    DataStream*in=Common::AssetManager::OpenAsset(flicnam);
+    Stream*in=Common::AssetManager::OpenAsset(flicnam);
     if (in==NULL) { sprintf(flicnam,"flic%d.fli",numb);
     in=Common::AssetManager::OpenAsset(flicnam); }
     if (in==NULL) {

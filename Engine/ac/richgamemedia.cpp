@@ -1,10 +1,10 @@
 
 #include "ac/richgamemedia.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
-void RICH_GAME_MEDIA_HEADER::ReadFromFile(DataStream *in)
+void RICH_GAME_MEDIA_HEADER::ReadFromFile(Stream *in)
 {
     dwMagicNumber = in->ReadInt32();
     dwHeaderVersion = in->ReadInt32();
@@ -19,7 +19,7 @@ void RICH_GAME_MEDIA_HEADER::ReadFromFile(DataStream *in)
     in->ReadArrayOfInt16((int16_t*)szComments, RM_MAXLENGTH);
 }
 
-void RICH_GAME_MEDIA_HEADER::WriteToFile(DataStream *out)
+void RICH_GAME_MEDIA_HEADER::WriteToFile(Stream *out)
 {
     out->WriteInt32(dwMagicNumber);
     out->WriteInt32(dwHeaderVersion);

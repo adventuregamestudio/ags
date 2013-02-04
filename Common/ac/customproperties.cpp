@@ -17,10 +17,10 @@
 #include <string.h>
 #include "ac/customproperties.h"
 #include "util/string_utils.h"      // out->WriteString, etc
-#include "util/datastream.h"
+#include "util/stream.h"
 
 using AGS::Common::String;
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
 // Find the index of the specified property
 int CustomPropertySchema::findProperty (const char *pname) {
@@ -66,7 +66,7 @@ CustomPropertySchema::CustomPropertySchema () {
 }
 
 // ** SCHEMA LOAD/SAVE FUNCTIONS
-void CustomPropertySchema::Serialize (DataStream *out) {
+void CustomPropertySchema::Serialize (Stream *out) {
     out->WriteInt32 (1);  // version 1 at present
     out->WriteInt32 (numProps);
     for (int jj = 0; jj < numProps; jj++) {
@@ -77,7 +77,7 @@ void CustomPropertySchema::Serialize (DataStream *out) {
     }
 }
 
-int CustomPropertySchema::UnSerialize (DataStream *in) {
+int CustomPropertySchema::UnSerialize (Stream *in) {
     if (in->ReadInt32() != 1)
         return -1;
     numProps = in->ReadInt32();
@@ -134,7 +134,7 @@ void CustomProperties::addProperty (const char *newname, const char *newval) {
 }
 
 // ** OBJECT PROPERTIES LOAD/SAVE FUNCTIONS
-void CustomProperties::Serialize (DataStream *out) {
+void CustomProperties::Serialize (Stream *out) {
     out->WriteInt32 (1);
     out->WriteInt32 (numProps);
     for (int ee = 0; ee < numProps; ee++) {
@@ -143,7 +143,7 @@ void CustomProperties::Serialize (DataStream *out) {
     }
 }
 
-int CustomProperties::UnSerialize (DataStream *in) {
+int CustomProperties::UnSerialize (Stream *in) {
     if (in->ReadInt32() != 1)
         return -1;
     numProps = in->ReadInt32();

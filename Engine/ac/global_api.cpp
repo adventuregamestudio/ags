@@ -67,8 +67,6 @@
 #include "media/audio/audio.h"
 #include "util/string_utils.h"
 
-using AGS::Common::DataStream;
-
 #include "ac/dynobj/scriptstring.h"
 extern ScriptString myScriptStringImpl;
 

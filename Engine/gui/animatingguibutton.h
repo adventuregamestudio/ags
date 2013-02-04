@@ -22,7 +22,7 @@
 #include "util/file.h"
 
 // Forward declaration
-namespace AGS { namespace Common { class DataStream; } }
+namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
 struct AnimatingGUIButton {
@@ -32,8 +32,8 @@ struct AnimatingGUIButton {
     short view, loop, frame;
     short speed, repeat, wait;
 
-    void ReadFromFile(Common::DataStream *in);
-    void WriteToFile(Common::DataStream *out);
+    void ReadFromFile(Common::Stream *in);
+    void WriteToFile(Common::Stream *out);
 };
 
 #endif // __AGS_EE_GUI__ANIMATINGGUIBUTTON_H

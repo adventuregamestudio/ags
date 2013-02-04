@@ -19,7 +19,7 @@
 #ifndef __SPRCACHE_H
 #define __SPRCACHE_H
 
-namespace AGS { namespace Common { class DataStream; } }
+namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
 // We can't rely on offsets[slot]==0 because when the engine is running
@@ -59,7 +59,7 @@ public:
   Common::Bitmap **images;
   int *sizes;
   unsigned char *flags;
-  Common::DataStream *cache_stream;
+  Common::Stream *cache_stream;
   bool spritesAreCompressed;
   long cachesize;               // size in bytes of currently cached images
   int *mrulist, *mrubacklink;
@@ -69,7 +69,7 @@ public:
   long lockedSize;              // size in bytes of currently locked images
 
 private:
-    void compressSprite(Common::Bitmap *sprite, Common::DataStream *out);
+    void compressSprite(Common::Bitmap *sprite, Common::Stream *out);
   bool loadSpriteIndexFile(int expectedFileID, long spr_initial_offs, short numspri);
 
   void initFile_adjustBuffers(short numspri);

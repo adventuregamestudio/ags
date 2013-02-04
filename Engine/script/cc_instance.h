@@ -23,7 +23,7 @@
 #include "script/cc_script.h"  // ccScript
 #include "script/nonblockingscriptfunction.h"
 
-namespace AGS { namespace Common { class DataStream; }; };
+namespace AGS { namespace Common { class Stream; }; };
 
 #define INSTF_SHAREDATA     1
 #define INSTF_ABORTED       2

@@ -56,14 +56,14 @@
 #include "script/script.h"
 #include "script/script_runtime.h"
 #include "ac/spritecache.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 #include "core/assetmanager.h"
 #include "ac/dynobj/all_dynamicclasses.h"
 
 using AGS::Common::Bitmap;
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 using AGS::Common::String;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 

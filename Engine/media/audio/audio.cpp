@@ -29,10 +29,10 @@
 #include "ac/global_audio.h"
 #include "ac/roomstruct.h"
 #include <math.h>
-#include "util/datastream.h"
+#include "util/stream.h"
 #include "core/assetmanager.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
 AGS::Engine::Mutex _audio_mutex;
 volatile bool _audio_doing_crossfade;
@@ -142,7 +142,7 @@ const char* get_audio_clip_file_name(ScriptAudioClip *clip)
     if (game.audioClips[clip->id].bundlingType == AUCL_BUNDLE_EXE)
     {
         strcpy(acaudio_buffer, game.audioClips[clip->id].fileName);
-        DataStream *in = Common::AssetManager::OpenAsset(acaudio_buffer);
+        Stream *in = Common::AssetManager::OpenAsset(acaudio_buffer);
         if (in != NULL)
         {
             // CHECKME: so, what was that? a file exists check?

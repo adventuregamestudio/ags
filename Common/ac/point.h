@@ -15,7 +15,7 @@
 #ifndef __AC_POINT_H
 #define __AC_POINT_H
 
-namespace AGS { namespace Common { class DataStream; } }
+namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
 struct _Point {
@@ -30,7 +30,7 @@ struct PolyPoints {
     void add_point(int xxx,int yyy);
     PolyPoints() { numpoints = 0; }
 
-    void ReadFromFile(Common::DataStream *in);
+    void ReadFromFile(Common::Stream *in);
 };
 
 #endif // __AC_POINT_H

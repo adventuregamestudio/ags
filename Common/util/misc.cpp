@@ -45,7 +45,7 @@
 #include "util/misc.h"
 #include "util/filestream.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
 #if !defined (AGS_CASE_SENSITIVE_FILESYSTEM)
 #include <string.h>
@@ -165,12 +165,12 @@ char *ci_find_file(const char *dir_name, const char *file_name)
 
 
 /* Case Insensitive fopen */
-DataStream *ci_fopen(const char *file_name, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode)
+Stream *ci_fopen(const char *file_name, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode)
 {
 #if !defined (AGS_CASE_SENSITIVE_FILESYSTEM)
   return Common::File::OpenFile(file_name, open_mode, work_mode);
 #else
-  DataStream *fs = NULL;
+  Stream *fs = NULL;
   char *fullpath = ci_find_file(NULL, (char*)file_name);
 
   /* If I didn't find a file, this could be writing a new file,

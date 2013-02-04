@@ -36,14 +36,16 @@
 #include "platform/base/agsplatformdriver.h"
 #include "script/exports.h"
 #include "script/script.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 #include "gfx/bitmap.h"
 #include "core/assetmanager.h"
 #include "ac/statobj/agsstaticobject.h"
 #include "ac/statobj/staticarray.h"
+#include "util/alignedstream.h"
 
+using AGS::Common::AlignedStream;
 using AGS::Common::Bitmap;
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 using AGS::Common::String;
 
 extern int engineNeedsAsInt; // defined in ac_game
@@ -122,9 +124,9 @@ int psp_is_old_datafile = 0; // Set for 3.1.1 and 3.1.2 datafiles
 String game_file_name;
 
 
-DataStream * game_file_open()
+Stream * game_file_open()
 {
-	DataStream*in = Common::AssetManager::OpenAsset("game28.dta"); // 3.x data file name
+	Stream*in = Common::AssetManager::OpenAsset("game28.dta"); // 3.x data file name
     if (in==NULL) {
         in = Common::AssetManager::OpenAsset("ac2game.dta"); // 2.x data file name
     }
@@ -132,7 +134,7 @@ DataStream * game_file_open()
 	return in;
 }
 
-int game_file_read_version(DataStream *in)
+int game_file_read_version(Stream *in)
 {
 	char teststr[31];
 
@@ -176,7 +178,7 @@ int game_file_read_version(DataStream *in)
 	return RETURN_CONTINUE;
 }
 
-void game_file_read_dialog_script(DataStream *in)
+void game_file_read_dialog_script(Stream *in)
 {
 	if (filever > kGameVersion_310) // 3.1.1+ dialog script
     {
@@ -190,7 +192,7 @@ void game_file_read_dialog_script(DataStream *in)
     }
 }
 
-void game_file_read_script_modules(DataStream *in)
+void game_file_read_script_modules(Stream *in)
 {
 	if (filever >= kGameVersion_270) // 2.7.0+ script modules
     {
@@ -213,7 +215,17 @@ void game_file_read_script_modules(DataStream *in)
     }
 }
 
-void game_file_read_views(DataStream *in)
+void ReadViewStruct272_Aligned(ViewStruct272* oldv, Stream *in)
+{
+    AlignedStream align_s(in, Common::kAligned_Read);
+    for (int iteratorCount = 0; iteratorCount < game.numviews; ++iteratorCount)
+    {
+        oldv[iteratorCount].ReadFromFile(&align_s);
+        align_s.Reset();
+    }
+}
+
+void game_file_read_views(Stream *in)
 {
 	if (filever > kGameVersion_272) // 3.x views
     {
@@ -225,10 +237,7 @@ void game_file_read_views(DataStream *in)
     else // 2.x views
     {
         ViewStruct272* oldv = (ViewStruct272*)calloc(game.numviews, sizeof(ViewStruct272));
-        for (int iteratorCount = 0; iteratorCount < game.numviews; ++iteratorCount)
-        {
-            oldv[iteratorCount].ReadFromFile(in);
-        }
+        ReadViewStruct272_Aligned(oldv, in);
         Convert272ViewsToNew(game.numviews, oldv, views);
         free(oldv);
     }
@@ -258,7 +267,7 @@ void game_file_set_default_glmsg()
     set_default_glmsg (995, "Are you sure you want to quit?");
 }
 
-void game_file_read_dialogs(DataStream *in)
+void game_file_read_dialogs(Stream *in)
 {
 	dialog=(DialogTopic*)malloc(sizeof(DialogTopic)*game.numdialog+5);
 
@@ -344,7 +353,7 @@ void game_file_read_dialogs(DataStream *in)
     }
 }
 
-void game_file_read_gui(DataStream *in)
+void game_file_read_gui(Stream *in)
 {
 	read_gui(in,guis,&game, &guis);
 
@@ -554,6 +563,20 @@ void init_and_register_game_objects()
     ccAddExternalStaticArray("dialog", &scrDialog[0], &StaticDialogArray);
 }
 
+void ReadGameSetupStructBase_Aligned(Stream *in)
+{
+    GameSetupStructBase *gameBase = (GameSetupStructBase *) &game;
+    AlignedStream align_s(in, Common::kAligned_Read);
+    gameBase->ReadFromFile(&align_s);
+}
+
+void WriteGameSetupStructBase_Aligned(Stream *out)
+{
+    GameSetupStructBase *gameBase = (GameSetupStructBase *) &game;
+    AlignedStream align_s(out, Common::kAligned_Write);
+    gameBase->WriteToFile(&align_s);
+}
+
 int load_game_file() {
 
 	int res;    
@@ -565,7 +588,7 @@ int load_game_file() {
 	// Start reading from file
 	//-----------------------------------------------------------
 
-    DataStream *in = game_file_open();
+    Stream *in = game_file_open();
 	if (in==NULL)
 		return -1;
 
@@ -584,8 +607,7 @@ int load_game_file() {
     game.invScripts = NULL;
     memset(&game.spriteflags[0], 0, MAX_SPRITES);
 
-    GameSetupStructBase *gameBase = (GameSetupStructBase *) &game;
-    gameBase->ReadFromFile(in);
+    ReadGameSetupStructBase_Aligned(in);
 
     if (filever <= kGameVersion_300)
     {

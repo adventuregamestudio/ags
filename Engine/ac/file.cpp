@@ -25,12 +25,12 @@
 #include "debug/debugger.h"
 #include "util/misc.h"
 #include "platform/base/agsplatformdriver.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 #include "core/assetmanager.h"
 #include "main/game_file.h"
 #include "util/string.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 using AGS::Common::String;
 
 #if defined (AGS_RUNTIME_PATCH_ALLEGRO)
@@ -121,7 +121,7 @@ void File_WriteRawLine(sc_File *fil, const char *towrite) {
 }
 
 void File_ReadRawLine(sc_File *fil, char* buffer) {
-  DataStream *in = get_valid_file_stream_from_handle(fil->handle, "File.ReadRawLine");
+  Stream *in = get_valid_file_stream_from_handle(fil->handle, "File.ReadRawLine");
   check_strlen(buffer);
   int i = 0;
   while (i < MAXSTRLEN - 1) {
@@ -151,7 +151,7 @@ void File_ReadString(sc_File *fil, char *toread) {
 }
 
 const char* File_ReadStringBack(sc_File *fil) {
-  DataStream *in = get_valid_file_stream_from_handle(fil->handle, "File.ReadStringBack");
+  Stream *in = get_valid_file_stream_from_handle(fil->handle, "File.ReadStringBack");
   if (in->EOS()) {
     return CreateNewScriptString("");
   }
@@ -302,7 +302,7 @@ ScriptFileHandle valid_handles[MAX_OPEN_SCRIPT_FILES + 1];
 // [IKM] NOTE: this is not precisely the number of files opened at this moment,
 // but rather maximal number of handles that were used simultaneously during game run
 int num_open_script_files = 0;
-ScriptFileHandle *check_valid_file_handle_ptr(Common::DataStream *stream_ptr, const char *operation_name)
+ScriptFileHandle *check_valid_file_handle_ptr(Common::Stream *stream_ptr, const char *operation_name)
 {
   if (stream_ptr)
   {
@@ -338,7 +338,7 @@ ScriptFileHandle *check_valid_file_handle_int32(int32_t handle, const char *oper
   return NULL;
 }
 
-DataStream *get_valid_file_stream_from_handle(int32_t handle, const char *operation_name)
+Stream *get_valid_file_stream_from_handle(int32_t handle, const char *operation_name)
 {
     ScriptFileHandle *sc_handle = check_valid_file_handle_int32(handle, operation_name);
     return sc_handle ? sc_handle->stream : NULL;

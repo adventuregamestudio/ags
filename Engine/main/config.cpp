@@ -27,7 +27,7 @@
 #include "util/textstreamreader.h"
 #include "util/path.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 using AGS::Common::TextStreamReader;
 using AGS::Common::String;
 
@@ -78,7 +78,7 @@ void INIgetdirec(char *wasgv, char *inifil) {
 }
 
 char *INIreaditem(const char *sectn, const char *entry) {
-    DataStream *fin = Common::File::OpenFileRead(filetouse);
+    Stream *fin = Common::File::OpenFileRead(filetouse);
     if (fin == NULL)
         return NULL;
     TextStreamReader reader(fin);

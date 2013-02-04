@@ -37,7 +37,7 @@
 #include "util/filestream.h"
 #include "util/textstreamwriter.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 using AGS::Common::TextStreamWriter;
 
 extern char check_dynamic_sprites_at_exit;
@@ -171,7 +171,7 @@ void debug_log(char*texx, ...) {
         //openmode = "wt";
         first_time = 0;
     }
-    DataStream *outfil = Common::File::OpenFileWrite("warnings.log");
+    Stream *outfil = Common::File::OpenFileWrite("warnings.log");
     if (outfil == NULL)
     {
         debug_write_console("* UNABLE TO WRITE TO WARNINGS.LOG");

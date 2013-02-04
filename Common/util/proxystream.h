@@ -12,53 +12,42 @@
 //
 //=============================================================================
 //
-// Class AlignedStream
-// A simple wrapper around stream that controls data padding.
-// 
-// Originally, a number of objects in AGS were read and written directly
-// as a data struct in a whole. In order to support backwards compatibility
-// with games made by older versions of AGS, some of the game objects must
-// be read having automatic data alignment in mind.
-//-----------------------------------------------------------------------------
 //
-// AlignedStream uses the underlying stream, it overrides the reading and
-// writing, and inserts extra data padding when needed.
-//
-// Aligned stream works either in read or write mode, it cannot be opened in
-// combined mode.
-//
-// AlignedStream does not support seek, hence moving stream pointer to random
-// position will break padding count logic.
 //
 //=============================================================================
-#ifndef __AGS_CN_UTIL__ALIGNEDSTREAM_H
-#define __AGS_CN_UTIL__ALIGNEDSTREAM_H
+#ifndef __AGS_CN_UTIL__PROXYSTREAM_H
+#define __AGS_CN_UTIL__PROXYSTREAM_H
 
-#include "util/proxystream.h"
+#include "util/stream.h"
 
 namespace AGS
 {
 namespace Common
 {
 
-enum AlignedStreamMode
+// TODO: move to more common header
+enum ObjectOwnershipPolicy
 {
-    kAligned_Read,
-    kAligned_Write
+    kReleaseAfterUse,
+    kDisposeAfterUse
 };
 
-class AlignedStream : public ProxyStream
+class ProxyStream : public Stream
 {
 public:
-    AlignedStream(Stream *stream, AlignedStreamMode mode,
-                  ObjectOwnershipPolicy stream_ownership_policy = kReleaseAfterUse,
-                  size_t base_alignment = sizeof(int16_t));
-    virtual ~AlignedStream();
-
-    // Read/Write cumulated padding and reset block counter
-    void            Reset();
+    ProxyStream(Stream *stream, ObjectOwnershipPolicy stream_ownership_policy = kReleaseAfterUse);
+    virtual ~ProxyStream();
 
     virtual void    Close();
+
+    // Is stream valid (underlying data initialized properly)
+    virtual bool    IsValid() const;
+    // Is end of stream
+    virtual bool    EOS() const;
+    // Total length of stream (if known)
+    virtual size_t  GetLength() const;
+    // Current position (if known)
+    virtual size_t  GetPosition() const;
 
     virtual bool    CanRead() const;
     virtual bool    CanWrite() const;
@@ -84,24 +73,17 @@ public:
     virtual size_t  WriteArrayOfInt32(const int32_t *buffer, size_t count);
     virtual size_t  WriteArrayOfInt64(const int64_t *buffer, size_t count);
 
+    virtual size_t  ReadArrayOfIntPtr32(intptr_t *buffer, size_t count);
+    virtual size_t  WriteArrayOfIntPtr32(const intptr_t *buffer, size_t count);
+
     virtual size_t  Seek(StreamSeek seek, int pos);
 
 protected:
-    void            ReadPadding(size_t next_type);
-    void            WritePadding(size_t next_type);
-    void            FinalizeBlock();
-
-private:
-    static const size_t LargestPossibleType = sizeof(int64_t);
-
-    AlignedStreamMode   _mode;
-    size_t              _baseAlignment;
-    size_t              _maxAlignment;
-    int64_t             _block;
-    int8_t              _paddingBuffer[sizeof(int64_t)];
+    Stream                  *_stream;
+    ObjectOwnershipPolicy   _streamOwnershipPolicy;
 };
 
 } // namespace Common
 } // namespace AGS
 
-#endif // __AGS_CN_UTIL__ALIGNEDSTREAM_H
+#endif // __AGS_CN_UTIL__PROXYSTREAM_H

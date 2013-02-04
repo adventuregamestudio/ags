@@ -44,14 +44,14 @@ bool	validate_user_file_path(const char *fnmm, char *output, bool currentDirOnly
 
 struct ScriptFileHandle
 {
-    Common::DataStream  *stream;
-    int32_t     handle;
+    Common::Stream  *stream;
+    int32_t         handle;
 };
 extern ScriptFileHandle valid_handles[MAX_OPEN_SCRIPT_FILES + 1];
 extern int num_open_script_files;
 
-ScriptFileHandle *check_valid_file_handle_ptr(Common::DataStream *stream_ptr, const char *operation_name);
+ScriptFileHandle *check_valid_file_handle_ptr(Common::Stream *stream_ptr, const char *operation_name);
 ScriptFileHandle *check_valid_file_handle_int32(int32_t handle, const char *operation_name);
-Common::DataStream *get_valid_file_stream_from_handle(int32_t handle, const char *operation_name);
+Common::Stream   *get_valid_file_stream_from_handle(int32_t handle, const char *operation_name);
 
 #endif // __AGS_EE_AC__FILE_H

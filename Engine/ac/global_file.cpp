@@ -20,7 +20,7 @@
 #include "ac/string.h"
 #include "util/filestream.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
 int32_t FileOpenCMode(const char*fnmm, const char* cmode)
 {
@@ -33,7 +33,7 @@ int32_t FileOpenCMode(const char*fnmm, const char* cmode)
   // of string on its own.
   if (!Common::File::GetFileModesFromCMode(cmode, open_mode, work_mode))
   {
-      return -1;
+      return 0;
   }
   return FileOpen(fnmm, open_mode, work_mode);
 }
@@ -75,19 +75,19 @@ void FileClose(int32_t handle) {
   sc_handle->handle = 0;
   }
 void FileWrite(int32_t handle, const char *towrite) {
-  DataStream *out = get_valid_file_stream_from_handle(handle,"FileWrite");
+  Stream *out = get_valid_file_stream_from_handle(handle,"FileWrite");
   out->WriteInt32(strlen(towrite)+1);
   out->Write(towrite,strlen(towrite)+1);
   }
 void FileWriteRawLine(int32_t handle, const char*towrite) {
-  DataStream *out = get_valid_file_stream_from_handle(handle,"FileWriteRawLine");
+  Stream *out = get_valid_file_stream_from_handle(handle,"FileWriteRawLine");
   out->Write(towrite,strlen(towrite));
   out->WriteInt8 (13);
   out->WriteInt8 (10);
   }
 void FileRead(int32_t handle,char*toread) {
   VALIDATE_STRING(toread);
-  DataStream *in = get_valid_file_stream_from_handle(handle,"FileRead");
+  Stream *in = get_valid_file_stream_from_handle(handle,"FileRead");
   if (in->EOS()) {
     toread[0] = 0;
     return;
@@ -97,7 +97,7 @@ void FileRead(int32_t handle,char*toread) {
   in->Read(toread,lle);
   }
 int FileIsEOF (int32_t handle) {
-  DataStream *stream = get_valid_file_stream_from_handle(handle,"FileIsEOF");
+  Stream *stream = get_valid_file_stream_from_handle(handle,"FileIsEOF");
   if (stream->EOS())
     return 1;
 
@@ -110,7 +110,7 @@ int FileIsEOF (int32_t handle) {
   return 0;
 }
 int FileIsError(int32_t handle) {
-  DataStream *stream = get_valid_file_stream_from_handle(handle,"FileIsError");
+  Stream *stream = get_valid_file_stream_from_handle(handle,"FileIsError");
 
   // TODO: stream errors
   if (ferror(((Common::FileStream*)stream)->GetHandle()))
@@ -119,12 +119,12 @@ int FileIsError(int32_t handle) {
   return 0;
 }
 void FileWriteInt(int32_t handle,int into) {
-  DataStream *out = get_valid_file_stream_from_handle(handle,"FileWriteInt");
+  Stream *out = get_valid_file_stream_from_handle(handle,"FileWriteInt");
   out->WriteInt8('I');
   out->WriteInt32(into);
   }
 int FileReadInt(int32_t handle) {
-  DataStream *in = get_valid_file_stream_from_handle(handle,"FileReadInt");
+  Stream *in = get_valid_file_stream_from_handle(handle,"FileReadInt");
   if (in->EOS())
     return -1;
   if (in->ReadInt8()!='I')
@@ -132,19 +132,19 @@ int FileReadInt(int32_t handle) {
   return in->ReadInt32();
   }
 char FileReadRawChar(int32_t handle) {
-  DataStream *in = get_valid_file_stream_from_handle(handle,"FileReadRawChar");
+  Stream *in = get_valid_file_stream_from_handle(handle,"FileReadRawChar");
   if (in->EOS())
     return -1;
   return in->ReadInt8();
   }
 int FileReadRawInt(int32_t handle) {
-  DataStream *in = get_valid_file_stream_from_handle(handle,"FileReadRawInt");
+  Stream *in = get_valid_file_stream_from_handle(handle,"FileReadRawInt");
   if (in->EOS())
     return -1;
   return in->ReadInt32();
 }
 void FileWriteRawChar(int32_t handle, int chartoWrite) {
-  DataStream *out = get_valid_file_stream_from_handle(handle,"FileWriteRawChar");
+  Stream *out = get_valid_file_stream_from_handle(handle,"FileWriteRawChar");
   if ((chartoWrite < 0) || (chartoWrite > 255))
     quit("!FileWriteRawChar: can only write values 0-255");
 

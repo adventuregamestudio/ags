@@ -17,16 +17,16 @@
 #include "gui/guitextbox.h"
 #include "gui/guimain.h"
 #include "font/agsfontrenderer.h"	// fontRenderers;
-#include "util/datastream.h"
+#include "util/stream.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 using AGS::Common::Bitmap;
 
 DynamicArray<GUITextBox> guitext;
 int numguitext = 0;
 
-void GUITextBox::WriteToFile(DataStream *out)
+void GUITextBox::WriteToFile(Stream *out)
 {
   GUIObject::WriteToFile(out);
   // MACPORT FIXES: swap
@@ -34,7 +34,7 @@ void GUITextBox::WriteToFile(DataStream *out)
   out->WriteArrayOfInt32(&font, 3);
 }
 
-void GUITextBox::ReadFromFile(DataStream *in, int version)
+void GUITextBox::ReadFromFile(Stream *in, int version)
 {
   GUIObject::ReadFromFile(in, version);
   // MACPORT FIXES: swap

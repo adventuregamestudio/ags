@@ -17,23 +17,23 @@
 #include "gui/guislider.h"
 #include "gui/guimain.h"
 #include "ac/spritecache.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 using AGS::Common::Bitmap;
 
 DynamicArray<GUISlider> guislider;
 int numguislider = 0;
 
-void GUISlider::WriteToFile(DataStream *out)
+void GUISlider::WriteToFile(Stream *out)
 {
   GUIObject::WriteToFile(out);
   // MACPORT FIX: swap
   out->WriteArrayOfInt32(&min, 7);
 }
 
-void GUISlider::ReadFromFile(DataStream *in, int version)
+void GUISlider::ReadFromFile(Stream *in, int version)
 {
   int sizeToRead = 4;
 

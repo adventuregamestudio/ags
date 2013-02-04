@@ -22,7 +22,7 @@
 #include "util/file.h"
 
 // Forward declaration
-namespace AGS { namespace Common { class DataStream; } }
+namespace AGS { namespace Common { class Stream; } }
 namespace AGS { namespace Engine { class IDriverDependantBitmap; }}
 using namespace AGS::Engine; // FIXME later
 
@@ -36,8 +36,8 @@ struct ScreenOverlay {
     bool hasAlphaChannel;
     bool positionRelativeToScreen;
 
-    void ReadFromFile(Common::DataStream *in);
-    void WriteToFile(Common::DataStream *out);
+    void ReadFromFile(Common::Stream *in);
+    void WriteToFile(Common::Stream *out);
 };
 
 #endif // __AGS_EE_AC__SCREENOVERLAY_H

@@ -30,7 +30,7 @@
 #include "script/script_runtime.h"
 #include "script/systemimports.h"
 #include "util/bbop.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 #include "util/misc.h"
 #include "util/textstreamwriter.h"
 #include "ac/dynobj/scriptstring.h"
@@ -38,7 +38,7 @@
 #include "ac/statobj/staticarray.h"
 #include "util/string_utils.h" // linux strnicmp definition
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 using AGS::Common::TextStreamWriter;
 
 extern ccInstance *loadedInstances[MAX_LOADED_INSTANCES]; // in script/script_runtime
@@ -1420,7 +1420,7 @@ void ccInstance::DumpInstruction(const ScriptOperation &op)
         return;
     }
 
-    DataStream *data_s = ci_fopen("script.log", Common::kFile_Create, Common::kFile_Write);
+    Stream *data_s = ci_fopen("script.log", Common::kFile_Create, Common::kFile_Write);
     TextStreamWriter writer(data_s);
     writer.WriteFormat("Line %3d, IP:%8d (SP:%p) ", line_num, pc, registers[SREG_SP].RValue);
 

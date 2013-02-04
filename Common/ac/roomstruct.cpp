@@ -20,19 +20,19 @@
 #include "util/string_utils.h"      // fputstring, etc
 #include "util/compress.h"
 #include "util/file.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 #include "gfx/bitmap.h"
 #include "core/assetmanager.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
 Bitmap *backups[5];
 int _acroom_bpp = 1;  // bytes per pixel of currently loading room
 
-void sprstruc::ReadFromFile(Common::DataStream *in)
+void sprstruc::ReadFromFile(Common::Stream *in)
 {
     sprnum = in->ReadInt16();
     x = in->ReadInt16();
@@ -132,14 +132,14 @@ freemessage();
 wfreeblock(object); wfreeblock(lookat);
 for (int f=0;f<nummes;f++) if (message[f]!=NULL) free(message[f]); }*/
 
-void room_file_header::ReadFromFile(DataStream *in)
+void room_file_header::ReadFromFile(Stream *in)
 {
     version = (RoomFileVersion)in->ReadInt16();
 }
 
 int usesmisccond = 0;
 
-void load_main_block(roomstruct *rstruc, const char *files, DataStream *in, room_file_header rfh) {
+void load_main_block(roomstruct *rstruc, const char *files, Stream *in, room_file_header rfh) {
   int   f, gsmod, NUMREAD;
   char  buffre[3000];
   long  tesl;
@@ -495,7 +495,7 @@ void load_main_block(roomstruct *rstruc, const char *files, DataStream *in, room
 extern bool load_room_is_version_bad(roomstruct *rstruc);
 
 void load_room(const char *files, roomstruct *rstruc, bool gameIsHighRes) {
-  Common::DataStream *opty; // CHECKME why "opty"??
+  Common::Stream *opty; // CHECKME why "opty"??
   room_file_header  rfh;
   int i;
 

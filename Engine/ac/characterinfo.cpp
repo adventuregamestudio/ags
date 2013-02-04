@@ -29,9 +29,9 @@
 #include "debug/debug_log.h"
 #include "main/maindefines_ex.h"	// RETURN_CONTINUE
 #include "main/update.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
 extern ViewStruct*views;
 extern GameSetupStruct game;
@@ -509,9 +509,8 @@ void CharacterInfo::update_character_idle(CharacterExtras *chex, int &doing_noth
     }  // end do idle animation
 }
 
-void CharacterInfo::ReadFromFile(DataStream *in)
+void CharacterInfo::ReadFromFile(Stream *in)
 {
-    int16_t reserved;
     defview = in->ReadInt32();
     talkview = in->ReadInt32();
     view = in->ReadInt32();
@@ -540,7 +539,7 @@ void CharacterInfo::ReadFromFile(DataStream *in)
     z = in->ReadInt32();
     walkwait = in->ReadInt32();
     speech_anim_speed = in->ReadInt16();
-    reserved = in->ReadInt16();
+    reserved1 = in->ReadInt16();
     blocking_width = in->ReadInt16();
     blocking_height = in->ReadInt16();;
     index_id = in->ReadInt32();
@@ -558,15 +557,10 @@ void CharacterInfo::ReadFromFile(DataStream *in)
     in->Read(name, 40);
     in->Read(scrname, MAX_SCRIPT_NAME_LEN);
     on = in->ReadInt8();
-    // MAX_INV is odd, so need to sweep up padding
-    // skip over padding that makes struct a multiple of 4 bytes long
-    in->Seek(Common::kSeekCurrent, get_padding(((MAX_INV+2)*sizeof(short)+40+MAX_SCRIPT_NAME_LEN+1)));
 }
 
-void CharacterInfo::WriteToFile(DataStream *out)
+void CharacterInfo::WriteToFile(Stream *out)
 {
-    char padding[3] = {0,0,0};
-
     out->WriteInt32(defview);
     out->WriteInt32(talkview);
     out->WriteInt32(view);
@@ -593,8 +587,9 @@ void CharacterInfo::WriteToFile(DataStream *out)
     out->WriteInt16(walkspeed_y);
     out->WriteInt16(pic_yoffs);
     out->WriteInt32(z);
-    out->WriteInt32(padding[0]);
-    out->WriteInt32(padding[1]);
+    out->WriteInt32(walkwait);
+    out->WriteInt16(speech_anim_speed);
+    out->WriteInt16(reserved1);
     out->WriteInt16(blocking_width);
     out->WriteInt16(blocking_height);;
     out->WriteInt32(index_id);
@@ -612,10 +607,6 @@ void CharacterInfo::WriteToFile(DataStream *out)
     out->Write(name, 40);
     out->Write(scrname, MAX_SCRIPT_NAME_LEN);
     out->WriteInt8(on);
-    // MAX_INV is odd, so need to sweep up padding
-    // skip over padding that makes struct a multiple of 4 bytes long
-    char long_padding[3];
-    out->Write(long_padding, get_padding((MAX_INV+2)*sizeof(short)+40+MAX_SCRIPT_NAME_LEN+1));
 }
 
 void ConvertOldCharacterToNew (OldCharacterInfo *oci, CharacterInfo *ci) {

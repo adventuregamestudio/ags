@@ -17,10 +17,10 @@
 #include "gui/guibutton.h"
 #include "gui/guimain.h"
 #include "ac/spritecache.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 using AGS::Common::Bitmap;
 
 
@@ -28,7 +28,7 @@ DynamicArray<GUIButton> guibuts;
 //GUIButton guibuts[MAX_OBJ_EACH_TYPE];
 int numguibuts = 0;
 
-void GUIButton::WriteToFile(DataStream *out)
+void GUIButton::WriteToFile(Stream *out)
 {
   GUIObject::WriteToFile(out);
   // MACPORT FIXES: swap
@@ -38,7 +38,7 @@ void GUIButton::WriteToFile(DataStream *out)
   out->WriteInt32(reserved1);
 }
 
-void GUIButton::ReadFromFile(DataStream *in, int version)
+void GUIButton::ReadFromFile(Stream *in, int version)
 {
   GUIObject::ReadFromFile(in, version);
   // MACPORT FIXES: swap

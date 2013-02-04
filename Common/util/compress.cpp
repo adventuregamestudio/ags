@@ -32,10 +32,10 @@
 
 #include "util/misc.h"
 
-#include "util/datastream.h"
+#include "util/stream.h"
 #include "util/filestream.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
 #include "gfx/bitmap.h"
 
@@ -54,7 +54,7 @@ long csavecompressed(char *, __block, color[256], long = 0);
 long cloadcompressed(char *, __block, color *, long = 0);
 #endif
 
-void cpackbitl(unsigned char *line, int size, DataStream *out)
+void cpackbitl(unsigned char *line, int size, Stream *out)
 {
   int cnt = 0;                  // bytes encoded
 
@@ -90,7 +90,7 @@ void cpackbitl(unsigned char *line, int size, DataStream *out)
   } // end while
 }
 
-void cpackbitl16(unsigned short *line, int size, DataStream *out)
+void cpackbitl16(unsigned short *line, int size, Stream *out)
 {
   int cnt = 0;                  // bytes encoded
 
@@ -126,7 +126,7 @@ void cpackbitl16(unsigned short *line, int size, DataStream *out)
   } // end while
 }
 
-void cpackbitl32(unsigned int *line, int size, DataStream *out)
+void cpackbitl32(unsigned int *line, int size, Stream *out)
 {
   int cnt = 0;                  // bytes encoded
 
@@ -165,7 +165,7 @@ void cpackbitl32(unsigned int *line, int size, DataStream *out)
 
 long csavecompressed(char *finam, __block tobesaved, color pala[256], long exto)
 {
-  DataStream *outpt;
+  Stream *outpt;
 
   if (exto > 0) {
     outpt = ci_fopen(finam, Common::kFile_Create, Common::kFile_ReadWrite);
@@ -207,7 +207,7 @@ long csavecompressed(char *finam, __block tobesaved, color pala[256], long exto)
   return ofes;
 }
 
-int cunpackbitl(unsigned char *line, int size, DataStream *in)
+int cunpackbitl(unsigned char *line, int size, Stream *in)
 {
   int n = 0;                    // number of bytes decoded
 
@@ -247,7 +247,7 @@ int cunpackbitl(unsigned char *line, int size, DataStream *in)
   return ferror(((Common::FileStream*)in)->GetHandle());
 }
 
-int cunpackbitl16(unsigned short *line, int size, DataStream *in)
+int cunpackbitl16(unsigned short *line, int size, Stream *in)
 {
   int n = 0;                    // number of bytes decoded
 
@@ -287,7 +287,7 @@ int cunpackbitl16(unsigned short *line, int size, DataStream *in)
   return ferror(((Common::FileStream*)in)->GetHandle());
 }
 
-int cunpackbitl32(unsigned int *line, int size, DataStream *in)
+int cunpackbitl32(unsigned int *line, int size, Stream *in)
 {
   int n = 0;                    // number of bytes decoded
 
@@ -341,7 +341,7 @@ int bmp_bpp(Bitmap*bmpt) {
 }
 
 long save_lzw(char *fnn, Bitmap *bmpp, color *pall, long offe) {
-  DataStream  *lz_temp_s, *out;
+  Stream  *lz_temp_s, *out;
   long  fll, toret, gobacto;
 
   lz_temp_s = ci_fopen(lztempfnm, Common::kFile_CreateAlways, Common::kFile_Write);
@@ -378,7 +378,7 @@ long save_lzw(char *fnn, Bitmap *bmpp, color *pall, long offe) {
   FILE*iii=clibfopen(fnn,"rb");
   Seek(iii,ooff,SEEK_SET);*/
 
-long load_lzw(DataStream *in, Common::Bitmap *bmm, color *pall) {
+long load_lzw(Stream *in, Common::Bitmap *bmm, color *pall) {
   int          uncompsiz, *loptr;
   unsigned char *membuffer;
   int           arin;
@@ -477,7 +477,7 @@ long savecompressed_allegro(char *fnn, Common::Bitmap *bmpp, color *pall, long w
   return toret;
 }
 
-long loadcompressed_allegro(DataStream *in, Common::Bitmap **bimpp, color *pall, long read_at) {
+long loadcompressed_allegro(Stream *in, Common::Bitmap **bimpp, color *pall, long read_at) {
   short widd,hitt;
   int   ii;
 

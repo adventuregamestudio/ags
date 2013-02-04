@@ -22,11 +22,11 @@
 #include "platform/base/agsplatformdriver.h"
 #include "ac/common.h"
 #include "util/string_utils.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 #include "gfx/bitmap.h"
 #include "plugin/agsplugin.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 using AGS::Common::String;
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -84,7 +84,7 @@ void AGSPlatformDriver::ReplaceSpecialPaths(const char *sourcePath, char *destPa
 
 }
 
-void AGSPlatformDriver::ReadPluginsFromDisk(AGS::Common::DataStream *iii) {
+void AGSPlatformDriver::ReadPluginsFromDisk(AGS::Common::Stream *iii) {
 #if 1
   pl_read_plugins_from_disk(iii);
 #else

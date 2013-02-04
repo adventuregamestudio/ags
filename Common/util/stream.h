@@ -12,55 +12,90 @@
 //
 //=============================================================================
 //
-// Base stream interface
+// Base stream class.
+//
+// Provides default implementation for a few helper methods.
+// 
+// Only streams with uncommon behavior should be derived directly from Stream.
+// Most I/O devices should inherit DataStream instead.
+// Streams that wrap other streams should inherit ProxyStream.
 //
 //=============================================================================
 #ifndef __AGS_CN_UTIL__STREAM_H
 #define __AGS_CN_UTIL__STREAM_H
 
-#include "core/types.h"
+#include "api/stream_api.h"
 
 namespace AGS
 {
 namespace Common
 {
 
-enum StreamSeek
-{
-    kSeekBegin,
-    kSeekEnd,
-    kSeekCurrent
-};
-
-class Stream
+class Stream : public IAGSStream
 {
 public:
-    virtual ~Stream(){}
+    //-----------------------------------------------------
+    // Helper methods
+    //-----------------------------------------------------
+    virtual inline int8_t ReadInt8()
+    {
+        return ReadByte();
+    }
 
-    // Is stream valid (underlying data initialized properly)
-    virtual bool    IsValid() const                     = 0;
-    // Is end of stream
-    virtual bool    EOS() const                         = 0;
-    // Total length of stream (if known)
-    virtual size_t  GetLength() const                   = 0;
-    // Current position (if known)
-    virtual size_t  GetPosition() const                 = 0;
-    virtual bool    CanRead() const                     = 0;
-    virtual bool    CanWrite() const                    = 0;
-    virtual bool    CanSeek() const                     = 0;
+    virtual inline size_t WriteInt8(int8_t val)
+    {
+        int32_t ival = WriteByte(val);
+        return ival >= 0 ? ival : 0;
+    }
 
-    virtual void    Close()                             = 0;
+    virtual inline bool ReadBool()
+    {
+        return ReadInt8() != 0;
+    }
 
-    // Returns number of bytes read, or -1 if the end of stream was reached
-    virtual size_t  Read(void *buffer, size_t size)        = 0;
-    // Returns a value of next (unsigned) byte read from stream cast to int or,
-    // or -1 if the end of stream was reached
-    virtual int     ReadByte()                          = 0;
-    // Returns number of bytes written, or -1 if the end of stream was reached
-    virtual size_t  Write(const void *buffer, size_t size) = 0;
-    // Returns value of byte written or -1 if the end of stream was reached
-    virtual int     WriteByte(uint8_t b)                = 0;
-    virtual size_t  Seek(StreamSeek seek, int pos)      = 0;
+    virtual inline size_t WriteBool(bool val)
+    {
+        return WriteInt8(val ? 1 : 0);
+    }
+
+    // Practically identical to Read() and Write(), these two helpers' only
+    // meaning is to underline the purpose of data being (de)serialized
+    virtual inline size_t ReadArrayOfInt8(int8_t *buffer, size_t count)
+    {
+        return Read(buffer, count);
+    }
+    virtual inline size_t WriteArrayOfInt8(const int8_t *buffer, size_t count)
+    {
+        return Write(buffer, count);
+    }
+
+    // Read array of pointers of build-dependent size
+    inline size_t ReadArrayOfIntPtr(intptr_t *buffer, size_t count)
+    {
+#if defined (AGS_64BIT) || defined (TEST_64BIT)
+        ReadArrayOfInt64(buffer, count);
+#else
+        ReadArrayOfInt32(buffer, count);
+#endif
+    }
+
+    // Write array of pointers of build-dependent size
+    inline size_t WriteArrayOfIntPtr(const intptr_t *buffer, size_t count)
+    {
+#if defined (AGS_64BIT) || defined (TEST_64BIT)
+        WriteArrayOfInt64(buffer, count);
+#else
+        WriteArrayOfInt32(buffer, count);
+#endif
+    }
+
+    // Helper function for easier compatibility with 64-bit platforms
+    // reads 32-bit values and stores them in intptr_t array
+    virtual size_t ReadArrayOfIntPtr32(intptr_t *buffer, size_t count);
+
+    // Helper function for easier compatibility with 64-bit platforms,
+    // writes intptr_t array elements as 32-bit values
+    virtual size_t WriteArrayOfIntPtr32(const intptr_t *buffer, size_t count);
 };
 
 } // namespace Common

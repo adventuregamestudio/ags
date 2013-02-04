@@ -18,12 +18,12 @@
 #include "cc_script.h"
 #include "script/script_common.h"      // SCOM_VERSION, scfilesig
 #include "cc_error.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
 // [IKM] I reckon this function is almost identical to fgetstring in string_utils
-void freadstring(char **strptr, DataStream *in)
+void freadstring(char **strptr, Stream *in)
 {
     static char ibuffer[300];
     int idxx = 0;
@@ -40,7 +40,7 @@ void freadstring(char **strptr, DataStream *in)
     strcpy(strptr[0], ibuffer);
 }
 
-ccScript *ccScript::CreateFromStream(Common::DataStream *in)
+ccScript *ccScript::CreateFromStream(Common::Stream *in)
 {
     ccScript *scri = new ccScript();
     if (!scri->Read(in))
@@ -81,7 +81,7 @@ ccScript::~ccScript()
     Free();
 }
 
-void ccScript::Write(DataStream *out) {
+void ccScript::Write(Stream *out) {
     int n;
     out->Write(scfilesig,4);
     out->WriteInt32(SCOM_VERSION);
@@ -115,7 +115,7 @@ void ccScript::Write(DataStream *out) {
     out->WriteInt32(ENDFILESIG);
 }
 
-bool ccScript::Read(DataStream *in)
+bool ccScript::Read(Stream *in)
 {
   instances = 0;
   int n;

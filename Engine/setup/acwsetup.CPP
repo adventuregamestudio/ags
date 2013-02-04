@@ -20,7 +20,7 @@
 #include "gfx/gfxfilter.h"
 #include "util/filestream.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 using namespace AGS; // FIXME later
 
 #define AL_ID(a,b,c,d)     (((a)<<24) | ((b)<<16) | ((c)<<8) | (d))
@@ -37,7 +37,7 @@ using namespace AGS; // FIXME later
 
 extern "C" HWND allegro_wnd;
 extern int  INIreadint(const char*, const char*, int=0);
-extern void fgetstring_limit (char *, DataStream *, int);
+extern void fgetstring_limit (char *, Stream *, int);
 extern char* ac_config_file;
 const char*setupstring, *enginever;
 int curscrn=-1,csendto,curdigi=0,curmidi=0,windowed=0,useletterbox = 0;
@@ -101,7 +101,7 @@ void update_resolution_texts(HWND hDlg) {
 }
 
 void get_replay_name (const char *filename, char *namebuf) {
-  DataStream *in = Common::File::OpenFileRead(filename);
+  Stream *in = Common::File::OpenFileRead(filename);
   if (in == NULL)
     return;
 

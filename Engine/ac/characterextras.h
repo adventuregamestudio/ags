@@ -22,7 +22,7 @@
 #include "util/file.h"
 
 // Forward declaration
-namespace AGS { namespace Common { class DataStream; } }
+namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
 struct CharacterExtras {
@@ -30,18 +30,22 @@ struct CharacterExtras {
     // used in the scripts, therefore overflowing stuff has to go here
     short invorder[MAX_INVORDER];
     short invorder_count;
-    short width,height;
+    short width;
+    short height;
     short zoom;
-    short xwas, ywas;
-    short tint_r, tint_g;
-    short tint_b, tint_level;
+    short xwas;
+    short ywas;
+    short tint_r;
+    short tint_g;
+    short tint_b;
+    short tint_level;
     short tint_light;
     char  process_idle_this_time;
     char  slow_move_counter;
     short animwait;
 
-    void ReadFromFile(Common::DataStream *in);
-    void WriteToFile(Common::DataStream *out);
+    void ReadFromFile(Common::Stream *in);
+    void WriteToFile(Common::Stream *out);
 };
 
 #endif // __AGS_EE_AC__CHARACTEREXTRAS_H

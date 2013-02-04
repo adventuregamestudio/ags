@@ -14,14 +14,13 @@
 
 #include "util/wgt2allg.h"
 #include "ac/gamesetupstructbase.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 
-void GameSetupStructBase::ReadFromFile(DataStream *in)
+void GameSetupStructBase::ReadFromFile(Stream *in)
 {
     in->Read(&gamename[0], 50);
-    in->Seek(Common::kSeekCurrent, 2);    // skip the array padding
     in->ReadArrayOfInt32(options, 100);
     in->Read(&paluses[0], 256);
     // colors are an array of chars
@@ -31,7 +30,6 @@ void GameSetupStructBase::ReadFromFile(DataStream *in)
     playercharacter = in->ReadInt32();
     totalscore = in->ReadInt32();
     numinvitems = in->ReadInt16();
-    in->Seek(Common::kSeekCurrent, 2);    // skip the padding
     numdialog = in->ReadInt32();
     numdlgmessage = in->ReadInt32();
     numfonts = in->ReadInt32();
@@ -60,11 +58,9 @@ void GameSetupStructBase::ReadFromFile(DataStream *in)
     compiled_script = (ccScript *) in->ReadInt32();
 }
 
-void GameSetupStructBase::WriteToFile(DataStream *out)
+void GameSetupStructBase::WriteToFile(Stream *out)
 {
     out->Write(&gamename[0], 50);
-    char padding[2];
-    out->Write(&padding, 2);    // skip the array padding
     out->WriteArrayOfInt32(options, 100);
     out->Write(&paluses[0], 256);
     // colors are an array of chars
@@ -74,7 +70,6 @@ void GameSetupStructBase::WriteToFile(DataStream *out)
     out->WriteInt32(playercharacter);
     out->WriteInt32(totalscore);
     out->WriteInt16(numinvitems);
-    out->Write(&padding, 2);    // skip the padding
     out->WriteInt32(numdialog);
     out->WriteInt32(numdlgmessage);
     out->WriteInt32(numfonts);

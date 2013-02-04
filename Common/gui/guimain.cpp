@@ -29,10 +29,10 @@
 #include "gui/guilistbox.h"
 #include "font/fonts.h"
 #include "ac/spritecache.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 #include "gfx/bitmap.h"
 
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
@@ -96,7 +96,7 @@ void GUIMain::SetTransparencyAsPercentage(int percent)
 	  this->transparency = ((100 - percent) * 25) / 10;
 }
 
-void GUIMain::ReadFromFile(DataStream *in, int version)
+void GUIMain::ReadFromFile(Stream *in, int version)
 {
   // read/write everything except drawOrder since
   // it will be regenerated
@@ -112,7 +112,7 @@ void GUIMain::ReadFromFile(DataStream *in, int version)
   in->ReadArrayOfInt32(objrefptr, MAX_OBJS_ON_GUI);
 }
 
-void GUIMain::WriteToFile(DataStream *out)
+void GUIMain::WriteToFile(Stream *out)
 {
   out->Write(vtext, 40);
   out->WriteArrayOfInt32(&x, 27);
@@ -502,7 +502,7 @@ void GUIMain::mouse_but_up()
 
 #define GUI_VERSION 115
 
-void read_gui(DataStream *in, GUIMain * guiread, GameSetupStruct * gss, GUIMain** allocate)
+void read_gui(Stream *in, GUIMain * guiread, GameSetupStruct * gss, GUIMain** allocate)
 {
   int gver, ee;
 
@@ -619,7 +619,7 @@ void read_gui(DataStream *in, GUIMain * guiread, GameSetupStruct * gss, GUIMain*
   guis_need_update = 1;
 }
 
-void write_gui(DataStream *out, GUIMain * guiwrite, GameSetupStruct * gss)
+void write_gui(Stream *out, GUIMain * guiwrite, GameSetupStruct * gss)
 {
   int ee;
 

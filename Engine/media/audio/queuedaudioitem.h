@@ -18,7 +18,7 @@
 #include "media/audio/soundclip.h"
 #include "util/file.h"
 
-namespace AGS { namespace Common { class DataStream; } }
+namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
 struct QueuedAudioItem {
@@ -27,8 +27,8 @@ struct QueuedAudioItem {
     bool  repeat;
     SOUNDCLIP *cachedClip;
 
-    void ReadFromFile(Common::DataStream *in);
-    void WriteToFile(Common::DataStream *out);
+    void ReadFromFile(Common::Stream *in);
+    void WriteToFile(Common::Stream *out);
 };
 
 #endif // __AC_QUEUEDAUDIOITEM_H

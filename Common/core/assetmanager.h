@@ -48,7 +48,7 @@ namespace AGS
 namespace Common
 {
 
-class DataStream;
+class Stream;
 struct MultiFileLib;
 struct AssetLibInfo;
 struct AssetInfo;
@@ -99,10 +99,10 @@ public:
 
 
     static bool         DoesAssetExist(const String &asset_name);
-    static DataStream   *OpenAsset(const String &asset_name,
+    static Stream       *OpenAsset(const String &asset_name,
                                    FileOpenMode open_mode = kFile_Open,
                                    FileWorkMode work_mode = kFile_Read);
-    static DataStream   *OpenAsset(const String &data_file, const String &asset_name,
+    static Stream       *OpenAsset(const String &data_file, const String &asset_name,
                                    FileOpenMode open_mode = kFile_Open,
                                    FileWorkMode work_mode = kFile_Read);
 
@@ -126,27 +126,27 @@ private:
 
     AssetError  RegisterAssetLib(const String &data_file, const String &password);
 
-    AssetError  ReadSingleFileAssetLib(MultiFileLib * mfl, DataStream *ci_s, int lib_version);
-    AssetError  ReadMultiFileAssetLib(MultiFileLib * mfl, DataStream *ci_s, int lib_version);
-    AssetError  ReadAssetLibV10(MultiFileLib * mfl, DataStream *ci_s, int lib_version);
-    AssetError  ReadAssetLibV20(MultiFileLib * mfl, DataStream *ci_s, int lib_version);
-    AssetError  ReadAssetLibV21(MultiFileLib * mfl, DataStream *ci_s, int lib_version);
+    AssetError  ReadSingleFileAssetLib(MultiFileLib * mfl, Stream *ci_s, int lib_version);
+    AssetError  ReadMultiFileAssetLib(MultiFileLib * mfl, Stream *ci_s, int lib_version);
+    AssetError  ReadAssetLibV10(MultiFileLib * mfl, Stream *ci_s, int lib_version);
+    AssetError  ReadAssetLibV20(MultiFileLib * mfl, Stream *ci_s, int lib_version);
+    AssetError  ReadAssetLibV21(MultiFileLib * mfl, Stream *ci_s, int lib_version);
 
     bool        _DoesAssetExist(const String &asset_name);
-    DataStream *_OpenAsset(const String &asset_name,
+    Stream      *_OpenAsset(const String &asset_name,
         FileOpenMode open_mode = kFile_Open,
         FileWorkMode work_mode = kFile_Read);
 
     AssetInfo   *FindAssetByFileName(const String &asset_name);
     String      MakeLibraryFileNameForAsset(const AssetInfo *asset);
-    DataStream  *OpenAssetFromLib(const String &asset_name, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode);
-    DataStream  *OpenAssetFromDir(const String &asset_name, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode);
-    DataStream  *OpenAssetByPriority(const String &asset_name, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode);
+    Stream      *OpenAssetFromLib(const String &asset_name, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode);
+    Stream      *OpenAssetFromDir(const String &asset_name, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode);
+    Stream      *OpenAssetByPriority(const String &asset_name, Common::FileOpenMode open_mode, Common::FileWorkMode work_mode);
 
     // Decryption routines
-    void        ReadEncArray(void *data, int dataSize, int dataCount, DataStream *ci_s);
-    int32_t     ReadEncInt32(DataStream *ci_s);
-    void        ReadEncString(char *buffer, int maxLength, DataStream *ci_s);
+    void        ReadEncArray(void *data, int dataSize, int dataCount, Stream *ci_s);
+    int32_t     ReadEncInt32(Stream *ci_s);
+    void        ReadEncString(char *buffer, int maxLength, Stream *ci_s);
     void        DecryptText(char *text, int length);
 
     static AssetManager     *_theAssetManager;

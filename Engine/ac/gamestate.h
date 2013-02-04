@@ -20,7 +20,7 @@
 #include "util/file.h"
 
 // Forward declaration
-namespace AGS { namespace Common { class DataStream; } }
+namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
 // Adding to this might need to modify AGSDEFNS.SH and AGSPLUGIN.H
@@ -178,8 +178,10 @@ struct GameState {
     unsigned long ignore_user_input_until_time;
     int   default_audio_type_volumes[MAX_AUDIO_TYPES];
 
-    void ReadFromFile(Common::DataStream *in);
-    void WriteToFile(Common::DataStream *out);
+    void ReadFromFile_v321(Common::Stream *in);
+    void WriteToFile_v321(Common::Stream *out);
+    void ReadQueuedAudioItems_Aligned(Common::Stream *in);
+    void WriteQueuedAudioItems_Aligned(Common::Stream *out);
 };
 
 #endif // __AC_GAMESTATE_H

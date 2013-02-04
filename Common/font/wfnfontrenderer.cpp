@@ -21,18 +21,18 @@
 
 #include "ac/common.h"
 #include "font/wfnfontrenderer.h"
-#include "util/datastream.h"
+#include "util/stream.h"
 #include "util/file.h"
 #include "gfx/bitmap.h"
 
 using AGS::Common::Bitmap;
-using AGS::Common::DataStream;
+using AGS::Common::Stream;
 using namespace AGS; // FIXME later
 
-extern DataStream *fopen_shared(char *,
+extern Stream *fopen_shared(char *,
                                  Common::FileOpenMode open_mode = Common::kFile_Open,
                                  Common::FileWorkMode work_mode = Common::kFile_Read);
-extern int flength_shared(DataStream *ffi);
+extern int flength_shared(Stream *ffi);
 
 
 // **** WFN Renderer ****
@@ -204,7 +204,7 @@ int WFNFontRenderer::printchar(int xxx, int yyy, wgtfont foo, int charr)
 bool WFNFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
 {
   char filnm[20];
-  DataStream *ffi = NULL;
+  Stream *ffi = NULL;
   char mbuffer[16];
   long lenof;
 

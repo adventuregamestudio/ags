@@ -299,17 +299,51 @@ int engine_init_gfx_filters()
 {
     write_log_debug("Init gfx filters");
 
+    char *gfxfilter = NULL;
+
     if (force_gfxfilter[0]) {
-        if (initialize_graphics_filter(force_gfxfilter, initasx, initasy, firstDepth))
+        gfxfilter = force_gfxfilter;
+    }
+    else if (usetup.gfxFilterID) {
+        gfxfilter = usetup.gfxFilterID;
+    }
+#if defined (WINDOWS_VERSION) || defined (LINUX_VERSION)
+    else {
+        int desktopWidth, desktopHeight;
+        if (get_desktop_resolution(&desktopWidth, &desktopHeight) == 0)
         {
-            return EXIT_NORMAL;
+            if (usetup.windowed > 0)
+                desktopHeight -= 60;
+            int xratio = desktopWidth / initasx;
+            int yratio = desktopHeight / initasy;
+            int min_ratio = xratio < yratio ? xratio : yratio;
+
+            if (min_ratio > 1)
+            {
+                switch (min_ratio)
+                {
+                  case 2:
+                    gfxfilter = "StdScale2";
+                    break;
+                  case 3:
+                    gfxfilter = "StdScale3";
+                    break;
+                  default:
+                    gfxfilter = "StdScale4";
+                    break;
+                }
+            }
+        }
+        else
+        {
+            platform->WriteDebugString("Automatic scaling: disabled (unable to obtain desktop resolution)");
         }
     }
-    else {
-        if (initialize_graphics_filter(usetup.gfxFilterID, initasx, initasy, firstDepth))
-        {
-            return EXIT_NORMAL;
-        }
+#endif
+
+    if (initialize_graphics_filter(gfxfilter, initasx, initasy, firstDepth))
+    {
+        return EXIT_NORMAL;
     }
 
     return RETURN_CONTINUE;

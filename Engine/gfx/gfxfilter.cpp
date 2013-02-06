@@ -64,8 +64,8 @@ GFXFilter::~GFXFilter()
 
 GFXFilter *filter;
 
-GFXFilter *gfxFilterList[10];
-GFXFilter *gfxFilterListD3D[10];
+GFXFilter *gfxFilterList[11];
+GFXFilter *gfxFilterListD3D[16];
 
 GFXFilter **get_allegro_gfx_filter_list(bool checkingForSetup) {
 
@@ -73,9 +73,13 @@ GFXFilter **get_allegro_gfx_filter_list(bool checkingForSetup) {
     gfxFilterList[1] = new ScalingAllegroGFXFilter(2, checkingForSetup);
     gfxFilterList[2] = new ScalingAllegroGFXFilter(3, checkingForSetup);
     gfxFilterList[3] = new ScalingAllegroGFXFilter(4, checkingForSetup);
-    gfxFilterList[4] = new Hq2xGFXFilter(checkingForSetup);
-    gfxFilterList[5] = new Hq3xGFXFilter(checkingForSetup);
-    gfxFilterList[6] = NULL;
+    gfxFilterList[4] = new ScalingAllegroGFXFilter(5, checkingForSetup);
+    gfxFilterList[5] = new ScalingAllegroGFXFilter(6, checkingForSetup);
+    gfxFilterList[6] = new ScalingAllegroGFXFilter(7, checkingForSetup);
+    gfxFilterList[7] = new ScalingAllegroGFXFilter(8, checkingForSetup);
+    gfxFilterList[8] = new Hq2xGFXFilter(checkingForSetup);
+    gfxFilterList[9] = new Hq3xGFXFilter(checkingForSetup);
+    gfxFilterList[10] = NULL;
 
     return gfxFilterList;
 }
@@ -86,10 +90,18 @@ GFXFilter **get_d3d_gfx_filter_list(bool checkingForSetup) {
     gfxFilterListD3D[1] = new D3DGFXFilter(2, checkingForSetup);
     gfxFilterListD3D[2] = new D3DGFXFilter(3, checkingForSetup);
     gfxFilterListD3D[3] = new D3DGFXFilter(4, checkingForSetup);
-    gfxFilterListD3D[4] = new AAD3DGFXFilter(2, checkingForSetup);
-    gfxFilterListD3D[5] = new AAD3DGFXFilter(3, checkingForSetup);
-    gfxFilterListD3D[6] = new AAD3DGFXFilter(4, checkingForSetup);
-    gfxFilterListD3D[7] = NULL;
+    gfxFilterListD3D[4] = new D3DGFXFilter(5, checkingForSetup);
+    gfxFilterListD3D[5] = new D3DGFXFilter(6, checkingForSetup);
+    gfxFilterListD3D[6] = new D3DGFXFilter(7, checkingForSetup);
+    gfxFilterListD3D[7] = new D3DGFXFilter(8, checkingForSetup);
+    gfxFilterListD3D[8] = new AAD3DGFXFilter(2, checkingForSetup);
+    gfxFilterListD3D[9] = new AAD3DGFXFilter(3, checkingForSetup);
+    gfxFilterListD3D[10] = new AAD3DGFXFilter(4, checkingForSetup);
+    gfxFilterListD3D[11] = new AAD3DGFXFilter(5, checkingForSetup);
+    gfxFilterListD3D[12] = new AAD3DGFXFilter(6, checkingForSetup);
+    gfxFilterListD3D[13] = new AAD3DGFXFilter(7, checkingForSetup);
+    gfxFilterListD3D[14] = new AAD3DGFXFilter(8, checkingForSetup);
+    gfxFilterListD3D[15] = NULL;
 
     return gfxFilterListD3D;
 }

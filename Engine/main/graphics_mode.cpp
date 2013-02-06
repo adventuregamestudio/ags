@@ -320,18 +320,11 @@ int engine_init_gfx_filters()
 
             if (min_ratio > 1)
             {
-                switch (min_ratio)
-                {
-                  case 2:
-                    gfxfilter = "StdScale2";
-                    break;
-                  case 3:
-                    gfxfilter = "StdScale3";
-                    break;
-                  default:
-                    gfxfilter = "StdScale4";
-                    break;
-                }
+                if (min_ratio > 8)
+                    min_ratio = 8;
+                char filterID[12];
+                sprintf(filterID, "StdScale%d", min_ratio);
+                gfxfilter = filterID;
             }
         }
         else

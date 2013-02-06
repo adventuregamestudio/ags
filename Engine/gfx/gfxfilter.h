@@ -41,7 +41,7 @@ GFXFilter **get_d3d_gfx_filter_list(bool checkingForSetup);
 
 extern GFXFilter *filter;
 
-extern GFXFilter *gfxFilterList[10];
-extern GFXFilter *gfxFilterListD3D[10];
+extern GFXFilter *gfxFilterList[11];
+extern GFXFilter *gfxFilterListD3D[16];
 
 #endif // __AC_GFXFILTER_H

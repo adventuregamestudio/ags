@@ -5208,7 +5208,7 @@ void save_game_to_dta_file(Game^ game, const char *fileName)
 #pragma unmanaged
 
 
-void quit(char * message) 
+void quit(const char * message) 
 {
 	ThrowManagedException((const char*)message);
 }

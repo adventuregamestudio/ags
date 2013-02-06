@@ -313,7 +313,7 @@ int engine_init_gfx_filters()
         if (get_desktop_resolution(&desktopWidth, &desktopHeight) == 0)
         {
             if (usetup.windowed > 0)
-                desktopHeight -= 60;
+                desktopHeight -= 100;
             int xratio = desktopWidth / initasx;
             int yratio = desktopHeight / initasy;
             int min_ratio = xratio < yratio ? xratio : yratio;

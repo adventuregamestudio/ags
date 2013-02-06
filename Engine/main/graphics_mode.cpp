@@ -314,8 +314,14 @@ int engine_init_gfx_filters()
         {
             if (usetup.windowed > 0)
                 desktopHeight -= 100;
+
+            // calculate the correct game height when in letterbox mode
+            int gameHeight = initasy;
+            if (game.options[OPT_LETTERBOX])
+                gameHeight = (gameHeight * 12) / 10;
+
             int xratio = desktopWidth / initasx;
-            int yratio = desktopHeight / initasy;
+            int yratio = desktopHeight / gameHeight;
             int min_ratio = xratio < yratio ? xratio : yratio;
 
             if (min_ratio > 1)

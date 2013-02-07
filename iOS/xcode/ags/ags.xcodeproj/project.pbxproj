@@ -17,6 +17,8 @@
 		28FD14FE0DC6FC130079059D /* EAGLView.m in Sources */ = {isa = PBXBuildFile; fileRef = 28FD14FD0DC6FC130079059D /* EAGLView.m */; };
 		28FD15000DC6FC520079059D /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD14FF0DC6FC520079059D /* OpenGLES.framework */; };
 		28FD15080DC6FC5B0079059D /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD15070DC6FC5B0079059D /* QuartzCore.framework */; };
+		600C369316C454C400D0CC4F /* stream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 600C369016C454C400D0CC4F /* stream.cpp */; };
+		600C369416C454C400D0CC4F /* proxystream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 600C369216C454C400D0CC4F /* proxystream.cpp */; };
 		6041A8631552E60600596310 /* libaldmb.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6041A85D1552E60600596310 /* libaldmb.a */; };
 		6041A8641552E60600596310 /* liballeg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6041A85E1552E60600596310 /* liballeg.a */; };
 		6041A8651552E60600596310 /* libdumb.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6041A85F1552E60600596310 /* libdumb.a */; };
@@ -344,6 +346,9 @@
 		28FD15070DC6FC5B0079059D /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		29B97316FDCFA39411CA2CEA /* main.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
 		32CA4F630368D1EE00C91783 /* ags_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ags_Prefix.pch; sourceTree = "<group>"; };
+		600C369016C454C400D0CC4F /* stream.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = stream.cpp; sourceTree = "<group>"; };
+		600C369116C454C400D0CC4F /* proxystream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = proxystream.h; sourceTree = "<group>"; };
+		600C369216C454C400D0CC4F /* proxystream.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = proxystream.cpp; sourceTree = "<group>"; };
 		6041A85D1552E60600596310 /* libaldmb.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libaldmb.a; path = ../../nativelibs/fat/lib/libaldmb.a; sourceTree = SOURCE_ROOT; };
 		6041A85E1552E60600596310 /* liballeg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = liballeg.a; path = ../../nativelibs/fat/lib/liballeg.a; sourceTree = SOURCE_ROOT; };
 		6041A85F1552E60600596310 /* libdumb.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libdumb.a; path = ../../nativelibs/fat/lib/libdumb.a; sourceTree = SOURCE_ROOT; };
@@ -1483,6 +1488,9 @@
 		60CA3A46160713D300CFB3BD /* util */ = {
 			isa = PBXGroup;
 			children = (
+				600C369016C454C400D0CC4F /* stream.cpp */,
+				600C369116C454C400D0CC4F /* proxystream.h */,
+				600C369216C454C400D0CC4F /* proxystream.cpp */,
 				60661BAF16847C3C0005B5CD /* directory.cpp */,
 				60661BB016847C3C0005B5CD /* directory.h */,
 				60661BB116847C3C0005B5CD /* path.h */,
@@ -2599,6 +2607,8 @@
 				608781951695922900AC84FE /* global_api.cpp in Sources */,
 				608781A21695925A00AC84FE /* script_api.cpp in Sources */,
 				608778491699CE4600015533 /* ags_parallax.cpp in Sources */,
+				600C369316C454C400D0CC4F /* stream.cpp in Sources */,
+				600C369416C454C400D0CC4F /* proxystream.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

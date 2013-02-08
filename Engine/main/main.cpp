@@ -336,7 +336,11 @@ int main(int argc,char*argv[]) {
 
     printf("Adventure Game Studio v%sInterpreter\n"
            "Copyright (c) 1999-2011 Chris Jones and 2011-20xx others\n"
+#ifdef BUILD_STR
+           "ACI version %s (Build: %s)\n", AC_VERSION_TEXT, ACI_VERSION_TEXT, BUILD_STR);
+#else
            "ACI version %s\n", AC_VERSION_TEXT, ACI_VERSION_TEXT);
+#endif
 
     if ((argc>1) && (stricmp(argv[1],"--help") == 0 || argv[1][1]=='?')) {
         main_print_help();

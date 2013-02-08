@@ -11,6 +11,10 @@ else
 endif
 LIBS += -lvorbisfile -lfreetype -logg -ldl -lpthread -lm -lc -lstdc++
 
+ifdef BUILD_STR
+  override CFLAGS += -DBUILD_STR=\"$(BUILD_STR)\"
+endif
+
 PREFIX ?= /usr/local
 CC ?= gcc
 CXX ?= g++

@@ -368,7 +368,7 @@ int Game_SetSaveGameDirectory(const char *newFolder) {
 #if defined (WINDOWS_VERSION)
     mkdir(newSaveGameDir);
 #else
-    mkdir(newSaveGameDir, 0);
+    mkdir(newSaveGameDir, 0755);
 #endif
 
     put_backslash(newSaveGameDir);

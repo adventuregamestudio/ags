@@ -73,9 +73,9 @@ public:
     inline size_t ReadArrayOfIntPtr(intptr_t *buffer, size_t count)
     {
 #if defined (AGS_64BIT) || defined (TEST_64BIT)
-        ReadArrayOfInt64(buffer, count);
+        ReadArrayOfInt64((int64_t*)buffer, count);
 #else
-        ReadArrayOfInt32(buffer, count);
+        ReadArrayOfInt32((int32_t*)buffer, count);
 #endif
     }
 
@@ -83,9 +83,9 @@ public:
     inline size_t WriteArrayOfIntPtr(const intptr_t *buffer, size_t count)
     {
 #if defined (AGS_64BIT) || defined (TEST_64BIT)
-        WriteArrayOfInt64(buffer, count);
+        WriteArrayOfInt64((const int64_t*)buffer, count);
 #else
-        WriteArrayOfInt32(buffer, count);
+        WriteArrayOfInt32((const int32_t*)buffer, count);
 #endif
     }
 

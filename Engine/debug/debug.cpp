@@ -96,32 +96,23 @@ enum
 void initialize_output_subsystem()
 {
     Out::Init(0, NULL);
-	Out::AddOutputTarget(TARGET_FILE, new AGS::Engine::Out::CRawFileOutputTarget("agsgame.log"),
+	Out::AddOutputTarget(TARGET_FILE, new AGS::Engine::Out::RawFileOutputTarget("agsgame.log"),
         Out::kVerbose_NoDebug, false);
     Out::AddOutputTarget(TARGET_SYSTEMDEBUGGER, AGSPlatformDriver::GetDriver(),
         Out::kVerbose_WarnErrors, true);
-	Out::AddOutputTarget(TARGET_GAMECONSOLE, new AGS::Engine::Out::CConsoleOutputTarget(),
+	Out::AddOutputTarget(TARGET_GAMECONSOLE, new AGS::Engine::Out::ConsoleOutputTarget(),
         Out::kVerbose_Always, false);
-    Out::FPrint("Debug system: output subsystem initialized");
 }
 
 void initialize_debug_system()
 {
     initialize_output_subsystem();
-
-    Out::FPrint("Debug system initialized");
-}
-
-void shutdown_output_subsystem()
-{
-    Out::FPrint("Debug system: shutting down output subsystem...");
-
-    Out::Shutdown();
 }
 
 void shutdown_debug_system()
 {
-    shutdown_output_subsystem();
+    // Shutdown output subsystem
+    Out::Shutdown();
 }
 
 void quitprintf(char*texx, ...) {

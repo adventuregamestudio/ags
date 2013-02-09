@@ -27,11 +27,11 @@ namespace Engine
 
 namespace Out
 {
-    class CConsoleOutputTarget : public AGS::Common::Out::IOutputTarget
+    class ConsoleOutputTarget : public AGS::Common::Out::IOutputTarget
     {
     public:
-        CConsoleOutputTarget();
-        virtual ~CConsoleOutputTarget();
+        ConsoleOutputTarget();
+        virtual ~ConsoleOutputTarget();
 
         virtual void Out(const char *sz_fullmsg);
 

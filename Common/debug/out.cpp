@@ -35,7 +35,7 @@ namespace Common
 
 namespace Out
 {
-    struct COutputTargetSlot
+    struct OutputTargetSlot
     {
     public:
         IOutputTarget   *DelegateObject;
@@ -45,7 +45,7 @@ namespace Out
         bool            IsShared;
         bool            IsSuppressed;
 
-        COutputTargetSlot(IOutputTarget *output_target, OutputVerbosity verbosity, bool shared_object)
+        OutputTargetSlot(IOutputTarget *output_target, OutputVerbosity verbosity, bool shared_object)
         {
             DelegateObject  = output_target;
             Verbosity       = verbosity;
@@ -53,7 +53,7 @@ namespace Out
             IsSuppressed    = false;
         }
 
-        ~COutputTargetSlot()
+        ~OutputTargetSlot()
         {
             if (!IsShared) {
                 delete DelegateObject;
@@ -61,17 +61,17 @@ namespace Out
         }
     };
 
-    struct CInternalData
+    struct InternalData
     {
     public:
         // general verbosity setting
         OutputVerbosity     Verbosity;
-        COutputTargetSlot   *Targets[MAX_TARGETS];
+        OutputTargetSlot    *Targets[MAX_TARGETS];
 
-        CInternalData()
+        InternalData()
         {
             Verbosity = kVerbose_Never;
-            memset(Targets, NULL, sizeof(Targets));
+            memset(Targets, 0, sizeof(Targets));
         }
     };
 
@@ -93,7 +93,7 @@ namespace Out
 
 namespace Out = AGS::Common::Out;
 
-Out::CInternalData IData;
+Out::InternalData IData;
 
 //-----------------------------------------------------------------------------
 // System management
@@ -113,12 +113,12 @@ void Out::AddOutputTarget(int target_id, Out::IOutputTarget *output_target, Outp
 {
     // TODO: use array class instead
     if (target_id < 0 || target_id >= MAX_TARGETS) {
-        Out::Warn("Output system: unable to add target output, because id %d is Out of range", target_id);
+        Out::Warn("Output system: unable to add target output, because id %d is out of range", target_id);
         return;
     }
 
     delete IData.Targets[target_id];
-    IData.Targets[target_id] = new COutputTargetSlot(output_target, verbosity, shared_object);
+    IData.Targets[target_id] = new OutputTargetSlot(output_target, verbosity, shared_object);
 }
 
 void Out::Shutdown ()
@@ -248,7 +248,7 @@ void Out::Print (OutputVerbosity reason, const char *sz_msg)
 {    
     for (int i = 0; i < MAX_TARGETS; ++i)
     {
-        COutputTargetSlot *target = IData.Targets[i];
+        OutputTargetSlot *target = IData.Targets[i];
         if (!target || !target->DelegateObject)
         {
             continue;

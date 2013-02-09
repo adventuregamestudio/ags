@@ -34,7 +34,7 @@ namespace Out
 // useful information. Whether this is to be determined here or on
 // high-level side remains a question.
 //
-CRawFileOutputTarget::CRawFileOutputTarget(const char *sz_filepath)
+RawFileOutputTarget::RawFileOutputTarget(const char *sz_filepath)
 {
     File = NULL;
 
@@ -45,13 +45,13 @@ CRawFileOutputTarget::CRawFileOutputTarget(const char *sz_filepath)
     DidWriteOnce = false;
 }
 
-CRawFileOutputTarget::~CRawFileOutputTarget()
+RawFileOutputTarget::~RawFileOutputTarget()
 {
     CloseFile();
     delete [] FilePath;
 }
 
-void CRawFileOutputTarget::Out(const char *sz_fullmsg)
+void RawFileOutputTarget::Out(const char *sz_fullmsg)
 {
     if (!OpenFile()) {
         return;
@@ -61,7 +61,7 @@ void CRawFileOutputTarget::Out(const char *sz_fullmsg)
     CloseFile();
 }
 
-bool CRawFileOutputTarget::OpenFile()
+bool RawFileOutputTarget::OpenFile()
 {
     char *open_mode;
     if (DidWriteOnce) {
@@ -81,7 +81,7 @@ bool CRawFileOutputTarget::OpenFile()
     return true;
 }
 
-void CRawFileOutputTarget::CloseFile()
+void RawFileOutputTarget::CloseFile()
 {
     if (!File) {
         return;

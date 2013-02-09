@@ -28,11 +28,11 @@ namespace Engine
 
 namespace Out
 {
-    class CRawFileOutputTarget : public AGS::Common::Out::IOutputTarget
+    class RawFileOutputTarget : public AGS::Common::Out::IOutputTarget
     {
     public:
-        CRawFileOutputTarget(const char *sz_filepath);
-        virtual ~CRawFileOutputTarget();
+        RawFileOutputTarget(const char *sz_filepath);
+        virtual ~RawFileOutputTarget();
 
         virtual void Out(const char *sz_fullmsg);
 

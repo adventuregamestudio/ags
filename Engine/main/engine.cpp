@@ -38,6 +38,7 @@
 #include "ac/dynobj/scriptsystem.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
+#include "debug/out.h"
 #include "font/agsfontrenderer.h"
 #include "main/config.h"
 #include "main/game_start.h"
@@ -61,6 +62,7 @@ using AGS::Common::String;
 using AGS::Common::Stream;
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
+namespace Out = AGS::Common::Out;
 
 #ifndef WINDOWS_VERSION
 extern char **global_argv;
@@ -109,7 +111,7 @@ extern "C" HWND allegro_wnd;
 
 void engine_read_config(int argc,char*argv[])
 {
-    write_log_debug("Reading config file");
+    Out::FPrint("Reading config file");
 
     our_eip = -200;
     read_config_file(argv[0]);
@@ -128,7 +130,7 @@ int errno;
 
 int engine_init_allegro()
 {
-    write_log_debug("Initializing allegro");
+    Out::FPrint("Initializing allegro");
 
     our_eip = -199;
     // Initialize allegro
@@ -159,7 +161,7 @@ void winclosehook() {
 
 void engine_setup_window()
 {
-    write_log_debug("Setting up window");
+    Out::FPrint("Setting up window");
 
     our_eip = -198;
 #if (ALLEGRO_DATE > 19990103)
@@ -182,7 +184,7 @@ int engine_check_run_setup(int argc,char*argv[])
     // check if Setup needs to be run instead
     if (argc>1) {
         if (stricmp(argv[1],"--setup")==0) { 
-            write_log_debug("Running Setup");
+            Out::FPrint("Running Setup");
 
             if (!platform->RunSetup())
                 return EXIT_NORMAL;
@@ -398,7 +400,7 @@ void initialise_game_file_name()
 
 int engine_init_game_data(int argc,char*argv[])
 {
-    write_log_debug("Initializing game data");
+    Out::FPrint("Initializing game data");
 
     // initialize the data file
     initialise_game_file_name();
@@ -458,14 +460,14 @@ int engine_init_game_data(int argc,char*argv[])
 
 void engine_init_fonts()
 {
-    write_log_debug("Initializing TTF renderer");
+    Out::FPrint("Initializing TTF renderer");
 
     init_font_renderer();
 }
 
 int engine_init_mouse()
 {
-    write_log_debug("Initializing mouse");
+    Out::FPrint("Initializing mouse");
 
 #ifdef _DEBUG
     // Quantify fails with the mouse for some reason
@@ -482,7 +484,7 @@ int engine_init_mouse()
 
 int engine_check_memory()
 {
-    write_log_debug("Checking memory");
+    Out::FPrint("Checking memory");
 
     char*memcheck=(char*)malloc(4000000);
     if (memcheck==NULL) {
@@ -524,7 +526,7 @@ int engine_init_speech()
         if (speech_s) {
             delete speech_s;
 
-            write_log_debug("Initializing speech vox");
+            Out::FPrint("Initializing speech vox");
 
             //if (Common::AssetManager::SetDataFile(useloc,"")!=0) {
             if (Common::AssetManager::SetDataFile(speech_file)!=Common::kAssetNoError) {
@@ -587,7 +589,7 @@ int engine_init_music()
     if (music_s) {
         delete music_s;
 
-        write_log_debug("Initializing audio vox");
+        Out::FPrint("Initializing audio vox");
 
         //if (Common::AssetManager::SetDataFile(useloc,"")!=0) {
         if (Common::AssetManager::SetDataFile(music_file)!=Common::kAssetNoError) {
@@ -605,7 +607,7 @@ int engine_init_music()
 void engine_init_keyboard()
 {
 #ifdef ALLEGRO_KEYBOARD_HANDLER
-    write_log_debug("Initializing keyboard");
+    Out::FPrint("Initializing keyboard");
 
     install_keyboard();
 #endif
@@ -613,7 +615,7 @@ void engine_init_keyboard()
 
 void engine_init_timer()
 {
-    write_log_debug("Install timer");
+    Out::FPrint("Install timer");
 
     platform->WriteConsole("Checking sound inits.\n");
     if (opts.mod_player) reserve_voices(16,-1);
@@ -644,7 +646,7 @@ void engine_init_sound()
 
 #endif
 
-    write_log_debug("Initialize sound drivers");
+    Out::FPrint("Initialize sound drivers");
 
     // PSP: Disable sound by config file.
     if (!psp_audio_enabled)
@@ -717,7 +719,7 @@ void atexit_handler() {
 
 void engine_init_exit_handler()
 {
-    write_log_debug("Install exit handler");
+    Out::FPrint("Install exit handler");
 
     atexit(atexit_handler);
 }
@@ -730,21 +732,21 @@ void engine_init_rand()
 
 void engine_init_pathfinder()
 {
-    write_log_debug("Initialize path finder library");
+    Out::FPrint("Initialize path finder library");
 
     init_pathfinder();
 }
 
 void engine_pre_init_gfx()
 {
-    write_log_debug("Initialize gfx");
+    Out::FPrint("Initialize gfx");
 
     platform->InitialiseAbufAtStartup();
 }
 
 int engine_load_game_data()
 {
-    write_log_debug("Load game data");
+    Out::FPrint("Load game data");
 
     our_eip=-17;
     int ee=load_game_file();
@@ -792,7 +794,7 @@ void engine_init_title()
     set_window_title(game.gamename);
 #endif
 
-    write_log_debug(game.gamename);
+    Out::FPrint(game.gamename);
 }
 
 void engine_init_directories()
@@ -846,7 +848,7 @@ int check_write_access() {
 
 int engine_check_disk_space()
 {
-    write_log_debug("Checking for disk space");
+    Out::FPrint("Checking for disk space");
 
     //init_language_text("en");
     if (check_write_access()==0) {
@@ -884,7 +886,7 @@ void engine_init_modxm_player()
         opts.mod_player = 0;
 
     if (opts.mod_player) {
-        write_log_debug("Initializing MOD/XM player");
+        Out::FPrint("Initializing MOD/XM player");
 
         if (init_mod_player(NUM_MOD_DIGI_VOICES) < 0) {
             platform->DisplayAlert("Warning: install_mod: MOD player failed to initialize.");
@@ -893,7 +895,7 @@ void engine_init_modxm_player()
     }
 #else
     opts.mod_player = 0;
-    write_log_debug("Compiled without MOD/XM player");
+    Out::FPrint("Compiled without MOD/XM player");
 #endif
 }
 
@@ -930,14 +932,14 @@ void show_preload () {
 
 void engine_show_preload()
 {
-    write_log_debug("Check for preload image");
+    Out::FPrint("Check for preload image");
 
     show_preload ();
 }
 
 int engine_init_sprites()
 {
-    write_log_debug("Initialize sprites");
+    Out::FPrint("Initialize sprites");
 
     if (spriteset.initFile ("acsprset.spr")) 
     {
@@ -955,7 +957,7 @@ int engine_init_sprites()
 
 void engine_setup_screen()
 {
-    write_log_debug("Set up screen");
+    Out::FPrint("Set up screen");
 
     virtual_screen=BitmapHelper::CreateBitmap(scrnwid,scrnhit,final_col_dep);
     virtual_screen->Clear();
@@ -1199,7 +1201,7 @@ void init_game_settings() {
 
 void engine_init_game_settings()
 {
-    write_log_debug("Initialize game settings");
+    Out::FPrint("Initialize game settings");
 
     init_game_settings();
 }
@@ -1259,7 +1261,7 @@ void engine_start_multithreaded_audio()
 
 void engine_prepare_to_start_game()
 {
-    write_log_debug("Prepare to start game");
+    Out::FPrint("Prepare to start game");
 
     engine_init_game_shit();
     engine_start_multithreaded_audio();
@@ -1477,7 +1479,7 @@ extern char*printfworkingspace;
 
 int initialize_engine_with_exception_handling(int argc,char*argv[])
 {
-    write_log_debug("Installing exception handler");
+    Out::FPrint("Installing exception handler");
 
 #ifdef USE_CUSTOM_EXCEPTION_HANDLER
     __try 

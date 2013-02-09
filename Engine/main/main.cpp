@@ -28,6 +28,7 @@
 #include "ac/gamestate.h"
 #include "debug/agseditordebugger.h"
 #include "debug/debug_log.h"
+#include "debug/out.h"
 #include "main/engine.h"
 #include "main/mainheader.h"
 #include "main/main.h"
@@ -38,6 +39,8 @@
 #ifdef _DEBUG
 #include "test/test_all.h"
 #endif
+
+namespace Out = Common::Out;
 
 char appDirectory[512]; // Needed for library loading
 
@@ -334,7 +337,9 @@ int main(int argc,char*argv[]) {
         return res;
     }
 
-    printf("Adventure Game Studio v%sInterpreter\n"
+    initialize_debug_system();
+
+    Out::FPrint("Adventure Game Studio v%sInterpreter\n"
            "Copyright (c) 1999-2011 Chris Jones and 2011-20xx others\n"
 #ifdef BUILD_STR
            "ACI version %s (Build: %s)\n", AC_VERSION_TEXT, ACI_VERSION_TEXT, BUILD_STR);
@@ -347,8 +352,7 @@ int main(int argc,char*argv[]) {
         return 0;
     }
 
-    initialize_debug_system();
-    write_log_debug("***** ENGINE STARTUP");
+    Out::FPrint("***** ENGINE STARTUP");
 
 #if defined(WINDOWS_VERSION)
     _set_new_handler(malloc_fail_handler);

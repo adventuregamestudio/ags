@@ -29,10 +29,13 @@
 #include "ac/screen.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
+#include "debug/out.h"
 #include "main/mainheader.h"
 #include "main/game_run.h"
 #include "main/game_start.h"
 #include "script/script.h"
+
+namespace Out = AGS::Common::Out;
 
 extern int our_eip, displayed_room;
 extern const char *load_game_errors[9];
@@ -50,7 +53,7 @@ extern int convert_16bit_bgr;
 
 void start_game_check_replay()
 {
-    write_log_debug("Checking replay status");
+    Out::FPrint("Checking replay status");
 
     if (play.recording) {
         start_recording();
@@ -168,8 +171,8 @@ void initialize_start_and_play_game(int override_start_room, const char *loadSav
 
         start_game_check_replay();
 
-        write_log_debug("Engine initialization complete");
-        write_log_debug("Starting game");
+        Out::FPrint("Engine initialization complete");
+        Out::FPrint("Starting game");
 
         start_game_init_editor_debugging();
 

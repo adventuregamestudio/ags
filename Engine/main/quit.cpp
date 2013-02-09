@@ -27,6 +27,7 @@
 #include "debug/agseditordebugger.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
+#include "debug/out.h"
 #include "main/main.h"
 #include "main/mainheader.h"
 #include "main/quit.h"
@@ -37,6 +38,7 @@
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
+namespace Out = AGS::Common::Out;
 
 extern GameSetupStruct game;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
@@ -328,7 +330,7 @@ void quit(const char *quitmsg) {
 
     proper_exit=1;
 
-    write_log_debug("***** ENGINE HAS SHUTDOWN");
+    Out::FPrint("***** ENGINE HAS SHUTDOWN");
 
     shutdown_debug_system();
 

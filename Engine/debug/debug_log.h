@@ -51,22 +51,4 @@ extern int first_debug_line, last_debug_line, display_console;
 
 extern AGSPlatformDriver *platform;
 
-// this function is only enabled for special builds if a startup
-// issue needs to be checked
-#define write_log_debug(msg) platform->WriteDebugString(msg)
-/*extern "C" {
-void write_log_debug(const char*msg) {
-//if (play.debug_mode == 0)
-//return;
-
-char toWrite[300];
-sprintf(toWrite, "%02d/%02d/%04d %02d:%02d:%02d (EIP=%4d) %s", sc_GetTime(4), sc_GetTime(5),
-sc_GetTime(6), sc_GetTime(1), sc_GetTime(2), sc_GetTime(3), our_eip, msg);
-
-FILE*ooo=fopen("ac.log","at");
-fprintf(ooo,"%s\n", toWrite);
-fclose(ooo);
-}
-}*/
-
 #endif // __AC_DEBUG_LOG_H

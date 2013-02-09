@@ -26,6 +26,7 @@
 #include "ac/record.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
+#include "debug/out.h"
 #include "media/video/video.h"
 #include "util/stream.h"
 #include "gfx/graphicsdriver.h"
@@ -36,6 +37,7 @@ using AGS::Common::Stream;
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
+namespace Out = AGS::Common::Out;
 
 extern GameSetup usetup;
 extern GameSetupStruct game;
@@ -120,7 +122,7 @@ void play_flc_file(int numb,int playflags) {
     {
         // This is not a fatal error that should prevent the game from continuing
         //quit("FLI/FLC animation play error");
-        write_log_debug("FLI/FLC animation play error");
+        Out::FPrint("FLI/FLC animation play error");
     }
 
     delete fli_buffer;

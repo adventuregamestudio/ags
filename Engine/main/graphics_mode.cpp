@@ -26,6 +26,7 @@
 #include "ac/walkbehind.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
+#include "debug/out.h"
 #include "gui/guiinv.h"
 #include "gui/guimain.h"
 #include "main/graphics_mode.h"
@@ -35,6 +36,7 @@
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
+namespace Out = AGS::Common::Out;
 
 extern GameSetup usetup;
 extern GameSetupStruct game;
@@ -144,7 +146,7 @@ void adjust_sizes_for_resolution(int filever)
 
 void engine_init_screen_settings()
 {
-    write_log_debug("Initializing screen settings");
+    Out::FPrint("Initializing screen settings");
 
     // default shifts for how we store the sprite data
 
@@ -297,7 +299,7 @@ int initialize_graphics_filter(const char *filterID, int width, int height, int 
 
 int engine_init_gfx_filters()
 {
-    write_log_debug("Init gfx filters");
+    Out::FPrint("Init gfx filters");
 
     char *gfxfilter = NULL;
 
@@ -505,14 +507,14 @@ int switch_to_graphics_mode(int initasx, int initasy, int scrnwid, int scrnhit, 
 
 void engine_init_gfx_driver()
 {
-    write_log_debug("Init gfx driver");
+    Out::FPrint("Init gfx driver");
 
     create_gfx_driver();
 }
 
 int engine_init_graphics_mode()
 {
-    write_log_debug("Switching to graphics mode");
+    Out::FPrint("Switching to graphics mode");
 
     if (switch_to_graphics_mode(initasx, initasy, scrnwid, scrnhit, firstDepth, secondDepth))
     {
@@ -524,7 +526,7 @@ int engine_init_graphics_mode()
         {
             // If the game is 320x200 and no filter is being used, try using a 2x
             // filter automatically since many gfx drivers don't suport 320x200.
-            write_log_debug("320x200 not supported, trying with 2x filter");
+            Out::FPrint("320x200 not supported, trying with 2x filter");
             delete filter;
 
             if (initialize_graphics_filter("StdScale2", initasx, initasy, firstDepth)) 
@@ -603,7 +605,7 @@ void engine_post_init_gfx_driver()
 
 void engine_prepare_screen()
 {
-    write_log_debug("Preparing graphics mode screen");
+    Out::FPrint("Preparing graphics mode screen");
 
     if ((final_scrn_hit != scrnhit) || (final_scrn_wid != scrnwid)) {
         initasx = final_scrn_wid;
@@ -703,7 +705,7 @@ void engine_set_gfx_driver_callbacks()
 
 void engine_set_color_conversions()
 {
-    write_log_debug("Initializing colour conversion");
+    Out::FPrint("Initializing colour conversion");
 
     set_color_conversion(COLORCONV_MOST | COLORCONV_EXPAND_256 | COLORCONV_REDUCE_16_TO_15);
 }

@@ -133,8 +133,6 @@ void write_log(char*msg) {
     platform->WriteDebugString(msg);
 }
 
-
-
 /* The idea of this is that non-essential errors such as "sound file not
 found" are logged instead of exiting the program.
 */

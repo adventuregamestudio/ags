@@ -50,6 +50,7 @@
 #include "script/cc_instance.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
+#include "debug/out.h"
 #include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
@@ -66,6 +67,7 @@ using AGS::Common::Bitmap;
 using AGS::Common::Stream;
 using AGS::Common::String;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
+namespace Out = AGS::Common::Out;
 
 #if !defined (WINDOWS_VERSION)
 // for toupper
@@ -245,7 +247,7 @@ void unload_old_room() {
     if (displayed_room < 0)
         return;
 
-    platform->WriteDebugString("Unloading room %d", displayed_room);
+    Out::FPrint("Unloading room %d", displayed_room);
 
     current_fade_out_effect();
 
@@ -390,7 +392,7 @@ extern int convert_16bit_bgr;
 // forchar = playerchar on NewRoom, or NULL if restore saved game
 void load_new_room(int newnum, CharacterInfo*forchar) {
 
-    platform->WriteDebugString("Loading room %d", newnum);
+    Out::FPrint("Loading room %d", newnum);
 
     String room_filename;
     int cc;
@@ -946,7 +948,7 @@ extern int psp_clear_cache_on_room_change;
 void new_room(int newnum,CharacterInfo*forchar) {
     EndSkippingUntilCharStops();
 
-    platform->WriteDebugString("Room change requested to room %d", newnum);
+    Out::FPrint("Room change requested to room %d", newnum);
 
     update_polled_stuff_if_runtime();
 

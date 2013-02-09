@@ -31,6 +31,8 @@ void debug_write_console (char *msg, ...);
 /* The idea of this is that non-essential errors such as "sound file not
 found" are logged instead of exiting the program.
 */
+// NOTE: debug_log only prints messages when game is in debug mode;
+// TODO: revise this later; use new output system with verbosity settings
 void debug_log(char*texx, ...);
 void quitprintf(char*texx, ...);
 bool init_editor_debugging();

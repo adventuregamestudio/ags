@@ -337,7 +337,7 @@ int engine_init_gfx_filters()
         }
         else
         {
-            platform->WriteDebugString("Automatic scaling: disabled (unable to obtain desktop resolution)");
+            Out::FPrint("Automatic scaling: disabled (unable to obtain desktop resolution)");
         }
     }
 #endif
@@ -380,7 +380,7 @@ int init_gfx_mode(int wid,int hit,int cdep) {
     else if (debug_24bit_mode)
         cdep = 24;
 
-    platform->WriteDebugString("Attempt to switch gfx mode to %d x %d (%d-bit)", wid, hit, cdep);
+    Out::FPrint("Attempt to switch gfx mode to %d x %d (%d-bit)", wid, hit, cdep);
 
     if (usetup.refresh >= 50)
         request_refresh_rate(usetup.refresh);
@@ -399,9 +399,9 @@ int init_gfx_mode(int wid,int hit,int cdep) {
     working_gfx_mode_status = (gfxDriver->Init(wid, hit, final_col_dep, usetup.windowed > 0, &timerloop) ? 0 : -1);
 
     if (working_gfx_mode_status == 0) 
-        platform->WriteDebugString("Succeeded. Using gfx mode %d x %d (%d-bit)", wid, hit, final_col_dep);
+        Out::FPrint("Succeeded. Using gfx mode %d x %d (%d-bit)", wid, hit, final_col_dep);
     else
-        platform->WriteDebugString("Failed, resolution not supported");
+        Out::FPrint("Failed, resolution not supported");
 
     if ((working_gfx_mode_status < 0) && (usetup.windowed > 0) && (editor_debugging_enabled == 0)) {
         usetup.windowed ++;
@@ -416,12 +416,12 @@ int try_widescreen_bordered_graphics_mode_if_appropriate(int initasx, int initas
     if (working_gfx_mode_status == 0) return 0;
     if (usetup.enable_side_borders == 0)
     {
-        platform->WriteDebugString("Widescreen side borders: disabled in Setup");
+        Out::FPrint("Widescreen side borders: disabled in Setup");
         return 1;
     }
     if (usetup.windowed > 0)
     {
-        platform->WriteDebugString("Widescreen side borders: disabled (windowed mode)");
+        Out::FPrint("Widescreen side borders: disabled (windowed mode)");
         return 1;
     }
 
@@ -438,7 +438,7 @@ int try_widescreen_bordered_graphics_mode_if_appropriate(int initasx, int initas
         // 1600 = 640x400, 960x600, 1280x800, 1680x1050
         // 1666 = 1280x768
 
-        platform->WriteDebugString("Widescreen side borders: game resolution: %d x %d; desktop resolution: %d x %d", initasx, gameHeight, desktopWidth, desktopHeight);
+        Out::FPrint("Widescreen side borders: game resolution: %d x %d; desktop resolution: %d x %d", initasx, gameHeight, desktopWidth, desktopHeight);
 
         if ((screenRatio > 1500) && (gameRatio < 1500))
         {
@@ -447,22 +447,22 @@ int try_widescreen_bordered_graphics_mode_if_appropriate(int initasx, int initas
             if (supportedRes > 0)
             {
                 tryWidth = supportedRes;
-                platform->WriteDebugString("Widescreen side borders: enabled, attempting resolution %d x %d", tryWidth, gameHeight);
+                Out::FPrint("Widescreen side borders: enabled, attempting resolution %d x %d", tryWidth, gameHeight);
             }
             else
             {
-                platform->WriteDebugString("Widescreen side borders: gfx card does not support suitable resolution. will attempt %d x %d anyway", tryWidth, gameHeight);
+                Out::FPrint("Widescreen side borders: gfx card does not support suitable resolution. will attempt %d x %d anyway", tryWidth, gameHeight);
             }
             failed = init_gfx_mode(tryWidth, gameHeight, firstDepth);
         }
         else
         {
-            platform->WriteDebugString("Widescreen side borders: disabled (not necessary, game and desktop aspect ratios match)", initasx, gameHeight, desktopWidth, desktopHeight);
+            Out::FPrint("Widescreen side borders: disabled (not necessary, game and desktop aspect ratios match)", initasx, gameHeight, desktopWidth, desktopHeight);
         }
     }
     else 
     {
-        platform->WriteDebugString("Widescreen side borders: disabled (unable to obtain desktop resolution)");
+        Out::FPrint("Widescreen side borders: disabled (unable to obtain desktop resolution)");
     }
     return failed;
 }
@@ -623,7 +623,7 @@ void engine_prepare_screen()
         vesa_xres = screen_bmp->GetWidth();
 		gfxDriver->SetMemoryBackBuffer(screen_bmp);
 
-        platform->WriteDebugString("Screen resolution: %d x %d; game resolution %d x %d", _old_screen->GetWidth(), _old_screen->GetHeight(), scrnwid, scrnhit);
+        Out::FPrint("Screen resolution: %d x %d; game resolution %d x %d", _old_screen->GetWidth(), _old_screen->GetHeight(), scrnwid, scrnhit);
     }
 
 

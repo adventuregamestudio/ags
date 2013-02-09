@@ -12,6 +12,7 @@
 //
 //=============================================================================
 
+#include <string.h>
 #include "ac/global_plugin.h"
 #include "ac/mouse.h"
 
@@ -409,79 +410,97 @@ RuntimeScriptValue Sc_SetFlashlightInt5(const RuntimeScriptValue *params, int32_
 }
 
 
-void RegisterBuiltInPluginAPI()
+bool RegisterPluginStubs(const char* name)
 {
-    // Stubs for plugin functions.
+  // Stubs for plugin functions.
 
-	// ags_shell.dll
-	ccAddExternalStaticFunction("ShellExecute",                 Sc_ScriptStub_ShellExecute);
+  if (strncmp(name, "ags_shell", strlen("ags_shell")) == 0)
+  {
+    // ags_shell.dll
+    ccAddExternalStaticFunction("ShellExecute",                 Sc_ScriptStub_ShellExecute);
+    return true;
+  }
+  else if (strncmp(name, "ags_snowrain", strlen("ags_snowrain")) == 0)
+  {
+    // ags_snowrain.dll
+    ccAddExternalStaticFunction("srSetSnowDriftRange",          Sc_srSetSnowDriftRange);
+    ccAddExternalStaticFunction("srSetSnowDriftSpeed",          Sc_srSetSnowDriftSpeed);
+    ccAddExternalStaticFunction("srSetSnowFallSpeed",           Sc_srSetSnowFallSpeed);
+    ccAddExternalStaticFunction("srChangeSnowAmount",           Sc_srChangeSnowAmount);
+    ccAddExternalStaticFunction("srSetSnowBaseline",            Sc_srSetSnowBaseline);
+    ccAddExternalStaticFunction("srSetSnowTransparency",        Sc_srSetSnowTransparency);
+    ccAddExternalStaticFunction("srSetSnowDefaultView",         Sc_srSetSnowDefaultView);
+    ccAddExternalStaticFunction("srSetSnowWindSpeed",           Sc_srSetSnowWindSpeed);
+    ccAddExternalStaticFunction("srSetSnowAmount",              Sc_srSetSnowAmount);
+    ccAddExternalStaticFunction("srSetSnowView",                Sc_srSetSnowView);
+    ccAddExternalStaticFunction("srChangeRainAmount",           Sc_srChangeRainAmount);
+    ccAddExternalStaticFunction("srSetRainView",                Sc_srSetRainView);
+    ccAddExternalStaticFunction("srSetRainDefaultView",         Sc_srSetRainDefaultView);
+    ccAddExternalStaticFunction("srSetRainTransparency",        Sc_srSetRainTransparency);
+    ccAddExternalStaticFunction("srSetRainWindSpeed",           Sc_srSetRainWindSpeed);
+    ccAddExternalStaticFunction("srSetRainBaseline",            Sc_srSetRainBaseline);
+    ccAddExternalStaticFunction("srSetRainAmount",              Sc_srSetRainAmount);
+    ccAddExternalStaticFunction("srSetRainFallSpeed",           Sc_srSetRainFallSpeed);
+    ccAddExternalStaticFunction("srSetWindSpeed",               Sc_srSetWindSpeed);
+    ccAddExternalStaticFunction("srSetBaseline",                Sc_srSetBaseline);
+    return true;
+  }
+  else if (strncmp(name, "agsjoy", strlen("agsjoy")) == 0)
+  {
+    // agsjoy.dll
+    ccAddExternalStaticFunction("JoystickCount",                Sc_JoystickCount);
+    ccAddExternalStaticFunction("Joystick::Open^1",             Sc_Joystick_Open);
+    ccAddExternalStaticFunction("Joystick::IsButtonDown^1",     Sc_Joystick_IsButtonDown);
+    ccAddExternalStaticFunction("Joystick::EnableEvents^1",     Sc_Joystick_EnableEvents);
+    ccAddExternalStaticFunction("Joystick::DisableEvents^0",    Sc_Joystick_DisableEvents);
+    ccAddExternalStaticFunction("Joystick::Click^1",            Sc_Joystick_Click);
+    ccAddExternalStaticFunction("Joystick::Valid^0",            Sc_Joystick_Valid);
+    ccAddExternalStaticFunction("Joystick::Unplugged^0",        Sc_Joystick_Unplugged);
+    return true;
+  }
+  else if (strncmp(name, "agsblend", strlen("agsblend")) == 0)
+  {
+    // agsblend.dll
+    ccAddExternalStaticFunction("DrawAlpha",                    Sc_DrawAlpha);
+    ccAddExternalStaticFunction("GetAlpha",                     Sc_GetAlpha);
+    ccAddExternalStaticFunction("PutAlpha",                     Sc_PutAlpha);
+    ccAddExternalStaticFunction("Blur",                         Sc_Blur);
+    ccAddExternalStaticFunction("HighPass",                     Sc_HighPass);
+    ccAddExternalStaticFunction("DrawAdd",                      Sc_DrawAdd);
+    return true;
+  }
+  else if (strncmp(name, "agsflashlight", strlen("agsflashlight")) == 0)
+  {
+    // agsflashlight.dll
+    ccAddExternalStaticFunction("SetFlashlightTint",            Sc_SetFlashlightInt3);
+    ccAddExternalStaticFunction("GetFlashlightTintRed",         Sc_GetFlashlightInt);
+    ccAddExternalStaticFunction("GetFlashlightTintGreen",       Sc_GetFlashlightInt);
+    ccAddExternalStaticFunction("GetFlashlightTintBlue",        Sc_GetFlashlightInt);
+    ccAddExternalStaticFunction("GetFlashlightMinLightLevel",   Sc_GetFlashlightInt);
+    ccAddExternalStaticFunction("GetFlashlightMaxLightLevel",   Sc_GetFlashlightInt);
+    ccAddExternalStaticFunction("SetFlashlightDarkness",        Sc_SetFlashlightInt1);
+    ccAddExternalStaticFunction("GetFlashlightDarkness",        Sc_GetFlashlightInt);
+    ccAddExternalStaticFunction("SetFlashlightDarknessSize",    Sc_SetFlashlightInt1);
+    ccAddExternalStaticFunction("GetFlashlightDarknessSize",    Sc_GetFlashlightInt);
+    ccAddExternalStaticFunction("SetFlashlightBrightness",      Sc_SetFlashlightInt1);
+    ccAddExternalStaticFunction("GetFlashlightBrightness",      Sc_GetFlashlightInt);
+    ccAddExternalStaticFunction("SetFlashlightBrightnessSize",  Sc_SetFlashlightInt1);
+    ccAddExternalStaticFunction("GetFlashlightBrightnessSize",  Sc_GetFlashlightInt);
+    ccAddExternalStaticFunction("SetFlashlightPosition",        Sc_SetFlashlightInt2);
+    ccAddExternalStaticFunction("GetFlashlightPositionX",       Sc_GetFlashlightInt);
+    ccAddExternalStaticFunction("GetFlashlightPositionY",       Sc_GetFlashlightInt);
+    ccAddExternalStaticFunction("SetFlashlightFollowMouse",     Sc_SetFlashlightInt1);
+    ccAddExternalStaticFunction("GetFlashlightFollowMouse",     Sc_GetFlashlightInt);
+    ccAddExternalStaticFunction("SetFlashlightFollowCharacter", Sc_SetFlashlightInt5);
+    ccAddExternalStaticFunction("GetFlashlightFollowCharacter", Sc_GetFlashlightInt);
+    ccAddExternalStaticFunction("GetFlashlightCharacterDX",     Sc_GetFlashlightInt);
+    ccAddExternalStaticFunction("GetFlashlightCharacterDY",     Sc_GetFlashlightInt);
+    ccAddExternalStaticFunction("GetFlashlightCharacterHorz",   Sc_GetFlashlightInt);
+    ccAddExternalStaticFunction("GetFlashlightCharacterVert",   Sc_GetFlashlightInt);
+    ccAddExternalStaticFunction("SetFlashlightMask",            Sc_SetFlashlightInt1);
+    ccAddExternalStaticFunction("GetFlashlightMask",            Sc_GetFlashlightInt);
+    return true;
+  }
 
-	// ags_snowrain.dll
-	ccAddExternalStaticFunction("srSetSnowDriftRange",          Sc_srSetSnowDriftRange);
-	ccAddExternalStaticFunction("srSetSnowDriftSpeed",          Sc_srSetSnowDriftSpeed);
-	ccAddExternalStaticFunction("srSetSnowFallSpeed",           Sc_srSetSnowFallSpeed);
-	ccAddExternalStaticFunction("srChangeSnowAmount",           Sc_srChangeSnowAmount);
-	ccAddExternalStaticFunction("srSetSnowBaseline",            Sc_srSetSnowBaseline);
-	ccAddExternalStaticFunction("srSetSnowTransparency",        Sc_srSetSnowTransparency);
-	ccAddExternalStaticFunction("srSetSnowDefaultView",         Sc_srSetSnowDefaultView);
-	ccAddExternalStaticFunction("srSetSnowWindSpeed",           Sc_srSetSnowWindSpeed);
-	ccAddExternalStaticFunction("srSetSnowAmount",              Sc_srSetSnowAmount);
-	ccAddExternalStaticFunction("srSetSnowView",                Sc_srSetSnowView);
-	ccAddExternalStaticFunction("srChangeRainAmount",           Sc_srChangeRainAmount);
-	ccAddExternalStaticFunction("srSetRainView",                Sc_srSetRainView);
-	ccAddExternalStaticFunction("srSetRainDefaultView",         Sc_srSetRainDefaultView);
-	ccAddExternalStaticFunction("srSetRainTransparency",        Sc_srSetRainTransparency);
-	ccAddExternalStaticFunction("srSetRainWindSpeed",           Sc_srSetRainWindSpeed);
-	ccAddExternalStaticFunction("srSetRainBaseline",            Sc_srSetRainBaseline);
-	ccAddExternalStaticFunction("srSetRainAmount",              Sc_srSetRainAmount);
-	ccAddExternalStaticFunction("srSetRainFallSpeed",           Sc_srSetRainFallSpeed);
-	ccAddExternalStaticFunction("srSetWindSpeed",               Sc_srSetWindSpeed);
-	ccAddExternalStaticFunction("srSetBaseline",                Sc_srSetBaseline);
-
-	// agsjoy.dll
-	ccAddExternalStaticFunction("JoystickCount",                Sc_JoystickCount);
-	ccAddExternalStaticFunction("Joystick::Open^1",             Sc_Joystick_Open);
-	ccAddExternalStaticFunction("Joystick::IsButtonDown^1",     Sc_Joystick_IsButtonDown);
-	ccAddExternalStaticFunction("Joystick::EnableEvents^1",     Sc_Joystick_EnableEvents);
-	ccAddExternalStaticFunction("Joystick::DisableEvents^0",    Sc_Joystick_DisableEvents);
-	ccAddExternalStaticFunction("Joystick::Click^1",            Sc_Joystick_Click);
-	ccAddExternalStaticFunction("Joystick::Valid^0",            Sc_Joystick_Valid);
-	ccAddExternalStaticFunction("Joystick::Unplugged^0",        Sc_Joystick_Unplugged);
-
-	// agsblend.dll
-	ccAddExternalStaticFunction("DrawAlpha",                    Sc_DrawAlpha);
-	ccAddExternalStaticFunction("GetAlpha",                     Sc_GetAlpha);
-	ccAddExternalStaticFunction("PutAlpha",                     Sc_PutAlpha);
-	ccAddExternalStaticFunction("Blur",                         Sc_Blur);
-	ccAddExternalStaticFunction("HighPass",                     Sc_HighPass);
-	ccAddExternalStaticFunction("DrawAdd",                      Sc_DrawAdd);
-
-	// agsflashlight.dll
-	ccAddExternalStaticFunction("SetFlashlightTint",            Sc_SetFlashlightInt3);
-	ccAddExternalStaticFunction("GetFlashlightTintRed",         Sc_GetFlashlightInt);
-	ccAddExternalStaticFunction("GetFlashlightTintGreen",       Sc_GetFlashlightInt);
-	ccAddExternalStaticFunction("GetFlashlightTintBlue",        Sc_GetFlashlightInt);
-	ccAddExternalStaticFunction("GetFlashlightMinLightLevel",   Sc_GetFlashlightInt);
-	ccAddExternalStaticFunction("GetFlashlightMaxLightLevel",   Sc_GetFlashlightInt);
-	ccAddExternalStaticFunction("SetFlashlightDarkness",        Sc_SetFlashlightInt1);
-	ccAddExternalStaticFunction("GetFlashlightDarkness",        Sc_GetFlashlightInt);
-	ccAddExternalStaticFunction("SetFlashlightDarknessSize",    Sc_SetFlashlightInt1);
-	ccAddExternalStaticFunction("GetFlashlightDarknessSize",    Sc_GetFlashlightInt);
-	ccAddExternalStaticFunction("SetFlashlightBrightness",      Sc_SetFlashlightInt1);
-	ccAddExternalStaticFunction("GetFlashlightBrightness",      Sc_GetFlashlightInt);
-	ccAddExternalStaticFunction("SetFlashlightBrightnessSize",  Sc_SetFlashlightInt1);
-	ccAddExternalStaticFunction("GetFlashlightBrightnessSize",  Sc_GetFlashlightInt);
-	ccAddExternalStaticFunction("SetFlashlightPosition",        Sc_SetFlashlightInt2);
-	ccAddExternalStaticFunction("GetFlashlightPositionX",       Sc_GetFlashlightInt);
-	ccAddExternalStaticFunction("GetFlashlightPositionY",       Sc_GetFlashlightInt);
-	ccAddExternalStaticFunction("SetFlashlightFollowMouse",     Sc_SetFlashlightInt1);
-	ccAddExternalStaticFunction("GetFlashlightFollowMouse",     Sc_GetFlashlightInt);
-	ccAddExternalStaticFunction("SetFlashlightFollowCharacter", Sc_SetFlashlightInt5);
-	ccAddExternalStaticFunction("GetFlashlightFollowCharacter", Sc_GetFlashlightInt);
-	ccAddExternalStaticFunction("GetFlashlightCharacterDX",     Sc_GetFlashlightInt);
-	ccAddExternalStaticFunction("GetFlashlightCharacterDY",     Sc_GetFlashlightInt);
-	ccAddExternalStaticFunction("GetFlashlightCharacterHorz",   Sc_GetFlashlightInt);
-	ccAddExternalStaticFunction("GetFlashlightCharacterVert",   Sc_GetFlashlightInt);
-	ccAddExternalStaticFunction("SetFlashlightMask",            Sc_SetFlashlightInt1);
-	ccAddExternalStaticFunction("GetFlashlightMask",            Sc_GetFlashlightInt);
+  return false;
 }

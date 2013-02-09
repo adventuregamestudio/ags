@@ -48,7 +48,6 @@ extern void RegisterSystemAPI();
 extern void RegisterTextBoxAPI();
 extern void RegisterViewFrameAPI();
 
-extern void RegisterBuiltInPluginAPI();
 extern void RegisterStaticObjects();
 
 void setup_script_exports()
@@ -85,6 +84,5 @@ void setup_script_exports()
     RegisterTextBoxAPI();
     RegisterViewFrameAPI();
 
-    RegisterBuiltInPluginAPI();
     RegisterStaticObjects();
 }

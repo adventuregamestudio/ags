@@ -19,6 +19,7 @@
 #define __AGS_EE_PLUGIN__PLUGINFUNC_H
 
 void PluginSimulateMouseClick(int pluginButtonID);
+bool RegisterPluginStubs(const char* name);
 
 //=============================================================================
 // Stubs for plugin functions.

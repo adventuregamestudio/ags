@@ -851,8 +851,6 @@ void pl_run_plugin_init_gfx_hooks (const char *driverName, void *data) {
 bool pl_use_builtin_plugin(EnginePlugin* apl)
 {
 #if defined(BUILTIN_PLUGINS)
-    strlwr(apl->filename);
-
     if (strncmp(apl->filename, "agsflashlight", strlen("agsflashlight")) == 0)
     {
         apl->engineStartup = agsflashlight::AGS_EngineStartup;
@@ -974,8 +972,17 @@ void pl_read_plugins_from_disk (Stream *in) {
         else
         {
           AGS::Common::Out::FPrint("Plugin loading failed, trying built-in plugins...");
+          strlwr(apl->filename);
           if (!pl_use_builtin_plugin(apl))
-              continue;
+          {
+            // Plugin loading has failed at this point, try using built-in plugin function stubs
+            if (RegisterPluginStubs((const char*)apl->filename))
+              AGS::Common::Out::FPrint("Placeholder functions for the plugin found.");
+            else
+              AGS::Common::Out::FPrint("No placeholder functions for the plugin found. The game might fail to load.");
+
+            continue;
+          }
         }
 
         if (datasize > 0) {

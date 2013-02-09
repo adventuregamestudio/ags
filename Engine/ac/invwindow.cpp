@@ -526,18 +526,18 @@ void RegisterInventoryWindowAPI()
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 
-    ccAddExternalFunctionForPlugin("InvWindow::ScrollDown^0",          InvWindow_ScrollDown);
-    ccAddExternalFunctionForPlugin("InvWindow::ScrollUp^0",            InvWindow_ScrollUp);
-    ccAddExternalFunctionForPlugin("InvWindow::get_CharacterToUse",    InvWindow_GetCharacterToUse);
-    ccAddExternalFunctionForPlugin("InvWindow::set_CharacterToUse",    InvWindow_SetCharacterToUse);
-    ccAddExternalFunctionForPlugin("InvWindow::geti_ItemAtIndex",      InvWindow_GetItemAtIndex);
-    ccAddExternalFunctionForPlugin("InvWindow::get_ItemCount",         InvWindow_GetItemCount);
-    ccAddExternalFunctionForPlugin("InvWindow::get_ItemHeight",        InvWindow_GetItemHeight);
-    ccAddExternalFunctionForPlugin("InvWindow::set_ItemHeight",        InvWindow_SetItemHeight);
-    ccAddExternalFunctionForPlugin("InvWindow::get_ItemWidth",         InvWindow_GetItemWidth);
-    ccAddExternalFunctionForPlugin("InvWindow::set_ItemWidth",         InvWindow_SetItemWidth);
-    ccAddExternalFunctionForPlugin("InvWindow::get_ItemsPerRow",       InvWindow_GetItemsPerRow);
-    ccAddExternalFunctionForPlugin("InvWindow::get_RowCount",          InvWindow_GetRowCount);
-    ccAddExternalFunctionForPlugin("InvWindow::get_TopItem",           InvWindow_GetTopItem);
-    ccAddExternalFunctionForPlugin("InvWindow::set_TopItem",           InvWindow_SetTopItem);
+    ccAddExternalFunctionForPlugin("InvWindow::ScrollDown^0",          (void*)InvWindow_ScrollDown);
+    ccAddExternalFunctionForPlugin("InvWindow::ScrollUp^0",            (void*)InvWindow_ScrollUp);
+    ccAddExternalFunctionForPlugin("InvWindow::get_CharacterToUse",    (void*)InvWindow_GetCharacterToUse);
+    ccAddExternalFunctionForPlugin("InvWindow::set_CharacterToUse",    (void*)InvWindow_SetCharacterToUse);
+    ccAddExternalFunctionForPlugin("InvWindow::geti_ItemAtIndex",      (void*)InvWindow_GetItemAtIndex);
+    ccAddExternalFunctionForPlugin("InvWindow::get_ItemCount",         (void*)InvWindow_GetItemCount);
+    ccAddExternalFunctionForPlugin("InvWindow::get_ItemHeight",        (void*)InvWindow_GetItemHeight);
+    ccAddExternalFunctionForPlugin("InvWindow::set_ItemHeight",        (void*)InvWindow_SetItemHeight);
+    ccAddExternalFunctionForPlugin("InvWindow::get_ItemWidth",         (void*)InvWindow_GetItemWidth);
+    ccAddExternalFunctionForPlugin("InvWindow::set_ItemWidth",         (void*)InvWindow_SetItemWidth);
+    ccAddExternalFunctionForPlugin("InvWindow::get_ItemsPerRow",       (void*)InvWindow_GetItemsPerRow);
+    ccAddExternalFunctionForPlugin("InvWindow::get_RowCount",          (void*)InvWindow_GetRowCount);
+    ccAddExternalFunctionForPlugin("InvWindow::get_TopItem",           (void*)InvWindow_GetTopItem);
+    ccAddExternalFunctionForPlugin("InvWindow::set_TopItem",           (void*)InvWindow_SetTopItem);
 }

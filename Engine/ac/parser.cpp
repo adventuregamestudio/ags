@@ -335,8 +335,8 @@ void RegisterParserAPI()
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 
-    ccAddExternalFunctionForPlugin("Parser::FindWordID^1",     Parser_FindWordID);
-    ccAddExternalFunctionForPlugin("Parser::ParseText^1",      ParseText);
-    ccAddExternalFunctionForPlugin("Parser::SaidUnknownWord^0",Parser_SaidUnknownWord);
-    ccAddExternalFunctionForPlugin("Parser::Said^1",           Said);
+    ccAddExternalFunctionForPlugin("Parser::FindWordID^1",     (void*)Parser_FindWordID);
+    ccAddExternalFunctionForPlugin("Parser::ParseText^1",      (void*)ParseText);
+    ccAddExternalFunctionForPlugin("Parser::SaidUnknownWord^0",(void*)Parser_SaidUnknownWord);
+    ccAddExternalFunctionForPlugin("Parser::Said^1",           (void*)Said);
 }

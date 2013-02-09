@@ -139,12 +139,12 @@ void RegisterTextBoxAPI()
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 
-    ccAddExternalFunctionForPlugin("TextBox::GetText^1",       TextBox_GetText);
-    ccAddExternalFunctionForPlugin("TextBox::SetText^1",       TextBox_SetText);
-    ccAddExternalFunctionForPlugin("TextBox::get_Font",        TextBox_GetFont);
-    ccAddExternalFunctionForPlugin("TextBox::set_Font",        TextBox_SetFont);
-    ccAddExternalFunctionForPlugin("TextBox::get_Text",        TextBox_GetText_New);
-    ccAddExternalFunctionForPlugin("TextBox::set_Text",        TextBox_SetText);
-    ccAddExternalFunctionForPlugin("TextBox::get_TextColor",   TextBox_GetTextColor);
-    ccAddExternalFunctionForPlugin("TextBox::set_TextColor",   TextBox_SetTextColor);
+    ccAddExternalFunctionForPlugin("TextBox::GetText^1",       (void*)TextBox_GetText);
+    ccAddExternalFunctionForPlugin("TextBox::SetText^1",       (void*)TextBox_SetText);
+    ccAddExternalFunctionForPlugin("TextBox::get_Font",        (void*)TextBox_GetFont);
+    ccAddExternalFunctionForPlugin("TextBox::set_Font",        (void*)TextBox_SetFont);
+    ccAddExternalFunctionForPlugin("TextBox::get_Text",        (void*)TextBox_GetText_New);
+    ccAddExternalFunctionForPlugin("TextBox::set_Text",        (void*)TextBox_SetText);
+    ccAddExternalFunctionForPlugin("TextBox::get_TextColor",   (void*)TextBox_GetTextColor);
+    ccAddExternalFunctionForPlugin("TextBox::set_TextColor",   (void*)TextBox_SetTextColor);
 }

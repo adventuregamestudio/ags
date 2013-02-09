@@ -220,17 +220,17 @@ void RegisterRegionAPI()
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 
-    ccAddExternalFunctionForPlugin("Region::GetAtRoomXY^2",        GetRegionAtLocation);
-    ccAddExternalFunctionForPlugin("Region::Tint^4",               Region_Tint);
-    ccAddExternalFunctionForPlugin("Region::RunInteraction^1",     Region_RunInteraction);
-    ccAddExternalFunctionForPlugin("Region::get_Enabled",          Region_GetEnabled);
-    ccAddExternalFunctionForPlugin("Region::set_Enabled",          Region_SetEnabled);
-    ccAddExternalFunctionForPlugin("Region::get_ID",               Region_GetID);
-    ccAddExternalFunctionForPlugin("Region::get_LightLevel",       Region_GetLightLevel);
-    ccAddExternalFunctionForPlugin("Region::set_LightLevel",       Region_SetLightLevel);
-    ccAddExternalFunctionForPlugin("Region::get_TintEnabled",      Region_GetTintEnabled);
-    ccAddExternalFunctionForPlugin("Region::get_TintBlue",         Region_GetTintBlue);
-    ccAddExternalFunctionForPlugin("Region::get_TintGreen",        Region_GetTintGreen);
-    ccAddExternalFunctionForPlugin("Region::get_TintRed",          Region_GetTintRed);
-    ccAddExternalFunctionForPlugin("Region::get_TintSaturation",   Region_GetTintSaturation);
+    ccAddExternalFunctionForPlugin("Region::GetAtRoomXY^2",        (void*)GetRegionAtLocation);
+    ccAddExternalFunctionForPlugin("Region::Tint^4",               (void*)Region_Tint);
+    ccAddExternalFunctionForPlugin("Region::RunInteraction^1",     (void*)Region_RunInteraction);
+    ccAddExternalFunctionForPlugin("Region::get_Enabled",          (void*)Region_GetEnabled);
+    ccAddExternalFunctionForPlugin("Region::set_Enabled",          (void*)Region_SetEnabled);
+    ccAddExternalFunctionForPlugin("Region::get_ID",               (void*)Region_GetID);
+    ccAddExternalFunctionForPlugin("Region::get_LightLevel",       (void*)Region_GetLightLevel);
+    ccAddExternalFunctionForPlugin("Region::set_LightLevel",       (void*)Region_SetLightLevel);
+    ccAddExternalFunctionForPlugin("Region::get_TintEnabled",      (void*)Region_GetTintEnabled);
+    ccAddExternalFunctionForPlugin("Region::get_TintBlue",         (void*)Region_GetTintBlue);
+    ccAddExternalFunctionForPlugin("Region::get_TintGreen",        (void*)Region_GetTintGreen);
+    ccAddExternalFunctionForPlugin("Region::get_TintRed",          (void*)Region_GetTintRed);
+    ccAddExternalFunctionForPlugin("Region::get_TintSaturation",   (void*)Region_GetTintSaturation);
 }

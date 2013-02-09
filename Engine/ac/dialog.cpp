@@ -1147,13 +1147,13 @@ void RegisterDialogAPI()
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 
-    ccAddExternalFunctionForPlugin("Dialog::get_ID",               Dialog_GetID);
-    ccAddExternalFunctionForPlugin("Dialog::get_OptionCount",      Dialog_GetOptionCount);
-    ccAddExternalFunctionForPlugin("Dialog::get_ShowTextParser",   Dialog_GetShowTextParser);
-    ccAddExternalFunctionForPlugin("Dialog::DisplayOptions^1",     Dialog_DisplayOptions);
-    ccAddExternalFunctionForPlugin("Dialog::GetOptionState^1",     Dialog_GetOptionState);
-    ccAddExternalFunctionForPlugin("Dialog::GetOptionText^1",      Dialog_GetOptionText);
-    ccAddExternalFunctionForPlugin("Dialog::HasOptionBeenChosen^1", Dialog_HasOptionBeenChosen);
-    ccAddExternalFunctionForPlugin("Dialog::SetOptionState^2",     Dialog_SetOptionState);
-    ccAddExternalFunctionForPlugin("Dialog::Start^0",              Dialog_Start);
+    ccAddExternalFunctionForPlugin("Dialog::get_ID",               (void*)Dialog_GetID);
+    ccAddExternalFunctionForPlugin("Dialog::get_OptionCount",      (void*)Dialog_GetOptionCount);
+    ccAddExternalFunctionForPlugin("Dialog::get_ShowTextParser",   (void*)Dialog_GetShowTextParser);
+    ccAddExternalFunctionForPlugin("Dialog::DisplayOptions^1",     (void*)Dialog_DisplayOptions);
+    ccAddExternalFunctionForPlugin("Dialog::GetOptionState^1",     (void*)Dialog_GetOptionState);
+    ccAddExternalFunctionForPlugin("Dialog::GetOptionText^1",      (void*)Dialog_GetOptionText);
+    ccAddExternalFunctionForPlugin("Dialog::HasOptionBeenChosen^1", (void*)Dialog_HasOptionBeenChosen);
+    ccAddExternalFunctionForPlugin("Dialog::SetOptionState^2",     (void*)Dialog_SetOptionState);
+    ccAddExternalFunctionForPlugin("Dialog::Start^0",              (void*)Dialog_Start);
 }

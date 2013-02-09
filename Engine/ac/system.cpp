@@ -347,27 +347,27 @@ void RegisterSystemAPI()
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 
-    ccAddExternalFunctionForPlugin("System::get_AudioChannelCount",    System_GetAudioChannelCount);
-    ccAddExternalFunctionForPlugin("System::geti_AudioChannels",       System_GetAudioChannels);
-    ccAddExternalFunctionForPlugin("System::get_CapsLock",             System_GetCapsLock);
-    ccAddExternalFunctionForPlugin("System::get_ColorDepth",           System_GetColorDepth);
-    ccAddExternalFunctionForPlugin("System::get_Gamma",                System_GetGamma);
-    ccAddExternalFunctionForPlugin("System::set_Gamma",                System_SetGamma);
-    ccAddExternalFunctionForPlugin("System::get_HardwareAcceleration", System_GetHardwareAcceleration);
-    ccAddExternalFunctionForPlugin("System::get_NumLock",              System_GetNumLock);
-    ccAddExternalFunctionForPlugin("System::set_NumLock",              System_SetNumLock);
-    ccAddExternalFunctionForPlugin("System::get_OperatingSystem",      System_GetOS);
-    ccAddExternalFunctionForPlugin("System::get_ScreenHeight",         System_GetScreenHeight);
-    ccAddExternalFunctionForPlugin("System::get_ScreenWidth",          System_GetScreenWidth);
-    ccAddExternalFunctionForPlugin("System::get_ScrollLock",           System_GetScrollLock);
-    ccAddExternalFunctionForPlugin("System::get_SupportsGammaControl", System_GetSupportsGammaControl);
-    ccAddExternalFunctionForPlugin("System::get_Version",              System_GetVersion);
-    ccAddExternalFunctionForPlugin("SystemInfo::get_Version",          System_GetVersion);
-    ccAddExternalFunctionForPlugin("System::get_ViewportHeight",       System_GetViewportHeight);
-    ccAddExternalFunctionForPlugin("System::get_ViewportWidth",        System_GetViewportWidth);
-    ccAddExternalFunctionForPlugin("System::get_Volume",               System_GetVolume);
-    ccAddExternalFunctionForPlugin("System::set_Volume",               System_SetVolume);
-    ccAddExternalFunctionForPlugin("System::get_VSync",                System_GetVsync);
-    ccAddExternalFunctionForPlugin("System::set_VSync",                System_SetVsync);
-    ccAddExternalFunctionForPlugin("System::get_Windowed",             System_GetWindowed);
+    ccAddExternalFunctionForPlugin("System::get_AudioChannelCount",    (void*)System_GetAudioChannelCount);
+    ccAddExternalFunctionForPlugin("System::geti_AudioChannels",       (void*)System_GetAudioChannels);
+    ccAddExternalFunctionForPlugin("System::get_CapsLock",             (void*)System_GetCapsLock);
+    ccAddExternalFunctionForPlugin("System::get_ColorDepth",           (void*)System_GetColorDepth);
+    ccAddExternalFunctionForPlugin("System::get_Gamma",                (void*)System_GetGamma);
+    ccAddExternalFunctionForPlugin("System::set_Gamma",                (void*)System_SetGamma);
+    ccAddExternalFunctionForPlugin("System::get_HardwareAcceleration", (void*)System_GetHardwareAcceleration);
+    ccAddExternalFunctionForPlugin("System::get_NumLock",              (void*)System_GetNumLock);
+    ccAddExternalFunctionForPlugin("System::set_NumLock",              (void*)System_SetNumLock);
+    ccAddExternalFunctionForPlugin("System::get_OperatingSystem",      (void*)System_GetOS);
+    ccAddExternalFunctionForPlugin("System::get_ScreenHeight",         (void*)System_GetScreenHeight);
+    ccAddExternalFunctionForPlugin("System::get_ScreenWidth",          (void*)System_GetScreenWidth);
+    ccAddExternalFunctionForPlugin("System::get_ScrollLock",           (void*)System_GetScrollLock);
+    ccAddExternalFunctionForPlugin("System::get_SupportsGammaControl", (void*)System_GetSupportsGammaControl);
+    ccAddExternalFunctionForPlugin("System::get_Version",              (void*)System_GetVersion);
+    ccAddExternalFunctionForPlugin("SystemInfo::get_Version",          (void*)System_GetVersion);
+    ccAddExternalFunctionForPlugin("System::get_ViewportHeight",       (void*)System_GetViewportHeight);
+    ccAddExternalFunctionForPlugin("System::get_ViewportWidth",        (void*)System_GetViewportWidth);
+    ccAddExternalFunctionForPlugin("System::get_Volume",               (void*)System_GetVolume);
+    ccAddExternalFunctionForPlugin("System::set_Volume",               (void*)System_SetVolume);
+    ccAddExternalFunctionForPlugin("System::get_VSync",                (void*)System_GetVsync);
+    ccAddExternalFunctionForPlugin("System::set_VSync",                (void*)System_SetVsync);
+    ccAddExternalFunctionForPlugin("System::get_Windowed",             (void*)System_GetWindowed);
 }

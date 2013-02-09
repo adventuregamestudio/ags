@@ -137,12 +137,12 @@ void RegisterLabelBoxAPI()
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 
-    ccAddExternalFunctionForPlugin("Label::GetText^1",     Label_GetText);
-    ccAddExternalFunctionForPlugin("Label::SetText^1",     Label_SetText);
-    ccAddExternalFunctionForPlugin("Label::get_Font",      Label_GetFont);
-    ccAddExternalFunctionForPlugin("Label::set_Font",      Label_SetFont);
-    ccAddExternalFunctionForPlugin("Label::get_Text",      Label_GetText_New);
-    ccAddExternalFunctionForPlugin("Label::set_Text",      Label_SetText);
-    ccAddExternalFunctionForPlugin("Label::get_TextColor", Label_GetColor);
-    ccAddExternalFunctionForPlugin("Label::set_TextColor", Label_SetColor);
+    ccAddExternalFunctionForPlugin("Label::GetText^1",     (void*)Label_GetText);
+    ccAddExternalFunctionForPlugin("Label::SetText^1",     (void*)Label_SetText);
+    ccAddExternalFunctionForPlugin("Label::get_Font",      (void*)Label_GetFont);
+    ccAddExternalFunctionForPlugin("Label::set_Font",      (void*)Label_SetFont);
+    ccAddExternalFunctionForPlugin("Label::get_Text",      (void*)Label_GetText_New);
+    ccAddExternalFunctionForPlugin("Label::set_Text",      (void*)Label_SetText);
+    ccAddExternalFunctionForPlugin("Label::get_TextColor", (void*)Label_GetColor);
+    ccAddExternalFunctionForPlugin("Label::set_TextColor", (void*)Label_SetColor);
 }

@@ -134,11 +134,11 @@ void RegisterAudioClipAPI()
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 
-    ccAddExternalFunctionForPlugin("AudioClip::Play^2",            AudioClip_Play);
-    ccAddExternalFunctionForPlugin("AudioClip::PlayFrom^3",        AudioClip_PlayFrom);
-    ccAddExternalFunctionForPlugin("AudioClip::PlayQueued^2",      AudioClip_PlayQueued);
-    ccAddExternalFunctionForPlugin("AudioClip::Stop^0",            AudioClip_Stop);
-    ccAddExternalFunctionForPlugin("AudioClip::get_FileType",      AudioClip_GetFileType);
-    ccAddExternalFunctionForPlugin("AudioClip::get_IsAvailable",   AudioClip_GetIsAvailable);
-    ccAddExternalFunctionForPlugin("AudioClip::get_Type",          AudioClip_GetType);
+    ccAddExternalFunctionForPlugin("AudioClip::Play^2",            (void*)AudioClip_Play);
+    ccAddExternalFunctionForPlugin("AudioClip::PlayFrom^3",        (void*)AudioClip_PlayFrom);
+    ccAddExternalFunctionForPlugin("AudioClip::PlayQueued^2",      (void*)AudioClip_PlayQueued);
+    ccAddExternalFunctionForPlugin("AudioClip::Stop^0",            (void*)AudioClip_Stop);
+    ccAddExternalFunctionForPlugin("AudioClip::get_FileType",      (void*)AudioClip_GetFileType);
+    ccAddExternalFunctionForPlugin("AudioClip::get_IsAvailable",   (void*)AudioClip_GetIsAvailable);
+    ccAddExternalFunctionForPlugin("AudioClip::get_Type",          (void*)AudioClip_GetType);
 }

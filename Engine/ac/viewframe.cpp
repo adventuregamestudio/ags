@@ -256,15 +256,15 @@ void RegisterViewFrameAPI()
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 
-    ccAddExternalFunctionForPlugin("ViewFrame::get_Flipped",       ViewFrame_GetFlipped);
-    ccAddExternalFunctionForPlugin("ViewFrame::get_Frame",         ViewFrame_GetFrame);
-    ccAddExternalFunctionForPlugin("ViewFrame::get_Graphic",       ViewFrame_GetGraphic);
-    ccAddExternalFunctionForPlugin("ViewFrame::set_Graphic",       ViewFrame_SetGraphic);
-    ccAddExternalFunctionForPlugin("ViewFrame::get_LinkedAudio",   ViewFrame_GetLinkedAudio);
-    ccAddExternalFunctionForPlugin("ViewFrame::set_LinkedAudio",   ViewFrame_SetLinkedAudio);
-    ccAddExternalFunctionForPlugin("ViewFrame::get_Loop",          ViewFrame_GetLoop);
-    ccAddExternalFunctionForPlugin("ViewFrame::get_Sound",         ViewFrame_GetSound);
-    ccAddExternalFunctionForPlugin("ViewFrame::set_Sound",         ViewFrame_SetSound);
-    ccAddExternalFunctionForPlugin("ViewFrame::get_Speed",         ViewFrame_GetSpeed);
-    ccAddExternalFunctionForPlugin("ViewFrame::get_View",          ViewFrame_GetView);
+    ccAddExternalFunctionForPlugin("ViewFrame::get_Flipped",       (void*)ViewFrame_GetFlipped);
+    ccAddExternalFunctionForPlugin("ViewFrame::get_Frame",         (void*)ViewFrame_GetFrame);
+    ccAddExternalFunctionForPlugin("ViewFrame::get_Graphic",       (void*)ViewFrame_GetGraphic);
+    ccAddExternalFunctionForPlugin("ViewFrame::set_Graphic",       (void*)ViewFrame_SetGraphic);
+    ccAddExternalFunctionForPlugin("ViewFrame::get_LinkedAudio",   (void*)ViewFrame_GetLinkedAudio);
+    ccAddExternalFunctionForPlugin("ViewFrame::set_LinkedAudio",   (void*)ViewFrame_SetLinkedAudio);
+    ccAddExternalFunctionForPlugin("ViewFrame::get_Loop",          (void*)ViewFrame_GetLoop);
+    ccAddExternalFunctionForPlugin("ViewFrame::get_Sound",         (void*)ViewFrame_GetSound);
+    ccAddExternalFunctionForPlugin("ViewFrame::set_Sound",         (void*)ViewFrame_SetSound);
+    ccAddExternalFunctionForPlugin("ViewFrame::get_Speed",         (void*)ViewFrame_GetSpeed);
+    ccAddExternalFunctionForPlugin("ViewFrame::get_View",          (void*)ViewFrame_GetView);
 }

@@ -226,19 +226,19 @@ void RegisterInventoryItemAPI()
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 
-    ccAddExternalFunctionForPlugin("InventoryItem::GetAtScreenXY^2",           GetInvAtLocation);
-    ccAddExternalFunctionForPlugin("InventoryItem::IsInteractionAvailable^1",  InventoryItem_CheckInteractionAvailable);
-    ccAddExternalFunctionForPlugin("InventoryItem::GetName^1",                 InventoryItem_GetName);
-    ccAddExternalFunctionForPlugin("InventoryItem::GetProperty^1",             InventoryItem_GetProperty);
-    ccAddExternalFunctionForPlugin("InventoryItem::GetPropertyText^2",         InventoryItem_GetPropertyText);
-    ccAddExternalFunctionForPlugin("InventoryItem::GetTextProperty^1",         InventoryItem_GetTextProperty);
-    ccAddExternalFunctionForPlugin("InventoryItem::RunInteraction^1",          InventoryItem_RunInteraction);
-    ccAddExternalFunctionForPlugin("InventoryItem::SetName^1",                 InventoryItem_SetName);
-    ccAddExternalFunctionForPlugin("InventoryItem::get_CursorGraphic",         InventoryItem_GetCursorGraphic);
-    ccAddExternalFunctionForPlugin("InventoryItem::set_CursorGraphic",         InventoryItem_SetCursorGraphic);
-    ccAddExternalFunctionForPlugin("InventoryItem::get_Graphic",               InventoryItem_GetGraphic);
-    ccAddExternalFunctionForPlugin("InventoryItem::set_Graphic",               InventoryItem_SetGraphic);
-    ccAddExternalFunctionForPlugin("InventoryItem::get_ID",                    InventoryItem_GetID);
-    ccAddExternalFunctionForPlugin("InventoryItem::get_Name",                  InventoryItem_GetName_New);
-    ccAddExternalFunctionForPlugin("InventoryItem::set_Name",                  InventoryItem_SetName);
+    ccAddExternalFunctionForPlugin("InventoryItem::GetAtScreenXY^2",           (void*)GetInvAtLocation);
+    ccAddExternalFunctionForPlugin("InventoryItem::IsInteractionAvailable^1",  (void*)InventoryItem_CheckInteractionAvailable);
+    ccAddExternalFunctionForPlugin("InventoryItem::GetName^1",                 (void*)InventoryItem_GetName);
+    ccAddExternalFunctionForPlugin("InventoryItem::GetProperty^1",             (void*)InventoryItem_GetProperty);
+    ccAddExternalFunctionForPlugin("InventoryItem::GetPropertyText^2",         (void*)InventoryItem_GetPropertyText);
+    ccAddExternalFunctionForPlugin("InventoryItem::GetTextProperty^1",         (void*)InventoryItem_GetTextProperty);
+    ccAddExternalFunctionForPlugin("InventoryItem::RunInteraction^1",          (void*)InventoryItem_RunInteraction);
+    ccAddExternalFunctionForPlugin("InventoryItem::SetName^1",                 (void*)InventoryItem_SetName);
+    ccAddExternalFunctionForPlugin("InventoryItem::get_CursorGraphic",         (void*)InventoryItem_GetCursorGraphic);
+    ccAddExternalFunctionForPlugin("InventoryItem::set_CursorGraphic",         (void*)InventoryItem_SetCursorGraphic);
+    ccAddExternalFunctionForPlugin("InventoryItem::get_Graphic",               (void*)InventoryItem_GetGraphic);
+    ccAddExternalFunctionForPlugin("InventoryItem::set_Graphic",               (void*)InventoryItem_SetGraphic);
+    ccAddExternalFunctionForPlugin("InventoryItem::get_ID",                    (void*)InventoryItem_GetID);
+    ccAddExternalFunctionForPlugin("InventoryItem::get_Name",                  (void*)InventoryItem_GetName_New);
+    ccAddExternalFunctionForPlugin("InventoryItem::set_Name",                  (void*)InventoryItem_SetName);
 }

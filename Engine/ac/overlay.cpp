@@ -381,13 +381,13 @@ void RegisterOverlayAPI()
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 
-    ccAddExternalFunctionForPlugin("Overlay::CreateGraphical^4",   Overlay_CreateGraphical);
-    ccAddExternalFunctionForPlugin("Overlay::CreateTextual^106",   ScPl_Overlay_CreateTextual);
-    ccAddExternalFunctionForPlugin("Overlay::SetText^104",         ScPl_Overlay_SetText);
-    ccAddExternalFunctionForPlugin("Overlay::Remove^0",            Overlay_Remove);
-    ccAddExternalFunctionForPlugin("Overlay::get_Valid",           Overlay_GetValid);
-    ccAddExternalFunctionForPlugin("Overlay::get_X",               Overlay_GetX);
-    ccAddExternalFunctionForPlugin("Overlay::set_X",               Overlay_SetX);
-    ccAddExternalFunctionForPlugin("Overlay::get_Y",               Overlay_GetY);
-    ccAddExternalFunctionForPlugin("Overlay::set_Y",               Overlay_SetY);
+    ccAddExternalFunctionForPlugin("Overlay::CreateGraphical^4",   (void*)Overlay_CreateGraphical);
+    ccAddExternalFunctionForPlugin("Overlay::CreateTextual^106",   (void*)ScPl_Overlay_CreateTextual);
+    ccAddExternalFunctionForPlugin("Overlay::SetText^104",         (void*)ScPl_Overlay_SetText);
+    ccAddExternalFunctionForPlugin("Overlay::Remove^0",            (void*)Overlay_Remove);
+    ccAddExternalFunctionForPlugin("Overlay::get_Valid",           (void*)Overlay_GetValid);
+    ccAddExternalFunctionForPlugin("Overlay::get_X",               (void*)Overlay_GetX);
+    ccAddExternalFunctionForPlugin("Overlay::set_X",               (void*)Overlay_SetX);
+    ccAddExternalFunctionForPlugin("Overlay::get_Y",               (void*)Overlay_GetY);
+    ccAddExternalFunctionForPlugin("Overlay::set_Y",               (void*)Overlay_SetY);
 }

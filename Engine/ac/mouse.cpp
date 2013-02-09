@@ -530,22 +530,22 @@ void RegisterMouseAPI()
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 
-    ccAddExternalFunctionForPlugin("Mouse::ChangeModeGraphic^2",       ChangeCursorGraphic);
-    ccAddExternalFunctionForPlugin("Mouse::ChangeModeHotspot^3",       ChangeCursorHotspot);
-    ccAddExternalFunctionForPlugin("Mouse::ChangeModeView^2",          Mouse_ChangeModeView);
-    ccAddExternalFunctionForPlugin("Mouse::DisableMode^1",             disable_cursor_mode);
-    ccAddExternalFunctionForPlugin("Mouse::EnableMode^1",              enable_cursor_mode);
-    ccAddExternalFunctionForPlugin("Mouse::GetModeGraphic^1",          Mouse_GetModeGraphic);
-    ccAddExternalFunctionForPlugin("Mouse::IsButtonDown^1",            IsButtonDown);
-    ccAddExternalFunctionForPlugin("Mouse::SaveCursorUntilItLeaves^0", SaveCursorForLocationChange);
-    ccAddExternalFunctionForPlugin("Mouse::SelectNextMode^0",          SetNextCursor);
-    ccAddExternalFunctionForPlugin("Mouse::SetBounds^4",               SetMouseBounds);
-    ccAddExternalFunctionForPlugin("Mouse::SetPosition^2",             SetMousePosition);
-    ccAddExternalFunctionForPlugin("Mouse::Update^0",                  RefreshMouse);
-    ccAddExternalFunctionForPlugin("Mouse::UseDefaultGraphic^0",       set_default_cursor);
-    ccAddExternalFunctionForPlugin("Mouse::UseModeGraphic^1",          set_mouse_cursor);
-    ccAddExternalFunctionForPlugin("Mouse::get_Mode",                  GetCursorMode);
-    ccAddExternalFunctionForPlugin("Mouse::set_Mode",                  set_cursor_mode);
-    ccAddExternalFunctionForPlugin("Mouse::get_Visible",               Mouse_GetVisible);
-    ccAddExternalFunctionForPlugin("Mouse::set_Visible",               Mouse_SetVisible);
+    ccAddExternalFunctionForPlugin("Mouse::ChangeModeGraphic^2",       (void*)ChangeCursorGraphic);
+    ccAddExternalFunctionForPlugin("Mouse::ChangeModeHotspot^3",       (void*)ChangeCursorHotspot);
+    ccAddExternalFunctionForPlugin("Mouse::ChangeModeView^2",          (void*)Mouse_ChangeModeView);
+    ccAddExternalFunctionForPlugin("Mouse::DisableMode^1",             (void*)disable_cursor_mode);
+    ccAddExternalFunctionForPlugin("Mouse::EnableMode^1",              (void*)enable_cursor_mode);
+    ccAddExternalFunctionForPlugin("Mouse::GetModeGraphic^1",          (void*)Mouse_GetModeGraphic);
+    ccAddExternalFunctionForPlugin("Mouse::IsButtonDown^1",            (void*)IsButtonDown);
+    ccAddExternalFunctionForPlugin("Mouse::SaveCursorUntilItLeaves^0", (void*)SaveCursorForLocationChange);
+    ccAddExternalFunctionForPlugin("Mouse::SelectNextMode^0",          (void*)SetNextCursor);
+    ccAddExternalFunctionForPlugin("Mouse::SetBounds^4",               (void*)SetMouseBounds);
+    ccAddExternalFunctionForPlugin("Mouse::SetPosition^2",             (void*)SetMousePosition);
+    ccAddExternalFunctionForPlugin("Mouse::Update^0",                  (void*)RefreshMouse);
+    ccAddExternalFunctionForPlugin("Mouse::UseDefaultGraphic^0",       (void*)set_default_cursor);
+    ccAddExternalFunctionForPlugin("Mouse::UseModeGraphic^1",          (void*)set_mouse_cursor);
+    ccAddExternalFunctionForPlugin("Mouse::get_Mode",                  (void*)GetCursorMode);
+    ccAddExternalFunctionForPlugin("Mouse::set_Mode",                  (void*)set_cursor_mode);
+    ccAddExternalFunctionForPlugin("Mouse::get_Visible",               (void*)Mouse_GetVisible);
+    ccAddExternalFunctionForPlugin("Mouse::set_Visible",               (void*)Mouse_SetVisible);
 }

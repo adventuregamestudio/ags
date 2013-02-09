@@ -546,24 +546,24 @@ void RegisterStringAPI()
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 
-    ccAddExternalFunctionForPlugin("String::IsNullOrEmpty^1",  String_IsNullOrEmpty);
-    ccAddExternalFunctionForPlugin("String::Append^1",         String_Append);
-    ccAddExternalFunctionForPlugin("String::AppendChar^1",     String_AppendChar);
-    ccAddExternalFunctionForPlugin("String::CompareTo^2",      String_CompareTo);
-    ccAddExternalFunctionForPlugin("String::Contains^1",       StrContains);
-    ccAddExternalFunctionForPlugin("String::Copy^0",           String_Copy);
-    ccAddExternalFunctionForPlugin("String::EndsWith^2",       String_EndsWith);
-    ccAddExternalFunctionForPlugin("String::Format^101",       ScPl_String_Format);
-    ccAddExternalFunctionForPlugin("String::IndexOf^1",        StrContains);
-    ccAddExternalFunctionForPlugin("String::LowerCase^0",      String_LowerCase);
-    ccAddExternalFunctionForPlugin("String::Replace^3",        String_Replace);
-    ccAddExternalFunctionForPlugin("String::ReplaceCharAt^2",  String_ReplaceCharAt);
-    ccAddExternalFunctionForPlugin("String::StartsWith^2",     String_StartsWith);
-    ccAddExternalFunctionForPlugin("String::Substring^2",      String_Substring);
-    ccAddExternalFunctionForPlugin("String::Truncate^1",       String_Truncate);
-    ccAddExternalFunctionForPlugin("String::UpperCase^0",      String_UpperCase);
-    ccAddExternalFunctionForPlugin("String::get_AsFloat",      StringToFloat);
-    ccAddExternalFunctionForPlugin("String::get_AsInt",        StringToInt);
-    ccAddExternalFunctionForPlugin("String::geti_Chars",       String_GetChars);
-    ccAddExternalFunctionForPlugin("String::get_Length",       strlen);
+    ccAddExternalFunctionForPlugin("String::IsNullOrEmpty^1",  (void*)String_IsNullOrEmpty);
+    ccAddExternalFunctionForPlugin("String::Append^1",         (void*)String_Append);
+    ccAddExternalFunctionForPlugin("String::AppendChar^1",     (void*)String_AppendChar);
+    ccAddExternalFunctionForPlugin("String::CompareTo^2",      (void*)String_CompareTo);
+    ccAddExternalFunctionForPlugin("String::Contains^1",       (void*)StrContains);
+    ccAddExternalFunctionForPlugin("String::Copy^0",           (void*)String_Copy);
+    ccAddExternalFunctionForPlugin("String::EndsWith^2",       (void*)String_EndsWith);
+    ccAddExternalFunctionForPlugin("String::Format^101",       (void*)ScPl_String_Format);
+    ccAddExternalFunctionForPlugin("String::IndexOf^1",        (void*)StrContains);
+    ccAddExternalFunctionForPlugin("String::LowerCase^0",      (void*)String_LowerCase);
+    ccAddExternalFunctionForPlugin("String::Replace^3",        (void*)String_Replace);
+    ccAddExternalFunctionForPlugin("String::ReplaceCharAt^2",  (void*)String_ReplaceCharAt);
+    ccAddExternalFunctionForPlugin("String::StartsWith^2",     (void*)String_StartsWith);
+    ccAddExternalFunctionForPlugin("String::Substring^2",      (void*)String_Substring);
+    ccAddExternalFunctionForPlugin("String::Truncate^1",       (void*)String_Truncate);
+    ccAddExternalFunctionForPlugin("String::UpperCase^0",      (void*)String_UpperCase);
+    ccAddExternalFunctionForPlugin("String::get_AsFloat",      (void*)StringToFloat);
+    ccAddExternalFunctionForPlugin("String::get_AsInt",        (void*)StringToInt);
+    ccAddExternalFunctionForPlugin("String::geti_Chars",       (void*)String_GetChars);
+    ccAddExternalFunctionForPlugin("String::get_Length",       (void*)strlen);
 }

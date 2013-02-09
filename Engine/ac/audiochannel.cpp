@@ -283,17 +283,17 @@ void RegisterAudioChannelAPI()
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 
-    ccAddExternalFunctionForPlugin("AudioChannel::Seek^1",             AudioChannel_Seek);
-    ccAddExternalFunctionForPlugin("AudioChannel::SetRoomLocation^2",  AudioChannel_SetRoomLocation);
-    ccAddExternalFunctionForPlugin("AudioChannel::Stop^0",             AudioChannel_Stop);
-    ccAddExternalFunctionForPlugin("AudioChannel::get_ID",             AudioChannel_GetID);
-    ccAddExternalFunctionForPlugin("AudioChannel::get_IsPlaying",      AudioChannel_GetIsPlaying);
-    ccAddExternalFunctionForPlugin("AudioChannel::get_LengthMs",       AudioChannel_GetLengthMs);
-    ccAddExternalFunctionForPlugin("AudioChannel::get_Panning",        AudioChannel_GetPanning);
-    ccAddExternalFunctionForPlugin("AudioChannel::set_Panning",        AudioChannel_SetPanning);
-    ccAddExternalFunctionForPlugin("AudioChannel::get_PlayingClip",    AudioChannel_GetPlayingClip);
-    ccAddExternalFunctionForPlugin("AudioChannel::get_Position",       AudioChannel_GetPosition);
-    ccAddExternalFunctionForPlugin("AudioChannel::get_PositionMs",     AudioChannel_GetPositionMs);
-    ccAddExternalFunctionForPlugin("AudioChannel::get_Volume",         AudioChannel_GetVolume);
-    ccAddExternalFunctionForPlugin("AudioChannel::set_Volume",         AudioChannel_SetVolume);
+    ccAddExternalFunctionForPlugin("AudioChannel::Seek^1",             (void*)AudioChannel_Seek);
+    ccAddExternalFunctionForPlugin("AudioChannel::SetRoomLocation^2",  (void*)AudioChannel_SetRoomLocation);
+    ccAddExternalFunctionForPlugin("AudioChannel::Stop^0",             (void*)AudioChannel_Stop);
+    ccAddExternalFunctionForPlugin("AudioChannel::get_ID",             (void*)AudioChannel_GetID);
+    ccAddExternalFunctionForPlugin("AudioChannel::get_IsPlaying",      (void*)AudioChannel_GetIsPlaying);
+    ccAddExternalFunctionForPlugin("AudioChannel::get_LengthMs",       (void*)AudioChannel_GetLengthMs);
+    ccAddExternalFunctionForPlugin("AudioChannel::get_Panning",        (void*)AudioChannel_GetPanning);
+    ccAddExternalFunctionForPlugin("AudioChannel::set_Panning",        (void*)AudioChannel_SetPanning);
+    ccAddExternalFunctionForPlugin("AudioChannel::get_PlayingClip",    (void*)AudioChannel_GetPlayingClip);
+    ccAddExternalFunctionForPlugin("AudioChannel::get_Position",       (void*)AudioChannel_GetPosition);
+    ccAddExternalFunctionForPlugin("AudioChannel::get_PositionMs",     (void*)AudioChannel_GetPositionMs);
+    ccAddExternalFunctionForPlugin("AudioChannel::get_Volume",         (void*)AudioChannel_GetVolume);
+    ccAddExternalFunctionForPlugin("AudioChannel::set_Volume",         (void*)AudioChannel_SetVolume);
 }

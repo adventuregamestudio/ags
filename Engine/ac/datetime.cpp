@@ -131,12 +131,12 @@ void RegisterDateTimeAPI()
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 
-    ccAddExternalFunctionForPlugin("DateTime::get_Now",        DateTime_Now);
-    ccAddExternalFunctionForPlugin("DateTime::get_DayOfMonth", DateTime_GetDayOfMonth);
-    ccAddExternalFunctionForPlugin("DateTime::get_Hour",       DateTime_GetHour);
-    ccAddExternalFunctionForPlugin("DateTime::get_Minute",     DateTime_GetMinute);
-    ccAddExternalFunctionForPlugin("DateTime::get_Month",      DateTime_GetMonth);
-    ccAddExternalFunctionForPlugin("DateTime::get_RawTime",    DateTime_GetRawTime);
-    ccAddExternalFunctionForPlugin("DateTime::get_Second",     DateTime_GetSecond);
-    ccAddExternalFunctionForPlugin("DateTime::get_Year",       DateTime_GetYear);
+    ccAddExternalFunctionForPlugin("DateTime::get_Now",        (void*)DateTime_Now);
+    ccAddExternalFunctionForPlugin("DateTime::get_DayOfMonth", (void*)DateTime_GetDayOfMonth);
+    ccAddExternalFunctionForPlugin("DateTime::get_Hour",       (void*)DateTime_GetHour);
+    ccAddExternalFunctionForPlugin("DateTime::get_Minute",     (void*)DateTime_GetMinute);
+    ccAddExternalFunctionForPlugin("DateTime::get_Month",      (void*)DateTime_GetMonth);
+    ccAddExternalFunctionForPlugin("DateTime::get_RawTime",    (void*)DateTime_GetRawTime);
+    ccAddExternalFunctionForPlugin("DateTime::get_Second",     (void*)DateTime_GetSecond);
+    ccAddExternalFunctionForPlugin("DateTime::get_Year",       (void*)DateTime_GetYear);
 }

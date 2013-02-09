@@ -762,26 +762,26 @@ void RegisterDynamicSpriteAPI()
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 
-    ccAddExternalFunctionForPlugin("DynamicSprite::ChangeCanvasSize^4",        DynamicSprite_ChangeCanvasSize);
-    ccAddExternalFunctionForPlugin("DynamicSprite::CopyTransparencyMask^1",    DynamicSprite_CopyTransparencyMask);
-    ccAddExternalFunctionForPlugin("DynamicSprite::Crop^4",                    DynamicSprite_Crop);
-    ccAddExternalFunctionForPlugin("DynamicSprite::Delete",                    DynamicSprite_Delete);
-    ccAddExternalFunctionForPlugin("DynamicSprite::Flip^1",                    DynamicSprite_Flip);
-    ccAddExternalFunctionForPlugin("DynamicSprite::GetDrawingSurface^0",       DynamicSprite_GetDrawingSurface);
-    ccAddExternalFunctionForPlugin("DynamicSprite::Resize^2",                  DynamicSprite_Resize);
-    ccAddExternalFunctionForPlugin("DynamicSprite::Rotate^3",                  DynamicSprite_Rotate);
-    ccAddExternalFunctionForPlugin("DynamicSprite::SaveToFile^1",              DynamicSprite_SaveToFile);
-    ccAddExternalFunctionForPlugin("DynamicSprite::Tint^5",                    DynamicSprite_Tint);
-    ccAddExternalFunctionForPlugin("DynamicSprite::get_ColorDepth",            DynamicSprite_GetColorDepth);
-    ccAddExternalFunctionForPlugin("DynamicSprite::get_Graphic",               DynamicSprite_GetGraphic);
-    ccAddExternalFunctionForPlugin("DynamicSprite::get_Height",                DynamicSprite_GetHeight);
-    ccAddExternalFunctionForPlugin("DynamicSprite::get_Width",                 DynamicSprite_GetWidth);
-    ccAddExternalFunctionForPlugin("DynamicSprite::Create^3",                  DynamicSprite_Create);
-    ccAddExternalFunctionForPlugin("DynamicSprite::CreateFromBackground",      DynamicSprite_CreateFromBackground);
-    ccAddExternalFunctionForPlugin("DynamicSprite::CreateFromDrawingSurface^5", DynamicSprite_CreateFromDrawingSurface);
-    ccAddExternalFunctionForPlugin("DynamicSprite::CreateFromExistingSprite^1", DynamicSprite_CreateFromExistingSprite_Old);
-    ccAddExternalFunctionForPlugin("DynamicSprite::CreateFromExistingSprite^2", DynamicSprite_CreateFromExistingSprite);
-    ccAddExternalFunctionForPlugin("DynamicSprite::CreateFromFile",            DynamicSprite_CreateFromFile);
-    ccAddExternalFunctionForPlugin("DynamicSprite::CreateFromSaveGame",        DynamicSprite_CreateFromSaveGame);
-    ccAddExternalFunctionForPlugin("DynamicSprite::CreateFromScreenShot",      DynamicSprite_CreateFromScreenShot);
+    ccAddExternalFunctionForPlugin("DynamicSprite::ChangeCanvasSize^4",        (void*)DynamicSprite_ChangeCanvasSize);
+    ccAddExternalFunctionForPlugin("DynamicSprite::CopyTransparencyMask^1",    (void*)DynamicSprite_CopyTransparencyMask);
+    ccAddExternalFunctionForPlugin("DynamicSprite::Crop^4",                    (void*)DynamicSprite_Crop);
+    ccAddExternalFunctionForPlugin("DynamicSprite::Delete",                    (void*)DynamicSprite_Delete);
+    ccAddExternalFunctionForPlugin("DynamicSprite::Flip^1",                    (void*)DynamicSprite_Flip);
+    ccAddExternalFunctionForPlugin("DynamicSprite::GetDrawingSurface^0",       (void*)DynamicSprite_GetDrawingSurface);
+    ccAddExternalFunctionForPlugin("DynamicSprite::Resize^2",                  (void*)DynamicSprite_Resize);
+    ccAddExternalFunctionForPlugin("DynamicSprite::Rotate^3",                  (void*)DynamicSprite_Rotate);
+    ccAddExternalFunctionForPlugin("DynamicSprite::SaveToFile^1",              (void*)DynamicSprite_SaveToFile);
+    ccAddExternalFunctionForPlugin("DynamicSprite::Tint^5",                    (void*)DynamicSprite_Tint);
+    ccAddExternalFunctionForPlugin("DynamicSprite::get_ColorDepth",            (void*)DynamicSprite_GetColorDepth);
+    ccAddExternalFunctionForPlugin("DynamicSprite::get_Graphic",               (void*)DynamicSprite_GetGraphic);
+    ccAddExternalFunctionForPlugin("DynamicSprite::get_Height",                (void*)DynamicSprite_GetHeight);
+    ccAddExternalFunctionForPlugin("DynamicSprite::get_Width",                 (void*)DynamicSprite_GetWidth);
+    ccAddExternalFunctionForPlugin("DynamicSprite::Create^3",                  (void*)DynamicSprite_Create);
+    ccAddExternalFunctionForPlugin("DynamicSprite::CreateFromBackground",      (void*)DynamicSprite_CreateFromBackground);
+    ccAddExternalFunctionForPlugin("DynamicSprite::CreateFromDrawingSurface^5", (void*)DynamicSprite_CreateFromDrawingSurface);
+    ccAddExternalFunctionForPlugin("DynamicSprite::CreateFromExistingSprite^1", (void*)DynamicSprite_CreateFromExistingSprite_Old);
+    ccAddExternalFunctionForPlugin("DynamicSprite::CreateFromExistingSprite^2", (void*)DynamicSprite_CreateFromExistingSprite);
+    ccAddExternalFunctionForPlugin("DynamicSprite::CreateFromFile",            (void*)DynamicSprite_CreateFromFile);
+    ccAddExternalFunctionForPlugin("DynamicSprite::CreateFromSaveGame",        (void*)DynamicSprite_CreateFromSaveGame);
+    ccAddExternalFunctionForPlugin("DynamicSprite::CreateFromScreenShot",      (void*)DynamicSprite_CreateFromScreenShot);
 }

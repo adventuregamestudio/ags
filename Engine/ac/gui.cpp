@@ -685,29 +685,29 @@ void RegisterGUIAPI()
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 
-    ccAddExternalFunctionForPlugin("GUI::Centre^0",                GUI_Centre);
-    ccAddExternalFunctionForPlugin("GUI::GetAtScreenXY^2",         GetGUIAtLocation);
-    ccAddExternalFunctionForPlugin("GUI::SetPosition^2",           GUI_SetPosition);
-    ccAddExternalFunctionForPlugin("GUI::SetSize^2",               GUI_SetSize);
-    ccAddExternalFunctionForPlugin("GUI::get_BackgroundGraphic",   GUI_GetBackgroundGraphic);
-    ccAddExternalFunctionForPlugin("GUI::set_BackgroundGraphic",   GUI_SetBackgroundGraphic);
-    ccAddExternalFunctionForPlugin("GUI::get_Clickable",           GUI_GetClickable);
-    ccAddExternalFunctionForPlugin("GUI::set_Clickable",           GUI_SetClickable);
-    ccAddExternalFunctionForPlugin("GUI::get_ControlCount",        GUI_GetControlCount);
-    ccAddExternalFunctionForPlugin("GUI::geti_Controls",           GUI_GetiControls);
-    ccAddExternalFunctionForPlugin("GUI::get_Height",              GUI_GetHeight);
-    ccAddExternalFunctionForPlugin("GUI::set_Height",              GUI_SetHeight);
-    ccAddExternalFunctionForPlugin("GUI::get_ID",                  GUI_GetID);
-    ccAddExternalFunctionForPlugin("GUI::get_Transparency",        GUI_GetTransparency);
-    ccAddExternalFunctionForPlugin("GUI::set_Transparency",        GUI_SetTransparency);
-    ccAddExternalFunctionForPlugin("GUI::get_Visible",             GUI_GetVisible);
-    ccAddExternalFunctionForPlugin("GUI::set_Visible",             GUI_SetVisible);
-    ccAddExternalFunctionForPlugin("GUI::get_Width",               GUI_GetWidth);
-    ccAddExternalFunctionForPlugin("GUI::set_Width",               GUI_SetWidth);
-    ccAddExternalFunctionForPlugin("GUI::get_X",                   GUI_GetX);
-    ccAddExternalFunctionForPlugin("GUI::set_X",                   GUI_SetX);
-    ccAddExternalFunctionForPlugin("GUI::get_Y",                   GUI_GetY);
-    ccAddExternalFunctionForPlugin("GUI::set_Y",                   GUI_SetY);
-    ccAddExternalFunctionForPlugin("GUI::get_ZOrder",              GUI_GetZOrder);
-    ccAddExternalFunctionForPlugin("GUI::set_ZOrder",              GUI_SetZOrder);
+    ccAddExternalFunctionForPlugin("GUI::Centre^0",                (void*)GUI_Centre);
+    ccAddExternalFunctionForPlugin("GUI::GetAtScreenXY^2",         (void*)GetGUIAtLocation);
+    ccAddExternalFunctionForPlugin("GUI::SetPosition^2",           (void*)GUI_SetPosition);
+    ccAddExternalFunctionForPlugin("GUI::SetSize^2",               (void*)GUI_SetSize);
+    ccAddExternalFunctionForPlugin("GUI::get_BackgroundGraphic",   (void*)GUI_GetBackgroundGraphic);
+    ccAddExternalFunctionForPlugin("GUI::set_BackgroundGraphic",   (void*)GUI_SetBackgroundGraphic);
+    ccAddExternalFunctionForPlugin("GUI::get_Clickable",           (void*)GUI_GetClickable);
+    ccAddExternalFunctionForPlugin("GUI::set_Clickable",           (void*)GUI_SetClickable);
+    ccAddExternalFunctionForPlugin("GUI::get_ControlCount",        (void*)GUI_GetControlCount);
+    ccAddExternalFunctionForPlugin("GUI::geti_Controls",           (void*)GUI_GetiControls);
+    ccAddExternalFunctionForPlugin("GUI::get_Height",              (void*)GUI_GetHeight);
+    ccAddExternalFunctionForPlugin("GUI::set_Height",              (void*)GUI_SetHeight);
+    ccAddExternalFunctionForPlugin("GUI::get_ID",                  (void*)GUI_GetID);
+    ccAddExternalFunctionForPlugin("GUI::get_Transparency",        (void*)GUI_GetTransparency);
+    ccAddExternalFunctionForPlugin("GUI::set_Transparency",        (void*)GUI_SetTransparency);
+    ccAddExternalFunctionForPlugin("GUI::get_Visible",             (void*)GUI_GetVisible);
+    ccAddExternalFunctionForPlugin("GUI::set_Visible",             (void*)GUI_SetVisible);
+    ccAddExternalFunctionForPlugin("GUI::get_Width",               (void*)GUI_GetWidth);
+    ccAddExternalFunctionForPlugin("GUI::set_Width",               (void*)GUI_SetWidth);
+    ccAddExternalFunctionForPlugin("GUI::get_X",                   (void*)GUI_GetX);
+    ccAddExternalFunctionForPlugin("GUI::set_X",                   (void*)GUI_SetX);
+    ccAddExternalFunctionForPlugin("GUI::get_Y",                   (void*)GUI_GetY);
+    ccAddExternalFunctionForPlugin("GUI::set_Y",                   (void*)GUI_SetY);
+    ccAddExternalFunctionForPlugin("GUI::get_ZOrder",              (void*)GUI_GetZOrder);
+    ccAddExternalFunctionForPlugin("GUI::set_ZOrder",              (void*)GUI_SetZOrder);
 }

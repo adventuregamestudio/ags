@@ -40,6 +40,7 @@
 #include "debug/debugger.h"
 #include "debug/out.h"
 #include "font/agsfontrenderer.h"
+#include "font/fonts.h"
 #include "main/config.h"
 #include "main/game_start.h"
 #include "main/graphics_mode.h"
@@ -905,7 +906,7 @@ void show_preload () {
 	Bitmap *splashsc = BitmapHelper::CreateRawObjectOwner( load_pcx("preload.pcx",temppal) );
     if (splashsc != NULL) {
         if (splashsc->GetColorDepth() == 8)
-            wsetpalette(0,255,temppal);
+            set_palette_range(temppal, 0, 255, 0);
 		Bitmap *screen_bmp = BitmapHelper::GetScreenBitmap();
         Bitmap *tsc = BitmapHelper::CreateBitmap(splashsc->GetWidth(),splashsc->GetHeight(),screen_bmp->GetColorDepth());
         tsc->Blit(splashsc,0,0,0,0,tsc->GetWidth(),tsc->GetHeight());

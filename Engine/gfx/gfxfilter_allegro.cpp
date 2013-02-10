@@ -12,6 +12,7 @@
 //
 //=============================================================================
 
+#include <stdio.h>
 #include "util/wgt2allg.h"
 #include "gfx/gfxfilter_allegro.h"
 #include "gfx/gfxfilterdefines.h"

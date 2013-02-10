@@ -21,6 +21,7 @@ int mousex, mousey;
 #include "ac/view.h"
 #include "ac/dialogtopic.h"
 #include "ac/gamesetupstruct.h"
+#include "font/fonts.h"
 #include "gui/guimain.h"
 #include "gui/guiinv.h"
 #include "gui/guibutton.h"
@@ -1329,7 +1330,7 @@ void sort_out_transparency(Common::Bitmap *toimp, int sprite_import_method, colo
     return;
 
   int uu,tt;
-  wsetpalette(0,255,palette);
+  set_palette_range(palette, 0, 255, 0);
   int transcol=toimp->GetMaskColor();
   // NOTE: This takes the pixel from the corner of the overall import
   // graphic, NOT just the image to be imported
@@ -1397,7 +1398,7 @@ void sort_out_transparency(Common::Bitmap *toimp, int sprite_import_method, colo
         oldpale[uu]=palette[uu];
     }
     wremap(itspal,toimp,oldpale); 
-    wsetpalette(0,255,palette);
+    set_palette_range(palette, 0, 255, 0);
   }
   else if (toimp->GetColorDepth() == 8) {  // hi-colour game
     set_palette(itspal);
@@ -1665,7 +1666,7 @@ const char *load_dta_file_into_thisgame(const char *fileName)
   palette[0].r = 0;
   palette[0].g = 0;
   palette[0].b = 0;
-  wsetpalette(0,255,palette);
+  set_palette_range(palette, 0, 255, 0);
 
   if (!reset_sprite_file())
     return "The sprite file could not be loaded. Ensure that all your game files are intact and not corrupt. The game may require a newer version of AGS.";
@@ -1929,7 +1930,7 @@ const char* load_room_file(const char*rtlo) {
     thisroom.object = tempb;
   }
 
-  wsetpalette(0,255,palette);
+  set_palette_range(palette, 0, 255, 0);
   
   if ((thisroom.ebscene[0]->GetColorDepth () > 8) &&
       (thisgame.color_depth == 1))

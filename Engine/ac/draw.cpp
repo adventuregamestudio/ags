@@ -46,6 +46,7 @@
 #include "ac/dynobj/scriptsystem.h"
 #include "debug/debugger.h"
 #include "debug/debug_log.h"
+#include "font/fonts.h"
 #include "gui/guimain.h"
 #include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
@@ -207,7 +208,7 @@ void allegro_bitmap_test_draw()
 }
 
 void setpal() {
-    wsetpalette(0,255,palette);
+    set_palette_range(palette, 0, 255, 0);
 }
 
 

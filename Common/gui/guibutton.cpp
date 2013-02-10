@@ -14,6 +14,7 @@
 
 #include <stdio.h>
 #include "util/wgt2allg.h"
+#include "font/fonts.h"
 #include "gui/guibutton.h"
 #include "gui/guimain.h"
 #include "ac/spritecache.h"

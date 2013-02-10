@@ -17,6 +17,7 @@
 #include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/gamesetup.h"
+#include "font/fonts.h"
 #include "gui/mylistbox.h"
 #include "gui/guidialoginternaldefs.h"
 #include "gfx/bitmap.h"

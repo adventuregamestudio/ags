@@ -24,6 +24,7 @@
 #include "ac/roomstruct.h"
 #include "ac/string.h"
 #include "debug/debug_log.h"
+#include "font/fonts.h"
 #include "gui/guidefines.h"
 #include "ac/spritecache.h"
 #include "gfx/bitmap.h"

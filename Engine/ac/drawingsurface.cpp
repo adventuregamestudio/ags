@@ -27,6 +27,7 @@
 #include "ac/roomstatus.h"
 #include "ac/string.h"
 #include "debug/debug_log.h"
+#include "font/fonts.h"
 #include "gui/guimain.h"
 #include "ac/spritecache.h"
 #include "gfx/bitmap.h"

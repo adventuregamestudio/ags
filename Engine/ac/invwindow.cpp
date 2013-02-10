@@ -236,8 +236,8 @@ start_actinv:
         if (ww >= top_item + num_visible_items)
             break;
         Bitmap *spof=spriteset[dii[ww].sprnum];
-        wputblock(barxp+1+((ww-top_item)%4)*widest+widest/2-wgetblockwidth(spof)/2,
-            bartop+1+((ww-top_item)/4)*highest+highest/2-wgetblockheight(spof)/2,spof,1);
+        wputblock(barxp+1+((ww-top_item)%4)*widest+widest/2-spof->GetWidth()/2,
+            bartop+1+((ww-top_item)/4)*highest+highest/2-spof->GetHeight()/2,spof,1);
     }
     if ((spriteset[2041] == NULL) || (spriteset[2042] == NULL) || (spriteset[2043] == NULL))
         quit("!InventoryScreen: one or more of the inventory screen graphics have been deleted");

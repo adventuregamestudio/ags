@@ -729,7 +729,7 @@ void AGSWin32::PlayVideo(const char *name, int skip, int flags) {
       init_mod_player(NUM_MOD_DIGI_VOICES);
   }
 
-  wsetpalette (0, 255, palette);
+  set_palette_range(palette, 0, 255, 0);
 }
 
 void AGSWin32::AboutToQuitGame() 

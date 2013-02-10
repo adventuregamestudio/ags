@@ -66,7 +66,7 @@ void play_flc_file(int numb,int playflags) {
     if (play.fast_forward)
         return;
 
-    wreadpalette(0,255,oldpal);
+    get_palette_range(oldpal, 0, 255);
 
     int clearScreenAtStart = 1;
     canabort = playflags % 10;
@@ -127,7 +127,7 @@ void play_flc_file(int numb,int playflags) {
 
     delete fli_buffer;
 	screen_bmp->Clear();
-    wsetpalette(0,255,oldpal);
+    set_palette_range(oldpal, 0, 255, 0);
     render_to_screen(screen_bmp, 0, 0);
 
     delete fli_target;

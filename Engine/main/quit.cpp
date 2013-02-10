@@ -28,6 +28,7 @@
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
+#include "font/fonts.h"
 #include "main/main.h"
 #include "main/mainheader.h"
 #include "main/quit.h"

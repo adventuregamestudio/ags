@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "util/wgt2allg.h"
+#include "font/fonts.h"
 #include "gui/guilabel.h"
 #include "gui/guimain.h"
 #include "util/stream.h"

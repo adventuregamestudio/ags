@@ -18,6 +18,7 @@
 #include "ac/display.h"
 #include "ac/gamesetup.h"
 #include "ac/string.h"
+#include "font/fonts.h"
 #include "gui/guidefines.h"
 #include "gui/mylabel.h"
 #include "gui/guidialoginternaldefs.h"

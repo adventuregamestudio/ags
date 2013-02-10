@@ -16,6 +16,7 @@
 #define USE_ALFONT
 #endif
 
+#include <stdio.h>
 #include "util/wgt2allg.h"
 #include "alfont.h"
 

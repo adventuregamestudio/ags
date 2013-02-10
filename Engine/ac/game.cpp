@@ -59,6 +59,7 @@
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/all_scriptclasses.h"
 #include "debug/out.h"
+#include "font/fonts.h"
 #include "script/cc_error.h"
 #include "util/string_utils.h"
 #include "debug/debug_log.h"

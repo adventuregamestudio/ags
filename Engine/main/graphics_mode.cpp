@@ -27,6 +27,7 @@
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
+#include "font/fonts.h"
 #include "gui/guiinv.h"
 #include "gui/guimain.h"
 #include "main/graphics_mode.h"

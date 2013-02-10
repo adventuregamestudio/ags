@@ -152,8 +152,8 @@ void domouse(int str)
      TO USE THIS ROUTINE YOU MUST LOAD A MOUSE CURSOR USING mloadcursor.
      YOU MUST ALSO REMEMBER TO CALL mfreemem AT THE END OF THE PROGRAM.
   */
-  int poow = wgetblockwidth(mousecurs[currentcursor]);
-  int pooh = wgetblockheight(mousecurs[currentcursor]);
+  int poow = mousecurs[currentcursor]->GetWidth();
+  int pooh = mousecurs[currentcursor]->GetHeight();
   int smx = mousex - hotxwas, smy = mousey - hotywas;
 
   mgetgraphpos();

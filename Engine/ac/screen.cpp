@@ -66,7 +66,7 @@ void current_fade_out_effect () {
 
     if ((theTransition == FADE_INSTANT) || (play.screen_tint >= 0)) {
         if (!play.keep_screen_during_instant_transition)
-            wsetpalette(0,255,black_palette);
+            set_palette_range(black_palette, 0, 255, 0);
     }
     else if (theTransition == FADE_NORMAL)
     {

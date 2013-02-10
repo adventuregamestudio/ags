@@ -19,7 +19,7 @@
 // Headers, as they are in acgui.cpp
 #pragma unmanaged
 #include "util/wgt2allg.h"
-//#include "acruntim.h"
+#include "font/fonts.h"
 #include "gui/guimain.h"
 #include "gui/guibutton.h"
 #include "gui/guilabel.h"
@@ -65,12 +65,12 @@ void check_font(int *fontnum)
 
 int get_adjusted_spritewidth(int spr)
 {
-  return wgetblockwidth(spriteset[spr]);
+  return spriteset[spr]->GetWidth();
 }
 
 int get_adjusted_spriteheight(int spr)
 {
-  return wgetblockheight(spriteset[spr]);
+  return spriteset[spr]->GetHeight();
 }
 
 bool is_sprite_alpha(int spr)

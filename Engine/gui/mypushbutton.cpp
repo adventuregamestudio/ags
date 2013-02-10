@@ -17,6 +17,7 @@
 #include "gfx/ali3d.h"
 #include "ac/mouse.h"
 #include "ac/record.h"
+#include "font/fonts.h"
 #include "gui/mypushbutton.h"
 #include "gui/guidialog.h"
 #include "gui/guidialoginternaldefs.h"

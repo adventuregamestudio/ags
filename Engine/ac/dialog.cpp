@@ -36,6 +36,7 @@
 #include "ac/string.h"
 #include "ac/dynobj/scriptdialogoptionsrendering.h"
 #include "ac/dynobj/scriptdrawingsurface.h"
+#include "font/fonts.h"
 #include "script/cc_instance.h"
 #include "gui/guimain.h"
 #include "gui/guitextbox.h"

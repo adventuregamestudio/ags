@@ -195,8 +195,8 @@ void initialize_sprite (int ee) {
             spriteset.set (ee, tmpdbl);
         }
 
-        spritewidth[ee]=wgetblockwidth(spriteset[ee]);
-        spriteheight[ee]=wgetblockheight(spriteset[ee]);
+        spritewidth[ee]=spriteset[ee]->GetWidth();
+        spriteheight[ee]=spriteset[ee]->GetHeight();
 
         int spcoldep = spriteset[ee]->GetColorDepth();
 

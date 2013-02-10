@@ -35,6 +35,7 @@
 #include "ac/record.h"
 #include "ac/roomstatus.h"
 #include "ac/string.h"
+#include "font/fonts.h"
 #include "util/string_utils.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
@@ -366,7 +367,7 @@ AGSColor* IAGSEngine::GetPalette () {
     return (AGSColor*)&palette[0];
 }
 void IAGSEngine::SetPalette (int32 start, int32 finish, AGSColor *cpl) {
-    wsetpalette (start, finish, (color*)cpl);
+    set_palette_range((color*)cpl, start, finish, 0);
 }
 int IAGSEngine::GetNumCharacters () {
     return game.numcharacters;

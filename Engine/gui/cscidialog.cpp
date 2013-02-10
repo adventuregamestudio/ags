@@ -21,6 +21,7 @@
 #include "ac/mouse.h"
 #include "ac/record.h"
 #include "ac/runtime_defines.h"
+#include "font/fonts.h"
 #include "gui/cscidialog.h"
 #include "gui/guidialog.h"
 #include "gui/guimain.h"
@@ -108,7 +109,7 @@ int WINAPI _export CSCIDrawWindow(int xx, int yy, int wid, int hit)
     oswi[drawit].buffer = wnewblock(xx, yy, xx + wid, yy + hit);
     oswi[drawit].x = xx;
     oswi[drawit].y = yy;
-    wbutt(xx + 1, yy + 1, xx + wid - 1, yy + hit - 1);    // wbutt goes outside its area
+    __my_wbutt(xx + 1, yy + 1, xx + wid - 1, yy + hit - 1);    // wbutt goes outside its area
     //  domouse(1);
     oswi[drawit].oldtop = topwindowhandle;
     topwindowhandle = drawit;

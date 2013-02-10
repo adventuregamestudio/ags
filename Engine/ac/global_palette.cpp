@@ -36,12 +36,12 @@ void CyclePalette(int strt,int eend) {
     if (eend > strt) {
         // forwards
         wcolrotate(strt, eend, 0, palette);
-        wsetpalette(strt, eend, palette);
+        set_palette_range(palette, strt, eend, 0);
     }
     else {
         // backwards
         wcolrotate(eend, strt, 1, palette);
-        wsetpalette(eend, strt, palette);
+        set_palette_range(palette, eend, strt, 0);
     }
 
 }
@@ -50,7 +50,7 @@ void SetPalRGB(int inndx,int rr,int gg,int bb) {
         invalidate_screen();
 
     wsetrgb(inndx,rr,gg,bb,palette);
-    wsetpalette(inndx,inndx,palette);
+    set_palette_range(palette, inndx, inndx, 0);
 }
 /*void scSetPal(color*pptr) {
 wsetpalette(0,255,pptr);

@@ -13,7 +13,6 @@
 //=============================================================================
 
 #include "event.h"
-#include "util/wgt2allg.h"
 #include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/draw.h"
@@ -28,6 +27,7 @@
 #include "ac/screen.h"
 #include "script/cc_error.h"
 #include "media/audio/audio.h"
+#include "media/audio/soundclip.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "script/script.h"

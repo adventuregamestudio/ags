@@ -13,7 +13,6 @@
 //=============================================================================
 
 #include "ac/common.h"
-#include "util/wgt2allg.h"
 #include "gfx/ali3d.h"
 #include "media/audio/audiodefines.h"
 #include "ac/draw.h"
@@ -25,6 +24,7 @@
 #include "ac/dynobj/scriptsystem.h"
 #include "debug/debug_log.h"
 #include "main/main.h"
+#include "media/audio/soundclip.h"
 #include "gfx/graphicsdriver.h"
 #include "ac/dynobj/cc_audiochannel.h"
 

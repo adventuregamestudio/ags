@@ -12,7 +12,7 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
+#include <time.h>
 #include "ac/datetime.h"
 #include "platform/base/agsplatformdriver.h"
 #include "script/runtimescriptvalue.h"

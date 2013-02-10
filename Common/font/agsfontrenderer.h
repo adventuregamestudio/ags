@@ -15,13 +15,13 @@
 #ifndef __AC_AGSFONTRENDERER_H
 #define __AC_AGSFONTRENDERER_H
 
-//#include "ac/gamesetupstruct.h"	// constants
 // temporary define copy
 #ifndef MAX_FONTS
 #define MAX_FONTS           15
 #endif
 
 typedef unsigned char* wgtfont;
+struct BITMAP;
 
 // WARNING: this interface is exposed for plugins and declared for the second time in agsplugin.h
 class IAGSFontRenderer {

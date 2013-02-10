@@ -16,7 +16,6 @@
 // Game update procedure
 //
 
-#include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "ac/character.h"
 #include "ac/characterextras.h"
@@ -36,6 +35,7 @@
 #include "ac/walkablearea.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
+#include "media/audio/soundclip.h"
 
 using AGS::Common::Bitmap;
 

@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
 #include "ac/dynobj/cc_audioclip.h"
 #include "ac/gamesetupstruct.h"
 

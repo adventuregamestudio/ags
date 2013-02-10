@@ -13,7 +13,6 @@
 //=============================================================================
 
 #include "ac/global_overlay.h"
-#include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "ac/display.h"
 #include "ac/draw.h"

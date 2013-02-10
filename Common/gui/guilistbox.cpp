@@ -15,12 +15,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "util/wgt2allg.h"
 #include "gui/guilistbox.h"
 #include "gui/guimain.h"
 #include "font/fonts.h"
 #include "util/stream.h"
 #include "gfx/bitmap.h"
+#include "util/wgt2allg.h"
 
 using AGS::Common::Stream;
 using AGS::Common::Bitmap;

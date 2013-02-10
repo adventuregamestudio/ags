@@ -27,6 +27,10 @@ long int filelength(int fhandle);
 
 #include "util/string.h"
 
+#if defined (WINDOWS_VERSION)
+#undef CreateFile  // undef the declaration from winbase.h
+#endif
+
 namespace AGS
 {
 namespace Common

@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
 #include "video.h"
 #include "gfx/ali3d.h"
 #include "apeg.h"

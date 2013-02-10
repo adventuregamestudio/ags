@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
 #include "ac/invwindow.h"
 #include "ac/common.h"
 #include "ac/characterextras.h"

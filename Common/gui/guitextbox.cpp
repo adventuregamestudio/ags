@@ -13,13 +13,13 @@
 //=============================================================================
 
 #include <stdio.h>
-#include "util/wgt2allg.h"
 #include "font/fonts.h"
 #include "gui/guitextbox.h"
 #include "gui/guimain.h"
 #include "font/agsfontrenderer.h"	// fontRenderers;
 #include "util/stream.h"
 #include "gfx/bitmap.h"
+#include "util/wgt2allg.h"
 
 using AGS::Common::Stream;
 using AGS::Common::Bitmap;

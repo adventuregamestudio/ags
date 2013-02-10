@@ -14,7 +14,6 @@
 
 #include <stdlib.h>                   // NULL
 #include "gfx/gfxfilter.h"
-#include "util/wgt2allg.h"
 #include "gfx/gfxfilter_allegro.h"
 #include "gfx/gfxfilter_scalingallegro.h"
 #include "gfx/gfxfilter_hq2x.h"

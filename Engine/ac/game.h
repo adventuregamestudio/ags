@@ -24,7 +24,7 @@
 #include "util/file.h"
 
 // Forward declaration
-namespace AGS { namespace Common { class Stream; class String; } }
+namespace AGS { namespace Common { class Bitmap; class Stream; class String; } }
 using namespace AGS; // FIXME later
 
 #define RAGMODE_PRESERVEGLOBALINT 1

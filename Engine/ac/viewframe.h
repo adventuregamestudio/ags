@@ -22,6 +22,9 @@
 #include "ac/dynobj/scriptaudioclip.h"
 #include "ac/dynobj/scriptviewframe.h"
 
+namespace AGS { namespace Common { class Bitmap; } }
+using namespace AGS; // FIXME later
+
 int  ViewFrame_GetFlipped(ScriptViewFrame *svf);
 int  ViewFrame_GetGraphic(ScriptViewFrame *svf);
 void ViewFrame_SetGraphic(ScriptViewFrame *svf, int newPic);

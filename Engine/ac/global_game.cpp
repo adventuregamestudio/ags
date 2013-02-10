@@ -13,7 +13,6 @@
 //=============================================================================
 
 #define USE_CLIB
-#include "util/wgt2allg.h"
 #include "ac/global_game.h"
 #include "ac/common.h"
 #include "ac/view.h"

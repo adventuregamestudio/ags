@@ -16,13 +16,13 @@
 #define USE_ALFONT
 #endif
 
-#include "util/wgt2allg.h"
 #include "alfont.h"
 #include "ac/gamestructdefines.h" //FONT_OUTLINE_AUTO
 #include "font/ttffontrenderer.h"
 #include "util/stream.h"
 #include "gfx/bitmap.h"
 #include "core/assetmanager.h"
+#include "util/wgt2allg.h"
 
 using AGS::Common::Bitmap;
 using AGS::Common::Stream;

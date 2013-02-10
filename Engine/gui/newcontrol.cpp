@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
 #include "gui/newcontrol.h"
 #include "gui/guidialoginternaldefs.h"
 

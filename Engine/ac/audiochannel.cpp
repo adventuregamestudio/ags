@@ -12,12 +12,12 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
 #include "ac/audiochannel.h"
 #include "ac/roomstruct.h"
 #include "debug/debug_log.h"
 #include "ac/gamestate.h"
 #include "media/audio/audio.h"
+#include "media/audio/soundclip.h"
 #include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_audioclip.h"
 

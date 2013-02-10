@@ -16,15 +16,14 @@
 #define USE_ALFONT
 #endif
 
-#include "util/wgt2allg.h"
 #include "alfont.h"
-
 #include "ac/common.h"
 #include "font/fonts.h"
 #include "font/wfnfontrenderer.h"
 #include "util/stream.h"
 #include "util/file.h"
 #include "gfx/bitmap.h"
+#include "util/wgt2allg.h"
 
 using AGS::Common::Bitmap;
 using AGS::Common::Stream;

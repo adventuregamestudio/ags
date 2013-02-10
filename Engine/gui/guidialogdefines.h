@@ -80,6 +80,9 @@
 
 #define CTB_KEYPRESS 91
 
+namespace AGS { namespace Common { class Bitmap; } }
+using namespace AGS; // FIXME later
+
 //  =========  STRUCTS  ========
 struct DisplayProperties
 {

@@ -19,8 +19,10 @@
 #include "ac/dynobj/scriptaudioclip.h"
 #include "ac/dynobj/scriptaudiochannel.h"
 #include "media/audio/ambientsound.h"
-#include "media/audio/soundclip.h"
+#include "util/mutex.h"
 #include "util/thread.h"
+
+struct SOUNDCLIP;
 
 void        calculate_reserved_channel_count();
 void        register_audio_script_objects();

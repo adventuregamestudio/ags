@@ -13,7 +13,6 @@
 //=============================================================================
 
 #include <string.h>
-#include "util/wgt2allg.h"
 #include "script/script.h"
 #include "ac/common.h"
 #include "ac/roomstruct.h"
@@ -42,6 +41,7 @@
 #include "debug/debug_log.h"
 #include "main/game_run.h"
 #include "media/audio/audio.h"
+#include "media/audio/soundclip.h"
 #include "script/script_runtime.h"
 #include "util/string_utils.h"
 

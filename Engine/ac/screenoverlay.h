@@ -22,13 +22,13 @@
 #include "util/file.h"
 
 // Forward declaration
-namespace AGS { namespace Common { class Stream; } }
+namespace AGS { namespace Common { class Bitmap; class Stream; } }
 namespace AGS { namespace Engine { class IDriverDependantBitmap; }}
-using namespace AGS::Engine; // FIXME later
+using namespace AGS; // FIXME later
 
 
 struct ScreenOverlay {
-    IDriverDependantBitmap *bmp;
+    Engine::IDriverDependantBitmap *bmp;
     Common::Bitmap *pic;
     int type,x,y,timeout;
     int bgSpeechForChar;

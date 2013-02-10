@@ -17,7 +17,6 @@
 #endif
 
 #include <stdio.h>
-#include "util/wgt2allg.h"
 #include "alfont.h"
 
 #include "ac/common.h"
@@ -26,6 +25,7 @@
 #include "font/ttffontrenderer.h"
 #include "font/wfnfontrenderer.h"
 #include "gfx/bitmap.h"
+#include "util/wgt2allg.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;

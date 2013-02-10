@@ -13,7 +13,6 @@
 //=============================================================================
 
 #include <math.h>
-#include "util/wgt2allg.h"
 #include "ac/dynamicsprite.h"
 #include "ac/common.h"
 #include "ac/charactercache.h"
@@ -54,7 +53,7 @@ extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern int scrnwid,scrnhit;
 extern color palette[256];
 extern Bitmap *virtual_screen;
-extern IGraphicsDriver *gfxDriver;
+extern AGS::Engine::IGraphicsDriver *gfxDriver;
 
 char check_dynamic_sprites_at_exit = 1;
 

@@ -23,7 +23,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "util/wgt2allg.h"
 #include "ac/roomstruct.h"
 #include "util/filestream.h"
 #include "script/cc_instance.h"

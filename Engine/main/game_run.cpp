@@ -16,7 +16,6 @@
 // Game loop
 //
 
-#include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "ac/characterextras.h"
 #include "ac/characterinfo.h"
@@ -49,6 +48,7 @@
 #include "main/mainheader.h"
 #include "main/game_run.h"
 #include "main/update.h"
+#include "media/audio/soundclip.h"
 #include "plugin/agsplugin.h"
 #include "script/script.h"
 #include "ac/spritecache.h"

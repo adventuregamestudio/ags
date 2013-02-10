@@ -17,7 +17,6 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
 #include "ac/route_finder.h"
 #include "ac/common.h"   // quit()
 #include "ac/movelist.h"     // MoveList

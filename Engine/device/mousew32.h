@@ -23,6 +23,10 @@
 
 #define MAXCURSORS 20
 
+namespace AGS { namespace Common { class Bitmap; } }
+using namespace AGS; // FIXME later
+
+struct IMouseGetPosCallback;
 
 void msetgraphpos(int,int);
 void msetcallback(IMouseGetPosCallback *gpCallback);

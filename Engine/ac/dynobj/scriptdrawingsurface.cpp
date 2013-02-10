@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
 #include "ac/dynobj/scriptdrawingsurface.h"
 #include "ac/roomstruct.h"
 #include "ac/spritecache.h"

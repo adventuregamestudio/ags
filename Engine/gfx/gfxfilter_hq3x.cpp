@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
 #include "gfx/gfxfilter_hq3x.h"
 #include "gfx/hq2x3x.h"
 #include "gfx/gfxfilterdefines.h"

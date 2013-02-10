@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
 #include "ac/gamesetupstructbase.h"
 #include "util/stream.h"
 

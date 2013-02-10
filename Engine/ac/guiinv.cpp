@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
 #include "gui/guiinv.h"
 #include "ac/draw.h"
 #include "ac/gamesetupstruct.h"

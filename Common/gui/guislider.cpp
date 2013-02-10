@@ -13,12 +13,12 @@
 //=============================================================================
 
 #include <stdio.h>
-#include "util/wgt2allg.h"
 #include "gui/guislider.h"
 #include "gui/guimain.h"
 #include "ac/spritecache.h"
 #include "util/stream.h"
 #include "gfx/bitmap.h"
+#include "util/wgt2allg.h"
 
 using AGS::Common::Stream;
 using AGS::Common::Bitmap;

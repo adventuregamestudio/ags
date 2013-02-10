@@ -18,7 +18,6 @@
 
 // Headers, as they are in acgui.cpp
 #pragma unmanaged
-#include "util/wgt2allg.h"
 #include "font/fonts.h"
 #include "gui/guimain.h"
 #include "gui/guibutton.h"

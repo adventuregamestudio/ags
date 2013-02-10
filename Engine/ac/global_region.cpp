@@ -13,7 +13,6 @@
 //=============================================================================
 
 #include "ac/global_region.h"
-#include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/region.h"

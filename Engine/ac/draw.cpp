@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
 #include "aastr.h"
 #include "ac/common.h"
 #include "util/compress.h"
@@ -49,6 +48,7 @@
 #include "font/fonts.h"
 #include "gui/guimain.h"
 #include "media/audio/audio.h"
+#include "media/audio/soundclip.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "ac/spritecache.h"

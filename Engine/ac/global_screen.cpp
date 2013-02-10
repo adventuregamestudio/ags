@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
 #include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/gamesetup.h"

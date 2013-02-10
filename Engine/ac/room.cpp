@@ -13,7 +13,6 @@
 //=============================================================================
 
 #define USE_CLIB
-#include "util/wgt2allg.h"
 #include "util/string_utils.h" //strlwr()
 #include "gfx/ali3d.h"
 #include "ac/common.h"

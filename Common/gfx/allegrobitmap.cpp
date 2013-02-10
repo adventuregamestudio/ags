@@ -14,7 +14,6 @@
 
 #include <aastr.h>
 #include "gfx/allegrobitmap.h"
-#include "util/wgt2allg.h"
 #include "debug/assert.h"
 
 namespace AGS

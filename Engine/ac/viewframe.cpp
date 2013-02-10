@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/viewframe.h"
 #include "debug/debug_log.h"

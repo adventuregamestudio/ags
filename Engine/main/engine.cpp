@@ -58,6 +58,7 @@
 #include "util/path.h"
 #include "main/game_file.h"
 #include "debug/out.h"
+#include "util/file.h"
 
 using AGS::Common::String;
 using AGS::Common::Stream;

@@ -16,7 +16,6 @@
 // Quit game procedure
 //
 
-#include "util/wgt2allg.h"
 #include "gfx/ali3d.h"
 #include "ac/cdaudio.h"
 #include "ac/gamesetup.h"

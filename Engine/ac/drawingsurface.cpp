@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
 #include "ac/draw.h"
 #include "ac/drawingsurface.h"
 #include "ac/common.h"

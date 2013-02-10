@@ -97,4 +97,8 @@ public:
 // archive attributes to search for - al_findfirst breaks with 0
 #define FA_SEARCH -1
 
+#if defined (WINDOWS_VERSION)
+#undef CreateFile  // undef the declaration from winbase.h
 #endif
+
+#endif // __WGT4_H

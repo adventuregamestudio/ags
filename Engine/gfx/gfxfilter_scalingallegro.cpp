@@ -12,7 +12,7 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
+#include "core/types.h"
 #include "gfx/gfxfilter_scalingallegro.h"
 #include "gfx/gfxfilterdefines.h"
 #include "gfx/bitmap.h"

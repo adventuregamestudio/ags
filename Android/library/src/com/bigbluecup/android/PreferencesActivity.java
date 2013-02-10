@@ -14,10 +14,9 @@ import android.preference.PreferenceManager;
 
 public class PreferencesActivity extends PreferenceActivity
 {
-	private String gameName;
-	private String gameFilename;
+
 	private String gamePath;
-	private String baseDirectory;
+
 	private boolean isGlobalConfig;
 	private String translations[];
 	private int translationCount;
@@ -38,15 +37,15 @@ public class PreferencesActivity extends PreferenceActivity
 
 
 	@Override
-	protected void onCreate(Bundle bundle)
+	public void onCreate(Bundle bundle)
 	{
 		super.onCreate(bundle);
 		
 		System.loadLibrary("agsengine");
 		
-		gameName = getIntent().getExtras().getString("name");
-		gameFilename = getIntent().getExtras().getString("filename");
-		baseDirectory = getIntent().getExtras().getString("directory");
+		string gameName = getIntent().getExtras().getString("name");
+		string gameFilename = getIntent().getExtras().getString("filename");
+		string baseDirectory = getIntent().getExtras().getString("directory");
 		
 		isGlobalConfig = (gameName.length() == 0);
 		

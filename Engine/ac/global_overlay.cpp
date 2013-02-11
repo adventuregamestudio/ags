@@ -12,6 +12,7 @@
 //
 //=============================================================================
 
+#include <stdio.h>
 #include "ac/global_overlay.h"
 #include "ac/common.h"
 #include "ac/display.h"

@@ -21,7 +21,6 @@
 
 #include "ac/interaction.h"
 #include "ac/dynobj/scriptviewframe.h"
-#include "util/file.h"
 
 // Forward declaration
 namespace AGS { namespace Common { class Bitmap; class Stream; class String; } }

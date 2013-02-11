@@ -16,6 +16,7 @@
 #define USE_ALFONT
 #endif
 
+#include <stdio.h>
 #include "alfont.h"
 #include "ac/gamestructdefines.h" //FONT_OUTLINE_AUTO
 #include "font/ttffontrenderer.h"

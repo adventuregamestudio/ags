@@ -27,7 +27,6 @@
 #include "plugin/agsplugin.h"
 
 using AGS::Common::Stream;
-using AGS::Common::String;
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 

@@ -24,11 +24,11 @@
 
 #include "ac/common.h"
 #include "ac/spritecache.h"
+#include "core/assetmanager.h"
+#include "gfx/bitmap.h"
 #include "util/compress.h"
 #include "util/file.h"
-#include "util/filestream.h"
-#include "gfx/bitmap.h"
-#include "core/assetmanager.h"
+#include "util/stream.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;

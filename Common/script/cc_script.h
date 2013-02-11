@@ -19,7 +19,7 @@
 #ifndef __CC_SCRIPT_H
 #define __CC_SCRIPT_H
 
-#include "util/file.h"
+#include "core/types.h"
 
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later

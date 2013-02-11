@@ -12,6 +12,7 @@
 //
 //=============================================================================
 
+#include <stdio.h>
 #include <string.h>
 #include "consoleoutputtarget.h"
 #include "ac/roomstruct.h"

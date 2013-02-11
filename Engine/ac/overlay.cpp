@@ -12,6 +12,7 @@
 //
 //=============================================================================
 
+#include <stdio.h>
 #include "gfx/ali3d.h"
 #include "ac/overlay.h"
 #include "ac/common.h"

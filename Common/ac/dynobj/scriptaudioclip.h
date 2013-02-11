@@ -18,8 +18,6 @@
 #ifndef __AGS_CN_DYNOBJ__SCRIPTAUDIOCLIP_H
 #define __AGS_CN_DYNOBJ__SCRIPTAUDIOCLIP_H
 
-#include "util/file.h"
-
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 

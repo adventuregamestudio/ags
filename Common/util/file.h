@@ -18,18 +18,7 @@
 #ifndef __AGS_CN_UTIL__FILE_H
 #define __AGS_CN_UTIL__FILE_H
 
-#include <stdio.h>
-// TODO: other platforms?
-
-#if !defined (WINDOWS_VERSION)
-long int filelength(int fhandle);
-#endif
-
 #include "util/string.h"
-
-#if defined (WINDOWS_VERSION)
-#undef CreateFile  // undef the declaration from winbase.h
-#endif
 
 namespace AGS
 {
@@ -37,7 +26,7 @@ namespace Common
 {
 
 // Forward declarations
-class FileStream;
+class Stream;
 
 enum FileOpenMode
 {
@@ -65,20 +54,20 @@ namespace File
     // Sets FileOpenMode and FileWorkMode values corresponding to C-style file open mode string
     bool        GetFileModesFromCMode(const String &cmode, FileOpenMode &open_mode, FileWorkMode &work_mode);
 
-    FileStream *OpenFile(const String &filename, FileOpenMode open_mode, FileWorkMode work_mode);
+    Stream      *OpenFile(const String &filename, FileOpenMode open_mode, FileWorkMode work_mode);
     // Convenience helpers
     // Create a totally new file, overwrite existing one
-    inline FileStream *CreateFile(const String &filename)
+    inline Stream *CreateFile(const String &filename)
     {
         return OpenFile(filename, kFile_CreateAlways, kFile_Write);
     }
     // Open existing file for reading
-    inline FileStream *OpenFileRead(const String &filename)
+    inline Stream *OpenFileRead(const String &filename)
     {
         return OpenFile(filename, kFile_Open, kFile_Read);
     }
     // Open existing file for writing (append) or create if it does not exist
-    inline FileStream *OpenFileWrite(const String &filename)
+    inline Stream *OpenFileWrite(const String &filename)
     {
         return OpenFile(filename, kFile_Create, kFile_Write);
     }

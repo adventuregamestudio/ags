@@ -12,6 +12,7 @@
 //
 //=============================================================================
 
+#include <stdio.h>
 #include "ac/global_debug.h"
 #include "gfx/ali3d.h"
 #include "ac/common.h"

@@ -12,6 +12,7 @@
 //
 //=============================================================================
 
+#include <stdio.h>
 #include "event.h"
 #include "gfx/ali3d.h"
 #include "ac/common.h"

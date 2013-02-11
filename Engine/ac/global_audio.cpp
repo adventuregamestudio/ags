@@ -12,6 +12,7 @@
 //
 //=============================================================================
 
+#include <stdio.h>
 #include "ac/common.h"
 #include "ac/file.h"
 #include "ac/game.h"

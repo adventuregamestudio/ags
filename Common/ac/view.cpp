@@ -15,7 +15,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "ac/view.h"
-#include "util/file.h"
 #include "util/alignedstream.h"
 
 using AGS::Common::AlignedStream;

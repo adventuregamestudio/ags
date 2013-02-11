@@ -17,7 +17,6 @@
 
 #include "gui/guiobject.h"
 #include "gui/dynamicarray.h"
-#include "util/file.h"
 
 #define GBUT_ALIGN_TOPMIDDLE    0
 #define GBUT_ALIGN_TOPLEFT      1

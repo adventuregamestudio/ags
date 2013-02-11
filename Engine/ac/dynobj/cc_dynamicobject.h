@@ -19,7 +19,7 @@
 #ifndef __CC_DYNAMICOBJECT_H
 #define __CC_DYNAMICOBJECT_H
 
-#include "util/file.h"
+#include "core/types.h"
 
 // Forward declaration
 namespace AGS { namespace Common { class Stream; } }

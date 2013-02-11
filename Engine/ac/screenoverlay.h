@@ -19,7 +19,6 @@
 #define __AGS_EE_AC__SCREENOVERLAY_H
 
 #include "gfx/ali3d.h"
-#include "util/file.h"
 
 // Forward declaration
 namespace AGS { namespace Common { class Bitmap; class Stream; } }

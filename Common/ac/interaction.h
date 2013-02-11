@@ -16,7 +16,6 @@
 #define __AC_INTERACTION_H
 
 #include "ac/common_defines.h" // macros, typedef
-#include "util/file.h"
 
 // Forward declaration
 namespace AGS { namespace Common { class Stream; } }

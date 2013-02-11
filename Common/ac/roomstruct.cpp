@@ -18,7 +18,6 @@
 #include "ac/wordsdictionary.h"
 #include "util/string_utils.h"      // fputstring, etc
 #include "util/compress.h"
-#include "util/file.h"
 #include "util/stream.h"
 #include "gfx/bitmap.h"
 #include "core/assetmanager.h"

@@ -17,21 +17,17 @@
 #include "core/assetmanager.h"
 #include "debug/assert.h"
 #include "util/stream.h"
-#include "util/file.h"
 
 #if defined (WINDOWS_VERSION)
 #include <io.h>
 #else
-//#include "djcompat.h"
-#include "allegro.h"
+#include <allegro.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #endif
 
 #include "util/misc.h"
-
-
 #include "util/string_utils.h"
 
 namespace AGS

@@ -15,8 +15,6 @@
 #ifndef __AC_CUSTOMPROPERTIES_H
 #define __AC_CUSTOMPROPERTIES_H
 
-#include "util/file.h"
-
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 

@@ -12,6 +12,7 @@
 //
 //=============================================================================
 
+#include <stdio.h>
 #include "ac/global_region.h"
 #include "ac/common.h"
 #include "ac/draw.h"

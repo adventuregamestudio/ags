@@ -18,6 +18,7 @@
 
 // ********* WINDOWS *********
 
+#include <stdio.h>
 #include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/draw.h"
@@ -26,13 +27,14 @@
 #include "ac/global_display.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
+#include "gfx/graphicsdriver.h"
+#include "gfx/bitmap.h"
 #include "main/engine.h"
 #include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
+#include "util/file.h"
 #include "util/stream.h"
-#include "gfx/graphicsdriver.h"
-#include "gfx/bitmap.h"
 
 using AGS::Common::Stream;
 using AGS::Common::Bitmap;

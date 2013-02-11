@@ -19,7 +19,6 @@
 #include "util/compress.h"
 #include "util/lzw.h"
 #include "util/misc.h"
-#include "util/file.h"     // filelength()
 #include "util/bbop.h"
 
 #ifdef _MANAGED

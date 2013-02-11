@@ -2,6 +2,7 @@
 // Implementation for script specific to AGS.Native library
 //
 
+#include <stdio.h>
 #include "script/cc_error.h"
 
 extern int currentline; // in script/script_common

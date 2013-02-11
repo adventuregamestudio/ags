@@ -148,7 +148,7 @@ void quit_check_for_error_state(char *&qmsg, char *alertis)
         else
             sprintf(alertis,"An error has occurred. Please contact the game author for support, as this "
             "is likely to be a scripting error and not a bug in AGS.\n"
-            "(ACI version %s)\n\n", EngineVersion.AsString().GetCStr());
+            "(ACI version %s)\n\n", EngineVersion.LongString.GetCStr());
 
         strcat (alertis, get_cur_script(5) );
 
@@ -162,12 +162,12 @@ void quit_check_for_error_state(char *&qmsg, char *alertis)
 
         sprintf(alertis, "A warning has been generated. This is not normally fatal, but you have selected "
             "to treat warnings as errors.\n"
-            "(ACI version %s)\n\n%s\n", EngineVersion.AsString().GetCStr(), get_cur_script(5));
+            "(ACI version %s)\n\n%s\n", EngineVersion.LongString.GetCStr(), get_cur_script(5));
     }
     else sprintf(alertis,"An internal error has occurred. Please note down the following information.\n"
         "If the problem persists, post the details on the AGS Technical Forum.\n"
         "(ACI version %s)\n"
-        "\nError: ", EngineVersion.AsString().GetCStr());
+        "\nError: ", EngineVersion.LongString.GetCStr());
 }
 
 void quit_destroy_subscreen()

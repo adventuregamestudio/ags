@@ -362,7 +362,7 @@ void stop_recording() {
 
     Stream *replay_out = Common::File::CreateFile(replayfile);
     replay_out->Write ("AGSRecording", 12);
-    fputstring (EngineVersion.AsString(), replay_out);
+    fputstring (EngineVersion.LongString, replay_out);
     int write_version = 2;
     Stream *replay_temp_in = Common::File::OpenFileRead(replayTempFile);
     if (replay_temp_in) {

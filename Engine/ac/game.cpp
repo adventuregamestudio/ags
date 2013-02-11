@@ -1071,7 +1071,7 @@ void save_game_header(Stream *out)
 {
     // Write lowest forward-compatible version string, so that
     // earlier versions could load savedgames made by current engine
-    fputstring(SavedgameLowestForwardCompatVersion.AsString(), out);
+    fputstring(SavedgameLowestForwardCompatVersion.LongString, out);
     fputstring(usetup.main_data_filename, out);
 }
 

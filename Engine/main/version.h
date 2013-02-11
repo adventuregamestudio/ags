@@ -35,6 +35,9 @@ struct Version
     String  Special;
     String  BuildInfo;
 
+    String  LongString;
+    String  ShortString;
+
     Version();
     Version(int32_t major, int32_t minor, int32_t release);
     Version(int32_t major, int32_t minor, int32_t release, const String &special);
@@ -49,19 +52,6 @@ struct Version
     inline int32_t AsSmallNumber() const
     {
         return Major * 100 + Minor;
-    }
-
-    inline String AsString() const
-    {
-        if (Special.IsEmpty())
-            return String::FromFormat("%d.%d.%d", Major, Minor, Release);
-        else
-            return String::FromFormat("%d.%d.%d.%s", Major, Minor, Release, Special);
-    }
-
-    inline String AsShortString() const
-    {
-        return String::FromFormat("%d.%d", Major, Minor);
     }
 
     void SetFromString(const String &version_string);
@@ -95,6 +85,9 @@ struct Version
     {
         return AsNumber() != other.AsNumber();
     }
+
+private:
+    void MakeString();
 };
 
 } // namespace Engine

@@ -11,6 +11,7 @@ Version::Version()
     , Minor(0)
     , Release(0)
 {
+    MakeString();
 }
 
 Version::Version(int32_t major, int32_t minor, int32_t release)
@@ -18,6 +19,7 @@ Version::Version(int32_t major, int32_t minor, int32_t release)
     , Minor(minor)
     , Release(release)
 {
+    MakeString();
 }
 
 Version::Version(int32_t major, int32_t minor, int32_t release, const String &special)
@@ -26,6 +28,7 @@ Version::Version(int32_t major, int32_t minor, int32_t release, const String &sp
     , Release(release)
     , Special(special)
 {
+    MakeString();
 }
 
 Version::Version(int32_t major, int32_t minor, int32_t release, const String &special, const String &build_info)
@@ -35,6 +38,7 @@ Version::Version(int32_t major, int32_t minor, int32_t release, const String &sp
     , Special(special)
     , BuildInfo(build_info)
 {
+    MakeString();
 }
 
 Version::Version(const String &version_string)
@@ -51,6 +55,16 @@ void Version::SetFromString(const String &version_string)
     Minor = version_string.Section('.', 1, 2).ToInt();
     Release = version_string.Section('.', 2, 3).ToInt();
     Special = version_string.Section('.', 3, 4);
+    MakeString();
+}
+
+void Version::MakeString()
+{
+    if (Special.IsEmpty())
+        LongString.Format("%d.%d.%d", Major, Minor, Release);
+    else
+        LongString.Format("%d.%d.%d.%s", Major, Minor, Release, Special);
+    ShortString.Format("%d.%d", Major, Minor);
 }
 
 } // namespace Engine

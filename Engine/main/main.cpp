@@ -381,9 +381,9 @@ int main(int argc,char*argv[]) {
            "Copyright (c) 1999-2011 Chris Jones and 2011-20xx others\n"
 #ifdef BUILD_STR
            "ACI version %s (Build: %s)\n",
-           EngineVersion.AsShortString().GetCStr(), EngineVersion.AsString().GetCStr(), EngineVersion.BuildInfo.GetCStr());
+           EngineVersion.ShortString.GetCStr(), EngineVersion.LongString.GetCStr(), EngineVersion.BuildInfo.GetCStr());
 #else
-           "ACI version %s\n", EngineVersion.AsShortString().GetCStr(), EngineVersion.AsString().GetCStr());
+           "ACI version %s\n", EngineVersion.ShortString.GetCStr(), EngineVersion.LongString.GetCStr());
 #endif
 
     if ((argc>1) && (stricmp(argv[1],"--help") == 0 || argv[1][1]=='?')) {

@@ -157,14 +157,14 @@ int game_file_read_version(Stream *in)
 
     if (filever > kGameVersion_Current) {
         platform->DisplayAlert("This game requires a newer version of AGS (%s). It cannot be run.",
-            requested_engine_version.AsString().GetCStr());
+            requested_engine_version.LongString.GetCStr());
         delete in;
         return -2;
     }
 
     if (requested_engine_version > EngineVersion)
         platform->DisplayAlert("This game requires a newer version of AGS (%s). It may not run correctly.",
-        requested_engine_version.AsString().GetCStr());
+        requested_engine_version.LongString.GetCStr());
 
     loaded_game_file_version = filever;
 

@@ -131,6 +131,8 @@ public:
 
     int     FindChar(char c, int from = 0) const;
     int     FindCharReverse(char c, int from = -1) const;
+    bool    FindSection(char separator, int first, int last, bool exclude_first_sep, bool exclude_last_sep,
+                        int &from, int &to) const;
 
     char    GetAt(int index) const;
     char    GetLast() const;
@@ -158,6 +160,14 @@ public:
     // Extract N rightmost characters
     String  Right(int count) const;
 
+    // Extract leftmost part, separated by the given char
+    String  LeftSection(char separator, bool exclude_separator = true) const;
+    // Extract rightmost part, separated by the given char
+    String  RightSection(char separator, bool exclude_separator = true) const;
+    // Extract the section between Xth and Yth appearance of the given character
+    String  Section(char separator, int first, int last,
+                              bool exclude_first_sep = true, bool exclude_last_sep = true) const;
+
     //-------------------------------------------------------------------------
     // String modification methods
     //-------------------------------------------------------------------------
@@ -183,12 +193,12 @@ public:
     // Cuts off rightmost N characters
     void    ClipRight(int count);
     // Cuts off leftmost part, separated by the given char
-    void    ClipLeftSection(char separator, bool extract_separator = true);
+    void    ClipLeftSection(char separator, bool include_separator = true);
     // Cuts off rightmost part, separated by the given char
-    void    ClipRightSection(char separator, bool extract_separator = true);
+    void    ClipRightSection(char separator, bool include_separator = true);
     // Cuts out the section between Xth and Yth appearance of the given character
     void    ClipSection(char separator, int first, int last,
-                              bool extract_first_sep = true, bool extract_last_sep = true);
+                              bool include_first_sep = true, bool include_last_sep = true);
     // Sets string length to zero
     void    Empty();
     // Makes a new string by filling N chars with certain value
@@ -226,13 +236,13 @@ public:
     // Truncate the string to the rightmost N characters
     void    TruncateToRight(int count);
     // Truncate the string to the leftmost part, separated by the given char
-    void    TruncateToLeftSection(char separator, bool extract_separator = true);
+    void    TruncateToLeftSection(char separator, bool exclude_separator = true);
     // Truncate the string to the rightmost part, separated by the given char
-    void    TruncateToRightSection(char separator, bool extract_separator = true);
+    void    TruncateToRightSection(char separator, bool exclude_separator = true);
     // Truncate the string to the section between Xth and Yth appearance of
     // the given character
     void    TruncateToSection(char separator, int first, int last,
-                              bool extract_first_sep = true, bool extract_last_sep = true);
+                              bool exclude_first_sep = true, bool exclude_last_sep = true);
 
     //-------------------------------------------------------------------------
     // Operators

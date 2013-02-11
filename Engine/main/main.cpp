@@ -87,7 +87,6 @@ bool justRegisterGame = false;
 bool justUnRegisterGame = false;
 const char *loadSaveGameOnStartup = NULL;
 
-
 #if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
 int psp_video_framedrop = 1;
 int psp_audio_enabled = 1;
@@ -117,8 +116,47 @@ void main_create_platform_driver()
     platform = AGSPlatformDriver::GetDriver();
 }
 
+/*// Version and build numbers
+#define AC_VERSION_TEXT "3.21 "
+#define ACI_VERSION_TEXT "3.21.1115"SPECIAL_VERSION
+// this needs to be updated if the "play" struct changes
+#define LOWEST_SGVER_COMPAT "3.20.1103"SPECIAL_VERSION
+*/
+#define ACI_VERSION_MAJOR   3
+#define ACI_VERSION_MINOR   21
+#define ACI_VERSION_RELEASE 1115
+#ifdef NO_MP3_PLAYER
+#define SPECIAL_VERSION "NMP"
+#else
+#define SPECIAL_VERSION ""
+#endif
+
+// this needs to be updated if the "play" struct changes
+#define SVG_VERSION_BWCOMPAT_MAJOR   3
+#define SVG_VERSION_BWCOMPAT_MINOR   20
+#define SVG_VERSION_BWCOMPAT_RELEASE 1103
+
+#define SVG_VERSION_FWCOMPAT_MAJOR   3
+#define SVG_VERSION_FWCOMPAT_MINOR   21
+#define SVG_VERSION_FWCOMPAT_RELEASE 1115
+
+// Current engine version
+AGS::Engine::Version EngineVersion;
+// Lowest savedgame version, accepted by this engine
+AGS::Engine::Version SavedgameLowestBackwardCompatVersion;
+// Lowest engine version, which would accept current savedgames
+AGS::Engine::Version SavedgameLowestForwardCompatVersion;
+
 void main_init()
 {
+#if defined (BUILD_STR)
+    EngineVersion = Version(ACI_VERSION_MAJOR, ACI_VERSION_MINOR, ACI_VERSION_RELEASE, SPECIAL_VERSION, BUILD_STR);
+#else
+    EngineVersion = Version(ACI_VERSION_MAJOR, ACI_VERSION_MINOR, ACI_VERSION_RELEASE, SPECIAL_VERSION);
+#endif
+    SavedgameLowestBackwardCompatVersion = Version(SVG_VERSION_BWCOMPAT_MAJOR, SVG_VERSION_BWCOMPAT_MINOR, SVG_VERSION_BWCOMPAT_RELEASE);
+    SavedgameLowestForwardCompatVersion = Version(SVG_VERSION_FWCOMPAT_MAJOR, SVG_VERSION_FWCOMPAT_MINOR, SVG_VERSION_FWCOMPAT_RELEASE);
+
     Common::AssetManager::CreateInstance();
     main_pre_init();
     main_create_platform_driver();
@@ -339,12 +377,13 @@ int main(int argc,char*argv[]) {
 
     initialize_debug_system();
 
-    Out::FPrint("Adventure Game Studio v%sInterpreter\n"
+    Out::FPrint("Adventure Game Studio v%s Interpreter\n"
            "Copyright (c) 1999-2011 Chris Jones and 2011-20xx others\n"
 #ifdef BUILD_STR
-           "ACI version %s (Build: %s)\n", AC_VERSION_TEXT, ACI_VERSION_TEXT, BUILD_STR);
+           "ACI version %s (Build: %s)\n",
+           EngineVersion.AsShortString().GetCStr(), EngineVersion.AsString().GetCStr(), EngineVersion.BuildInfo.GetCStr());
 #else
-           "ACI version %s\n", AC_VERSION_TEXT, ACI_VERSION_TEXT);
+           "ACI version %s\n", EngineVersion.AsShortString().GetCStr(), EngineVersion.AsString().GetCStr());
 #endif
 
     if ((argc>1) && (stricmp(argv[1],"--help") == 0 || argv[1][1]=='?')) {

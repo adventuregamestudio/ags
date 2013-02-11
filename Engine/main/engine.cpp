@@ -703,10 +703,10 @@ void engine_init_debug()
 void atexit_handler() {
     if (proper_exit==0) {
         sprintf(pexbuf,"\nError: the program has exited without requesting it.\n"
-            "Program pointer: %+03d  (write this number down), ACI version " ACI_VERSION_TEXT "\n"
+            "Program pointer: %+03d  (write this number down), ACI version %s\n"
             "If you see a list of numbers above, please write them down and contact\n"
             "Chris Jones. Otherwise, note down any other information displayed.\n",
-            our_eip);
+            EngineVersion.AsString().GetCStr(), our_eip);
         platform->DisplayAlert(pexbuf);
     }
 
@@ -1215,7 +1215,8 @@ void engine_init_game_shit()
     scsystem.vsync = 0;
     scsystem.viewport_width = divide_down_coordinate(scrnwid);
     scsystem.viewport_height = divide_down_coordinate(scrnhit);
-    strcpy(scsystem.aci_version, ACI_VERSION_TEXT);
+    // ScriptSystem::aci_version is only 10 chars long
+    strncpy(scsystem.aci_version, EngineVersion.AsString(), 10);
     scsystem.os = platform->GetSystemOSID();
 
     if (usetup.windowed)
@@ -1507,5 +1508,5 @@ int initialize_engine_with_exception_handling(int argc,char*argv[])
 }
 
 const char *get_engine_version() {
-    return ACI_VERSION_TEXT;
+    return EngineVersion.AsString().GetCStr();
 }

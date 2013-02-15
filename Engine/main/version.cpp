@@ -63,7 +63,7 @@ void Version::MakeString()
     if (Special.IsEmpty())
         LongString.Format("%d.%d.%d", Major, Minor, Release);
     else
-        LongString.Format("%d.%d.%d.%s", Major, Minor, Release, Special);
+        LongString.Format("%d.%d.%d.%s", Major, Minor, Release, Special.GetCStr());
     ShortString.Format("%d.%d", Major, Minor);
 }
 

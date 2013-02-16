@@ -116,15 +116,10 @@ void main_create_platform_driver()
     platform = AGSPlatformDriver::GetDriver();
 }
 
-/*// Version and build numbers
-#define AC_VERSION_TEXT "3.21 "
-#define ACI_VERSION_TEXT "3.21.1115"SPECIAL_VERSION
-// this needs to be updated if the "play" struct changes
-#define LOWEST_SGVER_COMPAT "3.20.1103"SPECIAL_VERSION
-*/
+// Version and build numbers
 #define ACI_VERSION_MAJOR   3
-#define ACI_VERSION_MINOR   21
-#define ACI_VERSION_RELEASE 1115
+#define ACI_VERSION_MINOR   30
+#define ACI_VERSION_RELEASE 0
 #ifdef NO_MP3_PLAYER
 #define SPECIAL_VERSION "NMP"
 #else
@@ -135,10 +130,11 @@ void main_create_platform_driver()
 #define SVG_VERSION_BWCOMPAT_MAJOR   3
 #define SVG_VERSION_BWCOMPAT_MINOR   20
 #define SVG_VERSION_BWCOMPAT_RELEASE 1103
-
+// CHECKME: we may lower this down, if we find that earlier versions may still
+// load new savedgames
 #define SVG_VERSION_FWCOMPAT_MAJOR   3
 #define SVG_VERSION_FWCOMPAT_MINOR   21
-#define SVG_VERSION_FWCOMPAT_RELEASE 1115
+#define SVG_VERSION_FWCOMPAT_RELEASE 1111
 
 // Current engine version
 AGS::Engine::Version EngineVersion;

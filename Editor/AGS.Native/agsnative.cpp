@@ -1987,7 +1987,7 @@ void save_room(const char *files, roomstruct rstruc) {
     quit("save_room: unable to open room file for writing.");
 
   rfh.version = (RoomFileVersion)rstruc.wasversion; //ROOM_FILE_VERSION;
-  opty->WriteArray(&rfh,sizeof(room_file_header),1);
+  rfh.WriteFromFile(opty);
 
   if (rfh.version >= 5) {
     long blsii = 0;

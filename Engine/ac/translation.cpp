@@ -144,7 +144,7 @@ bool init_translation (const char *lang) {
             }
         }
         else
-            quit("Unknown Bitmap *type in translation file.");
+            quit("Unknown block type in translation file.");
     }
 
     delete language_file;

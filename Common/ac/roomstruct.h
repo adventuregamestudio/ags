@@ -198,6 +198,7 @@ struct roomstruct {
 struct room_file_header {
     RoomFileVersion version;
     void ReadFromFile(Common::Stream *in);
+    void WriteFromFile(Common::Stream *out);
 };
 
 extern int _acroom_bpp;  // bytes per pixel of currently loading room

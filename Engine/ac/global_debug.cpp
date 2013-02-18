@@ -153,7 +153,7 @@ void script_debug(int cmdd,int dataa) {
             short srcy=short(cmls->pos[i] & 0x00ffff);
             short targetx=short((cmls->pos[i+1] >> 16) & 0x00ffff);
             short targety=short(cmls->pos[i+1] & 0x00ffff);
-            tempw->DrawLine(Line(srcx, srcy, targetx, targety), get_col8_lookup(i+1));
+            tempw->DrawLine(Line(srcx, srcy, targetx, targety), get_col8_lookup(i+1, GetVirtualScreenGraphics()->Bmp->GetColorDepth()));
         }
 		BitmapHelper::GetScreenBitmap()->StretchBlt(tempw,
 			RectWH(-offsetx, -offsety, multiply_up_coordinate(tempw->GetWidth()), multiply_up_coordinate(tempw->GetHeight())),

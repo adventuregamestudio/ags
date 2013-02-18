@@ -198,15 +198,15 @@ void DrawingSurface_DrawSurface(ScriptDrawingSurface* target, ScriptDrawingSurfa
     if ((translev < 0) || (translev > 99))
         quit("!DrawingSurface.DrawSurface: invalid parameter (transparency must be 0-99)");
 
-    target->StartDrawing();
+    Common::Graphics *g = target->StartDrawing();
     Bitmap *surfaceToDraw = source->GetBitmapSurface();
 
-    if (surfaceToDraw == abuf)
+    if (surfaceToDraw == g->Bmp)
         quit("!DrawingSurface.DrawSurface: cannot draw surface onto itself");
 
     if (translev == 0) {
         // just draw it over the top, no transparency
-        abuf->Blit(surfaceToDraw, 0, 0, 0, 0, surfaceToDraw->GetWidth(), surfaceToDraw->GetHeight());
+        g->Bmp->Blit(surfaceToDraw, 0, 0, 0, 0, surfaceToDraw->GetWidth(), surfaceToDraw->GetHeight());
         target->FinishedDrawing();
         return;
     }
@@ -216,7 +216,7 @@ void DrawingSurface_DrawSurface(ScriptDrawingSurface* target, ScriptDrawingSurfa
 
     // Draw it transparently
     trans_mode = ((100-translev) * 25) / 10;
-    put_sprite_256(0, 0, surfaceToDraw);
+    put_sprite_256(g, 0, 0, surfaceToDraw);
     target->FinishedDrawing();
 }
 
@@ -256,11 +256,11 @@ void DrawingSurface_DrawImage(ScriptDrawingSurface* sds, int xx, int yy, int slo
         update_polled_stuff_if_runtime();
     }
 
-    sds->StartDrawing();
+    Common::Graphics *g = sds->StartDrawing();
     sds->MultiplyCoordinates(&xx, &yy);
 
-    if (sourcePic->GetColorDepth() != abuf->GetColorDepth()) {
-        debug_log("RawDrawImage: Sprite %d colour depth %d-bit not same as background depth %d-bit", slot, spriteset[slot]->GetColorDepth(), abuf->GetColorDepth());
+    if (sourcePic->GetColorDepth() != g->Bmp->GetColorDepth()) {
+        debug_log("RawDrawImage: Sprite %d colour depth %d-bit not same as background depth %d-bit", slot, spriteset[slot]->GetColorDepth(), g->Bmp->GetColorDepth());
     }
 
     if (trans > 0)
@@ -268,7 +268,7 @@ void DrawingSurface_DrawImage(ScriptDrawingSurface* sds, int xx, int yy, int slo
         trans_mode = ((100 - trans) * 255) / 100;
     }
 
-    draw_sprite_support_alpha(xx, yy, sourcePic, slot);
+    draw_sprite_support_alpha(g, xx, yy, sourcePic, slot);
 
     sds->FinishedDrawing();
 
@@ -280,16 +280,16 @@ void DrawingSurface_DrawImage(ScriptDrawingSurface* sds, int xx, int yy, int slo
 void DrawingSurface_SetDrawingColor(ScriptDrawingSurface *sds, int newColour) 
 {
     sds->currentColourScript = newColour;
-    // StartDrawing to set up abuf to set the colour at the appropriate
+    // StartDrawing to set up g->Bmp to set the colour at the appropriate
     // depth for the background
-    sds->StartDrawing();
+    Common::Graphics *g = sds->StartDrawing();
     if (newColour == SCR_COLOR_TRANSPARENT)
     {
-        sds->currentColour = abuf->GetMaskColor();
+        sds->currentColour = g->Bmp->GetMaskColor();
     }
     else
     {
-        sds->currentColour = get_col8_lookup(newColour);
+        sds->currentColour = get_col8_lookup(newColour, g->Bmp->GetColorDepth());
     }
     sds->FinishedDrawingReadOnly();
 }
@@ -311,8 +311,8 @@ int DrawingSurface_GetUseHighResCoordinates(ScriptDrawingSurface *sds)
 
 int DrawingSurface_GetHeight(ScriptDrawingSurface *sds) 
 {
-    sds->StartDrawing();
-    int height = abuf->GetHeight();
+    Common::Graphics *g = sds->StartDrawing();
+    int height = g->Bmp->GetHeight();
     sds->FinishedDrawingReadOnly();
     sds->UnMultiplyThickness(&height);
     return height;
@@ -320,8 +320,8 @@ int DrawingSurface_GetHeight(ScriptDrawingSurface *sds)
 
 int DrawingSurface_GetWidth(ScriptDrawingSurface *sds) 
 {
-    sds->StartDrawing();
-    int width = abuf->GetWidth();
+    Common::Graphics *g = sds->StartDrawing();
+    int width = g->Bmp->GetWidth();
     sds->FinishedDrawingReadOnly();
     sds->UnMultiplyThickness(&width);
     return width;
@@ -329,17 +329,17 @@ int DrawingSurface_GetWidth(ScriptDrawingSurface *sds)
 
 void DrawingSurface_Clear(ScriptDrawingSurface *sds, int colour)
 {
-    sds->StartDrawing();
+    Common::Graphics *g = sds->StartDrawing();
     int allegroColor;
     if ((colour == -SCR_NO_VALUE) || (colour == SCR_COLOR_TRANSPARENT))
     {
-        allegroColor = abuf->GetMaskColor();
+        allegroColor = g->Bmp->GetMaskColor();
     }
     else
     {
-        allegroColor = get_col8_lookup(colour);
+        allegroColor = get_col8_lookup(colour, g->Bmp->GetColorDepth());
     }
-    abuf->Clear(allegroColor);
+    g->Bmp->Clear(allegroColor);
     sds->FinishedDrawing();
 }
 
@@ -348,8 +348,8 @@ void DrawingSurface_DrawCircle(ScriptDrawingSurface *sds, int x, int y, int radi
     sds->MultiplyCoordinates(&x, &y);
     sds->MultiplyThickness(&radius);
 
-    sds->StartDrawing();
-    abuf->FillCircle(Circle(x, y, radius), sds->currentColour);
+    Common::Graphics *g = sds->StartDrawing();
+    g->Bmp->FillCircle(Circle(x, y, radius), sds->currentColour);
     sds->FinishedDrawing();
 }
 
@@ -358,8 +358,8 @@ void DrawingSurface_DrawRectangle(ScriptDrawingSurface *sds, int x1, int y1, int
     sds->MultiplyCoordinates(&x1, &y1);
     sds->MultiplyCoordinates(&x2, &y2);
 
-    sds->StartDrawing();
-    abuf->FillRect(Rect(x1,y1,x2,y2), sds->currentColour);
+    Common::Graphics *g = sds->StartDrawing();
+    g->Bmp->FillRect(Rect(x1,y1,x2,y2), sds->currentColour);
     sds->FinishedDrawing();
 }
 
@@ -369,8 +369,8 @@ void DrawingSurface_DrawTriangle(ScriptDrawingSurface *sds, int x1, int y1, int 
     sds->MultiplyCoordinates(&x2, &y2);
     sds->MultiplyCoordinates(&x3, &y3);
 
-    sds->StartDrawing();
-    abuf->DrawTriangle(Triangle(x1,y1,x2,y2,x3,y3), sds->currentColour);
+    Common::Graphics *g = sds->StartDrawing();
+    g->Bmp->DrawTriangle(Triangle(x1,y1,x2,y2,x3,y3), sds->currentColour);
     sds->FinishedDrawing();
 }
 
@@ -381,17 +381,16 @@ void DrawingSurface_DrawString(ScriptDrawingSurface *sds, int xx, int yy, int fo
     va_start(ap,texx);
     vsprintf(displbuf, get_translation(texx), ap);
     va_end(ap);
-    // don't use wtextcolor because it will do a 16->32 conversion
-    textcol = sds->currentColour;
-
+    
     sds->MultiplyCoordinates(&xx, &yy);
-    sds->StartDrawing();
-    wtexttransparent(TEXTFG);
-    if ((abuf->GetColorDepth() <= 8) && (play.raw_color > 255)) {
-        wtextcolor(1);
+    Common::Graphics *g = sds->StartDrawing();
+    // don't use wtextcolor because it will do a 16->32 conversion
+    g->SetTextColorExact( sds->currentColour );
+    if ((g->Bmp->GetColorDepth() <= 8) && (play.raw_color > 255)) {
+        g->SetTextColor(1);
         debug_log ("RawPrint: Attempted to use hi-color on 256-col background");
     }
-    wouttext_outline(xx, yy, font, displbuf);
+    wouttext_outline(g, xx, yy, font, displbuf);
     sds->FinishedDrawing();
 }
 
@@ -402,10 +401,9 @@ void DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *sds, int xx, int yy,
 
     break_up_text_into_lines(wid, font, (char*)msg);
 
-    textcol = sds->currentColour;
-    sds->StartDrawing();
+    Common::Graphics *g = sds->StartDrawing();
+    g->SetTextColorExact( sds->currentColour );
 
-    wtexttransparent(TEXTFG);
     for (int i = 0; i < numlines; i++)
     {
         int drawAtX = xx;
@@ -419,7 +417,7 @@ void DrawingSurface_DrawStringWrapped(ScriptDrawingSurface *sds, int xx, int yy,
             drawAtX = (xx + wid) - wgettextwidth(lines[i], font);
         }
 
-        wouttext_outline(drawAtX, yy + texthit*i, font, lines[i]);
+        wouttext_outline(g, drawAtX, yy + texthit*i, font, lines[i]);
     }
 
     sds->FinishedDrawing();
@@ -441,7 +439,7 @@ void DrawingSurface_DrawLine(ScriptDrawingSurface *sds, int fromx, int fromy, in
     sds->MultiplyCoordinates(&tox, &toy);
     sds->MultiplyThickness(&thickness);
     int ii,jj,xx,yy;
-    sds->StartDrawing();
+    Common::Graphics *g = sds->StartDrawing();
     // draw several lines to simulate the thickness
     for (ii = 0; ii < thickness; ii++) 
     {
@@ -449,7 +447,7 @@ void DrawingSurface_DrawLine(ScriptDrawingSurface *sds, int fromx, int fromy, in
         for (jj = 0; jj < thickness; jj++)
         {
             yy = (jj - (thickness / 2));
-            abuf->DrawLine (Line(fromx + xx, fromy + yy, tox + xx, toy + yy), sds->currentColour);
+            g->Bmp->DrawLine (Line(fromx + xx, fromy + yy, tox + xx, toy + yy), sds->currentColour);
         }
     }
     sds->FinishedDrawing();
@@ -460,13 +458,13 @@ void DrawingSurface_DrawPixel(ScriptDrawingSurface *sds, int x, int y) {
     int thickness = 1;
     sds->MultiplyThickness(&thickness);
     int ii,jj;
-    sds->StartDrawing();
+    Common::Graphics *g = sds->StartDrawing();
     // draw several pixels to simulate the thickness
     for (ii = 0; ii < thickness; ii++) 
     {
         for (jj = 0; jj < thickness; jj++)
         {
-            abuf->PutPixel(x + ii, y + jj, sds->currentColour);
+            g->Bmp->PutPixel(x + ii, y + jj, sds->currentColour);
         }
     }
     sds->FinishedDrawing();
@@ -474,10 +472,10 @@ void DrawingSurface_DrawPixel(ScriptDrawingSurface *sds, int x, int y) {
 
 int DrawingSurface_GetPixel(ScriptDrawingSurface *sds, int x, int y) {
     sds->MultiplyCoordinates(&x, &y);
-    sds->StartDrawing();
-    unsigned int rawPixel = abuf->GetPixel(x, y);
-    unsigned int maskColor = abuf->GetMaskColor();
-    int colDepth = abuf->GetColorDepth();
+    Common::Graphics *g = sds->StartDrawing();
+    unsigned int rawPixel = g->Bmp->GetPixel(x, y);
+    unsigned int maskColor = g->Bmp->GetMaskColor();
+    int colDepth = g->Bmp->GetColorDepth();
 
     if (rawPixel == maskColor)
     {

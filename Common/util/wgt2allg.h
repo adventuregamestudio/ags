@@ -44,39 +44,45 @@ using namespace AGS; // FIXME later
 #endif
 
 #define color RGB
-#define TEXTFG    0
-#define TEXTBG    1
 
 //=============================================================================
+
+#include "gfx/graphics.h"
+
+extern Common::Graphics *SetVirtualScreen(Common::Bitmap *nss);
+// CHECKME: temporary solution for plugin system
+extern Common::Graphics *SetVirtualScreenRaw(BITMAP *nss);
+// Not physically a screen graphics, but rather what counts as one at this moment
+extern Common::Graphics *GetVirtualScreenGraphics();
+extern Common::Bitmap *GetVirtualScreenBitmap();
+
+// [IKM] 2012-09-13: this function is now defined in engine and editor separately
+extern void __my_setcolor(int *ctset, int newcol, int wantColDep);
+extern int get_col8_lookup(int nval, int wantColDep);
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-    extern int currentcolor;
+    //extern int currentcolor;
     extern int vesa_xres, vesa_yres;
-    extern Common::Bitmap *abuf;
+    //extern Common::Bitmap *abuf;
 
-    extern void wsetscreen(Common::Bitmap *nss);
-	// CHECKME: temporary solution for plugin system
-	extern void wsetscreen_raw(BITMAP *nss);
+    
     extern void wsetrgb(int coll, int r, int g, int b, color * pall);
     extern void wcolrotate(unsigned char start, unsigned char finish, int dir, color * pall);
 
-    extern Common::Bitmap *wnewblock(int x1, int y1, int x2, int y2);
+    extern Common::Bitmap *wnewblock(Common::Bitmap *src, int x1, int y1, int x2, int y2);
 
     extern int wloadsprites(color * pall, char *filnam, Common::Bitmap ** sarray, int strt, int eend);
 
-	extern void wputblock(int xx, int yy, Common::Bitmap *bll, int xray);
+    extern void wputblock(Common::Graphics *g, int xx, int yy, Common::Bitmap *bll, int xray);
 	// CHECKME: temporary solution for plugin system
-	extern void wputblock_raw(int xx, int yy, BITMAP *bll, int xray);
+	extern void wputblock_raw(Common::Graphics *g, int xx, int yy, BITMAP *bll, int xray);
     extern const int col_lookups[32];
 
-	// [IKM] 2012-09-13: this function is now defined in engine and editor separately
-    extern void __my_setcolor(int *ctset, int newcol);
-    extern void wsetcolor(int nval);
-    extern int get_col8_lookup(int nval);
+    //extern void wsetcolor(int nval);
 
     extern int __wremap_keep_transparent;
     extern void wremap(color * pal1, Common::Bitmap *picc, color * pal2);

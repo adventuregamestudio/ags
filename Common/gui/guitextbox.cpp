@@ -45,19 +45,19 @@ void GUITextBox::ReadFromFile(Stream *in, int version)
     textcol = 16;
 }
 
-void GUITextBox::Draw()
+void GUITextBox::Draw(Common::Graphics *g)
 {
 
   check_font(&font);
-  wtextcolor(textcol);
-  wsetcolor(textcol);
+  g->SetTextColor(textcol);
+  g->SetColor(textcol);
   if ((exflags & GTF_NOBORDER) == 0) {
-    abuf->DrawRect(Rect(x, y, x + wid - 1, y + hit - 1), currentcolor);
+    g->Bmp->DrawRect(Rect(x, y, x + wid - 1, y + hit - 1), g->DrawColor);
     if (get_fixed_pixel_size(1) > 1)
-      abuf->DrawRect(Rect(x + 1, y + 1, x + wid - get_fixed_pixel_size(1), y + hit - get_fixed_pixel_size(1)), currentcolor);
+      g->Bmp->DrawRect(Rect(x + 1, y + 1, x + wid - get_fixed_pixel_size(1), y + hit - get_fixed_pixel_size(1)), g->DrawColor);
   }
 
-  Draw_text_box_contents();
+  Draw_text_box_contents(g);
 }
 
 void GUITextBox::KeyPress(int kp)

@@ -740,9 +740,9 @@ void engine_init_pathfinder()
 
 void engine_pre_init_gfx()
 {
-    Out::FPrint("Initialize gfx");
+    //Out::FPrint("Initialize gfx");
 
-    platform->InitialiseAbufAtStartup();
+    //platform->InitialiseAbufAtStartup();
 }
 
 int engine_load_game_data()
@@ -903,7 +903,6 @@ void engine_init_modxm_player()
 void show_preload () {
     // ** Do the preload graphic if available
     color temppal[256];
-    // TODO: hide allegro call in helper function
 	Bitmap *splashsc = BitmapHelper::CreateRawBitmapOwner( load_pcx("preload.pcx",temppal) );
     if (splashsc != NULL) {
         if (splashsc->GetColorDepth() == 8)
@@ -965,7 +964,8 @@ void engine_setup_screen()
     virtual_screen->Clear();
     gfxDriver->SetMemoryBackBuffer(virtual_screen);
     //  ignore_mouseoff_bitmap = virtual_screen;
-	abuf=BitmapHelper::GetScreenBitmap();
+    Common::Graphics *g = GetVirtualScreenGraphics();
+	g->SetBitmap(BitmapHelper::GetScreenBitmap());
     our_eip=-7;
 
     for (int ee = 0; ee < MAX_INIT_SPR + game.numcharacters; ee++)
@@ -1234,7 +1234,7 @@ void engine_init_game_shit()
     our_eip=-4;
     mousey=100;  // stop icon bar popping up
     init_invalid_regions(final_scrn_hit);
-    wsetscreen(virtual_screen);
+    SetVirtualScreen(virtual_screen);
     our_eip = -41;
 
     gfxDriver->SetRenderOffset(get_screen_x_adjustment(virtual_screen), get_screen_y_adjustment(virtual_screen));
@@ -1275,14 +1275,13 @@ void engine_prepare_to_start_game()
 }
 
 // TODO: move to test unit
-#include "gfx/allegrobitmap.h"
 Bitmap *test_allegro_bitmap;
 IDriverDependantBitmap *test_allegro_ddb;
 void allegro_bitmap_test_init()
 {
 	test_allegro_bitmap = NULL;
 	// Switched the test off for now
-	//test_allegro_bitmap = BitmapHelper::CreateBitmap(320,200,32);
+	//test_allegro_bitmap = AllegroBitmap::CreateBitmap(320,200,32);
 }
 
 int initialize_engine(int argc,char*argv[])
@@ -1374,7 +1373,7 @@ int initialize_engine(int argc,char*argv[])
 
     engine_init_pathfinder();
 
-    engine_pre_init_gfx();
+    //engine_pre_init_gfx();
 
     LOCK_VARIABLE(timerloop);
     LOCK_FUNCTION(dj_timer_handler);

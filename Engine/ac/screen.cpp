@@ -79,7 +79,8 @@ void current_fade_out_effect () {
     else 
     {
         get_palette(old_palette);
-        temp_virtual = BitmapHelper::CreateBitmap(virtual_screen->GetWidth(),virtual_screen->GetHeight(),abuf->GetColorDepth());
+        Common::Graphics *g = GetVirtualScreenGraphics();
+        temp_virtual = BitmapHelper::CreateBitmap(virtual_screen->GetWidth(),virtual_screen->GetHeight(),g->Bmp->GetColorDepth());
         //->Blit(abuf,temp_virtual,0,0,0,0,abuf->GetWidth(),abuf->GetHeight());
         gfxDriver->GetCopyOfScreenIntoBitmap(temp_virtual);
     }

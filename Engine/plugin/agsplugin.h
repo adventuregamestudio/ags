@@ -46,7 +46,7 @@ typedef void *LPDIRECTINPUTDEVICE;
 #endif
 
 // If the user isn't using Allegro or WinGDI, define the BITMAP into something
-#if !defined(ALLEGRO_H) && !defined(_WINGDI_)
+#if !defined(ALLEGRO_H) && !defined(_WINGDI_) && !defined(BITMAP_DEFINED)
 typedef char BITMAP;
 #endif
 

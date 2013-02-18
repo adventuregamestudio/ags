@@ -24,6 +24,7 @@
 #include "gfx/bitmap.h"
 
 struct BITMAP;
+#define BITMAP_DEFINED
 
 namespace AGS
 {
@@ -36,7 +37,7 @@ public:
 	Bitmap();
     Bitmap(int width, int height, int color_depth = 0);
     Bitmap(Bitmap *src, const Rect &rc);
-    Bitmap(BITMAP *al_bmp, bool shared_data = false);
+    Bitmap(BITMAP *al_bmp, bool shared_data);
 	virtual ~Bitmap();
 
     // Allocate new bitmap
@@ -47,7 +48,7 @@ public:
     // Allow this object to share existing bitmap data
 	virtual bool	CreateSubBitmap(Bitmap *src, const Rect &rc);
 	// TODO: a temporary solution for plugin support
-	bool			WrapAllegroBitmap(BITMAP *al_bmp, bool shared_data = false);
+	bool			WrapAllegroBitmap(BITMAP *al_bmp, bool shared_data);
     // Deallocate bitmap
     virtual void	Destroy();
 

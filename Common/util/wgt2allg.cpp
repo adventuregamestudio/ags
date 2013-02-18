@@ -23,37 +23,61 @@ using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 using AGS::Common::Stream;
 
+  Common::Graphics gl_VirtualScreenGraphics;
+  Common::Graphics *SetVirtualScreen(Bitmap *bitmap)
+  {
+    if (bitmap == NULL)
+    {
+      gl_VirtualScreenGraphics.SetBitmap(BitmapHelper::GetScreenBitmap());
+    }
+    else
+    {
+      gl_VirtualScreenGraphics.SetBitmap(bitmap);
+    }
+    return &gl_VirtualScreenGraphics;
+  }
+
+  // [IKM] A very, very dangerous stuff!
+  Bitmap gl_VirtualScreenWrapper;
+  Common::Graphics *SetVirtualScreenRaw(BITMAP *allegro_bitmap)
+  {
+    gl_VirtualScreenWrapper.WrapAllegroBitmap(allegro_bitmap, true);
+    if (allegro_bitmap == NULL)
+    {
+      gl_VirtualScreenGraphics.SetBitmap(BitmapHelper::GetScreenBitmap());
+	}
+	else
+    {
+      gl_VirtualScreenGraphics.SetBitmap(&gl_VirtualScreenWrapper);
+	}
+    return &gl_VirtualScreenGraphics;
+  }
+
+  Common::Graphics *GetVirtualScreenGraphics()
+  {
+      return &gl_VirtualScreenGraphics;
+  }
+
+  Common::Bitmap *GetVirtualScreenBitmap()
+  {
+      return gl_VirtualScreenGraphics.Bmp;
+  }
+
+  int get_col8_lookup(int nval, int wantColDep)
+  {
+    int tmpv;
+    __my_setcolor(&tmpv, nval, wantColDep);
+    return tmpv;
+  }
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-int currentcolor;
+//int currentcolor;
 int vesa_xres, vesa_yres;
-Bitmap *abuf;
-
-
-  void wsetscreen(Bitmap *nss)
-  {
-    if (nss == NULL)
-      abuf = BitmapHelper::GetScreenBitmap();
-    else
-      abuf = nss;
-  }
-
-  // [IKM] A very, very dangerous stuff!
-  Bitmap wsetscreen_wrapper;
-  void wsetscreen_raw(BITMAP *nss)
-  {
-    wsetscreen_wrapper.WrapAllegroBitmap(nss, true);
-
-    if (nss == NULL) {
-      abuf = BitmapHelper::GetScreenBitmap();
-	}
-	else {
-      abuf = &wsetscreen_wrapper;
-	}
-  }
+//Bitmap *abuf;
 
   void wsetrgb(int coll, int r, int g, int b, color * pall)
   {
@@ -85,7 +109,7 @@ Bitmap *abuf;
     }
   }
 
-  Bitmap *wnewblock(int x1, int y1, int x2, int y2)
+  Bitmap *wnewblock(Common::Bitmap *src, int x1, int y1, int x2, int y2)
   {
     Bitmap *tempbitm;
     int twid = (x2 - x1) + 1, thit = (y2 - y1) + 1;
@@ -101,7 +125,7 @@ Bitmap *abuf;
     if (tempbitm == NULL)
       return NULL;
 
-    tempbitm->Blit(abuf, x1, y1, 0, 0, tempbitm->GetWidth(), tempbitm->GetHeight());
+    tempbitm->Blit(src, x1, y1, 0, 0, tempbitm->GetWidth(), tempbitm->GetHeight());
     return tempbitm;
   }
 
@@ -171,22 +195,22 @@ Bitmap *abuf;
     return 0;
   }
 
-  void wputblock(int xx, int yy, Bitmap *bll, int xray)
+  void wputblock(Common::Graphics *g, int xx, int yy, Bitmap *bll, int xray)
   {
     if (xray)
-		abuf->Blit(bll, xx, yy, Common::kBitmap_Transparency);
+	  g->Bmp->Blit(bll, xx, yy, Common::kBitmap_Transparency);
     else
-      abuf->Blit(bll, 0, 0, xx, yy, bll->GetWidth(), bll->GetHeight());
+      g->Bmp->Blit(bll, 0, 0, xx, yy, bll->GetWidth(), bll->GetHeight());
   }
 
   Bitmap wputblock_wrapper; // [IKM] argh! :[
-  void wputblock_raw(int xx, int yy, BITMAP *bll, int xray)
+  void wputblock_raw(Common::Graphics *g, int xx, int yy, BITMAP *bll, int xray)
   {
 	wputblock_wrapper.WrapAllegroBitmap(bll, true);
     if (xray)
-      abuf->Blit(&wputblock_wrapper, xx, yy, Common::kBitmap_Transparency);
+      g->Bmp->Blit(&wputblock_wrapper, xx, yy, Common::kBitmap_Transparency);
     else
-      abuf->Blit(&wputblock_wrapper, 0, 0, xx, yy, wputblock_wrapper.GetWidth(), wputblock_wrapper.GetHeight());
+      g->Bmp->Blit(&wputblock_wrapper, 0, 0, xx, yy, wputblock_wrapper.GetWidth(), wputblock_wrapper.GetHeight());
   }
 
   const int col_lookups[32] = {
@@ -197,17 +221,12 @@ Bitmap *abuf;
     0xA0A0A0, 0xB0B0B0, 0xC0C0C0, 0xD0D0D0, 0xE0E0E0, 0xF0F0F0
   };
 
+  /*
   void wsetcolor(int nval)
   {
     __my_setcolor(&currentcolor, nval);
   }
-
-  int get_col8_lookup(int nval)
-  {
-    int tmpv;
-    __my_setcolor(&tmpv, nval);
-    return tmpv;
-  }
+  */
 
   int __wremap_keep_transparent = 1;
 

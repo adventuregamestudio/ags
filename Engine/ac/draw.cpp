@@ -189,9 +189,8 @@ void allegro_bitmap_test_draw()
 {
 	if (test_allegro_bitmap)
 	{
-		wsetcolor(15);
 		test_allegro_bitmap->Clear(test_allegro_bitmap->GetMaskColor());
-		test_allegro_bitmap->FillRect(Rect(50,50,150,150), currentcolor);
+		test_allegro_bitmap->FillRect(Rect(50,50,150,150), 15);
 
 		if (test_allegro_ddb == NULL) 
         {
@@ -655,8 +654,8 @@ void invalidate_sprite(int x1, int y1, IDriverDependantBitmap *pic) {
     invalidate_rect(x1, y1, x1 + pic->GetWidth(), y1 + pic->GetHeight());
 }
 
-void draw_and_invalidate_text(int x1, int y1, int font, const char *text) {
-    wouttext_outline(x1, y1, font, (char*)text);
+void draw_and_invalidate_text(Common::Graphics *g, int x1, int y1, int font, const char *text) {
+    wouttext_outline(g, x1, y1, font, (char*)text);
     invalidate_rect(x1, y1, x1 + wgettextwidth_compensate(text, font), y1 + wgetfontheight(font) + get_fixed_pixel_size(1));
 }
 
@@ -824,15 +823,15 @@ void putpixel_compensate (Bitmap *onto, int xx,int yy, int col) {
 
 
 
-void draw_sprite_support_alpha(int xpos, int ypos, Bitmap *image, int slot) {
+void draw_sprite_support_alpha(Common::Graphics *g, int xpos, int ypos, Bitmap *image, int slot) {
 
     if ((game.spriteflags[slot] & SPF_ALPHACHANNEL) && (trans_mode == 0)) 
     {
         set_alpha_blender();
-        abuf->TransBlendBlt(image, xpos, ypos);
+        g->Bmp->TransBlendBlt(image, xpos, ypos);
     }
     else {
-        put_sprite_256(xpos, ypos, image);
+        put_sprite_256(g, xpos, ypos, image);
     }
 
 }
@@ -1073,7 +1072,7 @@ extern int psp_gfx_renderer;
 extern int psp_gfx_super_sampling;
 #endif
 
-void put_sprite_256(int xxx,int yyy,Bitmap *piccy) {
+void put_sprite_256(Common::Graphics *g, int xxx,int yyy,Bitmap *piccy) {
 
     if (trans_mode >= 255) {
         // fully transparent, don't draw it at all
@@ -1081,25 +1080,25 @@ void put_sprite_256(int xxx,int yyy,Bitmap *piccy) {
         return;
     }
 
-    int screen_depth = abuf->GetColorDepth();
+    int screen_depth = g->Bmp->GetColorDepth();
 
 #ifdef USE_15BIT_FIX
     if ((piccy->GetColorDepth() < screen_depth) 
 #if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(WINDOWS_VERSION)
-        || ((bmp_bpp(abuf) < screen_depth) && (psp_gfx_renderer > 0)) // Fix for corrupted speechbox outlines with the OGL driver
+        || ((bmp_bpp(g->Bmp) < screen_depth) && (psp_gfx_renderer > 0)) // Fix for corrupted speechbox outlines with the OGL driver
 #endif
         ) {
             if ((piccy->GetColorDepth() == 8) && (screen_depth >= 24)) {
                 // 256-col sprite -> truecolor background
                 // this is automatically supported by allegro, no twiddling needed
-                abuf->Blit(piccy, xxx, yyy, Common::kBitmap_Transparency);
+                g->Bmp->Blit(piccy, xxx, yyy, Common::kBitmap_Transparency);
                 return;
             }
             // 256-col spirte -> hi-color background, or
             // 16-bit sprite -> 32-bit background
             Bitmap *hctemp=BitmapHelper::CreateBitmap(piccy->GetWidth(), piccy->GetHeight(),screen_depth);
             hctemp->Blit(piccy,0,0,0,0,hctemp->GetWidth(),hctemp->GetHeight());
-            int bb,cc,mask_col = abuf->GetMaskColor();
+            int bb,cc,mask_col = g->Bmp->GetMaskColor();
             if (piccy->GetColorDepth() == 8) {
                 // only do this for 256-col, cos the ->Blit call converts
                 // transparency for 16->32 bit
@@ -1108,21 +1107,21 @@ void put_sprite_256(int xxx,int yyy,Bitmap *piccy) {
                         if (piccy->GetPixel(bb,cc)==0) hctemp->PutPixel(bb,cc,mask_col);
                 }
             }
-            wputblock(xxx,yyy,hctemp,1);
+            wputblock(g, xxx,yyy,hctemp,1);
             delete hctemp;
     }
     else
 #endif
     {
-        if ((trans_mode!=0) && (game.color_depth > 1) && (bmp_bpp(piccy) > 1) && (bmp_bpp(abuf) > 1)) {
+        if ((trans_mode!=0) && (game.color_depth > 1) && (bmp_bpp(piccy) > 1) && (bmp_bpp(g->Bmp) > 1)) {
             set_trans_blender(0,0,0,trans_mode);
-            abuf->TransBlendBlt(piccy,xxx,yyy);
+            g->Bmp->TransBlendBlt(piccy,xxx,yyy);
         }
         /*    else if ((lit_mode < 0) && (game.color_depth == 1) && (bmp_bpp(piccy) == 1)) {
-        ->LitBlendBlt(abuf,piccy,xxx,yyy,250 - ((-lit_mode) * 5)/2);
+        ->LitBlendBlt(g->Bmp,piccy,xxx,yyy,250 - ((-lit_mode) * 5)/2);
         }*/
         else
-            wputblock(xxx,yyy,piccy,1);
+            wputblock(g, xxx,yyy,piccy,1);
     }
     trans_mode=0;
 }
@@ -1146,22 +1145,22 @@ void repair_alpha_channel(Bitmap *dest, Bitmap *bgpic)
 
 
 // used by GUI renderer to draw images
-void draw_sprite_compensate(int picc,int xx,int yy,int useAlpha) 
+void draw_sprite_compensate(Common::Graphics *g, int picc,int xx,int yy,int useAlpha) 
 {
     if ((useAlpha) && 
         (game.options[OPT_NEWGUIALPHA] > 0) &&
-        (abuf->GetColorDepth() == 32))
+        (g->Bmp->GetColorDepth() == 32))
     {
         if (game.spriteflags[picc] & SPF_ALPHACHANNEL)
             set_additive_alpha_blender();
         else
             set_opaque_alpha_blender();
 
-        abuf->TransBlendBlt(spriteset[picc], xx, yy);
+        g->Bmp->TransBlendBlt(spriteset[picc], xx, yy);
     }
     else
     {
-        put_sprite_256(xx, yy, spriteset[picc]);
+        put_sprite_256(g, xx, yy, spriteset[picc]);
     }
 }
 
@@ -2046,7 +2045,7 @@ void prepare_characters_for_drawing() {
 
 // draw_screen_background: draws the background scene, all the interfaces
 // and objects; basically, the entire screen
-void draw_screen_background() {
+void draw_screen_background(Common::Graphics *g) {
 
     static int offsetxWas = -100, offsetyWas = -100;
 
@@ -2061,7 +2060,7 @@ void draw_screen_background() {
 
     // don't draw it before the room fades in
     /*  if ((in_new_room > 0) & (game.color_depth > 1)) {
-    clear(abuf);
+    clear(g->Bmp);
     return;
     }*/
     our_eip=30;
@@ -2108,7 +2107,7 @@ void draw_screen_background() {
         // the following line takes up to 50% of the game CPU time at
         // high resolutions and colour depths - if we can optimise it
         // somehow, significant performance gains to be had
-        update_invalid_region_and_reset(-offsetx, -offsety, thisroom.ebscene[play.bg_frame], abuf);
+        update_invalid_region_and_reset(-offsetx, -offsety, thisroom.ebscene[play.bg_frame], g->Bmp);
     }
 
     clear_sprite_list();
@@ -2141,13 +2140,16 @@ void draw_fps()
         fpsDisplay = gfxDriver->ConvertBitmapToSupportedColourDepth(fpsDisplay);
     }
     fpsDisplay->Clear(fpsDisplay->GetMaskColor());
-    Bitmap *oldAbuf = abuf;
-    abuf = fpsDisplay;
+    //Bitmap *oldAbuf = g->Bmp;
+    //g->Bmp = fpsDisplay;
+    Common::Graphics graphics(fpsDisplay);
     char tbuffer[60];
     sprintf(tbuffer,"FPS: %d",fps);
-    wtextcolor(14);
-    wouttext_outline(1, 1, FONT_SPEECH, tbuffer);
-    abuf = oldAbuf;
+    graphics.SetTextColor(14);
+    wouttext_outline(&graphics, 1, 1, FONT_SPEECH, tbuffer);
+    //g->Bmp = oldAbuf;
+
+    Common::Graphics *g = GetVirtualScreenGraphics();
 
     if (ddb == NULL)
         ddb = gfxDriver->CreateDDBFromBitmap(fpsDisplay, false);
@@ -2160,7 +2162,7 @@ void draw_fps()
     invalidate_sprite(1, yp, ddb);
 
     sprintf(tbuffer,"Loop %u", loopcounter);
-    draw_and_invalidate_text(get_fixed_pixel_size(250), yp, FONT_SPEECH,tbuffer);
+    draw_and_invalidate_text(g, get_fixed_pixel_size(250), yp, FONT_SPEECH,tbuffer);
 }
 
 // draw_screen_overlay: draws any stuff currently on top of the background,
@@ -2202,7 +2204,8 @@ void draw_screen_overlay() {
         }*/
         our_eip = 37;
         if (guis_need_update) {
-            Bitmap *abufwas = abuf;
+            //Bitmap *abufwas = g->Bmp;
+            Common::Graphics graphics;
             guis_need_update = 0;
             for (aa=0;aa<game.numgui;aa++) {
                 if (guis[aa].on<1) continue;
@@ -2213,9 +2216,10 @@ void draw_screen_overlay() {
                 eip_guinum = aa;
                 our_eip = 370;
                 guibg[aa]->Clear (guibg[aa]->GetMaskColor());
-                abuf = guibg[aa];
+                //g->Bmp = guibg[aa];
+                graphics.SetBitmap(guibg[aa]);
                 our_eip = 372;
-                guis[aa].draw_at(0,0);
+                guis[aa].draw_at(&graphics, 0,0);
                 our_eip = 373;
 
                 bool isAlpha = false;
@@ -2240,7 +2244,7 @@ void draw_screen_overlay() {
                 }
                 our_eip = 374;
             }
-            abuf = abufwas;
+            //g->Bmp = abufwas;
         }
         our_eip = 38;
         // Draw the GUIs
@@ -2320,6 +2324,9 @@ void draw_screen_overlay() {
     {
         draw_fps();
     }
+
+    Common::Graphics *g = GetVirtualScreenGraphics();
+
     /*
     if (channels[SCHAN_SPEECH] != NULL) {
 
@@ -2327,25 +2334,25 @@ void draw_screen_overlay() {
     sprintf(tbuffer,"mpos: %d", channels[SCHAN_SPEECH]->get_pos_ms());
     write_log(tbuffer);
     int yp = scrnhit - (wgetfontheight(FONT_SPEECH) + 25 * symult);
-    wtextcolor(14);
+    g->SetTextColor(14);
     draw_and_invalidate_text(1, yp, FONT_SPEECH,tbuffer);
     }*/
 
     if (play.recording) {
         // Flash "REC" while recording
-        wtextcolor (12);
+        g->SetTextColor (12);
         //if ((loopcounter % (frames_per_second * 2)) > frames_per_second/2) {
         char tformat[30];
         sprintf (tformat, "REC %02d:%02d:%02d", replay_time / 3600, (replay_time % 3600) / 60, replay_time % 60);
-        draw_and_invalidate_text(get_fixed_pixel_size(5), get_fixed_pixel_size(10), FONT_SPEECH, tformat);
+        draw_and_invalidate_text(g, get_fixed_pixel_size(5), get_fixed_pixel_size(10), FONT_SPEECH, tformat);
         //}
     }
     else if (play.playback) {
-        wtextcolor (10);
+        g->SetTextColor (10);
         char tformat[30];
         sprintf (tformat, "PLAY %02d:%02d:%02d", replay_time / 3600, (replay_time % 3600) / 60, replay_time % 60);
 
-        draw_and_invalidate_text(get_fixed_pixel_size(5), get_fixed_pixel_size(10), FONT_SPEECH, tformat);
+        draw_and_invalidate_text(g, get_fixed_pixel_size(5), get_fixed_pixel_size(10), FONT_SPEECH, tformat);
     }
 
     our_eip = 1101;
@@ -2369,21 +2376,20 @@ void GfxDriverOnInitCallback(void *data)
 
 
 
-
 int numOnStack = 0;
 Bitmap *screenstack[10];
-void push_screen () {
+void push_screen (Common::Graphics *g) {
     if (numOnStack >= 10)
         quit("!Too many push screen calls");
 
-    screenstack[numOnStack] = abuf;
+    screenstack[numOnStack] = g->Bmp;
     numOnStack++;
 }
-void pop_screen() {
+Common::Graphics *pop_screen() {
     if (numOnStack <= 0)
         quit("!Too many pop screen calls");
     numOnStack--;
-    wsetscreen(screenstack[numOnStack]);
+    return SetVirtualScreen(screenstack[numOnStack]);
 }
 
 // update_screen: copies the contents of the virtual screen to the actual
@@ -2393,6 +2399,7 @@ void update_screen() {
     if ((in_new_room > 0) & (game.color_depth > 1))
         return;
     gfxDriver->DrawSprite(AGSE_POSTSCREENDRAW, 0, NULL);
+    Common::Graphics *g = GetVirtualScreenGraphics();
 
     // update animating mouse cursor
     if (game.mcurs[cur_cursor].view>=0) {
@@ -2426,25 +2433,28 @@ void update_screen() {
     // draw the debug console, if appropriate
     if ((play.debug_mode > 0) && (display_console != 0)) 
     {
-        int otextc = textcol, ypp = 1;
+        //int otextc = g->TextColor;
+        int ypp = 1;
         int txtheight = wgetfontheight(0);
         int barheight = (DEBUG_CONSOLE_NUMLINES - 1) * txtheight + 4;
 
         if (debugConsoleBuffer == NULL)
             debugConsoleBuffer = BitmapHelper::CreateBitmap(scrnwid, barheight,final_col_dep);
 
-        push_screen();
-        abuf = debugConsoleBuffer;
-        wsetcolor(15);
-        abuf->FillRect(Rect (0, 0, scrnwid - 1, barheight), currentcolor);
-        wtextcolor(16);
+        //Common::Graphics *g = GetVirtualScreenGraphics();
+        //push_screen(g);
+        Common::Graphics buf_graphics(debugConsoleBuffer);
+        //g->Bmp = debugConsoleBuffer;
+        buf_graphics.SetColor(15);
+        buf_graphics.Bmp->FillRect(Rect (0, 0, scrnwid - 1, barheight), buf_graphics.DrawColor);
+        buf_graphics.SetTextColor(16);
         for (int jj = first_debug_line; jj != last_debug_line; jj = (jj + 1) % DEBUG_CONSOLE_NUMLINES) {
-            wouttextxy(1, ypp, 0, debug_line[jj].text);
-            wouttextxy(scrnwid - get_fixed_pixel_size(40), ypp, 0, debug_line[jj].script);
+            wouttextxy(&buf_graphics, 1, ypp, 0, debug_line[jj].text);
+            wouttextxy(&buf_graphics, scrnwid - get_fixed_pixel_size(40), ypp, 0, debug_line[jj].script);
             ypp += txtheight;
         }
-        textcol = otextc;
-        pop_screen();
+        //buf_graphics.text_color = otextc;
+        //g = pop_screen();
 
         if (debugConsole == NULL)
             debugConsole = gfxDriver->CreateDDBFromBitmap(debugConsoleBuffer, false, true);
@@ -2472,7 +2482,7 @@ void update_screen() {
 
     write_screen();
 
-    wsetscreen(virtual_screen);
+    SetVirtualScreen(virtual_screen);
 
     if (!play.screen_is_faded_out) {
         // always update the palette, regardless of whether the plugin
@@ -2514,6 +2524,8 @@ void construct_virtual_screen(bool fullRedraw)
 
     our_eip=3;
 
+    Common::Graphics *g = GetVirtualScreenGraphics();
+
     gfxDriver->UseSmoothScaling(IS_ANTIALIAS_SPRITES);
 
     platform->RunPluginHooks(AGSE_PRERENDER, 0);
@@ -2523,13 +2535,13 @@ void construct_virtual_screen(bool fullRedraw)
         if (fullRedraw)
             invalidate_screen();
 
-        draw_screen_background();
+        draw_screen_background(g);
     }
     else if (!gfxDriver->RequiresFullRedrawEachFrame()) 
     {
         // if the driver is not going to redraw the screen,
         // black it out so we don't get cursor trails
-        abuf->Clear();
+        g->Bmp->Clear();
     }
 
     // reset the Baselines Changed flag now that we've drawn stuff

@@ -30,8 +30,6 @@
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
-int texttrans = 0;
-int textcol;
 int wtext_multiply = 1;
 
 void init_font_renderer()
@@ -43,7 +41,6 @@ void init_font_renderer()
 
   for (int i = 0; i < MAX_FONTS; i++)
     fontRenderers[i] = NULL;
-  wtexttransparent(TEXTFG);
 }
 
 void shutdown_font_renderer()
@@ -74,14 +71,14 @@ int wgettextheight(const char *text, int fontNumber)
   return fontRenderers[fontNumber]->GetTextHeight(text, fontNumber);
 }
 
-void wouttextxy(int xxx, int yyy, int fontNumber, const char *texx)
+void wouttextxy(Common::Graphics *g, int xxx, int yyy, int fontNumber, const char *texx)
 {
-  if (yyy > abuf->GetClip().Bottom)
+  if (yyy > g->Bmp->GetClip().Bottom)
     return;                   // each char is clipped but this speeds it up
 
   if (fontRenderers[fontNumber] != NULL)
   {
-    fontRenderers[fontNumber]->RenderText(texx, fontNumber, (BITMAP*)abuf->GetBitmapObject(), xxx, yyy, textcol);
+    fontRenderers[fontNumber]->RenderText(texx, fontNumber, (BITMAP*)g->Bmp->GetBitmapObject(), xxx, yyy, g->TextColor);
   }
 }
 
@@ -102,7 +99,7 @@ bool wloadfont_size(int fontNumber, int fsize)
   return false;
 }
 
-void wgtprintf(int xxx, int yyy, int fontNumber, char *fmt, ...)
+void wgtprintf(Common::Graphics *g, int xxx, int yyy, int fontNumber, char *fmt, ...)
 {
   char tbuffer[2000];
   va_list ap;
@@ -110,13 +107,14 @@ void wgtprintf(int xxx, int yyy, int fontNumber, char *fmt, ...)
   va_start(ap, fmt);
   vsprintf(tbuffer, fmt, ap);
   va_end(ap);
-  wouttextxy(xxx, yyy, fontNumber, tbuffer);
+  wouttextxy(g, xxx, yyy, fontNumber, tbuffer);
 }
 
+/*
 void wtextcolor(int nval)
 {
   __my_setcolor(&textcol, nval);
-}
+}*/
 
 void wfreefont(int fontNumber)
 {
@@ -124,9 +122,4 @@ void wfreefont(int fontNumber)
     fontRenderers[fontNumber]->FreeMemory(fontNumber);
 
   fontRenderers[fontNumber] = NULL;
-}
-
-void wtexttransparent(int coo)
-{
-  texttrans = coo;
 }

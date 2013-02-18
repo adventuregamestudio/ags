@@ -16,6 +16,7 @@
 #define __AC_GUIOBJECT_H
 
 #include "core/types.h"
+#include "gfx/graphics.h"
 #include "gui/guidefines.h"
 
 namespace AGS { namespace Common { class Stream; } }
@@ -60,7 +61,7 @@ struct GUIObject
   }
   virtual void MouseUp() = 0;   // button up
   virtual void KeyPress(int) = 0;
-  virtual void Draw() = 0;
+  virtual void Draw(Common::Graphics *g) = 0;
   // overridable routine to determine whether the mouse is over
   // the control
   virtual int  IsOverControl(int p_x, int p_y, int p_extra) {

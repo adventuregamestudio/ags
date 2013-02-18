@@ -30,7 +30,7 @@ struct GUISlider:public GUIObject
 
   virtual void WriteToFile(Common::Stream *out);
   virtual void ReadFromFile(Common::Stream *in, int version);
-  void Draw();
+  virtual void Draw(Common::Graphics *g);
   void MouseMove(int xp, int yp);
 
   void MouseOver()

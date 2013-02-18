@@ -40,17 +40,17 @@ MyTextBox::MyTextBox(int xx, int yy, int wii, char *tee)
     hit = TEXT_HT + 1;
 }
 
-void MyTextBox::draw()
+void MyTextBox::draw(Common::Graphics *g)
 {
-    wsetcolor(windowbackgroundcolor);
-    abuf->FillRect(Rect(x, y, x + wid, y + hit), currentcolor);
-    wsetcolor(0);
-    abuf->DrawRect(Rect(x, y, x + wid, y + hit), currentcolor);
-    wtextcolor(0);
-    wouttextxy(x + 2, y + 1, cbuttfont, text);
+    g->SetColor(windowbackgroundcolor);
+    g->Bmp->FillRect(Rect(x, y, x + wid, y + hit), g->DrawColor);
+    g->SetColor(0);
+    g->Bmp->DrawRect(Rect(x, y, x + wid, y + hit), g->DrawColor);
+    g->SetTextColor(0);
+    wouttextxy(g, x + 2, y + 1, cbuttfont, text);
 
     char tbu[2] = "_";
-    wouttextxy(x + 2 + wgettextwidth(text, cbuttfont), y + 1, cbuttfont, tbu);
+    wouttextxy(g, x + 2 + wgettextwidth(text, cbuttfont), y + 1, cbuttfont, tbu);
 }
 
 int MyTextBox::pressedon()

@@ -58,10 +58,10 @@ struct CachedActSpsData {
 void invalidate_screen();
 void mark_current_background_dirty();
 void invalidate_cached_walkbehinds();
-void put_sprite_256(int xxx,int yyy,Common::Bitmap *piccy);
+void put_sprite_256(Common::Graphics *g, int xxx,int yyy,Common::Bitmap *piccy);
 Common::Bitmap *recycle_bitmap(Common::Bitmap *bimp, int coldep, int wid, int hit);
-void push_screen ();
-void pop_screen();
+void push_screen (Common::Graphics *g);
+Common::Graphics *pop_screen();
 void update_screen();
 void invalidate_rect(int x1, int y1, int x2, int y2);
 // Draw everything 
@@ -69,7 +69,7 @@ void render_graphics(Engine::IDriverDependantBitmap *extraBitmap = NULL, int ext
 void construct_virtual_screen(bool fullRedraw) ;
 void add_to_sprite_list(Engine::IDriverDependantBitmap* spp, int xx, int yy, int baseline, int trans, int sprNum, bool isWalkBehind = false);
 void tint_image (Common::Bitmap *source, Common::Bitmap *dest, int red, int grn, int blu, int light_level, int luminance=255);
-void draw_sprite_support_alpha(int xpos, int ypos, Common::Bitmap *image, int slot);
+void draw_sprite_support_alpha(Common::Graphics *g, int xpos, int ypos, Common::Bitmap *image, int slot);
 void render_to_screen(Common::Bitmap *toRender, int atx, int aty);
 void draw_screen_callback();
 void write_screen();
@@ -85,7 +85,7 @@ void putpixel_compensate (Common::Bitmap *onto, int xx,int yy, int col);
 int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysUseSoftware);
 void clear_letterbox_borders();
 
-void draw_and_invalidate_text(int x1, int y1, int font, const char *text);
+void draw_and_invalidate_text(Common::Graphics *g, int x1, int y1, int font, const char *text);
 
 void setpal();
 

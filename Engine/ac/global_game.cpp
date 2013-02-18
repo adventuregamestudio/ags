@@ -274,7 +274,8 @@ int RunAGSGame (const char *newgame, unsigned int mode, int data) {
     if (Common::AssetManager::SetDataFile(game_file_name) != Common::kAssetNoError)
         quitprintf("!RunAGSGame: unable to load new game file '%s'", game_file_name.GetCStr());
 
-    abuf->Clear();
+    Common::Graphics *g = GetVirtualScreenGraphics();
+    g->Bmp->Clear();
     show_preload();
 
     if ((result = load_game_file ()) != 0) {

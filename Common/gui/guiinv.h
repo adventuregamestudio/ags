@@ -38,7 +38,7 @@ struct GUIInv:public GUIObject
 
   int CharToDisplay();
 
-  void Draw();
+  virtual void Draw(Common::Graphics *g);
 
   void MouseMove(int x, int y)
   {

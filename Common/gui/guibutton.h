@@ -40,7 +40,7 @@ struct GUIButton:public GUIObject
 
   virtual void WriteToFile(Common::Stream *out);
   virtual void ReadFromFile(Common::Stream *in, int);
-  void Draw();
+  virtual void Draw(Common::Graphics *g);
   void MouseUp();
 
   void MouseMove(int x, int y)

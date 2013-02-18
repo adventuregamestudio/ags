@@ -250,7 +250,8 @@ void unload_old_room() {
 
     current_fade_out_effect();
 
-    abuf->Clear();
+    Common::Graphics *g = GetVirtualScreenGraphics();
+    g->Bmp->Clear();
     for (ff=0;ff<croom->numobj;ff++)
         objs[ff].moving = 0;
 
@@ -496,8 +497,9 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     if (usetup.want_letterbox) {
         int abscreen=0;
 
-        if (abuf==BitmapHelper::GetScreenBitmap()) abscreen=1;
-        else if (abuf==virtual_screen) abscreen=2;
+        Common::Graphics *g = GetVirtualScreenGraphics();
+        if (g->Bmp==BitmapHelper::GetScreenBitmap()) abscreen=1;
+        else if (g->Bmp==virtual_screen) abscreen=2;
         // if this is a 640x480 room and we're in letterbox mode, full-screen it
         int newScreenHeight = final_scrn_hit;
         if (multiply_up_coordinate(thisroom.height) < final_scrn_hit) {
@@ -537,8 +539,10 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
 
         gfxDriver->SetRenderOffset(get_screen_x_adjustment(virtual_screen), get_screen_y_adjustment(virtual_screen));
 
-		if (abscreen==1) abuf=BitmapHelper::GetScreenBitmap();
-        else if (abscreen==2) abuf=virtual_screen;
+		if (abscreen==1) //abuf=BitmapHelper::GetScreenBitmap();
+            g->SetBitmap( BitmapHelper::GetScreenBitmap() );
+        else if (abscreen==2) //abuf=virtual_screen;
+            g->SetBitmap( virtual_screen );
 
         update_polled_stuff_if_runtime();
     }

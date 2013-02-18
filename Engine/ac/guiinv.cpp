@@ -37,7 +37,7 @@ int GUIInv::CharToDisplay() {
     return this->charId;
 }
 
-void GUIInv::Draw() {
+void GUIInv::Draw(Common::Graphics *g) {
     if ((IsDisabled()) && (gui_disabled_style == GUIDIS_BLACKOUT))
         return;
 
@@ -64,7 +64,7 @@ void GUIInv::Draw() {
 
     for (uu = this->topIndex; uu < lastItem; uu++) {
         // draw inv graphic
-        wputblock(cxp, cyp, spriteset[game.invinfo[charextra[this->CharToDisplay()].invorder[uu]].pic], 1);
+        wputblock(g, cxp, cyp, spriteset[game.invinfo[charextra[this->CharToDisplay()].invorder[uu]].pic], 1);
         cxp += multiply_up_coordinate(this->itemWidth);
 
         // go to next row when appropriate
@@ -77,11 +77,11 @@ void GUIInv::Draw() {
     if ((IsDisabled()) &&
         (gui_disabled_style == GUIDIS_GREYOUT) && 
         (play.inventory_greys_out == 1)) {
-            int col8 = get_col8_lookup(8);
+            int col8 = get_col8_lookup(8, g->Bmp->GetColorDepth());
             int jj, kk;   // darken the inventory when disabled
             for (jj = 0; jj < wid; jj++) {
                 for (kk = jj % 2; kk < hit; kk += 2)
-                    abuf->PutPixel(x + jj, y + kk, col8);
+                    g->Bmp->PutPixel(x + jj, y + kk, col8);
             }
     }
 

@@ -525,7 +525,6 @@ void init_and_register_game_objects()
 	init_and_register_guis();
     init_and_register_fonts();    
 
-    wtexttransparent(TEXTFG);
     play.fade_effect=game.options[OPT_FADETYPE];
 
     our_eip=-21;

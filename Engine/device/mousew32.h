@@ -21,6 +21,8 @@
 //
 //=============================================================================
 
+#include "gfx/graphics.h"
+
 #define MAXCURSORS 20
 
 namespace AGS { namespace Common { class Bitmap; } }
@@ -33,7 +35,7 @@ void msetcallback(IMouseGetPosCallback *gpCallback);
 void mgraphconfine(int x1, int y1, int x2, int y2);
 void mgetgraphpos();
 void msetcursorlimit(int x1, int y1, int x2, int y2);
-void drawCursor();
+void drawCursor(Common::Graphics *g);
 void domouse(int str);
 int ismouseinbox(int lf, int tp, int rt, int bt);
 void mfreemem();

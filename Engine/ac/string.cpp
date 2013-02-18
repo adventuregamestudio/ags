@@ -300,7 +300,7 @@ char *reverse_text(const char *text) {
     return backwards;
 }
 
-void wouttext_reverseifnecessary(int x, int y, int font, char *text) {
+void wouttext_reverseifnecessary(Common::Graphics *g, int x, int y, int font, char *text) {
     char *backwards = NULL;
     char *otext = text;
     if (game.options[OPT_RIGHTLEFTWRITE]) {
@@ -308,7 +308,7 @@ void wouttext_reverseifnecessary(int x, int y, int font, char *text) {
         otext = backwards;
     }
 
-    wouttext_outline(x, y, font, otext);
+    wouttext_outline(g, x, y, font, otext);
 
     if (backwards)
         free(backwards);

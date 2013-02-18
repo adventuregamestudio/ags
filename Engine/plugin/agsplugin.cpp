@@ -238,8 +238,9 @@ int IAGSEngine::GetSavedData (char *buffer, int32 bufsize) {
 }
 void IAGSEngine::DrawText (int32 x, int32 y, int32 font, int32 color, char *text) 
 {
-    wtextcolor (color);
-    draw_and_invalidate_text(x, y, font, text);
+    Common::Graphics *g = GetVirtualScreenGraphics();
+    g->SetTextColor(color);
+    draw_and_invalidate_text(g, x, y, font, text);
 }
 void IAGSEngine::GetScreenDimensions (int32 *width, int32 *height, int32 *coldepth) {
     if (width != NULL)
@@ -309,29 +310,31 @@ void IAGSEngine::DrawTextWrapped (int32 xx, int32 yy, int32 wid, int32 font, int
 
     break_up_text_into_lines (wid, font, (char*)text);
 
-    wtextcolor(color);
-    wtexttransparent(TEXTFG);
+    Common::Graphics *g = GetVirtualScreenGraphics();
+    g->SetTextColor(color);
     multiply_up_coordinates((int*)&xx, (int*)&yy); // stupid! quick tweak
     for (int i = 0; i < numlines; i++)
-        draw_and_invalidate_text(xx, yy + texthit*i, font, lines[i]);
+        draw_and_invalidate_text(g, xx, yy + texthit*i, font, lines[i]);
 }
 void IAGSEngine::SetVirtualScreen (BITMAP *bmp) {
 	// [IKM] Very, very dangerous :'(
-	wsetscreen_raw (bmp);
+    SetVirtualScreenRaw (bmp);
 }
 int IAGSEngine::LookupParserWord (const char *word) {
     return find_word_in_dictionary ((char*)word);
 }
 void IAGSEngine::BlitBitmap (int32 x, int32 y, BITMAP *bmp, int32 masked) {
-    wputblock_raw (x, y, bmp, masked);
+    wputblock_raw (GetVirtualScreenGraphics(), x, y, bmp, masked);
     invalidate_rect(x, y, x + bmp->w, y + bmp->h);
 }
 void IAGSEngine::BlitSpriteTranslucent(int32 x, int32 y, BITMAP *bmp, int32 trans) {
     set_trans_blender(0, 0, 0, trans);
-	draw_trans_sprite((BITMAP*)abuf->GetBitmapObject(), bmp, x, y);
+    Common::Graphics *g = GetVirtualScreenGraphics();
+	draw_trans_sprite((BITMAP*)g->Bmp->GetBitmapObject(), bmp, x, y);
 }
 void IAGSEngine::BlitSpriteRotated(int32 x, int32 y, BITMAP *bmp, int32 angle) {
-    rotate_sprite((BITMAP*)abuf->GetBitmapObject(), bmp, x, y, itofix(angle));
+    Common::Graphics *g = GetVirtualScreenGraphics();
+    rotate_sprite((BITMAP*)g->Bmp->GetBitmapObject(), bmp, x, y, itofix(angle));
 }
 
 extern void domouse(int);
@@ -438,7 +441,7 @@ AGSViewFrame *IAGSEngine::GetViewFrame (int32 view, int32 loop, int32 frame) {
 int IAGSEngine::GetRawPixelColor (int32 color) {
     // Convert the standardized colour to the local gfx mode color
     int result;
-    __my_setcolor(&result, color);
+    __my_setcolor(&result, color, GetVirtualScreenBitmap()->GetColorDepth());
 
     return result;
 }

@@ -108,25 +108,26 @@ void set_mouse_cursor(int newcurs) {
             dotted_mouse_cursor->Blit (mousecurs[0], 0, 0, 0, 0, mousecurs[0]->GetWidth(), mousecurs[0]->GetHeight());
 
             if (game.invhotdotsprite > 0) {
-                Bitmap *abufWas = abuf;
-                abuf = dotted_mouse_cursor;
+                //Bitmap *abufWas = abuf;
+                //abuf = dotted_mouse_cursor;
+                Common::Graphics graphics(dotted_mouse_cursor);
 
-                draw_sprite_support_alpha(
+                draw_sprite_support_alpha(&graphics,
                     hotspotx - spritewidth[game.invhotdotsprite] / 2,
                     hotspoty - spriteheight[game.invhotdotsprite] / 2,
                     spriteset[game.invhotdotsprite],
                     game.invhotdotsprite);
 
-                abuf = abufWas;
+                //abuf = abufWas;
             }
             else {
                 putpixel_compensate (dotted_mouse_cursor, hotspotx, hotspoty,
-                    (dotted_mouse_cursor->GetColorDepth() > 8) ? get_col8_lookup (game.hotdot) : game.hotdot);
+                    (dotted_mouse_cursor->GetColorDepth() > 8) ? get_col8_lookup (game.hotdot, GetVirtualScreenGraphics()->Bmp->GetColorDepth()) : game.hotdot);
 
                 if (game.hotdotouter > 0) {
                     int outercol = game.hotdotouter;
                     if (dotted_mouse_cursor->GetColorDepth () > 8)
-                        outercol = get_col8_lookup(game.hotdotouter);
+                        outercol = get_col8_lookup(game.hotdotouter, GetVirtualScreenGraphics()->Bmp->GetColorDepth());
 
                     putpixel_compensate (dotted_mouse_cursor, hotspotx + get_fixed_pixel_size(1), hotspoty, outercol);
                     putpixel_compensate (dotted_mouse_cursor, hotspotx, hotspoty + get_fixed_pixel_size(1), outercol);

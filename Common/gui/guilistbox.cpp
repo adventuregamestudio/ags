@@ -194,19 +194,19 @@ void GUIListBox::RemoveItem(int index)
   guis_need_update = 1;
 }
 
-void GUIListBox::Draw()
+void GUIListBox::Draw(Common::Graphics *g)
 {
   wid--;
   hit--;
   int pixel_size = get_fixed_pixel_size(1);
 
   check_font(&font);
-  wtextcolor(textcol);
-  wsetcolor(textcol);
+  g->SetTextColor(textcol);
+  g->SetColor(textcol);
   if ((exflags & GLF_NOBORDER) == 0) {
-    abuf->DrawRect(Rect(x, y, x + wid + (pixel_size - 1), y + hit + (pixel_size - 1)), currentcolor);
+    g->Bmp->DrawRect(Rect(x, y, x + wid + (pixel_size - 1), y + hit + (pixel_size - 1)), g->DrawColor);
     if (pixel_size > 1)
-      abuf->DrawRect(Rect(x + 1, y + 1, x + wid, y + hit), currentcolor);
+      g->Bmp->DrawRect(Rect(x + 1, y + 1, x + wid, y + hit), g->DrawColor);
   }
 
   int rightHandEdge = (x + wid) - pixel_size - 1;
@@ -217,21 +217,21 @@ void GUIListBox::Draw()
   // draw the scroll bar in if necessary
   if ((numItems > num_items_fit) && ((exflags & GLF_NOBORDER) == 0) && ((exflags & GLF_NOARROWS) == 0)) {
     int xstrt, ystrt;
-    abuf->DrawRect(Rect(x + wid - get_fixed_pixel_size(7), y, (x + (pixel_size - 1) + wid) - get_fixed_pixel_size(7), y + hit), currentcolor);
-    abuf->DrawRect(Rect(x + wid - get_fixed_pixel_size(7), y + hit / 2, x + wid, y + hit / 2 + (pixel_size - 1)), currentcolor);
+    g->Bmp->DrawRect(Rect(x + wid - get_fixed_pixel_size(7), y, (x + (pixel_size - 1) + wid) - get_fixed_pixel_size(7), y + hit), g->DrawColor);
+    g->Bmp->DrawRect(Rect(x + wid - get_fixed_pixel_size(7), y + hit / 2, x + wid, y + hit / 2 + (pixel_size - 1)), g->DrawColor);
 
     xstrt = (x + wid - get_fixed_pixel_size(6)) + (pixel_size - 1);
     ystrt = (y + hit - 3) - get_fixed_pixel_size(5);
 
-    abuf->DrawTriangle(Triangle(xstrt, ystrt, xstrt + get_fixed_pixel_size(4), ystrt, 
+    g->Bmp->DrawTriangle(Triangle(xstrt, ystrt, xstrt + get_fixed_pixel_size(4), ystrt, 
              xstrt + get_fixed_pixel_size(2),
-             ystrt + get_fixed_pixel_size(5)), get_col8_lookup(textcol));
+             ystrt + get_fixed_pixel_size(5)), get_col8_lookup(textcol, g->Bmp->GetColorDepth()));
 
     ystrt = y + 3;
-    abuf->DrawTriangle(Triangle(xstrt, ystrt + get_fixed_pixel_size(5), 
+    g->Bmp->DrawTriangle(Triangle(xstrt, ystrt + get_fixed_pixel_size(5), 
              xstrt + get_fixed_pixel_size(4), 
              ystrt + get_fixed_pixel_size(5),
-             xstrt + get_fixed_pixel_size(2), ystrt), get_col8_lookup(textcol));
+             xstrt + get_fixed_pixel_size(2), ystrt), get_col8_lookup(textcol, g->Bmp->GetColorDepth()));
 
     rightHandEdge -= get_fixed_pixel_size(7);
   }
@@ -247,29 +247,29 @@ void GUIListBox::Draw()
     if (a + topItem == selected) {
       int stretchto = (x + wid) - pixel_size;
 
-      wtextcolor(backcol);
+      g->SetTextColor(backcol);
 
       if (selectedbgcol > 0) {
         // draw the selected item bar (if colour not transparent)
-        wsetcolor(selectedbgcol);
+        g->SetColor(selectedbgcol);
         if ((num_items_fit < numItems) && ((exflags & GLF_NOBORDER) == 0) && ((exflags & GLF_NOARROWS) == 0))
           stretchto -= get_fixed_pixel_size(7);
 
-        abuf->FillRect(Rect(x + pixel_size, thisyp, stretchto, thisyp + rowheight - pixel_size), currentcolor);
+        g->Bmp->FillRect(Rect(x + pixel_size, thisyp, stretchto, thisyp + rowheight - pixel_size), g->DrawColor);
       }
     }
     else
-      wtextcolor(textcol);
+      g->SetTextColor(textcol);
 
     if (alignment == GALIGN_LEFT)
-      wouttext_outline(x + 1 + pixel_size, thisyp + 1, font, items[a + topItem]);
+      wouttext_outline(g, x + 1 + pixel_size, thisyp + 1, font, items[a + topItem]);
     else {
       int textWidth = wgettextwidth(items[a + topItem], font);
 
       if (alignment == GALIGN_RIGHT)
-        wouttext_outline(rightHandEdge - textWidth, thisyp + 1, font, items[a + topItem]);
+        wouttext_outline(g, rightHandEdge - textWidth, thisyp + 1, font, items[a + topItem]);
       else
-        wouttext_outline(((rightHandEdge - x) / 2) + x - (textWidth / 2), thisyp + 1, font, items[a + topItem]);
+        wouttext_outline(g, ((rightHandEdge - x) / 2) + x - (textWidth / 2), thisyp + 1, font, items[a + topItem]);
     }
 
   }

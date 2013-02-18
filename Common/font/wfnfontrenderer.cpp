@@ -23,7 +23,7 @@
 #include "font/wfnfontrenderer.h"
 #include "util/stream.h"
 #include "util/file.h"
-#include "gfx/bitmap.h"
+#include "gfx/allegrobitmap.h"
 #include "util/wgt2allg.h"
 
 using AGS::Common::Bitmap;
@@ -141,6 +141,7 @@ int WFNFontRenderer::GetTextHeight(const char *texx, int fontNumber)
   return highest * wtext_multiply;
 }
 
+Common::Bitmap render_wrapper;
 void WFNFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour)
 {
   unsigned int ee;
@@ -148,13 +149,17 @@ void WFNFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
   int oldeip = get_our_eip();
   set_our_eip(415);
 
+  render_wrapper.WrapAllegroBitmap(destination, true);
+  Common::Graphics graphics(&render_wrapper);
+  graphics.SetTextColor(colour);
+
   for (ee = 0; ee < strlen(text); ee++)
-    x += printchar(x, y, fonts[fontNumber], text[ee]);
+    x += printchar(&graphics, x, y, fonts[fontNumber], text[ee]);
 
   set_our_eip(oldeip);
 }
 
-int WFNFontRenderer::printchar(int xxx, int yyy, wgtfont foo, int charr)
+int WFNFontRenderer::printchar(Common::Graphics *g, int xxx, int yyy, wgtfont foo, int charr)
 {
   unsigned char *actdata;
   int tt, ss, bytewid, orixp = xxx;
@@ -180,17 +185,19 @@ int WFNFontRenderer::printchar(int xxx, int yyy, wgtfont foo, int charr)
   actdata = (unsigned char *)&tabaddr[2*2];
   bytewid = ((charWidth - 1) / 8) + 1;
 
+  // Unfortunately we cannot get G as function parameter here, because
+  // this function is used 
   // MACPORT FIX: switch now using charWidth and charHeight
   for (tt = 0; tt < charHeight; tt++) {
     for (ss = 0; ss < charWidth; ss++) {
       if (((actdata[tt * bytewid + (ss / 8)] & (0x80 >> (ss % 8))) != 0)) {
         if (wtext_multiply > 1) {
-          abuf->FillRect(Rect(xxx + ss, yyy + tt, xxx + ss + (wtext_multiply - 1),
-                   yyy + tt + (wtext_multiply - 1)), textcol);
+          g->Bmp->FillRect(Rect(xxx + ss, yyy + tt, xxx + ss + (wtext_multiply - 1),
+              yyy + tt + (wtext_multiply - 1)), g->TextColor);
         } 
         else
         {
-          abuf->PutPixel(xxx + ss, yyy + tt, textcol);
+            g->Bmp->PutPixel(xxx + ss, yyy + tt, g->TextColor);
         }
       }
 

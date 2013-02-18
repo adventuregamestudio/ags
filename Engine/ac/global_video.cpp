@@ -137,7 +137,7 @@ void play_flc_file(int numb,int playflags) {
     
     delete hicol_buf;
     hicol_buf=NULL;
-    //  wsetscreen(screen); wputblock(0,0,backbuffer,0);
+    //  SetVirtualScreen(screen); wputblock(0,0,backbuffer,0);
     while (mgetbutton()!=NONE) ;
     invalidate_screen();
 }

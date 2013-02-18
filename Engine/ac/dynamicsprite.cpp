@@ -442,18 +442,18 @@ ScriptDynamicSprite* DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface
     sds->MultiplyCoordinates(&x, &y);
     sds->MultiplyCoordinates(&width, &height);
 
-    sds->StartDrawing();
+    Common::Graphics *g = sds->StartDrawing();
 
-    if ((x < 0) || (y < 0) || (x + width > abuf->GetWidth()) || (y + height > abuf->GetHeight()))
+    if ((x < 0) || (y < 0) || (x + width > g->Bmp->GetWidth()) || (y + height > g->Bmp->GetHeight()))
         quit("!DynamicSprite.CreateFromDrawingSurface: requested area is outside the surface");
 
-    int colDepth = abuf->GetColorDepth();
+    int colDepth = g->Bmp->GetColorDepth();
 
     Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, colDepth);
     if (newPic == NULL)
         return NULL;
 
-    newPic->Blit(abuf, x, y, 0, 0, width, height);
+    newPic->Blit(g->Bmp, x, y, 0, 0, width, height);
 
     sds->FinishedDrawingReadOnly();
 

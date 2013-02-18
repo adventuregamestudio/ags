@@ -339,7 +339,7 @@ bool ALSoftwareGraphicsDriver::Init(int width, int height, int colourDepth, bool
     // set_gfx_mode is an allegro function that creates screen bitmap;
     // following code assumes the screen is already created, therefore we should
     // ensure global bitmap wraps over existing allegro screen bitmap.
-    _allegroScreenWrapper = BitmapHelper::CreateRawObjectWrapper(screen);
+    _allegroScreenWrapper = BitmapHelper::CreateRawBitmapWrapper(screen);
     BitmapHelper::SetScreenBitmap( _allegroScreenWrapper );
 
     BitmapHelper::GetScreenBitmap()->Clear();

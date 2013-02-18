@@ -64,7 +64,7 @@ volatile bool currentlyPaused = false;
 //DirectDrawEx Global interfaces
 extern "C" extern LPDIRECTDRAW2 directdraw;
 //extern "C" extern IUnknown* directsound;
-extern "C" extern Bitmap *gfx_directx_create_system_bitmap(int width, int height);
+extern "C" extern BITMAP *gfx_directx_create_system_bitmap(int width, int height);
 
 //Global MultiMedia streaming interfaces
 IMultiMediaStream		*g_pMMStream=NULL;
@@ -155,7 +155,7 @@ HRESULT InitRenderToSurface() {
   rect.right = ddsd.dwWidth;
 
   if (vscreen == NULL)
-    vscreen = BitmapHelper::CreateRawObjectOwner(gfx_directx_create_system_bitmap(ddsd.dwWidth, ddsd.dwHeight));
+    vscreen = BitmapHelper::CreateRawBitmapOwner(gfx_directx_create_system_bitmap(ddsd.dwWidth, ddsd.dwHeight));
 
   if (vscreen == NULL) {
     strcpy(lastError, "Unable to create the DX Video System Bitmap");

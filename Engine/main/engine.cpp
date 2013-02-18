@@ -903,7 +903,8 @@ void engine_init_modxm_player()
 void show_preload () {
     // ** Do the preload graphic if available
     color temppal[256];
-	Bitmap *splashsc = BitmapHelper::CreateRawObjectOwner( load_pcx("preload.pcx",temppal) );
+    // TODO: hide allegro call in helper function
+	Bitmap *splashsc = BitmapHelper::CreateRawBitmapOwner( load_pcx("preload.pcx",temppal) );
     if (splashsc != NULL) {
         if (splashsc->GetColorDepth() == 8)
             set_palette_range(temppal, 0, 255, 0);
@@ -1275,14 +1276,13 @@ void engine_prepare_to_start_game()
 
 // TODO: move to test unit
 #include "gfx/allegrobitmap.h"
-using AGS::Common::AllegroBitmap;
-AllegroBitmap *test_allegro_bitmap;
+Bitmap *test_allegro_bitmap;
 IDriverDependantBitmap *test_allegro_ddb;
 void allegro_bitmap_test_init()
 {
 	test_allegro_bitmap = NULL;
 	// Switched the test off for now
-	//test_allegro_bitmap = AllegroBitmap::CreateBitmap(320,200,32);
+	//test_allegro_bitmap = BitmapHelper::CreateBitmap(320,200,32);
 }
 
 int initialize_engine(int argc,char*argv[])

@@ -102,7 +102,7 @@ int theora_playing_callback(BITMAP *theoraBuffer_raw)
 	// [IKM] CHECKME later (need optimization / reimplementation)
 	// This is probably not a very good thing to do in a video callback...
 	// Good thing is that AllegroBitmap does not store much data on its own
-	Bitmap *theoraBuffer = BitmapHelper::CreateRawObjectWrapper(theoraBuffer_raw);
+	Bitmap *theoraBuffer = BitmapHelper::CreateRawBitmapWrapper(theoraBuffer_raw);
 
     if (theoraBuffer == NULL)
     {

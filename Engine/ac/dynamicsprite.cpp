@@ -330,7 +330,7 @@ int DynamicSprite_SaveToFile(ScriptDynamicSprite *sds, const char* namm) {
     if (strchr(namm,'.') == NULL)
         strcat(fileName, ".bmp");
 
-	if (!BitmapHelper::SaveToFile(spriteset[sds->slot], fileName, palette))
+	if (!spriteset[sds->slot]->SaveToFile(fileName, palette))
         return 0; // failed
 
     return 1;  // successful

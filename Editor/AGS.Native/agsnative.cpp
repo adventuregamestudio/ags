@@ -188,7 +188,7 @@ void deleteSprite (int sprslot) {
 
 void SetNewSpriteFromHBitmap(int slot, int hBmp) {
   // FIXME later
-  Common::Bitmap *tempsprite = Common::BitmapHelper::CreateRawObjectOwner(convert_hbitmap_to_bitmap((HBITMAP)hBmp));
+  Common::Bitmap *tempsprite = Common::BitmapHelper::CreateRawBitmapOwner(convert_hbitmap_to_bitmap((HBITMAP)hBmp));
   SetNewSprite(slot, tempsprite);
 }
 

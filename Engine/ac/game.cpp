@@ -1039,7 +1039,7 @@ long write_screen_shot_for_vista(Stream *out, Bitmap *screenshot)
     char tempFileName[MAX_PATH];
     sprintf(tempFileName, "%s""_tmpscht.bmp", saveGameDirectory);
 
-	BitmapHelper::SaveToFile(screenshot, tempFileName, palette);
+	screenshot->SaveToFile(tempFileName, palette);
 
     update_polled_stuff_if_runtime();
 

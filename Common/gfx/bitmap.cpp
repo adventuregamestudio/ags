@@ -13,7 +13,10 @@
 //=============================================================================
 
 #include "gfx/bitmap.h"
-#include "gfx/allegrobitmap.h"
+
+#ifndef NULL
+#define NULL 0
+#endif
 
 extern "C"
 {
@@ -35,32 +38,35 @@ namespace BitmapHelper
 
 Bitmap *CreateBitmap(int width, int height, int color_depth)
 {
-	return AllegroBitmap::CreateBitmap(width, height, color_depth);
+	Bitmap *bitmap = new Bitmap();
+	if (!bitmap->Create(width, height, color_depth))
+	{
+		delete bitmap;
+		bitmap = NULL;
+	}
+	return bitmap;
 }
 
 Bitmap *CreateSubBitmap(Bitmap *src, const Rect &rc)
 {
-	return AllegroBitmap::CreateSubBitmap(src, rc);
-}
-
-Bitmap *CreateRawObjectOwner(void *bitmap_object)
-{
-	return AllegroBitmap::CreateFromRawAllegroBitmap(bitmap_object);
-}
-
-Bitmap *CreateRawObjectWrapper(void *bitmap_object)
-{
-	return AllegroBitmap::WrapRawAllegroBitmap(bitmap_object);
+	Bitmap *bitmap = new Bitmap();
+	if (!bitmap->CreateSubBitmap(src, rc))
+	{
+		delete bitmap;
+		bitmap = NULL;
+	}
+	return bitmap;
 }
 
 Bitmap *LoadFromFile(const char *filename)
 {
-	return AllegroBitmap::LoadFromFile(filename);
-}
-
-bool SaveToFile(Bitmap *bitmap, const char *filename, const void *palette)
-{
-	return AllegroBitmap::SaveToFile(bitmap, filename, palette);
+	Bitmap *bitmap = new Bitmap();
+	if (!bitmap->LoadFromFile(filename))
+	{
+		delete bitmap;
+		bitmap = NULL;
+	}
+	return bitmap;
 }
 
 // TODO: redo this ugly workaround
@@ -88,7 +94,7 @@ void SetScreenBitmap(Bitmap *bitmap)
     }
 }
 
-};
+} // namespace BitmapHelper
 
 } // namespace Common
 } // namespace AGS

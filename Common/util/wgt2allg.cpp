@@ -20,7 +20,6 @@
 #include "core/assetmanager.h"
 
 using AGS::Common::Bitmap;
-using AGS::Common::AllegroBitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 using AGS::Common::Stream;
 
@@ -43,10 +42,10 @@ Bitmap *abuf;
   }
 
   // [IKM] A very, very dangerous stuff!
-  AllegroBitmap wsetscreen_wrapper;
+  Bitmap wsetscreen_wrapper;
   void wsetscreen_raw(BITMAP *nss)
   {
-    wsetscreen_wrapper.WrapBitmapObject(nss);
+    wsetscreen_wrapper.WrapAllegroBitmap(nss, true);
 
     if (nss == NULL) {
       abuf = BitmapHelper::GetScreenBitmap();
@@ -180,10 +179,10 @@ Bitmap *abuf;
       abuf->Blit(bll, 0, 0, xx, yy, bll->GetWidth(), bll->GetHeight());
   }
 
-  AllegroBitmap wputblock_wrapper; // [IKM] argh! :[
+  Bitmap wputblock_wrapper; // [IKM] argh! :[
   void wputblock_raw(int xx, int yy, BITMAP *bll, int xray)
   {
-	wputblock_wrapper.WrapBitmapObject(bll);
+	wputblock_wrapper.WrapAllegroBitmap(bll, true);
     if (xray)
       abuf->Blit(&wputblock_wrapper, xx, yy, Common::kBitmap_Transparency);
     else

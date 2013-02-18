@@ -30,50 +30,62 @@ namespace AGS
 namespace Common
 {
 
-class AllegroBitmap : public Bitmap
+class Bitmap
 {
 public:
-	static const int32_t AlBmpSignature = MAKE_SIGNATURE('A','L','B','M');
+	Bitmap();
+    Bitmap(int width, int height, int color_depth = 0);
+    Bitmap(Bitmap *src, const Rect &rc);
+    Bitmap(BITMAP *al_bmp, bool shared_data = false);
+	virtual ~Bitmap();
 
-	static AllegroBitmap *CreateBitmap(int width, int height, int color_depth = 0);
-	static AllegroBitmap *CreateSubBitmap(Bitmap *src, const Rect &rc);
-	// TODO: revise those functions later (currently needed in a few very specific cases)
-	// NOTE: the resulting object __owns__ bitmap data from now on
-	static AllegroBitmap *CreateFromRawAllegroBitmap(void *bitmap_object);
-	// NOTE: the resulting object __does not own__ bitmap data
-	static AllegroBitmap *WrapRawAllegroBitmap(void *bitmap_object);
-	static AllegroBitmap *LoadFromFile(const char *filename);
-	static bool           SaveToFile(Bitmap *bitmap, const char *filename, const void *palette);
-
-	AllegroBitmap();
-	virtual ~AllegroBitmap();
-
-	inline virtual int32_t GetClassType() const
-	{
-		return AlBmpSignature;
-	}
-
+    // Allocate new bitmap
+	// CHECKME: color_depth = 0 is used to call Allegro's create_bitmap, which uses
+	// some global color depth setting; not sure if this is OK to use for generic class,
+	// revise this in future
+	virtual bool	Create(int width, int height, int color_depth = 0);
+    // Allow this object to share existing bitmap data
+	virtual bool	CreateSubBitmap(Bitmap *src, const Rect &rc);
 	// TODO: a temporary solution for plugin support
-	// AllegroBitmap will _not_ own the raw data
-	void			WrapBitmapObject(BITMAP *al_bmp);
+	bool			WrapAllegroBitmap(BITMAP *al_bmp, bool shared_data = false);
+    // Deallocate bitmap
+    virtual void	Destroy();
 
+    virtual bool    LoadFromFile(const char *filename);
+    virtual bool    SaveToFile(const char *filename, const void *palette);
+
+    // TODO: This is temporary solution for cases when we cannot replace
+	// use of raw BITMAP struct with Bitmap
 	virtual void	*GetBitmapObject();
 
+    // TODO: also add generic GetBitmapType returning combination of flags
+	// Is this a "normal" bitmap created by application which data can be directly accessed for reading and writing
 	virtual bool	IsMemoryBitmap() const;
+    // Is this a linear bitmap, the one that can be accessed linearly within each scanline 
 	virtual bool	IsLinearBitmap() const;
 
+    // Checks if bitmap CAN'T be used; positive reply usually means either bitmap was
+	// not properly constructed, or that a null pointer is being tested;
+	// Note: it is safe to call this method for null pointer
 	virtual bool	IsNull() const;
+    // Checks if bitmap has zero size: either width or height (or both) is zero
 	virtual bool	IsEmpty() const;
 	virtual int		GetWidth() const;
 	virtual int		GetHeight() const;
 	virtual int		GetColorDepth() const;
+    // BPP: bytes per pixel
 	virtual int		GetBPP() const;
 
+    // CHECKME: probably should not be exposed, see comment to GetData()
 	virtual int		GetDataSize() const;
+    // Gets scanline length in bytes (is the same for any scanline)
 	virtual int		GetLineLength() const;
 
 	// TODO: replace with byte *
+	// Gets a pointer to underlying graphic data
+	// FIXME: actually not a very good idea, since there's no 100% guarantee the scanline positions in memory are sequential
 	virtual const unsigned char *GetData() const;
+    // Get scanline for direct reading
 	virtual const unsigned char *GetScanLine(int index) const;
 
 	virtual void	SetClip(const Rect &rc);
@@ -82,15 +94,21 @@ public:
 	virtual void	SetMaskColor(color_t color);
 	virtual color_t	GetMaskColor() const;
 
+    // FIXME: allegro manual states these should not be used externally;
+	// should hide or totally remove those later
 	virtual void	Acquire();
 	virtual void	Release();
 
-	virtual void	Clear(color_t color);
+    // Fills the whole bitmap with given color (black by default)
+	virtual void	Clear(color_t color = 0);
 
 	//=========================================================================
 	// Direct access operations
 	//=========================================================================
+    // TODO: think how to increase safety over this (some fixed memory buffer class with iterator?)
+	// Gets scanline for directly writing into it
 	virtual unsigned char		*GetScanLineForWriting(int index);
+    // Copies buffer contents into scanline
 	virtual void				SetScanLine(int index, unsigned char *data, int data_size = -1);
 	
 	//=========================================================================
@@ -118,6 +136,10 @@ public:
 	//=========================================================================
 	// Vector drawing operations
 	//=========================================================================
+    // The PutPixel and GetPixel are supposed to be safe and therefore
+    // relatively slow operations. They should not be used for changing large
+    // blocks of bitmap memory - reading/writing from/to scan lines should be
+    // done in such cases.
 	virtual void	PutPixel(int x, int y, color_t color);
 	virtual int		GetPixel(int x, int y) const;
 	virtual void	DrawLine(const Line &ln, color_t color);
@@ -128,17 +150,21 @@ public:
 	virtual void	FloodFill(int x, int y, color_t color);
 
 private:
-	//=========================================================================
-	// Creation and destruction
-	//=========================================================================
-	virtual bool	Create(int width, int height, int color_depth = 0);
-	virtual bool	CreateShared(Bitmap *src, int x, int y, int width, int height);
-	virtual void	Destroy();
-
 	BITMAP			*_bitmap;
 	// TODO: revise this flag, currently needed only for wrapping raw bitmap data in limited cases
 	bool			_isDataOwner;
 };
+
+
+
+namespace BitmapHelper
+{
+    // TODO: revise those functions later (currently needed in a few very specific cases)
+	// NOTE: the resulting object __owns__ bitmap data from now on
+	Bitmap *CreateRawBitmapOwner(BITMAP *al_bmp);
+	// NOTE: the resulting object __does not own__ bitmap data
+	Bitmap *CreateRawBitmapWrapper(BITMAP *al_bmp);
+} // namespace BitmapHelper
 
 } // namespace Common
 } // namespace AGS

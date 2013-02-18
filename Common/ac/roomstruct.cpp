@@ -705,7 +705,7 @@ void load_room(const char *files, roomstruct *rstruc, bool gameIsHighRes) {
     }
     else {
       char  tempbfr[90];
-      sprintf(tempbfr, "LoadRoom: unknown Bitmap *type %d encountered in '%s'", thisblock, files);
+      sprintf(tempbfr, "LoadRoom: unknown block type %d encountered in '%s'", thisblock, files);
       quit(tempbfr);
     }
 

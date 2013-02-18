@@ -109,6 +109,7 @@ extern int get_adjusted_spriteheight(int spr);
 extern bool is_sprite_alpha(int spr);
 extern int final_col_dep;
 
+// This function has distinct implementations in Engine and Editor
 extern void draw_sprite_compensate(Common::Graphics *g, int spr, int x, int y, int xray);
 
 extern AGS_INLINE int divide_down_coordinate(int coord);
@@ -116,6 +117,7 @@ extern AGS_INLINE int multiply_up_coordinate(int coord);
 extern AGS_INLINE void multiply_up_coordinates(int *x, int *y);
 extern AGS_INLINE int get_fixed_pixel_size(int pixels);
 
+// Those function have distinct implementations in Engine and Editor
 extern void wouttext_outline(Common::Graphics *g, int xxp, int yyp, int usingfont, char *texx);
 extern int wgettextwidth_compensate(Common::Graphics *g, const char *tex, int font) ;
 extern void check_font(int *fontnum);

@@ -3860,15 +3860,15 @@ int alfont_ugetx(ALFONT_FONT *f, char **s) {
   //advances the *s pointer to the next character
 
   if (f->type==1) {
-  	ugetxc((char**)s);
+  	ugetxc((const char**)s);
 	#ifdef ALFONT_LINUX
-	ugetxc((char**)s);
+	ugetxc((const char**)s);
 	#endif
   }
   else if(f->type==2) {
-	ugetxc(&lpszWS);
+	ugetxc((const char**)&lpszWS);
 	#ifdef ALFONT_LINUX
-	ugetxc(&lpszWS);
+	ugetxc((const char**)&lpszWS);
 	#endif
   	#ifdef ALFONT_DOS
 	if ((c_pt = iconv_open(f->language, "UTF-16LE")) == (iconv_t)-1) {
@@ -3913,9 +3913,9 @@ int alfont_ugetx(ALFONT_FONT *f, char **s) {
     #ifdef ALFONT_LINUX
 	set_uformat(U_UTF8);
     #endif
-	ugetxc((char**)s);
+	ugetxc((const char**)s);
 	#ifdef ALFONT_LINUX
-	ugetxc((char**)s);
+	ugetxc((const char**)s);
 	#endif
   }
 
@@ -4182,9 +4182,9 @@ int alfont_ugetxc(ALFONT_FONT *f, const char **s) {
 	#endif
   }
   else if(f->type==2) {
-	ugetxc(&lpszWS);
+	ugetxc((const char**)&lpszWS);
 	#ifdef ALFONT_LINUX
-	ugetxc(&lpszWS);
+	ugetxc((const char**)&lpszWS);
 	#endif
   	#ifdef ALFONT_DOS
 	if ((c_pt = iconv_open(f->language, "UTF-16LE")) == (iconv_t)-1) {

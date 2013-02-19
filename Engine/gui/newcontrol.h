@@ -20,6 +20,8 @@
 
 #include "gfx/graphics.h"
 
+using namespace AGS; // FIXME later
+
 struct NewControl
 {
   int x, y, wid, hit, state, typeandflags, wlevel;

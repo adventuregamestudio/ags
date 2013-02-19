@@ -281,7 +281,7 @@ int GUIMain::is_mouse_on_gui()
 
 void GUIMain::draw_blob(Common::Graphics *g, int xp, int yp)
 {
-  g->Bmp->FillRect(Rect(xp, yp, xp + get_fixed_pixel_size(1), yp + get_fixed_pixel_size(1)), g->DrawColor);
+  g->FillRect(Rect(xp, yp, xp + get_fixed_pixel_size(1), yp + get_fixed_pixel_size(1)), g->GetDrawColor());
 }
 
 void GUIMain::draw_at(Common::Graphics *g, int xx, int yy)
@@ -293,8 +293,8 @@ void GUIMain::draw_at(Common::Graphics *g, int xx, int yy)
   if ((wid < 1) || (hit < 1))
     return;
 
-  //Bitmap *abufwas = g->Bmp;
-  Bitmap *subbmp = BitmapHelper::CreateSubBitmap(g->Bmp, RectWH(xx, yy, wid, hit));
+  //Bitmap *abufwas = g;
+  Bitmap *subbmp = BitmapHelper::CreateSubBitmap(g->GetBitmap(), RectWH(xx, yy, wid, hit));
 
   SET_EIP(376)
   // stop border being transparent, if the whole GUI isn't
@@ -302,16 +302,16 @@ void GUIMain::draw_at(Common::Graphics *g, int xx, int yy)
     fgcol = 16;
 
   Common::Graphics sub_graphics(subbmp);
-  //g->Bmp = subbmp;
+  //g = subbmp;
   if (bgcol != 0)
-    sub_graphics.Bmp->Clear(get_col8_lookup(bgcol, sub_graphics.Bmp->GetColorDepth()));
+    sub_graphics.Fill(get_col8_lookup(bgcol, sub_graphics.GetBitmap()->GetColorDepth()));
 
   SET_EIP(377)
 
   if (fgcol != bgcol) {
-    sub_graphics.Bmp->DrawRect(Rect(0, 0, sub_graphics.Bmp->GetWidth() - 1, sub_graphics.Bmp->GetHeight() - 1), get_col8_lookup(fgcol, sub_graphics.Bmp->GetColorDepth()));
+    sub_graphics.DrawRect(Rect(0, 0, sub_graphics.GetBitmap()->GetWidth() - 1, sub_graphics.GetBitmap()->GetHeight() - 1), get_col8_lookup(fgcol, sub_graphics.GetBitmap()->GetColorDepth()));
     if (get_fixed_pixel_size(1) > 1)
-      sub_graphics.Bmp->DrawRect(Rect(1, 1, sub_graphics.Bmp->GetWidth() - 2, sub_graphics.Bmp->GetHeight() - 2), get_col8_lookup(fgcol, sub_graphics.Bmp->GetColorDepth()));
+      sub_graphics.DrawRect(Rect(1, 1, sub_graphics.GetBitmap()->GetWidth() - 2, sub_graphics.GetBitmap()->GetHeight() - 2), get_col8_lookup(fgcol, sub_graphics.GetBitmap()->GetColorDepth()));
   }
 
   SET_EIP(378)
@@ -339,7 +339,7 @@ void GUIMain::draw_at(Common::Graphics *g, int xx, int yy)
     if (highlightobj == drawOrder[aa]) {
       if (outlineGuiObjects)
         selectedColour = 13;
-      sub_graphics.SetColor(selectedColour);
+      sub_graphics.SetDrawColor(selectedColour);
       draw_blob(&sub_graphics, objToDraw->x + objToDraw->wid - get_fixed_pixel_size(1) - 1, objToDraw->y);
       draw_blob(&sub_graphics, objToDraw->x, objToDraw->y + objToDraw->hit - get_fixed_pixel_size(1) - 1);
       draw_blob(&sub_graphics, objToDraw->x, objToDraw->y);
@@ -348,21 +348,21 @@ void GUIMain::draw_at(Common::Graphics *g, int xx, int yy)
     }
     if (outlineGuiObjects) {
       int oo;  // draw a dotted outline round all objects
-      sub_graphics.SetColor(selectedColour);
+      sub_graphics.SetDrawColor(selectedColour);
       for (oo = 0; oo < objToDraw->wid; oo+=2) {
-        sub_graphics.Bmp->PutPixel(oo + objToDraw->x, objToDraw->y, sub_graphics.DrawColor);
-        sub_graphics.Bmp->PutPixel(oo + objToDraw->x, objToDraw->y + objToDraw->hit - 1, sub_graphics.DrawColor);
+        sub_graphics.PutPixel(oo + objToDraw->x, objToDraw->y, sub_graphics.GetDrawColor());
+        sub_graphics.PutPixel(oo + objToDraw->x, objToDraw->y + objToDraw->hit - 1, sub_graphics.GetDrawColor());
       }
       for (oo = 0; oo < objToDraw->hit; oo+=2) {
-        sub_graphics.Bmp->PutPixel(objToDraw->x, oo + objToDraw->y, sub_graphics.DrawColor);
-        sub_graphics.Bmp->PutPixel(objToDraw->x + objToDraw->wid - 1, oo + objToDraw->y, sub_graphics.DrawColor);
+        sub_graphics.PutPixel(objToDraw->x, oo + objToDraw->y, sub_graphics.GetDrawColor());
+        sub_graphics.PutPixel(objToDraw->x + objToDraw->wid - 1, oo + objToDraw->y, sub_graphics.GetDrawColor());
       }      
     }
   }
 
   SET_EIP(380)
   delete subbmp;
-//  sub_graphics.Bmp = abufwas;
+//  sub_graphics.GetBitmap() = abufwas;
 }
 
 void GUIMain::draw(Common::Graphics *g)

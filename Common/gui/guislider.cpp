@@ -132,16 +132,16 @@ void GUISlider::Draw(Common::Graphics *g)
   }
   else {
     // normal grey background
-    g->SetColor(16);
-    g->Bmp->FillRect(Rect(bartlx + 1, bartly + 1, barbrx - 1, barbry - 1), g->DrawColor);
+    g->SetDrawColor(16);
+    g->FillRect(Rect(bartlx + 1, bartly + 1, barbrx - 1, barbry - 1), g->GetDrawColor());
 
-    g->SetColor(8);
-    g->Bmp->DrawLine(Line(bartlx, bartly, bartlx, barbry), g->DrawColor);
-    g->Bmp->DrawLine(Line(bartlx, bartly, barbrx, bartly), g->DrawColor);
+    g->SetDrawColor(8);
+    g->DrawLine(Line(bartlx, bartly, bartlx, barbry), g->GetDrawColor());
+    g->DrawLine(Line(bartlx, bartly, barbrx, bartly), g->GetDrawColor());
 
-    g->SetColor(15);
-    g->Bmp->DrawLine(Line(barbrx, bartly + 1, barbrx, barbry), g->DrawColor);
-    g->Bmp->DrawLine(Line(bartlx, barbry, barbrx, barbry), g->DrawColor);
+    g->SetDrawColor(15);
+    g->DrawLine(Line(barbrx, bartly + 1, barbrx, barbry), g->GetDrawColor());
+    g->DrawLine(Line(bartlx, barbry, barbrx, barbry), g->GetDrawColor());
   }
 
   if (handlepic > 0) {
@@ -156,16 +156,16 @@ void GUISlider::Draw(Common::Graphics *g)
   }
   else {
     // normal grey tracker handle
-    g->SetColor(7);
-    g->Bmp->FillRect(Rect(handtlx, handtly, handbrx, handbry), g->DrawColor);
+    g->SetDrawColor(7);
+    g->FillRect(Rect(handtlx, handtly, handbrx, handbry), g->GetDrawColor());
 
-    g->SetColor(15);
-    g->Bmp->DrawLine(Line(handtlx, handtly, handbrx, handtly), g->DrawColor);
-    g->Bmp->DrawLine(Line(handtlx, handtly, handtlx, handbry), g->DrawColor);
+    g->SetDrawColor(15);
+    g->DrawLine(Line(handtlx, handtly, handbrx, handtly), g->GetDrawColor());
+    g->DrawLine(Line(handtlx, handtly, handtlx, handbry), g->GetDrawColor());
 
-    g->SetColor(16);
-    g->Bmp->DrawLine(Line(handbrx, handtly + 1, handbrx, handbry), g->DrawColor);
-    g->Bmp->DrawLine(Line(handtlx + 1, handbry, handbrx, handbry), g->DrawColor);
+    g->SetDrawColor(16);
+    g->DrawLine(Line(handbrx, handtly + 1, handbrx, handbry), g->GetDrawColor());
+    g->DrawLine(Line(handtlx + 1, handbry, handbrx, handbry), g->GetDrawColor());
   }
 
   cached_handtlx = handtlx;

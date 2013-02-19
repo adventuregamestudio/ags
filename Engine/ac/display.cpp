@@ -38,9 +38,10 @@
 #include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
 #include "ac/spritecache.h"
-#include "gfx/bitmap.h"
+#include "gfx/graphics.h"
 
 using AGS::Common::Bitmap;
+using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameState play;
@@ -69,7 +70,7 @@ char *heightTestString = "ZHwypgfjqhkilIK";
 TopBarSettings topBar;
 // draw_text_window: draws the normal or custom text window
 // create a new bitmap the size of the window before calling, and
-//   point g->Bmp to it
+//   point g to it
 // returns text start x & y pos in parameters
 Bitmap *screenop = NULL;
 int wantFreeScreenop = 0;
@@ -417,7 +418,7 @@ bool ShouldAntiAliasText() {
 }
 
 void wouttext_outline(Common::Graphics *g, int xxp, int yyp, int usingfont, char*texx) {
-    int otextc=g->TextColor;
+    int otextc=g->GetTextColor();
 
     if (game.fontoutline[usingfont] >= 0) {
         g->SetTextColor(play.speech_text_shadow);
@@ -509,10 +510,10 @@ int get_but_pic(GUIMain*guo,int indx) {
 
 void draw_button_background(Common::Graphics *g, int xx1,int yy1,int xx2,int yy2,GUIMain*iep) {
     if (iep==NULL) {  // standard window
-        g->Bmp->FillRect(Rect(xx1,yy1,xx2,yy2),get_col8_lookup(15, g->Bmp->GetColorDepth()));
-        g->Bmp->DrawRect(Rect(xx1,yy1,xx2,yy2),get_col8_lookup(16, g->Bmp->GetColorDepth()));
-        /*    g->SetColor(opts.tws.backcol); g->Bmp->FillRect(Rect(xx1,yy1,xx2,yy2);
-        g->SetColor(opts.tws.g->TextColor); g->Bmp->DrawRect(Rect(xx1+1,yy1+1,xx2-1,yy2-1);*/
+        g->FillRect(Rect(xx1,yy1,xx2,yy2),get_col8_lookup(15, g->GetBitmap()->GetColorDepth()));
+        g->DrawRect(Rect(xx1,yy1,xx2,yy2),get_col8_lookup(16, g->GetBitmap()->GetColorDepth()));
+        /*    g->SetDrawColor(opts.tws.backcol); g->FillRect(Rect(xx1,yy1,xx2,yy2);
+        g->SetDrawColor(opts.tws.g->GetTextColor()); g->DrawRect(Rect(xx1+1,yy1+1,xx2-1,yy2-1);*/
     }
     else {
         if (loaded_game_file_version < kGameVersion_262) // < 2.62
@@ -525,11 +526,11 @@ void draw_button_background(Common::Graphics *g, int xx1,int yy1,int xx2,int yy2
                 iep->bgcol = 16;
         }
 
-        if (iep->bgcol >= 0) g->SetColor(iep->bgcol);
-        else g->SetColor(0); // black backrgnd behind picture
+        if (iep->bgcol >= 0) g->SetDrawColor(iep->bgcol);
+        else g->SetDrawColor(0); // black backrgnd behind picture
 
         if (iep->bgcol > 0)
-            g->Bmp->FillRect(Rect(xx1,yy1,xx2,yy2), g->DrawColor);
+            g->FillRect(Rect(xx1,yy1,xx2,yy2), g->GetDrawColor());
 
         int leftRightWidth = spritewidth[get_but_pic(iep,4)];
         int topBottomHeight = spriteheight[get_but_pic(iep,6)];
@@ -548,7 +549,7 @@ void draw_button_background(Common::Graphics *g, int xx1,int yy1,int xx2,int yy2
                 // edge
                 int bgoffsx = xx1 - leftRightWidth / 2;
                 int bgoffsy = yy1 - topBottomHeight / 2;
-                g->Bmp->SetClip(Rect(bgoffsx, bgoffsy, xx2 + leftRightWidth / 2, yy2 + topBottomHeight / 2));
+                g->SetClip(Rect(bgoffsx, bgoffsy, xx2 + leftRightWidth / 2, yy2 + topBottomHeight / 2));
                 int bgfinishx = xx2;
                 int bgfinishy = yy2;
                 int bgoffsyStart = bgoffsy;
@@ -563,7 +564,7 @@ void draw_button_background(Common::Graphics *g, int xx1,int yy1,int xx2,int yy2
                     bgoffsx += spritewidth[iep->bgpic];
                 }
                 // return to normal clipping rectangle
-                g->Bmp->SetClip(Rect(0, 0, g->Bmp->GetWidth() - 1, g->Bmp->GetHeight() - 1));
+                g->SetClip(Rect(0, 0, g->GetBitmap()->GetWidth() - 1, g->GetBitmap()->GetHeight() - 1));
             }
         }
         int uu;
@@ -615,7 +616,7 @@ void draw_text_window(Common::Graphics *g, int*xins,int*yins,int*xx,int*yy,int*w
     if (ifnum <= 0) {
         if (ovrheight)
             quit("!Cannot use QFG4 style options without custom text window");
-        draw_button_background(g, 0,0,g->Bmp->GetWidth() - 1,g->Bmp->GetHeight() - 1,NULL);
+        draw_button_background(g, 0,0,g->GetBitmap()->GetWidth() - 1,g->GetBitmap()->GetHeight() - 1,NULL);
         g->SetTextColor(16);
         xins[0]=3;
         yins[0]=3;
@@ -640,7 +641,7 @@ void draw_text_window(Common::Graphics *g, int*xins,int*yins,int*xx,int*yy,int*w
         screenop->Clear(screenop->GetMaskColor());
         Common::Graphics *g = SetVirtualScreen(screenop);
         int xoffs=spritewidth[tbnum],yoffs=spriteheight[tbnum];
-        draw_button_background(g, xoffs,yoffs,(g->Bmp->GetWidth() - xoffs) - 1,(g->Bmp->GetHeight() - yoffs) - 1,&guis[ifnum]);
+        draw_button_background(g, xoffs,yoffs,(g->GetBitmap()->GetWidth() - xoffs) - 1,(g->GetBitmap()->GetHeight() - yoffs) - 1,&guis[ifnum]);
         g->SetTextColor(guis[ifnum].fgcol);
         xins[0]=xoffs+3;
         yins[0]=yoffs+3;
@@ -656,20 +657,21 @@ void draw_text_window_and_bar(Common::Graphics *g, int*xins,int*yins,int*xx,int*
         // top bar on the dialog window with character's name
         // create an enlarged window, then free the old one
         Bitmap *newScreenop = BitmapHelper::CreateBitmap(screenop->GetWidth(), screenop->GetHeight() + topBar.height, final_col_dep);
-        newScreenop->Blit(screenop, 0, 0, 0, topBar.height, screenop->GetWidth(), screenop->GetHeight());
+        Graphics graphics(newScreenop);
+        graphics.Blit(screenop, 0, 0, 0, topBar.height, screenop->GetWidth(), screenop->GetHeight());
         delete screenop;
         screenop = newScreenop;
         Common::Graphics *g = SetVirtualScreen(screenop);
 
         // draw the top bar
-        screenop->FillRect(Rect(0, 0, screenop->GetWidth() - 1, topBar.height - 1), get_col8_lookup(play.top_bar_backcolor, g->Bmp->GetColorDepth()));
+        g->FillRect(Rect(0, 0, screenop->GetWidth() - 1, topBar.height - 1), get_col8_lookup(play.top_bar_backcolor, g->GetBitmap()->GetColorDepth()));
         if (play.top_bar_backcolor != play.top_bar_bordercolor) {
             // draw the border
             for (int j = 0; j < multiply_up_coordinate(play.top_bar_borderwidth); j++)
-                screenop->DrawRect(Rect(j, j, screenop->GetWidth() - (j + 1), topBar.height - (j + 1)), get_col8_lookup(play.top_bar_bordercolor, g->Bmp->GetColorDepth()));
+                g->DrawRect(Rect(j, j, screenop->GetWidth() - (j + 1), topBar.height - (j + 1)), get_col8_lookup(play.top_bar_bordercolor, g->GetBitmap()->GetColorDepth()));
         }
 
-        int textcolwas = g->TextColor;
+        int textcolwas = g->GetTextColor();
         // draw the text
         int textx = (screenop->GetWidth() / 2) - wgettextwidth_compensate(topBar.text, topBar.font) / 2;
         g->SetTextColor(play.top_bar_textcolor);

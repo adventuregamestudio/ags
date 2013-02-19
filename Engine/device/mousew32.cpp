@@ -139,7 +139,7 @@ void msetcursorlimit(int x1, int y1, int x2, int y2)
 void drawCursor(Common::Graphics *g) {
   if (alpha_blend_cursor) {
     set_alpha_blender();
-    g->Bmp->TransBlendBlt(mousecurs[currentcursor], mousex, mousey);
+    g->TransBlendBlt(mousecurs[currentcursor], mousex, mousey);
   }
   else
     put_sprite_256(g, mousex, mousey, mousecurs[currentcursor]);
@@ -168,18 +168,18 @@ void domouse(int str)
 
   Common::Graphics *g = GetVirtualScreenGraphics();
 
-  g->Bmp->SetClip(Rect(0, 0, vesa_xres - 1, vesa_yres - 1));
+  g->SetClip(Rect(0, 0, vesa_xres - 1, vesa_yres - 1));
   if ((str == 0) & (mouseturnedon == TRUE)) {
     if ((mousex != smx) | (mousey != smy)) {    // the mouse has moved
       wputblock(g, smx, smy, savebk, 0);
       delete savebk;
-      savebk = wnewblock(g->Bmp, mousex, mousey, mousex + poow, mousey + pooh);
+      savebk = wnewblock(g->GetBitmap(), mousex, mousey, mousex + poow, mousey + pooh);
       drawCursor(g);
     }
   }
   else if ((str == 1) & (mouseturnedon == FALSE)) {
     // the mouse is just being turned on
-    savebk = wnewblock(g->Bmp, mousex, mousey, mousex + poow, mousey + pooh);
+    savebk = wnewblock(g->GetBitmap(), mousex, mousey, mousex + poow, mousey + pooh);
     drawCursor(g);
     mouseturnedon = TRUE;
   }

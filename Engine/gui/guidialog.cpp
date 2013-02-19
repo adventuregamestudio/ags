@@ -23,10 +23,11 @@
 #include "gui/cscidialog.h"
 #include <cctype> //isdigit()
 #include "gfx/graphicsdriver.h"
-#include "gfx/bitmap.h"
+#include "gfx/graphics.h"
 
 using AGS::Common::String;
 using AGS::Common::Bitmap;
+using AGS::Common::Graphics;
 
 extern IGraphicsDriver *gfxDriver;
 extern GameSetup usetup;
@@ -59,13 +60,14 @@ int myscrnwid = 320, myscrnhit = 200;
 void refresh_screen()
 {
     Common::Graphics *g = GetVirtualScreenGraphics();
-    windowBuffer->Blit(g->Bmp, windowPosX, windowPosY, 0, 0, windowPosWidth, windowPosHeight);
+    Graphics window_graphics(windowBuffer);
+    window_graphics.Blit(g->GetBitmap(), windowPosX, windowPosY, 0, 0, windowPosWidth, windowPosHeight);
     gfxDriver->UpdateDDBFromBitmap(dialogBmp, windowBuffer, false);
 
     render_graphics(dialogBmp, windowPosX, windowPosY);
 
     // Copy it back, because the mouse will have been drawn on top
-    g->Bmp->Blit(windowBuffer, 0, 0, windowPosX, windowPosY, windowPosWidth, windowPosHeight);
+    g->Blit(windowBuffer, 0, 0, windowPosX, windowPosY, windowPosWidth, windowPosHeight);
 }
 
 int loadgamedialog()

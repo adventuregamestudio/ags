@@ -180,7 +180,7 @@ BITMAP *IAGSEngine::GetScreen ()
     if (!gfxDriver->UsesMemoryBackBuffer())
         quit("!This plugin is not compatible with the Direct3D driver.");
 
-	return (BITMAP*)BitmapHelper::GetScreenBitmap()->GetBitmapObject();
+	return (BITMAP*)BitmapHelper::GetScreenBitmap()->GetAllegroBitmap();
 }
 BITMAP *IAGSEngine::GetVirtualScreen () 
 {
@@ -188,7 +188,7 @@ BITMAP *IAGSEngine::GetVirtualScreen ()
         quit("!This plugin is not compatible with the Direct3D driver.");
 
 	// [IKM] Aaahh... this is very dangerous, but what can we do?
-	return (BITMAP*)gfxDriver->GetMemoryBackBuffer()->GetBitmapObject();
+	return (BITMAP*)gfxDriver->GetMemoryBackBuffer()->GetAllegroBitmap();
 }
 void IAGSEngine::RequestEventHook (int32 event) {
     if (event >= AGSE_TOOHIGH) 
@@ -255,7 +255,7 @@ unsigned char ** IAGSEngine::GetRawBitmapSurface (BITMAP *bmp) {
         quit("!IAGSEngine::GetRawBitmapSurface: invalid bitmap for access to surface");
     acquire_bitmap (bmp);
 
-	if (bmp == virtual_screen->GetBitmapObject())
+	if (bmp == virtual_screen->GetAllegroBitmap())
         plugins[this->pluginId].invalidatedRegion = 0;
 
     return bmp->line;
@@ -263,7 +263,7 @@ unsigned char ** IAGSEngine::GetRawBitmapSurface (BITMAP *bmp) {
 void IAGSEngine::ReleaseBitmapSurface (BITMAP *bmp) {
     release_bitmap (bmp);
 
-	if (bmp == virtual_screen->GetBitmapObject()) {
+	if (bmp == virtual_screen->GetAllegroBitmap()) {
         // plugin does not manaually invalidate stuff, so
         // we must invalidate the whole screen to be safe
         if (!plugins[this->pluginId].invalidatedRegion)
@@ -284,7 +284,7 @@ int IAGSEngine::GetCurrentBackground () {
     return play.bg_frame;
 }
 BITMAP *IAGSEngine::GetBackgroundScene (int32 index) {
-    return (BITMAP*)thisroom.ebscene[index]->GetBitmapObject();
+    return (BITMAP*)thisroom.ebscene[index]->GetAllegroBitmap();
 }
 void IAGSEngine::GetBitmapDimensions (BITMAP *bmp, int32 *width, int32 *height, int32 *coldepth) {
     if (bmp == NULL)
@@ -330,11 +330,13 @@ void IAGSEngine::BlitBitmap (int32 x, int32 y, BITMAP *bmp, int32 masked) {
 void IAGSEngine::BlitSpriteTranslucent(int32 x, int32 y, BITMAP *bmp, int32 trans) {
     set_trans_blender(0, 0, 0, trans);
     Common::Graphics *g = GetVirtualScreenGraphics();
-	draw_trans_sprite((BITMAP*)g->Bmp->GetBitmapObject(), bmp, x, y);
+    // FIXME: call corresponding Graphics Blit
+	draw_trans_sprite((BITMAP*)g->GetBitmap()->GetAllegroBitmap(), bmp, x, y);
 }
 void IAGSEngine::BlitSpriteRotated(int32 x, int32 y, BITMAP *bmp, int32 angle) {
     Common::Graphics *g = GetVirtualScreenGraphics();
-    rotate_sprite((BITMAP*)g->Bmp->GetBitmapObject(), bmp, x, y, itofix(angle));
+    // FIXME: call corresponding Graphics Blit
+    rotate_sprite((BITMAP*)g->GetBitmap()->GetAllegroBitmap(), bmp, x, y, itofix(angle));
 }
 
 extern void domouse(int);
@@ -412,17 +414,17 @@ void IAGSEngine::FreeBitmap (BITMAP *tofree) {
         destroy_bitmap (tofree);
 }
 BITMAP *IAGSEngine::GetSpriteGraphic (int32 num) {
-    return (BITMAP*)spriteset[num]->GetBitmapObject();
+    return (BITMAP*)spriteset[num]->GetAllegroBitmap();
 }
 BITMAP *IAGSEngine::GetRoomMask (int32 index) {
     if (index == MASK_WALKABLE)
-        return (BITMAP*)thisroom.walls->GetBitmapObject();
+        return (BITMAP*)thisroom.walls->GetAllegroBitmap();
     else if (index == MASK_WALKBEHIND)
-        return (BITMAP*)thisroom.object->GetBitmapObject();
+        return (BITMAP*)thisroom.object->GetAllegroBitmap();
     else if (index == MASK_HOTSPOT)
-        return (BITMAP*)thisroom.lookat->GetBitmapObject();
+        return (BITMAP*)thisroom.lookat->GetAllegroBitmap();
     else if (index == MASK_REGIONS)
-        return (BITMAP*)thisroom.regions->GetBitmapObject();
+        return (BITMAP*)thisroom.regions->GetAllegroBitmap();
     else
         quit("!IAGSEngine::GetRoomMask: invalid mask requested");
     return NULL;

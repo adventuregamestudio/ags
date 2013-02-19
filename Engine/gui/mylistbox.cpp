@@ -58,31 +58,31 @@ extern int smcode;
 
   void MyListBox::draw(Common::Graphics *g)
   {
-    g->SetColor(windowbackgroundcolor);
-    g->Bmp->FillRect(Rect(x, y, x + wid, y + hit), g->DrawColor);
-    g->SetColor(0);
-    g->Bmp->DrawRect(Rect(x, y, x + wid, y + hit), g->DrawColor);
+    g->SetDrawColor(windowbackgroundcolor);
+    g->FillRect(Rect(x, y, x + wid, y + hit), g->GetDrawColor());
+    g->SetDrawColor(0);
+    g->DrawRect(Rect(x, y, x + wid, y + hit), g->GetDrawColor());
   
     int widwas = wid;
     wid -= ARROWWIDTH;
-    g->Bmp->DrawLine(Line(x + wid, y, x + wid, y + hit), g->DrawColor);        // draw the up/down arrows
-    g->Bmp->DrawLine(Line(x + wid, y + hit / 2, x + widwas, y + hit / 2), g->DrawColor);
+    g->DrawLine(Line(x + wid, y, x + wid, y + hit), g->GetDrawColor());        // draw the up/down arrows
+    g->DrawLine(Line(x + wid, y + hit / 2, x + widwas, y + hit / 2), g->GetDrawColor());
 
     int xmidd = x + wid + (widwas - wid) / 2;
     if (topitem < 1)
-      g->SetColor(7);
+      g->SetDrawColor(7);
 
-    g->Bmp->DrawLine(Line(xmidd, y + 2, xmidd, y + 10), g->DrawColor); // up arrow
-    g->Bmp->DrawLine(Line(xmidd - 1, y + 3, xmidd + 1, y + 3), g->DrawColor);
-    g->Bmp->DrawLine(Line(xmidd - 2, y + 4, xmidd + 2, y + 4), g->DrawColor);
-    g->SetColor(0);
+    g->DrawLine(Line(xmidd, y + 2, xmidd, y + 10), g->GetDrawColor()); // up arrow
+    g->DrawLine(Line(xmidd - 1, y + 3, xmidd + 1, y + 3), g->GetDrawColor());
+    g->DrawLine(Line(xmidd - 2, y + 4, xmidd + 2, y + 4), g->GetDrawColor());
+    g->SetDrawColor(0);
     if (topitem + numonscreen >= items)
-      g->SetColor(7);
+      g->SetDrawColor(7);
 
-    g->Bmp->DrawLine(Line(xmidd, y + hit - 10, xmidd, y + hit - 3), g->DrawColor);     // down arrow
-    g->Bmp->DrawLine(Line(xmidd - 1, y + hit - 4, xmidd + 1, y + hit - 4), g->DrawColor);
-    g->Bmp->DrawLine(Line(xmidd - 2, y + hit - 5, xmidd + 2, y + hit - 5), g->DrawColor);
-    g->SetColor(0);
+    g->DrawLine(Line(xmidd, y + hit - 10, xmidd, y + hit - 3), g->GetDrawColor());     // down arrow
+    g->DrawLine(Line(xmidd - 1, y + hit - 4, xmidd + 1, y + hit - 4), g->GetDrawColor());
+    g->DrawLine(Line(xmidd - 2, y + hit - 5, xmidd + 2, y + hit - 5), g->GetDrawColor());
+    g->SetDrawColor(0);
 
     for (int tt = 0; tt < numonscreen; tt++) {
       int inum = tt + topitem;
@@ -91,8 +91,8 @@ extern int smcode;
 
       int thisypos = y + 2 + tt * TEXT_HT;
       if (inum == selected) {
-        g->SetColor(0);
-        g->Bmp->FillRect(Rect(x, thisypos, x + wid, thisypos + TEXT_HT - 1), g->DrawColor);
+        g->SetDrawColor(0);
+        g->FillRect(Rect(x, thisypos, x + wid, thisypos + TEXT_HT - 1), g->GetDrawColor());
         g->SetTextColor(7);
       } else
         g->SetTextColor(0);

@@ -300,20 +300,6 @@ char *reverse_text(const char *text) {
     return backwards;
 }
 
-void wouttext_reverseifnecessary(Common::Graphics *g, int x, int y, int font, char *text) {
-    char *backwards = NULL;
-    char *otext = text;
-    if (game.options[OPT_RIGHTLEFTWRITE]) {
-        backwards = reverse_text(text);
-        otext = backwards;
-    }
-
-    wouttext_outline(g, x, y, font, otext);
-
-    if (backwards)
-        free(backwards);
-}
-
 void break_up_text_into_lines(int wii,int fonnt, const char*todis) {
     if (fonnt == -1)
         fonnt = play.normal_font;

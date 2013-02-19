@@ -255,7 +255,7 @@ void MergeObject(int obn) {
     //Bitmap *oldabuf = graphics->bmp;
     //abuf = thisroom.ebscene[play.bg_frame];
     Common::Graphics graphics(thisroom.ebscene[play.bg_frame]);
-    if (graphics.Bmp->GetColorDepth() != actsps[obn]->GetColorDepth())
+    if (graphics.GetBitmap()->GetColorDepth() != actsps[obn]->GetColorDepth())
         quit("!MergeObject: unable to merge object due to color depth differences");
 
     int xpos = multiply_up_coordinate(objs[obn].x);

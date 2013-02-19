@@ -52,12 +52,13 @@
 #include "script/script_runtime.h"
 #include "ac/spritecache.h"
 #include "gfx/graphicsdriver.h"
-#include "gfx/bitmap.h"
+#include "gfx/graphics.h"
 #include "core/assetmanager.h"
 #include "main/game_file.h"
 
 using AGS::Common::String;
 using AGS::Common::Bitmap;
+using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 #define ALLEGRO_KEYBOARD_HANDLER
@@ -185,8 +186,8 @@ int LoadSaveSlotScreenshot(int slnum, int width, int height) {
 
     // resize the sprite to the requested size
     Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, spriteset[gotSlot]->GetColorDepth());
-
-    newPic->StretchBlt(spriteset[gotSlot],
+    Graphics graphics(newPic);
+    graphics.StretchBlt(spriteset[gotSlot],
         RectWH(0, 0, spritewidth[gotSlot], spriteheight[gotSlot]),
         RectWH(0, 0, width, height));
 
@@ -275,7 +276,7 @@ int RunAGSGame (const char *newgame, unsigned int mode, int data) {
         quitprintf("!RunAGSGame: unable to load new game file '%s'", game_file_name.GetCStr());
 
     Common::Graphics *g = GetVirtualScreenGraphics();
-    g->Bmp->Clear();
+    g->Fill(0);
     show_preload();
 
     if ((result = load_game_file ()) != 0) {

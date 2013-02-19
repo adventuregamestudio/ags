@@ -83,7 +83,7 @@ void GUIButton::Draw(Common::Graphics *g)
   if ((usepic > 0) && (pic > 0)) {
 
     if (flags & GUIF_CLIP)
-      g->Bmp->SetClip(Rect(x, y, x + wid - 1, y + hit - 1));
+      g->SetClip(Rect(x, y, x + wid - 1, y + hit - 1));
 
     if (spriteset[usepic] != NULL)
       draw_sprite_compensate(g, usepic, x, y, 1);
@@ -108,7 +108,7 @@ void GUIButton::Draw(Common::Graphics *g)
       }
 
       if (drawInv == 1)
-        g->Bmp->StretchBlt(spriteset[gui_inv_pic], RectWH(x + 3, y + 3, wid - 6, hit - 6), Common::kBitmap_Transparency);
+        g->StretchBlt(spriteset[gui_inv_pic], RectWH(x + 3, y + 3, wid - 6, hit - 6), Common::kBitmap_Transparency);
       else if (drawInv == 2)
         draw_sprite_compensate(g, gui_inv_pic,
                                x + wid / 2 - get_adjusted_spritewidth(gui_inv_pic) / 2,
@@ -116,46 +116,46 @@ void GUIButton::Draw(Common::Graphics *g)
     }
 
     if ((drawDisabled) && (gui_disabled_style == GUIDIS_GREYOUT)) {
-      int col8 = get_col8_lookup(8, g->Bmp->GetColorDepth());
+      int col8 = get_col8_lookup(8, g->GetBitmap()->GetColorDepth());
       int jj, kk;             // darken the button when disabled
       for (jj = 0; jj < spriteset[usepic]->GetWidth(); jj++) {
         for (kk = jj % 2; kk < spriteset[usepic]->GetHeight(); kk += 2)
-          g->Bmp->PutPixel(x + jj, y + kk, col8);
+          g->PutPixel(x + jj, y + kk, col8);
       }
     }
 
-    g->Bmp->SetClip(Rect(0, 0, g->Bmp->GetWidth() - 1, g->Bmp->GetHeight() - 1));
+    g->SetClip(Rect(0, 0, g->GetBitmap()->GetWidth() - 1, g->GetBitmap()->GetHeight() - 1));
   } 
   else if (text[0] != 0) {
     // it's a text button
 
-    g->SetColor(7);
-    g->Bmp->FillRect(Rect(x, y, x + wid - 1, y + hit - 1), g->DrawColor);
+    g->SetDrawColor(7);
+    g->FillRect(Rect(x, y, x + wid - 1, y + hit - 1), g->GetDrawColor());
     if (flags & GUIF_DEFAULT) {
-      g->SetColor(16);
-      g->Bmp->DrawRect(Rect(x - 1, y - 1, x + wid, y + hit), g->DrawColor);
+      g->SetDrawColor(16);
+      g->DrawRect(Rect(x - 1, y - 1, x + wid, y + hit), g->GetDrawColor());
     }
 
     if ((isover) && (ispushed))
-      g->SetColor(15);
+      g->SetDrawColor(15);
     else
-      g->SetColor(8);
+      g->SetDrawColor(8);
 
     if (drawDisabled)
-      g->SetColor(8);
+      g->SetDrawColor(8);
 
-    g->Bmp->DrawLine(Line(x, y + hit - 1, x + wid - 1, y + hit - 1), g->DrawColor);
-    g->Bmp->DrawLine(Line(x + wid - 1, y, x + wid - 1, y + hit - 1), g->DrawColor);
+    g->DrawLine(Line(x, y + hit - 1, x + wid - 1, y + hit - 1), g->GetDrawColor());
+    g->DrawLine(Line(x + wid - 1, y, x + wid - 1, y + hit - 1), g->GetDrawColor());
     if ((isover) && (ispushed))
-      g->SetColor(8);
+      g->SetDrawColor(8);
     else
-      g->SetColor(15);
+      g->SetDrawColor(15);
 
     if (drawDisabled)
-      g->SetColor(8);
+      g->SetDrawColor(8);
 
-    g->Bmp->DrawLine(Line(x, y, x + wid - 1, y), g->DrawColor);
-    g->Bmp->DrawLine(Line(x, y, x, y + hit - 1), g->DrawColor);
+    g->DrawLine(Line(x, y, x + wid - 1, y), g->GetDrawColor());
+    g->DrawLine(Line(x, y, x, y + hit - 1), g->GetDrawColor());
   }                           // end if text
 
   // Don't print text of (INV) (INVSHR) (INVNS)

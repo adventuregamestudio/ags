@@ -27,9 +27,10 @@
 #include "font/fonts.h"
 #include "gui/guidefines.h"
 #include "ac/spritecache.h"
-#include "gfx/bitmap.h"
+#include "gfx/graphics.h"
 
 using AGS::Common::Bitmap;
+using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern Bitmap *raw_saved_screen;
@@ -44,8 +45,8 @@ extern GameSetupStruct game;
 extern int current_screen_resolution_multiplier;
 
 // Raw screen writing routines - similar to old CapturedStuff
-//#define RAW_START() Bitmap *oldabuf=RAW_GRAPHICS()->Bmp; RAW_GRAPHICS()->Bmp=thisroom.ebscene[play.bg_frame]; play.raw_modified[play.bg_frame] = 1
-//#define RAW_END() RAW_GRAPHICS()->Bmp = oldabuf
+//#define RAW_START() Bitmap *oldabuf=RAW_GRAPHICS()->GetBitmap(); RAW_GRAPHICS()->GetBitmap()=thisroom.ebscene[play.bg_frame]; play.raw_modified[play.bg_frame] = 1
+//#define RAW_END() RAW_GRAPHICS()->GetBitmap() = oldabuf
 #define RAW_START() raw_drawing_graphics.SetBitmap(thisroom.ebscene[play.bg_frame]); play.raw_modified[play.bg_frame] = 1
 #define RAW_END()
 #define RAW_GRAPHICS() (&raw_drawing_graphics)
@@ -58,7 +59,8 @@ void RawSaveScreen () {
         delete raw_saved_screen;
     Bitmap *source = thisroom.ebscene[play.bg_frame];
     raw_saved_screen = BitmapHelper::CreateBitmap(source->GetWidth(), source->GetHeight());
-    raw_saved_screen->Blit(source, 0, 0, 0, 0, source->GetWidth(), source->GetHeight());
+    Graphics graphics(raw_saved_screen);
+    graphics.Blit(source, 0, 0, 0, 0, source->GetWidth(), source->GetHeight());
 }
 // RawRestoreScreen: copy backup bitmap back to screen; we
 // deliberately don't free the Bitmap *cos they can multiple restore
@@ -69,7 +71,8 @@ void RawRestoreScreen() {
         return;
     }
     Bitmap *deston = thisroom.ebscene[play.bg_frame];
-    deston->Blit(raw_saved_screen, 0, 0, 0, 0, deston->GetWidth(), deston->GetHeight());
+    Graphics graphics(deston);
+    graphics.Blit(raw_saved_screen, 0, 0, 0, 0, deston->GetWidth(), deston->GetHeight());
     invalidate_screen();
     mark_current_background_dirty();
 }
@@ -87,7 +90,8 @@ void RawRestoreScreenTinted(int red, int green, int blue, int opacity) {
     DEBUG_CONSOLE("RawRestoreTinted RGB(%d,%d,%d) %d%%", red, green, blue, opacity);
 
     Bitmap *deston = thisroom.ebscene[play.bg_frame];
-    tint_image(raw_saved_screen, deston, red, green, blue, opacity);
+    Graphics graphics(deston);
+    tint_image(&graphics, raw_saved_screen, red, green, blue, opacity);
     invalidate_screen();
     mark_current_background_dirty();
 }
@@ -105,7 +109,8 @@ void RawDrawFrameTransparent (int frame, int translev) {
 
     if (translev == 0) {
         // just draw it over the top, no transparency
-        thisroom.ebscene[play.bg_frame]->Blit(thisroom.ebscene[frame], 0, 0, 0, 0, thisroom.ebscene[frame]->GetWidth(), thisroom.ebscene[frame]->GetHeight());
+        Graphics graphics(thisroom.ebscene[play.bg_frame]);
+        graphics.Blit(thisroom.ebscene[frame], 0, 0, 0, 0, thisroom.ebscene[frame]->GetWidth(), thisroom.ebscene[frame]->GetHeight());
         play.raw_modified[play.bg_frame] = 1;
         return;
     }
@@ -120,7 +125,7 @@ void RawDrawFrameTransparent (int frame, int translev) {
 
 void RawClear (int clr) {
     play.raw_modified[play.bg_frame] = 1;
-    clr = get_col8_lookup(clr, RAW_GRAPHICS()->Bmp->GetColorDepth());
+    clr = get_col8_lookup(clr, RAW_GRAPHICS()->GetBitmap()->GetColorDepth());
     thisroom.ebscene[play.bg_frame]->Clear (clr);
     invalidate_screen();
     mark_current_background_dirty();
@@ -129,7 +134,7 @@ void RawSetColor (int clr) {
     //push_screen();
     //SetVirtualScreen(thisroom.ebscene[play.bg_frame]);
     // set the colour at the appropriate depth for the background
-    play.raw_color = get_col8_lookup(clr, GetVirtualScreenGraphics()->Bmp->GetColorDepth());
+    play.raw_color = get_col8_lookup(clr, GetVirtualScreenGraphics()->GetBitmap()->GetColorDepth());
     //pop_screen();
 }
 void RawSetColorRGB(int red, int grn, int blu) {
@@ -148,7 +153,7 @@ void RawPrint (int xx, int yy, const char*texx, ...) {
     RAW_START();
     // don't use wtextcolor because it will do a 16->32 conversion
     RAW_GRAPHICS()->SetTextColorExact( play.raw_color );
-    if ((RAW_GRAPHICS()->Bmp->GetColorDepth() <= 8) && (play.raw_color > 255)) {
+    if ((RAW_GRAPHICS()->GetBitmap()->GetColorDepth() <= 8) && (play.raw_color > 255)) {
         RAW_GRAPHICS()->SetTextColor(1);
         debug_log ("RawPrint: Attempted to use hi-color on 256-col background");
     }
@@ -186,8 +191,8 @@ void RawDrawImageCore(int xx, int yy, int slot) {
         quit("!RawDrawImage: invalid sprite slot number specified");
     RAW_START();
 
-    if (spriteset[slot]->GetColorDepth() != RAW_GRAPHICS()->Bmp->GetColorDepth()) {
-        debug_log("RawDrawImage: Sprite %d colour depth %d-bit not same as background depth %d-bit", slot, spriteset[slot]->GetColorDepth(), RAW_GRAPHICS()->Bmp->GetColorDepth());
+    if (spriteset[slot]->GetColorDepth() != RAW_GRAPHICS()->GetBitmap()->GetColorDepth()) {
+        debug_log("RawDrawImage: Sprite %d colour depth %d-bit not same as background depth %d-bit", slot, spriteset[slot]->GetColorDepth(), RAW_GRAPHICS()->GetBitmap()->GetColorDepth());
     }
 
     draw_sprite_support_alpha(RAW_GRAPHICS(), xx, yy, spriteset[slot], slot);
@@ -240,13 +245,13 @@ void RawDrawImageResized(int xx, int yy, int gotSlot, int width, int height) {
 
     // resize the sprite to the requested size
     Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, spriteset[gotSlot]->GetColorDepth());
-
-    newPic->StretchBlt(spriteset[gotSlot],
+    Graphics graphics(newPic);
+    graphics.StretchBlt(spriteset[gotSlot],
         RectWH(0, 0, spritewidth[gotSlot], spriteheight[gotSlot]),
         RectWH(0, 0, width, height));
 
     RAW_START();
-    if (newPic->GetColorDepth() != RAW_GRAPHICS()->Bmp->GetColorDepth())
+    if (newPic->GetColorDepth() != RAW_GRAPHICS()->GetBitmap()->GetColorDepth())
         quit("!RawDrawImageResized: image colour depth mismatch: the background image must have the same colour depth as the sprite being drawn");
 
     put_sprite_256(RAW_GRAPHICS(), xx, yy, newPic);
@@ -263,9 +268,10 @@ void RawDrawLine (int fromx, int fromy, int tox, int toy) {
     play.raw_modified[play.bg_frame] = 1;
     int ii,jj;
     // draw a line thick enough to look the same at all resolutions
+    Graphics graphics(thisroom.ebscene[play.bg_frame]);
     for (ii = 0; ii < get_fixed_pixel_size(1); ii++) {
         for (jj = 0; jj < get_fixed_pixel_size(1); jj++)
-            thisroom.ebscene[play.bg_frame]->DrawLine (Line(fromx+ii, fromy+jj, tox+ii, toy+jj), play.raw_color);
+            graphics.DrawLine (Line(fromx+ii, fromy+jj, tox+ii, toy+jj), play.raw_color);
     }
     invalidate_screen();
     mark_current_background_dirty();
@@ -275,7 +281,8 @@ void RawDrawCircle (int xx, int yy, int rad) {
     rad = multiply_up_coordinate(rad);
 
     play.raw_modified[play.bg_frame] = 1;
-    thisroom.ebscene[play.bg_frame]->FillCircle(Circle (xx, yy, rad), play.raw_color);
+    Graphics graphics(thisroom.ebscene[play.bg_frame]);
+    graphics.FillCircle(Circle (xx, yy, rad), play.raw_color);
     invalidate_screen();
     mark_current_background_dirty();
 }
@@ -284,7 +291,8 @@ void RawDrawRectangle(int x1, int y1, int x2, int y2) {
     multiply_up_coordinates(&x1, &y1);
     multiply_up_coordinates_round_up(&x2, &y2);
 
-    thisroom.ebscene[play.bg_frame]->FillRect(Rect(x1,y1,x2,y2), play.raw_color);
+    Graphics graphics(thisroom.ebscene[play.bg_frame]);
+    graphics.FillRect(Rect(x1,y1,x2,y2), play.raw_color);
     invalidate_screen();
     mark_current_background_dirty();
 }
@@ -294,7 +302,8 @@ void RawDrawTriangle(int x1, int y1, int x2, int y2, int x3, int y3) {
     multiply_up_coordinates(&x2, &y2);
     multiply_up_coordinates(&x3, &y3);
 
-    thisroom.ebscene[play.bg_frame]->DrawTriangle(Triangle (x1,y1,x2,y2,x3,y3), play.raw_color);
+    Graphics graphics(thisroom.ebscene[play.bg_frame]);
+    graphics.DrawTriangle(Triangle (x1,y1,x2,y2,x3,y3), play.raw_color);
     invalidate_screen();
     mark_current_background_dirty();
 }

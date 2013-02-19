@@ -31,9 +31,10 @@
 //#include <dsound.h>
 #include "gfx/ali3d.h"
 #include "gfx/graphicsdriver.h"
-#include "gfx/bitmap.h"
+#include "gfx/graphics.h"
 
 using AGS::Common::Bitmap;
+using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 using namespace AGS; // FIXME later
 
@@ -109,13 +110,13 @@ typedef struct BMP_EXTRA_INFO {
 } BMP_EXTRA_INFO;
 
 LPDIRECTDRAWSURFACE get_bitmap_surface (Bitmap *bmp) {
-  BMP_EXTRA_INFO *bei = (BMP_EXTRA_INFO*)((BITMAP*)bmp->GetBitmapObject())->extra;
+  BMP_EXTRA_INFO *bei = (BMP_EXTRA_INFO*)((BITMAP*)bmp->GetAllegroBitmap())->extra;
 
   // convert the DDSurface2 back to a standard DDSurface
   return (LPDIRECTDRAWSURFACE)bei->surf;
 }
 LPDIRECTDRAWSURFACE2 get_bitmap_surface2 (Bitmap *bmp) {
-  BMP_EXTRA_INFO *bei = (BMP_EXTRA_INFO*)((BITMAP*)bmp->GetBitmapObject())->extra;
+  BMP_EXTRA_INFO *bei = (BMP_EXTRA_INFO*)((BITMAP*)bmp->GetAllegroBitmap())->extra;
 
   return bei->surf;
 }
@@ -253,7 +254,8 @@ void RenderToSurface(Bitmap *vscreen) {
     // bitmap (which is what "screen" is when using gfx filters)
     if (is_video_bitmap(screen))
     {
-		screen_bmp->StretchBlt(vscreen,
+        Graphics graphics(screen_bmp);
+		graphics.StretchBlt(vscreen,
 		  RectWH(0, 0, vscreen->GetWidth(), vscreen->GetHeight()),
           RectWH(screen_bmp->GetWidth() / 2 - newWidth / 2,
                  screen_bmp->GetHeight() / 2 - newHeight / 2,
@@ -261,8 +263,10 @@ void RenderToSurface(Bitmap *vscreen) {
     }
     else
     {
-      vsMemory->Blit(vscreen, 0, 0, 0, 0, vscreen->GetWidth(), vscreen->GetHeight());
-      screen_bmp->StretchBlt(vsMemory,
+      Graphics graphics(vsMemory);
+      graphics.Blit(vscreen, 0, 0, 0, 0, vscreen->GetWidth(), vscreen->GetHeight());
+      graphics.SetBitmap(screen_bmp);
+      graphics.StretchBlt(vsMemory,
 		  RectWH(0, 0, vscreen->GetWidth(), vscreen->GetHeight()),
           RectWH(screen_bmp->GetWidth() / 2 - newWidth / 2,
 		         screen_bmp->GetHeight() / 2 - newHeight / 2,

@@ -39,9 +39,10 @@
 #include "main/main.h"
 #include "ac/spritecache.h"
 #include "gfx/graphicsdriver.h"
-#include "gfx/bitmap.h"
+#include "gfx/graphics.h"
 
 using AGS::Common::Bitmap;
+using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameSetupStruct game;
@@ -96,9 +97,11 @@ void script_debug(int cmdd,int dataa) {
     else if (cmdd==2) 
     {  // show walkable areas from here
         Bitmap *tempw=BitmapHelper::CreateBitmap(thisroom.walls->GetWidth(),thisroom.walls->GetHeight());
-        tempw->Blit(prepare_walkable_areas(-1),0,0,0,0,tempw->GetWidth(),tempw->GetHeight());
+        Graphics graphics(tempw);
+        graphics.Blit(prepare_walkable_areas(-1),0,0,0,0,tempw->GetWidth(),tempw->GetHeight());
         Bitmap *stretched = BitmapHelper::CreateBitmap(scrnwid, scrnhit);
-        stretched->StretchBlt(tempw,
+        graphics.SetBitmap(stretched);
+        graphics.StretchBlt(tempw,
 			RectWH(-offsetx, -offsety, get_fixed_pixel_size(tempw->GetWidth()), get_fixed_pixel_size(tempw->GetHeight())),
 			Common::kBitmap_Transparency);
 
@@ -143,19 +146,21 @@ void script_debug(int cmdd,int dataa) {
             return;
         }
         Bitmap *tempw=BitmapHelper::CreateBitmap(thisroom.walls->GetWidth(),thisroom.walls->GetHeight());
+        Graphics graphics(tempw);
         int mlsnum = game.chars[dataa].walking;
         if (game.chars[dataa].walking >= TURNING_AROUND)
             mlsnum %= TURNING_AROUND;
         MoveList*cmls = &mls[mlsnum];
-        tempw->Clear(tempw->GetMaskColor());
+        graphics.Fill(tempw->GetMaskColor());
         for (int i = 0; i < cmls->numstage-1; i++) {
             short srcx=short((cmls->pos[i] >> 16) & 0x00ffff);
             short srcy=short(cmls->pos[i] & 0x00ffff);
             short targetx=short((cmls->pos[i+1] >> 16) & 0x00ffff);
             short targety=short(cmls->pos[i+1] & 0x00ffff);
-            tempw->DrawLine(Line(srcx, srcy, targetx, targety), get_col8_lookup(i+1, GetVirtualScreenGraphics()->Bmp->GetColorDepth()));
+            graphics.DrawLine(Line(srcx, srcy, targetx, targety), get_col8_lookup(i+1, GetVirtualScreenGraphics()->GetBitmap()->GetColorDepth()));
         }
-		BitmapHelper::GetScreenBitmap()->StretchBlt(tempw,
+		graphics.SetBitmap(BitmapHelper::GetScreenBitmap());
+        graphics.StretchBlt(tempw,
 			RectWH(-offsetx, -offsety, multiply_up_coordinate(tempw->GetWidth()), multiply_up_coordinate(tempw->GetHeight())),
 			Common::kBitmap_Transparency);
         render_to_screen(BitmapHelper::GetScreenBitmap(), 0, 0);

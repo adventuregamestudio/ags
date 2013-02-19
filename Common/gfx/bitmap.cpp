@@ -90,7 +90,7 @@ void SetScreenBitmap(Bitmap *bitmap)
     // cause crashes.
     if (gl_ScreenBmp)
     {
-	    screen = (BITMAP*)gl_ScreenBmp->GetBitmapObject();
+	    screen = (BITMAP*)gl_ScreenBmp->GetAllegroBitmap();
     }
 }
 

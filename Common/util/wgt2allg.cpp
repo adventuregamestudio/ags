@@ -15,11 +15,11 @@
 #define USE_CLIB
 #include "util/wgt2allg.h"
 #include "util/stream.h"
-#include "gfx/bitmap.h"
-#include "gfx/allegrobitmap.h"
+#include "gfx/graphics.h"
 #include "core/assetmanager.h"
 
 using AGS::Common::Bitmap;
+using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 using AGS::Common::Stream;
 
@@ -60,7 +60,7 @@ using AGS::Common::Stream;
 
   Common::Bitmap *GetVirtualScreenBitmap()
   {
-      return gl_VirtualScreenGraphics.Bmp;
+      return gl_VirtualScreenGraphics.GetBitmap();
   }
 
   int get_col8_lookup(int nval, int wantColDep)
@@ -125,7 +125,8 @@ int vesa_xres, vesa_yres;
     if (tempbitm == NULL)
       return NULL;
 
-    tempbitm->Blit(src, x1, y1, 0, 0, tempbitm->GetWidth(), tempbitm->GetHeight());
+    Graphics graphics(tempbitm);
+    graphics.Blit(src, x1, y1, 0, 0, tempbitm->GetWidth(), tempbitm->GetHeight());
     return tempbitm;
   }
 
@@ -198,9 +199,9 @@ int vesa_xres, vesa_yres;
   void wputblock(Common::Graphics *g, int xx, int yy, Bitmap *bll, int xray)
   {
     if (xray)
-	  g->Bmp->Blit(bll, xx, yy, Common::kBitmap_Transparency);
+	  g->Blit(bll, xx, yy, Common::kBitmap_Transparency);
     else
-      g->Bmp->Blit(bll, 0, 0, xx, yy, bll->GetWidth(), bll->GetHeight());
+      g->Blit(bll, 0, 0, xx, yy, bll->GetWidth(), bll->GetHeight());
   }
 
   Bitmap wputblock_wrapper; // [IKM] argh! :[
@@ -208,9 +209,9 @@ int vesa_xres, vesa_yres;
   {
 	wputblock_wrapper.WrapAllegroBitmap(bll, true);
     if (xray)
-      g->Bmp->Blit(&wputblock_wrapper, xx, yy, Common::kBitmap_Transparency);
+      g->Blit(&wputblock_wrapper, xx, yy, Common::kBitmap_Transparency);
     else
-      g->Bmp->Blit(&wputblock_wrapper, 0, 0, xx, yy, wputblock_wrapper.GetWidth(), wputblock_wrapper.GetHeight());
+      g->Blit(&wputblock_wrapper, 0, 0, xx, yy, wputblock_wrapper.GetWidth(), wputblock_wrapper.GetHeight());
   }
 
   const int col_lookups[32] = {

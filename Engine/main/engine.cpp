@@ -50,7 +50,7 @@
 #include "ac/spritecache.h"
 #include "util/filestream.h"
 #include "gfx/graphicsdriver.h"
-#include "gfx/bitmap.h"
+#include "gfx/graphics.h"
 #include "core/assetmanager.h"
 #include "util/misc.h"
 #include "platform/util/pe.h"
@@ -62,6 +62,7 @@
 using AGS::Common::String;
 using AGS::Common::Stream;
 using AGS::Common::Bitmap;
+using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 namespace Out = AGS::Common::Out;
 
@@ -909,9 +910,11 @@ void show_preload () {
             set_palette_range(temppal, 0, 255, 0);
 		Bitmap *screen_bmp = BitmapHelper::GetScreenBitmap();
         Bitmap *tsc = BitmapHelper::CreateBitmap(splashsc->GetWidth(),splashsc->GetHeight(),screen_bmp->GetColorDepth());
-        tsc->Blit(splashsc,0,0,0,0,tsc->GetWidth(),tsc->GetHeight());
-		screen_bmp->Clear();
-        screen_bmp->StretchBlt(tsc, RectWH(0, 0, scrnwid,scrnhit), Common::kBitmap_Transparency);
+        Graphics graphics(tsc);
+        graphics.Blit(splashsc,0,0,0,0,tsc->GetWidth(),tsc->GetHeight());
+        graphics.SetBitmap(screen_bmp);
+		graphics.Fill(0);
+        graphics.StretchBlt(tsc, RectWH(0, 0, scrnwid,scrnhit), Common::kBitmap_Transparency);
 
         gfxDriver->ClearDrawList();
 

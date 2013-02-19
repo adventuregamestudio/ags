@@ -71,10 +71,10 @@ int controlid = 0;
 
 void __my_wbutt(Common::Graphics *g, int x1, int y1, int x2, int y2)
 {
-    g->SetColor(COL254);            //wsetcolor(15);
-    g->Bmp->FillRect(Rect(x1, y1, x2, y2), g->DrawColor);
-    g->SetColor(0);
-    g->Bmp->DrawRect(Rect(x1, y1, x2, y2), g->DrawColor);
+    g->SetDrawColor(COL254);            //wsetcolor(15);
+    g->FillRect(Rect(x1, y1, x2, y2), g->GetDrawColor());
+    g->SetDrawColor(0);
+    g->DrawRect(Rect(x1, y1, x2, y2), g->GetDrawColor());
 }
 
 //-----------------------------------------------------------------------------
@@ -106,7 +106,7 @@ int WINAPI _export CSCIDrawWindow(Common::Graphics *g, int xx, int yy, int wid, 
     yy -= 2;
     wid += 4;
     hit += 4;
-    oswi[drawit].buffer = wnewblock(g->Bmp, xx, yy, xx + wid, yy + hit);
+    oswi[drawit].buffer = wnewblock(g->GetBitmap(), xx, yy, xx + wid, yy + hit);
     oswi[drawit].x = xx;
     oswi[drawit].y = yy;
     __my_wbutt(g, xx + 1, yy + 1, xx + wid - 1, yy + hit - 1);    // wbutt goes outside its area
@@ -143,7 +143,7 @@ int WINAPI _export CSCIWaitMessage(Common::Graphics *g, CSCIMessage * cscim)
         }
     }
 
-    windowBuffer = BitmapHelper::CreateBitmap(windowPosWidth, windowPosHeight, g->Bmp->GetColorDepth());
+    windowBuffer = BitmapHelper::CreateBitmap(windowPosWidth, windowPosHeight, g->GetBitmap()->GetColorDepth());
     windowBuffer = gfxDriver->ConvertBitmapToSupportedColourDepth(windowBuffer);
     dialogBmp = gfxDriver->CreateDDBFromBitmap(windowBuffer, false, true);
 

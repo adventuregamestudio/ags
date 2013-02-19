@@ -19,10 +19,11 @@
 #include "util/string_utils.h"      // fputstring, etc
 #include "util/compress.h"
 #include "util/stream.h"
-#include "gfx/bitmap.h"
+#include "gfx/graphics.h"
 #include "core/assetmanager.h"
 
 using AGS::Common::Bitmap;
+using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 using AGS::Common::Stream;
@@ -471,9 +472,9 @@ void load_main_block(roomstruct *rstruc, const char *files, Stream *in, room_fil
     // Old version - copy walkable areas to Regions
     if (rstruc->regions == NULL)
       rstruc->regions = BitmapHelper::CreateBitmap(rstruc->walls->GetWidth(), rstruc->walls->GetHeight(), 8);
-    rstruc->regions->Clear ();
-
-    rstruc->regions->Blit (rstruc->walls, 0, 0, 0, 0, rstruc->regions->GetWidth(), rstruc->regions->GetHeight());
+    Graphics graphics(rstruc->regions);
+    graphics.Fill(0);
+    graphics.Blit (rstruc->walls, 0, 0, 0, 0, rstruc->regions->GetWidth(), rstruc->regions->GetHeight());
     for (f = 0; f <= 15; f++) {
       rstruc->regionLightLevel[f] = rstruc->walk_area_light[f];
       rstruc->regionTintLevel[f] = 0;

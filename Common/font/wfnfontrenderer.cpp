@@ -185,19 +185,17 @@ int WFNFontRenderer::printchar(Common::Graphics *g, int xxx, int yyy, wgtfont fo
   actdata = (unsigned char *)&tabaddr[2*2];
   bytewid = ((charWidth - 1) / 8) + 1;
 
-  // Unfortunately we cannot get G as function parameter here, because
-  // this function is used 
   // MACPORT FIX: switch now using charWidth and charHeight
   for (tt = 0; tt < charHeight; tt++) {
     for (ss = 0; ss < charWidth; ss++) {
       if (((actdata[tt * bytewid + (ss / 8)] & (0x80 >> (ss % 8))) != 0)) {
         if (wtext_multiply > 1) {
-          g->Bmp->FillRect(Rect(xxx + ss, yyy + tt, xxx + ss + (wtext_multiply - 1),
-              yyy + tt + (wtext_multiply - 1)), g->TextColor);
+          g->FillRect(Rect(xxx + ss, yyy + tt, xxx + ss + (wtext_multiply - 1),
+              yyy + tt + (wtext_multiply - 1)), g->GetTextColor());
         } 
         else
         {
-            g->Bmp->PutPixel(xxx + ss, yyy + tt, g->TextColor);
+            g->PutPixel(xxx + ss, yyy + tt, g->GetTextColor());
         }
       }
 

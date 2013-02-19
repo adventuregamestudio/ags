@@ -12,8 +12,9 @@
 //
 //=============================================================================
 
-#include <aastr.h>
+#include <allegro.h>
 #include "gfx/allegrobitmap.h"
+#include "gfx/graphics.h"
 #include "debug/assert.h"
 
 namespace AGS
@@ -22,28 +23,32 @@ namespace Common
 {
 
 Bitmap::Bitmap()
-    : _bitmap(NULL)
+    : _alBitmap(NULL)
     , _isDataOwner(false)
+    , _graphics(NULL)
 {
 }
 
 Bitmap::Bitmap(int width, int height, int color_depth)
-    : _bitmap(NULL)
+    : _alBitmap(NULL)
     , _isDataOwner(false)
+    , _graphics(NULL)
 {
     Create(width, height, color_depth);
 }
 
 Bitmap::Bitmap(Bitmap *src, const Rect &rc)
-    : _bitmap(NULL)
+    : _alBitmap(NULL)
     , _isDataOwner(false)
+    , _graphics(NULL)
 {
     CreateSubBitmap(src, rc);
 }
 
 Bitmap::Bitmap(BITMAP *al_bmp, bool shared_data)
-    : _bitmap(NULL)
+    : _alBitmap(NULL)
     , _isDataOwner(false)
+    , _graphics(NULL)
 {
     WrapAllegroBitmap(al_bmp, shared_data);
 }
@@ -62,39 +67,45 @@ bool Bitmap::Create(int width, int height, int color_depth)
     Destroy();
     if (color_depth)
     {
-        _bitmap = create_bitmap_ex(color_depth, width, height);
+        _alBitmap = create_bitmap_ex(color_depth, width, height);
     }
     else
     {
-        _bitmap = create_bitmap(width, height);
+        _alBitmap = create_bitmap(width, height);
     }
     _isDataOwner = true;
-    return _bitmap != NULL;
+    return _alBitmap != NULL;
 }
 
 bool Bitmap::CreateSubBitmap(Bitmap *src, const Rect &rc)
 {
     Destroy();
-    _bitmap = create_sub_bitmap(src->_bitmap, rc.Left, rc.Top, rc.GetWidth(), rc.GetHeight());
+    _alBitmap = create_sub_bitmap(src->_alBitmap, rc.Left, rc.Top, rc.GetWidth(), rc.GetHeight());
     _isDataOwner = true;
-    return _bitmap != NULL;
+    return _alBitmap != NULL;
 }
 
 bool Bitmap::WrapAllegroBitmap(BITMAP *al_bmp, bool shared_data)
 {
     Destroy();
-    _bitmap = al_bmp;
+    _alBitmap = al_bmp;
     _isDataOwner = !shared_data;
-    return _bitmap != NULL;
+    return _alBitmap != NULL;
 }
 
 void Bitmap::Destroy()
 {
-    if (_isDataOwner && _bitmap)
+    if (_graphics)
     {
-        destroy_bitmap(_bitmap);
+        _graphics->SetBitmap(NULL);
     }
-    _bitmap = NULL;
+    _graphics = NULL;
+
+    if (_isDataOwner && _alBitmap)
+    {
+        destroy_bitmap(_alBitmap);
+    }
+    _alBitmap = NULL;
     _isDataOwner = false;
 }
 
@@ -105,7 +116,7 @@ bool Bitmap::LoadFromFile(const char *filename)
 	BITMAP *al_bmp = load_bitmap(filename, NULL);
 	if (al_bmp)
 	{
-		_bitmap = al_bmp;
+		_alBitmap = al_bmp;
         _isDataOwner = true;
 	}
 	return NULL;
@@ -113,27 +124,27 @@ bool Bitmap::LoadFromFile(const char *filename)
 
 bool Bitmap::SaveToFile(const char *filename, const void *palette)
 {
-	return save_bitmap(filename, _bitmap, (const RGB*)palette) == 0;
+	return save_bitmap(filename, _alBitmap, (const RGB*)palette) == 0;
 }
 
-void *Bitmap::GetBitmapObject()
+void *Bitmap::GetAllegroBitmap()
 {
-	return _bitmap;
+	return _alBitmap;
 }
 
 bool Bitmap::IsMemoryBitmap() const
 {
-	return is_memory_bitmap(_bitmap) != 0;
+	return is_memory_bitmap(_alBitmap) != 0;
 }
 
 bool Bitmap::IsLinearBitmap() const
 {
-	return is_linear_bitmap(_bitmap) != 0;
+	return is_linear_bitmap(_alBitmap) != 0;
 }
 
 bool Bitmap::IsNull() const
 {
-	return !this || !_bitmap;
+	return !this || !_alBitmap;
 }
 
 bool Bitmap::IsEmpty() const
@@ -143,17 +154,17 @@ bool Bitmap::IsEmpty() const
 
 int Bitmap::GetWidth() const
 {
-	return _bitmap->w;
+	return _alBitmap->w;
 }
 
 int Bitmap::GetHeight() const
 {
-	return _bitmap->h;
+	return _alBitmap->h;
 }
 
 int Bitmap::GetColorDepth() const
 {
-	return bitmap_color_depth(_bitmap);
+	return bitmap_color_depth(_alBitmap);
 }
 
 int Bitmap::GetBPP() const
@@ -177,7 +188,7 @@ int Bitmap::GetLineLength() const
 
 const unsigned char *Bitmap::GetData() const
 {
-	return _bitmap->line[0];
+	return _alBitmap->line[0];
 }
 
 const unsigned char *Bitmap::GetScanLine(int index) const
@@ -187,19 +198,7 @@ const unsigned char *Bitmap::GetScanLine(int index) const
 		return NULL;
 	}
 
-	return _bitmap->line[index];
-}
-
-void Bitmap::SetClip(const Rect &rc)
-{
-	set_clip(_bitmap, rc.Left, rc.Top, rc.Right, rc.Bottom);
-}
-
-Rect Bitmap::GetClip() const
-{
-	Rect temp;
-	get_clip_rect(_bitmap, &temp.Left, &temp.Top, &temp.Right, &temp.Bottom);
-	return temp;
+	return _alBitmap->line[index];
 }
 
 void Bitmap::SetMaskColor(color_t color)
@@ -209,29 +208,81 @@ void Bitmap::SetMaskColor(color_t color)
 
 color_t Bitmap::GetMaskColor() const
 {
-	return bitmap_mask_color(_bitmap);
+	return bitmap_mask_color(_alBitmap);
 }
 
 void Bitmap::Acquire()
 {
-	acquire_bitmap(_bitmap);
+	acquire_bitmap(_alBitmap);
 }
 
 void Bitmap::Release()
 {
-	release_bitmap(_bitmap);
+	release_bitmap(_alBitmap);
 }
+
+//=============================================================================
+// Pixel operations
+//=============================================================================
 
 void Bitmap::Clear(color_t color)
 {
 	if (color)
 	{
-		clear_to_color(_bitmap, color);
+		clear_to_color(_alBitmap, color);
 	}
 	else
 	{
-		clear_bitmap(_bitmap);	
+		clear_bitmap(_alBitmap);	
 	}
+}
+
+void Bitmap::PutPixel(int x, int y, color_t color)
+{
+    if (x < 0 || x >= _alBitmap->w || y < 0 || y >= _alBitmap->h)
+    {
+        return;
+    }
+
+	switch (bitmap_color_depth(_alBitmap))
+	{
+	case 8:
+		return _putpixel(_alBitmap, x, y, color);
+	case 15:
+		return _putpixel15(_alBitmap, x, y, color);
+	case 16:
+		return _putpixel16(_alBitmap, x, y, color);
+	case 24:
+		return _putpixel24(_alBitmap, x, y, color);
+	case 32:
+		return _putpixel32(_alBitmap, x, y, color);
+	}
+    assert(0); // this should not normally happen
+	return putpixel(_alBitmap, x, y, color);
+}
+
+int Bitmap::GetPixel(int x, int y) const
+{
+    if (x < 0 || x >= _alBitmap->w || y < 0 || y >= _alBitmap->h)
+    {
+        return -1; // Allegros getpixel() implementation returns -1 in this case
+    }
+
+	switch (bitmap_color_depth(_alBitmap))
+	{
+	case 8:
+		return _getpixel(_alBitmap, x, y);
+	case 15:
+		return _getpixel15(_alBitmap, x, y);
+	case 16:
+		return _getpixel16(_alBitmap, x, y);
+	case 24:
+		return _getpixel24(_alBitmap, x, y);
+	case 32:
+		return _getpixel32(_alBitmap, x, y);
+	}
+    assert(0); // this should not normally happen
+	return getpixel(_alBitmap, x, y);
 }
 
 //=============================================================================
@@ -245,7 +296,7 @@ unsigned char *Bitmap::GetScanLineForWriting(int index)
 		return NULL;
 	}
 
-	return _bitmap->line[index];
+	return _alBitmap->line[index];
 }
 
 void Bitmap::SetScanLine(int index, unsigned char *data, int data_size)
@@ -266,231 +317,7 @@ void Bitmap::SetScanLine(int index, unsigned char *data, int data_size)
 		copy_length = GetLineLength();
 	}
 
-	memcpy(_bitmap->line[index], data, copy_length);
-}
-
-//=============================================================================
-// Blitting operations (drawing one bitmap over another)
-//=============================================================================
-
-void Bitmap::Blit(Bitmap *src, int dst_x, int dst_y, BitmapMaskOption mask)
-{	
-	BITMAP *al_src_bmp = src->_bitmap;
-	// WARNING: For some evil reason Allegro expects dest and src bitmaps in different order for blit and draw_sprite
-	if (mask == kBitmap_Transparency)
-	{
-		draw_sprite(_bitmap, al_src_bmp, dst_x, dst_y);
-	}
-	else
-	{
-		blit(al_src_bmp, _bitmap, 0, 0, dst_x, dst_y, al_src_bmp->w, al_src_bmp->h);
-	}
-}
-
-void Bitmap::Blit(Bitmap *src, int src_x, int src_y, int dst_x, int dst_y, int width, int height, BitmapMaskOption mask)
-{
-	BITMAP *al_src_bmp = src->_bitmap;
-	if (mask == kBitmap_Transparency)
-	{
-		masked_blit(al_src_bmp, _bitmap, src_x, src_y, dst_x, dst_y, width, height);
-	}
-	else
-	{
-		blit(al_src_bmp, _bitmap, src_x, src_y, dst_x, dst_y, width, height);
-	}
-}
-
-void Bitmap::StretchBlt(Bitmap *src, const Rect &dst_rc, BitmapMaskOption mask)
-{
-	BITMAP *al_src_bmp = src->_bitmap;
-	// WARNING: For some evil reason Allegro expects dest and src bitmaps in different order for blit and draw_sprite
-	if (mask == kBitmap_Transparency)
-	{
-		stretch_sprite(_bitmap, al_src_bmp,
-			dst_rc.Left, dst_rc.Top, dst_rc.GetWidth(), dst_rc.GetHeight());
-	}
-	else
-	{
-		stretch_blit(al_src_bmp, _bitmap,
-			0, 0, al_src_bmp->w, al_src_bmp->h,
-			dst_rc.Left, dst_rc.Top, dst_rc.GetWidth(), dst_rc.GetHeight());
-	}
-}
-
-void Bitmap::StretchBlt(Bitmap *src, const Rect &src_rc, const Rect &dst_rc, BitmapMaskOption mask)
-{
-	BITMAP *al_src_bmp = src->_bitmap;
-	if (mask == kBitmap_Transparency)
-	{
-		masked_stretch_blit(al_src_bmp, _bitmap,
-			src_rc.Left, src_rc.Top, src_rc.GetWidth(), src_rc.GetHeight(),
-			dst_rc.Left, dst_rc.Top, dst_rc.GetWidth(), dst_rc.GetHeight());
-	}
-	else
-	{
-		stretch_blit(al_src_bmp, _bitmap,
-			src_rc.Left, src_rc.Top, src_rc.GetWidth(), src_rc.GetHeight(),
-			dst_rc.Left, dst_rc.Top, dst_rc.GetWidth(), dst_rc.GetHeight());
-	}
-}
-
-void Bitmap::AAStretchBlt(Bitmap *src, const Rect &dst_rc, BitmapMaskOption mask)
-{
-	BITMAP *al_src_bmp = src->_bitmap;
-	// WARNING: For some evil reason Allegro expects dest and src bitmaps in different order for blit and draw_sprite
-	if (mask == kBitmap_Transparency)
-	{
-		aa_stretch_sprite(_bitmap, al_src_bmp,
-			dst_rc.Left, dst_rc.Top, dst_rc.GetWidth(), dst_rc.GetHeight());
-	}
-	else
-	{
-		aa_stretch_blit(al_src_bmp, _bitmap,
-			0, 0, al_src_bmp->w, al_src_bmp->h,
-			dst_rc.Left, dst_rc.Top, dst_rc.GetWidth(), dst_rc.GetHeight());
-	}
-}
-
-void Bitmap::AAStretchBlt(Bitmap *src, const Rect &src_rc, const Rect &dst_rc, BitmapMaskOption mask)
-{
-	BITMAP *al_src_bmp = src->_bitmap;
-	if (mask == kBitmap_Transparency)
-	{
-		// TODO: aastr lib does not expose method for masked stretch blit; should do that at some point since 
-		// the source code is a gift-ware anyway
-		// aa_masked_blit(_bitmap, al_src_bmp, src_rc.Left, src_rc.Top, src_rc.GetWidth(), src_rc.GetHeight(), dst_rc.Left, dst_rc.Top, dst_rc.GetWidth(), dst_rc.GetHeight());
-		throw "aa_masked_blit is not yet supported!";
-	}
-	else
-	{
-		aa_stretch_blit(al_src_bmp, _bitmap,
-			src_rc.Left, src_rc.Top, src_rc.GetWidth(), src_rc.GetHeight(),
-			dst_rc.Left, dst_rc.Top, dst_rc.GetWidth(), dst_rc.GetHeight());
-	}
-}
-
-void Bitmap::TransBlendBlt(Bitmap *src, int dst_x, int dst_y)
-{
-	BITMAP *al_src_bmp = src->_bitmap;
-	draw_trans_sprite(_bitmap, al_src_bmp, dst_x, dst_y);
-}
-
-void Bitmap::LitBlendBlt(Bitmap *src, int dst_x, int dst_y, int light_amount)
-{
-	BITMAP *al_src_bmp = src->_bitmap;
-	draw_lit_sprite(_bitmap, al_src_bmp, dst_x, dst_y, light_amount);
-}
-
-void Bitmap::FlipBlt(Bitmap *src, int dst_x, int dst_y, BitmapFlip flip)
-{	
-	BITMAP *al_src_bmp = src->_bitmap;
-	if (flip == kBitmap_HFlip)
-	{
-		draw_sprite_h_flip(_bitmap, al_src_bmp, dst_x, dst_y);
-	}
-	else if (flip == kBitmap_VFlip)
-	{
-		draw_sprite_v_flip(_bitmap, al_src_bmp, dst_x, dst_y);
-	}
-	else if (flip == kBitmap_HVFlip)
-	{
-		draw_sprite_vh_flip(_bitmap, al_src_bmp, dst_x, dst_y);
-	}
-}
-
-void Bitmap::RotateBlt(Bitmap *src, int dst_x, int dst_y, fixed_t angle)
-{
-	BITMAP *al_src_bmp = src->_bitmap;
-	rotate_sprite(_bitmap, al_src_bmp, dst_x, dst_y, angle);
-}
-
-void Bitmap::RotateBlt(Bitmap *src, int dst_x, int dst_y, int pivot_x, int pivot_y, fixed_t angle)
-{	
-	BITMAP *al_src_bmp = src->_bitmap;
-	pivot_sprite(_bitmap, al_src_bmp, dst_x, dst_y, pivot_x, pivot_x, angle);
-}
-
-//=============================================================================
-// Vector drawing operations
-//=============================================================================
-
-void Bitmap::PutPixel(int x, int y, color_t color)
-{
-    if (x < 0 || x >= _bitmap->w || y < 0 || y >= _bitmap->h)
-    {
-        return;
-    }
-
-	switch (bitmap_color_depth(_bitmap))
-	{
-	case 8:
-		return _putpixel(_bitmap, x, y, color);
-	case 15:
-		return _putpixel15(_bitmap, x, y, color);
-	case 16:
-		return _putpixel16(_bitmap, x, y, color);
-	case 24:
-		return _putpixel24(_bitmap, x, y, color);
-	case 32:
-		return _putpixel32(_bitmap, x, y, color);
-	}
-    assert(0); // this should not normally happen
-	return putpixel(_bitmap, x, y, color);
-}
-
-int Bitmap::GetPixel(int x, int y) const
-{
-    if (x < 0 || x >= _bitmap->w || y < 0 || y >= _bitmap->h)
-    {
-        return -1; // Allegros getpixel() implementation returns -1 in this case
-    }
-
-	switch (bitmap_color_depth(_bitmap))
-	{
-	case 8:
-		return _getpixel(_bitmap, x, y);
-	case 15:
-		return _getpixel15(_bitmap, x, y);
-	case 16:
-		return _getpixel16(_bitmap, x, y);
-	case 24:
-		return _getpixel24(_bitmap, x, y);
-	case 32:
-		return _getpixel32(_bitmap, x, y);
-	}
-    assert(0); // this should not normally happen
-	return getpixel(_bitmap, x, y);
-}
-
-void Bitmap::DrawLine(const Line &ln, color_t color)
-{
-	line(_bitmap, ln.X1, ln.Y1, ln.X2, ln.Y2, color);
-}
-
-void Bitmap::DrawTriangle(const Triangle &tr, color_t color)
-{
-	triangle(_bitmap,
-		tr.X1, tr.Y1, tr.X2, tr.Y2, tr.X3, tr.Y3, color);
-}
-
-void Bitmap::DrawRect(const Rect &rc, color_t color)
-{
-	rect(_bitmap, rc.Left, rc.Top, rc.Right, rc.Bottom, color);
-}
-
-void Bitmap::FillRect(const Rect &rc, color_t color)
-{
-	rectfill(_bitmap, rc.Left, rc.Top, rc.Right, rc.Bottom, color);
-}
-
-void Bitmap::FillCircle(const Circle &circle, color_t color)
-{
-	circlefill(_bitmap, circle.X, circle.Y, circle.Radius, color);
-}
-
-void Bitmap::FloodFill(int x, int y, color_t color)
-{
-	floodfill(_bitmap, x, y, color);
+	memcpy(_alBitmap->line[index], data, copy_length);
 }
 
 

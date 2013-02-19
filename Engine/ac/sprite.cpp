@@ -21,9 +21,10 @@
 #include "plugin/agsplugin.h"
 #include "ac/spritecache.h"
 #include "gfx/graphicsdriver.h"
-#include "gfx/bitmap.h"
+#include "gfx/graphics.h"
 
 using AGS::Common::Bitmap;
+using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameSetupStruct game;
@@ -174,11 +175,12 @@ void initialize_sprite (int ee) {
                 quit("Not enough memory to load sprite graphics");
             tmpdbl->Acquire ();
             curspr->Acquire ();
-            tmpdbl->Clear(tmpdbl->GetMaskColor());
+            Graphics graphics(tmpdbl);
+            graphics.Fill(tmpdbl->GetMaskColor());
             /*#ifdef USE_CUSTOM_EXCEPTION_HANDLER
             __try {
             #endif*/
-            tmpdbl->StretchBlt(curspr,RectWH(0,0,tmpdbl->GetWidth(),tmpdbl->GetHeight()), Common::kBitmap_Transparency);
+            graphics.StretchBlt(curspr,RectWH(0,0,tmpdbl->GetWidth(),tmpdbl->GetHeight()), Common::kBitmap_Transparency);
             /*#ifdef USE_CUSTOM_EXCEPTION_HANDLER
             } __except (1) {
             // I can't trace this fault, but occasionally stretch_sprite
@@ -210,7 +212,8 @@ void initialize_sprite (int ee) {
                     newSprite = remove_alpha_channel(oldSprite);
                 else {
                     newSprite = BitmapHelper::CreateBitmap(spritewidth[ee], spriteheight[ee], final_col_dep);
-                    newSprite->Blit(oldSprite, 0, 0, 0, 0, spritewidth[ee], spriteheight[ee]);
+                    Graphics graphics(newSprite);
+                    graphics.Blit(oldSprite, 0, 0, 0, 0, spritewidth[ee], spriteheight[ee]);
                 }
                 spriteset.set(ee, newSprite);
                 delete oldSprite;

@@ -47,9 +47,10 @@
 #include "ac/spritecache.h"
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
-#include "gfx/bitmap.h"
+#include "gfx/graphics.h"
 
 using AGS::Common::Bitmap;
+using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameSetupStruct game;
@@ -338,7 +339,7 @@ int write_dialog_options(Common::Graphics *g, int dlgxp, int curyp, int numdisp,
     }
 
     if (mouseison==ww) {
-      if (g->TextColor==get_col8_lookup(utextcol, g->Bmp->GetColorDepth()))
+      if (g->GetTextColor()==get_col8_lookup(utextcol, g->GetBitmap()->GetColorDepth()))
         g->SetTextColor(13); // the normal colour is the same as highlight col
       else g->SetTextColor(utextcol);
     }
@@ -381,13 +382,13 @@ int write_dialog_options(Common::Graphics *g, int dlgxp, int curyp, int numdisp,
 
 void draw_gui_for_dialog_options(Common::Graphics *g, GUIMain *guib, int dlgxp, int dlgyp) {
   if (guib->bgcol != 0) {
-    g->SetColor(guib->bgcol);
-    g->Bmp->FillRect(Rect(dlgxp, dlgyp, dlgxp + guib->wid, dlgyp + guib->hit), g->DrawColor);
+    g->SetDrawColor(guib->bgcol);
+    g->FillRect(Rect(dlgxp, dlgyp, dlgxp + guib->wid, dlgyp + guib->hit), g->GetDrawColor());
   }
   if (guib->bgpic > 0)
     put_sprite_256 (g, dlgxp, dlgyp, spriteset[guib->bgpic]);
 
-  g->SetColor(0);
+  g->SetDrawColor(0);
 }
 
 bool get_custom_dialog_options_dimensions(int dlgnum)
@@ -473,7 +474,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
   // Don't display the options if there is only one and the parser
   // is not enabled.
   if ((numdisp > 1) || (parserInput != NULL) || (play.show_single_dialog_option)) {
-    g->SetColor(0); //g->Bmp->FillRect(Rect(0,dlgyp-1,scrnwid-1,dlgyp+numdisp*txthit+1);
+    g->SetDrawColor(0); //g->FillRect(Rect(0,dlgyp-1,scrnwid-1,dlgyp+numdisp*txthit+1);
     int areawid, is_textwindow = 0;
     int forecol = 14, savedwid;
 
@@ -526,7 +527,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
       areawid=scrnwid-5;
       GET_OPTIONS_HEIGHT
       dlgyp = scrnhit - needheight;
-      g->Bmp->FillRect(Rect(0,dlgyp-1,scrnwid-1,scrnhit-1), g->DrawColor);
+      g->FillRect(Rect(0,dlgyp-1,scrnwid-1,scrnhit-1), g->GetDrawColor());
 
       dirtyx = 0;
       dirtyy = dlgyp - 1;
@@ -644,8 +645,8 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
         // redraw the black background so that anti-alias
         // fonts don't re-alias themselves
         if (game.options[OPT_DIALOGIFACE] == 0) {
-          g->SetColor(16);
-          g->Bmp->FillRect(Rect(0,dlgyp-1,scrnwid-1,scrnhit-1), g->DrawColor);
+          g->SetDrawColor(16);
+          g->FillRect(Rect(0,dlgyp-1,scrnwid-1,scrnhit-1), g->GetDrawColor());
         }
         else {
           GUIMain* guib = &guis[game.options[OPT_DIALOGIFACE]];
@@ -685,7 +686,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
 
       /*if (curyp > scrnhit) {
         dlgyp = scrnhit - (curyp - dlgyp);
-        g->Bmp->FillRect(Rect(0,dlgyp-1,scrnwid-1,scrnhit-1);
+        g->FillRect(Rect(0,dlgyp-1,scrnwid-1,scrnhit-1);
         goto redraw_options;
       }*/
       if (parserInput)
@@ -720,14 +721,15 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
 
     update_polled_stuff_if_runtime();
 
+    Graphics graphics(subBitmap);
     if (usingCustomRendering)
     {
-      subBitmap->Blit(tempScrn, 0, 0, 0, 0, tempScrn->GetWidth(), tempScrn->GetHeight());
+      graphics.Blit(tempScrn, 0, 0, 0, 0, tempScrn->GetWidth(), tempScrn->GetHeight());
       invalidate_rect(dirtyx, dirtyy, dirtyx + subBitmap->GetWidth(), dirtyy + subBitmap->GetHeight());
     }
     else
     {
-      subBitmap->Blit(tempScrn, dirtyx, dirtyy, 0, 0, dirtywidth, dirtyheight);
+      graphics.Blit(tempScrn, dirtyx, dirtyy, 0, 0, dirtywidth, dirtyheight);
     }
 
     if ((ddb != NULL) && 

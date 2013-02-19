@@ -118,7 +118,7 @@ void play_flc_file(int numb,int playflags) {
     fli_target = BitmapHelper::CreateBitmap(screen_bmp->GetWidth(), screen_bmp->GetHeight(), final_col_dep);
     fli_ddb = gfxDriver->CreateDDBFromBitmap(fli_target, false, true);
 
-	if (play_fli(flicnam,(BITMAP*)fli_buffer->GetBitmapObject(),0,fli_callback)==FLI_ERROR)
+	if (play_fli(flicnam,(BITMAP*)fli_buffer->GetAllegroBitmap(),0,fli_callback)==FLI_ERROR)
     {
         // This is not a fatal error that should prevent the game from continuing
         //quit("FLI/FLC animation play error");

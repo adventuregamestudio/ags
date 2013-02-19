@@ -47,28 +47,28 @@ MyPushButton::MyPushButton(int xx, int yy, int wi, int hi, char *tex)
 void MyPushButton::draw(Common::Graphics *g)
 {
     g->SetTextColor(0);
-    g->SetColor(COL254);
-    g->Bmp->FillRect(Rect(x, y, x + wid, y + hit), g->DrawColor);
+    g->SetDrawColor(COL254);
+    g->FillRect(Rect(x, y, x + wid, y + hit), g->GetDrawColor());
     if (state == 0)
-        g->SetColor(pushbuttondarkcolor);
+        g->SetDrawColor(pushbuttondarkcolor);
     else
-        g->SetColor(pushbuttonlightcolor);
+        g->SetDrawColor(pushbuttonlightcolor);
 
-    g->Bmp->DrawRect(Rect(x, y, x + wid, y + hit), g->DrawColor);
+    g->DrawRect(Rect(x, y, x + wid, y + hit), g->GetDrawColor());
     if (state == 0)
-        g->SetColor(pushbuttonlightcolor);
+        g->SetDrawColor(pushbuttonlightcolor);
     else
-        g->SetColor(pushbuttondarkcolor);
+        g->SetDrawColor(pushbuttondarkcolor);
 
-    g->Bmp->DrawLine(Line(x, y, x + wid - 1, y), g->DrawColor);
-    g->Bmp->DrawLine(Line(x, y, x, y + hit - 1), g->DrawColor);
+    g->DrawLine(Line(x, y, x + wid - 1, y), g->GetDrawColor());
+    g->DrawLine(Line(x, y, x, y + hit - 1), g->GetDrawColor());
     wouttextxy(g, x + (wid / 2 - wgettextwidth(text, cbuttfont) / 2), y + 2, cbuttfont, text);
     if (typeandflags & CNF_DEFAULT)
-        g->SetColor(0);
+        g->SetDrawColor(0);
     else
-        g->SetColor(windowbackgroundcolor);
+        g->SetDrawColor(windowbackgroundcolor);
 
-    g->Bmp->DrawRect(Rect(x - 1, y - 1, x + wid + 1, y + hit + 1), g->DrawColor);
+    g->DrawRect(Rect(x - 1, y - 1, x + wid + 1, y + hit + 1), g->GetDrawColor());
 }
 
 //extern const int LEFT;  // in mousew32

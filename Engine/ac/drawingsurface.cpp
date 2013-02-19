@@ -30,10 +30,11 @@
 #include "font/fonts.h"
 #include "gui/guimain.h"
 #include "ac/spritecache.h"
-#include "gfx/bitmap.h"
+#include "gfx/graphics.h"
 #include "script/runtimescriptvalue.h"
 
 using AGS::Common::Bitmap;
+using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameSetupStruct game;
@@ -181,7 +182,8 @@ ScriptDrawingSurface* DrawingSurface_CreateCopy(ScriptDrawingSurface *sds)
         if (dynamicallyCreatedSurfaces[i] == NULL)
         {
             dynamicallyCreatedSurfaces[i] = BitmapHelper::CreateBitmap(sourceBitmap->GetWidth(), sourceBitmap->GetHeight(), sourceBitmap->GetColorDepth());
-            dynamicallyCreatedSurfaces[i]->Blit(sourceBitmap, 0, 0, 0, 0, sourceBitmap->GetWidth(), sourceBitmap->GetHeight());
+            Graphics graphics(dynamicallyCreatedSurfaces[i]);
+            graphics.Blit(sourceBitmap, 0, 0, 0, 0, sourceBitmap->GetWidth(), sourceBitmap->GetHeight());
             ScriptDrawingSurface *newSurface = new ScriptDrawingSurface();
             newSurface->dynamicSurfaceNumber = i;
             newSurface->hasAlphaChannel = sds->hasAlphaChannel;
@@ -201,12 +203,12 @@ void DrawingSurface_DrawSurface(ScriptDrawingSurface* target, ScriptDrawingSurfa
     Common::Graphics *g = target->StartDrawing();
     Bitmap *surfaceToDraw = source->GetBitmapSurface();
 
-    if (surfaceToDraw == g->Bmp)
+    if (surfaceToDraw == target->GetBitmapSurface())
         quit("!DrawingSurface.DrawSurface: cannot draw surface onto itself");
 
     if (translev == 0) {
         // just draw it over the top, no transparency
-        g->Bmp->Blit(surfaceToDraw, 0, 0, 0, 0, surfaceToDraw->GetWidth(), surfaceToDraw->GetHeight());
+        g->Blit(surfaceToDraw, 0, 0, 0, 0, surfaceToDraw->GetWidth(), surfaceToDraw->GetHeight());
         target->FinishedDrawing();
         return;
     }
@@ -246,8 +248,9 @@ void DrawingSurface_DrawImage(ScriptDrawingSurface* sds, int xx, int yy, int slo
 
         // resize the sprite to the requested size
         Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, sourcePic->GetColorDepth());
+        Graphics graphics(newPic);
 
-        newPic->StretchBlt(sourcePic,
+        graphics.StretchBlt(sourcePic,
             RectWH(0, 0, spritewidth[slot], spriteheight[slot]),
             RectWH(0, 0, width, height));
 
@@ -259,8 +262,8 @@ void DrawingSurface_DrawImage(ScriptDrawingSurface* sds, int xx, int yy, int slo
     Common::Graphics *g = sds->StartDrawing();
     sds->MultiplyCoordinates(&xx, &yy);
 
-    if (sourcePic->GetColorDepth() != g->Bmp->GetColorDepth()) {
-        debug_log("RawDrawImage: Sprite %d colour depth %d-bit not same as background depth %d-bit", slot, spriteset[slot]->GetColorDepth(), g->Bmp->GetColorDepth());
+    if (sourcePic->GetColorDepth() != g->GetBitmap()->GetColorDepth()) {
+        debug_log("RawDrawImage: Sprite %d colour depth %d-bit not same as background depth %d-bit", slot, spriteset[slot]->GetColorDepth(), g->GetBitmap()->GetColorDepth());
     }
 
     if (trans > 0)
@@ -280,16 +283,16 @@ void DrawingSurface_DrawImage(ScriptDrawingSurface* sds, int xx, int yy, int slo
 void DrawingSurface_SetDrawingColor(ScriptDrawingSurface *sds, int newColour) 
 {
     sds->currentColourScript = newColour;
-    // StartDrawing to set up g->Bmp to set the colour at the appropriate
+    // StartDrawing to set up g to set the colour at the appropriate
     // depth for the background
     Common::Graphics *g = sds->StartDrawing();
     if (newColour == SCR_COLOR_TRANSPARENT)
     {
-        sds->currentColour = g->Bmp->GetMaskColor();
+        sds->currentColour = g->GetBitmap()->GetMaskColor();
     }
     else
     {
-        sds->currentColour = get_col8_lookup(newColour, g->Bmp->GetColorDepth());
+        sds->currentColour = get_col8_lookup(newColour, g->GetBitmap()->GetColorDepth());
     }
     sds->FinishedDrawingReadOnly();
 }
@@ -312,7 +315,7 @@ int DrawingSurface_GetUseHighResCoordinates(ScriptDrawingSurface *sds)
 int DrawingSurface_GetHeight(ScriptDrawingSurface *sds) 
 {
     Common::Graphics *g = sds->StartDrawing();
-    int height = g->Bmp->GetHeight();
+    int height = g->GetBitmap()->GetHeight();
     sds->FinishedDrawingReadOnly();
     sds->UnMultiplyThickness(&height);
     return height;
@@ -321,7 +324,7 @@ int DrawingSurface_GetHeight(ScriptDrawingSurface *sds)
 int DrawingSurface_GetWidth(ScriptDrawingSurface *sds) 
 {
     Common::Graphics *g = sds->StartDrawing();
-    int width = g->Bmp->GetWidth();
+    int width = g->GetBitmap()->GetWidth();
     sds->FinishedDrawingReadOnly();
     sds->UnMultiplyThickness(&width);
     return width;
@@ -333,13 +336,13 @@ void DrawingSurface_Clear(ScriptDrawingSurface *sds, int colour)
     int allegroColor;
     if ((colour == -SCR_NO_VALUE) || (colour == SCR_COLOR_TRANSPARENT))
     {
-        allegroColor = g->Bmp->GetMaskColor();
+        allegroColor = g->GetBitmap()->GetMaskColor();
     }
     else
     {
-        allegroColor = get_col8_lookup(colour, g->Bmp->GetColorDepth());
+        allegroColor = get_col8_lookup(colour, g->GetBitmap()->GetColorDepth());
     }
-    g->Bmp->Clear(allegroColor);
+    g->Fill(allegroColor);
     sds->FinishedDrawing();
 }
 
@@ -349,7 +352,7 @@ void DrawingSurface_DrawCircle(ScriptDrawingSurface *sds, int x, int y, int radi
     sds->MultiplyThickness(&radius);
 
     Common::Graphics *g = sds->StartDrawing();
-    g->Bmp->FillCircle(Circle(x, y, radius), sds->currentColour);
+    g->FillCircle(Circle(x, y, radius), sds->currentColour);
     sds->FinishedDrawing();
 }
 
@@ -359,7 +362,7 @@ void DrawingSurface_DrawRectangle(ScriptDrawingSurface *sds, int x1, int y1, int
     sds->MultiplyCoordinates(&x2, &y2);
 
     Common::Graphics *g = sds->StartDrawing();
-    g->Bmp->FillRect(Rect(x1,y1,x2,y2), sds->currentColour);
+    g->FillRect(Rect(x1,y1,x2,y2), sds->currentColour);
     sds->FinishedDrawing();
 }
 
@@ -370,7 +373,7 @@ void DrawingSurface_DrawTriangle(ScriptDrawingSurface *sds, int x1, int y1, int 
     sds->MultiplyCoordinates(&x3, &y3);
 
     Common::Graphics *g = sds->StartDrawing();
-    g->Bmp->DrawTriangle(Triangle(x1,y1,x2,y2,x3,y3), sds->currentColour);
+    g->DrawTriangle(Triangle(x1,y1,x2,y2,x3,y3), sds->currentColour);
     sds->FinishedDrawing();
 }
 
@@ -386,7 +389,7 @@ void DrawingSurface_DrawString(ScriptDrawingSurface *sds, int xx, int yy, int fo
     Common::Graphics *g = sds->StartDrawing();
     // don't use wtextcolor because it will do a 16->32 conversion
     g->SetTextColorExact( sds->currentColour );
-    if ((g->Bmp->GetColorDepth() <= 8) && (play.raw_color > 255)) {
+    if ((g->GetBitmap()->GetColorDepth() <= 8) && (play.raw_color > 255)) {
         g->SetTextColor(1);
         debug_log ("RawPrint: Attempted to use hi-color on 256-col background");
     }
@@ -447,7 +450,7 @@ void DrawingSurface_DrawLine(ScriptDrawingSurface *sds, int fromx, int fromy, in
         for (jj = 0; jj < thickness; jj++)
         {
             yy = (jj - (thickness / 2));
-            g->Bmp->DrawLine (Line(fromx + xx, fromy + yy, tox + xx, toy + yy), sds->currentColour);
+            g->DrawLine (Line(fromx + xx, fromy + yy, tox + xx, toy + yy), sds->currentColour);
         }
     }
     sds->FinishedDrawing();
@@ -464,7 +467,7 @@ void DrawingSurface_DrawPixel(ScriptDrawingSurface *sds, int x, int y) {
     {
         for (jj = 0; jj < thickness; jj++)
         {
-            g->Bmp->PutPixel(x + ii, y + jj, sds->currentColour);
+            g->PutPixel(x + ii, y + jj, sds->currentColour);
         }
     }
     sds->FinishedDrawing();
@@ -473,9 +476,9 @@ void DrawingSurface_DrawPixel(ScriptDrawingSurface *sds, int x, int y) {
 int DrawingSurface_GetPixel(ScriptDrawingSurface *sds, int x, int y) {
     sds->MultiplyCoordinates(&x, &y);
     Common::Graphics *g = sds->StartDrawing();
-    unsigned int rawPixel = g->Bmp->GetPixel(x, y);
-    unsigned int maskColor = g->Bmp->GetMaskColor();
-    int colDepth = g->Bmp->GetColorDepth();
+    unsigned int rawPixel = g->GetPixel(x, y);
+    unsigned int maskColor = g->GetBitmap()->GetMaskColor();
+    int colDepth = g->GetBitmap()->GetColorDepth();
 
     if (rawPixel == maskColor)
     {

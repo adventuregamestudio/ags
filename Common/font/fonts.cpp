@@ -73,12 +73,12 @@ int wgettextheight(const char *text, int fontNumber)
 
 void wouttextxy(Common::Graphics *g, int xxx, int yyy, int fontNumber, const char *texx)
 {
-  if (yyy > g->Bmp->GetClip().Bottom)
+  if (yyy > g->GetClip().Bottom)
     return;                   // each char is clipped but this speeds it up
 
   if (fontRenderers[fontNumber] != NULL)
   {
-    fontRenderers[fontNumber]->RenderText(texx, fontNumber, (BITMAP*)g->Bmp->GetBitmapObject(), xxx, yyy, g->TextColor);
+    fontRenderers[fontNumber]->RenderText(texx, fontNumber, (BITMAP*)g->GetBitmap()->GetAllegroBitmap(), xxx, yyy, g->GetTextColor());
   }
 }
 

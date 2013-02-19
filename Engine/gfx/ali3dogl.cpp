@@ -23,11 +23,12 @@
 #include <allegro/platform/aintwin.h>
 #include "gfx/ali3d.h"
 #include <GL/gl.h>
-#include "gfx/bitmap.h"
+#include "gfx/graphics.h"
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
 
 using AGS::Common::Bitmap;
+using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 using namespace AGS; // FIXME later
 
@@ -1011,7 +1012,8 @@ void OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
         surfaceData += retrieve_width * 4;
       }
 
-      destination->StretchBlt(retrieveInto, RectWH(0, 0, retrieveInto->GetWidth(), retrieveInto->GetHeight()),
+      Graphics graphics(destination);
+      graphics.StretchBlt(retrieveInto, RectWH(0, 0, retrieveInto->GetWidth(), retrieveInto->GetHeight()),
 		  RectWH(0, 0, destination->GetWidth(), destination->GetHeight()));
       delete retrieveInto;
     }
@@ -1481,7 +1483,8 @@ void OGLGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpda
     {
       //throw Ali3DException("Mismatched colour depths");
       source = BitmapHelper::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 32);
-      source->Blit(bitmap, 0, 0, 0, 0, source->GetWidth(), source->GetHeight());
+      Graphics graphics(source);
+      graphics.Blit(bitmap, 0, 0, 0, 0, source->GetWidth(), source->GetHeight());
     }
 
     target->_hasAlpha = hasAlpha;
@@ -1515,7 +1518,8 @@ Bitmap *OGLGraphicsDriver::ConvertBitmapToSupportedColourDepth(Bitmap *bitmap)
    {
      // we need 32-bit colour
      Bitmap *tempBmp = BitmapHelper::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 32);
-     tempBmp->Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
+     Graphics graphics(tempBmp);
+     graphics.Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
      delete bitmap;
      set_color_conversion(colorConv);
      return tempBmp;
@@ -1570,7 +1574,8 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
   {
     // we need 32-bit colour
 	tempBmp = BitmapHelper::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 32);
-    tempBmp->Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
+    Graphics graphics(tempBmp);
+    graphics.Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
     bitmap = tempBmp;
     colourDepth = 32;
   }

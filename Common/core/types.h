@@ -63,4 +63,8 @@
 
 #endif // WINDOWS_VERSION
 
+
+#define fixed_t int32_t // fixed point type
+#define color_t int32_t
+
 #endif // __AGS_CN_CORE__TYPES_H

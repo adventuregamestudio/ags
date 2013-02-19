@@ -58,11 +58,12 @@
 #include "ac/spritecache.h"
 #include "util/stream.h"
 #include "gfx/graphicsdriver.h"
-#include "gfx/bitmap.h"
+#include "gfx/graphics.h"
 #include "core/assetmanager.h"
 #include "ac/dynobj/all_dynamicclasses.h"
 
 using AGS::Common::Bitmap;
+using AGS::Common::Graphics;
 using AGS::Common::Stream;
 using AGS::Common::String;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -215,13 +216,14 @@ Bitmap *fix_bitmap_size(Bitmap *todubl) {
         return todubl;
 
     //  Bitmap *tempb=BitmapHelper::CreateBitmap(scrnwid,scrnhit);
+    //todubl->SetClip(Rect(0,0,oldw-1,oldh-1)); // CHECKME! [IKM] Not sure this is needed here
     Bitmap *tempb=BitmapHelper::CreateBitmap(newWidth, newHeight, todubl->GetColorDepth());
-    tempb->SetClip(Rect(0,0,tempb->GetWidth()-1,tempb->GetHeight()-1));
-    todubl->SetClip(Rect(0,0,oldw-1,oldh-1));
-    tempb->Clear();
-    tempb->StretchBlt(todubl, RectWH(0,0,oldw,oldh), RectWH(0,0,tempb->GetWidth(),tempb->GetHeight()));
-    delete todubl; todubl=tempb;
-    return todubl;
+    Graphics graphics(tempb);
+    graphics.SetClip(Rect(0,0,tempb->GetWidth()-1,tempb->GetHeight()-1));
+    graphics.Fill(0);
+    graphics.StretchBlt(todubl, RectWH(0,0,oldw,oldh), RectWH(0,0,tempb->GetWidth(),tempb->GetHeight()));
+    delete todubl;
+    return tempb;
 }
 
 
@@ -251,7 +253,7 @@ void unload_old_room() {
     current_fade_out_effect();
 
     Common::Graphics *g = GetVirtualScreenGraphics();
-    g->Bmp->Clear();
+    g->Fill(0);
     for (ff=0;ff<croom->numobj;ff++)
         objs[ff].moving = 0;
 
@@ -498,8 +500,8 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         int abscreen=0;
 
         Common::Graphics *g = GetVirtualScreenGraphics();
-        if (g->Bmp==BitmapHelper::GetScreenBitmap()) abscreen=1;
-        else if (g->Bmp==virtual_screen) abscreen=2;
+        if (g->GetBitmap()==BitmapHelper::GetScreenBitmap()) abscreen=1;
+        else if (g->GetBitmap()==virtual_screen) abscreen=2;
         // if this is a 640x480 room and we're in letterbox mode, full-screen it
         int newScreenHeight = final_scrn_hit;
         if (multiply_up_coordinate(thisroom.height) < final_scrn_hit) {
@@ -566,7 +568,8 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
 
     our_eip=204;
     // copy the walls screen
-    walkareabackup->Blit(thisroom.walls,0,0,0,0,thisroom.walls->GetWidth(),thisroom.walls->GetHeight());
+    Graphics graphics(walkareabackup);
+    graphics.Blit(thisroom.walls,0,0,0,0,thisroom.walls->GetWidth(),thisroom.walls->GetHeight());
     update_polled_stuff_if_runtime();
     redo_walkable_areas();
     // fix walk-behinds to current screen resolution

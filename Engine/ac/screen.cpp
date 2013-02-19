@@ -23,9 +23,10 @@
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "gfx/graphicsdriver.h"
-#include "gfx/bitmap.h"
+#include "gfx/graphics.h"
 
 using AGS::Common::Bitmap;
+using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameSetupStruct game;
@@ -80,7 +81,7 @@ void current_fade_out_effect () {
     {
         get_palette(old_palette);
         Common::Graphics *g = GetVirtualScreenGraphics();
-        temp_virtual = BitmapHelper::CreateBitmap(virtual_screen->GetWidth(),virtual_screen->GetHeight(),g->Bmp->GetColorDepth());
+        temp_virtual = BitmapHelper::CreateBitmap(virtual_screen->GetWidth(),virtual_screen->GetHeight(),g->GetBitmap()->GetColorDepth());
         //->Blit(abuf,temp_virtual,0,0,0,0,abuf->GetWidth(),abuf->GetHeight());
         gfxDriver->GetCopyOfScreenIntoBitmap(temp_virtual);
     }
@@ -95,14 +96,16 @@ IDriverDependantBitmap* prepare_screen_for_transition_in()
     if (temp_virtual->GetHeight() < scrnhit)
     {
         Bitmap *enlargedBuffer = BitmapHelper::CreateBitmap(temp_virtual->GetWidth(), scrnhit, temp_virtual->GetColorDepth());
-        enlargedBuffer->Blit(temp_virtual, 0, 0, 0, (scrnhit - temp_virtual->GetHeight()) / 2, temp_virtual->GetWidth(), temp_virtual->GetHeight());
+        Graphics graphics(enlargedBuffer);
+        graphics.Blit(temp_virtual, 0, 0, 0, (scrnhit - temp_virtual->GetHeight()) / 2, temp_virtual->GetWidth(), temp_virtual->GetHeight());
         delete temp_virtual;
         temp_virtual = enlargedBuffer;
     }
     else if (temp_virtual->GetHeight() > scrnhit)
     {
         Bitmap *clippedBuffer = BitmapHelper::CreateBitmap(temp_virtual->GetWidth(), scrnhit, temp_virtual->GetColorDepth());
-        clippedBuffer->Blit(temp_virtual, 0, (temp_virtual->GetHeight() - scrnhit) / 2, 0, 0, temp_virtual->GetWidth(), temp_virtual->GetHeight());
+        Graphics graphics(clippedBuffer);
+        graphics.Blit(temp_virtual, 0, (temp_virtual->GetHeight() - scrnhit) / 2, 0, 0, temp_virtual->GetWidth(), temp_virtual->GetHeight());
         delete temp_virtual;
         temp_virtual = clippedBuffer;
     }

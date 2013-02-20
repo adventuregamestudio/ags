@@ -116,11 +116,11 @@ void GUIButton::Draw(Common::Graphics *g)
     }
 
     if ((drawDisabled) && (gui_disabled_style == GUIDIS_GREYOUT)) {
-      int col8 = get_col8_lookup(8, g->GetBitmap()->GetColorDepth());
+      g->SetDrawColor(8);
       int jj, kk;             // darken the button when disabled
       for (jj = 0; jj < spriteset[usepic]->GetWidth(); jj++) {
         for (kk = jj % 2; kk < spriteset[usepic]->GetHeight(); kk += 2)
-          g->PutPixel(x + jj, y + kk, col8);
+          g->PutPixel(x + jj, y + kk);
       }
     }
 
@@ -130,10 +130,10 @@ void GUIButton::Draw(Common::Graphics *g)
     // it's a text button
 
     g->SetDrawColor(7);
-    g->FillRect(Rect(x, y, x + wid - 1, y + hit - 1), g->GetDrawColor());
+    g->FillRect(Rect(x, y, x + wid - 1, y + hit - 1));
     if (flags & GUIF_DEFAULT) {
       g->SetDrawColor(16);
-      g->DrawRect(Rect(x - 1, y - 1, x + wid, y + hit), g->GetDrawColor());
+      g->DrawRect(Rect(x - 1, y - 1, x + wid, y + hit));
     }
 
     if ((isover) && (ispushed))
@@ -144,8 +144,8 @@ void GUIButton::Draw(Common::Graphics *g)
     if (drawDisabled)
       g->SetDrawColor(8);
 
-    g->DrawLine(Line(x, y + hit - 1, x + wid - 1, y + hit - 1), g->GetDrawColor());
-    g->DrawLine(Line(x + wid - 1, y, x + wid - 1, y + hit - 1), g->GetDrawColor());
+    g->DrawLine(Line(x, y + hit - 1, x + wid - 1, y + hit - 1));
+    g->DrawLine(Line(x + wid - 1, y, x + wid - 1, y + hit - 1));
     if ((isover) && (ispushed))
       g->SetDrawColor(8);
     else
@@ -154,8 +154,8 @@ void GUIButton::Draw(Common::Graphics *g)
     if (drawDisabled)
       g->SetDrawColor(8);
 
-    g->DrawLine(Line(x, y, x + wid - 1, y), g->GetDrawColor());
-    g->DrawLine(Line(x, y, x, y + hit - 1), g->GetDrawColor());
+    g->DrawLine(Line(x, y, x + wid - 1, y));
+    g->DrawLine(Line(x, y, x, y + hit - 1));
   }                           // end if text
 
   // Don't print text of (INV) (INVSHR) (INVNS)

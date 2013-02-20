@@ -281,7 +281,7 @@ int GUIMain::is_mouse_on_gui()
 
 void GUIMain::draw_blob(Common::Graphics *g, int xp, int yp)
 {
-  g->FillRect(Rect(xp, yp, xp + get_fixed_pixel_size(1), yp + get_fixed_pixel_size(1)), g->GetDrawColor());
+  g->FillRect(Rect(xp, yp, xp + get_fixed_pixel_size(1), yp + get_fixed_pixel_size(1)));
 }
 
 void GUIMain::draw_at(Common::Graphics *g, int xx, int yy)
@@ -304,14 +304,15 @@ void GUIMain::draw_at(Common::Graphics *g, int xx, int yy)
   Common::Graphics sub_graphics(subbmp);
   //g = subbmp;
   if (bgcol != 0)
-    sub_graphics.Fill(get_col8_lookup(bgcol, sub_graphics.GetBitmap()->GetColorDepth()));
+    sub_graphics.Fill(sub_graphics.GetBitmap()->GetCompatibleColor(bgcol));
 
   SET_EIP(377)
 
   if (fgcol != bgcol) {
-    sub_graphics.DrawRect(Rect(0, 0, sub_graphics.GetBitmap()->GetWidth() - 1, sub_graphics.GetBitmap()->GetHeight() - 1), get_col8_lookup(fgcol, sub_graphics.GetBitmap()->GetColorDepth()));
+    sub_graphics.SetDrawColor(fgcol);
+    sub_graphics.DrawRect(Rect(0, 0, sub_graphics.GetBitmap()->GetWidth() - 1, sub_graphics.GetBitmap()->GetHeight() - 1));
     if (get_fixed_pixel_size(1) > 1)
-      sub_graphics.DrawRect(Rect(1, 1, sub_graphics.GetBitmap()->GetWidth() - 2, sub_graphics.GetBitmap()->GetHeight() - 2), get_col8_lookup(fgcol, sub_graphics.GetBitmap()->GetColorDepth()));
+      sub_graphics.DrawRect(Rect(1, 1, sub_graphics.GetBitmap()->GetWidth() - 2, sub_graphics.GetBitmap()->GetHeight() - 2));
   }
 
   SET_EIP(378)
@@ -350,12 +351,12 @@ void GUIMain::draw_at(Common::Graphics *g, int xx, int yy)
       int oo;  // draw a dotted outline round all objects
       sub_graphics.SetDrawColor(selectedColour);
       for (oo = 0; oo < objToDraw->wid; oo+=2) {
-        sub_graphics.PutPixel(oo + objToDraw->x, objToDraw->y, sub_graphics.GetDrawColor());
-        sub_graphics.PutPixel(oo + objToDraw->x, objToDraw->y + objToDraw->hit - 1, sub_graphics.GetDrawColor());
+        sub_graphics.PutPixel(oo + objToDraw->x, objToDraw->y);
+        sub_graphics.PutPixel(oo + objToDraw->x, objToDraw->y + objToDraw->hit - 1);
       }
       for (oo = 0; oo < objToDraw->hit; oo+=2) {
-        sub_graphics.PutPixel(objToDraw->x, oo + objToDraw->y, sub_graphics.GetDrawColor());
-        sub_graphics.PutPixel(objToDraw->x + objToDraw->wid - 1, oo + objToDraw->y, sub_graphics.GetDrawColor());
+        sub_graphics.PutPixel(objToDraw->x, oo + objToDraw->y);
+        sub_graphics.PutPixel(objToDraw->x + objToDraw->wid - 1, oo + objToDraw->y);
       }      
     }
   }

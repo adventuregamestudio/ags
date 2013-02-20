@@ -193,7 +193,8 @@ void allegro_bitmap_test_draw()
 	{
         Graphics graphics(test_allegro_bitmap);
 		graphics.Fill(test_allegro_bitmap->GetMaskColor());
-		graphics.FillRect(Rect(50,50,150,150), 15);
+        graphics.SetDrawColorExact(15);
+		graphics.FillRect(Rect(50,50,150,150));
 
 		if (test_allegro_ddb == NULL) 
         {
@@ -1120,9 +1121,10 @@ void put_sprite_256(Common::Graphics *g, int xxx,int yyy,Bitmap *piccy) {
             if (piccy->GetColorDepth() == 8) {
                 // only do this for 256-col, cos the ->Blit call converts
                 // transparency for 16->32 bit
+                graphics.SetDrawColor(mask_col);
                 for (bb=0;bb<hctemp->GetWidth();bb++) {
                     for (cc=0;cc<hctemp->GetHeight();cc++)
-                        if (piccy->GetPixel(bb,cc)==0) graphics.PutPixel(bb,cc,mask_col);
+                        if (piccy->GetPixel(bb,cc)==0) graphics.PutPixel(bb,cc);
                 }
             }
             wputblock(g, xxx,yyy,hctemp,1);
@@ -2479,7 +2481,7 @@ void update_screen() {
         Common::Graphics buf_graphics(debugConsoleBuffer);
         //g = debugConsoleBuffer;
         buf_graphics.SetDrawColor(15);
-        buf_graphics.FillRect(Rect (0, 0, scrnwid - 1, barheight), buf_graphics.GetDrawColor());
+        buf_graphics.FillRect(Rect (0, 0, scrnwid - 1, barheight));
         buf_graphics.SetTextColor(16);
         for (int jj = first_debug_line; jj != last_debug_line; jj = (jj + 1) % DEBUG_CONSOLE_NUMLINES) {
             wouttextxy(&buf_graphics, 1, ypp, 0, debug_line[jj].text);

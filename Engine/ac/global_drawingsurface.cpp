@@ -125,7 +125,7 @@ void RawDrawFrameTransparent (int frame, int translev) {
 
 void RawClear (int clr) {
     play.raw_modified[play.bg_frame] = 1;
-    clr = get_col8_lookup(clr, RAW_GRAPHICS()->GetBitmap()->GetColorDepth());
+    clr = RAW_GRAPHICS()->GetBitmap()->GetCompatibleColor(clr);
     thisroom.ebscene[play.bg_frame]->Clear (clr);
     invalidate_screen();
     mark_current_background_dirty();
@@ -134,7 +134,7 @@ void RawSetColor (int clr) {
     //push_screen();
     //SetVirtualScreen(thisroom.ebscene[play.bg_frame]);
     // set the colour at the appropriate depth for the background
-    play.raw_color = get_col8_lookup(clr, GetVirtualScreenGraphics()->GetBitmap()->GetColorDepth());
+    play.raw_color = GetVirtualScreenGraphics()->GetBitmap()->GetCompatibleColor(clr);
     //pop_screen();
 }
 void RawSetColorRGB(int red, int grn, int blu) {
@@ -269,9 +269,10 @@ void RawDrawLine (int fromx, int fromy, int tox, int toy) {
     int ii,jj;
     // draw a line thick enough to look the same at all resolutions
     Graphics graphics(thisroom.ebscene[play.bg_frame]);
+    graphics.SetDrawColorExact(play.raw_color);
     for (ii = 0; ii < get_fixed_pixel_size(1); ii++) {
         for (jj = 0; jj < get_fixed_pixel_size(1); jj++)
-            graphics.DrawLine (Line(fromx+ii, fromy+jj, tox+ii, toy+jj), play.raw_color);
+            graphics.DrawLine (Line(fromx+ii, fromy+jj, tox+ii, toy+jj));
     }
     invalidate_screen();
     mark_current_background_dirty();

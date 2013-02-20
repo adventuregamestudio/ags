@@ -157,7 +157,7 @@ void script_debug(int cmdd,int dataa) {
             short srcy=short(cmls->pos[i] & 0x00ffff);
             short targetx=short((cmls->pos[i+1] >> 16) & 0x00ffff);
             short targety=short(cmls->pos[i+1] & 0x00ffff);
-            graphics.DrawLine(Line(srcx, srcy, targetx, targety), get_col8_lookup(i+1, GetVirtualScreenGraphics()->GetBitmap()->GetColorDepth()));
+            graphics.DrawLine(Line(srcx, srcy, targetx, targety), GetVirtualScreenGraphics()->GetBitmap()->GetCompatibleColor(i+1));
         }
 		graphics.SetBitmap(BitmapHelper::GetScreenBitmap());
         graphics.StretchBlt(tempw,

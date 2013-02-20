@@ -52,9 +52,9 @@ void GUITextBox::Draw(Common::Graphics *g)
   g->SetTextColor(textcol);
   g->SetDrawColor(textcol);
   if ((exflags & GTF_NOBORDER) == 0) {
-    g->DrawRect(Rect(x, y, x + wid - 1, y + hit - 1), g->GetDrawColor());
+    g->DrawRect(Rect(x, y, x + wid - 1, y + hit - 1));
     if (get_fixed_pixel_size(1) > 1)
-      g->DrawRect(Rect(x + 1, y + 1, x + wid - get_fixed_pixel_size(1), y + hit - get_fixed_pixel_size(1)), g->GetDrawColor());
+      g->DrawRect(Rect(x + 1, y + 1, x + wid - get_fixed_pixel_size(1), y + hit - get_fixed_pixel_size(1)));
   }
 
   Draw_text_box_contents(g);

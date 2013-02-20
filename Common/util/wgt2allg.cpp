@@ -63,13 +63,6 @@ using AGS::Common::Stream;
       return gl_VirtualScreenGraphics.GetBitmap();
   }
 
-  int get_col8_lookup(int nval, int wantColDep)
-  {
-    int tmpv;
-    __my_setcolor(&tmpv, nval, wantColDep);
-    return tmpv;
-  }
-
 #ifdef __cplusplus
 extern "C"
 {

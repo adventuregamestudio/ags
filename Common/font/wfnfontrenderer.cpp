@@ -186,16 +186,17 @@ int WFNFontRenderer::printchar(Common::Graphics *g, int xxx, int yyy, wgtfont fo
   bytewid = ((charWidth - 1) / 8) + 1;
 
   // MACPORT FIX: switch now using charWidth and charHeight
+  g->SetDrawColorExact(g->GetTextColor());
   for (tt = 0; tt < charHeight; tt++) {
     for (ss = 0; ss < charWidth; ss++) {
       if (((actdata[tt * bytewid + (ss / 8)] & (0x80 >> (ss % 8))) != 0)) {
         if (wtext_multiply > 1) {
           g->FillRect(Rect(xxx + ss, yyy + tt, xxx + ss + (wtext_multiply - 1),
-              yyy + tt + (wtext_multiply - 1)), g->GetTextColor());
+              yyy + tt + (wtext_multiply - 1)));
         } 
         else
         {
-            g->PutPixel(xxx + ss, yyy + tt, g->GetTextColor());
+            g->PutPixel(xxx + ss, yyy + tt);
         }
       }
 

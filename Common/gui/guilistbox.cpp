@@ -204,9 +204,9 @@ void GUIListBox::Draw(Common::Graphics *g)
   g->SetTextColor(textcol);
   g->SetDrawColor(textcol);
   if ((exflags & GLF_NOBORDER) == 0) {
-    g->DrawRect(Rect(x, y, x + wid + (pixel_size - 1), y + hit + (pixel_size - 1)), g->GetDrawColor());
+    g->DrawRect(Rect(x, y, x + wid + (pixel_size - 1), y + hit + (pixel_size - 1)));
     if (pixel_size > 1)
-      g->DrawRect(Rect(x + 1, y + 1, x + wid, y + hit), g->GetDrawColor());
+      g->DrawRect(Rect(x + 1, y + 1, x + wid, y + hit));
   }
 
   int rightHandEdge = (x + wid) - pixel_size - 1;
@@ -217,21 +217,22 @@ void GUIListBox::Draw(Common::Graphics *g)
   // draw the scroll bar in if necessary
   if ((numItems > num_items_fit) && ((exflags & GLF_NOBORDER) == 0) && ((exflags & GLF_NOARROWS) == 0)) {
     int xstrt, ystrt;
-    g->DrawRect(Rect(x + wid - get_fixed_pixel_size(7), y, (x + (pixel_size - 1) + wid) - get_fixed_pixel_size(7), y + hit), g->GetDrawColor());
-    g->DrawRect(Rect(x + wid - get_fixed_pixel_size(7), y + hit / 2, x + wid, y + hit / 2 + (pixel_size - 1)), g->GetDrawColor());
+    g->DrawRect(Rect(x + wid - get_fixed_pixel_size(7), y, (x + (pixel_size - 1) + wid) - get_fixed_pixel_size(7), y + hit));
+    g->DrawRect(Rect(x + wid - get_fixed_pixel_size(7), y + hit / 2, x + wid, y + hit / 2 + (pixel_size - 1)));
 
     xstrt = (x + wid - get_fixed_pixel_size(6)) + (pixel_size - 1);
     ystrt = (y + hit - 3) - get_fixed_pixel_size(5);
 
+    g->SetDrawColor(textcol);
     g->DrawTriangle(Triangle(xstrt, ystrt, xstrt + get_fixed_pixel_size(4), ystrt, 
              xstrt + get_fixed_pixel_size(2),
-             ystrt + get_fixed_pixel_size(5)), get_col8_lookup(textcol, g->GetBitmap()->GetColorDepth()));
+             ystrt + get_fixed_pixel_size(5)));
 
     ystrt = y + 3;
     g->DrawTriangle(Triangle(xstrt, ystrt + get_fixed_pixel_size(5), 
              xstrt + get_fixed_pixel_size(4), 
              ystrt + get_fixed_pixel_size(5),
-             xstrt + get_fixed_pixel_size(2), ystrt), get_col8_lookup(textcol, g->GetBitmap()->GetColorDepth()));
+             xstrt + get_fixed_pixel_size(2), ystrt));
 
     rightHandEdge -= get_fixed_pixel_size(7);
   }
@@ -255,7 +256,7 @@ void GUIListBox::Draw(Common::Graphics *g)
         if ((num_items_fit < numItems) && ((exflags & GLF_NOBORDER) == 0) && ((exflags & GLF_NOARROWS) == 0))
           stretchto -= get_fixed_pixel_size(7);
 
-        g->FillRect(Rect(x + pixel_size, thisyp, stretchto, thisyp + rowheight - pixel_size), g->GetDrawColor());
+        g->FillRect(Rect(x + pixel_size, thisyp, stretchto, thisyp + rowheight - pixel_size));
       }
     }
     else

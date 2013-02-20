@@ -77,11 +77,11 @@ void GUIInv::Draw(Common::Graphics *g) {
     if ((IsDisabled()) &&
         (gui_disabled_style == GUIDIS_GREYOUT) && 
         (play.inventory_greys_out == 1)) {
-            int col8 = get_col8_lookup(8, g->GetBitmap()->GetColorDepth());
+            g->SetDrawColor(8);
             int jj, kk;   // darken the inventory when disabled
             for (jj = 0; jj < wid; jj++) {
                 for (kk = jj % 2; kk < hit; kk += 2)
-                    g->PutPixel(x + jj, y + kk, col8);
+                    g->PutPixel(x + jj, y + kk);
             }
     }
 

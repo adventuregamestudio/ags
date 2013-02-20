@@ -510,8 +510,10 @@ int get_but_pic(GUIMain*guo,int indx) {
 
 void draw_button_background(Common::Graphics *g, int xx1,int yy1,int xx2,int yy2,GUIMain*iep) {
     if (iep==NULL) {  // standard window
-        g->FillRect(Rect(xx1,yy1,xx2,yy2),get_col8_lookup(15, g->GetBitmap()->GetColorDepth()));
-        g->DrawRect(Rect(xx1,yy1,xx2,yy2),get_col8_lookup(16, g->GetBitmap()->GetColorDepth()));
+        g->SetDrawColor(15);
+        g->FillRect(Rect(xx1,yy1,xx2,yy2));
+        g->SetDrawColor(16);
+        g->DrawRect(Rect(xx1,yy1,xx2,yy2));
         /*    g->SetDrawColor(opts.tws.backcol); g->FillRect(Rect(xx1,yy1,xx2,yy2);
         g->SetDrawColor(opts.tws.g->GetTextColor()); g->DrawRect(Rect(xx1+1,yy1+1,xx2-1,yy2-1);*/
     }
@@ -530,7 +532,7 @@ void draw_button_background(Common::Graphics *g, int xx1,int yy1,int xx2,int yy2
         else g->SetDrawColor(0); // black backrgnd behind picture
 
         if (iep->bgcol > 0)
-            g->FillRect(Rect(xx1,yy1,xx2,yy2), g->GetDrawColor());
+            g->FillRect(Rect(xx1,yy1,xx2,yy2));
 
         int leftRightWidth = spritewidth[get_but_pic(iep,4)];
         int topBottomHeight = spriteheight[get_but_pic(iep,6)];
@@ -664,11 +666,13 @@ void draw_text_window_and_bar(Common::Graphics *g, int*xins,int*yins,int*xx,int*
         Common::Graphics *g = SetVirtualScreen(screenop);
 
         // draw the top bar
-        g->FillRect(Rect(0, 0, screenop->GetWidth() - 1, topBar.height - 1), get_col8_lookup(play.top_bar_backcolor, g->GetBitmap()->GetColorDepth()));
+        g->SetDrawColor(play.top_bar_backcolor);
+        g->FillRect(Rect(0, 0, screenop->GetWidth() - 1, topBar.height - 1));
         if (play.top_bar_backcolor != play.top_bar_bordercolor) {
             // draw the border
+            g->SetDrawColor(play.top_bar_bordercolor);
             for (int j = 0; j < multiply_up_coordinate(play.top_bar_borderwidth); j++)
-                g->DrawRect(Rect(j, j, screenop->GetWidth() - (j + 1), topBar.height - (j + 1)), get_col8_lookup(play.top_bar_bordercolor, g->GetBitmap()->GetColorDepth()));
+                g->DrawRect(Rect(j, j, screenop->GetWidth() - (j + 1), topBar.height - (j + 1)));
         }
 
         int textcolwas = g->GetTextColor();

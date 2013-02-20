@@ -292,7 +292,7 @@ void DrawingSurface_SetDrawingColor(ScriptDrawingSurface *sds, int newColour)
     }
     else
     {
-        sds->currentColour = get_col8_lookup(newColour, g->GetBitmap()->GetColorDepth());
+        sds->currentColour = g->GetBitmap()->GetCompatibleColor(newColour);
     }
     sds->FinishedDrawingReadOnly();
 }
@@ -340,7 +340,7 @@ void DrawingSurface_Clear(ScriptDrawingSurface *sds, int colour)
     }
     else
     {
-        allegroColor = get_col8_lookup(colour, g->GetBitmap()->GetColorDepth());
+        allegroColor = g->GetBitmap()->GetCompatibleColor(colour);
     }
     g->Fill(allegroColor);
     sds->FinishedDrawing();
@@ -444,13 +444,14 @@ void DrawingSurface_DrawLine(ScriptDrawingSurface *sds, int fromx, int fromy, in
     int ii,jj,xx,yy;
     Common::Graphics *g = sds->StartDrawing();
     // draw several lines to simulate the thickness
+    g->SetDrawColorExact(sds->currentColour);
     for (ii = 0; ii < thickness; ii++) 
     {
         xx = (ii - (thickness / 2));
         for (jj = 0; jj < thickness; jj++)
         {
             yy = (jj - (thickness / 2));
-            g->DrawLine (Line(fromx + xx, fromy + yy, tox + xx, toy + yy), sds->currentColour);
+            g->DrawLine (Line(fromx + xx, fromy + yy, tox + xx, toy + yy));
         }
     }
     sds->FinishedDrawing();
@@ -463,11 +464,12 @@ void DrawingSurface_DrawPixel(ScriptDrawingSurface *sds, int x, int y) {
     int ii,jj;
     Common::Graphics *g = sds->StartDrawing();
     // draw several pixels to simulate the thickness
+    g->SetDrawColorExact(sds->currentColour);
     for (ii = 0; ii < thickness; ii++) 
     {
         for (jj = 0; jj < thickness; jj++)
         {
-            g->PutPixel(x + ii, y + jj, sds->currentColour);
+            g->PutPixel(x + ii, y + jj);
         }
     }
     sds->FinishedDrawing();

@@ -228,11 +228,11 @@ start_actinv:
     int windowyp=scrnhit/2-windowhit/2;
     int buttonyp=windowyp+windowhit-BUTTONAREAHEIGHT;
     g->SetDrawColor(play.sierra_inv_color);
-    g->FillRect(Rect(windowxp,windowyp,windowxp+windowwid,windowyp+windowhit), g->GetDrawColor());
+    g->FillRect(Rect(windowxp,windowyp,windowxp+windowwid,windowyp+windowhit));
     g->SetDrawColor(0); 
     int bartop = windowyp + get_fixed_pixel_size(2);
     int barxp = windowxp + get_fixed_pixel_size(2);
-    g->FillRect(Rect(barxp,bartop, windowxp + windowwid - get_fixed_pixel_size(2),buttonyp-1), g->GetDrawColor());
+    g->FillRect(Rect(barxp,bartop, windowxp + windowwid - get_fixed_pixel_size(2),buttonyp-1));
     for (ww = top_item; ww < numitems; ww++) {
         if (ww >= top_item + num_visible_items)
             break;
@@ -254,14 +254,14 @@ start_actinv:
     Graphics graphics(arrowblock);
     graphics.Fill(arrowblock->GetMaskColor());
     int usecol;
-    __my_setcolor(&usecol, 0, g->GetBitmap()->GetColorDepth());
+    g->SetDrawColor(0);
     if (play.sierra_inv_color == 0)
-        __my_setcolor(&usecol, 14, g->GetBitmap()->GetColorDepth());
+        g->SetDrawColor(14);
 
-    graphics.DrawLine(Line(ARROWBUTTONWID/2, 2, ARROWBUTTONWID-2, 9), usecol);
-    graphics.DrawLine(Line(ARROWBUTTONWID/2, 2, 2, 9), usecol);
-    graphics.DrawLine(Line(2, 9, ARROWBUTTONWID-2, 9), usecol);
-	graphics.FloodFill(ARROWBUTTONWID/2, 4, usecol);
+    graphics.DrawLine(Line(ARROWBUTTONWID/2, 2, ARROWBUTTONWID-2, 9));
+    graphics.DrawLine(Line(ARROWBUTTONWID/2, 2, 2, 9));
+    graphics.DrawLine(Line(2, 9, ARROWBUTTONWID-2, 9));
+	graphics.FloodFill(ARROWBUTTONWID/2, 4);
 
     if (top_item > 0)
         wputblock(g, windowxp+windowwid-ARROWBUTTONWID, buttonyp + get_fixed_pixel_size(2), arrowblock, 1);
@@ -381,12 +381,12 @@ start_actinv:
         int rectyp=bartop+1+((wasonitem - top_item)/4)*highest;
         if (wasonitem>=0) {
             g->SetDrawColor(0);
-            g->DrawRect(Rect(rectxp,rectyp,rectxp+widest-1,rectyp+highest-1), g->GetDrawColor());
+            g->DrawRect(Rect(rectxp,rectyp,rectxp+widest-1,rectyp+highest-1));
         }
         if (isonitem>=0) { g->SetDrawColor(14);//opts.invrectcol);
         rectxp=barxp+1+(isonitem%4)*widest;
         rectyp=bartop+1+((isonitem - top_item)/4)*highest;
-        g->DrawRect(Rect(rectxp,rectyp,rectxp+widest-1,rectyp+highest-1), g->GetDrawColor());
+        g->DrawRect(Rect(rectxp,rectyp,rectxp+widest-1,rectyp+highest-1));
         }
         domouse(1);
         }

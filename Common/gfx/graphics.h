@@ -75,20 +75,27 @@ public:
     // relatively slow operations. They should not be used for changing large
     // blocks of bitmap memory - reading/writing from/to scan lines should be
     // done in such cases.
+    void    PutPixel(int x, int y);
     void    PutPixel(int x, int y, color_t color);
     int	    GetPixel(int x, int y) const;
 
     //=========================================================================
     // Vector drawing operations
-    //=========================================================================    
+    //=========================================================================
+    void    DrawLine(const Line &ln);
     void    DrawLine(const Line &ln, color_t color);
+    void    DrawTriangle(const Triangle &tr);
     void    DrawTriangle(const Triangle &tr, color_t color);
+    void    DrawRect(const Rect &rc);
     void    DrawRect(const Rect &rc, color_t color);
+    void    FillRect(const Rect &rc);
     void    FillRect(const Rect &rc, color_t color);
+    void    FillCircle(const Circle &circle);
     void    FillCircle(const Circle &circle, color_t color);
     // Fills the whole bitmap with given color
     void    Fill(color_t color);
     // Floodfills an enclosed area, starting at point
+    void    FloodFill(int x, int y);
     void    FloodFill(int x, int y, color_t color);
 
 private:

@@ -123,12 +123,12 @@ void set_mouse_cursor(int newcurs) {
             }
             else {
                 putpixel_compensate (&graphics, hotspotx, hotspoty,
-                    (dotted_mouse_cursor->GetColorDepth() > 8) ? get_col8_lookup (game.hotdot, GetVirtualScreenGraphics()->GetBitmap()->GetColorDepth()) : game.hotdot);
+                    (dotted_mouse_cursor->GetColorDepth() > 8) ? GetVirtualScreenGraphics()->GetBitmap()->GetCompatibleColor (game.hotdot) : game.hotdot);
 
                 if (game.hotdotouter > 0) {
                     int outercol = game.hotdotouter;
                     if (dotted_mouse_cursor->GetColorDepth () > 8)
-                        outercol = get_col8_lookup(game.hotdotouter, GetVirtualScreenGraphics()->GetBitmap()->GetColorDepth());
+                        outercol = GetVirtualScreenGraphics()->GetBitmap()->GetCompatibleColor(game.hotdotouter);
 
                     putpixel_compensate (&graphics, hotspotx + get_fixed_pixel_size(1), hotspoty, outercol);
                     putpixel_compensate (&graphics, hotspotx, hotspoty + get_fixed_pixel_size(1), outercol);

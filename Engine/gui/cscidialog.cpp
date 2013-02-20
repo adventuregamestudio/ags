@@ -72,9 +72,9 @@ int controlid = 0;
 void __my_wbutt(Common::Graphics *g, int x1, int y1, int x2, int y2)
 {
     g->SetDrawColor(COL254);            //wsetcolor(15);
-    g->FillRect(Rect(x1, y1, x2, y2), g->GetDrawColor());
+    g->FillRect(Rect(x1, y1, x2, y2));
     g->SetDrawColor(0);
-    g->DrawRect(Rect(x1, y1, x2, y2), g->GetDrawColor());
+    g->DrawRect(Rect(x1, y1, x2, y2));
 }
 
 //-----------------------------------------------------------------------------

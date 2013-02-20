@@ -254,6 +254,30 @@ void Graphics::RotateBlt(Bitmap *src, int dst_x, int dst_y, int pivot_x, int piv
 // Pixel operations
 //=============================================================================
 
+void Graphics::PutPixel(int x, int y)
+{
+    if (x < 0 || x >= _alBitmap->w || y < 0 || y >= _alBitmap->h)
+    {
+        return;
+    }
+
+	switch (bitmap_color_depth(_alBitmap))
+	{
+	case 8:
+        return _putpixel(_alBitmap, x, y, _drawColor);
+	case 15:
+		return _putpixel15(_alBitmap, x, y, _drawColor);
+	case 16:
+		return _putpixel16(_alBitmap, x, y, _drawColor);
+	case 24:
+		return _putpixel24(_alBitmap, x, y, _drawColor);
+	case 32:
+		return _putpixel32(_alBitmap, x, y, _drawColor);
+	}
+    assert(0); // this should not normally happen
+	return putpixel(_alBitmap, x, y, _drawColor);
+}
+
 void Graphics::PutPixel(int x, int y, color_t color)
 {
     if (x < 0 || x >= _alBitmap->w || y < 0 || y >= _alBitmap->h)
@@ -306,9 +330,20 @@ int Graphics::GetPixel(int x, int y) const
 // Vector drawing operations
 //=============================================================================
 
+void Graphics::DrawLine(const Line &ln)
+{
+	line(_alBitmap, ln.X1, ln.Y1, ln.X2, ln.Y2, _drawColor);
+}
+
 void Graphics::DrawLine(const Line &ln, color_t color)
 {
 	line(_alBitmap, ln.X1, ln.Y1, ln.X2, ln.Y2, color);
+}
+
+void Graphics::DrawTriangle(const Triangle &tr)
+{
+	triangle(_alBitmap,
+		tr.X1, tr.Y1, tr.X2, tr.Y2, tr.X3, tr.Y3, _drawColor);
 }
 
 void Graphics::DrawTriangle(const Triangle &tr, color_t color)
@@ -317,14 +352,29 @@ void Graphics::DrawTriangle(const Triangle &tr, color_t color)
 		tr.X1, tr.Y1, tr.X2, tr.Y2, tr.X3, tr.Y3, color);
 }
 
+void Graphics::DrawRect(const Rect &rc)
+{
+	rect(_alBitmap, rc.Left, rc.Top, rc.Right, rc.Bottom, _drawColor);
+}
+
 void Graphics::DrawRect(const Rect &rc, color_t color)
 {
 	rect(_alBitmap, rc.Left, rc.Top, rc.Right, rc.Bottom, color);
 }
 
+void Graphics::FillRect(const Rect &rc)
+{
+	rectfill(_alBitmap, rc.Left, rc.Top, rc.Right, rc.Bottom, _drawColor);
+}
+
 void Graphics::FillRect(const Rect &rc, color_t color)
 {
 	rectfill(_alBitmap, rc.Left, rc.Top, rc.Right, rc.Bottom, color);
+}
+
+void Graphics::FillCircle(const Circle &circle)
+{
+	circlefill(_alBitmap, circle.X, circle.Y, circle.Radius, _drawColor);
 }
 
 void Graphics::FillCircle(const Circle &circle, color_t color)
@@ -342,6 +392,11 @@ void Graphics::Fill(color_t color)
 	{
 		clear_bitmap(_alBitmap);	
 	}
+}
+
+void Graphics::FloodFill(int x, int y)
+{
+    floodfill(_alBitmap, x, y, _drawColor);
 }
 
 void Graphics::FloodFill(int x, int y, color_t color)

@@ -43,9 +43,9 @@ MyTextBox::MyTextBox(int xx, int yy, int wii, char *tee)
 void MyTextBox::draw(Common::Graphics *g)
 {
     g->SetDrawColor(windowbackgroundcolor);
-    g->FillRect(Rect(x, y, x + wid, y + hit), g->GetDrawColor());
+    g->FillRect(Rect(x, y, x + wid, y + hit));
     g->SetDrawColor(0);
-    g->DrawRect(Rect(x, y, x + wid, y + hit), g->GetDrawColor());
+    g->DrawRect(Rect(x, y, x + wid, y + hit));
     g->SetTextColor(0);
     wouttextxy(g, x + 2, y + 1, cbuttfont, text);
 

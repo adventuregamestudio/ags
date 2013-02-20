@@ -58,7 +58,6 @@ extern Common::Bitmap *GetVirtualScreenBitmap();
 
 // [IKM] 2012-09-13: this function is now defined in engine and editor separately
 extern void __my_setcolor(int *ctset, int newcol, int wantColDep);
-extern int get_col8_lookup(int nval, int wantColDep);
 
 #ifdef __cplusplus
 extern "C"

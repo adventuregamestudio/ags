@@ -17,6 +17,8 @@
 #include "gfx/graphics.h"
 #include "debug/assert.h"
 
+extern void __my_setcolor(int *ctset, int newcol, int wantColDep);
+
 namespace AGS
 {
 namespace Common
@@ -219,6 +221,13 @@ void Bitmap::Acquire()
 void Bitmap::Release()
 {
 	release_bitmap(_alBitmap);
+}
+
+color_t Bitmap::GetCompatibleColor(color_t color)
+{
+    color_t compat_color = 0;
+    __my_setcolor(&compat_color, color, bitmap_color_depth(_alBitmap));
+    return compat_color;
 }
 
 //=============================================================================

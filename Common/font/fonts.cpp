@@ -110,12 +110,6 @@ void wgtprintf(Common::Graphics *g, int xxx, int yyy, int fontNumber, char *fmt,
   wouttextxy(g, xxx, yyy, fontNumber, tbuffer);
 }
 
-/*
-void wtextcolor(int nval)
-{
-  __my_setcolor(&textcol, nval);
-}*/
-
 void wfreefont(int fontNumber)
 {
   if (fontRenderers[fontNumber] != NULL)

@@ -101,6 +101,8 @@ public:
 	virtual void	Acquire();
 	virtual void	Release();
 
+    virtual color_t GetCompatibleColor(color_t color);
+
     //=========================================================================
     // Pixel operations
     //=========================================================================

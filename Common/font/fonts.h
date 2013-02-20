@@ -28,7 +28,6 @@ void wouttextxy(Common::Graphics *g, int xxx, int yyy, int fontNumber, const cha
 // Loads a font from disk
 bool wloadfont_size(int fontNumber, int fsize);
 void wgtprintf(Common::Graphics *g, int xxx, int yyy, int fontNumber, char *fmt, ...);
-//void wtextcolor(int nval);
 void wfreefont(int fontNumber);
 
 extern int wtext_multiply;

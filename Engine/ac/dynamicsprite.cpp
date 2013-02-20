@@ -422,12 +422,9 @@ ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite(int slot, int preser
         quitprintf("DynamicSprite.CreateFromExistingSprite: sprite %d does not exist", slot);
 
     // create a new sprite as a copy of the existing one
-    Bitmap *newPic = BitmapHelper::CreateBitmap(spritewidth[slot], spriteheight[slot], spriteset[slot]->GetColorDepth());
+    Bitmap *newPic = BitmapHelper::CreateBitmapCopy(spriteset[slot]);
     if (newPic == NULL)
         return NULL;
-
-    Graphics graphics(newPic);
-    graphics.Blit(spriteset[slot], 0, 0, 0, 0, spritewidth[slot], spriteheight[slot]);
 
     bool hasAlpha = (preserveAlphaChannel) && ((game.spriteflags[slot] & SPF_ALPHACHANNEL) != 0);
 

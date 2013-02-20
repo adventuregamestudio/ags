@@ -105,9 +105,8 @@ void set_mouse_cursor(int newcurs) {
         ((game.hotdot > 0) || (game.invhotdotsprite > 0)) ) {
             // If necessary, create a copy of the cursor and put the hotspot
             // dot onto it
-            dotted_mouse_cursor = BitmapHelper::CreateBitmap(mousecurs[0]->GetWidth(),mousecurs[0]->GetHeight(),mousecurs[0]->GetColorDepth());
+            dotted_mouse_cursor = BitmapHelper::CreateBitmapCopy(mousecurs[0]);
             Graphics graphics(dotted_mouse_cursor);
-            graphics.Blit (mousecurs[0], 0, 0, 0, 0, mousecurs[0]->GetWidth(), mousecurs[0]->GetHeight());
 
             if (game.invhotdotsprite > 0) {
                 //Bitmap *abufWas = abuf;

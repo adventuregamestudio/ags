@@ -181,9 +181,7 @@ ScriptDrawingSurface* DrawingSurface_CreateCopy(ScriptDrawingSurface *sds)
     {
         if (dynamicallyCreatedSurfaces[i] == NULL)
         {
-            dynamicallyCreatedSurfaces[i] = BitmapHelper::CreateBitmap(sourceBitmap->GetWidth(), sourceBitmap->GetHeight(), sourceBitmap->GetColorDepth());
-            Graphics graphics(dynamicallyCreatedSurfaces[i]);
-            graphics.Blit(sourceBitmap, 0, 0, 0, 0, sourceBitmap->GetWidth(), sourceBitmap->GetHeight());
+            dynamicallyCreatedSurfaces[i] = BitmapHelper::CreateBitmapCopy(sourceBitmap);
             ScriptDrawingSurface *newSurface = new ScriptDrawingSurface();
             newSurface->dynamicSurfaceNumber = i;
             newSurface->hasAlphaChannel = sds->hasAlphaChannel;

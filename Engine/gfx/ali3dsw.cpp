@@ -508,9 +508,8 @@ void ALSoftwareGraphicsDriver::draw_sprite_with_transparency(Bitmap *piccy, int 
     }
     // 256-col spirte -> hi-color background, or
     // 16-bit sprite -> 32-bit background
-    Bitmap* hctemp=BitmapHelper::CreateBitmap(piccy->GetWidth(), piccy->GetHeight(), screen_depth);
+    Bitmap* hctemp=BitmapHelper::CreateBitmapCopy(piccy, screen_depth);
     Graphics graphics(hctemp);
-    graphics.Blit(piccy,0,0,0,0,hctemp->GetWidth(),hctemp->GetHeight());
     int bb,cc,mask_col = virtualScreen->GetMaskColor();
 
     if (sprite_depth == 8) {
@@ -518,7 +517,7 @@ void ALSoftwareGraphicsDriver::draw_sprite_with_transparency(Bitmap *piccy, int 
       // transparency for 16->32 bit
       for (bb=0;bb<hctemp->GetWidth();bb++) {
         for (cc=0;cc<hctemp->GetHeight();cc++)
-          if (piccy->GetPixel(bb,cc)==0) hctemp->PutPixel(bb,cc,mask_col);
+          if (piccy->GetPixel(bb,cc)==0) graphics.PutPixel(bb,cc,mask_col);
       }
     }
 

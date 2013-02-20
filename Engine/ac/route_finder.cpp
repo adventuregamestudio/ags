@@ -142,7 +142,7 @@ int is_route_possible(int fromx, int fromy, int tox, int toy, Bitmap *wss)
   if (wallscreen->GetPixel(fromx, fromy) < 1)
     return 0;
 
-  Bitmap *tempw = BitmapHelper::CreateBitmap(wallscreen->GetWidth(), wallscreen->GetHeight(), 8);
+  Bitmap *tempw = BitmapHelper::CreateBitmapCopy(wallscreen, 8);
 
   if (tempw == NULL)
     quit("no memory for route calculation");
@@ -150,7 +150,6 @@ int is_route_possible(int fromx, int fromy, int tox, int toy, Bitmap *wss)
     quit("tempw is not memory bitmap");
 
   Graphics graphics(tempw);
-  graphics.Blit(wallscreen, 0, 0, 0, 0, tempw->GetWidth(), tempw->GetHeight());
 
   int dd, ff;
   // initialize array for finding widths of walkable areas

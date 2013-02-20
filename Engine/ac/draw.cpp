@@ -1112,9 +1112,8 @@ void put_sprite_256(Common::Graphics *g, int xxx,int yyy,Bitmap *piccy) {
             }
             // 256-col spirte -> hi-color background, or
             // 16-bit sprite -> 32-bit background
-            Bitmap *hctemp=BitmapHelper::CreateBitmap(piccy->GetWidth(), piccy->GetHeight(),screen_depth);
+            Bitmap *hctemp=BitmapHelper::CreateBitmapCopy(piccy, screen_depth);
             Graphics graphics(hctemp);
-            graphics.Blit(piccy,0,0,0,0,hctemp->GetWidth(),hctemp->GetHeight());
             int bb,cc,mask_col = g->GetBitmap()->GetMaskColor();
             if (piccy->GetColorDepth() == 8) {
                 // only do this for 256-col, cos the ->Blit call converts

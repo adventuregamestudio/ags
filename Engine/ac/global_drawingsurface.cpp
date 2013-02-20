@@ -58,9 +58,7 @@ void RawSaveScreen () {
     if (raw_saved_screen != NULL)
         delete raw_saved_screen;
     Bitmap *source = thisroom.ebscene[play.bg_frame];
-    raw_saved_screen = BitmapHelper::CreateBitmap(source->GetWidth(), source->GetHeight());
-    Graphics graphics(raw_saved_screen);
-    graphics.Blit(source, 0, 0, 0, 0, source->GetWidth(), source->GetHeight());
+    raw_saved_screen = BitmapHelper::CreateBitmapCopy(source);
 }
 // RawRestoreScreen: copy backup bitmap back to screen; we
 // deliberately don't free the Bitmap *cos they can multiple restore

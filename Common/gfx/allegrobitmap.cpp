@@ -99,6 +99,26 @@ bool Bitmap::CreateSubBitmap(Bitmap *src, const Rect &rc)
     return _alBitmap != NULL;
 }
 
+bool Bitmap::CreateCopy(Bitmap *src, int color_depth)
+{
+    Destroy();
+    if (color_depth)
+    {
+        _alBitmap = create_bitmap_ex(color_depth, src->_alBitmap->w, src->_alBitmap->h);
+    }
+    else
+    {
+        _alBitmap = create_bitmap_ex(bitmap_color_depth(src->_alBitmap), src->_alBitmap->w, src->_alBitmap->h);
+    }
+
+    if (_alBitmap)
+    {
+        blit(src->_alBitmap, _alBitmap, 0, 0, 0, 0, _alBitmap->w, _alBitmap->h);
+    }
+    _isDataOwner = true;
+    return _alBitmap != NULL;
+}
+
 bool Bitmap::WrapAllegroBitmap(BITMAP *al_bmp, bool shared_data)
 {
     Destroy();

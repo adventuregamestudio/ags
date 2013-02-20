@@ -210,9 +210,7 @@ void initialize_sprite (int ee) {
                 if (game.spriteflags[ee] & SPF_ALPHACHANNEL)
                     newSprite = remove_alpha_channel(oldSprite);
                 else {
-                    newSprite = BitmapHelper::CreateBitmap(spritewidth[ee], spriteheight[ee], final_col_dep);
-                    Graphics graphics(newSprite);
-                    graphics.Blit(oldSprite, 0, 0, 0, 0, spritewidth[ee], spriteheight[ee]);
+                    newSprite = BitmapHelper::CreateBitmapCopy(oldSprite, final_col_dep);
                 }
                 spriteset.set(ee, newSprite);
                 delete oldSprite;

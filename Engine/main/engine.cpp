@@ -909,9 +909,8 @@ void show_preload () {
         if (splashsc->GetColorDepth() == 8)
             set_palette_range(temppal, 0, 255, 0);
 		Bitmap *screen_bmp = BitmapHelper::GetScreenBitmap();
-        Bitmap *tsc = BitmapHelper::CreateBitmap(splashsc->GetWidth(),splashsc->GetHeight(),screen_bmp->GetColorDepth());
+        Bitmap *tsc = BitmapHelper::CreateBitmapCopy(splashsc, screen_bmp->GetColorDepth());
         Graphics graphics(tsc);
-        graphics.Blit(splashsc,0,0,0,0,tsc->GetWidth(),tsc->GetHeight());
         graphics.SetBitmap(screen_bmp);
 		graphics.Fill(0);
         graphics.StretchBlt(tsc, RectWH(0, 0, scrnwid,scrnhit), Common::kBitmap_Transparency);

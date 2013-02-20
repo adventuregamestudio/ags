@@ -52,6 +52,8 @@ public:
     virtual bool	CreateTransparent(int width, int height, int color_depth);
     // Allow this object to share existing bitmap data
 	virtual bool	CreateSubBitmap(Bitmap *src, const Rect &rc);
+    // Create a copy of given bitmap
+    virtual bool	CreateCopy(Bitmap *src, int color_depth = 0);
 	// TODO: a temporary solution for plugin support
 	bool			WrapAllegroBitmap(BITMAP *al_bmp, bool shared_data);
     // Deallocate bitmap

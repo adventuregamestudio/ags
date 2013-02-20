@@ -564,12 +564,10 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     // Make a backup copy of the walkable areas prior to
     // any RemoveWalkableArea commands
     delete walkareabackup;
-    walkareabackup=BitmapHelper::CreateBitmap(thisroom.walls->GetWidth(),thisroom.walls->GetHeight());
+    // copy the walls screen
+    walkareabackup=BitmapHelper::CreateBitmapCopy(thisroom.walls);
 
     our_eip=204;
-    // copy the walls screen
-    Graphics graphics(walkareabackup);
-    graphics.Blit(thisroom.walls,0,0,0,0,thisroom.walls->GetWidth(),thisroom.walls->GetHeight());
     update_polled_stuff_if_runtime();
     redo_walkable_areas();
     // fix walk-behinds to current screen resolution

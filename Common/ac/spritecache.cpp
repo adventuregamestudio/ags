@@ -757,6 +757,11 @@ int SpriteCache::initFile(const char *filnam)
     if (vers == 5) {
       spriteDataSize = cache_stream->ReadInt32();
     }
+    else if (vers >= 6)
+    {
+      spriteDataSize = this->spritesAreCompressed ? cache_stream->ReadInt32() :
+        wdd * coldep * htt;
+    }
     else {
       spriteDataSize = wdd * coldep * htt;
     }

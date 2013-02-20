@@ -48,9 +48,8 @@ void RemoveOverlay(int ovrid) {
 int CreateGraphicOverlay(int xx,int yy,int slott,int trans) {
     multiply_up_coordinates(&xx, &yy);
 
-    Bitmap *screeno=BitmapHelper::CreateBitmap(spritewidth[slott],spriteheight[slott], final_col_dep);
+    Bitmap *screeno=BitmapHelper::CreateTransparentBitmap(spritewidth[slott],spriteheight[slott], final_col_dep);
     Common::Graphics *g = SetVirtualScreen(screeno);
-    screeno->Clear(screeno->GetMaskColor());
     wputblock(g, 0,0,spriteset[slott],trans);
 
     bool hasAlpha = (game.spriteflags[slott] & SPF_ALPHACHANNEL) != 0;

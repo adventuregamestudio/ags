@@ -59,7 +59,7 @@ void invalidate_screen();
 void mark_current_background_dirty();
 void invalidate_cached_walkbehinds();
 void put_sprite_256(Common::Graphics *g, int xxx,int yyy,Common::Bitmap *piccy);
-Common::Bitmap *recycle_bitmap(Common::Bitmap *bimp, int coldep, int wid, int hit);
+Common::Bitmap *recycle_bitmap(Common::Bitmap *bimp, int coldep, int wid, int hit, bool make_transparent = false);
 void push_screen (Common::Graphics *g);
 Common::Graphics *pop_screen();
 void update_screen();

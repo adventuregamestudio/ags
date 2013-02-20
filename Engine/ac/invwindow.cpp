@@ -250,9 +250,8 @@ start_actinv:
 
     // Draw Up and Down buttons if required
     const int ARROWBUTTONWID = 11;
-    Bitmap *arrowblock = BitmapHelper::CreateBitmap (ARROWBUTTONWID, ARROWBUTTONWID);
+    Bitmap *arrowblock = BitmapHelper::CreateTransparentBitmap (ARROWBUTTONWID, ARROWBUTTONWID);
     Graphics graphics(arrowblock);
-    graphics.Fill(arrowblock->GetMaskColor());
     int usecol;
     g->SetDrawColor(0);
     if (play.sierra_inv_color == 0)

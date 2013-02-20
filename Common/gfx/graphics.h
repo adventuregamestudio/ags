@@ -94,6 +94,7 @@ public:
     void    FillCircle(const Circle &circle, color_t color);
     // Fills the whole bitmap with given color
     void    Fill(color_t color);
+    void    FillTransparent();
     // Floodfills an enclosed area, starting at point
     void    FloodFill(int x, int y);
     void    FloodFill(int x, int y, color_t color);

@@ -158,9 +158,8 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
     if (blocking < 2)
         remove_screen_overlay(OVER_TEXTMSG);
 
-    screenop = BitmapHelper::CreateBitmap((wii > 0) ? wii : 2, numlines*texthit + extraHeight, final_col_dep);
+    screenop = BitmapHelper::CreateTransparentBitmap((wii > 0) ? wii : 2, numlines*texthit + extraHeight, final_col_dep);
     g = SetVirtualScreen(screenop);
-    screenop->Clear(screenop->GetMaskColor());
 
     // inform draw_text_window to free the old bitmap
     wantFreeScreenop = 1;
@@ -639,8 +638,7 @@ void draw_text_window(Common::Graphics *g, int*xins,int*yins,int*xx,int*yy,int*w
 
         if ((wantFreeScreenop > 0) && (screenop != NULL))
             delete screenop;
-        screenop = BitmapHelper::CreateBitmap(wii[0],ovrheight+6+spriteheight[tbnum]*2,final_col_dep);
-        screenop->Clear(screenop->GetMaskColor());
+        screenop = BitmapHelper::CreateTransparentBitmap(wii[0],ovrheight+6+spriteheight[tbnum]*2,final_col_dep);
         Common::Graphics *g = SetVirtualScreen(screenop);
         int xoffs=spritewidth[tbnum],yoffs=spriteheight[tbnum];
         draw_button_background(g, xoffs,yoffs,(g->GetBitmap()->GetWidth() - xoffs) - 1,(g->GetBitmap()->GetHeight() - yoffs) - 1,&guis[ifnum]);

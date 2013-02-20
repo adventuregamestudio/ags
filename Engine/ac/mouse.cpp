@@ -346,8 +346,7 @@ void set_new_cursor_graphic (int spriteslot) {
     {
         if (blank_mouse_cursor == NULL)
         {
-            blank_mouse_cursor = BitmapHelper::CreateBitmap(1, 1, final_col_dep);
-            blank_mouse_cursor->Clear(blank_mouse_cursor->GetMaskColor());
+            blank_mouse_cursor = BitmapHelper::CreateTransparentBitmap(1, 1, final_col_dep);
         }
         mousecurs[0] = blank_mouse_cursor;
     }

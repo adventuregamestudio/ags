@@ -170,13 +170,12 @@ void initialize_sprite (int ee) {
         eip_guiobj = newwid;
 
         if ((newwid != curspr->GetWidth()) || (newhit != curspr->GetHeight())) {
-            tmpdbl = BitmapHelper::CreateBitmap(newwid,newhit,curspr->GetColorDepth());
+            tmpdbl = BitmapHelper::CreateTransparentBitmap(newwid,newhit,curspr->GetColorDepth());
             if (tmpdbl == NULL)
                 quit("Not enough memory to load sprite graphics");
             tmpdbl->Acquire ();
             curspr->Acquire ();
             Graphics graphics(tmpdbl);
-            graphics.Fill(tmpdbl->GetMaskColor());
             /*#ifdef USE_CUSTOM_EXCEPTION_HANDLER
             __try {
             #endif*/

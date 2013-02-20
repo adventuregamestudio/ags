@@ -145,13 +145,12 @@ void script_debug(int cmdd,int dataa) {
             Display("Not currently moving.");
             return;
         }
-        Bitmap *tempw=BitmapHelper::CreateBitmap(thisroom.walls->GetWidth(),thisroom.walls->GetHeight());
+        Bitmap *tempw=BitmapHelper::CreateTransparentBitmap(thisroom.walls->GetWidth(),thisroom.walls->GetHeight());
         Graphics graphics(tempw);
         int mlsnum = game.chars[dataa].walking;
         if (game.chars[dataa].walking >= TURNING_AROUND)
             mlsnum %= TURNING_AROUND;
         MoveList*cmls = &mls[mlsnum];
-        graphics.Fill(tempw->GetMaskColor());
         for (int i = 0; i < cmls->numstage-1; i++) {
             short srcx=short((cmls->pos[i] >> 16) & 0x00ffff);
             short srcy=short(cmls->pos[i] & 0x00ffff);

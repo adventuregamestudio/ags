@@ -558,7 +558,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
         multiply_up_coordinate(ccDialogOptionsRendering.height));
     }
 
-    tempScrn->Clear(tempScrn->GetMaskColor());
+    tempScrn->ClearTransparent();
     g = SetVirtualScreen(tempScrn);
 
     dlgxp = orixp;

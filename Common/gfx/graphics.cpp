@@ -394,6 +394,11 @@ void Graphics::Fill(color_t color)
 	}
 }
 
+void Graphics::FillTransparent()
+{
+    clear_to_color(_alBitmap, bitmap_mask_color(_alBitmap));
+}
+
 void Graphics::FloodFill(int x, int y)
 {
     floodfill(_alBitmap, x, y, _drawColor);

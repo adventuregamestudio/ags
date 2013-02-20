@@ -49,6 +49,7 @@ public:
 	// some global color depth setting; not sure if this is OK to use for generic class,
 	// revise this in future
 	virtual bool	Create(int width, int height, int color_depth = 0);
+    virtual bool	CreateTransparent(int width, int height, int color_depth);
     // Allow this object to share existing bitmap data
 	virtual bool	CreateSubBitmap(Bitmap *src, const Rect &rc);
 	// TODO: a temporary solution for plugin support
@@ -108,6 +109,7 @@ public:
     //=========================================================================
     // Fills the whole bitmap with given color (black by default)
 	virtual void	Clear(color_t color = 0);
+    virtual void    ClearTransparent();
     // The PutPixel and GetPixel are supposed to be safe and therefore
     // relatively slow operations. They should not be used for changing large
     // blocks of bitmap memory - reading/writing from/to scan lines should be

@@ -2552,8 +2552,7 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
                 else
                     ovr_yp = yy;
 
-                closeupface = BitmapHelper::CreateBitmap(bigx+1,bigy+1,spriteset[viptr->loops[0].frames[0].pic]->GetColorDepth());
-                closeupface->Clear(closeupface->GetMaskColor());
+                closeupface = BitmapHelper::CreateTransparentBitmap(bigx+1,bigy+1,spriteset[viptr->loops[0].frames[0].pic]->GetColorDepth());
                 ovr_type = OVER_PICTURE;
 
                 if (yy < 0)

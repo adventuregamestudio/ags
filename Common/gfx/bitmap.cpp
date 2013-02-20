@@ -47,6 +47,17 @@ Bitmap *CreateBitmap(int width, int height, int color_depth)
 	return bitmap;
 }
 
+Bitmap *CreateTransparentBitmap(int width, int height, int color_depth)
+{
+    Bitmap *bitmap = new Bitmap();
+	if (!bitmap->CreateTransparent(width, height, color_depth))
+	{
+		delete bitmap;
+		bitmap = NULL;
+	}
+	return bitmap;
+}
+
 Bitmap *CreateSubBitmap(Bitmap *src, const Rect &rc)
 {
 	Bitmap *bitmap = new Bitmap();

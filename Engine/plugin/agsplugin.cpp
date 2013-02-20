@@ -568,11 +568,9 @@ int IAGSEngine::CreateDynamicSprite(int32 coldepth, int32 width, int32 height) {
         quit("!IAGSEngine::CreateDynamicSprite: invalid width/height requested by plugin");
 
     // resize the sprite to the requested size
-    Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, coldepth);
+    Bitmap *newPic = BitmapHelper::CreateTransparentBitmap(width, height, coldepth);
     if (newPic == NULL)
         return 0;
-
-    newPic->Clear(newPic->GetMaskColor());
 
     // add it into the sprite set
     add_dynamic_sprite(gotSlot, newPic);

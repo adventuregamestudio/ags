@@ -79,6 +79,18 @@ bool Bitmap::Create(int width, int height, int color_depth)
     return _alBitmap != NULL;
 }
 
+bool Bitmap::CreateTransparent(int width, int height, int color_depth)
+{
+    Destroy();
+    _alBitmap = create_bitmap_ex(color_depth, width, height);
+    if (_alBitmap)
+    {
+        clear_to_color(_alBitmap, bitmap_mask_color(_alBitmap));
+    }
+    _isDataOwner = true;
+    return _alBitmap != NULL;
+}
+
 bool Bitmap::CreateSubBitmap(Bitmap *src, const Rect &rc)
 {
     Destroy();
@@ -244,6 +256,11 @@ void Bitmap::Clear(color_t color)
 	{
 		clear_bitmap(_alBitmap);	
 	}
+}
+
+void Bitmap::ClearTransparent()
+{
+    clear_to_color(_alBitmap, bitmap_mask_color(_alBitmap));
 }
 
 void Bitmap::PutPixel(int x, int y, color_t color)

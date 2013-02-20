@@ -396,7 +396,7 @@ void update_sierra_speech()
         screenover[face_talking].pic->Clear(0);
       }
       else {
-        screenover[face_talking].pic->Clear(screenover[face_talking].pic->GetMaskColor());
+        screenover[face_talking].pic->ClearTransparent();
       }
 
       Graphics graphics(screenover[face_talking].pic);

@@ -133,9 +133,8 @@ void DynamicSprite_Flip(ScriptDynamicSprite *sds, int direction) {
         quit("!DynamicSprite.Flip: sprite has been deleted");
 
     // resize the sprite to the requested size
-    Bitmap *newPic = BitmapHelper::CreateBitmap(spritewidth[sds->slot], spriteheight[sds->slot], spriteset[sds->slot]->GetColorDepth());
+    Bitmap *newPic = BitmapHelper::CreateTransparentBitmap(spritewidth[sds->slot], spriteheight[sds->slot], spriteset[sds->slot]->GetColorDepth());
     Graphics graphics(newPic);
-    graphics.Fill(newPic->GetMaskColor());
 
     if (direction == 1)
         graphics.FlipBlt(spriteset[sds->slot], 0, 0, Common::kBitmap_HFlip);
@@ -234,9 +233,8 @@ void DynamicSprite_ChangeCanvasSize(ScriptDynamicSprite *sds, int width, int hei
     multiply_up_coordinates(&x, &y);
     multiply_up_coordinates(&width, &height);
 
-    Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, spriteset[sds->slot]->GetColorDepth());
+    Bitmap *newPic = BitmapHelper::CreateTransparentBitmap(width, height, spriteset[sds->slot]->GetColorDepth());
     Graphics graphics(newPic);
-    graphics.Fill(newPic->GetMaskColor());
     // blit it into the enlarged image
     graphics.Blit(spriteset[sds->slot], 0, 0, x, y, spritewidth[sds->slot], spriteheight[sds->slot]);
 
@@ -298,9 +296,8 @@ void DynamicSprite_Rotate(ScriptDynamicSprite *sds, int angle, int width, int he
     angle = (angle * 256) / 360;
 
     // resize the sprite to the requested size
-    Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, spriteset[sds->slot]->GetColorDepth());
+    Bitmap *newPic = BitmapHelper::CreateTransparentBitmap(width, height, spriteset[sds->slot]->GetColorDepth());
     Graphics graphics(newPic);
-    graphics.Fill(newPic->GetMaskColor());
 
     // rotate the sprite about its centre
     // (+ width%2 fixes one pixel offset problem)
@@ -479,10 +476,9 @@ ScriptDynamicSprite* DynamicSprite_Create(int width, int height, int alphaChanne
     if (gotSlot <= 0)
         return NULL;
 
-    Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, final_col_dep);
+    Bitmap *newPic = BitmapHelper::CreateTransparentBitmap(width, height, final_col_dep);
     if (newPic == NULL)
         return NULL;
-    newPic->Clear(newPic->GetMaskColor());
 
     if ((alphaChannel) && (final_col_dep < 32))
         alphaChannel = false;

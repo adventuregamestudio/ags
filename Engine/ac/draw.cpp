@@ -192,7 +192,7 @@ void allegro_bitmap_test_draw()
 	if (test_allegro_bitmap)
 	{
         Graphics graphics(test_allegro_bitmap);
-		graphics.Fill(test_allegro_bitmap->GetMaskColor());
+		graphics.FillTransparent();
         graphics.SetDrawColorExact(15);
 		graphics.FillRect(Rect(50,50,150,150));
 
@@ -1008,10 +1008,8 @@ void sort_out_char_sprite_walk_behind(int actspsIndex, int xx, int yy, int basel
         (actspswbcache[actspsIndex].yWas != yy) ||
         (actspswbcache[actspsIndex].baselineWas != basel))
     {
-        actspswb[actspsIndex] = recycle_bitmap(actspswb[actspsIndex], thisroom.ebscene[play.bg_frame]->GetColorDepth(), width, height);
-
+        actspswb[actspsIndex] = recycle_bitmap(actspswb[actspsIndex], thisroom.ebscene[play.bg_frame]->GetColorDepth(), width, height, true);
         Bitmap *wbSprite = actspswb[actspsIndex];
-        wbSprite->Clear(wbSprite->GetMaskColor());
 
         actspswbcache[actspsIndex].isWalkBehindHere = sort_out_walk_behinds(wbSprite, xx, yy, basel, thisroom.ebscene[play.bg_frame], actsps[actspsIndex], zoom);
         actspswbcache[actspsIndex].xWas = xx;
@@ -1240,16 +1238,23 @@ void draw_sprite_list() {
 }
 
 // Avoid freeing and reallocating the memory if possible
-Bitmap *recycle_bitmap(Bitmap *bimp, int coldep, int wid, int hit) {
+Bitmap *recycle_bitmap(Bitmap *bimp, int coldep, int wid, int hit, bool make_transparent) {
     if (bimp != NULL) {
         // same colour depth, width and height -> reuse
         if ((bimp->GetColorDepth() == coldep) && (bimp->GetWidth() == wid)
-            && (bimp->GetHeight() == hit))
+                && (bimp->GetHeight() == hit))
+        {
+            if (make_transparent)
+            {
+                bimp->ClearTransparent();
+            }
             return bimp;
+        }
 
         delete bimp;
     }
-    bimp = BitmapHelper::CreateBitmap(wid, hit,coldep);
+    bimp = make_transparent ? BitmapHelper::CreateTransparentBitmap(wid, hit,coldep) :
+        BitmapHelper::CreateBitmap(wid, hit,coldep);
     return bimp;
 }
 
@@ -1353,7 +1358,6 @@ void apply_tint_or_light(int actspsindex, int light_level,
          return;
  }
 
- Graphics graphics(actsps[actspsindex]);
  // we can only do tint/light if the colour depths match
  if (final_col_dep == actsps[actspsindex]->GetColorDepth()) {
      Bitmap *oldwas;
@@ -1366,11 +1370,10 @@ void apply_tint_or_light(int actspsindex, int light_level,
          oldwas = actsps[actspsindex];
          actsps[actspsindex] = BitmapHelper::CreateBitmap(oldwas->GetWidth(), oldwas->GetHeight(), coldept);
      }
+     Graphics graphics(actsps[actspsindex]);
 
      if (tint_amount) {
          // It is an RGB tint
-
-         Graphics graphics(actsps[actspsindex]);
          tint_image (&graphics, oldwas, tint_red, tint_green, tint_blue, tint_amount, tint_light);
      }
      else {
@@ -1379,7 +1382,7 @@ void apply_tint_or_light(int actspsindex, int light_level,
          // to LitBlendBlt defines how much it will be darkened/lightened by.
          
          int lit_amnt;
-         graphics.Fill(actsps[actspsindex]->GetMaskColor());
+         graphics.FillTransparent();
          // It's a light level, not a tint
          if (game.color_depth == 1) {
              // 256-col
@@ -1404,6 +1407,7 @@ void apply_tint_or_light(int actspsindex, int light_level,
  else if (blitFrom) {
      // sprite colour depth != game colour depth, so don't try and tint
      // but we do need to do something, so copy the source
+     Graphics graphics(actsps[actspsindex]);
      graphics.Blit(blitFrom, 0, 0, 0, 0, actsps[actspsindex]->GetWidth(), actsps[actspsindex]->GetHeight());
  }
 
@@ -1420,9 +1424,8 @@ int scale_and_flip_sprite(int useindx, int coldept, int zoom_level,
   int actsps_used = 1;
 
   // create and blank out the new sprite
-  actsps[useindx] = recycle_bitmap(actsps[useindx], coldept, newwidth, newheight);
+  actsps[useindx] = recycle_bitmap(actsps[useindx], coldept, newwidth, newheight, true);
   Graphics graphics(actsps[useindx]);
-  graphics.Fill(actsps[useindx]->GetMaskColor());
 
   if (zoom_level != 100) {
       // Scaled character
@@ -1782,7 +1785,7 @@ void tint_image (Graphics *g, Bitmap *srcimg, int red, int grn, int blu, int lig
 
     if (light_level >= 100) {
         // fully colourised
-        g->Fill(g->GetBitmap()->GetMaskColor());
+        g->FillTransparent();
         g->LitBlendBlt(srcimg, 0, 0, luminance);
     }
     else {
@@ -1794,9 +1797,8 @@ void tint_image (Graphics *g, Bitmap *srcimg, int red, int grn, int blu, int lig
         g->Blit(srcimg, 0, 0, 0, 0, srcimg->GetWidth(), srcimg->GetHeight());
         // Render the colourised image to a temporary bitmap,
         // then transparently draw it over the original image
-        Bitmap *finaltarget = BitmapHelper::CreateBitmap(srcimg->GetWidth(), srcimg->GetHeight(), srcimg->GetColorDepth());
+        Bitmap *finaltarget = BitmapHelper::CreateTransparentBitmap(srcimg->GetWidth(), srcimg->GetHeight(), srcimg->GetColorDepth());
         Graphics graphics(finaltarget);
-        graphics.Fill(finaltarget->GetMaskColor());
         graphics.LitBlendBlt(srcimg, 0, 0, luminance);
 
         // customized trans blender to preserve alpha channel
@@ -2174,7 +2176,7 @@ void draw_fps()
         fpsDisplay = BitmapHelper::CreateBitmap(get_fixed_pixel_size(100), (wgetfontheight(FONT_SPEECH) + get_fixed_pixel_size(5)), final_col_dep);
         fpsDisplay = gfxDriver->ConvertBitmapToSupportedColourDepth(fpsDisplay);
     }
-    fpsDisplay->Clear(fpsDisplay->GetMaskColor());
+    fpsDisplay->ClearTransparent();
     //Bitmap *oldAbuf = g;
     //g = fpsDisplay;
     Common::Graphics graphics(fpsDisplay);
@@ -2250,7 +2252,7 @@ void draw_screen_overlay() {
 
                 eip_guinum = aa;
                 our_eip = 370;
-                guibg[aa]->Clear (guibg[aa]->GetMaskColor());
+                guibg[aa]->ClearTransparent();
                 //g = guibg[aa];
                 graphics.SetBitmap(guibg[aa]);
                 our_eip = 372;

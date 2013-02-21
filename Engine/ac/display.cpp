@@ -295,10 +295,7 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
                 if (skip_setting & SKIP_KEYPRESS)
                     break;
             }
-            while ((timerloop == 0) && (play.fast_forward == 0)) {
-                update_polled_stuff_if_runtime();
-                platform->YieldCPU();
-            }
+            PollUntilNextFrame();
             countdown--;
 
             if (channels[SCHAN_SPEECH] != NULL) {
@@ -340,7 +337,7 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
             screenover[nse].y += offsety;
         }
 
-        do_main_cycle(UNTIL_NOOVERLAY,0);
+        GameLoopUntilEvent(UNTIL_NOOVERLAY,0);
     }
 
     play.messagetime=-1;

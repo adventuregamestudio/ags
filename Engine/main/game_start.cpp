@@ -39,7 +39,6 @@ namespace Out = AGS::Common::Out;
 extern int our_eip, displayed_room;
 extern const char *load_game_errors[9];
 extern volatile char want_exit, abort_engine;
-extern unsigned int load_new_game;
 extern GameSetupStruct game;
 extern GameState play;
 extern volatile int timerloop;
@@ -135,18 +134,6 @@ void do_start_game()
         start_game();
 }
 
-void do_play_game()
-{
-    while (!abort_engine) {
-        main_game_loop();
-
-        if (load_new_game) {
-            RunAGSGame (NULL, load_new_game, 0);
-            load_new_game = 0;
-        }
-    }
-}
-
 void initialize_start_and_play_game(int override_start_room, const char *loadSaveGameOnStartup)
 {
     try { // BEGIN try for ALI3DEXception
@@ -179,7 +166,7 @@ void initialize_start_and_play_game(int override_start_room, const char *loadSav
 
         do_start_game();
 
-        do_play_game();
+        RunGameUntilAborted();
 
     } catch (Ali3DException gfxException)
     {

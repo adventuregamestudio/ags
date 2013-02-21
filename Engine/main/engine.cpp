@@ -150,12 +150,6 @@ void winclosehook() {
   want_exit = 1;
   abort_engine = 1;
   check_dynamic_sprites_at_exit = 0;
-/*  while (want_exit == 1)
-    yield_timeslice();
-  / *if (want_quit == 0)
-    want_quit = 1;
-  else* / quit("|game aborted");
-*/
 }
 
 void engine_setup_window()

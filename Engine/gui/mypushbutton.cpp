@@ -80,7 +80,7 @@ int MyPushButton::pressedon()
     while (mbutrelease(LEFT) == 0) {
         timerloop = 0;
         wasstat = state;
-        next_iteration();
+        NextIteration();
         state = mouseisinarea();
         // stop mp3 skipping if button held down
         update_polled_stuff_if_runtime();

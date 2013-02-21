@@ -294,7 +294,7 @@ start_actinv:
                     domouse(2);
                     run_event_block_inv(dii[clickedon].num, 0); 
                     // in case the script did anything to the screen, redraw it
-                    mainloop();
+                    UpdateGameOnce();
 
                     goto start_actinv;
                     continue;
@@ -315,7 +315,7 @@ start_actinv:
                         playerchar->activeinv = activeinvwas;
 
                     // in case the script did anything to the screen, redraw it
-                    mainloop();
+                    UpdateGameOnce();
 
                     // They used the active item and lost it
                     if (playerchar->inv[toret] < 1) {
@@ -386,10 +386,7 @@ start_actinv:
         domouse(1);
         }
         wasonitem=isonitem;
-        while (timerloop == 0) {
-            update_polled_stuff_if_runtime();
-            platform->YieldCPU();
-        }
+        PollUntilNextFrame();
     }
     while (kbhit()) getch();
     set_default_cursor();

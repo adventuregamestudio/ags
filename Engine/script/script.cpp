@@ -514,7 +514,7 @@ int run_interaction_commandlist (NewInteractionCommandList *nicl, int *timesrun,
           MoveObject (IPARAM1, IPARAM2, IPARAM3, IPARAM4);
           // if they want to wait until finished, do so
           if (IPARAM5)
-              do_main_cycle(UNTIL_MOVEEND,(long)&objs[IPARAM1].moving);
+              GameLoopUntilEvent(UNTIL_MOVEEND,(long)&objs[IPARAM1].moving);
           break;
       case 15: // Object Off
           ObjectOff (IPARAM1);
@@ -593,12 +593,12 @@ int run_interaction_commandlist (NewInteractionCommandList *nicl, int *timesrun,
           break;
       case 34: // Run animation
           scAnimateCharacter(IPARAM1, IPARAM2, IPARAM3, 0);
-          do_main_cycle(UNTIL_SHORTIS0,(long)&game.chars[IPARAM1].animating);
+          GameLoopUntilEvent(UNTIL_SHORTIS0,(long)&game.chars[IPARAM1].animating);
           break;
       case 35: // Quick animation
           SetCharacterView (IPARAM1, IPARAM2);
           scAnimateCharacter(IPARAM1, IPARAM3, IPARAM4, 0);
-          do_main_cycle(UNTIL_SHORTIS0,(long)&game.chars[IPARAM1].animating);
+          GameLoopUntilEvent(UNTIL_SHORTIS0,(long)&game.chars[IPARAM1].animating);
           ReleaseCharacterView (IPARAM1);
           break;
       case 36: // Set idle animation

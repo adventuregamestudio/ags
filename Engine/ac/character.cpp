@@ -208,7 +208,7 @@ void Character_Animate(CharacterInfo *chaa, int loop, int delay, int repeat, int
     animate_character(chaa, loop, delay, repeat, 0, direction);
 
     if ((blocking == BLOCKING) || (blocking == 1))
-        do_main_cycle(UNTIL_SHORTIS0,(long)&chaa->animating);
+        GameLoopUntilEvent(UNTIL_SHORTIS0,(long)&chaa->animating);
     else if ((blocking != IN_BACKGROUND) && (blocking != 0))
         quit("!Character.Animate: Invalid BLOCKING parameter");
 }
@@ -395,11 +395,11 @@ void Character_FaceLocation(CharacterInfo *char1, int xx, int yy, int blockingSt
             Character_StopMoving(char1);
             if (char1->on == 1) {
                 // only do the turning if the character is not hidden
-                // (otherwise do_main_cycle will never return)
+                // (otherwise GameLoopUntilEvent will never return)
                 start_character_turning (char1, useloop, no_diagonal);
 
                 if ((blockingStyle == BLOCKING) || (blockingStyle == 1))
-                    do_main_cycle(UNTIL_MOVEEND,(long)&char1->walking);
+                    GameLoopUntilEvent(UNTIL_MOVEEND,(long)&char1->walking);
             }
             else
                 char1->loop = useloop;
@@ -946,7 +946,7 @@ void Character_WalkStraight(CharacterInfo *chaa, int xx, int yy, int blocking) {
     walk_character(chaa->index_id, movetox, movetoy, 1, true);
 
     if ((blocking == BLOCKING) || (blocking == 1))
-        do_main_cycle(UNTIL_MOVEEND,(long)&chaa->walking);
+        GameLoopUntilEvent(UNTIL_MOVEEND,(long)&chaa->walking);
     else if ((blocking != IN_BACKGROUND) && (blocking != 0))
         quit("!Character.Walk: Blocking must be BLOCKING or IN_BACKGRUOND");
 
@@ -1935,7 +1935,7 @@ void walk_or_move_character(CharacterInfo *chaa, int x, int y, int blocking, int
         quit("!Character.Walk: Direct must be ANYWHERE or WALKABLE_AREAS");
 
     if ((blocking == BLOCKING) || (blocking == 1))
-        do_main_cycle(UNTIL_MOVEEND,(long)&chaa->walking);
+        GameLoopUntilEvent(UNTIL_MOVEEND,(long)&chaa->walking);
     else if ((blocking != IN_BACKGROUND) && (blocking != 0))
         quit("!Character.Walk: Blocking must be BLOCKING or IN_BACKGRUOND");
 
@@ -2324,7 +2324,7 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
     if (isPause) {
         if (update_music_at > 0)
             update_music_at += play.messagetime;
-        do_main_cycle(UNTIL_INTISNEG,(long)&play.messagetime);
+        GameLoopUntilEvent(UNTIL_INTISNEG,(long)&play.messagetime);
         return;
     }
 

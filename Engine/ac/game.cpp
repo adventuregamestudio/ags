@@ -190,7 +190,7 @@ MoveList *mls = NULL;
 //=============================================================================
 
 char saveGameDirectory[260] = "./";
-int want_quit = 0;
+int want_quit = 0; // [IKM] This is never used
 
 const char* sgnametemplate = "agssave.%03d";
 char saveGameSuffix[MAX_SG_EXT_LENGTH + 1];

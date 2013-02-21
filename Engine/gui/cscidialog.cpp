@@ -134,7 +134,7 @@ void WINAPI _export CSCIEraseWindow(int handl)
 
 int WINAPI _export CSCIWaitMessage(CSCIMessage * cscim)
 {
-    next_iteration();
+    NextIteration();
     wtexttransparent(TEXTFG);
     for (int uu = 0; uu < MAXCONTROLS; uu++) {
         if (vobjs[uu] != NULL) {
@@ -150,7 +150,7 @@ int WINAPI _export CSCIWaitMessage(CSCIMessage * cscim)
 
     while (1) {
         timerloop = 0;
-        next_iteration();
+        NextIteration();
         refresh_screen();
 
         cscim->id = -1;

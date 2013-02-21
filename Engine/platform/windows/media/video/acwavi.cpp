@@ -45,7 +45,7 @@ extern void update_polled_stuff_if_runtime();
 extern int rec_mgetbutton();
 extern int rec_kbhit();
 extern int rec_getch();
-extern void next_iteration();
+extern void NextIteration();
 extern void update_music_volume();
 extern void render_to_screen(Bitmap *toRender, int atx, int aty);
 extern int crossFading, crossFadeStep;
@@ -390,7 +390,7 @@ int dxmedia_play_video(const char* filename, bool pUseSound, int canskip, int st
 
     while (currentlyPaused) ;
 
-    next_iteration();
+    NextIteration();
     RenderToSurface(vscreen);
     //Sleep(0);
     if (rec_kbhit()) {

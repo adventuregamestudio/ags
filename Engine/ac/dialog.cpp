@@ -310,7 +310,7 @@ int run_dialog_script(DialogTopic*dtpp, int dialogID, int offse, int optionIndex
     // screen after they finish talking; however, it makes the dialog options
     // area flicker when going between topics.
     DisableInterface();
-    mainloop(); // redraw the screen to make sure it looks right
+    UpdateGameOnce(); // redraw the screen to make sure it looks right
     EnableInterface();
     // if we're not about to abort the dialog, switch back to arrow
     if (result != RUN_DIALOG_STOP_DIALOG)
@@ -825,7 +825,7 @@ bool DialogOptions::Run()
       if (runGameLoopsInBackground)
       {
         play.disabled_user_interface++;
-        mainloop(false, ddb, dirtyx, dirtyy);
+        UpdateGameOnce(false, ddb, dirtyx, dirtyy);
         play.disabled_user_interface--;
       }
       else
@@ -1124,7 +1124,7 @@ void do_conversation(int dlgnum)
       if (said_speech_line > 0) {
         // fix the problem with the close-up face remaining on screen
         DisableInterface();
-        mainloop(); // redraw the screen to make sure it looks right
+        UpdateGameOnce(); // redraw the screen to make sure it looks right
         EnableInterface();
         set_mouse_cursor(CURS_ARROW);
       }

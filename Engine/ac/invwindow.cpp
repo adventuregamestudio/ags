@@ -469,7 +469,12 @@ void InventoryScreen::Close()
 int __actual_invscreen()
 {
     InvScr.Prepare();
-    InvScr.Redraw();
+    InvScr.break_code = InvScr.Redraw();
+    if (InvScr.break_code != 0)
+    {
+        return InvScr.break_code;
+    }
+
     while (InvScr.Run());
 
     if (InvScr.break_code != 0)

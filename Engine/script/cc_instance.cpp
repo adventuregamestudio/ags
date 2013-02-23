@@ -24,6 +24,7 @@
 #include "script/cc_error.h"
 #include "script/cc_instance.h"
 #include "debug/debug_log.h"
+#include "debug/out.h"
 #include "script/cc_options.h"
 #include "script/executingscript.h"
 #include "script/script.h"
@@ -1752,9 +1753,18 @@ ScriptVariable *ccInstance::FindGlobalVar(int32_t var_addr, int *pindex)
         return NULL;
     }
 
+    // [IKM] 2013-02-23:
+    // !!! TODO
+    // "Metal Dead" game (built with AGS 3.21.1115) fails to pass this check,
+    // because one of its fixups in script creates reference beyond global
+    // data buffer. The error will be suppressed until root of the problem is
+    // found, and some proper workaround invented.
     if (var_addr >= globaldatasize)
     {
+        /*
         return NULL;
+        */
+        Common::Out::FPrint("WARNING: global variable found beyond allocated global data buffer (%d, %d)", var_addr, globaldatasize);
     }
 
     int first   = 0;

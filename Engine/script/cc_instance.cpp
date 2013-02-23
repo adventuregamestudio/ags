@@ -517,10 +517,90 @@ int ccInstance::Run(int32_t curpc)
 
     while (1) {
 
+        /*
 		if (!codeInst->ReadOperation(codeOp, pc))
         {
             return -1;
         }
+        */
+        /* ReadOperation */
+        //=====================================================================
+        codeOp.Instruction.Code			= codeInst->code[pc];
+        codeOp.Instruction.InstanceId	= (codeOp.Instruction.Code >> INSTANCE_ID_SHIFT) & INSTANCE_ID_MASK;
+        codeOp.Instruction.Code		   &= INSTANCE_ID_REMOVEMASK; // now this is pure instruction code
+
+        int want_args = sccmd_info[codeOp.Instruction.Code].ArgCount;
+        if (pc + want_args >= codeInst->codesize)
+        {
+            cc_error("unexpected end of code data at %d", pc + want_args);
+            return -1;
+        }
+        codeOp.ArgCount = want_args;
+
+        int pc_at = pc + 1;
+        for (int i = 0; i < codeOp.ArgCount; ++i, ++pc_at)
+        {
+            char fixup = codeInst->code_fixups[pc_at];
+            if (fixup > 0)
+            {
+                // could be relative pointer or import address
+                /*
+                if (!FixupArgument(code[pc], fixup, codeOp.Args[i]))
+                {
+                    return -1;
+                }
+                */
+                /* FixupArgument */
+                //=====================================================================
+                switch (fixup)
+                {
+                case FIXUP_GLOBALDATA:
+                    {
+                        ScriptVariable *gl_var = (ScriptVariable*)codeInst->code[pc_at];
+                        codeOp.Args[i].SetGlobalVar(&gl_var->RValue);
+                    }
+                    break;
+                case FIXUP_FUNCTION:
+                    // originally commented -- CHECKME: could this be used in very old versions of AGS?
+                    //      code[fixup] += (long)&code[0];
+                    // This is a program counter value, presumably will be used as SCMD_CALL argument
+                    codeOp.Args[i].SetInt32((int32_t)codeInst->code[pc_at]);
+                    break;
+                case FIXUP_STRING:
+                    codeOp.Args[i].SetStringLiteral(&codeInst->strings[0] + codeInst->code[pc_at]);
+                    break;
+                case FIXUP_IMPORT:
+                    {
+                        const ScriptImport *import = simp.getByIndex((int32_t)codeInst->code[pc_at]);
+                        if (import)
+                        {
+                            codeOp.Args[i] = import->Value;
+                        }
+                        else
+                        {
+                            cc_error("cannot resolve import, key = %ld", codeInst->code[pc_at]);
+                            return -1;
+                        }
+                    }
+                    break;
+                case FIXUP_STACK:
+                    codeOp.Args[i] = GetStackPtrOffsetFw((int32_t)codeInst->code[pc_at]);
+                    break;
+                default:
+                    cc_error("internal fixup type error: %d", fixup);
+                    return -1;
+                }
+                /* End FixupArgument */
+                //=====================================================================
+            }
+            else
+            {
+                // should be a numeric literal (int32 or float)
+                codeOp.Args[i].SetInt32( (int32_t)codeInst->code[pc_at] );
+            }
+        }
+        /* End ReadOperation */
+        //=====================================================================
 
         // save the arguments for quick access
         RuntimeScriptValue &arg1 = codeOp.Args[0];
@@ -1883,6 +1963,7 @@ bool ccInstance::CreateRuntimeCodeFixups(ccScript * scri)
     return true;
 }
 
+/*
 bool ccInstance::ReadOperation(ScriptOperation &op, int32_t at_pc)
 {
 	op.Instruction.Code			= code[at_pc];
@@ -1918,7 +1999,8 @@ bool ccInstance::ReadOperation(ScriptOperation &op, int32_t at_pc)
 
     return true;
 }
-
+*/
+/*
 bool ccInstance::FixupArgument(intptr_t code_value, char fixup_type, RuntimeScriptValue &argument)
 {
     switch (fixup_type)
@@ -1961,7 +2043,7 @@ bool ccInstance::FixupArgument(intptr_t code_value, char fixup_type, RuntimeScri
     }
     return true;
 }
-
+*/
 //-----------------------------------------------------------------------------
 
 void ccInstance::PushValueToStack(const RuntimeScriptValue &rval)

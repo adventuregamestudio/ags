@@ -74,9 +74,9 @@ void script_debug(int cmdd,int dataa) {
     else if (cmdd==1) {
         char toDisplay[STD_BUFFER_SIZE];
         const char *filterName = filter->GetVersionBoxText();
-        sprintf(toDisplay,"Adventure Game Studio run-time engine[ACI version " ACI_VERSION_TEXT
+        sprintf(toDisplay,"Adventure Game Studio run-time engine[ACI version %s"
             "[Running %d x %d at %d-bit %s[GFX: %s[%s" "Sprite cache size: %ld KB (limit %ld KB; %ld locked)",
-            final_scrn_wid,final_scrn_hit,final_col_dep, (convert_16bit_bgr) ? "BGR" : "",
+            EngineVersion.LongString.GetCStr(), final_scrn_wid,final_scrn_hit,final_col_dep, (convert_16bit_bgr) ? "BGR" : "",
             gfxDriver->GetDriverName(), filterName,
             spriteset.cachesize / 1024, spriteset.maxCacheSize / 1024, spriteset.lockedSize / 1024);
         if (play.seperate_music_lib)

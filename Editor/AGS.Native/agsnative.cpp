@@ -1974,8 +1974,6 @@ void calculate_walkable_areas () {
 
 }
 
-// Note: we don't use GETW or PUTW for compatibility between 16-bit and
-// 32-bit versions; hence all the FREAD/FWRITEs
 void save_room(const char *files, roomstruct rstruc) {
   int               f;
   long              xoff, tesl;
@@ -1998,7 +1996,7 @@ void save_room(const char *files, roomstruct rstruc) {
     quit("save_room: unable to open room file for writing.");
 
   rfh.version = (RoomFileVersion)rstruc.wasversion; //ROOM_FILE_VERSION;
-  opty->WriteArray(&rfh,sizeof(room_file_header),1);
+  rfh.WriteFromFile(opty);
 
   if (rfh.version >= 5) {
     long blsii = 0;
@@ -4689,7 +4687,7 @@ void serialize_room_interactions(Stream *ooo)
 
 void save_thisgame_to_file(const char *fileName, Game ^game)
 {
-	const char *AGS_VERSION = "3.2.0";
+	const char *AGS_VERSION = "3.3.0";
   char textBuffer[500];
 	int bb;
 

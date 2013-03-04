@@ -705,10 +705,10 @@ void engine_init_debug()
 void atexit_handler() {
     if (proper_exit==0) {
         sprintf(pexbuf,"\nError: the program has exited without requesting it.\n"
-            "Program pointer: %+03d  (write this number down), ACI version " ACI_VERSION_TEXT "\n"
+            "Program pointer: %+03d  (write this number down), ACI version %s\n"
             "If you see a list of numbers above, please write them down and contact\n"
             "Chris Jones. Otherwise, note down any other information displayed.\n",
-            our_eip);
+            EngineVersion.LongString.GetCStr(), our_eip);
         platform->DisplayAlert(pexbuf);
     }
 
@@ -1219,7 +1219,8 @@ void engine_init_game_shit()
     scsystem.vsync = 0;
     scsystem.viewport_width = divide_down_coordinate(scrnwid);
     scsystem.viewport_height = divide_down_coordinate(scrnhit);
-    strcpy(scsystem.aci_version, ACI_VERSION_TEXT);
+    // ScriptSystem::aci_version is only 10 chars long
+    strncpy(scsystem.aci_version, EngineVersion.LongString, 10);
     scsystem.os = platform->GetSystemOSID();
 
     if (usetup.windowed)
@@ -1495,10 +1496,10 @@ int initialize_engine_with_exception_handling(int argc,char*argv[])
     __except (CustomExceptionHandler ( GetExceptionInformation() )) 
     {
         strcpy (tempmsg, "");
-        sprintf (printfworkingspace, "An exception 0x%X occurred in ACWIN.EXE at EIP = 0x%08X %s; program pointer is %+d, ACI version " ACI_VERSION_TEXT ", gtags (%d,%d)\n\n"
+        sprintf (printfworkingspace, "An exception 0x%X occurred in ACWIN.EXE at EIP = 0x%08X %s; program pointer is %+d, ACI version %s, gtags (%d,%d)\n\n"
             "AGS cannot continue, this exception was fatal. Please note down the numbers above, remember what you were doing at the time and post the details on the AGS Technical Forum.\n\n%s\n\n"
             "Most versions of Windows allow you to press Ctrl+C now to copy this entire message to the clipboard for easy reporting.\n\n%s (code %d)",
-            excinfo.ExceptionCode, excinfo.ExceptionAddress, tempmsg, our_eip, eip_guinum, eip_guiobj, get_cur_script(5),
+            EngineVersion.LongString.GetCStr(), excinfo.ExceptionCode, excinfo.ExceptionAddress, tempmsg, our_eip, eip_guinum, eip_guiobj, get_cur_script(5),
             (miniDumpResultCode == 0) ? "An error file CrashInfo.dmp has been created. You may be asked to upload this file when reporting this problem on the AGS Forums." : 
             "Unable to create an error dump file.", miniDumpResultCode);
         MessageBoxA(allegro_wnd, printfworkingspace, "Illegal exception", MB_ICONSTOP | MB_OK);
@@ -1509,5 +1510,5 @@ int initialize_engine_with_exception_handling(int argc,char*argv[])
 }
 
 const char *get_engine_version() {
-    return ACI_VERSION_TEXT;
+    return EngineVersion.LongString.GetCStr();
 }

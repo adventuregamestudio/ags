@@ -66,7 +66,7 @@ BEGIN
             VALUE "CompanyName", "Chris Jones"
             VALUE "FileDescription", "AGS Editor C++ Helper"
             VALUE "FileVersion", "3.2.2.112"
-            VALUE "LegalCopyright", "(c) 2006 Chris Jones. All rights reserved"
+            VALUE "LegalCopyright", "(c) 2006-2011 Chris Jones and 2011-20xx others. All rights reserved"
             VALUE "InternalName", "NativeDLL.dll"
             VALUE "OriginalFilename", "NativeDLL.dll"
             VALUE "ProductName", "Adventure Game Studio"

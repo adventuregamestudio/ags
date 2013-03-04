@@ -64,7 +64,7 @@ int System_GetViewportWidth() {
 }
 
 const char *System_GetVersion() {
-    return CreateNewScriptString(ACI_VERSION_TEXT);
+    return CreateNewScriptString(EngineVersion.LongString);
 }
 
 int System_GetHardwareAcceleration() 

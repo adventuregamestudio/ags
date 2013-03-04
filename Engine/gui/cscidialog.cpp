@@ -134,7 +134,7 @@ void WINAPI _export CSCIEraseWindow(Common::Graphics *g, int handl)
 
 int WINAPI _export CSCIWaitMessage(Common::Graphics *g, CSCIMessage * cscim)
 {
-    next_iteration();
+    NextIteration();
     for (int uu = 0; uu < MAXCONTROLS; uu++) {
         if (vobjs[uu] != NULL) {
             //      domouse(2);
@@ -149,7 +149,7 @@ int WINAPI _export CSCIWaitMessage(Common::Graphics *g, CSCIMessage * cscim)
 
     while (1) {
         timerloop = 0;
-        next_iteration();
+        NextIteration();
         refresh_screen();
 
         cscim->id = -1;

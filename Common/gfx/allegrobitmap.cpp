@@ -82,7 +82,14 @@ bool Bitmap::Create(int width, int height, int color_depth)
 bool Bitmap::CreateTransparent(int width, int height, int color_depth)
 {
     Destroy();
-    _alBitmap = create_bitmap_ex(color_depth, width, height);
+    if (color_depth)
+    {
+        _alBitmap = create_bitmap_ex(color_depth, width, height);
+    }
+    else
+    {
+        _alBitmap = create_bitmap(width, height);
+    }
     if (_alBitmap)
     {
         clear_to_color(_alBitmap, bitmap_mask_color(_alBitmap));

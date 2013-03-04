@@ -329,7 +329,7 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
             screenover[nse].y += offsety;
         }
 
-        do_main_cycle(UNTIL_NOOVERLAY,0);
+        GameLoopUntilEvent(UNTIL_NOOVERLAY,0);
     }
 
     play.messagetime=-1;

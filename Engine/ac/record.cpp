@@ -31,6 +31,7 @@
 #include "util/filestream.h"
 
 using AGS::Common::Stream;
+using AGS::Common::String;
 
 extern GameSetupStruct game;
 extern GameState play;
@@ -361,7 +362,7 @@ void stop_recording() {
 
     Stream *replay_out = Common::File::CreateFile(replayfile);
     replay_out->Write ("AGSRecording", 12);
-    fputstring (ACI_VERSION_TEXT, replay_out);
+    fputstring (EngineVersion.LongString, replay_out);
     int write_version = 2;
     Stream *replay_temp_in = Common::File::OpenFileRead(replayTempFile);
     if (replay_temp_in) {
@@ -409,13 +410,14 @@ void start_playback()
             play.playback = 0;
         }
         else {
-            fgetstring_limit (buffer, in, 12);
-            if (buffer[0] != '2') 
+            String version_string = String::FromStream(in, 12);
+            AGS::Engine::Version requested_engine_version(version_string);
+            if (requested_engine_version.Major != '2') 
                 quit("!Replay file is from an old version of AGS");
-            if (strcmp (buffer, "2.55.553") < 0)
+            if (requested_engine_version < AGS::Engine::Version(2, 55, 553))
                 quit("!Replay file was recorded with an older incompatible version");
 
-            if (strcmp (buffer, ACI_VERSION_TEXT)) {
+            if (requested_engine_version != EngineVersion) {
                 // Disable text as speech while displaying the warning message
                 // This happens if the user's graphics card does BGR order 16-bit colour
                 int oldalways = game.options[OPT_ALWAYSSPCH];

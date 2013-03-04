@@ -196,8 +196,6 @@ const char* sgnametemplate = "agssave.%03d";
 char saveGameSuffix[MAX_SG_EXT_LENGTH + 1];
 
 int game_paused=0;
-
-int engineNeedsAsInt = 100;
 char pexbuf[STD_BUFFER_SIZE];
 
 unsigned int load_new_game = 0;
@@ -1071,7 +1069,9 @@ void save_game_screenshot(Stream *out, Bitmap *screenshot)
 
 void save_game_header(Stream *out)
 {
-    fputstring(ACI_VERSION_TEXT, out);
+    // Write lowest forward-compatible version string, so that
+    // earlier versions could load savedgames made by current engine
+    fputstring(SavedgameLowestForwardCompatVersion.LongString, out);
     fputstring(usetup.main_data_filename, out);
 }
 
@@ -1577,11 +1577,14 @@ Bitmap *restore_game_screenshot(Stream *in)
 
 int restore_game_header(Stream *in)
 {
-    fgetstring_limit(rbuffer, in, 200);
-    int vercmp = strcmp(rbuffer, ACI_VERSION_TEXT);
-    if ((vercmp > 0) || (strcmp(rbuffer, LOWEST_SGVER_COMPAT) < 0) ||
-        (strlen(rbuffer) > strlen(LOWEST_SGVER_COMPAT))) {
-            return -4;
+    String version_string = String::FromStream(in, 200);
+    AGS::Engine::Version requested_engine_version(version_string);
+    if (requested_engine_version > EngineVersion ||
+        requested_engine_version < SavedgameLowestBackwardCompatVersion)
+    {
+        // Version is either non-forward or non-backward compatible
+        // TODO: distinct error codes
+        return -4;
     }
     fgetstring_limit (rbuffer, in, 180);
     rbuffer[180] = 0;

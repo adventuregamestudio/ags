@@ -166,10 +166,10 @@ protected:
     ScriptVariable *FindGlobalVar(int32_t var_addr, int *pindex = NULL);
     void    AddGlobalVar(const ScriptVariable &glvar, int at_index);
     bool    CreateRuntimeCodeFixups(ccScript * scri);
-	bool    ReadOperation(ScriptOperation &op, int32_t at_pc);
+	//bool    ReadOperation(ScriptOperation &op, int32_t at_pc);
 
     // Runtime fixups
-    bool    FixupArgument(intptr_t code_value, char fixup_type, RuntimeScriptValue &argument);
+    //bool    FixupArgument(intptr_t code_value, char fixup_type, RuntimeScriptValue &argument);
 
     // Stack processing
     // Push writes new value and increments stack ptr;

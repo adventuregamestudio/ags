@@ -1825,8 +1825,6 @@ int doNextCharMoveStep (CharacterInfo *chi, int &char_index, CharacterExtras *ch
     return 0;
 }
 
-extern int engineNeedsAsInt;
-
 int find_nearest_walkable_area_within(int *xx, int *yy, int range, int step)
 {
     int ex, ey, nearest = 99999, thisis, nearx = 0, neary = 0;
@@ -1889,7 +1887,7 @@ void find_nearest_walkable_area (int *xx, int *yy) {
 
     int pixValue = thisroom.walls->GetPixel(convert_to_low_res(xx[0]), convert_to_low_res(yy[0]));
     // only fix this code if the game was built with 2.61 or above
-    if (pixValue == 0 || (engineNeedsAsInt >=261 && pixValue < 1))
+    if (pixValue == 0 || (loaded_game_file_version >= kGameVersion_261 && pixValue < 1))
     {
         // First, check every 2 pixels within immediate area
         if (!find_nearest_walkable_area_within(xx, yy, 20, 2))

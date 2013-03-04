@@ -113,7 +113,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy $(TargetPath) $(SolutionDir)References"
+				CommandLine="copy $(TargetPath) $(SolutionDir)\..\Editor\References"
 			/>
 		</Configuration>
 		<Configuration

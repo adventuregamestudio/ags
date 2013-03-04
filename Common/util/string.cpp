@@ -224,6 +224,58 @@ int String::FindCharReverse(char c, int from) const
     return -1;
 }
 
+bool String::FindSection(char separator, int first, int last, bool exclude_first_sep, bool exclude_last_sep,
+                        int &from, int &to) const
+{
+    if (!_meta || !separator)
+    {
+        return false;
+    }
+
+    int slice_from = -1;
+    int slice_to = _meta->Length;
+    int slice_at = -1;
+    int sep_count = 0;
+    do
+    {
+        slice_at = FindChar(separator, slice_at + 1);
+        if (slice_at < 0)
+        {
+            break;
+        }
+        sep_count++;
+        if (sep_count == first)
+        {
+            slice_from = exclude_first_sep ? slice_at + 1 : slice_at;
+            if (slice_to < _meta->Length)
+            {
+                break;
+            }
+        }
+        if (sep_count == last)
+        {
+            slice_to = exclude_last_sep ? slice_at - 1 : slice_at;
+            if (slice_from >= 0)
+            {
+                break;
+            }
+        }
+    }
+    while (slice_at < _meta->Length);
+
+    from = slice_from;
+    to = slice_to;
+
+    if ((slice_from >= 0 || slice_to < _meta->Length) &&
+        slice_from <= slice_to && first <= last)
+    {
+        slice_from = slice_from >= 0 ? slice_from : 0;
+        slice_to = slice_to < _meta->Length ? slice_to : _meta->Length - 1;
+        return true;
+    }
+    return false;
+}
+
 char String::GetAt(int index) const
 {
     return (index >= 0 && index < GetLength()) ? _meta->CStr[index] : 0;
@@ -286,6 +338,55 @@ String String::Right(int count) const
 {
     count = count >= 0 ? Math::Min(count, GetLength()) : GetLength();
     return count == GetLength() ? *this : String(GetCStr() + GetLength() - count, count);
+}
+
+// Extract leftmost part, separated by the given char
+String String::LeftSection(char separator, bool exclude_separator) const
+{
+    if (_meta && separator)
+    {
+        int slice_at = FindChar(separator);
+        if (slice_at >= 0)
+        {
+            slice_at = exclude_separator ? slice_at : slice_at + 1;
+            return Left(slice_at + 1);
+        }
+    }
+    return String();
+}
+
+// Extract rightmost part, separated by the given char
+String String::RightSection(char separator, bool exclude_separator) const
+{
+    if (_meta && separator)
+    {
+        int slice_at = FindCharReverse(separator);
+        if (slice_at >= 0)
+        {
+            int count = exclude_separator ? _meta->Length - slice_at - 1 : _meta->Length - slice_at;
+            return Right(count);
+        }
+    }
+    return String();
+}
+
+// Extract the section between Xth and Yth appearance of the given character
+String String::Section(char separator, int first, int last,
+                          bool exclude_first_sep, bool exclude_last_sep) const
+{
+    if (!_meta || !separator)
+    {
+        return String();
+    }
+
+    int slice_from;
+    int slice_to;
+    if (FindSection(separator, first, last, exclude_first_sep, exclude_last_sep,
+        slice_from, slice_to))
+    {
+        return Mid(slice_from, slice_to - slice_from + 1);
+    }
+    return String();
 }
 
 void String::Reserve(int max_length)
@@ -395,74 +496,43 @@ void String::ClipRight(int count)
     }
 }
 
-void String::ClipLeftSection(char separator, bool extract_separator)
+void String::ClipLeftSection(char separator, bool include_separator)
 {
     if (_meta && separator)
     {
         int slice_at = FindChar(separator);
         if (slice_at >= 0)
         {
-            ClipLeft(extract_separator ? slice_at + 1 : slice_at);
+            ClipLeft(include_separator ? slice_at + 1 : slice_at);
         }
     }
 }
 
-void String::ClipRightSection(char separator, bool extract_separator)
+void String::ClipRightSection(char separator, bool include_separator)
 {
     if (_meta && separator)
     {
         int slice_at = FindCharReverse(separator);
         if (slice_at >= 0)
         {
-            ClipRight(extract_separator ? _meta->Length - slice_at : _meta->Length - slice_at - 1);
+            ClipRight(include_separator ? _meta->Length - slice_at : _meta->Length - slice_at - 1);
         }
     }
 }
 
 void String::ClipSection(char separator, int first, int last,
-                              bool extract_first_sep, bool extract_last_sep)
+                              bool include_first_sep, bool include_last_sep)
 {
     if (!_meta || !separator)
     {
         return;
     }
 
-    int slice_from = -1;
-    int slice_to = _meta->Length;
-    int slice_at = -1;
-    int sep_count = 0;
-    do
+    int slice_from;
+    int slice_to;
+    if (FindSection(separator, first, last, !include_first_sep, !include_last_sep,
+        slice_from, slice_to))
     {
-        slice_at = FindChar(separator, slice_at + 1);
-        if (slice_at < 0)
-        {
-            break;
-        }
-        sep_count++;
-        if (sep_count == first)
-        {
-            slice_from = extract_first_sep ? slice_at : slice_at + 1;
-            if (slice_to < _meta->Length)
-            {
-                break;
-            }
-        }
-        if (sep_count == last)
-        {
-            slice_to = extract_last_sep ? slice_at : slice_at - 1;
-            if (slice_from >= 0)
-            {
-                break;
-            }
-        }
-    }
-    while (slice_at < _meta->Length);
-
-    if ((slice_from > 0 || slice_to < _meta->Length) &&
-        slice_from <= slice_to && first <= last)
-    {
-        slice_from = slice_from >= 0 ? slice_from : 0;
-        slice_to = slice_to < _meta->Length ? slice_to : _meta->Length - 1;
         ClipMid(slice_from, slice_to - slice_from + 1);
     }
 }
@@ -581,10 +651,17 @@ void String::SetString(const char *cstr, int length)
     if (cstr)
     {
         length = length >= 0 ? Math::Min(length, strlen(cstr)) : strlen(cstr);
-        ReserveAndShift(false, length);
-        memcpy(_meta->CStr, cstr, length);
-        _meta->Length = length;
-        _meta->CStr[length] = 0;
+        if (length > 0)
+        {
+            ReserveAndShift(false, length);
+            memcpy(_meta->CStr, cstr, length);
+            _meta->Length = length;
+            _meta->CStr[length] = 0;
+        }
+        else
+        {
+            Empty();
+        }
     }
     else
     {
@@ -688,81 +765,48 @@ void String::TruncateToRight(int count)
     }
 }
 
-void String::TruncateToLeftSection(char separator, bool extract_separator)
+void String::TruncateToLeftSection(char separator, bool exclude_separator)
 {
     if (_meta && separator)
     {
         int slice_at = FindChar(separator);
         if (slice_at >= 0)
         {
-            TruncateToLeft(extract_separator ? slice_at : slice_at + 1);
+            TruncateToLeft(exclude_separator ? slice_at : slice_at + 1);
         }
     }
 }
 
-void String::TruncateToRightSection(char separator, bool extract_separator)
+void String::TruncateToRightSection(char separator, bool exclude_separator)
 {
     if (_meta && separator)
     {
         int slice_at = FindCharReverse(separator);
         if (slice_at >= 0)
         {
-            TruncateToRight(extract_separator ? _meta->Length - slice_at - 1 : _meta->Length - slice_at);
+            TruncateToRight(exclude_separator ? _meta->Length - slice_at - 1 : _meta->Length - slice_at);
         }
     }
 }
 
 void String::TruncateToSection(char separator, int first, int last,
-                          bool extract_first_sep, bool extract_last_sep)
+                          bool exclude_first_sep, bool exclude_last_sep)
 {
     if (!_meta || !separator)
     {
         return;
     }
 
-    int slice_from = -1;
-    int slice_to = _meta->Length;
-    int slice_at = -1;
-    int sep_count = 0;
-    do
+    int slice_from;
+    int slice_to;
+    if (FindSection(separator, first, last, exclude_first_sep, exclude_last_sep,
+        slice_from, slice_to))
     {
-        slice_at = FindChar(separator, slice_at + 1);
-        if (slice_at < 0)
-        {
-            break;
-        }
-        sep_count++;
-        if (sep_count == first)
-        {
-            slice_from = extract_first_sep ? slice_at + 1 : slice_at;
-            if (slice_to < _meta->Length)
-            {
-                break;
-            }
-        }
-        if (sep_count == last)
-        {
-            slice_to = extract_last_sep ? slice_at - 1 : slice_at;
-            if (slice_from >= 0)
-            {
-                break;
-            }
-        }
+        TruncateToMid(slice_from, slice_to - slice_from + 1);
     }
-    while (slice_at < _meta->Length);
-
-    if (slice_from > 0 || slice_to < _meta->Length)
+    else
     {
-        if (slice_from > slice_to || first > last)
-        {
-            Empty();
-        }
-        else
-        {
-            slice_from = slice_from >= 0 ? slice_from : 0;
-            slice_to = slice_to < _meta->Length ? slice_to : _meta->Length - 1;
-            TruncateToMid(slice_from, slice_to - slice_from + 1);
-        }
+        Empty();
     }
 }
 
@@ -771,10 +815,13 @@ String &String::operator=(const String& str)
     if (_data != str._data)
     {
         Release();
-        _data = str._data;
-        if (_meta)
+        if (str._data && str._meta->Length > 0)
         {
-            _meta->RefCount++;
+            _data = str._data;
+            if (_meta)
+            {
+                _meta->RefCount++;
+            }
         }
     }
     return *this;

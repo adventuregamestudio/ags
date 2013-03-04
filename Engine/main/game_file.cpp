@@ -49,7 +49,6 @@ using AGS::Common::Bitmap;
 using AGS::Common::Stream;
 using AGS::Common::String;
 
-extern int engineNeedsAsInt; // defined in ac_game
 extern char saveGameSuffix[MAX_SG_EXT_LENGTH + 1];
 
 // Old dialog support
@@ -154,25 +153,19 @@ int game_file_read_version(Stream *in)
     }
 
 	int engineverlen = in->ReadInt32();
-    char engineneeds[20];
-    // MACPORT FIX 13/6/5: switch 'size' and 'nmemb' so it doesn't treat the string as an int
-    in->Read(&engineneeds[0], engineverlen);
-    engineneeds[engineverlen] = 0;
+    String version_string = String::FromStreamCount(in, engineverlen);
+    AGS::Engine::Version requested_engine_version(version_string);
 
     if (filever > kGameVersion_Current) {
-        platform->DisplayAlert("This game requires a newer version of AGS (%s). It cannot be run.", engineneeds);
+        platform->DisplayAlert("This game requires a newer version of AGS (%s). It cannot be run.",
+            requested_engine_version.LongString.GetCStr());
         delete in;
         return -2;
     }
 
-    if (strcmp (engineneeds, ACI_VERSION_TEXT) > 0)
-        platform->DisplayAlert("This game requires a newer version of AGS (%s). It may not run correctly.", engineneeds);
-
-    {
-        int major, minor;
-        sscanf(engineneeds, "%d.%d", &major, &minor);
-        engineNeedsAsInt = 100*major + minor;
-    }
+    if (requested_engine_version > EngineVersion)
+        platform->DisplayAlert("This game requires a newer version of AGS (%s). It may not run correctly.",
+        requested_engine_version.LongString.GetCStr());
 
     loaded_game_file_version = filever;
 

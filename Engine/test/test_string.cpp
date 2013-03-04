@@ -389,7 +389,7 @@ void Test_String()
         assert(strcmp(str4, "\\MyNewGame") == 0);
         assert(strcmp(str5, "Games\\AGS") == 0);
         assert(strcmp(str6, "\\Games\\AGS\\") == 0);
-        assert(strcmp(str7, "C:\\Games\\AGS\\MyNewGame") == 0);
+        assert(strcmp(str7, "") == 0);
         assert(strcmp(str8, "C:\\Games\\AGS") == 0);
         assert(strcmp(str9, "Games\\AGS\\MyNewGame") == 0);
         assert(strcmp(str10, "") == 0);

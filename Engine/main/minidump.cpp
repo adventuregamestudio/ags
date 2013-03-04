@@ -72,7 +72,7 @@ void CreateMiniDump( EXCEPTION_POINTERS* pep )
     }
 
     char fileName[80];
-    sprintf(fileName, "CrashInfo.%s.dmp", ACI_VERSION_TEXT);
+    sprintf(fileName, "CrashInfo.%s.dmp", EngineVersion.LongString.GetCStr());
     HANDLE hFile = CreateFileA(fileName, GENERIC_READ | GENERIC_WRITE, 
         0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL); 
 

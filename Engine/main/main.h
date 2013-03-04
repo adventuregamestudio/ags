@@ -18,17 +18,14 @@
 #ifndef __AGS_EE_MAIN__MAIN_H
 #define __AGS_EE_MAIN__MAIN_H
 
-#ifdef NO_MP3_PLAYER
-#define SPECIAL_VERSION "NMP"
-#else
-#define SPECIAL_VERSION ""
-#endif
+#include "main/version.h"
 
-// Version and build numbers
-#define AC_VERSION_TEXT "3.21 "
-#define ACI_VERSION_TEXT "3.21.1115"SPECIAL_VERSION
-// this needs to be updated if the "play" struct changes
-#define LOWEST_SGVER_COMPAT "3.20.1103"SPECIAL_VERSION
+// Current engine version
+extern AGS::Engine::Version EngineVersion;
+// Lowest savedgame version, accepted by this engine
+extern AGS::Engine::Version SavedgameLowestBackwardCompatVersion;
+// Lowest engine version, which would accept current savedgames
+extern AGS::Engine::Version SavedgameLowestForwardCompatVersion;
 
 #if defined(WINDOWS_VERSION) && !defined(_DEBUG)
 #define USE_CUSTOM_EXCEPTION_HANDLER

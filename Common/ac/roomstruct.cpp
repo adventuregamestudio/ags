@@ -135,6 +135,11 @@ void room_file_header::ReadFromFile(Stream *in)
     version = (RoomFileVersion)in->ReadInt16();
 }
 
+void room_file_header::WriteFromFile(Common::Stream *out)
+{
+    out->WriteInt16(version);
+}
+
 int usesmisccond = 0;
 
 void load_main_block(roomstruct *rstruc, const char *files, Stream *in, room_file_header rfh) {
@@ -705,7 +710,7 @@ void load_room(const char *files, roomstruct *rstruc, bool gameIsHighRes) {
     }
     else {
       char  tempbfr[90];
-      sprintf(tempbfr, "LoadRoom: unknown Bitmap *type %d encountered in '%s'", thisblock, files);
+      sprintf(tempbfr, "LoadRoom: unknown block type %d encountered in '%s'", thisblock, files);
       quit(tempbfr);
     }
 

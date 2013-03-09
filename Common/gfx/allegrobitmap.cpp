@@ -456,7 +456,7 @@ void AllegroBitmap::RotateBlt(Bitmap *src, int dst_x, int dst_y, int pivot_x, in
 	}
 	
 	BITMAP *al_src_bmp = (BITMAP*)src->GetBitmapObject();
-	pivot_sprite(_bitmap, al_src_bmp, dst_x, dst_y, pivot_x, pivot_x, angle);
+	pivot_sprite(_bitmap, al_src_bmp, dst_x, dst_y, pivot_x, pivot_y, angle);
 }
 
 //=============================================================================

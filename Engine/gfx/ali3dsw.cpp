@@ -299,6 +299,10 @@ int ALSoftwareGraphicsDriver::GetAllegroGfxDriverID(bool windowed)
   if (windowed)
     return GFX_DIRECTX_WIN;
   return GFX_DIRECTX;
+#elif defined (LINUX_VERSION)
+  if (windowed)
+    return GFX_XWINDOWS;
+  return GFX_XWINDOWS_FULLSCREEN;
 #else
   if (windowed)
     return GFX_AUTODETECT_WINDOWED;

@@ -391,25 +391,17 @@ String String::Section(char separator, int first, int last,
 
 void String::Reserve(int max_length)
 {
-    max_length = max_length >= 0 ? max_length : 0;
-    if (_meta)
+    if (max_length <= 0 ||
+        _meta && max_length <= _meta->Capacity)
     {
-        if (max_length > _meta->Capacity)
-        {
-            // grow by 50% or at least to total_size
-            int grow_length = _meta->Capacity + (_meta->Capacity >> 1);
-            Copy(Math::Max(max_length, grow_length));
-        }
+        return;
     }
-    else
-    {
-        Create(max_length);
-    }
+    ReserveAndShift(false, max_length - _meta->Length);
 }
 
 void String::ReserveMore(int more_length)
 {
-    Reserve(GetLength() + more_length);
+    ReserveAndShift(false, more_length);
 }
 
 void String::Compact()
@@ -893,29 +885,35 @@ void String::BecomeUnique()
     }
 }
 
-void String::ReserveAndShift(bool left, int more_length)
+void String::ReserveAndShift(bool reserve_left, int more_length)
 {
+    // The memory allocation strategy aims time-efficient appending operations;
+    // efficient prepending is not considered priority.
     if (_meta)
     {
         int total_length = _meta->Length + more_length;
-        if (_meta->RefCount > 1 || (_meta->Capacity < total_length))
+        if (_meta->Capacity < total_length)
         {
-            // grow by 50% or at least to total_size
-            int grow_length = _meta->Capacity + (_meta->Capacity >> 1);
-            Copy(Math::Max(total_length, grow_length), left ? more_length : 0);
+            // grow by 100% or at least to total_size, or at least to 20 characters
+            int grow_length = Math::Max(_meta->Capacity << 1, 20);
+            Copy(Math::Max(total_length, grow_length), reserve_left ? more_length : 0);
+        }
+        else if (_meta->RefCount > 1)
+        {
+            Copy(_meta->Capacity, reserve_left ? more_length : 0);
         }
         else
         {
             // make sure we make use of all of our space
             const char *cstr_head = _data + sizeof(String::Header);
-            int free_space = left ?
+            int free_space = reserve_left ?
                 _meta->CStr - cstr_head :
                 (cstr_head + _meta->Capacity) - (_meta->CStr + _meta->Length);
             if (free_space < more_length)
             {
-                Align((left ?
-                    _meta->CStr + (more_length - free_space) :
-                    _meta->CStr - (more_length - free_space)) - cstr_head);
+                Align(reserve_left ?
+                     (_meta->CStr + (more_length - free_space)) - cstr_head :
+                     0);
             }
         }
     }

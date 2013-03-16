@@ -4,7 +4,7 @@ On other distributions, install development files of the following
 libraries. (In brackets are versions that are known to work, but other
 versions should work, too.)
 
--   Allegro 4 (> 4.2.2)
+-   Allegro 4 (>= 4.2.2)
 -   libaldmb (0.9.3)
 -   libdumb (0.9.3)
 -   libfreetype (2.4.9)
@@ -42,7 +42,7 @@ Download the sources with git and change into the **ags** directory:
 Build the package and install it with gdebi:
 
     fakeroot debian/rules binary
-    sudo gdebi ../ags_3.21.1115~JJS-1_*.deb
+    sudo gdebi ../ags_3.30.0-1_*.deb
 
 #Using the engine
 To start an AGS game, just run ags with the game directory or the game
@@ -149,4 +149,4 @@ Build the package with pbuilder and install it and its dependencies with gdebi:
 
     cd ags
     pdebuild
-    sudo gdebi /var/cache/pbuilder/result/ags_3.21.1115~JJS-1_i386.deb
+    sudo gdebi /var/cache/pbuilder/result/ags_3.30.0-1_i386.deb

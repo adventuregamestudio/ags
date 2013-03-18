@@ -126,30 +126,20 @@ void fix_block (Common::Bitmap *todraw) {
   int a,b,pixval;
   if (todraw == NULL)
     return;
+  // TODO: redo this using direct bitmap data access for the sake of speed
   if (todraw->GetColorDepth() == 16) {
     for (a = 0; a < todraw->GetWidth(); a++) {
       for (b = 0; b < todraw->GetHeight(); b++) {
-        //pixval = _getpixel16 ((BITMAP*)todraw->GetBitmapObject(), a, b);
-		pixval = todraw->GetPixel (a, b);
-	    //_putpixel16 ((BITMAP*)todraw->GetBitmapObject(), a, b, makecol16 (getb16(pixval),getg16(pixval),getr16(pixval)));
-		todraw->PutPixel (a, b, makecol16 (getb16(pixval),getg16(pixval),getr16(pixval)));
+        pixval = todraw->GetPixel (a, b);
+        todraw->PutPixel (a, b, makecol16 (getb16(pixval),getg16(pixval),getr16(pixval)));
       }
     }
   }
   else if (todraw->GetColorDepth() == 32) {
     for (a = 0; a < todraw->GetWidth(); a++) {
       for (b = 0; b < todraw->GetHeight(); b++) {
-		  
-		  // [IKM] 2012-09-07
-		  // CHECKME!!
-		  // Something bad is going on here. Calling AllegroBitmap::GetPixel causes "read protected memory" exception
-		  // for no apparent reason, while calling _getpixel32 directly does not;
-		  // even if I just call _getpixel32 from GetPixel right away and return value, exception is still thrown
-
-        pixval = _getpixel32 ((BITMAP*)todraw->GetBitmapObject(), a, b);
-		//pixval = todraw->GetPixel (a, b);
-		//_putpixel32 ((BITMAP*)todraw->GetBitmapObject(), a, b, makeacol32 (getb32(pixval),getg32(pixval),getr32(pixval), geta32(pixval)));
-		todraw->PutPixel (a, b, makeacol32 (getb32(pixval),getg32(pixval),getr32(pixval), geta32(pixval)));
+        pixval = todraw->GetPixel (a, b);
+        todraw->PutPixel (a, b, makeacol32 (getb32(pixval),getg32(pixval),getr32(pixval), geta32(pixval)));
       }
     }
   }

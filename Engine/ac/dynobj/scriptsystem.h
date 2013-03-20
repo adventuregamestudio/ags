@@ -26,7 +26,7 @@ struct ScriptSystem {
     int windowed;
     int vsync;
     int viewport_width, viewport_height;
-    char aci_version[10];
+    char aci_version[10]; // FIXME this when possible, version format is different now
     int reserved[5];  // so that future scripts don't overwrite data
 };
 

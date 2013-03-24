@@ -116,9 +116,10 @@ void main_create_platform_driver()
 }
 
 // Version and build numbers
-#define ACI_VERSION_MAJOR   3
-#define ACI_VERSION_MINOR   30
-#define ACI_VERSION_RELEASE 0
+#define ACI_VERSION_MAJOR               3
+#define ACI_VERSION_MINOR               3
+#define ACI_VERSION_RELEASE             0
+#define ACI_VERSION_REVISION            1130
 #ifdef NO_MP3_PLAYER
 #define SPECIAL_VERSION "NMP"
 #else
@@ -126,14 +127,16 @@ void main_create_platform_driver()
 #endif
 
 // this needs to be updated if the "play" struct changes
-#define SVG_VERSION_BWCOMPAT_MAJOR   3
-#define SVG_VERSION_BWCOMPAT_MINOR   20
-#define SVG_VERSION_BWCOMPAT_RELEASE 1103
+#define SVG_VERSION_BWCOMPAT_MAJOR      3
+#define SVG_VERSION_BWCOMPAT_MINOR      2
+#define SVG_VERSION_BWCOMPAT_RELEASE    0
+#define SVG_VERSION_BWCOMPAT_REVISION   1103
 // CHECKME: we may lower this down, if we find that earlier versions may still
 // load new savedgames
-#define SVG_VERSION_FWCOMPAT_MAJOR   3
-#define SVG_VERSION_FWCOMPAT_MINOR   21
-#define SVG_VERSION_FWCOMPAT_RELEASE 1111
+#define SVG_VERSION_FWCOMPAT_MAJOR      3
+#define SVG_VERSION_FWCOMPAT_MINOR      2
+#define SVG_VERSION_FWCOMPAT_RELEASE    1
+#define SVG_VERSION_FWCOMPAT_REVISION   1111
 
 // Current engine version
 AGS::Engine::Version EngineVersion;
@@ -145,12 +148,12 @@ AGS::Engine::Version SavedgameLowestForwardCompatVersion;
 void main_init()
 {
 #if defined (BUILD_STR)
-    EngineVersion = Version(ACI_VERSION_MAJOR, ACI_VERSION_MINOR, ACI_VERSION_RELEASE, SPECIAL_VERSION, BUILD_STR);
+    EngineVersion = Version(ACI_VERSION_MAJOR, ACI_VERSION_MINOR, ACI_VERSION_RELEASE, ACI_VERSION_REVISION, SPECIAL_VERSION, BUILD_STR);
 #else
-    EngineVersion = Version(ACI_VERSION_MAJOR, ACI_VERSION_MINOR, ACI_VERSION_RELEASE, SPECIAL_VERSION);
+    EngineVersion = Version(ACI_VERSION_MAJOR, ACI_VERSION_MINOR, ACI_VERSION_RELEASE, ACI_VERSION_REVISION, SPECIAL_VERSION);
 #endif
-    SavedgameLowestBackwardCompatVersion = Version(SVG_VERSION_BWCOMPAT_MAJOR, SVG_VERSION_BWCOMPAT_MINOR, SVG_VERSION_BWCOMPAT_RELEASE);
-    SavedgameLowestForwardCompatVersion = Version(SVG_VERSION_FWCOMPAT_MAJOR, SVG_VERSION_FWCOMPAT_MINOR, SVG_VERSION_FWCOMPAT_RELEASE);
+    SavedgameLowestBackwardCompatVersion = Version(SVG_VERSION_BWCOMPAT_MAJOR, SVG_VERSION_BWCOMPAT_MINOR, SVG_VERSION_BWCOMPAT_RELEASE, SVG_VERSION_BWCOMPAT_REVISION);
+    SavedgameLowestForwardCompatVersion = Version(SVG_VERSION_FWCOMPAT_MAJOR, SVG_VERSION_FWCOMPAT_MINOR, SVG_VERSION_FWCOMPAT_RELEASE, SVG_VERSION_FWCOMPAT_REVISION);
 
     Common::AssetManager::CreateInstance();
     main_pre_init();

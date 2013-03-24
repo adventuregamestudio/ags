@@ -284,6 +284,15 @@ void GameSetupStruct::read_characters(Common::Stream *in, GAME_STRUCT_READ_DATA 
                 chars[i].flags |= CHF_ANTIGLIDE;
         }
     }
+
+    // Characters can always walk through each other on < 2.54
+    if (read_data.filever < kGameVersion_254)
+    {
+        for (int i = 0; i < numcharacters; i++)
+        {
+            chars[i].flags |= CHF_NOBLOCKING;
+        }
+    }
 }
 
 void GameSetupStruct::read_lipsync(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)

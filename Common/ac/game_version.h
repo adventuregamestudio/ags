@@ -71,6 +71,7 @@ enum GameDataVersion
     kGameVersion_240            = 12,
     kGameVersion_250            = 18,
     kGameVersion_251            = 19,
+    kGameVersion_254            = 21,
     kGameVersion_255            = 22,
     kGameVersion_256            = 24,
     kGameVersion_260            = 25,

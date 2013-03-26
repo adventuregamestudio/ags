@@ -144,7 +144,7 @@ namespace AGS.Editor
             this.lnkUpgradingFrom302.TabIndex = 4;
             this.lnkUpgradingFrom302.TabStop = true;
             this.lnkUpgradingFrom302.Text = "If you were using AGS 3.1.2, read this page which tells you the main breaking cha" +
-                "nges in AGS 3.2.";
+                "nges in AGS 3.3.";
             this.lnkUpgradingFrom302.UseCompatibleTextRendering = true;
             this.lnkUpgradingFrom302.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkUpgradingFrom302_LinkClicked);
             // 
@@ -192,7 +192,7 @@ namespace AGS.Editor
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(154, 14);
             this.label5.TabIndex = 0;
-            this.label5.Text = "What\'s new in AGS 3.2?";
+            this.label5.Text = "What\'s new in AGS 3.3?";
             // 
             // pnlTipOfTheDay
             // 

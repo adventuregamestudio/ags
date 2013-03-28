@@ -962,6 +962,10 @@ int ccInstance::Run(int32_t curpc)
           {
               address = reg1.Ptr;
           }
+          else if (reg1.Type == kScValPluginArg)
+          {
+              address = (char*)reg1.IValue;
+          }
           // There's one possible case when the reg1 is 0, which means writing nullptr
           else if (!reg1.IsNull())
           {
@@ -991,6 +995,10 @@ int ccInstance::Run(int32_t curpc)
               reg1.Type == kScValPluginObject)
           {
               address = reg1.Ptr;
+          }
+          else if (reg1.Type == kScValPluginArg)
+          {
+              address = (char*)reg1.IValue;
           }
           // There's one possible case when the reg1 is 0, which means writing nullptr
           else if (!reg1.IsNull())
@@ -1138,7 +1146,7 @@ int ccInstance::Run(int32_t curpc)
               }
               else
               {
-                  return_value.SetInt32(int_ret_val);
+                  return_value.SetPluginArgument(int_ret_val);
               }
           }
           else if (next_call_needs_object)

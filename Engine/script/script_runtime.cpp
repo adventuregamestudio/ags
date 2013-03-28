@@ -167,6 +167,7 @@ int call_function(intptr_t addr, const RuntimeScriptValue *object, int numparm, 
         {
         case kScValInteger:
         case kScValFloat:   // AGS passes floats, copying their values into long variable
+        case kScValPluginArg:
             parm_value[ival] = (intptr_t)parms[iparm].IValue;
             break;
             break;

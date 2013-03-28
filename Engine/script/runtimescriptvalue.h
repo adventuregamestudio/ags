@@ -29,6 +29,8 @@ enum ScriptValueType
     kScValUndefined,    // to detect errors
     kScValInteger,      // as strictly 32-bit integer (for integer math)
     kScValFloat,        // as float (for floating point math), 32-bit
+    kScValPluginArg,    // an 32-bit value, passed to a script function when called
+                        // directly by plugin; is allowed to represent object pointer
     kScValStackPtr,     // as a pointer to stack entry
     kScValData,         // as a container for randomly sized data (usually array)
     kScValGlobalVar,    // as a pointer to script variable; used only for global vars,
@@ -164,6 +166,15 @@ public:
     inline RuntimeScriptValue &SetFloatAsBool(bool val)
     {
         return SetFloat(val ? 1.0F : 0.0F);
+    }
+    inline RuntimeScriptValue &SetPluginArgument(int32_t val)
+    {
+        Type    = kScValPluginArg;
+        IValue  = val;
+        Ptr     = NULL;
+        MgrPtr  = NULL;
+        Size    = 4;
+        return *this;
     }
     inline RuntimeScriptValue &SetStackPtr(RuntimeScriptValue *stack_entry)
     {

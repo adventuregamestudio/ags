@@ -27,12 +27,14 @@ const int GARBAGE_COLLECTION_INTERVAL = 100;
 
 struct ManagedObjectPool {
     struct ManagedObject {
+        ScriptValueType obj_type;
         int32_t handle;
         const char *addr;
         ICCDynamicObject * callback;
         int  refCount;
 
-        void init(int32_t theHandle, const char *theAddress, ICCDynamicObject *theCallback);
+        void init(int32_t theHandle, const char *theAddress,
+            ICCDynamicObject *theCallback, ScriptValueType objType);
         int remove(bool force);
         int AddRef();
         int CheckDispose();
@@ -53,11 +55,11 @@ public:
     int32_t SubRef(int32_t handle);
     int32_t AddressToHandle(const char *addr);
     const char* HandleToAddress(int32_t handle);
-    void HandleToAddressAndManager(int32_t handle, void *&object, ICCDynamicObject *&manager);
+    ScriptValueType HandleToAddressAndManager(int32_t handle, void *&object, ICCDynamicObject *&manager);
     int RemoveObject(const char *address);
     void RunGarbageCollectionIfAppropriate();
     void RunGarbageCollection();
-    int AddObject(const char *address, ICCDynamicObject *callback, int useSlot = -1);
+    int AddObject(const char *address, ICCDynamicObject *callback, bool plugin_object, int useSlot = -1);
     void WriteToDisk(Common::Stream *out);
     int ReadFromDisk(Common::Stream *in, ICCObjectReader *reader);
     void reset();

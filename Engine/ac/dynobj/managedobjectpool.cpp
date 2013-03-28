@@ -23,7 +23,9 @@
 
 using AGS::Common::Stream;
 
-void ManagedObjectPool::ManagedObject::init(int32_t theHandle, const char *theAddress, ICCDynamicObject *theCallback) {
+void ManagedObjectPool::ManagedObject::init(int32_t theHandle, const char *theAddress,
+                                            ICCDynamicObject *theCallback, ScriptValueType objType) {
+    obj_type = objType;
     handle = theHandle;
     addr = theAddress;
     callback = theCallback;
@@ -137,16 +139,17 @@ const char* ManagedObjectPool::HandleToAddress(int32_t handle) {
     return objects[handle].addr;
 }
 
-void ManagedObjectPool::HandleToAddressAndManager(int32_t handle, void *&object, ICCDynamicObject *&manager) {
+ScriptValueType ManagedObjectPool::HandleToAddressAndManager(int32_t handle, void *&object, ICCDynamicObject *&manager) {
     object = NULL;
     manager = NULL;
     // this function is called often (whenever a pointer is used)
     if ((handle < 1) || (handle >= arrayAllocLimit))
-        return;
+        return kScValUndefined;
     if (objects[handle].handle == 0)
-        return;
+        return kScValUndefined;
     object = (void*)objects[handle].addr;
     manager = objects[handle].callback;
+    return objects[handle].obj_type;
 }
 
 int ManagedObjectPool::RemoveObject(const char *address) {
@@ -180,7 +183,7 @@ void ManagedObjectPool::RunGarbageCollection()
     }
 }
 
-int ManagedObjectPool::AddObject(const char *address, ICCDynamicObject *callback, int useSlot) {
+int ManagedObjectPool::AddObject(const char *address, ICCDynamicObject *callback, bool plugin_object, int useSlot) {
     if (useSlot == -1)
         useSlot = numObjects;
 
@@ -188,7 +191,7 @@ int ManagedObjectPool::AddObject(const char *address, ICCDynamicObject *callback
 
     if (useSlot < arrayAllocLimit) {
         // still space in the array, so use it
-        objects[useSlot].init(useSlot, address, callback);
+        objects[useSlot].init(useSlot, address, callback, plugin_object ? kScValPluginObject : kScValDynamicObject);
         if (useSlot == numObjects)
             numObjects++;
         return useSlot;
@@ -201,7 +204,7 @@ int ManagedObjectPool::AddObject(const char *address, ICCDynamicObject *callback
             // long
             for (int i = arrayAllocLimit - 1; i >= 1; i--) {
                 if (objects[i].handle == 0) {
-                    objects[i].init(i, address, callback);
+                    objects[i].init(i, address, callback, plugin_object ? kScValPluginObject : kScValDynamicObject);
                     return i;
                 }
             }
@@ -212,7 +215,7 @@ int ManagedObjectPool::AddObject(const char *address, ICCDynamicObject *callback
 
         objects = (ManagedObject*)realloc(objects, sizeof(ManagedObject) * arrayAllocLimit);
         memset(&objects[useSlot], 0, sizeof(ManagedObject) * ARRAY_INCREMENT_SIZE);
-        objects[useSlot].init(useSlot, address, callback);
+        objects[useSlot].init(useSlot, address, callback, plugin_object ? kScValPluginObject : kScValDynamicObject);
         if (useSlot == numObjects)
             numObjects++;
         return useSlot;

@@ -680,8 +680,8 @@ void IAGSEngine::QueueGameScriptFunction(const char *name, int32 globalScript, i
 }
 
 int IAGSEngine::RegisterManagedObject(const void *object, IAGSScriptManagedObject *callback) {
-    GlobalReturnValue.SetDynamicObject((void*)object, (ICCDynamicObject*)callback);
-    return ccRegisterManagedObject(object, (ICCDynamicObject*)callback);
+    GlobalReturnValue.SetPluginObject((void*)object, (ICCDynamicObject*)callback);
+    return ccRegisterManagedObject(object, (ICCDynamicObject*)callback, true);
 }
 
 void IAGSEngine::AddManagedObjectReader(const char *typeName, IAGSManagedObjectReader *reader) {
@@ -702,8 +702,8 @@ void IAGSEngine::AddManagedObjectReader(const char *typeName, IAGSManagedObjectR
 }
 
 void IAGSEngine::RegisterUnserializedObject(int key, const void *object, IAGSScriptManagedObject *callback) {
-    GlobalReturnValue.SetDynamicObject((void*)object, (ICCDynamicObject*)callback);
-    ccRegisterUnserializedObject(key, object, (ICCDynamicObject*)callback);
+    GlobalReturnValue.SetPluginObject((void*)object, (ICCDynamicObject*)callback);
+    ccRegisterUnserializedObject(key, object, (ICCDynamicObject*)callback, true);
 }
 
 int IAGSEngine::GetManagedObjectKeyByAddress(const char *address) {
@@ -713,13 +713,21 @@ int IAGSEngine::GetManagedObjectKeyByAddress(const char *address) {
 void* IAGSEngine::GetManagedObjectAddressByKey(int key) {
     void *object;
     ICCDynamicObject *manager;
-    ccGetObjectAddressAndManagerFromHandle(key, object, manager);
-    GlobalReturnValue.SetDynamicObject(object, manager);
+    ScriptValueType obj_type = ccGetObjectAddressAndManagerFromHandle(key, object, manager);
+    if (obj_type == kScValPluginObject)
+    {
+        GlobalReturnValue.SetPluginObject(object, manager);
+    }
+    else
+    {
+        GlobalReturnValue.SetDynamicObject(object, manager);
+    }
     return object;
 }
 
 const char* IAGSEngine::CreateScriptString(const char *fromText) {
     const char *string = CreateNewScriptString(fromText);
+    // Should be still standard dynamic object, because not managed by plugin
     GlobalReturnValue.SetDynamicObject((void*)string, &myScriptStringImpl);
     return string;
 }

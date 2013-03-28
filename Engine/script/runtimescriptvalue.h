@@ -38,6 +38,8 @@ enum ScriptValueType
     kScValStaticObject, // as a pointer to static global script object
     kScValStaticArray,  // as a pointer to static global array (of static or dynamic objects)
     kScValDynamicObject,// as a pointer to managed script object
+    kScValPluginObject, // as a pointer to object managed by plugin (similar to
+                        // kScValDynamicObject, but has backward-compatible limitations)
     kScValStaticFunction,// as a pointer to static function
     kScValPluginFunction,// temporary workaround for plugins (unsafe function ptr)
     kScValObjectFunction,// as a pointer to object member function, gets object pointer as
@@ -221,6 +223,15 @@ public:
     inline RuntimeScriptValue &SetDynamicObject(void *object, ICCDynamicObject *manager)
     {
         Type    = kScValDynamicObject;
+        IValue  = 0;
+        Ptr     = (char*)object;
+        DynMgr  = manager;
+        Size    = 4;
+        return *this;
+    }
+    inline RuntimeScriptValue &SetPluginObject(void *object, ICCDynamicObject *manager)
+    {
+        Type    = kScValPluginObject;
         IValue  = 0;
         Ptr     = (char*)object;
         DynMgr  = manager;

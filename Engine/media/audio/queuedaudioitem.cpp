@@ -26,7 +26,7 @@ void QueuedAudioItem::ReadFromFile(Stream *in)
     audioClipIndex = in->ReadInt16();
     priority = in->ReadInt16();
     repeat = in->ReadBool();
-    cachedClip = (SOUNDCLIP*)in->ReadInt32();
+    in->ReadInt32(); // cachedClip
 }
 
 void QueuedAudioItem::WriteToFile(Stream *out)
@@ -34,5 +34,5 @@ void QueuedAudioItem::WriteToFile(Stream *out)
     out->WriteInt16(audioClipIndex);
     out->WriteInt16(priority);
     out->WriteBool(repeat);
-    out->WriteInt32((int32)cachedClip);
+    out->WriteInt32(0); // cachedClip
 }

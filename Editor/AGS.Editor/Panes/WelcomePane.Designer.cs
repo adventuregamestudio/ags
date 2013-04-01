@@ -144,7 +144,7 @@ namespace AGS.Editor
             this.lnkUpgradingFrom302.TabIndex = 4;
             this.lnkUpgradingFrom302.TabStop = true;
             this.lnkUpgradingFrom302.Text = "If you were using AGS 3.1.2, read this page which tells you the main breaking cha" +
-                "nges in AGS 3.3.";
+                "nges in AGS 3.2.";
             this.lnkUpgradingFrom302.UseCompatibleTextRendering = true;
             this.lnkUpgradingFrom302.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkUpgradingFrom302_LinkClicked);
             // 
@@ -166,8 +166,9 @@ namespace AGS.Editor
             this.lblUpgradingInfo.Name = "lblUpgradingInfo";
             this.lblUpgradingInfo.Size = new System.Drawing.Size(292, 28);
             this.lblUpgradingInfo.TabIndex = 2;
-            this.lblUpgradingInfo.Text = "As usual, this latest version of AGS brings you more goodies than you can shake a" +
-                " stick at!";
+            // TODO: replace this line with something more generic for the next version; this one is for 3.3 only
+            this.lblUpgradingInfo.Text = "This is the first version of AGS ever released as the collaborative work of" +
+                " community members and fellow contributors.";
             // 
             // lnkUpgrading
             // 

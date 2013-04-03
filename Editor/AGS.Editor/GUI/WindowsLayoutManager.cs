@@ -52,7 +52,7 @@ namespace AGS.Editor
         private string GetLayoutFile()
         {
             return Path.Combine(
-                Path.GetDirectoryName(Application.ExecutablePath),
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 LAYOUT_FILENAME);
         }
 

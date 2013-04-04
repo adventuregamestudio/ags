@@ -64,6 +64,13 @@ struct GameSetupStructBase {
     char             *globalscript;
     CharacterInfo    *chars;
     ccScript         *compiled_script;
+    // [IKM] 2013-03-30
+    // NOTE: it looks like nor 'globalscript', not 'compiled_script' are used
+    // to store actual script data anytime; 'ccScript* gamescript' global
+    // pointer is used for that instead.
+    // 'compiled_script' member is used once as a flag, to indicate that there's
+    // a global script data to be loaded; 'globalscript' is not used anywhere
+    // for anything useful.
 
     void ReadFromFile(Common::Stream *in);
     void WriteToFile(Common::Stream *out);

@@ -576,6 +576,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\util\array.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\util\bbop.h"
 					>
 				</File>

@@ -39,6 +39,7 @@
 #define __AGS_CN_UTIL__STRING_H
 
 #include "core/types.h"
+#include "debug/assert.h"
 
 namespace AGS
 {
@@ -63,7 +64,7 @@ public:
     ~String();
 
     // Get underlying C-string for reading
-    const char   *GetCStr() const
+    inline const char *GetCStr() const
     {
         return _meta ? _meta->CStr : "";
     }
@@ -138,8 +139,14 @@ public:
     bool    FindSection(char separator, int first, int last, bool exclude_first_sep, bool exclude_last_sep,
                         int &from, int &to) const;
 
-    char    GetAt(int index) const;
-    char    GetLast() const;
+    inline char GetAt(int index) const
+    {
+        return (index >= 0 && index < GetLength()) ? _meta->CStr[index] : 0;
+    }
+    inline char GetLast() const
+    {
+        return (_meta && _meta->Length > 0) ? _meta->CStr[_meta->Length - 1] : 0;
+    }
 
     //-------------------------------------------------------------------------
     // Value cast methods
@@ -269,6 +276,12 @@ public:
     {
         return GetAt(index);
     }
+    inline char &operator[](int index)
+    {
+        BecomeUnique();
+        assert(_meta && index >= 0 && index < GetLength());
+        return _meta->CStr[index];
+    }
     inline bool operator==(const char *cstr)
     {
         return Compare(cstr) == 0;
@@ -290,7 +303,7 @@ private:
     void    BecomeUnique();
     // Ensure this string is independent, and there's enough space before
     // or after the current string data
-    void    ReserveAndShift(bool reserve_left, int more_length);
+    void    ReserveAndShift(bool reserve_left, int need_space);
 
     struct Header
     {

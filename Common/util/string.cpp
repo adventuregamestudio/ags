@@ -66,7 +66,7 @@ String::String(char c, int count)
 
 String::~String()
 {
-    Release();
+    Free();
 }
 
 void String::Read(Stream *in, int max_chars, bool stop_at_limit)
@@ -125,6 +125,17 @@ void String::Write(Stream *out) const
     if (out)
     {
         out->Write(GetCStr(), GetLength() + 1);
+    }
+}
+
+void String::WriteCount(Stream *out, int count) const
+{
+    if (out)
+    {
+        int str_out_len = Math::Min(count - 1, GetLength());
+        out->Write(GetCStr(), str_out_len);
+        int null_out_len = count - str_out_len;
+        out->WriteByteCount(0, null_out_len);
     }
 }
 
@@ -568,6 +579,19 @@ void String::Format(const char *fcstr, ...)
     va_end(argptr);
 }
 
+void String::Free()
+{
+    if (_meta)
+    {
+        _meta->RefCount--;
+        if (!_meta->RefCount)
+        {
+            delete [] _data;
+        }
+    }
+    _data = NULL;
+}
+
 void String::MakeLower()
 {
     if (_meta)
@@ -806,7 +830,7 @@ String &String::operator=(const String& str)
 {
     if (_data != str._data)
     {
-        Release();
+        Free();
         if (str._data && str._meta->Length > 0)
         {
             _data = str._data;
@@ -848,7 +872,7 @@ void String::Copy(int max_length, int offset)
     memcpy(new_data, _data, sizeof(String::Header));
     int copy_length = Math::Min(_meta->Length, max_length);
     memcpy(cstr_head, _meta->CStr, copy_length);
-    Release();
+    Free();
     _data = new_data;
     _meta->RefCount = 1;
     _meta->Capacity = max_length;
@@ -862,19 +886,6 @@ void String::Align(int offset)
     char *cstr_head = _data + sizeof(String::Header) + offset;
     memmove(cstr_head, _meta->CStr, _meta->Length + 1);
     _meta->CStr = cstr_head;
-}
-
-void String::Release()
-{
-    if (_meta)
-    {
-        _meta->RefCount--;
-        if (!_meta->RefCount)
-        {
-            delete [] _data;
-        }
-    }
-    _data = NULL;
 }
 
 void String::BecomeUnique()

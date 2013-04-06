@@ -141,6 +141,23 @@ int32_t FileStream::WriteByte(uint8_t val)
     return -1;
 }
 
+size_t FileStream::WriteByteCount(uint8_t val, size_t count)
+{
+    if (CanWrite())
+    {
+        size_t size = 0;
+        for (size_t i = 0; i < count; ++i, ++size)
+        {
+            if (fputc(val, _file) < 0)
+            {
+                break;
+            }
+        }
+        return size;
+    }
+    return 0;
+}
+
 size_t FileStream::Seek(StreamSeek seek, int pos)
 {
     if (!CanSeek())

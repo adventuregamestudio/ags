@@ -108,7 +108,11 @@ public:
     // terminator. This method is better fit for reading from text
     // streams, or when the length of string is known beforehand.
     void    ReadCount(Stream *in, int count);
+    // Write() puts the null-terminated string into the stream.
     void    Write(Stream *out) const;
+    // WriteCount() writes N characters to stream, filling the remaining
+    // space with null-terminators when needed.
+    void    WriteCount(Stream *out, int count) const;
 
     static void WriteString(const char *cstr, Stream *out);
 
@@ -205,6 +209,11 @@ public:
     void    FillString(char c, int count);
     // Makes a new string by putting in parameters according to format string
     void    Format(const char *fcstr, ...);
+    // Decrement ref counter and deallocate data if must.
+    // Free() should be called only when buffer is not needed anymore;
+    // if string must be truncated to zero length, but retain the allocated
+    // memory, call Empty() instead.
+    void    Free();
     // Convert string to lowercase equivalent
     void    MakeLower();
     // Convert string to uppercase equivalent
@@ -277,10 +286,6 @@ private:
     // Aligns data at given offset
     void    Align(int offset);
 
-    // Decrement ref counter and zero pointers, deallocate data if must.
-    // Release() should be called only when buffer is not needed anymore;
-    // if string must be truncated to zero length, call Empty() instead.
-    void    Release();
     // Ensure this string is a compact independent copy, with ref counter = 1
     void    BecomeUnique();
     // Ensure this string is independent, and there's enough space before

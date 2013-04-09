@@ -170,7 +170,7 @@ void load_main_block(roomstruct *rstruc, const char *files, Stream *in, room_fil
 		free(rstruc->hotspotnames[f]);
 
 	rstruc->hotspotnames[f] = (char*)malloc(20);
-    sprintf(rstruc->hotspotnames[f], "Hotspot %d");
+    sprintf(rstruc->hotspotnames[f], "Hotspot %d", f);
 
     if (f == 0)
       strcpy(rstruc->hotspotnames[f], "No hotspot");

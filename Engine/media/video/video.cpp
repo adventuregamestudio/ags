@@ -27,9 +27,10 @@
 #include "platform/base/agsplatformdriver.h"
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
-#include "gfx/bitmap.h"
+#include "gfx/allegrobitmap.h"
 
 using AGS::Common::Bitmap;
+using AGS::Common::AllegroBitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 
@@ -97,23 +98,21 @@ extern "C" int fli_callback() {
 // FLIC player end
 
 // TODO: find a way to take Bitmap here?
-int theora_playing_callback(BITMAP *theoraBuffer_raw)
+AllegroBitmap theora_frame_wrapper;
+int theora_playing_callback(BITMAP *theoraBuffer)
 {
-	// [IKM] CHECKME later (need optimization / reimplementation)
-	// This is probably not a very good thing to do in a video callback...
-	// Good thing is that AllegroBitmap does not store much data on its own
-	Bitmap *theoraBuffer = BitmapHelper::CreateRawObjectWrapper(theoraBuffer_raw);
-
     if (theoraBuffer == NULL)
     {
         // No video, only sound
         return check_if_user_input_should_cancel_video();
     }
 
+    theora_frame_wrapper.WrapBitmapObject(theoraBuffer);
+
     int drawAtX = 0, drawAtY = 0;
     if (fli_ddb == NULL)
     {
-        fli_ddb = gfxDriver->CreateDDBFromBitmap(theoraBuffer, false, true);
+        fli_ddb = gfxDriver->CreateDDBFromBitmap(&theora_frame_wrapper, false, true);
     }
     if (stretch_flc) 
     {
@@ -121,7 +120,7 @@ int theora_playing_callback(BITMAP *theoraBuffer_raw)
         drawAtY = scrnhit / 2 - fliTargetHeight / 2;
         if (!gfxDriver->HasAcceleratedStretchAndFlip())
         {
-            fli_target->StretchBlt(theoraBuffer, RectWH(0, 0, theoraBuffer->GetWidth(), theoraBuffer->GetHeight()), 
+            fli_target->StretchBlt(&theora_frame_wrapper, RectWH(0, 0, theora_frame_wrapper.GetWidth(), theora_frame_wrapper.GetHeight()), 
                 RectWH(drawAtX, drawAtY, fliTargetWidth, fliTargetHeight));
             gfxDriver->UpdateDDBFromBitmap(fli_ddb, fli_target, false);
             drawAtX = 0;
@@ -129,22 +128,21 @@ int theora_playing_callback(BITMAP *theoraBuffer_raw)
         }
         else
         {
-            gfxDriver->UpdateDDBFromBitmap(fli_ddb, theoraBuffer, false);
+            gfxDriver->UpdateDDBFromBitmap(fli_ddb, &theora_frame_wrapper, false);
             fli_ddb->SetStretch(fliTargetWidth, fliTargetHeight);
         }
     }
     else
     {
-        gfxDriver->UpdateDDBFromBitmap(fli_ddb, theoraBuffer, false);
-        drawAtX = scrnwid / 2 - theoraBuffer->GetWidth() / 2;
-        drawAtY = scrnhit / 2 - theoraBuffer->GetHeight() / 2;
+        gfxDriver->UpdateDDBFromBitmap(fli_ddb, &theora_frame_wrapper, false);
+        drawAtX = scrnwid / 2 - theora_frame_wrapper.GetWidth() / 2;
+        drawAtY = scrnhit / 2 - theora_frame_wrapper.GetHeight() / 2;
     }
 
     gfxDriver->DrawSprite(drawAtX, drawAtY, fli_ddb);
     render_to_screen(virtual_screen, 0, 0);
     update_polled_stuff_and_crossfade ();
 
-	delete theoraBuffer;
     return check_if_user_input_should_cancel_video();
 }
 

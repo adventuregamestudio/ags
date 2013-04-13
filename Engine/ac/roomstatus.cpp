@@ -28,7 +28,7 @@ void RoomStatus::ReadFromFile_v321(Stream *in)
     ReadRoomObjects_Aligned(in);
     in->ReadArrayOfInt16(flagstates, MAX_FLAGS);
     tsdatasize = in->ReadInt32();
-    tsdata = (char *) in->ReadInt32();
+    in->ReadInt32(); // tsdata
     for (int i = 0; i < MAX_HOTSPOTS; ++i)
     {
         intrHotspot[i].ReadFromFile(in);
@@ -55,7 +55,7 @@ void RoomStatus::WriteToFile_v321(Stream *out)
     WriteRoomObjects_Aligned(out);
     out->WriteArrayOfInt16(flagstates, MAX_FLAGS);
     out->WriteInt32(tsdatasize);
-    out->WriteInt32((int)tsdata);
+    out->WriteInt32(0); // tsdata
     for (int i = 0; i < MAX_HOTSPOTS; ++i)
     {
         intrHotspot[i].WriteToFile(out);

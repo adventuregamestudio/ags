@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include <allegro.h>
 #include "gfx/allegrobitmap.h"
 #include "gfx/graphics.h"
 #include "debug/assert.h"
@@ -161,88 +160,9 @@ bool Bitmap::SaveToFile(const char *filename, const void *palette)
 	return save_bitmap(filename, _alBitmap, (const RGB*)palette) == 0;
 }
 
-void *Bitmap::GetAllegroBitmap()
-{
-	return _alBitmap;
-}
-
-bool Bitmap::IsMemoryBitmap() const
-{
-	return is_memory_bitmap(_alBitmap) != 0;
-}
-
-bool Bitmap::IsLinearBitmap() const
-{
-	return is_linear_bitmap(_alBitmap) != 0;
-}
-
-bool Bitmap::IsNull() const
-{
-	return !this || !_alBitmap;
-}
-
-bool Bitmap::IsEmpty() const
-{
-	return GetWidth() == 0 || GetHeight() == 0;
-}
-
-int Bitmap::GetWidth() const
-{
-	return _alBitmap->w;
-}
-
-int Bitmap::GetHeight() const
-{
-	return _alBitmap->h;
-}
-
-int Bitmap::GetColorDepth() const
-{
-	return bitmap_color_depth(_alBitmap);
-}
-
-int Bitmap::GetBPP() const
-{
-	int color_depth = GetColorDepth();
-	if (color_depth == 15)
-		return 2;
-
-	return color_depth >> 3;
-}
-
-int Bitmap::GetDataSize() const
-{
-	return GetWidth() * GetHeight() * GetBPP();
-}
-
-int Bitmap::GetLineLength() const
-{
-	return GetWidth() * GetBPP();
-}
-
-const unsigned char *Bitmap::GetData() const
-{
-	return _alBitmap->line[0];
-}
-
-const unsigned char *Bitmap::GetScanLine(int index) const
-{
-	if (index < 0 || index >= GetHeight())
-	{
-		return NULL;
-	}
-
-	return _alBitmap->line[index];
-}
-
 void Bitmap::SetMaskColor(color_t color)
 {
 	// not supported? CHECKME
-}
-
-color_t Bitmap::GetMaskColor() const
-{
-	return bitmap_mask_color(_alBitmap);
 }
 
 void Bitmap::Acquire()
@@ -334,16 +254,6 @@ int Bitmap::GetPixel(int x, int y) const
 //=============================================================================
 // Direct access operations
 //=============================================================================
-
-unsigned char *Bitmap::GetScanLineForWriting(int index)
-{
-	if (index < 0 || index >= GetHeight())
-	{
-		return NULL;
-	}
-
-	return _alBitmap->line[index];
-}
 
 void Bitmap::SetScanLine(int index, unsigned char *data, int data_size)
 {

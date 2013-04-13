@@ -812,7 +812,7 @@ int ccInstance::Run(int32_t curpc)
           PUSH_CALL_STACK;
 
           ASSERT_STACK_SPACE_AVAILABLE(1);
-          PushValueToStack(RuntimeScriptValue().SetInt32(pc + sccmd_info[codeOp.Instruction.Code].ArgCount + 1));
+          PushValueToStack(RuntimeScriptValue().SetInt32(pc + codeOp.ArgCount + 1));
           if (ccError)
           {
               return -1;
@@ -1346,7 +1346,7 @@ int ccInstance::Run(int32_t curpc)
         if (flags & INSTF_ABORTED)
             return 0;
 
-        pc += sccmd_info[codeOp.Instruction.Code].ArgCount + 1;
+        pc += codeOp.ArgCount + 1;
     }
 }
 

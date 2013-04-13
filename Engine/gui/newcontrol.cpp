@@ -18,6 +18,8 @@
 extern int topwindowhandle;
 extern int mousex, mousey;
 
+extern Common::Graphics *GetVirtualScreenGraphics();
+
 NewControl::NewControl(int xx, int yy, int wi, int hi)
 {
     x = xx;
@@ -49,12 +51,12 @@ void NewControl::drawifneeded()
         return;
     if (needredraw) {
         needredraw = 0;
-        draw();
+        draw(GetVirtualScreenGraphics());
     }
 }
 void NewControl::drawandmouse()
 {
     //    domouse(2);
-    draw();
+    draw(GetVirtualScreenGraphics());
     //  domouse(1);
 }

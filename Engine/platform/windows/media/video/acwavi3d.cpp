@@ -98,7 +98,7 @@ extern void update_polled_stuff_and_crossfade();
 extern volatile char want_exit;
 extern volatile int timerloop;
 extern char lastError[300];
-extern void next_iteration();
+extern void NextIteration();
 CVMR9Graph *graph = NULL;
 
 void dxmedia_shutdown_3d()
@@ -148,7 +148,7 @@ int dxmedia_play_video_3d(const char* filename, IDirect3DDevice9 *device, bool u
     if (!useAVISound)
       update_polled_stuff_and_crossfade();
 
-    next_iteration();
+    NextIteration();
     filterState = graph->GetState();
 
     if (rec_kbhit()) {

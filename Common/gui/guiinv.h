@@ -38,7 +38,8 @@ struct GUIInv:public GUIObject
 
   int CharToDisplay();
 
-  void Draw();
+  // This function has distinct implementations in Engine and Editor
+  virtual void Draw(Common::Graphics *g);
 
   void MouseMove(int x, int y)
   {

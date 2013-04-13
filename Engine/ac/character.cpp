@@ -52,7 +52,7 @@
 #include "util/string_utils.h"
 #include <math.h>
 #include "gfx/graphicsdriver.h"
-#include "gfx/bitmap.h"
+#include "gfx/graphics.h"
 #include "platform/base/override_defines.h"
 #include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_character.h"
@@ -60,6 +60,7 @@
 #include "script/script_runtime.h"
 
 using AGS::Common::Bitmap;
+using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameSetupStruct game;
@@ -208,7 +209,7 @@ void Character_Animate(CharacterInfo *chaa, int loop, int delay, int repeat, int
     animate_character(chaa, loop, delay, repeat, 0, direction);
 
     if ((blocking == BLOCKING) || (blocking == 1))
-        do_main_cycle(UNTIL_SHORTIS0,(long)&chaa->animating);
+        GameLoopUntilEvent(UNTIL_SHORTIS0,(long)&chaa->animating);
     else if ((blocking != IN_BACKGROUND) && (blocking != 0))
         quit("!Character.Animate: Invalid BLOCKING parameter");
 }
@@ -395,11 +396,11 @@ void Character_FaceLocation(CharacterInfo *char1, int xx, int yy, int blockingSt
             Character_StopMoving(char1);
             if (char1->on == 1) {
                 // only do the turning if the character is not hidden
-                // (otherwise do_main_cycle will never return)
+                // (otherwise GameLoopUntilEvent will never return)
                 start_character_turning (char1, useloop, no_diagonal);
 
                 if ((blockingStyle == BLOCKING) || (blockingStyle == 1))
-                    do_main_cycle(UNTIL_MOVEEND,(long)&char1->walking);
+                    GameLoopUntilEvent(UNTIL_MOVEEND,(long)&char1->walking);
             }
             else
                 char1->loop = useloop;
@@ -946,7 +947,7 @@ void Character_WalkStraight(CharacterInfo *chaa, int xx, int yy, int blocking) {
     walk_character(chaa->index_id, movetox, movetoy, 1, true);
 
     if ((blocking == BLOCKING) || (blocking == 1))
-        do_main_cycle(UNTIL_MOVEEND,(long)&chaa->walking);
+        GameLoopUntilEvent(UNTIL_MOVEEND,(long)&chaa->walking);
     else if ((blocking != IN_BACKGROUND) && (blocking != 0))
         quit("!Character.Walk: Blocking must be BLOCKING or IN_BACKGRUOND");
 
@@ -1933,7 +1934,7 @@ void walk_or_move_character(CharacterInfo *chaa, int x, int y, int blocking, int
         quit("!Character.Walk: Direct must be ANYWHERE or WALKABLE_AREAS");
 
     if ((blocking == BLOCKING) || (blocking == 1))
-        do_main_cycle(UNTIL_MOVEEND,(long)&chaa->walking);
+        GameLoopUntilEvent(UNTIL_MOVEEND,(long)&chaa->walking);
     else if ((blocking != IN_BACKGROUND) && (blocking != 0))
         quit("!Character.Walk: Blocking must be BLOCKING or IN_BACKGRUOND");
 
@@ -2202,7 +2203,7 @@ int my_getpixel(Bitmap *blk, int x, int y) {
 
     // strip the alpha channel
 	// TODO: is there a way to do this vtable thing with Bitmap?
-	BITMAP *al_bmp = (BITMAP*)blk->GetBitmapObject();
+	BITMAP *al_bmp = (BITMAP*)blk->GetAllegroBitmap();
     return al_bmp->vtable->getpixel(al_bmp, x, y) & 0x00ffffff;
 }
 
@@ -2322,7 +2323,7 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
     if (isPause) {
         if (update_music_at > 0)
             update_music_at += play.messagetime;
-        do_main_cycle(UNTIL_INTISNEG,(long)&play.messagetime);
+        GameLoopUntilEvent(UNTIL_INTISNEG,(long)&play.messagetime);
         return;
     }
 
@@ -2549,15 +2550,15 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
                 else
                     ovr_yp = yy;
 
-                closeupface = BitmapHelper::CreateBitmap(bigx+1,bigy+1,spriteset[viptr->loops[0].frames[0].pic]->GetColorDepth());
-                closeupface->Clear(closeupface->GetMaskColor());
+                closeupface = BitmapHelper::CreateTransparentBitmap(bigx+1,bigy+1,spriteset[viptr->loops[0].frames[0].pic]->GetColorDepth());
                 ovr_type = OVER_PICTURE;
 
                 if (yy < 0)
                     tdyp = ovr_yp + get_textwindow_top_border_height(play.speech_textwindow_gui);
             }
             //->Blit(closeupface,spriteset[viptr->frames[0][0].pic],0,draw_yp);
-            DrawViewFrame(closeupface, &viptr->loops[0].frames[0], 0, draw_yp);
+            Graphics graphics(closeupface);
+            DrawViewFrame(&graphics, &viptr->loops[0].frames[0], 0, draw_yp);
 
             int overlay_x = get_fixed_pixel_size(10);
 

@@ -34,8 +34,6 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 #include "libcda.h"
 #endif
 
-extern Bitmap *abuf; // in wgt2allg
-
 AGSPlatformDriver* AGSPlatformDriver::instance = NULL;
 AGSPlatformDriver *platform = NULL;
 
@@ -124,7 +122,8 @@ int AGSPlatformDriver::RunPluginDebugHooks(const char *scriptfile, int linenum) 
 void AGSPlatformDriver::InitialiseAbufAtStartup()
 {
     // because loading the game file accesses abuf, it must exist
-    abuf = BitmapHelper::CreateBitmap(10,10,8);
+    // No no no, David Blain, no magic here :P
+    //abuf = BitmapHelper::CreateBitmap(10,10,8);
 }
 
 void AGSPlatformDriver::FinishedUsingGraphicsMode()

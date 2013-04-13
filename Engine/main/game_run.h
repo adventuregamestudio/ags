@@ -23,10 +23,17 @@
 namespace AGS { namespace Engine { class IDriverDependantBitmap; }}
 using namespace AGS::Engine; // FIXME later
 
-void do_main_cycle(int untilwhat,long daaa);
-void mainloop(bool checkControls = false, IDriverDependantBitmap *extraBitmap = NULL, int extraX = 0, int extraY = 0);
-int  main_game_loop();
-int  wait_loop_still_valid();
-void next_iteration();
+// Run single game iteration; calls UpdateGameOnce() internally
+int GameTick();
+// Update everything game related
+void UpdateGameOnce(bool checkControls = false, IDriverDependantBitmap *extraBitmap = NULL, int extraX = 0, int extraY = 0);
+// Loops GameTick() until certain event takes place (for blocking actions)
+void GameLoopUntilEvent(int untilwhat,long daaa);
+// Checks if user interface should remain disabled for now
+int  ShouldStayInWaitMode();
+// Increases game frame count; used for recording/replay only
+void NextIteration();
+// Run the actual game until it ends, or aborted by player/error; loops GameTick() internally
+void RunGameUntilAborted();
 
 #endif // __AGS_EE_MAIN__GAMERUN_H

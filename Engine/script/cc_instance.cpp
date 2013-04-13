@@ -527,16 +527,15 @@ int ccInstance::Run(int32_t curpc)
         codeOp.Instruction.InstanceId	= (codeOp.Instruction.Code >> INSTANCE_ID_SHIFT) & INSTANCE_ID_MASK;
         codeOp.Instruction.Code		   &= INSTANCE_ID_REMOVEMASK; // now this is pure instruction code
 
-        int want_args = sccmd_info[codeOp.Instruction.Code].ArgCount;
-        if (pc + want_args >= codeInst->codesize)
+        codeOp.ArgCount = sccmd_info[codeOp.Instruction.Code].ArgCount;
+        if (pc + codeOp.ArgCount >= codeInst->codesize)
         {
-            cc_error("unexpected end of code data at %d", pc + want_args);
+            cc_error("unexpected end of code data (%d; %d)", pc + codeOp.ArgCount, codeInst->codesize);
             return -1;
         }
-        codeOp.ArgCount = want_args;
 
         int pc_at = pc + 1;
-        for (int i = 0; i < want_args; ++i, ++pc_at)
+        for (int i = 0; i < codeOp.ArgCount; ++i, ++pc_at)
         {
             char fixup = codeInst->code_fixups[pc_at];
             if (fixup > 0)
@@ -814,7 +813,7 @@ int ccInstance::Run(int32_t curpc)
           PUSH_CALL_STACK;
 
           ASSERT_STACK_SPACE_AVAILABLE(1);
-          PushValueToStack(RuntimeScriptValue().SetInt32(pc + sccmd_info[codeOp.Instruction.Code].ArgCount + 1));
+          PushValueToStack(RuntimeScriptValue().SetInt32(pc + codeOp.ArgCount + 1));
           if (ccError)
           {
               return -1;
@@ -1372,7 +1371,7 @@ int ccInstance::Run(int32_t curpc)
         if (flags & INSTF_ABORTED)
             return 0;
 
-        pc += sccmd_info[codeOp.Instruction.Code].ArgCount + 1;
+        pc += codeOp.ArgCount + 1;
     }
 }
 

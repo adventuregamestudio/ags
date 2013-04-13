@@ -285,7 +285,7 @@ private:
     void    BecomeUnique();
     // Ensure this string is independent, and there's enough space before
     // or after the current string data
-    void    ReserveAndShift(bool left, int more_length);
+    void    ReserveAndShift(bool reserve_left, int more_length);
 
     struct Header
     {

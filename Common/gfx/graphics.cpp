@@ -247,7 +247,7 @@ void Graphics::RotateBlt(Bitmap *src, int dst_x, int dst_y, fixed_t angle)
 void Graphics::RotateBlt(Bitmap *src, int dst_x, int dst_y, int pivot_x, int pivot_y, fixed_t angle)
 {	
 	BITMAP *al_src_bmp = src->_alBitmap;
-	pivot_sprite(_alBitmap, al_src_bmp, dst_x, dst_y, pivot_x, pivot_x, angle);
+	pivot_sprite(_alBitmap, al_src_bmp, dst_x, dst_y, pivot_x, pivot_y, angle);
 }
 
 //=============================================================================

@@ -47,11 +47,11 @@ void Test_String()
         s3.Append("1234");
         assert(cap1 == s3.GetCapacity());
         s3.Append("1234567890123");
-        assert(27 == s3.GetCapacity());
+        assert(32 == s3.GetCapacity());
         s3.Append("1234567890123");
-        assert(40 == s3.GetCapacity());
+        assert(64 == s3.GetCapacity());
         s3.Append("1234567890123");
-        assert(60 == s3.GetCapacity());
+        assert(64 == s3.GetCapacity());
 
         String s4 = "12345678901234567890";
         const char *cstr = s4.GetCStr();
@@ -62,6 +62,51 @@ void Test_String()
         s4.Append("12345");
         assert(s4.GetCStr() == cstr);
         assert(strcmp(s4, "12345123456789012345") == 0);
+        s4.Prepend("abcde");
+        assert(strcmp(s4, "abcde12345123456789012345") == 0);
+        assert(s4.GetCapacity() == 40);
+
+        String s5 = "test reserve append+";
+        cstr = s5.GetCStr();
+        s5.ClipRight(8);
+        assert(strcmp(s5, "test reserve") == 0);
+        assert(s5.GetCapacity() == 20);
+        assert(s5.GetCStr() == cstr);
+        s5.Prepend("prepend ");
+        assert(strcmp(s5, "prepend test reserve") == 0);
+        assert(s5.GetCapacity() == 20);
+        assert(s5.GetCStr() == cstr);
+
+        String s6 = "1234567890";
+        cstr = s6.GetCStr();
+        s6.ClipLeft(4);
+        String s7 = s6;
+        assert(s7.GetCapacity() == 10);
+        assert(s7.GetCStr() == cstr + 4);
+        s7.Prepend("abcd");
+        assert(s7.GetCapacity() == 10);
+        assert(strcmp(s7, "abcd567890") == 0);
+
+        String s8 = "abcdefghij";
+        s8.ClipRight(4);
+        String s9 = s8;
+        assert(s9.GetCapacity() == 10);
+        s9.Append("1234");
+        assert(s9.GetCapacity() == 10);
+        assert(strcmp(s9, "abcdef1234") == 0);
+
+        String s10 = "1234";
+        s10.Reserve(100);
+        assert(s10.GetCapacity() == 100);
+        String s11 = "1234567890";
+        s11.Reserve(10);
+        assert(s11.GetCapacity() == 10);
+        s11.ReserveMore(10);
+        assert(s11.GetCapacity() == 20);
+        s11.ReserveMore(10);
+        assert(s11.GetCapacity() == 20);
+        s11.Reserve(15);
+        assert(s11.GetCapacity() == 20);
     }
 
     // Test Compare

@@ -16,5 +16,6 @@
 
 void Test_ScriptSprintf();
 void Test_String();
+void Test_Version();
 
 #endif // _DEBUG

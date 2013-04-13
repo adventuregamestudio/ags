@@ -825,8 +825,7 @@ int ccInstance::Run(int32_t curpc)
               pc += (reg1.IValue - thisbase[curnest]);
           }
 
-          if (next_call_needs_object)  // is this right?
-              next_call_needs_object = 0;
+          next_call_needs_object = 0;
 
           if (loopIterationCheckDisabled)
               loopIterationCheckDisabled++;
@@ -934,8 +933,15 @@ int ccInstance::Run(int32_t curpc)
           int32_t handle = registers[SREG_MAR].ReadInt32();
           void *object;
           ICCDynamicObject *manager;
-          ccGetObjectAddressAndManagerFromHandle(handle, object, manager);
-          reg1.SetDynamicObject( object, manager );
+          ScriptValueType obj_type = ccGetObjectAddressAndManagerFromHandle(handle, object, manager);
+          if (obj_type == kScValPluginObject)
+          {
+              reg1.SetPluginObject( object, manager );
+          }
+          else
+          {
+              reg1.SetDynamicObject( object, manager );
+          }
 
           // if error occurred, cc_error will have been set
           if (ccError)
@@ -950,9 +956,14 @@ int ccInstance::Run(int32_t curpc)
           {
               address = (char*)reg1.StcArr->GetElementPtr(reg1.Ptr, reg1.IValue);
           }
-          else if (reg1.Type == kScValDynamicObject)
+          else if (reg1.Type == kScValDynamicObject ||
+              reg1.Type == kScValPluginObject)
           {
               address = reg1.Ptr;
+          }
+          else if (reg1.Type == kScValPluginArg)
+          {
+              address = (char*)reg1.IValue;
           }
           // There's one possible case when the reg1 is 0, which means writing nullptr
           else if (!reg1.IsNull())
@@ -979,9 +990,14 @@ int ccInstance::Run(int32_t curpc)
           {
               address = (char*)reg1.StcArr->GetElementPtr(reg1.Ptr, reg1.IValue);
           }
-          else if (reg1.Type == kScValDynamicObject)
+          else if (reg1.Type == kScValDynamicObject ||
+              reg1.Type == kScValPluginObject)
           {
               address = reg1.Ptr;
+          }
+          else if (reg1.Type == kScValPluginArg)
+          {
+              address = (char*)reg1.IValue;
           }
           // There's one possible case when the reg1 is 0, which means writing nullptr
           else if (!reg1.IsNull())
@@ -1083,8 +1099,7 @@ int ccInstance::Run(int32_t curpc)
               return -1;
           }
 
-          if (next_call_needs_object)
-              next_call_needs_object = 0;
+          next_call_needs_object = 0;
 
           pc = oldpc;
           was_just_callas = func_callstack.Count;
@@ -1109,10 +1124,33 @@ int ccInstance::Run(int32_t curpc)
 
           RuntimeScriptValue return_value;
 
-          if (next_call_needs_object)
+          if (reg1.Type == kScValPluginFunction)
+          {
+              GlobalReturnValue.Invalidate();
+              int32_t int_ret_val;
+              if (next_call_needs_object)
+              {
+                  RuntimeScriptValue obj_rval = registers[SREG_OP];
+                  obj_rval.DirectPtr();
+                  int_ret_val = call_function((intptr_t)reg1.Ptr, &obj_rval, num_args_to_func, func_callstack.GetHead() + 1);
+              }
+              else
+              {
+                  int_ret_val = call_function((intptr_t)reg1.Ptr, NULL, num_args_to_func, func_callstack.GetHead() + 1);
+              }
+
+              if (GlobalReturnValue.IsValid())
+              {
+                  return_value = GlobalReturnValue;
+              }
+              else
+              {
+                  return_value.SetPluginArgument(int_ret_val);
+              }
+          }
+          else if (next_call_needs_object)
           {
             // member function call
-            next_call_needs_object = 0;
             if (reg1.Type == kScValObjectFunction)
             {
               RuntimeScriptValue obj_rval = registers[SREG_OP];
@@ -1127,19 +1165,6 @@ int ccInstance::Run(int32_t curpc)
           else if (reg1.Type == kScValStaticFunction)
           {
             return_value = reg1.SPfn(func_callstack.GetHead() + 1, num_args_to_func);
-          }
-          else if (reg1.Type == kScValPluginFunction)
-          {
-            GlobalReturnValue.Invalidate();
-            int32_t int_ret_val = call_function((intptr_t)reg1.Ptr, num_args_to_func, func_callstack.GetHead() + 1);
-            if (GlobalReturnValue.IsValid())
-            {
-              return_value = GlobalReturnValue;
-            }
-            else
-            {
-              return_value.SetInt32(int_ret_val);
-            }
           }
           else if (reg1.Type == kScValObjectFunction)
           {
@@ -1157,6 +1182,7 @@ int ccInstance::Run(int32_t curpc)
 
           registers[SREG_AX] = return_value;
           current_instance = this;
+          next_call_needs_object = 0;
           num_args_to_func = -1;
           break;
                          }
@@ -1178,7 +1204,7 @@ int ccInstance::Run(int32_t curpc)
               cc_error("!Null pointer referenced");
               return -1;
           }
-          if (reg1.Type == kScValDynamicObject ||
+          if (reg1.Type == kScValDynamicObject || reg1.Type == kScValPluginObject ||
               // This might be an object of USER-DEFINED type, calling its MEMBER-FUNCTION.
               // Note, that this is the only case known when such object is written into reg[SREG_OP];
               // in any other case that would count as error.

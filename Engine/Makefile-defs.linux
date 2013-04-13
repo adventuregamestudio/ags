@@ -1,8 +1,9 @@
 INCDIR = ../Engine ../Common ../Common/libinclude ../Plugins
 LIBDIR =
-override CFLAGS += -O2 -pie -fpie -g -fsigned-char -Wfatal-errors -DNDEBUG -DAGS_RUNTIME_PATCH_ALLEGRO -DAGS_HAS_CD_AUDIO -DAGS_CASE_SENSITIVE_FILESYSTEM -DALLEGRO_STATICLINK -DTHIS_IS_THE_ENGINE -DLINUX_VERSION -DDISABLE_MPEG_AUDIO -DBUILTIN_PLUGINS -DRTLD_NEXT $(shell pkg-config --cflags freetype2)
+override CFLAGS += -O2 -g -fsigned-char -Wfatal-errors -DNDEBUG -DAGS_RUNTIME_PATCH_ALLEGRO -DAGS_HAS_CD_AUDIO -DAGS_CASE_SENSITIVE_FILESYSTEM -DALLEGRO_STATICLINK -DLINUX_VERSION -DDISABLE_MPEG_AUDIO -DBUILTIN_PLUGINS -DRTLD_NEXT $(shell pkg-config --cflags freetype2)
 override CXXFLAGS += -fno-rtti -Wno-write-strings -fpermissive
 LIBS = -rdynamic $(shell allegro-config --libs) -laldmb -ldumb -Wl,-Bdynamic -ltheora -logg 
+
 ifeq ($(USE_TREMOR), 1)
   LIBS += -lvorbisidec
   override CFLAGS += -DUSE_TREMOR
@@ -10,6 +11,10 @@ else
   LIBS += -lvorbis
 endif
 LIBS += -lvorbisfile -lfreetype -logg -ldl -lpthread -lm -lc -lstdc++
+
+ifeq ($(ALLEGRO_MAGIC_DRV), 1)
+  override CFLAGS += -DALLEGRO_MAGIC_DRV
+endif	
 
 ifdef BUILD_STR
   override CFLAGS += -DBUILD_STR=\"$(BUILD_STR)\"

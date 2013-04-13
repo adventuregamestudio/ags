@@ -1072,7 +1072,14 @@ void save_game_header(Stream *out)
 {
     // Write lowest forward-compatible version string, so that
     // earlier versions could load savedgames made by current engine
-    fputstring(SavedgameLowestForwardCompatVersion.LongString, out);
+    if (SavedgameLowestForwardCompatVersion <= Version::LastOldFormatVersion)
+    {
+        fputstring(SavedgameLowestForwardCompatVersion.BackwardCompatibleString, out);
+    }
+    else
+    {
+        fputstring(SavedgameLowestForwardCompatVersion.LongString, out);
+    }
     fputstring(usetup.main_data_filename, out);
 }
 
@@ -1151,10 +1158,10 @@ void save_game_room_state(Stream *out)
                     out->Write(&roomstat->tsdata[0], roomstat->tsdatasize);
             }
             else
-                out->WriteInt8 (0); // <--- [IKM] added by me, CHECKME if needed / works correctly
+                out->WriteInt8(0);
         }
         else
-            out->WriteInt8 (0);
+            out->WriteInt8(0);
     }
 }
 
@@ -1302,7 +1309,6 @@ void save_game_displayed_room_status(Stream *out)
 
         // save the current troom, in case they save in room 600 or whatever
         WriteRoomStatus_Aligned(&troom, out);
-        //out->WriteArray(&troom,sizeof(RoomStatus),1);
         if (troom.tsdatasize>0)
             out->Write(&troom.tsdata[0],troom.tsdatasize);
 
@@ -1986,7 +1992,6 @@ void restore_game_displayed_room_status(Stream *in, Bitmap **newbscene)
         }
         else
             troom.tsdata = NULL;
-
     }
 }
 

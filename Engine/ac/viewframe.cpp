@@ -17,11 +17,12 @@
 #include "debug/debug_log.h"
 #include "media/audio/audio.h"
 #include "ac/spritecache.h"
-#include "gfx/bitmap.h"
+#include "gfx/graphics.h"
 #include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_audioclip.h"
 
 using AGS::Common::Bitmap;
+using AGS::Common::Graphics;
 
 extern GameSetupStruct game;
 extern ViewStruct*views;
@@ -156,11 +157,11 @@ void CheckViewFrame (int view, int loop, int frame) {
 }
 
 // draws a view frame, flipped if appropriate
-void DrawViewFrame(Bitmap *target, ViewFrame *vframe, int x, int y) {
+void DrawViewFrame(Graphics *g, ViewFrame *vframe, int x, int y) {
     if (vframe->flags & VFLG_FLIPSPRITE)
-        target->FlipBlt(spriteset[vframe->pic], x, y, Common::kBitmap_HFlip);
+        g->FlipBlt(spriteset[vframe->pic], x, y, Common::kBitmap_HFlip);
     else
-        target->Blit(spriteset[vframe->pic], x, y, Common::kBitmap_Transparency);
+        g->Blit(spriteset[vframe->pic], x, y, Common::kBitmap_Transparency);
 }
 
 //=============================================================================

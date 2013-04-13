@@ -99,15 +99,19 @@ ViewStruct272 *oldViews;
 ViewStruct *newViews;
 int numNewViews = 0;
 
+// A reference color depth, for correct color selection;
+// originally was defined by 'abuf' bitmap.
+int BaseColorDepth;
+
 
 bool reload_font(int curFont);
 void drawBlockScaledAt(int hdc, Common::Bitmap *todraw ,int x, int y, int scaleFactor);
 // this is to shut up the linker, it's used by CSRUN.CPP
 void write_log(char *) { }
 
-void GUIInv::Draw() {
-  wsetcolor(15);
-  abuf->DrawRect(Rect(x,y,x+wid,y+hit), currentcolor);
+void GUIInv::Draw(Common::Graphics *g) {
+  g->SetColor(15);
+  g->Bmp->DrawRect(Rect(x,y,x+wid,y+hit), g->DrawColor);
 }
 
 int multiply_up_coordinate(int coord)
@@ -178,7 +182,7 @@ void deleteSprite (int sprslot) {
 
 void SetNewSpriteFromHBitmap(int slot, int hBmp) {
   // FIXME later
-  Common::Bitmap *tempsprite = Common::BitmapHelper::CreateRawObjectOwner(convert_hbitmap_to_bitmap((HBITMAP)hBmp));
+  Common::Bitmap *tempsprite = Common::BitmapHelper::CreateRawBitmapOwner(convert_hbitmap_to_bitmap((HBITMAP)hBmp));
   SetNewSprite(slot, tempsprite);
 }
 
@@ -602,7 +606,7 @@ void drawBlockDoubleAt (int hdc, Common::Bitmap *todraw ,int x, int y) {
   drawBlockScaledAt (hdc, todraw, x, y, 2);
 }
 
-void wputblock_stretch(int xpt,int ypt,Common::Bitmap *tblock,int nsx,int nsy) {
+void wputblock_stretch(Common::Graphics *g, int xpt,int ypt,Common::Bitmap *tblock,int nsx,int nsy) {
   if (bmp_bpp(tblock) != thisgame.color_depth) {
     Common::Bitmap *tempst=Common::BitmapHelper::CreateBitmap(tblock->GetWidth(),tblock->GetHeight(),thisgame.color_depth*8);
     tempst->Blit(tblock,0,0,0,0,tblock->GetWidth(),tblock->GetHeight());
@@ -613,13 +617,13 @@ void wputblock_stretch(int xpt,int ypt,Common::Bitmap *tblock,int nsx,int nsy) {
           tempst->PutPixel(ww,vv,tempst->GetMaskColor());
       }
     }
-    abuf->StretchBlt(tempst,RectWH(xpt,ypt,nsx,nsy), Common::kBitmap_Transparency);
+    g->Bmp->StretchBlt(tempst,RectWH(xpt,ypt,nsx,nsy), Common::kBitmap_Transparency);
     delete tempst;
   }
-  else abuf->StretchBlt(tblock,RectWH(xpt,ypt,nsx,nsy), Common::kBitmap_Transparency);
+  else g->Bmp->StretchBlt(tblock,RectWH(xpt,ypt,nsx,nsy), Common::kBitmap_Transparency);
 }
 
-void draw_sprite_compensate(int sprnum, int atxp, int atyp, int seethru) {
+void draw_sprite_compensate(Common::Graphics *g, int sprnum, int atxp, int atyp, int seethru) {
   Common::Bitmap *blptr = get_sprite(sprnum);
   Common::Bitmap *towrite=blptr;
   int needtofree=0, main_color_depth = thisgame.color_depth * 8;
@@ -651,7 +655,7 @@ void draw_sprite_compensate(int sprnum, int atxp, int atyp, int seethru) {
     nwid *= 2;
     nhit *= 2;
   }
-  wputblock_stretch(atxp,atyp,towrite,nwid,nhit);
+  wputblock_stretch(g, atxp,atyp,towrite,nwid,nhit);
   if (needtofree) delete towrite;
 }
 
@@ -1036,13 +1040,14 @@ void drawFontAt (int hdc, int fontnum, int x,int y) {
   // we can't antialias font because changing col dep to 16 here causes
   // it to crash ... why?
   Common::Bitmap *tempblock = Common::BitmapHelper::CreateBitmap(FONTGRIDSIZE*10, FONTGRIDSIZE*10, 8);
-  tempblock->Clear(0);
-  Common::Bitmap *abufwas = abuf;
-  abuf = tempblock;
-  wtextcolor(15);
+  Common::Graphics graphics(tempblock);
+  graphics.Bmp->Clear(0);
+  //Common::Bitmap *abufwas = abuf;
+  //abuf = tempblock;
+  graphics.SetTextColor(15);
   for (int aa=0;aa<96;aa++)
-    wgtprintf(5+(aa%10)*FONTGRIDSIZE,5+(aa/10)*FONTGRIDSIZE, fontnum, "%c",aa+32);
-  abuf = abufwas;
+    wgtprintf(&graphics, 5+(aa%10)*FONTGRIDSIZE,5+(aa/10)*FONTGRIDSIZE, fontnum, "%c",aa+32);
+  //abuf = abufwas;
 
   if (doubleSize > 1) 
     drawBlockDoubleAt(hdc, tempblock, x, y);
@@ -1165,7 +1170,7 @@ int get_adjusted_spriteheight(int spr) {
 
 void drawBlockOfColour(int hdc, int x,int y, int width, int height, int colNum)
 {
-	__my_setcolor(&colNum, colNum);
+	__my_setcolor(&colNum, colNum, BaseColorDepth);
   /*if (thisgame.color_depth > 2) {
     // convert to 24-bit colour
     int red = ((colNum >> 11) & 0x1f) * 8;
@@ -1202,7 +1207,8 @@ bool initialize_native()
 	//set_gdi_color_format();
 	palette = &thisgame.defpal[0];
 	thisgame.color_depth = 2;
-	abuf = Common::BitmapHelper::CreateBitmap(10, 10, 32);
+	//abuf = Common::BitmapHelper::CreateBitmap(10, 10, 32);
+    BaseColorDepth = 32;
 	thisgame.numfonts = 0;
 	new_font();
 
@@ -1289,17 +1295,18 @@ void drawGUIAt (int hdc, int x,int y,int x1,int y1,int x2,int y2, int scaleFacto
 
   Common::Bitmap *tempblock = Common::BitmapHelper::CreateBitmap(tempgui.wid, tempgui.hit, thisgame.color_depth*8);
   tempblock->Clear(tempblock->GetMaskColor ());
-  Common::Bitmap *abufWas = abuf;
-  abuf = tempblock;
+  //Common::Bitmap *abufWas = abuf;
+  //abuf = tempblock;
+  Common::Graphics graphics(tempblock);  
 
-  tempgui.draw_at (0, 0);
+  tempgui.draw_at (&graphics, 0, 0);
 
   dsc_want_hires = 0;
 
   if (x1 >= 0) {
-    abuf->DrawRect(Rect (x1, y1, x2, y2), 14);
+    graphics.Bmp->DrawRect(Rect (x1, y1, x2, y2), 14);
   }
-  abuf = abufWas;
+  //abuf = abufWas;
 
   drawBlockScaledAt (hdc, tempblock, x, y, scaleFactor);
   //drawBlockDoubleAt (hdc, tempblock, x, y);
@@ -1396,8 +1403,9 @@ void sort_out_transparency(Common::Bitmap *toimp, int sprite_import_method, colo
 }
 
 void update_abuf_coldepth() {
-  delete abuf;
-  abuf = Common::BitmapHelper::CreateBitmap(10, 10, thisgame.color_depth * 8);
+//  delete abuf;
+//  abuf = Common::BitmapHelper::CreateBitmap(10, 10, thisgame.color_depth * 8);
+    BaseColorDepth = thisgame.color_depth * 8;
 }
 
 bool reload_font(int curFont)
@@ -2721,8 +2729,9 @@ void GameUpdated(Game ^game) {
   antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
   update_font_sizes();
 
-  delete abuf;
-  abuf = Common::BitmapHelper::CreateBitmap(32, 32, thisgame.color_depth * 8);
+  //delete abuf;
+  //abuf = Common::BitmapHelper::CreateBitmap(32, 32, thisgame.color_depth * 8);
+  BaseColorDepth = thisgame.color_depth * 8;
 
   // ensure that the sprite import knows about pal slots 
   for (int i = 0; i < 256; i++) {

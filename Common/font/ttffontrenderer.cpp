@@ -87,10 +87,10 @@ void TTFFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
 
   ALFONT_FONT *alfpt = get_ttf_block(fonts[fontNumber]);
   // Y - 1 because it seems to get drawn down a bit
-  if ((ShouldAntiAliasText()) && (abuf->GetColorDepth() > 8))
-    alfont_textout_aa((BITMAP*)abuf->GetBitmapObject(), alfpt, text, x, y - 1, colour);
+  if ((ShouldAntiAliasText()) && (bitmap_color_depth(destination) > 8))
+    alfont_textout_aa(destination, alfpt, text, x, y - 1, colour);
   else
-    alfont_textout((BITMAP*)abuf->GetBitmapObject(), alfpt, text, x, y - 1, colour);
+    alfont_textout(destination, alfpt, text, x, y - 1, colour);
 }
 
 bool TTFFontRenderer::LoadFromDisk(int fontNumber, int fontSize)

@@ -815,7 +815,7 @@ LPDIRECTDRAWSURFACE2 IAGSEngine::GetBitmapSurface (BITMAP *bmp)
 
   BMP_EXTRA_INFO *bei = (BMP_EXTRA_INFO*)bmp->extra;
 
-  if (bmp == virtual_screen->GetBitmapObject())
+  if (bmp == virtual_screen->GetAllegroBitmap())
     invalidate_screen();
 
   return bei->surf;

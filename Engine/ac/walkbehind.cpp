@@ -51,11 +51,10 @@ void update_walk_behind_images()
     
     if (walkBehindRight[ee] > 0)
     {
-      wbbmp = BitmapHelper::CreateBitmap( 
+      wbbmp = BitmapHelper::CreateTransparentBitmap( 
                                (walkBehindRight[ee] - walkBehindLeft[ee]) + 1,
                                (walkBehindBottom[ee] - walkBehindTop[ee]) + 1,
 							   thisroom.ebscene[play.bg_frame]->GetColorDepth());
-      wbbmp->Clear(wbbmp->GetMaskColor());
       int yy, startX = walkBehindLeft[ee], startY = walkBehindTop[ee];
       for (rr = startX; rr <= walkBehindRight[ee]; rr++)
       {

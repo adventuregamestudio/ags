@@ -19,13 +19,14 @@
 #include <allegro.h>
 #include "gfx/ali3d.h"
 #include "platform/base/agsplatformdriver.h"
-#include "gfx/bitmap.h"
+#include "gfx/graphics.h"
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
 
 #include <stdio.h>
 
 using AGS::Common::Bitmap;
+using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 using namespace AGS; // FIXME later
 
@@ -343,7 +344,7 @@ bool ALSoftwareGraphicsDriver::Init(int width, int height, int colourDepth, bool
     // set_gfx_mode is an allegro function that creates screen bitmap;
     // following code assumes the screen is already created, therefore we should
     // ensure global bitmap wraps over existing allegro screen bitmap.
-    _allegroScreenWrapper = BitmapHelper::CreateRawObjectWrapper(screen);
+    _allegroScreenWrapper = BitmapHelper::CreateRawBitmapWrapper(screen);
     BitmapHelper::SetScreenBitmap( _allegroScreenWrapper );
 
     BitmapHelper::GetScreenBitmap()->Clear();
@@ -505,13 +506,14 @@ void ALSoftwareGraphicsDriver::draw_sprite_with_transparency(Bitmap *piccy, int 
     if ((sprite_depth == 8) && (screen_depth >= 24)) {
       // 256-col sprite -> truecolor background
       // this is automatically supported by allegro, no twiddling needed
-      virtualScreen->Blit(piccy, xxx, yyy, Common::kBitmap_Transparency);
+      Graphics graphics(virtualScreen);
+      graphics.Blit(piccy, xxx, yyy, Common::kBitmap_Transparency);
       return;
     }
     // 256-col spirte -> hi-color background, or
     // 16-bit sprite -> 32-bit background
-    Bitmap* hctemp=BitmapHelper::CreateBitmap(piccy->GetWidth(), piccy->GetHeight(), screen_depth);
-    hctemp->Blit(piccy,0,0,0,0,hctemp->GetWidth(),hctemp->GetHeight());
+    Bitmap* hctemp=BitmapHelper::CreateBitmapCopy(piccy, screen_depth);
+    Graphics graphics(hctemp);
     int bb,cc,mask_col = virtualScreen->GetMaskColor();
 
     if (sprite_depth == 8) {
@@ -519,23 +521,25 @@ void ALSoftwareGraphicsDriver::draw_sprite_with_transparency(Bitmap *piccy, int 
       // transparency for 16->32 bit
       for (bb=0;bb<hctemp->GetWidth();bb++) {
         for (cc=0;cc<hctemp->GetHeight();cc++)
-          if (piccy->GetPixel(bb,cc)==0) hctemp->PutPixel(bb,cc,mask_col);
+          if (piccy->GetPixel(bb,cc)==0) graphics.PutPixel(bb,cc,mask_col);
       }
     }
 
-    virtualScreen->Blit(hctemp, xxx, yyy, Common::kBitmap_Transparency);
+    graphics.SetBitmap(virtualScreen);
+    graphics.Blit(hctemp, xxx, yyy, Common::kBitmap_Transparency);
     delete hctemp;
   }
   else
   {
+    Graphics graphics(virtualScreen);
     if ((transparency != 0) && (screen_depth > 8) &&
         (sprite_depth > 8) && (virtualScreen->GetColorDepth() > 8)) 
     {
       set_trans_blender(0,0,0, transparency);
-	  virtualScreen->TransBlendBlt(piccy, xxx, yyy);
+	  graphics.TransBlendBlt(piccy, xxx, yyy);
     }
     else
-      virtualScreen->Blit(piccy, xxx, yyy, Common::kBitmap_Transparency);
+      graphics.Blit(piccy, xxx, yyy, Common::kBitmap_Transparency);
   }
   
 }
@@ -548,6 +552,7 @@ void ALSoftwareGraphicsDriver::SetRenderOffset(int x, int y)
 
 void ALSoftwareGraphicsDriver::RenderToBackBuffer()
 {
+  Graphics graphics(virtualScreen);
   for (int i = 0; i < numToDraw; i++)
   {
     if (drawlist[i] == NULL)
@@ -568,7 +573,7 @@ void ALSoftwareGraphicsDriver::RenderToBackBuffer()
     { }
     else if (bitmap->_opaque)
     {
-      virtualScreen->Blit(bitmap->_bmp, 0, 0, drawAtX, drawAtY, bitmap->_bmp->GetWidth(), bitmap->_bmp->GetHeight());
+      graphics.Blit(bitmap->_bmp, 0, 0, drawAtX, drawAtY, bitmap->_bmp->GetWidth(), bitmap->_bmp->GetHeight());
     }
     else if (bitmap->_transparency >= 255)
     {
@@ -581,7 +586,7 @@ void ALSoftwareGraphicsDriver::RenderToBackBuffer()
       else
         set_blender_mode(NULL, NULL, _trans_alpha_blender32, 0, 0, 0, bitmap->_transparency);
 
-	  virtualScreen->TransBlendBlt(bitmap->_bmp, drawAtX, drawAtY);
+	  graphics.TransBlendBlt(bitmap->_bmp, drawAtX, drawAtY);
     }
     else
     {
@@ -594,7 +599,7 @@ void ALSoftwareGraphicsDriver::RenderToBackBuffer()
     // Common::gl_ScreenBmp tint
     // This slows down the game no end, only experimental ATM
     set_trans_blender(_tint_red, _tint_green, _tint_blue, 0);
-    virtualScreen->LitBlendBlt(virtualScreen, 0, 0, 128);
+    graphics.LitBlendBlt(virtualScreen, 0, 0, 128);
 /*  This alternate method gives the correct (D3D-style) result, but is just too slow!
     if ((_spareTintingScreen != NULL) &&
         ((_spareTintingScreen->GetWidth() != virtualScreen->GetWidth()) || (_spareTintingScreen->GetHeight() != virtualScreen->GetHeight())))
@@ -656,8 +661,9 @@ void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *currentVirtScreen, int 
    if ((_global_y_offset != 0) || (_global_x_offset != 0))
    {
      bmp_orig = BitmapHelper::CreateBitmap(_screenWidth, _screenHeight);
-     bmp_orig->Clear();
-     bmp_orig->Blit(currentVirtScreen, 0, 0, _global_x_offset, _global_y_offset, currentVirtScreen->GetWidth(), currentVirtScreen->GetHeight());
+     Graphics graphics(bmp_orig);
+     graphics.Fill(0);
+     graphics.Blit(currentVirtScreen, 0, 0, _global_x_offset, _global_y_offset, currentVirtScreen->GetWidth(), currentVirtScreen->GetHeight());
    }
 
    bmp_buff = BitmapHelper::CreateBitmap(bmp_orig->GetWidth(), bmp_orig->GetHeight());
@@ -667,12 +673,13 @@ void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *currentVirtScreen, int 
    int a;
    if (speed <= 0) speed = 16;
 
+   Graphics graphics(bmp_buff);
    for (a = 0; a < 256; a+=speed)
    {
        int timerValue = *_loopTimer;
-       bmp_buff->Clear(clearColor);
+       graphics.Fill(clearColor);
        set_trans_blender(0,0,0,a);
-       bmp_buff->TransBlendBlt(bmp_orig, 0, 0);
+       graphics.TransBlendBlt(bmp_orig, 0, 0);
        this->Vsync();
        _filter->RenderScreen(bmp_buff, 0, 0);
        do
@@ -706,12 +713,13 @@ void ALSoftwareGraphicsDriver::highcolor_fade_out(int speed, int targetColourRed
             _filter->GetCopyOfScreenIntoBitmap(bmp_orig, false);
             if (speed <= 0) speed = 16;
 			
+            Graphics graphics(bmp_buff);
             for (a = 255-speed; a > 0; a-=speed)
             {
                 int timerValue = *_loopTimer;
-                bmp_buff->Clear(clearColor);
+                graphics.Fill(clearColor);
                 set_trans_blender(0,0,0,a);
-                bmp_buff->TransBlendBlt(bmp_orig, 0, 0);
+                graphics.TransBlendBlt(bmp_orig, 0, 0);
                 this->Vsync();
                 _filter->RenderScreen(bmp_buff, 0, 0);
                 do

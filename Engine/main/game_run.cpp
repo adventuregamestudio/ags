@@ -97,25 +97,17 @@ int user_disabled_data3=0;
 
 int restrict_until=0;
 
-void game_loop_check_want_exit()
+void ProperExit()
 {
-    if (want_exit) {
-        want_exit = 0;
-        proper_exit = 1;
-        quit("||exit!");
-        /*#ifdef WINDOWS_VERSION
-        // the Quit thread is running now, so exit this main one.
-        ExitThread (1);
-        #endif*/
-    }
+    want_exit = 0;
+    proper_exit = 1;
+    quit("||exit!");
 }
 
-void game_loop_check_want_quit()
+void ProperQuit()
 {
-    if (want_quit) {
-        want_quit = 0;
-        QuitGame(1);
-    }
+    want_quit = 0;
+    QuitGame(1);
 }
 
 void game_loop_check_problems_at_start()
@@ -129,10 +121,6 @@ void game_loop_check_problems_at_start()
     }
     if (no_blocking_functions)
         quit("!A blocking function was called from within a non-blocking event such as " REP_EXEC_ALWAYS_NAME);
-
-    // if we're not fading in, don't count the fadeouts
-    if ((play.no_hicolor_fadein) && (game.options[OPT_FADETYPE] == FADE_NORMAL))
-        play.screen_is_faded_out = 0;
 }
 
 void game_loop_check_new_room()
@@ -184,7 +172,7 @@ int game_loop_check_ground_level_interactions()
         // if in a Wait loop which is no longer valid (probably
         // because the Region interaction did a NewRoom), abort
         // the rest of the loop
-        if ((restrict_until) && (!wait_loop_still_valid())) {
+        if ((restrict_until) && (!ShouldStayInWaitMode())) {
             // cancel the Rep Exec and Stands on Hotspot events that
             // we just added -- otherwise the event queue gets huge
             numevents = numEventsAtStartOfFunction;
@@ -669,21 +657,74 @@ void game_loop_poll_stuff_once_more()
     }
 }
 
-void mainloop(bool checkControls, IDriverDependantBitmap *extraBitmap, int extraX, int extraY) {
-    
+void SetupLoopParameters(int untilwhat,long udata,int mousestuff) {
+    play.disabled_user_interface++;
+    guis_need_update = 1;
+    // Only change the mouse cursor if it hasn't been specifically changed first
+    // (or if it's speech, always change it)
+    if (((cur_cursor == cur_mode) || (untilwhat == UNTIL_NOOVERLAY)) &&
+        (cur_mode != CURS_WAIT))
+        set_mouse_cursor(CURS_WAIT);
+
+    restrict_until=untilwhat;
+    user_disabled_data=udata;
+    user_disabled_for=FOR_EXITLOOP;
+    return;
+}
+
+// This function is called from lot of various functions
+// in the game core, character, room object etc
+void GameLoopUntilEvent(int untilwhat,long daaa) {
+  // blocking cutscene - end skipping
+  EndSkippingUntilCharStops();
+
+  // this function can get called in a nested context, so
+  // remember the state of these vars in case a higher level
+  // call needs them
+  int cached_restrict_until = restrict_until;
+  int cached_user_disabled_data = user_disabled_data;
+  int cached_user_disabled_for = user_disabled_for;
+
+  SetupLoopParameters(untilwhat,daaa,0);
+  while (GameTick()==0) ;
+
+  restrict_until = cached_restrict_until;
+  user_disabled_data = cached_user_disabled_data;
+  user_disabled_for = cached_user_disabled_for;
+}
+
+// for external modules to call
+void NextIteration() {
+    NEXT_ITERATION();
+}
+
+//=============================================================================
+
+void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int extraX, int extraY) {
+
     int res;
 
     UPDATE_MP3
 
     numEventsAtStartOfFunction = numevents;
 
-    game_loop_check_want_exit();
+    if (want_exit) {
+        ProperExit();
+    }
 
     ccNotifyScriptStillAlive ();
     our_eip=1;
     timerloop=0;
 
+    if (want_quit) {
+        ProperQuit();
+    }
+
     game_loop_check_problems_at_start();
+
+    // if we're not fading in, don't count the fadeouts
+    if ((play.no_hicolor_fadein) && (game.options[OPT_FADETYPE] == FADE_NORMAL))
+        play.screen_is_faded_out = 0;
 
     our_eip = 1014;
 
@@ -715,7 +756,7 @@ void mainloop(bool checkControls, IDriverDependantBitmap *extraBitmap, int extra
     update_polled_stuff_and_crossfade();
 
     game_loop_do_render_and_check_mouse(extraBitmap, extraX, extraY);
-    
+
     our_eip=6;
 
     game_loop_update_events();
@@ -742,7 +783,7 @@ void mainloop(bool checkControls, IDriverDependantBitmap *extraBitmap, int extra
     game_loop_poll_stuff_once_more();
 }
 
-void game_loop_process_mouse_over_location()
+void UpdateMouseOverLocation()
 {
     // Call GetLocationName - it will internally force a GUI refresh
     // if the result it returns has changed from last time
@@ -767,7 +808,7 @@ void game_loop_process_mouse_over_location()
     }
 }
 
-int wait_loop_still_valid() {
+int ShouldStayInWaitMode() {
     if (restrict_until == 0)
         quit("end_wait_loop called but game not in loop_until state");
     int retval = restrict_until;
@@ -804,11 +845,11 @@ int wait_loop_still_valid() {
     return retval;
 }
 
-int game_loop_process_wait_until()
+int UpdateWaitMode()
 {
     if (restrict_until==0) ;
     else {
-        restrict_until = wait_loop_still_valid();
+        restrict_until = ShouldStayInWaitMode();
         our_eip = 77;
 
         if (restrict_until==0) {
@@ -832,64 +873,34 @@ int game_loop_process_wait_until()
     return RETURN_CONTINUE;
 }
 
-int main_game_loop() {
-
+int GameTick()
+{
     if (displayed_room < 0)
         quit("!A blocking function was called before the first room has been loaded");
 
-    mainloop(true);
-
-    game_loop_process_mouse_over_location();
+    UpdateGameOnce(true);
+    UpdateMouseOverLocation();
 
     our_eip=76;
 
-    int res = game_loop_process_wait_until();
+    int res = UpdateWaitMode();
     if (res != RETURN_CONTINUE) {
         return res;
     }
-    
+
     our_eip = 78;
     return 0;
 }
 
+extern unsigned int load_new_game;
+void RunGameUntilAborted()
+{
+    while (!abort_engine) {
+        GameTick();
 
-void main_loop_until(int untilwhat,long udata,int mousestuff) {
-    play.disabled_user_interface++;
-    guis_need_update = 1;
-    // Only change the mouse cursor if it hasn't been specifically changed first
-    // (or if it's speech, always change it)
-    if (((cur_cursor == cur_mode) || (untilwhat == UNTIL_NOOVERLAY)) &&
-        (cur_mode != CURS_WAIT))
-        set_mouse_cursor(CURS_WAIT);
-
-    restrict_until=untilwhat;
-    user_disabled_data=udata;
-    return;
-}
-
-// This function is called from lot of various functions
-// in the game core, character, room object etc
-void do_main_cycle(int untilwhat,long daaa) {
-  // blocking cutscene - end skipping
-  EndSkippingUntilCharStops();
-
-  // this function can get called in a nested context, so
-  // remember the state of these vars in case a higher level
-  // call needs them
-  int cached_restrict_until = restrict_until;
-  int cached_user_disabled_data = user_disabled_data;
-  int cached_user_disabled_for = user_disabled_for;
-
-  main_loop_until(untilwhat,daaa,0);
-  user_disabled_for=FOR_EXITLOOP;
-  while (main_game_loop()==0) ;
-
-  restrict_until = cached_restrict_until;
-  user_disabled_data = cached_user_disabled_data;
-  user_disabled_for = cached_user_disabled_for;
-}
-
-// for external modules to call
-void next_iteration() {
-    NEXT_ITERATION();
+        if (load_new_game) {
+            RunAGSGame (NULL, load_new_game, 0);
+            load_new_game = 0;
+        }
+    }
 }

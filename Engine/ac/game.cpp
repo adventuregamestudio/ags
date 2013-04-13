@@ -65,7 +65,7 @@
 #include "font/fonts.h"
 #include "gfx/ali3d.h"
 #include "gui/animatingguibutton.h"
-#include "gfx/bitmap.h"
+#include "gfx/graphics.h"
 #include "gfx/graphicsdriver.h"
 #include "gui/guidialog.h"
 #include "main/game_file.h"
@@ -85,6 +85,7 @@ using AGS::Common::AlignedStream;
 using AGS::Common::String;
 using AGS::Common::Stream;
 using AGS::Common::Bitmap;
+using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
@@ -190,7 +191,7 @@ MoveList *mls = NULL;
 //=============================================================================
 
 char saveGameDirectory[260] = "./";
-int want_quit = 0;
+int want_quit = 0; // [IKM] This is never used
 
 const char* sgnametemplate = "agssave.%03d";
 char saveGameSuffix[MAX_SG_EXT_LENGTH + 1];
@@ -326,7 +327,7 @@ int oldmouse;
 void setup_for_dialog() {
     cbuttfont = play.normal_font;
     acdialog_font = play.normal_font;
-    wsetscreen(virtual_screen);
+    SetVirtualScreen(virtual_screen);
     if (!play.mouse_cursor_hidden)
         domouse(1);
     oldmouse=cur_cursor; set_mouse_cursor(CURS_ARROW);
@@ -1037,7 +1038,7 @@ long write_screen_shot_for_vista(Stream *out, Bitmap *screenshot)
     char tempFileName[MAX_PATH];
     sprintf(tempFileName, "%s""_tmpscht.bmp", saveGameDirectory);
 
-	BitmapHelper::SaveToFile(screenshot, tempFileName, palette);
+	screenshot->SaveToFile(tempFileName, palette);
 
     update_polled_stuff_if_runtime();
 
@@ -1459,8 +1460,8 @@ void create_savegame_screenshot(Bitmap *&screenShot)
         if (gfxDriver->UsesMemoryBackBuffer())
         {
             screenShot = BitmapHelper::CreateBitmap(usewid, usehit, virtual_screen->GetColorDepth());
-
-            screenShot->StretchBlt(virtual_screen,
+            Graphics graphics(screenShot);
+            graphics.StretchBlt(virtual_screen,
 				RectWH(0, 0, virtual_screen->GetWidth(), virtual_screen->GetHeight()),
 				RectWH(0, 0, screenShot->GetWidth(), screenShot->GetHeight()));
         }
@@ -1475,7 +1476,8 @@ void create_savegame_screenshot(Bitmap *&screenShot)
             gfxDriver->GetCopyOfScreenIntoBitmap(tempBlock);
 
             screenShot = BitmapHelper::CreateBitmap(usewid, usehit, color_depth);
-            screenShot->StretchBlt(tempBlock,
+            Graphics graphics(screenShot);
+            graphics.StretchBlt(tempBlock,
 				RectWH(0, 0, tempBlock->GetWidth(), tempBlock->GetHeight()),
 				RectWH(0, 0, screenShot->GetWidth(), screenShot->GetHeight()));
 

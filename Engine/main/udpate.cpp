@@ -34,10 +34,11 @@
 #include "ac/viewframe.h"
 #include "ac/walkablearea.h"
 #include "gfx/graphicsdriver.h"
-#include "gfx/bitmap.h"
+#include "gfx/graphics.h"
 #include "media/audio/soundclip.h"
 
 using AGS::Common::Bitmap;
+using AGS::Common::Graphics;
 
 extern MoveList *mls;
 extern RoomStatus*croom;
@@ -395,15 +396,16 @@ void update_sierra_speech()
         screenover[face_talking].pic->Clear(0);
       }
       else {
-        screenover[face_talking].pic->Clear(screenover[face_talking].pic->GetMaskColor());
+        screenover[face_talking].pic->ClearTransparent();
       }
 
-      DrawViewFrame(screenover[face_talking].pic, &views[facetalkview].loops[facetalkloop].frames[facetalkframe], 0, yPos);
+      Graphics graphics(screenover[face_talking].pic);
+      DrawViewFrame(&graphics, &views[facetalkview].loops[facetalkloop].frames[facetalkframe], 0, yPos);
 //      ->Blit(screenover[face_talking].pic, spriteset[thisPic], 0, yPos);
 
       if ((facetalkchar->blinkview > 0) && (facetalkchar->blinktimer < 0)) {
         // draw the blinking sprite on top
-        DrawViewFrame(screenover[face_talking].pic,
+        DrawViewFrame(&graphics,
             &views[facetalkchar->blinkview].loops[facetalkBlinkLoop].frames[facetalkchar->blinkframe],
             0, yPos);
 

@@ -47,9 +47,10 @@
 #include "ac/spritecache.h"
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
-#include "gfx/bitmap.h"
+#include "gfx/graphics.h"
 
 using AGS::Common::Bitmap;
+using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameSetupStruct game;
@@ -310,7 +311,7 @@ int run_dialog_script(DialogTopic*dtpp, int dialogID, int offse, int optionIndex
     // screen after they finish talking; however, it makes the dialog options
     // area flicker when going between topics.
     DisableInterface();
-    mainloop(); // redraw the screen to make sure it looks right
+    UpdateGameOnce(); // redraw the screen to make sure it looks right
     EnableInterface();
     // if we're not about to abort the dialog, switch back to arrow
     if (result != RUN_DIALOG_STOP_DIALOG)
@@ -320,7 +321,7 @@ int run_dialog_script(DialogTopic*dtpp, int dialogID, int offse, int optionIndex
   return result;
 }
 
-int write_dialog_options(int dlgxp, int curyp, int numdisp, int mouseison, int areawid,
+int write_dialog_options(Common::Graphics *g, int dlgxp, int curyp, int numdisp, int mouseison, int areawid,
     int bullet_wid, int usingfont, DialogTopic*dtop, char*disporder, short*dispyp,
     int txthit, int utextcol) {
   int ww;
@@ -330,23 +331,23 @@ int write_dialog_options(int dlgxp, int curyp, int numdisp, int mouseison, int a
     if ((dtop->optionflags[disporder[ww]] & DFLG_HASBEENCHOSEN) &&
         (play.read_dialog_option_colour >= 0)) {
       // 'read' colour
-      wtextcolor(play.read_dialog_option_colour);
+      g->SetTextColor(play.read_dialog_option_colour);
     }
     else {
       // 'unread' colour
-      wtextcolor(playerchar->talkcolor);
+      g->SetTextColor(playerchar->talkcolor);
     }
 
     if (mouseison==ww) {
-      if (textcol==get_col8_lookup(utextcol))
-        wtextcolor(13); // the normal colour is the same as highlight col
-      else wtextcolor(utextcol);
+      if (g->GetTextColor()==g->GetBitmap()->GetCompatibleColor(utextcol))
+        g->SetTextColor(13); // the normal colour is the same as highlight col
+      else g->SetTextColor(utextcol);
     }
 
     break_up_text_into_lines(areawid-(8+bullet_wid),usingfont,get_translation(dtop->optionnames[disporder[ww]]));
     dispyp[ww]=curyp;
     if (game.dialog_bullet > 0)
-      wputblock(dlgxp,curyp,spriteset[game.dialog_bullet],1);
+      wputblock(g, dlgxp,curyp,spriteset[game.dialog_bullet],1);
     int cc;
     if (game.options[OPT_DIALOGNUMBERED]) {
       char tempbfr[20];
@@ -355,10 +356,10 @@ int write_dialog_options(int dlgxp, int curyp, int numdisp, int mouseison, int a
         actualpicwid = spritewidth[game.dialog_bullet]+3;
 
       sprintf (tempbfr, "%d.", ww + 1);
-      wouttext_outline (dlgxp + actualpicwid, curyp, usingfont, tempbfr);
+      wouttext_outline (g, dlgxp + actualpicwid, curyp, usingfont, tempbfr);
     }
     for (cc=0;cc<numlines;cc++) {
-      wouttext_outline(dlgxp+((cc==0) ? 0 : 9)+bullet_wid, curyp, usingfont, lines[cc]);
+      wouttext_outline(g, dlgxp+((cc==0) ? 0 : 9)+bullet_wid, curyp, usingfont, lines[cc]);
       curyp+=txthit;
     }
     if (ww < numdisp-1)
@@ -371,23 +372,23 @@ int write_dialog_options(int dlgxp, int curyp, int numdisp, int mouseison, int a
 
 #define GET_OPTIONS_HEIGHT {\
   needheight = 0;\
-  for (ww=0;ww<numdisp;ww++) {\
-    break_up_text_into_lines(areawid-(8+bullet_wid),usingfont,get_translation(dtop->optionnames[disporder[ww]]));\
+  for (int i = 0; i < numdisp; ++i) {\
+    break_up_text_into_lines(areawid-(8+bullet_wid),usingfont,get_translation(dtop->optionnames[disporder[i]]));\
     needheight += (numlines * txthit) + multiply_up_coordinate(game.options[OPT_DIALOGGAP]);\
   }\
   if (parserInput) needheight += parserInput->hit + multiply_up_coordinate(game.options[OPT_DIALOGGAP]);\
  }
 
 
-void draw_gui_for_dialog_options(GUIMain *guib, int dlgxp, int dlgyp) {
+void draw_gui_for_dialog_options(Common::Graphics *g, GUIMain *guib, int dlgxp, int dlgyp) {
   if (guib->bgcol != 0) {
-    wsetcolor(guib->bgcol);
-    abuf->FillRect(Rect(dlgxp, dlgyp, dlgxp + guib->wid, dlgyp + guib->hit), currentcolor);
+    g->SetDrawColor(guib->bgcol);
+    g->FillRect(Rect(dlgxp, dlgyp, dlgxp + guib->wid, dlgyp + guib->hit));
   }
   if (guib->bgpic > 0)
-    put_sprite_256 (dlgxp, dlgyp, spriteset[guib->bgpic]);
+    put_sprite_256 (g, dlgxp, dlgyp, spriteset[guib->bgpic]);
 
-  wsetcolor(0);
+  g->SetDrawColor(0);
 }
 
 bool get_custom_dialog_options_dimensions(int dlgnum)
@@ -409,17 +410,72 @@ bool get_custom_dialog_options_dimensions(int dlgnum)
 #define MAX_TOPIC_HISTORY 50
 #define DLG_OPTION_PARSER 99
 
-int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBackground) 
+struct DialogOptions
 {
-  int dlgxp,dlgyp = get_fixed_pixel_size(160);
-  int usingfont=FONT_NORMAL;
-  int txthit = wgetfontheight(usingfont);
-  int curswas=cur_cursor;
-  int bullet_wid = 0, needheight;
-  IDriverDependantBitmap *ddb = NULL;
-  Bitmap *subBitmap = NULL;
-  GUITextBox *parserInput = NULL;
-  DialogTopic*dtop = NULL;
+    int dlgnum;
+    bool runGameLoopsInBackground;
+
+    int dlgxp;
+    int dlgyp;
+    int usingfont;
+    int txthit;
+    int curswas;
+    int bullet_wid;
+    int needheight;
+    IDriverDependantBitmap *ddb;
+    Bitmap *subBitmap;
+    GUITextBox *parserInput;
+    DialogTopic*dtop;
+
+    char disporder[MAXTOPICOPTIONS];
+    short dispyp[MAXTOPICOPTIONS];
+
+    int numdisp;
+    int chose;
+
+    Bitmap *tempScrn;
+    int parserActivated;
+
+    int curyp;
+    int wantRefresh;
+    bool usingCustomRendering;
+    int orixp;
+    int oriyp;
+    int areawid;
+    int is_textwindow;
+    int dirtyx;
+    int dirtyy;
+    int dirtywidth;
+    int dirtyheight;
+
+    int mouseison;
+    int mousewason;
+
+    int forecol;
+
+
+
+    void Prepare(int _dlgnum, bool _runGameLoopsInBackground);
+    void Show();
+    void Redraw();
+    bool Run();
+    void Close();
+};
+
+void DialogOptions::Prepare(int _dlgnum, bool _runGameLoopsInBackground)
+{
+  dlgnum = _dlgnum;
+  runGameLoopsInBackground = _runGameLoopsInBackground;
+
+  dlgyp = get_fixed_pixel_size(160);
+  usingfont=FONT_NORMAL;
+  txthit = wgetfontheight(usingfont);
+  curswas=cur_cursor;
+  bullet_wid = 0;
+  ddb = NULL;
+  subBitmap = NULL;
+  parserInput = NULL;
+  dtop = NULL;
 
   if ((dlgnum < 0) || (dlgnum >= game.numdialog))
     quit("!RunDialog: invalid dialog number specified");
@@ -441,20 +497,17 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
 
   update_polled_stuff_if_runtime();
 
-  Bitmap *tempScrn = BitmapHelper::CreateBitmap(BitmapHelper::GetScreenBitmap()->GetWidth(), BitmapHelper::GetScreenBitmap()->GetHeight(), final_col_dep);
+  tempScrn = BitmapHelper::CreateBitmap(BitmapHelper::GetScreenBitmap()->GetWidth(), BitmapHelper::GetScreenBitmap()->GetHeight(), final_col_dep);
 
   set_mouse_cursor(CURS_ARROW);
 
   dtop=&dialog[dlgnum];
 
-  int ww,chose=-1,numdisp=0;
+  chose=-1;
+  numdisp=0;
+  int ww;
 
-  //get_real_screen();
-  wsetscreen(virtual_screen);
-
-  char disporder[MAXTOPICOPTIONS];
-  short dispyp[MAXTOPICOPTIONS];
-  int parserActivated = 0;
+  parserActivated = 0;
   if ((dtop->topicFlags & DTFLG_SHOWPARSER) && (play.disable_dialog_parser == 0)) {
     parserInput = new GUITextBox();
     parserInput->hit = txthit + get_fixed_pixel_size(4);
@@ -462,7 +515,6 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
     parserInput->font = usingfont;
   }
 
-  wtexttransparent(TEXTFG);
   numdisp=0;
   for (ww=0;ww<dtop->numoptions;ww++) {
     if ((dtop->optionflags[ww] & DFLG_ON)==0) continue;
@@ -470,19 +522,33 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
     disporder[numdisp]=ww;
     numdisp++;
   }
+}
+
+void DialogOptions::Show()
+{
   if (numdisp<1) quit("!DoDialog: all options have been turned off");
   // Don't display the options if there is only one and the parser
   // is not enabled.
-  if ((numdisp > 1) || (parserInput != NULL) || (play.show_single_dialog_option)) {
-    wsetcolor(0); //abuf->FillRect(Rect(0,dlgyp-1,scrnwid-1,dlgyp+numdisp*txthit+1);
-    int areawid, is_textwindow = 0;
-    int forecol = 14, savedwid;
+  if (!((numdisp > 1) || (parserInput != NULL) || (play.show_single_dialog_option)))
+  {
+      chose = disporder[0];  // only one choice, so select it
+      return;
+  }
 
-    int mouseison=-1,curyp;
-    int mousewason=-10;
-    int dirtyx = 0, dirtyy = 0;
-    int dirtywidth = virtual_screen->GetWidth(), dirtyheight = virtual_screen->GetHeight();
-    bool usingCustomRendering = false;
+  //get_real_screen();
+  Common::Graphics *g = SetVirtualScreen(virtual_screen);
+
+    g->SetDrawColor(0); //g->FillRect(Rect(0,dlgyp-1,scrnwid-1,dlgyp+numdisp*txthit+1);
+    is_textwindow = 0;
+    forecol = 14;
+
+    mouseison=-1;
+    mousewason=-10;
+    dirtyx = 0;
+    dirtyy = 0;
+    dirtywidth = virtual_screen->GetWidth();
+    dirtyheight = virtual_screen->GetHeight();
+    usingCustomRendering = false;
 
     dlgxp = 1;
     if (get_custom_dialog_options_dimensions(dlgnum))
@@ -504,7 +570,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
       else {
         dlgxp = guib->x;
         dlgyp = guib->y;
-        draw_gui_for_dialog_options(guib, dlgxp, dlgyp);
+        draw_gui_for_dialog_options(g, guib, dlgxp, dlgyp);
 
         dirtyx = dlgxp;
         dirtyy = dlgyp;
@@ -527,7 +593,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
       areawid=scrnwid-5;
       GET_OPTIONS_HEIGHT
       dlgyp = scrnhit - needheight;
-      abuf->FillRect(Rect(0,dlgyp-1,scrnwid-1,scrnhit-1), currentcolor);
+      g->FillRect(Rect(0,dlgyp-1,scrnwid-1,scrnhit-1));
 
       dirtyx = 0;
       dirtyy = dlgyp - 1;
@@ -537,8 +603,9 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
     if (!is_textwindow)
       areawid -= multiply_up_coordinate(play.dialog_options_x) * 2;
 
-    int orixp = dlgxp, oriyp = dlgyp;
-    int wantRefresh = 0;
+    orixp = dlgxp;
+    oriyp = dlgyp;
+    wantRefresh = 0;
     mouseison=-10;
     
     update_polled_stuff_if_runtime();
@@ -547,8 +614,15 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
       domouse(1);
     update_polled_stuff_if_runtime();
 
- redraw_options:
+    Redraw();
+    while(Run());
 
+    if (!play.mouse_cursor_hidden)
+      domouse(2);
+}
+
+void DialogOptions::Redraw()
+{
     wantRefresh = 1;
 
     if (usingCustomRendering)
@@ -558,8 +632,8 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
         multiply_up_coordinate(ccDialogOptionsRendering.height));
     }
 
-    tempScrn->Clear(tempScrn->GetMaskColor());
-    wsetscreen(tempScrn);
+    tempScrn->ClearTransparent();
+    Common::Graphics *g = SetVirtualScreen(tempScrn);
 
     dlgxp = orixp;
     dlgyp = oriyp;
@@ -592,8 +666,8 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
       // text window behind the options
       areawid = multiply_up_coordinate(play.max_dialogoption_width);
       int biggest = 0;
-      for (ww=0;ww<numdisp;ww++) {
-        break_up_text_into_lines(areawid-(8+bullet_wid),usingfont,get_translation(dtop->optionnames[disporder[ww]]));
+      for (int i = 0; i < numdisp; ++i) {
+        break_up_text_into_lines(areawid-(8+bullet_wid),usingfont,get_translation(dtop->optionnames[disporder[i]]));
         if (longestline > biggest)
           biggest = longestline;
       }
@@ -608,7 +682,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
 
       GET_OPTIONS_HEIGHT
 
-      savedwid = areawid;
+      int savedwid = areawid;
       int txoffs=0,tyoffs=0,yspos = scrnhit/2-needheight/2;
       int xspos = scrnwid/2 - areawid/2;
       // shift window to the right if QG4-style full-screen pic
@@ -616,9 +690,9 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
         xspos = (scrnwid - areawid) - get_fixed_pixel_size(10);
 
       // needs to draw the right text window, not the default
-      push_screen();
-      draw_text_window(&txoffs,&tyoffs,&xspos,&yspos,&areawid,needheight, game.options[OPT_DIALOGIFACE]);
-      pop_screen();
+      push_screen(g);
+      draw_text_window(g, &txoffs,&tyoffs,&xspos,&yspos,&areawid,needheight, game.options[OPT_DIALOGIFACE]);
+      g = pop_screen();
       // snice draw_text_window incrases the width, restore it
       areawid = savedwid;
       //wnormscreen();
@@ -628,14 +702,14 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
       dirtywidth = screenop->GetWidth();
       dirtyheight = screenop->GetHeight();
 
-      wputblock(xspos,yspos,screenop,1);
+      wputblock(g, xspos,yspos,screenop,1);
       delete screenop; screenop = NULL;
 
       // Ignore the dialog_options_x/y offsets when using a text window
       txoffs += xspos;
       tyoffs += yspos;
       dlgyp = tyoffs;
-      curyp = write_dialog_options(txoffs,tyoffs,numdisp,mouseison,areawid,bullet_wid,usingfont,dtop,disporder,dispyp,txthit,forecol);
+      curyp = write_dialog_options(g, txoffs,tyoffs,numdisp,mouseison,areawid,bullet_wid,usingfont,dtop,disporder,dispyp,txthit,forecol);
       if (parserInput)
         parserInput->x = txoffs;
     }
@@ -645,13 +719,13 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
         // redraw the black background so that anti-alias
         // fonts don't re-alias themselves
         if (game.options[OPT_DIALOGIFACE] == 0) {
-          wsetcolor(16);
-          abuf->FillRect(Rect(0,dlgyp-1,scrnwid-1,scrnhit-1), currentcolor);
+          g->SetDrawColor(16);
+          g->FillRect(Rect(0,dlgyp-1,scrnwid-1,scrnhit-1));
         }
         else {
           GUIMain* guib = &guis[game.options[OPT_DIALOGIFACE]];
           if (!guib->is_textwindow())
-            draw_gui_for_dialog_options(guib, dlgxp, dlgyp);
+            draw_gui_for_dialog_options(g, guib, dlgxp, dlgyp);
         }
       }
 
@@ -682,11 +756,11 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
 
       //curyp = dlgyp + 1;
       curyp = dlgyp;
-      curyp = write_dialog_options(dlgxp,curyp,numdisp,mouseison,areawid,bullet_wid,usingfont,dtop,disporder,dispyp,txthit,forecol);
+      curyp = write_dialog_options(g, dlgxp,curyp,numdisp,mouseison,areawid,bullet_wid,usingfont,dtop,disporder,dispyp,txthit,forecol);
 
       /*if (curyp > scrnhit) {
         dlgyp = scrnhit - (curyp - dlgyp);
-        abuf->FillRect(Rect(0,dlgyp-1,scrnwid-1,scrnhit-1);
+        g->FillRect(Rect(0,dlgyp-1,scrnwid-1,scrnhit-1);
         goto redraw_options;
       }*/
       if (parserInput)
@@ -702,17 +776,17 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
         parserInput->textcol = forecol;
 
       if (game.dialog_bullet)  // the parser X will get moved in a second
-        wputblock(parserInput->x, parserInput->y, spriteset[game.dialog_bullet], 1);
+        wputblock(g, parserInput->x, parserInput->y, spriteset[game.dialog_bullet], 1);
 
       parserInput->wid -= bullet_wid;
       parserInput->x += bullet_wid;
 
-      parserInput->Draw();
+      parserInput->Draw(g);
       parserInput->activated = 0;
     }
 
     wantRefresh = 0;
-    wsetscreen(virtual_screen);
+    g = SetVirtualScreen(virtual_screen);
 
     update_polled_stuff_if_runtime();
 
@@ -721,14 +795,15 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
 
     update_polled_stuff_if_runtime();
 
+    Graphics graphics(subBitmap);
     if (usingCustomRendering)
     {
-      subBitmap->Blit(tempScrn, 0, 0, 0, 0, tempScrn->GetWidth(), tempScrn->GetHeight());
+      graphics.Blit(tempScrn, 0, 0, 0, 0, tempScrn->GetWidth(), tempScrn->GetHeight());
       invalidate_rect(dirtyx, dirtyy, dirtyx + subBitmap->GetWidth(), dirtyy + subBitmap->GetHeight());
     }
     else
     {
-      subBitmap->Blit(tempScrn, dirtyx, dirtyy, 0, 0, dirtywidth, dirtyheight);
+      graphics.Blit(tempScrn, dirtyx, dirtyy, 0, 0, dirtywidth, dirtyheight);
     }
 
     if ((ddb != NULL) && 
@@ -744,13 +819,14 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
       gfxDriver->UpdateDDBFromBitmap(ddb, subBitmap, false);
 
     render_graphics(ddb, dirtyx, dirtyy);
+}
 
-    while (1) {
-
+bool DialogOptions::Run()
+{
       if (runGameLoopsInBackground)
       {
         play.disabled_user_interface++;
-        mainloop(false, ddb, dirtyx, dirtyy);
+        UpdateGameOnce(false, ddb, dirtyx, dirtyy);
         play.disabled_user_interface--;
       }
       else
@@ -774,13 +850,15 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
               parserInput->KeyPress(play.lastParserEntry[i]);
             }
             //domouse(2);
-            goto redraw_options;
+            Redraw();
+            return true; // continue running loop
           }
           else if ((gkey >= 32) || (gkey == 13) || (gkey == 8)) {
             parserInput->KeyPress(gkey);
             if (!parserInput->activated) {
               //domouse(2);
-              goto redraw_options;
+              Redraw();
+              return true; // continue running loop
             }
           }
         }
@@ -789,7 +867,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
           gkey -= '1';
           if (gkey < numdisp) {
             chose = disporder[gkey];
-            break;
+            return false; // end dialog options running loop
           }
         }
       }
@@ -817,8 +895,8 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
       else if ((mousey <= dlgyp) || (mousey > curyp)) ;
       else {
         mouseison=numdisp-1;
-        for (ww=0;ww<numdisp;ww++) {
-          if (mousey < dispyp[ww]) { mouseison=ww-1; break; }
+        for (int i = 0; i < numdisp; ++i) {
+          if (mousey < dispyp[i]) { mouseison=i-1; break; }
         }
         if ((mouseison<0) | (mouseison>=numdisp)) mouseison=-1;
       }
@@ -848,9 +926,12 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
             run_function_on_non_blocking_thread(&runDialogOptionMouseClickHandlerFunc);
 
             if (runDialogOptionMouseClickHandlerFunc.atLeastOneImplementationExists)
-              goto redraw_options;
+            {
+              Redraw();
+              return true; // continue running loop
+            }
           }
-          continue;
+          return true; // continue running loop
         }
         if (mouseison == DLG_OPTION_PARSER) {
           // they clicked the text box
@@ -859,11 +940,11 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
         else if (usingCustomRendering)
         {
           chose = mouseison;
-          break;
+          return false; // end dialog options running loop
         }
         else {
           chose=disporder[mouseison];
-          break;
+          return false; // end dialog options running loop
         }
       }
 
@@ -877,9 +958,11 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
             run_function_on_non_blocking_thread(&runDialogOptionMouseClickHandlerFunc);
 
             if (runDialogOptionMouseClickHandlerFunc.atLeastOneImplementationExists)
-              goto redraw_options;
+            {
+              Redraw();
+            }
 
-            continue;
+            return true; // continue running loop
         }
       }
 
@@ -887,7 +970,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
         // They have selected a custom parser-based option
         if (parserInput->text[0] != 0) {
           chose = DLG_OPTION_PARSER;
-          break;
+          return false; // end dialog options running loop
         }
         else {
           parserActivated = 0;
@@ -896,20 +979,18 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
       }
       if (mousewason != mouseison) {
         //domouse(2);
-        goto redraw_options;
+        Redraw();
+        return true; // continue running loop
       }
       while ((timerloop == 0) && (play.fast_forward == 0)) {
         update_polled_stuff_if_runtime();
         platform->YieldCPU();
       }
+      return true; // continue running loop
+}
 
-    }
-    if (!play.mouse_cursor_hidden)
-      domouse(2);
-  }
-  else 
-    chose = disporder[0];  // only one choice, so select it
-
+void DialogOptions::Close()
+{
   while (kbhit()) getch(); // empty keyboard buffer
   //leave_real_screen();
   construct_virtual_screen(true);
@@ -936,11 +1017,24 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
   remove_screen_overlay(OVER_COMPLETE);
 
   delete tempScrn;
+}
 
-  if (chose != CHOSE_TEXTPARSER)
+DialogOptions DlgOpt;
+
+int show_dialog_options(int _dlgnum, int sayChosenOption, bool _runGameLoopsInBackground) 
+{
+  DlgOpt.Prepare(_dlgnum, _runGameLoopsInBackground);
+  DlgOpt.Show();
+  DlgOpt.Close();  
+
+  int dialog_choice = DlgOpt.chose;
+  if (dialog_choice != CHOSE_TEXTPARSER)
   {
-    dtop->optionflags[chose] |= DFLG_HASBEENCHOSEN;
+    DialogTopic *dialog_topic = DlgOpt.dtop;
+    int &option_flags = dialog_topic->optionflags[dialog_choice];
+    const char *option_name = DlgOpt.dtop->optionnames[dialog_choice];
 
+    option_flags |= DFLG_HASBEENCHOSEN;
     bool sayTheOption = false;
     if (sayChosenOption == SAYCHOSEN_YES)
     {
@@ -948,14 +1042,14 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
     }
     else if (sayChosenOption == SAYCHOSEN_USEFLAG)
     {
-      sayTheOption = ((dtop->optionflags[chose] & DFLG_NOREPEAT) == 0);
+      sayTheOption = ((option_flags & DFLG_NOREPEAT) == 0);
     }
 
     if (sayTheOption)
-      DisplaySpeech(get_translation(dtop->optionnames[chose]), game.playercharacter);
+      DisplaySpeech(get_translation(option_name), game.playercharacter);
   }
 
-  return chose;
+  return dialog_choice;
 }
 
 void do_conversation(int dlgnum) 
@@ -1031,7 +1125,7 @@ void do_conversation(int dlgnum)
       if (said_speech_line > 0) {
         // fix the problem with the close-up face remaining on screen
         DisableInterface();
-        mainloop(); // redraw the screen to make sure it looks right
+        UpdateGameOnce(); // redraw the screen to make sure it looks right
         EnableInterface();
         set_mouse_cursor(CURS_ARROW);
       }

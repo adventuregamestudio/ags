@@ -9,9 +9,8 @@
 #define SWAP_RB_HICOL_FOR_32to24_32
 #define SWAP_RB_HICOL_FOR_32to15_16
 
-void __my_setcolor(int *ctset, int newcol)
+void __my_setcolor(int *ctset, int newcol, int wantColDep)
   {
-    int wantColDep = abuf->GetColorDepth();
     if (wantColDep == 8)
       ctset[0] = newcol;
     else if (newcol & 0x40000000) // already calculated it

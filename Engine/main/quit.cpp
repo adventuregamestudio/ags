@@ -240,9 +240,7 @@ void quit_delete_temp_files()
 }
 
 // TODO: move to test unit
-#include "gfx/allegrobitmap.h"
-using AGS::Common::AllegroBitmap;
-extern AllegroBitmap *test_allegro_bitmap;
+extern Bitmap *test_allegro_bitmap;
 extern IDriverDependantBitmap *test_allegro_ddb;
 void allegro_bitmap_test_release()
 {

@@ -52,12 +52,13 @@
 #include "script/script_runtime.h"
 #include "ac/spritecache.h"
 #include "gfx/graphicsdriver.h"
-#include "gfx/bitmap.h"
+#include "gfx/graphics.h"
 #include "core/assetmanager.h"
 #include "main/game_file.h"
 
 using AGS::Common::String;
 using AGS::Common::Bitmap;
+using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 #define ALLEGRO_KEYBOARD_HANDLER
@@ -185,8 +186,8 @@ int LoadSaveSlotScreenshot(int slnum, int width, int height) {
 
     // resize the sprite to the requested size
     Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, spriteset[gotSlot]->GetColorDepth());
-
-    newPic->StretchBlt(spriteset[gotSlot],
+    Graphics graphics(newPic);
+    graphics.StretchBlt(spriteset[gotSlot],
         RectWH(0, 0, spritewidth[gotSlot], spriteheight[gotSlot]),
         RectWH(0, 0, width, height));
 
@@ -274,7 +275,8 @@ int RunAGSGame (const char *newgame, unsigned int mode, int data) {
     if (Common::AssetManager::SetDataFile(game_file_name) != Common::kAssetNoError)
         quitprintf("!RunAGSGame: unable to load new game file '%s'", game_file_name.GetCStr());
 
-    abuf->Clear();
+    Common::Graphics *g = GetVirtualScreenGraphics();
+    g->Fill(0);
     show_preload();
 
     if ((result = load_game_file ()) != 0) {
@@ -738,14 +740,14 @@ int SaveScreenShot(const char*namm) {
         Bitmap *buffer = BitmapHelper::CreateBitmap(scrnwid, scrnhit, 32);
         gfxDriver->GetCopyOfScreenIntoBitmap(buffer);
 
-		if (!BitmapHelper::SaveToFile(buffer, fileName, palette)!=0)
+		if (!buffer->SaveToFile(fileName, palette)!=0)
         {
             delete buffer;
             return 0;
         }
         delete buffer;
     }
-	else if (!BitmapHelper::SaveToFile(virtual_screen, fileName, palette)!=0)
+	else if (!virtual_screen->SaveToFile(fileName, palette)!=0)
         return 0; // failed
 
     return 1;  // successful
@@ -902,7 +904,7 @@ void scrWait(int nloops) {
 
     play.wait_counter = nloops;
     play.key_skip_wait = 0;
-    do_main_cycle(UNTIL_MOVEEND,(long)&play.wait_counter);
+    GameLoopUntilEvent(UNTIL_MOVEEND,(long)&play.wait_counter);
 }
 
 int WaitKey(int nloops) {
@@ -911,7 +913,7 @@ int WaitKey(int nloops) {
 
     play.wait_counter = nloops;
     play.key_skip_wait = 1;
-    do_main_cycle(UNTIL_MOVEEND,(long)&play.wait_counter);
+    GameLoopUntilEvent(UNTIL_MOVEEND,(long)&play.wait_counter);
     if (play.wait_counter < 0)
         return 1;
     return 0;
@@ -923,7 +925,7 @@ int WaitMouseKey(int nloops) {
 
     play.wait_counter = nloops;
     play.key_skip_wait = 3;
-    do_main_cycle(UNTIL_MOVEEND,(long)&play.wait_counter);
+    GameLoopUntilEvent(UNTIL_MOVEEND,(long)&play.wait_counter);
     if (play.wait_counter < 0)
         return 1;
     return 0;

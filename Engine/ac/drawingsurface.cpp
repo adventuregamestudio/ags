@@ -19,7 +19,6 @@
 #include "ac/charactercache.h"
 #include "ac/display.h"
 #include "ac/game.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_translation.h"
 #include "ac/objectcache.h"
@@ -28,6 +27,7 @@
 #include "ac/string.h"
 #include "debug/debug_log.h"
 #include "font/fonts.h"
+#include "game/game_objects.h"
 #include "gui/guimain.h"
 #include "ac/spritecache.h"
 #include "gfx/bitmap.h"
@@ -36,7 +36,6 @@
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
-extern GameSetupStruct game;
 extern GameState play;
 extern RoomStatus*croom;
 extern RoomObject*objs;
@@ -82,12 +81,12 @@ void DrawingSurface_Release(ScriptDrawingSurface* sds)
                         objcache[tt].sppic = -31999;
                 }
             }
-            for (tt = 0; tt < game.numcharacters; tt++) 
+            for (tt = 0; tt < game.CharacterCount; tt++) 
             {
                 if (charcache[tt].sppic == sds->dynamicSpriteNumber)
                     charcache[tt].sppic = -31999;
             }
-            for (tt = 0; tt < game.numgui; tt++) 
+            for (tt = 0; tt < game.GuiCount; tt++) 
             {
                 if ((guis[tt].bgpic == sds->dynamicSpriteNumber) &&
                     (guis[tt].on == 1))

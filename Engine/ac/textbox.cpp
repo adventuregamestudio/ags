@@ -15,11 +15,10 @@
 #include <string.h>
 #include "ac/textbox.h"
 #include "ac/common.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/string.h"
+#include "game/game_objects.h"
 
 extern int guis_need_update;
-extern GameSetupStruct game;
 
 
 // ** TEXT BOX FUNCTIONS
@@ -60,7 +59,7 @@ int TextBox_GetFont(GUITextBox *guit) {
 }
 
 void TextBox_SetFont(GUITextBox *guit, int fontnum) {
-    if ((fontnum < 0) || (fontnum >= game.numfonts))
+    if ((fontnum < 0) || (fontnum >= game.FontCount))
         quit("!SetTextBoxFont: invalid font number.");
 
     if (guit->font != fontnum) {

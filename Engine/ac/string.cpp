@@ -15,18 +15,17 @@
 #include "ac/string.h"
 #include "ac/common.h"
 #include "ac/display.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_translation.h"
 #include "ac/runtime_defines.h"
 #include "ac/dynobj/scriptstring.h"
 #include "debug/debug_log.h"
+#include "game/game_objects.h"
 #include "util/string_utils.h"
 #include "script/runtimescriptvalue.h"
 
 extern char lines[MAXLINE][200];
 extern int  numlines;
-extern GameSetupStruct game;
 extern GameState play;
 extern int longestline;
 extern ScriptString myScriptStringImpl;
@@ -303,7 +302,7 @@ char *reverse_text(const char *text) {
 void wouttext_reverseifnecessary(int x, int y, int font, char *text) {
     char *backwards = NULL;
     char *otext = text;
-    if (game.options[OPT_RIGHTLEFTWRITE]) {
+    if (game.Options[OPT_RIGHTLEFTWRITE]) {
         backwards = reverse_text(text);
         otext = backwards;
     }
@@ -332,7 +331,7 @@ void break_up_text_into_lines(int wii,int fonnt, const char*todis) {
 
     int rr;
 
-    if (game.options[OPT_RIGHTLEFTWRITE] == 0)
+    if (game.Options[OPT_RIGHTLEFTWRITE] == 0)
     {
         split_lines_leftright(todis, wii, fonnt);
     }
@@ -353,8 +352,8 @@ void break_up_text_into_lines(int wii,int fonnt, const char*todis) {
 int MAXSTRLEN = MAX_MAXSTRLEN;
 void check_strlen(char*ptt) {
     MAXSTRLEN = MAX_MAXSTRLEN;
-    long charstart = (long)&game.chars[0];
-    long charend = charstart + sizeof(CharacterInfo)*game.numcharacters;
+    long charstart = (long)&game.Characters[0];
+    long charend = charstart + sizeof(CharacterInfo)*game.CharacterCount;
     if (((long)&ptt[0] >= charstart) && ((long)&ptt[0] <= charend))
         MAXSTRLEN=30;
 }

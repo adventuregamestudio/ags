@@ -23,7 +23,6 @@
 #include "ac/event.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
 #include "ac/global_character.h"
@@ -46,6 +45,7 @@
 #include "ac/walkbehind.h"
 #include "ac/dynobj/scriptobject.h"
 #include "ac/dynobj/scripthotspot.h"
+#include "game/game_objects.h"
 #include "script/cc_instance.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
@@ -74,7 +74,6 @@ namespace Out = AGS::Common::Out;
 #endif
 
 extern GameSetup usetup;
-extern GameSetupStruct game;
 extern GameState play;
 extern RoomStatus*croom;
 extern RoomStatus troom;    // used for non-saveable rooms, eg. intro
@@ -290,7 +289,7 @@ void unload_old_room() {
         croom->interactionVariableValues[ff] = thisroom.localvars[ff].value;
 
     // wipe the character cache when we change rooms
-    for (ff = 0; ff < game.numcharacters; ff++) {
+    for (ff = 0; ff < game.CharacterCount; ff++) {
         if (charcache[ff].inUse) {
             delete charcache[ff].image;
             charcache[ff].image = NULL;
@@ -325,7 +324,7 @@ void unload_old_room() {
     // clear the actsps buffers to save memory, since the
     // objects/characters involved probably aren't on the
     // new screen. this also ensures all cached data is flushed
-    for (ff = 0; ff < MAX_INIT_SPR + game.numcharacters; ff++) {
+    for (ff = 0; ff < MAX_INIT_SPR + game.CharacterCount; ff++) {
         delete actsps[ff];
         actsps[ff] = NULL;
 
@@ -345,7 +344,7 @@ void unload_old_room() {
 
     // if Hide Player Character was ticked, restore it to visible
     if (play.temporarily_turned_off_character >= 0) {
-        game.chars[play.temporarily_turned_off_character].on = 1;
+        game.Characters[play.temporarily_turned_off_character].on = 1;
         play.temporarily_turned_off_character = -1;
     }
 
@@ -422,14 +421,14 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     // load the room from disk
     our_eip=200;
     thisroom.gameId = NO_GAME_ID_IN_ROOM_FILE;
-    load_room(room_filename, &thisroom, (game.default_resolution > 2));
+    load_room(room_filename, &thisroom, (game.DefaultResolution > 2));
 
     if ((thisroom.gameId != NO_GAME_ID_IN_ROOM_FILE) &&
-        (thisroom.gameId != game.uniqueid)) {
+        (thisroom.gameId != game.UniqueId)) {
             quitprintf("!Unable to load '%s'. This room file is assigned to a different game.", room_filename.GetCStr());
     }
 
-    if ((game.default_resolution > 2) && (game.options[OPT_NATIVECOORDINATES] == 0))
+    if ((game.DefaultResolution > 2) && (game.Options[OPT_NATIVECOORDINATES] == 0))
     {
         convert_room_coordinates_to_low_res(&thisroom);
     }
@@ -450,7 +449,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     int dd;
     // do the palette
     for (cc=0;cc<256;cc++) {
-        if (game.paluses[cc]==PAL_BACKGROUND)
+        if (game.PaletteUses[cc]==PAL_BACKGROUND)
             palette[cc]=thisroom.pal[cc];
         else {
             // copy the gamewide colours into the room palette
@@ -467,8 +466,8 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         update_polled_stuff_if_runtime();
 #ifdef USE_15BIT_FIX
         // convert down scenes from 16 to 15-bit if necessary
-        if ((final_col_dep != game.color_depth*8) &&
-            (thisroom.ebscene[cc]->GetColorDepth() == game.color_depth * 8)) {
+        if ((final_col_dep != game.ColorDepth*8) &&
+            (thisroom.ebscene[cc]->GetColorDepth() == game.ColorDepth * 8)) {
                 Bitmap *oldblock = thisroom.ebscene[cc];
                 thisroom.ebscene[cc] = convert_16_to_15(oldblock);
                 delete oldblock;
@@ -755,15 +754,15 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
 
         // if a following character is still waiting to come into the
         // previous room, force it out so that the timer resets
-        for (int ff = 0; ff < game.numcharacters; ff++) {
-            if ((game.chars[ff].following >= 0) && (game.chars[ff].room < 0)) {
-                if ((game.chars[ff].following == game.playercharacter) &&
+        for (int ff = 0; ff < game.CharacterCount; ff++) {
+            if ((game.Characters[ff].following >= 0) && (game.Characters[ff].room < 0)) {
+                if ((game.Characters[ff].following == game.PlayerCharacterIndex) &&
                     (forchar->prevroom == newnum))
                     // the player went back to the previous room, so make sure
                     // the following character is still there
-                    game.chars[ff].room = newnum;
+                    game.Characters[ff].room = newnum;
                 else
-                    game.chars[ff].room = game.chars[game.chars[ff].following].room;
+                    game.Characters[ff].room = game.Characters[game.Characters[ff].following].room;
             }
         }
 
@@ -772,7 +771,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         forchar->prevroom=forchar->room;
         forchar->room=newnum;
         // only stop moving if it's a new room, not a restore game
-        for (cc=0;cc<game.numcharacters;cc++)
+        for (cc=0;cc<game.CharacterCount;cc++)
             StopMoving(cc);
 
     }
@@ -902,7 +901,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             // remember which character we turned off, in case they
             // use SetPlyaerChracter within this room (so we re-enable
             // the correct character when leaving the room)
-            play.temporarily_turned_off_character = game.playercharacter;
+            play.temporarily_turned_off_character = game.PlayerCharacterIndex;
         }
         if (forchar->flags & CHF_FIXVIEW) ;
         else if (thisroom.options[ST_MANVIEW]==0) forchar->view=forchar->defview;
@@ -929,7 +928,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     while (kbhit()) { if (getch()==0) getch(); }
     while (mgetbutton()!=NONE) ;
     // no fade in, so set the palette immediately in case of 256-col sprites
-    if (game.color_depth > 1)
+    if (game.ColorDepth > 1)
         setpal();
 
     our_eip=220;
@@ -937,7 +936,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     DEBUG_CONSOLE("Now in room %d", displayed_room);
     guis_need_update = 1;
     platform->RunPluginHooks(AGSE_ENTERROOM, displayed_room);
-    //  MoveToWalkableArea(game.playercharacter);
+    //  MoveToWalkableArea(game.PlayerCharacterIndex);
     //  MSS_CHECK_ALL_BLOCKS;
 }
 
@@ -966,7 +965,7 @@ void new_room(int newnum,CharacterInfo*forchar) {
     in_leaves_screen = -1;
 
     if ((playerchar->following >= 0) &&
-        (game.chars[playerchar->following].room != newnum)) {
+        (game.Characters[playerchar->following].room != newnum)) {
             // the player character is following another character,
             // who is not in the new room. therefore, abort the follow
             playerchar->following = -1;
@@ -982,7 +981,7 @@ void new_room(int newnum,CharacterInfo*forchar) {
         spriteset.removeAll();
 
         // Delete all gui background images
-        for (int i = 0; i < game.numgui; i++)
+        for (int i = 0; i < game.GuiCount; i++)
         {
             delete guibg[i];
             guibg[i] = NULL;
@@ -1028,7 +1027,7 @@ void check_new_room() {
         evh.data1 = EVB_ROOM;
         evh.data2 = 0;
         evh.data3 = 5;
-        evh.player=game.playercharacter;
+        evh.player=game.PlayerCharacterIndex;
         // make sure that any script calls don't re-call enters screen
         int newroom_was = in_new_room;
         in_new_room = 0;
@@ -1072,7 +1071,7 @@ void on_background_frame_change () {
 
     // hi-colour, update the palette. It won't have an immediate effect
     // but will be drawn properly when the screen fades in
-    if (game.color_depth > 1)
+    if (game.ColorDepth > 1)
         setpal();
 
     if (in_enters_screen)
@@ -1084,7 +1083,7 @@ void on_background_frame_change () {
 
     // 256-colours, tell it to update the palette (will actually be done as
     // close as possible to the screen update to prevent flicker problem)
-    if (game.color_depth == 1)
+    if (game.ColorDepth == 1)
         bg_just_changed = 1;
 }
 

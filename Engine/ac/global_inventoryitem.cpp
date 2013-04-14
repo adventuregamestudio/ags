@@ -13,7 +13,6 @@
 //=============================================================================
 
 #include "ac/common.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/global_gui.h"
 #include "ac/global_inventoryitem.h"
 #include "ac/global_translation.h"
@@ -25,8 +24,8 @@
 #include "gui/guiinv.h"
 #include "ac/event.h"
 #include "ac/gamestate.h"
+#include "game/game_objects.h"
 
-extern GameSetupStruct game;
 extern GameState play;
 extern int guis_need_update;
 extern int mousex, mousey;
@@ -38,30 +37,30 @@ extern CharacterInfo*playerchar;
 
 
 void set_inv_item_pic(int invi, int piccy) {
-    if ((invi < 1) || (invi > game.numinvitems))
+    if ((invi < 1) || (invi > game.InvItemCount))
         quit("!SetInvItemPic: invalid inventory item specified");
 
-    if (game.invinfo[invi].pic == piccy)
+    if (game.InventoryItems[invi].pic == piccy)
         return;
 
-    if (game.invinfo[invi].pic == game.invinfo[invi].cursorPic)
+    if (game.InventoryItems[invi].pic == game.InventoryItems[invi].cursorPic)
     {
         // Backwards compatibility -- there didn't used to be a cursorPic,
         // so if they're the same update both.
         set_inv_item_cursorpic(invi, piccy);
     }
 
-    game.invinfo[invi].pic = piccy;
+    game.InventoryItems[invi].pic = piccy;
     guis_need_update = 1;
 }
 
 void SetInvItemName(int invi, const char *newName) {
-    if ((invi < 1) || (invi > game.numinvitems))
+    if ((invi < 1) || (invi > game.InvItemCount))
         quit("!SetInvName: invalid inventory item specified");
 
     // set the new name, making sure it doesn't overflow the buffer
-    strncpy(game.invinfo[invi].name, newName, 25);
-    game.invinfo[invi].name[24] = 0;
+    strncpy(game.InventoryItems[invi].name, newName, 25);
+    game.InventoryItems[invi].name[24] = 0;
 
     // might need to redraw the GUI if it has the inv item name on it
     guis_need_update = 1;
@@ -88,18 +87,18 @@ int GetInvAt (int xxx, int yyy) {
 
 void GetInvName(int indx,char*buff) {
   VALIDATE_STRING(buff);
-  if ((indx<0) | (indx>=game.numinvitems)) quit("!GetInvName: invalid inventory item specified");
-  strcpy(buff,get_translation(game.invinfo[indx].name));
+  if ((indx<0) | (indx>=game.InvItemCount)) quit("!GetInvName: invalid inventory item specified");
+  strcpy(buff,get_translation(game.InventoryItems[indx].name));
 }
 
 int GetInvGraphic(int indx) {
-  if ((indx<0) | (indx>=game.numinvitems)) quit("!GetInvGraphic: invalid inventory item specified");
+  if ((indx<0) | (indx>=game.InvItemCount)) quit("!GetInvGraphic: invalid inventory item specified");
 
-  return game.invinfo[indx].pic;
+  return game.InventoryItems[indx].pic;
 }
 
 void RunInventoryInteraction (int iit, int modd) {
-    if ((iit < 0) || (iit >= game.numinvitems))
+    if ((iit < 0) || (iit >= game.InvItemCount))
         quit("!RunInventoryInteraction: invalid inventory number");
 
     evblocknum = iit;
@@ -135,9 +134,9 @@ int IsInventoryInteractionAvailable (int item, int mood) {
 }
 
 int GetInvProperty (int item, const char *property) {
-    return get_int_property (&game.invProps[item], property);
+    return get_int_property (&game.InvItemProperties[item], property);
 }
 
 void GetInvPropertyText (int item, const char *property, char *bufer) {
-    get_text_property (&game.invProps[item], property, bufer);
+    get_text_property (&game.InvItemProperties[item], property, bufer);
 }

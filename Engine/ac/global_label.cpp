@@ -14,16 +14,15 @@
 
 #include "ac/global_label.h"
 #include "ac/common.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/label.h"
 #include "ac/string.h"
 #include "gui/guimain.h"
+#include "game/game_objects.h"
 
-extern GameSetupStruct game;
 extern GUIMain*guis;
 
 void SetLabelColor(int guin,int objn, int colr) {
-    if ((guin<0) | (guin>=game.numgui))
+    if ((guin<0) | (guin>=game.GuiCount))
         quit("!SetLabelColor: invalid GUI number");
     if ((objn<0) | (objn>=guis[guin].numobjs))
         quit("!SetLabelColor: invalid object number");
@@ -36,7 +35,7 @@ void SetLabelColor(int guin,int objn, int colr) {
 
 void SetLabelText(int guin,int objn, const char*newtx) {
     VALIDATE_STRING(newtx);
-    if ((guin<0) | (guin>=game.numgui)) quit("!SetLabelText: invalid GUI number");
+    if ((guin<0) | (guin>=game.GuiCount)) quit("!SetLabelText: invalid GUI number");
     if ((objn<0) | (objn>=guis[guin].numobjs)) quit("!SetLabelTexT: invalid object number");
     if (guis[guin].get_control_type(objn)!=GOBJ_LABEL)
         quit("!SetLabelText: specified control is not a label");
@@ -47,7 +46,7 @@ void SetLabelText(int guin,int objn, const char*newtx) {
 
 void SetLabelFont(int guin,int objn, int fontnum) {
 
-    if ((guin<0) | (guin>=game.numgui)) quit("!SetLabelFont: invalid GUI number");
+    if ((guin<0) | (guin>=game.GuiCount)) quit("!SetLabelFont: invalid GUI number");
     if ((objn<0) | (objn>=guis[guin].numobjs)) quit("!SetLabelFont: invalid object number");
     if (guis[guin].get_control_type(objn)!=GOBJ_LABEL)
         quit("!SetLabelFont: specified control is not a label");

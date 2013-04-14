@@ -1069,6 +1069,14 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="game"
+				>
+				<File
+					RelativePath="..\..\Engine\game\game_objects.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -2052,6 +2060,14 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\util\thread_windows.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="game"
+				>
+				<File
+					RelativePath="..\..\Engine\game\game_objects.h"
 					>
 				</File>
 			</Filter>

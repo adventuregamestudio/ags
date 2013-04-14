@@ -20,7 +20,6 @@
 #include "ac/character.h"
 #include "ac/characterextras.h"
 #include "ac/gamestate.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/global_character.h"
 #include "ac/lipsync.h"
 #include "ac/overlay.h"
@@ -28,6 +27,7 @@
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
 #include "ac/roomstruct.h"
+#include "game/game_objects.h"
 #include "main/mainheader.h"
 #include "main/update.h"
 #include "ac/screenoverlay.h"
@@ -41,7 +41,6 @@ using AGS::Common::Bitmap;
 
 extern MoveList *mls;
 extern RoomStatus*croom;
-extern GameSetupStruct game;
 extern GameState play;
 extern roomstruct thisroom;
 extern RoomObject*objs;
@@ -199,7 +198,7 @@ void update_cycling_views()
 void update_shadow_areas()
 {
 	// shadow areas
-  int onwalkarea = get_walkable_area_at_character (game.playercharacter);
+  int onwalkarea = get_walkable_area_at_character (game.PlayerCharacterIndex);
   if (onwalkarea<0) ;
   else if (playerchar->flags & CHF_FIXVIEW) ;
   else { onwalkarea=thisroom.shadinginfo[onwalkarea];
@@ -212,10 +211,10 @@ void update_shadow_areas()
 void update_character_move_and_anim(int &numSheep, int *followingAsSheep)
 {
 	// move & animate characters
-  for (int aa=0;aa<game.numcharacters;aa++) {
-    if (game.chars[aa].on != 1) continue;
+  for (int aa=0;aa<game.CharacterCount;aa++) {
+    if (game.Characters[aa].on != 1) continue;
 
-    CharacterInfo*chi    = &game.chars[aa];
+    CharacterInfo*chi    = &game.Characters[aa];
 	CharacterExtras*chex = &charextra[aa];
 
 	chi->UpdateMoveAndAnim(aa, chex, numSheep, followingAsSheep);
@@ -226,7 +225,7 @@ void update_following_exactly_characters(int &numSheep, int *followingAsSheep)
 {
 	// update location of all following_exactly characters
   for (int aa = 0; aa < numSheep; aa++) {
-    CharacterInfo *chi = &game.chars[followingAsSheep[aa]];
+    CharacterInfo *chi = &game.Characters[followingAsSheep[aa]];
 
 	chi->UpdateFollowingExactlyCharacter();
   }
@@ -324,7 +323,7 @@ void update_sierra_speech()
         {
           curLipLinePhenome ++;
           if (curLipLinePhenome >= splipsync[curLipLine].numPhenomes)
-            facetalkframe = game.default_lipsync_frame;
+            facetalkframe = game.DefaultLipSyncFrame;
           else
             facetalkframe = splipsync[curLipLine].frame[curLipLinePhenome];
 
@@ -346,7 +345,7 @@ void update_sierra_speech()
         facetalkframe = 0;
         facetalkwait = play.messagetime;
       }
-      else if ((game.options[OPT_LIPSYNCTEXT]) && (facetalkrepeat > 0)) {
+      else if ((game.Options[OPT_LIPSYNCTEXT]) && (facetalkrepeat > 0)) {
         // lip-sync speech (and not a thought)
         facetalkwait = update_lip_sync (facetalkview, facetalkloop, &facetalkframe);
         // It is actually displayed for facetalkwait+1 loops
@@ -389,7 +388,7 @@ void update_sierra_speech()
       int yPos = 0;
       int thisPic = views[facetalkview].loops[facetalkloop].frames[facetalkframe].pic;
       
-      if (game.options[OPT_SPEECHTYPE] == 3) {
+      if (game.Options[OPT_SPEECHTYPE] == 3) {
         // QFG4-style fullscreen dialog
         yPos = (screenover[face_talking].pic->GetHeight() / 2) - (spriteheight[thisPic] / 2);
         screenover[face_talking].pic->Clear(0);

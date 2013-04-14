@@ -15,15 +15,14 @@
 #include "ac/button.h"
 #include "ac/common.h"
 #include "ac/view.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/global_translation.h"
 #include "ac/string.h"
 #include "ac/viewframe.h"
 #include "debug/debug_log.h"
+#include "game/game_objects.h"
 #include "gui/animatingguibutton.h"
 #include "gui/guimain.h"
 
-extern GameSetupStruct game;
 extern ViewStruct*views;
 extern GUIMain*guis;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
@@ -37,7 +36,7 @@ void Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat) 
     int guin = butt->guin;
     int objn = butt->objn;
 
-    if ((view < 1) || (view > game.numviews))
+    if ((view < 1) || (view > game.ViewCount))
         quit("!AnimateButton: invalid view specified");
     view--;
 
@@ -89,7 +88,7 @@ void Button_SetText(GUIButton *butt, const char *newtx) {
 }
 
 void Button_SetFont(GUIButton *butt, int newFont) {
-    if ((newFont < 0) || (newFont >= game.numfonts))
+    if ((newFont < 0) || (newFont >= game.FontCount))
         quit("!Button.Font: invalid font number.");
 
     if (butt->font != newFont) {

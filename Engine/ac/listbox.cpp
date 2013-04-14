@@ -16,17 +16,16 @@
 #include "ac/listbox.h"
 #include "ac/common.h"
 #include "ac/file.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/string.h"
+#include "game/game_objects.h"
 #include "gui/guimain.h"
 
 extern int guis_need_update;
 extern char saveGameDirectory[260];
 extern GameState play;
 extern GUIMain*guis;
-extern GameSetupStruct game;
 
 // *** LIST BOX FUNCTIONS
 
@@ -195,7 +194,7 @@ int ListBox_GetFont(GUIListBox *listbox) {
 
 void ListBox_SetFont(GUIListBox *listbox, int newfont) {
 
-  if ((newfont < 0) || (newfont >= game.numfonts))
+  if ((newfont < 0) || (newfont >= game.FontCount))
     quit("!ListBox.Font: invalid font number.");
 
   if (newfont != listbox->font) {
@@ -285,7 +284,7 @@ void ListBox_ScrollUp(GUIListBox *listbox) {
 
 
 GUIListBox* is_valid_listbox (int guin, int objn) {
-  if ((guin<0) | (guin>=game.numgui)) quit("!ListBox: invalid GUI number");
+  if ((guin<0) | (guin>=game.GuiCount)) quit("!ListBox: invalid GUI number");
   if ((objn<0) | (objn>=guis[guin].numobjs)) quit("!ListBox: invalid object number");
   if (guis[guin].get_control_type(objn)!=GOBJ_LISTBOX)
     quit("!ListBox: specified control is not a list box");

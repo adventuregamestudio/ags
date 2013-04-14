@@ -276,12 +276,6 @@ public:
     {
         return GetAt(index);
     }
-    inline char &operator[](int index)
-    {
-        BecomeUnique();
-        assert(_meta && index >= 0 && index < GetLength());
-        return _meta->CStr[index];
-    }
     inline bool operator==(const char *cstr)
     {
         return Compare(cstr) == 0;

@@ -15,12 +15,11 @@
 #include <string.h>
 #include "ac/label.h"
 #include "ac/common.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/global_translation.h"
 #include "ac/string.h"
+#include "game/game_objects.h"
 
 extern int guis_need_update;
-extern GameSetupStruct game;
 
 // ** LABEL FUNCTIONS
 
@@ -57,7 +56,7 @@ int Label_GetFont(GUILabel *labl) {
 }
 
 void Label_SetFont(GUILabel *guil, int fontnum) {
-    if ((fontnum < 0) || (fontnum >= game.numfonts))
+    if ((fontnum < 0) || (fontnum >= game.FontCount))
         quit("!SetLabelFont: invalid font number.");
 
     if (fontnum != guil->font) {

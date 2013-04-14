@@ -14,16 +14,15 @@
 
 #include "ac/global_slider.h"
 #include "ac/common.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/slider.h"
+#include "game/game_objects.h"
 #include "gui/guimain.h"
 #include "gui/guislider.h"
 
-extern GameSetupStruct game;
 extern GUIMain*guis;
 
 void SetSliderValue(int guin,int objn, int valn) {
-    if ((guin<0) | (guin>=game.numgui)) quit("!SetSliderValue: invalid GUI number");
+    if ((guin<0) | (guin>=game.GuiCount)) quit("!SetSliderValue: invalid GUI number");
     if (guis[guin].get_control_type(objn)!=GOBJ_SLIDER)
         quit("!SetSliderValue: specified control is not a slider");
 
@@ -32,7 +31,7 @@ void SetSliderValue(int guin,int objn, int valn) {
 }
 
 int GetSliderValue(int guin,int objn) {
-    if ((guin<0) | (guin>=game.numgui)) quit("!GetSliderValue: invalid GUI number");
+    if ((guin<0) | (guin>=game.GuiCount)) quit("!GetSliderValue: invalid GUI number");
     if (guis[guin].get_control_type(objn)!=GOBJ_SLIDER)
         quit("!GetSliderValue: specified control is not a slider");
 

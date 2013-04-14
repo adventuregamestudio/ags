@@ -15,7 +15,6 @@
 #include "ac/object.h"
 #include "gfx/ali3d.h"
 #include "ac/common.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/draw.h"
 #include "ac/character.h"
 #include "ac/global_object.h"
@@ -29,6 +28,7 @@
 #include "ac/string.h"
 #include "ac/walkablearea.h"
 #include "debug/debug_log.h"
+#include "game/game_objects.h"
 #include "main/game_run.h"
 #include "ac/route_finder.h"
 #include "gfx/graphicsdriver.h"
@@ -46,7 +46,6 @@ extern roomstruct thisroom;
 extern ObjectCache objcache[MAX_INIT_SPR];
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern MoveList *mls;
-extern GameSetupStruct game;
 extern Bitmap *walkable_areas_temp;
 extern IGraphicsDriver *gfxDriver;
 extern int offsetx,offsety;
@@ -345,8 +344,8 @@ void move_object(int objj,int tox,int toy,int spee,int ignwal) {
         objs[objj].moving = mslot;
         mls[mslot].direct = ignwal;
 
-        if ((game.options[OPT_NATIVECOORDINATES] != 0) &&
-            (game.default_resolution > 2))
+        if ((game.Options[OPT_NATIVECOORDINATES] != 0) &&
+            (game.DefaultResolution > 2))
         {
             convert_move_path_to_high_res(&mls[mslot]);
         }
@@ -417,7 +416,7 @@ int is_pos_in_sprite(int xx,int yy,int arx,int ary, Bitmap *sprit, int spww,int 
     if (isposinbox(xx,yy,arx,ary,arx+spww,ary+sphh)==FALSE)
         return FALSE;
 
-    if (game.options[OPT_PIXPERFECT]) 
+    if (game.Options[OPT_PIXPERFECT]) 
     {
         // if it's transparent, or off the edge of the sprite, ignore
         int xpos = multiply_up_coordinate(xx - arx);

@@ -170,14 +170,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Common\ac\gamesetupstruct.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\gamesetupstructbase.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Common\ac\interaction.cpp"
 					>
 				</File>
@@ -394,6 +386,14 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="game"
+				>
+				<File
+					RelativePath="..\..\Common\game\gameinfo.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -433,14 +433,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\ac\game_version.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\gamesetupstruct.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\gamesetupstructbase.h"
 					>
 				</File>
 				<File
@@ -733,6 +725,14 @@
 				>
 				<File
 					RelativePath="..\..\Common\api\stream_api.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="game"
+				>
+				<File
+					RelativePath="..\..\Common\game\gameinfo.h"
 					>
 				</File>
 			</Filter>

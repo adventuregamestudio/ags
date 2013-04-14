@@ -14,18 +14,17 @@
 
 #include "ac/region.h"
 #include "ac/common_defines.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/roomstruct.h"
 #include "ac/global_region.h"
 #include "ac/roomstatus.h"
 #include "ac/dynobj/cc_region.h"
+#include "game/game_objects.h"
 #include "script/runtimescriptvalue.h"
 
 
 extern ScriptRegion scrRegion[MAX_REGIONS];
 extern roomstruct thisroom;
 extern RoomStatus*croom;
-extern GameSetupStruct game;
 extern COLOR_MAP maincoltable;
 extern color palette[256];
 extern CCRegion ccDynamicRegion;
@@ -99,7 +98,7 @@ void Region_RunInteraction(ScriptRegion *ssr, int mood) {
 
 void generate_light_table() {
     int cc;
-    if ((game.color_depth == 1) && (color_map == NULL)) {
+    if ((game.ColorDepth == 1) && (color_map == NULL)) {
         // in 256-col mode, check if we need the light table this room
         for (cc=0;cc < MAX_REGIONS;cc++) {
             if (thisroom.regionLightLevel[cc] < 0) {

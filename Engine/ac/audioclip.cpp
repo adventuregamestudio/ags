@@ -14,24 +14,23 @@
 
 #include "ac/audioclip.h"
 #include "ac/audiochannel.h"
-#include "ac/gamesetupstruct.h"
+#include "ac/dynobj/cc_audiochannel.h"
+#include "game/game_objects.h"
 #include "media/audio/audio.h"
 #include "media/audio/soundclip.h"
 #include "script/runtimescriptvalue.h"
-#include "ac/dynobj/cc_audiochannel.h"
 
-extern GameSetupStruct game;
 extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
 extern CCAudioChannel ccDynamicAudio;
 
 int AudioClip_GetFileType(ScriptAudioClip *clip)
 {
-    return game.audioClips[clip->id].fileType;
+    return game.AudioClips[clip->id].fileType;
 }
 
 int AudioClip_GetType(ScriptAudioClip *clip)
 {
-    return game.audioClips[clip->id].type;
+    return game.AudioClips[clip->id].type;
 }
 int AudioClip_GetIsAvailable(ScriptAudioClip *clip)
 {

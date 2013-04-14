@@ -15,12 +15,13 @@
 #define USE_CLIB
 #include "ac/common.h"
 #include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/runtime_defines.h"
 #include "ac/translation.h"
 #include "ac/tree_map.h"
+#include "ac/wordsdictionary.h"
+#include "game/game_objects.h"
 #include "util/misc.h"
 #include "util/stream.h"
 #include "core/assetmanager.h"
@@ -28,7 +29,6 @@
 using AGS::Common::Stream;
 
 extern GameSetup usetup;
-extern GameSetupStruct game;
 extern GameState play;
 extern char transFileName[MAX_PATH];
 
@@ -111,7 +111,7 @@ bool init_translation (const char *lang) {
             char wasgamename[100];
             uidfrom = language_file->ReadInt32();
             read_string_decrypt (language_file, wasgamename);
-            if ((uidfrom != game.uniqueid) || (strcmp (wasgamename, game.gamename) != 0)) {
+            if ((uidfrom != game.UniqueId) || (strcmp (wasgamename, game.GameName) != 0)) {
                 char quitmess[250];
                 sprintf(quitmess,
                     "!The translation file you have selected is not compatible with this game. "
@@ -135,11 +135,11 @@ bool init_translation (const char *lang) {
             // text direction
             if (temp == 1) {
                 play.text_align = SCALIGN_LEFT;
-                game.options[OPT_RIGHTLEFTWRITE] = 0;
+                game.Options[OPT_RIGHTLEFTWRITE] = 0;
             }
             else if (temp == 2) {
                 play.text_align = SCALIGN_RIGHT;
-                game.options[OPT_RIGHTLEFTWRITE] = 1;
+                game.Options[OPT_RIGHTLEFTWRITE] = 1;
             }
         }
         else

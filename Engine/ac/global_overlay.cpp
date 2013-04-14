@@ -17,13 +17,13 @@
 #include "ac/common.h"
 #include "ac/display.h"
 #include "ac/draw.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/global_translation.h"
 #include "ac/overlay.h"
 #include "ac/runtime_defines.h"
 #include "ac/screenoverlay.h"
 #include "ac/string.h"
 #include "ac/spritecache.h"
+#include "game/game_objects.h"
 #include "gfx/bitmap.h"
 
 using AGS::Common::Bitmap;
@@ -33,7 +33,6 @@ extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern int scrnwid,scrnhit;
 extern SpriteCache spriteset;
-extern GameSetupStruct game;
 extern Bitmap *virtual_screen;
 
 extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
@@ -53,7 +52,7 @@ int CreateGraphicOverlay(int xx,int yy,int slott,int trans) {
     screeno->Clear(screeno->GetMaskColor());
     wputblock(0,0,spriteset[slott],trans);
 
-    bool hasAlpha = (game.spriteflags[slott] & SPF_ALPHACHANNEL) != 0;
+    bool hasAlpha = (game.SpriteFlags[slott] & SPF_ALPHACHANNEL) != 0;
     int nse = add_screen_overlay(xx, yy, OVER_CUSTOM, screeno, hasAlpha);
 
     wsetscreen(virtual_screen);

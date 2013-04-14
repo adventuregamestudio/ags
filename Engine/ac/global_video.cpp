@@ -19,7 +19,6 @@
 #include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/mouse.h"
@@ -27,6 +26,7 @@
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
+#include "game/game_objects.h"
 #include "media/video/video.h"
 #include "util/stream.h"
 #include "gfx/graphicsdriver.h"
@@ -40,7 +40,6 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 namespace Out = AGS::Common::Out;
 
 extern GameSetup usetup;
-extern GameSetupStruct game;
 extern GameState play;
 
 // defined in media/video/video.h
@@ -95,7 +94,7 @@ void play_flc_file(int numb,int playflags) {
     fliwidth = in->ReadInt16();
     fliheight = in->ReadInt16();
     delete in;
-    if (game.color_depth > 1) {
+    if (game.ColorDepth > 1) {
         hicol_buf=BitmapHelper::CreateBitmap(fliwidth,fliheight,final_col_dep);
         hicol_buf->Clear();
     }

@@ -19,7 +19,6 @@
 #include "ac/display.h"
 #include "ac/draw.h"
 #include "ac/game.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_character.h"
 #include "ac/global_display.h"
@@ -30,6 +29,7 @@
 #include "ac/string.h"
 #include "ac/topbarsettings.h"
 #include "debug/debug_log.h"
+#include "game/game_objects.h"
 #include "main/game_run.h"
 
 extern TopBarSettings topBar;
@@ -37,7 +37,6 @@ extern GameState play;
 extern roomstruct thisroom;
 extern int display_message_aschar;
 extern int scrnwid,scrnhit;
-extern GameSetupStruct game;
 extern int screen_is_dirty;
 
 void Display(const char*texx, ...) {
@@ -165,8 +164,8 @@ void DisplayAtY (int ypos, const char *texx) {
     if (ypos > 0)
         ypos = multiply_up_coordinate(ypos);
 
-    if (game.options[OPT_ALWAYSSPCH])
-        DisplaySpeechAt(-1, (ypos > 0) ? divide_down_coordinate(ypos) : ypos, -1, game.playercharacter, texx);
+    if (game.Options[OPT_ALWAYSSPCH])
+        DisplaySpeechAt(-1, (ypos > 0) ? divide_down_coordinate(ypos) : ypos, -1, game.PlayerCharacterIndex, texx);
     else { 
         // Normal "Display" in text box
 
@@ -184,7 +183,7 @@ void DisplayAtY (int ypos, const char *texx) {
 void SetSpeechStyle (int newstyle) {
     if ((newstyle < 0) || (newstyle > 3))
         quit("!SetSpeechStyle: must use a SPEECH_* constant as parameter");
-    game.options[OPT_SPEECHTYPE] = newstyle;
+    game.Options[OPT_SPEECHTYPE] = newstyle;
 }
 
 // 0 = click mouse or key to skip

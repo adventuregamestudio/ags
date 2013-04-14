@@ -12,26 +12,14 @@
 //
 //=============================================================================
 //
-//
+// A collection of main global game objects
 //
 //=============================================================================
-#ifndef __AGS_EE_GUI__GUIDIALOG_H
-#define __AGS_EE_GUI__GUIDIALOG_H
+#ifndef __AGS_EE_GAME__GAME_OBJECTS_H
+#define __AGS_EE_GAME__GAME_OBJECTS_H
 
-#include "util/array.h"
-#include "util/string.h"
+#include "game/gameinfo.h"
 
-using namespace AGS; // FIXME later
+extern AGS::Common::GameInfo game; // static game data
 
-void refresh_screen();
-int  loadgamedialog();
-int  savegamedialog();
-void preparesavegamelist(int ctrllist);
-void enterstringwindow(char *prompttext, char *stouse);
-int  enternumberwindow(char *prompttext);
-int  roomSelectorWindow(int currentRoom, int numRooms,
-                        const Common::Array<int32_t> &roomNumbers, const Common::ObjectArray<Common::String> &roomNames);
-int  myscimessagebox(char *lpprompt, char *btn1, char *btn2);
-int  quitdialog();
-
-#endif // __AGS_EE_GUI__GUIDIALOG_H
+#endif // __AGS_EE_GAME__GAME_OBJECTS_H

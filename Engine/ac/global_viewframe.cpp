@@ -15,17 +15,16 @@
 #include "ac/global_viewframe.h"
 #include "ac/common.h"
 #include "ac/view.h"
-#include "ac/gamesetupstruct.h"
 #include "debug/debug_log.h"
+#include "game/game_objects.h"
 #include "media/audio/audio.h"
 
-extern GameSetupStruct game;
 extern ViewStruct*views;
 extern int psp_is_old_datafile;
 
 
 void SetFrameSound (int vii, int loop, int frame, int sound) {
-    if ((vii < 1) || (vii > game.numviews))
+    if ((vii < 1) || (vii > game.ViewCount))
         quit("!SetFrameSound: invalid view number");
     vii--;
 

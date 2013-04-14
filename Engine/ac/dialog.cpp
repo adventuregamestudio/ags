@@ -21,7 +21,6 @@
 #include "ac/display.h"
 #include "ac/draw.h"
 #include "ac/gamestate.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/global_character.h"
 #include "ac/global_dialog.h"
 #include "ac/global_display.h"
@@ -37,6 +36,7 @@
 #include "ac/dynobj/scriptdialogoptionsrendering.h"
 #include "ac/dynobj/scriptdrawingsurface.h"
 #include "font/fonts.h"
+#include "game/game_objects.h"
 #include "script/cc_instance.h"
 #include "gui/guimain.h"
 #include "gui/guitextbox.h"
@@ -52,7 +52,6 @@
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
-extern GameSetupStruct game;
 extern GameState play;
 extern ccInstance *dialogScriptsInst;
 extern int in_new_room;
@@ -98,7 +97,7 @@ int Dialog_DisplayOptions(ScriptDialog *sd, int sayChosenOption)
   if ((sayChosenOption < 1) || (sayChosenOption > 3))
     quit("!Dialog.DisplayOptions: invalid parameter passed");
 
-  int chose = show_dialog_options(sd->id, sayChosenOption, (game.options[OPT_RUNGAMEDLGOPTS] != 0));
+  int chose = show_dialog_options(sd->id, sayChosenOption, (game.Options[OPT_RUNGAMEDLGOPTS] != 0));
   if (chose != CHOSE_TEXTPARSER)
   {
     chose++;
@@ -205,7 +204,7 @@ int run_dialog_script(DialogTopic*dtpp, int dialogID, int offse, int optionIndex
           get_dialog_script_parameters(script, &param1, &param2);
           
           if (param1 == DCHAR_PLAYER)
-            param1 = game.playercharacter;
+            param1 = game.PlayerCharacterIndex;
 
           if (param1 == DCHAR_NARRATOR)
             Display(get_translation(old_speech_lines[param2]));
@@ -345,14 +344,14 @@ int write_dialog_options(int dlgxp, int curyp, int numdisp, int mouseison, int a
 
     break_up_text_into_lines(areawid-(8+bullet_wid),usingfont,get_translation(dtop->optionnames[disporder[ww]]));
     dispyp[ww]=curyp;
-    if (game.dialog_bullet > 0)
-      wputblock(dlgxp,curyp,spriteset[game.dialog_bullet],1);
+    if (game.DialogBulletSprIndex > 0)
+      wputblock(dlgxp,curyp,spriteset[game.DialogBulletSprIndex],1);
     int cc;
-    if (game.options[OPT_DIALOGNUMBERED]) {
+    if (game.Options[OPT_DIALOGNUMBERED]) {
       char tempbfr[20];
       int actualpicwid = 0;
-      if (game.dialog_bullet > 0)
-        actualpicwid = spritewidth[game.dialog_bullet]+3;
+      if (game.DialogBulletSprIndex > 0)
+        actualpicwid = spritewidth[game.DialogBulletSprIndex]+3;
 
       sprintf (tempbfr, "%d.", ww + 1);
       wouttext_outline (dlgxp + actualpicwid, curyp, usingfont, tempbfr);
@@ -362,7 +361,7 @@ int write_dialog_options(int dlgxp, int curyp, int numdisp, int mouseison, int a
       curyp+=txthit;
     }
     if (ww < numdisp-1)
-      curyp += multiply_up_coordinate(game.options[OPT_DIALOGGAP]);
+      curyp += multiply_up_coordinate(game.Options[OPT_DIALOGGAP]);
   }
   return curyp;
 }
@@ -373,9 +372,9 @@ int write_dialog_options(int dlgxp, int curyp, int numdisp, int mouseison, int a
   needheight = 0;\
   for (ww=0;ww<numdisp;ww++) {\
     break_up_text_into_lines(areawid-(8+bullet_wid),usingfont,get_translation(dtop->optionnames[disporder[ww]]));\
-    needheight += (numlines * txthit) + multiply_up_coordinate(game.options[OPT_DIALOGGAP]);\
+    needheight += (numlines * txthit) + multiply_up_coordinate(game.Options[OPT_DIALOGGAP]);\
   }\
-  if (parserInput) needheight += parserInput->hit + multiply_up_coordinate(game.options[OPT_DIALOGGAP]);\
+  if (parserInput) needheight += parserInput->hit + multiply_up_coordinate(game.Options[OPT_DIALOGGAP]);\
  }
 
 
@@ -421,7 +420,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
   GUITextBox *parserInput = NULL;
   DialogTopic*dtop = NULL;
 
-  if ((dlgnum < 0) || (dlgnum >= game.numdialog))
+  if ((dlgnum < 0) || (dlgnum >= game.DialogCount))
     quit("!RunDialog: invalid dialog number specified");
 
   can_run_delayed_command();
@@ -430,11 +429,11 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
 
   update_polled_stuff_if_runtime();
 
-  if (game.dialog_bullet > 0)
-    bullet_wid = spritewidth[game.dialog_bullet]+3;
+  if (game.DialogBulletSprIndex > 0)
+    bullet_wid = spritewidth[game.DialogBulletSprIndex]+3;
 
   // numbered options, leave space for the numbers
-  if (game.options[OPT_DIALOGNUMBERED])
+  if (game.Options[OPT_DIALOGNUMBERED])
     bullet_wid += wgettextwidth_compensate("9. ", usingfont);
 
   said_text = 0;
@@ -493,9 +492,9 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
       dirtywidth = multiply_up_coordinate(ccDialogOptionsRendering.width);
       dirtyheight = multiply_up_coordinate(ccDialogOptionsRendering.height);
     }
-    else if (game.options[OPT_DIALOGIFACE] > 0)
+    else if (game.Options[OPT_DIALOGIFACE] > 0)
     {
-      GUIMain*guib=&guis[game.options[OPT_DIALOGIFACE]];
+      GUIMain*guib=&guis[game.Options[OPT_DIALOGIFACE]];
       if (guib->is_textwindow()) {
         // text-window, so do the QFG4-style speech options
         is_textwindow = 1;
@@ -515,7 +514,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
 
         GET_OPTIONS_HEIGHT
 
-        if (game.options[OPT_DIALOGUPWARDS]) {
+        if (game.Options[OPT_DIALOGUPWARDS]) {
           // They want the options upwards from the bottom
           dlgyp = (guib->y + guib->hit) - needheight;
         }
@@ -612,12 +611,12 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
       int txoffs=0,tyoffs=0,yspos = scrnhit/2-needheight/2;
       int xspos = scrnwid/2 - areawid/2;
       // shift window to the right if QG4-style full-screen pic
-      if ((game.options[OPT_SPEECHTYPE] == 3) && (said_text > 0))
+      if ((game.Options[OPT_SPEECHTYPE] == 3) && (said_text > 0))
         xspos = (scrnwid - areawid) - get_fixed_pixel_size(10);
 
       // needs to draw the right text window, not the default
       push_screen();
-      draw_text_window(&txoffs,&tyoffs,&xspos,&yspos,&areawid,needheight, game.options[OPT_DIALOGIFACE]);
+      draw_text_window(&txoffs,&tyoffs,&xspos,&yspos,&areawid,needheight, game.Options[OPT_DIALOGIFACE]);
       pop_screen();
       // snice draw_text_window incrases the width, restore it
       areawid = savedwid;
@@ -644,12 +643,12 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
       if (wantRefresh) {
         // redraw the black background so that anti-alias
         // fonts don't re-alias themselves
-        if (game.options[OPT_DIALOGIFACE] == 0) {
+        if (game.Options[OPT_DIALOGIFACE] == 0) {
           wsetcolor(16);
           abuf->FillRect(Rect(0,dlgyp-1,scrnwid-1,scrnhit-1), currentcolor);
         }
         else {
-          GUIMain* guib = &guis[game.options[OPT_DIALOGIFACE]];
+          GUIMain* guib = &guis[game.Options[OPT_DIALOGIFACE]];
           if (!guib->is_textwindow())
             draw_gui_for_dialog_options(guib, dlgxp, dlgyp);
         }
@@ -658,11 +657,11 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
       dirtyx = 0;
       dirtywidth = scrnwid;
 
-      if (game.options[OPT_DIALOGIFACE] > 0) 
+      if (game.Options[OPT_DIALOGIFACE] > 0) 
       {
         // the whole GUI area should be marked dirty in order
         // to ensure it gets drawn
-        GUIMain* guib = &guis[game.options[OPT_DIALOGIFACE]];
+        GUIMain* guib = &guis[game.Options[OPT_DIALOGIFACE]];
         dirtyheight = guib->hit;
         dirtyy = dlgyp;
       }
@@ -695,14 +694,14 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
 
     if (parserInput) {
       // Set up the text box, if present
-      parserInput->y = curyp + multiply_up_coordinate(game.options[OPT_DIALOGGAP]);
+      parserInput->y = curyp + multiply_up_coordinate(game.Options[OPT_DIALOGGAP]);
       parserInput->wid = areawid - get_fixed_pixel_size(10);
       parserInput->textcol = playerchar->talkcolor;
       if (mouseison == DLG_OPTION_PARSER)
         parserInput->textcol = forecol;
 
-      if (game.dialog_bullet)  // the parser X will get moved in a second
-        wputblock(parserInput->x, parserInput->y, spriteset[game.dialog_bullet], 1);
+      if (game.DialogBulletSprIndex)  // the parser X will get moved in a second
+        wputblock(parserInput->x, parserInput->y, spriteset[game.DialogBulletSprIndex], 1);
 
       parserInput->wid -= bullet_wid;
       parserInput->x += bullet_wid;
@@ -952,7 +951,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
     }
 
     if (sayTheOption)
-      DisplaySpeech(get_translation(dtop->optionnames[chose]), game.playercharacter);
+      DisplaySpeech(get_translation(dtop->optionnames[chose]), game.PlayerCharacterIndex);
   }
 
   return chose;
@@ -986,7 +985,7 @@ void do_conversation(int dlgnum)
 
   while (dlgnum >= 0)
   {
-    if (dlgnum >= game.numdialog)
+    if (dlgnum >= game.DialogCount)
       quit("!RunDialog: invalid dialog number specified");
 
     dtop = &dialog[dlgnum];
@@ -1020,7 +1019,7 @@ void do_conversation(int dlgnum)
       }
     }
 
-    int chose = show_dialog_options(dlgnum, SAYCHOSEN_USEFLAG, (game.options[OPT_RUNGAMEDLGOPTS] != 0));
+    int chose = show_dialog_options(dlgnum, SAYCHOSEN_USEFLAG, (game.Options[OPT_RUNGAMEDLGOPTS] != 0));
 
     if (chose == CHOSE_TEXTPARSER)
     {

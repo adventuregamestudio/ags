@@ -13,7 +13,6 @@
 //=============================================================================
 
 #include "ac/gamestate.h"
-#include "ac/gamesetupstruct.h"
 #include "util/alignedstream.h"
 #include "util/string_utils.h"
 
@@ -29,8 +28,6 @@ using AGS::Common::Stream;
 // On other hand we should read/write even pointers to arrays
 // (or at least emulate that), although that could make no sense.
 //
-
-extern GameSetupStruct game;
 
 void GameState::ReadFromFile_v321(Stream *in)
 {

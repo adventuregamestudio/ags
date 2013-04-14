@@ -19,7 +19,7 @@
 #include "ac/common.h"
 #include "ac/drawingsurface.h"
 #include "ac/gamestate.h"
-#include "ac/gamesetupstruct.h"
+#include "game/game_objects.h"
 #include "gfx/bitmap.h"
 
 using AGS::Common::Bitmap;
@@ -28,7 +28,6 @@ extern roomstruct thisroom;
 extern SpriteCache spriteset;
 extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 extern GameState play;
-extern GameSetupStruct game;
 
 Bitmap* ScriptDrawingSurface::GetBitmapSurface()
 {
@@ -116,8 +115,8 @@ ScriptDrawingSurface::ScriptDrawingSurface()
     hasAlphaChannel = 0;
     highResCoordinates = 0;
 
-    if ((game.options[OPT_NATIVECOORDINATES] != 0) &&
-        (game.default_resolution > 2))
+    if ((game.Options[OPT_NATIVECOORDINATES] != 0) &&
+        (game.DefaultResolution > 2))
     {
         highResCoordinates = 1;
     }

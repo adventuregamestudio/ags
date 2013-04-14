@@ -20,7 +20,6 @@
 #include "ac/dialog.h"
 #include "ac/event.h"
 #include "ac/game.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
 #include "ac/global_character.h"
@@ -36,6 +35,7 @@
 #include "ac/mouse.h"
 #include "ac/room.h"
 #include "ac/roomobject.h"
+#include "game/game_objects.h"
 #include "script/cc_error.h"
 #include "script/cc_options.h"
 #include "debug/debug_log.h"
@@ -45,7 +45,6 @@
 #include "script/script_runtime.h"
 #include "util/string_utils.h"
 
-extern GameSetupStruct game;
 extern GameState play;
 extern roomstruct thisroom;
 extern int gameHasBeenRestored, displayed_room;
@@ -536,7 +535,7 @@ int run_interaction_commandlist (NewInteractionCommandList *nicl, int *timesrun,
           break;
       case 20: // If Inventory Item was used
           if (play.usedinv == IPARAM1) {
-              if (game.options[OPT_NOLOSEINV] == 0)
+              if (game.Options[OPT_NOLOSEINV] == 0)
                   lose_inventory (play.usedinv);
               if (run_interaction_commandlist (nicl->command[i].get_child_list(), timesrun, cmdsrun))
                   return -1;
@@ -550,7 +549,7 @@ int run_interaction_commandlist (NewInteractionCommandList *nicl, int *timesrun,
                   return -1;
           break;
       case 22: // if a character is moving
-          if (game.chars[IPARAM1].walking)
+          if (game.Characters[IPARAM1].walking)
               if (run_interaction_commandlist (nicl->command[i].get_child_list(), timesrun, cmdsrun))
                   return -1;
           break;
@@ -568,7 +567,7 @@ int run_interaction_commandlist (NewInteractionCommandList *nicl, int *timesrun,
       case 26: // Move NPC to different room
           if (!is_valid_character(IPARAM1))
               quit("!Move NPC to different room: invalid character specified");
-          game.chars[IPARAM1].room = IPARAM2;
+          game.Characters[IPARAM1].room = IPARAM2;
           break;
       case 27: // Set character view
           SetCharacterView (IPARAM1, IPARAM2);
@@ -593,12 +592,12 @@ int run_interaction_commandlist (NewInteractionCommandList *nicl, int *timesrun,
           break;
       case 34: // Run animation
           scAnimateCharacter(IPARAM1, IPARAM2, IPARAM3, 0);
-          do_main_cycle(UNTIL_SHORTIS0,(long)&game.chars[IPARAM1].animating);
+          do_main_cycle(UNTIL_SHORTIS0,(long)&game.Characters[IPARAM1].animating);
           break;
       case 35: // Quick animation
           SetCharacterView (IPARAM1, IPARAM2);
           scAnimateCharacter(IPARAM1, IPARAM3, IPARAM4, 0);
-          do_main_cycle(UNTIL_SHORTIS0,(long)&game.chars[IPARAM1].animating);
+          do_main_cycle(UNTIL_SHORTIS0,(long)&game.Characters[IPARAM1].animating);
           ReleaseCharacterView (IPARAM1);
           break;
       case 36: // Set idle animation
@@ -715,10 +714,10 @@ void setup_exports(char*expfrom) {
         strcat(temphdr,";\r\n");
     }
     int aa;
-    for (aa=0;aa<game.numcharacters-1;aa++) {
-        if (game.chars[aa].scrname[0]==0) continue;
+    for (aa=0;aa<game.CharacterCount-1;aa++) {
+        if (game.Characters[aa].scrname[0]==0) continue;
         strcat(temphdr,"#define ");
-        strcat(temphdr,game.chars[aa].scrname);
+        strcat(temphdr,game.Characters[aa].scrname);
         strcat(temphdr," ");
         char*ptro=&temphdr[strlen(temphdr)];
         sprintf(ptro,"%d\r\n",aa);

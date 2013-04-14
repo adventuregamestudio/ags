@@ -18,7 +18,6 @@
 #include "ac/characterinfo.h"
 #include "ac/draw.h"
 #include "ac/event.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/global_character.h"
 #include "ac/global_translation.h"
 #include "ac/hotspot.h"
@@ -27,13 +26,13 @@
 #include "ac/roomstruct.h"
 #include "ac/string.h"
 #include "debug/debug_log.h"
+#include "game/game_objects.h"
 #include "script/script.h"
 
 extern roomstruct thisroom;
 extern RoomStatus*croom;
 extern int offsetx, offsety;
 extern CharacterInfo*playerchar;
-extern GameSetupStruct game;
 
 
 void DisableHotspot(int hsnum) {
@@ -101,10 +100,10 @@ void RunHotspotInteraction (int hotspothere, int mood) {
     play.usedinv=cdata;
     }
 
-    if ((game.options[OPT_WALKONLOOK]==0) & (mood==MODE_LOOK)) ;
+    if ((game.Options[OPT_WALKONLOOK]==0) & (mood==MODE_LOOK)) ;
     else if (play.auto_use_walkto_points == 0) ;
     else if ((mood!=MODE_WALK) && (play.check_interaction_only == 0))
-        MoveCharacterToHotspot(game.playercharacter,hotspothere);
+        MoveCharacterToHotspot(game.PlayerCharacterIndex,hotspothere);
 
     // can't use the setevent functions because this ProcessClick is only
     // executed once in a eventlist

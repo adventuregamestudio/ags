@@ -24,7 +24,7 @@
 #include "ac/dynamicsprite.h"
 #include "ac/file.h"
 #include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
+#include "ac/gamestructdefines.h"
 #include "ac/global_audio.h"
 #include "ac/global_plugin.h"
 #include "ac/global_walkablearea.h"
@@ -36,6 +36,7 @@
 #include "ac/roomstatus.h"
 #include "ac/string.h"
 #include "font/fonts.h"
+#include "game/game_objects.h"
 #include "util/string_utils.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
@@ -97,7 +98,6 @@ extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern int mousex, mousey;
 extern int displayed_room;
 extern roomstruct thisroom;
-extern GameSetupStruct game;
 extern RoomStatus*croom;
 extern SpriteCache spriteset;
 extern ViewStruct*views;
@@ -355,10 +355,10 @@ void IAGSEngine::PollSystem () {
 
 }
 AGSCharacter* IAGSEngine::GetCharacter (int32 charnum) {
-    if (charnum >= game.numcharacters)
+    if (charnum >= game.CharacterCount)
         quit("!AGSEngine::GetCharacter: invalid character request");
 
-    return (AGSCharacter*)&game.chars[charnum];
+    return (AGSCharacter*)&game.Characters[charnum];
 }
 AGSGameOptions* IAGSEngine::GetGameOptions () {
     return (AGSGameOptions*)&play;
@@ -370,10 +370,10 @@ void IAGSEngine::SetPalette (int32 start, int32 finish, AGSColor *cpl) {
     set_palette_range((color*)cpl, start, finish, 0);
 }
 int IAGSEngine::GetNumCharacters () {
-    return game.numcharacters;
+    return game.CharacterCount;
 }
 int IAGSEngine::GetPlayerCharacter () {
-    return game.playercharacter;
+    return game.PlayerCharacterIndex;
 }
 void IAGSEngine::RoomToViewport (int32 *x, int32 *y) {
     if (x)
@@ -426,7 +426,7 @@ BITMAP *IAGSEngine::GetRoomMask (int32 index) {
 }
 AGSViewFrame *IAGSEngine::GetViewFrame (int32 view, int32 loop, int32 frame) {
     view--;
-    if ((view < 0) || (view >= game.numviews))
+    if ((view < 0) || (view >= game.ViewCount))
         quit("!IAGSEngine::GetViewFrame: invalid view");
     if ((loop < 0) || (loop >= views[view].numLoops))
         quit("!IAGSEngine::GetViewFrame: invalid loop");
@@ -467,7 +467,7 @@ int IAGSEngine::GetSpriteHeight (int32 slot) {
     return spriteheight[slot];
 }
 void IAGSEngine::GetTextExtent (int32 font, const char *text, int32 *width, int32 *height) {
-    if ((font < 0) || (font >= game.numfonts)) {
+    if ((font < 0) || (font >= game.FontCount)) {
         if (width != NULL) width[0] = 0;
         if (height != NULL) height[0] = 0;
         return;
@@ -526,10 +526,10 @@ void IAGSEngine::MarkRegionDirty(int32 left, int32 top, int32 right, int32 botto
     plugins[this->pluginId].invalidatedRegion++;
 }
 AGSMouseCursor * IAGSEngine::GetMouseCursor(int32 cursor) {
-    if ((cursor < 0) || (cursor >= game.numcursors))
+    if ((cursor < 0) || (cursor >= game.MouseCursorCount))
         return NULL;
 
-    return (AGSMouseCursor*)&game.mcurs[cursor];
+    return (AGSMouseCursor*)&game.MouseCursors[cursor];
 }
 void IAGSEngine::GetRawColorComponents(int32 coldepth, int32 color, int32 *red, int32 *green, int32 *blue, int32 *alpha) {
     if (red)
@@ -545,7 +545,7 @@ int IAGSEngine::MakeRawColorPixel(int32 coldepth, int32 red, int32 green, int32 
     return makeacol_depth(coldepth, red, green, blue, alpha);
 }
 int IAGSEngine::GetFontType(int32 fontNum) {
-    if ((fontNum < 0) || (fontNum >= game.numfonts))
+    if ((fontNum < 0) || (fontNum >= game.FontCount))
         return FNT_INVALID;
 
     if (fontRenderers[fontNum]->SupportsExtendedCharacters(fontNum))
@@ -577,7 +577,7 @@ void IAGSEngine::DeleteDynamicSprite(int32 slot) {
     free_dynamic_sprite(slot);
 }
 int IAGSEngine::IsSpriteAlphaBlended(int32 slot) {
-    if (game.spriteflags[slot] & SPF_ALPHACHANNEL)
+    if (game.SpriteFlags[slot] & SPF_ALPHACHANNEL)
         return 1;
     return 0;
 }
@@ -613,7 +613,7 @@ int IAGSEngine::CallGameScriptFunction(const char *name, int32 globalScript, int
 void IAGSEngine::NotifySpriteUpdated(int32 slot) {
     int ff;
     // wipe the character cache when we change rooms
-    for (ff = 0; ff < game.numcharacters; ff++) {
+    for (ff = 0; ff < game.CharacterCount; ff++) {
         if ((charcache[ff].inUse) && (charcache[ff].sppic == slot)) {
             delete charcache[ff].image;
             charcache[ff].image = NULL;
@@ -632,10 +632,10 @@ void IAGSEngine::NotifySpriteUpdated(int32 slot) {
 
 void IAGSEngine::SetSpriteAlphaBlended(int32 slot, int32 isAlphaBlended) {
 
-    game.spriteflags[slot] &= ~SPF_ALPHACHANNEL;
+    game.SpriteFlags[slot] &= ~SPF_ALPHACHANNEL;
 
     if (isAlphaBlended)
-        game.spriteflags[slot] |= SPF_ALPHACHANNEL;
+        game.SpriteFlags[slot] |= SPF_ALPHACHANNEL;
 }
 
 void IAGSEngine::QueueGameScriptFunction(const char *name, int32 globalScript, int32 numArgs, long arg1, long arg2) {

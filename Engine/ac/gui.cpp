@@ -18,7 +18,6 @@
 #include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/global_game.h"
 #include "ac/global_gui.h"
 #include "ac/global_screen.h"
@@ -30,6 +29,7 @@
 #include "ac/dynobj/scriptgui.h"
 #include "script/cc_instance.h"
 #include "debug/debug_log.h"
+#include "game/game_objects.h"
 #include "gfx/gfxfilter.h"
 #include "gui/guibutton.h"
 #include "gui/guimain.h"
@@ -52,7 +52,6 @@ extern GFXFilter *filter;
 extern int cur_mode,cur_cursor;
 extern ccInstance *gameinst;
 extern ScriptGUI *scrGui;
-extern GameSetupStruct game;
 extern CCGUIObject ccDynamicGUIObject;
 extern int scrnwid,scrnhit;
 extern Bitmap **guibg;
@@ -353,7 +352,7 @@ void update_gui_zorder() {
     int numdone = 0, b;
 
     // for each GUI
-    for (int a = 0; a < game.numgui; a++) {
+    for (int a = 0; a < game.GuiCount; a++) {
         // find the right place in the draw order array
         int insertAt = numdone;
         for (b = 0; b < numdone; b++) {
@@ -423,7 +422,7 @@ void update_gui_disabled_status() {
 
     if (all_buttons_was != all_buttons_disabled) {
         // GUIs might have been removed/added
-        for (int aa = 0; aa < game.numgui; aa++) {
+        for (int aa = 0; aa < game.GuiCount; aa++) {
             guis[aa].control_positions_changed();
         }
         guis_need_update = 1;
@@ -433,10 +432,10 @@ void update_gui_disabled_status() {
 
 
 int adjust_x_for_guis (int xx, int yy) {
-    if ((game.options[OPT_DISABLEOFF]==3) && (all_buttons_disabled > 0))
+    if ((game.Options[OPT_DISABLEOFF]==3) && (all_buttons_disabled > 0))
         return xx;
     // If it's covered by a GUI, move it right a bit
-    for (int aa=0;aa < game.numgui; aa++) {
+    for (int aa=0;aa < game.GuiCount; aa++) {
         if (guis[aa].on < 1)
             continue;
         if ((guis[aa].x > xx) || (guis[aa].y > yy) || (guis[aa].y + guis[aa].hit < yy))
@@ -456,10 +455,10 @@ int adjust_x_for_guis (int xx, int yy) {
 }
 
 int adjust_y_for_guis ( int yy) {
-    if ((game.options[OPT_DISABLEOFF]==3) && (all_buttons_disabled > 0))
+    if ((game.Options[OPT_DISABLEOFF]==3) && (all_buttons_disabled > 0))
         return yy;
     // If it's covered by a GUI, move it down a bit
-    for (int aa=0;aa < game.numgui; aa++) {
+    for (int aa=0;aa < game.GuiCount; aa++) {
         if (guis[aa].on < 1)
             continue;
         if (guis[aa].y > yy)

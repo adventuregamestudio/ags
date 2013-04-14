@@ -14,11 +14,10 @@
 
 #include "ac/common.h"
 #include "ac/draw.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_palette.h"
+#include "game/game_objects.h"
 
-extern GameSetupStruct game;
 extern GameState play;
 extern color palette[256];
 
@@ -26,7 +25,7 @@ extern color palette[256];
 void CyclePalette(int strt,int eend) {
     // hi-color game must invalidate screen since the palette changes
     // the effect of the drawing operations
-    if (game.color_depth > 1)
+    if (game.ColorDepth > 1)
         invalidate_screen();
 
     if ((strt < 0) || (strt > 255) || (eend < 0) || (eend > 255))
@@ -45,7 +44,7 @@ void CyclePalette(int strt,int eend) {
 
 }
 void SetPalRGB(int inndx,int rr,int gg,int bb) {
-    if (game.color_depth > 1)
+    if (game.ColorDepth > 1)
         invalidate_screen();
 
     wsetrgb(inndx,rr,gg,bb,palette);
@@ -59,7 +58,7 @@ get_palette(pptr);
 }*/
 
 void UpdatePalette() {
-    if (game.color_depth > 1)
+    if (game.ColorDepth > 1)
         invalidate_screen();
 
     if (!play.fast_forward)  

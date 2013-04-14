@@ -16,12 +16,12 @@
 #include "ac/file.h"
 #include "ac/common.h"
 #include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/global_file.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
+#include "game/game_objects.h"
 #include "util/misc.h"
 #include "platform/base/agsplatformdriver.h"
 #include "util/stream.h"
@@ -54,7 +54,6 @@ extern "C" {
 }
 
 extern GameSetup usetup;
-extern GameSetupStruct game;
 extern char saveGameDirectory[260];
 extern AGSPlatformDriver *platform;
 
@@ -355,9 +354,9 @@ bool validate_user_file_path(const char *fnmm, char *output, bool currentDirOnly
     fnmm += 13;
     const char *appDataDir = platform->GetAllUsersDataDirectory();
     if (appDataDir == NULL) appDataDir = ".";
-    if (game.saveGameFolderName[0] != 0)
+    if (game.SavedGameFolderName[0] != 0)
     {
-      sprintf(output, "%s/%s", appDataDir, game.saveGameFolderName);
+      sprintf(output, "%s/%s", appDataDir, game.SavedGameFolderName);
       fix_filename_slashes(output);
       mkdir(output
 #if !defined (WINDOWS_VERSION)

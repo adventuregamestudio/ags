@@ -14,26 +14,25 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "ac/characterinfo.h"
-#include "ac/common.h"
-#include "ac/gamesetupstruct.h"
-#include "ac/roomstruct.h"
-#include "media/audio/audiodefines.h"
 #include "ac/character.h"
 #include "ac/characterextras.h"
+#include "ac/characterinfo.h"
+#include "ac/common.h"
 #include "ac/gamestate.h"
 #include "ac/global_character.h"
 #include "ac/math.h"
+#include "ac/roomstruct.h"
 #include "ac/viewframe.h"
 #include "debug/debug_log.h"
+#include "game/game_objects.h"
 #include "main/maindefines_ex.h"	// RETURN_CONTINUE
 #include "main/update.h"
+#include "media/audio/audiodefines.h"
 #include "util/stream.h"
 
 using AGS::Common::Stream;
 
 extern ViewStruct*views;
-extern GameSetupStruct game;
 extern int displayed_room;
 extern GameState play;
 extern int char_speaking;
@@ -103,13 +102,13 @@ void CharacterInfo::UpdateMoveAndAnim(int &char_index, CharacterExtras *chex, in
 
 void CharacterInfo::UpdateFollowingExactlyCharacter()
 {
-	x = game.chars[following].x;
-    y = game.chars[following].y;
-    z = game.chars[following].z;
-    room = game.chars[following].room;
-    prevroom = game.chars[following].prevroom;
+	x = game.Characters[following].x;
+    y = game.Characters[following].y;
+    z = game.Characters[following].z;
+    room = game.Characters[following].room;
+    prevroom = game.Characters[following].prevroom;
 
-    int usebase = game.chars[following].get_baseline();
+    int usebase = game.Characters[following].get_baseline();
 
     if (flags & CHF_BEHINDSHEPHERD)
       baseline = usebase - 1;
@@ -274,7 +273,7 @@ int CharacterInfo::update_character_animating(int &aa, int &doing_nothing)
         doing_nothing = 1;
 
       if (wait>0) wait--;
-      else if ((char_speaking == aa) && (game.options[OPT_LIPSYNCTEXT] != 0)) {
+      else if ((char_speaking == aa) && (game.Options[OPT_LIPSYNCTEXT] != 0)) {
         // currently talking with lip-sync speech
         int fraa = frame;
         wait = update_lip_sync (view, loop, &fraa) - 1;
@@ -391,12 +390,12 @@ void CharacterInfo::update_character_follower(int &aa, int &numSheep, int *follo
     else if ((following >= 0) && (doing_nothing == 1)) {
       short distaway=(followinfo >> 8) & 0x00ff;
       // no character in this room
-      if ((game.chars[following].on == 0) || (on == 0)) ;
+      if ((game.Characters[following].on == 0) || (on == 0)) ;
       else if (room < 0) {
         room ++;
         if (room == 0) {
           // appear in the new room
-          room = game.chars[following].room;
+          room = game.Characters[following].room;
           x = play.entered_at_x;
           y = play.entered_at_y;
         }
@@ -404,12 +403,12 @@ void CharacterInfo::update_character_follower(int &aa, int &numSheep, int *follo
       // wait a bit, so we're not constantly walking
       else if (Random(100) < (followinfo & 0x00ff)) ;
       // the followed character has changed room
-      else if ((room != game.chars[following].room)
-            && (game.chars[following].on == 0))
+      else if ((room != game.Characters[following].room)
+            && (game.Characters[following].on == 0))
         ;  // do nothing if the player isn't visible
-      else if (room != game.chars[following].room) {
+      else if (room != game.Characters[following].room) {
         prevroom = room;
-        room = game.chars[following].room;
+        room = game.Characters[following].room;
 
         if (room == displayed_room) {
           // only move to the room-entered position if coming into
@@ -445,16 +444,16 @@ void CharacterInfo::update_character_follower(int &aa, int &numSheep, int *follo
         // if the characetr is following another character and
         // neither is in the current room, don't try to move
       }
-      else if ((abs(game.chars[following].x - x) > distaway+30) |
-        (abs(game.chars[following].y - y) > distaway+30) |
+      else if ((abs(game.Characters[following].x - x) > distaway+30) |
+        (abs(game.Characters[following].y - y) > distaway+30) |
         ((followinfo & 0x00ff) == 0)) {
         // in same room
         int goxoffs=(Random(50)-25);
         // make sure he's not standing on top of the other man
         if (goxoffs < 0) goxoffs-=distaway;
         else goxoffs+=distaway;
-        walk_character(aa,game.chars[following].x + goxoffs,
-          game.chars[following].y + (Random(50)-25),0, true);
+        walk_character(aa,game.Characters[following].x + goxoffs,
+          game.Characters[following].y + (Random(50)-25),0, true);
         doing_nothing = 0;
       }
     }

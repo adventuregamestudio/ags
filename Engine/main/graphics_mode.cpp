@@ -22,12 +22,12 @@
 #include "ac/display.h"
 #include "ac/draw.h"
 #include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/walkbehind.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
 #include "font/fonts.h"
+#include "game/game_objects.h"
 #include "gui/guiinv.h"
 #include "gui/guimain.h"
 #include "main/graphics_mode.h"
@@ -40,7 +40,6 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 namespace Out = AGS::Common::Out;
 
 extern GameSetup usetup;
-extern GameSetupStruct game;
 extern int proper_exit;
 extern GUIMain*guis;
 extern int psp_gfx_renderer; // defined in ali3dogl
@@ -90,18 +89,18 @@ void adjust_pixel_sizes_for_loaded_data(int *x, int *y, int filever)
 void adjust_sizes_for_resolution(int filever)
 {
     int ee;
-    for (ee = 0; ee < game.numcursors; ee++) 
+    for (ee = 0; ee < game.MouseCursorCount; ee++) 
     {
-        game.mcurs[ee].hotx = adjust_pixel_size_for_loaded_data(game.mcurs[ee].hotx, filever);
-        game.mcurs[ee].hoty = adjust_pixel_size_for_loaded_data(game.mcurs[ee].hoty, filever);
+        game.MouseCursors[ee].hotx = adjust_pixel_size_for_loaded_data(game.MouseCursors[ee].hotx, filever);
+        game.MouseCursors[ee].hoty = adjust_pixel_size_for_loaded_data(game.MouseCursors[ee].hoty, filever);
     }
 
-    for (ee = 0; ee < game.numinvitems; ee++) 
+    for (ee = 0; ee < game.InvItemCount; ee++) 
     {
-        adjust_pixel_sizes_for_loaded_data(&game.invinfo[ee].hotx, &game.invinfo[ee].hoty, filever);
+        adjust_pixel_sizes_for_loaded_data(&game.InventoryItems[ee].hotx, &game.InventoryItems[ee].hoty, filever);
     }
 
-    for (ee = 0; ee < game.numgui; ee++) 
+    for (ee = 0; ee < game.GuiCount; ee++) 
     {
         GUIMain*cgp=&guis[ee];
         adjust_pixel_sizes_for_loaded_data(&cgp->x, &cgp->y, filever);
@@ -125,15 +124,15 @@ void adjust_sizes_for_resolution(int filever)
         }
     }
 
-    if ((filever >= 37) && (game.options[OPT_NATIVECOORDINATES] == 0) &&
-        (game.default_resolution > 2))
+    if ((filever >= 37) && (game.Options[OPT_NATIVECOORDINATES] == 0) &&
+        (game.DefaultResolution > 2))
     {
         // New 3.1 format game file, but with Use Native Coordinates off
 
-        for (ee = 0; ee < game.numcharacters; ee++) 
+        for (ee = 0; ee < game.CharacterCount; ee++) 
         {
-            game.chars[ee].x /= 2;
-            game.chars[ee].y /= 2;
+            game.Characters[ee].x /= 2;
+            game.Characters[ee].y /= 2;
         }
 
         for (ee = 0; ee < numguiinv; ee++)
@@ -177,9 +176,9 @@ void engine_init_screen_settings()
     usetup.base_width = 320;
     usetup.base_height = 200;
 
-    if (game.default_resolution >= 5)
+    if (game.DefaultResolution >= 5)
     {
-        if (game.default_resolution >= 6)
+        if (game.DefaultResolution >= 6)
         {
             // 1024x768
             usetup.base_width = 512;
@@ -192,21 +191,21 @@ void engine_init_screen_settings()
             usetup.base_height = 300;
         }
         // don't allow letterbox mode
-        game.options[OPT_LETTERBOX] = 0;
+        game.Options[OPT_LETTERBOX] = 0;
         force_letterbox = 0;
         scrnwid = usetup.base_width * 2;
         scrnhit = usetup.base_height * 2;
         wtext_multiply = 2;
     }
-    else if ((game.default_resolution == 4) ||
-        (game.default_resolution == 3))
+    else if ((game.DefaultResolution == 4) ||
+        (game.DefaultResolution == 3))
     {
         scrnwid = 640;
         scrnhit = 400;
         wtext_multiply = 2;
     }
-    else if ((game.default_resolution == 2) ||
-        (game.default_resolution == 1))
+    else if ((game.DefaultResolution == 2) ||
+        (game.DefaultResolution == 1))
     {
         scrnwid = 320;
         scrnhit = 200;
@@ -225,8 +224,8 @@ void engine_init_screen_settings()
     //scrnwto=scrnwid-1; scrnhto=scrnhit-1;
     current_screen_resolution_multiplier = scrnwid / BASEWIDTH;
 
-    if ((game.default_resolution > 2) &&
-        (game.options[OPT_NATIVECOORDINATES]))
+    if ((game.DefaultResolution > 2) &&
+        (game.Options[OPT_NATIVECOORDINATES]))
     {
         usetup.base_width *= 2;
         usetup.base_height *= 2;
@@ -236,21 +235,21 @@ void engine_init_screen_settings()
     if (scrnwid==960) { initasx=1024; initasy=768; }
 
     // save this setting so we only do 640x480 full-screen if they want it
-    usetup.want_letterbox = game.options[OPT_LETTERBOX];
+    usetup.want_letterbox = game.Options[OPT_LETTERBOX];
 
     if (force_letterbox > 0)
-        game.options[OPT_LETTERBOX] = 1;
+        game.Options[OPT_LETTERBOX] = 1;
 
     // don't allow them to force a 256-col game to hi-color
-    if (game.color_depth < 2)
+    if (game.ColorDepth < 2)
         usetup.force_hicolor_mode = 0;
 
     firstDepth = 8, secondDepth = 8;
-    if ((game.color_depth == 2) || (force_16bit) || (usetup.force_hicolor_mode)) {
+    if ((game.ColorDepth == 2) || (force_16bit) || (usetup.force_hicolor_mode)) {
         firstDepth = 16;
         secondDepth = 15;
     }
-    else if (game.color_depth > 2) {
+    else if (game.ColorDepth > 2) {
         firstDepth = 32;
         secondDepth = 24;
     }
@@ -320,7 +319,7 @@ int engine_init_gfx_filters()
 
             // calculate the correct game height when in letterbox mode
             int gameHeight = initasy;
-            if (game.options[OPT_LETTERBOX])
+            if (game.Options[OPT_LETTERBOX])
                 gameHeight = (gameHeight * 12) / 10;
 
             int xratio = desktopWidth / initasx;
@@ -360,7 +359,7 @@ void create_gfx_driver()
 #endif
     {
 #if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(WINDOWS_VERSION)
-        if ((psp_gfx_renderer > 0) && (game.color_depth != 1))
+        if ((psp_gfx_renderer > 0) && (game.ColorDepth != 1))
             gfxDriver = GetOGLGraphicsDriver(filter);
         else
 #endif
@@ -390,7 +389,7 @@ int init_gfx_mode(int wid,int hit,int cdep) {
     final_scrn_hit = hit;
     final_col_dep = cdep;
 
-    if (game.color_depth == 1) {
+    if (game.ColorDepth == 1) {
         final_col_dep = 8;
     }
     else {
@@ -474,7 +473,7 @@ int switch_to_graphics_mode(int initasx, int initasy, int scrnwid, int scrnhit, 
     int initasyLetterbox = (initasy * 12) / 10;
 
     // first of all, try 16-bit normal then letterboxed
-    if (game.options[OPT_LETTERBOX] == 0) 
+    if (game.Options[OPT_LETTERBOX] == 0) 
     {
         failed = try_widescreen_bordered_graphics_mode_if_appropriate(initasx, initasy, firstDepth);
         failed = init_gfx_mode(initasx,initasy, firstDepth);
@@ -484,7 +483,7 @@ int switch_to_graphics_mode(int initasx, int initasy, int scrnwid, int scrnhit, 
 
     if (secondDepth != firstDepth) {
         // now, try 15-bit normal then letterboxed
-        if (game.options[OPT_LETTERBOX] == 0) 
+        if (game.Options[OPT_LETTERBOX] == 0) 
         {
             failed = try_widescreen_bordered_graphics_mode_if_appropriate(initasx, initasy, secondDepth);
             failed = init_gfx_mode(initasx,initasy, secondDepth);
@@ -550,7 +549,7 @@ int engine_init_graphics_mode()
             platform->FinishedUsingGraphicsMode();
 
             // make sure the error message displays the true resolution
-            if (game.options[OPT_LETTERBOX])
+            if (game.Options[OPT_LETTERBOX])
                 initasy = (initasy * 12) / 10;
 
             if (filter != NULL)

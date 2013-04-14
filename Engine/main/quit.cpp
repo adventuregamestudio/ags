@@ -19,7 +19,6 @@
 #include "gfx/ali3d.h"
 #include "ac/cdaudio.h"
 #include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/record.h"
 #include "ac/roomstatus.h"
 #include "ac/translation.h"
@@ -28,6 +27,7 @@
 #include "debug/debugger.h"
 #include "debug/out.h"
 #include "font/fonts.h"
+#include "game/game_objects.h"
 #include "main/main.h"
 #include "main/mainheader.h"
 #include "main/quit.h"
@@ -40,7 +40,6 @@ using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 namespace Out = AGS::Common::Out;
 
-extern GameSetupStruct game;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
 extern RoomStatus troom;    // used for non-saveable rooms, eg. intro
@@ -86,11 +85,11 @@ void quit_shutdown_scripts()
 void quit_check_dynamic_sprites(char *qmsg)
 {
     if ((qmsg[0] == '|') && (check_dynamic_sprites_at_exit) && 
-        (game.options[OPT_DEBUGMODE] != 0)) {
+        (game.Options[OPT_DEBUGMODE] != 0)) {
             // game exiting normally -- make sure the dynamic sprites
             // have been deleted
             for (int i = 1; i < spriteset.elements; i++) {
-                if (game.spriteflags[i] & SPF_DYNAMICALLOC)
+                if (game.SpriteFlags[i] & SPF_DYNAMICALLOC)
                     debug_log("Dynamic sprite %d was never deleted", i);
             }
     }
@@ -120,7 +119,7 @@ void quit_shutdown_platform(char *qmsg)
 void quit_shutdown_audio()
 {
     our_eip = 9917;
-    game.options[OPT_CROSSFADEMUSIC] = 0;
+    game.Options[OPT_CROSSFADEMUSIC] = 0;
     stopmusic();
 #ifndef PSP_NO_MOD_PLAYBACK
     if (opts.mod_player)

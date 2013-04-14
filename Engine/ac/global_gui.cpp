@@ -15,7 +15,6 @@
 #include "ac/common.h"
 #include "ac/display.h"
 #include "ac/draw.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/global_game.h"
 #include "ac/global_gui.h"
 #include "ac/gui.h"
@@ -23,15 +22,15 @@
 #include "ac/mouse.h"
 #include "ac/string.h"
 #include "debug/debug_log.h"
+#include "game/game_objects.h"
 #include "gui/guimain.h"
 #include "script/runtimescriptvalue.h"
 
-extern GameSetupStruct game;
 extern GUIMain*guis;
 extern ScriptGUI *scrGui;
 
 int IsGUIOn (int guinum) {
-    if ((guinum < 0) || (guinum >= game.numgui))
+    if ((guinum < 0) || (guinum >= game.GuiCount))
         quit("!IsGUIOn: invalid GUI number specified");
     return (guis[guinum].on >= 1) ? 1 : 0;
 }
@@ -39,7 +38,7 @@ int IsGUIOn (int guinum) {
 // This is an internal script function, and is undocumented.
 // It is used by the editor's automatic macro generation.
 int FindGUIID (const char* GUIName) {
-    for (int ii = 0; ii < game.numgui; ii++) {
+    for (int ii = 0; ii < game.GuiCount; ii++) {
         if (strcmp(guis[ii].name, GUIName) == 0)
             return ii;
         if ((guis[ii].name[0] == 'g') && (stricmp(&guis[ii].name[1], GUIName) == 0))
@@ -50,7 +49,7 @@ int FindGUIID (const char* GUIName) {
 }
 
 void InterfaceOn(int ifn) {
-  if ((ifn<0) | (ifn>=game.numgui))
+  if ((ifn<0) | (ifn>=game.GuiCount))
     quit("!GUIOn: invalid GUI specified");
 
   EndSkippingUntilCharStops();
@@ -71,7 +70,7 @@ void InterfaceOn(int ifn) {
 }
 
 void InterfaceOff(int ifn) {
-  if ((ifn<0) | (ifn>=game.numgui)) quit("!GUIOff: invalid GUI specified");
+  if ((ifn<0) | (ifn>=game.GuiCount)) quit("!GUIOff: invalid GUI specified");
   if ((guis[ifn].on==0) && (guis[ifn].popup!=POPUP_MOUSEY)) {
     DEBUG_CONSOLE("GUIOff(%d) ignored (already off)", ifn);
     return;
@@ -91,7 +90,7 @@ void InterfaceOff(int ifn) {
 }
 
 void SetGUIObjectEnabled(int guin, int objn, int enabled) {
-  if ((guin<0) || (guin>=game.numgui))
+  if ((guin<0) || (guin>=game.GuiCount))
     quit("!SetGUIObjectEnabled: invalid GUI number");
   if ((objn<0) || (objn>=guis[guin].numobjs))
     quit("!SetGUIObjectEnabled: invalid object number");
@@ -100,7 +99,7 @@ void SetGUIObjectEnabled(int guin, int objn, int enabled) {
 }
 
 void SetGUIObjectPosition(int guin, int objn, int xx, int yy) {
-  if ((guin<0) || (guin>=game.numgui))
+  if ((guin<0) || (guin>=game.GuiCount))
     quit("!SetGUIObjectPosition: invalid GUI number");
   if ((objn<0) || (objn>=guis[guin].numobjs))
     quit("!SetGUIObjectPosition: invalid object number");
@@ -109,14 +108,14 @@ void SetGUIObjectPosition(int guin, int objn, int xx, int yy) {
 }
 
 void SetGUIPosition(int ifn,int xx,int yy) {
-  if ((ifn<0) || (ifn>=game.numgui))
+  if ((ifn<0) || (ifn>=game.GuiCount))
     quit("!SetGUIPosition: invalid GUI number");
   
   GUI_SetPosition(&scrGui[ifn], xx, yy);
 }
 
 void SetGUIObjectSize(int ifn, int objn, int newwid, int newhit) {
-  if ((ifn<0) || (ifn>=game.numgui))
+  if ((ifn<0) || (ifn>=game.GuiCount))
     quit("!SetGUIObjectSize: invalid GUI number");
 
   if ((objn<0) || (objn >= guis[ifn].numobjs))
@@ -126,21 +125,21 @@ void SetGUIObjectSize(int ifn, int objn, int newwid, int newhit) {
 }
 
 void SetGUISize (int ifn, int widd, int hitt) {
-  if ((ifn<0) || (ifn>=game.numgui))
+  if ((ifn<0) || (ifn>=game.GuiCount))
     quit("!SetGUISize: invalid GUI number");
 
   GUI_SetSize(&scrGui[ifn], widd, hitt);
 }
 
 void SetGUIZOrder(int guin, int z) {
-  if ((guin<0) || (guin>=game.numgui))
+  if ((guin<0) || (guin>=game.GuiCount))
     quit("!SetGUIZOrder: invalid GUI number");
 
   GUI_SetZOrder(&scrGui[guin], z);
 }
 
 void SetGUIClickable(int guin, int clickable) {
-  if ((guin<0) || (guin>=game.numgui))
+  if ((guin<0) || (guin>=game.GuiCount))
     quit("!SetGUIClickable: invalid GUI number");
 
   GUI_SetClickable(&scrGui[guin], clickable);
@@ -148,14 +147,14 @@ void SetGUIClickable(int guin, int clickable) {
 
 // pass trans=0 for fully solid, trans=100 for fully transparent
 void SetGUITransparency(int ifn, int trans) {
-  if ((ifn < 0) | (ifn >= game.numgui))
+  if ((ifn < 0) | (ifn >= game.GuiCount))
     quit("!SetGUITransparency: invalid GUI number");
 
   GUI_SetTransparency(&scrGui[ifn], trans);
 }
 
 void CentreGUI (int ifn) {
-  if ((ifn<0) | (ifn>=game.numgui))
+  if ((ifn<0) | (ifn>=game.GuiCount))
     quit("!CentreGUI: invalid GUI number");
 
   GUI_Centre(&scrGui[ifn]);
@@ -163,7 +162,7 @@ void CentreGUI (int ifn) {
 
 int GetTextWidth(const char *text, int fontnum) {
   VALIDATE_STRING(text);
-  if ((fontnum < 0) || (fontnum >= game.numfonts))
+  if ((fontnum < 0) || (fontnum >= game.FontCount))
     quit("!GetTextWidth: invalid font number.");
 
   return divide_down_coordinate(wgettextwidth_compensate(text, fontnum));
@@ -171,7 +170,7 @@ int GetTextWidth(const char *text, int fontnum) {
 
 int GetTextHeight(const char *text, int fontnum, int width) {
   VALIDATE_STRING(text);
-  if ((fontnum < 0) || (fontnum >= game.numfonts))
+  if ((fontnum < 0) || (fontnum >= game.FontCount))
     quit("!GetTextHeight: invalid font number.");
 
   int texthit = wgetfontheight(fontnum);
@@ -182,7 +181,7 @@ int GetTextHeight(const char *text, int fontnum, int width) {
 }
 
 void SetGUIBackgroundPic (int guin, int slotn) {
-  if ((guin<0) | (guin>=game.numgui))
+  if ((guin<0) | (guin>=game.GuiCount))
     quit("!SetGUIBackgroundPic: invalid GUI number");
 
   GUI_SetBackgroundGraphic(&scrGui[guin], slotn);
@@ -219,7 +218,7 @@ int GetGUIAt (int xx,int yy) {
     multiply_up_coordinates(&xx, &yy);
 
     int aa, ll;
-    for (ll = game.numgui - 1; ll >= 0; ll--) {
+    for (ll = game.GuiCount - 1; ll >= 0; ll--) {
         aa = play.gui_draw_order[ll];
         if (guis[aa].on<1) continue;
         if (guis[aa].flags & GUIF_NOCLICK) continue;
@@ -231,14 +230,14 @@ int GetGUIAt (int xx,int yy) {
 }
 
 void SetTextWindowGUI (int guinum) {
-    if ((guinum < -1) | (guinum >= game.numgui))
+    if ((guinum < -1) | (guinum >= game.GuiCount))
         quit("!SetTextWindowGUI: invalid GUI number");
 
     if (guinum < 0) ;  // disable it
     else if (!guis[guinum].is_textwindow())
         quit("!SetTextWindowGUI: specified GUI is not a text window");
 
-    if (play.speech_textwindow_gui == game.options[OPT_TWCUSTOM])
+    if (play.speech_textwindow_gui == game.Options[OPT_TWCUSTOM])
         play.speech_textwindow_gui = guinum;
-    game.options[OPT_TWCUSTOM] = guinum;
+    game.Options[OPT_TWCUSTOM] = guinum;
 }

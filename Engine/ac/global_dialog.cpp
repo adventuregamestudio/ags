@@ -16,17 +16,16 @@
 #include "ac/common.h"
 #include "ac/dialog.h"
 #include "ac/dialogtopic.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "debug/debug_log.h"
+#include "game/game_objects.h"
 #include "script/script.h"
 
-extern GameSetupStruct game;
 extern GameState play;
 extern DialogTopic *dialog;
 
 void RunDialog(int tum) {
-    if ((tum<0) | (tum>=game.numdialog))
+    if ((tum<0) | (tum>=game.DialogCount))
         quit("!RunDialog: invalid topic number specified");
 
     can_run_delayed_command();
@@ -56,7 +55,7 @@ void StopDialog() {
 }
 
 void SetDialogOption(int dlg,int opt,int onoroff) {
-  if ((dlg<0) | (dlg>=game.numdialog))
+  if ((dlg<0) | (dlg>=game.DialogCount))
     quit("!SetDialogOption: Invalid topic number specified");
   if ((opt<1) | (opt>dialog[dlg].numoptions))
     quit("!SetDialogOption: Invalid option number specified");
@@ -70,7 +69,7 @@ void SetDialogOption(int dlg,int opt,int onoroff) {
 }
 
 int GetDialogOption (int dlg, int opt) {
-  if ((dlg<0) | (dlg>=game.numdialog))
+  if ((dlg<0) | (dlg>=game.DialogCount))
     quit("!GetDialogOption: Invalid topic number specified");
   if ((opt<1) | (opt>dialog[dlg].numoptions))
     quit("!GetDialogOption: Invalid option number specified");

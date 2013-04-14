@@ -19,7 +19,6 @@
 #include "util/string_utils.h" //strlwr()
 #include "gui/guimain.h"
 #include "ac/common.h"	// quit()
-#include "ac/gamesetupstruct.h"
 #include "gui/guibutton.h"
 #include "gui/guilabel.h"
 #include "gui/guislider.h"
@@ -30,7 +29,10 @@
 #include "ac/spritecache.h"
 #include "util/stream.h"
 #include "gfx/bitmap.h"
+#include "util/wgt2allg.h"
+#include "game/gameinfo.h"
 
+using AGS::Common::GameInfo;
 using AGS::Common::Stream;
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -501,7 +503,7 @@ void GUIMain::mouse_but_up()
 
 #define GUI_VERSION 115
 
-void read_gui(Stream *in, GUIMain * guiread, GameSetupStruct * gss, GUIMain** allocate)
+void read_gui(Stream *in, GUIMain * guiread, GameInfo * gss, GUIMain** allocate)
 {
   int gver, ee;
 
@@ -510,31 +512,31 @@ void read_gui(Stream *in, GUIMain * guiread, GameSetupStruct * gss, GUIMain** al
 
   gver = in->ReadInt32();
   if (gver < 100) {
-    gss->numgui = gver;
+    gss->GuiCount = gver;
     gver = 0;
   }
   else if (gver > GUI_VERSION)
     quit("read_gui: this game requires a newer version of AGS");
   else
-    gss->numgui = in->ReadInt32();
+    gss->GuiCount = in->ReadInt32();
 
-  if ((gss->numgui < 0) || (gss->numgui > 1000))
+  if ((gss->GuiCount < 0) || (gss->GuiCount > 1000))
     quit("read_gui: invalid number of GUIs, file corrupt?");
 
   if (allocate != NULL)
   {
-    *allocate = (GUIMain*)malloc(sizeof(GUIMain) * gss->numgui);
+    *allocate = (GUIMain*)malloc(sizeof(GUIMain) * gss->GuiCount);
     guiread = *allocate;
   }
 
   // import the main GUI elements
-  for (int iteratorCount = 0; iteratorCount < gss->numgui; ++iteratorCount)
+  for (int iteratorCount = 0; iteratorCount < gss->GuiCount; ++iteratorCount)
   {
     guiread[iteratorCount].init();
     guiread[iteratorCount].ReadFromFile(in, gver);
   }
 
-  for (ee = 0; ee < gss->numgui; ee++) {
+  for (ee = 0; ee < gss->GuiCount; ee++) {
     if (guiread[ee].hit < 2)
       guiread[ee].hit = 2;
 
@@ -598,7 +600,7 @@ void read_gui(Stream *in, GUIMain * guiread, GameSetupStruct * gss, GUIMain** al
   }
 
   // set up the reverse-lookup array
-  for (ee = 0; ee < gss->numgui; ee++) {
+  for (ee = 0; ee < gss->GuiCount; ee++) {
     guiread[ee].rebuild_array();
 
     if (gver < 110)
@@ -618,15 +620,15 @@ void read_gui(Stream *in, GUIMain * guiread, GameSetupStruct * gss, GUIMain** al
   guis_need_update = 1;
 }
 
-void write_gui(Stream *out, GUIMain * guiwrite, GameSetupStruct * gss)
+void write_gui(Stream *out, GUIMain * guiwrite, GameInfo * gss)
 {
   int ee;
 
   out->WriteInt32(GUIMAGIC);
   out->WriteInt32(GUI_VERSION);
-  out->WriteInt32(gss->numgui);
+  out->WriteInt32(gss->GuiCount);
 
-  for (int iteratorCount = 0; iteratorCount < gss->numgui; ++iteratorCount)
+  for (int iteratorCount = 0; iteratorCount < gss->GuiCount; ++iteratorCount)
   {
     guiwrite[iteratorCount].WriteToFile(out);
   }

@@ -17,7 +17,6 @@
 #include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/draw.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/global_room.h"
@@ -26,6 +25,7 @@
 #include "ac/roomstatus.h"
 #include "ac/roomstruct.h"
 #include "ac/screen.h"
+#include "game/game_objects.h"
 #include "script/cc_error.h"
 #include "media/audio/audio.h"
 #include "media/audio/soundclip.h"
@@ -39,7 +39,6 @@
 using AGS::Common::Bitmap;
 namespace BitmapHelper = Common::BitmapHelper;
 
-extern GameSetupStruct game;
 extern roomstruct thisroom;
 extern RoomStatus*croom;
 extern int displayed_room;
@@ -125,13 +124,13 @@ void run_room_event(int id) {
 
 void run_event_block_inv(int invNum, int event) {
     evblockbasename="inventory%d";
-    if (game.invScripts != NULL)
+    if (!game.InvItemInteractionScripts.IsEmpty())
     {
-        run_interaction_script(game.invScripts[invNum], event);
+        run_interaction_script(game.InvItemInteractionScripts[invNum], event);
     }
     else 
     {
-        run_interaction_event(game.intrInv[invNum], event);
+        run_interaction_event(game.InvItemInteractions[invNum], event);
     }
 
 }
@@ -142,7 +141,7 @@ void setevent(int evtyp,int ev1,int ev2,int ev3) {
     event[numevents].data1=ev1;
     event[numevents].data2=ev2;
     event[numevents].data3=ev3;
-    event[numevents].player=game.playercharacter;
+    event[numevents].player=game.PlayerCharacterIndex;
     numevents++;
     if (numevents>=MAXEVENTS) quit("too many events posted");
 }
@@ -296,7 +295,7 @@ void process_event(EventHappened*evp) {
         }
         else if (theTransition == FADE_CROSSFADE) 
         {
-            if (game.color_depth == 1)
+            if (game.ColorDepth == 1)
                 quit("!Cannot use crossfade screen transition in 256-colour games");
 
             IDriverDependantBitmap *ddb = prepare_screen_for_transition_in();
@@ -338,7 +337,7 @@ void process_event(EventHappened*evp) {
             for (aa=0;aa<16;aa++) {
                 timerloop=0;
                 // merge the palette while dithering
-                if (game.color_depth == 1) 
+                if (game.ColorDepth == 1) 
                 {
                     fade_interpolate(old_palette,palette,interpal,aa*4,0,255);
                     set_palette_range(interpal, 0, 255, 0);
@@ -379,7 +378,7 @@ void runevent_now (int evtyp, int ev1, int ev2, int ev3) {
     evh.data1 = ev1;
     evh.data2 = ev2;
     evh.data3 = ev3;
-    evh.player = game.playercharacter;
+    evh.player = game.PlayerCharacterIndex;
     process_event(&evh);
 }
 

@@ -25,7 +25,6 @@
 #include "ac/draw.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/global_character.h"
 #include "ac/global_game.h"
 #include "ac/gui.h"
@@ -41,6 +40,7 @@
 #include "debug/out.h"
 #include "font/agsfontrenderer.h"
 #include "font/fonts.h"
+#include "game/game_objects.h"
 #include "main/config.h"
 #include "main/game_start.h"
 #include "main/graphics_mode.h"
@@ -73,7 +73,6 @@ extern char check_dynamic_sprites_at_exit;
 extern int our_eip;
 extern volatile char want_exit, abort_engine;
 extern GameSetup usetup;
-extern GameSetupStruct game;
 extern int proper_exit;
 extern char pexbuf[STD_BUFFER_SIZE];
 extern char saveGameDirectory[260];
@@ -792,10 +791,10 @@ void engine_init_title()
     //platform->DisplayAlert("loaded game");
     our_eip=-91;
 #if (ALLEGRO_DATE > 19990103)
-    set_window_title(game.gamename);
+    set_window_title(game.GameName);
 #endif
 
-    Out::FPrint(game.gamename);
+    Out::FPrint(game.GameName);
 }
 
 void engine_init_directories()
@@ -808,10 +807,10 @@ void engine_init_directories()
         usetup.data_files_dir = ".";
     }
 
-    if (game.saveGameFolderName[0] != 0)
+    if (game.SavedGameFolderName[0] != 0)
     {
         char newDirBuffer[MAX_PATH];
-        sprintf(newDirBuffer, "$MYDOCS$/%s", game.saveGameFolderName);
+        sprintf(newDirBuffer, "$MYDOCS$/%s", game.SavedGameFolderName);
         Game_SetSaveGameDirectory(newDirBuffer);
     }
     else if (use_compiled_folder_as_current_dir)
@@ -883,7 +882,7 @@ int engine_check_fonts()
 void engine_init_modxm_player()
 {
 #ifndef PSP_NO_MOD_PLAYBACK
-    if (game.options[OPT_NOMODMUSIC])
+    if (game.Options[OPT_NOMODMUSIC])
         opts.mod_player = 0;
 
     if (opts.mod_player) {
@@ -967,7 +966,7 @@ void engine_setup_screen()
 	abuf=BitmapHelper::GetScreenBitmap();
     our_eip=-7;
 
-    for (int ee = 0; ee < MAX_INIT_SPR + game.numcharacters; ee++)
+    for (int ee = 0; ee < MAX_INIT_SPR + game.CharacterCount; ee++)
         actsps[ee] = NULL;
 }
 
@@ -975,25 +974,25 @@ void init_game_settings() {
     int ee;
 
     for (ee=0;ee<256;ee++) {
-        if (game.paluses[ee]!=PAL_BACKGROUND)
-            palette[ee]=game.defpal[ee];
+        if (game.PaletteUses[ee]!=PAL_BACKGROUND)
+            palette[ee]=game.DefaultPalette[ee];
     }
 
-    if (game.options[OPT_NOSCALEFNT]) wtext_multiply=1;
+    if (game.Options[OPT_NOSCALEFNT]) wtext_multiply=1;
 
-    for (ee = 0; ee < game.numcursors; ee++) 
+    for (ee = 0; ee < game.MouseCursorCount; ee++) 
     {
         // The cursor graphics are assigned to mousecurs[] and so cannot
         // be removed from memory
-        if (game.mcurs[ee].pic >= 0)
-            spriteset.precache (game.mcurs[ee].pic);
+        if (game.MouseCursors[ee].pic >= 0)
+            spriteset.precache (game.MouseCursors[ee].pic);
 
         // just in case they typed an invalid view number in the editor
-        if (game.mcurs[ee].view >= game.numviews)
-            game.mcurs[ee].view = -1;
+        if (game.MouseCursors[ee].view >= game.ViewCount)
+            game.MouseCursors[ee].view = -1;
 
-        if (game.mcurs[ee].view >= 0)
-            precache_view (game.mcurs[ee].view);
+        if (game.MouseCursors[ee].view >= 0)
+            precache_view (game.MouseCursors[ee].view);
     }
     // may as well preload the character gfx
     if (playerchar->view >= 0)
@@ -1007,7 +1006,7 @@ void init_game_settings() {
     dummyguicontrol.objn = -1;*/
 
     our_eip=-6;
-    //  game.chars[0].talkview=4;
+    //  game.Characters[0].talkview=4;
     //init_language_text(game.langcodes[0]);
 
     for (ee = 0; ee < MAX_INIT_SPR; ee++) {
@@ -1016,25 +1015,25 @@ void init_game_settings() {
         // scrObj[ee].obj = NULL;
     }
 
-    for (ee=0;ee<game.numcharacters;ee++) {
-        memset(&game.chars[ee].inv[0],0,MAX_INV*sizeof(short));
-        game.chars[ee].activeinv=-1;
-        game.chars[ee].following=-1;
-        game.chars[ee].followinfo=97 | (10 << 8);
-        game.chars[ee].idletime=20;  // can be overridden later with SetIdle or summink
-        game.chars[ee].idleleft=game.chars[ee].idletime;
-        game.chars[ee].transparency = 0;
-        game.chars[ee].baseline = -1;
-        game.chars[ee].walkwaitcounter = 0;
-        game.chars[ee].z = 0;
+    for (ee=0;ee<game.CharacterCount;ee++) {
+        memset(&game.Characters[ee].inv[0],0,MAX_INV*sizeof(short));
+        game.Characters[ee].activeinv=-1;
+        game.Characters[ee].following=-1;
+        game.Characters[ee].followinfo=97 | (10 << 8);
+        game.Characters[ee].idletime=20;  // can be overridden later with SetIdle or summink
+        game.Characters[ee].idleleft=game.Characters[ee].idletime;
+        game.Characters[ee].transparency = 0;
+        game.Characters[ee].baseline = -1;
+        game.Characters[ee].walkwaitcounter = 0;
+        game.Characters[ee].z = 0;
         charextra[ee].xwas = INVALID_X;
         charextra[ee].zoom = 100;
-        if (game.chars[ee].view >= 0) {
+        if (game.Characters[ee].view >= 0) {
             // set initial loop to 0
-            game.chars[ee].loop = 0;
+            game.Characters[ee].loop = 0;
             // or to 1 if they don't have up/down frames
-            if (views[game.chars[ee].view].loops[0].numFrames < 1)
-                game.chars[ee].loop = 1;
+            if (views[game.Characters[ee].view].loops[0].numFrames < 1)
+                game.Characters[ee].loop = 1;
         }
         charextra[ee].process_idle_this_time = 0;
         charextra[ee].invorder_count = 0;
@@ -1042,16 +1041,16 @@ void init_game_settings() {
         charextra[ee].animwait = 0;
     }
     // multiply up gui positions
-    guibg = (Bitmap **)malloc(sizeof(Bitmap *) * game.numgui);
-    guibgbmp = (IDriverDependantBitmap**)malloc(sizeof(IDriverDependantBitmap*) * game.numgui);
-    for (ee=0;ee<game.numgui;ee++) {
+    guibg = (Bitmap **)malloc(sizeof(Bitmap *) * game.GuiCount);
+    guibgbmp = (IDriverDependantBitmap**)malloc(sizeof(IDriverDependantBitmap*) * game.GuiCount);
+    for (ee=0;ee<game.GuiCount;ee++) {
         guibg[ee] = NULL;
         guibgbmp[ee] = NULL;
     }
 
     our_eip=-5;
-    for (ee=0;ee<game.numinvitems;ee++) {
-        if (game.invinfo[ee].flags & IFLG_STARTWITH) playerchar->inv[ee]=1;
+    for (ee=0;ee<game.InvItemCount;ee++) {
+        if (game.InventoryItems[ee].flags & IFLG_STARTWITH) playerchar->inv[ee]=1;
         else playerchar->inv[ee]=0;
     }
     play.score=0;
@@ -1062,7 +1061,7 @@ void init_game_settings() {
     play.messagetime=-1;
     play.disabled_user_interface=0;
     play.gscript_timer=-1;
-    play.debug_mode=game.options[OPT_DEBUGMODE];
+    play.debug_mode=game.Options[OPT_DEBUGMODE];
     play.inv_top=0;
     play.inv_numdisp=0;
     play.obsolete_inv_numorder=0;
@@ -1078,7 +1077,7 @@ void init_game_settings() {
     play.text_speed_modifier = 0;
     play.text_align = SCALIGN_LEFT;
     // Make the default alignment to the right with right-to-left text
-    if (game.options[OPT_RIGHTLEFTWRITE])
+    if (game.Options[OPT_RIGHTLEFTWRITE])
         play.text_align = SCALIGN_RIGHT;
 
     play.speech_bubble_width = get_fixed_pixel_size(100);
@@ -1110,7 +1109,7 @@ void init_game_settings() {
     play.digital_master_volume = 100;
     play.screen_flipped=0;
     play.offsets_locked=0;
-    play.cant_skip_speech = user_to_internal_skip_speech(game.options[OPT_NOSKIPTEXT]);
+    play.cant_skip_speech = user_to_internal_skip_speech(game.Options[OPT_NOSKIPTEXT]);
     play.sound_volume = 255;
     play.speech_volume = 255;
     play.normal_font = 0;
@@ -1125,7 +1124,7 @@ void init_game_settings() {
     play.no_multiloop_repeat = 0;
     play.in_cutscene = 0;
     play.fast_forward = 0;
-    play.totalscore = game.totalscore;
+    play.totalscore = game.TotalScore;
     play.roomscript_finished = 0;
     play.no_textbg_when_voice = 0;
     play.max_dialogoption_width = get_fixed_pixel_size(180);
@@ -1164,12 +1163,12 @@ void init_game_settings() {
     play.show_single_dialog_option = 0;
     play.keep_screen_during_instant_transition = 0;
     play.read_dialog_option_colour = -1;
-    play.narrator_speech = game.playercharacter;
+    play.narrator_speech = game.PlayerCharacterIndex;
     play.crossfading_out_channel = 0;
-    play.speech_textwindow_gui = game.options[OPT_TWCUSTOM];
+    play.speech_textwindow_gui = game.Options[OPT_TWCUSTOM];
     if (play.speech_textwindow_gui == 0)
         play.speech_textwindow_gui = -1;
-    strcpy(play.game_name, game.gamename);
+    strcpy(play.game_name, game.GameName);
     play.lastParserEntry[0] = 0;
     play.follow_change_room_timer = 150;
     for (ee = 0; ee < MAX_BSCENE; ee++) 
@@ -1177,7 +1176,7 @@ void init_game_settings() {
     play.game_speed_modifier = 0;
     if (debug_flags & DBG_DEBUGMODE)
         play.debug_mode = 1;
-    gui_disabled_style = convert_gui_disabled_style(game.options[OPT_DISABLEOFF]);
+    gui_disabled_style = convert_gui_disabled_style(game.Options[OPT_DISABLEOFF]);
 
     memset(&play.walkable_areas_on[0],1,MAX_WALK_AREAS+1);
     memset(&play.script_timers[0],0,MAX_TIMERS * sizeof(int));

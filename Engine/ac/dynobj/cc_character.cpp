@@ -14,9 +14,7 @@
 
 #include "ac/dynobj/cc_character.h"
 #include "ac/characterinfo.h"
-#include "ac/gamesetupstruct.h"
-
-extern GameSetupStruct game;
+#include "game/game_objects.h"
 
 // return the type name of the object
 const char *CCCharacter::GetType() {
@@ -35,5 +33,5 @@ int CCCharacter::Serialize(const char *address, char *buffer, int bufsize) {
 void CCCharacter::Unserialize(int index, const char *serializedData, int dataSize) {
     StartUnserialize(serializedData, dataSize);
     int num = UnserializeInt();
-    ccRegisterUnserializedObject(index, &game.chars[num], this);
+    ccRegisterUnserializedObject(index, &game.Characters[num], this);
 }

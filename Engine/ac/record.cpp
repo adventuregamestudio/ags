@@ -14,15 +14,16 @@
 
 #define IS_RECORD_UNIT
 #include "ac/common.h"
+#include "util/wgt2allg.h"
 #include "media/audio/audiodefines.h"
 #include "ac/game.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_display.h"
 #include "ac/global_game.h"
 #include "ac/keycode.h"
 #include "ac/mouse.h"
 #include "ac/record.h"
+#include "game/game_objects.h"
 #include "main/main.h"
 #include "media/audio/soundclip.h"
 #include "util/string_utils.h"
@@ -33,7 +34,6 @@
 using AGS::Common::Stream;
 using AGS::Common::String;
 
-extern GameSetupStruct game;
 extern GameState play;
 extern int disable_mgetgraphpos;
 extern int mousex,mousey;
@@ -301,7 +301,7 @@ int check_mouse_wheel () {
     }
 
     int result = 0;
-    if ((mouse_z != mouse_z_was) && (game.options[OPT_MOUSEWHEEL] != 0)) {
+    if ((mouse_z != mouse_z_was) && (game.Options[OPT_MOUSEWHEEL] != 0)) {
         if (mouse_z > mouse_z_was)
             result = 1;
         else
@@ -371,8 +371,8 @@ void stop_recording() {
     }
     replay_out->WriteInt32 (write_version);
 
-    fputstring (game.gamename, replay_out);
-    replay_out->WriteInt32 (game.uniqueid);
+    fputstring (game.GameName, replay_out);
+    replay_out->WriteInt32 (game.UniqueId);
     replay_out->WriteInt32 (replay_time);
     fputstring (replaydesc, replay_out);  // replay description, maybe we'll use this later
     replay_out->WriteInt32 (play.randseed);
@@ -420,14 +420,14 @@ void start_playback()
             if (requested_engine_version != EngineVersion) {
                 // Disable text as speech while displaying the warning message
                 // This happens if the user's graphics card does BGR order 16-bit colour
-                int oldalways = game.options[OPT_ALWAYSSPCH];
-                game.options[OPT_ALWAYSSPCH] = 0;
+                int oldalways = game.Options[OPT_ALWAYSSPCH];
+                game.Options[OPT_ALWAYSSPCH] = 0;
                 play.playback = 0;
                 Display("Warning! replay is from a different version of AGS (%s) - it may not work properly.", buffer);
                 play.playback = 1;
                 srand (play.randseed);
                 play.gamestep = 0;
-                game.options[OPT_ALWAYSSPCH] = oldalways;
+                game.Options[OPT_ALWAYSSPCH] = oldalways;
             }
 
             int replayver = in->ReadInt32();
@@ -438,7 +438,7 @@ void start_playback()
             if (replayver >= 2) {
                 fgetstring_limit (buffer, in, 99);
                 int uid = in->ReadInt32 ();
-                if ((strcmp (buffer, game.gamename) != 0) || (uid != game.uniqueid)) {
+                if ((strcmp (buffer, game.GameName) != 0) || (uid != game.UniqueId)) {
                     char msg[150];
                     sprintf (msg, "!This replay is meant for the game '%s' and will not work correctly with this game.", buffer);
                     delete in;

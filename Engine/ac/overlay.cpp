@@ -19,19 +19,18 @@
 #include "ac/view.h"
 #include "ac/characterextras.h"
 #include "ac/draw.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/global_overlay.h"
 #include "ac/global_translation.h"
 #include "ac/runtime_defines.h"
 #include "ac/screenoverlay.h"
 #include "ac/string.h"
+#include "game/game_objects.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 #include "script/runtimescriptvalue.h"
 
 using AGS::Common::Bitmap;
 
-extern GameSetupStruct game;
 extern int scrnwid,scrnhit;
 extern int offsetx, offsety;
 extern int displayed_room;
@@ -237,9 +236,9 @@ void get_overlay_position(int overlayidx, int *x, int *y) {
     if (screenover[overlayidx].x == OVR_AUTOPLACE) {
         // auto place on character
         int charid = screenover[overlayidx].y;
-        int charpic = views[game.chars[charid].view].loops[game.chars[charid].loop].frames[0].pic;
+        int charpic = views[game.Characters[charid].view].loops[game.Characters[charid].loop].frames[0].pic;
 
-        tdyp = multiply_up_coordinate(game.chars[charid].get_effective_y()) - offsety - 5;
+        tdyp = multiply_up_coordinate(game.Characters[charid].get_effective_y()) - offsety - 5;
         if (charextra[charid].height<1)
             tdyp -= spriteheight[charpic];
         else
@@ -247,12 +246,12 @@ void get_overlay_position(int overlayidx, int *x, int *y) {
 
         tdyp -= screenover[overlayidx].pic->GetHeight();
         if (tdyp < 5) tdyp=5;
-        tdxp = (multiply_up_coordinate(game.chars[charid].x) - screenover[overlayidx].pic->GetWidth()/2) - offsetx;
+        tdxp = (multiply_up_coordinate(game.Characters[charid].x) - screenover[overlayidx].pic->GetWidth()/2) - offsetx;
         if (tdxp < 0) tdxp=0;
 
         if ((tdxp + screenover[overlayidx].pic->GetWidth()) >= scrnwid)
             tdxp = (scrnwid - screenover[overlayidx].pic->GetWidth()) - 1;
-        if (game.chars[charid].room != displayed_room) {
+        if (game.Characters[charid].room != displayed_room) {
             tdxp = scrnwid/2 - screenover[overlayidx].pic->GetWidth()/2;
             tdyp = scrnhit/2 - screenover[overlayidx].pic->GetHeight()/2;
         }

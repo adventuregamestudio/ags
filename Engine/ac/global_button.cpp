@@ -15,17 +15,16 @@
 #include "ac/global_button.h"
 #include "ac/common.h"
 #include "ac/button.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/string.h"
+#include "game/game_objects.h"
 #include "gui/guimain.h"
 #include "gui/guibutton.h"
 
-extern GameSetupStruct game;
 extern GUIMain*guis;
 
 void SetButtonText(int guin,int objn, const char*newtx) {
     VALIDATE_STRING(newtx);
-    if ((guin<0) | (guin>=game.numgui))
+    if ((guin<0) | (guin>=game.GuiCount))
         quit("!SetButtonText: invalid GUI number");
     if ((objn<0) | (objn>=guis[guin].numobjs))
         quit("!SetButtonText: invalid object number");
@@ -38,7 +37,7 @@ void SetButtonText(int guin,int objn, const char*newtx) {
 
 
 void AnimateButton(int guin, int objn, int view, int loop, int speed, int repeat) {
-    if ((guin<0) | (guin>=game.numgui)) quit("!AnimateButton: invalid GUI number");
+    if ((guin<0) | (guin>=game.GuiCount)) quit("!AnimateButton: invalid GUI number");
     if ((objn<0) | (objn>=guis[guin].numobjs)) quit("!AnimateButton: invalid object number");
     if (guis[guin].get_control_type(objn)!=GOBJ_BUTTON)
         quit("!AnimateButton: specified control is not a button");
@@ -48,7 +47,7 @@ void AnimateButton(int guin, int objn, int view, int loop, int speed, int repeat
 
 
 int GetButtonPic(int guin, int objn, int ptype) {
-    if ((guin<0) | (guin>=game.numgui)) quit("!GetButtonPic: invalid GUI number");
+    if ((guin<0) | (guin>=game.GuiCount)) quit("!GetButtonPic: invalid GUI number");
     if ((objn<0) | (objn>=guis[guin].numobjs)) quit("!GetButtonPic: invalid object number");
     if (guis[guin].get_control_type(objn)!=GOBJ_BUTTON)
         quit("!GetButtonPic: specified control is not a button");
@@ -78,7 +77,7 @@ int GetButtonPic(int guin, int objn, int ptype) {
 }
 
 void SetButtonPic(int guin,int objn,int ptype,int slotn) {
-    if ((guin<0) | (guin>=game.numgui)) quit("!SetButtonPic: invalid GUI number");
+    if ((guin<0) | (guin>=game.GuiCount)) quit("!SetButtonPic: invalid GUI number");
     if ((objn<0) | (objn>=guis[guin].numobjs)) quit("!SetButtonPic: invalid object number");
     if (guis[guin].get_control_type(objn)!=GOBJ_BUTTON)
         quit("!SetButtonPic: specified control is not a button");

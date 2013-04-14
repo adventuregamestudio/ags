@@ -23,10 +23,10 @@
 #include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/global_display.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
+#include "game/game_objects.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 #include "main/engine.h"
@@ -39,7 +39,6 @@
 using AGS::Common::Stream;
 using AGS::Common::Bitmap;
 
-extern GameSetupStruct game;
 extern GameSetup usetup;
 extern int our_eip;
 extern IGraphicsDriver *gfxDriver;
@@ -271,7 +270,7 @@ void AGSWin32::add_tasks_for_game(const char *guidAsText, const char *gameEXE, c
   // Generate the shortcut file name (because it can appear on
   // the start menu's Recent area)
   char sanitisedGameName[MAX_PATH];
-  CopyStringAndRemoveInvalidFilenameChars(game.gamename, sanitisedGameName);
+  CopyStringAndRemoveInvalidFilenameChars(game.GameName, sanitisedGameName);
   if (sanitisedGameName[0] == 0)
     strcpy(sanitisedGameName, "Play");
   sprintf(shortcutLocation, "%s\\%s.lnk", pathBuffer, sanitisedGameName);
@@ -376,21 +375,21 @@ void AGSWin32::update_game_explorer(bool add)
   }
   else 
   {
-    strupr(game.guid);
+    game.Guid.MakeUpper();
     WCHAR wstrTemp[MAX_PATH] = {0};
     GUID guid = GUID_NULL;
-    MultiByteToWideChar(CP_ACP, 0, game.guid, MAX_GUID_LENGTH, wstrTemp, MAX_GUID_LENGTH);
+    MultiByteToWideChar(CP_ACP, 0, game.Guid, MAX_GUID_LENGTH, wstrTemp, MAX_GUID_LENGTH);
     if (IIDFromString(wstrTemp, &guid) != S_OK)
     {
       this->DisplayAlert("Failed to register game: IIDFromString failed");
     }
     else if (add)
     {
-      add_game_to_game_explorer(pFwGameExplorer, &guid, game.guid, true);
+      add_game_to_game_explorer(pFwGameExplorer, &guid, game.Guid, true);
     }
     else
     {
-      remove_game_from_game_explorer(pFwGameExplorer, &guid, game.guid, true);
+      remove_game_from_game_explorer(pFwGameExplorer, &guid, game.Guid, true);
     }
   }
 
@@ -401,17 +400,17 @@ void AGSWin32::update_game_explorer(bool add)
 void AGSWin32::unregister_file_extension()
 {
   char keyname[MAX_PATH];
-  sprintf(keyname, ".%s", game.saveGameFileExtension);
+  sprintf(keyname, ".%s", game.SavedGameFileExtension.GetCStr());
   if (SHDeleteKey(HKEY_CLASSES_ROOT, keyname) != ERROR_SUCCESS)
   {
     this->DisplayAlert("Unable to un-register the file extension. Make sure you are running this with admin rights.");
     return;
   }
 
-  sprintf(keyname, "AGS.SaveGames.%s", game.saveGameFileExtension);
+  sprintf(keyname, "AGS.SaveGames.%s", game.SavedGameFileExtension.GetCStr());
   SHDeleteKey(HKEY_CLASSES_ROOT, keyname);
 
-  sprintf(keyname, "Software\\Microsoft\\Windows\\CurrentVersion\\PropertySystem\\PropertyHandlers\\.%s", game.saveGameFileExtension);
+  sprintf(keyname, "Software\\Microsoft\\Windows\\CurrentVersion\\PropertySystem\\PropertyHandlers\\.%s", game.SavedGameFileExtension.GetCStr());
   SHDeleteKey(HKEY_LOCAL_MACHINE, keyname);
 
   // Tell Explorer to refresh its file association data
@@ -424,11 +423,11 @@ void AGSWin32::register_file_extension(const char *exePath)
   valType = REG_SZ;
   char valBuf[MAX_PATH], keyname[MAX_PATH];
   char saveGameRegistryType[MAX_PATH];
-  sprintf(saveGameRegistryType, "AGS.SaveGames.%s", game.saveGameFileExtension);
+  sprintf(saveGameRegistryType, "AGS.SaveGames.%s", game.SavedGameFileExtension.GetCStr());
 
   // write HKEY_CLASSES_ROOT\.Extension = AGS.SaveGames.Extension
   strcpy(valBuf, saveGameRegistryType);
-  sprintf(keyname, ".%s", game.saveGameFileExtension);
+  sprintf(keyname, ".%s", game.SavedGameFileExtension.GetCStr());
   if (RegSetValue(HKEY_CLASSES_ROOT, keyname, valType, valBuf, valBufLen))
   {
     this->DisplayAlert("Unable to register file type. Make sure you are running this with Administrator rights.");
@@ -437,7 +436,7 @@ void AGSWin32::register_file_extension(const char *exePath)
 
   // create HKEY_CLASSES_ROOT\AGS.SaveGames.Extension
   strcpy(keyname, saveGameRegistryType);
-  sprintf(valBuf, "%s Saved Game", game.gamename);
+  sprintf(valBuf, "%s Saved Game", game.GameName);
   RegSetValue (HKEY_CLASSES_ROOT, keyname, REG_SZ, valBuf, strlen(valBuf));
 
   // write HKEY_CLASSES_ROOT\AGS.SaveGames.Extension\DefaultIcon
@@ -463,12 +462,12 @@ void AGSWin32::register_file_extension(const char *exePath)
   SHSetValue(HKEY_CLASSES_ROOT, keyname, "PreviewDetails", REG_SZ, valBuf, strlen(valBuf));
 
   // write HKEY_CLASSES_ROOT\.Extension\ShellEx\{BB2E617C-0920-11D1-9A0B-00C04FC2D6C1}
-  sprintf(keyname, ".%s\\ShellEx\\{BB2E617C-0920-11D1-9A0B-00C04FC2D6C1}", game.saveGameFileExtension);
+  sprintf(keyname, ".%s\\ShellEx\\{BB2E617C-0920-11D1-9A0B-00C04FC2D6C1}", game.SavedGameFileExtension.GetCStr());
   strcpy(valBuf, "{4E5BFBF8-F59A-4E87-9805-1F9B42CC254A}");
   RegSetValue (HKEY_CLASSES_ROOT, keyname, REG_SZ, valBuf, strlen(valBuf));
 
   // write HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\PropertySystem\PropertyHandlers\.Extension
-  sprintf(keyname, "Software\\Microsoft\\Windows\\CurrentVersion\\PropertySystem\\PropertyHandlers\\.%s", game.saveGameFileExtension);
+  sprintf(keyname, "Software\\Microsoft\\Windows\\CurrentVersion\\PropertySystem\\PropertyHandlers\\.%s", game.SavedGameFileExtension.GetCStr());
   strcpy(valBuf, "{ECDD6472-2B9B-4B4B-AE36-F316DF3C8D60}");
   RegSetValue (HKEY_LOCAL_MACHINE, keyname, REG_SZ, valBuf, strlen(valBuf));
 
@@ -480,7 +479,7 @@ void AGSWin32::RegisterGameWithGameExplorer()
 {
   update_game_explorer(true);
 
-  if (game.saveGameFileExtension[0] != 0)
+  if (!game.SavedGameFileExtension.IsEmpty())
   {
     char theexename[MAX_PATH];
     GetModuleFileName(NULL, theexename, MAX_PATH);
@@ -493,7 +492,7 @@ void AGSWin32::UnRegisterGameWithGameExplorer()
 {
   update_game_explorer(false);
 
-  if (game.saveGameFileExtension[0] != 0)
+  if (!game.SavedGameFileExtension.IsEmpty())
   {
     unregister_file_extension();
   }
@@ -715,10 +714,10 @@ void AGSWin32::PlayVideo(const char *name, int skip, int flags) {
   if (isError) {
     // turn "Always display as speech" off, to make sure error
     // gets displayed correctly
-    int oldalways = game.options[OPT_ALWAYSSPCH];
-    game.options[OPT_ALWAYSSPCH] = 0;
+    int oldalways = game.Options[OPT_ALWAYSSPCH];
+    game.Options[OPT_ALWAYSSPCH] = 0;
     Display("Video playing error: %s", lastError);
-    game.options[OPT_ALWAYSSPCH] = oldalways;
+    game.Options[OPT_ALWAYSSPCH] = oldalways;
   }
 
   if (useSound)

@@ -170,7 +170,7 @@ void load_main_block(roomstruct *rstruc, const char *files, Stream *in, room_fil
 		free(rstruc->hotspotnames[f]);
 
 	rstruc->hotspotnames[f] = (char*)malloc(20);
-    sprintf(rstruc->hotspotnames[f], "Hotspot %d");
+    sprintf(rstruc->hotspotnames[f], "Hotspot %d", f);
 
     if (f == 0)
       strcpy(rstruc->hotspotnames[f], "No hotspot");
@@ -407,10 +407,12 @@ void load_main_block(roomstruct *rstruc, const char *files, Stream *in, room_fil
     else
       fgetstring_limit(buffre, in, 2999);
 
-    rstruc->message[f] = (char *)malloc(strlen(buffre) + 2);
+    int buffre_length = strlen(buffre);
+
+    rstruc->message[f] = (char *)malloc(buffre_length + 2);
     strcpy(rstruc->message[f], buffre);
 
-    if (buffre[strlen(buffre)-1] == (char)200) {
+    if ((buffre_length > 0) && (buffre[buffre_length-1] == (char)200)) {
       rstruc->message[f][strlen(buffre)-1] = 0;
       rstruc->msgi[f].flags |= MSG_DISPLAYNEXT;
     }

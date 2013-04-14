@@ -28,6 +28,15 @@
 #include <pwd.h>
 #include <sys/stat.h>
 
+
+// Replace the default Allegro icon. The original defintion is in the
+// Allegro 4.4 source under "src/x/xwin.c".
+extern "C" {
+#include "icon.xpm";
+}
+extern void *allegro_icon = icon_xpm;
+
+
 struct AGSLinux : AGSPlatformDriver {
 
   virtual int  CDPlayerCommand(int cmdd, int datt);

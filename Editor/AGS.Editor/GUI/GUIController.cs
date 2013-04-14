@@ -458,6 +458,12 @@ namespace AGS.Editor
             }
         }
 
+        public object GetPropertyGridObject()
+        {
+            if (_mainForm.ActivePane == null) return null;
+            return _mainForm.ActivePane.SelectedPropertyGridObject;
+        }
+
         public void SetPropertyGridObject(object objectToSetPropertiesOn)
         {
             if (_mainForm.ActivePane != null)

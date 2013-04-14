@@ -872,14 +872,6 @@ void String::Align(int offset)
     _meta->CStr = strbuf_head;
 }
 
-void String::BecomeUnique()
-{
-    if (_meta && _meta->RefCount > 1)
-    {
-        Copy(_meta->Length);
-    }
-}
-
 void String::ReserveAndShift(bool reserve_left, int need_space)
 {
     // The memory allocation strategy aims time-efficient appending operations;

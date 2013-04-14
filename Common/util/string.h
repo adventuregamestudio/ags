@@ -300,7 +300,13 @@ private:
     void    Align(int offset);
 
     // Ensure this string is a compact independent copy, with ref counter = 1
-    void    BecomeUnique();
+    inline void BecomeUnique()
+    {
+        if (_meta->RefCount != 1)
+        {
+            Copy(_meta->Length);
+        }
+    }
     // Ensure this string is independent, and there's enough space before
     // or after the current string data
     void    ReserveAndShift(bool reserve_left, int need_space);

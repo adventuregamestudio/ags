@@ -355,9 +355,9 @@ protected:
         _meta->Arr = arr_head;
     }
     // Ensure this array is a compact independent copy, with ref counter = 1
-    void BecomeUnique()
+    inline void BecomeUnique()
     {
-        if (_meta && _meta->RefCount > 1)
+        if (_meta->RefCount != 1)
         {
             Copy(_meta->Length);
         }
@@ -783,9 +783,9 @@ protected:
         _meta->Arr = arr_head;
     }
     // Ensure this array is a compact independent copy, with ref counter = 1
-    void BecomeUnique()
+    inline void BecomeUnique()
     {
-        if (_meta && _meta->RefCount > 1)
+        if (_meta->RefCount != 1)
         {
             Copy(_meta->Length);
         }

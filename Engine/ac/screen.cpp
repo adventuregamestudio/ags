@@ -15,11 +15,11 @@
 #include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/draw.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/global_screen.h"
 #include "ac/screen.h"
+#include "game/game_objects.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "gfx/graphicsdriver.h"
@@ -29,7 +29,6 @@ using AGS::Common::Bitmap;
 using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
-extern GameSetupStruct game;
 extern GameState play;
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
@@ -37,7 +36,7 @@ extern Bitmap *virtual_screen;
 extern int scrnwid,scrnhit;
 
 void my_fade_in(PALLETE p, int speed) {
-    if (game.color_depth > 1) {
+    if (game.ColorDepth > 1) {
         set_palette (p);
 
         play.screen_is_faded_out = 0;

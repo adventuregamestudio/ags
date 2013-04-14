@@ -22,7 +22,6 @@
 #include "ac/display.h"
 #include "ac/draw.h"
 #include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/global_gui.h"
@@ -47,6 +46,7 @@
 #include "debug/debugger.h"
 #include "debug/debug_log.h"
 #include "font/fonts.h"
+#include "game/game_objects.h"
 #include "gui/guimain.h"
 #include "media/audio/audio.h"
 #include "media/audio/soundclip.h"
@@ -73,7 +73,6 @@ extern "C" void ios_render();
 #endif
 
 extern GameSetup usetup;
-extern GameSetupStruct game;
 extern GameState play;
 extern int current_screen_resolution_multiplier;
 extern int scrnwid,scrnhit;
@@ -368,7 +367,7 @@ AGS_INLINE int get_fixed_pixel_size(int pixels)
 
 AGS_INLINE int convert_to_low_res(int coord)
 {
-    if (game.options[OPT_NATIVECOORDINATES] == 0)
+    if (game.Options[OPT_NATIVECOORDINATES] == 0)
         return coord;
     else
         return coord / current_screen_resolution_multiplier;
@@ -376,7 +375,7 @@ AGS_INLINE int convert_to_low_res(int coord)
 
 AGS_INLINE int convert_back_to_high_res(int coord)
 {
-    if (game.options[OPT_NATIVECOORDINATES] == 0)
+    if (game.Options[OPT_NATIVECOORDINATES] == 0)
         return coord;
     else
         return coord * current_screen_resolution_multiplier;
@@ -384,7 +383,7 @@ AGS_INLINE int convert_back_to_high_res(int coord)
 
 AGS_INLINE int multiply_up_coordinate(int coord)
 {
-    if (game.options[OPT_NATIVECOORDINATES] == 0)
+    if (game.Options[OPT_NATIVECOORDINATES] == 0)
         return coord * current_screen_resolution_multiplier;
     else
         return coord;
@@ -392,7 +391,7 @@ AGS_INLINE int multiply_up_coordinate(int coord)
 
 AGS_INLINE void multiply_up_coordinates(int *x, int *y)
 {
-    if (game.options[OPT_NATIVECOORDINATES] == 0)
+    if (game.Options[OPT_NATIVECOORDINATES] == 0)
     {
         x[0] *= current_screen_resolution_multiplier;
         y[0] *= current_screen_resolution_multiplier;
@@ -401,7 +400,7 @@ AGS_INLINE void multiply_up_coordinates(int *x, int *y)
 
 AGS_INLINE void multiply_up_coordinates_round_up(int *x, int *y)
 {
-    if (game.options[OPT_NATIVECOORDINATES] == 0)
+    if (game.Options[OPT_NATIVECOORDINATES] == 0)
     {
         x[0] = x[0] * current_screen_resolution_multiplier + (current_screen_resolution_multiplier - 1);
         y[0] = y[0] * current_screen_resolution_multiplier + (current_screen_resolution_multiplier - 1);
@@ -410,7 +409,7 @@ AGS_INLINE void multiply_up_coordinates_round_up(int *x, int *y)
 
 AGS_INLINE int divide_down_coordinate(int coord)
 {
-    if (game.options[OPT_NATIVECOORDINATES] == 0)
+    if (game.Options[OPT_NATIVECOORDINATES] == 0)
         return coord / current_screen_resolution_multiplier;
     else
         return coord;
@@ -418,7 +417,7 @@ AGS_INLINE int divide_down_coordinate(int coord)
 
 AGS_INLINE int divide_down_coordinate_round_up(int coord)
 {
-    if (game.options[OPT_NATIVECOORDINATES] == 0)
+    if (game.Options[OPT_NATIVECOORDINATES] == 0)
         return (coord / current_screen_resolution_multiplier) + (current_screen_resolution_multiplier - 1);
     else
         return coord;
@@ -666,7 +665,7 @@ void draw_and_invalidate_text(Common::Graphics *g, int x1, int y1, int font, con
 void wouttext_reverseifnecessary(Common::Graphics *g, int x, int y, int font, char *text) {
     char *backwards = NULL;
     char *otext = text;
-    if (game.options[OPT_RIGHTLEFTWRITE]) {
+    if (game.Options[OPT_RIGHTLEFTWRITE]) {
         backwards = reverse_text(text);
         otext = backwards;
     }
@@ -757,10 +756,10 @@ void render_to_screen(Bitmap *toRender, int atx, int aty) {
             gfxDriver->Render((GlobalFlipType)play.screen_flipped);
 
 #if defined(ANDROID_VERSION)
-            if (game.color_depth == 1)
+            if (game.ColorDepth == 1)
                 android_render();
 #elif defined(IOS_VERSION)
-            if (game.color_depth == 1)
+            if (game.ColorDepth == 1)
                 ios_render();
 #endif
 
@@ -843,7 +842,7 @@ void putpixel_compensate (Graphics *g, int xx,int yy, int col) {
 
 void draw_sprite_support_alpha(Common::Graphics *g, int xpos, int ypos, Bitmap *image, int slot) {
 
-    if ((game.spriteflags[slot] & SPF_ALPHACHANNEL) && (trans_mode == 0)) 
+    if ((game.SpriteFlags[slot] & SPF_ALPHACHANNEL) && (trans_mode == 0)) 
     {
         set_alpha_blender();
         g->TransBlendBlt(image, xpos, ypos);
@@ -1056,7 +1055,7 @@ void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int baselin
     if (trans == 255)
         return;
 
-    if ((sprNum >= 0) && ((game.spriteflags[sprNum] & SPF_ALPHACHANNEL) != 0))
+    if ((sprNum >= 0) && ((game.SpriteFlags[sprNum] & SPF_ALPHACHANNEL) != 0))
         sprlist[sprlistsize].hasAlphaChannel = true;
     else
         sprlist[sprlistsize].hasAlphaChannel = false;
@@ -1130,11 +1129,11 @@ void put_sprite_256(Common::Graphics *g, int xxx,int yyy,Bitmap *piccy) {
     else
 #endif
     {
-        if ((trans_mode!=0) && (game.color_depth > 1) && (piccy->GetBPP() > 1) && (g->GetBitmap()->GetBPP() > 1)) {
+        if ((trans_mode!=0) && (game.ColorDepth > 1) && (piccy->GetBPP() > 1) && (g->GetBitmap()->GetBPP() > 1)) {
             set_trans_blender(0,0,0,trans_mode);
             g->TransBlendBlt(piccy,xxx,yyy);
         }
-        /*    else if ((lit_mode < 0) && (game.color_depth == 1) && (bmp_bpp(piccy) == 1)) {
+        /*    else if ((lit_mode < 0) && (game.ColorDepth == 1) && (bmp_bpp(piccy) == 1)) {
         ->LitBlendBlt(g,piccy,xxx,yyy,250 - ((-lit_mode) * 5)/2);
         }*/
         else
@@ -1165,10 +1164,10 @@ void repair_alpha_channel(Bitmap *dest, Bitmap *bgpic)
 void draw_sprite_compensate(Common::Graphics *g, int picc,int xx,int yy,int useAlpha) 
 {
     if ((useAlpha) && 
-        (game.options[OPT_NEWGUIALPHA] > 0) &&
+        (game.Options[OPT_NEWGUIALPHA] > 0) &&
         (g->GetBitmap()->GetColorDepth() == 32))
     {
-        if (game.spriteflags[picc] & SPF_ALPHACHANNEL)
+        if (game.SpriteFlags[picc] & SPF_ALPHACHANNEL)
             set_additive_alpha_blender();
         else
             set_opaque_alpha_blender();
@@ -1302,7 +1301,7 @@ void get_local_tint(int xpp, int ypp, int nolight,
             light_level = thisroom.regionLightLevel[0];
             tint_level = thisroom.regionTintLevel[0];
         }
-        if ((game.color_depth == 1) || ((tint_level & 0x00ffffff) == 0) ||
+        if ((game.ColorDepth == 1) || ((tint_level & 0x00ffffff) == 0) ||
             ((tint_level & TINT_IS_ENABLED) == 0))
             tint_level = 0;
 
@@ -1352,7 +1351,7 @@ void apply_tint_or_light(int actspsindex, int light_level,
 
  // In a 256-colour game, we cannot do tinting or lightening
  // (but we can do darkening, if light_level < 0)
- if (game.color_depth == 1) {
+ if (game.ColorDepth == 1) {
      if ((light_level > 0) || (tint_amount != 0))
          return;
  }
@@ -1383,7 +1382,7 @@ void apply_tint_or_light(int actspsindex, int light_level,
          int lit_amnt;
          graphics.FillTransparent();
          // It's a light level, not a tint
-         if (game.color_depth == 1) {
+         if (game.ColorDepth == 1) {
              // 256-col
              lit_amnt = (250 - ((-light_level) * 5)/2);
          }
@@ -1441,7 +1440,7 @@ int scale_and_flip_sprite(int useindx, int coldept, int zoom_level,
           Bitmap *tempspr = BitmapHelper::CreateBitmap(newwidth, newheight,coldept);
           graphics.SetBitmap(tempspr);
           graphics.Fill (actsps[useindx]->GetMaskColor());
-          if ((IS_ANTIALIAS_SPRITES) && ((game.spriteflags[sppic] & SPF_ALPHACHANNEL) == 0))
+          if ((IS_ANTIALIAS_SPRITES) && ((game.SpriteFlags[sppic] & SPF_ALPHACHANNEL) == 0))
               graphics.AAStretchBlt (spriteset[sppic], RectWH(0, 0, newwidth, newheight), Common::kBitmap_Transparency);
           else
               graphics.StretchBlt (spriteset[sppic], RectWH(0, 0, newwidth, newheight), Common::kBitmap_Transparency);
@@ -1449,7 +1448,7 @@ int scale_and_flip_sprite(int useindx, int coldept, int zoom_level,
           graphics.FlipBlt(tempspr, 0, 0, Common::kBitmap_HFlip);
           delete tempspr;
       }
-      else if ((IS_ANTIALIAS_SPRITES) && ((game.spriteflags[sppic] & SPF_ALPHACHANNEL) == 0))
+      else if ((IS_ANTIALIAS_SPRITES) && ((game.SpriteFlags[sppic] & SPF_ALPHACHANNEL) == 0))
           graphics.AAStretchBlt(spriteset[sppic],RectWH(0,0,newwidth,newheight), Common::kBitmap_Transparency);
       else
           graphics.StretchBlt(spriteset[sppic],RectWH(0,0,newwidth,newheight), Common::kBitmap_Transparency);
@@ -1457,7 +1456,7 @@ int scale_and_flip_sprite(int useindx, int coldept, int zoom_level,
       /*  AASTR2 version of code (doesn't work properly, gives black borders)
       if (IS_ANTIALIAS_SPRITES) {
       int aa_mode = AA_MASKED; 
-      if (game.spriteflags[sppic] & SPF_ALPHACHANNEL)
+      if (game.SpriteFlags[sppic] & SPF_ALPHACHANNEL)
       aa_mode |= AA_ALPHA | AA_RAW_ALPHA;
       if (isMirrored)
       aa_mode |= AA_HFLIP;
@@ -1727,7 +1726,7 @@ void prepare_objects_for_drawing() {
 
         if ((!actspsIntact) || (actspsbmp[useindx] == NULL))
         {
-            bool hasAlpha = (game.spriteflags[objs[aa].num] & SPF_ALPHACHANNEL) != 0;
+            bool hasAlpha = (game.SpriteFlags[objs[aa].num] & SPF_ALPHACHANNEL) != 0;
 
             if (actspsbmp[useindx] != NULL)
                 gfxDriver->DestroyDDB(actspsbmp[useindx]);
@@ -1817,13 +1816,13 @@ void prepare_characters_for_drawing() {
 
     our_eip=33;
     // draw characters
-    for (aa=0;aa<game.numcharacters;aa++) {
-        if (game.chars[aa].on==0) continue;
-        if (game.chars[aa].room!=displayed_room) continue;
+    for (aa=0;aa<game.CharacterCount;aa++) {
+        if (game.Characters[aa].on==0) continue;
+        if (game.Characters[aa].room!=displayed_room) continue;
         eip_guinum = aa;
         useindx = aa + MAX_INIT_SPR;
 
-        CharacterInfo*chin=&game.chars[aa];
+        CharacterInfo*chin=&game.Characters[aa];
         our_eip = 330;
         // if it's on but set to view -1, they're being silly
         if (chin->view < 0) {
@@ -2038,7 +2037,7 @@ void prepare_characters_for_drawing() {
 
         if ((!usingCachedImage) || (actspsbmp[useindx] == NULL))
         {
-            bool hasAlpha = (game.spriteflags[sppic] & SPF_ALPHACHANNEL) != 0;
+            bool hasAlpha = (game.SpriteFlags[sppic] & SPF_ALPHACHANNEL) != 0;
 
             actspsbmp[useindx] = recycle_ddb_bitmap(actspsbmp[useindx], actsps[useindx], hasAlpha);
         }
@@ -2095,7 +2094,7 @@ void draw_screen_background(Common::Graphics *g) {
     }
 
     // don't draw it before the room fades in
-    /*  if ((in_new_room > 0) & (game.color_depth > 1)) {
+    /*  if ((in_new_room > 0) & (game.ColorDepth > 1)) {
     clear(g);
     return;
     }*/
@@ -2232,8 +2231,8 @@ void draw_screen_overlay() {
                 "of an incorrect assignment in the game script.");
         }
         if (playerchar->activeinv < 1) gui_inv_pic=-1;
-        else gui_inv_pic=game.invinfo[playerchar->activeinv].pic;
-        /*    for (aa=0;aa<game.numgui;aa++) {
+        else gui_inv_pic=game.InventoryItems[playerchar->activeinv].pic;
+        /*    for (aa=0;aa<game.GuiCount;aa++) {
         if (guis[aa].on<1) continue;
         guis[aa].draw();
         guis[aa].poll();
@@ -2243,7 +2242,7 @@ void draw_screen_overlay() {
             //Bitmap *abufwas = g;
             Common::Graphics graphics;
             guis_need_update = 0;
-            for (aa=0;aa<game.numgui;aa++) {
+            for (aa=0;aa<game.GuiCount;aa++) {
                 if (guis[aa].on<1) continue;
 
                 if (guibg[aa] == NULL)
@@ -2263,7 +2262,7 @@ void draw_screen_overlay() {
                 {
                     isAlpha = true;
 
-                    if ((game.options[OPT_NEWGUIALPHA] == 0) && (guis[aa].bgpic > 0))
+                    if ((game.Options[OPT_NEWGUIALPHA] == 0) && (guis[aa].bgpic > 0))
                     {
                         // old-style (pre-3.0.2) GUI alpha rendering
                         repair_alpha_channel(guibg[aa], spriteset[guis[aa].bgpic]);
@@ -2284,12 +2283,12 @@ void draw_screen_overlay() {
         }
         our_eip = 38;
         // Draw the GUIs
-        for (gg = 0; gg < game.numgui; gg++) {
+        for (gg = 0; gg < game.GuiCount; gg++) {
             aa = play.gui_draw_order[gg];
             if (guis[aa].on < 1) continue;
 
             // Don't draw GUI if "GUIs Turn Off When Disabled"
-            if ((game.options[OPT_DISABLEOFF] == 3) &&
+            if ((game.Options[OPT_DISABLEOFF] == 3) &&
                 (all_buttons_disabled > 0) &&
                 (guis[aa].popup != POPUP_NOAUTOREM))
                 continue;
@@ -2432,24 +2431,24 @@ Common::Graphics *pop_screen() {
 // screen, and draws the mouse cursor on.
 void update_screen() {
     // cos hi-color doesn't fade in, don't draw it the first time
-    if ((in_new_room > 0) & (game.color_depth > 1))
+    if ((in_new_room > 0) & (game.ColorDepth > 1))
         return;
     gfxDriver->DrawSprite(AGSE_POSTSCREENDRAW, 0, NULL);
     Common::Graphics *g = GetVirtualScreenGraphics();
 
     // update animating mouse cursor
-    if (game.mcurs[cur_cursor].view>=0) {
+    if (game.MouseCursors[cur_cursor].view>=0) {
         domouse (DOMOUSE_NOCURSOR);
         // only on mousemove, and it's not moving
-        if (((game.mcurs[cur_cursor].flags & MCF_ANIMMOVE)!=0) &&
+        if (((game.MouseCursors[cur_cursor].flags & MCF_ANIMMOVE)!=0) &&
             (mousex==lastmx) && (mousey==lastmy)) ;
         // only on hotspot, and it's not on one
-        else if (((game.mcurs[cur_cursor].flags & MCF_HOTSPOT)!=0) &&
+        else if (((game.MouseCursors[cur_cursor].flags & MCF_HOTSPOT)!=0) &&
             (GetLocationType(divide_down_coordinate(mousex), divide_down_coordinate(mousey)) == 0))
-            set_new_cursor_graphic(game.mcurs[cur_cursor].pic);
+            set_new_cursor_graphic(game.MouseCursors[cur_cursor].pic);
         else if (mouse_delay>0) mouse_delay--;
         else {
-            int viewnum=game.mcurs[cur_cursor].view;
+            int viewnum=game.MouseCursors[cur_cursor].view;
             int loopnum=0;
             if (loopnum >= views[viewnum].numLoops)
                 quitprintf("An animating mouse cursor is using view %d which has no loops", viewnum + 1);

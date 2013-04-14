@@ -12,19 +12,19 @@
 //
 //=============================================================================
 
-#include "ac/gamesetupstruct.h"
 #include "ac/viewframe.h"
 #include "debug/debug_log.h"
+#include "util/wgt2allg.h"
 #include "media/audio/audio.h"
 #include "ac/spritecache.h"
 #include "gfx/graphics.h"
 #include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_audioclip.h"
+#include "game/game_objects.h"
 
 using AGS::Common::Bitmap;
 using AGS::Common::Graphics;
 
-extern GameSetupStruct game;
 extern ViewStruct*views;
 extern int psp_is_old_datafile;
 extern SpriteCache spriteset;
@@ -51,7 +51,7 @@ ScriptAudioClip* ViewFrame_GetLinkedAudio(ScriptViewFrame *svf)
   if (soundIndex < 0)
     return NULL;
 
-  return &game.audioClips[soundIndex];
+  return &game.AudioClips[soundIndex];
 }
 
 void ViewFrame_SetLinkedAudio(ScriptViewFrame *svf, ScriptAudioClip* clip) 
@@ -106,13 +106,6 @@ int ViewFrame_GetFrame(ScriptViewFrame *svf) {
 void allocate_memory_for_views(int viewCount)
 {
     views = (ViewStruct*)calloc(sizeof(ViewStruct) * viewCount, 1);
-    game.viewNames = (char**)malloc(sizeof(char*) * viewCount);
-    game.viewNames[0] = (char*)malloc(MAXVIEWNAMELENGTH * viewCount);
-
-    for (int i = 1; i < viewCount; i++)
-    {
-        game.viewNames[i] = game.viewNames[0] + (MAXVIEWNAMELENGTH * i);
-    }
 }
 
 void precache_view(int view) 

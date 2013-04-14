@@ -17,7 +17,6 @@
 #include "ac/display.h"
 #include "ac/draw.h"
 #include "ac/game.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_drawingsurface.h"
 #include "ac/global_translation.h"
@@ -25,6 +24,7 @@
 #include "ac/string.h"
 #include "debug/debug_log.h"
 #include "font/fonts.h"
+#include "game/game_objects.h"
 #include "gui/guidefines.h"
 #include "ac/spritecache.h"
 #include "gfx/graphics.h"
@@ -41,7 +41,6 @@ extern char lines[MAXLINE][200];
 extern int  numlines;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
-extern GameSetupStruct game;
 extern int current_screen_resolution_multiplier;
 
 // Raw screen writing routines - similar to old CapturedStuff
@@ -206,12 +205,12 @@ void RawDrawImage(int xx, int yy, int slot) {
 
 void RawDrawImageOffset(int xx, int yy, int slot) {
 
-    if ((current_screen_resolution_multiplier == 1) && (game.default_resolution >= 3)) {
+    if ((current_screen_resolution_multiplier == 1) && (game.DefaultResolution >= 3)) {
         // running a 640x400 game at 320x200, adjust
         xx /= 2;
         yy /= 2;
     }
-    else if ((current_screen_resolution_multiplier > 1) && (game.default_resolution <= 2)) {
+    else if ((current_screen_resolution_multiplier > 1) && (game.DefaultResolution <= 2)) {
         // running a 320x200 game at 640x400, adjust
         xx *= 2;
         yy *= 2;

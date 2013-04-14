@@ -20,7 +20,6 @@
 #include "ac/draw.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_character.h"
 #include "ac/global_display.h"
@@ -31,6 +30,7 @@
 #include "ac/roomstruct.h"
 #include "ac/tree_map.h"
 #include "ac/walkablearea.h"
+#include "game/game_objects.h"
 #include "gfx/gfxfilter.h"
 #include "gui/guidialog.h"
 #include "script/cc_options.h"
@@ -45,7 +45,6 @@ using AGS::Common::Bitmap;
 using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
-extern GameSetupStruct game;
 extern GameSetup usetup;
 extern GameState play;
 extern roomstruct thisroom;
@@ -66,7 +65,7 @@ void script_debug(int cmdd,int dataa) {
     if (play.debug_mode==0) return;
     int rr;
     if (cmdd==0) {
-        for (rr=1;rr<game.numinvitems;rr++)
+        for (rr=1;rr<game.InvItemCount;rr++)
             playerchar->inv[rr]=1;
         update_invorder();
         //    Display("invorder decided there are %d items[display %d",play.inv_numorder,play.inv_numdisp);
@@ -118,7 +117,7 @@ void script_debug(int cmdd,int dataa) {
     else if (cmdd==3) 
     {
         int goToRoom = -1;
-        if (game.roomCount == 0)
+        if (game.RoomCount == 0)
         {
             char inroomtex[80];
             sprintf(inroomtex, "!Enter new room: (in room %d)", displayed_room);
@@ -129,7 +128,7 @@ void script_debug(int cmdd,int dataa) {
         else
         {
             setup_for_dialog();
-            goToRoom = roomSelectorWindow(displayed_room, game.roomCount, game.roomNumbers, game.roomNames);
+            goToRoom = roomSelectorWindow(displayed_room, game.RoomCount, game.RoomNumbers, game.RoomNames);
             restore_after_dialog();
         }
         if (goToRoom >= 0) 
@@ -140,15 +139,15 @@ void script_debug(int cmdd,int dataa) {
             display_fps = dataa;
     }
     else if (cmdd == 5) {
-        if (dataa == 0) dataa = game.playercharacter;
-        if (game.chars[dataa].walking < 1) {
+        if (dataa == 0) dataa = game.PlayerCharacterIndex;
+        if (game.Characters[dataa].walking < 1) {
             Display("Not currently moving.");
             return;
         }
         Bitmap *tempw=BitmapHelper::CreateTransparentBitmap(thisroom.walls->GetWidth(),thisroom.walls->GetHeight());
         Graphics graphics(tempw);
-        int mlsnum = game.chars[dataa].walking;
-        if (game.chars[dataa].walking >= TURNING_AROUND)
+        int mlsnum = game.Characters[dataa].walking;
+        if (game.Characters[dataa].walking >= TURNING_AROUND)
             mlsnum %= TURNING_AROUND;
         MoveList*cmls = &mls[mlsnum];
         for (int i = 0; i < cmls->numstage-1; i++) {

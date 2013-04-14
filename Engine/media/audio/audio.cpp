@@ -15,7 +15,6 @@
 #include <stdio.h>
 #include "util/wgt2allg.h"
 #include "media/audio/audio.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/dynobj/cc_audioclip.h"
 #include "ac/dynobj/cc_audiochannel.h"
 #include "ac/gamestate.h"
@@ -23,6 +22,7 @@
 #include "ac/audiochannel.h"
 #include "ac/audioclip.h"
 #include "ac/gamesetup.h"
+#include "game/game_objects.h"
 #include "media/audio/sound.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
@@ -38,7 +38,6 @@ using AGS::Common::Stream;
 AGS::Engine::Mutex _audio_mutex;
 volatile bool _audio_doing_crossfade;
 
-extern GameSetupStruct game;
 extern GameSetup usetup;
 extern GameState play;
 extern roomstruct thisroom;
@@ -61,9 +60,9 @@ AGS::Engine::Thread audioThread;
 void calculate_reserved_channel_count()
 {
     int reservedChannels = 0;
-    for (int i = 0; i < game.audioClipTypeCount; i++)
+    for (int i = 0; i < game.AudioClipTypeCount; i++)
     {
-        reservedChannels += game.audioClipTypes[i].reservedChannels;
+        reservedChannels += game.AudioClipTypes[i].reservedChannels;
     }
     reserved_channel_count = reservedChannels;
 }
@@ -77,11 +76,11 @@ void register_audio_script_objects()
         ccRegisterManagedObject(&scrAudioChannel[ee], &ccDynamicAudio);
     }
 
-    for (ee = 0; ee < game.audioClipCount; ee++)
+    for (ee = 0; ee < game.AudioClipCount; ee++)
     {
-        game.audioClips[ee].id = ee;
-        ccRegisterManagedObject(&game.audioClips[ee], &ccDynamicAudioClip);
-        ccAddExternalDynamicObject(game.audioClips[ee].scriptName, &game.audioClips[ee], &ccDynamicAudioClip);
+        game.AudioClips[ee].id = ee;
+        ccRegisterManagedObject(&game.AudioClips[ee], &ccDynamicAudioClip);
+        ccAddExternalDynamicObject(game.AudioClips[ee].scriptName, &game.AudioClips[ee], &ccDynamicAudioClip);
     }
 
     calculate_reserved_channel_count();
@@ -97,7 +96,7 @@ void update_clip_default_volume(ScriptAudioClip *audioClip)
 
 void start_fading_in_new_track_if_applicable(int fadeInChannel, ScriptAudioClip *newSound)
 {
-    int crossfadeSpeed = game.audioClipTypes[newSound->type].crossfadeSpeed;
+    int crossfadeSpeed = game.AudioClipTypes[newSound->type].crossfadeSpeed;
     if (crossfadeSpeed > 0)
     {
         update_clip_default_volume(newSound);
@@ -128,9 +127,9 @@ void move_track_to_crossfade_channel(int currentChannel, int crossfadeSpeed, int
 void stop_or_fade_out_channel(int fadeOutChannel, int fadeInChannel, ScriptAudioClip *newSound)
 {
     ScriptAudioClip *sourceClip = AudioChannel_GetPlayingClip(&scrAudioChannel[fadeOutChannel]);
-    if ((sourceClip != NULL) && (game.audioClipTypes[sourceClip->type].crossfadeSpeed > 0))
+    if ((sourceClip != NULL) && (game.AudioClipTypes[sourceClip->type].crossfadeSpeed > 0))
     {
-        move_track_to_crossfade_channel(fadeOutChannel, game.audioClipTypes[sourceClip->type].crossfadeSpeed, fadeInChannel, newSound);
+        move_track_to_crossfade_channel(fadeOutChannel, game.AudioClipTypes[sourceClip->type].crossfadeSpeed, fadeInChannel, newSound);
     }
     else
     {
@@ -140,9 +139,9 @@ void stop_or_fade_out_channel(int fadeOutChannel, int fadeInChannel, ScriptAudio
 
 const char* get_audio_clip_file_name(ScriptAudioClip *clip)
 {
-    if (game.audioClips[clip->id].bundlingType == AUCL_BUNDLE_EXE)
+    if (game.AudioClips[clip->id].bundlingType == AUCL_BUNDLE_EXE)
     {
-        strcpy(acaudio_buffer, game.audioClips[clip->id].fileName);
+        strcpy(acaudio_buffer, game.AudioClips[clip->id].fileName);
         Stream *in = Common::AssetManager::OpenAsset(acaudio_buffer);
         if (in != NULL)
         {
@@ -153,7 +152,7 @@ const char* get_audio_clip_file_name(ScriptAudioClip *clip)
     }
     else
     {
-        sprintf(acaudio_buffer, (psp_is_old_datafile ? "~music.vox~%s" : "~audio.vox~%s"), game.audioClips[clip->id].fileName);
+        sprintf(acaudio_buffer, (psp_is_old_datafile ? "~music.vox~%s" : "~audio.vox~%s"), game.AudioClips[clip->id].fileName);
         PACKFILE *iii = pack_fopen(acaudio_buffer, "rb");
         if (iii != NULL)
         {
@@ -161,7 +160,7 @@ const char* get_audio_clip_file_name(ScriptAudioClip *clip)
             return &acaudio_buffer[0];
         }
     }
-    sprintf(acaudio_buffer, "AudioCache\\%s", game.audioClips[clip->id].fileName);
+    sprintf(acaudio_buffer, "AudioCache\\%s", game.AudioClips[clip->id].fileName);
     if (exists(acaudio_buffer))
     {
         return &acaudio_buffer[0];
@@ -182,14 +181,14 @@ int find_free_audio_channel(ScriptAudioClip *clip, int priority, bool interruptE
     int startAtChannel = reserved_channel_count;
     int endBeforeChannel = MAX_SOUND_CHANNELS;
 
-    if (game.audioClipTypes[clip->type].reservedChannels > 0)
+    if (game.AudioClipTypes[clip->type].reservedChannels > 0)
     {
         startAtChannel = 0;
         for (int i = 0; i < clip->type; i++)
         {
-            startAtChannel += game.audioClipTypes[i].reservedChannels;
+            startAtChannel += game.AudioClipTypes[i].reservedChannels;
         }
-        endBeforeChannel = startAtChannel + game.audioClipTypes[clip->type].reservedChannels;
+        endBeforeChannel = startAtChannel + game.AudioClipTypes[clip->type].reservedChannels;
     }
 
     for (int i = startAtChannel; i < endBeforeChannel; i++)
@@ -317,7 +316,7 @@ void audio_update_polled_stuff()
     {
         for (int i = 0; i < play.new_music_queue_size; i++)
         {
-            ScriptAudioClip *clip = &game.audioClips[play.new_music_queue[i].audioClipIndex];
+            ScriptAudioClip *clip = &game.AudioClips[play.new_music_queue[i].audioClipIndex];
             int channel = find_free_audio_channel(clip, clip->defaultPriority, false);
             if (channel >= 0)
             {
@@ -385,7 +384,7 @@ ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *cli
         soundfx->set_volume(0);
         soundfx->volAsPercentage = 0;
 
-        if (game.audioClipTypes[clip->type].reservedChannels != 1)
+        if (game.AudioClipTypes[clip->type].reservedChannels != 1)
             soundfx->originalVolAsPercentage = 0;
     }
 
@@ -405,7 +404,7 @@ void remove_clips_of_type_from_queue(int audioType)
     int aa;
     for (aa = 0; aa < play.new_music_queue_size; aa++)
     {
-        ScriptAudioClip *clip = &game.audioClips[play.new_music_queue[aa].audioClipIndex];
+        ScriptAudioClip *clip = &game.AudioClips[play.new_music_queue[aa].audioClipIndex];
         if (clip->type == audioType)
         {
             play.new_music_queue_size--;
@@ -442,8 +441,8 @@ ScriptAudioChannel* play_audio_clip(ScriptAudioClip *clip, int priority, int rep
 
 void play_audio_clip_by_index(int audioClipIndex)
 {
-    if ((audioClipIndex >= 0) && (audioClipIndex < game.audioClipCount))
-        AudioClip_Play(&game.audioClips[audioClipIndex], SCR_NO_VALUE, SCR_NO_VALUE);
+    if ((audioClipIndex >= 0) && (audioClipIndex < game.AudioClipCount))
+        AudioClip_Play(&game.AudioClips[audioClipIndex], SCR_NO_VALUE, SCR_NO_VALUE);
 }
 
 bool unserialize_audio_script_object(int index, const char *objectType, const char *serializedData, int dataSize)
@@ -471,11 +470,11 @@ ScriptAudioClip* get_audio_clip_for_old_style_number(bool isMusic, int indexNumb
     else
         sprintf(audioClipName, "aSound%d", indexNumber);
 
-    for (int bb = 0; bb < game.audioClipCount; bb++)
+    for (int bb = 0; bb < game.AudioClipCount; bb++)
     {
-        if (stricmp(game.audioClips[bb].scriptName, audioClipName) == 0)
+        if (stricmp(game.AudioClips[bb].scriptName, audioClipName) == 0)
         {
-            return &game.audioClips[bb];
+            return &game.AudioClips[bb];
         }
     }
 
@@ -542,7 +541,7 @@ int get_old_style_number_for_sound(int sound_number)
     if (audio_clip_id >= 0)
     {
         int old_style_number = 0;
-        if (sscanf(game.audioClips[audio_clip_id].scriptName, "aSound%d", &old_style_number) == 1)
+        if (sscanf(game.AudioClips[audio_clip_id].scriptName, "aSound%d", &old_style_number) == 1)
             return old_style_number;    
     }
     return 0;
@@ -854,7 +853,7 @@ void apply_volume_drop_modifier(bool applyModifier)
             if (applyModifier)
             {
                 int audioType = ((ScriptAudioClip*)channels[i]->sourceClip)->type;
-                channels[i]->volModifier = -(game.audioClipTypes[audioType].volume_reduction_while_speech_playing * 255 / 100);
+                channels[i]->volModifier = -(game.AudioClipTypes[audioType].volume_reduction_while_speech_playing * 255 / 100);
             }
             else
                 channels[i]->volModifier = 0;
@@ -911,7 +910,7 @@ void update_polled_stuff_and_crossfade () {
             play.cur_music_number = -1;
             play_next_queued();
         }
-        else if ((game.options[OPT_CROSSFADEMUSIC] > 0) &&
+        else if ((game.Options[OPT_CROSSFADEMUSIC] > 0) &&
             (play.music_queue_size > 0) && (!crossFading)) {
                 // want to crossfade, and new tune in the queue
                 int curpos = channels[SCHAN_MUSIC]->get_pos_ms();
@@ -919,7 +918,7 @@ void update_polled_stuff_and_crossfade () {
                 if ((curpos > 0) && (muslen > 0)) {
                     // we want to crossfade, and we know how far through
                     // the tune we are
-                    int takesSteps = calculate_max_volume() / game.options[OPT_CROSSFADEMUSIC];
+                    int takesSteps = calculate_max_volume() / game.Options[OPT_CROSSFADEMUSIC];
                     int takesMs = (takesSteps * 1000) / frames_per_second;
                     if (curpos >= muslen - takesMs)
                         play_next_queued();
@@ -943,7 +942,7 @@ void stopmusic() {
     }
     else if (crossFading < 0) {
         // the music is already fading out
-        if (game.options[OPT_CROSSFADEMUSIC] <= 0) {
+        if (game.Options[OPT_CROSSFADEMUSIC] <= 0) {
             // If they have since disabled crossfading, stop the fadeout
             stop_and_destroy_channel(SCHAN_MUSIC);
             crossFading = 0;
@@ -951,7 +950,7 @@ void stopmusic() {
             update_music_volume();
         }
     }
-    else if ((game.options[OPT_CROSSFADEMUSIC] > 0)
+    else if ((game.Options[OPT_CROSSFADEMUSIC] > 0)
         && (channels[SCHAN_MUSIC] != NULL)
         && (channels[SCHAN_MUSIC]->done == 0)
         && (current_music_type != 0)
@@ -960,7 +959,7 @@ void stopmusic() {
 
             crossFading = -1;
             crossFadeStep = 0;
-            crossFadeVolumePerStep = game.options[OPT_CROSSFADEMUSIC];
+            crossFadeVolumePerStep = game.Options[OPT_CROSSFADEMUSIC];
             crossFadeVolumeAtStart = calculate_max_volume();
     }
     else
@@ -1032,7 +1031,7 @@ void post_new_music_check (int newchannel) {
 int prepare_for_new_music () {
     int useChannel = SCHAN_MUSIC;
 
-    if ((game.options[OPT_CROSSFADEMUSIC] > 0)
+    if ((game.Options[OPT_CROSSFADEMUSIC] > 0)
         && (channels[SCHAN_MUSIC] != NULL)
         && (channels[SCHAN_MUSIC]->done == 0)
         && (current_music_type != MUS_MIDI)
@@ -1053,7 +1052,7 @@ int prepare_for_new_music () {
             else {
                 // start crossfading
                 crossFadeStep = 0;
-                crossFadeVolumePerStep = game.options[OPT_CROSSFADEMUSIC];
+                crossFadeVolumePerStep = game.Options[OPT_CROSSFADEMUSIC];
                 crossFadeVolumeAtStart = calculate_max_volume();
             }
             useChannel = SPECIAL_CROSSFADE_CHANNEL;

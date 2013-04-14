@@ -18,7 +18,6 @@
 #include "ac/characterinfo.h"
 #include "ac/draw.h"
 #include "ac/event.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_character.h"
 #include "ac/global_game.h"
@@ -27,10 +26,10 @@
 #include "ac/room.h"
 #include "ac/roomstatus.h"
 #include "debug/debug_log.h"
+#include "game/game_objects.h"
 #include "script/script.h"
 
 extern GameState play;
-extern GameSetupStruct game;
 extern CharacterInfo*playerchar;
 extern int displayed_room;
 extern int in_enters_screen;
@@ -105,7 +104,7 @@ void NewRoom(int nrnum) {
             // nasty hack - make sure it doesn't move the character
             // to a walkable area
             mls[playerchar->walking].direct = 1;
-            StopMoving(game.playercharacter);
+            StopMoving(game.PlayerCharacterIndex);
         }
     }
     else if (in_graph_script)
@@ -122,10 +121,10 @@ void NewRoomEx(int nrnum,int newx,int newy) {
 void NewRoomNPC(int charid, int nrnum, int newx, int newy) {
     if (!is_valid_character(charid))
         quit("!NewRoomNPC: invalid character");
-    if (charid == game.playercharacter)
+    if (charid == game.PlayerCharacterIndex)
         quit("!NewRoomNPC: use NewRoomEx with the player character");
 
-    Character_ChangeRoom(&game.chars[charid], nrnum, newx, newy);
+    Character_ChangeRoom(&game.Characters[charid], nrnum, newx, newy);
 }
 
 void ResetRoom(int nrnum) {

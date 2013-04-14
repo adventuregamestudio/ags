@@ -14,16 +14,15 @@
 
 #include "gui/guiinv.h"
 #include "ac/draw.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/characterextras.h"
 #include "ac/spritecache.h"
+#include "game/game_objects.h"
 #include "gfx/bitmap.h"
 
 using AGS::Common::Bitmap;
 
 
-extern GameSetupStruct game;
 extern int gui_disabled_style;
 extern GameState play;
 extern CharacterExtras *charextra;
@@ -32,7 +31,7 @@ extern SpriteCache spriteset;
 
 int GUIInv::CharToDisplay() {
     if (this->charId < 0)
-        return game.playercharacter;
+        return game.PlayerCharacterIndex;
 
     return this->charId;
 }
@@ -44,7 +43,7 @@ void GUIInv::Draw(Common::Graphics *g) {
     // backwards compatibility
     play.inv_numinline = this->itemsPerLine;
     play.inv_numdisp = this->numLines * this->itemsPerLine;
-    play.obsolete_inv_numorder = charextra[game.playercharacter].invorder_count;
+    play.obsolete_inv_numorder = charextra[game.PlayerCharacterIndex].invorder_count;
     // if the user changes top_inv_item, switch into backwards
     // compatibiltiy mode
     if (play.inv_top) {
@@ -64,7 +63,7 @@ void GUIInv::Draw(Common::Graphics *g) {
 
     for (uu = this->topIndex; uu < lastItem; uu++) {
         // draw inv graphic
-        wputblock(g, cxp, cyp, spriteset[game.invinfo[charextra[this->CharToDisplay()].invorder[uu]].pic], 1);
+        wputblock(g, cxp, cyp, spriteset[game.InventoryItems[charextra[this->CharToDisplay()].invorder[uu]].pic], 1);
         cxp += multiply_up_coordinate(this->itemWidth);
 
         // go to next row when appropriate

@@ -23,15 +23,16 @@
 #include "ac/charactercache.h"
 #include "ac/dialogtopic.h"
 #include "ac/draw.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/gamestructdefines.h"
 #include "ac/gui.h"
 #include "ac/viewframe.h"
+#include "ac/wordsdictionary.h"
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/all_scriptclasses.h"
 #include "debug/debug_log.h"
 #include "font/fonts.h"
+#include "game/game_objects.h"
 #include "gui/guilabel.h"
 #include "main/main.h"
 #include "platform/base/agsplatformdriver.h"
@@ -44,6 +45,7 @@
 #include "ac/statobj/staticarray.h"
 #include "util/alignedstream.h"
 
+using AGS::Common::GameInfo;
 using AGS::Common::AlignedStream;
 using AGS::Common::Bitmap;
 using AGS::Common::Stream;
@@ -60,7 +62,6 @@ extern int numguilabels;
 
 extern int ifacepopped;
 
-extern GameSetupStruct game;
 extern ViewStruct*views;
 extern DialogTopic *dialog;
 extern GUIMain*guis;
@@ -212,7 +213,7 @@ void game_file_read_script_modules(Stream *in)
 void ReadViewStruct272_Aligned(ViewStruct272* oldv, Stream *in)
 {
     AlignedStream align_s(in, Common::kAligned_Read);
-    for (int iteratorCount = 0; iteratorCount < game.numviews; ++iteratorCount)
+    for (int iteratorCount = 0; iteratorCount < game.ViewCount; ++iteratorCount)
     {
         oldv[iteratorCount].ReadFromFile(&align_s);
         align_s.Reset();
@@ -223,24 +224,23 @@ void game_file_read_views(Stream *in)
 {
 	if (filever > kGameVersion_272) // 3.x views
     {
-        for (int iteratorCount = 0; iteratorCount < game.numviews; ++iteratorCount)
+        for (int iteratorCount = 0; iteratorCount < game.ViewCount; ++iteratorCount)
         {
             views[iteratorCount].ReadFromFile(in);
         }
     }
     else // 2.x views
     {
-        ViewStruct272* oldv = (ViewStruct272*)calloc(game.numviews, sizeof(ViewStruct272));
+        ViewStruct272* oldv = (ViewStruct272*)calloc(game.ViewCount, sizeof(ViewStruct272));
         ReadViewStruct272_Aligned(oldv, in);
-        Convert272ViewsToNew(game.numviews, oldv, views);
+        Convert272ViewsToNew(game.ViewCount, oldv, views);
         free(oldv);
     }
 }
 
 void set_default_glmsg (int msgnum, const char* val) {
-    if (game.messages[msgnum-500] == NULL) {
-        game.messages[msgnum-500] = (char*)malloc (strlen(val)+5);
-        strcpy (game.messages[msgnum-500], val);
+    if (game.GlobalMessages[msgnum-500].IsEmpty()) {
+        game.GlobalMessages[msgnum-500] = val;
     }
 }
 
@@ -263,19 +263,19 @@ void game_file_set_default_glmsg()
 
 void game_file_read_dialogs(Stream *in)
 {
-	dialog=(DialogTopic*)malloc(sizeof(DialogTopic)*game.numdialog+5);
+	dialog=(DialogTopic*)malloc(sizeof(DialogTopic)*game.DialogCount+5);
 
-    for (int iteratorCount = 0; iteratorCount < game.numdialog; ++iteratorCount)
+    for (int iteratorCount = 0; iteratorCount < game.DialogCount; ++iteratorCount)
     {
         dialog[iteratorCount].ReadFromFile(in);
     }
 
     if (filever <= kGameVersion_300) // Dialog script
     {
-        old_dialog_scripts = (unsigned char**)malloc(game.numdialog * sizeof(unsigned char**));
+        old_dialog_scripts = (unsigned char**)malloc(game.DialogCount * sizeof(unsigned char**));
 
         int i;
-        for (int i = 0; i < game.numdialog; i++)
+        for (int i = 0; i < game.DialogCount; i++)
         {
             old_dialog_scripts[i] = (unsigned char*)malloc(dialog[i].codesize);
             in->Read(old_dialog_scripts[i], dialog[i].codesize);
@@ -356,19 +356,19 @@ void game_file_read_gui(Stream *in)
         guilabels[bb].SetClickable(false);
     }
 
-    play.gui_draw_order = (int*)calloc(game.numgui * sizeof(int), 1);
+    play.gui_draw_order = (int*)calloc(game.GuiCount * sizeof(int), 1);
 }
 
-void game_file_set_score_sound(GameSetupStruct::GAME_STRUCT_READ_DATA &read_data)
+void game_file_set_score_sound(GameInfo::GAME_STRUCT_READ_DATA &read_data)
 {
     if (read_data.filever >= kGameVersion_320) {
         play.score_sound = read_data.score_sound;
     }
     else {
         play.score_sound = -1;
-        if (game.options[OPT_SCORESOUND] > 0)
+        if (game.Options[OPT_SCORESOUND] > 0)
         {
-            ScriptAudioClip* clip = get_audio_clip_for_old_style_number(false, game.options[OPT_SCORESOUND]);
+            ScriptAudioClip* clip = get_audio_clip_for_old_style_number(false, game.Options[OPT_SCORESOUND]);
             if (clip)
                 play.score_sound = clip->id;
             else
@@ -379,29 +379,29 @@ void game_file_set_score_sound(GameSetupStruct::GAME_STRUCT_READ_DATA &read_data
 
 void init_and_register_characters()
 {
-	characterScriptObjNames = (char**)malloc(sizeof(char*) * game.numcharacters);
+	characterScriptObjNames = (char**)malloc(sizeof(char*) * game.CharacterCount);
 
-    for (int ee=0;ee<game.numcharacters;ee++) {
-        game.chars[ee].walking = 0;
-        game.chars[ee].animating = 0;
-        game.chars[ee].pic_xoffs = 0;
-        game.chars[ee].pic_yoffs = 0;
-        game.chars[ee].blinkinterval = 140;
-        game.chars[ee].blinktimer = game.chars[ee].blinkinterval;
-        game.chars[ee].index_id = ee;
-        game.chars[ee].blocking_width = 0;
-        game.chars[ee].blocking_height = 0;
-        game.chars[ee].prevroom = -1;
-        game.chars[ee].loop = 0;
-        game.chars[ee].frame = 0;
-        game.chars[ee].walkwait = -1;
-        ccRegisterManagedObject(&game.chars[ee], &ccDynamicCharacter);
+    for (int ee=0;ee<game.CharacterCount;ee++) {
+        game.Characters[ee].walking = 0;
+        game.Characters[ee].animating = 0;
+        game.Characters[ee].pic_xoffs = 0;
+        game.Characters[ee].pic_yoffs = 0;
+        game.Characters[ee].blinkinterval = 140;
+        game.Characters[ee].blinktimer = game.Characters[ee].blinkinterval;
+        game.Characters[ee].index_id = ee;
+        game.Characters[ee].blocking_width = 0;
+        game.Characters[ee].blocking_height = 0;
+        game.Characters[ee].prevroom = -1;
+        game.Characters[ee].loop = 0;
+        game.Characters[ee].frame = 0;
+        game.Characters[ee].walkwait = -1;
+        ccRegisterManagedObject(&game.Characters[ee], &ccDynamicCharacter);
 
         // export the character's script object
-        characterScriptObjNames[ee] = (char*)malloc(strlen(game.chars[ee].scrname) + 5);
-        strcpy(characterScriptObjNames[ee], game.chars[ee].scrname);
+        characterScriptObjNames[ee] = (char*)malloc(strlen(game.Characters[ee].scrname) + 5);
+        strcpy(characterScriptObjNames[ee], game.Characters[ee].scrname);
 
-        ccAddExternalDynamicObject(characterScriptObjNames[ee], &game.chars[ee], &ccDynamicCharacter);
+        ccAddExternalDynamicObject(characterScriptObjNames[ee], &game.Characters[ee], &ccDynamicCharacter);
     }
 }
 
@@ -427,27 +427,27 @@ void init_and_register_regions()
 
 void init_and_register_invitems()
 {
-	for (int ee = 0; ee < MAX_INV; ee++) {
+	for (int ee = 0; ee < game.InvItemCount; ee++) {
         scrInv[ee].id = ee;
         scrInv[ee].reserved = 0;
 
         ccRegisterManagedObject(&scrInv[ee], &ccDynamicInv);
 
-        if (game.invScriptNames[ee][0] != 0)
-            ccAddExternalDynamicObject(game.invScriptNames[ee], &scrInv[ee], &ccDynamicInv);
+        if (!game.InventoryScriptNames.IsEmpty() && !game.InventoryScriptNames[ee].IsEmpty())
+            ccAddExternalDynamicObject(game.InventoryScriptNames[ee], &scrInv[ee], &ccDynamicInv);
     }
 }
 
 void init_and_register_dialogs()
 {
-	for (int ee = 0; ee < game.numdialog; ee++) {
+	for (int ee = 0; ee < game.DialogCount; ee++) {
         scrDialog[ee].id = ee;
         scrDialog[ee].reserved = 0;
 
         ccRegisterManagedObject(&scrDialog[ee], &ccDynamicDialog);
 
-        if (game.dialogScriptNames[ee][0] != 0)
-            ccAddExternalDynamicObject(game.dialogScriptNames[ee], &scrDialog[ee], &ccDynamicDialog);
+        if (!game.DialogScriptNames.IsEmpty() && !game.DialogScriptNames[ee].IsEmpty())
+            ccAddExternalDynamicObject(game.DialogScriptNames[ee], &scrDialog[ee], &ccDynamicDialog);
     }
 }
 
@@ -455,16 +455,16 @@ void init_and_register_guis()
 {
 	int ee;
 
-	scrGui = (ScriptGUI*)malloc(sizeof(ScriptGUI) * game.numgui);
-    for (ee = 0; ee < game.numgui; ee++) {
+	scrGui = (ScriptGUI*)malloc(sizeof(ScriptGUI) * game.GuiCount);
+    for (ee = 0; ee < game.GuiCount; ee++) {
         // 64 bit: Using the id instead
         // scrGui[ee].gui = NULL;
         scrGui[ee].id = -1;
     }
 
-    guiScriptObjNames = (char**)malloc(sizeof(char*) * game.numgui);
+    guiScriptObjNames = (char**)malloc(sizeof(char*) * game.GuiCount);
 
-    for (ee=0;ee<game.numgui;ee++) {
+    for (ee=0;ee<game.GuiCount;ee++) {
         guis[ee].rebuild_array();
         if ((guis[ee].popup == POPUP_NONE) || (guis[ee].popup == POPUP_NOAUTOREM))
             guis[ee].on = 1;
@@ -494,13 +494,13 @@ void init_and_register_guis()
 void init_and_register_fonts()
 {
 	our_eip=-22;
-    for (int ee=0;ee<game.numfonts;ee++) 
+    for (int ee=0;ee<game.FontCount;ee++) 
     {
-        int fontsize = game.fontflags[ee] & FFLG_SIZEMASK;
+        int fontsize = game.FontFlags[ee] & FFLG_SIZEMASK;
         if (fontsize == 0)
             fontsize = 8;
 
-        if ((game.options[OPT_NOSCALEFNT] == 0) && (game.default_resolution > 2))
+        if ((game.Options[OPT_NOSCALEFNT] == 0) && (game.DefaultResolution > 2))
             fontsize *= 2;
 
         if (!wloadfont_size(ee, fontsize))
@@ -518,7 +518,7 @@ void init_and_register_game_objects()
 	init_and_register_guis();
     init_and_register_fonts();    
 
-    play.fade_effect=game.options[OPT_FADETYPE];
+    play.fade_effect=game.Options[OPT_FADETYPE];
 
     our_eip=-21;
 
@@ -543,8 +543,8 @@ void init_and_register_game_objects()
     StaticInventoryArray.Create(&ccDynamicInv, sizeof(ScriptInvItem), sizeof(ScriptInvItem));
     StaticDialogArray.Create(&ccDynamicDialog, sizeof(ScriptDialog), sizeof(ScriptDialog));
 
-    ccAddExternalStaticArray("character",&game.chars[0], &StaticCharacterArray);
-    setup_player_character(game.playercharacter);
+    ccAddExternalStaticArray("character",&game.Characters[0], &StaticCharacterArray);
+    setup_player_character(game.PlayerCharacterIndex);
     if (loaded_game_file_version >= kGameVersion_270) {
         ccAddExternalStaticObject("player", &_sc_PlayerCharPtr, &GlobalStaticManager);
     }
@@ -558,16 +558,14 @@ void init_and_register_game_objects()
 
 void ReadGameSetupStructBase_Aligned(Stream *in)
 {
-    GameSetupStructBase *gameBase = (GameSetupStructBase *) &game;
     AlignedStream align_s(in, Common::kAligned_Read);
-    gameBase->ReadFromFile(&align_s);
+    game.ReadBaseFromFile(&align_s);
 }
 
 void WriteGameSetupStructBase_Aligned(Stream *out)
 {
-    GameSetupStructBase *gameBase = (GameSetupStructBase *) &game;
     AlignedStream align_s(out, Common::kAligned_Write);
-    gameBase->WriteToFile(&align_s);
+    game.WriteBaseToFile(&align_s);
 }
 
 int load_game_file() {
@@ -596,38 +594,34 @@ int load_game_file() {
 		return res;
 	}
 
-    game.charScripts = NULL;
-    game.invScripts = NULL;
-    memset(&game.spriteflags[0], 0, MAX_SPRITES);
-
     ReadGameSetupStructBase_Aligned(in);
 
     if (filever <= kGameVersion_300)
     {
         // Fix animation speed for old formats
-        game.options[OPT_OLDTALKANIMSPD] = 1;
+        game.Options[OPT_OLDTALKANIMSPD] = 1;
     }
     // 3.20: Fixed GUI AdditiveOpacity mode not working properly if you tried to have a non-alpha sprite on an alpha GUI
     if (loaded_game_file_version < kGameVersion_320)
     {
         // Force new style rendering for gui sprites with alpha channel
-        game.options[OPT_NEWGUIALPHA] = 1;
+        game.Options[OPT_NEWGUIALPHA] = 1;
     }
 
-    if (game.numfonts > MAX_FONTS)
+    if (game.FontCount > MAX_FONTS)
         quit("!This game requires a newer version of AGS. Too many fonts for this version to handle.");
 
-    GameSetupStruct::GAME_STRUCT_READ_DATA read_data;
+    GameInfo::GAME_STRUCT_READ_DATA read_data;
     read_data.filever        = filever;
     read_data.saveGameSuffix = saveGameSuffix;
     read_data.max_audio_types= MAX_AUDIO_TYPES;
     read_data.game_file_name = game_file_name;
 
     //-----------------------------------------------------
-    game.ReadFromFile_Part1(in, read_data);
+    game.ReadExtFromFile_Part1(in, read_data);
     //-----------------------------------------------------
 
-    if (game.compiled_script == NULL)
+    if (!game.LoadCompiledScript)
         quit("No global script in game; data load error");
 
     gamescript = ccScript::CreateFromStream(in);
@@ -640,18 +634,17 @@ int load_game_file() {
 
     our_eip=-15;
 
-    charextra = (CharacterExtras*)calloc(game.numcharacters, sizeof(CharacterExtras));
-    mls = (MoveList*)calloc(game.numcharacters + MAX_INIT_SPR + 1, sizeof(MoveList));
-    actSpsCount = game.numcharacters + MAX_INIT_SPR + 2;
+    charextra = (CharacterExtras*)calloc(game.CharacterCount, sizeof(CharacterExtras));
+    mls = (MoveList*)calloc(game.CharacterCount + MAX_INIT_SPR + 1, sizeof(MoveList));
+    actSpsCount = game.CharacterCount + MAX_INIT_SPR + 2;
     actsps = (Bitmap **)calloc(actSpsCount, sizeof(Bitmap *));
     actspsbmp = (IDriverDependantBitmap**)calloc(actSpsCount, sizeof(IDriverDependantBitmap*));
     actspswb = (Bitmap **)calloc(actSpsCount, sizeof(Bitmap *));
     actspswbbmp = (IDriverDependantBitmap**)calloc(actSpsCount, sizeof(IDriverDependantBitmap*));
     actspswbcache = (CachedActSpsData*)calloc(actSpsCount, sizeof(CachedActSpsData));
-    game.charProps = (CustomProperties*)calloc(game.numcharacters, sizeof(CustomProperties));
+    game.CharacterProperties.New(game.CharacterCount);
 
-    allocate_memory_for_views(game.numviews);
-    int iteratorCount = 0;
+    allocate_memory_for_views(game.ViewCount);
 
 	game_file_read_views(in);
 
@@ -663,9 +656,9 @@ int load_game_file() {
         in->Seek(Common::kSeekCurrent, count * 0x204);
     }
 
-    charcache = (CharacterCache*)calloc(1,sizeof(CharacterCache)*game.numcharacters+5);
+    charcache = (CharacterCache*)calloc(1,sizeof(CharacterCache)*game.CharacterCount+5);
     //-----------------------------------------------------
-    game.ReadFromFile_Part2(in, read_data);
+    game.ReadExtFromFile_Part2(in, read_data);
     //-----------------------------------------------------
 
     game_file_set_default_glmsg();
@@ -682,7 +675,7 @@ int load_game_file() {
     }
 
     //-----------------------------------------------------
-    game.ReadFromFile_Part3(in, read_data);
+    game.ReadExtFromFile_Part3(in, read_data);
     //-----------------------------------------------------
 
     game_file_set_score_sound(read_data);
@@ -695,7 +688,7 @@ int load_game_file() {
 
     update_gui_zorder();
 
-    if (game.numfonts == 0)
+    if (game.FontCount == 0)
         return -2;  // old v2.00 version
 
     our_eip=-11;

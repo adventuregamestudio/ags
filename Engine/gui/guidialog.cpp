@@ -19,7 +19,7 @@
 #include "ac/draw.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
+#include "ac/gamestructdefines.h"
 #include "gui/cscidialog.h"
 #include <cctype> //isdigit()
 #include "gfx/graphicsdriver.h"
@@ -370,7 +370,7 @@ int enternumberwindow(char *prompttext)
   return atoi(ourbuf);
 }
 
-int roomSelectorWindow(int currentRoom, int numRooms, int*roomNumbers, char**roomNames)
+int roomSelectorWindow(int currentRoom, int numRooms, const Common::Array<int32_t> &roomNumbers, const Common::ObjectArray<Common::String> &roomNames)
 {
   char labeltext[200];
   strcpy(labeltext, get_global_message(MSG_SAVEDIALOG));

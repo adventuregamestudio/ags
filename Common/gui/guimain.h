@@ -19,11 +19,15 @@
 #include "ac/common_defines.h"       // AGS_INLINE
 
 // Forward declaration
-namespace AGS { namespace Common { class Stream; } }
+namespace AGS
+{
+namespace Common
+{
+    class GameInfo;
+    class Stream;
+} // namespace Common
+} // namespace AGS
 using namespace AGS; // FIXME later
-
-// There were issues when including header caused conflicts
-struct GameSetupStruct;
 
 #define MAX_OBJS_ON_GUI 30
 #define GOBJ_BUTTON     1
@@ -99,8 +103,8 @@ extern int gui_disabled_style;
 extern char lines[MAXLINE][200];
 extern int  numlines;
 
-extern void read_gui(Common::Stream *in, GUIMain * guiread, GameSetupStruct * gss, GUIMain** allocate = NULL);
-extern void write_gui(Common::Stream *out, GUIMain * guiwrite, GameSetupStruct * gss);
+extern void read_gui(Common::Stream *in, GUIMain * guiread, Common::GameInfo * gss, GUIMain** allocate = NULL);
+extern void write_gui(Common::Stream *out, GUIMain * guiwrite, Common::GameInfo * gss);
 
 extern int mousex, mousey;
 

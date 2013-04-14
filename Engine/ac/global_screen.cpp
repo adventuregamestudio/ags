@@ -17,7 +17,6 @@
 #include "ac/gamesetup.h"
 #include "ac/draw.h"
 #include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/global_screen.h"
@@ -25,6 +24,7 @@
 #include "ac/runtime_defines.h"
 #include "ac/screen.h"
 #include "debug/debug_log.h"
+#include "game/game_objects.h"
 #include "platform/base/agsplatformdriver.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
@@ -34,7 +34,6 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameSetup usetup;
 extern GameState play;
-extern GameSetupStruct game;
 extern roomstruct thisroom;
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
@@ -156,7 +155,7 @@ void my_fade_out(int spdd) {
     if (play.screen_is_faded_out == 0)
         gfxDriver->FadeOut(spdd, play.fade_to_red, play.fade_to_green, play.fade_to_blue);
 
-    if (game.color_depth > 1)
+    if (game.ColorDepth > 1)
         play.screen_is_faded_out = 1;
 }
 

@@ -24,7 +24,6 @@
 #include "ac/file.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_character.h"
 #include "ac/global_gui.h"
@@ -43,6 +42,7 @@
 #include "ac/string.h"
 #include "debug/debugger.h"
 #include "debug/debug_log.h"
+#include "game/game_objects.h"
 #include "gui/guidialog.h"
 #include "main/engine.h"
 #include "main/game_start.h"
@@ -77,7 +77,6 @@ extern char gamefilenamebuf[200];
 extern GameSetup usetup;
 extern unsigned int load_new_game;
 extern int load_new_game_restore;
-extern GameSetupStruct game;
 extern ViewStruct*views;
 extern RoomStatus*croom;
 extern int gui_disabled_style;
@@ -321,7 +320,7 @@ int GetGameParameter (int parm, int data1, int data2, int data3) {
    case GP_FRAMESOUND:
    case GP_ISFRAMEFLIPPED:
        {
-           if ((data1 < 1) || (data1 > game.numviews))
+           if ((data1 < 1) || (data1 > game.ViewCount))
                quit("!GetGameParameter: invalid view specified");
            if ((data2 < 0) || (data2 >= views[data1 - 1].numLoops))
                quit("!GetGameParameter: invalid loop specified");
@@ -344,13 +343,13 @@ int GetGameParameter (int parm, int data1, int data2, int data3) {
    case GP_ISRUNNEXTLOOP:
        return Game_GetRunNextSettingForLoop(data1, data2);
    case GP_NUMGUIS:
-       return game.numgui;
+       return game.GuiCount;
    case GP_NUMOBJECTS:
        return croom->numobj;
    case GP_NUMCHARACTERS:
-       return game.numcharacters;
+       return game.CharacterCount;
    case GP_NUMINVITEMS:
-       return game.numinvitems;
+       return game.InvItemCount;
    default:
        quit("!GetGameParameter: unknown parameter specified");
     }
@@ -399,29 +398,29 @@ int SetGameOption (int opt, int setting) {
 
     if (opt == OPT_ANTIGLIDE)
     {
-        for (int i = 0; i < game.numcharacters; i++)
+        for (int i = 0; i < game.CharacterCount; i++)
         {
             if (setting)
-                game.chars[i].flags |= CHF_ANTIGLIDE;
+                game.Characters[i].flags |= CHF_ANTIGLIDE;
             else
-                game.chars[i].flags &= ~CHF_ANTIGLIDE;
+                game.Characters[i].flags &= ~CHF_ANTIGLIDE;
         }
     }
 
-    if ((opt == OPT_CROSSFADEMUSIC) && (game.audioClipTypeCount > AUDIOTYPE_LEGACY_MUSIC))
+    if ((opt == OPT_CROSSFADEMUSIC) && (game.AudioClipTypeCount > AUDIOTYPE_LEGACY_MUSIC))
     {
         // legacy compatibility -- changing crossfade speed here also
         // updates the new audio clip type style
-        game.audioClipTypes[AUDIOTYPE_LEGACY_MUSIC].crossfadeSpeed = setting;
+        game.AudioClipTypes[AUDIOTYPE_LEGACY_MUSIC].crossfadeSpeed = setting;
     }
 
-    int oldval = game.options[opt];
-    game.options[opt] = setting;
+    int oldval = game.Options[opt];
+    game.Options[opt] = setting;
 
     if (opt == OPT_DUPLICATEINV)
         update_invorder();
     else if (opt == OPT_DISABLEOFF)
-        gui_disabled_style = convert_gui_disabled_style(game.options[OPT_DISABLEOFF]);
+        gui_disabled_style = convert_gui_disabled_style(game.Options[OPT_DISABLEOFF]);
     else if (opt == OPT_PORTRAITSIDE) {
         if (setting == 0)  // set back to Left
             play.swap_portrait_side = 0;
@@ -434,17 +433,17 @@ int GetGameOption (int opt) {
     if (((opt < 1) || (opt > OPT_HIGHESTOPTION)) && (opt != OPT_LIPSYNCTEXT))
         quit("!GetGameOption: invalid option specified");
 
-    return game.options[opt];
+    return game.Options[opt];
 }
 
 void SkipUntilCharacterStops(int cc) {
     if (!is_valid_character(cc))
         quit("!SkipUntilCharacterStops: invalid character specified");
-    if (game.chars[cc].room!=displayed_room)
+    if (game.Characters[cc].room!=displayed_room)
         quit("!SkipUntilCharacterStops: specified character not in current room");
 
     // if they are not currently moving, do nothing
-    if (!game.chars[cc].walking)
+    if (!game.Characters[cc].walking)
         return;
 
     if (play.in_cutscene)
@@ -539,7 +538,7 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
             if (play.get_loc_name_last_time != 1000 + mover)
                 guis_need_update = 1;
             play.get_loc_name_last_time = 1000 + mover;
-            strcpy(tempo,get_translation(game.invinfo[mover].name));
+            strcpy(tempo,get_translation(game.InventoryItems[mover].name));
         }
         else if ((play.get_loc_name_last_time > 1000) && (play.get_loc_name_last_time < 1000 + MAX_INV)) {
             // no longer selecting an item
@@ -567,7 +566,7 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
     // on character
     if (loctype == LOCTYPE_CHAR) {
         onhs = getloctype_index;
-        strcpy(tempo,get_translation(game.chars[onhs].name));
+        strcpy(tempo,get_translation(game.Characters[onhs].name));
         if (play.get_loc_name_last_time != 2000+onhs)
             guis_need_update = 1;
         play.get_loc_name_last_time = 2000+onhs;
@@ -782,7 +781,7 @@ void ProcessClick(int xx,int yy,int mood) {
     xx += divide_down_coordinate(offsetx); 
     yy += divide_down_coordinate(offsety);
 
-    if ((mood==MODE_WALK) && (game.options[OPT_NOWALKMODE]==0)) {
+    if ((mood==MODE_WALK) && (game.Options[OPT_NOWALKMODE]==0)) {
         int hsnum=get_hotspot_at(xx,yy);
         if (hsnum<1) ;
         else if (thisroom.hswalkto[hsnum].x<1) ;
@@ -792,7 +791,7 @@ void ProcessClick(int xx,int yy,int mood) {
             yy=thisroom.hswalkto[hsnum].y;
             DEBUG_CONSOLE("Move to walk-to point hotspot %d", hsnum);
         }
-        walk_character(game.playercharacter,xx,yy,0, true);
+        walk_character(game.PlayerCharacterIndex,xx,yy,0, true);
         return;
     }
     play.usedmode=mood;
@@ -820,7 +819,7 @@ int IsInteractionAvailable (int xx,int yy,int mood) {
     yy += divide_down_coordinate(offsety);
 
     // You can always walk places
-    if ((mood==MODE_WALK) && (game.options[OPT_NOWALKMODE]==0))
+    if ((mood==MODE_WALK) && (game.Options[OPT_NOWALKMODE]==0))
         return 1;
 
     play.check_interaction_only = 1;
@@ -855,13 +854,13 @@ void GetMessageText (int msg, char *buffer) {
 }
 
 void SetSpeechFont (int fontnum) {
-    if ((fontnum < 0) || (fontnum >= game.numfonts))
+    if ((fontnum < 0) || (fontnum >= game.FontCount))
         quit("!SetSpeechFont: invalid font number.");
     play.speech_font = fontnum;
 }
 
 void SetNormalFont (int fontnum) {
-    if ((fontnum < 0) || (fontnum >= game.numfonts))
+    if ((fontnum < 0) || (fontnum >= game.FontCount))
         quit("!SetNormalFont: invalid font number.");
     play.normal_font = fontnum;
 }

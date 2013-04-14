@@ -19,12 +19,12 @@
 #include "ac/draw.h"
 #include "ac/event.h"
 #include "ac/gamestate.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/global_character.h"
 #include "ac/global_display.h"
 #include "ac/global_room.h"
 #include "ac/mouse.h"
 #include "ac/record.h"
+#include "game/game_objects.h"
 #include "main/game_run.h"
 #include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
@@ -39,7 +39,6 @@ using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern int guis_need_update;
-extern GameSetupStruct game;
 extern GameState play;
 extern CharacterExtras *charextra;
 extern ScriptInvItem scrInv[MAX_INV];
@@ -75,7 +74,7 @@ CharacterInfo* InvWindow_GetCharacterToUse(GUIInv *guii) {
   if (guii->charId < 0)
     return NULL;
 
-  return &game.chars[guii->charId];
+  return &game.Characters[guii->charId];
 }
 
 void InvWindow_SetItemWidth(GUIInv *guii, int newwidth) {
@@ -229,9 +228,9 @@ int InventoryScreen::Redraw()
     numitems=0;
     widest=0;
     highest=0;
-    if (charextra[game.playercharacter].invorder_count < 0)
+    if (charextra[game.PlayerCharacterIndex].invorder_count < 0)
         update_invorder();
-    if (charextra[game.playercharacter].invorder_count == 0) {
+    if (charextra[game.PlayerCharacterIndex].invorder_count == 0) {
         DisplayMessage(996);
         in_inv_screen--;
         return -1;
@@ -243,17 +242,17 @@ int InventoryScreen::Redraw()
         return -1;
     }
 
-    for (int i = 0; i < charextra[game.playercharacter].invorder_count; ++i) {
-        if (game.invinfo[charextra[game.playercharacter].invorder[i]].name[0]!=0) {
-            dii[numitems].num = charextra[game.playercharacter].invorder[i];
-            dii[numitems].sprnum = game.invinfo[charextra[game.playercharacter].invorder[i]].pic;
+    for (int i = 0; i < charextra[game.PlayerCharacterIndex].invorder_count; ++i) {
+        if (game.InventoryItems[charextra[game.PlayerCharacterIndex].invorder[i]].name[0]!=0) {
+            dii[numitems].num = charextra[game.PlayerCharacterIndex].invorder[i];
+            dii[numitems].sprnum = game.InventoryItems[charextra[game.PlayerCharacterIndex].invorder[i]].pic;
             int snn=dii[numitems].sprnum;
             if (spritewidth[snn] > widest) widest=spritewidth[snn];
             if (spriteheight[snn] > highest) highest=spriteheight[snn];
             numitems++;
         }
     }
-    if (numitems != charextra[game.playercharacter].invorder_count)
+    if (numitems != charextra[game.PlayerCharacterIndex].invorder_count)
         quit("inconsistent inventory calculations");
 
     widest += get_fixed_pixel_size(4);

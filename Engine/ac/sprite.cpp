@@ -15,8 +15,8 @@
 #include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/draw.h"            // USE_15BIT_FIX
-#include "ac/gamesetupstruct.h"
 #include "ac/sprite.h"
+#include "game/game_objects.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "ac/spritecache.h"
@@ -27,7 +27,6 @@ using AGS::Common::Bitmap;
 using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
-extern GameSetupStruct game;
 extern int scrnwid,scrnhit;
 extern int current_screen_resolution_multiplier;
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
@@ -42,7 +41,7 @@ extern int convert_16bit_bgr;
 void get_new_size_for_sprite (int ee, int ww, int hh, int &newwid, int &newhit) {
     newwid = ww * current_screen_resolution_multiplier;
     newhit = hh * current_screen_resolution_multiplier;
-    if (game.spriteflags[ee] & SPF_640x400) 
+    if (game.SpriteFlags[ee] & SPF_640x400) 
     {
         if (current_screen_resolution_multiplier == 2) {
             newwid = ww;
@@ -157,10 +156,10 @@ void initialize_sprite (int ee) {
         int oldeip = our_eip;
         our_eip = 4300;
 
-        if (game.spriteflags[ee] & SPF_HADALPHACHANNEL) {
+        if (game.SpriteFlags[ee] & SPF_HADALPHACHANNEL) {
             // we stripped the alpha channel out last time, put
             // it back so that we can remove it properly again
-            game.spriteflags[ee] |= SPF_ALPHACHANNEL;
+            game.SpriteFlags[ee] |= SPF_ALPHACHANNEL;
         }
 
         curspr = spriteset[ee];
@@ -207,7 +206,7 @@ void initialize_sprite (int ee) {
                 Bitmap *oldSprite = spriteset[ee];
                 Bitmap *newSprite;
 
-                if (game.spriteflags[ee] & SPF_ALPHACHANNEL)
+                if (game.SpriteFlags[ee] & SPF_ALPHACHANNEL)
                     newSprite = remove_alpha_channel(oldSprite);
                 else {
                     newSprite = BitmapHelper::CreateBitmapCopy(oldSprite, final_col_dep);
@@ -222,18 +221,18 @@ void initialize_sprite (int ee) {
             // PSP: Convert to BGR color order.
             spriteset.set(ee, convert_32_to_32bgr(spriteset[ee]));
 #endif
-            if ((game.spriteflags[ee] & SPF_ALPHACHANNEL) != 0)
+            if ((game.SpriteFlags[ee] & SPF_ALPHACHANNEL) != 0)
             {
                 set_rgb_mask_using_alpha_channel(spriteset[ee]);
             }
         }
 
 #ifdef USE_15BIT_FIX
-        else if ((final_col_dep != game.color_depth*8) && (spcoldep == game.color_depth*8)) {
+        else if ((final_col_dep != game.ColorDepth*8) && (spcoldep == game.ColorDepth*8)) {
             // running in 15-bit mode with a 16-bit game, convert sprites
             Bitmap *oldsprite = spriteset[ee];
 
-            if (game.spriteflags[ee] & SPF_ALPHACHANNEL)
+            if (game.SpriteFlags[ee] & SPF_ALPHACHANNEL)
                 // 32-to-24 with alpha channel
                 spriteset.set (ee, remove_alpha_channel(oldsprite));
             else
@@ -254,10 +253,10 @@ void initialize_sprite (int ee) {
             unselect_palette();
 
         if (final_col_dep < 32) {
-            game.spriteflags[ee] &= ~SPF_ALPHACHANNEL;
+            game.SpriteFlags[ee] &= ~SPF_ALPHACHANNEL;
             // save the fact that it had one for the next time this
             // is re-loaded from disk
-            game.spriteflags[ee] |= SPF_HADALPHACHANNEL;
+            game.SpriteFlags[ee] |= SPF_HADALPHACHANNEL;
         }
 
         platform->RunPluginHooks(AGSE_SPRITELOAD, ee);

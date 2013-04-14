@@ -20,7 +20,6 @@
 #include "ac/character.h"
 #include "ac/draw.h"
 #include "ac/game.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
 #include "ac/global_game.h"
@@ -32,6 +31,7 @@
 #include "ac/string.h"
 #include "ac/topbarsettings.h"
 #include "debug/debug_log.h"
+#include "game/game_objects.h"
 #include "gui/guibutton.h"
 #include "gui/guimain.h"
 #include "main/game_run.h"
@@ -45,7 +45,6 @@ using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameState play;
-extern GameSetupStruct game;
 extern GUIMain *guis;
 extern int longestline;
 extern int scrnwid,scrnhit;
@@ -170,12 +169,12 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
         int ttxleft = 0, ttxtop = get_fixed_pixel_size(3), oriwid = wii - 6;
         int usingGui = -1, drawBackground = 0;
 
-        if ((asspch < 0) && (game.options[OPT_SPEECHTYPE] >= 2)) {
+        if ((asspch < 0) && (game.Options[OPT_SPEECHTYPE] >= 2)) {
             usingGui = play.speech_textwindow_gui;
             drawBackground = 1;
         }
-        else if ((isThought) && (game.options[OPT_THOUGHTGUI] > 0)) {
-            usingGui = game.options[OPT_THOUGHTGUI];
+        else if ((isThought) && (game.Options[OPT_THOUGHTGUI] > 0)) {
+            usingGui = game.Options[OPT_THOUGHTGUI];
             // make it treat it as drawing inside a window now
             if (asspch > 0)
                 asspch = -asspch;
@@ -194,7 +193,7 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
             // centre the text
             if (asspch < 0) {
                 if ((usingGui >= 0) && 
-                    ((game.options[OPT_SPEECHTYPE] >= 2) || (isThought)))
+                    ((game.Options[OPT_SPEECHTYPE] >= 2) || (isThought)))
                     g->SetTextColor(guis[usingGui].fgcol);
                 else
                     g->SetTextColor(-asspch);
@@ -212,9 +211,9 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
         int xoffs,yoffs, oriwid = wii - 6;
         draw_text_window_and_bar(g, &xoffs,&yoffs,&xx,&yy,&wii);
 
-        if (game.options[OPT_TWCUSTOM] > 0)
+        if (game.Options[OPT_TWCUSTOM] > 0)
         {
-            alphaChannel = guis[game.options[OPT_TWCUSTOM]].is_alpha();
+            alphaChannel = guis[game.Options[OPT_TWCUSTOM]].is_alpha();
         }
 
         adjust_y_coordinate_for_text(&yoffs, usingfont);
@@ -413,23 +412,23 @@ int GetTextDisplayTime (const char *text, int canberel) {
 }
 
 bool ShouldAntiAliasText() {
-    return (game.options[OPT_ANTIALIASFONTS] != 0);
+    return (game.Options[OPT_ANTIALIASFONTS] != 0);
 }
 
 void wouttext_outline(Common::Graphics *g, int xxp, int yyp, int usingfont, char*texx) {
     int otextc=g->GetTextColor();
 
-    if (game.fontoutline[usingfont] >= 0) {
+    if (game.FontOutline[usingfont] >= 0) {
         g->SetTextColor(play.speech_text_shadow);
         // MACPORT FIX 9/6/5: cast
-        wouttextxy(g, xxp, yyp, (int)game.fontoutline[usingfont], texx);
+        wouttextxy(g, xxp, yyp, (int)game.FontOutline[usingfont], texx);
     }
-    else if (game.fontoutline[usingfont] == FONT_OUTLINE_AUTO) {
+    else if (game.FontOutline[usingfont] == FONT_OUTLINE_AUTO) {
         g->SetTextColor(play.speech_text_shadow);
 
         int outlineDist = 1;
 
-        if ((game.options[OPT_NOSCALEFNT] == 0) && (!fontRenderers[usingfont]->SupportsExtendedCharacters(usingfont))) {
+        if ((game.Options[OPT_NOSCALEFNT] == 0) && (!fontRenderers[usingfont]->SupportsExtendedCharacters(usingfont))) {
             // if it's a scaled up SCI font, move the outline out more
             outlineDist = get_fixed_pixel_size(1);
         }
@@ -466,9 +465,9 @@ int wgetfontheight(int font) {
     int htof = wgettextheight(heightTestString, font);
 
     // automatic outline fonts are 2 pixels taller
-    if (game.fontoutline[font] == FONT_OUTLINE_AUTO) {
+    if (game.FontOutline[font] == FONT_OUTLINE_AUTO) {
         // scaled up SCI font, push outline further out
-        if ((game.options[OPT_NOSCALEFNT] == 0) && (!fontRenderers[font]->SupportsExtendedCharacters(font)))
+        if ((game.Options[OPT_NOSCALEFNT] == 0) && (!fontRenderers[font]->SupportsExtendedCharacters(font)))
             htof += get_fixed_pixel_size(2);
         // otherwise, just push outline by 1 pixel
         else
@@ -481,9 +480,9 @@ int wgetfontheight(int font) {
 int wgettextwidth_compensate(const char *tex, int font) {
     int wdof = wgettextwidth(tex, font);
 
-    if (game.fontoutline[font] == FONT_OUTLINE_AUTO) {
+    if (game.FontOutline[font] == FONT_OUTLINE_AUTO) {
         // scaled up SCI font, push outline further out
-        if ((game.options[OPT_NOSCALEFNT] == 0) && (!fontRenderers[font]->SupportsExtendedCharacters(font)))
+        if ((game.Options[OPT_NOSCALEFNT] == 0) && (!fontRenderers[font]->SupportsExtendedCharacters(font)))
             wdof += get_fixed_pixel_size(2);
         // otherwise, just push outline by 1 pixel
         else
@@ -612,7 +611,7 @@ int get_textwindow_top_border_height (int twgui) {
 
 void draw_text_window(Common::Graphics *g, int*xins,int*yins,int*xx,int*yy,int*wii,int ovrheight, int ifnum) {
     if (ifnum < 0)
-        ifnum = game.options[OPT_TWCUSTOM];
+        ifnum = game.Options[OPT_TWCUSTOM];
 
     if (ifnum <= 0) {
         if (ovrheight)
@@ -623,8 +622,8 @@ void draw_text_window(Common::Graphics *g, int*xins,int*yins,int*xx,int*yy,int*w
         yins[0]=3;
     }
     else {
-        if (ifnum >= game.numgui)
-            quitprintf("!Invalid GUI %d specified as text window (total GUIs: %d)", ifnum, game.numgui);
+        if (ifnum >= game.GuiCount)
+            quitprintf("!Invalid GUI %d specified as text window (total GUIs: %d)", ifnum, game.GuiCount);
         if (!guis[ifnum].is_textwindow())
             quit("!GUI set as text window but is not actually a text window GUI");
 

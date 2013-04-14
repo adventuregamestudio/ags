@@ -836,7 +836,7 @@ int ccInstance::Run(int32_t curpc)
           continue; // continue so that the PC doesn't get overwritten
       case SCMD_MEMREADB:
           // Take the data address from reg[MAR] and copy byte to reg[arg1]
-          reg1.SetInt8(registers[SREG_MAR].ReadByte());
+          reg1.SetUInt8(registers[SREG_MAR].ReadByte());
           break;
       case SCMD_MEMREADW:
           // Take the data address from reg[MAR] and copy int16_t to reg[arg1]

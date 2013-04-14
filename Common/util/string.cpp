@@ -66,7 +66,7 @@ String::String(char c, int count)
 
 String::~String()
 {
-    Release();
+    Free();
 }
 
 void String::Read(Stream *in, int max_chars, bool stop_at_limit)
@@ -125,6 +125,17 @@ void String::Write(Stream *out) const
     if (out)
     {
         out->Write(GetCStr(), GetLength() + 1);
+    }
+}
+
+void String::WriteCount(Stream *out, int count) const
+{
+    if (out)
+    {
+        int str_out_len = Math::Min(count - 1, GetLength());
+        out->Write(GetCStr(), str_out_len);
+        int null_out_len = count - str_out_len;
+        out->WriteByteCount(0, null_out_len);
     }
 }
 
@@ -274,16 +285,6 @@ bool String::FindSection(char separator, int first, int last, bool exclude_first
         return true;
     }
     return false;
-}
-
-char String::GetAt(int index) const
-{
-    return (index >= 0 && index < GetLength()) ? _meta->CStr[index] : 0;
-}
-
-char String::GetLast() const
-{
-    return (_meta && _meta->Length > 0) ? _meta->CStr[_meta->Length - 1] : 0;
 }
 
 int String::ToInt() const
@@ -568,6 +569,19 @@ void String::Format(const char *fcstr, ...)
     va_end(argptr);
 }
 
+void String::Free()
+{
+    if (_meta)
+    {
+        _meta->RefCount--;
+        if (!_meta->RefCount)
+        {
+            delete [] _data;
+        }
+    }
+    _data = NULL;
+}
+
 void String::MakeLower()
 {
     if (_meta)
@@ -806,7 +820,7 @@ String &String::operator=(const String& str)
 {
     if (_data != str._data)
     {
-        Release();
+        Free();
         if (str._data && str._meta->Length > 0)
         {
             _data = str._data;
@@ -837,89 +851,62 @@ void String::Create(int max_length)
 
 void String::Copy(int max_length, int offset)
 {
-    if (!_meta)
-    {
-        return;
-    }
-
     char *new_data = new char[sizeof(String::Header) + max_length + 1];
     // remember, that _meta->CStr may point to any address in buffer
-    char *cstr_head = new_data + sizeof(String::Header) + offset;
-    memcpy(new_data, _data, sizeof(String::Header));
+    char *strbuf_head = new_data + sizeof(String::Header) + offset;
     int copy_length = Math::Min(_meta->Length, max_length);
-    memcpy(cstr_head, _meta->CStr, copy_length);
-    Release();
+    memcpy(strbuf_head, _meta->CStr, copy_length);
+    Free();
     _data = new_data;
     _meta->RefCount = 1;
     _meta->Capacity = max_length;
     _meta->Length = copy_length;
-    _meta->CStr = cstr_head;
+    _meta->CStr = strbuf_head;
     _meta->CStr[_meta->Length] = 0;
 }
 
 void String::Align(int offset)
 {
-    char *cstr_head = _data + sizeof(String::Header) + offset;
-    memmove(cstr_head, _meta->CStr, _meta->Length + 1);
-    _meta->CStr = cstr_head;
+    char *strbuf_head = _data + sizeof(String::Header) + offset;
+    memmove(strbuf_head, _meta->CStr, _meta->Length + 1);
+    _meta->CStr = strbuf_head;
 }
 
-void String::Release()
-{
-    if (_meta)
-    {
-        _meta->RefCount--;
-        if (!_meta->RefCount)
-        {
-            delete [] _data;
-        }
-    }
-    _data = NULL;
-}
-
-void String::BecomeUnique()
-{
-    if (_meta && _meta->RefCount > 1)
-    {
-        Copy(_meta->Length);
-    }
-}
-
-void String::ReserveAndShift(bool reserve_left, int more_length)
+void String::ReserveAndShift(bool reserve_left, int need_space)
 {
     // The memory allocation strategy aims time-efficient appending operations;
     // efficient prepending is not considered priority.
     if (_meta)
     {
-        int total_length = _meta->Length + more_length;
+        int total_length = _meta->Length + need_space;
         if (_meta->Capacity < total_length)
         {
             // grow by 100% or at least to total_size, or at least to 20 characters
             int grow_length = Math::Max(_meta->Capacity << 1, 20);
-            Copy(Math::Max(total_length, grow_length), reserve_left ? more_length : 0);
+            Copy(Math::Max(total_length, grow_length), reserve_left ? need_space : 0);
         }
         else if (_meta->RefCount > 1)
         {
-            Copy(_meta->Capacity, reserve_left ? more_length : 0);
+            Copy(_meta->Capacity, reserve_left ? need_space : 0);
         }
         else
         {
             // make sure we make use of all of our space
-            const char *cstr_head = _data + sizeof(String::Header);
+            const char *strbuf_head = _data + sizeof(String::Header);
             int free_space = reserve_left ?
-                _meta->CStr - cstr_head :
-                (cstr_head + _meta->Capacity) - (_meta->CStr + _meta->Length);
-            if (free_space < more_length)
+                _meta->CStr - strbuf_head :
+                (strbuf_head + _meta->Capacity) - (_meta->CStr + _meta->Length);
+            if (free_space < need_space)
             {
                 Align(reserve_left ?
-                     (_meta->CStr + (more_length - free_space)) - cstr_head :
+                     (_meta->CStr + (need_space - free_space)) - strbuf_head :
                      0);
             }
         }
     }
     else
     {
-        Create(more_length);
+        Create(need_space);
     }
 }
 

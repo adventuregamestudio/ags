@@ -14,18 +14,17 @@
 
 #include "ac/global_textbox.h"
 #include "ac/common.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/string.h"
 #include "ac/textbox.h"
+#include "game/game_objects.h"
 #include "gui/guimain.h"
 #include "gui/guitextbox.h"
 
-extern GameSetupStruct game;
 extern GUIMain*guis;
 
 void SetTextBoxFont(int guin,int objn, int fontnum) {
 
-    if ((guin<0) | (guin>=game.numgui)) quit("!SetTextBoxFont: invalid GUI number");
+    if ((guin<0) | (guin>=game.GuiCount)) quit("!SetTextBoxFont: invalid GUI number");
     if ((objn<0) | (objn>=guis[guin].numobjs)) quit("!SetTextBoxFont: invalid object number");
     if (guis[guin].get_control_type(objn) != GOBJ_TEXTBOX)
         quit("!SetTextBoxFont: specified control is not a text box");
@@ -36,7 +35,7 @@ void SetTextBoxFont(int guin,int objn, int fontnum) {
 
 void GetTextBoxText(int guin, int objn, char*txbuf) {
     VALIDATE_STRING(txbuf);
-    if ((guin<0) | (guin>=game.numgui)) quit("!GetTextBoxText: invalid GUI number");
+    if ((guin<0) | (guin>=game.GuiCount)) quit("!GetTextBoxText: invalid GUI number");
     if ((objn<0) | (objn>=guis[guin].numobjs)) quit("!GetTextBoxText: invalid object number");
     if (guis[guin].get_control_type(objn)!=GOBJ_TEXTBOX)
         quit("!GetTextBoxText: specified control is not a text box");
@@ -46,7 +45,7 @@ void GetTextBoxText(int guin, int objn, char*txbuf) {
 }
 
 void SetTextBoxText(int guin, int objn, const char* txbuf) {
-    if ((guin<0) | (guin>=game.numgui)) quit("!SetTextBoxText: invalid GUI number");
+    if ((guin<0) | (guin>=game.GuiCount)) quit("!SetTextBoxText: invalid GUI number");
     if ((objn<0) | (objn>=guis[guin].numobjs)) quit("!SetTextBoxText: invalid object number");
     if (guis[guin].get_control_type(objn)!=GOBJ_TEXTBOX)
         quit("!SetTextBoxText: specified control is not a text box");

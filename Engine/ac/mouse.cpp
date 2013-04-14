@@ -19,12 +19,13 @@
 #include "ac/draw.h"
 #include "ac/dynobj/scriptmouse.h"
 #include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_mouse.h"
 #include "ac/global_screen.h"
+#include "ac/interfacebutton.h"
 #include "ac/viewframe.h"
 #include "debug/debug_log.h"
+#include "game/game_objects.h"
 #include "gui/guibutton.h"
 #include "gui/guimain.h"
 #include "device/mousew32.h"
@@ -37,7 +38,6 @@ using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameSetup usetup;
-extern GameSetupStruct game;
 extern GameState play;
 extern Bitmap *mousecurs[MAXCURSORS];
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
@@ -95,39 +95,40 @@ void SetMouseBounds (int x1, int y1, int x2, int y2) {
 // mouse cursor functions:
 // set_mouse_cursor: changes visual appearance to specified cursor
 void set_mouse_cursor(int newcurs) {
-    int hotspotx = game.mcurs[newcurs].hotx, hotspoty = game.mcurs[newcurs].hoty;
+    int hotspotx = game.MouseCursors[newcurs].hotx, hotspoty = game.MouseCursors[newcurs].hoty;
 
-    set_new_cursor_graphic(game.mcurs[newcurs].pic);
+    set_new_cursor_graphic(game.MouseCursors[newcurs].pic);
     delete dotted_mouse_cursor;
     dotted_mouse_cursor = NULL;
 
-    if ((newcurs == MODE_USE) && (game.mcurs[newcurs].pic > 0) &&
-        ((game.hotdot > 0) || (game.invhotdotsprite > 0)) ) {
+    if ((newcurs == MODE_USE) && (game.MouseCursors[newcurs].pic > 0) &&
+        ((game.InvItemHotDotColor > 0) || (game.InvItemHotDotSprIndex > 0)) ) {
             // If necessary, create a copy of the cursor and put the hotspot
             // dot onto it
             dotted_mouse_cursor = BitmapHelper::CreateBitmapCopy(mousecurs[0]);
             Graphics graphics(dotted_mouse_cursor);
 
-            if (game.invhotdotsprite > 0) {
+            if (game.InvItemHotDotSprIndex > 0) {
                 //Bitmap *abufWas = abuf;
                 //abuf = dotted_mouse_cursor;
 
                 draw_sprite_support_alpha(&graphics,
-                    hotspotx - spritewidth[game.invhotdotsprite] / 2,
-                    hotspoty - spriteheight[game.invhotdotsprite] / 2,
-                    spriteset[game.invhotdotsprite],
-                    game.invhotdotsprite);
+                    hotspotx - spritewidth[game.InvItemHotDotSprIndex] / 2,
+                    hotspoty - spriteheight[game.InvItemHotDotSprIndex] / 2,
+                    spriteset[game.InvItemHotDotSprIndex],
+                    game.InvItemHotDotSprIndex);
 
                 //abuf = abufWas;
             }
             else {
                 putpixel_compensate (&graphics, hotspotx, hotspoty,
-                    (dotted_mouse_cursor->GetColorDepth() > 8) ? GetVirtualScreenGraphics()->GetBitmap()->GetCompatibleColor (game.hotdot) : game.hotdot);
+                    (dotted_mouse_cursor->GetColorDepth() > 8) ?
+                        GetVirtualScreenGraphics()->GetBitmap()->GetCompatibleColor (game.InvItemHotDotColor) : game.InvItemHotDotColor);
 
-                if (game.hotdotouter > 0) {
-                    int outercol = game.hotdotouter;
+                if (game.InvItemHotDotOuterColor > 0) {
+                    int outercol = game.InvItemHotDotOuterColor;
                     if (dotted_mouse_cursor->GetColorDepth () > 8)
-                        outercol = GetVirtualScreenGraphics()->GetBitmap()->GetCompatibleColor(game.hotdotouter);
+                        outercol = GetVirtualScreenGraphics()->GetBitmap()->GetCompatibleColor(game.InvItemHotDotOuterColor);
 
                     putpixel_compensate (&graphics, hotspotx + get_fixed_pixel_size(1), hotspoty, outercol);
                     putpixel_compensate (&graphics, hotspotx, hotspoty + get_fixed_pixel_size(1), outercol);
@@ -154,41 +155,41 @@ void set_default_cursor() {
 
 // permanently change cursor graphic
 void ChangeCursorGraphic (int curs, int newslot) {
-    if ((curs < 0) || (curs >= game.numcursors))
+    if ((curs < 0) || (curs >= game.MouseCursorCount))
         quit("!ChangeCursorGraphic: invalid mouse cursor");
 
-    if ((curs == MODE_USE) && (game.options[OPT_FIXEDINVCURSOR] == 0))
+    if ((curs == MODE_USE) && (game.Options[OPT_FIXEDINVCURSOR] == 0))
         debug_log("Mouse.ChangeModeGraphic should not be used on the Inventory cursor when the cursor is linked to the active inventory item");
 
-    game.mcurs[curs].pic = newslot;
+    game.MouseCursors[curs].pic = newslot;
     spriteset.precache (newslot);
     if (curs == cur_mode)
         set_mouse_cursor (curs);
 }
 
 int Mouse_GetModeGraphic(int curs) {
-    if ((curs < 0) || (curs >= game.numcursors))
+    if ((curs < 0) || (curs >= game.MouseCursorCount))
         quit("!Mouse.GetModeGraphic: invalid mouse cursor");
 
-    return game.mcurs[curs].pic;
+    return game.MouseCursors[curs].pic;
 }
 
 void ChangeCursorHotspot (int curs, int x, int y) {
-    if ((curs < 0) || (curs >= game.numcursors))
+    if ((curs < 0) || (curs >= game.MouseCursorCount))
         quit("!ChangeCursorHotspot: invalid mouse cursor");
-    game.mcurs[curs].hotx = multiply_up_coordinate(x);
-    game.mcurs[curs].hoty = multiply_up_coordinate(y);
+    game.MouseCursors[curs].hotx = multiply_up_coordinate(x);
+    game.MouseCursors[curs].hoty = multiply_up_coordinate(y);
     if (curs == cur_cursor)
         set_mouse_cursor (cur_cursor);
 }
 
 void Mouse_ChangeModeView(int curs, int newview) {
-    if ((curs < 0) || (curs >= game.numcursors))
+    if ((curs < 0) || (curs >= game.MouseCursorCount))
         quit("!Mouse.ChangeModeView: invalid mouse cursor");
 
     newview--;
 
-    game.mcurs[curs].view = newview;
+    game.MouseCursors[curs].view = newview;
 
     if (newview >= 0)
     {
@@ -205,11 +206,11 @@ void SetNextCursor () {
 
 // set_cursor_mode: changes mode and appearance
 void set_cursor_mode(int newmode) {
-    if ((newmode < 0) || (newmode >= game.numcursors))
+    if ((newmode < 0) || (newmode >= game.MouseCursorCount))
         quit("!SetCursorMode: invalid cursor mode specified");
 
     guis_need_update = 1;
-    if (game.mcurs[newmode].flags & MCF_DISABLED) {
+    if (game.MouseCursors[newmode].flags & MCF_DISABLED) {
         find_next_enabled_cursor(newmode);
         return; }
     if (newmode == MODE_USE) {
@@ -226,11 +227,11 @@ void set_cursor_mode(int newmode) {
 }
 
 void enable_cursor_mode(int modd) {
-    game.mcurs[modd].flags&=~MCF_DISABLED;
+    game.MouseCursors[modd].flags&=~MCF_DISABLED;
     // now search the interfaces for related buttons to re-enable
     int uu,ww;
 
-    for (uu=0;uu<game.numgui;uu++) {
+    for (uu=0;uu<game.GuiCount;uu++) {
         for (ww=0;ww<guis[uu].numobjs;ww++) {
             if ((guis[uu].objrefptr[ww] >> 16)!=GOBJ_BUTTON) continue;
             GUIButton*gbpt=(GUIButton*)guis[uu].objs[ww];
@@ -243,11 +244,11 @@ void enable_cursor_mode(int modd) {
 }
 
 void disable_cursor_mode(int modd) {
-    game.mcurs[modd].flags|=MCF_DISABLED;
+    game.MouseCursors[modd].flags|=MCF_DISABLED;
     // now search the interfaces for related buttons to kill
     int uu,ww;
 
-    for (uu=0;uu<game.numgui;uu++) {
+    for (uu=0;uu<game.GuiCount;uu++) {
         for (ww=0;ww<guis[uu].numobjs;ww++) {
             if ((guis[uu].objrefptr[ww] >> 16)!=GOBJ_BUTTON) continue;
             GUIButton*gbpt=(GUIButton*)guis[uu].objs[ww];
@@ -306,25 +307,25 @@ void update_script_mouse_coords() {
 
 void update_inv_cursor(int invnum) {
 
-    if ((game.options[OPT_FIXEDINVCURSOR]==0) && (invnum > 0)) {
-        int cursorSprite = game.invinfo[invnum].cursorPic;
+    if ((game.Options[OPT_FIXEDINVCURSOR]==0) && (invnum > 0)) {
+        int cursorSprite = game.InventoryItems[invnum].cursorPic;
 
         // Fall back to the inventory pic if no cursor pic is defined.
         if (cursorSprite == 0)
-            cursorSprite = game.invinfo[invnum].pic;
+            cursorSprite = game.InventoryItems[invnum].pic;
 
-        game.mcurs[MODE_USE].pic = cursorSprite;
+        game.MouseCursors[MODE_USE].pic = cursorSprite;
         // all cursor images must be pre-cached
         spriteset.precache(cursorSprite);
 
-        if ((game.invinfo[invnum].hotx > 0) || (game.invinfo[invnum].hoty > 0)) {
+        if ((game.InventoryItems[invnum].hotx > 0) || (game.InventoryItems[invnum].hoty > 0)) {
             // if the hotspot was set (unfortunately 0,0 isn't a valid co-ord)
-            game.mcurs[MODE_USE].hotx=game.invinfo[invnum].hotx;
-            game.mcurs[MODE_USE].hoty=game.invinfo[invnum].hoty;
+            game.MouseCursors[MODE_USE].hotx=game.InventoryItems[invnum].hotx;
+            game.MouseCursors[MODE_USE].hoty=game.InventoryItems[invnum].hoty;
         }
         else {
-            game.mcurs[MODE_USE].hotx = spritewidth[cursorSprite] / 2;
-            game.mcurs[MODE_USE].hoty = spriteheight[cursorSprite] / 2;
+            game.MouseCursors[MODE_USE].hotx = spritewidth[cursorSprite] / 2;
+            game.MouseCursors[MODE_USE].hoty = spriteheight[cursorSprite] / 2;
         }
     }
 }
@@ -350,7 +351,7 @@ void set_new_cursor_graphic (int spriteslot) {
         mousecurs[0] = blank_mouse_cursor;
     }
 
-    if (game.spriteflags[spriteslot] & SPF_ALPHACHANNEL)
+    if (game.SpriteFlags[spriteslot] & SPF_ALPHACHANNEL)
         alpha_blend_cursor = 1;
     else
         alpha_blend_cursor = 0;
@@ -359,11 +360,11 @@ void set_new_cursor_graphic (int spriteslot) {
 }
 
 int find_next_enabled_cursor(int startwith) {
-    if (startwith >= game.numcursors)
+    if (startwith >= game.MouseCursorCount)
         startwith = 0;
     int testing=startwith;
     do {
-        if ((game.mcurs[testing].flags & MCF_DISABLED)==0) {
+        if ((game.MouseCursors[testing].flags & MCF_DISABLED)==0) {
             // inventory cursor, and they have an active item
             if (testing == MODE_USE) 
             {
@@ -371,12 +372,12 @@ int find_next_enabled_cursor(int startwith) {
                     break;
             }
             // standard cursor that's not disabled, go with it
-            else if (game.mcurs[testing].flags & MCF_STANDARD)
+            else if (game.MouseCursors[testing].flags & MCF_STANDARD)
                 break;
         }
 
         testing++;
-        if (testing >= game.numcursors) testing=0;
+        if (testing >= game.MouseCursorCount) testing=0;
     } while (testing!=startwith);
 
     if (testing!=startwith)

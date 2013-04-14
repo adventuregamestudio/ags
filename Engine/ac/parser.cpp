@@ -15,13 +15,13 @@
 #include <cctype> //isalnum()
 #include "util/string_utils.h" //strlwr()
 #include "ac/common.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/parser.h"
 #include "ac/string.h"
+#include "ac/wordsdictionary.h"
+#include "game/game_objects.h"
 #include "debug/debug_log.h"
 
-extern GameSetupStruct game;
 extern GameState play;
 
 int Parser_FindWordID(const char *wordToFind)
@@ -52,12 +52,12 @@ int Said (char*checkwords) {
 
 int find_word_in_dictionary (char *lookfor) {
     int j;
-    if (game.dict == NULL)
+    if (game.Dictionary == NULL)
         return -1;
 
-    for (j = 0; j < game.dict->num_words; j++) {
-        if (stricmp(lookfor, game.dict->word[j]) == 0) {
-            return game.dict->wordnum[j];
+    for (j = 0; j < game.Dictionary->num_words; j++) {
+        if (stricmp(lookfor, game.Dictionary->word[j]) == 0) {
+            return game.Dictionary->wordnum[j];
         }
     }
     if (lookfor[0] != 0) {

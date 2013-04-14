@@ -19,13 +19,13 @@
 // Headers, as they are in acgui.cpp
 #pragma unmanaged
 #include "font/fonts.h"
+#include "game/game_objects.h"
 #include "gui/guimain.h"
 #include "gui/guibutton.h"
 #include "gui/guilabel.h"
 #include "gui/guilistbox.h"
 #include "gui/guitextbox.h"
 #include <ctype.h>
-#include "ac/gamesetupstruct.h"
 #include "ac/global_translation.h"
 #include "ac/string.h"
 #include "ac/spritecache.h"
@@ -42,7 +42,6 @@ extern void ensure_text_valid_for_font(char *, int);
 //
 
 extern SpriteCache spriteset; // in ac_runningame
-extern GameSetupStruct game;
 
 //=============================================================================
 // Engine-specific implementation split out of acgui.h
@@ -74,7 +73,7 @@ int get_adjusted_spriteheight(int spr)
 
 bool is_sprite_alpha(int spr)
 {
-  return ((game.spriteflags[spr] & SPF_ALPHACHANNEL) != 0);
+  return ((game.SpriteFlags[spr] & SPF_ALPHACHANNEL) != 0);
 }
 
 void set_eip_guiobj(int eip)

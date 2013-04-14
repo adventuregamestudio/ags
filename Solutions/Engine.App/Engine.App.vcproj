@@ -1049,6 +1049,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\test\test_array.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\test\test_file.cpp"
 					>
 				</File>
@@ -1062,6 +1066,14 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\test\test_version.cpp"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="game"
+				>
+				<File
+					RelativePath="..\..\Engine\game\game_objects.cpp"
 					>
 				</File>
 			</Filter>
@@ -1995,6 +2007,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\test\test_array.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\test\test_file.h"
 					>
 				</File>
@@ -2044,6 +2060,14 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\util\thread_windows.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="game"
+				>
+				<File
+					RelativePath="..\..\Engine\game\game_objects.h"
 					>
 				</File>
 			</Filter>

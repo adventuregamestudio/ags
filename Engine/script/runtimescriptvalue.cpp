@@ -192,7 +192,7 @@ bool RuntimeScriptValue::WriteByte(uint8_t val)
         }
         else
         {
-            RValue->SetInt8(val); // set RValue as int
+            RValue->SetUInt8(val); // set RValue as int
         }
     }
     else if (this->Type == kScValStaticObject || this->Type == kScValStaticArray)

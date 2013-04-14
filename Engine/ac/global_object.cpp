@@ -21,7 +21,6 @@
 #include "ac/character.h"
 #include "ac/draw.h"
 #include "ac/event.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/global_character.h"
 #include "ac/global_translation.h"
 #include "ac/object.h"
@@ -33,6 +32,7 @@
 #include "ac/string.h"
 #include "ac/viewframe.h"
 #include "debug/debug_log.h"
+#include "game/game_objects.h"
 #include "main/game_run.h"
 #include "script/script.h"
 #include "ac/spritecache.h"
@@ -46,7 +46,6 @@ using AGS::Common::Bitmap;
 extern RoomStatus*croom;
 extern RoomObject*objs;
 extern ViewStruct*views;
-extern GameSetupStruct game;
 extern ObjectCache objcache[MAX_INIT_SPR];
 extern roomstruct thisroom;
 extern CharacterInfo*playerchar;
@@ -130,9 +129,9 @@ void RemoveObjectTint(int obj) {
 void SetObjectView(int obn,int vii) {
     if (!is_valid_object(obn)) quit("!SetObjectView: invalid object number specified");
     DEBUG_CONSOLE("Object %d set to view %d", obn, vii);
-    if ((vii < 1) || (vii > game.numviews)) {
+    if ((vii < 1) || (vii > game.ViewCount)) {
         char buffer[150];
-        sprintf (buffer, "!SetObjectView: invalid view number (You said %d, max is %d)", vii, game.numviews);
+        sprintf (buffer, "!SetObjectView: invalid view number (You said %d, max is %d)", vii, game.ViewCount);
         quit(buffer);
     }
     vii--;
@@ -148,7 +147,7 @@ void SetObjectView(int obn,int vii) {
 void SetObjectFrame(int obn,int viw,int lop,int fra) {
     if (!is_valid_object(obn)) quit("!SetObjectFrame: invalid object number specified");
     viw--;
-    if (viw>=game.numviews) quit("!SetObjectFrame: invalid view number used");
+    if (viw>=game.ViewCount) quit("!SetObjectFrame: invalid view number used");
     if (lop>=views[viw].numLoops) quit("!SetObjectFrame: invalid loop number used");
     objs[obn].view=viw;
     if (fra >= 0)
@@ -427,14 +426,14 @@ int AreObjectsColliding(int obj1,int obj2) {
 
 int GetThingRect(int thing, _Rect *rect) {
     if (is_valid_character(thing)) {
-        if (game.chars[thing].room != displayed_room)
+        if (game.Characters[thing].room != displayed_room)
             return 0;
 
         int charwid = divide_down_coordinate(GetCharacterWidth(thing));
-        rect->x1 = game.chars[thing].x - (charwid / 2);
+        rect->x1 = game.Characters[thing].x - (charwid / 2);
         rect->x2 = rect->x1 + charwid;
-        rect->y1 = game.chars[thing].get_effective_y() - divide_down_coordinate(GetCharacterHeight(thing));
-        rect->y2 = game.chars[thing].get_effective_y();
+        rect->y1 = game.Characters[thing].get_effective_y() - divide_down_coordinate(GetCharacterHeight(thing));
+        rect->y2 = game.Characters[thing].get_effective_y();
     }
     else if (is_valid_object(thing - OVERLAPPING_OBJECT)) {
         int objid = thing - OVERLAPPING_OBJECT;

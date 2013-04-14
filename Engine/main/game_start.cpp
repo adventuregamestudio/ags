@@ -19,7 +19,6 @@
 #include "ac/common.h"
 #include "ac/characterinfo.h"
 #include "ac/game.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/mouse.h"
@@ -29,6 +28,7 @@
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
+#include "game/game_objects.h"
 #include "main/mainheader.h"
 #include "main/game_run.h"
 #include "main/game_start.h"
@@ -39,7 +39,6 @@ namespace Out = AGS::Common::Out;
 extern int our_eip, displayed_room;
 extern const char *load_game_errors[9];
 extern volatile char want_exit, abort_engine;
-extern GameSetupStruct game;
 extern GameState play;
 extern volatile int timerloop;
 extern const char *loadSaveGameOnStartup;
@@ -143,11 +142,11 @@ void initialize_start_and_play_game(int override_start_room, const char *loadSav
         if (convert_16bit_bgr) {
             // Disable text as speech while displaying the warning message
             // This happens if the user's graphics card does BGR order 16-bit colour
-            int oldalways = game.options[OPT_ALWAYSSPCH];
-            game.options[OPT_ALWAYSSPCH] = 0;
+            int oldalways = game.Options[OPT_ALWAYSSPCH];
+            game.Options[OPT_ALWAYSSPCH] = 0;
             // PSP: This is normal. Don't show a warning.
             //Display ("WARNING: AGS has detected that you have an incompatible graphics card for this game. You may experience colour problems during the game. Try running the game with \"--15bit\" command line parameter and see if that helps.[[Click the mouse to continue.");
-            game.options[OPT_ALWAYSSPCH] = oldalways;
+            game.Options[OPT_ALWAYSSPCH] = oldalways;
         }
 
         srand (play.randseed);

@@ -17,19 +17,18 @@
 #include "ac/file.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
 #include "ac/lipsync.h"
 #include "ac/roomstruct.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
+#include "game/game_objects.h"
 #include "media/audio/audio.h"
 #include "media/audio/sound.h"
 
 extern GameSetup usetup;
 extern GameState play;
-extern GameSetupStruct game;
 extern roomstruct thisroom;
 extern char *speech_file;
 extern SpeechLipSyncLine *splipsync;
@@ -462,7 +461,7 @@ int play_speech(int charid,int sndid) {
     SOUNDCLIP *speechmp3;
     /*  char finame[40]="~SPEECH.VOX~NARR";
     if (charid >= 0)
-    strncpy(&finame[12],game.chars[charid].scrname,4);*/
+    strncpy(&finame[12],game.Characters[charid].scrname,4);*/
 
     char finame[40] = "~";
     strcat(finame, get_filename(speech_file));
@@ -471,10 +470,10 @@ int play_speech(int charid,int sndid) {
     if (charid >= 0) {
         // append the first 4 characters of the script name to the filename
         char theScriptName[5];
-        if (game.chars[charid].scrname[0] == 'c')
-            strncpy(theScriptName, &game.chars[charid].scrname[1], 4);
+        if (game.Characters[charid].scrname[0] == 'c')
+            strncpy(theScriptName, &game.Characters[charid].scrname[1], 4);
         else
-            strncpy(theScriptName, game.chars[charid].scrname, 4);
+            strncpy(theScriptName, game.Characters[charid].scrname, 4);
         theScriptName[4] = 0;
         strcat(finame, theScriptName);
     }
@@ -497,7 +496,7 @@ int play_speech(int charid,int sndid) {
     // if the lip-sync is being used for voice sync, disable
     // the text-related lipsync
     if (numLipLines > 0)
-        game.options[OPT_LIPSYNCTEXT] = 0;
+        game.Options[OPT_LIPSYNCTEXT] = 0;
 
     strcat (finame, ".WAV");
     speechmp3 = my_load_wave (finame, play.speech_volume, 0);
@@ -541,8 +540,8 @@ int play_speech(int charid,int sndid) {
 
     // change Sierra w/bgrnd  to Sierra without background when voice
     // is available (for Tierra)
-    if ((game.options[OPT_SPEECHTYPE] == 2) && (play.no_textbg_when_voice > 0)) {
-        game.options[OPT_SPEECHTYPE] = 1;
+    if ((game.Options[OPT_SPEECHTYPE] == 2) && (play.no_textbg_when_voice > 0)) {
+        game.Options[OPT_SPEECHTYPE] = 1;
         play.no_textbg_when_voice = 2;
     }
 
@@ -562,7 +561,7 @@ void stop_speech() {
         if (play.no_textbg_when_voice == 2) {
             // set back to Sierra w/bgrnd
             play.no_textbg_when_voice = 1;
-            game.options[OPT_SPEECHTYPE] = 2;
+            game.Options[OPT_SPEECHTYPE] = 2;
         }
     }
 }

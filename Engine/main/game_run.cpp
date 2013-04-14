@@ -22,7 +22,6 @@
 #include "ac/draw.h"
 #include "ac/event.h"
 #include "ac/game.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/global_character.h"
 #include "ac/global_debug.h"
 #include "ac/global_display.h"
@@ -42,6 +41,7 @@
 #include "ac/roomstruct.h"
 #include "debug/debugger.h"
 #include "debug/debug_log.h"
+#include "game/game_objects.h"
 #include "gui/guiinv.h"
 #include "gui/guimain.h"
 #include "gui/guitextbox.h"
@@ -62,7 +62,6 @@ extern volatile char want_exit, abort_engine;
 extern int want_quit;
 extern int proper_exit,our_eip;
 extern int displayed_room, starting_room, in_new_room, new_room_was;
-extern GameSetupStruct game;
 extern roomstruct thisroom;
 extern int game_paused;
 extern int getloctype_index;
@@ -191,12 +190,12 @@ void check_controls() {
 
     int aa,mongu=-1;
     // If all GUIs are off, skip the loop
-    if ((game.options[OPT_DISABLEOFF]==3) && (all_buttons_disabled > 0)) ;
+    if ((game.Options[OPT_DISABLEOFF]==3) && (all_buttons_disabled > 0)) ;
     else {
         // Scan for mouse-y-pos GUIs, and pop one up if appropriate
         // Also work out the mouse-over GUI while we're at it
         int ll;
-        for (ll = 0; ll < game.numgui;ll++) {
+        for (ll = 0; ll < game.GuiCount;ll++) {
             aa = play.gui_draw_order[ll];
             if (guis[aa].is_mouse_on_gui()) mongu=aa;
 
@@ -255,7 +254,7 @@ void check_controls() {
                 if (iit>=0) {
                     evblocknum=iit;
                     play.used_inv_on = iit;
-                    if (game.options[OPT_HANDLEINVCLICKS]) {
+                    if (game.Options[OPT_HANDLEINVCLICKS]) {
                         // Let the script handle the click
                         // LEFTINV is 5, RIGHTINV is 6
                         setevent(EV_TEXTSCRIPT,TS_MCLICK, whichbut + 4);
@@ -330,8 +329,8 @@ void check_controls() {
         //    if (kgn==2) Display("numover: %d character movesped: %d, animspd: %d",numscreenover,playerchar->walkspeed,playerchar->animspeed);
         //    if (kgn==2) CreateTextOverlay(50,60,170,FONT_SPEECH,14,"This is a test screen overlay which shouldn't disappear");
         //    if (kgn==2) { Display("Crashing"); strcpy(NULL, NULL); }
-        //    if (kgn == 2) FaceLocation (game.playercharacter, playerchar->x + 1, playerchar->y);
-        //if (kgn == 2) SetCharacterIdle (game.playercharacter, 5, 0);
+        //    if (kgn == 2) FaceLocation (game.PlayerCharacterIndex, playerchar->x + 1, playerchar->y);
+        //if (kgn == 2) SetCharacterIdle (game.PlayerCharacterIndex, 5, 0);
         //if (kgn == 2) Display("Some for?ign text");
         //if (kgn == 2) do_conversation(5);
 
@@ -403,10 +402,10 @@ void check_controls() {
                     ((objs[ff].flags & OBJF_NOINTERACT) != 0) ? 0 : 1 );
             }
             Display(infobuf);
-            int chd = game.playercharacter;
+            int chd = game.PlayerCharacterIndex;
             char bigbuffer[STD_BUFFER_SIZE] = "CHARACTERS IN THIS ROOM:[";
-            for (ff = 0; ff < game.numcharacters; ff++) {
-                if (game.chars[ff].room != displayed_room) continue;
+            for (ff = 0; ff < game.CharacterCount; ff++) {
+                if (game.Characters[ff].room != displayed_room) continue;
                 if (strlen(bigbuffer) > 430) {
                     strcat(bigbuffer, "and more...");
                     Display(bigbuffer);
@@ -415,11 +414,11 @@ void check_controls() {
                 chd = ff;
                 sprintf(&bigbuffer[strlen(bigbuffer)], 
                     "%s (view/loop/frm:%d,%d,%d  x/y/z:%d,%d,%d  idleview:%d,time:%d,left:%d walk:%d anim:%d follow:%d flags:%X wait:%d zoom:%d)[",
-                    game.chars[chd].scrname, game.chars[chd].view+1, game.chars[chd].loop, game.chars[chd].frame,
-                    game.chars[chd].x, game.chars[chd].y, game.chars[chd].z,
-                    game.chars[chd].idleview, game.chars[chd].idletime, game.chars[chd].idleleft,
-                    game.chars[chd].walking, game.chars[chd].animating, game.chars[chd].following,
-                    game.chars[chd].flags, game.chars[chd].wait, charextra[chd].zoom);
+                    game.Characters[chd].scrname, game.Characters[chd].view+1, game.Characters[chd].loop, game.Characters[chd].frame,
+                    game.Characters[chd].x, game.Characters[chd].y, game.Characters[chd].z,
+                    game.Characters[chd].idleview, game.Characters[chd].idletime, game.Characters[chd].idleleft,
+                    game.Characters[chd].walking, game.Characters[chd].animating, game.Characters[chd].following,
+                    game.Characters[chd].flags, game.Characters[chd].wait, charextra[chd].zoom);
             }
             Display(bigbuffer);
 
@@ -448,7 +447,7 @@ void check_controls() {
             // extended keys (eg. up/down arrow; 256+)
             if ( ((kgn >= 32) && (kgn != '[') && (kgn < 256)) || (kgn == 13) || (kgn == 8) ) {
                 int uu,ww;
-                for (uu=0;uu<game.numgui;uu++) {
+                for (uu=0;uu<game.GuiCount;uu++) {
                     if (guis[uu].on < 1) continue;
                     for (ww=0;ww<guis[uu].numobjs;ww++) {
                         // not a text box, ignore it
@@ -723,7 +722,7 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
     game_loop_check_problems_at_start();
 
     // if we're not fading in, don't count the fadeouts
-    if ((play.no_hicolor_fadein) && (game.options[OPT_FADETYPE] == FADE_NORMAL))
+    if ((play.no_hicolor_fadein) && (game.Options[OPT_FADETYPE] == FADE_NORMAL))
         play.screen_is_faded_out = 0;
 
     our_eip = 1014;

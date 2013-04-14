@@ -17,12 +17,12 @@
 #include "apeg.h"
 #include "ac/draw.h"
 #include "ac/file.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
 #include "ac/global_display.h"
 #include "ac/mouse.h"
 #include "ac/record.h"
+#include "game/game_objects.h"
 #include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
 #include "gfx/ddb.h"
@@ -34,7 +34,6 @@ using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 
-extern GameSetupStruct game;
 extern GameState play;
 extern IGraphicsDriver *gfxDriver;
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
@@ -79,7 +78,7 @@ extern "C" int fli_callback() {
     update_polled_stuff_and_crossfade ();
 
     Graphics graphics(hicol_buf);
-    if (game.color_depth > 1) {
+    if (game.ColorDepth > 1) {
         graphics.Blit(fli_buffer,0,0,0,0,fliwidth,fliheight);
         usebuf=hicol_buf;
     }

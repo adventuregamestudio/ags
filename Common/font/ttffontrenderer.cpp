@@ -129,7 +129,7 @@ bool TTFFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
   // A simple workaround is to disable outline fonts for it and use
   // automatic outline drawing.
   if (strcmp(alfont_get_name(alfptr), "LucasFan-Font") == 0)
-      //game.fontoutline[fontNumber] = FONT_OUTLINE_AUTO;
+      //game.FontOutline[fontNumber] = FONT_OUTLINE_AUTO;
       set_font_outline(fontNumber, FONT_OUTLINE_AUTO);
 #endif
 

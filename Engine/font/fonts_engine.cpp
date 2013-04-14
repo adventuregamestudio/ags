@@ -21,20 +21,21 @@
 #ifndef USE_ALFONT
 #define USE_ALFONT
 #endif
-#include "ac/gamesetupstruct.h"
 
 #ifdef USE_ALFONT
 #include "alfont.h"
 #endif
 
 #include "core/assetmanager.h"
+#include "game/game_objects.h"
 #include "util/stream.h"
+#include "util/file.h"
 
+using namespace AGS; // FIXME later
 using AGS::Common::Stream;
 
 // For engine these are defined in ac.cpp
 extern int our_eip;
-extern GameSetupStruct game;
 
 //=============================================================================
 // Engine-specific implementation split out of acfonts.cpp
@@ -65,5 +66,5 @@ int flength_shared(Stream *ffi)
 
 void set_font_outline(int font_number, int outline_type)
 {
-    game.fontoutline[font_number] = FONT_OUTLINE_AUTO;
+    game.FontOutline[font_number] = FONT_OUTLINE_AUTO;
 }

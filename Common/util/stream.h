@@ -96,6 +96,8 @@ public:
     // Helper function for easier compatibility with 64-bit platforms,
     // writes intptr_t array elements as 32-bit values
     virtual size_t WriteArrayOfIntPtr32(const intptr_t *buffer, size_t count);
+
+    virtual size_t WriteByteCount(uint8_t b, size_t count) = 0;
 };
 
 } // namespace Common

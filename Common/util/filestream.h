@@ -61,6 +61,8 @@ public:
     virtual size_t  Write(const void *buffer, size_t size);
     virtual int32_t WriteByte(uint8_t b);
 
+    virtual size_t WriteByteCount(uint8_t b, size_t count);
+
     virtual size_t  Seek(StreamSeek seek, int pos);
 
 protected:

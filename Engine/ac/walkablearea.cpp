@@ -18,11 +18,11 @@
 #include "ac/character.h"
 #include "ac/draw.h"
 #include "ac/gamestate.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/object.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
 #include "ac/walkablearea.h"
+#include "game/game_objects.h"
 #include "gfx/graphics.h"
 
 using AGS::Common::Bitmap;
@@ -30,7 +30,6 @@ using AGS::Common::Graphics;
 
 extern roomstruct thisroom;
 extern GameState play;
-extern GameSetupStruct game;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern int displayed_room;
 extern RoomStatus*croom;
@@ -140,22 +139,22 @@ Bitmap *prepare_walkable_areas (int sourceChar) {
     graphics.Blit (thisroom.walls, 0,0,0,0,thisroom.walls->GetWidth(),thisroom.walls->GetHeight());
     // if the character who's moving doesn't Bitmap *, don't bother checking
     if (sourceChar < 0) ;
-    else if (game.chars[sourceChar].flags & CHF_NOBLOCKING)
+    else if (game.Characters[sourceChar].flags & CHF_NOBLOCKING)
         return walkable_areas_temp;
 
     int ww;
     // for each character in the current room, make the area under
     // them unwalkable
-    for (ww = 0; ww < game.numcharacters; ww++) {
-        if (game.chars[ww].on != 1) continue;
-        if (game.chars[ww].room != displayed_room) continue;
+    for (ww = 0; ww < game.CharacterCount; ww++) {
+        if (game.Characters[ww].on != 1) continue;
+        if (game.Characters[ww].room != displayed_room) continue;
         if (ww == sourceChar) continue;
-        if (game.chars[ww].flags & CHF_NOBLOCKING) continue;
-        if (convert_to_low_res(game.chars[ww].y) >= walkable_areas_temp->GetHeight()) continue;
-        if (convert_to_low_res(game.chars[ww].x) >= walkable_areas_temp->GetWidth()) continue;
-        if ((game.chars[ww].y < 0) || (game.chars[ww].x < 0)) continue;
+        if (game.Characters[ww].flags & CHF_NOBLOCKING) continue;
+        if (convert_to_low_res(game.Characters[ww].y) >= walkable_areas_temp->GetHeight()) continue;
+        if (convert_to_low_res(game.Characters[ww].x) >= walkable_areas_temp->GetWidth()) continue;
+        if ((game.Characters[ww].y < 0) || (game.Characters[ww].x < 0)) continue;
 
-        CharacterInfo *char1 = &game.chars[ww];
+        CharacterInfo *char1 = &game.Characters[ww];
         int cwidth, fromx;
 
         if (is_char_on_another(sourceChar, ww, &fromx, &cwidth))
@@ -182,7 +181,7 @@ Bitmap *prepare_walkable_areas (int sourceChar) {
         // if the character is currently standing on the object, ignore
         // it so as to allow him to escape
         if ((sourceChar >= 0) &&
-            (is_point_in_rect(game.chars[sourceChar].x, game.chars[sourceChar].y, 
+            (is_point_in_rect(game.Characters[sourceChar].x, game.Characters[sourceChar].y, 
             x1, y1, x1 + width, y2)))
             continue;
 
@@ -229,6 +228,6 @@ int get_walkable_area_at_location(int xx, int yy) {
 }
 
 int get_walkable_area_at_character (int charnum) {
-    CharacterInfo *chin = &game.chars[charnum];
+    CharacterInfo *chin = &game.Characters[charnum];
     return get_walkable_area_at_location(chin->x, chin->y);
 }

@@ -28,6 +28,7 @@ struct MessageInfo {
     char  displayas  PCKD; // 0 = normal window, 1 = as speech
     char  flags      PCKD; // combination of MSG_xxx flags
 
+    MessageInfo();
     void ReadFromFile(Common::Stream *in);
 };
 

@@ -19,7 +19,13 @@
 #define __AGS_EE_GAME__GAME_OBJECTS_H
 
 #include "game/gameinfo.h"
+#include "game/roominfo.h"
 
 extern AGS::Common::GameInfo game; // static game data
+// NOTE: since RoomInfo contains Allegro bitmaps, its contents MUST be released
+// before Allegro is deinitialized; so far as RoomInfo is a global object we
+// cannot rely on destructor time, a RoomInfo::Free() should be called
+// explicitly instead.
+extern AGS::Common::RoomInfo thisroom;    // current room's static data
 
 #endif // __AGS_EE_GAME__GAME_OBJECTS_H

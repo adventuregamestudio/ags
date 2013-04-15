@@ -308,6 +308,8 @@ void quit(const char *quitmsg) {
 
     quit_message_on_exit(qmsg, alertis);
 
+    // This MUST be called before Allegro is deinitialized.
+    thisroom.Free();
     // remove the game window
     allegro_exit();
 

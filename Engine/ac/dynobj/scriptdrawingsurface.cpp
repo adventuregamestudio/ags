@@ -13,7 +13,6 @@
 //=============================================================================
 
 #include "ac/dynobj/scriptdrawingsurface.h"
-#include "ac/roomstruct.h"
 #include "ac/spritecache.h"
 #include "ac/runtime_defines.h"
 #include "ac/common.h"
@@ -24,7 +23,6 @@
 
 using AGS::Common::Bitmap;
 
-extern roomstruct thisroom;
 extern SpriteCache spriteset;
 extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 extern GameState play;
@@ -32,7 +30,7 @@ extern GameState play;
 Bitmap* ScriptDrawingSurface::GetBitmapSurface()
 {
     if (roomBackgroundNumber >= 0)
-        return thisroom.ebscene[roomBackgroundNumber];
+        return thisroom.BackgroundScenes[roomBackgroundNumber];
     else if (dynamicSpriteNumber >= 0)
         return spriteset[dynamicSpriteNumber];
     else if (dynamicSurfaceNumber >= 0)

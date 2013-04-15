@@ -14,7 +14,6 @@
 
 #include "ac/region.h"
 #include "ac/common_defines.h"
-#include "ac/roomstruct.h"
 #include "ac/global_region.h"
 #include "ac/roomstatus.h"
 #include "ac/dynobj/cc_region.h"
@@ -23,7 +22,6 @@
 
 
 extern ScriptRegion scrRegion[MAX_REGIONS];
-extern roomstruct thisroom;
 extern RoomStatus*croom;
 extern COLOR_MAP maincoltable;
 extern color palette[256];
@@ -42,33 +40,33 @@ void Region_SetLightLevel(ScriptRegion *ssr, int brightness) {
 }
 
 int Region_GetLightLevel(ScriptRegion *ssr) {
-    return thisroom.regionLightLevel[ssr->id];
+    return thisroom.RegionLightLevels[ssr->id];
 }
 
 int Region_GetTintEnabled(ScriptRegion *srr) {
-    if (thisroom.regionTintLevel[srr->id] & TINT_IS_ENABLED)
+    if (thisroom.RegionTintLevels[srr->id] & TINT_IS_ENABLED)
         return 1;
     return 0;
 }
 
 int Region_GetTintRed(ScriptRegion *srr) {
 
-    return thisroom.regionTintLevel[srr->id] & 0x000000ff;
+    return thisroom.RegionTintLevels[srr->id] & 0x000000ff;
 }
 
 int Region_GetTintGreen(ScriptRegion *srr) {
 
-    return (thisroom.regionTintLevel[srr->id] >> 8) & 0x000000ff;
+    return (thisroom.RegionTintLevels[srr->id] >> 8) & 0x000000ff;
 }
 
 int Region_GetTintBlue(ScriptRegion *srr) {
 
-    return (thisroom.regionTintLevel[srr->id] >> 16) & 0x000000ff;
+    return (thisroom.RegionTintLevels[srr->id] >> 16) & 0x000000ff;
 }
 
 int Region_GetTintSaturation(ScriptRegion *srr) {
 
-    return thisroom.regionLightLevel[srr->id];
+    return thisroom.RegionLightLevels[srr->id];
 }
 
 void Region_Tint(ScriptRegion *srr, int red, int green, int blue, int amount) {
@@ -101,7 +99,7 @@ void generate_light_table() {
     if ((game.ColorDepth == 1) && (color_map == NULL)) {
         // in 256-col mode, check if we need the light table this room
         for (cc=0;cc < MAX_REGIONS;cc++) {
-            if (thisroom.regionLightLevel[cc] < 0) {
+            if (thisroom.RegionLightLevels[cc] < 0) {
                 create_light_table(&maincoltable,palette,0,0,0,NULL);
                 color_map=&maincoltable;
                 break;

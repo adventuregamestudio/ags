@@ -16,7 +16,6 @@
 #include "plugin/agsplugin.h"
 #include "gfx/ali3d.h"
 #include "ac/common.h"
-#include "ac/roomstruct.h"
 #include "ac/view.h"
 #include "ac/charactercache.h"
 #include "ac/display.h"
@@ -97,7 +96,6 @@ extern int scrnwid,scrnhit;
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern int mousex, mousey;
 extern int displayed_room;
-extern roomstruct thisroom;
 extern RoomStatus*croom;
 extern SpriteCache spriteset;
 extern ViewStruct*views;
@@ -278,13 +276,13 @@ int IAGSEngine::GetCurrentRoom () {
     return displayed_room;
 }
 int IAGSEngine::GetNumBackgrounds () {
-    return thisroom.num_bscenes;
+    return thisroom.BkgSceneCount;
 }
 int IAGSEngine::GetCurrentBackground () {
     return play.bg_frame;
 }
 BITMAP *IAGSEngine::GetBackgroundScene (int32 index) {
-    return (BITMAP*)thisroom.ebscene[index]->GetAllegroBitmap();
+    return (BITMAP*)thisroom.BackgroundScenes[index]->GetAllegroBitmap();
 }
 void IAGSEngine::GetBitmapDimensions (BITMAP *bmp, int32 *width, int32 *height, int32 *coldepth) {
     if (bmp == NULL)
@@ -418,13 +416,13 @@ BITMAP *IAGSEngine::GetSpriteGraphic (int32 num) {
 }
 BITMAP *IAGSEngine::GetRoomMask (int32 index) {
     if (index == MASK_WALKABLE)
-        return (BITMAP*)thisroom.walls->GetAllegroBitmap();
+        return (BITMAP*)thisroom.WalkAreaMask->GetAllegroBitmap();
     else if (index == MASK_WALKBEHIND)
-        return (BITMAP*)thisroom.object->GetAllegroBitmap();
+        return (BITMAP*)thisroom.WalkBehindMask->GetAllegroBitmap();
     else if (index == MASK_HOTSPOT)
-        return (BITMAP*)thisroom.lookat->GetAllegroBitmap();
+        return (BITMAP*)thisroom.HotspotMask->GetAllegroBitmap();
     else if (index == MASK_REGIONS)
-        return (BITMAP*)thisroom.regions->GetAllegroBitmap();
+        return (BITMAP*)thisroom.RegionMask->GetAllegroBitmap();
     else
         quit("!IAGSEngine::GetRoomMask: invalid mask requested");
     return NULL;

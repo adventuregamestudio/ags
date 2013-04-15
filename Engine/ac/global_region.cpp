@@ -18,14 +18,13 @@
 #include "ac/draw.h"
 #include "ac/region.h"
 #include "ac/roomstatus.h"
-#include "ac/roomstruct.h"
 #include "debug/debug_log.h"
+#include "game/game_objects.h"
 #include "script/script.h"
 #include "gfx/bitmap.h"
 
 using AGS::Common::Bitmap;
 
-extern roomstruct thisroom;
 extern RoomStatus*croom;
 extern char*evblockbasename;
 extern int evblocknum;
@@ -39,17 +38,17 @@ int GetRegionAt (int xxx, int yyy) {
 
     if (loaded_game_file_version >= kGameVersion_262) // Version 2.6.2+
     {
-        if (xxx >= thisroom.regions->GetWidth())
-            xxx = thisroom.regions->GetWidth() - 1;
-        if (yyy >= thisroom.regions->GetHeight())
-            yyy = thisroom.regions->GetHeight() - 1;
+        if (xxx >= thisroom.RegionMask->GetWidth())
+            xxx = thisroom.RegionMask->GetWidth() - 1;
+        if (yyy >= thisroom.RegionMask->GetHeight())
+            yyy = thisroom.RegionMask->GetHeight() - 1;
         if (xxx < 0)
             xxx = 0;
         if (yyy < 0)
             yyy = 0;
     }
 
-    int hsthere = thisroom.regions->GetPixel (xxx, yyy);
+    int hsthere = thisroom.RegionMask->GetPixel (xxx, yyy);
     if (hsthere < 0)
         hsthere = 0;
 
@@ -69,9 +68,9 @@ void SetAreaLightLevel(int area, int brightness) {
         quit("!SetAreaLightLevel: invalid region");
     if (brightness < -100) brightness = -100;
     if (brightness > 100) brightness = 100;
-    thisroom.regionLightLevel[area] = brightness;
+    thisroom.RegionLightLevels[area] = brightness;
     // disable RGB tint for this area
-    thisroom.regionTintLevel[area] &= ~TINT_IS_ENABLED;
+    thisroom.RegionTintLevels[area] &= ~TINT_IS_ENABLED;
     generate_light_table();
     DEBUG_CONSOLE("Region %d light level set to %d", area, brightness);
 }
@@ -102,11 +101,11 @@ void SetRegionTint (int area, int red, int green, int blue, int amount) {
     unsigned char rgreen = green;
     unsigned char rblue = blue;
 
-    thisroom.regionTintLevel[area] = TINT_IS_ENABLED;
-    thisroom.regionTintLevel[area] |= rred & 0x000000ff;
-    thisroom.regionTintLevel[area] |= (int(rgreen) << 8) & 0x0000ff00;
-    thisroom.regionTintLevel[area] |= (int(rblue) << 16) & 0x00ff0000;
-    thisroom.regionLightLevel[area] = amount;
+    thisroom.RegionTintLevels[area] = TINT_IS_ENABLED;
+    thisroom.RegionTintLevels[area] |= rred & 0x000000ff;
+    thisroom.RegionTintLevels[area] |= (int(rgreen) << 8) & 0x0000ff00;
+    thisroom.RegionTintLevels[area] |= (int(rblue) << 16) & 0x00ff0000;
+    thisroom.RegionLightLevels[area] = amount;
 }
 
 void DisableRegion(int hsnum) {
@@ -159,9 +158,9 @@ void RunRegionInteraction (int regnum, int mood) {
     evblockbasename = "region%d";
     evblocknum = regnum;
 
-    if (thisroom.regionScripts != NULL)
+    if (thisroom.RegionScripts[regnum])
     {
-        run_interaction_script(thisroom.regionScripts[regnum], mood);
+        run_interaction_script(thisroom.RegionScripts[regnum], mood);
     }
     else
     {

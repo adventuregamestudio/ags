@@ -43,7 +43,7 @@ long save_lzw(char *fnn, Common::Bitmap *bmpp, color *pall, long offe);
 /*long load_lzw(char*fnn,Common::Bitmap*bmm,color*pall,long ooff);*/
 long load_lzw(Common::Stream *in, Common::Bitmap *bmm, color *pall);
 long savecompressed_allegro(char *fnn, Common::Bitmap *bmpp, color *pall, long write_at);
-long loadcompressed_allegro(Common::Stream *in, Common::Bitmap **bimpp, color *pall, long read_at);
+long loadcompressed_allegro(Common::Stream *in, Common::Bitmap **bimpp, color *pall);
 
 //extern char *lztempfnm;
 extern Common::Bitmap *recalced;

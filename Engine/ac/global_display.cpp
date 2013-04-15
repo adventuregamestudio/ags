@@ -24,7 +24,6 @@
 #include "ac/global_display.h"
 #include "ac/global_screen.h"
 #include "ac/global_translation.h"
-#include "ac/roomstruct.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
 #include "ac/topbarsettings.h"
@@ -34,7 +33,6 @@
 
 extern TopBarSettings topBar;
 extern GameState play;
-extern roomstruct thisroom;
 extern int display_message_aschar;
 extern int scrnwid,scrnhit;
 extern int screen_is_dirty;
@@ -111,20 +109,20 @@ void DisplayMessageAtY(int msnum, int ypos) {
     while (repeatloop) {
         get_message_text (msnum, msgbufr);
 
-        if (thisroom.msgi[msnum].displayas>0) {
-            DisplaySpeech(msgbufr, thisroom.msgi[msnum].displayas - 1);
+        if (thisroom.MessageInfos[msnum].displayas>0) {
+            DisplaySpeech(msgbufr, thisroom.MessageInfos[msnum].displayas - 1);
         }
         else {
             // time out automatically if they have set that
             int oldGameSkipDisp = play.skip_display;
-            if (thisroom.msgi[msnum].flags & MSG_TIMELIMIT)
+            if (thisroom.MessageInfos[msnum].flags & MSG_TIMELIMIT)
                 play.skip_display = 0;
 
             DisplayAtY(ypos, msgbufr);
 
             play.skip_display = oldGameSkipDisp;
         }
-        if (thisroom.msgi[msnum].flags & MSG_DISPLAYNEXT) {
+        if (thisroom.MessageInfos[msnum].flags & MSG_DISPLAYNEXT) {
             msnum++;
             repeatloop=1;
         }

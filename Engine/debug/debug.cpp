@@ -14,7 +14,6 @@
 
 #include <stdio.h>
 #include "ac/common.h"
-#include "ac/roomstruct.h"
 #include "ac/runtime_defines.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
@@ -22,6 +21,7 @@
 #include "debug/out.h"
 #include "debug/consoleoutputtarget.h"
 #include "debug/rawfileoutputtarget.h"
+#include "game/game_objects.h"
 #include "media/audio/audio.h"
 #include "media/audio/soundclip.h"
 #include "script/script.h"
@@ -35,7 +35,6 @@ using AGS::Common::TextStreamWriter;
 
 extern char check_dynamic_sprites_at_exit;
 extern int displayed_room;
-extern roomstruct thisroom;
 extern char pexbuf[STD_BUFFER_SIZE];
 extern volatile char want_exit, abort_engine;
 extern ccScript* gamescript;
@@ -181,7 +180,7 @@ void debug_write_console (char *msg, ...) {
         char scriptname[20];
         if (curinst->instanceof == gamescript)
             strcpy(scriptname,"G ");
-        else if (curinst->instanceof == thisroom.compiled_script)
+        else if (curinst->instanceof == thisroom.CompiledScript)
             strcpy (scriptname, "R ");
         else if (curinst->instanceof == dialogScriptsScript)
             strcpy(scriptname,"D ");

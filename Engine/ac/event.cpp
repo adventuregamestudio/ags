@@ -23,7 +23,6 @@
 #include "ac/global_screen.h"
 #include "ac/gui.h"
 #include "ac/roomstatus.h"
-#include "ac/roomstruct.h"
 #include "ac/screen.h"
 #include "game/game_objects.h"
 #include "script/cc_error.h"
@@ -40,7 +39,6 @@ using AGS::Common::Bitmap;
 using AGS::Common::Graphics;
 namespace BitmapHelper = Common::BitmapHelper;
 
-extern roomstruct thisroom;
 extern RoomStatus*croom;
 extern int displayed_room;
 extern GameState play;
@@ -113,9 +111,9 @@ void run_on_event (int evtype, RuntimeScriptValue &wparam) {
 void run_room_event(int id) {
     evblockbasename="room";
 
-    if (thisroom.roomScripts != NULL)
+    if (thisroom.RoomScripts != NULL)
     {
-        run_interaction_script(thisroom.roomScripts, id);
+        run_interaction_script(thisroom.RoomScripts, id);
     }
     else
     {
@@ -179,8 +177,8 @@ void process_event(EventHappened*evp) {
 
         if (evp->data1==EVB_HOTSPOT) {
 
-            if (thisroom.hotspotScripts != NULL)
-                scriptPtr = thisroom.hotspotScripts[evp->data2];
+            if (thisroom.HotspotScripts[evp->data2])
+                scriptPtr = thisroom.HotspotScripts[evp->data2];
             else
                 evpt=&croom->intrHotspot[evp->data2];
 
@@ -190,8 +188,8 @@ void process_event(EventHappened*evp) {
         }
         else if (evp->data1==EVB_ROOM) {
 
-            if (thisroom.roomScripts != NULL)
-                scriptPtr = thisroom.roomScripts;
+            if (thisroom.RoomScripts != NULL)
+                scriptPtr = thisroom.RoomScripts;
             else
                 evpt=&croom->intrRoom;
 

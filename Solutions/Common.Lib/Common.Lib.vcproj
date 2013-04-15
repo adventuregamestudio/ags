@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="windows-1251"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="Common.Lib"
 	ProjectGUID="{463A715C-3EF3-47C7-AC7F-D97660149C49}"
 	RootNamespace="CommonLib"
@@ -183,10 +183,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\ac\point.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\roomstruct.cpp"
 					>
 				</File>
 				<File
@@ -397,6 +393,10 @@
 					RelativePath="..\..\Common\game\gameinfo.cpp"
 					>
 				</File>
+				<File
+					RelativePath="..\..\Common\game\roominfo.cpp"
+					>
+				</File>
 			</Filter>
 		</Filter>
 		<Filter
@@ -473,10 +473,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\ac\point.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\ac\roomstruct.h"
 					>
 				</File>
 				<File
@@ -745,6 +741,10 @@
 				>
 				<File
 					RelativePath="..\..\Common\game\gameinfo.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\game\roominfo.h"
 					>
 				</File>
 			</Filter>

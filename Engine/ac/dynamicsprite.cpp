@@ -24,7 +24,6 @@
 #include "ac/objectcache.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
-#include "ac/roomstruct.h"
 #include "debug/debug_log.h"
 #include "game/game_objects.h"
 #include "gui/dynamicarray.h"
@@ -41,7 +40,6 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern SpriteCache spriteset;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
-extern roomstruct thisroom;
 extern DynamicArray<GUIButton> guibuts;
 extern int numguibuts;
 extern RoomObject*objs;
@@ -494,7 +492,7 @@ ScriptDynamicSprite* DynamicSprite_CreateFromBackground(int frame, int x1, int y
     if (frame == SCR_NO_VALUE) {
         frame = play.bg_frame;
     }
-    else if ((frame < 0) || (frame >= thisroom.num_bscenes))
+    else if ((frame < 0) || (frame >= thisroom.BkgSceneCount))
         quit("!DynamicSprite.CreateFromBackground: invalid frame specified");
 
     if (x1 == SCR_NO_VALUE) {
@@ -515,12 +513,12 @@ ScriptDynamicSprite* DynamicSprite_CreateFromBackground(int frame, int x1, int y
         return NULL;
 
     // create a new sprite as a copy of the existing one
-    Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, thisroom.ebscene[frame]->GetColorDepth());
+    Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, thisroom.BackgroundScenes[frame]->GetColorDepth());
     if (newPic == NULL)
         return NULL;
 
     Graphics graphics(newPic);
-    graphics.Blit(thisroom.ebscene[frame], x1, y1, 0, 0, width, height);
+    graphics.Blit(thisroom.BackgroundScenes[frame], x1, y1, 0, 0, width, height);
 
     // replace the bitmap in the sprite set
     add_dynamic_sprite(gotSlot, newPic);

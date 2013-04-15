@@ -20,7 +20,6 @@
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/global_screen.h"
-#include "ac/roomstruct.h"
 #include "ac/runtime_defines.h"
 #include "ac/screen.h"
 #include "debug/debug_log.h"
@@ -34,7 +33,6 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameSetup usetup;
 extern GameState play;
-extern roomstruct thisroom;
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
 extern color palette[256];
@@ -52,7 +50,7 @@ int GetMaxScreenHeight () {
     if ((maxhit == 200) || (maxhit == 400))
     {
         // uh ... BASEHEIGHT depends on Native Coordinates setting so be careful
-        if ((usetup.want_letterbox) && (thisroom.height > maxhit)) 
+        if ((usetup.want_letterbox) && (thisroom.Height > maxhit)) 
             maxhit = divide_down_coordinate(multiply_up_coordinate(maxhit) + get_fixed_pixel_size(40));
     }
     return maxhit;

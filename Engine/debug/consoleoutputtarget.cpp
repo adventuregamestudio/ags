@@ -15,11 +15,10 @@
 #include <stdio.h>
 #include <string.h>
 #include "consoleoutputtarget.h"
-#include "ac/roomstruct.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
+#include "game/game_objects.h"
 
-extern roomstruct thisroom;
 extern ccScript* gamescript;
 extern ccScript* dialogScriptsScript;
 extern int currentline;
@@ -63,7 +62,7 @@ void ConsoleOutputTarget::Out(const char *sz_fullmsg)
         char scriptname[20];
         if (curinst->instanceof == gamescript)
             strcpy(scriptname,"G ");
-        else if (curinst->instanceof == thisroom.compiled_script)
+        else if (curinst->instanceof == thisroom.CompiledScript)
             strcpy (scriptname, "R ");
         else if (curinst->instanceof == dialogScriptsScript)
             strcpy(scriptname,"D ");

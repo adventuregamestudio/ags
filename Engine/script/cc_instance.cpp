@@ -17,13 +17,13 @@
 #include "ac/common.h"
 #include "ac/event.h"
 #include "ac/mouse.h"
-#include "ac/roomstruct.h"
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/managedobjectpool.h"
 #include "script/cc_error.h"
 #include "script/cc_instance.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
+#include "game/game_objects.h"
 #include "script/cc_options.h"
 #include "script/executingscript.h"
 #include "script/script.h"
@@ -46,7 +46,6 @@ extern int gameHasBeenRestored; // in ac/game
 extern ExecutingScript*curscript; // in script/script
 extern int guis_need_update; // in gui/guimain
 extern int displayed_room; // in ac/game
-extern roomstruct thisroom; // ac/game
 extern int maxWhileLoops;
 extern new_line_hook_type new_line_hook;
 
@@ -1491,7 +1490,7 @@ void ccInstance::GetScriptName(char *curScrName) {
         strcpy (curScrName, "Not in a script");
     else if (instanceof == gamescript)
         strcpy (curScrName, "Global script");
-    else if (instanceof == thisroom.compiled_script)
+    else if (instanceof == thisroom.CompiledScript)
         sprintf (curScrName, "Room %d script", displayed_room);
     else
         strcpy (curScrName, "Unknown script");

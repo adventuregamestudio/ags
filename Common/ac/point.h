@@ -20,6 +20,12 @@ using namespace AGS; // FIXME later
 
 struct _Point {
     short x, y;
+
+    _Point()
+        : x(0)
+        , y(0)
+    {
+    }
 };
 
 #define MAXPOINTS 30

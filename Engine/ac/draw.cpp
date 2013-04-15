@@ -33,7 +33,6 @@
 #include "ac/record.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
-#include "ac/roomstruct.h"
 #include "ac/runtime_defines.h"
 #include "ac/screenoverlay.h"
 #include "ac/spritelistentry.h"
@@ -79,7 +78,6 @@ extern int scrnwid,scrnhit;
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern ScriptSystem scsystem;
 extern AGSPlatformDriver *platform;
-extern roomstruct thisroom;
 extern char noWalkBehindsAtAll;
 extern unsigned int loopcounter;
 extern char *walkBehindExists;  // whether a WB area is in this column
@@ -775,7 +773,7 @@ void render_to_screen(Bitmap *toRender, int atx, int aty) {
 
 void clear_letterbox_borders() {
 
-    if (multiply_up_coordinate(thisroom.height) < final_scrn_hit) {
+    if (multiply_up_coordinate(thisroom.Height) < final_scrn_hit) {
         // blank out any traces in borders left by a full-screen room
         gfxDriver->ClearRectangle(0, 0, _old_screen->GetWidth() - 1, get_fixed_pixel_size(20) - 1, NULL);
         gfxDriver->ClearRectangle(0, final_scrn_hit - get_fixed_pixel_size(20), _old_screen->GetWidth() - 1, final_scrn_hit - 1, NULL);
@@ -883,7 +881,7 @@ int sort_out_walk_behinds(Bitmap *sprit,int xx,int yy,int basel, Bitmap *copyPix
     if (noWalkBehindsAtAll)
         return 0;
 
-    if ((!thisroom.object->IsMemoryBitmap()) ||
+    if ((!thisroom.WalkBehindMask->IsMemoryBitmap()) ||
         (!sprit->IsMemoryBitmap()))
         quit("!sort_out_walk_behinds: wb bitmap not linear");
 
@@ -891,7 +889,7 @@ int sort_out_walk_behinds(Bitmap *sprit,int xx,int yy,int basel, Bitmap *copyPix
     // precalculate this to try and shave some time off
     int maskcol = sprit->GetMaskColor();
     int spcoldep = sprit->GetColorDepth();
-    int screenhit = thisroom.object->GetHeight();
+    int screenhit = thisroom.WalkBehindMask->GetHeight();
     short *shptr, *shptr2;
     int *loptr, *loptr2;
     int pixelsChanged = 0;
@@ -903,7 +901,7 @@ int sort_out_walk_behinds(Bitmap *sprit,int xx,int yy,int basel, Bitmap *copyPix
         quit("sprite colour depth does not match background colour depth");
 
     for ( ; ee < sprit->GetWidth(); ee++) {
-        if (ee + xx >= thisroom.object->GetWidth())
+        if (ee + xx >= thisroom.WalkBehindMask->GetWidth())
             break;
 
         if ((!walkBehindExists[ee+xx]) ||
@@ -931,10 +929,10 @@ int sort_out_walk_behinds(Bitmap *sprit,int xx,int yy,int basel, Bitmap *copyPix
         for ( ; rr < toheight;rr++) {
 
             // we're ok with _getpixel because we've checked the screen edges
-            //tmm = _getpixel(thisroom.object,ee+xx,rr+yy);
+            //tmm = _getpixel(thisroom.WalkBehindMask,ee+xx,rr+yy);
             // actually, _getpixel is well inefficient, do it ourselves
             // since we know it's 8-bit bitmap
-            tmm = thisroom.object->GetScanLine(rr+yy)[ee+xx];
+            tmm = thisroom.WalkBehindMask->GetScanLine(rr+yy)[ee+xx];
             if (tmm<1) continue;
             if (croom->walkbehind_base[tmm] <= basel) continue;
 
@@ -1007,10 +1005,10 @@ void sort_out_char_sprite_walk_behind(int actspsIndex, int xx, int yy, int basel
         (actspswbcache[actspsIndex].yWas != yy) ||
         (actspswbcache[actspsIndex].baselineWas != basel))
     {
-        actspswb[actspsIndex] = recycle_bitmap(actspswb[actspsIndex], thisroom.ebscene[play.bg_frame]->GetColorDepth(), width, height, true);
+        actspswb[actspsIndex] = recycle_bitmap(actspswb[actspsIndex], thisroom.BackgroundScenes[play.bg_frame]->GetColorDepth(), width, height, true);
         Bitmap *wbSprite = actspswb[actspsIndex];
 
-        actspswbcache[actspsIndex].isWalkBehindHere = sort_out_walk_behinds(wbSprite, xx, yy, basel, thisroom.ebscene[play.bg_frame], actsps[actspsIndex], zoom);
+        actspswbcache[actspsIndex].isWalkBehindHere = sort_out_walk_behinds(wbSprite, xx, yy, basel, thisroom.BackgroundScenes[play.bg_frame], actsps[actspsIndex], zoom);
         actspswbcache[actspsIndex].xWas = xx;
         actspswbcache[actspsIndex].yWas = yy;
         actspswbcache[actspsIndex].baselineWas = basel;
@@ -1294,12 +1292,12 @@ void get_local_tint(int xpp, int ypp, int nolight,
         }
 
         if ((onRegion > 0) && (onRegion <= MAX_REGIONS)) {
-            light_level = thisroom.regionLightLevel[onRegion];
-            tint_level = thisroom.regionTintLevel[onRegion];
+            light_level = thisroom.RegionLightLevels[onRegion];
+            tint_level = thisroom.RegionTintLevels[onRegion];
         }
         else if (onRegion <= 0) {
-            light_level = thisroom.regionLightLevel[0];
-            tint_level = thisroom.regionTintLevel[0];
+            light_level = thisroom.RegionLightLevels[0];
+            tint_level = thisroom.RegionTintLevels[0];
         }
         if ((game.ColorDepth == 1) || ((tint_level & 0x00ffffff) == 0) ||
             ((tint_level & TINT_IS_ENABLED) == 0))
@@ -1520,7 +1518,7 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
     if (objs[aa].flags & OBJF_USEROOMSCALING) {
         int onarea = get_walkable_area_at_location(objs[aa].x, objs[aa].y);
 
-        if ((onarea <= 0) && (thisroom.walk_area_zoom[0] == 0)) {
+        if ((onarea <= 0) && (thisroom.WalkAreaZoom[0] == 0)) {
             // just off the edge of an area -- use the scaling we had
             // while on the area
             zoom_level = objs[aa].last_zoom;
@@ -1691,7 +1689,7 @@ void prepare_objects_for_drawing() {
     for (aa=0;aa<croom->numobj;aa++) {
         if (objs[aa].on != 1) continue;
         // offscreen, don't draw
-        if ((objs[aa].x >= thisroom.width) || (objs[aa].y < 1))
+        if ((objs[aa].x >= thisroom.Width) || (objs[aa].y < 1))
             continue;
 
         useindx = aa;
@@ -1712,7 +1710,7 @@ void prepare_objects_for_drawing() {
             // ignore walk-behinds, do nothing
             if (walkBehindMethod == DrawAsSeparateSprite)
             {
-                usebasel += thisroom.height;
+                usebasel += thisroom.Height;
             }
         }
         else if (walkBehindMethod == DrawAsSeparateCharSprite) 
@@ -1851,7 +1849,7 @@ void prepare_characters_for_drawing() {
 
         if (chin->flags & CHF_MANUALSCALING)  // character ignores scaling
             zoom_level = charextra[aa].zoom;
-        else if ((onarea <= 0) && (thisroom.walk_area_zoom[0] == 0)) {
+        else if ((onarea <= 0) && (thisroom.WalkAreaZoom[0] == 0)) {
             zoom_level = charextra[aa].zoom;
             if (zoom_level == 0)
                 zoom_level = 100;
@@ -2023,7 +2021,7 @@ void prepare_characters_for_drawing() {
             // ignore walk-behinds, do nothing
             if (walkBehindMethod == DrawAsSeparateSprite)
             {
-                usebasel += thisroom.height;
+                usebasel += thisroom.Height;
             }
         }
         else if (walkBehindMethod == DrawAsSeparateCharSprite) 
@@ -2118,7 +2116,7 @@ void draw_screen_background(Common::Graphics *g) {
         if (roomBackgroundBmp == NULL) 
         {
             update_polled_stuff_if_runtime();
-            roomBackgroundBmp = gfxDriver->CreateDDBFromBitmap(thisroom.ebscene[play.bg_frame], false, true);
+            roomBackgroundBmp = gfxDriver->CreateDDBFromBitmap(thisroom.BackgroundScenes[play.bg_frame], false, true);
 
             if ((walkBehindMethod == DrawAsSeparateSprite) && (walkBehindsCachedForBgNum != play.bg_frame))
             {
@@ -2128,7 +2126,7 @@ void draw_screen_background(Common::Graphics *g) {
         else if (current_background_is_dirty)
         {
             update_polled_stuff_if_runtime();
-            gfxDriver->UpdateDDBFromBitmap(roomBackgroundBmp, thisroom.ebscene[play.bg_frame], false);
+            gfxDriver->UpdateDDBFromBitmap(roomBackgroundBmp, thisroom.BackgroundScenes[play.bg_frame], false);
             current_background_is_dirty = false;
             if (walkBehindMethod == DrawAsSeparateSprite)
             {
@@ -2142,7 +2140,7 @@ void draw_screen_background(Common::Graphics *g) {
         // the following line takes up to 50% of the game CPU time at
         // high resolutions and colour depths - if we can optimise it
         // somehow, significant performance gains to be had
-        update_invalid_region_and_reset(g, -offsetx, -offsety, thisroom.ebscene[play.bg_frame]);
+        update_invalid_region_and_reset(g, -offsetx, -offsety, thisroom.BackgroundScenes[play.bg_frame]);
     }
 
     clear_sprite_list();

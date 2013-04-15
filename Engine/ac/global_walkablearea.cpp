@@ -16,11 +16,10 @@
 #include "ac/common.h"
 #include "ac/common_defines.h"
 #include "ac/draw.h"
-#include "ac/roomstruct.h"
 #include "ac/walkablearea.h"
 #include "debug/debug_log.h"
+#include "game/game_objects.h"
 
-extern roomstruct thisroom;
 extern int offsetx, offsety;
 
 
@@ -47,12 +46,12 @@ void SetAreaScaling(int area, int min, int max) {
     max -= 100;
 
     if (min == max) {
-        thisroom.walk_area_zoom[area] = min;
-        thisroom.walk_area_zoom2[area] = NOT_VECTOR_SCALED;
+        thisroom.WalkAreaZoom[area] = min;
+        thisroom.WalkAreaZoom2[area] = NOT_VECTOR_SCALED;
     }
     else {
-        thisroom.walk_area_zoom[area] = min;
-        thisroom.walk_area_zoom2[area] = max;
+        thisroom.WalkAreaZoom[area] = min;
+        thisroom.WalkAreaZoom2[area] = max;
     }
 }
 
@@ -76,7 +75,7 @@ void RestoreWalkableArea(int areanum) {
 int GetWalkableAreaAt(int xxx,int yyy) {
   xxx += divide_down_coordinate(offsetx);
   yyy += divide_down_coordinate(offsety);
-  if ((xxx>=thisroom.width) | (xxx<0) | (yyy<0) | (yyy>=thisroom.height))
+  if ((xxx>=thisroom.Width) | (xxx<0) | (yyy<0) | (yyy>=thisroom.Height))
     return 0;
   int result = get_walkable_area_pixel(xxx, yyy);
   if (result <= 0)

@@ -21,7 +21,6 @@
 #include "ac/gamestate.h"
 #include "ac/global_character.h"
 #include "ac/math.h"
-#include "ac/roomstruct.h"
 #include "ac/viewframe.h"
 #include "debug/debug_log.h"
 #include "game/game_objects.h"
@@ -36,7 +35,6 @@ extern ViewStruct*views;
 extern int displayed_room;
 extern GameState play;
 extern int char_speaking;
-extern roomstruct thisroom;
 extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
 extern unsigned int loopcounter;
 
@@ -413,20 +411,20 @@ void CharacterInfo::update_character_follower(int &aa, int &numSheep, int *follo
         if (room == displayed_room) {
           // only move to the room-entered position if coming into
           // the current room
-          if (play.entered_at_x > (thisroom.width - 8)) {
-            x = thisroom.width+8;
+          if (play.entered_at_x > (thisroom.Width - 8)) {
+            x = thisroom.Width+8;
             y = play.entered_at_y;
             }
           else if (play.entered_at_x < 8) {
             x = -8;
             y = play.entered_at_y;
             }
-          else if (play.entered_at_y > (thisroom.height - 8)) {
-            y = thisroom.height+8;
+          else if (play.entered_at_y > (thisroom.Height - 8)) {
+            y = thisroom.Height+8;
             x = play.entered_at_x;
             }
-          else if (play.entered_at_y < thisroom.top+8) {
-            y = thisroom.top+1;
+          else if (play.entered_at_y < thisroom.TopEdge+8) {
+            y = thisroom.TopEdge+1;
             x = play.entered_at_x;
             }
           else {

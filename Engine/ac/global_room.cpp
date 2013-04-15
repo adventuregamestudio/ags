@@ -37,7 +37,6 @@ extern int in_leaves_screen;
 extern int in_inv_screen, inv_screen_newroom;
 extern MoveList *mls;
 extern int gs_to_newroom;
-extern roomstruct thisroom;
 
 void SetAmbientTint (int red, int green, int blue, int opacity, int luminance) {
     if ((red < 0) || (green < 0) || (blue < 0) ||
@@ -180,15 +179,15 @@ int HasBeenToRoom (int roomnum) {
 }
 
 int GetRoomProperty (const char *property) {
-    return get_int_property (&thisroom.roomProps, property);
+    return get_int_property (&thisroom.RoomProperties, property);
 }
 
 void GetRoomPropertyText (const char *property, char *bufer) {
-    get_text_property (&thisroom.roomProps, property, bufer);
+    get_text_property (&thisroom.RoomProperties, property, bufer);
 }
 
 void SetBackgroundFrame(int frnum) {
-    if ((frnum<-1) | (frnum>=thisroom.num_bscenes))
+    if ((frnum<-1) | (frnum>=thisroom.BkgSceneCount))
         quit("!SetBackgrondFrame: invalid frame number specified");
     if (frnum<0) {
         play.bg_frame_locked=0;

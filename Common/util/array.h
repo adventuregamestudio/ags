@@ -242,6 +242,21 @@ public:
             in->ReadArray(_meta->Arr, sizeof(T), count);
         }
     }
+    // Reads up to N elements from stream, copying the over existing elements.
+    // It is generally unsafe to use this function for arrays of non-POD types.
+    void ReadRawOver(Stream *in, int from, int count = -1)
+    {
+        if (_meta && _meta->Length > 0 && count != 0 && in)
+        {
+            BecomeUnique();
+            count = count >= 0 ? count : _meta->Length;
+            Math::ClampLength(0, _meta->Length, from, count);
+            if (count > 0)
+            {
+                in->ReadArray(_meta->Arr + from, sizeof(T), count);
+            }
+        }
+    }
     // Write array elements to stream, putting raw bytes from array buffer.
     // It is not recommended to use this function for non-POD types.
     void WriteRaw(Stream *out)
@@ -274,7 +289,32 @@ public:
             Copy(_meta->Length);
         }
     }
-
+    // Add single element at array's end
+    void Append(const T &value)
+    {
+        ReserveAndShift(false, 1);
+        _meta->Arr[_meta->Length++] = value;
+    }
+    // Add number of unitialized elements at array's end
+    void AppendCount(int count)
+    {
+        if (count > 0)
+        {
+            ReserveAndShift(false, count);
+            _meta->Length += count;
+        }
+    }
+    // Add number of elements at array's end and initialize them
+    // with given value
+    void AppendCount(int count, const T &value)
+    {
+        if (count > 0)
+        {
+            ReserveAndShift(false, count);
+            Construct(_meta->Length, _meta->Length + count, value);
+            _meta->Length += count;
+        }
+    }
     // Assign array by sharing data reference
     Array<T> &operator=(const Array<T>& arr)
     {
@@ -306,16 +346,12 @@ public:
 
 protected:
     // Construct number of elements between two array indexes [begin;end)
-    void Construct(int begin, int end, const T *p_value = NULL)
+    void Construct(int begin, int end, const T &value)
     {
         const T *end_ptr = _meta->Arr + end;
-        if (p_value)
+        for (T *elem_ptr = _meta->Arr + begin; elem_ptr != end_ptr; ++elem_ptr)
         {
-            const T &value = *p_value;
-            for (T *elem_ptr = _meta->Arr + begin; elem_ptr < end_ptr; ++elem_ptr)
-            {
-                *elem_ptr = value;
-            }
+            *elem_ptr = value;
         }
     }
     // Creates new empty array with buffer enough to accommodate given length
@@ -381,10 +417,10 @@ protected:
             else
             {
                 // make sure we make use of all of our space
-                const char *arrbuf_head = _data + sizeof(String::Header);
+                const T *arrbuf_head = (const T*)(_data + sizeof(ArrayBase<T>));
                 int free_space = reserve_left ?
                     _meta->Arr - arrbuf_head :
-                (arrbuf_head + _meta->Capacity) - (_meta->Arr + _meta->Length);
+                    (arrbuf_head + _meta->Capacity) - (_meta->Arr + _meta->Length);
                 if (free_space < need_space)
                 {
                     Align(reserve_left ?
@@ -502,7 +538,7 @@ public:
             Free();
             CreateBuffer(count);
         }
-        Construct(0, count, value);
+        Construct(0, count, &value);
         _meta->Length = count;
     }
     // Grows or truncates array to match given N number of elements,
@@ -608,27 +644,6 @@ public:
         }
     }
 
-    // Create new array, reading up to N elements from stream by copying raw
-    // bytes over array buffer.
-    // It is generally unsafe to use this function for arrays of non-POD types.
-    void ReadRaw(Stream *in, int count)
-    {
-        if (in && count > 0)
-        {
-            New(count);
-            in->ReadArray(_meta->Arr, sizeof(T), count);
-        }
-    }
-    // Write array elements to stream, putting raw bytes from array buffer.
-    // It is not recommended to use this function for non-POD types.
-    void WriteRaw(Stream *out)
-    {
-        if (_meta && _meta->Length > 0 && out)
-        {
-            out->WriteArray(_meta->Arr, sizeof(T), _meta->Length);
-        }
-    }
-
     // Ensure string has at least space to store N chars;
     // this does not change string contents, nor length
     void Reserve(int max_length)
@@ -651,7 +666,33 @@ public:
             Copy(_meta->Length);
         }
     }
-
+    // Add single element at array's end
+    void Append(const T &value)
+    {
+        ReserveAndShift(false, 1);
+        new (_meta->Arr + _meta->Length++) T(value);
+    }
+    // Add number of unitialized elements at array's end
+    void AppendCount(int count)
+    {
+        if (count > 0)
+        {
+            ReserveAndShift(false, count);
+            Construct(_meta->Length, _meta->Length + count);
+            _meta->Length += count;
+        }
+    }
+    // Add number of elements at array's end and initialize them
+    // with given value
+    void AppendCount(int count, const T &value)
+    {
+        if (count > 0)
+        {
+            ReserveAndShift(false, count);
+            Construct(_meta->Length, _meta->Length + count, &value);
+            _meta->Length += count;
+        }
+    }
     // Assign array by sharing data reference
     ObjectArray<T> &operator=(const ObjectArray<T>& arr)
     {
@@ -689,14 +730,14 @@ protected:
         if (p_value)
         {
             const T &value = *p_value;
-            for (T *elem_ptr = _meta->Arr + begin; elem_ptr < end_ptr; ++elem_ptr)
+            for (T *elem_ptr = _meta->Arr + begin; elem_ptr != end_ptr; ++elem_ptr)
             {
                 new (elem_ptr) T(value);
             }
         }
         else
         {
-            for (T *elem_ptr = _meta->Arr + begin; elem_ptr < end_ptr; ++elem_ptr)
+            for (T *elem_ptr = _meta->Arr + begin; elem_ptr != end_ptr; ++elem_ptr)
             {
                 new (elem_ptr) T();
             }
@@ -706,7 +747,7 @@ protected:
     void Deconstruct(int begin, int end)
     {
         const T *end_ptr = _meta->Arr + end;
-        for (T *elem_ptr = _meta->Arr + begin; elem_ptr < end_ptr; ++elem_ptr)
+        for (T *elem_ptr = _meta->Arr + begin; elem_ptr != end_ptr; ++elem_ptr)
         {
             elem_ptr->~T();
         }
@@ -728,7 +769,7 @@ protected:
         T *arr_head = (T*)(new_data + sizeof(ArrayBase<T>)) + offset;
         int copy_length = Math::Min(_meta->Length, max_length);
         const T *end_ptr = arr_head + copy_length;
-        for (T *dest_ptr = arr_head, *src_ptr = _meta->Arr; dest_ptr < end_ptr; ++dest_ptr, ++src_ptr)
+        for (T *dest_ptr = arr_head, *src_ptr = _meta->Arr; dest_ptr != end_ptr; ++dest_ptr, ++src_ptr)
         {
             new (dest_ptr) T(*src_ptr);
         }
@@ -809,10 +850,10 @@ protected:
             else
             {
                 // make sure we make use of all of our space
-                const char *arrbuf_head = _data + sizeof(String::Header);
+                T *arrbuf_head = (const T*)(_data + sizeof(ArrayBase<T>));
                 int free_space = reserve_left ?
                     _meta->Arr - arrbuf_head :
-                (arrbuf_head + _meta->Capacity) - (_meta->Arr + _meta->Length);
+                    (arrbuf_head + _meta->Capacity) - (_meta->Arr + _meta->Length);
                 if (free_space < need_space)
                 {
                     Align(reserve_left ?

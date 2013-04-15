@@ -23,7 +23,6 @@
 #include "ac/path.h"
 #include "ac/properties.h"
 #include "ac/roomstatus.h"
-#include "ac/roomstruct.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
 #include "ac/walkablearea.h"
@@ -42,7 +41,6 @@ using AGS::Common::Bitmap;
 extern ScriptObject scrObj[MAX_INIT_SPR];
 extern RoomStatus*croom;
 extern RoomObject*objs;
-extern roomstruct thisroom;
 extern ObjectCache objcache[MAX_INIT_SPR];
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern MoveList *mls;
@@ -218,7 +216,7 @@ const char* Object_GetName_New(ScriptObject *objj) {
     if (!is_valid_object(objj->id))
         quit("!Object.Name: invalid object number");
 
-    return CreateNewScriptString(get_translation(thisroom.objectnames[objj->id]));
+    return CreateNewScriptString(get_translation(thisroom.RoomObjectNames[objj->id]));
 }
 
 void Object_Move(ScriptObject *objj, int x, int y, int speed, int blocking, int direct) {
@@ -364,7 +362,7 @@ void Object_GetPropertyText(ScriptObject *objj, const char *property, char *bufe
     GetObjectPropertyText(objj->id, property, bufer);
 }
 const char* Object_GetTextProperty(ScriptObject *objj, const char *property) {
-    return get_text_property_dynamic_string(&thisroom.objProps[objj->id], property);
+    return get_text_property_dynamic_string(&thisroom.RoomObjectProperties[objj->id], property);
 }
 
 void get_object_blocking_rect(int objid, int *x1, int *y1, int *width, int *y2) {

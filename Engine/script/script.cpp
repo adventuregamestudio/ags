@@ -15,7 +15,6 @@
 #include <string.h>
 #include "script/script.h"
 #include "ac/common.h"
-#include "ac/roomstruct.h"
 #include "ac/character.h"
 #include "ac/dialog.h"
 #include "ac/event.h"
@@ -46,7 +45,6 @@
 #include "util/string_utils.h"
 
 extern GameState play;
-extern roomstruct thisroom;
 extern int gameHasBeenRestored, displayed_room;
 extern unsigned int load_new_game;
 extern RoomObject*objs;

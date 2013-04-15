@@ -20,7 +20,6 @@
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
 #include "ac/lipsync.h"
-#include "ac/roomstruct.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "game/game_objects.h"
@@ -29,7 +28,6 @@
 
 extern GameSetup usetup;
 extern GameState play;
-extern roomstruct thisroom;
 extern char *speech_file;
 extern SpeechLipSyncLine *splipsync;
 extern int numLipLines, curLipLine, curLipLinePhenome;
@@ -79,7 +77,7 @@ void PlayAmbientSound (int channel, int sndnum, int vol, int x, int y) {
     }
     // calculate the maximum distance away the player can be, using X
     // only (since X centred is still more-or-less total Y)
-    ambient[channel].maxdist = ((x > thisroom.width / 2) ? x : (thisroom.width - x)) - AMBIENCE_FULL_DIST;
+    ambient[channel].maxdist = ((x > thisroom.Width / 2) ? x : (thisroom.Width - x)) - AMBIENCE_FULL_DIST;
     ambient[channel].num = sndnum;
     ambient[channel].x = x;
     ambient[channel].y = y;
@@ -304,7 +302,7 @@ int GetMP3PosMillis () {
 void SetMusicVolume(int newvol) {
     if ((newvol < -3) || (newvol > 5))
         quit("!SetMusicVolume: invalid volume number. Must be from -3 to 5.");
-    thisroom.options[ST_VOLUME]=newvol;
+    thisroom.Options[kRoomBaseOpt_MusicVolume]=newvol;
     update_music_volume();
 }
 

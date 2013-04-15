@@ -26,7 +26,6 @@
 #include "ac/record.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
-#include "ac/roomstruct.h"
 #include "game/game_objects.h"
 #include "main/mainheader.h"
 #include "main/update.h"
@@ -43,7 +42,6 @@ using AGS::Common::Graphics;
 extern MoveList *mls;
 extern RoomStatus*croom;
 extern GameState play;
-extern roomstruct thisroom;
 extern RoomObject*objs;
 extern ViewStruct*views;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
@@ -202,10 +200,10 @@ void update_shadow_areas()
   int onwalkarea = get_walkable_area_at_character (game.PlayerCharacterIndex);
   if (onwalkarea<0) ;
   else if (playerchar->flags & CHF_FIXVIEW) ;
-  else { onwalkarea=thisroom.shadinginfo[onwalkarea];
+  else { onwalkarea=thisroom.WalkAreaShadingView[onwalkarea];
     if (onwalkarea>0) playerchar->view=onwalkarea-1;
-    else if (thisroom.options[ST_MANVIEW]==0) playerchar->view=playerchar->defview;
-    else playerchar->view=thisroom.options[ST_MANVIEW]-1;
+    else if (thisroom.Options[kRoomBaseOpt_PlayerCharacterView]==0) playerchar->view=playerchar->defview;
+    else playerchar->view=thisroom.Options[kRoomBaseOpt_PlayerCharacterView]-1;
   }
 }
 

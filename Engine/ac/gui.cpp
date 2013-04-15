@@ -23,7 +23,6 @@
 #include "ac/global_screen.h"
 #include "ac/interfacebutton.h"
 #include "ac/mouse.h"
-#include "ac/roomstruct.h"
 #include "ac/runtime_defines.h"
 #include "ac/dynobj/cc_guiobject.h"
 #include "ac/dynobj/scriptgui.h"
@@ -46,7 +45,6 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 
 extern GameSetup usetup;
-extern roomstruct thisroom;
 extern GUIMain*guis;
 extern GFXFilter *filter;
 extern int cur_mode,cur_cursor;
@@ -92,7 +90,7 @@ int GUI_GetX(ScriptGUI *tehgui) {
 }
 
 void GUI_SetX(ScriptGUI *tehgui, int xx) {
-  if (xx >= thisroom.width)
+  if (xx >= thisroom.Width)
     quit("!GUI.X: co-ordinates specified are out of range.");
 
   guis[tehgui->id].x = multiply_up_coordinate(xx);
@@ -103,7 +101,7 @@ int GUI_GetY(ScriptGUI *tehgui) {
 }
 
 void GUI_SetY(ScriptGUI *tehgui, int yy) {
-  if (yy >= thisroom.height)
+  if (yy >= thisroom.Height)
     quit("!GUI.Y: co-ordinates specified are out of range.");
 
   guis[tehgui->id].y = multiply_up_coordinate(yy);

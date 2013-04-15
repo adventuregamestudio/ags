@@ -18,6 +18,12 @@
 
 using AGS::Common::Stream;
 
+MessageInfo::MessageInfo()
+    : displayas(0)
+    , flags(0)
+{
+}
+
 void MessageInfo::ReadFromFile(Stream *in)
 {
     displayas = in->ReadInt8();

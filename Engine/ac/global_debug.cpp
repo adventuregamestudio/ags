@@ -27,7 +27,6 @@
 #include "ac/movelist.h"
 #include "ac/properties.h"
 #include "ac/record.h"
-#include "ac/roomstruct.h"
 #include "ac/tree_map.h"
 #include "ac/walkablearea.h"
 #include "game/game_objects.h"
@@ -47,7 +46,6 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameSetup usetup;
 extern GameState play;
-extern roomstruct thisroom;
 extern CharacterInfo*playerchar;
 
 extern int convert_16bit_bgr;
@@ -95,7 +93,7 @@ void script_debug(int cmdd,int dataa) {
     }
     else if (cmdd==2) 
     {  // show walkable areas from here
-        Bitmap *tempw=BitmapHelper::CreateBitmap(thisroom.walls->GetWidth(),thisroom.walls->GetHeight());
+        Bitmap *tempw=BitmapHelper::CreateBitmap(thisroom.WalkAreaMask->GetWidth(),thisroom.WalkAreaMask->GetHeight());
         Graphics graphics(tempw);
         graphics.Blit(prepare_walkable_areas(-1),0,0,0,0,tempw->GetWidth(),tempw->GetHeight());
         Bitmap *stretched = BitmapHelper::CreateBitmap(scrnwid, scrnhit);
@@ -144,7 +142,7 @@ void script_debug(int cmdd,int dataa) {
             Display("Not currently moving.");
             return;
         }
-        Bitmap *tempw=BitmapHelper::CreateTransparentBitmap(thisroom.walls->GetWidth(),thisroom.walls->GetHeight());
+        Bitmap *tempw=BitmapHelper::CreateTransparentBitmap(thisroom.WalkAreaMask->GetWidth(),thisroom.WalkAreaMask->GetHeight());
         Graphics graphics(tempw);
         int mlsnum = game.Characters[dataa].walking;
         if (game.Characters[dataa].walking >= TURNING_AROUND)

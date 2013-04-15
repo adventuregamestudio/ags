@@ -15,7 +15,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "ac/common.h"	// quit()
-#include "ac/roomstruct.h"
 #include "util/compress.h"
 #include "util/lzw.h"
 #include "util/misc.h"
@@ -371,6 +370,8 @@ long save_lzw(char *fnn, Bitmap *bmpp, color *pall, long offe) {
   FILE*iii=clibfopen(fnn,"rb");
   Seek(iii,ooff,SEEK_SET);*/
 
+extern int _acroom_bpp; // loaded room color depth
+
 long load_lzw(Stream *in, Common::Bitmap *bmm, color *pall) {
   int          uncompsiz, *loptr;
   unsigned char *membuffer;
@@ -470,7 +471,7 @@ long savecompressed_allegro(char *fnn, Common::Bitmap *bmpp, color *pall, long w
   return toret;
 }
 
-long loadcompressed_allegro(Stream *in, Common::Bitmap **bimpp, color *pall, long read_at) {
+long loadcompressed_allegro(Stream *in, Common::Bitmap **bimpp, color *pall) {
   short widd,hitt;
   int   ii;
 
@@ -494,5 +495,3 @@ long loadcompressed_allegro(Stream *in, Common::Bitmap **bimpp, color *pall, lon
 
   return in->GetPosition();
 }
-
-

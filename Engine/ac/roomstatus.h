@@ -20,6 +20,7 @@
 
 #include "ac/roomobject.h"
 #include "ac/interaction.h"
+#include "core/types.h"
 
 // Forward declaration
 namespace AGS { namespace Common { class Stream; } }

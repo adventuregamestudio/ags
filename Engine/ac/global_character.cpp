@@ -30,7 +30,6 @@
 #include "ac/object.h"
 #include "ac/overlay.h"
 #include "ac/properties.h"
-#include "ac/roomstruct.h"
 #include "ac/screenoverlay.h"
 #include "ac/string.h"
 #include "debug/debug_log.h"
@@ -42,7 +41,6 @@
 extern ViewStruct*views;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern RoomObject*objs;
-extern roomstruct thisroom;
 extern GameState play;
 extern ScriptObject scrObj[MAX_INIT_SPR];
 extern ScriptInvItem scrInv[MAX_INV];
@@ -342,8 +340,8 @@ void MoveCharacterToObject(int chaa,int obbj) {
 void MoveCharacterToHotspot(int chaa,int hotsp) {
     if ((hotsp<0) || (hotsp>=MAX_HOTSPOTS))
         quit("!MovecharacterToHotspot: invalid hotspot");
-    if (thisroom.hswalkto[hotsp].x<1) return;
-    walk_character(chaa,thisroom.hswalkto[hotsp].x,thisroom.hswalkto[hotsp].y,0, true);
+    if (thisroom.HotspotWalkToPoints[hotsp].x<1) return;
+    walk_character(chaa,thisroom.HotspotWalkToPoints[hotsp].x,thisroom.HotspotWalkToPoints[hotsp].y,0, true);
     GameLoopUntilEvent(UNTIL_MOVEEND,(long)&game.Characters[chaa].walking);
 }
 

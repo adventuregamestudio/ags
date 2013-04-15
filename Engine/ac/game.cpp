@@ -49,7 +49,6 @@
 #include "ac/room.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
-#include "ac/roomstruct.h"
 #include "ac/runtime_defines.h"
 #include "ac/screenoverlay.h"
 #include "ac/spritecache.h"
@@ -147,7 +146,6 @@ GameSetup usetup;
 RoomStatus troom;    // used for non-saveable rooms, eg. intro
 RoomObject*objs;
 RoomStatus*croom=NULL;
-roomstruct thisroom;
 
 volatile int switching_away_from_game = 0;
 volatile char want_exit = 0, abort_engine = 0;
@@ -432,7 +430,7 @@ int load_game_and_print_error(int toload) {
 
 void restore_game_dialog() {
     can_run_delayed_command();
-    if (thisroom.options[ST_SAVELOAD] == 1) {
+    if (thisroom.Options[kRoomBaseOpt_SaveLoadDisabled] == 1) {
         DisplayMessage (983);
         return;
     }
@@ -449,7 +447,7 @@ void restore_game_dialog() {
 }
 
 void save_game_dialog() {
-    if (thisroom.options[ST_SAVELOAD] == 1) {
+    if (thisroom.Options[kRoomBaseOpt_SaveLoadDisabled] == 1) {
         DisplayMessage (983);
         return;
     }
@@ -1116,8 +1114,8 @@ void save_game_room_state(Stream *out)
             save_room_data_segment();
 
         // Update the saved interaction variable values
-        for (int ff = 0; ff < thisroom.numLocalVars; ff++)
-            croom->interactionVariableValues[ff] = thisroom.localvars[ff].value;
+        for (int ff = 0; ff < thisroom.LocalVariableCount; ff++)
+            croom->interactionVariableValues[ff] = thisroom.LocalVariables[ff].value;
     }
 
     // write the room state for all the rooms the player has been in
@@ -1219,10 +1217,10 @@ void save_game_audiocliptypes(Stream *out)
 
 void save_game_thisroom(Stream *out)
 {
-    out->WriteArrayOfInt16(&thisroom.regionLightLevel[0],MAX_REGIONS);
-    out->WriteArrayOfInt32(&thisroom.regionTintLevel[0],MAX_REGIONS);
-    out->WriteArrayOfInt16(&thisroom.walk_area_zoom[0],MAX_WALK_AREAS + 1);
-    out->WriteArrayOfInt16(&thisroom.walk_area_zoom2[0],MAX_WALK_AREAS + 1);
+    out->WriteArrayOfInt16(&thisroom.RegionLightLevels[0],MAX_REGIONS);
+    out->WriteArrayOfInt32(&thisroom.RegionTintLevels[0],MAX_REGIONS);
+    out->WriteArrayOfInt16(&thisroom.WalkAreaZoom[0],MAX_WALK_AREAS + 1);
+    out->WriteArrayOfInt16(&thisroom.WalkAreaZoom2[0],MAX_WALK_AREAS + 1);
 }
 
 void save_game_ambientsounds(Stream *out)
@@ -1275,7 +1273,7 @@ void save_game_displayed_room_status(Stream *out)
 
         for (int bb = 0; bb < MAX_BSCENE; bb++) {
             if (play.raw_modified[bb])
-                serialize_bitmap (thisroom.ebscene[bb], out);
+                serialize_bitmap (thisroom.BackgroundScenes[bb], out);
         }
 
         out->WriteInt32 ((raw_saved_screen == NULL) ? 0 : 1);
@@ -1410,7 +1408,7 @@ void save_game_data (Stream *out, Bitmap *screenshot) {
     out->WriteInt32 (MAGICNUMBER);  // to verify the plugins
 
     // save the room music volume
-    out->WriteInt32(thisroom.options[ST_VOLUME]);
+    out->WriteInt32(thisroom.Options[kRoomBaseOpt_MusicVolume]);
 
     ccSerializeAllObjects(out);
 
@@ -2241,7 +2239,7 @@ int restore_game_data (Stream *in, const char *nametouse) {
 
     // restore the correct room volume (they might have modified
     // it with SetMusicVolume)
-    thisroom.options[ST_VOLUME] = newRoomVol;
+    thisroom.Options[kRoomBaseOpt_MusicVolume] = newRoomVol;
 
     filter->SetMouseLimit(oldx1,oldy1,oldx2,oldy2);
 
@@ -2262,19 +2260,19 @@ int restore_game_data (Stream *in, const char *nametouse) {
 
         for (bb = 0; bb < MAX_BSCENE; bb++) {
             if (newbscene[bb]) {
-                delete thisroom.ebscene[bb];
-                thisroom.ebscene[bb] = newbscene[bb];
+                delete thisroom.BackgroundScenes[bb];
+                thisroom.BackgroundScenes[bb] = newbscene[bb];
             }
         }
 
         in_new_room=3;  // don't run "enters screen" events
         // now that room has loaded, copy saved light levels in
-        memcpy(&thisroom.regionLightLevel[0],&saved_light_levels[0],sizeof(short)*MAX_REGIONS);
-        memcpy(&thisroom.regionTintLevel[0],&saved_tint_levels[0],sizeof(int)*MAX_REGIONS);
+        memcpy(&thisroom.RegionLightLevels[0],&saved_light_levels[0],sizeof(short)*MAX_REGIONS);
+        memcpy(&thisroom.RegionTintLevels[0],&saved_tint_levels[0],sizeof(int)*MAX_REGIONS);
         generate_light_table();
 
-        memcpy(&thisroom.walk_area_zoom[0], &saved_zoom_levels1[0], sizeof(short) * (MAX_WALK_AREAS + 1));
-        memcpy(&thisroom.walk_area_zoom2[0], &saved_zoom_levels2[0], sizeof(short) * (MAX_WALK_AREAS + 1));
+        memcpy(&thisroom.WalkAreaZoom[0], &saved_zoom_levels1[0], sizeof(short) * (MAX_WALK_AREAS + 1));
+        memcpy(&thisroom.WalkAreaZoom2[0], &saved_zoom_levels2[0], sizeof(short) * (MAX_WALK_AREAS + 1));
 
         on_background_frame_change();
 
@@ -2576,7 +2574,7 @@ int __GetLocationType(int xxx,int yyy, int allowHotspot0) {
 
     xxx += divide_down_coordinate(offsetx);
     yyy += divide_down_coordinate(offsety);
-    if ((xxx>=thisroom.width) | (xxx<0) | (yyy<0) | (yyy>=thisroom.height))
+    if ((xxx>=thisroom.Width) | (xxx<0) | (yyy<0) | (yyy>=thisroom.Height))
         return 0;
 
     // check characters, objects and walkbehinds, work out which is
@@ -2587,7 +2585,7 @@ int __GetLocationType(int xxx,int yyy, int allowHotspot0) {
 
     multiply_up_coordinates(&xxx, &yyy);
 
-    int wbat = thisroom.object->GetPixel(xxx, yyy);
+    int wbat = thisroom.WalkBehindMask->GetPixel(xxx, yyy);
 
     if (wbat <= 0) wbat = 0;
     else wbat = croom->walkbehind_base[wbat];
@@ -2747,7 +2745,7 @@ void get_message_text (int msnum, char *buffer, char giveErr) {
         replace_tokens(get_translation(game.GlobalMessages[msnum-500]), buffer, maxlen);
         return;
     }
-    else if (msnum >= thisroom.nummes) {
+    else if (msnum >= thisroom.MessageCount) {
         if (giveErr)
             quit("!DisplayMessage: Invalid message number to display");
         buffer[0] = 0;
@@ -2755,13 +2753,13 @@ void get_message_text (int msnum, char *buffer, char giveErr) {
     }
 
     buffer[0]=0;
-    replace_tokens(get_translation(thisroom.message[msnum]), buffer, maxlen);
+    replace_tokens(get_translation(thisroom.Messages[msnum]), buffer, maxlen);
 }
 
 InteractionVariable *get_interaction_variable (int varindx) {
 
-    if ((varindx >= LOCAL_VARIABLE_OFFSET) && (varindx < LOCAL_VARIABLE_OFFSET + thisroom.numLocalVars))
-        return &thisroom.localvars[varindx - LOCAL_VARIABLE_OFFSET];
+    if ((varindx >= LOCAL_VARIABLE_OFFSET) && (varindx < LOCAL_VARIABLE_OFFSET + thisroom.LocalVariableCount))
+        return &thisroom.LocalVariables[varindx - LOCAL_VARIABLE_OFFSET];
 
     if ((varindx < 0) || (varindx >= numGlobalVars))
         quit("!invalid interaction variable specified");
@@ -2775,9 +2773,9 @@ InteractionVariable *FindGraphicalVariable(const char *varName) {
         if (stricmp (globalvars[ii].name, varName) == 0)
             return &globalvars[ii];
     }
-    for (ii = 0; ii < thisroom.numLocalVars; ii++) {
-        if (stricmp (thisroom.localvars[ii].name, varName) == 0)
-            return &thisroom.localvars[ii];
+    for (ii = 0; ii < thisroom.LocalVariableCount; ii++) {
+        if (stricmp (thisroom.LocalVariables[ii].name, varName) == 0)
+            return &thisroom.LocalVariables[ii];
     }
     return NULL;
 }

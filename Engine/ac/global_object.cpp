@@ -28,7 +28,6 @@
 #include "ac/properties.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
-#include "ac/roomstruct.h"
 #include "ac/string.h"
 #include "ac/viewframe.h"
 #include "debug/debug_log.h"
@@ -47,7 +46,6 @@ extern RoomStatus*croom;
 extern RoomObject*objs;
 extern ViewStruct*views;
 extern ObjectCache objcache[MAX_INIT_SPR];
-extern roomstruct thisroom;
 extern CharacterInfo*playerchar;
 extern int displayed_room;
 extern SpriteCache spriteset;
@@ -252,8 +250,8 @@ void MergeObject(int obn) {
     construct_object_gfx(obn, NULL, &theHeight, true);
 
     //Bitmap *oldabuf = graphics->bmp;
-    //abuf = thisroom.ebscene[play.bg_frame];
-    Common::Graphics graphics(thisroom.ebscene[play.bg_frame]);
+    //abuf = thisroom.BackgroundScenes[play.bg_frame];
+    Common::Graphics graphics(thisroom.BackgroundScenes[play.bg_frame]);
     if (graphics.GetBitmap()->GetColorDepth() != actsps[obn]->GetColorDepth())
         quit("!MergeObject: unable to merge object due to color depth differences");
 
@@ -355,7 +353,7 @@ void GetObjectName(int obj, char *buffer) {
     if (!is_valid_object(obj))
         quit("!GetObjectName: invalid object number");
 
-    strcpy(buffer, get_translation(thisroom.objectnames[obj]));
+    strcpy(buffer, get_translation(thisroom.RoomObjectNames[obj]));
 }
 
 void MoveObject(int objj,int xx,int yy,int spp) {
@@ -398,14 +396,14 @@ void RunObjectInteraction (int aa, int mood) {
     play.usedinv=cdata; }
     evblockbasename="object%d"; evblocknum=aa;
 
-    if (thisroom.objectScripts != NULL) 
+    if (thisroom.RoomObjectScripts[aa])
     {
         if (passon>=0) 
         {
-            if (run_interaction_script(thisroom.objectScripts[aa], passon, 4, (passon == 3)))
+            if (run_interaction_script(thisroom.RoomObjectScripts[aa], passon, 4, (passon == 3)))
                 return;
         }
-        run_interaction_script(thisroom.objectScripts[aa], 4);  // any click on obj
+        run_interaction_script(thisroom.RoomObjectScripts[aa], 4);  // any click on obj
     }
     else
     {
@@ -483,11 +481,11 @@ int AreThingsOverlapping(int thing1, int thing2) {
 int GetObjectProperty (int hss, const char *property) {
     if (!is_valid_object(hss))
         quit("!GetObjectProperty: invalid object");
-    return get_int_property (&thisroom.objProps[hss], property);
+    return get_int_property (&thisroom.RoomObjectProperties[hss], property);
 }
 
 void GetObjectPropertyText (int item, const char *property, char *bufer) {
-    get_text_property (&thisroom.objProps[item], property, bufer);
+    get_text_property (&thisroom.RoomObjectProperties[item], property, bufer);
 }
 
 Bitmap *GetObjectImage(int obj, int *isFlipped) 

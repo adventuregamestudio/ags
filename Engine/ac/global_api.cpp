@@ -2060,7 +2060,11 @@ RuntimeScriptValue Sc_StopObjectMoving(const RuntimeScriptValue *params, int32_t
 // void (char*s1,char*s2)
 RuntimeScriptValue Sc_sc_strcat(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_POBJ2(_sc_strcat, char, const char);
+    ASSERT_PARAM_COUNT(_sc_strcat, 2);
+    _sc_strcat((char*)params[0].Ptr, (const char*)params[1].Ptr);
+    // NOTE: tests with old (<= 2.60) AGS show that StrCat returned the second string
+    // (could be result of UB, but we are doing this for more accurate emulation)
+    return params[1];
 }
 
 RuntimeScriptValue Sc_stricmp(const RuntimeScriptValue *params, int32_t param_count)
@@ -2084,7 +2088,9 @@ RuntimeScriptValue Sc_StrContains(const RuntimeScriptValue *params, int32_t para
 // void (char*s1, const char*s2);
 RuntimeScriptValue Sc_sc_strcpy(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_POBJ2(_sc_strcpy, char, const char);
+    ASSERT_PARAM_COUNT(_sc_strcpy, 2);
+    _sc_strcpy((char*)params[0].Ptr, (const char*)params[1].Ptr);
+    return params[0];
 }
 
 // void (char*destt, const char*texx, ...);
@@ -2092,7 +2098,7 @@ RuntimeScriptValue Sc_sc_sprintf(const RuntimeScriptValue *params, int32_t param
 {
     API_SCALL_SCRIPT_SPRINTF(_sc_sprintf, 2);
     _sc_sprintf(params[0].Ptr, "%s", scsf_buffer);
-    return RuntimeScriptValue();
+    return params[0];
 }
 
 // int  (char *strin, int posn)
@@ -2116,19 +2122,25 @@ RuntimeScriptValue Sc_strlen(const RuntimeScriptValue *params, int32_t param_cou
 // void  (char *strin, int posn, int nchar)
 RuntimeScriptValue Sc_StrSetCharAt(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_POBJ_PINT2(StrSetCharAt, char);
+    ASSERT_PARAM_COUNT(StrSetCharAt, 3) \
+    StrSetCharAt((char*)params[0].Ptr, params[1].IValue, params[2].IValue);
+    return params[0];
 }
 
 // void  (char *desbuf)
 RuntimeScriptValue Sc_sc_strlower(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_POBJ(_sc_strlower, char);
+    ASSERT_PARAM_COUNT(_sc_strlower, 1);
+    _sc_strlower((char*)params[0].Ptr);
+    return params[0];
 }
 
 // void  (char *desbuf)
 RuntimeScriptValue Sc_sc_strupper(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_POBJ(_sc_strupper, char);
+    ASSERT_PARAM_COUNT(_sc_strupper, 1);
+    _sc_strupper((char*)params[0].Ptr);
+    return params[0];
 }
 
 // void (int red, int grn, int blu)

@@ -159,14 +159,13 @@ namespace AGS.Types
         public void SaveToDisk()
         {
             if (_modified)
-            {
-                _lastSavedAt = DateTime.Now;
-
+            {                
                 // Ensure that the file gets written in 8-bit ANSI
                 byte[] bytes = Encoding.Default.GetBytes(_text);
                 using (BinaryWriter binWriter = new BinaryWriter(File.Open(_fileName, FileMode.Create)))
                 {
                     binWriter.Write(bytes);
+                    _lastSavedAt = DateTime.Now;
                 }
 
                 _modified = false;

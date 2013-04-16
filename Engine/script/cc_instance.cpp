@@ -1058,6 +1058,10 @@ int ccInstance::Run(int32_t curpc)
           // If there are nested CALLAS calls, the stack might
           // contain 2 calls worth of parameters, so only
           // push args for this call
+          if (num_args_to_func < 0)
+          {
+              num_args_to_func = func_callstack.Count;
+          }
           ASSERT_STACK_SPACE_AVAILABLE(num_args_to_func + 1 /* return address */);
           for (const RuntimeScriptValue *prval = func_callstack.GetHead() + num_args_to_func;
                prval > func_callstack.GetHead(); --prval)

@@ -68,9 +68,9 @@ void SetAreaLightLevel(int area, int brightness) {
         quit("!SetAreaLightLevel: invalid region");
     if (brightness < -100) brightness = -100;
     if (brightness > 100) brightness = 100;
-    thisroom.RegionLightLevels[area] = brightness;
+    thisroom.Regions[area].Light = brightness;
     // disable RGB tint for this area
-    thisroom.RegionTintLevels[area] &= ~TINT_IS_ENABLED;
+    thisroom.Regions[area].Tint &= ~TINT_IS_ENABLED;
     generate_light_table();
     DEBUG_CONSOLE("Region %d light level set to %d", area, brightness);
 }
@@ -101,11 +101,11 @@ void SetRegionTint (int area, int red, int green, int blue, int amount) {
     unsigned char rgreen = green;
     unsigned char rblue = blue;
 
-    thisroom.RegionTintLevels[area] = TINT_IS_ENABLED;
-    thisroom.RegionTintLevels[area] |= rred & 0x000000ff;
-    thisroom.RegionTintLevels[area] |= (int(rgreen) << 8) & 0x0000ff00;
-    thisroom.RegionTintLevels[area] |= (int(rblue) << 16) & 0x00ff0000;
-    thisroom.RegionLightLevels[area] = amount;
+    thisroom.Regions[area].Tint = TINT_IS_ENABLED;
+    thisroom.Regions[area].Tint |= rred & 0x000000ff;
+    thisroom.Regions[area].Tint |= (int(rgreen) << 8) & 0x0000ff00;
+    thisroom.Regions[area].Tint |= (int(rblue) << 16) & 0x00ff0000;
+    thisroom.Regions[area].Light = amount;
 }
 
 void DisableRegion(int hsnum) {
@@ -158,9 +158,9 @@ void RunRegionInteraction (int regnum, int mood) {
     evblockbasename = "region%d";
     evblocknum = regnum;
 
-    if (thisroom.RegionScripts[regnum])
+    if (thisroom.Regions[regnum].EventHandlers.ScriptFnRef)
     {
-        run_interaction_script(thisroom.RegionScripts[regnum], mood);
+        run_interaction_script(thisroom.Regions[regnum].EventHandlers.ScriptFnRef, mood);
     }
     else
     {

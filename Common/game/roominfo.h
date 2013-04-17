@@ -95,7 +95,8 @@ enum RoomBaseOptions
     kRoomBaseOpt_SaveLoadDisabled,
     kRoomBaseOpt_PlayerCharacterDisabled,
     kRoomBaseOpt_PlayerCharacterView,
-    kRoomBaseOpt_MusicVolume
+    kRoomBaseOpt_MusicVolume,
+    MAX_ROOM_BASE_OPTIONS   = 10
 };
 
 #define NOT_VECTOR_SCALED -10000
@@ -110,16 +111,85 @@ namespace Common
 class Bitmap;
 class Stream;
 
+struct RoomBackgroundInfo
+{
+    Bitmap      *Graphic;
+    color       Palette[256];
+    char        PaletteShared; // used internally by engine atm
+
+    RoomBackgroundInfo();
+    RoomBackgroundInfo(const RoomBackgroundInfo &bkg_info);
+    ~RoomBackgroundInfo();
+};
+
+struct RoomEdgeInfo
+{
+    int16_t Left;
+    int16_t Right;
+    int16_t Top;
+    int16_t Bottom;
+};
+
+struct RoomHotspotInfo
+{
+    String          Name;
+    String          ScriptName;
+    CustomProperties Properties;
+    EventHandler    EventHandlers; 
+
+    _Point          WalkToPoint;
+};
+
 struct RoomObjectInfo
 {
-    int16_t     Id;
-    int16_t     X;
-    int16_t     Y;
-    int16_t     RoomIndex;
-    bool        IsOn;
+    int16_t         Id;
+    int16_t         X;
+    int16_t         Y;
+    int16_t         RoomIndex;
+    bool            IsOn;
+
+    EventHandler    EventHandlers;
+    int32_t         Baseline; // or -1 (use bottom of object graphic)
+    int16_t         Flags;
+    String          Name;
+    String          ScriptName;
+    CustomProperties Properties;
 
     RoomObjectInfo();
     void ReadFromFile(Common::Stream *in);
+};
+
+struct RoomRegionInfo
+{
+    String          Name;
+    String          ScriptName;
+    CustomProperties Properties;
+    EventHandler    EventHandlers; 
+
+    int16_t         Light;
+    int32_t         Tint;
+
+    RoomRegionInfo();
+};
+
+struct WalkAreaInfo
+{
+    int16_t     ShadingView; // walkable area-specific view number
+    PolyPoints  WallPoints; // not used anywhere
+    int16_t     Zoom;       // 0 = 100%, 1 = 101%, -1 = 99%
+    int16_t     Zoom2;      // for vector scaled areas
+    int16_t     Light;      // 0 = normal, + lighter, - darker
+    int16_t     Top;        // top YP of area
+    int16_t     Bottom;     // bottom YP of area
+
+    WalkAreaInfo();
+};
+
+struct WalkBehindInfo
+{
+    int16_t Baseline;
+
+    WalkBehindInfo();
 };
 
 enum RoomInfoError
@@ -187,81 +257,48 @@ private:
 
 // TODO: all members are currently public; hide them later
 public:
-    int32_t     GameId;
+    int16_t                 LoadedVersion; // when loaded from file
+    int32_t                 GameId;
+
     // in 320x200 terms (scrolling room size)
-    int16_t     Width;
-    int16_t     Height;
-    int16_t     Resolution; // 1 = 320x200, 2 = 640x400
+    int16_t                 Width;
+    int16_t                 Height;
+    int16_t                 Resolution; // 1 = 320x200, 2 = 640x400
+    int32_t                 BytesPerPixel;
+    color                   Palette[256];
     
-    int16_t     LeftEdge;
-    int16_t     RightEdge;
-    int16_t     TopEdge;
-    int16_t     BottomEdge;
+    ObjectArray<RoomBackgroundInfo> Backgrounds;
+    int32_t                 BkgSceneAnimSpeed;
+    RoomEdgeInfo            Edges;
+
+    Bitmap                  *HotspotMask;
+    Bitmap                  *RegionMask;
+    Bitmap                  *WalkAreaMask;
+    Bitmap                  *WalkBehindMask;
+    ObjectArray<RoomHotspotInfo> Hotspots;
+    ObjectArray<RoomObjectInfo>  Objects;
+    ObjectArray<RoomRegionInfo>  Regions;
+    ObjectArray<WalkAreaInfo>    WalkAreas;
+    ObjectArray<WalkBehindInfo>  WalkBehinds;
 
     String                  Password;
-    int8_t                  Options[10]; // [0]=startup music
+    int8_t                  Options[MAX_ROOM_BASE_OPTIONS];
     ObjectArray<String>     Messages;
     ObjectArray<MessageInfo> MessageInfos;
-    int16_t                 LoadedVersion; // when loaded from file
 
-    Bitmap      *WalkAreaMask;
-    Bitmap      *WalkBehindMask;
-    Bitmap      *HotspotMask;
-    Bitmap      *RegionMask;
-    color       Palette[256];
-    
-    ObjectArray<RoomObjectInfo> RoomObjects;
-    Array<NewInteraction*>  RoomObjectInteractions;
-    Array<InteractionScripts*> RoomObjectScripts;
-    Array<int32_t>          RoomObjectBaselines; // or -1 (use bottom of object graphic)
-    Array<int16_t>          RoomObjectFlags;
-    ObjectArray<String>     RoomObjectNames;
-    ObjectArray<String>     RoomObjectScriptNames;
-    ObjectArray<CustomProperties> RoomObjectProperties;
-    
-    Array<int16_t>  WalkBehindBaselines;
-
-    Array<int16_t>  WalkAreaShadingView; // walkable area-specific view number
-    Array<int16_t>  WalkAreaZoom; // 0 = 100%, 1 = 101%, -1 = 99%
-    Array<int16_t>  WalkAreaZoom2; // for vector scaled areas
-    Array<int16_t>  WalkAreaLight; // 0 = normal, + lighter, - darker
-    Array<int16_t>  WalkAreaTop; // top YP of area
-    Array<int16_t>  WalkAreaBottom; // bottom YP of area
-    // new version 2 roommake stuff below
-    ObjectArray<PolyPoints> WallPoints; // not used anywhere
-    
-    ObjectArray<_Point>     HotspotWalkToPoints;
-    ObjectArray<String>     HotspotNames;
-    ObjectArray<String>     HotspotScriptNames;
-    Array<NewInteraction*>  HotspotInteractions;
-    Array<InteractionScripts*>  HotspotScripts;
-    ObjectArray<CustomProperties> HotspotProperties;
-
-    Array<int16_t>          RegionLightLevels;
-    Array<int32_t>          RegionTintLevels;
-    Array<NewInteraction*>  RegionInteractions;
-    Array<InteractionScripts*> RegionScripts;
-
-    NewInteraction*         RoomInteraction;
-    InteractionScripts *    RoomScripts;
-    
-    char            *TextScripts;
-    ccScript        *CompiledScript;
-    bool            CompiledScriptShared;
-    int32_t         CompiledScriptSize;
-    
-    int32_t         BkgSceneAnimSpeed;
-    int32_t         BytesPerPixel;
-    Array<Bitmap*>  BackgroundScenes;
-    Array<color[256]> BkgScenePalettes;
-    Array<char>     BkgScenePaletteShared;  // used internally by engine atm
+    EventHandler            EventHandlers;
     Array<InteractionVariable> LocalVariables;
-    CustomProperties RoomProperties;
+    CustomProperties        Properties;
+
+    char                    *TextScript;
+    ccScript                *CompiledScript;
+    bool                    CompiledScriptShared;
+    int32_t                 CompiledScriptSize;
 
     // TODO: remove these, after refactoring the game load process
     // and making separate structs for every room entity type
     int16_t WalkBehindCount;
-    int16_t RoomObjectCount;
+    int16_t ObjectCount;
     int16_t MessageCount;
     int16_t AnimationCount;
     int32_t WalkAreaCount;
@@ -274,4 +311,4 @@ public:
 } // namespace Common
 } // namespace AGS
 
-#endif // __AGS_CN_GAME__AGSGAME_H
+#endif // __AGS_CN_GAME__AGSROOM_H

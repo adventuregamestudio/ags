@@ -179,11 +179,11 @@ int HasBeenToRoom (int roomnum) {
 }
 
 int GetRoomProperty (const char *property) {
-    return get_int_property (&thisroom.RoomProperties, property);
+    return get_int_property (&thisroom.Properties, property);
 }
 
 void GetRoomPropertyText (const char *property, char *bufer) {
-    get_text_property (&thisroom.RoomProperties, property, bufer);
+    get_text_property (&thisroom.Properties, property, bufer);
 }
 
 void SetBackgroundFrame(int frnum) {

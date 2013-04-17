@@ -784,8 +784,8 @@ protected:
     void Align(int offset)
     {
         T *arr_head = (T*)(_data + sizeof(ArrayBase<T>)) + offset;
-        const T *dst_end_ptr = arr_head + _meta->Length;
-        const T *src_end_ptr = _meta->Arr + _meta->Length;
+        T *dst_end_ptr = arr_head + _meta->Length;
+        T *src_end_ptr = _meta->Arr + _meta->Length;
         if (arr_head < _meta->Arr)
         {
             T *dest_ptr = arr_head;
@@ -850,7 +850,7 @@ protected:
             else
             {
                 // make sure we make use of all of our space
-                T *arrbuf_head = (const T*)(_data + sizeof(ArrayBase<T>));
+                const T *arrbuf_head = (const T*)(_data + sizeof(ArrayBase<T>));
                 int free_space = reserve_left ?
                     _meta->Arr - arrbuf_head :
                     (arrbuf_head + _meta->Capacity) - (_meta->Arr + _meta->Length);

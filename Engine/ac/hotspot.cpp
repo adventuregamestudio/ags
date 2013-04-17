@@ -68,7 +68,7 @@ void Hotspot_GetName(ScriptHotspot *hss, char *buffer) {
 }
 
 const char* Hotspot_GetName_New(ScriptHotspot *hss) {
-    return CreateNewScriptString(get_translation(thisroom.HotspotNames[hss->id]));
+    return CreateNewScriptString(get_translation(thisroom.Hotspots[hss->id].Name));
 }
 
 void Hotspot_RunInteraction (ScriptHotspot *hss, int mood) {
@@ -76,16 +76,16 @@ void Hotspot_RunInteraction (ScriptHotspot *hss, int mood) {
 }
 
 int Hotspot_GetProperty (ScriptHotspot *hss, const char *property) {
-    return get_int_property (&thisroom.HotspotProperties[hss->id], property);
+    return get_int_property (&thisroom.Hotspots[hss->id].Properties, property);
 }
 
 void Hotspot_GetPropertyText (ScriptHotspot *hss, const char *property, char *bufer) {
-    get_text_property (&thisroom.HotspotProperties[hss->id], property, bufer);
+    get_text_property (&thisroom.Hotspots[hss->id].Properties, property, bufer);
 
 }
 
 const char* Hotspot_GetTextProperty(ScriptHotspot *hss, const char *property) {
-    return get_text_property_dynamic_string(&thisroom.HotspotProperties[hss->id], property);
+    return get_text_property_dynamic_string(&thisroom.Hotspots[hss->id].Properties, property);
 }
 
 int get_hotspot_at(int xpp,int ypp) {

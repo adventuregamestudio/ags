@@ -200,7 +200,7 @@ void update_shadow_areas()
   int onwalkarea = get_walkable_area_at_character (game.PlayerCharacterIndex);
   if (onwalkarea<0) ;
   else if (playerchar->flags & CHF_FIXVIEW) ;
-  else { onwalkarea=thisroom.WalkAreaShadingView[onwalkarea];
+  else { onwalkarea=thisroom.WalkAreas[onwalkarea].ShadingView;
     if (onwalkarea>0) playerchar->view=onwalkarea-1;
     else if (thisroom.Options[kRoomBaseOpt_PlayerCharacterView]==0) playerchar->view=playerchar->defview;
     else playerchar->view=thisroom.Options[kRoomBaseOpt_PlayerCharacterView]-1;

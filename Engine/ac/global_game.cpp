@@ -573,14 +573,14 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
     // on object
     if (loctype == LOCTYPE_OBJ) {
         aa = getloctype_index;
-        strcpy(tempo,get_translation(thisroom.RoomObjectNames[aa]));
+        strcpy(tempo,get_translation(thisroom.Objects[aa].Name));
         if (play.get_loc_name_last_time != 3000+aa)
             guis_need_update = 1;
         play.get_loc_name_last_time = 3000+aa;
         return;
     }
     onhs = getloctype_index;
-    if (onhs>0) strcpy(tempo,get_translation(thisroom.HotspotNames[onhs]));
+    if (onhs>0) strcpy(tempo,get_translation(thisroom.Hotspots[onhs].Name));
     if (play.get_loc_name_last_time != onhs)
         guis_need_update = 1;
     play.get_loc_name_last_time = onhs;
@@ -782,11 +782,11 @@ void ProcessClick(int xx,int yy,int mood) {
     if ((mood==MODE_WALK) && (game.Options[OPT_NOWALKMODE]==0)) {
         int hsnum=get_hotspot_at(xx,yy);
         if (hsnum<1) ;
-        else if (thisroom.HotspotWalkToPoints[hsnum].x<1) ;
+        else if (thisroom.Hotspots[hsnum].WalkToPoint.x<1) ;
         else if (play.auto_use_walkto_points == 0) ;
         else {
-            xx=thisroom.HotspotWalkToPoints[hsnum].x;
-            yy=thisroom.HotspotWalkToPoints[hsnum].y;
+            xx=thisroom.Hotspots[hsnum].WalkToPoint.x;
+            yy=thisroom.Hotspots[hsnum].WalkToPoint.y;
             DEBUG_CONSOLE("Move to walk-to point hotspot %d", hsnum);
         }
         walk_character(game.PlayerCharacterIndex,xx,yy,0, true);

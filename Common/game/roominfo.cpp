@@ -18,12 +18,32 @@ namespace AGS
 namespace Common
 {
 
+RoomBackgroundInfo::RoomBackgroundInfo()
+    : Graphic(NULL)
+    , PaletteShared(0)
+{
+}
+
+RoomBackgroundInfo::RoomBackgroundInfo(const RoomBackgroundInfo &bkg_info)
+{
+    Graphic = BitmapHelper::CreateBitmapReference(bkg_info.Graphic);
+    memcpy(Palette, bkg_info.Palette, sizeof(Palette));
+    PaletteShared = bkg_info.PaletteShared;
+}
+
+RoomBackgroundInfo::~RoomBackgroundInfo()
+{
+    delete Graphic;
+}
+
 RoomObjectInfo::RoomObjectInfo()
     : Id(0)
     , X(0)
     , Y(0)
     , RoomIndex(-1)
     , IsOn(false)
+    , Baseline(0xFF)
+    , Flags(0)
 {
 }
 
@@ -36,14 +56,33 @@ void RoomObjectInfo::ReadFromFile(Common::Stream *in)
     IsOn = in->ReadInt16() ? true : false;
 }
 
+RoomRegionInfo::RoomRegionInfo()
+    : Light(0)
+    , Tint(0)
+{
+}
+
+WalkAreaInfo::WalkAreaInfo()
+    : ShadingView(0)
+    , Zoom(0)
+    , Zoom2(NOT_VECTOR_SCALED)
+    , Light(0)
+    , Top(-1)
+    , Bottom(-1)
+{
+}
+
+WalkBehindInfo::WalkBehindInfo()
+    : Baseline(0)
+{
+}
+
 RoomInfo::RoomInfo()
-    : WalkAreaMask(NULL)
-    , WalkBehindMask(NULL)
-    , HotspotMask(NULL)
+    : HotspotMask(NULL)
     , RegionMask(NULL)
-    , RoomInteraction(NULL)
-    , RoomScripts(NULL)
-    , TextScripts(NULL)
+    , WalkAreaMask(NULL)
+    , WalkBehindMask(NULL)
+    , TextScript(NULL)
     , CompiledScript(NULL)
 {
     InitDefaults();
@@ -114,91 +153,39 @@ RoomInfo::~RoomInfo()
 
 void RoomInfo::Free()
 {
-    delete WalkAreaMask;
-    delete WalkBehindMask;
+    Backgrounds.Free();
     delete HotspotMask;
     delete RegionMask;
-    WalkAreaMask = NULL;
-    WalkBehindMask = NULL;
+    delete WalkAreaMask;
+    delete WalkBehindMask;
     HotspotMask = NULL;
     RegionMask = NULL;
+    WalkAreaMask = NULL;
+    WalkBehindMask = NULL;
+    Hotspots.Free();
+    Objects.Free();
+    Regions.Free();
+    WalkAreas.Free();
+    WalkBehinds.Free();
     
-    WalkBehindBaselines.Free();
-    RoomObjects.Free();
-    for (int i = 0; i < RoomObjectInteractions.GetCount(); ++i)
-    {
-        delete RoomObjectInteractions[i];
-    }
-    RoomObjectInteractions.Free();
-    for (int i = 0; i < RoomObjectScripts.GetCount(); ++i)
-    {
-        delete RoomObjectScripts[i];
-    }
-    RoomObjectScripts.Free();
-    RoomObjectBaselines.Free();
-    RoomObjectFlags.Free();
-    RoomObjectNames.Free();
-    RoomObjectScriptNames.Free();
-    RoomObjectProperties.Free();
     Password.Free();
     Messages.Free();
     MessageInfos.Free();
     
-    WalkAreaShadingView.Free();
-    WallPoints.Free();
-    HotspotWalkToPoints.Free();
-    HotspotNames.Free();
-    HotspotScriptNames.Free();
-    for (int i = 0; i < HotspotInteractions.GetCount(); ++i)
-    {
-        delete HotspotInteractions[i];
-    }
-    HotspotInteractions.Free();
-    for (int i = 0; i < RegionInteractions.GetCount(); ++i)
-    {
-        delete RegionInteractions[i];
-    }
-    RegionInteractions.Free();
-    delete RoomInteraction;
-    RoomInteraction = NULL;
-    for (int i = 0; i < HotspotScripts.GetCount(); ++i)
-    {
-        delete HotspotScripts[i];
-    }
-    HotspotScripts.Free();
-    for (int i = 0; i < RegionScripts.GetCount(); ++i)
-    {
-        delete RegionScripts[i];
-    }
-    RegionScripts.Free();
-    delete RoomScripts;
-    RoomScripts = NULL;
-    
-    RegionLightLevels.Free();
-    RegionTintLevels.Free();
-    WalkAreaZoom.Free();
-    WalkAreaZoom2.Free();
-    WalkAreaLight.Free();
-    WalkAreaTop.Free();
-    WalkAreaBottom.Free();
-    if (TextScripts)
-    {
-        free(TextScripts);
-        TextScripts = NULL;
-    }
-    delete CompiledScript;
-    CompiledScript = NULL;
-    
-    for (int i = 0; i < BackgroundScenes.GetCount(); ++i)
-    {
-        delete BackgroundScenes[i];
-        update_polled_stuff_if_runtime();
-    }
-    BackgroundScenes.Free();
-    BkgScenePalettes.Free();
+    EventHandlers.Free();
     LocalVariables.Free();
-    BkgScenePaletteShared.Free();
-    HotspotProperties.Free();
+    
+    if (TextScript)
+    {
+        free(TextScript);
+        TextScript = NULL;
+    }
+    if (!CompiledScriptShared)
+    {
+        delete CompiledScript;
+    }
+    CompiledScript = NULL;
+    CompiledScriptShared = false;
 }
 
 RoomInfoError RoomInfo::ReadFromFile(Stream *in, bool game_is_hires, RoomFormatBlock *last_block)
@@ -248,17 +235,20 @@ RoomInfoError RoomInfo::ReadFromFile(Stream *in, bool game_is_hires, RoomFormatB
 
 void RoomInfo::InitDefaults()
 {
-    Width       = 320;
-    Height      = 200;
-    LeftEdge    = 0;
-    RightEdge   = 317;
-    TopEdge     = 40;
-    BottomEdge  = 199;
-    Resolution  = 1;
-    BytesPerPixel = 1;
+    LoadedVersion = kRoomVersion_Current;
+    GameId = NO_GAME_ID_IN_ROOM_FILE;
+
+    Width           = 320;
+    Height          = 200;
+    Edges.Left      = 0;
+    Edges.Right     = 317;
+    Edges.Top       = 40;
+    Edges.Bottom    = 199;
+    Resolution      = 1;
+    BytesPerPixel   = 1;
 
     WalkBehindCount = 0;
-    RoomObjectCount = 0;
+    ObjectCount = 0;
     MessageCount    = 0;
     AnimationCount  = 0;
     WalkAreaCount   = 0;
@@ -267,10 +257,7 @@ void RoomInfo::InitDefaults()
     BkgSceneCount   = 1;
     LocalVariableCount = 0;
 
-    BackgroundScenes.New(1, NULL);
-    BkgScenePalettes.New(1);
-    BkgScenePaletteShared.New(1, 0);
-
+    Backgrounds.New(1);
     BkgSceneAnimSpeed = 5;
 
     CompiledScriptShared = false;
@@ -279,53 +266,26 @@ void RoomInfo::InitDefaults()
     memset(Palette, 0, sizeof(Palette));
     memset(Options, 0, sizeof(Options));
 
-    GameId = NO_GAME_ID_IN_ROOM_FILE;
-    LoadedVersion = kRoomVersion_Current;
-
     // TODO: this is done for safety reasons;
     // should be reworked when all the code is altered to remove any
     // usage of MAX_* constants for room objects and regions.
-    RoomObjects.New(MAX_INIT_SPR);
-    RoomObjectInteractions.New(MAX_INIT_SPR, NULL);
-    RoomObjectScripts.New(MAX_INIT_SPR, NULL);
-    RoomObjectBaselines.New(MAX_INIT_SPR, 0xFF);
-    RoomObjectFlags.New(MAX_INIT_SPR, 0);
-    RoomObjectNames.New(MAX_INIT_SPR);
-    RoomObjectScriptNames.New(MAX_INIT_SPR);
-    RoomObjectProperties.New(MAX_INIT_SPR);
-
-    WalkBehindBaselines.New(MAX_OBJ);
-
-    WalkAreaShadingView.New(MAX_WALK_AREAS + 1, 0);
-    WalkAreaZoom.New(MAX_WALK_AREAS + 1, 0);
-    WalkAreaZoom2.New(MAX_WALK_AREAS + 1, NOT_VECTOR_SCALED);
-    WalkAreaLight.New(MAX_WALK_AREAS + 1, 0);
-    WalkAreaTop.New(MAX_WALK_AREAS + 1, -1);
-    WalkAreaBottom.New(MAX_WALK_AREAS + 1, -1);
-        
-    HotspotWalkToPoints.New(MAX_HOTSPOTS);
-    HotspotNames.New(MAX_HOTSPOTS);
-    HotspotScriptNames.New(MAX_HOTSPOTS);
-    HotspotInteractions.New(MAX_HOTSPOTS, NULL);
-    HotspotScripts.New(MAX_HOTSPOTS, NULL);
-    HotspotProperties.New(MAX_HOTSPOTS);
-
-    RegionInteractions.New(MAX_REGIONS, NULL);
-    RegionScripts.New(MAX_REGIONS, NULL);
-    RegionLightLevels.New(MAX_REGIONS, 0);
-    RegionTintLevels.New(MAX_REGIONS, 0);
+    Hotspots.New(MAX_HOTSPOTS);
+    Objects.New(MAX_INIT_SPR);
+    Regions.New(MAX_REGIONS);    
+    WalkAreas.New(MAX_WALK_AREAS + 1);
+    WalkBehinds.New(MAX_OBJ);    
     
-    for (int i = 0; i < MAX_INIT_SPR; ++i)
-    {
-        RoomObjectInteractions[i] = new NewInteraction();
-    }
     for (int i = 0; i < MAX_HOTSPOTS; ++i)
     {
-        HotspotInteractions[i] = new NewInteraction();
+        Hotspots[i].EventHandlers.Interaction = new NewInteraction();
     }
+    for (int i = 0; i < MAX_INIT_SPR; ++i)
+    {
+        Objects[i].EventHandlers.Interaction = new NewInteraction();
+    }    
     for (int i = 0; i < MAX_REGIONS; ++i)
     {
-        RegionInteractions[i] = new NewInteraction();
+        Regions[i].EventHandlers.Interaction = new NewInteraction();
     }
     // end TODO
 }
@@ -405,7 +365,10 @@ RoomInfoError RoomInfo::ReadMainBlock(Stream *in)
 
     BytesPerPixel = _acroom_bpp;
     WalkBehindCount = in->ReadInt16();
-    WalkBehindBaselines.ReadRawOver(in, 0, WalkBehindCount);
+    for (int i = 0; i < WalkBehindCount; ++i)
+    {
+        WalkBehinds[i].Baseline = in->ReadInt16();;
+    }
 
     HotspotCount = in->ReadInt32();
     // FIXME: check version!!!
@@ -417,19 +380,19 @@ RoomInfoError RoomInfo::ReadMainBlock(Stream *in)
 
     for (int i = 0; i < HotspotCount; ++i)
     {
-        HotspotWalkToPoints[i].x = in->ReadInt16();
-        HotspotWalkToPoints[i].y = in->ReadInt16();
+        Hotspots[i].WalkToPoint.x = in->ReadInt16();
+        Hotspots[i].WalkToPoint.y = in->ReadInt16();
     }
 
 	for (int i = 0; i < HotspotCount; ++i)
 	{
         if (LoadedVersion >= kRoomVersion_303a)
 		{
-            HotspotNames[i].Read(in, 2999);
+            Hotspots[i].Name.Read(in, 2999);
 		}
 		else
 		{
-            HotspotNames[i].ReadCount(in, 30);
+            Hotspots[i].Name.ReadCount(in, 30);
 		}
 	}
 
@@ -437,28 +400,27 @@ RoomInfoError RoomInfo::ReadMainBlock(Stream *in)
     {
         for (int i = 0; i < HotspotCount; ++i)
 	    {
-            HotspotScriptNames[i].ReadCount(in, MAX_SCRIPT_NAME_LEN);
+            Hotspots[i].ScriptName.ReadCount(in, MAX_SCRIPT_NAME_LEN);
         }
     }
     
     WalkAreaCount = in->ReadInt32();
-    WallPoints.New(WalkAreaCount);
     for (int i = 0; i < WalkAreaCount; ++i)
     {
-        WallPoints[i].ReadFromFile(in);
+        WalkAreas[i].WallPoints.ReadFromFile(in);
     }
   
     update_polled_stuff_if_runtime();
 
-    TopEdge = in->ReadInt16();
-    BottomEdge = in->ReadInt16();
-    LeftEdge = in->ReadInt16();
-    RightEdge = in->ReadInt16();
+    Edges.Top = in->ReadInt16();
+    Edges.Bottom = in->ReadInt16();
+    Edges.Left = in->ReadInt16();
+    Edges.Right = in->ReadInt16();
 
-    RoomObjectCount = in->ReadInt16();
-    for (int i = 0; i < RoomObjectCount; ++i)
+    ObjectCount = in->ReadInt16();
+    for (int i = 0; i < ObjectCount; ++i)
     {
-        RoomObjects[i].ReadFromFile(in);
+        Objects[i].ReadFromFile(in);
     }
 
     if (LoadedVersion >= kRoomVersion_253)
@@ -477,15 +439,15 @@ RoomInfoError RoomInfo::ReadMainBlock(Stream *in)
         {
             for (int i = 0; i < HotspotCount; ++i)
             {
-                delete HotspotInteractions[i];
-                HotspotInteractions[i] = deserialize_new_interaction(in);
+                delete Hotspots[i].EventHandlers.Interaction;
+                Hotspots[i].EventHandlers.Interaction = deserialize_new_interaction(in);
             }
-            for (int i = 0; i < RoomObjectCount; ++i)
+            for (int i = 0; i < ObjectCount; ++i)
             {
-                delete RoomObjectInteractions[i];
-                RoomObjectInteractions[i] = deserialize_new_interaction(in);
+                delete Objects[i].EventHandlers.Interaction;
+                Objects[i].EventHandlers.Interaction = deserialize_new_interaction(in);
             }
-            RoomInteraction = deserialize_new_interaction(in);
+            EventHandlers.Interaction = deserialize_new_interaction(in);
         } // LoadedVersion >= kRoomVersion_300a
 
         if (LoadedVersion >= kRoomVersion_255b)
@@ -495,44 +457,50 @@ RoomInfoError RoomInfo::ReadMainBlock(Stream *in)
             {
                 for (int i = 0; i < RegionCount; ++i)
                 {
-                    delete RegionInteractions[i];
-                    RegionInteractions[i] = deserialize_new_interaction(in);
+                    delete Regions[i].EventHandlers.Interaction;
+                    Regions[i].EventHandlers.Interaction = deserialize_new_interaction(in);
 		        }
             }
         }
 
 	    if (LoadedVersion >= kRoomVersion_300a)
         {
-            RoomScripts = new InteractionScripts();
-	        deserialize_interaction_scripts(in, RoomScripts);
+            EventHandlers.ScriptFnRef = new InteractionScripts();
+	        deserialize_interaction_scripts(in, EventHandlers.ScriptFnRef);
             for (int i = 0; i < HotspotCount; ++i)
             {
-                HotspotScripts[i] = new InteractionScripts();
-                deserialize_interaction_scripts(in, HotspotScripts[i]);
+                Hotspots[i].EventHandlers.ScriptFnRef = new InteractionScripts();
+                deserialize_interaction_scripts(in, Hotspots[i].EventHandlers.ScriptFnRef);
             }
-            for (int i = 0; i < RoomObjectCount; ++i)
+            for (int i = 0; i < ObjectCount; ++i)
             {
-                RoomObjectScripts[i] = new InteractionScripts();
-                deserialize_interaction_scripts(in, RoomObjectScripts[i]);
+                Objects[i].EventHandlers.ScriptFnRef = new InteractionScripts();
+                deserialize_interaction_scripts(in, Objects[i].EventHandlers.ScriptFnRef);
             }
             for (int i = 0; i < RegionCount; ++i)
             {
-                RegionScripts[i] = new InteractionScripts();
-                deserialize_interaction_scripts(in, RegionScripts[i]);
+                Regions[i].EventHandlers.ScriptFnRef = new InteractionScripts();
+                deserialize_interaction_scripts(in, Regions[i].EventHandlers.ScriptFnRef);
             }
 	    } // LoadedVersion >= kRoomVersion_300a
     } // LoadedVersion >= kRoomVersion_241
 
     if (LoadedVersion >= kRoomVersion_200_alpha)
     {
-        RoomObjectBaselines.ReadRawOver(in, 0, RoomObjectCount);
+        for (int i = 0; i < ObjectCount; ++i)
+        {
+            Objects[i].Baseline = in->ReadInt32();
+        }
         Width = in->ReadInt16();
         Height = in->ReadInt16();
     }
 
     if (LoadedVersion >= kRoomVersion_262)
     {
-        RoomObjectFlags.ReadRawOver(in, 0, RoomObjectCount);
+        for (int i = 0; i < ObjectCount; ++i)
+        {
+            Objects[i].Flags = in->ReadInt16();
+        }
     }
 
     if (LoadedVersion >= kRoomVersion_200_final)
@@ -548,28 +516,43 @@ RoomInfoError RoomInfo::ReadMainBlock(Stream *in)
     
     if (LoadedVersion >= kRoomVersion_200_alpha7)
     {
-        WalkAreaZoom.ReadRawOver(in, 0, WalkAreaCount);
+        for (int i = 0; i < WalkAreaCount; ++i)
+        {
+            WalkAreas[i].Zoom = in->ReadInt16();
+        }
     }
 
     if (LoadedVersion >= kRoomVersion_214)
     {
-        WalkAreaLight.ReadRawOver(in, 0, WalkAreaCount);
+        for (int i = 0; i < WalkAreaCount; ++i)
+        {
+            WalkAreas[i].Light = in->ReadInt16();
+        }
     }
 
     if (LoadedVersion >= kRoomVersion_251)
     {
-        WalkAreaZoom2.ReadRawOver(in, 0, WalkAreaCount);
-        WalkAreaTop.ReadRawOver(in, 0, WalkAreaCount);
-        WalkAreaBottom.ReadRawOver(in, 0, WalkAreaCount);
+        for (int i = 0; i < WalkAreaCount; ++i)
+        {
+            WalkAreas[i].Zoom2 = in->ReadInt16();
+        }
+        for (int i = 0; i < WalkAreaCount; ++i)
+        {
+            WalkAreas[i].Top = in->ReadInt16();
+        }
+        for (int i = 0; i < WalkAreaCount; ++i)
+        {
+            WalkAreas[i].Bottom = in->ReadInt16();
+        }
 
         for (int i = 0; i < WalkAreaCount; ++i)
         {
             // if they set a contiuously scaled area where the top
             // and bottom zoom levels are identical, set it as a normal
             // scaled area
-            if (WalkAreaZoom[i] == WalkAreaZoom2[i])
+            if (WalkAreas[i].Zoom == WalkAreas[i].Zoom2)
             {
-                WalkAreaZoom2[i] = NOT_VECTOR_SCALED;
+                WalkAreas[i].Zoom2 = NOT_VECTOR_SCALED;
             }
         }
     }
@@ -632,13 +615,22 @@ RoomInfoError RoomInfo::ReadMainBlock(Stream *in)
 
     if (LoadedVersion >= kRoomVersion_114)
     {
-        WalkAreaShadingView.ReadRawOver(in, 0, MAX_WALK_AREAS + 1 /* FIXME use variable */);
+        for (int i = 0; i < MAX_WALK_AREAS + 1; ++i)
+        {
+            WalkAreas[i].ShadingView = in->ReadInt16();
+        }
     }
 
     if (LoadedVersion >= kRoomVersion_255b)
     {
-        RegionLightLevels.ReadRawOver(in, 0, RegionCount);
-        RegionTintLevels.ReadRawOver(in, 0, RegionCount);
+        for (int i = 0; i < RegionCount; ++i)
+        {
+            Regions[i].Light = in->ReadInt16();
+        }
+        for (int i = 0; i < RegionCount; ++i)
+        {
+            Regions[i].Tint = in->ReadInt32();
+        }
     }
 
     update_polled_stuff_if_runtime();
@@ -646,15 +638,15 @@ RoomInfoError RoomInfo::ReadMainBlock(Stream *in)
     // Background scenes array should already have one element at this point
     if (LoadedVersion >= kRoomVersion_pre114_5)
     {
-        load_lzw(in, BackgroundScenes[0], Palette);
-        BackgroundScenes[0] = recalced;
+        load_lzw(in, Backgrounds[0].Graphic, Palette);
+        Backgrounds[0].Graphic = recalced;
     }
     else
     {
-        loadcompressed_allegro(in, &BackgroundScenes[0], Palette);
+        loadcompressed_allegro(in, &Backgrounds[0].Graphic, Palette);
     }
 
-    if (BackgroundScenes[0]->GetWidth() > 320 && LoadedVersion < kRoomVersion_200_final)
+    if (Backgrounds[0].Graphic->GetWidth() > 320 && LoadedVersion < kRoomVersion_200_final)
     {
         Resolution = 2;
     }
@@ -684,11 +676,11 @@ RoomInfoError RoomInfo::ReadMainBlock(Stream *in)
         // Old version - copy walkable areas to Regions
         if (RegionMask == NULL)
         {
-            RegionMask = BitmapHelper::CreateBitmap(WalkAreaMask->GetWidth(), WalkAreaMask->GetHeight(), 8);
-            Graphics graphics(RegionMask);
-            graphics.Fill(0);
-            graphics.Blit(WalkAreaMask, 0, 0, 0, 0, WalkAreaMask->GetWidth(), WalkAreaMask->GetHeight());
-            RegionLightLevels = WalkAreaLight;
+            RegionMask = BitmapHelper::CreateBitmapCopy(WalkAreaMask, 8);
+            for (int i = 0; i < MAX_REGIONS; ++i)
+            {
+                Regions[i].Light = WalkAreas[i].Light;
+            }
         }
     }
 
@@ -713,13 +705,13 @@ RoomInfoError RoomInfo::ReadMainBlock(Stream *in)
 RoomInfoError RoomInfo::ReadScriptBlock(Stream *in)
 {
     int script_len = in->ReadInt32();
-    TextScripts = (char *)malloc(script_len + 5);
-    in->Read(TextScripts, script_len);
-    TextScripts[script_len] = 0;
+    TextScript = (char *)malloc(script_len + 5);
+    in->Read(TextScript, script_len);
+    TextScript[script_len] = 0;
 
     for (int i = 0; i < script_len; ++i)
     {
-        TextScripts[i] += passwencstring[i % 11];
+        TextScript[i] += passwencstring[i % 11];
     }
 
     return kRoomInfoErr_NoError;
@@ -728,13 +720,13 @@ RoomInfoError RoomInfo::ReadScriptBlock(Stream *in)
 RoomInfoError RoomInfo::ReadObjectNamesBlock(Stream *in)
 {
     // TODO: this will cause problems if object count > 255
-    if (in->ReadByte() != RoomObjectCount)
+    if (in->ReadByte() != ObjectCount)
     {
         return kRoomInfoErr_InconsistentDataForObjectNames;
     }
-    for (int i = 0; i < RoomObjectCount; ++i)
+    for (int i = 0; i < ObjectCount; ++i)
     {
-        RoomObjectNames[i].ReadCount(in, MAXOBJNAMELEN);
+        Objects[i].Name.ReadCount(in, MAXOBJNAMELEN);
     }
 
     return kRoomInfoErr_NoError;
@@ -745,20 +737,21 @@ RoomInfoError RoomInfo::ReadAnimBkgBlock(Stream *in)
     BkgSceneCount = in->ReadByte();
     BkgSceneAnimSpeed = in->ReadByte();
 
-    BackgroundScenes.AppendCount(BkgSceneCount - 1, NULL);
-    BkgScenePalettes.AppendCount(BkgSceneCount - 1);
-    BkgScenePaletteShared.AppendCount(BkgSceneCount - 1, 0);
+    Backgrounds.AppendCount(BkgSceneCount - 1);
 
     if (LoadedVersion >= kRoomVersion_255a)
     {
-        BkgScenePaletteShared.ReadRawOver(in, 0, BkgSceneCount);
+        for (int i = 0; i < BkgSceneCount; ++i)
+        {
+            Backgrounds[i].PaletteShared = in->ReadInt8();
+        }
     }
 
     for (int i = 1; i < BkgSceneCount; ++i)
     {
         update_polled_stuff_if_runtime();
-        load_lzw(in, BackgroundScenes[i], BkgScenePalettes[i]);
-        BackgroundScenes[i] = recalced;
+        load_lzw(in, Backgrounds[i].Graphic, Backgrounds[i].Palette);
+        Backgrounds[i].Graphic = recalced;
     }
 
     return kRoomInfoErr_NoError;
@@ -778,21 +771,21 @@ RoomInfoError RoomInfo::ReadPropertiesBlock(Stream *in)
         return kRoomInfoErr_PropertiesFormatNotSupported;
     }
 
-    if (RoomProperties.UnSerialize(in))
+    if (Properties.UnSerialize(in))
     {
         return kRoomInfoErr_PropertiesLoadFailed;
     }
 
     for (int i = 0; i < HotspotCount; ++i)
     {
-        if (HotspotProperties[i].UnSerialize(in))
+        if (Hotspots[i].Properties.UnSerialize(in))
         {
             return kRoomInfoErr_PropertiesLoadFailed;
         }
     }
-    for (int i = 0; i < RoomObjectCount; ++i)
+    for (int i = 0; i < ObjectCount; ++i)
     {
-        if (RoomObjectProperties[i].UnSerialize(in))
+        if (Objects[i].Properties.UnSerialize(in))
         {
             return kRoomInfoErr_PropertiesLoadFailed;
         }
@@ -803,13 +796,13 @@ RoomInfoError RoomInfo::ReadPropertiesBlock(Stream *in)
 
 RoomInfoError RoomInfo::ReadObjectScriptNamesBlock(Stream *in)
 {
-    if (in->ReadByte() != RoomObjectCount)
+    if (in->ReadByte() != ObjectCount)
     {
         return kRoomInfoErr_InconsistentDataForObjectScriptNames;
     }
-    for (int i = 0; i < RoomObjectCount; ++i)
+    for (int i = 0; i < ObjectCount; ++i)
     {
-        RoomObjectScriptNames[i].ReadCount(in, MAX_SCRIPT_NAME_LEN);
+        Objects[i].ScriptName.ReadCount(in, MAX_SCRIPT_NAME_LEN);
     }
 
     return kRoomInfoErr_NoError;
@@ -818,38 +811,38 @@ RoomInfoError RoomInfo::ReadObjectScriptNamesBlock(Stream *in)
 void RoomInfo::ProcessAfterRead(bool game_is_hires)
 {
     // Synchronize background 0 palette with room.pal
-    memcpy(&BkgScenePalettes[0], &Palette, sizeof(color) * 256);
+    memcpy(&Backgrounds[0].Palette, &Palette, sizeof(color) * 256);
 
     if (LoadedVersion < kRoomVersion_303b && game_is_hires)
     {
         // Pre-3.0.3, multiply up co-ordinates
         // If you change this, also change convert_room_coordinates_to_low_res
         // function in the engine.
-	    for (int i = 0; i < RoomObjectCount; ++i)
+	    for (int i = 0; i < ObjectCount; ++i)
 	    {
-            RoomObjects[i].X <<= 1;
-            RoomObjects[i].Y <<= 1;
-            if (RoomObjectBaselines[i] > 0)
+            Objects[i].X <<= 1;
+            Objects[i].Y <<= 1;
+            if (Objects[i].Baseline > 0)
             {
-                RoomObjectBaselines[i] <<= 1;
+                Objects[i].Baseline <<= 1;
             }
         }
 
         for (int i = 0; i < HotspotCount; ++i)
         {
-            HotspotWalkToPoints[i].x <<= 1;
-            HotspotWalkToPoints[i].y <<= 1;
+            Hotspots[i].WalkToPoint.x <<= 1;
+            Hotspots[i].WalkToPoint.y <<= 1;
         }
 
         for (int i = 0; i < WalkBehindCount; ++i)
         {
-            WalkBehindBaselines[i] <<= 1;
+            WalkBehinds[i].Baseline <<= 1;
         }
 
-        LeftEdge    <<= 1;
-        TopEdge     <<= 1;
-        BottomEdge  <<= 1;
-        RightEdge   <<= 1;
+        Edges.Left    <<= 1;
+        Edges.Top     <<= 1;
+        Edges.Bottom  <<= 1;
+        Edges.Right   <<= 1;
         Width       <<= 1;
         Height      <<= 1;
     }

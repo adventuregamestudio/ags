@@ -111,9 +111,9 @@ void run_on_event (int evtype, RuntimeScriptValue &wparam) {
 void run_room_event(int id) {
     evblockbasename="room";
 
-    if (thisroom.RoomScripts != NULL)
+    if (thisroom.EventHandlers.ScriptFnRef != NULL)
     {
-        run_interaction_script(thisroom.RoomScripts, id);
+        run_interaction_script(thisroom.EventHandlers.ScriptFnRef, id);
     }
     else
     {
@@ -177,8 +177,8 @@ void process_event(EventHappened*evp) {
 
         if (evp->data1==EVB_HOTSPOT) {
 
-            if (thisroom.HotspotScripts[evp->data2])
-                scriptPtr = thisroom.HotspotScripts[evp->data2];
+            if (thisroom.Hotspots[evp->data2].EventHandlers.ScriptFnRef)
+                scriptPtr = thisroom.Hotspots[evp->data2].EventHandlers.ScriptFnRef;
             else
                 evpt=&croom->intrHotspot[evp->data2];
 
@@ -188,8 +188,8 @@ void process_event(EventHappened*evp) {
         }
         else if (evp->data1==EVB_ROOM) {
 
-            if (thisroom.RoomScripts != NULL)
-                scriptPtr = thisroom.RoomScripts;
+            if (thisroom.EventHandlers.ScriptFnRef != NULL)
+                scriptPtr = thisroom.EventHandlers.ScriptFnRef;
             else
                 evpt=&croom->intrRoom;
 

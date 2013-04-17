@@ -51,20 +51,20 @@ int GetHotspotPointX (int hotspot) {
     if ((hotspot < 0) || (hotspot >= MAX_HOTSPOTS))
         quit("!GetHotspotPointX: invalid hotspot");
 
-    if (thisroom.HotspotWalkToPoints[hotspot].x < 1)
+    if (thisroom.Hotspots[hotspot].WalkToPoint.x < 1)
         return -1;
 
-    return thisroom.HotspotWalkToPoints[hotspot].x;
+    return thisroom.Hotspots[hotspot].WalkToPoint.x;
 }
 
 int GetHotspotPointY (int hotspot) {
     if ((hotspot < 0) || (hotspot >= MAX_HOTSPOTS))
         quit("!GetHotspotPointY: invalid hotspot");
 
-    if (thisroom.HotspotWalkToPoints[hotspot].x < 1)
+    if (thisroom.Hotspots[hotspot].WalkToPoint.x < 1)
         return -1;
 
-    return thisroom.HotspotWalkToPoints[hotspot].y;
+    return thisroom.Hotspots[hotspot].WalkToPoint.y;
 }
 
 int GetHotspotAt(int xxx,int yyy) {
@@ -80,7 +80,7 @@ void GetHotspotName(int hotspot, char *buffer) {
     if ((hotspot < 0) || (hotspot >= MAX_HOTSPOTS))
         quit("!GetHotspotName: invalid hotspot number");
 
-    strcpy(buffer, get_translation(thisroom.HotspotNames[hotspot]));
+    strcpy(buffer, get_translation(thisroom.Hotspots[hotspot].Name));
 }
 
 void RunHotspotInteraction (int hotspothere, int mood) {
@@ -111,11 +111,11 @@ void RunHotspotInteraction (int hotspothere, int mood) {
     evblockbasename="hotspot%d";
     evblocknum=hotspothere;
 
-    if (thisroom.HotspotScripts[hotspothere]) 
+    if (thisroom.Hotspots[hotspothere].EventHandlers.ScriptFnRef) 
     {
         if (passon>=0)
-            run_interaction_script(thisroom.HotspotScripts[hotspothere], passon, 5, (passon == 3));
-        run_interaction_script(thisroom.HotspotScripts[hotspothere], 5);  // any click on hotspot
+            run_interaction_script(thisroom.Hotspots[hotspothere].EventHandlers.ScriptFnRef, passon, 5, (passon == 3));
+        run_interaction_script(thisroom.Hotspots[hotspothere].EventHandlers.ScriptFnRef, 5);  // any click on hotspot
     }
     else
     {
@@ -137,14 +137,14 @@ void RunHotspotInteraction (int hotspothere, int mood) {
 int GetHotspotProperty (int hss, const char *property) {
     if (hss >= 0)
     {
-        return get_int_property (&thisroom.HotspotProperties[hss], property);
+        return get_int_property (&thisroom.Hotspots[hss].Properties, property);
     }
     return 0;
 }
 void GetHotspotPropertyText (int item, const char *property, char *bufer) {
     if (item >= 0)
     {
-        get_text_property (&thisroom.HotspotProperties[item], property, bufer);
+        get_text_property (&thisroom.Hotspots[item].Properties, property, bufer);
     }
     else
     {

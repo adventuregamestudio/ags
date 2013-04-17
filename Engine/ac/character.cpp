@@ -222,13 +222,13 @@ void Character_ChangeRoomAutoPosition(CharacterInfo *chaa, int room, int newPos)
 
     if (new_room_pos == 0) {
         // auto place on other side of screen
-        if (chaa->x <= thisroom.LeftEdge + 10)
+        if (chaa->x <= thisroom.Edges.Left + 10)
             new_room_pos = 2000;
-        else if (chaa->x >= thisroom.RightEdge - 10)
+        else if (chaa->x >= thisroom.Edges.Right - 10)
             new_room_pos = 1000;
-        else if (chaa->y <= thisroom.TopEdge + 10)
+        else if (chaa->y <= thisroom.Edges.Top + 10)
             new_room_pos = 3000;
-        else if (chaa->y >= thisroom.BottomEdge - 10)
+        else if (chaa->y >= thisroom.Edges.Bottom - 10)
             new_room_pos = 4000;
 
         if (new_room_pos < 3000)
@@ -1833,10 +1833,10 @@ int find_nearest_walkable_area_within(int *xx, int *yy, int range, int step)
 
     int xLowRes = convert_to_low_res(xx[0]);
     int yLowRes = convert_to_low_res(yy[0]);
-    int rightEdge = convert_to_low_res(thisroom.RightEdge);
-    int leftEdge = convert_to_low_res(thisroom.LeftEdge);
-    int topEdge = convert_to_low_res(thisroom.TopEdge);
-    int bottomEdge = convert_to_low_res(thisroom.BottomEdge);
+    int rightEdge = convert_to_low_res(thisroom.Edges.Right);
+    int leftEdge = convert_to_low_res(thisroom.Edges.Left);
+    int topEdge = convert_to_low_res(thisroom.Edges.Top);
+    int bottomEdge = convert_to_low_res(thisroom.Edges.Bottom);
 
     // tweak because people forget to move the edges sometimes
     // if the player is already over the edge, ignore it

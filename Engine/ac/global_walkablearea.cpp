@@ -46,12 +46,12 @@ void SetAreaScaling(int area, int min, int max) {
     max -= 100;
 
     if (min == max) {
-        thisroom.WalkAreaZoom[area] = min;
-        thisroom.WalkAreaZoom2[area] = NOT_VECTOR_SCALED;
+        thisroom.WalkAreas[area].Zoom = min;
+        thisroom.WalkAreas[area].Zoom2 = NOT_VECTOR_SCALED;
     }
     else {
-        thisroom.WalkAreaZoom[area] = min;
-        thisroom.WalkAreaZoom2[area] = max;
+        thisroom.WalkAreas[area].Zoom = min;
+        thisroom.WalkAreas[area].Zoom2 = max;
     }
 }
 

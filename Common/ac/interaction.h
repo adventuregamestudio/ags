@@ -16,6 +16,7 @@
 #define __AC_INTERACTION_H
 
 #include "ac/common_defines.h" // macros, typedef
+#include "core/types.h"
 
 // Forward declaration
 namespace AGS { namespace Common { class Stream; } }
@@ -130,6 +131,38 @@ struct InteractionScripts {
 
     InteractionScripts();
     ~InteractionScripts();
+};
+
+
+// EventHandlers is a pair of old- and newstyle event handler objects;
+// engine assumes that only one of the objects is valid at any given time.
+// InteractionScripts has higher priority when looking for valid handler.
+struct EventHandler
+{
+    // Old-style graphically set interactions
+    NewInteraction      *Interaction;
+    // Script event-handling functions
+    InteractionScripts  *ScriptFnRef;
+
+    EventHandler()
+        : Interaction(NULL)
+        , ScriptFnRef(NULL)
+    {
+    }
+
+    ~EventHandler()
+    {
+        delete Interaction;
+        delete ScriptFnRef;
+    }
+
+    void Free()
+    {
+        delete Interaction;
+        delete ScriptFnRef;
+        Interaction = NULL;
+        ScriptFnRef = NULL;
+    }
 };
 
 

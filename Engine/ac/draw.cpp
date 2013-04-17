@@ -1005,10 +1005,10 @@ void sort_out_char_sprite_walk_behind(int actspsIndex, int xx, int yy, int basel
         (actspswbcache[actspsIndex].yWas != yy) ||
         (actspswbcache[actspsIndex].baselineWas != basel))
     {
-        actspswb[actspsIndex] = recycle_bitmap(actspswb[actspsIndex], thisroom.BackgroundScenes[play.bg_frame]->GetColorDepth(), width, height, true);
+        actspswb[actspsIndex] = recycle_bitmap(actspswb[actspsIndex], thisroom.Backgrounds[play.bg_frame].Graphic->GetColorDepth(), width, height, true);
         Bitmap *wbSprite = actspswb[actspsIndex];
 
-        actspswbcache[actspsIndex].isWalkBehindHere = sort_out_walk_behinds(wbSprite, xx, yy, basel, thisroom.BackgroundScenes[play.bg_frame], actsps[actspsIndex], zoom);
+        actspswbcache[actspsIndex].isWalkBehindHere = sort_out_walk_behinds(wbSprite, xx, yy, basel, thisroom.Backgrounds[play.bg_frame].Graphic, actsps[actspsIndex], zoom);
         actspswbcache[actspsIndex].xWas = xx;
         actspswbcache[actspsIndex].yWas = yy;
         actspswbcache[actspsIndex].baselineWas = basel;
@@ -1292,12 +1292,12 @@ void get_local_tint(int xpp, int ypp, int nolight,
         }
 
         if ((onRegion > 0) && (onRegion <= MAX_REGIONS)) {
-            light_level = thisroom.RegionLightLevels[onRegion];
-            tint_level = thisroom.RegionTintLevels[onRegion];
+            light_level = thisroom.Regions[onRegion].Light;
+            tint_level = thisroom.Regions[onRegion].Tint;
         }
         else if (onRegion <= 0) {
-            light_level = thisroom.RegionLightLevels[0];
-            tint_level = thisroom.RegionTintLevels[0];
+            light_level = thisroom.Regions[0].Light;
+            tint_level = thisroom.Regions[0].Tint;
         }
         if ((game.ColorDepth == 1) || ((tint_level & 0x00ffffff) == 0) ||
             ((tint_level & TINT_IS_ENABLED) == 0))
@@ -1518,7 +1518,7 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
     if (objs[aa].flags & OBJF_USEROOMSCALING) {
         int onarea = get_walkable_area_at_location(objs[aa].x, objs[aa].y);
 
-        if ((onarea <= 0) && (thisroom.WalkAreaZoom[0] == 0)) {
+        if ((onarea <= 0) && (thisroom.WalkAreas[0].Zoom == 0)) {
             // just off the edge of an area -- use the scaling we had
             // while on the area
             zoom_level = objs[aa].last_zoom;
@@ -1849,7 +1849,7 @@ void prepare_characters_for_drawing() {
 
         if (chin->flags & CHF_MANUALSCALING)  // character ignores scaling
             zoom_level = charextra[aa].zoom;
-        else if ((onarea <= 0) && (thisroom.WalkAreaZoom[0] == 0)) {
+        else if ((onarea <= 0) && (thisroom.WalkAreas[0].Zoom == 0)) {
             zoom_level = charextra[aa].zoom;
             if (zoom_level == 0)
                 zoom_level = 100;
@@ -2116,7 +2116,7 @@ void draw_screen_background(Common::Graphics *g) {
         if (roomBackgroundBmp == NULL) 
         {
             update_polled_stuff_if_runtime();
-            roomBackgroundBmp = gfxDriver->CreateDDBFromBitmap(thisroom.BackgroundScenes[play.bg_frame], false, true);
+            roomBackgroundBmp = gfxDriver->CreateDDBFromBitmap(thisroom.Backgrounds[play.bg_frame].Graphic, false, true);
 
             if ((walkBehindMethod == DrawAsSeparateSprite) && (walkBehindsCachedForBgNum != play.bg_frame))
             {
@@ -2126,7 +2126,7 @@ void draw_screen_background(Common::Graphics *g) {
         else if (current_background_is_dirty)
         {
             update_polled_stuff_if_runtime();
-            gfxDriver->UpdateDDBFromBitmap(roomBackgroundBmp, thisroom.BackgroundScenes[play.bg_frame], false);
+            gfxDriver->UpdateDDBFromBitmap(roomBackgroundBmp, thisroom.Backgrounds[play.bg_frame].Graphic, false);
             current_background_is_dirty = false;
             if (walkBehindMethod == DrawAsSeparateSprite)
             {
@@ -2140,7 +2140,7 @@ void draw_screen_background(Common::Graphics *g) {
         // the following line takes up to 50% of the game CPU time at
         // high resolutions and colour depths - if we can optimise it
         // somehow, significant performance gains to be had
-        update_invalid_region_and_reset(g, -offsetx, -offsety, thisroom.BackgroundScenes[play.bg_frame]);
+        update_invalid_region_and_reset(g, -offsetx, -offsety, thisroom.Backgrounds[play.bg_frame].Graphic);
     }
 
     clear_sprite_list();

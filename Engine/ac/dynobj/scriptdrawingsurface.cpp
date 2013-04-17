@@ -30,7 +30,7 @@ extern GameState play;
 Bitmap* ScriptDrawingSurface::GetBitmapSurface()
 {
     if (roomBackgroundNumber >= 0)
-        return thisroom.BackgroundScenes[roomBackgroundNumber];
+        return thisroom.Backgrounds[roomBackgroundNumber].Graphic;
     else if (dynamicSpriteNumber >= 0)
         return spriteset[dynamicSpriteNumber];
     else if (dynamicSurfaceNumber >= 0)

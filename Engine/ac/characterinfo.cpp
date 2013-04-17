@@ -423,8 +423,8 @@ void CharacterInfo::update_character_follower(int &aa, int &numSheep, int *follo
             y = thisroom.Height+8;
             x = play.entered_at_x;
             }
-          else if (play.entered_at_y < thisroom.TopEdge+8) {
-            y = thisroom.TopEdge+1;
+          else if (play.entered_at_y < thisroom.Edges.Top+8) {
+            y = thisroom.Edges.Top+1;
             x = play.entered_at_x;
             }
           else {

@@ -250,8 +250,8 @@ void MergeObject(int obn) {
     construct_object_gfx(obn, NULL, &theHeight, true);
 
     //Bitmap *oldabuf = graphics->bmp;
-    //abuf = thisroom.BackgroundScenes[play.bg_frame];
-    Common::Graphics graphics(thisroom.BackgroundScenes[play.bg_frame]);
+    //abuf = thisroom.Backgrounds[].Graphic[play.bg_frame];
+    Common::Graphics graphics(thisroom.Backgrounds[play.bg_frame].Graphic);
     if (graphics.GetBitmap()->GetColorDepth() != actsps[obn]->GetColorDepth())
         quit("!MergeObject: unable to merge object due to color depth differences");
 
@@ -353,7 +353,7 @@ void GetObjectName(int obj, char *buffer) {
     if (!is_valid_object(obj))
         quit("!GetObjectName: invalid object number");
 
-    strcpy(buffer, get_translation(thisroom.RoomObjectNames[obj]));
+    strcpy(buffer, get_translation(thisroom.Objects[obj].Name));
 }
 
 void MoveObject(int objj,int xx,int yy,int spp) {
@@ -396,14 +396,14 @@ void RunObjectInteraction (int aa, int mood) {
     play.usedinv=cdata; }
     evblockbasename="object%d"; evblocknum=aa;
 
-    if (thisroom.RoomObjectScripts[aa])
+    if (thisroom.Objects[aa].EventHandlers.ScriptFnRef)
     {
         if (passon>=0) 
         {
-            if (run_interaction_script(thisroom.RoomObjectScripts[aa], passon, 4, (passon == 3)))
+            if (run_interaction_script(thisroom.Objects[aa].EventHandlers.ScriptFnRef, passon, 4, (passon == 3)))
                 return;
         }
-        run_interaction_script(thisroom.RoomObjectScripts[aa], 4);  // any click on obj
+        run_interaction_script(thisroom.Objects[aa].EventHandlers.ScriptFnRef, 4);  // any click on obj
     }
     else
     {
@@ -481,11 +481,11 @@ int AreThingsOverlapping(int thing1, int thing2) {
 int GetObjectProperty (int hss, const char *property) {
     if (!is_valid_object(hss))
         quit("!GetObjectProperty: invalid object");
-    return get_int_property (&thisroom.RoomObjectProperties[hss], property);
+    return get_int_property (&thisroom.Objects[hss].Properties, property);
 }
 
 void GetObjectPropertyText (int item, const char *property, char *bufer) {
-    get_text_property (&thisroom.RoomObjectProperties[item], property, bufer);
+    get_text_property (&thisroom.Objects[item].Properties, property, bufer);
 }
 
 Bitmap *GetObjectImage(int obj, int *isFlipped) 

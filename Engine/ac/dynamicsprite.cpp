@@ -513,12 +513,12 @@ ScriptDynamicSprite* DynamicSprite_CreateFromBackground(int frame, int x1, int y
         return NULL;
 
     // create a new sprite as a copy of the existing one
-    Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, thisroom.BackgroundScenes[frame]->GetColorDepth());
+    Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, thisroom.Backgrounds[frame].Graphic->GetColorDepth());
     if (newPic == NULL)
         return NULL;
 
     Graphics graphics(newPic);
-    graphics.Blit(thisroom.BackgroundScenes[frame], x1, y1, 0, 0, width, height);
+    graphics.Blit(thisroom.Backgrounds[frame].Graphic, x1, y1, 0, 0, width, height);
 
     // replace the bitmap in the sprite set
     add_dynamic_sprite(gotSlot, newPic);

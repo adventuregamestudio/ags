@@ -40,33 +40,33 @@ void Region_SetLightLevel(ScriptRegion *ssr, int brightness) {
 }
 
 int Region_GetLightLevel(ScriptRegion *ssr) {
-    return thisroom.RegionLightLevels[ssr->id];
+    return thisroom.Regions[ssr->id].Light;
 }
 
 int Region_GetTintEnabled(ScriptRegion *srr) {
-    if (thisroom.RegionTintLevels[srr->id] & TINT_IS_ENABLED)
+    if (thisroom.Regions[srr->id].Tint & TINT_IS_ENABLED)
         return 1;
     return 0;
 }
 
 int Region_GetTintRed(ScriptRegion *srr) {
 
-    return thisroom.RegionTintLevels[srr->id] & 0x000000ff;
+    return thisroom.Regions[srr->id].Tint & 0x000000ff;
 }
 
 int Region_GetTintGreen(ScriptRegion *srr) {
 
-    return (thisroom.RegionTintLevels[srr->id] >> 8) & 0x000000ff;
+    return (thisroom.Regions[srr->id].Tint >> 8) & 0x000000ff;
 }
 
 int Region_GetTintBlue(ScriptRegion *srr) {
 
-    return (thisroom.RegionTintLevels[srr->id] >> 16) & 0x000000ff;
+    return (thisroom.Regions[srr->id].Tint >> 16) & 0x000000ff;
 }
 
 int Region_GetTintSaturation(ScriptRegion *srr) {
 
-    return thisroom.RegionLightLevels[srr->id];
+    return thisroom.Regions[srr->id].Light;
 }
 
 void Region_Tint(ScriptRegion *srr, int red, int green, int blue, int amount) {
@@ -99,7 +99,7 @@ void generate_light_table() {
     if ((game.ColorDepth == 1) && (color_map == NULL)) {
         // in 256-col mode, check if we need the light table this room
         for (cc=0;cc < MAX_REGIONS;cc++) {
-            if (thisroom.RegionLightLevels[cc] < 0) {
+            if (thisroom.Regions[cc].Light < 0) {
                 create_light_table(&maincoltable,palette,0,0,0,NULL);
                 color_map=&maincoltable;
                 break;

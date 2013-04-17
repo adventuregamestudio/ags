@@ -1217,10 +1217,22 @@ void save_game_audiocliptypes(Stream *out)
 
 void save_game_thisroom(Stream *out)
 {
-    out->WriteArrayOfInt16(&thisroom.RegionLightLevels[0],MAX_REGIONS);
-    out->WriteArrayOfInt32(&thisroom.RegionTintLevels[0],MAX_REGIONS);
-    out->WriteArrayOfInt16(&thisroom.WalkAreaZoom[0],MAX_WALK_AREAS + 1);
-    out->WriteArrayOfInt16(&thisroom.WalkAreaZoom2[0],MAX_WALK_AREAS + 1);
+    for (int i = 0; i < MAX_REGIONS; ++i)
+    {
+        out->WriteInt16(thisroom.Regions[i].Light);
+    }
+    for (int i = 0; i < MAX_REGIONS; ++i)
+    {
+        out->WriteInt32(thisroom.Regions[i].Tint);
+    }
+    for (int i = 0; i < MAX_WALK_AREAS + 1; ++i)
+    {
+        out->WriteInt16(thisroom.WalkAreas[i].Zoom);
+    }
+    for (int i = 0; i < MAX_WALK_AREAS + 1; ++i)
+    {
+        out->WriteInt16(thisroom.WalkAreas[i].Zoom2);
+    }
 }
 
 void save_game_ambientsounds(Stream *out)
@@ -1273,7 +1285,7 @@ void save_game_displayed_room_status(Stream *out)
 
         for (int bb = 0; bb < MAX_BSCENE; bb++) {
             if (play.raw_modified[bb])
-                serialize_bitmap (thisroom.BackgroundScenes[bb], out);
+                serialize_bitmap (thisroom.Backgrounds[bb].Graphic, out);
         }
 
         out->WriteInt32 ((raw_saved_screen == NULL) ? 0 : 1);
@@ -2260,19 +2272,25 @@ int restore_game_data (Stream *in, const char *nametouse) {
 
         for (bb = 0; bb < MAX_BSCENE; bb++) {
             if (newbscene[bb]) {
-                delete thisroom.BackgroundScenes[bb];
-                thisroom.BackgroundScenes[bb] = newbscene[bb];
+                delete thisroom.Backgrounds[bb].Graphic;
+                thisroom.Backgrounds[bb].Graphic = newbscene[bb];
             }
         }
 
         in_new_room=3;  // don't run "enters screen" events
         // now that room has loaded, copy saved light levels in
-        memcpy(&thisroom.RegionLightLevels[0],&saved_light_levels[0],sizeof(short)*MAX_REGIONS);
-        memcpy(&thisroom.RegionTintLevels[0],&saved_tint_levels[0],sizeof(int)*MAX_REGIONS);
+        for (int i = 0; i < MAX_REGIONS; ++i)
+        {
+            thisroom.Regions[i].Light = saved_light_levels[i];
+            thisroom.Regions[i].Tint = saved_tint_levels[i];
+        }
         generate_light_table();
 
-        memcpy(&thisroom.WalkAreaZoom[0], &saved_zoom_levels1[0], sizeof(short) * (MAX_WALK_AREAS + 1));
-        memcpy(&thisroom.WalkAreaZoom2[0], &saved_zoom_levels2[0], sizeof(short) * (MAX_WALK_AREAS + 1));
+        for (int i = 0; i < MAX_WALK_AREAS + 1; ++i)
+        {
+            thisroom.WalkAreas[i].Zoom = saved_zoom_levels1[i];
+            thisroom.WalkAreas[i].Zoom2 = saved_zoom_levels2[i];
+        }
 
         on_background_frame_change();
 

@@ -216,7 +216,7 @@ const char* Object_GetName_New(ScriptObject *objj) {
     if (!is_valid_object(objj->id))
         quit("!Object.Name: invalid object number");
 
-    return CreateNewScriptString(get_translation(thisroom.RoomObjectNames[objj->id]));
+    return CreateNewScriptString(get_translation(thisroom.Objects[objj->id].Name));
 }
 
 void Object_Move(ScriptObject *objj, int x, int y, int speed, int blocking, int direct) {
@@ -362,7 +362,7 @@ void Object_GetPropertyText(ScriptObject *objj, const char *property, char *bufe
     GetObjectPropertyText(objj->id, property, bufer);
 }
 const char* Object_GetTextProperty(ScriptObject *objj, const char *property) {
-    return get_text_property_dynamic_string(&thisroom.RoomObjectProperties[objj->id], property);
+    return get_text_property_dynamic_string(&thisroom.Objects[objj->id].Properties, property);
 }
 
 void get_object_blocking_rect(int objid, int *x1, int *y1, int *width, int *y2) {

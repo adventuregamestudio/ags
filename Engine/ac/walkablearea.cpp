@@ -68,26 +68,26 @@ int get_area_scaling (int onarea, int xx, int yy) {
     yy = convert_to_low_res(yy);
 
     if ((onarea >= 0) && (onarea <= MAX_WALK_AREAS) &&
-        (thisroom.WalkAreaZoom2[onarea] != NOT_VECTOR_SCALED)) {
+        (thisroom.WalkAreas[onarea].Zoom2 != NOT_VECTOR_SCALED)) {
             // We have vector scaling!
             // In case the character is off the screen, limit the Y co-ordinate
             // to within the area range (otherwise we get silly zoom levels
             // that cause Out Of Memory crashes)
-            if (yy > thisroom.WalkAreaBottom[onarea])
-                yy = thisroom.WalkAreaBottom[onarea];
-            if (yy < thisroom.WalkAreaTop[onarea])
-                yy = thisroom.WalkAreaTop[onarea];
+            if (yy > thisroom.WalkAreas[onarea].Bottom)
+                yy = thisroom.WalkAreas[onarea].Bottom;
+            if (yy < thisroom.WalkAreas[onarea].Top)
+                yy = thisroom.WalkAreas[onarea].Top;
             // Work it all out without having to use floats
             // Percent = ((y - top) * 100) / (areabottom - areatop)
             // Zoom level = ((max - min) * Percent) / 100
-            int percent = ((yy - thisroom.WalkAreaTop[onarea]) * 100)
-                / (thisroom.WalkAreaBottom[onarea] - thisroom.WalkAreaTop[onarea]);
+            int percent = ((yy - thisroom.WalkAreas[onarea].Top) * 100)
+                / (thisroom.WalkAreas[onarea].Bottom - thisroom.WalkAreas[onarea].Top);
 
-            zoom_level = ((thisroom.WalkAreaZoom2[onarea] - thisroom.WalkAreaZoom[onarea]) * (percent)) / 100 + thisroom.WalkAreaZoom[onarea];
+            zoom_level = ((thisroom.WalkAreas[onarea].Zoom2 - thisroom.WalkAreas[onarea].Zoom) * (percent)) / 100 + thisroom.WalkAreas[onarea].Zoom;
             zoom_level += 100;
     }
     else if ((onarea >= 0) & (onarea <= MAX_WALK_AREAS))
-        zoom_level = thisroom.WalkAreaZoom[onarea] + 100;
+        zoom_level = thisroom.WalkAreas[onarea].Zoom + 100;
 
     if (zoom_level == 0)
         zoom_level = 100;

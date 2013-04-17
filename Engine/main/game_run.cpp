@@ -482,13 +482,13 @@ void check_controls() {
             if ((numevents == numevents_was) &&
                 ((play.ground_level_areas_disabled & GLED_INTERACTION) == 0)) {
 
-                    if (playerchar->x <= thisroom.LeftEdge)
+                    if (playerchar->x <= thisroom.Edges.Left)
                         edgesActivated[0] = 1;
-                    else if (playerchar->x >= thisroom.RightEdge)
+                    else if (playerchar->x >= thisroom.Edges.Right)
                         edgesActivated[1] = 1;
-                    if (playerchar->y >= thisroom.BottomEdge)
+                    if (playerchar->y >= thisroom.Edges.Bottom)
                         edgesActivated[2] = 1;
-                    else if (playerchar->y <= thisroom.TopEdge)
+                    else if (playerchar->y <= thisroom.Edges.Top)
                         edgesActivated[3] = 1;
 
                     if ((play.entered_edge >= 0) && (play.entered_edge <= 3)) {

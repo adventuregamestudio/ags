@@ -52,6 +52,9 @@ public:
     bool    CreateSubBitmap(Bitmap *src, const Rect &rc);
     // Create a copy of given bitmap
     bool	CreateCopy(Bitmap *src, int color_depth = 0);
+    // Creates a reference of given bitmap; this will increase reference count and
+    // make both bitmap objects share same data
+    bool    CreateReference(Bitmap *src);
     // TODO: a temporary solution for plugin support
     bool    WrapAllegroBitmap(BITMAP *al_bmp, bool shared_data);
     // Deallocate bitmap
@@ -175,8 +178,7 @@ public:
 
 private:
 	BITMAP			*_alBitmap;
-	// TODO: revise this flag, currently needed only for wrapping raw bitmap data in limited cases
-	bool			_isDataOwner;
+	int             *_refCount;
     Graphics        *_graphics;
 };
 

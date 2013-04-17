@@ -25,14 +25,14 @@ namespace Common
 
 Bitmap::Bitmap()
     : _alBitmap(NULL)
-    , _isDataOwner(false)
+    , _refCount(NULL)
     , _graphics(NULL)
 {
 }
 
 Bitmap::Bitmap(int width, int height, int color_depth)
     : _alBitmap(NULL)
-    , _isDataOwner(false)
+    , _refCount(NULL)
     , _graphics(NULL)
 {
     Create(width, height, color_depth);
@@ -40,7 +40,7 @@ Bitmap::Bitmap(int width, int height, int color_depth)
 
 Bitmap::Bitmap(Bitmap *src, const Rect &rc)
     : _alBitmap(NULL)
-    , _isDataOwner(false)
+    , _refCount(NULL)
     , _graphics(NULL)
 {
     CreateSubBitmap(src, rc);
@@ -48,7 +48,7 @@ Bitmap::Bitmap(Bitmap *src, const Rect &rc)
 
 Bitmap::Bitmap(BITMAP *al_bmp, bool shared_data)
     : _alBitmap(NULL)
-    , _isDataOwner(false)
+    , _refCount(NULL)
     , _graphics(NULL)
 {
     WrapAllegroBitmap(al_bmp, shared_data);
@@ -74,7 +74,7 @@ bool Bitmap::Create(int width, int height, int color_depth)
     {
         _alBitmap = create_bitmap(width, height);
     }
-    _isDataOwner = true;
+    _refCount = new int(1);
     return _alBitmap != NULL;
 }
 
@@ -93,7 +93,7 @@ bool Bitmap::CreateTransparent(int width, int height, int color_depth)
     {
         clear_to_color(_alBitmap, bitmap_mask_color(_alBitmap));
     }
-    _isDataOwner = true;
+    _refCount = new int(1);
     return _alBitmap != NULL;
 }
 
@@ -101,7 +101,7 @@ bool Bitmap::CreateSubBitmap(Bitmap *src, const Rect &rc)
 {
     Destroy();
     _alBitmap = create_sub_bitmap(src->_alBitmap, rc.Left, rc.Top, rc.GetWidth(), rc.GetHeight());
-    _isDataOwner = true;
+    _refCount = new int(1);
     return _alBitmap != NULL;
 }
 
@@ -121,7 +121,19 @@ bool Bitmap::CreateCopy(Bitmap *src, int color_depth)
     {
         blit(src->_alBitmap, _alBitmap, 0, 0, 0, 0, _alBitmap->w, _alBitmap->h);
     }
-    _isDataOwner = true;
+    _refCount = new int(1);
+    return _alBitmap != NULL;
+}
+
+bool Bitmap::CreateReference(Bitmap *src)
+{
+    Destroy();
+    _alBitmap = src->_alBitmap;
+    _refCount = src->_refCount;
+    if (_refCount)
+    {
+        (*_refCount)++;
+    }
     return _alBitmap != NULL;
 }
 
@@ -129,7 +141,10 @@ bool Bitmap::WrapAllegroBitmap(BITMAP *al_bmp, bool shared_data)
 {
     Destroy();
     _alBitmap = al_bmp;
-    _isDataOwner = !shared_data;
+    if (_alBitmap && !shared_data)
+    {
+        _refCount = new int(1);
+    }
     return _alBitmap != NULL;
 }
 
@@ -141,12 +156,17 @@ void Bitmap::Destroy()
     }
     _graphics = NULL;
 
-    if (_isDataOwner && _alBitmap)
+    if (_refCount)
     {
-        destroy_bitmap(_alBitmap);
+        (*_refCount)--;
+        if (!*_refCount && _alBitmap)
+        {
+            delete _refCount;
+            destroy_bitmap(_alBitmap);
+        }
     }
     _alBitmap = NULL;
-    _isDataOwner = false;
+    _refCount = NULL;
 }
 
 bool Bitmap::LoadFromFile(const char *filename)
@@ -157,7 +177,7 @@ bool Bitmap::LoadFromFile(const char *filename)
 	if (al_bmp)
 	{
 		_alBitmap = al_bmp;
-        _isDataOwner = true;
+        _refCount = new int(1);
 	}
 	return NULL;
 }

@@ -80,6 +80,17 @@ Bitmap *CreateBitmapCopy(Bitmap *src, int color_depth)
 	return bitmap;
 }
 
+Bitmap *CreateBitmapReference(Bitmap *src)
+{
+    Bitmap *bitmap = new Bitmap();
+    if (!bitmap->CreateReference(src))
+    {
+        delete bitmap;
+        bitmap = NULL;
+    }
+    return bitmap;
+}
+
 Bitmap *LoadFromFile(const char *filename)
 {
 	Bitmap *bitmap = new Bitmap();

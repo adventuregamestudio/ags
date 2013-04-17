@@ -64,6 +64,7 @@ namespace BitmapHelper
     Bitmap *CreateTransparentBitmap(int width, int height, int color_depth = 0);
 	Bitmap *CreateSubBitmap(Bitmap *src, const Rect &rc);
     Bitmap *CreateBitmapCopy(Bitmap *src, int color_depth = 0);
+    Bitmap *CreateBitmapReference(Bitmap *src);
 	Bitmap *LoadFromFile(const char *filename);
 
 	// TODO: revise this later

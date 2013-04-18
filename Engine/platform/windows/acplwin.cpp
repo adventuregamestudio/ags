@@ -436,7 +436,7 @@ void AGSWin32::register_file_extension(const char *exePath)
 
   // create HKEY_CLASSES_ROOT\AGS.SaveGames.Extension
   strcpy(keyname, saveGameRegistryType);
-  sprintf(valBuf, "%s Saved Game", game.GameName);
+  sprintf(valBuf, "%s Saved Game", game.GameName.GetCStr());
   RegSetValue (HKEY_CLASSES_ROOT, keyname, REG_SZ, valBuf, strlen(valBuf));
 
   // write HKEY_CLASSES_ROOT\AGS.SaveGames.Extension\DefaultIcon

@@ -356,7 +356,7 @@ bool validate_user_file_path(const char *fnmm, char *output, bool currentDirOnly
     if (appDataDir == NULL) appDataDir = ".";
     if (game.SavedGameFolderName[0] != 0)
     {
-      sprintf(output, "%s/%s", appDataDir, game.SavedGameFolderName);
+      sprintf(output, "%s/%s", appDataDir, game.SavedGameFolderName.GetCStr());
       fix_filename_slashes(output);
       mkdir(output
 #if !defined (WINDOWS_VERSION)

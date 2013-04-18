@@ -20,12 +20,22 @@
 
 #include "game/gameinfo.h"
 #include "game/roominfo.h"
+#include "game/roomstate.h"
 
-extern AGS::Common::GameInfo game; // static game data
+// static game data
+extern AGS::Common::GameInfo game;
+// current room's static data
 // NOTE: since RoomInfo contains Allegro bitmaps, its contents MUST be released
 // before Allegro is deinitialized; so far as RoomInfo is a global object we
 // cannot rely on destructor time, a RoomInfo::Free() should be called
 // explicitly instead.
-extern AGS::Common::RoomInfo thisroom;    // current room's static data
+extern AGS::Common::RoomInfo thisroom;
+// dynamic room data
+extern AGS::Engine::RoomState* room_statuses[MAX_ROOMS];
+// pointer to the current room's dynamic data
+extern AGS::Engine::RoomState* croom;
+// used for non-saveable rooms, eg. intro
+extern AGS::Engine::RoomState troom;
+extern AGS::Engine::RoomObject* objs;
 
 #endif // __AGS_EE_GAME__GAME_OBJECTS_H

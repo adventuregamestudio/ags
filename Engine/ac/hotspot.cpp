@@ -17,7 +17,6 @@
 #include "ac/global_hotspot.h"
 #include "ac/global_translation.h"
 #include "ac/properties.h"
-#include "ac/roomstatus.h"
 #include "ac/string.h"
 #include "game/game_objects.h"
 #include "gfx/bitmap.h"
@@ -26,7 +25,6 @@
 
 using AGS::Common::Bitmap;
 
-extern RoomStatus*croom;
 extern ScriptHotspot scrHotspot[MAX_HOTSPOTS];
 extern CCHotspot ccDynamicHotspot;
 
@@ -38,7 +36,7 @@ void Hotspot_SetEnabled(ScriptHotspot *hss, int newval) {
 }
 
 int Hotspot_GetEnabled(ScriptHotspot *hss) {
-    return croom->hotspot_enabled[hss->id];
+    return croom->Hotspots[hss->id].Enabled;
 }
 
 int Hotspot_GetID(ScriptHotspot *hss) {
@@ -91,7 +89,7 @@ const char* Hotspot_GetTextProperty(ScriptHotspot *hss, const char *property) {
 int get_hotspot_at(int xpp,int ypp) {
     int onhs=thisroom.HotspotMask->GetPixel(convert_to_low_res(xpp), convert_to_low_res(ypp));
     if (onhs<0) return 0;
-    if (croom->hotspot_enabled[onhs]==0) return 0;
+    if (croom->Hotspots[onhs].Enabled==0) return 0;
     return onhs;
 }
 

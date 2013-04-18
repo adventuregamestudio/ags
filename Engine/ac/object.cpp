@@ -22,7 +22,6 @@
 #include "ac/objectcache.h"
 #include "ac/path.h"
 #include "ac/properties.h"
-#include "ac/roomstatus.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
 #include "ac/walkablearea.h"
@@ -39,8 +38,6 @@ using AGS::Common::Bitmap;
 
 
 extern ScriptObject scrObj[MAX_INIT_SPR];
-extern RoomStatus*croom;
-extern RoomObject*objs;
 extern ObjectCache objcache[MAX_INIT_SPR];
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern MoveList *mls;
@@ -62,7 +59,7 @@ ScriptObject *GetObjectAtLocation(int xx, int yy) {
 }
 
 AGS_INLINE int is_valid_object(int obtest) {
-    if ((obtest < 0) || (obtest >= croom->numobj)) return 0;
+    if ((obtest < 0) || (obtest >= croom->ObjectCount)) return 0;
     return 1;
 }
 
@@ -86,12 +83,12 @@ int Object_GetTransparency(ScriptObject *objj) {
     if (!is_valid_object(objj->id))
         quit("!Object.Transparent: invalid object number specified");
 
-    if (objs[objj->id].transparent == 0)
+    if (objs[objj->id].Transparency == 0)
         return 0;
-    if (objs[objj->id].transparent == 255)
+    if (objs[objj->id].Transparency == 255)
        return 100;
 
-    return 100 - ((objs[objj->id].transparent * 10) / 25);
+    return 100 - ((objs[objj->id].Transparency * 10) / 25);
 }
 
 void Object_SetBaseline(ScriptObject *objj, int basel) {
@@ -124,9 +121,9 @@ void Object_StopAnimating(ScriptObject *objj) {
     if (!is_valid_object(objj->id))
         quit("!Object.StopAnimating: invalid object number");
 
-    if (objs[objj->id].cycling) {
-        objs[objj->id].cycling = 0;
-        objs[objj->id].wait = 0;
+    if (objs[objj->id].Cycling) {
+        objs[objj->id].Cycling = 0;
+        objs[objj->id].Wait = 0;
     }
 }
 
@@ -146,21 +143,21 @@ void Object_SetVisible(ScriptObject *objj, int onoroff) {
 }
 
 int Object_GetView(ScriptObject *objj) {
-    if (objs[objj->id].view < 0)
+    if (objs[objj->id].View < 0)
         return 0;
-    return objs[objj->id].view + 1;
+    return objs[objj->id].View + 1;
 }
 
 int Object_GetLoop(ScriptObject *objj) {
-    if (objs[objj->id].view < 0)
+    if (objs[objj->id].View < 0)
         return 0;
-    return objs[objj->id].loop;
+    return objs[objj->id].Loop;
 }
 
 int Object_GetFrame(ScriptObject *objj) {
-    if (objs[objj->id].view < 0)
+    if (objs[objj->id].View < 0)
         return 0;
-    return objs[objj->id].frame;
+    return objs[objj->id].Frame;
 }
 
 int Object_GetVisible(ScriptObject *objj) {
@@ -177,7 +174,7 @@ int Object_GetGraphic(ScriptObject *objj) {
 
 int GetObjectX (int objj) {
     if (!is_valid_object(objj)) quit("!GetObjectX: invalid object number");
-    return objs[objj].x;
+    return objs[objj].X;
 }
 
 int Object_GetX(ScriptObject *objj) {
@@ -201,11 +198,11 @@ void Object_SetPosition(ScriptObject *objj, int xx, int yy) {
 }
 
 void Object_SetX(ScriptObject *objj, int xx) {
-    SetObjectPosition(objj->id, xx, objs[objj->id].y);
+    SetObjectPosition(objj->id, xx, objs[objj->id].Y);
 }
 
 void Object_SetY(ScriptObject *objj, int yy) {
-    SetObjectPosition(objj->id, objs[objj->id].x, yy);
+    SetObjectPosition(objj->id, objs[objj->id].X, yy);
 }
 
 void Object_GetName(ScriptObject *objj, char *buffer) {
@@ -230,7 +227,7 @@ void Object_Move(ScriptObject *objj, int x, int y, int speed, int blocking, int 
     move_object(objj->id, x, y, speed, direct);
 
     if ((blocking == BLOCKING) || (blocking == 1))
-        GameLoopUntilEvent(UNTIL_SHORTIS0,(long)&objs[objj->id].moving);
+        GameLoopUntilEvent(UNTIL_SHORTIS0,(long)&objs[objj->id].Moving);
     else if ((blocking != IN_BACKGROUND) && (blocking != 0))
         quit("Object.Move: invalid BLOCKING paramter");
 }
@@ -243,7 +240,7 @@ int Object_GetClickable(ScriptObject *objj) {
     if (!is_valid_object(objj->id))
         quit("!Object.Clickable: Invalid object specified");
 
-    if (objs[objj->id].flags & OBJF_NOINTERACT)
+    if (objs[objj->id].Flags & OBJF_NOINTERACT)
         return 0;
     return 1;
 }
@@ -252,9 +249,9 @@ void Object_SetIgnoreScaling(ScriptObject *objj, int newval) {
     if (!is_valid_object(objj->id))
         quit("!Object.IgnoreScaling: Invalid object specified");
 
-    objs[objj->id].flags &= ~OBJF_USEROOMSCALING;
+    objs[objj->id].Flags &= ~OBJF_USEROOMSCALING;
     if (!newval)
-        objs[objj->id].flags |= OBJF_USEROOMSCALING;
+        objs[objj->id].Flags |= OBJF_USEROOMSCALING;
 
     // clear the cache
     objcache[objj->id].ywas = -9999;
@@ -264,37 +261,37 @@ int Object_GetIgnoreScaling(ScriptObject *objj) {
     if (!is_valid_object(objj->id))
         quit("!Object.IgnoreScaling: Invalid object specified");
 
-    if (objs[objj->id].flags & OBJF_USEROOMSCALING)
+    if (objs[objj->id].Flags & OBJF_USEROOMSCALING)
         return 0;
     return 1;
 }
 
 void Object_SetSolid(ScriptObject *objj, int solid) {
-    objs[objj->id].flags &= ~OBJF_SOLID;
+    objs[objj->id].Flags &= ~OBJF_SOLID;
     if (solid)
-      objs[objj->id].flags |= OBJF_SOLID;
+      objs[objj->id].Flags |= OBJF_SOLID;
 }
 
 int Object_GetSolid(ScriptObject *objj) {
-    if (objs[objj->id].flags & OBJF_SOLID)
+    if (objs[objj->id].Flags & OBJF_SOLID)
         return 1;
     return 0;
 }
 
 void Object_SetBlockingWidth(ScriptObject *objj, int bwid) {
-    objs[objj->id].blocking_width = bwid;
+    objs[objj->id].BlockingWidth = bwid;
 }
 
 int Object_GetBlockingWidth(ScriptObject *objj) {
-    return objs[objj->id].blocking_width;
+    return objs[objj->id].BlockingWidth;
 }
 
 void Object_SetBlockingHeight(ScriptObject *objj, int bhit) {
-    objs[objj->id].blocking_height = bhit;
+    objs[objj->id].BlockingHeight = bhit;
 }
 
 int Object_GetBlockingHeight(ScriptObject *objj) {
-    return objs[objj->id].blocking_height;
+    return objs[objj->id].BlockingHeight;
 }
 
 int Object_GetID(ScriptObject *objj) {
@@ -309,7 +306,7 @@ int Object_GetIgnoreWalkbehinds(ScriptObject *chaa) {
     if (!is_valid_object(chaa->id))
         quit("!Object.IgnoreWalkbehinds: Invalid object specified");
 
-    if (objs[chaa->id].flags & OBJF_NOWALKBEHINDS)
+    if (objs[chaa->id].Flags & OBJF_NOWALKBEHINDS)
         return 1;
     return 0;
 }
@@ -322,15 +319,15 @@ void move_object(int objj,int tox,int toy,int spee,int ignwal) {
     // AGS <= 2.61 uses MoveObject with spp=-1 internally instead of SetObjectPosition
     if ((loaded_game_file_version <= kGameVersion_261) && (spee == -1))
     {
-        objs[objj].x = tox;
-        objs[objj].y = toy;
+        objs[objj].X = tox;
+        objs[objj].Y = toy;
         return;
     }
 
     DEBUG_CONSOLE("Object %d start move to %d,%d", objj, tox, toy);
 
-    int objX = convert_to_low_res(objs[objj].x);
-    int objY = convert_to_low_res(objs[objj].y);
+    int objX = convert_to_low_res(objs[objj].X);
+    int objY = convert_to_low_res(objs[objj].Y);
     tox = convert_to_low_res(tox);
     toy = convert_to_low_res(toy);
 
@@ -339,7 +336,7 @@ void move_object(int objj,int tox,int toy,int spee,int ignwal) {
     int mslot=find_route(objX, objY, tox, toy, prepare_walkable_areas(-1), objj+1, 1, ignwal);
     set_color_depth(final_col_dep);
     if (mslot>0) {
-        objs[objj].moving = mslot;
+        objs[objj].Moving = mslot;
         mls[mslot].direct = ignwal;
 
         if ((game.Options[OPT_NATIVECOORDINATES] != 0) &&
@@ -369,12 +366,12 @@ void get_object_blocking_rect(int objid, int *x1, int *y1, int *width, int *y2) 
     RoomObject *tehobj = &objs[objid];
     int cwidth, fromx;
 
-    if (tehobj->blocking_width < 1)
-        cwidth = divide_down_coordinate(tehobj->last_width) - 4;
+    if (tehobj->BlockingWidth < 1)
+        cwidth = divide_down_coordinate(tehobj->LastWidth) - 4;
     else
-        cwidth = tehobj->blocking_width;
+        cwidth = tehobj->BlockingWidth;
 
-    fromx = tehobj->x + (divide_down_coordinate(tehobj->last_width) / 2) - cwidth / 2;
+    fromx = tehobj->X + (divide_down_coordinate(tehobj->LastWidth) / 2) - cwidth / 2;
     if (fromx < 0) {
         cwidth += fromx;
         fromx = 0;
@@ -387,16 +384,16 @@ void get_object_blocking_rect(int objid, int *x1, int *y1, int *width, int *y2) 
     if (width)
         *width = cwidth;
     if (y1) {
-        if (tehobj->blocking_height > 0)
-            *y1 = tehobj->y - tehobj->blocking_height / 2;
+        if (tehobj->BlockingHeight > 0)
+            *y1 = tehobj->Y - tehobj->BlockingHeight / 2;
         else
-            *y1 = tehobj->y - 2;
+            *y1 = tehobj->Y - 2;
     }
     if (y2) {
-        if (tehobj->blocking_height > 0)
-            *y2 = tehobj->y + tehobj->blocking_height / 2;
+        if (tehobj->BlockingHeight > 0)
+            *y2 = tehobj->Y + tehobj->BlockingHeight / 2;
         else
-            *y2 = tehobj->y + 3;
+            *y2 = tehobj->Y + 3;
     }
 }
 

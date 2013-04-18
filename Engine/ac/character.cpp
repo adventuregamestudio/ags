@@ -68,7 +68,6 @@ extern int new_room_pos;
 extern int new_room_x, new_room_y;
 extern GameState play;
 extern ViewStruct*views;
-extern RoomObject*objs;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern ScriptInvItem scrInv[MAX_INV];
 extern SpriteCache spriteset;
@@ -412,7 +411,7 @@ void Character_FaceObject(CharacterInfo *char1, ScriptObject *obj, int blockingS
     if (obj == NULL) 
         quit("!FaceObject: invalid object specified");
 
-    Character_FaceLocation(char1, objs[obj->id].x, objs[obj->id].y, blockingStyle);
+    Character_FaceLocation(char1, objs[obj->id].X, objs[obj->id].Y, blockingStyle);
 }
 
 void Character_FollowCharacter(CharacterInfo *chaa, CharacterInfo *tofollow, int distaway, int eagerness) {
@@ -484,14 +483,14 @@ int Character_IsCollidingWithObject(CharacterInfo *chin, ScriptObject *objid) {
 
     if (chin->room != displayed_room)
         return 0;
-    if (objs[objid->id].on != 1)
+    if (objs[objid->id].IsOn != 1)
         return 0;
 
     Bitmap *checkblk = GetObjectImage(objid->id, NULL);
     int objWidth = checkblk->GetWidth();
     int objHeight = checkblk->GetHeight();
-    int o1x = objs[objid->id].x;
-    int o1y = objs[objid->id].y - divide_down_coordinate(objHeight);
+    int o1x = objs[objid->id].X;
+    int o1y = objs[objid->id].Y - divide_down_coordinate(objHeight);
 
     Bitmap *charpic = GetCharacterImage(chin->index_id, NULL);
 

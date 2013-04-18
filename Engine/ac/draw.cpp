@@ -31,8 +31,6 @@
 #include "ac/objectcache.h"
 #include "ac/overlay.h"
 #include "ac/record.h"
-#include "ac/roomobject.h"
-#include "ac/roomstatus.h"
 #include "ac/runtime_defines.h"
 #include "ac/screenoverlay.h"
 #include "ac/spritelistentry.h"
@@ -90,10 +88,8 @@ extern WalkBehindMethodEnum walkBehindMethod;
 extern int walk_behind_baselines_changed;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
-extern RoomStatus*croom;
 extern int our_eip;
 extern int in_new_room;
-extern RoomObject*objs;
 extern ViewStruct*views;
 extern CharacterCache *charcache;
 extern ObjectCache objcache[MAX_INIT_SPR];
@@ -934,7 +930,7 @@ int sort_out_walk_behinds(Bitmap *sprit,int xx,int yy,int basel, Bitmap *copyPix
             // since we know it's 8-bit bitmap
             tmm = thisroom.WalkBehindMask->GetScanLine(rr+yy)[ee+xx];
             if (tmm<1) continue;
-            if (croom->walkbehind_base[tmm] <= basel) continue;
+            if (croom->WalkBehinds[tmm].Baseline <= basel) continue;
 
             if (copyPixelsFrom != NULL)
             {
@@ -1216,7 +1212,7 @@ void draw_sprite_list() {
             if (walkBehindBitmap[ee] != NULL)
             {
                 add_to_sprite_list(walkBehindBitmap[ee], walkBehindLeft[ee] - offsetx, walkBehindTop[ee] - offsety, 
-                    croom->walkbehind_base[ee], 0, -1, true);
+                    croom->WalkBehinds[ee].Baseline, 0, -1, true);
             }
         }
     }
@@ -1503,35 +1499,35 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
     if (alwaysUseSoftware)
         hardwareAccelerated = false;
 
-    if (spriteset[objs[aa].num] == NULL)
-        quitprintf("There was an error drawing object %d. Its current sprite, %d, is invalid.", aa, objs[aa].num);
+    if (spriteset[objs[aa].SpriteIndex] == NULL)
+        quitprintf("There was an error drawing object %d. Its current sprite, %d, is invalid.", aa, objs[aa].SpriteIndex);
 
-    int coldept = spriteset[objs[aa].num]->GetColorDepth();
-    int sprwidth = spritewidth[objs[aa].num];
-    int sprheight = spriteheight[objs[aa].num];
+    int coldept = spriteset[objs[aa].SpriteIndex]->GetColorDepth();
+    int sprwidth = spritewidth[objs[aa].SpriteIndex];
+    int sprheight = spriteheight[objs[aa].SpriteIndex];
 
     int tint_red, tint_green, tint_blue;
     int tint_level, tint_light, light_level;
     int zoom_level = 100;
 
     // calculate the zoom level
-    if (objs[aa].flags & OBJF_USEROOMSCALING) {
-        int onarea = get_walkable_area_at_location(objs[aa].x, objs[aa].y);
+    if (objs[aa].Flags & OBJF_USEROOMSCALING) {
+        int onarea = get_walkable_area_at_location(objs[aa].X, objs[aa].Y);
 
         if ((onarea <= 0) && (thisroom.WalkAreas[0].Zoom == 0)) {
             // just off the edge of an area -- use the scaling we had
             // while on the area
-            zoom_level = objs[aa].last_zoom;
+            zoom_level = objs[aa].LastZoom;
         }
         else
-            zoom_level = get_area_scaling(onarea, objs[aa].x, objs[aa].y);
+            zoom_level = get_area_scaling(onarea, objs[aa].X, objs[aa].Y);
 
         if (zoom_level != 100)
-            scale_sprite_size(objs[aa].num, zoom_level, &sprwidth, &sprheight);
+            scale_sprite_size(objs[aa].SpriteIndex, zoom_level, &sprwidth, &sprheight);
 
     }
     // save the zoom level for next time
-    objs[aa].last_zoom = zoom_level;
+    objs[aa].LastZoom = zoom_level;
 
     // save width/height into parameters if requested
     if (drawnWidth)
@@ -1539,39 +1535,39 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
     if (drawnHeight)
         *drawnHeight = sprheight;
 
-    objs[aa].last_width = sprwidth;
-    objs[aa].last_height = sprheight;
+    objs[aa].LastWidth = sprwidth;
+    objs[aa].LastHeight = sprheight;
 
-    if (objs[aa].flags & OBJF_HASTINT) {
+    if (objs[aa].Flags & OBJF_HASTINT) {
         // object specific tint, use it
-        tint_red = objs[aa].tint_r;
-        tint_green = objs[aa].tint_g;
-        tint_blue = objs[aa].tint_b;
-        tint_level = objs[aa].tint_level;
-        tint_light = objs[aa].tint_light;
+        tint_red = objs[aa].TintR;
+        tint_green = objs[aa].TintG;
+        tint_blue = objs[aa].TintB;
+        tint_level = objs[aa].TintLevel;
+        tint_light = objs[aa].TintLight;
         light_level = 0;
     }
     else {
         // get the ambient or region tint
         int ignoreRegionTints = 1;
-        if (objs[aa].flags & OBJF_USEREGIONTINTS)
+        if (objs[aa].Flags & OBJF_USEREGIONTINTS)
             ignoreRegionTints = 0;
 
-        get_local_tint(objs[aa].x, objs[aa].y, ignoreRegionTints,
+        get_local_tint(objs[aa].X, objs[aa].Y, ignoreRegionTints,
             &tint_level, &tint_red, &tint_green, &tint_blue,
             &tint_light, &light_level);
     }
 
     // check whether the image should be flipped
     int isMirrored = 0;
-    if ( (objs[aa].view >= 0) &&
-        (views[objs[aa].view].loops[objs[aa].loop].frames[objs[aa].frame].pic == objs[aa].num) &&
-        ((views[objs[aa].view].loops[objs[aa].loop].frames[objs[aa].frame].flags & VFLG_FLIPSPRITE) != 0)) {
+    if ( (objs[aa].View >= 0) &&
+        (views[objs[aa].View].loops[objs[aa].Loop].frames[objs[aa].Frame].pic == objs[aa].SpriteIndex) &&
+        ((views[objs[aa].View].loops[objs[aa].Loop].frames[objs[aa].Frame].flags & VFLG_FLIPSPRITE) != 0)) {
             isMirrored = 1;
     }
 
     if ((objcache[aa].image != NULL) &&
-        (objcache[aa].sppic == objs[aa].num) &&
+        (objcache[aa].sppic == objs[aa].SpriteIndex) &&
         (walkBehindMethod != DrawOverCharSprite) &&
         (actsps[useindx] != NULL) &&
         (hardwareAccelerated))
@@ -1598,7 +1594,7 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
 
     // If we have the image cached, use it
     if ((objcache[aa].image != NULL) &&
-        (objcache[aa].sppic == objs[aa].num) &&
+        (objcache[aa].sppic == objs[aa].SpriteIndex) &&
         (objcache[aa].tintamntwas == tint_level) &&
         (objcache[aa].tintlightwas == tint_light) &&
         (objcache[aa].tintredwas == tint_red) &&
@@ -1613,8 +1609,8 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
                 return 1;
             // Check if the X & Y co-ords are the same, too -- if so, there
             // is scope for further optimisations
-            if ((objcache[aa].xwas == objs[aa].x) &&
-                (objcache[aa].ywas == objs[aa].y) &&
+            if ((objcache[aa].xwas == objs[aa].X) &&
+                (objcache[aa].ywas == objs[aa].Y) &&
                 (actsps[useindx] != NULL) &&
                 (walk_behind_baselines_changed == 0))
                 return 1;
@@ -1631,18 +1627,18 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
     {
         // draw the base sprite, scaled and flipped as appropriate
         actspsUsed = scale_and_flip_sprite(useindx, coldept, zoom_level,
-            objs[aa].num, sprwidth, sprheight, isMirrored);
+            objs[aa].SpriteIndex, sprwidth, sprheight, isMirrored);
     }
     else
     {
         // ensure actsps exists
-        actsps[useindx] = recycle_bitmap(actsps[useindx], coldept, spritewidth[objs[aa].num], spriteheight[objs[aa].num]);
+        actsps[useindx] = recycle_bitmap(actsps[useindx], coldept, spritewidth[objs[aa].SpriteIndex], spriteheight[objs[aa].SpriteIndex]);
     }
 
     // direct read from source bitmap, where possible
     Bitmap *comeFrom = NULL;
     if (!actspsUsed)
-        comeFrom = spriteset[objs[aa].num];
+        comeFrom = spriteset[objs[aa].SpriteIndex];
 
     // apply tints or lightenings where appropriate, else just copy
     // the source bitmap
@@ -1655,7 +1651,7 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
     }
     else if (!actspsUsed) {
         Graphics graphics(actsps[useindx]);
-        graphics.Blit(spriteset[objs[aa].num],0,0,0,0,spritewidth[objs[aa].num],spriteheight[objs[aa].num]);
+        graphics.Blit(spriteset[objs[aa].SpriteIndex],0,0,0,0,spritewidth[objs[aa].SpriteIndex],spriteheight[objs[aa].SpriteIndex]);
     }
 
     // Re-use the bitmap if it's the same size
@@ -1665,7 +1661,7 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
     Graphics graphics(objcache[aa].image);
     graphics.Blit(actsps[useindx], 0, 0, 0, 0, sprwidth, sprheight);
 
-    objcache[aa].sppic = objs[aa].num;
+    objcache[aa].sppic = objs[aa].SpriteIndex;
     objcache[aa].tintamntwas = tint_level;
     objcache[aa].tintredwas = tint_red;
     objcache[aa].tintgrnwas = tint_green;
@@ -1686,10 +1682,10 @@ void prepare_objects_for_drawing() {
     int aa,atxp,atyp,useindx;
     our_eip=32;
 
-    for (aa=0;aa<croom->numobj;aa++) {
-        if (objs[aa].on != 1) continue;
+    for (aa=0;aa<croom->ObjectCount;aa++) {
+        if (objs[aa].IsOn != 1) continue;
         // offscreen, don't draw
-        if ((objs[aa].x >= thisroom.Width) || (objs[aa].y < 1))
+        if ((objs[aa].X >= thisroom.Width) || (objs[aa].Y < 1))
             continue;
 
         useindx = aa;
@@ -1698,15 +1694,15 @@ void prepare_objects_for_drawing() {
         int actspsIntact = construct_object_gfx(aa, NULL, &tehHeight, false);
 
         // update the cache for next time
-        objcache[aa].xwas = objs[aa].x;
-        objcache[aa].ywas = objs[aa].y;
+        objcache[aa].xwas = objs[aa].X;
+        objcache[aa].ywas = objs[aa].Y;
 
-        atxp = multiply_up_coordinate(objs[aa].x) - offsetx;
-        atyp = (multiply_up_coordinate(objs[aa].y) - tehHeight) - offsety;
+        atxp = multiply_up_coordinate(objs[aa].X) - offsetx;
+        atyp = (multiply_up_coordinate(objs[aa].Y) - tehHeight) - offsety;
 
-        int usebasel = objs[aa].get_baseline();
+        int usebasel = objs[aa].GetBaseline();
 
-        if (objs[aa].flags & OBJF_NOWALKBEHINDS) {
+        if (objs[aa].Flags & OBJF_NOWALKBEHINDS) {
             // ignore walk-behinds, do nothing
             if (walkBehindMethod == DrawAsSeparateSprite)
             {
@@ -1715,7 +1711,7 @@ void prepare_objects_for_drawing() {
         }
         else if (walkBehindMethod == DrawAsSeparateCharSprite) 
         {
-            sort_out_char_sprite_walk_behind(useindx, atxp+offsetx, atyp+offsety, usebasel, objs[aa].last_zoom, objs[aa].last_width, objs[aa].last_height);
+            sort_out_char_sprite_walk_behind(useindx, atxp+offsetx, atyp+offsety, usebasel, objs[aa].LastZoom, objs[aa].LastWidth, objs[aa].LastHeight);
         }
         else if ((!actspsIntact) && (walkBehindMethod == DrawOverCharSprite))
         {
@@ -1724,7 +1720,7 @@ void prepare_objects_for_drawing() {
 
         if ((!actspsIntact) || (actspsbmp[useindx] == NULL))
         {
-            bool hasAlpha = (game.SpriteFlags[objs[aa].num] & SPF_ALPHACHANNEL) != 0;
+            bool hasAlpha = (game.SpriteFlags[objs[aa].SpriteIndex] & SPF_ALPHACHANNEL) != 0;
 
             if (actspsbmp[useindx] != NULL)
                 gfxDriver->DestroyDDB(actspsbmp[useindx]);
@@ -1734,7 +1730,7 @@ void prepare_objects_for_drawing() {
         if (gfxDriver->HasAcceleratedStretchAndFlip())
         {
             actspsbmp[useindx]->SetFlippedLeftRight(objcache[aa].mirroredWas != 0);
-            actspsbmp[useindx]->SetStretch(objs[aa].last_width, objs[aa].last_height);
+            actspsbmp[useindx]->SetStretch(objs[aa].LastWidth, objs[aa].LastHeight);
             actspsbmp[useindx]->SetTint(objcache[aa].tintredwas, objcache[aa].tintgrnwas, objcache[aa].tintbluwas, (objcache[aa].tintamntwas * 256) / 100);
 
             if (objcache[aa].tintamntwas > 0)
@@ -1752,7 +1748,7 @@ void prepare_objects_for_drawing() {
                 actspsbmp[useindx]->SetLightLevel(0);
         }
 
-        add_to_sprite_list(actspsbmp[useindx],atxp,atyp,usebasel,objs[aa].transparent,objs[aa].num);
+        add_to_sprite_list(actspsbmp[useindx],atxp,atyp,usebasel,objs[aa].Transparency,objs[aa].SpriteIndex);
     }
 
 }

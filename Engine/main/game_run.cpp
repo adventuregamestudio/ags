@@ -36,8 +36,6 @@
 #include "ac/overlay.h"
 #include "ac/record.h"
 #include "ac/room.h"
-#include "ac/roomobject.h"
-#include "ac/roomstatus.h"
 #include "debug/debugger.h"
 #include "debug/debug_log.h"
 #include "game/game_objects.h"
@@ -73,10 +71,8 @@ extern GUIMain*guis;
 extern int is_complete_overlay;
 extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 extern int cur_mode;
-extern RoomObject*objs;
 extern int replay_start_this_time;
 extern char noWalkBehindsAtAll;
-extern RoomStatus*croom;
 extern CharacterExtras *charextra;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
@@ -387,17 +383,17 @@ void check_controls() {
                 (IsGamePaused() == 0) ? "" : "[Game paused.",
                 (play.ground_level_areas_disabled == 0) ? "" : "[Ground areas disabled.",
                 (IsInterfaceEnabled() == 0) ? "[Game in Wait state" : "");
-            for (ff=0;ff<croom->numobj;ff++) {
+            for (ff=0;ff<croom->ObjectCount;ff++) {
                 if (ff >= 8) break; // buffer not big enough for more than 7
                 sprintf(&infobuf[strlen(infobuf)],
                     "[Object %d: (%d,%d) size (%d x %d) on:%d moving:%s animating:%d slot:%d trnsp:%d clkble:%d",
-                    ff, objs[ff].x, objs[ff].y,
-                    (spriteset[objs[ff].num] != NULL) ? spritewidth[objs[ff].num] : 0,
-                    (spriteset[objs[ff].num] != NULL) ? spriteheight[objs[ff].num] : 0,
-                    objs[ff].on,
-                    (objs[ff].moving > 0) ? "yes" : "no", objs[ff].cycling,
-                    objs[ff].num, objs[ff].transparent,
-                    ((objs[ff].flags & OBJF_NOINTERACT) != 0) ? 0 : 1 );
+                    ff, objs[ff].X, objs[ff].Y,
+                    (spriteset[objs[ff].SpriteIndex] != NULL) ? spritewidth[objs[ff].SpriteIndex] : 0,
+                    (spriteset[objs[ff].SpriteIndex] != NULL) ? spriteheight[objs[ff].SpriteIndex] : 0,
+                    objs[ff].IsOn,
+                    (objs[ff].Moving > 0) ? "yes" : "no", objs[ff].Cycling,
+                    objs[ff].SpriteIndex, objs[ff].Transparency,
+                    ((objs[ff].Flags & OBJF_NOINTERACT) != 0) ? 0 : 1 );
             }
             Display(infobuf);
             int chd = game.PlayerCharacterIndex;

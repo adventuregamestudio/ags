@@ -24,8 +24,6 @@
 #include "ac/lipsync.h"
 #include "ac/overlay.h"
 #include "ac/record.h"
-#include "ac/roomobject.h"
-#include "ac/roomstatus.h"
 #include "game/game_objects.h"
 #include "main/mainheader.h"
 #include "main/update.h"
@@ -40,9 +38,7 @@ using AGS::Common::Bitmap;
 using AGS::Common::Graphics;
 
 extern MoveList *mls;
-extern RoomStatus*croom;
 extern GameState play;
-extern RoomObject*objs;
 extern ViewStruct*views;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern int our_eip;
@@ -186,7 +182,7 @@ void update_script_timers()
 void update_cycling_views()
 {
 	// update graphics for object if cycling view
-  for (int aa=0;aa<croom->numobj;aa++) {
+  for (int aa=0;aa<croom->ObjectCount;aa++) {
 
 	  RoomObject * obj = &objs[aa];
 

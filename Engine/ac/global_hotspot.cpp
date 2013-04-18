@@ -22,13 +22,11 @@
 #include "ac/global_translation.h"
 #include "ac/hotspot.h"
 #include "ac/properties.h"
-#include "ac/roomstatus.h"
 #include "ac/string.h"
 #include "debug/debug_log.h"
 #include "game/game_objects.h"
 #include "script/script.h"
 
-extern RoomStatus*croom;
 extern int offsetx, offsety;
 extern CharacterInfo*playerchar;
 
@@ -36,14 +34,14 @@ extern CharacterInfo*playerchar;
 void DisableHotspot(int hsnum) {
     if ((hsnum<1) | (hsnum>=MAX_HOTSPOTS))
         quit("!DisableHotspot: invalid hotspot specified");
-    croom->hotspot_enabled[hsnum]=0;
+    croom->Hotspots[hsnum].Enabled=0;
     DEBUG_CONSOLE("Hotspot %d disabled", hsnum);
 }
 
 void EnableHotspot(int hsnum) {
     if ((hsnum<1) | (hsnum>=MAX_HOTSPOTS))
         quit("!EnableHotspot: invalid hotspot specified");
-    croom->hotspot_enabled[hsnum]=1;
+    croom->Hotspots[hsnum].Enabled=1;
     DEBUG_CONSOLE("Hotspot %d re-enabled", hsnum);
 }
 
@@ -120,14 +118,14 @@ void RunHotspotInteraction (int hotspothere, int mood) {
     else
     {
         if (passon>=0) {
-            if (run_interaction_event(&croom->intrHotspot[hotspothere],passon, 5, (passon == 3))) {
+            if (run_interaction_event(&croom->Hotspots[hotspothere].Interaction,passon, 5, (passon == 3))) {
                 evblockbasename = oldbasename;
                 evblocknum = oldblocknum;
                 return;
             }
         }
         // run the 'any click on hs' event
-        run_interaction_event(&croom->intrHotspot[hotspothere],5);
+        run_interaction_event(&croom->Hotspots[hotspothere].Interaction,5);
     }
 
     evblockbasename = oldbasename;

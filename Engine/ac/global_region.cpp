@@ -17,7 +17,6 @@
 #include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/region.h"
-#include "ac/roomstatus.h"
 #include "debug/debug_log.h"
 #include "game/game_objects.h"
 #include "script/script.h"
@@ -25,7 +24,6 @@
 
 using AGS::Common::Bitmap;
 
-extern RoomStatus*croom;
 extern char*evblockbasename;
 extern int evblocknum;
 
@@ -58,7 +56,7 @@ int GetRegionAt (int xxx, int yyy) {
         quit(tempmsg);
     }
 
-    if (croom->region_enabled[hsthere] == 0)
+    if (croom->Regions[hsthere].Enabled == 0)
         return 0;
     return hsthere;
 }
@@ -112,7 +110,7 @@ void DisableRegion(int hsnum) {
     if ((hsnum < 0) || (hsnum >= MAX_REGIONS))
         quit("!DisableRegion: invalid region specified");
 
-    croom->region_enabled[hsnum] = 0;
+    croom->Regions[hsnum].Enabled = 0;
     DEBUG_CONSOLE("Region %d disabled", hsnum);
 }
 
@@ -120,7 +118,7 @@ void EnableRegion(int hsnum) {
     if ((hsnum < 0) || (hsnum >= MAX_REGIONS))
         quit("!EnableRegion: invalid region specified");
 
-    croom->region_enabled[hsnum] = 1;
+    croom->Regions[hsnum].Enabled = 1;
     DEBUG_CONSOLE("Region %d enabled", hsnum);
 }
 
@@ -164,7 +162,7 @@ void RunRegionInteraction (int regnum, int mood) {
     }
     else
     {
-        run_interaction_event(&croom->intrRegion[regnum], mood);
+        run_interaction_event(&croom->Regions[regnum].Interaction, mood);
     }
 
     evblockbasename = oldbasename;

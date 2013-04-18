@@ -543,6 +543,7 @@ void init_and_register_game_objects()
     StaticInventoryArray.Create(&ccDynamicInv, sizeof(ScriptInvItem), sizeof(ScriptInvItem));
     StaticDialogArray.Create(&ccDynamicDialog, sizeof(ScriptDialog), sizeof(ScriptDialog));
 
+    // TODO: this will work so far as Characters array is not reallocated
     ccAddExternalStaticArray("character",&game.Characters[0], &StaticCharacterArray);
     setup_player_character(game.PlayerCharacterIndex);
     if (loaded_game_file_version >= kGameVersion_270) {

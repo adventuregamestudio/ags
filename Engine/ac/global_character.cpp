@@ -40,7 +40,6 @@
 
 extern ViewStruct*views;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
-extern RoomObject*objs;
 extern GameState play;
 extern ScriptObject scrObj[MAX_INIT_SPR];
 extern ScriptInvItem scrInv[MAX_INV];
@@ -333,7 +332,7 @@ void MoveCharacterToObject(int chaa,int obbj) {
     if (!is_valid_object(obbj))
         return;
 
-    walk_character(chaa,objs[obbj].x+5,objs[obbj].y+6,0, true);
+    walk_character(chaa,objs[obbj].X+5,objs[obbj].Y+6,0, true);
     GameLoopUntilEvent(UNTIL_MOVEEND,(long)&game.Characters[chaa].walking);
 }
 

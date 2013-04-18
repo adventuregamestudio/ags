@@ -22,8 +22,6 @@
 #include "ac/gamestate.h"
 #include "ac/global_translation.h"
 #include "ac/objectcache.h"
-#include "ac/roomobject.h"
-#include "ac/roomstatus.h"
 #include "ac/string.h"
 #include "debug/debug_log.h"
 #include "font/fonts.h"
@@ -38,8 +36,6 @@ using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameState play;
-extern RoomStatus*croom;
-extern RoomObject*objs;
 extern CharacterCache *charcache;
 extern ObjectCache objcache[MAX_INIT_SPR];
 extern GUIMain*guis;
@@ -76,9 +72,9 @@ void DrawingSurface_Release(ScriptDrawingSurface* sds)
             // force a refresh of any cached object or character images
             if (croom != NULL) 
             {
-                for (tt = 0; tt < croom->numobj; tt++) 
+                for (tt = 0; tt < croom->ObjectCount; tt++) 
                 {
-                    if (objs[tt].num == sds->dynamicSpriteNumber)
+                    if (objs[tt].SpriteIndex == sds->dynamicSpriteNumber)
                         objcache[tt].sppic = -31999;
                 }
             }

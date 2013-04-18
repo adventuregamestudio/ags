@@ -15,14 +15,12 @@
 #include "ac/region.h"
 #include "ac/common_defines.h"
 #include "ac/global_region.h"
-#include "ac/roomstatus.h"
 #include "ac/dynobj/cc_region.h"
 #include "game/game_objects.h"
 #include "script/runtimescriptvalue.h"
 
 
 extern ScriptRegion scrRegion[MAX_REGIONS];
-extern RoomStatus*croom;
 extern COLOR_MAP maincoltable;
 extern color palette[256];
 extern CCRegion ccDynamicRegion;
@@ -81,7 +79,7 @@ void Region_SetEnabled(ScriptRegion *ssr, int enable) {
 }
 
 int Region_GetEnabled(ScriptRegion *ssr) {
-    return croom->region_enabled[ssr->id];
+    return croom->Regions[ssr->id].Enabled;
 }
 
 int Region_GetID(ScriptRegion *ssr) {

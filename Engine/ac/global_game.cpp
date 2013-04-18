@@ -37,7 +37,6 @@
 #include "ac/object.h"
 #include "ac/record.h"
 #include "ac/room.h"
-#include "ac/roomstatus.h"
 #include "ac/string.h"
 #include "debug/debugger.h"
 #include "debug/debug_log.h"
@@ -77,7 +76,6 @@ extern GameSetup usetup;
 extern unsigned int load_new_game;
 extern int load_new_game_restore;
 extern ViewStruct*views;
-extern RoomStatus*croom;
 extern int gui_disabled_style;
 extern int getloctype_index;
 extern int offsetx, offsety;
@@ -343,7 +341,7 @@ int GetGameParameter (int parm, int data1, int data2, int data3) {
    case GP_NUMGUIS:
        return game.GuiCount;
    case GP_NUMOBJECTS:
-       return croom->numobj;
+       return croom->ObjectCount;
    case GP_NUMCHARACTERS:
        return game.CharacterCount;
    case GP_NUMINVITEMS:

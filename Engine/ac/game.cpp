@@ -47,8 +47,6 @@
 #include "ac/region.h"
 #include "ac/richgamemedia.h"
 #include "ac/room.h"
-#include "ac/roomobject.h"
-#include "ac/roomstatus.h"
 #include "ac/runtime_defines.h"
 #include "ac/screenoverlay.h"
 #include "ac/spritecache.h"
@@ -79,6 +77,7 @@
 #include "script/script_runtime.h"
 #include "util/alignedstream.h"
 #include "util/filestream.h"
+#include "util/math.h"
 #include "util/string_utils.h"
 
 using AGS::Common::AlignedStream;
@@ -89,6 +88,7 @@ using AGS::Common::Stream;
 using AGS::Common::Bitmap;
 using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
+namespace Math = AGS::Common::Math;
 
 extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
 extern int time_between_timers;
@@ -143,9 +143,6 @@ extern IGraphicsDriver *gfxDriver;
 //=============================================================================
 GameState play;
 GameSetup usetup;
-RoomStatus troom;    // used for non-saveable rooms, eg. intro
-RoomObject*objs;
-RoomStatus*croom=NULL;
 
 volatile int switching_away_from_game = 0;
 volatile char want_exit = 0, abort_engine = 0;
@@ -629,7 +626,7 @@ void unload_game_file() {
     free_do_once_tokens();
     free(play.gui_draw_order);
 
-    resetRoomStatuses();
+    ResetRoomStates();
 
 }
 
@@ -1099,7 +1096,7 @@ void save_game_scripts(Stream *out)
     }
 }
 
-void WriteRoomStatus_Aligned(RoomStatus *roomstat, Stream *out)
+void WriteRoomStatus_Aligned(RoomState *roomstat, Stream *out)
 {
     AlignedStream align_s(out, Common::kAligned_Write);
     roomstat->WriteToFile_v321(&align_s);
@@ -1115,20 +1112,20 @@ void save_game_room_state(Stream *out)
 
         // Update the saved interaction variable values
         for (int ff = 0; ff < thisroom.LocalVariableCount; ff++)
-            croom->interactionVariableValues[ff] = thisroom.LocalVariables[ff].value;
+            croom->InteractionVariableValues[ff] = thisroom.LocalVariables[ff].value;
     }
 
     // write the room state for all the rooms the player has been in
-    RoomStatus* roomstat;
+    RoomState* roomstat;
     for (int bb = 0; bb < MAX_ROOMS; bb++) {
-        if (isRoomStatusValid(bb))
+        if (IsRoomStateValid(bb))
         {
-            roomstat = getRoomStatus(bb);
-            if (roomstat->beenhere) {
+            roomstat = GetRoomState(bb);
+            if (roomstat->BeenHere) {
                 out->WriteInt8 (1);
                 WriteRoomStatus_Aligned(roomstat, out);
-                if (roomstat->tsdatasize>0)
-                    out->Write(&roomstat->tsdata[0], roomstat->tsdatasize);
+                if (roomstat->ScriptDataSize > 0)
+                    out->Write(roomstat->ScriptData.GetCArr(), roomstat->ScriptDataSize);
             }
             else
                 out->WriteInt8(0);
@@ -1294,8 +1291,8 @@ void save_game_displayed_room_status(Stream *out)
 
         // save the current troom, in case they save in room 600 or whatever
         WriteRoomStatus_Aligned(&troom, out);
-        if (troom.tsdatasize>0)
-            out->Write(&troom.tsdata[0],troom.tsdatasize);
+        if (troom.ScriptDataSize>0)
+            out->Write(&troom.ScriptData[0],troom.ScriptDataSize);
 
     }
 }
@@ -1694,7 +1691,7 @@ void restore_game_scripts(Stream *in, int &gdatasize, char **newglobaldatabuffer
     }
 }
 
-void ReadRoomStatus_Aligned(RoomStatus *roomstat, Stream *in)
+void ReadRoomStatus_Aligned(RoomState *roomstat, Stream *in)
 {
     AlignedStream align_s(in, Common::kAligned_Read);
     roomstat->ReadFromFile_v321(&align_s);
@@ -1707,31 +1704,21 @@ void restore_game_room_state(Stream *in, const char *nametouse)
     displayed_room = in->ReadInt32();
 
     // now the rooms
-    resetRoomStatuses();
+    ResetRoomStates();
 
     // read the room state for all the rooms the player has been in
-    RoomStatus* roomstat;
-    int beenhere;
+    RoomState* roomstat;
+    int BeenHere;
     for (vv=0;vv<MAX_ROOMS;vv++)
     {
-        beenhere = in->ReadByte();
-        if (beenhere)
+        BeenHere = in->ReadByte();
+        if (BeenHere)
         {
-            roomstat = getRoomStatus(vv);
-            if ((roomstat->tsdatasize > 0) && (roomstat->tsdata != NULL))
-                free(roomstat->tsdata);
-            roomstat->tsdatasize = 0;
-            roomstat->tsdata = NULL;
-            roomstat->beenhere = beenhere;
-
-            if (roomstat->beenhere)
+            roomstat = GetRoomState(vv);
+            ReadRoomStatus_Aligned(roomstat, in);
+            if (roomstat->ScriptDataSize > 0)
             {
-                ReadRoomStatus_Aligned(roomstat, in);
-                if (roomstat->tsdatasize > 0)
-                {
-                    roomstat->tsdata=(char*)malloc(roomstat->tsdatasize + 8);  // JJS: Why allocate 8 additional bytes?
-                    in->Read(&roomstat->tsdata[0], roomstat->tsdatasize);
-                }
+                roomstat->ScriptData.ReadRaw(in, roomstat->ScriptDataSize);
             }
         }
     }
@@ -1965,18 +1952,14 @@ void restore_game_displayed_room_status(Stream *in, Bitmap **newbscene)
         if (bb)
             raw_saved_screen = read_serialized_bitmap(in);
 
-        if (troom.tsdata != NULL)
-            free (troom.tsdata);
+        troom.ScriptData.Free();
         
         // get the current troom, in case they save in room 600 or whatever
         ReadRoomStatus_Aligned(&troom, in);
         
-        if (troom.tsdatasize > 0) {
-            troom.tsdata=(char*)malloc(troom.tsdatasize+5);
-            in->Read(&troom.tsdata[0],troom.tsdatasize);
+        if (troom.ScriptDataSize > 0) {
+            troom.ScriptData.ReadRaw(in, troom.ScriptDataSize);
         }
-        else
-            troom.tsdata = NULL;
     }
 }
 
@@ -2114,7 +2097,7 @@ int restore_game_data (Stream *in, const char *nametouse) {
     game.ReadFromSaveGame_v321(in);
 
     ReadCharacterExtras_Aligned(in);
-    if (roominst!=NULL) {  // so it doesn't overwrite the tsdata
+    if (roominst!=NULL) {  // so it doesn't overwrite the ScriptData
         delete roominstFork;
         delete roominst; 
         roominstFork = NULL;
@@ -2575,11 +2558,11 @@ int __GetLocationType(int xxx,int yyy, int allowHotspot0) {
     int wbat = thisroom.WalkBehindMask->GetPixel(xxx, yyy);
 
     if (wbat <= 0) wbat = 0;
-    else wbat = croom->walkbehind_base[wbat];
+    else wbat = croom->WalkBehinds[wbat].Baseline;
 
     int winner = 0;
     // if it's an Ignore Walkbehinds object, then ignore the walkbehind
-    if ((objat >= 0) && ((objs[objat].flags & OBJF_NOWALKBEHINDS) != 0))
+    if ((objat >= 0) && ((objs[objat].Flags & OBJF_NOWALKBEHINDS) != 0))
         wbat = 0;
     if ((charat >= 0) && ((game.Characters[charat].flags & CHF_NOWALKBEHINDS) != 0))
         wbat = 0;

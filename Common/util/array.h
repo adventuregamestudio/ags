@@ -83,7 +83,13 @@ public:
     {
         return _meta ? _meta->Length == 0 : true;
     }
-
+    // Get constant pointer to underlying C-array;
+    // it is generally unsafe to keep returned address for future reference,
+    // because Array's buffer may eventually be reallocated.
+    inline const T *GetCArr() const
+    {
+        return _meta ? _meta->Arr : NULL;
+    }
     // Those getters are for tests only, hence ifdef _DEBUG
 #ifdef _DEBUG
     inline const char *GetData() const
@@ -180,6 +186,15 @@ public:
             CreateBuffer(count);
             Construct(0, count, value);
             _meta->Length = count;
+        }
+    }
+    // Create new array and copy N elements from C-array
+    void CreateFromCArray(const T *arr, int count)
+    {
+        New(count);
+        if (arr && count > 0)
+        {
+            memcpy(_meta->Arr, arr, sizeof(T) * count);
         }
     }
     // Destroy all existing elements in array
@@ -479,7 +494,13 @@ public:
     {
         return _meta ? _meta->Length == 0 : true;
     }
-
+    // Get constant pointer to underlying C-array;
+    // it is generally unsafe to keep returned address for future reference,
+    // because Array's buffer may eventually be reallocated.
+    inline const T *GetCArr() const
+    {
+        return _meta ? _meta->Arr : NULL;
+    }
     // Those getters are for tests only, hence ifdef _DEBUG
 #ifdef _DEBUG
     inline const char *GetData() const
@@ -591,6 +612,19 @@ public:
             CreateBuffer(count);
             Construct(0, count, value);
             _meta->Length = count;
+        }
+    }
+    // Create new array and copy N elements from C-array
+    void CreateFromCArray(const T *arr, int count)
+    {
+        New(count);
+        if (arr && count > 0)
+        {
+            const T *end_ptr = _meta->Arr + count;
+            for (T *dest_ptr = _meta->Arr, const T *src_ptr = arr; dest_ptr != end_ptr; ++dest_ptr, ++src_ptr)
+            {
+                *dest_ptr = *src_ptr;
+            }
         }
     }
     // Destroy all existing elements in array

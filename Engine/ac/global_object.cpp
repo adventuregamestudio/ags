@@ -26,8 +26,6 @@
 #include "ac/object.h"
 #include "ac/objectcache.h"
 #include "ac/properties.h"
-#include "ac/roomobject.h"
-#include "ac/roomstatus.h"
 #include "ac/string.h"
 #include "ac/viewframe.h"
 #include "debug/debug_log.h"
@@ -42,8 +40,6 @@ using AGS::Common::Bitmap;
 
 #define OVERLAPPING_OBJECT 1000
 
-extern RoomStatus*croom;
-extern RoomObject*objs;
 extern ViewStruct*views;
 extern ObjectCache objcache[MAX_INIT_SPR];
 extern CharacterInfo*playerchar;
@@ -64,16 +60,16 @@ int GetObjectAt(int xx,int yy) {
     xx += divide_down_coordinate(offsetx);
     yy += divide_down_coordinate(offsety);
     // Iterate through all objects in the room
-    for (aa=0;aa<croom->numobj;aa++) {
-        if (objs[aa].on != 1) continue;
-        if (objs[aa].flags & OBJF_NOINTERACT)
+    for (aa=0;aa<croom->ObjectCount;aa++) {
+        if (objs[aa].IsOn != 1) continue;
+        if (objs[aa].Flags & OBJF_NOINTERACT)
             continue;
-        int xxx=objs[aa].x,yyy=objs[aa].y;
+        int xxx=objs[aa].X,yyy=objs[aa].Y;
         int isflipped = 0;
-        int spWidth = divide_down_coordinate(objs[aa].get_width());
-        int spHeight = divide_down_coordinate(objs[aa].get_height());
-        if (objs[aa].view >= 0)
-            isflipped = views[objs[aa].view].loops[objs[aa].loop].frames[objs[aa].frame].flags & VFLG_FLIPSPRITE;
+        int spWidth = divide_down_coordinate(objs[aa].GetWidth());
+        int spHeight = divide_down_coordinate(objs[aa].GetHeight());
+        if (objs[aa].View >= 0)
+            isflipped = views[objs[aa].View].loops[objs[aa].Loop].frames[objs[aa].Frame].flags & VFLG_FLIPSPRITE;
 
         Bitmap *theImage = GetObjectImage(aa, &isflipped);
 
@@ -81,7 +77,7 @@ int GetObjectAt(int xx,int yy) {
             spWidth, spHeight, isflipped) == FALSE)
             continue;
 
-        int usebasel = objs[aa].get_baseline();   
+        int usebasel = objs[aa].GetBaseline();   
         if (usebasel < bestshotyp) continue;
 
         bestshotwas = aa;
@@ -103,21 +99,21 @@ void SetObjectTint(int obj, int red, int green, int blue, int opacity, int lumin
 
     DEBUG_CONSOLE("Set object %d tint RGB(%d,%d,%d) %d%%", obj, red, green, blue, opacity);
 
-    objs[obj].tint_r = red;
-    objs[obj].tint_g = green;
-    objs[obj].tint_b = blue;
-    objs[obj].tint_level = opacity;
-    objs[obj].tint_light = (luminance * 25) / 10;
-    objs[obj].flags |= OBJF_HASTINT;
+    objs[obj].TintR = red;
+    objs[obj].TintG = green;
+    objs[obj].TintB = blue;
+    objs[obj].TintLevel = opacity;
+    objs[obj].TintLight = (luminance * 25) / 10;
+    objs[obj].Flags |= OBJF_HASTINT;
 }
 
 void RemoveObjectTint(int obj) {
     if (!is_valid_object(obj))
         quit("!RemoveObjectTint: invalid object");
 
-    if (objs[obj].flags & OBJF_HASTINT) {
+    if (objs[obj].Flags & OBJF_HASTINT) {
         DEBUG_CONSOLE("Un-tint object %d", obj);
-        objs[obj].flags &= ~OBJF_HASTINT;
+        objs[obj].Flags &= ~OBJF_HASTINT;
     }
     else {
         debug_log("RemoveObjectTint called but object was not tinted");
@@ -134,12 +130,12 @@ void SetObjectView(int obn,int vii) {
     }
     vii--;
 
-    objs[obn].view=vii;
-    objs[obn].frame=0;
-    if (objs[obn].loop >= views[vii].numLoops)
-        objs[obn].loop=0;
-    objs[obn].cycling=0;
-    objs[obn].num = views[vii].loops[0].frames[0].pic;
+    objs[obn].View=vii;
+    objs[obn].Frame=0;
+    if (objs[obn].Loop >= views[vii].numLoops)
+        objs[obn].Loop=0;
+    objs[obn].Cycling=0;
+    objs[obn].SpriteIndex = views[vii].loops[0].frames[0].pic;
 }
 
 void SetObjectFrame(int obn,int viw,int lop,int fra) {
@@ -147,26 +143,26 @@ void SetObjectFrame(int obn,int viw,int lop,int fra) {
     viw--;
     if (viw>=game.ViewCount) quit("!SetObjectFrame: invalid view number used");
     if (lop>=views[viw].numLoops) quit("!SetObjectFrame: invalid loop number used");
-    objs[obn].view=viw;
+    objs[obn].View=viw;
     if (fra >= 0)
-        objs[obn].frame=fra;
+        objs[obn].Frame=fra;
     if (lop >= 0)
-        objs[obn].loop=lop;
+        objs[obn].Loop=lop;
 
-    if (objs[obn].loop >= views[viw].numLoops)
-        objs[obn].loop = 0;
-    if (objs[obn].frame >= views[viw].loops[objs[obn].loop].numFrames)
-        objs[obn].frame = 0;
+    if (objs[obn].Loop >= views[viw].numLoops)
+        objs[obn].Loop = 0;
+    if (objs[obn].Frame >= views[viw].loops[objs[obn].Loop].numFrames)
+        objs[obn].Frame = 0;
 
     if (loaded_game_file_version > kGameVersion_272) // Skip check on 2.x
     {
-        if (views[viw].loops[objs[obn].loop].numFrames == 0) 
+        if (views[viw].loops[objs[obn].Loop].numFrames == 0) 
             quit("!SetObjectFrame: specified loop has no frames");
     }
 
-    objs[obn].cycling=0;
-    objs[obn].num = views[viw].loops[objs[obn].loop].frames[objs[obn].frame].pic;
-    CheckViewFrame(viw, objs[obn].loop, objs[obn].frame);
+    objs[obn].Cycling=0;
+    objs[obn].SpriteIndex = views[viw].loops[objs[obn].Loop].frames[objs[obn].Frame].pic;
+    CheckViewFrame(viw, objs[obn].Loop, objs[obn].Frame);
 }
 
 // pass trans=0 for fully solid, trans=100 for fully transparent
@@ -174,11 +170,11 @@ void SetObjectTransparency(int obn,int trans) {
     if (!is_valid_object(obn)) quit("!SetObjectTransparent: invalid object number specified");
     if ((trans < 0) || (trans > 100)) quit("!SetObjectTransparent: transparency value must be between 0 and 100");
     if (trans == 0)
-        objs[obn].transparent=0;
+        objs[obn].Transparency=0;
     else if (trans == 100)
-        objs[obn].transparent = 255;
+        objs[obn].Transparency = 255;
     else
-        objs[obn].transparent=((100-trans) * 25) / 10;
+        objs[obn].Transparency=((100-trans) * 25) / 10;
 }
 
 
@@ -186,19 +182,19 @@ void SetObjectTransparency(int obn,int trans) {
 void SetObjectBaseline (int obn, int basel) {
     if (!is_valid_object(obn)) quit("!SetObjectBaseline: invalid object number specified");
     // baseline has changed, invalidate the cache
-    if (objs[obn].baseline != basel) {
+    if (objs[obn].Baseline != basel) {
         objcache[obn].ywas = -9999;
-        objs[obn].baseline = basel;
+        objs[obn].Baseline = basel;
     }
 }
 
 int GetObjectBaseline(int obn) {
     if (!is_valid_object(obn)) quit("!GetObjectBaseline: invalid object number specified");
 
-    if (objs[obn].baseline < 1)
+    if (objs[obn].Baseline < 1)
         return 0;
 
-    return objs[obn].baseline;
+    return objs[obn].Baseline;
 }
 
 void AnimateObjectEx(int obn,int loopn,int spdd,int rept, int direction, int blocking) {
@@ -208,34 +204,34 @@ void AnimateObjectEx(int obn,int loopn,int spdd,int rept, int direction, int blo
     }
     if (!is_valid_object(obn))
         quit("!AnimateObject: invalid object number specified");
-    if (objs[obn].view < 0)
+    if (objs[obn].View < 0)
         quit("!AnimateObject: object has not been assigned a view");
-    if (loopn >= views[objs[obn].view].numLoops)
+    if (loopn >= views[objs[obn].View].numLoops)
         quit("!AnimateObject: invalid loop number specified");
     if ((direction < 0) || (direction > 1))
         quit("!AnimateObjectEx: invalid direction");
     if ((rept < 0) || (rept > 2))
         quit("!AnimateObjectEx: invalid repeat value");
-    if (views[objs[obn].view].loops[loopn].numFrames < 1)
+    if (views[objs[obn].View].loops[loopn].numFrames < 1)
         quit("!AnimateObject: no frames in the specified view loop");
 
-    DEBUG_CONSOLE("Obj %d start anim view %d loop %d, speed %d, repeat %d", obn, objs[obn].view+1, loopn, spdd, rept);
+    DEBUG_CONSOLE("Obj %d start anim view %d loop %d, speed %d, repeat %d", obn, objs[obn].View+1, loopn, spdd, rept);
 
-    objs[obn].cycling = rept+1 + (direction * 10);
-    objs[obn].loop=loopn;
+    objs[obn].Cycling = rept+1 + (direction * 10);
+    objs[obn].Loop=loopn;
     if (direction == 0)
-        objs[obn].frame = 0;
+        objs[obn].Frame = 0;
     else {
-        objs[obn].frame = views[objs[obn].view].loops[loopn].numFrames - 1;
+        objs[obn].Frame = views[objs[obn].View].loops[loopn].numFrames - 1;
     }
 
-    objs[obn].overall_speed=spdd;
-    objs[obn].wait = spdd+views[objs[obn].view].loops[loopn].frames[objs[obn].frame].speed;
-    objs[obn].num = views[objs[obn].view].loops[loopn].frames[objs[obn].frame].pic;
-    CheckViewFrame (objs[obn].view, loopn, objs[obn].frame);
+    objs[obn].OverallSpeed=spdd;
+    objs[obn].Wait = spdd+views[objs[obn].View].loops[loopn].frames[objs[obn].Frame].speed;
+    objs[obn].SpriteIndex = views[objs[obn].View].loops[loopn].frames[objs[obn].Frame].pic;
+    CheckViewFrame (objs[obn].View, loopn, objs[obn].Frame);
 
     if (blocking)
-        GameLoopUntilEvent(UNTIL_CHARIS0,(long)&objs[obn].cycling);
+        GameLoopUntilEvent(UNTIL_CHARIS0,(long)&objs[obn].Cycling);
 }
 
 
@@ -255,23 +251,23 @@ void MergeObject(int obn) {
     if (graphics.GetBitmap()->GetColorDepth() != actsps[obn]->GetColorDepth())
         quit("!MergeObject: unable to merge object due to color depth differences");
 
-    int xpos = multiply_up_coordinate(objs[obn].x);
-    int ypos = (multiply_up_coordinate(objs[obn].y) - theHeight);
+    int xpos = multiply_up_coordinate(objs[obn].X);
+    int ypos = (multiply_up_coordinate(objs[obn].Y) - theHeight);
 
-    draw_sprite_support_alpha(&graphics, xpos, ypos, actsps[obn], objs[obn].num);
+    draw_sprite_support_alpha(&graphics, xpos, ypos, actsps[obn], objs[obn].SpriteIndex);
     invalidate_screen();
     mark_current_background_dirty();
 
     //abuf = oldabuf;
     // mark the sprite as merged
-    objs[obn].on = 2;
+    objs[obn].IsOn = 2;
     DEBUG_CONSOLE("Object %d merged into background", obn);
 }
 
 void StopObjectMoving(int objj) {
     if (!is_valid_object(objj))
         quit("!StopObjectMoving: invalid object number");
-    objs[objj].moving = 0;
+    objs[objj].Moving = 0;
 
     DEBUG_CONSOLE("Object %d stop moving", objj);
 }
@@ -279,8 +275,8 @@ void StopObjectMoving(int objj) {
 void ObjectOff(int obn) {
     if (!is_valid_object(obn)) quit("!ObjectOff: invalid object specified");
     // don't change it if on == 2 (merged)
-    if (objs[obn].on == 1) {
-        objs[obn].on = 0;
+    if (objs[obn].IsOn == 1) {
+        objs[obn].IsOn = 0;
         DEBUG_CONSOLE("Object %d turned off", obn);
         StopObjectMoving(obn);
     }
@@ -288,8 +284,8 @@ void ObjectOff(int obn) {
 
 void ObjectOn(int obn) {
     if (!is_valid_object(obn)) quit("!ObjectOn: invalid object specified");
-    if (objs[obn].on == 0) {
-        objs[obn].on = 1;
+    if (objs[obn].IsOn == 0) {
+        objs[obn].IsOn = 1;
         DEBUG_CONSOLE("Object %d turned on", obn);
     }
 }
@@ -298,7 +294,7 @@ int IsObjectOn (int objj) {
     if (!is_valid_object(objj)) quit("!IsObjectOn: invalid object number");
 
     // ==1 is on, ==2 is merged into background
-    if (objs[objj].on == 1)
+    if (objs[objj].IsOn == 1)
         return 1;
 
     return 0;
@@ -307,45 +303,45 @@ int IsObjectOn (int objj) {
 void SetObjectGraphic(int obn,int slott) {
     if (!is_valid_object(obn)) quit("!SetObjectGraphic: invalid object specified");
 
-    if (objs[obn].num != slott) {
-        objs[obn].num = slott;
+    if (objs[obn].SpriteIndex != slott) {
+        objs[obn].SpriteIndex = slott;
         DEBUG_CONSOLE("Object %d graphic changed to slot %d", obn, slott);
     }
-    objs[obn].cycling=0;
-    objs[obn].frame = 0;
-    objs[obn].loop = 0;
-    objs[obn].view = -1;
+    objs[obn].Cycling=0;
+    objs[obn].Frame = 0;
+    objs[obn].Loop = 0;
+    objs[obn].View = -1;
 }
 
 int GetObjectGraphic(int obn) {
     if (!is_valid_object(obn)) quit("!GetObjectGraphic: invalid object specified");
-    return objs[obn].num;
+    return objs[obn].SpriteIndex;
 }
 
 int GetObjectY (int objj) {
     if (!is_valid_object(objj)) quit("!GetObjectY: invalid object number");
-    return objs[objj].y;
+    return objs[objj].Y;
 }
 
 int IsObjectAnimating(int objj) {
     if (!is_valid_object(objj)) quit("!IsObjectAnimating: invalid object number");
-    return (objs[objj].cycling != 0) ? 1 : 0;
+    return (objs[objj].Cycling != 0) ? 1 : 0;
 }
 
 int IsObjectMoving(int objj) {
     if (!is_valid_object(objj)) quit("!IsObjectMoving: invalid object number");
-    return (objs[objj].moving > 0) ? 1 : 0;
+    return (objs[objj].Moving > 0) ? 1 : 0;
 }
 
 void SetObjectPosition(int objj, int tox, int toy) {
     if (!is_valid_object(objj))
         quit("!SetObjectPosition: invalid object number");
 
-    if (objs[objj].moving > 0)
+    if (objs[objj].Moving > 0)
         quit("!Object.SetPosition: cannot set position while object is moving");
 
-    objs[objj].x = tox;
-    objs[objj].y = toy;
+    objs[objj].X = tox;
+    objs[objj].Y = toy;
 }
 
 void GetObjectName(int obj, char *buffer) {
@@ -366,17 +362,17 @@ void MoveObjectDirect(int objj,int xx,int yy,int spp) {
 void SetObjectClickable (int cha, int clik) {
     if (!is_valid_object(cha))
         quit("!SetObjectClickable: Invalid object specified");
-    objs[cha].flags&=~OBJF_NOINTERACT;
+    objs[cha].Flags&=~OBJF_NOINTERACT;
     if (clik == 0)
-        objs[cha].flags|=OBJF_NOINTERACT;
+        objs[cha].Flags|=OBJF_NOINTERACT;
 }
 
 void SetObjectIgnoreWalkbehinds (int cha, int clik) {
     if (!is_valid_object(cha))
         quit("!SetObjectIgnoreWalkbehinds: Invalid object specified");
-    objs[cha].flags&=~OBJF_NOWALKBEHINDS;
+    objs[cha].Flags&=~OBJF_NOWALKBEHINDS;
     if (clik)
-        objs[cha].flags|=OBJF_NOWALKBEHINDS;
+        objs[cha].Flags|=OBJF_NOWALKBEHINDS;
     // clear the cache
     objcache[cha].ywas = -9999;
 }
@@ -408,10 +404,10 @@ void RunObjectInteraction (int aa, int mood) {
     else
     {
         if (passon>=0) {
-            if (run_interaction_event(&croom->intrObject[aa],passon, 4, (passon == 3)))
+            if (run_interaction_event(&croom->Objects[aa].Interaction,passon, 4, (passon == 3)))
                 return;
         }
-        run_interaction_event(&croom->intrObject[aa],4);  // any click on obj
+        run_interaction_event(&croom->Objects[aa].Interaction,4);  // any click on obj
     }
 }
 
@@ -435,12 +431,12 @@ int GetThingRect(int thing, _Rect *rect) {
     }
     else if (is_valid_object(thing - OVERLAPPING_OBJECT)) {
         int objid = thing - OVERLAPPING_OBJECT;
-        if (objs[objid].on != 1)
+        if (objs[objid].IsOn != 1)
             return 0;
-        rect->x1 = objs[objid].x;
-        rect->x2 = objs[objid].x + divide_down_coordinate(objs[objid].get_width());
-        rect->y1 = objs[objid].y - divide_down_coordinate(objs[objid].get_height());
-        rect->y2 = objs[objid].y;
+        rect->x1 = objs[objid].X;
+        rect->x2 = objs[objid].X + divide_down_coordinate(objs[objid].GetWidth());
+        rect->y1 = objs[objid].Y - divide_down_coordinate(objs[objid].GetHeight());
+        rect->y2 = objs[objid].Y;
     }
     else
         quit("!AreThingsOverlapping: invalid parameter");
@@ -500,5 +496,5 @@ Bitmap *GetObjectImage(int obj, int *isFlipped)
             return actsps[obj];
         }
     }
-    return spriteset[objs[obj].num];
+    return spriteset[objs[obj].SpriteIndex];
 }

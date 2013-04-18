@@ -22,8 +22,6 @@
 #include "ac/file.h"
 #include "ac/math.h"    // M_PI
 #include "ac/objectcache.h"
-#include "ac/roomobject.h"
-#include "ac/roomstatus.h"
 #include "debug/debug_log.h"
 #include "game/game_objects.h"
 #include "gui/dynamicarray.h"
@@ -42,8 +40,6 @@ extern SpriteCache spriteset;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern DynamicArray<GUIButton> guibuts;
 extern int numguibuts;
-extern RoomObject*objs;
-extern RoomStatus*croom;
 extern CharacterCache *charcache;
 extern ObjectCache objcache[MAX_INIT_SPR];
 
@@ -578,11 +574,11 @@ void free_dynamic_sprite (int gotSlot) {
   // force refresh of any object caches using the sprite
   if (croom != NULL) 
   {
-    for (tt = 0; tt < croom->numobj; tt++) 
+    for (tt = 0; tt < croom->ObjectCount; tt++) 
     {
-      if (objs[tt].num == gotSlot)
+      if (objs[tt].SpriteIndex == gotSlot)
       {
-        objs[tt].num = 0;
+        objs[tt].SpriteIndex = 0;
         objcache[tt].sppic = -1;
       }
       else if (objcache[tt].sppic == gotSlot)

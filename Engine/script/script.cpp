@@ -33,7 +33,6 @@
 #include "ac/invwindow.h"
 #include "ac/mouse.h"
 #include "ac/room.h"
-#include "ac/roomobject.h"
 #include "game/game_objects.h"
 #include "script/cc_error.h"
 #include "script/cc_options.h"
@@ -47,7 +46,6 @@
 extern GameState play;
 extern int gameHasBeenRestored, displayed_room;
 extern unsigned int load_new_game;
-extern RoomObject*objs;
 extern int our_eip;
 extern int guis_need_update;
 extern CharacterInfo*playerchar;
@@ -511,7 +509,7 @@ int run_interaction_commandlist (NewInteractionCommandList *nicl, int *timesrun,
           MoveObject (IPARAM1, IPARAM2, IPARAM3, IPARAM4);
           // if they want to wait until finished, do so
           if (IPARAM5)
-              GameLoopUntilEvent(UNTIL_MOVEEND,(long)&objs[IPARAM1].moving);
+              GameLoopUntilEvent(UNTIL_MOVEEND,(long)&objs[IPARAM1].Moving);
           break;
       case 15: // Object Off
           ObjectOff (IPARAM1);

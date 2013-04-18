@@ -36,8 +36,6 @@
 #include "ac/region.h"
 #include "ac/record.h"
 #include "ac/room.h"
-#include "ac/roomobject.h"
-#include "ac/roomstatus.h"
 #include "ac/screen.h"
 #include "ac/string.h"
 #include "ac/viewport.h"
@@ -76,10 +74,7 @@ namespace Out = AGS::Common::Out;
 
 extern GameSetup usetup;
 extern GameState play;
-extern RoomStatus*croom;
-extern RoomStatus troom;    // used for non-saveable rooms, eg. intro
 extern int displayed_room;
-extern RoomObject*objs;
 extern ccInstance *roominst;
 extern AGSPlatformDriver *platform;
 extern int numevents;
@@ -153,7 +148,7 @@ ScriptDrawingSurface* Room_GetDrawingSurfaceForBackground(int backgroundNumber)
 
 
 int Room_GetObjectCount() {
-    return croom->numobj;
+    return croom->ObjectCount;
 }
 
 int Room_GetWidth() {
@@ -228,13 +223,10 @@ Bitmap *fix_bitmap_size(Bitmap *todubl) {
 
 
 void save_room_data_segment () {
-    if (croom->tsdatasize > 0)
-        free(croom->tsdata);
-    croom->tsdata = NULL;
-    croom->tsdatasize = roominst->globaldatasize;
-    if (croom->tsdatasize > 0) {
-        croom->tsdata=(char*)malloc(croom->tsdatasize+10);
-        memcpy(croom->tsdata,&roominst->globaldata[0],croom->tsdatasize);
+    croom->ScriptData.Free();
+    croom->ScriptDataSize = roominst->globaldatasize;
+    if (croom->ScriptDataSize > 0) {
+        croom->ScriptData.CreateFromCArray(roominst->globaldata, croom->ScriptDataSize);
     }
 
 }
@@ -252,8 +244,8 @@ void unload_old_room() {
 
     Common::Graphics *g = GetVirtualScreenGraphics();
     g->Fill(0);
-    for (ff=0;ff<croom->numobj;ff++)
-        objs[ff].moving = 0;
+    for (ff=0;ff<croom->ObjectCount;ff++)
+        objs[ff].Moving = 0;
 
     if (!play.ambient_sounds_persist) {
         for (ff = 1; ff < MAX_SOUND_CHANNELS; ff++)
@@ -277,7 +269,7 @@ void unload_old_room() {
         roominstFork = NULL;
         roominst=NULL;
     }
-    else croom->tsdatasize=0;
+    else croom->ScriptDataSize=0;
     memset(&play.walkable_areas_on[0],1,MAX_WALK_AREAS+1);
     play.bg_frame=0;
     play.bg_frame_locked=0;
@@ -288,7 +280,7 @@ void unload_old_room() {
     for (ff = 0; ff < MAX_BSCENE; ff++)
         play.raw_modified[ff] = 0;
     for (ff = 0; ff < thisroom.LocalVariableCount; ff++)
-        croom->interactionVariableValues[ff] = thisroom.LocalVariables[ff].value;
+        croom->InteractionVariableValues[ff] = thisroom.LocalVariables[ff].value;
 
     // wipe the character cache when we change rooms
     for (ff = 0; ff < game.CharacterCount; ff++) {
@@ -303,7 +295,7 @@ void unload_old_room() {
 
     play.swap_portrait_lastchar = -1;
 
-    for (ff = 0; ff < croom->numobj; ff++) {
+    for (ff = 0; ff < croom->ObjectCount; ff++) {
         // un-export the object's script object
         if (objectScriptObjNames[ff][0] == 0)
             continue;
@@ -591,65 +583,72 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     // setup objects
     if (forchar != NULL) {
         // if not restoring a game, always reset this room
-        troom.beenhere=0;  
-        troom.tsdatasize=0;
-        memset(&troom.hotspot_enabled[0],1,MAX_HOTSPOTS);
-        memset(&troom.region_enabled[0], 1, MAX_REGIONS);
+        troom.BeenHere=0;  
+        troom.ScriptDataSize=0;
+        for (int i = 0; i < troom.Hotspots.GetCount(); ++i)
+        {
+            troom.Hotspots[i].Enabled = true;
+        }
+        for (int i = 0; i < troom.Regions.GetCount(); ++i)
+        {
+            troom.Regions[i].Enabled = true;
+        }
     }
     if ((newnum>=0) & (newnum<MAX_ROOMS))
-        croom = getRoomStatus(newnum);
+        croom = AGS::Engine::GetRoomState(newnum);
     else croom=&troom;
 
-    if (croom->beenhere > 0) {
+    if (croom->BeenHere) {
         // if we've been here before, save the Times Run information
         // since we will overwrite the actual NewInteraction structs
         // (cos they have pointers and this might have been loaded from
         // a save game)
         if (thisroom.EventHandlers.ScriptFnRef == NULL)
         {
-            thisroom.EventHandlers.Interaction->copy_timesrun_from (&croom->intrRoom);
+            thisroom.EventHandlers.Interaction->copy_timesrun_from (&croom->Interaction);
             for (cc=0;cc < MAX_HOTSPOTS;cc++)
-                thisroom.Hotspots[cc].EventHandlers.Interaction->copy_timesrun_from (&croom->intrHotspot[cc]);
+                thisroom.Hotspots[cc].EventHandlers.Interaction->copy_timesrun_from (&croom->Hotspots[cc].Interaction);
             for (cc=0;cc < MAX_INIT_SPR;cc++)
-                thisroom.Objects[cc].EventHandlers.Interaction->copy_timesrun_from (&croom->intrObject[cc]);
+                thisroom.Objects[cc].EventHandlers.Interaction->copy_timesrun_from (&croom->Objects[cc].Interaction);
             for (cc=0;cc < MAX_REGIONS;cc++)
-                thisroom.Regions[cc].EventHandlers.Interaction->copy_timesrun_from (&croom->intrRegion[cc]);
+                thisroom.Regions[cc].EventHandlers.Interaction->copy_timesrun_from (&croom->Regions[cc].Interaction);
         }
     }
-    if (croom->beenhere==0) {
-        croom->numobj=thisroom.ObjectCount;
-        croom->tsdatasize=0;
-        for (cc=0;cc<croom->numobj;cc++) {
-            croom->obj[cc].x=thisroom.Objects[cc].X;
-            croom->obj[cc].y=thisroom.Objects[cc].Y;
+    if (!croom->BeenHere) {
+        croom->ObjectCount=thisroom.ObjectCount;
+        croom->ScriptDataSize=0;
+        for (cc=0;cc<croom->ObjectCount;cc++) {
+            croom->Objects[cc].X=thisroom.Objects[cc].X;
+            croom->Objects[cc].Y=thisroom.Objects[cc].Y;
 
             if (thisroom.LoadedVersion <= kRoomVersion_300a)
-                croom->obj[cc].y += divide_down_coordinate(spriteheight[thisroom.Objects[cc].Id]);
+                croom->Objects[cc].Y += divide_down_coordinate(spriteheight[thisroom.Objects[cc].Id]);
 
-            croom->obj[cc].num=thisroom.Objects[cc].Id;
-            croom->obj[cc].on=thisroom.Objects[cc].IsOn;
-            croom->obj[cc].view=-1;
-            croom->obj[cc].loop=0;
-            croom->obj[cc].frame=0;
-            croom->obj[cc].wait=0;
-            croom->obj[cc].transparent=0;
-            croom->obj[cc].moving=-1;
-            croom->obj[cc].flags = thisroom.Objects[cc].Flags;
-            croom->obj[cc].baseline=-1;
-            croom->obj[cc].last_zoom = 100;
-            croom->obj[cc].last_width = 0;
-            croom->obj[cc].last_height = 0;
-            croom->obj[cc].blocking_width = 0;
-            croom->obj[cc].blocking_height = 0;
+            croom->Objects[cc].SpriteIndex=thisroom.Objects[cc].Id;
+            croom->Objects[cc].IsOn=thisroom.Objects[cc].IsOn;
+            croom->Objects[cc].View=-1;
+            croom->Objects[cc].Loop=0;
+            croom->Objects[cc].Frame=0;
+            croom->Objects[cc].Wait=0;
+            croom->Objects[cc].Transparency=0;
+            croom->Objects[cc].Moving=-1;
+            croom->Objects[cc].Flags = thisroom.Objects[cc].Flags;
+            croom->Objects[cc].Baseline=-1;
+            croom->Objects[cc].LastZoom = 100;
+            croom->Objects[cc].LastWidth = 0;
+            croom->Objects[cc].LastHeight = 0;
+            croom->Objects[cc].BlockingWidth = 0;
+            croom->Objects[cc].BlockingHeight = 0;
             if (thisroom.Objects[cc].Baseline>=0)
                 //        croom->obj[cc].baseoffs=thisroom.Objects[].Baseline[cc]-thisroom.Objects[cc].y;
-                croom->obj[cc].baseline=thisroom.Objects[cc].Baseline;
+                croom->Objects[cc].Baseline=thisroom.Objects[cc].Baseline;
         }
+        // FIXME: use variable size
         for (int i = 0; i < MAX_OBJ; ++i)
         {
-            croom->walkbehind_base[i] = thisroom.WalkBehinds[i].Baseline;
+            croom->WalkBehinds[i].Baseline = thisroom.WalkBehinds[i].Baseline;
         }
-        for (cc=0;cc<MAX_FLAGS;cc++) croom->flagstates[cc]=0;
+        //for (cc=0;cc<MAX_FLAGS;cc++) croom->FlagStates[cc]=0;
 
         /*    // we copy these structs for the Score column to work
         croom->misccond=thisroom.misccond;
@@ -659,18 +658,18 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         croom->objcond[cc]=thisroom.objcond[cc];*/
 
         for (cc=0;cc < MAX_HOTSPOTS;cc++) {
-            croom->hotspot_enabled[cc] = 1;
+            croom->Hotspots[cc].Enabled = 1;
         }
         for (cc = 0; cc < MAX_REGIONS; cc++) {
-            croom->region_enabled[cc] = 1;
+            croom->Regions[cc].Enabled = 1;
         }
-        croom->beenhere=1;
+        croom->BeenHere=1;
         in_new_room=2;
     }
     else {
         // We have been here before
         for (int ff = 0; ff < thisroom.LocalVariableCount; ff++)
-            thisroom.LocalVariables[ff].value = croom->interactionVariableValues[ff];
+            thisroom.LocalVariables[ff].value = croom->InteractionVariableValues[ff];
     }
 
     update_polled_stuff_if_runtime();
@@ -678,24 +677,25 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     if (thisroom.EventHandlers.ScriptFnRef == NULL)
     {
         // copy interactions from room file into our temporary struct
-        croom->intrRoom = *thisroom.EventHandlers.Interaction;
+        croom->Interaction = *thisroom.EventHandlers.Interaction;
         for (cc=0;cc<MAX_HOTSPOTS;cc++)
-            croom->intrHotspot[cc] = *thisroom.Hotspots[cc].EventHandlers.Interaction;
+            croom->Hotspots[cc].Interaction = *thisroom.Hotspots[cc].EventHandlers.Interaction;
         for (cc=0;cc<MAX_INIT_SPR;cc++)
-            croom->intrObject[cc] = *thisroom.Objects[cc].EventHandlers.Interaction;
+            croom->Objects[cc].Interaction = *thisroom.Objects[cc].EventHandlers.Interaction;
         for (cc=0;cc<MAX_REGIONS;cc++)
-            croom->intrRegion[cc] = *thisroom.Regions[cc].EventHandlers.Interaction;
+            croom->Regions[cc].Interaction = *thisroom.Regions[cc].EventHandlers.Interaction;
     }
 
-    objs=&croom->obj[0];
+    // TODO: this will work so far as Objects array is not reallocated
+    objs=&croom->Objects[0];
 
     for (cc = 0; cc < MAX_INIT_SPR; cc++) {
         // 64 bit: Using the id instead
-        // scrObj[cc].obj = &croom->obj[cc];
+        // scrObj[cc].obj = &croom->Objects[cc];
         objectScriptObjNames[cc][0] = 0;
     }
 
-    for (cc = 0; cc < croom->numobj; cc++) {
+    for (cc = 0; cc < croom->ObjectCount; cc++) {
         // export the object's script object
         if (thisroom.Objects[cc].ScriptName[0] == 0)
             continue;
@@ -787,10 +787,10 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     if (debug_flags & DBG_NOSCRIPT) ;
     else if (thisroom.CompiledScript!=NULL) {
         compile_room_script();
-        if (croom->tsdatasize>0) {
-            if (croom->tsdatasize != roominst->globaldatasize)
+        if (croom->ScriptDataSize>0) {
+            if (croom->ScriptDataSize != roominst->globaldatasize)
                 quit("room script data segment size has changed");
-            memcpy(&roominst->globaldata[0],croom->tsdata,croom->tsdatasize);
+            memcpy(&roominst->globaldata[0], croom->ScriptData.GetCArr(), croom->ScriptDataSize);
         }
     }
     our_eip=207;
@@ -922,8 +922,8 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     update_viewport();
     our_eip = 212;
     invalidate_screen();
-    for (cc=0;cc<croom->numobj;cc++) {
-        if (objs[cc].on == 2)
+    for (cc=0;cc<croom->ObjectCount;cc++) {
+        if (objs[cc].IsOn == 2)
             MergeObject(cc);
     }
     new_room_flags=0;
@@ -1006,7 +1006,7 @@ void new_room(int newnum,CharacterInfo*forchar) {
 int find_highest_room_entered() {
     int qq,fndas=-1;
     for (qq=0;qq<MAX_ROOMS;qq++) {
-        if (isRoomStatusValid(qq) && (getRoomStatus(qq)->beenhere != 0))
+        if (IsRoomStateValid(qq) && (AGS::Engine::GetRoomState(qq)->BeenHere != 0))
             fndas = qq;
     }
     // This is actually legal - they might start in room 400 and save

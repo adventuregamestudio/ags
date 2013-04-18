@@ -32,7 +32,6 @@
 #include "ac/objectcache.h"
 #include "ac/parser.h"
 #include "ac/record.h"
-#include "ac/roomstatus.h"
 #include "ac/string.h"
 #include "font/fonts.h"
 #include "game/game_objects.h"
@@ -96,7 +95,6 @@ extern int scrnwid,scrnhit;
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern int mousex, mousey;
 extern int displayed_room;
-extern RoomStatus*croom;
 extern SpriteCache spriteset;
 extern ViewStruct*views;
 extern int game_paused;
@@ -391,13 +389,13 @@ void IAGSEngine::ViewportToRoom (int32 *x, int32 *y) {
         y[0] = divide_down_coordinate(y[0] + offsety);
 }
 int IAGSEngine::GetNumObjects () {
-    return croom->numobj;
+    return croom->ObjectCount;
 }
 AGSObject *IAGSEngine::GetObject (int32 num) {
-    if (num >= croom->numobj)
+    if (num >= croom->ObjectCount)
         quit("!IAGSEngine::GetObject: invalid object");
 
-    return (AGSObject*)&croom->obj[num];
+    return (AGSObject*)&croom->Objects[num];
 }
 BITMAP *IAGSEngine::CreateBlankBitmap (int32 width, int32 height, int32 coldep) {
 	// [IKM] We should not create Bitmap object here, because
@@ -448,7 +446,7 @@ int IAGSEngine::GetRawPixelColor (int32 color) {
 int IAGSEngine::GetWalkbehindBaseline (int32 wa) {
     if ((wa < 1) || (wa >= MAX_OBJ))
         quit("!IAGSEngine::GetWalkBehindBase: invalid walk-behind area specified");
-    return croom->walkbehind_base[wa];
+    return croom->WalkBehinds[wa].Baseline;
 }
 void* IAGSEngine::GetScriptFunctionAddress (const char *funcName) {
     return ccGetSymbolAddressForPlugin ((char*)funcName);

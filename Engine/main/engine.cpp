@@ -30,7 +30,6 @@
 #include "ac/gui.h"
 #include "ac/lipsync.h"
 #include "ac/objectcache.h"
-#include "ac/roomstatus.h"
 #include "ac/translation.h"
 #include "ac/viewframe.h"
 #include "ac/dynobj/scriptobject.h"

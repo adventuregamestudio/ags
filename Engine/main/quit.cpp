@@ -20,7 +20,6 @@
 #include "ac/cdaudio.h"
 #include "ac/gamesetup.h"
 #include "ac/record.h"
-#include "ac/roomstatus.h"
 #include "ac/translation.h"
 #include "debug/agseditordebugger.h"
 #include "debug/debug_log.h"
@@ -42,7 +41,6 @@ namespace Out = AGS::Common::Out;
 
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
-extern RoomStatus troom;    // used for non-saveable rooms, eg. intro
 extern int our_eip;
 extern GameSetup usetup;
 extern char pexbuf[STD_BUFFER_SIZE];
@@ -212,8 +210,8 @@ void quit_release_gfx_driver()
 void quit_release_data()
 {
     // wipe all the interaction structs so they don't de-alloc the children twice
-    resetRoomStatuses();
-    memset (&troom, 0, sizeof(RoomStatus));
+    ResetRoomStates();
+    troom.Free();
 
     /*  _CrtMemState memstart;
     _CrtMemCheckpoint(&memstart);

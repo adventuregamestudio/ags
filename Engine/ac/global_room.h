@@ -25,6 +25,7 @@ void NewRoomNPC(int charid, int nrnum, int newx, int newy);
 void ResetRoom(int nrnum);
 int  HasPlayerBeenInRoom(int roomnum);
 void CallRoomScript (int value);
+// CHECKME [IKM] Why two similar functions (HasPlayerBeenInRoom and HasBeenToRoom)?
 int  HasBeenToRoom (int roomnum);
 int GetRoomProperty (const char *property);
 void GetRoomPropertyText (const char *property, char *bufer);

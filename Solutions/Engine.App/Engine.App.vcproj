@@ -517,14 +517,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\ac\roomobject.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\ac\roomstatus.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\ac\route_finder.cpp"
 					>
 				</File>
@@ -1076,6 +1068,14 @@
 					RelativePath="..\..\Engine\game\game_objects.cpp"
 					>
 				</File>
+				<File
+					RelativePath="..\..\Engine\game\roomobject.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\game\roomstate.cpp"
+					>
+				</File>
 			</Filter>
 		</Filter>
 		<Filter
@@ -1396,14 +1396,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\room.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\ac\roomobject.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\ac\roomstatus.h"
 					>
 				</File>
 				<File
@@ -2068,6 +2060,14 @@
 				>
 				<File
 					RelativePath="..\..\Engine\game\game_objects.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\game\roomobject.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\game\roomstate.h"
 					>
 				</File>
 			</Filter>

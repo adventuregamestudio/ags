@@ -18,8 +18,6 @@
 #include "ac/draw.h"
 #include "ac/gamestate.h"
 #include "ac/object.h"
-#include "ac/roomobject.h"
-#include "ac/roomstatus.h"
 #include "ac/walkablearea.h"
 #include "game/game_objects.h"
 #include "gfx/graphics.h"
@@ -30,8 +28,6 @@ using AGS::Common::Graphics;
 extern GameState play;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern int displayed_room;
-extern RoomStatus*croom;
-extern RoomObject*objs;
 
 Bitmap *walkareabackup=NULL, *walkable_areas_temp = NULL;
 
@@ -165,13 +161,13 @@ Bitmap *prepare_walkable_areas (int sourceChar) {
 
     // check for any blocking objects in the room, and deal with them
     // as well
-    for (ww = 0; ww < croom->numobj; ww++) {
-        if (objs[ww].on != 1) continue;
-        if ((objs[ww].flags & OBJF_SOLID) == 0)
+    for (ww = 0; ww < croom->ObjectCount; ww++) {
+        if (objs[ww].IsOn != 1) continue;
+        if ((objs[ww].Flags & OBJF_SOLID) == 0)
             continue;
-        if (convert_to_low_res(objs[ww].y) >= walkable_areas_temp->GetHeight()) continue;
-        if (convert_to_low_res(objs[ww].x) >= walkable_areas_temp->GetWidth()) continue;
-        if ((objs[ww].y < 0) || (objs[ww].x < 0)) continue;
+        if (convert_to_low_res(objs[ww].Y) >= walkable_areas_temp->GetHeight()) continue;
+        if (convert_to_low_res(objs[ww].X) >= walkable_areas_temp->GetWidth()) continue;
+        if ((objs[ww].Y < 0) || (objs[ww].X < 0)) continue;
 
         int x1, y1, width, y2;
         get_object_blocking_rect(ww, &x1, &y1, &width, &y2);

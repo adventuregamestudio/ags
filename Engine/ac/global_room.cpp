@@ -24,10 +24,11 @@
 #include "ac/movelist.h"
 #include "ac/properties.h"
 #include "ac/room.h"
-#include "ac/roomstatus.h"
 #include "debug/debug_log.h"
 #include "game/game_objects.h"
 #include "script/script.h"
+
+using AGS::Engine::RoomState;
 
 extern GameState play;
 extern CharacterInfo*playerchar;
@@ -132,17 +133,15 @@ void ResetRoom(int nrnum) {
     if ((nrnum<0) | (nrnum>=MAX_ROOMS))
         quit("!ResetRoom: invalid room number");
 
-    if (isRoomStatusValid(nrnum))
+    if (AGS::Engine::IsRoomStateValid(nrnum))
     {
-        RoomStatus* roomstat = getRoomStatus(nrnum);
-        if (roomstat->beenhere)
+        RoomState* roomstat = AGS::Engine::GetRoomState(nrnum);
+        if (roomstat->BeenHere)
         {
-            if (roomstat->tsdata != NULL)
-                free(roomstat->tsdata);
-            roomstat->tsdata = NULL;
-            roomstat->tsdatasize = 0;
+            roomstat->ScriptData.Free();
+            roomstat->ScriptDataSize = 0;
         }
-        roomstat->beenhere = 0;
+        roomstat->BeenHere = 0;
     }
 
     DEBUG_CONSOLE("Room %d reset to original state", nrnum);
@@ -151,8 +150,8 @@ void ResetRoom(int nrnum) {
 int HasPlayerBeenInRoom(int roomnum) {
     if ((roomnum < 0) || (roomnum >= MAX_ROOMS))
         return 0;
-    if (isRoomStatusValid(roomnum))
-        return getRoomStatus(roomnum)->beenhere;
+    if (AGS::Engine::IsRoomStateValid(roomnum))
+        return AGS::Engine::GetRoomState(roomnum)->BeenHere;
     else
         return 0;
 }
@@ -172,8 +171,8 @@ int HasBeenToRoom (int roomnum) {
     if ((roomnum < 0) || (roomnum >= MAX_ROOMS))
         quit("!HasBeenToRoom: invalid room number specified");
 
-    if (isRoomStatusValid(roomnum))
-        return getRoomStatus(roomnum)->beenhere;
+    if (AGS::Engine::IsRoomStateValid(roomnum))
+        return AGS::Engine::GetRoomState(roomnum)->BeenHere;
     else
         return 0;
 }

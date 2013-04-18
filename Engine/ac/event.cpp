@@ -22,7 +22,6 @@
 #include "ac/global_room.h"
 #include "ac/global_screen.h"
 #include "ac/gui.h"
-#include "ac/roomstatus.h"
 #include "ac/screen.h"
 #include "game/game_objects.h"
 #include "script/cc_error.h"
@@ -39,7 +38,6 @@ using AGS::Common::Bitmap;
 using AGS::Common::Graphics;
 namespace BitmapHelper = Common::BitmapHelper;
 
-extern RoomStatus*croom;
 extern int displayed_room;
 extern GameState play;
 extern color palette[256];
@@ -117,7 +115,7 @@ void run_room_event(int id) {
     }
     else
     {
-        run_interaction_event (&croom->intrRoom, id);
+        run_interaction_event (&croom->Interaction, id);
     }
 }
 
@@ -180,7 +178,7 @@ void process_event(EventHappened*evp) {
             if (thisroom.Hotspots[evp->data2].EventHandlers.ScriptFnRef)
                 scriptPtr = thisroom.Hotspots[evp->data2].EventHandlers.ScriptFnRef;
             else
-                evpt=&croom->intrHotspot[evp->data2];
+                evpt=&croom->Hotspots[evp->data2].Interaction;
 
             evblockbasename="hotspot%d";
             evblocknum=evp->data2;
@@ -191,7 +189,7 @@ void process_event(EventHappened*evp) {
             if (thisroom.EventHandlers.ScriptFnRef != NULL)
                 scriptPtr = thisroom.EventHandlers.ScriptFnRef;
             else
-                evpt=&croom->intrRoom;
+                evpt=&croom->Interaction;
 
             evblockbasename="room";
             if (evp->data3 == 5) {

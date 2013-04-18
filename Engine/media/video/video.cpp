@@ -108,7 +108,7 @@ int theora_playing_callback(BITMAP *theoraBuffer)
         return check_if_user_input_should_cancel_video();
     }
 
-    gl_TheoraFrameWrapper.WrapAllegroBitmap(theoraBuffer, false);
+    gl_TheoraFrameWrapper.WrapAllegroBitmap(theoraBuffer, true);
 
     int drawAtX = 0, drawAtY = 0;
     if (fli_ddb == NULL)

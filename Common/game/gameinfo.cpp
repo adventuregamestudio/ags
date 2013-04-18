@@ -56,7 +56,7 @@ void GameInfo::ReadBaseFromFile(Stream *in)
     GameName.ReadCount(in, 50);
     in->ReadArrayOfInt32(Options, 100);
     in->Read(PaletteUses, 256);
-    // colors are an array of Characters
+    // colors are an array of bytes
     in->Read(DefaultPalette, sizeof(color)*256);
     ViewCount               = in->ReadInt32();
     CharacterCount          = in->ReadInt32();
@@ -85,7 +85,7 @@ void GameInfo::ReadBaseFromFile(Stream *in)
     LoadDictionary = in->ReadInt32() != 0; // dict
     // skip unused data
     in->ReadInt32(); // globalscript
-    in->ReadInt32(); // Characters
+    in->ReadInt32(); // characters pointer
     LoadCompiledScript = in->ReadInt32() != 0; // compiled_script
 }
 
@@ -94,7 +94,7 @@ void GameInfo::WriteBaseToFile(Stream *out)
     GameName.WriteCount(out, 50);
     out->WriteArrayOfInt32(Options, 100);
     out->Write(PaletteUses, 256);
-    // colors are an array of Characters
+    // colors are an array of bytes
     out->Write(&DefaultPalette[0], sizeof(color)*256);
     out->WriteInt32(ViewCount);
     out->WriteInt32(CharacterCount);
@@ -124,7 +124,7 @@ void GameInfo::WriteBaseToFile(Stream *out)
     }
     out->WriteInt32(Dictionary ? 1 : 0);
     out->WriteInt32(0); // globalscript
-    out->WriteInt32(0); // Characters
+    out->WriteInt32(0); // characters pointer
     out->WriteInt32(LoadCompiledScript ? 1 : 0); // compiled_script
 }
 
@@ -604,8 +604,7 @@ void GameInfo::ReadAudioClips_Aligned(Common::Stream *in)
     }
 }
 
-void GameInfo::ReadFromSaveGame_v321(Stream *in, char* gswas, ccScript* compsc, const Array<CharacterInfo> &chwas,
-                                       WordsDictionary *olddict, const ObjectArray<String> &mesbk)
+void GameInfo::ReadFromSaveGame_v321(Stream *in)
 {
     int bb;
 
@@ -619,14 +618,6 @@ void GameInfo::ReadFromSaveGame_v321(Stream *in, char* gswas, ccScript* compsc, 
         for (bb = 0; bb < CharacterCount; bb++)
             in->ReadArrayOfInt32 (&CharacterInteractions[bb]->timesRun[0], MAX_NEWINTERACTION_EVENTS);
     }
-
-    // restore pointer members
-    // CHECKME!!
-//    globalscript=gswas;
-//    compiled_script=compsc;
-    Characters = chwas;
-    Dictionary = olddict;
-    GlobalMessages = mesbk;
 
     in->ReadArrayOfInt32(&Options[0], OPT_HIGHESTOPTION+1);
     Options[OPT_LIPSYNCTEXT] = in->ReadByte();

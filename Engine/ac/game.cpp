@@ -2096,13 +2096,6 @@ int restore_game_data (Stream *in, const char *nametouse) {
 
     ReadMoveList_Aligned(in);
 
-    // save pointer members before reading
-    // CHECKME!!
-    //char* gswas=game.globalscript;
-    //ccScript* compsc=game.compiled_script;
-    Array<CharacterInfo> chwas = game.Characters;
-    WordsDictionary *olddict = game.Dictionary;
-    ObjectArray<String> mesbk = game.GlobalMessages;
     int numchwas = game.CharacterCount;
     int numdiwas = game.DialogCount;
     int numinvwas = game.InvItemCount;
@@ -2118,31 +2111,7 @@ int restore_game_data (Stream *in, const char *nametouse) {
     if (game.ViewCount != numviewswas)
         quit("!Restore_Game: Game has changed (views), unable to restore position");
 
-    game.ReadFromSaveGame_v321(in, /*gswas, compsc*/NULL, NULL, chwas, olddict, mesbk); 
-    //
-    //in->ReadArray(&game.InventoryItems[0], sizeof(InventoryItemInfo), game.InvItemCount);
-    //in->ReadArray(&game.MouseCursors[0], sizeof(MouseCursor), game.MouseCursorCount);
-    //
-    //if (game.InvItemInteractionScripts == NULL)
-    //{
-    //  for (bb = 0; bb < game.InvItemCount; bb++)
-    //    in->ReadArray (&game.InvItemInteractions[bb]->timesRun[0], sizeof (int), MAX_NEWINTERACTION_EVENTS);
-    //  for (bb = 0; bb < game.CharacterCount; bb++)
-    //    in->ReadArray (&game.CharacterInteractions[bb]->timesRun[0], sizeof (int), MAX_NEWINTERACTION_EVENTS);
-    //}
-    //
-    //// restore pointer members
-    //game.globalscript=gswas;
-    //game.compiled_script=compsc;
-    //game.Characters=chwas;
-    //game.Dictionary = olddict;
-    //for (vv=0;vv<MAXGLOBALMES;vv++) game.GlobalMessages[vv]=mesbk[vv];
-    //
-    //in->ReadArray(&game.Options[0], sizeof(int), OPT_HIGHESTOPTION+1);
-    //game.Options[OPT_LIPSYNCTEXT] = in->ReadByte();
-    //
-    //in->ReadArray(&game.Characters[0],sizeof(CharacterInfo),game.CharacterCount);
-    //
+    game.ReadFromSaveGame_v321(in);
 
     ReadCharacterExtras_Aligned(in);
     if (roominst!=NULL) {  // so it doesn't overwrite the tsdata

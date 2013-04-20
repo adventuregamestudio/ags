@@ -18,20 +18,11 @@
 #ifndef __AGS_CN_AC__GAMESTRUCTDEFINES_H
 #define __AGS_CN_AC__GAMESTRUCTDEFINES_H
 
-#if defined (WINDOWS_VERSION)
-// These are also defined in wingdi.h
-#undef VTA_LEFT
-#undef VTA_RIGHT
-#endif
-
 #define POPUP_NONE      0
 #define POPUP_MOUSEY    1
 #define POPUP_SCRIPT    2
 #define POPUP_NOAUTOREM 3  // don't remove automatically during cutscene
 #define POPUP_NONEINITIALLYOFF 4   // normal GUI, initially off
-#define VTA_LEFT        0
-#define VTA_RIGHT       1
-#define VTA_CENTRE      2
 #define IFLG_TEXTWINDOW 1
 
 #define PAL_GAMEWIDE        0

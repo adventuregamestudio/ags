@@ -102,11 +102,6 @@
 //#include <unistd.h>
 //#endif
 
-#ifdef _MSC_VER
-#undef VTA_LEFT
-#undef VTA_RIGHT
-#endif
-
 #ifdef DJGPP
 #define PCKD __attribute__((packed))
 #else

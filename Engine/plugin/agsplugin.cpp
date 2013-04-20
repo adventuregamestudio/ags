@@ -277,7 +277,7 @@ int IAGSEngine::GetNumBackgrounds () {
     return thisroom.BkgSceneCount;
 }
 int IAGSEngine::GetCurrentBackground () {
-    return play.bg_frame;
+    return play.RoomBkgFrameIndex;
 }
 BITMAP *IAGSEngine::GetBackgroundScene (int32 index) {
     return (BITMAP*)thisroom.Backgrounds[index].Graphic->GetAllegroBitmap();

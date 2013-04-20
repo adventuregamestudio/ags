@@ -77,7 +77,7 @@ void RoomState::ReadFromFile_v321(Stream *in)
     {
         WalkBehinds[i].Baseline = in->ReadInt16();
     }
-    InteractionVariableValues.ReadRawOver(in, 0, MAX_GLOBAL_VARIABLES);
+    InteractionVariableValues.ReadRawOver(in, MAX_GLOBAL_VARIABLES);
 }
 
 void RoomState::WriteToFile_v321(Stream *out)

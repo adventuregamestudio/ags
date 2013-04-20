@@ -17,14 +17,12 @@
 
 #include "script/cc_instance.h"
 #include "ac/runtime_defines.h"
-#include "ac/gamestate.h"
 #include "platform/base/agsplatformdriver.h"
 
-extern GameState play;
 void initialize_debug_system();
 void shutdown_debug_system();
 
-#define DEBUG_CONSOLE if (play.debug_mode) debug_write_console
+#define DEBUG_CONSOLE if (play.DebugMode) debug_write_console
 
 void debug_write_console (char *msg, ...);
 

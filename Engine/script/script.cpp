@@ -19,7 +19,6 @@
 #include "ac/dialog.h"
 #include "ac/event.h"
 #include "ac/game.h"
-#include "ac/gamestate.h"
 #include "ac/global_audio.h"
 #include "ac/global_character.h"
 #include "ac/global_dialog.h"
@@ -43,7 +42,6 @@
 #include "script/script_runtime.h"
 #include "util/string_utils.h"
 
-extern GameState play;
 extern int gameHasBeenRestored, displayed_room;
 extern unsigned int load_new_game;
 extern int our_eip;
@@ -85,25 +83,25 @@ char **guiScriptObjNames = NULL;
 
 
 int run_dialog_request (int parmtr) {
-    play.stop_dialog_at_end = DIALOG_RUNNING;
+    play.StopDialogAtEnd = DIALOG_RUNNING;
     gameinst->RunTextScriptIParam("dialog_request", RuntimeScriptValue().SetInt32(parmtr));
 
-    if (play.stop_dialog_at_end == DIALOG_STOP) {
-        play.stop_dialog_at_end = DIALOG_NONE;
+    if (play.StopDialogAtEnd == DIALOG_STOP) {
+        play.StopDialogAtEnd = DIALOG_NONE;
         return -2;
     }
-    if (play.stop_dialog_at_end >= DIALOG_NEWTOPIC) {
-        int tval = play.stop_dialog_at_end - DIALOG_NEWTOPIC;
-        play.stop_dialog_at_end = DIALOG_NONE;
+    if (play.StopDialogAtEnd >= DIALOG_NEWTOPIC) {
+        int tval = play.StopDialogAtEnd - DIALOG_NEWTOPIC;
+        play.StopDialogAtEnd = DIALOG_NONE;
         return tval;
     }
-    if (play.stop_dialog_at_end >= DIALOG_NEWROOM) {
-        int roomnum = play.stop_dialog_at_end - DIALOG_NEWROOM;
-        play.stop_dialog_at_end = DIALOG_NONE;
+    if (play.StopDialogAtEnd >= DIALOG_NEWROOM) {
+        int roomnum = play.StopDialogAtEnd - DIALOG_NEWROOM;
+        play.StopDialogAtEnd = DIALOG_NONE;
         NewRoom(roomnum);
         return -2;
     }
-    play.stop_dialog_at_end = DIALOG_NONE;
+    play.StopDialogAtEnd = DIALOG_NONE;
     return -1;
 }
 
@@ -111,7 +109,7 @@ void run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun) {
 
     update_script_mouse_coords();
 
-    int room_changes_was = play.room_changes;
+    int room_changes_was = play.RoomChangeCount;
     funcToRun->atLeastOneImplementationExists = false;
 
     // run modules
@@ -119,13 +117,13 @@ void run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun) {
     for (int kk = 0; kk < numScriptModules; kk++) {
         moduleInstFork[kk]->DoRunScriptFuncCantBlock(funcToRun, &funcToRun->moduleHasFunction[kk]);
 
-        if (room_changes_was != play.room_changes)
+        if (room_changes_was != play.RoomChangeCount)
             return;
     }
 
     gameinstFork->DoRunScriptFuncCantBlock(funcToRun, &funcToRun->globalScriptHasFunction);
 
-    if (room_changes_was != play.room_changes)
+    if (room_changes_was != play.RoomChangeCount)
         return;
 
     roominstFork->DoRunScriptFuncCantBlock(funcToRun, &funcToRun->roomHasFunction);
@@ -160,8 +158,8 @@ int run_interaction_event (NewInteraction *nint, int evnt, int chkAny, int isInv
         return 0;
     }
 
-    if (play.check_interaction_only) {
-        play.check_interaction_only = 2;
+    if (play.TestInteractionMode) {
+        play.TestInteractionMode = 2;
         return -1;
     }
 
@@ -195,12 +193,12 @@ int run_interaction_script(InteractionScripts *nint, int evnt, int chkAny, int i
         return 0;
     }
 
-    if (play.check_interaction_only) {
-        play.check_interaction_only = 2;
+    if (play.TestInteractionMode) {
+        play.TestInteractionMode = 2;
         return -1;
     }
 
-    int room_was = play.room_changes;
+    int room_was = play.RoomChangeCount;
 
     RuntimeScriptValue rval_null;
 
@@ -225,7 +223,7 @@ int run_interaction_script(InteractionScripts *nint, int evnt, int chkAny, int i
 
             int retval = 0;
         // if the room changed within the action
-        if (room_was != play.room_changes)
+        if (room_was != play.RoomChangeCount)
             retval = -1;
 
         return retval;
@@ -376,7 +374,7 @@ void post_script_cleanup() {
             roominst->RunTextScript2IParam(&runnext[1], copyof.run_another_p1[jj], copyof.run_another_p2[jj]);
         else if (runnext[0]=='$') {
             roominst->RunTextScriptIParam(&runnext[1],copyof.run_another_p1[jj]);
-            play.roomscript_finished = 1;
+            play.RoomScriptFinished = 1;
         }
         else
             gameinst->RunTextScript(runnext);
@@ -428,7 +426,7 @@ int run_interaction_commandlist (NewInteractionCommandList *nicl, int *timesrun,
 
     for (i = 0; i < nicl->numCommands; i++) {
         cmdsrun[0] ++;
-        int room_was = play.room_changes;
+        int room_was = play.RoomChangeCount;
 
         switch (nicl->command[i].type) {
       case 0:  // Do nothing
@@ -485,11 +483,11 @@ int run_interaction_commandlist (NewInteractionCommandList *nicl, int *timesrun,
           play_flc_file(IPARAM1, IPARAM2);
           break;
       case 9:  // Run Dialog
-          { int room_was = play.room_changes;
+          { int room_was = play.RoomChangeCount;
           RunDialog(IPARAM1);
           // if they changed room within the dialog script,
           // the interaction command list is no longer valid
-          if (room_was != play.room_changes)
+          if (room_was != play.RoomChangeCount)
               return -1;
           }
           break;
@@ -530,9 +528,9 @@ int run_interaction_commandlist (NewInteractionCommandList *nicl, int *timesrun,
               MoveCharacter (IPARAM1, IPARAM2, IPARAM3);
           break;
       case 20: // If Inventory Item was used
-          if (play.usedinv == IPARAM1) {
+          if (play.UsedInvItemIndex == IPARAM1) {
               if (game.Options[OPT_NOLOSEINV] == 0)
-                  lose_inventory (play.usedinv);
+                  lose_inventory (play.UsedInvItemIndex);
               if (run_interaction_commandlist (nicl->command[i].get_child_list(), timesrun, cmdsrun))
                   return -1;
           }
@@ -643,7 +641,7 @@ int run_interaction_commandlist (NewInteractionCommandList *nicl, int *timesrun,
         }
 
         // if the room changed within the action, nicl is no longer valid
-        if (room_was != play.room_changes)
+        if (room_was != play.RoomChangeCount)
             return -1;
     }
     return 0;
@@ -659,7 +657,7 @@ void can_run_delayed_command() {
 
 void run_unhandled_event (int evnt) {
 
-    if (play.check_interaction_only)
+    if (play.TestInteractionMode)
         return;
 
     int evtype=0;

@@ -66,7 +66,6 @@ extern int in_leaves_screen;
 extern int inside_script,in_graph_script;
 extern int no_blocking_functions;
 extern CharacterInfo*playerchar;
-extern GameState play;
 extern GUIMain*guis;
 extern int is_complete_overlay;
 extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
@@ -131,7 +130,7 @@ void game_loop_check_new_room()
 
 int game_loop_check_ground_level_interactions()
 {
-    if ((play.ground_level_areas_disabled & GLED_INTERACTION) == 0) {
+    if ((play.GroundLevelAreasDisabled & GLED_INTERACTION) == 0) {
         // check if he's standing on a hotspot
         int hotspotThere = get_hotspot_at(playerchar->x, playerchar->y);
         // run Stands on Hotspot event
@@ -141,12 +140,12 @@ int game_loop_check_ground_level_interactions()
         int onRegion = GetRegionAt (playerchar->x, playerchar->y);
         int inRoom = displayed_room;
 
-        if (onRegion != play.player_on_region) {
-            // we need to save this and set play.player_on_region
+        if (onRegion != play.PlayerOnRegionIndex) {
+            // we need to save this and set play.PlayerOnRegionIndex
             // now, so it's correct going into RunRegionInteraction
-            int oldRegion = play.player_on_region;
+            int oldRegion = play.PlayerOnRegionIndex;
 
-            play.player_on_region = onRegion;
+            play.PlayerOnRegionIndex = onRegion;
             // Walks Off last region
             if (oldRegion > 0)
                 RunRegionInteraction (oldRegion, 2);
@@ -154,8 +153,8 @@ int game_loop_check_ground_level_interactions()
             if (onRegion > 0)
                 RunRegionInteraction (onRegion, 1);
         }
-        if (play.player_on_region > 0)   // player stands on region
-            RunRegionInteraction (play.player_on_region, 0);
+        if (play.PlayerOnRegionIndex > 0)   // player stands on region
+            RunRegionInteraction (play.PlayerOnRegionIndex, 0);
 
         // one of the region interactions sent us to another room
         if (inRoom != displayed_room) {
@@ -190,16 +189,16 @@ void check_controls() {
         // Also work out the mouse-over GUI while we're at it
         int ll;
         for (ll = 0; ll < game.GuiCount;ll++) {
-            aa = play.gui_draw_order[ll];
+            aa = play.GuiDrawOrder[ll];
             if (guis[aa].is_mouse_on_gui()) mongu=aa;
 
             if (guis[aa].popup!=POPUP_MOUSEY) continue;
             if (is_complete_overlay>0) break;  // interfaces disabled
-            //    if (play.disabled_user_interface>0) break;
+            //    if (play.DisabledUserInterface>0) break;
             if (ifacepopped==aa) continue;
             if (guis[aa].on==-1) continue;
             // Don't allow it to be popped up while skipping cutscene
-            if (play.fast_forward) continue;
+            if (play.FastForwardCutscene) continue;
 
             if (mousey < guis[aa].popupyp) {
                 set_mouse_cursor(CURS_ARROW);
@@ -247,7 +246,7 @@ void check_controls() {
                 int iit=offset_over_inv((GUIInv*)guis[wasongui].objs[aa]);
                 if (iit>=0) {
                     evblocknum=iit;
-                    play.used_inv_on = iit;
+                    play.ClickedInvItemIndex = iit;
                     if (game.Options[OPT_HANDLEINVCLICKS]) {
                         // Let the script handle the click
                         // LEFTINV is 5, RIGHTINV is 6
@@ -273,16 +272,16 @@ void check_controls() {
 
     aa=mgetbutton();
     if (aa>NONE) {
-        if ((play.in_cutscene == 3) || (play.in_cutscene == 4))
+        if ((play.IsInCutscene == 3) || (play.IsInCutscene == 4))
             start_skipping_cutscene();
-        if ((play.in_cutscene == 5) && (aa == RIGHT))
+        if ((play.IsInCutscene == 5) && (aa == RIGHT))
             start_skipping_cutscene();
 
-        if (play.fast_forward) { }
-        else if ((play.wait_counter > 0) && (play.key_skip_wait > 1))
-            play.wait_counter = -1;
+        if (play.FastForwardCutscene) { }
+        else if ((play.WaitCounter > 0) && (play.SkipWaitMode > 1))
+            play.WaitCounter = -1;
         else if (is_text_overlay > 0) {
-            if (play.cant_skip_speech & SKIP_MOUSECLICK)
+            if (play.SkipSpeechMode & SKIP_MOUSECLICK)
                 remove_screen_overlay(OVER_TEXTMSG);
         }
         else if (!IsInterfaceEnabled()) ;  // blocking cutscene, ignore mouse
@@ -315,7 +314,7 @@ void check_controls() {
     // check keypresses
     if (kbhit()) {
         // in case they press the finish-recording button, make sure we know
-        int was_playing = play.playback;
+        int was_playing = play.IsPlayback;
 
         int kgn = getch();
         if (kgn==0) kgn=getch()+300;
@@ -328,11 +327,11 @@ void check_controls() {
         //if (kgn == 2) Display("Some for?ign text");
         //if (kgn == 2) do_conversation(5);
 
-        if (kgn == play.replay_hotkey) {
+        if (kgn == play.ReplayHotkey) {
             // start/stop recording
-            if (play.recording)
+            if (play.IsRecording)
                 stop_recording();
-            else if ((play.playback) || (was_playing))
+            else if ((play.IsPlayback) || (was_playing))
                 ;  // do nothing (we got the replay of the stop key)
             else
                 replay_start_this_time = 1;
@@ -340,31 +339,31 @@ void check_controls() {
 
         check_skip_cutscene_keypress (kgn);
 
-        if (play.fast_forward) { }
+        if (play.FastForwardCutscene) { }
         else if (platform->RunPluginHooks(AGSE_KEYPRESS, kgn)) {
             // plugin took the keypress
             DEBUG_CONSOLE("Keypress code %d taken by plugin", kgn);
         }
-        else if ((kgn == '`') && (play.debug_mode > 0)) {
+        else if ((kgn == '`') && (play.DebugMode > 0)) {
             // debug console
             display_console = !display_console;
         }
         else if ((is_text_overlay > 0) &&
-            (play.cant_skip_speech & SKIP_KEYPRESS) &&
+            (play.SkipSpeechMode & SKIP_KEYPRESS) &&
             (kgn != 434)) {
                 // 434 = F12, allow through for screenshot of text
                 // (though atm with one script at a time that won't work)
                 // only allow a key to remove the overlay if the icon bar isn't up
                 if (IsGamePaused() == 0) {
                     // check if it requires a specific keypress
-                    if ((play.skip_speech_specific_key > 0) &&
-                        (kgn != play.skip_speech_specific_key)) { }
+                    if ((play.SpeechSkipKey > 0) &&
+                        (kgn != play.SpeechSkipKey)) { }
                     else
                         remove_screen_overlay(OVER_TEXTMSG);
                 }
         }
-        else if ((play.wait_counter > 0) && (play.key_skip_wait > 0)) {
-            play.wait_counter = -1;
+        else if ((play.WaitCounter > 0) && (play.SkipWaitMode > 0)) {
+            play.WaitCounter = -1;
             DEBUG_CONSOLE("Keypress code %d ignored - in Wait", kgn);
         }
         else if ((kgn == 5) && (display_fps == 2)) {
@@ -372,7 +371,7 @@ void check_controls() {
             SetGameSpeed(1000);
             display_fps = 2;
         }
-        else if ((kgn == 4) && (play.debug_mode > 0)) {
+        else if ((kgn == 4) && (play.DebugMode > 0)) {
             // ctrl+D - show info
             char infobuf[900];
             int ff;
@@ -381,7 +380,7 @@ void check_controls() {
                 displayed_room, (noWalkBehindsAtAll ? "(has no walk-behinds)" : ""), playerchar->x,playerchar->y,
                 playerchar->view + 1, playerchar->loop,playerchar->frame,
                 (IsGamePaused() == 0) ? "" : "[Game paused.",
-                (play.ground_level_areas_disabled == 0) ? "" : "[Ground areas disabled.",
+                (play.GroundLevelAreasDisabled == 0) ? "" : "[Ground areas disabled.",
                 (IsInterfaceEnabled() == 0) ? "[Game in Wait state" : "");
             for (ff=0;ff<croom->ObjectCount;ff++) {
                 if (ff >= 8) break; // buffer not big enough for more than 7
@@ -418,16 +417,16 @@ void check_controls() {
 
         }
         /*    else if (kgn == 21) {
-        play.debug_mode++;
+        play.DebugMode++;
         script_debug(5,0);
-        play.debug_mode--;
+        play.DebugMode--;
         }*/
-        else if ((kgn == 22) && (play.wait_counter < 1) && (is_text_overlay == 0) && (restrict_until == 0)) {
+        else if ((kgn == 22) && (play.WaitCounter < 1) && (is_text_overlay == 0) && (restrict_until == 0)) {
             // make sure we can't interrupt a Wait()
             // and desync the music to cutscene
-            play.debug_mode++;
+            play.DebugMode++;
             script_debug (1,0);
-            play.debug_mode--;
+            play.DebugMode--;
         }
         else if (inside_script) {
             // Don't queue up another keypress if it can't be run instantly
@@ -476,7 +475,7 @@ void check_controls() {
             int edgesActivated[4] = {0, 0, 0, 0};
             // Only do it if nothing else has happened (eg. mouseclick)
             if ((numevents == numevents_was) &&
-                ((play.ground_level_areas_disabled & GLED_INTERACTION) == 0)) {
+                ((play.GroundLevelAreasDisabled & GLED_INTERACTION) == 0)) {
 
                     if (playerchar->x <= thisroom.Edges.Left)
                         edgesActivated[0] = 1;
@@ -487,13 +486,13 @@ void check_controls() {
                     else if (playerchar->y <= thisroom.Edges.Top)
                         edgesActivated[3] = 1;
 
-                    if ((play.entered_edge >= 0) && (play.entered_edge <= 3)) {
+                    if ((play.CharacterEnterRoomAtEdge >= 0) && (play.CharacterEnterRoomAtEdge <= 3)) {
                         // once the player is no longer outside the edge, forget the stored edge
-                        if (edgesActivated[play.entered_edge] == 0)
-                            play.entered_edge = -10;
+                        if (edgesActivated[play.CharacterEnterRoomAtEdge] == 0)
+                            play.CharacterEnterRoomAtEdge = -10;
                         // if we are walking in from off-screen, don't activate edges
                         else
-                            edgesActivated[play.entered_edge] = 0;
+                            edgesActivated[play.CharacterEnterRoomAtEdge] = 0;
                     }
 
                     for (int ii = 0; ii < 4; ii++) {
@@ -540,7 +539,7 @@ void game_loop_update_animated_buttons()
 void game_loop_do_render_and_check_mouse(IDriverDependantBitmap *extraBitmap, int extraX, int extraY)
 // [IKM] ...and some coffee, please :)
 {
-    if (!play.fast_forward) {
+    if (!play.FastForwardCutscene) {
         int mwasatx=mousex,mwasaty=mousey;
 
         // Only do this if we are not skipping a cutscene
@@ -592,13 +591,13 @@ void game_loop_update_events()
 
 void game_loop_update_background_animation()
 {
-    if (play.bg_anim_delay > 0) play.bg_anim_delay--;
-    else if (play.bg_frame_locked) ;
+    if (play.RoomBkgAnimDelay > 0) play.RoomBkgAnimDelay--;
+    else if (play.RoomBkgFrameLocked) ;
     else {
-        play.bg_anim_delay = play.anim_background_speed;
-        play.bg_frame++;
-        if (play.bg_frame >= thisroom.BkgSceneCount)
-            play.bg_frame=0;
+        play.RoomBkgAnimDelay = play.RoomBkgAnimSpeed;
+        play.RoomBkgFrameIndex++;
+        if (play.RoomBkgFrameIndex >= thisroom.BkgSceneCount)
+            play.RoomBkgFrameIndex=0;
         if (thisroom.BkgSceneCount >= 2) {
             // get the new frame's palette
             on_background_frame_change();
@@ -610,8 +609,8 @@ void game_loop_update_loop_counter()
 {
     loopcounter++;
 
-    if (play.wait_counter > 0) play.wait_counter--;
-    if (play.shakesc_length > 0) play.shakesc_length--;
+    if (play.WaitCounter > 0) play.WaitCounter--;
+    if (play.ShakeScreenLength > 0) play.ShakeScreenLength--;
 
     if (loopcounter % 5 == 0)
     {
@@ -627,7 +626,7 @@ void game_loop_check_replay_record()
         start_replay_record();
     }
 
-    if (play.fast_forward)
+    if (play.FastForwardCutscene)
         return;
 }
 
@@ -651,7 +650,7 @@ void game_loop_poll_stuff_once_more()
 }
 
 void SetupLoopParameters(int untilwhat,long udata,int mousestuff) {
-    play.disabled_user_interface++;
+    play.DisabledUserInterface++;
     guis_need_update = 1;
     // Only change the mouse cursor if it hasn't been specifically changed first
     // (or if it's speech, always change it)
@@ -716,8 +715,8 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
     game_loop_check_problems_at_start();
 
     // if we're not fading in, don't count the fadeouts
-    if ((play.no_hicolor_fadein) && (game.Options[OPT_FADETYPE] == FADE_NORMAL))
-        play.screen_is_faded_out = 0;
+    if ((play.NoHicolorFadeIn) && (game.Options[OPT_FADETYPE] == FADE_NORMAL))
+        play.ScreenIsFadedOut = 0;
 
     our_eip = 1014;
 
@@ -766,7 +765,7 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
     game_loop_check_replay_record();
 
     // Immediately start the next frame if we are skipping a cutscene
-    if (play.fast_forward)
+    if (play.FastForwardCutscene)
       return;
 
     our_eip=72;
@@ -783,21 +782,21 @@ void UpdateMouseOverLocation()
     char tempo[STD_BUFFER_SIZE];
     GetLocationName(divide_down_coordinate(mousex), divide_down_coordinate(mousey), tempo);
 
-    if ((play.get_loc_name_save_cursor >= 0) &&
-        (play.get_loc_name_save_cursor != play.get_loc_name_last_time) &&
+    if ((play.GetLocationNameSaveCursor >= 0) &&
+        (play.GetLocationNameSaveCursor != play.GetLocationNameLastTime) &&
         (mouse_on_iface < 0) && (ifacepopped < 0)) {
             // we have saved the cursor, but the mouse location has changed
             // and it's time to restore it
-            play.get_loc_name_save_cursor = -1;
-            set_cursor_mode(play.restore_cursor_mode_to);
+            play.GetLocationNameSaveCursor = -1;
+            set_cursor_mode(play.RestoreCursorModeTo);
 
-            if (cur_mode == play.restore_cursor_mode_to)
+            if (cur_mode == play.RestoreCursorModeTo)
             {
                 // make sure it changed -- the new mode might have been disabled
                 // in which case don't change the image
-                set_mouse_cursor(play.restore_cursor_image_to);
+                set_mouse_cursor(play.RestoreCursorImageTo);
             }
-            DEBUG_CONSOLE("Restore mouse to mode %d cursor %d", play.restore_cursor_mode_to, play.restore_cursor_image_to);
+            DEBUG_CONSOLE("Restore mouse to mode %d cursor %d", play.RestoreCursorModeTo, play.RestoreCursorImageTo);
     }
 }
 
@@ -848,7 +847,7 @@ int UpdateWaitMode()
         if (restrict_until==0) {
             set_default_cursor();
             guis_need_update = 1;
-            play.disabled_user_interface--;
+            play.DisabledUserInterface--;
             /*      if (user_disabled_for==FOR_ANIMATION)
             run_animation((FullAnimation*)user_disabled_data2,user_disabled_data3);
             else*/ if (user_disabled_for==FOR_EXITLOOP) {

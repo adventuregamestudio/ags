@@ -17,7 +17,6 @@
 #include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/draw.h"
-#include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/global_room.h"
 #include "ac/global_screen.h"
@@ -39,7 +38,6 @@ using AGS::Common::Graphics;
 namespace BitmapHelper = Common::BitmapHelper;
 
 extern int displayed_room;
-extern GameState play;
 extern color palette[256];
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
@@ -220,21 +218,21 @@ void process_event(EventHappened*evp) {
     else if (evp->type==EV_FADEIN) {
         // if they change the transition type before the fadein, make
         // sure the screen doesn't freeze up
-        play.screen_is_faded_out = 0;
+        play.ScreenIsFadedOut = 0;
 
         // determine the transition style
-        int theTransition = play.fade_effect;
+        int theTransition = play.TransitionStyle;
 
-        if (play.next_screen_transition >= 0) {
+        if (play.NextRoomTransition >= 0) {
             // a one-off transition was selected, so use it
-            theTransition = play.next_screen_transition;
-            play.next_screen_transition = -1;
+            theTransition = play.NextRoomTransition;
+            play.NextRoomTransition = -1;
         }
 
         if (platform->RunPluginHooks(AGSE_TRANSITIONIN, 0))
             return;
 
-        if (play.fast_forward)
+        if (play.FastForwardCutscene)
             return;
 
         if (((theTransition == FADE_CROSSFADE) || (theTransition == FADE_DISSOLVE)) &&
@@ -249,7 +247,7 @@ void process_event(EventHappened*evp) {
 
 		Bitmap *screen_bmp = BitmapHelper::GetScreenBitmap();
 
-        if ((theTransition == FADE_INSTANT) || (play.screen_tint >= 0))
+        if ((theTransition == FADE_INSTANT) || (play.ScreenTint >= 0))
             set_palette_range(palette, 0, 255, 0);
         else if (theTransition == FADE_NORMAL)
         {
@@ -289,7 +287,7 @@ void process_event(EventHappened*evp) {
                 }
                 gfxDriver->SetMemoryBackBuffer(virtual_screen);
             }
-            play.screen_is_faded_out = 0;
+            play.ScreenIsFadedOut = 0;
         }
         else if (theTransition == FADE_CROSSFADE) 
         {
@@ -393,7 +391,7 @@ void processallevents(int numev,EventHappened*evlist) {
     EventHappened copyOfList[MAXEVENTS];
     memcpy(&copyOfList[0], &evlist[0], sizeof(EventHappened) * numev);
 
-    int room_was = play.room_changes;
+    int room_was = play.RoomChangeCount;
 
     inside_processevent++;
 
@@ -401,7 +399,7 @@ void processallevents(int numev,EventHappened*evlist) {
 
         process_event(&copyOfList[dd]);
 
-        if (room_was != play.room_changes)
+        if (room_was != play.RoomChangeCount)
             break;  // changed room, so discard other events
     }
 

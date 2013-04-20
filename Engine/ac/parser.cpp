@@ -15,14 +15,13 @@
 #include <cctype> //isalnum()
 #include "util/string_utils.h" //strlwr()
 #include "ac/common.h"
-#include "ac/gamestate.h"
 #include "ac/parser.h"
 #include "ac/string.h"
 #include "ac/wordsdictionary.h"
 #include "game/game_objects.h"
 #include "debug/debug_log.h"
 
-extern GameState play;
+using Common::Array;
 
 int Parser_FindWordID(const char *wordToFind)
 {
@@ -30,22 +29,24 @@ int Parser_FindWordID(const char *wordToFind)
 }
 
 const char* Parser_SaidUnknownWord() {
-    if (play.bad_parsed_word[0] == 0)
+    if (play.UnknownWord[0] == 0)
         return NULL;
-    return CreateNewScriptString(play.bad_parsed_word);
+    return CreateNewScriptString(play.UnknownWord);
 }
 
 void ParseText (char*text) {
-    parse_sentence (text, &play.num_parsed_words, play.parsed_words, NULL, 0);
+    Array<int16_t> empty_arr;
+    parse_sentence (text, &play.ParsedWordCount, play.ParsedWords, empty_arr, 0);
 }
 
 // Said: call with argument for example "get apple"; we then check
 // word by word if it matches (using dictonary ID equivalence to match
 // synonyms). Returns 1 if it does, 0 if not.
+Array<int16_t> words;
 int Said (char*checkwords) {
     int numword = 0;
-    short words[MAX_PARSED_WORDS];
-    return parse_sentence (checkwords, &numword, &words[0], play.parsed_words, play.num_parsed_words);
+    words.SetLength(MAX_PARSED_WORDS);
+    return parse_sentence (checkwords, &numword, words, play.ParsedWords, play.ParsedWordCount);
 }
 
 //=============================================================================
@@ -127,24 +128,24 @@ int FindMatchingMultiWordWord(char *thisword, char **text) {
 
 // parse_sentence: pass compareto as NULL to parse the sentence, or
 // compareto as non-null to check if it matches the passed sentence
-int parse_sentence (char*text, int *numwords, short*wordarray, short*compareto, int comparetonum) {
+int parse_sentence (char*text, int *numwords, Common::Array<int16_t> &wordarray, const Common::Array<int16_t> &compareto, int comparetonum) {
     char thisword[150] = "\0";
     int  i = 0, comparing = 0;
     char in_optional = 0, do_word_now = 0;
     int  optional_start = 0;
 
     numwords[0] = 0;
-    if (compareto == NULL)
-        play.bad_parsed_word[0] = 0;
+    if (compareto.IsEmpty())
+        play.UnknownWord.Empty();
     // [IKM] Now, this is extremely not smart; this string could come
     // from anywhere, including script data, and we are changing it here
     // FIXME!!!
     strlwr(text);
     while (1) {
-        if ((compareto != NULL) && (compareto[comparing] == RESTOFLINE))
+        if ((!compareto.IsEmpty()) && (compareto[comparing] == RESTOFLINE))
             return 1;
 
-        if ((text[0] == ']') && (compareto != NULL)) {
+        if ((text[0] == ']') && (!compareto.IsEmpty())) {
             if (!in_optional)
                 quit("!Said: unexpected ']'");
             do_word_now = 1;
@@ -155,7 +156,7 @@ int parse_sentence (char*text, int *numwords, short*wordarray, short*compareto, 
             thisword[i] = text[0];
             i++;
         }
-        else if ((text[0] == '[') && (compareto != NULL)) {
+        else if ((text[0] == '[') && (!compareto.IsEmpty())) {
             if (in_optional)
                 quit("!Said: nested optional words");
 
@@ -180,7 +181,7 @@ int parse_sentence (char*text, int *numwords, short*wordarray, short*compareto, 
             // "look rol"
             if (word == RESTOFLINE)
                 return 1;
-            if (compareto) {
+            if (!compareto.IsEmpty()) {
                 // check string is longer than user input
                 if (comparing >= comparetonum) {
                     if (in_optional) {
@@ -263,8 +264,8 @@ int parse_sentence (char*text, int *numwords, short*wordarray, short*compareto, 
                     return 0;
                 // if it's an unknown word, store it for use in messages like
                 // "you can't use the word 'xxx' in this game"
-                if ((word < 0) && (play.bad_parsed_word[0] == 0))
-                    strcpy(play.bad_parsed_word, thisword);
+                if ((word < 0) && (play.UnknownWord[0] == 0))
+                    play.UnknownWord = thisword;
             }
 
             if (do_word_now) {

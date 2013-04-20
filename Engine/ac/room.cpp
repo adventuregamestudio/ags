@@ -23,7 +23,6 @@
 #include "ac/event.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
-#include "ac/gamestate.h"
 #include "ac/global_audio.h"
 #include "ac/global_character.h"
 #include "ac/global_game.h"
@@ -73,7 +72,6 @@ namespace Out = AGS::Common::Out;
 #endif
 
 extern GameSetup usetup;
-extern GameState play;
 extern int displayed_room;
 extern ccInstance *roominst;
 extern AGSPlatformDriver *platform;
@@ -133,7 +131,7 @@ ScriptDrawingSurface* Room_GetDrawingSurfaceForBackground(int backgroundNumber)
 
     if (backgroundNumber == SCR_NO_VALUE)
     {
-        backgroundNumber = play.bg_frame;
+        backgroundNumber = play.RoomBkgFrameIndex;
     }
 
     if ((backgroundNumber < 0) || (backgroundNumber >= thisroom.BkgSceneCount))
@@ -247,7 +245,7 @@ void unload_old_room() {
     for (ff=0;ff<croom->ObjectCount;ff++)
         objs[ff].Moving = 0;
 
-    if (!play.ambient_sounds_persist) {
+    if (!play.AmbientSoundsPersist) {
         for (ff = 1; ff < MAX_SOUND_CHANNELS; ff++)
             StopAmbientSound(ff);
     }
@@ -270,15 +268,18 @@ void unload_old_room() {
         roominst=NULL;
     }
     else croom->ScriptDataSize=0;
-    memset(&play.walkable_areas_on[0],1,MAX_WALK_AREAS+1);
-    play.bg_frame=0;
-    play.bg_frame_locked=0;
-    play.offsets_locked=0;
+    for (int i = 0; i < MAX_WALK_AREAS+1; ++i)
+    {
+        play.WalkAreasEnabled[i] = true;
+    }
+    play.RoomBkgFrameIndex=0;
+    play.RoomBkgFrameLocked=0;
+    play.ViewportLocked=0;
     remove_screen_overlay(-1);
     delete raw_saved_screen;
     raw_saved_screen = NULL;
     for (ff = 0; ff < MAX_BSCENE; ff++)
-        play.raw_modified[ff] = 0;
+        play.RoomBkgWasModified[ff] = 0;
     for (ff = 0; ff < thisroom.LocalVariableCount; ff++)
         croom->InteractionVariableValues[ff] = thisroom.LocalVariables[ff].value;
 
@@ -293,7 +294,7 @@ void unload_old_room() {
         charextra[ff].xwas = INVALID_X;
     }
 
-    play.swap_portrait_lastchar = -1;
+    play.LastSpeechPortraitCharacter = -1;
 
     for (ff = 0; ff < croom->ObjectCount; ff++) {
         // un-export the object's script object
@@ -337,9 +338,9 @@ void unload_old_room() {
     }
 
     // if Hide Player Character was ticked, restore it to visible
-    if (play.temporarily_turned_off_character >= 0) {
-        game.Characters[play.temporarily_turned_off_character].on = 1;
-        play.temporarily_turned_off_character = -1;
+    if (play.TemporarilyHidCharacter >= 0) {
+        game.Characters[play.TemporarilyHidCharacter].on = 1;
+        play.TemporarilyHidCharacter = -1;
     }
 
 }
@@ -386,7 +387,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     String room_filename;
     int cc;
     done_es_error = 0;
-    play.room_changes ++;
+    play.RoomChangeCount ++;
     set_color_depth(8);
     displayed_room=newnum;
 
@@ -433,10 +434,10 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     delay(100);
     }*/
 
-    play.room_width = thisroom.Width;
-    play.room_height = thisroom.Height;
-    play.anim_background_speed = thisroom.BkgSceneAnimSpeed;
-    play.bg_anim_delay = play.anim_background_speed;
+    play.CurrentRoomWidth = thisroom.Width;
+    play.CurrentRoomHeight = thisroom.Height;
+    play.RoomBkgAnimSpeed = thisroom.BkgSceneAnimSpeed;
+    play.RoomBkgAnimDelay = play.RoomBkgAnimSpeed;
 
     int dd;
     // do the palette
@@ -794,7 +795,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         }
     }
     our_eip=207;
-    play.entered_edge = -1;
+    play.CharacterEnterRoomAtEdge = -1;
 
     if ((new_room_x != SCR_NO_VALUE) && (forchar != NULL))
     {
@@ -805,7 +806,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
 
     if ((new_room_pos>0) & (forchar!=NULL)) {
         if (new_room_pos>=4000) {
-            play.entered_edge = 3;
+            play.CharacterEnterRoomAtEdge = 3;
             forchar->y = thisroom.Edges.Top + get_fixed_pixel_size(1);
             forchar->x=new_room_pos%1000;
             if (forchar->x==0) forchar->x=thisroom.Width/2;
@@ -816,7 +817,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             forchar->loop=0;
         }
         else if (new_room_pos>=3000) {
-            play.entered_edge = 2;
+            play.CharacterEnterRoomAtEdge = 2;
             forchar->y = thisroom.Edges.Bottom - get_fixed_pixel_size(1);
             forchar->x=new_room_pos%1000;
             if (forchar->x==0) forchar->x=thisroom.Width/2;
@@ -827,7 +828,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             forchar->loop=3;
         }
         else if (new_room_pos>=2000) {
-            play.entered_edge = 1;
+            play.CharacterEnterRoomAtEdge = 1;
             forchar->x = thisroom.Edges.Right - get_fixed_pixel_size(1);
             forchar->y=new_room_pos%1000;
             if (forchar->y==0) forchar->y=thisroom.Height/2;
@@ -838,7 +839,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             forchar->loop=1;
         }
         else if (new_room_pos>=1000) {
-            play.entered_edge = 0;
+            play.CharacterEnterRoomAtEdge = 0;
             forchar->x = thisroom.Edges.Left + get_fixed_pixel_size(1);
             forchar->y=new_room_pos%1000;
             if (forchar->y==0) forchar->y=thisroom.Height/2;
@@ -880,16 +881,16 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         new_room_pos=0;
     }
     if (forchar!=NULL) {
-        play.entered_at_x=forchar->x;
-        play.entered_at_y=forchar->y;
+        play.CharacterEnterRoomAtX=forchar->x;
+        play.CharacterEnterRoomAtY=forchar->y;
         if (forchar->x >= thisroom.Edges.Right)
-            play.entered_edge = 1;
+            play.CharacterEnterRoomAtEdge = 1;
         else if (forchar->x <= thisroom.Edges.Left)
-            play.entered_edge = 0;
+            play.CharacterEnterRoomAtEdge = 0;
         else if (forchar->y >= thisroom.Edges.Bottom)
-            play.entered_edge = 2;
+            play.CharacterEnterRoomAtEdge = 2;
         else if (forchar->y <= thisroom.Edges.Top)
-            play.entered_edge = 3;
+            play.CharacterEnterRoomAtEdge = 3;
     }
     /*  if ((playerchar->x > thisroom.Width) | (playerchar->y > thisroom.Height))
     quit("!NewRoomEx: x/y co-ordinates are invalid");*/
@@ -906,7 +907,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             // remember which character we turned off, in case they
             // use SetPlyaerChracter within this room (so we re-enable
             // the correct character when leaving the room)
-            play.temporarily_turned_off_character = game.PlayerCharacterIndex;
+            play.TemporarilyHidCharacter = game.PlayerCharacterIndex;
         }
         if (forchar->flags & CHF_FIXVIEW) ;
         else if (thisroom.Options[kRoomBaseOpt_PlayerCharacterView]==0) forchar->view=forchar->defview;
@@ -927,8 +928,8 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             MergeObject(cc);
     }
     new_room_flags=0;
-    play.gscript_timer=-1;  // avoid screw-ups with changing screens
-    play.player_on_region = 0;
+    play.GlobalScriptTimer=-1;  // avoid screw-ups with changing screens
+    play.PlayerOnRegionIndex = 0;
     // trash any input which they might have done while it was loading
     while (kbhit()) { if (getch()==0) getch(); }
     while (mgetbutton()!=NONE) ;
@@ -1036,9 +1037,9 @@ void check_new_room() {
         // make sure that any script calls don't re-call enters screen
         int newroom_was = in_new_room;
         in_new_room = 0;
-        play.disabled_user_interface ++;
+        play.DisabledUserInterface ++;
         process_event(&evh);
-        play.disabled_user_interface --;
+        play.DisabledUserInterface --;
         in_new_room = newroom_was;
         //    setevent(EV_RUNEVBLOCK,EVB_ROOM,0,5);
     }
@@ -1072,7 +1073,7 @@ void on_background_frame_change () {
     invalidate_cached_walkbehinds();
 
     // get the new frame's palette
-    memcpy (palette, thisroom.Backgrounds[play.bg_frame].Palette, sizeof(color) * 256);
+    memcpy (palette, thisroom.Backgrounds[play.RoomBkgFrameIndex].Palette, sizeof(color) * 256);
 
     // hi-colour, update the palette. It won't have an immediate effect
     // but will be drawn properly when the screen fades in
@@ -1083,7 +1084,7 @@ void on_background_frame_change () {
         return;
 
     // Don't update the palette if it hasn't changed
-    if (thisroom.Backgrounds[play.bg_frame].PaletteShared)
+    if (thisroom.Backgrounds[play.RoomBkgFrameIndex].PaletteShared)
         return;
 
     // 256-colours, tell it to update the palette (will actually be done as

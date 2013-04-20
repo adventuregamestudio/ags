@@ -20,7 +20,6 @@
 #include "ac/character.h"
 #include "ac/draw.h"
 #include "ac/game.h"
-#include "ac/gamestate.h"
 #include "ac/global_audio.h"
 #include "ac/global_game.h"
 #include "ac/gui.h"
@@ -44,7 +43,6 @@ using AGS::Common::Bitmap;
 using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
-extern GameState play;
 extern GUIMain *guis;
 extern int longestline;
 extern int scrnwid,scrnhit;
@@ -87,12 +85,12 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
 
     // AGS 2.x: If the screen is faded out, fade in again when displaying a message box.
     if (!asspch && (loaded_game_file_version <= kGameVersion_272))
-        play.screen_is_faded_out = 0;
+        play.ScreenIsFadedOut = 0;
 
     // if it's a normal message box and the game was being skipped,
     // ensure that the screen is up to date before the message box
     // is drawn on top of it
-    if ((play.skip_until_char_stops >= 0) && (blocking == 1))
+    if ((play.SkipUntilCharacterStops >= 0) && (blocking == 1))
         render_graphics();
 
     EndSkippingUntilCharStops();
@@ -101,7 +99,7 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
         // ensure that the window is wide enough to display
         // any top bar text
         int topBarWid = wgettextwidth_compensate(topBar.text, topBar.font);
-        topBarWid += multiply_up_coordinate(play.top_bar_borderwidth + 2) * 2;
+        topBarWid += multiply_up_coordinate(play.TopBarBorderWidth + 2) * 2;
         if (longestline < topBarWid)
             longestline = topBarWid;
         // the top bar should behave like DisplaySpeech wrt blocking
@@ -111,9 +109,9 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
     if (asspch > 0) {
         // update the all_buttons_disabled variable in advance
         // of the adjust_x/y_for_guis calls
-        play.disabled_user_interface++;
+        play.DisabledUserInterface++;
         update_gui_disabled_status();
-        play.disabled_user_interface--;
+        play.DisabledUserInterface--;
     }
 
     if (xx == OVR_AUTOPLACE) ;
@@ -170,7 +168,7 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
         int usingGui = -1, drawBackground = 0;
 
         if ((asspch < 0) && (game.Options[OPT_SPEECHTYPE] >= 2)) {
-            usingGui = play.speech_textwindow_gui;
+            usingGui = play.SpeechTextWindowGuiIndex;
             drawBackground = 1;
         }
         else if ((isThought) && (game.Options[OPT_THOUGHTGUI] > 0)) {
@@ -198,12 +196,12 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
                 else
                     g->SetTextColor(-asspch);
 
-                wouttext_aligned(g, ttxleft, ttyp, oriwid, usingfont, lines[ee], play.text_align);
+                wouttext_aligned(g, ttxleft, ttyp, oriwid, usingfont, lines[ee], play.DisplayTextAlignment);
             }
             else {
                 g->SetTextColor(asspch);
                 //wouttext_outline(ttxp,ttyp,usingfont,lines[ee]);
-                wouttext_aligned(g, ttxleft, ttyp, wii, usingfont, lines[ee], play.speech_text_align);
+                wouttext_aligned(g, ttxleft, ttyp, wii, usingfont, lines[ee], play.SpeechTextAlignment);
             }
         }
     }
@@ -219,7 +217,7 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
         adjust_y_coordinate_for_text(&yoffs, usingfont);
 
         for (ee=0;ee<numlines;ee++)
-            wouttext_aligned (g, xoffs, yoffs + ee * texthit, oriwid, usingfont, lines[ee], play.text_align);
+            wouttext_aligned (g, xoffs, yoffs + ee * texthit, oriwid, usingfont, lines[ee], play.DisplayTextAlignment);
     }
 
     wantFreeScreenop = 0;
@@ -236,29 +234,29 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
     }
 
     if (blocking) {
-        if (play.fast_forward) {
+        if (play.FastForwardCutscene) {
             remove_screen_overlay(OVER_TEXTMSG);
-            play.messagetime=-1;
+            play.MessageTime=-1;
             return 0;
         }
 
         /*    wputblock(xx,yy,screenop,1);
         remove_screen_overlay(OVER_TEXTMSG);*/
 
-        if (!play.mouse_cursor_hidden)
+        if (!play.MouseCursorHidden)
             domouse(1);
-        // play.skip_display has same values as SetSkipSpeech:
+        // play.SkipDisplayMethod has same values as SetSkipSpeech:
         // 0 = click mouse or key to skip
         // 1 = key only
         // 2 = can't skip at all
         // 3 = only on keypress, no auto timer
         // 4 = mouse only
         int countdown = GetTextDisplayTime (todis);
-        int skip_setting = user_to_internal_skip_speech(play.skip_display);
+        int skip_setting = user_to_internal_skip_speech(play.SkipDisplayMethod);
         while (1) {
             timerloop = 0;
             NEXT_ITERATION();
-            /*      if (!play.mouse_cursor_hidden)
+            /*      if (!play.MouseCursorHidden)
             domouse(0);
             write_screen();*/
 
@@ -277,13 +275,13 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
 
                 // let them press ESC to skip the cutscene
                 check_skip_cutscene_keypress (kp);
-                if (play.fast_forward)
+                if (play.FastForwardCutscene)
                     break;
 
                 if (skip_setting & SKIP_KEYPRESS)
                     break;
             }
-            while ((timerloop == 0) && (play.fast_forward == 0)) {
+            while ((timerloop == 0) && (play.FastForwardCutscene == 0)) {
                 update_polled_stuff_if_runtime();
                 platform->YieldCPU();
             }
@@ -291,7 +289,7 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
 
             if (channels[SCHAN_SPEECH] != NULL) {
                 // extend life of text if the voice hasn't finished yet
-                if ((!rec_isSpeechFinished()) && (play.fast_forward == 0)) {
+                if ((!rec_isSpeechFinished()) && (play.FastForwardCutscene == 0)) {
                     if (countdown <= 1)
                         countdown = 1;
                 }
@@ -301,15 +299,15 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
 
             if ((countdown < 1) && (skip_setting & SKIP_AUTOTIMER))
             {
-                play.ignore_user_input_until_time = globalTimerCounter + (play.ignore_user_input_after_text_timeout_ms / time_between_timers);
+                play.IgnoreUserInputUntilTime = globalTimerCounter + (play.DisplayTextIgnoreUserInputDelayMs / time_between_timers);
                 break;
             }
             // if skipping cutscene, don't get stuck on No Auto Remove
             // text boxes
-            if ((countdown < 1) && (play.fast_forward))
+            if ((countdown < 1) && (play.FastForwardCutscene))
                 break;
         }
-        if (!play.mouse_cursor_hidden)
+        if (!play.MouseCursorHidden)
             domouse(2);
         remove_screen_overlay(OVER_TEXTMSG);
 
@@ -318,8 +316,8 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
     else {
         // if the speech does not time out, but we are skipping a cutscene,
         // allow it to time out
-        if ((play.messagetime < 0) && (play.fast_forward))
-            play.messagetime = 2;
+        if ((play.MessageTime < 0) && (play.FastForwardCutscene))
+            play.MessageTime = 2;
 
         if (!overlayPositionFixed)
         {
@@ -331,7 +329,7 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
         GameLoopUntilEvent(UNTIL_NOOVERLAY,0);
     }
 
-    play.messagetime=-1;
+    play.MessageTime=-1;
     return 0;
 }
 
@@ -349,9 +347,9 @@ void _display_at(int xx,int yy,int wii,char*todis,int blocking,int asspch, int i
         if (todis[0]==' ') todis++;
         if (igr <= 0)
             quit("Display: auto-voice symbol '&' not followed by valid integer");
-        if (play_speech(play.narrator_speech,igr)) {
+        if (play_speech(play.NarratorCharacterIndex,igr)) {
             // if Voice Only, then blank out the text
-            if (play.want_speech == 2)
+            if (play.SpeechVoiceMode == 2)
                 todis = "  ";
         }
         needStopSpeech = 1;
@@ -370,7 +368,7 @@ int GetTextDisplayTime (const char *text, int canberel) {
     int fpstimer = frames_per_second;
 
     // if it's background speech, make it stay relative to game speed
-    if ((canberel == 1) && (play.bgspeech_game_speed == 1))
+    if ((canberel == 1) && (play.BkgSpeechRelativeToGameSpeed == 1))
         fpstimer = 40;
 
     if (source_text_length >= 0) {
@@ -380,7 +378,7 @@ int GetTextDisplayTime (const char *text, int canberel) {
         source_text_length = -1;
     }
     else {
-        if ((text[0] == '&') && (play.unfactor_speech_from_textlength != 0)) {
+        if ((text[0] == '&') && (play.UnfactorVoiceTagFromDisplayTime != 0)) {
             // if there's an "&12 text" type line, remove "&12 " from the source
             // length
             int j = 0;
@@ -395,18 +393,18 @@ int GetTextDisplayTime (const char *text, int canberel) {
     if (uselen <= 0)
         return 0;
 
-    if (play.text_speed + play.text_speed_modifier <= 0)
+    if (play.TextDisplaySpeed + play.TextSpeedModifier <= 0)
         quit("!Text speed is zero; unable to display text. Check your game.text_speed settings.");
 
     // Store how many game loops per character of text
     // This is calculated using a hard-coded 15 for the text speed,
     // so that it's always the same no matter how fast the user
     // can read.
-    loops_per_character = (((uselen/play.lipsync_speed)+1) * fpstimer) / uselen;
+    loops_per_character = (((uselen/play.LipsyncSpeed)+1) * fpstimer) / uselen;
 
-    int textDisplayTimeInMS = ((uselen / (play.text_speed + play.text_speed_modifier)) + 1) * 1000;
-    if (textDisplayTimeInMS < play.text_min_display_time_ms)
-        textDisplayTimeInMS = play.text_min_display_time_ms;
+    int textDisplayTimeInMS = ((uselen / (play.TextDisplaySpeed + play.TextSpeedModifier)) + 1) * 1000;
+    if (textDisplayTimeInMS < play.DisplayTextMinTimeMs)
+        textDisplayTimeInMS = play.DisplayTextMinTimeMs;
 
     return (textDisplayTimeInMS * fpstimer) / 1000;
 }
@@ -419,12 +417,12 @@ void wouttext_outline(Common::Graphics *g, int xxp, int yyp, int usingfont, char
     int otextc=g->GetTextColor();
 
     if (game.FontOutline[usingfont] >= 0) {
-        g->SetTextColor(play.speech_text_shadow);
+        g->SetTextColor(play.SpeechTextOutlineColour);
         // MACPORT FIX 9/6/5: cast
         wouttextxy(g, xxp, yyp, (int)game.FontOutline[usingfont], texx);
     }
     else if (game.FontOutline[usingfont] == FONT_OUTLINE_AUTO) {
-        g->SetTextColor(play.speech_text_shadow);
+        g->SetTextColor(play.SpeechTextOutlineColour);
 
         int outlineDist = 1;
 
@@ -663,20 +661,20 @@ void draw_text_window_and_bar(Common::Graphics *g, int*xins,int*yins,int*xx,int*
         Common::Graphics *g = SetVirtualScreen(screenop);
 
         // draw the top bar
-        g->SetDrawColor(play.top_bar_backcolor);
+        g->SetDrawColor(play.TopBarBkgColour);
         g->FillRect(Rect(0, 0, screenop->GetWidth() - 1, topBar.height - 1));
-        if (play.top_bar_backcolor != play.top_bar_bordercolor) {
+        if (play.TopBarBkgColour != play.TopBarBorderColour) {
             // draw the border
-            g->SetDrawColor(play.top_bar_bordercolor);
-            for (int j = 0; j < multiply_up_coordinate(play.top_bar_borderwidth); j++)
+            g->SetDrawColor(play.TopBarBorderColour);
+            for (int j = 0; j < multiply_up_coordinate(play.TopBarBorderWidth); j++)
                 g->DrawRect(Rect(j, j, screenop->GetWidth() - (j + 1), topBar.height - (j + 1)));
         }
 
         int textcolwas = g->GetTextColor();
         // draw the text
         int textx = (screenop->GetWidth() / 2) - wgettextwidth_compensate(topBar.text, topBar.font) / 2;
-        g->SetTextColor(play.top_bar_textcolor);
-        wouttext_outline(g, textx, play.top_bar_borderwidth + get_fixed_pixel_size(1), topBar.font, topBar.text);
+        g->SetTextColor(play.TopBarTextColour);
+        wouttext_outline(g, textx, play.TopBarBorderWidth + get_fixed_pixel_size(1), topBar.font, topBar.text);
         // restore the current text colour
         g->SetTextColorExact(textcolwas);
 

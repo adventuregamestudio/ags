@@ -17,7 +17,6 @@
 #include "apeg.h"
 #include "ac/draw.h"
 #include "ac/file.h"
-#include "ac/gamestate.h"
 #include "ac/global_audio.h"
 #include "ac/global_display.h"
 #include "ac/mouse.h"
@@ -34,7 +33,6 @@ using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 
-extern GameState play;
 extern IGraphicsDriver *gfxDriver;
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern int scrnwid,scrnhit;
@@ -255,7 +253,7 @@ void play_theora_video(const char *name, int skip, int flags)
 
 void pause_sound_if_necessary_and_play_video(const char *name, int skip, int flags)
 {
-    int musplaying = play.cur_music_number, i;
+    int musplaying = play.CurrentMusicIndex, i;
     int ambientWas[MAX_SOUND_CHANNELS];
     for (i = 1; i < MAX_SOUND_CHANNELS; i++)
         ambientWas[i] = ambient[i].channel;

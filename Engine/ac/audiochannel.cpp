@@ -14,14 +14,12 @@
 
 #include "ac/audiochannel.h"
 #include "debug/debug_log.h"
-#include "ac/gamestate.h"
 #include "game/game_objects.h"
 #include "media/audio/audio.h"
 #include "media/audio/soundclip.h"
 #include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_audioclip.h"
 
-extern GameState play;
 extern CCAudioClip ccDynamicAudioClip;
 
 int AudioChannel_GetID(ScriptAudioChannel *channel)
@@ -31,7 +29,7 @@ int AudioChannel_GetID(ScriptAudioChannel *channel)
 
 int AudioChannel_GetIsPlaying(ScriptAudioChannel *channel)
 {
-    if (play.fast_forward)
+    if (play.FastForwardCutscene)
     {
         return 0;
     }
@@ -82,7 +80,7 @@ int AudioChannel_GetPosition(ScriptAudioChannel *channel)
     if ((channels[channel->id] != NULL) &&
         (channels[channel->id]->done == 0))
     {
-        if (play.fast_forward)
+        if (play.FastForwardCutscene)
             return 999999999;
 
         return channels[channel->id]->get_pos();
@@ -95,7 +93,7 @@ int AudioChannel_GetPositionMs(ScriptAudioChannel *channel)
     if ((channels[channel->id] != NULL) &&
         (channels[channel->id]->done == 0))
     {
-        if (play.fast_forward)
+        if (play.FastForwardCutscene)
             return 999999999;
 
         return channels[channel->id]->get_pos_ms();

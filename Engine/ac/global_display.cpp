@@ -19,7 +19,6 @@
 #include "ac/display.h"
 #include "ac/draw.h"
 #include "ac/game.h"
-#include "ac/gamestate.h"
 #include "ac/global_character.h"
 #include "ac/global_display.h"
 #include "ac/global_screen.h"
@@ -32,7 +31,6 @@
 #include "main/game_run.h"
 
 extern TopBarSettings topBar;
-extern GameState play;
 extern int display_message_aschar;
 extern int scrnwid,scrnhit;
 extern int screen_is_dirty;
@@ -57,26 +55,26 @@ void DisplayTopBar(int ypos, int ttexcol, int backcol, const char *title, const 
     va_end(ap);
 
     if (ypos > 0)
-        play.top_bar_ypos = ypos;
+        play.TopBarY = ypos;
     if (ttexcol > 0)
-        play.top_bar_textcolor = ttexcol;
+        play.TopBarTextColour = ttexcol;
     if (backcol > 0)
-        play.top_bar_backcolor = backcol;
+        play.TopBarBkgColour = backcol;
 
     topBar.wantIt = 1;
     topBar.font = FONT_NORMAL;
     topBar.height = wgetfontheight(topBar.font);
-    topBar.height += multiply_up_coordinate(play.top_bar_borderwidth) * 2 + get_fixed_pixel_size(1);
+    topBar.height += multiply_up_coordinate(play.TopBarBorderWidth) * 2 + get_fixed_pixel_size(1);
 
     // they want to customize the font
-    if (play.top_bar_font >= 0)
-        topBar.font = play.top_bar_font;
+    if (play.TopBarFont >= 0)
+        topBar.font = play.TopBarFont;
 
     // DisplaySpeech normally sets this up, but since we're not going via it...
-    if (play.cant_skip_speech & SKIP_AUTOTIMER)
-        play.messagetime = GetTextDisplayTime(texx);
+    if (play.SkipSpeechMode & SKIP_AUTOTIMER)
+        play.MessageTime = GetTextDisplayTime(texx);
 
-    DisplayAtY(play.top_bar_ypos, displbuf);
+    DisplayAtY(play.TopBarY, displbuf);
 }
 
 // Display a room/global message in the bar
@@ -114,13 +112,13 @@ void DisplayMessageAtY(int msnum, int ypos) {
         }
         else {
             // time out automatically if they have set that
-            int oldGameSkipDisp = play.skip_display;
+            int oldGameSkipDisp = play.SkipDisplayMethod;
             if (thisroom.MessageInfos[msnum].flags & MSG_TIMELIMIT)
-                play.skip_display = 0;
+                play.SkipDisplayMethod = 0;
 
             DisplayAtY(ypos, msgbufr);
 
-            play.skip_display = oldGameSkipDisp;
+            play.SkipDisplayMethod = oldGameSkipDisp;
         }
         if (thisroom.MessageInfos[msnum].flags & MSG_DISPLAYNEXT) {
             msnum++;
@@ -169,9 +167,9 @@ void DisplayAtY (int ypos, const char *texx) {
 
         if (screen_is_dirty) {
             // erase any previous DisplaySpeech
-            play.disabled_user_interface ++;
+            play.DisabledUserInterface ++;
             UpdateGameOnce();
-            play.disabled_user_interface --;
+            play.DisabledUserInterface --;
         }
 
         _display_at(-1,ypos,scrnwid/2+scrnwid/4,get_translation(texx),1,0, 0, 0, false);
@@ -194,5 +192,5 @@ void SetSkipSpeech (int newval) {
         quit("!SetSkipSpeech: invalid skip mode specified (0-4)");
 
     DEBUG_CONSOLE("SkipSpeech style set to %d", newval);
-    play.cant_skip_speech = user_to_internal_skip_speech(newval);
+    play.SkipSpeechMode = user_to_internal_skip_speech(newval);
 }

@@ -19,7 +19,6 @@
 #include "ac/charactercache.h"
 #include "ac/display.h"
 #include "ac/game.h"
-#include "ac/gamestate.h"
 #include "ac/global_translation.h"
 #include "ac/objectcache.h"
 #include "ac/string.h"
@@ -35,7 +34,6 @@ using AGS::Common::Bitmap;
 using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
-extern GameState play;
 extern CharacterCache *charcache;
 extern ObjectCache objcache[MAX_INIT_SPR];
 extern GUIMain*guis;
@@ -54,12 +52,12 @@ void DrawingSurface_Release(ScriptDrawingSurface* sds)
     {
         if (sds->modified)
         {
-            if (sds->roomBackgroundNumber == play.bg_frame)
+            if (sds->roomBackgroundNumber == play.RoomBkgFrameIndex)
             {
                 invalidate_screen();
                 mark_current_background_dirty();
             }
-            play.raw_modified[sds->roomBackgroundNumber] = 1;
+            play.RoomBkgWasModified[sds->roomBackgroundNumber] = 1;
         }
 
         sds->roomBackgroundNumber = -1;
@@ -382,7 +380,7 @@ void DrawingSurface_DrawString(ScriptDrawingSurface *sds, int xx, int yy, int fo
     Common::Graphics *g = sds->StartDrawing();
     // don't use wtextcolor because it will do a 16->32 conversion
     g->SetTextColorExact( sds->currentColour );
-    if ((g->GetBitmap()->GetColorDepth() <= 8) && (play.raw_color > 255)) {
+    if ((g->GetBitmap()->GetColorDepth() <= 8) && (play.RawDrawColour > 255)) {
         g->SetTextColor(1);
         debug_log ("RawPrint: Attempted to use hi-color on 256-col background");
     }

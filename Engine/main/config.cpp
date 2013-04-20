@@ -17,10 +17,10 @@
 //
 
 #include "ac/gamesetup.h"
-#include "ac/gamestate.h"
+#include "ac/spritecache.h"
+#include "game/game_objects.h"
 #include "main/mainheader.h"
 #include "main/config.h"
-#include "ac/spritecache.h"
 #include "platform/base/override_defines.h" //_getcwd()
 #include "util/filestream.h"
 #include "util/textstreamreader.h"
@@ -45,7 +45,6 @@ extern int psp_gfx_smooth_sprites;
 extern char psp_translation[];
 extern int force_letterbox;
 extern char replayfile[MAX_PATH];
-extern GameState play;
 
 //char datname[80]="ac.clb";
 char ac_conf_file_defname[MAX_PATH] = "acsetup.cfg";
@@ -284,10 +283,10 @@ void read_config_file(char *argv0) {
         if (repfile != NULL) {
             strcpy (replayfile, repfile);
             free (repfile);
-            play.playback = 1;
+            play.IsPlayback = 1;
         }
         else
-            play.playback = 0;
+            play.IsPlayback = 0;
 
     }
 

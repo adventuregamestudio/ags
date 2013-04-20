@@ -15,7 +15,6 @@
 #define USE_CLIB
 #include "ac/common.h"
 #include "ac/gamesetup.h"
-#include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/runtime_defines.h"
 #include "ac/translation.h"
@@ -29,7 +28,6 @@
 using AGS::Common::Stream;
 
 extern GameSetup usetup;
-extern GameState play;
 extern char transFileName[MAX_PATH];
 
 
@@ -134,11 +132,11 @@ bool init_translation (const char *lang) {
             temp = language_file->ReadInt32();
             // text direction
             if (temp == 1) {
-                play.text_align = SCALIGN_LEFT;
+                play.DisplayTextAlignment = SCALIGN_LEFT;
                 game.Options[OPT_RIGHTLEFTWRITE] = 0;
             }
             else if (temp == 2) {
-                play.text_align = SCALIGN_RIGHT;
+                play.DisplayTextAlignment = SCALIGN_RIGHT;
                 game.Options[OPT_RIGHTLEFTWRITE] = 1;
             }
         }

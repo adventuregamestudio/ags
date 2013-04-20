@@ -93,12 +93,12 @@ void RunHotspotInteraction (int hotspothere, int mood) {
     else if (mood==MODE_CUSTOM2) passon = 9;
     else if (mood==MODE_USE) { passon=3;
     cdata=playerchar->activeinv;
-    play.usedinv=cdata;
+    play.UsedInvItemIndex=cdata;
     }
 
     if ((game.Options[OPT_WALKONLOOK]==0) & (mood==MODE_LOOK)) ;
-    else if (play.auto_use_walkto_points == 0) ;
-    else if ((mood!=MODE_WALK) && (play.check_interaction_only == 0))
+    else if (play.AutoUseWalktoPoints == 0) ;
+    else if ((mood!=MODE_WALK) && (play.TestInteractionMode == 0))
         MoveCharacterToHotspot(game.PlayerCharacterIndex,hotspothere);
 
     // can't use the setevent functions because this ProcessClick is only

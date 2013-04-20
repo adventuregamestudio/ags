@@ -24,10 +24,10 @@
 
 #include "ac/common.h"
 #include "ac/gamesetup.h"
-#include "ac/gamestate.h"
 #include "debug/agseditordebugger.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
+#include "game/game_objects.h"
 #include "main/engine.h"
 #include "main/mainheader.h"
 #include "main/main.h"
@@ -65,7 +65,6 @@ char **global_argv = 0;
 
 
 extern GameSetup usetup;
-extern GameState play;
 extern int our_eip;
 extern AGSPlatformDriver *platform;
 extern int debug_flags;
@@ -105,9 +104,9 @@ void main_pre_init()
 {
     our_eip = -999;
     Common::AssetManager::SetSearchPriority(Common::kAssetPriorityDir);
-    play.recording = 0;
-    play.playback = 0;
-    play.takeover_data = 0;
+    play.IsRecording = 0;
+    play.IsPlayback = 0;
+    play.TakeoverData = 0;
 }
 
 void main_create_platform_driver()
@@ -211,9 +210,9 @@ int main_process_cmdline(int argc,char*argv[])
         else if (stricmp(argv[ee],"-letterbox") == 0)
             force_letterbox = 1;
         else if (stricmp(argv[ee],"-record") == 0)
-            play.recording = 1;
+            play.IsRecording = 1;
         else if (stricmp(argv[ee],"-playback") == 0)
-            play.playback = 1;
+            play.IsPlayback = 1;
         else if ((stricmp(argv[ee],"-gfxfilter") == 0) && (argc > ee + 1))
         {
             strncpy(force_gfxfilter, argv[ee + 1], 49);
@@ -267,9 +266,8 @@ int main_process_cmdline(int argc,char*argv[])
         else if (stricmp(argv[ee],"--takeover")==0) {
             if (argc < ee+2)
                 break;
-            play.takeover_data = atoi (argv[ee + 1]);
-            strncpy (play.takeover_from, argv[ee + 2], 49);
-            play.takeover_from[49] = 0;
+            play.TakeoverData = atoi (argv[ee + 1]);
+            play.TakeoverFrom = argv[ee + 2];
             ee += 2;
         }
         else if (argv[ee][0]!='-') datafile_argv=ee;

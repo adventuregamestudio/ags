@@ -19,7 +19,6 @@
 #include "ac/draw.h"
 #include "ac/dynobj/scriptmouse.h"
 #include "ac/gamesetup.h"
-#include "ac/gamestate.h"
 #include "ac/global_mouse.h"
 #include "ac/global_screen.h"
 #include "ac/interfacebutton.h"
@@ -38,7 +37,6 @@ using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameSetup usetup;
-extern GameState play;
 extern Bitmap *mousecurs[MAXCURSORS];
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
@@ -66,7 +64,7 @@ void Mouse_SetVisible(int isOn) {
 }
 
 int Mouse_GetVisible() {
-    if (play.mouse_cursor_hidden)
+    if (play.MouseCursorHidden)
         return 0;
     return 1;
 }
@@ -85,10 +83,10 @@ void SetMouseBounds (int x1, int y1, int x2, int y2) {
     multiply_up_coordinates(&x1, &y1);
     multiply_up_coordinates_round_up(&x2, &y2);
 
-    play.mboundx1 = x1;
-    play.mboundx2 = x2;
-    play.mboundy1 = y1;
-    play.mboundy2 = y2;
+    play.MouseBoundLeft = x1;
+    play.MouseBoundRight = x2;
+    play.MouseBoundTop = y1;
+    play.MouseBoundBottom = y2;
     filter->SetMouseLimit(x1,y1,x2,y2);
 }
 

@@ -16,12 +16,10 @@
 #include "ac/common.h"
 #include "ac/dialog.h"
 #include "ac/dialogtopic.h"
-#include "ac/gamestate.h"
 #include "debug/debug_log.h"
 #include "game/game_objects.h"
 #include "script/script.h"
 
-extern GameState play;
 extern DialogTopic *dialog;
 
 void RunDialog(int tum) {
@@ -30,9 +28,9 @@ void RunDialog(int tum) {
 
     can_run_delayed_command();
 
-    if (play.stop_dialog_at_end != DIALOG_NONE) {
-        if (play.stop_dialog_at_end == DIALOG_RUNNING)
-            play.stop_dialog_at_end = DIALOG_NEWTOPIC + tum;
+    if (play.StopDialogAtEnd != DIALOG_NONE) {
+        if (play.StopDialogAtEnd == DIALOG_RUNNING)
+            play.StopDialogAtEnd = DIALOG_NEWTOPIC + tum;
         else
             quit("!NewRoom: two NewRoom/RunDiaolg/StopDialog requests within dialog");
         return;
@@ -46,12 +44,12 @@ void RunDialog(int tum) {
 
 
 void StopDialog() {
-  if (play.stop_dialog_at_end == DIALOG_NONE) {
+  if (play.StopDialogAtEnd == DIALOG_NONE) {
     debug_log("StopDialog called, but was not in a dialog");
     DEBUG_CONSOLE("StopDialog called but no dialog");
     return;
   }
-  play.stop_dialog_at_end = DIALOG_STOP;
+  play.StopDialogAtEnd = DIALOG_STOP;
 }
 
 void SetDialogOption(int dlg,int opt,int onoroff) {

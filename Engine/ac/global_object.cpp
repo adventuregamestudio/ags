@@ -246,8 +246,8 @@ void MergeObject(int obn) {
     construct_object_gfx(obn, NULL, &theHeight, true);
 
     //Bitmap *oldabuf = graphics->bmp;
-    //abuf = thisroom.Backgrounds[].Graphic[play.bg_frame];
-    Common::Graphics graphics(thisroom.Backgrounds[play.bg_frame].Graphic);
+    //abuf = thisroom.Backgrounds[].Graphic[play.RoomBkgFrameIndex];
+    Common::Graphics graphics(thisroom.Backgrounds[play.RoomBkgFrameIndex].Graphic);
     if (graphics.GetBitmap()->GetColorDepth() != actsps[obn]->GetColorDepth())
         quit("!MergeObject: unable to merge object due to color depth differences");
 
@@ -389,7 +389,7 @@ void RunObjectInteraction (int aa, int mood) {
     else if (mood==MODE_CUSTOM2) passon = 7;
     else if (mood==MODE_USE) { passon=3;
     cdata=playerchar->activeinv;
-    play.usedinv=cdata; }
+    play.UsedInvItemIndex=cdata; }
     evblockbasename="object%d"; evblocknum=aa;
 
     if (thisroom.Objects[aa].EventHandlers.ScriptFnRef)

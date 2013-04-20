@@ -19,7 +19,6 @@
 #include "ac/common.h"
 #include "ac/character.h"
 #include "ac/characterextras.h"
-#include "ac/gamestate.h"
 #include "ac/global_character.h"
 #include "ac/lipsync.h"
 #include "ac/overlay.h"
@@ -38,7 +37,6 @@ using AGS::Common::Bitmap;
 using AGS::Common::Graphics;
 
 extern MoveList *mls;
-extern GameState play;
 extern ViewStruct*views;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern int our_eip;
@@ -173,9 +171,9 @@ int do_movelist_move(short*mlnum,int*xx,int*yy) {
 
 void update_script_timers()
 {
-  if (play.gscript_timer > 0) play.gscript_timer--;
+  if (play.GlobalScriptTimer > 0) play.GlobalScriptTimer--;
   for (int aa=0;aa<MAX_TIMERS;aa++) {
-    if (play.script_timers[aa] > 1) play.script_timers[aa]--;
+    if (play.ScriptTimers[aa] > 1) play.ScriptTimers[aa]--;
     }
 }
 
@@ -241,29 +239,29 @@ void update_overlay_timers()
 void update_speech_and_messages()
 {
 	// determine if speech text should be removed
-  if (play.messagetime>=0) {
-    play.messagetime--;
+  if (play.MessageTime>=0) {
+    play.MessageTime--;
     // extend life of text if the voice hasn't finished yet
     if (channels[SCHAN_SPEECH] != NULL) {
-      if ((!rec_isSpeechFinished()) && (play.fast_forward == 0)) {
-      //if ((!channels[SCHAN_SPEECH]->done) && (play.fast_forward == 0)) {
-        if (play.messagetime <= 1)
-          play.messagetime = 1;
+      if ((!rec_isSpeechFinished()) && (play.FastForwardCutscene == 0)) {
+      //if ((!channels[SCHAN_SPEECH]->done) && (play.FastForwardCutscene == 0)) {
+        if (play.MessageTime <= 1)
+          play.MessageTime = 1;
       }
       else  // if the voice has finished, remove the speech
-        play.messagetime = 0;
+        play.MessageTime = 0;
     }
 
-    if (play.messagetime < 1) 
+    if (play.MessageTime < 1) 
     {
-      if (play.fast_forward > 0)
+      if (play.FastForwardCutscene > 0)
       {
         remove_screen_overlay(OVER_TEXTMSG);
       }
-      else if (play.cant_skip_speech & SKIP_AUTOTIMER)
+      else if (play.SkipSpeechMode & SKIP_AUTOTIMER)
       {
         remove_screen_overlay(OVER_TEXTMSG);
-        play.ignore_user_input_until_time = globalTimerCounter + (play.ignore_user_input_after_text_timeout_ms / time_between_timers);
+        play.IgnoreUserInputUntilTime = globalTimerCounter + (play.DisplayTextIgnoreUserInputDelayMs / time_between_timers);
       }
     }
   }
@@ -272,7 +270,7 @@ void update_speech_and_messages()
 void update_sierra_speech()
 {
 	// update sierra-style speech
-  if ((face_talking >= 0) && (play.fast_forward == 0)) 
+  if ((face_talking >= 0) && (play.FastForwardCutscene == 0)) 
   {
     int updatedFrame = 0;
 
@@ -331,14 +329,14 @@ void update_sierra_speech()
     }
     else if (facetalkwait>0) facetalkwait--;
     // don't animate if the speech has finished
-    else if ((play.messagetime < 1) && (facetalkframe == 0) && (play.close_mouth_speech_time > 0))
+    else if ((play.MessageTime < 1) && (facetalkframe == 0) && (play.CloseMouthSpeechTime > 0))
       ;
     else {
       // Close mouth at end of sentence
-      if ((play.messagetime < play.close_mouth_speech_time) &&
-          (play.close_mouth_speech_time > 0)) {
+      if ((play.MessageTime < play.CloseMouthSpeechTime) &&
+          (play.CloseMouthSpeechTime > 0)) {
         facetalkframe = 0;
-        facetalkwait = play.messagetime;
+        facetalkwait = play.MessageTime;
       }
       else if ((game.Options[OPT_LIPSYNCTEXT]) && (facetalkrepeat > 0)) {
         // lip-sync speech (and not a thought)
@@ -351,7 +349,7 @@ void update_sierra_speech()
         // normal non-lip-sync
         facetalkframe++;
         if ((facetalkframe >= views[facetalkview].loops[facetalkloop].numFrames) ||
-            ((play.messagetime < 1) && (play.close_mouth_speech_time > 0))) {
+            ((play.MessageTime < 1) && (play.CloseMouthSpeechTime > 0))) {
 
           if ((facetalkframe >= views[facetalkview].loops[facetalkloop].numFrames) &&
               (views[facetalkview].loops[facetalkloop].RunNextLoop())) 

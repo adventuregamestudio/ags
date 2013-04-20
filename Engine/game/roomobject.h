@@ -29,6 +29,8 @@ namespace Common { class Stream; }
 namespace Engine
 {
 
+using Common::Stream;
+
 struct RoomObject
 {
     //-----------------------------------------------------
@@ -73,8 +75,8 @@ struct RoomObject
 	void UpdateCycleViewForwards();
 	void UpdateCycleViewBackwards();
 
-    void ReadFromFile(Common::Stream *in);
-    void WriteToFile(Common::Stream *out);
+    void ReadFromFile(Stream *in);
+    void WriteToFile(Stream *out);
 };
 
 } // namespace Engine

@@ -24,7 +24,6 @@
 #include "ac/file.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
-#include "ac/gamestate.h"
 #include "ac/global_character.h"
 #include "ac/global_gui.h"
 #include "ac/global_hotspot.h"
@@ -62,7 +61,6 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 #define ALLEGRO_KEYBOARD_HANDLER
 
 extern int guis_need_update;
-extern GameState play;
 extern ExecutingScript*curscript;
 extern const char *load_game_errors[9];
 extern int displayed_room;
@@ -88,10 +86,10 @@ extern Bitmap *virtual_screen;
 void GiveScore(int amnt) 
 {
     guis_need_update = 1;
-    play.score += amnt;
+    play.PlayerScore += amnt;
 
-    if ((amnt > 0) && (play.score_sound >= 0))
-        play_audio_clip_by_index(play.score_sound);
+    if ((amnt > 0) && (play.ScoreSoundIndex >= 0))
+        play_audio_clip_by_index(play.ScoreSoundIndex);
 
     run_on_event (GE_GOT_SCORE, RuntimeScriptValue().SetInt32(amnt));
 }
@@ -199,33 +197,31 @@ void SetGlobalInt(int index,int valu) {
     if ((index<0) | (index>=MAXGSVALUES))
         quit("!SetGlobalInt: invalid index");
 
-    if (play.globalscriptvars[index] != valu) {
+    if (play.GlobalScriptVariables[index] != valu) {
         DEBUG_CONSOLE("GlobalInt %d set to %d", index, valu);
     }
 
-    play.globalscriptvars[index]=valu;
+    play.GlobalScriptVariables[index]=valu;
 }
 
 
 int GetGlobalInt(int index) {
     if ((index<0) | (index>=MAXGSVALUES))
         quit("!GetGlobalInt: invalid index");
-    return play.globalscriptvars[index];
+    return play.GlobalScriptVariables[index];
 }
 
 void SetGlobalString (int index, const char *newval) {
     if ((index<0) | (index >= MAXGLOBALSTRINGS))
         quit("!SetGlobalString: invalid index");
     DEBUG_CONSOLE("GlobalString %d set to '%s'", index, newval);
-    strncpy(play.globalstrings[index], newval, MAX_MAXSTRLEN);
-    // truncate it to 200 chars, to be sure
-    play.globalstrings[index][MAX_MAXSTRLEN - 1] = 0;
+    play.GlobalStrings[index].SetString(newval, MAX_MAXSTRLEN);
 }
 
 void GetGlobalString (int index, char *strval) {
     if ((index<0) | (index >= MAXGLOBALSTRINGS))
         quit("!GetGlobalString: invalid index");
-    strcpy (strval, play.globalstrings[index]);
+    strcpy (strval, play.GlobalStrings[index]);
 }
 
 int RunAGSGame (const char *newgame, unsigned int mode, int data) {
@@ -247,7 +243,7 @@ int RunAGSGame (const char *newgame, unsigned int mode, int data) {
         get_current_dir_path(gamefilenamebuf, newgame);
         game_file_name = gamefilenamebuf;
         usetup.main_data_filename = game_file_name;
-        play.takeover_data = data;
+        play.TakeoverData = data;
         load_new_game_restore = -1;
 
         if (inside_script) {
@@ -285,11 +281,11 @@ int RunAGSGame (const char *newgame, unsigned int mode, int data) {
     if ((mode & RAGMODE_PRESERVEGLOBALINT) == 0) {
         // reset GlobalInts
         for (ee = 0; ee < MAXGSVALUES; ee++)
-            play.globalscriptvars[ee] = 0;  
+            play.GlobalScriptVariables[ee] = 0;  
     }
 
     init_game_settings();
-    play.screen_is_faded_out = 1;
+    play.ScreenIsFadedOut = 1;
 
     if (load_new_game_restore >= 0) {
         load_game (load_new_game_restore);
@@ -377,7 +373,7 @@ void SetGameSpeed(int newspd) {
     if ((frames_per_second == 1000) && (display_fps == 2))
         return;
 
-    newspd += play.game_speed_modifier;
+    newspd += play.GameSpeedModifier;
     if (newspd>1000) newspd=1000;
     if (newspd<10) newspd=10;
     set_game_speed(newspd);
@@ -385,7 +381,7 @@ void SetGameSpeed(int newspd) {
 }
 
 int GetGameSpeed() {
-    return frames_per_second - play.game_speed_modifier;
+    return frames_per_second - play.GameSpeedModifier;
 }
 
 int SetGameOption (int opt, int setting) {
@@ -419,7 +415,7 @@ int SetGameOption (int opt, int setting) {
         gui_disabled_style = convert_gui_disabled_style(game.Options[OPT_DISABLEOFF]);
     else if (opt == OPT_PORTRAITSIDE) {
         if (setting == 0)  // set back to Left
-            play.swap_portrait_side = 0;
+            play.SierraSpeechSwapPortraitSide = 0;
     }
 
     return oldval;
@@ -442,21 +438,21 @@ void SkipUntilCharacterStops(int cc) {
     if (!game.Characters[cc].walking)
         return;
 
-    if (play.in_cutscene)
+    if (play.IsInCutscene)
         quit("!SkipUntilCharacterStops: cannot be used within a cutscene");
 
     initialize_skippable_cutscene();
-    play.fast_forward = 2;
-    play.skip_until_char_stops = cc;
+    play.FastForwardCutscene = 2;
+    play.SkipUntilCharacterStops = cc;
 }
 
 void EndSkippingUntilCharStops() {
     // not currently skipping, so ignore
-    if (play.skip_until_char_stops < 0)
+    if (play.SkipUntilCharacterStops < 0)
         return;
 
     stop_fast_forwarding();
-    play.skip_until_char_stops = -1;
+    play.SkipUntilCharacterStops = -1;
 }
 
 // skipwith decides how it can be skipped:
@@ -466,7 +462,7 @@ void EndSkippingUntilCharStops() {
 // 4 = mouse button or any key
 // 5 = right click or ESC only
 void StartCutscene (int skipwith) {
-    if (play.in_cutscene)
+    if (play.IsInCutscene)
         quit("!StartCutscene: already in a cutscene");
 
     if ((skipwith < 1) || (skipwith > 5))
@@ -475,16 +471,16 @@ void StartCutscene (int skipwith) {
     // make sure they can't be skipping and cutsceneing at the same time
     EndSkippingUntilCharStops();
 
-    play.in_cutscene = skipwith;
+    play.IsInCutscene = skipwith;
     initialize_skippable_cutscene();
 }
 
 int EndCutscene () {
-    if (play.in_cutscene == 0)
+    if (play.IsInCutscene == 0)
         quit("!EndCutscene: not in a cutscene");
 
-    int retval = play.fast_forward;
-    play.in_cutscene = 0;
+    int retval = play.FastForwardCutscene;
+    play.IsInCutscene = 0;
     // Stop it fast-forwarding
     stop_fast_forwarding();
 
@@ -513,11 +509,11 @@ void SaveCursorForLocationChange() {
     char tempo[100];
     GetLocationName(divide_down_coordinate(mousex), divide_down_coordinate(mousey), tempo);
 
-    if (play.get_loc_name_save_cursor != play.get_loc_name_last_time) {
-        play.get_loc_name_save_cursor = play.get_loc_name_last_time;
-        play.restore_cursor_mode_to = GetCursorMode();
-        play.restore_cursor_image_to = GetMouseCursor();
-        DEBUG_CONSOLE("Saving mouse: mode %d cursor %d", play.restore_cursor_mode_to, play.restore_cursor_image_to);
+    if (play.GetLocationNameSaveCursor != play.GetLocationNameLastTime) {
+        play.GetLocationNameSaveCursor = play.GetLocationNameLastTime;
+        play.RestoreCursorModeTo = GetCursorMode();
+        play.RestoreCursorImageTo = GetMouseCursor();
+        DEBUG_CONSOLE("Saving mouse: mode %d cursor %d", play.RestoreCursorModeTo, play.RestoreCursorImageTo);
     }
 }
 
@@ -531,15 +527,15 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
         tempo[0]=0;
         int mover = GetInvAt (xxx, yyy);
         if (mover > 0) {
-            if (play.get_loc_name_last_time != 1000 + mover)
+            if (play.GetLocationNameLastTime != 1000 + mover)
                 guis_need_update = 1;
-            play.get_loc_name_last_time = 1000 + mover;
+            play.GetLocationNameLastTime = 1000 + mover;
             strcpy(tempo,get_translation(game.InventoryItems[mover].name));
         }
-        else if ((play.get_loc_name_last_time > 1000) && (play.get_loc_name_last_time < 1000 + MAX_INV)) {
+        else if ((play.GetLocationNameLastTime > 1000) && (play.GetLocationNameLastTime < 1000 + MAX_INV)) {
             // no longer selecting an item
             guis_need_update = 1;
-            play.get_loc_name_last_time = -1;
+            play.GetLocationNameLastTime = -1;
         }
         return;
     }
@@ -552,8 +548,8 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
 
     int onhs,aa;
     if (loctype == 0) {
-        if (play.get_loc_name_last_time != 0) {
-            play.get_loc_name_last_time = 0;
+        if (play.GetLocationNameLastTime != 0) {
+            play.GetLocationNameLastTime = 0;
             guis_need_update = 1;
         }
         return;
@@ -563,25 +559,25 @@ void GetLocationName(int xxx,int yyy,char*tempo) {
     if (loctype == LOCTYPE_CHAR) {
         onhs = getloctype_index;
         strcpy(tempo,get_translation(game.Characters[onhs].name));
-        if (play.get_loc_name_last_time != 2000+onhs)
+        if (play.GetLocationNameLastTime != 2000+onhs)
             guis_need_update = 1;
-        play.get_loc_name_last_time = 2000+onhs;
+        play.GetLocationNameLastTime = 2000+onhs;
         return;
     }
     // on object
     if (loctype == LOCTYPE_OBJ) {
         aa = getloctype_index;
         strcpy(tempo,get_translation(thisroom.Objects[aa].Name));
-        if (play.get_loc_name_last_time != 3000+aa)
+        if (play.GetLocationNameLastTime != 3000+aa)
             guis_need_update = 1;
-        play.get_loc_name_last_time = 3000+aa;
+        play.GetLocationNameLastTime = 3000+aa;
         return;
     }
     onhs = getloctype_index;
     if (onhs>0) strcpy(tempo,get_translation(thisroom.Hotspots[onhs].Name));
-    if (play.get_loc_name_last_time != onhs)
+    if (play.GetLocationNameLastTime != onhs)
         guis_need_update = 1;
-    play.get_loc_name_last_time = onhs;
+    play.GetLocationNameLastTime = onhs;
 }
 
 int IsKeyPressed (int keycode) {
@@ -781,7 +777,7 @@ void ProcessClick(int xx,int yy,int mood) {
         int hsnum=get_hotspot_at(xx,yy);
         if (hsnum<1) ;
         else if (thisroom.Hotspots[hsnum].WalkToPoint.x<1) ;
-        else if (play.auto_use_walkto_points == 0) ;
+        else if (play.AutoUseWalktoPoints == 0) ;
         else {
             xx=thisroom.Hotspots[hsnum].WalkToPoint.x;
             yy=thisroom.Hotspots[hsnum].WalkToPoint.y;
@@ -790,7 +786,7 @@ void ProcessClick(int xx,int yy,int mood) {
         walk_character(game.PlayerCharacterIndex,xx,yy,0, true);
         return;
     }
-    play.usedmode=mood;
+    play.UsedCursorMode=mood;
 
     if (loctype == 0) {
         // click on nothing -> hotspot 0
@@ -818,7 +814,7 @@ int IsInteractionAvailable (int xx,int yy,int mood) {
     if ((mood==MODE_WALK) && (game.Options[OPT_NOWALKMODE]==0))
         return 1;
 
-    play.check_interaction_only = 1;
+    play.TestInteractionMode = 1;
 
     if (loctype == 0) {
         // click on nothing -> hotspot 0
@@ -835,8 +831,8 @@ int IsInteractionAvailable (int xx,int yy,int mood) {
     else if (loctype == LOCTYPE_HOTSPOT)
         RunHotspotInteraction (getloctype_index, mood);
 
-    int ciwas = play.check_interaction_only;
-    play.check_interaction_only = 0;
+    int ciwas = play.TestInteractionMode;
+    play.TestInteractionMode = 0;
 
     if (ciwas == 2)
         return 1;
@@ -852,13 +848,13 @@ void GetMessageText (int msg, char *buffer) {
 void SetSpeechFont (int fontnum) {
     if ((fontnum < 0) || (fontnum >= game.FontCount))
         quit("!SetSpeechFont: invalid font number.");
-    play.speech_font = fontnum;
+    play.SpeechFont = fontnum;
 }
 
 void SetNormalFont (int fontnum) {
     if ((fontnum < 0) || (fontnum >= game.FontCount))
         quit("!SetNormalFont: invalid font number.");
-    play.normal_font = fontnum;
+    play.NormalFont = fontnum;
 }
 
 void _sc_AbortGame(const char*texx, ...) {
@@ -897,19 +893,19 @@ void scrWait(int nloops) {
     if ((nloops < 1) && (loaded_game_file_version >= kGameVersion_262)) // 2.62+
         quit("!Wait: must wait at least 1 loop");
 
-    play.wait_counter = nloops;
-    play.key_skip_wait = 0;
-    GameLoopUntilEvent(UNTIL_MOVEEND,(long)&play.wait_counter);
+    play.WaitCounter = nloops;
+    play.SkipWaitMode = 0;
+    GameLoopUntilEvent(UNTIL_MOVEEND,(long)&play.WaitCounter);
 }
 
 int WaitKey(int nloops) {
     if ((nloops < 1) && (loaded_game_file_version >= kGameVersion_262)) // 2.62+
         quit("!WaitKey: must wait at least 1 loop");
 
-    play.wait_counter = nloops;
-    play.key_skip_wait = 1;
-    GameLoopUntilEvent(UNTIL_MOVEEND,(long)&play.wait_counter);
-    if (play.wait_counter < 0)
+    play.WaitCounter = nloops;
+    play.SkipWaitMode = 1;
+    GameLoopUntilEvent(UNTIL_MOVEEND,(long)&play.WaitCounter);
+    if (play.WaitCounter < 0)
         return 1;
     return 0;
 }
@@ -918,10 +914,10 @@ int WaitMouseKey(int nloops) {
     if ((nloops < 1) && (loaded_game_file_version >= kGameVersion_262)) // 2.62+
         quit("!WaitMouseKey: must wait at least 1 loop");
 
-    play.wait_counter = nloops;
-    play.key_skip_wait = 3;
-    GameLoopUntilEvent(UNTIL_MOVEEND,(long)&play.wait_counter);
-    if (play.wait_counter < 0)
+    play.WaitCounter = nloops;
+    play.SkipWaitMode = 3;
+    GameLoopUntilEvent(UNTIL_MOVEEND,(long)&play.WaitCounter);
+    if (play.WaitCounter < 0)
         return 1;
     return 0;
 }

@@ -23,7 +23,6 @@
 #include "ac/charactercache.h"
 #include "ac/dialogtopic.h"
 #include "ac/draw.h"
-#include "ac/gamestate.h"
 #include "ac/gamestructdefines.h"
 #include "ac/gui.h"
 #include "ac/viewframe.h"
@@ -98,7 +97,6 @@ extern ccInstance *moduleInst[MAX_SCRIPT_MODULES];
 extern ccInstance *moduleInstFork[MAX_SCRIPT_MODULES];
 extern RuntimeScriptValue moduleRepExecAddr[MAX_SCRIPT_MODULES];
 extern int numScriptModules;
-extern GameState play;
 extern char **characterScriptObjNames;
 extern char objectScriptObjNames[MAX_INIT_SPR][MAX_SCRIPT_NAME_LEN + 5];
 extern char **guiScriptObjNames;
@@ -356,23 +354,23 @@ void game_file_read_gui(Stream *in)
         guilabels[bb].SetClickable(false);
     }
 
-    play.gui_draw_order = (int*)calloc(game.GuiCount * sizeof(int), 1);
+    play.GuiDrawOrder.New(game.GuiCount);
 }
 
 void game_file_set_score_sound(GameInfo::GAME_STRUCT_READ_DATA &read_data)
 {
     if (read_data.filever >= kGameVersion_320) {
-        play.score_sound = read_data.score_sound;
+        play.ScoreSoundIndex = read_data.score_sound;
     }
     else {
-        play.score_sound = -1;
+        play.ScoreSoundIndex = -1;
         if (game.Options[OPT_SCORESOUND] > 0)
         {
             ScriptAudioClip* clip = get_audio_clip_for_old_style_number(false, game.Options[OPT_SCORESOUND]);
             if (clip)
-                play.score_sound = clip->id;
+                play.ScoreSoundIndex = clip->id;
             else
-                play.score_sound = -1;
+                play.ScoreSoundIndex = -1;
         }
     }
 }
@@ -518,7 +516,7 @@ void init_and_register_game_objects()
 	init_and_register_guis();
     init_and_register_fonts();    
 
-    play.fade_effect=game.Options[OPT_FADETYPE];
+    play.TransitionStyle=game.Options[OPT_FADETYPE];
 
     our_eip=-21;
 

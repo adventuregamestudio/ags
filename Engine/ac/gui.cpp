@@ -316,13 +316,13 @@ void replace_macro_tokens(char*statusbarformat,char*cur_stb_text) {
             macroname[idd]=0; 
             tempo[0]=0;
             if (stricmp(macroname,"score")==0)
-                sprintf(tempo,"%d",play.score);
+                sprintf(tempo,"%d",play.PlayerScore);
             else if (stricmp(macroname,"totalscore")==0)
                 sprintf(tempo,"%d",MAXSCORE);
             else if (stricmp(macroname,"scoretext")==0)
-                sprintf(tempo,"%d of %d",play.score,MAXSCORE);
+                sprintf(tempo,"%d of %d",play.PlayerScore,MAXSCORE);
             else if (stricmp(macroname,"gamename")==0)
-                strcpy(tempo, play.game_name);
+                strcpy(tempo, play.GameName);
             else if (stricmp(macroname,"overhotspot")==0) {
                 // While game is in Wait mode, no overhotspot text
                 if (!IsInterfaceEnabled())
@@ -354,15 +354,15 @@ void update_gui_zorder() {
         // find the right place in the draw order array
         int insertAt = numdone;
         for (b = 0; b < numdone; b++) {
-            if (guis[a].zorder < guis[play.gui_draw_order[b]].zorder) {
+            if (guis[a].zorder < guis[play.GuiDrawOrder[b]].zorder) {
                 insertAt = b;
                 break;
             }
         }
         // insert the new item
         for (b = numdone - 1; b >= insertAt; b--)
-            play.gui_draw_order[b + 1] = play.gui_draw_order[b];
-        play.gui_draw_order[insertAt] = a;
+            play.GuiDrawOrder[b + 1] = play.GuiDrawOrder[b];
+        play.GuiDrawOrder[insertAt] = a;
         numdone++;
     }
 

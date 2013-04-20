@@ -259,7 +259,7 @@ public:
     }
     // Reads up to N elements from stream, copying the over existing elements.
     // It is generally unsafe to use this function for arrays of non-POD types.
-    void ReadRawOver(Stream *in, int from, int count = -1)
+    void ReadRawOver(Stream *in, int from, int count)
     {
         if (_meta && _meta->Length > 0 && count != 0 && in)
         {
@@ -271,6 +271,10 @@ public:
                 in->ReadArray(_meta->Arr + from, sizeof(T), count);
             }
         }
+    }
+    inline void ReadRawOver(Stream *in, int count = -1)
+    {
+        ReadRawOver(in, 0, count);
     }
     // Write array elements to stream, putting raw bytes from array buffer.
     // It is not recommended to use this function for non-POD types.

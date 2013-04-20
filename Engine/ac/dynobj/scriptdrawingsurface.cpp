@@ -17,7 +17,6 @@
 #include "ac/runtime_defines.h"
 #include "ac/common.h"
 #include "ac/drawingsurface.h"
-#include "ac/gamestate.h"
 #include "game/game_objects.h"
 #include "gfx/bitmap.h"
 
@@ -25,7 +24,6 @@ using AGS::Common::Bitmap;
 
 extern SpriteCache spriteset;
 extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
-extern GameState play;
 
 Bitmap* ScriptDrawingSurface::GetBitmapSurface()
 {
@@ -109,7 +107,7 @@ ScriptDrawingSurface::ScriptDrawingSurface()
     dynamicSurfaceNumber = -1;
     isLinkedBitmapOnly = false;
     linkedBitmapOnly = NULL;
-    currentColour = play.raw_color;
+    currentColour = play.RawDrawColour;
     currentColourScript = 0;
     modified = 0;
     hasAlphaChannel = 0;

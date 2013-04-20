@@ -23,10 +23,8 @@
 #include "gui/guimain.h"
 #include "gui/guiinv.h"
 #include "ac/event.h"
-#include "ac/gamestate.h"
 #include "game/game_objects.h"
 
-extern GameState play;
 extern int guis_need_update;
 extern int mousex, mousey;
 extern GUIMain*guis;
@@ -107,7 +105,7 @@ void RunInventoryInteraction (int iit, int modd) {
     else if (modd == MODE_HAND)
         run_event_block_inv(iit, 1);
     else if (modd == MODE_USE) {
-        play.usedinv = playerchar->activeinv;
+        play.UsedInvItemIndex = playerchar->activeinv;
         run_event_block_inv(iit, 3);
     }
     else if (modd == MODE_TALK)
@@ -120,12 +118,12 @@ int IsInventoryInteractionAvailable (int item, int mood) {
   if ((item < 0) || (item >= MAX_INV))
     quit("!IsInventoryInteractionAvailable: invalid inventory number");
 
-  play.check_interaction_only = 1;
+  play.TestInteractionMode = 1;
 
   RunInventoryInteraction(item, mood);
 
-  int ciwas = play.check_interaction_only;
-  play.check_interaction_only = 0;
+  int ciwas = play.TestInteractionMode;
+  play.TestInteractionMode = 0;
 
   if (ciwas == 2)
     return 1;

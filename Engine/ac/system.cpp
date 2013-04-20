@@ -17,19 +17,18 @@
 #include "media/audio/audiodefines.h"
 #include "ac/draw.h"
 #include "ac/gamesetup.h"
-#include "ac/gamestate.h"
 #include "ac/mouse.h"
 #include "ac/string.h"
 #include "ac/system.h"
 #include "ac/dynobj/scriptsystem.h"
 #include "debug/debug_log.h"
+#include "game/game_objects.h"
 #include "main/main.h"
 #include "media/audio/soundclip.h"
 #include "gfx/graphicsdriver.h"
 #include "ac/dynobj/cc_audiochannel.h"
 
 extern GameSetup usetup;
-extern GameState play;
 extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
 extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
@@ -117,16 +116,16 @@ int System_GetSupportsGammaControl() {
 }
 
 int System_GetGamma() {
-    return play.gamma_adjustment;
+    return play.GammaAdjustment;
 }
 
 void System_SetGamma(int newValue) {
     if ((newValue < 0) || (newValue > 200))
         quitprintf("!System.Gamma: value must be between 0-200 (not %d)", newValue);
 
-    if (play.gamma_adjustment != newValue) {
+    if (play.GammaAdjustment != newValue) {
         DEBUG_CONSOLE("Gamma control set to %d", newValue);
-        play.gamma_adjustment = newValue;
+        play.GammaAdjustment = newValue;
 
         if (gfxDriver->SupportsGammaControl())
             gfxDriver->SetGamma(newValue);
@@ -148,7 +147,7 @@ ScriptAudioChannel* System_GetAudioChannels(int index)
 
 int System_GetVolume() 
 {
-    return play.digital_master_volume;
+    return play.DigitalMasterVolume;
 }
 
 void System_SetVolume(int newvol) 
@@ -156,10 +155,10 @@ void System_SetVolume(int newvol)
     if ((newvol < 0) || (newvol > 100))
         quit("!System.Volume: invalid volume - must be from 0-100");
 
-    if (newvol == play.digital_master_volume)
+    if (newvol == play.DigitalMasterVolume)
         return;
 
-    play.digital_master_volume = newvol;
+    play.DigitalMasterVolume = newvol;
     set_volume((newvol * 255) / 100, (newvol * 255) / 100);
 
     // allegro's set_volume can lose the volumes of all the channels

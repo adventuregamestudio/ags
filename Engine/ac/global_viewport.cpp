@@ -16,6 +16,7 @@
 #include "ac/draw.h"
 #include "ac/viewport.h"
 #include "debug/debug_log.h"
+#include "game/game_objects.h"
 
 extern int offsetx, offsety;
 
@@ -24,10 +25,10 @@ void SetViewport(int offsx,int offsy) {
     offsetx = multiply_up_coordinate(offsx);
     offsety = multiply_up_coordinate(offsy);
     check_viewport_coords();
-    play.offsets_locked = 1;
+    play.ViewportLocked = 1;
 }
 void ReleaseViewport() {
-    play.offsets_locked = 0;
+    play.ViewportLocked = 0;
     DEBUG_CONSOLE("Viewport released back to engine control");
 }
 int GetViewportX () {

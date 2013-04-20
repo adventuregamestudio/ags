@@ -15,12 +15,10 @@
 #include "ac/viewport.h"
 #include "ac/draw.h"
 #include "ac/characterinfo.h"
-#include "ac/gamestate.h"
 #include "ac/gamesetup.h"
 #include "game/game_objects.h"
 
 extern int offsetx, offsety;
-extern GameState play;
 extern int scrnwid,scrnhit;
 extern GameSetup usetup;
 extern CharacterInfo*playerchar;
@@ -42,7 +40,7 @@ void check_viewport_coords()
 void update_viewport()
 {
     if ((thisroom.Width > BASEWIDTH) || (thisroom.Height > BASEHEIGHT)) {
-        if (play.offsets_locked == 0) {
+        if (play.ViewportLocked == 0) {
             offsetx = multiply_up_coordinate(playerchar->x) - scrnwid/2;
             offsety = multiply_up_coordinate(playerchar->y) - scrnhit/2;
         }

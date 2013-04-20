@@ -103,7 +103,7 @@ void Out::Init (int cmdarg_count, char **cmdargs)
     // TODO: check cmdargs to set up the settings
     //
     //
-    IData.Verbosity = kVerbose_Always; /*play.debug_mode != 0 ? kVerbose_Always : 0;*/
+    IData.Verbosity = kVerbose_Always; /*play.DebugMode != 0 ? kVerbose_Always : 0;*/
 
     //-------------------------------------------
     //

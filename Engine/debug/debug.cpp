@@ -131,7 +131,7 @@ found" are logged instead of exiting the program.
 void debug_log(char*texx, ...) {
     // if not in debug mode, don't print it so we don't worry the
     // end player
-    if (play.debug_mode == 0)
+    if (play.DebugMode == 0)
         return;
     static int first_time = 1;
     char displbuf[STD_BUFFER_SIZE];
@@ -465,7 +465,7 @@ void scriptDebugHook (ccInstance *ccinst, int linenum) {
 int scrlockWasDown = 0;
 
 void check_debug_keys() {
-    if (play.debug_mode) {
+    if (play.DebugMode) {
         // do the run-time script debugging
 
         if ((!key[KEY_SCRLOCK]) && (scrlockWasDown))

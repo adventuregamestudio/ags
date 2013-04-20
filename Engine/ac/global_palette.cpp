@@ -14,11 +14,9 @@
 
 #include "ac/common.h"
 #include "ac/draw.h"
-#include "ac/gamestate.h"
 #include "ac/global_palette.h"
 #include "game/game_objects.h"
 
-extern GameState play;
 extern color palette[256];
 
 
@@ -61,6 +59,6 @@ void UpdatePalette() {
     if (game.ColorDepth > 1)
         invalidate_screen();
 
-    if (!play.fast_forward)  
+    if (!play.FastForwardCutscene)  
         setpal();
 }

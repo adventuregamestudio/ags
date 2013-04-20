@@ -17,7 +17,6 @@
 #include "media/audio/audio.h"
 #include "ac/dynobj/cc_audioclip.h"
 #include "ac/dynobj/cc_audiochannel.h"
-#include "ac/gamestate.h"
 #include "script/script_runtime.h"
 #include "ac/audiochannel.h"
 #include "ac/audioclip.h"
@@ -38,7 +37,6 @@ AGS::Engine::Mutex _audio_mutex;
 volatile bool _audio_doing_crossfade;
 
 extern GameSetup usetup;
-extern GameState play;
 extern CharacterInfo*playerchar;
 
 extern int psp_is_old_datafile;
@@ -86,9 +84,9 @@ void register_audio_script_objects()
 
 void update_clip_default_volume(ScriptAudioClip *audioClip)
 {
-    if (play.default_audio_type_volumes[audioClip->type] >= 0) 
+    if (play.DefaultAudioTypeVolumes[audioClip->type] >= 0) 
     {
-        audioClip->defaultVolume = play.default_audio_type_volumes[audioClip->type];
+        audioClip->defaultVolume = play.DefaultAudioTypeVolumes[audioClip->type];
     }
 }
 
@@ -98,9 +96,9 @@ void start_fading_in_new_track_if_applicable(int fadeInChannel, ScriptAudioClip 
     if (crossfadeSpeed > 0)
     {
         update_clip_default_volume(newSound);
-        play.crossfade_in_volume_per_step = crossfadeSpeed;
-        play.crossfade_final_volume_in = newSound->defaultVolume;
-        play.crossfading_in_channel = fadeInChannel;
+        play.CrossfadeInVolumePerStep = crossfadeSpeed;
+        play.CrossfadeFinalVolumeIn = newSound->defaultVolume;
+        play.CrossfadingInChannel = fadeInChannel;
     }
 }
 
@@ -110,12 +108,12 @@ void move_track_to_crossfade_channel(int currentChannel, int crossfadeSpeed, int
     channels[SPECIAL_CROSSFADE_CHANNEL] = channels[currentChannel];
     channels[currentChannel] = NULL;
 
-    play.crossfading_out_channel = SPECIAL_CROSSFADE_CHANNEL;
-    play.crossfade_step = 0;
-    play.crossfade_initial_volume_out = channels[SPECIAL_CROSSFADE_CHANNEL]->volAsPercentage;
-    play.crossfade_out_volume_per_step = crossfadeSpeed;
+    play.CrossfadingOutChannel = SPECIAL_CROSSFADE_CHANNEL;
+    play.CrossfadeStep = 0;
+    play.CrossfadeInitialVolumeOut = channels[SPECIAL_CROSSFADE_CHANNEL]->volAsPercentage;
+    play.CrossfadeOutVolumePerStep = crossfadeSpeed;
 
-    play.crossfading_in_channel = fadeInChannel;
+    play.CrossfadingInChannel = fadeInChannel;
     if (newSound != NULL)
     {
         start_fading_in_new_track_if_applicable(fadeInChannel, newSound);
@@ -211,7 +209,7 @@ int find_free_audio_channel(ScriptAudioClip *clip, int priority, bool interruptE
         stop_or_fade_out_channel(lowestPriorityID, lowestPriorityID, clip);
         channelToUse = lowestPriorityID;
     }
-    else if ((channelToUse >= 0) && (play.crossfading_in_channel < 1))
+    else if ((channelToUse >= 0) && (play.CrossfadingInChannel < 1))
     {
         start_fading_in_new_track_if_applicable(channelToUse, clip);
     }
@@ -267,63 +265,63 @@ SOUNDCLIP *load_sound_clip(ScriptAudioClip *audioClip, bool repeat)
 
 void recache_queued_clips_after_loading_save_game()
 {
-    for (int i = 0; i < play.new_music_queue_size; i++)
+    for (int i = 0; i < play.NewMusicQueueLength; i++)
     {
-        play.new_music_queue[i].cachedClip = NULL;
+        play.NewMusicQueue[i].cachedClip = NULL;
     }
 }
 
 void audio_update_polled_stuff()
 {
-    play.crossfade_step++;
+    play.CrossfadeStep++;
 
-    if (play.crossfading_out_channel > 0)
+    if (play.CrossfadingOutChannel > 0)
     {
-        if (channels[play.crossfading_out_channel] == NULL)
-            quitprintf("Crossfade out channel is %d but channel has gone", play.crossfading_out_channel);
+        if (channels[play.CrossfadingOutChannel] == NULL)
+            quitprintf("Crossfade out channel is %d but channel has gone", play.CrossfadingOutChannel);
 
-        int newVolume = channels[play.crossfading_out_channel]->volAsPercentage - play.crossfade_out_volume_per_step;
+        int newVolume = channels[play.CrossfadingOutChannel]->volAsPercentage - play.CrossfadeOutVolumePerStep;
         if (newVolume > 0)
         {
-            AudioChannel_SetVolume(&scrAudioChannel[play.crossfading_out_channel], newVolume);
+            AudioChannel_SetVolume(&scrAudioChannel[play.CrossfadingOutChannel], newVolume);
         }
         else
         {
-            stop_and_destroy_channel(play.crossfading_out_channel);
-            play.crossfading_out_channel = 0;
+            stop_and_destroy_channel(play.CrossfadingOutChannel);
+            play.CrossfadingOutChannel = 0;
         }
     }
 
-    if (play.crossfading_in_channel > 0)
+    if (play.CrossfadingInChannel > 0)
     {
-        int newVolume = channels[play.crossfading_in_channel]->volAsPercentage + play.crossfade_in_volume_per_step;
-        if (newVolume > play.crossfade_final_volume_in)
+        int newVolume = channels[play.CrossfadingInChannel]->volAsPercentage + play.CrossfadeInVolumePerStep;
+        if (newVolume > play.CrossfadeFinalVolumeIn)
         {
-            newVolume = play.crossfade_final_volume_in;
+            newVolume = play.CrossfadeFinalVolumeIn;
         }
 
-        AudioChannel_SetVolume(&scrAudioChannel[play.crossfading_in_channel], newVolume);
+        AudioChannel_SetVolume(&scrAudioChannel[play.CrossfadingInChannel], newVolume);
 
-        if (newVolume >= play.crossfade_final_volume_in)
+        if (newVolume >= play.CrossfadeFinalVolumeIn)
         {
-            play.crossfading_in_channel = 0;
+            play.CrossfadingInChannel = 0;
         }
     }
 
-    if (play.new_music_queue_size > 0)
+    if (play.NewMusicQueueLength > 0)
     {
-        for (int i = 0; i < play.new_music_queue_size; i++)
+        for (int i = 0; i < play.NewMusicQueueLength; i++)
         {
-            ScriptAudioClip *clip = &game.AudioClips[play.new_music_queue[i].audioClipIndex];
+            ScriptAudioClip *clip = &game.AudioClips[play.NewMusicQueue[i].audioClipIndex];
             int channel = find_free_audio_channel(clip, clip->defaultPriority, false);
             if (channel >= 0)
             {
-                QueuedAudioItem itemToPlay = play.new_music_queue[i];
+                QueuedAudioItem itemToPlay = play.NewMusicQueue[i];
 
-                play.new_music_queue_size--;
-                for (int j = i; j < play.new_music_queue_size; j++)
+                play.NewMusicQueueLength--;
+                for (int j = i; j < play.NewMusicQueueLength; j++)
                 {
-                    play.new_music_queue[j] = play.new_music_queue[j + 1];
+                    play.NewMusicQueue[j] = play.NewMusicQueue[j + 1];
                 }
 
                 play_audio_clip_on_channel(channel, clip, itemToPlay.priority, itemToPlay.repeat, 0, itemToPlay.cachedClip);
@@ -335,7 +333,7 @@ void audio_update_polled_stuff()
 
 void queue_audio_clip_to_play(ScriptAudioClip *clip, int priority, int repeat)
 {
-    if (play.new_music_queue_size >= MAX_QUEUED_MUSIC) {
+    if (play.NewMusicQueueLength >= MAX_QUEUED_MUSIC) {
         DEBUG_CONSOLE("Too many queued music, cannot add %s", clip->scriptName);
         return;
     }
@@ -343,11 +341,11 @@ void queue_audio_clip_to_play(ScriptAudioClip *clip, int priority, int repeat)
     SOUNDCLIP *cachedClip = load_sound_clip(clip, (repeat != 0));
     if (cachedClip != NULL) 
     {
-        play.new_music_queue[play.new_music_queue_size].audioClipIndex = clip->id;
-        play.new_music_queue[play.new_music_queue_size].priority = priority;
-        play.new_music_queue[play.new_music_queue_size].repeat = (repeat != 0);
-        play.new_music_queue[play.new_music_queue_size].cachedClip = cachedClip;
-        play.new_music_queue_size++;
+        play.NewMusicQueue[play.NewMusicQueueLength].audioClipIndex = clip->id;
+        play.NewMusicQueue[play.NewMusicQueueLength].priority = priority;
+        play.NewMusicQueue[play.NewMusicQueueLength].repeat = (repeat != 0);
+        play.NewMusicQueue[play.NewMusicQueueLength].cachedClip = cachedClip;
+        play.NewMusicQueueLength++;
     }
     
     if (!psp_audio_multithreaded)
@@ -363,21 +361,21 @@ ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *cli
     if (soundfx == NULL)
     {
         DEBUG_CONSOLE("AudioClip.Play: unable to load sound file");
-        if (play.crossfading_in_channel == channel)
+        if (play.CrossfadingInChannel == channel)
         {
-            play.crossfading_in_channel = 0;
+            play.CrossfadingInChannel = 0;
         }
         return NULL;
     }
     soundfx->priority = priority;
 
-    if (play.crossfading_in_channel == channel)
+    if (play.CrossfadingInChannel == channel)
     {
         soundfx->set_volume(0);
         soundfx->volAsPercentage = 0;
     }
 
-    if (play.fast_forward) 
+    if (play.FastForwardCutscene) 
     {
         soundfx->set_volume(0);
         soundfx->volAsPercentage = 0;
@@ -400,14 +398,14 @@ ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *cli
 void remove_clips_of_type_from_queue(int audioType) 
 {
     int aa;
-    for (aa = 0; aa < play.new_music_queue_size; aa++)
+    for (aa = 0; aa < play.NewMusicQueueLength; aa++)
     {
-        ScriptAudioClip *clip = &game.AudioClips[play.new_music_queue[aa].audioClipIndex];
+        ScriptAudioClip *clip = &game.AudioClips[play.NewMusicQueue[aa].audioClipIndex];
         if (clip->type == audioType)
         {
-            play.new_music_queue_size--;
-            for (int bb = aa; bb < play.new_music_queue_size; bb++)
-                play.new_music_queue[bb] = play.new_music_queue[bb + 1];
+            play.NewMusicQueueLength--;
+            for (int bb = aa; bb < play.NewMusicQueueLength; bb++)
+                play.NewMusicQueue[bb] = play.NewMusicQueue[bb + 1];
             aa--;
         }
     }
@@ -491,10 +489,10 @@ void stop_and_destroy_channel_ex(int chid, bool resetLegacyMusicSettings) {
         channels[chid] = NULL;
     }
 
-    if (play.crossfading_in_channel == chid)
-        play.crossfading_in_channel = 0;
-    if (play.crossfading_out_channel == chid)
-        play.crossfading_out_channel = 0;
+    if (play.CrossfadingInChannel == chid)
+        play.CrossfadingInChannel = 0;
+    if (play.CrossfadingOutChannel == chid)
+        play.CrossfadingOutChannel = 0;
 
     // destroyed an ambient sound channel
     if (ambient[chid].channel > 0)
@@ -502,7 +500,7 @@ void stop_and_destroy_channel_ex(int chid, bool resetLegacyMusicSettings) {
 
     if ((chid == SCHAN_MUSIC) && (resetLegacyMusicSettings))
     {
-        play.cur_music_number = -1;
+        play.CurrentMusicIndex = -1;
         current_music_type = 0;
     }
 }
@@ -622,10 +620,10 @@ void update_ambient_sound_vol () {
 
         if ((channels[SCHAN_SPEECH] != NULL) && (channels[SCHAN_SPEECH]->done == 0)) {
             // Negative value means set exactly; positive means drop that amount
-            if (play.speech_music_drop < 0)
-                sourceVolume = -play.speech_music_drop;
+            if (play.MusicMuteForVoicePlay < 0)
+                sourceVolume = -play.MusicMuteForVoicePlay;
             else
-                sourceVolume -= play.speech_music_drop;
+                sourceVolume -= play.MusicMuteForVoicePlay;
 
             if (sourceVolume < 0)
                 sourceVolume = 0;
@@ -634,7 +632,7 @@ void update_ambient_sound_vol () {
         }
 
         // Adjust ambient volume so it maxes out at overall sound volume
-        int ambientvol = (sourceVolume * play.sound_volume) / 255;
+        int ambientvol = (sourceVolume * play.SoundVolume) / 255;
 
         int wantvol;
 
@@ -770,7 +768,7 @@ delete mp3ptr;
 int amp_decode() {
 mp3ptr->poll();
 if (mp3ptr->is_finished()) {
-if (play.music_repeat)
+if (play.MusicLoopMode)
 mp3ptr->play(mp3vol, 8192);
 else return -1;
 }
@@ -791,45 +789,45 @@ void clear_music_cache() {
 
 void play_next_queued() {
     // check if there's a queued one to play
-    if (play.music_queue_size > 0) {
+    if (play.MusicQueueLength > 0) {
 
-        int tuneToPlay = play.music_queue[0];
+        int tuneToPlay = play.MusicQueue[0];
 
         if (tuneToPlay >= QUEUED_MUSIC_REPEAT) {
             // Loop it!
-            play.music_repeat++;
+            play.MusicLoopMode++;
             play_new_music(tuneToPlay - QUEUED_MUSIC_REPEAT, cachedQueuedMusic);
-            play.music_repeat--;
+            play.MusicLoopMode--;
         }
         else {
             // Don't loop it!
-            int repeatWas = play.music_repeat;
-            play.music_repeat = 0;
+            int repeatWas = play.MusicLoopMode;
+            play.MusicLoopMode = 0;
             play_new_music(tuneToPlay, cachedQueuedMusic);
-            play.music_repeat = repeatWas;
+            play.MusicLoopMode = repeatWas;
         }
 
         // don't free the memory, as it has been transferred onto the
         // main music channel
         cachedQueuedMusic = NULL;
 
-        play.music_queue_size--;
-        for (int i = 0; i < play.music_queue_size; i++)
-            play.music_queue[i] = play.music_queue[i + 1];
+        play.MusicQueueLength--;
+        for (int i = 0; i < play.MusicQueueLength; i++)
+            play.MusicQueue[i] = play.MusicQueue[i + 1];
 
-        if (play.music_queue_size > 0)
-            cachedQueuedMusic = load_music_from_disk(play.music_queue[0], 0);
+        if (play.MusicQueueLength > 0)
+            cachedQueuedMusic = load_music_from_disk(play.MusicQueue[0], 0);
     }
 
 }
 
 int calculate_max_volume() {
     // quieter so that sounds can be heard better
-    int newvol=play.music_master_volume + ((int)thisroom.Options[kRoomBaseOpt_MusicVolume]) * 30;
+    int newvol=play.MusicMasterVolume + ((int)thisroom.Options[kRoomBaseOpt_MusicVolume]) * 30;
     if (newvol>255) newvol=255;
     if (newvol<0) newvol=0;
 
-    if (play.fast_forward)
+    if (play.FastForwardCutscene)
         newvol = 0;
 
     return newvol;
@@ -902,14 +900,14 @@ void update_polled_stuff_and_crossfade () {
     }
 
     // Check if the current music has finished playing
-    if ((play.cur_music_number >= 0) && (play.fast_forward == 0)) {
+    if ((play.CurrentMusicIndex >= 0) && (play.FastForwardCutscene == 0)) {
         if (IsMusicPlaying() == 0) {
             // The current music has finished
-            play.cur_music_number = -1;
+            play.CurrentMusicIndex = -1;
             play_next_queued();
         }
         else if ((game.Options[OPT_CROSSFADEMUSIC] > 0) &&
-            (play.music_queue_size > 0) && (!crossFading)) {
+            (play.MusicQueueLength > 0) && (!crossFading)) {
                 // want to crossfade, and new tune in the queue
                 int curpos = channels[SCHAN_MUSIC]->get_pos_ms();
                 int muslen = channels[SCHAN_MUSIC]->get_length_ms();
@@ -963,7 +961,7 @@ void stopmusic() {
     else
         stop_and_destroy_channel (SCHAN_MUSIC);
 
-    play.cur_music_number = -1;
+    play.CurrentMusicIndex = -1;
     current_music_type = 0;
 }
 
@@ -1096,7 +1094,7 @@ void play_new_music(int mnum, SOUNDCLIP *music) {
     if (usetup.midicard == MIDI_NONE)
         return;
 
-    if ((play.cur_music_number == mnum) && (music == NULL)) {
+    if ((play.CurrentMusicIndex == mnum) && (music == NULL)) {
         DEBUG_CONSOLE("PlayMusic %d but already playing", mnum);
         return;  // don't play the music if it's already playing
     }
@@ -1109,19 +1107,19 @@ void play_new_music(int mnum, SOUNDCLIP *music) {
         return;
     }
 
-    if (play.fast_forward) {
+    if (play.FastForwardCutscene) {
         // while skipping cutscene, don't change the music
-        play.end_cutscene_music = mnum;
+        play.PlayMusicAfterCustsceneSkip = mnum;
         return;
     }
 
     useChannel = prepare_for_new_music ();
 
-    play.cur_music_number=mnum;
+    play.CurrentMusicIndex=mnum;
     current_music_type = 0;
     channels[useChannel] = NULL;
 
-    play.current_music_repeating = play.music_repeat;
+    play.CurrentMusicLoopMode = play.MusicLoopMode;
     // now that all the previous music is unloaded, load in the new one
 
     if (music != NULL) {
@@ -1129,7 +1127,7 @@ void play_new_music(int mnum, SOUNDCLIP *music) {
         music = NULL;
     }
     else {
-        channels[useChannel] = load_music_from_disk(mnum, (play.music_repeat > 0));
+        channels[useChannel] = load_music_from_disk(mnum, (play.MusicLoopMode > 0));
     }
 
     if (channels[useChannel] != NULL) {

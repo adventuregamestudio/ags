@@ -486,7 +486,7 @@ ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite_Old(int slot)
 ScriptDynamicSprite* DynamicSprite_CreateFromBackground(int frame, int x1, int y1, int width, int height) {
 
     if (frame == SCR_NO_VALUE) {
-        frame = play.bg_frame;
+        frame = play.RoomBkgFrameIndex;
     }
     else if ((frame < 0) || (frame >= thisroom.BkgSceneCount))
         quit("!DynamicSprite.CreateFromBackground: invalid frame specified");
@@ -494,11 +494,11 @@ ScriptDynamicSprite* DynamicSprite_CreateFromBackground(int frame, int x1, int y
     if (x1 == SCR_NO_VALUE) {
         x1 = 0;
         y1 = 0;
-        width = play.room_width;
-        height = play.room_height;
+        width = play.CurrentRoomWidth;
+        height = play.CurrentRoomHeight;
     }
     else if ((x1 < 0) || (y1 < 0) || (width < 1) || (height < 1) ||
-        (x1 + width > play.room_width) || (y1 + height > play.room_height))
+        (x1 + width > play.CurrentRoomWidth) || (y1 + height > play.CurrentRoomHeight))
         quit("!DynamicSprite.CreateFromBackground: invalid co-ordinates specified");
 
     multiply_up_coordinates(&x1, &y1);

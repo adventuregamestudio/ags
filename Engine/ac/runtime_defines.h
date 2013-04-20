@@ -62,7 +62,7 @@
 
 #define DEBUG_CONSOLE_NUMLINES 6
 #define TXT_SCOREBAR        29
-#define MAXSCORE play.totalscore
+#define MAXSCORE play.TotalScore
 #define CHANIM_REPEAT    2
 #define CHANIM_BACKWARDS 4
 #define ANIM_BACKWARDS 10
@@ -70,9 +70,9 @@
 #define ANIM_REPEAT    2
 #define ANIM_ONCERESET 3
 #define FONT_STATUSBAR  0
-#define FONT_NORMAL     play.normal_font
+#define FONT_NORMAL     play.NormalFont
 //#define FONT_SPEECHBACK 1
-#define FONT_SPEECH     play.speech_font
+#define FONT_SPEECH     play.SpeechFont
 #define MODE_WALK 0
 #define MODE_LOOK 1
 #define MODE_HAND 2
@@ -122,7 +122,7 @@
 
 #define MAX_PLUGIN_OBJECT_READERS 50
 
-#define NEXT_ITERATION() play.gamestep++
+#define NEXT_ITERATION() play.GameStep++
 
 #ifndef MAX_PATH
 #define MAX_PATH 260

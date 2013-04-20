@@ -1403,14 +1403,14 @@ int ccInstance::RunScriptFunctionIfExists(char*tsname,int numParam, RuntimeScrip
 int ccInstance::RunTextScript(char*tsname) {
     if (strcmp(tsname, REP_EXEC_NAME) == 0) {
         // run module rep_execs
-        int room_changes_was = play.room_changes;
+        int room_changes_was = play.RoomChangeCount;
         int restore_game_count_was = gameHasBeenRestored;
 
         for (int kk = 0; kk < numScriptModules; kk++) {
             if (!moduleRepExecAddr[kk].IsNull())
                 moduleInst[kk]->RunScriptFunctionIfExists(tsname, 0, NULL);
 
-            if ((room_changes_was != play.room_changes) ||
+            if ((room_changes_was != play.RoomChangeCount) ||
                 (restore_game_count_was != gameHasBeenRestored))
                 return 0;
         }

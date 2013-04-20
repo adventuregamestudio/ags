@@ -20,7 +20,6 @@
 #include "ac/dialogtopic.h"
 #include "ac/display.h"
 #include "ac/draw.h"
-#include "ac/gamestate.h"
 #include "ac/global_character.h"
 #include "ac/global_dialog.h"
 #include "ac/global_display.h"
@@ -53,7 +52,6 @@ using AGS::Common::Bitmap;
 using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
-extern GameState play;
 extern ccInstance *dialogScriptsInst;
 extern int in_new_room;
 extern int scrnwid,scrnhit;
@@ -328,9 +326,9 @@ int write_dialog_options(Common::Graphics *g, int dlgxp, int curyp, int numdisp,
   for (ww=0;ww<numdisp;ww++) {
 
     if ((dtop->optionflags[disporder[ww]] & DFLG_HASBEENCHOSEN) &&
-        (play.read_dialog_option_colour >= 0)) {
+        (play.DialogOptionReadColour >= 0)) {
       // 'read' colour
-      g->SetTextColor(play.read_dialog_option_colour);
+      g->SetTextColor(play.DialogOptionReadColour);
     }
     else {
       // 'unread' colour
@@ -481,7 +479,7 @@ void DialogOptions::Prepare(int _dlgnum, bool _runGameLoopsInBackground)
 
   can_run_delayed_command();
 
-  play.in_conversation ++;
+  play.InConversation ++;
 
   update_polled_stuff_if_runtime();
 
@@ -507,7 +505,7 @@ void DialogOptions::Prepare(int _dlgnum, bool _runGameLoopsInBackground)
   int ww;
 
   parserActivated = 0;
-  if ((dtop->topicFlags & DTFLG_SHOWPARSER) && (play.disable_dialog_parser == 0)) {
+  if ((dtop->topicFlags & DTFLG_SHOWPARSER) && (play.DisableDialogParser == 0)) {
     parserInput = new GUITextBox();
     parserInput->hit = txthit + get_fixed_pixel_size(4);
     parserInput->exflags = 0;
@@ -528,7 +526,7 @@ void DialogOptions::Show()
   if (numdisp<1) quit("!DoDialog: all options have been turned off");
   // Don't display the options if there is only one and the parser
   // is not enabled.
-  if (!((numdisp > 1) || (parserInput != NULL) || (play.show_single_dialog_option)))
+  if (!((numdisp > 1) || (parserInput != NULL) || (play.ShowSingleDialogOption)))
   {
       chose = disporder[0];  // only one choice, so select it
       return;
@@ -600,7 +598,7 @@ void DialogOptions::Show()
       dirtyheight = scrnhit - dirtyy;
     }
     if (!is_textwindow)
-      areawid -= multiply_up_coordinate(play.dialog_options_x) * 2;
+      areawid -= multiply_up_coordinate(play.DialogOptionsX) * 2;
 
     orixp = dlgxp;
     oriyp = dlgyp;
@@ -609,14 +607,14 @@ void DialogOptions::Show()
     
     update_polled_stuff_if_runtime();
     //->Blit(virtual_screen, tempScrn, 0, 0, 0, 0, screen->GetWidth(), screen->GetHeight());
-    if (!play.mouse_cursor_hidden)
+    if (!play.MouseCursorHidden)
       domouse(1);
     update_polled_stuff_if_runtime();
 
     Redraw();
     while(Run());
 
-    if (!play.mouse_cursor_hidden)
+    if (!play.MouseCursorHidden)
       domouse(2);
 }
 
@@ -663,7 +661,7 @@ void DialogOptions::Redraw()
     }
     else if (is_textwindow) {
       // text window behind the options
-      areawid = multiply_up_coordinate(play.max_dialogoption_width);
+      areawid = multiply_up_coordinate(play.DialogOptionsMaxWidth);
       int biggest = 0;
       for (int i = 0; i < numdisp; ++i) {
         break_up_text_into_lines(areawid-(8+bullet_wid),usingfont,get_translation(dtop->optionnames[disporder[i]]));
@@ -673,9 +671,9 @@ void DialogOptions::Redraw()
       if (biggest < areawid - (12+bullet_wid))
         areawid = biggest + (12+bullet_wid);
 
-      if (areawid < multiply_up_coordinate(play.min_dialogoption_width)) {
-        areawid = multiply_up_coordinate(play.min_dialogoption_width);
-        if (play.min_dialogoption_width > play.max_dialogoption_width)
+      if (areawid < multiply_up_coordinate(play.DialogOptionsMinWidth)) {
+        areawid = multiply_up_coordinate(play.DialogOptionsMinWidth);
+        if (play.DialogOptionsMinWidth > play.DialogOptionsMaxWidth)
           quit("!game.min_dialogoption_width is larger than game.max_dialogoption_width");
       }
 
@@ -745,8 +743,8 @@ void DialogOptions::Redraw()
         dirtyheight = needheight + 1;
       }
 
-      dlgxp += multiply_up_coordinate(play.dialog_options_x);
-      dlgyp += multiply_up_coordinate(play.dialog_options_y);
+      dlgxp += multiply_up_coordinate(play.DialogOptionsX);
+      dlgyp += multiply_up_coordinate(play.DialogOptionsY);
 
       // if they use a negative dialog_options_y, make sure the
       // area gets marked as dirty
@@ -824,9 +822,9 @@ bool DialogOptions::Run()
 {
       if (runGameLoopsInBackground)
       {
-        play.disabled_user_interface++;
+        play.DisabledUserInterface++;
         UpdateGameOnce(false, ddb, dirtyx, dirtyy);
-        play.disabled_user_interface--;
+        play.DisabledUserInterface--;
       }
       else
       {
@@ -845,8 +843,8 @@ bool DialogOptions::Run()
           // type into the parser 
           if ((gkey == 361) || ((gkey == ' ') && (strlen(parserInput->text) == 0))) {
             // write previous contents into textbox (F3 or Space when box is empty)
-            for (unsigned int i = strlen(parserInput->text); i < strlen(play.lastParserEntry); i++) {
-              parserInput->KeyPress(play.lastParserEntry[i]);
+            for (unsigned int i = strlen(parserInput->text); i < play.LastParserEntry.GetLength(); i++) {
+              parserInput->KeyPress(play.LastParserEntry[i]);
             }
             //domouse(2);
             Redraw();
@@ -981,7 +979,7 @@ bool DialogOptions::Run()
         Redraw();
         return true; // continue running loop
       }
-      while ((timerloop == 0) && (play.fast_forward == 0)) {
+      while ((timerloop == 0) && (play.FastForwardCutscene == 0)) {
         update_polled_stuff_if_runtime();
         platform->YieldCPU();
       }
@@ -996,7 +994,7 @@ void DialogOptions::Close()
 
   if (parserActivated) 
   {
-    strcpy (play.lastParserEntry, parserInput->text);
+    play.LastParserEntry = parserInput->text;
     ParseText (parserInput->text);
     chose = CHOSE_TEXTPARSER;
   }
@@ -1012,7 +1010,7 @@ void DialogOptions::Close()
 
   set_mouse_cursor(curswas);
   // In case it's the QFG4 style dialog, remove the black screen
-  play.in_conversation--;
+  play.InConversation--;
   remove_screen_overlay(OVER_COMPLETE);
 
   delete tempScrn;
@@ -1057,7 +1055,7 @@ void do_conversation(int dlgnum)
 
   // AGS 2.x always makes the mouse cursor visible when displaying a dialog.
   if (loaded_game_file_version <= kGameVersion_272)
-    play.mouse_cursor_hidden = 0;
+    play.MouseCursorHidden = 0;
 
   int dlgnum_was = dlgnum;
   int previousTopics[MAX_TOPIC_HISTORY];
@@ -1071,7 +1069,7 @@ void do_conversation(int dlgnum)
   {
     // 'stop' or 'goto-previous' from first startup script
     remove_screen_overlay(OVER_COMPLETE);
-    play.in_conversation--;
+    play.InConversation--;
     return;
   }
   else if (tocar >= 0)

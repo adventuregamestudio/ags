@@ -506,7 +506,7 @@ void engine_init_rooms()
 
 int engine_init_speech()
 {
-    play.want_speech=-2;
+    play.SpeechVoiceMode=-2;
 
     if (usetup.no_speech_pack == 0) {
         /* Can't just use fopen here, since we need to change the filename
@@ -558,7 +558,7 @@ int engine_init_speech()
             }
             Common::AssetManager::SetDataFile(game_file_name);
             platform->WriteConsole("Speech sample file found and initialized.\n");
-            play.want_speech=1;
+            play.SpeechVoiceMode=1;
         }
     }
 
@@ -567,7 +567,7 @@ int engine_init_speech()
 
 int engine_init_music()
 {
-    play.seperate_music_lib = 0;
+    play.UseSeparateMusicLib = 0;
 
     /* Can't just use fopen here, since we need to change the filename
     so that pack functions, etc. will have the right case later */
@@ -598,7 +598,7 @@ int engine_init_music()
         }
         Common::AssetManager::SetDataFile(game_file_name);
         platform->WriteConsole("Audio vox found and initialized.\n");
-        play.seperate_music_lib = 1;
+        play.UseSeparateMusicLib = 1;
     }
 
     return RETURN_CONTINUE;
@@ -681,8 +681,8 @@ void engine_init_sound()
         // disable speech and music if no digital sound
         // therefore the MIDI soundtrack will be used if present,
         // and the voice mode should not go to Voice Only
-        play.want_speech = -2;
-        play.seperate_music_lib = 0;
+        play.SpeechVoiceMode = -2;
+        play.UseSeparateMusicLib = 0;
     }
 }
 
@@ -726,8 +726,8 @@ void engine_init_exit_handler()
 
 void engine_init_rand()
 {
-    play.randseed = time(NULL);
-    srand (play.randseed);
+    play.RandomSeed = time(NULL);
+    srand (play.RandomSeed);
 }
 
 void engine_init_pathfinder()
@@ -1055,141 +1055,146 @@ void init_game_settings() {
         if (game.InventoryItems[ee].flags & IFLG_STARTWITH) playerchar->inv[ee]=1;
         else playerchar->inv[ee]=0;
     }
-    play.score=0;
-    play.sierra_inv_color=7;
-    play.talkanim_speed = 5;
-    play.inv_item_wid = 40;
-    play.inv_item_hit = 22;
-    play.messagetime=-1;
-    play.disabled_user_interface=0;
-    play.gscript_timer=-1;
-    play.debug_mode=game.Options[OPT_DEBUGMODE];
-    play.inv_top=0;
-    play.inv_numdisp=0;
+    play.PlayerScore=0;
+    play.SierraInventoryBkgColour=7;
+    play.SpeechAnimSpeed = 5;
+    play.InvItemWidth = 40;
+    play.InvItemHeight = 22;
+    play.MessageTime=-1;
+    play.DisabledUserInterface=0;
+    play.GlobalScriptTimer=-1;
+    play.DebugMode=game.Options[OPT_DEBUGMODE];
+    play.TopInvItemIndex=0;
+    play.InventoryDisplayedCount=0;
     play.obsolete_inv_numorder=0;
-    play.text_speed=15;
-    play.text_min_display_time_ms = 1000;
-    play.ignore_user_input_after_text_timeout_ms = 500;
-    play.ignore_user_input_until_time = 0;
-    play.lipsync_speed = 15;
-    play.close_mouth_speech_time = 10;
-    play.disable_antialiasing = 0;
-    play.rtint_level = 0;
-    play.rtint_light = 255;
-    play.text_speed_modifier = 0;
-    play.text_align = SCALIGN_LEFT;
+    play.TextDisplaySpeed=15;
+    play.DisplayTextMinTimeMs = 1000;
+    play.DisplayTextIgnoreUserInputDelayMs = 500;
+    play.IgnoreUserInputUntilTime = 0;
+    play.LipsyncSpeed = 15;
+    play.CloseMouthSpeechTime = 10;
+    play.DisableAntiAliasing = 0;
+    play.RoomTintLevel = 0;
+    play.RoomTintLight = 255;
+    play.TextSpeedModifier = 0;
+    play.DisplayTextAlignment = SCALIGN_LEFT;
     // Make the default alignment to the right with right-to-left text
     if (game.Options[OPT_RIGHTLEFTWRITE])
-        play.text_align = SCALIGN_RIGHT;
+        play.DisplayTextAlignment = SCALIGN_RIGHT;
 
-    play.speech_bubble_width = get_fixed_pixel_size(100);
-    play.bg_frame=0;
-    play.bg_frame_locked=0;
-    play.bg_anim_delay=0;
-    play.anim_background_speed = 0;
-    play.silent_midi = 0;
-    play.current_music_repeating = 0;
-    play.skip_until_char_stops = -1;
-    play.get_loc_name_last_time = -1;
-    play.get_loc_name_save_cursor = -1;
-    play.restore_cursor_mode_to = -1;
-    play.restore_cursor_image_to = -1;
-    play.ground_level_areas_disabled = 0;
-    play.next_screen_transition = -1;
-    play.temporarily_turned_off_character = -1;
-    play.inv_backwards_compatibility = 0;
-    play.gamma_adjustment = 100;
-    play.num_do_once_tokens = 0;
-    play.do_once_tokens = NULL;
-    play.music_queue_size = 0;
-    play.shakesc_length = 0;
-    play.wait_counter=0;
-    play.key_skip_wait = 0;
-    play.cur_music_number=-1;
-    play.music_repeat=1;
-    play.music_master_volume=160;
-    play.digital_master_volume = 100;
-    play.screen_flipped=0;
-    play.offsets_locked=0;
-    play.cant_skip_speech = user_to_internal_skip_speech(game.Options[OPT_NOSKIPTEXT]);
-    play.sound_volume = 255;
-    play.speech_volume = 255;
-    play.normal_font = 0;
-    play.speech_font = 1;
-    play.speech_text_shadow = 16;
-    play.screen_tint = -1;
-    play.bad_parsed_word[0] = 0;
-    play.swap_portrait_side = 0;
-    play.swap_portrait_lastchar = -1;
-    play.in_conversation = 0;
-    play.skip_display = 3;
-    play.no_multiloop_repeat = 0;
-    play.in_cutscene = 0;
-    play.fast_forward = 0;
-    play.totalscore = game.TotalScore;
-    play.roomscript_finished = 0;
-    play.no_textbg_when_voice = 0;
-    play.max_dialogoption_width = get_fixed_pixel_size(180);
-    play.no_hicolor_fadein = 0;
-    play.bgspeech_game_speed = 0;
-    play.bgspeech_stay_on_display = 0;
-    play.unfactor_speech_from_textlength = 0;
-    play.mp3_loop_before_end = 70;
-    play.speech_music_drop = 60;
-    play.room_changes = 0;
-    play.check_interaction_only = 0;
-    play.replay_hotkey = 318;  // Alt+R
-    play.dialog_options_x = 0;
-    play.dialog_options_y = 0;
-    play.min_dialogoption_width = 0;
-    play.disable_dialog_parser = 0;
-    play.ambient_sounds_persist = 0;
-    play.screen_is_faded_out = 0;
-    play.player_on_region = 0;
-    play.top_bar_backcolor = 8;
-    play.top_bar_textcolor = 16;
-    play.top_bar_bordercolor = 8;
-    play.top_bar_borderwidth = 1;
-    play.top_bar_ypos = 25;
-    play.top_bar_font = -1;
-    play.screenshot_width = 160;
-    play.screenshot_height = 100;
-    play.speech_text_align = SCALIGN_CENTRE;
-    play.auto_use_walkto_points = 1;
-    play.inventory_greys_out = 0;
-    play.skip_speech_specific_key = 0;
-    play.abort_key = 324;  // Alt+X
-    play.fade_to_red = 0;
-    play.fade_to_green = 0;
-    play.fade_to_blue = 0;
-    play.show_single_dialog_option = 0;
-    play.keep_screen_during_instant_transition = 0;
-    play.read_dialog_option_colour = -1;
-    play.narrator_speech = game.PlayerCharacterIndex;
-    play.crossfading_out_channel = 0;
-    play.speech_textwindow_gui = game.Options[OPT_TWCUSTOM];
-    if (play.speech_textwindow_gui == 0)
-        play.speech_textwindow_gui = -1;
-    strcpy(play.game_name, game.GameName);
-    play.lastParserEntry[0] = 0;
-    play.follow_change_room_timer = 150;
+    play.SpeechBubbleWidth = get_fixed_pixel_size(100);
+    play.RoomBkgFrameIndex=0;
+    play.RoomBkgFrameLocked=0;
+    play.RoomBkgAnimDelay=0;
+    play.RoomBkgAnimSpeed = 0;
+    play.SilentMidiIndex = 0;
+    play.CurrentMusicLoopMode = 0;
+    play.SkipUntilCharacterStops = -1;
+    play.GetLocationNameLastTime = -1;
+    play.GetLocationNameSaveCursor = -1;
+    play.RestoreCursorModeTo = -1;
+    play.RestoreCursorImageTo = -1;
+    play.GroundLevelAreasDisabled = 0;
+    play.NextRoomTransition = -1;
+    play.TemporarilyHidCharacter = -1;
+    play.InventoryBackwardsCompatible = 0;
+    play.GammaAdjustment = 100;
+    play.DoOnceTokenCount = 0;
+    play.MusicQueueLength = 0;
+    play.ShakeScreenLength = 0;
+    play.WaitCounter=0;
+    play.SkipWaitMode = 0;
+    play.CurrentMusicIndex=-1;
+    play.MusicLoopMode=1;
+    play.MusicMasterVolume=160;
+    play.DigitalMasterVolume = 100;
+    play.ScreenFlipped=0;
+    play.ViewportLocked=0;
+    play.SkipSpeechMode = user_to_internal_skip_speech(game.Options[OPT_NOSKIPTEXT]);
+    play.SoundVolume = 255;
+    play.SpeechVolume = 255;
+    play.NormalFont = 0;
+    play.SpeechFont = 1;
+    play.SpeechTextOutlineColour = 16;
+    play.ScreenTint = -1;
+    play.SierraSpeechSwapPortraitSide = 0;
+    play.LastSpeechPortraitCharacter = -1;
+    play.InConversation = 0;
+    play.SkipDisplayMethod = 3;
+    play.NoMultiLoopRepeat = 0;
+    play.IsInCutscene = 0;
+    play.FastForwardCutscene = 0;
+    play.TotalScore = game.TotalScore;
+    play.RoomScriptFinished = 0;
+    play.NoTextBkgForVoiceSpeech = 0;
+    play.DialogOptionsMaxWidth = get_fixed_pixel_size(180);
+    play.NoHicolorFadeIn = 0;
+    play.BkgSpeechRelativeToGameSpeed = 0;
+    play.BkgSpeechStayOnDisplay = 0;
+    play.UnfactorVoiceTagFromDisplayTime = 0;
+    play.Mp3LoopBeforeEnd = 70;
+    play.MusicMuteForVoicePlay = 60;
+    play.RoomChangeCount = 0;
+    play.TestInteractionMode = 0;
+    play.ReplayHotkey = 318;  // Alt+R
+    play.DialogOptionsX = 0;
+    play.DialogOptionsY = 0;
+    play.DialogOptionsMinWidth = 0;
+    play.DisableDialogParser = 0;
+    play.AmbientSoundsPersist = 0;
+    play.ScreenIsFadedOut = 0;
+    play.PlayerOnRegionIndex = 0;
+    play.TopBarBkgColour = 8;
+    play.TopBarTextColour = 16;
+    play.TopBarBorderColour = 8;
+    play.TopBarBorderWidth = 1;
+    play.TopBarY = 25;
+    play.TopBarFont = -1;
+    play.ScreenshotWidth = 160;
+    play.ScreenshotHeight = 100;
+    play.SpeechTextAlignment = SCALIGN_CENTRE;
+    play.AutoUseWalktoPoints = 1;
+    play.InventoryGreysOutWhenDisabled = 0;
+    play.SpeechSkipKey = 0;
+    play.GameAbortKey = 324;  // Alt+X
+    play.FadeToRed = 0;
+    play.FadeToGreen = 0;
+    play.FadeToBlue = 0;
+    play.ShowSingleDialogOption = 0;
+    play.KeepScreenDuringInstantTransition = 0;
+    play.DialogOptionReadColour = -1;
+    play.NarratorCharacterIndex = game.PlayerCharacterIndex;
+    play.CrossfadingOutChannel = 0;
+    play.SpeechTextWindowGuiIndex = game.Options[OPT_TWCUSTOM];
+    if (play.SpeechTextWindowGuiIndex == 0)
+        play.SpeechTextWindowGuiIndex = -1;
+    play.GameName = game.GameName;
+    play.FollowingCharacterChangeRoomDelay = 150;
     for (ee = 0; ee < MAX_BSCENE; ee++) 
-        play.raw_modified[ee] = 0;
-    play.game_speed_modifier = 0;
+        play.RoomBkgWasModified[ee] = 0;
+    play.GameSpeedModifier = 0;
     if (debug_flags & DBG_DEBUGMODE)
-        play.debug_mode = 1;
+        play.DebugMode = 1;
     gui_disabled_style = convert_gui_disabled_style(game.Options[OPT_DISABLEOFF]);
 
-    memset(&play.walkable_areas_on[0],1,MAX_WALK_AREAS+1);
-    memset(&play.script_timers[0],0,MAX_TIMERS * sizeof(int));
-    memset(&play.default_audio_type_volumes[0], -1, MAX_AUDIO_TYPES * sizeof(int));
+    for (int i = 0; i < MAX_WALK_AREAS+1; ++i)
+    {
+        play.WalkAreasEnabled[i] = true;
+    }
+    for (int i = 0; i < MAX_TIMERS; ++i)
+    {
+        play.ScriptTimers[i] = 0;
+    }
+    for (int i = 0; i < MAX_AUDIO_TYPES; ++i)
+    {
+        play.DefaultAudioTypeVolumes[i] = -1;
+    }
 
     // reset graphical script vars (they're still used by some games)
     for (ee = 0; ee < MAXGLOBALVARS; ee++) 
-        play.globalvars[ee] = 0;
-
-    for (ee = 0; ee < MAXGLOBALSTRINGS; ee++)
-        play.globalstrings[ee][0] = 0;
+        play.GlobalVars[ee] = 0;
+    for (ee = 0; ee < MAXGSVALUES; ee++) 
+        play.GlobalScriptVariables[ee] = 0;
 
     for (ee = 0; ee < MAX_SOUND_CHANNELS; ee++)
         last_sound_played[ee] = -1;

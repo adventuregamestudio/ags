@@ -534,7 +534,7 @@ void GameInfo::read_audio(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
         AudioClips.New(AudioClipCount);
         ReadAudioClips_Aligned(in);
         
-        //play.score_sound = in->ReadInt32();
+        //play.ScoreSoundIndex = in->ReadInt32();
         read_data.score_sound = in->ReadInt32();
     }
     else

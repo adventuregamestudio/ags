@@ -188,22 +188,22 @@ void SetGUIBackgroundPic (int guin, int slotn) {
 }
 
 void DisableInterface() {
-  play.disabled_user_interface++;
+  play.DisabledUserInterface++;
   guis_need_update = 1;
   set_mouse_cursor(CURS_WAIT);
   }
 
 void EnableInterface() {
   guis_need_update = 1;
-  play.disabled_user_interface--;
-  if (play.disabled_user_interface<1) {
-    play.disabled_user_interface=0;
+  play.DisabledUserInterface--;
+  if (play.DisabledUserInterface<1) {
+    play.DisabledUserInterface=0;
     set_default_cursor();
     }
   }
 // Returns 1 if user interface is enabled, 0 if disabled
 int IsInterfaceEnabled() {
-  return (play.disabled_user_interface > 0) ? 0 : 1;
+  return (play.DisabledUserInterface > 0) ? 0 : 1;
 }
 
 int GetGUIObjectAt (int xx, int yy) {
@@ -219,7 +219,7 @@ int GetGUIAt (int xx,int yy) {
 
     int aa, ll;
     for (ll = game.GuiCount - 1; ll >= 0; ll--) {
-        aa = play.gui_draw_order[ll];
+        aa = play.GuiDrawOrder[ll];
         if (guis[aa].on<1) continue;
         if (guis[aa].flags & GUIF_NOCLICK) continue;
         if ((xx>=guis[aa].x) & (yy>=guis[aa].y) &
@@ -237,7 +237,7 @@ void SetTextWindowGUI (int guinum) {
     else if (!guis[guinum].is_textwindow())
         quit("!SetTextWindowGUI: specified GUI is not a text window");
 
-    if (play.speech_textwindow_gui == game.Options[OPT_TWCUSTOM])
-        play.speech_textwindow_gui = guinum;
+    if (play.SpeechTextWindowGuiIndex == game.Options[OPT_TWCUSTOM])
+        play.SpeechTextWindowGuiIndex = guinum;
     game.Options[OPT_TWCUSTOM] = guinum;
 }

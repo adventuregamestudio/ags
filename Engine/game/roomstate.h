@@ -27,10 +27,12 @@ namespace AGS
 {
 
 namespace Common { class Stream; }
-using Common::Array;
 
 namespace Engine
 {
+
+using Common::Array;
+using Common::Stream;
 
 struct RoomHotspot
 {
@@ -57,13 +59,13 @@ public:
 
     void Free();
 
-    void ReadFromFile_v321(Common::Stream *in);
-    void WriteToFile_v321(Common::Stream *out);
+    void ReadFromFile_v321(Stream *in);
+    void WriteToFile_v321(Stream *out);
 
 private:
     void InitDefaults();
-    void ReadRoomObjects_Aligned(Common::Stream *in);
-    void WriteRoomObjects_Aligned(Common::Stream *out);
+    void ReadRoomObjects_Aligned(Stream *in);
+    void WriteRoomObjects_Aligned(Stream *out);
 
     // TODO: all members are currently public; hide them later
 public:

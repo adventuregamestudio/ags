@@ -20,7 +20,6 @@
 #include "ac/draw.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
-#include "ac/gamestate.h"
 #include "ac/global_character.h"
 #include "ac/global_display.h"
 #include "ac/global_room.h"
@@ -45,7 +44,6 @@ using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameSetup usetup;
-extern GameState play;
 extern CharacterInfo*playerchar;
 
 extern int convert_16bit_bgr;
@@ -60,13 +58,13 @@ extern int scrnwid,scrnhit;
 extern char transFileName[MAX_PATH];
 
 void script_debug(int cmdd,int dataa) {
-    if (play.debug_mode==0) return;
+    if (play.DebugMode==0) return;
     int rr;
     if (cmdd==0) {
         for (rr=1;rr<game.InvItemCount;rr++)
             playerchar->inv[rr]=1;
         update_invorder();
-        //    Display("invorder decided there are %d items[display %d",play.inv_numorder,play.inv_numdisp);
+        //    Display("invorder decided there are %d items[display %d",play.inv_numorder,play.InventoryDisplayedCount);
     }
     else if (cmdd==1) {
         char toDisplay[STD_BUFFER_SIZE];
@@ -76,9 +74,9 @@ void script_debug(int cmdd,int dataa) {
             EngineVersion.LongString.GetCStr(), final_scrn_wid,final_scrn_hit,final_col_dep, (convert_16bit_bgr) ? "BGR" : "",
             gfxDriver->GetDriverName(), filterName,
             spriteset.cachesize / 1024, spriteset.maxCacheSize / 1024, spriteset.lockedSize / 1024);
-        if (play.seperate_music_lib)
+        if (play.UseSeparateMusicLib)
             strcat(toDisplay,"[AUDIO.VOX enabled");
-        if (play.want_speech >= 1)
+        if (play.SpeechVoiceMode >= 1)
             strcat(toDisplay,"[SPEECH.VOX enabled");
         if (transtree != NULL) {
             strcat(toDisplay,"[Using translation ");

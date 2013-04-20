@@ -28,7 +28,6 @@
 #include "ac/file.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
-#include "ac/gamestate.h"
 #include "ac/global_audio.h"
 #include "ac/global_character.h"
 #include "ac/global_display.h"
@@ -141,7 +140,6 @@ extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 extern IGraphicsDriver *gfxDriver;
 
 //=============================================================================
-GameState play;
 GameSetup usetup;
 
 volatile int switching_away_from_game = 0;
@@ -239,7 +237,7 @@ int Game_IsAudioPlaying(int audioType)
     if (((audioType < 0) || (audioType >= game.AudioClipTypeCount)) && (audioType != SCR_NO_VALUE))
         quitprintf("!Game.IsAudioPlaying: invalid audio type %d", audioType);
 
-    if (play.fast_forward)
+    if (play.FastForwardCutscene)
         return 0;
 
     for (int aa = 0; aa < MAX_SOUND_CHANNELS; aa++)
@@ -289,7 +287,7 @@ void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
     if ((changeType == VOL_SETFUTUREDEFAULT) ||
         (changeType == VOL_BOTH))
     {
-        play.default_audio_type_volumes[audioType] = volume;
+        play.DefaultAudioTypeVolumes[audioType] = volume;
     }
 
 }
@@ -322,16 +320,16 @@ extern int acdialog_font;
 extern char buffer2[60];
 int oldmouse;
 void setup_for_dialog() {
-    cbuttfont = play.normal_font;
-    acdialog_font = play.normal_font;
+    cbuttfont = play.NormalFont;
+    acdialog_font = play.NormalFont;
     SetVirtualScreen(virtual_screen);
-    if (!play.mouse_cursor_hidden)
+    if (!play.MouseCursorHidden)
         domouse(1);
     oldmouse=cur_cursor; set_mouse_cursor(CURS_ARROW);
 }
 void restore_after_dialog() {
     set_mouse_cursor(oldmouse);
-    if (!play.mouse_cursor_hidden)
+    if (!play.MouseCursorHidden)
         domouse(2);
     construct_virtual_screen(true);
 }
@@ -473,16 +471,8 @@ void setup_sierra_interface() {
 
 void free_do_once_tokens() 
 {
-    for (int i = 0; i < play.num_do_once_tokens; i++)
-    {
-        free(play.do_once_tokens[i]);
-    }
-    if (play.do_once_tokens != NULL) 
-    {
-        free(play.do_once_tokens);
-        play.do_once_tokens = NULL;
-    }
-    play.num_do_once_tokens = 0;
+    play.DoOnceTokens.Free();
+    play.DoOnceTokenCount = 0;
 }
 
 
@@ -624,10 +614,9 @@ void unload_game_file() {
         wfreefont(ee);
 
     free_do_once_tokens();
-    free(play.gui_draw_order);
+    play.GuiDrawOrder.Free();
 
     ResetRoomStates();
-
 }
 
 
@@ -639,7 +628,7 @@ const char* Game_GetGlobalStrings(int index) {
     if ((index < 0) || (index >= MAXGLOBALSTRINGS))
         quit("!Game.GlobalStrings: invalid index");
 
-    return CreateNewScriptString(play.globalstrings[index]);
+    return CreateNewScriptString(play.GlobalStrings[index]);
 }
 
 
@@ -746,23 +735,21 @@ int Game_DoOnceOnly(const char *token)
     if (strlen(token) > 199)
         quit("!Game.DoOnceOnly: token length cannot be more than 200 chars");
 
-    for (int i = 0; i < play.num_do_once_tokens; i++)
+    for (int i = 0; i < play.DoOnceTokenCount; i++)
     {
-        if (strcmp(play.do_once_tokens[i], token) == 0)
+        if (strcmp(play.DoOnceTokens[i], token) == 0)
         {
             return 0;
         }
     }
-    play.do_once_tokens = (char**)realloc(play.do_once_tokens, sizeof(char*) * (play.num_do_once_tokens + 1));
-    play.do_once_tokens[play.num_do_once_tokens] = (char*)malloc(strlen(token) + 1);
-    strcpy(play.do_once_tokens[play.num_do_once_tokens], token);
-    play.num_do_once_tokens++;
+    play.DoOnceTokens.Append(token);
+    play.DoOnceTokenCount++;
     return 1;
 }
 
 int Game_GetTextReadingSpeed()
 {
-    return play.text_speed;
+    return play.TextDisplaySpeed;
 }
 
 void Game_SetTextReadingSpeed(int newTextSpeed)
@@ -770,27 +757,27 @@ void Game_SetTextReadingSpeed(int newTextSpeed)
     if (newTextSpeed < 1)
         quitprintf("!Game.TextReadingSpeed: %d is an invalid speed", newTextSpeed);
 
-    play.text_speed = newTextSpeed;
+    play.TextDisplaySpeed = newTextSpeed;
 }
 
 int Game_GetMinimumTextDisplayTimeMs()
 {
-    return play.text_min_display_time_ms;
+    return play.DisplayTextMinTimeMs;
 }
 
 void Game_SetMinimumTextDisplayTimeMs(int newTextMinTime)
 {
-    play.text_min_display_time_ms = newTextMinTime;
+    play.DisplayTextMinTimeMs = newTextMinTime;
 }
 
 int Game_GetIgnoreUserInputAfterTextTimeoutMs()
 {
-    return play.ignore_user_input_after_text_timeout_ms;
+    return play.DisplayTextIgnoreUserInputDelayMs;
 }
 
 void Game_SetIgnoreUserInputAfterTextTimeoutMs(int newValueMs)
 {
-    play.ignore_user_input_after_text_timeout_ms = newValueMs;
+    play.DisplayTextIgnoreUserInputDelayMs = newValueMs;
 }
 
 const char *Game_GetFileName() {
@@ -798,21 +785,20 @@ const char *Game_GetFileName() {
 }
 
 const char *Game_GetName() {
-    return CreateNewScriptString(play.game_name);
+    return CreateNewScriptString(play.GameName);
 }
 
 void Game_SetName(const char *newName) {
-    strncpy(play.game_name, newName, 99);
-    play.game_name[99] = 0;
+    play.GameName = newName;
 
 #if (ALLEGRO_DATE > 19990103)
-    set_window_title(play.game_name);
+    set_window_title(play.GameName);
 #endif
 }
 
 int Game_GetSkippingCutscene()
 {
-    if (play.fast_forward)
+    if (play.FastForwardCutscene)
     {
         return 1;
     }
@@ -821,7 +807,7 @@ int Game_GetSkippingCutscene()
 
 int Game_GetInSkippableCutscene()
 {
-    if (play.in_cutscene)
+    if (play.IsInCutscene)
     {
         return 1;
     }
@@ -867,10 +853,10 @@ const char* Game_GetGlobalMessages(int index) {
 }
 
 int Game_GetSpeechFont() {
-    return play.speech_font;
+    return play.SpeechFont;
 }
 int Game_GetNormalFont() {
-    return play.normal_font;
+    return play.NormalFont;
 }
 
 const char* Game_GetTranslationFilename() {
@@ -1137,11 +1123,11 @@ void save_game_room_state(Stream *out)
 
 void save_game_play_ex_data(Stream *out)
 {
-    for (int bb = 0; bb < play.num_do_once_tokens; bb++)
+    for (int bb = 0; bb < play.DoOnceTokenCount; bb++)
     {
-        fputstring(play.do_once_tokens[bb], out);
+        fputstring(play.DoOnceTokens[bb], out);
     }
-    out->WriteArrayOfInt32(&play.gui_draw_order[0], game.GuiCount);
+    out->WriteArrayOfInt32(&play.GuiDrawOrder[0], game.GuiCount);
 }
 
 void WriteMoveList_Aligned(Stream *out)
@@ -1281,7 +1267,7 @@ void save_game_displayed_room_status(Stream *out)
     if (displayed_room >= 0) {
 
         for (int bb = 0; bb < MAX_BSCENE; bb++) {
-            if (play.raw_modified[bb])
+            if (play.RoomBkgWasModified[bb])
                 serialize_bitmap (thisroom.Backgrounds[bb].Graphic, out);
         }
 
@@ -1370,9 +1356,9 @@ void save_game_data (Stream *out, Bitmap *screenshot) {
 
     update_polled_stuff_if_runtime();
 
-    if (play.cur_music_number >= 0) {
+    if (play.CurrentMusicIndex >= 0) {
         if (IsMusicPlaying() == 0)
-            play.cur_music_number = -1;
+            play.CurrentMusicIndex = -1;
     }
 
     //----------------------------------------------------------------
@@ -1429,14 +1415,14 @@ void save_game_data (Stream *out, Bitmap *screenshot) {
 void create_savegame_screenshot(Bitmap *&screenShot)
 {
     if (game.Options[OPT_SAVESCREENSHOT]) {
-        int usewid = multiply_up_coordinate(play.screenshot_width);
-        int usehit = multiply_up_coordinate(play.screenshot_height);
+        int usewid = multiply_up_coordinate(play.ScreenshotWidth);
+        int usehit = multiply_up_coordinate(play.ScreenshotHeight);
         if (usewid > virtual_screen->GetWidth())
             usewid = virtual_screen->GetWidth();
         if (usehit > virtual_screen->GetHeight())
             usehit = virtual_screen->GetHeight();
 
-        if ((play.screenshot_width < 16) || (play.screenshot_height < 16))
+        if ((play.ScreenshotWidth < 16) || (play.ScreenshotHeight < 16))
             quit("!Invalid game.screenshot_width/height, must be from 16x16 to screen res");
 
         if (gfxDriver->UsesMemoryBackBuffer())
@@ -1732,47 +1718,43 @@ void ReadGameState_Aligned(Stream *in)
 
 void restore_game_play(Stream *in)
 {
-    int speech_was = play.want_speech, musicvox = play.seperate_music_lib;
+    int speech_was = play.SpeechVoiceMode, musicvox = play.UseSeparateMusicLib;
     // preserve the replay settings
-    int playback_was = play.playback, recording_was = play.recording;
-    int gamestep_was = play.gamestep;
-    int screenfadedout_was = play.screen_is_faded_out;
-    int roomchanges_was = play.room_changes;
-    // make sure the pointer is preserved
-    int *gui_draw_order_was = play.gui_draw_order;
+    int playback_was = play.IsPlayback, recording_was = play.IsRecording;
+    int gamestep_was = play.GameStep;
+    int screenfadedout_was = play.ScreenIsFadedOut;
+    int roomchanges_was = play.RoomChangeCount;
 
     free_do_once_tokens();
 
     ReadGameState_Aligned(in);
 
     // Preserve whether the music vox is available
-    play.seperate_music_lib = musicvox;
+    play.UseSeparateMusicLib = musicvox;
     // If they had the vox when they saved it, but they don't now
-    if ((speech_was < 0) && (play.want_speech >= 0))
-        play.want_speech = (-play.want_speech) - 1;
+    if ((speech_was < 0) && (play.SpeechVoiceMode >= 0))
+        play.SpeechVoiceMode = (-play.SpeechVoiceMode) - 1;
     // If they didn't have the vox before, but now they do
-    else if ((speech_was >= 0) && (play.want_speech < 0))
-        play.want_speech = (-play.want_speech) - 1;
+    else if ((speech_was >= 0) && (play.SpeechVoiceMode < 0))
+        play.SpeechVoiceMode = (-play.SpeechVoiceMode) - 1;
 
-    play.screen_is_faded_out = screenfadedout_was;
-    play.playback = playback_was;
-    play.recording = recording_was;
-    play.gamestep = gamestep_was;
-    play.room_changes = roomchanges_was;
-    play.gui_draw_order = gui_draw_order_was;
+    play.ScreenIsFadedOut = screenfadedout_was;
+    play.IsPlayback = playback_was;
+    play.IsRecording = recording_was;
+    play.GameStep = gamestep_was;
+    play.RoomChangeCount = roomchanges_was;
 
-    if (play.num_do_once_tokens > 0)
+    if (play.DoOnceTokenCount > 0)
     {
-        play.do_once_tokens = (char**)malloc(sizeof(char*) * play.num_do_once_tokens);
-        for (int bb = 0; bb < play.num_do_once_tokens; bb++)
+        play.DoOnceTokens.New(play.DoOnceTokenCount);
+        for (int bb = 0; bb < play.DoOnceTokenCount; bb++)
         {
             fgetstring_limit(rbuffer, in, 200);
-            play.do_once_tokens[bb] = (char*)malloc(strlen(rbuffer) + 1);
-            strcpy(play.do_once_tokens[bb], rbuffer);
+            play.DoOnceTokens[bb] = rbuffer;
         }
     }
 
-    in->ReadArrayOfInt32(&play.gui_draw_order[0], game.GuiCount);
+    play.GuiDrawOrder.ReadRawOver(in, game.GuiCount);
 }
 
 void ReadMoveList_Aligned(Stream *in)
@@ -1872,8 +1854,8 @@ void restore_game_ambientsounds(Stream *in, int crossfadeInChannelWas, int cross
         stop_and_destroy_channel_ex(bb, false);
     }
 
-    play.crossfading_in_channel = crossfadeInChannelWas;
-    play.crossfading_out_channel = crossfadeOutChannelWas;
+    play.CrossfadingInChannel = crossfadeInChannelWas;
+    play.CrossfadingOutChannel = crossfadeOutChannelWas;
 
     for (int i = 0; i < MAX_SOUND_CHANNELS; ++i)
     {
@@ -1940,7 +1922,7 @@ void restore_game_displayed_room_status(Stream *in, Bitmap **newbscene)
 
         for (bb = 0; bb < MAX_BSCENE; bb++) {
             newbscene[bb] = NULL;
-            if (play.raw_modified[bb]) {
+            if (play.RoomBkgWasModified[bb]) {
                 newbscene[bb] = read_serialized_bitmap (in);
             }
         }
@@ -1997,8 +1979,8 @@ void restore_game_audioclips_and_crossfade(Stream *in, int crossfadeInChannelWas
     if (in->ReadInt32() != game.AudioClipCount)
         quit("Game has changed: different audio clip count");
 
-    play.crossfading_in_channel = 0;
-    play.crossfading_out_channel = 0;
+    play.CrossfadingInChannel = 0;
+    play.CrossfadingOutChannel = 0;
     int channelPositions[MAX_SOUND_CHANNELS + 1];
     for (bb = 0; bb <= MAX_SOUND_CHANNELS; bb++)
     {
@@ -2028,9 +2010,9 @@ void restore_game_audioclips_and_crossfade(Stream *in, int crossfadeInChannelWas
         }
     }
     if ((crossfadeInChannelWas > 0) && (channels[crossfadeInChannelWas] != NULL))
-        play.crossfading_in_channel = crossfadeInChannelWas;
+        play.CrossfadingInChannel = crossfadeInChannelWas;
     if ((crossfadeOutChannelWas > 0) && (channels[crossfadeOutChannelWas] != NULL))
-        play.crossfading_out_channel = crossfadeOutChannelWas;
+        play.CrossfadingOutChannel = crossfadeOutChannelWas;
 
     // If there were synced audio tracks, the time taken to load in the
     // different channels will have thrown them out of sync, so re-time it
@@ -2116,8 +2098,8 @@ int restore_game_data (Stream *in, const char *nametouse) {
     short saved_zoom_levels2[MAX_WALK_AREAS + 1];
     restore_game_thisroom(in, saved_light_levels, saved_tint_levels, saved_zoom_levels1, saved_zoom_levels2);
 
-    int crossfadeInChannelWas = play.crossfading_in_channel;
-    int crossfadeOutChannelWas = play.crossfading_out_channel;
+    int crossfadeInChannelWas = play.CrossfadingInChannel;
+    int crossfadeOutChannelWas = play.CrossfadingOutChannel;
     int doAmbient[MAX_SOUND_CHANNELS];
     restore_game_ambientsounds(in, crossfadeInChannelWas, crossfadeOutChannelWas, doAmbient);
     restore_game_overlays(in);
@@ -2182,15 +2164,15 @@ int restore_game_data (Stream *in, const char *nametouse) {
 
     setup_player_character(game.PlayerCharacterIndex);
 
-    int gstimer=play.gscript_timer;
-    int oldx1 = play.mboundx1, oldx2 = play.mboundx2;
-    int oldy1 = play.mboundy1, oldy2 = play.mboundy2;
-    int musicWasRepeating = play.current_music_repeating;
-    int newms = play.cur_music_number;
+    int gstimer=play.GlobalScriptTimer;
+    int oldx1 = play.MouseBoundLeft, oldx2 = play.MouseBoundRight;
+    int oldy1 = play.MouseBoundTop, oldy2 = play.MouseBoundBottom;
+    int musicWasRepeating = play.CurrentMusicLoopMode;
+    int newms = play.CurrentMusicIndex;
 
     // disable the queue momentarily
-    int queuedMusicSize = play.music_queue_size;
-    play.music_queue_size = 0;
+    int queuedMusicSize = play.MusicQueueLength;
+    play.MusicQueueLength = 0;
 
     update_polled_stuff_if_runtime();
 
@@ -2199,7 +2181,7 @@ int restore_game_data (Stream *in, const char *nametouse) {
 
     update_polled_stuff_if_runtime();
 
-    play.gscript_timer=gstimer;
+    play.GlobalScriptTimer=gstimer;
 
     // restore the correct room volume (they might have modified
     // it with SetMusicVolume)
@@ -2215,7 +2197,7 @@ int restore_game_data (Stream *in, const char *nametouse) {
     spriteset.precache(game.MouseCursors[sg_cur_cursor].pic);
 
 #if (ALLEGRO_DATE > 19990103)
-    set_window_title(play.game_name);
+    set_window_title(play.GameName);
 #endif
 
     update_polled_stuff_if_runtime();
@@ -2254,20 +2236,20 @@ int restore_game_data (Stream *in, const char *nametouse) {
 
     stopmusic();
     // use the repeat setting when the current track was started
-    int musicRepeatSetting = play.music_repeat;
+    int musicRepeatSetting = play.MusicLoopMode;
     SetMusicRepeat(musicWasRepeating);
     if (newms>=0) {
     // restart the background music
     if (newms == 1000)
-    PlayMP3File (play.playmp3file_name);
+    PlayMP3File (play.PlayMp3FileName);
     else {
-    play.cur_music_number=2000;  // make sure it gets played
+    play.CurrentMusicIndex=2000;  // make sure it gets played
     newmusic(newms);
     }
     }
     SetMusicRepeat(musicRepeatSetting);
-    if (play.silent_midi)
-    PlaySilentMIDI (play.silent_midi);
+    if (play.SilentMidiIndex)
+    PlaySilentMIDI (play.SilentMidiIndex);
     SeekMIDIPosition(midipos);
     //SeekMODPattern (modtrack);
     //SeekMP3PosMillis (mp3mpos);
@@ -2283,10 +2265,10 @@ int restore_game_data (Stream *in, const char *nametouse) {
     }*/
 
     // restore the queue now that the music is playing
-    play.music_queue_size = queuedMusicSize;
+    play.MusicQueueLength = queuedMusicSize;
 
-    if (play.digital_master_volume >= 0)
-        System_SetVolume(play.digital_master_volume);
+    if (play.DigitalMasterVolume >= 0)
+        System_SetVolume(play.DigitalMasterVolume);
 
     for (vv = 1; vv < MAX_SOUND_CHANNELS; vv++) {
         if (doAmbient[vv])
@@ -2299,11 +2281,11 @@ int restore_game_data (Stream *in, const char *nametouse) {
     }
 
     if (gfxDriver->SupportsGammaControl())
-        gfxDriver->SetGamma(play.gamma_adjustment);
+        gfxDriver->SetGamma(play.GammaAdjustment);
 
     guis_need_update = 1;
 
-    play.ignore_user_input_until_time = 0;
+    play.IgnoreUserInputUntilTime = 0;
     update_polled_stuff_if_runtime();
 
     platform->RunPluginHooks(AGSE_POSTRESTOREGAME, 0);
@@ -2316,8 +2298,8 @@ int restore_game_data (Stream *in, const char *nametouse) {
         first_room_initialization();
     }
 
-    if ((play.music_queue_size > 0) && (cachedQueuedMusic == NULL)) {
-        cachedQueuedMusic = load_music_from_disk(play.music_queue[0], 0);
+    if ((play.MusicQueueLength > 0) && (cachedQueuedMusic == NULL)) {
+        cachedQueuedMusic = load_music_from_disk(play.MusicQueue[0], 0);
     }
 
     return 0;
@@ -2482,7 +2464,7 @@ int load_game(const Common::String &path, int slotNumber)
 }
 
 void start_skipping_cutscene () {
-    play.fast_forward = 1;
+    play.FastForwardCutscene = 1;
     // if a drop-down icon bar is up, remove it as it will pause the game
     if (ifacepopped>=0)
         remove_popup_interface(ifacepopped);
@@ -2495,8 +2477,8 @@ void start_skipping_cutscene () {
 
 void check_skip_cutscene_keypress (int kgn) {
 
-    if ((play.in_cutscene > 0) && (play.in_cutscene != 3)) {
-        if ((kgn != 27) && ((play.in_cutscene == 1) || (play.in_cutscene == 5)))
+    if ((play.IsInCutscene > 0) && (play.IsInCutscene != 3)) {
+        if ((kgn != 27) && ((play.IsInCutscene == 1) || (play.IsInCutscene == 5)))
             ;
         else
             start_skipping_cutscene();
@@ -2507,15 +2489,15 @@ void check_skip_cutscene_keypress (int kgn) {
 // Helper functions used by StartCutscene/EndCutscene, but also
 // by SkipUntilCharacterStops
 void initialize_skippable_cutscene() {
-    play.end_cutscene_music = -1;
+    play.PlayMusicAfterCustsceneSkip = -1;
 }
 
 void stop_fast_forwarding() {
     // when the skipping of a cutscene comes to an end, update things
-    play.fast_forward = 0;
+    play.FastForwardCutscene = 0;
     setpal();
-    if (play.end_cutscene_music >= 0)
-        newmusic(play.end_cutscene_music);
+    if (play.PlayMusicAfterCustsceneSkip >= 0)
+        newmusic(play.PlayMusicAfterCustsceneSkip);
 
     // Restore actual volume of sounds
     for (int aa = 0; aa < MAX_SOUND_CHANNELS; aa++)
@@ -3139,9 +3121,9 @@ void RegisterGameAPI()
 void RegisterStaticObjects()
 {
     ccAddExternalStaticObject("game",&play, &GlobalStaticManager);
-	ccAddExternalStaticObject("gs_globals",&play.globalvars[0], &GlobalStaticManager);
+	ccAddExternalStaticObject("gs_globals",&play.GlobalVars[0], &GlobalStaticManager);
 	ccAddExternalStaticObject("mouse",&scmouse, &GlobalStaticManager);
 	ccAddExternalStaticObject("palette",&palette[0], &GlobalStaticManager);
 	ccAddExternalStaticObject("system",&scsystem, &GlobalStaticManager);
-	ccAddExternalStaticObject("savegameindex",&play.filenumbers[0], &GlobalStaticManager);
+	ccAddExternalStaticObject("savegameindex",&play.SavedGameFileNumbers[0], &GlobalStaticManager);
 }

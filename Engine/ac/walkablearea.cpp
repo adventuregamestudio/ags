@@ -16,7 +16,6 @@
 #include "ac/object.h"
 #include "ac/character.h"
 #include "ac/draw.h"
-#include "ac/gamestate.h"
 #include "ac/object.h"
 #include "ac/walkablearea.h"
 #include "game/game_objects.h"
@@ -25,7 +24,6 @@
 using AGS::Common::Bitmap;
 using AGS::Common::Graphics;
 
-extern GameState play;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern int displayed_room;
 
@@ -44,8 +42,8 @@ void redo_walkable_areas() {
     int hh,ww;
     for (hh=0;hh<walkareabackup->GetHeight();hh++) {
         for (ww=0;ww<walkareabackup->GetWidth();ww++) {
-            //      if (play.walkable_areas_on[_getpixel(thisroom.WalkAreaMask,ww,hh)]==0)
-            if (play.walkable_areas_on[thisroom.WalkAreaMask->GetScanLine(hh)[ww]]==0)
+            //      if (play.WalkAreasEnabled[_getpixel(thisroom.WalkAreaMask,ww,hh)]==0)
+            if (play.WalkAreasEnabled[thisroom.WalkAreaMask->GetScanLine(hh)[ww]]==0)
                 thisroom.WalkAreaMask->PutPixel(ww,hh,0);
         }
     }

@@ -15,7 +15,6 @@
 #include "ac/string.h"
 #include "ac/common.h"
 #include "ac/display.h"
-#include "ac/gamestate.h"
 #include "ac/global_translation.h"
 #include "ac/runtime_defines.h"
 #include "ac/dynobj/scriptstring.h"
@@ -26,7 +25,6 @@
 
 extern char lines[MAXLINE][200];
 extern int  numlines;
-extern GameState play;
 extern int longestline;
 extern ScriptString myScriptStringImpl;
 
@@ -301,7 +299,7 @@ char *reverse_text(const char *text) {
 
 void break_up_text_into_lines(int wii,int fonnt, const char*todis) {
     if (fonnt == -1)
-        fonnt = play.normal_font;
+        fonnt = play.NormalFont;
 
     //  char sofar[100];
     if (todis[0]=='&') {

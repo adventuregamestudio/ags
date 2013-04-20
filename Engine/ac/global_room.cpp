@@ -18,7 +18,6 @@
 #include "ac/characterinfo.h"
 #include "ac/draw.h"
 #include "ac/event.h"
-#include "ac/gamestate.h"
 #include "ac/global_character.h"
 #include "ac/global_game.h"
 #include "ac/movelist.h"
@@ -30,7 +29,6 @@
 
 using AGS::Engine::RoomState;
 
-extern GameState play;
 extern CharacterInfo*playerchar;
 extern int displayed_room;
 extern int in_enters_screen;
@@ -48,11 +46,11 @@ void SetAmbientTint (int red, int green, int blue, int opacity, int luminance) {
 
     DEBUG_CONSOLE("Set ambient tint RGB(%d,%d,%d) %d%%", red, green, blue, opacity);
 
-    play.rtint_red = red;
-    play.rtint_green = green;
-    play.rtint_blue = blue;
-    play.rtint_level = opacity;
-    play.rtint_light = (luminance * 25) / 10;
+    play.RoomTintRed = red;
+    play.RoomTintGreen = green;
+    play.RoomTintBlue = blue;
+    play.RoomTintLevel = opacity;
+    play.RoomTintLight = (luminance * 25) / 10;
 }
 
 void NewRoom(int nrnum) {
@@ -71,9 +69,9 @@ void NewRoom(int nrnum) {
 
     can_run_delayed_command();
 
-    if (play.stop_dialog_at_end != DIALOG_NONE) {
-        if (play.stop_dialog_at_end == DIALOG_RUNNING)
-            play.stop_dialog_at_end = DIALOG_NEWROOM + nrnum;
+    if (play.StopDialogAtEnd != DIALOG_NONE) {
+        if (play.StopDialogAtEnd == DIALOG_RUNNING)
+            play.StopDialogAtEnd = DIALOG_NEWROOM + nrnum;
         else
             quit("!NewRoom: two NewRoom/RunDialog/StopDialog requests within dialog");
         return;
@@ -162,7 +160,7 @@ void CallRoomScript (int value) {
     if (!inside_script)
         quit("!CallRoomScript: not inside a script???");
 
-    play.roomscript_finished = 0;
+    play.RoomScriptFinished = 0;
     RuntimeScriptValue rval_null;
     curscript->run_another("$on_call", RuntimeScriptValue().SetInt32(value), rval_null /*0*/);
 }
@@ -189,22 +187,22 @@ void SetBackgroundFrame(int frnum) {
     if ((frnum<-1) | (frnum>=thisroom.BkgSceneCount))
         quit("!SetBackgrondFrame: invalid frame number specified");
     if (frnum<0) {
-        play.bg_frame_locked=0;
+        play.RoomBkgFrameLocked=0;
         return;
     }
 
-    play.bg_frame_locked = 1;
+    play.RoomBkgFrameLocked = 1;
 
-    if (frnum == play.bg_frame)
+    if (frnum == play.RoomBkgFrameIndex)
     {
         // already on this frame, do nothing
         return;
     }
 
-    play.bg_frame = frnum;
+    play.RoomBkgFrameIndex = frnum;
     on_background_frame_change ();
 }
 
 int GetBackgroundFrame() {
-    return play.bg_frame;
+    return play.RoomBkgFrameIndex;
 }

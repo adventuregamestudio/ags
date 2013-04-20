@@ -17,7 +17,6 @@
 #include "util/wgt2allg.h"
 #include "media/audio/audiodefines.h"
 #include "ac/game.h"
-#include "ac/gamestate.h"
 #include "ac/global_display.h"
 #include "ac/global_game.h"
 #include "ac/keycode.h"
@@ -34,7 +33,6 @@
 using AGS::Common::Stream;
 using AGS::Common::String;
 
-extern GameState play;
 extern int disable_mgetgraphpos;
 extern int mousex,mousey;
 extern unsigned int loopcounter,lastcounter;
@@ -59,7 +57,7 @@ int mouse_z_was = 0;
 
 void write_record_event (int evnt, int dlen, short *dbuf) {
 
-    recordbuffer[recsize] = play.gamestep;
+    recordbuffer[recsize] = play.GameStep;
     recordbuffer[recsize+1] = evnt;
 
     for (int i = 0; i < dlen; i++)
@@ -71,10 +69,10 @@ void write_record_event (int evnt, int dlen, short *dbuf) {
         recordbuffer = (short*)realloc (recordbuffer, recbuffersize * sizeof(short));
     }
 
-    play.gamestep++;
+    play.GameStep++;
 }
 void disable_replay_playback () {
-    play.playback = 0;
+    play.IsPlayback = 0;
     if (recordbuffer)
         free (recordbuffer);
     recordbuffer = NULL;
@@ -83,14 +81,14 @@ void disable_replay_playback () {
 
 void done_playback_event (int size) {
     recsize += size;
-    play.gamestep++;
+    play.GameStep++;
     if ((recsize >= recbuffersize) || (recordbuffer[recsize+1] == REC_ENDOFFILE))
         disable_replay_playback();
 }
 
 int rec_getch () {
-    if (play.playback) {
-        if ((recordbuffer[recsize] == play.gamestep) && (recordbuffer[recsize + 1] == REC_GETCH)) {
+    if (play.IsPlayback) {
+        if ((recordbuffer[recsize] == play.GameStep) && (recordbuffer[recsize + 1] == REC_GETCH)) {
             int toret = recordbuffer[recsize + 2];
             done_playback_event (3);
             return toret;
@@ -100,7 +98,7 @@ int rec_getch () {
         quit("out of sync in playback in getch");
     }
     int result = my_readkey();
-    if (play.recording) {
+    if (play.IsRecording) {
         short buff[1] = {result};
         write_record_event (REC_GETCH, 1, buff);
     }
@@ -109,7 +107,7 @@ int rec_getch () {
 }
 
 int rec_kbhit () {
-    if ((play.playback) && (recordbuffer != NULL)) {
+    if ((play.IsPlayback) && (recordbuffer != NULL)) {
         // check for real keypresses to abort the replay
         if (keypressed()) {
             if (my_readkey() == 27) {
@@ -118,20 +116,20 @@ int rec_kbhit () {
             }
         }
         // now simulate the keypresses
-        if ((recordbuffer[recsize] == play.gamestep) && (recordbuffer[recsize + 1] == REC_KBHIT)) {
+        if ((recordbuffer[recsize] == play.GameStep) && (recordbuffer[recsize + 1] == REC_KBHIT)) {
             done_playback_event (2);
             return 1;
         }
         return 0;
     }
     int result = keypressed();
-    if ((result) && (globalTimerCounter < play.ignore_user_input_until_time))
+    if ((result) && (globalTimerCounter < play.IgnoreUserInputUntilTime))
     {
         // ignoring user input
         my_readkey();
         result = 0;
     }
-    if ((result) && (play.recording)) {
+    if ((result) && (play.IsRecording)) {
         write_record_event (REC_KBHIT, 0, NULL);
     }
     return result;  
@@ -141,8 +139,8 @@ char playback_keystate[KEY_MAX];
 
 int rec_iskeypressed (int keycode) {
 
-    if (play.playback) {
-        if ((recordbuffer[recsize] == play.gamestep)
+    if (play.IsPlayback) {
+        if ((recordbuffer[recsize] == play.GameStep)
             && (recordbuffer[recsize + 1] == REC_KEYDOWN)
             && (recordbuffer[recsize + 2] == keycode)) {
                 playback_keystate[keycode] = recordbuffer[recsize + 3];
@@ -153,7 +151,7 @@ int rec_iskeypressed (int keycode) {
 
     int toret = key[keycode];
 
-    if (play.recording) {
+    if (play.IsRecording) {
         if (toret != playback_keystate[keycode]) {
             short buff[2] = {keycode, toret};
             write_record_event (REC_KEYDOWN, 2, buff);
@@ -165,8 +163,8 @@ int rec_iskeypressed (int keycode) {
 }
 
 int rec_isSpeechFinished () {
-    if (play.playback) {
-        if ((recordbuffer[recsize] == play.gamestep) && (recordbuffer[recsize + 1] == REC_SPEECHFINISHED)) {
+    if (play.IsPlayback) {
+        if ((recordbuffer[recsize] == play.GameStep) && (recordbuffer[recsize + 1] == REC_SPEECHFINISHED)) {
             done_playback_event (2);
             return 1;
         }
@@ -176,15 +174,15 @@ int rec_isSpeechFinished () {
     if (!channels[SCHAN_SPEECH]->done) {
         return 0;
     }
-    if (play.recording)
+    if (play.IsRecording)
         write_record_event (REC_SPEECHFINISHED, 0, NULL);
     return 1;
 }
 
 int recbutstate[4] = {-1, -1, -1, -1};
 int rec_misbuttondown (int but) {
-    if (play.playback) {
-        if ((recordbuffer[recsize] == play.gamestep)
+    if (play.IsPlayback) {
+        if ((recordbuffer[recsize] == play.GameStep)
             && (recordbuffer[recsize + 1] == REC_MOUSEDOWN)
             && (recordbuffer[recsize + 2] == but)) {
                 recbutstate[but] = recordbuffer[recsize + 3];
@@ -193,7 +191,7 @@ int rec_misbuttondown (int but) {
         return recbutstate[but];
     }
     int result = misbuttondown (but);
-    if (play.recording) {
+    if (play.IsRecording) {
         if (result != recbutstate[but]) {
             short buff[2] = {but, result};
             write_record_event (REC_MOUSEDOWN, 2, buff);
@@ -205,14 +203,14 @@ int rec_misbuttondown (int but) {
 
 int rec_mgetbutton() {
 
-    if ((play.playback) && (recordbuffer != NULL)) {
-        if ((recordbuffer[recsize] < play.gamestep) && (play.gamestep < 32766))
+    if ((play.IsPlayback) && (recordbuffer != NULL)) {
+        if ((recordbuffer[recsize] < play.GameStep) && (play.GameStep < 32766))
             quit("Playback error: out of sync");
         if (loopcounter >= replay_last_second + 40) {
             replay_time ++;
             replay_last_second += 40;
         }
-        if ((recordbuffer[recsize] == play.gamestep) && (recordbuffer[recsize + 1] == REC_MOUSECLICK)) {
+        if ((recordbuffer[recsize] == play.GameStep) && (recordbuffer[recsize + 1] == REC_MOUSECLICK)) {
             filter->SetMousePosition(recordbuffer[recsize+3], recordbuffer[recsize+4]);
             disable_mgetgraphpos = 0;
             mgetgraphpos ();
@@ -234,13 +232,13 @@ int rec_mgetbutton() {
         result = mgetbutton();
     }
 
-    if ((result >= 0) && (globalTimerCounter < play.ignore_user_input_until_time))
+    if ((result >= 0) && (globalTimerCounter < play.IgnoreUserInputUntilTime))
     {
         // ignoring user input
         result = NONE;
     }
 
-    if (play.recording) {
+    if (play.IsRecording) {
         if (result >= 0) {
             short buff[3] = {result, mousex, mousey};
             write_record_event (REC_MOUSECLICK, 3, buff);
@@ -255,7 +253,7 @@ int rec_mgetbutton() {
 
 void rec_domouse (int what) {
 
-    if (play.recording) {
+    if (play.IsRecording) {
         int mxwas = mousex, mywas = mousey;
         if (what == DOMOUSE_NOCURSOR)
             mgetgraphpos();
@@ -271,8 +269,8 @@ void rec_domouse (int what) {
         }
         return;
     }
-    else if ((play.playback) && (recordbuffer != NULL)) {
-        if ((recordbuffer[recsize] == play.gamestep) && (recordbuffer[recsize + 1] == REC_MOUSEMOVE)) {
+    else if ((play.IsPlayback) && (recordbuffer != NULL)) {
+        if ((recordbuffer[recsize] == play.GameStep) && (recordbuffer[recsize + 1] == REC_MOUSEMOVE)) {
             filter->SetMousePosition(recordbuffer[recsize+2], recordbuffer[recsize+3]);
             disable_mgetgraphpos = 0;
             if (what == DOMOUSE_NOCURSOR)
@@ -291,8 +289,8 @@ void rec_domouse (int what) {
 }
 
 int check_mouse_wheel () {
-    if ((play.playback) && (recordbuffer != NULL)) {
-        if ((recordbuffer[recsize] == play.gamestep) && (recordbuffer[recsize + 1] == REC_MOUSEWHEEL)) {
+    if ((play.IsPlayback) && (recordbuffer != NULL)) {
+        if ((recordbuffer[recsize] == play.GameStep) && (recordbuffer[recsize + 1] == REC_MOUSEWHEEL)) {
             int toret = recordbuffer[recsize+2];
             done_playback_event (3);
             return toret;
@@ -309,7 +307,7 @@ int check_mouse_wheel () {
         mouse_z_was = mouse_z;
     }
 
-    if ((play.recording) && (result)) {
+    if ((play.IsRecording) && (result)) {
         short buff[1] = {result};
         write_record_event (REC_MOUSEWHEEL, 1, buff);
     }
@@ -318,14 +316,14 @@ int check_mouse_wheel () {
 }
 
 void start_recording() {
-    if (play.playback) {
-        play.recording = 0;  // stop quit() crashing
-        play.playback = 0;
+    if (play.IsPlayback) {
+        play.IsRecording = 0;  // stop quit() crashing
+        play.IsPlayback = 0;
         quit("!playback and recording of replay selected simultaneously");
     }
 
-    srand (play.randseed);
-    play.gamestep = 0;
+    srand (play.RandomSeed);
+    play.GameStep = 0;
 
     recbuffersize = 10000;
     recordbuffer = (short*)malloc (recbuffersize * sizeof(short));
@@ -341,16 +339,16 @@ void start_replay_record () {
     save_game_data (replay_s, NULL);
     delete replay_s;
     start_recording();
-    play.recording = 1;
+    play.IsRecording = 1;
 }
 
 void stop_recording() {
-    if (!play.recording)
+    if (!play.IsRecording)
         return;
 
     write_record_event (REC_ENDOFFILE, 0, NULL);
 
-    play.recording = 0;
+    play.IsRecording = 0;
     char replaydesc[100] = "";
     sc_inputbox ("Enter replay description:", replaydesc);
     sc_inputbox ("Enter replay filename:", replayfile);
@@ -375,7 +373,7 @@ void stop_recording() {
     replay_out->WriteInt32 (game.UniqueId);
     replay_out->WriteInt32 (replay_time);
     fputstring (replaydesc, replay_out);  // replay description, maybe we'll use this later
-    replay_out->WriteInt32 (play.randseed);
+    replay_out->WriteInt32 (play.RandomSeed);
     if (write_version >= 3)
         replay_out->WriteInt32 (recsize);
     replay_out->WriteArrayOfInt16 (recordbuffer, recsize);
@@ -407,7 +405,7 @@ void start_playback()
         buffer[12] = 0;
         if (strcmp (buffer, "AGSRecording") != 0) {
             Display("ERROR: Invalid recorded data file");
-            play.playback = 0;
+            play.IsPlayback = 0;
         }
         else {
             String version_string = String::FromStream(in, 12);
@@ -422,11 +420,11 @@ void start_playback()
                 // This happens if the user's graphics card does BGR order 16-bit colour
                 int oldalways = game.Options[OPT_ALWAYSSPCH];
                 game.Options[OPT_ALWAYSSPCH] = 0;
-                play.playback = 0;
+                play.IsPlayback = 0;
                 Display("Warning! replay is from a different version of AGS (%s) - it may not work properly.", buffer);
-                play.playback = 1;
-                srand (play.randseed);
-                play.gamestep = 0;
+                play.IsPlayback = 1;
+                srand (play.RandomSeed);
+                play.GameStep = 0;
                 game.Options[OPT_ALWAYSSPCH] = oldalways;
             }
 
@@ -450,14 +448,14 @@ void start_playback()
                 fgetstring_limit (buffer, in, 99);
             }
 
-            play.randseed = in->ReadInt32();
+            play.RandomSeed = in->ReadInt32();
             int flen = in->GetLength() - in->GetPosition ();
             if (replayver >= 3) {
                 flen = in->ReadInt32() * sizeof(short);
             }
             recordbuffer = (short*)malloc (flen);
             in->Read(recordbuffer, flen);
-            srand (play.randseed);
+            srand (play.RandomSeed);
             recbuffersize = flen / sizeof(short);
             recsize = 0;
             disable_mgetgraphpos = 1;
@@ -475,7 +473,7 @@ void start_playback()
         }
     }
     else // file not found
-        play.playback = 0;
+        play.IsPlayback = 0;
 }
 
 int my_readkey() {
@@ -544,7 +542,7 @@ int my_readkey() {
         gott = gott & 0x00ff;
 
     // Alt+X, abort (but only once game is loaded)
-    if ((gott == play.abort_key) && (displayed_room >= 0)) {
+    if ((gott == play.GameAbortKey) && (displayed_room >= 0)) {
         check_dynamic_sprites_at_exit = 0;
         quit("!|");
     }

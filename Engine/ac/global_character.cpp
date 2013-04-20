@@ -24,7 +24,6 @@
 #include "ac/display.h"
 #include "ac/draw.h"
 #include "ac/event.h"
-#include "ac/gamestate.h"
 #include "ac/global_overlay.h"
 #include "ac/global_translation.h"
 #include "ac/object.h"
@@ -40,7 +39,6 @@
 
 extern ViewStruct*views;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
-extern GameState play;
 extern ScriptObject scrObj[MAX_INIT_SPR];
 extern ScriptInvItem scrInv[MAX_INV];
 extern int offsetx, offsety;
@@ -367,7 +365,7 @@ int GetCharacterSpeechAnimationDelay(CharacterInfo *cha)
         // The talkanim property only applies to Lucasarts style speech.
         // Sierra style speech has a fixed delay of 5.
         if (game.Options[OPT_SPEECHTYPE] == 0)
-            return play.talkanim_speed;
+            return play.SpeechAnimSpeed;
         else
             return 5;
     }
@@ -385,7 +383,7 @@ void RunCharacterInteraction (int cc, int mood) {
     else if (mood==MODE_TALK) passon=2;
     else if (mood==MODE_USE) { passon=3;
     cdata=playerchar->activeinv;
-    play.usedinv=cdata;
+    play.UsedInvItemIndex=cdata;
     }
     else if (mood==MODE_PICKUP) passon = 5;
     else if (mood==MODE_CUSTOM1) passon = 6;

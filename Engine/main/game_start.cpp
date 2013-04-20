@@ -19,7 +19,6 @@
 #include "ac/common.h"
 #include "ac/characterinfo.h"
 #include "ac/game.h"
-#include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/mouse.h"
 #include "ac/record.h"
@@ -39,7 +38,6 @@ namespace Out = AGS::Common::Out;
 extern int our_eip, displayed_room;
 extern const char *load_game_errors[9];
 extern volatile char want_exit, abort_engine;
-extern GameState play;
 extern volatile int timerloop;
 extern const char *loadSaveGameOnStartup;
 extern ccInstance *moduleInst[MAX_SCRIPT_MODULES];
@@ -52,10 +50,10 @@ void start_game_check_replay()
 {
     Out::FPrint("Checking replay status");
 
-    if (play.recording) {
+    if (play.IsRecording) {
         start_recording();
     }
-    else if (play.playback) {
+    else if (play.IsPlayback) {
         start_playback();
     }
 }
@@ -149,8 +147,8 @@ void initialize_start_and_play_game(int override_start_room, const char *loadSav
             game.Options[OPT_ALWAYSSPCH] = oldalways;
         }
 
-        srand (play.randseed);
-        play.gamestep = 0;
+        srand (play.RandomSeed);
+        play.GameStep = 0;
         if (override_start_room)
             playerchar->room = override_start_room;
 

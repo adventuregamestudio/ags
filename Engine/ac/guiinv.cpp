@@ -14,7 +14,6 @@
 
 #include "gui/guiinv.h"
 #include "ac/draw.h"
-#include "ac/gamestate.h"
 #include "ac/characterextras.h"
 #include "ac/spritecache.h"
 #include "game/game_objects.h"
@@ -24,7 +23,6 @@ using AGS::Common::Bitmap;
 
 
 extern int gui_disabled_style;
-extern GameState play;
 extern CharacterExtras *charextra;
 extern SpriteCache spriteset;
 
@@ -41,17 +39,17 @@ void GUIInv::Draw(Common::Graphics *g) {
         return;
 
     // backwards compatibility
-    play.inv_numinline = this->itemsPerLine;
-    play.inv_numdisp = this->numLines * this->itemsPerLine;
+    play.InventoryColCount = this->itemsPerLine;
+    play.InventoryDisplayedCount = this->numLines * this->itemsPerLine;
     play.obsolete_inv_numorder = charextra[game.PlayerCharacterIndex].invorder_count;
     // if the user changes top_inv_item, switch into backwards
     // compatibiltiy mode
-    if (play.inv_top) {
-        play.inv_backwards_compatibility = 1;
+    if (play.TopInvItemIndex) {
+        play.InventoryBackwardsCompatible = 1;
     }
 
-    if (play.inv_backwards_compatibility) {
-        this->topIndex = play.inv_top;
+    if (play.InventoryBackwardsCompatible) {
+        this->topIndex = play.TopInvItemIndex;
     }
 
     // draw the items
@@ -75,7 +73,7 @@ void GUIInv::Draw(Common::Graphics *g) {
 
     if ((IsDisabled()) &&
         (gui_disabled_style == GUIDIS_GREYOUT) && 
-        (play.inventory_greys_out == 1)) {
+        (play.InventoryGreysOutWhenDisabled == 1)) {
             g->SetDrawColor(8);
             int jj, kk;   // darken the inventory when disabled
             for (jj = 0; jj < wid; jj++) {

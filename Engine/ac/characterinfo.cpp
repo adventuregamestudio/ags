@@ -18,7 +18,6 @@
 #include "ac/characterextras.h"
 #include "ac/characterinfo.h"
 #include "ac/common.h"
-#include "ac/gamestate.h"
 #include "ac/global_character.h"
 #include "ac/math.h"
 #include "ac/viewframe.h"
@@ -33,7 +32,6 @@ using AGS::Common::Stream;
 
 extern ViewStruct*views;
 extern int displayed_room;
-extern GameState play;
 extern int char_speaking;
 extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
 extern unsigned int loopcounter;
@@ -276,7 +274,7 @@ int CharacterInfo::update_character_animating(int &aa, int &doing_nothing)
         int fraa = frame;
         wait = update_lip_sync (view, loop, &fraa) - 1;
         // closed mouth at end of sentence
-        if ((play.messagetime >= 0) && (play.messagetime < play.close_mouth_speech_time))
+        if ((play.MessageTime >= 0) && (play.MessageTime < play.CloseMouthSpeechTime))
           frame = 0;
 
         if (frame != fraa) {
@@ -319,8 +317,8 @@ int CharacterInfo::update_character_animating(int &aa, int &doing_nothing)
 
         if ((aa == char_speaking) &&
             (channels[SCHAN_SPEECH] == NULL) &&
-            (play.close_mouth_speech_time > 0) &&
-            (play.messagetime < play.close_mouth_speech_time)) {
+            (play.CloseMouthSpeechTime > 0) &&
+            (play.MessageTime < play.CloseMouthSpeechTime)) {
           // finished talking - stop animation
           animating = 0;
           frame = 0;
@@ -353,7 +351,7 @@ int CharacterInfo::update_character_animating(int &aa, int &doing_nothing)
           else {
             frame=0;
             // if it's a multi-loop animation, go back to start
-            if (play.no_multiloop_repeat == 0) {
+            if (play.NoMultiLoopRepeat == 0) {
               while ((loop > 0) && 
                   (views[view].loops[loop - 1].RunNextLoop()))
                 loop--;
@@ -394,8 +392,8 @@ void CharacterInfo::update_character_follower(int &aa, int &numSheep, int *follo
         if (room == 0) {
           // appear in the new room
           room = game.Characters[following].room;
-          x = play.entered_at_x;
-          y = play.entered_at_y;
+          x = play.CharacterEnterRoomAtX;
+          y = play.CharacterEnterRoomAtY;
         }
       }
       // wait a bit, so we're not constantly walking
@@ -411,29 +409,29 @@ void CharacterInfo::update_character_follower(int &aa, int &numSheep, int *follo
         if (room == displayed_room) {
           // only move to the room-entered position if coming into
           // the current room
-          if (play.entered_at_x > (thisroom.Width - 8)) {
+          if (play.CharacterEnterRoomAtX > (thisroom.Width - 8)) {
             x = thisroom.Width+8;
-            y = play.entered_at_y;
+            y = play.CharacterEnterRoomAtY;
             }
-          else if (play.entered_at_x < 8) {
+          else if (play.CharacterEnterRoomAtX < 8) {
             x = -8;
-            y = play.entered_at_y;
+            y = play.CharacterEnterRoomAtY;
             }
-          else if (play.entered_at_y > (thisroom.Height - 8)) {
+          else if (play.CharacterEnterRoomAtY > (thisroom.Height - 8)) {
             y = thisroom.Height+8;
-            x = play.entered_at_x;
+            x = play.CharacterEnterRoomAtX;
             }
-          else if (play.entered_at_y < thisroom.Edges.Top+8) {
+          else if (play.CharacterEnterRoomAtY < thisroom.Edges.Top+8) {
             y = thisroom.Edges.Top+1;
-            x = play.entered_at_x;
+            x = play.CharacterEnterRoomAtX;
             }
           else {
             // not at one of the edges
             // delay for a few seconds to let the player move
-            room = -play.follow_change_room_timer;
+            room = -play.FollowingCharacterChangeRoomDelay;
           }
           if (room >= 0) {
-            walk_character(aa,play.entered_at_x,play.entered_at_y,1, true);
+            walk_character(aa,play.CharacterEnterRoomAtX,play.CharacterEnterRoomAtY,1, true);
             doing_nothing = 0;
           }
         }

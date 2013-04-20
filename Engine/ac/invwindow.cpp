@@ -18,7 +18,6 @@
 #include "ac/characterinfo.h"
 #include "ac/draw.h"
 #include "ac/event.h"
-#include "ac/gamestate.h"
 #include "ac/global_character.h"
 #include "ac/global_display.h"
 #include "ac/global_room.h"
@@ -39,7 +38,6 @@ using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern int guis_need_update;
-extern GameState play;
 extern CharacterExtras *charextra;
 extern ScriptInvItem scrInv[MAX_INV];
 extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
@@ -271,7 +269,7 @@ int InventoryScreen::Redraw()
     windowxp=scrnwid/2-windowwid/2;
     windowyp=scrnhit/2-windowhit/2;
     buttonyp=windowyp+windowhit-BUTTONAREAHEIGHT;
-    g->SetDrawColor(play.sierra_inv_color);
+    g->SetDrawColor(play.SierraInventoryBkgColour);
     g->FillRect(Rect(windowxp,windowyp,windowxp+windowwid,windowyp+windowhit));
     g->SetDrawColor(0); 
     bartop = windowyp + get_fixed_pixel_size(2);
@@ -296,7 +294,7 @@ int InventoryScreen::Redraw()
     Bitmap *arrowblock = BitmapHelper::CreateTransparentBitmap (ARROWBUTTONWID, ARROWBUTTONWID);
     Graphics graphics(arrowblock);
     g->SetDrawColor(0);
-    if (play.sierra_inv_color == 0)
+    if (play.SierraInventoryBkgColour == 0)
         g->SetDrawColor(14);
 
     graphics.DrawLine(Line(ARROWBUTTONWID/2, 2, ARROWBUTTONWID-2, 9));
@@ -344,7 +342,7 @@ bool InventoryScreen::Run()
                 int clickedon=isonitem;
                 if (clickedon<0) return true; // continue inventory screen loop
                 evblocknum=dii[clickedon].num;
-                play.used_inv_on = dii[clickedon].num;
+                play.ClickedInvItemIndex = dii[clickedon].num;
 
                 if (cmode==MODE_LOOK) {
                     domouse(2);
@@ -357,7 +355,7 @@ bool InventoryScreen::Run()
                 }
                 else if (cmode==MODE_USE) {
                     // use objects on each other
-                    play.usedinv=toret;
+                    play.UsedInvItemIndex=toret;
 
                     // set the activeinv so the script can check it
                     int activeinvwas = playerchar->activeinv;

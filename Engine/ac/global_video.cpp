@@ -19,7 +19,6 @@
 #include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/gamesetup.h"
-#include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/mouse.h"
 #include "ac/record.h"
@@ -40,7 +39,6 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 namespace Out = AGS::Common::Out;
 
 extern GameSetup usetup;
-extern GameState play;
 
 // defined in media/video/video.h
 extern int canabort, stretch_flc;
@@ -60,9 +58,9 @@ void play_flc_file(int numb,int playflags) {
 
     // AGS 2.x: If the screen is faded out, fade in again when playing a movie.
     if (loaded_game_file_version <= kGameVersion_272)
-        play.screen_is_faded_out = 0;
+        play.ScreenIsFadedOut = 0;
 
-    if (play.fast_forward)
+    if (play.FastForwardCutscene)
         return;
 
     get_palette_range(oldpal, 0, 255);
@@ -144,7 +142,7 @@ void play_flc_file(int numb,int playflags) {
 void scrPlayVideo(const char* name, int skip, int flags) {
     EndSkippingUntilCharStops();
 
-    if (play.fast_forward)
+    if (play.FastForwardCutscene)
         return;
     if (debug_flags & DBG_NOVIDEO)
         return;

@@ -13,14 +13,12 @@
 //=============================================================================
 
 #include "ac/global_mouse.h"
-#include "ac/gamestate.h"
-
-extern GameState play;
+#include "game/game_objects.h"
 
 void HideMouseCursor () {
-    play.mouse_cursor_hidden = 1;
+    play.MouseCursorHidden = 1;
 }
 
 void ShowMouseCursor () {
-    play.mouse_cursor_hidden = 0;
+    play.MouseCursorHidden = 0;
 }

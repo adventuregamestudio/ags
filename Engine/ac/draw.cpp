@@ -22,7 +22,6 @@
 #include "ac/display.h"
 #include "ac/draw.h"
 #include "ac/gamesetup.h"
-#include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/global_gui.h"
 #include "ac/global_region.h"
@@ -70,7 +69,6 @@ extern "C" void ios_render();
 #endif
 
 extern GameSetup usetup;
-extern GameState play;
 extern int current_screen_resolution_multiplier;
 extern int scrnwid,scrnhit;
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
@@ -730,7 +728,7 @@ void render_to_screen(Bitmap *toRender, int atx, int aty) {
 
     gfxDriver->DrawSprite(AGSE_FINALSCREENDRAW, 0, NULL);
 
-    if (play.screen_is_faded_out)
+    if (play.ScreenIsFadedOut)
     {
         if (gfxDriver->UsesMemoryBackBuffer())
             gfxDriver->RenderToBackBuffer();
@@ -747,7 +745,7 @@ void render_to_screen(Bitmap *toRender, int atx, int aty) {
     {
         try
         {
-            gfxDriver->Render((GlobalFlipType)play.screen_flipped);
+            gfxDriver->Render((GlobalFlipType)play.ScreenFlipped);
 
 #if defined(ANDROID_VERSION)
             if (game.ColorDepth == 1)
@@ -781,17 +779,17 @@ void clear_letterbox_borders() {
 // necessary
 void write_screen() {
 
-    if (play.fast_forward)
+    if (play.FastForwardCutscene)
         return;
 
     static int wasShakingScreen = 0;
     bool clearScreenBorders = false;
     int at_yp = 0;
 
-    if (play.shakesc_length > 0) {
+    if (play.ShakeScreenLength > 0) {
         wasShakingScreen = 1;
-        if ( (loopcounter % play.shakesc_delay) < (play.shakesc_delay / 2) )
-            at_yp = multiply_up_coordinate(play.shakesc_amount);
+        if ( (loopcounter % play.ShakeScreenDelay) < (play.ShakeScreenDelay / 2) )
+            at_yp = multiply_up_coordinate(play.ShakeScreenAmount);
         invalidate_screen();
     }
     else if (wasShakingScreen) {
@@ -803,10 +801,10 @@ void write_screen() {
         }
     }
 
-    if (play.screen_tint < 1)
+    if (play.ScreenTint < 1)
         gfxDriver->SetScreenTint(0, 0, 0);
     else
-        gfxDriver->SetScreenTint(play.screen_tint & 0xff, (play.screen_tint >> 8) & 0xff, (play.screen_tint >> 16) & 0xff);
+        gfxDriver->SetScreenTint(play.ScreenTint & 0xff, (play.ScreenTint >> 8) & 0xff, (play.ScreenTint >> 16) & 0xff);
 
     render_to_screen(virtual_screen, 0, at_yp);
 }
@@ -1001,10 +999,10 @@ void sort_out_char_sprite_walk_behind(int actspsIndex, int xx, int yy, int basel
         (actspswbcache[actspsIndex].yWas != yy) ||
         (actspswbcache[actspsIndex].baselineWas != basel))
     {
-        actspswb[actspsIndex] = recycle_bitmap(actspswb[actspsIndex], thisroom.Backgrounds[play.bg_frame].Graphic->GetColorDepth(), width, height, true);
+        actspswb[actspsIndex] = recycle_bitmap(actspswb[actspsIndex], thisroom.Backgrounds[play.RoomBkgFrameIndex].Graphic->GetColorDepth(), width, height, true);
         Bitmap *wbSprite = actspswb[actspsIndex];
 
-        actspswbcache[actspsIndex].isWalkBehindHere = sort_out_walk_behinds(wbSprite, xx, yy, basel, thisroom.Backgrounds[play.bg_frame].Graphic, actsps[actspsIndex], zoom);
+        actspswbcache[actspsIndex].isWalkBehindHere = sort_out_walk_behinds(wbSprite, xx, yy, basel, thisroom.Backgrounds[play.RoomBkgFrameIndex].Graphic, actsps[actspsIndex], zoom);
         actspswbcache[actspsIndex].xWas = xx;
         actspswbcache[actspsIndex].yWas = yy;
         actspswbcache[actspsIndex].baselineWas = basel;
@@ -1271,7 +1269,7 @@ void get_local_tint(int xpp, int ypp, int nolight,
 
         int onRegion = 0;
 
-        if ((play.ground_level_areas_disabled & GLED_EFFECTS) == 0) {
+        if ((play.GroundLevelAreasDisabled & GLED_EFFECTS) == 0) {
             // check if the player is on a region, to find its
             // light/tint level
             onRegion = GetRegionAt (xpp, ypp);
@@ -1312,14 +1310,14 @@ void get_local_tint(int xpp, int ypp, int nolight,
             blu = ((blu + 100) * 25) / 20;*/
         }
 
-        if (play.rtint_level > 0) {
+        if (play.RoomTintLevel > 0) {
             // override with room tint
             tint_level = 1;
-            tint_red = play.rtint_red;
-            tint_green = play.rtint_green;
-            tint_blue = play.rtint_blue;
-            tint_amount = play.rtint_level;
-            tint_light = play.rtint_light;
+            tint_red = play.RoomTintRed;
+            tint_green = play.RoomTintGreen;
+            tint_blue = play.RoomTintBlue;
+            tint_amount = play.RoomTintLevel;
+            tint_light = play.RoomTintLight;
         }
     }
 
@@ -2104,7 +2102,7 @@ void draw_screen_background(Common::Graphics *g) {
         offsetyWas = offsety;
     }
 
-    if (play.screen_tint >= 0)
+    if (play.ScreenTint >= 0)
         invalidate_screen();
 
     if (gfxDriver->RequiresFullRedrawEachFrame())
@@ -2112,9 +2110,9 @@ void draw_screen_background(Common::Graphics *g) {
         if (roomBackgroundBmp == NULL) 
         {
             update_polled_stuff_if_runtime();
-            roomBackgroundBmp = gfxDriver->CreateDDBFromBitmap(thisroom.Backgrounds[play.bg_frame].Graphic, false, true);
+            roomBackgroundBmp = gfxDriver->CreateDDBFromBitmap(thisroom.Backgrounds[play.RoomBkgFrameIndex].Graphic, false, true);
 
-            if ((walkBehindMethod == DrawAsSeparateSprite) && (walkBehindsCachedForBgNum != play.bg_frame))
+            if ((walkBehindMethod == DrawAsSeparateSprite) && (walkBehindsCachedForBgNum != play.RoomBkgFrameIndex))
             {
                 update_walk_behind_images();
             }
@@ -2122,7 +2120,7 @@ void draw_screen_background(Common::Graphics *g) {
         else if (current_background_is_dirty)
         {
             update_polled_stuff_if_runtime();
-            gfxDriver->UpdateDDBFromBitmap(roomBackgroundBmp, thisroom.Backgrounds[play.bg_frame].Graphic, false);
+            gfxDriver->UpdateDDBFromBitmap(roomBackgroundBmp, thisroom.Backgrounds[play.RoomBkgFrameIndex].Graphic, false);
             current_background_is_dirty = false;
             if (walkBehindMethod == DrawAsSeparateSprite)
             {
@@ -2136,7 +2134,7 @@ void draw_screen_background(Common::Graphics *g) {
         // the following line takes up to 50% of the game CPU time at
         // high resolutions and colour depths - if we can optimise it
         // somehow, significant performance gains to be had
-        update_invalid_region_and_reset(g, -offsetx, -offsety, thisroom.Backgrounds[play.bg_frame].Graphic);
+        update_invalid_region_and_reset(g, -offsetx, -offsety, thisroom.Backgrounds[play.RoomBkgFrameIndex].Graphic);
     }
 
     clear_sprite_list();
@@ -2278,7 +2276,7 @@ void draw_screen_overlay() {
         our_eip = 38;
         // Draw the GUIs
         for (gg = 0; gg < game.GuiCount; gg++) {
-            aa = play.gui_draw_order[gg];
+            aa = play.GuiDrawOrder[gg];
             if (guis[aa].on < 1) continue;
 
             // Don't draw GUI if "GUIs Turn Off When Disabled"
@@ -2367,7 +2365,7 @@ void draw_screen_overlay() {
     draw_and_invalidate_text(1, yp, FONT_SPEECH,tbuffer);
     }*/
 
-    if (play.recording) {
+    if (play.IsRecording) {
         // Flash "REC" while recording
         g->SetTextColor (12);
         //if ((loopcounter % (frames_per_second * 2)) > frames_per_second/2) {
@@ -2376,7 +2374,7 @@ void draw_screen_overlay() {
         draw_and_invalidate_text(g, get_fixed_pixel_size(5), get_fixed_pixel_size(10), FONT_SPEECH, tformat);
         //}
     }
-    else if (play.playback) {
+    else if (play.IsPlayback) {
         g->SetTextColor (10);
         char tformat[30];
         sprintf (tformat, "PLAY %02d:%02d:%02d", replay_time / 3600, (replay_time % 3600) / 60, replay_time % 60);
@@ -2460,7 +2458,7 @@ void update_screen() {
     }
 
     // draw the debug console, if appropriate
-    if ((play.debug_mode > 0) && (display_console != 0)) 
+    if ((play.DebugMode > 0) && (display_console != 0)) 
     {
         //int otextc = g->GetTextColor();
         int ypp = 1;
@@ -2496,7 +2494,7 @@ void update_screen() {
 
     domouse(DOMOUSE_NOCURSOR);
 
-    if (!play.mouse_cursor_hidden)
+    if (!play.MouseCursorHidden)
     {
         gfxDriver->DrawSprite(mousex - hotx, mousey - hoty, mouseCursor);
         invalidate_sprite(mousex - hotx, mousey - hoty, mouseCursor);
@@ -2506,14 +2504,14 @@ void update_screen() {
     domouse(1);
     // if the cursor is hidden, remove it again. However, it needs
     // to go on-off in order to update the stored mouse coordinates
-    if (play.mouse_cursor_hidden)
+    if (play.MouseCursorHidden)
     domouse(2);*/
 
     write_screen();
 
     SetVirtualScreen(virtual_screen);
 
-    if (!play.screen_is_faded_out) {
+    if (!play.ScreenIsFadedOut) {
         // always update the palette, regardless of whether the plugin
         // vetos the screen update
         if (bg_just_changed) {
@@ -2522,7 +2520,7 @@ void update_screen() {
         }
     }
 
-    //if (!play.mouse_cursor_hidden)
+    //if (!play.MouseCursorHidden)
     //    domouse(2);
 
     screen_is_dirty = 0;
@@ -2548,7 +2546,7 @@ void construct_virtual_screen(bool fullRedraw)
 {
     gfxDriver->ClearDrawList();
 
-    if (play.fast_forward)
+    if (play.FastForwardCutscene)
         return;
 
     our_eip=3;

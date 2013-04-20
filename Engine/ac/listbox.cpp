@@ -16,7 +16,6 @@
 #include "ac/listbox.h"
 #include "ac/common.h"
 #include "ac/file.h"
-#include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/string.h"
 #include "game/game_objects.h"
@@ -24,7 +23,6 @@
 
 extern int guis_need_update;
 extern char saveGameDirectory[260];
-extern GameState play;
 extern GUIMain*guis;
 
 // *** LIST BOX FUNCTIONS
@@ -124,7 +122,7 @@ int ListBox_FillSaveGameList(GUIListBox *listbox) {
 
   // update the global savegameindex[] array for backward compatibilty
   for (nn = 0; nn < numsaves; nn++) {
-    play.filenumbers[nn] = listbox->saveGameIndex[nn];
+    play.SavedGameFileNumbers[nn] = listbox->saveGameIndex[nn];
   }
 
   guis_need_update = 1;

@@ -1,16 +1,14 @@
 
 #include "ac/common.h"
-#include "ac/gamestate.h"
 #include "ac/runtime_defines.h"
 #include "ac/viewframe.h"
-#include "game/roomobject.h"
+#include "game/game_objects.h"
 #include "main/update.h"
 #include "util/alignedstream.h"
 
 extern int spritewidth[MAX_SPRITES];
 extern int spriteheight[MAX_SPRITES];
 extern ViewStruct*views;
-extern GameState play;
 
 namespace AGS
 {
@@ -88,7 +86,7 @@ void RoomObject::UpdateCycleViewForwards()
           Frame--;
           }
         else {
-          if (play.no_multiloop_repeat == 0) {
+          if (play.NoMultiLoopRepeat == 0) {
             // multi-Loop anims, go back to start of it
             while ((Loop > 0) && 
               (views[View].loops[Loop - 1].RunNextLoop()))

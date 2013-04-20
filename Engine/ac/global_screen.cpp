@@ -17,7 +17,6 @@
 #include "ac/gamesetup.h"
 #include "ac/draw.h"
 #include "ac/gamesetup.h"
-#include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/global_screen.h"
 #include "ac/runtime_defines.h"
@@ -32,7 +31,6 @@ using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameSetup usetup;
-extern GameState play;
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
 extern color palette[256];
@@ -58,13 +56,13 @@ int GetMaxScreenHeight () {
 
 void FlipScreen(int amount) {
     if ((amount<0) | (amount>3)) quit("!FlipScreen: invalid argument (0-3)");
-    play.screen_flipped=amount;
+    play.ScreenFlipped=amount;
 }
 
 void ShakeScreen(int severe) {
     EndSkippingUntilCharStops();
 
-    if (play.fast_forward)
+    if (play.FastForwardCutscene)
         return;
 
     int hh;
@@ -73,10 +71,10 @@ void ShakeScreen(int severe) {
 
     if (gfxDriver->RequiresFullRedrawEachFrame())
     {
-        play.shakesc_length = 10;
-        play.shakesc_delay = 2;
-        play.shakesc_amount = severe;
-        play.mouse_cursor_hidden++;
+        play.ShakeScreenLength = 10;
+        play.ShakeScreenDelay = 2;
+        play.ShakeScreenAmount = severe;
+        play.MouseCursorHidden++;
 
         for (hh = 0; hh < 40; hh++) {
             loopcounter++;
@@ -87,9 +85,9 @@ void ShakeScreen(int severe) {
             update_polled_stuff_if_runtime();
         }
 
-        play.mouse_cursor_hidden--;
+        play.MouseCursorHidden--;
         clear_letterbox_borders();
-        play.shakesc_length = 0;
+        play.ShakeScreenLength = 0;
     }
     else
     {
@@ -117,15 +115,15 @@ void ShakeScreenBackground (int delay, int amount, int length) {
     if (delay < 2) 
         quit("!ShakeScreenBackground: invalid delay parameter");
 
-    if (amount < play.shakesc_amount)
+    if (amount < play.ShakeScreenAmount)
     {
         // from a bigger to smaller shake, clear up the borders
         clear_letterbox_borders();
     }
 
-    play.shakesc_amount = amount;
-    play.shakesc_delay = delay;
-    play.shakesc_length = length;
+    play.ShakeScreenAmount = amount;
+    play.ShakeScreenDelay = delay;
+    play.ShakeScreenLength = length;
 }
 
 void TintScreen(int red, int grn, int blu) {
@@ -135,33 +133,33 @@ void TintScreen(int red, int grn, int blu) {
     invalidate_screen();
 
     if ((red == 0) && (grn == 0) && (blu == 0)) {
-        play.screen_tint = -1;
+        play.ScreenTint = -1;
         return;
     }
     red = (red * 25) / 10;
     grn = (grn * 25) / 10;
     blu = (blu * 25) / 10;
-    play.screen_tint = red + (grn << 8) + (blu << 16);
+    play.ScreenTint = red + (grn << 8) + (blu << 16);
 }
 
 void my_fade_out(int spdd) {
     EndSkippingUntilCharStops();
 
-    if (play.fast_forward)
+    if (play.FastForwardCutscene)
         return;
 
-    if (play.screen_is_faded_out == 0)
-        gfxDriver->FadeOut(spdd, play.fade_to_red, play.fade_to_green, play.fade_to_blue);
+    if (play.ScreenIsFadedOut == 0)
+        gfxDriver->FadeOut(spdd, play.FadeToRed, play.FadeToGreen, play.FadeToBlue);
 
     if (game.ColorDepth > 1)
-        play.screen_is_faded_out = 1;
+        play.ScreenIsFadedOut = 1;
 }
 
 void SetScreenTransition(int newtrans) {
     if ((newtrans < 0) || (newtrans > FADE_LAST))
         quit("!SetScreenTransition: invalid transition type");
 
-    play.fade_effect = newtrans;
+    play.TransitionStyle = newtrans;
 
     DEBUG_CONSOLE("Screen transition changed");
 }
@@ -170,7 +168,7 @@ void SetNextScreenTransition(int newtrans) {
     if ((newtrans < 0) || (newtrans > FADE_LAST))
         quit("!SetNextScreenTransition: invalid transition type");
 
-    play.next_screen_transition = newtrans;
+    play.NextRoomTransition = newtrans;
 
     DEBUG_CONSOLE("SetNextScreenTransition engaged");
 }
@@ -180,15 +178,15 @@ void SetFadeColor(int red, int green, int blue) {
         (blue < 0) || (blue > 255))
         quit("!SetFadeColor: Red, Green and Blue must be 0-255");
 
-    play.fade_to_red = red;
-    play.fade_to_green = green;
-    play.fade_to_blue = blue;
+    play.FadeToRed = red;
+    play.FadeToGreen = green;
+    play.FadeToBlue = blue;
 }
 
 void FadeIn(int sppd) {
     EndSkippingUntilCharStops();
 
-    if (play.fast_forward)
+    if (play.FastForwardCutscene)
         return;
 
     my_fade_in(palette,sppd);

@@ -43,7 +43,6 @@
 #include "ac/walkablearea.h"
 #include "gui/guimain.h"
 #include "ac/route_finder.h"
-#include "ac/gamestate.h"
 #include "debug/debug_log.h"
 #include "game/game_objects.h"
 #include "main/game_run.h"
@@ -66,7 +65,6 @@ extern int displayed_room,starting_room;
 extern MoveList *mls;
 extern int new_room_pos;
 extern int new_room_x, new_room_y;
-extern GameState play;
 extern ViewStruct*views;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern ScriptInvItem scrInv[MAX_INV];
@@ -743,7 +741,7 @@ void Character_SetAsPlayer(CharacterInfo *chaa) {
     if (displayed_room != playerchar->room)
         NewRoom(playerchar->room);
     else   // make sure it doesn't run the region interactions
-        play.player_on_region = GetRegionAt (playerchar->x, playerchar->y);
+        play.PlayerOnRegionIndex = GetRegionAt (playerchar->x, playerchar->y);
 
     if ((playerchar->activeinv >= 0) && (playerchar->inv[playerchar->activeinv] < 1))
         playerchar->activeinv = -1;
@@ -831,7 +829,7 @@ void Character_SetSpeed(CharacterInfo *chaa, int xspeed, int yspeed) {
 void Character_StopMoving(CharacterInfo *charp) {
 
     int chaa = charp->index_id;
-    if (chaa == play.skip_until_char_stops)
+    if (chaa == play.SkipUntilCharacterStops)
         EndSkippingUntilCharStops();
 
     if (charextra[chaa].xwas != INVALID_X) {
@@ -2052,7 +2050,7 @@ void animate_character(CharacterInfo *chap, int loopn,int sppd,int rept, int noi
 
 void CheckViewFrameForCharacter(CharacterInfo *chi) {
 
-    int soundVolumeWas = play.sound_volume;
+    int soundVolumeWas = play.SoundVolume;
 
     if (chi->flags & CHF_SCALEVOLUME) {
         // adjust the sound volume using the character's zoom level
@@ -2060,17 +2058,17 @@ void CheckViewFrameForCharacter(CharacterInfo *chi) {
         if (zoom_level == 0)
             zoom_level = 100;
 
-        play.sound_volume = (play.sound_volume * zoom_level) / 100;
+        play.SoundVolume = (play.SoundVolume * zoom_level) / 100;
 
-        if (play.sound_volume < 0)
-            play.sound_volume = 0;
-        if (play.sound_volume > 255)
-            play.sound_volume = 255;
+        if (play.SoundVolume < 0)
+            play.SoundVolume = 0;
+        if (play.SoundVolume > 255)
+            play.SoundVolume = 255;
     }
 
     CheckViewFrame(chi->view, chi->loop, chi->frame);
 
-    play.sound_volume = soundVolumeWas;
+    play.SoundVolume = soundVolumeWas;
 }
 
 Bitmap *GetCharacterImage(int charid, int *isFlipped) 
@@ -2217,7 +2215,7 @@ void _DisplaySpeechCore(int chid, char *displbuf) {
         // no text, just update the current character who's speaking
         // this allows the portrait side to be switched with an empty
         // speech line
-        play.swap_portrait_lastchar = chid;
+        play.LastSpeechPortraitCharacter = chid;
         return;
     }
 
@@ -2240,7 +2238,7 @@ void _DisplayThoughtCore(int chid, const char *displbuf) {
     if ((game.Options[OPT_SPEECHTYPE] == 0) || (game.Characters[chid].thinkview <= 0)) {
         // lucasarts-style, so we want a speech bubble actually above
         // their head (or if they have no think anim in Sierra-style)
-        width = multiply_up_coordinate(play.speech_bubble_width);
+        width = multiply_up_coordinate(play.SpeechBubbleWidth);
         xpp = (multiply_up_coordinate(game.Characters[chid].x) - offsetx) - width / 2;
         if (xpp < 0)
             xpp = 0;
@@ -2290,7 +2288,7 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
     said_speech_line = 1;
 
     int aa;
-    if (play.bgspeech_stay_on_display == 0) {
+    if (play.BkgSpeechStayOnDisplay == 0) {
         // remove any background speech
         for (aa=0;aa<numscreenover;aa++) {
             if (screenover[aa].timeout > 0) {
@@ -2314,12 +2312,12 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
         }
     }
 
-    play.messagetime = GetTextDisplayTime(texx);
+    play.MessageTime = GetTextDisplayTime(texx);
 
     if (isPause) {
         if (update_music_at > 0)
-            update_music_at += play.messagetime;
-        GameLoopUntilEvent(UNTIL_INTISNEG,(long)&play.messagetime);
+            update_music_at += play.MessageTime;
+        GameLoopUntilEvent(UNTIL_INTISNEG,(long)&play.MessageTime);
         return;
     }
 
@@ -2373,7 +2371,7 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
         text_lips_text = texx;
 
         if (play_speech(aschar,igr)) {
-            if (play.want_speech == 2)
+            if (play.SpeechVoiceMode == 2)
                 texx = "  ";  // speech only, no text.
         }
     }
@@ -2455,23 +2453,23 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
         if ((useview >= 0) && (game.Options[OPT_SPEECHTYPE] > 0)) {
             // Sierra-style close-up portrait
 
-            if (play.swap_portrait_lastchar != aschar) {
+            if (play.LastSpeechPortraitCharacter != aschar) {
                 // if the portraits are set to Alternate, OR they are
                 // set to Left but swap_portrait has been set to 1 (the old
                 // method for enabling it), then swap them round
                 if ((game.Options[OPT_PORTRAITSIDE] == PORTRAIT_ALTERNATE) ||
                     ((game.Options[OPT_PORTRAITSIDE] == 0) &&
-                    (play.swap_portrait_side > 0))) {
+                    (play.SierraSpeechSwapPortraitSide > 0))) {
 
-                        if (play.swap_portrait_side == 2)
-                            play.swap_portrait_side = 1;
+                        if (play.SierraSpeechSwapPortraitSide == 2)
+                            play.SierraSpeechSwapPortraitSide = 1;
                         else
-                            play.swap_portrait_side = 2;
+                            play.SierraSpeechSwapPortraitSide = 2;
                 }
 
                 if (game.Options[OPT_PORTRAITSIDE] == PORTRAIT_XPOSITION) {
                     // Portrait side based on character X-positions
-                    if (play.swap_portrait_lastchar < 0) {
+                    if (play.LastSpeechPortraitCharacter < 0) {
                         // no previous character been spoken to
                         // therefore, find another character in this room
                         // that it could be
@@ -2479,23 +2477,23 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
                             if ((game.Characters[ce].room == speakingChar->room) &&
                                 (game.Characters[ce].on == 1) &&
                                 (ce != aschar)) {
-                                    play.swap_portrait_lastchar = ce;
+                                    play.LastSpeechPortraitCharacter = ce;
                                     break;
                             }
                         }
                     }
 
-                    if (play.swap_portrait_lastchar >= 0) {
+                    if (play.LastSpeechPortraitCharacter >= 0) {
                         // if this character is right of the one before, put the
                         // portrait on the right
-                        if (speakingChar->x > game.Characters[play.swap_portrait_lastchar].x)
-                            play.swap_portrait_side = -1;
+                        if (speakingChar->x > game.Characters[play.LastSpeechPortraitCharacter].x)
+                            play.SierraSpeechSwapPortraitSide = -1;
                         else
-                            play.swap_portrait_side = 0;
+                            play.SierraSpeechSwapPortraitSide = 0;
                     }
                 }
 
-                play.swap_portrait_lastchar = aschar;
+                play.LastSpeechPortraitCharacter = aschar;
             }
 
             // Determine whether to display the portrait on the left or right
@@ -2503,8 +2501,8 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
 
             if (game.Options[OPT_SPEECHTYPE] == 3) 
             { }  // always on left with QFG-style speech
-            else if ((play.swap_portrait_side == 1) ||
-                (play.swap_portrait_side == -1) ||
+            else if ((play.SierraSpeechSwapPortraitSide == 1) ||
+                (play.SierraSpeechSwapPortraitSide == -1) ||
                 (game.Options[OPT_PORTRAITSIDE] == PORTRAIT_RIGHT))
                 portrait_on_right = 1;
 
@@ -2550,7 +2548,7 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
                 ovr_type = OVER_PICTURE;
 
                 if (yy < 0)
-                    tdyp = ovr_yp + get_textwindow_top_border_height(play.speech_textwindow_gui);
+                    tdyp = ovr_yp + get_textwindow_top_border_height(play.SpeechTextWindowGuiIndex);
             }
             //->Blit(closeupface,spriteset[viptr->frames[0][0].pic],0,draw_yp);
             Graphics graphics(closeupface);
@@ -2559,10 +2557,10 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
             int overlay_x = get_fixed_pixel_size(10);
 
             if (xx < 0) {
-                tdxp = get_fixed_pixel_size(16) + bigx + get_textwindow_border_width(play.speech_textwindow_gui) / 2;
+                tdxp = get_fixed_pixel_size(16) + bigx + get_textwindow_border_width(play.SpeechTextWindowGuiIndex) / 2;
 
                 int maxWidth = (scrnwid - tdxp) - get_fixed_pixel_size(5) - 
-                    get_textwindow_border_width (play.speech_textwindow_gui) / 2;
+                    get_textwindow_border_width (play.SpeechTextWindowGuiIndex) / 2;
 
                 if (bwidth > maxWidth)
                     bwidth = maxWidth;
@@ -2585,7 +2583,7 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
                     overlay_x = (xx + widd - bigx) - get_fixed_pixel_size(5);
                     tdxp = xx;
                 }
-                tdxp += get_textwindow_border_width(play.speech_textwindow_gui) / 2;
+                tdxp += get_textwindow_border_width(play.SpeechTextWindowGuiIndex) / 2;
                 allowShrink = 2;
             }
             if (game.Options[OPT_SPEECHTYPE] == 3)
@@ -2668,7 +2666,7 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
     our_eip=155;
     _display_at(tdxp,tdyp,bwidth,texx,0,textcol, isThought, allowShrink, overlayPositionFixed);
     our_eip=156;
-    if ((play.in_conversation > 0) && (game.Options[OPT_SPEECHTYPE] == 3))
+    if ((play.InConversation > 0) && (game.Options[OPT_SPEECHTYPE] == 3))
         closeupface = NULL;
     if (closeupface!=NULL)
         remove_screen_overlay(ovr_type);

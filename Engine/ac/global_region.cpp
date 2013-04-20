@@ -126,16 +126,16 @@ void DisableGroundLevelAreas(int alsoEffects) {
     if ((alsoEffects < 0) || (alsoEffects > 1))
         quit("!DisableGroundLevelAreas: invalid parameter: must be 0 or 1");
 
-    play.ground_level_areas_disabled = GLED_INTERACTION;
+    play.GroundLevelAreasDisabled = GLED_INTERACTION;
 
     if (alsoEffects)
-        play.ground_level_areas_disabled |= GLED_EFFECTS;
+        play.GroundLevelAreasDisabled |= GLED_EFFECTS;
 
     DEBUG_CONSOLE("Ground-level areas disabled");
 }
 
 void EnableGroundLevelAreas() {
-    play.ground_level_areas_disabled = 0;
+    play.GroundLevelAreasDisabled = 0;
 
     DEBUG_CONSOLE("Ground-level areas re-enabled");
 }

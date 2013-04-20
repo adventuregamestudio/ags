@@ -15,7 +15,6 @@
 #include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/draw.h"
-#include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/global_screen.h"
 #include "ac/screen.h"
@@ -29,7 +28,6 @@ using AGS::Common::Bitmap;
 using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
-extern GameState play;
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
 extern Bitmap *virtual_screen;
@@ -39,14 +37,14 @@ void my_fade_in(PALLETE p, int speed) {
     if (game.ColorDepth > 1) {
         set_palette (p);
 
-        play.screen_is_faded_out = 0;
+        play.ScreenIsFadedOut = 0;
 
-        if (play.no_hicolor_fadein) {
+        if (play.NoHicolorFadeIn) {
             return;
         }
     }
 
-    gfxDriver->FadeIn(speed, p, play.fade_to_red, play.fade_to_green, play.fade_to_blue);
+    gfxDriver->FadeIn(speed, p, play.FadeToRed, play.FadeToGreen, play.FadeToBlue);
 }
 
 //#define _get_script_data_stack_size() (256*sizeof(int)+((int*)&scrpt[10*4])[0]+((int*)&scrpt[12*4])[0])
@@ -58,13 +56,13 @@ void current_fade_out_effect () {
         return;
 
     // get the screen transition type
-    int theTransition = play.fade_effect;
+    int theTransition = play.TransitionStyle;
     // was a temporary transition selected? if so, use it
-    if (play.next_screen_transition >= 0)
-        theTransition = play.next_screen_transition;
+    if (play.NextRoomTransition >= 0)
+        theTransition = play.NextRoomTransition;
 
-    if ((theTransition == FADE_INSTANT) || (play.screen_tint >= 0)) {
-        if (!play.keep_screen_during_instant_transition)
+    if ((theTransition == FADE_INSTANT) || (play.ScreenTint >= 0)) {
+        if (!play.KeepScreenDuringInstantTransition)
             set_palette_range(black_palette, 0, 255, 0);
     }
     else if (theTransition == FADE_NORMAL)
@@ -74,7 +72,7 @@ void current_fade_out_effect () {
     else if (theTransition == FADE_BOXOUT) 
     {
         gfxDriver->BoxOutEffect(true, get_fixed_pixel_size(16), 1000 / GetGameSpeed());
-        play.screen_is_faded_out = 1;
+        play.ScreenIsFadedOut = 1;
     }
     else 
     {

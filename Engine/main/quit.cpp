@@ -221,7 +221,7 @@ void quit_release_data()
 void quit_print_last_fps(char *qmsg)
 {
     /*  // print the FPS if there wasn't an error
-    if ((play.debug_mode!=0) && (qmsg[0]=='|'))
+    if ((play.DebugMode!=0) && (qmsg[0]=='|'))
     printf("Last cycle fps: %d\n",fps);*/
 }
 

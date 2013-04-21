@@ -29,7 +29,7 @@ using namespace AGS; // FIXME later
 // [IKM] personally I do not see much sense in this,
 // memcpyfast alias is used only once in the Engine
 #define memcpyfast memcpy
-#define IS_ANTIALIAS_SPRITES usetup.enable_antialiasing && (play.DisableAntiAliasing == 0)
+#define IS_ANTIALIAS_SPRITES usetup.EnableAntiAliasing && (play.DisableAntiAliasing == 0)
 
 // Allegro 4 has switched 15-bit colour to BGR instead of RGB, so
 // in this case we need to convert the graphics on load

@@ -22,7 +22,6 @@
 #include "ac/draw.h"
 #include "ac/dynamicsprite.h"
 #include "ac/file.h"
-#include "ac/gamesetup.h"
 #include "ac/gamestructdefines.h"
 #include "ac/global_audio.h"
 #include "ac/global_plugin.h"
@@ -99,7 +98,6 @@ extern SpriteCache spriteset;
 extern ViewStruct*views;
 extern int game_paused;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
-extern GameSetup usetup;
 extern int inside_script;
 extern ccInstance *gameinst, *roominst;
 extern CharacterCache *charcache;
@@ -584,9 +582,9 @@ int IAGSEngine::IsSpriteAlphaBlended(int32 slot) {
 // disable AGS's sound engine
 void IAGSEngine::DisableSound() {
     shutdown_sound();
-    usetup.digicard = DIGI_NONE;
-    usetup.midicard = MIDI_NONE;
-    install_sound(usetup.digicard,usetup.midicard,NULL);
+    usetup.DigitalSoundCard = DIGI_NONE;
+    usetup.MidiSoundCard = MIDI_NONE;
+    install_sound(usetup.DigitalSoundCard,usetup.MidiSoundCard,NULL);
 }
 int IAGSEngine::CanRunScriptFunctionNow() {
     if (inside_script)

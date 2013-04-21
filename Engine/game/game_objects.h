@@ -19,6 +19,7 @@
 #define __AGS_EE_GAME__GAME_OBJECTS_H
 
 #include "game/gameinfo.h"
+#include "game/gamesetup.h"
 #include "game/gamestate.h"
 #include "game/roominfo.h"
 #include "game/roomstate.h"
@@ -40,5 +41,7 @@ extern AGS::Engine::RoomState troom;
 extern AGS::Engine::RoomObject* objs;
 // dynamic game data
 extern AGS::Engine::GameState play;
+// game runtime configuration
+extern AGS::Engine::GameSetup usetup;
 
 #endif // __AGS_EE_GAME__GAME_OBJECTS_H

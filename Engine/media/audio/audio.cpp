@@ -20,7 +20,6 @@
 #include "script/script_runtime.h"
 #include "ac/audiochannel.h"
 #include "ac/audioclip.h"
-#include "ac/gamesetup.h"
 #include "game/game_objects.h"
 #include "media/audio/sound.h"
 #include "debug/debug_log.h"
@@ -36,7 +35,6 @@ using AGS::Common::Stream;
 AGS::Engine::Mutex _audio_mutex;
 volatile bool _audio_doing_crossfade;
 
-extern GameSetup usetup;
 extern CharacterInfo*playerchar;
 
 extern int psp_is_old_datafile;
@@ -219,7 +217,7 @@ int find_free_audio_channel(ScriptAudioClip *clip, int priority, bool interruptE
 SOUNDCLIP *load_sound_clip(ScriptAudioClip *audioClip, bool repeat)
 {
     const char *clipFileName = get_audio_clip_file_name(audioClip);
-    if ((clipFileName == NULL) || (usetup.digicard == DIGI_NONE))
+    if ((clipFileName == NULL) || (usetup.DigitalSoundCard == DIGI_NONE))
     {
         return NULL;
     }
@@ -678,7 +676,7 @@ void shutdown_sound()
     stop_all_sound_and_music();
 
 #ifndef PSP_NO_MOD_PLAYBACK
-    if (opts.mod_player)
+    if (usetup.ModPlayer)
         remove_mod_player();
 #endif
     remove_sound();
@@ -1091,7 +1089,7 @@ SOUNDCLIP *load_music_from_disk(int mnum, bool doRepeat) {
 void play_new_music(int mnum, SOUNDCLIP *music) {
     if (debug_flags & DBG_NOMUSIC)
         return;
-    if (usetup.midicard == MIDI_NONE)
+    if (usetup.MidiSoundCard == MIDI_NONE)
         return;
 
     if ((play.CurrentMusicIndex == mnum) && (music == NULL)) {

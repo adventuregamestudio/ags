@@ -18,8 +18,8 @@
 #include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/game.h"
-#include "ac/gamesetup.h"
 #include "ac/gamestructdefines.h"
+#include "game/game_objects.h"
 #include "gui/cscidialog.h"
 #include <cctype> //isdigit()
 #include "gfx/graphicsdriver.h"
@@ -30,7 +30,6 @@ using AGS::Common::Bitmap;
 using AGS::Common::Graphics;
 
 extern IGraphicsDriver *gfxDriver;
-extern GameSetup usetup;
 
 // from ac_game
 extern char saveGameDirectory[260];
@@ -74,7 +73,7 @@ int loadgamedialog()
 {
   int boxleft = myscrnwid / 2 - 100;
   int boxtop = myscrnhit / 2 - 60;
-  int buttonhit = usetup.textheight + 5;
+  int buttonhit = usetup.TextHeight + 5;
   Common::Graphics *g = GetVirtualScreenGraphics();
   int handl = CSCIDrawWindow(g, boxleft, boxtop, 200, 120);
   int ctrlok =
@@ -127,7 +126,7 @@ int savegamedialog()
   strcpy(labeltext, get_global_message(MSG_SAVEDIALOG));
   int boxleft = myscrnwid / 2 - 100;
   int boxtop = myscrnhit / 2 - 60;
-  int buttonhit = usetup.textheight + 5;
+  int buttonhit = usetup.TextHeight + 5;
   int labeltop = boxtop + 5;
   Common::Graphics *g = GetVirtualScreenGraphics();
   int handl = CSCIDrawWindow(g, boxleft, boxtop, 200, 120);
@@ -376,7 +375,7 @@ int roomSelectorWindow(int currentRoom, int numRooms, const Common::Array<int32_
   strcpy(labeltext, get_global_message(MSG_SAVEDIALOG));
   int boxleft = myscrnwid / 2 - 120;
   int boxtop = myscrnhit / 2 - 80;
-  int buttonhit = usetup.textheight + 5;
+  int buttonhit = usetup.TextHeight + 5;
   int labeltop = boxtop + 5;
   Common::Graphics *g = GetVirtualScreenGraphics();
   int handl = CSCIDrawWindow(g, boxleft, boxtop, 240, 160);

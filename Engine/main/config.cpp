@@ -16,7 +16,6 @@
 // Game configuration
 //
 
-#include "ac/gamesetup.h"
 #include "ac/spritecache.h"
 #include "game/game_objects.h"
 #include "main/mainheader.h"
@@ -30,7 +29,6 @@ using AGS::Common::Stream;
 using AGS::Common::TextStreamReader;
 using AGS::Common::String;
 
-extern GameSetup usetup;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
 extern int psp_video_framedrop;
@@ -161,26 +159,26 @@ void read_config_file(char *argv0) {
     }
 
     // set default dir if no config file
-    usetup.data_files_dir = ".";
-    usetup.translation = NULL;
+    usetup.DataFilesDir = ".";
+    usetup.Translation.Empty();
 #ifdef WINDOWS_VERSION
-    usetup.digicard = DIGI_DIRECTAMX(0);
+    usetup.DigitalSoundCard = DIGI_DIRECTAMX(0);
 #endif
 
     // Don't read in the standard config file if disabled.
     if (psp_ignore_acsetup_cfg_file)
     {
-        usetup.gfxDriverID = "DX5";
-        usetup.enable_antialiasing = psp_gfx_smooth_sprites;
-        usetup.translation = psp_translation;
+        usetup.GfxDriverID = "DX5";
+        usetup.EnableAntiAliasing = psp_gfx_smooth_sprites != 0;
+        usetup.Translation = psp_translation;
         return;
     }
 
     if (Common::File::TestReadFile(ac_config_file)) {
         strcpy(filetouse,ac_config_file);
 #ifndef WINDOWS_VERSION
-        usetup.digicard=INIreadint("sound","digiid");
-        usetup.midicard=INIreadint("sound","midiid");
+        usetup.DigitalSoundCard=INIreadint("sound","digiid");
+        usetup.MidiSoundCard=INIreadint("sound","midiid");
 #else
         int idx = INIreadint("sound","digiwinindx", 0);
         if (idx == 0)
@@ -193,7 +191,7 @@ void read_config_file(char *argv0) {
             idx = DIGI_DIRECTX(0);
         else 
             idx = DIGI_AUTODETECT;
-        usetup.digicard = idx;
+        usetup.DigitalSoundCard = idx;
 
         idx = INIreadint("sound","midiwinindx", 0);
         if (idx == 1)
@@ -202,22 +200,25 @@ void read_config_file(char *argv0) {
             idx = MIDI_WIN32MAPPER;
         else
             idx = MIDI_AUTODETECT;
-        usetup.midicard = idx;
+        usetup.MidiSoundCard = idx;
 
-        if (usetup.digicard < 0)
-            usetup.digicard = DIGI_AUTODETECT;
-        if (usetup.midicard < 0)
-            usetup.midicard = MIDI_AUTODETECT;
+        if (usetup.DigitalSoundCard < 0)
+            usetup.DigitalSoundCard = DIGI_AUTODETECT;
+        if (usetup.MidiSoundCard < 0)
+            usetup.MidiSoundCard = MIDI_AUTODETECT;
 #endif
 
-        usetup.windowed = INIreadint("misc","windowed");
-        if (usetup.windowed < 0)
-            usetup.windowed = 0;
+        usetup.Windowed = INIreadint("misc","windowed");
+        if (usetup.Windowed < 0)
+            usetup.Windowed = 0;
 
-        usetup.refresh = INIreadint ("misc", "refresh", 0);
-        usetup.enable_antialiasing = INIreadint ("misc", "antialias", 0);
-        usetup.force_hicolor_mode = INIreadint("misc", "notruecolor", 0);
-        usetup.enable_side_borders = INIreadint("misc", "sideborders", 0);
+        usetup.RefreshRate = INIreadint ("misc", "refresh", 0);
+        int enable_anti_alias = INIreadint ("misc", "antialias", 0) != 0;
+        usetup.EnableAntiAliasing = enable_anti_alias > 0;
+        int no_true_color = INIreadint("misc", "notruecolor", 0);
+        usetup.ForceHicolorMode = no_true_color > 0;
+        int side_borders = INIreadint("misc", "sideborders", 0);
+        usetup.EnableSideBorders = side_borders != 0;
 
 #if defined(IOS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
         // PSP: Letterboxing is not useful on the PSP.
@@ -226,51 +227,47 @@ void read_config_file(char *argv0) {
         force_letterbox = INIreadint ("misc", "forceletterbox", 0);
 #endif
 
-        if (usetup.enable_antialiasing < 0)
-            usetup.enable_antialiasing = 0;
-        if (usetup.force_hicolor_mode < 0)
-            usetup.force_hicolor_mode = 0;
-        if (usetup.enable_side_borders < 0)
-            usetup.enable_side_borders = 1;
-
         // This option is backwards (usevox is 0 if no_speech_pack)
-        usetup.no_speech_pack = INIreadint ("sound", "usespeech", 0);
-        if (usetup.no_speech_pack == 0)
-            usetup.no_speech_pack = 1;
-        else
-            usetup.no_speech_pack = 0;
+        int no_speech = INIreadint ("sound", "usespeech", 0) != 0;
+        usetup.NoSpeechPack = no_speech == 0;
 
-        usetup.data_files_dir = INIreaditem("misc","datadir");
-        if (usetup.data_files_dir.IsEmpty())
-            usetup.data_files_dir = ".";
+        usetup.DataFilesDir = INIreaditem("misc","datadir");
+        if (usetup.DataFilesDir.IsEmpty())
+            usetup.DataFilesDir = ".";
         // strip any trailing slash
         // TODO: move this to Path namespace later
-        AGS::Common::Path::FixupPath(usetup.data_files_dir);
+        AGS::Common::Path::FixupPath(usetup.DataFilesDir);
 #if defined (WINDOWS_VERSION)
         // if the path is just x:\ don't strip the slash
-        if (!(usetup.data_files_dir.GetLength() < 4 && usetup.data_files_dir[1] == ':'))
+        if (!(usetup.DataFilesDir.GetLength() < 4 && usetup.DataFilesDir[1] == ':'))
         {
-            usetup.data_files_dir.TrimRight('/');
+            usetup.DataFilesDir.TrimRight('/');
         }
 #else
-        usetup.data_files_dir.TrimRight('/');
+        usetup.DataFilesDir.TrimRight('/');
 #endif
-        usetup.main_data_filename = INIreaditem ("misc", "datafile");
+        usetup.MainDataFilename = INIreaditem ("misc", "datafile");
 
 #if defined(IOS_VERSION) || defined(PSP_VERSION) || defined(ANDROID_VERSION)
         // PSP: No graphic filters are available.
-        usetup.gfxFilterID = NULL;
+        usetup.GfxFilterID.Empty();
 #else
-        usetup.gfxFilterID = INIreaditem("misc", "gfxfilter");
+        char *gfx_filter = INIreaditem("misc", "gfxfilter");
+        usetup.GfxFilterID = gfx_filter;
+        free(gfx_filter);
 #endif
 
 #if defined (WINDOWS_VERSION)
-        usetup.gfxDriverID = INIreaditem("misc", "gfxdriver");
+        char *gfx_driver = INIreaditem("misc", "gfxdriver");
+        usetup.GfxDriverID = gfx_driver;
+        free(gfx_driver);
 #else
-        usetup.gfxDriverID = "DX5";
+        usetup.GfxDriverID = "DX5";
 #endif
 
-        usetup.translation = INIreaditem ("language", "translation");
+        char *translation = INIreaditem ("language", "translation");
+        usetup.Translation = translation;
+        free(translation);
 
 #if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
         // PSP: Don't let the setup determine the cache size as it is always too big.
@@ -290,7 +287,7 @@ void read_config_file(char *argv0) {
 
     }
 
-    if (usetup.gfxDriverID == NULL)
-        usetup.gfxDriverID = "DX5";
+    if (usetup.GfxDriverID.IsEmpty())
+        usetup.GfxDriverID = "DX5";
 
 }

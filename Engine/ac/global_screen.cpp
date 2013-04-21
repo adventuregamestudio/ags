@@ -14,9 +14,7 @@
 
 #include "gfx/ali3d.h"
 #include "ac/common.h"
-#include "ac/gamesetup.h"
 #include "ac/draw.h"
-#include "ac/gamesetup.h"
 #include "ac/global_game.h"
 #include "ac/global_screen.h"
 #include "ac/runtime_defines.h"
@@ -30,7 +28,6 @@
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
-extern GameSetup usetup;
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
 extern color palette[256];
@@ -48,7 +45,7 @@ int GetMaxScreenHeight () {
     if ((maxhit == 200) || (maxhit == 400))
     {
         // uh ... BASEHEIGHT depends on Native Coordinates setting so be careful
-        if ((usetup.want_letterbox) && (thisroom.Height > maxhit)) 
+        if ((usetup.WantLetterbox) && (thisroom.Height > maxhit)) 
             maxhit = divide_down_coordinate(multiply_up_coordinate(maxhit) + get_fixed_pixel_size(40));
     }
     return maxhit;

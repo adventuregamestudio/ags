@@ -15,7 +15,6 @@
 #define USE_CLIB
 #include "ac/file.h"
 #include "ac/common.h"
-#include "ac/gamesetup.h"
 #include "ac/global_file.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
@@ -53,7 +52,6 @@ extern "C" {
 #endif
 }
 
-extern GameSetup usetup;
 extern char saveGameDirectory[260];
 extern AGSPlatformDriver *platform;
 
@@ -217,13 +215,13 @@ PACKFILE *pack_fopen(char *filnam1, char *modd1) {
     gfname[ii] = '\0';
 /*    char useloc[250];
 #ifdef LINUX_VERSION
-    sprintf(useloc,"%s/%s",usetup.data_files_dir,gfname);
+    sprintf(useloc,"%s/%s",usetup.DataFilesDir,gfname);
 #else
-    sprintf(useloc,"%s\\%s",usetup.data_files_dir,gfname);
+    sprintf(useloc,"%s\\%s",usetup.DataFilesDir,gfname);
 #endif
     Common::AssetManager::SetDataFile(useloc);*/
     
-    char *libname = ci_find_file(usetup.data_files_dir, gfname);
+    char *libname = ci_find_file(usetup.DataFilesDir, gfname);
     if (Common::AssetManager::SetDataFile(libname) != Common::kAssetNoError)
     {
       // Hack for running in Debugger

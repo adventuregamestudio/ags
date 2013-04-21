@@ -18,7 +18,6 @@
 
 #include "gfx/ali3d.h"
 #include "ac/cdaudio.h"
-#include "ac/gamesetup.h"
 #include "ac/record.h"
 #include "ac/translation.h"
 #include "debug/agseditordebugger.h"
@@ -42,7 +41,6 @@ namespace Out = AGS::Common::Out;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
 extern int our_eip;
-extern GameSetup usetup;
 extern char pexbuf[STD_BUFFER_SIZE];
 extern int proper_exit;
 extern char check_dynamic_sprites_at_exit;
@@ -120,7 +118,7 @@ void quit_shutdown_audio()
     game.Options[OPT_CROSSFADEMUSIC] = 0;
     stopmusic();
 #ifndef PSP_NO_MOD_PLAYBACK
-    if (opts.mod_player)
+    if (usetup.ModPlayer)
         remove_mod_player();
 #endif
 

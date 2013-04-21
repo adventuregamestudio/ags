@@ -261,10 +261,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\ac\gamesetup.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\ac\global_api.cpp"
 					>
 				</File>
@@ -1065,6 +1061,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\game\gamesetup.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\game\gamestate.cpp"
 					>
 				</File>
@@ -1152,10 +1152,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\ac\game.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\ac\gamesetup.h"
 					>
 				</File>
 				<File
@@ -2056,6 +2052,10 @@
 				>
 				<File
 					RelativePath="..\..\Engine\game\game_objects.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\game\gamesetup.h"
 					>
 				</File>
 				<File

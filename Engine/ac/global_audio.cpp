@@ -16,7 +16,6 @@
 #include "ac/common.h"
 #include "ac/file.h"
 #include "ac/game.h"
-#include "ac/gamesetup.h"
 #include "ac/global_audio.h"
 #include "ac/lipsync.h"
 #include "debug/debug_log.h"
@@ -25,7 +24,6 @@
 #include "media/audio/audio.h"
 #include "media/audio/sound.h"
 
-extern GameSetup usetup;
 extern char *speech_file;
 extern SpeechLipSyncLine *splipsync;
 extern int numLipLines, curLipLine, curLipLinePhenome;
@@ -48,7 +46,7 @@ void PlayAmbientSound (int channel, int sndnum, int vol, int x, int y) {
     if ((vol < 1) || (vol > 255))
         quit("!PlayAmbientSound: volume must be 1 to 255");
 
-    if (usetup.digicard == DIGI_NONE)
+    if (usetup.DigitalSoundCard == DIGI_NONE)
         return;
 
     // only play the sound if it's not already playing
@@ -116,7 +114,7 @@ int PlaySoundEx(int val1, int channel) {
         return -1;
 
     // if no sound, ignore it
-    if (usetup.digicard == DIGI_NONE)
+    if (usetup.DigitalSoundCard == DIGI_NONE)
         return -1;
 
     if ((channel < SCHAN_NORMAL) || (channel >= MAX_SOUND_CHANNELS))
@@ -202,7 +200,7 @@ int IsMusicPlaying() {
     if ((play.FastForwardCutscene) && (play.SkipUntilCharacterStops < 0))
         return 0;
 
-    if (usetup.midicard == MIDI_NONE)
+    if (usetup.MidiSoundCard == MIDI_NONE)
         return 0;
 
     if (current_music_type != 0) {

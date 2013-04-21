@@ -16,7 +16,6 @@
 #include "gfx/ali3d.h"
 #include "media/audio/audiodefines.h"
 #include "ac/draw.h"
-#include "ac/gamesetup.h"
 #include "ac/mouse.h"
 #include "ac/string.h"
 #include "ac/system.h"
@@ -28,7 +27,6 @@
 #include "gfx/graphicsdriver.h"
 #include "ac/dynobj/cc_audiochannel.h"
 
-extern GameSetup usetup;
 extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
 extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
@@ -106,7 +104,7 @@ void System_SetVsync(int newValue) {
 }
 
 int System_GetWindowed() {
-    if (usetup.windowed)
+    if (usetup.Windowed)
         return 1;
     return 0;
 }

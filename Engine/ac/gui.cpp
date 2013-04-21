@@ -17,7 +17,6 @@
 #include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/draw.h"
-#include "ac/gamesetup.h"
 #include "ac/global_game.h"
 #include "ac/global_gui.h"
 #include "ac/global_screen.h"
@@ -44,7 +43,6 @@ using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 
-extern GameSetup usetup;
 extern GUIMain*guis;
 extern GFXFilter *filter;
 extern int cur_mode,cur_cursor;

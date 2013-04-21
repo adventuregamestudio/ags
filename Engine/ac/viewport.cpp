@@ -15,12 +15,10 @@
 #include "ac/viewport.h"
 #include "ac/draw.h"
 #include "ac/characterinfo.h"
-#include "ac/gamesetup.h"
 #include "game/game_objects.h"
 
 extern int offsetx, offsety;
 extern int scrnwid,scrnhit;
-extern GameSetup usetup;
 extern CharacterInfo*playerchar;
 
 void check_viewport_coords() 

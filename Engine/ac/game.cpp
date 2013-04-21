@@ -27,7 +27,6 @@
 #include "ac/event.h"
 #include "ac/file.h"
 #include "ac/game.h"
-#include "ac/gamesetup.h"
 #include "ac/global_audio.h"
 #include "ac/global_character.h"
 #include "ac/global_display.h"
@@ -140,7 +139,6 @@ extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 extern IGraphicsDriver *gfxDriver;
 
 //=============================================================================
-GameSetup usetup;
 
 volatile int switching_away_from_game = 0;
 volatile char want_exit = 0, abort_engine = 0;
@@ -781,7 +779,7 @@ void Game_SetIgnoreUserInputAfterTextTimeoutMs(int newValueMs)
 }
 
 const char *Game_GetFileName() {
-    return CreateNewScriptString(usetup.main_data_filename);
+    return CreateNewScriptString(usetup.MainDataFilename);
 }
 
 const char *Game_GetName() {
@@ -1036,7 +1034,7 @@ void save_game_header(Stream *out)
     {
         fputstring(SavedgameLowestForwardCompatVersion.LongString, out);
     }
-    fputstring(usetup.main_data_filename, out);
+    fputstring(usetup.MainDataFilename, out);
 }
 
 void save_game_head_dynamic_values(Stream *out)
@@ -1564,7 +1562,7 @@ int restore_game_header(Stream *in)
     }
     fgetstring_limit (rbuffer, in, 180);
     rbuffer[180] = 0;
-    if (stricmp (rbuffer, usetup.main_data_filename)) {
+    if (stricmp (rbuffer, usetup.MainDataFilename)) {
         return -5;
     }
 

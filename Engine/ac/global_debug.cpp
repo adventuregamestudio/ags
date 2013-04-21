@@ -19,7 +19,6 @@
 #include "ac/characterinfo.h"
 #include "ac/draw.h"
 #include "ac/game.h"
-#include "ac/gamesetup.h"
 #include "ac/global_character.h"
 #include "ac/global_display.h"
 #include "ac/global_room.h"
@@ -43,7 +42,6 @@ using AGS::Common::Bitmap;
 using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
-extern GameSetup usetup;
 extern CharacterInfo*playerchar;
 
 extern int convert_16bit_bgr;
@@ -82,7 +80,7 @@ void script_debug(int cmdd,int dataa) {
             strcat(toDisplay,"[Using translation ");
             strcat(toDisplay, transFileName);
         }
-        if (opts.mod_player == 0)
+        if (!usetup.ModPlayer)
             strcat(toDisplay,"[(mod/xm player discarded)");
         Display(toDisplay);
         //    Display("shftR: %d  shftG: %d  shftB: %d", _rgb_r_shift_16, _rgb_g_shift_16, _rgb_b_shift_16);

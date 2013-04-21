@@ -92,7 +92,6 @@
 #define FOR_ANIMATION 1
 #define FOR_SCRIPT    2
 #define FOR_EXITLOOP  3
-#define opts usetup
 #define CHMLSOFFS (MAX_INIT_SPR+1)    // reserve this many movelists for objects & stuff
 #define MAX_SCREEN_OVERLAYS 20
 #define abort_all_conditions restrict_until
@@ -132,8 +131,8 @@
 #define HWND long
 #endif
 
-#define BASEWIDTH usetup.base_width
-#define BASEHEIGHT usetup.base_height
+#define BASEWIDTH usetup.BaseWidth
+#define BASEHEIGHT usetup.BaseHeight
 #define TRANS_ALPHA_CHANNEL 20000
 #define TRANS_OPAQUE        20001
 #define TRANS_RUN_PLUGIN    20002

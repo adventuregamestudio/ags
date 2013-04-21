@@ -21,7 +21,6 @@
 #include "ac/common.h"
 #include "ac/display.h"
 #include "ac/draw.h"
-#include "ac/gamesetup.h"
 #include "ac/walkbehind.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
@@ -39,7 +38,6 @@ using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 namespace Out = AGS::Common::Out;
 
-extern GameSetup usetup;
 extern int proper_exit;
 extern GUIMain*guis;
 extern int psp_gfx_renderer; // defined in ali3dogl
@@ -173,28 +171,28 @@ void engine_init_screen_settings()
     _rgb_b_shift_15 = 0;
 #endif
 
-    usetup.base_width = 320;
-    usetup.base_height = 200;
+    usetup.BaseWidth = 320;
+    usetup.BaseHeight = 200;
 
     if (game.DefaultResolution >= 5)
     {
         if (game.DefaultResolution >= 6)
         {
             // 1024x768
-            usetup.base_width = 512;
-            usetup.base_height = 384;
+            usetup.BaseWidth = 512;
+            usetup.BaseHeight = 384;
         }
         else
         {
             // 800x600
-            usetup.base_width = 400;
-            usetup.base_height = 300;
+            usetup.BaseWidth = 400;
+            usetup.BaseHeight = 300;
         }
         // don't allow letterbox mode
         game.Options[OPT_LETTERBOX] = 0;
         force_letterbox = 0;
-        scrnwid = usetup.base_width * 2;
-        scrnhit = usetup.base_height * 2;
+        scrnwid = usetup.BaseWidth * 2;
+        scrnhit = usetup.BaseHeight * 2;
         wtext_multiply = 2;
     }
     else if ((game.DefaultResolution == 4) ||
@@ -213,12 +211,12 @@ void engine_init_screen_settings()
     }
     else
     {
-        scrnwid = usetup.base_width;
-        scrnhit = usetup.base_height;
+        scrnwid = usetup.BaseWidth;
+        scrnhit = usetup.BaseHeight;
         wtext_multiply = 1;
     }
 
-    usetup.textheight = wgetfontheight(0) + 1;
+    usetup.TextHeight = wgetfontheight(0) + 1;
 
     vesa_xres=scrnwid; vesa_yres=scrnhit;
     //scrnwto=scrnwid-1; scrnhto=scrnhit-1;
@@ -227,25 +225,25 @@ void engine_init_screen_settings()
     if ((game.DefaultResolution > 2) &&
         (game.Options[OPT_NATIVECOORDINATES]))
     {
-        usetup.base_width *= 2;
-        usetup.base_height *= 2;
+        usetup.BaseWidth *= 2;
+        usetup.BaseHeight *= 2;
     }
 
     initasx=scrnwid,initasy=scrnhit;
     if (scrnwid==960) { initasx=1024; initasy=768; }
 
     // save this setting so we only do 640x480 full-screen if they want it
-    usetup.want_letterbox = game.Options[OPT_LETTERBOX];
+    usetup.WantLetterbox = game.Options[OPT_LETTERBOX] != 0;
 
     if (force_letterbox > 0)
         game.Options[OPT_LETTERBOX] = 1;
 
     // don't allow them to force a 256-col game to hi-color
     if (game.ColorDepth < 2)
-        usetup.force_hicolor_mode = 0;
+        usetup.ForceHicolorMode = false;
 
     firstDepth = 8, secondDepth = 8;
-    if ((game.ColorDepth == 2) || (force_16bit) || (usetup.force_hicolor_mode)) {
+    if ((game.ColorDepth == 2) || (force_16bit) || (usetup.ForceHicolorMode)) {
         firstDepth = 16;
         secondDepth = 15;
     }
@@ -262,7 +260,7 @@ int initialize_graphics_filter(const char *filterID, int width, int height, int 
     int idx = 0;
     GFXFilter **filterList;
 
-    if (stricmp(usetup.gfxDriverID, "D3D9") == 0)
+    if (stricmp(usetup.GfxDriverID, "D3D9") == 0)
     {
         filterList = get_d3d_gfx_filter_list(false);
     }
@@ -301,20 +299,20 @@ int engine_init_gfx_filters()
 {
     Out::FPrint("Init gfx filters");
 
-    char *gfxfilter = NULL;
+    const char *gfxfilter;
 
     if (force_gfxfilter[0]) {
         gfxfilter = force_gfxfilter;
     }
-    else if (usetup.gfxFilterID) {
-        gfxfilter = usetup.gfxFilterID;
+    else if (!usetup.GfxFilterID.IsEmpty()) {
+        gfxfilter = usetup.GfxFilterID;
     }
 #if defined (WINDOWS_VERSION) || defined (LINUX_VERSION)
     else {
         int desktopWidth, desktopHeight;
         if (get_desktop_resolution(&desktopWidth, &desktopHeight) == 0)
         {
-            if (usetup.windowed > 0)
+            if (usetup.Windowed > 0)
                 desktopHeight -= 100;
 
             // calculate the correct game height when in letterbox mode
@@ -353,7 +351,7 @@ int engine_init_gfx_filters()
 void create_gfx_driver() 
 {
 #ifdef WINDOWS_VERSION
-    if (stricmp(usetup.gfxDriverID, "D3D9") == 0)
+    if (stricmp(usetup.GfxDriverID, "D3D9") == 0)
         gfxDriver = GetD3DGraphicsDriver(filter);
     else
 #endif
@@ -382,8 +380,8 @@ int init_gfx_mode(int wid,int hit,int cdep) {
 
     Out::FPrint("Attempt to switch gfx mode to %d x %d (%d-bit)", wid, hit, cdep);
 
-    if (usetup.refresh >= 50)
-        request_refresh_rate(usetup.refresh);
+    if (usetup.RefreshRate >= 50)
+        request_refresh_rate(usetup.RefreshRate);
 
     final_scrn_wid = wid;
     final_scrn_hit = hit;
@@ -396,16 +394,16 @@ int init_gfx_mode(int wid,int hit,int cdep) {
         set_color_depth(cdep);
     }
 
-    working_gfx_mode_status = (gfxDriver->Init(wid, hit, final_col_dep, usetup.windowed > 0, &timerloop) ? 0 : -1);
+    working_gfx_mode_status = (gfxDriver->Init(wid, hit, final_col_dep, usetup.Windowed > 0, &timerloop) ? 0 : -1);
 
     if (working_gfx_mode_status == 0) 
         Out::FPrint("Succeeded. Using gfx mode %d x %d (%d-bit)", wid, hit, final_col_dep);
     else
         Out::FPrint("Failed, resolution not supported");
 
-    if ((working_gfx_mode_status < 0) && (usetup.windowed > 0) && (editor_debugging_enabled == 0)) {
-        usetup.windowed ++;
-        if (usetup.windowed > 2) usetup.windowed = 0;
+    if ((working_gfx_mode_status < 0) && (usetup.Windowed > 0) && (editor_debugging_enabled == 0)) {
+        usetup.Windowed ++;
+        if (usetup.Windowed > 2) usetup.Windowed = 0;
         return init_gfx_mode(wid,hit,cdep);
     }
     return working_gfx_mode_status;    
@@ -414,12 +412,12 @@ int init_gfx_mode(int wid,int hit,int cdep) {
 int try_widescreen_bordered_graphics_mode_if_appropriate(int initasx, int initasy, int firstDepth)
 {
     if (working_gfx_mode_status == 0) return 0;
-    if (usetup.enable_side_borders == 0)
+    if (usetup.EnableSideBorders == 0)
     {
         Out::FPrint("Widescreen side borders: disabled in Setup");
         return 1;
     }
-    if (usetup.windowed > 0)
+    if (usetup.Windowed > 0)
     {
         Out::FPrint("Widescreen side borders: disabled (windowed mode)");
         return 1;
@@ -520,8 +518,8 @@ int engine_init_graphics_mode()
     {
         bool errorAndExit = true;
 
-        if (((usetup.gfxFilterID == NULL) || 
-            (stricmp(usetup.gfxFilterID, "None") == 0)) &&
+        if (((usetup.GfxFilterID.IsEmpty()) || 
+            (stricmp(usetup.GfxFilterID, "none") == 0)) &&
             (scrnwid == 320))
         {
             // If the game is 320x200 and no filter is being used, try using a 2x

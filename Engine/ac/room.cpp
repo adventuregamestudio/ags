@@ -22,7 +22,6 @@
 #include "ac/draw.h"
 #include "ac/event.h"
 #include "ac/game.h"
-#include "ac/gamesetup.h"
 #include "ac/global_audio.h"
 #include "ac/global_character.h"
 #include "ac/global_game.h"
@@ -71,7 +70,6 @@ namespace Out = AGS::Common::Out;
 #include <ctype.h>
 #endif
 
-extern GameSetup usetup;
 extern int displayed_room;
 extern ccInstance *roominst;
 extern AGSPlatformDriver *platform;
@@ -485,7 +483,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     update_polled_stuff_if_runtime();
 
     our_eip=202;
-    if (usetup.want_letterbox) {
+    if (usetup.WantLetterbox) {
         int abscreen=0;
 
         Common::Graphics *g = GetVirtualScreenGraphics();

@@ -18,7 +18,6 @@
 #include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/draw.h"
-#include "ac/gamesetup.h"
 #include "ac/global_game.h"
 #include "ac/mouse.h"
 #include "ac/record.h"
@@ -37,8 +36,6 @@ using AGS::Common::Stream;
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 namespace Out = AGS::Common::Out;
-
-extern GameSetup usetup;
 
 // defined in media/video/video.h
 extern int canabort, stretch_flc;
@@ -147,7 +144,7 @@ void scrPlayVideo(const char* name, int skip, int flags) {
     if (debug_flags & DBG_NOVIDEO)
         return;
 
-    if ((flags < 10) && (usetup.digicard == DIGI_NONE)) {
+    if ((flags < 10) && (usetup.DigitalSoundCard == DIGI_NONE)) {
         // if game audio is disabled in Setup, then don't
         // play any sound on the video either
         flags += 10;

@@ -21,7 +21,6 @@
 #include "ac/characterinfo.h"
 #include "ac/display.h"
 #include "ac/draw.h"
-#include "ac/gamesetup.h"
 #include "ac/global_game.h"
 #include "ac/global_gui.h"
 #include "ac/global_region.h"
@@ -68,7 +67,6 @@ extern "C" void android_render();
 extern "C" void ios_render();
 #endif
 
-extern GameSetup usetup;
 extern int current_screen_resolution_multiplier;
 extern int scrnwid,scrnhit;
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
@@ -738,7 +736,7 @@ void render_to_screen(Bitmap *toRender, int atx, int aty) {
 
     // only vsync in full screen mode, it makes things worse
     // in a window
-    gfxDriver->EnableVsyncBeforeRender((scsystem.vsync > 0) && (usetup.windowed == 0));
+    gfxDriver->EnableVsyncBeforeRender((scsystem.vsync > 0) && (usetup.Windowed == 0));
 
     bool succeeded = false;
     while (!succeeded)

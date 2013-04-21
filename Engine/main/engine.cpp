@@ -24,7 +24,6 @@
 #include "ac/characterinfo.h"
 #include "ac/draw.h"
 #include "ac/game.h"
-#include "ac/gamesetup.h"
 #include "ac/global_character.h"
 #include "ac/global_game.h"
 #include "ac/gui.h"
@@ -72,7 +71,6 @@ extern char **global_argv;
 extern char check_dynamic_sprites_at_exit;
 extern int our_eip;
 extern volatile char want_exit, abort_engine;
-extern GameSetup usetup;
 extern int proper_exit;
 extern char pexbuf[STD_BUFFER_SIZE];
 extern char saveGameDirectory[260];
@@ -207,9 +205,9 @@ void engine_force_window()
 {
     // Force to run in a window, override the config file
     if (force_window == 1)
-        usetup.windowed = 1;
+        usetup.Windowed = 1;
     else if (force_window == 2)
-        usetup.windowed = 0;
+        usetup.Windowed = 0;
 }
 
 void init_game_file_name_from_cmdline()
@@ -357,9 +355,9 @@ void initialise_game_file_name()
         }
     }
     // 2. From setup
-    else if (!usetup.main_data_filename.IsEmpty())
+    else if (!usetup.MainDataFilename.IsEmpty())
     {
-        game_file_name = usetup.main_data_filename;
+        game_file_name = usetup.MainDataFilename;
         AGS::Common::Path::FixupPath(game_file_name);
     }
     // 3. Look in known locations
@@ -443,15 +441,15 @@ int engine_init_game_data(int argc,char*argv[])
     }
 
     // Save data file name and data folder
-    usetup.main_data_filename = get_filename(game_file_name);
+    usetup.MainDataFilename = get_filename(game_file_name);
     // There is a path in the game file name (and the user/ has not specified
     // another one) save the path, so that it can load the VOX files, etc
-    if (usetup.data_files_dir.Compare(".") == 0)
+    if (usetup.DataFilesDir.Compare(".") == 0)
     {
         int ichar = game_file_name.FindCharReverse('/');
         if (ichar >= 0)
         {
-            usetup.data_files_dir = game_file_name.Left(ichar);
+            usetup.DataFilesDir = game_file_name.Left(ichar);
         }
     }
 
@@ -508,10 +506,10 @@ int engine_init_speech()
 {
     play.SpeechVoiceMode=-2;
 
-    if (usetup.no_speech_pack == 0) {
+    if (!usetup.NoSpeechPack) {
         /* Can't just use fopen here, since we need to change the filename
         so that pack functions, etc. will have the right case later */
-        speech_file = ci_find_file(usetup.data_files_dir, "speech.vox");
+        speech_file = ci_find_file(usetup.DataFilesDir, "speech.vox");
 
         Stream *speech_s = ci_fopen(speech_file);
 
@@ -571,7 +569,7 @@ int engine_init_music()
 
     /* Can't just use fopen here, since we need to change the filename
     so that pack functions, etc. will have the right case later */
-    music_file = ci_find_file(usetup.data_files_dir, "audio.vox");
+    music_file = ci_find_file(usetup.DataFilesDir, "audio.vox");
 
     /* Don't need to use ci_fopen here, because we've used ci_find_file to get
     the case insensitive matched filename already */
@@ -618,7 +616,7 @@ void engine_init_timer()
     Out::FPrint("Install timer");
 
     platform->WriteConsole("Checking sound inits.\n");
-    if (opts.mod_player) reserve_voices(16,-1);
+    if (usetup.ModPlayer) reserve_voices(16,-1);
     // maybe this line will solve the sound volume?
     // [IKM] does this refer to install_timer or set_volume_per_voice?
     install_timer();
@@ -631,10 +629,10 @@ void engine_init_sound()
 {
 #ifdef WINDOWS_VERSION
     // don't let it use the hardware mixer verion, crashes some systems
-    //if ((usetup.digicard == DIGI_AUTODETECT) || (usetup.digicard == DIGI_DIRECTX(0)))
-    //    usetup.digicard = DIGI_DIRECTAMX(0);
+    //if ((usetup.DigitalSoundCard == DIGI_AUTODETECT) || (usetup.DigitalSoundCard == DIGI_DIRECTX(0)))
+    //    usetup.DigitalSoundCard = DIGI_DIRECTAMX(0);
 
-    if (usetup.digicard == DIGI_DIRECTX(0)) {
+    if (usetup.DigitalSoundCard == DIGI_DIRECTX(0)) {
         // DirectX mixer seems to buffer an extra sample itself
         use_extra_sound_offset = 1;
     }
@@ -651,33 +649,33 @@ void engine_init_sound()
     // PSP: Disable sound by config file.
     if (!psp_audio_enabled)
     {
-        usetup.digicard = DIGI_NONE;
-        usetup.midicard = MIDI_NONE;
+        usetup.DigitalSoundCard = DIGI_NONE;
+        usetup.MidiSoundCard = MIDI_NONE;
     }
 
     if (!psp_midi_enabled)
-        usetup.midicard = MIDI_NONE;
+        usetup.MidiSoundCard = MIDI_NONE;
 
-    if (install_sound(usetup.digicard,usetup.midicard,NULL)!=0) {
+    if (install_sound(usetup.DigitalSoundCard,usetup.MidiSoundCard,NULL)!=0) {
         reserve_voices(-1,-1);
-        opts.mod_player=0;
-        opts.mp3_player=0;
-        if (install_sound(usetup.digicard,usetup.midicard,NULL)!=0) {
-            if ((usetup.digicard != DIGI_NONE) && (usetup.midicard != MIDI_NONE)) {
+        usetup.ModPlayer=false;
+        usetup.Mp3Player=false;
+        if (install_sound(usetup.DigitalSoundCard,usetup.MidiSoundCard,NULL)!=0) {
+            if ((usetup.DigitalSoundCard != DIGI_NONE) && (usetup.MidiSoundCard != MIDI_NONE)) {
                 // only flag an error if they wanted a sound card
                 platform->DisplayAlert("\nUnable to initialize your audio hardware.\n"
                     "[Problem: %s]\n",allegro_error);
             }
             reserve_voices(0,0);
             install_sound(DIGI_NONE, MIDI_NONE, NULL);
-            usetup.digicard = DIGI_NONE;
-            usetup.midicard = MIDI_NONE;
+            usetup.DigitalSoundCard = DIGI_NONE;
+            usetup.MidiSoundCard = MIDI_NONE;
         }
     }
 
     our_eip = -181;
 
-    if (usetup.digicard == DIGI_NONE) {
+    if (usetup.DigitalSoundCard == DIGI_NONE) {
         // disable speech and music if no digital sound
         // therefore the MIDI soundtrack will be used if present,
         // and the voice mode should not go to Voice Only
@@ -804,7 +802,7 @@ void engine_init_directories()
         // running in debugger
         use_compiled_folder_as_current_dir = 1;
         // don't redirect to the game exe folder (_Debug)
-        usetup.data_files_dir = ".";
+        usetup.DataFilesDir = ".";
     }
 
     if (game.SavedGameFolderName[0] != 0)
@@ -883,18 +881,18 @@ void engine_init_modxm_player()
 {
 #ifndef PSP_NO_MOD_PLAYBACK
     if (game.Options[OPT_NOMODMUSIC])
-        opts.mod_player = 0;
+        usetup.ModPlayer = false;
 
-    if (opts.mod_player) {
+    if (usetup.ModPlayer) {
         Out::FPrint("Initializing MOD/XM player");
 
         if (init_mod_player(NUM_MOD_DIGI_VOICES) < 0) {
             platform->DisplayAlert("Warning: install_mod: MOD player failed to initialize.");
-            opts.mod_player=0;
+            usetup.ModPlayer=false;
         }
     }
 #else
-    opts.mod_player = 0;
+    usetup.ModPlayer = false;
     Out::FPrint("Compiled without MOD/XM player");
 #endif
 }
@@ -1199,8 +1197,8 @@ void init_game_settings() {
     for (ee = 0; ee < MAX_SOUND_CHANNELS; ee++)
         last_sound_played[ee] = -1;
 
-    if (usetup.translation)
-        init_translation (usetup.translation);
+    if (!usetup.Translation.IsEmpty())
+        init_translation (usetup.Translation);
 
     update_invorder();
     displayed_room = -10;
@@ -1226,7 +1224,7 @@ void engine_init_game_shit()
     strncpy(scsystem.aci_version, EngineVersion.LongString, 10);
     scsystem.os = platform->GetSystemOSID();
 
-    if (usetup.windowed)
+    if (usetup.Windowed)
         scsystem.windowed = 1;
 
 #if defined (DOS_VERSION)
@@ -1442,7 +1440,7 @@ int initialize_engine(int argc,char*argv[])
 
     engine_prepare_screen();
 
-    platform->PostAllegroInit((usetup.windowed > 0) ? true : false);
+    platform->PostAllegroInit((usetup.Windowed > 0) ? true : false);
 
     engine_set_gfx_driver_callbacks();
 

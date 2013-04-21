@@ -16,15 +16,14 @@
 #include "util/wgt2allg.h"
 #include "gfx/ali3d.h"
 #include "ac/common.h"
-#include "ac/gamesetup.h"
 #include "font/fonts.h"
+#include "game/game_objects.h"
 #include "gui/mylistbox.h"
 #include "gui/guidialoginternaldefs.h"
 #include "gfx/bitmap.h"
 
 using AGS::Common::Bitmap;
 
-extern GameSetup usetup;
 extern int mousex, mousey, numcurso, hotx, hoty;
 
 extern int windowbackgroundcolor;

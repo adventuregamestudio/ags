@@ -23,7 +23,6 @@
 #include "ac/event.h"
 #include "ac/file.h"
 #include "ac/game.h"
-#include "ac/gamesetup.h"
 #include "ac/global_character.h"
 #include "ac/global_gui.h"
 #include "ac/global_hotspot.h"
@@ -70,7 +69,6 @@ extern SpriteCache spriteset;
 extern int frames_per_second;
 extern int time_between_timers;
 extern char gamefilenamebuf[200];
-extern GameSetup usetup;
 extern unsigned int load_new_game;
 extern int load_new_game_restore;
 extern ViewStruct*views;
@@ -242,7 +240,7 @@ int RunAGSGame (const char *newgame, unsigned int mode, int data) {
         // need to copy, since the script gets destroyed
         get_current_dir_path(gamefilenamebuf, newgame);
         game_file_name = gamefilenamebuf;
-        usetup.main_data_filename = game_file_name;
+        usetup.MainDataFilename = game_file_name;
         play.TakeoverData = data;
         load_new_game_restore = -1;
 
@@ -749,7 +747,7 @@ void SetMultitasking (int mode) {
         quit("!SetMultitasking: invalid mode parameter");
 
     // Don't allow background running if full screen
-    if ((mode == 1) && (usetup.windowed == 0))
+    if ((mode == 1) && (usetup.Windowed == 0))
         mode = 0;
 
     if (mode == 0) {

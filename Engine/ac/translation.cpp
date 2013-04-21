@@ -14,7 +14,6 @@
 
 #define USE_CLIB
 #include "ac/common.h"
-#include "ac/gamesetup.h"
 #include "ac/global_game.h"
 #include "ac/runtime_defines.h"
 #include "ac/translation.h"
@@ -27,7 +26,6 @@
 
 using AGS::Common::Stream;
 
-extern GameSetup usetup;
 extern char transFileName[MAX_PATH];
 
 
@@ -52,7 +50,7 @@ bool init_translation (const char *lang) {
         sprintf(transFileName, "%s.tra", lang);
     }
 
-    transFileLoc = ci_find_file(usetup.data_files_dir, transFileName);
+    transFileLoc = ci_find_file(usetup.DataFilesDir, transFileName);
 
     Stream *language_file = Common::AssetManager::OpenAsset(transFileLoc);
     free(transFileLoc);

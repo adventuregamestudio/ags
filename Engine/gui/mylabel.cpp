@@ -15,14 +15,13 @@
 #include <string.h>
 #include "gfx/ali3d.h"
 #include "ac/display.h"
-#include "ac/gamesetup.h"
 #include "ac/string.h"
 #include "font/fonts.h"
+#include "game/game_objects.h"
 #include "gui/guidefines.h"
 #include "gui/mylabel.h"
 #include "gui/guidialoginternaldefs.h"
 
-extern GameSetup usetup;
 // ac_guimain
 extern int numlines;
 extern char lines[MAXLINE][200];

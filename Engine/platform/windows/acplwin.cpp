@@ -22,7 +22,6 @@
 #include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/draw.h"
-#include "ac/gamesetup.h"
 #include "ac/global_display.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
@@ -39,7 +38,6 @@
 using AGS::Common::Stream;
 using AGS::Common::Bitmap;
 
-extern GameSetup usetup;
 extern int our_eip;
 extern IGraphicsDriver *gfxDriver;
 extern color palette[256];
@@ -687,7 +685,7 @@ int AGSWin32::InitializeCDPlayer() {
 void AGSWin32::PlayVideo(const char *name, int skip, int flags) {
 
   char useloc[250];
-  sprintf(useloc,"%s\\%s",usetup.data_files_dir.GetCStr(), name);
+  sprintf(useloc,"%s\\%s",usetup.DataFilesDir.GetCStr(), name);
 
   bool useSound = true;
   if (flags >= 10) {
@@ -722,10 +720,10 @@ void AGSWin32::PlayVideo(const char *name, int skip, int flags) {
 
   if (useSound)
   {
-    if (opts.mod_player)
+    if (usetup.ModPlayer)
       reserve_voices(NUM_DIGI_VOICES, -1);
-    install_sound(usetup.digicard,usetup.midicard,NULL);
-    if (opts.mod_player)
+    install_sound(usetup.DigitalSoundCard,usetup.MidiSoundCard,NULL);
+    if (usetup.ModPlayer)
       init_mod_player(NUM_MOD_DIGI_VOICES);
   }
 

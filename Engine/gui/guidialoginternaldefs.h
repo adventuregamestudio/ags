@@ -38,6 +38,6 @@ extern int rec_kbhit();
 #endif
 #define WINAPI
 #define mbutrelease !rec_misbuttondown
-#define TEXT_HT usetup.textheight
+#define TEXT_HT usetup.TextHeight
 
 #endif // __AGS_EE_GUI__GUIDIALOGINTERNALDEFS_H

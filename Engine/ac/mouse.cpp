@@ -18,7 +18,6 @@
 #include "ac/characterinfo.h"
 #include "ac/draw.h"
 #include "ac/dynobj/scriptmouse.h"
-#include "ac/gamesetup.h"
 #include "ac/global_mouse.h"
 #include "ac/global_screen.h"
 #include "ac/interfacebutton.h"
@@ -36,7 +35,6 @@ using AGS::Common::Bitmap;
 using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
-extern GameSetup usetup;
 extern Bitmap *mousecurs[MAXCURSORS];
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;

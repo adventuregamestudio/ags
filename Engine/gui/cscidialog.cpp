@@ -16,12 +16,12 @@
 #include "util/wgt2allg.h"
 #include "gfx/ali3d.h"
 #include "ac/common.h"
-#include "ac/gamesetup.h"
 #include "ac/gui.h"
 #include "ac/mouse.h"
 #include "ac/record.h"
 #include "ac/runtime_defines.h"
 #include "font/fonts.h"
+#include "game/game_objects.h"
 #include "gui/cscidialog.h"
 #include "gui/guidialog.h"
 #include "gui/guimain.h"
@@ -37,7 +37,6 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 extern char ignore_bounds; // from mousew32
 extern IGraphicsDriver *gfxDriver;
 extern volatile int timerloop; // ac_timer
-extern GameSetup usetup;
 
 //extern void get_save_game_path(int slotNum, char *buffer);
 //extern char saveGameDirectory[260];

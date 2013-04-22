@@ -130,6 +130,15 @@ void GUIListBox::Draw_items_unfix()
   // do nothing
 }
 
+void GUIListBox::Draw_set_oritext(char *oritext, const char *text)
+{
+    // Allow it to change the string to unicode if it's TTF
+    strcpy(oritext, get_translation(text));
+    ensure_text_valid_for_font(oritext, font);
+
+    // oritext is assumed to be made long enough by caller function
+}
+
 void GUIButton::Draw_set_oritext(char *oritext, const char *text)
 {
   // Allow it to change the string to unicode if it's TTF

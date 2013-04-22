@@ -84,6 +84,11 @@ void GUIListBox::Draw_items_unfix()
   numItems = numItemsTemp;
 }
 
+void GUIListBox::Draw_set_oritext(char *oritext, const char *text)
+{
+  strcpy(oritext, text);
+}
+
 void GUIButton::Draw_set_oritext(char *oritext, const char *text)
 {
   strcpy(oritext, text);

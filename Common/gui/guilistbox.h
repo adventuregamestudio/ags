@@ -102,6 +102,7 @@ private:
 
   void Draw_items_fix();
   void Draw_items_unfix();
+  void Draw_set_oritext(char *oritext, const char *text);
 };
 
 extern DynamicArray<GUIListBox> guilist;

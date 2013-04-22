@@ -261,15 +261,19 @@ void GUIListBox::Draw()
     else
       wtextcolor(textcol);
 
+    int item_index = a + topItem;
+    char oritext[200]; // items[] can be not longer than 200 characters due declaration
+    Draw_set_oritext(oritext, items[item_index]);
+
     if (alignment == GALIGN_LEFT)
-      wouttext_outline(x + 1 + pixel_size, thisyp + 1, font, items[a + topItem]);
+      wouttext_outline(x + 1 + pixel_size, thisyp + 1, font, oritext);
     else {
-      int textWidth = wgettextwidth(items[a + topItem], font);
+      int textWidth = wgettextwidth(oritext, font);
 
       if (alignment == GALIGN_RIGHT)
-        wouttext_outline(rightHandEdge - textWidth, thisyp + 1, font, items[a + topItem]);
+        wouttext_outline(rightHandEdge - textWidth, thisyp + 1, font, oritext);
       else
-        wouttext_outline(((rightHandEdge - x) / 2) + x - (textWidth / 2), thisyp + 1, font, items[a + topItem]);
+        wouttext_outline(((rightHandEdge - x) / 2) + x - (textWidth / 2), thisyp + 1, font, oritext);
     }
 
   }

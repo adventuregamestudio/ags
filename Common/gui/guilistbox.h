@@ -32,7 +32,7 @@ struct GUIListBox:public GUIObject
   int selectedbgcol;
   int alignment, reserved1;
   virtual void WriteToFile(Common::Stream *out);
-  virtual void ReadFromFile(Common::Stream *in, int version);
+  virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
   int  AddItem(const char *toadd);
   int  InsertItem(int index, const char *toadd);
   void SetItemText(int index, const char *newtext);

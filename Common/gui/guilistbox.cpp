@@ -63,16 +63,16 @@ void GUIListBox::WriteToFile(Stream *out)
     out->WriteArrayOfInt16(&saveGameIndex[0], numItems);
 }
 
-void GUIListBox::ReadFromFile(Stream *in, int version)
+void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
   int a, i;
   char tempbuf[300];
 
-  GUIObject::ReadFromFile(in, version);
+  GUIObject::ReadFromFile(in, gui_version);
   // MACPORT FIXES: swap
   in->ReadArrayOfInt32(&numItems, 11);
 
-  if (version >= 112) {
+  if (gui_version >= kGuiVersion_272b) {
     alignment = in->ReadInt32();
     reserved1 = in->ReadInt32();
   }
@@ -81,7 +81,7 @@ void GUIListBox::ReadFromFile(Stream *in, int version)
     reserved1 = 0;
   }
 
-  if (version >= 107) {
+  if (gui_version >= kGuiVersion_unkn_107) {
     selectedbgcol = in->ReadInt32();
   }
   else {
@@ -100,7 +100,7 @@ void GUIListBox::ReadFromFile(Stream *in, int version)
     saveGameIndex[a] = -1;
   }
 
-  if ((version >= 114) && (exflags & GLF_SGINDEXVALID)) {
+  if ((gui_version >= kGuiVersion_272d) && (exflags & GLF_SGINDEXVALID)) {
     in->ReadArrayOfInt16(&saveGameIndex[0], numItems);
   }
 

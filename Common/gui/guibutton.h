@@ -40,7 +40,7 @@ struct GUIButton:public GUIObject
   int textAlignment, reserved1;
 
   virtual void WriteToFile(Common::Stream *out);
-  virtual void ReadFromFile(Common::Stream *in, int);
+  virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
   void Draw();
   void MouseUp();
 

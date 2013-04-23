@@ -35,6 +35,7 @@ struct GameSetupStruct;
 #define GUI_TEXTWINDOW  0x05    // set vtext[0] to this to signify text window
 #define GUIF_NOCLICK    1
 #define MOVER_MOUSEDOWNLOCKED -4000
+
 struct GUIMain
 {
   char vtext[4];                // for compatibility
@@ -87,7 +88,7 @@ struct GUIMain
 
   void FixupGuiName(char* name);
   void SetTransparencyAsPercentage(int percent);
-  void ReadFromFile(Common::Stream *in, int version);
+  void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
   void WriteToFile(Common::Stream *out);
 
 };

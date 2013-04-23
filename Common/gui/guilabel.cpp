@@ -55,6 +55,9 @@ void GUILabel::ReadFromFile(Stream *in, GuiVersion gui_version)
   in->ReadArrayOfInt32(&font, 3);
   if (textcol == 0)
     textcol = 16;
+
+  // All labels are translated at the moment
+  flags |= GUIF_TRANSLATED;
 }
 
 void GUILabel::SetText(const char *newText) {

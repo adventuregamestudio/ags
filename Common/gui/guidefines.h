@@ -45,6 +45,8 @@
 //                   ListBox.SaveGameSlots[] array instead.
 // 2.7.2.???? (115): Added GUI Control z-order support.
 //
+// 3.3.0.1132 (116): Added GUIF_TRANSLATED flag.
+//
 //=============================================================================
 
 enum GuiVersion
@@ -67,7 +69,9 @@ enum GuiVersion
     kGuiVersion_272c        = 113,
     kGuiVersion_272d        = 114,
     kGuiVersion_272e        = 115,
-    kGuiVersion_Current     = kGuiVersion_272e
+    
+    kGuiVersion_330         = 116,
+    kGuiVersion_Current     = kGuiVersion_330
 };
 
 #endif // __AC_GUIDEFINES_H

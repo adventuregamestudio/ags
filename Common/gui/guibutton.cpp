@@ -56,6 +56,9 @@ void GUIButton::ReadFromFile(Stream *in, GuiVersion gui_version)
     textAlignment = GBUT_ALIGN_TOPMIDDLE;
     reserved1 = 0;
   }
+
+  // All buttons are translated at the moment
+  flags |= GUIF_TRANSLATED;
 }
 
 void GUIButton::Draw()

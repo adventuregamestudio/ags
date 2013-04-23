@@ -92,7 +92,7 @@ bool outlineGuiObjects = false;
 
 void GUILabel::Draw_replace_macro_tokens(char *oritext, char *text)
 {
-  replace_macro_tokens(get_translation(text), oritext);
+  replace_macro_tokens(flags & GUIF_TRANSLATED ? get_translation(text) : text, oritext);
   ensure_text_valid_for_font(oritext, font);
 }
 
@@ -133,7 +133,14 @@ void GUIListBox::Draw_items_unfix()
 void GUIListBox::Draw_set_oritext(char *oritext, const char *text)
 {
     // Allow it to change the string to unicode if it's TTF
-    strcpy(oritext, get_translation(text));
+    if (flags & GUIF_TRANSLATED)
+    {
+        strcpy(oritext, get_translation(text));
+    }
+    else
+    {
+        strcpy(oritext, text);
+    }
     ensure_text_valid_for_font(oritext, font);
 
     // oritext is assumed to be made long enough by caller function
@@ -142,8 +149,15 @@ void GUIListBox::Draw_set_oritext(char *oritext, const char *text)
 void GUIButton::Draw_set_oritext(char *oritext, const char *text)
 {
   // Allow it to change the string to unicode if it's TTF
-  strcpy(oritext, get_translation(text));
-  ensure_text_valid_for_font(oritext, font);
+    if (flags & GUIF_TRANSLATED)
+    {
+        strcpy(oritext, get_translation(text));
+    }
+    else
+    {
+        strcpy(oritext, text);
+    }
+    ensure_text_valid_for_font(oritext, font);
 
   // oritext is assumed to be made long enough by caller function
 }

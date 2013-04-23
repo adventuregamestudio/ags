@@ -34,6 +34,7 @@ using namespace AGS; // FIXME later
 #define GUIF_INVISIBLE  0x0010
 #define GUIF_CLIP       0x0020
 #define GUIF_NOCLICKS   0x0040
+#define GUIF_TRANSLATED 0x0080 // 3.3.0.1132
 #define GUIF_DELETED    0x8000
 
 #define BASEGOBJ_SIZE 7
@@ -115,6 +116,11 @@ struct GUIObject
     flags &= ~GUIF_NOCLICKS;
     if (!newValue)
       flags |= GUIF_NOCLICKS;
+  }
+
+  inline bool IsTranslated() const
+  {
+     return (flags & GUIF_TRANSLATED) != 0;
   }
 
 protected:

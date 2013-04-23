@@ -1,55 +1,34 @@
 
-#include <string.h>
 #include "ac/statobj/agsstaticobject.h"
 
 AGSStaticObject GlobalStaticManager;
 
-void AGSStaticObject::Read(const char *address, intptr_t offset, void *dest, int size)
-{
-    memcpy(dest, address + offset, size);
-}
-
-uint8_t AGSStaticObject::ReadInt8(const char *address, intptr_t offset)
+uint8_t AGSStaticObject::GetPropertyUInt8(const char *address, intptr_t offset)
 {
     return *(uint8_t*)(address + offset);
 }
 
-int16_t AGSStaticObject::ReadInt16(const char *address, intptr_t offset)
+int16_t AGSStaticObject::GetPropertyInt16(const char *address, intptr_t offset)
 {
-    return *(int16_t*)(address + offset);
+    return *(uint16_t*)(address + offset);
 }
 
-int32_t AGSStaticObject::ReadInt32(const char *address, intptr_t offset)
+int32_t AGSStaticObject::GetPropertyInt32(const char *address, intptr_t offset)
 {
-    return *(int32_t*)(address + offset);
+    return *(uint32_t*)(address + offset);
 }
 
-float AGSStaticObject::ReadFloat(const char *address, intptr_t offset)
+void AGSStaticObject::SetPropertyUInt8(const char *address, intptr_t offset, uint8_t value)
 {
-    return *(float*)(address + offset);
+    *(uint8_t*)(address + offset) = value;
 }
 
-void AGSStaticObject::Write(const char *address, intptr_t offset, void *src, int size)
+void AGSStaticObject::SetPropertyInt16(const char *address, intptr_t offset, int16_t value)
 {
-    memcpy((void*)(address + offset), src, size);
+    *(int16_t*)(address + offset) = value;
 }
 
-void AGSStaticObject::WriteInt8(const char *address, intptr_t offset, uint8_t val)
+void AGSStaticObject::SetPropertyInt32(const char *address, intptr_t offset, int32_t value)
 {
-    *(uint8_t*)(address + offset) = val;
-}
-
-void AGSStaticObject::WriteInt16(const char *address, intptr_t offset, int16_t val)
-{
-    *(int16_t*)(address + offset) = val;
-}
-
-void AGSStaticObject::WriteInt32(const char *address, intptr_t offset, int32_t val)
-{
-    *(int32_t*)(address + offset) = val;
-}
-
-void AGSStaticObject::WriteFloat(const char *address, intptr_t offset, float val)
-{
-    *(float*)(address + offset) = val;
+    *(int32_t*)(address + offset) = value;
 }

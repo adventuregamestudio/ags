@@ -75,55 +75,35 @@ int32_t CCDynamicArray::Create(int numElements, int elementSize, bool isManagedT
     return ccRegisterManagedObject(&newArray[8], this);
 }
 
-
-void CCDynamicArray::Read(const char *address, intptr_t offset, void *dest, int size)
-{
-    memcpy(dest, address + offset, size);
-}
-
-uint8_t CCDynamicArray::ReadInt8(const char *address, intptr_t offset)
+uint8_t CCDynamicArray::GetPropertyUInt8(const char *address, intptr_t offset)
 {
     return *(uint8_t*)(address + offset);
 }
 
-int16_t CCDynamicArray::ReadInt16(const char *address, intptr_t offset)
+int16_t CCDynamicArray::GetPropertyInt16(const char *address, intptr_t offset)
 {
-    return *(int16_t*)(address + offset);
+    return *(uint16_t*)(address + offset);
 }
 
-int32_t CCDynamicArray::ReadInt32(const char *address, intptr_t offset)
+int32_t CCDynamicArray::GetPropertyInt32(const char *address, intptr_t offset)
 {
-    return *(int32_t*)(address + offset);
+    return *(uint32_t*)(address + offset);
 }
 
-float CCDynamicArray::ReadFloat(const char *address, intptr_t offset)
+void CCDynamicArray::SetPropertyUInt8(const char *address, intptr_t offset, uint8_t value)
 {
-    return *(float*)(address + offset);
+    *(uint8_t*)(address + offset) = value;
 }
 
-void CCDynamicArray::Write(const char *address, intptr_t offset, void *src, int size)
+void CCDynamicArray::SetPropertyInt16(const char *address, intptr_t offset, int16_t value)
 {
-    memcpy((void*)(address + offset), src, size);
+    *(int16_t*)(address + offset) = value;
 }
 
-void CCDynamicArray::WriteInt8(const char *address, intptr_t offset, uint8_t val)
+void CCDynamicArray::SetPropertyInt32(const char *address, intptr_t offset, int32_t value)
 {
-    *(uint8_t*)(address + offset) = val;
+    *(int32_t*)(address + offset) = value;
 }
 
-void CCDynamicArray::WriteInt16(const char *address, intptr_t offset, int16_t val)
-{
-    *(int16_t*)(address + offset) = val;
-}
-
-void CCDynamicArray::WriteInt32(const char *address, intptr_t offset, int32_t val)
-{
-    *(int32_t*)(address + offset) = val;
-}
-
-void CCDynamicArray::WriteFloat(const char *address, intptr_t offset, float val)
-{
-    *(float*)(address + offset) = val;
-}
 
 CCDynamicArray globalDynamicArray;

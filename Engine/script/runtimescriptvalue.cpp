@@ -31,11 +31,11 @@ uint8_t RuntimeScriptValue::ReadByte()
     }
     else if (this->Type == kScValStaticObject || this->Type == kScValStaticArray)
     {
-        return this->StcMgr->ReadInt8(this->Ptr, this->IValue);
+        return this->StcMgr->GetPropertyUInt8(this->Ptr, this->IValue);
     }
     else if (this->Type == kScValDynamicObject)
     {
-        return this->DynMgr->ReadInt8(this->Ptr, this->IValue);
+        return this->DynMgr->GetPropertyUInt8(this->Ptr, this->IValue);
     }
     return *((uint8_t*)this->GetPtrWithOffset());
 }
@@ -70,11 +70,11 @@ int16_t RuntimeScriptValue::ReadInt16()
     }
     else if (this->Type == kScValStaticObject || this->Type == kScValStaticArray)
     {
-        return this->StcMgr->ReadInt16(this->Ptr, this->IValue);
+        return this->StcMgr->GetPropertyInt16(this->Ptr, this->IValue);
     }
     else if (this->Type == kScValDynamicObject)
     {
-        return this->DynMgr->ReadInt16(this->Ptr, this->IValue);
+        return this->DynMgr->GetPropertyInt16(this->Ptr, this->IValue);
     }
     return *((int16_t*)this->GetPtrWithOffset());
 }
@@ -117,11 +117,11 @@ int32_t RuntimeScriptValue::ReadInt32()
     }
     else if (this->Type == kScValStaticObject || this->Type == kScValStaticArray)
     {
-        return this->StcMgr->ReadInt32(this->Ptr, this->IValue);
+        return this->StcMgr->GetPropertyInt32(this->Ptr, this->IValue);
     }
     else if (this->Type == kScValDynamicObject)
     {
-        return this->DynMgr->ReadInt32(this->Ptr, this->IValue);
+        return this->DynMgr->GetPropertyInt32(this->Ptr, this->IValue);
     }
     return *((int32_t*)this->GetPtrWithOffset());
 }
@@ -168,11 +168,11 @@ RuntimeScriptValue RuntimeScriptValue::ReadValue()
     }
     else if (this->Type == kScValStaticObject || this->Type == kScValStaticArray)
     {
-        rval.SetInt32(this->StcMgr->ReadInt32(this->Ptr, this->IValue));
+        rval.SetInt32(this->StcMgr->GetPropertyInt32(this->Ptr, this->IValue));
     }
     else if (this->Type == kScValDynamicObject)
     {
-        rval.SetInt32(this->DynMgr->ReadInt32(this->Ptr, this->IValue));
+        rval.SetInt32(this->DynMgr->GetPropertyInt32(this->Ptr, this->IValue));
     }
     else
     {
@@ -197,11 +197,11 @@ bool RuntimeScriptValue::WriteByte(uint8_t val)
     }
     else if (this->Type == kScValStaticObject || this->Type == kScValStaticArray)
     {
-        this->StcMgr->WriteInt8(this->Ptr, this->IValue, val);
+        this->StcMgr->SetPropertyUInt8(this->Ptr, this->IValue, val);
     }
     else if (this->Type == kScValDynamicObject)
     {
-        this->DynMgr->WriteInt8(this->Ptr, this->IValue, val);
+        this->DynMgr->SetPropertyUInt8(this->Ptr, this->IValue, val);
     }
     else
     {
@@ -239,11 +239,11 @@ bool RuntimeScriptValue::WriteInt16(int16_t val)
     }
     else if (this->Type == kScValStaticObject || this->Type == kScValStaticArray)
     {
-        this->StcMgr->WriteInt16(this->Ptr, this->IValue, val);
+        this->StcMgr->SetPropertyInt16(this->Ptr, this->IValue, val);
     }
     else if (this->Type == kScValDynamicObject)
     {
-        this->DynMgr->WriteInt16(this->Ptr, this->IValue, val);
+        this->DynMgr->SetPropertyInt16(this->Ptr, this->IValue, val);
     }
     else
     {
@@ -287,11 +287,11 @@ bool RuntimeScriptValue::WriteInt32(int32_t val)
     }
     else if (this->Type == kScValStaticObject || this->Type == kScValStaticArray)
     {
-        this->StcMgr->WriteInt32(this->Ptr, this->IValue, val);
+        this->StcMgr->SetPropertyInt32(this->Ptr, this->IValue, val);
     }
     else if (this->Type == kScValDynamicObject)
     {
-        this->DynMgr->WriteInt32(this->Ptr, this->IValue, val);
+        this->DynMgr->SetPropertyInt32(this->Ptr, this->IValue, val);
     }
     else
     {
@@ -353,11 +353,11 @@ bool RuntimeScriptValue::WriteValue(const RuntimeScriptValue &rval)
     }
     else if (this->Type == kScValStaticObject || this->Type == kScValStaticArray)
     {
-        this->StcMgr->WriteInt32(this->Ptr, this->IValue, rval.IValue);
+        this->StcMgr->SetPropertyInt32(this->Ptr, this->IValue, rval.IValue);
     }
     else if (this->Type == kScValDynamicObject)
     {
-        this->DynMgr->WriteInt32(this->Ptr, this->IValue, rval.IValue);
+        this->DynMgr->SetPropertyInt32(this->Ptr, this->IValue, rval.IValue);
     }
     else
     {

@@ -35,157 +35,95 @@ const char *StaticArray::GetElementPtr(const char *address, intptr_t legacy_offs
     return address + (legacy_offset / _elemLegacySize) * _elemRealSize;
 }
 
-void StaticArray::Read(const char *address, intptr_t offset, void *dest, int size)
+uint8_t StaticArray::GetPropertyUInt8(const char *address, intptr_t offset)
 {
     const char *el_ptr = GetElementPtr(address, offset);
     if (_staticMgr)
     {
-        return _staticMgr->Read(el_ptr, offset % _elemLegacySize, dest, size);
+        return _staticMgr->GetPropertyUInt8(el_ptr, offset % _elemLegacySize);
     }
     else if (_dynamicMgr)
     {
-        return _dynamicMgr->Read(el_ptr, offset % _elemLegacySize, dest, size);
-    }
-    memcpy(dest, el_ptr + offset % _elemLegacySize, size);
-}
-
-uint8_t StaticArray::ReadInt8(const char *address, intptr_t offset)
-{
-    const char *el_ptr = GetElementPtr(address, offset);
-    if (_staticMgr)
-    {
-        return _staticMgr->ReadInt8(el_ptr, offset % _elemLegacySize);
-    }
-    else if (_dynamicMgr)
-    {
-        return _dynamicMgr->ReadInt8(el_ptr, offset % _elemLegacySize);
+        return _dynamicMgr->GetPropertyUInt8(el_ptr, offset % _elemLegacySize);
     }
     return *(uint8_t*)(el_ptr + offset % _elemLegacySize);
 }
 
-int16_t StaticArray::ReadInt16(const char *address, intptr_t offset)
+int16_t StaticArray::GetPropertyInt16(const char *address, intptr_t offset)
 {
     const char *el_ptr = GetElementPtr(address, offset);
     if (_staticMgr)
     {
-        return _staticMgr->ReadInt16(el_ptr, offset % _elemLegacySize);
+        return _staticMgr->GetPropertyInt16(el_ptr, offset % _elemLegacySize);
     }
     else if (_dynamicMgr)
     {
-        return _dynamicMgr->ReadInt16(el_ptr, offset % _elemLegacySize);
+        return _dynamicMgr->GetPropertyInt16(el_ptr, offset % _elemLegacySize);
     }
     return *(uint16_t*)(el_ptr + offset % _elemLegacySize);
 }
 
-int32_t StaticArray::ReadInt32(const char *address, intptr_t offset)
+int32_t StaticArray::GetPropertyInt32(const char *address, intptr_t offset)
 {
     const char *el_ptr = GetElementPtr(address, offset);
     if (_staticMgr)
     {
-        return _staticMgr->ReadInt32(el_ptr, offset % _elemLegacySize);
+        return _staticMgr->GetPropertyInt32(el_ptr, offset % _elemLegacySize);
     }
     else if (_dynamicMgr)
     {
-        return _dynamicMgr->ReadInt32(el_ptr, offset % _elemLegacySize);
+        return _dynamicMgr->GetPropertyInt32(el_ptr, offset % _elemLegacySize);
     }
     return *(uint32_t*)(el_ptr + offset % _elemLegacySize);
 }
 
-float StaticArray::ReadFloat(const char *address, intptr_t offset)
+void StaticArray::SetPropertyUInt8(const char *address, intptr_t offset, uint8_t value)
 {
     const char *el_ptr = GetElementPtr(address, offset);
     if (_staticMgr)
     {
-        return _staticMgr->ReadFloat(el_ptr, offset % _elemLegacySize);
+        return _staticMgr->SetPropertyUInt8(el_ptr, offset % _elemLegacySize, value);
     }
     else if (_dynamicMgr)
     {
-        return _dynamicMgr->ReadFloat(el_ptr, offset % _elemLegacySize);
-    }
-    return *(float*)(el_ptr + offset % _elemLegacySize);
-}
-
-void StaticArray::Write(const char *address, intptr_t offset, void *src, int size)
-{
-    const char *el_ptr = GetElementPtr(address, offset);
-    if (_staticMgr)
-    {
-        return _staticMgr->Write(el_ptr, offset % _elemLegacySize, src, size);
-    }
-    else if (_dynamicMgr)
-    {
-        return _dynamicMgr->Write(el_ptr, offset % _elemLegacySize, src, size);
+        return _dynamicMgr->SetPropertyUInt8(el_ptr, offset % _elemLegacySize, value);
     }
     else
     {
-        memcpy((void*)(el_ptr + offset % _elemLegacySize), src, size);
+        *(uint8_t*)(el_ptr + offset % _elemLegacySize) = value;
     }
 }
 
-void StaticArray::WriteInt8(const char *address, intptr_t offset, uint8_t val)
+void StaticArray::SetPropertyInt16(const char *address, intptr_t offset, int16_t value)
 {
     const char *el_ptr = GetElementPtr(address, offset);
     if (_staticMgr)
     {
-        return _staticMgr->WriteInt8(el_ptr, offset % _elemLegacySize, val);
+        return _staticMgr->SetPropertyInt16(el_ptr, offset % _elemLegacySize, value);
     }
     else if (_dynamicMgr)
     {
-        return _dynamicMgr->WriteInt8(el_ptr, offset % _elemLegacySize, val);
+        return _dynamicMgr->SetPropertyInt16(el_ptr, offset % _elemLegacySize, value);
     }
     else
     {
-        *(uint8_t*)(el_ptr + offset % _elemLegacySize) = val;
+        *(uint16_t*)(el_ptr + offset % _elemLegacySize) = value;
     }
 }
 
-void StaticArray::WriteInt16(const char *address, intptr_t offset, int16_t val)
+void StaticArray::SetPropertyInt32(const char *address, intptr_t offset, int32_t value)
 {
     const char *el_ptr = GetElementPtr(address, offset);
     if (_staticMgr)
     {
-        return _staticMgr->WriteInt16(el_ptr, offset % _elemLegacySize, val);
+        return _staticMgr->SetPropertyInt32(el_ptr, offset % _elemLegacySize, value);
     }
     else if (_dynamicMgr)
     {
-        return _dynamicMgr->WriteInt16(el_ptr, offset % _elemLegacySize, val);
+        return _dynamicMgr->SetPropertyInt32(el_ptr, offset % _elemLegacySize, value);
     }
     else
     {
-        *(uint16_t*)(el_ptr + offset % _elemLegacySize) = val;
-    }
-}
-
-void StaticArray::WriteInt32(const char *address, intptr_t offset, int32_t val)
-{
-    const char *el_ptr = GetElementPtr(address, offset);
-    if (_staticMgr)
-    {
-        return _staticMgr->WriteInt32(el_ptr, offset % _elemLegacySize, val);
-    }
-    else if (_dynamicMgr)
-    {
-        return _dynamicMgr->WriteInt32(el_ptr, offset % _elemLegacySize, val);
-    }
-    else
-    {
-        *(uint32_t*)(el_ptr + offset % _elemLegacySize) = val;
-    }
-}
-
-void StaticArray::WriteFloat(const char *address, intptr_t offset, float val)
-{
-    const char *el_ptr = GetElementPtr(address, offset);
-    if (_staticMgr)
-    {
-        return _staticMgr->WriteFloat(el_ptr, offset % _elemLegacySize, val);
-    }
-    else if (_dynamicMgr)
-    {
-        return _dynamicMgr->WriteFloat(el_ptr, offset % _elemLegacySize, val);
-    }
-    else
-    {
-        *(float*)(el_ptr + offset % _elemLegacySize) = val;
+        *(uint32_t*)(el_ptr + offset % _elemLegacySize) = value;
     }
 }

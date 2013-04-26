@@ -177,16 +177,13 @@ unsigned long _additive_alpha_copysrc_blender(unsigned long x, unsigned long y, 
 // assign new alpha value as a multiplication of translucenses.
 unsigned long _additive_alpha_blender(unsigned long x, unsigned long y, unsigned long n)
 {
-    unsigned long res, g, y_alpha, res_alpha;
+    unsigned long res, g, res_alpha;
 
     n = geta32(x);
     if (n)
         n++;
-    y_alpha = geta32(y);
-    if (y_alpha)
-        y_alpha++;
 
-    res_alpha = (256 - (256 - n) * (256 - y_alpha) / 256) << 24;
+    res_alpha = (255 - (255 - n) * (255 - geta32(y)) / 255) << 24;
 
     res = ((x & 0xFF00FF) - (y & 0xFF00FF)) * n / 256 + y;
     y &= 0xFF00;

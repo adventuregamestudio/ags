@@ -34,7 +34,6 @@ extern int displayed_room;
 extern int in_enters_screen;
 extern int in_leaves_screen;
 extern int in_inv_screen, inv_screen_newroom;
-extern MoveList *mls;
 extern int gs_to_newroom;
 
 void SetAmbientTint (int red, int green, int blue, int opacity, int luminance) {

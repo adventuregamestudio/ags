@@ -76,7 +76,6 @@ extern char pexbuf[STD_BUFFER_SIZE];
 extern char saveGameDirectory[260];
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
-extern ObjectCache objcache[MAX_INIT_SPR];
 extern ScriptObject scrObj[MAX_INIT_SPR];
 extern ViewStruct*views;
 extern GUIMain*guis;
@@ -91,7 +90,6 @@ extern ScriptSystem scsystem;
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern IGraphicsDriver *gfxDriver;
 extern Bitmap *virtual_screen;
-extern Bitmap **actsps;
 extern color palette[256];
 extern CharacterExtras *charextra;
 extern CharacterInfo*playerchar;
@@ -997,9 +995,6 @@ void init_game_settings() {
     // may as well preload the character gfx
     if (playerchar->view >= 0)
         precache_view (playerchar->view);
-
-    for (ee = 0; ee < MAX_INIT_SPR; ee++)
-        objcache[ee].image = NULL;
 
     /*  dummygui.guiId = -1;
     dummyguicontrol.guin = -1;

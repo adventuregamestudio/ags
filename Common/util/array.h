@@ -142,52 +142,6 @@ public:
         Construct(0, count, value);
         _meta->Length = count;
     }
-    // Grows or truncates array to match given N number of elements,
-    // keeps up to N of previously existed elements;
-    // SetLength() guarantees that the buffer will be of minimal possible size
-    // to accommodate N elements.
-    void SetLength(int count)
-    {
-        if (_meta)
-        {
-            count = count > 0 ? count : 0;
-            if (_meta->RefCount > 1 || _meta->Capacity != count)
-            {
-                Copy(count);
-            }
-            _meta->Length = count;
-        }
-        else if (count > 0)
-        {
-            CreateBuffer(count);
-            _meta->Length = count;
-        }
-    }
-    // Same as first SetLength(), but but also explicitly assigns initial value to
-    // every new element.
-    void SetLength(int count, const T &value)
-    {
-        if (_meta)
-        {
-            count = count > 0 ? count : 0;
-            if (_meta->RefCount > 1 || _meta->Capacity != count)
-            {
-                Copy(count);
-            }
-
-            if (_meta->Length < count)
-            {
-                Construct(_meta->Length, count, value);
-            }
-            _meta->Length = count;
-        }
-        else if (count > 0)
-        {
-            CreateBuffer(count);
-            Construct(0, count, value);
-            _meta->Length = count;
-        }
-    }
     // Create new array and copy N elements from C-array
     void CreateFromCArray(const T *arr, int count)
     {
@@ -332,6 +286,54 @@ public:
             ReserveAndShift(false, count);
             Construct(_meta->Length, _meta->Length + count, value);
             _meta->Length += count;
+        }
+    }
+    // Grows or truncates array to match given N number of elements,
+    // keeps up to N of previously existed elements.
+    void SetLength(int count)
+    {
+        if (_meta)
+        {
+            count = count > 0 ? count : 0;
+            if (count > _meta->Length)
+            {
+                ReserveAndShift(false, count - _meta->Length);
+            }
+            else
+            {
+                BecomeUnique();
+            }
+            _meta->Length = count;
+        }
+        else if (count > 0)
+        {
+            CreateBuffer(count);
+            _meta->Length = count;
+        }
+    }
+    // Same as first SetLength(), but but also explicitly assigns initial value to
+    // every new element.
+    void SetLength(int count, const T &value)
+    {
+        if (_meta)
+        {
+            count = count > 0 ? count : 0;
+            if (count > _meta->Length)
+            {
+                ReserveAndShift(false, max_length - _meta->Length);
+                Construct(_meta->Length, count, value);
+            }
+            else
+            {
+                BecomeUnique();
+            }
+            _meta->Length = count;
+        }
+        else if (count > 0)
+        {
+            CreateBuffer(count);
+            Construct(0, count, value);
+            _meta->Length = count;
         }
     }
     // Assign array by sharing data reference
@@ -566,58 +568,6 @@ public:
         Construct(0, count, &value);
         _meta->Length = count;
     }
-    // Grows or truncates array to match given N number of elements,
-    // keeps up to N of previously existed elements;
-    // SetLength() guarantees that the buffer will be of minimal possible size
-    // to accommodate N elements.
-    void SetLength(int count)
-    {
-        if (_meta)
-        {
-            count = count > 0 ? count : 0;
-            if (_meta->RefCount > 1 || _meta->Capacity != count)
-            {
-                Copy(count);
-            }
-
-            if (_meta->Length < count)
-            {
-                Construct(_meta->Length, count);
-            }
-            _meta->Length = count;
-        }
-        else if (count > 0)
-        {
-            CreateBuffer(count);
-            Construct(0, count);
-            _meta->Length = count;
-        }
-    }
-    // Same as first SetLength(), but but also explicitly assigns initial value to
-    // every new element.
-    void SetLength(int count, const T &value)
-    {
-        if (_meta)
-        {
-            count = count > 0 ? count : 0;
-            if (_meta->RefCount > 1 || _meta->Capacity != count)
-            {
-                Copy(count);
-            }
-
-            if (_meta->Length < count)
-            {
-                Construct(_meta->Length, count, value);
-            }
-            _meta->Length = count;
-        }
-        else if (count > 0)
-        {
-            CreateBuffer(count);
-            Construct(0, count, value);
-            _meta->Length = count;
-        }
-    }
     // Create new array and copy N elements from C-array
     void CreateFromCArray(const T *arr, int count)
     {
@@ -729,6 +679,64 @@ public:
             ReserveAndShift(false, count);
             Construct(_meta->Length, _meta->Length + count, &value);
             _meta->Length += count;
+        }
+    }
+    // Grows or truncates array to match given N number of elements,
+    // keeps up to N of previously existed elements.
+    void SetLength(int count)
+    {
+        if (_meta)
+        {
+            count = count > 0 ? count : 0;
+            if (count > _meta->Length)
+            {
+                ReserveAndShift(false, count - _meta->Length);
+                Construct(_meta->Length, count);
+            }
+            else
+            {
+                BecomeUnique();
+                if (count < _meta->Length)
+                {
+                    Deconstruct(count, _meta->Length);
+                }
+            }
+            _meta->Length = count;
+        }
+        else if (count > 0)
+        {
+            CreateBuffer(count);
+            Construct(0, count);
+            _meta->Length = count;
+        }
+    }
+    // Same as first SetLength(), but but also explicitly assigns initial value to
+    // every new element.
+    void SetLength(int count, const T &value)
+    {
+        if (_meta)
+        {
+            count = count > 0 ? count : 0;
+            if (count > _meta->Length)
+            {
+                ReserveAndShift(false, count - _meta->Length);
+                Construct(_meta->Length, count, &value);
+            }
+            else
+            {
+                BecomeUnique();
+                if (count < _meta->Length)
+                {
+                    Deconstruct(count, _meta->Length);
+                }
+            }
+            _meta->Length = count;
+        }
+        else if (count > 0)
+        {
+            CreateBuffer(count);
+            Construct(0, count, &value);
+            _meta->Length = count;
         }
     }
     // Assign array by sharing data reference

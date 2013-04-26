@@ -22,6 +22,7 @@
 #include "ac/movelist.h"     // MoveList
 #include "ac/point.h"
 #include "ac/common_defines.h"
+#include "game/game_objects.h"
 #include <string.h>
 #include <math.h>
 #include "gfx/graphics.h"
@@ -42,7 +43,6 @@ extern void Display(char *, ...);
 extern void write_log(char *);
 extern void update_polled_stuff_if_runtime();
 
-extern MoveList *mls;
 extern "C"
 {
   int _stklen = 2048000;

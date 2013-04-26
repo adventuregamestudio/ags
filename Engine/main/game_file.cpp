@@ -65,8 +65,6 @@ extern int ifacepopped;
 extern ViewStruct*views;
 extern DialogTopic *dialog;
 extern GUIMain*guis;
-extern CharacterCache *charcache;
-extern MoveList *mls;
 
 extern CCGUIObject ccDynamicGUIObject;
 extern CCCharacter ccDynamicCharacter;
@@ -98,15 +96,6 @@ extern ccInstance *moduleInst[MAX_SCRIPT_MODULES];
 extern ccInstance *moduleInstFork[MAX_SCRIPT_MODULES];
 extern RuntimeScriptValue moduleRepExecAddr[MAX_SCRIPT_MODULES];
 extern int numScriptModules;
-extern char **characterScriptObjNames;
-extern char objectScriptObjNames[MAX_INIT_SPR][MAX_SCRIPT_NAME_LEN + 5];
-extern char **guiScriptObjNames;
-extern int actSpsCount;
-extern Bitmap **actsps;
-extern IDriverDependantBitmap* *actspsbmp;
-extern Bitmap **actspswb;
-extern IDriverDependantBitmap* *actspswbbmp;
-extern CachedActSpsData* actspswbcache;
 
 extern AGSStaticObject GlobalStaticManager;
 
@@ -378,7 +367,7 @@ void game_file_set_score_sound(GameInfo::GAME_STRUCT_READ_DATA &read_data)
 
 void init_and_register_characters()
 {
-	characterScriptObjNames = (char**)malloc(sizeof(char*) * game.CharacterCount);
+	characterScriptObjNames.New(game.CharacterCount);
 
     for (int ee=0;ee<game.CharacterCount;ee++) {
         game.Characters[ee].walking = 0;
@@ -397,8 +386,7 @@ void init_and_register_characters()
         ccRegisterManagedObject(&game.Characters[ee], &ccDynamicCharacter);
 
         // export the character's script object
-        characterScriptObjNames[ee] = (char*)malloc(strlen(game.Characters[ee].scrname) + 5);
-        strcpy(characterScriptObjNames[ee], game.Characters[ee].scrname);
+        characterScriptObjNames[ee] = game.Characters[ee].scrname;
 
         ccAddExternalDynamicObject(characterScriptObjNames[ee], &game.Characters[ee], &ccDynamicCharacter);
     }
@@ -461,7 +449,7 @@ void init_and_register_guis()
         scrGui[ee].id = -1;
     }
 
-    guiScriptObjNames = (char**)malloc(sizeof(char*) * game.GuiCount);
+    guiScriptObjNames.New(game.GuiCount);
 
     for (ee=0;ee<game.GuiCount;ee++) {
         guis[ee].rebuild_array();
@@ -475,8 +463,7 @@ void init_and_register_guis()
 
         // copy the script name to its own memory location
         // because ccAddExtSymbol only keeps a reference
-        guiScriptObjNames[ee] = (char*)malloc(21);
-        strcpy(guiScriptObjNames[ee], guis[ee].name);
+        guiScriptObjNames[ee] = guis[ee].name;
 
         // 64 bit: Using the id instead
         // scrGui[ee].gui = &guis[ee];
@@ -636,13 +623,13 @@ int load_game_file() {
     our_eip=-15;
 
     charextra = (CharacterExtras*)calloc(game.CharacterCount, sizeof(CharacterExtras));
-    mls = (MoveList*)calloc(game.CharacterCount + MAX_INIT_SPR + 1, sizeof(MoveList));
+    mls.New(game.CharacterCount + MAX_INIT_SPR + 1);
     actSpsCount = game.CharacterCount + MAX_INIT_SPR + 2;
-    actsps = (Bitmap **)calloc(actSpsCount, sizeof(Bitmap *));
-    actspsbmp = (IDriverDependantBitmap**)calloc(actSpsCount, sizeof(IDriverDependantBitmap*));
-    actspswb = (Bitmap **)calloc(actSpsCount, sizeof(Bitmap *));
-    actspswbbmp = (IDriverDependantBitmap**)calloc(actSpsCount, sizeof(IDriverDependantBitmap*));
-    actspswbcache = (CachedActSpsData*)calloc(actSpsCount, sizeof(CachedActSpsData));
+    actsps.New(actSpsCount, NULL);
+    actspsbmp.New(actSpsCount, NULL);
+    actspswb.New(actSpsCount, NULL);
+    actspswbbmp.New(actSpsCount, NULL);
+    actspswbcache.New(actSpsCount);
     game.CharacterProperties.New(game.CharacterCount);
 
     allocate_memory_for_views(game.ViewCount);
@@ -657,7 +644,7 @@ int load_game_file() {
         in->Seek(Common::kSeekCurrent, count * 0x204);
     }
 
-    charcache = (CharacterCache*)calloc(1,sizeof(CharacterCache)*game.CharacterCount+5);
+    charcache.New(game.CharacterCount);
     //-----------------------------------------------------
     game.ReadExtFromFile_Part2(in, read_data);
     //-----------------------------------------------------

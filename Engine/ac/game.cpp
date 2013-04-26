@@ -122,12 +122,6 @@ extern int psp_gfx_super_sampling;
 extern int obj_lowest_yp, char_lowest_yp;
 
 extern int actSpsCount;
-extern Bitmap **actsps;
-extern IDriverDependantBitmap* *actspsbmp;
-// temporary cache of walk-behind for this actsps image
-extern Bitmap **actspswb;
-extern IDriverDependantBitmap* *actspswbbmp;
-extern CachedActSpsData* actspswbcache;
 extern Bitmap **guibg;
 extern IDriverDependantBitmap **guibgbmp;
 extern char transFileName[MAX_PATH];
@@ -175,11 +169,6 @@ ScriptInvItem scrInv[MAX_INV];
 ScriptDialog scrDialog[MAX_DIALOG];
 
 ViewStruct*views=NULL;
-
-CharacterCache *charcache = NULL;
-ObjectCache objcache[MAX_INIT_SPR];
-
-MoveList *mls = NULL;
 
 //=============================================================================
 
@@ -487,18 +476,17 @@ void unload_game_file() {
             delete game.CharacterInteractions[bb];
             game.CharacterInteractions[bb] = NULL;
         }
-        free(characterScriptObjNames[bb]);
         game.CharacterProperties[bb].reset();
     }
     game.CharacterInteractions.Free();
-    free(characterScriptObjNames);
+    characterScriptObjNames.Free();
     free(charextra);
-    free(mls);
-    free(actsps);
-    free(actspsbmp);
-    free(actspswb);
-    free(actspswbbmp);
-    free(actspswbcache);
+    mls.Free();
+    actsps.Free();
+    actspsbmp.Free();
+    actspswb.Free();
+    actspswbbmp.Free();
+    actspswbcache.Free();
     game.CharacterProperties.Free();
 
     for (bb = 1; bb < game.InvItemCount; bb++) {
@@ -565,9 +553,7 @@ void unload_game_file() {
     views = NULL;
 
     game.Characters.Free();
-
-    free (charcache);
-    charcache = NULL;
+    charcache.Free();
 
     if (splipsync != NULL)
     {
@@ -599,10 +585,9 @@ void unload_game_file() {
     for (ee = 0; ee < game.GuiCount; ee++) {
         free (guibg[ee]);
         guibg[ee] = NULL;
-        free(guiScriptObjNames[ee]);
     }
 
-    free(guiScriptObjNames);
+    guiScriptObjNames.Free();
     free(guibg);
     free (guis);
     guis = NULL;

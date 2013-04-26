@@ -41,14 +41,10 @@ using AGS::Common::Bitmap;
 #define OVERLAPPING_OBJECT 1000
 
 extern ViewStruct*views;
-extern ObjectCache objcache[MAX_INIT_SPR];
 extern CharacterInfo*playerchar;
 extern int displayed_room;
 extern SpriteCache spriteset;
 extern int offsetx, offsety;
-extern int actSpsCount;
-extern Bitmap **actsps;
-extern IDriverDependantBitmap* *actspsbmp;
 extern IGraphicsDriver *gfxDriver;
 
 // Used for deciding whether a char or obj was closer

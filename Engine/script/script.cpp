@@ -77,10 +77,9 @@ ccInstance *moduleInstFork[MAX_SCRIPT_MODULES];
 RuntimeScriptValue moduleRepExecAddr[MAX_SCRIPT_MODULES];
 int numScriptModules = 0;
 
-char **characterScriptObjNames = NULL;
-char objectScriptObjNames[MAX_INIT_SPR][MAX_SCRIPT_NAME_LEN + 5];
-char **guiScriptObjNames = NULL;
-
+AGS::Common::ObjectArray<AGS::Common::String> characterScriptObjNames;
+AGS::Common::ObjectArray<AGS::Common::String> objectScriptObjNames; // [MAX_INIT_SPR][MAX_SCRIPT_NAME_LEN + 5]
+AGS::Common::ObjectArray<AGS::Common::String> guiScriptObjNames;
 
 int run_dialog_request (int parmtr) {
     play.StopDialogAtEnd = DIALOG_RUNNING;

@@ -34,8 +34,6 @@ using AGS::Common::Bitmap;
 using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
-extern CharacterCache *charcache;
-extern ObjectCache objcache[MAX_INIT_SPR];
 extern GUIMain*guis;
 extern SpriteCache spriteset;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];

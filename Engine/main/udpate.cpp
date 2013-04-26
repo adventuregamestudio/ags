@@ -36,7 +36,6 @@
 using AGS::Common::Bitmap;
 using AGS::Common::Graphics;
 
-extern MoveList *mls;
 extern ViewStruct*views;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern int our_eip;

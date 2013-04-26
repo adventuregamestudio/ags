@@ -147,9 +147,9 @@ int     Character_GetSpeakingFrame(CharacterInfo *chaa);
 
 //=============================================================================
 
-struct MoveList;
 namespace AGS { namespace Common { class Bitmap; } }
 using namespace AGS; // FIXME later
+struct MoveList;
 
 void animate_character(CharacterInfo *chap, int loopn,int sppd,int rept, int noidleoverride, int direction);
 void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims);

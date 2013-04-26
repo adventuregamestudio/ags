@@ -18,6 +18,9 @@
 #ifndef __AGS_EE_GAME__GAME_OBJECTS_H
 #define __AGS_EE_GAME__GAME_OBJECTS_H
 
+#include "ac/charactercache.h"
+#include "ac/objectcache.h"
+#include "ac/movelist.h"
 #include "game/gameinfo.h"
 #include "game/gamesetup.h"
 #include "game/gamestate.h"
@@ -43,5 +46,12 @@ extern AGS::Engine::RoomObject* objs;
 extern AGS::Engine::GameState play;
 // game runtime configuration
 extern AGS::Engine::GameSetup usetup;
+
+// character cache is game-wide
+extern AGS::Common::ObjectArray<CharacterCache> charcache;
+// object cache is room-wide
+extern AGS::Common::ObjectArray<ObjectCache> objcache;
+// move-to points
+extern AGS::Common::Array<MoveList> mls;
 
 #endif // __AGS_EE_GAME__GAME_OBJECTS_H

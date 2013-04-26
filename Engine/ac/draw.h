@@ -21,6 +21,7 @@
 #include "core/types.h"
 #include "ac/common_defines.h"
 #include "util/wgt2allg.h"
+#include "util/array.h"
 
 namespace AGS { namespace Common { class Bitmap; } }
 namespace AGS { namespace Engine { class IDriverDependantBitmap; } }
@@ -102,5 +103,14 @@ extern AGS_INLINE int divide_down_coordinate_round_up(int coord);
 Common::Bitmap *convert_16_to_15(Common::Bitmap *iii);
 Common::Bitmap *convert_16_to_16bgr(Common::Bitmap *tempbl);
 Common::Bitmap *convert_32_to_32bgr(Common::Bitmap *tempbl);
+
+//---------------------------------------------------------
+
+extern int actSpsCount;
+extern AGS::Common::Array<AGS::Common::Bitmap*> actsps;
+extern AGS::Common::Array<AGS::Engine::IDriverDependantBitmap*> actspsbmp;
+extern AGS::Common::Array<AGS::Common::Bitmap*> actspswb;
+extern AGS::Common::Array<AGS::Engine::IDriverDependantBitmap*> actspswbbmp;
+extern AGS::Common::Array<CachedActSpsData> actspswbcache;
 
 #endif // __AGS_EE_AC__DRAW_H

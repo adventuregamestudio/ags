@@ -23,6 +23,8 @@
 #include "script/executingscript.h"
 #include "script/nonblockingscriptfunction.h"
 #include "ac/dynobj/scriptsystem.h"
+#include "util/array.h"
+#include "util/string.h"
 
 #define REP_EXEC_ALWAYS_NAME "repeatedly_execute_always"
 #define REP_EXEC_NAME "repeatedly_execute"
@@ -75,8 +77,9 @@ extern ccInstance *moduleInstFork[MAX_SCRIPT_MODULES];
 extern RuntimeScriptValue moduleRepExecAddr[MAX_SCRIPT_MODULES];
 extern int numScriptModules;
 
-extern char **characterScriptObjNames;
-extern char objectScriptObjNames[MAX_INIT_SPR][MAX_SCRIPT_NAME_LEN + 5];
-extern char **guiScriptObjNames;
+
+extern AGS::Common::ObjectArray<AGS::Common::String> characterScriptObjNames;
+extern AGS::Common::ObjectArray<AGS::Common::String> objectScriptObjNames; // [MAX_INIT_SPR][MAX_SCRIPT_NAME_LEN + 5]
+extern AGS::Common::ObjectArray<AGS::Common::String> guiScriptObjNames;
 
 #endif // __AGS_EE_SCRIPT__SCRIPT_H

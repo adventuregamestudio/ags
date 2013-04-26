@@ -87,8 +87,6 @@ extern SpriteCache spriteset;
 extern int our_eip;
 extern int in_new_room;
 extern ViewStruct*views;
-extern CharacterCache *charcache;
-extern ObjectCache objcache[MAX_INIT_SPR];
 extern int displayed_room;
 extern CharacterExtras *charextra;
 extern CharacterInfo*playerchar;
@@ -130,12 +128,12 @@ IDriverDependantBitmap *debugConsole = NULL;
 // actsps is used for temporary storage of the bitamp image
 // of the latest version of the sprite
 int actSpsCount = 0;
-Bitmap **actsps;
-IDriverDependantBitmap* *actspsbmp;
+AGS::Common::Array<AGS::Common::Bitmap*> actsps;
+AGS::Common::Array<IDriverDependantBitmap*> actspsbmp;
 // temporary cache of walk-behind for this actsps image
-Bitmap **actspswb;
-IDriverDependantBitmap* *actspswbbmp;
-CachedActSpsData* actspswbcache;
+AGS::Common::Array<AGS::Common::Bitmap*> actspswb;
+AGS::Common::Array<IDriverDependantBitmap*> actspswbbmp;
+AGS::Common::Array<CachedActSpsData> actspswbcache;
 
 Bitmap *virtual_screen;
 
@@ -1810,7 +1808,7 @@ void prepare_characters_for_drawing() {
         if (game.Characters[aa].on==0) continue;
         if (game.Characters[aa].room!=displayed_room) continue;
         eip_guinum = aa;
-        useindx = aa + MAX_INIT_SPR;
+        useindx = aa + thisroom.ObjectCount;
 
         CharacterInfo*chin=&game.Characters[aa];
         our_eip = 330;

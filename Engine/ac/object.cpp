@@ -36,11 +36,8 @@
 
 using AGS::Common::Bitmap;
 
-
 extern ScriptObject scrObj[MAX_INIT_SPR];
-extern ObjectCache objcache[MAX_INIT_SPR];
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
-extern MoveList *mls;
 extern Bitmap *walkable_areas_temp;
 extern IGraphicsDriver *gfxDriver;
 extern int offsetx,offsety;

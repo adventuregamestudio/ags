@@ -40,8 +40,6 @@ extern SpriteCache spriteset;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern DynamicArray<GUIButton> guibuts;
 extern int numguibuts;
-extern CharacterCache *charcache;
-extern ObjectCache objcache[MAX_INIT_SPR];
 
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern int scrnwid,scrnhit;
@@ -581,7 +579,7 @@ void free_dynamic_sprite (int gotSlot) {
         objs[tt].SpriteIndex = 0;
         objcache[tt].sppic = -1;
       }
-      else if (objcache[tt].sppic == gotSlot)
+      else if (tt < objcache.GetCount() && objcache[tt].sppic == gotSlot)
         objcache[tt].sppic = -1;
     }
   }

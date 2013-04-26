@@ -18,6 +18,8 @@
 #ifndef __AGS_EE_AC__CHARACTERCACHE_H
 #define __AGS_EE_AC__CHARACTERCACHE_H
 
+#include "core/types.h"
+
 namespace AGS { namespace Common { class Bitmap; } }
 using namespace AGS; // FIXME later
 
@@ -30,6 +32,20 @@ struct CharacterCache {
     short tintredwas, tintgrnwas, tintbluwas, tintamntwas;
     short lightlevwas, tintlightwas;
     // no mirroredWas is required, since the code inverts the sprite number
+
+    CharacterCache()
+        : image(NULL)
+        , sppic(0)
+        , scaling(0)
+        , inUse(0)
+        , tintredwas(0)
+        , tintgrnwas(0)
+        , tintbluwas(0)
+        , tintamntwas(0)
+        , lightlevwas(0)
+        , tintlightwas(0)
+    {
+    }
 };
 
 #endif // __AGS_EE_AC__CHARACTERCACHE_H

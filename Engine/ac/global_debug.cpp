@@ -50,7 +50,6 @@ extern SpriteCache spriteset;
 extern TreeMap *transtree;
 extern int offsetx, offsety;
 extern int displayed_room, starting_room;
-extern MoveList *mls;
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern int scrnwid,scrnhit;
 extern char transFileName[MAX_PATH];

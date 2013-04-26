@@ -62,7 +62,6 @@ using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern int displayed_room,starting_room;
-extern MoveList *mls;
 extern int new_room_pos;
 extern int new_room_x, new_room_y;
 extern ViewStruct*views;
@@ -72,7 +71,6 @@ extern SpriteCache spriteset;
 extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern Bitmap *walkable_areas_temp;
 extern IGraphicsDriver *gfxDriver;
-extern Bitmap **actsps;
 extern int source_text_length;
 extern int offsetx, offsety;
 extern int is_text_overlay;

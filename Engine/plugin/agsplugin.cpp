@@ -100,9 +100,6 @@ extern int game_paused;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern int inside_script;
 extern ccInstance *gameinst, *roominst;
-extern CharacterCache *charcache;
-extern ObjectCache objcache[MAX_INIT_SPR];
-extern MoveList *mls;
 extern Bitmap *virtual_screen;
 extern int numlines;
 extern char lines[MAXLINE][200];
@@ -610,7 +607,7 @@ int IAGSEngine::CallGameScriptFunction(const char *name, int32 globalScript, int
 void IAGSEngine::NotifySpriteUpdated(int32 slot) {
     int ff;
     // wipe the character cache when we change rooms
-    for (ff = 0; ff < game.CharacterCount; ff++) {
+    for (ff = 0; ff < charcache.GetCount(); ff++) {
         if ((charcache[ff].inUse) && (charcache[ff].sppic == slot)) {
             delete charcache[ff].image;
             charcache[ff].image = NULL;
@@ -619,7 +616,7 @@ void IAGSEngine::NotifySpriteUpdated(int32 slot) {
     }
 
     // clear the object cache
-    for (ff = 0; ff < MAX_INIT_SPR; ff++) {
+    for (ff = 0; ff < objcache.GetCount(); ff++) {
         if ((objcache[ff].image != NULL) && (objcache[ff].sppic == slot)) {
             delete objcache[ff].image;
             objcache[ff].image = NULL;

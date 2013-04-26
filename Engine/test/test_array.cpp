@@ -70,7 +70,7 @@ void Test_Array()
         assert(arr3.GetCapacity() == 10);
         assert(arr3.GetRefCount() == 3);
         arr1.SetLength(15);
-        assert(arr1.GetCapacity() == 15);
+        assert(arr1.GetCapacity() == 20);
         assert(arr1[5] == 123);
         assert(arr1.GetRefCount() == 1);
         assert(arr3.GetCapacity() == 10);
@@ -78,7 +78,7 @@ void Test_Array()
         assert(arr3[5] == 123);
         arr2[5] = 321;
         arr2.SetLength(6);
-        assert(arr2.GetCapacity() == 6);
+        assert(arr2.GetCapacity() == 10);
         assert(arr2[5] == 321);
         assert(arr2.GetRefCount() == 1);
         assert(arr3.GetCapacity() == 10);

@@ -9,3 +9,7 @@ AGS::Engine::RoomState troom;
 AGS::Engine::RoomObject* objs;
 AGS::Engine::GameState play;
 AGS::Engine::GameSetup usetup;
+
+AGS::Common::ObjectArray<CharacterCache> charcache;
+AGS::Common::ObjectArray<ObjectCache> objcache;
+AGS::Common::Array<MoveList> mls;

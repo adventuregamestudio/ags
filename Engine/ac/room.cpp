@@ -74,8 +74,6 @@ extern int displayed_room;
 extern ccInstance *roominst;
 extern AGSPlatformDriver *platform;
 extern int numevents;
-extern CharacterCache *charcache;
-extern ObjectCache objcache[MAX_INIT_SPR];
 extern CharacterExtras *charextra;
 extern int done_es_error;
 extern int our_eip;
@@ -99,12 +97,6 @@ extern char ccErrorString[400];
 extern IDriverDependantBitmap* roomBackgroundBmp;
 extern IGraphicsDriver *gfxDriver;
 extern Bitmap *raw_saved_screen;
-extern int actSpsCount;
-extern Bitmap **actsps;
-extern IDriverDependantBitmap* *actspsbmp;
-extern Bitmap **actspswb;
-extern IDriverDependantBitmap* *actspswbbmp;
-extern CachedActSpsData* actspswbcache;
 extern color palette[256];
 extern Bitmap *virtual_screen;
 extern Bitmap *_old_screen;
@@ -310,10 +302,10 @@ void unload_old_room() {
     }
 
     // clear the object cache
-    for (ff = 0; ff < MAX_INIT_SPR; ff++) {
+    for (ff = 0; ff < objcache.GetCount(); ff++) {
         delete objcache[ff].image;
-        objcache[ff].image = NULL;
     }
+    objcache.Free();
     // clear the actsps buffers to save memory, since the
     // objects/characters involved probably aren't on the
     // new screen. this also ensures all cached data is flushed
@@ -413,6 +405,10 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     // load the room from disk
     our_eip=200;
     Common::RoomInfo::Load(thisroom, room_filename, game.DefaultResolution > 2);
+
+    // Prepare object cache
+    objcache.SetLength(thisroom.ObjectCount);
+    objectScriptObjNames.SetLength(thisroom.ObjectCount);
 
     if ((thisroom.GameId != NO_GAME_ID_IN_ROOM_FILE) &&
         (thisroom.GameId != game.UniqueId)) {
@@ -688,27 +684,21 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     // TODO: this will work so far as Objects array is not reallocated
     objs=&croom->Objects[0];
 
-    for (cc = 0; cc < MAX_INIT_SPR; cc++) {
-        // 64 bit: Using the id instead
-        // scrObj[cc].obj = &croom->Objects[cc];
-        objectScriptObjNames[cc][0] = 0;
-    }
-
     for (cc = 0; cc < croom->ObjectCount; cc++) {
         // export the object's script object
-        if (thisroom.Objects[cc].ScriptName[0] == 0)
+        if (thisroom.Objects[cc].ScriptName.IsEmpty())
             continue;
 
         if (thisroom.LoadedVersion >= kRoomVersion_300a) 
         {
-            strcpy(objectScriptObjNames[cc], thisroom.Objects[cc].ScriptName);
+            objectScriptObjNames[cc] = thisroom.Objects[cc].ScriptName;
         }
         else
         {
-            sprintf(objectScriptObjNames[cc], "o%s", thisroom.Objects[cc].ScriptName);
-            strlwr(objectScriptObjNames[cc]);
+            objectScriptObjNames[cc].Format("o%s", thisroom.Objects[cc].ScriptName);
+            objectScriptObjNames[cc].MakeLower();
             if (objectScriptObjNames[cc][1] != 0)
-                objectScriptObjNames[cc][1] = toupper(objectScriptObjNames[cc][1]);
+                objectScriptObjNames[cc].SetAt(1, toupper(objectScriptObjNames[cc][1]));
         }
 
         ccAddExternalDynamicObject(objectScriptObjNames[cc], &scrObj[cc], &ccDynamicObject);

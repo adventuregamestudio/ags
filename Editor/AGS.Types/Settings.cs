@@ -71,7 +71,7 @@ namespace AGS.Types
         private bool _hasMODMusic = false;
         private int _totalScore = 0;
         private bool _binaryFilesInSourceControl = false;
-        private GUIAlphaStyle _guiAlphaStyle = GUIAlphaStyle.AdditiveOpacity;
+        private GUIAlphaStyle _guiAlphaStyle = GUIAlphaStyle.MultiplyTranslucenceSrcBlend;
         private bool _runGameLoopsWhileDialogOptionsDisplayed = false;
         private InventoryHotspotMarker _inventoryHotspotMarker = new InventoryHotspotMarker();
         private bool _useLowResCoordinatesInScript = true;
@@ -281,7 +281,7 @@ namespace AGS.Types
 
         [DisplayName("GUI alpha rendering style")]
         [Description("When using 32-bit alpha-channel images, should GUIs be drawn with the new improved alpha method, or the backwards-compatible method?")]
-        [DefaultValue(GUIAlphaStyle.AdditiveOpacity)]
+        [DefaultValue(GUIAlphaStyle.MultiplyTranslucenceSrcBlend)]
         [Category("Visual")]
         [TypeConverter(typeof(EnumTypeConverter))]
         public GUIAlphaStyle GUIAlphaStyle

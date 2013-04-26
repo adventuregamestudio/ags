@@ -19,6 +19,15 @@
 #ifndef __AC_BLENDER_H
 #define __AC_BLENDER_H
 
+enum GameGuiAlphaRenderingStyle
+{
+    kGuiAlphaRender_Classic = 0,
+    kGuiAlphaRender_AdditiveOpacitySrcCopy,
+    kGuiAlphaRender_MultiplyTranslucenceSrcBlend,
+};
+
+void init_blenders(GameGuiAlphaRenderingStyle gui_alpha_style);
+
 unsigned long _myblender_color15(unsigned long x, unsigned long y, unsigned long n);
 unsigned long _myblender_color16(unsigned long x, unsigned long y, unsigned long n);
 unsigned long _myblender_color32(unsigned long x, unsigned long y, unsigned long n);

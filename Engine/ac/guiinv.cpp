@@ -14,6 +14,7 @@
 
 #include "util/wgt2allg.h"
 #include "gui/guiinv.h"
+#include "gui/guimain.h"
 #include "ac/draw.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -65,7 +66,7 @@ void GUIInv::Draw() {
 
     for (uu = this->topIndex; uu < lastItem; uu++) {
         // draw inv graphic
-        wputblock(cxp, cyp, spriteset[game.invinfo[charextra[this->CharToDisplay()].invorder[uu]].pic], 1);
+        draw_sprite_compensate(game.invinfo[charextra[this->CharToDisplay()].invorder[uu]].pic, cxp, cyp, 1);
         cxp += multiply_up_coordinate(this->itemWidth);
 
         // go to next row when appropriate

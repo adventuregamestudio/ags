@@ -12,11 +12,22 @@
 //
 //=============================================================================
 
-#include <stdio.h>
+#include <memory.h>
 #include "ac/inventoryiteminfo.h"
 #include "util/stream.h"
 
 using AGS::Common::Stream;
+
+InventoryItemInfo::InventoryItemInfo()
+    : pic(0)
+    , cursorPic(0)
+    , hotx(0)
+    , hoty(0)
+    , flags(0)
+{
+    memset(&name, 0, 25);
+    memset(&reserved, 0, 5 * sizeof(int));
+}
 
 void InventoryItemInfo::ReadFromFile(Stream *in)
 {

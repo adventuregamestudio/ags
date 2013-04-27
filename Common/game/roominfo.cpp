@@ -37,7 +37,7 @@ RoomBackgroundInfo::~RoomBackgroundInfo()
 }
 
 RoomObjectInfo::RoomObjectInfo()
-    : Id(0)
+    : SpriteIndex(0)
     , X(0)
     , Y(0)
     , RoomIndex(-1)
@@ -49,11 +49,20 @@ RoomObjectInfo::RoomObjectInfo()
 
 void RoomObjectInfo::ReadFromFile(Common::Stream *in)
 {
-    Id = in->ReadInt16();
+    SpriteIndex = in->ReadInt16();
     X = in->ReadInt16();
     Y = in->ReadInt16();
     RoomIndex = in->ReadInt16();
     IsOn = in->ReadInt16() ? true : false;
+}
+
+void RoomObjectInfo::WriteToFile(Common::Stream *out) const
+{
+    out->WriteInt16(SpriteIndex);
+    out->WriteInt16(X);
+    out->WriteInt16(Y);
+    out->WriteInt16(RoomIndex);
+    out->WriteInt16(IsOn ? 1 : 0);
 }
 
 RoomRegionInfo::RoomRegionInfo()

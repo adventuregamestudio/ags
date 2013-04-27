@@ -15,6 +15,8 @@
 #ifndef __AC_WORDSDICTIONARY_H
 #define __AC_WORDSDICTIONARY_H
 
+#include "util/string.h"
+
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
@@ -36,12 +38,14 @@ struct WordsDictionary {
 extern char *passwencstring;
 
 extern void decrypt_text(char*toenc);
+extern void decrypt_text(Common::String &str);
 extern void read_string_decrypt(Common::Stream *in, char *sss);
+extern void read_string_decrypt(Common::Stream *in, Common::String &str);
 extern void read_dictionary (WordsDictionary *dict, Common::Stream *in);
 extern void freadmissout(short *pptr, Common::Stream *in);
 
 extern void encrypt_text(char *toenc);
-extern void write_string_encrypt(Common::Stream *out, char *sss);
+extern void write_string_encrypt(Common::Stream *out, const char *sss);
 extern void write_dictionary (WordsDictionary *dict, Common::Stream *out);
 
 #endif // __AC_WORDSDICTIONARY_H

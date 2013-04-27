@@ -39,7 +39,7 @@ struct CustomPropertySchema {
 
     CustomPropertySchema ();
 
-    void Serialize (Common::Stream *out);
+    void Serialize (Common::Stream *out) const;
     int UnSerialize (Common::Stream *in);
 
 };
@@ -59,7 +59,7 @@ struct CustomProperties {
 
     void addProperty (const char *newname, const char *newval);
 
-    void Serialize (Common::Stream *out);
+    void Serialize (Common::Stream *out) const;
     int  UnSerialize (Common::Stream *in);
 };
 

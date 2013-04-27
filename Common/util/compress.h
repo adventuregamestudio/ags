@@ -27,7 +27,7 @@ using namespace AGS; // FIXME later
 #endif
 typedef unsigned char * __block;
 
-long csavecompressed(char *finam, __block tobesaved, color pala[256], long exto);
+long csavecompressed(char *finam, __block tobesaved, const color pala[256], long exto);
 
 void cpackbitl(unsigned char *line, int size, Common::Stream *out);
 void cpackbitl16(unsigned short *line, int size, Common::Stream *out);
@@ -38,11 +38,11 @@ int  cunpackbitl32(unsigned int *line, int size, Common::Stream *in);
 
 //=============================================================================
 
-long save_lzw(char *fnn, Common::Bitmap *bmpp, color *pall, long offe);
+long save_lzw(char *fnn, Common::Bitmap *bmpp, const color *pall, long offe);
 
 /*long load_lzw(char*fnn,Common::Bitmap*bmm,color*pall,long ooff);*/
 long load_lzw(Common::Stream *in, Common::Bitmap *bmm, color *pall);
-long savecompressed_allegro(char *fnn, Common::Bitmap *bmpp, color *pall, long write_at);
+long savecompressed_allegro(char *fnn, Common::Bitmap *bmpp, const color *pall, long write_at);
 long loadcompressed_allegro(Common::Stream *in, Common::Bitmap **bimpp, color *pall);
 
 //extern char *lztempfnm;

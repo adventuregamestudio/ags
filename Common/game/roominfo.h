@@ -142,7 +142,7 @@ struct RoomHotspotInfo
 
 struct RoomObjectInfo
 {
-    int16_t         Id;
+    int16_t         SpriteIndex;
     int16_t         X;
     int16_t         Y;
     int16_t         RoomIndex;
@@ -157,6 +157,7 @@ struct RoomObjectInfo
 
     RoomObjectInfo();
     void ReadFromFile(Common::Stream *in);
+    void WriteToFile(Common::Stream *out) const;
 };
 
 struct RoomRegionInfo
@@ -235,6 +236,9 @@ public:
     RoomInfoError   ReadFromFile(Stream *in, bool game_is_hires, RoomFormatBlock *last_block = NULL);
     void            WriteToFile(Stream *out);
 
+    // TODO: temporarily made public
+    void SaveScriptConfiguration(Common::Stream *out) const;
+    void SaveGraphicalScripts(Common::Stream *out) const;
 private:
     void            InitDefaults();
     RoomInfoError   ReadBlock(Stream *in, RoomFormatBlock block_type);
@@ -249,10 +253,9 @@ private:
 
     // Those are, in fact, are project-dependent and are implemented in runtime and AGS.Native
     void LoadScriptConfiguration(Common::Stream *in);
-    void SaveScriptConfiguration(Common::Stream *out);
+    
     // Graphical scripts are from very old AGS versions and not supported yet
     void LoadGraphicalScripts(Common::Stream *in);
-    void SaveGraphicalScripts(Common::Stream *out);
 
 
 // TODO: all members are currently public; hide them later

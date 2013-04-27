@@ -3,13 +3,13 @@
 //
 
 #include "util/wgt2allg.h"
-#include "ac/roomstruct.h"
+#include "game/roominfo.h"
 
 //=============================================================================
 // AGS.Native-specific implementation split out of acroom.cpp
 //=============================================================================
 
-bool load_room_is_version_bad(roomstruct *rstruc)
+bool load_room_is_version_bad(AGS::Common::RoomInfo *rstruc)
 {
-    return ((rstruc->wasversion < kRoomVersion_241) || (rstruc->wasversion > kRoomVersion_Current));
+    return ((rstruc->LoadedVersion < kRoomVersion_241) || (rstruc->LoadedVersion > kRoomVersion_Current));
 }

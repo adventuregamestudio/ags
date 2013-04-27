@@ -441,10 +441,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\ac\inventoryiteminfo.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\ac\invwindow.cpp"
 					>
 				</File>

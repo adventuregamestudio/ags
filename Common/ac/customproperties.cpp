@@ -67,7 +67,7 @@ CustomPropertySchema::CustomPropertySchema () {
 }
 
 // ** SCHEMA LOAD/SAVE FUNCTIONS
-void CustomPropertySchema::Serialize (Stream *out) {
+void CustomPropertySchema::Serialize (Stream *out) const {
     out->WriteInt32 (1);  // version 1 at present
     out->WriteInt32 (numProps);
     for (int jj = 0; jj < numProps; jj++) {
@@ -135,7 +135,7 @@ void CustomProperties::addProperty (const char *newname, const char *newval) {
 }
 
 // ** OBJECT PROPERTIES LOAD/SAVE FUNCTIONS
-void CustomProperties::Serialize (Stream *out) {
+void CustomProperties::Serialize (Stream *out) const {
     out->WriteInt32 (1);
     out->WriteInt32 (numProps);
     for (int ee = 0; ee < numProps; ee++) {

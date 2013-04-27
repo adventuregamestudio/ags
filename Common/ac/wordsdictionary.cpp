@@ -22,6 +22,7 @@
 #include "util/stream.h"
 
 using AGS::Common::Stream;
+using AGS::Common::String;
 
 void WordsDictionary::allocate_memory(int wordCount)
 {
@@ -97,6 +98,21 @@ void decrypt_text(char*toenc) {
   }
 }
 
+void decrypt_text(String &toenc)
+{
+    int adx = 0;
+
+    for (int i = 0; i < toenc.GetLength(); ++i)
+    {
+        toenc.SetAt(i, toenc[i] - passwencstring[adx]);
+
+        adx++;
+
+        if (adx > 10)
+            adx = 0;
+    }
+}
+
 void read_string_decrypt(Stream *in, char *sss) {
   int newlen = in->ReadInt32();
   if ((newlen < 0) || (newlen > 5000000))
@@ -106,6 +122,16 @@ void read_string_decrypt(Stream *in, char *sss) {
   in->Read(sss, newlen);
   sss[newlen] = 0;
   decrypt_text(sss);
+}
+
+void read_string_decrypt(Common::Stream *in, Common::String &str)
+{
+    int newlen = in->ReadInt32();
+    if ((newlen < 0) || (newlen > 5000000))
+        quit("ReadString: file is corrupt");
+
+    str.ReadCount(in, newlen);
+    decrypt_text(str);
 }
 
 void read_dictionary (WordsDictionary *dict, Stream *out) {
@@ -140,13 +166,24 @@ void encrypt_text(char *toenc) {
   }
 }
 
-void write_string_encrypt(Stream *out, char *sss) {
+void write_string_encrypt(Stream *out, const char *sss) {
   int stlent = (int)strlen(sss) + 1;
 
   out->WriteInt32(stlent);
-  encrypt_text(sss);
-  out->WriteArray(sss, stlent, 1);
-  decrypt_text(sss);
+
+  int adx = 0, tobreak = 0;
+  const char *toenc = sss;
+  while (tobreak == 0) {
+      if (toenc[0] == 0)
+          tobreak = 1;
+
+      out->WriteByte(toenc[0] + passwencstring[adx]);
+      adx++;
+      toenc++;
+
+      if (adx > 10)
+          adx = 0;
+  }
 }
 
 void write_dictionary (WordsDictionary *dict, Stream *out) {

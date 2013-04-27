@@ -30,3 +30,17 @@ void ScriptAudioClip::ReadFromFile(Stream *in)
     defaultVolume = in->ReadInt16();
     reserved = in->ReadInt32();
 }
+
+void ScriptAudioClip::WriteToFile(Stream *out)
+{
+    out->WriteInt32(id);
+    out->Write(scriptName, SCRIPTAUDIOCLIP_SCRIPTNAMELENGTH);
+    out->Write(fileName, SCRIPTAUDIOCLIP_FILENAMELENGTH);
+    out->WriteInt8(bundlingType);
+    out->WriteInt8(type);
+    out->WriteInt8(fileType);
+    out->WriteInt8(defaultRepeat);
+    out->WriteInt16(defaultPriority);
+    out->WriteInt16(defaultVolume);
+    out->WriteInt32(reserved);
+}

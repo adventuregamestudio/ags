@@ -36,6 +36,7 @@ struct ScriptAudioClip {
     int  reserved;
 
     void ReadFromFile(Common::Stream *in);
+    void WriteToFile(Common::Stream *out);
 };
 
 #endif // __AGS_CN_DYNOBJ__SCRIPTAUDIOCLIP_H

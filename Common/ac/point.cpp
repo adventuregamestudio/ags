@@ -34,3 +34,10 @@ void PolyPoints::ReadFromFile(Stream *in)
     in->ReadArrayOfInt32(y, MAXPOINTS);
     numpoints = in->ReadInt32();
 }
+
+void PolyPoints::WriteToFile(Stream *out) const
+{
+    out->WriteArrayOfInt32(x, MAXPOINTS);
+    out->WriteArrayOfInt32(y, MAXPOINTS);
+    out->WriteInt32(numpoints);
+}

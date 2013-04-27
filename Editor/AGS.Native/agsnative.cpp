@@ -16,12 +16,13 @@ int mousex, mousey;
 #include "ac/spritecache.h"
 #include "ac/actiontype.h"
 #include "ac/common.h"
-#include "ac/roomstruct.h"
 #include "ac/scriptmodule.h"
 #include "ac/view.h"
 #include "ac/dialogtopic.h"
-#include "ac/gamesetupstruct.h"
+#include "ac/wordsdictionary.h"
 #include "font/fonts.h"
+#include "game/gameinfo.h"
+#include "game/roominfo.h"
 #include "gui/guimain.h"
 #include "gui/guiinv.h"
 #include "gui/guibutton.h"
@@ -31,6 +32,7 @@ int mousex, mousey;
 #include "gui/guislider.h"
 #include "util/compress.h"
 #include "util/string_utils.h"    // fputstring, etc
+#include "util/alignedstream.h"
 #include "util/filestream.h"
 #include "gfx/bitmap.h"
 #include "core/assetmanager.h"
@@ -58,11 +60,11 @@ void serialize_room_interactions(Stream *);
 
 inline void Cstretch_blit(Common::Bitmap *src, Common::Bitmap *dst, int sx, int sy, int sw, int sh, int dx, int dy, int dw, int dh)
 {
-	Cstretch_blit((BITMAP*)src->GetBitmapObject(), (BITMAP*)dst->GetBitmapObject(), sx, sy, sw, sh, dx, dy, dw, dh);
+	Cstretch_blit(src->GetAllegroBitmap(), dst->GetAllegroBitmap(), sx, sy, sw, sh, dx, dy, dw, dh);
 }
 inline void Cstretch_sprite(Common::Bitmap *dst, Common::Bitmap *src, int x, int y, int w, int h)
 {
-	Cstretch_sprite((BITMAP*)dst->GetBitmapObject(), (BITMAP*)src->GetBitmapObject(), x, y, w, h);
+	Cstretch_sprite(dst->GetAllegroBitmap(), src->GetAllegroBitmap(), x, y, w, h);
 }
 
 
@@ -71,7 +73,7 @@ int dsc_want_hires = 0;
 bool enable_greyed_out_masks = true;
 bool outlineGuiObjects;
 color*palette;
-GameSetupStruct thisgame;
+AGS::Common::GameInfo thisgame;
 SpriteCache spriteset(MAX_SPRITES + 2);
 GUIMain tempgui;
 const char*sprsetname = "acsprset.spr";
@@ -83,7 +85,7 @@ const char *TEMPLATE_LOCK_FILE = "template.dta";
 const char *ROOM_TEMPLATE_ID_FILE = "rtemplate.dat";
 const int ROOM_TEMPLATE_ID_FILE_SIGNATURE = 0x74673812;
 bool spritesModified = false;
-roomstruct thisroom;
+AGS::Common::RoomInfo thisroom;
 bool roomModified = false;
 Common::Bitmap *drawBuffer = NULL;
 Common::Bitmap *undoBuffer = NULL;
@@ -110,8 +112,8 @@ void drawBlockScaledAt(int hdc, Common::Bitmap *todraw ,int x, int y, int scaleF
 void write_log(char *) { }
 
 void GUIInv::Draw(Common::Graphics *g) {
-  g->SetColor(15);
-  g->Bmp->DrawRect(Rect(x,y,x+wid,y+hit), g->DrawColor);
+  g->SetDrawColor(15);
+  g->DrawRect(Rect(x,y,x+wid,y+hit));
 }
 
 int multiply_up_coordinate(int coord)
@@ -188,7 +190,7 @@ void SetNewSpriteFromHBitmap(int slot, int hBmp) {
 
 int GetSpriteAsHBitmap(int slot) {
   // FIXME later
-  return (int)convert_bitmap_to_hbitmap((BITMAP*)get_sprite(slot)->GetBitmapObject());
+  return (int)convert_bitmap_to_hbitmap(get_sprite(slot)->GetAllegroBitmap());
 }
 
 bool DoesSpriteExist(int slot) {
@@ -208,16 +210,16 @@ int GetSpriteHeight(int slot) {
 }
 
 int GetRelativeSpriteWidth(int slot) {
-	return GetSpriteWidth(slot) / ((thisgame.spriteflags[slot] & SPF_640x400) ? 2 : 1);
+	return GetSpriteWidth(slot) / ((thisgame.SpriteFlags[slot] & SPF_640x400) ? 2 : 1);
 }
 
 int GetRelativeSpriteHeight(int slot) {
-	return GetSpriteHeight(slot) / ((thisgame.spriteflags[slot] & SPF_640x400) ? 2 : 1);
+	return GetSpriteHeight(slot) / ((thisgame.SpriteFlags[slot] & SPF_640x400) ? 2 : 1);
 }
 
 int GetSpriteResolutionMultiplier(int slot)
 {
-	return ((thisgame.spriteflags[slot] & SPF_640x400) ? 1 : 2);
+	return ((thisgame.SpriteFlags[slot] & SPF_640x400) ? 1 : 2);
 }
 
 unsigned char* GetRawSpriteData(int spriteSlot) {
@@ -249,10 +251,10 @@ int find_free_sprite_slot() {
 
 void update_sprite_resolution(int spriteNum, bool isHighRes)
 {
-	thisgame.spriteflags[spriteNum] &= ~SPF_640x400;
+	thisgame.SpriteFlags[spriteNum] &= ~SPF_640x400;
 	if (isHighRes)
 	{
-		thisgame.spriteflags[spriteNum] |= SPF_640x400;
+		thisgame.SpriteFlags[spriteNum] |= SPF_640x400;
 	}
 }
 
@@ -261,8 +263,8 @@ void change_sprite_number(int oldNumber, int newNumber) {
   spriteset.setNonDiscardable(newNumber, spriteset[oldNumber]);
   spriteset.removeSprite(oldNumber, false);
 
-  thisgame.spriteflags[newNumber] = thisgame.spriteflags[oldNumber];
-  thisgame.spriteflags[oldNumber] = 0;
+  thisgame.SpriteFlags[newNumber] = thisgame.SpriteFlags[oldNumber];
+  thisgame.SpriteFlags[oldNumber] = 0;
 
   spritesModified = true;
 }
@@ -356,7 +358,8 @@ int crop_sprite_edges(int numSprites, int *sprites, bool symmetric) {
     Common::Bitmap *sprit = get_sprite(sprites[aa]);
     // create a new, smaller sprite and copy across
 	Common::Bitmap *newsprit = Common::BitmapHelper::CreateBitmap(newWidth, newHeight, sprit->GetColorDepth());
-    newsprit->Blit(sprit, left, top, 0, 0, newWidth, newHeight);
+    Common::Graphics g(newsprit);
+    g.Blit(sprit, left, top, 0, 0, newWidth, newHeight);
     delete sprit;
 
     spriteset.setNonDiscardable(sprites[aa], newsprit);
@@ -607,9 +610,8 @@ void drawBlockDoubleAt (int hdc, Common::Bitmap *todraw ,int x, int y) {
 }
 
 void wputblock_stretch(Common::Graphics *g, int xpt,int ypt,Common::Bitmap *tblock,int nsx,int nsy) {
-  if (bmp_bpp(tblock) != thisgame.color_depth) {
-    Common::Bitmap *tempst=Common::BitmapHelper::CreateBitmap(tblock->GetWidth(),tblock->GetHeight(),thisgame.color_depth*8);
-    tempst->Blit(tblock,0,0,0,0,tblock->GetWidth(),tblock->GetHeight());
+  if (bmp_bpp(tblock) != thisgame.ColorDepth) {
+    Common::Bitmap *tempst=Common::BitmapHelper::CreateBitmapCopy(tblock, thisgame.ColorDepth*8);
     int ww,vv;
     for (ww=0;ww<tblock->GetWidth();ww++) {
       for (vv=0;vv<tblock->GetHeight();vv++) {
@@ -617,16 +619,16 @@ void wputblock_stretch(Common::Graphics *g, int xpt,int ypt,Common::Bitmap *tblo
           tempst->PutPixel(ww,vv,tempst->GetMaskColor());
       }
     }
-    g->Bmp->StretchBlt(tempst,RectWH(xpt,ypt,nsx,nsy), Common::kBitmap_Transparency);
+    g->StretchBlt(tempst,RectWH(xpt,ypt,nsx,nsy), Common::kBitmap_Transparency);
     delete tempst;
   }
-  else g->Bmp->StretchBlt(tblock,RectWH(xpt,ypt,nsx,nsy), Common::kBitmap_Transparency);
+  else g->StretchBlt(tblock,RectWH(xpt,ypt,nsx,nsy), Common::kBitmap_Transparency);
 }
 
 void draw_sprite_compensate(Common::Graphics *g, int sprnum, int atxp, int atyp, int seethru) {
   Common::Bitmap *blptr = get_sprite(sprnum);
   Common::Bitmap *towrite=blptr;
-  int needtofree=0, main_color_depth = thisgame.color_depth * 8;
+  int needtofree=0, main_color_depth = thisgame.ColorDepth * 8;
 
   if ((bmp_bpp(blptr) > 1) & (main_color_depth==8)) {
 
@@ -645,7 +647,7 @@ void draw_sprite_compensate(Common::Graphics *g, int sprnum, int atxp, int atyp,
     }
 
   int nwid=towrite->GetWidth(),nhit=towrite->GetHeight();
-  if (thisgame.spriteflags[sprnum] & SPF_640x400) {
+  if (thisgame.SpriteFlags[sprnum] & SPF_640x400) {
     if (dsc_want_hires == 0) {
       nwid/=2;
       nhit/=2;
@@ -662,7 +664,7 @@ void draw_sprite_compensate(Common::Graphics *g, int sprnum, int atxp, int atyp,
 void drawBlock (HDC hdc, Common::Bitmap *todraw, int x, int y) {
   set_palette_to_hdc (hdc, palette);
   // FIXME later
-  blit_to_hdc ((BITMAP*)todraw->GetBitmapObject(), hdc, 0,0,x,y,todraw->GetWidth(),todraw->GetHeight());
+  blit_to_hdc (todraw->GetAllegroBitmap(), hdc, 0,0,x,y,todraw->GetWidth(),todraw->GetHeight());
 }
 
 
@@ -675,7 +677,7 @@ enum RoomAreaMask
     Regions
 };
 
-Common::Bitmap *get_bitmap_for_mask(roomstruct *roomptr, RoomAreaMask maskType) 
+Common::Bitmap *get_bitmap_for_mask(Common::RoomInfo *roomptr, RoomAreaMask maskType) 
 {
 	if (maskType == RoomAreaMask::None) 
 	{
@@ -686,16 +688,16 @@ Common::Bitmap *get_bitmap_for_mask(roomstruct *roomptr, RoomAreaMask maskType)
 	switch (maskType) 
 	{
 	case RoomAreaMask::Hotspots:
-		source = roomptr->lookat;
+		source = roomptr->HotspotMask;
 		break;
 	case RoomAreaMask::Regions:
-		source = roomptr->regions;
+		source = roomptr->RegionMask;
 		break;
 	case RoomAreaMask::WalkableAreas:
-		source = roomptr->walls;
+		source = roomptr->WalkAreaMask;
 		break;
 	case RoomAreaMask::WalkBehinds:
-		source = roomptr->object;
+		source = roomptr->WalkBehindMask;
 		break;
 	}
 
@@ -703,37 +705,41 @@ Common::Bitmap *get_bitmap_for_mask(roomstruct *roomptr, RoomAreaMask maskType)
 }
 
 void copy_walkable_to_regions (void *roomptr) {
-	roomstruct *theRoom = (roomstruct*)roomptr;
-	theRoom->regions->Blit(theRoom->walls, 0, 0, 0, 0, theRoom->regions->GetWidth(), theRoom->regions->GetHeight());
+	Common::RoomInfo *theRoom = (Common::RoomInfo*)roomptr;
+    Common::Graphics g(theRoom->RegionMask);
+	g.Blit(theRoom->WalkAreaMask, 0, 0, 0, 0, theRoom->RegionMask->GetWidth(), theRoom->RegionMask->GetHeight());
 }
 
 int get_mask_pixel(void *roomptr, int maskType, int x, int y)
 {
-	Common::Bitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
+	Common::Bitmap *mask = get_bitmap_for_mask((Common::RoomInfo*)roomptr, (RoomAreaMask)maskType);
 	return mask->GetPixel(x, y);
 }
 
 void draw_line_onto_mask(void *roomptr, int maskType, int x1, int y1, int x2, int y2, int color)
 {
-	Common::Bitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
-	mask->DrawLine(Line(x1, y1, x2, y2), color);
+	Common::Bitmap *mask = get_bitmap_for_mask((Common::RoomInfo*)roomptr, (RoomAreaMask)maskType);
+    Common::Graphics g(mask);
+	g.DrawLine(Line(x1, y1, x2, y2), color);
 }
 
 void draw_filled_rect_onto_mask(void *roomptr, int maskType, int x1, int y1, int x2, int y2, int color)
 {
-	Common::Bitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
-	mask->FillRect(Rect(x1, y1, x2, y2), color);
+	Common::Bitmap *mask = get_bitmap_for_mask((Common::RoomInfo*)roomptr, (RoomAreaMask)maskType);
+    Common::Graphics g(mask);
+    g.FillRect(Rect(x1, y1, x2, y2), color);
 }
 
 void draw_fill_onto_mask(void *roomptr, int maskType, int x1, int y1, int color)
 {
-	Common::Bitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
-	mask->FloodFill(x1, y1, color);
+	Common::Bitmap *mask = get_bitmap_for_mask((Common::RoomInfo*)roomptr, (RoomAreaMask)maskType);
+    Common::Graphics g(mask);
+    g.FloodFill(x1, y1, color);
 }
 
 void create_undo_buffer(void *roomptr, int maskType) 
 {
-	Common::Bitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
+	Common::Bitmap *mask = get_bitmap_for_mask((Common::RoomInfo*)roomptr, (RoomAreaMask)maskType);
   if (undoBuffer != NULL)
   {
     if ((undoBuffer->GetWidth() != mask->GetWidth()) || (undoBuffer->GetHeight() != mask->GetHeight())) 
@@ -746,7 +752,8 @@ void create_undo_buffer(void *roomptr, int maskType)
   {
     undoBuffer = Common::BitmapHelper::CreateBitmap(mask->GetWidth(), mask->GetHeight(), mask->GetColorDepth());
   }
-  undoBuffer->Blit(mask, 0, 0, 0, 0, mask->GetWidth(), mask->GetHeight());
+  Common::Graphics g(undoBuffer);
+  g.Blit(mask, 0, 0, 0, 0, mask->GetWidth(), mask->GetHeight());
 }
 
 bool does_undo_buffer_exist()
@@ -767,8 +774,9 @@ void restore_from_undo_buffer(void *roomptr, int maskType)
 {
   if (does_undo_buffer_exist())
   {
-  	Common::Bitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
-    mask->Blit(undoBuffer, 0, 0, 0, 0, mask->GetWidth(), mask->GetHeight());
+  	Common::Bitmap *mask = get_bitmap_for_mask((Common::RoomInfo*)roomptr, (RoomAreaMask)maskType);
+    Common::Graphics g(mask);
+    g.Blit(undoBuffer, 0, 0, 0, 0, mask->GetWidth(), mask->GetHeight());
   }
 }
 
@@ -819,7 +827,7 @@ Common::Bitmap *recycle_bitmap(Common::Bitmap* check, int colDepth, int w, int h
 
 Common::Bitmap *stretchedSprite = NULL, *srcAtRightColDep = NULL;
 
-void draw_area_mask(roomstruct *roomptr, Common::Bitmap *destination, RoomAreaMask maskType, int selectedArea, int transparency) 
+void draw_area_mask(Common::RoomInfo *roomptr, Common::Bitmap *destination, RoomAreaMask maskType, int selectedArea, int transparency) 
 {
 	Common::Bitmap *source = get_bitmap_for_mask(roomptr, maskType);
 
@@ -832,7 +840,8 @@ void draw_area_mask(roomstruct *roomptr, Common::Bitmap *destination, RoomAreaMa
     if ((source->GetWidth() != destination->GetWidth()) || (source->GetHeight() != destination->GetHeight()))
     {
 		  stretchedSprite = recycle_bitmap(stretchedSprite, source->GetColorDepth(), destination->GetWidth(), destination->GetHeight());
-		  stretchedSprite->StretchBlt(source, RectWH(0, 0, source->GetWidth(), source->GetHeight()),
+          Common::Graphics g(stretchedSprite);
+		  g.StretchBlt(source, RectWH(0, 0, source->GetWidth(), source->GetHeight()),
 			  RectWH(0, 0, stretchedSprite->GetWidth(), stretchedSprite->GetHeight()));
       sourceSprite = stretchedSprite;
     }
@@ -849,15 +858,18 @@ void draw_area_mask(roomstruct *roomptr, Common::Bitmap *destination, RoomAreaMa
       int oldColorConv = get_color_conversion();
       set_color_conversion(oldColorConv | COLORCONV_KEEP_TRANS);
 
-      srcAtRightColDep->Blit(sourceSprite, 0, 0, 0, 0, sourceSprite->GetWidth(), sourceSprite->GetHeight());
+      Common::Graphics g(srcAtRightColDep);
+      g.Blit(sourceSprite, 0, 0, 0, 0, sourceSprite->GetWidth(), sourceSprite->GetHeight());
       set_trans_blender(0, 0, 0, (100 - transparency) + 155);
-      destination->TransBlendBlt(srcAtRightColDep, 0, 0);
+      g.SetBitmap(destination);
+      g.TransBlendBlt(srcAtRightColDep, 0, 0);
 
       set_color_conversion(oldColorConv);
     }
     else
     {
-		destination->Blit(sourceSprite, 0, 0, Common::kBitmap_Transparency);
+        Common::Graphics g(destination);
+		g.Blit(sourceSprite, 0, 0, Common::kBitmap_Transparency);
     }
 
     set_palette(palette);
@@ -870,12 +882,12 @@ void draw_area_mask(roomstruct *roomptr, Common::Bitmap *destination, RoomAreaMa
 
 void draw_room_background(void *roomvoidptr, int hdc, int x, int y, int bgnum, float scaleFactor, int maskType, int selectedArea, int maskTransparency) 
 {
-	roomstruct *roomptr = (roomstruct*)roomvoidptr;
+	Common::RoomInfo *roomptr = (Common::RoomInfo*)roomvoidptr;
 
-  if (bgnum >= roomptr->num_bscenes)
+  if (bgnum >= roomptr->BkgSceneCount)
     return;
 
-  Common::Bitmap *srcBlock = roomptr->ebscene[bgnum];
+  Common::Bitmap *srcBlock = roomptr->Backgrounds[bgnum].Graphic;
   if (srcBlock == NULL)
     return;
 
@@ -884,10 +896,11 @@ void draw_room_background(void *roomvoidptr, int hdc, int x, int y, int bgnum, f
 		Common::Bitmap *depthConverted = Common::BitmapHelper::CreateBitmap(srcBlock->GetWidth(), srcBlock->GetHeight(), drawBuffer->GetColorDepth());
     if (srcBlock->GetColorDepth() == 8)
     {
-      select_palette(roomptr->bpalettes[bgnum]);
+      select_palette(roomptr->Backgrounds[bgnum].Palette);
     }
 
-		depthConverted->Blit(srcBlock, 0, 0, 0, 0, srcBlock->GetWidth(), srcBlock->GetHeight());
+    Common::Graphics g(depthConverted);
+    g.Blit(srcBlock, 0, 0, 0, 0, srcBlock->GetWidth(), srcBlock->GetHeight());
 
     if (srcBlock->GetColorDepth() == 8)
     {
@@ -935,18 +948,18 @@ void update_font_sizes() {
 
   // scale up fonts if necessary
   wtext_multiply = 1;
-  if ((thisgame.options[OPT_NOSCALEFNT] == 0) &&
-      (thisgame.default_resolution >= 3)) {
+  if ((thisgame.Options[OPT_NOSCALEFNT] == 0) &&
+      (thisgame.DefaultResolution >= 3)) {
     wtext_multiply = 2;
   }
 
   if (multiplyWas != wtext_multiply) {
     // resolution or Scale Up Fonts has changed, reload at new size
-    for (int bb=0;bb<thisgame.numfonts;bb++)
+    for (int bb=0;bb<thisgame.FontCount;bb++)
       reload_font (bb);
   }
 
-  if (thisgame.default_resolution >= 3) {
+  if (thisgame.DefaultResolution >= 3) {
     sxmult = 2;
     symult = 2;
   }
@@ -1026,22 +1039,22 @@ const char* import_sci_font(const char*fnn,int fslot) {
 #define FONTGRIDSIZE 18*blockSize
 void drawFontAt (int hdc, int fontnum, int x,int y) {
   
-  if (fontnum >= thisgame.numfonts) 
+  if (fontnum >= thisgame.FontCount) 
   {
 	  return;
   }
 
   update_font_sizes();
 
-  int doubleSize = (thisgame.default_resolution < 3) ? 2 : 1;
-  int blockSize = (thisgame.default_resolution < 3) ? 1 : 2;
-  antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
+  int doubleSize = (thisgame.DefaultResolution < 3) ? 2 : 1;
+  int blockSize = (thisgame.DefaultResolution < 3) ? 1 : 2;
+  antiAliasFonts = thisgame.Options[OPT_ANTIALIASFONTS];
 
   // we can't antialias font because changing col dep to 16 here causes
   // it to crash ... why?
   Common::Bitmap *tempblock = Common::BitmapHelper::CreateBitmap(FONTGRIDSIZE*10, FONTGRIDSIZE*10, 8);
   Common::Graphics graphics(tempblock);
-  graphics.Bmp->Clear(0);
+  graphics.Fill(0);
   //Common::Bitmap *abufwas = abuf;
   //abuf = tempblock;
   graphics.SetTextColor(15);
@@ -1080,7 +1093,7 @@ static void doDrawViewLoop (int hdc, int numFrames, ViewFrame *frames, int x, in
   if ((numFrames > 0) && (frames[numFrames-1].pic == -1))
     wtoDraw -= size;
 
-  Common::Bitmap *todraw = Common::BitmapHelper::CreateBitmap (wtoDraw, size, thisgame.color_depth*8);
+  Common::Bitmap *todraw = Common::BitmapHelper::CreateBitmap (wtoDraw, size, thisgame.ColorDepth*8);
   todraw->Clear (todraw->GetMaskColor ());
   int neww, newh;
   for (int i = 0; i < numFrames; i++) {
@@ -1095,7 +1108,8 @@ static void doDrawViewLoop (int hdc, int numFrames, ViewFrame *frames, int x, in
       // 256-col sprite in hi-col game, we need to copy first
       Common::Bitmap *oldBlt = toblt;
       toblt = Common::BitmapHelper::CreateBitmap (toblt->GetWidth(), toblt->GetHeight(), todraw->GetColorDepth ());
-      toblt->Blit (oldBlt, 0, 0, 0, 0, oldBlt->GetWidth(), oldBlt->GetHeight());
+      Common::Graphics g(toblt);
+      g.Blit (oldBlt, 0, 0, 0, 0, oldBlt->GetWidth(), oldBlt->GetHeight());
       freeBlock = true;
     }
     Common::Bitmap *flipped = NULL;
@@ -1103,7 +1117,8 @@ static void doDrawViewLoop (int hdc, int numFrames, ViewFrame *frames, int x, in
       // mirror the sprite
       flipped = Common::BitmapHelper::CreateBitmap (toblt->GetWidth(), toblt->GetHeight(), todraw->GetColorDepth ());
       flipped->Clear (flipped->GetMaskColor ());
-      flipped->FlipBlt(toblt, 0, 0, Common::kBitmap_HFlip);
+      Common::Graphics g(flipped);
+      g.FlipBlt(toblt, 0, 0, Common::kBitmap_HFlip);
       if (freeBlock)
         delete toblt;
       toblt = flipped;
@@ -1113,21 +1128,22 @@ static void doDrawViewLoop (int hdc, int numFrames, ViewFrame *frames, int x, in
 	Cstretch_sprite(todraw, toblt, size*i, 0, neww, newh);
     if (freeBlock)
       delete toblt;
+    Common::Graphics g(todraw);
     if (i < numFrames-1) {
-      int linecol = makecol_depth(thisgame.color_depth * 8, 0, 64, 200);
-      if (thisgame.color_depth == 1)
+      int linecol = makecol_depth(thisgame.ColorDepth * 8, 0, 64, 200);
+      if (thisgame.ColorDepth == 1)
         linecol = 12;
 
       // Draw dividing line
-	  todraw->DrawLine (Line(size*(i+1) - 1, 0, size*(i+1) - 1, size-1), linecol);
+	  g.DrawLine (Line(size*(i+1) - 1, 0, size*(i+1) - 1, size-1), linecol);
     }
     if (i == cursel) {
       // Selected item
-      int linecol = makecol_depth(thisgame.color_depth * 8, 255, 255,255);
-      if (thisgame.color_depth == 1)
+      int linecol = makecol_depth(thisgame.ColorDepth * 8, 255, 255,255);
+      if (thisgame.ColorDepth == 1)
         linecol = 14;
       
-      todraw->DrawRect(Rect (size * i, 0, size * (i+1) - 1, size-1), linecol);
+      g.DrawRect(Rect (size * i, 0, size * (i+1) - 1, size-1), linecol);
     }
   }
   drawBlock ((HDC)hdc, todraw, x, y);
@@ -1140,7 +1156,7 @@ int get_adjusted_spritewidth(int spr) {
 
   int retval = tsp->GetWidth();
 
-  if (thisgame.spriteflags[spr] & SPF_640x400) {
+  if (thisgame.SpriteFlags[spr] & SPF_640x400) {
     if (sxmult == 1)
       retval /= 2;
   }
@@ -1157,7 +1173,7 @@ int get_adjusted_spriteheight(int spr) {
 
   int retval = tsp->GetHeight();
 
-  if (thisgame.spriteflags[spr] & SPF_640x400) {
+  if (thisgame.SpriteFlags[spr] & SPF_640x400) {
     if (symult == 1)
       retval /= 2;
   }
@@ -1171,7 +1187,7 @@ int get_adjusted_spriteheight(int spr) {
 void drawBlockOfColour(int hdc, int x,int y, int width, int height, int colNum)
 {
 	__my_setcolor(&colNum, colNum, BaseColorDepth);
-  /*if (thisgame.color_depth > 2) {
+  /*if (thisgame.ColorDepth > 2) {
     // convert to 24-bit colour
     int red = ((colNum >> 11) & 0x1f) * 8;
     int grn = ((colNum >> 5) & 0x3f) * 4;
@@ -1179,7 +1195,7 @@ void drawBlockOfColour(int hdc, int x,int y, int width, int height, int colNum)
     colNum = (red << _rgb_r_shift_32) | (grn << _rgb_g_shift_32) | (blu << _rgb_b_shift_32);
   }*/
 
-  Common::Bitmap *palbmp = Common::BitmapHelper::CreateBitmap(width, height, thisgame.color_depth * 8);
+  Common::Bitmap *palbmp = Common::BitmapHelper::CreateBitmap(width, height, thisgame.ColorDepth * 8);
   palbmp->Clear (colNum);
   drawBlockScaledAt(hdc, palbmp, x, y, 1);
   delete palbmp;
@@ -1192,10 +1208,10 @@ void NewInteractionCommand::remove ()
 */
 
 void new_font () {
-  wloadfont_size(thisgame.numfonts, 0);
-  thisgame.fontflags[thisgame.numfonts] = 0;
-  thisgame.fontoutline[thisgame.numfonts] = -1;
-  thisgame.numfonts++;
+  wloadfont_size(thisgame.FontCount, 0);
+  thisgame.FontFlags.Append(0);
+  thisgame.FontOutline.Append(-1);
+  thisgame.FontCount++;
 }
 
 bool initialize_native()
@@ -1205,17 +1221,18 @@ bool initialize_native()
   set_uformat(U_ASCII);  // required to stop ALFONT screwing up text
 	install_allegro(SYSTEM_NONE, &errno, atexit);
 	//set_gdi_color_format();
-	palette = &thisgame.defpal[0];
-	thisgame.color_depth = 2;
+	palette = &thisgame.DefaultPalette[0];
+	thisgame.ColorDepth = 2;
 	//abuf = Common::BitmapHelper::CreateBitmap(10, 10, 32);
     BaseColorDepth = 32;
-	thisgame.numfonts = 0;
+	thisgame.FontCount = 0;
 	new_font();
 
 	spriteset.reset();
 	if (spriteset.initFile(sprsetname))
 	  return false;
 	spriteset.maxCacheSize = 100000000;  // 100 mb cache
+    thisgame.SpriteFlags.New(MAX_SPRITES);
 
 	if (!Scintilla_RegisterClasses (GetModuleHandle(NULL)))
       return false;
@@ -1228,8 +1245,10 @@ bool initialize_native()
 void shutdown_native()
 {
   shutdown_font_renderer();
-	allegro_exit();
-    Common::AssetManager::DestroyInstance();
+  // This MUST be called before Allegro is deinitialized.
+  thisroom.Free();
+  allegro_exit();
+  Common::AssetManager::DestroyInstance();
 }
 
 void drawBlockScaledAt (int hdc, Common::Bitmap *todraw ,int x, int y, int scaleFactor) {
@@ -1237,12 +1256,12 @@ void drawBlockScaledAt (int hdc, Common::Bitmap *todraw ,int x, int y, int scale
     set_palette_to_hdc ((HDC)hdc, palette);
 
   // FIXME later
-  stretch_blit_to_hdc ((BITMAP*)todraw->GetBitmapObject(), (HDC)hdc, 0,0,todraw->GetWidth(),todraw->GetHeight(),
+  stretch_blit_to_hdc (todraw->GetAllegroBitmap(), (HDC)hdc, 0,0,todraw->GetWidth(),todraw->GetHeight(),
     x,y,todraw->GetWidth() * scaleFactor, todraw->GetHeight() * scaleFactor);
 }
 
 void drawSprite(int hdc, int x, int y, int spriteNum, bool flipImage) {
-	int scaleFactor = ((thisgame.spriteflags[spriteNum] & SPF_640x400) != 0) ? 1 : 2;
+	int scaleFactor = ((thisgame.SpriteFlags[spriteNum] & SPF_640x400) != 0) ? 1 : 2;
 	Common::Bitmap *theSprite = get_sprite(spriteNum);
 
   if (theSprite == NULL)
@@ -1250,8 +1269,9 @@ void drawSprite(int hdc, int x, int y, int spriteNum, bool flipImage) {
 
 	if (flipImage) {
 		Common::Bitmap *flipped = Common::BitmapHelper::CreateBitmap (theSprite->GetWidth(), theSprite->GetHeight(), theSprite->GetColorDepth());
-		flipped->Clear (flipped->GetMaskColor ());
-		flipped->FlipBlt(theSprite, 0, 0, Common::kBitmap_HFlip);
+        Common::Graphics g(flipped);
+		g.Fill (flipped->GetMaskColor ());
+		g.FlipBlt(theSprite, 0, 0, Common::kBitmap_HFlip);
 		drawBlockScaledAt(hdc, flipped, x, y, scaleFactor);
 		delete flipped;
 	}
@@ -1271,13 +1291,12 @@ void drawSpriteStretch(int hdc, int x, int y, int width, int height, int spriteN
   int hdcBpp = GetDeviceCaps((HDC)hdc, BITSPIXEL);
   if (hdcBpp != todraw->GetColorDepth())
   {
-	  tempBlock = Common::BitmapHelper::CreateBitmap(todraw->GetWidth(), todraw->GetHeight(), hdcBpp);
-	  tempBlock->Blit(todraw, 0, 0, 0, 0, todraw->GetWidth(), todraw->GetHeight());
+	  tempBlock = Common::BitmapHelper::CreateBitmapCopy(todraw, hdcBpp);
 	  todraw = tempBlock;
   }
 
   // FIXME later
-  stretch_blit_to_hdc ((BITMAP*)todraw->GetBitmapObject(), (HDC)hdc, 0,0,todraw->GetWidth(),todraw->GetHeight(), x,y, width, height);
+  stretch_blit_to_hdc (todraw->GetAllegroBitmap(), (HDC)hdc, 0,0,todraw->GetWidth(),todraw->GetHeight(), x,y, width, height);
 
   delete tempBlock;
 }
@@ -1293,7 +1312,7 @@ void drawGUIAt (int hdc, int x,int y,int x1,int y1,int x2,int y2, int scaleFacto
     dsc_want_hires = 1;
   }
 
-  Common::Bitmap *tempblock = Common::BitmapHelper::CreateBitmap(tempgui.wid, tempgui.hit, thisgame.color_depth*8);
+  Common::Bitmap *tempblock = Common::BitmapHelper::CreateBitmap(tempgui.wid, tempgui.hit, thisgame.ColorDepth*8);
   tempblock->Clear(tempblock->GetMaskColor ());
   //Common::Bitmap *abufWas = abuf;
   //abuf = tempblock;
@@ -1304,7 +1323,7 @@ void drawGUIAt (int hdc, int x,int y,int x1,int y1,int x2,int y2, int scaleFacto
   dsc_want_hires = 0;
 
   if (x1 >= 0) {
-    graphics.Bmp->DrawRect(Rect (x1, y1, x2, y2), 14);
+    graphics.DrawRect(Rect (x1, y1, x2, y2), 14);
   }
   //abuf = abufWas;
 
@@ -1379,7 +1398,7 @@ void sort_out_transparency(Common::Bitmap *toimp, int sprite_import_method, colo
     }
   }
 
-  if ((thisgame.color_depth == 1) && (itspal != NULL)) { 
+  if ((thisgame.ColorDepth == 1) && (itspal != NULL)) { 
     // 256-colour mode only
     if (transcol!=0)
       itspal[transcol] = itspal[0];
@@ -1389,7 +1408,7 @@ void sort_out_transparency(Common::Bitmap *toimp, int sprite_import_method, colo
     for (uu=0;uu<255;uu++) {
       if (useBgSlots)  //  use background scene palette
         oldpale[uu]=palette[uu];
-      else if (thisgame.paluses[uu]==PAL_BACKGROUND)
+      else if (thisgame.PaletteUses[uu]==PAL_BACKGROUND)
         wsetrgb(uu,0,0,0,oldpale);
       else 
         oldpale[uu]=palette[uu];
@@ -1404,21 +1423,21 @@ void sort_out_transparency(Common::Bitmap *toimp, int sprite_import_method, colo
 
 void update_abuf_coldepth() {
 //  delete abuf;
-//  abuf = Common::BitmapHelper::CreateBitmap(10, 10, thisgame.color_depth * 8);
-    BaseColorDepth = thisgame.color_depth * 8;
+//  abuf = Common::BitmapHelper::CreateBitmap(10, 10, thisgame.ColorDepth * 8);
+    BaseColorDepth = thisgame.ColorDepth * 8;
 }
 
 bool reload_font(int curFont)
 {
   wfreefont(curFont);
 
-  int fsize = thisgame.fontflags[curFont] & FFLG_SIZEMASK;
+  int fsize = thisgame.FontFlags[curFont] & FFLG_SIZEMASK;
   // if the font is designed for 640x400, half it
-  if (thisgame.options[OPT_NOSCALEFNT]) {
-    if (thisgame.default_resolution <= 2)
+  if (thisgame.Options[OPT_NOSCALEFNT]) {
+    if (thisgame.DefaultResolution <= 2)
       fsize /= 2;
   }
-  else if (thisgame.default_resolution >= 3) {
+  else if (thisgame.DefaultResolution >= 3) {
     // designed for 320x200, double it up
     fsize *= 2;
   }
@@ -1438,9 +1457,9 @@ void load_script_modules_compiled(Stream *inn) {
 
 void read_dialogs(Stream*iii, int filever, bool encrypted) {
   int bb;
-  dialog = (DialogTopic*)malloc(sizeof(DialogTopic) * thisgame.numdialog);
-  iii->ReadArray(&dialog[0],sizeof(DialogTopic),thisgame.numdialog);
-  for (bb=0;bb<thisgame.numdialog;bb++) {
+  dialog = (DialogTopic*)malloc(sizeof(DialogTopic) * thisgame.DialogCount);
+  iii->ReadArray(&dialog[0],sizeof(DialogTopic),thisgame.DialogCount);
+  for (bb=0;bb<thisgame.DialogCount;bb++) {
     if (dialog[bb].optionscripts!=NULL) {
       dialog[bb].optionscripts=(unsigned char*)malloc(dialog[bb].codesize+10);
       iii->Read(&dialog[bb].optionscripts[0],dialog[bb].codesize);
@@ -1457,7 +1476,7 @@ void read_dialogs(Stream*iii, int filever, bool encrypted) {
       decrypt_text(dlgscript[bb]);
   }
   char stringbuffer[1000];
-  for (bb=0;bb<thisgame.numdlgmessage;bb++) {
+  for (bb=0;bb<thisgame.DialogMessageCount;bb++) {
     if ((filever >= 26) && (encrypted))
       read_string_decrypt(iii, stringbuffer);
     else
@@ -1537,13 +1556,7 @@ void allocate_memory_for_views(int viewCount)
   numNewViews = 0;
 	oldViews = (ViewStruct272*)calloc(sizeof(ViewStruct272) * viewCount, 1);
   newViews = (ViewStruct*)calloc(sizeof(ViewStruct) * viewCount, 1);
-  thisgame.viewNames = (char**)malloc(sizeof(char*) * viewCount);
-  thisgame.viewNames[0] = (char*)calloc(MAXVIEWNAMELENGTH * viewCount, 1);
-
-  for (int i = 1; i < viewCount; i++)
-  {
-    thisgame.viewNames[i] = thisgame.viewNames[0] + (MAXVIEWNAMELENGTH * i);
-  }
+  thisgame.ViewNames.New(viewCount);
 }
 
 const char *load_dta_file_into_thisgame(const char *fileName)
@@ -1571,52 +1584,53 @@ const char *load_dta_file_into_thisgame(const char *fileName)
   int stlen = iii->ReadInt32();
   iii->Seek(Common::kSeekCurrent, stlen);
 
-  iii->ReadArray(&thisgame, sizeof (GameSetupStructBase), 1);
-  iii->Read(&thisgame.fontflags[0], thisgame.numfonts);
-  iii->Read(&thisgame.fontoutline[0], thisgame.numfonts);
+  {
+    Common::AlignedStream align_s(iii, Common::kAligned_Read);
+    thisgame.ReadBaseFromFile(&align_s);
+    align_s.Close();
+  }
+
+  thisgame.FontFlags.ReadRaw(iii, thisgame.FontCount);
+  thisgame.FontOutline.ReadRaw(iii, thisgame.FontCount);
 
   int numSprites = iii->ReadInt32();
-  memset(&thisgame.spriteflags[0], 0, MAX_SPRITES);
-  iii->Read(&thisgame.spriteflags[0], numSprites);
-  iii->ReadArray(&thisgame.invinfo[0], sizeof(InventoryItemInfo), thisgame.numinvitems);
-  iii->ReadArray(&thisgame.mcurs[0], sizeof(MouseCursor), thisgame.numcursors);
+  memset(&thisgame.SpriteFlags[0], 0, MAX_SPRITES);
+  thisgame.SpriteFlags.ReadRawOver(iii, numSprites);
+  thisgame.ReadInvInfo_Aligned(iii);
+  thisgame.ReadMouseCursors_Aligned(iii);
 
-  thisgame.intrChar = (NewInteraction**)calloc(thisgame.numcharacters, sizeof(NewInteraction*));
-  for (bb = 0; bb < thisgame.numcharacters; bb++) {
-    thisgame.intrChar[bb] = deserialize_new_interaction (iii);
+  thisgame.CharacterInteractions.New(thisgame.CharacterCount, NULL);
+  for (bb = 0; bb < thisgame.CharacterCount; bb++) {
+    thisgame.CharacterInteractions[bb] = deserialize_new_interaction (iii);
   }
-  for (bb = 0; bb < thisgame.numinvitems; bb++) {
-    delete thisgame.intrInv[bb];
-    thisgame.intrInv[bb] = deserialize_new_interaction (iii);
+  for (bb = 0; bb < thisgame.InvItemCount; bb++) {
+    delete thisgame.InvItemInteractions[bb];
+    thisgame.InvItemInteractions[bb] = deserialize_new_interaction (iii);
   }
 
   numGlobalVars = iii->ReadInt32();
   iii->ReadArray (&globalvars[0], sizeof (InteractionVariable), numGlobalVars);
 
-  if (thisgame.dict != NULL) {
-    thisgame.dict = (WordsDictionary*)malloc(sizeof(WordsDictionary));
-    read_dictionary (thisgame.dict, iii);
+  if (thisgame.LoadDictionary != NULL) {
+    thisgame.Dictionary = (WordsDictionary*)malloc(sizeof(WordsDictionary));
+    read_dictionary (thisgame.Dictionary, iii);
   }
 
-  thisgame.globalscript = NULL;
-
-  if (thisgame.compiled_script != NULL)
-    thisgame.compiled_script = ccScript::CreateFromStream(iii);
+  if (thisgame.LoadCompiledScript != NULL)
+    thisgame.CompiledScript = ccScript::CreateFromStream(iii);
 
   load_script_modules_compiled(iii);
 
-  allocate_memory_for_views(thisgame.numviews);
-  iii->ReadArray (&oldViews[0], sizeof(ViewStruct272), thisgame.numviews);
+  allocate_memory_for_views(thisgame.ViewCount);
+  iii->ReadArray (&oldViews[0], sizeof(ViewStruct272), thisgame.ViewCount);
 
-  thisgame.chars = (CharacterInfo*)calloc(sizeof(CharacterInfo) * thisgame.numcharacters, 1);
-  iii->ReadArray(&thisgame.chars[0],sizeof(CharacterInfo),thisgame.numcharacters);
+  thisgame.ReadCharacters_Aligned(iii);
 
-  iii->ReadArray (&thisgame.lipSyncFrameLetters[0][0], 20, 50);
+  iii->ReadArray (&thisgame.LipSyncFrameLetters[0][0], 20, 50);
 
   for (bb=0;bb<MAXGLOBALMES;bb++) {
-    if (thisgame.messages[bb]==NULL) continue;
-    thisgame.messages[bb]=(char*)malloc(500);
-    read_string_decrypt(iii, thisgame.messages[bb]);
+    if (!thisgame.MessageToLoad[bb]) continue;
+    read_string_decrypt(iii, thisgame.GlobalMessages[bb]);
   }
 
   read_dialogs(iii, filever, true);
@@ -1624,38 +1638,37 @@ const char *load_dta_file_into_thisgame(const char *fileName)
   const char *pluginError = read_plugins_from_disk (iii);
   if (pluginError != NULL) return pluginError;
 
-  thisgame.charProps = (CustomProperties*)calloc(thisgame.numcharacters, sizeof(CustomProperties));
-
-  for (bb = 0; bb < thisgame.numcharacters; bb++)
-    thisgame.charProps[bb].reset();
+  thisgame.CharacterProperties.New(thisgame.CharacterCount);
+  for (bb = 0; bb < thisgame.CharacterCount; bb++)
+    thisgame.CharacterProperties[bb].reset();
   for (bb = 0; bb < MAX_INV; bb++)
-    thisgame.invProps[bb].reset();
+    thisgame.InvItemProperties[bb].reset();
 
-  if (thisgame.propSchema.UnSerialize (iii))
+  if (thisgame.PropertySchema.UnSerialize (iii))
     return "unable to deserialize prop schema";
 
   int errors = 0;
 
-  for (bb = 0; bb < thisgame.numcharacters; bb++)
-    errors += thisgame.charProps[bb].UnSerialize (iii);
-  for (bb = 0; bb < thisgame.numinvitems; bb++)
-    errors += thisgame.invProps[bb].UnSerialize (iii);
+  for (bb = 0; bb < thisgame.CharacterCount; bb++)
+    errors += thisgame.CharacterProperties[bb].UnSerialize (iii);
+  for (bb = 0; bb < thisgame.InvItemCount; bb++)
+    errors += thisgame.InvItemProperties[bb].UnSerialize (iii);
 
   if (errors > 0)
     return "errors encountered reading custom props";
 
-  for (bb = 0; bb < thisgame.numviews; bb++)
-    fgetstring_limit(thisgame.viewNames[bb], iii, MAXVIEWNAMELENGTH);
+  for (bb = 0; bb < thisgame.ViewCount; bb++)
+    thisgame.ViewNames[bb].ReadCount(iii, MAXVIEWNAMELENGTH);
 
-  for (bb = 0; bb < thisgame.numinvitems; bb++)
-    fgetstring_limit(thisgame.invScriptNames[bb], iii, MAX_SCRIPT_NAME_LEN);
+  for (bb = 0; bb < thisgame.InvItemCount; bb++)
+    thisgame.InventoryScriptNames[bb].ReadCount(iii, MAX_SCRIPT_NAME_LEN);
 
-  for (bb = 0; bb < thisgame.numdialog; bb++)
-    fgetstring_limit(thisgame.dialogScriptNames[bb], iii, MAX_SCRIPT_NAME_LEN);
+  for (bb = 0; bb < thisgame.DialogCount; bb++)
+    thisgame.DialogScriptNames[bb].ReadCount(iii, MAX_SCRIPT_NAME_LEN);
 
   delete iii;
 
-  for (bb = 0; bb < thisgame.numgui; bb++)
+  for (bb = 0; bb < thisgame.GuiCount; bb++)
   {
 	  guis[bb].rebuild_array();
   }
@@ -1672,14 +1685,14 @@ const char *load_dta_file_into_thisgame(const char *fileName)
   for (bb=0;bb<MAX_FONTS;bb++) {
     wfreefont(bb);
   }
-  for (bb=0;bb<thisgame.numfonts;bb++) {
+  for (bb=0;bb<thisgame.FontCount;bb++) {
     reload_font (bb);
   }
 
   update_abuf_coldepth();
   spritesModified = false;
 
-  thisgame.filever = filever;
+  thisgame.FileVersion = filever;
   return NULL;
 }
 
@@ -1704,30 +1717,18 @@ void free_script_modules() {
 void free_old_game_data()
 {
   int bb;
-  for (bb=0;bb<MAXGLOBALMES;bb++) {
-    if (thisgame.messages[bb] != NULL)
-      free(thisgame.messages[bb]);
-  }
-  for (bb = 0; bb < thisgame.numdialog; bb++) 
+  thisgame.GlobalMessages.Free();
+  for (bb = 0; bb < thisgame.DialogCount; bb++) 
   {
 	  if (dialog[bb].optionscripts != NULL)
 		  free(dialog[bb].optionscripts);
   }
-  if (thisgame.charProps != NULL)
-  {
-    for (bb = 0; bb < thisgame.numcharacters; bb++)
-      thisgame.charProps[bb].reset();
-    free(thisgame.charProps);
-    thisgame.charProps = NULL;
-  }
-  if (thisgame.intrChar != NULL)
-  {
-    for (bb = 0; bb < thisgame.numcharacters; bb++)
-      delete thisgame.intrChar[bb];
-    
-    free(thisgame.intrChar);
-    thisgame.intrChar = NULL;
-  }
+  thisgame.CharacterProperties.Free();
+  
+  for (bb = 0; bb < thisgame.CharacterCount; bb++)
+    delete thisgame.CharacterInteractions[bb];
+  thisgame.CharacterInteractions.Free();
+
   for (bb = 0; bb < numNewViews; bb++)
   {
     for (int cc = 0; cc < newViews[bb].numLoops; cc++)
@@ -1736,14 +1737,13 @@ void free_old_game_data()
     }
     newViews[bb].Dispose();
   }
-  free(thisgame.viewNames[0]);
-  free(thisgame.viewNames);
+  thisgame.ViewNames.Free();
   free(oldViews);
   free(newViews);
   free(guis);
-  free(thisgame.chars);
-  thisgame.dict->free_memory();
-  free(thisgame.dict);
+  thisgame.Characters.Free();
+  thisgame.Dictionary->free_memory();
+  free(thisgame.Dictionary);
   free(dialog);
   free_script_modules();
 }
@@ -1756,7 +1756,7 @@ void remap_background (Common::Bitmap *scene, color *oldpale, color*palette, int
     // exact palette import (for doing palette effects, don't change)
     for (a=0;a<256;a++) 
     {
-      if (thisgame.paluses[a] == PAL_BACKGROUND)
+      if (thisgame.PaletteUses[a] == PAL_BACKGROUND)
       {
         palette[a] = oldpale[a];
       }
@@ -1767,7 +1767,7 @@ void remap_background (Common::Bitmap *scene, color *oldpale, color*palette, int
   // find how many slots there are reserved for backgrounds
   int numbgslots=0;
   for (a=0;a<256;a++) { oldpale[a].filler=0;
-    if (thisgame.paluses[a]!=PAL_GAMEWIDE) numbgslots++;
+    if (thisgame.PaletteUses[a]!=PAL_GAMEWIDE) numbgslots++;
   }
   // find which colours from the image palette are actually used
   int imgpalcnt[256],numimgclr=0;
@@ -1785,7 +1785,7 @@ void remap_background (Common::Bitmap *scene, color *oldpale, color*palette, int
   int numclr=0,bb;
   color tpal[256];
   for (a=0;a<256;a++) {
-    if (thisgame.paluses[a]==PAL_BACKGROUND)
+    if (thisgame.PaletteUses[a]==PAL_BACKGROUND)
       wsetrgb(a,0,0,0,palette);  // black out the bg slots before starting
     if ((oldpale[a].r==0) & (oldpale[a].g==0) & (oldpale[a].b==0)) {
       imgpalcnt[a]=0;
@@ -1812,7 +1812,7 @@ void remap_background (Common::Bitmap *scene, color *oldpale, color*palette, int
   // fill the background slots in the palette with the colours
   int palslt=255;  // start from end of palette and work backwards
   for (a=0;a<numclr;a++) {
-    while (thisgame.paluses[palslt]!=PAL_BACKGROUND) {
+    while (thisgame.PaletteUses[palslt]!=PAL_BACKGROUND) {
       palslt--;
       if (palslt<0) break;
     }
@@ -1823,7 +1823,7 @@ void remap_background (Common::Bitmap *scene, color *oldpale, color*palette, int
   }
   // blank out the sprite colours, then remap the picture
   for (a=0;a<256;a++) {
-    if (thisgame.paluses[a]==PAL_GAMEWIDE) {
+    if (thisgame.PaletteUses[a]==PAL_GAMEWIDE) {
       tpal[a].r=0;
       tpal[a].g=0; tpal[a].b=0; 
     }
@@ -1867,10 +1867,10 @@ void copy_room_palette_to_global_palette()
 {
   for (int ww = 0; ww < 256; ww++) 
   {
-    if (thisgame.paluses[ww] == PAL_BACKGROUND)
+    if (thisgame.PaletteUses[ww] == PAL_BACKGROUND)
     {
-      thisroom.pal[ww] = thisroom.bpalettes[0][ww];
-      palette[ww] = thisroom.bpalettes[0][ww];
+      thisroom.Palette[ww] = thisroom.Backgrounds[0].Palette[ww];
+      palette[ww] = thisroom.Backgrounds[0].Palette[ww];
     }
   }
 }
@@ -1879,67 +1879,63 @@ void copy_global_palette_to_room_palette()
 {
   for (int ww = 0; ww < 256; ww++) 
   {
-    if (thisgame.paluses[ww] != PAL_BACKGROUND)
-      thisroom.bpalettes[0][ww] = palette[ww];
+    if (thisgame.PaletteUses[ww] != PAL_BACKGROUND)
+      thisroom.Backgrounds[0].Palette[ww] = palette[ww];
   }
 }
 
 const char* load_room_file(const char*rtlo) {
 
-  load_room((char*)rtlo, &thisroom, (thisgame.default_resolution > 2));
+  AGS::Common::RoomInfo::Load(thisroom, (char*)rtlo, (thisgame.DefaultResolution > 2));
 
-  if (thisroom.wasversion < kRoomVersion_250b) 
+  if (thisroom.LoadedVersion < kRoomVersion_250b) 
   {
 	  return "This room was saved with an old version of the editor and cannot be opened. Use AGS 2.72 to upgrade this room file.";
   }
 
-  //thisroom.numhotspots = MAX_HOTSPOTS;
+  //thisroom.HotspotCount = MAX_HOTSPOTS;
 
   // Allocate enough memory to add extra variables
-  InteractionVariable *ivv = (InteractionVariable*)malloc (sizeof(InteractionVariable) * MAX_GLOBAL_VARIABLES);
-  if (thisroom.numLocalVars > 0) {
-    memcpy (ivv, thisroom.localvars, sizeof(InteractionVariable) * thisroom.numLocalVars);
-    free (thisroom.localvars);
-  }
-  thisroom.localvars = ivv;
+  thisroom.LocalVariables.SetLength(MAX_GLOBAL_VARIABLES);
 
   // Update room palette with gamewide colours
   copy_global_palette_to_room_palette();
   // Update current global palette with room background colours
   copy_room_palette_to_global_palette();
   int ww;
-  for (ww = 0; ww < thisroom.numsprs; ww++) {
+  for (ww = 0; ww < thisroom.ObjectCount; ww++) {
     // change invalid objects to blue cup
-    if (spriteset[thisroom.sprs[ww].sprnum] == NULL)
-      thisroom.sprs[ww].sprnum = 0;
+    if (spriteset[thisroom.Objects[ww].SpriteIndex] == NULL)
+      thisroom.Objects[ww].SpriteIndex = 0;
   }
   // Fix hi-color screens
-  for (ww = 0; ww < thisroom.num_bscenes; ww++)
-    fix_block (thisroom.ebscene[ww]);
+  for (ww = 0; ww < thisroom.BkgSceneCount; ww++)
+    fix_block (thisroom.Backgrounds[ww].Graphic);
 
-  if ((thisroom.resolution > 1) && (thisroom.object->GetWidth() < thisroom.width)) {
+  if ((thisroom.Resolution > 1) && (thisroom.WalkBehindMask->GetWidth() < thisroom.Width)) {
     // 640x400 room with 320x200-res walkbehind
     // resize it up to 640x400-res
-    int oldw = thisroom.object->GetWidth(), oldh=thisroom.object->GetHeight();
-    Common::Bitmap *tempb = Common::BitmapHelper::CreateBitmap(thisroom.width, thisroom.height, thisroom.object->GetColorDepth());
-    tempb->Clear();
-    tempb->StretchBlt(thisroom.object,RectWH(0,0,oldw,oldh),RectWH(0,0,tempb->GetWidth(),tempb->GetHeight()));
-    delete thisroom.object; 
-    thisroom.object = tempb;
+    int oldw = thisroom.WalkBehindMask->GetWidth(), oldh=thisroom.WalkBehindMask->GetHeight();
+    Common::Bitmap *tempb = Common::BitmapHelper::CreateBitmap(thisroom.Width, thisroom.Height, thisroom.WalkBehindMask->GetColorDepth());
+    Common::Graphics g(tempb);
+    g.Fill(0);
+    g.StretchBlt(thisroom.WalkBehindMask,RectWH(0,0,oldw,oldh),RectWH(0,0,tempb->GetWidth(),tempb->GetHeight()));
+    delete thisroom.WalkBehindMask; 
+    thisroom.WalkBehindMask = tempb;
   }
 
   set_palette_range(palette, 0, 255, 0);
   
-  if ((thisroom.ebscene[0]->GetColorDepth () > 8) &&
-      (thisgame.color_depth == 1))
+  if ((thisroom.Backgrounds[0].Graphic->GetColorDepth () > 8) &&
+      (thisgame.ColorDepth == 1))
     MessageBox(NULL,"WARNING: This room is hi-color, but your game is currently 256-colour. You will not be able to use this room in this game. Also, the room background will not look right in the editor.", "Colour depth warning", MB_OK);
 
   roomModified = false;
 
-  validate_mask(thisroom.lookat, "hotspot", MAX_HOTSPOTS);
-  validate_mask(thisroom.object, "walk-behind", MAX_WALK_AREAS + 1);
-  validate_mask(thisroom.walls, "walkable area", MAX_WALK_AREAS + 1);
-  validate_mask(thisroom.regions, "regions", MAX_REGIONS);
+  validate_mask(thisroom.HotspotMask, "hotspot", MAX_HOTSPOTS);
+  validate_mask(thisroom.WalkBehindMask, "walk-behind", MAX_WALK_AREAS + 1);
+  validate_mask(thisroom.WalkAreaMask, "walkable area", MAX_WALK_AREAS + 1);
+  validate_mask(thisroom.RegionMask, "regions", MAX_REGIONS);
   return NULL;
 }
 
@@ -1947,160 +1943,222 @@ void calculate_walkable_areas () {
   int ww, thispix;
 
   for (ww = 0; ww <= MAX_WALK_AREAS; ww++) {
-    thisroom.walk_area_top[ww] = thisroom.height;
-    thisroom.walk_area_bottom[ww] = 0;
+    thisroom.WalkAreas[ww].Top = thisroom.Height;
+    thisroom.WalkAreas[ww].Bottom = 0;
   }
-  for (ww = 0; ww < thisroom.walls->GetWidth(); ww++) {
-    for (int qq = 0; qq < thisroom.walls->GetHeight(); qq++) {
-      thispix = thisroom.walls->GetPixel (ww, qq);
+  for (ww = 0; ww < thisroom.WalkAreaMask->GetWidth(); ww++) {
+    for (int qq = 0; qq < thisroom.WalkAreaMask->GetHeight(); qq++) {
+      thispix = thisroom.WalkAreaMask->GetPixel (ww, qq);
       if (thispix > MAX_WALK_AREAS)
         continue;
-      if (thisroom.walk_area_top[thispix] > qq)
-        thisroom.walk_area_top[thispix] = qq;
-      if (thisroom.walk_area_bottom[thispix] < qq)
-        thisroom.walk_area_bottom[thispix] = qq;
+      if (thisroom.WalkAreas[thispix].Top > qq)
+        thisroom.WalkAreas[thispix].Top = qq;
+      if (thisroom.WalkAreas[thispix].Bottom < qq)
+        thisroom.WalkAreas[thispix].Bottom = qq;
     }
   }
 
 }
 
-void save_room(const char *files, roomstruct rstruc) {
+void save_room(const char *files, const Common::RoomInfo &rstruc) {
   int               f;
   long              xoff, tesl;
-  Stream       *opty;
-  room_file_header  rfh;
+  Stream            *opty;
 
-  if (rstruc.wasversion < kRoomVersion_Current)
+  if (rstruc.LoadedVersion < kRoomVersion_Current)
     quit("save_room: can no longer save old format rooms");
 
-  if (rstruc.wasversion < kRoomVersion_200_alpha) {
+  Common::String password = rstruc.Password;
+  if (rstruc.LoadedVersion < kRoomVersion_200_alpha) {
     for (f = 0; f < 11; f++)
-      rstruc.password[f] -= 60;
+      password.SetAt(f, rstruc.Password[f] - 60);
   }
   else
     for (f = 0; f < 11; f++)
-      rstruc.password[f] -= passwencstring[f];
+      password.SetAt(f, rstruc.Password[f] - passwencstring[f]);
 
   opty = ci_fopen(const_cast<char*>(files), Common::kFile_CreateAlways, Common::kFile_Write);
   if (opty == NULL)
     quit("save_room: unable to open room file for writing.");
 
-  rfh.version = (RoomFileVersion)rstruc.wasversion; //ROOM_FILE_VERSION;
-  rfh.WriteFromFile(opty);
+  opty->WriteInt16(rstruc.LoadedVersion);
 
-  if (rfh.version >= 5) {
+  if (rstruc.LoadedVersion >= kRoomVersion_pre114_5) {
     long blsii = 0;
 
-    opty->WriteByte(BLOCKTYPE_MAIN);
+    opty->WriteByte(Common::kRoomBlock_Main);
     opty->WriteInt32(blsii);
   }
 
-  opty->WriteInt32(rstruc.bytes_per_pixel);  // colour depth bytes per pixel
-  opty->WriteInt16(rstruc.numobj);
-  opty->WriteArrayOfInt16(&rstruc.objyval[0], rstruc.numobj);
-
-  opty->WriteInt32(rstruc.numhotspots);
-  opty->WriteArray(&rstruc.hswalkto[0], sizeof(_Point), rstruc.numhotspots);
-  for (f = 0; f < rstruc.numhotspots; f++)
+  opty->WriteInt32(rstruc.BytesPerPixel);  // colour depth bytes per pixel
+  opty->WriteInt16(rstruc.WalkBehindCount);
+  for (int i = 0; i < rstruc.WalkBehindCount; ++i)
   {
-	  fputstring(rstruc.hotspotnames[f], opty);
+    opty->WriteInt16(rstruc.WalkBehinds[i].Baseline);
   }
 
-  if (rfh.version >= 24)
-    opty->WriteArray(&rstruc.hotspotScriptNames[0], MAX_SCRIPT_NAME_LEN, rstruc.numhotspots);
+  opty->WriteInt32(rstruc.HotspotCount);
+  for (int i = 0; i < rstruc.HotspotCount; ++i)
+  {
+      opty->WriteInt16(rstruc.Hotspots[i].WalkToPoint.x);
+      opty->WriteInt16(rstruc.Hotspots[i].WalkToPoint.y);
+  }
+  for (f = 0; f < rstruc.HotspotCount; f++)
+  {
+	  fputstring(rstruc.Hotspots[f].Name, opty);
+  }
 
-  opty->WriteInt32(rstruc.numwalkareas);
-  opty->WriteArray(&rstruc.wallpoints[0], sizeof(PolyPoints), rstruc.numwalkareas);
+  if (rstruc.LoadedVersion >= kRoomVersion_270)
+  {
+      for (int i = 0; i < rstruc.HotspotCount; ++i)
+      {
+          rstruc.Hotspots[i].ScriptName.WriteCount(opty, MAX_SCRIPT_NAME_LEN);
+      }
+  }
 
-  opty->WriteInt16(rstruc.top);
-  opty->WriteInt16(rstruc.bottom);
-  opty->WriteInt16(rstruc.left);
-  opty->WriteInt16(rstruc.right);
-  opty->WriteInt16(rstruc.numsprs);
-  opty->WriteArray(&rstruc.sprs[0], sizeof(sprstruc), rstruc.numsprs);
+  opty->WriteInt32(rstruc.WalkAreaCount);
+  for (int i = 0; i < rstruc.WalkAreaCount; ++i)
+  {
+      rstruc.WalkAreas[i].WallPoints.WriteToFile(opty);
+  }
 
-  opty->WriteInt32 (rstruc.numLocalVars);
-  if (rstruc.numLocalVars > 0) 
-    opty->WriteArray (&rstruc.localvars[0], sizeof(InteractionVariable), rstruc.numLocalVars);
+  opty->WriteInt16(rstruc.Edges.Top);
+  opty->WriteInt16(rstruc.Edges.Bottom);
+  opty->WriteInt16(rstruc.Edges.Left);
+  opty->WriteInt16(rstruc.Edges.Right);
+  opty->WriteInt16(rstruc.ObjectCount);
+  for (int i = 0; i < rstruc.ObjectCount; ++i)
+  {
+      rstruc.Objects[i].WriteToFile(opty);
+  }
+
+  opty->WriteInt32 (rstruc.LocalVariableCount);
+  if (rstruc.LocalVariableCount > 0) 
+    opty->WriteArray (&rstruc.LocalVariables[0], sizeof(InteractionVariable), rstruc.LocalVariableCount);
 /*
-  for (f = 0; f < rstruc.numhotspots; f++)
-    serialize_new_interaction (rstruc.intrHotspot[f]);
-  for (f = 0; f < rstruc.numsprs; f++)
-    serialize_new_interaction (rstruc.intrObject[f]);
-  serialize_new_interaction (rstruc.intrRoom);
+  for (f = 0; f < rstruc.HotspotCount; f++)
+    serialize_new_interaction (rstruc.Hotspots[].EventHandlers.Interaction[f]);
+  for (f = 0; f < rstruc.ObjectCount; f++)
+    serialize_new_interaction (rstruc.Objects[].EventHandlers.Interaction[f]);
+  serialize_new_interaction (rstruc.EventHandlers.Interaction);
 */
   opty->WriteInt32 (MAX_REGIONS);
   /*
   for (f = 0; f < MAX_REGIONS; f++)
-    serialize_new_interaction (rstruc.intrRegion[f]);
+    serialize_new_interaction (rstruc.Regions[].EventHandlers.Interaction[f]);
 	*/
   serialize_room_interactions(opty);
 
-  opty->WriteArrayOfInt32(&rstruc.objbaseline[0], rstruc.numsprs);
-  opty->WriteInt16(rstruc.width);
-  opty->WriteInt16(rstruc.height);
+  for (int i = 0; i < rstruc.ObjectCount; ++i)
+  {
+    opty->WriteInt32(rstruc.Objects[i].Baseline);
+  }
+  opty->WriteInt16(rstruc.Width);
+  opty->WriteInt16(rstruc.Height);
 
-  if (rfh.version >= 23)
-    opty->WriteArrayOfInt16(&rstruc.objectFlags[0], rstruc.numsprs);
+  if (rstruc.LoadedVersion >= kRoomVersion_262)
+  {
+    for (int i = 0; i < rstruc.ObjectCount; ++i)
+    {
+        opty->WriteInt16(rstruc.Objects[i].Flags);
+    }
+  }
 
-  if (rfh.version >= 11)
-    opty->WriteInt16(rstruc.resolution);
+  if (rstruc.LoadedVersion >= kRoomVersion_200_final)
+    opty->WriteInt16(rstruc.Resolution);
 
   // write the zoom and light levels
   opty->WriteInt32 (MAX_WALK_AREAS + 1);
-  opty->WriteArrayOfInt16(&rstruc.walk_area_zoom[0], MAX_WALK_AREAS + 1);
-  opty->WriteArrayOfInt16(&rstruc.walk_area_light[0], MAX_WALK_AREAS + 1);
-  opty->WriteArrayOfInt16(&rstruc.walk_area_zoom2[0], MAX_WALK_AREAS + 1);
-  opty->WriteArrayOfInt16(&rstruc.walk_area_top[0], MAX_WALK_AREAS + 1);
-  opty->WriteArrayOfInt16(&rstruc.walk_area_bottom[0], MAX_WALK_AREAS + 1);
+  for (int i = 0; i < MAX_WALK_AREAS + 1; ++i)
+  {
+      opty->WriteInt16(rstruc.WalkAreas[i].Zoom);
+  }
+  for (int i = 0; i < MAX_WALK_AREAS + 1; ++i)
+  {
+      opty->WriteInt16(rstruc.WalkAreas[i].Light);
+  }
+  for (int i = 0; i < MAX_WALK_AREAS + 1; ++i)
+  {
+      opty->WriteInt16(rstruc.WalkAreas[i].Zoom2);
+  }
+  for (int i = 0; i < MAX_WALK_AREAS + 1; ++i)
+  {
+      opty->WriteInt16(rstruc.WalkAreas[i].Top);
+  }
+  for (int i = 0; i < MAX_WALK_AREAS + 1; ++i)
+  {
+      opty->WriteInt16(rstruc.WalkAreas[i].Bottom);
+  }
 
-  opty->Write(&rstruc.password[0], 11);
-  opty->Write(&rstruc.options[0], 10);
-  opty->WriteInt16(rstruc.nummes);
+  password.WriteCount(opty, 11);
+  opty->Write(&rstruc.Options, 10);
+  opty->WriteInt16(rstruc.MessageCount);
 
-  if (rfh.version >= 25)
-    opty->WriteInt32(rstruc.gameId);
+  if (rstruc.LoadedVersion >= kRoomVersion_272)
+    opty->WriteInt32(rstruc.GameId);
  
-  if (rfh.version >= 3)
-    opty->WriteArray(&rstruc.msgi[0], sizeof(MessageInfo), rstruc.nummes);
+  if (rstruc.LoadedVersion >= kRoomVersion_pre114_3)
+  {
+    for (int i = 0; i < rstruc.MessageCount; ++i)
+    {
+      rstruc.MessageInfos[i].WriteToFile(opty);
+    }
+  }
 
-  for (f = 0; f < rstruc.nummes; f++)
-    write_string_encrypt(opty, rstruc.message[f]);
-//    fputstring(rstruc.message[f]);
+  for (f = 0; f < rstruc.MessageCount; f++)
+    write_string_encrypt(opty, rstruc.Messages[f]);
+//    fputstring(rstruc.Messages[f]);
 
-  if (rfh.version >= 6) {
+  if (rstruc.LoadedVersion >= kRoomVersion_pre114_6) {
     // we no longer use animations, remove them
-    rstruc.numanims = 0;
-    opty->WriteInt16(rstruc.numanims);
+    //rstruc.AnimationCount = 0;
+    opty->WriteInt16(0);
 
-    if (rstruc.numanims > 0)
-      opty->WriteArray(&rstruc.anims[0], sizeof(FullAnimation), rstruc.numanims);
+    /*
+    if (rstruc.AnimationCount > 0)
+    {
+      // CHECKME: what versions were those animations used in?
+      opty->WriteByteCount(0, sizeof(FullAnimation) * rstruc.AnimationCount);
+    }
+    */
   }
 
-  if ((rfh.version >= 4) && (rfh.version < 16)) {
-    save_script_configuration(opty);
-    save_graphical_scripts(opty, &rstruc);
+  if ((rstruc.LoadedVersion >= kRoomVersion_pre114_4) && (rstruc.LoadedVersion < kRoomVersion_250a)) {
+    rstruc.SaveScriptConfiguration(opty);
+    rstruc.SaveGraphicalScripts(opty);
   }
 
-  if (rfh.version >= 8)
-    opty->WriteArrayOfInt16(&rstruc.shadinginfo[0], 16);
+  if (rstruc.LoadedVersion >= kRoomVersion_114)
+  {
+    for (int i = 0; i < MAX_WALK_AREAS + 1; ++i)
+    {
+      opty->WriteInt16(rstruc.WalkAreas[i].ShadingView);
+    }
+  }
 
-  if (rfh.version >= 21) {
-    opty->WriteArrayOfInt16(&rstruc.regionLightLevel[0], MAX_REGIONS);
-    opty->WriteArrayOfInt32(&rstruc.regionTintLevel[0], MAX_REGIONS);
+  if (rstruc.LoadedVersion >= kRoomVersion_255b)
+  {
+    for (int i = 0; i < MAX_REGIONS; ++i)
+    {
+      opty->WriteInt16(rstruc.Regions[i].Light);
+    }
+    for (int i = 0; i < MAX_REGIONS; ++i)
+    {
+        opty->WriteInt32(rstruc.Regions[i].Tint);
+    }
   }
 
   xoff = opty->GetPosition();
   delete opty;
 
-  tesl = save_lzw((char*)files, rstruc.ebscene[0], rstruc.pal, xoff);
+  tesl = save_lzw((char*)files, rstruc.Backgrounds[0].Graphic, rstruc.Palette, xoff);
 
-  tesl = savecompressed_allegro((char*)files, rstruc.regions, rstruc.pal, tesl);
-  tesl = savecompressed_allegro((char*)files, rstruc.walls, rstruc.pal, tesl);
-  tesl = savecompressed_allegro((char*)files, rstruc.object, rstruc.pal, tesl);
-  tesl = savecompressed_allegro((char*)files, rstruc.lookat, rstruc.pal, tesl);
+  tesl = savecompressed_allegro((char*)files, rstruc.RegionMask, rstruc.Palette, tesl);
+  tesl = savecompressed_allegro((char*)files, rstruc.WalkAreaMask, rstruc.Palette, tesl);
+  tesl = savecompressed_allegro((char*)files, rstruc.WalkBehindMask, rstruc.Palette, tesl);
+  tesl = savecompressed_allegro((char*)files, rstruc.HotspotMask, rstruc.Palette, tesl);
 
-  if (rfh.version >= 5) {
+  if (rstruc.LoadedVersion >= kRoomVersion_pre114_5) {
     long  lee;
 
     opty = ci_fopen(files, Common::kFile_Open, Common::kFile_ReadWrite);
@@ -2110,33 +2168,33 @@ void save_room(const char *files, roomstruct rstruc) {
     opty->WriteInt32(lee);
     opty->Seek(Common::kSeekEnd, 0);
 
-    if (rstruc.scripts != NULL) {
+    if (rstruc.TextScript != NULL) {
       int hh;
 
-      opty->WriteByte(BLOCKTYPE_SCRIPT);
-      lee = (int)strlen(rstruc.scripts) + 4;
+      opty->WriteByte(Common::kRoomBlock_Script);
+      lee = (int)strlen(rstruc.TextScript) + 4;
       opty->WriteInt32(lee);
       lee -= 4;
 
       for (hh = 0; hh < lee; hh++)
-        rstruc.scripts[hh]-=passwencstring[hh % 11];
+        rstruc.TextScript[hh]-=passwencstring[hh % 11];
 
       opty->WriteInt32(lee);
-      opty->Write(rstruc.scripts, lee);
+      opty->Write(rstruc.TextScript, lee);
 
       for (hh = 0; hh < lee; hh++)
-        rstruc.scripts[hh]+=passwencstring[hh % 11];
+        rstruc.TextScript[hh]+=passwencstring[hh % 11];
 
     }
    
-    if (rstruc.compiled_script != NULL) {
+    if (rstruc.CompiledScript != NULL) {
       long  leeat, wasat;
 
-      opty->WriteByte(BLOCKTYPE_COMPSCRIPT3);
+      opty->WriteByte(Common::kRoomBlock_CompScript3);
       lee = 0;
       leeat = opty->GetPosition();
       opty->WriteInt32(lee);
-      rstruc.compiled_script->Write(opty);
+      rstruc.CompiledScript->Write(opty);
      
       wasat = opty->GetPosition();
       opty->Seek(Common::kSeekBegin, leeat);
@@ -2145,40 +2203,48 @@ void save_room(const char *files, roomstruct rstruc) {
       opty->Seek(Common::kSeekEnd, 0);
     }
 
-    if (rstruc.numsprs > 0) {
-      opty->WriteByte(BLOCKTYPE_OBJECTNAMES);
-      lee=rstruc.numsprs * MAXOBJNAMELEN + 1;
+    if (rstruc.ObjectCount > 0) {
+      opty->WriteByte(Common::kRoomBlock_ObjectNames);
+      lee=rstruc.ObjectCount * MAXOBJNAMELEN + 1;
       opty->WriteInt32(lee);
-      opty->WriteByte(rstruc.numsprs);
-      opty->WriteArray(&rstruc.objectnames[0][0], MAXOBJNAMELEN, rstruc.numsprs);
+      opty->WriteByte(rstruc.ObjectCount);
+      for (int i = 0; i < rstruc.ObjectCount; ++i)
+      {
+        rstruc.Objects[i].Name.WriteCount(opty, MAXOBJNAMELEN);
+      }
 
-      opty->WriteByte(BLOCKTYPE_OBJECTSCRIPTNAMES);
-      lee = rstruc.numsprs * MAX_SCRIPT_NAME_LEN + 1;
+      opty->WriteByte(Common::kRoomBlock_ObjectScriptNames);
+      lee = rstruc.ObjectCount * MAX_SCRIPT_NAME_LEN + 1;
       opty->WriteInt32(lee);
-      opty->WriteByte(rstruc.numsprs);
-      opty->WriteArray(&rstruc.objectscriptnames[0][0], MAX_SCRIPT_NAME_LEN, rstruc.numsprs);
+      opty->WriteByte(rstruc.ObjectCount);
+      for (int i = 0; i < rstruc.ObjectCount; ++i)
+      {
+          rstruc.Objects[i].ScriptName.WriteCount(opty, MAX_SCRIPT_NAME_LEN);
+      }
     }
 
     long lenpos, lenis;
     int gg;
 
-    if (rstruc.num_bscenes > 1) {
+    if (rstruc.BkgSceneCount > 1) {
       long  curoffs;
 
-      opty->WriteByte(BLOCKTYPE_ANIMBKGRND);
+      opty->WriteByte(Common::kRoomBlock_AnimBkg);
       lenpos = opty->GetPosition();
       lenis = 0;
       opty->WriteInt32(lenis);
-      opty->WriteByte(rstruc.num_bscenes);
-      opty->WriteByte(rstruc.bscene_anim_speed);
-      
-      opty->WriteArrayOfInt8 ((int8_t*)&rstruc.ebpalShared[0], rstruc.num_bscenes);
+      opty->WriteByte(rstruc.BkgSceneCount);
+      opty->WriteByte(rstruc.BkgSceneAnimSpeed);
+      for (int i = 0; i < rstruc.BkgSceneCount; ++i)
+      {
+          opty->WriteInt8(rstruc.Backgrounds[i].PaletteShared);
+      }
 
       delete opty;
 
-      curoffs = lenpos + 6 + rstruc.num_bscenes;
-      for (gg = 1; gg < rstruc.num_bscenes; gg++)
-        curoffs = save_lzw((char*)files, rstruc.ebscene[gg], rstruc.bpalettes[gg], curoffs);
+      curoffs = lenpos + 6 + rstruc.BkgSceneCount;
+      for (gg = 1; gg < rstruc.BkgSceneCount; gg++)
+        curoffs = save_lzw((char*)files, rstruc.Backgrounds[gg].Graphic, rstruc.Backgrounds[gg].Palette, curoffs);
 
       opty = ci_fopen(const_cast<char*>(files), Common::kFile_Open, Common::kFile_ReadWrite);
       lenis = (curoffs - lenpos) - 4;
@@ -2188,35 +2254,26 @@ void save_room(const char *files, roomstruct rstruc) {
     }
 
     // Write custom properties
-    opty->WriteByte (BLOCKTYPE_PROPERTIES);
+    opty->WriteByte (Common::kRoomBlock_Properties);
     lenpos = opty->GetPosition();
     lenis = 0;
     opty->WriteInt32(lenis);
     opty->WriteInt32 (1);  // Version 1 of properties block
-    rstruc.roomProps.Serialize (opty);
-    for (gg = 0; gg < rstruc.numhotspots; gg++)
-      rstruc.hsProps[gg].Serialize (opty);
-    for (gg = 0; gg < rstruc.numsprs; gg++)
-      rstruc.objProps[gg].Serialize (opty);
+    rstruc.Properties.Serialize (opty);
+    for (gg = 0; gg < rstruc.HotspotCount; gg++)
+      rstruc.Hotspots[gg].Properties.Serialize (opty);
+    for (gg = 0; gg < rstruc.ObjectCount; gg++)
+      rstruc.Objects[gg].Properties.Serialize (opty);
 
     lenis = (opty->GetPosition() - lenpos) - 4;
     opty->Seek(Common::kSeekBegin, lenpos);
     opty->WriteInt32(lenis);
     opty->Seek(Common::kSeekEnd, 0);
 
-
     // Write EOF block
-    opty->WriteByte(BLOCKTYPE_EOF);
+    opty->WriteByte(Common::kRoomBlock_End);
     delete opty;
   }
- 
-  if (rfh.version < 9) {
-    for (f = 0; f < 11; f++)
-      rstruc.password[f]+=60;
-  }
-  else
-    for (f = 0; f < 11; f++)
-      rstruc.password[f] += passwencstring[f];
 
 //  fclose(opty);
 //  return SUCCESS;
@@ -2224,25 +2281,25 @@ void save_room(const char *files, roomstruct rstruc) {
 
 void save_room_file(const char*rtsa) 
 {
-  thisroom.wasversion=kRoomVersion_Current;
+  thisroom.LoadedVersion=kRoomVersion_Current;
   copy_room_palette_to_global_palette();
   
-  thisroom.password[0] = 0;
+  thisroom.Password.Empty();
 
   calculate_walkable_areas();
 
-  thisroom.bytes_per_pixel = bmp_bpp(thisroom.ebscene[0]);
+  thisroom.BytesPerPixel = bmp_bpp(thisroom.Backgrounds[0].Graphic);
   int ww;
   // Fix hi-color screens
-  for (ww = 0; ww < thisroom.num_bscenes; ww++)
-    fix_block (thisroom.ebscene[ww]);
+  for (ww = 0; ww < thisroom.BkgSceneCount; ww++)
+    fix_block (thisroom.Backgrounds[ww].Graphic);
 
-  thisroom.numobj = MAX_OBJ;
+  thisroom.WalkBehindCount = MAX_OBJ;
   save_room((char*)rtsa,thisroom);
 
   // Fix hi-color screens back again
-  for (ww = 0; ww < thisroom.num_bscenes; ww++)
-    fix_block (thisroom.ebscene[ww]);
+  for (ww = 0; ww < thisroom.BkgSceneCount; ww++)
+    fix_block (thisroom.Backgrounds[ww].Graphic);
 }
 
 
@@ -2625,6 +2682,8 @@ public:
 
 void ConvertStringToCharArray(System::String^ clrString, char *textBuffer);
 void ConvertStringToCharArray(System::String^ clrString, char *textBuffer, int maxLength);
+void ConvertStringToNativeString(System::String^ clrString, Common::String &destStr);
+void ConvertStringToNativeString(System::String^ clrString, Common::String &destStr, int maxLength);
 
 void ThrowManagedException(const char *message) 
 {
@@ -2651,8 +2710,8 @@ void DrawSpriteToBuffer(int sprNum, int x, int y, int scaleFactor) {
 	if (todraw == NULL)
 	  todraw = spriteset[0];
 
-	if (((thisgame.spriteflags[sprNum] & SPF_640x400) == 0) &&
-		(thisgame.default_resolution > 2))
+	if (((thisgame.SpriteFlags[sprNum] & SPF_640x400) == 0) &&
+		(thisgame.DefaultResolution > 2))
 	{
 		scaleFactor *= 2;
 	}
@@ -2663,8 +2722,7 @@ void DrawSpriteToBuffer(int sprNum, int x, int y, int scaleFactor) {
 	{
 		int oldColorConv = get_color_conversion();
 		set_color_conversion(oldColorConv | COLORCONV_KEEP_TRANS);
-		Common::Bitmap *depthConverted = Common::BitmapHelper::CreateBitmap(todraw->GetWidth(), todraw->GetHeight(), drawBuffer->GetColorDepth());
-		depthConverted->Blit(todraw, 0, 0, 0, 0, todraw->GetWidth(), todraw->GetHeight());
+		Common::Bitmap *depthConverted = Common::BitmapHelper::CreateBitmapCopy(todraw, drawBuffer->GetColorDepth());
 		set_color_conversion(oldColorConv);
 
 		imageToDraw = depthConverted;
@@ -2673,19 +2731,21 @@ void DrawSpriteToBuffer(int sprNum, int x, int y, int scaleFactor) {
 	int drawWidth = imageToDraw->GetWidth() * scaleFactor;
 	int drawHeight = imageToDraw->GetHeight() * scaleFactor;
 
-	if ((thisgame.spriteflags[sprNum] & SPF_ALPHACHANNEL) != 0)
+	if ((thisgame.SpriteFlags[sprNum] & SPF_ALPHACHANNEL) != 0)
 	{
 		if (scaleFactor > 1)
 		{
 			Common::Bitmap *resizedImage = Common::BitmapHelper::CreateBitmap(drawWidth, drawHeight, imageToDraw->GetColorDepth());
-			resizedImage->StretchBlt(imageToDraw, RectWH(0, 0, imageToDraw->GetWidth(), imageToDraw->GetHeight()),
+            Common::Graphics g(resizedImage);
+			g.StretchBlt(imageToDraw, RectWH(0, 0, imageToDraw->GetWidth(), imageToDraw->GetHeight()),
 				RectWH(0, 0, resizedImage->GetWidth(), resizedImage->GetHeight()));
 			if (imageToDraw != todraw)
 				delete imageToDraw;
 			imageToDraw = resizedImage;
 		}
 		set_alpha_blender();
-		drawBuffer->TransBlendBlt(imageToDraw, x, y);
+        Common::Graphics g(drawBuffer);
+		g.TransBlendBlt(imageToDraw, x, y);
 	}
 	else
 	{
@@ -2698,7 +2758,7 @@ void DrawSpriteToBuffer(int sprNum, int x, int y, int scaleFactor) {
 
 void RenderBufferToHDC(int hdc) 
 {
-	blit_to_hdc((BITMAP*)drawBuffer->GetBitmapObject(), (HDC)hdc, 0, 0, 0, 0, drawBuffer->GetWidth(), drawBuffer->GetHeight());
+	blit_to_hdc(drawBuffer->GetAllegroBitmap(), (HDC)hdc, 0, 0, 0, 0, drawBuffer->GetWidth(), drawBuffer->GetHeight());
 	delete drawBuffer;
 	drawBuffer = NULL;
 }
@@ -2707,11 +2767,11 @@ void UpdateSpriteFlags(SpriteFolder ^folder)
 {
 	for each (Sprite ^sprite in folder->Sprites)
 	{
-		thisgame.spriteflags[sprite->Number] = 0;
+		thisgame.SpriteFlags[sprite->Number] = 0;
 		if (sprite->Resolution == SpriteImportResolution::HighRes)
-			thisgame.spriteflags[sprite->Number] |= SPF_640x400;
+			thisgame.SpriteFlags[sprite->Number] |= SPF_640x400;
 		if (sprite->AlphaChannel)
-			thisgame.spriteflags[sprite->Number] |= SPF_ALPHACHANNEL;
+			thisgame.SpriteFlags[sprite->Number] |= SPF_ALPHACHANNEL;
 	}
 
 	for each (SpriteFolder^ subFolder in folder->SubFolders) 
@@ -2721,35 +2781,37 @@ void UpdateSpriteFlags(SpriteFolder ^folder)
 }
 
 void GameUpdated(Game ^game) {
-  thisgame.color_depth = (int)game->Settings->ColorDepth;
-  thisgame.default_resolution = (int)game->Settings->Resolution;
+  thisgame.ColorDepth = (int)game->Settings->ColorDepth;
+  thisgame.DefaultResolution = (int)game->Settings->Resolution;
 
-  thisgame.options[OPT_NOSCALEFNT] = game->Settings->FontsForHiRes;
-  thisgame.options[OPT_ANTIALIASFONTS] = game->Settings->AntiAliasFonts;
-  antiAliasFonts = thisgame.options[OPT_ANTIALIASFONTS];
+  thisgame.Options[OPT_NOSCALEFNT] = game->Settings->FontsForHiRes;
+  thisgame.Options[OPT_ANTIALIASFONTS] = game->Settings->AntiAliasFonts;
+  antiAliasFonts = thisgame.Options[OPT_ANTIALIASFONTS];
   update_font_sizes();
 
   //delete abuf;
-  //abuf = Common::BitmapHelper::CreateBitmap(32, 32, thisgame.color_depth * 8);
-  BaseColorDepth = thisgame.color_depth * 8;
+  //abuf = Common::BitmapHelper::CreateBitmap(32, 32, thisgame.ColorDepth * 8);
+  BaseColorDepth = thisgame.ColorDepth * 8;
 
   // ensure that the sprite import knows about pal slots 
   for (int i = 0; i < 256; i++) {
 	if (game->Palette[i]->ColourType == PaletteColourType::Background)
 	{
-	  thisgame.paluses[i] = PAL_BACKGROUND;
+	  thisgame.PaletteUses[i] = PAL_BACKGROUND;
 	}
 	else 
 	{
-  	  thisgame.paluses[i] = PAL_GAMEWIDE;
+  	  thisgame.PaletteUses[i] = PAL_GAMEWIDE;
     }
   }
 
-  thisgame.numfonts = game->Fonts->Count;
-  for (int i = 0; i < thisgame.numfonts; i++) 
+  thisgame.FontCount = game->Fonts->Count;
+  thisgame.FontFlags.SetLength(thisgame.FontCount);
+  thisgame.FontOutline.SetLength(thisgame.FontCount);
+  for (int i = 0; i < thisgame.FontCount; i++) 
   {
-	  thisgame.fontflags[i] &= ~FFLG_SIZEMASK;
-	  thisgame.fontflags[i] |= game->Fonts[i]->PointSize;
+	  thisgame.FontFlags[i] &= ~FFLG_SIZEMASK;
+	  thisgame.FontFlags[i] |= game->Fonts[i]->PointSize;
 	  reload_font(i);
   }
 }
@@ -2817,7 +2879,7 @@ Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, color *imgpa
 		throw gcnew AGSEditorException(gcnew System::String("Unknown pixel format"));
 	}
 
-  if ((thisgame.color_depth == 1) && (colDepth > 8))
+  if ((thisgame.ColorDepth == 1) && (colDepth > 8))
   {
     throw gcnew AGSEditorException("You cannot import a hi-colour or true-colour image into a 256-colour game.");
   }
@@ -2826,7 +2888,7 @@ Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, color *imgpa
     *originalColDepth = colDepth;
 
   bool needToFixColourDepth = false;
-  if ((colDepth != thisgame.color_depth * 8) && (fixColourDepth))
+  if ((colDepth != thisgame.ColorDepth * 8) && (fixColourDepth))
   {
     needToFixColourDepth = true;
   }
@@ -2878,7 +2940,7 @@ Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, color *imgpa
 
 	if (needToFixColourDepth)
 	{
-		Common::Bitmap *spriteAtRightDepth = Common::BitmapHelper::CreateBitmap(tempsprite->GetWidth(), tempsprite->GetHeight(), thisgame.color_depth * 8);
+		Common::Bitmap *spriteAtRightDepth = Common::BitmapHelper::CreateBitmap(tempsprite->GetWidth(), tempsprite->GetHeight(), thisgame.ColorDepth * 8);
 		if (colDepth == 8)
 		{
 			select_palette(imgpal);
@@ -2894,7 +2956,8 @@ Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, color *imgpa
 			set_color_conversion(oldColorConv & ~COLORCONV_KEEP_TRANS);
 		}
 
-		spriteAtRightDepth->Blit(tempsprite, 0, 0, 0, 0, tempsprite->GetWidth(), tempsprite->GetHeight());
+        Common::Graphics g(spriteAtRightDepth);
+		g.Blit(tempsprite, 0, 0, 0, 0, tempsprite->GetWidth(), tempsprite->GetHeight());
 
 		set_color_conversion(oldColorConv);
 
@@ -2916,16 +2979,16 @@ Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, color *imgpa
 
 void DeleteBackground(Room ^room, int backgroundNumber) 
 {
-	roomstruct *theRoom = (roomstruct*)(void*)room->_roomStructPtr;
-	delete theRoom->ebscene[backgroundNumber];
-	theRoom->ebscene[backgroundNumber] = NULL;
+	Common::RoomInfo *theRoom = (Common::RoomInfo*)(void*)room->_roomStructPtr;
+	delete theRoom->Backgrounds[backgroundNumber].Graphic;
+	theRoom->Backgrounds[backgroundNumber].Graphic = NULL;
 	
-	theRoom->num_bscenes--;
+	theRoom->BkgSceneCount--;
 	room->BackgroundCount--;
-	for (int i = backgroundNumber; i < theRoom->num_bscenes; i++) 
+	for (int i = backgroundNumber; i < theRoom->BkgSceneCount; i++) 
 	{
-		theRoom->ebscene[i] = theRoom->ebscene[i + 1];
-		theRoom->ebpalShared[i] = theRoom->ebpalShared[i + 1];
+		theRoom->Backgrounds[i].Graphic = theRoom->Backgrounds[i + 1].Graphic;
+		theRoom->Backgrounds[i].PaletteShared = theRoom->Backgrounds[i + 1].PaletteShared;
 	}
 }
 
@@ -2933,75 +2996,75 @@ void ImportBackground(Room ^room, int backgroundNumber, System::Drawing::Bitmap 
 {
 	color oldpale[256];
 	Common::Bitmap *newbg = CreateBlockFromBitmap(bmp, oldpale, true, false, NULL);
-	roomstruct *theRoom = (roomstruct*)(void*)room->_roomStructPtr;
-	theRoom->width = room->Width;
-	theRoom->height = room->Height;
-	bool resolutionChanged = (theRoom->resolution != (int)room->Resolution);
-	theRoom->resolution = (int)room->Resolution;
+	Common::RoomInfo *theRoom = (Common::RoomInfo*)(void*)room->_roomStructPtr;
+	theRoom->Width = room->Width;
+	theRoom->Height = room->Height;
+	bool resolutionChanged = (theRoom->Resolution != (int)room->Resolution);
+	theRoom->Resolution = (int)room->Resolution;
 
 	if (newbg->GetColorDepth() == 8) 
 	{
 		for (int aa = 0; aa < 256; aa++) {
 		  // make sure it maps to locked cols properly
-		  if (thisgame.paluses[aa] == PAL_LOCKED)
-			  theRoom->bpalettes[backgroundNumber][aa] = palette[aa];
+		  if (thisgame.PaletteUses[aa] == PAL_LOCKED)
+			  theRoom->Backgrounds[backgroundNumber].Palette[aa] = palette[aa];
 		}
 
 		// sharing palette with main background - so copy it across
 		if (sharePalette) {
-		  memcpy (&theRoom->bpalettes[backgroundNumber][0], &palette[0], sizeof(color) * 256);
-		  theRoom->ebpalShared[backgroundNumber] = 1;
-		  if (backgroundNumber >= theRoom->num_bscenes - 1)
-		  	theRoom->ebpalShared[0] = 1;
+		  memcpy (&theRoom->Backgrounds[backgroundNumber].Palette[0], &palette[0], sizeof(color) * 256);
+		  theRoom->Backgrounds[backgroundNumber].PaletteShared = 1;
+		  if (backgroundNumber >= theRoom->BkgSceneCount - 1)
+		  	theRoom->Backgrounds[0].PaletteShared = 1;
 
 		  if (!useExactPalette)
 			wremapall(oldpale, newbg, palette);
 		}
 		else {
-		  theRoom->ebpalShared[backgroundNumber] = 0;
-		  remap_background (newbg, oldpale, theRoom->bpalettes[backgroundNumber], useExactPalette);
+		  theRoom->Backgrounds[backgroundNumber].PaletteShared = 0;
+		  remap_background (newbg, oldpale, theRoom->Backgrounds[backgroundNumber].Palette, useExactPalette);
 		}
 
     copy_room_palette_to_global_palette();
 	}
 
-	if (backgroundNumber >= theRoom->num_bscenes) 
+	if (backgroundNumber >= theRoom->BkgSceneCount) 
 	{
-		theRoom->num_bscenes++;
+		theRoom->BkgSceneCount++;
 	}
 	else 
 	{
-		delete theRoom->ebscene[backgroundNumber];
+		delete theRoom->Backgrounds[backgroundNumber].Graphic;
 	}
-	theRoom->ebscene[backgroundNumber] = newbg;
+	theRoom->Backgrounds[backgroundNumber].Graphic = newbg;
 
   // if size or resolution has changed, reset masks
-	if ((newbg->GetWidth() != theRoom->object->GetWidth()) || (newbg->GetHeight() != theRoom->object->GetHeight()) ||
-      (theRoom->width != theRoom->object->GetWidth()) || (resolutionChanged))
+	if ((newbg->GetWidth() != theRoom->WalkBehindMask->GetWidth()) || (newbg->GetHeight() != theRoom->WalkBehindMask->GetHeight()) ||
+      (theRoom->Width != theRoom->WalkBehindMask->GetWidth()) || (resolutionChanged))
 	{
-		delete theRoom->walls;
-		delete theRoom->lookat;
-		delete theRoom->object;
-		delete theRoom->regions;
-		theRoom->walls = Common::BitmapHelper::CreateBitmap(theRoom->width / theRoom->resolution, theRoom->height / theRoom->resolution,8);
-		theRoom->lookat = Common::BitmapHelper::CreateBitmap(theRoom->width / theRoom->resolution, theRoom->height / theRoom->resolution,8);
-		theRoom->object = Common::BitmapHelper::CreateBitmap(theRoom->width, theRoom->height,8);
-		theRoom->regions = Common::BitmapHelper::CreateBitmap(theRoom->width / theRoom->resolution, theRoom->height / theRoom->resolution,8);
-		theRoom->walls->Clear();
-		theRoom->lookat->Clear();
-		theRoom->object->Clear();
-		theRoom->regions->Clear();
+		delete theRoom->WalkAreaMask;
+		delete theRoom->HotspotMask;
+		delete theRoom->WalkBehindMask;
+		delete theRoom->RegionMask;
+		theRoom->WalkAreaMask = Common::BitmapHelper::CreateBitmap(theRoom->Width / theRoom->Resolution, theRoom->Height / theRoom->Resolution,8);
+		theRoom->HotspotMask = Common::BitmapHelper::CreateBitmap(theRoom->Width / theRoom->Resolution, theRoom->Height / theRoom->Resolution,8);
+		theRoom->WalkBehindMask = Common::BitmapHelper::CreateBitmap(theRoom->Width, theRoom->Height,8);
+		theRoom->RegionMask = Common::BitmapHelper::CreateBitmap(theRoom->Width / theRoom->Resolution, theRoom->Height / theRoom->Resolution,8);
+		theRoom->WalkAreaMask->Clear();
+		theRoom->HotspotMask->Clear();
+		theRoom->WalkBehindMask->Clear();
+		theRoom->RegionMask->Clear();
 	}
 
-	room->BackgroundCount = theRoom->num_bscenes;
-	room->ColorDepth = theRoom->ebscene[0]->GetColorDepth();
+	room->BackgroundCount = theRoom->BkgSceneCount;
+	room->ColorDepth = theRoom->Backgrounds[0].Graphic->GetColorDepth();
 }
 
 void import_area_mask(void *roomptr, int maskType, System::Drawing::Bitmap ^bmp)
 {
 	color oldpale[256];
 	Common::Bitmap *importedImage = CreateBlockFromBitmap(bmp, oldpale, false, false, NULL);
-	Common::Bitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
+	Common::Bitmap *mask = get_bitmap_for_mask((Common::RoomInfo*)roomptr, (RoomAreaMask)maskType);
 
 	if (mask->GetWidth() != importedImage->GetWidth())
 	{
@@ -3010,7 +3073,8 @@ void import_area_mask(void *roomptr, int maskType, System::Drawing::Bitmap ^bmp)
 	}
 	else
 	{
-		mask->Blit(importedImage, 0, 0, 0, 0, importedImage->GetWidth(), importedImage->GetHeight());
+        Common::Graphics g(mask);
+		g.Blit(importedImage, 0, 0, 0, 0, importedImage->GetWidth(), importedImage->GetHeight());
 	}
 	delete importedImage;
 
@@ -3051,19 +3115,19 @@ int SetNewSpriteFromBitmap(int slot, System::Drawing::Bitmap^ bmp, int spriteImp
   int importedColourDepth;
 	Common::Bitmap *tempsprite = CreateBlockFromBitmap(bmp, imgPalBuf, true, (spriteImportMethod != SIMP_NONE), &importedColourDepth);
 
-	if ((remapColours) || (thisgame.color_depth > 1)) 
+	if ((remapColours) || (thisgame.ColorDepth > 1)) 
 	{
 		sort_out_transparency(tempsprite, spriteImportMethod, imgPalBuf, useRoomBackgroundColours, importedColourDepth);
 	}
 
-	thisgame.spriteflags[slot] = 0;
-	if (thisgame.default_resolution > 2)
+	thisgame.SpriteFlags[slot] = 0;
+	if (thisgame.DefaultResolution > 2)
 	{
-		thisgame.spriteflags[slot] |= SPF_640x400;
+		thisgame.SpriteFlags[slot] |= SPF_640x400;
 	}
 	if (alphaChannel)
 	{
-		thisgame.spriteflags[slot] |= SPF_ALPHACHANNEL;
+		thisgame.SpriteFlags[slot] |= SPF_ALPHACHANNEL;
 
 		if (tempsprite->GetColorDepth() == 32)
 		{
@@ -3077,7 +3141,7 @@ int SetNewSpriteFromBitmap(int slot, System::Drawing::Bitmap^ bmp, int spriteImp
 
 	SetNewSprite(slot, tempsprite);
 
-	return (thisgame.default_resolution > 2) ? 1 : 0;
+	return (thisgame.DefaultResolution > 2) ? 1 : 0;
 }
 
 void SetBitmapPaletteFromGlobalPalette(System::Drawing::Bitmap ^bmp)
@@ -3135,7 +3199,8 @@ System::Drawing::Bitmap^ ConvertBlockToBitmap32(Common::Bitmap *todraw, int widt
   if (todraw->GetColorDepth() == 8)
     select_palette(palette);
 
-  tempBlock->Blit(todraw, 0, 0, 0, 0, todraw->GetWidth(), todraw->GetHeight());
+  Common::Graphics g(tempBlock);
+  g.Blit(todraw, 0, 0, 0, 0, todraw->GetWidth(), todraw->GetHeight());
 
   if (todraw->GetColorDepth() == 8)
 	unselect_palette();
@@ -3187,7 +3252,7 @@ System::Drawing::Bitmap^ ConvertAreaMaskToBitmap(Common::Bitmap *mask)
 
 System::Drawing::Bitmap^ getSpriteAsBitmap(int spriteNum) {
   Common::Bitmap *todraw = get_sprite(spriteNum);
-  return ConvertBlockToBitmap(todraw, (thisgame.spriteflags[spriteNum] & SPF_ALPHACHANNEL) != 0);
+  return ConvertBlockToBitmap(todraw, (thisgame.SpriteFlags[spriteNum] & SPF_ALPHACHANNEL) != 0);
 }
 
 System::Drawing::Bitmap^ getSpriteAsBitmap32bit(int spriteNum, int width, int height) {
@@ -3196,13 +3261,13 @@ System::Drawing::Bitmap^ getSpriteAsBitmap32bit(int spriteNum, int width, int he
   {
 	  throw gcnew AGSEditorException(String::Format("getSpriteAsBitmap32bit: Unable to find sprite {0}", spriteNum));
   }
-  return ConvertBlockToBitmap32(todraw, width, height, (thisgame.spriteflags[spriteNum] & SPF_ALPHACHANNEL) != 0);
+  return ConvertBlockToBitmap32(todraw, width, height, (thisgame.SpriteFlags[spriteNum] & SPF_ALPHACHANNEL) != 0);
 }
 
 System::Drawing::Bitmap^ getBackgroundAsBitmap(Room ^room, int backgroundNumber) {
 
-  roomstruct *roomptr = (roomstruct*)(void*)room->_roomStructPtr;
-  return ConvertBlockToBitmap32(roomptr->ebscene[backgroundNumber], room->Width, room->Height, false);
+  Common::RoomInfo *roomptr = (Common::RoomInfo*)(void*)room->_roomStructPtr;
+  return ConvertBlockToBitmap32(roomptr->Backgrounds[backgroundNumber].Graphic, room->Width, room->Height, false);
 }
 
 void PaletteUpdated(cli::array<PaletteEntry^>^ newPalette) 
@@ -3403,7 +3468,7 @@ Dictionary<int, Sprite^>^ load_sprite_dimensions()
 		Common::Bitmap *spr = spriteset[i];
 		if (spr != NULL)
 		{
-			sprites->Add(i, gcnew Sprite(i, spr->GetWidth(), spr->GetHeight(), spr->GetColorDepth(), (thisgame.spriteflags[i] & SPF_640x400) ? SpriteImportResolution::HighRes : SpriteImportResolution::LowRes, (thisgame.spriteflags[i] & SPF_ALPHACHANNEL) ? true : false));
+			sprites->Add(i, gcnew Sprite(i, spr->GetWidth(), spr->GetHeight(), spr->GetColorDepth(), (thisgame.SpriteFlags[i] & SPF_640x400) ? SpriteImportResolution::HighRes : SpriteImportResolution::LowRes, (thisgame.SpriteFlags[i] & SPF_ALPHACHANNEL) ? true : false));
 		}
 	}
 
@@ -3716,59 +3781,59 @@ Game^ load_old_game_dta_file(const char *fileName)
 	}
 
 	Game^ game = gcnew Game();
-	game->Settings->AlwaysDisplayTextAsSpeech = (thisgame.options[OPT_ALWAYSSPCH] != 0);
-	game->Settings->AntiAliasFonts = (thisgame.options[OPT_ANTIALIASFONTS] != 0);
-	game->Settings->AntiGlideMode = (thisgame.options[OPT_ANTIGLIDE] != 0);
-	game->Settings->AutoMoveInWalkMode = !thisgame.options[OPT_NOWALKMODE];
-	game->Settings->BackwardsText = (thisgame.options[OPT_RIGHTLEFTWRITE] != 0);
-	game->Settings->ColorDepth = (GameColorDepth)thisgame.color_depth;
-	game->Settings->CompressSprites = (thisgame.options[OPT_COMPRESSSPRITES] != 0);
-	game->Settings->CrossfadeMusic = (CrossfadeSpeed)thisgame.options[OPT_CROSSFADEMUSIC];
-	game->Settings->DebugMode = (thisgame.options[OPT_DEBUGMODE] != 0);
-	game->Settings->DialogOptionsBackwards = (thisgame.options[OPT_DIALOGUPWARDS] != 0);
-	game->Settings->DialogOptionsGap = thisgame.options[OPT_DIALOGGAP];
-	game->Settings->DialogOptionsGUI = thisgame.options[OPT_DIALOGIFACE];
-	game->Settings->DialogOptionsBullet = thisgame.dialog_bullet;
-	game->Settings->DisplayMultipleInventory = (thisgame.options[OPT_DUPLICATEINV] != 0);
-	game->Settings->EnforceNewStrings = (thisgame.options[OPT_STRICTSTRINGS] != 0);
+	game->Settings->AlwaysDisplayTextAsSpeech = (thisgame.Options[OPT_ALWAYSSPCH] != 0);
+	game->Settings->AntiAliasFonts = (thisgame.Options[OPT_ANTIALIASFONTS] != 0);
+	game->Settings->AntiGlideMode = (thisgame.Options[OPT_ANTIGLIDE] != 0);
+	game->Settings->AutoMoveInWalkMode = !thisgame.Options[OPT_NOWALKMODE];
+	game->Settings->BackwardsText = (thisgame.Options[OPT_RIGHTLEFTWRITE] != 0);
+	game->Settings->ColorDepth = (GameColorDepth)thisgame.ColorDepth;
+	game->Settings->CompressSprites = (thisgame.Options[OPT_COMPRESSSPRITES] != 0);
+	game->Settings->CrossfadeMusic = (CrossfadeSpeed)thisgame.Options[OPT_CROSSFADEMUSIC];
+	game->Settings->DebugMode = (thisgame.Options[OPT_DEBUGMODE] != 0);
+	game->Settings->DialogOptionsBackwards = (thisgame.Options[OPT_DIALOGUPWARDS] != 0);
+	game->Settings->DialogOptionsGap = thisgame.Options[OPT_DIALOGGAP];
+	game->Settings->DialogOptionsGUI = thisgame.Options[OPT_DIALOGIFACE];
+	game->Settings->DialogOptionsBullet = thisgame.DialogBulletSprIndex;
+	game->Settings->DisplayMultipleInventory = (thisgame.Options[OPT_DUPLICATEINV] != 0);
+	game->Settings->EnforceNewStrings = (thisgame.Options[OPT_STRICTSTRINGS] != 0);
   game->Settings->EnforceNewAudio = false;
-	game->Settings->EnforceObjectBasedScript = (thisgame.options[OPT_STRICTSCRIPTING] != 0);
-	game->Settings->FontsForHiRes = (thisgame.options[OPT_NOSCALEFNT] != 0);
-	game->Settings->GameName = gcnew String(thisgame.gamename);
+	game->Settings->EnforceObjectBasedScript = (thisgame.Options[OPT_STRICTSCRIPTING] != 0);
+	game->Settings->FontsForHiRes = (thisgame.Options[OPT_NOSCALEFNT] != 0);
+	game->Settings->GameName = gcnew String(thisgame.GameName);
 	game->Settings->GUIAlphaStyle = GUIAlphaStyle::Classic;
-	game->Settings->HandleInvClicksInScript = (thisgame.options[OPT_HANDLEINVCLICKS] != 0);
-	game->Settings->InventoryCursors = !thisgame.options[OPT_FIXEDINVCURSOR];
-	game->Settings->LeftToRightPrecedence = (thisgame.options[OPT_LEFTTORIGHTEVAL] != 0);
-	game->Settings->LetterboxMode = (thisgame.options[OPT_LETTERBOX] != 0);
-	game->Settings->MaximumScore = thisgame.totalscore;
-	game->Settings->MouseWheelEnabled = (thisgame.options[OPT_MOUSEWHEEL] != 0);
-	game->Settings->NumberDialogOptions = (thisgame.options[OPT_DIALOGNUMBERED] != 0);
-	game->Settings->PixelPerfect = (thisgame.options[OPT_PIXPERFECT] != 0);
-	game->Settings->PlaySoundOnScore = thisgame.options[OPT_SCORESOUND];
-	game->Settings->Resolution = (GameResolutions)thisgame.default_resolution;
-	game->Settings->RoomTransition = (RoomTransitionStyle)thisgame.options[OPT_FADETYPE];
-	game->Settings->SaveScreenshots = (thisgame.options[OPT_SAVESCREENSHOT] != 0);
-	game->Settings->SkipSpeech = (SkipSpeechStyle)thisgame.options[OPT_NOSKIPTEXT];
-	game->Settings->SpeechPortraitSide = (SpeechPortraitSide)thisgame.options[OPT_PORTRAITSIDE];
-	game->Settings->SpeechStyle = (SpeechStyle)thisgame.options[OPT_SPEECHTYPE];
-	game->Settings->SplitResources = thisgame.options[OPT_SPLITRESOURCES];
-	game->Settings->TextWindowGUI = thisgame.options[OPT_TWCUSTOM];
-	game->Settings->ThoughtGUI = thisgame.options[OPT_THOUGHTGUI];
-	game->Settings->TurnBeforeFacing = (thisgame.options[OPT_TURNTOFACELOC] != 0);
-	game->Settings->TurnBeforeWalking = (thisgame.options[OPT_ROTATECHARS] != 0);
-	game->Settings->WalkInLookMode = (thisgame.options[OPT_WALKONLOOK] != 0);
-	game->Settings->WhenInterfaceDisabled = (InterfaceDisabledAction)thisgame.options[OPT_DISABLEOFF];
-	game->Settings->UniqueID = thisgame.uniqueid;
-  game->Settings->SaveGameFolderName = gcnew String(thisgame.gamename);
+	game->Settings->HandleInvClicksInScript = (thisgame.Options[OPT_HANDLEINVCLICKS] != 0);
+	game->Settings->InventoryCursors = !thisgame.Options[OPT_FIXEDINVCURSOR];
+	game->Settings->LeftToRightPrecedence = (thisgame.Options[OPT_LEFTTORIGHTEVAL] != 0);
+	game->Settings->LetterboxMode = (thisgame.Options[OPT_LETTERBOX] != 0);
+	game->Settings->MaximumScore = thisgame.TotalScore;
+	game->Settings->MouseWheelEnabled = (thisgame.Options[OPT_MOUSEWHEEL] != 0);
+	game->Settings->NumberDialogOptions = (thisgame.Options[OPT_DIALOGNUMBERED] != 0);
+	game->Settings->PixelPerfect = (thisgame.Options[OPT_PIXPERFECT] != 0);
+	game->Settings->PlaySoundOnScore = thisgame.Options[OPT_SCORESOUND];
+	game->Settings->Resolution = (GameResolutions)thisgame.DefaultResolution;
+	game->Settings->RoomTransition = (RoomTransitionStyle)thisgame.Options[OPT_FADETYPE];
+	game->Settings->SaveScreenshots = (thisgame.Options[OPT_SAVESCREENSHOT] != 0);
+	game->Settings->SkipSpeech = (SkipSpeechStyle)thisgame.Options[OPT_NOSKIPTEXT];
+	game->Settings->SpeechPortraitSide = (SpeechPortraitSide)thisgame.Options[OPT_PORTRAITSIDE];
+	game->Settings->SpeechStyle = (SpeechStyle)thisgame.Options[OPT_SPEECHTYPE];
+	game->Settings->SplitResources = thisgame.Options[OPT_SPLITRESOURCES];
+	game->Settings->TextWindowGUI = thisgame.Options[OPT_TWCUSTOM];
+	game->Settings->ThoughtGUI = thisgame.Options[OPT_THOUGHTGUI];
+	game->Settings->TurnBeforeFacing = (thisgame.Options[OPT_TURNTOFACELOC] != 0);
+	game->Settings->TurnBeforeWalking = (thisgame.Options[OPT_ROTATECHARS] != 0);
+	game->Settings->WalkInLookMode = (thisgame.Options[OPT_WALKONLOOK] != 0);
+	game->Settings->WhenInterfaceDisabled = (InterfaceDisabledAction)thisgame.Options[OPT_DISABLEOFF];
+	game->Settings->UniqueID = thisgame.UniqueId;
+  game->Settings->SaveGameFolderName = gcnew String(thisgame.GameName);
 
-	game->Settings->InventoryHotspotMarker->DotColor = thisgame.hotdot;
-	game->Settings->InventoryHotspotMarker->CrosshairColor = thisgame.hotdotouter;
-	game->Settings->InventoryHotspotMarker->Image = thisgame.invhotdotsprite;
-	if (thisgame.invhotdotsprite) 
+	game->Settings->InventoryHotspotMarker->DotColor = thisgame.InvItemHotDotColor;
+	game->Settings->InventoryHotspotMarker->CrosshairColor = thisgame.InvItemHotDotOuterColor;
+	game->Settings->InventoryHotspotMarker->Image = thisgame.InvItemHotDotSprIndex;
+	if (thisgame.InvItemHotDotSprIndex) 
 	{
 		game->Settings->InventoryHotspotMarker->Style = InventoryHotspotMarkerStyle::Sprite;
 	}
-	else if (thisgame.hotdot) 
+	else if (thisgame.InvItemHotDotColor) 
 	{
 		game->Settings->InventoryHotspotMarker->Style = InventoryHotspotMarkerStyle::Crosshair;
 	}
@@ -3780,7 +3845,7 @@ Game^ load_old_game_dta_file(const char *fileName)
 	int i;
 	for (i = 0; i < 256; i++) 
 	{
-		if (thisgame.paluses[i] == PAL_BACKGROUND) 
+		if (thisgame.PaletteUses[i] == PAL_BACKGROUND) 
 		{
 			game->Palette[i]->ColourType = PaletteColourType::Background;
 		}
@@ -3811,10 +3876,10 @@ Game^ load_old_game_dta_file(const char *fileName)
 	}
 	
     AGS::Types::IViewFolder ^viewFolder = AGS::Types::FolderHelper::CreateDefaultViewFolder();
-	for (i = 0; i < thisgame.numviews; i++) 
+	for (i = 0; i < thisgame.ViewCount; i++) 
 	{
 		AGS::Types::View ^view = gcnew AGS::Types::View();
-		view->Name = gcnew String(thisgame.viewNames[i]);
+		view->Name = gcnew String(thisgame.ViewNames[i]);
 		view->ID = i + 1;
 
 		for (int j = 0; j < oldViews[i].numloops; j++) 
@@ -3848,58 +3913,58 @@ Game^ load_old_game_dta_file(const char *fileName)
 	}
     AGS::Types::FolderHelper::SetRootViewFolder(game, viewFolder);
 
-	for (i = 0; i < thisgame.numcharacters; i++) 
+	for (i = 0; i < thisgame.CharacterCount; i++) 
 	{
 		char jibbledScriptName[50] = "\0";
-		if (strlen(thisgame.chars[i].scrname) > 0) 
+		if (strlen(thisgame.Characters[i].scrname) > 0) 
 		{
-			sprintf(jibbledScriptName, "c%s", thisgame.chars[i].scrname);
+			sprintf(jibbledScriptName, "c%s", thisgame.Characters[i].scrname);
 			strlwr(jibbledScriptName);
 			jibbledScriptName[1] = toupper(jibbledScriptName[1]);
 		}
 		AGS::Types::Character ^character = gcnew AGS::Types::Character();
-		character->AdjustSpeedWithScaling = ((thisgame.chars[i].flags & CHF_SCALEMOVESPEED) != 0);
-		character->AdjustVolumeWithScaling = ((thisgame.chars[i].flags & CHF_SCALEVOLUME) != 0);
-		character->AnimationDelay = thisgame.chars[i].animspeed;
-		character->BlinkingView = (thisgame.chars[i].blinkview < 1) ? 0 : (thisgame.chars[i].blinkview + 1);
-		character->Clickable = !(thisgame.chars[i].flags & CHF_NOINTERACT);
-		character->DiagonalLoops = !(thisgame.chars[i].flags & CHF_NODIAGONAL);
+		character->AdjustSpeedWithScaling = ((thisgame.Characters[i].flags & CHF_SCALEMOVESPEED) != 0);
+		character->AdjustVolumeWithScaling = ((thisgame.Characters[i].flags & CHF_SCALEVOLUME) != 0);
+		character->AnimationDelay = thisgame.Characters[i].animspeed;
+		character->BlinkingView = (thisgame.Characters[i].blinkview < 1) ? 0 : (thisgame.Characters[i].blinkview + 1);
+		character->Clickable = !(thisgame.Characters[i].flags & CHF_NOINTERACT);
+		character->DiagonalLoops = !(thisgame.Characters[i].flags & CHF_NODIAGONAL);
 		character->ID = i;
-		character->IdleView = (thisgame.chars[i].idleview < 1) ? 0 : (thisgame.chars[i].idleview + 1);
-		character->MovementSpeed = thisgame.chars[i].walkspeed;
-		character->MovementSpeedX = thisgame.chars[i].walkspeed;
-		character->MovementSpeedY = thisgame.chars[i].walkspeed_y;
-		character->NormalView = thisgame.chars[i].defview + 1;
-		character->RealName = gcnew String(thisgame.chars[i].name);
+		character->IdleView = (thisgame.Characters[i].idleview < 1) ? 0 : (thisgame.Characters[i].idleview + 1);
+		character->MovementSpeed = thisgame.Characters[i].walkspeed;
+		character->MovementSpeedX = thisgame.Characters[i].walkspeed;
+		character->MovementSpeedY = thisgame.Characters[i].walkspeed_y;
+		character->NormalView = thisgame.Characters[i].defview + 1;
+		character->RealName = gcnew String(thisgame.Characters[i].name);
 		character->ScriptName = gcnew String(jibbledScriptName);
-		character->Solid = !(thisgame.chars[i].flags & CHF_NOBLOCKING);
-		character->SpeechColor = thisgame.chars[i].talkcolor;
-		character->SpeechView = (thisgame.chars[i].talkview < 1) ? 0 : (thisgame.chars[i].talkview + 1);
-		character->StartingRoom = thisgame.chars[i].room;
-		character->StartX = thisgame.chars[i].x;
-		character->StartY = thisgame.chars[i].y;
-    character->ThinkingView = (thisgame.chars[i].thinkview < 1) ? 0 : (thisgame.chars[i].thinkview + 1);
-		character->TurnBeforeWalking = !(thisgame.chars[i].flags & CHF_NOTURNING);
-		character->UniformMovementSpeed = (thisgame.chars[i].walkspeed_y == UNIFORM_WALK_SPEED);
-		character->UseRoomAreaLighting = !(thisgame.chars[i].flags & CHF_NOLIGHTING);
-		character->UseRoomAreaScaling = !(thisgame.chars[i].flags & CHF_MANUALSCALING);
+		character->Solid = !(thisgame.Characters[i].flags & CHF_NOBLOCKING);
+		character->SpeechColor = thisgame.Characters[i].talkcolor;
+		character->SpeechView = (thisgame.Characters[i].talkview < 1) ? 0 : (thisgame.Characters[i].talkview + 1);
+		character->StartingRoom = thisgame.Characters[i].room;
+		character->StartX = thisgame.Characters[i].x;
+		character->StartY = thisgame.Characters[i].y;
+    character->ThinkingView = (thisgame.Characters[i].thinkview < 1) ? 0 : (thisgame.Characters[i].thinkview + 1);
+		character->TurnBeforeWalking = !(thisgame.Characters[i].flags & CHF_NOTURNING);
+		character->UniformMovementSpeed = (thisgame.Characters[i].walkspeed_y == UNIFORM_WALK_SPEED);
+		character->UseRoomAreaLighting = !(thisgame.Characters[i].flags & CHF_NOLIGHTING);
+		character->UseRoomAreaScaling = !(thisgame.Characters[i].flags & CHF_MANUALSCALING);
 
 		game->Characters->Add(character);
 
-		ConvertCustomProperties(character->Properties, &thisgame.charProps[i]);
+		ConvertCustomProperties(character->Properties, &thisgame.CharacterProperties[i]);
 
 		char scriptFuncPrefix[100];
 		sprintf(scriptFuncPrefix, "character%d_", i);
-		ConvertInteractions(character->Interactions, thisgame.intrChar[i], gcnew String(scriptFuncPrefix), game, 3);
+		ConvertInteractions(character->Interactions, thisgame.CharacterInteractions[i], gcnew String(scriptFuncPrefix), game, 3);
 	}
-	game->PlayerCharacter = game->Characters[thisgame.playercharacter];
+	game->PlayerCharacter = game->Characters[thisgame.PlayerCharacterIndex];
 
 	game->TextParser->Words->Clear();
-	for (i = 0; i < thisgame.dict->num_words; i++) 
+	for (i = 0; i < thisgame.Dictionary->num_words; i++) 
 	{
 		AGS::Types::TextParserWord ^newWord = gcnew AGS::Types::TextParserWord();
-		newWord->WordGroup = thisgame.dict->wordnum[i];
-		newWord->Word = gcnew String(thisgame.dict->word[i]);
+		newWord->WordGroup = thisgame.Dictionary->wordnum[i];
+		newWord->Word = gcnew String(thisgame.Dictionary->word[i]);
 		newWord->SetWordTypeFromGroup();
 
 		game->TextParser->Words->Add(newWord);
@@ -3907,9 +3972,9 @@ Game^ load_old_game_dta_file(const char *fileName)
 
 	for (i = 0; i < MAXGLOBALMES; i++) 
 	{
-		if (thisgame.messages[i] != NULL) 
+		if (!thisgame.GlobalMessages[i].IsEmpty()) 
 		{
-			game->GlobalMessages[i] = gcnew String(thisgame.messages[i]);
+			game->GlobalMessages[i] = gcnew String(thisgame.GlobalMessages[i]);
 		}
 		else
 		{
@@ -3917,14 +3982,14 @@ Game^ load_old_game_dta_file(const char *fileName)
 		}
 	}
 
-	game->LipSync->Type = (thisgame.options[OPT_LIPSYNCTEXT] != 0) ? LipSyncType::Text : LipSyncType::None;
-	game->LipSync->DefaultFrame = thisgame.default_lipsync_frame;
+	game->LipSync->Type = (thisgame.Options[OPT_LIPSYNCTEXT] != 0) ? LipSyncType::Text : LipSyncType::None;
+	game->LipSync->DefaultFrame = thisgame.DefaultLipSyncFrame;
 	for (i = 0; i < MAXLIPSYNCFRAMES; i++) 
 	{
-		game->LipSync->CharactersPerFrame[i] = gcnew String(thisgame.lipSyncFrameLetters[i]);
+		game->LipSync->CharactersPerFrame[i] = gcnew String(thisgame.LipSyncFrameLetters[i]);
 	}
 
-	for (i = 0; i < thisgame.numdialog; i++) 
+	for (i = 0; i < thisgame.DialogCount; i++) 
 	{
 		AGS::Types::Dialog ^newDialog = gcnew AGS::Types::Dialog();
 		newDialog->ID = i;
@@ -3939,41 +4004,41 @@ Game^ load_old_game_dta_file(const char *fileName)
 			newDialog->Options->Add(newOption);
 		}
 
-		newDialog->Name = gcnew String(thisgame.dialogScriptNames[i]);
+		newDialog->Name = gcnew String(thisgame.DialogScriptNames[i]);
 		newDialog->Script = gcnew String(dlgscript[i]);
 		newDialog->ShowTextParser = (dialog[i].topicFlags & DTFLG_SHOWPARSER);
 
 		game->Dialogs->Add(newDialog);
 	}
 
-	for (i = 0; i < thisgame.numcursors; i++)
+	for (i = 0; i < thisgame.MouseCursorCount; i++)
 	{
 		AGS::Types::MouseCursor ^cursor = gcnew AGS::Types::MouseCursor();
-		cursor->Animate = (thisgame.mcurs[i].view >= 0);
-		cursor->AnimateOnlyOnHotspots = ((thisgame.mcurs[i].flags & MCF_HOTSPOT) != 0);
-		cursor->AnimateOnlyWhenMoving = ((thisgame.mcurs[i].flags & MCF_ANIMMOVE) != 0);
-		cursor->Image = thisgame.mcurs[i].pic;
-		cursor->HotspotX = thisgame.mcurs[i].hotx;
-		cursor->HotspotY = thisgame.mcurs[i].hoty;
+		cursor->Animate = (thisgame.MouseCursors[i].view >= 0);
+		cursor->AnimateOnlyOnHotspots = ((thisgame.MouseCursors[i].flags & MCF_HOTSPOT) != 0);
+		cursor->AnimateOnlyWhenMoving = ((thisgame.MouseCursors[i].flags & MCF_ANIMMOVE) != 0);
+		cursor->Image = thisgame.MouseCursors[i].pic;
+		cursor->HotspotX = thisgame.MouseCursors[i].hotx;
+		cursor->HotspotY = thisgame.MouseCursors[i].hoty;
 		cursor->ID = i;
-		cursor->Name = gcnew String(thisgame.mcurs[i].name);
-		cursor->StandardMode = ((thisgame.mcurs[i].flags & MCF_STANDARD) != 0);
-		cursor->View = thisgame.mcurs[i].view + 1;
+		cursor->Name = gcnew String(thisgame.MouseCursors[i].name);
+		cursor->StandardMode = ((thisgame.MouseCursors[i].flags & MCF_STANDARD) != 0);
+		cursor->View = thisgame.MouseCursors[i].view + 1;
 		if (cursor->View < 1) cursor->View = 0;
 
 		game->Cursors->Add(cursor);
 	}
 
-	for (i = 0; i < thisgame.numfonts; i++) 
+	for (i = 0; i < thisgame.FontCount; i++) 
 	{
 		AGS::Types::Font ^font = gcnew AGS::Types::Font();
 		font->ID = i;
-		font->OutlineFont = (thisgame.fontoutline[i] >= 0) ? thisgame.fontoutline[i] : 0;
-		if (thisgame.fontoutline[i] == -1) 
+		font->OutlineFont = (thisgame.FontOutline[i] >= 0) ? thisgame.FontOutline[i] : 0;
+		if (thisgame.FontOutline[i] == -1) 
 		{
 			font->OutlineStyle = FontOutlineStyle::None;
 		}
-		else if (thisgame.fontoutline[i] == FONT_OUTLINE_AUTO)
+		else if (thisgame.FontOutline[i] == FONT_OUTLINE_AUTO)
 		{
 			font->OutlineStyle = FontOutlineStyle::Automatic;
 		}
@@ -3981,46 +4046,46 @@ Game^ load_old_game_dta_file(const char *fileName)
 		{
 			font->OutlineStyle = FontOutlineStyle::UseOutlineFont;
 		}
-		font->PointSize = thisgame.fontflags[i] & FFLG_SIZEMASK;
+		font->PointSize = thisgame.FontFlags[i] & FFLG_SIZEMASK;
 		font->Name = gcnew String(String::Format("Font {0}", i));
 
 		game->Fonts->Add(font);
 	}
 
-	for (i = 1; i < thisgame.numinvitems; i++)
+	for (i = 1; i < thisgame.InvItemCount; i++)
 	{
 		InventoryItem^ invItem = gcnew InventoryItem();
-    invItem->CursorImage = thisgame.invinfo[i].pic;
-		invItem->Description = gcnew String(thisgame.invinfo[i].name);
-		invItem->Image = thisgame.invinfo[i].pic;
-		invItem->HotspotX = thisgame.invinfo[i].hotx;
-		invItem->HotspotY = thisgame.invinfo[i].hoty;
+    invItem->CursorImage = thisgame.InventoryItems[i].pic;
+		invItem->Description = gcnew String(thisgame.InventoryItems[i].name);
+		invItem->Image = thisgame.InventoryItems[i].pic;
+		invItem->HotspotX = thisgame.InventoryItems[i].hotx;
+		invItem->HotspotY = thisgame.InventoryItems[i].hoty;
 		invItem->ID = i;
-		invItem->Name = gcnew String(thisgame.invScriptNames[i]);
-		invItem->PlayerStartsWithItem = (thisgame.invinfo[i].flags & IFLG_STARTWITH);
+		invItem->Name = gcnew String(thisgame.InventoryScriptNames[i]);
+		invItem->PlayerStartsWithItem = (thisgame.InventoryItems[i].flags & IFLG_STARTWITH);
 
-		ConvertCustomProperties(invItem->Properties, &thisgame.invProps[i]);
+		ConvertCustomProperties(invItem->Properties, &thisgame.InvItemProperties[i]);
 
 		char scriptFuncPrefix[100];
 		sprintf(scriptFuncPrefix, "inventory%d_", i);
-		ConvertInteractions(invItem->Interactions, thisgame.intrInv[i], gcnew String(scriptFuncPrefix), game, 5);
+		ConvertInteractions(invItem->Interactions, thisgame.InvItemInteractions[i], gcnew String(scriptFuncPrefix), game, 5);
 
 		game->InventoryItems->Add(invItem);
 	}
 
-	//AGS::Types::CustomPropertySchema ^schema = gcnew AGS::Types::CustomPropertySchema();
-	for (i = 0; i < thisgame.propSchema.numProps; i++) 
+	//AGS::Types::PropertySchema ^schema = gcnew AGS::Types::PropertySchema();
+	for (i = 0; i < thisgame.PropertySchema.numProps; i++) 
 	{
 		CustomPropertySchemaItem ^schemaItem = gcnew CustomPropertySchemaItem();
-		schemaItem->Name = gcnew String(thisgame.propSchema.propName[i]);
-		schemaItem->Description = gcnew String(thisgame.propSchema.propDesc[i]);
-		schemaItem->DefaultValue = gcnew String(thisgame.propSchema.defaultValue[i]);
-		schemaItem->Type = (AGS::Types::CustomPropertyType)thisgame.propSchema.propType[i];
+		schemaItem->Name = gcnew String(thisgame.PropertySchema.propName[i]);
+		schemaItem->Description = gcnew String(thisgame.PropertySchema.propDesc[i]);
+		schemaItem->DefaultValue = gcnew String(thisgame.PropertySchema.defaultValue[i]);
+		schemaItem->Type = (AGS::Types::CustomPropertyType)thisgame.PropertySchema.propType[i];
 
 		game->PropertySchema->PropertyDefinitions->Add(schemaItem);
 	}
 
-	for (i = 0; i < thisgame.numgui; i++)
+	for (i = 0; i < thisgame.GuiCount; i++)
 	{
 		guis[i].rebuild_array();
 	    guis[i].resort_zorder();
@@ -4186,17 +4251,17 @@ System::String ^load_room_script(System::String ^fileName)
 	String ^scriptToReturn = nullptr;
 
 	int thisblock = 0;
-	while (thisblock != BLOCKTYPE_EOF) 
+	while (thisblock != Common::kRoomBlock_End) 
 	{
 		thisblock = opty->ReadByte();
-		if (thisblock == BLOCKTYPE_EOF) 
+		if (thisblock == Common::kRoomBlock_End) 
 		{
 			break;
 		}
 
 		int blockLen = opty->ReadInt32();
 
-		if (thisblock == BLOCKTYPE_SCRIPT) 
+		if (thisblock == Common::kRoomBlock_Script) 
 		{
 			int lee = opty->ReadInt32();
 			int hh;
@@ -4244,112 +4309,112 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 	Room ^room = gcnew Room(roomToLoad->Number);
 	room->Description = roomToLoad->Description;
 	room->Script = roomToLoad->Script;
-	room->BottomEdgeY = thisroom.bottom;
-	room->LeftEdgeX = thisroom.left;
-	room->MusicVolumeAdjustment = (RoomVolumeAdjustment)thisroom.options[ST_VOLUME];
-	room->PlayerCharacterView = thisroom.options[ST_MANVIEW];
-	room->PlayMusicOnRoomLoad = thisroom.options[ST_TUNE];
-	room->RightEdgeX = thisroom.right;
-	room->SaveLoadEnabled = (thisroom.options[ST_SAVELOAD] == 0);
-	room->ShowPlayerCharacter = (thisroom.options[ST_MANDISABLED] == 0);
-	room->TopEdgeY = thisroom.top;
-	room->Width = thisroom.width;
-	room->Height = thisroom.height;
-  if (thisroom.resolution > 2)
+	room->BottomEdgeY = thisroom.Edges.Bottom;
+	room->LeftEdgeX = thisroom.Edges.Left;
+	room->MusicVolumeAdjustment = (RoomVolumeAdjustment)thisroom.Options[kRoomBaseOpt_MusicVolume];
+	room->PlayerCharacterView = thisroom.Options[kRoomBaseOpt_PlayerCharacterView];
+	room->PlayMusicOnRoomLoad = thisroom.Options[kRoomBaseOpt_StartUpMusic];
+	room->RightEdgeX = thisroom.Edges.Right;
+	room->SaveLoadEnabled = (thisroom.Options[kRoomBaseOpt_SaveLoadDisabled] == 0);
+	room->ShowPlayerCharacter = (thisroom.Options[kRoomBaseOpt_PlayerCharacterDisabled] == 0);
+	room->TopEdgeY = thisroom.Edges.Top;
+	room->Width = thisroom.Width;
+	room->Height = thisroom.Height;
+  if (thisroom.Resolution > 2)
   {
     room->Resolution = RoomResolution::HighRes;
   }
   else
   {
-  	room->Resolution = (RoomResolution)thisroom.resolution;
+  	room->Resolution = (RoomResolution)thisroom.Resolution;
   }
-	room->ColorDepth = thisroom.ebscene[0]->GetColorDepth();
-	room->BackgroundAnimationDelay = thisroom.bscene_anim_speed;
-	room->BackgroundCount = thisroom.num_bscenes;
+	room->ColorDepth = thisroom.Backgrounds[0].Graphic->GetColorDepth();
+	room->BackgroundAnimationDelay = thisroom.BkgSceneAnimSpeed;
+	room->BackgroundCount = thisroom.BkgSceneCount;
 
 	int i;
-	for (i = 0; i < thisroom.numLocalVars; i++)
+	for (i = 0; i < thisroom.LocalVariableCount; i++)
 	{
 		OldInteractionVariable ^intVar;
-		intVar = gcnew OldInteractionVariable(gcnew String(thisroom.localvars[i].name), thisroom.localvars[i].value);
+		intVar = gcnew OldInteractionVariable(gcnew String(thisroom.LocalVariables[i].name), thisroom.LocalVariables[i].value);
 		room->OldInteractionVariables->Add(intVar);
 	}
 
-	for (i = 0; i < thisroom.nummes; i++) 
+	for (i = 0; i < thisroom.MessageCount; i++) 
 	{
 		RoomMessage ^newMessage = gcnew RoomMessage(i);
-		newMessage->Text = gcnew String(thisroom.message[i]);
-		newMessage->ShowAsSpeech = (thisroom.msgi[i].displayas > 0);
-		newMessage->CharacterID = (thisroom.msgi[i].displayas - 1);
-		newMessage->DisplayNextMessageAfter = ((thisroom.msgi[i].flags & MSG_DISPLAYNEXT) != 0);
-		newMessage->AutoRemoveAfterTime = ((thisroom.msgi[i].flags & MSG_TIMELIMIT) != 0);
+		newMessage->Text = gcnew String(thisroom.Messages[i]);
+		newMessage->ShowAsSpeech = (thisroom.MessageInfos[i].displayas > 0);
+		newMessage->CharacterID = (thisroom.MessageInfos[i].displayas - 1);
+		newMessage->DisplayNextMessageAfter = ((thisroom.MessageInfos[i].flags & MSG_DISPLAYNEXT) != 0);
+		newMessage->AutoRemoveAfterTime = ((thisroom.MessageInfos[i].flags & MSG_TIMELIMIT) != 0);
 		room->Messages->Add(newMessage);
 	}
 
-	for (i = 0; i < thisroom.numsprs; i++) 
+	for (i = 0; i < thisroom.ObjectCount; i++) 
 	{
 		char jibbledScriptName[50] = "\0";
-		if (strlen(thisroom.objectscriptnames[i]) > 0) 
+		if (strlen(thisroom.Objects[i].ScriptName) > 0) 
 		{
-			if (thisroom.wasversion < kRoomVersion_300a)
+			if (thisroom.LoadedVersion < kRoomVersion_300a)
 			{
-				sprintf(jibbledScriptName, "o%s", thisroom.objectscriptnames[i]);
+				sprintf(jibbledScriptName, "o%s", thisroom.Objects[i].ScriptName);
 				strlwr(jibbledScriptName);
 				jibbledScriptName[1] = toupper(jibbledScriptName[1]);
 			}
 			else 
 			{			
-				strcpy(jibbledScriptName, thisroom.objectscriptnames[i]);
+				strcpy(jibbledScriptName, thisroom.Objects[i].ScriptName);
 			}
 		}
 
 		RoomObject ^obj = gcnew RoomObject(room);
 		obj->ID = i;
-		obj->Image = thisroom.sprs[i].sprnum;
-		obj->StartX = thisroom.sprs[i].x;
-		obj->StartY = thisroom.sprs[i].y;
-    if (thisroom.wasversion <= kRoomVersion_300a)
-      obj->StartY += GetSpriteHeight(thisroom.sprs[i].sprnum);
-		obj->Visible = (thisroom.sprs[i].on != 0);
-		obj->Baseline = thisroom.objbaseline[i];
+		obj->Image = thisroom.Objects[i].SpriteIndex;
+		obj->StartX = thisroom.Objects[i].X;
+		obj->StartY = thisroom.Objects[i].Y;
+    if (thisroom.LoadedVersion <= kRoomVersion_300a)
+      obj->StartY += GetSpriteHeight(thisroom.Objects[i].SpriteIndex);
+		obj->Visible = (thisroom.Objects[i].IsOn != 0);
+		obj->Baseline = thisroom.Objects[i].Baseline;
 		obj->Name = gcnew String(jibbledScriptName);
-		obj->Description = gcnew String(thisroom.objectnames[i]);
-		obj->UseRoomAreaScaling = ((thisroom.objectFlags[i] & OBJF_USEROOMSCALING) != 0);
-		obj->UseRoomAreaLighting = ((thisroom.objectFlags[i] & OBJF_USEREGIONTINTS) != 0);
-		ConvertCustomProperties(obj->Properties, &thisroom.objProps[i]);
+		obj->Description = gcnew String(thisroom.Objects[i].Name);
+		obj->UseRoomAreaScaling = ((thisroom.Objects[i].Flags & OBJF_USEROOMSCALING) != 0);
+		obj->UseRoomAreaLighting = ((thisroom.Objects[i].Flags & OBJF_USEREGIONTINTS) != 0);
+		ConvertCustomProperties(obj->Properties, &thisroom.Objects[i].Properties);
 
-		if (thisroom.wasversion < kRoomVersion_300a)
+		if (thisroom.LoadedVersion < kRoomVersion_300a)
 		{
 			char scriptFuncPrefix[100];
 			sprintf(scriptFuncPrefix, "object%d_", i);
-			ConvertInteractions(obj->Interactions, thisroom.intrObject[i], gcnew String(scriptFuncPrefix), nullptr, 2);
+			ConvertInteractions(obj->Interactions, thisroom.Objects[i].EventHandlers.Interaction, gcnew String(scriptFuncPrefix), nullptr, 2);
 		}
 		else 
 		{
-			CopyInteractions(obj->Interactions, thisroom.objectScripts[i]);
+			CopyInteractions(obj->Interactions, thisroom.Objects[i].EventHandlers.ScriptFnRef);
 		}
 
 		room->Objects->Add(obj);
 	}
 
-	for (i = 0; i < thisroom.numhotspots; i++) 
+	for (i = 0; i < thisroom.HotspotCount; i++) 
 	{
 		RoomHotspot ^hotspot = room->Hotspots[i];
 		hotspot->ID = i;
-		hotspot->Description = gcnew String(thisroom.hotspotnames[i]);
-		hotspot->Name = (gcnew String(thisroom.hotspotScriptNames[i]))->Trim();
-		hotspot->WalkToPoint = Point(thisroom.hswalkto[i].x, thisroom.hswalkto[i].y);
-		ConvertCustomProperties(hotspot->Properties, &thisroom.hsProps[i]);
+		hotspot->Description = gcnew String(thisroom.Hotspots[i].Name);
+		hotspot->Name = (gcnew String(thisroom.Hotspots[i].ScriptName))->Trim();
+		hotspot->WalkToPoint = Point(thisroom.Hotspots[i].WalkToPoint.x, thisroom.Hotspots[i].WalkToPoint.y);
+		ConvertCustomProperties(hotspot->Properties, &thisroom.Hotspots[i].Properties);
 
-		if (thisroom.wasversion < kRoomVersion_300a)
+		if (thisroom.LoadedVersion < kRoomVersion_300a)
 		{
 			char scriptFuncPrefix[100];
 			sprintf(scriptFuncPrefix, "hotspot%d_", i);
-			ConvertInteractions(hotspot->Interactions, thisroom.intrHotspot[i], gcnew String(scriptFuncPrefix), nullptr, 1);
+			ConvertInteractions(hotspot->Interactions, thisroom.Hotspots[i].EventHandlers.Interaction, gcnew String(scriptFuncPrefix), nullptr, 1);
 		}
 		else 
 		{
-			CopyInteractions(hotspot->Interactions, thisroom.hotspotScripts[i]);
+			CopyInteractions(hotspot->Interactions, thisroom.Hotspots[i].EventHandlers.ScriptFnRef);
 		}
 	}
 
@@ -4357,13 +4422,13 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 	{
 		RoomWalkableArea ^area = room->WalkableAreas[i];
 		area->ID = i;
-		area->AreaSpecificView = thisroom.shadinginfo[i];
-		area->UseContinuousScaling = !(thisroom.walk_area_zoom2[i] == NOT_VECTOR_SCALED);
-		area->ScalingLevel = thisroom.walk_area_zoom[i] + 100;
-		area->MinScalingLevel = thisroom.walk_area_zoom[i] + 100;
+		area->AreaSpecificView = thisroom.WalkAreas[i].ShadingView;
+		area->UseContinuousScaling = !(thisroom.WalkAreas[i].Zoom2 == NOT_VECTOR_SCALED);
+		area->ScalingLevel = thisroom.WalkAreas[i].Zoom + 100;
+		area->MinScalingLevel = thisroom.WalkAreas[i].Zoom + 100;
 		if (area->UseContinuousScaling) 
 		{
-			area->MaxScalingLevel = thisroom.walk_area_zoom2[i] + 100;
+			area->MaxScalingLevel = thisroom.WalkAreas[i].Zoom2 + 100;
 		}
 		else
 		{
@@ -4375,51 +4440,51 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 	{
 		RoomWalkBehind ^area = room->WalkBehinds[i];
 		area->ID = i;
-		area->Baseline = thisroom.objyval[i];
+		area->Baseline = thisroom.WalkBehinds[i].Baseline;
 	}
 
 	for (i = 0; i < MAX_REGIONS; i++) 
 	{
 		RoomRegion ^area = room->Regions[i];
 		area->ID = i;
-		area->UseColourTint = ((thisroom.regionTintLevel[i] & TINT_IS_ENABLED) != 0);
-		area->LightLevel = thisroom.regionLightLevel[i] + 100;
-		area->BlueTint = (thisroom.regionTintLevel[i] >> 16) & 0x00ff;
-		area->GreenTint = (thisroom.regionTintLevel[i] >> 8) & 0x00ff;
-		area->RedTint = thisroom.regionTintLevel[i] & 0x00ff;
-		area->TintSaturation = (thisroom.regionLightLevel[i] > 0) ? thisroom.regionLightLevel[i] : 50;
+		area->UseColourTint = ((thisroom.Regions[i].Tint & TINT_IS_ENABLED) != 0);
+		area->LightLevel = thisroom.Regions[i].Light + 100;
+		area->BlueTint = (thisroom.Regions[i].Tint >> 16) & 0x00ff;
+		area->GreenTint = (thisroom.Regions[i].Tint >> 8) & 0x00ff;
+		area->RedTint = thisroom.Regions[i].Tint & 0x00ff;
+		area->TintSaturation = (thisroom.Regions[i].Light > 0) ? thisroom.Regions[i].Light : 50;
 
-		if (thisroom.wasversion < kRoomVersion_300a)
+		if (thisroom.LoadedVersion < kRoomVersion_300a)
 		{
 			char scriptFuncPrefix[100];
 			sprintf(scriptFuncPrefix, "region%d_", i);
-			ConvertInteractions(area->Interactions, thisroom.intrRegion[i], gcnew String(scriptFuncPrefix), nullptr, 0);
+			ConvertInteractions(area->Interactions, thisroom.Regions[i].EventHandlers.Interaction, gcnew String(scriptFuncPrefix), nullptr, 0);
 		}
 		else 
 		{
-			CopyInteractions(area->Interactions, thisroom.regionScripts[i]);
+			CopyInteractions(area->Interactions, thisroom.Regions[i].EventHandlers.ScriptFnRef);
 		}
 	}
 /*
-	if (thisroom.scripts != NULL) 
+	if (thisroom.TextScript != NULL) 
 	{
-		room->Script->Text = gcnew String(thisroom.scripts);
+		room->Script->Text = gcnew String(thisroom.TextScript);
 	}
 */
 	room->_roomStructPtr = (IntPtr)&thisroom;
 
-	ConvertCustomProperties(room->Properties, &thisroom.roomProps);
+	ConvertCustomProperties(room->Properties, &thisroom.Properties);
 
-	if (thisroom.wasversion < kRoomVersion_300a)
+	if (thisroom.LoadedVersion < kRoomVersion_300a)
 	{
-		ConvertInteractions(room->Interactions, thisroom.intrRoom, "room_", nullptr, 0);
+		ConvertInteractions(room->Interactions, thisroom.EventHandlers.Interaction, "room_", nullptr, 0);
 	}
 	else 
 	{
-		CopyInteractions(room->Interactions, thisroom.roomScripts);
+		CopyInteractions(room->Interactions, thisroom.EventHandlers.ScriptFnRef);
 	}
 
-	room->GameID = thisroom.gameId;
+	room->GameID = thisroom.GameId;
   clear_undo_buffer();
 
 	return room;
@@ -4427,120 +4492,121 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 
 void save_crm_file(Room ^room)
 {
-	thisroom.gameId = room->GameID;
-	thisroom.bottom = room->BottomEdgeY;
-	thisroom.left = room->LeftEdgeX;
-	thisroom.options[ST_VOLUME] = (int)room->MusicVolumeAdjustment;
-	thisroom.options[ST_MANVIEW] = room->PlayerCharacterView;
-	thisroom.options[ST_TUNE] = room->PlayMusicOnRoomLoad;
-	thisroom.right = room->RightEdgeX;
-	thisroom.options[ST_SAVELOAD] = room->SaveLoadEnabled ? 0 : 1;
-	thisroom.options[ST_MANDISABLED] = room->ShowPlayerCharacter ? 0 : 1;
-	thisroom.top = room->TopEdgeY;
-	thisroom.width = room->Width;
-	thisroom.height = room->Height;
-	thisroom.resolution = (int)room->Resolution;
-	thisroom.bscene_anim_speed = room->BackgroundAnimationDelay;
-	thisroom.num_bscenes = room->BackgroundCount;
+	thisroom.GameId = room->GameID;
+	thisroom.Edges.Bottom = room->BottomEdgeY;
+	thisroom.Edges.Left = room->LeftEdgeX;
+	thisroom.Options[kRoomBaseOpt_MusicVolume] = (int)room->MusicVolumeAdjustment;
+	thisroom.Options[kRoomBaseOpt_PlayerCharacterView] = room->PlayerCharacterView;
+	thisroom.Options[kRoomBaseOpt_StartUpMusic] = room->PlayMusicOnRoomLoad;
+	thisroom.Edges.Right = room->RightEdgeX;
+	thisroom.Options[kRoomBaseOpt_SaveLoadDisabled] = room->SaveLoadEnabled ? 0 : 1;
+	thisroom.Options[kRoomBaseOpt_PlayerCharacterDisabled] = room->ShowPlayerCharacter ? 0 : 1;
+	thisroom.Edges.Top = room->TopEdgeY;
+	thisroom.Width = room->Width;
+	thisroom.Height = room->Height;
+	thisroom.Resolution = (int)room->Resolution;
+	thisroom.BkgSceneAnimSpeed = room->BackgroundAnimationDelay;
+	thisroom.BkgSceneCount = room->BackgroundCount;
 
 	int i;
-	for (i = 0; i < thisroom.nummes; i++) 
+	for (i = 0; i < thisroom.MessageCount; i++) 
 	{
-		free(thisroom.message[i]);
+		thisroom.Messages[i].Free();
 	}
-	thisroom.nummes = room->Messages->Count;
-	for (i = 0; i < thisroom.nummes; i++) 
+	thisroom.MessageCount = room->Messages->Count;
+	for (i = 0; i < thisroom.MessageCount; i++) 
 	{
 		RoomMessage ^newMessage = room->Messages[i];
-		thisroom.message[i] = (char*)malloc(newMessage->Text->Length + 1);
-		ConvertStringToCharArray(newMessage->Text, thisroom.message[i]);
+		//thisroom.Messages[i] = (char*)malloc(newMessage->Text->Length + 1);
+		//ConvertStringToCharArray(newMessage->Text, thisroom.Messages[i]);
+        ConvertStringToNativeString(newMessage->Text, thisroom.Messages[i]);
 		if (newMessage->ShowAsSpeech)
 		{
-			thisroom.msgi[i].displayas = newMessage->CharacterID + 1;
+			thisroom.MessageInfos[i].displayas = newMessage->CharacterID + 1;
 		}
 		else
 		{
-			thisroom.msgi[i].displayas = 0;
+			thisroom.MessageInfos[i].displayas = 0;
 		}
-		thisroom.msgi[i].flags = 0;
-		if (newMessage->DisplayNextMessageAfter) thisroom.msgi[i].flags |= MSG_DISPLAYNEXT;
-		if (newMessage->AutoRemoveAfterTime) thisroom.msgi[i].flags |= MSG_TIMELIMIT;
+		thisroom.MessageInfos[i].flags = 0;
+		if (newMessage->DisplayNextMessageAfter) thisroom.MessageInfos[i].flags |= MSG_DISPLAYNEXT;
+		if (newMessage->AutoRemoveAfterTime) thisroom.MessageInfos[i].flags |= MSG_TIMELIMIT;
 	}
 
-	thisroom.numsprs = room->Objects->Count;
-	for (i = 0; i < thisroom.numsprs; i++) 
+	thisroom.ObjectCount = room->Objects->Count;
+	for (i = 0; i < thisroom.ObjectCount; i++) 
 	{
 		RoomObject ^obj = room->Objects[i];
-		ConvertStringToCharArray(obj->Name, thisroom.objectscriptnames[i]);
+		ConvertStringToNativeString(obj->Name, thisroom.Objects[i].ScriptName);
 
-		thisroom.sprs[i].sprnum = obj->Image;
-		thisroom.sprs[i].x = obj->StartX;
-		thisroom.sprs[i].y = obj->StartY;
-		thisroom.sprs[i].on = obj->Visible;
-		thisroom.objbaseline[i] = obj->Baseline;
-		ConvertStringToCharArray(obj->Description, thisroom.objectnames[i], 30);
-		thisroom.objectFlags[i] = 0;
-		if (obj->UseRoomAreaScaling) thisroom.objectFlags[i] |= OBJF_USEROOMSCALING;
-		if (obj->UseRoomAreaLighting) thisroom.objectFlags[i] |= OBJF_USEREGIONTINTS;
-		CompileCustomProperties(obj->Properties, &thisroom.objProps[i]);
+		thisroom.Objects[i].SpriteIndex = obj->Image;
+		thisroom.Objects[i].X = obj->StartX;
+		thisroom.Objects[i].Y = obj->StartY;
+		thisroom.Objects[i].IsOn = obj->Visible;
+		thisroom.Objects[i] .Baseline = obj->Baseline;
+		ConvertStringToNativeString(obj->Description, thisroom.Objects[i].Name, 30);
+		thisroom.Objects[i].Flags = 0;
+		if (obj->UseRoomAreaScaling) thisroom.Objects[i].Flags |= OBJF_USEROOMSCALING;
+		if (obj->UseRoomAreaLighting) thisroom.Objects[i].Flags |= OBJF_USEREGIONTINTS;
+		CompileCustomProperties(obj->Properties, &thisroom.Objects[i].Properties);
 	}
 
-	thisroom.numhotspots = room->Hotspots->Count;
-	for (i = 0; i < thisroom.numhotspots; i++) 
+	thisroom.HotspotCount = room->Hotspots->Count;
+	for (i = 0; i < thisroom.HotspotCount; i++) 
 	{
 		RoomHotspot ^hotspot = room->Hotspots[i];
-		thisroom.hotspotnames[i] = (char*)malloc(hotspot->Description->Length + 1);
-		ConvertStringToCharArray(hotspot->Description, thisroom.hotspotnames[i]);
-		ConvertStringToCharArray(hotspot->Name, thisroom.hotspotScriptNames[i], 20);
-		thisroom.hswalkto[i].x = hotspot->WalkToPoint.X;
-		thisroom.hswalkto[i].y = hotspot->WalkToPoint.Y;
-		CompileCustomProperties(hotspot->Properties, &thisroom.hsProps[i]);
+		thisroom.Hotspots[i].Name = (char*)malloc(hotspot->Description->Length + 1);
+		ConvertStringToNativeString(hotspot->Description, thisroom.Hotspots[i].Name);
+		ConvertStringToNativeString(hotspot->Name, thisroom.Hotspots[i].ScriptName, 20);
+		thisroom.Hotspots[i].WalkToPoint.x = hotspot->WalkToPoint.X;
+		thisroom.Hotspots[i].WalkToPoint.y = hotspot->WalkToPoint.Y;
+		CompileCustomProperties(hotspot->Properties, &thisroom.Hotspots[i].Properties);
 	}
 
 	for (i = 0; i <= MAX_WALK_AREAS; i++) 
 	{
 		RoomWalkableArea ^area = room->WalkableAreas[i];
-		thisroom.shadinginfo[i] = area->AreaSpecificView;
+		thisroom.WalkAreas[i].ShadingView = area->AreaSpecificView;
 		
 		if (area->UseContinuousScaling) 
 		{
-			thisroom.walk_area_zoom[i] = area->MinScalingLevel - 100;
-			thisroom.walk_area_zoom2[i] = area->MaxScalingLevel - 100;
+			thisroom.WalkAreas[i].Zoom = area->MinScalingLevel - 100;
+			thisroom.WalkAreas[i].Zoom2 = area->MaxScalingLevel - 100;
 		}
 		else
 		{
-			thisroom.walk_area_zoom[i] = area->ScalingLevel - 100;
-			thisroom.walk_area_zoom2[i] = NOT_VECTOR_SCALED;
+			thisroom.WalkAreas[i].Zoom = area->ScalingLevel - 100;
+			thisroom.WalkAreas[i].Zoom2 = NOT_VECTOR_SCALED;
 		}
 	}
 
 	for (i = 0; i < MAX_OBJ; i++) 
 	{
 		RoomWalkBehind ^area = room->WalkBehinds[i];
-		thisroom.objyval[i] = area->Baseline;
+		thisroom.WalkBehinds[i].Baseline = area->Baseline;
 	}
 
 	for (i = 0; i < MAX_REGIONS; i++) 
 	{
 		RoomRegion ^area = room->Regions[i];
-		thisroom.regionTintLevel[i] = 0;
+		thisroom.Regions[i].Tint = 0;
 		if (area->UseColourTint) 
 		{
-			thisroom.regionTintLevel[i] = TINT_IS_ENABLED;
-			thisroom.regionTintLevel[i] |= area->RedTint | (area->GreenTint << 8) | (area->BlueTint << 16);
-			thisroom.regionLightLevel[i] = area->TintSaturation;
+			thisroom.Regions[i].Tint = TINT_IS_ENABLED;
+			thisroom.Regions[i].Tint |= area->RedTint | (area->GreenTint << 8) | (area->BlueTint << 16);
+			thisroom.Regions[i].Light = area->TintSaturation;
 		}
 		else 
 		{
-			thisroom.regionLightLevel[i] = area->LightLevel - 100;
+			thisroom.Regions[i].Light = area->LightLevel - 100;
 		}
 	}
 
-	CompileCustomProperties(room->Properties, &thisroom.roomProps);
+	CompileCustomProperties(room->Properties, &thisroom.Properties);
 
-	thisroom.scripts = NULL;
-	thisroom.compiled_script = ((AGS::Native::CompiledScript^)room->Script->CompiledData)->Data;
-    thisroom.compiled_script_shared = true;
+	thisroom.TextScript = NULL;
+	thisroom.CompiledScript = ((AGS::Native::CompiledScript^)room->Script->CompiledData)->Data;
+    thisroom.CompiledScriptShared = true;
 
 	char roomFileNameBuffer[MAX_PATH];
 	ConvertStringToCharArray(room->FileName, roomFileNameBuffer);
@@ -4551,10 +4617,9 @@ void save_crm_file(Room ^room)
 
 	TempDataStorage::RoomBeingSaved = nullptr;
 
-	for (i = 0; i < thisroom.numhotspots; i++) 
+	for (i = 0; i < thisroom.HotspotCount; i++) 
 	{
-		free(thisroom.hotspotnames[i]);
-		thisroom.hotspotnames[i] = NULL;
+		thisroom.Hotspots[i].Name.Free();
 	}
 }
 
@@ -4600,7 +4665,7 @@ public:
 	    for each (View ^view in folder->Views)
 	    {
 		    int i = view->ID - 1;
-		    ConvertStringToCharArray(view->Name, thisgame.viewNames[i], MAXVIEWNAMELENGTH);
+		    ConvertStringToNativeString(view->Name, thisgame.ViewNames[i], MAXVIEWNAMELENGTH);
 
 		    newViews[i].Initialize(view->Loops->Count);
 		    for (int j = 0; j < newViews[i].numLoops; j++) 
@@ -4692,28 +4757,38 @@ void save_thisgame_to_file(const char *fileName, Game ^game)
   ooo->WriteInt32(strlen(AGS_VERSION));
   ooo->Write(AGS_VERSION, strlen(AGS_VERSION));
 
-  ooo->WriteArray(&thisgame, sizeof (GameSetupStructBase), 1);
-  ooo->Write(&thisgame.guid[0], MAX_GUID_LENGTH);
-  ooo->Write(&thisgame.saveGameFileExtension[0], MAX_SG_EXT_LENGTH);
-  ooo->Write(&thisgame.saveGameFolderName[0], MAX_SG_FOLDER_LEN);
-  ooo->Write(&thisgame.fontflags[0], thisgame.numfonts);
-  ooo->Write(&thisgame.fontoutline[0], thisgame.numfonts);
-  ooo->WriteInt32 (MAX_SPRITES);
-  ooo->Write(&thisgame.spriteflags[0], MAX_SPRITES);
-  ooo->WriteArray(&thisgame.invinfo[0], sizeof(InventoryItemInfo), thisgame.numinvitems);
-  ooo->WriteArray(&thisgame.mcurs[0], sizeof(::MouseCursor), thisgame.numcursors);
+  {
+    Common::AlignedStream align_s(ooo, Common::kAligned_Write);
+    thisgame.WriteBaseToFile(&align_s);
+    align_s.Close();
+  }
+
+  thisgame.Guid.WriteCount(ooo, MAX_GUID_LENGTH);
+  thisgame.SavedGameFileExtension.WriteCount(ooo, MAX_SG_EXT_LENGTH);
+  thisgame.SavedGameFolderName.WriteCount(ooo, MAX_SG_FOLDER_LEN);
+  thisgame.FontFlags.WriteRaw(ooo);
+  thisgame.FontOutline.WriteRaw(ooo);
+  ooo->WriteInt32(MAX_SPRITES);
+  thisgame.SpriteFlags.WriteRaw(ooo);
+  if (thisgame.SpriteFlags.GetCount() < MAX_SPRITES)
+  {
+    ooo->WriteByteCount(0, (MAX_SPRITES - thisgame.SpriteFlags.GetCount()));
+  }
+
+  thisgame.WriteInvInfo_Aligned(ooo);
+  thisgame.WriteMouseCursors_Aligned(ooo);
   
-  for (bb = 0; bb < thisgame.numcharacters; bb++)
+  for (bb = 0; bb < thisgame.CharacterCount; bb++)
   {
     serialize_interaction_scripts(game->Characters[bb]->Interactions, ooo);
   }
-  for (bb = 1; bb < thisgame.numinvitems; bb++)
+  for (bb = 1; bb < thisgame.InvItemCount; bb++)
   {
     serialize_interaction_scripts(game->InventoryItems[bb - 1]->Interactions, ooo);
   }
 
-  if (thisgame.dict != NULL) {
-    write_dictionary (thisgame.dict, ooo);
+  if (thisgame.Dictionary != NULL) {
+    write_dictionary (thisgame.Dictionary, ooo);
   }
 
   write_compiled_script(ooo, game->ScriptsToCompile->GetScriptByFilename(Script::GLOBAL_SCRIPT_FILE_NAME));
@@ -4739,14 +4814,17 @@ void save_thisgame_to_file(const char *fileName, Game ^game)
 	  write_compiled_script(ooo, script);
   }
 
-  for (bb = 0; bb < thisgame.numviews; bb++)
+  for (bb = 0; bb < thisgame.ViewCount; bb++)
   {
     newViews[bb].WriteToFile(ooo);
   }
 
-  ooo->WriteArray(&thisgame.chars[0],sizeof(CharacterInfo),thisgame.numcharacters);
+  thisgame.WriteCharacters_Aligned(ooo);
 
-  ooo->WriteArray(&thisgame.lipSyncFrameLetters[0][0], MAXLIPSYNCFRAMES, 50);
+  for (int i = 0; i < MAXLIPSYNCFRAMES; ++i)
+  {
+    ooo->Write(&thisgame.LipSyncFrameLetters[0], 50);
+  }
 
   char *buffer;
   for (bb=0;bb<MAXGLOBALMES;bb++) 
@@ -4759,24 +4837,24 @@ void save_thisgame_to_file(const char *fileName, Game ^game)
     write_string_encrypt(ooo, buffer);
 	  free(buffer);
   }
-  ooo->WriteArray(&dialog[0], sizeof(DialogTopic), thisgame.numdialog);
+  ooo->WriteArray(&dialog[0], sizeof(DialogTopic), thisgame.DialogCount);
   write_gui(ooo,&guis[0],&thisgame);
   write_plugins_to_disk(ooo);
   // write the custom properties & schema
-  thisgame.propSchema.Serialize(ooo);
-  for (bb = 0; bb < thisgame.numcharacters; bb++)
-    thisgame.charProps[bb].Serialize (ooo);
-  for (bb = 0; bb < thisgame.numinvitems; bb++)
-    thisgame.invProps[bb].Serialize (ooo);
+  thisgame.PropertySchema.Serialize(ooo);
+  for (bb = 0; bb < thisgame.CharacterCount; bb++)
+    thisgame.CharacterProperties[bb].Serialize (ooo);
+  for (bb = 0; bb < thisgame.InvItemCount; bb++)
+    thisgame.InvItemProperties[bb].Serialize (ooo);
 
-  for (bb = 0; bb < thisgame.numviews; bb++)
-    fputstring(thisgame.viewNames[bb], ooo);
+  for (bb = 0; bb < thisgame.ViewCount; bb++)
+    fputstring(thisgame.ViewNames[bb], ooo);
 
-  for (bb = 0; bb < thisgame.numinvitems; bb++)
-    fputstring(thisgame.invScriptNames[bb], ooo);
+  for (bb = 0; bb < thisgame.InvItemCount; bb++)
+    fputstring(thisgame.InventoryScriptNames[bb], ooo);
 
-  for (bb = 0; bb < thisgame.numdialog; bb++)
-    fputstring(thisgame.dialogScriptNames[bb], ooo);
+  for (bb = 0; bb < thisgame.DialogCount; bb++)
+    fputstring(thisgame.DialogScriptNames[bb], ooo);
 
 
   int audioClipTypeCount = game->AudioClipTypes->Count + 1;
@@ -4813,7 +4891,17 @@ void save_thisgame_to_file(const char *fileName, Game ^game)
     compiledAudioClips[i].fileType = (int)clip->FileType;
     compiledAudioClips[i].type = clip->Type;
   }
-  ooo->WriteArray(compiledAudioClips, sizeof(ScriptAudioClip), allClips->Count);
+
+  {
+    Common::AlignedStream align_s(ooo, Common::kAligned_Write);
+    for (int i = 0; i < allClips->Count; ++i)
+    {
+      compiledAudioClips[i].WriteToFile(&align_s);
+      align_s.Reset();
+    }
+    align_s.Close();
+  }
+
   free(compiledAudioClips);
   ooo->WriteInt32(game->GetAudioArrayIndexFromAudioClipIndex(game->Settings->PlaySoundOnScore));
 
@@ -4841,74 +4929,74 @@ void save_thisgame_to_file(const char *fileName, Game ^game)
 
 void save_game_to_dta_file(Game^ game, const char *fileName)
 {
-	thisgame.options[OPT_ALWAYSSPCH] = game->Settings->AlwaysDisplayTextAsSpeech;
-	thisgame.options[OPT_ANTIALIASFONTS] = game->Settings->AntiAliasFonts;
-	thisgame.options[OPT_ANTIGLIDE] = game->Settings->AntiGlideMode;
-	thisgame.options[OPT_NOWALKMODE] = !game->Settings->AutoMoveInWalkMode;
-	thisgame.options[OPT_RIGHTLEFTWRITE] = game->Settings->BackwardsText;
-	thisgame.color_depth = (int)game->Settings->ColorDepth;
-	thisgame.options[OPT_COMPRESSSPRITES] = game->Settings->CompressSprites;
-	thisgame.options[OPT_CROSSFADEMUSIC] = (int)game->Settings->CrossfadeMusic;
-	thisgame.options[OPT_DEBUGMODE] = game->Settings->DebugMode;
-	thisgame.options[OPT_DIALOGUPWARDS] = game->Settings->DialogOptionsBackwards;
-	thisgame.options[OPT_DIALOGGAP] = game->Settings->DialogOptionsGap;
-	thisgame.options[OPT_DIALOGIFACE] = game->Settings->DialogOptionsGUI;
-	thisgame.dialog_bullet = game->Settings->DialogOptionsBullet;
-	thisgame.options[OPT_DUPLICATEINV] = game->Settings->DisplayMultipleInventory;
-	thisgame.options[OPT_STRICTSTRINGS] = game->Settings->EnforceNewStrings;
-	thisgame.options[OPT_STRICTSCRIPTING] = game->Settings->EnforceObjectBasedScript;
-	thisgame.options[OPT_NOSCALEFNT] = game->Settings->FontsForHiRes;
-	ConvertStringToCharArray(game->Settings->GameName, thisgame.gamename, 50);
-	thisgame.options[OPT_NEWGUIALPHA] = (int)game->Settings->GUIAlphaStyle;
-	thisgame.options[OPT_HANDLEINVCLICKS] = game->Settings->HandleInvClicksInScript;
-	thisgame.options[OPT_FIXEDINVCURSOR] = !game->Settings->InventoryCursors;
-  thisgame.options[OPT_OLDTALKANIMSPD] = game->Settings->LegacySpeechAnimationSpeed;
-	thisgame.options[OPT_LEFTTORIGHTEVAL] = game->Settings->LeftToRightPrecedence;
-	thisgame.options[OPT_LETTERBOX] = game->Settings->LetterboxMode;
-  thisgame.totalscore = game->Settings->MaximumScore;
-	thisgame.options[OPT_MOUSEWHEEL] = game->Settings->MouseWheelEnabled;
-	thisgame.options[OPT_DIALOGNUMBERED] = game->Settings->NumberDialogOptions;
-	thisgame.options[OPT_PIXPERFECT] = game->Settings->PixelPerfect;
-	thisgame.options[OPT_SCORESOUND] = 0; // saved elsewhere now to make it 32-bit
-	thisgame.default_resolution = (int)game->Settings->Resolution;
-	thisgame.options[OPT_FADETYPE] = (int)game->Settings->RoomTransition;
-	thisgame.options[OPT_RUNGAMEDLGOPTS] = game->Settings->RunGameLoopsWhileDialogOptionsDisplayed;
-	thisgame.options[OPT_SAVESCREENSHOT] = game->Settings->SaveScreenshots;
-	thisgame.options[OPT_NOSKIPTEXT] = (int)game->Settings->SkipSpeech;
-	thisgame.options[OPT_PORTRAITSIDE] = (int)game->Settings->SpeechPortraitSide;
-	thisgame.options[OPT_SPEECHTYPE] = (int)game->Settings->SpeechStyle;
-	thisgame.options[OPT_SPLITRESOURCES] = game->Settings->SplitResources;
-	thisgame.options[OPT_TWCUSTOM] = game->Settings->TextWindowGUI;
-	thisgame.options[OPT_THOUGHTGUI] = game->Settings->ThoughtGUI;
-	thisgame.options[OPT_TURNTOFACELOC] = game->Settings->TurnBeforeFacing;
-	thisgame.options[OPT_ROTATECHARS] = game->Settings->TurnBeforeWalking;
-	thisgame.options[OPT_NATIVECOORDINATES] = !game->Settings->UseLowResCoordinatesInScript;
-	thisgame.options[OPT_WALKONLOOK] = game->Settings->WalkInLookMode;
-	thisgame.options[OPT_DISABLEOFF] = (int)game->Settings->WhenInterfaceDisabled;
-	thisgame.uniqueid = game->Settings->UniqueID;
-  ConvertStringToCharArray(game->Settings->GUIDAsString, thisgame.guid, MAX_GUID_LENGTH);
-  ConvertStringToCharArray(game->Settings->SaveGameFolderName, thisgame.saveGameFolderName, MAX_SG_FOLDER_LEN);
+	thisgame.Options[OPT_ALWAYSSPCH] = game->Settings->AlwaysDisplayTextAsSpeech;
+	thisgame.Options[OPT_ANTIALIASFONTS] = game->Settings->AntiAliasFonts;
+	thisgame.Options[OPT_ANTIGLIDE] = game->Settings->AntiGlideMode;
+	thisgame.Options[OPT_NOWALKMODE] = !game->Settings->AutoMoveInWalkMode;
+	thisgame.Options[OPT_RIGHTLEFTWRITE] = game->Settings->BackwardsText;
+	thisgame.ColorDepth = (int)game->Settings->ColorDepth;
+	thisgame.Options[OPT_COMPRESSSPRITES] = game->Settings->CompressSprites;
+	thisgame.Options[OPT_CROSSFADEMUSIC] = (int)game->Settings->CrossfadeMusic;
+	thisgame.Options[OPT_DEBUGMODE] = game->Settings->DebugMode;
+	thisgame.Options[OPT_DIALOGUPWARDS] = game->Settings->DialogOptionsBackwards;
+	thisgame.Options[OPT_DIALOGGAP] = game->Settings->DialogOptionsGap;
+	thisgame.Options[OPT_DIALOGIFACE] = game->Settings->DialogOptionsGUI;
+	thisgame.DialogBulletSprIndex = game->Settings->DialogOptionsBullet;
+	thisgame.Options[OPT_DUPLICATEINV] = game->Settings->DisplayMultipleInventory;
+	thisgame.Options[OPT_STRICTSTRINGS] = game->Settings->EnforceNewStrings;
+	thisgame.Options[OPT_STRICTSCRIPTING] = game->Settings->EnforceObjectBasedScript;
+	thisgame.Options[OPT_NOSCALEFNT] = game->Settings->FontsForHiRes;
+	ConvertStringToNativeString(game->Settings->GameName, thisgame.GameName, 50);
+	thisgame.Options[OPT_NEWGUIALPHA] = (int)game->Settings->GUIAlphaStyle;
+	thisgame.Options[OPT_HANDLEINVCLICKS] = game->Settings->HandleInvClicksInScript;
+	thisgame.Options[OPT_FIXEDINVCURSOR] = !game->Settings->InventoryCursors;
+  thisgame.Options[OPT_OLDTALKANIMSPD] = game->Settings->LegacySpeechAnimationSpeed;
+	thisgame.Options[OPT_LEFTTORIGHTEVAL] = game->Settings->LeftToRightPrecedence;
+	thisgame.Options[OPT_LETTERBOX] = game->Settings->LetterboxMode;
+  thisgame.TotalScore = game->Settings->MaximumScore;
+	thisgame.Options[OPT_MOUSEWHEEL] = game->Settings->MouseWheelEnabled;
+	thisgame.Options[OPT_DIALOGNUMBERED] = game->Settings->NumberDialogOptions;
+	thisgame.Options[OPT_PIXPERFECT] = game->Settings->PixelPerfect;
+	thisgame.Options[OPT_SCORESOUND] = 0; // saved elsewhere now to make it 32-bit
+	thisgame.DefaultResolution = (int)game->Settings->Resolution;
+	thisgame.Options[OPT_FADETYPE] = (int)game->Settings->RoomTransition;
+	thisgame.Options[OPT_RUNGAMEDLGOPTS] = game->Settings->RunGameLoopsWhileDialogOptionsDisplayed;
+	thisgame.Options[OPT_SAVESCREENSHOT] = game->Settings->SaveScreenshots;
+	thisgame.Options[OPT_NOSKIPTEXT] = (int)game->Settings->SkipSpeech;
+	thisgame.Options[OPT_PORTRAITSIDE] = (int)game->Settings->SpeechPortraitSide;
+	thisgame.Options[OPT_SPEECHTYPE] = (int)game->Settings->SpeechStyle;
+	thisgame.Options[OPT_SPLITRESOURCES] = game->Settings->SplitResources;
+	thisgame.Options[OPT_TWCUSTOM] = game->Settings->TextWindowGUI;
+	thisgame.Options[OPT_THOUGHTGUI] = game->Settings->ThoughtGUI;
+	thisgame.Options[OPT_TURNTOFACELOC] = game->Settings->TurnBeforeFacing;
+	thisgame.Options[OPT_ROTATECHARS] = game->Settings->TurnBeforeWalking;
+	thisgame.Options[OPT_NATIVECOORDINATES] = !game->Settings->UseLowResCoordinatesInScript;
+	thisgame.Options[OPT_WALKONLOOK] = game->Settings->WalkInLookMode;
+	thisgame.Options[OPT_DISABLEOFF] = (int)game->Settings->WhenInterfaceDisabled;
+	thisgame.UniqueId = game->Settings->UniqueID;
+  ConvertStringToNativeString(game->Settings->GUIDAsString, thisgame.Guid, MAX_GUID_LENGTH);
+  ConvertStringToNativeString(game->Settings->SaveGameFolderName, thisgame.SavedGameFolderName, MAX_SG_FOLDER_LEN);
 
   if (game->Settings->EnhancedSaveGames)
   {
-    ConvertStringToCharArray(game->Settings->SaveGameFileExtension, thisgame.saveGameFileExtension, MAX_SG_EXT_LENGTH);
+    ConvertStringToNativeString(game->Settings->SaveGameFileExtension, thisgame.SavedGameFileExtension, MAX_SG_EXT_LENGTH);
   }
   else 
   {
-    thisgame.saveGameFileExtension[0] = 0;
+    thisgame.SavedGameFileExtension.Empty();
   }
 
-	thisgame.hotdot = game->Settings->InventoryHotspotMarker->DotColor;
-	thisgame.hotdotouter = game->Settings->InventoryHotspotMarker->CrosshairColor;
-	thisgame.invhotdotsprite = game->Settings->InventoryHotspotMarker->Image;
+	thisgame.InvItemHotDotColor = game->Settings->InventoryHotspotMarker->DotColor;
+	thisgame.InvItemHotDotOuterColor = game->Settings->InventoryHotspotMarker->CrosshairColor;
+	thisgame.InvItemHotDotSprIndex = game->Settings->InventoryHotspotMarker->Image;
 	if (game->Settings->InventoryHotspotMarker->Style == InventoryHotspotMarkerStyle::Crosshair)
 	{
-		thisgame.invhotdotsprite = 0;
+		thisgame.InvItemHotDotSprIndex = 0;
 	}
 	else if (game->Settings->InventoryHotspotMarker->Style == InventoryHotspotMarkerStyle::None)
 	{
-		thisgame.invhotdotsprite = 0;
-		thisgame.hotdot = 0;
+		thisgame.InvItemHotDotSprIndex = 0;
+		thisgame.InvItemHotDotColor = 0;
 	}
 
 	// ** Palette **
@@ -4917,11 +5005,11 @@ void save_game_to_dta_file(Game^ game, const char *fileName)
 	{
 		if (game->Palette[i]->ColourType == PaletteColourType::Background) 
 		{
-			thisgame.paluses[i] = PAL_BACKGROUND;
+			thisgame.PaletteUses[i] = PAL_BACKGROUND;
 		}
 		else 
 		{
-			thisgame.paluses[i] = PAL_GAMEWIDE;
+			thisgame.PaletteUses[i] = PAL_GAMEWIDE;
 		}
 		palette[i].r = game->Palette[i]->Colour.R / 4;
 		palette[i].g = game->Palette[i]->Colour.G / 4;
@@ -4950,97 +5038,96 @@ void save_game_to_dta_file(Game^ game, const char *fileName)
 	// ** Views **
     int viewCount = AGS::Types::FolderHelper::CountViews(AGS::Types::FolderHelper::GetRootViewFolder(game));
 
-	thisgame.numviews = viewCount;
+	thisgame.ViewCount = viewCount;
   allocate_memory_for_views(viewCount);
   numNewViews = viewCount;
 
   ManagedViewProcessing::ConvertViewsToDTAFormat(AGS::Types::FolderHelper::GetRootViewFolder(game), game);
 
 	// ** Characters **
-	thisgame.numcharacters = game->Characters->Count;
-	thisgame.chars = (CharacterInfo*)calloc(sizeof(CharacterInfo) * thisgame.numcharacters, 1);
-  thisgame.charProps = (::CustomProperties*)calloc(thisgame.numcharacters, sizeof(::CustomProperties));
-	for (i = 0; i < thisgame.numcharacters; i++) 
+	thisgame.CharacterCount = game->Characters->Count;
+	thisgame.Characters.New(thisgame.CharacterCount);
+    thisgame.CharacterProperties.New(thisgame.CharacterCount);
+    thisgame.CharacterInteractions.New(thisgame.CharacterCount, NULL);
+    thisgame.CharacterInteractionScripts.New(thisgame.CharacterCount, NULL);
+	for (i = 0; i < thisgame.CharacterCount; i++) 
 	{
 		AGS::Types::Character ^character = game->Characters[i];
-		thisgame.chars[i].flags = 0;
-		thisgame.chars[i].on = 1;
-		if (character->AdjustSpeedWithScaling) thisgame.chars[i].flags |= CHF_SCALEMOVESPEED;
-		if (character->AdjustVolumeWithScaling) thisgame.chars[i].flags |= CHF_SCALEVOLUME;
-		if (!character->Clickable) thisgame.chars[i].flags |= CHF_NOINTERACT;
-		if (!character->DiagonalLoops) thisgame.chars[i].flags |= CHF_NODIAGONAL;
-    if (character->MovementLinkedToAnimation) thisgame.chars[i].flags |= CHF_ANTIGLIDE;
-		if (!character->Solid) thisgame.chars[i].flags |= CHF_NOBLOCKING;
-		if (!character->TurnBeforeWalking) thisgame.chars[i].flags |= CHF_NOTURNING;
-		if (!character->UseRoomAreaLighting) thisgame.chars[i].flags |= CHF_NOLIGHTING;
-		if (!character->UseRoomAreaScaling) thisgame.chars[i].flags |= CHF_MANUALSCALING;
+		thisgame.Characters[i].flags = 0;
+		thisgame.Characters[i].on = 1;
+		if (character->AdjustSpeedWithScaling) thisgame.Characters[i].flags |= CHF_SCALEMOVESPEED;
+		if (character->AdjustVolumeWithScaling) thisgame.Characters[i].flags |= CHF_SCALEVOLUME;
+		if (!character->Clickable) thisgame.Characters[i].flags |= CHF_NOINTERACT;
+		if (!character->DiagonalLoops) thisgame.Characters[i].flags |= CHF_NODIAGONAL;
+    if (character->MovementLinkedToAnimation) thisgame.Characters[i].flags |= CHF_ANTIGLIDE;
+		if (!character->Solid) thisgame.Characters[i].flags |= CHF_NOBLOCKING;
+		if (!character->TurnBeforeWalking) thisgame.Characters[i].flags |= CHF_NOTURNING;
+		if (!character->UseRoomAreaLighting) thisgame.Characters[i].flags |= CHF_NOLIGHTING;
+		if (!character->UseRoomAreaScaling) thisgame.Characters[i].flags |= CHF_MANUALSCALING;
 
 		if (character->UniformMovementSpeed) 
 		{
-			thisgame.chars[i].walkspeed = character->MovementSpeed;
-			thisgame.chars[i].walkspeed_y = UNIFORM_WALK_SPEED;
+			thisgame.Characters[i].walkspeed = character->MovementSpeed;
+			thisgame.Characters[i].walkspeed_y = UNIFORM_WALK_SPEED;
 		}
 		else 
 		{
-			thisgame.chars[i].walkspeed = character->MovementSpeedX;
-			thisgame.chars[i].walkspeed_y = character->MovementSpeedY;
+			thisgame.Characters[i].walkspeed = character->MovementSpeedX;
+			thisgame.Characters[i].walkspeed_y = character->MovementSpeedY;
 		}
 
-		thisgame.chars[i].animspeed = character->AnimationDelay;
-		thisgame.chars[i].blinkview = character->BlinkingView - 1;
-		thisgame.chars[i].idleview = character->IdleView - 1;
-		thisgame.chars[i].defview = character->NormalView - 1;
-		thisgame.chars[i].view = thisgame.chars[i].defview;
-		ConvertStringToCharArray(character->RealName, thisgame.chars[i].name, 40);
-		ConvertStringToCharArray(character->ScriptName, thisgame.chars[i].scrname, MAX_SCRIPT_NAME_LEN);
-		thisgame.chars[i].talkcolor = character->SpeechColor;
-		thisgame.chars[i].talkview = character->SpeechView - 1;
-		thisgame.chars[i].room = character->StartingRoom;
-    thisgame.chars[i].speech_anim_speed = character->SpeechAnimationDelay;
-		thisgame.chars[i].x = character->StartX;
-		thisgame.chars[i].y = character->StartY;
-		thisgame.chars[i].thinkview = character->ThinkingView - 1;
+		thisgame.Characters[i].animspeed = character->AnimationDelay;
+		thisgame.Characters[i].blinkview = character->BlinkingView - 1;
+		thisgame.Characters[i].idleview = character->IdleView - 1;
+		thisgame.Characters[i].defview = character->NormalView - 1;
+		thisgame.Characters[i].view = thisgame.Characters[i].defview;
+		ConvertStringToCharArray(character->RealName, thisgame.Characters[i].name, 40);
+		ConvertStringToCharArray(character->ScriptName, thisgame.Characters[i].scrname, MAX_SCRIPT_NAME_LEN);
+		thisgame.Characters[i].talkcolor = character->SpeechColor;
+		thisgame.Characters[i].talkview = character->SpeechView - 1;
+		thisgame.Characters[i].room = character->StartingRoom;
+    thisgame.Characters[i].speech_anim_speed = character->SpeechAnimationDelay;
+		thisgame.Characters[i].x = character->StartX;
+		thisgame.Characters[i].y = character->StartY;
+		thisgame.Characters[i].thinkview = character->ThinkingView - 1;
 
-		CompileCustomProperties(character->Properties, &thisgame.charProps[i]);
+		CompileCustomProperties(character->Properties, &thisgame.CharacterProperties[i]);
 	}
-	thisgame.playercharacter = game->PlayerCharacter->ID;
+	thisgame.PlayerCharacterIndex = game->PlayerCharacter->ID;
 
 	// ** Text Parser **
-  thisgame.dict = (WordsDictionary*)malloc(sizeof(WordsDictionary));
-  thisgame.dict->allocate_memory(game->TextParser->Words->Count);
-  for (i = 0; i < thisgame.dict->num_words; i++)
+  thisgame.Dictionary = (WordsDictionary*)malloc(sizeof(WordsDictionary));
+  thisgame.Dictionary->allocate_memory(game->TextParser->Words->Count);
+  for (i = 0; i < thisgame.Dictionary->num_words; i++)
 	{
-    ConvertStringToCharArray(game->TextParser->Words[i]->Word, thisgame.dict->word[i], MAX_PARSER_WORD_LENGTH);
-    thisgame.dict->wordnum[i] = game->TextParser->Words[i]->WordGroup;
+    ConvertStringToCharArray(game->TextParser->Words[i]->Word, thisgame.Dictionary->word[i], MAX_PARSER_WORD_LENGTH);
+    thisgame.Dictionary->wordnum[i] = game->TextParser->Words[i]->WordGroup;
 	}
 
 	// ** Global Messages **
+  thisgame.GlobalMessages.New(MAXGLOBALMES);
 	for (i = 0; i < MAXGLOBALMES; i++) 
 	{
 		if (game->GlobalMessages[i] != String::Empty) 
 		{
-			thisgame.messages[i] = (char*)malloc(game->GlobalMessages[i]->Length + 1);
-			ConvertStringToCharArray(game->GlobalMessages[i], thisgame.messages[i]);
-		}
-		else
-		{
-			thisgame.messages[i] = NULL;
+			ConvertStringToNativeString(game->GlobalMessages[i], thisgame.GlobalMessages[i]);
 		}
 	}
 
 	// ** Lip Sync **
 	if (game->LipSync->Type == LipSyncType::Text)
 	{
-		thisgame.options[OPT_LIPSYNCTEXT] = 1;
+		thisgame.Options[OPT_LIPSYNCTEXT] = 1;
 	}
 	else 
 	{
-		thisgame.options[OPT_LIPSYNCTEXT] = 0;
+		thisgame.Options[OPT_LIPSYNCTEXT] = 0;
 	}
-	thisgame.default_lipsync_frame = game->LipSync->DefaultFrame;
+	thisgame.DefaultLipSyncFrame = game->LipSync->DefaultFrame;
+    thisgame.LipSyncFrameLetters.New(MAXLIPSYNCFRAMES);
 	for (i = 0; i < MAXLIPSYNCFRAMES; i++) 
 	{
-		ConvertStringToCharArray(game->LipSync->CharactersPerFrame[i], thisgame.lipSyncFrameLetters[i], 50);
+		ConvertStringToCharArray(game->LipSync->CharactersPerFrame[i], thisgame.LipSyncFrameLetters[i], 50);
 	}
 
 	// ** Dialogs **
@@ -5048,10 +5135,11 @@ void save_game_to_dta_file(Game^ game, const char *fileName)
 	{
 		throw gcnew CompileError("Too many dialogs");
 	}
-	thisgame.numdialog = game->Dialogs->Count;
-	thisgame.numdlgmessage = 0;
-	dialog = (DialogTopic*)malloc(sizeof(DialogTopic) * thisgame.numdialog);
-	for (i = 0; i < thisgame.numdialog; i++) 
+	thisgame.DialogCount = game->Dialogs->Count;
+	thisgame.DialogMessageCount = 0;
+	dialog = (DialogTopic*)malloc(sizeof(DialogTopic) * thisgame.DialogCount);
+    thisgame.DialogScriptNames.New(thisgame.DialogCount);
+	for (i = 0; i < thisgame.DialogCount; i++) 
 	{
 		Dialog ^curDialog = game->Dialogs[i];
 		dialog[i].numoptions = curDialog->Options->Count;
@@ -5081,7 +5169,7 @@ void save_game_to_dta_file(Game^ game, const char *fileName)
 		dlgscript[i] = (char*)malloc(curDialog->Script->Length + 1);
 		ConvertStringToCharArray(curDialog->Script, dlgscript[i]);*/
 
-		ConvertStringToCharArray(curDialog->Name, thisgame.dialogScriptNames[i], MAX_SCRIPT_NAME_LEN);
+		ConvertStringToNativeString(curDialog->Name, thisgame.DialogScriptNames[i], MAX_SCRIPT_NAME_LEN);
 
 		dialog[i].topicFlags = 0;
 		if (curDialog->ShowTextParser) dialog[i].topicFlags |= DTFLG_SHOWPARSER;
@@ -5092,26 +5180,27 @@ void save_game_to_dta_file(Game^ game, const char *fileName)
 	{
 		throw gcnew CompileError("Too many cursors");
 	}
-	thisgame.numcursors = game->Cursors->Count;
-	for (i = 0; i < thisgame.numcursors; i++)
+	thisgame.MouseCursorCount = game->Cursors->Count;
+    thisgame.MouseCursors.New(thisgame.MouseCursorCount);
+	for (i = 0; i < thisgame.MouseCursorCount; i++)
 	{
 		AGS::Types::MouseCursor ^cursor = game->Cursors[i];
-		thisgame.mcurs[i].flags = 0;
+		thisgame.MouseCursors[i].flags = 0;
 		if (cursor->Animate) 
 		{
-			thisgame.mcurs[i].view = cursor->View - 1;
-			if (cursor->AnimateOnlyOnHotspots) thisgame.mcurs[i].flags |= MCF_HOTSPOT;
-			if (cursor->AnimateOnlyWhenMoving) thisgame.mcurs[i].flags |= MCF_ANIMMOVE;
+			thisgame.MouseCursors[i].view = cursor->View - 1;
+			if (cursor->AnimateOnlyOnHotspots) thisgame.MouseCursors[i].flags |= MCF_HOTSPOT;
+			if (cursor->AnimateOnlyWhenMoving) thisgame.MouseCursors[i].flags |= MCF_ANIMMOVE;
 		}
 		else 
 		{
-			thisgame.mcurs[i].view = -1;
+			thisgame.MouseCursors[i].view = -1;
 		}
-		if (cursor->StandardMode) thisgame.mcurs[i].flags |= MCF_STANDARD;
-		thisgame.mcurs[i].pic = cursor->Image;
-		thisgame.mcurs[i].hotx = cursor->HotspotX;
-		thisgame.mcurs[i].hoty = cursor->HotspotY;
-		ConvertStringToCharArray(cursor->Name, thisgame.mcurs[i].name, 10);
+		if (cursor->StandardMode) thisgame.MouseCursors[i].flags |= MCF_STANDARD;
+		thisgame.MouseCursors[i].pic = cursor->Image;
+		thisgame.MouseCursors[i].hotx = cursor->HotspotX;
+		thisgame.MouseCursors[i].hoty = cursor->HotspotY;
+		ConvertStringToCharArray(cursor->Name, thisgame.MouseCursors[i].name, 10);
 	}
 
 	// ** Fonts **
@@ -5119,22 +5208,23 @@ void save_game_to_dta_file(Game^ game, const char *fileName)
 	{
 		throw gcnew CompileError("Too many fonts");
 	}
-	thisgame.numfonts = game->Fonts->Count;
-	for (i = 0; i < thisgame.numfonts; i++) 
+	thisgame.FontCount = game->Fonts->Count;
+    thisgame.FontFlags.New(thisgame.FontCount);
+	for (i = 0; i < thisgame.FontCount; i++) 
 	{
 		AGS::Types::Font ^font = game->Fonts[i];
-		thisgame.fontflags[i] = font->PointSize & FFLG_SIZEMASK;
+		thisgame.FontFlags[i] = font->PointSize & FFLG_SIZEMASK;
 		if (font->OutlineStyle == FontOutlineStyle::None) 
 		{
-			thisgame.fontoutline[i] = -1;
+			thisgame.FontOutline[i] = -1;
 		}
 		else if (font->OutlineStyle == FontOutlineStyle::Automatic) 
 		{
-			thisgame.fontoutline[i] = FONT_OUTLINE_AUTO;
+			thisgame.FontOutline[i] = FONT_OUTLINE_AUTO;
 		}
 		else
 		{
-			thisgame.fontoutline[i] = font->OutlineFont;
+			thisgame.FontOutline[i] = font->OutlineFont;
 		}
 	}
 
@@ -5143,20 +5233,25 @@ void save_game_to_dta_file(Game^ game, const char *fileName)
 	{
 		throw gcnew CompileError("Too many inventory items");
 	}
-	thisgame.numinvitems = game->InventoryItems->Count + 1;
-	for (i = 1; i < thisgame.numinvitems; i++)
+	thisgame.InvItemCount = game->InventoryItems->Count + 1;
+    thisgame.InventoryItems.New(thisgame.InvItemCount);
+    thisgame.InventoryScriptNames.New(thisgame.InvItemCount);
+    thisgame.InvItemProperties.New(thisgame.InvItemCount);
+    thisgame.InvItemInteractions.New(thisgame.InvItemCount, NULL);
+    thisgame.InvItemInteractionScripts.New(thisgame.InvItemCount, NULL);
+	for (i = 1; i < thisgame.InvItemCount; i++)
 	{
 		InventoryItem^ invItem = game->InventoryItems[i - 1];
-		ConvertStringToCharArray(invItem->Description, thisgame.invinfo[i].name, 25);
-		ConvertStringToCharArray(invItem->Name, thisgame.invScriptNames[i], MAX_SCRIPT_NAME_LEN);
-		thisgame.invinfo[i].pic = invItem->Image; 
-    thisgame.invinfo[i].cursorPic = invItem->CursorImage;
-		thisgame.invinfo[i].hotx = invItem->HotspotX;
-		thisgame.invinfo[i].hoty = invItem->HotspotY;
-		thisgame.invinfo[i].flags = 0;
-		if (invItem->PlayerStartsWithItem) thisgame.invinfo[i].flags |= IFLG_STARTWITH;
+		ConvertStringToCharArray(invItem->Description, thisgame.InventoryItems[i].name, 25);
+		ConvertStringToNativeString(invItem->Name, thisgame.InventoryScriptNames[i], MAX_SCRIPT_NAME_LEN);
+		thisgame.InventoryItems[i].pic = invItem->Image; 
+    thisgame.InventoryItems[i].cursorPic = invItem->CursorImage;
+		thisgame.InventoryItems[i].hotx = invItem->HotspotX;
+		thisgame.InventoryItems[i].hoty = invItem->HotspotY;
+		thisgame.InventoryItems[i].flags = 0;
+		if (invItem->PlayerStartsWithItem) thisgame.InventoryItems[i].flags |= IFLG_STARTWITH;
 
-		CompileCustomProperties(invItem->Properties, &thisgame.invProps[i]);
+		CompileCustomProperties(invItem->Properties, &thisgame.InvItemProperties[i]);
 	}
 
 	// ** Custom Properties Schema **
@@ -5165,15 +5260,15 @@ void save_game_to_dta_file(Game^ game, const char *fileName)
 	{
 		throw gcnew CompileError("Too many custom properties defined");
 	}
-	thisgame.propSchema.numProps = schema->Count;
-	for (i = 0; i < thisgame.propSchema.numProps; i++) 
+	thisgame.PropertySchema.numProps = schema->Count;
+	for (i = 0; i < thisgame.PropertySchema.numProps; i++) 
 	{
 		CustomPropertySchemaItem ^schemaItem = schema[i];
-		ConvertStringToCharArray(schemaItem->Name, thisgame.propSchema.propName[i], 20);
-		ConvertStringToCharArray(schemaItem->Description, thisgame.propSchema.propDesc[i], 100);
-		thisgame.propSchema.defaultValue[i] = (char*)malloc(schemaItem->DefaultValue->Length + 1);
-		ConvertStringToCharArray(schemaItem->DefaultValue, thisgame.propSchema.defaultValue[i]);
-		thisgame.propSchema.propType[i] = (int)schemaItem->Type;
+		ConvertStringToCharArray(schemaItem->Name, thisgame.PropertySchema.propName[i], 20);
+		ConvertStringToCharArray(schemaItem->Description, thisgame.PropertySchema.propDesc[i], 100);
+		thisgame.PropertySchema.defaultValue[i] = (char*)malloc(schemaItem->DefaultValue->Length + 1);
+		ConvertStringToCharArray(schemaItem->DefaultValue, thisgame.PropertySchema.defaultValue[i]);
+		thisgame.PropertySchema.propType[i] = (int)schemaItem->Type;
 	}
 
 	// ** GUIs **
@@ -5184,17 +5279,16 @@ void save_game_to_dta_file(Game^ game, const char *fileName)
 	numguislider = 0;
 	numguiinv = 0;
 
-	thisgame.numgui = game->GUIs->Count;
-  guis = (GUIMain*)calloc(thisgame.numgui, sizeof(GUIMain));
-	for (i = 0; i < thisgame.numgui; i++)
+	thisgame.GuiCount = game->GUIs->Count;
+  guis = (GUIMain*)calloc(thisgame.GuiCount, sizeof(GUIMain));
+	for (i = 0; i < thisgame.GuiCount; i++)
 	{
 		guis[i].init();
 		ConvertGUIToBinaryFormat(game->GUIs[i], &guis[i]);
 		guis[i].highlightobj = -1;
 	}
 
-	// this cannot be null, so set it randomly
-	thisgame.compiled_script = (ccScript*)0x12345678;
+	thisgame.LoadCompiledScript = true;
 
 	save_thisgame_to_file(fileName, game);
 	
@@ -5221,13 +5315,16 @@ long getlong(Stream*iii) {
   return tmm;
 }
 
-void save_script_configuration(Stream*iii) {
+void AGS::Common::RoomInfo::SaveScriptConfiguration(Stream*iii) const
+{
   // no variable names
   iii->WriteInt32 (1);
   iii->WriteInt32 (0);
 }
 
-void load_script_configuration(Stream*iii) { int aa;
+void AGS::Common::RoomInfo::LoadScriptConfiguration(Stream*iii)
+{
+  int aa;
   if (getlong(iii)!=1) quit("ScriptEdit: invliad config version");
   int numvarnames=getlong(iii);
   for (aa=0;aa<numvarnames;aa++) {
@@ -5236,13 +5333,15 @@ void load_script_configuration(Stream*iii) { int aa;
   }
 }
 
-void save_graphical_scripts(Stream*fff,roomstruct*rss) {
+void AGS::Common::RoomInfo::SaveGraphicalScripts(Stream*fff) const
+{
   // no script
   fff->WriteInt32 (-1);
 }
 
 char*scripttempn="~acsc%d.tmp";
-void load_graphical_scripts(Stream*iii,roomstruct*rst) {
+void AGS::Common::RoomInfo::LoadGraphicalScripts(Stream*iii)
+{
   long ct;
   bool doneMsg = false;
   while (1) {

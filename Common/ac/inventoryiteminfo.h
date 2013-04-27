@@ -26,6 +26,7 @@ struct InventoryItemInfo {
     int  reserved[5];
     char flags;
 
+    InventoryItemInfo();
     void ReadFromFile(Common::Stream *in);
     void WriteToFile(Common::Stream *out);
 };

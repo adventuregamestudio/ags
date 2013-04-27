@@ -621,9 +621,9 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             croom->Objects[cc].Y=thisroom.Objects[cc].Y;
 
             if (thisroom.LoadedVersion <= kRoomVersion_300a)
-                croom->Objects[cc].Y += divide_down_coordinate(spriteheight[thisroom.Objects[cc].Id]);
+                croom->Objects[cc].Y += divide_down_coordinate(spriteheight[thisroom.Objects[cc].SpriteIndex]);
 
-            croom->Objects[cc].SpriteIndex=thisroom.Objects[cc].Id;
+            croom->Objects[cc].SpriteIndex=thisroom.Objects[cc].SpriteIndex;
             croom->Objects[cc].IsOn=thisroom.Objects[cc].IsOn;
             croom->Objects[cc].View=-1;
             croom->Objects[cc].Loop=0;

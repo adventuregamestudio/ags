@@ -162,6 +162,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\ac\characterinfo.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\ac\common.cpp"
 					>
 				</File>
@@ -171,6 +175,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\ac\interaction.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Common\ac\inventoryiteminfo.cpp"
 					>
 				</File>
 				<File

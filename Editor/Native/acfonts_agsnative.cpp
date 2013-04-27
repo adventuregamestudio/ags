@@ -8,8 +8,8 @@
 #define USE_ALFONT
 #endif
 #include "util/wgt2allg.h"
-#include "ac/gamesetupstruct.h"
 #include "util/filestream.h"
+#include "game/gameinfo.h"
 
 using AGS::Common::Stream;
 
@@ -17,12 +17,12 @@ using AGS::Common::Stream;
 // AGS.Native-specific implementation split out of acfonts.cpp
 //=============================================================================
 
-extern GameSetupStruct thisgame;
+extern AGS::Common::GameInfo thisgame;
 
 void check_font(int *fontnum)
 {
   // Stop roomedit crashing if they specify an invalid font number
-  if (fontnum[0] >= thisgame.numfonts)
+  if (fontnum[0] >= thisgame.FontCount)
     fontnum[0] = 0;
 }
 

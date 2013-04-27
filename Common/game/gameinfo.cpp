@@ -27,6 +27,7 @@ GameInfo::GameInfo()
     DefaultLipSyncFrame     = 0;
     InvItemHotDotSprIndex   = 0;
     Dictionary              = NULL;
+    CompiledScript          = NULL;
 
     ViewCount               = 0;
     CharacterCount          = 0;

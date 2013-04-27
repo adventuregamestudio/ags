@@ -116,7 +116,7 @@ void String::ReadCount(Stream *in, int count)
         ReserveAndShift(false, count);
         count = in->Read(_meta->CStr, count);
         _meta->CStr[count] = 0;
-        _meta->Length = count;
+        _meta->Length = strlen(_meta->CStr);
     }
 }
 

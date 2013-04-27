@@ -82,6 +82,14 @@ public:
     void ReadFromSaveGame_v321(Stream *in);
     void WriteForSaveGame_v321(Stream *out);
 
+    // TODO: temporarily made public
+    void ReadInvInfo_Aligned(Stream *in);
+    void ReadMouseCursors_Aligned(Stream *in);
+    void ReadCharacters_Aligned(Stream *in);
+    void WriteInvInfo_Aligned(Stream *out);
+    void WriteMouseCursors_Aligned(Stream *out);
+    void WriteCharacters_Aligned(Stream *out);
+
 private:
     //------------------------------
     // Part 1
@@ -91,19 +99,13 @@ private:
     void read_cursors(Stream *in, GAME_STRUCT_READ_DATA &read_data);
     void read_interaction_scripts(Stream *in, GAME_STRUCT_READ_DATA &read_data);
     void read_words_dictionary(Stream *in, GAME_STRUCT_READ_DATA &read_data);
-
-    void ReadInvInfo_Aligned(Stream *in);
-    void WriteInvInfo_Aligned(Stream *out);
-    void ReadMouseCursors_Aligned(Stream *in);
-    void WriteMouseCursors_Aligned(Stream *out);
+    
     //------------------------------
     // Part 2
     void read_characters(Stream *in, GAME_STRUCT_READ_DATA &read_data);
     void read_lipsync(Stream *in, GAME_STRUCT_READ_DATA &read_data);
     void read_messages(Stream *in, GAME_STRUCT_READ_DATA &read_data);
 
-    void ReadCharacters_Aligned(Stream *in);
-    void WriteCharacters_Aligned(Stream *out);
     //------------------------------
     // Part 3
     void read_customprops(Stream *in, GAME_STRUCT_READ_DATA &read_data);
@@ -137,6 +139,9 @@ public:
     WordsDictionary *Dictionary; // for the text parser
     Array<CharacterInfo> Characters;
 
+    // Currently used in AGS.Native only:
+    ccScript        *CompiledScript;
+
     // TODO: remove these, after refactoring the game load process
     int32_t         ViewCount;
     int32_t         CharacterCount;
@@ -157,7 +162,7 @@ public:
     Array<uint8_t>              FontFlags;
     Array<int8_t>               FontOutline;
     Array<uint8_t>              SpriteFlags;
-    Array<InventoryItemInfo>    InventoryItems;
+    ObjectArray<InventoryItemInfo> InventoryItems;
     ObjectArray<MouseCursor>    MouseCursors;
     Array<NewInteraction*>      CharacterInteractions;
     Array<NewInteraction*>      InvItemInteractions;

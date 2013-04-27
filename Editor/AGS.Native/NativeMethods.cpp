@@ -11,6 +11,7 @@ see the license.txt for details.
 #include <windows.h>
 #include <stdlib.h>
 #include "NativeMethods.h"
+#include "util/string.h"
 
 using namespace System::Runtime::InteropServices;
 
@@ -91,6 +92,15 @@ void ConvertStringToCharArray(System::String^ clrString, char *textBuffer)
   Marshal::FreeHGlobal(IntPtr(stringPointer));
 }
 
+void ConvertStringToNativeString(System::String^ clrString, AGS::Common::String &destStr)
+{
+    char* stringPointer = (char*)Marshal::StringToHGlobalAnsi(clrString).ToPointer();
+
+    destStr = stringPointer;
+
+    Marshal::FreeHGlobal(IntPtr(stringPointer));
+}
+
 void ConvertFileNameToCharArray(System::String^ clrString, char *textBuffer)
 {
   ConvertStringToCharArray(clrString, textBuffer);
@@ -109,6 +119,19 @@ void ConvertStringToCharArray(System::String^ clrString, char *textBuffer, int m
 	char* stringPointer = (char*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(clrString).ToPointer();
 	
 	strcpy(textBuffer, stringPointer);
+
+    System::Runtime::InteropServices::Marshal::FreeHGlobal(IntPtr(stringPointer));
+}
+
+void ConvertStringToNativeString(System::String^ clrString, AGS::Common::String &destStr, int maxLength)
+{
+    if (clrString->Length >= maxLength) 
+    {
+        throw gcnew AGSEditorException(String::Format("String is too long: {0} (max length={1})", clrString, maxLength - 1));
+    }
+    char* stringPointer = (char*)System::Runtime::InteropServices::Marshal::StringToHGlobalAnsi(clrString).ToPointer();
+
+    destStr = stringPointer;
 
     System::Runtime::InteropServices::Marshal::FreeHGlobal(IntPtr(stringPointer));
 }

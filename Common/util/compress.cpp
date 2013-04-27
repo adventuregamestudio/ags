@@ -42,7 +42,7 @@ struct color
 #endif
 
 #ifndef __CJONES_H
-long csavecompressed(char *, __block, color[256], long = 0);
+long csavecompressed(char *, __block, const color[256], long = 0);
 long cloadcompressed(char *, __block, color *, long = 0);
 #endif
 
@@ -155,7 +155,7 @@ void cpackbitl32(unsigned int *line, int size, Stream *out)
 }
 
 
-long csavecompressed(char *finam, __block tobesaved, color pala[256], long exto)
+long csavecompressed(char *finam, __block tobesaved, const color pala[256], long exto)
 {
   Stream *outpt;
 
@@ -332,7 +332,7 @@ int bmp_bpp(Bitmap*bmpt) {
   return bmpt->GetColorDepth() / 8;
 }
 
-long save_lzw(char *fnn, Bitmap *bmpp, color *pall, long offe) {
+long save_lzw(char *fnn, Bitmap *bmpp, const color *pall, long offe) {
   Stream  *lz_temp_s, *out;
   long  fll, toret, gobacto;
 
@@ -456,7 +456,7 @@ long load_lzw(Stream *in, Common::Bitmap *bmm, color *pall) {
   return uncompsiz;
 }
 
-long savecompressed_allegro(char *fnn, Common::Bitmap *bmpp, color *pall, long write_at) {
+long savecompressed_allegro(char *fnn, Common::Bitmap *bmpp, const color *pall, long write_at) {
   unsigned char *wgtbl = (unsigned char *)malloc(bmpp->GetWidth() * bmpp->GetHeight() + 4);
   short         *sss = (short *)wgtbl;
   long          toret;

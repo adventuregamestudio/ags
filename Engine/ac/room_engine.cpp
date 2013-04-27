@@ -47,7 +47,7 @@ void RoomInfo::LoadScriptConfiguration(Stream *in)
     }
 }
 
-void RoomInfo::SaveScriptConfiguration(Stream *out)
+void RoomInfo::SaveScriptConfiguration(Stream *out) const
 {
     quit("ScriptEdit: run-time version can't save");
 }
@@ -80,7 +80,7 @@ void RoomInfo::LoadGraphicalScripts(Stream *in)
     }
 }
 
-void RoomInfo::SaveGraphicalScripts(Stream *out)
+void RoomInfo::SaveGraphicalScripts(Stream *out) const
 {
     quit("ScriptEdit: run-time version can't save");
 }

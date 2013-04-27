@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include <stdio.h>
 #include "ac/messageinfo.h"
 #include "util/stream.h"
 
@@ -28,4 +27,10 @@ void MessageInfo::ReadFromFile(Stream *in)
 {
     displayas = in->ReadInt8();
     flags = in->ReadInt8();
+}
+
+void MessageInfo::WriteToFile(Stream *out) const
+{
+     out->WriteInt8(displayas);
+     out->WriteInt8(flags);
 }

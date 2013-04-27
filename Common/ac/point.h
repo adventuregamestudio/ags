@@ -37,6 +37,7 @@ struct PolyPoints {
     PolyPoints() { numpoints = 0; }
 
     void ReadFromFile(Common::Stream *in);
+    void WriteToFile(Common::Stream *out) const;
 };
 
 #endif // __AC_POINT_H

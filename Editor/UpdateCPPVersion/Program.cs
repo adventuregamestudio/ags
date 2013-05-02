@@ -18,32 +18,39 @@ namespace UpdateCPPVersion
 
 		static void Main(string[] args)
 		{
-            string executingDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            string rcFileName = Path.Combine(executingDir, CPP_RESOURCE_FILE);
-            string fileName = Path.Combine(executingDir, @"..\..\..\AGS.Types\bin\Release\AGS.Types.dll");
-			//string fileName = args[0];
-			Assembly assembly = Assembly.LoadFile(fileName);
-			Version typesVersion = assembly.GetName().Version;
+            try
+            {
+                string executingDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                string rcFileName = Path.Combine(executingDir, CPP_RESOURCE_FILE);
+                string fileName = Path.Combine(executingDir, @"..\..\..\AGS.Types\bin\Release\AGS.Types.dll");
+                //string fileName = args[0];
+                Assembly assembly = Assembly.LoadFile(fileName);
+                Version typesVersion = assembly.GetName().Version;
 
-			StreamReader sr = new StreamReader(rcFileName);
-			string fileContents = sr.ReadToEnd();
-			sr.Close();
+                StreamReader sr = new StreamReader(rcFileName);
+                string fileContents = sr.ReadToEnd();
+                sr.Close();
 
-			if (!fileContents.Contains(typesVersion.ToString()))
-			{
-				fileContents = Regex.Replace(fileContents, @"\s[0-9]+,[0-9]+,[0-9]+,[0-9]+", " " + typesVersion.Major + "," + typesVersion.Minor + "," + typesVersion.Build + "," + typesVersion.Revision);
-				fileContents = Regex.Replace(fileContents, "\\\"" + @"[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+", "\"" + typesVersion.ToString());
+                if (!fileContents.Contains(typesVersion.ToString()))
+                {
+                    fileContents = Regex.Replace(fileContents, @"\s[0-9]+,[0-9]+,[0-9]+,[0-9]+", " " + typesVersion.Major + "," + typesVersion.Minor + "," + typesVersion.Build + "," + typesVersion.Revision);
+                    fileContents = Regex.Replace(fileContents, "\\\"" + @"[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+", "\"" + typesVersion.ToString());
 
-				StreamWriter sw = new StreamWriter(rcFileName);
-				sw.Write(fileContents);
-				sw.Close();
+                    StreamWriter sw = new StreamWriter(rcFileName);
+                    sw.Write(fileContents);
+                    sw.Close();
 
-				Console.WriteLine("Version updated to " + typesVersion.ToString());
-			}
-			else
-			{
-				Console.WriteLine("Version already " + typesVersion.ToString() + "; not updating");
-			}
+                    Console.WriteLine("Version updated to " + typesVersion.ToString());
+                }
+                else
+                {
+                    Console.WriteLine("Version already " + typesVersion.ToString() + "; not updating");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("UpdateCPPVersion raised exception:\n" + ex.Message);
+            }
 		}
 	}
 }

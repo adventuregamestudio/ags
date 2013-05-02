@@ -39,9 +39,9 @@ void GUIButton::WriteToFile(Stream *out)
   out->WriteInt32(reserved1);
 }
 
-void GUIButton::ReadFromFile(Stream *in, int version)
+void GUIButton::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
-  GUIObject::ReadFromFile(in, version);
+  GUIObject::ReadFromFile(in, gui_version);
   // MACPORT FIXES: swap
   in->ReadArrayOfInt32(&pic, 12);
   in->Read(&text[0], 50);
@@ -49,7 +49,7 @@ void GUIButton::ReadFromFile(Stream *in, int version)
     textcol = 16;
   usepic = pic;
 
-  if (version >= 111) {
+  if (gui_version >= kGuiVersion_272a) {
     textAlignment = in->ReadInt32();
     reserved1 = in->ReadInt32();
   }
@@ -57,6 +57,9 @@ void GUIButton::ReadFromFile(Stream *in, int version)
     textAlignment = GBUT_ALIGN_TOPMIDDLE;
     reserved1 = 0;
   }
+
+  // All buttons are translated at the moment
+  flags |= GUIF_TRANSLATED;
 }
 
 void GUIButton::Draw(Common::Graphics *g)

@@ -36,14 +36,14 @@ void GUILabel::WriteToFile(Stream *out)
   out->WriteArrayOfInt32(&font, 3);
 }
 
-void GUILabel::ReadFromFile(Stream *in, int version)
+void GUILabel::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
-  GUIObject::ReadFromFile(in, version);
+  GUIObject::ReadFromFile(in, gui_version);
 
   if (textBufferLen > 0)
     free(text);
 
-  if (version < 113) {
+  if (gui_version < kGuiVersion_272c) {
     textBufferLen = 200;
   }
   else {
@@ -56,6 +56,9 @@ void GUILabel::ReadFromFile(Stream *in, int version)
   in->ReadArrayOfInt32(&font, 3);
   if (textcol == 0)
     textcol = 16;
+
+  // All labels are translated at the moment
+  flags |= GUIF_TRANSLATED;
 }
 
 void GUILabel::SetText(const char *newText) {

@@ -27,7 +27,7 @@ public:
   int font, textcol, align;
 
   virtual void WriteToFile(Common::Stream *out);
-  virtual void ReadFromFile(Common::Stream *in, int version);
+  virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
   virtual void Draw(Common::Graphics *g);
   void printtext_align(Common::Graphics *g, int yy, char *teptr);
   void SetText(const char *newText);

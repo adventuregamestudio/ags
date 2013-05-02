@@ -35,9 +35,9 @@ void GUITextBox::WriteToFile(Stream *out)
   out->WriteArrayOfInt32(&font, 3);
 }
 
-void GUITextBox::ReadFromFile(Stream *in, int version)
+void GUITextBox::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
-  GUIObject::ReadFromFile(in, version);
+  GUIObject::ReadFromFile(in, gui_version);
   // MACPORT FIXES: swap
   in->Read(&text[0], 200);
   in->ReadArrayOfInt32(&font, 3);

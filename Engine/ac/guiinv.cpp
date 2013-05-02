@@ -13,6 +13,7 @@
 //=============================================================================
 
 #include "gui/guiinv.h"
+#include "gui/guimain.h"
 #include "ac/draw.h"
 #include "ac/characterextras.h"
 #include "ac/spritecache.h"
@@ -61,7 +62,7 @@ void GUIInv::Draw(Common::Graphics *g) {
 
     for (uu = this->topIndex; uu < lastItem; uu++) {
         // draw inv graphic
-        wputblock(g, cxp, cyp, spriteset[game.InventoryItems[charextra[this->CharToDisplay()].invorder[uu]].pic], 1);
+        draw_sprite_compensate(g, game.InventoryItems[charextra[this->CharToDisplay()].invorder[uu]].pic, cxp, cyp, 1);
         cxp += multiply_up_coordinate(this->itemWidth);
 
         // go to next row when appropriate

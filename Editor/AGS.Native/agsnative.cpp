@@ -3382,6 +3382,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, GUIMain *gui)
 		  guilist[numguilist].backcol = listbox->SelectedTextColor;
 		  guilist[numguilist].selectedbgcol = listbox->SelectedBackgroundColor;
 		  guilist[numguilist].alignment = (int)listbox->TextAlignment;
+          guilist[numguilist].flags = listbox->Translated ? GUIF_TRANSLATED : 0;
 		  guilist[numguilist].exflags = (listbox->ShowBorder) ? 0 : GLF_NOBORDER;
 		  guilist[numguilist].exflags |= (listbox->ShowScrollArrows) ? 0 : GLF_NOARROWS;
 		  ConvertStringToCharArray(listbox->OnSelectionChanged, guilist[numguilist].eventHandlers[0], MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
@@ -4185,6 +4186,7 @@ Game^ load_old_game_dta_file(const char *fileName)
 				  newListbox->TextAlignment = (ListBoxTextAlignment)copyFrom->alignment;
 				  newListbox->ShowBorder = ((copyFrom->exflags & GLF_NOBORDER) == 0);
 				  newListbox->ShowScrollArrows = ((copyFrom->exflags & GLF_NOARROWS) == 0);
+                  newListbox->Translated = (copyFrom->flags & GUIF_TRANSLATED) != 0;
 				  newListbox->OnSelectionChanged = gcnew String(copyFrom->eventHandlers[0]);
 				  break;
 				}
@@ -4838,7 +4840,7 @@ void save_thisgame_to_file(const char *fileName, Game ^game)
 	  free(buffer);
   }
   ooo->WriteArray(&dialog[0], sizeof(DialogTopic), thisgame.DialogCount);
-  write_gui(ooo,&guis[0],&thisgame);
+  write_gui(ooo,&guis[0],&thisgame,false);
   write_plugins_to_disk(ooo);
   // write the custom properties & schema
   thisgame.PropertySchema.Serialize(ooo);

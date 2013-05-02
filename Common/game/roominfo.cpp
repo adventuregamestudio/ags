@@ -598,8 +598,9 @@ RoomInfoError RoomInfo::ReadMainBlock(Stream *in)
             fgetstring_limit(message_buffer, in, 2999);
         }
 
-        int msg_last_char = strlen(message_buffer) - 1;
-        if (message_buffer[msg_last_char] == (char)200)
+        int buffer_length = strlen(message_buffer);
+        int msg_last_char = buffer_length - 1;
+        if (buffer_length > 0 && message_buffer[msg_last_char] == (char)200)
         {
           message_buffer[msg_last_char] = 0;
           MessageInfos[i].flags |= MSG_DISPLAYNEXT;

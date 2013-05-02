@@ -47,8 +47,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 3,30,0,1130
- PRODUCTVERSION 3,30,0,1130
+ FILEVERSION 3,30,0,1132
+ PRODUCTVERSION 3,30,0,1132
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -65,12 +65,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Chris Jones et al."
             VALUE "FileDescription", "AGS Editor C++ Helper"
-            VALUE "FileVersion", "3.3.0.1130"
+            VALUE "FileVersion", "3.3.0.1132"
             VALUE "LegalCopyright", "(c) 2006-2011 Chris Jones and 2011-20xx others. All rights reserved"
             VALUE "InternalName", "NativeDLL.dll"
             VALUE "OriginalFilename", "NativeDLL.dll"
             VALUE "ProductName", "Adventure Game Studio"
-            VALUE "ProductVersion", "3.3.0.1130"
+            VALUE "ProductVersion", "3.3.0.1132"
         END
     END
     BLOCK "VarFileInfo"

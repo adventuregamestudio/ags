@@ -39,6 +39,7 @@ using namespace AGS; // FIXME later
 #define GUI_TEXTWINDOW  0x05    // set vtext[0] to this to signify text window
 #define GUIF_NOCLICK    1
 #define MOVER_MOUSEDOWNLOCKED -4000
+
 struct GUIMain
 {
   char vtext[4];                // for compatibility
@@ -91,12 +92,12 @@ struct GUIMain
 
   void FixupGuiName(char* name);
   void SetTransparencyAsPercentage(int percent);
-  void ReadFromFile(Common::Stream *in, int version);
+  void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
   void WriteToFile(Common::Stream *out);
 
 };
 
-
+extern GuiVersion GameGuiVersion;
 extern int guis_need_update;
 extern int all_buttons_disabled, gui_inv_pic;
 extern int gui_disabled_style;
@@ -104,7 +105,7 @@ extern char lines[MAXLINE][200];
 extern int  numlines;
 
 extern void read_gui(Common::Stream *in, GUIMain * guiread, Common::GameInfo * gss, GUIMain** allocate = NULL);
-extern void write_gui(Common::Stream *out, GUIMain * guiwrite, Common::GameInfo * gss);
+extern void write_gui(Common::Stream *out, GUIMain * guiwrite, Common::GameInfo * gss, bool savedgame);
 
 extern int mousex, mousey;
 

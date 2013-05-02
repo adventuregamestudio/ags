@@ -33,11 +33,11 @@ void GUISlider::WriteToFile(Stream *out)
   out->WriteArrayOfInt32(&min, 7);
 }
 
-void GUISlider::ReadFromFile(Stream *in, int version)
+void GUISlider::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
   int sizeToRead = 4;
 
-  if (version >= 104)
+  if (gui_version >= kGuiVersion_unkn_104)
     sizeToRead = 7;
   else {
     handlepic = -1;
@@ -45,7 +45,7 @@ void GUISlider::ReadFromFile(Stream *in, int version)
     bgimage = 0;
   }
 
-  GUIObject::ReadFromFile(in, version);
+  GUIObject::ReadFromFile(in, gui_version);
   in->ReadArrayOfInt32(&min, sizeToRead);
 }
 

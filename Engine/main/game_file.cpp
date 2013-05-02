@@ -39,6 +39,7 @@
 #include "script/script.h"
 #include "util/stream.h"
 #include "gfx/bitmap.h"
+#include "gfx/blender.h"
 #include "core/assetmanager.h"
 #include "ac/statobj/agsstaticobject.h"
 #include "ac/statobj/staticarray.h"
@@ -606,6 +607,7 @@ int load_game_file() {
         // Force new style rendering for gui sprites with alpha channel
         game.Options[OPT_NEWGUIALPHA] = 1;
     }
+    init_blenders((GameGuiAlphaRenderingStyle)game.Options[OPT_NEWGUIALPHA]);
 
     if (game.FontCount > MAX_FONTS)
         quit("!This game requires a newer version of AGS. Too many fonts for this version to handle.");

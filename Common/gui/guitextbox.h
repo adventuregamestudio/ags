@@ -25,7 +25,7 @@ struct GUITextBox:public GUIObject
   int font, textcol, exflags;
 
   virtual void WriteToFile(Common::Stream *out);
-  virtual void ReadFromFile(Common::Stream *in, int version);
+  virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
   virtual void Draw(Common::Graphics *g);
   void KeyPress(int);
 

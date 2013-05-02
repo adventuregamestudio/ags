@@ -59,7 +59,16 @@ namespace AGS.Editor
             }
             else if (newSelection.Length == 0)
             {
-                Factory.GUIController.SetPropertyGridObject(null);
+                //If there is no selection in the sprite manager, it doesn't mean there wasn't anything else selected
+                //in another component, so we shouldn't clear the selection if selected item is not a sprite.
+                //Especially the scenario in which a sprite is selected for a room object:
+                //the sprite selector will close and refresh itself with an empty selection,
+                //but if we put an empty selection in the grid, the sprite will not be updated at all,
+                //the grid update operation will be cancelled.
+                if (Factory.GUIController.GetPropertyGridObject() is Sprite)
+                {
+                    Factory.GUIController.SetPropertyGridObject(null);
+                }
             }
             else
             {

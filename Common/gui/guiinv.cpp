@@ -34,10 +34,10 @@ void GUIInv::WriteToFile(Stream *out)
 	out->WriteInt32(topIndex);
 }
 
-void GUIInv::ReadFromFile(Stream *in, int version)
+void GUIInv::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
-	GUIObject::ReadFromFile(in, version);
-	if (version >= 109) {
+	GUIObject::ReadFromFile(in, gui_version);
+	if (gui_version >= kGuiVersion_unkn_109) {
 	  charId = in->ReadInt32();
 	  itemWidth = in->ReadInt32();
 	  itemHeight = in->ReadInt32();

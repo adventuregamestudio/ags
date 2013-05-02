@@ -390,7 +390,7 @@ void GameInfo::read_characters(Common::Stream *in, GAME_STRUCT_READ_DATA &read_d
         char tempbuffer[200];
         for (int i = 0; i < CharacterCount; i++)
         {
-            memset(tempbuffer, 0, 200);
+            memset(tempbuffer, 0, sizeof(tempbuffer));
             tempbuffer[0] = 'c';
             tempbuffer[1] = Characters[i].scrname[0];
             strcat(&tempbuffer[2], strlwr(&Characters[i].scrname[1]));

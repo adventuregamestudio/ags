@@ -75,12 +75,12 @@ void Test_File()
         tricky_data_out.d[1] = 15;
         tricky_data_out.d[2] = 16;
         tricky_data_out.e = 17;
-        memset(tricky_data_out.f, 0, 17);
+        memset(tricky_data_out.f, 0, sizeof(tricky_data_out.f));
         tricky_data_out.g[0] = 18;
         tricky_data_out.g[1] = 19;
         tricky_data_out.g[2] = 20;
         tricky_data_out.g[3] = 21;
-        memset(tricky_data_out.h, 0, 13 * sizeof(short));
+        memset(tricky_data_out.h, 0, sizeof(tricky_data_out.h));
         tricky_data_out.i[0] = 22;
         tricky_data_out.i[1] = 23;
         tricky_data_out.i[2] = 24;

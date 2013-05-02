@@ -1011,7 +1011,7 @@ const char* import_sci_font(const char*fnn,int fslot) {
     ooo->WriteInt16(wwi+1);
     ooo->WriteInt16(hhi);
     if ((wwi<1) | (hhi<1)) continue;
-    memset(buffer,0,1000);
+    memset(buffer,0,sizeof(buffer));
     int bytesPerRow = (wwi/8)+1;
     iii->ReadArray(buffer, bytesPerRow, hhi);
     for (int bb=0;bb<hhi;bb++) { 
@@ -1477,7 +1477,7 @@ void read_dialogs(Stream*iii, int filever, bool encrypted) {
   }
   char stringbuffer[1000];
   for (bb=0;bb<thisgame.DialogMessageCount;bb++) {
-    if ((filever >= 26) && (encrypted))
+    if ((filever >= kGameVersion_261) && (encrypted))
       read_string_decrypt(iii, stringbuffer);
     else
       fgetstring(stringbuffer, iii);
@@ -1574,7 +1574,7 @@ const char *load_dta_file_into_thisgame(const char *fileName)
     return "File contains invalid data and is not an AGS game.";
   }
   int filever = iii->ReadInt32();
-  if (filever != 32) 
+  if (filever != kGameVersion_272) 
   {
 	  delete iii;
 	  return "This game was saved by an old version of AGS. This version of the editor can only import games saved with AGS 2.72.";
@@ -1771,7 +1771,7 @@ void remap_background (Common::Bitmap *scene, color *oldpale, color*palette, int
   }
   // find which colours from the image palette are actually used
   int imgpalcnt[256],numimgclr=0;
-  memset(&imgpalcnt[0],0,sizeof(int)*256);
+  memset(&imgpalcnt[0],0,sizeof(imgpalcnt));
   if (scene->IsLinearBitmap()==0)
     quit("mem bitmap non-linear?");
 
@@ -4753,7 +4753,7 @@ void save_thisgame_to_file(const char *fileName, Game ^game)
 	}
 
   ooo->Write(game_file_sig,30);
-  ooo->WriteInt32(42);
+  ooo->WriteInt32(kGameVersion_Current);
   ooo->WriteInt32(strlen(AGS_VERSION));
   ooo->Write(AGS_VERSION, strlen(AGS_VERSION));
 

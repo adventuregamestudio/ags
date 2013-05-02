@@ -19,11 +19,14 @@ namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
 #define IFLG_STARTWITH 1
+#define INVITEMINFO_LEGACY_NAME_LENGTH   25
+#define INVITEMINFO_LEGACY_RESERVED_INTS 5
+
 struct InventoryItemInfo {
-    char name[25];
+    char name[INVITEMINFO_LEGACY_NAME_LENGTH];
     int  pic;
     int  cursorPic, hotx, hoty;
-    int  reserved[5];
+    int  reserved[INVITEMINFO_LEGACY_RESERVED_INTS];
     char flags;
 
     InventoryItemInfo();

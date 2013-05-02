@@ -78,7 +78,7 @@ void GUIMain::FixupGuiName(char* name)
 	{
 	  char tempbuffer[200];
 
-	  memset(tempbuffer, 0, 200);
+	  memset(tempbuffer, 0, sizeof(tempbuffer));
 	  tempbuffer[0] = 'g';
 	  tempbuffer[1] = name[0];
 	  strcat(&tempbuffer[2], strlwr(&name[1]));

@@ -25,28 +25,28 @@ InventoryItemInfo::InventoryItemInfo()
     , hoty(0)
     , flags(0)
 {
-    memset(&name, 0, 25);
-    memset(&reserved, 0, 5 * sizeof(int));
+    memset(&name, 0, sizeof(name));
+    memset(&reserved, 0, sizeof(reserved));
 }
 
 void InventoryItemInfo::ReadFromFile(Stream *in)
 {
-    in->Read(name, 25);
+    in->Read(name, INVITEMINFO_LEGACY_NAME_LENGTH);
     pic = in->ReadInt32();
     cursorPic = in->ReadInt32();
     hotx = in->ReadInt32();
     hoty = in->ReadInt32();
-    in->ReadArrayOfInt32(reserved, 5);
+    in->ReadArrayOfInt32(reserved, INVITEMINFO_LEGACY_RESERVED_INTS);
     flags = in->ReadInt8();
 }
 
 void InventoryItemInfo::WriteToFile(Stream *out)
 {
-    out->Write(name, 25);
+    out->Write(name, INVITEMINFO_LEGACY_NAME_LENGTH);
     out->WriteInt32(pic);
     out->WriteInt32(cursorPic);
     out->WriteInt32(hotx);
     out->WriteInt32(hoty);
-    out->WriteArrayOfInt32(reserved, 5);
+    out->WriteArrayOfInt32(reserved, INVITEMINFO_LEGACY_RESERVED_INTS);
     out->WriteInt8(flags);
 }

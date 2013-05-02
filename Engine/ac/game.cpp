@@ -504,8 +504,12 @@ void unload_game_file() {
     for (bb = 1; bb < game.InvItemCount; bb++) {
         if (!game.InvItemInteractionScripts.IsEmpty())
             delete game.InvItemInteractionScripts[bb];
-        delete game.InvItemInteractions[bb];
-        game.InvItemInteractions[bb] = NULL;
+
+        if (!game.InvItemInteractions.IsEmpty())
+        {
+            delete game.InvItemInteractions[bb];
+            game.InvItemInteractions[bb] = NULL;
+        }
     }
 
     game.CharacterInteractionScripts.Free();

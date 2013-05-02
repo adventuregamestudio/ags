@@ -71,7 +71,8 @@ enum GuiVersion
     kGuiVersion_272e        = 115,
     
     kGuiVersion_330         = 116,
-    kGuiVersion_Current     = kGuiVersion_330
+    kGuiVersion_Current     = kGuiVersion_330,
+    kGuiVersion_ForwardCompatible = kGuiVersion_272e
 };
 
 #endif // __AC_GUIDEFINES_H

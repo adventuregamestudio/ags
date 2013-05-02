@@ -1227,7 +1227,7 @@ void WriteAnimatedButtons_Aligned(Stream *out)
 
 void save_game_gui(Stream *out)
 {
-    write_gui(out,guis,&game);
+    write_gui(out,guis,&game,true);
     out->WriteInt32(numAnimButs);
     WriteAnimatedButtons_Aligned(out);
 }

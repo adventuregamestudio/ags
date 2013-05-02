@@ -93,7 +93,7 @@ struct GUIMain
 
 };
 
-
+extern GuiVersion GameGuiVersion;
 extern int guis_need_update;
 extern int all_buttons_disabled, gui_inv_pic;
 extern int gui_disabled_style;
@@ -101,7 +101,7 @@ extern char lines[MAXLINE][200];
 extern int  numlines;
 
 extern void read_gui(Common::Stream *in, GUIMain * guiread, GameSetupStruct * gss, GUIMain** allocate = NULL);
-extern void write_gui(Common::Stream *out, GUIMain * guiwrite, GameSetupStruct * gss);
+extern void write_gui(Common::Stream *out, GUIMain * guiwrite, GameSetupStruct * gss, bool savedgame);
 
 extern int mousex, mousey;
 

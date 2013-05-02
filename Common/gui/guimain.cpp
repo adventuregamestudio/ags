@@ -498,20 +498,20 @@ void GUIMain::mouse_but_up()
   guis_need_update = 1;
 }
 
+GuiVersion GameGuiVersion = kGuiVersion_Initial;
 void read_gui(Stream *in, GUIMain * guiread, GameSetupStruct * gss, GUIMain** allocate)
 {
-  GuiVersion gui_version;
   int ee;
 
   if (in->ReadInt32() != (int)GUIMAGIC)
     quit("read_gui: file is corrupt");
 
-  gui_version = (GuiVersion)in->ReadInt32();
-  if (gui_version < kGuiVersion_214) {
-    gss->numgui = (int)gui_version;
-    gui_version = kGuiVersion_Initial;
+  GameGuiVersion = (GuiVersion)in->ReadInt32();
+  if (GameGuiVersion < kGuiVersion_214) {
+    gss->numgui = (int)GameGuiVersion;
+    GameGuiVersion = kGuiVersion_Initial;
   }
-  else if (gui_version > kGuiVersion_Current)
+  else if (GameGuiVersion > kGuiVersion_Current)
     quit("read_gui: this game requires a newer version of AGS");
   else
     gss->numgui = in->ReadInt32();
@@ -529,16 +529,16 @@ void read_gui(Stream *in, GUIMain * guiread, GameSetupStruct * gss, GUIMain** al
   for (int iteratorCount = 0; iteratorCount < gss->numgui; ++iteratorCount)
   {
     guiread[iteratorCount].init();
-    guiread[iteratorCount].ReadFromFile(in, gui_version);
+    guiread[iteratorCount].ReadFromFile(in, GameGuiVersion);
   }
 
   for (ee = 0; ee < gss->numgui; ee++) {
     if (guiread[ee].hit < 2)
       guiread[ee].hit = 2;
 
-    if (gui_version < kGuiVersion_unkn_103)
+    if (GameGuiVersion < kGuiVersion_unkn_103)
       sprintf(guiread[ee].name, "GUI%d", ee);
-    if (gui_version < kGuiVersion_260)
+    if (GameGuiVersion < kGuiVersion_260)
       guiread[ee].zorder = ee;
 
     if (loaded_game_file_version <= kGameVersion_272) // Fix names for 2.x: "GUI" -> "gGui"
@@ -552,61 +552,61 @@ void read_gui(Stream *in, GUIMain * guiread, GameSetupStruct * gss, GUIMain** al
   guibuts.SetSizeTo(numguibuts);
 
   for (ee = 0; ee < numguibuts; ee++)
-    guibuts[ee].ReadFromFile(in, gui_version);
+    guibuts[ee].ReadFromFile(in, GameGuiVersion);
 
   // labels
   numguilabels = in->ReadInt32();
   guilabels.SetSizeTo(numguilabels);
 
   for (ee = 0; ee < numguilabels; ee++)
-    guilabels[ee].ReadFromFile(in, gui_version);
+    guilabels[ee].ReadFromFile(in, GameGuiVersion);
 
   // inv controls
   numguiinv = in->ReadInt32();
   guiinv.SetSizeTo(numguiinv);
 
   for (ee = 0; ee < numguiinv; ee++)
-    guiinv[ee].ReadFromFile(in, gui_version);
+    guiinv[ee].ReadFromFile(in, GameGuiVersion);
 
-  if (gui_version >= kGuiVersion_214) {
+  if (GameGuiVersion >= kGuiVersion_214) {
     // sliders
     numguislider = in->ReadInt32();
     guislider.SetSizeTo(numguislider);
 
     for (ee = 0; ee < numguislider; ee++)
-      guislider[ee].ReadFromFile(in, gui_version);
+      guislider[ee].ReadFromFile(in, GameGuiVersion);
   }
 
-  if (gui_version >= kGuiVersion_222) {
+  if (GameGuiVersion >= kGuiVersion_222) {
     // text boxes
     numguitext = in->ReadInt32();
     guitext.SetSizeTo(numguitext);
 
     for (ee = 0; ee < numguitext; ee++)
-      guitext[ee].ReadFromFile(in, gui_version);
+      guitext[ee].ReadFromFile(in, GameGuiVersion);
   }
 
-  if (gui_version >= kGuiVersion_230) {
+  if (GameGuiVersion >= kGuiVersion_230) {
     // list boxes
     numguilist = in->ReadInt32();
     guilist.SetSizeTo(numguilist);
 
     for (ee = 0; ee < numguilist; ee++)
-      guilist[ee].ReadFromFile(in, gui_version);
+      guilist[ee].ReadFromFile(in, GameGuiVersion);
   }
 
   // set up the reverse-lookup array
   for (ee = 0; ee < gss->numgui; ee++) {
     guiread[ee].rebuild_array();
 
-    if (gui_version < kGuiVersion_270)
+    if (GameGuiVersion < kGuiVersion_270)
       guiread[ee].clickEventHandler[0] = 0;
 
     for (int ff = 0; ff < guiread[ee].numobjs; ff++) {
       guiread[ee].objs[ff]->guin = ee;
       guiread[ee].objs[ff]->objn = ff;
 
-      if (gui_version < kGuiVersion_272e)
+      if (GameGuiVersion < kGuiVersion_272e)
         guiread[ee].objs[ff]->zorder = ff;
     }
 
@@ -616,12 +616,21 @@ void read_gui(Stream *in, GUIMain * guiread, GameSetupStruct * gss, GUIMain** al
   guis_need_update = 1;
 }
 
-void write_gui(Stream *out, GUIMain * guiwrite, GameSetupStruct * gss)
+void write_gui(Stream *out, GUIMain * guiwrite, GameSetupStruct * gss, bool savedgame)
 {
   int ee;
 
   out->WriteInt32(GUIMAGIC);
-  out->WriteInt32(kGuiVersion_Current);
+
+  if (savedgame && GameGuiVersion >= kGuiVersion_ForwardCompatible)
+  {
+    out->WriteInt32(GameGuiVersion);
+  }
+  else
+  {
+    out->WriteInt32(kGuiVersion_Current);
+  }
+  
   out->WriteInt32(gss->numgui);
 
   for (int iteratorCount = 0; iteratorCount < gss->numgui; ++iteratorCount)

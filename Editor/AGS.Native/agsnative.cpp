@@ -4752,7 +4752,7 @@ void save_thisgame_to_file(const char *fileName, Game ^game)
 	  free(buffer);
   }
   ooo->WriteArray(&dialog[0], sizeof(DialogTopic), thisgame.numdialog);
-  write_gui(ooo,&guis[0],&thisgame);
+  write_gui(ooo,&guis[0],&thisgame,false);
   write_plugins_to_disk(ooo);
   // write the custom properties & schema
   thisgame.propSchema.Serialize(ooo);

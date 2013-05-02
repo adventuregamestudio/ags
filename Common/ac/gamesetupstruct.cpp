@@ -298,7 +298,7 @@ void GameSetupStruct::read_characters(Common::Stream *in, GAME_STRUCT_READ_DATA 
 
 void GameSetupStruct::read_lipsync(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
 {
-    if (read_data.filever > kGameVersion_251) // > 2.1
+    if (read_data.filever >= kGameVersion_254) // lip syncing was introduced in 2.54
         in->ReadArray(&lipSyncFrameLetters[0][0], MAXLIPSYNCFRAMES, 50);
 }
 

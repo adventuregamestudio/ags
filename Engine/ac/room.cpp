@@ -306,25 +306,25 @@ void unload_old_room() {
         delete objcache[ff].image;
     }
     objcache.Free();
-    // clear the actsps buffers to save memory, since the
+    // clear the ActiveSprites[].Bmp buffers to save memory, since the
     // objects/characters involved probably aren't on the
     // new screen. this also ensures all cached data is flushed
     for (ff = 0; ff < MAX_INIT_SPR + game.CharacterCount; ff++) {
-        delete actsps[ff];
-        actsps[ff] = NULL;
+        delete ActiveSprites[ff].Bmp;
+        ActiveSprites[ff].Bmp = NULL;
 
-        if (actspsbmp[ff] != NULL)
-            gfxDriver->DestroyDDB(actspsbmp[ff]);
-        actspsbmp[ff] = NULL;
+        if (ActiveSprites[ff].Ddb != NULL)
+            gfxDriver->DestroyDDB(ActiveSprites[ff].Ddb);
+        ActiveSprites[ff].Ddb = NULL;
 
-        delete actspswb[ff];
-        actspswb[ff] = NULL;
+        delete ActiveSprites[ff].WalkBehindBmp;
+        ActiveSprites[ff].WalkBehindBmp = NULL;
 
-        if (actspswbbmp[ff] != NULL)
-            gfxDriver->DestroyDDB(actspswbbmp[ff]);
-        actspswbbmp[ff] = NULL;
+        if (ActiveSprites[ff].WalkBehindDdb != NULL)
+            gfxDriver->DestroyDDB(ActiveSprites[ff].WalkBehindDdb);
+        ActiveSprites[ff].WalkBehindDdb = NULL;
 
-        actspswbcache[ff].valid = 0;
+        ActiveSprites[ff].WalkBehindData.valid = 0;
     }
 
     // if Hide Player Character was ticked, restore it to visible

@@ -482,11 +482,7 @@ void unload_game_file() {
     characterScriptObjNames.Free();
     free(charextra);
     mls.Free();
-    actsps.Free();
-    actspsbmp.Free();
-    actspswb.Free();
-    actspswbbmp.Free();
-    actspswbcache.Free();
+    ActiveSprites.Free();
     game.CharacterProperties.Free();
 
     for (bb = 1; bb < game.InvItemCount; bb++) {

@@ -623,13 +623,9 @@ int load_game_file() {
     our_eip=-15;
 
     charextra = (CharacterExtras*)calloc(game.CharacterCount, sizeof(CharacterExtras));
+    // CHECKME: not sure this +1 and +2 is needed
     mls.New(game.CharacterCount + MAX_INIT_SPR + 1);
-    actSpsCount = game.CharacterCount + MAX_INIT_SPR + 2;
-    actsps.New(actSpsCount, NULL);
-    actspsbmp.New(actSpsCount, NULL);
-    actspswb.New(actSpsCount, NULL);
-    actspswbbmp.New(actSpsCount, NULL);
-    actspswbcache.New(actSpsCount);
+    ActiveSprites.New(game.CharacterCount + MAX_INIT_SPR + 2);
     game.CharacterProperties.New(game.CharacterCount);
 
     allocate_memory_for_views(game.ViewCount);

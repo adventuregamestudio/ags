@@ -2073,12 +2073,12 @@ Bitmap *GetCharacterImage(int charid, int *isFlipped)
 {
     if (!gfxDriver->HasAcceleratedStretchAndFlip())
     {
-        if (actsps[charid + MAX_INIT_SPR] != NULL) 
+        if (ActiveSprites[charid + thisroom.ObjectCount].Bmp != NULL) 
         {
-            // the actsps image is pre-flipped, so no longer register the image as such
+            // the ActiveSprites[].Bmp image is pre-flipped, so no longer register the image as such
             if (isFlipped)
                 *isFlipped = 0;
-            return actsps[charid + MAX_INIT_SPR];
+            return ActiveSprites[charid + thisroom.ObjectCount].Bmp;
         }
     }
     CharacterInfo*chin=&game.Characters[charid];

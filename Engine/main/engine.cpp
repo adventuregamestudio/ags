@@ -965,7 +965,7 @@ void engine_setup_screen()
     our_eip=-7;
 
     for (int ee = 0; ee < MAX_INIT_SPR + game.CharacterCount; ee++)
-        actsps[ee] = NULL;
+        ActiveSprites[ee].Bmp = NULL;
 }
 
 void init_game_settings() {

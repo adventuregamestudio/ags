@@ -54,6 +54,15 @@ struct CachedActSpsData {
     int baselineWas;
     int isWalkBehindHere;
     int valid;
+
+    CachedActSpsData()
+        : xWas(0)
+        , yWas(0)
+        , baselineWas(0)
+        , isWalkBehindHere(0)
+        , valid(0)
+    {
+    }
 };
 
 void invalidate_screen();
@@ -80,8 +89,8 @@ void init_invalid_regions(int scrnHit);
 int get_screen_x_adjustment(Common::Bitmap *checkFor);
 int get_screen_y_adjustment(Common::Bitmap *checkFor);
 void putpixel_compensate (Common::Graphics *g, int xx,int yy, int col);
-// create the actsps[aa] image with the object drawn correctly
-// returns 1 if nothing at all has changed and actsps is still
+// create the ActiveSprites[].Bmp[aa] image with the object drawn correctly
+// returns 1 if nothing at all has changed and ActiveSprites[].Bmp is still
 // intact from last time; 0 otherwise
 int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysUseSoftware);
 void clear_letterbox_borders();
@@ -105,12 +114,25 @@ Common::Bitmap *convert_16_to_16bgr(Common::Bitmap *tempbl);
 Common::Bitmap *convert_32_to_32bgr(Common::Bitmap *tempbl);
 
 //---------------------------------------------------------
+// ActiveSprite is used for temporary storage of the bitamp image
+// of the latest version of the sprite
+struct ActiveSprite
+{
+    AGS::Common::Bitmap*                    Bmp;
+    AGS::Engine::IDriverDependantBitmap*    Ddb;
+    AGS::Common::Bitmap*                    WalkBehindBmp;
+    AGS::Engine::IDriverDependantBitmap*    WalkBehindDdb;
+    CachedActSpsData                        WalkBehindData;
 
-extern int actSpsCount;
-extern AGS::Common::Array<AGS::Common::Bitmap*> actsps;
-extern AGS::Common::Array<AGS::Engine::IDriverDependantBitmap*> actspsbmp;
-extern AGS::Common::Array<AGS::Common::Bitmap*> actspswb;
-extern AGS::Common::Array<AGS::Engine::IDriverDependantBitmap*> actspswbbmp;
-extern AGS::Common::Array<CachedActSpsData> actspswbcache;
+    ActiveSprite()
+        : Bmp(NULL)
+        , Ddb(NULL)
+        , WalkBehindBmp(NULL)
+        , WalkBehindDdb(NULL)
+    {
+    }
+};
+
+extern AGS::Common::ObjectArray<ActiveSprite> ActiveSprites;
 
 #endif // __AGS_EE_AC__DRAW_H

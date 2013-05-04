@@ -326,6 +326,7 @@ public:
     _tintSaturation = tintSaturation;
   }
 
+  int _refCount;
   int _width, _height;
   int _colDepth;
   bool _flipped;
@@ -342,6 +343,7 @@ public:
 
   OGLBitmap(int width, int height, int colDepth, bool opaque)
   {
+    _refCount = 1;
     _width = width;
     _height = height;
     _colDepth = colDepth;
@@ -411,6 +413,7 @@ public:
   virtual void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse);
   virtual Bitmap *ConvertBitmapToSupportedColourDepth(Bitmap *bitmap);
   virtual IDriverDependantBitmap* CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque);
+  virtual IDriverDependantBitmap* CreateDDBReference(IDriverDependantBitmap *ddb);
   virtual void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha);
   virtual void DestroyDDB(IDriverDependantBitmap* bitmap);
   virtual void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap);
@@ -1293,14 +1296,19 @@ void OGLGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* bitmap)
 
 void OGLGraphicsDriver::DestroyDDB(IDriverDependantBitmap* bitmap)
 {
-  for (int i = 0; i < numToDrawLastTime; i++)
+  OGLBitmap *ogl_bmp = (OGLBitmap*)bitmap;
+  ogl_bmp->_refCount--;
+  if (!ogl_bmp->_refCount)
   {
-    if (drawListLastTime[i].bitmap == bitmap)
+    for (int i = 0; i < numToDrawLastTime; i++)
     {
-      drawListLastTime[i].skip = true;
+      if (drawListLastTime[i].bitmap == bitmap)
+      {
+        drawListLastTime[i].skip = true;
+      }
     }
+    delete ((OGLBitmap*)bitmap);
   }
-  delete ((OGLBitmap*)bitmap);
 }
 
 __inline void get_pixel_if_not_transparent15(unsigned short *pixel, unsigned short *red, unsigned short *green, unsigned short *blue, unsigned short *divisor)
@@ -1683,6 +1691,13 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
   delete tempBmp;
 
   return ddb;
+}
+
+IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBReference(IDriverDependantBitmap *ddb)
+{
+  OGLBitmap *ogl_bmp = (OGLBitmap*)ddb;
+  ogl_bmp->_refCount++;
+  return ogl_bmp;
 }
 
 void OGLGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)

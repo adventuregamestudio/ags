@@ -168,6 +168,7 @@ public:
     _tintSaturation = tintSaturation;
   }
 
+  int _refCount;
   int _width, _height;
   int _colDepth;
   bool _flipped;
@@ -184,6 +185,7 @@ public:
 
   D3DBitmap(int width, int height, int colDepth, bool opaque)
   {
+    _refCount = 1;
     _width = width;
     _height = height;
     _colDepth = colDepth;
@@ -251,6 +253,7 @@ public:
   virtual void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse);
   virtual Bitmap *ConvertBitmapToSupportedColourDepth(Bitmap *bitmap);
   virtual IDriverDependantBitmap* CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque);
+  virtual IDriverDependantBitmap* CreateDDBReference(IDriverDependantBitmap *ddb);
   virtual void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha);
   virtual void DestroyDDB(IDriverDependantBitmap* bitmap);
   virtual void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap);
@@ -1477,14 +1480,19 @@ void D3DGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* bitmap)
 
 void D3DGraphicsDriver::DestroyDDB(IDriverDependantBitmap* bitmap)
 {
-  for (int i = 0; i < numToDrawLastTime; i++)
+  D3DBitmap* d3d_bmp = (D3DBitmap*)bitmap;
+  d3d_bmp->_refCount--;
+  if (!d3d_bmp->_refCount)
   {
-    if (drawListLastTime[i].bitmap == bitmap)
+    for (int i = 0; i < numToDrawLastTime; i++)
     {
-      drawListLastTime[i].skip = true;
+      if (drawListLastTime[i].bitmap == bitmap)
+      {
+        drawListLastTime[i].skip = true;
+      }
     }
+    delete ((D3DBitmap*)bitmap);
   }
-  delete ((D3DBitmap*)bitmap);
 }
 
 __inline void get_pixel_if_not_transparent15(unsigned short *pixel, unsigned short *red, unsigned short *green, unsigned short *blue, unsigned short *divisor)
@@ -1878,6 +1886,13 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
   delete tempBmp;
 
   return ddb;
+}
+
+IDriverDependantBitmap* D3DGraphicsDriver::CreateDDBReference(IDriverDependantBitmap *ddb)
+{
+  D3DBitmap *d3d_bmp = (D3DBitmap*)ddb;
+  d3d_bmp->_refCount++;
+  return d3d_bmp;
 }
 
 void D3DGraphicsDriver::do_fade(bool fadingOut, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue)

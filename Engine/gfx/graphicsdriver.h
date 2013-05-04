@@ -76,6 +76,7 @@ public:
   virtual void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse) = 0;
   virtual Common::Bitmap *ConvertBitmapToSupportedColourDepth(Common::Bitmap *bitmap) = 0;
   virtual IDriverDependantBitmap* CreateDDBFromBitmap(Common::Bitmap *bitmap, bool hasAlpha, bool opaque = false) = 0;
+  virtual IDriverDependantBitmap* CreateDDBReference(IDriverDependantBitmap *ddb) = 0;
   virtual void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Common::Bitmap *bitmap, bool hasAlpha) = 0;
   virtual void DestroyDDB(IDriverDependantBitmap* bitmap) = 0;
   virtual void ClearDrawList() = 0;

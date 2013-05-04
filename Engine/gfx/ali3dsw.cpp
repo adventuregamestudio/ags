@@ -78,6 +78,7 @@ public:
   virtual void SetTint(int red, int green, int blue, int tintSaturation) { }
 
   Bitmap *_bmp;
+  int _refCount;
   int _width, _height;
   int _colDepth;
   bool _flipped;
@@ -88,7 +89,8 @@ public:
 
   ALSoftwareBitmap(Bitmap *bmp, bool opaque, bool hasAlpha)
   {
-    _bmp = bmp;
+    _refCount = 1;
+    _bmp = BitmapHelper::CreateBitmapReference(bmp);
     _width = bmp->GetWidth();
     _height = bmp->GetHeight();
     _colDepth = bmp->GetColorDepth();
@@ -105,7 +107,9 @@ public:
 
   void Dispose()
   {
-    // do we want to free the bitmap?
+    // The internal bitmap data is now reference-counted, it is safe to delete Bitmap object
+    delete _bmp;
+    _bmp = NULL;
   }
 
   ~ALSoftwareBitmap()
@@ -155,6 +159,7 @@ public:
   virtual void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse);
   virtual Bitmap *ConvertBitmapToSupportedColourDepth(Bitmap *bitmap);
   virtual IDriverDependantBitmap* CreateDDBFromBitmap(Bitmap *bitmap, bool hasAlpha, bool opaque);
+  virtual IDriverDependantBitmap* CreateDDBReference(IDriverDependantBitmap *ddb);
   virtual void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha);
   virtual void DestroyDDB(IDriverDependantBitmap* bitmap);
   virtual void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap);
@@ -465,6 +470,13 @@ IDriverDependantBitmap* ALSoftwareGraphicsDriver::CreateDDBFromBitmap(Bitmap *bi
   return newBitmap;
 }
 
+IDriverDependantBitmap* ALSoftwareGraphicsDriver::CreateDDBReference(IDriverDependantBitmap *ddb)
+{
+  ALSoftwareBitmap* alSwBmp = (ALSoftwareBitmap*)ddb;
+  alSwBmp->_refCount++;
+  return alSwBmp;
+}
+
 void ALSoftwareGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha)
 {
   ALSoftwareBitmap* alSwBmp = (ALSoftwareBitmap*)bitmapToUpdate;
@@ -475,7 +487,11 @@ void ALSoftwareGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitma
 void ALSoftwareGraphicsDriver::DestroyDDB(IDriverDependantBitmap* bitmap)
 {
   ALSoftwareBitmap* bmpToDelete = (ALSoftwareBitmap*)bitmap;
-  delete bmpToDelete;
+  bmpToDelete->_refCount--;
+  if (!bmpToDelete->_refCount)
+  {
+    delete bmpToDelete;
+  }
 }
 
 void ALSoftwareGraphicsDriver::DrawSprite(int x, int y, IDriverDependantBitmap* bitmap)

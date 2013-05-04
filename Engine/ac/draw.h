@@ -124,15 +124,13 @@ struct ActiveSprite
     AGS::Engine::IDriverDependantBitmap*    WalkBehindDdb;
     CachedActSpsData                        WalkBehindData;
 
-    ActiveSprite()
-        : Bmp(NULL)
-        , Ddb(NULL)
-        , WalkBehindBmp(NULL)
-        , WalkBehindDdb(NULL)
-    {
-    }
+    ActiveSprite();
+    ActiveSprite(const ActiveSprite &act_spr);
+    ~ActiveSprite();
+    void Free();
 };
 
-extern AGS::Common::ObjectArray<ActiveSprite> ActiveSprites;
+extern AGS::Common::ObjectArray<ActiveSprite> CharActiveSprites;
+extern AGS::Common::ObjectArray<ActiveSprite> ObjActiveSprites;
 
 #endif // __AGS_EE_AC__DRAW_H

@@ -720,7 +720,8 @@ void calculate_move_stage(MoveList * mlsp, int aaa)
 
 #define MAKE_INTCOORD(x,y) (((unsigned short)x << 16) | ((unsigned short)y))
 
-int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen, int movlst, int nocross, int ignore_walls)
+int find_route(short srcx, short srcy, short xx, short yy, Bitmap *onscreen,
+               AGS::Common::Array<MoveList> &move_list_arr, int movlst, int nocross, int ignore_walls)
 {
 #ifdef DEBUG_PATHFINDER
   __wnormscreen();
@@ -820,21 +821,22 @@ stage_again:
     //Display("Route from %d,%d to %d,%d - %d stage, %d stages", orisrcx,orisrcy,xx,yy,pathbackstage,numstages);
 
     int mlist = movlst;
-    mls[mlist].numstage = numstages;
-    memcpy(&mls[mlist].pos[0], &reallyneed[0], sizeof(int) * numstages);
+    MoveList &mls = move_list_arr[mlist];
+    mls.numstage = numstages;
+    memcpy(&mls.pos[0], &reallyneed[0], sizeof(int) * numstages);
 //    fprintf(stderr,"stages: %d\n",numstages);
 
     for (aaa = 0; aaa < numstages - 1; aaa++) {
-      calculate_move_stage(&mls[mlist], aaa);
+      calculate_move_stage(&mls, aaa);
     }
 
-    mls[mlist].fromx = orisrcx;
-    mls[mlist].fromy = orisrcy;
-    mls[mlist].onstage = 0;
-    mls[mlist].onpart = 0;
-    mls[mlist].doneflag = 0;
-    mls[mlist].lastx = -1;
-    mls[mlist].lasty = -1;
+    mls.fromx = orisrcx;
+    mls.fromy = orisrcy;
+    mls.onstage = 0;
+    mls.onpart = 0;
+    mls.doneflag = 0;
+    mls.lastx = -1;
+    mls.lasty = -1;
 #ifdef DEBUG_PATHFINDER
     getch();
 #endif

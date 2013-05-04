@@ -244,13 +244,13 @@ void MergeObject(int obn) {
     //Bitmap *oldabuf = graphics->bmp;
     //abuf = thisroom.Backgrounds[].Graphic[play.RoomBkgFrameIndex];
     Common::Graphics graphics(thisroom.Backgrounds[play.RoomBkgFrameIndex].Graphic);
-    if (graphics.GetBitmap()->GetColorDepth() != ActiveSprites[obn].Bmp->GetColorDepth())
+    if (graphics.GetBitmap()->GetColorDepth() != ObjActiveSprites[obn].Bmp->GetColorDepth())
         quit("!MergeObject: unable to merge object due to color depth differences");
 
     int xpos = multiply_up_coordinate(objs[obn].X);
     int ypos = (multiply_up_coordinate(objs[obn].Y) - theHeight);
 
-    draw_sprite_support_alpha(&graphics, xpos, ypos, ActiveSprites[obn].Bmp, objs[obn].SpriteIndex);
+    draw_sprite_support_alpha(&graphics, xpos, ypos, ObjActiveSprites[obn].Bmp, objs[obn].SpriteIndex);
     invalidate_screen();
     mark_current_background_dirty();
 
@@ -484,12 +484,12 @@ Bitmap *GetObjectImage(int obj, int *isFlipped)
 {
     if (!gfxDriver->HasAcceleratedStretchAndFlip())
     {
-        if (ActiveSprites[obj].Bmp != NULL) {
+        if (ObjActiveSprites[obj].Bmp != NULL) {
             // the ActiveSprites[].Bmp image is pre-flipped, so no longer register the image as such
             if (isFlipped)
                 *isFlipped = 0;
 
-            return ActiveSprites[obj].Bmp;
+            return ObjActiveSprites[obj].Bmp;
         }
     }
     return spriteset[objs[obj].SpriteIndex];

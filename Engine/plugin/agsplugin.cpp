@@ -745,21 +745,35 @@ void IAGSEngine::SimulateMouseClick(int32 button) {
 }
 
 int IAGSEngine::GetMovementPathWaypointCount(int32 pathId) {
-    return mls[pathId % TURNING_AROUND].numstage;
+    pathId = pathId % TURNING_AROUND;
+    if (pathId >= CHMLSOFFS)
+    {
+        return CharMoveLists[pathId - CHMLSOFFS + 1].numstage;
+    }
+    return ObjMoveLists[pathId].numstage;
 }
 
 int IAGSEngine::GetMovementPathLastWaypoint(int32 pathId) {
-    return mls[pathId % TURNING_AROUND].onstage;
+    pathId = pathId % TURNING_AROUND;
+    if (pathId >= CHMLSOFFS)
+    {
+        return CharMoveLists[pathId - CHMLSOFFS + 1].onstage;
+    }
+    return ObjMoveLists[pathId].onstage;
 }
 
 void IAGSEngine::GetMovementPathWaypointLocation(int32 pathId, int32 waypoint, int32 *x, int32 *y) {
-    *x = (mls[pathId % TURNING_AROUND].pos[waypoint] >> 16) & 0x0000ffff;
-    *y = (mls[pathId % TURNING_AROUND].pos[waypoint] & 0x0000ffff);
+    pathId = pathId % TURNING_AROUND;
+    const MoveList &movelist = pathId >= CHMLSOFFS ? CharMoveLists[pathId - CHMLSOFFS + 1] : ObjMoveLists[pathId];
+    *x = (movelist.pos[waypoint] >> 16) & 0x0000ffff;
+    *y = (movelist.pos[waypoint] & 0x0000ffff);
 }
 
 void IAGSEngine::GetMovementPathWaypointSpeed(int32 pathId, int32 waypoint, int32 *xSpeed, int32 *ySpeed) {
-    *xSpeed = mls[pathId % TURNING_AROUND].xpermove[waypoint];
-    *ySpeed = mls[pathId % TURNING_AROUND].ypermove[waypoint];
+    pathId = pathId % TURNING_AROUND;
+    const MoveList &movelist = pathId >= CHMLSOFFS ? CharMoveLists[pathId - CHMLSOFFS + 1] : ObjMoveLists[pathId];
+    *xSpeed = movelist.xpermove[waypoint];
+    *ySpeed = movelist.ypermove[waypoint];
 }
 
 int IAGSEngine::IsRunningUnderDebugger()

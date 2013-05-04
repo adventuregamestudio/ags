@@ -142,7 +142,7 @@ void script_debug(int cmdd,int dataa) {
         int mlsnum = game.Characters[dataa].walking;
         if (game.Characters[dataa].walking >= TURNING_AROUND)
             mlsnum %= TURNING_AROUND;
-        MoveList*cmls = &mls[mlsnum];
+        MoveList*cmls = &CharMoveLists[mlsnum];
         for (int i = 0; i < cmls->numstage-1; i++) {
             short srcx=short((cmls->pos[i] >> 16) & 0x00ffff);
             short srcy=short(cmls->pos[i] & 0x00ffff);

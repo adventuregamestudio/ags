@@ -100,7 +100,7 @@ void NewRoom(int nrnum) {
         if ((playerchar->walking > 0) && (playerchar->walking < TURNING_AROUND)) {
             // nasty hack - make sure it doesn't move the character
             // to a walkable area
-            mls[playerchar->walking].direct = 1;
+            CharMoveLists[playerchar->walking].direct = 1;
             StopMoving(game.PlayerCharacterIndex);
         }
     }

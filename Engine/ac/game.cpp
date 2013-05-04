@@ -481,8 +481,10 @@ void unload_game_file() {
     game.CharacterInteractions.Free();
     characterScriptObjNames.Free();
     free(charextra);
-    mls.Free();
-    ActiveSprites.Free();
+    CharMoveLists.Free();
+    ObjMoveLists.Free();
+    CharActiveSprites.Free();
+    ObjActiveSprites.Free();
     game.CharacterProperties.Free();
 
     for (bb = 1; bb < game.InvItemCount; bb++) {
@@ -1116,9 +1118,21 @@ void save_game_play_ex_data(Stream *out)
 void WriteMoveList_Aligned(Stream *out)
 {
     AlignedStream align_s(out, Common::kAligned_Write);
-    for (int i = 0; i < game.CharacterCount + MAX_INIT_SPR + 1; ++i)
+    for (int i = 0; i < ObjMoveLists.GetCount(); ++i)
     {
-        mls[i].WriteToFile(&align_s);
+        ObjMoveLists[i].WriteToFile(&align_s);
+        align_s.Reset();
+    }
+    MoveList dummy_movlist;
+    memset(&dummy_movlist, 0, sizeof(dummy_movlist));
+    for (int i = ObjMoveLists.GetCount(); i < CHMLSOFFS; ++i)
+    {
+        dummy_movlist.WriteToFile(&align_s);
+        align_s.Reset();
+    }
+    for (int i = 0; i < game.CharacterCount; ++i)
+    {
+        CharMoveLists[i].WriteToFile(&align_s);
         align_s.Reset();
     }
 }
@@ -1743,9 +1757,21 @@ void restore_game_play(Stream *in)
 void ReadMoveList_Aligned(Stream *in)
 {
     AlignedStream align_s(in, Common::kAligned_Read);
-    for (int i = 0; i < game.CharacterCount + MAX_INIT_SPR + 1; ++i)
+    for (int i = 0; i < ObjMoveLists.GetCount(); ++i)
     {
-        mls[i].ReadFromFile(&align_s);
+        ObjMoveLists[i].ReadFromFile(&align_s);
+        align_s.Reset();
+    }
+    MoveList dummy_movlist;
+    memset(&dummy_movlist, 0, sizeof(dummy_movlist));
+    for (int i = ObjMoveLists.GetCount(); i < CHMLSOFFS; ++i)
+    {
+        dummy_movlist.ReadFromFile(&align_s);
+        align_s.Reset();
+    }
+    for (int i = 0; i < game.CharacterCount; ++i)
+    {
+        CharMoveLists[i].ReadFromFile(&align_s);
         align_s.Reset();
     }
 }
@@ -2042,6 +2068,10 @@ int restore_game_data (Stream *in, const char *nametouse) {
 
     restore_game_play(in);
 
+    // Unfortunately we do not know the exact number of objects in the current
+    // room at this point, so we will read maximal movelist number allowed
+    // by vanilla AGS. The array size will be corrected after room is loaded.
+    ObjMoveLists.SetLength(CHMLSOFFS);
     ReadMoveList_Aligned(in);
 
     int numchwas = game.CharacterCount;

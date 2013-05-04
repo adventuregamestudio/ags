@@ -12,4 +12,5 @@ AGS::Engine::GameSetup usetup;
 
 AGS::Common::ObjectArray<CharacterCache> charcache;
 AGS::Common::ObjectArray<ObjectCache> objcache;
-AGS::Common::Array<MoveList> mls;
+AGS::Common::Array<MoveList> CharMoveLists;
+AGS::Common::Array<MoveList> ObjMoveLists;

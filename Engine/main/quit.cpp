@@ -18,6 +18,7 @@
 
 #include "gfx/ali3d.h"
 #include "ac/cdaudio.h"
+#include "ac/draw.h"
 #include "ac/record.h"
 #include "ac/translation.h"
 #include "debug/agseditordebugger.h"
@@ -306,6 +307,8 @@ void quit(const char *quitmsg) {
 
     // This MUST be called before Allegro is deinitialized.
     thisroom.Free();
+    CharActiveSprites.Free();
+    ObjActiveSprites.Free();
     // remove the game window
     allegro_exit();
 

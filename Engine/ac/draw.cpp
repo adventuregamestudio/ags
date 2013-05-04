@@ -125,7 +125,8 @@ IDriverDependantBitmap *blankImage = NULL;
 IDriverDependantBitmap *blankSidebarImage = NULL;
 IDriverDependantBitmap *debugConsole = NULL;
 
-AGS::Common::ObjectArray<ActiveSprite> ActiveSprites;
+AGS::Common::ObjectArray<ActiveSprite> CharActiveSprites;
+AGS::Common::ObjectArray<ActiveSprite> ObjActiveSprites;
 
 Bitmap *virtual_screen;
 
@@ -853,9 +854,13 @@ IDriverDependantBitmap* recycle_ddb_bitmap(IDriverDependantBitmap *bimp, Bitmap 
 
 void invalidate_cached_walkbehinds() 
 {
-    for (int i = 0; i < ActiveSprites.GetCount(); ++i)
+    for (int i = 0; i < CharActiveSprites.GetCount(); ++i)
     {
-        memset(&ActiveSprites[i].WalkBehindData, 0, sizeof(CachedActSpsData));
+        memset(&CharActiveSprites[i].WalkBehindData, 0, sizeof(CachedActSpsData));
+    }
+    for (int i = 0; i < ObjActiveSprites.GetCount(); ++i)
+    {
+        memset(&ObjActiveSprites[i].WalkBehindData, 0, sizeof(CachedActSpsData));
     }
 }
 
@@ -980,34 +985,34 @@ int sort_out_walk_behinds(Bitmap *sprit,int xx,int yy,int basel, Bitmap *copyPix
     return pixelsChanged;
 }
 
-void sort_out_char_sprite_walk_behind(int actspsIndex, int xx, int yy, int basel, int zoom, int width, int height)
+void sort_out_active_sprite_walk_behind(ActiveSprite &act_sprite, int xx, int yy, int basel, int zoom, int width, int height)
 {
     if (noWalkBehindsAtAll)
         return;
 
-    if ((!ActiveSprites[actspsIndex].WalkBehindData.valid) ||
-        (ActiveSprites[actspsIndex].WalkBehindData.xWas != xx) ||
-        (ActiveSprites[actspsIndex].WalkBehindData.yWas != yy) ||
-        (ActiveSprites[actspsIndex].WalkBehindData.baselineWas != basel))
+    if ((!act_sprite.WalkBehindData.valid) ||
+        (act_sprite.WalkBehindData.xWas != xx) ||
+        (act_sprite.WalkBehindData.yWas != yy) ||
+        (act_sprite.WalkBehindData.baselineWas != basel))
     {
-        ActiveSprites[actspsIndex].WalkBehindBmp = recycle_bitmap(ActiveSprites[actspsIndex].WalkBehindBmp, thisroom.Backgrounds[play.RoomBkgFrameIndex].Graphic->GetColorDepth(), width, height, true);
-        Bitmap *wbSprite = ActiveSprites[actspsIndex].WalkBehindBmp;
+        act_sprite.WalkBehindBmp = recycle_bitmap(act_sprite.WalkBehindBmp, thisroom.Backgrounds[play.RoomBkgFrameIndex].Graphic->GetColorDepth(), width, height, true);
+        Bitmap *wbSprite = act_sprite.WalkBehindBmp;
 
-        ActiveSprites[actspsIndex].WalkBehindData.isWalkBehindHere = sort_out_walk_behinds(wbSprite, xx, yy, basel, thisroom.Backgrounds[play.RoomBkgFrameIndex].Graphic, ActiveSprites[actspsIndex].Bmp, zoom);
-        ActiveSprites[actspsIndex].WalkBehindData.xWas = xx;
-        ActiveSprites[actspsIndex].WalkBehindData.yWas = yy;
-        ActiveSprites[actspsIndex].WalkBehindData.baselineWas = basel;
-        ActiveSprites[actspsIndex].WalkBehindData.valid = 1;
+        act_sprite.WalkBehindData.isWalkBehindHere = sort_out_walk_behinds(wbSprite, xx, yy, basel, thisroom.Backgrounds[play.RoomBkgFrameIndex].Graphic, act_sprite.Bmp, zoom);
+        act_sprite.WalkBehindData.xWas = xx;
+        act_sprite.WalkBehindData.yWas = yy;
+        act_sprite.WalkBehindData.baselineWas = basel;
+        act_sprite.WalkBehindData.valid = 1;
 
-        if (ActiveSprites[actspsIndex].WalkBehindData.isWalkBehindHere)
+        if (act_sprite.WalkBehindData.isWalkBehindHere)
         {
-            ActiveSprites[actspsIndex].WalkBehindDdb = recycle_ddb_bitmap(ActiveSprites[actspsIndex].WalkBehindDdb, ActiveSprites[actspsIndex].WalkBehindBmp, false);
+            act_sprite.WalkBehindDdb = recycle_ddb_bitmap(act_sprite.WalkBehindDdb, act_sprite.WalkBehindBmp, false);
         }
     }
 
-    if (ActiveSprites[actspsIndex].WalkBehindData.isWalkBehindHere)
+    if (act_sprite.WalkBehindData.isWalkBehindHere)
     {
-        add_to_sprite_list(ActiveSprites[actspsIndex].WalkBehindDdb, xx - offsetx, yy - offsety, basel, 0, -1, true);
+        add_to_sprite_list(act_sprite.WalkBehindDdb, xx - offsetx, yy - offsety, basel, 0, -1, true);
     }
 }
 
@@ -1327,7 +1332,7 @@ void get_local_tint(int xpp, int ypp, int nolight,
 
 // Applies the specified RGB Tint or Light Level to the ActiveSprites[].Bmp
 // sprite indexed with actspsindex
-void apply_tint_or_light(int actspsindex, int light_level,
+void apply_tint_or_light(ActiveSprite &act_sprite, int light_level,
                          int tint_amount, int tint_red, int tint_green,
                          int tint_blue, int tint_light, int coldept,
                          Bitmap *blitFrom) {
@@ -1340,7 +1345,7 @@ void apply_tint_or_light(int actspsindex, int light_level,
  }
 
  // we can only do tint/light if the colour depths match
- if (final_col_dep == ActiveSprites[actspsindex].Bmp->GetColorDepth()) {
+ if (final_col_dep == act_sprite.Bmp->GetColorDepth()) {
      Bitmap *oldwas;
      // if the caller supplied a source bitmap, ->Blit from it
      // (used as a speed optimisation where possible)
@@ -1348,10 +1353,10 @@ void apply_tint_or_light(int actspsindex, int light_level,
          oldwas = blitFrom;
      // otherwise, make a new target bmp
      else {
-         oldwas = ActiveSprites[actspsindex].Bmp;
-         ActiveSprites[actspsindex].Bmp = BitmapHelper::CreateBitmap(oldwas->GetWidth(), oldwas->GetHeight(), coldept);
+         oldwas = act_sprite.Bmp;
+         act_sprite.Bmp = BitmapHelper::CreateBitmap(oldwas->GetWidth(), oldwas->GetHeight(), coldept);
      }
-     Graphics graphics(ActiveSprites[actspsindex].Bmp);
+     Graphics graphics(act_sprite.Bmp);
 
      if (tint_amount) {
          // It is an RGB tint
@@ -1388,8 +1393,8 @@ void apply_tint_or_light(int actspsindex, int light_level,
  else if (blitFrom) {
      // sprite colour depth != game colour depth, so don't try and tint
      // but we do need to do something, so copy the source
-     Graphics graphics(ActiveSprites[actspsindex].Bmp);
-     graphics.Blit(blitFrom, 0, 0, 0, 0, ActiveSprites[actspsindex].Bmp->GetWidth(), ActiveSprites[actspsindex].Bmp->GetHeight());
+     Graphics graphics(act_sprite.Bmp);
+     graphics.Blit(blitFrom, 0, 0, 0, 0, act_sprite.Bmp->GetWidth(), act_sprite.Bmp->GetHeight());
  }
 
 }
@@ -1398,15 +1403,15 @@ void apply_tint_or_light(int actspsindex, int light_level,
 // specified width and height, and flips the sprite if necessary.
 // Returns 1 if something was drawn to ActiveSprites[].Bmp; returns 0 if no
 // scaling or stretching was required, in which case nothing was done
-int scale_and_flip_sprite(int useindx, int coldept, int zoom_level,
+int scale_and_flip_sprite(ActiveSprite &act_sprite, int coldept, int zoom_level,
                           int sppic, int newwidth, int newheight,
                           int isMirrored) {
 
   int actsps_used = 1;
 
   // create and blank out the new sprite
-  ActiveSprites[useindx].Bmp = recycle_bitmap(ActiveSprites[useindx].Bmp, coldept, newwidth, newheight, true);
-  Graphics graphics(ActiveSprites[useindx].Bmp);
+  act_sprite.Bmp = recycle_bitmap(act_sprite.Bmp, coldept, newwidth, newheight, true);
+  Graphics graphics(act_sprite.Bmp);
 
   if (zoom_level != 100) {
       // Scaled character
@@ -1422,12 +1427,12 @@ int scale_and_flip_sprite(int useindx, int coldept, int zoom_level,
       if (isMirrored) {
           Bitmap *tempspr = BitmapHelper::CreateBitmap(newwidth, newheight,coldept);
           graphics.SetBitmap(tempspr);
-          graphics.Fill (ActiveSprites[useindx].Bmp->GetMaskColor());
+          graphics.Fill (act_sprite.Bmp->GetMaskColor());
           if ((IS_ANTIALIAS_SPRITES) && ((game.SpriteFlags[sppic] & SPF_ALPHACHANNEL) == 0))
               graphics.AAStretchBlt (spriteset[sppic], RectWH(0, 0, newwidth, newheight), Common::kBitmap_Transparency);
           else
               graphics.StretchBlt (spriteset[sppic], RectWH(0, 0, newwidth, newheight), Common::kBitmap_Transparency);
-          graphics.SetBitmap(ActiveSprites[useindx].Bmp);
+          graphics.SetBitmap(act_sprite.Bmp);
           graphics.FlipBlt(tempspr, 0, 0, Common::kBitmap_HFlip);
           delete tempspr;
       }
@@ -1555,10 +1560,12 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
             isMirrored = 1;
     }
 
+    ActiveSprite &act_sprite = ObjActiveSprites[useindx];
+
     if ((objcache[aa].image != NULL) &&
         (objcache[aa].sppic == objs[aa].SpriteIndex) &&
         (walkBehindMethod != DrawOverCharSprite) &&
-        (ActiveSprites[useindx].Bmp != NULL) &&
+        (act_sprite.Bmp != NULL) &&
         (hardwareAccelerated))
     {
         // HW acceleration
@@ -1594,17 +1601,17 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
         (objcache[aa].mirroredWas == isMirrored)) {
             // the image is the same, we can use it cached!
             if ((walkBehindMethod != DrawOverCharSprite) &&
-                (ActiveSprites[useindx].Bmp != NULL))
+                (act_sprite.Bmp != NULL))
                 return 1;
             // Check if the X & Y co-ords are the same, too -- if so, there
             // is scope for further optimisations
             if ((objcache[aa].xwas == objs[aa].X) &&
                 (objcache[aa].ywas == objs[aa].Y) &&
-                (ActiveSprites[useindx].Bmp != NULL) &&
+                (act_sprite.Bmp != NULL) &&
                 (walk_behind_baselines_changed == 0))
                 return 1;
-            ActiveSprites[useindx].Bmp = recycle_bitmap(ActiveSprites[useindx].Bmp, coldept, sprwidth, sprheight);
-            Graphics graphics(ActiveSprites[useindx].Bmp);
+            act_sprite.Bmp = recycle_bitmap(act_sprite.Bmp, coldept, sprwidth, sprheight);
+            Graphics graphics(act_sprite.Bmp);
             graphics.Blit(objcache[aa].image, 0, 0, 0, 0, objcache[aa].image->GetWidth(), objcache[aa].image->GetHeight());
             return 0;
     }
@@ -1615,13 +1622,13 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
     if (!hardwareAccelerated)
     {
         // draw the base sprite, scaled and flipped as appropriate
-        actspsUsed = scale_and_flip_sprite(useindx, coldept, zoom_level,
+        actspsUsed = scale_and_flip_sprite(act_sprite, coldept, zoom_level,
             objs[aa].SpriteIndex, sprwidth, sprheight, isMirrored);
     }
     else
     {
         // ensure ActiveSprites[].Bmp exists
-        ActiveSprites[useindx].Bmp = recycle_bitmap(ActiveSprites[useindx].Bmp, coldept, spritewidth[objs[aa].SpriteIndex], spriteheight[objs[aa].SpriteIndex]);
+        act_sprite.Bmp = recycle_bitmap(act_sprite.Bmp, coldept, spritewidth[objs[aa].SpriteIndex], spriteheight[objs[aa].SpriteIndex]);
     }
 
     // direct read from source bitmap, where possible
@@ -1634,12 +1641,12 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
     if (((tint_level > 0) || (light_level != 0)) &&
         (!hardwareAccelerated))
     {
-        apply_tint_or_light(useindx, light_level, tint_level, tint_red,
+        apply_tint_or_light(act_sprite, light_level, tint_level, tint_red,
             tint_green, tint_blue, tint_light, coldept,
             comeFrom);
     }
     else if (!actspsUsed) {
-        Graphics graphics(ActiveSprites[useindx].Bmp);
+        Graphics graphics(act_sprite.Bmp);
         graphics.Blit(spriteset[objs[aa].SpriteIndex],0,0,0,0,spritewidth[objs[aa].SpriteIndex],spriteheight[objs[aa].SpriteIndex]);
     }
 
@@ -1648,7 +1655,7 @@ int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysU
 
     // Create the cached image and store it
     Graphics graphics(objcache[aa].image);
-    graphics.Blit(ActiveSprites[useindx].Bmp, 0, 0, 0, 0, sprwidth, sprheight);
+    graphics.Blit(act_sprite.Bmp, 0, 0, 0, 0, sprwidth, sprheight);
 
     objcache[aa].sppic = objs[aa].SpriteIndex;
     objcache[aa].tintamntwas = tint_level;
@@ -1691,6 +1698,8 @@ void prepare_objects_for_drawing() {
 
         int usebasel = objs[aa].GetBaseline();
 
+        ActiveSprite &act_sprite = ObjActiveSprites[useindx];
+
         if (objs[aa].Flags & OBJF_NOWALKBEHINDS) {
             // ignore walk-behinds, do nothing
             if (walkBehindMethod == DrawAsSeparateSprite)
@@ -1700,44 +1709,44 @@ void prepare_objects_for_drawing() {
         }
         else if (walkBehindMethod == DrawAsSeparateCharSprite) 
         {
-            sort_out_char_sprite_walk_behind(useindx, atxp+offsetx, atyp+offsety, usebasel, objs[aa].LastZoom, objs[aa].LastWidth, objs[aa].LastHeight);
+            sort_out_active_sprite_walk_behind(act_sprite, atxp+offsetx, atyp+offsety, usebasel, objs[aa].LastZoom, objs[aa].LastWidth, objs[aa].LastHeight);
         }
         else if ((!actspsIntact) && (walkBehindMethod == DrawOverCharSprite))
         {
-            sort_out_walk_behinds(ActiveSprites[useindx].Bmp,atxp+offsetx,atyp+offsety,usebasel);
+            sort_out_walk_behinds(act_sprite.Bmp,atxp+offsetx,atyp+offsety,usebasel);
         }
 
-        if ((!actspsIntact) || (ActiveSprites[useindx].Ddb == NULL))
+        if ((!actspsIntact) || (act_sprite.Ddb == NULL))
         {
             bool hasAlpha = (game.SpriteFlags[objs[aa].SpriteIndex] & SPF_ALPHACHANNEL) != 0;
 
-            if (ActiveSprites[useindx].Ddb != NULL)
-                gfxDriver->DestroyDDB(ActiveSprites[useindx].Ddb);
-            ActiveSprites[useindx].Ddb = gfxDriver->CreateDDBFromBitmap(ActiveSprites[useindx].Bmp, hasAlpha);
+            if (act_sprite.Ddb != NULL)
+                gfxDriver->DestroyDDB(act_sprite.Ddb);
+            act_sprite.Ddb = gfxDriver->CreateDDBFromBitmap(act_sprite.Bmp, hasAlpha);
         }
 
         if (gfxDriver->HasAcceleratedStretchAndFlip())
         {
-            ActiveSprites[useindx].Ddb->SetFlippedLeftRight(objcache[aa].mirroredWas != 0);
-            ActiveSprites[useindx].Ddb->SetStretch(objs[aa].LastWidth, objs[aa].LastHeight);
-            ActiveSprites[useindx].Ddb->SetTint(objcache[aa].tintredwas, objcache[aa].tintgrnwas, objcache[aa].tintbluwas, (objcache[aa].tintamntwas * 256) / 100);
+            act_sprite.Ddb->SetFlippedLeftRight(objcache[aa].mirroredWas != 0);
+            act_sprite.Ddb->SetStretch(objs[aa].LastWidth, objs[aa].LastHeight);
+            act_sprite.Ddb->SetTint(objcache[aa].tintredwas, objcache[aa].tintgrnwas, objcache[aa].tintbluwas, (objcache[aa].tintamntwas * 256) / 100);
 
             if (objcache[aa].tintamntwas > 0)
             {
                 if (objcache[aa].tintlightwas == 0)  // luminance of 0 -- pass 1 to enable
-                    ActiveSprites[useindx].Ddb->SetLightLevel(1);
+                    act_sprite.Ddb->SetLightLevel(1);
                 else if (objcache[aa].tintlightwas < 250)
-                    ActiveSprites[useindx].Ddb->SetLightLevel(objcache[aa].tintlightwas);
+                    act_sprite.Ddb->SetLightLevel(objcache[aa].tintlightwas);
                 else
-                    ActiveSprites[useindx].Ddb->SetLightLevel(0);
+                    act_sprite.Ddb->SetLightLevel(0);
             }
             else if (objcache[aa].lightlevwas != 0)
-                ActiveSprites[useindx].Ddb->SetLightLevel((objcache[aa].lightlevwas * 25) / 10 + 256);
+                act_sprite.Ddb->SetLightLevel((objcache[aa].lightlevwas * 25) / 10 + 256);
             else
-                ActiveSprites[useindx].Ddb->SetLightLevel(0);
+                act_sprite.Ddb->SetLightLevel(0);
         }
 
-        add_to_sprite_list(ActiveSprites[useindx].Ddb,atxp,atyp,usebasel,objs[aa].Transparency,objs[aa].SpriteIndex);
+        add_to_sprite_list(act_sprite.Ddb,atxp,atyp,usebasel,objs[aa].Transparency,objs[aa].SpriteIndex);
     }
 
 }
@@ -1803,7 +1812,7 @@ void prepare_characters_for_drawing() {
         if (game.Characters[aa].on==0) continue;
         if (game.Characters[aa].room!=displayed_room) continue;
         eip_guinum = aa;
-        useindx = aa + thisroom.ObjectCount;
+        useindx = aa;
 
         CharacterInfo*chin=&game.Characters[aa];
         our_eip = 330;
@@ -1879,6 +1888,8 @@ void prepare_characters_for_drawing() {
 
         our_eip = 3331;
 
+        ActiveSprite &act_sprite = CharActiveSprites[useindx];
+
         // if the character was the same sprite and scaling last time,
         // just use the cached image
         if ((charcache[aa].inUse) &&
@@ -1893,9 +1904,9 @@ void prepare_characters_for_drawing() {
         {
             if (walkBehindMethod == DrawOverCharSprite)
             {
-                ActiveSprites[useindx].Bmp = recycle_bitmap(ActiveSprites[useindx].Bmp, charcache[aa].image->GetColorDepth(), charcache[aa].image->GetWidth(), charcache[aa].image->GetHeight());
-                Graphics graphics(ActiveSprites[useindx].Bmp);
-                graphics.Blit (charcache[aa].image, 0, 0, 0, 0, ActiveSprites[useindx].Bmp->GetWidth(), ActiveSprites[useindx].Bmp->GetHeight());
+                act_sprite.Bmp = recycle_bitmap(act_sprite.Bmp, charcache[aa].image->GetColorDepth(), charcache[aa].image->GetWidth(), charcache[aa].image->GetHeight());
+                Graphics graphics(act_sprite.Bmp);
+                graphics.Blit (charcache[aa].image, 0, 0, 0, 0, act_sprite.Bmp->GetWidth(), act_sprite.Bmp->GetHeight());
             }
             else 
             {
@@ -1954,13 +1965,13 @@ void prepare_characters_for_drawing() {
             if (!gfxDriver->HasAcceleratedStretchAndFlip())
             {
                 actspsUsed = scale_and_flip_sprite(
-                    useindx, coldept, zoom_level, sppic,
+                    act_sprite, coldept, zoom_level, sppic,
                     newwidth, newheight, isMirrored);
             }
             else 
             {
                 // ensure ActiveSprites[].Bmp exists
-                ActiveSprites[useindx].Bmp = recycle_bitmap(ActiveSprites[useindx].Bmp, coldept, spritewidth[sppic], spriteheight[sppic]);
+                act_sprite.Bmp = recycle_bitmap(act_sprite.Bmp, coldept, spritewidth[sppic], spriteheight[sppic]);
             }
 
             our_eip = 335;
@@ -1973,22 +1984,22 @@ void prepare_characters_for_drawing() {
                     if (!actspsUsed)
                         comeFrom = spriteset[sppic];
 
-                    apply_tint_or_light(useindx, light_level, tint_amount, tint_red,
+                    apply_tint_or_light(act_sprite, light_level, tint_amount, tint_red,
                         tint_green, tint_blue, tint_light, coldept,
                         comeFrom);
             }
             else if (!actspsUsed) {
                 // no scaling, flipping or tinting was done, so just blit it normally
-                Graphics graphics(ActiveSprites[useindx].Bmp);
-                graphics.Blit (spriteset[sppic], 0, 0, 0, 0, ActiveSprites[useindx].Bmp->GetWidth(), ActiveSprites[useindx].Bmp->GetHeight());
+                Graphics graphics(act_sprite.Bmp);
+                graphics.Blit (spriteset[sppic], 0, 0, 0, 0, act_sprite.Bmp->GetWidth(), act_sprite.Bmp->GetHeight());
             }
 
             // update the character cache with the new image
             charcache[aa].inUse = 1;
             //charcache[aa].image = BitmapHelper::CreateBitmap_ (coldept, ActiveSprites[].Bmp[useindx]->GetWidth(), ActiveSprites[].Bmp[useindx]->GetHeight());
-            charcache[aa].image = recycle_bitmap(charcache[aa].image, coldept, ActiveSprites[useindx].Bmp->GetWidth(), ActiveSprites[useindx].Bmp->GetHeight());
+            charcache[aa].image = recycle_bitmap(charcache[aa].image, coldept, act_sprite.Bmp->GetWidth(), act_sprite.Bmp->GetHeight());
             Graphics graphics(charcache[aa].image);
-            graphics.Blit (ActiveSprites[useindx].Bmp, 0, 0, 0, 0, ActiveSprites[useindx].Bmp->GetWidth(), ActiveSprites[useindx].Bmp->GetHeight());
+            graphics.Blit (act_sprite.Bmp, 0, 0, 0, 0, act_sprite.Bmp->GetWidth(), act_sprite.Bmp->GetHeight());
 
         } // end if !cache.inUse
 
@@ -2011,39 +2022,39 @@ void prepare_characters_for_drawing() {
         }
         else if (walkBehindMethod == DrawAsSeparateCharSprite) 
         {
-            sort_out_char_sprite_walk_behind(useindx, bgX, bgY, usebasel, charextra[aa].zoom, newwidth, newheight);
+            sort_out_active_sprite_walk_behind(act_sprite, bgX, bgY, usebasel, charextra[aa].zoom, newwidth, newheight);
         }
         else if (walkBehindMethod == DrawOverCharSprite)
         {
-            sort_out_walk_behinds(ActiveSprites[useindx].Bmp, bgX, bgY, usebasel);
+            sort_out_walk_behinds(act_sprite.Bmp, bgX, bgY, usebasel);
         }
 
-        if ((!usingCachedImage) || (ActiveSprites[useindx].Ddb == NULL))
+        if ((!usingCachedImage) || (act_sprite.Ddb == NULL))
         {
             bool hasAlpha = (game.SpriteFlags[sppic] & SPF_ALPHACHANNEL) != 0;
 
-            ActiveSprites[useindx].Ddb = recycle_ddb_bitmap(ActiveSprites[useindx].Ddb, ActiveSprites[useindx].Bmp, hasAlpha);
+            act_sprite.Ddb = recycle_ddb_bitmap(act_sprite.Ddb, act_sprite.Bmp, hasAlpha);
         }
 
         if (gfxDriver->HasAcceleratedStretchAndFlip()) 
         {
-            ActiveSprites[useindx].Ddb->SetStretch(newwidth, newheight);
-            ActiveSprites[useindx].Ddb->SetFlippedLeftRight(isMirrored != 0);
-            ActiveSprites[useindx].Ddb->SetTint(tint_red, tint_green, tint_blue, (tint_amount * 256) / 100);
+            act_sprite.Ddb->SetStretch(newwidth, newheight);
+            act_sprite.Ddb->SetFlippedLeftRight(isMirrored != 0);
+            act_sprite.Ddb->SetTint(tint_red, tint_green, tint_blue, (tint_amount * 256) / 100);
 
             if (tint_amount != 0)
             {
                 if (tint_light == 0) // tint with 0 luminance, pass as 1 instead
-                    ActiveSprites[useindx].Ddb->SetLightLevel(1);
+                    act_sprite.Ddb->SetLightLevel(1);
                 else if (tint_light < 250)
-                    ActiveSprites[useindx].Ddb->SetLightLevel(tint_light);
+                    act_sprite.Ddb->SetLightLevel(tint_light);
                 else
-                    ActiveSprites[useindx].Ddb->SetLightLevel(0);
+                    act_sprite.Ddb->SetLightLevel(0);
             }
             else if (light_level != 0)
-                ActiveSprites[useindx].Ddb->SetLightLevel((light_level * 25) / 10 + 256);
+                act_sprite.Ddb->SetLightLevel((light_level * 25) / 10 + 256);
             else
-                ActiveSprites[useindx].Ddb->SetLightLevel(0);
+                act_sprite.Ddb->SetLightLevel(0);
 
         }
 
@@ -2052,7 +2063,7 @@ void prepare_characters_for_drawing() {
         // alpha channel was lost in the tinting process)
         //if (((tint_level) && (tint_amount < 100)) || (light_level))
         //sppic = -1;
-        add_to_sprite_list(ActiveSprites[useindx].Ddb, atxp + chin->pic_xoffs, atyp + chin->pic_yoffs, usebasel, chin->transparency, sppic);
+        add_to_sprite_list(act_sprite.Ddb, atxp + chin->pic_xoffs, atyp + chin->pic_yoffs, usebasel, chin->transparency, sppic);
 
         chin->actx=atxp+offsetx;
         chin->acty=atyp+offsety;
@@ -2590,4 +2601,43 @@ void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY
         gfxDriver->DrawSprite(extraX, extraY, extraBitmap);
 
     update_screen();
+}
+
+
+ActiveSprite::ActiveSprite()
+    : Bmp(NULL)
+    , Ddb(NULL)
+    , WalkBehindBmp(NULL)
+    , WalkBehindDdb(NULL)
+{
+}
+
+ActiveSprite::ActiveSprite(const ActiveSprite &act_spr)
+{
+    Bmp = act_spr.Bmp ? BitmapHelper::CreateBitmapReference(act_spr.Bmp) : NULL;
+    Ddb = act_spr.Ddb ? gfxDriver->CreateDDBReference(act_spr.Ddb) : NULL;
+    WalkBehindBmp = act_spr.WalkBehindBmp ? BitmapHelper::CreateBitmapReference(act_spr.WalkBehindBmp) : NULL;
+    WalkBehindDdb = act_spr.WalkBehindDdb ? gfxDriver->CreateDDBReference(act_spr.WalkBehindDdb) : NULL;
+    WalkBehindData = act_spr.WalkBehindData;
+}
+
+ActiveSprite::~ActiveSprite()
+{
+    Free();
+}
+
+void ActiveSprite::Free()
+{
+    delete Bmp;
+    if (Ddb)
+        gfxDriver->DestroyDDB(Ddb);
+    delete WalkBehindBmp;
+    if (WalkBehindDdb)
+        gfxDriver->DestroyDDB(WalkBehindDdb);
+
+    Bmp = NULL;    
+    Ddb = NULL;
+    WalkBehindBmp = NULL;
+    WalkBehindDdb = NULL;
+    WalkBehindData.valid = 0;
 }

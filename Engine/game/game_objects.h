@@ -52,6 +52,7 @@ extern AGS::Common::ObjectArray<CharacterCache> charcache;
 // object cache is room-wide
 extern AGS::Common::ObjectArray<ObjectCache> objcache;
 // move-to points
-extern AGS::Common::Array<MoveList> mls;
+extern AGS::Common::Array<MoveList> CharMoveLists;
+extern AGS::Common::Array<MoveList> ObjMoveLists;
 
 #endif // __AGS_EE_GAME__GAME_OBJECTS_H

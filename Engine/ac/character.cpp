@@ -175,7 +175,7 @@ void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
         return;
     }
 
-    MoveList *cmls = &mls[chaa->walking % TURNING_AROUND];
+    MoveList *cmls = &CharMoveLists[chaa->walking % TURNING_AROUND];
     if (cmls->numstage >= MAXNEEDSTAGES)
         quit("!MoveCharacterPath: move is too complex, cannot add any further paths");
 
@@ -837,7 +837,7 @@ void Character_StopMoving(CharacterInfo *charp) {
     }
     if ((charp->walking > 0) && (charp->walking < TURNING_AROUND)) {
         // if it's not a MoveCharDirect, make sure they end up on a walkable area
-        if ((mls[charp->walking].direct == 0) && (charp->room == displayed_room))
+        if ((CharMoveLists[charp->walking].direct == 0) && (charp->room == displayed_room))
             Character_PlaceOnWalkableArea(charp);
 
         DEBUG_CONSOLE("%s: stop moving", charp->scrname);
@@ -1549,16 +1549,16 @@ void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
 
     set_route_move_speed(move_speed_x, move_speed_y);
     set_color_depth(8);
-    int mslot=find_route(charX, charY, tox, toy, prepare_walkable_areas(chac), chac+CHMLSOFFS, 1, ignwal);
+    int mslot=find_route(charX, charY, tox, toy, prepare_walkable_areas(chac), CharMoveLists, chac+1, 1, ignwal);
     set_color_depth(final_col_dep);
     if (mslot>0) {
         chin->walking = mslot;
-        mls[mslot].direct = ignwal;
+        CharMoveLists[mslot].direct = ignwal;
 
         if ((game.Options[OPT_NATIVECOORDINATES] != 0) &&
             (game.DefaultResolution > 2))
         {
-            convert_move_path_to_high_res(&mls[mslot]);
+            convert_move_path_to_high_res(&CharMoveLists[mslot]);
         }
         // cancel any pending waits on current animations
         // or if they were already moving, keep the current wait - 
@@ -1569,8 +1569,8 @@ void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims) {
             chin->walkwait = waitWas;
             charextra[chac].animwait = animWaitWas;
 
-            if (mls[mslot].pos[0] != mls[mslot].pos[1]) {
-                fix_player_sprite(&mls[mslot],chin);
+            if (CharMoveLists[mslot].pos[0] != CharMoveLists[mslot].pos[1]) {
+                fix_player_sprite(&CharMoveLists[mslot],chin);
             }
         }
         else
@@ -1784,10 +1784,10 @@ int has_hit_another_character(int sourceChar) {
 int doNextCharMoveStep (CharacterInfo *chi, int &char_index, CharacterExtras *chex) {
     int ntf=0, xwas = chi->x, ywas = chi->y;
 
-    if (do_movelist_move(&chi->walking,&chi->x,&chi->y) == 2) 
+    if (do_movelist_move(CharMoveLists, &chi->walking,&chi->x,&chi->y) == 2) 
     {
         if ((chi->flags & CHF_MOVENOTWALK) == 0)
-            fix_player_sprite(&mls[chi->walking], chi);
+            fix_player_sprite(&CharMoveLists[chi->walking], chi);
     }
 
     ntf = has_hit_another_character(char_index);
@@ -1807,8 +1807,8 @@ int doNextCharMoveStep (CharacterInfo *chi, int &char_index, CharacterExtras *ch
         }
 
         if ((chi->walking < 1) || (chi->walking >= TURNING_AROUND)) ;
-        else if (mls[chi->walking].onpart > 0) {
-            mls[chi->walking].onpart --;
+        else if (CharMoveLists[chi->walking].onpart > 0) {
+            CharMoveLists[chi->walking].onpart --;
             chi->x = xwas;
             chi->y = ywas;
         }
@@ -2073,12 +2073,12 @@ Bitmap *GetCharacterImage(int charid, int *isFlipped)
 {
     if (!gfxDriver->HasAcceleratedStretchAndFlip())
     {
-        if (ActiveSprites[charid + thisroom.ObjectCount].Bmp != NULL) 
+        if (CharActiveSprites[charid].Bmp != NULL) 
         {
             // the ActiveSprites[].Bmp image is pre-flipped, so no longer register the image as such
             if (isFlipped)
                 *isFlipped = 0;
-            return ActiveSprites[charid + thisroom.ObjectCount].Bmp;
+            return CharActiveSprites[charid].Bmp;
         }
     }
     CharacterInfo*chin=&game.Characters[charid];

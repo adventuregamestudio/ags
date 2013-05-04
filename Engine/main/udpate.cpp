@@ -55,10 +55,10 @@ extern int is_text_overlay;
 extern IGraphicsDriver *gfxDriver;
 
 
-int do_movelist_move(short*mlnum,int*xx,int*yy) {
+int do_movelist_move(AGS::Common::Array<MoveList> &movelist_arr, short*mlnum,int*xx,int*yy) {
   int need_to_fix_sprite=0;
   if (mlnum[0]<1) quit("movelist_move: attempted to move on a non-exist movelist");
-  MoveList*cmls; cmls=&mls[mlnum[0]];
+  MoveList*cmls; cmls=&movelist_arr[mlnum[0]];
   fixed xpermove=cmls->xpermove[cmls->onstage],ypermove=cmls->ypermove[cmls->onstage];
 
   short targetx=short((cmls->pos[cmls->onstage+1] >> 16) & 0x00ffff);

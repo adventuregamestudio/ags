@@ -42,7 +42,7 @@ void RoomObject::UpdateCyclingView()
 {
 	if (IsOn != 1) return;
     if (Moving>0) {
-      do_movelist_move(&Moving,&X,&Y);
+      do_movelist_move(ObjMoveLists, &Moving,&X,&Y);
       }
     if (Cycling==0) return;
     if (View<0) return;

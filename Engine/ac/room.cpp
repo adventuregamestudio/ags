@@ -309,23 +309,10 @@ void unload_old_room() {
     // clear the ActiveSprites[].Bmp buffers to save memory, since the
     // objects/characters involved probably aren't on the
     // new screen. this also ensures all cached data is flushed
-    for (ff = 0; ff < MAX_INIT_SPR + game.CharacterCount; ff++) {
-        delete ActiveSprites[ff].Bmp;
-        ActiveSprites[ff].Bmp = NULL;
-
-        if (ActiveSprites[ff].Ddb != NULL)
-            gfxDriver->DestroyDDB(ActiveSprites[ff].Ddb);
-        ActiveSprites[ff].Ddb = NULL;
-
-        delete ActiveSprites[ff].WalkBehindBmp;
-        ActiveSprites[ff].WalkBehindBmp = NULL;
-
-        if (ActiveSprites[ff].WalkBehindDdb != NULL)
-            gfxDriver->DestroyDDB(ActiveSprites[ff].WalkBehindDdb);
-        ActiveSprites[ff].WalkBehindDdb = NULL;
-
-        ActiveSprites[ff].WalkBehindData.valid = 0;
+    for (int i = 0; i < CharActiveSprites.GetCount(); ++i) {
+        CharActiveSprites[i].Free();
     }
+    ObjActiveSprites.Empty();
 
     // if Hide Player Character was ticked, restore it to visible
     if (play.TemporarilyHidCharacter >= 0) {
@@ -409,6 +396,10 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     // Prepare object cache
     objcache.SetLength(thisroom.ObjectCount);
     objectScriptObjNames.SetLength(thisroom.ObjectCount);
+    ObjActiveSprites.SetLength(thisroom.ObjectCount);
+    // NOTE: the move list is 1-based due the way how character/object moving logic works;
+    // the change to 0-based list would require fixing more code beforehand
+    ObjMoveLists.SetLength(thisroom.ObjectCount + 1);
 
     if ((thisroom.GameId != NO_GAME_ID_IN_ROOM_FILE) &&
         (thisroom.GameId != game.UniqueId)) {

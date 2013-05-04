@@ -963,9 +963,6 @@ void engine_setup_screen()
     Common::Graphics *g = GetVirtualScreenGraphics();
 	g->SetBitmap(BitmapHelper::GetScreenBitmap());
     our_eip=-7;
-
-    for (int ee = 0; ee < MAX_INIT_SPR + game.CharacterCount; ee++)
-        ActiveSprites[ee].Bmp = NULL;
 }
 
 void init_game_settings() {

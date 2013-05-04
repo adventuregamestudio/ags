@@ -623,9 +623,10 @@ int load_game_file() {
     our_eip=-15;
 
     charextra = (CharacterExtras*)calloc(game.CharacterCount, sizeof(CharacterExtras));
-    // CHECKME: not sure this +1 and +2 is needed
-    mls.New(game.CharacterCount + MAX_INIT_SPR + 1);
-    ActiveSprites.New(game.CharacterCount + MAX_INIT_SPR + 2);
+    // NOTE: the move list is 1-based due the way how character/object moving logic works;
+    // the change to 0-based list would require fixing more code beforehand
+    CharMoveLists.New(game.CharacterCount + 1);
+    CharActiveSprites.New(game.CharacterCount);
     game.CharacterProperties.New(game.CharacterCount);
 
     allocate_memory_for_views(game.ViewCount);

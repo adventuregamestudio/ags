@@ -23,6 +23,7 @@
 #include "font/wfnfontrenderer.h"
 #include "util/stream.h"
 #include "util/file.h"
+#include "util/bbop.h"
 #include "gfx/bitmap.h"
 
 using AGS::Common::Bitmap;

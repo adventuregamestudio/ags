@@ -129,7 +129,8 @@ int find_nearest_walkable_area(Bitmap *tempw, int fromX, int fromY, int toX, int
 }
 
 #define MAX_GRANULARITY 3
-int walk_area_granularity[MAX_WALK_AREAS + 1];
+AGS::Common::Array<int> walk_area_granularity; //[MAX_WALK_AREAS + 1]
+AGS::Common::Array<int> walk_area_times; //[MAX_WALK_AREAS + 1];
 int is_route_possible(int fromx, int fromy, int tox, int toy, Bitmap *wss)
 {
   wallscreen = wss;
@@ -154,8 +155,10 @@ int is_route_possible(int fromx, int fromy, int tox, int toy, Bitmap *wss)
   int dd, ff;
   // initialize array for finding widths of walkable areas
   int thisar, inarow = 0, lastarea = 0;
-  int walk_area_times[MAX_WALK_AREAS + 1];
-  for (dd = 0; dd <= MAX_WALK_AREAS; dd++) {
+  
+  walk_area_times.SetLength(thisroom.WalkAreaCount + 1);
+  walk_area_granularity.SetLength(thisroom.WalkAreaCount + 1);
+  for (dd = 0; dd <= thisroom.WalkAreaCount; dd++) {
     walk_area_times[dd] = 0;
     walk_area_granularity[dd] = 0;
   }
@@ -166,7 +169,7 @@ int is_route_possible(int fromx, int fromy, int tox, int toy, Bitmap *wss)
       // count how high the area is at this point
       if ((thisar == lastarea) && (thisar > 0))
         inarow++;
-      else if (lastarea > MAX_WALK_AREAS)
+      else if (lastarea > thisroom.WalkAreaCount)
         quit("!Calculate_Route: invalid colours in walkable area mask");
       else if (lastarea != 0) {
         walk_area_granularity[lastarea] += inarow;
@@ -195,7 +198,7 @@ int is_route_possible(int fromx, int fromy, int tox, int toy, Bitmap *wss)
   }
 
   // find the average "width" of a path in this walkable area
-  for (dd = 1; dd <= MAX_WALK_AREAS; dd++) {
+  for (dd = 1; dd <= thisroom.WalkAreaCount; dd++) {
     if (walk_area_times[dd] == 0) {
       walk_area_granularity[dd] = MAX_GRANULARITY;
       continue;

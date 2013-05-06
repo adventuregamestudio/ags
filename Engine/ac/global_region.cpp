@@ -50,7 +50,7 @@ int GetRegionAt (int xxx, int yyy) {
     if (hsthere < 0)
         hsthere = 0;
 
-    if (hsthere >= MAX_REGIONS) {
+    if (hsthere >= thisroom.RegionCount) {
         char tempmsg[300];
         sprintf(tempmsg, "!An invalid pixel was found on the room region mask (colour %d, location: %d, %d)", hsthere, xxx, yyy);
         quit(tempmsg);
@@ -62,7 +62,7 @@ int GetRegionAt (int xxx, int yyy) {
 }
 
 void SetAreaLightLevel(int area, int brightness) {
-    if ((area < 0) || (area > MAX_REGIONS))
+    if ((area < 0) || (area >= thisroom.RegionCount))
         quit("!SetAreaLightLevel: invalid region");
     if (brightness < -100) brightness = -100;
     if (brightness > 100) brightness = 100;
@@ -74,7 +74,7 @@ void SetAreaLightLevel(int area, int brightness) {
 }
 
 void SetRegionTint (int area, int red, int green, int blue, int amount) {
-    if ((area < 0) || (area > MAX_REGIONS))
+    if ((area < 0) || (area >= thisroom.RegionCount))
         quit("!SetRegionTint: invalid region");
 
     if ((red < 0) || (red > 255) || (green < 0) || (green > 255) ||
@@ -107,7 +107,7 @@ void SetRegionTint (int area, int red, int green, int blue, int amount) {
 }
 
 void DisableRegion(int hsnum) {
-    if ((hsnum < 0) || (hsnum >= MAX_REGIONS))
+    if ((hsnum < 0) || (hsnum >= thisroom.RegionCount))
         quit("!DisableRegion: invalid region specified");
 
     croom->Regions[hsnum].Enabled = 0;
@@ -115,7 +115,7 @@ void DisableRegion(int hsnum) {
 }
 
 void EnableRegion(int hsnum) {
-    if ((hsnum < 0) || (hsnum >= MAX_REGIONS))
+    if ((hsnum < 0) || (hsnum >= thisroom.RegionCount))
         quit("!EnableRegion: invalid region specified");
 
     croom->Regions[hsnum].Enabled = 1;
@@ -141,7 +141,7 @@ void EnableGroundLevelAreas() {
 }
 
 void RunRegionInteraction (int regnum, int mood) {
-    if ((regnum < 0) || (regnum >= MAX_REGIONS))
+    if ((regnum < 0) || (regnum >= thisroom.RegionCount))
         quit("!RunRegionInteraction: invalid region speicfied");
     if ((mood < 0) || (mood > 2))
         quit("!RunRegionInteraction: invalid event specified");

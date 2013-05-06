@@ -76,9 +76,6 @@ extern char noWalkBehindsAtAll;
 extern unsigned int loopcounter;
 extern char *walkBehindExists;  // whether a WB area is in this column
 extern int *walkBehindStartY, *walkBehindEndY;
-extern int walkBehindLeft[MAX_OBJ], walkBehindTop[MAX_OBJ];
-extern int walkBehindRight[MAX_OBJ], walkBehindBottom[MAX_OBJ];
-extern IDriverDependantBitmap *walkBehindBitmap[MAX_OBJ];
 extern int walkBehindsCachedForBgNum;
 extern WalkBehindMethodEnum walkBehindMethod;
 extern int walk_behind_baselines_changed;
@@ -1201,11 +1198,11 @@ void draw_sprite_list() {
 
     if (walkBehindMethod == DrawAsSeparateSprite)
     {
-        for (int ee = 1; ee < MAX_OBJ; ee++)
+        for (int ee = 1; ee < WalkBehindPlacements.GetCount(); ee++)
         {
-            if (walkBehindBitmap[ee] != NULL)
+            if (WalkBehindPlacements[ee].Ddb != NULL)
             {
-                add_to_sprite_list(walkBehindBitmap[ee], walkBehindLeft[ee] - offsetx, walkBehindTop[ee] - offsety, 
+                add_to_sprite_list(WalkBehindPlacements[ee].Ddb, WalkBehindPlacements[ee].Left - offsetx, WalkBehindPlacements[ee].Top - offsety, 
                     croom->WalkBehinds[ee].Baseline, 0, -1, true);
             }
         }
@@ -1281,7 +1278,7 @@ void get_local_tint(int xpp, int ypp, int nolight,
             }
         }
 
-        if ((onRegion > 0) && (onRegion <= MAX_REGIONS)) {
+        if ((onRegion > 0) && (onRegion <= thisroom.RegionCount)) {
             light_level = thisroom.Regions[onRegion].Light;
             tint_level = thisroom.Regions[onRegion].Tint;
         }

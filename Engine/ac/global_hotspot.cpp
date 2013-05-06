@@ -32,21 +32,21 @@ extern CharacterInfo*playerchar;
 
 
 void DisableHotspot(int hsnum) {
-    if ((hsnum<1) | (hsnum>=MAX_HOTSPOTS))
+    if ((hsnum<1) | (hsnum>=thisroom.HotspotCount))
         quit("!DisableHotspot: invalid hotspot specified");
     croom->Hotspots[hsnum].Enabled=0;
     DEBUG_CONSOLE("Hotspot %d disabled", hsnum);
 }
 
 void EnableHotspot(int hsnum) {
-    if ((hsnum<1) | (hsnum>=MAX_HOTSPOTS))
+    if ((hsnum<1) | (hsnum>=thisroom.HotspotCount))
         quit("!EnableHotspot: invalid hotspot specified");
     croom->Hotspots[hsnum].Enabled=1;
     DEBUG_CONSOLE("Hotspot %d re-enabled", hsnum);
 }
 
 int GetHotspotPointX (int hotspot) {
-    if ((hotspot < 0) || (hotspot >= MAX_HOTSPOTS))
+    if ((hotspot < 0) || (hotspot >= thisroom.HotspotCount))
         quit("!GetHotspotPointX: invalid hotspot");
 
     if (thisroom.Hotspots[hotspot].WalkToPoint.x < 1)
@@ -56,7 +56,7 @@ int GetHotspotPointX (int hotspot) {
 }
 
 int GetHotspotPointY (int hotspot) {
-    if ((hotspot < 0) || (hotspot >= MAX_HOTSPOTS))
+    if ((hotspot < 0) || (hotspot >= thisroom.HotspotCount))
         quit("!GetHotspotPointY: invalid hotspot");
 
     if (thisroom.Hotspots[hotspot].WalkToPoint.x < 1)
@@ -75,7 +75,7 @@ int GetHotspotAt(int xxx,int yyy) {
 
 void GetHotspotName(int hotspot, char *buffer) {
     VALIDATE_STRING(buffer);
-    if ((hotspot < 0) || (hotspot >= MAX_HOTSPOTS))
+    if ((hotspot < 0) || (hotspot >= thisroom.HotspotCount))
         quit("!GetHotspotName: invalid hotspot number");
 
     strcpy(buffer, get_translation(thisroom.Hotspots[hotspot].Name));

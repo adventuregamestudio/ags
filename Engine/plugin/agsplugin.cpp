@@ -439,7 +439,7 @@ int IAGSEngine::GetRawPixelColor (int32 color) {
     return result;
 }
 int IAGSEngine::GetWalkbehindBaseline (int32 wa) {
-    if ((wa < 1) || (wa >= MAX_OBJ))
+    if ((wa < 1) || (wa >= thisroom.WalkBehindCount))
         quit("!IAGSEngine::GetWalkBehindBase: invalid walk-behind area specified");
     return croom->WalkBehinds[wa].Baseline;
 }
@@ -746,32 +746,34 @@ void IAGSEngine::SimulateMouseClick(int32 button) {
 
 int IAGSEngine::GetMovementPathWaypointCount(int32 pathId) {
     pathId = pathId % TURNING_AROUND;
-    if (pathId >= CHMLSOFFS)
+    if (pathId >= LEGACY_MOVELIST_CHARACTER_OFFSET)
     {
-        return CharMoveLists[pathId - CHMLSOFFS + 1].numstage;
+        return CharMoveLists[pathId - LEGACY_MOVELIST_CHARACTER_OFFSET + 1].numstage;
     }
     return ObjMoveLists[pathId].numstage;
 }
 
 int IAGSEngine::GetMovementPathLastWaypoint(int32 pathId) {
     pathId = pathId % TURNING_AROUND;
-    if (pathId >= CHMLSOFFS)
+    if (pathId >= LEGACY_MOVELIST_CHARACTER_OFFSET)
     {
-        return CharMoveLists[pathId - CHMLSOFFS + 1].onstage;
+        return CharMoveLists[pathId - LEGACY_MOVELIST_CHARACTER_OFFSET + 1].onstage;
     }
     return ObjMoveLists[pathId].onstage;
 }
 
 void IAGSEngine::GetMovementPathWaypointLocation(int32 pathId, int32 waypoint, int32 *x, int32 *y) {
     pathId = pathId % TURNING_AROUND;
-    const MoveList &movelist = pathId >= CHMLSOFFS ? CharMoveLists[pathId - CHMLSOFFS + 1] : ObjMoveLists[pathId];
+    const MoveList &movelist = pathId >= LEGACY_MOVELIST_CHARACTER_OFFSET ?
+        CharMoveLists[pathId - LEGACY_MOVELIST_CHARACTER_OFFSET + 1] : ObjMoveLists[pathId];
     *x = (movelist.pos[waypoint] >> 16) & 0x0000ffff;
     *y = (movelist.pos[waypoint] & 0x0000ffff);
 }
 
 void IAGSEngine::GetMovementPathWaypointSpeed(int32 pathId, int32 waypoint, int32 *xSpeed, int32 *ySpeed) {
     pathId = pathId % TURNING_AROUND;
-    const MoveList &movelist = pathId >= CHMLSOFFS ? CharMoveLists[pathId - CHMLSOFFS + 1] : ObjMoveLists[pathId];
+    const MoveList &movelist = pathId >= LEGACY_MOVELIST_CHARACTER_OFFSET ?
+        CharMoveLists[pathId - LEGACY_MOVELIST_CHARACTER_OFFSET + 1] : ObjMoveLists[pathId];
     *xSpeed = movelist.xpermove[waypoint];
     *ySpeed = movelist.ypermove[waypoint];
 }

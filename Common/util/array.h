@@ -320,7 +320,7 @@ public:
             count = count > 0 ? count : 0;
             if (count > _meta->Length)
             {
-                ReserveAndShift(false, max_length - _meta->Length);
+                ReserveAndShift(false, count - _meta->Length);
                 Construct(_meta->Length, count, value);
             }
             else

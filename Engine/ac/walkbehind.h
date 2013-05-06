@@ -18,6 +18,10 @@
 #ifndef __AGS_EE_AC__WALKBEHIND_H
 #define __AGS_EE_AC__WALKBEHIND_H
 
+#include "util/array.h"
+
+namespace AGS { namespace Engine { class IDriverDependantBitmap; } }
+
 enum WalkBehindMethodEnum
 {
     DrawOverCharSprite,
@@ -25,7 +29,22 @@ enum WalkBehindMethodEnum
     DrawAsSeparateCharSprite
 };
 
+struct WalkBehindPlacement
+{
+    int Left;
+    int Top;
+    int Right;
+    int Bottom;
+    AGS::Engine::IDriverDependantBitmap *Ddb;
+
+    WalkBehindPlacement();
+    WalkBehindPlacement(const WalkBehindPlacement &wbplace);
+    ~WalkBehindPlacement();
+};
+
 void update_walk_behind_images();
 void recache_walk_behinds ();
+
+extern AGS::Common::ObjectArray<WalkBehindPlacement> WalkBehindPlacements;
 
 #endif // __AGS_EE_AC__WALKBEHIND_H

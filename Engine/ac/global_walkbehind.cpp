@@ -23,7 +23,7 @@
 extern int walk_behind_baselines_changed;
 
 void SetWalkBehindBase(int wa,int bl) {
-  if ((wa < 1) || (wa >= MAX_OBJ))
+  if ((wa < 1) || (wa >= thisroom.WalkBehindCount))
     quit("!SetWalkBehindBase: invalid walk-behind area specified");
 
   if (bl != croom->WalkBehinds[wa].Baseline) {

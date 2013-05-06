@@ -92,7 +92,7 @@
 #define FOR_ANIMATION 1
 #define FOR_SCRIPT    2
 #define FOR_EXITLOOP  3
-#define CHMLSOFFS (MAX_INIT_SPR + 1)    // reserve this many movelists for objects & stuff
+#define LEGACY_MOVELIST_CHARACTER_OFFSET (LEGACY_MAX_ROOM_OBJECTS + 1)
 #define MAX_SCREEN_OVERLAYS 20
 #define abort_all_conditions restrict_until
 #define MAX_SCRIPT_AT_ONCE 10

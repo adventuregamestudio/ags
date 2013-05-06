@@ -18,22 +18,22 @@
 #define EXIT_NORMAL 91
 #define EXIT_CRASH  92
 
-#define MAX_INIT_SPR  40
-#define MAX_OBJ       16  // max walk-behinds
+#define LEGACY_MAX_ROOM_OBJECTS     40
+#define LEGACY_MAX_ROOM_WALKBEHINDS 16
+// v2.62 increased from 20 to 30; v2.8 to 50
+#define LEGACY_MAX_ROOM_HOTSPOTS    50
+#define LEGACY_MAX_ROOM_REGIONS     16
+#define LEGACY_MAX_ROOM_WALKAREAS   15
+#define MAX_DIALOG    500
+#define MAX_INV       301
+
+#define MAX_SCRIPT_NAME_LEN 20
+
+// Obsolete constants
 #define NUM_MISC      20
 #define MAXMESS       100
 #define NUMOTCON      7                 // number of conditions before standing on
 #define NUM_CONDIT    (120 + NUMOTCON)
-#define MAX_HOTSPOTS  50   // v2.62 increased from 20 to 30; v2.8 to 50
-#define MAX_REGIONS   16
-#define MAX_DIALOG    500
-#define MAX_INV       301
-
-// careful with this - the shadinginfo[] array needs to be
-// MAX_WALK_AREAS + 1 if this gets changed
-#define MAX_WALK_AREAS 15
-
-#define MAX_SCRIPT_NAME_LEN 20
 
 //const int MISC_COND = MAX_OBJ * 4 + NUMOTCON + MAX_INIT_SPR * 4;
 

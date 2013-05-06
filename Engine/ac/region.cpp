@@ -95,7 +95,7 @@ void generate_light_table() {
     int cc;
     if ((game.ColorDepth == 1) && (color_map == NULL)) {
         // in 256-col mode, check if we need the light table this room
-        for (cc=0;cc < MAX_REGIONS;cc++) {
+        for (cc=0;cc < thisroom.RegionCount;cc++) {
             if (thisroom.Regions[cc].Light < 0) {
                 create_light_table(&maincoltable,palette,0,0,0,NULL);
                 color_map=&maincoltable;

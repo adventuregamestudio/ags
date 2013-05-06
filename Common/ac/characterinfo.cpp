@@ -46,7 +46,7 @@ void CharacterInfo::ReadFromFile(Stream *in)
     walking = in->ReadInt16();
     if (walking > 0)
     {
-        walking -= MAX_INIT_SPR + 1;
+        walking -= LEGACY_MAX_ROOM_OBJECTS + 1;
     }
     animating = in->ReadInt16();
     walkspeed = in->ReadInt16();
@@ -99,7 +99,7 @@ void CharacterInfo::WriteToFile(Stream *out)
     out->WriteInt16(frame);
     if (walking > 0)
     {
-        out->WriteInt16(walking + MAX_INIT_SPR + 1);
+        out->WriteInt16(walking + LEGACY_MAX_ROOM_OBJECTS + 1);
     }
     else
     {

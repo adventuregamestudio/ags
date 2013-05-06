@@ -1160,7 +1160,7 @@ void init_game_settings() {
         play.DebugMode = 1;
     gui_disabled_style = convert_gui_disabled_style(game.Options[OPT_DISABLEOFF]);
 
-    for (int i = 0; i < MAX_WALK_AREAS+1; ++i)
+    for (int i = 0; i < play.WalkAreasEnabled.GetCount(); ++i)
     {
         play.WalkAreasEnabled[i] = true;
     }

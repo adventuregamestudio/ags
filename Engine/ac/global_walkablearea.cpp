@@ -32,7 +32,7 @@ int GetScalingAt (int x, int y) {
 }
 
 void SetAreaScaling(int area, int min, int max) {
-    if ((area < 0) || (area > MAX_WALK_AREAS))
+    if ((area < 0) || (area >= thisroom.WalkAreaCount))
         quit("!SetAreaScaling: invalid walkalbe area");
 
     if (min > max)
@@ -56,7 +56,7 @@ void SetAreaScaling(int area, int min, int max) {
 }
 
 void RemoveWalkableArea(int areanum) {
-  if ((areanum<1) | (areanum>15))
+  if ((areanum<1) | (areanum>=thisroom.WalkAreaCount))
     quit("!RemoveWalkableArea: invalid area number specified (1-15).");
   play.WalkAreasEnabled[areanum]=0;
   redo_walkable_areas();

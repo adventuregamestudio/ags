@@ -256,15 +256,15 @@ void RoomInfo::InitDefaults()
     Resolution      = 1;
     BytesPerPixel   = 1;
 
-    WalkBehindCount = 0;
-    ObjectCount = 0;
-    MessageCount    = 0;
-    AnimationCount  = 0;
-    WalkAreaCount   = 0;
     HotspotCount    = 0;
+    ObjectCount     = 0;
     RegionCount     = 0;
+    WalkAreaCount   = 0;
+    WalkBehindCount = 0;
     BkgSceneCount   = 1;
     LocalVariableCount = 0;
+    MessageCount    = 0;
+    AnimationCount  = 0;
 
     Backgrounds.New(1);
     BkgSceneAnimSpeed = 5;
@@ -274,29 +274,6 @@ void RoomInfo::InitDefaults()
 
     memset(Palette, 0, sizeof(Palette));
     memset(Options, 0, sizeof(Options));
-
-    // TODO: this is done for safety reasons;
-    // should be reworked when all the code is altered to remove any
-    // usage of MAX_* constants for room objects and regions.
-    Hotspots.New(MAX_HOTSPOTS);
-    Objects.New(MAX_INIT_SPR);
-    Regions.New(MAX_REGIONS);    
-    WalkAreas.New(MAX_WALK_AREAS + 1);
-    WalkBehinds.New(MAX_OBJ);    
-    
-    for (int i = 0; i < MAX_HOTSPOTS; ++i)
-    {
-        Hotspots[i].EventHandlers.Interaction = new NewInteraction();
-    }
-    for (int i = 0; i < MAX_INIT_SPR; ++i)
-    {
-        Objects[i].EventHandlers.Interaction = new NewInteraction();
-    }    
-    for (int i = 0; i < MAX_REGIONS; ++i)
-    {
-        Regions[i].EventHandlers.Interaction = new NewInteraction();
-    }
-    // end TODO
 }
 
 RoomInfoError RoomInfo::ReadBlock(Stream *in, RoomFormatBlock block_type)
@@ -374,6 +351,7 @@ RoomInfoError RoomInfo::ReadMainBlock(Stream *in)
 
     BytesPerPixel = _acroom_bpp;
     WalkBehindCount = in->ReadInt16();
+    WalkBehinds.SetLength(WalkBehindCount);
     for (int i = 0; i < WalkBehindCount; ++i)
     {
         WalkBehinds[i].Baseline = in->ReadInt16();;
@@ -386,6 +364,7 @@ RoomInfoError RoomInfo::ReadMainBlock(Stream *in)
     {
         HotspotCount = 20;
     }
+    Hotspots.SetLength(HotspotCount);
 
     for (int i = 0; i < HotspotCount; ++i)
     {
@@ -414,6 +393,7 @@ RoomInfoError RoomInfo::ReadMainBlock(Stream *in)
     }
     
     WalkAreaCount = in->ReadInt32();
+    WalkAreas.SetLength(WalkAreaCount);
     for (int i = 0; i < WalkAreaCount; ++i)
     {
         WalkAreas[i].WallPoints.ReadFromFile(in);
@@ -427,6 +407,7 @@ RoomInfoError RoomInfo::ReadMainBlock(Stream *in)
     Edges.Right = in->ReadInt16();
 
     ObjectCount = in->ReadInt16();
+    Objects.SetLength(ObjectCount);
     for (int i = 0; i < ObjectCount; ++i)
     {
         Objects[i].ReadFromFile(in);
@@ -448,12 +429,10 @@ RoomInfoError RoomInfo::ReadMainBlock(Stream *in)
         {
             for (int i = 0; i < HotspotCount; ++i)
             {
-                delete Hotspots[i].EventHandlers.Interaction;
                 Hotspots[i].EventHandlers.Interaction = deserialize_new_interaction(in);
             }
             for (int i = 0; i < ObjectCount; ++i)
             {
-                delete Objects[i].EventHandlers.Interaction;
                 Objects[i].EventHandlers.Interaction = deserialize_new_interaction(in);
             }
             EventHandlers.Interaction = deserialize_new_interaction(in);
@@ -462,11 +441,11 @@ RoomInfoError RoomInfo::ReadMainBlock(Stream *in)
         if (LoadedVersion >= kRoomVersion_255b)
         {
             RegionCount = in->ReadInt32();
+            Regions.SetLength(RegionCount);
             if (LoadedVersion < kRoomVersion_300a) 
             {
                 for (int i = 0; i < RegionCount; ++i)
                 {
-                    delete Regions[i].EventHandlers.Interaction;
                     Regions[i].EventHandlers.Interaction = deserialize_new_interaction(in);
 		        }
             }
@@ -517,11 +496,15 @@ RoomInfoError RoomInfo::ReadMainBlock(Stream *in)
         Resolution = in->ReadInt16();
     }
 
-    WalkAreaCount = MAX_WALK_AREAS;
     if (LoadedVersion >= kRoomVersion_240)
     {
         WalkAreaCount = in->ReadInt32();
     }
+    else
+    {
+        WalkAreaCount = LEGACY_MAX_ROOM_WALKAREAS;
+    }
+    WalkAreas.SetLength(WalkAreaCount);
     
     if (LoadedVersion >= kRoomVersion_200_alpha7)
     {
@@ -625,9 +608,13 @@ RoomInfoError RoomInfo::ReadMainBlock(Stream *in)
 
     if (LoadedVersion >= kRoomVersion_114)
     {
-        for (int i = 0; i < MAX_WALK_AREAS + 1; ++i)
+        for (int i = 0; i < WalkAreas.GetCount(); ++i)
         {
             WalkAreas[i].ShadingView = in->ReadInt16();
+        }
+        for (int i = WalkAreas.GetCount(); i < LEGACY_MAX_ROOM_WALKAREAS + 1; ++i)
+        {
+            in->ReadInt16();
         }
     }
 
@@ -687,7 +674,9 @@ RoomInfoError RoomInfo::ReadMainBlock(Stream *in)
         if (RegionMask == NULL)
         {
             RegionMask = BitmapHelper::CreateBitmapCopy(WalkAreaMask, 8);
-            for (int i = 0; i < MAX_REGIONS; ++i)
+            RegionCount = WalkAreaCount;
+            Regions.SetLength(WalkAreaCount);
+            for (int i = 0; i < WalkAreaCount; ++i)
             {
                 Regions[i].Light = WalkAreas[i].Light;
             }

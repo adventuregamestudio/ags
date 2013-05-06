@@ -71,10 +71,10 @@ private:
 public:
     bool                BeenHere;
     
-    Array<RoomHotspot>  Hotspots;
-    Array<RoomObject>   Objects;
-    Array<RoomRegion>   Regions;
-    Array<WalkBehind>   WalkBehinds;
+    ObjectArray<RoomHotspot> Hotspots;
+    ObjectArray<RoomObject>  Objects;
+    ObjectArray<RoomRegion>  Regions;
+    Array<WalkBehind>        WalkBehinds;
 
     NewInteraction      Interaction;
     Array<int32_t>      InteractionVariableValues;

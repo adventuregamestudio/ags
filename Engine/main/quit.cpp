@@ -21,6 +21,7 @@
 #include "ac/draw.h"
 #include "ac/record.h"
 #include "ac/translation.h"
+#include "ac/walkbehind.h"
 #include "debug/agseditordebugger.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
@@ -312,6 +313,7 @@ void quit(const char *quitmsg) {
     // remove the game window
     allegro_exit();
 
+    WalkBehindPlacements.Free();
     quit_release_gfx_driver();
 
     platform->PostAllegroExit();

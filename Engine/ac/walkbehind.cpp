@@ -26,36 +26,60 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern IGraphicsDriver *gfxDriver;
 
-
 char *walkBehindExists = NULL;  // whether a WB area is in this column
 int *walkBehindStartY = NULL, *walkBehindEndY = NULL;
 char noWalkBehindsAtAll = 0;
-int walkBehindLeft[MAX_OBJ], walkBehindTop[MAX_OBJ];
-int walkBehindRight[MAX_OBJ], walkBehindBottom[MAX_OBJ];
-IDriverDependantBitmap *walkBehindBitmap[MAX_OBJ];
 int walkBehindsCachedForBgNum = 0;
 WalkBehindMethodEnum walkBehindMethod = DrawOverCharSprite;
 int walk_behind_baselines_changed = 0;
+
+AGS::Common::ObjectArray<WalkBehindPlacement> WalkBehindPlacements;
+
+WalkBehindPlacement::WalkBehindPlacement()
+    : Left(0)
+    , Top(0)
+    , Right(0)
+    , Bottom(0)
+    , Ddb(NULL)
+{
+}
+
+WalkBehindPlacement::WalkBehindPlacement(const WalkBehindPlacement &wbplace)
+{
+    Left = wbplace.Left;
+    Top = wbplace.Top;
+    Right = wbplace.Right;
+    Bottom = wbplace.Bottom;
+    Ddb = wbplace.Ddb ? gfxDriver->CreateDDBReference(wbplace.Ddb) : NULL;
+}
+
+WalkBehindPlacement::~WalkBehindPlacement()
+{
+    if (Ddb)
+    {
+        gfxDriver->DestroyDDB(Ddb);
+    }
+}
 
 void update_walk_behind_images()
 {
   int ee, rr;
   int bpp = (thisroom.Backgrounds[play.RoomBkgFrameIndex].Graphic->GetColorDepth() + 7) / 8;
   Bitmap *wbbmp;
-  for (ee = 1; ee < MAX_OBJ; ee++)
+  for (ee = 1; ee < WalkBehindPlacements.GetCount(); ee++)
   {
     update_polled_stuff_if_runtime();
     
-    if (walkBehindRight[ee] > 0)
+    if (WalkBehindPlacements[ee].Right > 0)
     {
       wbbmp = BitmapHelper::CreateTransparentBitmap( 
-                               (walkBehindRight[ee] - walkBehindLeft[ee]) + 1,
-                               (walkBehindBottom[ee] - walkBehindTop[ee]) + 1,
+                               (WalkBehindPlacements[ee].Right - WalkBehindPlacements[ee].Left) + 1,
+                               (WalkBehindPlacements[ee].Bottom - WalkBehindPlacements[ee].Top) + 1,
 							   thisroom.Backgrounds[play.RoomBkgFrameIndex].Graphic->GetColorDepth());
-      int yy, startX = walkBehindLeft[ee], startY = walkBehindTop[ee];
-      for (rr = startX; rr <= walkBehindRight[ee]; rr++)
+      int yy, startX = WalkBehindPlacements[ee].Left, startY = WalkBehindPlacements[ee].Top;
+      for (rr = startX; rr <= WalkBehindPlacements[ee].Right; rr++)
       {
-        for (yy = startY; yy <= walkBehindBottom[ee]; yy++)
+        for (yy = startY; yy <= WalkBehindPlacements[ee].Bottom; yy++)
         {
           if (thisroom.WalkBehindMask->GetScanLine(yy)[rr] == ee)
           {
@@ -67,11 +91,11 @@ void update_walk_behind_images()
 
       update_polled_stuff_if_runtime();
 
-      if (walkBehindBitmap[ee] != NULL)
+      if (WalkBehindPlacements[ee].Ddb != NULL)
       {
-        gfxDriver->DestroyDDB(walkBehindBitmap[ee]);
+        gfxDriver->DestroyDDB(WalkBehindPlacements[ee].Ddb);
       }
-      walkBehindBitmap[ee] = gfxDriver->CreateDDBFromBitmap(wbbmp, false);
+      WalkBehindPlacements[ee].Ddb = gfxDriver->CreateDDBFromBitmap(wbbmp, false);
       delete wbbmp;
     }
   }
@@ -94,17 +118,18 @@ void recache_walk_behinds () {
 
   int ee,rr,tmm;
   const int NO_WALK_BEHIND = 100000;
-  for (ee = 0; ee < MAX_OBJ; ee++)
+  WalkBehindPlacements.SetLength(thisroom.WalkBehindCount);
+  for (ee = 0; ee < WalkBehindPlacements.GetCount(); ee++)
   {
-    walkBehindLeft[ee] = NO_WALK_BEHIND;
-    walkBehindTop[ee] = NO_WALK_BEHIND;
-    walkBehindRight[ee] = 0;
-    walkBehindBottom[ee] = 0;
+    WalkBehindPlacements[ee].Left = NO_WALK_BEHIND;
+    WalkBehindPlacements[ee].Top = NO_WALK_BEHIND;
+    WalkBehindPlacements[ee].Right = 0;
+    WalkBehindPlacements[ee].Bottom = 0;
 
-    if (walkBehindBitmap[ee] != NULL)
+    if (WalkBehindPlacements[ee].Ddb != NULL)
     {
-      gfxDriver->DestroyDDB(walkBehindBitmap[ee]);
-      walkBehindBitmap[ee] = NULL;
+      gfxDriver->DestroyDDB(WalkBehindPlacements[ee].Ddb);
+      WalkBehindPlacements[ee].Ddb = NULL;
     }
   }
 
@@ -120,7 +145,7 @@ void recache_walk_behinds () {
     for (rr=0;rr<thisroom.WalkBehindMask->GetHeight();rr++) {
       tmm = thisroom.WalkBehindMask->GetScanLine(rr)[ee];
       //tmm = _getpixel(thisroom.WalkBehindMask,ee,rr);
-      if ((tmm >= 1) && (tmm < MAX_OBJ)) {
+      if ((tmm >= 1) && (tmm < thisroom.WalkBehindCount)) {
         if (!walkBehindExists[ee]) {
           walkBehindStartY[ee] = rr;
           walkBehindExists[ee] = tmm;
@@ -128,10 +153,10 @@ void recache_walk_behinds () {
         }
         walkBehindEndY[ee] = rr + 1;  // +1 to allow bottom line of screen to work
 
-        if (ee < walkBehindLeft[tmm]) walkBehindLeft[tmm] = ee;
-        if (rr < walkBehindTop[tmm]) walkBehindTop[tmm] = rr;
-        if (ee > walkBehindRight[tmm]) walkBehindRight[tmm] = ee;
-        if (rr > walkBehindBottom[tmm]) walkBehindBottom[tmm] = rr;
+        if (ee < WalkBehindPlacements[tmm].Left) WalkBehindPlacements[tmm].Left = ee;
+        if (rr < WalkBehindPlacements[tmm].Top) WalkBehindPlacements[tmm].Top = rr;
+        if (ee > WalkBehindPlacements[tmm].Right) WalkBehindPlacements[tmm].Right = ee;
+        if (rr > WalkBehindPlacements[tmm].Bottom) WalkBehindPlacements[tmm].Bottom = rr;
       }
     }
   }

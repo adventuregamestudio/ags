@@ -373,7 +373,8 @@ void unload_old_room() {
         roominst=NULL;
     }
     else croom->ScriptDataSize=0;
-    for (int i = 0; i < MAX_WALK_AREAS+1; ++i)
+    // CHECKME
+    for (int i = 0; i < play.WalkAreasEnabled.GetCount(); ++i)
     {
         play.WalkAreasEnabled[i] = true;
     }
@@ -671,10 +672,12 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
 
     our_eip=205;
     // setup objects
+    if ((newnum>=0) & (newnum<MAX_ROOMS))
+        croom = AGS::Engine::GetRoomState(newnum);
+    else croom=&troom;
+
     if (forchar != NULL) {
         // if not restoring a game, always reset this room
-        troom.BeenHere=0;  
-        troom.ScriptDataSize=0;
         for (int i = 0; i < troom.Hotspots.GetCount(); ++i)
         {
             troom.Hotspots[i].Enabled = true;
@@ -684,9 +687,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             troom.Regions[i].Enabled = true;
         }
     }
-    if ((newnum>=0) & (newnum<MAX_ROOMS))
-        croom = AGS::Engine::GetRoomState(newnum);
-    else croom=&troom;
 
     if (croom->BeenHere) {
         // if we've been here before, save the Times Run information
@@ -696,16 +696,21 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         if (thisroom.EventHandlers.ScriptFnRef == NULL)
         {
             thisroom.EventHandlers.Interaction->copy_timesrun_from (&croom->Interaction);
-            for (cc=0;cc < MAX_HOTSPOTS;cc++)
+            for (cc=0;cc < croom->Hotspots.GetCount();cc++)
                 thisroom.Hotspots[cc].EventHandlers.Interaction->copy_timesrun_from (&croom->Hotspots[cc].Interaction);
-            for (cc=0;cc < MAX_INIT_SPR;cc++)
+            for (cc=0;cc < croom->Objects.GetCount();cc++)
                 thisroom.Objects[cc].EventHandlers.Interaction->copy_timesrun_from (&croom->Objects[cc].Interaction);
-            for (cc=0;cc < MAX_REGIONS;cc++)
+            for (cc=0;cc < croom->Regions.GetCount();cc++)
                 thisroom.Regions[cc].EventHandlers.Interaction->copy_timesrun_from (&croom->Regions[cc].Interaction);
         }
+
+        for (int ff = 0; ff < thisroom.LocalVariableCount; ff++)
+            thisroom.LocalVariables[ff].value = croom->InteractionVariableValues[ff];
     }
-    if (!croom->BeenHere) {
+    else
+    {
         croom->ObjectCount=thisroom.ObjectCount;
+        croom->Objects.SetLength(thisroom.ObjectCount);
         croom->ScriptDataSize=0;
         for (cc=0;cc<croom->ObjectCount;cc++) {
             croom->Objects[cc].X=thisroom.Objects[cc].X;
@@ -733,8 +738,9 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
                 //        croom->obj[cc].baseoffs=thisroom.Objects[].Baseline[cc]-thisroom.Objects[cc].y;
                 croom->Objects[cc].Baseline=thisroom.Objects[cc].Baseline;
         }
-        // FIXME: use variable size
-        for (int i = 0; i < MAX_OBJ; ++i)
+        
+        croom->WalkBehinds.SetLength(thisroom.WalkBehindCount);
+        for (int i = 0; i < thisroom.WalkBehindCount; ++i)
         {
             croom->WalkBehinds[i].Baseline = thisroom.WalkBehinds[i].Baseline;
         }
@@ -747,19 +753,16 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         for (cc=0;cc<MAX_INIT_SPR;cc++)
         croom->objcond[cc]=thisroom.objcond[cc];*/
 
-        for (cc=0;cc < MAX_HOTSPOTS;cc++) {
+        croom->Hotspots.SetLength(thisroom.HotspotCount);
+        for (cc=0;cc < thisroom.HotspotCount;cc++) {
             croom->Hotspots[cc].Enabled = 1;
         }
-        for (cc = 0; cc < MAX_REGIONS; cc++) {
+        croom->Regions.SetLength(thisroom.RegionCount);
+        for (cc = 0; cc < thisroom.RegionCount; cc++) {
             croom->Regions[cc].Enabled = 1;
         }
         croom->BeenHere=1;
         in_new_room=2;
-    }
-    else {
-        // We have been here before
-        for (int ff = 0; ff < thisroom.LocalVariableCount; ff++)
-            thisroom.LocalVariables[ff].value = croom->InteractionVariableValues[ff];
     }
 
     update_polled_stuff_if_runtime();
@@ -768,11 +771,11 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     {
         // copy interactions from room file into our temporary struct
         croom->Interaction = *thisroom.EventHandlers.Interaction;
-        for (cc=0;cc<MAX_HOTSPOTS;cc++)
+        for (cc=0;cc<thisroom.Hotspots.GetCount();cc++)
             croom->Hotspots[cc].Interaction = *thisroom.Hotspots[cc].EventHandlers.Interaction;
-        for (cc=0;cc<MAX_INIT_SPR;cc++)
+        for (cc=0;cc<thisroom.Objects.GetCount();cc++)
             croom->Objects[cc].Interaction = *thisroom.Objects[cc].EventHandlers.Interaction;
-        for (cc=0;cc<MAX_REGIONS;cc++)
+        for (cc=0;cc<thisroom.Regions.GetCount();cc++)
             croom->Regions[cc].Interaction = *thisroom.Regions[cc].EventHandlers.Interaction;
     }
 

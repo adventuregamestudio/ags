@@ -61,7 +61,7 @@ int get_area_scaling (int onarea, int xx, int yy) {
     xx = convert_to_low_res(xx);
     yy = convert_to_low_res(yy);
 
-    if ((onarea >= 0) && (onarea <= MAX_WALK_AREAS) &&
+    if ((onarea >= 0) && (onarea <= thisroom.WalkAreaCount) &&
         (thisroom.WalkAreas[onarea].Zoom2 != NOT_VECTOR_SCALED)) {
             // We have vector scaling!
             // In case the character is off the screen, limit the Y co-ordinate
@@ -80,7 +80,7 @@ int get_area_scaling (int onarea, int xx, int yy) {
             zoom_level = ((thisroom.WalkAreas[onarea].Zoom2 - thisroom.WalkAreas[onarea].Zoom) * (percent)) / 100 + thisroom.WalkAreas[onarea].Zoom;
             zoom_level += 100;
     }
-    else if ((onarea >= 0) & (onarea <= MAX_WALK_AREAS))
+    else if ((onarea >= 0) & (onarea <= thisroom.WalkAreaCount))
         zoom_level = thisroom.WalkAreas[onarea].Zoom + 100;
 
     if (zoom_level == 0)

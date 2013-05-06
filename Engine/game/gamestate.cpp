@@ -12,7 +12,11 @@ using Common::AlignedStream;
 GameState::GameState()
 {
     GlobalScriptVariables.New(MAXGSVALUES);
-    WalkAreasEnabled.New(MAX_WALK_AREAS+1);
+    // TODO: this array has to be precreated with constant size due
+    // flaw in internal logic which requires that elements exist when
+    // game state is loaded from savedgame, when actual number of areas
+    // in current room is unknown.
+    WalkAreasEnabled.New(LEGACY_MAX_ROOM_WALKAREAS+1);
     ScriptTimers.New(MAX_TIMERS);
     ParsedWords.New(MAX_PARSED_WORDS);
     RoomBkgWasModified.New(MAX_BSCENE);
@@ -128,7 +132,7 @@ void GameState::ReadFromFile_v321(Stream *in)
     MusicLoopMode = in->ReadInt32();
     MusicMasterVolume = in->ReadInt32();
     DigitalMasterVolume = in->ReadInt32();
-    WalkAreasEnabled.ReadRawOver(in, MAX_WALK_AREAS+1);
+    WalkAreasEnabled.ReadRawOver(in, LEGACY_MAX_ROOM_WALKAREAS+1);
     ScreenFlipped = in->ReadInt16();
     ViewportLocked = in->ReadInt16();
     CharacterEnterRoomAtX = in->ReadInt32();

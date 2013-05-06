@@ -45,6 +45,7 @@ void RoomState::ReadFromFile_v321(Stream *in)
 
     BeenHere = in->ReadInt32() != 0;
     ObjectCount = in->ReadInt32();
+    Objects.SetLength(ObjectCount);
     ReadRoomObjects_Aligned(in);
     int16_t flag_states[MAX_FLAGS];
     in->ReadArrayOfInt16(flag_states, MAX_FLAGS);
@@ -52,31 +53,63 @@ void RoomState::ReadFromFile_v321(Stream *in)
     in->ReadInt32(); // tsdata pointer
 
     // TODO: use room base to get real objects count
-    for (int i = 0; i < MAX_HOTSPOTS; ++i)
+    NewInteraction dummy_interaction;
+    for (int i = 0; i < Hotspots.GetCount(); ++i)
     {
         Hotspots[i].Interaction.ReadFromFile(in);
     }
-    for (int i = 0; i < MAX_INIT_SPR; ++i)
+    for (int i = Hotspots.GetCount(); i < LEGACY_MAX_ROOM_HOTSPOTS; ++i)
+    {
+        dummy_interaction.ReadFromFile(in);
+    }
+
+    for (int i = 0; i < ObjectCount; ++i)
     {
         Objects[i].Interaction.ReadFromFile(in);
     }
-    for (int i = 0; i < MAX_REGIONS; ++i)
+    for (int i = ObjectCount; i < LEGACY_MAX_ROOM_OBJECTS; ++i)
+    {
+        dummy_interaction.ReadFromFile(in);
+    }
+
+    for (int i = 0; i < Regions.GetCount(); ++i)
     {
         Regions[i].Interaction.ReadFromFile(in);
     }
+    for (int i = Regions.GetCount(); i < LEGACY_MAX_ROOM_REGIONS; ++i)
+    {
+        dummy_interaction.ReadFromFile(in);
+    }
+
     Interaction.ReadFromFile(in);
-    for (int i = 0; i < MAX_HOTSPOTS; ++i)
+
+    for (int i = 0; i < Hotspots.GetCount(); ++i)
     {
         Hotspots[i].Enabled = in->ReadInt8() != 0;
     }
-    for (int i = 0; i < MAX_REGIONS; ++i)
+    for (int i = Hotspots.GetCount(); i < LEGACY_MAX_ROOM_HOTSPOTS; ++i)
+    {
+        in->ReadInt8();
+    }
+
+    for (int i = 0; i < Regions.GetCount(); ++i)
     {
         Regions[i].Enabled = in->ReadInt8() != 0;
     }
-    for (int i = 0; i < MAX_OBJ; ++i)
+    for (int i = Regions.GetCount(); i < LEGACY_MAX_ROOM_REGIONS; ++i)
+    {
+        in->ReadInt8();
+    }
+
+    for (int i = 0; i < WalkBehinds.GetCount(); ++i)
     {
         WalkBehinds[i].Baseline = in->ReadInt16();
     }
+    for (int i = WalkBehinds.GetCount(); i < LEGACY_MAX_ROOM_WALKBEHINDS; ++i)
+    {
+        in->ReadInt16();
+    }
+
     InteractionVariableValues.ReadRawOver(in, MAX_GLOBAL_VARIABLES);
 }
 
@@ -92,31 +125,63 @@ void RoomState::WriteToFile_v321(Stream *out)
     out->WriteInt32(ScriptDataSize > 0 ? 1 : 0);
 
     // TODO: write real objects count
-    for (int i = 0; i < MAX_HOTSPOTS; ++i)
+    NewInteraction dummy_interaction;
+    for (int i = 0; i < Hotspots.GetCount(); ++i)
     {
         Hotspots[i].Interaction.WriteToFile(out);
     }
-    for (int i = 0; i < MAX_INIT_SPR; ++i)
+    for (int i = Hotspots.GetCount(); i < LEGACY_MAX_ROOM_HOTSPOTS; ++i)
+    {
+        dummy_interaction.WriteToFile(out);
+    }
+
+    for (int i = 0; i < ObjectCount; ++i)
     {
         Objects[i].Interaction.WriteToFile(out);
     }
-    for (int i = 0; i < MAX_REGIONS; ++i)
+    for (int i = ObjectCount; i < LEGACY_MAX_ROOM_OBJECTS; ++i)
+    {
+        dummy_interaction.WriteToFile(out);
+    }
+
+    for (int i = 0; i < Regions.GetCount(); ++i)
     {
         Regions[i].Interaction.WriteToFile(out);
     }
+    for (int i = Regions.GetCount(); i < LEGACY_MAX_ROOM_REGIONS; ++i)
+    {
+        dummy_interaction.WriteToFile(out);
+    }
+
     Interaction.WriteToFile(out);
-    for (int i = 0; i < MAX_HOTSPOTS; ++i)
+
+    for (int i = 0; i < Hotspots.GetCount(); ++i)
     {
         out->WriteInt8(Hotspots[i].Enabled ? 1 : 0);
     }
-    for (int i = 0; i < MAX_REGIONS; ++i)
+    for (int i = Hotspots.GetCount(); i < LEGACY_MAX_ROOM_HOTSPOTS; ++i)
+    {
+        out->WriteInt8(0);
+    }
+
+    for (int i = 0; i < Regions.GetCount(); ++i)
     {
         out->WriteInt8(Regions[i].Enabled ? 1 : 0);
     }
-    for (int i = 0; i < MAX_OBJ; ++i)
+    for (int i = Regions.GetCount(); i < LEGACY_MAX_ROOM_REGIONS; ++i)
+    {
+        out->WriteInt8(0);
+    }
+
+    for (int i = 0; i < WalkBehinds.GetCount(); ++i)
     {
         out->WriteInt16(WalkBehinds[i].Baseline);
     }
+    for (int i = WalkBehinds.GetCount(); i < LEGACY_MAX_ROOM_WALKBEHINDS; ++i)
+    {
+        out->WriteInt16(0);
+    }
+
     InteractionVariableValues.WriteRaw(out);
 }
 
@@ -129,20 +194,29 @@ void RoomState::InitDefaults()
     // TODO: this is done for safety reasons;
     // should be reworked when all the code is altered to remove any
     // usage of MAX_* constants for room objects and regions.
-    Hotspots.New(MAX_HOTSPOTS);
-    Objects.New(MAX_INIT_SPR);
-    Regions.New(MAX_REGIONS);
-    WalkBehinds.New(MAX_OBJ);
-    InteractionVariableValues.New(MAX_GLOBAL_VARIABLES);
+    // NOTE: the problem is that the actual number of room hotspots
+    // and regions is not known at the time when room state is being
+    // loaded from saved game. Fixing this would require altering
+    // savedgame format and which data is kept there.
+    Hotspots.SetLength(LEGACY_MAX_ROOM_HOTSPOTS);
+    Objects.SetLength(LEGACY_MAX_ROOM_OBJECTS);
+    Regions.SetLength(LEGACY_MAX_ROOM_REGIONS);
+    WalkBehinds.SetLength(LEGACY_MAX_ROOM_WALKBEHINDS);
+    InteractionVariableValues.SetLength(MAX_GLOBAL_VARIABLES, 0);
 }
 
 void RoomState::ReadRoomObjects_Aligned(Common::Stream *in)
 {
     AlignedStream align_s(in, Common::kAligned_Read);
-    // TODO: use room base to get real objects count
-    for (int i = 0; i < MAX_INIT_SPR; ++i)
+    for (int i = 0; i < ObjectCount; ++i)
     {
         Objects[i].ReadFromFile(&align_s);
+        align_s.Reset();
+    }
+    RoomObject dummy_object;
+    for (int i = ObjectCount; i < LEGACY_MAX_ROOM_OBJECTS; ++i)
+    {
+        dummy_object.ReadFromFile(&align_s);
         align_s.Reset();
     }
 }
@@ -150,10 +224,15 @@ void RoomState::ReadRoomObjects_Aligned(Common::Stream *in)
 void RoomState::WriteRoomObjects_Aligned(Common::Stream *out)
 {
     AlignedStream align_s(out, Common::kAligned_Write);
-    // TODO: write real objects count
-    for (int i = 0; i < MAX_INIT_SPR; ++i)
+    for (int i = 0; i < ObjectCount; ++i)
     {
         Objects[i].WriteToFile(&align_s);
+        align_s.Reset();
+    }
+    RoomObject dummy_object;
+    for (int i = ObjectCount; i < LEGACY_MAX_ROOM_OBJECTS; ++i)
+    {
+        dummy_object.WriteToFile(&align_s);
         align_s.Reset();
     }
 }

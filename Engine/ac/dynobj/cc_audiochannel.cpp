@@ -12,11 +12,8 @@
 //
 //=============================================================================
 
-#include "ac/dynobj/cc_audiochannel.h"
+#include "game/script_objects.h"
 #include "media/audio/audiodefines.h"
-#include "ac/dynobj/scriptaudiochannel.h"
-
-extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
 
 const char *CCAudioChannel::GetType() {
     return "AudioChannel";

@@ -17,13 +17,12 @@
 #include "ac/global_region.h"
 #include "ac/dynobj/cc_region.h"
 #include "game/game_objects.h"
+#include "game/script_objects.h"
 #include "script/runtimescriptvalue.h"
 
 
-extern ScriptRegion scrRegion[MAX_REGIONS];
 extern COLOR_MAP maincoltable;
 extern color palette[256];
-extern CCRegion ccDynamicRegion;
 
 
 ScriptRegion *GetRegionAtLocation(int xx, int yy) {

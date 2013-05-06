@@ -76,7 +76,6 @@ extern char pexbuf[STD_BUFFER_SIZE];
 extern char saveGameDirectory[260];
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
-extern ScriptObject scrObj[MAX_INIT_SPR];
 extern ViewStruct*views;
 extern GUIMain*guis;
 extern int displayed_room;
@@ -1000,12 +999,6 @@ void init_game_settings() {
     our_eip=-6;
     //  game.Characters[0].talkview=4;
     //init_language_text(game.langcodes[0]);
-
-    for (ee = 0; ee < MAX_INIT_SPR; ee++) {
-        scrObj[ee].id = ee;
-        // 64 bit: Using the id instead
-        // scrObj[ee].obj = NULL;
-    }
 
     for (ee=0;ee<game.CharacterCount;ee++) {
         memset(&game.Characters[ee].inv[0],0,MAX_INV*sizeof(short));

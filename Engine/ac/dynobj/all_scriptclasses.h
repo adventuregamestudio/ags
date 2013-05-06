@@ -18,6 +18,8 @@
 #ifndef __AGS_EE_DYNOBJ__ALLSCRIPTCLASSES_H
 #define __AGS_EE_DYNOBJ__ALLSCRIPTCLASSES_H
 
+#include "ac/dynobj/scriptaudiochannel.h"
+#include "ac/dynobj/scriptaudioclip.h"
 #include "ac/dynobj/scriptdatetime.h"
 #include "ac/dynobj/scriptdialog.h"
 #include "ac/dynobj/scriptdialogoptionsrendering.h"

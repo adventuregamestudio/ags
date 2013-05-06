@@ -22,18 +22,17 @@
 #include "ac/dynobj/scriptsystem.h"
 #include "debug/debug_log.h"
 #include "game/game_objects.h"
+#include "game/script_objects.h"
 #include "main/main.h"
 #include "media/audio/soundclip.h"
 #include "gfx/graphicsdriver.h"
 #include "ac/dynobj/cc_audiochannel.h"
 
 extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
-extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern ScriptSystem scsystem;
 extern int scrnwid,scrnhit;
 extern IGraphicsDriver *gfxDriver;
-extern CCAudioChannel ccDynamicAudio;
 
 
 int System_GetColorDepth() {

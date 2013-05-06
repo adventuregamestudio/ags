@@ -16,12 +16,10 @@
 #include "ac/audiochannel.h"
 #include "ac/dynobj/cc_audiochannel.h"
 #include "game/game_objects.h"
+#include "game/script_objects.h"
 #include "media/audio/audio.h"
 #include "media/audio/soundclip.h"
 #include "script/runtimescriptvalue.h"
-
-extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
-extern CCAudioChannel ccDynamicAudio;
 
 int AudioClip_GetFileType(ScriptAudioClip *clip)
 {

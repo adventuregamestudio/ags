@@ -42,6 +42,7 @@
 #include "ac/dynobj/scriptobject.h"
 #include "ac/dynobj/scripthotspot.h"
 #include "game/game_objects.h"
+#include "game/script_objects.h"
 #include "script/cc_instance.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
@@ -80,13 +81,11 @@ extern int our_eip;
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern int scrnwid,scrnhit;
 extern Bitmap *walkareabackup, *walkable_areas_temp;
-extern ScriptObject scrObj[MAX_INIT_SPR];
 extern SpriteCache spriteset;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern int in_new_room, new_room_was;  // 1 in new room, 2 first time in new room, 3 loading saved game
 extern int new_room_pos;
 extern int new_room_x, new_room_y;
-extern ScriptHotspot scrHotspot[MAX_HOTSPOTS];
 extern int guis_need_update;
 extern int in_leaves_screen;
 extern CharacterInfo*playerchar;
@@ -106,9 +105,6 @@ extern int mouse_z_was;
 
 extern Bitmap **guibg;
 extern IDriverDependantBitmap **guibgbmp;
-
-extern CCHotspot ccDynamicHotspot;
-extern CCObject ccDynamicObject;
 
 RGB_MAP rgb_table;  // for 256-col antialiasing
 int new_room_flags=0;
@@ -219,6 +215,125 @@ void save_room_data_segment () {
 
 }
 
+void register_script_room_objects()
+{
+    // Unregister extra managed objects first;
+    // this is needed mainly to fix managed pool after restoring
+    // an old savedgame, where max objects were always kept registered
+    for (int i = thisroom.ObjectCount; i < scrObj.GetCount(); ++i)
+    {
+        ccUnRegisterManagedObject(&scrObj[i]);
+    }
+
+    scrObj.SetLength(thisroom.ObjectCount);
+    for (int i = 0; i < thisroom.ObjectCount; ++i)
+    {
+        scrObj[i].id = i;
+        scrObj[i].__padding = 0;
+
+        ccRegisterManagedObject(&scrObj[i], &ccDynamicObject);
+
+        // export the object's script object
+        if (thisroom.Objects[i].ScriptName.IsEmpty())
+            continue;
+
+        if (thisroom.LoadedVersion >= kRoomVersion_300a) 
+        {
+            objectScriptObjNames[i] = thisroom.Objects[i].ScriptName;
+        }
+        else
+        {
+            objectScriptObjNames[i].Format("o%s", thisroom.Objects[i].ScriptName);
+            objectScriptObjNames[i].MakeLower();
+            if (objectScriptObjNames[i][1] != 0)
+                objectScriptObjNames[i].SetAt(1, toupper(objectScriptObjNames[i][1]));
+        }
+
+        ccAddExternalDynamicObject(objectScriptObjNames[i], &scrObj[i], &ccDynamicObject);
+    }
+}
+
+void unregister_script_room_objects()
+{
+    for (int i = 0; i < thisroom.ObjectCount; ++i)
+    {
+        ccUnRegisterManagedObject(&scrObj[i]);
+
+        // un-export the object's script object
+        if (objectScriptObjNames[i].IsEmpty())
+            continue;
+
+        ccRemoveExternalSymbol(objectScriptObjNames[i]);
+    }
+}
+
+void register_script_room_hotspots()
+{
+    // Unregister extra managed hotspots first;
+    // this is needed mainly to fix managed pool after restoring
+    // an old savedgame, where max hotspots were always kept registered
+    for (int i = thisroom.HotspotCount; i < scrHotspot.GetCount(); ++i)
+    {
+        ccUnRegisterManagedObject(&scrHotspot[i]);
+    }
+
+    scrHotspot.SetLength(thisroom.HotspotCount);
+    for (int i = 0; i < thisroom.HotspotCount; ++i)
+    {
+        scrHotspot[i].id = i;
+        scrHotspot[i].reserved = 0;
+
+        ccRegisterManagedObject(&scrHotspot[i], &ccDynamicHotspot);
+
+        // export the hotspot's script object
+        if (thisroom.Hotspots[i].ScriptName[0] == 0)
+            continue;
+
+        ccAddExternalDynamicObject(thisroom.Hotspots[i].ScriptName, &scrHotspot[i], &ccDynamicHotspot);
+    }
+}
+
+void unregister_script_room_hotspots()
+{
+    for (int i = 0; i < thisroom.HotspotCount; ++i)
+    {
+        ccUnRegisterManagedObject(&scrHotspot[i]);
+        // un-export the hotspot's script object
+        if (thisroom.Hotspots[i].ScriptName.IsEmpty())
+            continue;
+
+        ccRemoveExternalSymbol(thisroom.Hotspots[i].ScriptName);
+    }
+}
+
+void register_script_room_regions()
+{
+    // Unregister extra managed regions first;
+    // this is needed mainly to fix managed pool after restoring
+    // an old savedgame, where max regions were always kept registered
+    for (int i = thisroom.RegionCount; i < scrRegion.GetCount(); ++i)
+    {
+        ccUnRegisterManagedObject(&scrRegion[i]);
+    }
+
+    scrRegion.SetLength(thisroom.RegionCount);
+    for (int i = 0; i < thisroom.RegionCount; ++i)
+    {
+        scrRegion[i].id = i;
+        scrRegion[i].reserved = 0;
+
+        ccRegisterManagedObject(&scrRegion[i], &ccDynamicRegion);
+    }
+}
+
+void unregister_script_room_regions()
+{
+    for (int i = 0; i < thisroom.RegionCount; ++i)
+    {
+        ccUnRegisterManagedObject(&scrRegion[i]);
+    }
+}
+
 void unload_old_room() {
     int ff;
 
@@ -286,20 +401,9 @@ void unload_old_room() {
 
     play.LastSpeechPortraitCharacter = -1;
 
-    for (ff = 0; ff < croom->ObjectCount; ff++) {
-        // un-export the object's script object
-        if (objectScriptObjNames[ff][0] == 0)
-            continue;
-
-        ccRemoveExternalSymbol(objectScriptObjNames[ff]);
-    }
-
-    for (ff = 0; ff < MAX_HOTSPOTS; ff++) {
-        if (thisroom.Hotspots[ff].ScriptName[0] == 0)
-            continue;
-
-        ccRemoveExternalSymbol(thisroom.Hotspots[ff].ScriptName);
-    }
+    unregister_script_room_objects();
+    unregister_script_room_hotspots();
+    unregister_script_room_regions();
 
     // clear the object cache
     for (ff = 0; ff < objcache.GetCount(); ff++) {
@@ -675,32 +779,9 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     // TODO: this will work so far as Objects array is not reallocated
     objs=&croom->Objects[0];
 
-    for (cc = 0; cc < croom->ObjectCount; cc++) {
-        // export the object's script object
-        if (thisroom.Objects[cc].ScriptName.IsEmpty())
-            continue;
-
-        if (thisroom.LoadedVersion >= kRoomVersion_300a) 
-        {
-            objectScriptObjNames[cc] = thisroom.Objects[cc].ScriptName;
-        }
-        else
-        {
-            objectScriptObjNames[cc].Format("o%s", thisroom.Objects[cc].ScriptName);
-            objectScriptObjNames[cc].MakeLower();
-            if (objectScriptObjNames[cc][1] != 0)
-                objectScriptObjNames[cc].SetAt(1, toupper(objectScriptObjNames[cc][1]));
-        }
-
-        ccAddExternalDynamicObject(objectScriptObjNames[cc], &scrObj[cc], &ccDynamicObject);
-    }
-
-    for (cc = 0; cc < MAX_HOTSPOTS; cc++) {
-        if (thisroom.Hotspots[cc].ScriptName[0] == 0)
-            continue;
-
-        ccAddExternalDynamicObject(thisroom.Hotspots[cc].ScriptName, &scrHotspot[cc], &ccDynamicHotspot);
-    }
+    register_script_room_objects();
+    register_script_room_hotspots();
+    register_script_room_regions();
 
     our_eip=206;
     /*  THIS IS DONE IN THE EDITOR NOW

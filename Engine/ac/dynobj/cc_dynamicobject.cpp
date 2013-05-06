@@ -31,6 +31,7 @@
 #include <string.h>
 #include "ac/dynobj/cc_dynamicobject.h"
 #include "ac/dynobj/managedobjectpool.h"
+#include "game/script_objects.h"
 #include "script/cc_error.h"
 #include "util/stream.h"
 

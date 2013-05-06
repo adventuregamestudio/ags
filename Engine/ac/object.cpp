@@ -27,6 +27,7 @@
 #include "ac/walkablearea.h"
 #include "debug/debug_log.h"
 #include "game/game_objects.h"
+#include "game/script_objects.h"
 #include "main/game_run.h"
 #include "ac/route_finder.h"
 #include "gfx/graphicsdriver.h"
@@ -36,12 +37,10 @@
 
 using AGS::Common::Bitmap;
 
-extern ScriptObject scrObj[MAX_INIT_SPR];
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern Bitmap *walkable_areas_temp;
 extern IGraphicsDriver *gfxDriver;
 extern int offsetx,offsety;
-extern CCObject ccDynamicObject;
 
 
 int Object_IsCollidingWithObject(ScriptObject *objj, ScriptObject *obj2) {

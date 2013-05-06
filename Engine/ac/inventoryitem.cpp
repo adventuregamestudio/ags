@@ -21,14 +21,13 @@
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
 #include "game/game_objects.h"
+#include "game/script_objects.h"
 #include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_inventory.h"
 
 
-extern ScriptInvItem scrInv[MAX_INV];
 extern int cur_cursor;
 extern CharacterInfo*playerchar;
-extern CCInventory ccDynamicInv;
 
 
 void InventoryItem_SetCursorGraphic(ScriptInvItem *iitem, int newSprite) 

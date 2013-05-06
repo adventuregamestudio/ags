@@ -15,8 +15,7 @@
 #include "ac/dynobj/cc_object.h"
 #include "ac/dynobj/scriptobject.h"
 #include "ac/common_defines.h"
-
-extern ScriptObject scrObj[MAX_INIT_SPR];
+#include "game/script_objects.h"
 
 // return the type name of the object
 const char *CCObject::GetType() {

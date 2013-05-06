@@ -20,7 +20,6 @@
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
-#define MAX_INV             301
 #define CHF_MANUALSCALING   1
 #define CHF_FIXVIEW         2     // between SetCharView and ReleaseCharView
 #define CHF_NOINTERACT      4

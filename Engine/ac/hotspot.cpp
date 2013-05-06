@@ -19,14 +19,12 @@
 #include "ac/properties.h"
 #include "ac/string.h"
 #include "game/game_objects.h"
+#include "game/script_objects.h"
 #include "gfx/bitmap.h"
 #include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_hotspot.h"
 
 using AGS::Common::Bitmap;
-
-extern ScriptHotspot scrHotspot[MAX_HOTSPOTS];
-extern CCHotspot ccDynamicHotspot;
 
 void Hotspot_SetEnabled(ScriptHotspot *hss, int newval) {
     if (newval)

@@ -19,6 +19,8 @@
 #define __AGS_EE_DYNOBJ__ALLDYNAMICCLASSES_H
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
+#include "ac/dynobj/cc_audiochannel.h"
+#include "ac/dynobj/cc_audioclip.h"
 #include "ac/dynobj/cc_character.h"
 #include "ac/dynobj/cc_dialog.h"
 #include "ac/dynobj/cc_gui.h"

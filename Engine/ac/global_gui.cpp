@@ -23,11 +23,11 @@
 #include "ac/string.h"
 #include "debug/debug_log.h"
 #include "game/game_objects.h"
+#include "game/script_objects.h"
 #include "gui/guimain.h"
 #include "script/runtimescriptvalue.h"
 
 extern GUIMain*guis;
-extern ScriptGUI *scrGui;
 
 int IsGUIOn (int guinum) {
     if ((guinum < 0) || (guinum >= game.GuiCount))

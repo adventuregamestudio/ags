@@ -15,8 +15,7 @@
 #include "ac/dynobj/cc_hotspot.h"
 #include "ac/dynobj/scripthotspot.h"
 #include "ac/common_defines.h"
-
-extern ScriptHotspot scrHotspot[MAX_HOTSPOTS];
+#include "game/script_objects.h"
 
 // return the type name of the object
 const char *CCHotspot::GetType() {

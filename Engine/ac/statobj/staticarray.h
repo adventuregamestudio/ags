@@ -26,20 +26,13 @@ struct StaticArray : public ICCStaticObject {
 public:
     virtual ~StaticArray(){}
 
-    void Create(int elem_legacy_size, int elem_real_size, int elem_count = -1 /*unknown*/);
-    void Create(ICCStaticObject *stcmgr, int elem_legacy_size, int elem_real_size, int elem_count = -1 /*unknown*/);
-    void Create(ICCDynamicObject *dynmgr, int elem_legacy_size, int elem_real_size, int elem_count = -1 /*unknown*/);
-
-    inline ICCStaticObject *GetStaticManager() const
-    {
-        return _staticMgr;
-    }
+    void Create(ICCDynamicObject *dynmgr, int elem_legacy_size);
     inline ICCDynamicObject *GetDynamicManager() const
     {
         return _dynamicMgr;
     }
     // Legacy support for reading and writing object values by their relative offset
-    virtual const char *GetElementPtr(const char *address, intptr_t legacy_offset);
+    virtual const char *GetElementPtr(const char *address, intptr_t legacy_offset) = 0;
 
     virtual uint8_t GetPropertyUInt8(const char *address, intptr_t offset);
     virtual int16_t GetPropertyInt16(const char *address, intptr_t offset);
@@ -48,12 +41,19 @@ public:
     virtual void    SetPropertyInt16(const char *address, intptr_t offset, int16_t value);
     virtual void    SetPropertyInt32(const char *address, intptr_t offset, int32_t value);
 
-private:
-    ICCStaticObject     *_staticMgr;
+protected:
     ICCDynamicObject    *_dynamicMgr;
     int                 _elemLegacySize;
-    int                 _elemRealSize;
-    int                 _elemCount;
+};
+
+template<class T> class StaticTemplateArray : public StaticArray
+{
+public:
+    virtual const char *GetElementPtr(const char *address, intptr_t legacy_offset)
+    {
+        AGS::Common::Array<T> *arr = (AGS::Common::Array<T> *)address;
+        return (const char*)&arr->GetAt(legacy_offset / _elemLegacySize);
+    }
 };
 
 #endif // __AGS_EE_STATOBJ__STATICOBJECT_H

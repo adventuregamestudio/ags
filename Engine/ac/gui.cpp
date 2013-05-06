@@ -28,6 +28,7 @@
 #include "script/cc_instance.h"
 #include "debug/debug_log.h"
 #include "game/game_objects.h"
+#include "game/script_objects.h"
 #include "gfx/gfxfilter.h"
 #include "gui/guibutton.h"
 #include "gui/guimain.h"
@@ -47,15 +48,10 @@ extern GUIMain*guis;
 extern GFXFilter *filter;
 extern int cur_mode,cur_cursor;
 extern ccInstance *gameinst;
-extern ScriptGUI *scrGui;
-extern CCGUIObject ccDynamicGUIObject;
 extern int scrnwid,scrnhit;
 extern Bitmap **guibg;
 extern IDriverDependantBitmap **guibgbmp;
 extern IGraphicsDriver *gfxDriver;
-
-extern CCGUI ccDynamicGUI;
-extern CCGUIObject ccDynamicGUIObject;
 
 
 int ifacepopped=-1;  // currently displayed pop-up GUI (-1 if none)

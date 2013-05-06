@@ -33,14 +33,13 @@
 #include "ac/string.h"
 #include "debug/debug_log.h"
 #include "game/game_objects.h"
+#include "game/script_objects.h"
 #include "main/game_run.h"
 #include "script/script.h"
 
 
 extern ViewStruct*views;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
-extern ScriptObject scrObj[MAX_INIT_SPR];
-extern ScriptInvItem scrInv[MAX_INV];
 extern int offsetx, offsety;
 extern int guis_need_update;
 extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];

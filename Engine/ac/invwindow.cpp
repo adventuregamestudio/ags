@@ -24,6 +24,7 @@
 #include "ac/mouse.h"
 #include "ac/record.h"
 #include "game/game_objects.h"
+#include "game/script_objects.h"
 #include "main/game_run.h"
 #include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
@@ -39,7 +40,6 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern int guis_need_update;
 extern CharacterExtras *charextra;
-extern ScriptInvItem scrInv[MAX_INV];
 extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 extern int scrnwid,scrnhit;
 extern Bitmap *virtual_screen;
@@ -50,8 +50,6 @@ extern volatile int timerloop;
 extern int evblocknum;
 extern CharacterInfo*playerchar;
 extern AGSPlatformDriver *platform;
-extern CCCharacter ccDynamicCharacter;
-extern CCInventory ccDynamicInv;
 
 int in_inv_screen = 0, inv_screen_newroom = -1;
 

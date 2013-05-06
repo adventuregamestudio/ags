@@ -18,6 +18,7 @@
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/all_scriptclasses.h"
 #include "ac/dynobj/scriptfile.h"
+#include "game/script_objects.h"
 #include "media/audio/audio.h"
 #include "debug/debug_log.h"
 
@@ -25,14 +26,6 @@
 #include "plugin/agsplugin.h"
 #include "plugin/pluginobjectreader.h"
 
-extern CCGUIObject ccDynamicGUIObject;
-extern CCCharacter ccDynamicCharacter;
-extern CCHotspot   ccDynamicHotspot;
-extern CCRegion    ccDynamicRegion;
-extern CCInventory ccDynamicInv;
-extern CCGUI       ccDynamicGUI;
-extern CCObject    ccDynamicObject;
-extern CCDialog    ccDynamicDialog;
 extern ScriptDrawingSurface* dialogOptionsRenderingSurface;
 extern ScriptDialogOptionsRendering ccDialogOptionsRendering;
 extern PluginObjectReader pluginReaders[MAX_PLUGIN_OBJECT_READERS];

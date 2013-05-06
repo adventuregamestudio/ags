@@ -14,8 +14,7 @@
 
 #include "ac/dynobj/cc_gui.h"
 #include "ac/dynobj/scriptgui.h"
-
-extern ScriptGUI *scrGui;
+#include "game/script_objects.h"
 
 // return the type name of the object
 const char *CCGUI::GetType() {

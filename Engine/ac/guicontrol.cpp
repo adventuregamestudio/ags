@@ -18,6 +18,7 @@
 #include "ac/global_gui.h"
 #include "debug/debug_log.h"
 #include "game/game_objects.h"
+#include "game/script_objects.h"
 #include "gui/guibutton.h"
 #include "gui/guiinv.h"
 #include "gui/guilabel.h"
@@ -30,9 +31,6 @@
 #include "ac/dynobj/cc_guiobject.h"
 
 extern GUIMain*guis;
-extern ScriptGUI*scrGui;
-extern CCGUI ccDynamicGUI;
-extern CCGUIObject ccDynamicGUIObject;
 
 GUIObject *GetGUIControlAtLocation(int xx, int yy) {
     int guinum = GetGUIAt(xx, yy);

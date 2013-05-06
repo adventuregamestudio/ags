@@ -26,6 +26,8 @@
 #define NUM_CONDIT    (120 + NUMOTCON)
 #define MAX_HOTSPOTS  50   // v2.62 increased from 20 to 30; v2.8 to 50
 #define MAX_REGIONS   16
+#define MAX_DIALOG    500
+#define MAX_INV       301
 
 // careful with this - the shadinginfo[] array needs to be
 // MAX_WALK_AREAS + 1 if this gets changed

@@ -1072,6 +1072,10 @@
 					RelativePath="..\..\Engine\game\roomstate.cpp"
 					>
 				</File>
+				<File
+					RelativePath="..\..\Engine\game\script_objects.cpp"
+					>
+				</File>
 			</Filter>
 		</Filter>
 		<Filter
@@ -2064,6 +2068,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\game\roomstate.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\game\script_objects.h"
 					>
 				</File>
 			</Filter>

@@ -32,6 +32,7 @@
 #include "debug/debug_log.h"
 #include "font/fonts.h"
 #include "game/game_objects.h"
+#include "game/script_objects.h"
 #include "gui/guilabel.h"
 #include "main/main.h"
 #include "platform/base/agsplatformdriver.h"
@@ -66,22 +67,6 @@ extern ViewStruct*views;
 extern DialogTopic *dialog;
 extern GUIMain*guis;
 
-extern CCGUIObject ccDynamicGUIObject;
-extern CCCharacter ccDynamicCharacter;
-extern CCHotspot   ccDynamicHotspot;
-extern CCRegion    ccDynamicRegion;
-extern CCInventory ccDynamicInv;
-extern CCGUI       ccDynamicGUI;
-extern CCObject    ccDynamicObject;
-extern CCDialog    ccDynamicDialog;
-extern ScriptString myScriptStringImpl;
-extern ScriptObject scrObj[MAX_INIT_SPR];
-extern ScriptGUI    *scrGui;
-extern ScriptHotspot scrHotspot[MAX_HOTSPOTS];
-extern ScriptRegion scrRegion[MAX_REGIONS];
-extern ScriptInvItem scrInv[MAX_INV];
-extern ScriptDialog scrDialog[MAX_DIALOG];
-
 extern ScriptDialogOptionsRendering ccDialogOptionsRendering;
 extern ScriptDrawingSurface* dialogOptionsRenderingSurface;
 
@@ -99,13 +84,13 @@ extern int numScriptModules;
 
 extern AGSStaticObject GlobalStaticManager;
 
-StaticArray StaticCharacterArray;
-StaticArray StaticObjectArray;
-StaticArray StaticGUIArray;
-StaticArray StaticHotspotArray;
-StaticArray StaticRegionArray;
-StaticArray StaticInventoryArray;
-StaticArray StaticDialogArray;
+StaticTemplateArray<CharacterInfo> StaticCharacterArray;
+StaticTemplateArray<ScriptObject>  StaticObjectArray;
+StaticTemplateArray<ScriptGUI>     StaticGUIArray;
+StaticTemplateArray<ScriptHotspot> StaticHotspotArray;
+StaticTemplateArray<ScriptRegion>  StaticRegionArray;
+StaticTemplateArray<ScriptInvItem> StaticInventoryArray;
+StaticTemplateArray<ScriptDialog>  StaticDialogArray;
 
 GameDataVersion filever;
 // PSP specific variables:
@@ -392,28 +377,9 @@ void init_and_register_characters()
     }
 }
 
-void init_and_register_hotspots()
-{
-	for (int ee = 0; ee < MAX_HOTSPOTS; ee++) {
-        scrHotspot[ee].id = ee;
-        scrHotspot[ee].reserved = 0;
-
-        ccRegisterManagedObject(&scrHotspot[ee], &ccDynamicHotspot);
-    }
-}
-
-void init_and_register_regions()
-{
-	for (int ee = 0; ee < MAX_REGIONS; ee++) {
-        scrRegion[ee].id = ee;
-        scrRegion[ee].reserved = 0;
-
-        ccRegisterManagedObject(&scrRegion[ee], &ccDynamicRegion);
-    }
-}
-
 void init_and_register_invitems()
 {
+    scrInv.New(game.InvItemCount);
 	for (int ee = 0; ee < game.InvItemCount; ee++) {
         scrInv[ee].id = ee;
         scrInv[ee].reserved = 0;
@@ -427,6 +393,7 @@ void init_and_register_invitems()
 
 void init_and_register_dialogs()
 {
+    scrDialog.New(game.DialogCount);
 	for (int ee = 0; ee < game.DialogCount; ee++) {
         scrDialog[ee].id = ee;
         scrDialog[ee].reserved = 0;
@@ -442,7 +409,7 @@ void init_and_register_guis()
 {
 	int ee;
 
-	scrGui = (ScriptGUI*)malloc(sizeof(ScriptGUI) * game.GuiCount);
+	scrGui.New(game.GuiCount);
     for (ee = 0; ee < game.GuiCount; ee++) {
         // 64 bit: Using the id instead
         // scrGui[ee].gui = NULL;
@@ -497,8 +464,6 @@ void init_and_register_fonts()
 void init_and_register_game_objects()
 {
 	init_and_register_characters();
-	init_and_register_hotspots();
-	init_and_register_regions();
 	init_and_register_invitems();
 	init_and_register_dialogs();
 	init_and_register_guis();
@@ -507,10 +472,6 @@ void init_and_register_game_objects()
     play.TransitionStyle=game.Options[OPT_FADETYPE];
 
     our_eip=-21;
-
-    for (int ee = 0; ee < MAX_INIT_SPR; ee++) {
-        ccRegisterManagedObject(&scrObj[ee], &ccDynamicObject);
-    }
 
     register_audio_script_objects();
 
@@ -521,26 +482,26 @@ void init_and_register_game_objects()
     long dorsHandle = ccRegisterManagedObject(dialogOptionsRenderingSurface, dialogOptionsRenderingSurface);
     ccAddObjectReference(dorsHandle);
 
-    StaticCharacterArray.Create(&ccDynamicCharacter, sizeof(CharacterInfo), sizeof(CharacterInfo));
-    StaticObjectArray.Create(&ccDynamicObject, sizeof(ScriptObject), sizeof(ScriptObject));
-    StaticGUIArray.Create(&ccDynamicGUI, sizeof(ScriptGUI), sizeof(ScriptGUI));
-    StaticHotspotArray.Create(&ccDynamicHotspot, sizeof(ScriptHotspot), sizeof(ScriptHotspot));
-    StaticRegionArray.Create(&ccDynamicRegion, sizeof(ScriptRegion), sizeof(ScriptRegion));
-    StaticInventoryArray.Create(&ccDynamicInv, sizeof(ScriptInvItem), sizeof(ScriptInvItem));
-    StaticDialogArray.Create(&ccDynamicDialog, sizeof(ScriptDialog), sizeof(ScriptDialog));
+    StaticCharacterArray.Create(&ccDynamicCharacter, sizeof(CharacterInfo));
+    StaticObjectArray.Create(&ccDynamicObject, sizeof(ScriptObject));
+    StaticGUIArray.Create(&ccDynamicGUI, sizeof(ScriptGUI));
+    StaticHotspotArray.Create(&ccDynamicHotspot, sizeof(ScriptHotspot));
+    StaticRegionArray.Create(&ccDynamicRegion, sizeof(ScriptRegion));
+    StaticInventoryArray.Create(&ccDynamicInv, sizeof(ScriptInvItem));
+    StaticDialogArray.Create(&ccDynamicDialog, sizeof(ScriptDialog));
 
     // TODO: this will work so far as Characters array is not reallocated
-    ccAddExternalStaticArray("character",&game.Characters[0], &StaticCharacterArray);
+    ccAddExternalStaticArray("character",&game.Characters, &StaticCharacterArray);
     setup_player_character(game.PlayerCharacterIndex);
     if (loaded_game_file_version >= kGameVersion_270) {
         ccAddExternalStaticObject("player", &_sc_PlayerCharPtr, &GlobalStaticManager);
     }
-    ccAddExternalStaticArray("object",&scrObj[0], &StaticObjectArray);
-    ccAddExternalStaticArray("gui",&scrGui[0], &StaticGUIArray);
-    ccAddExternalStaticArray("hotspot",&scrHotspot[0], &StaticHotspotArray);
-    ccAddExternalStaticArray("region",&scrRegion[0], &StaticRegionArray);
-    ccAddExternalStaticArray("inventory",&scrInv[0], &StaticInventoryArray);
-    ccAddExternalStaticArray("dialog", &scrDialog[0], &StaticDialogArray);
+    ccAddExternalStaticArray("object",&scrObj, &StaticObjectArray);
+    ccAddExternalStaticArray("gui",&scrGui, &StaticGUIArray);    
+    ccAddExternalStaticArray("hotspot",&scrHotspot, &StaticHotspotArray);
+    ccAddExternalStaticArray("region",&scrRegion, &StaticRegionArray);
+    ccAddExternalStaticArray("inventory",&scrInv, &StaticInventoryArray);
+    ccAddExternalStaticArray("dialog", &scrDialog, &StaticDialogArray);
 }
 
 void ReadGameSetupStructBase_Aligned(Stream *in)

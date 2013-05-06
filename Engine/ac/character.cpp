@@ -45,6 +45,7 @@
 #include "ac/route_finder.h"
 #include "debug/debug_log.h"
 #include "game/game_objects.h"
+#include "game/script_objects.h"
 #include "main/game_run.h"
 #include "main/update.h"
 #include "util/string_utils.h"
@@ -66,7 +67,6 @@ extern int new_room_pos;
 extern int new_room_x, new_room_y;
 extern ViewStruct*views;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
-extern ScriptInvItem scrInv[MAX_INV];
 extern SpriteCache spriteset;
 extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern Bitmap *walkable_areas_temp;
@@ -83,8 +83,6 @@ extern int scrnwid,scrnhit;
 extern int current_screen_resolution_multiplier;
 extern int cur_mode;
 extern int screen_is_dirty;
-extern CCCharacter ccDynamicCharacter;
-extern CCInventory ccDynamicInv;
 
 //--------------------------------
 

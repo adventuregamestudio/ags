@@ -59,6 +59,7 @@
 #include "debug/out.h"
 #include "font/fonts.h"
 #include "game/game_objects.h"
+#include "game/script_objects.h"
 #include "gfx/ali3d.h"
 #include "gui/animatingguibutton.h"
 #include "gfx/graphics.h"
@@ -88,7 +89,6 @@ using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 namespace Math = AGS::Common::Math;
 
-extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
 extern int time_between_timers;
 extern Bitmap *virtual_screen;
 extern int cur_mode,cur_cursor;
@@ -151,23 +151,6 @@ SpriteCache spriteset(1);
 int proper_exit=0,our_eip=0;
 
 GUIMain*guis=NULL;
-
-CCGUIObject ccDynamicGUIObject;
-CCCharacter ccDynamicCharacter;
-CCHotspot   ccDynamicHotspot;
-CCRegion    ccDynamicRegion;
-CCInventory ccDynamicInv;
-CCGUI       ccDynamicGUI;
-CCObject    ccDynamicObject;
-CCDialog    ccDynamicDialog;
-ScriptString myScriptStringImpl;
-ScriptObject scrObj[MAX_INIT_SPR];
-ScriptGUI    *scrGui = NULL;
-ScriptHotspot scrHotspot[MAX_HOTSPOTS];
-ScriptRegion scrRegion[MAX_REGIONS];
-ScriptInvItem scrInv[MAX_INV];
-ScriptDialog scrDialog[MAX_DIALOG];
-
 ViewStruct*views=NULL;
 
 //=============================================================================
@@ -589,7 +572,7 @@ void unload_game_file() {
     free(guibg);
     free (guis);
     guis = NULL;
-    free(scrGui);
+    scrGui.Free();
 
     platform->ShutdownPlugins();
     ccRemoveAllSymbols();
@@ -2038,6 +2021,42 @@ void restore_game_audioclips_and_crossfade(Stream *in, int crossfadeInChannelWas
     crossFadeVolumeAtStart = in->ReadInt32();
 }
 
+void restore_game_before_managed_pool()
+{
+    // Allocate maximal allowed size in case we are loading the game saved by
+    // the older engine version.
+    // The script object arrays cannot be _enlarged_ while objects are
+    // registered at this point, because that may cause reallocation and change
+    // of their position in memory; this will require different way to store them
+    // and/or managed pool redesign.
+    // Arrays might be truncated when room is loaded though (which won't
+    // reallocate objects in memory).
+    ccUnregisterAllObjects();
+
+    scrDialog.SetLength(MAX_DIALOG);
+    scrHotspot.SetLength(MAX_HOTSPOTS);
+    scrInv.SetLength(MAX_INV);
+    scrObj.SetLength(MAX_INIT_SPR);
+    scrRegion.SetLength(MAX_REGIONS);
+}
+
+void restore_game_after_managed_pool()
+{
+    // Now, unregister all extra game objects to clean the pool from unnecessary entries
+    // in case the game was saved by an older engine version.
+    for (int i = game.DialogCount; i < scrDialog.GetCount(); ++i)
+    {
+        ccUnRegisterManagedObject(&scrDialog[i]);
+    }
+    for (int i = game.InvItemCount; i < scrInv.GetCount(); ++i)
+    {
+        ccUnRegisterManagedObject(&scrInv[i]);
+    }
+    scrDialog.SetLength(game.DialogCount);
+    scrInv.SetLength(game.InvItemCount);
+    // NOTE: the room objects and regions will be cleaned at the current room load
+}
+
 int restore_game_data (Stream *in, const char *nametouse) {
 
     int bb, vv;
@@ -2144,8 +2163,12 @@ int restore_game_data (Stream *in, const char *nametouse) {
     // save the new room music vol for later use
     int newRoomVol = in->ReadInt32();
 
+    restore_game_before_managed_pool();
+
     if (ccUnserializeAllObjects(in, &ccUnserializer))
         quitprintf("LoadGame: Error during deserialization: %s", ccErrorString);
+
+    restore_game_after_managed_pool();
 
     // preserve legacy music type setting
     current_music_type = in->ReadInt32();

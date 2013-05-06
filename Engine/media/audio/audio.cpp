@@ -21,6 +21,7 @@
 #include "ac/audiochannel.h"
 #include "ac/audioclip.h"
 #include "game/game_objects.h"
+#include "game/script_objects.h"
 #include "media/audio/sound.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
@@ -43,9 +44,6 @@ extern int psp_is_old_datafile;
 volatile int psp_audio_multithreaded = 1;
 #endif
 
-ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
-CCAudioChannel ccDynamicAudio;
-CCAudioClip ccDynamicAudioClip;
 char acaudio_buffer[256];
 int reserved_channel_count = 0;
 
@@ -64,6 +62,7 @@ void calculate_reserved_channel_count()
 void register_audio_script_objects()
 {
     int ee;
+    scrAudioChannel.New(MAX_SOUND_CHANNELS + 1);
     for (ee = 0; ee <= MAX_SOUND_CHANNELS; ee++) 
     {
         scrAudioChannel[ee].id = ee;

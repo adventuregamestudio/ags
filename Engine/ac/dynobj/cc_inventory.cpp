@@ -15,8 +15,7 @@
 #include "ac/dynobj/cc_inventory.h"
 #include "ac/dynobj/scriptinvitem.h"
 #include "ac/characterinfo.h"
-
-extern ScriptInvItem scrInv[MAX_INV];
+#include "game/script_objects.h"
 
 // return the type name of the object
 const char *CCInventory::GetType() {

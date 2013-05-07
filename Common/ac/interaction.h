@@ -16,7 +16,8 @@
 #define __AC_INTERACTION_H
 
 #include "ac/common_defines.h" // macros, typedef
-#include "core/types.h"
+#include "util/array.h"
+#include "util/string.h"
 
 // Forward declaration
 namespace AGS { namespace Common { class Stream; } }
@@ -55,21 +56,36 @@ struct NewInteractionValue {
     void WriteToFile(Common::Stream *out);
 };
 
+//-----------------------------------------------------------------------------
+// [IKM] 2013-05-08:
+// It looks like this NewInteractionAction parent class is practically
+// redundant. There's no pointer of its type that would be used as it is, the
+// only instance being NewInteractionCommand::children pointer, which is always
+// cast to NewInteractionCommandList before use.
+//
+// Since this construction was used only by older AGS versions and not likely
+// to be developed any further, I removed NewInteractionAction completely, and
+// changed NewInteractionCommand::children pointer to NewInteractionCommandList.
+//
+//---------------------------------------------------------
+/*
 struct NewInteractionAction {
     virtual void reset() = 0;
-};
+};*/
+
 struct NewInteractionCommandList;
 
-struct NewInteractionCommand: public NewInteractionAction {
+struct NewInteractionCommand /*: public NewInteractionAction*/ {
     int32 type;
     NewInteractionValue data[MAX_ACTION_ARGS];
-    NewInteractionAction * children;
+    NewInteractionCommandList *children;
     NewInteractionCommandList *parent;
 
     NewInteractionCommand();
-    NewInteractionCommandList *get_child_list();
-    void remove();
+    ~NewInteractionCommand();
+    /*NewInteractionCommandList *get_child_list();*/
 
+    void assign(const NewInteractionCommand &nic, NewInteractionCommandList *new_parent);
     void reset();
 
     void ReadFromFile_v321(Common::Stream *in);
@@ -78,12 +94,14 @@ struct NewInteractionCommand: public NewInteractionAction {
     void WriteNewInteractionValues_Aligned(Common::Stream *out);
 };
 
-struct NewInteractionCommandList : public NewInteractionAction {
+struct NewInteractionCommandList /*: public NewInteractionAction*/ {
     int32 numCommands;
     NewInteractionCommand command[MAX_COMMANDS_PER_LIST];
     int32 timesRun;   // used by engine to track score changes
 
-    NewInteractionCommandList ();
+    NewInteractionCommandList();
+    NewInteractionCommandList(const NewInteractionCommandList &nicmd_list);
+    ~NewInteractionCommandList();
     void reset();
 
     void ReadInteractionCommands_Aligned(Common::Stream *in);
@@ -98,16 +116,17 @@ struct NewInteraction {
     int timesRun[MAX_NEWINTERACTION_EVENTS];
     NewInteractionCommandList *response[MAX_NEWINTERACTION_EVENTS];
 
-
     NewInteraction();
-
+    NewInteraction(const NewInteraction &ni);
+    ~NewInteraction();
 
     void copy_timesrun_from (NewInteraction *nifrom);
     void reset();
-    ~NewInteraction();
 
-    void ReadFromFile(Common::Stream *in);
+    void ReadFromFile(Common::Stream *in, bool ignore_pointers = false);
     void WriteToFile(Common::Stream *out);
+
+    NewInteraction &operator=(const NewInteraction &ni);
 };
 
 
@@ -127,9 +146,10 @@ extern int numGlobalVars;
 
 struct InteractionScripts {
     int numEvents;
-    char *scriptFuncNames[MAX_NEWINTERACTION_EVENTS];
+    Common::ObjectArray<Common::String> scriptFuncNames; //[MAX_NEWINTERACTION_EVENTS]
 
     InteractionScripts();
+    InteractionScripts(const InteractionScripts &is);
     ~InteractionScripts();
 };
 
@@ -144,25 +164,10 @@ struct EventHandler
     // Script event-handling functions
     InteractionScripts  *ScriptFnRef;
 
-    EventHandler()
-        : Interaction(NULL)
-        , ScriptFnRef(NULL)
-    {
-    }
-
-    ~EventHandler()
-    {
-        delete Interaction;
-        delete ScriptFnRef;
-    }
-
-    void Free()
-    {
-        delete Interaction;
-        delete ScriptFnRef;
-        Interaction = NULL;
-        ScriptFnRef = NULL;
-    }
+    EventHandler();
+    EventHandler(const EventHandler &eh);
+    ~EventHandler();
+    void Free();
 };
 
 

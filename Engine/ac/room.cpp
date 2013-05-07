@@ -688,6 +688,16 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         }
     }
 
+    // Correct room state's arrays now when we know exact number of
+    // objects and regions in the room. This is still needed to be
+    // done, because room states have maximal size of arrays every
+    // time the save is loaded.
+    croom->Hotspots.SetLength(thisroom.HotspotCount);
+    croom->ObjectCount=thisroom.ObjectCount;
+    croom->Objects.SetLength(thisroom.ObjectCount);
+    croom->Regions.SetLength(thisroom.RegionCount);
+    croom->WalkBehinds.SetLength(thisroom.WalkBehindCount);
+
     if (croom->BeenHere) {
         // if we've been here before, save the Times Run information
         // since we will overwrite the actual NewInteraction structs
@@ -709,8 +719,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     }
     else
     {
-        croom->ObjectCount=thisroom.ObjectCount;
-        croom->Objects.SetLength(thisroom.ObjectCount);
         croom->ScriptDataSize=0;
         for (cc=0;cc<croom->ObjectCount;cc++) {
             croom->Objects[cc].X=thisroom.Objects[cc].X;
@@ -739,7 +747,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
                 croom->Objects[cc].Baseline=thisroom.Objects[cc].Baseline;
         }
         
-        croom->WalkBehinds.SetLength(thisroom.WalkBehindCount);
         for (int i = 0; i < thisroom.WalkBehindCount; ++i)
         {
             croom->WalkBehinds[i].Baseline = thisroom.WalkBehinds[i].Baseline;
@@ -753,11 +760,9 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         for (cc=0;cc<MAX_INIT_SPR;cc++)
         croom->objcond[cc]=thisroom.objcond[cc];*/
 
-        croom->Hotspots.SetLength(thisroom.HotspotCount);
         for (cc=0;cc < thisroom.HotspotCount;cc++) {
             croom->Hotspots[cc].Enabled = 1;
         }
-        croom->Regions.SetLength(thisroom.RegionCount);
         for (cc = 0; cc < thisroom.RegionCount; cc++) {
             croom->Regions[cc].Enabled = 1;
         }
@@ -770,6 +775,9 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     if (thisroom.EventHandlers.ScriptFnRef == NULL)
     {
         // copy interactions from room file into our temporary struct
+        //
+        // TODO: What is the reason for doing this?
+        // Can we rework the program logic so that this will no longer be needed?
         croom->Interaction = *thisroom.EventHandlers.Interaction;
         for (cc=0;cc<thisroom.Hotspots.GetCount();cc++)
             croom->Hotspots[cc].Interaction = *thisroom.Hotspots[cc].EventHandlers.Interaction;
@@ -780,7 +788,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     }
 
     // TODO: this will work so far as Objects array is not reallocated
-    objs=&croom->Objects[0];
+    objs = croom->Objects.IsEmpty() ? NULL : &croom->Objects[0];
 
     register_script_room_objects();
     register_script_room_hotspots();

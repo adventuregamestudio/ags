@@ -49,7 +49,7 @@ struct ExecutingScript {
     char forked;
 
     int queue_action(PostScriptAction act, int data, const char *aname);
-    void run_another (char *namm, RuntimeScriptValue &p1, RuntimeScriptValue &p2);
+    void run_another (const char *namm, RuntimeScriptValue &p1, RuntimeScriptValue &p2);
     void init();
     ExecutingScript();
 };

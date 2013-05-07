@@ -284,7 +284,7 @@ void ccInstance::AbortAndDestroy()
         return -1; \
     }
 
-int ccInstance::CallScriptFunction(char *funcname, int32_t numargs, RuntimeScriptValue *params)
+int ccInstance::CallScriptFunction(const char *funcname, int32_t numargs, RuntimeScriptValue *params)
 {
     ccError = 0;
     currentline = 0;
@@ -429,10 +429,10 @@ void ccInstance::DoRunScriptFuncCantBlock(NonBlockingScriptFunction* funcToRun, 
 }
 
 char scfunctionname[MAX_FUNCTION_NAME_LEN+1];
-int ccInstance::PrepareTextScript(char**tsname) {
+int ccInstance::PrepareTextScript(const char**fn_name_ptr) {
     ccError=0;
     if (this==NULL) return -1;
-    if (GetSymbolAddress(tsname[0]).IsNull()) {
+    if (GetSymbolAddress(*fn_name_ptr).IsNull()) {
         strcpy (ccErrorString, "no such function in script");
         return -2;
     }
@@ -457,8 +457,8 @@ int ccInstance::PrepareTextScript(char**tsname) {
     if (num_scripts >= MAX_SCRIPT_AT_ONCE)
         quit("too many nested text script instances created");
     // in case script_run_another is the function name, take a backup
-    strncpy(scfunctionname,tsname[0],MAX_FUNCTION_NAME_LEN);
-    tsname[0]=&scfunctionname[0];
+    strncpy(scfunctionname,*fn_name_ptr,MAX_FUNCTION_NAME_LEN);
+    *fn_name_ptr = scfunctionname;
     update_script_mouse_coords();
     inside_script++;
     //  aborted_ip=0;
@@ -1353,7 +1353,7 @@ int ccInstance::Run(int32_t curpc)
     }
 }
 
-int ccInstance::RunScriptFunctionIfExists(char*tsname,int numParam, RuntimeScriptValue *params) {
+int ccInstance::RunScriptFunctionIfExists(const char*tsname,int numParam, RuntimeScriptValue *params) {
     int oldRestoreCount = gameHasBeenRestored;
     // First, save the current ccError state
     // This is necessary because we might be attempting
@@ -1364,7 +1364,8 @@ int ccInstance::RunScriptFunctionIfExists(char*tsname,int numParam, RuntimeScrip
     int cachedCcError = ccError;
     ccError = 0;
 
-    int toret = PrepareTextScript(&tsname);
+    const char *real_fn_name = tsname;
+    int toret = PrepareTextScript(&real_fn_name);
     if (toret) {
         ccError = cachedCcError;
         return -18;
@@ -1375,20 +1376,20 @@ int ccInstance::RunScriptFunctionIfExists(char*tsname,int numParam, RuntimeScrip
 
     if (numParam < 3)
     {
-        toret = curscript->inst->CallScriptFunction(tsname,numParam, params);
+        toret = curscript->inst->CallScriptFunction(real_fn_name,numParam, params);
     }
     else
         quit("Too many parameters to RunScriptFunctionIfExists");
 
     // 100 is if Aborted (eg. because we are LoadAGSGame'ing)
     if ((toret != 0) && (toret != -2) && (toret != 100)) {
-        quit_with_script_error(tsname);
+        quit_with_script_error(real_fn_name);
     }
 
     post_script_cleanup_stack++;
 
     if (post_script_cleanup_stack > 50)
-        quitprintf("!post_script_cleanup call stack exceeded: possible recursive function call? running %s", tsname);
+        quitprintf("!post_script_cleanup call stack exceeded: possible recursive function call? running %s", real_fn_name);
 
     post_script_cleanup();
 
@@ -1404,7 +1405,7 @@ int ccInstance::RunScriptFunctionIfExists(char*tsname,int numParam, RuntimeScrip
     return toret;
 }
 
-int ccInstance::RunTextScript(char*tsname) {
+int ccInstance::RunTextScript(const char*tsname) {
     if (strcmp(tsname, REP_EXEC_NAME) == 0) {
         // run module rep_execs
         int room_changes_was = play.RoomChangeCount;
@@ -1501,7 +1502,7 @@ void ccInstance::GetScriptName(char *curScrName) {
 }
 
 // get a pointer to a variable or function exported by the script
-RuntimeScriptValue ccInstance::GetSymbolAddress(char *symname)
+RuntimeScriptValue ccInstance::GetSymbolAddress(const char *symname)
 {
     int k;
     char altName[200];

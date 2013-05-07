@@ -212,7 +212,7 @@ int run_interaction_script(InteractionScripts *nint, int evnt, int chkAny, int i
             // Other (room script)
             if (inside_script) {
                 char funcName[MAX_FUNCTION_NAME_LEN+1];
-                snprintf(funcName, MAX_FUNCTION_NAME_LEN, "|%s", nint->scriptFuncNames[evnt]);
+                snprintf(funcName, MAX_FUNCTION_NAME_LEN, "|%s", nint->scriptFuncNames[evnt].GetCStr());
                 curscript->run_another (funcName, rval_null, rval_null /*0, 0*/);
             }
             else
@@ -530,7 +530,7 @@ int run_interaction_commandlist (NewInteractionCommandList *nicl, int *timesrun,
           if (play.UsedInvItemIndex == IPARAM1) {
               if (game.Options[OPT_NOLOSEINV] == 0)
                   lose_inventory (play.UsedInvItemIndex);
-              if (run_interaction_commandlist (nicl->command[i].get_child_list(), timesrun, cmdsrun))
+              if (run_interaction_commandlist (nicl->command[i].children, timesrun, cmdsrun))
                   return -1;
           }
           else
@@ -538,17 +538,17 @@ int run_interaction_commandlist (NewInteractionCommandList *nicl, int *timesrun,
           break;
       case 21: // if player has inventory item
           if (playerchar->inv[IPARAM1] > 0)
-              if (run_interaction_commandlist (nicl->command[i].get_child_list(), timesrun, cmdsrun))
+              if (run_interaction_commandlist (nicl->command[i].children, timesrun, cmdsrun))
                   return -1;
           break;
       case 22: // if a character is moving
           if (game.Characters[IPARAM1].walking)
-              if (run_interaction_commandlist (nicl->command[i].get_child_list(), timesrun, cmdsrun))
+              if (run_interaction_commandlist (nicl->command[i].children, timesrun, cmdsrun))
                   return -1;
           break;
       case 23: // if two variables are equal
           if (IPARAM1 == IPARAM2)
-              if (run_interaction_commandlist (nicl->command[i].get_child_list(), timesrun, cmdsrun))
+              if (run_interaction_commandlist (nicl->command[i].children, timesrun, cmdsrun))
                   return -1;
           break;
       case 24: // Stop character walking
@@ -621,17 +621,17 @@ int run_interaction_commandlist (NewInteractionCommandList *nicl, int *timesrun,
           break;
       case 45: // If player character is
           if (GetPlayerCharacter() == IPARAM1)
-              if (run_interaction_commandlist (nicl->command[i].get_child_list(), timesrun, cmdsrun))
+              if (run_interaction_commandlist (nicl->command[i].children, timesrun, cmdsrun))
                   return -1;
           break;
       case 46: // if cursor mode is
           if (GetCursorMode() == IPARAM1)
-              if (run_interaction_commandlist (nicl->command[i].get_child_list(), timesrun, cmdsrun))
+              if (run_interaction_commandlist (nicl->command[i].children, timesrun, cmdsrun))
                   return -1;
           break;
       case 47: // if player has been to room
           if (HasBeenToRoom(IPARAM1))
-              if (run_interaction_commandlist (nicl->command[i].get_child_list(), timesrun, cmdsrun))
+              if (run_interaction_commandlist (nicl->command[i].children, timesrun, cmdsrun))
                   return -1;
           break;
       default:

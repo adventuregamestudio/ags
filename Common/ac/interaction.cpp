@@ -65,25 +65,36 @@ void InteractionVariable::WriteToFile(Common::Stream *out)
 
 NewInteractionCommand::NewInteractionCommand() {
     type = 0;
+    memset(data, 0, sizeof(data));
     children = NULL;
     parent = NULL;
 }
 
-NewInteractionCommandList *NewInteractionCommand::get_child_list() {
-    return (NewInteractionCommandList*)children;
+NewInteractionCommand::~NewInteractionCommand()
+{
+    reset();
 }
 
-void NewInteractionCommand::remove () {
-    if (children != NULL) {
-        children->reset();
-        delete children;
-    }
+/*NewInteractionCommandList *NewInteractionCommand::get_child_list() {
+    return (NewInteractionCommandList*)children;
+}*/
+
+void NewInteractionCommand::assign(const NewInteractionCommand &nic, NewInteractionCommandList *new_parent)
+{
+    reset();
+    type = nic.type;
+    memcpy(data, nic.data, sizeof(data));
+    children = nic.children ? new NewInteractionCommandList(*nic.children) : NULL;
+    parent = new_parent;
+}
+
+void NewInteractionCommand::reset () {
+    delete children;
     children = NULL;
     parent = NULL;
     type = 0;
+    memset(data, 0, sizeof(data));
 }
-
-void NewInteractionCommand::reset() { remove(); }
 
 void NewInteractionCommand::ReadNewInteractionValues_Aligned(Stream *in)
 {
@@ -101,7 +112,7 @@ void NewInteractionCommand::ReadFromFile_v321(Stream *in)
     type = in->ReadInt32();
     ReadNewInteractionValues_Aligned(in);
     // all that matters is whether or not these are null...
-    children = (NewInteractionAction *) (long)in->ReadInt32();
+    children = (NewInteractionCommandList*) (long)in->ReadInt32();
     parent = (NewInteractionCommandList *) (long)in->ReadInt32();
 }
 
@@ -129,17 +140,36 @@ NewInteractionCommandList::NewInteractionCommandList () {
     timesRun = 0;
 }
 
+NewInteractionCommandList::NewInteractionCommandList(const NewInteractionCommandList &nicmd_list)
+{
+    reset();
+    numCommands = nicmd_list.numCommands;
+    timesRun = nicmd_list.timesRun;
+    for (int i = 0; i < numCommands; ++i)
+    {
+        command[i].assign(nicmd_list.command[i], this);
+    }
+}
+
+NewInteractionCommandList::~NewInteractionCommandList()
+{
+    reset();
+}
+
 void NewInteractionCommandList::reset () {
   int j;
   for (j = 0; j < numCommands; j++) {
+      /*
     if (command[j].children != NULL) {
       // using this Reset crashes it for some reason
-      //command[j].reset ();
-      command[j].get_child_list()->reset();
+      command[j].reset();
+      command[j].children->reset();
       delete command[j].children;
       command[j].children = NULL;
     }
     command[j].remove();
+    */
+    command[j].reset();
   }
   numCommands = 0;
   timesRun = 0;
@@ -167,9 +197,34 @@ void NewInteractionCommandList::WriteInteractionCommands_Aligned(Stream *out)
 
 NewInteraction::NewInteraction() { 
     numEvents = 0;
-    // NULL all the pointers
-    memset (response, 0, sizeof(NewInteractionCommandList*) * MAX_NEWINTERACTION_EVENTS);
-    memset (&timesRun[0], 0, sizeof(int) * MAX_NEWINTERACTION_EVENTS);
+    memset(eventTypes, 0, sizeof(eventTypes));
+    memset(timesRun, 0, sizeof(timesRun));
+    memset(response, 0, sizeof(response));
+}
+
+NewInteraction::NewInteraction(const NewInteraction &ni)
+{
+    *this = ni;
+}
+
+NewInteraction::~NewInteraction() {
+    reset();
+}
+
+NewInteraction &NewInteraction::operator=(const NewInteraction &ni)
+{
+    reset();
+    numEvents = ni.numEvents;
+    memcpy(eventTypes, ni.eventTypes, sizeof(eventTypes));
+    memcpy(timesRun, ni.timesRun, sizeof(timesRun));
+    for (int i = 0; i < numEvents; i++)
+    {
+        if (ni.response[i] != NULL)
+        {
+            response[i] = new NewInteractionCommandList(*ni.response[i]);
+        }
+    }
+    return *this;
 }
 
 
@@ -178,31 +233,39 @@ void NewInteraction::copy_timesrun_from (NewInteraction *nifrom) {
 }
 void NewInteraction::reset() {
     for (int i = 0; i < numEvents; i++) {
-        if (response[i] != NULL) {
-            response[i]->reset();
-            delete response[i];
-            response[i] = NULL;
-        }
+        //response[i]->reset(); // calls reset from dtor now
+        delete response[i];
+        response[i] = NULL;
     }
     numEvents = 0;
-}
-NewInteraction::~NewInteraction() {
-    reset();
+    memset(eventTypes, 0, sizeof(eventTypes));
+    memset(timesRun, 0, sizeof(timesRun));
 }
 
-void NewInteraction::ReadFromFile(Stream *in)
+void NewInteraction::ReadFromFile(Stream *in, bool ignore_pointers)
 {
-    // it's all ints! <- JJS: No, it's not! There are pointer too.
+  // it's all ints! <- JJS: No, it's not! There are pointer too.
 
   numEvents = in->ReadInt32();
   in->ReadArray(&eventTypes, sizeof(*eventTypes), MAX_NEWINTERACTION_EVENTS);
   in->ReadArray(&timesRun, sizeof(*timesRun), MAX_NEWINTERACTION_EVENTS);
 
-  for (int i = 0; i < MAX_NEWINTERACTION_EVENTS; i++)
-    response[i] = (NewInteractionCommandList*)in->ReadInt32();
-
-//    in->ReadArray(&numEvents, sizeof(int), sizeof(NewInteraction)/sizeof(int));
+  if (ignore_pointers)
+  {
+    for (int i = 0; i < MAX_NEWINTERACTION_EVENTS; i++)
+    {
+      in->ReadInt32();
+    }
+  }
+  else
+  {
+    for (int i = 0; i < MAX_NEWINTERACTION_EVENTS; i++)
+    {
+      response[i] = (NewInteractionCommandList*)in->ReadInt32();
+    }
+  }
 }
+
 void NewInteraction::WriteToFile(Stream *out)
 {
   out->WriteInt32(numEvents);
@@ -211,8 +274,6 @@ void NewInteraction::WriteToFile(Stream *out)
 
   for (int i = 0; i < MAX_NEWINTERACTION_EVENTS; i++)
     out->WriteInt32((int)(response[i] != NULL));
-
-//    fwrite(&numEvents, sizeof(int), sizeof(NewInteraction)/sizeof(int), fp);
 }
 
 
@@ -220,9 +281,13 @@ InteractionScripts::InteractionScripts() {
     numEvents = 0;
 }
 
+InteractionScripts::InteractionScripts(const InteractionScripts &is)
+{
+    numEvents = is.numEvents;
+    scriptFuncNames = is.scriptFuncNames;
+}
+
 InteractionScripts::~InteractionScripts() {
-    for (int i = 0; i < numEvents; i++)
-        delete[] scriptFuncNames[i];
 }
 
 void serialize_command_list (NewInteractionCommandList *nicl, Stream *out) {
@@ -235,7 +300,7 @@ void serialize_command_list (NewInteractionCommandList *nicl, Stream *out) {
 
   for (int k = 0; k < nicl->numCommands; k++) {
     if (nicl->command[k].children != NULL)
-      serialize_command_list (nicl->command[k].get_child_list(), out);
+      serialize_command_list (nicl->command[k].children, out);
   }
 }
 
@@ -306,11 +371,38 @@ void deserialize_interaction_scripts(Stream *in, InteractionScripts *scripts)
     quit("Too many interaction script events");
   scripts->numEvents = numEvents;
 
-  String buffer;
+  scripts->scriptFuncNames.SetLength(numEvents);
   for (int i = 0; i < numEvents; i++)
   {
-    buffer.Read(in, 200);
-    scripts->scriptFuncNames[i] = new char[buffer.GetLength() + 1];
-    strcpy(scripts->scriptFuncNames[i], buffer);
+    scripts->scriptFuncNames[i].Read(in, 200);
   }
+}
+
+
+
+EventHandler::EventHandler()
+    : Interaction(NULL)
+    , ScriptFnRef(NULL)
+{
+}
+
+EventHandler::EventHandler(const EventHandler &eh)
+{
+    Free();
+    ScriptFnRef = eh.ScriptFnRef ? new InteractionScripts(*eh.ScriptFnRef) : NULL;
+    Interaction = eh.Interaction ? new NewInteraction(*eh.Interaction) : NULL;
+}
+
+EventHandler::~EventHandler()
+{
+    delete Interaction;
+    delete ScriptFnRef;
+}
+
+void EventHandler::Free()
+{
+    delete Interaction;
+    delete ScriptFnRef;
+    Interaction = NULL;
+    ScriptFnRef = NULL;
 }

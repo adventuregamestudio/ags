@@ -56,32 +56,32 @@ void RoomState::ReadFromFile_v321(Stream *in)
     NewInteraction dummy_interaction;
     for (int i = 0; i < Hotspots.GetCount(); ++i)
     {
-        Hotspots[i].Interaction.ReadFromFile(in);
+        Hotspots[i].Interaction.ReadFromFile(in, true);
     }
     for (int i = Hotspots.GetCount(); i < LEGACY_MAX_ROOM_HOTSPOTS; ++i)
     {
-        dummy_interaction.ReadFromFile(in);
+        dummy_interaction.ReadFromFile(in, true);
     }
 
     for (int i = 0; i < ObjectCount; ++i)
     {
-        Objects[i].Interaction.ReadFromFile(in);
+        Objects[i].Interaction.ReadFromFile(in, true);
     }
     for (int i = ObjectCount; i < LEGACY_MAX_ROOM_OBJECTS; ++i)
     {
-        dummy_interaction.ReadFromFile(in);
+        dummy_interaction.ReadFromFile(in, true);
     }
 
     for (int i = 0; i < Regions.GetCount(); ++i)
     {
-        Regions[i].Interaction.ReadFromFile(in);
+        Regions[i].Interaction.ReadFromFile(in, true);
     }
     for (int i = Regions.GetCount(); i < LEGACY_MAX_ROOM_REGIONS; ++i)
     {
-        dummy_interaction.ReadFromFile(in);
+        dummy_interaction.ReadFromFile(in, true);
     }
 
-    Interaction.ReadFromFile(in);
+    Interaction.ReadFromFile(in, true);
 
     for (int i = 0; i < Hotspots.GetCount(); ++i)
     {
@@ -263,17 +263,8 @@ void ResetRoomStates()
     {
         if (room_statuses[i] != NULL)
         {
-            room_statuses[i]->Free();
-
-            // Don't delete the status on 2.x. The status struct contains NewInteraction
-            // pointer that are also referenced in the current room struct.
-            // If they are freed here this will lead to an access violation when the
-            // room unloading function tries to frees them.
-            if (loaded_game_file_version > kGameVersion_272)
-            {
-                delete room_statuses[i];
-                room_statuses[i] = NULL;
-            }
+            delete room_statuses[i];
+            room_statuses[i] = NULL;
         }
     }
 }

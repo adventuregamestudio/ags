@@ -792,8 +792,8 @@ void setup_greyed_out_palette(int selCol)
     // for all the hotspot colours
     for (int aa = 0; aa < 256; aa++) {
       int lumin = 0;
-      if ((aa < MAX_HOTSPOTS) && (aa > 0))
-        lumin = ((MAX_HOTSPOTS - aa) % 30) * 2;
+      if ((aa < LEGACY_MAX_ROOM_HOTSPOTS) && (aa > 0))
+        lumin = ((LEGACY_MAX_ROOM_HOTSPOTS - aa) % 30) * 2;
       thisColourOnlyPal[aa].r = lumin;
       thisColourOnlyPal[aa].g = lumin;
       thisColourOnlyPal[aa].b = lumin;
@@ -1893,7 +1893,7 @@ const char* load_room_file(const char*rtlo) {
 	  return "This room was saved with an old version of the editor and cannot be opened. Use AGS 2.72 to upgrade this room file.";
   }
 
-  //thisroom.HotspotCount = MAX_HOTSPOTS;
+  //thisroom.HotspotCount = LEGACY_MAX_ROOM_HOTSPOTS;
 
   // Allocate enough memory to add extra variables
   thisroom.LocalVariables.SetLength(MAX_GLOBAL_VARIABLES);
@@ -1932,24 +1932,24 @@ const char* load_room_file(const char*rtlo) {
 
   roomModified = false;
 
-  validate_mask(thisroom.HotspotMask, "hotspot", MAX_HOTSPOTS);
-  validate_mask(thisroom.WalkBehindMask, "walk-behind", MAX_WALK_AREAS + 1);
-  validate_mask(thisroom.WalkAreaMask, "walkable area", MAX_WALK_AREAS + 1);
-  validate_mask(thisroom.RegionMask, "regions", MAX_REGIONS);
+  validate_mask(thisroom.HotspotMask, "hotspot", LEGACY_MAX_ROOM_HOTSPOTS);
+  validate_mask(thisroom.WalkBehindMask, "walk-behind", LEGACY_MAX_ROOM_WALKAREAS + 1);
+  validate_mask(thisroom.WalkAreaMask, "walkable area", LEGACY_MAX_ROOM_WALKAREAS + 1);
+  validate_mask(thisroom.RegionMask, "regions", LEGACY_MAX_ROOM_REGIONS);
   return NULL;
 }
 
 void calculate_walkable_areas () {
   int ww, thispix;
 
-  for (ww = 0; ww <= MAX_WALK_AREAS; ww++) {
+  for (ww = 0; ww <= LEGACY_MAX_ROOM_WALKAREAS; ww++) {
     thisroom.WalkAreas[ww].Top = thisroom.Height;
     thisroom.WalkAreas[ww].Bottom = 0;
   }
   for (ww = 0; ww < thisroom.WalkAreaMask->GetWidth(); ww++) {
     for (int qq = 0; qq < thisroom.WalkAreaMask->GetHeight(); qq++) {
       thispix = thisroom.WalkAreaMask->GetPixel (ww, qq);
-      if (thispix > MAX_WALK_AREAS)
+      if (thispix > LEGACY_MAX_ROOM_WALKAREAS)
         continue;
       if (thisroom.WalkAreas[thispix].Top > qq)
         thisroom.WalkAreas[thispix].Top = qq;
@@ -2042,9 +2042,9 @@ void save_room(const char *files, const Common::RoomInfo &rstruc) {
     serialize_new_interaction (rstruc.Objects[].EventHandlers.Interaction[f]);
   serialize_new_interaction (rstruc.EventHandlers.Interaction);
 */
-  opty->WriteInt32 (MAX_REGIONS);
+  opty->WriteInt32 (LEGACY_MAX_ROOM_REGIONS);
   /*
-  for (f = 0; f < MAX_REGIONS; f++)
+  for (f = 0; f < LEGACY_MAX_ROOM_REGIONS; f++)
     serialize_new_interaction (rstruc.Regions[].EventHandlers.Interaction[f]);
 	*/
   serialize_room_interactions(opty);
@@ -2068,24 +2068,24 @@ void save_room(const char *files, const Common::RoomInfo &rstruc) {
     opty->WriteInt16(rstruc.Resolution);
 
   // write the zoom and light levels
-  opty->WriteInt32 (MAX_WALK_AREAS + 1);
-  for (int i = 0; i < MAX_WALK_AREAS + 1; ++i)
+  opty->WriteInt32 (LEGACY_MAX_ROOM_WALKAREAS + 1);
+  for (int i = 0; i < LEGACY_MAX_ROOM_WALKAREAS + 1; ++i)
   {
       opty->WriteInt16(rstruc.WalkAreas[i].Zoom);
   }
-  for (int i = 0; i < MAX_WALK_AREAS + 1; ++i)
+  for (int i = 0; i < LEGACY_MAX_ROOM_WALKAREAS + 1; ++i)
   {
       opty->WriteInt16(rstruc.WalkAreas[i].Light);
   }
-  for (int i = 0; i < MAX_WALK_AREAS + 1; ++i)
+  for (int i = 0; i < LEGACY_MAX_ROOM_WALKAREAS + 1; ++i)
   {
       opty->WriteInt16(rstruc.WalkAreas[i].Zoom2);
   }
-  for (int i = 0; i < MAX_WALK_AREAS + 1; ++i)
+  for (int i = 0; i < LEGACY_MAX_ROOM_WALKAREAS + 1; ++i)
   {
       opty->WriteInt16(rstruc.WalkAreas[i].Top);
   }
-  for (int i = 0; i < MAX_WALK_AREAS + 1; ++i)
+  for (int i = 0; i < LEGACY_MAX_ROOM_WALKAREAS + 1; ++i)
   {
       opty->WriteInt16(rstruc.WalkAreas[i].Bottom);
   }
@@ -2130,7 +2130,7 @@ void save_room(const char *files, const Common::RoomInfo &rstruc) {
 
   if (rstruc.LoadedVersion >= kRoomVersion_114)
   {
-    for (int i = 0; i < MAX_WALK_AREAS + 1; ++i)
+    for (int i = 0; i < LEGACY_MAX_ROOM_WALKAREAS + 1; ++i)
     {
       opty->WriteInt16(rstruc.WalkAreas[i].ShadingView);
     }
@@ -2138,11 +2138,11 @@ void save_room(const char *files, const Common::RoomInfo &rstruc) {
 
   if (rstruc.LoadedVersion >= kRoomVersion_255b)
   {
-    for (int i = 0; i < MAX_REGIONS; ++i)
+    for (int i = 0; i < LEGACY_MAX_ROOM_REGIONS; ++i)
     {
       opty->WriteInt16(rstruc.Regions[i].Light);
     }
-    for (int i = 0; i < MAX_REGIONS; ++i)
+    for (int i = 0; i < LEGACY_MAX_ROOM_REGIONS; ++i)
     {
         opty->WriteInt32(rstruc.Regions[i].Tint);
     }
@@ -2294,7 +2294,7 @@ void save_room_file(const char*rtsa)
   for (ww = 0; ww < thisroom.BkgSceneCount; ww++)
     fix_block (thisroom.Backgrounds[ww].Graphic);
 
-  thisroom.WalkBehindCount = MAX_OBJ;
+  thisroom.WalkBehindCount = LEGACY_MAX_ROOM_WALKBEHINDS;
   save_room((char*)rtsa,thisroom);
 
   // Fix hi-color screens back again
@@ -3078,7 +3078,7 @@ void import_area_mask(void *roomptr, int maskType, System::Drawing::Bitmap ^bmp)
 	}
 	delete importedImage;
 
-	validate_mask(mask, "imported", (maskType == Hotspots) ? MAX_HOTSPOTS : (MAX_WALK_AREAS + 1));
+	validate_mask(mask, "imported", (maskType == Hotspots) ? LEGACY_MAX_ROOM_HOTSPOTS : (LEGACY_MAX_ROOM_WALKAREAS + 1));
 }
 
 void set_rgb_mask_from_alpha_channel(Common::Bitmap *image)
@@ -3721,9 +3721,9 @@ void ConvertInteractionCommandList(System::Text::StringBuilder^ sb, NewInteracti
 	for (int cmd = 0; cmd < cmdList->numCommands; cmd++)
 	{
 		ConvertInteractionToScript(sb, &cmdList->command[cmd], scriptFuncPrefix, game, runScriptCount, &onlyIfInvWasUseds, cmd);
-		if (cmdList->command[cmd].get_child_list() != NULL) 
+		if (cmdList->command[cmd].children != NULL) 
 		{
-			ConvertInteractionCommandList(sb, cmdList->command[cmd].get_child_list(), scriptFuncPrefix, game, runScriptCount, targetTypeForUnhandledEvent);
+			ConvertInteractionCommandList(sb, cmdList->command[cmd].children, scriptFuncPrefix, game, runScriptCount, targetTypeForUnhandledEvent);
 			sb->AppendLine("}");
 		}
 	}
@@ -4420,7 +4420,7 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 		}
 	}
 
-	for (i = 0; i <= MAX_WALK_AREAS; i++) 
+	for (i = 0; i <= LEGACY_MAX_ROOM_WALKAREAS; i++) 
 	{
 		RoomWalkableArea ^area = room->WalkableAreas[i];
 		area->ID = i;
@@ -4438,14 +4438,14 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 		}
 	}
 
-	for (i = 0; i < MAX_OBJ; i++) 
+	for (i = 0; i < LEGACY_MAX_ROOM_WALKBEHINDS; i++) 
 	{
 		RoomWalkBehind ^area = room->WalkBehinds[i];
 		area->ID = i;
 		area->Baseline = thisroom.WalkBehinds[i].Baseline;
 	}
 
-	for (i = 0; i < MAX_REGIONS; i++) 
+	for (i = 0; i < LEGACY_MAX_ROOM_REGIONS; i++) 
 	{
 		RoomRegion ^area = room->Regions[i];
 		area->ID = i;
@@ -4565,7 +4565,7 @@ void save_crm_file(Room ^room)
 		CompileCustomProperties(hotspot->Properties, &thisroom.Hotspots[i].Properties);
 	}
 
-	for (i = 0; i <= MAX_WALK_AREAS; i++) 
+	for (i = 0; i <= LEGACY_MAX_ROOM_WALKAREAS; i++) 
 	{
 		RoomWalkableArea ^area = room->WalkableAreas[i];
 		thisroom.WalkAreas[i].ShadingView = area->AreaSpecificView;
@@ -4582,13 +4582,13 @@ void save_crm_file(Room ^room)
 		}
 	}
 
-	for (i = 0; i < MAX_OBJ; i++) 
+	for (i = 0; i < LEGACY_MAX_ROOM_WALKBEHINDS; i++) 
 	{
 		RoomWalkBehind ^area = room->WalkBehinds[i];
 		thisroom.WalkBehinds[i].Baseline = area->Baseline;
 	}
 
-	for (i = 0; i < MAX_REGIONS; i++) 
+	for (i = 0; i < LEGACY_MAX_ROOM_REGIONS; i++) 
 	{
 		RoomRegion ^area = room->Regions[i];
 		thisroom.Regions[i].Tint = 0;

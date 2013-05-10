@@ -5,7 +5,7 @@ LIBDIR =
 CC = gcc
 CXX = g++
 CFLAGS = -fPIC -fvisibility=hidden -O2 -g -Wall $(shell pkg-config --cflags lua5.1-c++)
-LIBS = -lm -lstdc++ -lz $(shell pkg-config --libs)
+LIBS = -lm -lstdc++ -lz $(shell pkg-config --libs lua5.1-c++)
 
 ifeq ($(UNAME), Darwin)
 TARGET = libagslua.dylib

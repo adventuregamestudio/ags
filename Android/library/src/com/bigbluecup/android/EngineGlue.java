@@ -9,6 +9,7 @@ import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.os.Bundle;
 import android.os.Message;
+import android.view.Display;
 
 public class EngineGlue extends Thread implements CustomGlSurfaceView.Renderer
 {
@@ -33,6 +34,8 @@ public class EngineGlue extends Thread implements CustomGlSurfaceView.Renderer
 	private int screenPhysicalHeight = 320;
 	private int screenVirtualWidth = 320;
 	private int screenVirtualHeight = 200;
+	private int screenOffsetX = 0;
+	private int screenOffsetY = 0;
 	
 	private boolean paused = false;
 
@@ -87,8 +90,14 @@ public class EngineGlue extends Thread implements CustomGlSurfaceView.Renderer
 	
 	public void moveMouse(float relativeX, float relativeY, float x, float y)
 	{
-		mouseMoveX = (short)x;
-		mouseMoveY = (short)y;
+		mouseMoveX = (short)(x - screenOffsetX);
+		mouseMoveY = (short)(y - screenOffsetY);
+
+		if (mouseMoveX < 0)
+			mouseMoveX = 0;
+		if (mouseMoveY < 0)
+			mouseMoveY = 0;
+
 		mouseRelativeMoveX = (short)relativeX;
 		mouseRelativeMoveY = (short)relativeY;
 	}
@@ -161,6 +170,10 @@ public class EngineGlue extends Thread implements CustomGlSurfaceView.Renderer
 	
 	public void onSurfaceChanged(int width, int height)
 	{
+		Display display = activity.getWindowManager().getDefaultDisplay(); 
+		screenOffsetX = display.getWidth() - width;
+		screenOffsetY = display.getHeight() - height;
+		
 		setPhysicalScreenResolution(width, height);
 		nativeInitializeRenderer(width, height);
 	}

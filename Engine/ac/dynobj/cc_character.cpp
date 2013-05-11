@@ -15,7 +15,9 @@
 #include "util/wgt2allg.h"
 #include "ac/dynobj/cc_character.h"
 #include "ac/characterinfo.h"
+#include "ac/global_character.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/game_version.h"
 
 extern GameSetupStruct game;
 
@@ -37,4 +39,21 @@ void CCCharacter::Unserialize(int index, const char *serializedData, int dataSiz
     StartUnserialize(serializedData, dataSize);
     int num = UnserializeInt();
     ccRegisterUnserializedObject(index, &game.chars[num], this);
+}
+
+void CCCharacter::WriteInt16(const char *address, intptr_t offset, int16_t val)
+{
+    *(int16_t*)(address + offset) = val;
+
+    // Detect when a game directly modifies the inventory, which causes the displayed
+    // and actual inventory to diverge since 2.70. Force an update of the displayed
+    // inventory for older games that reply on the previous behaviour.
+    if (loaded_game_file_version < kGameVersion_270)
+    {
+        const int invoffset = 112;
+        if (offset >= invoffset && offset < (invoffset + MAX_INV * sizeof(short)))
+        {
+            update_invorder();
+        }
+    }
 }

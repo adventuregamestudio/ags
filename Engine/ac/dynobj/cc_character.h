@@ -28,6 +28,7 @@ struct CCCharacter : AGSCCDynamicObject {
 
     virtual void Unserialize(int index, const char *serializedData, int dataSize);
 
+    void WriteInt16(const char *address, intptr_t offset, int16_t val);
 };
 
 #endif // __AC_CCCHARACTER_H

@@ -176,6 +176,15 @@ public:
     // Copies buffer contents into scanline
     void    SetScanLine(int index, unsigned char *data, int data_size = -1);
 
+    inline bool operator==(const Bitmap &bmp)
+    {
+        return _alBitmap == bmp._alBitmap;
+    }
+    inline bool operator!=(const Bitmap &bmp)
+    {
+        return _alBitmap != bmp._alBitmap;
+    }
+
 private:
 	BITMAP			*_alBitmap;
 	int             *_refCount;

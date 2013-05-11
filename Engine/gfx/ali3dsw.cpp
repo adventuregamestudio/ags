@@ -77,7 +77,7 @@ public:
   virtual void SetLightLevel(int lightLevel)  { }
   virtual void SetTint(int red, int green, int blue, int tintSaturation) { }
 
-  Bitmap *_bmp;
+  Bitmap _bmp;
   int _refCount;
   int _width, _height;
   int _colDepth;
@@ -90,7 +90,7 @@ public:
   ALSoftwareBitmap(Bitmap *bmp, bool opaque, bool hasAlpha)
   {
     _refCount = 1;
-    _bmp = BitmapHelper::CreateBitmapReference(bmp);
+    _bmp.CreateReference(bmp);
     _width = bmp->GetWidth();
     _height = bmp->GetHeight();
     _colDepth = bmp->GetColorDepth();
@@ -108,8 +108,7 @@ public:
   void Dispose()
   {
     // The internal bitmap data is now reference-counted, it is safe to delete Bitmap object
-    delete _bmp;
-    _bmp = NULL;
+    _bmp.Destroy();
   }
 
   ~ALSoftwareBitmap()
@@ -480,7 +479,7 @@ IDriverDependantBitmap* ALSoftwareGraphicsDriver::CreateDDBReference(IDriverDepe
 void ALSoftwareGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, Bitmap *bitmap, bool hasAlpha)
 {
   ALSoftwareBitmap* alSwBmp = (ALSoftwareBitmap*)bitmapToUpdate;
-  alSwBmp->_bmp = bitmap;
+  alSwBmp->_bmp.CreateReference(bitmap);
   alSwBmp->_hasAlpha = hasAlpha;
 }
 
@@ -585,11 +584,11 @@ void ALSoftwareGraphicsDriver::RenderToBackBuffer()
     int drawAtX = drawx[i];// + x;
     int drawAtY = drawy[i];// + y;
 
-    if ((bitmap->_opaque) && (bitmap->_bmp == virtualScreen))
+    if ((bitmap->_opaque) && (bitmap->_bmp == *virtualScreen))
     { }
     else if (bitmap->_opaque)
     {
-      graphics.Blit(bitmap->_bmp, 0, 0, drawAtX, drawAtY, bitmap->_bmp->GetWidth(), bitmap->_bmp->GetHeight());
+      graphics.Blit(&bitmap->_bmp, 0, 0, drawAtX, drawAtY, bitmap->_bmp.GetWidth(), bitmap->_bmp.GetHeight());
     }
     else if (bitmap->_transparency >= 255)
     {
@@ -602,11 +601,11 @@ void ALSoftwareGraphicsDriver::RenderToBackBuffer()
       else
         set_blender_mode(NULL, NULL, _trans_alpha_blender32, 0, 0, 0, bitmap->_transparency);
 
-	  graphics.TransBlendBlt(bitmap->_bmp, drawAtX, drawAtY);
+	  graphics.TransBlendBlt(&bitmap->_bmp, drawAtX, drawAtY);
     }
     else
     {
-      draw_sprite_with_transparency(bitmap->_bmp, drawAtX, drawAtY, bitmap->_transparency);
+      draw_sprite_with_transparency(&bitmap->_bmp, drawAtX, drawAtY, bitmap->_transparency);
     }
   }
 

@@ -127,6 +127,11 @@ bool Bitmap::CreateCopy(Bitmap *src, int color_depth)
 
 bool Bitmap::CreateReference(Bitmap *src)
 {
+    if (src->_alBitmap == _alBitmap)
+    {
+        return true;
+    }
+
     Destroy();
     _alBitmap = src->_alBitmap;
     _refCount = src->_refCount;

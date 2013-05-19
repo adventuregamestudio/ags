@@ -123,7 +123,7 @@ public:
         Size    = 0;
         return *this;
     }
-    inline RuntimeScriptValue &SetInt8(int8_t val)
+    inline RuntimeScriptValue &SetUInt8(uint8_t val)
     {
         Type    = kScValInteger;
         IValue  = val;

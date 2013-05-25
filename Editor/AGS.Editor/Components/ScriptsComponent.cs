@@ -137,7 +137,7 @@ namespace AGS.Editor.Components
                 string newNodeID = AddSingleItem(scripts);
 				_agsEditor.CurrentGame.FilesAddedOrRemoved = true;
                 RePopulateTreeView(GetNodeID(newScript));
-                _guiController.ProjectTree.BeginLabelEdit(this, ITEM_COMMAND_PREFIX + newScript.FileName);
+                _guiController.ProjectTree.BeginLabelEdit(this, ITEM_COMMAND_PREFIX + newScript.NameForLabelEdit);
             }
 			else if (controlID == COMMAND_OPEN_GLOBAL_HEADER)
 			{
@@ -407,8 +407,8 @@ namespace AGS.Editor.Components
         public override IList<MenuCommand> GetContextMenu(string controlID)
         {
             IList<MenuCommand> contextMenu = base.GetContextMenu(controlID);
-            if (controlID.StartsWith(ITEM_COMMAND_PREFIX) && !controlID.Contains(".") && 
-                !IsFolderNode(controlID))
+            if (controlID.StartsWith(ITEM_COMMAND_PREFIX) && !controlID.Contains(".ash") &&
+                !controlID.Contains(".asc") && !IsFolderNode(controlID))
             {
                 _rightClickedScript = controlID.Substring(ITEM_COMMAND_PREFIX.Length) + ".ash";
                 contextMenu.Add(new MenuCommand(MENU_COMMAND_RENAME, "Rename", null));

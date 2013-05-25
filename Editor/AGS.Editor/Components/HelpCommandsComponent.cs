@@ -147,7 +147,7 @@ namespace AGS.Editor.Components
 
         private void LaunchBrowserAtAGSForums()
         {
-            System.Diagnostics.Process.Start("http://www.adventuregamestudio.co.uk/forum");
+            System.Diagnostics.Process.Start("http://www.adventuregamestudio.co.uk/forums/index.php");
         }
 
         private object DownloadUpdateStatusThread(object parameter)

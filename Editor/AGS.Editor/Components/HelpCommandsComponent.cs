@@ -19,7 +19,7 @@ namespace AGS.Editor.Components
         private const string ABOUT_AGS_COMMAND = "AboutAGS";
         private const string CRASH_EDITOR_COMMAND = "CrashEditor";
 
-        private const string UPDATES_URL = "http://www.bigbluecup.com/updatecheck.php";
+        private const string UPDATES_URL = "http://www.adventuregamestudio.co.uk/updatecheck.php";
 
         private string _helpFileName;
         private Form _dummyHelpForm;

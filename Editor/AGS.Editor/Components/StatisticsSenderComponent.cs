@@ -9,7 +9,7 @@ namespace AGS.Editor.Components
 {
     internal class StatisticsSenderComponent : BaseComponent
     {
-        private const string STATS_REPORT_URL = @"http://www.bigbluecup.com/clientstats.php";
+        private const string STATS_REPORT_URL = @"http://www.adventuregamestudio.co.uk/clientstats.php";
         private const int STATS_SEND_INTERVAL_IN_DAYS = 30;
         private const string NET_FRAMEWORK_KEY_ROOT = @"SOFTWARE\Microsoft\NET Framework Setup\NDP\";
         private Timer _timer;

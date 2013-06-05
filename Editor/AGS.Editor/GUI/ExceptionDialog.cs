@@ -75,7 +75,7 @@ namespace AGS.Editor
             using (System.Net.WebClient webClient = new System.Net.WebClient())
             {
                 webClient.Headers.Add(HttpRequestHeader.ContentType, "application/x-www-form-urlencoded");
-                byte[] reply = webClient.UploadData("http://www.bigbluecup.com/errorReport.php", dataToUpload);
+                byte[] reply = webClient.UploadData("http://www.adventuregamestudio.co.uk/errorReport.php", dataToUpload);
                 return System.Text.Encoding.Default.GetString(reply);
             }
         }

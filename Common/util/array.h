@@ -21,16 +21,16 @@
 
 #include <new>
 #include <memory>
+#include <string.h>
 #include "core/types.h"
 #include "debug/assert.h"
 #include "util/math.h"
+#include "util/stream.h"
 
 namespace AGS
 {
 namespace Common
 {
-
-class Stream;
 
 template <class T> struct ArrayBase
 {
@@ -584,7 +584,8 @@ public:
         if (arr && count > 0)
         {
             const T *end_ptr = _meta->Arr + count;
-            for (T *dest_ptr = _meta->Arr, const T *src_ptr = arr; dest_ptr != end_ptr; ++dest_ptr, ++src_ptr)
+            const T *src_ptr = arr;
+            for (T *dest_ptr = _meta->Arr; dest_ptr != end_ptr; ++dest_ptr, ++src_ptr)
             {
                 *dest_ptr = *src_ptr;
             }

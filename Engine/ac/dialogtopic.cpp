@@ -19,9 +19,10 @@ using AGS::Common::Stream;
 
 void DialogTopic::ReadFromFile(Stream *in)
 {
+    optionscripts = NULL;
     in->ReadArray(optionnames, 150*sizeof(char), MAXTOPICOPTIONS);
     in->ReadArrayOfInt32(optionflags, MAXTOPICOPTIONS);
-    optionscripts = (unsigned char *) in->ReadInt32();
+    in->ReadInt32(); // optionscripts
     in->ReadArrayOfInt16(entrypoints, MAXTOPICOPTIONS);
     startupentrypoint = in->ReadInt16();
     codesize = in->ReadInt16();

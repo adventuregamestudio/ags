@@ -386,7 +386,7 @@ int roomSelectorWindow(int currentRoom, int numRooms, const Common::Array<int32_
   CSCISendControlMessage(ctrllist, CLB_CLEAR, 0, 0);    // clear the list box
   for (int aa = 0; aa < numRooms; aa++)
   {
-    sprintf(buff, "%3d %s", roomNumbers[aa], roomNames[aa]);
+    sprintf(buff, "%3d %s", roomNumbers[aa], roomNames[aa].GetCStr());
     CSCISendControlMessage(ctrllist, CLB_ADDITEM, 0, (long)&buff[0]);
     if (roomNumbers[aa] == currentRoom)
     {

@@ -39,8 +39,6 @@ namespace AGS
 namespace Common
 {
 
-class Stream;
-
 class GameInfo
 {
 public:

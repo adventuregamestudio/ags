@@ -136,7 +136,7 @@ RoomInfo::~RoomInfo()
             "this program or the file is corrupt.\n");
         break;
     case kRoomInfoErr_UnknownBlockType:
-        quit(String::FromFormat("LoadRoom: unknown block type %d encountered in '%s'", last_block, filename));
+        quit(String::FromFormat("LoadRoom: unknown block type %d encountered in '%s'", last_block, filename.GetCStr()));
         break;
     case kRoomInfoErr_OldBlockNotSupported:
         quit("Load_room: old room format. Please upgrade the room.");

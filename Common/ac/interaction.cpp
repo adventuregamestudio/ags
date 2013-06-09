@@ -261,7 +261,7 @@ void NewInteraction::ReadFromFile(Stream *in, bool ignore_pointers)
   {
     for (int i = 0; i < MAX_NEWINTERACTION_EVENTS; i++)
     {
-      response[i] = (NewInteractionCommandList*)in->ReadInt32();
+      response[i] = in->ReadInt32() != 0 ? (NewInteractionCommandList*)0x1 : NULL;
     }
   }
 }
@@ -354,7 +354,7 @@ NewInteraction *deserialize_new_interaction (Stream *in) {
 
   // 64 bit: The pointer is only checked against NULL to determine whether the event exists
   for (a = 0; a < nitemp->numEvents; a++)
-    nitemp->response[a] = (NewInteractionCommandList*)in->ReadInt32();
+    nitemp->response[a] = in->ReadInt32() != 0 ? (NewInteractionCommandList*)0x1 : NULL;
 
   for (a = 0; a < nitemp->numEvents; a++) {
     if (nitemp->response[a] != NULL)

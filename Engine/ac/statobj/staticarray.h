@@ -19,6 +19,7 @@
 #define __AGS_EE_STATOBJ__STATICARRAY_H
 
 #include "ac/statobj/staticobject.h"
+#include "util/array.h"
 
 struct ICCDynamicObject;
 

@@ -243,7 +243,7 @@ void register_script_room_objects()
         }
         else
         {
-            objectScriptObjNames[i].Format("o%s", thisroom.Objects[i].ScriptName);
+            objectScriptObjNames[i].Format("o%s", thisroom.Objects[i].ScriptName.GetCStr());
             objectScriptObjNames[i].MakeLower();
             if (objectScriptObjNames[i][1] != 0)
                 objectScriptObjNames[i].SetAt(1, toupper(objectScriptObjNames[i][1]));

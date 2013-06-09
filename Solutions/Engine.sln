@@ -8,24 +8,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Engine.App", "Engine.App\En
 		{463A715C-3EF3-47C7-AC7F-D97660149C49} = {463A715C-3EF3-47C7-AC7F-D97660149C49}
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documents", "Documents", "{970F4C86-CFE7-4543-A3A3-3125CDB4E75A}"
-	ProjectSection(SolutionItems) = preProject
-		..\Documents\AGS_Goals.txt = ..\Documents\AGS_Goals.txt
-		..\Documents\class_design_notes.txt = ..\Documents\class_design_notes.txt
-		..\Documents\codestyle.txt = ..\Documents\codestyle.txt
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Compiler.Lib", "Compiler.Lib\Compiler.Lib.vcproj", "{7B621FC0-BFD0-40E4-800A-0CD5E5707532}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Ports", "Ports", "{4D28FFA8-F8AD-4F34-B908-F6E5BEDE8272}"
-	ProjectSection(SolutionItems) = preProject
-		..\Engine\Makefile = ..\Engine\Makefile
-		..\Engine\Makefile-defs.linux = ..\Engine\Makefile-defs.linux
-		..\Engine\Makefile-defs.osx = ..\Engine\Makefile-defs.osx
-		..\Engine\Makefile-objs = ..\Engine\Makefile-objs
-		..\Engine\Makefile.psp = ..\Engine\Makefile.psp
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -40,10 +22,6 @@ Global
 		{49A909AF-49F3-451D-B6DF-839159E54A01}.Debug|Win32.Build.0 = Debug|Win32
 		{49A909AF-49F3-451D-B6DF-839159E54A01}.Release|Win32.ActiveCfg = Release|Win32
 		{49A909AF-49F3-451D-B6DF-839159E54A01}.Release|Win32.Build.0 = Release|Win32
-		{7B621FC0-BFD0-40E4-800A-0CD5E5707532}.Debug|Win32.ActiveCfg = Debug|Win32
-		{7B621FC0-BFD0-40E4-800A-0CD5E5707532}.Debug|Win32.Build.0 = Debug|Win32
-		{7B621FC0-BFD0-40E4-800A-0CD5E5707532}.Release|Win32.ActiveCfg = Release|Win32
-		{7B621FC0-BFD0-40E4-800A-0CD5E5707532}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

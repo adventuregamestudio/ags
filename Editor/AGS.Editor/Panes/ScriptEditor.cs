@@ -218,7 +218,8 @@ namespace AGS.Editor
 
         private void Events_FileChangedInGameFolder(string fileName)
         {
-            if (fileName.ToLower() == _script.FileName.ToLower())
+            if (fileName.ToLower() == _script.FileName.ToLower() &&
+                !_script.IsBeingSaved)
             {
                 if (DateTime.Now.Subtract(_script.LastSavedAt).TotalSeconds > 2)
                 {

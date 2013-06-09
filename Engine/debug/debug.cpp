@@ -107,7 +107,7 @@ void shutdown_debug_system()
     Out::Shutdown();
 }
 
-void quitprintf(char*texx, ...) {
+void quitprintf(const char *texx, ...) {
     char displbuf[STD_BUFFER_SIZE];
     va_list ap;
     va_start(ap,texx);
@@ -128,7 +128,7 @@ void write_log(char*msg) {
 /* The idea of this is that non-essential errors such as "sound file not
 found" are logged instead of exiting the program.
 */
-void debug_log(char*texx, ...) {
+void debug_log(const char *texx, ...) {
     // if not in debug mode, don't print it so we don't worry the
     // end player
     if (play.DebugMode == 0)
@@ -166,7 +166,7 @@ void debug_log(char*texx, ...) {
 }
 
 
-void debug_write_console (char *msg, ...) {
+void debug_write_console (const char *msg, ...) {
     char displbuf[STD_BUFFER_SIZE];
     va_list ap;
     va_start(ap,msg);

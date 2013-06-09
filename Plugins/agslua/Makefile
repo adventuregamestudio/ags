@@ -4,8 +4,8 @@ INCDIR = agslua/lualibhelp/include/ ../../Engine ../../Common
 LIBDIR =
 CC = gcc
 CXX = g++
-CFLAGS = -fPIC -fvisibility=hidden -O2 -g -Wall $(shell pkg-config --cflags lua5.1-c++)
-LIBS = -lm -lstdc++ -lz $(shell pkg-config --libs)
+CFLAGS = -fPIC -fvisibility=hidden -O2 -g -Wall $(shell pkg-config --cflags lua5.1-c++) -DTHIS_IS_THE_PLUGIN
+LIBS = -lm -lstdc++ -lz $(shell pkg-config --libs lua5.1-c++)
 
 ifeq ($(UNAME), Darwin)
 TARGET = libagslua.dylib

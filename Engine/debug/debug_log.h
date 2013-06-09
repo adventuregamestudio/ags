@@ -24,15 +24,15 @@ void shutdown_debug_system();
 
 #define DEBUG_CONSOLE if (play.DebugMode) debug_write_console
 
-void debug_write_console (char *msg, ...);
+void debug_write_console (const char *msg, ...);
 
 /* The idea of this is that non-essential errors such as "sound file not
 found" are logged instead of exiting the program.
 */
 // NOTE: debug_log only prints messages when game is in debug mode;
 // TODO: revise this later; use new output system with verbosity settings
-void debug_log(char*texx, ...);
-void quitprintf(char*texx, ...);
+void debug_log(const char *texx, ...);
+void quitprintf(const char *texx, ...);
 bool init_editor_debugging();
 
 // allow LShift to single-step,  RShift to pause flow

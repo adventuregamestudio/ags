@@ -116,6 +116,15 @@ void *ccGetSymbolAddressForPlugin(char *namof)
     {
         return import->Value.Ptr;
     }
+    else
+    {
+        // Also search the internal symbol table for non-function symbols
+        import = simp.getByName(namof);
+        if (import)
+        {
+            return import->Value.Ptr;
+        }
+    }
     return NULL;
 }
 

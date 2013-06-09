@@ -17,6 +17,7 @@
 #include "core/assetmanager.h"
 #include "debug/assert.h"
 #include "util/stream.h"
+#include "util/bbop.h"
 
 #if defined (WINDOWS_VERSION)
 #include <io.h>

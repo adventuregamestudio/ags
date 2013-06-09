@@ -36,6 +36,7 @@ namespace AGS.Editor
         private const string MENU_ITEM_QUICK_IMPORT_SPRITES = "QuickImportSprites";
         private const string MENU_ITEM_EXPORT_FOLDER = "ExportFolder";
 		private const string MENU_ITEM_SORT_BY_NUMBER = "SortSpritesByNumber";
+        private const string MENU_ITEM_REPLACE_FROM_SOURCE = "ReplaceSpriteFromSource";
         private const string MENU_ITEM_FIND_BY_NUMBER = "FindSpriteByNumber";
 
         private const string MENU_ITEM_USE_THIS_SPRITE = "UseThisSprite";
@@ -756,6 +757,54 @@ namespace AGS.Editor
                     CropSelectedSprites(true);
                 }
             }
+            else if (item.Name == MENU_ITEM_REPLACE_FROM_SOURCE)
+            {
+                ReplaceSpritesFromSource();
+            }
+        }
+
+        private void ReplaceSpritesFromSource()
+        {
+            
+            List<Sprite> sprites = new List<Sprite>();
+            foreach (ListViewItem listItem in spriteList.SelectedItems) //Check sources still exist
+            {
+                Sprite spr = FindSpriteByNumber(Convert.ToInt32(listItem.Name.ToString()));
+                if (String.IsNullOrEmpty(spr.SourceFile))
+                {
+                    Factory.GUIController.ShowMessage(String.Format("Sprite {0} does not have a source file. It may have been tile imported.", listItem.Name.ToString()), MessageBoxIcon.Error);
+                    return;
+                }
+                else if (!File.Exists(spr.SourceFile))
+                {
+                    Factory.GUIController.ShowMessage(String.Format("File {0} does not exist.", spr.SourceFile), MessageBoxIcon.Error);
+                    return;
+                }
+                sprites.Add(spr);
+            }
+            foreach (Sprite spr in sprites)
+            {
+                try
+                {
+                    Bitmap bmp = LoadSpriteFileFromDisk(spr.SourceFile);
+                    bool alphaChannel = false;
+                    if ((bmp.PixelFormat == PixelFormat.Format32bppArgb) && (Factory.AGSEditor.CurrentGame.Settings.ColorDepth == GameColorDepth.TrueColor))
+                    {
+                        alphaChannel = true;
+                    }
+                    NativeProxy.Instance.ReplaceSpriteWithBitmap(spr, bmp, (SpriteImportMethod)SpriteImportWindow.SpriteImportMethod, false, false, alphaChannel);
+                    bmp.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    Factory.GUIController.ShowMessage(String.Format("There was an error importing the file, {0}. The error message was: '{1}' Please try again",spr.SourceFile, ex.Message), MessageBoxIcon.Warning);
+                    RefreshSpriteDisplay();
+                    return;
+                }
+            }
+            RefreshSpriteDisplay();
+            Factory.GUIController.ShowMessage("Import complete!", MessageBoxIcon.Information);
+
         }
 
 		private string GetTempFileNameForSprite(Sprite sprite, out ImageFormat fileFormat)
@@ -1186,6 +1235,7 @@ namespace AGS.Editor
                 menu.Items.Add(new ToolStripMenuItem("Export sprite to file...", null, onClick, MENU_ITEM_EXPORT_SPRITE));
                 menu.Items.Add(new ToolStripSeparator());
                 menu.Items.Add(new ToolStripMenuItem("Replace sprite from file...", null, onClick, MENU_ITEM_REPLACE_FROM_FILE));
+                
                 if (Factory.AGSEditor.CurrentGame.Settings.ColorDepth != GameColorDepth.Palette)
                 {
                     menu.Items.Add(new ToolStripMenuItem("Replace sprite from clipboard...", null, onClick, MENU_ITEM_REPLACE_FROM_CLIPBOARD));
@@ -1209,6 +1259,7 @@ namespace AGS.Editor
                         menuItem.Enabled = false;
                     }
                 }
+                menu.Items.Add(new ToolStripMenuItem("Replace sprite(s) from source...", null, onClick, MENU_ITEM_REPLACE_FROM_SOURCE));
                 menu.Items.Add(new ToolStripMenuItem("Assign to view...", null, onClick, MENU_ITEM_ASSIGN_TO_VIEW));
                 menu.Items.Add(new ToolStripSeparator());
                 menu.Items.Add(new ToolStripMenuItem("Crop sprite edges", null, onClick, MENU_ITEM_CROP_ASYMMETRIC));

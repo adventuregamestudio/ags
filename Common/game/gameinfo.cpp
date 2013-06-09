@@ -419,7 +419,7 @@ void GameInfo::read_characters(Common::Stream *in, GAME_STRUCT_READ_DATA &read_d
 
 void GameInfo::read_lipsync(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
 {
-    if (read_data.filever > kGameVersion_251) // > 2.1
+    if (read_data.filever >= kGameVersion_254) // lip syncing was introduced in 2.54
     {
         LipSyncFrameLetters.ReadRaw(in, MAXLIPSYNCFRAMES);
     }

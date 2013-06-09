@@ -21,7 +21,7 @@
 
 #include "script/cc_script.h"
 
-extern void cc_error(char *, ...);
+extern void cc_error(const char *, ...);
 
 // error reporting
 extern int ccError;             // set to non-zero if error occurs

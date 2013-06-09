@@ -29,7 +29,7 @@ InventoryItemInfo::InventoryItemInfo()
     memset(&reserved, 0, sizeof(reserved));
 }
 
-void InventoryItemInfo::ReadFromFile(Stream *in)
+void InventoryItemInfo::ReadFromFile_v321(Stream *in)
 {
     in->Read(name, INVITEMINFO_LEGACY_NAME_LENGTH);
     pic = in->ReadInt32();
@@ -40,7 +40,7 @@ void InventoryItemInfo::ReadFromFile(Stream *in)
     flags = in->ReadInt8();
 }
 
-void InventoryItemInfo::WriteToFile(Stream *out)
+void InventoryItemInfo::WriteToFile_v321(Stream *out)
 {
     out->Write(name, INVITEMINFO_LEGACY_NAME_LENGTH);
     out->WriteInt32(pic);
@@ -48,5 +48,25 @@ void InventoryItemInfo::WriteToFile(Stream *out)
     out->WriteInt32(hotx);
     out->WriteInt32(hoty);
     out->WriteArrayOfInt32(reserved, INVITEMINFO_LEGACY_RESERVED_INTS);
+    out->WriteInt8(flags);
+}
+
+void InventoryItemInfo::ReadFromSavedGame(Common::Stream *in)
+{
+    in->Read(name, INVITEMINFO_LEGACY_NAME_LENGTH);
+    pic = in->ReadInt32();
+    cursorPic = in->ReadInt32();
+    hotx = in->ReadInt32();
+    hoty = in->ReadInt32();
+    flags = in->ReadInt8();
+}
+
+void InventoryItemInfo::WriteToSavedGame(Common::Stream *out)
+{
+    out->Write(name, INVITEMINFO_LEGACY_NAME_LENGTH);
+    out->WriteInt32(pic);
+    out->WriteInt32(cursorPic);
+    out->WriteInt32(hotx);
+    out->WriteInt32(hoty);
     out->WriteInt8(flags);
 }

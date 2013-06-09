@@ -18,6 +18,7 @@
 #ifndef __AGS_EE_AC__BUTTON_H
 #define __AGS_EE_AC__BUTTON_H
 
+#include "gui/animatingguibutton.h"
 #include "gui/guibutton.h"
 
 void		Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat);
@@ -41,5 +42,8 @@ void		Button_SetTextColor(GUIButton *butt, int newcol);
 int			UpdateAnimatingButton(int bu);
 void		StopButtonAnimation(int idxn);
 void		FindAndRemoveButtonAnimation(int guin, int objn);
+
+extern AnimatingGUIButton animbuts[MAX_ANIMATING_BUTTONS];
+extern int numAnimButs;
 
 #endif // __AGS_EE_AC__BUTTON_H

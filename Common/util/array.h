@@ -232,12 +232,21 @@ public:
     }
     // Write array elements to stream, putting raw bytes from array buffer.
     // It is not recommended to use this function for non-POD types.
-    void WriteRaw(Stream *out)
+    void WriteRaw(Stream *out, int from, int count)
     {
         if (_meta && _meta->Length > 0 && out)
         {
-            out->WriteArray(_meta->Arr, sizeof(T), _meta->Length);
+            count = count >= 0 ? count : _meta->Length;
+            Math::ClampLength(0, _meta->Length, from, count);
+            if (count > 0)
+            {
+                out->WriteArray(_meta->Arr, sizeof(T), _meta->Length);
+            }
         }
+    }
+    inline void WriteRaw(Stream *out, int count = -1)
+    {
+        WriteRaw(out, 0, count);
     }
 
     // Ensure string has at least space to store N chars;

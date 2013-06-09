@@ -36,7 +36,6 @@
 namespace Out = AGS::Common::Out;
 
 extern int our_eip, displayed_room;
-extern const char *load_game_errors[9];
 extern volatile char want_exit, abort_engine;
 extern volatile int timerloop;
 extern const char *loadSaveGameOnStartup;
@@ -88,11 +87,7 @@ void start_game_load_savegame_on_startup()
             sscanf(sgName, "agssave.%03d", &saveGameNumber);
         }
         current_fade_out_effect();
-        int loadGameErrorCode = load_game(loadSaveGameOnStartup, saveGameNumber);
-        if (loadGameErrorCode)
-        {
-            quitprintf("Unable to resume the save game. Try starting the game over. (Error: %s)", load_game_errors[-loadGameErrorCode]);
-        }
+        load_game_or_quit(loadSaveGameOnStartup, saveGameNumber);
     }
 }
 

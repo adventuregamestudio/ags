@@ -1073,6 +1073,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\game\savedgame.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\game\script_objects.cpp"
 					>
 				</File>
@@ -2068,6 +2072,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\game\roomstate.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\game\savedgame.h"
 					>
 				</File>
 				<File

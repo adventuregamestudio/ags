@@ -59,6 +59,7 @@
 #include "debug/out.h"
 #include "font/fonts.h"
 #include "game/game_objects.h"
+#include "game/savedgame.h"
 #include "game/script_objects.h"
 #include "gfx/ali3d.h"
 #include "gui/animatingguibutton.h"
@@ -143,6 +144,8 @@ int in_new_room=0, new_room_was = 0;  // 1 in new room, 2 first time in new room
 int new_room_pos=0;
 int new_room_x = SCR_NO_VALUE, new_room_y = SCR_NO_VALUE;
 
+unsigned int loopcounter=0,lastcounter=0;
+
 //Bitmap *spriteset[MAX_SPRITES+1];
 //SpriteCache spriteset (MAX_SPRITES+1);
 // initially size 1, this will be increased by the initFile function
@@ -166,12 +169,6 @@ char pexbuf[STD_BUFFER_SIZE];
 
 unsigned int load_new_game = 0;
 int load_new_game_restore = -1;
-
-const char *load_game_errors[9] =
-{"No error","File not found","Not an AGS save game",
-"Invalid save game version","Saved with different interpreter",
-"Saved under a different game", "Resolution mismatch",
-"Colour depth mismatch", ""};
 
 int getloctype_index = 0, getloctype_throughgui = 0;
 
@@ -370,27 +367,11 @@ int Game_SetSaveGameDirectory(const char *newFolder) {
 
 const char* Game_GetSaveSlotDescription(int slnum) {
     String description;
-    if (read_savedgame_description(get_save_game_path(slnum), description) == 0)
+    if (AGS::Engine::ReadSavedGameDescription(get_save_game_path(slnum), description) == 0)
     {
         return CreateNewScriptString(description);
     }
     return NULL;
-}
-
-
-
-
-int load_game_and_print_error(int toload) {
-    int ecret = load_game(toload);
-    if (ecret < 0) {
-        // disable speech in case there are dynamic graphics that
-        // have been freed
-        int oldalways = game.Options[OPT_ALWAYSSPCH];
-        game.Options[OPT_ALWAYSSPCH] = 0;
-        Display("Unable to load game (error: %s).",load_game_errors[-ecret]);
-        game.Options[OPT_ALWAYSSPCH] = oldalways;
-    }
-    return ecret;
 }
 
 void restore_game_dialog() {
@@ -407,7 +388,7 @@ void restore_game_dialog() {
     int toload=loadgamedialog();
     restore_after_dialog();
     if (toload>=0) {
-        load_game_and_print_error(toload);
+        load_game_or_quit(toload);
     }
 }
 
@@ -855,11 +836,7 @@ int Game_ChangeTranslation(const char *newFilename)
 }
 
 //=============================================================================
-
 // save game functions
-#define SGVERSION 8
-char*sgsig="Adventure Game Studio saved game";
-int sgsiglen=32;
 
 void serialize_bitmap(Common::Bitmap *thispic, Stream *out) {
     if (thispic != NULL) {
@@ -889,14 +866,13 @@ void serialize_bitmap(Common::Bitmap *thispic, Stream *out) {
 
 // Some people have been having crashes with the save game list,
 // so make sure the game name is valid
-void safeguard_string (unsigned char *descript) {
+void safeguard_string (String &descript) {
     int it;
     for (it = 0; it < 50; it++) {
         if ((descript[it] < 1) || (descript[it] > 127))
             break;
     }
-    if (descript[it] != 0)
-        descript[it] = 0;
+    descript.TruncateToLeft(it);
 }
 
 // On Windows we could just use IIDFromString but this is platform-independant
@@ -982,7 +958,6 @@ long write_screen_shot_for_vista(Stream *out, Bitmap *screenshot)
     return fileSize;
 }
 
-
 void save_game_screenshot(Stream *out, Bitmap *screenshot)
 {
     // store the screenshot at the start to make it easily accesible
@@ -992,421 +967,7 @@ void save_game_screenshot(Stream *out, Bitmap *screenshot)
         serialize_bitmap(screenshot, out);
 }
 
-void save_game_header(Stream *out)
-{
-    // Write lowest forward-compatible version string, so that
-    // earlier versions could load savedgames made by current engine
-    if (SavedgameLowestForwardCompatVersion <= Version::LastOldFormatVersion)
-    {
-        fputstring(SavedgameLowestForwardCompatVersion.BackwardCompatibleString, out);
-    }
-    else
-    {
-        fputstring(SavedgameLowestForwardCompatVersion.LongString, out);
-    }
-    fputstring(usetup.MainDataFilename, out);
-}
-
-void save_game_head_dynamic_values(Stream *out)
-{
-    out->WriteInt32(scrnhit);
-    out->WriteInt32(final_col_dep);
-    out->WriteInt32(frames_per_second);
-    out->WriteInt32(cur_mode);
-    out->WriteInt32(cur_cursor);
-    out->WriteInt32(offsetx); out->WriteInt32(offsety);
-    out->WriteInt32(loopcounter);
-}
-
-void save_game_spriteset(Stream *out)
-{
-    out->WriteInt32(spriteset.elements);
-    for (int bb = 1; bb < spriteset.elements; bb++) {
-        if (game.SpriteFlags[bb] & SPF_DYNAMICALLOC) {
-            out->WriteInt32(bb);
-            out->WriteInt8(game.SpriteFlags[bb]);
-            serialize_bitmap(spriteset[bb], out);
-        }
-    }
-    // end of dynamic sprite list
-    out->WriteInt32(0);
-}
-
-void save_game_scripts(Stream *out)
-{
-    // write the data segment of the global script
-    int gdatasize=gameinst->globaldatasize;
-    out->WriteInt32(gdatasize);
-    // MACPORT FIX: just in case gdatasize is 2 or 4, don't want to swap endian
-    out->Write(&gameinst->globaldata[0], gdatasize);
-    // write the script modules data segments
-    out->WriteInt32(numScriptModules);
-    for (int bb = 0; bb < numScriptModules; bb++) {
-        int glsize = moduleInst[bb]->globaldatasize;
-        out->WriteInt32(glsize);
-        if (glsize > 0) {
-            out->Write(&moduleInst[bb]->globaldata[0], glsize);
-        }
-    }
-}
-
-void WriteRoomStatus_Aligned(RoomState *roomstat, Stream *out)
-{
-    AlignedStream align_s(out, Common::kAligned_Write);
-    roomstat->WriteToFile_v321(&align_s);
-}
-
-void save_game_room_state(Stream *out)
-{
-    out->WriteInt32(displayed_room);
-    if (displayed_room >= 0) {
-        // update the current room script's data segment copy
-        if (roominst!=NULL)
-            save_room_data_segment();
-
-        // Update the saved interaction variable values
-        for (int ff = 0; ff < thisroom.LocalVariableCount; ff++)
-            croom->InteractionVariableValues[ff] = thisroom.LocalVariables[ff].value;
-    }
-
-    // write the room state for all the rooms the player has been in
-    RoomState* roomstat;
-    for (int bb = 0; bb < MAX_ROOMS; bb++) {
-        if (IsRoomStateValid(bb))
-        {
-            roomstat = GetRoomState(bb);
-            if (roomstat->BeenHere) {
-                out->WriteInt8 (1);
-                WriteRoomStatus_Aligned(roomstat, out);
-                if (roomstat->ScriptDataSize > 0)
-                    out->Write(roomstat->ScriptData.GetCArr(), roomstat->ScriptDataSize);
-            }
-            else
-                out->WriteInt8(0);
-        }
-        else
-            out->WriteInt8(0);
-    }
-}
-
-void save_game_play_ex_data(Stream *out)
-{
-    for (int bb = 0; bb < play.DoOnceTokenCount; bb++)
-    {
-        fputstring(play.DoOnceTokens[bb], out);
-    }
-    out->WriteArrayOfInt32(&play.GuiDrawOrder[0], game.GuiCount);
-}
-
-void WriteMoveList_Aligned(Stream *out)
-{
-    AlignedStream align_s(out, Common::kAligned_Write);
-    for (int i = 0; i < ObjMoveLists.GetCount(); ++i)
-    {
-        ObjMoveLists[i].WriteToFile(&align_s);
-        align_s.Reset();
-    }
-    MoveList dummy_movlist;
-    memset(&dummy_movlist, 0, sizeof(dummy_movlist));
-    for (int i = ObjMoveLists.GetCount(); i < LEGACY_MOVELIST_CHARACTER_OFFSET; ++i)
-    {
-        dummy_movlist.WriteToFile(&align_s);
-        align_s.Reset();
-    }
-    for (int i = 0; i < game.CharacterCount; ++i)
-    {
-        CharMoveLists[i].WriteToFile(&align_s);
-        align_s.Reset();
-    }
-}
-
-void WriteCharacterExtras_Aligned(Stream *out)
-{
-    AlignedStream align_s(out, Common::kAligned_Write);
-    for (int i = 0; i < game.CharacterCount; ++i)
-    {
-        charextra[i].WriteToFile(&align_s);
-        align_s.Reset();
-    }
-}
-
-void save_game_palette(Stream *out)
-{
-    out->WriteArray(&palette[0],sizeof(color),256);
-}
-
-void save_game_dialogs(Stream *out)
-{
-    for (int bb=0;bb<game.DialogCount;bb++)
-        out->WriteArrayOfInt32(&dialog[bb].optionflags[0],MAXTOPICOPTIONS);
-}
-
-// [IKM] yea, okay this is just plain silly name :)
-void save_game_more_dynamic_values(Stream *out)
-{
-    out->WriteInt32(mouse_on_iface);
-    out->WriteInt32(mouse_on_iface_button);
-    out->WriteInt32(mouse_pushed_iface);
-    out->WriteInt32 (ifacepopped);
-    out->WriteInt32(game_paused);
-    //out->WriteInt32(mi.trk);
-}
-
-void WriteAnimatedButtons_Aligned(Stream *out)
-{
-    AlignedStream align_s(out, Common::kAligned_Write);
-    for (int i = 0; i < numAnimButs; ++i)
-    {
-        animbuts[i].WriteToFile(&align_s);
-        align_s.Reset();
-    }
-}
-
-void save_game_gui(Stream *out)
-{
-    write_gui(out,guis,&game,true);
-    out->WriteInt32(numAnimButs);
-    WriteAnimatedButtons_Aligned(out);
-}
-
-void save_game_audiocliptypes(Stream *out)
-{
-    out->WriteInt32(game.AudioClipTypeCount);
-    for (int i = 0; i < game.AudioClipTypeCount; ++i)
-    {
-        game.AudioClipTypes[i].WriteToFile(out);
-    }
-}
-
-void save_game_thisroom(Stream *out)
-{
-    for (int i = 0; i < thisroom.RegionCount; ++i)
-    {
-        out->WriteInt16(thisroom.Regions[i].Light);
-    }
-    for (int i = thisroom.RegionCount; i < LEGACY_MAX_ROOM_REGIONS; ++i)
-    {
-        out->WriteInt16(0);
-    }
-    for (int i = 0; i < thisroom.RegionCount; ++i)
-    {
-        out->WriteInt32(thisroom.Regions[i].Tint);
-    }
-    for (int i = thisroom.RegionCount; i < LEGACY_MAX_ROOM_REGIONS; ++i)
-    {
-        out->WriteInt32(0);
-    }
-    for (int i = 0; i < thisroom.WalkAreaCount; ++i)
-    {
-        out->WriteInt16(thisroom.WalkAreas[i].Zoom);
-    }
-    for (int i = thisroom.WalkAreaCount; i < LEGACY_MAX_ROOM_WALKAREAS + 1; ++i)
-    {
-        out->WriteInt16(0);
-    }
-    for (int i = 0; i < thisroom.WalkAreaCount; ++i)
-    {
-        out->WriteInt16(thisroom.WalkAreas[i].Zoom2);
-    }
-    for (int i = thisroom.WalkAreaCount; i < LEGACY_MAX_ROOM_WALKAREAS + 1; ++i)
-    {
-        out->WriteInt16(0);
-    }
-}
-
-void save_game_ambientsounds(Stream *out)
-{
-    for (int i = 0; i < MAX_SOUND_CHANNELS; ++i)
-    {
-        ambient[i].WriteToFile(out);
-    }
-    //out->WriteArray (&ambient[0], sizeof(AmbientSound), MAX_SOUND_CHANNELS);
-}
-
-void WriteOverlays_Aligned(Stream *out)
-{
-    AlignedStream align_s(out, Common::kAligned_Write);
-    for (int i = 0; i < numscreenover; ++i)
-    {
-        screenover[i].WriteToFile(&align_s);
-        align_s.Reset();
-    }
-}
-
-void save_game_overlays(Stream *out)
-{
-    out->WriteInt32(numscreenover);
-    WriteOverlays_Aligned(out);
-    for (int bb=0;bb<numscreenover;bb++) {
-        serialize_bitmap (screenover[bb].pic, out);
-    }
-}
-
-void save_game_dynamic_surfaces(Stream *out)
-{
-    for (int bb = 0; bb < MAX_DYNAMIC_SURFACES; bb++)
-    {
-        if (dynamicallyCreatedSurfaces[bb] == NULL)
-        {
-            out->WriteInt8(0);
-        }
-        else
-        {
-            out->WriteInt8(1);
-            serialize_bitmap(dynamicallyCreatedSurfaces[bb], out);
-        }
-    }
-}
-
-void save_game_displayed_room_status(Stream *out)
-{
-    if (displayed_room >= 0) {
-
-        for (int bb = 0; bb < MAX_BSCENE; bb++) {
-            if (play.RoomBkgWasModified[bb])
-                serialize_bitmap (thisroom.Backgrounds[bb].Graphic, out);
-        }
-
-        out->WriteInt32 ((raw_saved_screen == NULL) ? 0 : 1);
-        if (raw_saved_screen)
-            serialize_bitmap (raw_saved_screen, out);
-
-        // save the current troom, in case they save in room 600 or whatever
-        WriteRoomStatus_Aligned(&troom, out);
-        if (troom.ScriptDataSize>0)
-            out->Write(&troom.ScriptData[0],troom.ScriptDataSize);
-
-    }
-}
-
-void save_game_globalvars(Stream *out)
-{
-    out->WriteInt32 (numGlobalVars);
-    for (int i = 0; i < numGlobalVars; ++i)
-    {
-        globalvars[i].WriteToFile(out);
-    }
-    //out->WriteArray (&globalvars[0], sizeof(InteractionVariable), numGlobalVars);
-}
-
-void save_game_views(Stream *out)
-{
-    out->WriteInt32 (game.ViewCount);
-    for (int bb = 0; bb < game.ViewCount; bb++) {
-        for (int cc = 0; cc < views[bb].numLoops; cc++) {
-            for (int dd = 0; dd < views[bb].loops[cc].numFrames; dd++)
-            {
-                out->WriteInt32(views[bb].loops[cc].frames[dd].sound);
-                out->WriteInt32(views[bb].loops[cc].frames[dd].pic);
-            }
-        }
-    }
-}
-
-void save_game_audioclips_and_crossfade(Stream *out)
-{
-    out->WriteInt32(game.AudioClipCount);
-    for (int bb = 0; bb <= MAX_SOUND_CHANNELS; bb++)
-    {
-        if ((channels[bb] != NULL) && (channels[bb]->done == 0) && (channels[bb]->sourceClip != NULL))
-        {
-            out->WriteInt32(((ScriptAudioClip*)channels[bb]->sourceClip)->id);
-            out->WriteInt32(channels[bb]->get_pos());
-            out->WriteInt32(channels[bb]->priority);
-            out->WriteInt32(channels[bb]->repeat ? 1 : 0);
-            out->WriteInt32(channels[bb]->vol);
-            out->WriteInt32(channels[bb]->panning);
-            out->WriteInt32(channels[bb]->volAsPercentage);
-            out->WriteInt32(channels[bb]->panningAsPercentage);
-        }
-        else
-        {
-            out->WriteInt32(-1);
-        }
-    }
-    out->WriteInt32(crossFading);
-    out->WriteInt32(crossFadeVolumePerStep);
-    out->WriteInt32(crossFadeStep);
-    out->WriteInt32(crossFadeVolumeAtStart);
-}
-
-void WriteGameState_Aligned(Stream *out)
-{
-    AlignedStream align_s(out, Common::kAligned_Write);
-    play.WriteToFile_v321(&align_s);
-}
-
 #define MAGICNUMBER 0xbeefcafe
-// Write the save game position to the file
-void save_game_data (Stream *out, Bitmap *screenshot) {
-
-    platform->RunPluginHooks(AGSE_PRESAVEGAME, 0);
-    out->WriteInt32(SGVERSION);
-
-    save_game_screenshot(out, screenshot);
-    save_game_header(out);
-    save_game_head_dynamic_values(out);
-    save_game_spriteset(out);
-    save_game_scripts(out);
-    save_game_room_state(out);
-
-    update_polled_stuff_if_runtime();
-
-    if (play.CurrentMusicIndex >= 0) {
-        if (IsMusicPlaying() == 0)
-            play.CurrentMusicIndex = -1;
-    }
-
-    //----------------------------------------------------------------
-    WriteGameState_Aligned(out);
-
-    save_game_play_ex_data(out);
-    //----------------------------------------------------------------
-
-    WriteMoveList_Aligned(out);
-
-    WriteGameSetupStructBase_Aligned(out);
-
-    //----------------------------------------------------------------
-    game.WriteForSaveGame_v321(out);
-
-    WriteCharacterExtras_Aligned(out);
-    save_game_palette(out);
-    save_game_dialogs(out);
-    save_game_more_dynamic_values(out);
-    save_game_gui(out);
-    save_game_audiocliptypes(out);
-    save_game_thisroom(out);
-    save_game_ambientsounds(out);
-    save_game_overlays(out);
-
-    update_polled_stuff_if_runtime();
-
-    save_game_dynamic_surfaces(out);
-
-    update_polled_stuff_if_runtime();
-
-    save_game_displayed_room_status(out);
-    save_game_globalvars(out);
-    save_game_views(out);
-
-    out->WriteInt32 (MAGICNUMBER+1);
-
-    save_game_audioclips_and_crossfade(out);  
-
-    // [IKM] Plugins expect FILE pointer! // TODO something with this later...
-    platform->RunPluginHooks(AGSE_SAVEGAME, (long)((Common::FileStream*)out)->GetHandle());
-    out->WriteInt32 (MAGICNUMBER);  // to verify the plugins
-
-    // save the room music volume
-    out->WriteInt32(thisroom.Options[kRoomBaseOpt_MusicVolume]);
-
-    ccSerializeAllObjects(out);
-
-    out->WriteInt32(current_music_type);
-
-    update_polled_stuff_if_runtime();
-}
 
 void create_savegame_screenshot(Bitmap *&screenShot)
 {
@@ -1496,11 +1057,12 @@ void save_game(int slotn, const char*descript) {
     vistaHeader.WriteToFile(out);
 
     // Savegame signature
-    out->Write(sgsig,sgsiglen);
+    out->Write(SavedGameOpening::SavedGameSignature, SavedGameOpening::SavedGameSigLength);
+    out->WriteInt32(kSvgVersion_Current);
 
-    safeguard_string ((unsigned char*)descript);
-
-    fputstring((char*)descript, out);
+    String fixed_descript = descript;
+    safeguard_string(fixed_descript);
+    fixed_descript.Write(out);
 
     Bitmap *screenShot = NULL;
 
@@ -1509,11 +1071,19 @@ void save_game(int slotn, const char*descript) {
 
     update_polled_stuff_if_runtime();
 
-    // Actual dynamic game data is saved here
-    save_game_data(out, screenShot);
+    platform->RunPluginHooks(AGSE_PRESAVEGAME, 0);
+    
+    save_game_screenshot(out, screenShot);
+    SavedGameInfo svg_info;
+    svg_info.EngineName = "Adventure Game Studio run-time engine";
+    svg_info.EngineVersion = EngineVersion.LongString;
+    svg_info.GameTitle = game.GameName;
+    svg_info.Guid = game.Guid;
+    svg_info.MainDataFilename = usetup.MainDataFilename;
+    svg_info.WriteToFile(out);
 
-    // End writing to the file here
-    //===================================================================
+    // Actual dynamic game data is saved here
+    AGS::Engine::SaveGameData(out);
 
     if (screenShot != NULL)
     {
@@ -1547,27 +1117,46 @@ Bitmap *restore_game_screenshot(Stream *in)
     return NULL;
 }
 
-int restore_game_header(Stream *in)
+AGS::Engine::SavedGameError restore_game_header(Stream *in, SavedGameVersion svg_version)
 {
-    String version_string = String::FromStream(in, 200);
-    AGS::Engine::Version requested_engine_version(version_string);
-    if (requested_engine_version > EngineVersion ||
-        requested_engine_version < SavedgameLowestBackwardCompatVersion)
+    if (svg_version <= kSvgVersion_321)
     {
-        // Version is either non-forward or non-backward compatible
-        // TODO: distinct error codes
-        return -4;
+        String version_string = String::FromStream(in, 200);
+        AGS::Engine::Version requested_engine_version(version_string);
+        if (requested_engine_version > EngineVersion ||
+            requested_engine_version < SavedGameLowestBackwardCompatVersion)
+        {
+            // Engine version is either non-forward or non-backward compatible
+            return kSvgErr_IncompatibleEngine;
+        }
+        fgetstring_limit (rbuffer, in, 180);
+        rbuffer[180] = 0;
+        if (stricmp (rbuffer, usetup.MainDataFilename))
+        {
+            return kSvgErr_DifferentMainDataFile;
+        }
     }
-    fgetstring_limit (rbuffer, in, 180);
-    rbuffer[180] = 0;
-    if (stricmp (rbuffer, usetup.MainDataFilename)) {
-        return -5;
+    else
+    {
+        SavedGameInfo svg_info;
+        svg_info.ReadFromFile(in);
+#if defined AGS_CASE_SENSITIVE_FILESYSTEM
+        if (svg_info.MainDataFilename.CompareNoCase(usetup.MainDataFilename))
+#else
+        if (svg_info.MainDataFilename.Compare(usetup.MainDataFilename))
+#endif
+        {
+            return kSvgErr_DifferentMainDataFile;
+        }
+        if (svg_info.Guid.Compare(game.Guid))
+        {
+            return kSvgErr_GameGuidFailed;
+        }
     }
-
-    return 0;
+    return kSvgErr_NoError;
 }
 
-int restore_game_head_dynamic_values(Stream *in, int &sg_cur_mode, int &sg_cur_cursor)
+AGS::Engine::SavedGameError restore_game_head_dynamic_values(Stream *in, int &sg_cur_mode, int &sg_cur_cursor)
 {
     int gamescrnhit = in->ReadInt32();
     // a 320x240 game, they saved in a 320x200 room but try to restore
@@ -1579,15 +1168,19 @@ int restore_game_head_dynamic_values(Stream *in, int &sg_cur_mode, int &sg_cur_c
     else if (gamescrnhit == final_scrn_hit)
         gamescrnhit = scrnhit;
 
+    // CHECKME: this error might be obsolete, resolution is changed using scaling filters now,
+    // and the game resolution stays the same all the time.
     if (gamescrnhit != scrnhit) {
         Display("This game was saved with the interpreter running at a different "
             "resolution. It cannot be restored.");
-        return -6;
+        return kSvgErr_LegacyDifferentResolution;
     }
 
+    // CHECKME: is this error check still needed? There is an option to degrade
+    // 32-bit game to 16-bit, although of dubious value.
     if (in->ReadInt32() != final_col_dep) {
         Display("This game was saved with the engine running at a different colour depth. It cannot be restored.");
-        return -7;
+        return kSvgErr_LegacyDifferentColorDepth;
     }
 
     unload_old_room();
@@ -1601,7 +1194,7 @@ int restore_game_head_dynamic_values(Stream *in, int &sg_cur_mode, int &sg_cur_c
     offsety = in->ReadInt32();
     loopcounter = in->ReadInt32();
 
-    return 0;
+    return kSvgErr_NoError;
 }
 
 void restore_game_spriteset(Stream *in)
@@ -1679,7 +1272,7 @@ void ReadRoomStatus_Aligned(RoomState *roomstat, Stream *in)
     roomstat->ReadFromFile_v321(&align_s);
 }
 
-void restore_game_room_state(Stream *in, const char *nametouse)
+void restore_game_room_state(Stream *in)
 {
     int vv;
 
@@ -1780,7 +1373,7 @@ void ReadCharacterExtras_Aligned(Stream *in)
     AlignedStream align_s(in, Common::kAligned_Read);
     for (int i = 0; i < game.CharacterCount; ++i)
     {
-        charextra[i].ReadFromFile(&align_s);
+        charextra[i].ReadFromFile_v321(&align_s);
         align_s.Reset();
     }
 }
@@ -2073,12 +1666,12 @@ void restore_game_after_managed_pool()
     // NOTE: the room objects and regions will be cleaned at the current room load
 }
 
-int restore_game_data (Stream *in, const char *nametouse) {
+AGS::Engine::SavedGameError restore_game_data (Stream *in) {
 
     int bb, vv;
 
     int sg_cur_mode = 0, sg_cur_cursor = 0;
-    int res = restore_game_head_dynamic_values(in, /*out*/ sg_cur_mode, sg_cur_cursor);
+    AGS::Engine::SavedGameError res = restore_game_head_dynamic_values(in, /*out*/ sg_cur_mode, sg_cur_cursor);
     if (res != 0) {
         return res;
     }
@@ -2099,7 +1692,7 @@ int restore_game_data (Stream *in, const char *nametouse) {
     char *scriptModuleDataBuffers[MAX_SCRIPT_MODULES];
     int scriptModuleDataSize[MAX_SCRIPT_MODULES];
     restore_game_scripts(in, /*out*/ gdatasize,&newglobaldatabuffer, scriptModuleDataBuffers, scriptModuleDataSize);
-    restore_game_room_state(in, nametouse);
+    restore_game_room_state(in);
 
     restore_game_play(in);
 
@@ -2124,7 +1717,7 @@ int restore_game_data (Stream *in, const char *nametouse) {
     if (game.ViewCount != numviewswas)
         quit("!Restore_Game: Game has changed (views), unable to restore position");
 
-    game.ReadFromSaveGame_v321(in);
+    game.ReadFromSavedGame_v321(in);
 
     ReadCharacterExtras_Aligned(in);
     if (roominst!=NULL) {  // so it doesn't overwrite the ScriptData
@@ -2354,153 +1947,72 @@ int restore_game_data (Stream *in, const char *nametouse) {
         cachedQueuedMusic = load_music_from_disk(play.MusicQueue[0], 0);
     }
 
-    return 0;
+    return kSvgErr_NoError;
 }
 
 int gameHasBeenRestored = 0;
 int oldeip;
 
-void ReadRichMediaHeader_Aligned(RICH_GAME_MEDIA_HEADER &rich_media_header, Stream *in)
-{
-    AlignedStream align_s(in, Common::kAligned_Read);
-    rich_media_header.ReadFromFile(&align_s);
-}
-
-Stream *open_savedgame(const char *savedgame, int &error_code)
-{
-    error_code = 0;
-    Stream *in = Common::File::OpenFileRead(savedgame);
-    if (!in)
-    {
-        error_code = -1;
-        return in;
-    }
-
-    // skip Vista header
-    RICH_GAME_MEDIA_HEADER rich_media_header;
-    ReadRichMediaHeader_Aligned(rich_media_header, in);
-
-    // check saved game signature
-    in->Read(rbuffer, sgsiglen);
-    rbuffer[sgsiglen] = 0;
-    if (strcmp(rbuffer, sgsig) != 0) {
-        // not a save game
-        delete in;
-        error_code = -2;
-        return NULL;
-    }
-
-    int oldeip = our_eip;
-    our_eip = 2050;
-
-    // read description
-    fgetstring_limit(rbuffer, in, 180);
-    rbuffer[180] = 0;
-    safeguard_string ((unsigned char*)rbuffer);
-
-    // check saved game format version
-    if (in->ReadInt32() != SGVERSION) {
-        delete in;
-        error_code = -3;
-        return NULL;
-    }
-
-    return in;
-}
-
-int read_savedgame_description(const String &savedgame, String &description)
-{
-    int error_code;
-    // yeah, I know what you think... this will be remade someday
-    delete open_savedgame(savedgame, error_code);
-    if (error_code == 0)
-    {
-        description = rbuffer;
-        our_eip = oldeip;
-    }
-    return error_code;
-}
-
-int read_savedgame_screenshot(const String &savedgame, int &want_shot)
-{
-    want_shot = 0;
-
-    int error_code;
-    Stream *in = open_savedgame(savedgame, error_code);
-    if (!in)
-    {
-        return error_code;
-    }
-
-    Bitmap *screenshot = restore_game_screenshot(in);
-    if (screenshot)
-    {
-        int slot = spriteset.findFreeSlot();
-        if (slot > 0)
-        {
-            // add it into the sprite set
-            add_dynamic_sprite(slot, gfxDriver->ConvertBitmapToSupportedColourDepth(screenshot));
-            want_shot = slot;
-        }
-        else
-        {
-            delete screenshot;
-        }
-    }
-
-    delete in;
-    our_eip = oldeip;
-    return 0;
-}
-
-int load_game(int slotNumber)
-{
-    return load_game(get_save_game_path(slotNumber), slotNumber);
-}
-
-int load_game(const Common::String &path, int slotNumber)
+AGS::Engine::SavedGameError load_game(const Common::String &path, int slotNumber)
 {
     gameHasBeenRestored++;
 
-    int error_code;
-    Stream *in = open_savedgame(path, error_code);
-    if (!in)
+    AGS::Engine::SavedGameOpening opening;
+    AGS::Engine::SavedGameError error_code = AGS::Engine::OpenSavedGame(path, opening);
+    if (error_code != kSvgErr_NoError)
     {
         return error_code;
+    }
+
+    Stream *in = opening.InputStream;
+    if (opening.Version <= kSvgVersion_321)
+    {
+        // skip description and format version
+        for (size_t desc_idx = 0; (in->ReadByte() > 0) && (desc_idx <= LegacyDescriptionLength); ++desc_idx);
+        in->ReadInt32();
+    }
+    else
+    {
+        // skip description
+        while(in->ReadByte() > 0);
     }
 
     our_eip = 2051;
 
+    // skip screenshot
     delete restore_game_screenshot(in);  // [IKM] how very appropriate
-
-    error_code = restore_game_header(in);
+    error_code = restore_game_header(in, opening.Version);
 
     // saved in different game
-    if (error_code == -5) {
+    if (error_code == kSvgErr_DifferentMainDataFile) {
         // [IKM] 2012-11-26: this is a workaround, indeed.
         // Try to find wanted game's executable; if it does not exist,
         // continue loading savedgame in current game, and pray for the best
         get_current_dir_path(gamefilenamebuf, rbuffer);
         if (Common::File::TestReadFile(gamefilenamebuf))
         {
-            delete in;
             RunAGSGame (rbuffer, 0, 0);
             load_new_game_restore = slotNumber;
-            return 0;
+            return kSvgErr_NoError;
         }
         Common::Out::FPrint("WARNING: the saved game '%s' references game file '%s', but it cannot be found in the current directory.", path.GetCStr(), gamefilenamebuf);
         Common::Out::FPrint("Trying to restore in the running game instead.");
     }
     else if (error_code != 0) {
-        delete in;
         return error_code;
     }
 
     // do the actual restore
-    error_code = restore_game_data(in, path);
-    delete in;
-    our_eip = oldeip;
+    if (opening.Version <= kSvgVersion_321)
+    {
+        error_code = restore_game_data(in);
+    }
+    else
+    {
+        error_code = AGS::Engine::RestoreGameData(in);
+    }
 
+    our_eip = oldeip;
     if (error_code)
     {
         return error_code;
@@ -2512,7 +2024,21 @@ int load_game(const Common::String &path, int slotNumber)
     // use the raw versions rather than the rec_ versions so we don't
     // interfere with the replay sync
     while (keypressed()) readkey();
-    return 0;
+    return kSvgErr_NoError;
+}
+
+void load_game_or_quit(int slotNumber)
+{
+    load_game_or_quit(get_save_game_path(slotNumber), slotNumber);
+}
+
+void load_game_or_quit(const Common::String &path, int slotNumber)
+{
+    AGS::Engine::SavedGameError error = load_game(path, slotNumber);
+    if (error != AGS::Engine::kSvgErr_NoError)
+    {
+        quitprintf("Unable to restore game:\n%s", AGS::Engine::SavedGameErrorText[error]);
+    }
 }
 
 void start_skipping_cutscene () {

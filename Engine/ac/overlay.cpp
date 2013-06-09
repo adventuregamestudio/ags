@@ -21,7 +21,6 @@
 #include "ac/draw.h"
 #include "ac/global_overlay.h"
 #include "ac/global_translation.h"
-#include "ac/runtime_defines.h"
 #include "ac/screenoverlay.h"
 #include "ac/string.h"
 #include "game/game_objects.h"

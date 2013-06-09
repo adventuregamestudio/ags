@@ -17,7 +17,8 @@
 #include "ac/characterinfo.h"
 #include "game/game_objects.h"
 
-extern int offsetx, offsety;
+int offsetx = 0, offsety = 0;
+
 extern int scrnwid,scrnhit;
 extern CharacterInfo*playerchar;
 

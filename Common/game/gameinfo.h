@@ -79,8 +79,10 @@ public:
     void ReadExtFromFile_Part3(Stream *in, GAME_STRUCT_READ_DATA &read_data);
 
     // Functions for reading and writing appropriate data from/to save game
-    void ReadFromSaveGame_v321(Stream *in);
-    void WriteForSaveGame_v321(Stream *out);
+    void ReadFromSavedGame_v321(Stream *in);
+    void WriteForSavedGame_v321(Stream *out);
+    void ReadFromSavedGame(Stream *in);
+    void WriteForSavedGame(Stream *out);
 
     // TODO: temporarily made public
     void ReadInvInfo_Aligned(Stream *in);

@@ -21,4 +21,7 @@
 void check_viewport_coords();
 void update_viewport();
 
+extern int offsetx;
+extern int offsety;
+
 #endif // __AGS_EE_AC__VIEWPORT_H

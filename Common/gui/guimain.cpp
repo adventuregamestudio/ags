@@ -97,7 +97,7 @@ void GUIMain::SetTransparencyAsPercentage(int percent)
 	  this->transparency = ((100 - percent) * 25) / 10;
 }
 
-void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
+void GUIMain::ReadFromFile_v321(Stream *in, GuiVersion gui_version)
 {
   // read/write everything except drawOrder since
   // it will be regenerated
@@ -113,7 +113,7 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
   in->ReadArrayOfInt32(objrefptr, MAX_OBJS_ON_GUI);
 }
 
-void GUIMain::WriteToFile(Stream *out)
+void GUIMain::WriteToFile_v321(Stream *out)
 {
   out->Write(vtext, 40);
   out->WriteArrayOfInt32(&x, 27);
@@ -125,6 +125,20 @@ void GUIMain::WriteToFile(Stream *out)
   //  out->WriteArray(&objs[i], 4, 1);
 
   out->WriteArrayOfInt32((int32_t*)&objrefptr, MAX_OBJS_ON_GUI);
+}
+
+void GUIMain::ReadFromSavedGame(Common::Stream *in, RuntimeGUIVersion version)
+{
+    // read/write everything except drawOrder since
+    // it will be regenerated
+    in->Read(vtext, 40);
+    in->ReadArrayOfInt32(&x, 27);
+}
+
+void GUIMain::WriteToSavedGame(Common::Stream *out)
+{
+    out->Write(vtext, 40);
+    out->WriteArrayOfInt32(&x, 27);
 }
 
 const char* GUIMain::get_objscript_name(const char *basedOn) {
@@ -530,7 +544,7 @@ void read_gui(Stream *in, GUIMain * guiread, GameInfo * gss, GUIMain** allocate)
   for (int iteratorCount = 0; iteratorCount < gss->GuiCount; ++iteratorCount)
   {
     guiread[iteratorCount].init();
-    guiread[iteratorCount].ReadFromFile(in, GameGuiVersion);
+    guiread[iteratorCount].ReadFromFile_v321(in, GameGuiVersion);
   }
 
   for (ee = 0; ee < gss->GuiCount; ee++) {
@@ -636,7 +650,7 @@ void write_gui(Stream *out, GUIMain * guiwrite, GameInfo * gss, bool savedgame)
 
   for (int iteratorCount = 0; iteratorCount < gss->GuiCount; ++iteratorCount)
   {
-    guiwrite[iteratorCount].WriteToFile(out);
+    guiwrite[iteratorCount].WriteToFile_v321(out);
   }
 
   out->WriteInt32(numguibuts);
@@ -662,4 +676,108 @@ void write_gui(Stream *out, GUIMain * guiwrite, GameInfo * gss, bool savedgame)
   out->WriteInt32(numguilist);
   for (ee = 0; ee < numguilist; ee++)
     guilist[ee].WriteToFile(out);
+}
+
+void read_gui_from_savedgame(Common::Stream *in, RuntimeGUIVersion version, GUIMain *guiread, Common::GameInfo *gss)
+{
+    // import the main GUI elements
+    for (int i = 0; i < gss->GuiCount; ++i)
+    {
+        guiread[i].init();
+        guiread[i].ReadFromSavedGame(in, version);
+    }
+    // import the buttons
+    numguibuts = in->ReadInt32();
+    guibuts.SetSizeTo(numguibuts);
+    for (int i = 0; i < numguibuts; ++i)
+    {
+        guibuts[i].ReadFromSavedGame(in, version);
+    }
+    // labels
+    numguilabels = in->ReadInt32();
+    guilabels.SetSizeTo(numguilabels);
+    for (int i = 0; i < numguilabels; ++i)
+    {
+        guilabels[i].ReadFromSavedGame(in, version);
+    }
+    // inv controls
+    numguiinv = in->ReadInt32();
+    guiinv.SetSizeTo(numguiinv);
+    for (int i = 0; i < numguiinv; ++i)
+    {
+        guiinv[i].ReadFromSavedGame(in, version);
+    }
+    // sliders
+    numguislider = in->ReadInt32();
+    guislider.SetSizeTo(numguislider);
+    for (int i = 0; i < numguislider; ++i)
+    {
+        guislider[i].ReadFromSavedGame(in, version);
+    }
+    // text boxes
+    numguitext = in->ReadInt32();
+    guitext.SetSizeTo(numguitext);
+    for (int i = 0; i < numguitext; ++i)
+    {
+        guitext[i].ReadFromSavedGame(in, version);
+    }
+    // list boxes
+    numguilist = in->ReadInt32();
+    guilist.SetSizeTo(numguilist);
+    for (int i = 0; i < numguilist; ++i)
+    {
+        guilist[i].ReadFromSavedGame(in, version);
+    }
+
+    // set up the reverse-lookup array
+    for (int i = 0; i < gss->GuiCount; ++i)
+    {
+        guiread[i].rebuild_array();
+        for (int j = 0; j < guiread[i].numobjs; ++j)
+        {
+            guiread[i].objs[j]->guin = i;
+            guiread[i].objs[j]->objn = j;
+        }
+        guiread[i].resort_zorder();
+    }
+
+    guis_need_update = 1;
+}
+
+void write_gui_for_savedgame(Common::Stream *out, GUIMain *guiwrite, Common::GameInfo * gss)
+{
+    for (int i = 0; i < gss->GuiCount; ++i)
+    {
+        guiwrite[i].WriteToSavedGame(out);
+    }
+    out->WriteInt32(numguibuts);
+    for (int i = 0; i < numguibuts; ++i)
+    {
+        guibuts[i].WriteToFile(out);
+    }
+    out->WriteInt32(numguilabels);
+    for (int i = 0; i < numguilabels; ++i)
+    {
+        guilabels[i].WriteToFile(out);
+    }
+    out->WriteInt32(numguiinv);
+    for (int i = 0; i < numguiinv; ++i)
+    {
+        guiinv[i].WriteToFile(out);
+    }
+    out->WriteInt32(numguislider);
+    for (int i = 0; i < numguislider; ++i)
+    {
+        guislider[i].WriteToFile(out);
+    }
+    out->WriteInt32(numguitext);
+    for (int i = 0; i < numguitext; ++i)
+    {
+        guitext[i].WriteToFile(out);
+    }
+    out->WriteInt32(numguilist);
+    for (int i = 0; i < numguilist; ++i)
+    {
+        guilist[i].WriteToFile(out);
+    }
 }

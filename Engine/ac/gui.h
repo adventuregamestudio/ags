@@ -58,4 +58,7 @@ int		adjust_x_for_guis (int xx, int yy);
 int		adjust_y_for_guis ( int yy);
 void	recreate_guibg_image(GUIMain *tehgui);
 
+extern int ifacepopped;  // currently displayed pop-up GUI (-1 if none)
+extern int mouse_on_iface;
+
 #endif // __AGS_EE_AC__GUI_H

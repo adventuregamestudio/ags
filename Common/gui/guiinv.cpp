@@ -62,6 +62,16 @@ void GUIInv::ReadFromFile(Stream *in, GuiVersion gui_version)
 	CalculateNumCells();
 }
 
+void GUIInv::ReadFromSavedGame(Common::Stream *in, RuntimeGUIVersion gui_version)
+{
+    GUIObject::ReadFromSavedGame(in, gui_version);
+    charId = in->ReadInt32();
+    itemWidth = in->ReadInt32();
+    itemHeight = in->ReadInt32();
+    topIndex = in->ReadInt32();
+    CalculateNumCells();
+}
+
 void GUIInv::CalculateNumCells() {
   if (loaded_game_file_version >= kGameVersion_270)
   {

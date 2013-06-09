@@ -43,8 +43,10 @@ struct CharacterExtras {
     char  slow_move_counter;
     short animwait;
 
-    void ReadFromFile(Common::Stream *in);
-    void WriteToFile(Common::Stream *out);
+    void ReadFromFile_v321(Common::Stream *in);
+    void WriteToFile_v321(Common::Stream *out);
+    void ReadFromSavedGame(Common::Stream *in);
+    void WriteToSavedGame(Common::Stream *out);
 };
 
 #endif // __AGS_EE_AC__CHARACTEREXTRAS_H

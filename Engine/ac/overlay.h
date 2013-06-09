@@ -18,6 +18,8 @@
 #ifndef __AGS_EE_AC__OVERLAY_H
 #define __AGS_EE_AC__OVERLAY_H
 
+#include "ac/runtime_defines.h"
+#include "ac/screenoverlay.h"
 #include "ac/dynobj/scriptoverlay.h"
 
 namespace AGS { namespace Common { class Bitmap; } }
@@ -38,5 +40,10 @@ void remove_screen_overlay(int type);
 void get_overlay_position(int overlayidx, int *x, int *y);
 int  add_screen_overlay(int x,int y,int type,Common::Bitmap *piccy, bool alphaChannel = false);
 void remove_screen_overlay_index(int cc);
+
+extern int numscreenover;
+extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
+extern int is_complete_overlay;
+extern int is_text_overlay;
 
 #endif // __AGS_EE_AC__OVERLAY_H

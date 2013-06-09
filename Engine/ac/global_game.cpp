@@ -61,7 +61,6 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern int guis_need_update;
 extern ExecutingScript*curscript;
-extern const char *load_game_errors[9];
 extern int displayed_room;
 extern int game_paused;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
@@ -98,10 +97,7 @@ void restart_game() {
         curscript->queue_action(ePSARestartGame, 0, "RestartGame");
         return;
     }
-    int errcod;
-    if ((errcod = load_game(RESTART_POINT_SAVE_GAME_NUMBER))!=0)
-        quitprintf("unable to restart game (error:%s)", load_game_errors[-errcod]);
-
+    load_game_or_quit(RESTART_POINT_SAVE_GAME_NUMBER);
 }
 
 void RestoreGameSlot(int slnum) {
@@ -113,7 +109,7 @@ void RestoreGameSlot(int slnum) {
         curscript->queue_action(ePSARestoreGame, slnum, "RestoreGameSlot");
         return;
     }
-    load_game(slnum);
+    load_game_or_quit(slnum);
 }
 
 void DeleteSaveSlot (int slnum) {
@@ -153,7 +149,7 @@ int IsGamePaused() {
 int GetSaveSlotDescription(int slnum,char*desbuf) {
     VALIDATE_STRING(desbuf);
     String description;
-    if (read_savedgame_description(get_save_game_path(slnum), description) == 0)
+    if (AGS::Engine::ReadSavedGameDescription(get_save_game_path(slnum), description) == kSvgErr_NoError)
     {
         strcpy(desbuf, description);
         return 1;
@@ -166,7 +162,7 @@ int LoadSaveSlotScreenshot(int slnum, int width, int height) {
     int gotSlot;
     multiply_up_coordinates(&width, &height);
 
-    if (read_savedgame_screenshot(get_save_game_path(slnum), gotSlot) != 0)
+    if (AGS::Engine::ReadSavedGameScreenshot(get_save_game_path(slnum), gotSlot) != kSvgErr_NoError)
         return 0;
 
     if (gotSlot == 0)
@@ -286,7 +282,7 @@ int RunAGSGame (const char *newgame, unsigned int mode, int data) {
     play.ScreenIsFadedOut = 1;
 
     if (load_new_game_restore >= 0) {
-        load_game (load_new_game_restore);
+        load_game_or_quit(load_new_game_restore);
         load_new_game_restore = -1;
     }
     else

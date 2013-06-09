@@ -41,13 +41,13 @@ extern int windowPosX, windowPosY, windowPosWidth, windowPosHeight;
 extern Bitmap *windowBuffer;
 extern IDriverDependantBitmap *dialogBmp;
 
-#define MAXSAVEGAMES 20
+#define LEGACY_MAXSAVEGAMES 20
 DisplayProperties dispp;
 char *lpTemp, *lpTemp2;
 char bufTemp[260], buffer2[260];
 int numsaves = 0, toomanygames;
-int filenumbers[MAXSAVEGAMES];
-unsigned long filedates[MAXSAVEGAMES];
+int filenumbers[LEGACY_MAXSAVEGAMES];
+unsigned long filedates[LEGACY_MAXSAVEGAMES];
 
 CSCIMessage smes;
 
@@ -271,7 +271,7 @@ void preparesavegamelist(int ctrllist)
   int don = al_findfirst(searchPath, &ffb, -1);
   while (!don) {
     bufix = 0;
-    if (numsaves >= MAXSAVEGAMES) {
+    if (numsaves >= LEGACY_MAXSAVEGAMES) {
       toomanygames = 1;
       break;
     }
@@ -289,7 +289,7 @@ void preparesavegamelist(int ctrllist)
 
     // get description
     String description;
-    read_savedgame_description(thisGamePath, description);
+    AGS::Engine::ReadSavedGameDescription(thisGamePath, description);
 
     CSCISendControlMessage(ctrllist, CLB_ADDITEM, 0, (long)description.GetCStr());
     // Select the first item
@@ -301,7 +301,7 @@ void preparesavegamelist(int ctrllist)
   }
 
   al_findclose(&ffb);
-  if (numsaves >= MAXSAVEGAMES)
+  if (numsaves >= LEGACY_MAXSAVEGAMES)
     toomanygames = 1;
 
   for (int nn = 0; nn < numsaves - 1; nn++) {

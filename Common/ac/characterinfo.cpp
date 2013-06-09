@@ -5,7 +5,7 @@
 
 using AGS::Common::Stream;
 
-void CharacterInfo::ReadFromFile(Stream *in)
+void CharacterInfo::ReadFromFile_v321(Stream *in)
 {
     defview = in->ReadInt32();
     talkview = in->ReadInt32();
@@ -59,7 +59,7 @@ void CharacterInfo::ReadFromFile(Stream *in)
     on = in->ReadInt8();
 }
 
-void CharacterInfo::WriteToFile(Stream *out)
+void CharacterInfo::WriteToFile_v321(Stream *out)
 {
     out->WriteInt32(defview);
     out->WriteInt32(talkview);

@@ -271,7 +271,7 @@ void GameInfo::ReadInvInfo_Aligned(Stream *in)
     InventoryItems.New(InvItemCount);
     for (int iteratorCount = 0; iteratorCount < InvItemCount; ++iteratorCount)
     {
-        InventoryItems[iteratorCount].ReadFromFile(&align_s);
+        InventoryItems[iteratorCount].ReadFromFile_v321(&align_s);
         align_s.Reset();
     }
 }
@@ -281,7 +281,7 @@ void GameInfo::WriteInvInfo_Aligned(Stream *out)
     AlignedStream align_s(out, Common::kAligned_Write);
     for (int iteratorCount = 0; iteratorCount < InvItemCount; ++iteratorCount)
     {
-        InventoryItems[iteratorCount].WriteToFile(&align_s);
+        InventoryItems[iteratorCount].WriteToFile_v321(&align_s);
         align_s.Reset();
     }
 }
@@ -461,7 +461,7 @@ void GameInfo::ReadCharacters_Aligned(Stream *in)
     AlignedStream align_s(in, Common::kAligned_Read);
     for (int iteratorCount = 0; iteratorCount < CharacterCount; ++iteratorCount)
     {
-        Characters[iteratorCount].ReadFromFile(&align_s);
+        Characters[iteratorCount].ReadFromFile_v321(&align_s);
         align_s.Reset();
     }
 }
@@ -471,7 +471,7 @@ void GameInfo::WriteCharacters_Aligned(Stream *out)
     AlignedStream align_s(out, Common::kAligned_Write);
     for (int iteratorCount = 0; iteratorCount < CharacterCount; ++iteratorCount)
     {
-        Characters[iteratorCount].WriteToFile(&align_s);
+        Characters[iteratorCount].WriteToFile_v321(&align_s);
         align_s.Reset();
     }
 }
@@ -605,7 +605,7 @@ void GameInfo::ReadAudioClips_Aligned(Common::Stream *in)
     }
 }
 
-void GameInfo::ReadFromSaveGame_v321(Stream *in)
+void GameInfo::ReadFromSavedGame_v321(Stream *in)
 {
     int bb;
 
@@ -626,7 +626,7 @@ void GameInfo::ReadFromSaveGame_v321(Stream *in)
     ReadCharacters_Aligned(in);
 }
 
-void GameInfo::WriteForSaveGame_v321(Stream *out)
+void GameInfo::WriteForSavedGame_v321(Stream *out)
 {
     WriteInvInfo_Aligned(out);
     WriteMouseCursors_Aligned(out);
@@ -644,4 +644,30 @@ void GameInfo::WriteForSaveGame_v321(Stream *out)
     out->WriteInt8 (Options[OPT_LIPSYNCTEXT]);
 
     WriteCharacters_Aligned(out);
+}
+
+void GameInfo::ReadFromSavedGame(Stream *in)
+{
+    in->ReadArrayOfInt32(Options, OPT_HIGHESTOPTION + 1);
+    Options[OPT_LIPSYNCTEXT] = in->ReadInt8();
+    in->Read(PaletteUses, 256);
+    PlayerCharacterIndex     = in->ReadInt32();
+    DialogBulletSprIndex     = in->ReadInt32();
+    InvItemHotDotColor       = in->ReadInt16();
+    InvItemHotDotOuterColor  = in->ReadInt16();
+    DefaultLipSyncFrame      = in->ReadInt32();
+    InvItemHotDotSprIndex    = in->ReadInt32();
+}
+
+void GameInfo::WriteForSavedGame(Stream *out)
+{
+    out->WriteArrayOfInt32(Options, OPT_HIGHESTOPTION + 1);
+    out->WriteInt8(Options[OPT_LIPSYNCTEXT]);
+    out->Write(PaletteUses, 256);
+    out->WriteInt32(PlayerCharacterIndex);
+    out->WriteInt32(DialogBulletSprIndex);
+    out->WriteInt16(InvItemHotDotColor);
+    out->WriteInt16(InvItemHotDotOuterColor);
+    out->WriteInt32(DefaultLipSyncFrame);
+    out->WriteInt32(InvItemHotDotSprIndex);
 }

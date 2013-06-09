@@ -61,6 +61,19 @@ void GUILabel::ReadFromFile(Stream *in, GuiVersion gui_version)
   flags |= GUIF_TRANSLATED;
 }
 
+void GUILabel::ReadFromSavedGame(Common::Stream *in, RuntimeGUIVersion gui_version)
+{
+    GUIObject::ReadFromSavedGame(in, gui_version);
+
+    if (textBufferLen > 0)
+        free(text);
+
+    textBufferLen = in->ReadInt32();
+    text = (char*)malloc(textBufferLen);
+    in->Read(&text[0], textBufferLen);
+    in->ReadArrayOfInt32(&font, 3);
+}
+
 void GUILabel::SetText(const char *newText) {
 
   if ((int)strlen(newText) < textBufferLen) {

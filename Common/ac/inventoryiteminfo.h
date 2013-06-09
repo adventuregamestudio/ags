@@ -30,8 +30,10 @@ struct InventoryItemInfo {
     char flags;
 
     InventoryItemInfo();
-    void ReadFromFile(Common::Stream *in);
-    void WriteToFile(Common::Stream *out);
+    void ReadFromFile_v321(Common::Stream *in);
+    void WriteToFile_v321(Common::Stream *out);
+    void ReadFromSavedGame(Common::Stream *in);
+    void WriteToSavedGame(Common::Stream *out);
 };
 
 #endif // __AC_INVENTORYITEMINFO_H

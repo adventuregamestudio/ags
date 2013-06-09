@@ -17,7 +17,6 @@
 
 extern volatile int mvolcounter;
 
-unsigned int loopcounter=0,lastcounter=0;
 volatile unsigned long globalTimerCounter = 0;
 
 volatile int timerloop=0;

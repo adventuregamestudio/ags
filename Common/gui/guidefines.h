@@ -75,4 +75,11 @@ enum GuiVersion
     kGuiVersion_ForwardCompatible = kGuiVersion_272e
 };
 
+// TODO: move to engine when GUI classes are split into info/runtime
+enum RuntimeGUIVersion
+{
+    kRtGUIVersion_330,
+    kRtGUIVersion_Current = kRtGUIVersion_330
+};
+
 #endif // __AC_GUIDEFINES_H

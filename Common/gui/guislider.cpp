@@ -49,6 +49,12 @@ void GUISlider::ReadFromFile(Stream *in, GuiVersion gui_version)
   in->ReadArrayOfInt32(&min, sizeToRead);
 }
 
+void GUISlider::ReadFromSavedGame(Common::Stream *in, RuntimeGUIVersion gui_version)
+{
+    GUIObject::ReadFromSavedGame(in, gui_version);
+    in->ReadArrayOfInt32(&min, 7);
+}
+
 void GUISlider::Draw(Common::Graphics *g)
 {
   int bartlx, bartly, barbrx, barbry;

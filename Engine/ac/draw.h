@@ -20,6 +20,7 @@
 
 #include "core/types.h"
 #include "ac/common_defines.h"
+#include "ac/runtime_defines.h"
 #include "util/wgt2allg.h"
 #include "util/array.h"
 
@@ -113,6 +114,14 @@ Common::Bitmap *convert_16_to_15(Common::Bitmap *iii);
 Common::Bitmap *convert_16_to_16bgr(Common::Bitmap *tempbl);
 Common::Bitmap *convert_32_to_32bgr(Common::Bitmap *tempbl);
 
+namespace AGS { namespace Engine { class IGraphicsDriver; } }
+extern AGS::Engine::IGraphicsDriver *gfxDriver;
+extern int offsetx;
+extern int offsety;
+extern color palette[256];
+extern AGS::Common::Bitmap **guibg;
+extern AGS::Engine::IDriverDependantBitmap **guibgbmp;
+
 //---------------------------------------------------------
 // ActiveSprite is used for temporary storage of the bitamp image
 // of the latest version of the sprite
@@ -132,5 +141,7 @@ struct ActiveSprite
 
 extern AGS::Common::ObjectArray<ActiveSprite> CharActiveSprites;
 extern AGS::Common::ObjectArray<ActiveSprite> ObjActiveSprites;
+extern AGS::Common::Bitmap *raw_saved_screen;
+extern AGS::Common::Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 
 #endif // __AGS_EE_AC__DRAW_H

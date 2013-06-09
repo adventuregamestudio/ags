@@ -29,7 +29,6 @@
 #include "ac/objectcache.h"
 #include "ac/overlay.h"
 #include "ac/record.h"
-#include "ac/runtime_defines.h"
 #include "ac/screenoverlay.h"
 #include "ac/spritelistentry.h"
 #include "ac/string.h"
@@ -132,12 +131,9 @@ bool current_background_is_dirty = false;
 Bitmap *_old_screen=NULL;
 Bitmap *_sub_screen=NULL;
 
-int offsetx = 0, offsety = 0;
-
 int trans_mode=0;
 
 IDriverDependantBitmap* roomBackgroundBmp = NULL;
-
 
 #define MAX_SPRITES_ON_SCREEN 76
 SpriteListEntry sprlist[MAX_SPRITES_ON_SCREEN];

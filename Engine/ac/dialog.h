@@ -18,6 +18,7 @@
 #ifndef __AGS_EE_AC__DIALOG_H
 #define __AGS_EE_AC__DIALOG_H
 
+#include "ac/dialogtopic.h"
 #include "ac/dynobj/scriptdialog.h"
 
 int  Dialog_GetID(ScriptDialog *sd);
@@ -32,5 +33,7 @@ void Dialog_Start(ScriptDialog *sd);
 
 void do_conversation(int dlgnum);
 int  show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBackground) ;
+
+extern DialogTopic *dialog;
 
 #endif // __AGS_EE_AC__DIALOG_H

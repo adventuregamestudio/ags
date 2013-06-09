@@ -108,6 +108,36 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
     textcol = 16;
 }
 
+void GUIListBox::ReadFromSavedGame(Common::Stream *in, RuntimeGUIVersion gui_version)
+{
+    char tempbuf[300];
+
+    GUIObject::ReadFromSavedGame(in, gui_version);
+    in->ReadArrayOfInt32(&numItems, 11);
+    alignment = in->ReadInt32();
+    reserved1 = in->ReadInt32();
+    selectedbgcol = in->ReadInt32();
+    
+    int buf_idx = 0;
+    for (int i = 0; i < numItems; ++i)
+    {
+        buf_idx = 0;
+        while ((tempbuf[buf_idx] = in->ReadInt8()) != 0)
+        {
+            buf_idx++;
+        }
+
+        items[i] = (char *)malloc(strlen(tempbuf) + 5);
+        strcpy(items[i], tempbuf);
+        saveGameIndex[i] = -1;
+    }
+
+    if (exflags & GLF_SGINDEXVALID)
+    {
+        in->ReadArrayOfInt16(&saveGameIndex[0], numItems);
+    }
+}
+
 int GUIListBox::AddItem(const char *toadd)
 {
   if (numItems >= MAX_LISTBOX_ITEMS)

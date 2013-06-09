@@ -70,3 +70,24 @@ void GUIObject::ReadFromFile(Stream *in, GuiVersion gui_version)
       fgetstring_limit(eventHandlers[kk], in, MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
   }
 }
+
+void GUIObject::ReadFromSavedGame(Common::Stream *in, RuntimeGUIVersion gui_version)
+{
+    in->ReadArrayOfInt32((int32_t*)&flags, BASEGOBJ_SIZE);
+    fgetstring_limit(scriptName, in, MAX_GUIOBJ_SCRIPTNAME_LEN);
+
+    for (int i = 0; i < GetNumEvents(); ++i)
+    {
+        eventHandlers[i][0] = 0;
+    }
+
+    int numev = in->ReadInt32();
+    if (numev > GetNumEvents())
+        quit("Error: too many control events, need newer version");
+
+    // read in the event handler names
+    for (int i = 0; i < numev; ++i)
+    {
+        fgetstring_limit(eventHandlers[i], in, MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
+    }
+}

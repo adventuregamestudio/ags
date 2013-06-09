@@ -45,9 +45,15 @@ void GUITextBox::ReadFromFile(Stream *in, GuiVersion gui_version)
     textcol = 16;
 }
 
+void GUITextBox::ReadFromSavedGame(Common::Stream *in, RuntimeGUIVersion gui_version)
+{
+    GUIObject::ReadFromSavedGame(in, gui_version);
+    in->Read(&text[0], 200);
+    in->ReadArrayOfInt32(&font, 3);
+}
+
 void GUITextBox::Draw(Common::Graphics *g)
 {
-
   check_font(&font);
   g->SetTextColor(textcol);
   g->SetDrawColor(textcol);

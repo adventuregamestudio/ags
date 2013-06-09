@@ -92,8 +92,10 @@ struct GUIMain
 
   void FixupGuiName(char* name);
   void SetTransparencyAsPercentage(int percent);
-  void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
-  void WriteToFile(Common::Stream *out);
+  void ReadFromFile_v321(Common::Stream *in, GuiVersion gui_version);
+  void WriteToFile_v321(Common::Stream *out);
+  void ReadFromSavedGame(Common::Stream *in, RuntimeGUIVersion version);
+  void WriteToSavedGame(Common::Stream *out);
 
 };
 
@@ -106,6 +108,8 @@ extern int  numlines;
 
 extern void read_gui(Common::Stream *in, GUIMain * guiread, Common::GameInfo * gss, GUIMain** allocate = NULL);
 extern void write_gui(Common::Stream *out, GUIMain * guiwrite, Common::GameInfo * gss, bool savedgame);
+extern void read_gui_from_savedgame(Common::Stream *in, RuntimeGUIVersion version, GUIMain * guiread, Common::GameInfo * gss);
+extern void write_gui_for_savedgame(Common::Stream *out, GUIMain * guiwrite, Common::GameInfo * gss);
 
 extern int mousex, mousey;
 

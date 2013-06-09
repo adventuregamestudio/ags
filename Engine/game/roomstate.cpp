@@ -185,6 +185,83 @@ void RoomState::WriteToFile_v321(Stream *out)
     InteractionVariableValues.WriteRaw(out);
 }
 
+void RoomState::ReadFromSavedGame(Stream *in)
+{
+    BeenHere = in->ReadInt8() != 0;
+
+    ObjectCount = in->ReadInt32();
+    Objects.SetLength(ObjectCount);
+    for (int i = 0; i < Objects.GetCount(); ++i)
+    {
+        Objects[i].ReadFromFile(in);
+        Objects[i].Interaction.ReadFromFile(in, true);
+    }    
+    Hotspots.SetLength(in->ReadInt32());
+    for (int i = 0; i < Hotspots.GetCount(); ++i)
+    {
+        Hotspots[i].Enabled = in->ReadInt8() != 0;
+        Hotspots[i].Interaction.ReadFromFile(in, true);
+    }
+    Regions.SetLength(in->ReadInt32());
+    for (int i = 0; i < Regions.GetCount(); ++i)
+    {
+        Regions[i].Enabled = in->ReadInt8() != 0;
+        Regions[i].Interaction.ReadFromFile(in, true);
+    }
+    WalkBehinds.SetLength(in->ReadInt32());
+    for (int i = 0; i < WalkBehinds.GetCount(); ++i)
+    {
+        WalkBehinds[i].Baseline = in->ReadInt16();
+    }
+
+    Interaction.ReadFromFile(in, true);
+    int intvarval_count = in->ReadInt32();
+    InteractionVariableValues.ReadRawOver(in, intvarval_count);
+    ScriptDataSize = in->ReadInt32();
+    if (ScriptDataSize > 0)
+    {
+        ScriptData.ReadRaw(in, ScriptDataSize);
+    }
+}
+
+void RoomState::WriteToSavedGame(Stream *out)
+{
+    out->WriteInt8(BeenHere);
+
+    out->WriteInt32(Objects.GetCount());
+    for (int i = 0; i < Objects.GetCount(); ++i)
+    {
+        Objects[i].WriteToFile(out);
+        Objects[i].Interaction.WriteToFile(out);
+    }    
+    out->WriteInt32(Hotspots.GetCount());
+    for (int i = 0; i < Hotspots.GetCount(); ++i)
+    {
+        out->WriteInt8(Hotspots[i].Enabled ? 1 : 0);
+        Hotspots[i].Interaction.WriteToFile(out);
+    }
+    out->WriteInt32(Regions.GetCount());
+    for (int i = 0; i < Regions.GetCount(); ++i)
+    {
+        out->WriteInt8(Regions[i].Enabled ? 1 : 0);
+        Regions[i].Interaction.WriteToFile(out);
+    }
+    out->WriteInt32(WalkBehinds.GetCount());
+    for (int i = 0; i < WalkBehinds.GetCount(); ++i)
+    {
+        out->WriteInt16(WalkBehinds[i].Baseline);
+    }
+
+    Interaction.WriteToFile(out);
+    out->WriteInt32(InteractionVariableValues.GetCount());
+    InteractionVariableValues.WriteRaw(out);
+    out->WriteInt32(ScriptDataSize);
+    if (ScriptDataSize > 0)
+    {
+        out->Write(ScriptData.GetCArr(), ScriptDataSize);
+    }
+}
+
 void RoomState::InitDefaults()
 {
     BeenHere = false;

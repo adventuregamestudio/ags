@@ -62,6 +62,17 @@ void GUIButton::ReadFromFile(Stream *in, GuiVersion gui_version)
   flags |= GUIF_TRANSLATED;
 }
 
+void GUIButton::ReadFromSavedGame(Stream *in, RuntimeGUIVersion gui_version)
+{
+    GUIObject::ReadFromSavedGame(in, gui_version);
+    in->ReadArrayOfInt32(&pic, 12);
+    in->Read(&text[0], 50);
+    usepic = pic;
+
+    textAlignment = in->ReadInt32();
+    reserved1 = in->ReadInt32();
+}
+
 void GUIButton::Draw(Common::Graphics *g)
 {
   int drawDisabled = IsDisabled();

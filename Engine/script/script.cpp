@@ -325,7 +325,7 @@ void post_script_cleanup() {
         break;
     case ePSARestoreGame:
         cancel_all_scripts();
-        load_game_and_print_error(thisData);
+        load_game_or_quit(thisData);
         return;
     case ePSARestoreGameDialog:
         restore_game_dialog();

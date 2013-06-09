@@ -74,6 +74,7 @@ struct GUIObject
   }
   virtual void WriteToFile(Common::Stream *out);
   virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
+  virtual void ReadFromSavedGame(Common::Stream *in, RuntimeGUIVersion gui_version);
   // called when the control is resized
   virtual void Resized() { }
   virtual int  GetNumEvents() {

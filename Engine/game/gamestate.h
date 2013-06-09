@@ -45,6 +45,8 @@ public:
 
     void ReadFromFile_v321(Stream *in);
     void WriteToFile_v321(Stream *out);
+    void ReadFromSavedGame(Stream *in);
+    void WriteToSavedGame(Stream *out);
 
 private:
     void ReadQueuedAudioItems_Aligned(Stream *in);

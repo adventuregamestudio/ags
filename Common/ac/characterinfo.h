@@ -99,8 +99,10 @@ struct CharacterInfo {
 	void update_character_idle(CharacterExtras *chex, int &doing_nothing);
 	void update_character_follower(int &char_index, int &numSheep, int *followingAsSheep, int &doing_nothing);
 
-    void ReadFromFile(Common::Stream *in);
-    void WriteToFile(Common::Stream *out);
+    void ReadFromFile_v321(Common::Stream *in);
+    void WriteToFile_v321(Common::Stream *out);
+    void ReadFromSavedGame(Common::Stream *in);
+    void WriteToSavedGame(Common::Stream *out);
 };
 
 

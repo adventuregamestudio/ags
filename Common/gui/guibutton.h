@@ -17,7 +17,6 @@
 
 #include "gui/guiobject.h"
 #include "gui/dynamicarray.h"
-#include "util/file.h"
 
 #define GBUT_ALIGN_TOPMIDDLE    0
 #define GBUT_ALIGN_TOPLEFT      1
@@ -41,7 +40,7 @@ struct GUIButton:public GUIObject
 
   virtual void WriteToFile(Common::Stream *out);
   virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
-  void Draw();
+  virtual void Draw(Common::Graphics *g);
   void MouseUp();
 
   void MouseMove(int x, int y)

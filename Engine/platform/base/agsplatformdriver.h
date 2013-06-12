@@ -20,7 +20,6 @@
 #define __AGS_EE_PLATFORM__AGSPLATFORMDRIVER_H
 
 #include "ac/datetime.h"
-#include "util/file.h"
 #include "debug/outputtarget.h"
 
 namespace AGS { namespace Common { class Stream; } }

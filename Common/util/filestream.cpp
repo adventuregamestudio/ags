@@ -15,10 +15,20 @@
 #if defined(WINDOWS_VERSION)
 #include <io.h>
 #endif
-
 #include <stdio.h>
 #include "util/filestream.h"
 #include "util/math.h"
+
+// TODO: use fstat on Windows too?
+#if !defined (WINDOWS_VERSION)
+#include <sys/stat.h>
+long int filelength(int fhandle)
+{
+    struct stat statbuf;
+    fstat(fhandle, &statbuf);
+    return statbuf.st_size;
+}
+#endif
 
 namespace AGS
 {

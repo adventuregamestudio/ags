@@ -13,7 +13,6 @@
 //=============================================================================
 
 #include "ac/global_hotspot.h"
-#include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "ac/common_defines.h"
 #include "ac/characterinfo.h"

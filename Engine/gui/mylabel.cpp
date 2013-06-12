@@ -13,11 +13,11 @@
 //=============================================================================
 
 #include <string.h>
-#include "util/wgt2allg.h"
 #include "gfx/ali3d.h"
 #include "ac/display.h"
 #include "ac/gamesetup.h"
 #include "ac/string.h"
+#include "font/fonts.h"
 #include "gui/guidefines.h"
 #include "gui/mylabel.h"
 #include "gui/guidialoginternaldefs.h"
@@ -39,15 +39,15 @@ MyLabel::MyLabel(int xx, int yy, int wii, char *tee)
     hit = TEXT_HT;
 }
 
-void MyLabel::draw()
+void MyLabel::draw(Common::Graphics *g)
 {
     int curofs = 0, lastspac = 0, cyp = y;
     char *teptr = &text[0];
-    wtextcolor(0);
+    g->SetTextColor(0);
 
     break_up_text_into_lines(wid, acdialog_font, teptr);
     for (int ee = 0; ee < numlines; ee++) {
-        wouttext_outline(x, cyp, acdialog_font, lines[ee]);
+        wouttext_outline(g, x, cyp, acdialog_font, lines[ee]);
         cyp += TEXT_HT;
     }
     /*

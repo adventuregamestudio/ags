@@ -13,8 +13,7 @@
 //=============================================================================
 
 #include <stdio.h>
-#include "string.h"
-#include "util/wgt2allg.h"
+#include <string.h>
 #include "ac/dynobj/cc_serializer.h"
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/all_scriptclasses.h"
@@ -22,6 +21,7 @@
 #include "media/audio/audio.h"
 #include "debug/debug_log.h"
 
+#undef _WINGDI_ // FIXME later (prevents conflict with BITMAP declaration)
 #include "plugin/agsplugin.h"
 #include "plugin/pluginobjectreader.h"
 

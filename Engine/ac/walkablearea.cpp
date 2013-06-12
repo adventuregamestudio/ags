@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "ac/object.h"
 #include "ac/roomstruct.h"
@@ -24,9 +23,10 @@
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
 #include "ac/walkablearea.h"
-#include "gfx/bitmap.h"
+#include "gfx/graphics.h"
 
 using AGS::Common::Bitmap;
+using AGS::Common::Graphics;
 
 extern roomstruct thisroom;
 extern GameState play;
@@ -45,7 +45,8 @@ void redo_walkable_areas() {
     if ((!thisroom.walls->IsLinearBitmap()) || (thisroom.walls->GetColorDepth() != 8))
         quit("Walkable areas bitmap not linear");
 
-    thisroom.walls->Blit(walkareabackup, 0, 0, 0, 0, thisroom.walls->GetWidth(), thisroom.walls->GetHeight());
+    Graphics graphics(thisroom.walls);
+    graphics.Blit(walkareabackup, 0, 0, 0, 0, thisroom.walls->GetWidth(), thisroom.walls->GetHeight());
 
     int hh,ww;
     for (hh=0;hh<walkareabackup->GetHeight();hh++) {
@@ -135,7 +136,8 @@ int is_point_in_rect(int x, int y, int left, int top, int right, int bottom) {
 
 Bitmap *prepare_walkable_areas (int sourceChar) {
     // copy the walkable areas to the temp bitmap
-    walkable_areas_temp->Blit (thisroom.walls, 0,0,0,0,thisroom.walls->GetWidth(),thisroom.walls->GetHeight());
+    Graphics graphics(walkable_areas_temp);
+    graphics.Blit (thisroom.walls, 0,0,0,0,thisroom.walls->GetWidth(),thisroom.walls->GetHeight());
     // if the character who's moving doesn't Bitmap *, don't bother checking
     if (sourceChar < 0) ;
     else if (game.chars[sourceChar].flags & CHF_NOBLOCKING)

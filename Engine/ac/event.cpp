@@ -12,8 +12,8 @@
 //
 //=============================================================================
 
+#include <stdio.h>
 #include "event.h"
-#include "util/wgt2allg.h"
 #include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/draw.h"
@@ -28,14 +28,16 @@
 #include "ac/screen.h"
 #include "script/cc_error.h"
 #include "media/audio/audio.h"
+#include "media/audio/soundclip.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "script/script.h"
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
-#include "gfx/bitmap.h"
+#include "gfx/graphics.h"
 
 using AGS::Common::Bitmap;
+using AGS::Common::Graphics;
 namespace BitmapHelper = Common::BitmapHelper;
 
 extern GameSetupStruct game;
@@ -253,7 +255,7 @@ void process_event(EventHappened*evp) {
 		Bitmap *screen_bmp = BitmapHelper::GetScreenBitmap();
 
         if ((theTransition == FADE_INSTANT) || (play.screen_tint >= 0))
-            wsetpalette(0,255,palette);
+            set_palette_range(palette, 0, 255, 0);
         else if (theTransition == FADE_NORMAL)
         {
             if (gfxDriver->UsesMemoryBackBuffer())
@@ -269,7 +271,7 @@ void process_event(EventHappened*evp) {
             }
             else
             {
-                wsetpalette(0,255,palette);
+                set_palette_range(palette, 0, 255, 0);
                 gfxDriver->RenderToBackBuffer();
 				gfxDriver->SetMemoryBackBuffer(screen_bmp);
                 screen_bmp->Clear();
@@ -283,7 +285,8 @@ void process_event(EventHappened*evp) {
                     boxhit += multiply_up_coordinate(GetMaxScreenHeight() / 20);
                     int lxp = scrnwid / 2 - boxwid / 2, lyp = scrnhit / 2 - boxhit / 2;
                     gfxDriver->Vsync();
-                    screen_bmp->Blit(virtual_screen, lxp, lyp, lxp, lyp,
+                    Graphics graphics(screen_bmp);
+                    graphics.Blit(virtual_screen, lxp, lyp, lxp, lyp,
                         boxwid, boxhit);
                     render_to_screen(screen_bmp, 0, 0);
                     UPDATE_MP3
@@ -324,7 +327,7 @@ void process_event(EventHappened*evp) {
 
             delete temp_virtual;
             temp_virtual = NULL;
-            wsetpalette(0,255,palette);
+            set_palette_range(palette, 0, 255, 0);
             gfxDriver->DestroyDDB(ddb);
         }
         else if (theTransition == FADE_DISSOLVE) {
@@ -340,7 +343,7 @@ void process_event(EventHappened*evp) {
                 if (game.color_depth == 1) 
                 {
                     fade_interpolate(old_palette,palette,interpal,aa*4,0,255);
-                    wsetpalette(0,255,interpal);
+                    set_palette_range(interpal, 0, 255, 0);
                 }
                 // do the dissolving
                 int maskCol = temp_virtual->GetMaskColor();
@@ -361,7 +364,7 @@ void process_event(EventHappened*evp) {
 
             delete temp_virtual;
             temp_virtual = NULL;
-            wsetpalette(0,255,palette);
+            set_palette_range(palette, 0, 255, 0);
             gfxDriver->DestroyDDB(ddb);
         }
 

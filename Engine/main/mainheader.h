@@ -22,7 +22,6 @@
 
 #define USE_CLIB
 #include <stdio.h>
-#include "util/wgt2allg.h"
 #include "gfx/ali3d.h"
 #include "ac/math.h"
 #include "script/script_runtime.h"
@@ -38,16 +37,10 @@
 #include "media/audio/audio.h"
 #include "media/audio/soundcache.h"
 
-#ifdef WINDOWS_VERSION
-#include <shlwapi.h>
-//#include <crtdbg.h>
-//#include "winalleg.h"
-#else
-// ???
-#endif
-
 #if defined (WINDOWS_VERSION)
 #include <process.h>
+#include <shlwapi.h>
+#undef CreateFile  // undef the declaration from winbase.h
 #endif
 
 #if defined(ANDROID_VERSION)

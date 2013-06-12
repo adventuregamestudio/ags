@@ -16,7 +16,6 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
 #include "ac/character.h"
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
@@ -53,7 +52,7 @@
 #include "util/string_utils.h"
 #include <math.h>
 #include "gfx/graphicsdriver.h"
-#include "gfx/bitmap.h"
+#include "gfx/graphics.h"
 #include "platform/base/override_defines.h"
 #include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_character.h"
@@ -61,6 +60,7 @@
 #include "script/script_runtime.h"
 
 using AGS::Common::Bitmap;
+using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameSetupStruct game;
@@ -2206,7 +2206,7 @@ int my_getpixel(Bitmap *blk, int x, int y) {
 
     // strip the alpha channel
 	// TODO: is there a way to do this vtable thing with Bitmap?
-	BITMAP *al_bmp = (BITMAP*)blk->GetBitmapObject();
+	BITMAP *al_bmp = (BITMAP*)blk->GetAllegroBitmap();
     return al_bmp->vtable->getpixel(al_bmp, x, y) & 0x00ffffff;
 }
 
@@ -2575,14 +2575,14 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
                 else
                     ovr_yp = yy;
 
-                closeupface = BitmapHelper::CreateBitmap(bigx+1,bigy+1,spriteset[viptr->loops[0].frames[0].pic]->GetColorDepth());
-                closeupface->Clear(closeupface->GetMaskColor());
+                closeupface = BitmapHelper::CreateTransparentBitmap(bigx+1,bigy+1,spriteset[viptr->loops[0].frames[0].pic]->GetColorDepth());
                 ovr_type = OVER_PICTURE;
 
                 if (yy < 0)
                     tdyp = ovr_yp + get_textwindow_top_border_height(play.speech_textwindow_gui);
             }
-            DrawViewFrame(closeupface, &viptr->loops[0].frames[0], view_frame_x, view_frame_y);
+            Graphics graphics(closeupface);
+            DrawViewFrame(&graphics, &viptr->loops[0].frames[0], view_frame_x, view_frame_y);
 
             int overlay_x = get_fixed_pixel_size(10);
             if (xx < 0) {

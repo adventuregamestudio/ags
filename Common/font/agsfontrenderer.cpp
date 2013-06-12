@@ -16,9 +16,7 @@
 #define USE_ALFONT
 #endif
 
-#include "util/wgt2allg.h"
 #include "alfont.h"
-
 #include "font/agsfontrenderer.h"
 
 IAGSFontRenderer* fontRenderers[MAX_FONTS];

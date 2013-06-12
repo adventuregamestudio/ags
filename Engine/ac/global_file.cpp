@@ -12,7 +12,7 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
+#include <string.h>
 #include "ac/global_file.h"
 #include "ac/common.h"
 #include "ac/file.h"

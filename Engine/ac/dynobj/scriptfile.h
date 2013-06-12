@@ -19,6 +19,7 @@
 #define __AGS_EE_DYNOBJ__SCRIPTFILE_H
 
 #include "ac/dynobj/cc_dynamicobject.h"
+#include "util/file.h"
 
 using namespace AGS; // FIXME later
 

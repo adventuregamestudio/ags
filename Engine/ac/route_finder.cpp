@@ -17,7 +17,6 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
 #include "ac/route_finder.h"
 #include "ac/common.h"   // quit()
 #include "ac/movelist.h"     // MoveList
@@ -25,9 +24,10 @@
 #include "ac/common_defines.h"
 #include <string.h>
 #include <math.h>
-#include "gfx/bitmap.h"
+#include "gfx/graphics.h"
 
 using AGS::Common::Bitmap;
+using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 #define MANOBJNUM 99
@@ -87,7 +87,7 @@ int can_see_from(int x1, int y1, int x2, int y2)
     return 1;
 
   // TODO: need some way to use Bitmap with callback
-  do_line((BITMAP*)wallscreen->GetBitmapObject(), x1, y1, x2, y2, 0, line_callback);
+  do_line((BITMAP*)wallscreen->GetAllegroBitmap(), x1, y1, x2, y2, 0, line_callback);
   if (line_failed == 0)
     return 1;
 
@@ -142,14 +142,14 @@ int is_route_possible(int fromx, int fromy, int tox, int toy, Bitmap *wss)
   if (wallscreen->GetPixel(fromx, fromy) < 1)
     return 0;
 
-  Bitmap *tempw = BitmapHelper::CreateBitmap(wallscreen->GetWidth(), wallscreen->GetHeight(), 8);
+  Bitmap *tempw = BitmapHelper::CreateBitmapCopy(wallscreen, 8);
 
   if (tempw == NULL)
     quit("no memory for route calculation");
   if (!tempw->IsMemoryBitmap())
     quit("tempw is not memory bitmap");
 
-  tempw->Blit(wallscreen, 0, 0, 0, 0, tempw->GetWidth(), tempw->GetHeight());
+  Graphics graphics(tempw);
 
   int dd, ff;
   // initialize array for finding widths of walkable areas
@@ -215,7 +215,7 @@ int is_route_possible(int fromx, int fromy, int tox, int toy, Bitmap *wss)
   }
   walk_area_granularity[0] = MAX_GRANULARITY;
 
-  tempw->FloodFill(fromx, fromy, 232);
+  graphics.FloodFill(fromx, fromy, 232);
   if (tempw->GetPixel(tox, toy) != 232) 
   {
     // Destination pixel is not walkable

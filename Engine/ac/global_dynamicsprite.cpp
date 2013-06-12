@@ -13,7 +13,7 @@
 //=============================================================================
 
 #include "ac/global_dynamicsprite.h"
-#include "util/wgt2allg.h"
+#include "util/wgt2allg.h" // Allegro RGB, PALETTE
 #include "gfx/ali3d.h"
 #include "ac/dynamicsprite.h"
 #include "ac/file.h"

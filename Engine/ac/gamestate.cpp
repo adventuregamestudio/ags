@@ -12,11 +12,10 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
 #include "ac/gamestate.h"
 #include "ac/gamesetupstruct.h"
-#include "util/string_utils.h"
 #include "util/alignedstream.h"
+#include "util/string_utils.h"
 
 using AGS::Common::AlignedStream;
 using AGS::Common::Stream;

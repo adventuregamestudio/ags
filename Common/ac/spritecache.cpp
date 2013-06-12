@@ -22,14 +22,13 @@
 #pragma warning (disable: 4996 4312)  // disable deprecation warnings
 #endif
 
-#include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "ac/spritecache.h"
+#include "core/assetmanager.h"
+#include "gfx/bitmap.h"
 #include "util/compress.h"
 #include "util/file.h"
-#include "util/filestream.h"
-#include "gfx/bitmap.h"
-#include "core/assetmanager.h"
+#include "util/stream.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -50,6 +49,9 @@ extern int spritewidth[], spriteheight[];
 #define END_OF_LIST   -1
 // PSP: Use smaller sprite cache due to limited total memory.
 #define DEFAULTCACHESIZE 5000000 //20240000        // max size, in bytes (20 MB)
+
+const char *spindexid = "SPRINDEX";
+const char *spindexfilename = "sprindex.dat";
 
 
 SpriteCache::SpriteCache(long maxElements)

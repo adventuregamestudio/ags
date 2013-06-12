@@ -14,13 +14,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "util/wgt2allg.h"
 #include "ac/common.h"	// quit()
 #include "ac/roomstruct.h"
 #include "util/compress.h"
 #include "util/lzw.h"
 #include "util/misc.h"
-#include "util/file.h"     // filelength()
 #include "util/bbop.h"
 
 #ifdef _MANAGED
@@ -28,18 +26,13 @@
 #pragma unmanaged
 #endif
 
-#include "util/wgt2allg.h"
-
 #include "util/misc.h"
-
 #include "util/stream.h"
 #include "util/filestream.h"
-
-using AGS::Common::Stream;
-
 #include "gfx/bitmap.h"
 
 using AGS::Common::Bitmap;
+using AGS::Common::Stream;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 #ifndef __WGT4_H

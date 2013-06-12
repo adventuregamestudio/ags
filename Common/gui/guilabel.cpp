@@ -15,10 +15,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "util/wgt2allg.h"
+#include "font/fonts.h"
 #include "gui/guilabel.h"
 #include "gui/guimain.h"
 #include "util/stream.h"
+#include "util/wgt2allg.h"
 
 using AGS::Common::Stream;
 
@@ -84,7 +85,7 @@ const char *GUILabel::GetText() {
   return text;
 }
 
-void GUILabel::printtext_align(int yy, char *teptr)
+void GUILabel::printtext_align(Common::Graphics *g, int yy, char *teptr)
 {
   int outxp = x;
   if (align == GALIGN_CENTRE)
@@ -92,10 +93,10 @@ void GUILabel::printtext_align(int yy, char *teptr)
   else if (align == GALIGN_RIGHT)
     outxp += wid - wgettextwidth(teptr, font);
 
-  wouttext_outline(outxp, yy, font, teptr);
+  wouttext_outline(g, outxp, yy, font, teptr);
 }
 
-void GUILabel::Draw()
+void GUILabel::Draw(Common::Graphics *g)
 {
   int cyp = y, TEXT_HT;
   char oritext[MAX_GUILABEL_TEXT_LEN], *teptr;
@@ -107,12 +108,12 @@ void GUILabel::Draw()
   teptr = &oritext[0];
   TEXT_HT = wgettextheight("ZhypjIHQFb", font) + 1;
 
-  wtextcolor(textcol);
+  g->SetTextColor(textcol);
 
   Draw_split_lines(teptr, wid, font, numlines);
 
   for (int aa = 0; aa < numlines; aa++) {
-    printtext_align(cyp, lines[aa]);
+    printtext_align(g, cyp, lines[aa]);
     cyp += TEXT_HT;
     if (cyp > y + hit)
       break;

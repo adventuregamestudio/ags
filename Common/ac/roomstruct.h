@@ -22,6 +22,7 @@
 #include "ac/animationstruct.h"
 #include "ac/point.h"
 #include "script/cc_script.h"       // ccScript
+#include "util/wgt2allg.h" // color (allegro RGB)
 
 namespace AGS { namespace Common { class Stream; } }
 namespace AGS { namespace Common { class Bitmap; }}

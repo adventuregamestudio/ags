@@ -12,13 +12,13 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
 #include "gfx/gfxfilter_hq3x.h"
 #include "gfx/hq2x3x.h"
 #include "gfx/gfxfilterdefines.h"
-#include "gfx/bitmap.h"
+#include "gfx/graphics.h"
 
 using AGS::Common::Bitmap;
+using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 const char* Hq3xGFXFilter::Initialize(int width, int height, int colDepth) {
@@ -51,7 +51,8 @@ void Hq3xGFXFilter::RenderScreen(Bitmap *toRender, int x, int y) {
     hq3x_32(&toRender->GetScanLineForWriting(0)[0], &realScreenBuffer->GetScanLineForWriting(0)[0], toRender->GetWidth(), toRender->GetHeight(), realScreenBuffer->GetWidth() * BYTES_PER_PIXEL(realScreenBuffer->GetColorDepth()));
     realScreenBuffer->Release();
 
-    realScreen->Blit(realScreenBuffer, 0, 0, x * MULTIPLIER, y * MULTIPLIER, realScreen->GetWidth(), realScreen->GetHeight());
+    Graphics graphics(realScreen);
+    graphics.Blit(realScreenBuffer, 0, 0, x * MULTIPLIER, y * MULTIPLIER, realScreen->GetWidth(), realScreen->GetHeight());
 
     lastBlitFrom = toRender;
 }

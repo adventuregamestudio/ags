@@ -12,8 +12,8 @@
 //
 //=============================================================================
 
+#include <stdio.h>
 #include "gui/guidialog.h"
-#include "util/wgt2allg.h"
 #include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/draw.h"
@@ -23,10 +23,11 @@
 #include "gui/cscidialog.h"
 #include <cctype> //isdigit()
 #include "gfx/graphicsdriver.h"
-#include "gfx/bitmap.h"
+#include "gfx/graphics.h"
 
 using AGS::Common::String;
 using AGS::Common::Bitmap;
+using AGS::Common::Graphics;
 
 extern IGraphicsDriver *gfxDriver;
 extern GameSetup usetup;
@@ -58,13 +59,15 @@ int myscrnwid = 320, myscrnhit = 200;
 
 void refresh_screen()
 {
-    windowBuffer->Blit(abuf, windowPosX, windowPosY, 0, 0, windowPosWidth, windowPosHeight);
+    Common::Graphics *g = GetVirtualScreenGraphics();
+    Graphics window_graphics(windowBuffer);
+    window_graphics.Blit(g->GetBitmap(), windowPosX, windowPosY, 0, 0, windowPosWidth, windowPosHeight);
     gfxDriver->UpdateDDBFromBitmap(dialogBmp, windowBuffer, false);
 
     render_graphics(dialogBmp, windowPosX, windowPosY);
 
     // Copy it back, because the mouse will have been drawn on top
-    abuf->Blit(windowBuffer, 0, 0, windowPosX, windowPosY, windowPosWidth, windowPosHeight);
+    g->Blit(windowBuffer, 0, 0, windowPosX, windowPosY, windowPosWidth, windowPosHeight);
 }
 
 int loadgamedialog()
@@ -72,7 +75,8 @@ int loadgamedialog()
   int boxleft = myscrnwid / 2 - 100;
   int boxtop = myscrnhit / 2 - 60;
   int buttonhit = usetup.textheight + 5;
-  int handl = CSCIDrawWindow(boxleft, boxtop, 200, 120);
+  Common::Graphics *g = GetVirtualScreenGraphics();
+  int handl = CSCIDrawWindow(g, boxleft, boxtop, 200, 120);
   int ctrlok =
     CSCICreateControl(CNT_PUSHBUTTON | CNF_DEFAULT, boxleft + 135, boxtop + 5, 60, 10, get_global_message(MSG_RESTORE));
   int ctrlcancel =
@@ -87,7 +91,7 @@ int loadgamedialog()
   lpTemp = NULL;
   int toret = -1;
   while (1) {
-    CSCIWaitMessage(&mes);      //printf("mess: %d, id %d ",mes.code,mes.id);
+    CSCIWaitMessage(g, &mes);      //printf("mess: %d, id %d ",mes.code,mes.id);
     if (mes.code == CM_COMMAND) {
       if (mes.id == ctrlok) {
         int cursel = CSCISendControlMessage(ctrllist, CLB_GETCURSEL, 0, 0);
@@ -111,7 +115,7 @@ int loadgamedialog()
   CSCIDeleteControl(ctrllist);
   CSCIDeleteControl(ctrlok);
   CSCIDeleteControl(ctrlcancel);
-  CSCIEraseWindow(handl);
+  CSCIEraseWindow(g, handl);
   return toret;
 }
 
@@ -125,7 +129,8 @@ int savegamedialog()
   int boxtop = myscrnhit / 2 - 60;
   int buttonhit = usetup.textheight + 5;
   int labeltop = boxtop + 5;
-  int handl = CSCIDrawWindow(boxleft, boxtop, 200, 120);
+  Common::Graphics *g = GetVirtualScreenGraphics();
+  int handl = CSCIDrawWindow(g, boxleft, boxtop, 200, 120);
   int ctrlcancel =
     CSCICreateControl(CNT_PUSHBUTTON | CNF_CANCEL, boxleft + 135, boxtop + 5 + buttonhit, 60, 10,
                       get_global_message(MSG_CANCEL));
@@ -155,7 +160,7 @@ int savegamedialog()
 
   int toret = -1;
   while (1) {
-    CSCIWaitMessage(&mes);      //printf("mess: %d, id %d ",mes.code,mes.id);
+    CSCIWaitMessage(g, &mes);      //printf("mess: %d, id %d ",mes.code,mes.id);
     if (mes.code == CM_COMMAND) {
       if (mes.id == ctrlok) {
         int cursell = CSCISendControlMessage(ctrllist, CLB_GETCURSEL, 0, 0);
@@ -167,7 +172,7 @@ int savegamedialog()
           strcpy(bufTemp, "_NOSAVEGAMENAME");
 
         if (toomanygames) {
-          int nwhand = CSCIDrawWindow(boxleft + 5, boxtop + 20, 190, 65);
+          int nwhand = CSCIDrawWindow(g, boxleft + 5, boxtop + 20, 190, 65);
           int lbl1 =
             CSCICreateControl(CNT_LABEL, boxleft + 20, boxtop + 25, 160, 0, get_global_message(MSG_REPLACEWITH1));
           int lbl2 = CSCICreateControl(CNT_LABEL, boxleft + 30, boxtop + 34, 160, 0, bufTemp);
@@ -183,7 +188,7 @@ int savegamedialog()
 
           CSCIMessage cmes;
           do {
-            CSCIWaitMessage(&cmes);
+            CSCIWaitMessage(g, &cmes);
           } while (cmes.code != CM_COMMAND);
 
           CSCISendControlMessage(txt1, CTB_GETTEXT, 0, (long)&buffer2[0]);
@@ -193,7 +198,7 @@ int savegamedialog()
           CSCIDeleteControl(lbl3);
           CSCIDeleteControl(lbl2);
           CSCIDeleteControl(lbl1);
-          CSCIEraseWindow(nwhand);
+          CSCIEraseWindow(g, nwhand);
           bufTemp[0] = 0;
 
           if (cmes.id == btnCancel) {
@@ -248,7 +253,7 @@ int savegamedialog()
   CSCIDeleteControl(ctrllist);
   CSCIDeleteControl(ctrlok);
   CSCIDeleteControl(ctrlcancel);
-  CSCIEraseWindow(handl);
+  CSCIEraseWindow(g, handl);
   return toret;
 }
 
@@ -326,7 +331,8 @@ void enterstringwindow(char *prompttext, char *stouse)
     wantCancel = 1;
     prompttext++;
   }
-  int handl = CSCIDrawWindow(boxleft, boxtop, 200, 40);
+  Common::Graphics *g = GetVirtualScreenGraphics();
+  int handl = CSCIDrawWindow(g, boxleft, boxtop, 200, 40);
   int ctrlok = CSCICreateControl(CNT_PUSHBUTTON | CNF_DEFAULT, boxleft + 135, boxtop + 5, 60, 10, "OK");
   int ctrlcancel = -1;
   if (wantCancel)
@@ -336,7 +342,7 @@ void enterstringwindow(char *prompttext, char *stouse)
   CSCIMessage mes;
 
   while (1) {
-    CSCIWaitMessage(&mes);
+    CSCIWaitMessage(g, &mes);
     if (mes.code == CM_COMMAND) {
       if (mes.id == ctrlcancel)
         buffer2[0] = 0;
@@ -351,7 +357,7 @@ void enterstringwindow(char *prompttext, char *stouse)
   CSCIDeleteControl(ctrlok);
   if (wantCancel)
     CSCIDeleteControl(ctrlcancel);
-  CSCIEraseWindow(handl);
+  CSCIEraseWindow(g, handl);
   strcpy(stouse, buffer2);
 }
 
@@ -372,7 +378,8 @@ int roomSelectorWindow(int currentRoom, int numRooms, int*roomNumbers, char**roo
   int boxtop = myscrnhit / 2 - 80;
   int buttonhit = usetup.textheight + 5;
   int labeltop = boxtop + 5;
-  int handl = CSCIDrawWindow(boxleft, boxtop, 240, 160);
+  Common::Graphics *g = GetVirtualScreenGraphics();
+  int handl = CSCIDrawWindow(g, boxleft, boxtop, 240, 160);
   int ctrllist = CSCICreateControl(CNT_LISTBOX, boxleft + 10, boxtop + 40, 220, 100, NULL);
   int ctrlcancel =
     CSCICreateControl(CNT_PUSHBUTTON | CNF_CANCEL, boxleft + 80, boxtop + 145, 60, 10, "Cancel");
@@ -401,7 +408,7 @@ int roomSelectorWindow(int currentRoom, int numRooms, int*roomNumbers, char**roo
 
   int toret = -1;
   while (1) {
-    CSCIWaitMessage(&mes);      //printf("mess: %d, id %d ",mes.code,mes.id);
+    CSCIWaitMessage(g, &mes);      //printf("mess: %d, id %d ",mes.code,mes.id);
     if (mes.code == CM_COMMAND) 
     {
       if (mes.id == ctrlok) 
@@ -433,13 +440,14 @@ int roomSelectorWindow(int currentRoom, int numRooms, int*roomNumbers, char**roo
   CSCIDeleteControl(ctrllist);
   CSCIDeleteControl(ctrlok);
   CSCIDeleteControl(ctrlcancel);
-  CSCIEraseWindow(handl);
+  CSCIEraseWindow(g, handl);
   return toret;
 }
 
 int myscimessagebox(char *lpprompt, char *btn1, char *btn2)
 {
-    int windl = CSCIDrawWindow(80, 80, 240 - 80, 120 - 80);
+    Common::Graphics *g = GetVirtualScreenGraphics();
+    int windl = CSCIDrawWindow(g, 80, 80, 240 - 80, 120 - 80);
     int lbl1 = CSCICreateControl(CNT_LABEL, 90, 85, 150, 0, lpprompt);
     int btflag = CNT_PUSHBUTTON;
 
@@ -457,7 +465,7 @@ int myscimessagebox(char *lpprompt, char *btn1, char *btn2)
     smes.code = 0;
 
     do {
-        CSCIWaitMessage(&smes);
+        CSCIWaitMessage(g, &smes);
     } while (smes.code != CM_COMMAND);
 
     if (btnPlay)
@@ -465,7 +473,7 @@ int myscimessagebox(char *lpprompt, char *btn1, char *btn2)
 
     CSCIDeleteControl(btnQuit);
     CSCIDeleteControl(lbl1);
-    CSCIEraseWindow(windl);
+    CSCIEraseWindow(g, windl);
 
     if (smes.id == btnQuit)
         return 1;

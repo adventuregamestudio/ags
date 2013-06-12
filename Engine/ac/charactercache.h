@@ -18,6 +18,9 @@
 #ifndef __AGS_EE_AC__CHARACTERCACHE_H
 #define __AGS_EE_AC__CHARACTERCACHE_H
 
+namespace AGS { namespace Common { class Bitmap; } }
+using namespace AGS; // FIXME later
+
 // stores cached info about the character
 struct CharacterCache {
     Common::Bitmap *image;

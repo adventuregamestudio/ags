@@ -18,8 +18,8 @@
 #ifndef __AGS_EE_DEBUG__RAWFILEOUTPUTTARGET_H
 #define __AGS_EE_DEBUG__RAWFILEOUTPUTTARGET_H
 
+#include <stdio.h>
 #include "debug/outputtarget.h"
-#include "util/file.h"
 
 namespace AGS
 {

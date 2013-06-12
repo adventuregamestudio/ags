@@ -23,6 +23,9 @@
 #include "ac/common_defines.h"
 #include "ac/dynobj/scriptobject.h"
 
+namespace AGS { namespace Common { class Bitmap; } }
+using namespace AGS; // FIXME later
+
 AGS_INLINE int is_valid_object(int obtest);
 int     Object_IsCollidingWithObject(ScriptObject *objj, ScriptObject *obj2);
 ScriptObject *GetObjectAtLocation(int xx, int yy);

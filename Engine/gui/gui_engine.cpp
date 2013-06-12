@@ -18,8 +18,7 @@
 
 // Headers, as they are in acgui.cpp
 #pragma unmanaged
-#include "util/wgt2allg.h"
-//#include "acruntim.h"
+#include "font/fonts.h"
 #include "gui/guimain.h"
 #include "gui/guibutton.h"
 #include "gui/guilabel.h"
@@ -65,12 +64,12 @@ void check_font(int *fontnum)
 
 int get_adjusted_spritewidth(int spr)
 {
-  return wgetblockwidth(spriteset[spr]);
+  return spriteset[spr]->GetWidth();
 }
 
 int get_adjusted_spriteheight(int spr)
 {
-  return wgetblockheight(spriteset[spr]);
+  return spriteset[spr]->GetHeight();
 }
 
 bool is_sprite_alpha(int spr)
@@ -106,17 +105,17 @@ void GUILabel::Draw_split_lines(char *teptr, int wid, int font, int &numlines)
   // [IKM] numlines not used in engine's implementation
 }
 
-void GUITextBox::Draw_text_box_contents()
+void GUITextBox::Draw_text_box_contents(Common::Graphics *g)
 {
   int startx, starty;
 
-  wouttext_outline(x + 1 + get_fixed_pixel_size(1), y + 1 + get_fixed_pixel_size(1), font, text);
+  wouttext_outline(g, x + 1 + get_fixed_pixel_size(1), y + 1 + get_fixed_pixel_size(1), font, text);
   
   if (!IsDisabled()) {
     // draw a cursor
     startx = wgettextwidth(text, font) + x + 3;
     starty = y + 1 + wgettextheight("BigyjTEXT", font);
-    abuf->DrawRect(Rect(startx, starty, startx + get_fixed_pixel_size(5), starty + (get_fixed_pixel_size(1) - 1)), currentcolor);
+    g->DrawRect(Rect(startx, starty, startx + get_fixed_pixel_size(5), starty + (get_fixed_pixel_size(1) - 1)));
   }
 }
 

@@ -14,6 +14,7 @@
 
 #include <string.h>
 #include "util/wgt2allg.h"
+#include "font/fonts.h"
 #include "gfx/ali3d.h"
 #include "gui/mytextbox.h"
 #include "gui/guidialoginternaldefs.h"
@@ -39,17 +40,17 @@ MyTextBox::MyTextBox(int xx, int yy, int wii, char *tee)
     hit = TEXT_HT + 1;
 }
 
-void MyTextBox::draw()
+void MyTextBox::draw(Common::Graphics *g)
 {
-    wsetcolor(windowbackgroundcolor);
-    abuf->FillRect(Rect(x, y, x + wid, y + hit), currentcolor);
-    wsetcolor(0);
-    abuf->DrawRect(Rect(x, y, x + wid, y + hit), currentcolor);
-    wtextcolor(0);
-    wouttextxy(x + 2, y + 1, cbuttfont, text);
+    g->SetDrawColor(windowbackgroundcolor);
+    g->FillRect(Rect(x, y, x + wid, y + hit));
+    g->SetDrawColor(0);
+    g->DrawRect(Rect(x, y, x + wid, y + hit));
+    g->SetTextColor(0);
+    wouttextxy(g, x + 2, y + 1, cbuttfont, text);
 
     char tbu[2] = "_";
-    wouttextxy(x + 2 + wgettextwidth(text, cbuttfont), y + 1, cbuttfont, tbu);
+    wouttextxy(g, x + 2 + wgettextwidth(text, cbuttfont), y + 1, cbuttfont, tbu);
 }
 
 int MyTextBox::pressedon()

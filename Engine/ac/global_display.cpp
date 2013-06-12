@@ -13,7 +13,7 @@
 //=============================================================================
 
 #include <stdarg.h>
-#include "util/wgt2allg.h"
+#include <stdio.h>
 #include "ac/common.h"
 #include "ac/character.h"
 #include "ac/display.h"

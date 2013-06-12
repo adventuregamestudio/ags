@@ -22,7 +22,6 @@
 // What about other platforms?
 //
 
-#include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"

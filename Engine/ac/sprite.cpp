@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
 #include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/draw.h"            // USE_15BIT_FIX
@@ -22,9 +21,10 @@
 #include "plugin/agsplugin.h"
 #include "ac/spritecache.h"
 #include "gfx/graphicsdriver.h"
-#include "gfx/bitmap.h"
+#include "gfx/graphics.h"
 
 using AGS::Common::Bitmap;
+using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameSetupStruct game;
@@ -170,16 +170,16 @@ void initialize_sprite (int ee) {
         eip_guiobj = newwid;
 
         if ((newwid != curspr->GetWidth()) || (newhit != curspr->GetHeight())) {
-            tmpdbl = BitmapHelper::CreateBitmap(newwid,newhit,curspr->GetColorDepth());
+            tmpdbl = BitmapHelper::CreateTransparentBitmap(newwid,newhit,curspr->GetColorDepth());
             if (tmpdbl == NULL)
                 quit("Not enough memory to load sprite graphics");
             tmpdbl->Acquire ();
             curspr->Acquire ();
-            tmpdbl->Clear(tmpdbl->GetMaskColor());
+            Graphics graphics(tmpdbl);
             /*#ifdef USE_CUSTOM_EXCEPTION_HANDLER
             __try {
             #endif*/
-            tmpdbl->StretchBlt(curspr,RectWH(0,0,tmpdbl->GetWidth(),tmpdbl->GetHeight()), Common::kBitmap_Transparency);
+            graphics.StretchBlt(curspr,RectWH(0,0,tmpdbl->GetWidth(),tmpdbl->GetHeight()), Common::kBitmap_Transparency);
             /*#ifdef USE_CUSTOM_EXCEPTION_HANDLER
             } __except (1) {
             // I can't trace this fault, but occasionally stretch_sprite
@@ -195,8 +195,8 @@ void initialize_sprite (int ee) {
             spriteset.set (ee, tmpdbl);
         }
 
-        spritewidth[ee]=wgetblockwidth(spriteset[ee]);
-        spriteheight[ee]=wgetblockheight(spriteset[ee]);
+        spritewidth[ee]=spriteset[ee]->GetWidth();
+        spriteheight[ee]=spriteset[ee]->GetHeight();
 
         int spcoldep = spriteset[ee]->GetColorDepth();
 
@@ -210,8 +210,7 @@ void initialize_sprite (int ee) {
                 if (game.spriteflags[ee] & SPF_ALPHACHANNEL)
                     newSprite = remove_alpha_channel(oldSprite);
                 else {
-                    newSprite = BitmapHelper::CreateBitmap(spritewidth[ee], spriteheight[ee], final_col_dep);
-                    newSprite->Blit(oldSprite, 0, 0, 0, 0, spritewidth[ee], spriteheight[ee]);
+                    newSprite = BitmapHelper::CreateBitmapCopy(oldSprite, final_col_dep);
                 }
                 spriteset.set(ee, newSprite);
                 delete oldSprite;

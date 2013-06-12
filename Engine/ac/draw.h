@@ -18,11 +18,13 @@
 #ifndef __AGS_EE_AC__DRAW_H
 #define __AGS_EE_AC__DRAW_H
 
+#include "core/types.h"
 #include "ac/common_defines.h"
-//#include "gfx/ali3d.h"
+#include "util/wgt2allg.h"
 
-namespace AGS { namespace Engine { class IDriverDependantBitmap; }}
-using namespace AGS::Engine; // FIXME later
+namespace AGS { namespace Common { class Bitmap; } }
+namespace AGS { namespace Engine { class IDriverDependantBitmap; } }
+using namespace AGS; // FIXME later
 
 // [IKM] personally I do not see much sense in this,
 // memcpyfast alias is used only once in the Engine
@@ -35,6 +37,10 @@ using namespace AGS::Engine; // FIXME later
 #define USE_15BIT_FIX
 #endif
 
+// [IKM] WARNING: these definitions has to be made AFTER Allegro headers
+// were included, because they override few Allegro function names;
+// otherwise Allegro headers should not be included at all to the same
+// code unit which uses these defines.
 #define getr32(xx) ((xx >> _rgb_r_shift_32) & 0xFF)
 #define getg32(xx) ((xx >> _rgb_g_shift_32) & 0xFF)
 #define getb32(xx) ((xx >> _rgb_b_shift_32) & 0xFF)
@@ -52,18 +58,18 @@ struct CachedActSpsData {
 void invalidate_screen();
 void mark_current_background_dirty();
 void invalidate_cached_walkbehinds();
-void put_sprite_256(int xxx,int yyy,Common::Bitmap *piccy);
-Common::Bitmap *recycle_bitmap(Common::Bitmap *bimp, int coldep, int wid, int hit);
-void push_screen ();
-void pop_screen();
+void put_sprite_256(Common::Graphics *g, int xxx,int yyy,Common::Bitmap *piccy);
+Common::Bitmap *recycle_bitmap(Common::Bitmap *bimp, int coldep, int wid, int hit, bool make_transparent = false);
+void push_screen (Common::Graphics *g);
+Common::Graphics *pop_screen();
 void update_screen();
 void invalidate_rect(int x1, int y1, int x2, int y2);
 // Draw everything 
-void render_graphics(IDriverDependantBitmap *extraBitmap = NULL, int extraX = 0, int extraY = 0);
+void render_graphics(Engine::IDriverDependantBitmap *extraBitmap = NULL, int extraX = 0, int extraY = 0);
 void construct_virtual_screen(bool fullRedraw) ;
-void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int baseline, int trans, int sprNum, bool isWalkBehind = false);
-void tint_image (Common::Bitmap *source, Common::Bitmap *dest, int red, int grn, int blu, int light_level, int luminance=255);
-void draw_sprite_support_alpha(int xpos, int ypos, Common::Bitmap *image, int slot);
+void add_to_sprite_list(Engine::IDriverDependantBitmap* spp, int xx, int yy, int baseline, int trans, int sprNum, bool isWalkBehind = false);
+void tint_image (Common::Graphics *g, Common::Bitmap *source, int red, int grn, int blu, int light_level, int luminance=255);
+void draw_sprite_support_alpha(Common::Graphics *g, int xpos, int ypos, Common::Bitmap *image, int slot);
 void render_to_screen(Common::Bitmap *toRender, int atx, int aty);
 void draw_screen_callback();
 void write_screen();
@@ -72,14 +78,15 @@ bool GfxDriverNullSpriteCallback(int x, int y);
 void init_invalid_regions(int scrnHit);
 int get_screen_x_adjustment(Common::Bitmap *checkFor);
 int get_screen_y_adjustment(Common::Bitmap *checkFor);
-void putpixel_compensate (Common::Bitmap *onto, int xx,int yy, int col);
+void putpixel_compensate (Common::Graphics *g, int xx,int yy, int col);
 // create the actsps[aa] image with the object drawn correctly
 // returns 1 if nothing at all has changed and actsps is still
 // intact from last time; 0 otherwise
 int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysUseSoftware);
 void clear_letterbox_borders();
 
-void draw_and_invalidate_text(int x1, int y1, int font, const char *text);
+void draw_and_invalidate_text(Common::Graphics *g, int x1, int y1, int font, const char *text);
+void wouttext_reverseifnecessary(Common::Graphics *g, int x, int y, int font, char *text);
 
 void setpal();
 

@@ -14,113 +14,69 @@
 
 #define USE_CLIB
 #include "util/wgt2allg.h"
-#include "util/file.h"
 #include "util/stream.h"
-#include "gfx/bitmap.h"
-#include "gfx/allegrobitmap.h"
+#include "gfx/graphics.h"
 #include "core/assetmanager.h"
 
 using AGS::Common::Bitmap;
-using AGS::Common::AllegroBitmap;
+using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
-
 using AGS::Common::Stream;
 
-#define fopen +++do_not_use!!!+++
+  Common::Graphics gl_VirtualScreenGraphics;
+  Common::Graphics *SetVirtualScreen(Bitmap *bitmap)
+  {
+    if (bitmap == NULL)
+    {
+      gl_VirtualScreenGraphics.SetBitmap(BitmapHelper::GetScreenBitmap());
+    }
+    else
+    {
+      gl_VirtualScreenGraphics.SetBitmap(bitmap);
+    }
+    return &gl_VirtualScreenGraphics;
+  }
+
+  // [IKM] A very, very dangerous stuff!
+  Bitmap gl_VirtualScreenWrapper;
+  Common::Graphics *SetVirtualScreenRaw(BITMAP *allegro_bitmap)
+  {
+    gl_VirtualScreenWrapper.WrapAllegroBitmap(allegro_bitmap, true);
+    if (allegro_bitmap == NULL)
+    {
+      gl_VirtualScreenGraphics.SetBitmap(BitmapHelper::GetScreenBitmap());
+	}
+	else
+    {
+      gl_VirtualScreenGraphics.SetBitmap(&gl_VirtualScreenWrapper);
+	}
+    return &gl_VirtualScreenGraphics;
+  }
+
+  Common::Graphics *GetVirtualScreenGraphics()
+  {
+      return &gl_VirtualScreenGraphics;
+  }
+
+  Common::Bitmap *GetVirtualScreenBitmap()
+  {
+      return gl_VirtualScreenGraphics.GetBitmap();
+  }
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-
-const char *wgt2allgcopyright = "WGT2Allegro (c) 1997,1998 Chris Jones";
-const char *spindexid = "SPRINDEX";
-const char *spindexfilename = "sprindex.dat";
-
-
-fpos_t lfpos;
-FILE *libf;
-short lresult;
-int lsize;
-char password[16];
-char *wgtlibrary;
-int currentcolor;
+//int currentcolor;
 int vesa_xres, vesa_yres;
-Bitmap *abuf;
-
-/*
-  GCC from the Android NDK doesn't like allegro_init()
-
-  void vga256()
-  {
-    allegro_init();
-    set_gfx_mode(GFX_VGA, 320, 200, 320, 200);
-    abuf = screen;
-    vesa_xres = 320;
-    vesa_yres = 200;
-  }
-  */
-
-#if defined (UNUSED_CODE)
-  union REGS r;
-  void wsetmode(int nnn)
-  {
-    r.x.ax = nnn;
-    int86(0x10, &r, &r);
-  }
-
-  int wgetmode()
-  {
-    r.x.ax = 0x0f00;
-    int86(0x10, &r, &r);
-    return r.h.al;
-  }
-#endif
-
-
-  void wsetscreen(Bitmap *nss)
-  {
-    if (nss == NULL)
-      abuf = BitmapHelper::GetScreenBitmap();
-    else
-      abuf = nss;
-  }
-
-  // [IKM] A very, very dangerous stuff!
-  AllegroBitmap wsetscreen_wrapper;
-  void wsetscreen_raw(BITMAP *nss)
-  {
-    wsetscreen_wrapper.WrapBitmapObject(nss);
-
-    if (nss == NULL) {
-      abuf = BitmapHelper::GetScreenBitmap();
-	}
-	else {
-      abuf = &wsetscreen_wrapper;
-	}
-  }
+//Bitmap *abuf;
 
   void wsetrgb(int coll, int r, int g, int b, color * pall)
   {
     pall[coll].r = r;
     pall[coll].g = g;
     pall[coll].b = b;
-  }
-
-  int wloadpalette(char *filnam, color * pall)
-  {
-    int kk;
-
-    Stream *in = Common::AssetManager::OpenAsset(filnam);
-    if (in == NULL)
-      return -1;
-
-    for (kk = 0; kk < 256; kk++)        // there's a filler byte
-      in->ReadArray(&pall[kk], 3, 1);
-
-    delete in;
-    return 0;
   }
 
   void wcolrotate(unsigned char start, unsigned char finish, int dir, color * pall)
@@ -146,10 +102,9 @@ Bitmap *abuf;
     }
   }
 
-  Bitmap *tempbitm;
-
-  Bitmap *wnewblock(int x1, int y1, int x2, int y2)
+  Bitmap *wnewblock(Common::Bitmap *src, int x1, int y1, int x2, int y2)
   {
+    Bitmap *tempbitm;
     int twid = (x2 - x1) + 1, thit = (y2 - y1) + 1;
 
     if (twid < 1)
@@ -163,42 +118,8 @@ Bitmap *abuf;
     if (tempbitm == NULL)
       return NULL;
 
-    tempbitm->Blit(abuf, x1, y1, 0, 0, tempbitm->GetWidth(), tempbitm->GetHeight());
-    return tempbitm;
-  }
-
-  // [IKM] recreated these in platform/file unit
-  /*
-  short getshort(FILE * fff)
-  {
-    short sss;
-    in->ReadArray(&sss, 2, 1, fff);
-    return sss;
-  }
-
-  void putshort(short num, FILE *fff)
-  {
-    ->WriteArray(&num, 2, 1, fff);
-  }
-  */
-
-  Bitmap *wloadblock(char *fill)
-  {
-    short widd, hitt;
-    Stream *in = Common::AssetManager::OpenAsset(fill);
-    int ff;
-
-    if (in == NULL)
-      return NULL;
-
-    widd = in->ReadInt16();
-    hitt = in->ReadInt16();
-    tempbitm = BitmapHelper::CreateBitmap(widd, hitt);
-
-    for (ff = 0; ff < hitt; ff++)
-      in->ReadArray(&tempbitm->GetScanLineForWriting(ff)[0], widd, 1);
-
-    delete in;
+    Graphics graphics(tempbitm);
+    graphics.Blit(src, x1, y1, 0, 0, tempbitm->GetWidth(), tempbitm->GetHeight());
     return tempbitm;
   }
 
@@ -268,125 +189,22 @@ Bitmap *abuf;
     return 0;
   }
 
-
-  void wfreesprites(Bitmap ** blar, int stt, int end)
-  {
-    int hh;
-
-    for (hh = stt; hh <= end; hh++) {
-      delete blar[hh];
-      blar[hh] = NULL;
-    }
-  }
-
-
-  /*
-  void wsavesprites_ex(color * pll, char *fnm, Bitmap ** spre, int strt, int eend, unsigned char *arry)
-  {
-    FILE *ooo = fopen(fnm, "wb");
-    short topu = 4;
-    int aa, lastsp = 0;
-    char *spsig = " Sprite File ";
-
-    ->WriteArray(&topu, 2, 1, ooo);
-    ->WriteArray(spsig, 13, 1, ooo);
-
-    for (aa = 0; aa < 256; aa++)
-      ->WriteArray(&pll[aa], 3, 1, ooo);
-
-    for (aa = strt; aa <= eend; aa++) {
-      if (spre[aa] != NULL)
-        lastsp = aa;
-    }
-
-    if (lastsp > 32000) {
-      // don't overflow the short
-      lastsp = 32000;
-    }
-
-    topu = lastsp;
-    ->WriteArray(&topu, 2, 1, ooo);
-
-    // allocate buffers to store the indexing info
-    int numsprits = (lastsp - strt) + 1;
-    short *spritewidths = (short*)malloc(numsprits * sizeof(short));
-    short *spriteheights = (short*)malloc(numsprits * sizeof(short));
-    long *spriteoffs = (long*)malloc(numsprits * sizeof(long));
-    int spidx;
-
-    for (aa = strt; aa <= lastsp; aa++) {
-      short bpss = 1;
-      spidx = aa - strt;
-
-      if (spre[aa] == NULL) {
-        topu = 0;
-        ->WriteArray(&topu, 2, 1, ooo);
-        // sprite does not exist, zero out its entry
-        spritewidths[spidx] = 0;
-        spriteheights[spidx] = 0;
-        spriteoffs[spidx] = 0;
-        continue;
-      }
-
-      spritewidths[spidx] = spre[aa]->GetWidth();
-      spriteheights[spidx] = spre[aa]->GetHeight();
-      spriteoffs[spidx] = GetPosition(ooo);
-
-      bpss = ->GetColorDepth(spre[aa]) / 8;
-      ->WriteArray(&bpss, 2, 1, ooo);
-
-      topu = spre[aa]->GetWidth();
-      ->WriteArray(&topu, 2, 1, ooo);
-
-      topu = spre[aa]->GetHeight();
-      ->WriteArray(&topu, 2, 1, ooo);
-
-      ->WriteArray(&spre[aa]->line[0][0], spre[aa]->w * bpss, spre[aa]->h, ooo);
-    }
-    fclose(ooo);
-
-    // write the sprite index file
-    ooo = fopen((char*)spindexfilename, "wb");
-    // write "SPRINDEX" id
-    ->WriteArray(&spindexid[0], strlen(spindexid), 1, ooo);
-    // write version (1)
-    ->WriteInt32(1, ooo);
-    // write last sprite number and num sprites, to verify that
-    // it matches the spr file
-    ->WriteInt32(lastsp, ooo);
-    ->WriteInt32(numsprits, ooo);
-    ->WriteArray(&spritewidths[0], sizeof(short), numsprits, ooo);
-    ->WriteArray(&spriteheights[0], sizeof(short), numsprits, ooo);
-    ->WriteArray(&spriteoffs[0], sizeof(long), numsprits, ooo);
-    fclose(ooo);
-
-    free(spritewidths);
-    free(spriteheights);
-    free(spriteoffs);
-  }
-
-  void wsavesprites(color * pll, char *fnm, Bitmap ** spre, int strt, int eend)
-  {
-    wsavesprites_ex(pll, fnm, spre, strt, eend, NULL);
-  }
-*/
-
-  void wputblock(int xx, int yy, Bitmap *bll, int xray)
+  void wputblock(Common::Graphics *g, int xx, int yy, Bitmap *bll, int xray)
   {
     if (xray)
-		abuf->Blit(bll, xx, yy, Common::kBitmap_Transparency);
+	  g->Blit(bll, xx, yy, Common::kBitmap_Transparency);
     else
-      abuf->Blit(bll, 0, 0, xx, yy, bll->GetWidth(), bll->GetHeight());
+      g->Blit(bll, 0, 0, xx, yy, bll->GetWidth(), bll->GetHeight());
   }
 
-  AllegroBitmap wputblock_wrapper; // [IKM] argh! :[
-  void wputblock_raw(int xx, int yy, BITMAP *bll, int xray)
+  Bitmap wputblock_wrapper; // [IKM] argh! :[
+  void wputblock_raw(Common::Graphics *g, int xx, int yy, BITMAP *bll, int xray)
   {
-	wputblock_wrapper.WrapBitmapObject(bll);
+	wputblock_wrapper.WrapAllegroBitmap(bll, true);
     if (xray)
-      abuf->Blit(&wputblock_wrapper, xx, yy, Common::kBitmap_Transparency);
+      g->Blit(&wputblock_wrapper, xx, yy, Common::kBitmap_Transparency);
     else
-      abuf->Blit(&wputblock_wrapper, 0, 0, xx, yy, wputblock_wrapper.GetWidth(), wputblock_wrapper.GetHeight());
+      g->Blit(&wputblock_wrapper, 0, 0, xx, yy, wputblock_wrapper.GetWidth(), wputblock_wrapper.GetHeight());
   }
 
   const int col_lookups[32] = {
@@ -397,17 +215,12 @@ Bitmap *abuf;
     0xA0A0A0, 0xB0B0B0, 0xC0C0C0, 0xD0D0D0, 0xE0E0E0, 0xF0F0F0
   };
 
+  /*
   void wsetcolor(int nval)
   {
     __my_setcolor(&currentcolor, nval);
   }
-
-  int get_col8_lookup(int nval)
-  {
-    int tmpv;
-    __my_setcolor(&tmpv, nval);
-    return tmpv;
-  }
+  */
 
   int __wremap_keep_transparent = 1;
 
@@ -450,70 +263,6 @@ Bitmap *abuf;
     __wremap_keep_transparent--;
     wremap(pal1, picc, pal2);
     __wremap_keep_transparent++;
-  }
-
-
-  // library file functions
-  void readheader()
-  {
-  }
-
-  void findfile(char *filnam)
-  {
-    // should set lfpos = offset of file and set lresult = 1
-    // or set lresult = 0 on failure (and exit with message)
-  }
-
-  int checkpassword(char *passw)
-  {
-    return 0;                   // 0 = incorrect   ! = 0 correct
-  }
-
-
-  void gettime(struct time *tpt)
-  {
-    time_t ltt;
-    struct tm *tis;
-
-    time(&ltt);
-    tis = localtime(&ltt);
-    tpt->ti_sec = tis->tm_sec;
-    tpt->ti_min = tis->tm_min;
-    tpt->ti_hour = tis->tm_hour;
-    tpt->ti_hund = 0;
-  }
-
-  long wtimer(struct time tt1, struct time tt2)
-  {
-    long timm1 = tt1.ti_hund + (long)tt1.ti_sec * 100 + (long)tt1.ti_min * 6000 + (long)tt1.ti_hour * 6000 * 60;
-
-    long timm2 = tt2.ti_hund + (long)tt2.ti_sec * 100 + (long)tt2.ti_min * 6000 + (long)tt2.ti_hour * 6000 * 60;
-
-    return timm2 - timm1;
-  }
-
-  void wcopyscreen(int x1, int y1, int x2, int y2, Bitmap *src, int dx, int dy, Bitmap *dest)
-  {
-    if (src == NULL)
-      src = BitmapHelper::GetScreenBitmap();
-
-    if (dest == NULL)
-      dest = BitmapHelper::GetScreenBitmap();
-
-    dest->Blit(src, x1, y1, dx, dy, (x2 - x1) + 1, (y2 - y1) + 1);
-  }
-
-
-  void wbutt(int x1, int y1, int x2, int y2)
-  {
-    wsetcolor(254);
-    abuf->FillRect(Rect(x1, y1, x2, y2), currentcolor);
-    wsetcolor(253);
-    abuf->DrawLine(HLine(x1 - 1, x2 + 1, y1 - 1), currentcolor);
-    abuf->DrawLine(Line(x1 - 1, y1 - 1, x1 - 1, y2 + 1), currentcolor);
-    wsetcolor(255);
-    abuf->DrawLine(HLine(x1 - 1, x2 + 1, y2 + 1), currentcolor);
-    abuf->DrawLine(Line(x2 + 1, y1 - 1, x2 + 1, y2 + 1), currentcolor);
   }
 
 

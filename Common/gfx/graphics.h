@@ -34,7 +34,12 @@ public:
     ~Graphics();
 
     void    SetBitmap(Bitmap *bitmap);
-    Bitmap  *GetBitmap();
+    void    ReleaseBitmap();
+
+    inline Bitmap *GetBitmap()
+    {
+        return _bitmap;
+    }
 
     void    SetDrawColor(color_t color);
     void    SetTextColor(color_t color);
@@ -100,8 +105,6 @@ public:
     void    FloodFill(int x, int y, color_t color);
 
 private:
-    void    ReleaseBitmap();
-
     Bitmap  *_bitmap;
     BITMAP  *_alBitmap;
     color_t _drawColor;

@@ -39,18 +39,33 @@ void Graphics::SetBitmap(Bitmap *bitmap)
     if (bitmap != _bitmap)
     {
         ReleaseBitmap();
-        _bitmap = bitmap;
-        if (_bitmap)
+        if (bitmap)
         {
-            _bitmap->_graphics = this;
-            _alBitmap = _bitmap->_alBitmap;
+            assert(bitmap->_graphics == NULL);
+            if (!bitmap->_graphics)
+            {
+                _bitmap = bitmap;
+                _bitmap->_graphics = this;
+                _alBitmap = _bitmap->_alBitmap;
+            }
         }
     }
 }
 
-Bitmap *Graphics::GetBitmap()
+void Graphics::ReleaseBitmap()
 {
-    return _bitmap;
+    if (_bitmap)
+    {
+        assert(_bitmap->_graphics == this);
+        if (_bitmap->_graphics == this)
+        {
+            _bitmap->_graphics = NULL;
+        }
+    }
+    _bitmap = NULL;
+    _alBitmap = NULL;    
+    _drawColor = 0;
+    _textColor = 0;
 }
 
 void Graphics::SetDrawColor(color_t color)
@@ -407,18 +422,6 @@ void Graphics::FloodFill(int x, int y)
 void Graphics::FloodFill(int x, int y, color_t color)
 {
 	floodfill(_alBitmap, x, y, color);
-}
-
-void Graphics::ReleaseBitmap()
-{
-    if (_bitmap)
-    {
-        _bitmap->_graphics = NULL;
-    }
-    _bitmap = NULL;
-    _alBitmap = NULL;    
-    _drawColor = 0;
-    _textColor = 0;
 }
 
 } // namespace Common

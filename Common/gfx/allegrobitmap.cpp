@@ -130,7 +130,7 @@ void Bitmap::Destroy()
 {
     if (_graphics)
     {
-        _graphics->SetBitmap(NULL);
+        _graphics->ReleaseBitmap();
     }
     _graphics = NULL;
 

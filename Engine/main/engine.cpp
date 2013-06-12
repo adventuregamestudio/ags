@@ -910,10 +910,11 @@ void show_preload () {
             set_palette_range(temppal, 0, 255, 0);
 		Bitmap *screen_bmp = BitmapHelper::GetScreenBitmap();
         Bitmap *tsc = BitmapHelper::CreateBitmapCopy(splashsc, screen_bmp->GetColorDepth());
-        Graphics graphics(tsc);
-        graphics.SetBitmap(screen_bmp);
+
+        Graphics graphics(screen_bmp);
 		graphics.Fill(0);
         graphics.StretchBlt(tsc, RectWH(0, 0, scrnwid,scrnhit), Common::kBitmap_Transparency);
+        graphics.ReleaseBitmap();
 
         gfxDriver->ClearDrawList();
 

@@ -559,7 +559,10 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
     }
 
     tempScrn->ClearTransparent();
-    g = SetVirtualScreen(tempScrn);
+    if (!usingCustomRendering)
+    {
+      g = SetVirtualScreen(tempScrn);
+    }
 
     dlgxp = orixp;
     dlgyp = oriyp;

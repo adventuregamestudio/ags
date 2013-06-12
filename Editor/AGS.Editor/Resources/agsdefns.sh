@@ -2145,6 +2145,9 @@ struct GameState {
   int  keep_screen_during_instant_transition;
   int  read_dialog_option_color;
   int  stop_dialog_at_end;   // $AUTOCOMPLETEIGNORE$
+  int  speech_portrait_placement;
+  int  speech_portrait_x;
+  int  speech_portrait_y;
   };
 
 import readonly Character *player;

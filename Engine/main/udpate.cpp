@@ -20,6 +20,7 @@
 #include "ac/common.h"
 #include "ac/character.h"
 #include "ac/characterextras.h"
+#include "ac/draw.h"
 #include "ac/gamestate.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/global_character.h"
@@ -54,6 +55,7 @@ extern CharacterInfo *facetalkchar;
 extern int face_talking,facetalkview,facetalkwait,facetalkframe;
 extern int facetalkloop, facetalkrepeat, facetalkAllowBlink;
 extern int facetalkBlinkLoop;
+extern bool facetalk_qfg4_override_placement_x, facetalk_qfg4_override_placement_y;
 extern volatile unsigned long globalTimerCounter;
 extern int time_between_timers;
 extern SpeechLipSyncLine *splipsync;
@@ -386,30 +388,37 @@ void update_sierra_speech()
       if (updatedFrame & 2)
         CheckViewFrame (facetalkchar->blinkview, facetalkBlinkLoop, facetalkchar->blinkframe);
 
-      int yPos = 0;
-      int thisPic = views[facetalkview].loops[facetalkloop].frames[facetalkframe].pic;
-      
+      int thisPic = views[facetalkview].loops[facetalkloop].frames[facetalkframe].pic;      
+      int view_frame_x = 0;
+      int view_frame_y = 0;
+
       if (game.options[OPT_SPEECHTYPE] == 3) {
         // QFG4-style fullscreen dialog
-        yPos = (screenover[face_talking].pic->GetHeight() / 2) - (spriteheight[thisPic] / 2);
+        if (facetalk_qfg4_override_placement_x)
+        {
+          view_frame_x = play.speech_portrait_x;
+        }
+        if (facetalk_qfg4_override_placement_y)
+        {
+          view_frame_y = play.speech_portrait_y;
+        }
+        else
+        {
+          view_frame_y = (screenover[face_talking].pic->GetHeight() / 2) - (spriteheight[thisPic] / 2);
+        }
         screenover[face_talking].pic->Clear(0);
       }
       else {
         screenover[face_talking].pic->Clear(screenover[face_talking].pic->GetMaskColor());
       }
 
-      DrawViewFrame(screenover[face_talking].pic, &views[facetalkview].loops[facetalkloop].frames[facetalkframe], 0, yPos);
-//      ->Blit(screenover[face_talking].pic, spriteset[thisPic], 0, yPos);
+      DrawViewFrame(screenover[face_talking].pic, &views[facetalkview].loops[facetalkloop].frames[facetalkframe], view_frame_x, view_frame_y);
 
       if ((facetalkchar->blinkview > 0) && (facetalkchar->blinktimer < 0)) {
         // draw the blinking sprite on top
         DrawViewFrame(screenover[face_talking].pic,
             &views[facetalkchar->blinkview].loops[facetalkBlinkLoop].frames[facetalkchar->blinkframe],
-            0, yPos);
-
-/*        ->Blit(screenover[face_talking].pic,
-          spriteset[views[facetalkchar->blinkview].frames[facetalkloop][facetalkchar->blinkframe].pic],
-          0, yPos);*/
+            view_frame_x, view_frame_y);
       }
 
       gfxDriver->UpdateDDBFromBitmap(screenover[face_talking].bmp, screenover[face_talking].pic, false);

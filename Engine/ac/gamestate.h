@@ -23,6 +23,8 @@
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
 
+#define GAME_STATE_RESERVED_INTS 7
+
 // Adding to this might need to modify AGSDEFNS.SH and AGSPLUGIN.H
 struct GameState {
     int  score;      // player's current score
@@ -96,7 +98,10 @@ struct GameState {
     int  keep_screen_during_instant_transition;
     int  read_dialog_option_colour;
     int  stop_dialog_at_end;
-    int  reserved[10];  // make sure if a future version adds a var, it doesn't mess anything up
+    int  speech_portrait_placement; // speech portrait placement mode (automatic/custom)
+    int  speech_portrait_x; // a speech portrait x offset from corresponding screen side
+    int  speech_portrait_y; // a speech portrait y offset 
+    int  reserved[GAME_STATE_RESERVED_INTS];  // make sure if a future version adds a var, it doesn't mess anything up
     // ** up to here is referenced in the script "game." object
     int   recording;   // user is recording their moves
     int   playback;    // playing back recording

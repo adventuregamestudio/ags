@@ -704,7 +704,7 @@ Common::Bitmap *get_bitmap_for_mask(roomstruct *roomptr, RoomAreaMask maskType)
 
 void copy_walkable_to_regions (void *roomptr) {
 	roomstruct *theRoom = (roomstruct*)roomptr;
-    Common::Graphics g(theRoom->walls);
+    Common::Graphics g(theRoom->regions);
 	g.Blit(theRoom->walls, 0, 0, 0, 0, theRoom->regions->GetWidth(), theRoom->regions->GetHeight());
 }
 
@@ -825,21 +825,24 @@ Common::Bitmap *recycle_bitmap(Common::Bitmap* check, int colDepth, int w, int h
 
 Common::Bitmap *stretchedSprite = NULL, *srcAtRightColDep = NULL;
 
-void draw_area_mask(roomstruct *roomptr, Common::Bitmap *destination, RoomAreaMask maskType, int selectedArea, int transparency) 
+void draw_area_mask(roomstruct *roomptr, Common::Graphics *g_dest, RoomAreaMask maskType, int selectedArea, int transparency) 
 {
 	Common::Bitmap *source = get_bitmap_for_mask(roomptr, maskType);
 
 	if (source == NULL) return;
+
+    int dest_width = g_dest->GetBitmap()->GetWidth();
+    int dest_height = g_dest->GetBitmap()->GetHeight();
+    int dest_depth =  g_dest->GetBitmap()->GetColorDepth();
 	
-	if (source->GetColorDepth() != destination->GetColorDepth()) 
+	if (source->GetColorDepth() != dest_depth) 
 	{
     Common::Bitmap *sourceSprite = source;
-
-    if ((source->GetWidth() != destination->GetWidth()) || (source->GetHeight() != destination->GetHeight()))
+    if ((source->GetWidth() != dest_width) || (source->GetHeight() != dest_height))
     {
-		  stretchedSprite = recycle_bitmap(stretchedSprite, source->GetColorDepth(), destination->GetWidth(), destination->GetHeight());
-          Common::Graphics g(stretchedSprite);
-		  g.StretchBlt(source, RectWH(0, 0, source->GetWidth(), source->GetHeight()),
+		  stretchedSprite = recycle_bitmap(stretchedSprite, source->GetColorDepth(), dest_width, dest_height);
+          Common::Graphics graphics_stretch(stretchedSprite);
+		  graphics_stretch.StretchBlt(source, RectWH(0, 0, source->GetWidth(), source->GetHeight()),
 			  RectWH(0, 0, stretchedSprite->GetWidth(), stretchedSprite->GetHeight()));
       sourceSprite = stretchedSprite;
     }
@@ -851,30 +854,27 @@ void draw_area_mask(roomstruct *roomptr, Common::Bitmap *destination, RoomAreaMa
 
     if (transparency > 0)
     {
-      srcAtRightColDep = recycle_bitmap(srcAtRightColDep, destination->GetColorDepth(), destination->GetWidth(), destination->GetHeight());
+      srcAtRightColDep = recycle_bitmap(srcAtRightColDep, dest_depth, dest_width, dest_height);
       
       int oldColorConv = get_color_conversion();
       set_color_conversion(oldColorConv | COLORCONV_KEEP_TRANS);
 
-      Common::Graphics g(srcAtRightColDep);
-      g.Blit(sourceSprite, 0, 0, 0, 0, sourceSprite->GetWidth(), sourceSprite->GetHeight());
+      Common::Graphics graphics_src(srcAtRightColDep);
+      graphics_src.Blit(sourceSprite, 0, 0, 0, 0, sourceSprite->GetWidth(), sourceSprite->GetHeight());
       set_trans_blender(0, 0, 0, (100 - transparency) + 155);
-      g.SetBitmap(destination);
-      g.TransBlendBlt(srcAtRightColDep, 0, 0);
-
+      g_dest->TransBlendBlt(srcAtRightColDep, 0, 0);
       set_color_conversion(oldColorConv);
     }
     else
     {
-        Common::Graphics g(destination);
-		g.Blit(sourceSprite, 0, 0, Common::kBitmap_Transparency);
+        g_dest->Blit(sourceSprite, 0, 0, Common::kBitmap_Transparency);
     }
 
     set_palette(palette);
 	}
 	else
 	{
-		Cstretch_sprite(destination, source, 0, 0, destination->GetWidth(), destination->GetHeight());
+		Cstretch_sprite(g_dest->GetBitmap(), source, 0, 0, dest_width, dest_height);
 	}
 }
 
@@ -897,15 +897,15 @@ void draw_room_background(void *roomvoidptr, int hdc, int x, int y, int bgnum, f
       select_palette(roomptr->bpalettes[bgnum]);
     }
 
-    Common::Graphics g(depthConverted);
-    g.Blit(srcBlock, 0, 0, 0, 0, srcBlock->GetWidth(), srcBlock->GetHeight());
+    Common::Graphics graphics_converted(depthConverted);
+    graphics_converted.Blit(srcBlock, 0, 0, 0, 0, srcBlock->GetWidth(), srcBlock->GetHeight());
 
     if (srcBlock->GetColorDepth() == 8)
     {
       unselect_palette();
     }
 
-		draw_area_mask(roomptr, depthConverted, (RoomAreaMask)maskType, selectedArea, maskTransparency);
+	draw_area_mask(roomptr, &graphics_converted, (RoomAreaMask)maskType, selectedArea, maskTransparency);
 
     int srcX = 0, srcY = 0;
     int srcWidth = srcBlock->GetWidth();

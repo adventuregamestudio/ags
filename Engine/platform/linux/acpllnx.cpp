@@ -18,6 +18,7 @@
 
 // ********* LINUX PLACEHOLDER DRIVER *********
 
+#include <stdio.h>
 #include <allegro.h>
 #include "gfx/ali3d.h"
 #include "ac/runtime_defines.h"

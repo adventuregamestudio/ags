@@ -13,12 +13,11 @@
 //=============================================================================
 
 #include <stdio.h>
+#include "gfx/bitmap.h"
 #include "gfx/gfxfilter_allegro.h"
 #include "gfx/gfxfilterdefines.h"
-#include "gfx/graphics.h"
 
 using AGS::Common::Bitmap;
-using AGS::Common::Graphics;
 
 // Standard Allegro filter
 
@@ -48,8 +47,7 @@ Bitmap *AllegroGFXFilter::ShutdownAndReturnRealScreen(Bitmap *currentScreen) {
 void AllegroGFXFilter::RenderScreen(Bitmap *toRender, int x, int y) {
 
     if (toRender != realScreen) {
-        Graphics graphics(realScreen);
-        graphics.Blit(toRender, 0, 0, x, y, toRender->GetWidth(), toRender->GetHeight());
+        realScreen->Blit(toRender, 0, 0, x, y, toRender->GetWidth(), toRender->GetHeight());
     }
 
     lastBlitX = x;
@@ -61,18 +59,16 @@ void AllegroGFXFilter::RenderScreenFlipped(Bitmap *toRender, int x, int y, int f
     if (toRender == realScreen) 
         return;
 
-    Graphics graphics(realScreen);
     if (flipType == SCR_HFLIP)
-		graphics.FlipBlt(toRender, 0, 0, Common::kBitmap_HFlip);
+		realScreen->FlipBlt(toRender, 0, 0, Common::kBitmap_HFlip);
     else if (flipType == SCR_VFLIP)
-        graphics.FlipBlt(toRender, 0, 0, Common::kBitmap_VFlip);
+        realScreen->FlipBlt(toRender, 0, 0, Common::kBitmap_VFlip);
     else if (flipType == SCR_VHFLIP)
-        graphics.FlipBlt(toRender, 0, 0, Common::kBitmap_HVFlip);
+        realScreen->FlipBlt(toRender, 0, 0, Common::kBitmap_HVFlip);
 }
 
 void AllegroGFXFilter::ClearRect(int x1, int y1, int x2, int y2, int color) {
-    Graphics graphics(realScreen);
-    graphics.FillRect(Rect(x1, y1, x2, y2), color);
+    realScreen->FillRect(Rect(x1, y1, x2, y2), color);
 }
 
 void AllegroGFXFilter::GetCopyOfScreenIntoBitmap(Bitmap *copyBitmap) 
@@ -83,7 +79,6 @@ void AllegroGFXFilter::GetCopyOfScreenIntoBitmap(Bitmap *copyBitmap)
 void AllegroGFXFilter::GetCopyOfScreenIntoBitmap(Bitmap *copyBitmap, bool copyWithOffset)
 {
     if (copyBitmap != realScreen) {
-        Graphics graphics(copyBitmap);
-        graphics.Blit(realScreen, (copyWithOffset ? lastBlitX : 0), (copyWithOffset ? lastBlitY : 0), 0, 0, copyBitmap->GetWidth(), copyBitmap->GetHeight());
+        copyBitmap->Blit(realScreen, (copyWithOffset ? lastBlitX : 0), (copyWithOffset ? lastBlitY : 0), 0, 0, copyBitmap->GetWidth(), copyBitmap->GetHeight());
     }
 }

@@ -30,10 +30,8 @@
 #include "device/mousew32.h"
 #include "ac/spritecache.h"
 #include "gfx/graphicsdriver.h"
-#include "gfx/graphics.h"
 
 using AGS::Common::Bitmap;
-using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameSetup usetup;
@@ -106,13 +104,12 @@ void set_mouse_cursor(int newcurs) {
             // If necessary, create a copy of the cursor and put the hotspot
             // dot onto it
             dotted_mouse_cursor = BitmapHelper::CreateBitmapCopy(mousecurs[0]);
-            Graphics graphics(dotted_mouse_cursor);
 
             if (game.invhotdotsprite > 0) {
                 //Bitmap *abufWas = abuf;
                 //abuf = dotted_mouse_cursor;
 
-                draw_sprite_support_alpha(&graphics,
+                draw_sprite_support_alpha(dotted_mouse_cursor,
                     hotspotx - spritewidth[game.invhotdotsprite] / 2,
                     hotspoty - spriteheight[game.invhotdotsprite] / 2,
                     spriteset[game.invhotdotsprite],
@@ -121,18 +118,18 @@ void set_mouse_cursor(int newcurs) {
                 //abuf = abufWas;
             }
             else {
-                putpixel_compensate (&graphics, hotspotx, hotspoty,
-                    (dotted_mouse_cursor->GetColorDepth() > 8) ? GetVirtualScreenGraphics()->GetBitmap()->GetCompatibleColor (game.hotdot) : game.hotdot);
+                putpixel_compensate (dotted_mouse_cursor, hotspotx, hotspoty,
+                    (dotted_mouse_cursor->GetColorDepth() > 8) ? GetVirtualScreen()->GetCompatibleColor (game.hotdot) : game.hotdot);
 
                 if (game.hotdotouter > 0) {
                     int outercol = game.hotdotouter;
                     if (dotted_mouse_cursor->GetColorDepth () > 8)
-                        outercol = GetVirtualScreenGraphics()->GetBitmap()->GetCompatibleColor(game.hotdotouter);
+                        outercol = GetVirtualScreen()->GetCompatibleColor(game.hotdotouter);
 
-                    putpixel_compensate (&graphics, hotspotx + get_fixed_pixel_size(1), hotspoty, outercol);
-                    putpixel_compensate (&graphics, hotspotx, hotspoty + get_fixed_pixel_size(1), outercol);
-                    putpixel_compensate (&graphics, hotspotx - get_fixed_pixel_size(1), hotspoty, outercol);
-                    putpixel_compensate (&graphics, hotspotx, hotspoty - get_fixed_pixel_size(1), outercol);
+                    putpixel_compensate (dotted_mouse_cursor, hotspotx + get_fixed_pixel_size(1), hotspoty, outercol);
+                    putpixel_compensate (dotted_mouse_cursor, hotspotx, hotspoty + get_fixed_pixel_size(1), outercol);
+                    putpixel_compensate (dotted_mouse_cursor, hotspotx - get_fixed_pixel_size(1), hotspoty, outercol);
+                    putpixel_compensate (dotted_mouse_cursor, hotspotx, hotspoty - get_fixed_pixel_size(1), outercol);
                 }
             }
             mousecurs[0] = dotted_mouse_cursor;

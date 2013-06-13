@@ -52,7 +52,6 @@
 #include "util/string_utils.h"
 #include <math.h>
 #include "gfx/graphicsdriver.h"
-#include "gfx/graphics.h"
 #include "platform/base/override_defines.h"
 #include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_character.h"
@@ -2581,8 +2580,7 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
                 if (yy < 0)
                     tdyp = ovr_yp + get_textwindow_top_border_height(play.speech_textwindow_gui);
             }
-            Graphics graphics(closeupface);
-            DrawViewFrame(&graphics, &viptr->loops[0].frames[0], view_frame_x, view_frame_y);
+            DrawViewFrame(closeupface, &viptr->loops[0].frames[0], view_frame_x, view_frame_y);
 
             int overlay_x = get_fixed_pixel_size(10);
             if (xx < 0) {

@@ -17,7 +17,7 @@
 #include "debug/debug_log.h"
 #include "media/audio/audio.h"
 #include "ac/spritecache.h"
-#include "gfx/graphics.h"
+#include "gfx/bitmap.h"
 #include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_audioclip.h"
 
@@ -157,11 +157,11 @@ void CheckViewFrame (int view, int loop, int frame) {
 }
 
 // draws a view frame, flipped if appropriate
-void DrawViewFrame(Graphics *g, ViewFrame *vframe, int x, int y) {
+void DrawViewFrame(Bitmap *ds, ViewFrame *vframe, int x, int y) {
     if (vframe->flags & VFLG_FLIPSPRITE)
-        g->FlipBlt(spriteset[vframe->pic], x, y, Common::kBitmap_HFlip);
+        ds->FlipBlt(spriteset[vframe->pic], x, y, Common::kBitmap_HFlip);
     else
-        g->Blit(spriteset[vframe->pic], x, y, Common::kBitmap_Transparency);
+        ds->Blit(spriteset[vframe->pic], x, y, Common::kBitmap_Transparency);
 }
 
 //=============================================================================

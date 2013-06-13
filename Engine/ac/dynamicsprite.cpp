@@ -32,11 +32,9 @@
 #include "ac/spritecache.h"
 #include "platform/base/override_defines.h"
 #include "gfx/graphicsdriver.h"
-#include "gfx/graphics.h"
 #include "script/runtimescriptvalue.h"
 
 using AGS::Common::Bitmap;
-using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern GameSetupStruct game;
@@ -115,8 +113,7 @@ void DynamicSprite_Resize(ScriptDynamicSprite *sds, int width, int height) {
 
     // resize the sprite to the requested size
     Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, spriteset[sds->slot]->GetColorDepth());
-    Graphics graphics(newPic);
-    graphics.StretchBlt(spriteset[sds->slot],
+    newPic->StretchBlt(spriteset[sds->slot],
         RectWH(0, 0, spritewidth[sds->slot], spriteheight[sds->slot]),
         RectWH(0, 0, width, height));
 
@@ -134,14 +131,13 @@ void DynamicSprite_Flip(ScriptDynamicSprite *sds, int direction) {
 
     // resize the sprite to the requested size
     Bitmap *newPic = BitmapHelper::CreateTransparentBitmap(spritewidth[sds->slot], spriteheight[sds->slot], spriteset[sds->slot]->GetColorDepth());
-    Graphics graphics(newPic);
 
     if (direction == 1)
-        graphics.FlipBlt(spriteset[sds->slot], 0, 0, Common::kBitmap_HFlip);
+        newPic->FlipBlt(spriteset[sds->slot], 0, 0, Common::kBitmap_HFlip);
     else if (direction == 2)
-        graphics.FlipBlt(spriteset[sds->slot], 0, 0, Common::kBitmap_VFlip);
+        newPic->FlipBlt(spriteset[sds->slot], 0, 0, Common::kBitmap_VFlip);
     else if (direction == 3)
-        graphics.FlipBlt(spriteset[sds->slot], 0, 0, Common::kBitmap_HVFlip);
+        newPic->FlipBlt(spriteset[sds->slot], 0, 0, Common::kBitmap_HVFlip);
 
     delete spriteset[sds->slot];
 
@@ -234,9 +230,8 @@ void DynamicSprite_ChangeCanvasSize(ScriptDynamicSprite *sds, int width, int hei
     multiply_up_coordinates(&width, &height);
 
     Bitmap *newPic = BitmapHelper::CreateTransparentBitmap(width, height, spriteset[sds->slot]->GetColorDepth());
-    Graphics graphics(newPic);
     // blit it into the enlarged image
-    graphics.Blit(spriteset[sds->slot], 0, 0, x, y, spritewidth[sds->slot], spriteheight[sds->slot]);
+    newPic->Blit(spriteset[sds->slot], 0, 0, x, y, spritewidth[sds->slot], spriteheight[sds->slot]);
 
     delete spriteset[sds->slot];
 
@@ -257,9 +252,8 @@ void DynamicSprite_Crop(ScriptDynamicSprite *sds, int x1, int y1, int width, int
         quit("!DynamicSprite.Crop: requested to crop an area larger than the source");
 
     Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, spriteset[sds->slot]->GetColorDepth());
-    Graphics graphics(newPic);
     // blit it cropped
-    graphics.Blit(spriteset[sds->slot], x1, y1, 0, 0, newPic->GetWidth(), newPic->GetHeight());
+    newPic->Blit(spriteset[sds->slot], x1, y1, 0, 0, newPic->GetWidth(), newPic->GetHeight());
 
     delete spriteset[sds->slot];
 
@@ -297,11 +291,10 @@ void DynamicSprite_Rotate(ScriptDynamicSprite *sds, int angle, int width, int he
 
     // resize the sprite to the requested size
     Bitmap *newPic = BitmapHelper::CreateTransparentBitmap(width, height, spriteset[sds->slot]->GetColorDepth());
-    Graphics graphics(newPic);
 
     // rotate the sprite about its centre
     // (+ width%2 fixes one pixel offset problem)
-    graphics.RotateBlt(spriteset[sds->slot], width / 2 + width % 2, height / 2,
+    newPic->RotateBlt(spriteset[sds->slot], width / 2 + width % 2, height / 2,
         spritewidth[sds->slot] / 2, spriteheight[sds->slot] / 2, itofix(angle));
 
     delete spriteset[sds->slot];
@@ -315,8 +308,7 @@ void DynamicSprite_Tint(ScriptDynamicSprite *sds, int red, int green, int blue, 
     Bitmap *source = spriteset[sds->slot];
     Bitmap *newPic = BitmapHelper::CreateBitmap(source->GetWidth(), source->GetHeight(), source->GetColorDepth());
 
-    Graphics graphics(newPic);
-    tint_image(&graphics, source, red, green, blue, saturation, (luminance * 25) / 10);
+    tint_image(newPic, source, red, green, blue, saturation, (luminance * 25) / 10);
 
     delete source;
     // replace the bitmap in the sprite set
@@ -385,8 +377,7 @@ ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height) {
         if ((scrnwid != width) || (scrnhit != height))
         {
             newPic = BitmapHelper::CreateBitmap(width, height, final_col_dep);
-            Graphics graphics(newPic);
-            graphics.StretchBlt(scrndump,
+            newPic->StretchBlt(scrndump,
                 RectWH(0, 0, scrndump->GetWidth(), scrndump->GetHeight()),
                 RectWH(0, 0, width, height));
             delete scrndump;
@@ -400,8 +391,7 @@ ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height) {
     {
         // resize the sprite to the requested size
         newPic = BitmapHelper::CreateBitmap(width, height, virtual_screen->GetColorDepth());
-        Graphics graphics(newPic);
-        graphics.StretchBlt(virtual_screen,
+        newPic->StretchBlt(virtual_screen,
             RectWH(0, 0, virtual_screen->GetWidth(), virtual_screen->GetHeight()),
             RectWH(0, 0, width, height));
     }
@@ -444,19 +434,18 @@ ScriptDynamicSprite* DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface
     sds->MultiplyCoordinates(&x, &y);
     sds->MultiplyCoordinates(&width, &height);
 
-    Common::Graphics *g = sds->StartDrawing();
+    Bitmap *ds = sds->StartDrawing();
 
-    if ((x < 0) || (y < 0) || (x + width > g->GetBitmap()->GetWidth()) || (y + height > g->GetBitmap()->GetHeight()))
+    if ((x < 0) || (y < 0) || (x + width > ds->GetWidth()) || (y + height > ds->GetHeight()))
         quit("!DynamicSprite.CreateFromDrawingSurface: requested area is outside the surface");
 
-    int colDepth = g->GetBitmap()->GetColorDepth();
+    int colDepth = ds->GetColorDepth();
 
     Bitmap *newPic = BitmapHelper::CreateBitmap(width, height, colDepth);
     if (newPic == NULL)
         return NULL;
 
-    Graphics graphics(newPic);
-    graphics.Blit(g->GetBitmap(), x, y, 0, 0, width, height);
+    newPic->Blit(ds, x, y, 0, 0, width, height);
 
     sds->FinishedDrawingReadOnly();
 
@@ -520,8 +509,7 @@ ScriptDynamicSprite* DynamicSprite_CreateFromBackground(int frame, int x1, int y
     if (newPic == NULL)
         return NULL;
 
-    Graphics graphics(newPic);
-    graphics.Blit(thisroom.ebscene[frame], x1, y1, 0, 0, width, height);
+    newPic->Blit(thisroom.ebscene[frame], x1, y1, 0, 0, width, height);
 
     // replace the bitmap in the sprite set
     add_dynamic_sprite(gotSlot, newPic);

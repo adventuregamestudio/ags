@@ -38,7 +38,7 @@ struct GUIListBox:public GUIObject
   void SetItemText(int index, const char *newtext);
   void RemoveItem(int index);
   void Clear();
-  virtual void Draw(Common::Graphics *g);
+  virtual void Draw(Common::Bitmap *ds);
   int  IsInRightMargin(int x);
   int  GetIndexFromCoordinates(int x, int y);
   void ChangeFont(int newFont);

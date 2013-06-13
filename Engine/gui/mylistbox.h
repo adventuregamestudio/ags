@@ -31,7 +31,7 @@ struct MyListBox:public NewControl
   void clearlist();
   ~MyListBox();
 
-  void draw(Common::Graphics *g);
+  void draw(Common::Bitmap *ds);
   int pressedon();
   void additem(char *texx);
   int processmessage(int mcode, int wParam, long lParam);

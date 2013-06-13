@@ -34,10 +34,8 @@
 #include "script/script.h"
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
-#include "gfx/graphics.h"
 
 using AGS::Common::Bitmap;
-using AGS::Common::Graphics;
 namespace BitmapHelper = Common::BitmapHelper;
 
 extern GameSetupStruct game;
@@ -285,8 +283,7 @@ void process_event(EventHappened*evp) {
                     boxhit += multiply_up_coordinate(GetMaxScreenHeight() / 20);
                     int lxp = scrnwid / 2 - boxwid / 2, lyp = scrnhit / 2 - boxhit / 2;
                     gfxDriver->Vsync();
-                    Graphics graphics(screen_bmp);
-                    graphics.Blit(virtual_screen, lxp, lyp, lxp, lyp,
+                    screen_bmp->Blit(virtual_screen, lxp, lyp, lxp, lyp,
                         boxwid, boxhit);
                     render_to_screen(screen_bmp, 0, 0);
                     UPDATE_MP3

@@ -58,18 +58,18 @@ struct CachedActSpsData {
 void invalidate_screen();
 void mark_current_background_dirty();
 void invalidate_cached_walkbehinds();
-void put_sprite_256(Common::Graphics *g, int xxx,int yyy,Common::Bitmap *piccy);
+void put_sprite_256(Common::Bitmap *ds, int xxx,int yyy,Common::Bitmap *piccy);
 Common::Bitmap *recycle_bitmap(Common::Bitmap *bimp, int coldep, int wid, int hit, bool make_transparent = false);
-void push_screen (Common::Graphics *g);
-Common::Graphics *pop_screen();
+void push_screen (Common::Bitmap *ds);
+Common::Bitmap *pop_screen();
 void update_screen();
 void invalidate_rect(int x1, int y1, int x2, int y2);
 // Draw everything 
 void render_graphics(Engine::IDriverDependantBitmap *extraBitmap = NULL, int extraX = 0, int extraY = 0);
 void construct_virtual_screen(bool fullRedraw) ;
 void add_to_sprite_list(Engine::IDriverDependantBitmap* spp, int xx, int yy, int baseline, int trans, int sprNum, bool isWalkBehind = false);
-void tint_image (Common::Graphics *g, Common::Bitmap *source, int red, int grn, int blu, int light_level, int luminance=255);
-void draw_sprite_support_alpha(Common::Graphics *g, int xpos, int ypos, Common::Bitmap *image, int slot);
+void tint_image (Common::Bitmap *g, Common::Bitmap *source, int red, int grn, int blu, int light_level, int luminance=255);
+void draw_sprite_support_alpha(Common::Bitmap *g, int xpos, int ypos, Common::Bitmap *image, int slot);
 void render_to_screen(Common::Bitmap *toRender, int atx, int aty);
 void draw_screen_callback();
 void write_screen();
@@ -78,15 +78,15 @@ bool GfxDriverNullSpriteCallback(int x, int y);
 void init_invalid_regions(int scrnHit);
 int get_screen_x_adjustment(Common::Bitmap *checkFor);
 int get_screen_y_adjustment(Common::Bitmap *checkFor);
-void putpixel_compensate (Common::Graphics *g, int xx,int yy, int col);
+void putpixel_compensate (Common::Bitmap *g, int xx,int yy, int col);
 // create the actsps[aa] image with the object drawn correctly
 // returns 1 if nothing at all has changed and actsps is still
 // intact from last time; 0 otherwise
 int construct_object_gfx(int aa, int *drawnWidth, int *drawnHeight, bool alwaysUseSoftware);
 void clear_letterbox_borders();
 
-void draw_and_invalidate_text(Common::Graphics *g, int x1, int y1, int font, const char *text);
-void wouttext_reverseifnecessary(Common::Graphics *g, int x, int y, int font, char *text);
+void draw_and_invalidate_text(Common::Bitmap *ds, int x1, int y1, int font, color_t text_color, const char *text);
+void wouttext_reverseifnecessary(Common::Bitmap *ds, int x, int y, int font, color_t text_color, char *text);
 
 void setpal();
 

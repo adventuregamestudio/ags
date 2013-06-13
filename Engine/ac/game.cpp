@@ -65,7 +65,6 @@
 #include "font/fonts.h"
 #include "gfx/ali3d.h"
 #include "gui/animatingguibutton.h"
-#include "gfx/graphics.h"
 #include "gfx/graphicsdriver.h"
 #include "gui/guidialog.h"
 #include "main/game_file.h"
@@ -85,7 +84,6 @@ using AGS::Common::AlignedStream;
 using AGS::Common::String;
 using AGS::Common::Stream;
 using AGS::Common::Bitmap;
-using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
@@ -1460,8 +1458,7 @@ void create_savegame_screenshot(Bitmap *&screenShot)
         if (gfxDriver->UsesMemoryBackBuffer())
         {
             screenShot = BitmapHelper::CreateBitmap(usewid, usehit, virtual_screen->GetColorDepth());
-            Graphics graphics(screenShot);
-            graphics.StretchBlt(virtual_screen,
+            screenShot->StretchBlt(virtual_screen,
 				RectWH(0, 0, virtual_screen->GetWidth(), virtual_screen->GetHeight()),
 				RectWH(0, 0, screenShot->GetWidth(), screenShot->GetHeight()));
         }
@@ -1476,8 +1473,7 @@ void create_savegame_screenshot(Bitmap *&screenShot)
             gfxDriver->GetCopyOfScreenIntoBitmap(tempBlock);
 
             screenShot = BitmapHelper::CreateBitmap(usewid, usehit, color_depth);
-            Graphics graphics(screenShot);
-            graphics.StretchBlt(tempBlock,
+            screenShot->StretchBlt(tempBlock,
 				RectWH(0, 0, tempBlock->GetWidth(), tempBlock->GetHeight()),
 				RectWH(0, 0, screenShot->GetWidth(), screenShot->GetHeight()));
 

@@ -25,12 +25,11 @@
 #include "gfx/ali3d.h"
 #include "gfx/gfxfilter_d3d.h"
 #include "platform/base/agsplatformdriver.h"
-#include "gfx/graphics.h"
+#include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
 
 using AGS::Common::Bitmap;
-using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 using namespace AGS; // FIXME later
 
@@ -1158,11 +1157,9 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
     if (_pollingCallback)
       _pollingCallback();
 
-    Graphics graphics;
     if (retrieveInto != destination)
     {
-      graphics.SetBitmap(destination);
-      graphics.StretchBlt(retrieveInto, RectWH(0, 0, retrieveInto->GetWidth(), retrieveInto->GetHeight()),
+      destination->StretchBlt(retrieveInto, RectWH(0, 0, retrieveInto->GetWidth(), retrieveInto->GetHeight()),
                    RectWH(0, 0, destination->GetWidth(), destination->GetHeight()));
       delete retrieveInto;
 
@@ -1172,8 +1169,7 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
 
     if (finalImage != NULL)
     {
-      graphics.SetBitmap(finalImage);
-      graphics.Blit(destination, 0, 0, 0, 0, destination->GetWidth(), destination->GetHeight());
+      finalImage->Blit(destination, 0, 0, 0, 0, destination->GetWidth(), destination->GetHeight());
       delete destination;
     }
   }
@@ -1650,13 +1646,11 @@ Bitmap *D3DGraphicsDriver::ConvertBitmapToSupportedColourDepth(Bitmap *bitmap)
    set_color_conversion(COLORCONV_KEEP_TRANS | COLORCONV_TOTAL);
 
    int colourDepth = bitmap->GetColorDepth();
-   Graphics graphics;
    if ((colourDepth == 8) || (colourDepth == 16))
    {
      // Most 3D cards don't support 8-bit; and we need 15-bit colour
      Bitmap *tempBmp = BitmapHelper::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 15);
-     graphics.SetBitmap(tempBmp);
-     graphics.Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
+     tempBmp->Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
      delete bitmap;
      set_color_conversion(colorConv);
      return tempBmp;
@@ -1665,8 +1659,7 @@ Bitmap *D3DGraphicsDriver::ConvertBitmapToSupportedColourDepth(Bitmap *bitmap)
    {
      // we need 32-bit colour
      Bitmap* tempBmp = BitmapHelper::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 32);
-     graphics.SetBitmap(tempBmp);
-     graphics.Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
+     tempBmp->Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
      delete bitmap;
      set_color_conversion(colorConv);
      return tempBmp;
@@ -1734,13 +1727,11 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
   int allocatedHeight = bitmap->GetHeight();
   Bitmap *tempBmp = NULL;
   int colourDepth = bitmap->GetColorDepth();
-  Graphics graphics;
   if ((colourDepth == 8) || (colourDepth == 16))
   {
     // Most 3D cards don't support 8-bit; and we need 15-bit colour
     tempBmp = BitmapHelper::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 15);
-    graphics.SetBitmap(tempBmp);
-    graphics.Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
+    tempBmp->Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
     bitmap = tempBmp;
     colourDepth = 15;
   }
@@ -1748,8 +1739,7 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
   {
     // we need 32-bit colour
     tempBmp = BitmapHelper::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 32);
-    graphics.SetBitmap(tempBmp);
-    graphics.Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
+    tempBmp->Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
     bitmap = tempBmp;
     colourDepth = 32;
   }

@@ -25,12 +25,11 @@
 #include "ac/record.h"
 #include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
+#include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
-#include "gfx/graphics.h"
 
 using AGS::Common::Bitmap;
-using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 
@@ -78,16 +77,14 @@ extern "C" int fli_callback() {
 
     update_polled_stuff_and_crossfade ();
 
-    Graphics graphics(hicol_buf);
     if (game.color_depth > 1) {
-        graphics.Blit(fli_buffer,0,0,0,0,fliwidth,fliheight);
+        hicol_buf->Blit(fli_buffer,0,0,0,0,fliwidth,fliheight);
         usebuf=hicol_buf;
     }
-    graphics.SetBitmap(fli_target);
     if (stretch_flc == 0)
-        graphics.Blit(usebuf, 0,0,scrnwid/2-fliwidth/2,scrnhit/2-fliheight/2,scrnwid,scrnhit);
+        fli_target->Blit(usebuf, 0,0,scrnwid/2-fliwidth/2,scrnhit/2-fliheight/2,scrnwid,scrnhit);
     else 
-        graphics.StretchBlt(usebuf, RectWH(0,0,fliwidth,fliheight), RectWH(0,0,scrnwid,scrnhit));
+        fli_target->StretchBlt(usebuf, RectWH(0,0,fliwidth,fliheight), RectWH(0,0,scrnwid,scrnhit));
 
     gfxDriver->UpdateDDBFromBitmap(fli_ddb, fli_target, false);
     gfxDriver->DrawSprite(0, 0, fli_ddb);
@@ -122,8 +119,7 @@ int theora_playing_callback(BITMAP *theoraBuffer)
         drawAtY = scrnhit / 2 - fliTargetHeight / 2;
         if (!gfxDriver->HasAcceleratedStretchAndFlip())
         {
-            Graphics graphics(fli_target);
-            graphics.StretchBlt(&gl_TheoraBuffer, RectWH(0, 0, gl_TheoraBuffer.GetWidth(), gl_TheoraBuffer.GetHeight()), 
+            fli_target->StretchBlt(&gl_TheoraBuffer, RectWH(0, 0, gl_TheoraBuffer.GetWidth(), gl_TheoraBuffer.GetHeight()), 
                 RectWH(drawAtX, drawAtY, fliTargetWidth, fliTargetHeight));
             gfxDriver->UpdateDDBFromBitmap(fli_ddb, fli_target, false);
             drawAtX = 0;

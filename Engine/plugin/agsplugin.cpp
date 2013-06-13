@@ -238,9 +238,9 @@ int IAGSEngine::GetSavedData (char *buffer, int32 bufsize) {
 }
 void IAGSEngine::DrawText (int32 x, int32 y, int32 font, int32 color, char *text) 
 {
-    Common::Graphics *g = GetVirtualScreenGraphics();
-    g->SetTextColor(color);
-    draw_and_invalidate_text(g, x, y, font, text);
+    Common::Bitmap *ds = ::GetVirtualScreen();
+    color_t text_color = ds->GetCompatibleColor(color);
+    draw_and_invalidate_text(ds, x, y, font, text_color, text);
 }
 void IAGSEngine::GetScreenDimensions (int32 *width, int32 *height, int32 *coldepth) {
     if (width != NULL)
@@ -310,11 +310,11 @@ void IAGSEngine::DrawTextWrapped (int32 xx, int32 yy, int32 wid, int32 font, int
 
     break_up_text_into_lines (wid, font, (char*)text);
 
-    Common::Graphics *g = GetVirtualScreenGraphics();
-    g->SetTextColor(color);
+    Common::Bitmap *ds = ::GetVirtualScreen();
+    color_t text_color = ds->GetCompatibleColor(color);
     multiply_up_coordinates((int*)&xx, (int*)&yy); // stupid! quick tweak
     for (int i = 0; i < numlines; i++)
-        draw_and_invalidate_text(g, xx, yy + texthit*i, font, lines[i]);
+        draw_and_invalidate_text(ds, xx, yy + texthit*i, font, text_color, lines[i]);
 }
 void IAGSEngine::SetVirtualScreen (BITMAP *bmp) {
 	// [IKM] Very, very dangerous :'(
@@ -324,19 +324,19 @@ int IAGSEngine::LookupParserWord (const char *word) {
     return find_word_in_dictionary ((char*)word);
 }
 void IAGSEngine::BlitBitmap (int32 x, int32 y, BITMAP *bmp, int32 masked) {
-    wputblock_raw (GetVirtualScreenGraphics(), x, y, bmp, masked);
+    wputblock_raw (::GetVirtualScreen(), x, y, bmp, masked);
     invalidate_rect(x, y, x + bmp->w, y + bmp->h);
 }
 void IAGSEngine::BlitSpriteTranslucent(int32 x, int32 y, BITMAP *bmp, int32 trans) {
     set_trans_blender(0, 0, 0, trans);
-    Common::Graphics *g = GetVirtualScreenGraphics();
+    Common::Bitmap *ds = ::GetVirtualScreen();
     // FIXME: call corresponding Graphics Blit
-	draw_trans_sprite((BITMAP*)g->GetBitmap()->GetAllegroBitmap(), bmp, x, y);
+	draw_trans_sprite(ds->GetAllegroBitmap(), bmp, x, y);
 }
 void IAGSEngine::BlitSpriteRotated(int32 x, int32 y, BITMAP *bmp, int32 angle) {
-    Common::Graphics *g = GetVirtualScreenGraphics();
+    Common::Bitmap *ds = ::GetVirtualScreen();
     // FIXME: call corresponding Graphics Blit
-    rotate_sprite((BITMAP*)g->GetBitmap()->GetAllegroBitmap(), bmp, x, y, itofix(angle));
+    rotate_sprite(ds->GetAllegroBitmap(), bmp, x, y, itofix(angle));
 }
 
 extern void domouse(int);
@@ -443,7 +443,7 @@ AGSViewFrame *IAGSEngine::GetViewFrame (int32 view, int32 loop, int32 frame) {
 int IAGSEngine::GetRawPixelColor (int32 color) {
     // Convert the standardized colour to the local gfx mode color
     int result;
-    __my_setcolor(&result, color, GetVirtualScreenBitmap()->GetColorDepth());
+    __my_setcolor(&result, color, ::GetVirtualScreen()->GetColorDepth());
 
     return result;
 }

@@ -85,7 +85,7 @@ const char *GUILabel::GetText() {
   return text;
 }
 
-void GUILabel::printtext_align(Common::Graphics *g, int yy, char *teptr)
+void GUILabel::printtext_align(Common::Bitmap *ds, int yy, color_t text_color, char *teptr)
 {
   int outxp = x;
   if (align == GALIGN_CENTRE)
@@ -93,10 +93,10 @@ void GUILabel::printtext_align(Common::Graphics *g, int yy, char *teptr)
   else if (align == GALIGN_RIGHT)
     outxp += wid - wgettextwidth(teptr, font);
 
-  wouttext_outline(g, outxp, yy, font, teptr);
+  wouttext_outline(ds, outxp, yy, font, text_color, teptr);
 }
 
-void GUILabel::Draw(Common::Graphics *g)
+void GUILabel::Draw(Common::Bitmap *ds)
 {
   int cyp = y, TEXT_HT;
   char oritext[MAX_GUILABEL_TEXT_LEN], *teptr;
@@ -108,12 +108,12 @@ void GUILabel::Draw(Common::Graphics *g)
   teptr = &oritext[0];
   TEXT_HT = wgettextheight("ZhypjIHQFb", font) + 1;
 
-  g->SetTextColor(textcol);
+  color_t text_color = ds->GetCompatibleColor(textcol);
 
   Draw_split_lines(teptr, wid, font, numlines);
 
   for (int aa = 0; aa < numlines; aa++) {
-    printtext_align(g, cyp, lines[aa]);
+    printtext_align(ds, cyp, text_color, lines[aa]);
     cyp += TEXT_HT;
     if (cyp > y + hit)
       break;

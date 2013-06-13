@@ -109,9 +109,9 @@ void drawBlockScaledAt(int hdc, Common::Bitmap *todraw ,int x, int y, int scaleF
 // this is to shut up the linker, it's used by CSRUN.CPP
 void write_log(char *) { }
 
-void GUIInv::Draw(Common::Graphics *g) {
-  g->SetDrawColor(15);
-  g->DrawRect(Rect(x,y,x+wid,y+hit));
+void GUIInv::Draw(Common::Bitmap *ds) {
+  color_t draw_color = ds->GetCompatibleColor(15);
+  ds->DrawRect(Rect(x,y,x+wid,y+hit), draw_color);
 }
 
 int multiply_up_coordinate(int coord)
@@ -356,8 +356,7 @@ int crop_sprite_edges(int numSprites, int *sprites, bool symmetric) {
     Common::Bitmap *sprit = get_sprite(sprites[aa]);
     // create a new, smaller sprite and copy across
 	Common::Bitmap *newsprit = Common::BitmapHelper::CreateBitmap(newWidth, newHeight, sprit->GetColorDepth());
-    Common::Graphics g(newsprit);
-    g.Blit(sprit, left, top, 0, 0, newWidth, newHeight);
+    newsprit->Blit(sprit, left, top, 0, 0, newWidth, newHeight);
     delete sprit;
 
     spriteset.setNonDiscardable(sprites[aa], newsprit);
@@ -607,7 +606,7 @@ void drawBlockDoubleAt (int hdc, Common::Bitmap *todraw ,int x, int y) {
   drawBlockScaledAt (hdc, todraw, x, y, 2);
 }
 
-void wputblock_stretch(Common::Graphics *g, int xpt,int ypt,Common::Bitmap *tblock,int nsx,int nsy) {
+void wputblock_stretch(Common::Bitmap *g, int xpt,int ypt,Common::Bitmap *tblock,int nsx,int nsy) {
   if (bmp_bpp(tblock) != thisgame.color_depth) {
     Common::Bitmap *tempst=Common::BitmapHelper::CreateBitmapCopy(tblock, thisgame.color_depth*8);
     int ww,vv;
@@ -623,7 +622,7 @@ void wputblock_stretch(Common::Graphics *g, int xpt,int ypt,Common::Bitmap *tblo
   else g->StretchBlt(tblock,RectWH(xpt,ypt,nsx,nsy), Common::kBitmap_Transparency);
 }
 
-void draw_sprite_compensate(Common::Graphics *g, int sprnum, int atxp, int atyp, int seethru) {
+void draw_sprite_compensate(Common::Bitmap *g, int sprnum, int atxp, int atyp, int seethru) {
   Common::Bitmap *blptr = get_sprite(sprnum);
   Common::Bitmap *towrite=blptr;
   int needtofree=0, main_color_depth = thisgame.color_depth * 8;
@@ -704,8 +703,7 @@ Common::Bitmap *get_bitmap_for_mask(roomstruct *roomptr, RoomAreaMask maskType)
 
 void copy_walkable_to_regions (void *roomptr) {
 	roomstruct *theRoom = (roomstruct*)roomptr;
-    Common::Graphics g(theRoom->regions);
-	g.Blit(theRoom->walls, 0, 0, 0, 0, theRoom->regions->GetWidth(), theRoom->regions->GetHeight());
+	theRoom->regions->Blit(theRoom->walls, 0, 0, 0, 0, theRoom->regions->GetWidth(), theRoom->regions->GetHeight());
 }
 
 int get_mask_pixel(void *roomptr, int maskType, int x, int y)
@@ -717,22 +715,19 @@ int get_mask_pixel(void *roomptr, int maskType, int x, int y)
 void draw_line_onto_mask(void *roomptr, int maskType, int x1, int y1, int x2, int y2, int color)
 {
 	Common::Bitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
-	Common::Graphics g(mask);
-	g.DrawLine(Line(x1, y1, x2, y2), color);
+	mask->DrawLine(Line(x1, y1, x2, y2), color);
 }
 
 void draw_filled_rect_onto_mask(void *roomptr, int maskType, int x1, int y1, int x2, int y2, int color)
 {
 	Common::Bitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
-	Common::Graphics g(mask);
-    g.FillRect(Rect(x1, y1, x2, y2), color);
+    mask->FillRect(Rect(x1, y1, x2, y2), color);
 }
 
 void draw_fill_onto_mask(void *roomptr, int maskType, int x1, int y1, int color)
 {
 	Common::Bitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
-	Common::Graphics g(mask);
-    g.FloodFill(x1, y1, color);
+    mask->FloodFill(x1, y1, color);
 }
 
 void create_undo_buffer(void *roomptr, int maskType) 
@@ -750,8 +745,7 @@ void create_undo_buffer(void *roomptr, int maskType)
   {
     undoBuffer = Common::BitmapHelper::CreateBitmap(mask->GetWidth(), mask->GetHeight(), mask->GetColorDepth());
   }
-  Common::Graphics g(undoBuffer);
-  g.Blit(mask, 0, 0, 0, 0, mask->GetWidth(), mask->GetHeight());
+  undoBuffer->Blit(mask, 0, 0, 0, 0, mask->GetWidth(), mask->GetHeight());
 }
 
 bool does_undo_buffer_exist()
@@ -773,8 +767,7 @@ void restore_from_undo_buffer(void *roomptr, int maskType)
   if (does_undo_buffer_exist())
   {
   	Common::Bitmap *mask = get_bitmap_for_mask((roomstruct*)roomptr, (RoomAreaMask)maskType);
-    Common::Graphics g(mask);
-    g.Blit(undoBuffer, 0, 0, 0, 0, mask->GetWidth(), mask->GetHeight());
+    mask->Blit(undoBuffer, 0, 0, 0, 0, mask->GetWidth(), mask->GetHeight());
   }
 }
 
@@ -825,15 +818,15 @@ Common::Bitmap *recycle_bitmap(Common::Bitmap* check, int colDepth, int w, int h
 
 Common::Bitmap *stretchedSprite = NULL, *srcAtRightColDep = NULL;
 
-void draw_area_mask(roomstruct *roomptr, Common::Graphics *g_dest, RoomAreaMask maskType, int selectedArea, int transparency) 
+void draw_area_mask(roomstruct *roomptr, Common::Bitmap *ds, RoomAreaMask maskType, int selectedArea, int transparency) 
 {
 	Common::Bitmap *source = get_bitmap_for_mask(roomptr, maskType);
 
 	if (source == NULL) return;
 
-    int dest_width = g_dest->GetBitmap()->GetWidth();
-    int dest_height = g_dest->GetBitmap()->GetHeight();
-    int dest_depth =  g_dest->GetBitmap()->GetColorDepth();
+    int dest_width = ds->GetWidth();
+    int dest_height = ds->GetHeight();
+    int dest_depth =  ds->GetColorDepth();
 	
 	if (source->GetColorDepth() != dest_depth) 
 	{
@@ -841,8 +834,7 @@ void draw_area_mask(roomstruct *roomptr, Common::Graphics *g_dest, RoomAreaMask 
     if ((source->GetWidth() != dest_width) || (source->GetHeight() != dest_height))
     {
 		  stretchedSprite = recycle_bitmap(stretchedSprite, source->GetColorDepth(), dest_width, dest_height);
-          Common::Graphics graphics_stretch(stretchedSprite);
-		  graphics_stretch.StretchBlt(source, RectWH(0, 0, source->GetWidth(), source->GetHeight()),
+		  stretchedSprite->StretchBlt(source, RectWH(0, 0, source->GetWidth(), source->GetHeight()),
 			  RectWH(0, 0, stretchedSprite->GetWidth(), stretchedSprite->GetHeight()));
       sourceSprite = stretchedSprite;
     }
@@ -859,22 +851,21 @@ void draw_area_mask(roomstruct *roomptr, Common::Graphics *g_dest, RoomAreaMask 
       int oldColorConv = get_color_conversion();
       set_color_conversion(oldColorConv | COLORCONV_KEEP_TRANS);
 
-      Common::Graphics graphics_src(srcAtRightColDep);
-      graphics_src.Blit(sourceSprite, 0, 0, 0, 0, sourceSprite->GetWidth(), sourceSprite->GetHeight());
+      srcAtRightColDep->Blit(sourceSprite, 0, 0, 0, 0, sourceSprite->GetWidth(), sourceSprite->GetHeight());
       set_trans_blender(0, 0, 0, (100 - transparency) + 155);
-      g_dest->TransBlendBlt(srcAtRightColDep, 0, 0);
+      ds->TransBlendBlt(srcAtRightColDep, 0, 0);
       set_color_conversion(oldColorConv);
     }
     else
     {
-        g_dest->Blit(sourceSprite, 0, 0, Common::kBitmap_Transparency);
+        ds->Blit(sourceSprite, 0, 0, Common::kBitmap_Transparency);
     }
 
     set_palette(palette);
 	}
 	else
 	{
-		Cstretch_sprite(g_dest->GetBitmap(), source, 0, 0, dest_width, dest_height);
+		Cstretch_sprite(ds, source, 0, 0, dest_width, dest_height);
 	}
 }
 
@@ -897,15 +888,14 @@ void draw_room_background(void *roomvoidptr, int hdc, int x, int y, int bgnum, f
       select_palette(roomptr->bpalettes[bgnum]);
     }
 
-    Common::Graphics graphics_converted(depthConverted);
-    graphics_converted.Blit(srcBlock, 0, 0, 0, 0, srcBlock->GetWidth(), srcBlock->GetHeight());
+    depthConverted->Blit(srcBlock, 0, 0, 0, 0, srcBlock->GetWidth(), srcBlock->GetHeight());
 
     if (srcBlock->GetColorDepth() == 8)
     {
       unselect_palette();
     }
 
-	draw_area_mask(roomptr, &graphics_converted, (RoomAreaMask)maskType, selectedArea, maskTransparency);
+	draw_area_mask(roomptr, depthConverted, (RoomAreaMask)maskType, selectedArea, maskTransparency);
 
     int srcX = 0, srcY = 0;
     int srcWidth = srcBlock->GetWidth();
@@ -1051,13 +1041,12 @@ void drawFontAt (int hdc, int fontnum, int x,int y) {
   // we can't antialias font because changing col dep to 16 here causes
   // it to crash ... why?
   Common::Bitmap *tempblock = Common::BitmapHelper::CreateBitmap(FONTGRIDSIZE*10, FONTGRIDSIZE*10, 8);
-  Common::Graphics graphics(tempblock);
-  graphics.Fill(0);
+  tempblock->Fill(0);
   //Common::Bitmap *abufwas = abuf;
   //abuf = tempblock;
-  graphics.SetTextColor(15);
+  color_t text_color = tempblock->GetCompatibleColor(15);
   for (int aa=0;aa<96;aa++)
-    wgtprintf(&graphics, 5+(aa%10)*FONTGRIDSIZE,5+(aa/10)*FONTGRIDSIZE, fontnum, "%c",aa+32);
+    wgtprintf(tempblock, 5+(aa%10)*FONTGRIDSIZE,5+(aa/10)*FONTGRIDSIZE, fontnum, text_color, "%c",aa+32);
   //abuf = abufwas;
 
   if (doubleSize > 1) 
@@ -1106,8 +1095,7 @@ static void doDrawViewLoop (int hdc, int numFrames, ViewFrame *frames, int x, in
       // 256-col sprite in hi-col game, we need to copy first
       Common::Bitmap *oldBlt = toblt;
       toblt = Common::BitmapHelper::CreateBitmap (toblt->GetWidth(), toblt->GetHeight(), todraw->GetColorDepth ());
-      Common::Graphics g(toblt);
-      g.Blit (oldBlt, 0, 0, 0, 0, oldBlt->GetWidth(), oldBlt->GetHeight());
+      toblt->Blit (oldBlt, 0, 0, 0, 0, oldBlt->GetWidth(), oldBlt->GetHeight());
       freeBlock = true;
     }
     Common::Bitmap *flipped = NULL;
@@ -1115,8 +1103,7 @@ static void doDrawViewLoop (int hdc, int numFrames, ViewFrame *frames, int x, in
       // mirror the sprite
       flipped = Common::BitmapHelper::CreateBitmap (toblt->GetWidth(), toblt->GetHeight(), todraw->GetColorDepth ());
       flipped->Clear (flipped->GetMaskColor ());
-      Common::Graphics g(flipped);
-      g.FlipBlt(toblt, 0, 0, Common::kBitmap_HFlip);
+      flipped->FlipBlt(toblt, 0, 0, Common::kBitmap_HFlip);
       if (freeBlock)
         delete toblt;
       toblt = flipped;
@@ -1126,14 +1113,13 @@ static void doDrawViewLoop (int hdc, int numFrames, ViewFrame *frames, int x, in
 	Cstretch_sprite(todraw, toblt, size*i, 0, neww, newh);
     if (freeBlock)
       delete toblt;
-    Common::Graphics g(todraw);
     if (i < numFrames-1) {
       int linecol = makecol_depth(thisgame.color_depth * 8, 0, 64, 200);
       if (thisgame.color_depth == 1)
         linecol = 12;
 
       // Draw dividing line
-	  g.DrawLine (Line(size*(i+1) - 1, 0, size*(i+1) - 1, size-1), linecol);
+	  todraw->DrawLine (Line(size*(i+1) - 1, 0, size*(i+1) - 1, size-1), linecol);
     }
     if (i == cursel) {
       // Selected item
@@ -1141,7 +1127,7 @@ static void doDrawViewLoop (int hdc, int numFrames, ViewFrame *frames, int x, in
       if (thisgame.color_depth == 1)
         linecol = 14;
       
-      g.DrawRect(Rect (size * i, 0, size * (i+1) - 1, size-1), linecol);
+      todraw->DrawRect(Rect (size * i, 0, size * (i+1) - 1, size-1), linecol);
     }
   }
   drawBlock ((HDC)hdc, todraw, x, y);
@@ -1264,9 +1250,8 @@ void drawSprite(int hdc, int x, int y, int spriteNum, bool flipImage) {
 
 	if (flipImage) {
 		Common::Bitmap *flipped = Common::BitmapHelper::CreateBitmap (theSprite->GetWidth(), theSprite->GetHeight(), theSprite->GetColorDepth());
-        Common::Graphics g(flipped);
-		g.Fill (flipped->GetMaskColor ());
-		g.FlipBlt(theSprite, 0, 0, Common::kBitmap_HFlip);
+		flipped->FillTransparent();
+		flipped->FlipBlt(theSprite, 0, 0, Common::kBitmap_HFlip);
 		drawBlockScaledAt(hdc, flipped, x, y, scaleFactor);
 		delete flipped;
 	}
@@ -1311,14 +1296,13 @@ void drawGUIAt (int hdc, int x,int y,int x1,int y1,int x2,int y2, int scaleFacto
   tempblock->Clear(tempblock->GetMaskColor ());
   //Common::Bitmap *abufWas = abuf;
   //abuf = tempblock;
-  Common::Graphics graphics(tempblock);  
 
-  tempgui.draw_at (&graphics, 0, 0);
+  tempgui.draw_at (tempblock, 0, 0);
 
   dsc_want_hires = 0;
 
   if (x1 >= 0) {
-    graphics.DrawRect(Rect (x1, y1, x2, y2), 14);
+    tempblock->DrawRect(Rect (x1, y1, x2, y2), 14);
   }
   //abuf = abufWas;
 
@@ -1936,9 +1920,8 @@ const char* load_room_file(const char*rtlo) {
     // resize it up to 640x400-res
     int oldw = thisroom.object->GetWidth(), oldh=thisroom.object->GetHeight();
     Common::Bitmap *tempb = Common::BitmapHelper::CreateBitmap(thisroom.width, thisroom.height, thisroom.object->GetColorDepth());
-    Common::Graphics g(tempb);
-    g.Fill(0);
-    g.StretchBlt(thisroom.object,RectWH(0,0,oldw,oldh),RectWH(0,0,tempb->GetWidth(),tempb->GetHeight()));
+    tempb->Fill(0);
+    tempb->StretchBlt(thisroom.object,RectWH(0,0,oldw,oldh),RectWH(0,0,tempb->GetWidth(),tempb->GetHeight()));
     delete thisroom.object; 
     thisroom.object = tempb;
   }
@@ -2692,16 +2675,14 @@ void DrawSpriteToBuffer(int sprNum, int x, int y, int scaleFactor) {
 		if (scaleFactor > 1)
 		{
 			Common::Bitmap *resizedImage = Common::BitmapHelper::CreateBitmap(drawWidth, drawHeight, imageToDraw->GetColorDepth());
-            Common::Graphics g(resizedImage);
-			g.StretchBlt(imageToDraw, RectWH(0, 0, imageToDraw->GetWidth(), imageToDraw->GetHeight()),
+			resizedImage->StretchBlt(imageToDraw, RectWH(0, 0, imageToDraw->GetWidth(), imageToDraw->GetHeight()),
 				RectWH(0, 0, resizedImage->GetWidth(), resizedImage->GetHeight()));
 			if (imageToDraw != todraw)
 				delete imageToDraw;
 			imageToDraw = resizedImage;
 		}
 		set_alpha_blender();
-        Common::Graphics g(drawBuffer);
-		g.TransBlendBlt(imageToDraw, x, y);
+		drawBuffer->TransBlendBlt(imageToDraw, x, y);
 	}
 	else
 	{
@@ -2910,8 +2891,7 @@ Common::Bitmap *CreateBlockFromBitmap(System::Drawing::Bitmap ^bmp, color *imgpa
 			set_color_conversion(oldColorConv & ~COLORCONV_KEEP_TRANS);
 		}
 
-        Common::Graphics g(spriteAtRightDepth);
-		g.Blit(tempsprite, 0, 0, 0, 0, tempsprite->GetWidth(), tempsprite->GetHeight());
+		spriteAtRightDepth->Blit(tempsprite, 0, 0, 0, 0, tempsprite->GetWidth(), tempsprite->GetHeight());
 
 		set_color_conversion(oldColorConv);
 
@@ -3027,8 +3007,7 @@ void import_area_mask(void *roomptr, int maskType, System::Drawing::Bitmap ^bmp)
 	}
 	else
 	{
-        Common::Graphics g(mask);
-		g.Blit(importedImage, 0, 0, 0, 0, importedImage->GetWidth(), importedImage->GetHeight());
+		mask->Blit(importedImage, 0, 0, 0, 0, importedImage->GetWidth(), importedImage->GetHeight());
 	}
 	delete importedImage;
 
@@ -3153,8 +3132,7 @@ System::Drawing::Bitmap^ ConvertBlockToBitmap32(Common::Bitmap *todraw, int widt
   if (todraw->GetColorDepth() == 8)
     select_palette(palette);
 
-  Common::Graphics g(tempBlock);
-  g.Blit(todraw, 0, 0, 0, 0, todraw->GetWidth(), todraw->GetHeight());
+  tempBlock->Blit(todraw, 0, 0, 0, 0, todraw->GetWidth(), todraw->GetHeight());
 
   if (todraw->GetColorDepth() == 8)
 	unselect_palette();

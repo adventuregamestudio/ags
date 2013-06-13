@@ -16,7 +16,6 @@
 #define __AC_SCRIPTDRAWINGSURFACE_H
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
-#include "gfx/graphics.h"
 
 namespace AGS { namespace Common { class Bitmap; }}
 
@@ -31,14 +30,14 @@ struct ScriptDrawingSurface : AGSCCDynamicObject {
     int highResCoordinates;
     int modified;
     int hasAlphaChannel;
-    Common::Bitmap* abufBackup;
+    //Common::Bitmap* abufBackup;
 
     virtual int Dispose(const char *address, bool force);
     virtual const char *GetType();
     virtual int Serialize(const char *address, char *buffer, int bufsize);
     virtual void Unserialize(int index, const char *serializedData, int dataSize);
     Common::Bitmap* GetBitmapSurface();
-    Common::Graphics *StartDrawing();
+    Common::Bitmap *StartDrawing();
     void MultiplyThickness(int *adjustValue);
     void UnMultiplyThickness(int *adjustValue);
     void MultiplyCoordinates(int *xcoord, int *ycoord);

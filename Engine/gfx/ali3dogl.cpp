@@ -23,12 +23,11 @@
 #include <allegro/platform/aintwin.h>
 #include "gfx/ali3d.h"
 #include <GL/gl.h>
-#include "gfx/graphics.h"
+#include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
 
 using AGS::Common::Bitmap;
-using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 using namespace AGS; // FIXME later
 
@@ -1012,8 +1011,7 @@ void OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
         surfaceData += retrieve_width * 4;
       }
 
-      Graphics graphics(destination);
-      graphics.StretchBlt(retrieveInto, RectWH(0, 0, retrieveInto->GetWidth(), retrieveInto->GetHeight()),
+      destination->StretchBlt(retrieveInto, RectWH(0, 0, retrieveInto->GetWidth(), retrieveInto->GetHeight()),
 		  RectWH(0, 0, destination->GetWidth(), destination->GetHeight()));
       delete retrieveInto;
     }

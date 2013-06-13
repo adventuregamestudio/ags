@@ -30,11 +30,8 @@ namespace AGS
 namespace Common
 {
 
-class Graphics;
-
 class Bitmap
 {
-    friend class Graphics;
 public:
     Bitmap();
     Bitmap(int width, int height, int color_depth = 0);
@@ -149,6 +146,34 @@ public:
     color_t GetCompatibleColor(color_t color);
 
     //=========================================================================
+    // Clipping
+    //=========================================================================
+    void    SetClip(const Rect &rc);
+    Rect    GetClip() const;
+
+    //=========================================================================
+    // Blitting operations (drawing one bitmap over another)
+    //=========================================================================
+    // Draw other bitmap over current one
+    void    Blit(Bitmap *src, int dst_x, int dst_y, BitmapMaskOption mask = kBitmap_Copy);
+    void    Blit(Bitmap *src, int src_x, int src_y, int dst_x, int dst_y, int width, int height, BitmapMaskOption mask = kBitmap_Copy);
+    // Copy other bitmap, stretching or shrinking its size to given values
+    void    StretchBlt(Bitmap *src, const Rect &dst_rc, BitmapMaskOption mask = kBitmap_Copy);
+    void    StretchBlt(Bitmap *src, const Rect &src_rc, const Rect &dst_rc, BitmapMaskOption mask = kBitmap_Copy);
+    // Antia-aliased stretch-blit
+    void    AAStretchBlt(Bitmap *src, const Rect &dst_rc, BitmapMaskOption mask = kBitmap_Copy);
+    void    AAStretchBlt(Bitmap *src, const Rect &src_rc, const Rect &dst_rc, BitmapMaskOption mask = kBitmap_Copy);
+    // TODO: find more general way to call these operations, probably require pointer to Blending data struct?
+    // Draw bitmap using translucency preset
+    void    TransBlendBlt(Bitmap *src, int dst_x, int dst_y);
+    // Draw bitmap using lighting preset
+    void    LitBlendBlt(Bitmap *src, int dst_x, int dst_y, int light_amount);
+    // TODO: generic "draw transformed" function? What about mask option?
+    void    FlipBlt(Bitmap *src, int dst_x, int dst_y, BitmapFlip flip);
+    void    RotateBlt(Bitmap *src, int dst_x, int dst_y, fixed_t angle);
+    void    RotateBlt(Bitmap *src, int dst_x, int dst_y, int pivot_x, int pivot_y, fixed_t angle);
+
+    //=========================================================================
     // Pixel operations
     //=========================================================================
     // Fills the whole bitmap with given color (black by default)
@@ -160,6 +185,20 @@ public:
     // done in such cases.
     void	PutPixel(int x, int y, color_t color);
     int		GetPixel(int x, int y) const;
+
+    //=========================================================================
+    // Vector drawing operations
+    //=========================================================================
+    void    DrawLine(const Line &ln, color_t color);
+    void    DrawTriangle(const Triangle &tr, color_t color);
+    void    DrawRect(const Rect &rc, color_t color);
+    void    FillRect(const Rect &rc, color_t color);
+    void    FillCircle(const Circle &circle, color_t color);
+    // Fills the whole bitmap with given color
+    void    Fill(color_t color);
+    void    FillTransparent();
+    // Floodfills an enclosed area, starting at point
+    void    FloodFill(int x, int y, color_t color);
 
 	//=========================================================================
 	// Direct access operations
@@ -175,9 +214,7 @@ public:
 
 private:
 	BITMAP			*_alBitmap;
-	// TODO: revise this flag, currently needed only for wrapping raw bitmap data in limited cases
 	bool			_isDataOwner;
-    Graphics        *_graphics;
 };
 
 

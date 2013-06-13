@@ -47,14 +47,11 @@ using namespace AGS; // FIXME later
 
 //=============================================================================
 
-#include "gfx/graphics.h"
-
-extern Common::Graphics *SetVirtualScreen(Common::Bitmap *nss);
+extern Common::Bitmap *SetVirtualScreen(Common::Bitmap *nss);
 // CHECKME: temporary solution for plugin system
-extern Common::Graphics *SetVirtualScreenRaw(BITMAP *nss);
-// Not physically a screen graphics, but rather what counts as one at this moment
-extern Common::Graphics *GetVirtualScreenGraphics();
-extern Common::Bitmap *GetVirtualScreenBitmap();
+extern Common::Bitmap *SetVirtualScreenRaw(BITMAP *nss);
+// Not physically a screen bitmap, but rather what counts as one at this moment
+extern Common::Bitmap *GetVirtualScreen();
 
 // [IKM] 2012-09-13: this function is now defined in engine and editor separately
 extern void __my_setcolor(int *ctset, int newcol, int wantColDep);
@@ -76,9 +73,9 @@ extern "C"
 
     extern int wloadsprites(color * pall, char *filnam, Common::Bitmap ** sarray, int strt, int eend);
 
-    extern void wputblock(Common::Graphics *g, int xx, int yy, Common::Bitmap *bll, int xray);
+    extern void wputblock(Common::Bitmap *ds, int xx, int yy, Common::Bitmap *bll, int xray);
 	// CHECKME: temporary solution for plugin system
-	extern void wputblock_raw(Common::Graphics *g, int xx, int yy, BITMAP *bll, int xray);
+	extern void wputblock_raw(Common::Bitmap *ds, int xx, int yy, BITMAP *bll, int xray);
     extern const int col_lookups[32];
 
     //extern void wsetcolor(int nval);

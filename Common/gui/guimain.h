@@ -69,9 +69,9 @@ struct GUIMain
   void resort_zorder();
   int  get_control_type(int);
   int  is_mouse_on_gui();
-  void draw_blob(Common::Graphics *g, int xp, int yp);
-  void draw_at(Common::Graphics *g, int xx, int yy);
-  void draw(Common::Graphics *g);
+  void draw_blob(Common::Bitmap *ds, int xp, int yp, color_t draw_color);
+  void draw_at(Common::Bitmap *ds, int xx, int yy);
+  void draw(Common::Bitmap *ds);
   int  find_object_under_mouse();
   // this version allows some extra leeway in the Editor so that
   // the user can grab tiny controls
@@ -111,7 +111,7 @@ extern bool is_sprite_alpha(int spr);
 extern int final_col_dep;
 
 // This function has distinct implementations in Engine and Editor
-extern void draw_sprite_compensate(Common::Graphics *g, int spr, int x, int y, int xray);
+extern void draw_sprite_compensate(Common::Bitmap *ds, int spr, int x, int y, int xray);
 
 extern AGS_INLINE int divide_down_coordinate(int coord);
 extern AGS_INLINE int multiply_up_coordinate(int coord);
@@ -119,8 +119,8 @@ extern AGS_INLINE void multiply_up_coordinates(int *x, int *y);
 extern AGS_INLINE int get_fixed_pixel_size(int pixels);
 
 // Those function have distinct implementations in Engine and Editor
-extern void wouttext_outline(Common::Graphics *g, int xxp, int yyp, int usingfont, char *texx);
-extern int wgettextwidth_compensate(Common::Graphics *g, const char *tex, int font) ;
+extern void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, char *texx);
+extern int wgettextwidth_compensate(Common::Bitmap *ds, const char *tex, int font) ;
 extern void check_font(int *fontnum);
 
 extern void set_our_eip(int eip);

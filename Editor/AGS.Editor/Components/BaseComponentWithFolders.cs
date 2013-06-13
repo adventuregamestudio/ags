@@ -174,8 +174,8 @@ namespace AGS.Editor.Components
             IList<MenuCommand> menu = new List<MenuCommand>();
             if (controlID == TOP_LEVEL_COMMAND_ID)
             {
-                menu.Add(new MenuCommand(COMMAND_NEW_FOLDER, "New Folder", null));
                 AddExtraCommandsToFolderContextMenu(controlID, menu);
+                menu.Add(new MenuCommand(COMMAND_NEW_FOLDER, "New Folder", null));                
             }
             else if (controlID.StartsWith(NODE_ID_PREFIX_FOLDER))
             {

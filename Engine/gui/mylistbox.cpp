@@ -17,6 +17,7 @@
 #include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/gamesetup.h"
+#include "font/fonts.h"
 #include "gui/mylistbox.h"
 #include "gui/guidialoginternaldefs.h"
 #include "gfx/bitmap.h"
@@ -55,33 +56,33 @@ extern int smcode;
     clearlist();
   }
 
-  void MyListBox::draw()
+  void MyListBox::draw(Bitmap *ds)
   {
-    wsetcolor(windowbackgroundcolor);
-    abuf->FillRect(Rect(x, y, x + wid, y + hit), currentcolor);
-    wsetcolor(0);
-    abuf->DrawRect(Rect(x, y, x + wid, y + hit), currentcolor);
+    color_t draw_color = ds->GetCompatibleColor(windowbackgroundcolor);
+    ds->FillRect(Rect(x, y, x + wid, y + hit), draw_color);
+    draw_color = ds->GetCompatibleColor(0);
+    ds->DrawRect(Rect(x, y, x + wid, y + hit), draw_color);
   
     int widwas = wid;
     wid -= ARROWWIDTH;
-    abuf->DrawLine(Line(x + wid, y, x + wid, y + hit), currentcolor);        // draw the up/down arrows
-    abuf->DrawLine(Line(x + wid, y + hit / 2, x + widwas, y + hit / 2), currentcolor);
+    ds->DrawLine(Line(x + wid, y, x + wid, y + hit), draw_color);        // draw the up/down arrows
+    ds->DrawLine(Line(x + wid, y + hit / 2, x + widwas, y + hit / 2), draw_color);
 
     int xmidd = x + wid + (widwas - wid) / 2;
     if (topitem < 1)
-      wsetcolor(7);
+      draw_color = ds->GetCompatibleColor(7);
 
-    abuf->DrawLine(Line(xmidd, y + 2, xmidd, y + 10), currentcolor); // up arrow
-    abuf->DrawLine(Line(xmidd - 1, y + 3, xmidd + 1, y + 3), currentcolor);
-    abuf->DrawLine(Line(xmidd - 2, y + 4, xmidd + 2, y + 4), currentcolor);
-    wsetcolor(0);
+    ds->DrawLine(Line(xmidd, y + 2, xmidd, y + 10), draw_color); // up arrow
+    ds->DrawLine(Line(xmidd - 1, y + 3, xmidd + 1, y + 3), draw_color);
+    ds->DrawLine(Line(xmidd - 2, y + 4, xmidd + 2, y + 4), draw_color);
+    draw_color = ds->GetCompatibleColor(0);
     if (topitem + numonscreen >= items)
-      wsetcolor(7);
+      draw_color = ds->GetCompatibleColor(7);
 
-    abuf->DrawLine(Line(xmidd, y + hit - 10, xmidd, y + hit - 3), currentcolor);     // down arrow
-    abuf->DrawLine(Line(xmidd - 1, y + hit - 4, xmidd + 1, y + hit - 4), currentcolor);
-    abuf->DrawLine(Line(xmidd - 2, y + hit - 5, xmidd + 2, y + hit - 5), currentcolor);
-    wsetcolor(0);
+    ds->DrawLine(Line(xmidd, y + hit - 10, xmidd, y + hit - 3), draw_color);     // down arrow
+    ds->DrawLine(Line(xmidd - 1, y + hit - 4, xmidd + 1, y + hit - 4), draw_color);
+    ds->DrawLine(Line(xmidd - 2, y + hit - 5, xmidd + 2, y + hit - 5), draw_color);
+    draw_color = ds->GetCompatibleColor(0);
 
     for (int tt = 0; tt < numonscreen; tt++) {
       int inum = tt + topitem;
@@ -89,14 +90,15 @@ extern int smcode;
         break;
 
       int thisypos = y + 2 + tt * TEXT_HT;
+      color_t text_color;
       if (inum == selected) {
-        wsetcolor(0);
-        abuf->FillRect(Rect(x, thisypos, x + wid, thisypos + TEXT_HT - 1), currentcolor);
-        wtextcolor(7);
-      } else
-        wtextcolor(0);
+        draw_color = ds->GetCompatibleColor(0);
+        ds->FillRect(Rect(x, thisypos, x + wid, thisypos + TEXT_HT - 1), draw_color);
+        text_color = ds->GetCompatibleColor(7);
+      }
+      else text_color = ds->GetCompatibleColor(0);
 
-      wouttextxy(x + 2, thisypos, cbuttfont, itemnames[inum]);
+      wouttextxy(ds, x + 2, thisypos, cbuttfont, text_color, itemnames[inum]);
     }
     wid = widwas;
   }
@@ -117,7 +119,7 @@ extern int smcode;
     }
 
 //    domouse(2);
-    draw();
+    draw(GetVirtualScreen());
   //  domouse(1);
     smcode = CM_SELCHANGE;
     return 0;

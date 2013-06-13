@@ -14,7 +14,6 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "util/wgt2allg.h" // few allegro-specific types
 #include "ac/common.h"
 #include "ac/event.h"
 #include "ac/mouse.h"

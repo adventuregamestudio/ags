@@ -14,7 +14,6 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "util/wgt2allg.h"
 #include "ac/characterinfo.h"
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"

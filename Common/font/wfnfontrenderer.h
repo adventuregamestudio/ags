@@ -29,7 +29,7 @@ public:
   virtual void EnsureTextValidForFont(char *text, int fontNumber);
 
 private:
-  int printchar(int xxx, int yyy, wgtfont foo, int charr);
+    int printchar(Common::Bitmap *ds, int xxx, int yyy, wgtfont foo, color_t text_color, int charr);
 };
 
 extern WFNFontRenderer wfnRenderer;

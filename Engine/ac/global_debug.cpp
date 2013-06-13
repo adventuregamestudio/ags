@@ -12,8 +12,8 @@
 //
 //=============================================================================
 
+#include <stdio.h>
 #include "ac/global_debug.h"
-#include "util/wgt2allg.h"
 #include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/characterinfo.h"
@@ -38,8 +38,8 @@
 #include "debug/debugger.h"
 #include "main/main.h"
 #include "ac/spritecache.h"
-#include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
+#include "gfx/graphicsdriver.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -142,20 +142,20 @@ void script_debug(int cmdd,int dataa) {
             Display("Not currently moving.");
             return;
         }
-        Bitmap *tempw=BitmapHelper::CreateBitmap(thisroom.walls->GetWidth(),thisroom.walls->GetHeight());
+        Bitmap *tempw=BitmapHelper::CreateTransparentBitmap(thisroom.walls->GetWidth(),thisroom.walls->GetHeight());
         int mlsnum = game.chars[dataa].walking;
         if (game.chars[dataa].walking >= TURNING_AROUND)
             mlsnum %= TURNING_AROUND;
         MoveList*cmls = &mls[mlsnum];
-        tempw->Clear(tempw->GetMaskColor());
         for (int i = 0; i < cmls->numstage-1; i++) {
             short srcx=short((cmls->pos[i] >> 16) & 0x00ffff);
             short srcy=short(cmls->pos[i] & 0x00ffff);
             short targetx=short((cmls->pos[i+1] >> 16) & 0x00ffff);
             short targety=short(cmls->pos[i+1] & 0x00ffff);
-            tempw->DrawLine(Line(srcx, srcy, targetx, targety), get_col8_lookup(i+1));
+            tempw->DrawLine(Line(srcx, srcy, targetx, targety), GetVirtualScreen()->GetCompatibleColor(i+1));
         }
-		BitmapHelper::GetScreenBitmap()->StretchBlt(tempw,
+		Bitmap *screen_bmp = BitmapHelper::GetScreenBitmap();
+        screen_bmp->StretchBlt(tempw,
 			RectWH(-offsetx, -offsety, multiply_up_coordinate(tempw->GetWidth()), multiply_up_coordinate(tempw->GetHeight())),
 			Common::kBitmap_Transparency);
         render_to_screen(BitmapHelper::GetScreenBitmap(), 0, 0);

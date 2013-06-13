@@ -12,7 +12,7 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
+#include "util/wgt2allg.h" // DIGI_AUTODETECT & MIDI_AUTODETECT
 #include "ac/gamesetup.h"
 
 GameSetup::GameSetup()

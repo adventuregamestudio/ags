@@ -12,7 +12,7 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
+#include <stdio.h>
 #include "ac/listbox.h"
 #include "ac/common.h"
 #include "ac/file.h"

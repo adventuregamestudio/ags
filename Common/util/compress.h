@@ -16,9 +16,9 @@
 #define __AC_COMPRESS_H
 
 #include <stdio.h>
+#include "util/wgt2allg.h" // color (allegro RGB)
 
-namespace AGS { namespace Common { class Stream; } }
-namespace AGS { namespace Common { class Bitmap; }}
+namespace AGS { namespace Common { class Stream; class Bitmap; } }
 using namespace AGS; // FIXME later
 
 // MACPORT FIX 9/6/05: removed far and put space after *

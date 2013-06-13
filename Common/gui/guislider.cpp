@@ -13,12 +13,12 @@
 //=============================================================================
 
 #include <stdio.h>
-#include "util/wgt2allg.h"
 #include "gui/guislider.h"
 #include "gui/guimain.h"
 #include "ac/spritecache.h"
 #include "util/stream.h"
 #include "gfx/bitmap.h"
+#include "util/wgt2allg.h"
 
 using AGS::Common::Stream;
 using AGS::Common::Bitmap;
@@ -49,7 +49,7 @@ void GUISlider::ReadFromFile(Stream *in, GuiVersion gui_version)
   in->ReadArrayOfInt32(&min, sizeToRead);
 }
 
-void GUISlider::Draw()
+void GUISlider::Draw(Common::Bitmap *ds)
 {
   int bartlx, bartly, barbrx, barbry;
   int handtlx, handtly, handbrx, handbry, thickness;
@@ -104,6 +104,8 @@ void GUISlider::Draw()
     handbrx += multiply_up_coordinate(handleoffset);
   }
 
+  color_t draw_color;
+
   if (bgimage > 0) {
     // tiled image as slider background
     int xinc = 0, yinc = 0;
@@ -123,7 +125,7 @@ void GUISlider::Draw()
     int cx = bartlx, cy = bartly;
     // draw the tiled background image
     do {
-      draw_sprite_compensate(bgimage, cx, cy, 1);
+      draw_sprite_compensate(ds, bgimage, cx, cy, 1);
       cx += xinc;
       cy += yinc;
       // done as a do..while so that at least one of the image is drawn
@@ -132,16 +134,16 @@ void GUISlider::Draw()
   }
   else {
     // normal grey background
-    wsetcolor(16);
-    abuf->FillRect(Rect(bartlx + 1, bartly + 1, barbrx - 1, barbry - 1), currentcolor);
+    draw_color = ds->GetCompatibleColor(16);
+    ds->FillRect(Rect(bartlx + 1, bartly + 1, barbrx - 1, barbry - 1), draw_color);
 
-    wsetcolor(8);
-    abuf->DrawLine(Line(bartlx, bartly, bartlx, barbry), currentcolor);
-    abuf->DrawLine(Line(bartlx, bartly, barbrx, bartly), currentcolor);
+    draw_color = ds->GetCompatibleColor(8);
+    ds->DrawLine(Line(bartlx, bartly, bartlx, barbry), draw_color);
+    ds->DrawLine(Line(bartlx, bartly, barbrx, bartly), draw_color);
 
-    wsetcolor(15);
-    abuf->DrawLine(Line(barbrx, bartly + 1, barbrx, barbry), currentcolor);
-    abuf->DrawLine(Line(bartlx, barbry, barbrx, barbry), currentcolor);
+    draw_color = ds->GetCompatibleColor(15);
+    ds->DrawLine(Line(barbrx, bartly + 1, barbrx, barbry), draw_color);
+    ds->DrawLine(Line(bartlx, barbry, barbrx, barbry), draw_color);
   }
 
   if (handlepic > 0) {
@@ -150,22 +152,22 @@ void GUISlider::Draw()
       handlepic = 0;
     handtlx -= get_adjusted_spritewidth(handlepic) / 2;
     handtly -= get_adjusted_spriteheight(handlepic) / 2;
-    draw_sprite_compensate(handlepic, handtlx, handtly, 1);
+    draw_sprite_compensate(ds, handlepic, handtlx, handtly, 1);
     handbrx = handtlx + get_adjusted_spritewidth(handlepic);
     handbry = handtly + get_adjusted_spriteheight(handlepic);
   }
   else {
     // normal grey tracker handle
-    wsetcolor(7);
-    abuf->FillRect(Rect(handtlx, handtly, handbrx, handbry), currentcolor);
+    draw_color = ds->GetCompatibleColor(7);
+    ds->FillRect(Rect(handtlx, handtly, handbrx, handbry), draw_color);
 
-    wsetcolor(15);
-    abuf->DrawLine(Line(handtlx, handtly, handbrx, handtly), currentcolor);
-    abuf->DrawLine(Line(handtlx, handtly, handtlx, handbry), currentcolor);
+    draw_color = ds->GetCompatibleColor(15);
+    ds->DrawLine(Line(handtlx, handtly, handbrx, handtly), draw_color);
+    ds->DrawLine(Line(handtlx, handtly, handtlx, handbry), draw_color);
 
-    wsetcolor(16);
-    abuf->DrawLine(Line(handbrx, handtly + 1, handbrx, handbry), currentcolor);
-    abuf->DrawLine(Line(handtlx + 1, handbry, handbrx, handbry), currentcolor);
+    draw_color = ds->GetCompatibleColor(16);
+    ds->DrawLine(Line(handbrx, handtly + 1, handbrx, handbry), draw_color);
+    ds->DrawLine(Line(handtlx + 1, handbry, handbrx, handbry), draw_color);
   }
 
   cached_handtlx = handtlx;

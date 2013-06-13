@@ -19,7 +19,7 @@
 #ifndef __SPRCACHE_H
 #define __SPRCACHE_H
 
-namespace AGS { namespace Common { class Stream; } }
+namespace AGS { namespace Common { class Stream; class Bitmap; } }
 using namespace AGS; // FIXME later
 
 // We can't rely on offsets[slot]==0 because when the engine is running

@@ -13,7 +13,6 @@
 //=============================================================================
 
 #include "ac/global_label.h"
-#include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/label.h"

@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
 #include "ac/dynobj/scriptoverlay.h"
 #include "ac/common.h"
 #include "ac/overlay.h"

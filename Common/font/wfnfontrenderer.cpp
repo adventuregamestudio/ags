@@ -16,15 +16,16 @@
 #define USE_ALFONT
 #endif
 
-#include "util/wgt2allg.h"
+#include <stdio.h>
 #include "alfont.h"
-
 #include "ac/common.h"
+#include "font/fonts.h"
 #include "font/wfnfontrenderer.h"
 #include "util/stream.h"
 #include "util/file.h"
 #include "util/bbop.h"
-#include "gfx/bitmap.h"
+#include "gfx/allegrobitmap.h"
+#include "util/wgt2allg.h"
 
 using AGS::Common::Bitmap;
 using AGS::Common::Stream;
@@ -141,6 +142,7 @@ int WFNFontRenderer::GetTextHeight(const char *texx, int fontNumber)
   return highest * wtext_multiply;
 }
 
+Common::Bitmap render_wrapper;
 void WFNFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour)
 {
   unsigned int ee;
@@ -148,13 +150,16 @@ void WFNFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
   int oldeip = get_our_eip();
   set_our_eip(415);
 
+  render_wrapper.WrapAllegroBitmap(destination, true);
+  color_t text_color = render_wrapper.GetCompatibleColor(colour);
+
   for (ee = 0; ee < strlen(text); ee++)
-    x += printchar(x, y, fonts[fontNumber], text[ee]);
+    x += printchar(&render_wrapper, x, y, fonts[fontNumber], text_color, text[ee]);
 
   set_our_eip(oldeip);
 }
 
-int WFNFontRenderer::printchar(int xxx, int yyy, wgtfont foo, int charr)
+int WFNFontRenderer::printchar(Common::Bitmap *ds, int xxx, int yyy, wgtfont foo, color_t text_color, int charr)
 {
   unsigned char *actdata;
   int tt, ss, bytewid, orixp = xxx;
@@ -181,16 +186,17 @@ int WFNFontRenderer::printchar(int xxx, int yyy, wgtfont foo, int charr)
   bytewid = ((charWidth - 1) / 8) + 1;
 
   // MACPORT FIX: switch now using charWidth and charHeight
+  color_t draw_color = text_color;
   for (tt = 0; tt < charHeight; tt++) {
     for (ss = 0; ss < charWidth; ss++) {
       if (((actdata[tt * bytewid + (ss / 8)] & (0x80 >> (ss % 8))) != 0)) {
         if (wtext_multiply > 1) {
-          abuf->FillRect(Rect(xxx + ss, yyy + tt, xxx + ss + (wtext_multiply - 1),
-                   yyy + tt + (wtext_multiply - 1)), textcol);
+          ds->FillRect(Rect(xxx + ss, yyy + tt, xxx + ss + (wtext_multiply - 1),
+              yyy + tt + (wtext_multiply - 1)), draw_color);
         } 
         else
         {
-          abuf->PutPixel(xxx + ss, yyy + tt, textcol);
+            ds->PutPixel(xxx + ss, yyy + tt, draw_color);
         }
       }
 

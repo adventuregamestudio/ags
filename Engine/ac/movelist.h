@@ -15,6 +15,8 @@
 #ifndef __AC_MOVE_H
 #define __AC_MOVE_H
 
+#include "util/wgt2allg.h" // fixed type
+
 // Forward declaration
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
@@ -33,4 +35,5 @@ struct MoveList {
     void ReadFromFile(Common::Stream *in);
     void WriteToFile(Common::Stream *out);
 };
+
 #endif // __AC_MOVE_H

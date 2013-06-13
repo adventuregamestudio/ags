@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/viewframe.h"
 #include "debug/debug_log.h"
@@ -23,6 +22,7 @@
 #include "ac/dynobj/cc_audioclip.h"
 
 using AGS::Common::Bitmap;
+using AGS::Common::Graphics;
 
 extern GameSetupStruct game;
 extern ViewStruct*views;
@@ -157,11 +157,11 @@ void CheckViewFrame (int view, int loop, int frame) {
 }
 
 // draws a view frame, flipped if appropriate
-void DrawViewFrame(Bitmap *target, ViewFrame *vframe, int x, int y) {
+void DrawViewFrame(Bitmap *ds, ViewFrame *vframe, int x, int y) {
     if (vframe->flags & VFLG_FLIPSPRITE)
-        target->FlipBlt(spriteset[vframe->pic], x, y, Common::kBitmap_HFlip);
+        ds->FlipBlt(spriteset[vframe->pic], x, y, Common::kBitmap_HFlip);
     else
-        target->Blit(spriteset[vframe->pic], x, y, Common::kBitmap_Transparency);
+        ds->Blit(spriteset[vframe->pic], x, y, Common::kBitmap_Transparency);
 }
 
 //=============================================================================

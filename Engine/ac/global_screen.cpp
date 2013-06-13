@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
 #include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/gamesetup.h"
@@ -72,7 +71,7 @@ void ShakeScreen(int severe) {
         return;
 
     int hh;
-    Bitmap *oldsc=abuf;
+    //Bitmap *oldsc=abuf; // CHECKME!!!
     severe = multiply_up_coordinate(severe);
 
     if (gfxDriver->RequiresFullRedrawEachFrame())
@@ -114,7 +113,7 @@ void ShakeScreen(int severe) {
         delete tty;
     }
 
-    abuf=oldsc;
+    //abuf=oldsc;// CHECKME!!!
 }
 
 void ShakeScreenBackground (int delay, int amount, int length) {

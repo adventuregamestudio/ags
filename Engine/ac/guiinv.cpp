@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
 #include "gui/guiinv.h"
 #include "gui/guimain.h"
 #include "ac/draw.h"
@@ -39,7 +38,7 @@ int GUIInv::CharToDisplay() {
     return this->charId;
 }
 
-void GUIInv::Draw() {
+void GUIInv::Draw(Bitmap *ds) {
     if ((IsDisabled()) && (gui_disabled_style == GUIDIS_BLACKOUT))
         return;
 
@@ -66,7 +65,7 @@ void GUIInv::Draw() {
 
     for (uu = this->topIndex; uu < lastItem; uu++) {
         // draw inv graphic
-        draw_sprite_compensate(game.invinfo[charextra[this->CharToDisplay()].invorder[uu]].pic, cxp, cyp, 1);
+        draw_sprite_compensate(ds, game.invinfo[charextra[this->CharToDisplay()].invorder[uu]].pic, cxp, cyp, 1);
         cxp += multiply_up_coordinate(this->itemWidth);
 
         // go to next row when appropriate
@@ -79,11 +78,11 @@ void GUIInv::Draw() {
     if ((IsDisabled()) &&
         (gui_disabled_style == GUIDIS_GREYOUT) && 
         (play.inventory_greys_out == 1)) {
-            int col8 = get_col8_lookup(8);
+            color_t draw_color = ds->GetCompatibleColor(8);
             int jj, kk;   // darken the inventory when disabled
             for (jj = 0; jj < wid; jj++) {
                 for (kk = jj % 2; kk < hit; kk += 2)
-                    abuf->PutPixel(x + jj, y + kk, col8);
+                    ds->PutPixel(x + jj, y + kk, draw_color);
             }
     }
 

@@ -12,9 +12,9 @@
 //
 //=============================================================================
 
+#include <stdio.h>
 #include <string.h>
 #include "consoleoutputtarget.h"
-#include "util/wgt2allg.h"
 #include "ac/roomstruct.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"

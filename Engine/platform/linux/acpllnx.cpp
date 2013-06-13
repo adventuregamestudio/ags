@@ -18,7 +18,8 @@
 
 // ********* LINUX PLACEHOLDER DRIVER *********
 
-#include "util/wgt2allg.h"
+#include <stdio.h>
+#include <allegro.h>
 #include "gfx/ali3d.h"
 #include "ac/runtime_defines.h"
 #include "platform/base/agsplatformdriver.h"

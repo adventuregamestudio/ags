@@ -13,7 +13,6 @@
 //=============================================================================
 
 #include <string.h>
-#include "util/wgt2allg.h"
 #include "ac/textbox.h"
 #include "ac/common.h"
 #include "ac/gamesetupstruct.h"

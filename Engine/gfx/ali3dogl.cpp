@@ -1480,8 +1480,7 @@ void OGLGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpda
     if (bitmap->GetColorDepth() != target->_colDepth)
     {
       //throw Ali3DException("Mismatched colour depths");
-      source = BitmapHelper::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 32);
-      source->Blit(bitmap, 0, 0, 0, 0, source->GetWidth(), source->GetHeight());
+      source = BitmapHelper::CreateBitmapCopy(bitmap, 32);
     }
 
     target->_hasAlpha = hasAlpha;
@@ -1514,8 +1513,7 @@ Bitmap *OGLGraphicsDriver::ConvertBitmapToSupportedColourDepth(Bitmap *bitmap)
 */   if (colourDepth != 32)
    {
      // we need 32-bit colour
-     Bitmap *tempBmp = BitmapHelper::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 32);
-     tempBmp->Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
+     Bitmap *tempBmp = BitmapHelper::CreateBitmapCopy(bitmap, 32);
      delete bitmap;
      set_color_conversion(colorConv);
      return tempBmp;
@@ -1569,8 +1567,7 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
 */  if (colourDepth != 32)
   {
     // we need 32-bit colour
-	tempBmp = BitmapHelper::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 32);
-    tempBmp->Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
+	tempBmp = BitmapHelper::CreateBitmapCopy(bitmap, 32);
     bitmap = tempBmp;
     colourDepth = 32;
   }

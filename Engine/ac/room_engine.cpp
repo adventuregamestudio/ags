@@ -18,7 +18,6 @@
 
 // Headers, as they are in acroom.cpp
 
-#include "util/wgt2allg.h"
 #include "util/misc.h"
 #include "ac/roomstruct.h"
 

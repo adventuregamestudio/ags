@@ -18,19 +18,8 @@
 #include <unistd.h> // for unlink()
 #endif
 #include <errno.h>
-
+#include <stdio.h>
 #include "util/file.h"
-
-#if !defined (WINDOWS_VERSION)
-#include <sys/stat.h>
-long int filelength(int fhandle)
-{
-    struct stat statbuf;
-    fstat(fhandle, &statbuf);
-    return statbuf.st_size;
-}
-#endif
-
 #include "util/filestream.h"
 
 namespace AGS
@@ -123,7 +112,7 @@ bool File::GetFileModesFromCMode(const String &cmode, FileOpenMode &open_mode, F
     return read_base_mode;
 }
 
-FileStream *File::OpenFile(const String &filename, FileOpenMode open_mode, FileWorkMode work_mode)
+Stream *File::OpenFile(const String &filename, FileOpenMode open_mode, FileWorkMode work_mode)
 {
     FileStream *fs = new FileStream(filename, open_mode, work_mode);
     if (!fs->IsValid())

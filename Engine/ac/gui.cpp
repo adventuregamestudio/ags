@@ -12,7 +12,7 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
+#include <stdio.h>
 #include "ac/gui.h"
 #include "gfx/ali3d.h"
 #include "ac/common.h"

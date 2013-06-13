@@ -18,7 +18,7 @@
 
 // ********* WINDOWS *********
 
-#include "util/wgt2allg.h"
+#include <stdio.h>
 #include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/draw.h"
@@ -27,13 +27,14 @@
 #include "ac/global_display.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
+#include "gfx/graphicsdriver.h"
+#include "gfx/bitmap.h"
 #include "main/engine.h"
 #include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
+#include "util/file.h"
 #include "util/stream.h"
-#include "gfx/graphicsdriver.h"
-#include "gfx/bitmap.h"
 
 using AGS::Common::Stream;
 using AGS::Common::Bitmap;
@@ -729,7 +730,7 @@ void AGSWin32::PlayVideo(const char *name, int skip, int flags) {
       init_mod_player(NUM_MOD_DIGI_VOICES);
   }
 
-  wsetpalette (0, 255, palette);
+  set_palette_range(palette, 0, 255, 0);
 }
 
 void AGSWin32::AboutToQuitGame() 
@@ -814,7 +815,7 @@ LPDIRECTDRAWSURFACE2 IAGSEngine::GetBitmapSurface (BITMAP *bmp)
 
   BMP_EXTRA_INFO *bei = (BMP_EXTRA_INFO*)bmp->extra;
 
-  if (bmp == virtual_screen->GetBitmapObject())
+  if (bmp == virtual_screen->GetAllegroBitmap())
     invalidate_screen();
 
   return bei->surf;

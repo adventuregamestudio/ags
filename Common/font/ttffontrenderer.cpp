@@ -16,13 +16,14 @@
 #define USE_ALFONT
 #endif
 
-#include "util/wgt2allg.h"
+#include <stdio.h>
 #include "alfont.h"
 #include "ac/gamestructdefines.h" //FONT_OUTLINE_AUTO
 #include "font/ttffontrenderer.h"
 #include "util/stream.h"
 #include "gfx/bitmap.h"
 #include "core/assetmanager.h"
+#include "util/wgt2allg.h"
 
 using AGS::Common::Bitmap;
 using AGS::Common::Stream;
@@ -86,10 +87,10 @@ void TTFFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
 
   ALFONT_FONT *alfpt = get_ttf_block(fonts[fontNumber]);
   // Y - 1 because it seems to get drawn down a bit
-  if ((ShouldAntiAliasText()) && (abuf->GetColorDepth() > 8))
-    alfont_textout_aa((BITMAP*)abuf->GetBitmapObject(), alfpt, text, x, y - 1, colour);
+  if ((ShouldAntiAliasText()) && (bitmap_color_depth(destination) > 8))
+    alfont_textout_aa(destination, alfpt, text, x, y - 1, colour);
   else
-    alfont_textout((BITMAP*)abuf->GetBitmapObject(), alfpt, text, x, y - 1, colour);
+    alfont_textout(destination, alfpt, text, x, y - 1, colour);
 }
 
 bool TTFFontRenderer::LoadFromDisk(int fontNumber, int fontSize)

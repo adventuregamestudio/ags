@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
 #include "ac/dynobj/scriptdrawingsurface.h"
 #include "ac/roomstruct.h"
 #include "ac/spritecache.h"
@@ -47,15 +46,15 @@ Bitmap* ScriptDrawingSurface::GetBitmapSurface()
     return NULL;
 }
 
-void ScriptDrawingSurface::StartDrawing()
+Bitmap *ScriptDrawingSurface::StartDrawing()
 {
-    abufBackup = abuf;
-    abuf = this->GetBitmapSurface();
+    //abufBackup = abuf;
+    return this->GetBitmapSurface();
 }
 
 void ScriptDrawingSurface::FinishedDrawingReadOnly()
 {
-    abuf = abufBackup;
+    //abuf = abufBackup;
 }
 
 void ScriptDrawingSurface::FinishedDrawing()

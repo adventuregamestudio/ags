@@ -15,10 +15,20 @@
 #if defined(WINDOWS_VERSION)
 #include <io.h>
 #endif
-
 #include <stdio.h>
 #include "util/filestream.h"
 #include "util/math.h"
+
+// TODO: use fstat on Windows too?
+#if !defined (WINDOWS_VERSION)
+#include <sys/stat.h>
+long int filelength(int fhandle)
+{
+    struct stat statbuf;
+    fstat(fhandle, &statbuf);
+    return statbuf.st_size;
+}
+#endif
 
 namespace AGS
 {
@@ -97,7 +107,7 @@ bool FileStream::CanSeek() const
 
 size_t FileStream::Read(void *buffer, size_t size)
 {
-    if (CanRead())
+    if (_file && buffer)
     {
         return fread(buffer, sizeof(uint8_t), size, _file);
     }
@@ -106,7 +116,7 @@ size_t FileStream::Read(void *buffer, size_t size)
 
 int32_t FileStream::ReadByte()
 {
-    if (CanRead())
+    if (_file)
     {
         return fgetc(_file);
     }
@@ -115,7 +125,7 @@ int32_t FileStream::ReadByte()
 
 size_t FileStream::Write(const void *buffer, size_t size)
 {
-    if (CanWrite())
+    if (_file && buffer)
     {
         return fwrite(buffer, sizeof(uint8_t), size, _file);
     }
@@ -124,7 +134,7 @@ size_t FileStream::Write(const void *buffer, size_t size)
 
 int32_t FileStream::WriteByte(uint8_t val)
 {
-    if (CanWrite())
+    if (_file)
     {
         return fputc(val, _file);
     }
@@ -133,7 +143,7 @@ int32_t FileStream::WriteByte(uint8_t val)
 
 size_t FileStream::Seek(StreamSeek seek, int pos)
 {
-    if (!CanSeek())
+    if (!_file)
     {
         return 0;
     }

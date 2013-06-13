@@ -12,15 +12,7 @@
 //
 //=============================================================================
 
-/*
-#ifdef WINDOWS_VERSION
-#include <windows.h>    // for HWND
-#else
-// ???
-#endif
-*/
 #include <stdio.h>
-#include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "ac/roomstruct.h"
 #include "ac/runtime_defines.h"
@@ -31,6 +23,7 @@
 #include "debug/consoleoutputtarget.h"
 #include "debug/rawfileoutputtarget.h"
 #include "media/audio/audio.h"
+#include "media/audio/soundclip.h"
 #include "script/script.h"
 #include "script/script_common.h"
 #include "script/cc_error.h"

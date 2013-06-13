@@ -31,6 +31,7 @@
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/all_scriptclasses.h"
 #include "debug/debug_log.h"
+#include "font/fonts.h"
 #include "gui/guilabel.h"
 #include "main/main.h"
 #include "platform/base/agsplatformdriver.h"
@@ -518,7 +519,6 @@ void init_and_register_game_objects()
 	init_and_register_guis();
     init_and_register_fonts();    
 
-    wtexttransparent(TEXTFG);
     play.fade_effect=game.options[OPT_FADETYPE];
 
     our_eip=-21;

@@ -32,8 +32,6 @@ extern int rec_kbhit();
 
 #define domouse rec_domouse
 
-#define wbutt __my_wbutt
-
 #define _export
 #ifdef WINAPI
 #undef WINAPI

@@ -12,7 +12,7 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
+#include <stdio.h>
 #include "gfx/ali3d.h"
 #include "ac/global_object.h"
 #include "ac/common.h"
@@ -252,19 +252,20 @@ void MergeObject(int obn) {
 
     construct_object_gfx(obn, NULL, &theHeight, true);
 
-    Bitmap *oldabuf = abuf;
-    abuf = thisroom.ebscene[play.bg_frame];
-    if (abuf->GetColorDepth() != actsps[obn]->GetColorDepth())
+    //Bitmap *oldabuf = graphics->bmp;
+    //abuf = thisroom.ebscene[play.bg_frame];
+    Bitmap *bg_frame = thisroom.ebscene[play.bg_frame];
+    if (bg_frame->GetColorDepth() != actsps[obn]->GetColorDepth())
         quit("!MergeObject: unable to merge object due to color depth differences");
 
     int xpos = multiply_up_coordinate(objs[obn].x);
     int ypos = (multiply_up_coordinate(objs[obn].y) - theHeight);
 
-    draw_sprite_support_alpha(xpos, ypos, actsps[obn], objs[obn].num);
+    draw_sprite_support_alpha(bg_frame, xpos, ypos, actsps[obn], objs[obn].num);
     invalidate_screen();
     mark_current_background_dirty();
 
-    abuf = oldabuf;
+    //abuf = oldabuf;
     // mark the sprite as merged
     objs[obn].on = 2;
     DEBUG_CONSOLE("Object %d merged into background", obn);

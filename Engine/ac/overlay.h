@@ -20,6 +20,9 @@
 
 #include "ac/dynobj/scriptoverlay.h"
 
+namespace AGS { namespace Common { class Bitmap; } }
+using namespace AGS; // FIXME later
+
 void Overlay_Remove(ScriptOverlay *sco);
 void Overlay_SetText(ScriptOverlay *scover, int wii, int fontid, int clr, const char*texx, ...);
 int  Overlay_GetX(ScriptOverlay *scover);

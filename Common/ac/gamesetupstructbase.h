@@ -22,8 +22,7 @@
 #include "ac/wordsdictionary.h"  // WordsDictionary
 #include "ac/gamestructdefines.h"
 #include "script/cc_script.h"           // ccScript
-#include "util/file.h"
-#include "util/wgt2allg.h"
+#include "util/wgt2allg.h" // color (allegro RGB)
 
 // Forward declaration
 namespace AGS { namespace Common { class Stream; } }

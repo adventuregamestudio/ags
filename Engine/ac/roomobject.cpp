@@ -13,7 +13,6 @@
 //=============================================================================
 
 #include <stdio.h>
-#include "util/wgt2allg.h"
 #include "ac/roomobject.h"
 #include "ac/common.h"
 #include "ac/common_defines.h"

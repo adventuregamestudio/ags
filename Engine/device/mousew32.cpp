@@ -66,7 +66,7 @@ void msethotspot(int,int);   // Graphics mode only. Useful for crosshair.
 void msetgraphpos(int,int);
 
 extern char lib_file_name[13];
-extern void put_sprite_256(int, int, Bitmap *);
+extern void put_sprite_256(Common::Bitmap *ds, int, int, Bitmap *);
 
 char *mouselibcopyr = "MouseLib32 (c) 1994, 1998 Chris Jones";
 const int NONE = -1, LEFT = 0, RIGHT = 1, MIDDLE = 2;
@@ -136,13 +136,13 @@ void msetcursorlimit(int x1, int y1, int x2, int y2)
   boundy2 = y2;
 }
 
-void drawCursor() {
+void drawCursor(Bitmap *ds) {
   if (alpha_blend_cursor) {
     set_alpha_blender();
-    abuf->TransBlendBlt(mousecurs[currentcursor], mousex, mousey);
+    ds->TransBlendBlt(mousecurs[currentcursor], mousex, mousey);
   }
   else
-    put_sprite_256(mousex, mousey, mousecurs[currentcursor]);
+    put_sprite_256(ds, mousex, mousey, mousecurs[currentcursor]);
 }
 
 int hotxwas = 0, hotywas = 0;
@@ -152,8 +152,8 @@ void domouse(int str)
      TO USE THIS ROUTINE YOU MUST LOAD A MOUSE CURSOR USING mloadcursor.
      YOU MUST ALSO REMEMBER TO CALL mfreemem AT THE END OF THE PROGRAM.
   */
-  int poow = wgetblockwidth(mousecurs[currentcursor]);
-  int pooh = wgetblockheight(mousecurs[currentcursor]);
+  int poow = mousecurs[currentcursor]->GetWidth();
+  int pooh = mousecurs[currentcursor]->GetHeight();
   int smx = mousex - hotxwas, smy = mousey - hotywas;
 
   mgetgraphpos();
@@ -166,24 +166,26 @@ void domouse(int str)
   if (mousey + pooh >= vesa_yres)
     pooh = vesa_yres - mousey;
 
-  abuf->SetClip(Rect(0, 0, vesa_xres - 1, vesa_yres - 1));
+  Bitmap *ds = GetVirtualScreen();
+
+  ds->SetClip(Rect(0, 0, vesa_xres - 1, vesa_yres - 1));
   if ((str == 0) & (mouseturnedon == TRUE)) {
     if ((mousex != smx) | (mousey != smy)) {    // the mouse has moved
-      wputblock(smx, smy, savebk, 0);
+      wputblock(ds, smx, smy, savebk, 0);
       delete savebk;
-      savebk = wnewblock(mousex, mousey, mousex + poow, mousey + pooh);
-      drawCursor();
+      savebk = wnewblock(ds, mousex, mousey, mousex + poow, mousey + pooh);
+      drawCursor(ds);
     }
   }
   else if ((str == 1) & (mouseturnedon == FALSE)) {
     // the mouse is just being turned on
-    savebk = wnewblock(mousex, mousey, mousex + poow, mousey + pooh);
-    drawCursor();
+    savebk = wnewblock(ds, mousex, mousey, mousex + poow, mousey + pooh);
+    drawCursor(ds);
     mouseturnedon = TRUE;
   }
   else if ((str == 2) & (mouseturnedon == TRUE)) {    // the mouse is being turned off
     if (savebk != NULL) {
-      wputblock(smx, smy, savebk, 0);
+      wputblock(ds, smx, smy, savebk, 0);
       delete savebk;
     }
 

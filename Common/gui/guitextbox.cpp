@@ -13,12 +13,13 @@
 //=============================================================================
 
 #include <stdio.h>
-#include "util/wgt2allg.h"
+#include "font/fonts.h"
 #include "gui/guitextbox.h"
 #include "gui/guimain.h"
 #include "font/agsfontrenderer.h"	// fontRenderers;
 #include "util/stream.h"
 #include "gfx/bitmap.h"
+#include "util/wgt2allg.h"
 
 using AGS::Common::Stream;
 using AGS::Common::Bitmap;
@@ -44,19 +45,19 @@ void GUITextBox::ReadFromFile(Stream *in, GuiVersion gui_version)
     textcol = 16;
 }
 
-void GUITextBox::Draw()
+void GUITextBox::Draw(Common::Bitmap *ds)
 {
 
   check_font(&font);
-  wtextcolor(textcol);
-  wsetcolor(textcol);
+  color_t text_color = ds->GetCompatibleColor(textcol);
+  color_t draw_color = ds->GetCompatibleColor(textcol);
   if ((exflags & GTF_NOBORDER) == 0) {
-    abuf->DrawRect(Rect(x, y, x + wid - 1, y + hit - 1), currentcolor);
+    ds->DrawRect(Rect(x, y, x + wid - 1, y + hit - 1), draw_color);
     if (get_fixed_pixel_size(1) > 1)
-      abuf->DrawRect(Rect(x + 1, y + 1, x + wid - get_fixed_pixel_size(1), y + hit - get_fixed_pixel_size(1)), currentcolor);
+      ds->DrawRect(Rect(x + 1, y + 1, x + wid - get_fixed_pixel_size(1), y + hit - get_fixed_pixel_size(1)), draw_color);
   }
 
-  Draw_text_box_contents();
+  Draw_text_box_contents(ds, text_color);
 }
 
 void GUITextBox::KeyPress(int kp)

@@ -16,7 +16,6 @@
 // Game configuration
 //
 
-#include "util/wgt2allg.h"
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
 #include "main/mainheader.h"

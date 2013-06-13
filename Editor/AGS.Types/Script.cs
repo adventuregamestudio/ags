@@ -27,6 +27,7 @@ namespace AGS.Types
         private ScriptAutoCompleteData _autoCompleteData = new ScriptAutoCompleteData();
         private ICompiledScript _compiledData = null;
         private bool _modified = false;
+        private bool _isBeingSaved = false;
         private int[] _breakpointedLines = new int[0];
         private DateTime _lastSavedAt = DateTime.MinValue;
 
@@ -118,6 +119,12 @@ namespace AGS.Types
         }
 
         [Browsable(false)]
+        public bool IsBeingSaved
+        {
+            get { return _isBeingSaved; }
+        }
+
+        [Browsable(false)]
         public bool IsHeader
         {
             get { return _isHeader; } 
@@ -159,15 +166,22 @@ namespace AGS.Types
         public void SaveToDisk()
         {
             if (_modified)
-            {                
-                // Ensure that the file gets written in 8-bit ANSI
-                byte[] bytes = Encoding.Default.GetBytes(_text);
-                using (BinaryWriter binWriter = new BinaryWriter(File.Open(_fileName, FileMode.Create)))
+            {
+                _isBeingSaved = true;
+                try
                 {
-                    binWriter.Write(bytes);
-                    _lastSavedAt = DateTime.Now;
+                    // Ensure that the file gets written in 8-bit ANSI
+                    byte[] bytes = Encoding.Default.GetBytes(_text);
+                    using (BinaryWriter binWriter = new BinaryWriter(File.Open(_fileName, FileMode.Create)))
+                    {
+                        binWriter.Write(bytes);
+                        _lastSavedAt = DateTime.Now;
+                    }
                 }
-
+                finally
+                {
+                    _isBeingSaved = false;
+                }
                 _modified = false;
             }
         }

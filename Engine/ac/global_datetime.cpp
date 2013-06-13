@@ -12,8 +12,8 @@
 //
 //=============================================================================
 
+#include <time.h>
 #include "ac/global_datetime.h"
-#include "util/wgt2allg.h"
 #include "ac/datetime.h"
 #include "ac/common.h"
 

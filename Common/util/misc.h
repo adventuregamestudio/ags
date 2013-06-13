@@ -45,7 +45,6 @@
 #define __MISC_H
 
 #include <stdio.h>
-#include "util/file.h"
 
 #if !defined (WINDOWS_VERSION)
 #include <unistd.h>
@@ -53,6 +52,8 @@
 #include <string.h>
 #include <sys/stat.h>
 #endif
+
+#include "util/file.h"
 
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later

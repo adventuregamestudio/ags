@@ -16,7 +16,6 @@
 #define __AC_CHARACTERINFO_H
 
 #include "ac/common_defines.h" // constants
-#include "util/file.h"
 
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later

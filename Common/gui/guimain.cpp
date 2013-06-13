@@ -16,7 +16,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "util/wgt2allg.h"
 #include "util/string_utils.h" //strlwr()
 #include "gui/guimain.h"
 #include "ac/common.h"	// quit()
@@ -280,46 +279,46 @@ int GUIMain::is_mouse_on_gui()
   return 0;
 }
 
-void GUIMain::draw_blob(int xp, int yp)
+void GUIMain::draw_blob(Common::Bitmap *ds, int xp, int yp, color_t draw_color)
 {
-  abuf->FillRect(Rect(xp, yp, xp + get_fixed_pixel_size(1), yp + get_fixed_pixel_size(1)), currentcolor);
+  ds->FillRect(Rect(xp, yp, xp + get_fixed_pixel_size(1), yp + get_fixed_pixel_size(1)), draw_color);
 }
 
-void GUIMain::draw_at(int xx, int yy)
+void GUIMain::draw_at(Common::Bitmap *ds, int xx, int yy)
 {
   int aa;
 
   SET_EIP(375)
 
-  wtexttransparent(TEXTFG);
-
   if ((wid < 1) || (hit < 1))
     return;
 
-  Bitmap *abufwas = abuf;
-  Bitmap *subbmp = BitmapHelper::CreateSubBitmap(abuf, RectWH(xx, yy, wid, hit));
+  //Bitmap *abufwas = g;
+  Bitmap *subbmp = BitmapHelper::CreateSubBitmap(ds, RectWH(xx, yy, wid, hit));
 
   SET_EIP(376)
   // stop border being transparent, if the whole GUI isn't
   if ((fgcol == 0) && (bgcol != 0))
     fgcol = 16;
 
-  abuf = subbmp;
+  //g = subbmp;
   if (bgcol != 0)
-    abuf->Clear(get_col8_lookup(bgcol));
+    subbmp->Fill(subbmp->GetCompatibleColor(bgcol));
 
   SET_EIP(377)
 
+  color_t draw_color;
   if (fgcol != bgcol) {
-    abuf->DrawRect(Rect(0, 0, abuf->GetWidth() - 1, abuf->GetHeight() - 1), get_col8_lookup(fgcol));
+    draw_color = subbmp->GetCompatibleColor(fgcol);
+    subbmp->DrawRect(Rect(0, 0, subbmp->GetWidth() - 1, subbmp->GetHeight() - 1), draw_color);
     if (get_fixed_pixel_size(1) > 1)
-      abuf->DrawRect(Rect(1, 1, abuf->GetWidth() - 2, abuf->GetHeight() - 2), get_col8_lookup(fgcol));
+      subbmp->DrawRect(Rect(1, 1, subbmp->GetWidth() - 2, subbmp->GetHeight() - 2), draw_color);
   }
 
   SET_EIP(378)
 
   if ((bgpic > 0) && (spriteset[bgpic] != NULL))
-    draw_sprite_compensate(bgpic, 0, 0, 0);
+    draw_sprite_compensate(subbmp, bgpic, 0, 0, 0);
 
   SET_EIP(379)
 
@@ -334,42 +333,42 @@ void GUIMain::draw_at(int xx, int yy)
     if (!objToDraw->IsVisible())
       continue;
 
-    objToDraw->Draw();
+    objToDraw->Draw(subbmp);
 
     int selectedColour = 14;
 
     if (highlightobj == drawOrder[aa]) {
       if (outlineGuiObjects)
         selectedColour = 13;
-      wsetcolor(selectedColour);
-      draw_blob(objToDraw->x + objToDraw->wid - get_fixed_pixel_size(1) - 1, objToDraw->y);
-      draw_blob(objToDraw->x, objToDraw->y + objToDraw->hit - get_fixed_pixel_size(1) - 1);
-      draw_blob(objToDraw->x, objToDraw->y);
-      draw_blob(objToDraw->x + objToDraw->wid - get_fixed_pixel_size(1) - 1, 
-                objToDraw->y + objToDraw->hit - get_fixed_pixel_size(1) - 1);
+      draw_color = subbmp->GetCompatibleColor(selectedColour);
+      draw_blob(subbmp, objToDraw->x + objToDraw->wid - get_fixed_pixel_size(1) - 1, objToDraw->y, draw_color);
+      draw_blob(subbmp, objToDraw->x, objToDraw->y + objToDraw->hit - get_fixed_pixel_size(1) - 1, draw_color);
+      draw_blob(subbmp, objToDraw->x, objToDraw->y, draw_color);
+      draw_blob(subbmp, objToDraw->x + objToDraw->wid - get_fixed_pixel_size(1) - 1, 
+                objToDraw->y + objToDraw->hit - get_fixed_pixel_size(1) - 1, draw_color);
     }
     if (outlineGuiObjects) {
       int oo;  // draw a dotted outline round all objects
-      wsetcolor(selectedColour);
+      draw_color = subbmp->GetCompatibleColor(selectedColour);
       for (oo = 0; oo < objToDraw->wid; oo+=2) {
-        abuf->PutPixel(oo + objToDraw->x, objToDraw->y, currentcolor);
-        abuf->PutPixel(oo + objToDraw->x, objToDraw->y + objToDraw->hit - 1, currentcolor);
+        subbmp->PutPixel(oo + objToDraw->x, objToDraw->y, draw_color);
+        subbmp->PutPixel(oo + objToDraw->x, objToDraw->y + objToDraw->hit - 1, draw_color);
       }
       for (oo = 0; oo < objToDraw->hit; oo+=2) {
-        abuf->PutPixel(objToDraw->x, oo + objToDraw->y, currentcolor);
-        abuf->PutPixel(objToDraw->x + objToDraw->wid - 1, oo + objToDraw->y, currentcolor);
+        subbmp->PutPixel(objToDraw->x, oo + objToDraw->y, draw_color);
+        subbmp->PutPixel(objToDraw->x + objToDraw->wid - 1, oo + objToDraw->y, draw_color);
       }      
     }
   }
 
   SET_EIP(380)
-  delete abuf;
-  abuf = abufwas;
+  delete subbmp;
+//  sub_graphics.GetBitmap() = abufwas;
 }
 
-void GUIMain::draw()
+void GUIMain::draw(Common::Bitmap *ds)
 {
-  draw_at(x, y);
+  draw_at(ds, x, y);
 }
 
 int GUIMain::find_object_under_mouse(int extrawid, bool mustBeClickable)

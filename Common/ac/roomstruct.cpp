@@ -13,16 +13,14 @@
 //=============================================================================
 
 #include <stdio.h>
-#include "util/wgt2allg.h"
 #include "ac/roomstruct.h"
 #include "ac/common.h"
 #include "ac/wordsdictionary.h"
 #include "util/string_utils.h"      // fputstring, etc
 #include "util/compress.h"
-#include "util/file.h"
 #include "util/stream.h"
-#include "gfx/bitmap.h"
 #include "core/assetmanager.h"
+#include "gfx/bitmap.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -480,8 +478,7 @@ void load_main_block(roomstruct *rstruc, const char *files, Stream *in, room_fil
     // Old version - copy walkable areas to Regions
     if (rstruc->regions == NULL)
       rstruc->regions = BitmapHelper::CreateBitmap(rstruc->walls->GetWidth(), rstruc->walls->GetHeight(), 8);
-    rstruc->regions->Clear ();
-
+    rstruc->regions->Fill(0);
     rstruc->regions->Blit (rstruc->walls, 0, 0, 0, 0, rstruc->regions->GetWidth(), rstruc->regions->GetHeight());
     for (f = 0; f <= 15; f++) {
       rstruc->regionLightLevel[f] = rstruc->walk_area_light[f];

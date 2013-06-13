@@ -22,7 +22,6 @@
 // What about other platforms?
 //
 
-#include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
@@ -120,7 +119,7 @@ void main_create_platform_driver()
 #define ACI_VERSION_MAJOR               3
 #define ACI_VERSION_MINOR               3
 #define ACI_VERSION_RELEASE             0
-#define ACI_VERSION_REVISION            1132
+#define ACI_VERSION_REVISION            1134
 #ifdef NO_MP3_PLAYER
 #define SPECIAL_VERSION "NMP"
 #else

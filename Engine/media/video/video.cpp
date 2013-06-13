@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
 #include "video.h"
 #include "gfx/ali3d.h"
 #include "apeg.h"
@@ -26,12 +25,11 @@
 #include "ac/record.h"
 #include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
+#include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
-#include "gfx/allegrobitmap.h"
 
 using AGS::Common::Bitmap;
-using AGS::Common::AllegroBitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 
@@ -99,21 +97,21 @@ extern "C" int fli_callback() {
 // FLIC player end
 
 // TODO: find a way to take Bitmap here?
-AllegroBitmap theora_frame_wrapper;
+Bitmap gl_TheoraBuffer;
 int theora_playing_callback(BITMAP *theoraBuffer)
 {
-    if (theoraBuffer == NULL)
+	if (theoraBuffer == NULL)
     {
         // No video, only sound
         return check_if_user_input_should_cancel_video();
     }
 
-    theora_frame_wrapper.WrapBitmapObject(theoraBuffer);
+    gl_TheoraBuffer.WrapAllegroBitmap(theoraBuffer, true);
 
     int drawAtX = 0, drawAtY = 0;
     if (fli_ddb == NULL)
     {
-        fli_ddb = gfxDriver->CreateDDBFromBitmap(&theora_frame_wrapper, false, true);
+        fli_ddb = gfxDriver->CreateDDBFromBitmap(&gl_TheoraBuffer, false, true);
     }
     if (stretch_flc) 
     {
@@ -121,7 +119,7 @@ int theora_playing_callback(BITMAP *theoraBuffer)
         drawAtY = scrnhit / 2 - fliTargetHeight / 2;
         if (!gfxDriver->HasAcceleratedStretchAndFlip())
         {
-            fli_target->StretchBlt(&theora_frame_wrapper, RectWH(0, 0, theora_frame_wrapper.GetWidth(), theora_frame_wrapper.GetHeight()), 
+            fli_target->StretchBlt(&gl_TheoraBuffer, RectWH(0, 0, gl_TheoraBuffer.GetWidth(), gl_TheoraBuffer.GetHeight()), 
                 RectWH(drawAtX, drawAtY, fliTargetWidth, fliTargetHeight));
             gfxDriver->UpdateDDBFromBitmap(fli_ddb, fli_target, false);
             drawAtX = 0;
@@ -129,15 +127,15 @@ int theora_playing_callback(BITMAP *theoraBuffer)
         }
         else
         {
-            gfxDriver->UpdateDDBFromBitmap(fli_ddb, &theora_frame_wrapper, false);
+            gfxDriver->UpdateDDBFromBitmap(fli_ddb, &gl_TheoraBuffer, false);
             fli_ddb->SetStretch(fliTargetWidth, fliTargetHeight);
         }
     }
     else
     {
-        gfxDriver->UpdateDDBFromBitmap(fli_ddb, &theora_frame_wrapper, false);
-        drawAtX = scrnwid / 2 - theora_frame_wrapper.GetWidth() / 2;
-        drawAtY = scrnhit / 2 - theora_frame_wrapper.GetHeight() / 2;
+        gfxDriver->UpdateDDBFromBitmap(fli_ddb, &gl_TheoraBuffer, false);
+        drawAtX = scrnwid / 2 - gl_TheoraBuffer.GetWidth() / 2;
+        drawAtY = scrnhit / 2 - gl_TheoraBuffer.GetHeight() / 2;
     }
 
     gfxDriver->DrawSprite(drawAtX, drawAtY, fli_ddb);

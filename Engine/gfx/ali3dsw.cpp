@@ -343,7 +343,7 @@ bool ALSoftwareGraphicsDriver::Init(int width, int height, int colourDepth, bool
     // set_gfx_mode is an allegro function that creates screen bitmap;
     // following code assumes the screen is already created, therefore we should
     // ensure global bitmap wraps over existing allegro screen bitmap.
-    _allegroScreenWrapper = BitmapHelper::CreateRawObjectWrapper(screen);
+    _allegroScreenWrapper = BitmapHelper::CreateRawBitmapWrapper(screen);
     BitmapHelper::SetScreenBitmap( _allegroScreenWrapper );
 
     BitmapHelper::GetScreenBitmap()->Clear();
@@ -510,8 +510,7 @@ void ALSoftwareGraphicsDriver::draw_sprite_with_transparency(Bitmap *piccy, int 
     }
     // 256-col spirte -> hi-color background, or
     // 16-bit sprite -> 32-bit background
-    Bitmap* hctemp=BitmapHelper::CreateBitmap(piccy->GetWidth(), piccy->GetHeight(), screen_depth);
-    hctemp->Blit(piccy,0,0,0,0,hctemp->GetWidth(),hctemp->GetHeight());
+    Bitmap* hctemp=BitmapHelper::CreateBitmapCopy(piccy, screen_depth);
     int bb,cc,mask_col = virtualScreen->GetMaskColor();
 
     if (sprite_depth == 8) {
@@ -656,7 +655,7 @@ void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *currentVirtScreen, int 
    if ((_global_y_offset != 0) || (_global_x_offset != 0))
    {
      bmp_orig = BitmapHelper::CreateBitmap(_screenWidth, _screenHeight);
-     bmp_orig->Clear();
+     bmp_orig->Fill(0);
      bmp_orig->Blit(currentVirtScreen, 0, 0, _global_x_offset, _global_y_offset, currentVirtScreen->GetWidth(), currentVirtScreen->GetHeight());
    }
 
@@ -670,7 +669,7 @@ void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *currentVirtScreen, int 
    for (a = 0; a < 256; a+=speed)
    {
        int timerValue = *_loopTimer;
-       bmp_buff->Clear(clearColor);
+       bmp_buff->Fill(clearColor);
        set_trans_blender(0,0,0,a);
        bmp_buff->TransBlendBlt(bmp_orig, 0, 0);
        this->Vsync();
@@ -709,7 +708,7 @@ void ALSoftwareGraphicsDriver::highcolor_fade_out(int speed, int targetColourRed
             for (a = 255-speed; a > 0; a-=speed)
             {
                 int timerValue = *_loopTimer;
-                bmp_buff->Clear(clearColor);
+                bmp_buff->Fill(clearColor);
                 set_trans_blender(0,0,0,a);
                 bmp_buff->TransBlendBlt(bmp_orig, 0, 0);
                 this->Vsync();

@@ -19,7 +19,6 @@
 #define __AGS_EE_GUI__ANIMATINGGUIBUTTON_H
 
 #include "ac/runtime_defines.h"
-#include "util/file.h"
 
 // Forward declaration
 namespace AGS { namespace Common { class Stream; } }

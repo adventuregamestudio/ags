@@ -390,10 +390,15 @@ namespace AGS.Editor.Components
             }
         }
 
-        protected override void AddExtraCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
+        protected override void AddNewItemCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
         {
             menu.Add(new MenuCommand(MENU_COMMAND_NEW, "New script", null));
             menu.Add(new MenuCommand(MENU_COMMAND_IMPORT, "Import script...", null));
+        }
+
+        protected override void AddExtraCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
+        {
+            // No more commands in this menu
         }
 
         protected override bool CreateItemsAtTop

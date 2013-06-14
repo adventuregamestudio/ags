@@ -15,6 +15,7 @@ namespace AGS.Editor.Components
     {
         protected abstract FolderType GetRootFolder();
         protected abstract ProjectTreeItem CreateTreeItemForItem(ItemType item);
+        protected abstract void AddNewItemCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu);
         protected abstract void AddExtraCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu);
         protected abstract void ItemCommandClick(string controlID);
         protected abstract string GetFolderDeleteConfirmationText();
@@ -174,17 +175,19 @@ namespace AGS.Editor.Components
             IList<MenuCommand> menu = new List<MenuCommand>();
             if (controlID == TOP_LEVEL_COMMAND_ID)
             {
+                AddNewItemCommandsToFolderContextMenu(controlID, menu);
+                menu.Add(new MenuCommand(COMMAND_NEW_FOLDER, "New Folder", null));
                 AddExtraCommandsToFolderContextMenu(controlID, menu);
-                menu.Add(new MenuCommand(COMMAND_NEW_FOLDER, "New Folder", null));                
             }
             else if (controlID.StartsWith(NODE_ID_PREFIX_FOLDER))
             {
+                AddNewItemCommandsToFolderContextMenu(controlID, menu);
+                menu.Add(new MenuCommand(COMMAND_NEW_SUB_FOLDER, "New Sub-Folder", null));
+                menu.Add(MenuCommand.Separator);
                 menu.Add(new MenuCommand(COMMAND_RENAME_FOLDER, "Rename", null));
                 menu.Add(new MenuCommand(COMMAND_DELETE_FOLDER, "Delete", null));
-                menu.Add(new MenuCommand(COMMAND_MOVE_DOWN_FOLDER, "Move Down", null));
                 menu.Add(new MenuCommand(COMMAND_MOVE_UP_FOLDER, "Move Up", null));
-                menu.Add(MenuCommand.Separator);
-                menu.Add(new MenuCommand(COMMAND_NEW_SUB_FOLDER, "New Sub-Folder", null));
+                menu.Add(new MenuCommand(COMMAND_MOVE_DOWN_FOLDER, "Move Down", null));
                 AddExtraCommandsToFolderContextMenu(controlID, menu);
             }
             return menu;

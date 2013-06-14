@@ -1522,12 +1522,15 @@ void D3DGraphicsDriver::UpdateTextureRegion(TextureTile *tile, Bitmap *bitmap, D
   for (int y = 0; y < tile->height; y++)
   {
     lastPixelWasTransparent = false;
+    const uint8_t *scanline_before = bitmap->GetScanLine(y + tile->y - 1);
+    const uint8_t *scanline_at     = bitmap->GetScanLine(y + tile->y);
+    const uint8_t *scanline_after  = bitmap->GetScanLine(y + tile->y + 1);
     for (int x = 0; x < tile->width; x++)
     {
       if (target->_colDepth == 15)
       {
         unsigned short* memPtrShort = (unsigned short*)memPtr;
-        unsigned short* srcData = (unsigned short*)&bitmap->GetScanLine(y + tile->y)[(x + tile->x) * 2];
+        unsigned short* srcData = (unsigned short*)&scanline_at[(x + tile->x) << 1];
         if (*srcData == MASK_COLOR_15) 
         {
           if (target->_opaque)  // set to black if opaque
@@ -1544,9 +1547,9 @@ void D3DGraphicsDriver::UpdateTextureRegion(TextureTile *tile, Bitmap *bitmap, D
             if (x < tile->width - 1)
               get_pixel_if_not_transparent15(&srcData[1], &red, &green, &blue, &divisor);
             if (y > 0)
-              get_pixel_if_not_transparent15((unsigned short*)&bitmap->GetScanLine(y + tile->y - 1)[(x + tile->x) * 2], &red, &green, &blue, &divisor);
+              get_pixel_if_not_transparent15((unsigned short*)&scanline_before[(x + tile->x) << 1], &red, &green, &blue, &divisor);
             if (y < tile->height - 1)
-              get_pixel_if_not_transparent15((unsigned short*)&bitmap->GetScanLine(y + tile->y + 1)[(x + tile->x) * 2], &red, &green, &blue, &divisor);
+              get_pixel_if_not_transparent15((unsigned short*)&scanline_after[(x + tile->x) << 1], &red, &green, &blue, &divisor);
             if (divisor > 0)
               memPtrShort[x] = ((red / divisor) << 10) | ((green / divisor) << 5) | (blue / divisor);
             else
@@ -1569,7 +1572,7 @@ void D3DGraphicsDriver::UpdateTextureRegion(TextureTile *tile, Bitmap *bitmap, D
       else if (target->_colDepth == 32)
       {
         unsigned long* memPtrLong = (unsigned long*)memPtr;
-        unsigned long* srcData = (unsigned long*)&bitmap->GetScanLine(y + tile->y)[(x + tile->x) * 4];
+        unsigned long* srcData = (unsigned long*)&scanline_at[(x + tile->x) << 2];
         if (*srcData == MASK_COLOR_32)
         {
           if (target->_opaque)  // set to black if opaque
@@ -1586,9 +1589,9 @@ void D3DGraphicsDriver::UpdateTextureRegion(TextureTile *tile, Bitmap *bitmap, D
             if (x < tile->width - 1)
               get_pixel_if_not_transparent32(&srcData[1], &red, &green, &blue, &divisor);
             if (y > 0)
-              get_pixel_if_not_transparent32((unsigned long*)&bitmap->GetScanLine(y + tile->y - 1)[(x + tile->x) * 4], &red, &green, &blue, &divisor);
+              get_pixel_if_not_transparent32((unsigned long*)&scanline_before[(x + tile->x) << 2], &red, &green, &blue, &divisor);
             if (y < tile->height - 1)
-              get_pixel_if_not_transparent32((unsigned long*)&bitmap->GetScanLine(y + tile->y + 1)[(x + tile->x) * 4], &red, &green, &blue, &divisor);
+              get_pixel_if_not_transparent32((unsigned long*)&scanline_after[(x + tile->x) << 2], &red, &green, &blue, &divisor);
             if (divisor > 0)
               memPtrLong[x] = ((red / divisor) << 16) | ((green / divisor) << 8) | (blue / divisor);
             else

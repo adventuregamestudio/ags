@@ -511,14 +511,22 @@ void ALSoftwareGraphicsDriver::draw_sprite_with_transparency(Bitmap *piccy, int 
     // 256-col spirte -> hi-color background, or
     // 16-bit sprite -> 32-bit background
     Bitmap* hctemp=BitmapHelper::CreateBitmapCopy(piccy, screen_depth);
-    int bb,cc,mask_col = virtualScreen->GetMaskColor();
+    color_t mask_col = virtualScreen->GetMaskColor();
 
     if (sprite_depth == 8) {
       // only do this for 256-col, cos the Blit call converts
       // transparency for 16->32 bit
-      for (bb=0;bb<hctemp->GetWidth();bb++) {
-        for (cc=0;cc<hctemp->GetHeight();cc++)
-          if (piccy->GetPixel(bb,cc)==0) hctemp->PutPixel(bb,cc,mask_col);
+      for (int y = 0; y < hctemp->GetHeight(); ++y)
+      {
+          const uint8_t *src_scanline = piccy->GetScanLine(y);
+          uint8_t *dst_scanline = hctemp->GetScanLineForWriting(y);
+          for (int x = 0; x < hctemp->GetWidth(); ++x)
+          {
+              if (src_scanline[x] == 0)
+              {
+                  dst_scanline[x] = mask_col;
+              }
+          }
       }
     }
 

@@ -244,7 +244,8 @@ int vesa_xres, vesa_yres;
       }
     }
 
-    for (jj = 0; jj < (picc->GetWidth()) * (picc->GetHeight()); jj++) {
+    int pic_size = picc->GetWidth() * picc->GetHeight();
+    for (jj = 0; jj < pic_size; jj++) {
       int xxl = jj % (picc->GetWidth()), yyl = jj / (picc->GetWidth());
       int rr = picc->GetPixel(xxl, yyl);
       picc->PutPixel(xxl, yyl, color_mapped_table[rr]);

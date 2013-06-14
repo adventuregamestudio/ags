@@ -326,10 +326,9 @@ Bitmap *convert_16_to_16bgr(Bitmap *tempbl) {
 // PSP: convert 32 bit RGB to BGR.
 Bitmap *convert_32_to_32bgr(Bitmap *tempbl) {
 
-    unsigned char* current = tempbl->GetScanLineForWriting(0);
-
     int i = 0;
     int j = 0;
+    unsigned char* current;
     while (i < tempbl->GetHeight())
     {
         current = tempbl->GetScanLineForWriting(i);
@@ -480,13 +479,16 @@ void update_invalid_region(Bitmap *ds, int x, int y, Bitmap *src) {
     else {
         int k, tx1, tx2, srcdepth = src->GetColorDepth();
         if ((srcdepth == ds->GetColorDepth()) && (ds->IsMemoryBitmap())) {
-            int bypp = bmp_bpp(src);
+            int bypp = src->GetBPP();
             // do the fast copy
             for (i = 0; i < scrnhit; i++) {
-                for (k = 0; k < dirtyRow[i].numSpans; k++) {
-                    tx1 = dirtyRow[i].span[k].x1;
-                    tx2 = dirtyRow[i].span[k].x2;
-                    memcpyfast(&ds->GetScanLineForWriting(i)[tx1 * bypp], &src->GetScanLine(i + y)[(tx1 + x) * bypp], ((tx2 - tx1) + 1) * bypp);
+                const uint8_t *src_scanline = src->GetScanLine(i + y);
+                uint8_t *dst_scanline = ds->GetScanLineForWriting(i);
+                const IRRow &dirty_row = dirtyRow[i];
+                for (k = 0; k < dirty_row.numSpans; k++) {
+                    tx1 = dirty_row.span[k].x1;
+                    tx2 = dirty_row.span[k].x2;
+                    memcpy(&dst_scanline[tx1 * bypp], &src_scanline[(tx1 + x) * bypp], ((tx2 - tx1) + 1) * bypp);
                 }
             }
         }
@@ -500,9 +502,10 @@ void update_invalid_region(Bitmap *ds, int x, int y, Bitmap *src) {
                 while ((i+rowsInOne < scrnhit) && (memcmp(&dirtyRow[i], &dirtyRow[i+rowsInOne], sizeof(IRRow)) == 0))
                     rowsInOne++;
 
-                for (k = 0; k < dirtyRow[i].numSpans; k++) {
-                    tx1 = dirtyRow[i].span[k].x1;
-                    tx2 = dirtyRow[i].span[k].x2;
+                const IRRow &dirty_row = dirtyRow[i];
+                for (k = 0; k < dirty_row.numSpans; k++) {
+                    tx1 = dirty_row.span[k].x1;
+                    tx2 = dirty_row.span[k].x2;
                     ds->Blit(src, tx1 + x, i + y, tx1, i, (tx2 - tx1) + 1, rowsInOne);
                 }
 
@@ -854,7 +857,7 @@ void draw_sprite_support_alpha(Bitmap *ds, int xpos, int ypos, Bitmap *image, in
 IDriverDependantBitmap* recycle_ddb_bitmap(IDriverDependantBitmap *bimp, Bitmap *source, bool hasAlpha) {
     if (bimp != NULL) {
         // same colour depth, width and height -> reuse
-        if (((bimp->GetColorDepth() + 1) / 8 == bmp_bpp(source)) && 
+        if (((bimp->GetColorDepth() + 1) / 8 == source->GetBPP()) && 
             (bimp->GetWidth() == source->GetWidth()) && (bimp->GetHeight() == source->GetHeight()))
         {
             gfxDriver->UpdateDDBFromBitmap(bimp, source, hasAlpha);
@@ -1108,14 +1111,22 @@ void put_sprite_256(Bitmap *ds, int xxx,int yyy,Bitmap *piccy) {
             // 256-col spirte -> hi-color background, or
             // 16-bit sprite -> 32-bit background
             Bitmap *hctemp=BitmapHelper::CreateBitmapCopy(piccy, screen_depth);
-            int bb,cc,mask_col = ds->GetMaskColor();
+            color_t mask_col = ds->GetMaskColor();
             if (piccy->GetColorDepth() == 8) {
-                // only do this for 256-col, cos the ->Blit call converts
+                // only do this for 256-col, cos the Blit call converts
                 // transparency for 16->32 bit
                 color_t draw_color = hctemp->GetCompatibleColor(mask_col);
-                for (bb=0;bb<hctemp->GetWidth();bb++) {
-                    for (cc=0;cc<hctemp->GetHeight();cc++)
-                        if (piccy->GetPixel(bb,cc)==0) hctemp->PutPixel(bb,cc, draw_color);
+                for (int y = 0; y < hctemp->GetHeight(); ++y)
+                {
+                    const uint8_t *src_scanline = piccy->GetScanLine(y);
+                    uint8_t *dst_scanline = hctemp->GetScanLineForWriting(y);
+                    for (int x = 0; x < hctemp->GetWidth(); ++x)
+                    {
+                        if (src_scanline[x] == 0)
+                        {
+                            dst_scanline[x] = draw_color;
+                        }
+                    }
                 }
             }
             wputblock(ds, xxx,yyy,hctemp,1);

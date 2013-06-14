@@ -209,6 +209,10 @@ public:
     {
         return (index >= 0 && index < GetHeight()) ? _alBitmap->line[index] : NULL;
     }
+    inline unsigned char *GetDataForWriting()
+    {
+        return _alBitmap->line[0];
+    }
     // Copies buffer contents into scanline
     void    SetScanLine(int index, unsigned char *data, int data_size = -1);
 

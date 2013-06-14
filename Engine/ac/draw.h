@@ -26,9 +26,6 @@ namespace AGS { namespace Common { class Bitmap; } }
 namespace AGS { namespace Engine { class IDriverDependantBitmap; } }
 using namespace AGS; // FIXME later
 
-// [IKM] personally I do not see much sense in this,
-// memcpyfast alias is used only once in the Engine
-#define memcpyfast memcpy
 #define IS_ANTIALIAS_SPRITES usetup.enable_antialiasing && (play.disable_antialiasing == 0)
 
 // Allegro 4 has switched 15-bit colour to BGR instead of RGB, so

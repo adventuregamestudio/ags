@@ -607,7 +607,7 @@ void drawBlockDoubleAt (int hdc, Common::Bitmap *todraw ,int x, int y) {
 }
 
 void wputblock_stretch(Common::Bitmap *g, int xpt,int ypt,Common::Bitmap *tblock,int nsx,int nsy) {
-  if (bmp_bpp(tblock) != thisgame.color_depth) {
+  if (tblock->GetBPP() != thisgame.color_depth) {
     Common::Bitmap *tempst=Common::BitmapHelper::CreateBitmapCopy(tblock, thisgame.color_depth*8);
     int ww,vv;
     for (ww=0;ww<tblock->GetWidth();ww++) {
@@ -627,7 +627,7 @@ void draw_sprite_compensate(Common::Bitmap *g, int sprnum, int atxp, int atyp, i
   Common::Bitmap *towrite=blptr;
   int needtofree=0, main_color_depth = thisgame.color_depth * 8;
 
-  if ((bmp_bpp(blptr) > 1) & (main_color_depth==8)) {
+  if ((blptr->GetBPP() > 1) & (main_color_depth==8)) {
 
     towrite=Common::BitmapHelper::CreateBitmap(blptr->GetWidth(),blptr->GetHeight(), 8);
     needtofree=1;
@@ -2229,7 +2229,7 @@ void save_room_file(const char*rtsa)
 
   calculate_walkable_areas();
 
-  thisroom.bytes_per_pixel = bmp_bpp(thisroom.ebscene[0]);
+  thisroom.bytes_per_pixel = thisroom.ebscene[0]->GetBPP();
   int ww;
   // Fix hi-color screens
   for (ww = 0; ww < thisroom.num_bscenes; ww++)

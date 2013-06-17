@@ -627,7 +627,7 @@ namespace AGS.Editor
 			}
 			else if (item.Name == MENU_ITEM_EXPORT_FOLDER)
 			{
-				string exportFolder = Factory.GUIController.ShowSelectDirectoryDialog("Export sprites to folder...", System.IO.Directory.GetCurrentDirectory());
+				string exportFolder = Factory.GUIController.ShowSelectFolderOrNoneDialog("Export sprites to folder...", System.IO.Directory.GetCurrentDirectory());
 				if (exportFolder != null)
 				{
 					ExportAllSpritesInFolder(exportFolder);

@@ -340,7 +340,7 @@ namespace AGS.Editor
             // 
             // btnChooseFolder
             // 
-            this.btnChooseFolder.Location = new System.Drawing.Point(298, 60);
+            this.btnChooseFolder.Location = new System.Drawing.Point(321, 60);
             this.btnChooseFolder.Name = "btnChooseFolder";
             this.btnChooseFolder.Size = new System.Drawing.Size(27, 21);
             this.btnChooseFolder.TabIndex = 4;
@@ -353,7 +353,7 @@ namespace AGS.Editor
             this.txtImportPath.Location = new System.Drawing.Point(97, 60);
             this.txtImportPath.MaxLength = 0;
             this.txtImportPath.Name = "txtImportPath";
-            this.txtImportPath.Size = new System.Drawing.Size(199, 21);
+            this.txtImportPath.Size = new System.Drawing.Size(218, 21);
             this.txtImportPath.TabIndex = 3;
             // 
             // label6
@@ -420,7 +420,7 @@ namespace AGS.Editor
             "No transparency"});
             this.cmbSpriteImportTransparency.Location = new System.Drawing.Point(189, 115);
             this.cmbSpriteImportTransparency.Name = "cmbSpriteImportTransparency";
-            this.cmbSpriteImportTransparency.Size = new System.Drawing.Size(135, 21);
+            this.cmbSpriteImportTransparency.Size = new System.Drawing.Size(159, 21);
             this.cmbSpriteImportTransparency.TabIndex = 9;
             // 
             // label12
@@ -434,7 +434,7 @@ namespace AGS.Editor
             // 
             // btnSelectPaintProgram
             // 
-            this.btnSelectPaintProgram.Location = new System.Drawing.Point(297, 72);
+            this.btnSelectPaintProgram.Location = new System.Drawing.Point(321, 72);
             this.btnSelectPaintProgram.Name = "btnSelectPaintProgram";
             this.btnSelectPaintProgram.Size = new System.Drawing.Size(27, 21);
             this.btnSelectPaintProgram.TabIndex = 4;
@@ -447,7 +447,7 @@ namespace AGS.Editor
             this.txtPaintProgram.Location = new System.Drawing.Point(111, 72);
             this.txtPaintProgram.MaxLength = 0;
             this.txtPaintProgram.Name = "txtPaintProgram";
-            this.txtPaintProgram.Size = new System.Drawing.Size(185, 21);
+            this.txtPaintProgram.Size = new System.Drawing.Size(204, 21);
             this.txtPaintProgram.TabIndex = 3;
             // 
             // label11
@@ -501,7 +501,7 @@ namespace AGS.Editor
             // 
             // btnNewGameChooseFolder
             // 
-            this.btnNewGameChooseFolder.Location = new System.Drawing.Point(298, 60);
+            this.btnNewGameChooseFolder.Location = new System.Drawing.Point(321, 60);
             this.btnNewGameChooseFolder.Name = "btnNewGameChooseFolder";
             this.btnNewGameChooseFolder.Size = new System.Drawing.Size(27, 21);
             this.btnNewGameChooseFolder.TabIndex = 4;
@@ -514,7 +514,7 @@ namespace AGS.Editor
             this.txtNewGamePath.Location = new System.Drawing.Point(97, 60);
             this.txtNewGamePath.MaxLength = 0;
             this.txtNewGamePath.Name = "txtNewGamePath";
-            this.txtNewGamePath.Size = new System.Drawing.Size(199, 21);
+            this.txtNewGamePath.Size = new System.Drawing.Size(218, 21);
             this.txtNewGamePath.TabIndex = 3;
             // 
             // label13

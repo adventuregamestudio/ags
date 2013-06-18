@@ -19,10 +19,9 @@
 #include "ac/object.h"
 #include "ac/walkablearea.h"
 #include "game/game_objects.h"
-#include "gfx/graphics.h"
+#include "gfx/bitmap.h"
 
 using AGS::Common::Bitmap;
-using AGS::Common::Graphics;
 
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern int displayed_room;
@@ -36,15 +35,15 @@ void redo_walkable_areas() {
     if ((!thisroom.WalkAreaMask->IsLinearBitmap()) || (thisroom.WalkAreaMask->GetColorDepth() != 8))
         quit("Walkable areas bitmap not linear");
 
-    Graphics graphics(thisroom.WalkAreaMask);
-    graphics.Blit(walkareabackup, 0, 0, 0, 0, thisroom.WalkAreaMask->GetWidth(), thisroom.WalkAreaMask->GetHeight());
+    thisroom.WalkAreaMask->Blit(walkareabackup, 0, 0, 0, 0, thisroom.WalkAreaMask->GetWidth(), thisroom.WalkAreaMask->GetHeight());
 
     int hh,ww;
     for (hh=0;hh<walkareabackup->GetHeight();hh++) {
+        uint8_t *walls_scanline = thisroom.WalkAreaMask->GetScanLineForWriting(hh);
         for (ww=0;ww<walkareabackup->GetWidth();ww++) {
             //      if (play.WalkAreasEnabled[_getpixel(thisroom.WalkAreaMask,ww,hh)]==0)
-            if (play.WalkAreasEnabled[thisroom.WalkAreaMask->GetScanLine(hh)[ww]]==0)
-                thisroom.WalkAreaMask->PutPixel(ww,hh,0);
+            if (play.WalkAreasEnabled[walls_scanline[ww]]==0)
+                walls_scanline[ww] = 0;
         }
     }
 
@@ -127,8 +126,7 @@ int is_point_in_rect(int x, int y, int left, int top, int right, int bottom) {
 
 Bitmap *prepare_walkable_areas (int sourceChar) {
     // copy the walkable areas to the temp bitmap
-    Graphics graphics(walkable_areas_temp);
-    graphics.Blit (thisroom.WalkAreaMask, 0,0,0,0,thisroom.WalkAreaMask->GetWidth(),thisroom.WalkAreaMask->GetHeight());
+    walkable_areas_temp->Blit (thisroom.WalkAreaMask, 0,0,0,0,thisroom.WalkAreaMask->GetWidth(),thisroom.WalkAreaMask->GetHeight());
     // if the character who's moving doesn't Bitmap *, don't bother checking
     if (sourceChar < 0) ;
     else if (game.Characters[sourceChar].flags & CHF_NOBLOCKING)

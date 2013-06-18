@@ -381,10 +381,6 @@
 					RelativePath="..\..\Common\gfx\bitmap.cpp"
 					>
 				</File>
-				<File
-					RelativePath="..\..\Common\gfx\graphics.cpp"
-					>
-				</File>
 			</Filter>
 			<Filter
 				Name="core"
@@ -729,10 +725,6 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\gfx\bitmap.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Common\gfx\graphics.h"
 					>
 				</File>
 			</Filter>

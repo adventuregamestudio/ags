@@ -55,12 +55,11 @@
 #include "ac/spritecache.h"
 #include "util/stream.h"
 #include "gfx/graphicsdriver.h"
-#include "gfx/graphics.h"
 #include "core/assetmanager.h"
 #include "ac/dynobj/all_dynamicclasses.h"
+#include "gfx/bitmap.h"
 
 using AGS::Common::Bitmap;
-using AGS::Common::Graphics;
 using AGS::Common::Stream;
 using AGS::Common::String;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -195,10 +194,9 @@ Bitmap *fix_bitmap_size(Bitmap *todubl) {
     //  Bitmap *tempb=BitmapHelper::CreateBitmap(scrnwid,scrnhit);
     //todubl->SetClip(Rect(0,0,oldw-1,oldh-1)); // CHECKME! [IKM] Not sure this is needed here
     Bitmap *tempb=BitmapHelper::CreateBitmap(newWidth, newHeight, todubl->GetColorDepth());
-    Graphics graphics(tempb);
-    graphics.SetClip(Rect(0,0,tempb->GetWidth()-1,tempb->GetHeight()-1));
-    graphics.Fill(0);
-    graphics.StretchBlt(todubl, RectWH(0,0,oldw,oldh), RectWH(0,0,tempb->GetWidth(),tempb->GetHeight()));
+    tempb->SetClip(Rect(0,0,tempb->GetWidth()-1,tempb->GetHeight()-1));
+    tempb->Fill(0);
+    tempb->StretchBlt(todubl, RectWH(0,0,oldw,oldh), RectWH(0,0,tempb->GetWidth(),tempb->GetHeight()));
     delete todubl;
     return tempb;
 }
@@ -345,8 +343,8 @@ void unload_old_room() {
 
     current_fade_out_effect();
 
-    Common::Graphics *g = GetVirtualScreenGraphics();
-    g->Fill(0);
+    Bitmap *ds = GetVirtualScreen();
+    ds->Fill(0);
     for (ff=0;ff<croom->ObjectCount;ff++)
         objs[ff].Moving = 0;
 
@@ -578,9 +576,9 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     if (usetup.WantLetterbox) {
         int abscreen=0;
 
-        Common::Graphics *g = GetVirtualScreenGraphics();
-        if (g->GetBitmap()==BitmapHelper::GetScreenBitmap()) abscreen=1;
-        else if (g->GetBitmap()==virtual_screen) abscreen=2;
+        Bitmap *ds = GetVirtualScreen();
+        if (ds==BitmapHelper::GetScreenBitmap()) abscreen=1;
+        else if (ds==virtual_screen) abscreen=2;
         // if this is a 640x480 room and we're in letterbox mode, full-screen it
         int newScreenHeight = final_scrn_hit;
         if (multiply_up_coordinate(thisroom.Height) < final_scrn_hit) {
@@ -621,9 +619,9 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         gfxDriver->SetRenderOffset(get_screen_x_adjustment(virtual_screen), get_screen_y_adjustment(virtual_screen));
 
 		if (abscreen==1) //abuf=BitmapHelper::GetScreenBitmap();
-            g->SetBitmap( BitmapHelper::GetScreenBitmap() );
+            SetVirtualScreen( BitmapHelper::GetScreenBitmap() );
         else if (abscreen==2) //abuf=virtual_screen;
-            g->SetBitmap( virtual_screen );
+            SetVirtualScreen( virtual_screen );
 
         update_polled_stuff_if_runtime();
     }

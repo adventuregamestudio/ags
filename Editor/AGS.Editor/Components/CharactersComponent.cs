@@ -251,10 +251,15 @@ namespace AGS.Editor.Components
             return ITEM_COMMAND_PREFIX + character.ID;
         }
 
-        protected override void AddExtraCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
+        protected override void AddNewItemCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
         {
             menu.Add(new MenuCommand(COMMAND_NEW_ITEM, "New character", null));
-            menu.Add(new MenuCommand(COMMAND_IMPORT, "Import character...", null));            
+            menu.Add(new MenuCommand(COMMAND_IMPORT, "Import character...", null));  
+        }
+
+        protected override void AddExtraCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
+        {
+            // No more commands in this menu
         }
 
         protected override bool CanFolderBeDeleted(CharacterFolder folder)

@@ -51,7 +51,6 @@
 #include "util/string_utils.h"
 #include <math.h>
 #include "gfx/graphicsdriver.h"
-#include "gfx/graphics.h"
 #include "platform/base/override_defines.h"
 #include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_character.h"
@@ -104,6 +103,9 @@ int face_talking=-1,facetalkview=0,facetalkwait=0,facetalkframe=0;
 int facetalkloop=0, facetalkrepeat = 0, facetalkAllowBlink = 1;
 int facetalkBlinkLoop = 0;
 CharacterInfo *facetalkchar = NULL;
+// Do override default portrait position during QFG4-style speech overlay update
+bool facetalk_qfg4_override_placement_x = false;
+bool facetalk_qfg4_override_placement_y = false;
 
 // lip-sync speech settings
 int loops_per_character, text_lips_offset, char_speaking = -1;
@@ -2522,12 +2524,30 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
                 bwidth = widd - bigx;
 
             our_eip=153;
-            int draw_yp = 0, ovr_yp = get_fixed_pixel_size(20);
+            int ovr_yp = get_fixed_pixel_size(20);
+            int view_frame_x = 0;
+            int view_frame_y = 0;
+            facetalk_qfg4_override_placement_x = false;
+            facetalk_qfg4_override_placement_y = false;
+
             if (game.Options[OPT_SPEECHTYPE] == 3) {
                 // QFG4-style whole screen picture
                 closeupface = BitmapHelper::CreateBitmap(scrnwid, scrnhit, spriteset[viptr->loops[0].frames[0].pic]->GetColorDepth());
                 closeupface->Clear(0);
-                draw_yp = scrnhit/2 - spriteheight[viptr->loops[0].frames[0].pic]/2;
+                if (xx < 0 && play.SpeechPortraitPlacement)
+                {
+                    facetalk_qfg4_override_placement_x = true;
+                    view_frame_x = play.SpeechPortraitX;
+                }
+                if (yy < 0 && play.SpeechPortraitPlacement)
+                {
+                    facetalk_qfg4_override_placement_y = true;
+                    view_frame_y = play.SpeechPortraitY;
+                }
+                else
+                {
+                    view_frame_y = scrnhit/2 - spriteheight[viptr->loops[0].frames[0].pic]/2;
+                }
                 bigx = scrnwid/2 - get_fixed_pixel_size(20);
                 ovr_type = OVER_COMPLETE;
                 ovr_yp = 0;
@@ -2535,7 +2555,11 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
             }
             else {
                 // KQ6-style close-up face picture
-                if (yy < 0)
+                if (yy < 0 && play.SpeechPortraitPlacement)
+                {
+                    ovr_yp = play.SpeechPortraitY;
+                }
+                else if (yy < 0)
                     ovr_yp = adjust_y_for_guis (ovr_yp);
                 else
                     ovr_yp = yy;
@@ -2546,14 +2570,20 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
                 if (yy < 0)
                     tdyp = ovr_yp + get_textwindow_top_border_height(play.SpeechTextWindowGuiIndex);
             }
-            //->Blit(closeupface,spriteset[viptr->frames[0][0].pic],0,draw_yp);
-            Graphics graphics(closeupface);
-            DrawViewFrame(&graphics, &viptr->loops[0].frames[0], 0, draw_yp);
+            DrawViewFrame(closeupface, &viptr->loops[0].frames[0], view_frame_x, view_frame_y);
 
             int overlay_x = get_fixed_pixel_size(10);
-
             if (xx < 0) {
-                tdxp = get_fixed_pixel_size(16) + bigx + get_textwindow_border_width(play.SpeechTextWindowGuiIndex) / 2;
+                tdxp = bigx + get_textwindow_border_width(play.SpeechTextWindowGuiIndex) / 2;
+                if (play.SpeechPortraitPlacement)
+                {
+                    overlay_x = play.SpeechPortraitX;
+                    tdxp += overlay_x + get_fixed_pixel_size(6);
+                }
+                else
+                {
+                    tdxp += get_fixed_pixel_size(16);
+                }
 
                 int maxWidth = (scrnwid - tdxp) - get_fixed_pixel_size(5) - 
                     get_textwindow_border_width (play.SpeechTextWindowGuiIndex) / 2;
@@ -2572,8 +2602,19 @@ void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThoug
             // if the portrait's on the right, swap it round
             if (portrait_on_right) {
                 if ((xx < 0) || (widd < 0)) {
-                    overlay_x = (scrnwid - bigx) - get_fixed_pixel_size(5);
                     tdxp = get_fixed_pixel_size(9);
+                    if (play.SpeechPortraitPlacement)
+                    {
+                        overlay_x = (scrnwid - bigx) - play.SpeechPortraitX;
+                        int maxWidth = overlay_x - tdxp - get_fixed_pixel_size(9) - 
+                            get_textwindow_border_width (play.SpeechTextWindowGuiIndex) / 2;
+                        if (bwidth > maxWidth)
+                            bwidth = maxWidth;
+                    }
+                    else
+                    {
+                        overlay_x = (scrnwid - bigx) - get_fixed_pixel_size(5);
+                    }
                 }
                 else {
                     overlay_x = (xx + widd - bigx) - get_fixed_pixel_size(5);

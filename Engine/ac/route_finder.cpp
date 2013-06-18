@@ -25,10 +25,9 @@
 #include "game/game_objects.h"
 #include <string.h>
 #include <math.h>
-#include "gfx/graphics.h"
+#include "gfx/bitmap.h"
 
 using AGS::Common::Bitmap;
-using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 #define MANOBJNUM 99
@@ -150,8 +149,6 @@ int is_route_possible(int fromx, int fromy, int tox, int toy, Bitmap *wss)
   if (!tempw->IsMemoryBitmap())
     quit("tempw is not memory bitmap");
 
-  Graphics graphics(tempw);
-
   int dd, ff;
   // initialize array for finding widths of walkable areas
   int thisar, inarow = 0, lastarea = 0;
@@ -164,8 +161,9 @@ int is_route_possible(int fromx, int fromy, int tox, int toy, Bitmap *wss)
   }
 
   for (ff = 0; ff < tempw->GetHeight(); ff++) {
+    const uint8_t *tempw_scanline = tempw->GetScanLine(ff);
     for (dd = 0; dd < tempw->GetWidth(); dd++) {
-      thisar = tempw->GetScanLine(ff)[dd];
+      thisar = tempw_scanline[dd];
       // count how high the area is at this point
       if ((thisar == lastarea) && (thisar > 0))
         inarow++;
@@ -182,9 +180,10 @@ int is_route_possible(int fromx, int fromy, int tox, int toy, Bitmap *wss)
 
   for (dd = 0; dd < tempw->GetWidth(); dd++) {
     for (ff = 0; ff < tempw->GetHeight(); ff++) {
-      thisar = tempw->GetScanLine(ff)[dd];
+      uint8_t *tempw_scanline = tempw->GetScanLineForWriting(ff);
+      thisar = tempw_scanline[dd];
       if (thisar > 0)
-        tempw->PutPixel(dd, ff, 1);
+        tempw_scanline[dd] = 1;
       // count how high the area is at this point
       if ((thisar == lastarea) && (thisar > 0))
         inarow++;
@@ -218,7 +217,7 @@ int is_route_possible(int fromx, int fromy, int tox, int toy, Bitmap *wss)
   }
   walk_area_granularity[0] = MAX_GRANULARITY;
 
-  graphics.FloodFill(fromx, fromy, 232);
+  tempw->FloodFill(fromx, fromy, 232);
   if (tempw->GetPixel(tox, toy) != 232) 
   {
     // Destination pixel is not walkable

@@ -20,11 +20,10 @@
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
 #include "ac/spritecache.h"
+#include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
-#include "gfx/graphics.h"
 
 using AGS::Common::Bitmap;
-using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern int scrnwid,scrnhit;
@@ -174,11 +173,10 @@ void initialize_sprite (int ee) {
                 quit("Not enough memory to load sprite graphics");
             tmpdbl->Acquire ();
             curspr->Acquire ();
-            Graphics graphics(tmpdbl);
             /*#ifdef USE_CUSTOM_EXCEPTION_HANDLER
             __try {
             #endif*/
-            graphics.StretchBlt(curspr,RectWH(0,0,tmpdbl->GetWidth(),tmpdbl->GetHeight()), Common::kBitmap_Transparency);
+            tmpdbl->StretchBlt(curspr,RectWH(0,0,tmpdbl->GetWidth(),tmpdbl->GetHeight()), Common::kBitmap_Transparency);
             /*#ifdef USE_CUSTOM_EXCEPTION_HANDLER
             } __except (1) {
             // I can't trace this fault, but occasionally stretch_sprite

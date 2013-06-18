@@ -30,11 +30,10 @@
 #include <initguid.h>   // Defines DEFINE_GUID macro and enables GUID initialization
 //#include <dsound.h>
 #include "gfx/ali3d.h"
+#include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
-#include "gfx/graphics.h"
 
 using AGS::Common::Bitmap;
-using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 using namespace AGS; // FIXME later
 
@@ -254,8 +253,7 @@ void RenderToSurface(Bitmap *vscreen) {
     // bitmap (which is what "screen" is when using gfx filters)
     if (is_video_bitmap(screen))
     {
-        Graphics graphics(screen_bmp);
-		graphics.StretchBlt(vscreen,
+		screen_bmp->StretchBlt(vscreen,
 		  RectWH(0, 0, vscreen->GetWidth(), vscreen->GetHeight()),
           RectWH(screen_bmp->GetWidth() / 2 - newWidth / 2,
                  screen_bmp->GetHeight() / 2 - newHeight / 2,
@@ -263,10 +261,8 @@ void RenderToSurface(Bitmap *vscreen) {
     }
     else
     {
-      Graphics graphics(vsMemory);
-      graphics.Blit(vscreen, 0, 0, 0, 0, vscreen->GetWidth(), vscreen->GetHeight());
-      graphics.SetBitmap(screen_bmp);
-      graphics.StretchBlt(vsMemory,
+      vsMemory->Blit(vscreen, 0, 0, 0, 0, vscreen->GetWidth(), vscreen->GetHeight());
+      screen_bmp->StretchBlt(vsMemory,
 		  RectWH(0, 0, vscreen->GetWidth(), vscreen->GetHeight()),
           RectWH(screen_bmp->GetWidth() / 2 - newWidth / 2,
 		         screen_bmp->GetHeight() / 2 - newHeight / 2,

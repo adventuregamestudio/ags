@@ -18,7 +18,7 @@
 #ifndef __AGS_EE_GUI__NEWCONTROL_H
 #define __AGS_EE_GUI__NEWCONTROL_H
 
-#include "gfx/graphics.h"
+#include "gfx/bitmap.h"
 
 using namespace AGS; // FIXME later
 
@@ -27,7 +27,7 @@ struct NewControl
   int x, y, wid, hit, state, typeandflags, wlevel;
   char visible, enabled;        // not implemented
   char needredraw;
-  virtual void draw(Common::Graphics *g) = 0;
+  virtual void draw(Common::Bitmap *ds) = 0;
   virtual int pressedon() = 0;
   virtual int processmessage(int, int, long) = 0;
 

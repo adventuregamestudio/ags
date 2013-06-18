@@ -48,7 +48,6 @@
 #include "ac/spritecache.h"
 #include "util/filestream.h"
 #include "gfx/graphicsdriver.h"
-#include "gfx/graphics.h"
 #include "core/assetmanager.h"
 #include "util/misc.h"
 #include "platform/util/pe.h"
@@ -60,7 +59,6 @@
 using AGS::Common::String;
 using AGS::Common::Stream;
 using AGS::Common::Bitmap;
-using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 namespace Out = AGS::Common::Out;
 
@@ -903,10 +901,9 @@ void show_preload () {
             set_palette_range(temppal, 0, 255, 0);
 		Bitmap *screen_bmp = BitmapHelper::GetScreenBitmap();
         Bitmap *tsc = BitmapHelper::CreateBitmapCopy(splashsc, screen_bmp->GetColorDepth());
-        Graphics graphics(tsc);
-        graphics.SetBitmap(screen_bmp);
-		graphics.Fill(0);
-        graphics.StretchBlt(tsc, RectWH(0, 0, scrnwid,scrnhit), Common::kBitmap_Transparency);
+
+		screen_bmp->Fill(0);
+        screen_bmp->StretchBlt(tsc, RectWH(0, 0, scrnwid,scrnhit), Common::kBitmap_Transparency);
 
         gfxDriver->ClearDrawList();
 
@@ -959,8 +956,7 @@ void engine_setup_screen()
     virtual_screen->Clear();
     gfxDriver->SetMemoryBackBuffer(virtual_screen);
     //  ignore_mouseoff_bitmap = virtual_screen;
-    Common::Graphics *g = GetVirtualScreenGraphics();
-	g->SetBitmap(BitmapHelper::GetScreenBitmap());
+    SetVirtualScreen(BitmapHelper::GetScreenBitmap());
     our_eip=-7;
 }
 

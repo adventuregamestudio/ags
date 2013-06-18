@@ -15,52 +15,46 @@
 #define USE_CLIB
 #include "util/wgt2allg.h"
 #include "util/stream.h"
-#include "gfx/graphics.h"
 #include "core/assetmanager.h"
+#include "gfx/bitmap.h"
 
 using AGS::Common::Bitmap;
-using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 using AGS::Common::Stream;
 
-  Common::Graphics gl_VirtualScreenGraphics;
-  Common::Graphics *SetVirtualScreen(Bitmap *bitmap)
+  Common::Bitmap *gl_VirtualScreenBitmap;
+  Common::Bitmap *SetVirtualScreen(Bitmap *bitmap)
   {
     if (bitmap == NULL)
     {
-      gl_VirtualScreenGraphics.SetBitmap(BitmapHelper::GetScreenBitmap());
+      gl_VirtualScreenBitmap = BitmapHelper::GetScreenBitmap();
     }
     else
     {
-      gl_VirtualScreenGraphics.SetBitmap(bitmap);
+      gl_VirtualScreenBitmap = bitmap;
     }
-    return &gl_VirtualScreenGraphics;
+    return gl_VirtualScreenBitmap;
   }
 
   // [IKM] A very, very dangerous stuff!
   Bitmap gl_VirtualScreenWrapper;
-  Common::Graphics *SetVirtualScreenRaw(BITMAP *allegro_bitmap)
+  Common::Bitmap *SetVirtualScreenRaw(BITMAP *allegro_bitmap)
   {
     gl_VirtualScreenWrapper.WrapAllegroBitmap(allegro_bitmap, true);
     if (allegro_bitmap == NULL)
     {
-      gl_VirtualScreenGraphics.SetBitmap(BitmapHelper::GetScreenBitmap());
+      gl_VirtualScreenBitmap = BitmapHelper::GetScreenBitmap();
 	}
 	else
     {
-      gl_VirtualScreenGraphics.SetBitmap(&gl_VirtualScreenWrapper);
+      gl_VirtualScreenBitmap = &gl_VirtualScreenWrapper;
 	}
-    return &gl_VirtualScreenGraphics;
+    return gl_VirtualScreenBitmap;
   }
 
-  Common::Graphics *GetVirtualScreenGraphics()
+  Common::Bitmap *GetVirtualScreen()
   {
-      return &gl_VirtualScreenGraphics;
-  }
-
-  Common::Bitmap *GetVirtualScreenBitmap()
-  {
-      return gl_VirtualScreenGraphics.GetBitmap();
+      return gl_VirtualScreenBitmap;
   }
 
 #ifdef __cplusplus
@@ -118,8 +112,7 @@ int vesa_xres, vesa_yres;
     if (tempbitm == NULL)
       return NULL;
 
-    Graphics graphics(tempbitm);
-    graphics.Blit(src, x1, y1, 0, 0, tempbitm->GetWidth(), tempbitm->GetHeight());
+    tempbitm->Blit(src, x1, y1, 0, 0, tempbitm->GetWidth(), tempbitm->GetHeight());
     return tempbitm;
   }
 
@@ -189,22 +182,22 @@ int vesa_xres, vesa_yres;
     return 0;
   }
 
-  void wputblock(Common::Graphics *g, int xx, int yy, Bitmap *bll, int xray)
+  void wputblock(Common::Bitmap *ds, int xx, int yy, Bitmap *bll, int xray)
   {
     if (xray)
-	  g->Blit(bll, xx, yy, Common::kBitmap_Transparency);
+	  ds->Blit(bll, xx, yy, Common::kBitmap_Transparency);
     else
-      g->Blit(bll, 0, 0, xx, yy, bll->GetWidth(), bll->GetHeight());
+      ds->Blit(bll, 0, 0, xx, yy, bll->GetWidth(), bll->GetHeight());
   }
 
   Bitmap wputblock_wrapper; // [IKM] argh! :[
-  void wputblock_raw(Common::Graphics *g, int xx, int yy, BITMAP *bll, int xray)
+  void wputblock_raw(Common::Bitmap *ds, int xx, int yy, BITMAP *bll, int xray)
   {
 	wputblock_wrapper.WrapAllegroBitmap(bll, true);
     if (xray)
-      g->Blit(&wputblock_wrapper, xx, yy, Common::kBitmap_Transparency);
+      ds->Blit(&wputblock_wrapper, xx, yy, Common::kBitmap_Transparency);
     else
-      g->Blit(&wputblock_wrapper, 0, 0, xx, yy, wputblock_wrapper.GetWidth(), wputblock_wrapper.GetHeight());
+      ds->Blit(&wputblock_wrapper, 0, 0, xx, yy, wputblock_wrapper.GetWidth(), wputblock_wrapper.GetHeight());
   }
 
   const int col_lookups[32] = {
@@ -251,7 +244,8 @@ int vesa_xres, vesa_yres;
       }
     }
 
-    for (jj = 0; jj < (picc->GetWidth()) * (picc->GetHeight()); jj++) {
+    int pic_size = picc->GetWidth() * picc->GetHeight();
+    for (jj = 0; jj < pic_size; jj++) {
       int xxl = jj % (picc->GetWidth()), yyl = jj / (picc->GetWidth());
       int rr = picc->GetPixel(xxl, yyl);
       picc->PutPixel(xxl, yyl, color_mapped_table[rr]);

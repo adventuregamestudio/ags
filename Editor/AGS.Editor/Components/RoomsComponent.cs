@@ -1041,10 +1041,14 @@ namespace AGS.Editor.Components
 			}
 		}
 
-        protected override void AddExtraCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
+        protected override void AddNewItemCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
         {
             menu.Add(new MenuCommand(COMMAND_NEW_ITEM, "New room...", null));
             menu.Add(new MenuCommand(COMMAND_IMPORT_ROOM, "Import existing room...", null));
+        }
+
+        protected override void AddExtraCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
+        {
             menu.Add(MenuCommand.Separator);
             menu.Add(new MenuCommand(COMMAND_SORT_BY_NUMBER, "Sort rooms by number", null));
         }

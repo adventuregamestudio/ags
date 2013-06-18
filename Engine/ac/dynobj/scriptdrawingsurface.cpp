@@ -41,12 +41,10 @@ Bitmap* ScriptDrawingSurface::GetBitmapSurface()
     return NULL;
 }
 
-Common::Graphics drawing_surface_graphics;
-Common::Graphics *ScriptDrawingSurface::StartDrawing()
+Bitmap *ScriptDrawingSurface::StartDrawing()
 {
     //abufBackup = abuf;
-    drawing_surface_graphics.SetBitmap(this->GetBitmapSurface());
-    return &drawing_surface_graphics;
+    return this->GetBitmapSurface();
 }
 
 void ScriptDrawingSurface::FinishedDrawingReadOnly()

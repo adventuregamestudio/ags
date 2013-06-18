@@ -627,7 +627,7 @@ namespace AGS.Editor
 			}
 			else if (item.Name == MENU_ITEM_EXPORT_FOLDER)
 			{
-				string exportFolder = Factory.GUIController.ShowSelectDirectoryDialog("Export sprites to folder...", System.IO.Directory.GetCurrentDirectory());
+				string exportFolder = Factory.GUIController.ShowSelectFolderOrNoneDialog("Export sprites to folder...", System.IO.Directory.GetCurrentDirectory());
 				if (exportFolder != null)
 				{
 					ExportAllSpritesInFolder(exportFolder);
@@ -1249,9 +1249,6 @@ namespace AGS.Editor
 				{
 					menu.Items[menu.Items.Count - 1].Enabled = false;
 				}
-				menu.Items.Add(new ToolStripSeparator());
-                menu.Items.Add(new ToolStripMenuItem("Show usage...", null, onClick, MENU_ITEM_SHOW_USAGE));
-                menu.Items.Add(new ToolStripMenuItem("Change sprite number...", null, onClick, MENU_ITEM_CHANGE_SPRITE_NUMBER));
                 if (spriteList.SelectedItems.Count > 1)
                 {
                     foreach (ToolStripItem menuItem in menu.Items)
@@ -1260,6 +1257,14 @@ namespace AGS.Editor
                     }
                 }
                 menu.Items.Add(new ToolStripMenuItem("Replace sprite(s) from source...", null, onClick, MENU_ITEM_REPLACE_FROM_SOURCE));
+				menu.Items.Add(new ToolStripSeparator());
+                menu.Items.Add(new ToolStripMenuItem("Show usage...", null, onClick, MENU_ITEM_SHOW_USAGE));
+                menu.Items.Add(new ToolStripMenuItem("Change sprite number...", null, onClick, MENU_ITEM_CHANGE_SPRITE_NUMBER));
+                if (spriteList.SelectedItems.Count > 1)
+                {
+                    menu.Items[menu.Items.Count - 2].Enabled = false;
+                    menu.Items[menu.Items.Count - 1].Enabled = false;
+                }
                 menu.Items.Add(new ToolStripMenuItem("Assign to view...", null, onClick, MENU_ITEM_ASSIGN_TO_VIEW));
                 menu.Items.Add(new ToolStripSeparator());
                 menu.Items.Add(new ToolStripMenuItem("Crop sprite edges", null, onClick, MENU_ITEM_CROP_ASYMMETRIC));

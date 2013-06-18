@@ -243,14 +243,14 @@ void MergeObject(int obn) {
 
     //Bitmap *oldabuf = graphics->bmp;
     //abuf = thisroom.Backgrounds[].Graphic[play.RoomBkgFrameIndex];
-    Common::Graphics graphics(thisroom.Backgrounds[play.RoomBkgFrameIndex].Graphic);
-    if (graphics.GetBitmap()->GetColorDepth() != ObjActiveSprites[obn].Bmp->GetColorDepth())
+    Bitmap *bg_frame = thisroom.Backgrounds[play.RoomBkgFrameIndex].Graphic;
+    if (bg_frame->GetColorDepth() != ObjActiveSprites[obn].Bmp->GetColorDepth())
         quit("!MergeObject: unable to merge object due to color depth differences");
 
     int xpos = multiply_up_coordinate(objs[obn].X);
     int ypos = (multiply_up_coordinate(objs[obn].Y) - theHeight);
 
-    draw_sprite_support_alpha(&graphics, xpos, ypos, ObjActiveSprites[obn].Bmp, objs[obn].SpriteIndex);
+    draw_sprite_support_alpha(bg_frame, xpos, ypos, ObjActiveSprites[obn].Bmp, objs[obn].SpriteIndex);
     invalidate_screen();
     mark_current_background_dirty();
 

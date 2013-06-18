@@ -46,10 +46,8 @@
 #include "ac/spritecache.h"
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
-#include "gfx/graphics.h"
 
 using AGS::Common::Bitmap;
-using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern ccInstance *dialogScriptsInst;
@@ -318,33 +316,34 @@ int run_dialog_script(DialogTopic*dtpp, int dialogID, int offse, int optionIndex
   return result;
 }
 
-int write_dialog_options(Common::Graphics *g, int dlgxp, int curyp, int numdisp, int mouseison, int areawid,
+int write_dialog_options(Bitmap *ds, int dlgxp, int curyp, int numdisp, int mouseison, int areawid,
     int bullet_wid, int usingfont, DialogTopic*dtop, char*disporder, short*dispyp,
     int txthit, int utextcol) {
   int ww;
 
+  color_t text_color;
   for (ww=0;ww<numdisp;ww++) {
 
     if ((dtop->optionflags[disporder[ww]] & DFLG_HASBEENCHOSEN) &&
         (play.DialogOptionReadColour >= 0)) {
       // 'read' colour
-      g->SetTextColor(play.DialogOptionReadColour);
+      text_color = ds->GetCompatibleColor(play.DialogOptionReadColour);
     }
     else {
       // 'unread' colour
-      g->SetTextColor(playerchar->talkcolor);
+      text_color = ds->GetCompatibleColor(playerchar->talkcolor);
     }
 
     if (mouseison==ww) {
-      if (g->GetTextColor()==g->GetBitmap()->GetCompatibleColor(utextcol))
-        g->SetTextColor(13); // the normal colour is the same as highlight col
-      else g->SetTextColor(utextcol);
+      if (text_color == ds->GetCompatibleColor(utextcol))
+        text_color = ds->GetCompatibleColor(13); // the normal colour is the same as highlight col
+      else text_color = ds->GetCompatibleColor(utextcol);
     }
 
     break_up_text_into_lines(areawid-(8+bullet_wid),usingfont,get_translation(dtop->optionnames[disporder[ww]]));
     dispyp[ww]=curyp;
     if (game.DialogBulletSprIndex > 0)
-      wputblock(g, dlgxp,curyp,spriteset[game.DialogBulletSprIndex],1);
+      wputblock(ds, dlgxp,curyp,spriteset[game.DialogBulletSprIndex],1);
     int cc;
     if (game.Options[OPT_DIALOGNUMBERED]) {
       char tempbfr[20];
@@ -353,10 +352,10 @@ int write_dialog_options(Common::Graphics *g, int dlgxp, int curyp, int numdisp,
         actualpicwid = spritewidth[game.DialogBulletSprIndex]+3;
 
       sprintf (tempbfr, "%d.", ww + 1);
-      wouttext_outline (g, dlgxp + actualpicwid, curyp, usingfont, tempbfr);
+      wouttext_outline (ds, dlgxp + actualpicwid, curyp, usingfont, text_color, tempbfr);
     }
     for (cc=0;cc<numlines;cc++) {
-      wouttext_outline(g, dlgxp+((cc==0) ? 0 : 9)+bullet_wid, curyp, usingfont, lines[cc]);
+      wouttext_outline(ds, dlgxp+((cc==0) ? 0 : 9)+bullet_wid, curyp, usingfont, text_color, lines[cc]);
       curyp+=txthit;
     }
     if (ww < numdisp-1)
@@ -377,15 +376,13 @@ int write_dialog_options(Common::Graphics *g, int dlgxp, int curyp, int numdisp,
  }
 
 
-void draw_gui_for_dialog_options(Common::Graphics *g, GUIMain *guib, int dlgxp, int dlgyp) {
+void draw_gui_for_dialog_options(Bitmap *ds, GUIMain *guib, int dlgxp, int dlgyp) {
   if (guib->bgcol != 0) {
-    g->SetDrawColor(guib->bgcol);
-    g->FillRect(Rect(dlgxp, dlgyp, dlgxp + guib->wid, dlgyp + guib->hit));
+    color_t draw_color = ds->GetCompatibleColor(guib->bgcol);
+    ds->FillRect(Rect(dlgxp, dlgyp, dlgxp + guib->wid, dlgyp + guib->hit), draw_color);
   }
   if (guib->bgpic > 0)
-    put_sprite_256 (g, dlgxp, dlgyp, spriteset[guib->bgpic]);
-
-  g->SetDrawColor(0);
+    put_sprite_256 (ds, dlgxp, dlgyp, spriteset[guib->bgpic]);
 }
 
 bool get_custom_dialog_options_dimensions(int dlgnum)
@@ -533,9 +530,9 @@ void DialogOptions::Show()
   }
 
   //get_real_screen();
-  Common::Graphics *g = SetVirtualScreen(virtual_screen);
+    Bitmap *ds = SetVirtualScreen(virtual_screen);
+    color_t draw_color = ds->GetCompatibleColor(0);
 
-    g->SetDrawColor(0); //g->FillRect(Rect(0,dlgyp-1,scrnwid-1,dlgyp+numdisp*txthit+1);
     is_textwindow = 0;
     forecol = 14;
 
@@ -567,7 +564,7 @@ void DialogOptions::Show()
       else {
         dlgxp = guib->x;
         dlgyp = guib->y;
-        draw_gui_for_dialog_options(g, guib, dlgxp, dlgyp);
+        draw_gui_for_dialog_options(ds, guib, dlgxp, dlgyp);
 
         dirtyx = dlgxp;
         dirtyy = dlgyp;
@@ -590,7 +587,7 @@ void DialogOptions::Show()
       areawid=scrnwid-5;
       GET_OPTIONS_HEIGHT
       dlgyp = scrnhit - needheight;
-      g->FillRect(Rect(0,dlgyp-1,scrnwid-1,scrnhit-1));
+      ds->FillRect(Rect(0,dlgyp-1,scrnwid-1,scrnhit-1), draw_color);
 
       dirtyx = 0;
       dirtyy = dlgyp - 1;
@@ -630,7 +627,7 @@ void DialogOptions::Redraw()
     }
 
     tempScrn->ClearTransparent();
-    Common::Graphics *g = SetVirtualScreen(tempScrn);
+    Bitmap *ds = SetVirtualScreen(tempScrn);
 
     dlgxp = orixp;
     dlgyp = oriyp;
@@ -687,9 +684,9 @@ void DialogOptions::Redraw()
         xspos = (scrnwid - areawid) - get_fixed_pixel_size(10);
 
       // needs to draw the right text window, not the default
-      push_screen(g);
-      draw_text_window(g, &txoffs,&tyoffs,&xspos,&yspos,&areawid,needheight, game.Options[OPT_DIALOGIFACE]);
-      g = pop_screen();
+      push_screen(ds);
+      draw_text_window(ds, &txoffs,&tyoffs,&xspos,&yspos,&areawid,needheight, game.Options[OPT_DIALOGIFACE]);
+      ds = pop_screen();
       // snice draw_text_window incrases the width, restore it
       areawid = savedwid;
       //wnormscreen();
@@ -699,14 +696,14 @@ void DialogOptions::Redraw()
       dirtywidth = screenop->GetWidth();
       dirtyheight = screenop->GetHeight();
 
-      wputblock(g, xspos,yspos,screenop,1);
+      wputblock(ds, xspos,yspos,screenop,1);
       delete screenop; screenop = NULL;
 
       // Ignore the dialog_options_x/y offsets when using a text window
       txoffs += xspos;
       tyoffs += yspos;
       dlgyp = tyoffs;
-      curyp = write_dialog_options(g, txoffs,tyoffs,numdisp,mouseison,areawid,bullet_wid,usingfont,dtop,disporder,dispyp,txthit,forecol);
+      curyp = write_dialog_options(ds, txoffs,tyoffs,numdisp,mouseison,areawid,bullet_wid,usingfont,dtop,disporder,dispyp,txthit,forecol);
       if (parserInput)
         parserInput->x = txoffs;
     }
@@ -716,13 +713,13 @@ void DialogOptions::Redraw()
         // redraw the black background so that anti-alias
         // fonts don't re-alias themselves
         if (game.Options[OPT_DIALOGIFACE] == 0) {
-          g->SetDrawColor(16);
-          g->FillRect(Rect(0,dlgyp-1,scrnwid-1,scrnhit-1));
+          color_t draw_color = ds->GetCompatibleColor(16);
+          ds->FillRect(Rect(0,dlgyp-1,scrnwid-1,scrnhit-1), draw_color);
         }
         else {
           GUIMain* guib = &guis[game.Options[OPT_DIALOGIFACE]];
           if (!guib->is_textwindow())
-            draw_gui_for_dialog_options(g, guib, dlgxp, dlgyp);
+            draw_gui_for_dialog_options(ds, guib, dlgxp, dlgyp);
         }
       }
 
@@ -753,11 +750,11 @@ void DialogOptions::Redraw()
 
       //curyp = dlgyp + 1;
       curyp = dlgyp;
-      curyp = write_dialog_options(g, dlgxp,curyp,numdisp,mouseison,areawid,bullet_wid,usingfont,dtop,disporder,dispyp,txthit,forecol);
+      curyp = write_dialog_options(ds, dlgxp,curyp,numdisp,mouseison,areawid,bullet_wid,usingfont,dtop,disporder,dispyp,txthit,forecol);
 
       /*if (curyp > scrnhit) {
         dlgyp = scrnhit - (curyp - dlgyp);
-        g->FillRect(Rect(0,dlgyp-1,scrnwid-1,scrnhit-1);
+        ds->FillRect(Rect(0,dlgyp-1,scrnwid-1,scrnhit-1);
         goto redraw_options;
       }*/
       if (parserInput)
@@ -773,17 +770,17 @@ void DialogOptions::Redraw()
         parserInput->textcol = forecol;
 
       if (game.DialogBulletSprIndex)  // the parser X will get moved in a second
-        wputblock(g, parserInput->x, parserInput->y, spriteset[game.DialogBulletSprIndex], 1);
+        wputblock(ds, parserInput->x, parserInput->y, spriteset[game.DialogBulletSprIndex], 1);
 
       parserInput->wid -= bullet_wid;
       parserInput->x += bullet_wid;
 
-      parserInput->Draw(g);
+      parserInput->Draw(ds);
       parserInput->activated = 0;
     }
 
     wantRefresh = 0;
-    g = SetVirtualScreen(virtual_screen);
+    ds = SetVirtualScreen(virtual_screen);
 
     update_polled_stuff_if_runtime();
 
@@ -792,15 +789,14 @@ void DialogOptions::Redraw()
 
     update_polled_stuff_if_runtime();
 
-    Graphics graphics(subBitmap);
     if (usingCustomRendering)
     {
-      graphics.Blit(tempScrn, 0, 0, 0, 0, tempScrn->GetWidth(), tempScrn->GetHeight());
+      subBitmap->Blit(tempScrn, 0, 0, 0, 0, tempScrn->GetWidth(), tempScrn->GetHeight());
       invalidate_rect(dirtyx, dirtyy, dirtyx + subBitmap->GetWidth(), dirtyy + subBitmap->GetHeight());
     }
     else
     {
-      graphics.Blit(tempScrn, dirtyx, dirtyy, 0, 0, dirtywidth, dirtyheight);
+      subBitmap->Blit(tempScrn, dirtyx, dirtyy, 0, 0, dirtywidth, dirtyheight);
     }
 
     if ((ddb != NULL) && 

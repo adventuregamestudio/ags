@@ -154,16 +154,15 @@ void WFNFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
   set_our_eip(415);
 
   render_wrapper.WrapAllegroBitmap(destination, true);
-  Common::Graphics graphics(&render_wrapper);
-  graphics.SetTextColor(colour);
+  color_t text_color = render_wrapper.GetCompatibleColor(colour);
 
   for (ee = 0; ee < strlen(text); ee++)
-    x += printchar(&graphics, x, y, fontNumber, text[ee]);
+    x += printchar(&render_wrapper, x, y, fontNumber, text_color, text[ee]);
 
   set_our_eip(oldeip);
 }
 
-int WFNFontRenderer::printchar(Common::Graphics *g, int xxx, int yyy, int fontNumber, int charr)
+int WFNFontRenderer::printchar(Bitmap *ds, int xxx, int yyy, int fontNumber, color_t text_color, int charr)
 {
   wgtfont foo = fonts[fontNumber];
   //unsigned short *tabaddr = (unsigned short *)&foo[15];
@@ -195,17 +194,17 @@ int WFNFontRenderer::printchar(Common::Graphics *g, int xxx, int yyy, int fontNu
   bytewid = ((charWidth - 1) / 8) + 1;
 
   // MACPORT FIX: switch now using charWidth and charHeight
-  g->SetDrawColorExact(g->GetTextColor());
+  color_t draw_color = text_color;
   for (tt = 0; tt < charHeight; tt++) {
     for (ss = 0; ss < charWidth; ss++) {
       if (((actdata[tt * bytewid + (ss / 8)] & (0x80 >> (ss % 8))) != 0)) {
         if (wtext_multiply > 1) {
-          g->FillRect(Rect(xxx + ss, yyy + tt, xxx + ss + (wtext_multiply - 1),
-              yyy + tt + (wtext_multiply - 1)));
+          ds->FillRect(Rect(xxx + ss, yyy + tt, xxx + ss + (wtext_multiply - 1),
+              yyy + tt + (wtext_multiply - 1)), draw_color);
         } 
         else
         {
-            g->PutPixel(xxx + ss, yyy + tt);
+            ds->PutPixel(xxx + ss, yyy + tt, draw_color);
         }
       }
 

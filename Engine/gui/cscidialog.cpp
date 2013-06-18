@@ -68,12 +68,12 @@ int controlid = 0;
 
 //-----------------------------------------------------------------------------
 
-void __my_wbutt(Common::Graphics *g, int x1, int y1, int x2, int y2)
+void __my_wbutt(Bitmap *ds, int x1, int y1, int x2, int y2)
 {
-    g->SetDrawColor(COL254);            //wsetcolor(15);
-    g->FillRect(Rect(x1, y1, x2, y2));
-    g->SetDrawColor(0);
-    g->DrawRect(Rect(x1, y1, x2, y2));
+    color_t draw_color = ds->GetCompatibleColor(COL254);            //wsetcolor(15);
+    ds->FillRect(Rect(x1, y1, x2, y2), draw_color);
+    draw_color = ds->GetCompatibleColor(0);
+    ds->DrawRect(Rect(x1, y1, x2, y2), draw_color);
 }
 
 //-----------------------------------------------------------------------------
@@ -84,7 +84,7 @@ int WINAPI _export CSCIGetVersion()
 }
 
 int windowcount = 0, curswas = 0;
-int WINAPI _export CSCIDrawWindow(Common::Graphics *g, int xx, int yy, int wid, int hit)
+int WINAPI _export CSCIDrawWindow(Bitmap *ds, int xx, int yy, int wid, int hit)
 {
     ignore_bounds++;
     multiply_up(&xx, &yy, &wid, &hit);
@@ -105,10 +105,10 @@ int WINAPI _export CSCIDrawWindow(Common::Graphics *g, int xx, int yy, int wid, 
     yy -= 2;
     wid += 4;
     hit += 4;
-    oswi[drawit].buffer = wnewblock(g->GetBitmap(), xx, yy, xx + wid, yy + hit);
+    oswi[drawit].buffer = wnewblock(ds, xx, yy, xx + wid, yy + hit);
     oswi[drawit].x = xx;
     oswi[drawit].y = yy;
-    __my_wbutt(g, xx + 1, yy + 1, xx + wid - 1, yy + hit - 1);    // wbutt goes outside its area
+    __my_wbutt(ds, xx + 1, yy + 1, xx + wid - 1, yy + hit - 1);    // wbutt goes outside its area
     //  domouse(1);
     oswi[drawit].oldtop = topwindowhandle;
     topwindowhandle = drawit;
@@ -119,19 +119,19 @@ int WINAPI _export CSCIDrawWindow(Common::Graphics *g, int xx, int yy, int wid, 
     return drawit;
 }
 
-void WINAPI _export CSCIEraseWindow(Common::Graphics *g, int handl)
+void WINAPI _export CSCIEraseWindow(Bitmap *ds, int handl)
 {
     //  domouse(2);
     ignore_bounds--;
     topwindowhandle = oswi[handl].oldtop;
-    wputblock(g, oswi[handl].x, oswi[handl].y, oswi[handl].buffer, 0);
+    wputblock(ds, oswi[handl].x, oswi[handl].y, oswi[handl].buffer, 0);
     delete oswi[handl].buffer;
     //  domouse(1);
     oswi[handl].buffer = NULL;
     windowcount--;
 }
 
-int WINAPI _export CSCIWaitMessage(Common::Graphics *g, CSCIMessage * cscim)
+int WINAPI _export CSCIWaitMessage(Bitmap *ds, CSCIMessage * cscim)
 {
     NextIteration();
     for (int uu = 0; uu < MAXCONTROLS; uu++) {
@@ -142,7 +142,7 @@ int WINAPI _export CSCIWaitMessage(Common::Graphics *g, CSCIMessage * cscim)
         }
     }
 
-    windowBuffer = BitmapHelper::CreateBitmap(windowPosWidth, windowPosHeight, g->GetBitmap()->GetColorDepth());
+    windowBuffer = BitmapHelper::CreateBitmap(windowPosWidth, windowPosHeight, ds->GetColorDepth());
     windowBuffer = gfxDriver->ConvertBitmapToSupportedColourDepth(windowBuffer);
     dialogBmp = gfxDriver->CreateDDBFromBitmap(windowBuffer, false, true);
 
@@ -236,7 +236,7 @@ int WINAPI _export CSCICreateControl(int typeandflags, int xx, int yy, int wii, 
     vobjs[usec]->typeandflags = typeandflags;
     vobjs[usec]->wlevel = topwindowhandle;
     //  domouse(2);
-    vobjs[usec]->draw(GetVirtualScreenGraphics());
+    vobjs[usec]->draw(GetVirtualScreen());
     //  domouse(1);
     return usec;
 }

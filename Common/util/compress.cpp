@@ -339,7 +339,7 @@ long save_lzw(char *fnn, Bitmap *bmpp, const color *pall, long offe) {
   lz_temp_s = ci_fopen(lztempfnm, Common::kFile_CreateAlways, Common::kFile_Write);
   lz_temp_s->WriteInt32(bmpp->GetWidth() * bmpp->GetBPP());
   lz_temp_s->WriteInt32(bmpp->GetHeight());
-  lz_temp_s->WriteArray(&bmpp->GetScanLine(0)[0], bmpp->GetWidth() * bmpp->GetBPP(), bmpp->GetHeight());
+  lz_temp_s->WriteArray(bmpp->GetDataForWriting(), bmpp->GetLineLength(), bmpp->GetHeight());
   delete lz_temp_s;
 
   out = ci_fopen(fnn, Common::kFile_Open, Common::kFile_ReadWrite);
@@ -464,7 +464,7 @@ long savecompressed_allegro(char *fnn, Common::Bitmap *bmpp, const color *pall, 
   sss[0] = bmpp->GetWidth();
   sss[1] = bmpp->GetHeight();
 
-  memcpy(&wgtbl[4], &bmpp->GetScanLine(0)[0], bmpp->GetWidth() * bmpp->GetHeight());
+  memcpy(&wgtbl[4], bmpp->GetDataForWriting(), bmpp->GetWidth() * bmpp->GetHeight());
 
   toret = csavecompressed(fnn, wgtbl, pall, write_at);
   free(wgtbl);

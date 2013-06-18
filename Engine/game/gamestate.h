@@ -37,6 +37,8 @@ using Common::ObjectArray;
 using Common::Stream;
 using Common::String;
 
+#define GAME_STATE_RESERVED_INTS 7
+
 class GameState
 {
 public:
@@ -136,7 +138,10 @@ public:
     int32_t     KeepScreenDuringInstantTransition;
     int32_t     DialogOptionReadColour;     // color of dialog options that were read at least once
     int32_t     StopDialogAtEnd;            // ????
-    int32_t     Reserved[10];
+    int32_t     SpeechPortraitPlacement;    // speech portrait placement mode (automatic/custom)
+    int32_t     SpeechPortraitX;            // a speech portrait x offset from corresponding screen side
+    int32_t     SpeechPortraitY;            // a speech portrait y offset 
+    int32_t     Reserved[GAME_STATE_RESERVED_INTS];
     // ** up to here is referenced in the script "game." object
     //-----------------------------------------------------
     // end of exported part

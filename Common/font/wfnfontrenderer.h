@@ -29,7 +29,7 @@ public:
   virtual void EnsureTextValidForFont(char *text, int fontNumber);
 
 private:
-  int printchar(Common::Graphics *g, int xxx, int yyy, int fontNumber, int charr);
+  int printchar(Common::Bitmap *g, int xxx, int yyy, int fontNumber, color_t text_color, int charr);
   bool extendedCharacters[MAX_FONTS];
 };
 

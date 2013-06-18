@@ -29,13 +29,11 @@
 #include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
 #include "ac/spritecache.h"
-#include "gfx/graphics.h"
 #include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_character.h"
 #include "ac/dynobj/cc_inventory.h"
 
 using AGS::Common::Bitmap;
-using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern int guis_need_update;
@@ -219,7 +217,7 @@ void InventoryScreen::Prepare()
 
 int InventoryScreen::Redraw()
 {
-    Common::Graphics *g = SetVirtualScreen(virtual_screen);
+    Bitmap *ds = SetVirtualScreen(virtual_screen);
 
     numitems=0;
     widest=0;
@@ -267,43 +265,42 @@ int InventoryScreen::Redraw()
     windowxp=scrnwid/2-windowwid/2;
     windowyp=scrnhit/2-windowhit/2;
     buttonyp=windowyp+windowhit-BUTTONAREAHEIGHT;
-    g->SetDrawColor(play.SierraInventoryBkgColour);
-    g->FillRect(Rect(windowxp,windowyp,windowxp+windowwid,windowyp+windowhit));
-    g->SetDrawColor(0); 
+    color_t draw_color = ds->GetCompatibleColor(play.SierraInventoryBkgColour);
+    ds->FillRect(Rect(windowxp,windowyp,windowxp+windowwid,windowyp+windowhit), draw_color);
+    draw_color = ds->GetCompatibleColor(0); 
     bartop = windowyp + get_fixed_pixel_size(2);
     barxp = windowxp + get_fixed_pixel_size(2);
-    g->FillRect(Rect(barxp,bartop, windowxp + windowwid - get_fixed_pixel_size(2),buttonyp-1));
+    ds->FillRect(Rect(barxp,bartop, windowxp + windowwid - get_fixed_pixel_size(2),buttonyp-1), draw_color);
     for (int i = top_item; i < numitems; ++i) {
         if (i >= top_item + num_visible_items)
             break;
         Bitmap *spof=spriteset[dii[i].sprnum];
-        wputblock(g, barxp+1+((i-top_item)%4)*widest+widest/2-spof->GetWidth()/2,
+        wputblock(ds, barxp+1+((i-top_item)%4)*widest+widest/2-spof->GetWidth()/2,
             bartop+1+((i-top_item)/4)*highest+highest/2-spof->GetHeight()/2,spof,1);
     }
     if ((spriteset[2041] == NULL) || (spriteset[2042] == NULL) || (spriteset[2043] == NULL))
         quit("!InventoryScreen: one or more of the inventory screen graphics have been deleted");
 #define BUTTONWID spritewidth[2042]
     // Draw select, look and OK buttons
-    wputblock(g, windowxp+2, buttonyp + get_fixed_pixel_size(2), spriteset[2041], 1);
-    wputblock(g, windowxp+3+BUTTONWID, buttonyp + get_fixed_pixel_size(2), spriteset[2042], 1);
-    wputblock(g, windowxp+4+BUTTONWID*2, buttonyp + get_fixed_pixel_size(2), spriteset[2043], 1);
+    wputblock(ds, windowxp+2, buttonyp + get_fixed_pixel_size(2), spriteset[2041], 1);
+    wputblock(ds, windowxp+3+BUTTONWID, buttonyp + get_fixed_pixel_size(2), spriteset[2042], 1);
+    wputblock(ds, windowxp+4+BUTTONWID*2, buttonyp + get_fixed_pixel_size(2), spriteset[2043], 1);
 
     // Draw Up and Down buttons if required
     Bitmap *arrowblock = BitmapHelper::CreateTransparentBitmap (ARROWBUTTONWID, ARROWBUTTONWID);
-    Graphics graphics(arrowblock);
-    g->SetDrawColor(0);
+    draw_color = arrowblock->GetCompatibleColor(0);
     if (play.SierraInventoryBkgColour == 0)
-        g->SetDrawColor(14);
+        draw_color = ds->GetCompatibleColor(14);
 
-    graphics.DrawLine(Line(ARROWBUTTONWID/2, 2, ARROWBUTTONWID-2, 9));
-    graphics.DrawLine(Line(ARROWBUTTONWID/2, 2, 2, 9));
-    graphics.DrawLine(Line(2, 9, ARROWBUTTONWID-2, 9));
-	graphics.FloodFill(ARROWBUTTONWID/2, 4);
+    arrowblock->DrawLine(Line(ARROWBUTTONWID/2, 2, ARROWBUTTONWID-2, 9), draw_color);
+    arrowblock->DrawLine(Line(ARROWBUTTONWID/2, 2, 2, 9), draw_color);
+    arrowblock->DrawLine(Line(2, 9, ARROWBUTTONWID-2, 9), draw_color);
+	arrowblock->FloodFill(ARROWBUTTONWID/2, 4, draw_color);
 
     if (top_item > 0)
-        wputblock(g, windowxp+windowwid-ARROWBUTTONWID, buttonyp + get_fixed_pixel_size(2), arrowblock, 1);
+        wputblock(ds, windowxp+windowwid-ARROWBUTTONWID, buttonyp + get_fixed_pixel_size(2), arrowblock, 1);
     if (top_item + num_visible_items < numitems)
-        graphics.FlipBlt(arrowblock, windowxp+windowwid-ARROWBUTTONWID, buttonyp + get_fixed_pixel_size(4) + ARROWBUTTONWID, Common::kBitmap_VFlip);
+        arrowblock->FlipBlt(arrowblock, windowxp+windowwid-ARROWBUTTONWID, buttonyp + get_fixed_pixel_size(4) + ARROWBUTTONWID, Common::kBitmap_VFlip);
     delete arrowblock;
 
     domouse(1);
@@ -433,15 +430,16 @@ bool InventoryScreen::Run()
         else if (isonitem!=wasonitem) { domouse(2);
         int rectxp=barxp+1+(wasonitem%4)*widest;
         int rectyp=bartop+1+((wasonitem - top_item)/4)*highest;
-        Common::Graphics *g = SetVirtualScreen(virtual_screen);
+        Bitmap *ds = SetVirtualScreen(virtual_screen);
+        color_t draw_color;
         if (wasonitem>=0) {
-            g->SetDrawColor(0);
-            g->DrawRect(Rect(rectxp,rectyp,rectxp+widest-1,rectyp+highest-1));
+            draw_color = ds->GetCompatibleColor(0);
+            ds->DrawRect(Rect(rectxp,rectyp,rectxp+widest-1,rectyp+highest-1), draw_color);
         }
-        if (isonitem>=0) { g->SetDrawColor(14);//opts.invrectcol);
+        if (isonitem>=0) { draw_color = ds->GetCompatibleColor(14);//opts.invrectcol);
         rectxp=barxp+1+(isonitem%4)*widest;
         rectyp=bartop+1+((isonitem - top_item)/4)*highest;
-        g->DrawRect(Rect(rectxp,rectyp,rectxp+widest-1,rectyp+highest-1));
+        ds->DrawRect(Rect(rectxp,rectyp,rectxp+widest-1,rectyp+highest-1), draw_color);
         }
         domouse(1);
         }

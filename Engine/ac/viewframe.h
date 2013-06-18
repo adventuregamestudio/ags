@@ -21,6 +21,7 @@
 #include "ac/view.h"
 #include "ac/dynobj/scriptaudioclip.h"
 #include "ac/dynobj/scriptviewframe.h"
+#include "gfx/bitmap.h"
 
 namespace AGS { namespace Common { class Graphics; } }
 using namespace AGS; // FIXME later
@@ -41,6 +42,6 @@ void allocate_memory_for_views(int viewCount);
 void precache_view(int view);
 void CheckViewFrame (int view, int loop, int frame);
 // draws a view frame, flipped if appropriate
-void DrawViewFrame(Common::Graphics *g, ViewFrame *vframe, int x, int y);
+void DrawViewFrame(Common::Bitmap *ds, ViewFrame *vframe, int x, int y);
 
 #endif // __AGS_EE_AC__VIEWFRAME_H

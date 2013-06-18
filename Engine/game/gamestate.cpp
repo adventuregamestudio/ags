@@ -108,7 +108,10 @@ void GameState::ReadFromFile_v321(Stream *in)
     KeepScreenDuringInstantTransition = in->ReadInt32();
     DialogOptionReadColour = in->ReadInt32();
     StopDialogAtEnd = in->ReadInt32();
-    in->ReadArrayOfInt32(Reserved, 10);
+    SpeechPortraitPlacement = in->ReadInt32();
+    SpeechPortraitX = in->ReadInt32();
+    SpeechPortraitY = in->ReadInt32();
+    in->ReadArrayOfInt32(Reserved, GAME_STATE_RESERVED_INTS);
     // ** up to here is referenced in the script "game." object
     IsRecording = in->ReadInt32();   // user is recording their moves
     IsPlayback = in->ReadInt32();    // playing back recording
@@ -287,7 +290,10 @@ void GameState::WriteToFile_v321(Stream *out)
     out->WriteInt32(KeepScreenDuringInstantTransition);
     out->WriteInt32(DialogOptionReadColour);
     out->WriteInt32(StopDialogAtEnd);
-    out->WriteArrayOfInt32(Reserved, 10);
+    out->WriteInt32(SpeechPortraitPlacement);
+    out->WriteInt32(SpeechPortraitX);
+    out->WriteInt32(SpeechPortraitY);
+    out->WriteArrayOfInt32(Reserved, GAME_STATE_RESERVED_INTS);
     // ** up to here is referenced in the script "game." object
     out->WriteInt32(IsRecording);   // user is recording their moves
     out->WriteInt32(IsPlayback);    // playing back recording
@@ -469,6 +475,9 @@ void GameState::ReadFromSavedGame(Stream *in)
     KeepScreenDuringInstantTransition = in->ReadInt32();
     DialogOptionReadColour = in->ReadInt32();
     StopDialogAtEnd = in->ReadInt32();
+    SpeechPortraitPlacement = in->ReadInt32();
+    SpeechPortraitX = in->ReadInt32();
+    SpeechPortraitY = in->ReadInt32();
     // ** up to here is referenced in the script "game." object
     RandomSeed = in->ReadInt32();    // random seed
     PlayerOnRegionIndex = in->ReadInt32();    // player's current region
@@ -649,6 +658,9 @@ void GameState::WriteToSavedGame(Stream *out)
     out->WriteInt32(KeepScreenDuringInstantTransition);
     out->WriteInt32(DialogOptionReadColour);
     out->WriteInt32(StopDialogAtEnd);
+    out->WriteInt32(SpeechPortraitPlacement);
+    out->WriteInt32(SpeechPortraitX);
+    out->WriteInt32(SpeechPortraitY);
     // ** up to here is referenced in the script "game." object
     out->WriteInt32(RandomSeed);    // random seed
     out->WriteInt32(PlayerOnRegionIndex);    // player's current region

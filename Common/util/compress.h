@@ -48,7 +48,4 @@ long loadcompressed_allegro(Common::Stream *in, Common::Bitmap **bimpp, color *p
 //extern char *lztempfnm;
 extern Common::Bitmap *recalced;
 
-// returns bytes per pixel for bitmap's color depth
-int bmp_bpp(Common::Bitmap*bmpt);
-
 #endif // __AC_COMPRESS_H

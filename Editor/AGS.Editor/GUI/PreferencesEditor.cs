@@ -95,27 +95,9 @@ namespace AGS.Editor
 			btnChooseFolder.Enabled = txtImportPath.Enabled;
 		}
 
-		private string ShowFolderSelectionDialog(string defaultPath)
-		{
-			string result = defaultPath;
-			FolderBrowserDialog dialog = new FolderBrowserDialog();
-			dialog.Description = "Please select the folder that you wish to import files from.";
-			dialog.ShowNewFolderButton = false;
-			if (defaultPath.Length > 0)
-			{
-				dialog.SelectedPath = defaultPath;
-			}
-			if (dialog.ShowDialog() == DialogResult.OK)
-			{
-				result = dialog.SelectedPath;
-			}
-			dialog.Dispose();
-			return result;
-		}
-
 		private void btnChooseFolder_Click(object sender, EventArgs e)
 		{
-			txtImportPath.Text = ShowFolderSelectionDialog(txtImportPath.Text);
+            txtImportPath.Text = Factory.GUIController.ShowSelectFolderOrDefaultDialog("Please select the folder that you wish to import files from.", txtImportPath.Text, false);
 		}
 
 		private void btnSelectPaintProgram_Click(object sender, EventArgs e)
@@ -140,7 +122,7 @@ namespace AGS.Editor
 
 		private void btnNewGameChooseFolder_Click(object sender, EventArgs e)
 		{
-			txtNewGamePath.Text = ShowFolderSelectionDialog(txtNewGamePath.Text);
+            txtNewGamePath.Text = Factory.GUIController.ShowSelectFolderOrDefaultDialog("Please select the folder that you wish to make a default for your projects.", txtNewGamePath.Text);
 		}
 
 		private void radNewGameMyDocs_CheckedChanged(object sender, EventArgs e)

@@ -52,18 +52,18 @@ void GUITextBox::ReadFromSavedGame(Common::Stream *in, RuntimeGUIVersion gui_ver
     in->ReadArrayOfInt32(&font, 3);
 }
 
-void GUITextBox::Draw(Common::Graphics *g)
+void GUITextBox::Draw(Bitmap *ds)
 {
   check_font(&font);
-  g->SetTextColor(textcol);
-  g->SetDrawColor(textcol);
+  color_t text_color = ds->GetCompatibleColor(textcol);
+  color_t draw_color = ds->GetCompatibleColor(textcol);
   if ((exflags & GTF_NOBORDER) == 0) {
-    g->DrawRect(Rect(x, y, x + wid - 1, y + hit - 1));
+    ds->DrawRect(Rect(x, y, x + wid - 1, y + hit - 1), draw_color);
     if (get_fixed_pixel_size(1) > 1)
-      g->DrawRect(Rect(x + 1, y + 1, x + wid - get_fixed_pixel_size(1), y + hit - get_fixed_pixel_size(1)));
+      ds->DrawRect(Rect(x + 1, y + 1, x + wid - get_fixed_pixel_size(1), y + hit - get_fixed_pixel_size(1)), draw_color);
   }
 
-  Draw_text_box_contents(g);
+  Draw_text_box_contents(ds, text_color);
 }
 
 void GUITextBox::KeyPress(int kp)

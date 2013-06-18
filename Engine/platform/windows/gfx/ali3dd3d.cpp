@@ -25,12 +25,11 @@
 #include "gfx/ali3d.h"
 #include "gfx/gfxfilter_d3d.h"
 #include "platform/base/agsplatformdriver.h"
-#include "gfx/graphics.h"
+#include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
 
 using AGS::Common::Bitmap;
-using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 using namespace AGS; // FIXME later
 
@@ -1161,11 +1160,9 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
     if (_pollingCallback)
       _pollingCallback();
 
-    Graphics graphics;
     if (retrieveInto != destination)
     {
-      graphics.SetBitmap(destination);
-      graphics.StretchBlt(retrieveInto, RectWH(0, 0, retrieveInto->GetWidth(), retrieveInto->GetHeight()),
+      destination->StretchBlt(retrieveInto, RectWH(0, 0, retrieveInto->GetWidth(), retrieveInto->GetHeight()),
                    RectWH(0, 0, destination->GetWidth(), destination->GetHeight()));
       delete retrieveInto;
 
@@ -1175,8 +1172,7 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
 
     if (finalImage != NULL)
     {
-      graphics.SetBitmap(finalImage);
-      graphics.Blit(destination, 0, 0, 0, 0, destination->GetWidth(), destination->GetHeight());
+      finalImage->Blit(destination, 0, 0, 0, 0, destination->GetWidth(), destination->GetHeight());
       delete destination;
     }
   }
@@ -1534,12 +1530,15 @@ void D3DGraphicsDriver::UpdateTextureRegion(TextureTile *tile, Bitmap *bitmap, D
   for (int y = 0; y < tile->height; y++)
   {
     lastPixelWasTransparent = false;
+    const uint8_t *scanline_before = bitmap->GetScanLine(y + tile->y - 1);
+    const uint8_t *scanline_at     = bitmap->GetScanLine(y + tile->y);
+    const uint8_t *scanline_after  = bitmap->GetScanLine(y + tile->y + 1);
     for (int x = 0; x < tile->width; x++)
     {
       if (target->_colDepth == 15)
       {
         unsigned short* memPtrShort = (unsigned short*)memPtr;
-        unsigned short* srcData = (unsigned short*)&bitmap->GetScanLine(y + tile->y)[(x + tile->x) * 2];
+        unsigned short* srcData = (unsigned short*)&scanline_at[(x + tile->x) << 1];
         if (*srcData == MASK_COLOR_15) 
         {
           if (target->_opaque)  // set to black if opaque
@@ -1556,9 +1555,9 @@ void D3DGraphicsDriver::UpdateTextureRegion(TextureTile *tile, Bitmap *bitmap, D
             if (x < tile->width - 1)
               get_pixel_if_not_transparent15(&srcData[1], &red, &green, &blue, &divisor);
             if (y > 0)
-              get_pixel_if_not_transparent15((unsigned short*)&bitmap->GetScanLine(y + tile->y - 1)[(x + tile->x) * 2], &red, &green, &blue, &divisor);
+              get_pixel_if_not_transparent15((unsigned short*)&scanline_before[(x + tile->x) << 1], &red, &green, &blue, &divisor);
             if (y < tile->height - 1)
-              get_pixel_if_not_transparent15((unsigned short*)&bitmap->GetScanLine(y + tile->y + 1)[(x + tile->x) * 2], &red, &green, &blue, &divisor);
+              get_pixel_if_not_transparent15((unsigned short*)&scanline_after[(x + tile->x) << 1], &red, &green, &blue, &divisor);
             if (divisor > 0)
               memPtrShort[x] = ((red / divisor) << 10) | ((green / divisor) << 5) | (blue / divisor);
             else
@@ -1581,7 +1580,7 @@ void D3DGraphicsDriver::UpdateTextureRegion(TextureTile *tile, Bitmap *bitmap, D
       else if (target->_colDepth == 32)
       {
         unsigned long* memPtrLong = (unsigned long*)memPtr;
-        unsigned long* srcData = (unsigned long*)&bitmap->GetScanLine(y + tile->y)[(x + tile->x) * 4];
+        unsigned long* srcData = (unsigned long*)&scanline_at[(x + tile->x) << 2];
         if (*srcData == MASK_COLOR_32)
         {
           if (target->_opaque)  // set to black if opaque
@@ -1598,9 +1597,9 @@ void D3DGraphicsDriver::UpdateTextureRegion(TextureTile *tile, Bitmap *bitmap, D
             if (x < tile->width - 1)
               get_pixel_if_not_transparent32(&srcData[1], &red, &green, &blue, &divisor);
             if (y > 0)
-              get_pixel_if_not_transparent32((unsigned long*)&bitmap->GetScanLine(y + tile->y - 1)[(x + tile->x) * 4], &red, &green, &blue, &divisor);
+              get_pixel_if_not_transparent32((unsigned long*)&scanline_before[(x + tile->x) << 2], &red, &green, &blue, &divisor);
             if (y < tile->height - 1)
-              get_pixel_if_not_transparent32((unsigned long*)&bitmap->GetScanLine(y + tile->y + 1)[(x + tile->x) * 4], &red, &green, &blue, &divisor);
+              get_pixel_if_not_transparent32((unsigned long*)&scanline_after[(x + tile->x) << 2], &red, &green, &blue, &divisor);
             if (divisor > 0)
               memPtrLong[x] = ((red / divisor) << 16) | ((green / divisor) << 8) | (blue / divisor);
             else
@@ -1658,13 +1657,11 @@ Bitmap *D3DGraphicsDriver::ConvertBitmapToSupportedColourDepth(Bitmap *bitmap)
    set_color_conversion(COLORCONV_KEEP_TRANS | COLORCONV_TOTAL);
 
    int colourDepth = bitmap->GetColorDepth();
-   Graphics graphics;
    if ((colourDepth == 8) || (colourDepth == 16))
    {
      // Most 3D cards don't support 8-bit; and we need 15-bit colour
      Bitmap *tempBmp = BitmapHelper::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 15);
-     graphics.SetBitmap(tempBmp);
-     graphics.Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
+     tempBmp->Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
      delete bitmap;
      set_color_conversion(colorConv);
      return tempBmp;
@@ -1673,8 +1670,7 @@ Bitmap *D3DGraphicsDriver::ConvertBitmapToSupportedColourDepth(Bitmap *bitmap)
    {
      // we need 32-bit colour
      Bitmap* tempBmp = BitmapHelper::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 32);
-     graphics.SetBitmap(tempBmp);
-     graphics.Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
+     tempBmp->Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
      delete bitmap;
      set_color_conversion(colorConv);
      return tempBmp;
@@ -1742,13 +1738,11 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
   int allocatedHeight = bitmap->GetHeight();
   Bitmap *tempBmp = NULL;
   int colourDepth = bitmap->GetColorDepth();
-  Graphics graphics;
   if ((colourDepth == 8) || (colourDepth == 16))
   {
     // Most 3D cards don't support 8-bit; and we need 15-bit colour
     tempBmp = BitmapHelper::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 15);
-    graphics.SetBitmap(tempBmp);
-    graphics.Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
+    tempBmp->Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
     bitmap = tempBmp;
     colourDepth = 15;
   }
@@ -1756,8 +1750,7 @@ IDriverDependantBitmap* D3DGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
   {
     // we need 32-bit colour
     tempBmp = BitmapHelper::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 32);
-    graphics.SetBitmap(tempBmp);
-    graphics.Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
+    tempBmp->Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
     bitmap = tempBmp;
     colourDepth = 32;
   }

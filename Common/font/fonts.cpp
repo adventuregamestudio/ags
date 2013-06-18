@@ -27,7 +27,6 @@
 #include "gfx/bitmap.h"
 #include "util/wgt2allg.h"
 
-using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 int wtext_multiply = 1;
@@ -71,14 +70,14 @@ int wgettextheight(const char *text, int fontNumber)
   return fontRenderers[fontNumber]->GetTextHeight(text, fontNumber);
 }
 
-void wouttextxy(Common::Graphics *g, int xxx, int yyy, int fontNumber, const char *texx)
+void wouttextxy(Common::Bitmap *ds, int xxx, int yyy, int fontNumber, color_t text_color, const char *texx)
 {
-  if (yyy > g->GetClip().Bottom)
+  if (yyy > ds->GetClip().Bottom)
     return;                   // each char is clipped but this speeds it up
 
   if (fontRenderers[fontNumber] != NULL)
   {
-    fontRenderers[fontNumber]->RenderText(texx, fontNumber, (BITMAP*)g->GetBitmap()->GetAllegroBitmap(), xxx, yyy, g->GetTextColor());
+    fontRenderers[fontNumber]->RenderText(texx, fontNumber, (BITMAP*)ds->GetAllegroBitmap(), xxx, yyy, text_color);
   }
 }
 
@@ -99,7 +98,7 @@ bool wloadfont_size(int fontNumber, int fsize)
   return false;
 }
 
-void wgtprintf(Common::Graphics *g, int xxx, int yyy, int fontNumber, char *fmt, ...)
+void wgtprintf(Common::Bitmap *ds, int xxx, int yyy, int fontNumber, color_t text_color, char *fmt, ...)
 {
   char tbuffer[2000];
   va_list ap;
@@ -107,7 +106,7 @@ void wgtprintf(Common::Graphics *g, int xxx, int yyy, int fontNumber, char *fmt,
   va_start(ap, fmt);
   vsprintf(tbuffer, fmt, ap);
   va_end(ap);
-  wouttextxy(g, xxx, yyy, fontNumber, tbuffer);
+  wouttextxy(ds, xxx, yyy, fontNumber, text_color, tbuffer);
 }
 
 void wfreefont(int fontNumber)

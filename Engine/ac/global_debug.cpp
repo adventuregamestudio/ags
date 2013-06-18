@@ -35,11 +35,10 @@
 #include "debug/debugger.h"
 #include "main/main.h"
 #include "ac/spritecache.h"
+#include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
-#include "gfx/graphics.h"
 
 using AGS::Common::Bitmap;
-using AGS::Common::Graphics;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern CharacterInfo*playerchar;
@@ -89,11 +88,9 @@ void script_debug(int cmdd,int dataa) {
     else if (cmdd==2) 
     {  // show walkable areas from here
         Bitmap *tempw=BitmapHelper::CreateBitmap(thisroom.WalkAreaMask->GetWidth(),thisroom.WalkAreaMask->GetHeight());
-        Graphics graphics(tempw);
-        graphics.Blit(prepare_walkable_areas(-1),0,0,0,0,tempw->GetWidth(),tempw->GetHeight());
+        tempw->Blit(prepare_walkable_areas(-1),0,0,0,0,tempw->GetWidth(),tempw->GetHeight());
         Bitmap *stretched = BitmapHelper::CreateBitmap(scrnwid, scrnhit);
-        graphics.SetBitmap(stretched);
-        graphics.StretchBlt(tempw,
+        stretched->StretchBlt(tempw,
 			RectWH(-offsetx, -offsety, get_fixed_pixel_size(tempw->GetWidth()), get_fixed_pixel_size(tempw->GetHeight())),
 			Common::kBitmap_Transparency);
 
@@ -138,7 +135,6 @@ void script_debug(int cmdd,int dataa) {
             return;
         }
         Bitmap *tempw=BitmapHelper::CreateTransparentBitmap(thisroom.WalkAreaMask->GetWidth(),thisroom.WalkAreaMask->GetHeight());
-        Graphics graphics(tempw);
         int mlsnum = game.Characters[dataa].walking;
         if (game.Characters[dataa].walking >= TURNING_AROUND)
             mlsnum %= TURNING_AROUND;
@@ -148,10 +144,10 @@ void script_debug(int cmdd,int dataa) {
             short srcy=short(cmls->pos[i] & 0x00ffff);
             short targetx=short((cmls->pos[i+1] >> 16) & 0x00ffff);
             short targety=short(cmls->pos[i+1] & 0x00ffff);
-            graphics.DrawLine(Line(srcx, srcy, targetx, targety), GetVirtualScreenGraphics()->GetBitmap()->GetCompatibleColor(i+1));
+            tempw->DrawLine(Line(srcx, srcy, targetx, targety), GetVirtualScreen()->GetCompatibleColor(i+1));
         }
-		graphics.SetBitmap(BitmapHelper::GetScreenBitmap());
-        graphics.StretchBlt(tempw,
+		Bitmap *screen_bmp = BitmapHelper::GetScreenBitmap();
+        screen_bmp->StretchBlt(tempw,
 			RectWH(-offsetx, -offsety, multiply_up_coordinate(tempw->GetWidth()), multiply_up_coordinate(tempw->GetHeight())),
 			Common::kBitmap_Transparency);
         render_to_screen(BitmapHelper::GetScreenBitmap(), 0, 0);

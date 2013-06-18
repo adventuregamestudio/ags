@@ -25,7 +25,7 @@ struct MyLabel:public NewControl
   char text[150];
   MyLabel(int xx, int yy, int wii, char *tee);
 
-  void draw(Common::Graphics *g);
+  void draw(Common::Bitmap *ds);
 
   int pressedon();
 

@@ -116,5 +116,10 @@ namespace AGS.Editor
 		{
 			txtFileName_TextChanged(sender, e);
 		}
+
+        private void btnCreateInBrowse_Click(object sender, EventArgs e)
+        {
+            txtCreateInFolder.Text = Factory.GUIController.ShowSelectFolderOrDefaultDialog("Please select the folder that you wish to create your new project in.", txtCreateInFolder.Text);
+        }
     }
 }

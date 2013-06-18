@@ -36,11 +36,13 @@ namespace AGS.Editor
             this.label2 = new System.Windows.Forms.Label();
             this.txtFileName = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
+            this.btnCreateInBrowse = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.btnCreateInBrowse);
             this.groupBox1.Controls.Add(this.txtCreateInFolder);
             this.groupBox1.Controls.Add(this.label3);
             this.groupBox1.Controls.Add(this.lblFilePath);
@@ -95,9 +97,9 @@ namespace AGS.Editor
             // 
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(16, 23);
-            this.label2.MaximumSize = new System.Drawing.Size(450, 0);
+            this.label2.MaximumSize = new System.Drawing.Size(500, 0);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(443, 26);
+            this.label2.Size = new System.Drawing.Size(482, 26);
             this.label2.TabIndex = 2;
             this.label2.Text = "What do you want the game to be called? This name will be displayed in the title " +
                 "bar of the window whilst playing. You can change this later in the Game Settings" +
@@ -116,12 +118,22 @@ namespace AGS.Editor
             // 
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(16, 85);
-            this.label1.MaximumSize = new System.Drawing.Size(450, 0);
+            this.label1.MaximumSize = new System.Drawing.Size(500, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(439, 26);
+            this.label1.Size = new System.Drawing.Size(458, 26);
             this.label1.TabIndex = 0;
             this.label1.Text = "Please enter the file name of the game below. This will be the name of the game f" +
                 "iles that are produced. You can\'t change this later on.";
+            // 
+            // btnCreateInBrowse
+            // 
+            this.btnCreateInBrowse.Location = new System.Drawing.Point(465, 167);
+            this.btnCreateInBrowse.Name = "btnCreateInBrowse";
+            this.btnCreateInBrowse.Size = new System.Drawing.Size(27, 21);
+            this.btnCreateInBrowse.TabIndex = 6;
+            this.btnCreateInBrowse.Text = "...";
+            this.btnCreateInBrowse.UseVisualStyleBackColor = true;
+            this.btnCreateInBrowse.Click += new System.EventHandler(this.btnCreateInBrowse_Click);
             // 
             // StartNewGameWizardPage2
             // 
@@ -130,7 +142,7 @@ namespace AGS.Editor
             this.Controls.Add(this.groupBox1);
             this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Name = "StartNewGameWizardPage2";
-            this.Size = new System.Drawing.Size(773, 374);
+            this.Size = new System.Drawing.Size(1017, 632);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.ResumeLayout(false);
@@ -147,5 +159,6 @@ namespace AGS.Editor
         private System.Windows.Forms.Label lblFilePath;
 		private System.Windows.Forms.TextBox txtCreateInFolder;
 		private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Button btnCreateInBrowse;
     }
 }

@@ -44,31 +44,31 @@ MyPushButton::MyPushButton(int xx, int yy, int wi, int hi, char *tex)
     text[49] = 0;
 };
 
-void MyPushButton::draw(Common::Graphics *g)
+void MyPushButton::draw(Bitmap *ds)
 {
-    g->SetTextColor(0);
-    g->SetDrawColor(COL254);
-    g->FillRect(Rect(x, y, x + wid, y + hit));
+    color_t text_color = ds->GetCompatibleColor(0);
+    color_t draw_color = ds->GetCompatibleColor(COL254);
+    ds->FillRect(Rect(x, y, x + wid, y + hit), draw_color);
     if (state == 0)
-        g->SetDrawColor(pushbuttondarkcolor);
+        draw_color = ds->GetCompatibleColor(pushbuttondarkcolor);
     else
-        g->SetDrawColor(pushbuttonlightcolor);
+        draw_color = ds->GetCompatibleColor(pushbuttonlightcolor);
 
-    g->DrawRect(Rect(x, y, x + wid, y + hit));
+    ds->DrawRect(Rect(x, y, x + wid, y + hit), draw_color);
     if (state == 0)
-        g->SetDrawColor(pushbuttonlightcolor);
+        draw_color = ds->GetCompatibleColor(pushbuttonlightcolor);
     else
-        g->SetDrawColor(pushbuttondarkcolor);
+        draw_color = ds->GetCompatibleColor(pushbuttondarkcolor);
 
-    g->DrawLine(Line(x, y, x + wid - 1, y));
-    g->DrawLine(Line(x, y, x, y + hit - 1));
-    wouttextxy(g, x + (wid / 2 - wgettextwidth(text, cbuttfont) / 2), y + 2, cbuttfont, text);
+    ds->DrawLine(Line(x, y, x + wid - 1, y), draw_color);
+    ds->DrawLine(Line(x, y, x, y + hit - 1), draw_color);
+    wouttextxy(ds, x + (wid / 2 - wgettextwidth(text, cbuttfont) / 2), y + 2, cbuttfont, text_color, text);
     if (typeandflags & CNF_DEFAULT)
-        g->SetDrawColor(0);
+        draw_color = ds->GetCompatibleColor(0);
     else
-        g->SetDrawColor(windowbackgroundcolor);
+        draw_color = ds->GetCompatibleColor(windowbackgroundcolor);
 
-    g->DrawRect(Rect(x - 1, y - 1, x + wid + 1, y + hit + 1));
+    ds->DrawRect(Rect(x - 1, y - 1, x + wid + 1, y + hit + 1), draw_color);
 }
 
 //extern const int LEFT;  // in mousew32
@@ -85,7 +85,7 @@ int MyPushButton::pressedon()
         update_polled_stuff_if_runtime();
         if (wasstat != state) {
             //        domouse(2);
-            draw(GetVirtualScreenGraphics());
+            draw(GetVirtualScreen());
             //domouse(1);
         }
 
@@ -98,7 +98,7 @@ int MyPushButton::pressedon()
     wasstat = state;
     state = 0;
     //    domouse(2);
-    draw(GetVirtualScreenGraphics());
+    draw(GetVirtualScreen());
     //  domouse(1);
     return wasstat;
 }

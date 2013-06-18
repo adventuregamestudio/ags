@@ -55,33 +55,33 @@ extern int smcode;
     clearlist();
   }
 
-  void MyListBox::draw(Common::Graphics *g)
+  void MyListBox::draw(Bitmap *ds)
   {
-    g->SetDrawColor(windowbackgroundcolor);
-    g->FillRect(Rect(x, y, x + wid, y + hit));
-    g->SetDrawColor(0);
-    g->DrawRect(Rect(x, y, x + wid, y + hit));
+    color_t draw_color = ds->GetCompatibleColor(windowbackgroundcolor);
+    ds->FillRect(Rect(x, y, x + wid, y + hit), draw_color);
+    draw_color = ds->GetCompatibleColor(0);
+    ds->DrawRect(Rect(x, y, x + wid, y + hit), draw_color);
   
     int widwas = wid;
     wid -= ARROWWIDTH;
-    g->DrawLine(Line(x + wid, y, x + wid, y + hit));        // draw the up/down arrows
-    g->DrawLine(Line(x + wid, y + hit / 2, x + widwas, y + hit / 2));
+    ds->DrawLine(Line(x + wid, y, x + wid, y + hit), draw_color);        // draw the up/down arrows
+    ds->DrawLine(Line(x + wid, y + hit / 2, x + widwas, y + hit / 2), draw_color);
 
     int xmidd = x + wid + (widwas - wid) / 2;
     if (topitem < 1)
-      g->SetDrawColor(7);
+      draw_color = ds->GetCompatibleColor(7);
 
-    g->DrawLine(Line(xmidd, y + 2, xmidd, y + 10)); // up arrow
-    g->DrawLine(Line(xmidd - 1, y + 3, xmidd + 1, y + 3));
-    g->DrawLine(Line(xmidd - 2, y + 4, xmidd + 2, y + 4));
-    g->SetDrawColor(0);
+    ds->DrawLine(Line(xmidd, y + 2, xmidd, y + 10), draw_color); // up arrow
+    ds->DrawLine(Line(xmidd - 1, y + 3, xmidd + 1, y + 3), draw_color);
+    ds->DrawLine(Line(xmidd - 2, y + 4, xmidd + 2, y + 4), draw_color);
+    draw_color = ds->GetCompatibleColor(0);
     if (topitem + numonscreen >= items)
-      g->SetDrawColor(7);
+      draw_color = ds->GetCompatibleColor(7);
 
-    g->DrawLine(Line(xmidd, y + hit - 10, xmidd, y + hit - 3));     // down arrow
-    g->DrawLine(Line(xmidd - 1, y + hit - 4, xmidd + 1, y + hit - 4));
-    g->DrawLine(Line(xmidd - 2, y + hit - 5, xmidd + 2, y + hit - 5));
-    g->SetDrawColor(0);
+    ds->DrawLine(Line(xmidd, y + hit - 10, xmidd, y + hit - 3), draw_color);     // down arrow
+    ds->DrawLine(Line(xmidd - 1, y + hit - 4, xmidd + 1, y + hit - 4), draw_color);
+    ds->DrawLine(Line(xmidd - 2, y + hit - 5, xmidd + 2, y + hit - 5), draw_color);
+    draw_color = ds->GetCompatibleColor(0);
 
     for (int tt = 0; tt < numonscreen; tt++) {
       int inum = tt + topitem;
@@ -89,14 +89,15 @@ extern int smcode;
         break;
 
       int thisypos = y + 2 + tt * TEXT_HT;
+      color_t text_color;
       if (inum == selected) {
-        g->SetDrawColor(0);
-        g->FillRect(Rect(x, thisypos, x + wid, thisypos + TEXT_HT - 1));
-        g->SetTextColor(7);
-      } else
-        g->SetTextColor(0);
+        draw_color = ds->GetCompatibleColor(0);
+        ds->FillRect(Rect(x, thisypos, x + wid, thisypos + TEXT_HT - 1), draw_color);
+        text_color = ds->GetCompatibleColor(7);
+      }
+      else text_color = ds->GetCompatibleColor(0);
 
-      wouttextxy(g, x + 2, thisypos, cbuttfont, itemnames[inum]);
+      wouttextxy(ds, x + 2, thisypos, cbuttfont, text_color, itemnames[inum]);
     }
     wid = widwas;
   }
@@ -117,7 +118,7 @@ extern int smcode;
     }
 
 //    domouse(2);
-    draw(GetVirtualScreenGraphics());
+    draw(GetVirtualScreen());
   //  domouse(1);
     smcode = CM_SELCHANGE;
     return 0;

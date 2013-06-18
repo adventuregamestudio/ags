@@ -561,7 +561,7 @@ int SpriteCache::saveToFile(const char *filnam, int lastElement, bool compressOu
         output->Seek(Common::kSeekEnd, 0);
       }
       else
-        output->WriteArray(&images[i]->GetScanLine(0)[0], spritewidths[i] * bpss, spriteheights[i]);
+        output->WriteArray(images[i]->GetDataForWriting(), spritewidths[i] * bpss, spriteheights[i]);
 
       continue;
     }

@@ -53,20 +53,25 @@ namespace AGS.Editor
 			get { return _templates[lstRoomTemplates.SelectedIndices[0]]; }
 		}
 
+        internal bool StateSaving
+        {
+            get { return !chkNonStateSaving.Checked; }
+        }
+
 		private void PickFirstAvailableRoomNumber()
 		{
 			int startingRoomNumber;
 			if (chkNonStateSaving.Checked)
 			{
-				startingRoomNumber = UnloadedRoom.NON_STATE_SAVING_INDEX;
-				udRoomNumber.Minimum = UnloadedRoom.NON_STATE_SAVING_INDEX + 1;
+				startingRoomNumber = UnloadedRoom.LEGACY_NON_STATE_SAVING_INDEX;
+                udRoomNumber.Minimum = UnloadedRoom.LEGACY_NON_STATE_SAVING_INDEX + 1;
 				udRoomNumber.Maximum = UnloadedRoom.HIGHEST_ROOM_NUMBER_ALLOWED;
 			}
 			else
 			{
 				startingRoomNumber = 0;
 				udRoomNumber.Minimum = 0;
-				udRoomNumber.Maximum = UnloadedRoom.NON_STATE_SAVING_INDEX;
+                udRoomNumber.Maximum = UnloadedRoom.LEGACY_NON_STATE_SAVING_INDEX;
 			}
 			int newNumber = _game.FindFirstAvailableRoomNumber(startingRoomNumber);
 			if (newNumber > udRoomNumber.Maximum)

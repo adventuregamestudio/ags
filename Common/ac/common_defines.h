@@ -89,7 +89,7 @@
 #define RUN_DIALOG    14
 
 
-#define MAX_ROOMS 300
+#define LEGACY_MAX_SAVE_STATE_ROOMS 300
 
 #define MAXANIMS      10
 #define MAX_FLAGS     15

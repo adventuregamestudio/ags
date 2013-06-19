@@ -1948,17 +1948,10 @@ void save_room(const char *files, const Common::RoomInfo &rstruc) {
   long              xoff, tesl;
   Stream            *opty;
 
+  // TODO: if we don't support saving in old formats we should remove all
+  // related conditional forks from serialization routine
   if (rstruc.LoadedVersion < kRoomVersion_Current)
     quit("save_room: can no longer save old format rooms");
-
-  Common::String password = rstruc.Password;
-  if (rstruc.LoadedVersion < kRoomVersion_200_alpha) {
-    for (f = 0; f < 11; f++)
-      password.SetAt(f, rstruc.Password[f] - 60);
-  }
-  else
-    for (f = 0; f < 11; f++)
-      password.SetAt(f, rstruc.Password[f] - passwencstring[f]);
 
   opty = ci_fopen(const_cast<char*>(files), Common::kFile_CreateAlways, Common::kFile_Write);
   if (opty == NULL)
@@ -2073,7 +2066,7 @@ void save_room(const char *files, const Common::RoomInfo &rstruc) {
       opty->WriteInt16(rstruc.WalkAreas[i].Bottom);
   }
 
-  password.WriteCount(opty, 11);
+  opty->WriteBool(rstruc.IsPersistent);
   opty->Write(&rstruc.Options, 10);
   opty->WriteInt16(rstruc.MessageCount);
 
@@ -2266,8 +2259,6 @@ void save_room_file(const char*rtsa)
 {
   thisroom.LoadedVersion=kRoomVersion_Current;
   copy_room_palette_to_global_palette();
-  
-  thisroom.Password.Empty();
 
   calculate_walkable_areas();
 
@@ -4288,7 +4279,8 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 
 	Room ^room = gcnew Room(roomToLoad->Number);
 	room->Description = roomToLoad->Description;
-	room->Script = roomToLoad->Script;
+    room->Script = roomToLoad->Script;
+    room->StateSaving = thisroom.IsPersistent;
 	room->BottomEdgeY = thisroom.Edges.Bottom;
 	room->LeftEdgeX = thisroom.Edges.Left;
 	room->MusicVolumeAdjustment = (RoomVolumeAdjustment)thisroom.Options[kRoomBaseOpt_MusicVolume];
@@ -4475,6 +4467,7 @@ void save_crm_file(Room ^room)
 	thisroom.GameId = room->GameID;
 	thisroom.Edges.Bottom = room->BottomEdgeY;
 	thisroom.Edges.Left = room->LeftEdgeX;
+    thisroom.IsPersistent = room->StateSaving;
 	thisroom.Options[kRoomBaseOpt_MusicVolume] = (int)room->MusicVolumeAdjustment;
 	thisroom.Options[kRoomBaseOpt_PlayerCharacterView] = room->PlayerCharacterView;
 	thisroom.Options[kRoomBaseOpt_StartUpMusic] = room->PlayMusicOnRoomLoad;
@@ -4514,6 +4507,7 @@ void save_crm_file(Room ^room)
 	}
 
 	thisroom.ObjectCount = room->Objects->Count;
+    thisroom.Objects.SetLength(room->Objects->Count);
 	for (i = 0; i < thisroom.ObjectCount; i++) 
 	{
 		RoomObject ^obj = room->Objects[i];
@@ -4532,6 +4526,7 @@ void save_crm_file(Room ^room)
 	}
 
 	thisroom.HotspotCount = room->Hotspots->Count;
+    thisroom.Hotspots.SetLength(room->Hotspots->Count);
 	for (i = 0; i < thisroom.HotspotCount; i++) 
 	{
 		RoomHotspot ^hotspot = room->Hotspots[i];
@@ -4543,6 +4538,7 @@ void save_crm_file(Room ^room)
 		CompileCustomProperties(hotspot->Properties, &thisroom.Hotspots[i].Properties);
 	}
 
+    thisroom.WalkAreas.SetLength(LEGACY_MAX_ROOM_WALKAREAS + 1);
 	for (i = 0; i <= LEGACY_MAX_ROOM_WALKAREAS; i++) 
 	{
 		RoomWalkableArea ^area = room->WalkableAreas[i];
@@ -4560,12 +4556,14 @@ void save_crm_file(Room ^room)
 		}
 	}
 
+    thisroom.WalkBehinds.SetLength(LEGACY_MAX_ROOM_WALKBEHINDS);
 	for (i = 0; i < LEGACY_MAX_ROOM_WALKBEHINDS; i++) 
 	{
 		RoomWalkBehind ^area = room->WalkBehinds[i];
 		thisroom.WalkBehinds[i].Baseline = area->Baseline;
 	}
 
+    thisroom.Regions.SetLength(LEGACY_MAX_ROOM_REGIONS);
 	for (i = 0; i < LEGACY_MAX_ROOM_REGIONS; i++) 
 	{
 		RoomRegion ^area = room->Regions[i];

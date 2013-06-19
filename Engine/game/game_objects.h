@@ -36,7 +36,7 @@ extern AGS::Common::GameInfo game;
 // explicitly instead.
 extern AGS::Common::RoomInfo thisroom;
 // dynamic room data
-extern AGS::Engine::RoomState* room_statuses[MAX_ROOMS];
+extern AGS::Common::Array<AGS::Engine::RoomState*> room_statuses;
 // pointer to the current room's dynamic data
 extern AGS::Engine::RoomState* croom;
 // used for non-saveable rooms, eg. intro

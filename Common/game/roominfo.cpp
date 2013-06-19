@@ -177,7 +177,6 @@ void RoomInfo::Free()
     WalkAreas.Free();
     WalkBehinds.Free();
     
-    Password.Free();
     Messages.Free();
     MessageInfos.Free();
     
@@ -273,6 +272,7 @@ void RoomInfo::InitDefaults()
     CompiledScriptSize = 0;
 
     memset(Palette, 0, sizeof(Palette));
+    IsPersistent = false;
     memset(Options, 0, sizeof(Options));
 }
 
@@ -549,7 +549,16 @@ RoomInfoError RoomInfo::ReadMainBlock(Stream *in)
         }
     }
 
-    Password.ReadCount(in, 11);
+    if (LoadedVersion < kRoomVersion_340_alpha)
+    {
+        const int room_psw_length = 11;
+        char room_password[room_psw_length];
+        in->Read(room_password, sizeof(room_password));
+    }
+    else // >= kRoomVersion_340_alpha
+    {
+        IsPersistent = in->ReadBool();
+    }
     in->Read(Options, 10);
 
     MessageCount = in->ReadInt16();
@@ -680,21 +689,6 @@ RoomInfoError RoomInfo::ReadMainBlock(Stream *in)
             {
                 Regions[i].Light = WalkAreas[i].Light;
             }
-        }
-    }
-
-    if (LoadedVersion < kRoomVersion_200_alpha)
-    {
-        for (int i = 0; i < 11; ++i)
-        {
-            Password.SetAt(i, Password[i] + 60);
-        }
-    }
-    else
-    {
-        for (int i = 0; i < 11; ++i)
-        {
-            Password.SetAt(i, Password[i] + passwencstring[i]);
         }
     }
 

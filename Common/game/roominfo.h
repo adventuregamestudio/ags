@@ -56,6 +56,8 @@ struct ccScript;
 27:  v3.0 - store Y of bottom of object, not top
 28:  v3.0.3 - remove hotspot name length limit
 29:  v3.0.3 - high-res coords for object x/y, edges and hotspot walk-to point
+
+v.3.4.0 alpha - persistent flag; removed password
 */
 enum RoomFileVersion
 {
@@ -86,7 +88,8 @@ enum RoomFileVersion
     kRoomVersion_300b       = 27,
     kRoomVersion_303a       = 28,
     kRoomVersion_303b       = 29,
-    kRoomVersion_Current    = kRoomVersion_303b
+    kRoomVersion_340_alpha,
+    kRoomVersion_Current    = kRoomVersion_340_alpha
 };
 
 enum RoomBaseOptions
@@ -284,7 +287,7 @@ public:
     ObjectArray<WalkAreaInfo>    WalkAreas;
     ObjectArray<WalkBehindInfo>  WalkBehinds;
 
-    String                  Password;
+    bool                    IsPersistent;
     int8_t                  Options[MAX_ROOM_BASE_OPTIONS];
     ObjectArray<String>     Messages;
     ObjectArray<MessageInfo> MessageInfos;

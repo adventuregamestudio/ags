@@ -388,7 +388,6 @@ EventHandler::EventHandler()
 
 EventHandler::EventHandler(const EventHandler &eh)
 {
-    Free();
     ScriptFnRef = eh.ScriptFnRef ? new InteractionScripts(*eh.ScriptFnRef) : NULL;
     Interaction = eh.Interaction ? new NewInteraction(*eh.Interaction) : NULL;
 }

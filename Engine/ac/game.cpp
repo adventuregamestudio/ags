@@ -1270,8 +1270,6 @@ void ReadRoomStatus_Aligned(RoomState *roomstat, Stream *in)
 
 void restore_game_room_state(Stream *in)
 {
-    int vv;
-
     displayed_room = in->ReadInt32();
 
     // now the rooms
@@ -1280,12 +1278,12 @@ void restore_game_room_state(Stream *in)
     // read the room state for all the rooms the player has been in
     RoomState* roomstat;
     int BeenHere;
-    for (vv=0;vv<MAX_ROOMS;vv++)
+    for (int i = 0; i < LEGACY_MAX_SAVE_STATE_ROOMS; ++i)
     {
         BeenHere = in->ReadByte();
         if (BeenHere)
         {
-            roomstat = GetRoomState(vv);
+            roomstat = GetRoomState(i);
             ReadRoomStatus_Aligned(roomstat, in);
             if (roomstat->ScriptDataSize > 0)
             {

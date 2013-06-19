@@ -1024,7 +1024,7 @@ namespace AGS.Editor.Components
 			else if (SaveRoomAndShowAnyErrors(_loadedRoom))
 			{
 				UnloadedRoom oldRoom = FindRoomByID(currentNumber);
-				UnloadedRoom tempNewRoom = new UnloadedRoom(numberRequested);
+                UnloadedRoom tempNewRoom = new UnloadedRoom(numberRequested);
 				CloseRoomScriptEditorIfOpen(currentNumber);
 				UnloadCurrentRoom();
 

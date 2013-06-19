@@ -89,7 +89,9 @@ public:
     int32_t             ScriptDataSize;
 };
 
-// Get room state by index; returns NULL if room state was not created
+// Get number of room states created
+int GetRoomStateCount();
+// Get room state by index; creates new object if it did not exist yet
 // (meaning room was never loaded yet)
 RoomState* GetRoomState(int room);
 // Used in places where it is only important to know whether the player
@@ -97,6 +99,7 @@ RoomState* GetRoomState(int room);
 // to initialise the status because a player can only have been in
 // a room if the status is already initialised.
 bool IsRoomStateValid(int room);
+// Frees all room states
 void ResetRoomStates();
 
 } // namespace Engine

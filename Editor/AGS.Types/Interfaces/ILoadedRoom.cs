@@ -5,6 +5,7 @@ namespace AGS.Types
 {
 	public interface ILoadedRoom
 	{
+        bool StateSaving { get; set; }
 		int BackgroundAnimationDelay { get; set; }
 		int BackgroundCount { get; }
 		int BottomEdgeY { get; set; }

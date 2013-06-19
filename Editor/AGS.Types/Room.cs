@@ -29,6 +29,7 @@ namespace AGS.Types
         private int _rightEdgeX;
         private int _topEdgeY;
         private int _bottomEdgeY;
+        private bool _stateSaving;
         private int _playMusicOnRoomLoad;
         private bool _saveLoadEnabled = true;
         private bool _showPlayerCharacter = true;
@@ -241,6 +242,14 @@ namespace AGS.Types
         public string PropertyGridTitle
         {
             get { return _description + " (Room; number " + _number + ")"; }
+        }
+
+        [Description("Whether the state of the room is saved when the player leaves the room and comes back")]
+        [Category("Settings")]
+        public bool StateSaving
+        {
+            get { return _stateSaving; }
+            set { _stateSaving = value; }
         }
 
         [Description("The speed at which the backgrounds will rotate (only applicable if you have imported more than one)")]

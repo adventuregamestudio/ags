@@ -670,7 +670,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
 
     our_eip=205;
     // setup objects
-    if ((newnum>=0) & (newnum<MAX_ROOMS))
+    if (thisroom.IsPersistent)
         croom = AGS::Engine::GetRoomState(newnum);
     else croom=&troom;
 
@@ -1071,17 +1071,6 @@ void new_room(int newnum,CharacterInfo*forchar) {
     update_polled_stuff_if_runtime();
 
     load_new_room(newnum,forchar);
-}
-
-int find_highest_room_entered() {
-    int qq,fndas=-1;
-    for (qq=0;qq<MAX_ROOMS;qq++) {
-        if (IsRoomStateValid(qq) && (AGS::Engine::GetRoomState(qq)->BeenHere != 0))
-            fndas = qq;
-    }
-    // This is actually legal - they might start in room 400 and save
-    //if (fndas<0) quit("find_highest_room: been in no rooms?");
-    return fndas;
 }
 
 extern long t1;  // defined in ac_main

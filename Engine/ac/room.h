@@ -44,7 +44,6 @@ void  unload_old_room();
 void  convert_room_coordinates_to_low_res(AGS::Common::RoomInfo &room_base);
 void  load_new_room(int newnum,CharacterInfo*forchar);
 void  new_room(int newnum,CharacterInfo*forchar);
-int   find_highest_room_entered();
 void  first_room_initialization();
 void  check_new_room();
 void  compile_room_script();

@@ -127,7 +127,7 @@ void NewRoomNPC(int charid, int nrnum, int newx, int newy) {
 void ResetRoom(int nrnum) {
     if (nrnum == displayed_room)
         quit("!ResetRoom: cannot reset current room");
-    if ((nrnum<0) | (nrnum>=MAX_ROOMS))
+    if (nrnum < 0)
         quit("!ResetRoom: invalid room number");
 
     if (AGS::Engine::IsRoomStateValid(nrnum))
@@ -145,7 +145,7 @@ void ResetRoom(int nrnum) {
 }
 
 int HasPlayerBeenInRoom(int roomnum) {
-    if ((roomnum < 0) || (roomnum >= MAX_ROOMS))
+    if (roomnum < 0)
         return 0;
     if (AGS::Engine::IsRoomStateValid(roomnum))
         return AGS::Engine::GetRoomState(roomnum)->BeenHere;
@@ -165,7 +165,7 @@ void CallRoomScript (int value) {
 }
 
 int HasBeenToRoom (int roomnum) {
-    if ((roomnum < 0) || (roomnum >= MAX_ROOMS))
+    if (roomnum < 0)
         quit("!HasBeenToRoom: invalid room number specified");
 
     if (AGS::Engine::IsRoomStateValid(roomnum))

@@ -562,25 +562,22 @@ void save_game_data_ch_allrooms(Stream *out)
 {
     out->WriteInt32(kRtRoomStateVersion_Current);
     // write the room state for all the rooms the player has been in
-    out->WriteInt32(MAX_ROOMS);
-    for (int i = 0; i < MAX_ROOMS; ++i)
+    int room_state_valid_count = GetRoomStateCount();
+    out->WriteInt32(room_state_valid_count);
+    for (int i = 0; i < room_statuses.GetCount(); ++i)
     {
         if (IsRoomStateValid(i))
         {
             RoomState* roomstat = GetRoomState(i);
             if (roomstat->BeenHere)
             {
-                out->WriteInt8(1);
+                out->WriteInt32(i);
                 roomstat->WriteToSavedGame(out);
             }
             else
             {
-                out->WriteInt8(0);
+                out->WriteInt32(-1);
             }
-        }
-        else
-        {
-            out->WriteInt8(0);
         }
     }
 }
@@ -595,6 +592,8 @@ void save_game_data_ch_thisroom(Stream *out)
     }
 
     out->WriteInt32(kRtRunningRoomStateVersion_Current);
+
+    out->WriteBool(thisroom.IsPersistent);
 
     out->WriteInt32(thisroom.Backgrounds.GetCount());
     for (int i = 0; i < thisroom.Backgrounds.GetCount(); ++i)
@@ -638,8 +637,8 @@ void save_game_data_ch_thisroom(Stream *out)
     // save the room music volume
     out->WriteInt32(thisroom.Options[kRoomBaseOpt_MusicVolume]);
 
-    // save the current troom, in case they save in room 600 or whatever
-    if (displayed_room >= MAX_ROOMS)
+    // if current room is not persistent, save the temporary room status
+    if (!thisroom.IsPersistent)
     {
         troom.WriteToSavedGame(out);
     }
@@ -1239,19 +1238,15 @@ SavedGameError restore_game_data_ch_allrooms(Stream *in, SavedGameRestorationDat
     {
         return kSvgErr_DataVersionNotSupported;
     }
-    int room_state_count = in->ReadInt32();
-    if (room_state_count > MAX_ROOMS)
-    {
-        Out::FPrint("Restore game error: mismatching number of save-state Rooms");
-        return kSvgErr_GameContentAssertionFailed;
-    }
 
+    int room_state_valid_count = in->ReadInt32();
     // read the room state for all the rooms the player has been in
-    for (int i = 0; i < room_state_count; ++i)
+    for (; room_state_valid_count > 0; --room_state_valid_count)
     {
-        if (in->ReadByte() > 0)
+        int room_index = in->ReadInt32();
+        if (room_index >= 0)
         {
-            RoomState* room_state = GetRoomState(i);
+            RoomState* room_state = GetRoomState(room_index);
             room_state->ReadFromSavedGame(in);
         }
     }
@@ -1271,6 +1266,8 @@ SavedGameError restore_game_data_ch_thisroom(Stream *in, SavedGameRestorationDat
     {
         return kSvgErr_DataVersionNotSupported;
     }
+
+    bool is_room_persistent = in->ReadBool();
 
     int bkg_scene_count = in->ReadInt32();
     restore_data.BkgScenes.New(bkg_scene_count);
@@ -1323,7 +1320,7 @@ SavedGameError restore_game_data_ch_thisroom(Stream *in, SavedGameRestorationDat
     restore_data.MusicVolume = in->ReadInt32();
 
     // save the current troom, in case they save in room 600 or whatever
-    if (displayed_room >= MAX_ROOMS)
+    if (!is_room_persistent)
     {
         troom.ReadFromSavedGame(in);
     }

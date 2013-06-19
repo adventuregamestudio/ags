@@ -12,7 +12,7 @@ namespace AGS.Types
         private const string ROOM_FILE_NAME_FORMAT = "room{0}.crm";
         private const string ROOM_SCRIPT_FILE_NAME_FORMAT = "room{0}.asc";
 
-		public const int NON_STATE_SAVING_INDEX = 300;
+		public const int LEGACY_NON_STATE_SAVING_INDEX = 300;
 		public const int HIGHEST_ROOM_NUMBER_ALLOWED = 999;
 		public const string PROPERTY_NAME_DESCRIPTION = "Description";
 		public const string PROPERTY_NAME_NUMBER = "Number";
@@ -67,14 +67,6 @@ namespace AGS.Types
         {
             get { return string.Format(ROOM_FILE_NAME_FORMAT, _number); }
         }
-
-		[Description("Whether the state of the room is saved when the player leaves the room and comes back")]
-		[Category("Design")]
-		[ReadOnly(true)]
-		public bool StateSaving
-		{
-			get { return (_number < NON_STATE_SAVING_INDEX); }
-		}
 
 		[Browsable(false)]
         public string ScriptFileName

@@ -314,13 +314,24 @@ void RoomState::WriteRoomObjects_Aligned(Common::Stream *out)
     }
 }
 
+static int room_state_valid_count = 0;
+int GetRoomStateCount()
+{
+    return room_state_valid_count;
+}
+
 // Replaces all accesses to the roomstats array
 RoomState* GetRoomState(int room)
 {
+    if (room >= room_statuses.GetCount())
+    {
+        room_statuses.SetLength(room + 1);
+    }
     if (room_statuses[room] == NULL)
     {
         // First access, allocate and initialise the status
         room_statuses[room] = new RoomState();
+        room_state_valid_count++;
     }
     return room_statuses[room];
 }
@@ -331,12 +342,12 @@ RoomState* GetRoomState(int room)
 // a room if the status is already initialised.
 bool IsRoomStateValid(int room)
 {
-    return (room_statuses[room] != NULL);
+    return room >= 0 && room < room_statuses.GetCount() && room_statuses[room] != NULL;
 }
 
 void ResetRoomStates()
 {
-    for (int i = 0; i < MAX_ROOMS; i++)
+    for (int i = 0; i < room_statuses.GetCount(); ++i)
     {
         if (room_statuses[i] != NULL)
         {
@@ -344,6 +355,7 @@ void ResetRoomStates()
             room_statuses[i] = NULL;
         }
     }
+    room_state_valid_count = 0;
 }
 
 } // namespace Engine

@@ -38,6 +38,7 @@
 #include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
 #include "ac/spritecache.h"
+#include "gfx/gfx_util.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -493,8 +494,7 @@ void do_corner(Bitmap *ds, int sprn,int xx1,int yy1,int typx,int typy) {
     if (thisone == NULL)
         thisone = spriteset[0];
 
-    put_sprite_256(ds, xx1+typx*spritewidth[sprn],yy1+typy*spriteheight[sprn],thisone);
-    //  wputblock(xx1+typx*spritewidth[sprn],yy1+typy*spriteheight[sprn],thisone,1);
+    AGS::Engine::GfxUtil::DrawSpriteWithTransparency(ds, thisone, xx1+typx*spritewidth[sprn],yy1+typy*spriteheight[sprn]);
 }
 
 int get_but_pic(GUIMain*guo,int indx) {

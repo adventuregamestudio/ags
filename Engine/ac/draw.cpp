@@ -54,6 +54,7 @@
 #include "plugin/agsplugin.h"
 #include "ac/spritecache.h"
 #include "gfx/ddb.h"
+#include "gfx/gfx_util.h"
 #include "gfx/graphicsdriver.h"
 
 using AGS::Common::Bitmap;
@@ -154,8 +155,6 @@ Bitmap *_old_screen=NULL;
 Bitmap *_sub_screen=NULL;
 
 int offsetx = 0, offsety = 0;
-
-int trans_mode=0;
 
 IDriverDependantBitmap* roomBackgroundBmp = NULL;
 
@@ -839,15 +838,15 @@ void putpixel_compensate (Bitmap *ds, int xx,int yy, int col) {
 
 
 
-void draw_sprite_support_alpha(Bitmap *ds, int xpos, int ypos, Bitmap *image, int slot) {
+void draw_sprite_support_alpha(Bitmap *ds, int xpos, int ypos, Bitmap *image, int slot, int transparency) {
 
-    if ((game.spriteflags[slot] & SPF_ALPHACHANNEL) && (trans_mode == 0)) 
+    if ((game.spriteflags[slot] & SPF_ALPHACHANNEL) && (transparency == 0)) 
     {
         set_alpha_blender();
         ds->TransBlendBlt(image, xpos, ypos);
     }
     else {
-        put_sprite_256(ds, xpos, ypos, image);
+        AGS::Engine::GfxUtil::DrawSpriteWithTransparency(ds, image, xpos, ypos, transparency);
     }
 
 }
@@ -1086,68 +1085,6 @@ extern int psp_gfx_renderer;
 extern int psp_gfx_super_sampling;
 #endif
 
-void put_sprite_256(Bitmap *ds, int xxx,int yyy,Bitmap *piccy) {
-
-    if (trans_mode >= 255) {
-        // fully transparent, don't draw it at all
-        trans_mode = 0;
-        return;
-    }
-
-    int screen_depth = ds->GetColorDepth();
-
-#ifdef USE_15BIT_FIX
-    if ((piccy->GetColorDepth() < screen_depth) 
-#if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(WINDOWS_VERSION)
-        || ((ds->GetBPP() < screen_depth) && (psp_gfx_renderer > 0)) // Fix for corrupted speechbox outlines with the OGL driver
-#endif
-        ) {
-            if ((piccy->GetColorDepth() == 8) && (screen_depth >= 24)) {
-                // 256-col sprite -> truecolor background
-                // this is automatically supported by allegro, no twiddling needed
-                ds->Blit(piccy, xxx, yyy, Common::kBitmap_Transparency);
-                return;
-            }
-            // 256-col spirte -> hi-color background, or
-            // 16-bit sprite -> 32-bit background
-            Bitmap *hctemp=BitmapHelper::CreateBitmapCopy(piccy, screen_depth);
-            color_t mask_col = ds->GetMaskColor();
-            if (piccy->GetColorDepth() == 8) {
-                // only do this for 256-col, cos the Blit call converts
-                // transparency for 16->32 bit
-                color_t draw_color = hctemp->GetCompatibleColor(mask_col);
-                for (int y = 0; y < hctemp->GetHeight(); ++y)
-                {
-                    const uint8_t *src_scanline = piccy->GetScanLine(y);
-                    uint8_t *dst_scanline = hctemp->GetScanLineForWriting(y);
-                    for (int x = 0; x < hctemp->GetWidth(); ++x)
-                    {
-                        if (src_scanline[x] == 0)
-                        {
-                            dst_scanline[x] = draw_color;
-                        }
-                    }
-                }
-            }
-            wputblock(ds, xxx,yyy,hctemp,1);
-            delete hctemp;
-    }
-    else
-#endif
-    {
-        if ((trans_mode!=0) && (game.color_depth > 1) && (piccy->GetBPP() > 1) && (ds->GetBPP() > 1)) {
-            set_trans_blender(0,0,0,trans_mode);
-            ds->TransBlendBlt(piccy,xxx,yyy);
-        }
-        /*    else if ((lit_mode < 0) && (game.color_depth == 1) && (bmp_bpp(piccy) == 1)) {
-        ->LitBlendBlt(ds,piccy,xxx,yyy,250 - ((-lit_mode) * 5)/2);
-        }*/
-        else
-            wputblock(ds, xxx,yyy,piccy,1);
-    }
-    trans_mode=0;
-}
-
 void repair_alpha_channel(Bitmap *dest, Bitmap *bgpic)
 {
     // Repair the alpha channel, because sprites may have been drawn
@@ -1182,7 +1119,7 @@ void draw_sprite_compensate(Bitmap *ds, int picc,int xx,int yy,int useAlpha)
     }
     else
     {
-        put_sprite_256(ds, xx, yy, spriteset[picc]);
+        AGS::Engine::GfxUtil::DrawSpriteWithTransparency(ds, spriteset[picc], xx, yy);
     }
 }
 

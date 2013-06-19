@@ -721,6 +721,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\gfx\gfx_util.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\gfx\gfxfilter.cpp"
 					>
 				</File>
@@ -1648,6 +1652,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\gfx\ddb.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\gfx_util.h"
 					>
 				</File>
 				<File

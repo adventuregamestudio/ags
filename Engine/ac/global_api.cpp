@@ -1260,7 +1260,7 @@ RuntimeScriptValue Sc_RawDrawFrameTransparent(const RuntimeScriptValue *params, 
 // void (int xx, int yy, int slot)
 RuntimeScriptValue Sc_RawDrawImage(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT3(RawDrawImageCore);
+    API_SCALL_VOID_PINT3(RawDrawImage);
 }
 
 // void (int xx, int yy, int slot)

@@ -619,7 +619,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
 
       // needs to draw the right text window, not the default
       push_screen(ds);
-      draw_text_window(ds, &txoffs,&tyoffs,&xspos,&yspos,&areawid,needheight, game.options[OPT_DIALOGIFACE]);
+      draw_text_window(ds, &txoffs,&tyoffs,&xspos,&yspos,&areawid,NULL,needheight, game.options[OPT_DIALOGIFACE]);
       ds = pop_screen();
       // snice draw_text_window incrases the width, restore it
       areawid = savedwid;

@@ -36,7 +36,7 @@ void draw_button_background(Common::Bitmap *ds, int xx1,int yy1,int xx2,int yy2,
 int get_textwindow_border_width (int twgui);
 // get the hegiht of the text window's top border
 int get_textwindow_top_border_height (int twgui);
-void draw_text_window(Common::Bitmap *ds, int*xins,int*yins,int*xx,int*yy,int*wii,int ovrheight, int ifnum);
-void draw_text_window_and_bar(Common::Bitmap *ds, int*xins,int*yins,int*xx,int*yy,int*wii,int ovrheight=0, int ifnum=-1);
+void draw_text_window(Common::Bitmap *ds, int*xins,int*yins,int*xx,int*yy,int*wii,color_t *set_text_color,int ovrheight, int ifnum);
+void draw_text_window_and_bar(Common::Bitmap *ds, int*xins,int*yins,int*xx,int*yy,int*wii,color_t *set_text_color,int ovrheight=0, int ifnum=-1);
 
 #endif // __AGS_EE_AC__DISPLAY_H

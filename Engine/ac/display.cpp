@@ -182,7 +182,7 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
         }
 
         if (drawBackground)
-            draw_text_window_and_bar(ds, &ttxleft, &ttxtop, &xx, &yy, &wii, 0, usingGui);
+            draw_text_window_and_bar(ds, &ttxleft, &ttxtop, &xx, &yy, &wii, &text_color, 0, usingGui);
         else if ((ShouldAntiAliasText()) && (final_col_dep >= 24))
             alphaChannel = true;
 
@@ -209,7 +209,7 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
     }
     else {
         int xoffs,yoffs, oriwid = wii - 6;
-        draw_text_window_and_bar(ds, &xoffs,&yoffs,&xx,&yy,&wii);
+        draw_text_window_and_bar(ds, &xoffs,&yoffs,&xx,&yy,&wii,&text_color);
 
         if (game.options[OPT_TWCUSTOM] > 0)
         {
@@ -605,7 +605,8 @@ int get_textwindow_top_border_height (int twgui) {
     return spriteheight[get_but_pic(&guis[twgui], 6)];
 }
 
-void draw_text_window(Bitmap *ds, int*xins,int*yins,int*xx,int*yy,int*wii,int ovrheight, int ifnum) {
+void draw_text_window(Bitmap *ds, int*xins,int*yins,int*xx,int*yy,int*wii, color_t *set_text_color,
+                      int ovrheight, int ifnum) {
     if (ifnum < 0)
         ifnum = game.options[OPT_TWCUSTOM];
 
@@ -613,6 +614,8 @@ void draw_text_window(Bitmap *ds, int*xins,int*yins,int*xx,int*yy,int*wii,int ov
         if (ovrheight)
             quit("!Cannot use QFG4 style options without custom text window");
         draw_button_background(ds, 0,0,ds->GetWidth() - 1,ds->GetHeight() - 1,NULL);
+        if (set_text_color)
+            *set_text_color = ds->GetCompatibleColor(16);
         xins[0]=3;
         yins[0]=3;
     }
@@ -636,15 +639,17 @@ void draw_text_window(Bitmap *ds, int*xins,int*yins,int*xx,int*yy,int*wii,int ov
         Bitmap *ds = SetVirtualScreen(screenop);
         int xoffs=spritewidth[tbnum],yoffs=spriteheight[tbnum];
         draw_button_background(ds, xoffs,yoffs,(ds->GetWidth() - xoffs) - 1,(ds->GetHeight() - yoffs) - 1,&guis[ifnum]);
+        if (set_text_color)
+            *set_text_color = ds->GetCompatibleColor(guis[ifnum].fgcol);
         xins[0]=xoffs+3;
         yins[0]=yoffs+3;
     }
 
 }
 
-void draw_text_window_and_bar(Bitmap *ds, int*xins,int*yins,int*xx,int*yy,int*wii,int ovrheight, int ifnum) {
+void draw_text_window_and_bar(Bitmap *ds, int*xins,int*yins,int*xx,int*yy,int*wii,color_t *set_text_color,int ovrheight, int ifnum) {
 
-    draw_text_window(ds, xins, yins, xx, yy, wii, ovrheight, ifnum);
+    draw_text_window(ds, xins, yins, xx, yy, wii, set_text_color, ovrheight, ifnum);
 
     if ((topBar.wantIt) && (screenop != NULL)) {
         // top bar on the dialog window with character's name

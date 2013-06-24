@@ -39,10 +39,8 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 namespace Out = AGS::Common::Out;
 
 extern int proper_exit;
-extern GUIMain*guis;
 extern int psp_gfx_renderer; // defined in ali3dogl
 extern WalkBehindMethodEnum walkBehindMethod;
-extern DynamicArray<GUIInv> guiinv;
 extern int numguiinv;
 extern int scrnwid,scrnhit;
 extern int current_screen_resolution_multiplier;
@@ -100,25 +98,39 @@ void adjust_sizes_for_resolution(int filever)
 
     for (ee = 0; ee < game.GuiCount; ee++) 
     {
-        GUIMain*cgp=&guis[ee];
-        adjust_pixel_sizes_for_loaded_data(&cgp->x, &cgp->y, filever);
-        if (cgp->wid < 1)
-            cgp->wid = 1;
-        if (cgp->hit < 1)
-            cgp->hit = 1;
+        GuiMain*cgp=&guis[ee];
+        int gui_x = cgp->GetX();
+        int gui_y = cgp->GetY();
+        adjust_pixel_sizes_for_loaded_data(&gui_x, &gui_y, filever);
+        cgp->SetX(gui_x);
+        cgp->SetY(gui_y);
+        if (cgp->GetWidth() < 1)
+            cgp->SetWidth(1);
+        if (cgp->GetHeight() < 1)
+            cgp->SetHeight(1);
         // Temp fix for older games
-        if (cgp->wid == BASEWIDTH - 1)
-            cgp->wid = BASEWIDTH;
+        if (cgp->GetWidth() == BASEWIDTH - 1)
+            cgp->SetWidth(BASEWIDTH);
 
-        adjust_pixel_sizes_for_loaded_data(&cgp->wid, &cgp->hit, filever);
+        int gui_width = cgp->GetWidth();
+        int gui_height = cgp->GetHeight();
+        adjust_pixel_sizes_for_loaded_data(&gui_width, &gui_height, filever);
+        cgp->SetWidth(gui_width);
+        cgp->SetHeight(gui_height);
 
-        cgp->popupyp = adjust_pixel_size_for_loaded_data(cgp->popupyp, filever);
+        cgp->PopupAtMouseY = adjust_pixel_size_for_loaded_data(cgp->PopupAtMouseY, filever);
 
-        for (ff = 0; ff < cgp->numobjs; ff++) 
+        for (ff = 0; ff < cgp->ControlCount; ff++) 
         {
-            adjust_pixel_sizes_for_loaded_data(&cgp->objs[ff]->x, &cgp->objs[ff]->y, filever);
-            adjust_pixel_sizes_for_loaded_data(&cgp->objs[ff]->wid, &cgp->objs[ff]->hit, filever);
-            cgp->objs[ff]->activated=0;
+            // FIXME this
+            int fix_x = cgp->Controls[ff]->GetX();
+            int fix_y = cgp->Controls[ff]->GetY();
+            int fix_w = cgp->Controls[ff]->GetWidth();
+            int fix_h = cgp->Controls[ff]->GetHeight();
+            adjust_pixel_sizes_for_loaded_data(&fix_x, &fix_y, filever);
+            adjust_pixel_sizes_for_loaded_data(&fix_w, &fix_h, filever);
+            cgp->Controls[ff]->SetFrame(Rect(fix_x, fix_y, fix_w, fix_h));
+            cgp->Controls[ff]->IsActivated=0;
         }
     }
 
@@ -135,8 +147,8 @@ void adjust_sizes_for_resolution(int filever)
 
         for (ee = 0; ee < numguiinv; ee++)
         {
-            guiinv[ee].itemWidth /= 2;
-            guiinv[ee].itemHeight /= 2;
+            guiinv[ee].ItemWidth /= 2;
+            guiinv[ee].ItemHeight /= 2;
         }
     }
 

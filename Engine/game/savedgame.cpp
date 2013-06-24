@@ -426,9 +426,9 @@ void save_game_data_ch_dialogs(Stream *out)
 void save_game_data_ch_gui(Stream *out)
 {
     // Gui state
-    out->WriteInt32(kRtGUIVersion_Current);
+    out->WriteInt32(kRtGuiVersion_Current);
     out->WriteInt32(game.GuiCount);
-    write_gui_for_savedgame(out,guis,&game);
+    AGS::Common::Gui::WriteGuiToSavedGame(guis, out);
     // Gui draw order
     out->WriteArrayOfInt32(play.GuiDrawOrder.GetCArr(), game.GuiCount);
     out->WriteInt32(numAnimButs);
@@ -1023,8 +1023,8 @@ SavedGameError restore_game_data_ch_dialogs(Stream *in, SavedGameRestorationData
 SavedGameError restore_game_data_ch_gui(Stream *in, SavedGameRestorationData &restore_data)
 {
     // Gui state
-    RuntimeGUIVersion version = (RuntimeGUIVersion)in->ReadInt32();
-    if (version != kRtGUIVersion_Current)
+    RuntimeGuiVersion version = (RuntimeGuiVersion)in->ReadInt32();
+    if (version != kRtGuiVersion_Current)
     {
         return kSvgErr_DataVersionNotSupported;
     }
@@ -1034,7 +1034,7 @@ SavedGameError restore_game_data_ch_gui(Stream *in, SavedGameRestorationData &re
         return kSvgErr_GameContentAssertionFailed;
     }
 
-    read_gui_from_savedgame(in, version, guis, &game);
+    AGS::Common::Gui::ReadGuiFromSavedGame(guis, in, version);
     // Gui draw order
     play.GuiDrawOrder.ReadRawOver(in, game.GuiCount);
     numAnimButs = in->ReadInt32();
@@ -1483,7 +1483,7 @@ SavedGameError do_after_restore(SavedGameRestorationData &restore_data)
 
     for (int i = 0; i < game.GuiCount; ++i)
     {
-        guibg[i] = BitmapHelper::CreateBitmap (guis[i].wid, guis[i].hit, final_col_dep);
+        guibg[i] = BitmapHelper::CreateBitmap (guis[i].GetWidth(), guis[i].GetHeight(), final_col_dep);
         guibg[i] = gfxDriver->ConvertBitmapToSupportedColourDepth(guibg[i]);
     }
 

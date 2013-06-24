@@ -11,104 +11,96 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
-#ifndef __AC_GUIBUTTON_H
-#define __AC_GUIBUTTON_H
+//
+// 
+//
+//=============================================================================
+#ifndef __AGS_CN_GUI__GUIBUTTON_H
+#define __AGS_CN_GUI__GUIBUTTON_H
 
 #include "gui/guiobject.h"
-#include "gui/dynamicarray.h"
 
-#define GBUT_ALIGN_TOPMIDDLE    0
-#define GBUT_ALIGN_TOPLEFT      1
-#define GBUT_ALIGN_TOPRIGHT     2
-#define GBUT_ALIGN_MIDDLELEFT   3 
-#define GBUT_ALIGN_CENTRED      4
-#define GBUT_ALIGN_MIDDLERIGHT  5
-#define GBUT_ALIGN_BOTTOMLEFT   6
-#define GBUT_ALIGN_BOTTOMMIDDLE 7
-#define GBUT_ALIGN_BOTTOMRIGHT  8
-
-struct GUIButton:public GUIObject
+namespace AGS
 {
-  char text[50];
-  int pic, overpic, pushedpic;
-  int usepic, ispushed, isover;
-  int font, textcol;
-  int leftclick, rightclick;
-  int lclickdata, rclickdata;
-  int textAlignment, reserved1;
+namespace Common
+{
 
-  virtual void WriteToFile(Common::Stream *out);
-  virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
-  virtual void ReadFromSavedGame(Common::Stream *in, RuntimeGUIVersion gui_version);
-  virtual void Draw(Common::Bitmap *ds);
-  void MouseUp();
-
-  void MouseMove(int x, int y)
-  {
-  }
-
-  void MouseOver()
-  {
-    if (ispushed)
-      usepic = pushedpic;
-    else
-      usepic = overpic;
-
-    isover = 1;
-  }
-
-  void MouseLeave()
-  {
-    usepic = pic;
-    isover = 0;
-  }
-
-  virtual int MouseDown()
-  {
-    if (pushedpic > 0)
-      usepic = pushedpic;
-
-    ispushed = 1;
-    return 0;
-  }
-
-  void KeyPress(int keycode)
-  {
-  }
-
-  void reset()
-  {
-    GUIObject::init();
-    usepic = -1;
-    pic = -1;
-    overpic = -1;
-    pushedpic = -1;
-    ispushed = 0;
-    isover = 0;
-    text[0] = 0;
-    font = 0;
-    textcol = 0;
-    leftclick = 2;
-    rightclick = 0;
-    activated = 0;
-    numSupportedEvents = 1;
-    supportedEvents[0] = "Click";
-    supportedEventArgs[0] = "GUIControl *control, MouseButton button";
-  }
-
-  GUIButton() {
-    reset();
-  }
-
-private:
-  void Draw_set_oritext(char *oritext, const char *text);
+enum GuiButtonClickAction
+{
+    kGuiBtnAction_None      = 0,
+    kGuiBtnAction_SetMode   = 1,
+    kGuiBtnAction_RunScript = 2,
 };
 
-extern DynamicArray<GUIButton> guibuts;
+// Legacy alignment constants are used to load old games properly
+enum LegacyGuiButtonAlignment
+{
+    kLegacyGuiBtnAlign_TopCenter     = 0,
+    kLegacyGuiBtnAlign_TopLeft       = 1,
+    kLegacyGuiBtnAlign_TopRight      = 2,
+    kLegacyGuiBtnAlign_CenterLeft    = 3,
+    kLegacyGuiBtnAlign_Centered      = 4,
+    kLegacyGuiBtnAlign_CenterRight   = 5,
+    kLegacyGuiBtnAlign_BottomLeft    = 6,
+    kLegacyGuiBtnAlign_BottomCenter  = 7,
+    kLegacyGuiBtnAlign_BottomRight   = 8,
+};
+
+
+class GuiButton : public GuiObject
+{
+public:
+    GuiButton();
+
+    void Init();
+
+    virtual void Draw(Common::Bitmap *ds);
+
+    virtual bool OnMouseDown();
+    virtual void OnMouseLeave();
+    virtual void OnMouseOver();
+    virtual void OnMouseUp();
+  
+    virtual void WriteToFile(Common::Stream *out);
+    virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
+    virtual void WriteToSavedGame(Common::Stream *out);
+    virtual void ReadFromSavedGame(Common::Stream *in, RuntimeGuiVersion gui_version);
+
+// TODO: these members are currently public; hide them later
+public:
+    int32_t     NormalImage;
+    int32_t     MouseOverImage;
+    int32_t     PushedImage;
+    int32_t     CurrentImage;
+    String      Text;
+    int32_t     TextFont;
+    color_t     TextColor;
+    Alignment   TextAlignment;
+    GuiButtonClickAction ClickAction;
+    int         ClickActionData;
+
+    bool        IsPushed;
+    bool        IsMouseOver;
+
+private:
+    void DrawImageButton(Bitmap *ds, bool draw_disabled);
+    void DrawText(Bitmap *ds, bool draw_disabled);
+    void DrawTextButton(Bitmap *ds, bool draw_disabled);
+    void PrepareTextToDraw();
+
+    // prepared text buffer/cache
+    String  TextToDraw;
+};
+
+} // namespace Common
+} // namespace AGS
+
+#include "util/array.h"
+
+extern AGS::Common::ObjectArray<AGS::Common::GuiButton> guibuts;
 extern int numguibuts;
 
 int UpdateAnimatingButton(int bu);
 void StopButtonAnimation(int idxn);
 
-#endif // __AC_GUIBUTTON_H
+#endif // __AGS_CN_GUI__GUIBUTTON_H

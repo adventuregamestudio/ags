@@ -21,23 +21,25 @@
 #include "gui/animatingguibutton.h"
 #include "gui/guibutton.h"
 
-void		Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat);
-const char* Button_GetText_New(GUIButton *butt);
-void		Button_GetText(GUIButton *butt, char *buffer);
-void		Button_SetText(GUIButton *butt, const char *newtx);
-void		Button_SetFont(GUIButton *butt, int newFont);
-int			Button_GetFont(GUIButton *butt);
-int			Button_GetClipImage(GUIButton *butt);
-void		Button_SetClipImage(GUIButton *butt, int newval);
-int			Button_GetGraphic(GUIButton *butt);
-int			Button_GetMouseOverGraphic(GUIButton *butt);
-void		Button_SetMouseOverGraphic(GUIButton *guil, int slotn);
-int			Button_GetNormalGraphic(GUIButton *butt);
-void		Button_SetNormalGraphic(GUIButton *guil, int slotn);
-int			Button_GetPushedGraphic(GUIButton *butt);
-void		Button_SetPushedGraphic(GUIButton *guil, int slotn);
-int			Button_GetTextColor(GUIButton *butt);
-void		Button_SetTextColor(GUIButton *butt, int newcol);
+using AGS::Common::GuiButton;
+
+void		Button_Animate(GuiButton *butt, int view, int loop, int speed, int repeat);
+const char* Button_GetText_New(GuiButton *butt);
+void		Button_GetText(GuiButton *butt, char *buffer);
+void		Button_SetText(GuiButton *butt, const char *newtx);
+void		Button_SetFont(GuiButton *butt, int newFont);
+int			Button_GetFont(GuiButton *butt);
+int			Button_GetClipImage(GuiButton *butt);
+void		Button_SetClipImage(GuiButton *butt, int newval);
+int			Button_GetGraphic(GuiButton *butt);
+int			Button_GetMouseOverGraphic(GuiButton *butt);
+void		Button_SetMouseOverGraphic(GuiButton *guil, int slotn);
+int			Button_GetNormalGraphic(GuiButton *butt);
+void		Button_SetNormalGraphic(GuiButton *guil, int slotn);
+int			Button_GetPushedGraphic(GuiButton *butt);
+void		Button_SetPushedGraphic(GuiButton *guil, int slotn);
+int			Button_GetTextColor(GuiButton *butt);
+void		Button_SetTextColor(GuiButton *butt, int newcol);
 
 int			UpdateAnimatingButton(int bu);
 void		StopButtonAnimation(int idxn);

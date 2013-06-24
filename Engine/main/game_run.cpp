@@ -50,6 +50,8 @@
 #include "script/script.h"
 #include "ac/spritecache.h"
 
+using AGS::Common::GuiTextBox;
+
 extern AnimatingGUIButton animbuts[MAX_ANIMATING_BUTTONS];
 extern int numAnimButs;
 extern int mouse_on_iface;   // mouse cursor is over this interface
@@ -66,7 +68,6 @@ extern int in_leaves_screen;
 extern int inside_script,in_graph_script;
 extern int no_blocking_functions;
 extern CharacterInfo*playerchar;
-extern GUIMain*guis;
 extern int is_complete_overlay;
 extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 extern int cur_mode;
@@ -190,19 +191,19 @@ void check_controls() {
         int ll;
         for (ll = 0; ll < game.GuiCount;ll++) {
             aa = play.GuiDrawOrder[ll];
-            if (guis[aa].is_mouse_on_gui()) mongu=aa;
+            if (guis[aa].IsMouseOnGui()) mongu=aa;
 
-            if (guis[aa].popup!=POPUP_MOUSEY) continue;
+            if (guis[aa].PopupStyle!=Common::kGuiPopupMouseY) continue;
             if (is_complete_overlay>0) break;  // interfaces disabled
             //    if (play.DisabledUserInterface>0) break;
             if (ifacepopped==aa) continue;
-            if (guis[aa].on==-1) continue;
+            if (!guis[aa].IsVisible) continue;
             // Don't allow it to be popped up while skipping cutscene
             if (play.FastForwardCutscene) continue;
 
-            if (mousey < guis[aa].popupyp) {
+            if (mousey < guis[aa].PopupAtMouseY) {
                 set_mouse_cursor(CURS_ARROW);
-                guis[aa].on=1; guis_need_update = 1;
+                guis[aa].IsVisible=false; guis_need_update = 1;
                 ifacepopped=aa; PauseGame();
                 break;
             }
@@ -210,40 +211,40 @@ void check_controls() {
     }
 
     mouse_on_iface=mongu;
-    if ((ifacepopped>=0) && (mousey>=guis[ifacepopped].y+guis[ifacepopped].hit))
+    if ((ifacepopped>=0) && (mousey>=guis[ifacepopped].GetY()+guis[ifacepopped].GetHeight()))
         remove_popup_interface(ifacepopped);
 
     // check mouse clicks on GUIs
     static int wasbutdown=0,wasongui=0;
 
     if ((wasbutdown>0) && (misbuttondown(wasbutdown-1))) {
-        for (aa=0;aa<guis[wasongui].numobjs;aa++) {
-            if (guis[wasongui].objs[aa]->activated<1) continue;
-            if (guis[wasongui].get_control_type(aa)!=GOBJ_SLIDER) continue;
+        for (aa=0;aa<guis[wasongui].ControlCount;aa++) {
+            if (!guis[wasongui].Controls[aa]->IsActivated) continue;
+            if (guis[wasongui].GetControlType(aa)!=Common::kGuiSlider) continue;
             // GUI Slider repeatedly activates while being dragged
-            guis[wasongui].objs[aa]->activated=0;
+            guis[wasongui].Controls[aa]->IsActivated=0;
             setevent(EV_IFACECLICK, wasongui, aa, wasbutdown);
             break;
         }
     }
     else if ((wasbutdown>0) && (!misbuttondown(wasbutdown-1))) {
-        guis[wasongui].mouse_but_up();
+        guis[wasongui].OnMouseButtonUp();
         int whichbut=wasbutdown;
         wasbutdown=0;
 
-        for (aa=0;aa<guis[wasongui].numobjs;aa++) {
-            if (guis[wasongui].objs[aa]->activated<1) continue;
-            guis[wasongui].objs[aa]->activated=0;
+        for (aa=0;aa<guis[wasongui].ControlCount;aa++) {
+            if (!guis[wasongui].Controls[aa]->IsActivated) continue;
+            guis[wasongui].Controls[aa]->IsActivated=0;
             if (!IsInterfaceEnabled()) break;
 
-            int cttype=guis[wasongui].get_control_type(aa);
-            if ((cttype == GOBJ_BUTTON) || (cttype == GOBJ_SLIDER) || (cttype == GOBJ_LISTBOX)) {
+            int cttype=guis[wasongui].GetControlType(aa);
+            if ((cttype == Common::kGuiButton) || (cttype == Common::kGuiSlider) || (cttype == Common::kGuiListBox)) {
                 setevent(EV_IFACECLICK, wasongui, aa, whichbut);
             }
-            else if (cttype == GOBJ_INVENTORY) {
-                mouse_ifacebut_xoffs=mousex-(guis[wasongui].objs[aa]->x)-guis[wasongui].x;
-                mouse_ifacebut_yoffs=mousey-(guis[wasongui].objs[aa]->y)-guis[wasongui].y;
-                int iit=offset_over_inv((GUIInv*)guis[wasongui].objs[aa]);
+            else if (cttype == Common::kGuiInvWindow) {
+                mouse_ifacebut_xoffs=mousex-(guis[wasongui].Controls[aa]->GetX())-guis[wasongui].GetX();
+                mouse_ifacebut_yoffs=mousey-(guis[wasongui].Controls[aa]->GetY())-guis[wasongui].GetY();
+                int iit=offset_over_inv((GuiInvWindow*)guis[wasongui].Controls[aa]);
                 if (iit>=0) {
                     evblocknum=iit;
                     play.ClickedInvItemIndex = iit;
@@ -262,7 +263,7 @@ void check_controls() {
                 }
             }
             else quit("clicked on unknown control type");
-            if (guis[wasongui].popup==POPUP_MOUSEY)
+            if (guis[wasongui].PopupStyle==Common::kGuiPopupMouseY)
                 remove_popup_interface(wasongui);
             break;
         }
@@ -292,9 +293,9 @@ void check_controls() {
         else if (mongu>=0) {
             if (wasbutdown==0) {
                 DEBUG_CONSOLE("Mouse click over GUI %d", mongu);
-                guis[mongu].mouse_but_down();
+                guis[mongu].OnMouseButtonDown();
                 // run GUI click handler if not on any control
-                if ((guis[mongu].mousedownon < 0) && (guis[mongu].clickEventHandler[0] != 0))
+                if ((guis[mongu].MouseDownControl < 0) && (guis[mongu].OnClickHandler[0] != 0))
                     setevent(EV_IFACECLICK, mongu, -1, aa + 1);
 
                 run_on_event(GE_GUI_MOUSEDOWN, RuntimeScriptValue().SetInt32(mongu));
@@ -441,18 +442,18 @@ void check_controls() {
             if ( ((kgn >= 32) && (kgn != '[') && (kgn < 256)) || (kgn == 13) || (kgn == 8) ) {
                 int uu,ww;
                 for (uu=0;uu<game.GuiCount;uu++) {
-                    if (guis[uu].on < 1) continue;
-                    for (ww=0;ww<guis[uu].numobjs;ww++) {
+                    if (!guis[uu].IsVisible) continue;
+                    for (ww=0;ww<guis[uu].ControlCount;ww++) {
                         // not a text box, ignore it
-                        if ((guis[uu].objrefptr[ww] >> 16)!=GOBJ_TEXTBOX)
+                        if ((guis[uu].ControlRefs[ww] >> 16)!=Common::kGuiTextBox)
                             continue;
-                        GUITextBox*guitex=(GUITextBox*)guis[uu].objs[ww];
+                        GuiTextBox*guitex=(GuiTextBox*)guis[uu].Controls[ww];
                         // if the text box is disabled, it cannot except keypresses
                         if ((guitex->IsDisabled()) || (!guitex->IsVisible()))
                             continue;
-                        guitex->KeyPress(kgn);
-                        if (guitex->activated) {
-                            guitex->activated = 0;
+                        guitex->OnKeyPress(kgn);
+                        if (guitex->IsActivated) {
+                            guitex->IsActivated = 0;
                             setevent(EV_IFACECLICK, uu, ww, 1);
                         }
                         keywasprocessed = 1;

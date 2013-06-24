@@ -12,124 +12,127 @@
 //
 //=============================================================================
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "font/fonts.h"
 #include "gui/guilabel.h"
 #include "gui/guimain.h"
-#include "util/stream.h"
-#include "util/wgt2allg.h"
 
-using AGS::Common::Stream;
+namespace AGS
+{
+namespace Common
+{
 
-DynamicArray<GUILabel> guilabels;
+GuiLabel::GuiLabel()
+{
+    TextFont = 0;
+    TextColor = 0;
+    TextAlignment = kAlign_Left;
+
+    SupportedEventCount = 0;
+}
+
+void GuiLabel::SetText(const String &text)
+{
+    Text = text;  
+}
+
+String GuiLabel::GetText() const
+{
+    return Text;
+}
+
+void GuiLabel::Draw(Common::Bitmap *ds)
+{
+    check_font(&TextFont);
+
+    // TODO: need to find a way to cache text prior to drawing;
+    // but that will require to update all gui controls when translation is changed in game
+    PrepareTextToDraw();
+    int line_count = SplitLinesForDrawing();
+
+    color_t text_color = ds->GetCompatibleColor(TextColor);
+    int text_height = wgettextheight("ZhypjIHQFb", TextFont) + 1;
+    for (int i = 0, at_y = Frame.Top; i < line_count; ++i)
+    {
+        DrawAlignedText(ds, at_y, text_color, lines[i]);
+        at_y += text_height;
+        if (at_y > Frame.Bottom)
+        {
+            break;
+        }
+    }
+}
+
+void GuiLabel::DrawAlignedText(Common::Bitmap *ds, int at_y, color_t text_color, const char *text)
+{
+    int at_x = Frame.Left;
+    if (TextAlignment & kAlign_HCenter)
+    {
+        at_x += Frame.GetWidth() / 2 - wgettextwidth(text, TextFont) / 2;
+    }
+    else if (TextAlignment & kAlign_Right)
+    {
+        at_x += Frame.GetWidth() - wgettextwidth(text, TextFont);
+    }
+    wouttext_outline(ds, at_x, at_y, TextFont, text_color, text);
+}
+
+void GuiLabel::WriteToFile(Stream *out)
+{
+    GuiObject::WriteToFile(out);
+    out->WriteInt32(TextFont);
+    out->WriteInt32(TextColor);
+    out->WriteInt32(TextAlignment);
+    Text.Write(out);
+}
+
+void GuiLabel::ReadFromFile(Stream *in, GuiVersion gui_version)
+{
+    GuiObject::ReadFromFile(in, gui_version);
+    if (gui_version < kGuiVersion_272c)
+    {
+        Text.ReadCount(in, 200);
+    }
+    else if (gui_version < kGuiVersion_340_alpha)
+    {
+        size_t text_length = in->ReadInt32();
+        Text.ReadCount(in, text_length);
+    }
+    TextFont = in->ReadInt32();
+    TextColor = in->ReadInt32();
+    TextAlignment = (Alignment)in->ReadInt32();
+    if (gui_version >= kGuiVersion_340_alpha)
+    {
+        Text.Read(in);
+    }
+
+    if (TextColor == 0)
+    {
+        TextColor = 16;
+    }
+    // All labels are translated at the moment
+    Flags |= kGuiCtrl_Translated;
+}
+
+void GuiLabel::WriteToSavedGame(Stream *out)
+{
+    GuiObject::WriteToSavedGame(out);
+    out->WriteInt32(TextFont);
+    out->WriteInt32(TextColor);
+    out->WriteInt32(TextAlignment);
+    Text.Write(out);
+}
+
+void GuiLabel::ReadFromSavedGame(Common::Stream *in, RuntimeGuiVersion gui_version)
+{
+    GuiObject::ReadFromSavedGame(in, gui_version);
+    TextFont = in->ReadInt32();
+    TextColor = in->ReadInt32();
+    TextAlignment = (Alignment)in->ReadInt32();
+    Text.Read(in);
+}
+
+} // namespace Common
+} // namespace AGS
+
+AGS::Common::ObjectArray<AGS::Common::GuiLabel> guilabels;
 int numguilabels = 0;
-
-void GUILabel::WriteToFile(Stream *out)
-{
-  GUIObject::WriteToFile(out);
-  // MACPORT FIXES: swap
-  //->WriteArray(&text[0], sizeof(char), 200);
-  out->WriteInt32((int)strlen(text) + 1);
-  out->Write(&text[0], strlen(text) + 1);
-  out->WriteArrayOfInt32(&font, 3);
-}
-
-void GUILabel::ReadFromFile(Stream *in, GuiVersion gui_version)
-{
-  GUIObject::ReadFromFile(in, gui_version);
-
-  if (textBufferLen > 0)
-    free(text);
-
-  if (gui_version < kGuiVersion_272c) {
-    textBufferLen = 200;
-  }
-  else {
-    textBufferLen = in->ReadInt32();
-  }
-
-  text = (char*)malloc(textBufferLen);
-  in->Read(&text[0], textBufferLen);
-
-  in->ReadArrayOfInt32(&font, 3);
-  if (textcol == 0)
-    textcol = 16;
-
-  // All labels are translated at the moment
-  flags |= GUIF_TRANSLATED;
-}
-
-void GUILabel::ReadFromSavedGame(Common::Stream *in, RuntimeGUIVersion gui_version)
-{
-    GUIObject::ReadFromSavedGame(in, gui_version);
-
-    if (textBufferLen > 0)
-        free(text);
-
-    textBufferLen = in->ReadInt32();
-    text = (char*)malloc(textBufferLen);
-    in->Read(&text[0], textBufferLen);
-    in->ReadArrayOfInt32(&font, 3);
-}
-
-void GUILabel::SetText(const char *newText) {
-
-  if ((int)strlen(newText) < textBufferLen) {
-    strcpy(this->text, newText);
-    return;
-  }
-
-  if (textBufferLen > 0)
-    free(this->text);
-
-  textBufferLen = (int)strlen(newText) + 1;
-
-  this->text = (char*)malloc(textBufferLen);
-  strcpy(this->text, newText);
-
-  // restrict to this length
-  if (textBufferLen >= MAX_GUILABEL_TEXT_LEN)
-    this->text[MAX_GUILABEL_TEXT_LEN - 1] = 0;
-}
-
-const char *GUILabel::GetText() {
-  return text;
-}
-
-void GUILabel::printtext_align(Common::Bitmap *ds, int yy, color_t text_color, char *teptr)
-{
-  int outxp = x;
-  if (align == GALIGN_CENTRE)
-    outxp += wid / 2 - wgettextwidth(teptr, font) / 2;
-  else if (align == GALIGN_RIGHT)
-    outxp += wid - wgettextwidth(teptr, font);
-
-  wouttext_outline(ds, outxp, yy, font, text_color, teptr);
-}
-
-void GUILabel::Draw(Common::Bitmap *ds)
-{
-  int cyp = y, TEXT_HT;
-  char oritext[MAX_GUILABEL_TEXT_LEN], *teptr;
-
-  check_font(&font);
-
-  Draw_replace_macro_tokens(oritext, text);
-
-  teptr = &oritext[0];
-  TEXT_HT = wgettextheight("ZhypjIHQFb", font) + 1;
-
-  color_t text_color = ds->GetCompatibleColor(textcol);
-
-  Draw_split_lines(teptr, wid, font, numlines);
-
-  for (int aa = 0; aa < numlines; aa++) {
-    printtext_align(ds, cyp, text_color, lines[aa]);
-    cyp += TEXT_HT;
-    if (cyp > y + hit)
-      break;
-  }
-
-}

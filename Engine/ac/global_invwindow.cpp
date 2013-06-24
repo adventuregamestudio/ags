@@ -20,7 +20,6 @@
 #include "script/executingscript.h"
 
 extern ExecutingScript*curscript;
-extern DynamicArray<GUIInv> guiinv;
 extern int numguiinv;
 extern int guis_need_update;
 
@@ -34,9 +33,9 @@ void SetInvDimensions(int ww,int hh) {
     play.InventoryDisplayedCount = 0;
     // backwards compatibility
     for (int i = 0; i < numguiinv; i++) {
-        guiinv[i].itemWidth = ww;
-        guiinv[i].itemHeight = hh;
-        guiinv[i].Resized();
+        guiinv[i].ItemWidth = ww;
+        guiinv[i].ItemHeight = hh;
+        guiinv[i].OnResized();
     }
     guis_need_update = 1;
 }

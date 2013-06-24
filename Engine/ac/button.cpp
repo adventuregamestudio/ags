@@ -24,7 +24,6 @@
 #include "gui/guimain.h"
 
 extern ViewStruct*views;
-extern GUIMain*guis;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 
 // *** BUTTON FUNCTIONS
@@ -32,9 +31,9 @@ extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 AnimatingGUIButton animbuts[MAX_ANIMATING_BUTTONS];
 int numAnimButs;
 
-void Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat) {
-    int guin = butt->guin;
-    int objn = butt->objn;
+void Button_Animate(GuiButton *butt, int view, int loop, int speed, int repeat) {
+    int guin = butt->ParentId;
+    int objn = butt->Id;
 
     if ((view < 1) || (view > game.ViewCount))
         quit("!AnimateButton: invalid view specified");
@@ -49,10 +48,10 @@ void Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat) 
     if (numAnimButs >= MAX_ANIMATING_BUTTONS)
         quit("!AnimateButton: too many animating GUI buttons at once");
 
-    int buttonId = guis[guin].objrefptr[objn] & 0x000ffff;
+    int buttonId = guis[guin].ControlRefs[objn] & 0x000ffff;
 
-    guibuts[buttonId].pushedpic = 0;
-    guibuts[buttonId].overpic = 0;
+    guibuts[buttonId].PushedImage = 0;
+    guibuts[buttonId].MouseOverImage = 0;
 
     animbuts[numAnimButs].ongui = guin;
     animbuts[numAnimButs].onguibut = objn;
@@ -69,114 +68,114 @@ void Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat) 
         quit("!AnimateButton: no frames to animate");
 }
 
-const char* Button_GetText_New(GUIButton *butt) {
-    return CreateNewScriptString(butt->text);
+const char* Button_GetText_New(GuiButton *butt) {
+    return CreateNewScriptString(butt->Text);
 }
 
-void Button_GetText(GUIButton *butt, char *buffer) {
-    strcpy(buffer, butt->text);
+void Button_GetText(GuiButton *butt, char *buffer) {
+    strcpy(buffer, butt->Text);
 }
 
-void Button_SetText(GUIButton *butt, const char *newtx) {
+void Button_SetText(GuiButton *butt, const char *newtx) {
     newtx = get_translation(newtx);
     if (strlen(newtx) > 49) quit("!SetButtonText: text too long, button has 50 chars max");
 
-    if (strcmp(butt->text, newtx)) {
+    if (strcmp(butt->Text, newtx)) {
         guis_need_update = 1;
-        strcpy(butt->text,newtx);
+        butt->Text = newtx;
     }
 }
 
-void Button_SetFont(GUIButton *butt, int newFont) {
+void Button_SetFont(GuiButton *butt, int newFont) {
     if ((newFont < 0) || (newFont >= game.FontCount))
         quit("!Button.Font: invalid font number.");
 
-    if (butt->font != newFont) {
-        butt->font = newFont;
+    if (butt->TextFont != newFont) {
+        butt->TextFont = newFont;
         guis_need_update = 1;
     }
 }
 
-int Button_GetFont(GUIButton *butt) {
-    return butt->font;
+int Button_GetFont(GuiButton *butt) {
+    return butt->TextFont;
 }
 
-int Button_GetClipImage(GUIButton *butt) {
-    if (butt->flags & GUIF_CLIP)
+int Button_GetClipImage(GuiButton *butt) {
+    if (butt->Flags & Common::kGuiCtrl_Clip)
         return 1;
     return 0;
 }
 
-void Button_SetClipImage(GUIButton *butt, int newval) {
-    butt->flags &= ~GUIF_CLIP;
+void Button_SetClipImage(GuiButton *butt, int newval) {
+    butt->Flags &= ~Common::kGuiCtrl_Clip;
     if (newval)
-        butt->flags |= GUIF_CLIP;
+        butt->Flags |= Common::kGuiCtrl_Clip;
 
     guis_need_update = 1;
 }
 
-int Button_GetGraphic(GUIButton *butt) {
+int Button_GetGraphic(GuiButton *butt) {
     // return currently displayed pic
-    if (butt->usepic < 0)
-        return butt->pic;
-    return butt->usepic;
+    if (butt->CurrentImage < 0)
+        return butt->NormalImage;
+    return butt->CurrentImage;
 }
 
-int Button_GetMouseOverGraphic(GUIButton *butt) {
-    return butt->overpic;
+int Button_GetMouseOverGraphic(GuiButton *butt) {
+    return butt->MouseOverImage;
 }
 
-void Button_SetMouseOverGraphic(GUIButton *guil, int slotn) {
-    DEBUG_CONSOLE("GUI %d Button %d mouseover set to slot %d", guil->guin, guil->objn, slotn);
+void Button_SetMouseOverGraphic(GuiButton *guil, int slotn) {
+    DEBUG_CONSOLE("GUI %d Button %d mouseover set to slot %d", guil->ParentId, guil->Id, slotn);
 
-    if ((guil->isover != 0) && (guil->ispushed == 0))
-        guil->usepic = slotn;
-    guil->overpic = slotn;
+    if ((guil->IsMouseOver != 0) && (guil->IsPushed == 0))
+        guil->CurrentImage = slotn;
+    guil->MouseOverImage = slotn;
 
     guis_need_update = 1;
-    FindAndRemoveButtonAnimation(guil->guin, guil->objn);
+    FindAndRemoveButtonAnimation(guil->ParentId, guil->Id);
 }
 
-int Button_GetNormalGraphic(GUIButton *butt) {
-    return butt->pic;
+int Button_GetNormalGraphic(GuiButton *butt) {
+    return butt->NormalImage;
 }
 
-void Button_SetNormalGraphic(GUIButton *guil, int slotn) {
-    DEBUG_CONSOLE("GUI %d Button %d normal set to slot %d", guil->guin, guil->objn, slotn);
+void Button_SetNormalGraphic(GuiButton *guil, int slotn) {
+    DEBUG_CONSOLE("GUI %d Button %d normal set to slot %d", guil->ParentId, guil->Id, slotn);
     // normal pic - update if mouse is not over, or if there's no overpic
-    if (((guil->isover == 0) || (guil->overpic < 1)) && (guil->ispushed == 0))
-        guil->usepic = slotn;
-    guil->pic = slotn;
+    if (((guil->IsMouseOver == 0) || (guil->MouseOverImage < 1)) && (guil->IsPushed == 0))
+        guil->CurrentImage = slotn;
+    guil->NormalImage = slotn;
     // update the clickable area to the same size as the graphic
-    guil->wid = spritewidth[slotn];
-    guil->hit = spriteheight[slotn];
+    guil->SetWidth(spritewidth[slotn]);
+    guil->SetHeight(spriteheight[slotn]);
 
     guis_need_update = 1;
-    FindAndRemoveButtonAnimation(guil->guin, guil->objn);
+    FindAndRemoveButtonAnimation(guil->ParentId, guil->Id);
 }
 
-int Button_GetPushedGraphic(GUIButton *butt) {
-    return butt->pushedpic;
+int Button_GetPushedGraphic(GuiButton *butt) {
+    return butt->PushedImage;
 }
 
-void Button_SetPushedGraphic(GUIButton *guil, int slotn) {
-    DEBUG_CONSOLE("GUI %d Button %d pushed set to slot %d", guil->guin, guil->objn, slotn);
+void Button_SetPushedGraphic(GuiButton *guil, int slotn) {
+    DEBUG_CONSOLE("GUI %d Button %d pushed set to slot %d", guil->ParentId, guil->Id, slotn);
 
-    if (guil->ispushed)
-        guil->usepic = slotn;
-    guil->pushedpic = slotn;
+    if (guil->IsPushed)
+        guil->CurrentImage = slotn;
+    guil->PushedImage = slotn;
 
     guis_need_update = 1;
-    FindAndRemoveButtonAnimation(guil->guin, guil->objn);
+    FindAndRemoveButtonAnimation(guil->ParentId, guil->Id);
 }
 
-int Button_GetTextColor(GUIButton *butt) {
-    return butt->textcol;
+int Button_GetTextColor(GuiButton *butt) {
+    return butt->TextColor;
 }
 
-void Button_SetTextColor(GUIButton *butt, int newcol) {
-    if (butt->textcol != newcol) {
-        butt->textcol = newcol;
+void Button_SetTextColor(GuiButton *butt, int newcol) {
+    if (butt->TextColor != newcol) {
+        butt->TextColor = newcol;
         guis_need_update = 1;
     }
 }
@@ -217,10 +216,10 @@ int UpdateAnimatingButton(int bu) {
     CheckViewFrame(animbuts[bu].view, animbuts[bu].loop, animbuts[bu].frame);
 
     // update the button's image
-    guibuts[animbuts[bu].buttonid].pic = tview->loops[animbuts[bu].loop].frames[animbuts[bu].frame].pic;
-    guibuts[animbuts[bu].buttonid].usepic = guibuts[animbuts[bu].buttonid].pic;
-    guibuts[animbuts[bu].buttonid].pushedpic = 0;
-    guibuts[animbuts[bu].buttonid].overpic = 0;
+    guibuts[animbuts[bu].buttonid].NormalImage = tview->loops[animbuts[bu].loop].frames[animbuts[bu].frame].pic;
+    guibuts[animbuts[bu].buttonid].CurrentImage = guibuts[animbuts[bu].buttonid].NormalImage;
+    guibuts[animbuts[bu].buttonid].PushedImage = 0;
+    guibuts[animbuts[bu].buttonid].MouseOverImage = 0;
     guis_need_update = 1;
 
     animbuts[bu].wait = animbuts[bu].speed + tview->loops[animbuts[bu].loop].frames[animbuts[bu].frame].speed;
@@ -259,106 +258,106 @@ void FindAndRemoveButtonAnimation(int guin, int objn) {
 
 extern ScriptString myScriptStringImpl;
 
-// void | GUIButton *butt, int view, int loop, int speed, int repeat
+// void | GuiButton *butt, int view, int loop, int speed, int repeat
 RuntimeScriptValue Sc_Button_Animate(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT4(GUIButton, Button_Animate);
+    API_OBJCALL_VOID_PINT4(GuiButton, Button_Animate);
 }
 
-// const char* | GUIButton *butt
+// const char* | GuiButton *butt
 RuntimeScriptValue Sc_Button_GetText_New(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ(GUIButton, const char, myScriptStringImpl, Button_GetText_New);
+    API_OBJCALL_OBJ(GuiButton, const char, myScriptStringImpl, Button_GetText_New);
 }
 
-// void | GUIButton *butt, char *buffer
+// void | GuiButton *butt, char *buffer
 RuntimeScriptValue Sc_Button_GetText(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ(GUIButton, Button_GetText, char);
+    API_OBJCALL_VOID_POBJ(GuiButton, Button_GetText, char);
 }
 
-// void | GUIButton *butt, const char *newtx
+// void | GuiButton *butt, const char *newtx
 RuntimeScriptValue Sc_Button_SetText(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ(GUIButton, Button_SetText, const char);
+    API_OBJCALL_VOID_POBJ(GuiButton, Button_SetText, const char);
 }
 
-// void | GUIButton *butt, int newFont
+// void | GuiButton *butt, int newFont
 RuntimeScriptValue Sc_Button_SetFont(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(GUIButton, Button_SetFont);
+    API_OBJCALL_VOID_PINT(GuiButton, Button_SetFont);
 }
 
-// int | GUIButton *butt
+// int | GuiButton *butt
 RuntimeScriptValue Sc_Button_GetFont(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUIButton, Button_GetFont);
+    API_OBJCALL_INT(GuiButton, Button_GetFont);
 }
 
-// int | GUIButton *butt
+// int | GuiButton *butt
 RuntimeScriptValue Sc_Button_GetClipImage(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUIButton, Button_GetClipImage);
+    API_OBJCALL_INT(GuiButton, Button_GetClipImage);
 }
 
-// void | GUIButton *butt, int newval
+// void | GuiButton *butt, int newval
 RuntimeScriptValue Sc_Button_SetClipImage(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(GUIButton, Button_SetClipImage);
+    API_OBJCALL_VOID_PINT(GuiButton, Button_SetClipImage);
 }
 
-// int | GUIButton *butt
+// int | GuiButton *butt
 RuntimeScriptValue Sc_Button_GetGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUIButton, Button_GetGraphic);
+    API_OBJCALL_INT(GuiButton, Button_GetGraphic);
 }
 
-// int | GUIButton *butt
+// int | GuiButton *butt
 RuntimeScriptValue Sc_Button_GetMouseOverGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUIButton, Button_GetMouseOverGraphic);
+    API_OBJCALL_INT(GuiButton, Button_GetMouseOverGraphic);
 }
 
-// void | GUIButton *guil, int slotn
+// void | GuiButton *guil, int slotn
 RuntimeScriptValue Sc_Button_SetMouseOverGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(GUIButton, Button_SetMouseOverGraphic);
+    API_OBJCALL_VOID_PINT(GuiButton, Button_SetMouseOverGraphic);
 }
 
-// int | GUIButton *butt
+// int | GuiButton *butt
 RuntimeScriptValue Sc_Button_GetNormalGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUIButton, Button_GetNormalGraphic);
+    API_OBJCALL_INT(GuiButton, Button_GetNormalGraphic);
 }
 
-// void | GUIButton *guil, int slotn
+// void | GuiButton *guil, int slotn
 RuntimeScriptValue Sc_Button_SetNormalGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(GUIButton, Button_SetNormalGraphic);
+    API_OBJCALL_VOID_PINT(GuiButton, Button_SetNormalGraphic);
 }
 
-// int | GUIButton *butt
+// int | GuiButton *butt
 RuntimeScriptValue Sc_Button_GetPushedGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUIButton, Button_GetPushedGraphic);
+    API_OBJCALL_INT(GuiButton, Button_GetPushedGraphic);
 }
 
-// void | GUIButton *guil, int slotn
+// void | GuiButton *guil, int slotn
 RuntimeScriptValue Sc_Button_SetPushedGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(GUIButton, Button_SetPushedGraphic);
+    API_OBJCALL_VOID_PINT(GuiButton, Button_SetPushedGraphic);
 }
 
-// int | GUIButton *butt
+// int | GuiButton *butt
 RuntimeScriptValue Sc_Button_GetTextColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUIButton, Button_GetTextColor);
+    API_OBJCALL_INT(GuiButton, Button_GetTextColor);
 }
 
-// void | GUIButton *butt, int newcol
+// void | GuiButton *butt, int newcol
 RuntimeScriptValue Sc_Button_SetTextColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(GUIButton, Button_SetTextColor);
+    API_OBJCALL_VOID_PINT(GuiButton, Button_SetTextColor);
 }
 
 void RegisterButtonAPI()

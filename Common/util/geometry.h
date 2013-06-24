@@ -23,6 +23,38 @@
 //namespace Common
 //{
 
+enum Alignment
+{
+    kAlign_None     = 0x00,
+    kAlign_Left     = 0x01,
+    kAlign_Right    = 0x02,
+    kAlign_HCenter  = 0x04,
+    kAlign_Top      = 0x10,
+    kAlign_Bottom   = 0x20,
+    kAlign_VCenter  = 0x40,
+
+    // Composite constants
+    kAlign_TopCenter = kAlign_Top | kAlign_HCenter
+};
+
+struct Point
+{
+    int X;
+    int Y;
+
+    Point()
+    {
+        X = 0;
+        Y = 0;
+    }
+
+    Point(int x, int y)
+    {
+        X = x;
+        Y = y;
+    }
+};
+
 struct Line
 {
 	int X1;
@@ -58,6 +90,24 @@ inline Line VLine(int x, int y1, int y2)
 	return Line(x, y1, x, y2);
 }
 
+struct Size
+{
+    int Width;
+    int Height;
+
+    Size()
+    {
+        Width = 0;
+        Height = 0;
+    }
+
+    Size(int width, int height)
+    {
+        Width = width;
+        Height = height;
+    }
+};
+
 struct Rect
 {
 	int Left;
@@ -69,8 +119,8 @@ struct Rect
 	{
 		Left	= 0;
 		Top		= 0;
-		Right	= 0;
-		Bottom	= 0;
+		Right	= -1;
+		Bottom	= -1;
 	}
 
 	Rect(int l, int t, int r, int b)
@@ -90,6 +140,38 @@ struct Rect
 	{
 		return Bottom - Top + 1;
 	}
+
+    inline bool IsEmpty() const
+    {
+        return Right < Left || Bottom < Top;
+    }
+
+    inline bool IsInside(const Point &pt) const
+    {
+        return pt.X >= Left && pt.Y >= Top && (pt.X <= Right) && (pt.Y <= Bottom);
+    }
+
+    inline void MoveToX(int x)
+    {
+        Right += x - Left;
+        Left = x;
+    }
+
+    inline void MoveToY(int y)
+    {
+        Bottom += y - Top;
+        Top = y;
+    }
+
+    inline void SetWidth(int width)
+    {
+        Right = Left + width - 1;
+    }
+
+    inline void SetHeight(int height)
+    {
+        Bottom = Top + height - 1;
+    }
 };
 
 // Helper factory function
@@ -150,7 +232,17 @@ struct Circle
 
 };
 
-//} // namespace Common
-//} // namespace AGS
+namespace AGS
+{
+namespace Common
+{
+
+namespace Math
+{
+    void AlignInRect(const Rect &place, Rect &item, Alignment &alignment);
+} // namespace Math
+
+} // namespace Common
+} // namespace AGS
 
 #endif // __AGS_CN_UTIL__GEOMETRY_H

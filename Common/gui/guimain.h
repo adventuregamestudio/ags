@@ -11,105 +11,159 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
+//
+// 
+//
+//=============================================================================
+#ifndef __AGS_CN_GUI__GUIMAIN_H
+#define __AGS_CN_GUI__GUIMAIN_H
 
-#ifndef __AC_GUIMAIN_H
-#define __AC_GUIMAIN_H
+#include "ac/common_defines.h"
+#include "gfx/bitmap.h"
+#include "gui/guidefines.h"
+#include "util/array.h"
+#include "util/string.h"
 
-#include "gui/guiobject.h"
-#include "ac/common_defines.h"       // AGS_INLINE
-
-// Forward declaration
 namespace AGS
 {
 namespace Common
 {
-    class GameInfo;
-    class Stream;
-} // namespace Common
-} // namespace AGS
-using namespace AGS; // FIXME later
 
-#define MAX_OBJS_ON_GUI 30
-#define GOBJ_BUTTON     1
-#define GOBJ_LABEL      2
-#define GOBJ_INVENTORY  3
-#define GOBJ_SLIDER     4
-#define GOBJ_TEXTBOX    5
-#define GOBJ_LISTBOX    6
-#define GUI_TEXTWINDOW  0x05    // set vtext[0] to this to signify text window
-#define GUIF_NOCLICK    1
-#define MOVER_MOUSEDOWNLOCKED -4000
+class GuiObject;
 
-struct GUIMain
+enum GuiControlType
 {
-  char vtext[4];                // for compatibility
-  char name[16];                // the name of the GUI
-  char clickEventHandler[20];
-  int x, y, wid, hit;
-  int focus;                    // which object has the focus
-  int numobjs;                  // number of objects on gui
-  int popup;                    // when it pops up (POPUP_NONE, POPUP_MOUSEY, POPUP_SCRIPT)
-  int popupyp;                  // popup when mousey < this
-  int bgcol, bgpic, fgcol;
-  int mouseover, mousewasx, mousewasy;
-  int mousedownon;
-  int highlightobj;
-  int flags;
-  int transparency;
-  int zorder;
-  int guiId;
-  int reserved[6];
-  int on;
-  GUIObject *objs[MAX_OBJS_ON_GUI];
-  int objrefptr[MAX_OBJS_ON_GUI];       // for re-building objs array
-  short drawOrder[MAX_OBJS_ON_GUI];
-
-  static char oNameBuffer[20];
-
-  GUIMain();
-  void init();
-  const char *get_objscript_name(const char *basedOn);
-  void rebuild_array();
-  void resort_zorder();
-  int  get_control_type(int);
-  int  is_mouse_on_gui();
-  void draw_blob(Common::Bitmap *ds, int xp, int yp, color_t draw_color);
-  void draw_at(Common::Bitmap *ds, int xx, int yy);
-  void draw(Common::Bitmap *ds);
-  int  find_object_under_mouse();
-  // this version allows some extra leeway in the Editor so that
-  // the user can grab tiny controls
-  int  find_object_under_mouse(int);
-  int  find_object_under_mouse(int leeway, bool mustBeClickable);
-  void poll();
-  void mouse_but_down();
-  void mouse_but_up();
-  int  is_textwindow();
-  bool send_to_back(int objNum);
-  bool bring_to_front(int objNum);
-  void control_positions_changed();
-  bool is_alpha();
-
-  void FixupGuiName(char* name);
-  void SetTransparencyAsPercentage(int percent);
-  void ReadFromFile_v321(Common::Stream *in, GuiVersion gui_version);
-  void WriteToFile_v321(Common::Stream *out);
-  void ReadFromSavedGame(Common::Stream *in, RuntimeGUIVersion version);
-  void WriteToSavedGame(Common::Stream *out);
-
+    kGuiControlUndefined = -1,
+    kGuiButton      = 1,
+    kGuiLabel       = 2,
+    kGuiInvWindow   = 3,
+    kGuiSlider      = 4,
+    kGuiTextBox     = 5,
+    kGuiListBox     = 6
 };
 
-extern GuiVersion GameGuiVersion;
+enum GuiMainFlags
+{
+    kGuiMain_NoClick    = 0x01,
+    kGuiMain_TextWindow = 0x05
+};
+
+enum GuiPopupStyle
+{
+    kGuiPopupNone           = 0,
+    kGuiPopupMouseY,
+    kGuiPopupScript,
+    // don't remove automatically during cutscene
+    kGuiPopupNoAutoRemove,
+    // normal GUI, initially off
+    kGuiPopupNoneInitiallyOff
+};
+
+enum GuiDisabledStyle
+{
+    kGuiDisabled_GreyOut        = 0x01,
+    kGuiDisabled_HideControls   = 0x02,
+    kGuiDisabled_Unchanged      = 0x04,
+    kGuiDisabled_Hide           = 0x08
+};
+
+class GuiMain
+{
+public:
+    GuiMain();
+
+    static String FixupGuiName(const String &name);
+    static String MakeScriptName(const String &name);
+
+    void       Init();
+
+    int        FindControlUnderMouse() const;
+    // this version allows some extra leeway in the Editor so that
+    // the user can grab tiny controls
+    int        FindControlUnderMouse(int leeway) const;
+    int        FindControlUnderMouse(int leeway, bool must_be_clickable) const;
+    GuiControlType GetControlType(int index) const;
+    inline int GetX()      const { return Frame.Left; }
+    inline int GetY()      const { return Frame.Top; }
+    inline int GetWidth()  const { return Frame.GetWidth(); }
+    inline int GetHeight() const { return Frame.GetHeight(); }
+    bool       HasAlphaChannel() const;
+    bool       IsMouseOnGui();
+    bool       IsTextWindow() const;
+
+    bool       BringControlToFront(int index);
+    void       Draw(Bitmap *ds);
+    void       DrawAt(Bitmap *ds, int x, int y);
+    void       Poll();
+    void       RebuildArray();
+    void       ResortZOrder();
+    bool       SendControlToBack(int index);
+    void       SetX(int x);
+    void       SetY(int y);
+    void       SetWidth(int width);
+    void       SetHeight(int height);
+    void       SetTransparencyAsPercentage(int percent);
+
+    void       OnControlPositionChanged();
+    void       OnMouseButtonDown();
+    void       OnMouseButtonUp();
+
+    void       ReadFromFile(Stream *in, GuiVersion gui_version);
+    void       WriteToFile(Stream *out);
+    void       ReadFromSavedGame(Stream *in, RuntimeGuiVersion version);
+    void       WriteToSavedGame(Stream *out);
+
+private:
+    void       DrawBlob(Bitmap *ds, int x, int y, color_t draw_color);
+
+// TODO: all members are currently public; hide them later
+public:
+    int32_t         Id;
+    String          Name;
+    int32_t         Flags;
+private:
+    Rect            Frame;
+public:
+    color_t         BackgroundColor;
+    int32_t         BackgroundImage;
+    color_t         ForegroundColor;
+    int32_t         Transparency;
+    GuiPopupStyle   PopupStyle;
+    int32_t         PopupAtMouseY; // popup when mousey < this
+    String          OnClickHandler;
+
+    Array<GuiObject*> Controls;
+    Array<int32_t>    ControlRefs; // for re-building objs array
+    Array<short>      ControlDrawOrder;
+
+    bool            IsVisible;
+    int32_t         ZOrder;
+    int32_t         FocusedControl;
+    int32_t         HighlightControl;
+    int32_t         MouseOverControl;
+    int32_t         MouseDownControl;
+    Point           MouseWasAt;
+
+    // TODO: remove these later
+    int32_t         ControlCount;
+};
+
+namespace Gui
+{
+    bool ReadGui(ObjectArray<GuiMain> &guis, Stream *in);
+    void WriteGui(ObjectArray<GuiMain> &guis, Stream *out);
+    bool ReadGuiFromSavedGame(ObjectArray<GuiMain> &guis, Common::Stream *in, RuntimeGuiVersion version);
+    void WriteGuiToSavedGame(ObjectArray<GuiMain> &guis, Common::Stream *out);
+} // namespace Gui
+
+} // namespace Common
+} // namespace AGS
+
 extern int guis_need_update;
 extern int all_buttons_disabled, gui_inv_pic;
 extern int gui_disabled_style;
 extern char lines[MAXLINE][200];
 extern int  numlines;
-
-extern void read_gui(Common::Stream *in, GUIMain * guiread, Common::GameInfo * gss, GUIMain** allocate = NULL);
-extern void write_gui(Common::Stream *out, GUIMain * guiwrite, Common::GameInfo * gss, bool savedgame);
-extern void read_gui_from_savedgame(Common::Stream *in, RuntimeGUIVersion version, GUIMain * guiread, Common::GameInfo * gss);
-extern void write_gui_for_savedgame(Common::Stream *out, GUIMain * guiwrite, Common::GameInfo * gss);
 
 extern int mousex, mousey;
 
@@ -119,7 +173,7 @@ extern bool is_sprite_alpha(int spr);
 extern int final_col_dep;
 
 // This function has distinct implementations in Engine and Editor
-extern void draw_sprite_compensate(Common::Bitmap *ds, int spr, int x, int y, int xray);
+extern void draw_sprite_compensate(AGS::Common::Bitmap *ds, int spr, int x, int y, int xray);
 
 extern AGS_INLINE int divide_down_coordinate(int coord);
 extern AGS_INLINE int multiply_up_coordinate(int coord);
@@ -127,8 +181,8 @@ extern AGS_INLINE void multiply_up_coordinates(int *x, int *y);
 extern AGS_INLINE int get_fixed_pixel_size(int pixels);
 
 // Those function have distinct implementations in Engine and Editor
-extern void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, char *texx);
-extern int wgettextwidth_compensate(Common::Bitmap *ds, const char *tex, int font) ;
+extern void wouttext_outline(AGS::Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, const char *texx);
+extern int wgettextwidth_compensate(AGS::Common::Bitmap *ds, const char *tex, int font) ;
 extern void check_font(int *fontnum);
 
 extern void set_our_eip(int eip);

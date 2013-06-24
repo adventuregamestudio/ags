@@ -160,8 +160,6 @@ extern int displayed_room;
 extern unsigned int loopcounter;
 extern int game_paused;
 
-struct GUIMain;
-extern GUIMain*guis;
 struct ViewStruct;
 extern ViewStruct*views;
 extern SpriteCache spriteset;

@@ -21,6 +21,7 @@
 
 #include <new>
 #include <memory>
+#include <stdlib.h>
 #include <string.h>
 #include "core/types.h"
 #include "debug/assert.h"
@@ -297,6 +298,18 @@ public:
             _meta->Length += count;
         }
     }
+    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // TODO
+    void Insert(int at_index, const T &value)
+    {
+    }
+    void InsertCount(int at_index, int count, const T &value)
+    {
+    }
+    void Remove(int at_index, int count = 1)
+    {
+    }
+    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // Grows or truncates array to match given N number of elements,
     // keeps up to N of previously existed elements.
     void SetLength(int count)
@@ -343,6 +356,14 @@ public:
             CreateBuffer(count);
             Construct(0, count, value);
             _meta->Length = count;
+        }
+    }
+    inline void QSort(int (*pfn_compare)(const T*, const T*))
+    {
+        if (_data)
+        {
+            qsort(_meta->Arr, _meta->Length, sizeof(T),
+                (int (*)(const void*, const void*))pfn_compare);
         }
     }
     // Assign array by sharing data reference
@@ -691,6 +712,18 @@ public:
             _meta->Length += count;
         }
     }
+    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // TODO
+    void Insert(int at_index, const T &value)
+    {
+    }
+    void InsertCount(int at_index, int count, const T &value)
+    {
+    }
+    void Remove(int at_index, int count = 1)
+    {
+    }
+    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // Grows or truncates array to match given N number of elements,
     // keeps up to N of previously existed elements.
     void SetLength(int count)

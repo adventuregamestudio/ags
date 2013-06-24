@@ -75,7 +75,6 @@ extern char saveGameDirectory[260];
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
 extern ViewStruct*views;
-extern GUIMain*guis;
 extern int displayed_room;
 extern int eip_guinum;
 extern int eip_guiobj;

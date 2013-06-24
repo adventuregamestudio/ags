@@ -12,743 +12,830 @@
 //
 //=============================================================================
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <ctype.h>
-#include "util/string_utils.h" //strlwr()
-#include "gui/guimain.h"
-#include "ac/common.h"	// quit()
-#include "gui/guibutton.h"
-#include "gui/guilabel.h"
-#include "gui/guislider.h"
-#include "gui/guiinv.h"
-#include "gui/guitextbox.h"
-#include "gui/guilistbox.h"
-#include "font/fonts.h"
+#include "ac/common.h"
 #include "ac/spritecache.h"
-#include "util/stream.h"
-#include "gfx/bitmap.h"
-#include "util/wgt2allg.h"
-#include "game/gameinfo.h"
+#include "gui/guibutton.h"
+#include "gui/guiinv.h"
+#include "gui/guilabel.h"
+#include "gui/guilistbox.h"
+#include "gui/guimain.h"
+#include "gui/guiobject.h"
+#include "gui/guislider.h"
+#include "gui/guitextbox.h"
 
-using AGS::Common::GameInfo;
-using AGS::Common::Stream;
-using AGS::Common::Bitmap;
-namespace BitmapHelper = AGS::Common::BitmapHelper;
+#define MOVER_MOUSEDOWNLOCKED -4000
+extern SpriteCache spriteset;
 
-char GUIMain::oNameBuffer[20];
+GuiVersion LoadedGuiVersion;
 
-int guis_need_update = 1;
-int all_buttons_disabled = 0, gui_inv_pic = -1;
-int gui_disabled_style = 0;
-
-
-// Temporarily copied this from acruntim.h;
-// it is unknown if this should be defined for all solution, or only runtime
-#define STD_BUFFER_SIZE 3000
-
-
-
-GUIMain::GUIMain()
+namespace AGS
 {
-  init();
-}
-
-void GUIMain::init()
+namespace Common
 {
-  vtext[0] = 0;
-  clickEventHandler[0] = 0;
-  focus = 0;
-  numobjs = 0;
-  mouseover = -1;
-  mousewasx = -1;
-  mousewasy = -1;
-  mousedownon = -1;
-  highlightobj = -1;
-  on = 1;
-  fgcol = 1;
-  bgcol = 8;
-  flags = 0;
-}
 
-void GUIMain::FixupGuiName(char* name)
+GuiMain::GuiMain()
 {
-	if ((strlen(name) > 0) && (name[0] != 'g'))
-	{
-	  char tempbuffer[200];
-
-	  memset(tempbuffer, 0, sizeof(tempbuffer));
-	  tempbuffer[0] = 'g';
-	  tempbuffer[1] = name[0];
-	  strcat(&tempbuffer[2], strlwr(&name[1]));
-	  strcpy(name, tempbuffer);
-	}
+    Init();
 }
 
-void GUIMain::SetTransparencyAsPercentage(int percent)
+/* static */ String GuiMain::FixupGuiName(const String &name)
 {
-	// convert from % transparent to Opacity from 0-255
-	if (percent == 0)
-	  this->transparency = 0;
-	else if (percent == 100)
-	  this->transparency = 255;
-	else
-	  this->transparency = ((100 - percent) * 25) / 10;
-}
-
-void GUIMain::ReadFromFile_v321(Stream *in, GuiVersion gui_version)
-{
-  // read/write everything except drawOrder since
-  // it will be regenerated
-  in->Read(vtext, 40);
-  in->ReadArrayOfInt32(&x, 27);
-
-  // 64 bit fix: Read 4 byte int values into array of 8 byte long ints
-  in->ReadArrayOfIntPtr32((intptr_t*)objs, MAX_OBJS_ON_GUI);
-  //int i;
-  //for (i = 0; i < MAX_OBJS_ON_GUI; i++)
-  //  objs[i] = (GUIObject*)in->ReadInt32();
-
-  in->ReadArrayOfInt32(objrefptr, MAX_OBJS_ON_GUI);
-}
-
-void GUIMain::WriteToFile_v321(Stream *out)
-{
-  out->Write(vtext, 40);
-  out->WriteArrayOfInt32(&x, 27);
-
-  // 64 bit fix: Write 4 byte int values from array of 8 byte long ints
-  out->WriteArrayOfIntPtr32((intptr_t*)objs, MAX_OBJS_ON_GUI);
-  //int i;
-  //for (i = 0; i < MAX_OBJS_ON_GUI; i++)
-  //  out->WriteArray(&objs[i], 4, 1);
-
-  out->WriteArrayOfInt32((int32_t*)&objrefptr, MAX_OBJS_ON_GUI);
-}
-
-void GUIMain::ReadFromSavedGame(Common::Stream *in, RuntimeGUIVersion version)
-{
-    // read/write everything except drawOrder since
-    // it will be regenerated
-    in->Read(vtext, 40);
-    in->ReadArrayOfInt32(&x, 27);
-}
-
-void GUIMain::WriteToSavedGame(Common::Stream *out)
-{
-    out->Write(vtext, 40);
-    out->WriteArrayOfInt32(&x, 27);
-}
-
-const char* GUIMain::get_objscript_name(const char *basedOn) {
-  if (basedOn == NULL)
-    basedOn = name;
-
-  if (basedOn[0] == 0) {
-    oNameBuffer[0] = 0;
-  }
-  else {
-    if (strlen(basedOn) > 18)
-      return "";
-    sprintf(oNameBuffer, "g%s", basedOn);
-    strlwr(oNameBuffer);
-    oNameBuffer[1] = toupper(oNameBuffer[1]);
-  }
-  return &oNameBuffer[0];
-}
-
-int GUIMain::is_textwindow() {
-  if (vtext[0] == GUI_TEXTWINDOW)
-    return 1;
-  return 0;
-}
-
-extern "C" int compare_guicontrolzorder(const void *elem1, const void *elem2) {
-  GUIObject *e1, *e2;
-  e1 = *((GUIObject**)elem1);
-  e2 = *((GUIObject**)elem2);
-
-  // returns >0 if e1 is lower down, <0 if higher, =0 if the same
-  return e1->zorder - e2->zorder;
-}
-
-bool GUIMain::is_alpha() 
-{
-  if (this->bgpic > 0)
-  {
-    // alpha state depends on background image
-    return is_sprite_alpha(this->bgpic);
-  }
-  if (this->bgcol > 0)
-  {
-    // not alpha transparent if there is a background color
-    return false;
-  }
-  // transparent background, enable alpha blending
-  return (final_col_dep >= 24);
-}
-
-void GUIMain::resort_zorder()
-{
-  int ff;
-  GUIObject *controlArray[MAX_OBJS_ON_GUI];
-  
-  for (ff = 0; ff < numobjs; ff++)
-    controlArray[ff] = objs[ff];
-  
-  qsort(&controlArray, numobjs, sizeof(GUIObject*), compare_guicontrolzorder);
-
-  for (ff = 0; ff < numobjs; ff++)
-    drawOrder[ff] = controlArray[ff]->objn;
-}
-
-bool GUIMain::bring_to_front(int objNum) {
-  if (objNum < 0)
-    return false;
-
-  if (objs[objNum]->zorder < numobjs - 1) {
-    int oldOrder = objs[objNum]->zorder;
-    for (int ii = 0; ii < numobjs; ii++) {
-      if (objs[ii]->zorder > oldOrder)
-        objs[ii]->zorder--;
+    if (name.GetLength() > 0 && name[0] != 'g')
+    {
+        String lower_name = name.Mid(1);
+        lower_name.MakeLower();
+        String fixed_name = "g";
+        fixed_name.AppendChar(name[0]);
+        fixed_name.Append(lower_name);
+        return fixed_name;
     }
-    objs[objNum]->zorder = numobjs - 1;
-    resort_zorder();
-    control_positions_changed();
-    return true;
-  }
-
-  return false;
+    return name;
 }
 
-bool GUIMain::send_to_back(int objNum) {
-  if (objNum < 0)
-    return false;
-
-  if (objs[objNum]->zorder > 0) {
-    int oldOrder = objs[objNum]->zorder;
-    for (int ii = 0; ii < numobjs; ii++) {
-      if (objs[ii]->zorder < oldOrder)
-        objs[ii]->zorder++;
-    }
-    objs[objNum]->zorder = 0;
-    resort_zorder();
-    control_positions_changed();
-    return true;
-  }
-
-  return false;
-}
-
-void GUIMain::rebuild_array()
+/* static */ String GuiMain::MakeScriptName(const String &name)
 {
-  int ff, thistype, thisnum;
-
-  for (ff = 0; ff < numobjs; ff++) {
-    thistype = (objrefptr[ff] >> 16) & 0x000ffff;
-    thisnum = objrefptr[ff] & 0x0000ffff;
-
-    if ((thisnum < 0) || (thisnum >= 2000))
-      quit("GUIMain: rebuild array failed (invalid object index)");
-
-    if (thistype == GOBJ_BUTTON)
-      objs[ff] = &guibuts[thisnum];
-    else if (thistype == GOBJ_LABEL)
-      objs[ff] = &guilabels[thisnum];
-    else if (thistype == GOBJ_INVENTORY)
-      objs[ff] = &guiinv[thisnum];
-    else if (thistype == GOBJ_SLIDER)
-      objs[ff] = &guislider[thisnum];
-    else if (thistype == GOBJ_TEXTBOX)
-      objs[ff] = &guitext[thisnum];
-    else if (thistype == GOBJ_LISTBOX)
-      objs[ff] = &guilist[thisnum];
+    if (name.IsEmpty())
+    {
+        return name;
+    }
     else
-      quit("guimain: unknown control type found on gui");
-
-    objs[ff]->guin = this->guiId;
-    objs[ff]->objn = ff;
-  }
-
-  resort_zorder();
-}
-
-int GUIMain::get_control_type(int indx)
-{
-  if ((indx < 0) | (indx >= numobjs))
-    return -1;
-  return ((objrefptr[indx] >> 16) & 0x0000ffff);
-}
-
-int GUIMain::is_mouse_on_gui()
-{
-  if (on < 1)
-    return 0;
-
-  if (flags & GUIF_NOCLICK)
-    return 0;
-
-  if ((mousex >= x) & (mousey >= y) & (mousex <= x + wid) & (mousey <= y + hit))
-    return 1;
-
-  return 0;
-}
-
-void GUIMain::draw_blob(Common::Bitmap *ds, int xp, int yp, color_t draw_color)
-{
-  ds->FillRect(Rect(xp, yp, xp + get_fixed_pixel_size(1), yp + get_fixed_pixel_size(1)), draw_color);
-}
-
-void GUIMain::draw_at(Common::Bitmap *ds, int xx, int yy)
-{
-  int aa;
-
-  SET_EIP(375)
-
-  if ((wid < 1) || (hit < 1))
-    return;
-
-  //Bitmap *abufwas = g;
-  Bitmap *subbmp = BitmapHelper::CreateSubBitmap(ds, RectWH(xx, yy, wid, hit));
-
-  SET_EIP(376)
-  // stop border being transparent, if the whole GUI isn't
-  if ((fgcol == 0) && (bgcol != 0))
-    fgcol = 16;
-
-  //g = subbmp;
-  if (bgcol != 0)
-    subbmp->Fill(subbmp->GetCompatibleColor(bgcol));
-
-  SET_EIP(377)
-
-  color_t draw_color;
-  if (fgcol != bgcol) {
-    draw_color = subbmp->GetCompatibleColor(fgcol);
-    subbmp->DrawRect(Rect(0, 0, subbmp->GetWidth() - 1, subbmp->GetHeight() - 1), draw_color);
-    if (get_fixed_pixel_size(1) > 1)
-      subbmp->DrawRect(Rect(1, 1, subbmp->GetWidth() - 2, subbmp->GetHeight() - 2), draw_color);
-  }
-
-  SET_EIP(378)
-
-  if ((bgpic > 0) && (spriteset[bgpic] != NULL))
-    draw_sprite_compensate(subbmp, bgpic, 0, 0, 0);
-
-  SET_EIP(379)
-
-  for (aa = 0; aa < numobjs; aa++) {
-    
-    set_eip_guiobj(drawOrder[aa]);
-
-    GUIObject *objToDraw = objs[drawOrder[aa]];
-
-    if ((objToDraw->IsDisabled()) && (gui_disabled_style == GUIDIS_BLACKOUT))
-      continue;
-    if (!objToDraw->IsVisible())
-      continue;
-
-    objToDraw->Draw(subbmp);
-
-    int selectedColour = 14;
-
-    if (highlightobj == drawOrder[aa]) {
-      if (outlineGuiObjects)
-        selectedColour = 13;
-      draw_color = subbmp->GetCompatibleColor(selectedColour);
-      draw_blob(subbmp, objToDraw->x + objToDraw->wid - get_fixed_pixel_size(1) - 1, objToDraw->y, draw_color);
-      draw_blob(subbmp, objToDraw->x, objToDraw->y + objToDraw->hit - get_fixed_pixel_size(1) - 1, draw_color);
-      draw_blob(subbmp, objToDraw->x, objToDraw->y, draw_color);
-      draw_blob(subbmp, objToDraw->x + objToDraw->wid - get_fixed_pixel_size(1) - 1, 
-                objToDraw->y + objToDraw->hit - get_fixed_pixel_size(1) - 1, draw_color);
-    }
-    if (outlineGuiObjects) {
-      int oo;  // draw a dotted outline round all objects
-      draw_color = subbmp->GetCompatibleColor(selectedColour);
-      for (oo = 0; oo < objToDraw->wid; oo+=2) {
-        subbmp->PutPixel(oo + objToDraw->x, objToDraw->y, draw_color);
-        subbmp->PutPixel(oo + objToDraw->x, objToDraw->y + objToDraw->hit - 1, draw_color);
-      }
-      for (oo = 0; oo < objToDraw->hit; oo+=2) {
-        subbmp->PutPixel(objToDraw->x, oo + objToDraw->y, draw_color);
-        subbmp->PutPixel(objToDraw->x + objToDraw->wid - 1, oo + objToDraw->y, draw_color);
-      }      
-    }
-  }
-
-  SET_EIP(380)
-  delete subbmp;
-//  sub_graphics.GetBitmap() = abufwas;
-}
-
-void GUIMain::draw(Common::Bitmap *ds)
-{
-  draw_at(ds, x, y);
-}
-
-int GUIMain::find_object_under_mouse(int extrawid, bool mustBeClickable)
-{
-  int aa;
-
-  if (loaded_game_file_version <= kGameVersion_262)
-  {
-    // Ignore draw order on 2.6.2 and lower
-    for (aa = 0; aa < numobjs; aa++) {
-      int objNum = aa;
-
-      if (!objs[objNum]->IsVisible())
-        continue;
-      if ((!objs[objNum]->IsClickable()) && (mustBeClickable))
-        continue;
-      if (objs[objNum]->IsOverControl(mousex, mousey, extrawid))
-        return objNum;
-    }
-  }
-  else
-  {
-    for (aa = numobjs - 1; aa >= 0; aa--) {
-      int objNum = drawOrder[aa];
-
-      if (!objs[objNum]->IsVisible())
-        continue;
-      if ((!objs[objNum]->IsClickable()) && (mustBeClickable))
-        continue;
-      if (objs[objNum]->IsOverControl(mousex, mousey, extrawid))
-        return objNum;
-    }
-  }
-
-  return -1;
-}
-
-int GUIMain::find_object_under_mouse()
-{
-  return find_object_under_mouse(0, true);
-}
-
-int GUIMain::find_object_under_mouse(int extrawid)
-{
-  return find_object_under_mouse(extrawid, true);
-}
-
-void GUIMain::control_positions_changed()
-{
-  // force it to re-check for which control is under the mouse
-  mousewasx = -1;
-  mousewasy = -1;
-}
-
-void GUIMain::poll()
-{
-  int mxwas = mousex, mywas = mousey;
-
-  mousex -= x;
-  mousey -= y;
-  if ((mousex != mousewasx) | (mousey != mousewasy)) {
-    int newum = find_object_under_mouse();
-    
-    if (mouseover == MOVER_MOUSEDOWNLOCKED)
-      objs[mousedownon]->MouseMove(mousex, mousey);
-    else if (newum != mouseover) {
-      if (mouseover >= 0)
-        objs[mouseover]->MouseLeave();
-
-      if ((newum >= 0) && (objs[newum]->IsDisabled()))
-        // the control is disabled - ignore it
-        mouseover = -1;
-      else if ((newum >= 0) && (!objs[newum]->IsClickable()))
-        // the control is not clickable - ignore it
-        mouseover = -1;
-      else {
-        // over a different control
-        mouseover = newum;
-        if (mouseover >= 0) {
-          objs[mouseover]->MouseOver();
-          objs[mouseover]->MouseMove(mousex, mousey);
-        }
-      }
-      guis_need_update = 1;
-    } 
-    else if (mouseover >= 0)
-      objs[mouseover]->MouseMove(mousex, mousey);
-  }
-  mousewasx = mousex;
-  mousewasy = mousey;
-  mousex = mxwas;
-  mousey = mywas;
-}
-
-void GUIMain::mouse_but_down()
-{
-  if (mouseover < 0)
-    return;
-
-  // don't activate disabled buttons
-  if ((objs[mouseover]->IsDisabled()) || (!objs[mouseover]->IsVisible()) ||
-      (!objs[mouseover]->IsClickable()))
-    return;
-
-  mousedownon = mouseover;
-  if (objs[mouseover]->MouseDown())
-    mouseover = MOVER_MOUSEDOWNLOCKED;
-  objs[mousedownon]->MouseMove(mousex - x, mousey - y);
-  guis_need_update = 1;
-}
-
-void GUIMain::mouse_but_up()
-{
-  // focus was locked - reset it back to normal, but on the
-  // locked object so that a MouseLeave gets fired if necessary
-  if (mouseover == MOVER_MOUSEDOWNLOCKED) {
-    mouseover = mousedownon;
-    mousewasx = -1;  // force update
-  }
-
-  if (mousedownon < 0)
-    return;
-
-  objs[mousedownon]->MouseUp();
-  mousedownon = -1;
-  guis_need_update = 1;
-}
-
-GuiVersion GameGuiVersion = kGuiVersion_Initial;
-void read_gui(Stream *in, GUIMain * guiread, GameInfo * gss, GUIMain** allocate)
-{
-  int ee;
-
-  if (in->ReadInt32() != (int)GUIMAGIC)
-    quit("read_gui: file is corrupt");
-
-  GameGuiVersion = (GuiVersion)in->ReadInt32();
-  if (GameGuiVersion < kGuiVersion_214) {
-    gss->GuiCount = (int)GameGuiVersion;
-    GameGuiVersion = kGuiVersion_Initial;
-  }
-  else if (GameGuiVersion > kGuiVersion_Current)
-    quit("read_gui: this game requires a newer version of AGS");
-  else
-    gss->GuiCount = in->ReadInt32();
-
-  if ((gss->GuiCount < 0) || (gss->GuiCount > 1000))
-    quit("read_gui: invalid number of GUIs, file corrupt?");
-
-  if (allocate != NULL)
-  {
-    *allocate = (GUIMain*)malloc(sizeof(GUIMain) * gss->GuiCount);
-    guiread = *allocate;
-  }
-
-  // import the main GUI elements
-  for (int iteratorCount = 0; iteratorCount < gss->GuiCount; ++iteratorCount)
-  {
-    guiread[iteratorCount].init();
-    guiread[iteratorCount].ReadFromFile_v321(in, GameGuiVersion);
-  }
-
-  for (ee = 0; ee < gss->GuiCount; ee++) {
-    if (guiread[ee].hit < 2)
-      guiread[ee].hit = 2;
-
-    if (GameGuiVersion < kGuiVersion_unkn_103)
-      sprintf(guiread[ee].name, "GUI%d", ee);
-    if (GameGuiVersion < kGuiVersion_260)
-      guiread[ee].zorder = ee;
-
-    if (loaded_game_file_version <= kGameVersion_272) // Fix names for 2.x: "GUI" -> "gGui"
-        guiread->FixupGuiName(guiread[ee].name);
-
-    guiread[ee].guiId = ee;
-  }
-
-  // import the buttons
-  numguibuts = in->ReadInt32();
-  guibuts.SetSizeTo(numguibuts);
-
-  for (ee = 0; ee < numguibuts; ee++)
-    guibuts[ee].ReadFromFile(in, GameGuiVersion);
-
-  // labels
-  numguilabels = in->ReadInt32();
-  guilabels.SetSizeTo(numguilabels);
-
-  for (ee = 0; ee < numguilabels; ee++)
-    guilabels[ee].ReadFromFile(in, GameGuiVersion);
-
-  // inv controls
-  numguiinv = in->ReadInt32();
-  guiinv.SetSizeTo(numguiinv);
-
-  for (ee = 0; ee < numguiinv; ee++)
-    guiinv[ee].ReadFromFile(in, GameGuiVersion);
-
-  if (GameGuiVersion >= kGuiVersion_214) {
-    // sliders
-    numguislider = in->ReadInt32();
-    guislider.SetSizeTo(numguislider);
-
-    for (ee = 0; ee < numguislider; ee++)
-      guislider[ee].ReadFromFile(in, GameGuiVersion);
-  }
-
-  if (GameGuiVersion >= kGuiVersion_222) {
-    // text boxes
-    numguitext = in->ReadInt32();
-    guitext.SetSizeTo(numguitext);
-
-    for (ee = 0; ee < numguitext; ee++)
-      guitext[ee].ReadFromFile(in, GameGuiVersion);
-  }
-
-  if (GameGuiVersion >= kGuiVersion_230) {
-    // list boxes
-    numguilist = in->ReadInt32();
-    guilist.SetSizeTo(numguilist);
-
-    for (ee = 0; ee < numguilist; ee++)
-      guilist[ee].ReadFromFile(in, GameGuiVersion);
-  }
-
-  // set up the reverse-lookup array
-  for (ee = 0; ee < gss->GuiCount; ee++) {
-    guiread[ee].rebuild_array();
-
-    if (GameGuiVersion < kGuiVersion_270)
-      guiread[ee].clickEventHandler[0] = 0;
-
-    for (int ff = 0; ff < guiread[ee].numobjs; ff++) {
-      guiread[ee].objs[ff]->guin = ee;
-      guiread[ee].objs[ff]->objn = ff;
-
-      if (GameGuiVersion < kGuiVersion_272e)
-        guiread[ee].objs[ff]->zorder = ff;
-    }
-
-    guiread[ee].resort_zorder();
-  }
-
-  guis_need_update = 1;
-}
-
-void write_gui(Stream *out, GUIMain * guiwrite, GameInfo * gss, bool savedgame)
-{
-  int ee;
-
-  out->WriteInt32(GUIMAGIC);
-
-  if (savedgame && GameGuiVersion >= kGuiVersion_ForwardCompatible)
-  {
-    out->WriteInt32(GameGuiVersion);
-  }
-  else
-  {
-    out->WriteInt32(kGuiVersion_Current);
-  }
-  
-  out->WriteInt32(gss->GuiCount);
-
-  for (int iteratorCount = 0; iteratorCount < gss->GuiCount; ++iteratorCount)
-  {
-    guiwrite[iteratorCount].WriteToFile_v321(out);
-  }
-
-  out->WriteInt32(numguibuts);
-  for (ee = 0; ee < numguibuts; ee++)
-    guibuts[ee].WriteToFile(out);
-
-  out->WriteInt32(numguilabels);
-  for (ee = 0; ee < numguilabels; ee++)
-    guilabels[ee].WriteToFile(out);
-
-  out->WriteInt32(numguiinv);
-  for (ee = 0; ee < numguiinv; ee++)
-    guiinv[ee].WriteToFile(out);
-
-  out->WriteInt32(numguislider);
-  for (ee = 0; ee < numguislider; ee++)
-    guislider[ee].WriteToFile(out);
-
-  out->WriteInt32(numguitext);
-  for (ee = 0; ee < numguitext; ee++)
-    guitext[ee].WriteToFile(out);
-
-  out->WriteInt32(numguilist);
-  for (ee = 0; ee < numguilist; ee++)
-    guilist[ee].WriteToFile(out);
-}
-
-void read_gui_from_savedgame(Common::Stream *in, RuntimeGUIVersion version, GUIMain *guiread, Common::GameInfo *gss)
-{
-    // import the main GUI elements
-    for (int i = 0; i < gss->GuiCount; ++i)
     {
-        guiread[i].init();
-        guiread[i].ReadFromSavedGame(in, version);
+        String script_name = String::FromFormat("g%s", name);
+        script_name.MakeLower();
+        script_name.SetAt(1, toupper(script_name[1]));
+        return script_name;
     }
-    // import the buttons
-    numguibuts = in->ReadInt32();
-    guibuts.SetSizeTo(numguibuts);
-    for (int i = 0; i < numguibuts; ++i)
-    {
-        guibuts[i].ReadFromSavedGame(in, version);
-    }
-    // labels
-    numguilabels = in->ReadInt32();
-    guilabels.SetSizeTo(numguilabels);
-    for (int i = 0; i < numguilabels; ++i)
-    {
-        guilabels[i].ReadFromSavedGame(in, version);
-    }
-    // inv controls
-    numguiinv = in->ReadInt32();
-    guiinv.SetSizeTo(numguiinv);
-    for (int i = 0; i < numguiinv; ++i)
-    {
-        guiinv[i].ReadFromSavedGame(in, version);
-    }
-    // sliders
-    numguislider = in->ReadInt32();
-    guislider.SetSizeTo(numguislider);
-    for (int i = 0; i < numguislider; ++i)
-    {
-        guislider[i].ReadFromSavedGame(in, version);
-    }
-    // text boxes
-    numguitext = in->ReadInt32();
-    guitext.SetSizeTo(numguitext);
-    for (int i = 0; i < numguitext; ++i)
-    {
-        guitext[i].ReadFromSavedGame(in, version);
-    }
-    // list boxes
-    numguilist = in->ReadInt32();
-    guilist.SetSizeTo(numguilist);
-    for (int i = 0; i < numguilist; ++i)
-    {
-        guilist[i].ReadFromSavedGame(in, version);
-    }
+}
 
-    // set up the reverse-lookup array
-    for (int i = 0; i < gss->GuiCount; ++i)
+void GuiMain::Init()
+{
+    Id                  = 0;
+    Name.Empty();
+    Flags               = 0;
+    BackgroundColor     = 8;
+    BackgroundImage     = 0;
+    ForegroundColor     = 1;
+    Transparency        = 0;
+    PopupStyle          = kGuiPopupNone;
+    PopupAtMouseY       = -1;
+
+    IsVisible           = true;
+    ZOrder              = -1;
+    FocusedControl      = 0;
+    HighlightControl    = -1;
+    MouseOverControl    = -1;
+    MouseDownControl    = -1;
+    MouseWasAt.X        = -1;
+    MouseWasAt.Y        = -1;
+
+    ControlCount        = 0;
+
+    OnClickHandler.Empty();
+}
+
+int GuiMain::FindControlUnderMouse() const
+{
+  return FindControlUnderMouse(0, true);
+}
+
+// this version allows some extra leeway in the Editor so that
+// the user can grab tiny controls
+int GuiMain::FindControlUnderMouse(int leeway) const
+{
+    return FindControlUnderMouse(leeway, true);
+}
+
+int GuiMain::FindControlUnderMouse(int leeway, bool must_be_clickable) const
+{
+    if (loaded_game_file_version <= kGameVersion_262)
     {
-        guiread[i].rebuild_array();
-        for (int j = 0; j < guiread[i].numobjs; ++j)
+        // Ignore draw order IsVisible 2.6.2 and lower
+        for (int i = 0; i < ControlCount; ++i)
         {
-            guiread[i].objs[j]->guin = i;
-            guiread[i].objs[j]->objn = j;
+            const int ctrl_index = i;
+            const GuiObject *const control = Controls[ctrl_index];
+            if (!control->IsVisible())
+            {
+                continue;
+            }
+            if ((!control->IsClickable()) && (must_be_clickable))
+            {
+                continue;
+            }
+            if (control->IsOverControl(mousex, mousey, leeway))
+            {
+                return ctrl_index;
+            }
         }
-        guiread[i].resort_zorder();
+    }
+    else
+    {
+        for (int i = ControlCount - 1; i >= 0; --i)
+        {
+            const int ctrl_index = ControlDrawOrder[i];
+            const GuiObject * const control = Controls[ctrl_index];
+            if (!control->IsVisible())
+            {
+                continue;
+            }
+            if ((!control->IsClickable()) && (must_be_clickable))
+            {
+                continue;
+            }
+            if (control->IsOverControl(mousex, mousey, leeway))
+            {
+                return ctrl_index;
+            }
+        }
     }
 
+    return -1;
+}
+
+GuiControlType GuiMain::GetControlType(int index) const
+{
+    if ((index < 0) || (index >= ControlCount))
+    {
+        return kGuiControlUndefined;
+    }
+    return (GuiControlType)((ControlRefs[index] >> 16) & 0xFFFF);
+}
+
+bool GuiMain::HasAlphaChannel() const
+{
+    if (BackgroundImage > 0)
+    {
+        // alpha state depends IsVisible background image
+        return is_sprite_alpha(BackgroundImage);
+    }
+    if (BackgroundColor > 0)
+    {
+        // not alpha transparent if there is a background color
+        return false;
+    }
+    // transparent background, enable alpha blending
+    return (final_col_dep >= 24);
+}
+
+bool GuiMain::IsMouseOnGui()
+{
+    if (!IsVisible)
+    {
+        return false;
+    }
+    if (Flags & kGuiMain_NoClick)
+    {
+        return false;
+    }
+    if (Frame.IsInside(Point(mousex, mousey)))
+    {
+        return true;
+    }
+    return false;
+}
+
+bool GuiMain::IsTextWindow() const
+{
+    return (Flags & kGuiMain_TextWindow) != 0;
+}
+
+bool GuiMain::BringControlToFront(int index)
+{
+    if (index < 0)
+    {
+        return false;
+    }
+
+    GuiObject *const control = Controls[index];
+    if (control->ZOrder < ControlCount - 1)
+    {
+        int old_order = control->ZOrder;
+        for (int i = 0; i < ControlCount; ++i)
+        {
+            if (Controls[i]->ZOrder > old_order)
+            {
+                Controls[i]->ZOrder--;
+            }
+        }
+        control->ZOrder = ControlCount - 1;
+        ResortZOrder();
+        OnControlPositionChanged();
+        return true;
+    }
+    return false;
+}
+
+void GuiMain::RebuildArray()
+{
+    Controls.SetLength(ControlCount);
+    ControlRefs.SetLength(ControlCount);
+    ControlDrawOrder.SetLength(ControlCount);
+
+    GuiControlType control_type;
+    int control_arr_slot;
+    for (int i = 0; i < ControlCount; ++i)
+    {
+        control_type = (GuiControlType)((ControlRefs[i] >> 16) & 0xFFFF);
+        control_arr_slot = ControlRefs[i] & 0xFFFF;
+
+        if (control_type == kGuiButton)
+        {
+            Controls[i] = &guibuts[control_arr_slot];
+        }
+        else if (control_type == kGuiLabel)
+        {
+            Controls[i] = &guilabels[control_arr_slot];
+        }
+        else if (control_type == kGuiInvWindow)
+        {
+            Controls[i] = &guiinv[control_arr_slot];
+        }
+        else if (control_type == kGuiSlider)
+        {
+            Controls[i] = &guislider[control_arr_slot];
+        }
+        else if (control_type == kGuiTextBox)
+        {
+            Controls[i] = &guitext[control_arr_slot];
+        }
+        else if (control_type == kGuiListBox)
+        {
+            Controls[i] = &guilist[control_arr_slot];
+        }
+        else
+        {
+            quit("guimain: unknown control type found on gui");
+        }
+
+        Controls[i]->ParentId = Id;
+        Controls[i]->Id = i;
+    }
+    ResortZOrder();
+}
+
+int CompareGuiControlZOrder(GuiObject *const *elem1, GuiObject *const *elem2)
+{
+    elem1 = NULL;
+  // returns >0 if e1 is lower down, <0 if higher, =0 if the same
+  return (*elem1)->ZOrder - (*elem2)->ZOrder;
+}
+
+void GuiMain::ResortZOrder()
+{
+    Common::Array<GuiObject*> control_arr;
+    control_arr.New(ControlCount);
+    for (int i = 0; i < ControlCount; ++i)
+    {
+        control_arr[i] = Controls[i];
+    }
+    control_arr.QSort(CompareGuiControlZOrder);
+    for (int i = 0; i < ControlCount; ++i)
+    {
+        ControlDrawOrder[i] = control_arr[i]->Id;
+    }
+}
+
+bool GuiMain::SendControlToBack(int index)
+{
+    if (index < 0 || index >= ControlCount)
+    {
+        return false;
+    }
+
+    GuiObject *const control = Controls[index];
+    if (control->ZOrder > 0)
+    {
+        int old_order = control->ZOrder;
+        for (int i = 0; i < ControlCount; ++i)
+        {
+            if (Controls[i]->ZOrder < old_order)
+            {
+                Controls[i]->ZOrder++;
+            }
+        }
+        control->ZOrder = 0;
+        ResortZOrder();
+        OnControlPositionChanged();
+        return true;
+    }
+    return false;
+}
+
+void GuiMain::SetTransparencyAsPercentage(int percent)
+{
+    // convert from % transparent to Opacity from 0-255
+	if (percent == 0)
+    {
+        Transparency = 0;
+    }
+	else if (percent == 100)
+    {
+        Transparency = 255;
+    }
+	else
+    {
+        Transparency = ((100 - percent) * 25) / 10;
+    }
+}
+
+void GuiMain::DrawBlob(Bitmap *ds, int x, int y, color_t draw_color)
+{
+    ds->FillRect(Rect(x, y, x + get_fixed_pixel_size(1), y + get_fixed_pixel_size(1)), draw_color);
+}
+
+void GuiMain::DrawAt(Bitmap *ds, int x, int y)
+{
+    SET_EIP(375)
+
+    if (Frame.IsEmpty())
+    {
+        return;
+    }
+
+    Bitmap subbmp;
+    subbmp.CreateSubBitmap(ds, RectWH(x, y, Frame.GetWidth(), Frame.GetHeight()));
+
+    SET_EIP(376)
+    // stop border being transparent, if the whole GUI isn't
+    if ((ForegroundColor == 0) && (BackgroundColor != 0))
+    {
+        ForegroundColor = 16;
+    }
+    if (BackgroundColor != 0)
+    {
+        subbmp.Fill(subbmp.GetCompatibleColor(BackgroundColor));
+    }
+    SET_EIP(377)
+
+    color_t draw_color;
+    if (ForegroundColor != BackgroundColor)
+    {
+        draw_color = subbmp.GetCompatibleColor(ForegroundColor);
+        subbmp.DrawRect(Rect(0, 0, subbmp.GetWidth() - 1, subbmp.GetHeight() - 1), draw_color);
+        if (get_fixed_pixel_size(1) > 1)
+        {
+            subbmp.DrawRect(Rect(1, 1, subbmp.GetWidth() - 2, subbmp.GetHeight() - 2), draw_color);
+        }
+    }
+    SET_EIP(378)
+
+    if (BackgroundImage > 0 && (spriteset[BackgroundImage] != NULL))
+    draw_sprite_compensate(&subbmp, BackgroundImage, 0, 0, 0);
+    SET_EIP(379)
+
+    for (int ctrl_index = 0; ctrl_index < ControlCount; ++ctrl_index)
+    {
+        set_eip_guiobj(ControlDrawOrder[ctrl_index]);
+        GuiObject *const control = Controls[ControlDrawOrder[ctrl_index]];
+        if ((control->IsDisabled()) && (gui_disabled_style == kGuiDisabled_HideControls))
+        {
+            continue;
+        }
+        if (!control->IsVisible())
+        {
+            continue;
+        }
+        control->Draw(&subbmp);
+        color_t selectedColour = 14;
+        if (HighlightControl == ControlDrawOrder[ctrl_index])
+        {
+            if (outlineGuiObjects)
+            {
+                selectedColour = 13;
+            }
+            draw_color = subbmp.GetCompatibleColor(selectedColour);
+            DrawBlob(&subbmp, control->GetX() + control->GetWidth() - get_fixed_pixel_size(1) - 1, control->GetY(), draw_color);
+            DrawBlob(&subbmp, control->GetX(), control->GetY() + control->GetHeight() - get_fixed_pixel_size(1) - 1, draw_color);
+            DrawBlob(&subbmp, control->GetX(), control->GetY(), draw_color);
+            DrawBlob(&subbmp, control->GetX() + control->GetWidth() - get_fixed_pixel_size(1) - 1, 
+                control->GetY() + control->GetHeight() - get_fixed_pixel_size(1) - 1, draw_color);
+        }
+        if (outlineGuiObjects)
+        {
+            // draw a dotted outline round all objects
+            draw_color = subbmp.GetCompatibleColor(selectedColour);
+            for (int i = 0; i < control->GetWidth(); i += 2)
+            {
+                subbmp.PutPixel(i + control->GetX(), control->GetY(), draw_color);
+                subbmp.PutPixel(i + control->GetX(), control->GetY() + control->GetHeight() - 1, draw_color);
+            }
+            for (int i = 0; i < control->GetHeight(); i += 2)
+            {
+                subbmp.PutPixel(control->GetX(), i + control->GetY(), draw_color);
+                subbmp.PutPixel(control->GetX() + control->GetWidth() - 1, i + control->GetY(), draw_color);
+            }
+        }
+    }
+    SET_EIP(380)
+}
+
+void GuiMain::Draw(Bitmap *ds)
+{
+    DrawAt(ds, Frame.Left, Frame.Top);
+}
+
+void GuiMain::OnControlPositionChanged()
+{
+    // force it to re-check for which control is under the mouse
+    MouseWasAt.X = -1;
+    MouseWasAt.Y = -1;
+}
+
+void GuiMain::OnMouseButtonDown()
+{
+    if (MouseOverControl < 0)
+    {
+        return;
+    }
+
+    // don't activate disabled buttons
+    GuiObject * const control = Controls[MouseOverControl];
+    if ((control->IsDisabled()) || (!control->IsVisible()) ||
+        (!control->IsClickable()))
+    {
+        return;
+    }
+    MouseDownControl = MouseOverControl;
+    if (control->OnMouseDown())
+    {
+        MouseOverControl = MOVER_MOUSEDOWNLOCKED;
+    }
+    Controls[MouseDownControl]->OnMouseMove(mousex - Frame.Left, mousey - Frame.Top);
     guis_need_update = 1;
 }
 
-void write_gui_for_savedgame(Common::Stream *out, GUIMain *guiwrite, Common::GameInfo * gss)
+void GuiMain::OnMouseButtonUp()
 {
-    for (int i = 0; i < gss->GuiCount; ++i)
+    // focus was locked - reset it back to normal, but IsVisible the
+    // locked object so that a OnMouseLeave gets fired if necessary
+    if (MouseOverControl == MOVER_MOUSEDOWNLOCKED)
     {
-        guiwrite[i].WriteToSavedGame(out);
+        MouseOverControl = MouseDownControl;
+        MouseWasAt.X = -1;  // force update
+    }
+    if (MouseDownControl < 0)
+    {
+        return;
+    }
+    Controls[MouseDownControl]->OnMouseUp();
+    MouseDownControl = -1;
+    guis_need_update = 1;
+}
+
+void GuiMain::Poll()
+{
+    Point mouse_was(mousex, mousey);
+    mousex -= Frame.Left;
+    mousey -= Frame.Top;
+
+    if ((mousex != MouseWasAt.X) || (mousey != MouseWasAt.Y))
+    {
+        int new_ctrl_index = FindControlUnderMouse();
+    
+        if (MouseOverControl == MOVER_MOUSEDOWNLOCKED)
+        {
+            Controls[MouseDownControl]->OnMouseMove(mousex, mousey);
+        }
+        else if (new_ctrl_index != MouseOverControl)
+        {
+            if (MouseOverControl >= 0)
+            {
+                Controls[MouseOverControl]->OnMouseLeave();
+            }
+            if ((new_ctrl_index >= 0) && (Controls[new_ctrl_index]->IsDisabled()))
+            {
+                // the control is disabled - ignore it
+                MouseOverControl = -1;
+            }
+            else if ((new_ctrl_index >= 0) && (!Controls[new_ctrl_index]->IsClickable()))
+            {
+                // the control is not clickable - ignore it
+                MouseOverControl = -1;
+            }
+            else
+            {
+                // over a different control
+                MouseOverControl = new_ctrl_index;
+                if (MouseOverControl >= 0)
+                {
+                    Controls[MouseOverControl]->OnMouseOver();
+                    Controls[MouseOverControl]->OnMouseMove(mousex, mousey);
+                }
+            }
+            guis_need_update = 1;
+        }
+        else if (MouseOverControl >= 0)
+        {
+            Controls[MouseOverControl]->OnMouseMove(mousex, mousey);
+        }
+    }
+
+    MouseWasAt.X = mousex;
+    MouseWasAt.Y = mousey;
+    mousex = mouse_was.X;
+    mousey = mouse_was.Y;
+}
+
+void GuiMain::SetX(int x)
+{
+    Frame.MoveToX(x);
+}
+
+void GuiMain::SetY(int y)
+{
+    Frame.MoveToY(y);
+}
+
+void GuiMain::SetWidth(int width)
+{
+    Frame.SetWidth(width);
+}
+
+void GuiMain::SetHeight(int height)
+{
+    Frame.SetHeight(height);
+}
+
+void GuiMain::ReadFromFile(Stream *in, GuiVersion gui_version)
+{
+    if (gui_version < kGuiVersion_340_alpha)
+    {
+        char vtext[4];
+        in->Read(vtext, sizeof(vtext));
+        Name.ReadCount(in, 16);
+        OnClickHandler.ReadCount(in, 20);
+        Frame.Left = in->ReadInt32();
+        Frame.Top = in->ReadInt32();
+        Frame.SetWidth(in->ReadInt32());
+        Frame.SetHeight(in->ReadInt32());
+        in->ReadInt32(); // focus
+        ControlCount = in->ReadInt32();
+        PopupStyle = (GuiPopupStyle)in->ReadInt32();
+        PopupAtMouseY = in->ReadInt32();
+        BackgroundColor = in->ReadInt32();
+        BackgroundImage = in->ReadInt32();
+        ForegroundColor = in->ReadInt32();
+        in->ReadInt32(); // mouseover
+        in->ReadInt32(); // mousewasx
+        in->ReadInt32(); // mousewasy
+        in->ReadInt32(); // mousedownon
+        in->ReadInt32(); // highlightobj
+        Flags = in->ReadInt32();
+        if (vtext[0] == kGuiMain_TextWindow)
+        {
+            Flags |= kGuiMain_TextWindow;
+        }
+        Transparency = in->ReadInt32();
+        ZOrder = in->ReadInt32();
+        Id = in->ReadInt32();
+        int reserved[6];
+        in->Read(reserved, sizeof(reserved));
+        IsVisible = in->ReadInt32() != 0;
+        // 64 bit fix: Read 4 byte int values into array of 8 byte long ints
+        char buffer[LEGACY_MAX_CONTROLS_ON_GUI * sizeof(int32_t)];
+        in->Read(buffer, sizeof(buffer));
+    }
+    else
+    {
+        Id = in->ReadInt32();
+        Name.Read(in);
+        Flags = in->ReadInt32();
+        Frame.Left = in->ReadInt32();
+        Frame.Top = in->ReadInt32();
+        Frame.SetWidth(in->ReadInt32());
+        Frame.SetHeight(in->ReadInt32());
+        BackgroundColor = in->ReadInt32();
+        BackgroundImage = in->ReadInt32();
+        ForegroundColor = in->ReadInt32();
+        Transparency = in->ReadInt32();
+        PopupStyle = (GuiPopupStyle)in->ReadInt32();
+        PopupAtMouseY = in->ReadInt32();
+        OnClickHandler.Read(in);
+        IsVisible = in->ReadBool();
+        ZOrder = in->ReadInt32();
+    }
+
+    int read_control_count = LEGACY_MAX_CONTROLS_ON_GUI;
+    if (gui_version >= kGuiVersion_340_alpha)
+    {
+        ControlCount = in->ReadInt32();
+        read_control_count = ControlCount;
+    }
+    ControlRefs.ReadRaw(in, read_control_count);
+}
+
+void GuiMain::WriteToFile(Stream *out)
+{
+    out->WriteInt32(Id);
+    Name.Write(out);
+    out->WriteInt32(Flags);
+    out->WriteInt32(Frame.Left);
+    out->WriteInt32(Frame.Top);
+    out->WriteInt32(Frame.GetWidth());
+    out->WriteInt32(Frame.GetHeight());
+    out->WriteInt32(BackgroundColor);
+    out->WriteInt32(BackgroundImage);
+    out->WriteInt32(ForegroundColor);
+    out->WriteInt32(Transparency);
+    out->WriteInt32(PopupStyle);
+    out->WriteInt32(PopupAtMouseY);
+    OnClickHandler.Write(out);
+    out->WriteBool(IsVisible);
+    out->WriteInt32(ZOrder);
+
+    out->WriteInt32(ControlCount);
+    ControlRefs.WriteRaw(out);
+}
+
+void GuiMain::ReadFromSavedGame(Stream *in, RuntimeGuiVersion version)
+{
+    Id = in->ReadInt32();
+    Name.Read(in);
+    Flags = in->ReadInt32();
+    Frame.Left = in->ReadInt32();
+    Frame.Top = in->ReadInt32();
+    Frame.SetWidth(in->ReadInt32());
+    Frame.SetHeight(in->ReadInt32());
+    BackgroundColor = in->ReadInt32();
+    BackgroundImage = in->ReadInt32();
+    ForegroundColor = in->ReadInt32();
+    Transparency = in->ReadInt32();
+    PopupStyle = (GuiPopupStyle)in->ReadInt32();
+    PopupAtMouseY = in->ReadInt32();
+    OnClickHandler.Read(in);
+    IsVisible = in->ReadBool();
+    ZOrder = in->ReadInt32();
+}
+
+void GuiMain::WriteToSavedGame(Stream *out)
+{
+    out->WriteInt32(Id);
+    Name.Write(out);
+    out->WriteInt32(Flags);
+    out->WriteInt32(Frame.Left);
+    out->WriteInt32(Frame.Top);
+    out->WriteInt32(Frame.GetWidth());
+    out->WriteInt32(Frame.GetHeight());
+    out->WriteInt32(BackgroundColor);
+    out->WriteInt32(BackgroundImage);
+    out->WriteInt32(ForegroundColor);
+    out->WriteInt32(Transparency);
+    out->WriteInt32(PopupStyle);
+    out->WriteInt32(PopupAtMouseY);
+    OnClickHandler.Write(out);
+    out->WriteBool(IsVisible);
+    out->WriteInt32(ZOrder);
+}
+
+namespace Gui
+{
+    void ResortGuis(ObjectArray<GuiMain> &guis, bool bwcompat_ctrl_zorder = false);
+}
+
+void Gui::ResortGuis(ObjectArray<GuiMain> &guis, bool bwcompat_ctrl_zorder)
+{
+    // set up the reverse-lookup array
+    for (int gui_index = 0; gui_index < guis.GetCount(); ++gui_index)
+    {
+        guis[gui_index].RebuildArray();
+        for (int ctrl_index = 0; ctrl_index < guis[gui_index].ControlCount; ++ctrl_index)
+        {
+            guis[gui_index].Controls[ctrl_index]->ParentId = gui_index;
+            guis[gui_index].Controls[ctrl_index]->Id = ctrl_index;
+
+            if (bwcompat_ctrl_zorder)
+            {
+                guis[gui_index].Controls[ctrl_index]->ZOrder = ctrl_index;
+            }
+        }
+        guis[gui_index].ResortZOrder();
+    }
+    guis_need_update = 1;
+}
+
+bool Gui::ReadGui(ObjectArray<GuiMain> &guis, Stream *in)
+{
+    if (in->ReadInt32() != (int)GUIMAGIC)
+    {
+        quit("ReadGui: file is corrupt");
+    }
+
+    LoadedGuiVersion = (GuiVersion)in->ReadInt32();
+    int gui_count;
+    if (LoadedGuiVersion < kGuiVersion_214)
+    {
+        gui_count = (int)LoadedGuiVersion;
+        LoadedGuiVersion = kGuiVersion_Initial;
+    }
+    else if (LoadedGuiVersion > kGuiVersion_Current)
+    {
+        quit("read_gui: this game requires a newer version of AGS");
+    }
+    else
+    {
+        gui_count = in->ReadInt32();
+    }
+
+    guis.SetLength(gui_count);
+    // import the main GUI elements
+    for (int i = 0; i < gui_count; ++i)
+    {
+        guis[i].Init();
+        guis[i].ReadFromFile(in, LoadedGuiVersion);
+
+        // Perform fixups
+        if (guis[i].GetHeight() < 2)
+        {
+            guis[i].SetHeight(2);
+        }
+        if (LoadedGuiVersion < kGuiVersion_unkn_103)
+        {
+            guis[i].Name.Format("GUI%d", i);
+        }
+        if (LoadedGuiVersion < kGuiVersion_260)
+        {
+            guis[i].ZOrder = i;
+        }
+        if (LoadedGuiVersion < kGuiVersion_270)
+        {
+            guis[i].OnClickHandler.Empty();
+        }
+        if (loaded_game_file_version <= kGameVersion_272) // Fix names for 2.x: "GUI" -> "gGui"
+        {
+            guis[i].Name = GuiMain::FixupGuiName(guis[i].Name);
+        }        
+        guis[i].Id = i;
+    }
+
+    // import the buttons
+    numguibuts = in->ReadInt32();
+    guibuts.SetLength(numguibuts);
+    for (int i = 0; i < numguibuts; ++i)
+    {
+        guibuts[i].ReadFromFile(in, LoadedGuiVersion);
+    }
+    // labels
+    numguilabels = in->ReadInt32();
+    guilabels.SetLength(numguilabels);
+    for (int i = 0; i < numguilabels; ++i)
+    {
+        guilabels[i].ReadFromFile(in, LoadedGuiVersion);
+    }
+    // inv controls
+    numguiinv = in->ReadInt32();
+    guiinv.SetLength(numguiinv);
+    for (int i = 0; i < numguiinv; ++i)
+    {
+        guiinv[i].ReadFromFile(in, LoadedGuiVersion);
+    }
+
+    if (LoadedGuiVersion >= kGuiVersion_214)
+    {
+        // sliders
+        numguislider = in->ReadInt32();
+        guislider.SetLength(numguislider);
+        for (int i = 0; i < numguislider; ++i)
+        {
+            guislider[i].ReadFromFile(in, LoadedGuiVersion);
+        }
+    }
+
+    if (LoadedGuiVersion >= kGuiVersion_222)
+    {
+        // text boxes
+        numguitext = in->ReadInt32();
+        guitext.SetLength(numguitext);
+        for (int i = 0; i < numguitext; ++i)
+        {
+            guitext[i].ReadFromFile(in, LoadedGuiVersion);
+        }
+    }
+
+    if (LoadedGuiVersion >= kGuiVersion_230)
+    {
+        // list boxes
+        numguilist = in->ReadInt32();
+        guilist.SetLength(numguilist);
+        for (int i = 0; i < numguilist; ++i)
+        {
+            guilist[i].ReadFromFile(in, LoadedGuiVersion);
+        }
+    }
+
+    ResortGuis(guis, LoadedGuiVersion < kGuiVersion_272e);
+    return true;
+}
+
+void Gui::WriteGui(ObjectArray<GuiMain> &guis, Stream *out)
+{
+    out->WriteInt32(GUIMAGIC);
+    out->WriteInt32(kGuiVersion_Current);
+    const int gui_count = guis.GetCount();
+    out->WriteInt32(gui_count);
+    for (int i = 0; i < gui_count; ++i)
+    {
+        guis[i].WriteToFile(out);
     }
     out->WriteInt32(numguibuts);
     for (int i = 0; i < numguibuts; ++i)
@@ -781,3 +868,105 @@ void write_gui_for_savedgame(Common::Stream *out, GUIMain *guiwrite, Common::Gam
         guilist[i].WriteToFile(out);
     }
 }
+
+bool Gui::ReadGuiFromSavedGame(ObjectArray<GuiMain> &guis, Common::Stream *in, RuntimeGuiVersion version)
+{
+    // import the main GUI elements
+    const int gui_count = guis.GetCount();
+    for (int i = 0; i < gui_count; ++i)
+    {
+        guis[i].Init();
+        guis[i].ReadFromSavedGame(in, version);
+    }
+    // import the buttons
+    numguibuts = in->ReadInt32();
+    guibuts.SetLength(numguibuts);
+    for (int i = 0; i < numguibuts; ++i)
+    {
+        guibuts[i].ReadFromSavedGame(in, version);
+    }
+    // labels
+    numguilabels = in->ReadInt32();
+    guilabels.SetLength(numguilabels);
+    for (int i = 0; i < numguilabels; ++i)
+    {
+        guilabels[i].ReadFromSavedGame(in, version);
+    }
+    // inv controls
+    numguiinv = in->ReadInt32();
+    guiinv.SetLength(numguiinv);
+    for (int i = 0; i < numguiinv; ++i)
+    {
+        guiinv[i].ReadFromSavedGame(in, version);
+    }
+    // sliders
+    numguislider = in->ReadInt32();
+    guislider.SetLength(numguislider);
+    for (int i = 0; i < numguislider; ++i)
+    {
+        guislider[i].ReadFromSavedGame(in, version);
+    }
+    // text boxes
+    numguitext = in->ReadInt32();
+    guitext.SetLength(numguitext);
+    for (int i = 0; i < numguitext; ++i)
+    {
+        guitext[i].ReadFromSavedGame(in, version);
+    }
+    // list boxes
+    numguilist = in->ReadInt32();
+    guilist.SetLength(numguilist);
+    for (int i = 0; i < numguilist; ++i)
+    {
+        guilist[i].ReadFromSavedGame(in, version);
+    }
+
+    ResortGuis(guis);
+    return true;
+}
+
+void Gui::WriteGuiToSavedGame(ObjectArray<GuiMain> &guis, Common::Stream *out)
+{
+    const int gui_count = guis.GetCount();
+    for (int i = 0; i < gui_count; ++i)
+    {
+        guis[i].WriteToSavedGame(out);
+    }
+    out->WriteInt32(numguibuts);
+    for (int i = 0; i < numguibuts; ++i)
+    {
+        guibuts[i].WriteToSavedGame(out);
+    }
+    out->WriteInt32(numguilabels);
+    for (int i = 0; i < numguilabels; ++i)
+    {
+        guilabels[i].WriteToSavedGame(out);
+    }
+    out->WriteInt32(numguiinv);
+    for (int i = 0; i < numguiinv; ++i)
+    {
+        guiinv[i].WriteToSavedGame(out);
+    }
+    out->WriteInt32(numguislider);
+    for (int i = 0; i < numguislider; ++i)
+    {
+        guislider[i].WriteToSavedGame(out);
+    }
+    out->WriteInt32(numguitext);
+    for (int i = 0; i < numguitext; ++i)
+    {
+        guitext[i].WriteToSavedGame(out);
+    }
+    out->WriteInt32(numguilist);
+    for (int i = 0; i < numguilist; ++i)
+    {
+        guilist[i].WriteToSavedGame(out);
+    }
+}
+
+} // namespace Common
+} // namespace AGS
+
+int guis_need_update = 1;
+int all_buttons_disabled = 0, gui_inv_pic = -1;
+int gui_disabled_style = 0;

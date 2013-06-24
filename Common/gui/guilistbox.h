@@ -11,102 +11,86 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
-#ifndef __AC_GUILISTBOX_H
-#define __AC_GUILISTBOX_H
+//
+// 
+//
+//=============================================================================
+#ifndef __AGS_CN_GUI__GUILISTBOX_H
+#define __AGS_CN_GUI__GUILISTBOX_H
 
 #include "gui/guiobject.h"
-#include "gui/dynamicarray.h"
+#include "util/array.h"
 
-#define GLF_NOBORDER     1
-#define GLF_NOARROWS     2
-#define GLF_SGINDEXVALID 4
+#define LEGACY_MAX_LISTBOX_ITEMS    200
 
-struct GUIListBox:public GUIObject
+namespace AGS
 {
-  char *items[MAX_LISTBOX_ITEMS];
-  short saveGameIndex[MAX_LISTBOX_ITEMS];
-  int numItems, selected, topItem, mousexp, mouseyp;
-  int rowheight, num_items_fit;
-  int font, textcol, backcol, exflags;
-  int selectedbgcol;
-  int alignment, reserved1;
-  virtual void WriteToFile(Common::Stream *out);
-  virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
-  virtual void ReadFromSavedGame(Common::Stream *in, RuntimeGUIVersion gui_version);
-  int  AddItem(const char *toadd);
-  int  InsertItem(int index, const char *toadd);
-  void SetItemText(int index, const char *newtext);
-  void RemoveItem(int index);
-  void Clear();
-  virtual void Draw(Common::Bitmap *ds);
-  int  IsInRightMargin(int x);
-  int  GetIndexFromCoordinates(int x, int y);
-  void ChangeFont(int newFont);
-  virtual int MouseDown();
-  
-  void MouseMove(int nx, int ny)
-  {
-    mousexp = nx - x;
-    mouseyp = ny - y;
-  }
+namespace Common
+{
 
-  void MouseOver()
-  {
-  }
-
-  void MouseLeave()
-  {
-  }
-
-  void MouseUp()
-  {
-  }
-
-  void KeyPress(int kp)
-  {
-  }
-
-  virtual void Resized();
-
-  void reset()
-  {
-    GUIObject::init();
-    mousexp = 0;
-    mouseyp = 0;
-    activated = 0;
-    numItems = 0;
-    topItem = 0;
-    selected = 0;
-    font = 0;
-    textcol = 0;
-    selectedbgcol = 16;
-    backcol = 7;
-    exflags = 0;
-    numSupportedEvents = 1;
-    supportedEvents[0] = "SelectionChanged";
-    supportedEventArgs[0] = "GUIControl *control";
-  }
-
-  GUIListBox() {
-    reset();
-  }
-
-  virtual ~GUIListBox()
-  {
-    for (int i = 0; i < numItems; i++)
-      free(items[i]);
-  }
-
-private:
-  int numItemsTemp;
-
-  void Draw_items_fix();
-  void Draw_items_unfix();
-  void Draw_set_oritext(char *oritext, const char *text);
+enum GuiListBoxFlags
+{
+    kGuiListBox_NoBorder            = 0x01,
+    kGuiListBox_NoArrows            = 0x02,
+    kGuiListBox_SavedGameIndexValid = 0x04,
 };
 
-extern DynamicArray<GUIListBox> guilist;
+class GuiListBox : public GuiObject
+{
+public:
+    GuiListBox();
+
+    bool         IsInRightMargin(int x);
+    int          GetItemAt(int x, int y);
+
+    int          AddItem(const String &text);
+    void         Clear();
+    virtual void Draw(Common::Bitmap *ds);
+    int          InsertItem(int index, const String &text);
+    void         RemoveItem(int index);
+    void         SetFont(int font);
+    void         SetItemText(int index, const String &textt);    
+    
+    virtual bool OnMouseDown();
+    virtual void OnMouseMove(int x, int y);
+    virtual void OnResized();
+
+    virtual void WriteToFile(Common::Stream *out);
+    virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
+    virtual void WriteToSavedGame(Common::Stream *out);
+    virtual void ReadFromSavedGame(Common::Stream *in, RuntimeGuiVersion gui_version);
+
+// TODO: these members are currently public; hide them later
+public:
+    int32_t               ListBoxFlags;
+    int32_t               TextFont;
+    color_t               TextColor;
+    Alignment             TextAlignment;
+    color_t               BackgroundColor;
+    color_t               SelectedBkgColor;
+    int32_t               ItemCount;
+    ObjectArray<String>   Items;
+    Array<int16_t>        SavedGameIndex;
+    int32_t               SelectedItem;
+    int32_t               TopItem;
+    int32_t               RowHeight;
+    int32_t               VisibleItemCount;  
+    Point                 MousePos;
+
+private:
+    // A temporary solution for special drawing in the Editor
+    void DrawItemsFix();
+    void DrawItemsUnfix();
+    void PrepareTextToDraw(const String &text);
+
+    // prepared text buffer/cache
+    String  TextToDraw;
+};
+
+} // namespace Common
+} // namespace AGS
+
+extern AGS::Common::ObjectArray<AGS::Common::GuiListBox> guilist;
 extern int numguilist;
 
-#endif // __AC_GUILISTBOX_H
+#endif // __AGS_CN_GUI__GUILISTBOX_H

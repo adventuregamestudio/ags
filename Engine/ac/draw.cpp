@@ -84,7 +84,6 @@ extern ViewStruct*views;
 extern int displayed_room;
 extern CharacterExtras *charextra;
 extern CharacterInfo*playerchar;
-extern GUIMain*guis;
 extern int eip_guinum;
 extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern int numscreenover;
@@ -140,8 +139,8 @@ int sprlistsize=0;
 SpriteListEntry thingsToDrawList[MAX_THINGS_TO_DRAW];
 int thingsToDrawSize = 0;
 
-//GUIMain dummygui;
-//GUIButton dummyguicontrol;
+//GuiMain dummygui;
+//GuiButton dummyguicontrol;
 Bitmap **guibg = NULL;
 IDriverDependantBitmap **guibgbmp = NULL;
 
@@ -630,7 +629,7 @@ void invalidate_sprite(int x1, int y1, IDriverDependantBitmap *pic) {
 }
 
 void draw_and_invalidate_text(Bitmap *ds, int x1, int y1, int font, color_t text_color, const char *text) {
-    wouttext_outline(ds, x1, y1, font, text_color, (char*)text);
+    wouttext_outline(ds, x1, y1, font, text_color, text);
     invalidate_rect(x1, y1, x1 + wgettextwidth_compensate(text, font), y1 + wgetfontheight(font) + get_fixed_pixel_size(1));
 }
 
@@ -2224,7 +2223,7 @@ void draw_screen_overlay() {
             //Bitmap *abufwas = ds;
             guis_need_update = 0;
             for (aa=0;aa<game.GuiCount;aa++) {
-                if (guis[aa].on<1) continue;
+                if (!guis[aa].IsVisible) continue;
 
                 if (guibg[aa] == NULL)
                     recreate_guibg_image(&guis[aa]);
@@ -2234,18 +2233,18 @@ void draw_screen_overlay() {
                 guibg[aa]->ClearTransparent();
                 //ds = guibg[aa];
                 our_eip = 372;
-                guis[aa].draw_at(guibg[aa], 0,0);
+                guis[aa].DrawAt(guibg[aa], 0,0);
                 our_eip = 373;
 
                 bool isAlpha = false;
-                if (guis[aa].is_alpha()) 
+                if (guis[aa].HasAlphaChannel()) 
                 {
                     isAlpha = true;
 
-                    if ((game.Options[OPT_NEWGUIALPHA] == 0) && (guis[aa].bgpic > 0))
+                    if ((game.Options[OPT_NEWGUIALPHA] == 0) && (guis[aa].BackgroundImage > 0))
                     {
                         // old-style (pre-3.0.2) GUI alpha rendering
-                        repair_alpha_channel(guibg[aa], spriteset[guis[aa].bgpic]);
+                        repair_alpha_channel(guibg[aa], spriteset[guis[aa].BackgroundImage]);
                     }
                 }
 
@@ -2265,20 +2264,20 @@ void draw_screen_overlay() {
         // Draw the GUIs
         for (gg = 0; gg < game.GuiCount; gg++) {
             aa = play.GuiDrawOrder[gg];
-            if (guis[aa].on < 1) continue;
+            if (!guis[aa].IsVisible) continue;
 
             // Don't draw GUI if "GUIs Turn Off When Disabled"
             if ((game.Options[OPT_DISABLEOFF] == 3) &&
                 (all_buttons_disabled > 0) &&
-                (guis[aa].popup != POPUP_NOAUTOREM))
+                (guis[aa].PopupStyle != Common::kGuiPopupNoAutoRemove))
                 continue;
 
-            add_thing_to_draw(guibgbmp[aa], guis[aa].x, guis[aa].y, guis[aa].transparency, guis[aa].is_alpha());
+            add_thing_to_draw(guibgbmp[aa], guis[aa].GetX(), guis[aa].GetY(), guis[aa].Transparency, guis[aa].HasAlphaChannel());
 
             // only poll if the interface is enabled (mouseovers should not
             // work while in Wait state)
             if (IsInterfaceEnabled())
-                guis[aa].poll();
+                guis[aa].Poll();
         }
     }
 

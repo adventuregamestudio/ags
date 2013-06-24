@@ -150,8 +150,6 @@ unsigned int loopcounter=0,lastcounter=0;
 int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 SpriteCache spriteset(1);
 int proper_exit=0,our_eip=0;
-
-GUIMain*guis=NULL;
 ViewStruct*views=NULL;
 
 //=============================================================================
@@ -549,8 +547,7 @@ void unload_game_file() {
 
     guiScriptObjNames.Free();
     free(guibg);
-    free (guis);
-    guis = NULL;
+    guis.Free();
     scrGui.Free();
 
     platform->ShutdownPlugins();
@@ -1408,7 +1405,8 @@ void restore_game_gui(Stream *in, int numGuisWas)
     for (vv = 0; vv < game.GuiCount; vv++)
         unexport_gui_controls(vv);
 
-    read_gui(in,guis,&game);
+    AGS::Common::Gui::ReadGui(guis, in);
+    game.GuiCount = guis.GetCount();
 
     if (numGuisWas != game.GuiCount)
         quit("!Restore_Game: Game has changed (GUIs), unable to restore position");
@@ -1915,7 +1913,7 @@ AGS::Engine::SavedGameError restore_game_data (Stream *in) {
     }
 
     for (vv = 0; vv < game.GuiCount; vv++) {
-        guibg[vv] = BitmapHelper::CreateBitmap (guis[vv].wid, guis[vv].hit, final_col_dep);
+        guibg[vv] = BitmapHelper::CreateBitmap (guis[vv].GetWidth(), guis[vv].GetHeight(), final_col_dep);
         guibg[vv] = gfxDriver->ConvertBitmapToSupportedColourDepth(guibg[vv]);
     }
 

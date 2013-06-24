@@ -21,6 +21,7 @@
 #include "gfx/bitmap.h"
 
 using AGS::Common::Bitmap;
+using AGS::Common::GuiInvWindow;
 
 
 extern int gui_disabled_style;
@@ -28,59 +29,74 @@ extern CharacterExtras *charextra;
 extern SpriteCache spriteset;
 
 
-int GUIInv::CharToDisplay() {
-    if (this->charId < 0)
+int GuiInvWindow::GetCharacterId()
+{
+    if (CharacterId < 0)
+    {
         return game.PlayerCharacterIndex;
-
-    return this->charId;
+    }
+    return CharacterId;
 }
 
-void GUIInv::Draw(Bitmap *ds) {
-    if ((IsDisabled()) && (gui_disabled_style == GUIDIS_BLACKOUT))
+void GuiInvWindow::Draw(Bitmap *ds)
+{
+    if (IsDisabled() && gui_disabled_style == kGuiDisabled_HideControls)
+    {
         return;
+    }
 
     // backwards compatibility
-    play.InventoryColCount = this->itemsPerLine;
-    play.InventoryDisplayedCount = this->numLines * this->itemsPerLine;
+    play.InventoryColCount = ColumnCount;
+    play.InventoryDisplayedCount = RowCount * ColumnCount;
     play.obsolete_inv_numorder = charextra[game.PlayerCharacterIndex].invorder_count;
     // if the user changes top_inv_item, switch into backwards
     // compatibiltiy mode
-    if (play.TopInvItemIndex) {
+    if (play.TopInvItemIndex)
+    {
         play.InventoryBackwardsCompatible = 1;
     }
-
-    if (play.InventoryBackwardsCompatible) {
-        this->topIndex = play.TopInvItemIndex;
+    if (play.InventoryBackwardsCompatible)
+    {
+        TopItem = play.TopInvItemIndex;
     }
 
     // draw the items
-    int xxx = x;
-    int uu, cxp = x, cyp = y;
-    int lastItem = this->topIndex + (this->itemsPerLine * this->numLines);
-    if (lastItem > charextra[this->CharToDisplay()].invorder_count)
-        lastItem = charextra[this->CharToDisplay()].invorder_count;
+    int leftmost_x = Frame.Left;
+    Point draw_at(Frame.Left, Frame.Top);
+    int last_item = TopItem + (ColumnCount * RowCount);
+    if (last_item > charextra[GetCharacterId()].invorder_count)
+    {
+        last_item = charextra[GetCharacterId()].invorder_count;
+    }
 
-    for (uu = this->topIndex; uu < lastItem; uu++) {
+    for (int item = TopItem; item < last_item; ++item)
+    {
         // draw inv graphic
-        draw_sprite_compensate(ds, game.InventoryItems[charextra[this->CharToDisplay()].invorder[uu]].pic, cxp, cyp, 1);
-        cxp += multiply_up_coordinate(this->itemWidth);
+        draw_sprite_compensate(ds, game.InventoryItems[charextra[GetCharacterId()].invorder[item]].pic, draw_at.X, draw_at.Y, 1);
+        draw_at.X += multiply_up_coordinate(ItemWidth);
 
         // go to next row when appropriate
-        if ((uu - this->topIndex) % this->itemsPerLine == (this->itemsPerLine - 1)) {
-            cxp = xxx;
-            cyp += multiply_up_coordinate(this->itemHeight);
+        if ((item - TopItem) % ColumnCount == (ColumnCount - 1))
+        {
+            draw_at.X = leftmost_x;
+            draw_at.Y += multiply_up_coordinate(ItemHeight);
         }
     }
 
-    if ((IsDisabled()) &&
-        (gui_disabled_style == GUIDIS_GREYOUT) && 
-        (play.InventoryGreysOutWhenDisabled == 1)) {
-            color_t draw_color = ds->GetCompatibleColor(8);
-            int jj, kk;   // darken the inventory when disabled
-            for (jj = 0; jj < wid; jj++) {
-                for (kk = jj % 2; kk < hit; kk += 2)
-                    ds->PutPixel(x + jj, y + kk, draw_color);
+    if (IsDisabled() &&
+        gui_disabled_style == kGuiDisabled_GreyOut && 
+        play.InventoryGreysOutWhenDisabled == 1)
+    {
+        // darken the inventory when disabled
+        color_t draw_color = ds->GetCompatibleColor(8);
+        int width = Frame.GetWidth();
+        int height = Frame.GetHeight();
+        for (int x = 0; x < width; ++x)
+        {
+            for (int y = x % 2; y < height; y += 2)
+            {
+                ds->PutPixel(Frame.Left + x, Frame.Top + y, draw_color);
             }
+        }
     }
-
 }

@@ -15,12 +15,10 @@
 #ifndef __AC_GUIDEFINES_H
 #define __AC_GUIDEFINES_H
 
-#define MAX_LISTBOX_ITEMS 200
-#define MAX_GUILABEL_TEXT_LEN 2048
-#define GUIMAGIC          0xcafebeef
-//#define MAX_OBJ_EACH_TYPE 251
+#define LEGACY_MAX_CONTROLS_ON_GUI 30
+#define GUIMAGIC                   0xcafebeef
 
-#define MAXLINE 50
+#define MAXLINE                    50
 
 // TODO: find out more about gui version history
 //=============================================================================
@@ -41,7 +39,8 @@
 //                   ListBox.SaveGameSlots[] array instead.
 // 2.7.2.???? (115): Added GUI Control z-order support.
 //
-// 3.3.0.1132 (116): Added GUIF_TRANSLATED flag.
+// 3.3.0.1132 (116): Added kGuiCtrl_Translated flag.
+// 3.4.0.1139      : Unlimited controls on GUI.
 //
 //=============================================================================
 
@@ -67,15 +66,17 @@ enum GuiVersion
     kGuiVersion_272e        = 115,
     
     kGuiVersion_330         = 116,
-    kGuiVersion_Current     = kGuiVersion_330,
-    kGuiVersion_ForwardCompatible = kGuiVersion_272e
+    kGuiVersion_340_alpha,
+    kGuiVersion_Current     = kGuiVersion_340_alpha
 };
 
 // TODO: move to engine when GUI classes are split into info/runtime
-enum RuntimeGUIVersion
+enum RuntimeGuiVersion
 {
-    kRtGUIVersion_330,
-    kRtGUIVersion_Current = kRtGUIVersion_330
+    kRtGuiVersion_330,
+    kRtGuiVersion_Current = kRtGuiVersion_330
 };
+
+extern GuiVersion LoadedGuiVersion;
 
 #endif // __AC_GUIDEFINES_H

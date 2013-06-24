@@ -23,7 +23,7 @@
 // 64 bit: This struct must be 8 byte long
 struct ScriptGUI {
   int id;
-  //GUIMain *gui;
+  //GuiMain *gui;
   int __padding;
 };
 

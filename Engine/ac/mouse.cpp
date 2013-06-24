@@ -20,7 +20,6 @@
 #include "ac/dynobj/scriptmouse.h"
 #include "ac/global_mouse.h"
 #include "ac/global_screen.h"
-#include "ac/interfacebutton.h"
 #include "ac/viewframe.h"
 #include "debug/debug_log.h"
 #include "game/game_objects.h"
@@ -31,6 +30,7 @@
 #include "gfx/graphicsdriver.h"
 
 using AGS::Common::Bitmap;
+using AGS::Common::GuiButton;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern Bitmap *mousecurs[MAXCURSORS];
@@ -38,7 +38,6 @@ extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
 extern int guis_need_update;
 extern CharacterInfo*playerchar;
-extern GUIMain*guis;
 extern IGraphicsDriver *gfxDriver;
 
 ScriptMouse scmouse;
@@ -225,11 +224,11 @@ void enable_cursor_mode(int modd) {
     int uu,ww;
 
     for (uu=0;uu<game.GuiCount;uu++) {
-        for (ww=0;ww<guis[uu].numobjs;ww++) {
-            if ((guis[uu].objrefptr[ww] >> 16)!=GOBJ_BUTTON) continue;
-            GUIButton*gbpt=(GUIButton*)guis[uu].objs[ww];
-            if (gbpt->leftclick!=IBACT_SETMODE) continue;
-            if (gbpt->lclickdata!=modd) continue;
+        for (ww=0;ww<guis[uu].ControlCount;ww++) {
+            if ((guis[uu].ControlRefs[ww] >> 16)!=Common::kGuiButton) continue;
+            GuiButton*gbpt=(GuiButton*)guis[uu].Controls[ww];
+            if (gbpt->ClickAction!=Common::kGuiBtnAction_SetMode) continue;
+            if (gbpt->ClickActionData!=modd) continue;
             gbpt->Enable();
         }
     }
@@ -242,11 +241,11 @@ void disable_cursor_mode(int modd) {
     int uu,ww;
 
     for (uu=0;uu<game.GuiCount;uu++) {
-        for (ww=0;ww<guis[uu].numobjs;ww++) {
-            if ((guis[uu].objrefptr[ww] >> 16)!=GOBJ_BUTTON) continue;
-            GUIButton*gbpt=(GUIButton*)guis[uu].objs[ww];
-            if (gbpt->leftclick!=IBACT_SETMODE) continue;
-            if (gbpt->lclickdata!=modd) continue;
+        for (ww=0;ww<guis[uu].ControlCount;ww++) {
+            if ((guis[uu].ControlRefs[ww] >> 16)!=Common::kGuiButton) continue;
+            GuiButton*gbpt=(GuiButton*)guis[uu].Controls[ww];
+            if (gbpt->ClickAction!=Common::kGuiBtnAction_SetMode) continue;
+            if (gbpt->ClickActionData!=modd) continue;
             gbpt->Disable();
         }
     }

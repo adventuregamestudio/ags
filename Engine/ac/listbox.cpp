@@ -23,11 +23,10 @@
 
 extern int guis_need_update;
 extern char saveGameDirectory[260];
-extern GUIMain*guis;
 
 // *** LIST BOX FUNCTIONS
 
-int ListBox_AddItem(GUIListBox *lbb, const char *text) {
+int ListBox_AddItem(GuiListBox *lbb, const char *text) {
   if (lbb->AddItem(text) < 0)
     return 0;
 
@@ -35,7 +34,7 @@ int ListBox_AddItem(GUIListBox *lbb, const char *text) {
   return 1;
 }
 
-int ListBox_InsertItemAt(GUIListBox *lbb, int index, const char *text) {
+int ListBox_InsertItemAt(GuiListBox *lbb, int index, const char *text) {
   if (lbb->InsertItem(index, text) < 0)
     return 0;
 
@@ -43,12 +42,12 @@ int ListBox_InsertItemAt(GUIListBox *lbb, int index, const char *text) {
   return 1;
 }
 
-void ListBox_Clear(GUIListBox *listbox) {
+void ListBox_Clear(GuiListBox *listbox) {
   listbox->Clear();
   guis_need_update = 1;
 }
 
-void ListBox_FillDirList(GUIListBox *listbox, const char *filemask) {
+void ListBox_FillDirList(GuiListBox *listbox, const char *filemask) {
   char searchPath[MAX_PATH];
   validate_user_file_path(filemask, searchPath, false);
 
@@ -63,14 +62,14 @@ void ListBox_FillDirList(GUIListBox *listbox, const char *filemask) {
   guis_need_update = 1;
 }
 
-int ListBox_GetSaveGameSlots(GUIListBox *listbox, int index) {
-  if ((index < 0) || (index >= listbox->numItems))
+int ListBox_GetSaveGameSlots(GuiListBox *listbox, int index) {
+  if ((index < 0) || (index >= listbox->ItemCount))
     quit("!ListBox.SaveGameSlot: index out of range");
 
-  return listbox->saveGameIndex[index];
+  return listbox->SavedGameIndex[index];
 }
 
-int ListBox_FillSaveGameList(GUIListBox *listbox) {
+int ListBox_FillSaveGameList(GuiListBox *listbox) {
   listbox->Clear();
 
   int numsaves=0;
@@ -96,7 +95,7 @@ int ListBox_FillSaveGameList(GUIListBox *listbox) {
     int saveGameSlot = atoi(numberExtension);
     GetSaveSlotDescription(saveGameSlot, buff);
     listbox->AddItem(buff);
-    listbox->saveGameIndex[numsaves] = saveGameSlot;
+    listbox->SavedGameIndex[numsaves] = saveGameSlot;
     filedates[numsaves]=(long int)ffb.time;
     numsaves++;
     don = al_findnext(&ffb);
@@ -108,12 +107,12 @@ int ListBox_FillSaveGameList(GUIListBox *listbox) {
     for (int kk=0;kk<numsaves-1;kk++) {  // Date order the games
 
       if (filedates[kk] < filedates[kk+1]) {   // swap them round
-        char*tempptr = listbox->items[kk];
-        listbox->items[kk] = listbox->items[kk+1];
-        listbox->items[kk+1] = tempptr;
-        int numtem = listbox->saveGameIndex[kk];
-        listbox->saveGameIndex[kk] = listbox->saveGameIndex[kk+1];
-        listbox->saveGameIndex[kk+1] = numtem;
+        const char*tempptr = listbox->Items[kk];
+        listbox->Items[kk] = listbox->Items[kk+1];
+        listbox->Items[kk+1] = tempptr;
+        int numtem = listbox->SavedGameIndex[kk];
+        listbox->SavedGameIndex[kk] = listbox->SavedGameIndex[kk+1];
+        listbox->SavedGameIndex[kk+1] = numtem;
         long numted=filedates[kk]; filedates[kk]=filedates[kk+1];
         filedates[kk+1]=numted;
       }
@@ -122,172 +121,172 @@ int ListBox_FillSaveGameList(GUIListBox *listbox) {
 
   // update the global savegameindex[] array for backward compatibilty
   for (nn = 0; nn < numsaves; nn++) {
-    play.SavedGameFileNumbers[nn] = listbox->saveGameIndex[nn];
+    play.SavedGameFileNumbers[nn] = listbox->SavedGameIndex[nn];
   }
 
   guis_need_update = 1;
-  listbox->exflags |= GLF_SGINDEXVALID;
+  listbox->ListBoxFlags |= Common::kGuiListBox_SavedGameIndexValid;
 
   if (numsaves >= MAXSAVEGAMES)
     return 1;
   return 0;
 }
 
-int ListBox_GetItemAtLocation(GUIListBox *listbox, int x, int y) {
+int ListBox_GetItemAtLocation(GuiListBox *listbox, int x, int y) {
 
-  if (guis[listbox->guin].on < 1)
+  if (!guis[listbox->ParentId].IsVisible)
     return -1;
 
   multiply_up_coordinates(&x, &y);
-  x = (x - listbox->x) - guis[listbox->guin].x;
-  y = (y - listbox->y) - guis[listbox->guin].y;
+  x = (x - listbox->GetX()) - guis[listbox->ParentId].GetX();
+  y = (y - listbox->GetY()) - guis[listbox->ParentId].GetY();
 
-  if ((x < 0) || (y < 0) || (x >= listbox->wid) || (y >= listbox->hit))
+  if ((x < 0) || (y < 0) || (x >= listbox->GetWidth()) || (y >= listbox->GetHeight()))
     return -1;
   
-  return listbox->GetIndexFromCoordinates(x, y);
+  return listbox->GetItemAt(x, y);
 }
 
-char *ListBox_GetItemText(GUIListBox *listbox, int index, char *buffer) {
-  if ((index < 0) || (index >= listbox->numItems))
+char *ListBox_GetItemText(GuiListBox *listbox, int index, char *buffer) {
+  if ((index < 0) || (index >= listbox->ItemCount))
     quit("!ListBoxGetItemText: invalid item specified");
-  strncpy(buffer, listbox->items[index],198);
+  strncpy(buffer, listbox->Items[index],198);
   buffer[199] = 0;
   return buffer;
 }
 
-const char* ListBox_GetItems(GUIListBox *listbox, int index) {
-  if ((index < 0) || (index >= listbox->numItems))
+const char* ListBox_GetItems(GuiListBox *listbox, int index) {
+  if ((index < 0) || (index >= listbox->ItemCount))
     quit("!ListBox.Items: invalid index specified");
 
-  return CreateNewScriptString(listbox->items[index]);
+  return CreateNewScriptString(listbox->Items[index]);
 }
 
-void ListBox_SetItemText(GUIListBox *listbox, int index, const char *newtext) {
-  if ((index < 0) || (index >= listbox->numItems))
+void ListBox_SetItemText(GuiListBox *listbox, int index, const char *newtext) {
+  if ((index < 0) || (index >= listbox->ItemCount))
     quit("!ListBoxSetItemText: invalid item specified");
 
-  if (strcmp(listbox->items[index], newtext)) {
+  if (strcmp(listbox->Items[index], newtext)) {
     listbox->SetItemText(index, newtext);
     guis_need_update = 1;
   }
 }
 
-void ListBox_RemoveItem(GUIListBox *listbox, int itemIndex) {
+void ListBox_RemoveItem(GuiListBox *listbox, int itemIndex) {
   
-  if ((itemIndex < 0) || (itemIndex >= listbox->numItems))
+  if ((itemIndex < 0) || (itemIndex >= listbox->ItemCount))
     quit("!ListBoxRemove: invalid listindex specified");
 
   listbox->RemoveItem(itemIndex);
   guis_need_update = 1;
 }
 
-int ListBox_GetItemCount(GUIListBox *listbox) {
-  return listbox->numItems;
+int ListBox_GetItemCount(GuiListBox *listbox) {
+  return listbox->ItemCount;
 }
 
-int ListBox_GetFont(GUIListBox *listbox) {
-  return listbox->font;
+int ListBox_GetFont(GuiListBox *listbox) {
+  return listbox->TextFont;
 }
 
-void ListBox_SetFont(GUIListBox *listbox, int newfont) {
+void ListBox_SetFont(GuiListBox *listbox, int newfont) {
 
   if ((newfont < 0) || (newfont >= game.FontCount))
-    quit("!ListBox.Font: invalid font number.");
+    quit("!ListBox.Font: invalid TextFont number.");
 
-  if (newfont != listbox->font) {
-    listbox->ChangeFont(newfont);
+  if (newfont != listbox->TextFont) {
+    listbox->SetFont(newfont);
     guis_need_update = 1;
   }
 
 }
 
-int ListBox_GetHideBorder(GUIListBox *listbox) {
-  return (listbox->exflags & GLF_NOBORDER) ? 1 : 0;
+int ListBox_GetHideBorder(GuiListBox *listbox) {
+    return (listbox->ListBoxFlags & Common::kGuiListBox_NoBorder) ? 1 : 0;
 }
 
-void ListBox_SetHideBorder(GUIListBox *listbox, int newValue) {
-  listbox->exflags &= ~GLF_NOBORDER;
+void ListBox_SetHideBorder(GuiListBox *listbox, int newValue) {
+  listbox->ListBoxFlags &= ~Common::kGuiListBox_NoBorder;
   if (newValue)
-    listbox->exflags |= GLF_NOBORDER;
+    listbox->ListBoxFlags |= Common::kGuiListBox_NoBorder;
   guis_need_update = 1;
 }
 
-int ListBox_GetHideScrollArrows(GUIListBox *listbox) {
-  return (listbox->exflags & GLF_NOARROWS) ? 1 : 0;
+int ListBox_GetHideScrollArrows(GuiListBox *listbox) {
+    return (listbox->ListBoxFlags & Common::kGuiListBox_NoArrows) ? 1 : 0;
 }
 
-void ListBox_SetHideScrollArrows(GUIListBox *listbox, int newValue) {
-  listbox->exflags &= ~GLF_NOARROWS;
+void ListBox_SetHideScrollArrows(GuiListBox *listbox, int newValue) {
+  listbox->ListBoxFlags &= ~Common::kGuiListBox_NoArrows;
   if (newValue)
-    listbox->exflags |= GLF_NOARROWS;
+    listbox->ListBoxFlags |= Common::kGuiListBox_NoArrows;
   guis_need_update = 1;
 }
 
-int ListBox_GetSelectedIndex(GUIListBox *listbox) {
-  if ((listbox->selected < 0) || (listbox->selected >= listbox->numItems))
+int ListBox_GetSelectedIndex(GuiListBox *listbox) {
+  if ((listbox->SelectedItem < 0) || (listbox->SelectedItem >= listbox->ItemCount))
     return -1;
-  return listbox->selected;
+  return listbox->SelectedItem;
 }
 
-void ListBox_SetSelectedIndex(GUIListBox *guisl, int newsel) {
+void ListBox_SetSelectedIndex(GuiListBox *guisl, int newsel) {
 
-  if (newsel >= guisl->numItems)
+  if (newsel >= guisl->ItemCount)
     newsel = -1;
 
-  if (guisl->selected != newsel) {
-    guisl->selected = newsel;
+  if (guisl->SelectedItem != newsel) {
+    guisl->SelectedItem = newsel;
     if (newsel >= 0) {
-      if (newsel < guisl->topItem)
-        guisl->topItem = newsel;
-      if (newsel >= guisl->topItem + guisl->num_items_fit)
-        guisl->topItem = (newsel - guisl->num_items_fit) + 1;
+      if (newsel < guisl->TopItem)
+        guisl->TopItem = newsel;
+      if (newsel >= guisl->TopItem + guisl->VisibleItemCount)
+        guisl->TopItem = (newsel - guisl->VisibleItemCount) + 1;
     }
     guis_need_update = 1;
   }
 
 }
 
-int ListBox_GetTopItem(GUIListBox *listbox) {
-  return listbox->topItem;
+int ListBox_GetTopItem(GuiListBox *listbox) {
+  return listbox->TopItem;
 }
 
-void ListBox_SetTopItem(GUIListBox *guisl, int item) {
-  if ((guisl->numItems == 0) && (item == 0))
+void ListBox_SetTopItem(GuiListBox *guisl, int item) {
+  if ((guisl->ItemCount == 0) && (item == 0))
     ;  // allow resetting an empty box to the top
-  else if ((item >= guisl->numItems) || (item < 0))
+  else if ((item >= guisl->ItemCount) || (item < 0))
     quit("!ListBoxSetTopItem: tried to set top to beyond top or bottom of list");
 
-  guisl->topItem = item;
+  guisl->TopItem = item;
   guis_need_update = 1;
 }
 
-int ListBox_GetRowCount(GUIListBox *listbox) {
-  return listbox->num_items_fit;
+int ListBox_GetRowCount(GuiListBox *listbox) {
+  return listbox->VisibleItemCount;
 }
 
-void ListBox_ScrollDown(GUIListBox *listbox) {
-  if (listbox->topItem + listbox->num_items_fit < listbox->numItems) {
-    listbox->topItem++;
+void ListBox_ScrollDown(GuiListBox *listbox) {
+  if (listbox->TopItem + listbox->VisibleItemCount < listbox->ItemCount) {
+    listbox->TopItem++;
     guis_need_update = 1;
   }
 }
 
-void ListBox_ScrollUp(GUIListBox *listbox) {
-  if (listbox->topItem > 0) {
-    listbox->topItem--;
+void ListBox_ScrollUp(GuiListBox *listbox) {
+  if (listbox->TopItem > 0) {
+    listbox->TopItem--;
     guis_need_update = 1;
   }
 }
 
 
-GUIListBox* is_valid_listbox (int guin, int objn) {
+GuiListBox* is_valid_listbox (int guin, int objn) {
   if ((guin<0) | (guin>=game.GuiCount)) quit("!ListBox: invalid GUI number");
-  if ((objn<0) | (objn>=guis[guin].numobjs)) quit("!ListBox: invalid object number");
-  if (guis[guin].get_control_type(objn)!=GOBJ_LISTBOX)
+  if ((objn<0) | (objn>=guis[guin].ControlCount)) quit("!ListBox: invalid object number");
+  if (guis[guin].GetControlType(objn)!=Common::kGuiListBox)
     quit("!ListBox: specified control is not a list box");
   guis_need_update = 1;
-  return (GUIListBox*)guis[guin].objs[objn];
+  return (GuiListBox*)guis[guin].Controls[objn];
 }
 
 //=============================================================================
@@ -303,154 +302,154 @@ GUIListBox* is_valid_listbox (int guin, int objn) {
 
 extern ScriptString myScriptStringImpl;
 
-// int (GUIListBox *lbb, const char *text)
+// int (GuiListBox *lbb, const char *text)
 RuntimeScriptValue Sc_ListBox_AddItem(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT_POBJ(GUIListBox, ListBox_AddItem, const char);
+    API_OBJCALL_INT_POBJ(GuiListBox, ListBox_AddItem, const char);
 }
 
-// void (GUIListBox *listbox)
+// void (GuiListBox *listbox)
 RuntimeScriptValue Sc_ListBox_Clear(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID(GUIListBox, ListBox_Clear);
+    API_OBJCALL_VOID(GuiListBox, ListBox_Clear);
 }
 
-// void (GUIListBox *listbox, const char *filemask)
+// void (GuiListBox *listbox, const char *filemask)
 RuntimeScriptValue Sc_ListBox_FillDirList(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ(GUIListBox, ListBox_FillDirList, const char);
+    API_OBJCALL_VOID_POBJ(GuiListBox, ListBox_FillDirList, const char);
 }
 
-// int (GUIListBox *listbox)
+// int (GuiListBox *listbox)
 RuntimeScriptValue Sc_ListBox_FillSaveGameList(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUIListBox, ListBox_FillSaveGameList);
+    API_OBJCALL_INT(GuiListBox, ListBox_FillSaveGameList);
 }
 
-// int (GUIListBox *listbox, int x, int y)
+// int (GuiListBox *listbox, int x, int y)
 RuntimeScriptValue Sc_ListBox_GetItemAtLocation(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT_PINT2(GUIListBox, ListBox_GetItemAtLocation);
+    API_OBJCALL_INT_PINT2(GuiListBox, ListBox_GetItemAtLocation);
 }
 
-// char *(GUIListBox *listbox, int index, char *buffer)
+// char *(GuiListBox *listbox, int index, char *buffer)
 RuntimeScriptValue Sc_ListBox_GetItemText(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ_PINT_POBJ(GUIListBox, char, myScriptStringImpl, ListBox_GetItemText, char);
+    API_OBJCALL_OBJ_PINT_POBJ(GuiListBox, char, myScriptStringImpl, ListBox_GetItemText, char);
 }
 
-// int (GUIListBox *lbb, int index, const char *text)
+// int (GuiListBox *lbb, int index, const char *text)
 RuntimeScriptValue Sc_ListBox_InsertItemAt(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT_PINT_POBJ(GUIListBox, ListBox_InsertItemAt, const char);
+    API_OBJCALL_INT_PINT_POBJ(GuiListBox, ListBox_InsertItemAt, const char);
 }
 
-// void (GUIListBox *listbox, int itemIndex)
+// void (GuiListBox *listbox, int itemIndex)
 RuntimeScriptValue Sc_ListBox_RemoveItem(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(GUIListBox, ListBox_RemoveItem);
+    API_OBJCALL_VOID_PINT(GuiListBox, ListBox_RemoveItem);
 }
 
-// void (GUIListBox *listbox)
+// void (GuiListBox *listbox)
 RuntimeScriptValue Sc_ListBox_ScrollDown(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID(GUIListBox, ListBox_ScrollDown);
+    API_OBJCALL_VOID(GuiListBox, ListBox_ScrollDown);
 }
 
-// void (GUIListBox *listbox)
+// void (GuiListBox *listbox)
 RuntimeScriptValue Sc_ListBox_ScrollUp(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID(GUIListBox, ListBox_ScrollUp);
+    API_OBJCALL_VOID(GuiListBox, ListBox_ScrollUp);
 }
 
-// void (GUIListBox *listbox, int index, const char *newtext)
+// void (GuiListBox *listbox, int index, const char *newtext)
 RuntimeScriptValue Sc_ListBox_SetItemText(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT_POBJ(GUIListBox, ListBox_SetItemText, const char);
+    API_OBJCALL_VOID_PINT_POBJ(GuiListBox, ListBox_SetItemText, const char);
 }
 
-// int (GUIListBox *listbox)
+// int (GuiListBox *listbox)
 RuntimeScriptValue Sc_ListBox_GetFont(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUIListBox, ListBox_GetFont);
+    API_OBJCALL_INT(GuiListBox, ListBox_GetFont);
 }
 
-// void (GUIListBox *listbox, int newfont)
+// void (GuiListBox *listbox, int newfont)
 RuntimeScriptValue Sc_ListBox_SetFont(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(GUIListBox, ListBox_SetFont);
+    API_OBJCALL_VOID_PINT(GuiListBox, ListBox_SetFont);
 }
 
-// int (GUIListBox *listbox)
+// int (GuiListBox *listbox)
 RuntimeScriptValue Sc_ListBox_GetHideBorder(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUIListBox, ListBox_GetHideBorder);
+    API_OBJCALL_INT(GuiListBox, ListBox_GetHideBorder);
 }
 
-// void (GUIListBox *listbox, int newValue)
+// void (GuiListBox *listbox, int newValue)
 RuntimeScriptValue Sc_ListBox_SetHideBorder(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(GUIListBox, ListBox_SetHideBorder);
+    API_OBJCALL_VOID_PINT(GuiListBox, ListBox_SetHideBorder);
 }
 
-// int (GUIListBox *listbox)
+// int (GuiListBox *listbox)
 RuntimeScriptValue Sc_ListBox_GetHideScrollArrows(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUIListBox, ListBox_GetHideScrollArrows);
+    API_OBJCALL_INT(GuiListBox, ListBox_GetHideScrollArrows);
 }
 
-// void (GUIListBox *listbox, int newValue)
+// void (GuiListBox *listbox, int newValue)
 RuntimeScriptValue Sc_ListBox_SetHideScrollArrows(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(GUIListBox, ListBox_SetHideScrollArrows);
+    API_OBJCALL_VOID_PINT(GuiListBox, ListBox_SetHideScrollArrows);
 }
 
-// int (GUIListBox *listbox)
+// int (GuiListBox *listbox)
 RuntimeScriptValue Sc_ListBox_GetItemCount(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUIListBox, ListBox_GetItemCount);
+    API_OBJCALL_INT(GuiListBox, ListBox_GetItemCount);
 }
 
-// const char* (GUIListBox *listbox, int index)
+// const char* (GuiListBox *listbox, int index)
 RuntimeScriptValue Sc_ListBox_GetItems(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ_PINT(GUIListBox, const char, myScriptStringImpl, ListBox_GetItems);
+    API_OBJCALL_OBJ_PINT(GuiListBox, const char, myScriptStringImpl, ListBox_GetItems);
 }
 
-// int (GUIListBox *listbox)
+// int (GuiListBox *listbox)
 RuntimeScriptValue Sc_ListBox_GetRowCount(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUIListBox, ListBox_GetRowCount);
+    API_OBJCALL_INT(GuiListBox, ListBox_GetRowCount);
 }
 
-// int (GUIListBox *listbox, int index)
+// int (GuiListBox *listbox, int index)
 RuntimeScriptValue Sc_ListBox_GetSaveGameSlots(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT_PINT(GUIListBox, ListBox_GetSaveGameSlots);
+    API_OBJCALL_INT_PINT(GuiListBox, ListBox_GetSaveGameSlots);
 }
 
-// int (GUIListBox *listbox)
+// int (GuiListBox *listbox)
 RuntimeScriptValue Sc_ListBox_GetSelectedIndex(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUIListBox, ListBox_GetSelectedIndex);
+    API_OBJCALL_INT(GuiListBox, ListBox_GetSelectedIndex);
 }
 
-// void (GUIListBox *guisl, int newsel)
+// void (GuiListBox *guisl, int newsel)
 RuntimeScriptValue Sc_ListBox_SetSelectedIndex(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(GUIListBox, ListBox_SetSelectedIndex);
+    API_OBJCALL_VOID_PINT(GuiListBox, ListBox_SetSelectedIndex);
 }
 
-// int (GUIListBox *listbox)
+// int (GuiListBox *listbox)
 RuntimeScriptValue Sc_ListBox_GetTopItem(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUIListBox, ListBox_GetTopItem);
+    API_OBJCALL_INT(GuiListBox, ListBox_GetTopItem);
 }
 
-// void (GUIListBox *guisl, int item)
+// void (GuiListBox *guisl, int item)
 RuntimeScriptValue Sc_ListBox_SetTopItem(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(GUIListBox, ListBox_SetTopItem);
+    API_OBJCALL_VOID_PINT(GuiListBox, ListBox_SetTopItem);
 }
 
 

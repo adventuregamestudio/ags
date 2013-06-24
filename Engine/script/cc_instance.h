@@ -146,8 +146,8 @@ public:
     int     Run(int32_t curpc);
     int     RunScriptFunctionIfExists(const char*tsname,int numParam, RuntimeScriptValue *params);
     int     RunTextScript(const char*tsname);
-    int     RunTextScriptIParam(char*tsname, RuntimeScriptValue &iparam);
-    int     RunTextScript2IParam(char*tsname,RuntimeScriptValue &iparam, RuntimeScriptValue &param2);
+    int     RunTextScriptIParam(const char*tsname, RuntimeScriptValue &iparam);
+    int     RunTextScript2IParam(const char*tsname,RuntimeScriptValue &iparam, RuntimeScriptValue &param2);
     
     void    GetCallStack(char *buffer, int maxLines);
     void    GetScriptName(char *curScrName);

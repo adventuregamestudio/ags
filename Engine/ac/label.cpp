@@ -23,15 +23,15 @@ extern int guis_need_update;
 
 // ** LABEL FUNCTIONS
 
-const char* Label_GetText_New(GUILabel *labl) {
+const char* Label_GetText_New(GuiLabel *labl) {
     return CreateNewScriptString(labl->GetText());
 }
 
-void Label_GetText(GUILabel *labl, char *buffer) {
+void Label_GetText(GuiLabel *labl, char *buffer) {
     strcpy(buffer, labl->GetText());
 }
 
-void Label_SetText(GUILabel *labl, const char *newtx) {
+void Label_SetText(GuiLabel *labl, const char *newtx) {
     newtx = get_translation(newtx);
 
     if (strcmp(labl->GetText(), newtx)) {
@@ -40,27 +40,27 @@ void Label_SetText(GUILabel *labl, const char *newtx) {
     }
 }
 
-int Label_GetColor(GUILabel *labl) {
-    return labl->textcol;
+int Label_GetColor(GuiLabel *labl) {
+    return labl->TextColor;
 }
 
-void Label_SetColor(GUILabel *labl, int colr) {
-    if (labl->textcol != colr) {
-        labl->textcol = colr;
+void Label_SetColor(GuiLabel *labl, int colr) {
+    if (labl->TextColor != colr) {
+        labl->TextColor = colr;
         guis_need_update = 1;
     }
 }
 
-int Label_GetFont(GUILabel *labl) {
-    return labl->font;
+int Label_GetFont(GuiLabel *labl) {
+    return labl->TextFont;
 }
 
-void Label_SetFont(GUILabel *guil, int fontnum) {
+void Label_SetFont(GuiLabel *guil, int fontnum) {
     if ((fontnum < 0) || (fontnum >= game.FontCount))
-        quit("!SetLabelFont: invalid font number.");
+        quit("!SetLabelFont: invalid TextFont number.");
 
-    if (fontnum != guil->font) {
-        guil->font = fontnum;
+    if (fontnum != guil->TextFont) {
+        guil->TextFont = fontnum;
         guis_need_update = 1;
     }
 }
@@ -78,46 +78,46 @@ void Label_SetFont(GUILabel *guil, int fontnum) {
 
 extern ScriptString myScriptStringImpl;
 
-// void (GUILabel *labl, char *buffer)
+// void (GuiLabel *labl, char *buffer)
 RuntimeScriptValue Sc_Label_GetText(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ(GUILabel, Label_GetText, char);
+    API_OBJCALL_VOID_POBJ(GuiLabel, Label_GetText, char);
 }
 
-// void (GUILabel *labl, const char *newtx)
+// void (GuiLabel *labl, const char *newtx)
 RuntimeScriptValue Sc_Label_SetText(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ(GUILabel, Label_SetText, const char);
+    API_OBJCALL_VOID_POBJ(GuiLabel, Label_SetText, const char);
 }
 
-// int (GUILabel *labl)
+// int (GuiLabel *labl)
 RuntimeScriptValue Sc_Label_GetFont(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUILabel, Label_GetFont);
+    API_OBJCALL_INT(GuiLabel, Label_GetFont);
 }
 
-// void (GUILabel *guil, int fontnum)
+// void (GuiLabel *guil, int fontnum)
 RuntimeScriptValue Sc_Label_SetFont(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(GUILabel, Label_SetFont);
+    API_OBJCALL_VOID_PINT(GuiLabel, Label_SetFont);
 }
 
-// const char* (GUILabel *labl)
+// const char* (GuiLabel *labl)
 RuntimeScriptValue Sc_Label_GetText_New(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ(GUILabel, const char, myScriptStringImpl, Label_GetText_New);
+    API_OBJCALL_OBJ(GuiLabel, const char, myScriptStringImpl, Label_GetText_New);
 }
 
-// int (GUILabel *labl)
+// int (GuiLabel *labl)
 RuntimeScriptValue Sc_Label_GetColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUILabel, Label_GetColor);
+    API_OBJCALL_INT(GuiLabel, Label_GetColor);
 }
 
-// void (GUILabel *labl, int colr)
+// void (GuiLabel *labl, int colr)
 RuntimeScriptValue Sc_Label_SetColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(GUILabel, Label_SetColor);
+    API_OBJCALL_VOID_PINT(GuiLabel, Label_SetColor);
 }
 
 

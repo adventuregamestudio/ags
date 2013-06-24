@@ -11,61 +11,55 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
-#ifndef __AC_GUITEXTBOX_H
-#define __AC_GUITEXTBOX_H
-
+//
+// 
+//
+//=============================================================================
+#ifndef __AGS_CN_GUI__GUITEXTBOX_H
+#define __AGS_CN_GUI__GUITEXTBOX_H
+ 
 #include "gui/guiobject.h"
-#include "gui/dynamicarray.h"
-
-#define GTF_NOBORDER  1
-struct GUITextBox:public GUIObject
+#include "util/array.h"
+ 
+namespace AGS
 {
-  char text[200];
-  int font, textcol, exflags;
+namespace Common
+{
 
-  virtual void WriteToFile(Common::Stream *out);
-  virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
-  virtual void ReadFromSavedGame(Common::Stream *in, RuntimeGUIVersion gui_version);
-  virtual void Draw(Common::Bitmap *ds);
-  void KeyPress(int);
-
-  void MouseMove(int x, int y)
-  {
-  }
-
-  void MouseOver()
-  {
-  }
-
-  void MouseLeave()
-  {
-  }
-
-  void MouseUp()
-  {
-  }
-
-  void reset()
-  {
-    GUIObject::init();
-    font = 0;
-    textcol = 0;
-    text[0] = 0;
-    numSupportedEvents = 1;
-    supportedEvents[0] = "Activate";
-    supportedEventArgs[0] = "GUIControl *control";
-  }
-
-  GUITextBox() {
-    reset();
-  }
-
-private:
-  void Draw_text_box_contents(Common::Bitmap *ds, color_t text_color);
+enum GuiTextBoxFlags
+{
+    kGuiTextBox_NoBorder = 1
 };
 
-extern DynamicArray<GUITextBox> guitext;
-extern int numguitext;
+class GuiTextBox : public GuiObject
+{
+public:
+    GuiTextBox();
 
-#endif // __AC_GUITEXTBOX_H
+    virtual void Draw(Common::Bitmap *ds);
+ 
+    virtual void OnKeyPress(int);
+ 
+    virtual void WriteToFile(Common::Stream *out);
+    virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
+    virtual void WriteToSavedGame(Common::Stream *out);
+    virtual void ReadFromSavedGame(Common::Stream *in, RuntimeGuiVersion gui_version);
+ 
+// TODO: these members are currently public; hide them later
+public:
+    int32_t TextFont;
+    color_t TextColor;
+    int32_t TextBoxFlags;
+    String  Text;
+
+private:
+    void         DrawTextBoxContents(Bitmap *ds, color_t text_color);
+};
+
+} // namespace Common
+} // namespace AGS
+ 
+extern AGS::Common::ObjectArray<AGS::Common::GuiTextBox> guitext;
+extern int numguitext;
+ 
+#endif // __AGS_CN_GUI__GUITEXTBOX_H

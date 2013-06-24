@@ -57,15 +57,12 @@ extern char saveGameSuffix[MAX_SG_EXT_LENGTH + 1];
 // Old dialog support
 extern unsigned char** old_dialog_scripts; // defined in ac_conversation
 extern char** old_speech_lines;
-
-extern DynamicArray<GUILabel> guilabels; // defined in ac_guilabel
 extern int numguilabels;
 
 extern int ifacepopped;
 
 extern ViewStruct*views;
 extern DialogTopic *dialog;
-extern GUIMain*guis;
 
 extern ScriptDialogOptionsRendering ccDialogOptionsRendering;
 extern ScriptDrawingSurface* dialogOptionsRenderingSurface;
@@ -322,7 +319,8 @@ void game_file_read_dialogs(Stream *in)
 
 void game_file_read_gui(Stream *in)
 {
-	read_gui(in,guis,&game, &guis);
+    AGS::Common::Gui::ReadGui(guis, in);
+    game.GuiCount = guis.GetCount();
 
     for (int bb = 0; bb < numguilabels; bb++) {
         // labels are not clickable by default
@@ -419,18 +417,18 @@ void init_and_register_guis()
     guiScriptObjNames.New(game.GuiCount);
 
     for (ee=0;ee<game.GuiCount;ee++) {
-        guis[ee].rebuild_array();
-        if ((guis[ee].popup == POPUP_NONE) || (guis[ee].popup == POPUP_NOAUTOREM))
-            guis[ee].on = 1;
+        guis[ee].RebuildArray();
+        if ((guis[ee].PopupStyle == Common::kGuiPopupNone) || (guis[ee].PopupStyle == Common::kGuiPopupNoAutoRemove))
+            guis[ee].IsVisible = true;
         else
-            guis[ee].on = 0;
+            guis[ee].IsVisible = false;
 
         // export all the GUI's controls
         export_gui_controls(ee);
 
         // copy the script name to its own memory location
         // because ccAddExtSymbol only keeps a reference
-        guiScriptObjNames[ee] = guis[ee].name;
+        guiScriptObjNames[ee] = guis[ee].Name;
 
         // 64 bit: Using the id instead
         // scrGui[ee].gui = &guis[ee];

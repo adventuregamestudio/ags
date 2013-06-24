@@ -20,32 +20,34 @@
 
 #include "gui/guilistbox.h"
 
-int			ListBox_AddItem(GUIListBox *lbb, const char *text);
-int			ListBox_InsertItemAt(GUIListBox *lbb, int index, const char *text);
-void		ListBox_Clear(GUIListBox *listbox);
-void		ListBox_FillDirList(GUIListBox *listbox, const char *filemask);
-int			ListBox_GetSaveGameSlots(GUIListBox *listbox, int index);
-int			ListBox_FillSaveGameList(GUIListBox *listbox);
-int			ListBox_GetItemAtLocation(GUIListBox *listbox, int x, int y);
-char		*ListBox_GetItemText(GUIListBox *listbox, int index, char *buffer);
-const char* ListBox_GetItems(GUIListBox *listbox, int index);
-void		ListBox_SetItemText(GUIListBox *listbox, int index, const char *newtext);
-void		ListBox_RemoveItem(GUIListBox *listbox, int itemIndex);
-int			ListBox_GetItemCount(GUIListBox *listbox);
-int			ListBox_GetFont(GUIListBox *listbox);
-void		ListBox_SetFont(GUIListBox *listbox, int newfont);
-int			ListBox_GetHideBorder(GUIListBox *listbox);
-void		ListBox_SetHideBorder(GUIListBox *listbox, int newValue);
-int			ListBox_GetHideScrollArrows(GUIListBox *listbox);
-void		ListBox_SetHideScrollArrows(GUIListBox *listbox, int newValue);
-int			ListBox_GetSelectedIndex(GUIListBox *listbox);
-void		ListBox_SetSelectedIndex(GUIListBox *guisl, int newsel);
-int			ListBox_GetTopItem(GUIListBox *listbox);
-void		ListBox_SetTopItem(GUIListBox *guisl, int item);
-int			ListBox_GetRowCount(GUIListBox *listbox);
-void		ListBox_ScrollDown(GUIListBox *listbox);
-void		ListBox_ScrollUp(GUIListBox *listbox);
+using AGS::Common::GuiListBox;
 
-GUIListBox* is_valid_listbox (int guin, int objn);
+int			ListBox_AddItem(GuiListBox *lbb, const char *text);
+int			ListBox_InsertItemAt(GuiListBox *lbb, int index, const char *text);
+void		ListBox_Clear(GuiListBox *listbox);
+void		ListBox_FillDirList(GuiListBox *listbox, const char *filemask);
+int			ListBox_GetSaveGameSlots(GuiListBox *listbox, int index);
+int			ListBox_FillSaveGameList(GuiListBox *listbox);
+int			ListBox_GetItemAtLocation(GuiListBox *listbox, int x, int y);
+char		*ListBox_GetItemText(GuiListBox *listbox, int index, char *buffer);
+const char* ListBox_GetItems(GuiListBox *listbox, int index);
+void		ListBox_SetItemText(GuiListBox *listbox, int index, const char *newtext);
+void		ListBox_RemoveItem(GuiListBox *listbox, int itemIndex);
+int			ListBox_GetItemCount(GuiListBox *listbox);
+int			ListBox_GetFont(GuiListBox *listbox);
+void		ListBox_SetFont(GuiListBox *listbox, int newfont);
+int			ListBox_GetHideBorder(GuiListBox *listbox);
+void		ListBox_SetHideBorder(GuiListBox *listbox, int newValue);
+int			ListBox_GetHideScrollArrows(GuiListBox *listbox);
+void		ListBox_SetHideScrollArrows(GuiListBox *listbox, int newValue);
+int			ListBox_GetSelectedIndex(GuiListBox *listbox);
+void		ListBox_SetSelectedIndex(GuiListBox *guisl, int newsel);
+int			ListBox_GetTopItem(GuiListBox *listbox);
+void		ListBox_SetTopItem(GuiListBox *guisl, int item);
+int			ListBox_GetRowCount(GuiListBox *listbox);
+void		ListBox_ScrollDown(GuiListBox *listbox);
+void		ListBox_ScrollUp(GuiListBox *listbox);
+
+GuiListBox* is_valid_listbox (int guin, int objn);
 
 #endif // __AGS_EE_AC__LISTBOX_H

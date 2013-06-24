@@ -20,6 +20,9 @@
 
 #include "ac/dynobj/scriptgui.h"
 
+using AGS::Common::GuiMain;
+using AGS::Common::GuiObject;
+
 void	GUI_SetVisible(ScriptGUI *tehgui, int isvisible);
 int		GUI_GetVisible(ScriptGUI *tehgui);
 int		GUI_GetX(ScriptGUI *tehgui);
@@ -37,7 +40,7 @@ int		GUI_GetZOrder(ScriptGUI *tehgui);
 void	GUI_SetClickable(ScriptGUI *tehgui, int clickable);
 int		GUI_GetClickable(ScriptGUI *tehgui);
 int		GUI_GetID(ScriptGUI *tehgui);
-GUIObject* GUI_GetiControls(ScriptGUI *tehgui, int idx);
+GuiObject* GUI_GetiControls(ScriptGUI *tehgui, int idx);
 int		GUI_GetControlCount(ScriptGUI *tehgui);
 void	GUI_SetTransparency(ScriptGUI *tehgui, int trans);
 int		GUI_GetTransparency(ScriptGUI *tehgui);
@@ -48,7 +51,7 @@ ScriptGUI *GetGUIAtLocation(int xx, int yy);
 
 void	remove_popup_interface(int ifacenum);
 void	process_interface_click(int ifce, int btn, int mbut);
-void	replace_macro_tokens(char*statusbarformat,char*cur_stb_text);
+void	replace_macro_tokens(const char *text, AGS::Common::String &fixed_text);
 void	update_gui_zorder();
 void	export_gui_controls(int ee);
 void	unexport_gui_controls(int ee);
@@ -56,7 +59,7 @@ int		convert_gui_disabled_style(int oldStyle);
 void	update_gui_disabled_status();
 int		adjust_x_for_guis (int xx, int yy);
 int		adjust_y_for_guis ( int yy);
-void	recreate_guibg_image(GUIMain *tehgui);
+void	recreate_guibg_image(GuiMain *tehgui);
 
 extern int ifacepopped;  // currently displayed pop-up GUI (-1 if none)
 extern int mouse_on_iface;

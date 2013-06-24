@@ -22,24 +22,26 @@
 #include "ac/dynobj/scriptinvitem.h"
 #include "gui/guiinv.h"
 
-void			InvWindow_SetCharacterToUse(GUIInv *guii, CharacterInfo *chaa);
-CharacterInfo*	InvWindow_GetCharacterToUse(GUIInv *guii);
-void			InvWindow_SetItemWidth(GUIInv *guii, int newwidth);
-int				InvWindow_GetItemWidth(GUIInv *guii);
-void			InvWindow_SetItemHeight(GUIInv *guii, int newhit);
-int				InvWindow_GetItemHeight(GUIInv *guii);
-void			InvWindow_SetTopItem(GUIInv *guii, int topitem);
-int				InvWindow_GetTopItem(GUIInv *guii);
-int				InvWindow_GetItemsPerRow(GUIInv *guii);
-int				InvWindow_GetItemCount(GUIInv *guii);
-int				InvWindow_GetRowCount(GUIInv *guii);
-void			InvWindow_ScrollDown(GUIInv *guii);
-void			InvWindow_ScrollUp(GUIInv *guii);
-ScriptInvItem*	InvWindow_GetItemAtIndex(GUIInv *guii, int index);
+using AGS::Common::GuiInvWindow;
+
+void			InvWindow_SetCharacterToUse(GuiInvWindow *guii, CharacterInfo *chaa);
+CharacterInfo*	InvWindow_GetCharacterToUse(GuiInvWindow *guii);
+void			InvWindow_SetItemWidth(GuiInvWindow *guii, int newwidth);
+int				InvWindow_GetItemWidth(GuiInvWindow *guii);
+void			InvWindow_SetItemHeight(GuiInvWindow *guii, int newhit);
+int				InvWindow_GetItemHeight(GuiInvWindow *guii);
+void			InvWindow_SetTopItem(GuiInvWindow *guii, int topitem);
+int				InvWindow_GetTopItem(GuiInvWindow *guii);
+int				InvWindow_GetItemsPerRow(GuiInvWindow *guii);
+int				InvWindow_GetItemCount(GuiInvWindow *guii);
+int				InvWindow_GetRowCount(GuiInvWindow *guii);
+void			InvWindow_ScrollDown(GuiInvWindow *guii);
+void			InvWindow_ScrollUp(GuiInvWindow *guii);
+ScriptInvItem*	InvWindow_GetItemAtIndex(GuiInvWindow *guii, int index);
 
 //=============================================================================
 
-int				offset_over_inv(GUIInv *inv);
+int				offset_over_inv(GuiInvWindow *inv);
 // NOTE: These two functions are valid for AGS 2.72 and lower
 int             __actual_invscreen();
 int             invscreen();

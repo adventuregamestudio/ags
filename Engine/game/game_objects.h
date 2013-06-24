@@ -26,6 +26,7 @@
 #include "game/gamestate.h"
 #include "game/roominfo.h"
 #include "game/roomstate.h"
+#include "gui/guimain.h"
 
 // static game data
 extern AGS::Common::GameInfo game;
@@ -46,6 +47,8 @@ extern AGS::Engine::RoomObject* objs;
 extern AGS::Engine::GameState play;
 // game runtime configuration
 extern AGS::Engine::GameSetup usetup;
+// game guis
+extern AGS::Common::ObjectArray<AGS::Common::GuiMain> guis;
 
 // character cache is game-wide
 extern AGS::Common::ObjectArray<CharacterCache> charcache;

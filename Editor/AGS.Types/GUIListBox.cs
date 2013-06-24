@@ -22,7 +22,7 @@ namespace AGS.Types
             _textColor = 0;
             _selectedTextColor = 7;
             _selectedBackgroundColor = 16;
-            _textAlignment = ListBoxTextAlignment.Left;
+            _textAlignment = FrameAlignment.TopLeft;
             _translated = true;
         }
 
@@ -36,7 +36,7 @@ namespace AGS.Types
         private int _textColor;
         private int _selectedTextColor;
         private int _selectedBackgroundColor;
-        private ListBoxTextAlignment _textAlignment;
+        private FrameAlignment _textAlignment;
         private bool _showBorder;
         private bool _showScrollArrows;
         private string _selectionChangedEventHandler = string.Empty;
@@ -84,7 +84,7 @@ namespace AGS.Types
 
         [Description("Indentation of the text in the listbox")]
         [Category("Appearance")]
-        public ListBoxTextAlignment TextAlignment
+        public FrameAlignment TextAlignment
         {
             get { return _textAlignment; }
             set { _textAlignment = value; }

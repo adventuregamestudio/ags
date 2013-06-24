@@ -11,76 +11,59 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
-#ifndef __AC_GUILABEL_H
-#define __AC_GUILABEL_H
+//
+// 
+//
+//=============================================================================
+#ifndef __AGS_CN_GUI__GUILABEL_H
+#define __AGS_CN_GUI__GUILABEL_H
 
 #include "gui/guiobject.h"
-#include "gui/dynamicarray.h"
+#include "util/array.h"
 
-struct GUILabel:public GUIObject
+#define LEGACY_MAX_GUILABEL_TEXT_LEN    2048
+
+namespace AGS
 {
-private:
-  char *text;
-  int textBufferLen;
+namespace Common
+{
+
+class GuiLabel:public GuiObject
+{
 public:
-  int font, textcol, align;
+    GuiLabel();
+    
+    String       GetText() const;
 
-  virtual void WriteToFile(Common::Stream *out);
-  virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
-  virtual void ReadFromSavedGame(Common::Stream *in, RuntimeGUIVersion gui_version);
-  virtual void Draw(Common::Bitmap *ds);
-  void printtext_align(Common::Bitmap *g, int yy, color_t text_color, char *teptr);
-  void SetText(const char *newText);
-  const char *GetText();
+    virtual void Draw(Common::Bitmap *ds);
+    void         SetText(const String &text);
 
-  void MouseMove(int x, int y)
-  {
-  }
+    virtual void WriteToFile(Common::Stream *out);
+    virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
+    virtual void WriteToSavedGame(Common::Stream *out);
+    virtual void ReadFromSavedGame(Common::Stream *in, RuntimeGuiVersion gui_version);
 
-  void MouseOver()
-  {
-  }
+// TODO: these members are currently public; hide them later
+public:
+    String      Text;
+    int32_t     TextFont;
+    color_t     TextColor;
+    Alignment   TextAlignment;
 
-  void MouseLeave()
-  {
-  }
-
-  void MouseUp()
-  {
-  }
-
-  void KeyPress(int kp)
-  {
-  }
-
-  void reset()
-  {
-    GUIObject::init();
-    align = GALIGN_LEFT;
-    font = 0;
-    textcol = 0;
-    numSupportedEvents = 0;
-    text = "";
-    textBufferLen = 0;
-  }
-
-  GUILabel() {
-    reset();
-  }
-
-  virtual ~GUILabel()
-  {
-    if (textBufferLen > 0)
-      free(text);
-  }
-
+  
 private:
-  void Draw_replace_macro_tokens(char *oritext, char *text);
-  void Draw_split_lines(char *teptr, int wid, int font, int &numlines);
+    void DrawAlignedText(Common::Bitmap *g, int yy, color_t text_color, const char *text);
+    void PrepareTextToDraw();
+    int  SplitLinesForDrawing();
+
+    // prepared text buffer/cache
+    String      TextToDraw;
 };
 
-extern DynamicArray<GUILabel> guilabels;
+} // namespace Common
+} // namespace AGS
+
+extern AGS::Common::ObjectArray<AGS::Common::GuiLabel> guilabels;
 extern int numguilabels;
 
-#endif // __AC_GUILABEL_H
+#endif // __AGS_CN_GUI__GUILABEL_H

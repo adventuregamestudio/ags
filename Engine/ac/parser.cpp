@@ -34,7 +34,7 @@ const char* Parser_SaidUnknownWord() {
     return CreateNewScriptString(play.UnknownWord);
 }
 
-void ParseText (char*text) {
+void ParseText (const char*text) {
     Array<int16_t> empty_arr;
     parse_sentence (text, &play.ParsedWordCount, play.ParsedWords, empty_arr, 0);
 }
@@ -128,7 +128,8 @@ int FindMatchingMultiWordWord(char *thisword, char **text) {
 
 // parse_sentence: pass compareto as NULL to parse the sentence, or
 // compareto as non-null to check if it matches the passed sentence
-int parse_sentence (char*text, int *numwords, Common::Array<int16_t> &wordarray, const Common::Array<int16_t> &compareto, int comparetonum) {
+char parser_buffer[1024]; // FIXME this
+int parse_sentence (const char*text, int *numwords, Common::Array<int16_t> &wordarray, const Common::Array<int16_t> &compareto, int comparetonum) {
     char thisword[150] = "\0";
     int  i = 0, comparing = 0;
     char in_optional = 0, do_word_now = 0;
@@ -140,37 +141,39 @@ int parse_sentence (char*text, int *numwords, Common::Array<int16_t> &wordarray,
     // [IKM] Now, this is extremely not smart; this string could come
     // from anywhere, including script data, and we are changing it here
     // FIXME!!!
-    strlwr(text);
+    strcpy(parser_buffer, text);
+    char *text_ptr = parser_buffer;
+    strlwr(text_ptr);
     while (1) {
         if ((!compareto.IsEmpty()) && (compareto[comparing] == RESTOFLINE))
             return 1;
 
-        if ((text[0] == ']') && (!compareto.IsEmpty())) {
+        if ((text_ptr[0] == ']') && (!compareto.IsEmpty())) {
             if (!in_optional)
                 quit("!Said: unexpected ']'");
             do_word_now = 1;
         }
 
-        if (is_valid_word_char(text[0])) {
+        if (is_valid_word_char(text_ptr[0])) {
             // Part of a word, add it on
-            thisword[i] = text[0];
+            thisword[i] = text_ptr[0];
             i++;
         }
-        else if ((text[0] == '[') && (!compareto.IsEmpty())) {
+        else if ((text_ptr[0] == '[') && (!compareto.IsEmpty())) {
             if (in_optional)
                 quit("!Said: nested optional words");
 
             in_optional = 1;
             optional_start = comparing;
         }
-        else if ((thisword[0] != 0) || ((text[0] == 0) && (i > 0)) || (do_word_now == 1)) {
+        else if ((thisword[0] != 0) || ((text_ptr[0] == 0) && (i > 0)) || (do_word_now == 1)) {
             // End of word, so process it
             thisword[i] = 0;
             i = 0;
             int word = -1;
 
-            if (text[0] == ' ') {
-                word = FindMatchingMultiWordWord(thisword, &text);
+            if (text_ptr[0] == ' ') {
+                word = FindMatchingMultiWordWord(thisword, &text_ptr);
             }
 
             if (word < 0) {
@@ -192,7 +195,7 @@ int parse_sentence (char*text, int *numwords, Common::Array<int16_t> &wordarray,
                             do_word_now = 0;
                         }
                         thisword[0] = 0;
-                        text++;
+                        text_ptr++;
                         continue;
                     }
                     return 0;
@@ -203,16 +206,16 @@ int parse_sentence (char*text, int *numwords, Common::Array<int16_t> &wordarray,
                 else if (word != compareto[comparing]) {
                     // words don't match - if a comma then a list of possibles,
                     // so allow retry
-                    if (text[0] == ',')
+                    if (text_ptr[0] == ',')
                         comparing--;
                     else {
                         // words don't match
                         if (in_optional) {
                             // inside an optional clause, so skip it
-                            while (text[0] != ']') {
-                                if (text[0] == 0)
+                            while (text_ptr[0] != ']') {
+                                if (text_ptr[0] == 0)
                                     quit("!Said: unterminated [optional]");
-                                text++;
+                                text_ptr++;
                             }
                             // -1 because it's about to be ++'d again
                             comparing = optional_start - 1;
@@ -222,36 +225,36 @@ int parse_sentence (char*text, int *numwords, Common::Array<int16_t> &wordarray,
                             return 0;
                     }
                 }
-                else if (text[0] == ',') {
+                else if (text_ptr[0] == ',') {
                     // this alternative matched, but there are more
                     // so skip the other alternatives
                     int continueSearching = 1;
                     while (continueSearching) {
 
-                        const char *textStart = &text[1];
+                        const char *textStart = &text_ptr[1];
 
-                        while ((text[0] == ',') || (isalnum(text[0]) != 0))
-                            text++;
+                        while ((text_ptr[0] == ',') || (isalnum(text_ptr[0]) != 0))
+                            text_ptr++;
 
                         continueSearching = 0;
 
-                        if (text[0] == ' ') {
+                        if (text_ptr[0] == ' ') {
                             strcpy(thisword, textStart);
-                            thisword[text - textStart] = 0;
+                            thisword[text_ptr - textStart] = 0;
                             // forward past any multi-word alternatives
-                            if (FindMatchingMultiWordWord(thisword, &text) >= 0)
+                            if (FindMatchingMultiWordWord(thisword, &text_ptr) >= 0)
                                 continueSearching = 1;
                         }
                     }
 
-                    if ((text[0] == ']') && (in_optional)) {
+                    if ((text_ptr[0] == ']') && (in_optional)) {
                         // [go,move]  we just matched "go", so skip over "move"
                         in_optional = 0;
-                        text++;
+                        text_ptr++;
                     }
 
                     // go back cos it'll be ++'d in a minute
-                    text--;
+                    text_ptr--;
                 }
                 comparing++;
             }
@@ -275,9 +278,9 @@ int parse_sentence (char*text, int *numwords, Common::Array<int16_t> &wordarray,
 
             thisword[0] = 0;
         }
-        if (text[0] == 0)
+        if (text_ptr[0] == 0)
             break;
-        text++;
+        text_ptr++;
     }
     // If the user input is longer than the Said string, it's wrong
     // eg Said("look door") and they type "look door jibble"

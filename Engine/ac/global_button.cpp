@@ -20,57 +20,55 @@
 #include "gui/guimain.h"
 #include "gui/guibutton.h"
 
-extern GUIMain*guis;
-
 void SetButtonText(int guin,int objn, const char*newtx) {
     VALIDATE_STRING(newtx);
     if ((guin<0) | (guin>=game.GuiCount))
         quit("!SetButtonText: invalid GUI number");
-    if ((objn<0) | (objn>=guis[guin].numobjs))
+    if ((objn<0) | (objn>=guis[guin].ControlCount))
         quit("!SetButtonText: invalid object number");
-    if (guis[guin].get_control_type(objn)!=GOBJ_BUTTON)
+    if (guis[guin].GetControlType(objn)!=Common::kGuiButton)
         quit("!SetButtonText: specified control is not a button");
 
-    GUIButton*guil=(GUIButton*)guis[guin].objs[objn];
+    GuiButton*guil=(GuiButton*)guis[guin].Controls[objn];
     Button_SetText(guil, newtx);
 }
 
 
 void AnimateButton(int guin, int objn, int view, int loop, int speed, int repeat) {
     if ((guin<0) | (guin>=game.GuiCount)) quit("!AnimateButton: invalid GUI number");
-    if ((objn<0) | (objn>=guis[guin].numobjs)) quit("!AnimateButton: invalid object number");
-    if (guis[guin].get_control_type(objn)!=GOBJ_BUTTON)
+    if ((objn<0) | (objn>=guis[guin].ControlCount)) quit("!AnimateButton: invalid object number");
+    if (guis[guin].GetControlType(objn)!=Common::kGuiButton)
         quit("!AnimateButton: specified control is not a button");
 
-    Button_Animate((GUIButton*)guis[guin].objs[objn], view, loop, speed, repeat);
+    Button_Animate((GuiButton*)guis[guin].Controls[objn], view, loop, speed, repeat);
 }
 
 
 int GetButtonPic(int guin, int objn, int ptype) {
     if ((guin<0) | (guin>=game.GuiCount)) quit("!GetButtonPic: invalid GUI number");
-    if ((objn<0) | (objn>=guis[guin].numobjs)) quit("!GetButtonPic: invalid object number");
-    if (guis[guin].get_control_type(objn)!=GOBJ_BUTTON)
+    if ((objn<0) | (objn>=guis[guin].ControlCount)) quit("!GetButtonPic: invalid object number");
+    if (guis[guin].GetControlType(objn)!=Common::kGuiButton)
         quit("!GetButtonPic: specified control is not a button");
     if ((ptype < 0) | (ptype > 3)) quit("!GetButtonPic: invalid pic type");
 
-    GUIButton*guil=(GUIButton*)guis[guin].objs[objn];
+    GuiButton*guil=(GuiButton*)guis[guin].Controls[objn];
 
     if (ptype == 0) {
         // currently displayed pic
-        if (guil->usepic < 0)
-            return guil->pic;
-        return guil->usepic;
+        if (guil->CurrentImage < 0)
+            return guil->NormalImage;
+        return guil->CurrentImage;
     }
     else if (ptype==1) {
         // nomal pic
-        return guil->pic;
+        return guil->NormalImage;
     }
     else if (ptype==2) {
         // mouseover pic
-        return guil->overpic;
+        return guil->MouseOverImage;
     }
     else { // pushed pic
-        return guil->pushedpic;
+        return guil->PushedImage;
     }
 
     quit("internal error in getbuttonpic");
@@ -78,12 +76,12 @@ int GetButtonPic(int guin, int objn, int ptype) {
 
 void SetButtonPic(int guin,int objn,int ptype,int slotn) {
     if ((guin<0) | (guin>=game.GuiCount)) quit("!SetButtonPic: invalid GUI number");
-    if ((objn<0) | (objn>=guis[guin].numobjs)) quit("!SetButtonPic: invalid object number");
-    if (guis[guin].get_control_type(objn)!=GOBJ_BUTTON)
+    if ((objn<0) | (objn>=guis[guin].ControlCount)) quit("!SetButtonPic: invalid object number");
+    if (guis[guin].GetControlType(objn)!=Common::kGuiButton)
         quit("!SetButtonPic: specified control is not a button");
     if ((ptype<1) | (ptype>3)) quit("!SetButtonPic: invalid pic type");
 
-    GUIButton*guil=(GUIButton*)guis[guin].objs[objn];
+    GuiButton*guil=(GuiButton*)guis[guin].Controls[objn];
     if (ptype==1) {
         Button_SetNormalGraphic(guil, slotn);
     }

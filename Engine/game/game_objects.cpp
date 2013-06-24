@@ -9,6 +9,7 @@ AGS::Engine::RoomState troom;
 AGS::Engine::RoomObject* objs;
 AGS::Engine::GameState play;
 AGS::Engine::GameSetup usetup;
+AGS::Common::ObjectArray<AGS::Common::GuiMain> guis;
 
 AGS::Common::ObjectArray<CharacterCache> charcache;
 AGS::Common::ObjectArray<ObjectCache> objcache;

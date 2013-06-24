@@ -18,7 +18,7 @@ namespace AGS.Types
             : base(x, y, width, height)
         {
             _text = "New Label";
-            _textAlign = LabelTextAlignment.TopLeft;
+            _textAlign = FrameAlignment.TopLeft;
         }
 
         public GUILabel(XmlNode node) : base(node)
@@ -30,11 +30,11 @@ namespace AGS.Types
         private string _text;
         private int _font;
         private int _textColor;
-        private LabelTextAlignment _textAlign;
+        private FrameAlignment _textAlign;
 
         [Description("Position on the label where the text is displayed")]
         [Category("Appearance")]
-        public LabelTextAlignment TextAlignment
+        public FrameAlignment TextAlignment
         {
             get { return _textAlign; }
             set { _textAlign = value; }

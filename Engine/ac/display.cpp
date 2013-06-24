@@ -41,7 +41,6 @@
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
-extern GUIMain *guis;
 extern int longestline;
 extern int scrnwid,scrnhit;
 extern Bitmap *virtual_screen;
@@ -56,7 +55,6 @@ extern int loops_per_character;
 extern IAGSFontRenderer* fontRenderers[MAX_FONTS];
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern SpriteCache spriteset;
-extern DynamicArray<GUIButton> guibuts;
 
 int display_message_aschar=0;
 char *heightTestString = "ZHwypgfjqhkilIK";
@@ -190,7 +188,7 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
             if (asspch < 0) {
                 if ((usingGui >= 0) && 
                     ((game.Options[OPT_SPEECHTYPE] >= 2) || (isThought)))
-                    text_color = ds->GetCompatibleColor(guis[usingGui].fgcol);
+                    text_color = ds->GetCompatibleColor(guis[usingGui].ForegroundColor);
                 else
                     text_color = ds->GetCompatibleColor(-asspch);
 
@@ -209,7 +207,7 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
 
         if (game.Options[OPT_TWCUSTOM] > 0)
         {
-            alphaChannel = guis[game.Options[OPT_TWCUSTOM]].is_alpha();
+            alphaChannel = guis[game.Options[OPT_TWCUSTOM]].HasAlphaChannel();
         }
 
         adjust_y_coordinate_for_text(&yoffs, usingfont);
@@ -411,7 +409,7 @@ bool ShouldAntiAliasText() {
     return (game.Options[OPT_ANTIALIASFONTS] != 0);
 }
 
-void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, char*texx) {
+void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, const char*texx) {
     
     color_t outline_color = ds->GetCompatibleColor(play.SpeechTextOutlineColour);
     if (game.FontOutline[usingfont] >= 0) {
@@ -450,7 +448,7 @@ void wouttext_aligned (Bitmap *ds, int usexp, int yy, int oriwid, int usingfont,
     else if (align == SCALIGN_RIGHT)
         usexp = usexp + (oriwid - wgettextwidth_compensate(text, usingfont));
 
-    wouttext_outline(ds, usexp, yy, usingfont, text_color, (char *)text);
+    wouttext_outline(ds, usexp, yy, usingfont, text_color, text);
 }
 
 int wgetfontheight(int font) {
@@ -494,11 +492,11 @@ void do_corner(Bitmap *ds, int sprn,int xx1,int yy1,int typx,int typy) {
     //  wputblock(xx1+typx*spritewidth[sprn],yy1+typy*spriteheight[sprn],thisone,1);
 }
 
-int get_but_pic(GUIMain*guo,int indx) {
-    return guibuts[guo->objrefptr[indx] & 0x000ffff].pic;
+int get_but_pic(GuiMain*guo,int indx) {
+    return guibuts[guo->ControlRefs[indx] & 0xFFFF].NormalImage;
 }
 
-void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*iep) {
+void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GuiMain*iep) {
     color_t draw_color;
     if (iep==NULL) {  // standard window
         draw_color = ds->GetCompatibleColor(15);
@@ -515,23 +513,23 @@ void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*
             // From the changelog of 2.62:
             //  - Fixed text windows getting a black background if colour 0 was
             //    specified, rather than being transparent.
-            if (iep->bgcol == 0)
-                iep->bgcol = 16;
+            if (iep->BackgroundColor == 0)
+                iep->BackgroundColor = 16;
         }
 
-        if (iep->bgcol >= 0) draw_color = ds->GetCompatibleColor(iep->bgcol);
+        if (iep->BackgroundColor >= 0) draw_color = ds->GetCompatibleColor(iep->BackgroundColor);
         else draw_color = ds->GetCompatibleColor(0); // black backrgnd behind picture
 
-        if (iep->bgcol > 0)
+        if (iep->BackgroundColor > 0)
             ds->FillRect(Rect(xx1,yy1,xx2,yy2), draw_color);
 
         int leftRightWidth = spritewidth[get_but_pic(iep,4)];
         int topBottomHeight = spriteheight[get_but_pic(iep,6)];
-        if (iep->bgpic>0) {
+        if (iep->BackgroundImage>0) {
             if ((loaded_game_file_version <= kGameVersion_272) // 2.xx
-                && (spriteset[iep->bgpic]->GetWidth() == 1)
-                && (spriteset[iep->bgpic]->GetHeight() == 1) 
-                && (*((unsigned int*)spriteset[iep->bgpic]->GetData()) == 0x00FF00FF))
+                && (spriteset[iep->BackgroundImage]->GetWidth() == 1)
+                && (spriteset[iep->BackgroundImage]->GetHeight() == 1) 
+                && (*((unsigned int*)spriteset[iep->BackgroundImage]->GetData()) == 0x00FF00FF))
             {
                 // Don't draw fully transparent dummy GUI backgrounds
             }
@@ -551,10 +549,10 @@ void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*
                     bgoffsy = bgoffsyStart;
                     while (bgoffsy <= bgfinishy)
                     {
-                        wputblock(ds, bgoffsx, bgoffsy, spriteset[iep->bgpic], 0);
-                        bgoffsy += spriteheight[iep->bgpic];
+                        wputblock(ds, bgoffsx, bgoffsy, spriteset[iep->BackgroundImage], 0);
+                        bgoffsy += spriteheight[iep->BackgroundImage];
                     }
-                    bgoffsx += spritewidth[iep->bgpic];
+                    bgoffsx += spritewidth[iep->BackgroundImage];
                 }
                 // return to normal clipping rectangle
                 ds->SetClip(Rect(0, 0, ds->GetWidth() - 1, ds->GetHeight() - 1));
@@ -582,7 +580,7 @@ int get_textwindow_border_width (int twgui) {
     if (twgui < 0)
         return 0;
 
-    if (!guis[twgui].is_textwindow())
+    if (!guis[twgui].IsTextWindow())
         quit("!GUI set as text window but is not actually a text window GUI");
 
     int borwid = spritewidth[get_but_pic(&guis[twgui], 4)] + 
@@ -596,7 +594,7 @@ int get_textwindow_top_border_height (int twgui) {
     if (twgui < 0)
         return 0;
 
-    if (!guis[twgui].is_textwindow())
+    if (!guis[twgui].IsTextWindow())
         quit("!GUI set as text window but is not actually a text window GUI");
 
     return spriteheight[get_but_pic(&guis[twgui], 6)];
@@ -616,7 +614,7 @@ void draw_text_window(Bitmap *ds, int*xins,int*yins,int*xx,int*yy,int*wii,int ov
     else {
         if (ifnum >= game.GuiCount)
             quitprintf("!Invalid GUI %d specified as text window (total GUIs: %d)", ifnum, game.GuiCount);
-        if (!guis[ifnum].is_textwindow())
+        if (!guis[ifnum].IsTextWindow())
             quit("!GUI set as text window but is not actually a text window GUI");
 
         int tbnum = get_but_pic(&guis[ifnum], 0);

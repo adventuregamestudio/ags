@@ -6,22 +6,31 @@
 
 #include "font/fonts.h"
 #include "gui/guibutton.h"
+#include "gui/guiinv.h"
 #include "gui/guilabel.h"
 #include "gui/guilistbox.h"
 #include "gui/guitextbox.h"
 #include "util/string_utils.h"
 
+using AGS::Common::GuiButton;
+using AGS::Common::GuiInvWindow;
+using AGS::Common::GuiLabel;
+using AGS::Common::GuiListBox;
+using AGS::Common::GuiObject;
+using AGS::Common::GuiTextBox;
+using AGS::Common::String;
+
 //=============================================================================
 // AGS.Native-specific implementation split out of acgui.h
 //=============================================================================
 
-int GUIObject::IsClickable()
+bool GuiObject::IsClickable() const
 {
   // make sure the button can be selected in the editor
-  return 1;
+  return true;
 }
 
-void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, char *texx)
+void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, const char *texx)
 {
   wouttextxy(ds, xxp, yyp, usingfont, text_color, texx);
 }
@@ -52,49 +61,54 @@ int wgettextwidth_compensate(const char *tex, int font)
   return wgettextwidth(tex, font);
 }
 
-void GUILabel::Draw_replace_macro_tokens(char *oritext, char *text)
-{
-  strcpy(oritext, text);
-}
-
 //-----------------------------------------------------------------------------
 
-void GUILabel::Draw_split_lines(char *teptr, int wid, int font, int &numlines)
+void GuiButton::PrepareTextToDraw()
 {
-  numlines=0;
-  split_lines_leftright(teptr, wid, font);
+    TextToDraw = Text;
 }
 
-void GUITextBox::Draw_text_box_contents(Common::Bitmap *ds, color_t text_color)
+void GuiInvWindow::Draw(Common::Bitmap *ds)
 {
-  // print something fake so we can see what it looks like
-  wouttext_outline(ds, x + 2, y + 2, font, text_color, "Text Box Contents");
+    color_t draw_color = ds->GetCompatibleColor(15);
+    ds->DrawRect(Rect(Frame.Left, Frame.Top, Frame.Left + Frame.GetWidth(), Frame.Top + Frame.GetHeight()), draw_color);
 }
 
-void GUIListBox::Draw_items_fix()
+void GuiLabel::PrepareTextToDraw()
 {
-  numItemsTemp = numItems;
-  numItems = 2;
-  items[0] = "Sample selected";
-  items[1] = "Sample item";
+    TextToDraw = Text;
 }
 
-void GUIListBox::Draw_items_unfix()
+extern int numlines;
+int GuiLabel::SplitLinesForDrawing()
 {
-  numItems = numItemsTemp;
+    numlines=0;
+    split_lines_leftright(TextToDraw, Frame.GetWidth(), TextFont);
+    return numlines;
 }
 
-void GUIListBox::Draw_set_oritext(char *oritext, const char *text)
+static int num_items_temp;
+void GuiListBox::DrawItemsFix()
 {
-  strcpy(oritext, text);
+    num_items_temp = ItemCount;
+    ItemCount = 2;
+    Items.SetLength(2);
+    Items[0] = "Sample selected";
+    Items[1] = "Sample item";
 }
 
-void GUIButton::Draw_set_oritext(char *oritext, const char *text)
+void GuiListBox::DrawItemsUnfix()
 {
-  strcpy(oritext, text);
+    ItemCount = num_items_temp;
+}
 
-  // original code was:
-  //      oritext = text; 
-  // it seems though the 'text' variable is assumed to be a null-terminated string
-  // oritext is assumed to be made long enough by caller function
+void GuiListBox::PrepareTextToDraw(const String &text)
+{
+    TextToDraw = text;
+}
+
+void GuiTextBox::DrawTextBoxContents(Common::Bitmap *ds, color_t text_color)
+{
+    // print something fake so we can see what it looks like
+    wouttext_outline(ds, Frame.Left + 2, Frame.Top + 2, TextFont, TextColor, "Text Box Contents");
 }

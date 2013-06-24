@@ -23,47 +23,47 @@ extern int guis_need_update;
 
 // ** TEXT BOX FUNCTIONS
 
-const char* TextBox_GetText_New(GUITextBox *texbox) {
-    return CreateNewScriptString(texbox->text);
+const char* TextBox_GetText_New(GuiTextBox *texbox) {
+    return CreateNewScriptString(texbox->Text);
 }
 
-void TextBox_GetText(GUITextBox *texbox, char *buffer) {
-    strcpy(buffer, texbox->text);
+void TextBox_GetText(GuiTextBox *texbox, char *buffer) {
+    strcpy(buffer, texbox->Text);
 }
 
-void TextBox_SetText(GUITextBox *texbox, const char *newtex) {
+void TextBox_SetText(GuiTextBox *texbox, const char *newtex) {
     if (strlen(newtex) > 190)
         quit("!SetTextBoxText: text too long");
 
-    if (strcmp(texbox->text, newtex)) {
-        strcpy(texbox->text, newtex);
+    if (strcmp(texbox->Text, newtex)) {
+        texbox->Text = newtex;
         guis_need_update = 1;
     }
 }
 
-int TextBox_GetTextColor(GUITextBox *guit) {
-    return guit->textcol;
+int TextBox_GetTextColor(GuiTextBox *guit) {
+    return guit->TextColor;
 }
 
-void TextBox_SetTextColor(GUITextBox *guit, int colr)
+void TextBox_SetTextColor(GuiTextBox *guit, int colr)
 {
-    if (guit->textcol != colr) 
+    if (guit->TextColor != colr) 
     {
-        guit->textcol = colr;
+        guit->TextColor = colr;
         guis_need_update = 1;
     }
 }
 
-int TextBox_GetFont(GUITextBox *guit) {
-    return guit->font;
+int TextBox_GetFont(GuiTextBox *guit) {
+    return guit->TextFont;
 }
 
-void TextBox_SetFont(GUITextBox *guit, int fontnum) {
+void TextBox_SetFont(GuiTextBox *guit, int fontnum) {
     if ((fontnum < 0) || (fontnum >= game.FontCount))
         quit("!SetTextBoxFont: invalid font number.");
 
-    if (guit->font != fontnum) {
-        guit->font = fontnum;
+    if (guit->TextFont != fontnum) {
+        guit->TextFont = fontnum;
         guis_need_update = 1;
     }
 }
@@ -81,46 +81,46 @@ void TextBox_SetFont(GUITextBox *guit, int fontnum) {
 
 extern ScriptString myScriptStringImpl;
 
-// void (GUITextBox *texbox, char *buffer)
+// void (GuiTextBox *texbox, char *buffer)
 RuntimeScriptValue Sc_TextBox_GetText(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ(GUITextBox, TextBox_GetText, char);
+    API_OBJCALL_VOID_POBJ(GuiTextBox, TextBox_GetText, char);
 }
 
-// void (GUITextBox *texbox, const char *newtex)
+// void (GuiTextBox *texbox, const char *newtex)
 RuntimeScriptValue Sc_TextBox_SetText(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ(GUITextBox, TextBox_SetText, const char);
+    API_OBJCALL_VOID_POBJ(GuiTextBox, TextBox_SetText, const char);
 }
 
-// int (GUITextBox *guit)
+// int (GuiTextBox *guit)
 RuntimeScriptValue Sc_TextBox_GetFont(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUITextBox, TextBox_GetFont);
+    API_OBJCALL_INT(GuiTextBox, TextBox_GetFont);
 }
 
-// void (GUITextBox *guit, int fontnum)
+// void (GuiTextBox *guit, int fontnum)
 RuntimeScriptValue Sc_TextBox_SetFont(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(GUITextBox, TextBox_SetFont);
+    API_OBJCALL_VOID_PINT(GuiTextBox, TextBox_SetFont);
 }
 
-// const char* (GUITextBox *texbox)
+// const char* (GuiTextBox *texbox)
 RuntimeScriptValue Sc_TextBox_GetText_New(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ(GUITextBox, const char *, myScriptStringImpl, TextBox_GetText_New);
+    API_OBJCALL_OBJ(GuiTextBox, const char *, myScriptStringImpl, TextBox_GetText_New);
 }
 
-// int (GUITextBox *guit)
+// int (GuiTextBox *guit)
 RuntimeScriptValue Sc_TextBox_GetTextColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(GUITextBox, TextBox_GetTextColor);
+    API_OBJCALL_INT(GuiTextBox, TextBox_GetTextColor);
 }
 
-// void (GUITextBox *guit, int colr)
+// void (GuiTextBox *guit, int colr)
 RuntimeScriptValue Sc_TextBox_SetTextColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(GUITextBox, TextBox_SetTextColor);
+    API_OBJCALL_VOID_PINT(GuiTextBox, TextBox_SetTextColor);
 }
 
 

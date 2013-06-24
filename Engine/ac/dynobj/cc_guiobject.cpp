@@ -14,21 +14,23 @@
 
 #include "ac/dynobj/cc_guiobject.h"
 #include "ac/dynobj/scriptgui.h"
+#include "game/game_objects.h"
+#include "gui/guiobject.h"
 
-extern GUIMain*guis;
+using AGS::Common::GuiObject;
 
 // return the type name of the object
 const char *CCGUIObject::GetType() {
-    return "GUIObject";
+    return "GuiObject";
 }
 
 // serialize the object into BUFFER (which is BUFSIZE bytes)
 // return number of bytes used
 int CCGUIObject::Serialize(const char *address, char *buffer, int bufsize) {
-    GUIObject *guio = (GUIObject*)address;
+    GuiObject *guio = (GuiObject*)address;
     StartSerialize(buffer);
-    SerializeInt(guio->guin);
-    SerializeInt(guio->objn);
+    SerializeInt(guio->ParentId);
+    SerializeInt(guio->Id);
     return EndSerialize();
 }
 
@@ -36,5 +38,5 @@ void CCGUIObject::Unserialize(int index, const char *serializedData, int dataSiz
     StartUnserialize(serializedData, dataSize);
     int guinum = UnserializeInt();
     int objnum = UnserializeInt();
-    ccRegisterUnserializedObject(index, guis[guinum].objs[objnum], this);
+    ccRegisterUnserializedObject(index, guis[guinum].Controls[objnum], this);
 }

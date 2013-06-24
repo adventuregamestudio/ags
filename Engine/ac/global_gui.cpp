@@ -27,21 +27,19 @@
 #include "gui/guimain.h"
 #include "script/runtimescriptvalue.h"
 
-extern GUIMain*guis;
-
 int IsGUIOn (int guinum) {
     if ((guinum < 0) || (guinum >= game.GuiCount))
         quit("!IsGUIOn: invalid GUI number specified");
-    return (guis[guinum].on >= 1) ? 1 : 0;
+    return (guis[guinum].IsVisible) ? 1 : 0;
 }
 
 // This is an internal script function, and is undocumented.
 // It is used by the editor's automatic macro generation.
 int FindGUIID (const char* GUIName) {
     for (int ii = 0; ii < game.GuiCount; ii++) {
-        if (strcmp(guis[ii].name, GUIName) == 0)
+        if (strcmp(guis[ii].Name, GUIName) == 0)
             return ii;
-        if ((guis[ii].name[0] == 'g') && (stricmp(&guis[ii].name[1], GUIName) == 0))
+        if ((guis[ii].Name[0] == 'g') && (stricmp(guis[ii].Name.GetCStr() + 1, GUIName) == 0))
             return ii;
     }
     quit("FindGUIID: No matching GUI found: GUI may have been deleted");
@@ -54,57 +52,57 @@ void InterfaceOn(int ifn) {
 
   EndSkippingUntilCharStops();
 
-  if (guis[ifn].on == 1) {
+  if (guis[ifn].IsVisible) {
     DEBUG_CONSOLE("GUIOn(%d) ignored (already on)", ifn);
     return;
   }
   guis_need_update = 1;
-  guis[ifn].on=1;
+  guis[ifn].IsVisible=true;
   DEBUG_CONSOLE("GUI %d turned on", ifn);
   // modal interface
-  if (guis[ifn].popup==POPUP_SCRIPT) PauseGame();
-  else if (guis[ifn].popup==POPUP_MOUSEY) guis[ifn].on=0;
+  if (guis[ifn].PopupStyle==Common::kGuiPopupScript) PauseGame();
+  else if (guis[ifn].PopupStyle==Common::kGuiPopupMouseY) guis[ifn].IsVisible=0;
   // clear the cached mouse position
-  guis[ifn].control_positions_changed();
-  guis[ifn].poll();
+  guis[ifn].OnControlPositionChanged();
+  guis[ifn].Poll();
 }
 
 void InterfaceOff(int ifn) {
   if ((ifn<0) | (ifn>=game.GuiCount)) quit("!GUIOff: invalid GUI specified");
-  if ((guis[ifn].on==0) && (guis[ifn].popup!=POPUP_MOUSEY)) {
+  if ((guis[ifn].IsVisible==0) && (guis[ifn].PopupStyle!=Common::kGuiPopupMouseY)) {
     DEBUG_CONSOLE("GUIOff(%d) ignored (already off)", ifn);
     return;
   }
   DEBUG_CONSOLE("GUI %d turned off", ifn);
-  guis[ifn].on=0;
-  if (guis[ifn].mouseover>=0) {
+  guis[ifn].IsVisible=0;
+  if (guis[ifn].MouseOverControl>=0) {
     // Make sure that the overpic is turned off when the GUI goes off
-    guis[ifn].objs[guis[ifn].mouseover]->MouseLeave();
-    guis[ifn].mouseover = -1;
+    guis[ifn].Controls[guis[ifn].MouseOverControl]->OnMouseLeave();
+    guis[ifn].MouseOverControl = -1;
   }
-  guis[ifn].control_positions_changed();
+  guis[ifn].OnControlPositionChanged();
   guis_need_update = 1;
   // modal interface
-  if (guis[ifn].popup==POPUP_SCRIPT) UnPauseGame();
-  else if (guis[ifn].popup==POPUP_MOUSEY) guis[ifn].on=-1;
+  if (guis[ifn].PopupStyle==Common::kGuiPopupScript) UnPauseGame();
+  else if (guis[ifn].PopupStyle==Common::kGuiPopupMouseY) guis[ifn].IsVisible=-1;
 }
 
 void SetGUIObjectEnabled(int guin, int objn, int enabled) {
   if ((guin<0) || (guin>=game.GuiCount))
     quit("!SetGUIObjectEnabled: invalid GUI number");
-  if ((objn<0) || (objn>=guis[guin].numobjs))
+  if ((objn<0) || (objn>=guis[guin].ControlCount))
     quit("!SetGUIObjectEnabled: invalid object number");
 
-  GUIControl_SetEnabled(guis[guin].objs[objn], enabled);
+  GUIControl_SetEnabled(guis[guin].Controls[objn], enabled);
 }
 
 void SetGUIObjectPosition(int guin, int objn, int xx, int yy) {
   if ((guin<0) || (guin>=game.GuiCount))
     quit("!SetGUIObjectPosition: invalid GUI number");
-  if ((objn<0) || (objn>=guis[guin].numobjs))
+  if ((objn<0) || (objn>=guis[guin].ControlCount))
     quit("!SetGUIObjectPosition: invalid object number");
 
-  GUIControl_SetPosition(guis[guin].objs[objn], xx, yy);
+  GUIControl_SetPosition(guis[guin].Controls[objn], xx, yy);
 }
 
 void SetGUIPosition(int ifn,int xx,int yy) {
@@ -118,10 +116,10 @@ void SetGUIObjectSize(int ifn, int objn, int newwid, int newhit) {
   if ((ifn<0) || (ifn>=game.GuiCount))
     quit("!SetGUIObjectSize: invalid GUI number");
 
-  if ((objn<0) || (objn >= guis[ifn].numobjs))
+  if ((objn<0) || (objn >= guis[ifn].ControlCount))
     quit("!SetGUIObjectSize: invalid object number");
 
-  GUIControl_SetSize(guis[ifn].objs[objn], newwid, newhit);
+  GUIControl_SetSize(guis[ifn].Controls[objn], newwid, newhit);
 }
 
 void SetGUISize (int ifn, int widd, int hitt) {
@@ -207,11 +205,11 @@ int IsInterfaceEnabled() {
 }
 
 int GetGUIObjectAt (int xx, int yy) {
-    GUIObject *toret = GetGUIControlAtLocation(xx, yy);
+    GuiObject *toret = GetGUIControlAtLocation(xx, yy);
     if (toret == NULL)
         return -1;
 
-    return toret->objn;
+    return toret->Id;
 }
 
 int GetGUIAt (int xx,int yy) {
@@ -220,10 +218,10 @@ int GetGUIAt (int xx,int yy) {
     int aa, ll;
     for (ll = game.GuiCount - 1; ll >= 0; ll--) {
         aa = play.GuiDrawOrder[ll];
-        if (guis[aa].on<1) continue;
-        if (guis[aa].flags & GUIF_NOCLICK) continue;
-        if ((xx>=guis[aa].x) & (yy>=guis[aa].y) &
-            (xx<=guis[aa].x+guis[aa].wid) & (yy<=guis[aa].y+guis[aa].hit))
+        if (!guis[aa].IsVisible) continue;
+        if (guis[aa].Flags & Common::kGuiMain_NoClick) continue;
+        if ((xx>=guis[aa].GetX()) & (yy>=guis[aa].GetY()) &
+            (xx<=guis[aa].GetX()+guis[aa].GetWidth()) & (yy<=guis[aa].GetY()+guis[aa].GetHeight()))
             return aa;
     }
     return -1;
@@ -234,7 +232,7 @@ void SetTextWindowGUI (int guinum) {
         quit("!SetTextWindowGUI: invalid GUI number");
 
     if (guinum < 0) ;  // disable it
-    else if (!guis[guinum].is_textwindow())
+    else if (!guis[guinum].IsTextWindow())
         quit("!SetTextWindowGUI: specified GUI is not a text window");
 
     if (play.SpeechTextWindowGuiIndex == game.Options[OPT_TWCUSTOM])

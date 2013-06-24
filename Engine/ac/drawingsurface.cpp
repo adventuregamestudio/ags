@@ -32,7 +32,6 @@
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
-extern GUIMain*guis;
 extern SpriteCache spriteset;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
@@ -79,8 +78,8 @@ void DrawingSurface_Release(ScriptDrawingSurface* sds)
             }
             for (tt = 0; tt < game.GuiCount; tt++) 
             {
-                if ((guis[tt].bgpic == sds->dynamicSpriteNumber) &&
-                    (guis[tt].on == 1))
+                if ((guis[tt].BackgroundImage == sds->dynamicSpriteNumber) &&
+                    (guis[tt].IsVisible))
                 {
                     guis_need_update = 1;
                     break;

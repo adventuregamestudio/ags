@@ -11,72 +11,59 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
-#ifndef __AC_GUIINV_H
-#define __AC_GUIINV_H
+//
+// 
+//
+//=============================================================================
+#ifndef __AGS_CN_GUI__GUIINVWINDOW_H
+#define __AGS_CN_GUI__GUIINVWINDOW_H
 
 #include "gui/guiobject.h"
-#include "gui/dynamicarray.h"
+#include "util/array.h"
 
-struct GUIInv:public GUIObject
+namespace AGS
 {
-  int isover;
-  int charId;   // whose inventory (-1 = current player)
-  int itemWidth, itemHeight;
-  int topIndex;
+namespace Common
+{
 
-  int itemsPerLine, numLines;  // not persisted
+class GuiInvWindow : public GuiObject
+{
+public:
+    GuiInvWindow();
 
-  virtual void WriteToFile(Common::Stream *out);
-  virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
-  virtual void ReadFromSavedGame(Common::Stream *in, RuntimeGUIVersion gui_version);
-  void CalculateNumCells();
+    int          GetCharacterId();
 
-  virtual void Resized() {
-    CalculateNumCells();
-  }
+    // This function has distinct implementations in Engine and Editor
+    virtual void Draw(Common::Bitmap *ds);
 
-  int CharToDisplay();
+    virtual void OnMouseLeave();
+    virtual void OnMouseOver();
+    virtual void OnMouseUp();
+    virtual void OnResized();
 
-  // This function has distinct implementations in Engine and Editor
-  virtual void Draw(Common::Bitmap *ds);
+    virtual void WriteToFile(Common::Stream *out);
+    virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
+    virtual void WriteToSavedGame(Common::Stream *out);
+    virtual void ReadFromSavedGame(Common::Stream *in, RuntimeGuiVersion gui_version);
 
-  void MouseMove(int x, int y)
-  {
-  }
+private:
+    void         CalculateNumCells();
 
-  void MouseOver()
-  {
-    isover = 1;
-  }
-
-  void MouseLeave()
-  {
-    isover = 0;
-  }
-
-  void MouseUp()
-  {
-    if (isover)
-      activated = 1;
-  }
-
-  void KeyPress(int kp)
-  {
-  }
-
-  GUIInv() {
-    isover = 0;
-    numSupportedEvents = 0;
-    charId = -1;
-    itemWidth = 40;
-    itemHeight = 22;
-    topIndex = 0;
-    CalculateNumCells();
-  }
+// TODO: these members are currently public; hide them later
+public:
+    bool    IsMouseOver;
+    int32_t CharacterId; // whose inventory (-1 = current player)
+    int32_t ItemWidth;
+    int32_t ItemHeight;
+    int32_t ColumnCount;
+    int32_t RowCount;
+    int32_t TopItem;
 };
 
-extern DynamicArray<GUIInv> guiinv;
+} // namespace Common
+} // namespace AGS
+
+extern AGS::Common::ObjectArray<AGS::Common::GuiInvWindow> guiinv;
 extern int numguiinv;
 
-#endif // __AC_GUIINV_H
+#endif // __AGS_CN_GUI__GUIINVWINDOW_H

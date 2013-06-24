@@ -19,22 +19,20 @@
 #include "gui/guimain.h"
 #include "gui/guislider.h"
 
-extern GUIMain*guis;
-
 void SetSliderValue(int guin,int objn, int valn) {
     if ((guin<0) | (guin>=game.GuiCount)) quit("!SetSliderValue: invalid GUI number");
-    if (guis[guin].get_control_type(objn)!=GOBJ_SLIDER)
+    if (guis[guin].GetControlType(objn)!=Common::kGuiSlider)
         quit("!SetSliderValue: specified control is not a slider");
 
-    GUISlider*guisl=(GUISlider*)guis[guin].objs[objn];
+    GuiSlider*guisl=(GuiSlider*)guis[guin].Controls[objn];
     Slider_SetValue(guisl, valn);
 }
 
 int GetSliderValue(int guin,int objn) {
     if ((guin<0) | (guin>=game.GuiCount)) quit("!GetSliderValue: invalid GUI number");
-    if (guis[guin].get_control_type(objn)!=GOBJ_SLIDER)
+    if (guis[guin].GetControlType(objn)!=Common::kGuiSlider)
         quit("!GetSliderValue: specified control is not a slider");
 
-    GUISlider*guisl=(GUISlider*)guis[guin].objs[objn];
+    GuiSlider*guisl=(GuiSlider*)guis[guin].Controls[objn];
     return Slider_GetValue(guisl);
 }

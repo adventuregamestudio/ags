@@ -36,7 +36,7 @@ extern int numPluginReaders;
 
 
 void AGSDeSerializer::Unserialize(int index, const char *objectType, const char *serializedData, int dataSize) {
-    if (strcmp(objectType, "GUIObject") == 0) {
+    if (strcmp(objectType, "GuiObject") == 0) {
         ccDynamicGUIObject.Unserialize(index, serializedData, dataSize);
     }
     else if (strcmp(objectType, "Character") == 0) {

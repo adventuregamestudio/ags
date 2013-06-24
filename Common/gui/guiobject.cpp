@@ -12,82 +12,149 @@
 //
 //=============================================================================
 
-#include <stdio.h>
+#include "ac/common.h"
+#include "gfx/bitmap.h"
 #include "gui/guiobject.h"
-#include "gui/guimain.h"
-#include "util/string_utils.h"  // fputstring, etc
-#include "ac/common.h"		// quit()
 #include "util/stream.h"
 
-using AGS::Common::Stream;
+extern int all_buttons_disabled;
 
-void GUIObject::init() {
-  int jj;
-  scriptName[0] = 0;
-  for (jj = 0; jj < MAX_GUIOBJ_EVENTS; jj++)
-    eventHandlers[jj][0] = 0;
-}
-
-int GUIObject::IsDisabled() {
-  if (flags & GUIF_DISABLED)
-    return 1;
-  if (all_buttons_disabled)
-    return 1;
-  return 0;
-}
-
-void GUIObject::WriteToFile(Stream *out)
+namespace AGS
 {
-  // MACPORT FIX: swap
-  out->WriteArrayOfInt32((int32_t*)&flags, BASEGOBJ_SIZE);
-  fputstring(scriptName, out);
+namespace Common
+{
 
-  out->WriteInt32(GetNumEvents());
-  for (int kk = 0; kk < GetNumEvents(); kk++)
-    fputstring(eventHandlers[kk], out);
+GuiObject::GuiObject()
+{
+    Id          = 0;
+    ParentId    = 0;
+    Flags       = 0;
+    ZOrder      = -1;
+    IsActivated   = false;
 }
 
-void GUIObject::ReadFromFile(Stream *in, GuiVersion gui_version)
+bool GuiObject::IsDisabled() const
 {
-  // MACPORT FIX: swap
-  in->ReadArrayOfInt32((int32_t*)&flags, BASEGOBJ_SIZE);
-  if (gui_version >= kGuiVersion_unkn_106)
-    fgetstring_limit(scriptName, in, MAX_GUIOBJ_SCRIPTNAME_LEN);
-  else
-    scriptName[0] = 0;
-
-  int kk;
-  for (kk = 0; kk < GetNumEvents(); kk++)
-    eventHandlers[kk][0] = 0;
-
-  if (gui_version >= kGuiVersion_unkn_108) {
-    int numev = in->ReadInt32();
-    if (numev > GetNumEvents())
-      quit("Error: too many control events, need newer version");
-
-    // read in the event handler names
-    for (kk = 0; kk < numev; kk++)
-      fgetstring_limit(eventHandlers[kk], in, MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
-  }
-}
-
-void GUIObject::ReadFromSavedGame(Common::Stream *in, RuntimeGUIVersion gui_version)
-{
-    in->ReadArrayOfInt32((int32_t*)&flags, BASEGOBJ_SIZE);
-    fgetstring_limit(scriptName, in, MAX_GUIOBJ_SCRIPTNAME_LEN);
-
-    for (int i = 0; i < GetNumEvents(); ++i)
+    if (Flags & kGuiCtrl_Disabled)
     {
-        eventHandlers[i][0] = 0;
+        return true;
+    }
+    if (all_buttons_disabled)
+    {
+        return true;
+    }
+    return false;
+}
+
+bool GuiObject::IsOverControl(int x, int y, int leeway) const
+{
+    return Rect(Frame.Left - leeway, Frame.Top - leeway, Frame.Right + leeway, Frame.Bottom + leeway).
+        IsInside(Point(x, y));
+}
+
+void GuiObject::SetFrame(const Rect &frame)
+{
+    Frame = frame;
+}
+
+void GuiObject::SetX(int x)
+{
+    Frame.MoveToX(x);
+}
+
+void GuiObject::SetY(int y)
+{
+    Frame.MoveToY(y);
+}
+
+void GuiObject::SetWidth(int width)
+{
+    Frame.SetWidth(width);
+}
+
+void GuiObject::SetHeight(int height)
+{
+    Frame.SetHeight(height);
+}
+
+void GuiObject::WriteToFile(Stream *out)
+{
+    out->WriteInt32(Flags);
+    out->WriteInt32(Frame.Left);
+    out->WriteInt32(Frame.Top);
+    out->WriteInt32(Frame.GetWidth());
+    out->WriteInt32(Frame.GetHeight());
+    out->WriteInt32(ZOrder);
+    out->WriteInt32(IsActivated ? 1 : 0);
+
+    ScriptName.Write(out);
+    out->WriteInt32(SupportedEventCount);
+    for (int i = 0; i < SupportedEventCount; ++i)
+    {
+        EventHandlers[i].Write(out);
+    }
+}
+
+void GuiObject::ReadFromFile(Stream *in, GuiVersion gui_version)
+{
+    Flags = in->ReadInt32();
+    Frame.Left = in->ReadInt32();
+    Frame.Top = in->ReadInt32();
+    Frame.SetWidth(in->ReadInt32());
+    Frame.SetHeight(in->ReadInt32());
+    ZOrder = in->ReadInt32();
+    IsActivated = in->ReadInt32() != 0;
+
+    if (gui_version >= kGuiVersion_unkn_106)
+    {
+        ScriptName.Read(in, LEGACY_MAX_GUIOBJ_SCRIPTNAME_LEN);
+    }
+    else
+    {
+        ScriptName.Empty();
     }
 
-    int numev = in->ReadInt32();
-    if (numev > GetNumEvents())
-        quit("Error: too many control events, need newer version");
-
-    // read in the event handler names
-    for (int i = 0; i < numev; ++i)
+    for (int i = 0; i < SupportedEventCount; ++i)
     {
-        fgetstring_limit(eventHandlers[i], in, MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
+        EventHandlers[i].Empty();
+    }
+
+    if (gui_version >= kGuiVersion_unkn_108)
+    {
+        int event_count = in->ReadInt32();
+        if (event_count > SupportedEventCount)
+        {
+            quit("Error: too many control events, need newer version");
+        }
+        // read in the event handler names
+        for (int i = 0; i < event_count; ++i)
+        {
+            EventHandlers[i].Read(in, LEGACY_MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
+        }
     }
 }
+
+void GuiObject::ReadFromSavedGame(Common::Stream *in, RuntimeGuiVersion gui_version)
+{
+    Flags = in->ReadInt32();
+    Frame.Left = in->ReadInt32();
+    Frame.Top = in->ReadInt32();
+    Frame.SetWidth(in->ReadInt32());
+    Frame.SetHeight(in->ReadInt32());
+    ZOrder = in->ReadInt32();
+    IsActivated = in->ReadBool();
+}
+
+void GuiObject::WriteToSavedGame(Common::Stream *out)
+{
+    out->WriteInt32(Flags);
+    out->WriteInt32(Frame.Left);
+    out->WriteInt32(Frame.Top);
+    out->WriteInt32(Frame.GetWidth());
+    out->WriteInt32(Frame.GetHeight());
+    out->WriteInt32(ZOrder);
+    out->WriteBool(IsActivated);
+}
+
+} // namespace Common
+} // namespace AGS

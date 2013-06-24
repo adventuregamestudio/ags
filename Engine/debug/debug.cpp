@@ -17,7 +17,6 @@
 #include "ac/runtime_defines.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
-#include "gui/dynamicarray.h"
 #include "debug/out.h"
 #include "debug/consoleoutputtarget.h"
 #include "debug/rawfileoutputtarget.h"
@@ -217,7 +216,7 @@ struct Breakpoint
     int lineNumber;
 };
 
-DynamicArray<Breakpoint> breakpoints;
+AGS::Common::Array<Breakpoint> breakpoints;
 int numBreakpoints = 0;
 
 bool send_message_to_editor(const char *msg, const char *errorMsg) 

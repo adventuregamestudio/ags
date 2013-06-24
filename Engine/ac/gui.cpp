@@ -41,10 +41,10 @@
 #include "script/runtimescriptvalue.h"
 
 using AGS::Common::Bitmap;
+using AGS::Common::GuiButton;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 
-extern GUIMain*guis;
 extern GFXFilter *filter;
 extern int cur_mode,cur_cursor;
 extern ccInstance *gameinst;
@@ -74,31 +74,31 @@ int GUI_GetVisible(ScriptGUI *tehgui) {
   // GUI_GetVisible is slightly different from IsGUIOn, because
   // with a mouse ypos gui it returns 1 if the GUI is enabled,
   // whereas IsGUIOn actually checks if it is displayed
-  if (guis[tehgui->id].on != 0)
+  if (guis[tehgui->id].IsVisible != 0)
     return 1;
   return 0;
 }
 
 int GUI_GetX(ScriptGUI *tehgui) {
-  return divide_down_coordinate(guis[tehgui->id].x);
+  return divide_down_coordinate(guis[tehgui->id].GetX());
 }
 
 void GUI_SetX(ScriptGUI *tehgui, int xx) {
   if (xx >= thisroom.Width)
     quit("!GUI.X: co-ordinates specified are out of range.");
 
-  guis[tehgui->id].x = multiply_up_coordinate(xx);
+  guis[tehgui->id].SetX(multiply_up_coordinate(xx));
 }
 
 int GUI_GetY(ScriptGUI *tehgui) {
-  return divide_down_coordinate(guis[tehgui->id].y);
+  return divide_down_coordinate(guis[tehgui->id].GetY());
 }
 
 void GUI_SetY(ScriptGUI *tehgui, int yy) {
   if (yy >= thisroom.Height)
     quit("!GUI.Y: co-ordinates specified are out of range.");
 
-  guis[tehgui->id].y = multiply_up_coordinate(yy);
+  guis[tehgui->id].SetY(multiply_up_coordinate(yy));
 }
 
 void GUI_SetPosition(ScriptGUI *tehgui, int xx, int yy) {
@@ -110,14 +110,14 @@ void GUI_SetSize(ScriptGUI *sgui, int widd, int hitt) {
   if ((widd < 1) || (hitt < 1) || (widd > BASEWIDTH) || (hitt > GetMaxScreenHeight()))
     quitprintf("!SetGUISize: invalid dimensions (tried to set to %d x %d)", widd, hitt);
 
-  GUIMain *tehgui = &guis[sgui->id];
+  GuiMain *tehgui = &guis[sgui->id];
   multiply_up_coordinates(&widd, &hitt);
 
-  if ((tehgui->wid == widd) && (tehgui->hit == hitt))
+  if ((tehgui->GetWidth() == widd) && (tehgui->GetHeight() == hitt))
     return;
   
-  tehgui->wid = widd;
-  tehgui->hit = hitt;
+  tehgui->SetWidth(widd);
+  tehgui->SetHeight(hitt);
   
   recreate_guibg_image(tehgui);
 
@@ -125,11 +125,11 @@ void GUI_SetSize(ScriptGUI *sgui, int widd, int hitt) {
 }
 
 int GUI_GetWidth(ScriptGUI *sgui) {
-  return divide_down_coordinate(guis[sgui->id].wid);
+  return divide_down_coordinate(guis[sgui->id].GetWidth());
 }
 
 int GUI_GetHeight(ScriptGUI *sgui) {
-  return divide_down_coordinate(guis[sgui->id].hit);
+  return divide_down_coordinate(guis[sgui->id].GetHeight());
 }
 
 void GUI_SetWidth(ScriptGUI *sgui, int newwid) {
@@ -141,22 +141,22 @@ void GUI_SetHeight(ScriptGUI *sgui, int newhit) {
 }
 
 void GUI_SetZOrder(ScriptGUI *tehgui, int z) {
-  guis[tehgui->id].zorder = z;
+  guis[tehgui->id].ZOrder = z;
   update_gui_zorder();
 }
 
 int GUI_GetZOrder(ScriptGUI *tehgui) {
-  return guis[tehgui->id].zorder;
+  return guis[tehgui->id].ZOrder;
 }
 
 void GUI_SetClickable(ScriptGUI *tehgui, int clickable) {
-  guis[tehgui->id].flags &= ~GUIF_NOCLICK;
+  guis[tehgui->id].Flags &= ~Common::kGuiMain_NoClick;
   if (clickable == 0)
-    guis[tehgui->id].flags |= GUIF_NOCLICK;
+    guis[tehgui->id].Flags |= Common::kGuiMain_NoClick;
 }
 
 int GUI_GetClickable(ScriptGUI *tehgui) {
-  if (guis[tehgui->id].flags & GUIF_NOCLICK)
+  if (guis[tehgui->id].Flags & Common::kGuiMain_NoClick)
     return 0;
   return 1;
 }
@@ -165,14 +165,14 @@ int GUI_GetID(ScriptGUI *tehgui) {
   return tehgui->id;
 }
 
-GUIObject* GUI_GetiControls(ScriptGUI *tehgui, int idx) {
-  if ((idx < 0) || (idx >= guis[tehgui->id].numobjs))
+GuiObject* GUI_GetiControls(ScriptGUI *tehgui, int idx) {
+  if ((idx < 0) || (idx >= guis[tehgui->id].ControlCount))
     return NULL;
-  return guis[tehgui->id].objs[idx];
+  return guis[tehgui->id].Controls[idx];
 }
 
 int GUI_GetControlCount(ScriptGUI *tehgui) {
-  return guis[tehgui->id].numobjs;
+  return guis[tehgui->id].ControlCount;
 }
 
 void GUI_SetTransparency(ScriptGUI *tehgui, int trans) {
@@ -183,31 +183,31 @@ void GUI_SetTransparency(ScriptGUI *tehgui, int trans) {
 }
 
 int GUI_GetTransparency(ScriptGUI *tehgui) {
-  if (guis[tehgui->id].transparency == 0)
+  if (guis[tehgui->id].Transparency == 0)
     return 0;
-  if (guis[tehgui->id].transparency == 255)
+  if (guis[tehgui->id].Transparency == 255)
     return 100;
 
-  return 100 - ((guis[tehgui->id].transparency * 10) / 25);
+  return 100 - ((guis[tehgui->id].Transparency * 10) / 25);
 }
 
 void GUI_Centre(ScriptGUI *sgui) {
-  GUIMain *tehgui = &guis[sgui->id];
-  tehgui->x = scrnwid / 2 - tehgui->wid / 2;
-  tehgui->y = scrnhit / 2 - tehgui->hit / 2;
+  GuiMain *tehgui = &guis[sgui->id];
+  tehgui->SetX(scrnwid / 2 - tehgui->GetWidth() / 2);
+  tehgui->SetY(scrnhit / 2 - tehgui->GetHeight() / 2);
 }
 
 void GUI_SetBackgroundGraphic(ScriptGUI *tehgui, int slotn) {
-  if (guis[tehgui->id].bgpic != slotn) {
-    guis[tehgui->id].bgpic = slotn;
+  if (guis[tehgui->id].BackgroundImage != slotn) {
+    guis[tehgui->id].BackgroundImage = slotn;
     guis_need_update = 1;
   }
 }
 
 int GUI_GetBackgroundGraphic(ScriptGUI *tehgui) {
-  if (guis[tehgui->id].bgpic < 1)
+  if (guis[tehgui->id].BackgroundImage < 1)
     return 0;
-  return guis[tehgui->id].bgpic;
+  return guis[tehgui->id].BackgroundImage;
 }
 
 ScriptGUI *GetGUIAtLocation(int xx, int yy) {
@@ -222,9 +222,9 @@ ScriptGUI *GetGUIAtLocation(int xx, int yy) {
 void remove_popup_interface(int ifacenum) {
     if (ifacepopped != ifacenum) return;
     ifacepopped=-1; UnPauseGame();
-    guis[ifacenum].on=0;
-    if (mousey<=guis[ifacenum].popupyp)
-        filter->SetMousePosition(mousex, guis[ifacenum].popupyp+2);
+    guis[ifacenum].IsVisible=0;
+    if (mousey<=guis[ifacenum].PopupAtMouseY)
+        filter->SetMousePosition(mousex, guis[ifacenum].PopupAtMouseY+2);
     if ((!IsInterfaceEnabled()) && (cur_cursor == cur_mode))
         // Only change the mouse cursor if it hasn't been specifically changed first
         set_mouse_cursor(CURS_WAIT);
@@ -238,40 +238,40 @@ void remove_popup_interface(int ifacenum) {
 void process_interface_click(int ifce, int btn, int mbut) {
     if (btn < 0) {
         // click on GUI background
-        gameinst->RunTextScript2IParam(guis[ifce].clickEventHandler,
+        gameinst->RunTextScript2IParam(guis[ifce].OnClickHandler,
             RuntimeScriptValue().SetDynamicObject(&scrGui[ifce], &ccDynamicGUI),
             RuntimeScriptValue().SetInt32(mbut));
         return;
     }
 
-    int btype=(guis[ifce].objrefptr[btn] >> 16) & 0x000ffff;
+    int btype=(guis[ifce].ControlRefs[btn] >> 16) & 0x000ffff;
     int rtype=0,rdata;
-    if (btype==GOBJ_BUTTON) {
-        GUIButton*gbuto=(GUIButton*)guis[ifce].objs[btn];
-        rtype=gbuto->leftclick;
-        rdata=gbuto->lclickdata;
+    if (btype==Common::kGuiButton) {
+        GuiButton*gbuto=(GuiButton*)guis[ifce].Controls[btn];
+        rtype=gbuto->ClickAction;
+        rdata=gbuto->ClickActionData;
     }
-    else if ((btype==GOBJ_SLIDER) || (btype == GOBJ_TEXTBOX) || (btype == GOBJ_LISTBOX))
-        rtype = IBACT_SCRIPT;
+    else if ((btype==Common::kGuiSlider) || (btype == Common::kGuiTextBox) || (btype == Common::kGuiListBox))
+        rtype = Common::kGuiBtnAction_RunScript;
     else quit("unknown GUI object triggered process_interface");
 
     if (rtype==0) ;
-    else if (rtype==IBACT_SETMODE)
+    else if (rtype==Common::kGuiBtnAction_SetMode)
         set_cursor_mode(rdata);
-    else if (rtype==IBACT_SCRIPT) {
-        GUIObject *theObj = guis[ifce].objs[btn];
+    else if (rtype==Common::kGuiBtnAction_RunScript) {
+        GuiObject *theObj = guis[ifce].Controls[btn];
         // if the object has a special handler script then run it;
         // otherwise, run interface_click
-        if ((theObj->GetNumEvents() > 0) &&
-            (theObj->eventHandlers[0][0] != 0) &&
-            (!gameinst->GetSymbolAddress(theObj->eventHandlers[0]).IsNull())) {
+        if ((theObj->GetEventCount() > 0) &&
+            (theObj->EventHandlers[0][0] != 0) &&
+            (!gameinst->GetSymbolAddress(theObj->EventHandlers[0]).IsNull())) {
                 // control-specific event handler
                 if (strchr(theObj->GetEventArgs(0), ',') != NULL)
-                    gameinst->RunTextScript2IParam(theObj->eventHandlers[0],
+                    gameinst->RunTextScript2IParam(theObj->EventHandlers[0],
                         RuntimeScriptValue().SetDynamicObject(theObj, &ccDynamicGUIObject),
                         RuntimeScriptValue().SetInt32(mbut));
                 else
-                    gameinst->RunTextScriptIParam(theObj->eventHandlers[0],
+                    gameinst->RunTextScriptIParam(theObj->EventHandlers[0],
                         RuntimeScriptValue().SetDynamicObject(theObj, &ccDynamicGUIObject));
         }
         else
@@ -282,30 +282,30 @@ void process_interface_click(int ifce, int btn, int mbut) {
 }
 
 
-void replace_macro_tokens(char*statusbarformat,char*cur_stb_text) {
-    char*curptr=&statusbarformat[0];
+void replace_macro_tokens(const char *text, String &fixed_text) {
     char tmpm[3];
-    char*endat = curptr + strlen(statusbarformat);
-    cur_stb_text[0]=0;
     char tempo[STD_BUFFER_SIZE];
+    const char *text_ptr = text;
+    const char *end_ptr = text_ptr + strlen(text);
+    fixed_text.Empty();
 
     while (1) {
-        if (curptr[0]==0) break;
-        if (curptr>=endat) break;
-        if (curptr[0]=='@') {
-            char *curptrWasAt = curptr;
-            char macroname[21]; int idd=0; curptr++;
+        if (text_ptr[0]==0) break;
+        if (text_ptr>=end_ptr) break;
+        if (text_ptr[0]=='@') {
+            const char *curptrWasAt = text_ptr;
+            char macroname[21]; int idd=0; text_ptr++;
             for (idd=0;idd<20;idd++) {
-                if (curptr[0]=='@') {
+                if (text_ptr[0]=='@') {
                     macroname[idd]=0;
-                    curptr++;
+                    text_ptr++;
                     break;
                 }
                 // unterminated macro (eg. "@SCORETEXT"), so abort
-                if (curptr[0] == 0)
+                if (text_ptr[0] == 0)
                     break;
-                macroname[idd]=curptr[0];
-                curptr++;
+                macroname[idd]=text_ptr[0];
+                text_ptr++;
             }
             macroname[idd]=0; 
             tempo[0]=0;
@@ -325,16 +325,16 @@ void replace_macro_tokens(char*statusbarformat,char*cur_stb_text) {
                     GetLocationName(divide_down_coordinate(mousex), divide_down_coordinate(mousey), tempo);
             }
             else { // not a macro, there's just a @ in the message
-                curptr = curptrWasAt + 1;
+                text_ptr = curptrWasAt + 1;
                 strcpy(tempo, "@");
             }
 
-            strcat(cur_stb_text,tempo);
+            fixed_text.Append(tempo);
         }
         else {
-            tmpm[0]=curptr[0]; tmpm[1]=0;
-            strcat(cur_stb_text,tmpm);
-            curptr++;
+            tmpm[0]=text_ptr[0]; tmpm[1]=0;
+            fixed_text.Append(tmpm);
+            text_ptr++;
         }
     }
 }
@@ -348,7 +348,7 @@ void update_gui_zorder() {
         // find the right place in the draw order array
         int insertAt = numdone;
         for (b = 0; b < numdone; b++) {
-            if (guis[a].zorder < guis[play.GuiDrawOrder[b]].zorder) {
+            if (guis[a].ZOrder < guis[play.GuiDrawOrder[b]].ZOrder) {
                 insertAt = b;
                 break;
             }
@@ -365,39 +365,39 @@ void update_gui_zorder() {
 
 void export_gui_controls(int ee) {
 
-    for (int ff = 0; ff < guis[ee].numobjs; ff++) {
-        if (guis[ee].objs[ff]->scriptName[0] != 0)
-            ccAddExternalDynamicObject(guis[ee].objs[ff]->scriptName, guis[ee].objs[ff], &ccDynamicGUIObject);
+    for (int ff = 0; ff < guis[ee].ControlCount; ff++) {
+        if (guis[ee].Controls[ff]->ScriptName[0] != 0)
+            ccAddExternalDynamicObject(guis[ee].Controls[ff]->ScriptName, guis[ee].Controls[ff], &ccDynamicGUIObject);
 
-        ccRegisterManagedObject(guis[ee].objs[ff], &ccDynamicGUIObject);
+        ccRegisterManagedObject(guis[ee].Controls[ff], &ccDynamicGUIObject);
     }
 }
 
 void unexport_gui_controls(int ee) {
 
-    for (int ff = 0; ff < guis[ee].numobjs; ff++) {
-        if (guis[ee].objs[ff]->scriptName[0] != 0)
-            ccRemoveExternalSymbol(guis[ee].objs[ff]->scriptName);
+    for (int ff = 0; ff < guis[ee].ControlCount; ff++) {
+        if (guis[ee].Controls[ff]->ScriptName[0] != 0)
+            ccRemoveExternalSymbol(guis[ee].Controls[ff]->ScriptName);
 
-        if (!ccUnRegisterManagedObject(guis[ee].objs[ff]))
+        if (!ccUnRegisterManagedObject(guis[ee].Controls[ff]))
             quit("unable to unregister guicontrol object");
     }
 }
 
 int convert_gui_disabled_style(int oldStyle) {
-    int toret = GUIDIS_GREYOUT;
+    int toret = Common::kGuiDisabled_GreyOut;
 
     // if GUIs Turn Off is selected, don't grey out buttons for
     // any Persistent GUIs which remain
     // set to 0x80 so that it is still non-zero, but has no effect
     if (oldStyle == 3)
-        toret = GUIDIS_GUIOFF;
+        toret = Common::kGuiDisabled_Hide;
     // GUIs Go Black
     else if (oldStyle == 1)
-        toret = GUIDIS_BLACKOUT;
+        toret = Common::kGuiDisabled_HideControls;
     // GUIs unchanged
     else if (oldStyle == 2)
-        toret = GUIDIS_UNCHANGED;
+        toret = Common::kGuiDisabled_Unchanged;
 
     return toret;
 }
@@ -415,7 +415,7 @@ void update_gui_disabled_status() {
     if (all_buttons_was != all_buttons_disabled) {
         // GUIs might have been removed/added
         for (int aa = 0; aa < game.GuiCount; aa++) {
-            guis[aa].control_positions_changed();
+            guis[aa].OnControlPositionChanged();
         }
         guis_need_update = 1;
         invalidate_screen();
@@ -428,20 +428,20 @@ int adjust_x_for_guis (int xx, int yy) {
         return xx;
     // If it's covered by a GUI, move it right a bit
     for (int aa=0;aa < game.GuiCount; aa++) {
-        if (guis[aa].on < 1)
+        if (!guis[aa].IsVisible)
             continue;
-        if ((guis[aa].x > xx) || (guis[aa].y > yy) || (guis[aa].y + guis[aa].hit < yy))
+        if ((guis[aa].GetX() > xx) || (guis[aa].GetY() > yy) || (guis[aa].GetY() + guis[aa].GetHeight() < yy))
             continue;
         // totally transparent GUI, ignore
-        if ((guis[aa].bgcol == 0) && (guis[aa].bgpic < 1))
+        if ((guis[aa].BackgroundColor == 0) && (guis[aa].BackgroundImage < 1))
             continue;
 
         // try to deal with full-width GUIs across the top
-        if (guis[aa].x + guis[aa].wid >= get_fixed_pixel_size(280))
+        if (guis[aa].GetX() + guis[aa].GetWidth() >= get_fixed_pixel_size(280))
             continue;
 
-        if (xx < guis[aa].x + guis[aa].wid) 
-            xx = guis[aa].x + guis[aa].wid + 2;        
+        if (xx < guis[aa].GetX() + guis[aa].GetWidth()) 
+            xx = guis[aa].GetX() + guis[aa].GetWidth() + 2;        
     }
     return xx;
 }
@@ -451,29 +451,29 @@ int adjust_y_for_guis ( int yy) {
         return yy;
     // If it's covered by a GUI, move it down a bit
     for (int aa=0;aa < game.GuiCount; aa++) {
-        if (guis[aa].on < 1)
+        if (!guis[aa].IsVisible)
             continue;
-        if (guis[aa].y > yy)
+        if (guis[aa].GetY() > yy)
             continue;
         // totally transparent GUI, ignore
-        if ((guis[aa].bgcol == 0) && (guis[aa].bgpic < 1))
+        if ((guis[aa].BackgroundColor == 0) && (guis[aa].BackgroundImage < 1))
             continue;
 
         // try to deal with full-height GUIs down the left or right
-        if (guis[aa].hit > get_fixed_pixel_size(50))
+        if (guis[aa].GetHeight() > get_fixed_pixel_size(50))
             continue;
 
-        if (yy < guis[aa].y + guis[aa].hit) 
-            yy = guis[aa].y + guis[aa].hit + 2;        
+        if (yy < guis[aa].GetY() + guis[aa].GetHeight()) 
+            yy = guis[aa].GetY() + guis[aa].GetHeight() + 2;        
     }
     return yy;
 }
 
-void recreate_guibg_image(GUIMain *tehgui)
+void recreate_guibg_image(GuiMain *tehgui)
 {
-  int ifn = tehgui->guiId;
+  int ifn = tehgui->Id;
   delete guibg[ifn];
-  guibg[ifn] = BitmapHelper::CreateBitmap(tehgui->wid, tehgui->hit, final_col_dep);
+  guibg[ifn] = BitmapHelper::CreateBitmap(tehgui->GetWidth(), tehgui->GetHeight(), final_col_dep);
   if (guibg[ifn] == NULL)
     quit("SetGUISize: internal error: unable to reallocate gui cache");
   guibg[ifn] = gfxDriver->ConvertBitmapToSupportedColourDepth(guibg[ifn]);
@@ -549,10 +549,10 @@ RuntimeScriptValue Sc_GUI_GetControlCount(void *self, const RuntimeScriptValue *
     API_OBJCALL_INT(ScriptGUI, GUI_GetControlCount);
 }
 
-// GUIObject* (ScriptGUI *tehgui, int idx)
+// GuiObject* (ScriptGUI *tehgui, int idx)
 RuntimeScriptValue Sc_GUI_GetiControls(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ_PINT(ScriptGUI, GUIObject, ccDynamicGUIObject, GUI_GetiControls);
+    API_OBJCALL_OBJ_PINT(ScriptGUI, GuiObject, ccDynamicGUIObject, GUI_GetiControls);
 }
 
 // int (ScriptGUI *sgui)

@@ -27,7 +27,6 @@
 
 extern int guis_need_update;
 extern int mousex, mousey;
-extern GUIMain*guis;
 extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 extern char*evblockbasename;
 extern int evblocknum;
@@ -68,17 +67,17 @@ int GetInvAt (int xxx, int yyy) {
   int ongui = GetGUIAt (xxx, yyy);
   if (ongui >= 0) {
     int mxwas = mousex, mywas = mousey;
-    mousex = multiply_up_coordinate(xxx) - guis[ongui].x;
-    mousey = multiply_up_coordinate(yyy) - guis[ongui].y;
-    int onobj = guis[ongui].find_object_under_mouse();
+    mousex = multiply_up_coordinate(xxx) - guis[ongui].GetX();
+    mousey = multiply_up_coordinate(yyy) - guis[ongui].GetY();
+    int onobj = guis[ongui].FindControlUnderMouse();
     if (onobj>=0) {
-      mouse_ifacebut_xoffs = mousex-(guis[ongui].objs[onobj]->x);
-      mouse_ifacebut_yoffs = mousey-(guis[ongui].objs[onobj]->y);
+      mouse_ifacebut_xoffs = mousex-(guis[ongui].Controls[onobj]->GetX());
+      mouse_ifacebut_yoffs = mousey-(guis[ongui].Controls[onobj]->GetY());
     }
     mousex = mxwas;
     mousey = mywas;
-    if ((onobj>=0) && ((guis[ongui].objrefptr[onobj] >> 16)==GOBJ_INVENTORY))
-      return offset_over_inv((GUIInv*)guis[ongui].objs[onobj]);
+    if ((onobj>=0) && ((guis[ongui].ControlRefs[onobj] >> 16)==Common::kGuiInvWindow))
+      return offset_over_inv((GuiInvWindow*)guis[ongui].Controls[onobj]);
   }
   return -1;
 }

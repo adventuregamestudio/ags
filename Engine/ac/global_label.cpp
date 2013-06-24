@@ -19,38 +19,36 @@
 #include "gui/guimain.h"
 #include "game/game_objects.h"
 
-extern GUIMain*guis;
-
 void SetLabelColor(int guin,int objn, int colr) {
     if ((guin<0) | (guin>=game.GuiCount))
         quit("!SetLabelColor: invalid GUI number");
-    if ((objn<0) | (objn>=guis[guin].numobjs))
+    if ((objn<0) | (objn>=guis[guin].ControlCount))
         quit("!SetLabelColor: invalid object number");
-    if (guis[guin].get_control_type(objn)!=GOBJ_LABEL)
+    if (guis[guin].GetControlType(objn)!=Common::kGuiLabel)
         quit("!SetLabelColor: specified control is not a label");
 
-    GUILabel*guil=(GUILabel*)guis[guin].objs[objn];
+    GuiLabel*guil=(GuiLabel*)guis[guin].Controls[objn];
     Label_SetColor(guil, colr);
 }
 
 void SetLabelText(int guin,int objn, const char*newtx) {
     VALIDATE_STRING(newtx);
     if ((guin<0) | (guin>=game.GuiCount)) quit("!SetLabelText: invalid GUI number");
-    if ((objn<0) | (objn>=guis[guin].numobjs)) quit("!SetLabelTexT: invalid object number");
-    if (guis[guin].get_control_type(objn)!=GOBJ_LABEL)
+    if ((objn<0) | (objn>=guis[guin].ControlCount)) quit("!SetLabelTexT: invalid object number");
+    if (guis[guin].GetControlType(objn)!=Common::kGuiLabel)
         quit("!SetLabelText: specified control is not a label");
 
-    GUILabel*guil=(GUILabel*)guis[guin].objs[objn];
+    GuiLabel*guil=(GuiLabel*)guis[guin].Controls[objn];
     Label_SetText(guil, newtx);
 }
 
 void SetLabelFont(int guin,int objn, int fontnum) {
 
     if ((guin<0) | (guin>=game.GuiCount)) quit("!SetLabelFont: invalid GUI number");
-    if ((objn<0) | (objn>=guis[guin].numobjs)) quit("!SetLabelFont: invalid object number");
-    if (guis[guin].get_control_type(objn)!=GOBJ_LABEL)
+    if ((objn<0) | (objn>=guis[guin].ControlCount)) quit("!SetLabelFont: invalid object number");
+    if (guis[guin].GetControlType(objn)!=Common::kGuiLabel)
         quit("!SetLabelFont: specified control is not a label");
 
-    GUILabel*guil=(GUILabel*)guis[guin].objs[objn];
+    GuiLabel*guil=(GuiLabel*)guis[guin].Controls[objn];
     Label_SetFont(guil, fontnum);
 }

@@ -24,7 +24,6 @@
 #include "ac/objectcache.h"
 #include "debug/debug_log.h"
 #include "game/game_objects.h"
-#include "gui/dynamicarray.h"
 #include "gui/guibutton.h"
 #include "ac/spritecache.h"
 #include "platform/base/override_defines.h"
@@ -36,7 +35,6 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern SpriteCache spriteset;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
-extern DynamicArray<GUIButton> guibuts;
 extern int numguibuts;
 
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
@@ -547,14 +545,14 @@ void free_dynamic_sprite (int gotSlot) {
   for (tt = 0; tt < numguibuts; tt++) {
     if (guibuts[tt].IsDeleted())
       continue;
-    if (guibuts[tt].pic == gotSlot)
-      guibuts[tt].pic = 0;
-    if (guibuts[tt].usepic == gotSlot)
-      guibuts[tt].usepic = 0;
-    if (guibuts[tt].overpic == gotSlot)
-      guibuts[tt].overpic = 0;
-    if (guibuts[tt].pushedpic == gotSlot)
-      guibuts[tt].pushedpic = 0;
+    if (guibuts[tt].NormalImage == gotSlot)
+      guibuts[tt].NormalImage = 0;
+    if (guibuts[tt].CurrentImage == gotSlot)
+      guibuts[tt].CurrentImage = 0;
+    if (guibuts[tt].MouseOverImage == gotSlot)
+      guibuts[tt].MouseOverImage = 0;
+    if (guibuts[tt].PushedImage == gotSlot)
+      guibuts[tt].PushedImage = 0;
   }
 
   // force refresh of any object caches using the sprite

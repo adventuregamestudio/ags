@@ -32,14 +32,16 @@
 #include "gfx/bitmap.h"
 
 using AGS::Common::Bitmap;
+using AGS::Common::GuiButton;
+using AGS::Common::GuiLabel;
+using AGS::Common::GuiListBox;
+using AGS::Common::GuiObject;
+using AGS::Common::GuiTextBox;
+using AGS::Common::String;
 
 // For engine these are defined in ac.cpp
 extern int eip_guiobj;
-extern void replace_macro_tokens(char*,char*);
-
-// For engine these are defined in acfonts.cpp
-extern void ensure_text_valid_for_font(char *, int);
-//
+extern void replace_macro_tokens(const char *text, String &fixed_text);
 
 extern SpriteCache spriteset; // in ac_runningame
 
@@ -47,9 +49,9 @@ extern SpriteCache spriteset; // in ac_runningame
 // Engine-specific implementation split out of acgui.h
 //=============================================================================
 
-int GUIObject::IsClickable()
+bool GuiObject::IsClickable() const
 {
-  return !(flags & GUIF_NOCLICKS);
+  return !(Flags & kGuiCtrl_NoClicks);
 }
 
 void check_font(int *fontnum)
@@ -88,74 +90,74 @@ int get_eip_guiobj()
 
 bool outlineGuiObjects = false;
 
-void GUILabel::Draw_replace_macro_tokens(char *oritext, char *text)
-{
-  replace_macro_tokens(flags & GUIF_TRANSLATED ? get_translation(text) : text, oritext);
-  ensure_text_valid_for_font(oritext, font);
-}
-
-void GUILabel::Draw_split_lines(char *teptr, int wid, int font, int &numlines)
-{
-  // Use the engine's word wrap tool, to have hebrew-style writing
-  // and other features
-
-  break_up_text_into_lines (wid, font, teptr);
-
-  // [IKM] numlines not used in engine's implementation
-}
-
-void GUITextBox::Draw_text_box_contents(Bitmap *ds, color_t text_color)
-{
-  int startx, starty;
-
-  wouttext_outline(ds, x + 1 + get_fixed_pixel_size(1), y + 1 + get_fixed_pixel_size(1), font, text_color, text);
-  
-  if (!IsDisabled()) {
-    // draw a cursor
-    startx = wgettextwidth(text, font) + x + 3;
-    starty = y + 1 + wgettextheight("BigyjTEXT", font);
-    ds->DrawRect(Rect(startx, starty, startx + get_fixed_pixel_size(5), starty + (get_fixed_pixel_size(1) - 1)), text_color);
-  }
-}
-
-void GUIListBox::Draw_items_fix()
-{
-  // do nothing
-}
-
-void GUIListBox::Draw_items_unfix()
-{
-  // do nothing
-}
-
-void GUIListBox::Draw_set_oritext(char *oritext, const char *text)
-{
-    // Allow it to change the string to unicode if it's TTF
-    if (flags & GUIF_TRANSLATED)
-    {
-        strcpy(oritext, get_translation(text));
-    }
-    else
-    {
-        strcpy(oritext, text);
-    }
-    ensure_text_valid_for_font(oritext, font);
-
-    // oritext is assumed to be made long enough by caller function
-}
-
-void GUIButton::Draw_set_oritext(char *oritext, const char *text)
+void GuiButton::PrepareTextToDraw()
 {
   // Allow it to change the string to unicode if it's TTF
-    if (flags & GUIF_TRANSLATED)
+    if (Flags & kGuiCtrl_Translated)
     {
-        strcpy(oritext, get_translation(text));
+        TextToDraw.SetString(get_translation(Text));
     }
     else
     {
-        strcpy(oritext, text);
+        TextToDraw.SetString(Text);
     }
-    ensure_text_valid_for_font(oritext, font);
+    // FIXME this hack!
+    char *buffer = const_cast<char*>(TextToDraw.GetCStr());
+    ensure_text_valid_for_font(buffer, TextFont);
+}
 
-  // oritext is assumed to be made long enough by caller function
+
+void GuiLabel::PrepareTextToDraw()
+{
+    replace_macro_tokens(Flags & kGuiCtrl_Translated ? get_translation(Text) : Text, TextToDraw);
+    // FIXME this hack!
+    char *buffer = const_cast<char*>(TextToDraw.GetCStr());
+    ensure_text_valid_for_font(buffer, TextFont);
+}
+
+int GuiLabel::SplitLinesForDrawing()
+{
+    // Use the engine's word wrap tool, to have hebrew-style writing
+    // and other features
+    break_up_text_into_lines(Frame.GetWidth(), TextFont, TextToDraw);
+    return numlines;
+}
+
+void GuiListBox::DrawItemsFix()
+{
+    // do nothing
+}
+
+void GuiListBox::DrawItemsUnfix()
+{
+    // do nothing
+}
+
+void GuiListBox::PrepareTextToDraw(const String &text)
+{
+    // Allow it to change the string to unicode if it's TTF
+    if (Flags & kGuiCtrl_Translated)
+    {
+        TextToDraw.SetString(get_translation(text));
+    }
+    else
+    {
+        TextToDraw.SetString(text);
+    }
+    // FIXME this hack!
+    char *buffer = const_cast<char*>(TextToDraw.GetCStr());
+    ensure_text_valid_for_font(buffer, TextFont);
+}
+
+void GuiTextBox::DrawTextBoxContents(Bitmap *ds, color_t text_color)
+{
+    wouttext_outline(ds, Frame.Left + 1 + get_fixed_pixel_size(1), Frame.Top + 1 + get_fixed_pixel_size(1), TextFont, text_color, Text);
+    if (!IsDisabled())
+    {
+        // draw a cursor
+        Point draw_at;
+        draw_at.X = wgettextwidth(Text, TextFont) + Frame.Left + 3;
+        draw_at.Y = Frame.Top + 1 + wgettextheight("BigyjTEXT", TextFont);
+        ds->DrawRect(Rect(draw_at.X, draw_at.Y, draw_at.X + get_fixed_pixel_size(5), draw_at.Y + (get_fixed_pixel_size(1) - 1)), text_color);
+    }
 }

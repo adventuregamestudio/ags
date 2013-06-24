@@ -1429,7 +1429,7 @@ int ccInstance::RunTextScript(const char*tsname) {
     return toret;
 }
 
-int ccInstance::RunTextScriptIParam(char*tsname,RuntimeScriptValue &iparam) {
+int ccInstance::RunTextScriptIParam(const char*tsname,RuntimeScriptValue &iparam) {
     if ((strcmp(tsname, "on_key_press") == 0) || (strcmp(tsname, "on_mouse_click") == 0)) {
         bool eventWasClaimed;
         int toret = run_claimable_event(tsname, true, 1, &iparam, &eventWasClaimed);
@@ -1441,7 +1441,7 @@ int ccInstance::RunTextScriptIParam(char*tsname,RuntimeScriptValue &iparam) {
     return RunScriptFunctionIfExists(tsname, 1, &iparam);
 }
 
-int ccInstance::RunTextScript2IParam(char*tsname,RuntimeScriptValue &iparam, RuntimeScriptValue &param2) {
+int ccInstance::RunTextScript2IParam(const char*tsname,RuntimeScriptValue &iparam, RuntimeScriptValue &param2) {
     RuntimeScriptValue params[2];
     params[0] = iparam;
     params[1] = param2;

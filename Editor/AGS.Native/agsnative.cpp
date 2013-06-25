@@ -5155,10 +5155,6 @@ void save_game_to_dta_file(Game^ game, const char *fileName)
 	}
 
 	// ** Cursors **
-	if (game->Cursors->Count > MAX_CURSOR) 
-	{
-		throw gcnew CompileError("Too many cursors");
-	}
 	thisgame.MouseCursorCount = game->Cursors->Count;
     thisgame.MouseCursors.New(thisgame.MouseCursorCount);
 	for (i = 0; i < thisgame.MouseCursorCount; i++)

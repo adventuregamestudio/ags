@@ -288,9 +288,6 @@ void GameInfo::WriteInvInfo_Aligned(Stream *out)
 
 void GameInfo::read_cursors(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
 {
-    if (MouseCursorCount > MAX_CURSOR)
-        quit("Too many cursors: need newer AGS version");
-
     ReadMouseCursors_Aligned(in);
 
     if (read_data.filever <= kGameVersion_272) // 2.x

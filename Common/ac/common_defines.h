@@ -97,7 +97,7 @@
 #define MAX_BSCENE    5   // max number of frames in animating bg scene
 
 #define MAX_SPRITES         30000
-#define MAX_CURSOR          20
+#define LEGACY_MAX_MOUSE_CURSORS 20
 
 
 //#ifdef DJGPP

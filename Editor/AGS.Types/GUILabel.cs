@@ -12,7 +12,7 @@ namespace AGS.Types
     {
         public const string CONTROL_DISPLAY_NAME = "Label";
         public const string SCRIPT_CLASS_TYPE = "Label";
-        public const int MAX_TEXT_LENGTH = 2047;
+        public const int LEGACY_MAX_TEXT_LENGTH = 2047;
 
         public GUILabel(int x, int y, int width, int height)
             : base(x, y, width, height)
@@ -97,17 +97,7 @@ namespace AGS.Types
         public string Text
         {
             get { return _text; }
-            set
-            {
-                if (value.Length > MAX_TEXT_LENGTH)
-                {
-                    _text = value.Substring(0, MAX_TEXT_LENGTH);
-                }
-                else
-                {
-                    _text = value;
-                }
-            }
+            set { _text = value; }
         }
 
     }

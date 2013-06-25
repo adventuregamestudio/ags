@@ -28,18 +28,17 @@ namespace AGS.Types
         public override object EditValue(ITypeDescriptorContext context, IServiceProvider provider, object value)
         {
             bool isGlobalScript = false;
+            // TODO: fixme this soon; this hard-coded value is also used in GUIEditor::CreateScriptFunctionForGUIItem
 			int maxLength = 50;
             string itemName = string.Empty;
             if (context.Instance is GUI)
             {
                 itemName = ((GUI)context.Instance).Name;
-				maxLength = NormalGUI.MAX_EVENT_HANDLER_LENGTH;
                 isGlobalScript = true;
             }
             else if (context.Instance is GUIControl)
             {
                 itemName = ((GUIControl)context.Instance).Name;
-				maxLength = GUIControl.MAX_EVENT_HANDLER_LENGTH;
                 isGlobalScript = true;
             }
             else if (context.Instance is InventoryItem)

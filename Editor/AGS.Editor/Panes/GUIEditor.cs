@@ -329,12 +329,6 @@ namespace AGS.Editor
             }
             else if (AboutToAddControl())
             {
-				if (_gui.Controls.Count >= GUI.MAX_CONTROLS_PER_GUI)
-				{
-					Factory.GUIController.ShowMessage("You already have the maximum number of controls on this GUI, and cannot add any more.", MessageBoxIcon.Warning);
-					return;
-				}
-
                 _addingControl = true;
                 _addingControlX = e.X;
                 _addingControlY = e.Y;
@@ -760,11 +754,6 @@ namespace AGS.Editor
 
         private void PasteControlClick(object sender, EventArgs e)
         {
-            if (_gui.Controls.Count >= GUI.MAX_CONTROLS_PER_GUI)
-            {
-                Factory.GUIController.ShowMessage("You already have the maximum number of controls on this GUI, and cannot add any more.", MessageBoxIcon.Warning);
-                return;
-            }
             GUIControl newControl = GUIControl.GetFromClipBoard();
             if (newControl != null)
             {
@@ -1123,16 +1112,15 @@ namespace AGS.Editor
 		private void CreateScriptFunctionForGUIItem(string eventHandler, object objectToCheck, PropertyInfo property)
 		{
 			string itemName;
-			int maxLength;
+            // TODO: fixme this soon; this hard-coded value is also used in ScriptFunctionUIEditor::EditValue
+			int maxLength = 50;
 			if (objectToCheck is GUI)
 			{
 				itemName = ((GUI)objectToCheck).Name;
-				maxLength = NormalGUI.MAX_EVENT_HANDLER_LENGTH;
 			}
 			else
 			{
 				itemName = ((GUIControl)objectToCheck).Name;
-				maxLength = GUIControl.MAX_EVENT_HANDLER_LENGTH;
 			}
 
 			if (string.IsNullOrEmpty(itemName))

@@ -13,7 +13,7 @@ namespace AGS.Types
     {
         public const string CONTROL_DISPLAY_NAME = "Button";
         public const string SCRIPT_CLASS_TYPE = "Button";
-        public const int MAX_TEXT_LENGTH = 49;
+        public const int LEGACY_MAX_TEXT_LENGTH = 49;
 
         public GUIButton(int x, int y, int width, int height) : base(x, y, width, height)
         {
@@ -51,17 +51,7 @@ namespace AGS.Types
         public string OnClick
         {
             get { return _clickEventHandler; }
-            set
-            {
-                if (value.Length > MAX_EVENT_HANDLER_LENGTH)
-                {
-                    _clickEventHandler = value.Substring(0, MAX_EVENT_HANDLER_LENGTH);
-                }
-                else
-                {
-                    _clickEventHandler = value;
-                }
-            }
+            set { _clickEventHandler = value; }
         }
 
         [Description("What action to perform when the button is clicked")]
@@ -192,17 +182,7 @@ namespace AGS.Types
         public string Text
         {
             get { return _text; }
-            set 
-            {
-                if (value.Length > MAX_TEXT_LENGTH)
-                {
-                    _text = value.Substring(0, MAX_TEXT_LENGTH);
-                }
-                else
-                {
-                    _text = value;
-                }
-            }
+            set { _text = value; }
         }
 
         protected override void GetSpritesForControl(List<int> list)

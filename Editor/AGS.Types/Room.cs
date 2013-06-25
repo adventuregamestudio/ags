@@ -11,8 +11,8 @@ namespace AGS.Types
     {
         // These constants are also defined in the native code, if you change
         // them you need to update the Native DLL as well
-        public const int MAX_BACKGROUNDS = 5;
-        public const int MAX_OBJECTS = 40;
+        public const int LEGACY_MAX_BACKGROUNDS = 5;
+        public const int LEGACY_MAX_OBJECTS = 40;
         public const int MAX_HOTSPOTS = 50;
         public const int MAX_WALKABLE_AREAS = 16;
         public const int MAX_WALK_BEHINDS = 16;

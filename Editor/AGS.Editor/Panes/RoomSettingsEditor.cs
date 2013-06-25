@@ -117,10 +117,7 @@ namespace AGS.Editor
                     cmbBackgrounds.Items.Add("Background " + i);
                 }
             }
-            if (_room.BackgroundCount < Room.MAX_BACKGROUNDS)
-            {
-                cmbBackgrounds.Items.Add("<Import new background...>");
-            }
+            cmbBackgrounds.Items.Add("<Import new background...>");
             cmbBackgrounds.SelectedIndex = selectIndex;
         }
 
@@ -161,8 +158,7 @@ namespace AGS.Editor
 
         private void cmbBackgrounds_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if ((cmbBackgrounds.SelectedIndex == cmbBackgrounds.Items.Count - 1) &&
-                (_room.BackgroundCount < Room.MAX_BACKGROUNDS))
+            if (cmbBackgrounds.SelectedIndex == cmbBackgrounds.Items.Count - 1)
             {
                 if ((_room.BackgroundCount > 1) ||
                     (Factory.GUIController.ShowQuestion("You are about to import an extra background into this room, thus creating animated backgrounds. Are you sure this is what you want to do?\n\nIf you just want to change the background image, use the 'Change' button instead.", MessageBoxIcon.Question) == DialogResult.Yes))

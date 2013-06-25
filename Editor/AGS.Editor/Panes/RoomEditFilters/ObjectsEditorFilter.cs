@@ -253,11 +253,6 @@ namespace AGS.Editor
             }
             else if (item.Name == MENU_ITEM_NEW)
             {
-                if (_room.Objects.Count >= Room.MAX_OBJECTS)
-                {
-                    Factory.GUIController.ShowMessage("This room already has the maximum " + Room.MAX_OBJECTS + " objects.", MessageBoxIcon.Information);
-                    return;
-                }
                 RoomObject newObj = new RoomObject(_room);
                 newObj.ID = _room.Objects.Count;
                 newObj.StartX = SetObjectCoordinate(_menuClickX);

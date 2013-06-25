@@ -12,10 +12,29 @@
 //
 //=============================================================================
 
-#include "screenoverlay.h"
+#include "ac/screenoverlay.h"
+#include "gfx/bitmap.h"
+#include "gfx/graphicsdriver.h"
 #include "util/stream.h"
 
 using AGS::Common::Stream;
+
+extern IGraphicsDriver *gfxDriver;
+
+ScreenOverlay::ScreenOverlay()
+    : pic(NULL)
+    , bmp(NULL)
+{
+}
+
+ScreenOverlay::~ScreenOverlay()
+{
+    delete pic;
+    if (bmp)
+    {
+        gfxDriver->DestroyDDB(bmp);
+    }
+}
 
 void ScreenOverlay::ReadFromFile(Stream *in)
 {

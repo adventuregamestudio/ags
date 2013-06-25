@@ -35,7 +35,6 @@ extern int scrnwid,scrnhit;
 extern SpriteCache spriteset;
 extern Bitmap *virtual_screen;
 
-extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern int crovr_id;  // whether using SetTextOverlay or CreateTextOvelay
 
 

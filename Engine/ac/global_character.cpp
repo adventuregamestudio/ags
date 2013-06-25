@@ -42,7 +42,6 @@ extern ViewStruct*views;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern int offsetx, offsety;
 extern int guis_need_update;
-extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern int numscreenover;
 extern int scrnwid,scrnhit;
 

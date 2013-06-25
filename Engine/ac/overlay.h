@@ -21,6 +21,7 @@
 #include "ac/runtime_defines.h"
 #include "ac/screenoverlay.h"
 #include "ac/dynobj/scriptoverlay.h"
+#include "util/array.h"
 
 namespace AGS { namespace Common { class Bitmap; } }
 using namespace AGS; // FIXME later
@@ -42,7 +43,7 @@ int  add_screen_overlay(int x,int y,int type,Common::Bitmap *piccy, bool alphaCh
 void remove_screen_overlay_index(int cc);
 
 extern int numscreenover;
-extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
+extern AGS::Common::ObjectArray<ScreenOverlay> screenover;
 extern int is_complete_overlay;
 extern int is_text_overlay;
 

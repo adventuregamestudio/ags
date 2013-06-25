@@ -44,7 +44,6 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 extern int longestline;
 extern int scrnwid,scrnhit;
 extern Bitmap *virtual_screen;
-extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern volatile int timerloop;
 extern AGSPlatformDriver *platform;
 extern volatile unsigned long globalTimerCounter;

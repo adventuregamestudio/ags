@@ -85,7 +85,6 @@ extern int displayed_room;
 extern CharacterExtras *charextra;
 extern CharacterInfo*playerchar;
 extern int eip_guinum;
-extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern int numscreenover;
 extern int screen_reset;
 extern int is_complete_overlay;

@@ -108,7 +108,6 @@ extern int mouse_ifacebut_xoffs,mouse_ifacebut_yoffs;
 extern AnimatingGUIButton animbuts[MAX_ANIMATING_BUTTONS];
 extern int numAnimButs;
 
-extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern int numscreenover;
 extern int is_complete_overlay,is_text_overlay;
 

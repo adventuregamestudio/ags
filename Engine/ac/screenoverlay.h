@@ -35,6 +35,9 @@ struct ScreenOverlay {
     bool hasAlphaChannel;
     bool positionRelativeToScreen;
 
+    ScreenOverlay();
+    ~ScreenOverlay();
+
     void ReadFromFile(Common::Stream *in);
     void WriteToFile(Common::Stream *out);
 };

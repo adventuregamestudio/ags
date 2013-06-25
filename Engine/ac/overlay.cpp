@@ -41,7 +41,7 @@ extern IGraphicsDriver *gfxDriver;
 
 
 
-ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
+AGS::Common::ObjectArray<ScreenOverlay> screenover;
 int numscreenover=0;
 int is_complete_overlay=0,is_text_overlay=0;
 int crovr_id=2;  // whether using SetTextOverlay or CreateTextOvelay
@@ -203,8 +203,6 @@ int find_overlay_of_type(int typ) {
 }
 
 int add_screen_overlay(int x,int y,int type,Bitmap *piccy, bool alphaChannel) {
-    if (numscreenover>=MAX_SCREEN_OVERLAYS)
-        quit("too many screen overlays created");
     if (type==OVER_COMPLETE) is_complete_overlay++;
     if (type==OVER_TEXTMSG) is_text_overlay++;
     if (type==OVER_CUSTOM) {
@@ -213,6 +211,7 @@ int add_screen_overlay(int x,int y,int type,Bitmap *piccy, bool alphaChannel) {
             if (find_overlay_of_type(uu) == -1) { type=uu; break; }
         }
     }
+    screenover.Append(ScreenOverlay());
     screenover[numscreenover].pic=piccy;
     screenover[numscreenover].bmp = gfxDriver->CreateDDBFromBitmap(piccy, alphaChannel);
     screenover[numscreenover].x=x;

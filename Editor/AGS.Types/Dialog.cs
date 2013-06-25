@@ -9,7 +9,7 @@ namespace AGS.Types
 {
     public class Dialog : IScript, IToXml
     {
-        public const int MAX_OPTIONS_PER_DIALOG = 30;
+        public const int LEGACY_MAX_OPTIONS_PER_DIALOG = 30;
 
         private int _id;
         private string _name;

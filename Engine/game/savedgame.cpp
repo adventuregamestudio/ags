@@ -44,6 +44,7 @@ namespace Engine
 
 using Common::AlignedStream;
 using Common::Bitmap;
+using Common::DialogTopicInfo;
 using Common::Stream;
 namespace BitmapHelper = Common::BitmapHelper;
 namespace Out = Common::Out;
@@ -419,7 +420,11 @@ void save_game_data_ch_dialogs(Stream *out)
     out->WriteInt32(game.DialogCount);
     for (int i = 0; i < game.DialogCount; ++i)
     {
-        out->WriteArrayOfInt32(dialog[i].optionflags, MAXTOPICOPTIONS);
+        DialogTopicInfo &dlg_info = dialog[i];
+        for (int opt = 0; opt < dlg_info.OptionCount; ++i)
+        {
+            out->WriteInt32(dlg_info.Options[opt].Flags);
+        }
     }
 }
 
@@ -1015,7 +1020,11 @@ SavedGameError restore_game_data_ch_dialogs(Stream *in, SavedGameRestorationData
 
     for (int i = 0; i < game.DialogCount; ++i)
     {
-        in->ReadArrayOfInt32(dialog[i].optionflags, MAXTOPICOPTIONS);
+        DialogTopicInfo &dlg_info = dialog[i];
+        for (int opt = 0; opt < dlg_info.OptionCount; ++i)
+        {
+            dlg_info.Options[opt].Flags = in->ReadInt32();
+        }
     }
     return kSvgErr_NoError;
 }

@@ -21,7 +21,7 @@
 #include "ac/common.h"
 #include "ac/character.h"
 #include "ac/charactercache.h"
-#include "ac/dialogtopic.h"
+#include "ac/dialog.h"
 #include "ac/draw.h"
 #include "ac/gamestructdefines.h"
 #include "ac/gui.h"
@@ -62,7 +62,6 @@ extern int numguilabels;
 extern int ifacepopped;
 
 extern ViewStruct*views;
-extern DialogTopic *dialog;
 
 extern ScriptDialogOptionsRendering ccDialogOptionsRendering;
 extern ScriptDrawingSurface* dialogOptionsRenderingSurface;
@@ -233,22 +232,31 @@ void game_file_set_default_glmsg()
 
 void game_file_read_dialogs(Stream *in)
 {
-	dialog=(DialogTopic*)malloc(sizeof(DialogTopic)*game.DialogCount+5);
+	dialog.New(game.DialogCount);
 
-    for (int iteratorCount = 0; iteratorCount < game.DialogCount; ++iteratorCount)
+    AGS::Common::DialogVersion dlg_version;
+    if (loaded_game_file_version < kGameVersion_340_alpha)
     {
-        dialog[iteratorCount].ReadFromFile(in);
+        dlg_version = AGS::Common::kDialogVersion_pre340;
+    }
+    else
+    {
+        dlg_version = (AGS::Common::DialogVersion)in->ReadInt32();
+    }
+
+    for (int i = 0; i < game.DialogCount; ++i)
+    {
+        dialog[i].ReadFromFile(in, dlg_version);
     }
 
     if (filever <= kGameVersion_300) // Dialog script
     {
         old_dialog_scripts = (unsigned char**)malloc(game.DialogCount * sizeof(unsigned char**));
 
-        int i;
         for (int i = 0; i < game.DialogCount; i++)
         {
-            old_dialog_scripts[i] = (unsigned char*)malloc(dialog[i].codesize);
-            in->Read(old_dialog_scripts[i], dialog[i].codesize);
+            old_dialog_scripts[i] = (unsigned char*)malloc(dialog[i].OldCodeSize);
+            in->Read(old_dialog_scripts[i], dialog[i].OldCodeSize);
 
             // Skip encrypted text script
             unsigned int script_size = in->ReadInt32();
@@ -257,7 +265,7 @@ void game_file_read_dialogs(Stream *in)
 
         // Read the dialog lines
         old_speech_lines = (char**)malloc(10000 * sizeof(char**));
-        i = 0;
+        int i = 0;
 
         if (filever <= kGameVersion_260)
         {

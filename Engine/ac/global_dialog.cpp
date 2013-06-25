@@ -15,12 +15,9 @@
 #include "ac/global_dialog.h"
 #include "ac/common.h"
 #include "ac/dialog.h"
-#include "ac/dialogtopic.h"
 #include "debug/debug_log.h"
 #include "game/game_objects.h"
 #include "script/script.h"
-
-extern DialogTopic *dialog;
 
 void RunDialog(int tum) {
     if ((tum<0) | (tum>=game.DialogCount))
@@ -55,27 +52,27 @@ void StopDialog() {
 void SetDialogOption(int dlg,int opt,int onoroff) {
   if ((dlg<0) | (dlg>=game.DialogCount))
     quit("!SetDialogOption: Invalid topic number specified");
-  if ((opt<1) | (opt>dialog[dlg].numoptions))
+  if ((opt<1) | (opt>dialog[dlg].OptionCount))
     quit("!SetDialogOption: Invalid option number specified");
   opt--;
 
-  dialog[dlg].optionflags[opt]&=~DFLG_ON;
-  if ((onoroff==1) & ((dialog[dlg].optionflags[opt] & DFLG_OFFPERM)==0))
-    dialog[dlg].optionflags[opt]|=DFLG_ON;
+  dialog[dlg].Options[opt].Flags&=~Common::kDialogOption_IsOn;
+  if ((onoroff==1) & ((dialog[dlg].Options[opt].Flags & Common::kDialogOption_IsPermanentlyOff)==0))
+    dialog[dlg].Options[opt].Flags|=Common::kDialogOption_IsOn;
   else if (onoroff==2)
-    dialog[dlg].optionflags[opt]|=DFLG_OFFPERM;
+    dialog[dlg].Options[opt].Flags|=Common::kDialogOption_IsPermanentlyOff;
 }
 
 int GetDialogOption (int dlg, int opt) {
   if ((dlg<0) | (dlg>=game.DialogCount))
     quit("!GetDialogOption: Invalid topic number specified");
-  if ((opt<1) | (opt>dialog[dlg].numoptions))
+  if ((opt<1) | (opt>dialog[dlg].OptionCount))
     quit("!GetDialogOption: Invalid option number specified");
   opt--;
 
-  if (dialog[dlg].optionflags[opt] & DFLG_OFFPERM)
+  if (dialog[dlg].Options[opt].Flags & Common::kDialogOption_IsPermanentlyOff)
     return 2;
-  if (dialog[dlg].optionflags[opt] & DFLG_ON)
+  if (dialog[dlg].Options[opt].Flags & Common::kDialogOption_IsOn)
     return 1;
   return 0;
 }

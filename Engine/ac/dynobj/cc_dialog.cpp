@@ -13,7 +13,6 @@
 //=============================================================================
 
 #include "ac/dynobj/cc_dialog.h"
-#include "ac/dialogtopic.h"
 #include "ac/dynobj/scriptdialog.h"
 #include "ac/gamestructdefines.h"
 #include "game/script_objects.h"

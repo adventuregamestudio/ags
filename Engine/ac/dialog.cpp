@@ -17,7 +17,6 @@
 #include "ac/common.h"
 #include "ac/character.h"
 #include "ac/characterinfo.h"
-#include "ac/dialogtopic.h"
 #include "ac/display.h"
 #include "ac/draw.h"
 #include "ac/global_character.h"
@@ -48,6 +47,7 @@
 #include "gfx/graphicsdriver.h"
 
 using AGS::Common::Bitmap;
+using AGS::Common::DialogTopicInfo;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern ccInstance *dialogScriptsInst;
@@ -63,7 +63,7 @@ extern Bitmap *virtual_screen;
 extern Bitmap *screenop;
 extern IGraphicsDriver *gfxDriver;
 
-DialogTopic *dialog;
+AGS::Common::ObjectArray<AGS::Common::DialogTopicInfo> dialog;
 ScriptDialogOptionsRendering ccDialogOptionsRendering;
 ScriptDrawingSurface* dialogOptionsRenderingSurface;
 
@@ -111,33 +111,33 @@ int Dialog_GetOptionState(ScriptDialog *sd, int option) {
 
 int Dialog_HasOptionBeenChosen(ScriptDialog *sd, int option)
 {
-  if ((option < 1) || (option > dialog[sd->id].numoptions))
+  if ((option < 1) || (option > dialog[sd->id].OptionCount))
     quit("!Dialog.HasOptionBeenChosen: Invalid option number specified");
   option--;
 
-  if (dialog[sd->id].optionflags[option] & DFLG_HASBEENCHOSEN)
+  if (dialog[sd->id].Options[option].Flags & Common::kDialogOption_HasBeenChosen)
     return 1;
   return 0;
 }
 
 int Dialog_GetOptionCount(ScriptDialog *sd)
 {
-  return dialog[sd->id].numoptions;
+  return dialog[sd->id].OptionCount;
 }
 
 int Dialog_GetShowTextParser(ScriptDialog *sd)
 {
-  return (dialog[sd->id].topicFlags & DTFLG_SHOWPARSER) ? 1 : 0;
+  return (dialog[sd->id].Flags & Common::kDialogTopic_ShowParser) ? 1 : 0;
 }
 
 const char* Dialog_GetOptionText(ScriptDialog *sd, int option)
 {
-  if ((option < 1) || (option > dialog[sd->id].numoptions))
+  if ((option < 1) || (option > dialog[sd->id].OptionCount))
     quit("!Dialog.GetOptionText: Invalid option number specified");
 
   option--;
 
-  return CreateNewScriptString(get_translation(dialog[sd->id].optionnames[option]));
+  return CreateNewScriptString(get_translation(dialog[sd->id].Options[option].Name));
 }
 
 int Dialog_GetID(ScriptDialog *sd) {
@@ -168,7 +168,7 @@ void get_dialog_script_parameters(unsigned char* &script, unsigned short* param1
   }
 }
 
-int run_dialog_script(DialogTopic*dtpp, int dialogID, int offse, int optionIndex) {
+int run_dialog_script(DialogTopicInfo*dtpp, int dialogID, int offse, int optionIndex) {
   said_speech_line = 0;
   int result = RUN_DIALOG_STAY;
 
@@ -217,7 +217,7 @@ int run_dialog_script(DialogTopic*dtpp, int dialogID, int offse, int optionIndex
 
         case DCMD_OPTON:
           get_dialog_script_parameters(script, &param1, NULL);
-          SetDialogOption(dialogID, param1 + 1, DFLG_ON);
+          SetDialogOption(dialogID, param1 + 1, Common::kDialogOption_IsOn);
           break;
 
         case DCMD_RETURN:
@@ -231,7 +231,7 @@ int run_dialog_script(DialogTopic*dtpp, int dialogID, int offse, int optionIndex
 
         case DCMD_OPTOFFFOREVER:
           get_dialog_script_parameters(script, &param1, NULL);
-          SetDialogOption(dialogID, param1 + 1, DFLG_OFFPERM);
+          SetDialogOption(dialogID, param1 + 1, Common::kDialogOption_IsPermanentlyOff);
           break;
 
         case DCMD_RUNTEXTSCRIPT:
@@ -316,14 +316,15 @@ int run_dialog_script(DialogTopic*dtpp, int dialogID, int offse, int optionIndex
 }
 
 int write_dialog_options(Bitmap *ds, int dlgxp, int curyp, int numdisp, int mouseison, int areawid,
-    int bullet_wid, int usingfont, DialogTopic*dtop, char*disporder, short*dispyp,
+    int bullet_wid, int usingfont, const DialogTopicInfo*dtop, const AGS::Common::Array<char> &disporder,
+    AGS::Common::Array<short> &dispyp,
     int txthit, int utextcol) {
   int ww;
 
   color_t text_color;
   for (ww=0;ww<numdisp;ww++) {
 
-    if ((dtop->optionflags[disporder[ww]] & DFLG_HASBEENCHOSEN) &&
+    if ((dtop->Options[disporder[ww]].Flags & Common::kDialogOption_HasBeenChosen) &&
         (play.DialogOptionReadColour >= 0)) {
       // 'read' colour
       text_color = ds->GetCompatibleColor(play.DialogOptionReadColour);
@@ -339,7 +340,7 @@ int write_dialog_options(Bitmap *ds, int dlgxp, int curyp, int numdisp, int mous
       else text_color = ds->GetCompatibleColor(utextcol);
     }
 
-    break_up_text_into_lines(areawid-(8+bullet_wid),usingfont,get_translation(dtop->optionnames[disporder[ww]]));
+    break_up_text_into_lines(areawid-(8+bullet_wid),usingfont,get_translation(dtop->Options[disporder[ww]].Name));
     dispyp[ww]=curyp;
     if (game.DialogBulletSprIndex > 0)
       wputblock(ds, dlgxp,curyp,spriteset[game.DialogBulletSprIndex],1);
@@ -368,7 +369,7 @@ int write_dialog_options(Bitmap *ds, int dlgxp, int curyp, int numdisp, int mous
 #define GET_OPTIONS_HEIGHT {\
   needheight = 0;\
   for (int i = 0; i < numdisp; ++i) {\
-    break_up_text_into_lines(areawid-(8+bullet_wid),usingfont,get_translation(dtop->optionnames[disporder[i]]));\
+    break_up_text_into_lines(areawid-(8+bullet_wid),usingfont,get_translation(dtop->Options[disporder[i]].Name));\
     needheight += (numlines * txthit) + multiply_up_coordinate(game.Options[OPT_DIALOGGAP]);\
   }\
   if (parserInput) needheight += parserInput->GetHeight() + multiply_up_coordinate(game.Options[OPT_DIALOGGAP]);\
@@ -420,10 +421,10 @@ struct DialogOptions
     IDriverDependantBitmap *ddb;
     Bitmap *subBitmap;
     GuiTextBox *parserInput;
-    DialogTopic*dtop;
+    DialogTopicInfo*dtop;
 
-    char disporder[MAXTOPICOPTIONS];
-    short dispyp[MAXTOPICOPTIONS];
+    AGS::Common::Array<char> disporder;
+    AGS::Common::Array<short> dispyp;
 
     int numdisp;
     int chose;
@@ -503,7 +504,7 @@ void DialogOptions::Prepare(int _dlgnum, bool _runGameLoopsInBackground)
   int ww;
 
   parserActivated = 0;
-  if ((dtop->topicFlags & DTFLG_SHOWPARSER) && (play.DisableDialogParser == 0)) {
+  if ((dtop->Flags & Common::kDialogTopic_ShowParser) && (play.DisableDialogParser == 0)) {
     parserInput = new GuiTextBox();
     parserInput->SetHeight(txthit + get_fixed_pixel_size(4));
     parserInput->TextBoxFlags = 0;
@@ -511,9 +512,11 @@ void DialogOptions::Prepare(int _dlgnum, bool _runGameLoopsInBackground)
   }
 
   numdisp=0;
-  for (ww=0;ww<dtop->numoptions;ww++) {
-    if ((dtop->optionflags[ww] & DFLG_ON)==0) continue;
-    ensure_text_valid_for_font(dtop->optionnames[ww], usingfont);
+  for (ww=0;ww<dtop->OptionCount;ww++) {
+    if ((dtop->Options[ww].Flags & Common::kDialogOption_IsOn)==0) continue;
+    // FIXME this hack!
+    char *buffer = const_cast<char*>(dtop->Options[ww].Name.GetCStr());
+    ensure_text_valid_for_font(buffer, usingfont);
     disporder[numdisp]=ww;
     numdisp++;
   }
@@ -662,7 +665,7 @@ void DialogOptions::Redraw()
       areawid = multiply_up_coordinate(play.DialogOptionsMaxWidth);
       int biggest = 0;
       for (int i = 0; i < numdisp; ++i) {
-        break_up_text_into_lines(areawid-(8+bullet_wid),usingfont,get_translation(dtop->optionnames[disporder[i]]));
+        break_up_text_into_lines(areawid-(8+bullet_wid),usingfont,get_translation(dtop->Options[disporder[i]].Name));
         if (longestline > biggest)
           biggest = longestline;
       }
@@ -1024,11 +1027,11 @@ int show_dialog_options(int _dlgnum, int sayChosenOption, bool _runGameLoopsInBa
   int dialog_choice = DlgOpt.chose;
   if (dialog_choice != CHOSE_TEXTPARSER)
   {
-    DialogTopic *dialog_topic = DlgOpt.dtop;
-    int &option_flags = dialog_topic->optionflags[dialog_choice];
-    const char *option_name = DlgOpt.dtop->optionnames[dialog_choice];
+    DialogTopicInfo *dialog_topic = DlgOpt.dtop;
+    int &option_flags = dialog_topic->Options[dialog_choice].Flags;
+    const char *option_name = DlgOpt.dtop->Options[dialog_choice].Name;
 
-    option_flags |= DFLG_HASBEENCHOSEN;
+    option_flags |= Common::kDialogOption_HasBeenChosen;
     bool sayTheOption = false;
     if (sayChosenOption == SAYCHOSEN_YES)
     {
@@ -1036,7 +1039,7 @@ int show_dialog_options(int _dlgnum, int sayChosenOption, bool _runGameLoopsInBa
     }
     else if (sayChosenOption == SAYCHOSEN_USEFLAG)
     {
-      sayTheOption = ((option_flags & DFLG_NOREPEAT) == 0);
+      sayTheOption = ((option_flags & Common::kDialogOption_NoRepeat) == 0);
     }
 
     if (sayTheOption)
@@ -1057,10 +1060,10 @@ void do_conversation(int dlgnum)
   int dlgnum_was = dlgnum;
   int previousTopics[MAX_TOPIC_HISTORY];
   int numPrevTopics = 0;
-  DialogTopic *dtop = &dialog[dlgnum];
+  DialogTopicInfo *dtop = &dialog[dlgnum];
 
   // run the startup script
-  int tocar = run_dialog_script(dtop, dlgnum, dtop->startupentrypoint, 0);
+  int tocar = run_dialog_script(dtop, dlgnum, dtop->StartUpEntryPoint, 0);
   if ((tocar == RUN_DIALOG_STOP_DIALOG) ||
       (tocar == RUN_DIALOG_GOTO_PREVIOUS)) 
   {
@@ -1083,7 +1086,7 @@ void do_conversation(int dlgnum)
     {
       // dialog topic changed, so play the startup
       // script for the new topic
-      tocar = run_dialog_script(dtop, dlgnum, dtop->startupentrypoint, 0);
+      tocar = run_dialog_script(dtop, dlgnum, dtop->StartUpEntryPoint, 0);
       dlgnum_was = dlgnum;
       if (tocar == RUN_DIALOG_GOTO_PREVIOUS) {
         if (numPrevTopics < 1) {
@@ -1126,7 +1129,7 @@ void do_conversation(int dlgnum)
     }
     else 
     {
-      tocar = run_dialog_script(dtop, dlgnum, dtop->entrypoints[chose], chose + 1);
+      tocar = run_dialog_script(dtop, dlgnum, dtop->Options[chose].EntryPoint, chose + 1);
     }
 
     if (tocar == RUN_DIALOG_GOTO_PREVIOUS) {

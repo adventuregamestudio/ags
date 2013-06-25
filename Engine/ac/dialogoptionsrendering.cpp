@@ -13,14 +13,12 @@
 //=============================================================================
 
 #include "ac/dialogoptionsrendering.h"
-#include "ac/dialogtopic.h"
 #include "ac/gamestructdefines.h"
 #include "debug/debug_log.h"
 #include "game/script_objects.h"
 #include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_dialog.h"
-
-extern DialogTopic *dialog;
+#include "ac/dialog.h"
 
 // ** SCRIPT DIALOGOPTIONSRENDERING OBJECT
 
@@ -112,7 +110,7 @@ int DialogOptionsRendering_GetActiveOptionID(ScriptDialogOptionsRendering *dlgOp
 
 void DialogOptionsRendering_SetActiveOptionID(ScriptDialogOptionsRendering *dlgOptRender, int activeOptionID)
 {
-    int optionCount = dialog[scrDialog[dlgOptRender->dialogID].id].numoptions;
+    int optionCount = dialog[scrDialog[dlgOptRender->dialogID].id].OptionCount;
     if ((activeOptionID < 0) || (activeOptionID > optionCount))
         quitprintf("DialogOptionsRenderingInfo.ActiveOptionID: invalid ID specified for this dialog (specified %d, valid range: 1..%d)", activeOptionID, optionCount);
 

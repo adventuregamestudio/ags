@@ -229,10 +229,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\Engine\ac\dialogtopic.cpp"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Engine\ac\display.cpp"
 					>
 				</File>

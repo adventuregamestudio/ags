@@ -18,9 +18,9 @@ int mousex, mousey;
 #include "ac/common.h"
 #include "ac/scriptmodule.h"
 #include "ac/view.h"
-#include "ac/dialogtopic.h"
 #include "ac/wordsdictionary.h"
 #include "font/fonts.h"
+#include "game/dialogtopicinfo.h"
 #include "game/gameinfo.h"
 #include "game/roominfo.h"
 #include "gui/guimain.h"
@@ -95,8 +95,8 @@ int loaded_room_number = -1;
 // stuff for importing old games
 int numScriptModules;
 ScriptModule* scModules = NULL;
-DialogTopic *dialog;
-char*dlgscript[MAX_DIALOG];
+AGS::Common::ObjectArray<AGS::Common::DialogTopicInfo> dialog;
+AGS::Common::Array<char*> dlgscript;
 AGS::Common::ObjectArray<AGS::Common::GuiMain> guis;
 ViewStruct272 *oldViews;
 ViewStruct *newViews;
@@ -1437,12 +1437,29 @@ void load_script_modules_compiled(Stream *inn) {
 
 void read_dialogs(Stream*iii, int filever, bool encrypted) {
   int bb;
-  dialog = (DialogTopic*)malloc(sizeof(DialogTopic) * thisgame.DialogCount);
-  iii->ReadArray(&dialog[0],sizeof(DialogTopic),thisgame.DialogCount);
+  dialog.New(thisgame.DialogCount);
+
+  Common::DialogVersion dlg_version;
+  if (filever < kGameVersion_340_alpha)
+  {
+    dlg_version = Common::kDialogVersion_pre340;
+  }
+  else
+  {
+    dlg_version = (Common::DialogVersion)iii->ReadInt32();
+  }
+
+  //iii->ReadArray(&dialog[0],sizeof(DialogTopicInfo),thisgame.DialogCount);
+  for (int i = 0; i < thisgame.DialogCount; ++i)
+  {
+    dialog[i].ReadFromFile(iii, dlg_version);
+  }
+
   for (bb=0;bb<thisgame.DialogCount;bb++) {
-    if (dialog[bb].optionscripts!=NULL) {
-      dialog[bb].optionscripts=(unsigned char*)malloc(dialog[bb].codesize+10);
-      iii->Read(&dialog[bb].optionscripts[0],dialog[bb].codesize);
+    if (dialog[bb].OldCodeSize > 0) {
+      //dialog[bb].optionscripts=(unsigned char*)malloc(dialog[bb].OldCodeSize+10);
+      //iii->Read(&dialog[bb].optionscripts[0],dialog[bb].OldCodeSize);
+        iii->Seek(Common::kSeekCurrent, dialog[bb].OldCodeSize);
     }
     int lenof=iii->ReadInt32();
     if (lenof<=1) { iii->ReadByte();
@@ -1699,11 +1716,6 @@ void free_old_game_data()
 {
   int bb;
   thisgame.GlobalMessages.Free();
-  for (bb = 0; bb < thisgame.DialogCount; bb++) 
-  {
-	  if (dialog[bb].optionscripts != NULL)
-		  free(dialog[bb].optionscripts);
-  }
   thisgame.CharacterProperties.Free();
   
   for (bb = 0; bb < thisgame.CharacterCount; bb++)
@@ -1725,7 +1737,7 @@ void free_old_game_data()
   thisgame.Characters.Free();
   thisgame.Dictionary->free_memory();
   free(thisgame.Dictionary);
-  free(dialog);
+  dialog.Free();
   free_script_modules();
 }
 
@@ -3952,20 +3964,20 @@ Game^ load_old_game_dta_file(const char *fileName)
 	{
 		AGS::Types::Dialog ^newDialog = gcnew AGS::Types::Dialog();
 		newDialog->ID = i;
-		for (int j = 0; j < dialog[i].numoptions; j++) 
+		for (int j = 0; j < dialog[i].OptionCount; j++) 
 		{
 			AGS::Types::DialogOption ^newOption = gcnew AGS::Types::DialogOption();
 			newOption->ID = j + 1;
-			newOption->Text = gcnew String(dialog[i].optionnames[j]);
-			newOption->Say = !(dialog[i].optionflags[j] & DFLG_NOREPEAT);
-			newOption->Show = (dialog[i].optionflags[j] & DFLG_ON);
+			newOption->Text = gcnew String(dialog[i].Options[j].Name);
+			newOption->Say = !(dialog[i].Options[j].Flags & Common::kDialogOption_NoRepeat);
+			newOption->Show = (dialog[i].Options[j].Flags & Common::kDialogOption_IsOn);
 
 			newDialog->Options->Add(newOption);
 		}
 
 		newDialog->Name = gcnew String(thisgame.DialogScriptNames[i]);
 		newDialog->Script = gcnew String(dlgscript[i]);
-		newDialog->ShowTextParser = (dialog[i].topicFlags & DTFLG_SHOWPARSER);
+		newDialog->ShowTextParser = (dialog[i].Flags & Common::kDialogTopic_ShowParser);
 
 		game->Dialogs->Add(newDialog);
 	}
@@ -4803,7 +4815,13 @@ void save_thisgame_to_file(const char *fileName, Game ^game)
     write_string_encrypt(ooo, buffer);
 	  free(buffer);
   }
-  ooo->WriteArray(&dialog[0], sizeof(DialogTopic), thisgame.DialogCount);
+
+  ooo->WriteInt32(Common::kDialogVersion_Current);
+  for (int i = 0; i < thisgame.DialogCount; ++i)
+  {
+      dialog[i].WriteToFile(ooo);
+  }
+
   Common::Gui::WriteGui(guis, ooo);
   write_plugins_to_disk(ooo);
   // write the custom properties & schema
@@ -5097,39 +5115,34 @@ void save_game_to_dta_file(Game^ game, const char *fileName)
 	}
 
 	// ** Dialogs **
-	if (game->Dialogs->Count > MAX_DIALOG) 
-	{
-		throw gcnew CompileError("Too many dialogs");
-	}
 	thisgame.DialogCount = game->Dialogs->Count;
 	thisgame.DialogMessageCount = 0;
-	dialog = (DialogTopic*)malloc(sizeof(DialogTopic) * thisgame.DialogCount);
+	dialog.New(thisgame.DialogCount);
     thisgame.DialogScriptNames.New(thisgame.DialogCount);
 	for (i = 0; i < thisgame.DialogCount; i++) 
 	{
 		Dialog ^curDialog = game->Dialogs[i];
-		dialog[i].numoptions = curDialog->Options->Count;
-		for (int j = 0; j < dialog[i].numoptions; j++) 
+		dialog[i].OptionCount = curDialog->Options->Count;
+		for (int j = 0; j < dialog[i].OptionCount; j++) 
 		{
 			AGS::Types::DialogOption ^option = curDialog->Options[j];
-			ConvertStringToCharArray(option->Text, dialog[i].optionnames[j], 150);
+			ConvertStringToNativeString(option->Text, dialog[i].Options[j].Name, 150);
 			//dialog[i].entrypoints[j] = option->EntryPointOffset;
-			dialog[i].optionflags[j] = 0;
+			dialog[i].Options[j].Flags = 0;
 			if (!option->Say) 
 			{
-				dialog[i].optionflags[j] |= DFLG_NOREPEAT;
+				dialog[i].Options[j].Flags |= Common::kDialogOption_NoRepeat;
 			}
 			if (option->Show)
 			{
-				dialog[i].optionflags[j] |= DFLG_ON;
+				dialog[i].Options[j].Flags |= Common::kDialogOption_IsOn;
 			}
 		}
 		
-    dialog[i].optionscripts = NULL;
 /*	    dialog[i].optionscripts = (unsigned char*)malloc(curDialog->CodeSize);
 	    Marshal::Copy(curDialog->CompiledCode, 0, IntPtr(dialog[i].optionscripts), curDialog->CodeSize);
 
-		dialog[i].codesize = curDialog->CodeSize;
+		dialog[i].OldCodeSize = curDialog->CodeSize;
 		dialog[i].startupentrypoint = curDialog->StartupEntryPointOffset;
 
 		dlgscript[i] = (char*)malloc(curDialog->Script->Length + 1);
@@ -5137,8 +5150,8 @@ void save_game_to_dta_file(Game^ game, const char *fileName)
 
 		ConvertStringToNativeString(curDialog->Name, thisgame.DialogScriptNames[i], MAX_SCRIPT_NAME_LEN);
 
-		dialog[i].topicFlags = 0;
-		if (curDialog->ShowTextParser) dialog[i].topicFlags |= DTFLG_SHOWPARSER;
+		dialog[i].Flags = 0;
+		if (curDialog->ShowTextParser) dialog[i].Flags |= Common::kDialogTopic_ShowParser;
 	}
 
 	// ** Cursors **

@@ -21,7 +21,7 @@
 #include "ac/character.h"
 #include "ac/charactercache.h"
 #include "ac/characterextras.h"
-#include "ac/dialogtopic.h"
+#include "ac/dialog.h"
 #include "ac/draw.h"
 #include "ac/dynamicsprite.h"
 #include "ac/event.h"
@@ -95,7 +95,6 @@ extern SpeechLipSyncLine *splipsync;
 extern int numLipLines, curLipLine, curLipLinePhenome;
 
 extern CharacterExtras *charextra;
-extern DialogTopic *dialog;
 
 extern int scrnwid,scrnhit;
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
@@ -532,13 +531,7 @@ void unload_game_file() {
     game.RoomNumbers.Free();
     game.RoomCount = 0;
 
-    for (ee=0;ee<game.DialogCount;ee++) {
-        if (dialog[ee].optionscripts!=NULL)
-            free (dialog[ee].optionscripts);
-        dialog[ee].optionscripts = NULL;
-    }
-    free (dialog);
-    dialog = NULL;
+    dialog.Free();
 
     for (ee = 0; ee < game.GuiCount; ee++) {
         free (guibg[ee]);
@@ -1376,8 +1369,18 @@ void restore_game_palette(Stream *in)
 
 void restore_game_dialogs(Stream *in)
 {
-    for (int vv=0;vv<game.DialogCount;vv++)
-        in->ReadArrayOfInt32(&dialog[vv].optionflags[0],MAXTOPICOPTIONS);
+    for (int i = 0; i < game.DialogCount; ++i)
+    {
+        AGS::Common::DialogTopicInfo &dlg_topic = dialog[i];
+        for (int opt = 0; opt < dlg_topic.OptionCount; ++opt)
+        {
+            dlg_topic.Options[opt].Flags = in->ReadInt32();
+        }
+        for (int opt = dlg_topic.OptionCount; opt < LEGACY_MAX_DIALOG_TOPIC_OPTIONS; ++opt)
+        {
+            in->ReadInt32();
+        }
+    }
 }
 
 void restore_game_more_dynamic_values(Stream *in)
@@ -1634,7 +1637,7 @@ void restore_game_before_managed_pool()
     // reallocate objects in memory).
     ccUnregisterAllObjects();
 
-    scrDialog.SetLength(MAX_DIALOG);
+    scrDialog.SetLength(LEGACY_MAX_DIALOG_TOPICS);
     scrHotspot.SetLength(LEGACY_MAX_ROOM_HOTSPOTS);
     scrInv.SetLength(MAX_INV);
     scrObj.SetLength(LEGACY_MAX_ROOM_OBJECTS);

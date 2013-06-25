@@ -68,10 +68,6 @@ namespace AGS.Editor
             flowLayoutPanel1.Controls.Add(btnNewOption);
             flowLayoutPanel1.Controls.Add(btnDeleteOption);
 
-            if (_dialog.Options.Count >= Dialog.MAX_OPTIONS_PER_DIALOG)
-            {
-                btnNewOption.Visible = false;
-            }
             if (_dialog.Options.Count < 1)
             {
                 btnDeleteOption.Visible = false;
@@ -237,11 +233,7 @@ namespace AGS.Editor
             flowLayoutPanel1.Controls.Add(btnDeleteOption);
             newEditor.Focus();
 
-            if (_dialog.Options.Count >= Dialog.MAX_OPTIONS_PER_DIALOG)
-            {
-                btnNewOption.Visible = false;
-            }
-            else
+            if (_dialog.Options.Count >= 1)
             {
                 btnDeleteOption.Visible = true;
             }

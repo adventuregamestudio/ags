@@ -541,6 +541,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\speech.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\sprite.cpp"
 					>
 				</File>

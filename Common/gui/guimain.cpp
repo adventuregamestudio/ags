@@ -276,9 +276,8 @@ void GuiMain::RebuildArray()
 
 int CompareGuiControlZOrder(GuiObject *const *elem1, GuiObject *const *elem2)
 {
-    elem1 = NULL;
-  // returns >0 if e1 is lower down, <0 if higher, =0 if the same
-  return (*elem1)->ZOrder - (*elem2)->ZOrder;
+    // returns >0 if e1 is lower down, <0 if higher, =0 if the same
+    return (*elem1)->ZOrder - (*elem2)->ZOrder;
 }
 
 void GuiMain::ResortZOrder()

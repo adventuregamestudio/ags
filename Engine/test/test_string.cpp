@@ -36,22 +36,22 @@ void Test_String()
         assert(cap1 == s1.GetLength());
 
         s2.TruncateToLeft(10);
-        assert(cap1 == s2.GetCapacity());
+        assert(10 == s2.GetCapacity());
         s3.TruncateToRight(10);
-        assert(cap1 == s3.GetCapacity());
+        assert(10 == s3.GetCapacity());
         assert(s1.GetRefCount() == 1);
 
         s2.AppendChar('z');
-        assert(cap1 == s2.GetCapacity());
+        assert(20 == s2.GetCapacity());
 
         s3.Append("1234");
-        assert(cap1 == s3.GetCapacity());
+        assert(20 == s3.GetCapacity());
         s3.Append("1234567890123");
-        assert(32 == s3.GetCapacity());
+        assert(40 == s3.GetCapacity());
         s3.Append("1234567890123");
-        assert(64 == s3.GetCapacity());
+        assert(40 == s3.GetCapacity());
         s3.Append("1234567890123");
-        assert(64 == s3.GetCapacity());
+        assert(80 == s3.GetCapacity());
 
         String s4 = "12345678901234567890";
         const char *cstr = s4.GetCStr();
@@ -302,6 +302,22 @@ void Test_String()
         assert(strcmp(str10, "C:\\Games\\AGS\\MyNewGame") == 0);
         assert(strcmp(str11, "C:\\Games\\AGSMyNewGame") == 0);
         assert(strcmp(str12, "C:\\Games\\AGS\\MyNewGame") == 0);
+    }
+
+    // Insert
+    {
+        String s1 = "a place to insert something";
+        String s2 = s1;
+        s1.Insert(11, "boldly ");
+        assert(strcmp(s1, "a place to boldly insert something") == 0);
+        s2.InsertChar(17, '1');
+        assert(strcmp(s2, "a place to insert1 something") == 0);
+        String s3 = "insert";
+        String s4 = s3;
+        s3.Insert(0, "here ");
+        s4.Insert(s4.GetLength(), " here");
+        assert(strcmp(s3, "here insert") == 0);
+        assert(strcmp(s4, "insert here") == 0);
     }
 
     // Test making new string

@@ -188,6 +188,8 @@ public:
     void    Reserve(int max_length);
     // Ensure string has at least space to store N additional chars
     void    ReserveMore(int more_length);
+    // Same as ReserveMore, but optimizes buffer to precede prepending operations
+    void    ReserveForPrepend(int more_length);
     // Make string's buffer as small as possible to hold current data
     void    Compact();
 
@@ -221,6 +223,10 @@ public:
     // if string must be truncated to zero length, but retain the allocated
     // memory, call Empty() instead.
     void    Free();
+    // Inserts a C-string in the middle of existing string at given point
+    void    Insert(int at, const char *cstr);
+    // Inserts single character in the middle of a string at given point
+    void    InsertChar(int at, char c);
     // Convert string to lowercase equivalent
     void    MakeLower();
     // Convert string to uppercase equivalent
@@ -287,23 +293,21 @@ public:
 
 private:
     // Creates new empty string with buffer enough to fit given length
-    void    Create(int buffer_length);
-    // Release string and copy data to the new buffer
-    void    Copy(int buffer_length, int offset = 0);
-    // Aligns data at given offset
-    void    Align(int offset);
+    void    CreateBuffer(int max_length);
+    // Release string and copy data to the new buffer, optionally inserting
+    // or removing extra space before, after or in the middle of copied array
+    void    Copy(int new_capacity, int copy_from = 0, bool expand = true, int change_at = 0, int change_count = 0);
 
     // Ensure this string is a compact independent copy, with ref counter = 1
     inline void BecomeUnique()
     {
-        if (_meta->RefCount != 1)
+        if (_meta->RefCount > 1)
         {
             Copy(_meta->Length);
         }
     }
-    // Ensure this string is independent, and there's enough space before
-    // or after the current string data
-    void    ReserveAndShift(bool reserve_left, int need_space);
+    // Ensure this string is independent, and there's enough space to insert new data
+    void    ReserveAndShift(int reserve_at, int need_space);
 
     struct Header
     {
@@ -321,6 +325,17 @@ private:
         char    *_data;
         Header  *_meta;
     };
+
+    inline char *BufferBegin() const { return _data + sizeof(Header); }
+    inline char *BufferEnd()   const { return _data + sizeof(Header) + _meta->Capacity; }
+    inline char *StringBegin() const { return _meta->CStr; }
+    inline char *StringEnd()   const { return _meta->CStr + _meta->Length; }
+    inline int  SpaceLeft()    const { return StringBegin() - BufferBegin(); }
+    inline int  SpaceRight()   const { return BufferEnd() - StringEnd(); }
+    inline bool MustReserve(int total_space)         const { return !_meta || _meta->RefCount > 1 ||
+                                                             total_space > _meta->Length && SpaceRight() < total_space - _meta->Length; }
+    inline bool MustReserveMoreRight(int need_space) const { return !_meta || _meta->RefCount > 1 || SpaceRight() < need_space; }
+    inline bool MustReserveMoreLeft(int need_space)  const { return !_meta || _meta->RefCount > 1 || SpaceLeft() < need_space; }
 
     static const int _internalBufferLength = 3000;
     static char _internalBuffer[3001];

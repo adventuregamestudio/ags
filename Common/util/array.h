@@ -1,4 +1,3 @@
-
 //=============================================================================
 //
 // Adventure Game Studio (AGS)
@@ -26,6 +25,7 @@
 #include "core/types.h"
 #include "debug/assert.h"
 #include "util/math.h"
+#include "util/memory.h"
 #include "util/stream.h"
 
 namespace AGS
@@ -118,7 +118,7 @@ public:
         {
             return;
         }
-        count = count > 0 ? count : 0;
+        count = Math::Max(count, 0);
         if (!_meta || _meta->RefCount > 1 || _meta->Capacity != count)
         {
             Free();
@@ -134,7 +134,7 @@ public:
         {
             return;
         }
-        count = count > 0 ? count : 0;
+        count = Math::Max(count, 0);
         if ((!_meta && count > 0) || _meta->RefCount > 1 || _meta->Capacity != count)
         {
             Free();
@@ -149,7 +149,7 @@ public:
         New(count);
         if (arr && count > 0)
         {
-            memcpy(_meta->Arr, arr, sizeof(T) * count);
+            Memory::Copy<T>(_meta->Arr, arr, count);
         }
     }
     // Destroy all existing elements in array
@@ -157,7 +157,10 @@ public:
     {
         if (_meta)
         {
-            BecomeUnique();
+            if (_meta->RefCount > 1)
+            {
+                Free();
+            }
             _meta->Length = 0;
         }
     }
@@ -208,8 +211,16 @@ public:
     {
         if (in && count > 0)
         {
-            New(count);
-            in->ReadArray(_meta->Arr, sizeof(T), count);
+            if (MustReserve(count))
+            {
+                ReserveAndShift(-1, count - GetCount());
+            }
+            count = in->ReadArray(_meta->Arr, sizeof(T), count);
+             _meta->Length = count;
+        }
+        else
+        {
+            Empty();
         }
     }
     // Reads up to N elements from stream, copying the over existing elements.
@@ -218,11 +229,11 @@ public:
     {
         if (_meta && _meta->Length > 0 && count != 0 && in)
         {
-            BecomeUnique();
             count = count >= 0 ? count : _meta->Length;
             Math::ClampLength(0, _meta->Length, from, count);
             if (count > 0)
             {
+                BecomeUnique();
                 in->ReadArray(_meta->Arr + from, sizeof(T), count);
             }
         }
@@ -233,7 +244,7 @@ public:
     }
     // Write array elements to stream, putting raw bytes from array buffer.
     // It is not recommended to use this function for non-POD types.
-    void WriteRaw(Stream *out, int from, int count)
+    void WriteRaw(Stream *out, int from, int count) const
     {
         if (_meta && _meta->Length > 0 && out)
         {
@@ -245,26 +256,26 @@ public:
             }
         }
     }
-    inline void WriteRaw(Stream *out, int count = -1)
+    inline void WriteRaw(Stream *out, int count = -1) const
     {
         WriteRaw(out, 0, count);
     }
 
-    // Ensure string has at least space to store N chars;
-    // this does not change string contents, nor length
+    // Ensure array has at least space to store N chars;
+    // this does not change array contents, nor length
     void Reserve(int max_length)
     {
-        if (max_length > 0 && _meta && max_length > _meta->Capacity)
+        if (MustReserve(max_length))
         {
-            ReserveAndShift(false, max_length - _meta->Length);
+            ReserveAndShift(-1, max_length - GetCount());
         }
     }
-    // Ensure string has at least space to store N additional chars
+    // Ensure array has at least space to store N additional chars
     void ReserveMore(int more_length)
     {
-        ReserveAndShift(false, more_length);
+        ReserveAndShift(-1, more_length);
     }
-    // Make string's buffer as small as possible to hold current data
+    // Make array's buffer as small as possible to hold current data
     void Compact()
     {
         if (_meta && _meta->Capacity > _meta->Length)
@@ -275,7 +286,10 @@ public:
     // Add single element at array's end
     void Append(const T &value)
     {
-        ReserveAndShift(false, 1);
+        if (MustReserveMoreRight(1))
+        {
+            ReserveAndShift(-1, 1);
+        }
         _meta->Arr[_meta->Length++] = value;
     }
     // Add number of unitialized elements at array's end
@@ -283,7 +297,10 @@ public:
     {
         if (count > 0)
         {
-            ReserveAndShift(false, count);
+            if (MustReserveMoreRight(count))
+            {
+                ReserveAndShift(-1, count);
+            }
             _meta->Length += count;
         }
     }
@@ -293,69 +310,94 @@ public:
     {
         if (count > 0)
         {
-            ReserveAndShift(false, count);
+            if (MustReserveMoreRight(count))
+            {
+                ReserveAndShift(-1, count);
+            }
             Construct(_meta->Length, _meta->Length + count, value);
             _meta->Length += count;
         }
     }
-    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    // TODO
     void Insert(int at_index, const T &value)
     {
+        Math::Clamp(0, GetCount(), at_index);
+        ReserveAndShift(at_index, 1);
+        _meta->Arr[at_index] = value;
+        _meta->Length++;
     }
     void InsertCount(int at_index, int count, const T &value)
     {
+        if (count > 0)
+        {
+            Math::Clamp(0, GetCount(), at_index);
+            ReserveAndShift(at_index, count);
+            Construct(at_index, at_index + count, value);
+            _meta->Length += count;
+        }
     }
     void Remove(int at_index, int count = 1)
     {
+        if (_meta && _meta->Length > 0)
+        {
+            count = count >= 0 ? count : _meta->Length;
+            Math::ClampLength(0, _meta->Length, at_index, count);
+            if (count > 0)
+            {
+                if (_meta->RefCount > 1)
+                {
+                    Copy(_meta->Length - count, 0, false, at_index, count);
+                }
+                else
+                {
+                    _meta->Arr = Memory::ExcludeDataInBuffer<T>(_meta->Arr, _meta->Length, at_index, count);
+                    _meta->Length -= count;
+                }
+            }
+        }
     }
-    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // Grows or truncates array to match given N number of elements,
     // keeps up to N of previously existed elements.
     void SetLength(int count)
     {
-        if (_meta)
+        count = Math::Max(count, 0);
+        if (count > 0)
         {
-            count = count > 0 ? count : 0;
-            if (count > _meta->Length)
+            if (MustReserve(count))
             {
-                ReserveAndShift(false, count - _meta->Length);
+                ReserveAndShift(-1, count - GetCount());
             }
-            else
+            else if (_meta->RefCount > 1)
             {
-                BecomeUnique();
+                Copy(count);
             }
             _meta->Length = count;
         }
-        else if (count > 0)
+        else
         {
-            CreateBuffer(count);
-            _meta->Length = count;
+            Empty();
         }
     }
     // Same as first SetLength(), but but also explicitly assigns initial value to
     // every new element.
     void SetLength(int count, const T &value)
     {
-        if (_meta)
+        count = Math::Max(count, 0);
+        if (count > 0)
         {
-            count = count > 0 ? count : 0;
-            if (count > _meta->Length)
+            if (MustReserve(count))
             {
-                ReserveAndShift(false, count - _meta->Length);
+                ReserveAndShift(-1, count - GetCount());
                 Construct(_meta->Length, count, value);
             }
-            else
+            else if (_meta->RefCount > 1)
             {
-                BecomeUnique();
+                Copy(count);
             }
             _meta->Length = count;
         }
-        else if (count > 0)
+        else
         {
-            CreateBuffer(count);
-            Construct(0, count, value);
-            _meta->Length = count;
+            Empty();
         }
     }
     inline void QSort(int (*pfn_compare)(const T*, const T*))
@@ -414,70 +456,70 @@ protected:
         _meta->Length = 0;
         _meta->Arr = (T*)(_data + sizeof(ArrayBase<T>));
     }
-    // Copy data to the new buffer at given offset
-    void Copy(int max_length, int offset = 0)
+    // Release array and copy data to the new buffer, optionally inserting
+    // or removing extra space before, after or in the middle of copied array
+    void Copy(int new_capacity, int copy_from = 0, bool expand = true, int change_at = 0, int change_count = 0)
     {
-        if (!_meta)
+        char *new_data = new char[sizeof(ArrayBase<T>) + new_capacity * sizeof(T)];
+        // remember, that _meta->Arr may point to any address in buffer
+        T *arr_head  = (T*)(new_data + sizeof(ArrayBase<T>));
+        T *new_arr;
+        int copy_length = _meta->Length - copy_from;
+        if (change_count == 0)
         {
-            return;
+            copy_length = Math::Min(copy_length, new_capacity);
+            Memory::Copy<T>(arr_head, _meta->Arr + copy_from, copy_length);
+            new_arr = arr_head;
+        }
+        else if (expand)
+        {
+            new_arr = Memory::CopyAndInsertSpace<T>(arr_head, _meta->Arr + copy_from, copy_length,
+                                                 change_at, change_count);
+        }
+        else
+        {
+            new_arr = Memory::CopyPartial<T>(arr_head, _meta->Arr + copy_from, copy_length,
+                                          change_at, change_count);
+            copy_length -= change_count;
         }
 
-        char *new_data = new char[sizeof(ArrayBase<T>) + max_length * sizeof(T)];
-        // remember, that _meta->Arr may point to any address in buffer
-        T *arr_head = (T*)(new_data + sizeof(ArrayBase<T>)) + offset;
-        int copy_length = Math::Min(_meta->Length, max_length);
-        memcpy(arr_head, _meta->Arr, copy_length * sizeof(T));
         Free();
         _data = new_data;
         _meta->RefCount = 1;
-        _meta->Capacity = max_length;
+        _meta->Capacity = new_capacity;
         _meta->Length = copy_length;
-        _meta->Arr = arr_head;
-    }
-    // Aligns data at given offset in buffer
-    void Align(int offset)
-    {
-        T *arr_head = (T*)(_data + sizeof(ArrayBase<T>)) + offset;
-        memmove(arr_head, _meta->Arr, _meta->Length);
-        _meta->Arr = arr_head;
+        _meta->Arr = new_arr;        
     }
     // Ensure this array is a compact independent copy, with ref counter = 1
     inline void BecomeUnique()
     {
-        if (_meta->RefCount != 1)
+        if (_meta->RefCount > 1)
         {
             Copy(_meta->Length);
         }
     }
     // TODO: more balanced appending/prepending strategy
-    void ReserveAndShift(bool reserve_left, int need_space)
+    void ReserveAndShift(int reserve_at, int need_space)
     {
         if (_meta)
         {
-            int total_length = _meta->Length + need_space;
+            reserve_at = reserve_at < 0 ? _meta->Length : Math::Min(reserve_at, _meta->Length);
+            const int total_length = _meta->Length + need_space;
             if (_meta->Capacity < total_length)
             {
                 // grow by 100% or at least to total_size, or at least by 4 elements
-                int grow_length = Math::Max(_meta->Capacity << 1, 4);
-                Copy(Math::Max(total_length, grow_length), reserve_left ? need_space : 0);
+                int grown_length = Math::Max(_meta->Capacity << 1, _meta->Capacity + 4);
+                Copy(Math::Max(total_length, grown_length), 0, true, reserve_at, need_space);
             }
             else if (_meta->RefCount > 1)
             {
-                Copy(_meta->Capacity, reserve_left ? need_space : 0);
+                Copy(total_length, 0, true, reserve_at, need_space);
             }
             else
             {
                 // make sure we make use of all of our space
-                const T *arrbuf_head = (const T*)(_data + sizeof(ArrayBase<T>));
-                int free_space = reserve_left ?
-                    _meta->Arr - arrbuf_head :
-                    (arrbuf_head + _meta->Capacity) - (_meta->Arr + _meta->Length);
-                if (free_space < need_space)
-                {
-                    Align(reserve_left ?
-                        (_meta->Arr + (need_space - free_space)) - arrbuf_head :
-                    0);
-                }
+                _meta->Arr = Memory::ExpandDataInBuffer<T>((T*)(_data + sizeof(ArrayBase<T>)), _meta->Capacity, _meta->Arr, _meta->Length,
+                    reserve_at, need_space);
             }
         }
         else
@@ -491,6 +533,17 @@ protected:
         char         *_data;
         ArrayBase<T> *_meta;
     };
+
+    inline T    *BufferBegin() const { return (T*)(_data + sizeof(ArrayBase<T>)); }
+    inline T    *BufferEnd()   const { return (T*)(_data + sizeof(ArrayBase<T>)) + _meta->Capacity; }
+    inline T    *StringBegin() const { return _meta->Arr; }
+    inline T    *StringEnd()   const { return _meta->Arr + _meta->Length; }
+    inline int  SpaceLeft()    const { return StringBegin() - BufferBegin(); }
+    inline int  SpaceRight()   const { return BufferEnd() - StringEnd(); }
+    inline bool MustReserve(int total_space)         const { return !_meta || _meta->RefCount > 1 ||
+        total_space > _meta->Length && SpaceRight() < total_space - _meta->Length; }
+    inline bool MustReserveMoreRight(int need_space) const { return !_meta || _meta->RefCount > 1 || SpaceRight() < need_space; }
+    inline bool MustReserveMoreLeft(int need_space)  const { return !_meta || _meta->RefCount > 1 || SpaceLeft() < need_space; }
 };
 
 
@@ -564,7 +617,7 @@ public:
         {
             return;
         }
-        count = count > 0 ? count : 0;
+        count = Math::Max(count, 0);
         if (_meta && _meta->RefCount == 1 && _meta->Capacity == count)
         {
             Deconstruct(0, _meta->Length);
@@ -585,7 +638,7 @@ public:
         {
             return;
         }
-        count = count > 0 ? count : 0;
+        count = Math::Max(count, 0);
         if (_meta && _meta->RefCount == 1 && _meta->Capacity == count)
         {
             Deconstruct(0, _meta->Length);
@@ -601,15 +654,27 @@ public:
     // Create new array and copy N elements from C-array
     void CreateFromCArray(const T *arr, int count)
     {
-        New(count);
         if (arr && count > 0)
         {
-            const T *end_ptr = _meta->Arr + count;
-            const T *src_ptr = arr;
-            for (T *dest_ptr = _meta->Arr; dest_ptr != end_ptr; ++dest_ptr, ++src_ptr)
+            if (_meta && _meta->RefCount == 1 && _meta->Capacity == count)
             {
-                *dest_ptr = *src_ptr;
+                Deconstruct(0, _meta->Length);
             }
+            else
+            {
+                Free();
+                CreateBuffer(count);
+            }
+            const T *end_ptr = _meta->Arr + count;
+            T *dest_ptr = _meta->Arr;
+            while (dest_ptr < end_ptr)
+            {
+                *dest_ptr++ = *arr++;
+            }
+        }
+        else
+        {
+            Free();
         }
     }
     // Destroy all existing elements in array
@@ -617,8 +682,14 @@ public:
     {
         if (_meta)
         {
-            BecomeUnique();
-            Deconstruct(0, _meta->Length);
+            if (_meta->RefCount > 1)
+            {
+                Free();
+            }
+            else
+            {
+                Deconstruct(0, _meta->Length);
+            }
             _meta->Length = 0;
         }
     }
@@ -663,21 +734,21 @@ public:
         }
     }
 
-    // Ensure string has at least space to store N chars;
-    // this does not change string contents, nor length
+    // Ensure array has at least space to store N chars;
+    // this does not change array contents, nor length
     void Reserve(int max_length)
     {
-        if (max_length > 0 && _meta && max_length > _meta->Capacity)
+        if (MustReserve(max_length))
         {
-            ReserveAndShift(false, max_length - _meta->Length);
+            ReserveAndShift(-1, max_length - GetCount());
         }
     }
-    // Ensure string has at least space to store N additional chars
+    // Ensure array has at least space to store N additional chars
     void ReserveMore(int more_length)
     {
-        ReserveAndShift(false, more_length);
+        ReserveAndShift(-1, more_length);
     }
-    // Make string's buffer as small as possible to hold current data
+    // Make array's buffer as small as possible to hold current data
     void Compact()
     {
         if (_meta && _meta->Capacity > _meta->Length)
@@ -688,15 +759,21 @@ public:
     // Add single element at array's end
     void Append(const T &value)
     {
-        ReserveAndShift(false, 1);
+        if (MustReserveMoreRight(1))
+        {
+            ReserveAndShift(-1, 1);
+        }
         new (_meta->Arr + _meta->Length++) T(value);
     }
-    // Add number of unitialized elements at array's end
+    // Add number of elements with default values at array's end
     void AppendCount(int count)
     {
         if (count > 0)
         {
-            ReserveAndShift(false, count);
+            if (MustReserveMoreRight(count))
+            {
+                ReserveAndShift(-1, count);
+            }
             Construct(_meta->Length, _meta->Length + count);
             _meta->Length += count;
         }
@@ -707,79 +784,103 @@ public:
     {
         if (count > 0)
         {
-            ReserveAndShift(false, count);
+            if (MustReserveMoreRight(count))
+            {
+                ReserveAndShift(-1, count);
+            }
             Construct(_meta->Length, _meta->Length + count, &value);
             _meta->Length += count;
         }
     }
-    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    // TODO
     void Insert(int at_index, const T &value)
     {
+        Math::Clamp(0, GetCount(), at_index);
+        ReserveAndShift(at_index, 1);
+        new (_meta->Arr + at_index) T(value);
+        _meta->Length++;
     }
     void InsertCount(int at_index, int count, const T &value)
     {
+        if (count > 0)
+        {
+            Math::Clamp(0, GetCount(), at_index);
+            ReserveAndShift(at_index, count);
+            Construct(at_index, at_index + count, value);
+            _meta->Length += count;
+        }
     }
     void Remove(int at_index, int count = 1)
     {
+        if (_meta && _meta->Length > 0)
+        {
+            count = count >= 0 ? count : _meta->Length;
+            Math::ClampLength(0, _meta->Length, at_index, count);
+            if (count > 0)
+            {
+                if (_meta->RefCount > 1)
+                {
+                    Copy(_meta->Length - count, 0, false, at_index, count);
+                }
+                else
+                {
+                    _meta->Arr = Memory::ExcludeObjectsInBuffer<T>(_meta->Arr, _meta->Length, at_index, count);
+                    _meta->Length -= count;
+                }
+            }
+        }
     }
-    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // Grows or truncates array to match given N number of elements,
     // keeps up to N of previously existed elements.
     void SetLength(int count)
     {
-        if (_meta)
+        count = Math::Max(count, 0);
+        if (count > 0)
         {
-            count = count > 0 ? count : 0;
-            if (count > _meta->Length)
+            if (MustReserve(count))
             {
-                ReserveAndShift(false, count - _meta->Length);
+                ReserveAndShift(-1, count - GetCount());
                 Construct(_meta->Length, count);
             }
-            else
+            else if (_meta->RefCount > 1)
             {
-                BecomeUnique();
-                if (count < _meta->Length)
-                {
-                    Deconstruct(count, _meta->Length);
-                }
+                Copy(count);
+            }
+            else if (count < _meta->Length)
+            {
+                Deconstruct(count, _meta->Length);
             }
             _meta->Length = count;
         }
-        else if (count > 0)
+        else
         {
-            CreateBuffer(count);
-            Construct(0, count);
-            _meta->Length = count;
+            Empty();
         }
     }
     // Same as first SetLength(), but but also explicitly assigns initial value to
     // every new element.
     void SetLength(int count, const T &value)
     {
-        if (_meta)
+        count = Math::Max(count, 0);
+        if (count > 0)
         {
-            count = count > 0 ? count : 0;
-            if (count > _meta->Length)
+            if (MustReserve(count))
             {
-                ReserveAndShift(false, count - _meta->Length);
+                ReserveAndShift(-1, count - GetCount());
                 Construct(_meta->Length, count, &value);
             }
-            else
+            else if (_meta->RefCount > 1)
             {
-                BecomeUnique();
-                if (count < _meta->Length)
-                {
-                    Deconstruct(count, _meta->Length);
-                }
+                Copy(count);
+            }
+            else if (count < _meta->Length)
+            {
+                Deconstruct(count, _meta->Length);
             }
             _meta->Length = count;
         }
-        else if (count > 0)
+        else
         {
-            CreateBuffer(count);
-            Construct(0, count, &value);
-            _meta->Length = count;
+            Empty();
         }
     }
     // Assign array by sharing data reference
@@ -850,105 +951,70 @@ protected:
         _meta->Length = 0;
         _meta->Arr = (T*)(_data + sizeof(ArrayBase<T>));
     }
-    // Copy data to the new buffer at given offset
-    void Copy(int max_length, int offset = 0)
+    // Release array and copy data to the new buffer, optionally leaving
+    // extra space before, after or in the middle of copied array
+    void Copy(int new_capacity, int copy_from = 0, bool expand = true, int change_at = 0, int change_count = 0)
     {
-        char *new_data = new char[sizeof(ArrayBase<T>) + max_length * sizeof(T)];
+        char *new_data = new char[sizeof(ArrayBase<T>) + new_capacity * sizeof(T)];
         // remember, that _meta->Arr may point to any address in buffer
-        T *arr_head = (T*)(new_data + sizeof(ArrayBase<T>)) + offset;
-        int copy_length = Math::Min(_meta->Length, max_length);
-        const T *end_ptr = arr_head + copy_length;
-        for (T *dest_ptr = arr_head, *src_ptr = _meta->Arr; dest_ptr != end_ptr; ++dest_ptr, ++src_ptr)
+        T *arr_head  = (T*)(new_data + sizeof(ArrayBase<T>));
+        T *new_arr;
+        int copy_length = _meta->Length - copy_from;
+        if (change_count == 0)
         {
-            new (dest_ptr) T(*src_ptr);
+            copy_length = Math::Min(copy_length, new_capacity);
+            Memory::UninitializedCopy<T>(arr_head, _meta->Arr + copy_from, copy_length);
+            new_arr = arr_head;
         }
+        else if (expand)
+        {
+            new_arr = Memory::ObjectCopyAndInsertSpace<T>(arr_head, _meta->Arr + copy_from, copy_length,
+                change_at, change_count);
+        }
+        else
+        {
+            new_arr = Memory::ObjectCopyPartial<T>(arr_head, _meta->Arr + copy_from, copy_length,
+                change_at, change_count);
+            copy_length -= change_count;
+        }
+
         Free();
         _data = new_data;
         _meta->RefCount = 1;
-        _meta->Capacity = max_length;
+        _meta->Capacity = new_capacity;
         _meta->Length = copy_length;
-        _meta->Arr = arr_head;
-    }
-    // Aligns data at given offset in buffer
-    void Align(int offset)
-    {
-        T *arr_head = (T*)(_data + sizeof(ArrayBase<T>)) + offset;
-        T *dst_end_ptr = arr_head + _meta->Length;
-        T *src_end_ptr = _meta->Arr + _meta->Length;
-        if (arr_head < _meta->Arr)
-        {
-            T *dest_ptr = arr_head;
-            T *src_ptr = _meta->Arr;
-            for (; dest_ptr < _meta->Arr; ++dest_ptr, ++src_ptr)
-            {
-                new (dest_ptr) T(*src_ptr);
-            }
-            for (; dest_ptr < dst_end_ptr; ++dest_ptr, ++src_ptr)
-            {
-               *dest_ptr = *src_ptr;
-            }
-            for (; src_ptr < src_end_ptr; ++src_ptr)
-            {
-                src_ptr->~T();
-            }
-        }
-        // This function assumes that the new offset is different
-        else // arr_head > _meta->Arr
-        {
-            T *dest_ptr = dst_end_ptr;
-            T *src_ptr = src_end_ptr;
-            for (; dest_ptr >= src_end_ptr; --dest_ptr, --src_ptr)
-            {
-                new (dest_ptr) T(*src_ptr);
-            }
-            for (; dest_ptr >= arr_head; --dest_ptr, --src_ptr)
-            {
-                *dest_ptr = *src_ptr;
-            }
-            for (; src_ptr >= _meta->Arr; --src_ptr)
-            {
-                src_ptr->~T();
-            }
-        }
-        _meta->Arr = arr_head;
+        _meta->Arr = new_arr; 
     }
     // Ensure this array is a compact independent copy, with ref counter = 1
     inline void BecomeUnique()
     {
-        if (_meta->RefCount != 1)
+        if (_meta->RefCount > 1)
         {
             Copy(_meta->Length);
         }
     }
     // TODO: more balanced appending/prepending strategy
-    void ReserveAndShift(bool reserve_left, int need_space)
+    void ReserveAndShift(int reserve_at, int need_space)
     {
         if (_meta)
         {
-            int total_length = _meta->Length + need_space;
+            reserve_at = reserve_at < 0 ? _meta->Length : Math::Min(reserve_at, _meta->Length);
+            const int total_length = _meta->Length + need_space;
             if (_meta->Capacity < total_length)
             {
                 // grow by 100% or at least to total_size, or at least by 4 elements
-                int grow_length = Math::Max(_meta->Capacity << 1, 4);
-                Copy(Math::Max(total_length, grow_length), reserve_left ? need_space : 0);
+                int grown_length = Math::Max(_meta->Capacity << 1, _meta->Capacity + 4);
+                Copy(Math::Max(total_length, grown_length), 0, true, reserve_at, need_space);
             }
             else if (_meta->RefCount > 1)
             {
-                Copy(_meta->Capacity, reserve_left ? need_space : 0);
+                Copy(total_length, 0, true, reserve_at, need_space);
             }
             else
             {
                 // make sure we make use of all of our space
-                const T *arrbuf_head = (const T*)(_data + sizeof(ArrayBase<T>));
-                int free_space = reserve_left ?
-                    _meta->Arr - arrbuf_head :
-                    (arrbuf_head + _meta->Capacity) - (_meta->Arr + _meta->Length);
-                if (free_space < need_space)
-                {
-                    Align(reserve_left ?
-                        (_meta->Arr + (need_space - free_space)) - arrbuf_head :
-                    0);
-                }
+                _meta->Arr = Memory::ExpandObjectsInBuffer<T>((T*)(_data + sizeof(ArrayBase<T>)), _meta->Capacity, _meta->Arr, _meta->Length,
+                    reserve_at, need_space);
             }
         }
         else
@@ -962,6 +1028,17 @@ protected:
         char         *_data;
         ArrayBase<T> *_meta;
     };
+
+    inline T    *BufferBegin() const { return (T*)(_data + sizeof(ArrayBase<T>)); }
+    inline T    *BufferEnd()   const { return (T*)(_data + sizeof(ArrayBase<T>)) + _meta->Capacity; }
+    inline T    *StringBegin() const { return _meta->Arr; }
+    inline T    *StringEnd()   const { return _meta->Arr + _meta->Length; }
+    inline int  SpaceLeft()    const { return StringBegin() - BufferBegin(); }
+    inline int  SpaceRight()   const { return BufferEnd() - StringEnd(); }
+    inline bool MustReserve(int total_space)         const { return !_meta || _meta->RefCount > 1 ||
+        total_space > _meta->Length && SpaceRight() < total_space - _meta->Length; }
+    inline bool MustReserveMoreRight(int need_space) const { return !_meta || _meta->RefCount > 1 || SpaceRight() < need_space; }
+    inline bool MustReserveMoreLeft(int need_space)  const { return !_meta || _meta->RefCount > 1 || SpaceLeft() < need_space; }
 };
 
 } // namespace Common

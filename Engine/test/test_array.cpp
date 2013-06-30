@@ -19,6 +19,7 @@
 
 using AGS::Common::Array;
 using AGS::Common::ObjectArray;
+namespace Memory = AGS::Common::Memory;
 
 struct TestObjType
 {
@@ -29,21 +30,45 @@ struct TestObjType
 
     TestObjType()
     {
+        a = 1;
+        b = 2;
+        c = 3;
         ctor_call_count++;
     }
-    TestObjType(const TestObjType &)
+    TestObjType(const TestObjType &obj)
     {
         copy_ctor_call_count++;
+        a = obj.a;
+        b = obj.b;
+        c = obj.c;
+    }
+    TestObjType(int _a, int _b, int _c)
+    {
+        a = _a;
+        b = _b;
+        c = _c;
     }
     ~TestObjType()
     {
         dtor_call_count++;
     }
-    TestObjType &operator=(const TestObjType &)
+    TestObjType &operator=(const TestObjType &obj)
     {
         assign_call_count++;
+        a = obj.a;
+        b = obj.b;
+        c = obj.c;
         return *this;
     }
+
+    bool operator==(const TestObjType &obj) const
+    {
+        return a == obj.a && b == obj.b && c == obj.c;
+    }
+
+    int a;
+    int b;
+    int c;
 };
 
 int TestObjType::ctor_call_count = 0;
@@ -54,6 +79,104 @@ int TestObjType::assign_call_count = 0;
 
 void Test_Array()
 {
+    // POD memory operations
+    {
+        int arr1[100];
+        int arr2[100];
+        arr1[0] = 0;
+        arr1[1] = 1;
+        arr1[2] = 2;
+        arr1[3] = 3;
+        Memory::CopyAndInsertSpace(arr2, arr1, 4);
+        for (int i = 0; i < 4; ++i)
+        {
+            assert(arr1[i] == arr2[i]);
+        }
+        Memory::MoveAndInsertSpace(arr1 + 2, arr1, 4);
+        for (int i = 0; i < 4; ++i)
+        {
+            assert(arr1[i + 2] == i);
+        }
+        Memory::MoveAndInsertSpace(arr1, arr1 + 2, 4);
+        for (int i = 0; i < 4; ++i)
+        {
+            assert(arr1[i] == i);
+        }
+        Memory::MoveAndInsertSpace(arr2, arr1, 4);
+        for (int i = 0; i < 4; ++i)
+        {
+            assert(arr1[i] == arr2[i]);
+        }
+
+        int arr3[100];
+        Memory::CopyAndInsertSpace(arr3, arr1, 4, 0, 10);
+        for (int i = 0; i < 4; ++i)
+        {
+            assert(arr3[i + 10] == arr1[i]);
+        }
+        Memory::MoveAndInsertSpace(arr3, arr3 + 10, 4, 4, 10);
+        for (int i = 0; i < 4; ++i)
+        {
+            assert(arr3[i] == arr1[i]);
+        }
+        Memory::MoveAndInsertSpace(arr3, arr3, 4, 2, 2);
+        assert(arr3[0] == arr1[0]);
+        assert(arr3[1] == arr1[1]);
+        assert(arr3[4] == arr1[2]);
+        assert(arr3[5] == arr1[3]);
+    }
+
+    // Object memory operations
+    {
+        TestObjType objarr1[100];
+        TestObjType objarr2[100];
+        objarr1[0] = TestObjType(44,55,66);
+        objarr1[1] = TestObjType(77,88,99);
+        objarr1[2] = TestObjType(111,222,333);
+        objarr1[3] = TestObjType(444,555,666);
+        
+        Memory::ObjectCopyAndInsertSpace(objarr2, objarr1, 4);
+        for (int i = 0; i < 4; ++i)
+        {
+            assert(objarr1[i] == objarr2[i]);
+        }
+        Memory::ObjectMoveAndInsertSpace(objarr1 + 2, objarr1, 4);
+        assert(objarr1[2].a == 44);
+        assert(objarr1[3].a == 77);
+        assert(objarr1[4].a == 111);
+        assert(objarr1[5].a == 444);
+        Memory::ObjectMoveAndInsertSpace(objarr1, objarr1 + 2, 4);
+        assert(objarr1[0].a == 44);
+        assert(objarr1[1].a == 77);
+        assert(objarr1[2].a == 111);
+        assert(objarr1[3].a == 444);
+
+        TestObjType objarr3[100];
+        Memory::ObjectCopyAndInsertSpace(objarr3, objarr1, 4, 0, 10);
+        for (int i = 0; i < 4; ++i)
+        {
+            assert(objarr3[i + 10] == objarr1[i]);
+        }
+        Memory::ObjectMoveAndInsertSpace(objarr3, objarr3 + 10, 4, 4, 10);
+        for (int i = 0; i < 4; ++i)
+        {
+            assert(objarr3[i] == objarr1[i]);
+        }
+        int prev_ctor_call_count = TestObjType::ctor_call_count;
+        int prev_copy_ctor_call_count = TestObjType::copy_ctor_call_count;
+        int prev_assign_call_count = TestObjType::assign_call_count;
+        int prev_dtor_call_count = TestObjType::dtor_call_count;
+        Memory::ObjectMoveAndInsertSpace(objarr3, objarr3, 4, 2, 2);
+        assert(prev_ctor_call_count == TestObjType::ctor_call_count);
+        assert(prev_copy_ctor_call_count == TestObjType::copy_ctor_call_count - 2);
+        assert(prev_assign_call_count == TestObjType::assign_call_count - 2);
+        assert(prev_dtor_call_count == TestObjType::dtor_call_count - 2);
+        assert(objarr3[0] == objarr1[0]);
+        assert(objarr3[1] == objarr1[1]);
+        assert(objarr3[4] == objarr1[2]);
+        assert(objarr3[5] == objarr1[3]);
+    }
+
     // Test array's internal work
     {
         Array<int> arr1;
@@ -105,6 +228,11 @@ void Test_Array()
 
     // Object array internal work
     {
+        TestObjType::ctor_call_count = 0;
+        TestObjType::copy_ctor_call_count = 0;
+        TestObjType::dtor_call_count = 0;
+        TestObjType::assign_call_count = 0;
+
         Array<TestObjType> arr1;
         arr1.New(10);
         arr1.SetLength(20);

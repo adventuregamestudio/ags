@@ -25,22 +25,26 @@ namespace Common
 
 namespace Math
 {
-    inline int Max(int a, int b)
+    template <class T>
+    inline int Max(T a, T b)
     {
         return a > b ? a : b;
     }
 
-    inline int Min(int a, int b)
+    template <class T>
+    inline int Min(T a, T b)
     {
         return a > b ? b : a;
     }
 
-    inline void Clamp(int floor, int ceil, int &val)
+    template <class T>
+    inline void Clamp(T floor, T ceil, T &val)
     {
-        val = Min(floor, Max(val, ceil));
+        val = Max<T>(floor, Min<T>(val, ceil));
     }
 
-    inline void ClampLength(int floor, int height, int &from, int &length)
+    template <class T>
+    inline void ClampLength(T floor, T height, T &from, T &length)
     {
         if (from < floor)
         {
@@ -53,8 +57,8 @@ namespace Math
             length = 0;
         }
 
-        length = Max(length, 0);
-        length = Min(length, height - from);
+        length = Max<T>(length, 0);
+        length = Min<T>(length, height - from);
     }
 
 

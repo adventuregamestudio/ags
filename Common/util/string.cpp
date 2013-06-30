@@ -20,6 +20,7 @@
 #include "util/string.h"
 #include "util/string_utils.h"
 #include "util/math.h"
+#include "util/memory.h"
 
 namespace AGS
 {
@@ -110,13 +111,19 @@ void String::Read(Stream *in, int max_chars, bool stop_at_limit)
 
 void String::ReadCount(Stream *in, int count)
 {
-    Empty();
     if (in && count > 0)
     {
-        ReserveAndShift(false, count);
+        if (MustReserve(count))
+        {
+            ReserveAndShift(-1, count - GetLength());
+        }
         count = in->Read(_meta->CStr, count);
         _meta->CStr[count] = 0;
         _meta->Length = strlen(_meta->CStr);
+    }
+    else
+    {
+        Empty();
     }
 }
 
@@ -299,7 +306,8 @@ int String::ToInt() const
     va_list argptr;
     va_start(argptr, fcstr);
     int length = vsnprintf(NULL, 0, fcstr, argptr);
-    str.ReserveAndShift(false, length);
+    str.ReserveAndShift(-1, length);
+    va_end(argptr);
     va_start(argptr, fcstr);
     vsprintf(str._meta->CStr, fcstr, argptr);
     str._meta->Length = length;
@@ -392,17 +400,20 @@ String String::Section(char separator, int first, int last,
 
 void String::Reserve(int max_length)
 {
-    if (max_length <= 0 ||
-        _meta && max_length <= _meta->Capacity)
+    if (MustReserve(max_length))
     {
-        return;
+        ReserveAndShift(-1, max_length - GetLength());
     }
-    ReserveAndShift(false, max_length - _meta->Length);
 }
 
 void String::ReserveMore(int more_length)
 {
-    ReserveAndShift(false, more_length);
+    ReserveAndShift(-1, more_length);
+}
+
+void String::ReserveForPrepend(int more_length)
+{
+    ReserveAndShift(0, more_length);
 }
 
 void String::Compact()
@@ -420,7 +431,10 @@ void String::Append(const char *cstr)
         int length = strlen(cstr);
         if (length > 0)
         {
-            ReserveAndShift(false, length);
+            if (MustReserveMoreRight(length))
+            {
+                ReserveAndShift(-1, length);
+            }
             memcpy(_meta->CStr + _meta->Length, cstr, length);
             _meta->Length += length;
             _meta->CStr[_meta->Length] = 0;
@@ -432,7 +446,10 @@ void String::AppendChar(char c)
 {
     if (c)
     {
-        ReserveAndShift(false, 1);
+        if (MustReserveMoreRight(1))
+        {
+            ReserveAndShift(-1, 1);
+        }
         _meta->CStr[_meta->Length++] = c;
         _meta->CStr[_meta->Length] = 0;
     }
@@ -443,9 +460,15 @@ void String::ClipLeft(int count)
     if (_meta && _meta->Length > 0 && count > 0)
     {
         count = Math::Min(count, _meta->Length);
-        BecomeUnique();
-        _meta->Length -= count;
-        _meta->CStr += count;
+        if (_meta->RefCount > 1)
+        {
+            Copy(_meta->Length - count, count);
+        }
+        else
+        {
+            _meta->Length -= count;
+            _meta->CStr += count;
+        }
     }
 }
 
@@ -457,22 +480,15 @@ void String::ClipMid(int from, int count)
         Math::ClampLength(0, _meta->Length, from, count);
         if (count > 0)
         {
-            BecomeUnique();
-            if (!from)
+            if (_meta->RefCount > 1)
             {
-                _meta->Length -= count;
-                _meta->CStr += count;
-            }
-            else if (from + count == _meta->Length)
-            {
-                _meta->Length -= count;
-                _meta->CStr[_meta->Length] = 0;
+                Copy(_meta->Length - count, 0, false, from, count);
             }
             else
             {
-                char *cstr_mid = _meta->CStr + from;
-                memmove(cstr_mid, _meta->CStr + from + count, _meta->Length - from - count + 1);
+                _meta->CStr = Memory::ExcludeDataInBuffer(_meta->CStr, _meta->Length, from, count);
                 _meta->Length -= count;
+                _meta->CStr[_meta->Length] = 0;
             }
         }
     }
@@ -483,9 +499,15 @@ void String::ClipRight(int count)
     if (_meta && count > 0)
     {
         count = Math::Min(count, GetLength());
-        BecomeUnique();
-        _meta->Length -= count;
-        _meta->CStr[_meta->Length] = 0;
+        if (_meta->RefCount > 1)
+        {
+            Copy(_meta->Length - count);
+        }
+        else
+        {
+            _meta->Length -= count;
+            _meta->CStr[_meta->Length] = 0;
+        }
     }
 }
 
@@ -534,9 +556,15 @@ void String::Empty()
 {
     if (_meta)
     {
-        BecomeUnique();
-        _meta->Length = 0;
-        _meta->CStr[0] = 0;
+        if (_meta->RefCount > 1)
+        {
+            Free();
+        }
+        else
+        {
+            _meta->Length = 0;
+            _meta->CStr[0] = 0;
+        }
     }
 }
 
@@ -544,7 +572,10 @@ void String::FillString(char c, int count)
 {
     if (count > 0)
     {
-        ReserveAndShift(false, count);
+        if (MustReserve(count))
+        {
+            ReserveAndShift(-1, count - GetLength());
+        }
         memset(_meta->CStr, c, count);
         _meta->Length = count;
         _meta->CStr[count] = 0;
@@ -561,12 +592,19 @@ void String::Format(const char *fcstr, ...)
     va_list argptr;
     va_start(argptr, fcstr);
     int length = vsnprintf(NULL, 0, fcstr, argptr);
-    ReserveAndShift(false, length);
-    va_start(argptr, fcstr);
-    vsprintf(_meta->CStr, fcstr, argptr);
-    _meta->Length = length;
-    _meta->CStr[_meta->Length] = 0;
     va_end(argptr);
+    if (length > 0)
+    {
+        if (MustReserve(length))
+        {
+            ReserveAndShift(-1, length - GetLength());
+        }
+        va_start(argptr, fcstr);
+        vsprintf(_meta->CStr, fcstr, argptr);
+        va_end(argptr);
+        _meta->Length = length;
+        _meta->CStr[_meta->Length] = 0;
+    }
 }
 
 void String::Free()
@@ -580,6 +618,34 @@ void String::Free()
         }
     }
     _data = NULL;
+}
+
+void String::Insert(int at, const char *cstr)
+{
+    if (cstr)
+    {
+        int length = strlen(cstr);
+        if (length > 0)
+        {
+            Math::Clamp(0, GetLength(), at);
+            ReserveAndShift(at, length);
+            memcpy(_meta->CStr + at, cstr, length);
+            _meta->Length += length;
+            _meta->CStr[_meta->Length] = 0;
+        }
+    }
+}
+
+void String::InsertChar(int at, char c)
+{
+    if (c)
+    {
+        Math::Clamp(0, GetLength(), at);
+        ReserveAndShift(at, 1);
+        _meta->CStr[at] = c;
+        _meta->Length++;
+        _meta->CStr[_meta->Length] = 0;
+    }
 }
 
 void String::MakeLower()
@@ -607,10 +673,16 @@ void String::Prepend(const char *cstr)
         int length = strlen(cstr);
         if (length > 0)
         {
-            ReserveAndShift(true, length);
-            memcpy(_meta->CStr - length, cstr, length);
+            if (MustReserveMoreLeft(length))
+            {
+                ReserveAndShift(0, length);
+            }
+            else
+            {
+                _meta->CStr -= length;
+            }
+            memcpy(_meta->CStr, cstr, length);
             _meta->Length += length;
-            _meta->CStr -= length;
         }
     }
 }
@@ -619,10 +691,16 @@ void String::PrependChar(char c)
 {
     if (c)
     {
-        ReserveAndShift(true, 1);
-        _meta->Length++;
-        _meta->CStr--;
+        if (MustReserveMoreLeft(1))
+        {
+            ReserveAndShift(0, 1);
+        }
+        else
+        {
+            _meta->CStr--;
+        }
         _meta->CStr[0] = c;
+        _meta->Length++;
     }
 }
 
@@ -656,10 +734,13 @@ void String::SetString(const char *cstr, int length)
 {
     if (cstr)
     {
-        length = length >= 0 ? Math::Min(length, strlen(cstr)) : strlen(cstr);
+        length = length >= 0 ? Math::Min<size_t>(length, strlen(cstr)) : strlen(cstr);
         if (length > 0)
         {
-            ReserveAndShift(false, length);
+            if (MustReserve(length))
+            {
+                ReserveAndShift(-1, length - GetLength());
+            }
             memcpy(_meta->CStr, cstr, length);
             _meta->Length = length;
             _meta->CStr[length] = 0;
@@ -698,9 +779,15 @@ void String::TrimLeft(char c)
     int trimmed = trim_ptr - _meta->CStr;
     if (trimmed > 0)
     {
-        BecomeUnique();
-        _meta->Length -= trimmed;
-        _meta->CStr += trimmed;
+        if (_meta->RefCount > 1)
+        {
+            Copy(_meta->Length - trimmed, trimmed);
+        }
+        else
+        {
+            _meta->Length -= trimmed;
+            _meta->CStr += trimmed;
+        }
     }
 }
 
@@ -721,9 +808,15 @@ void String::TrimRight(char c)
     int trimmed = (_meta->CStr + _meta->Length - 1) - trim_ptr;
     if (trimmed > 0)
     {
-        BecomeUnique();
-        _meta->Length -= trimmed;
-        _meta->CStr[_meta->Length] = 0;
+        if (_meta->RefCount > 1)
+        {
+            Copy(_meta->Length - trimmed);
+        }
+        else
+        {
+            _meta->Length -= trimmed;
+            _meta->CStr[_meta->Length] = 0;
+        }
     }
 }
 
@@ -734,9 +827,15 @@ void String::TruncateToLeft(int count)
         count = Math::Min(count, _meta->Length);
         if (count < _meta->Length)
         {
-            BecomeUnique();
-            _meta->Length = count;
-            _meta->CStr[_meta->Length] = 0;
+            if (_meta->RefCount > 1)
+            {
+                Copy(count);
+            }
+            else
+            {
+                _meta->Length = count;
+                _meta->CStr[_meta->Length] = 0;
+            }
         }
     }
 }
@@ -749,10 +848,16 @@ void String::TruncateToMid(int from, int count)
         Math::ClampLength(0, _meta->Length, from, count);
         if (from > 0 || count < _meta->Length)
         {
-            BecomeUnique();
-            _meta->Length = count;
-            _meta->CStr += from;
-            _meta->CStr[_meta->Length] = 0;
+            if (_meta->RefCount > 1)
+            {
+                Copy(count, from);
+            }
+            else
+            {
+                _meta->Length = count;
+                _meta->CStr += from;
+                _meta->CStr[_meta->Length] = 0;
+            }
         }
     }
 }
@@ -764,9 +869,15 @@ void String::TruncateToRight(int count)
         count = Math::Min(count, GetLength());
         if (count < _meta->Length)
         {
-            BecomeUnique();
-            _meta->CStr += _meta->Length - count;
-            _meta->Length = count;
+            if (_meta->RefCount > 1)
+            {
+                Copy(count, _meta->Length - count);
+            }
+            else
+            {
+                _meta->CStr += _meta->Length - count;
+                _meta->Length = count;
+            }
         }
     }
 }
@@ -839,7 +950,7 @@ String &String::operator=(const char *cstr)
     return *this;
 }
 
-void String::Create(int max_length)
+void String::CreateBuffer(int max_length)
 {
     _data = new char[sizeof(String::Header) + max_length + 1];
     _meta->RefCount = 1;
@@ -849,64 +960,76 @@ void String::Create(int max_length)
     _meta->CStr[_meta->Length] = 0;
 }
 
-void String::Copy(int max_length, int offset)
+void String::Copy(int new_capacity, int copy_from, bool expand, int change_at, int change_count)
 {
-    char *new_data = new char[sizeof(String::Header) + max_length + 1];
+    char *new_data = new char[sizeof(String::Header) + new_capacity + 1];
     // remember, that _meta->CStr may point to any address in buffer
-    char *strbuf_head = new_data + sizeof(String::Header) + offset;
-    int copy_length = Math::Min(_meta->Length, max_length);
-    memcpy(strbuf_head, _meta->CStr, copy_length);
+    char *strbuf_head = new_data + sizeof(String::Header);
+    char *new_cstr;
+    int copy_length = _meta->Length - copy_from;
+
+    if (change_count == 0)
+    {
+        copy_length = Math::Min(copy_length, new_capacity);
+        memcpy(strbuf_head, _meta->CStr + copy_from, copy_length);
+        new_cstr = strbuf_head;
+    }
+    else if (expand)
+    {
+        new_cstr = Memory::CopyAndInsertSpace(strbuf_head, _meta->CStr + copy_from, copy_length,
+                                              change_at, change_count);
+    }
+    else
+    {
+        new_cstr = Memory::CopyPartial(strbuf_head, _meta->CStr + copy_from, copy_length,
+                                       change_at, change_count);
+        copy_length -= change_count;
+    }
     Free();
     _data = new_data;
     _meta->RefCount = 1;
-    _meta->Capacity = max_length;
+    _meta->Capacity = new_capacity;
     _meta->Length = copy_length;
-    _meta->CStr = strbuf_head;
-    _meta->CStr[_meta->Length] = 0;
+    _meta->CStr = new_cstr;
+    if (expand)
+    {
+        _meta->CStr[_meta->Length + change_count] = 0;
+    }
+    else
+    {
+        _meta->CStr[_meta->Length] = 0;
+    }
 }
 
-void String::Align(int offset)
-{
-    char *strbuf_head = _data + sizeof(String::Header) + offset;
-    memmove(strbuf_head, _meta->CStr, _meta->Length + 1);
-    _meta->CStr = strbuf_head;
-}
-
-void String::ReserveAndShift(bool reserve_left, int need_space)
+void String::ReserveAndShift(int reserve_at, int need_space)
 {
     // The memory allocation strategy aims time-efficient appending operations;
     // efficient prepending is not considered priority.
     if (_meta)
     {
-        int total_length = _meta->Length + need_space;
+        reserve_at = reserve_at < 0 ? _meta->Length : Math::Min(reserve_at, _meta->Length);
+        const int total_length = _meta->Length + need_space;
         if (_meta->Capacity < total_length)
         {
             // grow by 100% or at least to total_size, or at least to 20 characters
-            int grow_length = Math::Max(_meta->Capacity << 1, 20);
-            Copy(Math::Max(total_length, grow_length), reserve_left ? need_space : 0);
+            int grown_length = Math::Max(_meta->Capacity << 1, 20);
+            Copy(Math::Max(total_length, grown_length), 0, true, reserve_at, need_space);
         }
         else if (_meta->RefCount > 1)
         {
-            Copy(_meta->Capacity, reserve_left ? need_space : 0);
+            Copy(total_length, 0, true, reserve_at, need_space);
         }
         else
         {
             // make sure we make use of all of our space
-            const char *strbuf_head = _data + sizeof(String::Header);
-            int free_space = reserve_left ?
-                _meta->CStr - strbuf_head :
-                (strbuf_head + _meta->Capacity) - (_meta->CStr + _meta->Length);
-            if (free_space < need_space)
-            {
-                Align(reserve_left ?
-                     (_meta->CStr + (need_space - free_space)) - strbuf_head :
-                     0);
-            }
+            _meta->CStr = Memory::ExpandDataInBuffer(_data + sizeof(String::Header), _meta->Capacity, _meta->CStr, _meta->Length,
+                                                     reserve_at, need_space);
+            _meta->CStr[_meta->Length + need_space] = 0;
         }
     }
     else
     {
-        Create(need_space);
+        CreateBuffer(need_space);
     }
 }
 

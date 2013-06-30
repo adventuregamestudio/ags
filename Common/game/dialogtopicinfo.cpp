@@ -29,7 +29,7 @@ DialogTopicInfo::DialogTopicInfo()
 
 void DialogTopicInfo::ReadFromFile(Common::Stream *in, DialogVersion version)
 {
-    if (version < kDialogVersion_pre340)
+    if (version == kDialogVersion_pre340)
     {
         Options.SetLength(LEGACY_MAX_DIALOG_TOPIC_OPTIONS);
         for (int i = 0; i < LEGACY_MAX_DIALOG_TOPIC_OPTIONS; ++i)

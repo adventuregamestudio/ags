@@ -65,7 +65,6 @@ extern volatile int timerloop;
 extern AGSPlatformDriver *platform;
 extern int cur_mode,cur_cursor;
 extern Bitmap *virtual_screen;
-extern Bitmap *screenop;
 extern IGraphicsDriver *gfxDriver;
 
 DialogTopic *dialog;
@@ -619,7 +618,8 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
 
       // needs to draw the right text window, not the default
       push_screen(ds);
-      draw_text_window(ds, &txoffs,&tyoffs,&xspos,&yspos,&areawid,NULL,needheight, game.options[OPT_DIALOGIFACE]);
+      Bitmap *text_window_ds = ds;
+      draw_text_window(&text_window_ds, false, &txoffs,&tyoffs,&xspos,&yspos,&areawid,NULL,needheight, game.options[OPT_DIALOGIFACE]);
       ds = pop_screen();
       // snice draw_text_window incrases the width, restore it
       areawid = savedwid;
@@ -627,11 +627,11 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
 
       dirtyx = xspos;
       dirtyy = yspos;
-      dirtywidth = screenop->GetWidth();
-      dirtyheight = screenop->GetHeight();
+      dirtywidth = text_window_ds->GetWidth();
+      dirtyheight = text_window_ds->GetHeight();
 
-      wputblock(ds, xspos,yspos,screenop,1);
-      delete screenop; screenop = NULL;
+      wputblock(ds, xspos,yspos,text_window_ds,1);
+      delete text_window_ds;
 
       // Ignore the dialog_options_x/y offsets when using a text window
       txoffs += xspos;

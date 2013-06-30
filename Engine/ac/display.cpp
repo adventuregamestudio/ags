@@ -67,12 +67,6 @@ char *heightTestString = "ZHwypgfjqhkilIK";
 
 
 TopBarSettings topBar;
-// draw_text_window: draws the normal or custom text window
-// create a new bitmap the size of the window before calling, and
-//   point ds to it
-// returns text start x & y pos in parameters
-Bitmap *screenop = NULL;
-int wantFreeScreenop = 0;
 int texthit;
 
 // Pass yy = -1 to find Y co-ord automatically
@@ -157,11 +151,11 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
     if (blocking < 2)
         remove_screen_overlay(OVER_TEXTMSG);
 
-    screenop = BitmapHelper::CreateTransparentBitmap((wii > 0) ? wii : 2, numlines*texthit + extraHeight, final_col_dep);
-    ds = SetVirtualScreen(screenop);
+    Bitmap *text_window_ds = BitmapHelper::CreateTransparentBitmap((wii > 0) ? wii : 2, numlines*texthit + extraHeight, final_col_dep);
+    SetVirtualScreen(text_window_ds);
 
     // inform draw_text_window to free the old bitmap
-    wantFreeScreenop = 1;
+    const bool wantFreeScreenop = true;
 
     if ((strlen (todis) < 1) || (strcmp (todis, "  ") == 0) || (wii == 0)) ;
     // if it's an empty speech line, don't draw anything
@@ -182,7 +176,7 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
         }
 
         if (drawBackground)
-            draw_text_window_and_bar(ds, &ttxleft, &ttxtop, &xx, &yy, &wii, &text_color, 0, usingGui);
+            draw_text_window_and_bar(&text_window_ds, wantFreeScreenop, &ttxleft, &ttxtop, &xx, &yy, &wii, &text_color, 0, usingGui);
         else if ((ShouldAntiAliasText()) && (final_col_dep >= 24))
             alphaChannel = true;
 
@@ -194,22 +188,22 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
             if (asspch < 0) {
                 if ((usingGui >= 0) && 
                     ((game.options[OPT_SPEECHTYPE] >= 2) || (isThought)))
-                    text_color = ds->GetCompatibleColor(guis[usingGui].fgcol);
+                    text_color = text_window_ds->GetCompatibleColor(guis[usingGui].fgcol);
                 else
-                    text_color = ds->GetCompatibleColor(-asspch);
+                    text_color = text_window_ds->GetCompatibleColor(-asspch);
 
-                wouttext_aligned(ds, ttxleft, ttyp, oriwid, usingfont, text_color, lines[ee], play.text_align);
+                wouttext_aligned(text_window_ds, ttxleft, ttyp, oriwid, usingfont, text_color, lines[ee], play.text_align);
             }
             else {
-                text_color = ds->GetCompatibleColor(asspch);
+                text_color = text_window_ds->GetCompatibleColor(asspch);
                 //wouttext_outline(ttxp,ttyp,usingfont,lines[ee]);
-                wouttext_aligned(ds, ttxleft, ttyp, wii, usingfont, text_color, lines[ee], play.speech_text_align);
+                wouttext_aligned(text_window_ds, ttxleft, ttyp, wii, usingfont, text_color, lines[ee], play.speech_text_align);
             }
         }
     }
     else {
         int xoffs,yoffs, oriwid = wii - 6;
-        draw_text_window_and_bar(ds, &xoffs,&yoffs,&xx,&yy,&wii,&text_color);
+        draw_text_window_and_bar(&text_window_ds, wantFreeScreenop, &xoffs,&yoffs,&xx,&yy,&wii,&text_color);
 
         if (game.options[OPT_TWCUSTOM] > 0)
         {
@@ -219,16 +213,15 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
         adjust_y_coordinate_for_text(&yoffs, usingfont);
 
         for (ee=0;ee<numlines;ee++)
-            wouttext_aligned (ds, xoffs, yoffs + ee * texthit, oriwid, usingfont, text_color, lines[ee], play.text_align);
+            wouttext_aligned (text_window_ds, xoffs, yoffs + ee * texthit, oriwid, usingfont, text_color, lines[ee], play.text_align);
     }
-
-    wantFreeScreenop = 0;
 
     int ovrtype = OVER_TEXTMSG;
     if (blocking == 2) ovrtype=OVER_CUSTOM;
     else if (blocking >= OVER_CUSTOM) ovrtype=blocking;
 
-    int nse = add_screen_overlay(xx, yy, ovrtype, screenop, alphaChannel);
+    int nse = add_screen_overlay(xx, yy, ovrtype, text_window_ds, alphaChannel);
+    // we should not delete text_window_ds here, because it is now owned by Overlay
 
     ds = SetVirtualScreen(virtual_screen);
     if (blocking>=2) {
@@ -605,8 +598,10 @@ int get_textwindow_top_border_height (int twgui) {
     return spriteheight[get_but_pic(&guis[twgui], 6)];
 }
 
-void draw_text_window(Bitmap *ds, int*xins,int*yins,int*xx,int*yy,int*wii, color_t *set_text_color,
-                      int ovrheight, int ifnum) {
+void draw_text_window(Bitmap **text_window_ds, bool should_free_ds,
+                      int*xins,int*yins,int*xx,int*yy,int*wii, color_t *set_text_color, int ovrheight, int ifnum) {
+
+    Bitmap *ds = *text_window_ds;
     if (ifnum < 0)
         ifnum = game.options[OPT_TWCUSTOM];
 
@@ -633,10 +628,10 @@ void draw_text_window(Bitmap *ds, int*xins,int*yins,int*xx,int*yy,int*wii, color
         if (ovrheight == 0)
             ovrheight = numlines*texthit;
 
-        if ((wantFreeScreenop > 0) && (screenop != NULL))
-            delete screenop;
-        screenop = BitmapHelper::CreateTransparentBitmap(wii[0],ovrheight+6+spriteheight[tbnum]*2,final_col_dep);
-        Bitmap *ds = SetVirtualScreen(screenop);
+        if (should_free_ds)
+            delete *text_window_ds;
+        *text_window_ds = BitmapHelper::CreateTransparentBitmap(wii[0],ovrheight+6+spriteheight[tbnum]*2,final_col_dep);
+        ds = SetVirtualScreen(*text_window_ds);
         int xoffs=spritewidth[tbnum],yoffs=spriteheight[tbnum];
         draw_button_background(ds, xoffs,yoffs,(ds->GetWidth() - xoffs) - 1,(ds->GetHeight() - yoffs) - 1,&guis[ifnum]);
         if (set_text_color)
@@ -647,31 +642,33 @@ void draw_text_window(Bitmap *ds, int*xins,int*yins,int*xx,int*yy,int*wii, color
 
 }
 
-void draw_text_window_and_bar(Bitmap *ds, int*xins,int*yins,int*xx,int*yy,int*wii,color_t *set_text_color,int ovrheight, int ifnum) {
+void draw_text_window_and_bar(Bitmap **text_window_ds, bool should_free_ds,
+                              int*xins,int*yins,int*xx,int*yy,int*wii,color_t *set_text_color,int ovrheight, int ifnum) {
 
-    draw_text_window(ds, xins, yins, xx, yy, wii, set_text_color, ovrheight, ifnum);
+    draw_text_window(text_window_ds, should_free_ds, xins, yins, xx, yy, wii, set_text_color, ovrheight, ifnum);
 
-    if ((topBar.wantIt) && (screenop != NULL)) {
+    if ((topBar.wantIt) && (text_window_ds && *text_window_ds)) {
         // top bar on the dialog window with character's name
         // create an enlarged window, then free the old one
-        Bitmap *newScreenop = BitmapHelper::CreateBitmap(screenop->GetWidth(), screenop->GetHeight() + topBar.height, final_col_dep);
-        newScreenop->Blit(screenop, 0, 0, 0, topBar.height, screenop->GetWidth(), screenop->GetHeight());
-        delete screenop;
-        screenop = newScreenop;
-        Bitmap *ds = SetVirtualScreen(screenop);
+        Bitmap *ds = *text_window_ds;
+        Bitmap *newScreenop = BitmapHelper::CreateBitmap(ds->GetWidth(), ds->GetHeight() + topBar.height, final_col_dep);
+        newScreenop->Blit(ds, 0, 0, 0, topBar.height, ds->GetWidth(), ds->GetHeight());
+        delete *text_window_ds;
+        *text_window_ds = newScreenop;
+        ds = SetVirtualScreen(*text_window_ds);
 
         // draw the top bar
         color_t draw_color = ds->GetCompatibleColor(play.top_bar_backcolor);
-        ds->FillRect(Rect(0, 0, screenop->GetWidth() - 1, topBar.height - 1), draw_color);
+        ds->FillRect(Rect(0, 0, ds->GetWidth() - 1, topBar.height - 1), draw_color);
         if (play.top_bar_backcolor != play.top_bar_bordercolor) {
             // draw the border
             draw_color = ds->GetCompatibleColor(play.top_bar_bordercolor);
             for (int j = 0; j < multiply_up_coordinate(play.top_bar_borderwidth); j++)
-                ds->DrawRect(Rect(j, j, screenop->GetWidth() - (j + 1), topBar.height - (j + 1)), draw_color);
+                ds->DrawRect(Rect(j, j, ds->GetWidth() - (j + 1), topBar.height - (j + 1)), draw_color);
         }
 
         // draw the text
-        int textx = (screenop->GetWidth() / 2) - wgettextwidth_compensate(topBar.text, topBar.font) / 2;
+        int textx = (ds->GetWidth() / 2) - wgettextwidth_compensate(topBar.text, topBar.font) / 2;
         color_t text_color = ds->GetCompatibleColor(play.top_bar_textcolor);
         wouttext_outline(ds, textx, play.top_bar_borderwidth + get_fixed_pixel_size(1), topBar.font, text_color, topBar.text);
 

@@ -426,10 +426,38 @@ namespace AGS.Editor
         private void frmMain_Shown(object sender, EventArgs e)
         {
             this.tabbedDocumentContainer1.Init();
-            
-            if (AGS.Types.Version.IS_BETA_VERSION)
+
+            String warningMessage = null;
+            MessageBoxIcon warningIcon = MessageBoxIcon.Warning;
+            switch (AGS.Types.Version.VERSION_TYPE)
+            {
+                case AGS.Types.Version.Type.Alpha:
+                    warningMessage = "-----=== !! WARNING !! ===-----\n\n" +
+                                     "This is a ALPHA version of AGS.\nBE VERY CAREFUL and DO NOT ASSUME IT WILL WORK PROPERLY AT ALL TIMES.\n\n" +
+                                     "ANY feature of Editor and Engine may be a subject of CHANGE or REMOVAL.\n\n" +
+                                     "DO NOT use this version to make your actual game release, unless you are prepared for possible negative consequences.\n\n" +
+                                     "MAKE SURE YOU BACKUP YOUR GAME before loading it in this editor.";
+                    break;
+                case AGS.Types.Version.Type.Beta:
+                    warningMessage = "ATTENTION!\n\n" +
+                                     "This is a BETA version of AGS. BE VERY CAREFUL and MAKE SURE YOU BACKUP YOUR GAME before loading it in this editor.";
+                    break;
+                case AGS.Types.Version.Type.Development:
+                    warningMessage = "-----=== !! WARNING !! ===-----\n\n" +
+                                     "This is a DEVELOPMENT version of AGS.\nIt is meant solely for debugging and testing purposes.\n\n" +
+                                     "ANY feature of Editor and Engine may be a subject of\nCHANGE or REMOVAL.\n\n" +
+                                     "DO NOT USE this version for making actual game releases.\n\n" +
+                                     "AGS development team WILL NOT provide ANY TECHNICAL SUPPORT for this version of AGS.";
+                    warningIcon = MessageBoxIcon.Error;
+                    break;
+                case AGS.Types.Version.Type.Release:
+                case AGS.Types.Version.Type.ReleaseCandidate:
+                    // no warning
+                    break;
+            }
+            if (warningMessage != null)
 			{
-				Factory.GUIController.ShowMessage("This is a BETA version of AGS. BE VERY CAREFUL and MAKE SURE YOU BACKUP YOUR GAME before loading it in this editor.", MessageBoxIcon.Warning);
+                Factory.GUIController.ShowMessage(warningMessage, warningIcon);
 			}
 
 			if (!Factory.GUIController.ShowWelcomeScreen())

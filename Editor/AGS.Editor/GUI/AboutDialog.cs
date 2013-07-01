@@ -17,9 +17,23 @@ namespace AGS.Editor
             pictureBox.Image = Resources.ResourceManager.GetBitmap("splash.bmp");
 
             txtInfo.Text = "AGS Editor .NET (Build " + AGS.Types.Version.AGS_EDITOR_VERSION + ")";
-            if (AGS.Types.Version.IS_BETA_VERSION)
+            switch (AGS.Types.Version.VERSION_TYPE)
             {
-                txtInfo.Text += " ** BETA VERSION **";
+                case AGS.Types.Version.Type.Alpha:
+                    txtInfo.Text += " ** ALPHA VERSION **";
+                    break;
+                case AGS.Types.Version.Type.Beta:
+                    txtInfo.Text += " ** BETA VERSION **";
+                    break;
+                case AGS.Types.Version.Type.Development:
+                    txtInfo.Text += " ** DEVELOPMENT VERSION **";
+                    break;
+                case AGS.Types.Version.Type.Release:
+                    // add nothing
+                    break;
+                case AGS.Types.Version.Type.ReleaseCandidate:
+                    txtInfo.Text += " ** RELEASE CANDIDATE **";
+                    break;
             }
             txtInfo.Text += Environment.NewLine +
 				"v" + AGS.Types.Version.AGS_EDITOR_FRIENDLY_VERSION + ", " + AGS.Types.Version.AGS_EDITOR_DATE +

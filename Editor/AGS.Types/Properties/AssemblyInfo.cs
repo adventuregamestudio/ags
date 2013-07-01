@@ -21,7 +21,15 @@ namespace AGS.Types
 {
 	public class Version
 	{
-		public static readonly bool IS_BETA_VERSION = true;
+        public enum Type
+        {
+            Development,
+            Alpha,
+            Beta,
+            ReleaseCandidate,
+            Release
+        }
+        public static readonly Type VERSION_TYPE = Type.Alpha;
 		public const string AGS_EDITOR_DATE = "July 2013";
 		public const string AGS_EDITOR_FRIENDLY_VERSION = "3.3.0";
         public const string AGS_EDITOR_VERSION = "3.3.0.1139";

@@ -20,11 +20,11 @@
 
 #include "ac/audiocliptype.h"
 #include "ac/characterinfo.h"
-#include "ac/customproperties.h"
 #include "ac/gamestructdefines.h"
 #include "ac/inventoryiteminfo.h"
 #include "ac/mousecursor.h"
 #include "ac/dynobj/scriptaudioclip.h"
+#include "game/customproperties.h"
 #include "util/array.h"
 #include "util/string.h"
 #include "util/wgt2allg.h"

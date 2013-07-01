@@ -1637,10 +1637,6 @@ const char *load_dta_file_into_thisgame(const char *fileName)
   if (pluginError != NULL) return pluginError;
 
   thisgame.CharacterProperties.New(thisgame.CharacterCount);
-  for (bb = 0; bb < thisgame.CharacterCount; bb++)
-    thisgame.CharacterProperties[bb].reset();
-  for (bb = 0; bb < MAX_INV; bb++)
-    thisgame.InvItemProperties[bb].reset();
 
   if (thisgame.PropertySchema.UnSerialize (iii))
     return "unable to deserialize prop schema";
@@ -3446,29 +3442,28 @@ Dictionary<int, Sprite^>^ load_sprite_dimensions()
 	return sprites;
 }
 
-void ConvertCustomProperties(AGS::Types::CustomProperties ^insertInto, ::CustomProperties *propToConvert)
+void ConvertCustomProperties(AGS::Types::CustomProperties ^insertInto, AGS::Common::CustomProperties *propToConvert)
 {
-	for (int j = 0; j < propToConvert->numProps; j++) 
+	for (int j = 0; j < propToConvert->GetPropertyCount(); j++) 
 	{
+        AGS::Common::CustomPropertyState *prop_info = propToConvert->GetProperty(j);
 		CustomProperty ^newProp = gcnew CustomProperty();
-		newProp->Name = gcnew String(propToConvert->propName[j]);
-		newProp->Value = gcnew String(propToConvert->propVal[j]);
+		newProp->Name = gcnew String(prop_info->Name);
+		newProp->Value = gcnew String(prop_info->Value);
 		insertInto->PropertyValues->Add(newProp->Name, newProp);
 	}
 }
 
-void CompileCustomProperties(AGS::Types::CustomProperties ^convertFrom, ::CustomProperties *compileInto)
+void CompileCustomProperties(AGS::Types::CustomProperties ^convertFrom, AGS::Common::CustomProperties *compileInto)
 {
-	compileInto->reset();
-	int j = 0;
-	char propName[200];
-	char propVal[MAX_CUSTOM_PROPERTY_VALUE_LENGTH];
+	compileInto->Free();
+    AGS::Common::String prop_name;
+    AGS::Common::String prop_value;
 	for each (String ^key in convertFrom->PropertyValues->Keys)
 	{
-		ConvertStringToCharArray(convertFrom->PropertyValues[key]->Name, propName, 200);
-		ConvertStringToCharArray(convertFrom->PropertyValues[key]->Value, propVal, MAX_CUSTOM_PROPERTY_VALUE_LENGTH);
-		compileInto->addProperty(propName, propVal);
-		j++;
+		ConvertStringToNativeString(convertFrom->PropertyValues[key]->Name, prop_name);
+		ConvertStringToNativeString(convertFrom->PropertyValues[key]->Value, prop_value);
+		compileInto->AddProperty(prop_name, prop_value);
 	}
 }
 
@@ -4045,13 +4040,14 @@ Game^ load_old_game_dta_file(const char *fileName)
 	}
 
 	//AGS::Types::PropertySchema ^schema = gcnew AGS::Types::PropertySchema();
-	for (i = 0; i < thisgame.PropertySchema.numProps; i++) 
+    for (i = 0; i < thisgame.PropertySchema.GetPropertyCount(); i++) 
 	{
 		CustomPropertySchemaItem ^schemaItem = gcnew CustomPropertySchemaItem();
-		schemaItem->Name = gcnew String(thisgame.PropertySchema.propName[i]);
-		schemaItem->Description = gcnew String(thisgame.PropertySchema.propDesc[i]);
-		schemaItem->DefaultValue = gcnew String(thisgame.PropertySchema.defaultValue[i]);
-		schemaItem->Type = (AGS::Types::CustomPropertyType)thisgame.PropertySchema.propType[i];
+        const AGS::Common::CustomPropertyInfo *prop_info = thisgame.PropertySchema.GetProperty(i);
+        schemaItem->Name = gcnew String(prop_info->Name);
+        schemaItem->Description = gcnew String(prop_info->Description);
+		schemaItem->DefaultValue = gcnew String(prop_info->DefaultValue);
+		schemaItem->Type = (AGS::Types::CustomPropertyType)prop_info->Type;
 
 		game->PropertySchema->PropertyDefinitions->Add(schemaItem);
 	}
@@ -5231,19 +5227,18 @@ void save_game_to_dta_file(Game^ game, const char *fileName)
 
 	// ** Custom Properties Schema **
 	List<AGS::Types::CustomPropertySchemaItem ^> ^schema = game->PropertySchema->PropertyDefinitions;
-	if (schema->Count > MAX_CUSTOM_PROPERTIES)
-	{
-		throw gcnew CompileError("Too many custom properties defined");
-	}
-	thisgame.PropertySchema.numProps = schema->Count;
-	for (i = 0; i < thisgame.PropertySchema.numProps; i++) 
+	thisgame.PropertySchema.Free();
+    AGS::Common::String prop_name;
+    AGS::Common::String prop_desc;
+    AGS::Common::String prop_defval;
+	for (i = 0; i < schema->Count; i++) 
 	{
 		CustomPropertySchemaItem ^schemaItem = schema[i];
-		ConvertStringToCharArray(schemaItem->Name, thisgame.PropertySchema.propName[i], 20);
-		ConvertStringToCharArray(schemaItem->Description, thisgame.PropertySchema.propDesc[i], 100);
-		thisgame.PropertySchema.defaultValue[i] = (char*)malloc(schemaItem->DefaultValue->Length + 1);
-		ConvertStringToCharArray(schemaItem->DefaultValue, thisgame.PropertySchema.defaultValue[i]);
-		thisgame.PropertySchema.propType[i] = (int)schemaItem->Type;
+		ConvertStringToNativeString(schemaItem->Name, prop_name);
+		ConvertStringToNativeString(schemaItem->Description, prop_desc);
+		ConvertStringToNativeString(schemaItem->DefaultValue, prop_defval);
+        thisgame.PropertySchema.AddProperty(prop_name,
+            (AGS::Common::CustomPropertyType)schemaItem->Type, prop_desc, prop_defval);
 	}
 
 	// ** GUIs **

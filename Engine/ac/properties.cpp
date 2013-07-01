@@ -13,63 +13,59 @@
 //=============================================================================
 
 #include "ac/common.h"
-#include "ac/properties.h"
 #include "ac/string.h"
 #include "ac/dynobj/scriptstring.h"
 #include "game/game_objects.h"
 #include "script/runtimescriptvalue.h"
+
+using Common::CustomProperties;
+using Common::CustomPropertyInfo;
+using Common::CustomPropertyState;
+using Common::String;
 
 extern ScriptString myScriptStringImpl;
 
 // begin custom property functions
 
 // Get an integer property
-int get_int_property (CustomProperties *cprop, const char *property) {
-    int idx = game.PropertySchema.findProperty(property);
+int get_int_property(CustomProperties *cprop, const char *property) {
+    CustomPropertyInfo *prop_info = game.PropertySchema.FindProperty(property);
 
-    if (idx < 0)
+    if (!prop_info)
         quit("!GetProperty: no such property found in schema. Make sure you are using the property's name, and not its description, when calling this command.");
 
-    if (game.PropertySchema.propType[idx] == PROP_TYPE_STRING)
+    if (prop_info->Type == Common::kCustomPropertyString)
         quit("!GetProperty: need to use GetPropertyString for a text property");
 
-    const char *valtemp = cprop->getPropertyValue(property);
-    if (valtemp == NULL) {
-        valtemp = game.PropertySchema.defaultValue[idx];
-    }
-    return atoi(valtemp);
+    AGS::Common::CustomPropertyState *prop_state = cprop->FindProperty(property);
+    return prop_state ? prop_state->Value.ToInt() : prop_info->DefaultValue.ToInt();
 }
 
 // Get a string property
-void get_text_property (CustomProperties *cprop, const char *property, char *bufer) {
-    int idx = game.PropertySchema.findProperty(property);
+void get_text_property(CustomProperties *cprop, const char *property, char *bufer) {
+    CustomPropertyInfo *prop_info = game.PropertySchema.FindProperty(property);
 
-    if (idx < 0)
+    if (!prop_info)
         quit("!GetPropertyText: no such property found in schema. Make sure you are using the property's name, and not its description, when calling this command.");
 
-    if (game.PropertySchema.propType[idx] != PROP_TYPE_STRING)
+    if (prop_info->Type != Common::kCustomPropertyString)
         quit("!GetPropertyText: need to use GetProperty for a non-text property");
 
-    const char *valtemp = cprop->getPropertyValue(property);
-    if (valtemp == NULL) {
-        valtemp = game.PropertySchema.defaultValue[idx];
-    }
-    strcpy (bufer, valtemp);
+    AGS::Common::CustomPropertyState *prop_state = cprop->FindProperty(property);
+    String val_str = prop_state ? prop_state->Value : prop_info->DefaultValue;
+    strcpy (bufer, val_str);
 }
 
 const char* get_text_property_dynamic_string(CustomProperties *cprop, const char *property) {
-    int idx = game.PropertySchema.findProperty(property);
+    CustomPropertyInfo *prop_info = game.PropertySchema.FindProperty(property);
 
-    if (idx < 0)
-        quit("!GetTextProperty: no such property found in schema. Make sure you are using the property's name, and not its description, when calling this command.");
+    if (!prop_info)
+        quit("!GetPropertyText: no such property found in schema. Make sure you are using the property's name, and not its description, when calling this command.");
 
-    if (game.PropertySchema.propType[idx] != PROP_TYPE_STRING)
-        quit("!GetTextProperty: need to use GetProperty for a non-text property");
+    if (prop_info->Type != Common::kCustomPropertyString)
+        quit("!GetPropertyText: need to use GetProperty for a non-text property");
 
-    const char *valtemp = cprop->getPropertyValue(property);
-    if (valtemp == NULL) {
-        valtemp = game.PropertySchema.defaultValue[idx];
-    }
-
-    return CreateNewScriptString(valtemp);
+    AGS::Common::CustomPropertyState *prop_state = cprop->FindProperty(property);
+    String val_str = prop_state ? prop_state->Value : prop_info->DefaultValue;
+    return CreateNewScriptString(val_str);
 }

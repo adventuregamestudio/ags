@@ -19,10 +19,10 @@
 #define __AGS_CN_GAME__AGSROOM_H
 
 #include "ac/animationstruct.h"
-#include "ac/customproperties.h"
 #include "ac/interaction.h"
 #include "ac/messageinfo.h"
 #include "ac/point.h"
+#include "game/customproperties.h"
 #include "util/array.h"
 #include "util/string.h"
 #include "util/wgt2allg.h"

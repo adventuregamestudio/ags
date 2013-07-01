@@ -434,7 +434,7 @@ void unload_game_file() {
             delete game.CharacterInteractions[bb];
             game.CharacterInteractions[bb] = NULL;
         }
-        game.CharacterProperties[bb].reset();
+        game.CharacterProperties[bb].Free();
     }
     game.CharacterInteractions.Free();
     characterScriptObjNames.Free();

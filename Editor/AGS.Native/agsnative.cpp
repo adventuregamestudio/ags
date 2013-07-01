@@ -3458,7 +3458,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, Common::GuiMain *gui)
 	  }
 
       Common::GuiObject *newObj = gui->Controls[gui->ControlCount - 1];
-	  newObj->SetFrame(Rect(control->Left, control->Top, control->Width, control->Height));
+	  newObj->SetFrame(RectWH(control->Left, control->Top, control->Width, control->Height));
 	  newObj->Id = control->ID;
 	  newObj->ZOrder = control->ZOrder;
 	  ConvertStringToNativeString(control->Name, newObj->ScriptName);

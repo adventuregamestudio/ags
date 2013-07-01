@@ -34,7 +34,7 @@ void AlignInRect(const Rect &place, Rect &item, Alignment &alignment)
     }
     else if (alignment & kAlignHCenter)
     {
-        item.MoveToX((place.GetWidth() >> 1) - (item.GetWidth() >> 1));
+        item.MoveToX(place.Left + (place.GetWidth() >> 1) - (item.GetWidth() >> 1));
     }
 
     if (alignment & kAlignTop)
@@ -47,7 +47,7 @@ void AlignInRect(const Rect &place, Rect &item, Alignment &alignment)
     }
     else if (alignment & kAlignVCenter)
     {
-        item.MoveToY((place.GetHeight() >> 1) - (item.GetHeight() >> 1));
+        item.MoveToY(place.Top + (place.GetHeight() >> 1) - (item.GetHeight() >> 1));
     }
 }
 

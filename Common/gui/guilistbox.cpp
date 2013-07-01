@@ -84,7 +84,7 @@ void GuiListBox::Clear()
 
 void GuiListBox::Draw(Common::Bitmap *ds)
 {
-    Rect frame = Rect(0, 0, frame.GetWidth() - 1, frame.GetHeight() - 1);
+    Rect frame = RectWH(Frame.Left, Frame.Top, Frame.GetWidth() - 1, Frame.GetHeight() - 1);
     int pixel_size = get_fixed_pixel_size(1);
 
     check_font(&TextFont);

@@ -341,7 +341,7 @@ void GuiButton::DrawText(Bitmap *ds, bool draw_disabled)
     {
         text_height++;
     }
-    Rect text_frame(0, 0, wgettextwidth(TextToDraw, TextFont), text_height);
+    Rect text_frame = RectWH(0, 0, wgettextwidth(TextToDraw, TextFont), text_height);
     Math::AlignInRect(content_frame, text_frame, TextAlignment);
 
     color_t text_color = ds->GetCompatibleColor(TextColor);

@@ -245,6 +245,7 @@ namespace AGS.Types
         }
 
         [Description("Whether the state of the room is saved when the player leaves the room and comes back")]
+        [DefaultValue(true)]
         [Category("Settings")]
         public bool StateSaving
         {

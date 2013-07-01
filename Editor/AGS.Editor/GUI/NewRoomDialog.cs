@@ -53,30 +53,16 @@ namespace AGS.Editor
 			get { return _templates[lstRoomTemplates.SelectedIndices[0]]; }
 		}
 
-        internal bool StateSaving
-        {
-            get { return !chkNonStateSaving.Checked; }
-        }
-
 		private void PickFirstAvailableRoomNumber()
 		{
 			int startingRoomNumber;
-			if (chkNonStateSaving.Checked)
-			{
-				startingRoomNumber = UnloadedRoom.LEGACY_NON_STATE_SAVING_INDEX;
-                udRoomNumber.Minimum = UnloadedRoom.LEGACY_NON_STATE_SAVING_INDEX + 1;
-				udRoomNumber.Maximum = UnloadedRoom.HIGHEST_ROOM_NUMBER_ALLOWED;
-			}
-			else
-			{
-				startingRoomNumber = 0;
-				udRoomNumber.Minimum = 0;
-                udRoomNumber.Maximum = UnloadedRoom.LEGACY_NON_STATE_SAVING_INDEX;
-			}
+			startingRoomNumber = 0;
+			udRoomNumber.Minimum = 0;
+            udRoomNumber.Maximum = UnloadedRoom.HIGHEST_ROOM_NUMBER_ALLOWED;
 			int newNumber = _game.FindFirstAvailableRoomNumber(startingRoomNumber);
 			if (newNumber > udRoomNumber.Maximum)
 			{
-				MessageBox.Show("There are no more room numbers available for this type of room. Consider changing some of your rooms to be non state saving.", "Room limit exceeded", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+				MessageBox.Show("There are no more room numbers available.", "Room limit exceeded", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 			}
 			else
 			{

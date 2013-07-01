@@ -32,10 +32,8 @@ namespace AGS.Editor
             this.btnOk = new System.Windows.Forms.Button();
             this.btnCancel = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
-            this.chkNonStateSaving = new System.Windows.Forms.CheckBox();
             this.label2 = new System.Windows.Forms.Label();
             this.udRoomNumber = new System.Windows.Forms.NumericUpDown();
-            this.label3 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.udRoomNumber)).BeginInit();
             this.SuspendLayout();
             // 
@@ -51,7 +49,8 @@ namespace AGS.Editor
             // 
             // btnOk
             // 
-            this.btnOk.Location = new System.Drawing.Point(20, 361);
+            this.btnOk.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btnOk.Location = new System.Drawing.Point(18, 337);
             this.btnOk.Name = "btnOk";
             this.btnOk.Size = new System.Drawing.Size(109, 29);
             this.btnOk.TabIndex = 1;
@@ -61,8 +60,9 @@ namespace AGS.Editor
             // 
             // btnCancel
             // 
+            this.btnCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(145, 361);
+            this.btnCancel.Location = new System.Drawing.Point(143, 337);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(117, 28);
             this.btnCancel.TabIndex = 2;
@@ -79,22 +79,10 @@ namespace AGS.Editor
             this.label1.TabIndex = 3;
             this.label1.Text = "Please choose the type of room you wish to create:";
             // 
-            // chkNonStateSaving
-            // 
-            this.chkNonStateSaving.AutoSize = true;
-            this.chkNonStateSaving.Location = new System.Drawing.Point(18, 293);
-            this.chkNonStateSaving.Name = "chkNonStateSaving";
-            this.chkNonStateSaving.Size = new System.Drawing.Size(565, 17);
-            this.chkNonStateSaving.TabIndex = 4;
-            this.chkNonStateSaving.Text = "Do not save state in this room (when the player leaves the room, everything will " +
-                "be reset back to its initial state)";
-            this.chkNonStateSaving.UseVisualStyleBackColor = true;
-            this.chkNonStateSaving.CheckedChanged += new System.EventHandler(this.chkNonStateSaving_CheckedChanged);
-            // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(17, 318);
+            this.label2.Location = new System.Drawing.Point(15, 301);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(77, 13);
             this.label2.TabIndex = 5;
@@ -102,7 +90,7 @@ namespace AGS.Editor
             // 
             // udRoomNumber
             // 
-            this.udRoomNumber.Location = new System.Drawing.Point(100, 315);
+            this.udRoomNumber.Location = new System.Drawing.Point(98, 297);
             this.udRoomNumber.Maximum = new decimal(new int[] {
             999,
             0,
@@ -112,27 +100,15 @@ namespace AGS.Editor
             this.udRoomNumber.Size = new System.Drawing.Size(67, 21);
             this.udRoomNumber.TabIndex = 6;
             // 
-            // label3
-            // 
-            this.label3.AutoSize = true;
-            this.label3.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label3.Location = new System.Drawing.Point(17, 339);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(366, 13);
-            this.label3.TabIndex = 7;
-            this.label3.Text = "Room numbers below 300 save the room state; numbers above 300 do not";
-            // 
             // NewRoomDialog
             // 
             this.AcceptButton = this.btnOk;
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(625, 402);
-            this.Controls.Add(this.label3);
+            this.ClientSize = new System.Drawing.Size(625, 378);
             this.Controls.Add(this.udRoomNumber);
             this.Controls.Add(this.label2);
-            this.Controls.Add(this.chkNonStateSaving);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.btnOk);
@@ -155,10 +131,8 @@ namespace AGS.Editor
 		private System.Windows.Forms.ListView lstRoomTemplates;
 		private System.Windows.Forms.Button btnOk;
 		private System.Windows.Forms.Button btnCancel;
-		private System.Windows.Forms.Label label1;
-		private System.Windows.Forms.CheckBox chkNonStateSaving;
+        private System.Windows.Forms.Label label1;
 		private System.Windows.Forms.Label label2;
-		private System.Windows.Forms.NumericUpDown udRoomNumber;
-		private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.NumericUpDown udRoomNumber;
 	}
 }

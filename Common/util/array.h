@@ -400,6 +400,24 @@ public:
             Empty();
         }
     }
+    // Grows array to accommodate N elements; does nothing if array is already at least that large
+    inline void GrowTo(int count)
+    {
+        if (count > GetCount())
+        {
+            SetLength(count);
+        }
+    }
+    // Same as first GrowTo(), but but also explicitly assigns initial value to
+    // every new element.
+    inline void GrowTo(int count, const T &value)
+    {
+        if (count > GetCount())
+        {
+            SetLength(count, value);
+        }
+    }
+
     inline void QSort(int (*pfn_compare)(const T*, const T*))
     {
         if (_data)
@@ -881,6 +899,23 @@ public:
         else
         {
             Empty();
+        }
+    }
+    // Grows array to accommodate N elements; does nothing if array is already at least that large
+    inline void GrowTo(int count)
+    {
+        if (count > GetCount())
+        {
+            SetLength(count);
+        }
+    }
+    // Same as first GrowTo(), but but also explicitly assigns initial value to
+    // every new element.
+    inline void GrowTo(int count, const T &value)
+    {
+        if (count > GetCount())
+        {
+            SetLength(count, value);
         }
     }
     // Assign array by sharing data reference

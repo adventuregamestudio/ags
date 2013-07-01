@@ -331,10 +331,7 @@ int GetRoomStateCount()
 // Replaces all accesses to the roomstats array
 RoomState* GetRoomState(int room)
 {
-    if (room >= room_statuses.GetCount())
-    {
-        room_statuses.SetLength(room + 1);
-    }
+    room_statuses.GrowTo(room + 1, NULL);
     if (room_statuses[room] == NULL)
     {
         // First access, allocate and initialise the status

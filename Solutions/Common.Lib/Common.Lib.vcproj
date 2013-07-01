@@ -528,10 +528,6 @@
 				Name="gui"
 				>
 				<File
-					RelativePath="..\..\Common\gui\dynamicarray.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\Common\gui\guibutton.h"
 					>
 				</File>

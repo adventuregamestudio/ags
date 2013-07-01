@@ -24,28 +24,28 @@ namespace Math
 
 void AlignInRect(const Rect &place, Rect &item, Alignment &alignment)
 {
-    if (alignment & kAlign_Left)
+    if (alignment & kAlignLeft)
     {
         item.MoveToX(place.Left);
     }
-    else if (alignment & kAlign_Right)
+    else if (alignment & kAlignRight)
     {
         item.MoveToX(place.Right - item.GetWidth());
     }
-    else if (alignment & kAlign_HCenter)
+    else if (alignment & kAlignHCenter)
     {
         item.MoveToX((place.GetWidth() >> 1) - (item.GetWidth() >> 1));
     }
 
-    if (alignment & kAlign_Top)
+    if (alignment & kAlignTop)
     {
         item.MoveToY(place.Top);
     }
-    else if (alignment & kAlign_Bottom)
+    else if (alignment & kAlignBottom)
     {
         item.MoveToY(place.Bottom - item.GetHeight());
     }
-    else if (alignment & kAlign_VCenter)
+    else if (alignment & kAlignVCenter)
     {
         item.MoveToY((place.GetHeight() >> 1) - (item.GetHeight() >> 1));
     }

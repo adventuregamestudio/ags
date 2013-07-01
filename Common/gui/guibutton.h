@@ -83,6 +83,8 @@ public:
     bool        IsMouseOver;
 
 private:
+    static Alignment ConvertLegacyButtonAlignment(LegacyGuiButtonAlignment legacy_align);
+
     void DrawImageButton(Bitmap *ds, bool draw_disabled);
     void DrawText(Bitmap *ds, bool draw_disabled);
     void DrawTextButton(Bitmap *ds, bool draw_disabled);

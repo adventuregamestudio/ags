@@ -25,7 +25,7 @@ GuiLabel::GuiLabel()
 {
     TextFont = 0;
     TextColor = 0;
-    TextAlignment = kAlign_Left;
+    TextAlignment = kAlignLeft;
 
     SupportedEventCount = 0;
 }
@@ -65,11 +65,11 @@ void GuiLabel::Draw(Common::Bitmap *ds)
 void GuiLabel::DrawAlignedText(Common::Bitmap *ds, int at_y, color_t text_color, const char *text)
 {
     int at_x = Frame.Left;
-    if (TextAlignment & kAlign_HCenter)
+    if (TextAlignment & kAlignHCenter)
     {
         at_x += Frame.GetWidth() / 2 - wgettextwidth(text, TextFont) / 2;
     }
-    else if (TextAlignment & kAlign_Right)
+    else if (TextAlignment & kAlignRight)
     {
         at_x += Frame.GetWidth() - wgettextwidth(text, TextFont);
     }
@@ -99,9 +99,15 @@ void GuiLabel::ReadFromFile(Stream *in, GuiVersion gui_version)
     }
     TextFont = in->ReadInt32();
     TextColor = in->ReadInt32();
-    TextAlignment = (Alignment)in->ReadInt32();
-    if (gui_version >= kGuiVersion_340_alpha)
+
+    if (gui_version < kGuiVersion_340_alpha)
     {
+        LegacyGuiAlignment legacy_align = (LegacyGuiAlignment)in->ReadInt32();
+        TextAlignment = ConvertLegacyAlignment(legacy_align);
+    }
+    else
+    {
+        TextAlignment = (Alignment)in->ReadInt32();
         Text.Read(in);
     }
 

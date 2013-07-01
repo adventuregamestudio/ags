@@ -156,5 +156,19 @@ void GuiObject::WriteToSavedGame(Common::Stream *out)
     out->WriteBool(IsActivated);
 }
 
+/* static */ Alignment GuiObject::ConvertLegacyAlignment(LegacyGuiAlignment legacy_align)
+{
+    switch (legacy_align)
+    {
+    case kLegacyGuiAlign_Left:
+        return kAlignLeft;
+    case kLegacyGuiAlign_Right:
+        return kAlignRight;
+    case kLegacyGuiAlign_Center:
+        return kAlignHCenter;
+    }
+    return kAlignNone;
+}
+
 } // namespace Common
 } // namespace AGS

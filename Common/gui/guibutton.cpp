@@ -30,7 +30,7 @@ GuiButton::GuiButton()
     CurrentImage = -1;
     TextFont = 0;
     TextColor = 0;
-    TextAlignment = kAlign_None;
+    TextAlignment = kAlignNone;
     ClickAction = kGuiBtnAction_RunScript;
     ClickActionData = 0;
 
@@ -147,15 +147,17 @@ void GuiButton::ReadFromFile(Stream *in, GuiVersion gui_version)
         ClickActionData = in->ReadInt32();
         in->ReadInt32(); // rclickdata
         Text.ReadCount(in, 50);
+        LegacyGuiButtonAlignment legacy_align;
         if (gui_version >= kGuiVersion_272a)
         {
-            TextAlignment = (Alignment)in->ReadInt32();
+            legacy_align = (LegacyGuiButtonAlignment)in->ReadInt32();
             in->ReadInt32(); // reserved1
         }
         else
         {
-            TextAlignment = kAlign_TopCenter;
+            legacy_align = kLegacyGuiBtnAlign_TopCenter;
         }
+        TextAlignment = ConvertLegacyButtonAlignment(legacy_align);
     }
     else
     {
@@ -204,6 +206,32 @@ void GuiButton::ReadFromSavedGame(Stream *in, RuntimeGuiVersion gui_version)
     Text.Read(in);
 
     CurrentImage = NormalImage;
+}
+
+/* static */ Alignment GuiButton::ConvertLegacyButtonAlignment(LegacyGuiButtonAlignment legacy_align)
+{
+    switch (legacy_align)
+    {
+    case kLegacyGuiBtnAlign_TopCenter:
+        return kAlignTopCenter;
+    case kLegacyGuiBtnAlign_TopLeft:
+        return kAlignTopLeft;
+    case kLegacyGuiBtnAlign_TopRight:
+        return kAlignTopRight;
+    case kLegacyGuiBtnAlign_CenterLeft:
+        return kAlignCenterLeft;
+    case kLegacyGuiBtnAlign_Centered:
+        return kAlignCentered;
+    case kLegacyGuiBtnAlign_CenterRight:
+        return kAlignCenterRight;
+    case kLegacyGuiBtnAlign_BottomLeft:
+        return kAlignBottomLeft;
+    case kLegacyGuiBtnAlign_BottomCenter:
+        return kAlignBottomCenter;
+    case kLegacyGuiBtnAlign_BottomRight:
+        return kAlignBottomRight;
+    }
+    return kAlignNone;
 }
 
 void GuiButton::DrawImageButton(Bitmap *ds, bool draw_disabled)
@@ -309,7 +337,7 @@ void GuiButton::DrawText(Bitmap *ds, bool draw_disabled)
     }
     int text_height = wgettextheight(TextToDraw, TextFont);
     // CHECKME: better way instead of this hack?
-    if (TextAlignment & kAlign_VCenter)
+    if (TextAlignment & kAlignVCenter)
     {
         text_height++;
     }

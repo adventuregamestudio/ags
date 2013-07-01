@@ -47,6 +47,13 @@ enum GuiControlFlags
     kGuiCtrl_Deleted    = 0x8000,
 };
 
+enum LegacyGuiAlignment
+{
+    kLegacyGuiAlign_Left   = 0,
+    kLegacyGuiAlign_Right  = 1,
+    kLegacyGuiAlign_Center = 2
+};
+
 
 class GuiObject
 {
@@ -141,6 +148,9 @@ protected:
     int32_t         SupportedEventCount;
     String          EventNames[MAX_GUIOBJ_EVENTS];
     String          EventArgs[MAX_GUIOBJ_EVENTS];
+
+protected:
+    static Alignment ConvertLegacyAlignment(LegacyGuiAlignment legacy_align);
 };
 
 } // namespace Common

@@ -25,16 +25,24 @@
 
 enum Alignment
 {
-    kAlign_None     = 0x00,
-    kAlign_Left     = 0x01,
-    kAlign_Right    = 0x02,
-    kAlign_HCenter  = 0x04,
-    kAlign_Top      = 0x10,
-    kAlign_Bottom   = 0x20,
-    kAlign_VCenter  = 0x40,
+    kAlignNone     = 0x00,
+    kAlignLeft     = 0x01,
+    kAlignRight    = 0x02,
+    kAlignHCenter  = 0x04,
+    kAlignTop      = 0x10,
+    kAlignBottom   = 0x20,
+    kAlignVCenter  = 0x40,
 
     // Composite constants
-    kAlign_TopCenter = kAlign_Top | kAlign_HCenter
+    kAlignTopLeft      = kAlignTop     | kAlignLeft,
+    kAlignTopCenter    = kAlignTop     | kAlignHCenter,
+    kAlignTopRight     = kAlignTop     | kAlignRight,
+    kAlignCenterLeft   = kAlignVCenter | kAlignLeft,
+    kAlignCentered     = kAlignVCenter | kAlignHCenter,
+    kAlignCenterRight  = kAlignVCenter | kAlignRight,
+    kAlignBottomLeft   = kAlignBottom  | kAlignLeft,
+    kAlignBottomCenter = kAlignBottom  | kAlignHCenter,
+    kAlignBottomRight  = kAlignBottom  | kAlignRight,
 };
 
 struct Point

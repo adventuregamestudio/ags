@@ -33,7 +33,7 @@ GuiListBox::GuiListBox()
     BackgroundColor = 7;
     ListBoxFlags = 0;
     SelectedBkgColor = 16;
-    TextAlignment = kAlign_None;
+    TextAlignment = kAlignNone;
 
     SupportedEventCount = 1;
     EventNames[0] = "SelectionChanged";
@@ -161,14 +161,14 @@ void GuiListBox::Draw(Common::Bitmap *ds)
         int item_index = item + TopItem;
         PrepareTextToDraw(Items[item_index]);
 
-        if (TextAlignment & kAlign_Left)
+        if (TextAlignment & kAlignLeft)
         {
             wouttext_outline(ds, frame.Left + 1 + pixel_size, at_y + 1, TextFont, text_color, TextToDraw);
         }
         else
         {
             int textWidth = wgettextwidth(TextToDraw, TextFont);
-            if (TextAlignment == kAlign_Right)
+            if (TextAlignment == kAlignRight)
             {
                 wouttext_outline(ds, right_hand_edge - textWidth, at_y + 1, TextFont, text_color, TextToDraw);
             }
@@ -326,15 +326,17 @@ void GuiListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
         TextColor = in->ReadInt32();
         BackgroundColor = in->ReadInt32();
         ListBoxFlags = in->ReadInt32();
+        LegacyGuiAlignment legacy_align;
         if (gui_version >= kGuiVersion_272b)
         {
-            TextAlignment = (Alignment)in->ReadInt32();
+            legacy_align = (LegacyGuiAlignment)in->ReadInt32();
             in->ReadInt32(); // reserved1
         }
         else
         {
-            TextAlignment = kAlign_Left;
+            legacy_align = kLegacyGuiAlign_Left;
         }
+        TextAlignment = ConvertLegacyAlignment(legacy_align);
         if (gui_version >= kGuiVersion_unkn_107)
         {
             SelectedBkgColor = in->ReadInt32();

@@ -25,12 +25,12 @@
 #include "game/game_objects.h"
 #include "gui/guidefines.h"
 #include "ac/spritecache.h"
+#include "gfx/gfx_util.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 extern Bitmap *raw_saved_screen;
-extern int trans_mode;
 extern char lines[MAXLINE][200];
 extern int  numlines;
 extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
@@ -104,8 +104,8 @@ void RawDrawFrameTransparent (int frame, int translev) {
     }
     // Draw it transparently
     RAW_START();
-    trans_mode = ((100-translev) * 25) / 10;
-    put_sprite_256 (RAW_SURFACE(), 0, 0, thisroom.Backgrounds[frame].Graphic);
+    int trans_mode = ((100-translev) * 25) / 10;
+    AGS::Engine::GfxUtil::DrawSpriteWithTransparency (RAW_SURFACE(), thisroom.Backgrounds[frame].Graphic, 0, 0, trans_mode);
     invalidate_screen();
     mark_current_background_dirty();
     RAW_END();
@@ -174,7 +174,7 @@ void RawPrintMessageWrapped (int xx, int yy, int wid, int font, int msgm) {
     RAW_END();
 }
 
-void RawDrawImageCore(int xx, int yy, int slot) {
+void RawDrawImageCore(int xx, int yy, int slot, int transparency) {
     if ((slot < 0) || (slot >= MAX_SPRITES) || (spriteset[slot] == NULL))
         quit("!RawDrawImage: invalid sprite slot number specified");
     RAW_START();
@@ -183,7 +183,7 @@ void RawDrawImageCore(int xx, int yy, int slot) {
         debug_log("RawDrawImage: Sprite %d colour depth %d-bit not same as background depth %d-bit", slot, spriteset[slot]->GetColorDepth(), RAW_SURFACE()->GetColorDepth());
     }
 
-    draw_sprite_support_alpha(RAW_SURFACE(), xx, yy, spriteset[slot], slot);
+    draw_sprite_support_alpha(RAW_SURFACE(), xx, yy, spriteset[slot], slot, transparency);
     invalidate_screen();
     mark_current_background_dirty();
     RAW_END();
@@ -192,6 +192,11 @@ void RawDrawImageCore(int xx, int yy, int slot) {
 void RawDrawImage(int xx, int yy, int slot) {
     multiply_up_coordinates(&xx, &yy);
     RawDrawImageCore(xx, yy, slot);
+}
+
+void RawDrawImageTrans(int xx, int yy, int slot, int transparency) {
+    multiply_up_coordinates(&xx, &yy);
+    RawDrawImageCore(xx, yy, slot, transparency);
 }
 
 void RawDrawImageOffset(int xx, int yy, int slot) {
@@ -214,10 +219,8 @@ void RawDrawImageTransparent(int xx, int yy, int slot, int trans) {
     if ((trans < 0) || (trans > 100))
         quit("!RawDrawImageTransparent: invalid transparency setting");
 
-    // since RawDrawImage uses putsprite256, we can just select the
-    // transparency mode and call it
-    trans_mode = (trans * 255) / 100;
-    RawDrawImage(xx, yy, slot);
+    int trans_mode = (trans * 255) / 100;
+    RawDrawImageTrans(xx, yy, slot, trans_mode);
 
     update_polled_stuff_if_runtime();  // this operation can be slow so stop music skipping
 }
@@ -241,7 +244,7 @@ void RawDrawImageResized(int xx, int yy, int gotSlot, int width, int height) {
     if (newPic->GetColorDepth() != RAW_SURFACE()->GetColorDepth())
         quit("!RawDrawImageResized: image colour depth mismatch: the background image must have the same colour depth as the sprite being drawn");
 
-    put_sprite_256(RAW_SURFACE(), xx, yy, newPic);
+    AGS::Engine::GfxUtil::DrawSpriteWithTransparency(RAW_SURFACE(), newPic, xx, yy);
     delete newPic;
     invalidate_screen();
     mark_current_background_dirty();

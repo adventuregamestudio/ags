@@ -31,7 +31,7 @@ void RawSetColor (int clr);
 void RawSetColorRGB(int red, int grn, int blu);
 void RawPrint (int xx, int yy, const char*texx, ...);
 void RawPrintMessageWrapped (int xx, int yy, int wid, int font, int msgm);
-void RawDrawImageCore(int xx, int yy, int slot);
+void RawDrawImageCore(int xx, int yy, int slot, int transparency = 0);
 void RawDrawImage(int xx, int yy, int slot);
 void RawDrawImageOffset(int xx, int yy, int slot);
 void RawDrawImageTransparent(int xx, int yy, int slot, int trans);

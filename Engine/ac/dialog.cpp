@@ -44,6 +44,7 @@
 #include "script/script.h"
 #include "ac/spritecache.h"
 #include "gfx/ddb.h"
+#include "gfx/gfx_util.h"
 #include "gfx/graphicsdriver.h"
 
 using AGS::Common::Bitmap;
@@ -60,7 +61,6 @@ extern volatile int timerloop;
 extern AGSPlatformDriver *platform;
 extern int cur_mode,cur_cursor;
 extern Bitmap *virtual_screen;
-extern Bitmap *screenop;
 extern IGraphicsDriver *gfxDriver;
 
 AGS::Common::ObjectArray<AGS::Common::DialogTopicInfo> dialog;
@@ -382,7 +382,7 @@ void draw_gui_for_dialog_options(Bitmap *ds, GuiMain *guib, int dlgxp, int dlgyp
     ds->FillRect(Rect(dlgxp, dlgyp, dlgxp + guib->GetWidth(), dlgyp + guib->GetHeight()), draw_color);
   }
   if (guib->BackgroundImage > 0)
-    put_sprite_256 (ds, dlgxp, dlgyp, spriteset[guib->BackgroundImage]);
+      AGS::Engine::GfxUtil::DrawSpriteWithTransparency(ds, spriteset[guib->BackgroundImage], dlgxp, dlgyp);
 }
 
 bool get_custom_dialog_options_dimensions(int dlgnum)
@@ -689,7 +689,8 @@ void DialogOptions::Redraw()
 
       // needs to draw the right text window, not the default
       push_screen(ds);
-      draw_text_window(ds, &txoffs,&tyoffs,&xspos,&yspos,&areawid,needheight, game.Options[OPT_DIALOGIFACE]);
+      Bitmap *text_window_ds = ds;
+      draw_text_window(&text_window_ds, false, &txoffs,&tyoffs,&xspos,&yspos,&areawid,NULL,needheight, game.Options[OPT_DIALOGIFACE]);
       ds = pop_screen();
       // snice draw_text_window incrases the width, restore it
       areawid = savedwid;
@@ -697,11 +698,11 @@ void DialogOptions::Redraw()
 
       dirtyx = xspos;
       dirtyy = yspos;
-      dirtywidth = screenop->GetWidth();
-      dirtyheight = screenop->GetHeight();
+      dirtywidth = text_window_ds->GetWidth();
+      dirtyheight = text_window_ds->GetHeight();
 
-      wputblock(ds, xspos,yspos,screenop,1);
-      delete screenop; screenop = NULL;
+      wputblock(ds, xspos,yspos,text_window_ds,1);
+      delete text_window_ds;
 
       // Ignore the dialog_options_x/y offsets when using a text window
       txoffs += xspos;

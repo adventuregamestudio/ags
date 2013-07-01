@@ -66,7 +66,6 @@ struct CachedActSpsData {
 void invalidate_screen();
 void mark_current_background_dirty();
 void invalidate_cached_walkbehinds();
-void put_sprite_256(Common::Bitmap *ds, int xxx,int yyy,Common::Bitmap *piccy);
 Common::Bitmap *recycle_bitmap(Common::Bitmap *bimp, int coldep, int wid, int hit, bool make_transparent = false);
 void push_screen (Common::Bitmap *ds);
 Common::Bitmap *pop_screen();
@@ -77,7 +76,7 @@ void render_graphics(Engine::IDriverDependantBitmap *extraBitmap = NULL, int ext
 void construct_virtual_screen(bool fullRedraw) ;
 void add_to_sprite_list(Engine::IDriverDependantBitmap* spp, int xx, int yy, int baseline, int trans, int sprNum, bool isWalkBehind = false);
 void tint_image (Common::Bitmap *g, Common::Bitmap *source, int red, int grn, int blu, int light_level, int luminance=255);
-void draw_sprite_support_alpha(Common::Bitmap *g, int xpos, int ypos, Common::Bitmap *image, int slot);
+void draw_sprite_support_alpha(Common::Bitmap *g, int xpos, int ypos, Common::Bitmap *image, int slot, int transparency = 0);
 void render_to_screen(Common::Bitmap *toRender, int atx, int aty);
 void draw_screen_callback();
 void write_screen();

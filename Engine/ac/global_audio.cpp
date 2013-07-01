@@ -429,6 +429,11 @@ void SetVoiceMode (int newmod) {
         play.SpeechVoiceMode = newmod;
 }
 
+int GetVoiceMode()
+{
+    return play.SpeechVoiceMode >= 0 ? play.SpeechVoiceMode : (-play.SpeechVoiceMode + 1);
+}
+
 int IsVoxAvailable() {
     if (play.SpeechVoiceMode < 0)
         return 0;

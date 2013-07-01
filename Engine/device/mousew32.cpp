@@ -38,6 +38,7 @@
 
 #include "device/mousew32.h"
 #include "gfx/bitmap.h"
+#include "gfx/gfx_util.h"
 
 using AGS::Common::Bitmap;
 
@@ -66,7 +67,6 @@ void msethotspot(int,int);   // Graphics mode only. Useful for crosshair.
 void msetgraphpos(int,int);
 
 extern char lib_file_name[13];
-extern void put_sprite_256(Common::Bitmap *ds, int, int, Bitmap *);
 
 char *mouselibcopyr = "MouseLib32 (c) 1994, 1998 Chris Jones";
 const int NONE = -1, LEFT = 0, RIGHT = 1, MIDDLE = 2;
@@ -142,7 +142,7 @@ void drawCursor(Bitmap *ds) {
     ds->TransBlendBlt(mousecurs[currentcursor], mousex, mousey);
   }
   else
-    put_sprite_256(ds, mousex, mousey, mousecurs[currentcursor]);
+    AGS::Engine::GfxUtil::DrawSpriteWithTransparency(ds, mousecurs[currentcursor], mousex, mousey);
 }
 
 int hotxwas = 0, hotywas = 0;

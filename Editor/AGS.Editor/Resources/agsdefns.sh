@@ -158,6 +158,7 @@ enum VideoSkipStyle
 
 enum eKeyCode
 {
+  eNoKey    = 0,
   eKeyCtrlA = 1,
   eKeyCtrlB = 2,
   eKeyCtrlC = 3,
@@ -946,12 +947,16 @@ import void UpdateInventory();
 import void StopDialog();
 /// Determines whether two objects or characters are overlapping each other.
 import int  AreThingsOverlapping(int thing1, int thing2);
+
+#ifndef STRICT
 /// Sets whether voice and/or text are used in the game.
 import void SetVoiceMode(eVoiceMode);
 /// Sets how the player can skip speech lines.
 import void SetSkipSpeech(int skipFlag);
 /// Changes the style in which speech is displayed.
 import void SetSpeechStyle(eSpeechStyle);
+#endif
+
 /// Starts a timer, which will expire after the specified number of game loops.
 import void SetTimer(int timerID, int timeout);
 /// Returns true the first time this is called after the timer expires.
@@ -2153,10 +2158,20 @@ struct GameState {
   int  screenshot_width;
   int  screenshot_height;
   int  top_bar_font;
+#ifdef STRICT
+  int  reserved__2;   // $AUTOCOMPLETEIGNORE$
+#endif
+#ifndef STRICT
   int  speech_text_align;
+#endif
   int  auto_use_walkto_points;
   int  inventory_greys_out;
+#ifdef STRICT
+  int  reserved__3;   // $AUTOCOMPLETEIGNORE$
+#endif
+#ifndef STRICT
   int  skip_speech_specific_key;
+#endif
   int  abort_key;
   readonly int fade_color_red;
   readonly int fade_color_green;
@@ -2165,10 +2180,35 @@ struct GameState {
   int  keep_screen_during_instant_transition;
   int  read_dialog_option_color;
   int  stop_dialog_at_end;   // $AUTOCOMPLETEIGNORE$
-  int  speech_portrait_placement;
-  int  speech_portrait_x;
-  int  speech_portrait_y;
   };
+  
+enum SkipSpeechType {
+  eSkipKeyMouseTime = 0,
+  eSkipKeyTime      = 1,
+  eSkipTime         = 2,
+  eSkipKeyMouse     = 3,
+  eSkipMouseTime    = 4
+};
+  
+managed struct Speech {
+  /// Enables/disables the custom speech portrait placement.
+  import static attribute bool            CustomPortraitPlacement;
+  /// Gets/sets speech portrait x offset relative to screen side.
+  import static attribute int             PortraitXOffset;
+  /// Gets/sets speech portrait y position.
+  import static attribute int             PortraitY;
+  /// Gets/sets specific key which can skip speech text.
+  import static attribute eKeyCode        SkipKey;
+  /// Gets/sets how the player can skip speech lines.
+  import static attribute SkipSpeechType  SkipType;
+  /// Gets/sets the style in which speech is displayed.
+  import static attribute eSpeechStyle    Style;
+  /// Gets/sets how text in message boxes and Sierra-style speech is aligned.
+  import static attribute Alignment       TextAlignment;
+  /// Gets/sets whether voice and/or text are used in the game.
+  import static attribute eVoiceMode      VoiceMode;
+};
+
 
 import readonly Character *player;
 import Object object[40];

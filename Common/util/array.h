@@ -387,11 +387,15 @@ public:
             if (MustReserve(count))
             {
                 ReserveAndShift(-1, count - GetCount());
-                Construct(_meta->Length, count, value);
             }
             else if (_meta->RefCount > 1)
             {
                 Copy(count);
+            }
+
+            if (count > _meta->Length)
+            {
+                Construct(_meta->Length, count, value);
             }
             _meta->Length = count;
         }
@@ -857,7 +861,6 @@ public:
             if (MustReserve(count))
             {
                 ReserveAndShift(-1, count - GetCount());
-                Construct(_meta->Length, count);
             }
             else if (_meta->RefCount > 1)
             {
@@ -867,6 +870,11 @@ public:
             {
                 Deconstruct(count, _meta->Length);
             }
+
+            if (count > _meta->Length)
+            {
+                Construct(_meta->Length, count);
+            }            
             _meta->Length = count;
         }
         else
@@ -893,6 +901,11 @@ public:
             else if (count < _meta->Length)
             {
                 Deconstruct(count, _meta->Length);
+            }
+
+            if (count > _meta->Length)
+            {
+                Construct(_meta->Length, count, value);
             }
             _meta->Length = count;
         }

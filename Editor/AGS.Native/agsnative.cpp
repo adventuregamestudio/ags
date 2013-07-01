@@ -3291,6 +3291,55 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, Common::GuiMain *gui)
 
   for each (GUIControl^ control in guiObj->Controls)
   {
+      if (dynamic_cast<AGS::Types::GUIButton^>(control))
+      {
+          numguibuts++;
+      }
+      else if (dynamic_cast<AGS::Types::GUILabel^>(control))
+      {
+          numguilabels++;
+      }
+      else if (dynamic_cast<AGS::Types::GUITextBox^>(control))
+      {
+          numguitext++;
+      }
+      else if (dynamic_cast<AGS::Types::GUIListBox^>(control))
+      {
+          numguilist++;
+      }
+      else if (dynamic_cast<AGS::Types::GUISlider^>(control))
+      {
+          numguislider++;
+      }
+      else if (dynamic_cast<AGS::Types::GUIInventory^>(control))
+      {
+          numguiinv++;
+      }
+      else if (dynamic_cast<AGS::Types::GUITextWindowEdge^>(control))
+      {
+          numguibuts++;
+      }
+  }
+
+  guibuts.SetLength(numguibuts);
+  guilabels.SetLength(numguilabels);
+  guitext.SetLength(numguitext);
+  guilist.SetLength(numguilist);
+  guislider.SetLength(numguislider);
+  guiinv.SetLength(numguiinv);
+
+  gui->ControlRefs.SetLength(guiObj->Controls->Count);
+  gui->Controls.SetLength(guiObj->Controls->Count);
+
+  int btn_index = 0;
+  int label_index = 0;
+  int textbox_index = 0;
+  int listbox_index = 0;
+  int slider_index = 0;
+  int inv_index = 0;
+
+  for each (GUIControl^ control in guiObj->Controls)
+  {
 	  AGS::Types::GUIButton^ button = dynamic_cast<AGS::Types::GUIButton^>(control);
 	  AGS::Types::GUILabel^ label = dynamic_cast<AGS::Types::GUILabel^>(control);
 	  AGS::Types::GUITextBox^ textbox = dynamic_cast<AGS::Types::GUITextBox^>(control);
@@ -3300,105 +3349,112 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, Common::GuiMain *gui)
 	  AGS::Types::GUITextWindowEdge^ textwindowedge = dynamic_cast<AGS::Types::GUITextWindowEdge^>(control);
 	  if (button)
 	  {
-		  guibuts[numguibuts].TextColor = button->TextColor;
-		  guibuts[numguibuts].TextFont = button->Font;
-		  guibuts[numguibuts].NormalImage = button->Image;
-		  guibuts[numguibuts].CurrentImage = guibuts[numguibuts].NormalImage;
-		  guibuts[numguibuts].MouseOverImage = button->MouseoverImage;
-		  guibuts[numguibuts].PushedImage = button->PushedImage;
-          guibuts[numguibuts].TextAlignment = (Alignment)button->TextAlignment;
-          guibuts[numguibuts].ClickAction = (Common::GuiButtonClickAction)button->ClickAction;
-		  guibuts[numguibuts].ClickActionData = button->NewModeNumber;
-		  guibuts[numguibuts].Flags = (button->ClipImage) ? Common::kGuiCtrl_Clip : 0;
-		  ConvertStringToNativeString(button->Text, guibuts[numguibuts].Text);
-		  ConvertStringToNativeString(button->OnClick, guibuts[numguibuts].EventHandlers[0]);
+          Common::GuiButton &btn = guibuts[btn_index];
+		  btn.TextColor = button->TextColor;
+		  btn.TextFont = button->Font;
+		  btn.NormalImage = button->Image;
+		  btn.CurrentImage = btn.NormalImage;
+		  btn.MouseOverImage = button->MouseoverImage;
+		  btn.PushedImage = button->PushedImage;
+          btn.TextAlignment = (Alignment)button->TextAlignment;
+          btn.ClickAction = (Common::GuiButtonClickAction)button->ClickAction;
+		  btn.ClickActionData = button->NewModeNumber;
+		  btn.Flags = (button->ClipImage) ? Common::kGuiCtrl_Clip : 0;
+		  ConvertStringToNativeString(button->Text, btn.Text);
+		  ConvertStringToNativeString(button->OnClick, btn.EventHandlers[0]);
 		  
-		  gui->ControlRefs[gui->ControlCount] = (Common::kGuiButton << 16) | numguibuts;
-		  gui->Controls[gui->ControlCount] = &guibuts[numguibuts];
+		  gui->ControlRefs[gui->ControlCount] = (Common::kGuiButton << 16) | btn_index;
+		  gui->Controls[gui->ControlCount] = &btn;
 		  gui->ControlCount++;
-		  numguibuts++;
+		  btn_index++;
 	  }
 	  else if (label)
 	  {
-		  guilabels[numguilabels].TextColor = label->TextColor;
-		  guilabels[numguilabels].TextFont = label->Font;
-		  guilabels[numguilabels].TextAlignment = (Alignment)label->TextAlignment;
-		  guilabels[numguilabels].Flags = 0;
-		  ConvertStringToNativeString(label->Text, guilabels[numguilabels].Text);
+          Common::GuiLabel &lbl = guilabels[label_index];
+		  lbl.TextColor = label->TextColor;
+		  lbl.TextFont = label->Font;
+		  lbl.TextAlignment = (Alignment)label->TextAlignment;
+		  lbl.Flags = 0;
+		  ConvertStringToNativeString(label->Text, lbl.Text);
 
-		  gui->ControlRefs[gui->ControlCount] = (Common::kGuiLabel << 16) | numguilabels;
-		  gui->Controls[gui->ControlCount] = &guilabels[numguilabels];
+		  gui->ControlRefs[gui->ControlCount] = (Common::kGuiLabel << 16) | label_index;
+		  gui->Controls[gui->ControlCount] = &lbl;
 		  gui->ControlCount++;
-		  numguilabels++;
+		  label_index++;
 	  }
 	  else if (textbox)
 	  {
-		  guitext[numguitext].TextColor = textbox->TextColor;
-		  guitext[numguitext].TextFont = textbox->Font;
-		  guitext[numguitext].Flags = 0;
-		  guitext[numguitext].TextBoxFlags = (textbox->ShowBorder) ? 0 : Common::kGuiTextBox_NoBorder;
-		  guitext[numguitext].Text.Empty();
-		  ConvertStringToNativeString(textbox->OnActivate, guitext[numguitext].EventHandlers[0]);
+          Common::GuiTextBox &tbox = guitext[textbox_index];
+		  tbox.TextColor = textbox->TextColor;
+		  tbox.TextFont = textbox->Font;
+		  tbox.Flags = 0;
+		  tbox.TextBoxFlags = (textbox->ShowBorder) ? 0 : Common::kGuiTextBox_NoBorder;
+		  tbox.Text.Empty();
+		  ConvertStringToNativeString(textbox->OnActivate, tbox.EventHandlers[0]);
 
-		  gui->ControlRefs[gui->ControlCount] = (Common::kGuiTextBox << 16) | numguitext;
-		  gui->Controls[gui->ControlCount] = &guitext[numguitext];
+		  gui->ControlRefs[gui->ControlCount] = (Common::kGuiTextBox << 16) | textbox_index;
+		  gui->Controls[gui->ControlCount] = &tbox;
 		  gui->ControlCount++;
-		  numguitext++;
+		  textbox_index++;
 	  }
 	  else if (listbox)
 	  {
-		  guilist[numguilist].TextColor = listbox->TextColor;
-		  guilist[numguilist].TextFont = listbox->Font;
-		  guilist[numguilist].BackgroundColor = listbox->SelectedTextColor;
-		  guilist[numguilist].SelectedBkgColor = listbox->SelectedBackgroundColor;
-		  guilist[numguilist].TextAlignment = (Alignment)listbox->TextAlignment;
-          guilist[numguilist].Flags = listbox->Translated ? Common::kGuiCtrl_Translated : 0;
-		  guilist[numguilist].ListBoxFlags = (listbox->ShowBorder) ? 0 : Common::kGuiListBox_NoBorder;
-		  guilist[numguilist].ListBoxFlags |= (listbox->ShowScrollArrows) ? 0 : Common::kGuiListBox_NoArrows;
-		  ConvertStringToNativeString(listbox->OnSelectionChanged, guilist[numguilist].EventHandlers[0]);
+          Common::GuiListBox &lbox = guilist[listbox_index];
+		  lbox.TextColor = listbox->TextColor;
+		  lbox.TextFont = listbox->Font;
+		  lbox.BackgroundColor = listbox->SelectedTextColor;
+		  lbox.SelectedBkgColor = listbox->SelectedBackgroundColor;
+		  lbox.TextAlignment = (Alignment)listbox->TextAlignment;
+          lbox.Flags = listbox->Translated ? Common::kGuiCtrl_Translated : 0;
+		  lbox.ListBoxFlags = (listbox->ShowBorder) ? 0 : Common::kGuiListBox_NoBorder;
+		  lbox.ListBoxFlags |= (listbox->ShowScrollArrows) ? 0 : Common::kGuiListBox_NoArrows;
+		  ConvertStringToNativeString(listbox->OnSelectionChanged, lbox.EventHandlers[0]);
 
-		  gui->ControlRefs[gui->ControlCount] = (Common::kGuiListBox << 16) | numguilist;
-		  gui->Controls[gui->ControlCount] = &guilist[numguilist];
+		  gui->ControlRefs[gui->ControlCount] = (Common::kGuiListBox << 16) | listbox_index;
+		  gui->Controls[gui->ControlCount] = &lbox;
 		  gui->ControlCount++;
-		  numguilist++;
+		  listbox_index++;
 	  }
 	  else if (slider)
 	  {
-		  guislider[numguislider].MinValue = slider->MinValue;
-		  guislider[numguislider].MaxValue = slider->MaxValue;
-		  guislider[numguislider].Value = slider->Value;
-		  guislider[numguislider].HandleImage = slider->HandleImage;
-		  guislider[numguislider].HandleOffset = slider->HandleOffset;
-		  guislider[numguislider].BackgroundImage = slider->BackgroundImage;
-		  ConvertStringToNativeString(slider->OnChange, guislider[numguislider].EventHandlers[0]);
+          Common::GuiSlider &sld = guislider[slider_index];
+		  sld.MinValue = slider->MinValue;
+		  sld.MaxValue = slider->MaxValue;
+		  sld.Value = slider->Value;
+		  sld.HandleImage = slider->HandleImage;
+		  sld.HandleOffset = slider->HandleOffset;
+		  sld.BackgroundImage = slider->BackgroundImage;
+		  ConvertStringToNativeString(slider->OnChange, sld.EventHandlers[0]);
 
-		  gui->ControlRefs[gui->ControlCount] = (Common::kGuiSlider << 16) | numguislider;
-		  gui->Controls[gui->ControlCount] = &guislider[numguislider];
+		  gui->ControlRefs[gui->ControlCount] = (Common::kGuiSlider << 16) | slider_index;
+		  gui->Controls[gui->ControlCount] = &sld;
 		  gui->ControlCount++;
-		  numguislider++;
+		  slider_index++;
 	  }
 	  else if (invwindow)
 	  {
-		  guiinv[numguiinv].CharacterId = invwindow->CharacterID;
-		  guiinv[numguiinv].ItemWidth = invwindow->ItemWidth;
-		  guiinv[numguiinv].ItemHeight = invwindow->ItemHeight;
+          Common::GuiInvWindow &inv = guiinv[inv_index];
+		  inv.CharacterId = invwindow->CharacterID;
+		  inv.ItemWidth = invwindow->ItemWidth;
+		  inv.ItemHeight = invwindow->ItemHeight;
 
-		  gui->ControlRefs[gui->ControlCount] = (Common::kGuiInvWindow << 16) | numguiinv;
-		  gui->Controls[gui->ControlCount] = &guiinv[numguiinv];
+		  gui->ControlRefs[gui->ControlCount] = (Common::kGuiInvWindow << 16) | inv_index;
+		  gui->Controls[gui->ControlCount] = &inv;
 		  gui->ControlCount++;
-		  numguiinv++;
+		  inv_index++;
 	  }
 	  else if (textwindowedge)
 	  {
-		  guibuts[numguibuts].NormalImage = textwindowedge->Image;
-		  guibuts[numguibuts].CurrentImage = guibuts[numguibuts].NormalImage;
-		  guibuts[numguibuts].Flags = 0;
-		  guibuts[numguibuts].Text.Empty();
+          Common::GuiButton &btn = guibuts[btn_index];
+		  btn.NormalImage = textwindowedge->Image;
+		  btn.CurrentImage = btn.NormalImage;
+		  btn.Flags = 0;
+		  btn.Text.Empty();
 		  
-		  gui->ControlRefs[gui->ControlCount] = (Common::kGuiButton << 16) | numguibuts;
-		  gui->Controls[gui->ControlCount] = &guibuts[numguibuts];
+		  gui->ControlRefs[gui->ControlCount] = (Common::kGuiButton << 16) | btn_index;
+		  gui->Controls[gui->ControlCount] = &btn;
 		  gui->ControlCount++;
-		  numguibuts++;
+		  btn_index++;
 	  }
 
       Common::GuiObject *newObj = gui->Controls[gui->ControlCount - 1];

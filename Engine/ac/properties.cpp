@@ -69,3 +69,45 @@ const char* get_text_property_dynamic_string(CustomProperties *cprop, const char
     String val_str = prop_state ? prop_state->Value : prop_info->DefaultValue;
     return CreateNewScriptString(val_str);
 }
+
+void set_int_property(AGS::Common::CustomProperties *cprop, const char *property, int value)
+{
+    CustomPropertyInfo *prop_info = game.PropertySchema.FindProperty(property);
+
+    if (!prop_info)
+        quit("!GetProperty: no such property found in schema. Make sure you are using the property's name, and not its description, when calling this command.");
+
+    if (prop_info->Type == Common::kCustomPropertyString)
+        quit("!GetProperty: need to use SetPropertyString for a text property");
+
+    AGS::Common::CustomPropertyState *prop_state = cprop->FindProperty(property);
+    if (prop_state)
+    {
+        prop_state->Value.Format("%d", value);
+    }
+    else
+    {
+        cprop->AddProperty(property, String::FromFormat("%d", value));
+    }
+}
+
+void set_text_property(AGS::Common::CustomProperties *cprop, const char *property, const char* value)
+{
+    CustomPropertyInfo *prop_info = game.PropertySchema.FindProperty(property);
+
+    if (!prop_info)
+        quit("!GetPropertyText: no such property found in schema. Make sure you are using the property's name, and not its description, when calling this command.");
+
+    if (prop_info->Type != Common::kCustomPropertyString)
+        quit("!GetPropertyText: need to use SetProperty for a non-text property");
+
+    AGS::Common::CustomPropertyState *prop_state = cprop->FindProperty(property);
+    if (prop_state)
+    {
+        prop_state->Value = value;
+    }
+    else
+    {
+        cprop->AddProperty(property, value);
+    }
+}

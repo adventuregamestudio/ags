@@ -403,6 +403,7 @@ void save_game_data_ch_characters(Stream *out)
     {
         game.Characters[i].WriteToSavedGame(out);
         charextra[i].WriteToSavedGame(out);
+        game.CharacterProperties[i].Serialize(out);
     }
     if (game.CharacterInteractionScripts.IsEmpty())
     {
@@ -450,6 +451,7 @@ void save_game_data_ch_invitems(Stream *out)
     for (int i = 0; i < game.InvItemCount; ++i)
     {
         game.InventoryItems[i].WriteToSavedGame(out);
+        game.InvItemProperties[i].Serialize(out);
     }
     if (game.InvItemInteractionScripts.IsEmpty())
     {
@@ -993,6 +995,7 @@ SavedGameError restore_game_data_ch_characters(Stream *in, SavedGameRestorationD
     {
         game.Characters[i].ReadFromSavedGame(in);
         charextra[i].ReadFromSavedGame(in);
+        game.CharacterProperties[i].UnSerialize(in);
     }
     if (game.CharacterInteractionScripts.IsEmpty())
     {
@@ -1075,6 +1078,7 @@ SavedGameError restore_game_data_ch_invitems(Stream *in, SavedGameRestorationDat
     for (int i = 0; i < game.InvItemCount; ++i)
     {
         game.InventoryItems[i].ReadFromSavedGame(in);
+        game.InvItemProperties[i].UnSerialize(in);
     }
     if (game.InvItemInteractionScripts.IsEmpty())
     {

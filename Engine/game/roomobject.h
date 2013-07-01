@@ -29,6 +29,7 @@ namespace Common { class Stream; }
 namespace Engine
 {
 
+using Common::CustomProperties;
 using Common::Stream;
 
 struct RoomObject
@@ -65,7 +66,8 @@ struct RoomObject
     int16_t BlockingWidth;
     int16_t BlockingHeight;
 
-    NewInteraction Interaction;
+    NewInteraction   Interaction;
+    CustomProperties Properties;
 
     int32_t GetWidth();
     int32_t GetHeight();

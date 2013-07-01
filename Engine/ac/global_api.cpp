@@ -743,6 +743,16 @@ RuntimeScriptValue Sc_GetRoomPropertyText(const RuntimeScriptValue *params, int3
     API_SCALL_VOID_POBJ2(GetRoomPropertyText, const char, char);
 }
 
+RuntimeScriptValue Sc_SetRoomProperty(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_POBJ_PINT(SetRoomProperty, const char);
+}
+
+RuntimeScriptValue Sc_SetRoomTextProperty(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_POBJ2(SetRoomTextProperty, const char, const char);
+}
+
 // int (int slnum,char*desbuf)
 RuntimeScriptValue Sc_GetSaveSlotDescription(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -2611,6 +2621,8 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("SetPlayerCharacter",       Sc_SetPlayerCharacter);
 	ccAddExternalStaticFunction("SetRegionTint",            Sc_SetRegionTint);
 	ccAddExternalStaticFunction("SetRestartPoint",          Sc_SetRestartPoint);
+    ccAddExternalStaticFunction("SetRoomProperty",          Sc_SetRoomProperty);
+	ccAddExternalStaticFunction("SetRoomTextProperty",      Sc_SetRoomTextProperty);
 	ccAddExternalStaticFunction("SetScreenTransition",      Sc_SetScreenTransition);
 	ccAddExternalStaticFunction("SetSkipSpeech",            Sc_SetSkipSpeech);
 	ccAddExternalStaticFunction("SetSliderValue",           Sc_SetSliderValue);
@@ -2777,6 +2789,8 @@ void RegisterGlobalAPI()
     ccAddExternalFunctionForPlugin("GetRegionAt",              (void*)GetRegionAt);
     ccAddExternalFunctionForPlugin("GetRoomProperty",          (void*)GetRoomProperty);
     ccAddExternalFunctionForPlugin("GetRoomPropertyText",      (void*)GetRoomPropertyText);
+    ccAddExternalFunctionForPlugin("SetRoomProperty",          (void*)SetRoomProperty);
+    ccAddExternalFunctionForPlugin("SetRoomTextProperty",      (void*)SetRoomTextProperty);
     ccAddExternalFunctionForPlugin("GetSaveSlotDescription",   (void*)GetSaveSlotDescription);
     ccAddExternalFunctionForPlugin("GetScalingAt",             (void*)GetScalingAt);
     ccAddExternalFunctionForPlugin("GetSliderValue",           (void*)GetSliderValue);

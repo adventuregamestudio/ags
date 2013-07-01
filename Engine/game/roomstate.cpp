@@ -195,18 +195,21 @@ void RoomState::ReadFromSavedGame(Stream *in)
     {
         Objects[i].ReadFromFile(in);
         Objects[i].Interaction.ReadFromFile(in, true);
+        Objects[i].Properties.UnSerialize(in);
     }    
     Hotspots.SetLength(in->ReadInt32());
     for (int i = 0; i < Hotspots.GetCount(); ++i)
     {
         Hotspots[i].Enabled = in->ReadInt8() != 0;
         Hotspots[i].Interaction.ReadFromFile(in, true);
+        Hotspots[i].Properties.UnSerialize(in);
     }
     Regions.SetLength(in->ReadInt32());
     for (int i = 0; i < Regions.GetCount(); ++i)
     {
         Regions[i].Enabled = in->ReadInt8() != 0;
         Regions[i].Interaction.ReadFromFile(in, true);
+        Regions[i].Properties.UnSerialize(in);
     }
     WalkBehinds.SetLength(in->ReadInt32());
     for (int i = 0; i < WalkBehinds.GetCount(); ++i)
@@ -217,6 +220,7 @@ void RoomState::ReadFromSavedGame(Stream *in)
     Interaction.ReadFromFile(in, true);
     int intvarval_count = in->ReadInt32();
     InteractionVariableValues.ReadRawOver(in, intvarval_count);
+    Properties.UnSerialize(in);
     ScriptDataSize = in->ReadInt32();
     if (ScriptDataSize > 0)
     {
@@ -233,18 +237,21 @@ void RoomState::WriteToSavedGame(Stream *out)
     {
         Objects[i].WriteToFile(out);
         Objects[i].Interaction.WriteToFile(out);
+        Objects[i].Properties.Serialize(out);
     }    
     out->WriteInt32(Hotspots.GetCount());
     for (int i = 0; i < Hotspots.GetCount(); ++i)
     {
         out->WriteInt8(Hotspots[i].Enabled ? 1 : 0);
         Hotspots[i].Interaction.WriteToFile(out);
+        Hotspots[i].Properties.Serialize(out);
     }
     out->WriteInt32(Regions.GetCount());
     for (int i = 0; i < Regions.GetCount(); ++i)
     {
         out->WriteInt8(Regions[i].Enabled ? 1 : 0);
         Regions[i].Interaction.WriteToFile(out);
+        Regions[i].Properties.Serialize(out);
     }
     out->WriteInt32(WalkBehinds.GetCount());
     for (int i = 0; i < WalkBehinds.GetCount(); ++i)
@@ -255,6 +262,7 @@ void RoomState::WriteToSavedGame(Stream *out)
     Interaction.WriteToFile(out);
     out->WriteInt32(InteractionVariableValues.GetCount());
     InteractionVariableValues.WriteRaw(out);
+    Properties.Serialize(out);
     out->WriteInt32(ScriptDataSize);
     if (ScriptDataSize > 0)
     {

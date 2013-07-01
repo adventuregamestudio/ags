@@ -167,7 +167,7 @@ int Room_GetMusicOnLoad() {
 }
 
 const char* Room_GetTextProperty(const char *property) {
-    return get_text_property_dynamic_string(&thisroom.Properties, property);
+    return get_text_property_dynamic_string(&croom->Properties, property);
 }
 
 const char* Room_GetMessages(int index) {
@@ -749,14 +749,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         {
             croom->WalkBehinds[i].Baseline = thisroom.WalkBehinds[i].Baseline;
         }
-        //for (cc=0;cc<MAX_FLAGS;cc++) croom->FlagStates[cc]=0;
-
-        /*    // we copy these structs for the Score column to work
-        croom->misccond=thisroom.misccond;
-        for (cc=0;cc<MAX_HOTSPOTS;cc++)
-        croom->hscond[cc]=thisroom.hscond[cc];
-        for (cc=0;cc<MAX_INIT_SPR;cc++)
-        croom->objcond[cc]=thisroom.objcond[cc];*/
 
         for (cc=0;cc < thisroom.HotspotCount;cc++) {
             croom->Hotspots[cc].Enabled = 1;
@@ -764,6 +756,22 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         for (cc = 0; cc < thisroom.RegionCount; cc++) {
             croom->Regions[cc].Enabled = 1;
         }
+
+        // Copy properties
+        croom->Properties = thisroom.Properties;
+        for (int i = 0; i < croom->Hotspots.GetCount(); ++i)
+        {
+            croom->Hotspots[i].Properties = thisroom.Hotspots[i].Properties;
+        }
+        for (int i = 0; i < croom->Objects.GetCount(); ++i)
+        {
+            croom->Objects[i].Properties = thisroom.Objects[i].Properties;
+        }
+        for (int i = 0; i < croom->Regions.GetCount(); ++i)
+        {
+            croom->Regions[i].Properties = thisroom.Regions[i].Properties;
+        }
+
         croom->BeenHere=1;
         in_new_room=2;
     }

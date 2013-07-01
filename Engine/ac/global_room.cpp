@@ -175,11 +175,21 @@ int HasBeenToRoom (int roomnum) {
 }
 
 int GetRoomProperty (const char *property) {
-    return get_int_property (&thisroom.Properties, property);
+    return get_int_property (&croom->Properties, property);
 }
 
 void GetRoomPropertyText (const char *property, char *bufer) {
-    get_text_property (&thisroom.Properties, property, bufer);
+    get_text_property (&croom->Properties, property, bufer);
+}
+
+void SetRoomProperty(const char *property, int value)
+{
+    set_int_property(&croom->Properties, property, value);
+}
+
+void SetRoomTextProperty(const char *property, const char *value)
+{
+    set_text_property(&croom->Properties, property, value);
 }
 
 void SetBackgroundFrame(int frnum) {

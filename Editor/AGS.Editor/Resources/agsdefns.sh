@@ -410,6 +410,8 @@ managed struct DrawingSurface {
 managed struct Room {
   /// Gets a Custom Property associated with this room.
   import static String GetTextProperty(const string property);
+  /// Sets a Custom Property associated with this room.
+  import void SetRoomTextProperty(const string property, const string value);
   /// Gets a drawing surface that allows you to manipulate the room background.
   import static DrawingSurface* GetDrawingSurfaceForBackground(int backgroundNumber=SCR_NO_VALUE);
   /// Gets the Y co-ordinate of the bottom edge of the room.
@@ -593,6 +595,8 @@ import int  GetWalkableAreaAt(int screenX, int screenY);
 import int  GetScalingAt (int x, int y);
 /// Gets the specified Custom Property for the current room.
 import int  GetRoomProperty(const string property);
+/// Sets the specified Custom Property for the current room.
+import void  SetRoomProperty(const string property, int value);
 /// Locks the viewport to stop the screen scrolling automatically.
 import void SetViewport(int x, int y);
 /// Allows AGS to scroll the screen automatically to follow the player character.
@@ -1009,6 +1013,10 @@ managed struct InventoryItem {
   import int  GetProperty(const string property);
   /// Gets a text custom property for this item.
   import String GetTextProperty(const string property);
+  /// Sets an integer custom property for this item.
+  import void SetProperty(const string property, int value);
+  /// Sets a text custom property for this item.
+  import void SetTextProperty(const string property, const string value);
   /// Checks whether an event handler has been registered for clicking on this item in the specified cursor mode.
   import int  IsInteractionAvailable(CursorMode);
   /// Runs the registered event handler for this item.
@@ -1534,6 +1542,10 @@ managed struct Hotspot {
   import int  GetProperty(const string property);
   /// Gets a text Custom Property for this hotspot.
   import String GetTextProperty(const string property);
+  /// Sets an integer custom property for this hotspot.
+  import void SetProperty(const string property, int value);
+  /// Sets a text custom property for this hotspot.
+  import void SetTextProperty(const string property, const string value);
   /// Runs the specified event handler for this hotspot.
   import void RunInteraction(CursorMode);
   /// Gets/sets whether this hotspot is enabled.
@@ -1798,6 +1810,10 @@ managed struct Object {
   import function GetProperty(const string property);
   /// Gets a text Custom Property for this object.
   import String   GetTextProperty(const string property);
+  /// Sets an integer custom property for this object.
+  import void SetProperty(const string property, int value);
+  /// Sets a text custom property for this object.
+  import void SetTextProperty(const string property, const string value);
   /// Checks whether this object is colliding with another.
   import bool IsCollidingWithObject(Object*);
   /// Merges the object's image into the room background, and disables the object.
@@ -1890,6 +1906,10 @@ managed struct Character {
 #endif
   /// Gets a text custom property for this character.
   import String   GetTextProperty(const string property);
+  /// Sets an integer custom property for this character.
+  import void SetProperty(const string property, int value);
+  /// Sets a text custom property for this character.
+  import void SetTextProperty(const string property, const string value);
   /// Checks whether the character currently has the specified inventory item.
   import bool     HasInventory(InventoryItem *item);
   /// Checks whether this character is in collision with the other character.

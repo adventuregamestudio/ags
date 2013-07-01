@@ -36,14 +36,16 @@ using Common::Stream;
 
 struct RoomHotspot
 {
-    bool            Enabled;
-    NewInteraction  Interaction;
+    bool             Enabled;
+    NewInteraction   Interaction;
+    CustomProperties Properties;
 };
 
 struct RoomRegion
 {
-    bool            Enabled;
-    NewInteraction  Interaction;
+    bool             Enabled;
+    NewInteraction   Interaction;
+    CustomProperties Properties;
 };
 
 struct WalkBehind
@@ -87,6 +89,8 @@ public:
     // and making separate structs for every room entity type
     int32_t             ObjectCount;
     int32_t             ScriptDataSize;
+
+    CustomProperties    Properties;
 };
 
 // Get number of room states created

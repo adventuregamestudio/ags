@@ -355,7 +355,17 @@ void Object_GetPropertyText(ScriptObject *objj, const char *property, char *bufe
     GetObjectPropertyText(objj->id, property, bufer);
 }
 const char* Object_GetTextProperty(ScriptObject *objj, const char *property) {
-    return get_text_property_dynamic_string(&thisroom.Objects[objj->id].Properties, property);
+    return get_text_property_dynamic_string(&croom->Objects[objj->id].Properties, property);
+}
+
+void Object_SetProperty(ScriptObject *objj, const char *property, int value)
+{
+    set_int_property(&croom->Objects[objj->id].Properties, property, value);
+}
+
+void Object_SetTextProperty(ScriptObject *objj, const char *property, const char *value)
+{
+    set_text_property(&croom->Objects[objj->id].Properties, property, value);
 }
 
 void get_object_blocking_rect(int objid, int *x1, int *y1, int *width, int *y2) {
@@ -492,6 +502,16 @@ RuntimeScriptValue Sc_Object_GetPropertyText(void *self, const RuntimeScriptValu
 RuntimeScriptValue Sc_Object_GetTextProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_OBJ_POBJ(ScriptObject, const char, myScriptStringImpl, Object_GetTextProperty, const char);
+}
+
+RuntimeScriptValue Sc_Object_SetProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_POBJ_PINT(ScriptObject, Object_SetProperty, const char);
+}
+
+RuntimeScriptValue Sc_Object_SetTextProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_POBJ2(ScriptObject, Object_SetTextProperty, const char, const char);
 }
 
 // void (ScriptObject *objj)
@@ -750,6 +770,8 @@ void RegisterObjectAPI()
     ccAddExternalObjectFunction("Object::GetProperty^1",            Sc_Object_GetProperty);
     ccAddExternalObjectFunction("Object::GetPropertyText^2",        Sc_Object_GetPropertyText);
     ccAddExternalObjectFunction("Object::GetTextProperty^1",        Sc_Object_GetTextProperty);
+    ccAddExternalObjectFunction("Object::SetProperty^2",            Sc_Object_SetProperty);
+    ccAddExternalObjectFunction("Object::SetTextProperty^2",        Sc_Object_SetTextProperty);
     ccAddExternalObjectFunction("Object::MergeIntoBackground^0",    Sc_Object_MergeIntoBackground);
     ccAddExternalObjectFunction("Object::Move^5",                   Sc_Object_Move);
     ccAddExternalObjectFunction("Object::RemoveTint^0",             Sc_Object_RemoveTint);
@@ -803,6 +825,8 @@ void RegisterObjectAPI()
     ccAddExternalFunctionForPlugin("Object::GetProperty^1",            (void*)Object_GetProperty);
     ccAddExternalFunctionForPlugin("Object::GetPropertyText^2",        (void*)Object_GetPropertyText);
     ccAddExternalFunctionForPlugin("Object::GetTextProperty^1",        (void*)Object_GetTextProperty);
+    ccAddExternalFunctionForPlugin("Object::SetProperty^2",            (void*)Object_SetProperty);
+    ccAddExternalFunctionForPlugin("Object::SetTextProperty^2",        (void*)Object_SetTextProperty);
     ccAddExternalFunctionForPlugin("Object::MergeIntoBackground^0",    (void*)Object_MergeIntoBackground);
     ccAddExternalFunctionForPlugin("Object::Move^5",                   (void*)Object_Move);
     ccAddExternalFunctionForPlugin("Object::RemoveTint^0",             (void*)Object_RemoveTint);

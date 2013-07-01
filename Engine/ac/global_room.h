@@ -29,6 +29,8 @@ void CallRoomScript (int value);
 int  HasBeenToRoom (int roomnum);
 int GetRoomProperty (const char *property);
 void GetRoomPropertyText (const char *property, char *bufer);
+void SetRoomProperty(const char *property, int value);
+void SetRoomTextProperty(const char *property, const char *value);
 
 void SetBackgroundFrame(int frnum);
 int GetBackgroundFrame() ;

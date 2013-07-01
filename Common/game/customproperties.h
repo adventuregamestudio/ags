@@ -91,6 +91,12 @@ public:
     void                Serialize(Stream *out) const;
     CustomPropertyError UnSerialize(Stream *in);
 
+    inline CustomPropertySchema &operator=(const CustomPropertySchema &prop_schema)
+    {
+        Properties = prop_schema.Properties;
+        return *this;
+    }
+
 private:
     ObjectArray<CustomPropertyInfo> Properties;
 };
@@ -118,6 +124,12 @@ public:
     int                 GetPropertyCount() const;
     void                Serialize(Stream *out) const;
     CustomPropertyError UnSerialize(Stream *in);
+
+    inline CustomProperties &operator=(const CustomProperties &props)
+    {
+        Properties = props.Properties;
+        return *this;
+    }
 
 private:
     ObjectArray<CustomPropertyState> Properties;

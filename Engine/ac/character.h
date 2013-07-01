@@ -68,6 +68,8 @@ void    Character_RunInteraction(CharacterInfo *chaa, int mood);
 int Character_GetProperty(CharacterInfo *chaa, const char *property);
 void Character_GetPropertyText(CharacterInfo *chaa, const char *property, char *bufer);
 const char* Character_GetTextProperty(CharacterInfo *chaa, const char *property);
+void Character_SetProperty(CharacterInfo *chaa, const char *property, int value);
+void Character_SetTextProperty(CharacterInfo *chaa, const char *property, const char *value);
 
 ScriptInvItem* Character_GetActiveInventory(CharacterInfo *chaa);
 void    Character_SetActiveInventory(CharacterInfo *chaa, ScriptInvItem* iit);

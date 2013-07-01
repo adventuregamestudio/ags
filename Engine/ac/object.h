@@ -75,6 +75,8 @@ void    Object_RunInteraction(ScriptObject *objj, int mode);
 int     Object_GetProperty (ScriptObject *objj, const char *property);
 void    Object_GetPropertyText(ScriptObject *objj, const char *property, char *bufer);
 const char* Object_GetTextProperty(ScriptObject *objj, const char *property);
+void    Object_SetProperty(ScriptObject *objj, const char *property, int value);
+void    Object_SetTextProperty(ScriptObject *objj, const char *property, const char *value);
 
 void    move_object(int objj,int tox,int toy,int spee,int ignwal);
 void    get_object_blocking_rect(int objid, int *x1, int *y1, int *width, int *y2);

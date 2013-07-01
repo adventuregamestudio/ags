@@ -473,11 +473,11 @@ int AreThingsOverlapping(int thing1, int thing2) {
 int GetObjectProperty (int hss, const char *property) {
     if (!is_valid_object(hss))
         quit("!GetObjectProperty: invalid object");
-    return get_int_property (&thisroom.Objects[hss].Properties, property);
+    return get_int_property (&croom->Objects[hss].Properties, property);
 }
 
 void GetObjectPropertyText (int item, const char *property, char *bufer) {
-    get_text_property (&thisroom.Objects[item].Properties, property, bufer);
+    get_text_property (&croom->Objects[item].Properties, property, bufer);
 }
 
 Bitmap *GetObjectImage(int obj, int *isFlipped) 

@@ -4,6 +4,10 @@ using System.Text;
 
 namespace AGS.Types
 {
+    [DeserializeConvertValue("Left", "TopLeft")]
+    [DeserializeConvertValue("Centre", "Centered")]
+    [DeserializeConvertValue("Centred", "Centered")]
+    [DeserializeConvertValue("Right", "TopRight")]
     public enum FrameAlignment
     {
         TopLeft      = AlignmentFlags.Left    | AlignmentFlags.Top,

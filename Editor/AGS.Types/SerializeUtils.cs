@@ -130,15 +130,35 @@ namespace AGS.Types
                 }
             }
 
+            IgnoreDeserializationAttribute[] ignoreAttributes =
+                (IgnoreDeserializationAttribute[])obj.GetType().GetCustomAttributes(typeof(IgnoreDeserializationAttribute), true);
+
             foreach (XmlNode child in mainNode.ChildNodes)
             {
                 string elementValue = child.InnerText;
                 PropertyInfo prop = obj.GetType().GetProperty(child.Name);
                 if (prop == null)
                 {
-                    throw new InvalidDataException("The property '" + child.Name + "' could not be read. This game may require a newer version of AGS.");
+                    if (ignoreAttributes.Length == 0 ||
+                        !Array.Exists(ignoreAttributes, IgnoreDeserializationAttribute.MatchesPropertyName(child.Name)))
+                    {
+                        throw new InvalidDataException("The property '" + child.Name + "' could not be read. This game may require a newer version of AGS.");
+                    }
+                    continue;
                 }
-                else if (!prop.CanWrite)
+
+                // Process any existing value conversions; this helps to upgrade game from older version
+                DeserializeConvertValueAttribute[] conversions =
+                    (DeserializeConvertValueAttribute[])prop.PropertyType.GetCustomAttributes(typeof(DeserializeConvertValueAttribute), true);
+                if (conversions.Length > 0)
+                {
+                    foreach (DeserializeConvertValueAttribute conversion in conversions)
+                    {
+                        elementValue = conversion.Convert(elementValue);
+                    }
+                }
+
+                if (!prop.CanWrite)
                 {
                     // do nothing, read-only
                 }

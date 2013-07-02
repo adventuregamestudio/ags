@@ -421,7 +421,7 @@ void GuiListBox::ReadFromSavedGame(Common::Stream *in, RuntimeGuiVersion gui_ver
         Items[i].Read(in);
         SavedGameIndex[i] = -1;
     }
-    if (gui_version >= kGuiVersion_272d && ListBoxFlags & kGuiListBox_SavedGameIndexValid)
+    if (ListBoxFlags & kGuiListBox_SavedGameIndexValid)
     {
         SavedGameIndex.ReadRaw(in, ItemCount);
     }

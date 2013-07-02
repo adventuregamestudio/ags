@@ -3289,6 +3289,13 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, Common::GuiMain *gui)
 
   gui->ControlCount = 0;
 
+  int btn_index = numguibuts;
+  int label_index = numguilabels;
+  int textbox_index = numguitext;
+  int listbox_index = numguilist;
+  int slider_index = numguislider;
+  int inv_index = numguiinv;
+
   for each (GUIControl^ control in guiObj->Controls)
   {
       if (dynamic_cast<AGS::Types::GUIButton^>(control))
@@ -3331,13 +3338,6 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, Common::GuiMain *gui)
   gui->ControlRefs.SetLength(guiObj->Controls->Count);
   gui->Controls.SetLength(guiObj->Controls->Count);
 
-  int btn_index = 0;
-  int label_index = 0;
-  int textbox_index = 0;
-  int listbox_index = 0;
-  int slider_index = 0;
-  int inv_index = 0;
-
   for each (GUIControl^ control in guiObj->Controls)
   {
 	  AGS::Types::GUIButton^ button = dynamic_cast<AGS::Types::GUIButton^>(control);
@@ -3360,7 +3360,9 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, Common::GuiMain *gui)
           btn.ClickAction = (Common::GuiButtonClickAction)button->ClickAction;
 		  btn.ClickActionData = button->NewModeNumber;
 		  btn.Flags = (button->ClipImage) ? Common::kGuiCtrl_Clip : 0;
-		  ConvertStringToNativeString(button->Text, btn.Text);
+          Common::String btn_text;
+		  ConvertStringToNativeString(button->Text, btn_text);
+          btn.SetText(btn_text);
 		  ConvertStringToNativeString(button->OnClick, btn.EventHandlers[0]);
 		  
 		  gui->ControlRefs[gui->ControlCount] = (Common::kGuiButton << 16) | btn_index;
@@ -3449,7 +3451,7 @@ void ConvertGUIToBinaryFormat(GUI ^guiObj, Common::GuiMain *gui)
 		  btn.NormalImage = textwindowedge->Image;
 		  btn.CurrentImage = btn.NormalImage;
 		  btn.Flags = 0;
-		  btn.Text.Empty();
+		  btn.SetText("");
 		  
 		  gui->ControlRefs[gui->ControlCount] = (Common::kGuiButton << 16) | btn_index;
 		  gui->Controls[gui->ControlCount] = &btn;
@@ -4167,7 +4169,7 @@ Game^ load_old_game_dta_file(const char *fileName)
 					newButton->ClickAction = (GUIClickAction)copyFrom->ClickAction;
 					newButton->NewModeNumber = copyFrom->ClickActionData;
 					newButton->ClipImage = (copyFrom->Flags & Common::kGuiCtrl_Clip) ? true : false;
-					newButton->Text = gcnew String(copyFrom->Text);
+					newButton->Text = gcnew String(copyFrom->GetText());
 					newButton->OnClick = gcnew String(copyFrom->EventHandlers[0]);
 				}
 				break;

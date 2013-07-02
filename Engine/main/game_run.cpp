@@ -197,13 +197,13 @@ void check_controls() {
             if (is_complete_overlay>0) break;  // interfaces disabled
             //    if (play.DisabledUserInterface>0) break;
             if (ifacepopped==aa) continue;
-            if (!guis[aa].IsVisible) continue;
+            if (guis[aa].IsConcealed()) continue;
             // Don't allow it to be popped up while skipping cutscene
             if (play.FastForwardCutscene) continue;
 
             if (mousey < guis[aa].PopupAtMouseY) {
                 set_mouse_cursor(CURS_ARROW);
-                guis[aa].IsVisible=false; guis_need_update = 1;
+                guis[aa].SetVisibility(Common::kGuiVisibility_On); guis_need_update = 1;
                 ifacepopped=aa; PauseGame();
                 break;
             }
@@ -442,7 +442,7 @@ void check_controls() {
             if ( ((kgn >= 32) && (kgn != '[') && (kgn < 256)) || (kgn == 13) || (kgn == 8) ) {
                 int uu,ww;
                 for (uu=0;uu<game.GuiCount;uu++) {
-                    if (!guis[uu].IsVisible) continue;
+                    if (!guis[uu].IsVisible()) continue;
                     for (ww=0;ww<guis[uu].ControlCount;ww++) {
                         // not a text box, ignore it
                         if ((guis[uu].ControlRefs[ww] >> 16)!=Common::kGuiTextBox)

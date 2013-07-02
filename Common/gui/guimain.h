@@ -67,6 +67,13 @@ enum GuiDisabledStyle
     kGuiDisabled_Hide           = 0x08
 };
 
+enum GuiVisibilityState
+{
+    kGuiVisibility_Concealed = -1,
+    kGuiVisibility_Off       =  0,
+    kGuiVisibility_On        =  1
+};
+
 class GuiMain
 {
 public:
@@ -88,8 +95,14 @@ public:
     inline int GetWidth()  const { return Frame.GetWidth(); }
     inline int GetHeight() const { return Frame.GetHeight(); }
     bool       HasAlphaChannel() const;
-    bool       IsMouseOnGui();
+    // Tells if gui is allowed to be displayed, but is currently hidden off-screen
+    inline bool IsConcealed() const { return _visibility == kGuiVisibility_Concealed; }
+    bool       IsMouseOnGui() const;
+    // Tells if gui visibility is disabled
+    inline bool IsOff() const { return _visibility == kGuiVisibility_Off; }
     bool       IsTextWindow() const;
+    // Tells if gui is allowed to be displayed on screen
+    inline bool IsVisible() const { return _visibility == kGuiVisibility_On; }
 
     bool       BringControlToFront(int index);
     void       Draw(Bitmap *ds);
@@ -103,6 +116,7 @@ public:
     void       SetWidth(int width);
     void       SetHeight(int height);
     void       SetTransparencyAsPercentage(int percent);
+    void       SetVisibility(GuiVisibilityState visibility);
 
     void       OnControlPositionChanged();
     void       OnMouseButtonDown();
@@ -136,7 +150,6 @@ public:
     Array<int32_t>    ControlRefs; // for re-building objs array
     Array<short>      ControlDrawOrder;
 
-    bool            IsVisible;
     int32_t         ZOrder;
     int32_t         FocusedControl;
     int32_t         HighlightControl;
@@ -146,6 +159,9 @@ public:
 
     // TODO: remove these later
     int32_t         ControlCount;
+
+private:
+    GuiVisibilityState _visibility;
 };
 
 namespace Gui

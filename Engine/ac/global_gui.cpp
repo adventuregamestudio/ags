@@ -30,7 +30,7 @@
 int IsGUIOn (int guinum) {
     if ((guinum < 0) || (guinum >= game.GuiCount))
         quit("!IsGUIOn: invalid GUI number specified");
-    return (guis[guinum].IsVisible) ? 1 : 0;
+    return (guis[guinum].IsVisible()) ? 1 : 0;
 }
 
 // This is an internal script function, and is undocumented.
@@ -52,16 +52,16 @@ void InterfaceOn(int ifn) {
 
   EndSkippingUntilCharStops();
 
-  if (guis[ifn].IsVisible) {
+  if (guis[ifn].IsVisible()) {
     DEBUG_CONSOLE("GUIOn(%d) ignored (already on)", ifn);
     return;
   }
   guis_need_update = 1;
-  guis[ifn].IsVisible=true;
+  guis[ifn].SetVisibility(Common::kGuiVisibility_On);
   DEBUG_CONSOLE("GUI %d turned on", ifn);
   // modal interface
   if (guis[ifn].PopupStyle==Common::kGuiPopupScript) PauseGame();
-  else if (guis[ifn].PopupStyle==Common::kGuiPopupMouseY) guis[ifn].IsVisible=0;
+  else if (guis[ifn].PopupStyle==Common::kGuiPopupMouseY) guis[ifn].SetVisibility(Common::kGuiVisibility_Off);
   // clear the cached mouse position
   guis[ifn].OnControlPositionChanged();
   guis[ifn].Poll();
@@ -69,12 +69,12 @@ void InterfaceOn(int ifn) {
 
 void InterfaceOff(int ifn) {
   if ((ifn<0) | (ifn>=game.GuiCount)) quit("!GUIOff: invalid GUI specified");
-  if ((guis[ifn].IsVisible==0) && (guis[ifn].PopupStyle!=Common::kGuiPopupMouseY)) {
+  if ((!guis[ifn].IsVisible()) && (guis[ifn].PopupStyle!=Common::kGuiPopupMouseY)) {
     DEBUG_CONSOLE("GUIOff(%d) ignored (already off)", ifn);
     return;
   }
   DEBUG_CONSOLE("GUI %d turned off", ifn);
-  guis[ifn].IsVisible=0;
+  guis[ifn].SetVisibility(Common::kGuiVisibility_Off);
   if (guis[ifn].MouseOverControl>=0) {
     // Make sure that the overpic is turned off when the GUI goes off
     guis[ifn].Controls[guis[ifn].MouseOverControl]->OnMouseLeave();
@@ -84,7 +84,7 @@ void InterfaceOff(int ifn) {
   guis_need_update = 1;
   // modal interface
   if (guis[ifn].PopupStyle==Common::kGuiPopupScript) UnPauseGame();
-  else if (guis[ifn].PopupStyle==Common::kGuiPopupMouseY) guis[ifn].IsVisible=-1;
+  else if (guis[ifn].PopupStyle==Common::kGuiPopupMouseY) guis[ifn].SetVisibility(Common::kGuiVisibility_Concealed);
 }
 
 void SetGUIObjectEnabled(int guin, int objn, int enabled) {
@@ -218,7 +218,7 @@ int GetGUIAt (int xx,int yy) {
     int aa, ll;
     for (ll = game.GuiCount - 1; ll >= 0; ll--) {
         aa = play.GuiDrawOrder[ll];
-        if (!guis[aa].IsVisible) continue;
+        if (!guis[aa].IsVisible()) continue;
         if (guis[aa].Flags & Common::kGuiMain_NoClick) continue;
         if ((xx>=guis[aa].GetX()) & (yy>=guis[aa].GetY()) &
             (xx<=guis[aa].GetX()+guis[aa].GetWidth()) & (yy<=guis[aa].GetY()+guis[aa].GetHeight()))

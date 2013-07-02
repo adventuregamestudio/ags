@@ -427,9 +427,9 @@ void init_and_register_guis()
     for (ee=0;ee<game.GuiCount;ee++) {
         guis[ee].RebuildArray();
         if ((guis[ee].PopupStyle == Common::kGuiPopupNone) || (guis[ee].PopupStyle == Common::kGuiPopupNoAutoRemove))
-            guis[ee].IsVisible = true;
+            guis[ee].SetVisibility(Common::kGuiVisibility_On);
         else
-            guis[ee].IsVisible = false;
+            guis[ee].SetVisibility(Common::kGuiVisibility_Off);
 
         // export all the GUI's controls
         export_gui_controls(ee);

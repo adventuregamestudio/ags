@@ -80,7 +80,7 @@ void GuiMain::Init()
     PopupStyle          = kGuiPopupNone;
     PopupAtMouseY       = -1;
 
-    IsVisible           = true;
+    _visibility         = kGuiVisibility_On;
     ZOrder              = -1;
     FocusedControl      = 0;
     HighlightControl    = -1;
@@ -178,9 +178,9 @@ bool GuiMain::HasAlphaChannel() const
     return (final_col_dep >= 24);
 }
 
-bool GuiMain::IsMouseOnGui()
+bool GuiMain::IsMouseOnGui() const
 {
-    if (!IsVisible)
+    if (!IsVisible())
     {
         return false;
     }
@@ -336,6 +336,11 @@ void GuiMain::SetTransparencyAsPercentage(int percent)
     {
         Transparency = ((100 - percent) * 25) / 10;
     }
+}
+
+void GuiMain::SetVisibility(GuiVisibilityState visibility)
+{
+    _visibility = visibility;
 }
 
 void GuiMain::DrawBlob(Bitmap *ds, int x, int y, color_t draw_color)
@@ -590,7 +595,7 @@ void GuiMain::ReadFromFile(Stream *in, GuiVersion gui_version)
         Id = in->ReadInt32();
         int reserved[6];
         in->Read(reserved, sizeof(reserved));
-        IsVisible = in->ReadInt32() != 0;
+        _visibility = (GuiVisibilityState)in->ReadInt32();
         // 64 bit fix: Read 4 byte int values into array of 8 byte long ints
         char buffer[LEGACY_MAX_CONTROLS_ON_GUI * sizeof(int32_t)];
         in->Read(buffer, sizeof(buffer));
@@ -611,7 +616,6 @@ void GuiMain::ReadFromFile(Stream *in, GuiVersion gui_version)
         PopupStyle = (GuiPopupStyle)in->ReadInt32();
         PopupAtMouseY = in->ReadInt32();
         OnClickHandler.Read(in);
-        IsVisible = in->ReadBool();
         ZOrder = in->ReadInt32();
     }
 
@@ -640,7 +644,6 @@ void GuiMain::WriteToFile(Stream *out)
     out->WriteInt32(PopupStyle);
     out->WriteInt32(PopupAtMouseY);
     OnClickHandler.Write(out);
-    out->WriteBool(IsVisible);
     out->WriteInt32(ZOrder);
 
     out->WriteInt32(ControlCount);
@@ -663,7 +666,7 @@ void GuiMain::ReadFromSavedGame(Stream *in, RuntimeGuiVersion version)
     PopupStyle = (GuiPopupStyle)in->ReadInt32();
     PopupAtMouseY = in->ReadInt32();
     OnClickHandler.Read(in);
-    IsVisible = in->ReadBool();
+    _visibility = (GuiVisibilityState)in->ReadInt32();
     ZOrder = in->ReadInt32();
 }
 
@@ -683,7 +686,7 @@ void GuiMain::WriteToSavedGame(Stream *out)
     out->WriteInt32(PopupStyle);
     out->WriteInt32(PopupAtMouseY);
     OnClickHandler.Write(out);
-    out->WriteBool(IsVisible);
+    out->WriteInt32(_visibility);
     out->WriteInt32(ZOrder);
 }
 

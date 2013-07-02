@@ -54,7 +54,11 @@ public:
 
     void Init();
 
+    inline String GetText() const { return Text; }
+
     virtual void Draw(Common::Bitmap *ds);
+
+    void         SetText(const String &text);
 
     virtual bool OnMouseDown();
     virtual void OnMouseLeave();
@@ -72,7 +76,9 @@ public:
     int32_t     MouseOverImage;
     int32_t     PushedImage;
     int32_t     CurrentImage;
+private:
     String      Text;
+public:
     int32_t     TextFont;
     color_t     TextColor;
     Alignment   TextAlignment;
@@ -90,8 +96,17 @@ private:
     void DrawTextButton(Bitmap *ds, bool draw_disabled);
     void PrepareTextToDraw();
 
+    enum GuiButtonPlaceholder
+    {
+        kGuiBtnPlaceholder_None,
+        kGuiBtnPlaceholder_InvItemStretch,
+        kGuiBtnPlaceholder_InvItemCenter,
+        kGuiBtnPlaceholder_InvItemAuto
+    };
+
+    GuiButtonPlaceholder Placeholder;
     // prepared text buffer/cache
-    String  TextToDraw;
+    String               TextToDraw;
 };
 
 } // namespace Common

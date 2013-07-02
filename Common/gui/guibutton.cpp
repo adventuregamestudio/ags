@@ -75,6 +75,40 @@ void GuiButton::Draw(Bitmap *ds)
     }
 }
 
+void GuiButton::SetText(const String &text)
+{
+    Text = text;
+    // Active inventory item placeholders
+    if (Text.CompareNoCase("(INV)") == 0)
+    {
+        // Stretch to fit button
+        Placeholder = kGuiBtnPlaceholder_InvItemStretch;
+    }
+    else if (Text.CompareNoCase("(INVNS)") == 0)
+    {
+         // Draw at actual size
+        Placeholder = kGuiBtnPlaceholder_InvItemCenter;
+    }
+    else if (Text.CompareNoCase("(INVSHR)") == 0)
+    {
+        // Stretch if too big, actual size if not
+        Placeholder = kGuiBtnPlaceholder_InvItemAuto;
+    }
+    else
+    {
+        Placeholder = kGuiBtnPlaceholder_None;
+    }
+
+    // Only for game version < 3.4.0 (to simulate older engine behavior):
+    // don't print the Text if there's a graphic and it hasn't been named
+    if (LoadedGuiVersion < kGuiVersion_340_alpha &&
+        CurrentImage > 0 && NormalImage > 0 &&
+        Text.Compare("New Button") == 0)
+    {
+        Text.Empty();
+    }
+}
+
 bool GuiButton::OnMouseDown()
 {
     if (PushedImage > 0)
@@ -245,47 +279,31 @@ void GuiButton::DrawImageButton(Bitmap *ds, bool draw_disabled)
         draw_sprite_compensate(ds, CurrentImage, Frame.Left, Frame.Top, 1);
     }
 
-    enum DrawInvItemOnButtonStyle
+    // Draw active inventory item
+    if (Placeholder != kGuiBtnPlaceholder_None && gui_inv_pic >= 0)
     {
-        kDrawInvItemOnBtn_None,
-        kDrawInvItemOnBtn_Center,
-        kDrawInvItemOnBtn_Stretch
-    };
-    DrawInvItemOnButtonStyle draw_invitem_style = kDrawInvItemOnBtn_None;
-    if (gui_inv_pic >= 0)
-    {
-        // Stretch to fit button
-        if (Text.CompareNoCase("(INV)") == 0)
-        {
-            draw_invitem_style = kDrawInvItemOnBtn_Stretch;
-        }
-        // Draw at actual size
-        else if (Text.CompareNoCase("(INVNS)") == 0)
-        {
-            draw_invitem_style = kDrawInvItemOnBtn_Center;
-        }
-        // Stretch if too big, actual size if not
-        else if (Text.CompareNoCase("(INVSHR)") == 0)
+        GuiButtonPlaceholder placeholder = Placeholder;
+        if (placeholder == kGuiBtnPlaceholder_InvItemAuto)
         {
             if ((get_adjusted_spritewidth(gui_inv_pic) > Frame.GetWidth() - 6) ||
                 (get_adjusted_spriteheight(gui_inv_pic) > Frame.GetHeight() - 6))
             {
-                draw_invitem_style = kDrawInvItemOnBtn_Stretch;
+                placeholder = kGuiBtnPlaceholder_InvItemStretch;
             }
             else
             {
-                draw_invitem_style = kDrawInvItemOnBtn_Center;
+                placeholder = kGuiBtnPlaceholder_InvItemCenter;
             }
         }
 
-        switch (draw_invitem_style)
+        switch (placeholder)
         {
-        case kDrawInvItemOnBtn_Center:
+        case kGuiBtnPlaceholder_InvItemCenter:
             draw_sprite_compensate(ds, gui_inv_pic,
                 Frame.Left + Frame.GetWidth() / 2 - get_adjusted_spritewidth(gui_inv_pic) / 2,
                 Frame.Top + Frame.GetHeight() / 2 - get_adjusted_spriteheight(gui_inv_pic) / 2, 1);
             break;
-        case kDrawInvItemOnBtn_Stretch:
+        case kGuiBtnPlaceholder_InvItemStretch:
             ds->StretchBlt(spriteset[gui_inv_pic], RectWH(Frame.Left + 3, Frame.Top + 3, Frame.GetWidth() - 6, Frame.GetHeight() - 6), Common::kBitmap_Transparency);
             break;            
         }
@@ -308,11 +326,7 @@ void GuiButton::DrawImageButton(Bitmap *ds, bool draw_disabled)
     ds->SetClip(Rect(0, 0, ds->GetWidth() - 1, ds->GetHeight() - 1));
 
     // Don't print Text of (INV) (INVSHR) (INVNS)
-    if (draw_invitem_style == kDrawInvItemOnBtn_None &&
-        // Only for game version < 3.4.0 (to simulate older engine behavior):
-        // don't print the Text if there's a graphic and it hasn't been named
-        !(LoadedGuiVersion < kGuiVersion_340_alpha &&
-        Text.Compare("New Button") == 0))
+    if (Placeholder == kGuiBtnPlaceholder_None)
     {
         DrawText(ds, draw_disabled);
     }

@@ -74,7 +74,7 @@ int GUI_GetVisible(ScriptGUI *tehgui) {
   // GUI_GetVisible is slightly different from IsGUIOn, because
   // with a mouse ypos gui it returns 1 if the GUI is enabled,
   // whereas IsGUIOn actually checks if it is displayed
-  if (guis[tehgui->id].IsVisible != 0)
+  if (!guis[tehgui->id].IsOff())
     return 1;
   return 0;
 }
@@ -222,7 +222,7 @@ ScriptGUI *GetGUIAtLocation(int xx, int yy) {
 void remove_popup_interface(int ifacenum) {
     if (ifacepopped != ifacenum) return;
     ifacepopped=-1; UnPauseGame();
-    guis[ifacenum].IsVisible=0;
+    guis[ifacenum].SetVisibility(Common::kGuiVisibility_Off);
     if (mousey<=guis[ifacenum].PopupAtMouseY)
         filter->SetMousePosition(mousex, guis[ifacenum].PopupAtMouseY+2);
     if ((!IsInterfaceEnabled()) && (cur_cursor == cur_mode))
@@ -428,7 +428,7 @@ int adjust_x_for_guis (int xx, int yy) {
         return xx;
     // If it's covered by a GUI, move it right a bit
     for (int aa=0;aa < game.GuiCount; aa++) {
-        if (!guis[aa].IsVisible)
+        if (!guis[aa].IsVisible())
             continue;
         if ((guis[aa].GetX() > xx) || (guis[aa].GetY() > yy) || (guis[aa].GetY() + guis[aa].GetHeight() < yy))
             continue;
@@ -451,7 +451,7 @@ int adjust_y_for_guis ( int yy) {
         return yy;
     // If it's covered by a GUI, move it down a bit
     for (int aa=0;aa < game.GuiCount; aa++) {
-        if (!guis[aa].IsVisible)
+        if (!guis[aa].IsVisible())
             continue;
         if (guis[aa].GetY() > yy)
             continue;

@@ -69,20 +69,20 @@ void Button_Animate(GuiButton *butt, int view, int loop, int speed, int repeat) 
 }
 
 const char* Button_GetText_New(GuiButton *butt) {
-    return CreateNewScriptString(butt->Text);
+    return CreateNewScriptString(butt->GetText());
 }
 
 void Button_GetText(GuiButton *butt, char *buffer) {
-    strcpy(buffer, butt->Text);
+    strcpy(buffer, butt->GetText());
 }
 
 void Button_SetText(GuiButton *butt, const char *newtx) {
     newtx = get_translation(newtx);
     if (strlen(newtx) > 49) quit("!SetButtonText: text too long, button has 50 chars max");
 
-    if (strcmp(butt->Text, newtx)) {
+    if (strcmp(butt->GetText(), newtx)) {
         guis_need_update = 1;
-        butt->Text = newtx;
+        butt->SetText(newtx);
     }
 }
 

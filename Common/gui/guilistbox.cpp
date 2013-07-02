@@ -168,7 +168,7 @@ void GuiListBox::Draw(Common::Bitmap *ds)
         else
         {
             int textWidth = wgettextwidth(TextToDraw, TextFont);
-            if (TextAlignment == kAlignRight)
+            if (TextAlignment & kAlignRight)
             {
                 wouttext_outline(ds, right_hand_edge - textWidth, at_y + 1, TextFont, text_color, TextToDraw);
             }

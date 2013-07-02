@@ -129,7 +129,7 @@ void adjust_sizes_for_resolution(int filever)
             int fix_h = cgp->Controls[ff]->GetHeight();
             adjust_pixel_sizes_for_loaded_data(&fix_x, &fix_y, filever);
             adjust_pixel_sizes_for_loaded_data(&fix_w, &fix_h, filever);
-            cgp->Controls[ff]->SetFrame(Rect(fix_x, fix_y, fix_w, fix_h));
+            cgp->Controls[ff]->SetFrame(RectWH(fix_x, fix_y, fix_w, fix_h));
             cgp->Controls[ff]->IsActivated=0;
         }
     }

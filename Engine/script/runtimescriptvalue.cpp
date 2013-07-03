@@ -3,7 +3,6 @@
 #include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_dynamicobject.h"
 #include "ac/statobj/staticobject.h"
-#include "ac/statobj/staticarray.h"
 #include "util/bbop.h"
 
 #include <string.h> // for memcpy()
@@ -376,12 +375,7 @@ RuntimeScriptValue &RuntimeScriptValue::DirectPtr()
         IValue += ival;
     }
 
-    if (Type == kScValStaticArray)
-    {
-        Ptr = (char*)StcArr->GetElementPtr(Ptr, IValue);
-        IValue = 0;
-    }
-    else if (Ptr)
+    if (Ptr)
     {
         Ptr += IValue;
         IValue = 0;

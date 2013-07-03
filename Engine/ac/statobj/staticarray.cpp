@@ -3,12 +3,6 @@
 #include "ac/statobj/staticarray.h"
 #include "ac/dynobj/cc_dynamicobject.h"
 
-void StaticArray::Create(ICCDynamicObject *dynmgr, int elem_legacy_size)
-{
-    _dynamicMgr     = dynmgr;
-    _elemLegacySize = elem_legacy_size;
-}
-
 uint8_t StaticArray::GetPropertyUInt8(const char *address, intptr_t offset)
 {
     const char *el_ptr = GetElementPtr(address, offset);

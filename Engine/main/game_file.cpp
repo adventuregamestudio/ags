@@ -488,26 +488,29 @@ void init_and_register_game_objects()
     long dorsHandle = ccRegisterManagedObject(dialogOptionsRenderingSurface, dialogOptionsRenderingSurface);
     ccAddObjectReference(dorsHandle);
 
-    StaticCharacterArray.Create(&ccDynamicCharacter, sizeof(CharacterInfo));
-    StaticObjectArray.Create(&ccDynamicObject, sizeof(ScriptObject));
-    StaticGUIArray.Create(&ccDynamicGUI, sizeof(ScriptGUI));
-    StaticHotspotArray.Create(&ccDynamicHotspot, sizeof(ScriptHotspot));
-    StaticRegionArray.Create(&ccDynamicRegion, sizeof(ScriptRegion));
-    StaticInventoryArray.Create(&ccDynamicInv, sizeof(ScriptInvItem));
-    StaticDialogArray.Create(&ccDynamicDialog, sizeof(ScriptDialog));
+    StaticCharacterArray.Create(&game.Characters, &ccDynamicCharacter, sizeof(CharacterInfo));
+    StaticObjectArray.Create(&scrObj, &ccDynamicObject, sizeof(ScriptObject));
+    StaticGUIArray.Create(&scrGui, &ccDynamicGUI, sizeof(ScriptGUI));
+    StaticHotspotArray.Create(&scrHotspot, &ccDynamicHotspot, sizeof(ScriptHotspot));
+    StaticRegionArray.Create(&scrRegion, &ccDynamicRegion, sizeof(ScriptRegion));
+    StaticInventoryArray.Create(&scrInv, &ccDynamicInv, sizeof(ScriptInvItem));
+    StaticDialogArray.Create(&scrDialog, &ccDynamicDialog, sizeof(ScriptDialog));
 
     // TODO: this will work so far as Characters array is not reallocated
-    ccAddExternalStaticArray("character",&game.Characters, &StaticCharacterArray);
+    ccAddExternalStaticArray("character", (void*)StaticCharacterArray.GetLinearArray(), &StaticCharacterArray);
     setup_player_character(game.PlayerCharacterIndex);
     if (loaded_game_file_version >= kGameVersion_270) {
         ccAddExternalStaticObject("player", &_sc_PlayerCharPtr, &GlobalStaticManager);
     }
-    ccAddExternalStaticArray("object",&scrObj, &StaticObjectArray);
-    ccAddExternalStaticArray("gui",&scrGui, &StaticGUIArray);    
-    ccAddExternalStaticArray("hotspot",&scrHotspot, &StaticHotspotArray);
-    ccAddExternalStaticArray("region",&scrRegion, &StaticRegionArray);
-    ccAddExternalStaticArray("inventory",&scrInv, &StaticInventoryArray);
-    ccAddExternalStaticArray("dialog", &scrDialog, &StaticDialogArray);
+    ccAddExternalStaticArray("gui", (void*)StaticGUIArray.GetLinearArray(), &StaticGUIArray);
+    ccAddExternalStaticArray("inventory", (void*)StaticInventoryArray.GetLinearArray(), &StaticInventoryArray);
+    ccAddExternalStaticArray("dialog", (void*)StaticDialogArray.GetLinearArray(), &StaticDialogArray);
+    // Although no room regions are created at this point, we still must register these symbols,
+    // because they might be referenced from functions in global and custom script modules.
+    // Their addresses will be updated at each room load.
+    ccAddExternalStaticArray("object", (void*)StaticObjectArray.GetLinearArray(), &StaticObjectArray);
+    ccAddExternalStaticArray("hotspot", (void*)StaticHotspotArray.GetLinearArray(), &StaticHotspotArray);
+    ccAddExternalStaticArray("region", (void*)StaticRegionArray.GetLinearArray(), &StaticRegionArray);
 }
 
 void ReadGameSetupStructBase_Aligned(Stream *in)

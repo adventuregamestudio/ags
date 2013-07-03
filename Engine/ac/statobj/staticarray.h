@@ -23,17 +23,25 @@
 
 struct ICCDynamicObject;
 
-struct StaticArray : public ICCStaticObject {
+struct StaticArray : public ICCStaticObject
+{
 public:
-    virtual ~StaticArray(){}
+    StaticArray()
+        : _dynamicMgr(NULL)
+        , _elemLegacySize(0)
+        , _elemRealSize(0)
+    {
+    }
 
-    void Create(ICCDynamicObject *dynmgr, int elem_legacy_size);
     inline ICCDynamicObject *GetDynamicManager() const
     {
         return _dynamicMgr;
     }
     // Legacy support for reading and writing object values by their relative offset
-    virtual const char *GetElementPtr(const char *address, intptr_t legacy_offset) = 0;
+    inline const char *GetElementPtr(const char *address, intptr_t legacy_offset)
+    {
+        return address + (legacy_offset / _elemLegacySize) * _elemRealSize;
+    }
 
     virtual uint8_t GetPropertyUInt8(const char *address, intptr_t offset);
     virtual int16_t GetPropertyInt16(const char *address, intptr_t offset);
@@ -44,17 +52,28 @@ public:
 
 protected:
     ICCDynamicObject    *_dynamicMgr;
-    int                 _elemLegacySize;
+    size_t              _elemLegacySize;
+    size_t              _elemRealSize;
 };
 
 template<class T> class StaticTemplateArray : public StaticArray
 {
 public:
-    virtual const char *GetElementPtr(const char *address, intptr_t legacy_offset)
+    void Create(AGS::Common::Array<T> *array, ICCDynamicObject *dynmgr, int elem_legacy_size)
     {
-        AGS::Common::Array<T> *arr = (AGS::Common::Array<T> *)address;
-        return (const char*)&arr->GetAt(legacy_offset / _elemLegacySize);
+        _array          = array;
+        _dynamicMgr     = dynmgr;
+        _elemLegacySize = elem_legacy_size;
+        _elemRealSize   = sizeof(T);
     }
+
+    inline const char *GetLinearArray()
+    {
+        return _array ? (const char*)_array->GetCArr() : NULL;
+    }
+
+protected:
+    AGS::Common::Array<T> *_array;
 };
 
 #endif // __AGS_EE_STATOBJ__STATICOBJECT_H

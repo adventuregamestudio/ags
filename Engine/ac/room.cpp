@@ -41,6 +41,7 @@
 #include "ac/walkbehind.h"
 #include "ac/dynobj/scriptobject.h"
 #include "ac/dynobj/scripthotspot.h"
+#include "ac/statobj/staticarray.h"
 #include "game/game_objects.h"
 #include "game/script_objects.h"
 #include "script/cc_instance.h"
@@ -104,6 +105,10 @@ extern int mouse_z_was;
 
 extern Bitmap **guibg;
 extern IDriverDependantBitmap **guibgbmp;
+
+extern StaticTemplateArray<ScriptObject>  StaticObjectArray;
+extern StaticTemplateArray<ScriptHotspot> StaticHotspotArray;
+extern StaticTemplateArray<ScriptRegion>  StaticRegionArray;
 
 RGB_MAP rgb_table;  // for 256-col antialiasing
 int new_room_flags=0;
@@ -249,6 +254,7 @@ void register_script_room_objects()
 
         ccAddExternalDynamicObject(objectScriptObjNames[i], &scrObj[i], &ccDynamicObject);
     }
+    ccAddExternalStaticArray("object", (void*)StaticObjectArray.GetLinearArray(), &StaticObjectArray);
 }
 
 void unregister_script_room_objects()
@@ -289,6 +295,7 @@ void register_script_room_hotspots()
 
         ccAddExternalDynamicObject(thisroom.Hotspots[i].ScriptName, &scrHotspot[i], &ccDynamicHotspot);
     }
+    ccAddExternalStaticArray("hotspot", (void*)StaticHotspotArray.GetLinearArray(), &StaticHotspotArray);
 }
 
 void unregister_script_room_hotspots()
@@ -322,6 +329,7 @@ void register_script_room_regions()
 
         ccRegisterManagedObject(&scrRegion[i], &ccDynamicRegion);
     }
+    ccAddExternalStaticArray("region", (void*)StaticRegionArray.GetLinearArray(), &StaticRegionArray);
 }
 
 void unregister_script_room_regions()

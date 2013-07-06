@@ -54,6 +54,7 @@ public:
     int CheckDispose(int32_t handle);
     int32_t SubRef(int32_t handle);
     int32_t AddressToHandle(const char *addr);
+    int32_t AddressToHandle(const char *addr, int lookup_from);
     const char* HandleToAddress(int32_t handle);
     ScriptValueType HandleToAddressAndManager(int32_t handle, void *&object, ICCDynamicObject *&manager);
     int RemoveObject(const char *address);

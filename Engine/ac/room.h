@@ -49,4 +49,11 @@ void  check_new_room();
 void  compile_room_script();
 void  on_background_frame_change ();
 
+void init_script_room_hotspots(int max_hotspots);
+void init_script_room_objects(int max_objects);
+void init_script_room_regions(int max_regions);
+void register_script_room_hotspots(int max_hotspots);
+void register_script_room_objects(int max_objects);
+void register_script_room_regions(int max_regions);
+
 #endif // __AGS_EE_AC__ROOM_H

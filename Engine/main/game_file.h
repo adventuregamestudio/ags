@@ -27,4 +27,7 @@ extern void WriteGameSetupStructBase_Aligned(Common::Stream *out);
 
 extern AGS::Common::String game_file_name;
 
+void init_script_invitems(int max_invitems);
+void init_script_dialogs(int max_invitems);
+
 #endif // __AGS_EE_MAIN__GAMEFILE_H

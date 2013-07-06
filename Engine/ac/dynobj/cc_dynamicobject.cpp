@@ -145,6 +145,22 @@ ScriptValueType ccGetObjectAddressAndManagerFromHandle(int32_t handle, void *&ob
     return obj_type;
 }
 
+void ccReassignManagedObjectAddressRange(const char *range_start, const char *new_address, int count, int object_size)
+{
+    int handle = 0;
+    const char *range_end = range_start + count * object_size;
+    while (range_start < range_end)
+    {
+        handle = pool.AddressToHandle(range_start, handle);
+        if (handle)
+        {
+            pool.AddObject(new_address, NULL /* use same callback */, false, handle);
+        }
+        range_start += object_size;
+        new_address += object_size;
+    }
+}
+
 int ccAddObjectReference(int32_t handle) {
     if (handle == 0)
         return 0;

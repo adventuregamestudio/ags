@@ -33,6 +33,7 @@
 #include "script/script.h"
 #include "util/alignedstream.h"
 #include "util/filestream.h"
+#include "util/math.h"
 
 extern int our_eip;
 extern int oldeip;
@@ -47,6 +48,7 @@ using Common::Bitmap;
 using Common::DialogTopicInfo;
 using Common::Stream;
 namespace BitmapHelper = Common::BitmapHelper;
+namespace Math = Common::Math;
 namespace Out = Common::Out;
 
 enum SavedGameChapter
@@ -1252,6 +1254,10 @@ SavedGameError restore_game_data_ch_allrooms(Stream *in, SavedGameRestorationDat
         return kSvgErr_DataVersionNotSupported;
     }
 
+    int max_room_hotspots = 0;
+    int max_room_objects = 0;
+    int max_room_regions = 0;
+
     int room_state_valid_count = in->ReadInt32();
     // read the room state for all the rooms the player has been in
     for (; room_state_valid_count > 0; --room_state_valid_count)
@@ -1261,8 +1267,16 @@ SavedGameError restore_game_data_ch_allrooms(Stream *in, SavedGameRestorationDat
         {
             RoomState* room_state = GetRoomState(room_index);
             room_state->ReadFromSavedGame(in);
+
+            max_room_hotspots = Math::Max(max_room_hotspots, room_state->Hotspots.GetCount());
+            max_room_objects = Math::Max(max_room_objects, room_state->Objects.GetCount());
+            max_room_regions = Math::Max(max_room_regions, room_state->Regions.GetCount());
         }
     }
+
+    register_script_room_hotspots(max_room_hotspots);
+    register_script_room_objects(max_room_objects);
+    register_script_room_regions(max_room_regions);
     return kSvgErr_NoError;
 }
 

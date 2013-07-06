@@ -19,9 +19,11 @@
 #include "ac/dynobj/cc_dynamicarray.h" // globalDynamicArray, constants
 #include "util/string_utils.h"               // fputstring, etc
 #include "script/cc_error.h"
+#include "util/math.h"
 #include "util/stream.h"
 
 using AGS::Common::Stream;
+namespace Math = AGS::Common::Math;
 
 void ManagedObjectPool::ManagedObject::init(int32_t theHandle, const char *theAddress,
                                             ICCDynamicObject *theCallback, ScriptValueType objType) {
@@ -130,6 +132,26 @@ int32_t ManagedObjectPool::AddressToHandle(const char *addr) {
     return 0;
 }
 
+int32_t ManagedObjectPool::AddressToHandle(const char *addr, int lookup_from)
+{
+    // First look up in reverse order, then wrap to the end of the pool
+    for (size_t i = lookup_from; i >= 1; --i)
+    {
+        if (objects[i].addr == addr)
+        {
+            return objects[i].handle;
+        }
+    }
+    for (size_t i = numObjects - 1; i > lookup_from; --i)
+    {
+        if (objects[i].addr == addr)
+        {
+            return objects[i].handle;
+        }
+    }
+    return 0;
+}
+
 const char* ManagedObjectPool::HandleToAddress(int32_t handle) {
     // this function is called often (whenever a pointer is used)
     if ((handle < 1) || (handle >= arrayAllocLimit))
@@ -191,6 +213,10 @@ int ManagedObjectPool::AddObject(const char *address, ICCDynamicObject *callback
 
     if (useSlot < arrayAllocLimit) {
         // still space in the array, so use it
+        if (!callback)
+        {
+            callback = objects[useSlot].callback;
+        }
         objects[useSlot].init(useSlot, address, callback, plugin_object ? kScValPluginObject : kScValDynamicObject);
         if (useSlot == numObjects)
             numObjects++;

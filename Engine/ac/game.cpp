@@ -1636,11 +1636,11 @@ void restore_game_before_managed_pool()
     // reallocate objects in memory).
     ccUnregisterAllObjects();
 
-    scrDialog.SetLength(LEGACY_MAX_DIALOG_TOPICS);
-    scrHotspot.SetLength(LEGACY_MAX_ROOM_HOTSPOTS);
-    scrInv.SetLength(MAX_INV);
-    scrObj.SetLength(LEGACY_MAX_ROOM_OBJECTS);
-    scrRegion.SetLength(LEGACY_MAX_ROOM_REGIONS);
+    init_script_dialogs(LEGACY_MAX_DIALOG_TOPICS);
+    init_script_invitems(MAX_INV);
+    init_script_room_hotspots(LEGACY_MAX_ROOM_HOTSPOTS);
+    init_script_room_objects(LEGACY_MAX_ROOM_OBJECTS);
+    init_script_room_regions(LEGACY_MAX_ROOM_REGIONS);
 }
 
 void restore_game_after_managed_pool()
@@ -1657,7 +1657,6 @@ void restore_game_after_managed_pool()
     }
     scrDialog.SetLength(game.DialogCount);
     scrInv.SetLength(game.InvItemCount);
-    // NOTE: the room objects and regions will be cleaned at the current room load
 }
 
 AGS::Engine::SavedGameError restore_game_data (Stream *in) {

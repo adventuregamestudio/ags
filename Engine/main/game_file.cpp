@@ -383,6 +383,17 @@ void init_and_register_characters()
     }
 }
 
+void init_script_invitems(int max_invitems)
+{
+    int old_array_length = scrInv.GetCount();
+    scrInv.GrowTo(max_invitems);
+    for (int i = old_array_length; i < max_invitems; ++i)
+    {
+        scrInv[i].id = i;
+        scrInv[i].reserved = 0;
+    }
+}
+
 void init_and_register_invitems()
 {
     scrInv.New(game.InvItemCount);
@@ -394,6 +405,17 @@ void init_and_register_invitems()
 
         if (!game.InventoryScriptNames.IsEmpty() && !game.InventoryScriptNames[ee].IsEmpty())
             ccAddExternalDynamicObject(game.InventoryScriptNames[ee], &scrInv[ee], &ccDynamicInv);
+    }
+}
+
+void init_script_dialogs(int max_dialogs)
+{
+    int old_array_length = scrDialog.GetCount();
+    scrDialog.GrowTo(max_dialogs);
+    for (int i = old_array_length; i < max_dialogs; ++i)
+    {
+        scrDialog[i].id = i;
+        scrDialog[i].reserved = 0;
     }
 }
 

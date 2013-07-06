@@ -218,24 +218,39 @@ void save_room_data_segment () {
 
 }
 
-void register_script_room_objects()
+void init_script_room_objects(int max_objects)
 {
-    // Unregister extra managed objects first;
-    // this is needed mainly to fix managed pool after restoring
-    // an old savedgame, where max objects were always kept registered
-    for (int i = thisroom.ObjectCount; i < scrObj.GetCount(); ++i)
-    {
-        ccUnRegisterManagedObject(&scrObj[i]);
-    }
-
-    scrObj.SetLength(thisroom.ObjectCount);
-    for (int i = 0; i < thisroom.ObjectCount; ++i)
+    int old_array_length = scrObj.GetCount();
+    scrObj.GrowTo(max_objects);
+    for (int i = old_array_length; i < max_objects; ++i)
     {
         scrObj[i].id = i;
         scrObj[i].__padding = 0;
+    }
+}
 
+void register_script_room_objects(int max_objects)
+{
+    const ScriptObject *old_array_ptr = scrObj.GetCArr();
+    int old_array_length = scrObj.GetCount();
+    scrObj.GrowTo(max_objects);
+    if (old_array_ptr && old_array_ptr != scrObj.GetCArr())
+    {
+        ccReassignManagedObjectAddressRange((const char*)old_array_ptr, (const char*)scrObj.GetCArr(), old_array_length, sizeof(ScriptObject));
+    }
+    for (int i = old_array_length; i < max_objects; ++i)
+    {
+        scrObj[i].id = i;
+        scrObj[i].__padding = 0;
         ccRegisterManagedObject(&scrObj[i], &ccDynamicObject);
+    }
+}
 
+void register_this_room_script_objects()
+{
+    register_script_room_objects(thisroom.ObjectCount);
+    for (int i = 0; i < thisroom.ObjectCount; ++i)
+    {
         // export the object's script object
         if (thisroom.Objects[i].ScriptName.IsEmpty())
             continue;
@@ -261,8 +276,6 @@ void unregister_script_room_objects()
 {
     for (int i = 0; i < thisroom.ObjectCount; ++i)
     {
-        ccUnRegisterManagedObject(&scrObj[i]);
-
         // un-export the object's script object
         if (objectScriptObjNames[i].IsEmpty())
             continue;
@@ -271,26 +284,41 @@ void unregister_script_room_objects()
     }
 }
 
-void register_script_room_hotspots()
+void init_script_room_hotspots(int max_hotspots)
 {
-    // Unregister extra managed hotspots first;
-    // this is needed mainly to fix managed pool after restoring
-    // an old savedgame, where max hotspots were always kept registered
-    for (int i = thisroom.HotspotCount; i < scrHotspot.GetCount(); ++i)
-    {
-        ccUnRegisterManagedObject(&scrHotspot[i]);
-    }
-
-    scrHotspot.SetLength(thisroom.HotspotCount);
-    for (int i = 0; i < thisroom.HotspotCount; ++i)
+    int old_array_length = scrHotspot.GetCount();
+    scrHotspot.GrowTo(max_hotspots);
+    for (int i = old_array_length; i < max_hotspots; ++i)
     {
         scrHotspot[i].id = i;
         scrHotspot[i].reserved = 0;
+    }
+}
 
+void register_script_room_hotspots(int max_hotspots)
+{
+    const ScriptHotspot *old_array_ptr = scrHotspot.GetCArr();
+    int old_array_length = scrHotspot.GetCount();
+    scrHotspot.GrowTo(max_hotspots);
+    if (old_array_ptr && old_array_ptr != scrHotspot.GetCArr())
+    {
+        ccReassignManagedObjectAddressRange((const char*)old_array_ptr, (const char*)scrHotspot.GetCArr(), old_array_length, sizeof(ScriptHotspot));
+    }
+    for (int i = old_array_length; i < max_hotspots; ++i)
+    {
+        scrHotspot[i].id = i;
+        scrHotspot[i].reserved = 0;
         ccRegisterManagedObject(&scrHotspot[i], &ccDynamicHotspot);
+    }
+}
 
+void register_this_room_script_hotspots()
+{
+    register_script_room_hotspots(thisroom.HotspotCount);
+    for (int i = 0; i < thisroom.HotspotCount; ++i)
+    {
         // export the hotspot's script object
-        if (thisroom.Hotspots[i].ScriptName[0] == 0)
+        if (thisroom.Hotspots[i].ScriptName.IsEmpty())
             continue;
 
         ccAddExternalDynamicObject(thisroom.Hotspots[i].ScriptName, &scrHotspot[i], &ccDynamicHotspot);
@@ -302,7 +330,6 @@ void unregister_script_room_hotspots()
 {
     for (int i = 0; i < thisroom.HotspotCount; ++i)
     {
-        ccUnRegisterManagedObject(&scrHotspot[i]);
         // un-export the hotspot's script object
         if (thisroom.Hotspots[i].ScriptName.IsEmpty())
             continue;
@@ -311,23 +338,44 @@ void unregister_script_room_hotspots()
     }
 }
 
-void register_script_room_regions()
+void init_script_room_regions(int max_regions)
 {
-    // Unregister extra managed regions first;
-    // this is needed mainly to fix managed pool after restoring
-    // an old savedgame, where max regions were always kept registered
-    for (int i = thisroom.RegionCount; i < scrRegion.GetCount(); ++i)
-    {
-        ccUnRegisterManagedObject(&scrRegion[i]);
-    }
-
-    scrRegion.SetLength(thisroom.RegionCount);
-    for (int i = 0; i < thisroom.RegionCount; ++i)
+    int old_array_length = scrRegion.GetCount();
+    scrRegion.GrowTo(max_regions);
+    for (int i = old_array_length; i < max_regions; ++i)
     {
         scrRegion[i].id = i;
         scrRegion[i].reserved = 0;
+    }
+}
 
+void register_script_room_regions(int max_regions)
+{
+    const ScriptRegion *old_array_ptr = scrRegion.GetCArr();
+    int old_array_length = scrRegion.GetCount();
+    scrRegion.GrowTo(max_regions);
+    if (old_array_ptr && old_array_ptr != scrRegion.GetCArr())
+    {
+        ccReassignManagedObjectAddressRange((const char*)old_array_ptr, (const char*)scrRegion.GetCArr(), old_array_length, sizeof(ScriptRegion));
+    }
+    for (int i = old_array_length; i < max_regions; ++i)
+    {
+        scrRegion[i].id = i;
+        scrRegion[i].reserved = 0;
         ccRegisterManagedObject(&scrRegion[i], &ccDynamicRegion);
+    }
+}
+
+void register_this_room_script_regions()
+{
+    register_script_room_regions(thisroom.RegionCount);
+    for (int i = 0; i < thisroom.RegionCount; ++i)
+    {
+        // export the region's script object
+        if (thisroom.Regions[i].ScriptName.IsEmpty())
+            continue;
+
+        ccAddExternalDynamicObject(thisroom.Regions[i].ScriptName, &scrRegion[i], &ccDynamicRegion);
     }
     ccAddExternalStaticArray("region", (void*)StaticRegionArray.GetLinearArray(), &StaticRegionArray);
 }
@@ -336,7 +384,11 @@ void unregister_script_room_regions()
 {
     for (int i = 0; i < thisroom.RegionCount; ++i)
     {
-        ccUnRegisterManagedObject(&scrRegion[i]);
+        // un-export the hotspot's script object
+        if (thisroom.Regions[i].ScriptName.IsEmpty())
+            continue;
+
+        ccRemoveExternalSymbol(thisroom.Regions[i].ScriptName);
     }
 }
 
@@ -804,9 +856,9 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     // TODO: this will work so far as Objects array is not reallocated
     objs = croom->Objects.IsEmpty() ? NULL : &croom->Objects[0];
 
-    register_script_room_objects();
-    register_script_room_hotspots();
-    register_script_room_regions();
+    register_this_room_script_objects();
+    register_this_room_script_hotspots();
+    register_this_room_script_regions();
 
     our_eip=206;
     /*  THIS IS DONE IN THE EDITOR NOW

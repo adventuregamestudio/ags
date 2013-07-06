@@ -77,6 +77,7 @@ extern void  ccAttemptDisposeObject(int32_t handle);
 extern int32_t ccGetObjectHandleFromAddress(const char *address);
 extern const char *ccGetObjectAddressFromHandle(int32_t handle);
 extern ScriptValueType ccGetObjectAddressAndManagerFromHandle(int32_t handle, void *&object, ICCDynamicObject *&manager);
+extern void  ccReassignManagedObjectAddressRange(const char *range_start, const char *new_address, int count, int object_size);
 
 extern int ccAddObjectReference(int32_t handle);
 extern int ccReleaseObjectReference(int32_t handle);

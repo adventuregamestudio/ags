@@ -762,7 +762,7 @@ int show_dialog_options(int dlgnum, int sayChosenOption, bool runGameLoopsInBack
 
         render_graphics(ddb, dirtyx, dirtyy);
       
-        update_polled_stuff_and_crossfade();
+        update_polled_audio_and_crossfade();
       }
 
       if (kbhit()) {

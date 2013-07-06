@@ -354,7 +354,7 @@ void queue_audio_clip_to_play(ScriptAudioClip *clip, int priority, int repeat)
     }
     
     if (!psp_audio_multithreaded)
-      update_polled_stuff(false);
+      update_polled_mp3();
 }
 
 ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *clip, int priority, int repeat, int fromOffset, SOUNDCLIP *soundfx)
@@ -838,12 +838,6 @@ int calculate_max_volume() {
     return newvol;
 }
 
-void update_polled_stuff_if_runtime()
-{
-    if (!psp_audio_multithreaded)
-      update_polled_stuff(true);
-}
-
 // add/remove the volume drop to the audio channels while speech is playing
 void apply_volume_drop_modifier(bool applyModifier)
 {
@@ -867,14 +861,9 @@ void apply_volume_drop_modifier(bool applyModifier)
 extern volatile char want_exit;
 extern int frames_per_second;
 
-void update_polled_stuff(bool checkForDebugMessages) {
+void update_polled_mp3() {
     UPDATE_MP3
-/*
-        if (want_exit) {
-            want_exit = 0;
-            quit("||exit!");
-        }
-*/
+
         if (mvolcounter > update_music_at) {
             update_music_volume();
             apply_volume_drop_modifier(false);
@@ -882,14 +871,11 @@ void update_polled_stuff(bool checkForDebugMessages) {
             mvolcounter = 0;
             update_ambient_sound_vol();
         }
-
-        if ((editor_debugging_initialized) && (checkForDebugMessages))
-            check_for_messages_from_editor();
 }
 
 // Update the music, and advance the crossfade on a step
 // (this should only be called once per game loop)
-void update_polled_stuff_and_crossfade () {
+void update_polled_audio_and_crossfade () {
    
   update_polled_stuff_if_runtime ();
 

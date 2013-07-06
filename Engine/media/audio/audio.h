@@ -71,13 +71,12 @@ extern int current_music_type;
 void        clear_music_cache();
 void        play_next_queued();
 int         calculate_max_volume();
-void        update_polled_stuff_if_runtime();
 // add/remove the volume drop to the audio channels while speech is playing
 void        apply_volume_drop_modifier(bool applyModifier);
-void        update_polled_stuff(bool checkForDebugMessages);
+void        update_polled_mp3();
 // Update the music, and advance the crossfade on a step
 // (this should only be called once per game loop);
-void        update_polled_stuff_and_crossfade ();
+void        update_polled_audio_and_crossfade ();
 void        stopmusic();
 void        update_music_volume();
 void        post_new_music_check (int newchannel);

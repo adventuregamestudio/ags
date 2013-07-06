@@ -257,7 +257,7 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
 
             render_graphics();
 
-            update_polled_stuff_and_crossfade();
+            update_polled_audio_and_crossfade();
             if (mgetbutton()>NONE) {
                 // If we're allowed, skip with mouse
                 if (skip_setting & SKIP_MOUSECLICK)

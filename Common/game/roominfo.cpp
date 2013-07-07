@@ -102,7 +102,7 @@ RoomInfo::~RoomInfo()
     Free();
 }
 
-/* static */ bool RoomInfo::Load(RoomInfo &room, const String &filename, bool game_is_hires)
+/* static */ bool RoomInfo::Load(RoomInfo &room, const String &filename, int id, bool game_is_hires)
 {
     update_polled_stuff_if_runtime();
 
@@ -120,7 +120,7 @@ RoomInfo::~RoomInfo()
     update_polled_stuff_if_runtime();  // it can take a while to load the file sometimes
 
     RoomFormatBlock last_block;
-    RoomInfoError load_err = room.ReadFromFile(in, game_is_hires, &last_block);
+    RoomInfoError load_err = room.ReadFromFile(in, id, game_is_hires, &last_block);
     delete in;
 
     switch (load_err)
@@ -157,6 +157,7 @@ RoomInfo::~RoomInfo()
         quit("Load_room: inconsistent blocks for object script names");
         break;
     }
+
     return load_err == kRoomInfoErr_NoError;
 }
 
@@ -196,7 +197,7 @@ void RoomInfo::Free()
     CompiledScriptShared = false;
 }
 
-RoomInfoError RoomInfo::ReadFromFile(Stream *in, bool game_is_hires, RoomFormatBlock *last_block)
+RoomInfoError RoomInfo::ReadFromFile(Stream *in, int id, bool game_is_hires, RoomFormatBlock *last_block)
 {
     Free();
 
@@ -237,7 +238,7 @@ RoomInfoError RoomInfo::ReadFromFile(Stream *in, bool game_is_hires, RoomFormatB
         update_polled_stuff_if_runtime();
     };
 
-    ProcessAfterRead(game_is_hires);
+    ProcessAfterRead(id, game_is_hires);
     return kRoomInfoErr_NoError;
 }
 
@@ -801,7 +802,7 @@ RoomInfoError RoomInfo::ReadObjectScriptNamesBlock(Stream *in)
     return kRoomInfoErr_NoError;
 }
 
-void RoomInfo::ProcessAfterRead(bool game_is_hires)
+void RoomInfo::ProcessAfterRead(int id, bool game_is_hires)
 {
     // Synchronize background 0 palette with room.pal
     memcpy(&Backgrounds[0].Palette, &Palette, sizeof(color) * 256);
@@ -836,8 +837,13 @@ void RoomInfo::ProcessAfterRead(bool game_is_hires)
         Edges.Top     <<= 1;
         Edges.Bottom  <<= 1;
         Edges.Right   <<= 1;
-        Width       <<= 1;
-        Height      <<= 1;
+        Width         <<= 1;
+        Height        <<= 1;
+    }
+
+    if (LoadedVersion < kRoomVersion_340_alpha)
+    {
+        IsPersistent = id < LEGACY_MAX_SAVE_STATE_ROOMS;
     }
 }
 

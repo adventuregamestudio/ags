@@ -83,14 +83,14 @@ void CustomPropertySchema::Serialize(Common::Stream *out) const
 CustomPropertyError CustomPropertySchema::UnSerialize(Common::Stream *in)
 {
     CustomPropertyVersion version = (CustomPropertyVersion)in->ReadInt32();
-    if (version < kCustomPropertyVersion_v321 ||
+    if (version < kCustomPropertyVersion_pre340 ||
         version > kCustomPropertyVersion_Current)
     {
         return kCustomPropertyErr_UnsupportedFormat;
     }
 
     Properties.SetLength(in->ReadInt32());
-    if (version == kCustomPropertyVersion_v321)
+    if (version == kCustomPropertyVersion_pre340)
     {
         for (int i = 0; i < Properties.GetCount(); ++i)
         {
@@ -163,14 +163,14 @@ void CustomProperties::Serialize(Common::Stream *out) const
 CustomPropertyError CustomProperties::UnSerialize(Common::Stream *in)
 {
     CustomPropertyVersion version = (CustomPropertyVersion)in->ReadInt32();
-    if (version < kCustomPropertyVersion_v321 ||
+    if (version < kCustomPropertyVersion_pre340 ||
         version > kCustomPropertyVersion_Current)
     {
         return kCustomPropertyErr_UnsupportedFormat;
     }
 
     Properties.SetLength(in->ReadInt32());
-    if (version == kCustomPropertyVersion_v321)
+    if (version == kCustomPropertyVersion_pre340)
     {
         for (int i = 0; i < Properties.GetCount(); ++i)
         {

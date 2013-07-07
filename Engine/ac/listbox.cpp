@@ -21,6 +21,8 @@
 #include "game/game_objects.h"
 #include "gui/guimain.h"
 
+using AGS::Common::String;
+
 extern int guis_need_update;
 extern char saveGameDirectory[260];
 
@@ -107,9 +109,9 @@ int ListBox_FillSaveGameList(GuiListBox *listbox) {
     for (int kk=0;kk<numsaves-1;kk++) {  // Date order the games
 
       if (filedates[kk] < filedates[kk+1]) {   // swap them round
-        const char*tempptr = listbox->Items[kk];
+        String temp_str = listbox->Items[kk];
         listbox->Items[kk] = listbox->Items[kk+1];
-        listbox->Items[kk+1] = tempptr;
+        listbox->Items[kk+1] = temp_str;
         int numtem = listbox->SavedGameIndex[kk];
         listbox->SavedGameIndex[kk] = listbox->SavedGameIndex[kk+1];
         listbox->SavedGameIndex[kk+1] = numtem;

@@ -49,78 +49,78 @@ enum SavedGameVersion
 // TODO: move these to corresponding classes when they are ready
 enum RuntimeGameVersion
 {
-    kRtGameVersion_330,
-    kRtGameVersion_Current = kRtGameVersion_330
+    kRtGameVersion_340,
+    kRtGameVersion_Current = kRtGameVersion_340
 };
 enum RuntimeAudioVersion
 {
-    kRtAudioVersion_330,
-    kRtAudioVersion_Current = kRtAudioVersion_330
+    kRtAudioVersion_340,
+    kRtAudioVersion_Current = kRtAudioVersion_340
 };
 enum RuntimeCharacterVersion
 {
-    kRtCharacterVersion_330,
-    kRtCharacterVersion_Current = kRtCharacterVersion_330
+    kRtCharacterVersion_340,
+    kRtCharacterVersion_Current = kRtCharacterVersion_340
 };
 enum RuntimeDialogVersion
 {
-    kRtDialogVersion_330,
-    kRtDialogVersion_Current = kRtDialogVersion_330
+    kRtDialogVersion_340,
+    kRtDialogVersion_Current = kRtDialogVersion_340
 };
 enum RuntimeInvItemVersion
 {
-    kRtInvItemVersion_330,
-    kRtInvItemVersion_Current = kRtInvItemVersion_330
+    kRtInvItemVersion_340,
+    kRtInvItemVersion_Current = kRtInvItemVersion_340
 };
 enum RuntimeMouseCursorVersion
 {
-    kRtMouseCursorVersion_330,
-    kRtMouseCursorVersion_Current = kRtMouseCursorVersion_330
+    kRtMouseCursorVersion_340,
+    kRtMouseCursorVersion_Current = kRtMouseCursorVersion_340
 };
 enum RuntimeViewVersion
 {
-    kRtViewVersion_330,
-    kRtViewVersion_Current = kRtViewVersion_330
+    kRtViewVersion_340,
+    kRtViewVersion_Current = kRtViewVersion_340
 };
 enum RuntimeDynamicSpriteVersion
 {
-    kRtDynamicSpriteVersion_330,
-    kRtDynamicSpriteVersion_Current = kRtDynamicSpriteVersion_330
+    kRtDynamicSpriteVersion_340,
+    kRtDynamicSpriteVersion_Current = kRtDynamicSpriteVersion_340
 };
 enum RuntimeOverlayVersion
 {
-    kRtOverlayVersion_330,
-    kRtOverlayVersion_Current = kRtOverlayVersion_330
+    kRtOverlayVersion_340,
+    kRtOverlayVersion_Current = kRtOverlayVersion_340
 };
 enum RuntimeDynamicSurfaceVersion
 {
-    kRtDynamicSurfaceVersion_330,
-    kRtDynamicSurfaceVersion_Current = kRtDynamicSurfaceVersion_330
+    kRtDynamicSurfaceVersion_340,
+    kRtDynamicSurfaceVersion_Current = kRtDynamicSurfaceVersion_340
 };
 enum RuntimeScriptModuleVersion
 {
-    kRtScriptModuleVersion_330,
-    kRtScriptModuleVersion_Current = kRtScriptModuleVersion_330
+    kRtScriptModuleVersion_340,
+    kRtScriptModuleVersion_Current = kRtScriptModuleVersion_340
 };
 enum RuntimeRoomStateVersion
 {
-    kRtRoomStateVersion_330,
-    kRtRoomStateVersion_Current = kRtRoomStateVersion_330
+    kRtRoomStateVersion_340,
+    kRtRoomStateVersion_Current = kRtRoomStateVersion_340
 };
 enum RuntimeRunningRoomStateVersion
 {
-    kRtRunningRoomStateVersion_330,
-    kRtRunningRoomStateVersion_Current = kRtRunningRoomStateVersion_330
+    kRtRunningRoomStateVersion_340,
+    kRtRunningRoomStateVersion_Current = kRtRunningRoomStateVersion_340
 };
 enum RuntimeManagedPoolVersion
 {
-    kRtManagedPoolVersion_330,
-    kRtManagedPoolVersion_Current = kRtManagedPoolVersion_330
+    kRtManagedPoolVersion_340,
+    kRtManagedPoolVersion_Current = kRtManagedPoolVersion_340
 };
 enum RuntimePluginStateVersion
 {
-    kRtPluginStateVersion_330,
-    kRtPluginStateVersion_Current = kRtPluginStateVersion_330
+    kRtPluginStateVersion_340,
+    kRtPluginStateVersion_Current = kRtPluginStateVersion_340
 };
 
 

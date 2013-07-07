@@ -1214,7 +1214,7 @@ bool initialize_native()
 	if (spriteset.initFile(sprsetname))
 	  return false;
 	spriteset.maxCacheSize = 100000000;  // 100 mb cache
-    thisgame.SpriteFlags.New(MAX_SPRITES);
+    thisgame.SpriteFlags.New(MAX_SPRITES, 0);
 
 	if (!Scintilla_RegisterClasses (GetModuleHandle(NULL)))
       return false;
@@ -1873,9 +1873,9 @@ void copy_global_palette_to_room_palette()
   }
 }
 
-const char* load_room_file(const char*rtlo) {
+const char* load_room_file(const char*rtlo, int id) {
 
-  AGS::Common::RoomInfo::Load(thisroom, (char*)rtlo, (thisgame.DefaultResolution > 2));
+  AGS::Common::RoomInfo::Load(thisroom, (char*)rtlo, id, (thisgame.DefaultResolution > 2));
 
   if (thisroom.LoadedVersion < kRoomVersion_250b) 
   {
@@ -4323,7 +4323,7 @@ AGS::Types::Room^ load_crm_file(UnloadedRoom ^roomToLoad)
 	char roomFileNameBuffer[MAX_PATH];
 	ConvertStringToCharArray(roomToLoad->FileName, roomFileNameBuffer);
 
-	const char *errorMsg = load_room_file(roomFileNameBuffer);
+	const char *errorMsg = load_room_file(roomFileNameBuffer, roomToLoad->Number);
 	if (errorMsg != NULL) 
 	{
 		throw gcnew AGSEditorException(gcnew String(errorMsg));
@@ -5177,6 +5177,7 @@ void save_game_to_dta_file(Game^ game, const char *fileName)
 	{
 		Dialog ^curDialog = game->Dialogs[i];
 		dialog[i].OptionCount = curDialog->Options->Count;
+        dialog[i].Options.New(dialog[i].OptionCount);
 		for (int j = 0; j < dialog[i].OptionCount; j++) 
 		{
 			AGS::Types::DialogOption ^option = curDialog->Options[j];

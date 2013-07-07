@@ -39,7 +39,7 @@ class Stream;
 
 enum CustomPropertyVersion
 {
-    kCustomPropertyVersion_v321,
+    kCustomPropertyVersion_pre340 = 1,
     kCustomPropertyVersion_v340,
     kCustomPropertyVersion_Current = kCustomPropertyVersion_v340
 };

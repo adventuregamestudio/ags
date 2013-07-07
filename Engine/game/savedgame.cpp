@@ -421,10 +421,10 @@ void save_game_data_ch_dialogs(Stream *out)
     // Dialogs state
     out->WriteInt32(kRtDialogVersion_Current);
     out->WriteInt32(game.DialogCount);
-    for (int i = 0; i < game.DialogCount; ++i)
+    for (int dlg = 0; dlg < game.DialogCount; ++dlg)
     {
-        DialogTopicInfo &dlg_info = dialog[i];
-        for (int opt = 0; opt < dlg_info.OptionCount; ++i)
+        DialogTopicInfo &dlg_info = dialog[dlg];
+        for (int opt = 0; opt < dlg_info.OptionCount; ++opt)
         {
             out->WriteInt32(dlg_info.Options[opt].Flags);
         }
@@ -1023,10 +1023,10 @@ SavedGameError restore_game_data_ch_dialogs(Stream *in, SavedGameRestorationData
         return kSvgErr_GameContentAssertionFailed;
     }
 
-    for (int i = 0; i < game.DialogCount; ++i)
+    for (int dlg = 0; dlg < game.DialogCount; ++dlg)
     {
-        DialogTopicInfo &dlg_info = dialog[i];
-        for (int opt = 0; opt < dlg_info.OptionCount; ++i)
+        DialogTopicInfo &dlg_info = dialog[dlg];
+        for (int opt = 0; opt < dlg_info.OptionCount; ++opt)
         {
             dlg_info.Options[opt].Flags = in->ReadInt32();
         }

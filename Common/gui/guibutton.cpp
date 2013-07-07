@@ -123,7 +123,7 @@ bool GuiButton::OnMouseDown()
 void GuiButton::OnMouseLeave()
 {
     CurrentImage = NormalImage;
-    IsMouseOver = true;
+    IsMouseOver = false;
 }
 
 void GuiButton::OnMouseOver()
@@ -166,6 +166,7 @@ void GuiButton::WriteToFile(Stream *out)
 void GuiButton::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
     GuiObject::ReadFromFile(in, gui_version);
+    String text;
     if (gui_version < kGuiVersion_340_alpha)
     {
         NormalImage = in->ReadInt32();
@@ -180,7 +181,7 @@ void GuiButton::ReadFromFile(Stream *in, GuiVersion gui_version)
         in->ReadInt32(); // rightclick
         ClickActionData = in->ReadInt32();
         in->ReadInt32(); // rclickdata
-        Text.ReadCount(in, 50);
+        text.ReadCount(in, 50);
         LegacyGuiButtonAlignment legacy_align;
         if (gui_version >= kGuiVersion_272a)
         {
@@ -203,9 +204,10 @@ void GuiButton::ReadFromFile(Stream *in, GuiVersion gui_version)
         TextAlignment = (Alignment)in->ReadInt32();
         ClickAction = (GuiButtonClickAction)in->ReadInt32();
         ClickActionData = in->ReadInt32();
-        Text.Read(in);
+        text.Read(in);
     }
 
+    SetText(text);
     if (TextColor == 0)
     {
         TextColor = 16;
@@ -237,7 +239,7 @@ void GuiButton::ReadFromSavedGame(Stream *in, RuntimeGuiVersion gui_version)
     TextFont = in->ReadInt32();
     TextColor = in->ReadInt32();
     TextAlignment = (Alignment)in->ReadInt32();
-    Text.Read(in);
+    SetText(String::FromStream(in));
 
     CurrentImage = NormalImage;
 }

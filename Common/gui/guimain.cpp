@@ -877,7 +877,6 @@ bool Gui::ReadGuiFromSavedGame(ObjectArray<GuiMain> &guis, Common::Stream *in, R
     const int gui_count = guis.GetCount();
     for (int i = 0; i < gui_count; ++i)
     {
-        guis[i].Init();
         guis[i].ReadFromSavedGame(in, version);
     }
     // import the buttons

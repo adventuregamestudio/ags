@@ -34,12 +34,18 @@ struct ScreenOverlay {
     int associatedOverlayHandle;
     bool hasAlphaChannel;
     bool positionRelativeToScreen;
+    bool hasSerializedBitmap;
 
     ScreenOverlay();
+    ScreenOverlay(const ScreenOverlay &overlay);
     ~ScreenOverlay();
+
+    void Free();
 
     void ReadFromFile(Common::Stream *in);
     void WriteToFile(Common::Stream *out);
+
+    ScreenOverlay &operator=(const ScreenOverlay &overlay);
 };
 
 #endif // __AGS_EE_AC__SCREENOVERLAY_H

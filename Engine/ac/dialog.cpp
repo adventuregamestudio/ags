@@ -512,6 +512,8 @@ void DialogOptions::Prepare(int _dlgnum, bool _runGameLoopsInBackground)
   }
 
   numdisp=0;
+  disporder.SetLength(dtop->OptionCount);
+  dispyp.SetLength(dtop->OptionCount);
   for (ww=0;ww<dtop->OptionCount;ww++) {
     if ((dtop->Options[ww].Flags & Common::kDialogOption_IsOn)==0) continue;
     // FIXME this hack!

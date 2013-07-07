@@ -1480,9 +1480,10 @@ void ReadOverlays_Aligned(Stream *in)
 void restore_game_overlays(Stream *in)
 {
     numscreenover = in->ReadInt32();
+    screenover.SetLength(numscreenover);
     ReadOverlays_Aligned(in);
     for (int bb=0;bb<numscreenover;bb++) {
-        if (screenover[bb].pic != NULL)
+        if (screenover[bb].hasSerializedBitmap)
         {
             screenover[bb].pic = read_serialized_bitmap(in);
             screenover[bb].bmp = gfxDriver->CreateDDBFromBitmap(screenover[bb].pic, false);

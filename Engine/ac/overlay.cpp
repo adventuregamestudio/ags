@@ -157,14 +157,7 @@ ScriptOverlay* Overlay_CreateTextual(int x, int y, int width, int font, int colo
 //=============================================================================
 
 void remove_screen_overlay_index(int cc) {
-    int dd;
-    delete screenover[cc].pic;
-    screenover[cc].pic=NULL;
-
-    if (screenover[cc].bmp != NULL)
-        gfxDriver->DestroyDDB(screenover[cc].bmp);
-    screenover[cc].bmp = NULL;
-
+    
     if (screenover[cc].type==OVER_COMPLETE) is_complete_overlay--;
     if (screenover[cc].type==OVER_TEXTMSG) is_text_overlay--;
 
@@ -174,11 +167,11 @@ void remove_screen_overlay_index(int cc) {
         ccAttemptDisposeObject(screenover[cc].associatedOverlayHandle);
 
     numscreenover--;
-    for (dd = cc; dd < numscreenover; dd++)
-        screenover[dd] = screenover[dd+1];
+    screenover.Remove(cc);
 
     // if an overlay before the sierra-style speech one is removed,
     // update the index
+    // [IKM] Omg, what a weird hack! FIXME!!
     if (face_talking > cc)
         face_talking--;
 }
@@ -212,7 +205,7 @@ int add_screen_overlay(int x,int y,int type,Bitmap *piccy, bool alphaChannel) {
         }
     }
     screenover.Append(ScreenOverlay());
-    screenover[numscreenover].pic=piccy;
+    screenover[numscreenover].pic=piccy; // NOTE: overlay now owns this bitmap
     screenover[numscreenover].bmp = gfxDriver->CreateDDBFromBitmap(piccy, alphaChannel);
     screenover[numscreenover].x=x;
     screenover[numscreenover].y=y;

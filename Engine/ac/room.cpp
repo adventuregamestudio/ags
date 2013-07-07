@@ -554,7 +554,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
 
     // load the room from disk
     our_eip=200;
-    Common::RoomInfo::Load(thisroom, room_filename, game.DefaultResolution > 2);
+    Common::RoomInfo::Load(thisroom, room_filename, newnum, game.DefaultResolution > 2);
 
     // Prepare object cache
     objcache.SetLength(thisroom.ObjectCount);
@@ -735,6 +735,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
     else croom=&troom;
 
     if (forchar != NULL) {
+        troom.BeenHere = false;
         // if not restoring a game, always reset this room
         for (int i = 0; i < troom.Hotspots.GetCount(); ++i)
         {
@@ -832,7 +833,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             croom->Regions[i].Properties = thisroom.Regions[i].Properties;
         }
 
-        croom->BeenHere=1;
+        croom->BeenHere=true;
         in_new_room=2;
     }
 

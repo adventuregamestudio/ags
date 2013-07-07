@@ -233,10 +233,10 @@ public:
     ~RoomInfo();
 
     static bool     IsVersionSupported(int16_t version);
-    static bool     Load(RoomInfo &room, const String &filename, bool game_is_hires);
+    static bool     Load(RoomInfo &room, const String &filename, int id, bool game_is_hires);
 
     void            Free();
-    RoomInfoError   ReadFromFile(Stream *in, bool game_is_hires, RoomFormatBlock *last_block = NULL);
+    RoomInfoError   ReadFromFile(Stream *in, int id, bool game_is_hires, RoomFormatBlock *last_block = NULL);
     void            WriteToFile(Stream *out);
 
     // TODO: temporarily made public
@@ -252,7 +252,7 @@ private:
     RoomInfoError   ReadScript3Block(Stream *in);
     RoomInfoError   ReadPropertiesBlock(Stream *in);
     RoomInfoError   ReadObjectScriptNamesBlock(Stream *in);
-    void            ProcessAfterRead(bool game_is_hires);
+    void            ProcessAfterRead(int id, bool game_is_hires);
 
     // Those are, in fact, are project-dependent and are implemented in runtime and AGS.Native
     void LoadScriptConfiguration(Common::Stream *in);

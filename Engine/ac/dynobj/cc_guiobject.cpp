@@ -21,7 +21,7 @@ using AGS::Common::GuiObject;
 
 // return the type name of the object
 const char *CCGUIObject::GetType() {
-    return "GuiObject";
+    return "GUIObject";
 }
 
 // serialize the object into BUFFER (which is BUFSIZE bytes)

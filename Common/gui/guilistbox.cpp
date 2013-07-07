@@ -76,6 +76,7 @@ int GuiListBox::AddItem(const String &text)
 void GuiListBox::Clear()
 {
     Items.Empty();
+    SavedGameIndex.Empty();
     ItemCount = 0;
     SelectedItem = 0;
     TopItem = 0;
@@ -362,11 +363,10 @@ void GuiListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
     }
 
     Items.SetLength(ItemCount);
-    SavedGameIndex.SetLength(ItemCount);
+    SavedGameIndex.SetLength(ItemCount, -1);
     for (int i = 0; i < ItemCount; ++i)
     {
         Items[i].Read(in);
-        SavedGameIndex[i] = -1;
     }
     if (gui_version >= kGuiVersion_272d && ListBoxFlags & kGuiListBox_SavedGameIndexValid)
     {
@@ -415,15 +415,14 @@ void GuiListBox::ReadFromSavedGame(Common::Stream *in, RuntimeGuiVersion gui_ver
     SelectedItem = in->ReadInt32();
     
     Items.SetLength(ItemCount);
-    SavedGameIndex.SetLength(ItemCount);
+    SavedGameIndex.SetLength(ItemCount, -1);
     for (int i = 0; i < ItemCount; ++i)
     {
         Items[i].Read(in);
-        SavedGameIndex[i] = -1;
     }
     if (ListBoxFlags & kGuiListBox_SavedGameIndexValid)
     {
-        SavedGameIndex.ReadRaw(in, ItemCount);
+        SavedGameIndex.ReadRawOver(in, ItemCount);
     }
 }
 

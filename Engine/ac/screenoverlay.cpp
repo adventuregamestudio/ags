@@ -24,23 +24,40 @@ extern IGraphicsDriver *gfxDriver;
 ScreenOverlay::ScreenOverlay()
     : pic(NULL)
     , bmp(NULL)
+    , hasSerializedBitmap(false)
 {
 }
 
+ScreenOverlay::ScreenOverlay(const ScreenOverlay &overlay)
+    : pic(NULL)
+    , bmp(NULL)
+    , hasSerializedBitmap(false)
+{
+    *this = overlay;
+}
+
 ScreenOverlay::~ScreenOverlay()
+{
+    Free();
+}
+
+void ScreenOverlay::Free()
 {
     delete pic;
     if (bmp)
     {
         gfxDriver->DestroyDDB(bmp);
     }
+    pic = NULL;
+    bmp = NULL;
+    hasSerializedBitmap = false;
 }
 
 void ScreenOverlay::ReadFromFile(Stream *in)
 {
     // Skipping bmp and pic pointer values
     in->ReadInt32();
-    in->ReadInt32();
+    hasSerializedBitmap = in->ReadInt32() != 0;
     type = in->ReadInt32();
     x = in->ReadInt32();
     y = in->ReadInt32();
@@ -55,7 +72,7 @@ void ScreenOverlay::WriteToFile(Stream *out)
 {
     // Writing bitmap "pointers" to correspond to full structure writing
     out->WriteInt32(0);
-    out->WriteInt32(0);
+    out->WriteInt32(pic ? 1 : 0);
     out->WriteInt32(type);
     out->WriteInt32(x);
     out->WriteInt32(y);
@@ -64,4 +81,21 @@ void ScreenOverlay::WriteToFile(Stream *out)
     out->WriteInt32(associatedOverlayHandle);
     out->WriteBool(hasAlphaChannel);
     out->WriteBool(positionRelativeToScreen);
+}
+
+ScreenOverlay &ScreenOverlay::operator=(const ScreenOverlay &overlay)
+{
+    Free();
+    bmp = overlay.bmp ? gfxDriver->CreateDDBReference(overlay.bmp) : NULL;
+    pic = overlay.pic ? Common::BitmapHelper::CreateBitmapReference(overlay.pic) : NULL;
+    type = overlay.type;
+    x = overlay.x;
+    y = overlay.y;
+    timeout = overlay.timeout;
+    bgSpeechForChar = overlay.bgSpeechForChar;
+    associatedOverlayHandle = overlay.associatedOverlayHandle;
+    hasAlphaChannel = overlay.hasAlphaChannel;
+    positionRelativeToScreen = overlay.positionRelativeToScreen;
+    hasSerializedBitmap = overlay.hasSerializedBitmap;
+    return *this;
 }

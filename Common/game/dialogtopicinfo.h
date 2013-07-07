@@ -75,6 +75,12 @@ struct DialogOption
     String  Name;
     int32_t Flags;
     int16_t EntryPoint;
+
+    DialogOption()
+    {
+        Flags = 0;
+        EntryPoint = 0;
+    }
 };
 
 class DialogTopicInfo

@@ -30,6 +30,7 @@
 #include "util/textstreamwriter.h"
 
 using AGS::Common::Stream;
+using AGS::Common::String;
 using AGS::Common::TextStreamWriter;
 
 extern char check_dynamic_sprites_at_exit;
@@ -212,11 +213,16 @@ static const char* BREAK_MESSAGE = "BREAK";
 
 struct Breakpoint
 {
-    char scriptName[80];
-    int lineNumber;
+    String ScriptName;
+    int    LineNumber;
+
+    Breakpoint()
+    {
+        LineNumber = 0;
+    }
 };
 
-AGS::Common::Array<Breakpoint> breakpoints;
+AGS::Common::ObjectArray<Breakpoint> breakpoints;
 int numBreakpoints = 0;
 
 bool send_message_to_editor(const char *msg, const char *errorMsg) 
@@ -330,22 +336,21 @@ int check_for_messages_from_editor()
             {
                 for (i = 0; i < numBreakpoints; i++)
                 {
-                    if ((breakpoints[i].lineNumber == lineNumber) &&
-                        (strcmp(breakpoints[i].scriptName, scriptNameBuf) == 0))
+                    if ((breakpoints[i].LineNumber == lineNumber) &&
+                        (breakpoints[i].ScriptName.Compare(scriptNameBuf) == 0))
                     {
+                        breakpoints.Remove(i);
                         numBreakpoints--;
-                        for (int j = i; j < numBreakpoints; j++)
-                        {
-                            breakpoints[j] = breakpoints[j + 1];
-                        }
                         break;
                     }
                 }
             }
             else 
             {
-                strcpy(breakpoints[numBreakpoints].scriptName, scriptNameBuf);
-                breakpoints[numBreakpoints].lineNumber = lineNumber;
+                Breakpoint bp;
+                bp.ScriptName = scriptNameBuf;
+                bp.LineNumber = lineNumber;
+                breakpoints.Append(bp);
                 numBreakpoints++;
             }
         }
@@ -452,8 +457,8 @@ void scriptDebugHook (ccInstance *ccinst, int linenum) {
 
     for (int i = 0; i < numBreakpoints; i++)
     {
-        if ((breakpoints[i].lineNumber == linenum) &&
-            (strcmp(breakpoints[i].scriptName, scriptName) == 0))
+        if ((breakpoints[i].LineNumber == linenum) &&
+            (breakpoints[i].ScriptName.Compare(scriptName) == 0))
         {
             break_into_debugger();
             break;

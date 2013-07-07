@@ -77,6 +77,7 @@
 #include "util/alignedstream.h"
 #include "util/filestream.h"
 #include "util/math.h"
+#include "util/path.h"
 #include "util/string_utils.h"
 
 using AGS::Common::AlignedStream;
@@ -1091,8 +1092,6 @@ void save_game(int slotn, const char*descript) {
     delete out;
 }
 
-char rbuffer[200];
-
 Bitmap *restore_game_screenshot(Stream *in)
 {
     int isScreen = in->ReadInt32();
@@ -1102,7 +1101,7 @@ Bitmap *restore_game_screenshot(Stream *in)
     return NULL;
 }
 
-AGS::Engine::SavedGameError restore_game_header(Stream *in, SavedGameVersion svg_version)
+AGS::Engine::SavedGameError restore_game_header(Stream *in, SavedGameVersion svg_version, SavedGameInfo &svg_info)
 {
     if (svg_version <= kSvgVersion_321)
     {
@@ -1114,29 +1113,21 @@ AGS::Engine::SavedGameError restore_game_header(Stream *in, SavedGameVersion svg
             // Engine version is either non-forward or non-backward compatible
             return kSvgErr_IncompatibleEngine;
         }
-        fgetstring_limit (rbuffer, in, 180);
-        rbuffer[180] = 0;
-        if (stricmp (rbuffer, usetup.MainDataFilename))
-        {
-            return kSvgErr_DifferentMainDataFile;
-        }
+        svg_info.MainDataFilename.Read(in, 180);
+        svg_info.Guid = game.Guid;
     }
     else
     {
-        SavedGameInfo svg_info;
         svg_info.ReadFromFile(in);
-#if defined AGS_CASE_SENSITIVE_FILESYSTEM
-        if (svg_info.MainDataFilename.CompareNoCase(usetup.MainDataFilename))
-#else
-        if (svg_info.MainDataFilename.Compare(usetup.MainDataFilename))
-#endif
-        {
-            return kSvgErr_DifferentMainDataFile;
-        }
-        if (svg_info.Guid.Compare(game.Guid))
-        {
-            return kSvgErr_GameGuidFailed;
-        }
+    }
+
+    if (Common::Path::ComparePaths(svg_info.MainDataFilename, usetup.MainDataFilename))
+    {
+        return kSvgErr_DifferentMainDataFile;
+    }
+    if (svg_info.Guid.Compare(game.Guid))
+    {
+        return kSvgErr_GameGuidFailed;
     }
     return kSvgErr_NoError;
 }
@@ -1318,11 +1309,12 @@ void restore_game_play(Stream *in)
 
     if (play.DoOnceTokenCount > 0)
     {
+        char buffer[200];
         play.DoOnceTokens.New(play.DoOnceTokenCount);
         for (int bb = 0; bb < play.DoOnceTokenCount; bb++)
         {
-            fgetstring_limit(rbuffer, in, 200);
-            play.DoOnceTokens[bb] = rbuffer;
+            fgetstring_limit(buffer, in, 200);
+            play.DoOnceTokens[bb] = buffer;
         }
     }
 
@@ -1975,17 +1967,18 @@ AGS::Engine::SavedGameError load_game(const Common::String &path, int slotNumber
 
     // skip screenshot
     delete restore_game_screenshot(in);  // [IKM] how very appropriate
-    error_code = restore_game_header(in, opening.Version);
+    SavedGameInfo svg_info;
+    error_code = restore_game_header(in, opening.Version, svg_info);
 
     // saved in different game
     if (error_code == kSvgErr_DifferentMainDataFile) {
         // [IKM] 2012-11-26: this is a workaround, indeed.
         // Try to find wanted game's executable; if it does not exist,
         // continue loading savedgame in current game, and pray for the best
-        get_current_dir_path(gamefilenamebuf, rbuffer);
+        get_current_dir_path(gamefilenamebuf, svg_info.MainDataFilename);
         if (Common::File::TestReadFile(gamefilenamebuf))
         {
-            RunAGSGame (rbuffer, 0, 0);
+            RunAGSGame (svg_info.MainDataFilename, 0, 0);
             load_new_game_restore = slotNumber;
             return kSvgErr_NoError;
         }

@@ -611,6 +611,7 @@ void String::Free()
 {
     if (_meta)
     {
+        assert(_meta->RefCount > 0);
         _meta->RefCount--;
         if (!_meta->RefCount)
         {

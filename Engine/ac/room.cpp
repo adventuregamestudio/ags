@@ -392,6 +392,24 @@ void unregister_script_room_regions()
     }
 }
 
+void remove_unchanged_properties_from_croom()
+{
+    // Remove properties with default values
+    croom->Properties.RemoveMatching(thisroom.Properties);
+    for (int i = 0; i < croom->Hotspots.GetCount(); ++i)
+    {
+        croom->Hotspots[i].Properties.RemoveMatching(thisroom.Hotspots[i].Properties);
+    }
+    for (int i = 0; i < croom->Objects.GetCount(); ++i)
+    {
+        croom->Objects[i].Properties.RemoveMatching(thisroom.Objects[i].Properties);
+    }
+    for (int i = 0; i < croom->Regions.GetCount(); ++i)
+    {
+        croom->Regions[i].Properties.RemoveMatching(thisroom.Regions[i].Properties);
+    }
+}
+
 void unload_old_room() {
     int ff;
 
@@ -446,6 +464,8 @@ void unload_old_room() {
         play.RoomBkgWasModified[ff] = 0;
     for (ff = 0; ff < thisroom.LocalVariableCount; ff++)
         croom->InteractionVariableValues[ff] = thisroom.LocalVariables[ff].value;
+
+    remove_unchanged_properties_from_croom();
 
     // wipe the character cache when we change rooms
     for (ff = 0; ff < game.CharacterCount; ff++) {
@@ -518,6 +538,24 @@ void convert_room_coordinates_to_low_res(AGS::Common::RoomInfo &room_base)
 }
 
 extern int convert_16bit_bgr;
+
+void copy_properties_to_current_room_state()
+{
+    // Copy properties with default values
+    croom->Properties.CopyMissing(thisroom.Properties);
+    for (int i = 0; i < croom->Hotspots.GetCount(); ++i)
+    {
+        croom->Hotspots[i].Properties.CopyMissing(thisroom.Hotspots[i].Properties);
+    }
+    for (int i = 0; i < croom->Objects.GetCount(); ++i)
+    {
+        croom->Objects[i].Properties.CopyMissing(thisroom.Objects[i].Properties);
+    }
+    for (int i = 0; i < croom->Regions.GetCount(); ++i)
+    {
+        croom->Regions[i].Properties.CopyMissing(thisroom.Regions[i].Properties);
+    }
+}
 
 // forchar = playerchar on NewRoom, or NULL if restore saved game
 void load_new_room(int newnum, CharacterInfo*forchar) {
@@ -818,21 +856,6 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             croom->Regions[cc].Enabled = 1;
         }
 
-        // Copy properties
-        croom->Properties = thisroom.Properties;
-        for (int i = 0; i < croom->Hotspots.GetCount(); ++i)
-        {
-            croom->Hotspots[i].Properties = thisroom.Hotspots[i].Properties;
-        }
-        for (int i = 0; i < croom->Objects.GetCount(); ++i)
-        {
-            croom->Objects[i].Properties = thisroom.Objects[i].Properties;
-        }
-        for (int i = 0; i < croom->Regions.GetCount(); ++i)
-        {
-            croom->Regions[i].Properties = thisroom.Regions[i].Properties;
-        }
-
         croom->BeenHere=true;
         in_new_room=2;
     }
@@ -853,6 +876,8 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
         for (cc=0;cc<thisroom.Regions.GetCount();cc++)
             croom->Regions[cc].Interaction = *thisroom.Regions[cc].EventHandlers.Interaction;
     }
+
+    copy_properties_to_current_room_state();
 
     // TODO: this will work so far as Objects array is not reallocated
     objs = croom->Objects.IsEmpty() ? NULL : &croom->Objects[0];

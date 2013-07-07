@@ -118,10 +118,12 @@ class CustomProperties
 {
 public:
     void                AddProperty(const String &name, const String &value);
-    CustomPropertyState *FindProperty(const String &name);
+    CustomPropertyState *FindProperty(const String &name, int *index = NULL);
     void                Free();
     CustomPropertyState *GetProperty(int index);
     int                 GetPropertyCount() const;
+    void                CopyMissing(const CustomProperties &properties);
+    void                RemoveMatching(const CustomProperties &properties);
     void                Serialize(Stream *out) const;
     CustomPropertyError UnSerialize(Stream *in);
 

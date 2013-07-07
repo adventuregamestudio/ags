@@ -478,13 +478,13 @@ void GameInfo::WriteCharacters_Aligned(Stream *out)
 
 void GameInfo::read_customprops(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)
 {
+    CharacterProperties.New(CharacterCount);
+    InvItemProperties.New(InvItemCount);
+
     if (read_data.filever >= kGameVersion_260) // >= 2.60
     {
         if (PropertySchema.UnSerialize(in))
             quit("load room: unable to deserialize prop schema");
-
-        CharacterProperties.New(CharacterCount);
-        InvItemProperties.New(InvItemCount);
 
         int errors = 0;
         int bb;

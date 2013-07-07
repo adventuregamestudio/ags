@@ -118,12 +118,16 @@ void CustomProperties::AddProperty(const String &name, const String &value)
     Properties.Append(CustomPropertyState(name, value));
 }
 
-CustomPropertyState *CustomProperties::FindProperty(const String &name)
+CustomPropertyState *CustomProperties::FindProperty(const String &name, int *index)
 {
     for (int i = 0; i < Properties.GetCount(); ++i)
     {
         if (Properties[i].Name.CompareNoCase(name) == 0)
         {
+            if (index)
+            {
+                *index = i;
+            }
             return &Properties[i];
         }
     }
@@ -147,6 +151,33 @@ CustomPropertyState *CustomProperties::GetProperty(int index)
 int CustomProperties::GetPropertyCount() const
 {
     return Properties.GetCount();
+}
+
+void CustomProperties::CopyMissing(const CustomProperties &properties)
+{
+    for (int i = 0; i < properties.Properties.GetCount(); ++i)
+    {
+        const CustomPropertyState &prop_state = properties.Properties[i];
+        CustomPropertyState *found_state = FindProperty(prop_state.Name);
+        if (!found_state)
+        {
+            Properties.Append(CustomPropertyState(prop_state.Name, prop_state.Value));
+        }
+    }
+}
+
+void CustomProperties::RemoveMatching(const CustomProperties &properties)
+{
+    for (int i = 0; i < properties.Properties.GetCount(); ++i)
+    {
+        const CustomPropertyState &prop_state = properties.Properties[i];
+        int found_at;
+        CustomPropertyState *found_state = FindProperty(prop_state.Name, &found_at);
+        if (found_state && found_state->Value.Compare(prop_state.Value) == 0)
+        {
+            Properties.Remove(found_at);
+        }
+    }
 }
 
 void CustomProperties::Serialize(Common::Stream *out) const

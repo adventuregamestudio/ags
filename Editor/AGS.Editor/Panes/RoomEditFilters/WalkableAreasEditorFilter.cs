@@ -20,6 +20,11 @@ namespace AGS.Editor
             get { return RoomAreaMaskType.WalkableAreas; }
         }
 
+        public override int ItemCount
+        {
+            get { return _room.WalkableAreaCount; }
+        }
+
         protected override void SelectedAreaChanged(int areaNumber)
         {
             Factory.GUIController.SetPropertyGridObject(_room.WalkableAreas[areaNumber]);
@@ -53,6 +58,14 @@ namespace AGS.Editor
             {
                 _selectedArea = 0;
                 _panel.Invalidate();
+            }
+        }
+
+        protected override void Room_OnRegionCountChanged(RoomAreaMaskType maskType)
+        {
+            if (maskType == RoomAreaMaskType.WalkableAreas)
+            {
+                SetPropertyGridList();
             }
         }
     }

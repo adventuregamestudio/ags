@@ -37,6 +37,11 @@ namespace AGS.Editor
             get { return RoomAreaMaskType.None; }
         }
 
+        public int ItemCount
+        {
+            get { return _objectBaselines.Count; }
+        }
+
 		public int SelectedArea
 		{
 			get { return 0; }

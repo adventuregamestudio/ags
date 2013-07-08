@@ -66,6 +66,7 @@ extern void DeleteBackground(Room ^room, int backgroundNumber);
 extern void CreateBuffer(int width, int height);
 extern void RenderBufferToHDC(int hdc);
 extern void DrawSpriteToBuffer(int sprNum, int x, int y, int scaleFactor);
+extern void update_region_count(Room ^room, int maskType);
 extern void draw_line_onto_mask(void *roomptr, int maskType, int x1, int y1, int x2, int y2, int color);
 extern void draw_filled_rect_onto_mask(void *roomptr, int maskType, int x1, int y1, int x2, int y2, int color);
 extern void draw_fill_onto_mask(void *roomptr, int maskType, int x1, int y1, int color);
@@ -477,6 +478,11 @@ namespace AGS
 		{
 			return getBackgroundAsBitmap(room, backgroundNumber);
 		}
+
+        void NativeMethods::UpdateRegionCount(Room ^room, RoomAreaMaskType maskType)
+        {
+            update_region_count(room, (int)maskType);
+        }
 
 		void NativeMethods::DrawLineOntoMask(Room ^room, RoomAreaMaskType maskType, int x1, int y1, int x2, int y2, int color)
 		{

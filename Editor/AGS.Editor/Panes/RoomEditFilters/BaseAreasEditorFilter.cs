@@ -38,6 +38,7 @@ namespace AGS.Editor
 			Pens.Yellow, Pens.White};
 
         private GUIController.PropertyObjectChangedHandler _propertyObjectChangedDelegate;
+        private Room.RoomRegionCountChangedHandler _roomRegionCountChangedDelegate;
         protected Room _room;
         protected Panel _panel;
         protected int _selectedArea = 1;
@@ -89,6 +90,7 @@ namespace AGS.Editor
             _room = room;
             _panel = displayPanel;
             _propertyObjectChangedDelegate = new GUIController.PropertyObjectChangedHandler(GUIController_OnPropertyObjectChanged);
+            _roomRegionCountChangedDelegate = new Room.RoomRegionCountChangedHandler(Room_OnRegionCountChanged);
             UpdateUndoButtonEnabledState();
         }
 
@@ -96,6 +98,8 @@ namespace AGS.Editor
         {
             get;
         }
+
+        public abstract int ItemCount { get; }
 
 		public int SelectedArea
 		{
@@ -500,8 +504,13 @@ namespace AGS.Editor
             SetPropertyGridList();
             Factory.GUIController.ActivePane.ToolbarCommands = _toolbarIcons;
             CommandClick(SELECT_AREA_COMMAND);
+            if (_selectedArea >= ItemCount)
+            {
+                _selectedArea = 0;
+            }
             SelectedAreaChanged(_selectedArea);
             Factory.GUIController.OnPropertyObjectChanged += _propertyObjectChangedDelegate;
+            _room.RoomRegionCountChanged += _roomRegionCountChangedDelegate;
 
 			FilterActivated();
         }
@@ -519,6 +528,7 @@ namespace AGS.Editor
             {
                 Factory.GUIController.ActivePane.ToolbarCommands = null;
             }
+            _room.RoomRegionCountChanged -= _roomRegionCountChangedDelegate;
             Factory.ToolBarManager.RefreshCurrentPane();
         }
 
@@ -530,6 +540,7 @@ namespace AGS.Editor
         protected abstract void SetPropertyGridList();
         protected abstract void SelectedAreaChanged(int areaNumber);
         protected abstract void GUIController_OnPropertyObjectChanged(object newPropertyObject);
+        protected abstract void Room_OnRegionCountChanged(RoomAreaMaskType maskType);
     }
 
 }

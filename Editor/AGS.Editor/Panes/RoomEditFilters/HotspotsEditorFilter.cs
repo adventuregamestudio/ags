@@ -19,6 +19,11 @@ namespace AGS.Editor
             get { return RoomAreaMaskType.Hotspots; }
         }
 
+        public override int ItemCount
+        {
+            get { return _room.HotspotCount; }
+        }
+
         protected override void SelectedAreaChanged(int areaNumber)
         {
             Factory.GUIController.SetPropertyGridObject(_room.Hotspots[areaNumber]);
@@ -69,6 +74,14 @@ namespace AGS.Editor
             {
                 _selectedArea = 0;
                 _panel.Invalidate();
+            }
+        }
+
+        protected override void Room_OnRegionCountChanged(RoomAreaMaskType maskType)
+        {
+            if (maskType == RoomAreaMaskType.Hotspots)
+            {
+                SetPropertyGridList();
             }
         }
     }

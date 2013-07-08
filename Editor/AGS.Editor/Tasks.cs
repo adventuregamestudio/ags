@@ -302,13 +302,15 @@ namespace AGS.Editor
 //            sb.AppendLine("#define AGS_MAX_CHARACTERS " + Game.MAX_CHARACTERS);
             sb.AppendLine("#define AGS_MAX_INV_ITEMS " + Game.MAX_INV_ITEMS);
 //            sb.AppendLine("#define AGS_MAX_GUIS " + Game.MAX_GUIS);
-            sb.AppendLine("#define AGS_MAX_CONTROLS_PER_GUI " + GUI.LEGACY_MAX_CONTROLS_PER_GUI);
+//            sb.AppendLine("#define AGS_MAX_CONTROLS_PER_GUI " + GUI.MAX_CONTROLS_PER_GUI);
 //            sb.AppendLine("#define AGS_MAX_VIEWS " + Game.MAX_VIEWS);
 //            sb.AppendLine("#define AGS_MAX_LOOPS_PER_VIEW " + AGS.Types.View.MAX_LOOPS_PER_VIEW);
 //            sb.AppendLine("#define AGS_MAX_FRAMES_PER_LOOP " + ViewLoop.MAX_FRAMES_PER_LOOP);
 //            sb.AppendLine("#define AGS_MAX_OBJECTS " + Room.MAX_OBJECTS);
-            sb.AppendLine("#define AGS_MAX_HOTSPOTS " + Room.MAX_HOTSPOTS);
-            sb.AppendLine("#define AGS_MAX_REGIONS " + Room.MAX_REGIONS);
+            sb.AppendLine("#define AGS_MAX_HOTSPOTS " + Room.MAX_8BIT_MASK_REGIONS);
+            sb.AppendLine("#define AGS_MAX_REGIONS " + Room.MAX_8BIT_MASK_REGIONS);
+            sb.AppendLine("#define AGS_MAX_WALKABLE_AREAS " + Room.MAX_8BIT_MASK_REGIONS);
+            sb.AppendLine("#define AGS_MAX_WALK_BEHINDS " + Room.MAX_8BIT_MASK_REGIONS);
 
             AppendCursorsToHeader(sb, game.Cursors);
 
@@ -320,8 +322,8 @@ namespace AGS.Editor
 
             AppendAudioClipsToHeader(sb, game.RootAudioClipFolder);
 
-            sb.AppendLine("import Hotspot hotspot[" + Room.MAX_HOTSPOTS + "];");
-            sb.AppendLine("import Region region[" + Room.MAX_REGIONS + "];");
+            sb.AppendLine("import Hotspot hotspot[" + Room.MAX_8BIT_MASK_REGIONS + "];");
+            sb.AppendLine("import Region region[" + Room.MAX_8BIT_MASK_REGIONS + "];");
 
             AppendInventoryToHeader(sb, game.InventoryItems);
 

@@ -10,6 +10,7 @@ namespace AGS.Editor
     public interface IRoomEditorFilter : IDisposable
     {
         RoomAreaMaskType MaskToDraw { get; }
+        int ItemCount { get; }
 		int SelectedArea { get; }
 		string HelpKeyword { get; }
 		bool ShowTransparencySlider { get; }

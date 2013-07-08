@@ -13,10 +13,11 @@ namespace AGS.Types
         // them you need to update the Native DLL as well
         public const int LEGACY_MAX_BACKGROUNDS = 5;
         public const int LEGACY_MAX_OBJECTS = 40;
-        public const int MAX_HOTSPOTS = 50;
-        public const int MAX_WALKABLE_AREAS = 16;
-        public const int MAX_WALK_BEHINDS = 16;
-        public const int MAX_REGIONS = 16;
+        public const int LEGACY_MAX_HOTSPOTS = 50;
+        public const int LEGACY_MAX_WALKABLE_AREAS = 16;
+        public const int LEGACY_MAX_WALK_BEHINDS = 16;
+        public const int LEGACY_MAX_REGIONS = 16;
+        public const int MAX_8BIT_MASK_REGIONS = 256;
 
         public const string EVENT_SUFFIX_ROOM_LOAD = "Load";
 
@@ -24,6 +25,8 @@ namespace AGS.Types
 
         public delegate void RoomModifiedChangedHandler(bool isModified);
         public event RoomModifiedChangedHandler RoomModifiedChanged;
+        public delegate void RoomRegionCountChangedHandler(RoomAreaMaskType maskType);
+        public event RoomRegionCountChangedHandler RoomRegionCountChanged;
 
         private int _leftEdgeX;
         private int _rightEdgeX;
@@ -74,36 +77,6 @@ namespace AGS.Types
         public Room(int roomNumber) : base(roomNumber)
         {
             _script = new Script("room" + roomNumber + ".asc", "// Room script file", false);
-
-            for (int i = 0; i < MAX_HOTSPOTS; i++)
-            {
-                RoomHotspot hotspot = new RoomHotspot(this);
-                hotspot.ID = i;
-                if (i == 0) hotspot.Description = "No hotspot";
-                else hotspot.Description = "Hotspot " + i;
-                _hotspots.Add(hotspot);
-            }
-
-            for (int i = 0; i < MAX_WALKABLE_AREAS; i++)
-            {
-                RoomWalkableArea area = new RoomWalkableArea();
-                area.ID = i;
-                _walkableAreas.Add(area);
-            }
-
-            for (int i = 0; i < MAX_WALK_BEHINDS; i++)
-            {
-                RoomWalkBehind area = new RoomWalkBehind();
-                area.ID = i;
-                _walkBehinds.Add(area);
-            }
-
-            for (int i = 0; i < MAX_REGIONS; i++)
-            {
-                RoomRegion area = new RoomRegion();
-                area.ID = i;
-                _regions.Add(area);
-            }
         }
 
         [Browsable(false)]
@@ -232,6 +205,38 @@ namespace AGS.Types
             get { return _regions; }
         }
 
+        [Description("The number of hotspots in the room")]
+        [Category("Regions")]
+        public int HotspotCount
+        {
+            get { return _hotspots.Count; }
+            set { SetHotspotCount(value); }
+        }
+
+        [Description("The number of walkable areas in the room")]
+        [Category("Regions")]
+        public int WalkableAreaCount
+        {
+            get { return _walkableAreas.Count; }
+            set { SetWalkableAreaCount(value); }
+        }
+
+        [Description("The number of walk-behinds in the room")]
+        [Category("Regions")]
+        public int WalkBehindCount
+        {
+            get { return _walkBehinds.Count; }
+            set { SetWalkBehindCount(value); }
+        }
+
+        [Description("The number of regions in the room")]
+        [Category("Regions")]
+        public int RegionCount
+        {
+            get { return _regions.Count; }
+            set { SetRegionCount(value); }
+        }
+
         [Browsable(false)]
         public IList<OldInteractionVariable> OldInteractionVariables
         {
@@ -358,5 +363,107 @@ namespace AGS.Types
 		{
 			this.Modified = true;
 		}
+
+        void SetHotspotCount(int count)
+        {
+            if (count < 1 || count >= MAX_8BIT_MASK_REGIONS)
+            {
+                throw new ArgumentOutOfRangeException("Hotspot count must be 1-256");
+            }
+
+            while (count < _hotspots.Count)
+            {
+                _hotspots.RemoveAt(_hotspots.Count - 1);
+            }
+            while (count > _hotspots.Count)
+            {
+                RoomHotspot hotspot = new RoomHotspot(this);
+                hotspot.ID = _hotspots.Count;
+                if (hotspot.ID == 0) hotspot.Description = "No hotspot";
+                else hotspot.Description = "Hotspot " + hotspot.ID;
+                _hotspots.Add(hotspot);
+            }
+
+            Modified = true;
+            if (RoomRegionCountChanged != null)
+            {
+                RoomRegionCountChanged(RoomAreaMaskType.Hotspots);
+            }
+        }
+
+        void SetWalkableAreaCount(int count)
+        {
+            if (count < 1 || count >= MAX_8BIT_MASK_REGIONS)
+            {
+                throw new ArgumentOutOfRangeException("Walkable area count must be 1-256");
+            }
+
+            while (count < _walkableAreas.Count)
+            {
+                _walkableAreas.RemoveAt(_walkableAreas.Count - 1);
+            }
+            while (count > _walkableAreas.Count)
+            {
+                RoomWalkableArea area = new RoomWalkableArea();
+                area.ID = _walkableAreas.Count;
+                _walkableAreas.Add(area);
+            }
+
+            Modified = true;
+            if (RoomRegionCountChanged != null)
+            {
+                RoomRegionCountChanged(RoomAreaMaskType.WalkableAreas);
+            }
+        }
+
+        void SetWalkBehindCount(int count)
+        {
+            if (count < 1 || count >= MAX_8BIT_MASK_REGIONS)
+            {
+                throw new ArgumentOutOfRangeException("Walk-behind count must be 1-256");
+            }
+
+            while (count < _walkBehinds.Count)
+            {
+                _walkBehinds.RemoveAt(_walkBehinds.Count - 1);
+            }
+            while (count > _walkBehinds.Count)
+            {
+                RoomWalkBehind area = new RoomWalkBehind();
+                area.ID = _walkBehinds.Count;
+                _walkBehinds.Add(area);
+            }
+
+            Modified = true;
+            if (RoomRegionCountChanged != null)
+            {
+                RoomRegionCountChanged(RoomAreaMaskType.WalkBehinds);
+            }
+        }
+
+        void SetRegionCount(int count)
+        {
+            if (count < 1 || count >= MAX_8BIT_MASK_REGIONS)
+            {
+                throw new ArgumentOutOfRangeException("Region count must be 1-256");
+            }
+
+            while (count < _regions.Count)
+            {
+                _regions.RemoveAt(_regions.Count - 1);
+            }
+            while (count > _regions.Count)
+            {
+                RoomRegion area = new RoomRegion();
+                area.ID = _regions.Count;
+                _regions.Add(area);
+            }
+
+            Modified = true;
+            if (RoomRegionCountChanged != null)
+            {
+                RoomRegionCountChanged(RoomAreaMaskType.Regions);
+            }
+        }
 	}
 }

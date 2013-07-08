@@ -365,6 +365,11 @@ namespace AGS.Editor
             _native.RestoreFromUndoBuffer(room, mask);
         }
 
+        public void UpdateRegionCount(Room room, RoomAreaMaskType mask)
+        {
+            _native.UpdateRegionCount(room, mask);
+        }
+
         public void ImportAreaMask(Room room, RoomAreaMaskType mask, Bitmap bmp)
         {
             _native.ImportAreaMask(room, mask, bmp);

@@ -37,6 +37,7 @@ namespace AGS.Editor.Components
 		private NativeProxy _nativeProxy;
         private int _rightClickedRoomNumber;
         private Room.RoomModifiedChangedHandler _modifiedChangedHandler;
+        private Room.RoomRegionCountChangedHandler _regionCountChangedHandler;
 		private object _roomLoadingOrSavingLock = new object();
 
         public RoomsComponent(GUIController guiController, AGSEditor agsEditor)
@@ -62,6 +63,7 @@ namespace AGS.Editor.Components
             _agsEditor.ProcessAllGameTexts += new AGSEditor.ProcessAllGameTextsHandler(AGSEditor_ProcessAllGameTexts);
 			_agsEditor.PreDeleteSprite += new AGSEditor.PreDeleteSpriteHandler(AGSEditor_PreDeleteSprite);
             _modifiedChangedHandler = new Room.RoomModifiedChangedHandler(_loadedRoom_RoomModifiedChanged);
+            _regionCountChangedHandler = new Room.RoomRegionCountChangedHandler(_loadedRoom_RoomRegionCountChanged);
             RePopulateTreeView();
         }
 
@@ -738,6 +740,7 @@ namespace AGS.Editor.Components
 			if (_loadedRoom != null)
 			{
 				_loadedRoom.RoomModifiedChanged -= _modifiedChangedHandler;
+                _loadedRoom.RoomRegionCountChanged -= _regionCountChangedHandler;
 			}
 			_loadedRoom = null;
 		}
@@ -900,6 +903,7 @@ namespace AGS.Editor.Components
 					LoadNewRoomIntoMemory(newRoom, errors);
 
 					_loadedRoom.RoomModifiedChanged += _modifiedChangedHandler;
+                    _loadedRoom.RoomRegionCountChanged += _regionCountChangedHandler;
 
                     CreateRoomSettings(previousDockData);
 
@@ -967,6 +971,11 @@ namespace AGS.Editor.Components
             }
             _roomSettings.Name = "Room " + _loadedRoom.Number + (isModified ? " *" : "");
             _guiController.DocumentTitlesChanged();
+        }
+
+        private void _loadedRoom_RoomRegionCountChanged(RoomAreaMaskType maskType)
+        {
+            Factory.NativeProxy.UpdateRegionCount(_loadedRoom, maskType);
         }
 
         private UnloadedRoom FindRoomByID(int roomNumber)

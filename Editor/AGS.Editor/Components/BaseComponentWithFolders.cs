@@ -9,7 +9,7 @@ using System.Windows.Forms;
 
 namespace AGS.Editor.Components
 {
-    public abstract class BaseComponentWithFolders<ItemType,FolderType> : BaseComponent 
+    public abstract class BaseComponentWithFolders<ItemType,FolderType> : BaseComponent, IRePopulatableComponent
         where ItemType : IToXml
         where FolderType : BaseFolderCollection<ItemType,FolderType>
     {
@@ -438,13 +438,13 @@ namespace AGS.Editor.Components
             return null;
         }
 
-        protected void RePopulateTreeView(string selectedNodeID)
+        public void RePopulateTreeView(string selectedNodeID)
         {
             RePopulateTreeView();
             _guiController.ProjectTree.SelectNode(this, selectedNodeID);
         }
 
-        protected void RePopulateTreeView()
+        public void RePopulateTreeView()
         {            
             _items.Clear();
             _folders.Clear();
@@ -454,6 +454,5 @@ namespace AGS.Editor.Components
             AddExtraManualNodesToTree();
             PopulateTreeForFolder(this.GetRootFolder(), TOP_LEVEL_COMMAND_ID);
         }
-
     }
 }

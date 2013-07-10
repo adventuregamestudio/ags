@@ -60,11 +60,15 @@ namespace AGS.Editor.Components
         {
             if (controlID == COMMAND_NEW_GUI)
             {
-                AddNewGUI(new NormalGUI());
+                GUI newGUI = new NormalGUI();
+                AddNewGUI(newGUI);
+                _agsEditor.CurrentGame.NotifyClientsGUIAddedOrRemoved(newGUI);
             }
             else if (controlID == COMMAND_NEW_TEXTWINDOW)
             {
-                AddNewGUI(new TextWindowGUI());
+                GUI newGUI = new TextWindowGUI();
+                AddNewGUI(newGUI);
+                _agsEditor.CurrentGame.NotifyClientsGUIAddedOrRemoved(newGUI);
             }
             else if (controlID == COMMAND_IMPORT_GUI)
             {
@@ -73,9 +77,10 @@ namespace AGS.Editor.Components
                 {
                     try
                     {
-                        GUI newGui = ImportExport.ImportGUIFromFile(fileName, _agsEditor.CurrentGame);
-                        newGui.ID = _agsEditor.CurrentGame.RootGUIFolder.GetAllItemsCount();
-                        AddSingleItem(newGui);                        
+                        GUI newGUI = ImportExport.ImportGUIFromFile(fileName, _agsEditor.CurrentGame);
+                        newGUI.ID = _agsEditor.CurrentGame.RootGUIFolder.GetAllItemsCount();
+                        AddSingleItem(newGUI);
+                        _agsEditor.CurrentGame.NotifyClientsGUIAddedOrRemoved(newGUI);
                     }
                     catch (Exception ex)
                     {
@@ -107,6 +112,7 @@ namespace AGS.Editor.Components
             {
                 if (MessageBox.Show("Are you sure you want to delete this GUI? Doing so could break any scripts that refer to GUIs by number.", "Confirm delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
+                    _agsEditor.CurrentGame.NotifyClientsGUIAddedOrRemoved(_guiRightClicked);
                     DeleteSingleItem(_guiRightClicked);
                 }
             }

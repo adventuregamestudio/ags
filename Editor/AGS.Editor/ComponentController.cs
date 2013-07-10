@@ -24,7 +24,7 @@ namespace AGS.Editor
 			}
 		}
 
-		public ComponentController()
+		private ComponentController()
 		{
 			_components = new List<IEditorComponent>();
 		}
@@ -33,6 +33,14 @@ namespace AGS.Editor
 		{
 			_components.Add(component);
 		}
+
+        public IList<IEditorComponent> Components
+        {
+            get
+            {
+                return _components;
+            }
+        }
 
 		public void ShutdownComponents()
 		{

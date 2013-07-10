@@ -783,6 +783,7 @@ namespace AGS.Editor
 
 
                 RaiseOnControlsChanged();
+                Factory.AGSEditor.CurrentGame.NotifyClientsGUIControlAddedOrRemoved(_gui, newControl);
 
                 Factory.GUIController.SetPropertyGridObject(newControl);
 
@@ -797,6 +798,7 @@ namespace AGS.Editor
         {
             if (_selectedControl != null && !_selectedControl.Locked)
             {
+                Factory.AGSEditor.CurrentGame.NotifyClientsGUIControlAddedOrRemoved(_gui, _selectedControl);
                 _selected.Remove(_selectedControl);
                 _gui.DeleteControl(_selectedControl);
                 if (_selectedControl.MemberOf != null)
@@ -1014,6 +1016,7 @@ namespace AGS.Editor
             _selected.Add(newControl);
 
             RaiseOnControlsChanged();
+            Factory.AGSEditor.CurrentGame.NotifyClientsGUIControlAddedOrRemoved(_gui, newControl);
 
             Factory.GUIController.SetPropertyGridObject(newControl);
 

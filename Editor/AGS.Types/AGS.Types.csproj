@@ -140,6 +140,7 @@
     <Compile Include="GlobalVariable.cs" />
     <Compile Include="GlobalVariables.cs" />
     <Compile Include="GUIControlGroup.cs" />
+    <Compile Include="Interfaces\IRePopulatableComponent.cs" />
     <Compile Include="Interfaces\ILoadedRoom.cs" />
     <Compile Include="InteractionSchema.cs" />
     <Compile Include="Interfaces\IChangeNotification.cs" />
@@ -147,7 +148,6 @@
     <Compile Include="Interfaces\IEditorComponent.cs" />
     <Compile Include="Interfaces\IGame.cs" />
     <Compile Include="Interfaces\IGUIController.cs" />
-    <Compile Include="Interfaces\IRePopulatableComponent.cs" />
     <Compile Include="Interfaces\IPersistUserData.cs" />
     <Compile Include="Interfaces\IProjectTree.cs" />
     <Compile Include="Interfaces\IProjectTreeItem.cs" />

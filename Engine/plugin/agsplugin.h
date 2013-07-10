@@ -31,8 +31,6 @@
 #ifndef _AGS_PLUGIN_H
 #define _AGS_PLUGIN_H
 
-#include "util/file.h"
-
 // If the plugin isn't using DDraw, don't require the headers
 #ifndef DIRECTDRAW_VERSION
 typedef void *LPDIRECTDRAW2;
@@ -48,7 +46,7 @@ typedef void *LPDIRECTINPUTDEVICE;
 #endif
 
 // If the user isn't using Allegro or WinGDI, define the BITMAP into something
-#if !defined(ALLEGRO_H) && !defined(_WINGDI_)
+#if !defined(ALLEGRO_H) && !defined(_WINGDI_) && !defined(BITMAP_DEFINED)
 typedef char BITMAP;
 #endif
 

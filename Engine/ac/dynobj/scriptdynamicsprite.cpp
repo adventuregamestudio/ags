@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
 #include "ac/dynobj/scriptdynamicsprite.h"
 #include "ac/dynamicsprite.h"
 

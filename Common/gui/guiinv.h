@@ -28,7 +28,7 @@ struct GUIInv:public GUIObject
   int itemsPerLine, numLines;  // not persisted
 
   virtual void WriteToFile(Common::Stream *out);
-  virtual void ReadFromFile(Common::Stream *in, int version);
+  virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
 
   void CalculateNumCells();
 
@@ -38,7 +38,8 @@ struct GUIInv:public GUIObject
 
   int CharToDisplay();
 
-  void Draw();
+  // This function has distinct implementations in Engine and Editor
+  virtual void Draw(Common::Bitmap *ds);
 
   void MouseMove(int x, int y)
   {

@@ -40,6 +40,7 @@
 #include "debug/debugger.h"
 #include "debug/out.h"
 #include "font/agsfontrenderer.h"
+#include "font/fonts.h"
 #include "main/config.h"
 #include "main/game_start.h"
 #include "main/graphics_mode.h"
@@ -49,7 +50,6 @@
 #include "ac/spritecache.h"
 #include "util/filestream.h"
 #include "gfx/graphicsdriver.h"
-#include "gfx/bitmap.h"
 #include "core/assetmanager.h"
 #include "util/misc.h"
 #include "platform/util/pe.h"
@@ -739,9 +739,9 @@ void engine_init_pathfinder()
 
 void engine_pre_init_gfx()
 {
-    Out::FPrint("Initialize gfx");
+    //Out::FPrint("Initialize gfx");
 
-    platform->InitialiseAbufAtStartup();
+    //platform->InitialiseAbufAtStartup();
 }
 
 int engine_load_game_data()
@@ -902,14 +902,14 @@ void engine_init_modxm_player()
 void show_preload () {
     // ** Do the preload graphic if available
     color temppal[256];
-	Bitmap *splashsc = BitmapHelper::CreateRawObjectOwner( load_pcx("preload.pcx",temppal) );
+	Bitmap *splashsc = BitmapHelper::CreateRawBitmapOwner( load_pcx("preload.pcx",temppal) );
     if (splashsc != NULL) {
         if (splashsc->GetColorDepth() == 8)
-            wsetpalette(0,255,temppal);
+            set_palette_range(temppal, 0, 255, 0);
 		Bitmap *screen_bmp = BitmapHelper::GetScreenBitmap();
-        Bitmap *tsc = BitmapHelper::CreateBitmap(splashsc->GetWidth(),splashsc->GetHeight(),screen_bmp->GetColorDepth());
-        tsc->Blit(splashsc,0,0,0,0,tsc->GetWidth(),tsc->GetHeight());
-		screen_bmp->Clear();
+        Bitmap *tsc = BitmapHelper::CreateBitmapCopy(splashsc, screen_bmp->GetColorDepth());
+
+		screen_bmp->Fill(0);
         screen_bmp->StretchBlt(tsc, RectWH(0, 0, scrnwid,scrnhit), Common::kBitmap_Transparency);
 
         gfxDriver->ClearDrawList();
@@ -963,7 +963,7 @@ void engine_setup_screen()
     virtual_screen->Clear();
     gfxDriver->SetMemoryBackBuffer(virtual_screen);
     //  ignore_mouseoff_bitmap = virtual_screen;
-	abuf=BitmapHelper::GetScreenBitmap();
+    SetVirtualScreen(BitmapHelper::GetScreenBitmap());
     our_eip=-7;
 
     for (int ee = 0; ee < MAX_INIT_SPR + game.numcharacters; ee++)
@@ -1233,7 +1233,7 @@ void engine_init_game_shit()
     our_eip=-4;
     mousey=100;  // stop icon bar popping up
     init_invalid_regions(final_scrn_hit);
-    wsetscreen(virtual_screen);
+    SetVirtualScreen(virtual_screen);
     our_eip = -41;
 
     gfxDriver->SetRenderOffset(get_screen_x_adjustment(virtual_screen), get_screen_y_adjustment(virtual_screen));
@@ -1274,9 +1274,7 @@ void engine_prepare_to_start_game()
 }
 
 // TODO: move to test unit
-#include "gfx/allegrobitmap.h"
-using AGS::Common::AllegroBitmap;
-AllegroBitmap *test_allegro_bitmap;
+Bitmap *test_allegro_bitmap;
 IDriverDependantBitmap *test_allegro_ddb;
 void allegro_bitmap_test_init()
 {
@@ -1374,7 +1372,7 @@ int initialize_engine(int argc,char*argv[])
 
     engine_init_pathfinder();
 
-    engine_pre_init_gfx();
+    //engine_pre_init_gfx();
 
     LOCK_VARIABLE(timerloop);
     LOCK_FUNCTION(dj_timer_handler);
@@ -1497,7 +1495,7 @@ int initialize_engine_with_exception_handling(int argc,char*argv[])
         sprintf (printfworkingspace, "An exception 0x%X occurred in ACWIN.EXE at EIP = 0x%08X %s; program pointer is %+d, ACI version %s, gtags (%d,%d)\n\n"
             "AGS cannot continue, this exception was fatal. Please note down the numbers above, remember what you were doing at the time and post the details on the AGS Technical Forum.\n\n%s\n\n"
             "Most versions of Windows allow you to press Ctrl+C now to copy this entire message to the clipboard for easy reporting.\n\n%s (code %d)",
-            EngineVersion.LongString.GetCStr(), excinfo.ExceptionCode, excinfo.ExceptionAddress, tempmsg, our_eip, eip_guinum, eip_guiobj, get_cur_script(5),
+            excinfo.ExceptionCode, excinfo.ExceptionAddress, tempmsg, our_eip, EngineVersion.LongString.GetCStr(), eip_guinum, eip_guiobj, get_cur_script(5),
             (miniDumpResultCode == 0) ? "An error file CrashInfo.dmp has been created. You may be asked to upload this file when reporting this problem on the AGS Forums." : 
             "Unable to create an error dump file.", miniDumpResultCode);
         MessageBoxA(allegro_wnd, printfworkingspace, "Illegal exception", MB_ICONSTOP | MB_OK);

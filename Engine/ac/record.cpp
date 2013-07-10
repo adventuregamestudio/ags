@@ -13,7 +13,6 @@
 //=============================================================================
 
 #define IS_RECORD_UNIT
-#include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "media/audio/audiodefines.h"
 #include "ac/game.h"
@@ -25,6 +24,7 @@
 #include "ac/mouse.h"
 #include "ac/record.h"
 #include "main/main.h"
+#include "media/audio/soundclip.h"
 #include "util/string_utils.h"
 #include "gfx/gfxfilter.h"
 #include "device/mousew32.h"

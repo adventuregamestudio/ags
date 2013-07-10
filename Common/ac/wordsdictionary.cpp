@@ -18,7 +18,6 @@
 #include "ac/wordsdictionary.h"
 #include "ac/common.h"
 #include "ac/common_defines.h"
-#include "util/file.h"
 #include "util/string_utils.h"
 #include "util/stream.h"
 

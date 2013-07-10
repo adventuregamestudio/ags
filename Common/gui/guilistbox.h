@@ -32,13 +32,13 @@ struct GUIListBox:public GUIObject
   int selectedbgcol;
   int alignment, reserved1;
   virtual void WriteToFile(Common::Stream *out);
-  virtual void ReadFromFile(Common::Stream *in, int version);
+  virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
   int  AddItem(const char *toadd);
   int  InsertItem(int index, const char *toadd);
   void SetItemText(int index, const char *newtext);
   void RemoveItem(int index);
   void Clear();
-  void Draw();
+  virtual void Draw(Common::Bitmap *ds);
   int  IsInRightMargin(int x);
   int  GetIndexFromCoordinates(int x, int y);
   void ChangeFont(int newFont);
@@ -102,6 +102,7 @@ private:
 
   void Draw_items_fix();
   void Draw_items_unfix();
+  void Draw_set_oritext(char *oritext, const char *text);
 };
 
 extern DynamicArray<GUIListBox> guilist;

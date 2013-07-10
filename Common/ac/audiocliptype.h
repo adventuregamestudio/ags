@@ -15,8 +15,6 @@
 #ifndef __AC_AUDIOCLIPTYPE_H
 #define __AC_AUDIOCLIPTYPE_H
 
-#include "util/file.h"
-
 // Forward declaration
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later

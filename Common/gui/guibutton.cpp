@@ -13,12 +13,13 @@
 //=============================================================================
 
 #include <stdio.h>
-#include "util/wgt2allg.h"
+#include "font/fonts.h"
 #include "gui/guibutton.h"
 #include "gui/guimain.h"
 #include "ac/spritecache.h"
 #include "util/stream.h"
 #include "gfx/bitmap.h"
+#include "util/wgt2allg.h"
 
 using AGS::Common::Stream;
 using AGS::Common::Bitmap;
@@ -38,9 +39,9 @@ void GUIButton::WriteToFile(Stream *out)
   out->WriteInt32(reserved1);
 }
 
-void GUIButton::ReadFromFile(Stream *in, int version)
+void GUIButton::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
-  GUIObject::ReadFromFile(in, version);
+  GUIObject::ReadFromFile(in, gui_version);
   // MACPORT FIXES: swap
   in->ReadArrayOfInt32(&pic, 12);
   in->Read(&text[0], 50);
@@ -48,7 +49,7 @@ void GUIButton::ReadFromFile(Stream *in, int version)
     textcol = 16;
   usepic = pic;
 
-  if (version >= 111) {
+  if (gui_version >= kGuiVersion_272a) {
     textAlignment = in->ReadInt32();
     reserved1 = in->ReadInt32();
   }
@@ -56,9 +57,12 @@ void GUIButton::ReadFromFile(Stream *in, int version)
     textAlignment = GBUT_ALIGN_TOPMIDDLE;
     reserved1 = 0;
   }
+
+  // All buttons are translated at the moment
+  flags |= GUIF_TRANSLATED;
 }
 
-void GUIButton::Draw()
+void GUIButton::Draw(Common::Bitmap *ds)
 {
   int drawDisabled = IsDisabled();
 
@@ -82,10 +86,10 @@ void GUIButton::Draw()
   if ((usepic > 0) && (pic > 0)) {
 
     if (flags & GUIF_CLIP)
-      abuf->SetClip(Rect(x, y, x + wid - 1, y + hit - 1));
+      ds->SetClip(Rect(x, y, x + wid - 1, y + hit - 1));
 
     if (spriteset[usepic] != NULL)
-      draw_sprite_compensate(usepic, x, y, 1);
+      draw_sprite_compensate(ds, usepic, x, y, 1);
 
     if (gui_inv_pic >= 0) {
       int drawInv = 0;
@@ -107,54 +111,54 @@ void GUIButton::Draw()
       }
 
       if (drawInv == 1)
-        abuf->StretchBlt(spriteset[gui_inv_pic], RectWH(x + 3, y + 3, wid - 6, hit - 6), Common::kBitmap_Transparency);
+        ds->StretchBlt(spriteset[gui_inv_pic], RectWH(x + 3, y + 3, wid - 6, hit - 6), Common::kBitmap_Transparency);
       else if (drawInv == 2)
-        draw_sprite_compensate(gui_inv_pic,
+        draw_sprite_compensate(ds, gui_inv_pic,
                                x + wid / 2 - get_adjusted_spritewidth(gui_inv_pic) / 2,
                                y + hit / 2 - get_adjusted_spriteheight(gui_inv_pic) / 2, 1);
     }
 
     if ((drawDisabled) && (gui_disabled_style == GUIDIS_GREYOUT)) {
-      int col8 = get_col8_lookup(8);
+      color_t draw_color = ds->GetCompatibleColor(8);
       int jj, kk;             // darken the button when disabled
       for (jj = 0; jj < spriteset[usepic]->GetWidth(); jj++) {
         for (kk = jj % 2; kk < spriteset[usepic]->GetHeight(); kk += 2)
-          abuf->PutPixel(x + jj, y + kk, col8);
+          ds->PutPixel(x + jj, y + kk, draw_color);
       }
     }
 
-    abuf->SetClip(Rect(0, 0, abuf->GetWidth() - 1, abuf->GetHeight() - 1));
+    ds->SetClip(Rect(0, 0, ds->GetWidth() - 1, ds->GetHeight() - 1));
   } 
   else if (text[0] != 0) {
     // it's a text button
 
-    wsetcolor(7);
-    abuf->FillRect(Rect(x, y, x + wid - 1, y + hit - 1), currentcolor);
+    color_t draw_color = ds->GetCompatibleColor(7);
+    ds->FillRect(Rect(x, y, x + wid - 1, y + hit - 1), draw_color);
     if (flags & GUIF_DEFAULT) {
-      wsetcolor(16);
-      abuf->DrawRect(Rect(x - 1, y - 1, x + wid, y + hit), currentcolor);
+      draw_color = ds->GetCompatibleColor(16);
+      ds->DrawRect(Rect(x - 1, y - 1, x + wid, y + hit), draw_color);
     }
 
     if ((isover) && (ispushed))
-      wsetcolor(15);
+      draw_color = ds->GetCompatibleColor(15);
     else
-      wsetcolor(8);
+      draw_color = ds->GetCompatibleColor(8);
 
     if (drawDisabled)
-      wsetcolor(8);
+      draw_color = ds->GetCompatibleColor(8);
 
-    abuf->DrawLine(Line(x, y + hit - 1, x + wid - 1, y + hit - 1), currentcolor);
-    abuf->DrawLine(Line(x + wid - 1, y, x + wid - 1, y + hit - 1), currentcolor);
+    ds->DrawLine(Line(x, y + hit - 1, x + wid - 1, y + hit - 1), draw_color);
+    ds->DrawLine(Line(x + wid - 1, y, x + wid - 1, y + hit - 1), draw_color);
     if ((isover) && (ispushed))
-      wsetcolor(8);
+      draw_color = ds->GetCompatibleColor(8);
     else
-      wsetcolor(15);
+      draw_color = ds->GetCompatibleColor(15);
 
     if (drawDisabled)
-      wsetcolor(8);
+      draw_color = ds->GetCompatibleColor(8);
 
-    abuf->DrawLine(Line(x, y, x + wid - 1, y), currentcolor);
-    abuf->DrawLine(Line(x, y, x, y + hit - 1), currentcolor);
+    ds->DrawLine(Line(x, y, x + wid - 1, y), draw_color);
+    ds->DrawLine(Line(x, y, x, y + hit - 1), draw_color);
   }                           // end if text
 
   // Don't print text of (INV) (INVSHR) (INVNS)
@@ -213,11 +217,11 @@ void GUIButton::Draw()
       break;
     }
 
-    wtextcolor(textcol);
+    color_t text_color = ds->GetCompatibleColor(textcol);
     if (drawDisabled)
-      wtextcolor(8);
+      text_color = ds->GetCompatibleColor(8);
 
-    WOUTTEXT_REVERSE(usex, usey, font, oritext);
+    wouttext_outline(ds, usex, usey, font, text_color, oritext);
   }
   
 }

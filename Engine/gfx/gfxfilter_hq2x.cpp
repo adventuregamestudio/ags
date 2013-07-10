@@ -12,11 +12,10 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
+#include "gfx/bitmap.h"
 #include "gfx/gfxfilter_hq2x.h"
 #include "gfx/hq2x3x.h"
 #include "gfx/gfxfilterdefines.h"
-#include "gfx/bitmap.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;

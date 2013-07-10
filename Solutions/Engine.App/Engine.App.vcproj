@@ -541,6 +541,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\speech.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\sprite.cpp"
 					>
 				</File>
@@ -718,6 +722,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\gfx\color_engine.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\gfx_util.cpp"
 					>
 				</File>
 				<File
@@ -1058,6 +1066,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\test\test_string.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\test\test_version.cpp"
 					>
 				</File>
 			</Filter>
@@ -1644,6 +1656,10 @@
 				</File>
 				<File
 					RelativePath="..\..\Engine\gfx\ddb.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\gfx\gfx_util.h"
 					>
 				</File>
 				<File

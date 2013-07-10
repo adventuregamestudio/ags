@@ -15,8 +15,9 @@
 #ifndef __AC_GUIOBJECT_H
 #define __AC_GUIOBJECT_H
 
+#include "core/types.h"
+#include "gfx/bitmap.h"
 #include "gui/guidefines.h"
-#include "util/file.h"
 
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
@@ -26,14 +27,17 @@ using namespace AGS; // FIXME later
 #define GUIDIS_UNCHANGED 4
 #define GUIDIS_GUIOFF  0x80
 
-#define GUIF_DEFAULT  1
-#define GUIF_CANCEL   2
-#define GUIF_DISABLED 4
-#define GUIF_TABSTOP  8
-#define GUIF_INVISIBLE 0x10
-#define GUIF_CLIP     0x20
-#define GUIF_NOCLICKS 0x40
-#define GUIF_DELETED  0x8000
+// GUI Control flags (32-bit)
+#define GUIF_DEFAULT    0x0001
+#define GUIF_CANCEL     0x0002 // obsolete?
+#define GUIF_DISABLED   0x0004
+#define GUIF_TABSTOP    0x0008 // obsolete?
+#define GUIF_INVISIBLE  0x0010
+#define GUIF_CLIP       0x0020
+#define GUIF_NOCLICKS   0x0040
+#define GUIF_TRANSLATED 0x0080 // 3.3.0.1132
+#define GUIF_DELETED    0x8000
+
 #define BASEGOBJ_SIZE 7
 #define GALIGN_LEFT   0
 #define GALIGN_RIGHT  1
@@ -60,7 +64,7 @@ struct GUIObject
   }
   virtual void MouseUp() = 0;   // button up
   virtual void KeyPress(int) = 0;
-  virtual void Draw() = 0;
+  virtual void Draw(Common::Bitmap *ds) = 0;
   // overridable routine to determine whether the mouse is over
   // the control
   virtual int  IsOverControl(int p_x, int p_y, int p_extra) {
@@ -69,7 +73,7 @@ struct GUIObject
     return 0;
   }
   virtual void WriteToFile(Common::Stream *out);
-  virtual void ReadFromFile(Common::Stream *in, int version);
+  virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
   // called when the control is resized
   virtual void Resized() { }
   virtual int  GetNumEvents() {
@@ -113,6 +117,11 @@ struct GUIObject
     flags &= ~GUIF_NOCLICKS;
     if (!newValue)
       flags |= GUIF_NOCLICKS;
+  }
+
+  inline bool IsTranslated() const
+  {
+     return (flags & GUIF_TRANSLATED) != 0;
   }
 
 protected:

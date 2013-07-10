@@ -12,11 +12,10 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
 #include "ac/gamestate.h"
 #include "ac/gamesetupstruct.h"
-#include "util/string_utils.h"
 #include "util/alignedstream.h"
+#include "util/string_utils.h"
 
 using AGS::Common::AlignedStream;
 using AGS::Common::Stream;
@@ -110,7 +109,10 @@ void GameState::ReadFromFile_v321(Stream *in)
     keep_screen_during_instant_transition = in->ReadInt32();
     read_dialog_option_colour = in->ReadInt32();
     stop_dialog_at_end = in->ReadInt32();
-    in->ReadArrayOfInt32(reserved, 10);
+    speech_portrait_placement = in->ReadInt32();
+    speech_portrait_x = in->ReadInt32();
+    speech_portrait_y = in->ReadInt32();
+    in->ReadArrayOfInt32(reserved, GAME_STATE_RESERVED_INTS);
     // ** up to here is referenced in the script "game." object
     recording = in->ReadInt32();   // user is recording their moves
     playback = in->ReadInt32();    // playing back recording
@@ -200,8 +202,8 @@ void GameState::ReadFromFile_v321(Stream *in)
     gamma_adjustment = in->ReadInt32();
     temporarily_turned_off_character = in->ReadInt16();
     inv_backwards_compatibility = in->ReadInt16();
-    gui_draw_order = (int*)in->ReadInt32();
-    do_once_tokens = (char**)in->ReadInt32();
+    in->ReadInt32(); // gui_draw_order
+    in->ReadInt32(); // do_once_tokens;
     num_do_once_tokens = in->ReadInt32();
     text_min_display_time_ms = in->ReadInt32();
     ignore_user_input_after_text_timeout_ms = in->ReadInt32();
@@ -286,7 +288,10 @@ void GameState::WriteToFile_v321(Stream *out)
     out->WriteInt32(keep_screen_during_instant_transition);
     out->WriteInt32(read_dialog_option_colour);
     out->WriteInt32(stop_dialog_at_end);
-    out->WriteArrayOfInt32(reserved, 10);
+    out->WriteInt32(speech_portrait_placement);
+    out->WriteInt32(speech_portrait_x);
+    out->WriteInt32(speech_portrait_y);
+    out->WriteArrayOfInt32(reserved, GAME_STATE_RESERVED_INTS);
     // ** up to here is referenced in the script "game." object
     out->WriteInt32( recording);   // user is recording their moves
     out->WriteInt32( playback);    // playing back recording
@@ -376,8 +381,8 @@ void GameState::WriteToFile_v321(Stream *out)
     out->WriteInt32( gamma_adjustment);
     out->WriteInt16(temporarily_turned_off_character);
     out->WriteInt16(inv_backwards_compatibility);
-    out->WriteInt32((int32)gui_draw_order);
-    out->WriteInt32((int32)do_once_tokens);
+    out->WriteInt32(0); // gui_draw_order
+    out->WriteInt32(0); // do_once_tokens
     out->WriteInt32( num_do_once_tokens);
     out->WriteInt32( text_min_display_time_ms);
     out->WriteInt32( ignore_user_input_after_text_timeout_ms);

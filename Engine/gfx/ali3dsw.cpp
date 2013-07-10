@@ -21,6 +21,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
+#include "gfx/gfx_util.h"
 #include "gfx/graphicsdriver.h"
 
 #include <stdio.h>
@@ -214,7 +215,6 @@ private:
   DDCAPS ddrawCaps;
 #endif
 
-  void draw_sprite_with_transparency(Bitmap *piccy, int xxx, int yyy, int transparency);
   void highcolor_fade_out(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
   void highcolor_fade_in(Bitmap *bmp_orig, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
   void __fade_from_range(PALLETE source, PALLETE dest, int speed, int from, int to) ;
@@ -343,7 +343,7 @@ bool ALSoftwareGraphicsDriver::Init(int width, int height, int colourDepth, bool
     // set_gfx_mode is an allegro function that creates screen bitmap;
     // following code assumes the screen is already created, therefore we should
     // ensure global bitmap wraps over existing allegro screen bitmap.
-    _allegroScreenWrapper = BitmapHelper::CreateRawObjectWrapper(screen);
+    _allegroScreenWrapper = BitmapHelper::CreateRawBitmapWrapper(screen);
     BitmapHelper::SetScreenBitmap( _allegroScreenWrapper );
 
     BitmapHelper::GetScreenBitmap()->Clear();
@@ -495,51 +495,6 @@ void ALSoftwareGraphicsDriver::ClearDrawList()
   numToDraw = 0;
 }
 
-void ALSoftwareGraphicsDriver::draw_sprite_with_transparency(Bitmap *piccy, int xxx, int yyy, int transparency)
-{
-  int screen_depth = virtualScreen->GetColorDepth();
-  int sprite_depth = piccy->GetColorDepth();
-
-  if (sprite_depth < screen_depth) {
-
-    if ((sprite_depth == 8) && (screen_depth >= 24)) {
-      // 256-col sprite -> truecolor background
-      // this is automatically supported by allegro, no twiddling needed
-      virtualScreen->Blit(piccy, xxx, yyy, Common::kBitmap_Transparency);
-      return;
-    }
-    // 256-col spirte -> hi-color background, or
-    // 16-bit sprite -> 32-bit background
-    Bitmap* hctemp=BitmapHelper::CreateBitmap(piccy->GetWidth(), piccy->GetHeight(), screen_depth);
-    hctemp->Blit(piccy,0,0,0,0,hctemp->GetWidth(),hctemp->GetHeight());
-    int bb,cc,mask_col = virtualScreen->GetMaskColor();
-
-    if (sprite_depth == 8) {
-      // only do this for 256-col, cos the Blit call converts
-      // transparency for 16->32 bit
-      for (bb=0;bb<hctemp->GetWidth();bb++) {
-        for (cc=0;cc<hctemp->GetHeight();cc++)
-          if (piccy->GetPixel(bb,cc)==0) hctemp->PutPixel(bb,cc,mask_col);
-      }
-    }
-
-    virtualScreen->Blit(hctemp, xxx, yyy, Common::kBitmap_Transparency);
-    delete hctemp;
-  }
-  else
-  {
-    if ((transparency != 0) && (screen_depth > 8) &&
-        (sprite_depth > 8) && (virtualScreen->GetColorDepth() > 8)) 
-    {
-      set_trans_blender(0,0,0, transparency);
-	  virtualScreen->TransBlendBlt(piccy, xxx, yyy);
-    }
-    else
-      virtualScreen->Blit(piccy, xxx, yyy, Common::kBitmap_Transparency);
-  }
-  
-}
-
 void ALSoftwareGraphicsDriver::SetRenderOffset(int x, int y)
 {
   _global_x_offset = x;
@@ -585,7 +540,7 @@ void ALSoftwareGraphicsDriver::RenderToBackBuffer()
     }
     else
     {
-      draw_sprite_with_transparency(bitmap->_bmp, drawAtX, drawAtY, bitmap->_transparency);
+      GfxUtil::DrawSpriteWithTransparency(virtualScreen, bitmap->_bmp, drawAtX, drawAtY, bitmap->_transparency);
     }
   }
 
@@ -656,7 +611,7 @@ void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *currentVirtScreen, int 
    if ((_global_y_offset != 0) || (_global_x_offset != 0))
    {
      bmp_orig = BitmapHelper::CreateBitmap(_screenWidth, _screenHeight);
-     bmp_orig->Clear();
+     bmp_orig->Fill(0);
      bmp_orig->Blit(currentVirtScreen, 0, 0, _global_x_offset, _global_y_offset, currentVirtScreen->GetWidth(), currentVirtScreen->GetHeight());
    }
 
@@ -670,7 +625,7 @@ void ALSoftwareGraphicsDriver::highcolor_fade_in(Bitmap *currentVirtScreen, int 
    for (a = 0; a < 256; a+=speed)
    {
        int timerValue = *_loopTimer;
-       bmp_buff->Clear(clearColor);
+       bmp_buff->Fill(clearColor);
        set_trans_blender(0,0,0,a);
        bmp_buff->TransBlendBlt(bmp_orig, 0, 0);
        this->Vsync();
@@ -709,7 +664,7 @@ void ALSoftwareGraphicsDriver::highcolor_fade_out(int speed, int targetColourRed
             for (a = 255-speed; a > 0; a-=speed)
             {
                 int timerValue = *_loopTimer;
-                bmp_buff->Clear(clearColor);
+                bmp_buff->Fill(clearColor);
                 set_trans_blender(0,0,0,a);
                 bmp_buff->TransBlendBlt(bmp_orig, 0, 0);
                 this->Vsync();

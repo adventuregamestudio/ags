@@ -17,21 +17,18 @@
 #include "core/assetmanager.h"
 #include "debug/assert.h"
 #include "util/stream.h"
-#include "util/file.h"
+#include "util/bbop.h"
 
 #if defined (WINDOWS_VERSION)
 #include <io.h>
 #else
-//#include "djcompat.h"
-#include "allegro.h"
+#include <allegro.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #endif
 
 #include "util/misc.h"
-
-
 #include "util/string_utils.h"
 
 namespace AGS
@@ -50,6 +47,8 @@ struct AssetInfo
     int32_t     LibUid;     // uid of library, containing this asset
     int         Offset;     // asset's position in library file (in bytes)
     int         Size;       // asset's size (in bytes)
+
+    AssetInfo();
 };
 
 // Information on multifile asset library
@@ -64,6 +63,7 @@ struct AssetLibInfo
     int         AssetCount; // total number of assets in library
     AssetInfo   AssetInfos[MAX_FILES]; // information on contained assets
 
+    AssetLibInfo();
     void AssignFromMFL(const MultiFileLib &mflib);
     void Unload();
 };
@@ -78,7 +78,22 @@ struct MultiFileLib
   int offset[MAX_FILES];                // file offsets
   int length[MAX_FILES];                // file lengths
   char file_datafile[MAX_FILES];        // index of datafile for each file in split clib
+
+  MultiFileLib();
 };
+
+AssetInfo::AssetInfo()
+    : LibUid(0)
+    , Offset(0)
+    , Size(0)
+{
+}
+
+AssetLibInfo::AssetLibInfo()
+    : AssetCount(0)
+    , PartCount(0)
+{
+}
 
 void AssetLibInfo::AssignFromMFL(const MultiFileLib &mflib)
 {
@@ -103,6 +118,12 @@ void AssetLibInfo::Unload()
     BasePath        = "";
     PartCount       = 0;
     AssetCount      = 0;
+}
+
+MultiFileLib::MultiFileLib()
+    : num_data_files(0)
+    , num_files(0)
+{
 }
 
 AssetManager *AssetManager::_theAssetManager = NULL;

@@ -27,15 +27,12 @@
 #include "plugin/agsplugin.h"
 
 using AGS::Common::Stream;
-using AGS::Common::String;
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 #if defined (AGS_HAS_CD_AUDIO)
 #include "libcda.h"
 #endif
-
-extern Bitmap *abuf; // in wgt2allg
 
 AGSPlatformDriver* AGSPlatformDriver::instance = NULL;
 AGSPlatformDriver *platform = NULL;
@@ -125,7 +122,8 @@ int AGSPlatformDriver::RunPluginDebugHooks(const char *scriptfile, int linenum) 
 void AGSPlatformDriver::InitialiseAbufAtStartup()
 {
     // because loading the game file accesses abuf, it must exist
-    abuf = BitmapHelper::CreateBitmap(10,10,8);
+    // No no no, David Blain, no magic here :P
+    //abuf = BitmapHelper::CreateBitmap(10,10,8);
 }
 
 void AGSPlatformDriver::FinishedUsingGraphicsMode()

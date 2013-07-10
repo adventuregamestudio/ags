@@ -166,8 +166,9 @@ namespace AGS.Editor
             this.lblUpgradingInfo.Name = "lblUpgradingInfo";
             this.lblUpgradingInfo.Size = new System.Drawing.Size(292, 28);
             this.lblUpgradingInfo.TabIndex = 2;
-            this.lblUpgradingInfo.Text = "As usual, this latest version of AGS brings you more goodies than you can shake a" +
-                " stick at!";
+            // TODO: replace this line with something more generic for the next version; this one is for 3.3 only
+            this.lblUpgradingInfo.Text = "This is the first version of AGS ever released as the collaborative work of" +
+                " community members and fellow contributors.";
             // 
             // lnkUpgrading
             // 
@@ -192,7 +193,7 @@ namespace AGS.Editor
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(154, 14);
             this.label5.TabIndex = 0;
-            this.label5.Text = "What\'s new in AGS 3.2?";
+            this.label5.Text = "What\'s new in AGS 3.3?";
             // 
             // pnlTipOfTheDay
             // 

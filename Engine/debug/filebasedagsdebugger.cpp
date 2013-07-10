@@ -12,11 +12,11 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"                           // exists()
 #include "debug/filebasedagsdebugger.h"
-#include "ac/file.h"                     // filelength()
+#include "ac/file.h"                    // filelength()
 #include "util/filestream.h"
 #include "util/textstreamwriter.h"
+#include "util/wgt2allg.h"              // exists()
 
 using AGS::Common::Stream;
 using AGS::Common::TextStreamWriter;

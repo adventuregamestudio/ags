@@ -15,10 +15,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "util/wgt2allg.h"
+#include "font/fonts.h"
 #include "gui/guilabel.h"
 #include "gui/guimain.h"
 #include "util/stream.h"
+#include "util/wgt2allg.h"
 
 using AGS::Common::Stream;
 
@@ -35,14 +36,14 @@ void GUILabel::WriteToFile(Stream *out)
   out->WriteArrayOfInt32(&font, 3);
 }
 
-void GUILabel::ReadFromFile(Stream *in, int version)
+void GUILabel::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
-  GUIObject::ReadFromFile(in, version);
+  GUIObject::ReadFromFile(in, gui_version);
 
   if (textBufferLen > 0)
     free(text);
 
-  if (version < 113) {
+  if (gui_version < kGuiVersion_272c) {
     textBufferLen = 200;
   }
   else {
@@ -55,6 +56,9 @@ void GUILabel::ReadFromFile(Stream *in, int version)
   in->ReadArrayOfInt32(&font, 3);
   if (textcol == 0)
     textcol = 16;
+
+  // All labels are translated at the moment
+  flags |= GUIF_TRANSLATED;
 }
 
 void GUILabel::SetText(const char *newText) {
@@ -81,7 +85,7 @@ const char *GUILabel::GetText() {
   return text;
 }
 
-void GUILabel::printtext_align(int yy, char *teptr)
+void GUILabel::printtext_align(Common::Bitmap *ds, int yy, color_t text_color, char *teptr)
 {
   int outxp = x;
   if (align == GALIGN_CENTRE)
@@ -89,10 +93,10 @@ void GUILabel::printtext_align(int yy, char *teptr)
   else if (align == GALIGN_RIGHT)
     outxp += wid - wgettextwidth(teptr, font);
 
-  wouttext_outline(outxp, yy, font, teptr);
+  wouttext_outline(ds, outxp, yy, font, text_color, teptr);
 }
 
-void GUILabel::Draw()
+void GUILabel::Draw(Common::Bitmap *ds)
 {
   int cyp = y, TEXT_HT;
   char oritext[MAX_GUILABEL_TEXT_LEN], *teptr;
@@ -104,12 +108,12 @@ void GUILabel::Draw()
   teptr = &oritext[0];
   TEXT_HT = wgettextheight("ZhypjIHQFb", font) + 1;
 
-  wtextcolor(textcol);
+  color_t text_color = ds->GetCompatibleColor(textcol);
 
   Draw_split_lines(teptr, wid, font, numlines);
 
   for (int aa = 0; aa < numlines; aa++) {
-    printtext_align(cyp, lines[aa]);
+    printtext_align(ds, cyp, text_color, lines[aa]);
     cyp += TEXT_HT;
     if (cyp > y + hit)
       break;

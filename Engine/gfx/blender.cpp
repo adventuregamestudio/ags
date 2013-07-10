@@ -29,6 +29,8 @@ extern "C" {
 #define geta32(xx) ((xx >> _rgb_a_shift_32) & 0xFF)
 #define makeacol32(r,g,b,a) ((r << _rgb_r_shift_32) | (g << _rgb_g_shift_32) | (b << _rgb_b_shift_32) | (a << _rgb_a_shift_32))
 
+BLENDER_FUNC pfn_additive_alpha_blender = NULL;
+
 // Take hue and saturation of blend colour, luminance of image
 unsigned long _myblender_color15_light(unsigned long x, unsigned long y, unsigned long n)
 {
@@ -132,8 +134,6 @@ unsigned long _myblender_color32(unsigned long x, unsigned long y, unsigned long
     return makeacol32(r, g, b, geta32(y));
 }
 
-
-
 // trans24 blender, but preserve alpha channel from image
 unsigned long _myblender_alpha_trans24(unsigned long x, unsigned long y, unsigned long n)
 {
@@ -162,10 +162,9 @@ void set_my_trans_blender(int r, int g, int b, int a) {
     set_blender_mode(_blender_trans15, _blender_trans16, _myblender_alpha_trans24, r, g, b, a);
 }
 
-
-
-// add the alpha values together, used for compositing alpha images
-unsigned long _additive_alpha_blender(unsigned long x, unsigned long y, unsigned long n)
+// plain copy source to destination
+// assign new alpha value as a summ of alphas.
+unsigned long _additive_alpha_copysrc_blender(unsigned long x, unsigned long y, unsigned long n)
 {
     unsigned long newAlpha = ((x & 0xff000000) >> 24) + ((y & 0xff000000) >> 24);
 
@@ -174,9 +173,32 @@ unsigned long _additive_alpha_blender(unsigned long x, unsigned long y, unsigned
     return (newAlpha << 24) | (x & 0x00ffffff);
 }
 
+// blend source to destination with respect to source alpha;
+// assign new alpha value as a multiplication of translucenses.
+unsigned long _additive_alpha_blender(unsigned long x, unsigned long y, unsigned long n)
+{
+    unsigned long res, g, res_alpha;
+
+    n = geta32(x);
+    if (n)
+        n++;
+
+    res_alpha = (255 - (255 - n) * (255 - geta32(y)) / 255) << 24;
+
+    res = ((x & 0xFF00FF) - (y & 0xFF00FF)) * n / 256 + y;
+    y &= 0xFF00;
+    x &= 0xFF00;
+    g = (x - y) * n / 256 + y;
+
+    res &= 0xFF00FF;
+    g &= 0xFF00;
+
+    return res | g | res_alpha;
+}
+
 void set_additive_alpha_blender() {
     // add the alpha channels together
-    set_blender_mode(NULL, NULL, _additive_alpha_blender, 0, 0, 0, 0);
+    set_blender_mode(NULL, NULL, pfn_additive_alpha_blender, 0, 0, 0, 0);
 }
 
 // sets the alpha channel to opaque. used when drawing a non-alpha sprite onto an alpha-sprite
@@ -187,4 +209,16 @@ unsigned long _opaque_alpha_blender(unsigned long x, unsigned long y, unsigned l
 
 void set_opaque_alpha_blender() {
     set_blender_mode(NULL, NULL, _opaque_alpha_blender, 0, 0, 0, 0);
+}
+
+void init_blenders(GameGuiAlphaRenderingStyle gui_alpha_style)
+{
+    if (gui_alpha_style == kGuiAlphaRender_MultiplyTranslucenceSrcBlend)
+    {
+        pfn_additive_alpha_blender = _additive_alpha_blender;
+    }
+    else
+    {
+        pfn_additive_alpha_blender = _additive_alpha_copysrc_blender;
+    }
 }

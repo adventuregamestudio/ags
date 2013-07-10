@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
 #include "path.h"
 
 extern int current_screen_resolution_multiplier;

@@ -6,8 +6,7 @@
 #include "script/script_common.h"       // macro definitions
 #include "cc_symboltable.h"     // symbolTable
 #include "script/cc_options.h"      // ccGetOption
-
-extern void cc_error(char *, ...);
+#include "script/cc_error.h"
 
 void ccCompiledScript::write_cmd(int cmdd) {
     write_code(cmdd);

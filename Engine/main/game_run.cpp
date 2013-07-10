@@ -16,7 +16,6 @@
 // Game loop
 //
 
-#include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "ac/characterextras.h"
 #include "ac/characterinfo.h"
@@ -49,6 +48,7 @@
 #include "main/mainheader.h"
 #include "main/game_run.h"
 #include "main/update.h"
+#include "media/audio/soundclip.h"
 #include "plugin/agsplugin.h"
 #include "script/script.h"
 #include "ac/spritecache.h"
@@ -712,7 +712,7 @@ void mainloop(bool checkControls, IDriverDependantBitmap *extraBitmap, int extra
 
     game_loop_update_animated_buttons();
 
-    update_polled_stuff_and_crossfade();
+    update_polled_audio_and_crossfade();
 
     game_loop_do_render_and_check_mouse(extraBitmap, extraX, extraY);
     
@@ -892,4 +892,18 @@ void do_main_cycle(int untilwhat,long daaa) {
 // for external modules to call
 void next_iteration() {
     NEXT_ITERATION();
+}
+
+void update_polled_stuff_if_runtime()
+{
+    if (want_exit) {
+        want_exit = 0;
+        quit("||exit!");
+    }
+
+    if (!psp_audio_multithreaded)
+        update_polled_mp3();
+
+    if (editor_debugging_initialized)
+        check_for_messages_from_editor();
 }

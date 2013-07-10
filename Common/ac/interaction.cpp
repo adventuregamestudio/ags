@@ -18,6 +18,7 @@
 #include "ac/common.h"
 #include "util/string_utils.h"      // fputstring, etc
 #include "util/alignedstream.h"
+#include "util/string.h"
 
 using AGS::Common::AlignedStream;
 using AGS::Common::Stream;

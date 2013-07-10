@@ -27,9 +27,9 @@ public:
   int font, textcol, align;
 
   virtual void WriteToFile(Common::Stream *out);
-  virtual void ReadFromFile(Common::Stream *in, int version);
-  void Draw();
-  void printtext_align(int yy, char *teptr);
+  virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
+  virtual void Draw(Common::Bitmap *ds);
+  void printtext_align(Common::Bitmap *g, int yy, color_t text_color, char *teptr);
   void SetText(const char *newText);
   const char *GetText();
 

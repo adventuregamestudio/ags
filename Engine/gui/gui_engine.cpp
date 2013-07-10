@@ -18,8 +18,7 @@
 
 // Headers, as they are in acgui.cpp
 #pragma unmanaged
-#include "util/wgt2allg.h"
-//#include "acruntim.h"
+#include "font/fonts.h"
 #include "gui/guimain.h"
 #include "gui/guibutton.h"
 #include "gui/guilabel.h"
@@ -65,12 +64,12 @@ void check_font(int *fontnum)
 
 int get_adjusted_spritewidth(int spr)
 {
-  return wgetblockwidth(spriteset[spr]);
+  return spriteset[spr]->GetWidth();
 }
 
 int get_adjusted_spriteheight(int spr)
 {
-  return wgetblockheight(spriteset[spr]);
+  return spriteset[spr]->GetHeight();
 }
 
 bool is_sprite_alpha(int spr)
@@ -92,7 +91,7 @@ bool outlineGuiObjects = false;
 
 void GUILabel::Draw_replace_macro_tokens(char *oritext, char *text)
 {
-  replace_macro_tokens(get_translation(text), oritext);
+  replace_macro_tokens(flags & GUIF_TRANSLATED ? get_translation(text) : text, oritext);
   ensure_text_valid_for_font(oritext, font);
 }
 
@@ -106,17 +105,17 @@ void GUILabel::Draw_split_lines(char *teptr, int wid, int font, int &numlines)
   // [IKM] numlines not used in engine's implementation
 }
 
-void GUITextBox::Draw_text_box_contents()
+void GUITextBox::Draw_text_box_contents(Bitmap *ds, color_t text_color)
 {
   int startx, starty;
 
-  wouttext_outline(x + 1 + get_fixed_pixel_size(1), y + 1 + get_fixed_pixel_size(1), font, text);
+  wouttext_outline(ds, x + 1 + get_fixed_pixel_size(1), y + 1 + get_fixed_pixel_size(1), font, text_color, text);
   
   if (!IsDisabled()) {
     // draw a cursor
     startx = wgettextwidth(text, font) + x + 3;
     starty = y + 1 + wgettextheight("BigyjTEXT", font);
-    abuf->DrawRect(Rect(startx, starty, startx + get_fixed_pixel_size(5), starty + (get_fixed_pixel_size(1) - 1)), currentcolor);
+    ds->DrawRect(Rect(startx, starty, startx + get_fixed_pixel_size(5), starty + (get_fixed_pixel_size(1) - 1)), text_color);
   }
 }
 
@@ -130,11 +129,34 @@ void GUIListBox::Draw_items_unfix()
   // do nothing
 }
 
+void GUIListBox::Draw_set_oritext(char *oritext, const char *text)
+{
+    // Allow it to change the string to unicode if it's TTF
+    if (flags & GUIF_TRANSLATED)
+    {
+        strcpy(oritext, get_translation(text));
+    }
+    else
+    {
+        strcpy(oritext, text);
+    }
+    ensure_text_valid_for_font(oritext, font);
+
+    // oritext is assumed to be made long enough by caller function
+}
+
 void GUIButton::Draw_set_oritext(char *oritext, const char *text)
 {
   // Allow it to change the string to unicode if it's TTF
-  strcpy(oritext, get_translation(text));
-  ensure_text_valid_for_font(oritext, font);
+    if (flags & GUIF_TRANSLATED)
+    {
+        strcpy(oritext, get_translation(text));
+    }
+    else
+    {
+        strcpy(oritext, text);
+    }
+    ensure_text_valid_for_font(oritext, font);
 
   // oritext is assumed to be made long enough by caller function
 }

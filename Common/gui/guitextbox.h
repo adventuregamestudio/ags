@@ -25,8 +25,8 @@ struct GUITextBox:public GUIObject
   int font, textcol, exflags;
 
   virtual void WriteToFile(Common::Stream *out);
-  virtual void ReadFromFile(Common::Stream *in, int version);
-  void Draw();
+  virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
+  virtual void Draw(Common::Bitmap *ds);
   void KeyPress(int);
 
   void MouseMove(int x, int y)
@@ -61,7 +61,7 @@ struct GUITextBox:public GUIObject
   }
 
 private:
-  void Draw_text_box_contents();
+  void Draw_text_box_contents(Common::Bitmap *ds, color_t text_color);
 };
 
 extern DynamicArray<GUITextBox> guitext;

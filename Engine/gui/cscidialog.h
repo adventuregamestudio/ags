@@ -21,9 +21,9 @@
 #include "gui/guidialoginternaldefs.h"
 
 int  WINAPI _export CSCIGetVersion();
-int  WINAPI _export CSCIDrawWindow(int xx, int yy, int wid, int hit);
-void WINAPI _export CSCIEraseWindow(int handl);
-int  WINAPI _export CSCIWaitMessage(CSCIMessage * cscim);
+int  WINAPI _export CSCIDrawWindow(Common::Bitmap *ds, int xx, int yy, int wid, int hit);
+void WINAPI _export CSCIEraseWindow(Common::Bitmap *ds, int handl);
+int  WINAPI _export CSCIWaitMessage(Common::Bitmap *ds, CSCIMessage * cscim);
 int  WINAPI _export CSCICreateControl(int typeandflags, int xx, int yy, int wii, int hii, char *title);
 void WINAPI _export CSCIDeleteControl(int haa);
 int  WINAPI _export CSCISendControlMessage(int haa, int mess, int wPar, long lPar);

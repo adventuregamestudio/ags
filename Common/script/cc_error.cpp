@@ -27,7 +27,7 @@ char ccErrorCallStack[400];
 bool ccErrorIsUserError = false;
 const char *ccCurScriptName = "";
 
-void cc_error(char *descr, ...)
+void cc_error(const char *descr, ...)
 {
     ccErrorCallStack[0] = 0;
     ccErrorIsUserError = false;

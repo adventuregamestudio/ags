@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
 #include "gfx/ali3d.h"
 #include "ac/common.h"
 #include "ac/draw.h"
@@ -23,8 +22,8 @@
 #include "ac/screen.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
-#include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
+#include "gfx/graphicsdriver.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -66,7 +65,7 @@ void current_fade_out_effect () {
 
     if ((theTransition == FADE_INSTANT) || (play.screen_tint >= 0)) {
         if (!play.keep_screen_during_instant_transition)
-            wsetpalette(0,255,black_palette);
+            set_palette_range(black_palette, 0, 255, 0);
     }
     else if (theTransition == FADE_NORMAL)
     {
@@ -80,7 +79,8 @@ void current_fade_out_effect () {
     else 
     {
         get_palette(old_palette);
-        temp_virtual = BitmapHelper::CreateBitmap(virtual_screen->GetWidth(),virtual_screen->GetHeight(),abuf->GetColorDepth());
+        Bitmap *ds = GetVirtualScreen();
+        temp_virtual = BitmapHelper::CreateBitmap(virtual_screen->GetWidth(),virtual_screen->GetHeight(),ds->GetColorDepth());
         //->Blit(abuf,temp_virtual,0,0,0,0,abuf->GetWidth(),abuf->GetHeight());
         gfxDriver->GetCopyOfScreenIntoBitmap(temp_virtual);
     }

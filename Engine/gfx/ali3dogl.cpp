@@ -1358,6 +1358,9 @@ void OGLGraphicsDriver::UpdateTextureRegion(TextureTile *tile, Bitmap *bitmap, O
     }
 
     lastPixelWasTransparent = false;
+    const uint8_t *scanline_before = bitmap->GetScanLine(y + tile->y - 1);
+    const uint8_t *scanline_at     = bitmap->GetScanLine(y + tile->y);
+    const uint8_t *scanline_after  = bitmap->GetScanLine(y + tile->y + 1);
     for (int x = 0; x < tileWidth; x++)
     {
 
@@ -1414,7 +1417,7 @@ void OGLGraphicsDriver::UpdateTextureRegion(TextureTile *tile, Bitmap *bitmap, O
           continue;
         }
 
-        unsigned int* srcData = (unsigned int*)&bitmap->GetScanLine(y + tile->y)[(x + tile->x) * 4];
+        unsigned int* srcData = (unsigned int*)&scanline_at[(x + tile->x) << 2];
         if (*srcData == MASK_COLOR_32)
         {
           if (target->_opaque)  // set to black if opaque
@@ -1431,9 +1434,9 @@ void OGLGraphicsDriver::UpdateTextureRegion(TextureTile *tile, Bitmap *bitmap, O
             if (x < tile->width - 1)
               get_pixel_if_not_transparent32(&srcData[1], &red, &green, &blue, &divisor);
             if (y > 0)
-              get_pixel_if_not_transparent32((unsigned int*)&bitmap->GetScanLine(y + tile->y - 1)[(x + tile->x) * 4], &red, &green, &blue, &divisor);
+              get_pixel_if_not_transparent32((unsigned int*)&scanline_before[(x + tile->x) << 2], &red, &green, &blue, &divisor);
             if (y < tile->height - 1)
-              get_pixel_if_not_transparent32((unsigned int*)&bitmap->GetScanLine(y + tile->y + 1)[(x + tile->x) * 4], &red, &green, &blue, &divisor);
+              get_pixel_if_not_transparent32((unsigned int*)&scanline_after[(x + tile->x) << 2], &red, &green, &blue, &divisor);
             if (divisor > 0)
               memPtrLong[x] = ((red / divisor) << 16) | ((green / divisor) << 8) | (blue / divisor);
             else
@@ -1480,8 +1483,7 @@ void OGLGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpda
     if (bitmap->GetColorDepth() != target->_colDepth)
     {
       //throw Ali3DException("Mismatched colour depths");
-      source = BitmapHelper::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 32);
-      source->Blit(bitmap, 0, 0, 0, 0, source->GetWidth(), source->GetHeight());
+      source = BitmapHelper::CreateBitmapCopy(bitmap, 32);
     }
 
     target->_hasAlpha = hasAlpha;
@@ -1514,8 +1516,7 @@ Bitmap *OGLGraphicsDriver::ConvertBitmapToSupportedColourDepth(Bitmap *bitmap)
 */   if (colourDepth != 32)
    {
      // we need 32-bit colour
-     Bitmap *tempBmp = BitmapHelper::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 32);
-     tempBmp->Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
+     Bitmap *tempBmp = BitmapHelper::CreateBitmapCopy(bitmap, 32);
      delete bitmap;
      set_color_conversion(colorConv);
      return tempBmp;
@@ -1569,8 +1570,7 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateDDBFromBitmap(Bitmap *bitmap, b
 */  if (colourDepth != 32)
   {
     // we need 32-bit colour
-	tempBmp = BitmapHelper::CreateBitmap(bitmap->GetWidth(), bitmap->GetHeight(), 32);
-    tempBmp->Blit(bitmap, 0, 0, 0, 0, tempBmp->GetWidth(), tempBmp->GetHeight());
+	tempBmp = BitmapHelper::CreateBitmapCopy(bitmap, 32);
     bitmap = tempBmp;
     colourDepth = 32;
   }

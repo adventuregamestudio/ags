@@ -147,7 +147,9 @@ int     Character_GetSpeakingFrame(CharacterInfo *chaa);
 
 //=============================================================================
 
-#include "ac/movelist.h"
+struct MoveList;
+namespace AGS { namespace Common { class Bitmap; } }
+using namespace AGS; // FIXME later
 
 void animate_character(CharacterInfo *chap, int loopn,int sppd,int rept, int noidleoverride, int direction);
 void walk_character(int chac,int tox,int toy,int ignwal, bool autoWalkAnims);
@@ -184,6 +186,7 @@ int is_pos_on_character(int xx,int yy);
 void _DisplaySpeechCore(int chid, char *displbuf);
 void _DisplayThoughtCore(int chid, const char *displbuf);
 int user_to_internal_skip_speech(int userval);
+int internal_skip_speech_to_user(int internal_val);
 
 void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThought);
 int get_character_currently_talking();

@@ -12,10 +12,10 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
+#include "core/types.h"
+#include "gfx/bitmap.h"
 #include "gfx/gfxfilter_scalingallegro.h"
 #include "gfx/gfxfilterdefines.h"
-#include "gfx/bitmap.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -90,7 +90,7 @@ void ScalingAllegroGFXFilter::GetCopyOfScreenIntoBitmap(Bitmap *copyBitmap, bool
             RectWH(0, 0, copyBitmap->GetWidth(), copyBitmap->GetHeight()));
     }
     else if (lastBlitFrom == NULL)
-        copyBitmap->Clear();
+        copyBitmap->Fill(0);
     else
         copyBitmap->StretchBlt(lastBlitFrom,
 		RectWH(0, 0, lastBlitFrom->GetWidth(), lastBlitFrom->GetHeight()), 

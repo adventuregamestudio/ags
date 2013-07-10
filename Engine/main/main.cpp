@@ -22,7 +22,6 @@
 // What about other platforms?
 //
 
-#include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
@@ -118,9 +117,9 @@ void main_create_platform_driver()
 
 // Version and build numbers
 #define ACI_VERSION_MAJOR               3
-#define ACI_VERSION_MINOR               30
+#define ACI_VERSION_MINOR               3
 #define ACI_VERSION_RELEASE             0
-#define ACI_VERSION_REVISION            1130
+#define ACI_VERSION_REVISION            1138
 #ifdef NO_MP3_PLAYER
 #define SPECIAL_VERSION "NMP"
 #else
@@ -129,14 +128,14 @@ void main_create_platform_driver()
 
 // this needs to be updated if the "play" struct changes
 #define SVG_VERSION_BWCOMPAT_MAJOR      3
-#define SVG_VERSION_BWCOMPAT_MINOR      20
+#define SVG_VERSION_BWCOMPAT_MINOR      2
 #define SVG_VERSION_BWCOMPAT_RELEASE    0
 #define SVG_VERSION_BWCOMPAT_REVISION   1103
 // CHECKME: we may lower this down, if we find that earlier versions may still
 // load new savedgames
 #define SVG_VERSION_FWCOMPAT_MAJOR      3
-#define SVG_VERSION_FWCOMPAT_MINOR      21
-#define SVG_VERSION_FWCOMPAT_RELEASE    0
+#define SVG_VERSION_FWCOMPAT_MINOR      2
+#define SVG_VERSION_FWCOMPAT_RELEASE    1
 #define SVG_VERSION_FWCOMPAT_REVISION   1111
 
 // Current engine version

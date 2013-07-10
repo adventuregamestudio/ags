@@ -2,8 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "cc_macrotable.h"
-
-extern void cc_error(char *, ...);
+#include "script/cc_error.h"
 
 void MacroTable::shutdown() {
     int rr;

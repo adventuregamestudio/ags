@@ -13,7 +13,6 @@
 //=============================================================================
 
 #include "ac/hotspot.h"
-#include "util/wgt2allg.h"
 #include "ac/draw.h"
 #include "ac/roomstruct.h"
 #include "ac/global_hotspot.h"

@@ -290,9 +290,14 @@ namespace AGS.Editor.Components
             return treeItem;
         }
 
-        protected override void AddExtraCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
+        protected override void AddNewItemCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
         {
             menu.Add(new MenuCommand(COMMAND_NEW_VIEW, "New View", null));
+        }
+
+        protected override void AddExtraCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
+        {
+            // No more commands in this menu
         }
 
         protected override bool CanFolderBeDeleted(ViewFolder folder)

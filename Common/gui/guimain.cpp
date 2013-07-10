@@ -16,7 +16,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "util/wgt2allg.h"
 #include "util/string_utils.h" //strlwr()
 #include "gui/guimain.h"
 #include "ac/common.h"	// quit()
@@ -96,7 +95,7 @@ void GUIMain::SetTransparencyAsPercentage(int percent)
 	  this->transparency = ((100 - percent) * 25) / 10;
 }
 
-void GUIMain::ReadFromFile(Stream *in, int version)
+void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
   // read/write everything except drawOrder since
   // it will be regenerated
@@ -280,46 +279,46 @@ int GUIMain::is_mouse_on_gui()
   return 0;
 }
 
-void GUIMain::draw_blob(int xp, int yp)
+void GUIMain::draw_blob(Common::Bitmap *ds, int xp, int yp, color_t draw_color)
 {
-  abuf->FillRect(Rect(xp, yp, xp + get_fixed_pixel_size(1), yp + get_fixed_pixel_size(1)), currentcolor);
+  ds->FillRect(Rect(xp, yp, xp + get_fixed_pixel_size(1), yp + get_fixed_pixel_size(1)), draw_color);
 }
 
-void GUIMain::draw_at(int xx, int yy)
+void GUIMain::draw_at(Common::Bitmap *ds, int xx, int yy)
 {
   int aa;
 
   SET_EIP(375)
 
-  wtexttransparent(TEXTFG);
-
   if ((wid < 1) || (hit < 1))
     return;
 
-  Bitmap *abufwas = abuf;
-  Bitmap *subbmp = BitmapHelper::CreateSubBitmap(abuf, RectWH(xx, yy, wid, hit));
+  //Bitmap *abufwas = g;
+  Bitmap *subbmp = BitmapHelper::CreateSubBitmap(ds, RectWH(xx, yy, wid, hit));
 
   SET_EIP(376)
   // stop border being transparent, if the whole GUI isn't
   if ((fgcol == 0) && (bgcol != 0))
     fgcol = 16;
 
-  abuf = subbmp;
+  //g = subbmp;
   if (bgcol != 0)
-    abuf->Clear(get_col8_lookup(bgcol));
+    subbmp->Fill(subbmp->GetCompatibleColor(bgcol));
 
   SET_EIP(377)
 
+  color_t draw_color;
   if (fgcol != bgcol) {
-    abuf->DrawRect(Rect(0, 0, abuf->GetWidth() - 1, abuf->GetHeight() - 1), get_col8_lookup(fgcol));
+    draw_color = subbmp->GetCompatibleColor(fgcol);
+    subbmp->DrawRect(Rect(0, 0, subbmp->GetWidth() - 1, subbmp->GetHeight() - 1), draw_color);
     if (get_fixed_pixel_size(1) > 1)
-      abuf->DrawRect(Rect(1, 1, abuf->GetWidth() - 2, abuf->GetHeight() - 2), get_col8_lookup(fgcol));
+      subbmp->DrawRect(Rect(1, 1, subbmp->GetWidth() - 2, subbmp->GetHeight() - 2), draw_color);
   }
 
   SET_EIP(378)
 
   if ((bgpic > 0) && (spriteset[bgpic] != NULL))
-    draw_sprite_compensate(bgpic, 0, 0, 0);
+    draw_sprite_compensate(subbmp, bgpic, 0, 0, 0);
 
   SET_EIP(379)
 
@@ -334,42 +333,42 @@ void GUIMain::draw_at(int xx, int yy)
     if (!objToDraw->IsVisible())
       continue;
 
-    objToDraw->Draw();
+    objToDraw->Draw(subbmp);
 
     int selectedColour = 14;
 
     if (highlightobj == drawOrder[aa]) {
       if (outlineGuiObjects)
         selectedColour = 13;
-      wsetcolor(selectedColour);
-      draw_blob(objToDraw->x + objToDraw->wid - get_fixed_pixel_size(1) - 1, objToDraw->y);
-      draw_blob(objToDraw->x, objToDraw->y + objToDraw->hit - get_fixed_pixel_size(1) - 1);
-      draw_blob(objToDraw->x, objToDraw->y);
-      draw_blob(objToDraw->x + objToDraw->wid - get_fixed_pixel_size(1) - 1, 
-                objToDraw->y + objToDraw->hit - get_fixed_pixel_size(1) - 1);
+      draw_color = subbmp->GetCompatibleColor(selectedColour);
+      draw_blob(subbmp, objToDraw->x + objToDraw->wid - get_fixed_pixel_size(1) - 1, objToDraw->y, draw_color);
+      draw_blob(subbmp, objToDraw->x, objToDraw->y + objToDraw->hit - get_fixed_pixel_size(1) - 1, draw_color);
+      draw_blob(subbmp, objToDraw->x, objToDraw->y, draw_color);
+      draw_blob(subbmp, objToDraw->x + objToDraw->wid - get_fixed_pixel_size(1) - 1, 
+                objToDraw->y + objToDraw->hit - get_fixed_pixel_size(1) - 1, draw_color);
     }
     if (outlineGuiObjects) {
       int oo;  // draw a dotted outline round all objects
-      wsetcolor(selectedColour);
+      draw_color = subbmp->GetCompatibleColor(selectedColour);
       for (oo = 0; oo < objToDraw->wid; oo+=2) {
-        abuf->PutPixel(oo + objToDraw->x, objToDraw->y, currentcolor);
-        abuf->PutPixel(oo + objToDraw->x, objToDraw->y + objToDraw->hit - 1, currentcolor);
+        subbmp->PutPixel(oo + objToDraw->x, objToDraw->y, draw_color);
+        subbmp->PutPixel(oo + objToDraw->x, objToDraw->y + objToDraw->hit - 1, draw_color);
       }
       for (oo = 0; oo < objToDraw->hit; oo+=2) {
-        abuf->PutPixel(objToDraw->x, oo + objToDraw->y, currentcolor);
-        abuf->PutPixel(objToDraw->x + objToDraw->wid - 1, oo + objToDraw->y, currentcolor);
+        subbmp->PutPixel(objToDraw->x, oo + objToDraw->y, draw_color);
+        subbmp->PutPixel(objToDraw->x + objToDraw->wid - 1, oo + objToDraw->y, draw_color);
       }      
     }
   }
 
   SET_EIP(380)
-  delete abuf;
-  abuf = abufwas;
+  delete subbmp;
+//  sub_graphics.GetBitmap() = abufwas;
 }
 
-void GUIMain::draw()
+void GUIMain::draw(Common::Bitmap *ds)
 {
-  draw_at(x, y);
+  draw_at(ds, x, y);
 }
 
 int GUIMain::find_object_under_mouse(int extrawid, bool mustBeClickable)
@@ -498,23 +497,20 @@ void GUIMain::mouse_but_up()
   guis_need_update = 1;
 }
 
-
-
-#define GUI_VERSION 115
-
+GuiVersion GameGuiVersion = kGuiVersion_Initial;
 void read_gui(Stream *in, GUIMain * guiread, GameSetupStruct * gss, GUIMain** allocate)
 {
-  int gver, ee;
+  int ee;
 
   if (in->ReadInt32() != (int)GUIMAGIC)
     quit("read_gui: file is corrupt");
 
-  gver = in->ReadInt32();
-  if (gver < 100) {
-    gss->numgui = gver;
-    gver = 0;
+  GameGuiVersion = (GuiVersion)in->ReadInt32();
+  if (GameGuiVersion < kGuiVersion_214) {
+    gss->numgui = (int)GameGuiVersion;
+    GameGuiVersion = kGuiVersion_Initial;
   }
-  else if (gver > GUI_VERSION)
+  else if (GameGuiVersion > kGuiVersion_Current)
     quit("read_gui: this game requires a newer version of AGS");
   else
     gss->numgui = in->ReadInt32();
@@ -532,16 +528,16 @@ void read_gui(Stream *in, GUIMain * guiread, GameSetupStruct * gss, GUIMain** al
   for (int iteratorCount = 0; iteratorCount < gss->numgui; ++iteratorCount)
   {
     guiread[iteratorCount].init();
-    guiread[iteratorCount].ReadFromFile(in, gver);
+    guiread[iteratorCount].ReadFromFile(in, GameGuiVersion);
   }
 
   for (ee = 0; ee < gss->numgui; ee++) {
     if (guiread[ee].hit < 2)
       guiread[ee].hit = 2;
 
-    if (gver < 103)
+    if (GameGuiVersion < kGuiVersion_unkn_103)
       sprintf(guiread[ee].name, "GUI%d", ee);
-    if (gver < 105)
+    if (GameGuiVersion < kGuiVersion_260)
       guiread[ee].zorder = ee;
 
     if (loaded_game_file_version <= kGameVersion_272) // Fix names for 2.x: "GUI" -> "gGui"
@@ -555,61 +551,61 @@ void read_gui(Stream *in, GUIMain * guiread, GameSetupStruct * gss, GUIMain** al
   guibuts.SetSizeTo(numguibuts);
 
   for (ee = 0; ee < numguibuts; ee++)
-    guibuts[ee].ReadFromFile(in, gver);
+    guibuts[ee].ReadFromFile(in, GameGuiVersion);
 
   // labels
   numguilabels = in->ReadInt32();
   guilabels.SetSizeTo(numguilabels);
 
   for (ee = 0; ee < numguilabels; ee++)
-    guilabels[ee].ReadFromFile(in, gver);
+    guilabels[ee].ReadFromFile(in, GameGuiVersion);
 
   // inv controls
   numguiinv = in->ReadInt32();
   guiinv.SetSizeTo(numguiinv);
 
   for (ee = 0; ee < numguiinv; ee++)
-    guiinv[ee].ReadFromFile(in, gver);
+    guiinv[ee].ReadFromFile(in, GameGuiVersion);
 
-  if (gver >= 100) {
+  if (GameGuiVersion >= kGuiVersion_214) {
     // sliders
     numguislider = in->ReadInt32();
     guislider.SetSizeTo(numguislider);
 
     for (ee = 0; ee < numguislider; ee++)
-      guislider[ee].ReadFromFile(in, gver);
+      guislider[ee].ReadFromFile(in, GameGuiVersion);
   }
 
-  if (gver >= 101) {
+  if (GameGuiVersion >= kGuiVersion_222) {
     // text boxes
     numguitext = in->ReadInt32();
     guitext.SetSizeTo(numguitext);
 
     for (ee = 0; ee < numguitext; ee++)
-      guitext[ee].ReadFromFile(in, gver);
+      guitext[ee].ReadFromFile(in, GameGuiVersion);
   }
 
-  if (gver >= 102) {
+  if (GameGuiVersion >= kGuiVersion_230) {
     // list boxes
     numguilist = in->ReadInt32();
     guilist.SetSizeTo(numguilist);
 
     for (ee = 0; ee < numguilist; ee++)
-      guilist[ee].ReadFromFile(in, gver);
+      guilist[ee].ReadFromFile(in, GameGuiVersion);
   }
 
   // set up the reverse-lookup array
   for (ee = 0; ee < gss->numgui; ee++) {
     guiread[ee].rebuild_array();
 
-    if (gver < 110)
+    if (GameGuiVersion < kGuiVersion_270)
       guiread[ee].clickEventHandler[0] = 0;
 
     for (int ff = 0; ff < guiread[ee].numobjs; ff++) {
       guiread[ee].objs[ff]->guin = ee;
       guiread[ee].objs[ff]->objn = ff;
 
-      if (gver < 115)
+      if (GameGuiVersion < kGuiVersion_272e)
         guiread[ee].objs[ff]->zorder = ff;
     }
 
@@ -619,12 +615,21 @@ void read_gui(Stream *in, GUIMain * guiread, GameSetupStruct * gss, GUIMain** al
   guis_need_update = 1;
 }
 
-void write_gui(Stream *out, GUIMain * guiwrite, GameSetupStruct * gss)
+void write_gui(Stream *out, GUIMain * guiwrite, GameSetupStruct * gss, bool savedgame)
 {
   int ee;
 
   out->WriteInt32(GUIMAGIC);
-  out->WriteInt32(GUI_VERSION);
+
+  if (savedgame && GameGuiVersion >= kGuiVersion_ForwardCompatible)
+  {
+    out->WriteInt32(GameGuiVersion);
+  }
+  else
+  {
+    out->WriteInt32(kGuiVersion_Current);
+  }
+  
   out->WriteInt32(gss->numgui);
 
   for (int iteratorCount = 0; iteratorCount < gss->numgui; ++iteratorCount)

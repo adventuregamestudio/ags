@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
 #include "ac/display.h"
 #include "gfx/ali3d.h"
 #include "ac/common.h"
@@ -39,7 +38,7 @@
 #include "media/audio/audio.h"
 #include "platform/base/agsplatformdriver.h"
 #include "ac/spritecache.h"
-#include "gfx/bitmap.h"
+#include "gfx/gfx_util.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -68,12 +67,6 @@ char *heightTestString = "ZHwypgfjqhkilIK";
 
 
 TopBarSettings topBar;
-// draw_text_window: draws the normal or custom text window
-// create a new bitmap the size of the window before calling, and
-//   point abuf to it
-// returns text start x & y pos in parameters
-Bitmap *screenop = NULL;
-int wantFreeScreenop = 0;
 int texthit;
 
 // Pass yy = -1 to find Y co-ord automatically
@@ -153,20 +146,20 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
     else if (xx<0) xx=scrnwid/2-wii/2;
 
     int ee, extraHeight = get_fixed_pixel_size(6);
-    wtextcolor(15);
+    Bitmap *ds = GetVirtualScreen();
+    color_t text_color = ds->GetCompatibleColor(15);
     if (blocking < 2)
         remove_screen_overlay(OVER_TEXTMSG);
 
-    screenop = BitmapHelper::CreateBitmap((wii > 0) ? wii : 2, numlines*texthit + extraHeight, final_col_dep);
-    wsetscreen(screenop);
-    screenop->Clear(screenop->GetMaskColor());
+    Bitmap *text_window_ds = BitmapHelper::CreateTransparentBitmap((wii > 0) ? wii : 2, numlines*texthit + extraHeight, final_col_dep);
+    SetVirtualScreen(text_window_ds);
 
     // inform draw_text_window to free the old bitmap
-    wantFreeScreenop = 1;
+    const bool wantFreeScreenop = true;
 
     if ((strlen (todis) < 1) || (strcmp (todis, "  ") == 0) || (wii == 0)) ;
     // if it's an empty speech line, don't draw anything
-    else if (asspch) { //wtextcolor(12);
+    else if (asspch) { //text_color = ds->GetCompatibleColor(12);
         int ttxleft = 0, ttxtop = get_fixed_pixel_size(3), oriwid = wii - 6;
         int usingGui = -1, drawBackground = 0;
 
@@ -183,7 +176,7 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
         }
 
         if (drawBackground)
-            draw_text_window_and_bar(&ttxleft, &ttxtop, &xx, &yy, &wii, 0, usingGui);
+            draw_text_window_and_bar(&text_window_ds, wantFreeScreenop, &ttxleft, &ttxtop, &xx, &yy, &wii, &text_color, 0, usingGui);
         else if ((ShouldAntiAliasText()) && (final_col_dep >= 24))
             alphaChannel = true;
 
@@ -195,22 +188,22 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
             if (asspch < 0) {
                 if ((usingGui >= 0) && 
                     ((game.options[OPT_SPEECHTYPE] >= 2) || (isThought)))
-                    wtextcolor(guis[usingGui].fgcol);
+                    text_color = text_window_ds->GetCompatibleColor(guis[usingGui].fgcol);
                 else
-                    wtextcolor(-asspch);
+                    text_color = text_window_ds->GetCompatibleColor(-asspch);
 
-                wouttext_aligned(ttxleft, ttyp, oriwid, usingfont, lines[ee], play.text_align);
+                wouttext_aligned(text_window_ds, ttxleft, ttyp, oriwid, usingfont, text_color, lines[ee], play.text_align);
             }
             else {
-                wtextcolor(asspch);
+                text_color = text_window_ds->GetCompatibleColor(asspch);
                 //wouttext_outline(ttxp,ttyp,usingfont,lines[ee]);
-                wouttext_aligned(ttxleft, ttyp, wii, usingfont, lines[ee], play.speech_text_align);
+                wouttext_aligned(text_window_ds, ttxleft, ttyp, wii, usingfont, text_color, lines[ee], play.speech_text_align);
             }
         }
     }
     else {
         int xoffs,yoffs, oriwid = wii - 6;
-        draw_text_window_and_bar(&xoffs,&yoffs,&xx,&yy,&wii);
+        draw_text_window_and_bar(&text_window_ds, wantFreeScreenop, &xoffs,&yoffs,&xx,&yy,&wii,&text_color);
 
         if (game.options[OPT_TWCUSTOM] > 0)
         {
@@ -220,18 +213,17 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
         adjust_y_coordinate_for_text(&yoffs, usingfont);
 
         for (ee=0;ee<numlines;ee++)
-            wouttext_aligned (xoffs, yoffs + ee * texthit, oriwid, usingfont, lines[ee], play.text_align);
+            wouttext_aligned (text_window_ds, xoffs, yoffs + ee * texthit, oriwid, usingfont, text_color, lines[ee], play.text_align);
     }
-
-    wantFreeScreenop = 0;
 
     int ovrtype = OVER_TEXTMSG;
     if (blocking == 2) ovrtype=OVER_CUSTOM;
     else if (blocking >= OVER_CUSTOM) ovrtype=blocking;
 
-    int nse = add_screen_overlay(xx, yy, ovrtype, screenop, alphaChannel);
+    int nse = add_screen_overlay(xx, yy, ovrtype, text_window_ds, alphaChannel);
+    // we should not delete text_window_ds here, because it is now owned by Overlay
 
-    wsetscreen(virtual_screen);
+    ds = SetVirtualScreen(virtual_screen);
     if (blocking>=2) {
         return screenover[nse].type;
     }
@@ -265,7 +257,7 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
 
             render_graphics();
 
-            update_polled_stuff_and_crossfade();
+            update_polled_audio_and_crossfade();
             if (mgetbutton()>NONE) {
                 // If we're allowed, skip with mouse
                 if (skip_setting & SKIP_MOUSECLICK)
@@ -416,17 +408,14 @@ bool ShouldAntiAliasText() {
     return (game.options[OPT_ANTIALIASFONTS] != 0);
 }
 
-void wouttext_outline(int xxp, int yyp, int usingfont, char*texx) {
-    int otextc=textcol;
-
+void wouttext_outline(Common::Bitmap *ds, int xxp, int yyp, int usingfont, color_t text_color, char*texx) {
+    
+    color_t outline_color = ds->GetCompatibleColor(play.speech_text_shadow);
     if (game.fontoutline[usingfont] >= 0) {
-        wtextcolor(play.speech_text_shadow);
         // MACPORT FIX 9/6/5: cast
-        wouttextxy(xxp, yyp, (int)game.fontoutline[usingfont], texx);
+        wouttextxy(ds, xxp, yyp, (int)game.fontoutline[usingfont], outline_color, texx);
     }
     else if (game.fontoutline[usingfont] == FONT_OUTLINE_AUTO) {
-        wtextcolor(play.speech_text_shadow);
-
         int outlineDist = 1;
 
         if ((game.options[OPT_NOSCALEFNT] == 0) && (!fontRenderers[usingfont]->SupportsExtendedCharacters(usingfont))) {
@@ -438,28 +427,27 @@ void wouttext_outline(int xxp, int yyp, int usingfont, char*texx) {
         xxp += outlineDist;
         yyp += outlineDist;
 
-        wouttextxy(xxp - outlineDist, yyp, usingfont, texx);
-        wouttextxy(xxp + outlineDist, yyp, usingfont, texx);
-        wouttextxy(xxp, yyp + outlineDist, usingfont, texx);
-        wouttextxy(xxp, yyp - outlineDist, usingfont, texx);
-        wouttextxy(xxp - outlineDist, yyp - outlineDist, usingfont, texx);
-        wouttextxy(xxp - outlineDist, yyp + outlineDist, usingfont, texx);
-        wouttextxy(xxp + outlineDist, yyp + outlineDist, usingfont, texx);
-        wouttextxy(xxp + outlineDist, yyp - outlineDist, usingfont, texx);
+        wouttextxy(ds, xxp - outlineDist, yyp, usingfont, outline_color, texx);
+        wouttextxy(ds, xxp + outlineDist, yyp, usingfont, outline_color, texx);
+        wouttextxy(ds, xxp, yyp + outlineDist, usingfont, outline_color, texx);
+        wouttextxy(ds, xxp, yyp - outlineDist, usingfont, outline_color, texx);
+        wouttextxy(ds, xxp - outlineDist, yyp - outlineDist, usingfont, outline_color, texx);
+        wouttextxy(ds, xxp - outlineDist, yyp + outlineDist, usingfont, outline_color, texx);
+        wouttextxy(ds, xxp + outlineDist, yyp + outlineDist, usingfont, outline_color, texx);
+        wouttextxy(ds, xxp + outlineDist, yyp - outlineDist, usingfont, outline_color, texx);
     }
 
-    textcol = otextc;
-    wouttextxy(xxp, yyp, usingfont, texx);
+    wouttextxy(ds, xxp, yyp, usingfont, text_color, texx);
 }
 
-void wouttext_aligned (int usexp, int yy, int oriwid, int usingfont, const char *text, int align) {
+void wouttext_aligned (Bitmap *ds, int usexp, int yy, int oriwid, int usingfont, color_t text_color, const char *text, int align) {
 
     if (align == SCALIGN_CENTRE)
         usexp = usexp + (oriwid / 2) - (wgettextwidth_compensate(text, usingfont) / 2);
     else if (align == SCALIGN_RIGHT)
         usexp = usexp + (oriwid - wgettextwidth_compensate(text, usingfont));
 
-    wouttext_outline(usexp, yy, usingfont, (char *)text);
+    wouttext_outline(ds, usexp, yy, usingfont, text_color, (char *)text);
 }
 
 int wgetfontheight(int font) {
@@ -493,26 +481,28 @@ int wgettextwidth_compensate(const char *tex, int font) {
     return wdof;
 }
 
-void do_corner(int sprn,int xx1,int yy1,int typx,int typy) {
+void do_corner(Bitmap *ds, int sprn,int xx1,int yy1,int typx,int typy) {
     if (sprn<0) return;
     Bitmap *thisone = spriteset[sprn];
     if (thisone == NULL)
         thisone = spriteset[0];
 
-    put_sprite_256(xx1+typx*spritewidth[sprn],yy1+typy*spriteheight[sprn],thisone);
-    //  wputblock(xx1+typx*spritewidth[sprn],yy1+typy*spriteheight[sprn],thisone,1);
+    AGS::Engine::GfxUtil::DrawSpriteWithTransparency(ds, thisone, xx1+typx*spritewidth[sprn],yy1+typy*spriteheight[sprn]);
 }
 
 int get_but_pic(GUIMain*guo,int indx) {
     return guibuts[guo->objrefptr[indx] & 0x000ffff].pic;
 }
 
-void draw_button_background(int xx1,int yy1,int xx2,int yy2,GUIMain*iep) {
+void draw_button_background(Bitmap *ds, int xx1,int yy1,int xx2,int yy2,GUIMain*iep) {
+    color_t draw_color;
     if (iep==NULL) {  // standard window
-        abuf->FillRect(Rect(xx1,yy1,xx2,yy2),get_col8_lookup(15));
-        abuf->DrawRect(Rect(xx1,yy1,xx2,yy2),get_col8_lookup(16));
-        /*    wsetcolor(opts.tws.backcol); abuf->FillRect(Rect(xx1,yy1,xx2,yy2);
-        wsetcolor(opts.tws.textcol); abuf->DrawRect(Rect(xx1+1,yy1+1,xx2-1,yy2-1);*/
+        draw_color = ds->GetCompatibleColor(15);
+        ds->FillRect(Rect(xx1,yy1,xx2,yy2), draw_color);
+        draw_color = ds->GetCompatibleColor(16);
+        ds->DrawRect(Rect(xx1,yy1,xx2,yy2), draw_color);
+        /*    draw_color = ds->GetCompatibleColor(opts.tws.backcol); ds->FillRect(Rect(xx1,yy1,xx2,yy2);
+        draw_color = ds->GetCompatibleColor(opts.tws.ds->GetTextColor()); ds->DrawRect(Rect(xx1+1,yy1+1,xx2-1,yy2-1);*/
     }
     else {
         if (loaded_game_file_version < kGameVersion_262) // < 2.62
@@ -525,11 +515,11 @@ void draw_button_background(int xx1,int yy1,int xx2,int yy2,GUIMain*iep) {
                 iep->bgcol = 16;
         }
 
-        if (iep->bgcol >= 0) wsetcolor(iep->bgcol);
-        else wsetcolor(0); // black backrgnd behind picture
+        if (iep->bgcol >= 0) draw_color = ds->GetCompatibleColor(iep->bgcol);
+        else draw_color = ds->GetCompatibleColor(0); // black backrgnd behind picture
 
         if (iep->bgcol > 0)
-            abuf->FillRect(Rect(xx1,yy1,xx2,yy2), currentcolor);
+            ds->FillRect(Rect(xx1,yy1,xx2,yy2), draw_color);
 
         int leftRightWidth = spritewidth[get_but_pic(iep,4)];
         int topBottomHeight = spriteheight[get_but_pic(iep,6)];
@@ -548,7 +538,7 @@ void draw_button_background(int xx1,int yy1,int xx2,int yy2,GUIMain*iep) {
                 // edge
                 int bgoffsx = xx1 - leftRightWidth / 2;
                 int bgoffsy = yy1 - topBottomHeight / 2;
-                abuf->SetClip(Rect(bgoffsx, bgoffsy, xx2 + leftRightWidth / 2, yy2 + topBottomHeight / 2));
+                ds->SetClip(Rect(bgoffsx, bgoffsy, xx2 + leftRightWidth / 2, yy2 + topBottomHeight / 2));
                 int bgfinishx = xx2;
                 int bgfinishy = yy2;
                 int bgoffsyStart = bgoffsy;
@@ -557,28 +547,28 @@ void draw_button_background(int xx1,int yy1,int xx2,int yy2,GUIMain*iep) {
                     bgoffsy = bgoffsyStart;
                     while (bgoffsy <= bgfinishy)
                     {
-                        wputblock(bgoffsx, bgoffsy, spriteset[iep->bgpic], 0);
+                        wputblock(ds, bgoffsx, bgoffsy, spriteset[iep->bgpic], 0);
                         bgoffsy += spriteheight[iep->bgpic];
                     }
                     bgoffsx += spritewidth[iep->bgpic];
                 }
                 // return to normal clipping rectangle
-                abuf->SetClip(Rect(0, 0, abuf->GetWidth() - 1, abuf->GetHeight() - 1));
+                ds->SetClip(Rect(0, 0, ds->GetWidth() - 1, ds->GetHeight() - 1));
             }
         }
         int uu;
         for (uu=yy1;uu <= yy2;uu+=spriteheight[get_but_pic(iep,4)]) {
-            do_corner(get_but_pic(iep,4),xx1,uu,-1,0);   // left side
-            do_corner(get_but_pic(iep,5),xx2+1,uu,0,0);  // right side
+            do_corner(ds, get_but_pic(iep,4),xx1,uu,-1,0);   // left side
+            do_corner(ds, get_but_pic(iep,5),xx2+1,uu,0,0);  // right side
         }
         for (uu=xx1;uu <= xx2;uu+=spritewidth[get_but_pic(iep,6)]) {
-            do_corner(get_but_pic(iep,6),uu,yy1,0,-1);  // top side
-            do_corner(get_but_pic(iep,7),uu,yy2+1,0,0); // bottom side
+            do_corner(ds, get_but_pic(iep,6),uu,yy1,0,-1);  // top side
+            do_corner(ds, get_but_pic(iep,7),uu,yy2+1,0,0); // bottom side
         }
-        do_corner(get_but_pic(iep,0),xx1,yy1,-1,-1);  // top left
-        do_corner(get_but_pic(iep,1),xx1,yy2+1,-1,0);  // bottom left
-        do_corner(get_but_pic(iep,2),xx2+1,yy1,0,-1);  //  top right
-        do_corner(get_but_pic(iep,3),xx2+1,yy2+1,0,0);  // bottom right
+        do_corner(ds, get_but_pic(iep,0),xx1,yy1,-1,-1);  // top left
+        do_corner(ds, get_but_pic(iep,1),xx1,yy2+1,-1,0);  // bottom left
+        do_corner(ds, get_but_pic(iep,2),xx2+1,yy1,0,-1);  //  top right
+        do_corner(ds, get_but_pic(iep,3),xx2+1,yy2+1,0,0);  // bottom right
     }
 }
 
@@ -608,15 +598,19 @@ int get_textwindow_top_border_height (int twgui) {
     return spriteheight[get_but_pic(&guis[twgui], 6)];
 }
 
-void draw_text_window(int*xins,int*yins,int*xx,int*yy,int*wii,int ovrheight, int ifnum) {
+void draw_text_window(Bitmap **text_window_ds, bool should_free_ds,
+                      int*xins,int*yins,int*xx,int*yy,int*wii, color_t *set_text_color, int ovrheight, int ifnum) {
+
+    Bitmap *ds = *text_window_ds;
     if (ifnum < 0)
         ifnum = game.options[OPT_TWCUSTOM];
 
     if (ifnum <= 0) {
         if (ovrheight)
             quit("!Cannot use QFG4 style options without custom text window");
-        draw_button_background(0,0,abuf->GetWidth() - 1,abuf->GetHeight() - 1,NULL);
-        wtextcolor(16);
+        draw_button_background(ds, 0,0,ds->GetWidth() - 1,ds->GetHeight() - 1,NULL);
+        if (set_text_color)
+            *set_text_color = ds->GetCompatibleColor(16);
         xins[0]=3;
         yins[0]=3;
     }
@@ -634,48 +628,49 @@ void draw_text_window(int*xins,int*yins,int*xx,int*yy,int*wii,int ovrheight, int
         if (ovrheight == 0)
             ovrheight = numlines*texthit;
 
-        if ((wantFreeScreenop > 0) && (screenop != NULL))
-            delete screenop;
-        screenop = BitmapHelper::CreateBitmap(wii[0],ovrheight+6+spriteheight[tbnum]*2,final_col_dep);
-        screenop->Clear(screenop->GetMaskColor());
-        wsetscreen(screenop);
+        if (should_free_ds)
+            delete *text_window_ds;
+        *text_window_ds = BitmapHelper::CreateTransparentBitmap(wii[0],ovrheight+6+spriteheight[tbnum]*2,final_col_dep);
+        ds = SetVirtualScreen(*text_window_ds);
         int xoffs=spritewidth[tbnum],yoffs=spriteheight[tbnum];
-        draw_button_background(xoffs,yoffs,(abuf->GetWidth() - xoffs) - 1,(abuf->GetHeight() - yoffs) - 1,&guis[ifnum]);
-        wtextcolor(guis[ifnum].fgcol);
+        draw_button_background(ds, xoffs,yoffs,(ds->GetWidth() - xoffs) - 1,(ds->GetHeight() - yoffs) - 1,&guis[ifnum]);
+        if (set_text_color)
+            *set_text_color = ds->GetCompatibleColor(guis[ifnum].fgcol);
         xins[0]=xoffs+3;
         yins[0]=yoffs+3;
     }
 
 }
 
-void draw_text_window_and_bar(int*xins,int*yins,int*xx,int*yy,int*wii,int ovrheight, int ifnum) {
+void draw_text_window_and_bar(Bitmap **text_window_ds, bool should_free_ds,
+                              int*xins,int*yins,int*xx,int*yy,int*wii,color_t *set_text_color,int ovrheight, int ifnum) {
 
-    draw_text_window(xins, yins, xx, yy, wii, ovrheight, ifnum);
+    draw_text_window(text_window_ds, should_free_ds, xins, yins, xx, yy, wii, set_text_color, ovrheight, ifnum);
 
-    if ((topBar.wantIt) && (screenop != NULL)) {
+    if ((topBar.wantIt) && (text_window_ds && *text_window_ds)) {
         // top bar on the dialog window with character's name
         // create an enlarged window, then free the old one
-        Bitmap *newScreenop = BitmapHelper::CreateBitmap(screenop->GetWidth(), screenop->GetHeight() + topBar.height, final_col_dep);
-        newScreenop->Blit(screenop, 0, 0, 0, topBar.height, screenop->GetWidth(), screenop->GetHeight());
-        delete screenop;
-        screenop = newScreenop;
-        wsetscreen(screenop);
+        Bitmap *ds = *text_window_ds;
+        Bitmap *newScreenop = BitmapHelper::CreateBitmap(ds->GetWidth(), ds->GetHeight() + topBar.height, final_col_dep);
+        newScreenop->Blit(ds, 0, 0, 0, topBar.height, ds->GetWidth(), ds->GetHeight());
+        delete *text_window_ds;
+        *text_window_ds = newScreenop;
+        ds = SetVirtualScreen(*text_window_ds);
 
         // draw the top bar
-        screenop->FillRect(Rect(0, 0, screenop->GetWidth() - 1, topBar.height - 1), get_col8_lookup(play.top_bar_backcolor));
+        color_t draw_color = ds->GetCompatibleColor(play.top_bar_backcolor);
+        ds->FillRect(Rect(0, 0, ds->GetWidth() - 1, topBar.height - 1), draw_color);
         if (play.top_bar_backcolor != play.top_bar_bordercolor) {
             // draw the border
+            draw_color = ds->GetCompatibleColor(play.top_bar_bordercolor);
             for (int j = 0; j < multiply_up_coordinate(play.top_bar_borderwidth); j++)
-                screenop->DrawRect(Rect(j, j, screenop->GetWidth() - (j + 1), topBar.height - (j + 1)), get_col8_lookup(play.top_bar_bordercolor));
+                ds->DrawRect(Rect(j, j, ds->GetWidth() - (j + 1), topBar.height - (j + 1)), draw_color);
         }
 
-        int textcolwas = textcol;
         // draw the text
-        int textx = (screenop->GetWidth() / 2) - wgettextwidth_compensate(topBar.text, topBar.font) / 2;
-        wtextcolor(play.top_bar_textcolor);
-        wouttext_outline(textx, play.top_bar_borderwidth + get_fixed_pixel_size(1), topBar.font, topBar.text);
-        // restore the current text colour
-        textcol = textcolwas;
+        int textx = (ds->GetWidth() / 2) - wgettextwidth_compensate(topBar.text, topBar.font) / 2;
+        color_t text_color = ds->GetCompatibleColor(play.top_bar_textcolor);
+        wouttext_outline(ds, textx, play.top_bar_borderwidth + get_fixed_pixel_size(1), topBar.font, text_color, topBar.text);
 
         // don't draw it next time
         topBar.wantIt = 0;

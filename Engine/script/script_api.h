@@ -51,9 +51,27 @@ extern char ScSfBuffer[3000];
         return RuntimeScriptValue(); \
     }
 
+#define ASSERT_VARIABLE_VALUE(VARIABLE) \
+    if (!params || param_count < 1) \
+    { \
+        AGS::Common::Out::FPrint("Not enough parameters to set "#VARIABLE": expected %d, got %d", 1, param_count); \
+        return RuntimeScriptValue(); \
+    }
+
 #define ASSERT_OBJ_PARAM_COUNT(METHOD, X) \
     ASSERT_SELF(METHOD) \
     ASSERT_PARAM_COUNT(METHOD, X)
+
+//-----------------------------------------------------------------------------
+// Get/set variables
+
+#define API_VARGET_INT(VARIABLE) \
+    return RuntimeScriptValue().SetInt32(VARIABLE)
+
+#define API_VARSET_PINT(VARIABLE) \
+    ASSERT_VARIABLE_VALUE(VARIABLE) \
+    VARIABLE = params[0].IValue; \
+    return RuntimeScriptValue()
 
 //-----------------------------------------------------------------------------
 // Calls to ScriptSprintf

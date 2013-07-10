@@ -14,7 +14,6 @@
 #include "fmem.h"
 
 extern int currentline;
-extern void cc_error(char *, ...);
 
 char ccCopyright[]="ScriptCompiler32 v" SCOM_VERSIONSTR " (c) 2000-2007 Chris Jones";
 static char scriptNameBuffer[256];

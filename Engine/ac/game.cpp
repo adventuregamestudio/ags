@@ -12,11 +12,10 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
-#include "gfx/ali3d.h"
-#include "ac/game.h"
+#if !defined (WINDOWS_VERSION)
+#include <sys/stat.h>                      //mkdir
+#endif
 #include "ac/common.h"
-#include "ac/roomstruct.h"
 #include "ac/view.h"
 #include "ac/audiochannel.h"
 #include "ac/character.h"
@@ -27,6 +26,7 @@
 #include "ac/dynamicsprite.h"
 #include "ac/event.h"
 #include "ac/file.h"
+#include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -50,42 +50,41 @@
 #include "ac/room.h"
 #include "ac/roomobject.h"
 #include "ac/roomstatus.h"
+#include "ac/roomstruct.h"
 #include "ac/runtime_defines.h"
 #include "ac/screenoverlay.h"
+#include "ac/spritecache.h"
 #include "ac/string.h"
 #include "ac/system.h"
 #include "ac/timer.h"
 #include "ac/translation.h"
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/all_scriptclasses.h"
-#include "debug/out.h"
-#include "script/cc_error.h"
-#include "util/string_utils.h"
 #include "debug/debug_log.h"
+#include "debug/out.h"
+#include "font/fonts.h"
+#include "gfx/ali3d.h"
 #include "gui/animatingguibutton.h"
+#include "gfx/graphicsdriver.h"
 #include "gui/guidialog.h"
+#include "main/game_file.h"
 #include "main/main.h"
 #include "media/audio/audio.h"
+#include "media/audio/soundclip.h"
 #include "plugin/agsplugin.h"
+#include "script/cc_error.h"
+#include "script/runtimescriptvalue.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
-#include "ac/spritecache.h"
-#include "util/filestream.h"
-#include "gfx/graphicsdriver.h"
-#include "gfx/bitmap.h"
-#include "script/runtimescriptvalue.h"
 #include "util/alignedstream.h"
-#include "main/game_file.h"
+#include "util/filestream.h"
+#include "util/string_utils.h"
 
 using AGS::Common::AlignedStream;
 using AGS::Common::String;
 using AGS::Common::Stream;
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
-
-#if !defined (WINDOWS_VERSION)
-#include <sys/stat.h>                      //mkdir
-#endif
 
 extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
 extern int time_between_timers;
@@ -326,7 +325,7 @@ int oldmouse;
 void setup_for_dialog() {
     cbuttfont = play.normal_font;
     acdialog_font = play.normal_font;
-    wsetscreen(virtual_screen);
+    SetVirtualScreen(virtual_screen);
     if (!play.mouse_cursor_hidden)
         domouse(1);
     oldmouse=cur_cursor; set_mouse_cursor(CURS_ARROW);
@@ -1037,7 +1036,7 @@ long write_screen_shot_for_vista(Stream *out, Bitmap *screenshot)
     char tempFileName[MAX_PATH];
     sprintf(tempFileName, "%s""_tmpscht.bmp", saveGameDirectory);
 
-	BitmapHelper::SaveToFile(screenshot, tempFileName, palette);
+	screenshot->SaveToFile(tempFileName, palette);
 
     update_polled_stuff_if_runtime();
 
@@ -1157,10 +1156,10 @@ void save_game_room_state(Stream *out)
                     out->Write(&roomstat->tsdata[0], roomstat->tsdatasize);
             }
             else
-                out->WriteInt8 (0); // <--- [IKM] added by me, CHECKME if needed / works correctly
+                out->WriteInt8(0);
         }
         else
-            out->WriteInt8 (0);
+            out->WriteInt8(0);
     }
 }
 
@@ -1227,7 +1226,7 @@ void WriteAnimatedButtons_Aligned(Stream *out)
 
 void save_game_gui(Stream *out)
 {
-    write_gui(out,guis,&game);
+    write_gui(out,guis,&game,true);
     out->WriteInt32(numAnimButs);
     WriteAnimatedButtons_Aligned(out);
 }
@@ -1308,7 +1307,6 @@ void save_game_displayed_room_status(Stream *out)
 
         // save the current troom, in case they save in room 600 or whatever
         WriteRoomStatus_Aligned(&troom, out);
-        //out->WriteArray(&troom,sizeof(RoomStatus),1);
         if (troom.tsdatasize>0)
             out->Write(&troom.tsdata[0],troom.tsdatasize);
 
@@ -1460,7 +1458,6 @@ void create_savegame_screenshot(Bitmap *&screenShot)
         if (gfxDriver->UsesMemoryBackBuffer())
         {
             screenShot = BitmapHelper::CreateBitmap(usewid, usehit, virtual_screen->GetColorDepth());
-
             screenShot->StretchBlt(virtual_screen,
 				RectWH(0, 0, virtual_screen->GetWidth(), virtual_screen->GetHeight()),
 				RectWH(0, 0, screenShot->GetWidth(), screenShot->GetHeight()));
@@ -1991,7 +1988,6 @@ void restore_game_displayed_room_status(Stream *in, Bitmap **newbscene)
         }
         else
             troom.tsdata = NULL;
-
     }
 }
 
@@ -2331,7 +2327,7 @@ int restore_game_data (Stream *in, const char *nametouse) {
 
     if (musicpos > 0) {
     // For some reason, in Prodigal after this Seek line is called
-    // it can cause the next update_polled_stuff to crash;
+    // it can cause the next update_polled_mp3 to crash;
     // must be some sort of bug in AllegroMP3
     if ((crossFading > 0) && (channels[crossFading] != NULL))
     channels[crossFading]->seek(musicpos);

@@ -13,7 +13,6 @@
 //=============================================================================
 
 #include "ac/global_button.h"
-#include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "ac/button.h"
 #include "ac/gamesetupstruct.h"

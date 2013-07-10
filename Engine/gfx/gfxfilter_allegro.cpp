@@ -12,10 +12,10 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
+#include <stdio.h>
+#include "gfx/bitmap.h"
 #include "gfx/gfxfilter_allegro.h"
 #include "gfx/gfxfilterdefines.h"
-#include "gfx/bitmap.h"
 
 using AGS::Common::Bitmap;
 
@@ -46,8 +46,9 @@ Bitmap *AllegroGFXFilter::ShutdownAndReturnRealScreen(Bitmap *currentScreen) {
 
 void AllegroGFXFilter::RenderScreen(Bitmap *toRender, int x, int y) {
 
-    if (toRender != realScreen) 
+    if (toRender != realScreen) {
         realScreen->Blit(toRender, 0, 0, x, y, toRender->GetWidth(), toRender->GetHeight());
+    }
 
     lastBlitX = x;
     lastBlitY = y;
@@ -77,6 +78,7 @@ void AllegroGFXFilter::GetCopyOfScreenIntoBitmap(Bitmap *copyBitmap)
 
 void AllegroGFXFilter::GetCopyOfScreenIntoBitmap(Bitmap *copyBitmap, bool copyWithOffset)
 {
-    if (copyBitmap != realScreen)
+    if (copyBitmap != realScreen) {
         copyBitmap->Blit(realScreen, (copyWithOffset ? lastBlitX : 0), (copyWithOffset ? lastBlitY : 0), 0, 0, copyBitmap->GetWidth(), copyBitmap->GetHeight());
+    }
 }

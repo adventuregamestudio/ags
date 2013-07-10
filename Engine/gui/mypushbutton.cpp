@@ -15,8 +15,10 @@
 #include <string.h>
 #include "util/wgt2allg.h"
 #include "gfx/ali3d.h"
+#include "ac/common.h"
 #include "ac/mouse.h"
 #include "ac/record.h"
+#include "font/fonts.h"
 #include "gui/mypushbutton.h"
 #include "gui/guidialog.h"
 #include "gui/guidialoginternaldefs.h"
@@ -43,31 +45,31 @@ MyPushButton::MyPushButton(int xx, int yy, int wi, int hi, char *tex)
     text[49] = 0;
 };
 
-void MyPushButton::draw()
+void MyPushButton::draw(Bitmap *ds)
 {
-    wtextcolor(0);
-    wsetcolor(COL254);
-    abuf->FillRect(Rect(x, y, x + wid, y + hit), currentcolor);
+    color_t text_color = ds->GetCompatibleColor(0);
+    color_t draw_color = ds->GetCompatibleColor(COL254);
+    ds->FillRect(Rect(x, y, x + wid, y + hit), draw_color);
     if (state == 0)
-        wsetcolor(pushbuttondarkcolor);
+        draw_color = ds->GetCompatibleColor(pushbuttondarkcolor);
     else
-        wsetcolor(pushbuttonlightcolor);
+        draw_color = ds->GetCompatibleColor(pushbuttonlightcolor);
 
-    abuf->DrawRect(Rect(x, y, x + wid, y + hit), currentcolor);
+    ds->DrawRect(Rect(x, y, x + wid, y + hit), draw_color);
     if (state == 0)
-        wsetcolor(pushbuttonlightcolor);
+        draw_color = ds->GetCompatibleColor(pushbuttonlightcolor);
     else
-        wsetcolor(pushbuttondarkcolor);
+        draw_color = ds->GetCompatibleColor(pushbuttondarkcolor);
 
-    abuf->DrawLine(Line(x, y, x + wid - 1, y), currentcolor);
-    abuf->DrawLine(Line(x, y, x, y + hit - 1), currentcolor);
-    wouttextxy(x + (wid / 2 - wgettextwidth(text, cbuttfont) / 2), y + 2, cbuttfont, text);
+    ds->DrawLine(Line(x, y, x + wid - 1, y), draw_color);
+    ds->DrawLine(Line(x, y, x, y + hit - 1), draw_color);
+    wouttextxy(ds, x + (wid / 2 - wgettextwidth(text, cbuttfont) / 2), y + 2, cbuttfont, text_color, text);
     if (typeandflags & CNF_DEFAULT)
-        wsetcolor(0);
+        draw_color = ds->GetCompatibleColor(0);
     else
-        wsetcolor(windowbackgroundcolor);
+        draw_color = ds->GetCompatibleColor(windowbackgroundcolor);
 
-    abuf->DrawRect(Rect(x - 1, y - 1, x + wid + 1, y + hit + 1), currentcolor);
+    ds->DrawRect(Rect(x - 1, y - 1, x + wid + 1, y + hit + 1), draw_color);
 }
 
 //extern const int LEFT;  // in mousew32
@@ -84,7 +86,7 @@ int MyPushButton::pressedon()
         update_polled_stuff_if_runtime();
         if (wasstat != state) {
             //        domouse(2);
-            draw();
+            draw(GetVirtualScreen());
             //domouse(1);
         }
 
@@ -97,7 +99,7 @@ int MyPushButton::pressedon()
     wasstat = state;
     state = 0;
     //    domouse(2);
-    draw();
+    draw(GetVirtualScreen());
     //  domouse(1);
     return wasstat;
 }

@@ -29,5 +29,6 @@ void DisplayMessageBar(int ypos, int ttexcol, int backcol, const char *title, in
 
 void SetSpeechStyle (int newstyle);
 void SetSkipSpeech (int newval);
+int  GetSkipSpeech();
 
 #endif // __AGS_EE_AC__GLOBALDISPLAY_H

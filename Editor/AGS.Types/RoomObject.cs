@@ -50,7 +50,7 @@ namespace AGS.Types
             get { return _id; }
             set { _id = value; }
         }
-
+        
         [Description("Sprite used to display the object")]
         [Category("Appearance")]
         [EditorAttribute(typeof(SpriteSelectUIEditor), typeof(System.Drawing.Design.UITypeEditor))]

@@ -31,6 +31,7 @@
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/all_scriptclasses.h"
 #include "debug/debug_log.h"
+#include "font/fonts.h"
 #include "gui/guilabel.h"
 #include "main/main.h"
 #include "platform/base/agsplatformdriver.h"
@@ -38,6 +39,7 @@
 #include "script/script.h"
 #include "util/stream.h"
 #include "gfx/bitmap.h"
+#include "gfx/blender.h"
 #include "core/assetmanager.h"
 #include "ac/statobj/agsstaticobject.h"
 #include "ac/statobj/staticarray.h"
@@ -517,7 +519,6 @@ void init_and_register_game_objects()
 	init_and_register_guis();
     init_and_register_fonts();    
 
-    wtexttransparent(TEXTFG);
     play.fade_effect=game.options[OPT_FADETYPE];
 
     our_eip=-21;
@@ -613,6 +614,7 @@ int load_game_file() {
         // Force new style rendering for gui sprites with alpha channel
         game.options[OPT_NEWGUIALPHA] = 1;
     }
+    init_blenders((GameGuiAlphaRenderingStyle)game.options[OPT_NEWGUIALPHA]);
 
     if (game.numfonts > MAX_FONTS)
         quit("!This game requires a newer version of AGS. Too many fonts for this version to handle.");

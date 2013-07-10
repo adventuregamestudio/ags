@@ -22,14 +22,13 @@
 #pragma warning (disable: 4996 4312)  // disable deprecation warnings
 #endif
 
-#include "util/wgt2allg.h"
 #include "ac/common.h"
 #include "ac/spritecache.h"
+#include "core/assetmanager.h"
+#include "gfx/bitmap.h"
 #include "util/compress.h"
 #include "util/file.h"
-#include "util/filestream.h"
-#include "gfx/bitmap.h"
-#include "core/assetmanager.h"
+#include "util/stream.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -49,7 +48,14 @@ extern int spritewidth[], spriteheight[];
 #define START_OF_LIST -1
 #define END_OF_LIST   -1
 // PSP: Use smaller sprite cache due to limited total memory.
-#define DEFAULTCACHESIZE 5000000 //20240000        // max size, in bytes (20 MB)
+#if defined (PSP_VERSION)
+#define DEFAULTCACHESIZE 5000000
+#else
+#define DEFAULTCACHESIZE 20240000        // max size, in bytes (20 MB)
+#endif
+
+const char *spindexid = "SPRINDEX";
+const char *spindexfilename = "sprindex.dat";
 
 
 SpriteCache::SpriteCache(long maxElements)
@@ -559,7 +565,7 @@ int SpriteCache::saveToFile(const char *filnam, int lastElement, bool compressOu
         output->Seek(Common::kSeekEnd, 0);
       }
       else
-        output->WriteArray(&images[i]->GetScanLine(0)[0], spritewidths[i] * bpss, spriteheights[i]);
+        output->WriteArray(images[i]->GetDataForWriting(), spritewidths[i] * bpss, spriteheights[i]);
 
       continue;
     }

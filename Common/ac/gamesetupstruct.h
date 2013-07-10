@@ -26,6 +26,7 @@
 #include "ac/gamesetupstructbase.h"
 #include "ac/oldgamesetupstruct.h"
 #include "ac/dynobj/scriptaudioclip.h" // ScriptAudioClip
+#include "util/string.h"
 
 // [IKM] Do not change the order of variables in this struct!
 // Until the serialization and script referencing methods are improved

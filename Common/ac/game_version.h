@@ -28,7 +28,12 @@ Game data versions and changes:
 
 Versions above are incompatible at the moment.
 
-19 : 2.5.1
+18 : 2.5.0
+19 : 2.5.1 + 2.52
+20 : 2.5.3
+
+Lip sync data added.
+21 : 2.5.4
 22 : 2.5.5
 
 Variable number of sprites.
@@ -70,7 +75,8 @@ enum GameDataVersion
     kGameVersion_230            = 12,
     kGameVersion_240            = 12,
     kGameVersion_250            = 18,
-    kGameVersion_251            = 19,
+    kGameVersion_251            = 19, // same as 2.52
+    kGameVersion_253            = 20,
     kGameVersion_254            = 21,
     kGameVersion_255            = 22,
     kGameVersion_256            = 24,

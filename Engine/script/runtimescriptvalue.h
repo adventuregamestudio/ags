@@ -29,6 +29,8 @@ enum ScriptValueType
     kScValUndefined,    // to detect errors
     kScValInteger,      // as strictly 32-bit integer (for integer math)
     kScValFloat,        // as float (for floating point math), 32-bit
+    kScValPluginArg,    // an 32-bit value, passed to a script function when called
+                        // directly by plugin; is allowed to represent object pointer
     kScValStackPtr,     // as a pointer to stack entry
     kScValData,         // as a container for randomly sized data (usually array)
     kScValGlobalVar,    // as a pointer to script variable; used only for global vars,
@@ -38,6 +40,8 @@ enum ScriptValueType
     kScValStaticObject, // as a pointer to static global script object
     kScValStaticArray,  // as a pointer to static global array (of static or dynamic objects)
     kScValDynamicObject,// as a pointer to managed script object
+    kScValPluginObject, // as a pointer to object managed by plugin (similar to
+                        // kScValDynamicObject, but has backward-compatible limitations)
     kScValStaticFunction,// as a pointer to static function
     kScValPluginFunction,// temporary workaround for plugins (unsafe function ptr)
     kScValObjectFunction,// as a pointer to object member function, gets object pointer as
@@ -119,7 +123,7 @@ public:
         Size    = 0;
         return *this;
     }
-    inline RuntimeScriptValue &SetInt8(int8_t val)
+    inline RuntimeScriptValue &SetUInt8(uint8_t val)
     {
         Type    = kScValInteger;
         IValue  = val;
@@ -162,6 +166,15 @@ public:
     inline RuntimeScriptValue &SetFloatAsBool(bool val)
     {
         return SetFloat(val ? 1.0F : 0.0F);
+    }
+    inline RuntimeScriptValue &SetPluginArgument(int32_t val)
+    {
+        Type    = kScValPluginArg;
+        IValue  = val;
+        Ptr     = NULL;
+        MgrPtr  = NULL;
+        Size    = 4;
+        return *this;
     }
     inline RuntimeScriptValue &SetStackPtr(RuntimeScriptValue *stack_entry)
     {
@@ -221,6 +234,15 @@ public:
     inline RuntimeScriptValue &SetDynamicObject(void *object, ICCDynamicObject *manager)
     {
         Type    = kScValDynamicObject;
+        IValue  = 0;
+        Ptr     = (char*)object;
+        DynMgr  = manager;
+        Size    = 4;
+        return *this;
+    }
+    inline RuntimeScriptValue &SetPluginObject(void *object, ICCDynamicObject *manager)
+    {
+        Type    = kScValPluginObject;
         IValue  = 0;
         Ptr     = (char*)object;
         DynMgr  = manager;

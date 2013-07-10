@@ -12,7 +12,6 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
 #include "ac/gamesetupstructbase.h"
 #include "util/stream.h"
 
@@ -52,9 +51,16 @@ void GameSetupStructBase::ReadFromFile(Stream *in)
     //for (i = 0; i < MAXGLOBALMES; i++)
     //  messages[i] = (char*)in->ReadInt32();
 
+    // The following pointers are used as flags at one point
+    // during game loading, therefore they are initialized with
+    // some values here. These values are never treated as
+    // actual addresses, only as boolean values.
+    // See:
+    // - GameSetupStruct::read_words_dictionary(), dict
+    // - load_game_file(), compiled_script
     dict = (WordsDictionary *) in->ReadInt32();
-    globalscript = (char *) in->ReadInt32();
-    chars = (CharacterInfo *) in->ReadInt32();
+    in->ReadInt32(); // globalscript
+    in->ReadInt32(); // chars
     compiled_script = (ccScript *) in->ReadInt32();
 }
 
@@ -87,8 +93,8 @@ void GameSetupStructBase::WriteToFile(Stream *out)
     out->WriteArrayOfInt32(reserved, 17);
     // write the final ptrs so we know to load dictionary, scripts etc
     out->WriteArrayOfIntPtr32((intptr_t*)messages, MAXGLOBALMES);
-    out->WriteInt32((int32)dict);
-    out->WriteInt32((int32)globalscript);
-    out->WriteInt32((int32)chars);
-    out->WriteInt32((int32)compiled_script);
+    out->WriteInt32(dict ? 1 : 0);
+    out->WriteInt32(0); // globalscript
+    out->WriteInt32(0); // chars
+    out->WriteInt32(compiled_script ? 1 : 0);
 }

@@ -116,6 +116,15 @@ void *ccGetSymbolAddressForPlugin(char *namof)
     {
         return import->Value.Ptr;
     }
+    else
+    {
+        // Also search the internal symbol table for non-function symbols
+        import = simp.getByName(namof);
+        if (import)
+        {
+            return import->Value.Ptr;
+        }
+    }
     return NULL;
 }
 
@@ -141,7 +150,7 @@ void ccSetDebugHook(new_line_hook_type jibble)
     new_line_hook = jibble;
 }
 
-int call_function(intptr_t addr, int numparm, const RuntimeScriptValue *parms)
+int call_function(intptr_t addr, const RuntimeScriptValue *object, int numparm, const RuntimeScriptValue *parms)
 {
     if (!addr)
     {
@@ -155,17 +164,24 @@ int call_function(intptr_t addr, int numparm, const RuntimeScriptValue *parms)
     }
 
     intptr_t parm_value[9];
-    for (int i = 0; i < numparm; ++i)
+    if (object)
     {
-        switch (parms[i].Type)
+        parm_value[0] = (intptr_t)object->GetPtrWithOffset();
+        numparm++;
+    }
+
+    for (int ival = object ? 1 : 0, iparm = 0; ival < numparm; ++ival, ++iparm)
+    {
+        switch (parms[iparm].Type)
         {
         case kScValInteger:
         case kScValFloat:   // AGS passes floats, copying their values into long variable
-            parm_value[i] = (intptr_t)parms[i].IValue;
+        case kScValPluginArg:
+            parm_value[ival] = (intptr_t)parms[iparm].IValue;
             break;
             break;
         default:
-            parm_value[i] = (intptr_t)parms[i].GetPtrWithOffset();
+            parm_value[ival] = (intptr_t)parms[iparm].GetPtrWithOffset();
             break;
         }
     }

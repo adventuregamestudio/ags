@@ -19,7 +19,8 @@
 #ifndef __CC_DYNAMICOBJECT_H
 #define __CC_DYNAMICOBJECT_H
 
-#include "util/file.h"
+#include "core/types.h"
+#include "script/runtimescriptvalue.h"
 
 // Forward declaration
 namespace AGS { namespace Common { class Stream; } }
@@ -63,9 +64,9 @@ struct ICCStringClass {
 extern void  ccSetStringClassImpl(ICCStringClass *theClass);
 // register a memory handle for the object and allow script
 // pointers to point to it
-extern int32_t ccRegisterManagedObject(const void *object, ICCDynamicObject *);
+extern int32_t ccRegisterManagedObject(const void *object, ICCDynamicObject *, bool plugin_object = false);
 // register a de-serialized object
-extern int32_t ccRegisterUnserializedObject(int index, const void *object, ICCDynamicObject *);
+extern int32_t ccRegisterUnserializedObject(int index, const void *object, ICCDynamicObject *, bool plugin_object = false);
 // unregister a particular object
 extern int   ccUnRegisterManagedObject(const void *object);
 // remove all registered objects
@@ -79,7 +80,7 @@ extern void  ccAttemptDisposeObject(int32_t handle);
 // translate between object handles and memory addresses
 extern int32_t ccGetObjectHandleFromAddress(const char *address);
 extern const char *ccGetObjectAddressFromHandle(int32_t handle);
-extern void  ccGetObjectAddressAndManagerFromHandle(int32_t handle, void *&object, ICCDynamicObject *&manager);
+extern ScriptValueType ccGetObjectAddressAndManagerFromHandle(int32_t handle, void *&object, ICCDynamicObject *&manager);
 
 extern int ccAddObjectReference(int32_t handle);
 extern int ccReleaseObjectReference(int32_t handle);

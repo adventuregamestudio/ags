@@ -12,8 +12,8 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
 #include "ac/timer.h"
+#include "util/wgt2allg.h" // END_OF_FUNCTION macro
 
 extern volatile int mvolcounter;
 

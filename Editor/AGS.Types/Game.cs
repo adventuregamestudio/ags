@@ -119,6 +119,11 @@ namespace AGS.Types
                 {
                     guis.Add(gui);
                 }
+                guis.Sort(
+                        delegate(GUI p1, GUI p2)
+                        {
+                            return p1.ID.CompareTo(p2.ID);
+                        });
                 return guis; 
             }
         }
@@ -132,6 +137,11 @@ namespace AGS.Types
                 {
                     inventoryItems.Add(inventoryItem);
                 }
+                inventoryItems.Sort(
+                        delegate(InventoryItem p1, InventoryItem p2)
+                        {
+                            return p1.ID.CompareTo(p2.ID);
+                        });
                 return inventoryItems;
             }
         }
@@ -145,6 +155,11 @@ namespace AGS.Types
                 {
                     characters.Add(character);
                 }
+                characters.Sort(
+                        delegate(Character p1, Character p2)
+                        {
+                            return p1.ID.CompareTo(p2.ID);
+                        });
                 return characters; 
             }
         }
@@ -158,6 +173,11 @@ namespace AGS.Types
                 {
                     dialogs.Add(dialog);
                 }
+                dialogs.Sort(
+                        delegate(Dialog p1, Dialog p2)
+                        {
+                            return p1.ID.CompareTo(p2.ID);
+                        });
                 return dialogs; 
             }
         }
@@ -191,6 +211,11 @@ namespace AGS.Types
                 {
                     rooms.Add(room);
                 }
+                rooms.Sort(
+                        delegate(IRoom p1, IRoom p2)
+                        {
+                            return p1.Number.CompareTo(p2.Number);
+                        });
                 return rooms;
             }
         }

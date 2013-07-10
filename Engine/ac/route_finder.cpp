@@ -17,7 +17,6 @@
 //
 //=============================================================================
 
-#include "util/wgt2allg.h"
 #include "ac/route_finder.h"
 #include "ac/common.h"   // quit()
 #include "ac/movelist.h"     // MoveList
@@ -87,7 +86,7 @@ int can_see_from(int x1, int y1, int x2, int y2)
     return 1;
 
   // TODO: need some way to use Bitmap with callback
-  do_line((BITMAP*)wallscreen->GetBitmapObject(), x1, y1, x2, y2, 0, line_callback);
+  do_line((BITMAP*)wallscreen->GetAllegroBitmap(), x1, y1, x2, y2, 0, line_callback);
   if (line_failed == 0)
     return 1;
 
@@ -142,14 +141,12 @@ int is_route_possible(int fromx, int fromy, int tox, int toy, Bitmap *wss)
   if (wallscreen->GetPixel(fromx, fromy) < 1)
     return 0;
 
-  Bitmap *tempw = BitmapHelper::CreateBitmap(wallscreen->GetWidth(), wallscreen->GetHeight(), 8);
+  Bitmap *tempw = BitmapHelper::CreateBitmapCopy(wallscreen, 8);
 
   if (tempw == NULL)
     quit("no memory for route calculation");
   if (!tempw->IsMemoryBitmap())
     quit("tempw is not memory bitmap");
-
-  tempw->Blit(wallscreen, 0, 0, 0, 0, tempw->GetWidth(), tempw->GetHeight());
 
   int dd, ff;
   // initialize array for finding widths of walkable areas
@@ -161,8 +158,9 @@ int is_route_possible(int fromx, int fromy, int tox, int toy, Bitmap *wss)
   }
 
   for (ff = 0; ff < tempw->GetHeight(); ff++) {
+    const uint8_t *tempw_scanline = tempw->GetScanLine(ff);
     for (dd = 0; dd < tempw->GetWidth(); dd++) {
-      thisar = tempw->GetScanLine(ff)[dd];
+      thisar = tempw_scanline[dd];
       // count how high the area is at this point
       if ((thisar == lastarea) && (thisar > 0))
         inarow++;
@@ -179,9 +177,10 @@ int is_route_possible(int fromx, int fromy, int tox, int toy, Bitmap *wss)
 
   for (dd = 0; dd < tempw->GetWidth(); dd++) {
     for (ff = 0; ff < tempw->GetHeight(); ff++) {
-      thisar = tempw->GetScanLine(ff)[dd];
+      uint8_t *tempw_scanline = tempw->GetScanLineForWriting(ff);
+      thisar = tempw_scanline[dd];
       if (thisar > 0)
-        tempw->PutPixel(dd, ff, 1);
+        tempw_scanline[dd] = 1;
       // count how high the area is at this point
       if ((thisar == lastarea) && (thisar > 0))
         inarow++;

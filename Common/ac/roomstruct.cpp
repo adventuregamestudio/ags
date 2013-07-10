@@ -13,16 +13,14 @@
 //=============================================================================
 
 #include <stdio.h>
-#include "util/wgt2allg.h"
 #include "ac/roomstruct.h"
 #include "ac/common.h"
 #include "ac/wordsdictionary.h"
 #include "util/string_utils.h"      // fputstring, etc
 #include "util/compress.h"
-#include "util/file.h"
 #include "util/stream.h"
-#include "gfx/bitmap.h"
 #include "core/assetmanager.h"
+#include "gfx/bitmap.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -170,7 +168,7 @@ void load_main_block(roomstruct *rstruc, const char *files, Stream *in, room_fil
 		free(rstruc->hotspotnames[f]);
 
 	rstruc->hotspotnames[f] = (char*)malloc(20);
-    sprintf(rstruc->hotspotnames[f], "Hotspot %d");
+    sprintf(rstruc->hotspotnames[f], "Hotspot %d", f);
 
     if (f == 0)
       strcpy(rstruc->hotspotnames[f], "No hotspot");
@@ -407,10 +405,12 @@ void load_main_block(roomstruct *rstruc, const char *files, Stream *in, room_fil
     else
       fgetstring_limit(buffre, in, 2999);
 
-    rstruc->message[f] = (char *)malloc(strlen(buffre) + 2);
+    int buffre_length = strlen(buffre);
+
+    rstruc->message[f] = (char *)malloc(buffre_length + 2);
     strcpy(rstruc->message[f], buffre);
 
-    if (buffre[strlen(buffre)-1] == (char)200) {
+    if ((buffre_length > 0) && (buffre[buffre_length-1] == (char)200)) {
       rstruc->message[f][strlen(buffre)-1] = 0;
       rstruc->msgi[f].flags |= MSG_DISPLAYNEXT;
     }
@@ -478,8 +478,7 @@ void load_main_block(roomstruct *rstruc, const char *files, Stream *in, room_fil
     // Old version - copy walkable areas to Regions
     if (rstruc->regions == NULL)
       rstruc->regions = BitmapHelper::CreateBitmap(rstruc->walls->GetWidth(), rstruc->walls->GetHeight(), 8);
-    rstruc->regions->Clear ();
-
+    rstruc->regions->Fill(0);
     rstruc->regions->Blit (rstruc->walls, 0, 0, 0, 0, rstruc->regions->GetWidth(), rstruc->regions->GetHeight());
     for (f = 0; f <= 15; f++) {
       rstruc->regionLightLevel[f] = rstruc->walk_area_light[f];

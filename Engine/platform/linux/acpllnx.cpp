@@ -18,7 +18,8 @@
 
 // ********* LINUX PLACEHOLDER DRIVER *********
 
-#include "util/wgt2allg.h"
+#include <stdio.h>
+#include <allegro.h>
 #include "gfx/ali3d.h"
 #include "ac/runtime_defines.h"
 #include "platform/base/agsplatformdriver.h"
@@ -27,6 +28,15 @@
 
 #include <pwd.h>
 #include <sys/stat.h>
+
+
+// Replace the default Allegro icon. The original defintion is in the
+// Allegro 4.4 source under "src/x/xwin.c".
+extern "C" {
+#include "icon.xpm";
+}
+extern void *allegro_icon = icon_xpm;
+
 
 struct AGSLinux : AGSPlatformDriver {
 

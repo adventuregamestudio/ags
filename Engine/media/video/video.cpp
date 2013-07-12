@@ -15,6 +15,7 @@
 #include "video.h"
 #include "gfx/ali3d.h"
 #include "apeg.h"
+#include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/file.h"
 #include "ac/gamesetupstruct.h"
@@ -75,7 +76,7 @@ extern "C" int fli_callback() {
 #endif
     Bitmap *usebuf = fli_buffer;
 
-    update_polled_stuff_and_crossfade ();
+    update_polled_audio_and_crossfade ();
 
     if (game.color_depth > 1) {
         hicol_buf->Blit(fli_buffer,0,0,0,0,fliwidth,fliheight);
@@ -140,7 +141,7 @@ int theora_playing_callback(BITMAP *theoraBuffer)
 
     gfxDriver->DrawSprite(drawAtX, drawAtY, fli_ddb);
     render_to_screen(virtual_screen, 0, 0);
-    update_polled_stuff_and_crossfade ();
+    update_polled_audio_and_crossfade ();
 
     return check_if_user_input_should_cancel_video();
 }

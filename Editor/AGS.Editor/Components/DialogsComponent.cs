@@ -141,9 +141,14 @@ namespace AGS.Editor.Components
             }
         }
 
-        protected override void AddExtraCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
+        protected override void AddNewItemCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
         {
             menu.Add(new MenuCommand(COMMAND_NEW_ITEM, "New Dialog", null));
+        }
+
+        protected override void AddExtraCommandsToFolderContextMenu(string controlID, IList<MenuCommand> menu)
+        {
+            // No more commands in this menu
         }
 
         public override IList<MenuCommand> GetContextMenu(string controlID)

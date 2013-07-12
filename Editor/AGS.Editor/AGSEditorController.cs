@@ -28,6 +28,14 @@ namespace AGS.Editor
 			_componentController.AddComponent(component);
 		}
 
+        IList<IEditorComponent> IAGSEditor.Components
+        {
+            get
+            {
+                return _componentController.Components;
+            }
+        }
+
 		IGUIController IAGSEditor.GUIController
 		{
 			get { return _guiController; }

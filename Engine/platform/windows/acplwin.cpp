@@ -637,7 +637,7 @@ void AGSWin32::Delay(int millis)
     millis -= 5;
     // don't allow it to check for debug messages, since this Delay()
     // call might be from within a debugger polling loop
-    update_polled_stuff(false);
+    update_polled_mp3();
   }
 
   if (millis > 0)

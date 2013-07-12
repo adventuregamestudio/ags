@@ -21,6 +21,7 @@
 #include "platform/base/agsplatformdriver.h"
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
+#include "gfx/gfx_util.h"
 #include "gfx/graphicsdriver.h"
 
 #include <stdio.h>
@@ -214,7 +215,6 @@ private:
   DDCAPS ddrawCaps;
 #endif
 
-  void draw_sprite_with_transparency(Bitmap *piccy, int xxx, int yyy, int transparency);
   void highcolor_fade_out(int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
   void highcolor_fade_in(Bitmap *bmp_orig, int speed, int targetColourRed, int targetColourGreen, int targetColourBlue);
   void __fade_from_range(PALLETE source, PALLETE dest, int speed, int from, int to) ;
@@ -495,50 +495,6 @@ void ALSoftwareGraphicsDriver::ClearDrawList()
   numToDraw = 0;
 }
 
-void ALSoftwareGraphicsDriver::draw_sprite_with_transparency(Bitmap *piccy, int xxx, int yyy, int transparency)
-{
-  int screen_depth = virtualScreen->GetColorDepth();
-  int sprite_depth = piccy->GetColorDepth();
-
-  if (sprite_depth < screen_depth) {
-
-    if ((sprite_depth == 8) && (screen_depth >= 24)) {
-      // 256-col sprite -> truecolor background
-      // this is automatically supported by allegro, no twiddling needed
-      virtualScreen->Blit(piccy, xxx, yyy, Common::kBitmap_Transparency);
-      return;
-    }
-    // 256-col spirte -> hi-color background, or
-    // 16-bit sprite -> 32-bit background
-    Bitmap* hctemp=BitmapHelper::CreateBitmapCopy(piccy, screen_depth);
-    int bb,cc,mask_col = virtualScreen->GetMaskColor();
-
-    if (sprite_depth == 8) {
-      // only do this for 256-col, cos the Blit call converts
-      // transparency for 16->32 bit
-      for (bb=0;bb<hctemp->GetWidth();bb++) {
-        for (cc=0;cc<hctemp->GetHeight();cc++)
-          if (piccy->GetPixel(bb,cc)==0) hctemp->PutPixel(bb,cc,mask_col);
-      }
-    }
-
-    virtualScreen->Blit(hctemp, xxx, yyy, Common::kBitmap_Transparency);
-    delete hctemp;
-  }
-  else
-  {
-    if ((transparency != 0) && (screen_depth > 8) &&
-        (sprite_depth > 8) && (virtualScreen->GetColorDepth() > 8)) 
-    {
-      set_trans_blender(0,0,0, transparency);
-	  virtualScreen->TransBlendBlt(piccy, xxx, yyy);
-    }
-    else
-      virtualScreen->Blit(piccy, xxx, yyy, Common::kBitmap_Transparency);
-  }
-  
-}
-
 void ALSoftwareGraphicsDriver::SetRenderOffset(int x, int y)
 {
   _global_x_offset = x;
@@ -584,7 +540,7 @@ void ALSoftwareGraphicsDriver::RenderToBackBuffer()
     }
     else
     {
-      draw_sprite_with_transparency(bitmap->_bmp, drawAtX, drawAtY, bitmap->_transparency);
+      GfxUtil::DrawSpriteWithTransparency(virtualScreen, bitmap->_bmp, drawAtX, drawAtY, bitmap->_transparency);
     }
   }
 

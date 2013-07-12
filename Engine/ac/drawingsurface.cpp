@@ -31,6 +31,7 @@
 #include "gui/guimain.h"
 #include "ac/spritecache.h"
 #include "script/runtimescriptvalue.h"
+#include "gfx/gfx_util.h"
 
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
@@ -47,7 +48,6 @@ extern int spritewidth[MAX_SPRITES],spriteheight[MAX_SPRITES];
 extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 
 extern int current_screen_resolution_multiplier;
-extern int trans_mode;
 
 // ** SCRIPT DRAWINGSURFACE OBJECT
 
@@ -213,8 +213,8 @@ void DrawingSurface_DrawSurface(ScriptDrawingSurface* target, ScriptDrawingSurfa
         quit("!DrawingSurface.DrawSurface: 256-colour surfaces cannot be drawn transparently");
 
     // Draw it transparently
-    trans_mode = ((100-translev) * 25) / 10;
-    put_sprite_256(ds, 0, 0, surfaceToDraw);
+    int trans_mode = ((100-translev) * 25) / 10;
+    AGS::Engine::GfxUtil::DrawSpriteWithTransparency(ds, surfaceToDraw, 0, 0, trans_mode);
     target->FinishedDrawing();
 }
 
@@ -261,12 +261,13 @@ void DrawingSurface_DrawImage(ScriptDrawingSurface* sds, int xx, int yy, int slo
         debug_log("RawDrawImage: Sprite %d colour depth %d-bit not same as background depth %d-bit", slot, spriteset[slot]->GetColorDepth(), ds->GetColorDepth());
     }
 
+    int trans_mode = 0;
     if (trans > 0)
     {
         trans_mode = ((100 - trans) * 255) / 100;
     }
 
-    draw_sprite_support_alpha(ds, xx, yy, sourcePic, slot);
+    draw_sprite_support_alpha(ds, xx, yy, sourcePic, slot, trans_mode);
 
     sds->FinishedDrawing();
 

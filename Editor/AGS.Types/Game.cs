@@ -22,7 +22,11 @@ namespace AGS.Types
         public const int MAX_INV_ITEMS = 300;
         public const int MAX_SPRITES = 30000;
 
+        public delegate void GUIAddedOrRemovedHandler(GUI theGUI);
+        public delegate void GUIControlAddedOrRemovedHandler(GUI owningGUI, GUIControl control);
         public delegate void ViewListUpdatedHandler();
+        public event GUIAddedOrRemovedHandler GUIAddedOrRemoved;
+        public event GUIControlAddedOrRemovedHandler GUIControlAddedOrRemoved;
         /// <summary>
         /// Fired when an external client adds/removes views
         /// </summary>
@@ -403,6 +407,22 @@ namespace AGS.Types
             if (ViewListUpdated != null)
             {
                 ViewListUpdated();
+            }
+        }
+
+        public void NotifyClientsGUIAddedOrRemoved(GUI theGUI)
+        {
+            if (GUIAddedOrRemoved != null)
+            {
+                GUIAddedOrRemoved(theGUI);
+            }
+        }
+
+        public void NotifyClientsGUIControlAddedOrRemoved(GUI owningGUI, GUIControl control)
+        {
+            if (GUIControlAddedOrRemoved != null)
+            {
+                GUIControlAddedOrRemoved(owningGUI, control);
             }
         }
 

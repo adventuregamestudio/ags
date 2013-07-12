@@ -54,6 +54,7 @@
 #include "plugin/agsplugin.h"
 #include "ac/spritecache.h"
 #include "gfx/ddb.h"
+#include "gfx/gfx_util.h"
 #include "gfx/graphicsdriver.h"
 
 using AGS::Common::Bitmap;
@@ -154,8 +155,6 @@ Bitmap *_old_screen=NULL;
 Bitmap *_sub_screen=NULL;
 
 int offsetx = 0, offsety = 0;
-
-int trans_mode=0;
 
 IDriverDependantBitmap* roomBackgroundBmp = NULL;
 
@@ -326,10 +325,9 @@ Bitmap *convert_16_to_16bgr(Bitmap *tempbl) {
 // PSP: convert 32 bit RGB to BGR.
 Bitmap *convert_32_to_32bgr(Bitmap *tempbl) {
 
-    unsigned char* current = tempbl->GetScanLineForWriting(0);
-
     int i = 0;
     int j = 0;
+    unsigned char* current;
     while (i < tempbl->GetHeight())
     {
         current = tempbl->GetScanLineForWriting(i);
@@ -480,13 +478,16 @@ void update_invalid_region(Bitmap *ds, int x, int y, Bitmap *src) {
     else {
         int k, tx1, tx2, srcdepth = src->GetColorDepth();
         if ((srcdepth == ds->GetColorDepth()) && (ds->IsMemoryBitmap())) {
-            int bypp = bmp_bpp(src);
+            int bypp = src->GetBPP();
             // do the fast copy
             for (i = 0; i < scrnhit; i++) {
-                for (k = 0; k < dirtyRow[i].numSpans; k++) {
-                    tx1 = dirtyRow[i].span[k].x1;
-                    tx2 = dirtyRow[i].span[k].x2;
-                    memcpyfast(&ds->GetScanLineForWriting(i)[tx1 * bypp], &src->GetScanLine(i + y)[(tx1 + x) * bypp], ((tx2 - tx1) + 1) * bypp);
+                const uint8_t *src_scanline = src->GetScanLine(i + y);
+                uint8_t *dst_scanline = ds->GetScanLineForWriting(i);
+                const IRRow &dirty_row = dirtyRow[i];
+                for (k = 0; k < dirty_row.numSpans; k++) {
+                    tx1 = dirty_row.span[k].x1;
+                    tx2 = dirty_row.span[k].x2;
+                    memcpy(&dst_scanline[tx1 * bypp], &src_scanline[(tx1 + x) * bypp], ((tx2 - tx1) + 1) * bypp);
                 }
             }
         }
@@ -500,9 +501,10 @@ void update_invalid_region(Bitmap *ds, int x, int y, Bitmap *src) {
                 while ((i+rowsInOne < scrnhit) && (memcmp(&dirtyRow[i], &dirtyRow[i+rowsInOne], sizeof(IRRow)) == 0))
                     rowsInOne++;
 
-                for (k = 0; k < dirtyRow[i].numSpans; k++) {
-                    tx1 = dirtyRow[i].span[k].x1;
-                    tx2 = dirtyRow[i].span[k].x2;
+                const IRRow &dirty_row = dirtyRow[i];
+                for (k = 0; k < dirty_row.numSpans; k++) {
+                    tx1 = dirty_row.span[k].x1;
+                    tx2 = dirty_row.span[k].x2;
                     ds->Blit(src, tx1 + x, i + y, tx1, i, (tx2 - tx1) + 1, rowsInOne);
                 }
 
@@ -836,15 +838,15 @@ void putpixel_compensate (Bitmap *ds, int xx,int yy, int col) {
 
 
 
-void draw_sprite_support_alpha(Bitmap *ds, int xpos, int ypos, Bitmap *image, int slot) {
+void draw_sprite_support_alpha(Bitmap *ds, int xpos, int ypos, Bitmap *image, int slot, int transparency) {
 
-    if ((game.spriteflags[slot] & SPF_ALPHACHANNEL) && (trans_mode == 0)) 
+    if ((game.spriteflags[slot] & SPF_ALPHACHANNEL) && (transparency == 0)) 
     {
         set_alpha_blender();
         ds->TransBlendBlt(image, xpos, ypos);
     }
     else {
-        put_sprite_256(ds, xpos, ypos, image);
+        AGS::Engine::GfxUtil::DrawSpriteWithTransparency(ds, image, xpos, ypos, transparency);
     }
 
 }
@@ -854,7 +856,7 @@ void draw_sprite_support_alpha(Bitmap *ds, int xpos, int ypos, Bitmap *image, in
 IDriverDependantBitmap* recycle_ddb_bitmap(IDriverDependantBitmap *bimp, Bitmap *source, bool hasAlpha) {
     if (bimp != NULL) {
         // same colour depth, width and height -> reuse
-        if (((bimp->GetColorDepth() + 1) / 8 == bmp_bpp(source)) && 
+        if (((bimp->GetColorDepth() + 1) / 8 == source->GetBPP()) && 
             (bimp->GetWidth() == source->GetWidth()) && (bimp->GetHeight() == source->GetHeight()))
         {
             gfxDriver->UpdateDDBFromBitmap(bimp, source, hasAlpha);
@@ -1083,60 +1085,6 @@ extern int psp_gfx_renderer;
 extern int psp_gfx_super_sampling;
 #endif
 
-void put_sprite_256(Bitmap *ds, int xxx,int yyy,Bitmap *piccy) {
-
-    if (trans_mode >= 255) {
-        // fully transparent, don't draw it at all
-        trans_mode = 0;
-        return;
-    }
-
-    int screen_depth = ds->GetColorDepth();
-
-#ifdef USE_15BIT_FIX
-    if ((piccy->GetColorDepth() < screen_depth) 
-#if defined(IOS_VERSION) || defined(ANDROID_VERSION) || defined(WINDOWS_VERSION)
-        || ((ds->GetBPP() < screen_depth) && (psp_gfx_renderer > 0)) // Fix for corrupted speechbox outlines with the OGL driver
-#endif
-        ) {
-            if ((piccy->GetColorDepth() == 8) && (screen_depth >= 24)) {
-                // 256-col sprite -> truecolor background
-                // this is automatically supported by allegro, no twiddling needed
-                ds->Blit(piccy, xxx, yyy, Common::kBitmap_Transparency);
-                return;
-            }
-            // 256-col spirte -> hi-color background, or
-            // 16-bit sprite -> 32-bit background
-            Bitmap *hctemp=BitmapHelper::CreateBitmapCopy(piccy, screen_depth);
-            int bb,cc,mask_col = ds->GetMaskColor();
-            if (piccy->GetColorDepth() == 8) {
-                // only do this for 256-col, cos the ->Blit call converts
-                // transparency for 16->32 bit
-                color_t draw_color = hctemp->GetCompatibleColor(mask_col);
-                for (bb=0;bb<hctemp->GetWidth();bb++) {
-                    for (cc=0;cc<hctemp->GetHeight();cc++)
-                        if (piccy->GetPixel(bb,cc)==0) hctemp->PutPixel(bb,cc, draw_color);
-                }
-            }
-            wputblock(ds, xxx,yyy,hctemp,1);
-            delete hctemp;
-    }
-    else
-#endif
-    {
-        if ((trans_mode!=0) && (game.color_depth > 1) && (piccy->GetBPP() > 1) && (ds->GetBPP() > 1)) {
-            set_trans_blender(0,0,0,trans_mode);
-            ds->TransBlendBlt(piccy,xxx,yyy);
-        }
-        /*    else if ((lit_mode < 0) && (game.color_depth == 1) && (bmp_bpp(piccy) == 1)) {
-        ->LitBlendBlt(ds,piccy,xxx,yyy,250 - ((-lit_mode) * 5)/2);
-        }*/
-        else
-            wputblock(ds, xxx,yyy,piccy,1);
-    }
-    trans_mode=0;
-}
-
 void repair_alpha_channel(Bitmap *dest, Bitmap *bgpic)
 {
     // Repair the alpha channel, because sprites may have been drawn
@@ -1171,7 +1119,7 @@ void draw_sprite_compensate(Bitmap *ds, int picc,int xx,int yy,int useAlpha)
     }
     else
     {
-        put_sprite_256(ds, xx, yy, spriteset[picc]);
+        AGS::Engine::GfxUtil::DrawSpriteWithTransparency(ds, spriteset[picc], xx, yy);
     }
 }
 

@@ -193,7 +193,7 @@ int WINAPI _export CSCIWaitMessage(Bitmap *ds, CSCIMessage * cscim)
         if (cscim->code > 0)
             break;
 
-        update_polled_stuff_and_crossfade();
+        update_polled_audio_and_crossfade();
         while (timerloop == 0) ;
     }
 

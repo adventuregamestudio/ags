@@ -48,10 +48,11 @@ void redo_walkable_areas() {
 
     int hh,ww;
     for (hh=0;hh<walkareabackup->GetHeight();hh++) {
+        uint8_t *walls_scanline = thisroom.walls->GetScanLineForWriting(hh);
         for (ww=0;ww<walkareabackup->GetWidth();ww++) {
             //      if (play.walkable_areas_on[_getpixel(thisroom.walls,ww,hh)]==0)
-            if (play.walkable_areas_on[thisroom.walls->GetScanLine(hh)[ww]]==0)
-                thisroom.walls->PutPixel(ww,hh,0);
+            if (play.walkable_areas_on[walls_scanline[ww]]==0)
+                walls_scanline[ww] = 0;
         }
     }
 

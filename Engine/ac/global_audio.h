@@ -48,6 +48,7 @@ void    PlaySilentMIDI (int mnum);
 void    SetSpeechVolume(int newvol);
 void    __scr_play_speech(int who, int which);
 void    SetVoiceMode (int newmod);
+int     GetVoiceMode ();
 int     IsVoxAvailable();
 int     IsMusicVoxAvailable ();
 

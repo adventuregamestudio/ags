@@ -158,8 +158,9 @@ int is_route_possible(int fromx, int fromy, int tox, int toy, Bitmap *wss)
   }
 
   for (ff = 0; ff < tempw->GetHeight(); ff++) {
+    const uint8_t *tempw_scanline = tempw->GetScanLine(ff);
     for (dd = 0; dd < tempw->GetWidth(); dd++) {
-      thisar = tempw->GetScanLine(ff)[dd];
+      thisar = tempw_scanline[dd];
       // count how high the area is at this point
       if ((thisar == lastarea) && (thisar > 0))
         inarow++;
@@ -176,9 +177,10 @@ int is_route_possible(int fromx, int fromy, int tox, int toy, Bitmap *wss)
 
   for (dd = 0; dd < tempw->GetWidth(); dd++) {
     for (ff = 0; ff < tempw->GetHeight(); ff++) {
-      thisar = tempw->GetScanLine(ff)[dd];
+      uint8_t *tempw_scanline = tempw->GetScanLineForWriting(ff);
+      thisar = tempw_scanline[dd];
       if (thisar > 0)
-        tempw->PutPixel(dd, ff, 1);
+        tempw_scanline[dd] = 1;
       // count how high the area is at this point
       if ((thisar == lastarea) && (thisar > 0))
         inarow++;

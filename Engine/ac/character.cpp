@@ -2279,6 +2279,25 @@ int user_to_internal_skip_speech(int userval) {
     return 0;
 }
 
+int internal_skip_speech_to_user(int internal_val)
+{
+    // 0 = click mouse or key to skip
+    if (internal_val == (SKIP_AUTOTIMER | SKIP_KEYPRESS | SKIP_MOUSECLICK))
+        return 0;
+    // 1 = key only
+    else if (internal_val == (SKIP_AUTOTIMER | SKIP_KEYPRESS))
+        return 1;
+    // 2 = can't skip at all
+    else if (internal_val == SKIP_AUTOTIMER)
+        return 2;
+    // 3 = only on keypress, no auto timer
+    else if (internal_val == (SKIP_KEYPRESS | SKIP_MOUSECLICK))
+        return 3;
+    // 4 = mouse only
+    else if (internal_val == (SKIP_AUTOTIMER | SKIP_MOUSECLICK))
+        return 4;
+    return 0;
+}
 
 void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThought) {
     if (!is_valid_character(aschar))

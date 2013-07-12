@@ -109,6 +109,30 @@ namespace AGS.Types
             return _scripts.GetEnumerator();
         }
 
+        public void RefreshProjectTree(IAGSEditor editor, string selectedNodeID)
+        {
+            foreach (IEditorComponent component in editor.Components)
+            {
+                if ((component.ComponentID == "Scripts") && (component is IRePopulatableComponent))
+                {
+                    if (selectedNodeID == null)
+                    {
+                        (component as IRePopulatableComponent).RePopulateTreeView();
+                    }
+                    else
+                    {
+                        (component as IRePopulatableComponent).RePopulateTreeView(selectedNodeID);
+                    }
+                    return;
+                }
+            }
+        }
+
+        public void RefreshProjectTree(IAGSEditor editor)
+        {
+            RefreshProjectTree(editor, null);
+        }
+
         public Scripts(XmlNode node)
         {
             _scripts = new List<Script>();

@@ -14,6 +14,10 @@ namespace AGS.Types
 		/// Adds a new component to the editor. Once added, it cannot be removed
 		/// </summary>
 		void AddComponent(IEditorComponent component);
+        /// <summary>
+        /// Returns a list of the currently loaded components.
+        /// </summary>
+        IList<IEditorComponent> Components { get; }
 		/// <summary>
 		/// Returns the GUI controller, which provides access to various
 		/// aspects of the editor GUI.

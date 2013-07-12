@@ -199,3 +199,8 @@ void SetSkipSpeech (int newval) {
     DEBUG_CONSOLE("SkipSpeech style set to %d", newval);
     play.cant_skip_speech = user_to_internal_skip_speech(newval);
 }
+
+int GetSkipSpeech()
+{
+    return internal_skip_speech_to_user(play.cant_skip_speech);
+}

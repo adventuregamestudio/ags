@@ -271,7 +271,7 @@ start_actinv:
         timerloop = 0;
         NEXT_ITERATION();
         domouse(0);
-        update_polled_stuff_and_crossfade();
+        update_polled_audio_and_crossfade();
         write_screen();
 
         int isonitem=((mousey-bartop)/highest)*ICONSPERLINE+(mousex-barxp)/widest;

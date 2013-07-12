@@ -40,7 +40,7 @@ using namespace AGS; // FIXME later
 //link with the following libraries under project/settings/link...
 //amstrmid.lib quartz.lib strmbase.lib ddraw.lib 
 
-extern void update_polled_stuff_and_crossfade();
+extern void update_polled_audio_and_crossfade();
 extern void update_polled_stuff_if_runtime();
 extern int rec_mgetbutton();
 extern int rec_kbhit();
@@ -273,7 +273,7 @@ void RenderToSurface(Bitmap *vscreen) {
     render_to_screen(screen_bmp, 0, 0);
     // if we're not playing AVI sound, poll the game MP3
     if (!useSound)
-      update_polled_stuff_and_crossfade();
+      update_polled_audio_and_crossfade();
   }	
 }
 

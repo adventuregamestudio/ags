@@ -35,7 +35,7 @@ namespace AGS.Editor
         public frmMain()
         {
             InitializeComponent();
-            LoadLayout();            			
+            
             tabbedDocumentContainer1.ActiveDocumentChanged += new TabbedDocumentManager.ActiveDocumentChangeHandler(tabbedDocumentContainer1_ActiveDocumentChanged);
             tabbedDocumentContainer1.ActiveDocumentChanging += new TabbedDocumentManager.ActiveDocumentChangeHandler(tabbedDocumentContainer1_ActiveDocumentChanging);
 			this.Load += new EventHandler(frmMain_Load);
@@ -73,13 +73,7 @@ namespace AGS.Editor
 
 		private void frmMain_Load(object sender, EventArgs e)
 		{
-            /*if (_splitterXtoSet > 0)
-			{                
-				this.mainContainer.SplitterDistance = _splitterXtoSet;
-				this.leftSplitter.SplitterDistance = _splitterYtoSet;
-				_splitterXtoSet = 0;
-				_splitterYtoSet = 0;
-			}*/
+            LoadLayout();            			
 		}
 
         public void RefreshPropertyGridForDocument(ContentDocument document)

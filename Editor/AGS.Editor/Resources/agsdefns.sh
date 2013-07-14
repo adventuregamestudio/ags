@@ -158,7 +158,7 @@ enum VideoSkipStyle
 
 enum eKeyCode
 {
-  eNoKey    = 0,
+  eKeyNone  = 0,
   eKeyCtrlA = 1,
   eKeyCtrlB = 2,
   eKeyCtrlC = 3,

@@ -337,11 +337,11 @@ namespace AGS.Editor
             {
                 GetNextWord(ref script);
                 string structName = GetNextWord(ref script);
-                while ((script[0] != ',') && (script[0] != ')') && (script.Length > 1))
+                while ((script.Length > 0) && (script[0] != ',') && (script[0] != ')'))
                 {
                     script = script.Substring(1);
                 }
-                if (script[0] == ',')
+                if ((script.Length > 0) && script[0] == ',')
                 {
                     script = script.Substring(1);
                 }

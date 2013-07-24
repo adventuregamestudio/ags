@@ -5,6 +5,16 @@ using System.Xml;
 
 namespace AGS.Types
 {
+    public class InventoryItemFolders : FolderListHybrid<InventoryItem, InventoryItemFolder>
+    {
+        public InventoryItemFolders() : base(new InventoryItemFolder()) { }
+
+        public InventoryItemFolders(string name) : base(new InventoryItemFolder(name)) { }
+
+        public InventoryItemFolders(XmlNode node, XmlNode parentNodeForBackwardsCompatability) :
+            base(new InventoryItemFolder(node, parentNodeForBackwardsCompatability)) { }
+    }
+
     public class InventoryItemFolder : BaseFolderCollection<InventoryItem, InventoryItemFolder>
     {
         public const string MAIN_INVENTORY_ITEM_FOLDER_NAME = "Main";

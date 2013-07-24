@@ -7,7 +7,7 @@ using AGS.Types.Interfaces;
 
 namespace AGS.Types
 {
-    public class Dialog : IScript, IToXml
+    public class Dialog : IScript, IToXml, IComparable<Dialog>
     {
         public const int MAX_OPTIONS_PER_DIALOG = 30;
 
@@ -137,5 +137,13 @@ namespace AGS.Types
 
         }
 
+        #region IComparable<Dialog> Members
+
+        public int CompareTo(Dialog other)
+        {
+            return ID.CompareTo(other.ID);
+        }
+
+        #endregion
     }
 }

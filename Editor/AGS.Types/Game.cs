@@ -32,25 +32,25 @@ namespace AGS.Types
         /// </summary>
         public event ViewListUpdatedHandler ViewListUpdated;
 
-        private GUIFolder _guis;
-        private InventoryItemFolder _inventoryItems;
-        private CharacterFolder _characters;
+        private GUIFolders _guis;
+        private InventoryItemFolders _inventoryItems;
+        private CharacterFolders _characters;
         private List<MouseCursor> _cursors;
         private List<Font> _fonts;
-        private DialogFolder _dialogs;
+        private DialogFolders _dialogs;
         private List<Plugin> _plugins;
         private List<Translation> _translations;
-        private UnloadedRoomFolder _rooms;
+        private UnloadedRoomFolders _rooms;
         private List<OldInteractionVariable> _oldInteractionVariables;
         private string[] _globalMessages;
         private Character _playerCharacter;
         private Settings _settings;
         private PaletteEntry[] _palette;
         private SpriteFolder _sprites;
-        private ViewFolder _views;
-        private AudioClipFolder _audioClips;
+        private ViewFolders _views;
+        private AudioClipFolders _audioClips;
         private List<AudioClipType> _audioClipTypes;
-        private ScriptFolder _scripts;
+        private ScriptFolders _scripts;
         private Scripts _scriptsToCompile;
         private TextParser _textParser;
         private LipSync _lipSync;
@@ -67,21 +67,21 @@ namespace AGS.Types
 
         public Game()
         {
-            _guis = new GUIFolder(GUIFolder.MAIN_GUI_FOLDER_NAME);
-            _inventoryItems = new InventoryItemFolder(InventoryItemFolder.MAIN_INVENTORY_ITEM_FOLDER_NAME);
+            _guis = new GUIFolders(GUIFolder.MAIN_GUI_FOLDER_NAME);
+            _inventoryItems = new InventoryItemFolders(InventoryItemFolder.MAIN_INVENTORY_ITEM_FOLDER_NAME);
             _cursors = new List<MouseCursor>();
-            _dialogs = new DialogFolder(DialogFolder.MAIN_DIALOG_FOLDER_NAME);
+            _dialogs = new DialogFolders(DialogFolder.MAIN_DIALOG_FOLDER_NAME);
             _fonts = new List<Font>();
-            _characters = new CharacterFolder(CharacterFolder.MAIN_CHARACTER_FOLDER_NAME);
+            _characters = new CharacterFolders(CharacterFolder.MAIN_CHARACTER_FOLDER_NAME);
             _plugins = new List<Plugin>();
             _translations = new List<Translation>();
-            _rooms = new UnloadedRoomFolder(UnloadedRoomFolder.MAIN_UNLOADED_ROOM_FOLDER_NAME);
+            _rooms = new UnloadedRoomFolders(UnloadedRoomFolder.MAIN_UNLOADED_ROOM_FOLDER_NAME);
             _oldInteractionVariables = new List<OldInteractionVariable>();
             _settings = new Settings();
             _palette = new PaletteEntry[PALETTE_SIZE];
             _sprites = new SpriteFolder("Main");
-            _views = new ViewFolder("Main");
-            _audioClips = new AudioClipFolder("Main");
+            _views = new ViewFolders("Main");
+            _audioClips = new AudioClipFolders("Main");
             _audioClipTypes = new List<AudioClipType>();
             _textParser = new TextParser();
             _lipSync = new LipSync();
@@ -89,12 +89,12 @@ namespace AGS.Types
             _globalVariables = new GlobalVariables();
             _globalMessages = new string[NUMBER_OF_GLOBAL_MESSAGES];
 			_deletedViewIDs = new Dictionary<int, object>();
-            _scripts = new ScriptFolder(ScriptFolder.MAIN_SCRIPT_FOLDER_NAME);
+            _scripts = new ScriptFolders(ScriptFolder.MAIN_SCRIPT_FOLDER_NAME);
             _scriptsToCompile = new Scripts();
             ScriptAndHeader globalScript = new ScriptAndHeader(
                 new Script(Script.GLOBAL_HEADER_FILE_NAME, "// script header\r\n", true),
                 new Script(Script.GLOBAL_SCRIPT_FILE_NAME, "// global script\r\n", false));
-            _scripts.Items.Add(globalScript);            
+            ((IList<ScriptAndHeader>)_scripts).Add(globalScript);            
             _playerCharacter = null;
 
             for (int i = 0; i < _globalMessages.Length; i++)
@@ -112,74 +112,22 @@ namespace AGS.Types
 
         public IList<GUI> GUIs
         {
-            get 
-            {
-                List<GUI> guis = new List<GUI>();
-                foreach (GUI gui in _guis.AllItemsFlat)
-                {
-                    guis.Add(gui);
-                }
-                guis.Sort(
-                        delegate(GUI p1, GUI p2)
-                        {
-                            return p1.ID.CompareTo(p2.ID);
-                        });
-                return guis; 
-            }
+            get { return _guis; }
         }
 
         public IList<InventoryItem> InventoryItems
         {
-            get 
-            {
-                List<InventoryItem> inventoryItems = new List<InventoryItem>();
-                foreach (InventoryItem inventoryItem in _inventoryItems.AllItemsFlat)
-                {
-                    inventoryItems.Add(inventoryItem);
-                }
-                inventoryItems.Sort(
-                        delegate(InventoryItem p1, InventoryItem p2)
-                        {
-                            return p1.ID.CompareTo(p2.ID);
-                        });
-                return inventoryItems;
-            }
+            get { return _inventoryItems; }
         }
 
         public IList<Character> Characters
         {
-            get 
-            {
-                List<Character> characters = new List<Character>();
-                foreach (Character character in _characters.AllItemsFlat)
-                {
-                    characters.Add(character);
-                }
-                characters.Sort(
-                        delegate(Character p1, Character p2)
-                        {
-                            return p1.ID.CompareTo(p2.ID);
-                        });
-                return characters; 
-            }
+            get { return _characters; }
         }
 
         public IList<Dialog> Dialogs
         {
-            get 
-            {
-                List<Dialog> dialogs = new List<Dialog>();
-                foreach (Dialog dialog in _dialogs.AllItemsFlat)
-                {
-                    dialogs.Add(dialog);
-                }
-                dialogs.Sort(
-                        delegate(Dialog p1, Dialog p2)
-                        {
-                            return p1.ID.CompareTo(p2.ID);
-                        });
-                return dialogs; 
-            }
+            get { return _dialogs; }            
         }
 
         public IList<MouseCursor> Cursors
@@ -204,20 +152,7 @@ namespace AGS.Types
 
         public IList<IRoom> Rooms
         {
-            get 
-            {
-                List<IRoom> rooms = new List<IRoom>();
-                foreach (UnloadedRoom room in _rooms.AllItemsFlat)
-                {
-                    rooms.Add(room);
-                }
-                rooms.Sort(
-                        delegate(IRoom p1, IRoom p2)
-                        {
-                            return p1.Number.CompareTo(p2.Number);
-                        });
-                return rooms;
-            }
+            get { return _rooms; }
         }
 
         public List<OldInteractionVariable> OldInteractionVariables
@@ -264,43 +199,43 @@ namespace AGS.Types
 
         public CharacterFolder RootCharacterFolder
         {
-            get { return _characters; }
+            get { return _characters.RootFolder; }
         }
 
         public DialogFolder RootDialogFolder
         {
-            get { return _dialogs; }
+            get { return _dialogs.RootFolder; }
         }
 
         public ViewFolder RootViewFolder
         {
-            get { return _views; }
-            set { _views = value; }
+            get { return _views.RootFolder; }
+            set { _views = new ViewFolders(value); }
         }
 
         public ScriptFolder RootScriptFolder
         {
-            get { return _scripts; }
+            get { return _scripts.RootFolder; }
         }
 
         public InventoryItemFolder RootInventoryItemFolder
         {
-            get { return _inventoryItems; }
+            get { return _inventoryItems.RootFolder; }
         }
 
         public GUIFolder RootGUIFolder
         {
-            get { return _guis; }
+            get { return _guis.RootFolder; }
         }
 
         public UnloadedRoomFolder RootRoomFolder
         {
-            get { return _rooms; }
+            get { return _rooms.RootFolder; }
         }
 
         public AudioClipFolder RootAudioClipFolder
         {
-            get { return _audioClips; }
+            get { return _audioClips.RootFolder; }
         }
 
         public IList<AudioClipType> AudioClipTypes
@@ -312,11 +247,7 @@ namespace AGS.Types
         {
             get 
             {
-                Scripts scripts = new Scripts();
-                foreach (Script script in _scripts.AllScriptsFlat)
-                {
-                    scripts.Add(script);
-                }
+                Scripts scripts = new Scripts(_scripts);
                 return scripts;
             }
         }
@@ -340,7 +271,7 @@ namespace AGS.Types
 
 		IViewFolder IGame.Views
 		{
-			get { return _views; }
+			get { return _views.RootFolder; }
 		}
 
         ISpriteFolder IGame.Sprites
@@ -473,7 +404,7 @@ namespace AGS.Types
 		{
 			if (createInFolder == null)
 			{
-				createInFolder = _views;
+				createInFolder = _views.RootFolder;
 			}
 			View newView = new View();
 			newView.ID = FindAndAllocateAvailableViewID();
@@ -496,7 +427,7 @@ namespace AGS.Types
 					return availableID;
 				}
 			}
-            return FindHighestViewNumber(_views) + 1;
+            return FindHighestViewNumber(_views.RootFolder) + 1;
         }
 
         private int FindHighestViewNumber(ViewFolder folder)
@@ -526,12 +457,12 @@ namespace AGS.Types
 
 		public Character FindCharacterByID(int charID)
 		{
-            return _characters.FindCharacterByID(charID, true);			
+            return _characters.RootFolder.FindCharacterByID(charID, true);			
 		}
 
 		public UnloadedRoom FindRoomByID(int roomNumber)
         {
-            return _rooms.FindUnloadedRoomByID(roomNumber, true);
+            return (UnloadedRoom)_rooms.RootFolder.FindUnloadedRoomByID(roomNumber, true);
         }
 
 		public bool DoesRoomNumberAlreadyExist(int roomNumber)
@@ -553,7 +484,7 @@ namespace AGS.Types
         {
             if (allAudio == null)
             {
-                allAudio = _audioClips.GetAllAudioClipsFromAllSubFolders();
+                allAudio = _audioClips.RootFolder.GetAllAudioClipsFromAllSubFolders();
             }
             string searchForName = string.Format("aSound{0}", soundNumber);
             foreach (AudioClip clip in allAudio)
@@ -570,7 +501,7 @@ namespace AGS.Types
         {
             if (allAudio == null)
             {
-                allAudio = _audioClips.GetAllAudioClipsFromAllSubFolders();
+                allAudio = _audioClips.RootFolder.GetAllAudioClipsFromAllSubFolders();
             }
             string searchForName = string.Format("aMusic{0}", musicNumber);
             foreach (AudioClip clip in allAudio)
@@ -805,15 +736,15 @@ namespace AGS.Types
                 _plugins.Add(new Plugin(pluginNode));
             }
 
-            _rooms = new UnloadedRoomFolder(node.SelectSingleNode("Rooms").FirstChild, node);
+            _rooms = new UnloadedRoomFolders(node.SelectSingleNode("Rooms").FirstChild, node);
             
-            _guis = new GUIFolder(node.SelectSingleNode("GUIs").FirstChild, node);            
+            _guis = new GUIFolders(node.SelectSingleNode("GUIs").FirstChild, node);            
 
-            _inventoryItems = new InventoryItemFolder(node.SelectSingleNode("InventoryItems").FirstChild, node);            
+            _inventoryItems = new InventoryItemFolders(node.SelectSingleNode("InventoryItems").FirstChild, node);            
 
             _textParser = new TextParser(node.SelectSingleNode("TextParser"));
 
-            _characters = new CharacterFolder(node.SelectSingleNode("Characters").FirstChild, node);            
+            _characters = new CharacterFolders(node.SelectSingleNode("Characters").FirstChild, node);            
 
             _playerCharacter = null;
             string playerCharText = SerializeUtils.GetElementString(node, "PlayerCharacter");
@@ -830,7 +761,7 @@ namespace AGS.Types
                 }
             }
 
-            _dialogs = new DialogFolder(node.SelectSingleNode("Dialogs").FirstChild, node);                                    
+            _dialogs = new DialogFolders(node.SelectSingleNode("Dialogs").FirstChild, node);                                    
 
             _cursors.Clear();
             foreach (XmlNode cursNode in SerializeUtils.GetChildNodes(node, "Cursors"))
@@ -848,7 +779,7 @@ namespace AGS.Types
 
             _sprites = new SpriteFolder(node.SelectSingleNode("Sprites").FirstChild);
 
-            _views = new ViewFolder(node.SelectSingleNode("Views").FirstChild);
+            _views = new ViewFolders(node.SelectSingleNode("Views").FirstChild);
 
             _deletedViewIDs.Clear();
 			if (node.SelectSingleNode("DeletedViews") != null)
@@ -859,18 +790,18 @@ namespace AGS.Types
 				}
 			}
 
-            _scripts = new ScriptFolder(node.SelectSingleNode("Scripts").FirstChild, node);
+            _scripts = new ScriptFolders(node.SelectSingleNode("Scripts").FirstChild, node);
 
             if (node.SelectSingleNode("AudioClips") != null)
             {
-                _audioClips = new AudioClipFolder(node.SelectSingleNode("AudioClips").FirstChild);
+                _audioClips = new AudioClipFolders(node.SelectSingleNode("AudioClips").FirstChild);
             }
             else
             {
-                _audioClips = new AudioClipFolder("Main");
-                _audioClips.DefaultPriority = AudioClipPriority.Normal;
-                _audioClips.DefaultRepeat = InheritableBool.False;
-                _audioClips.DefaultVolume = 100;
+                _audioClips = new AudioClipFolders("Main");
+                _audioClips.RootFolder.DefaultPriority = AudioClipPriority.Normal;
+                _audioClips.RootFolder.DefaultRepeat = InheritableBool.False;
+                _audioClips.RootFolder.DefaultVolume = 100;
             }
 
             _audioClipTypes.Clear();
@@ -1071,7 +1002,7 @@ namespace AGS.Types
 
         public void UpdateCachedAudioClipList()
         {
-            _cachedAudioClipListForCompile = _audioClips.GetAllAudioClipsFromAllSubFolders();
+            _cachedAudioClipListForCompile = _audioClips.RootFolder.GetAllAudioClipsFromAllSubFolders();
             _cachedAudioClipIndexMapping = new Dictionary<int, int>();
             for (int i = 0; i < _cachedAudioClipListForCompile.Count; i++)
             {
@@ -1147,7 +1078,7 @@ namespace AGS.Types
 
             const int MULTIPLY_FACTOR = 2;
 
-            foreach (GUI gui in _guis.AllItemsFlat)
+            foreach (GUI gui in _guis)
             {
                 NormalGUI normalGui = gui as NormalGUI;
                 if (normalGui != null)
@@ -1183,7 +1114,7 @@ namespace AGS.Types
                 }
             }
 
-            foreach (InventoryItem item in _inventoryItems.AllItemsFlat)
+            foreach (InventoryItem item in _inventoryItems)
             {
                 if (item.HotspotX >= 0)
                 {
@@ -1192,7 +1123,7 @@ namespace AGS.Types
                 }
             }
 
-            foreach (Character character in RootCharacterFolder.AllItemsFlat)
+            foreach (Character character in _characters)
             {
                 character.StartX *= MULTIPLY_FACTOR;
                 character.StartY *= MULTIPLY_FACTOR;

@@ -6,6 +6,16 @@ using System.IO;
 
 namespace AGS.Types
 {
+    public class ScriptFolders : FolderListHybrid<ScriptAndHeader, ScriptFolder>
+    {
+        public ScriptFolders() : base(new ScriptFolder()) { }
+
+        public ScriptFolders(string name) : base(new ScriptFolder(name)) { }
+
+        public ScriptFolders(XmlNode node, XmlNode parentNodeForBackwardsCompatability) :
+            base(new ScriptFolder(node, parentNodeForBackwardsCompatability)) { }
+    }
+
     public class ScriptFolder : BaseFolderCollection<ScriptAndHeader, ScriptFolder>
     {
         public const string MAIN_SCRIPT_FOLDER_NAME = "Main";

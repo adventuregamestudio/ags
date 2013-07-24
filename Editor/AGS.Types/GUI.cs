@@ -9,7 +9,7 @@ namespace AGS.Types
 {
     [Serializable]
     [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]
-    public abstract class GUI : IToXml
+    public abstract class GUI : IToXml, IComparable<GUI>
     {
         public const int MAX_CONTROLS_PER_GUI = 30;
         protected const int MAX_NAME_LENGTH = 15;
@@ -199,5 +199,14 @@ namespace AGS.Types
             }
             writer.WriteEndElement();
         }
+
+        #region IComparable<GUI> Members
+
+        public int CompareTo(GUI other)
+        {
+            return ID.CompareTo(other.ID);
+        }
+
+        #endregion
     }
 }

@@ -6,7 +6,7 @@ using System.Xml;
 
 namespace AGS.Types
 {
-    public class View : IToXml
+    public class View : IToXml, IComparable<View>
     {
         public delegate void ViewUpdatedHandler(View view);
         public event ViewUpdatedHandler ViewUpdated;
@@ -103,5 +103,14 @@ namespace AGS.Types
 
             writer.WriteEndElement();
         }
+
+        #region IComparable<View> Members
+
+        public int CompareTo(View other)
+        {
+            return ID.CompareTo(other.ID);
+        }
+
+        #endregion
     }
 }

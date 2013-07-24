@@ -7,7 +7,7 @@ using System.Xml;
 
 namespace AGS.Types
 {
-    public class UnloadedRoom : IRoom, IToXml, IComparable
+    public class UnloadedRoom : IRoom, IToXml, IComparable, IComparable<IRoom>, IComparable<UnloadedRoom>
     {
         private const string ROOM_FILE_NAME_FORMAT = "room{0}.crm";
         private const string ROOM_SCRIPT_FILE_NAME_FORMAT = "room{0}.asc";
@@ -124,6 +124,11 @@ namespace AGS.Types
         public int CompareTo(IRoom other)
         {
             return _number.CompareTo(other.Number);
+        }
+
+        public int CompareTo(UnloadedRoom other)
+        {
+            return CompareTo(other);
         }
     }
 }

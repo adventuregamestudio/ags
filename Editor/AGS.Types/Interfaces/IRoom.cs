@@ -4,7 +4,7 @@ using System.Text;
 
 namespace AGS.Types
 {
-	public interface IRoom : IComparable<IRoom>
+	public interface IRoom : IComparable<IRoom>, IToXml
 	{
 		int Number { get; }
 		string Description { get; set; }

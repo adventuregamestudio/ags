@@ -5,6 +5,16 @@ using System.Xml;
 
 namespace AGS.Types
 {
+    public class DialogFolders : FolderListHybrid<Dialog, DialogFolder>
+    {
+        public DialogFolders() : base(new DialogFolder()) { }
+
+        public DialogFolders(string name) : base(new DialogFolder(name)) { }
+
+        public DialogFolders(XmlNode node, XmlNode parentNodeForBackwardsCompatability) :
+            base(new DialogFolder(node, parentNodeForBackwardsCompatability)) { }
+    }
+
     public class DialogFolder : BaseFolderCollection<Dialog, DialogFolder>
     {
         public const string MAIN_DIALOG_FOLDER_NAME = "Main";        

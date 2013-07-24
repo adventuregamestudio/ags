@@ -8,7 +8,7 @@ using System.Drawing;
 namespace AGS.Types
 {
     [PropertyTab(typeof(PropertyTabInteractions), PropertyTabScope.Component)]
-    public class Character : ICustomTypeDescriptor, IToXml
+    public class Character : ICustomTypeDescriptor, IToXml, IComparable<Character>
     {
         public const string PROPERTY_NAME_SCRIPTNAME = "ScriptName";
         public const int NARRATOR_CHARACTER_ID = 999;
@@ -436,6 +436,15 @@ namespace AGS.Types
         public object GetPropertyOwner(PropertyDescriptor pd)
         {
             return this;
+        }
+
+        #endregion
+
+        #region IComparable<Character> Members
+
+        public int CompareTo(Character other)
+        {
+            return ID.CompareTo(other.ID);
         }
 
         #endregion

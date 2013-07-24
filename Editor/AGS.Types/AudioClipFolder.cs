@@ -6,6 +6,16 @@ using System.Xml;
 
 namespace AGS.Types
 {
+    public class AudioClipFolders : FolderListHybrid<AudioClip, AudioClipFolder>
+    {
+        public AudioClipFolders() : base(new AudioClipFolder()) { }
+
+        public AudioClipFolders(string name) : base(new AudioClipFolder(name)) { }
+
+        public AudioClipFolders(XmlNode node) :
+            base(new AudioClipFolder(node)) { }
+    }
+
     public class AudioClipFolder : BaseFolderCollection<AudioClip, AudioClipFolder>
     {
         private int _volume = 100;

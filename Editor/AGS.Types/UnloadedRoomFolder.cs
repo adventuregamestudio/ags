@@ -5,7 +5,17 @@ using System.Xml;
 
 namespace AGS.Types
 {
-    public class UnloadedRoomFolder : BaseFolderCollection<UnloadedRoom, UnloadedRoomFolder>
+    public class UnloadedRoomFolders : FolderListHybrid<IRoom, UnloadedRoomFolder>
+    {
+        public UnloadedRoomFolders() : base(new UnloadedRoomFolder()) { }
+
+        public UnloadedRoomFolders(string name) : base(new UnloadedRoomFolder(name)) { }
+
+        public UnloadedRoomFolders(XmlNode node, XmlNode parentNodeForBackwardsCompatability) :
+            base(new UnloadedRoomFolder(node, parentNodeForBackwardsCompatability)) { }
+    }
+
+    public class UnloadedRoomFolder : BaseFolderCollection<IRoom, UnloadedRoomFolder>
     {
         public const string MAIN_UNLOADED_ROOM_FOLDER_NAME = "Main";
 
@@ -23,7 +33,12 @@ namespace AGS.Types
             return new UnloadedRoomFolder(name);
         }
 
-        public UnloadedRoom FindUnloadedRoomByID(int unloadedRoomNumber, bool recursive)
+        protected override string OverrideXmlItemListNodeName()
+        {
+            return "UnloadedRooms";
+        }
+
+        public IRoom FindUnloadedRoomByID(int unloadedRoomNumber, bool recursive)
         {
             return FindItem(IsItem, unloadedRoomNumber, recursive);
         }
@@ -42,12 +57,12 @@ namespace AGS.Types
             return new UnloadedRoomFolder(node);
         }
 
-        protected override UnloadedRoom CreateItem(XmlNode node)
+        protected override IRoom CreateItem(XmlNode node)
         {
             return new UnloadedRoom(node);            
         }
 
-        private bool IsItem(UnloadedRoom unloadedRoom, int unloadedRoomNumber)
+        private bool IsItem(IRoom unloadedRoom, int unloadedRoomNumber)
         {
             return unloadedRoom.Number == unloadedRoomNumber;
         }

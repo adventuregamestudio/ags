@@ -5,6 +5,18 @@ using System.Xml;
 
 namespace AGS.Types
 {
+    public class ViewFolders : FolderListHybrid<View, ViewFolder>
+    {
+        public ViewFolders() : base(new ViewFolder()) { }
+
+        public ViewFolders(string name) : base(new ViewFolder(name)) { }
+
+        public ViewFolders(XmlNode node) :
+            base(new ViewFolder(node)) { }
+
+        public ViewFolders(ViewFolder viewFolder) : base(viewFolder) { }
+    }
+
     public class ViewFolder : BaseFolderCollection<View, ViewFolder>, IViewFolder
     {
         public ViewFolder(string name) : base(name) { }

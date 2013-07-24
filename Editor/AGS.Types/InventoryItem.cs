@@ -7,7 +7,7 @@ using System.Xml;
 namespace AGS.Types
 {
     [PropertyTab(typeof(PropertyTabInteractions), PropertyTabScope.Component)]
-    public class InventoryItem : IToXml
+    public class InventoryItem : IToXml, IComparable<InventoryItem>
     {
         private static InteractionSchema _interactionSchema;
 
@@ -168,5 +168,13 @@ namespace AGS.Types
             writer.WriteEndElement();
         }
 
+        #region IComparable<InventoryItem> Members
+
+        public int CompareTo(InventoryItem other)
+        {
+            return ID.CompareTo(other.ID);
+        }
+
+        #endregion
     }
 }

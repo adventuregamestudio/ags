@@ -5,6 +5,16 @@ using System.Xml;
 
 namespace AGS.Types
 {
+    public class CharacterFolders : FolderListHybrid<Character, CharacterFolder>
+    {
+        public CharacterFolders() : base(new CharacterFolder()) { }
+
+        public CharacterFolders(string name) : base(new CharacterFolder(name)) { }
+
+        public CharacterFolders(XmlNode node, XmlNode parentNodeForBackwardsCompatability) :
+            base(new CharacterFolder(node, parentNodeForBackwardsCompatability)) { }
+    }
+
     public class CharacterFolder : BaseFolderCollection<Character, CharacterFolder>
     {
         public const string MAIN_CHARACTER_FOLDER_NAME = "Main";

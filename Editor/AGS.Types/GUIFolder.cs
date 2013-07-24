@@ -5,6 +5,16 @@ using System.Xml;
 
 namespace AGS.Types
 {
+    public class GUIFolders : FolderListHybrid<GUI, GUIFolder> 
+    {
+        public GUIFolders() : base(new GUIFolder()) { }
+
+        public GUIFolders(string name) : base(new GUIFolder(name)) { }
+
+        public GUIFolders(XmlNode node, XmlNode parentNodeForBackwardsCompatability) :
+            base(new GUIFolder(node, parentNodeForBackwardsCompatability)) { }
+    }
+
     public class GUIFolder : BaseFolderCollection<GUI, GUIFolder>
     {
         public const string MAIN_GUI_FOLDER_NAME = "Main";

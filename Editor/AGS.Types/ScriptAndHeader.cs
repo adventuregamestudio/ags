@@ -41,6 +41,6 @@ namespace AGS.Types
             _script.ToXml(writer);
             writer.WriteEndElement();
             writer.WriteEndElement();
-        }
+        }        
     }
 }

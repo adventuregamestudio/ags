@@ -5,7 +5,7 @@ using System.Xml;
 
 namespace AGS.Types
 {
-    public class AudioClip : IToXml
+    public class AudioClip : IToXml, IComparable<AudioClip>
     {
         private const string COMPILED_AUDIO_FILENAME_PREFIX = "au";
         public const string AUDIO_CACHE_DIRECTORY = "AudioCache";
@@ -164,5 +164,14 @@ namespace AGS.Types
             writer.WriteElementString("FileLastModifiedDate", _fileLastModifiedDate.ToString("u"));
             writer.WriteEndElement();
         }
+
+        #region IComparable<AudioClip> Members
+
+        public int CompareTo(AudioClip other)
+        {
+            return _typeID.CompareTo(other._typeID);
+        }
+
+        #endregion
     }
 }

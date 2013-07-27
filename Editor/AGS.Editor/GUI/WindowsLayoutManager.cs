@@ -23,6 +23,9 @@ namespace AGS.Editor
         public void SaveLayout()
         {
             string configFile = GetLayoutFile();
+            string folder = Path.GetDirectoryName(configFile);
+            Directory.CreateDirectory(folder);
+            File.SetAttributes(folder, FileAttributes.Normal);
             _dockPanel.SaveAsXml(configFile);
         }
 
@@ -51,9 +54,9 @@ namespace AGS.Editor
 
         private string GetLayoutFile()
         {
-            return Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                LAYOUT_FILENAME);
+            string baseFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            const string agsFolder = "AGS";
+            return Path.Combine(Path.Combine(baseFolder, agsFolder), LAYOUT_FILENAME);
         }
 
         private IDockContent DeserializeContents(string type)

@@ -28,7 +28,7 @@ namespace AGS.Types
 
         public void Add(Script newScript)
         {
-            if (headerWithoutScript != null)
+            if (headerWithoutScript != null || !newScript.IsHeader)
             {
                 ScriptAndHeader scriptAndHeader = new ScriptAndHeader(headerWithoutScript, newScript);
                 _scripts.Add(scriptAndHeader);
@@ -42,7 +42,7 @@ namespace AGS.Types
 
         public void AddAtTop(Script newScript)
         {
-            if (headerWithoutScript != null)
+            if (headerWithoutScript != null || !newScript.IsHeader)
             {
                 ScriptAndHeader scriptAndHeader = new ScriptAndHeader(headerWithoutScript, newScript);
                 _scripts.Insert(0, scriptAndHeader);
@@ -59,8 +59,8 @@ namespace AGS.Types
             for (int i = _scripts.Count; i >= 0; i--)
             {
                 ScriptAndHeader scriptAndHeader = _scripts[i];
-                if (scriptAndHeader.Header.Equals(script) ||
-                    scriptAndHeader.Script.Equals(script))
+                if (script.Equals(scriptAndHeader.Header) ||
+                    script.Equals(scriptAndHeader.Script))
                 {
                     _scripts.RemoveAt(i);
                     break;
@@ -72,8 +72,8 @@ namespace AGS.Types
 		{
             foreach (ScriptAndHeader scriptAndHeader in _scripts)
             {
-                if (scriptAndHeader.Header.Equals(scriptOrHeader)) return scriptAndHeader.Script;
-                if (scriptAndHeader.Script.Equals(scriptOrHeader)) return scriptAndHeader.Header;
+                if (scriptOrHeader.Equals(scriptAndHeader.Header)) return scriptAndHeader.Script;
+                if (scriptOrHeader.Equals(scriptAndHeader.Script)) return scriptAndHeader.Header;
             }
             return null;
 		}
@@ -108,7 +108,7 @@ namespace AGS.Types
             for (currentIndex = 0; currentIndex < _scripts.Count; currentIndex++)
             {
                 scriptAndHeader = _scripts[currentIndex];
-                if (scriptAndHeader.Header.Equals(script) || scriptAndHeader.Script.Equals(script))
+                if (script.Equals(scriptAndHeader.Header) || script.Equals(scriptAndHeader.Script))
                 {
                     index = currentIndex;
                     return scriptAndHeader;
@@ -128,9 +128,18 @@ namespace AGS.Types
         {
             get 
             {
-                int scriptAndHeaderIndex = index / 2;
-                if (index % 2 == 0) return _scripts[scriptAndHeaderIndex].Header;
-                return _scripts[scriptAndHeaderIndex].Script; 
+                int currentIndex = -1;
+                foreach (ScriptAndHeader scriptAndHeader in _scripts)
+                {
+                    if (scriptAndHeader.Header != null)
+                    {
+                        currentIndex++;
+                        if (currentIndex == index) return scriptAndHeader.Header;
+                    }
+                    currentIndex++;
+                    if (currentIndex == index) return scriptAndHeader.Script;
+                }
+                return null;
             }
         }
 
@@ -138,7 +147,7 @@ namespace AGS.Types
         {
             foreach (ScriptAndHeader scriptAndHeader in _scripts)
             {
-                if (scriptAndHeader.Header.FileName == filename)
+                if (scriptAndHeader.Header != null && scriptAndHeader.Header.FileName == filename)
                 {
                     return scriptAndHeader.Header;
                 }
@@ -152,7 +161,11 @@ namespace AGS.Types
 
         public IEnumerator GetEnumerator()
         {
-            return _scripts.GetEnumerator();
+            foreach (ScriptAndHeader scriptAndHeader in _scripts)
+            {
+                if (scriptAndHeader.Header != null) yield return scriptAndHeader.Header;
+                yield return scriptAndHeader.Script;
+            }
         }
 
         public void RefreshProjectTree(IAGSEditor editor, string selectedNodeID)
@@ -194,7 +207,7 @@ namespace AGS.Types
 
             foreach (ScriptAndHeader script in _scripts)
             {
-                script.Header.ToXml(writer);
+                if (script.Header != null) script.Header.ToXml(writer);
                 script.Script.ToXml(writer);
             }
 

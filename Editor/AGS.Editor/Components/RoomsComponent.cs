@@ -1244,7 +1244,7 @@ namespace AGS.Editor.Components
 				Room room;
 				if ((_loadedRoom == null) || (_loadedRoom.Number != unloadedRoom.Number))
 				{
-					UnloadCurrentRoom();
+					UnloadCurrentRoomAndGreyOutTree();
 					room = LoadNewRoomIntoMemory(unloadedRoom, errors);
 				}
 				else

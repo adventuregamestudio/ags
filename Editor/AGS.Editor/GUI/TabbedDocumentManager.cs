@@ -304,10 +304,10 @@ namespace AGS.Editor
                     if (ActiveDocumentChanged != null)
                     {
                         ActiveDocumentChanged(null);
-                    }
-                    RefreshWindowsMenu();            
+                    }                    
                 }
-            }            
+            }
+            RefreshWindowsMenu();            
         }
 
         private int _flipThroughPanesIndex = 0;

@@ -29,6 +29,7 @@
 #include "ac/overlay.h"
 #include "ac/record.h"
 #include "ac/screenoverlay.h"
+#include "ac/speech.h"
 #include "ac/string.h"
 #include "ac/topbarsettings.h"
 #include "debug/debug_log.h"
@@ -247,7 +248,7 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
         // 3 = only on keypress, no auto timer
         // 4 = mouse only
         int countdown = GetTextDisplayTime (todis);
-        int skip_setting = user_to_internal_skip_speech(play.skip_display);
+        int skip_setting = user_to_internal_skip_speech((SkipSpeechStyle)play.skip_display);
         while (1) {
             timerloop = 0;
             NEXT_ITERATION();

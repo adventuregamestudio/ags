@@ -2257,48 +2257,6 @@ void _DisplayThoughtCore(int chid, const char *displbuf) {
     _displayspeech ((char*)displbuf, chid, xpp, ypp, width, 1);
 }
 
-int user_to_internal_skip_speech(int userval) {
-    // 0 = click mouse or key to skip
-    if (userval == 0)
-        return SKIP_AUTOTIMER | SKIP_KEYPRESS | SKIP_MOUSECLICK;
-    // 1 = key only
-    else if (userval == 1)
-        return SKIP_AUTOTIMER | SKIP_KEYPRESS;
-    // 2 = can't skip at all
-    else if (userval == 2)
-        return SKIP_AUTOTIMER;
-    // 3 = only on keypress, no auto timer
-    else if (userval == 3)
-        return SKIP_KEYPRESS | SKIP_MOUSECLICK;
-    // 4 = mouse only
-    else if (userval == 4)
-        return SKIP_AUTOTIMER | SKIP_MOUSECLICK;
-    else
-        quit("user_to_internal_skip_speech: unknown userval");
-
-    return 0;
-}
-
-int internal_skip_speech_to_user(int internal_val)
-{
-    // 0 = click mouse or key to skip
-    if (internal_val == (SKIP_AUTOTIMER | SKIP_KEYPRESS | SKIP_MOUSECLICK))
-        return 0;
-    // 1 = key only
-    else if (internal_val == (SKIP_AUTOTIMER | SKIP_KEYPRESS))
-        return 1;
-    // 2 = can't skip at all
-    else if (internal_val == SKIP_AUTOTIMER)
-        return 2;
-    // 3 = only on keypress, no auto timer
-    else if (internal_val == (SKIP_KEYPRESS | SKIP_MOUSECLICK))
-        return 3;
-    // 4 = mouse only
-    else if (internal_val == (SKIP_AUTOTIMER | SKIP_MOUSECLICK))
-        return 4;
-    return 0;
-}
-
 void _displayspeech(char*texx, int aschar, int xx, int yy, int widd, int isThought) {
     if (!is_valid_character(aschar))
         quit("!DisplaySpeech: invalid character");

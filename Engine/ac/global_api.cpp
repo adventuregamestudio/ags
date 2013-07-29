@@ -1899,7 +1899,9 @@ RuntimeScriptValue Sc_SetScreenTransition(const RuntimeScriptValue *params, int3
 // void  (int newval)
 RuntimeScriptValue Sc_SetSkipSpeech(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_PINT(SetSkipSpeech);
+    ASSERT_PARAM_COUNT(SetSkipSpeech, 1);
+    SetSkipSpeech((SkipSpeechStyle)params[0].IValue);
+    return RuntimeScriptValue();
 }
 
 // void (int guin,int objn, int valn)

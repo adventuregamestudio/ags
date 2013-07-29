@@ -18,6 +18,8 @@
 #ifndef __AGS_EE_AC__GLOBALDISPLAY_H
 #define __AGS_EE_AC__GLOBALDISPLAY_H
 
+#include "ac/speech.h"
+
 void Display(const char*texx, ...);
 void DisplayAt(int xxp,int yyp,int widd, const char*texx, ...);
 void DisplayAtY (int ypos, const char *texx);
@@ -28,7 +30,7 @@ void DisplayTopBar(int ypos, int ttexcol, int backcol, const char *title, const 
 void DisplayMessageBar(int ypos, int ttexcol, int backcol, const char *title, int msgnum);
 
 void SetSpeechStyle (int newstyle);
-void SetSkipSpeech (int newval);
-int  GetSkipSpeech();
+void SetSkipSpeech (SkipSpeechStyle newval);
+SkipSpeechStyle GetSkipSpeech();
 
 #endif // __AGS_EE_AC__GLOBALDISPLAY_H

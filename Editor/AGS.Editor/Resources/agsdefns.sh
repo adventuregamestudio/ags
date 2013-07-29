@@ -2162,12 +2162,14 @@ struct GameState {
   int  stop_dialog_at_end;   // $AUTOCOMPLETEIGNORE$
   };
   
-enum SkipSpeechType {
+enum SkipSpeechStyle {
   eSkipKeyMouseTime = 0,
   eSkipKeyTime      = 1,
   eSkipTime         = 2,
   eSkipKeyMouse     = 3,
-  eSkipMouseTime    = 4
+  eSkipMouseTime    = 4,
+  eSkipKey          = 5,
+  eSkipMouse        = 6
 };
   
 managed struct Speech {
@@ -2180,7 +2182,7 @@ managed struct Speech {
   /// Gets/sets specific key which can skip speech text.
   import static attribute eKeyCode        SkipKey;
   /// Gets/sets how the player can skip speech lines.
-  import static attribute SkipSpeechType  SkipType;
+  import static attribute SkipSpeechStyle SkipStyle;
   /// Gets/sets the style in which speech is displayed.
   import static attribute eSpeechStyle    Style;
   /// Gets/sets how text in message boxes and Sierra-style speech is aligned.

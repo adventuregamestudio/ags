@@ -12,6 +12,76 @@
 //
 //=============================================================================
 
+#include "ac/common.h"
+#include "ac/runtime_defines.h"
+#include "ac/speech.h"
+
+int user_to_internal_skip_speech(SkipSpeechStyle userval)
+{
+    switch (userval)
+    {
+    case kSkipSpeechKeyMouseTime:
+        return SKIP_AUTOTIMER | SKIP_KEYPRESS | SKIP_MOUSECLICK;
+    case kSkipSpeechKeyTime:
+        return SKIP_AUTOTIMER | SKIP_KEYPRESS;
+    case kSkipSpeechTime:
+        return SKIP_AUTOTIMER;
+    case kSkipSpeechKeyMouse:
+        return SKIP_KEYPRESS | SKIP_MOUSECLICK;
+    case kSkipSpeechMouseTime:
+        return SKIP_AUTOTIMER | SKIP_MOUSECLICK;
+    case kSkipSpeechKey:
+        return SKIP_KEYPRESS;
+    case kSkipSpeechMouse:
+        return SKIP_MOUSECLICK;
+    default:
+        quit("user_to_internal_skip_speech: unknown userval");
+        return 0;
+    }
+}
+
+SkipSpeechStyle internal_skip_speech_to_user(int internal_val)
+{
+    if (internal_val & SKIP_AUTOTIMER)
+    {
+        internal_val &= ~SKIP_AUTOTIMER;
+        if (internal_val == (SKIP_KEYPRESS | SKIP_MOUSECLICK))
+        {
+            return kSkipSpeechKeyMouseTime;
+        }
+        else if (internal_val == SKIP_KEYPRESS)
+        {
+            return kSkipSpeechKeyTime;
+        }
+        else if (internal_val == SKIP_MOUSECLICK)
+        {
+            return kSkipSpeechMouseTime;
+        }
+    }
+    else
+    {
+        if (internal_val == (SKIP_KEYPRESS | SKIP_MOUSECLICK))
+        {
+            return kSkipSpeechKeyMouse;
+        }
+        else if (internal_val == SKIP_KEYPRESS)
+        {
+            return kSkipSpeechKey;
+        }
+        else if (internal_val == SKIP_MOUSECLICK)
+        {
+            return kSkipSpeechMouse;
+        }
+    }
+    return kSkipSpeechUndefined;
+}
+
+//=============================================================================
+//
+// Script API Functions
+//
+//=============================================================================
+
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
@@ -70,7 +140,7 @@ RuntimeScriptValue Sc_Speech_SetSkipKey(const RuntimeScriptValue *params, int32_
     API_VARSET_PINT(play.skip_speech_specific_key);
 }
 
-RuntimeScriptValue Sc_Speech_GetSkipType(const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Speech_GetSkipStyle(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(GetSkipSpeech);
 }
@@ -104,8 +174,8 @@ void RegisterSpeechAPI()
     ccAddExternalStaticFunction("Speech::set_PortraitY",              Sc_Speech_SetPortraitY);
     ccAddExternalStaticFunction("Speech::get_SkipKey",                Sc_Speech_GetSkipKey);
     ccAddExternalStaticFunction("Speech::set_SkipKey",                Sc_Speech_SetSkipKey);
-    ccAddExternalStaticFunction("Speech::get_SkipType",               Sc_Speech_GetSkipType);
-    ccAddExternalStaticFunction("Speech::set_SkipType",               Sc_SetSkipSpeech);
+    ccAddExternalStaticFunction("Speech::get_SkipStyle",              Sc_Speech_GetSkipStyle);
+    ccAddExternalStaticFunction("Speech::set_SkipStyle",              Sc_SetSkipSpeech);
     ccAddExternalStaticFunction("Speech::get_Style",                  Sc_Speech_GetStyle);
     ccAddExternalStaticFunction("Speech::set_Style",                  Sc_SetSpeechStyle);
     ccAddExternalStaticFunction("Speech::get_TextAlignment",          Sc_Speech_GetTextAlignment);

@@ -27,6 +27,7 @@
 #include "ac/global_translation.h"
 #include "ac/roomstruct.h"
 #include "ac/runtime_defines.h"
+#include "ac/speech.h"
 #include "ac/string.h"
 #include "ac/topbarsettings.h"
 #include "debug/debug_log.h"
@@ -187,20 +188,15 @@ void SetSpeechStyle (int newstyle) {
     game.options[OPT_SPEECHTYPE] = newstyle;
 }
 
-// 0 = click mouse or key to skip
-// 1 = key only
-// 2 = can't skip at all
-// 3 = only on keypress, no auto timer
-// 4 = mouseclick only
-void SetSkipSpeech (int newval) {
-    if ((newval < 0) || (newval > 4))
-        quit("!SetSkipSpeech: invalid skip mode specified (0-4)");
+void SetSkipSpeech (SkipSpeechStyle newval) {
+    if ((newval < kSkipSpeechFirst) || (newval > kSkipSpeechLast))
+        quit("!SetSkipSpeech: invalid skip mode specified");
 
     DEBUG_CONSOLE("SkipSpeech style set to %d", newval);
-    play.cant_skip_speech = user_to_internal_skip_speech(newval);
+    play.cant_skip_speech = user_to_internal_skip_speech((SkipSpeechStyle)newval);
 }
 
-int GetSkipSpeech()
+SkipSpeechStyle GetSkipSpeech()
 {
     return internal_skip_speech_to_user(play.cant_skip_speech);
 }

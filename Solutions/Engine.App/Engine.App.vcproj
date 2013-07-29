@@ -1423,6 +1423,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\ac\speech.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\ac\sprite.h"
 					>
 				</File>

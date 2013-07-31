@@ -366,7 +366,7 @@ namespace AGS.Types
 
         void SetHotspotCount(int count)
         {
-            if (count < 1 || count >= MAX_8BIT_MASK_REGIONS)
+            if (count < 1 || count > MAX_8BIT_MASK_REGIONS)
             {
                 throw new ArgumentOutOfRangeException("Hotspot count must be 1-256");
             }
@@ -393,7 +393,7 @@ namespace AGS.Types
 
         void SetWalkableAreaCount(int count)
         {
-            if (count < 1 || count >= MAX_8BIT_MASK_REGIONS)
+            if (count < 1 || count > MAX_8BIT_MASK_REGIONS)
             {
                 throw new ArgumentOutOfRangeException("Walkable area count must be 1-256");
             }
@@ -418,7 +418,7 @@ namespace AGS.Types
 
         void SetWalkBehindCount(int count)
         {
-            if (count < 1 || count >= MAX_8BIT_MASK_REGIONS)
+            if (count < 1 || count > MAX_8BIT_MASK_REGIONS)
             {
                 throw new ArgumentOutOfRangeException("Walk-behind count must be 1-256");
             }
@@ -443,7 +443,7 @@ namespace AGS.Types
 
         void SetRegionCount(int count)
         {
-            if (count < 1 || count >= MAX_8BIT_MASK_REGIONS)
+            if (count < 1 || count > MAX_8BIT_MASK_REGIONS)
             {
                 throw new ArgumentOutOfRangeException("Region count must be 1-256");
             }

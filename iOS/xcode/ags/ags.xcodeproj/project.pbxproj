@@ -57,6 +57,8 @@
 		60898DCC160785DD009E152F /* gfxfilter_hq3x.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60898DCB160785DD009E152F /* gfxfilter_hq3x.cpp */; };
 		60898DD6160787FF009E152F /* hq2x3x.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60898DD4160787FF009E152F /* hq2x3x.cpp */; };
 		608B4E57163BF27B00547FAA /* libc.c in Sources */ = {isa = PBXBuildFile; fileRef = 608B4E56163BF27B00547FAA /* libc.c */; };
+		608D787C176B82D300E48976 /* speech.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 608D787B176B82D300E48976 /* speech.cpp */; };
+		608D788B176B832C00E48976 /* gfx_util.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 608D7889176B832C00E48976 /* gfx_util.cpp */; };
 		60BC89A8155E969700807358 /* iTunesArtwork in Resources */ = {isa = PBXBuildFile; fileRef = 60BC89A7155E969700807358 /* iTunesArtwork */; };
 		60CA3A66160713D300CFB3BD /* audiocliptype.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA39AB160713D200CFB3BD /* audiocliptype.cpp */; };
 		60CA3A67160713D300CFB3BD /* common.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 60CA39AE160713D200CFB3BD /* common.cpp */; };
@@ -407,6 +409,10 @@
 		60898DCB160785DD009E152F /* gfxfilter_hq3x.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gfxfilter_hq3x.cpp; sourceTree = "<group>"; };
 		60898DD4160787FF009E152F /* hq2x3x.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = hq2x3x.cpp; sourceTree = "<group>"; };
 		608B4E56163BF27B00547FAA /* libc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = libc.c; path = util/libc.c; sourceTree = "<group>"; };
+		608D787A176B82C600E48976 /* speech.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = speech.h; sourceTree = "<group>"; };
+		608D787B176B82D300E48976 /* speech.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = speech.cpp; sourceTree = "<group>"; };
+		608D7889176B832C00E48976 /* gfx_util.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gfx_util.cpp; sourceTree = "<group>"; };
+		608D788A176B832C00E48976 /* gfx_util.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gfx_util.h; sourceTree = "<group>"; };
 		60BC89A7155E969700807358 /* iTunesArtwork */ = {isa = PBXFileReference; lastKnownFileType = file; path = iTunesArtwork; sourceTree = "<group>"; };
 		60CA39AA160713D200CFB3BD /* animationstruct.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = animationstruct.h; sourceTree = "<group>"; };
 		60CA39AB160713D200CFB3BD /* audiocliptype.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audiocliptype.cpp; sourceTree = "<group>"; };
@@ -1563,6 +1569,8 @@
 		60CA3AA8160713FD00CFB3BD /* ac */ = {
 			isa = PBXGroup;
 			children = (
+				608D787B176B82D300E48976 /* speech.cpp */,
+				608D787A176B82C600E48976 /* speech.h */,
 				608781941695922900AC84FE /* global_api.cpp */,
 				60DC155016675BBE002D0474 /* statobj */,
 				60DC154916675B70002D0474 /* richgamemedia.cpp */,
@@ -1868,6 +1876,8 @@
 		60CA3BBD160713FE00CFB3BD /* gfx */ = {
 			isa = PBXGroup;
 			children = (
+				608D7889176B832C00E48976 /* gfx_util.cpp */,
+				608D788A176B832C00E48976 /* gfx_util.h */,
 				60898DCB160785DD009E152F /* gfxfilter_hq3x.cpp */,
 				60898DC9160785CB009E152F /* gfxfilter_hq2x.cpp */,
 				60CA3BBE160713FE00CFB3BD /* ali3d.h */,
@@ -2625,6 +2635,8 @@
 				6007696216E9F56E00DCE88E /* test_version.cpp in Sources */,
 				6007696416E9F57A00DCE88E /* test_sprintf.cpp in Sources */,
 				6007696C16E9F61600DCE88E /* version.cpp in Sources */,
+				608D787C176B82D300E48976 /* speech.cpp in Sources */,
+				608D788B176B832C00E48976 /* gfx_util.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -675,7 +675,7 @@ void AGSAndroid::WriteDebugString(const char* texx, ...)
     va_start(ap,texx);
     vsprintf(&displbuf[5],texx,ap);
     va_end(ap);
-    __android_log_print(ANDROID_LOG_DEBUG, "AGSNative", displbuf);
+    __android_log_print(ANDROID_LOG_DEBUG, "AGSNative", "%s", displbuf);
   }
 }
 
@@ -712,7 +712,7 @@ void AGSAndroid::DisplayAlert(const char *text, ...) {
   JNIEnv* thread_env;
   android_jni_vm->AttachCurrentThread(&thread_env, NULL);
 
-  __android_log_print(ANDROID_LOG_DEBUG, "AGSNative", displbuf);
+  __android_log_print(ANDROID_LOG_DEBUG, "AGSNative", "%s", displbuf);
 
   jstring java_string = thread_env->NewStringUTF(displbuf);
   thread_env->CallVoidMethod(java_object, java_messageCallback, java_string);
@@ -765,7 +765,7 @@ void AGSAndroid::WriteConsole(const char *text, ...) {
   va_start(ap, text);
   vsprintf(displbuf, text, ap);
   va_end(ap);
-  __android_log_print(ANDROID_LOG_DEBUG, "AGSNative", displbuf);  
+  __android_log_print(ANDROID_LOG_DEBUG, "AGSNative", "%s", displbuf);  
 }
 
 void AGSAndroid::ShutdownCDPlayer() {

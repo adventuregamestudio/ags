@@ -13,7 +13,7 @@ void android_debug_printf(char* format, ...)
   vsprintf(buffer, format, ap);
   va_end(ap);
 
-  __android_log_print(ANDROID_LOG_DEBUG, "Allegro", buffer);
+  __android_log_print(ANDROID_LOG_DEBUG, "Allegro", "%s", buffer);
 }
 
 int IsDataFile(version_info_t* version_info)

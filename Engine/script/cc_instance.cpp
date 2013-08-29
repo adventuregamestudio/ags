@@ -1208,23 +1208,29 @@ int ccInstance::Run(int32_t curpc)
               cc_error("!Null pointer referenced");
               return -1;
           }
-          if (reg1.Type == kScValDynamicObject || reg1.Type == kScValPluginObject ||
-              // This might be an object of USER-DEFINED type, calling its MEMBER-FUNCTION.
-              // Note, that this is the only case known when such object is written into reg[SREG_OP];
-              // in any other case that would count as error.
-              reg1.Type == kScValGlobalVar || reg1.Type == kScValStackPtr
-              )
+          switch (reg1.Type)
           {
+          // This might be a static object, passed to the user-defined extender function
+          case kScValStaticObject:
+          case kScValDynamicObject:
+          case kScValPluginObject:
+          // This might be an object of USER-DEFINED type, calling its MEMBER-FUNCTION.
+          // Note, that this is the only case known when such object is written into reg[SREG_OP];
+          // in any other case that would count as error. 
+          case kScValGlobalVar:
+          case kScValStackPtr:
               registers[SREG_OP] = reg1;
-          }
-          else if (reg1.Type == kScValStaticArray && reg1.StcArr->GetDynamicManager())
-          {
-              registers[SREG_OP].SetDynamicObject(
-                  (char*)reg1.StcArr->GetElementPtr(reg1.Ptr, reg1.IValue),
-                  reg1.StcArr->GetDynamicManager());
-          }
-          else
-          {
+              break;
+          case kScValStaticArray:
+              if (reg1.StcArr->GetDynamicManager())
+              {
+                  registers[SREG_OP].SetDynamicObject(
+                      (char*)reg1.StcArr->GetElementPtr(reg1.Ptr, reg1.IValue),
+                      reg1.StcArr->GetDynamicManager());
+                  break;
+              }
+              // fall-through intended
+          default:
               cc_error("internal error: SCMD_CALLOBJ argument is not an object of built-in or user-defined type");
               return -1;
           }

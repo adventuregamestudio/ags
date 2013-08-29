@@ -246,7 +246,7 @@ int Game_IsAudioPlaying(int audioType)
     for (int aa = 0; aa < MAX_SOUND_CHANNELS; aa++)
     {
         ScriptAudioClip *clip = AudioChannel_GetPlayingClip(&scrAudioChannel[aa]);
-        if (clip != NULL) 
+        if (clip != NULL)
         {
             if ((clip->type == audioType) || (audioType == SCR_NO_VALUE))
             {
@@ -402,7 +402,7 @@ int SetSaveGameDirectoryPath(const char *newFolder, bool allowAbsolute)
 
 int Game_SetSaveGameDirectory(const char *newFolder)
 {
-	SetSaveGameDirectoryPath(newFolder, false);
+	return SetSaveGameDirectoryPath(newFolder, false);
 }
 
 
@@ -478,13 +478,13 @@ void setup_sierra_interface() {
 }
 
 
-void free_do_once_tokens() 
+void free_do_once_tokens()
 {
     for (int i = 0; i < play.num_do_once_tokens; i++)
     {
         free(play.do_once_tokens[i]);
     }
-    if (play.do_once_tokens != NULL) 
+    if (play.do_once_tokens != NULL)
     {
         free(play.do_once_tokens);
         play.do_once_tokens = NULL;
@@ -980,7 +980,7 @@ void safeguard_string (unsigned char *descript) {
 }
 
 // On Windows we could just use IIDFromString but this is platform-independant
-void convert_guid_from_text_to_binary(const char *guidText, unsigned char *buffer) 
+void convert_guid_from_text_to_binary(const char *guidText, unsigned char *buffer)
 {
     guidText++; // skip {
     for (int bytesDone = 0; bytesDone < 16; bytesDone++)
@@ -1036,7 +1036,7 @@ Bitmap *read_serialized_bitmap(Stream *in) {
     return thispic;
 }
 
-long write_screen_shot_for_vista(Stream *out, Bitmap *screenshot) 
+long write_screen_shot_for_vista(Stream *out, Bitmap *screenshot)
 {
     long fileSize = 0;
     char tempFileName[MAX_PATH];
@@ -1432,7 +1432,7 @@ void save_game_data (Stream *out, Bitmap *screenshot) {
 
     out->WriteInt32 (MAGICNUMBER+1);
 
-    save_game_audioclips_and_crossfade(out);  
+    save_game_audioclips_and_crossfade(out);
 
     // [IKM] Plugins expect FILE pointer! // TODO something with this later...
     platform->RunPluginHooks(AGSE_SAVEGAME, (long)((Common::FileStream*)out)->GetHandle());
@@ -1695,7 +1695,7 @@ void restore_game_clean_scripts()
     }
 }
 
-void restore_game_scripts(Stream *in, int &gdatasize, char **newglobaldatabuffer, 
+void restore_game_scripts(Stream *in, int &gdatasize, char **newglobaldatabuffer,
                           char **scriptModuleDataBuffers, int *scriptModuleDataSize)
 {
     // read the global script data segment
@@ -1984,10 +1984,10 @@ void restore_game_displayed_room_status(Stream *in, Bitmap **newbscene)
 
         if (troom.tsdata != NULL)
             free (troom.tsdata);
-        
+
         // get the current troom, in case they save in room 600 or whatever
         ReadRoomStatus_Aligned(&troom, in);
-        
+
         if (troom.tsdatasize > 0) {
             troom.tsdata=(char*)malloc(troom.tsdatasize+5);
             in->Read(&troom.tsdata[0],troom.tsdatasize);
@@ -1999,7 +1999,7 @@ void restore_game_displayed_room_status(Stream *in, Bitmap **newbscene)
 
 void restore_game_globalvars(Stream *in)
 {
-    if (in->ReadInt32() != numGlobalVars) 
+    if (in->ReadInt32() != numGlobalVars)
         quit("!Game has been modified since save; unable to restore game (GM01)");
 
     for (int i = 0; i < numGlobalVars; ++i)
@@ -2091,7 +2091,7 @@ int restore_game_data (Stream *in, const char *nametouse) {
         return res;
     }
 
-    restore_game_spriteset(in); 
+    restore_game_spriteset(in);
 
     clear_music_cache();
     restore_game_clean_gfx();
@@ -2135,7 +2135,7 @@ int restore_game_data (Stream *in, const char *nametouse) {
     if (game.numviews != numviewswas)
         quit("!Restore_Game: Game has changed (views), unable to restore position");
 
-    game.ReadFromSaveGame_v321(in, gswas, compsc, chwas, olddict, mesbk); 
+    game.ReadFromSaveGame_v321(in, gswas, compsc, chwas, olddict, mesbk);
     //
     //in->ReadArray(&game.invinfo[0], sizeof(InventoryItemInfo), game.numinvitems);
     //in->ReadArray(&game.mcurs[0], sizeof(MouseCursor), game.numcursors);
@@ -2164,7 +2164,7 @@ int restore_game_data (Stream *in, const char *nametouse) {
     ReadCharacterExtras_Aligned(in);
     if (roominst!=NULL) {  // so it doesn't overwrite the tsdata
         delete roominstFork;
-        delete roominst; 
+        delete roominst;
         roominstFork = NULL;
         roominst=NULL;
     }
@@ -2579,9 +2579,9 @@ void stop_fast_forwarding() {
     // Restore actual volume of sounds
     for (int aa = 0; aa < MAX_SOUND_CHANNELS; aa++)
     {
-        if ((channels[aa] != NULL) && (!channels[aa]->done) && 
+        if ((channels[aa] != NULL) && (!channels[aa]->done) &&
             (channels[aa]->volAsPercentage == 0) &&
-            (channels[aa]->originalVolAsPercentage > 0)) 
+            (channels[aa]->originalVolAsPercentage > 0))
         {
             channels[aa]->volAsPercentage = channels[aa]->originalVolAsPercentage;
             channels[aa]->set_volume((channels[aa]->volAsPercentage * 255) / 100);

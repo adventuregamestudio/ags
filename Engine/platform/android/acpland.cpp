@@ -103,6 +103,7 @@ extern void PauseGame();
 extern void UnPauseGame();
 extern int main(int argc,char*argv[]);
 
+char android_base_directory[256];
 char android_app_directory[256];
 char psp_game_file_name[256];
 char* psp_game_file_name_pointer = psp_game_file_name;
@@ -468,6 +469,7 @@ JNIEXPORT jboolean JNICALL
   // Get the base directory (usually "/sdcard/ags").
   const char* cdirectory = java_environment->GetStringUTFChars(directory, NULL);
   chdir(cdirectory);
+  strcpy(android_base_directory, cdirectory);
   java_environment->ReleaseStringUTFChars(directory, cdirectory);
 
   // Get the app directory (something like "/data/data/com.bigbluecup.android.launcher")

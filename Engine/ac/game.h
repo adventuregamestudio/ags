@@ -63,6 +63,7 @@ int Game_GetMODPattern();
 //=============================================================================
 int Game_GetDialogCount();
 
+int SetSaveGameDirectoryPath(const char *newFolder, bool allowAbsolutePaths);
 int Game_SetSaveGameDirectory(const char *newFolder);
 const char* Game_GetSaveSlotDescription(int slnum);
 

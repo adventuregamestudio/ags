@@ -348,14 +348,13 @@ String get_save_game_path(int slotNum) {
     return path;
 }
 
-
-
-int Game_SetSaveGameDirectory(const char *newFolder) {
+int SetSaveGameDirectoryPath(const char *newFolder, bool allowAbsolute)
+{
 
     // don't allow them to go to another folder
-    if ((newFolder[0] == '/') || (newFolder[0] == '\\') ||
+    if ((!allowAbsolute) && ((newFolder[0] == '/') || (newFolder[0] == '\\') ||
         (newFolder[0] == ' ') ||
-        ((newFolder[0] != 0) && (newFolder[1] == ':')))
+        ((newFolder[0] != 0) && (newFolder[1] == ':'))))
         return 0;
 
     char newSaveGameDir[260];
@@ -374,7 +373,8 @@ int Game_SetSaveGameDirectory(const char *newFolder) {
     strcpy(newFolderTempFile, newSaveGameDir);
     strcat(newFolderTempFile, "agstmp.tmp");
 
-    if (!Common::File::TestCreateFile(newFolderTempFile)) {
+    if (!Common::File::TestCreateFile(newFolderTempFile))
+	{
         return 0;
     }
 
@@ -382,7 +382,8 @@ int Game_SetSaveGameDirectory(const char *newFolder) {
     char restartGamePath[260];
     sprintf(restartGamePath, "%s""agssave.%d%s", saveGameDirectory, RESTART_POINT_SAVE_GAME_NUMBER, saveGameSuffix);
     Stream *restartGameFile = Common::File::OpenFileRead(restartGamePath);
-    if (restartGameFile != NULL) {
+    if (restartGameFile != NULL)
+	{
         long fileSize = restartGameFile->GetLength();
         char *mbuffer = (char*)malloc(fileSize);
         restartGameFile->Read(mbuffer, fileSize);
@@ -397,6 +398,11 @@ int Game_SetSaveGameDirectory(const char *newFolder) {
 
     strcpy(saveGameDirectory, newSaveGameDir);
     return 1;
+}
+
+int Game_SetSaveGameDirectory(const char *newFolder)
+{
+	SetSaveGameDirectoryPath(newFolder, false);
 }
 
 

@@ -820,6 +820,10 @@ void engine_init_directories()
     }
 }
 
+#if defined(ANDROID_VERSION)
+extern char android_base_directory[256];
+#endif // ANDROID_VERSION
+
 int check_write_access() {
 
   if (platform->GetDiskFreeSpaceMB() < 2)
@@ -832,7 +836,17 @@ int check_write_access() {
   sprintf(tempPath, "%s""tmptest.tmp", saveGameDirectory);
   Stream *temp_s = Common::File::CreateFile(tempPath);
   if (!temp_s)
+#if defined(ANDROID_VERSION)
+  {
+	  put_backslash(android_base_directory);
+	  sprintf(tempPath, "%s""tmptest.tmp", android_base_directory);
+	  temp_s = Common::File::CreateFile(tempPath);
+	  if (temp_s == NULL) return 0;
+	  else SetSaveGameDirectoryPath(android_base_directory, true);
+  }
+#else
     return 0;
+#endif // ANDROID_VERSION
 
   our_eip = -1896;
 

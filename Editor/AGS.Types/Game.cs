@@ -18,7 +18,9 @@ namespace AGS.Types
         private const int NUMBER_OF_GLOBAL_MESSAGES = 500;
         private const int GLOBAL_MESSAGE_ID_START = 500;
 
+        public const int MAX_CURSORS = 20;
         public const int MAX_DIALOGS = 500;
+        public const int MAX_FONTS = 15;
         public const int MAX_INV_ITEMS = 300;
         public const int MAX_SPRITES = 30000;
 

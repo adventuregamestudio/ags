@@ -38,6 +38,11 @@ namespace AGS.Editor.Components
         {
             if (controlID == COMMAND_NEW_ITEM)
             {
+                if (_agsEditor.CurrentGame.Cursors.Count == Game.MAX_CURSORS)
+                {
+                    Factory.GUIController.ShowMessage("You already have the maximum number of cursors in your game, and cannot add any more.", MessageBoxIcon.Warning);
+                    return;
+                }
                 IList<MouseCursor> items = _agsEditor.CurrentGame.Cursors;
                 MouseCursor newItem = new MouseCursor();
                 newItem.ID = items.Count;

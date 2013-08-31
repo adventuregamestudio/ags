@@ -52,6 +52,11 @@ namespace AGS.Editor.Components
         {
             if (controlID == COMMAND_NEW_ITEM)
             {
+                if (_agsEditor.CurrentGame.Dialogs.Count == Game.MAX_DIALOGS)
+                {
+                    Factory.GUIController.ShowMessage("You already have the maximum number of dialogs in your game, and cannot add any more.", MessageBoxIcon.Warning);
+                    return;
+                }
                 Dialog newItem = new Dialog();
                 newItem.ID = _agsEditor.CurrentGame.RootDialogFolder.GetAllItemsCount();
                 newItem.Name = _agsEditor.GetFirstAvailableScriptName("dDialog");

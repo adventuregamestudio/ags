@@ -39,6 +39,11 @@ namespace AGS.Editor.Components
         {
             if (controlID == COMMAND_NEW_ITEM)
             {
+                if (_agsEditor.CurrentGame.Fonts.Count == Game.MAX_FONTS)
+                {
+                    Factory.GUIController.ShowMessage("You already have the maximum number of fonts in your game, and cannot add any more.", MessageBoxIcon.Warning);
+                    return;
+                }
                 IList<AGS.Types.Font> items = _agsEditor.CurrentGame.Fonts;
                 AGS.Types.Font newItem = new AGS.Types.Font();
                 newItem.ID = items.Count;
